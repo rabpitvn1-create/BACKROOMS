@@ -1,0 +1,26 @@
+plugins { id 'com.android.application' }
+
+def secret = { name ->
+  def value = System.getenv(name) ?: ""
+  return value.replace("\\", "\\\\").replace("\"", "\\\"")
+}
+
+android {
+  namespace 'com.rabpit.backroom'
+  compileSdk 35
+
+  defaultConfig {
+    applicationId 'com.rabpit.backroom'
+    minSdk 24
+    targetSdk 35
+    versionCode 1
+    versionName '1.0.0'
+    buildConfigField "String", "GEMINI_API_KEY_1", "\"" + secret("GEMINI_API_KEY_1") + "\""
+    buildConfigField "String", "GEMINI_API_KEY_2", "\"" + secret("GEMINI_API_KEY_2") + "\""
+    buildConfigField "String", "GEMINI_API_KEY_3", "\"" + secret("GEMINI_API_KEY_3") + "\""
+    buildConfigField "String", "GEMINI_API_KEY_4", "\"" + secret("GEMINI_API_KEY_4") + "\""
+  }
+
+  buildFeatures { buildConfig true }
+}
+
