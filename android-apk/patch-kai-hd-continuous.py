@@ -1,14 +1,10 @@
 from pathlib import Path
-import hashlib
 import shutil
 
 ROOT = Path(__file__).resolve().parent
 MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
 HD_SOURCE = ROOT / "kai_snapshot_overlay_hd.webp"
 OVERLAY = ROOT / "app/src/main/assets/kai_snapshot_overlay.webp"
-
-EXPECTED_SIZE = 122438
-EXPECTED_SHA256 = "d32a90ecd9710129f9c464dbdb3c3f523238165a386c612080a0d0baac8e6bbc"
 
 
 def replace_once(text: str, old: str, new: str, label: str) -> str:
@@ -19,13 +15,19 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
 
 
 # Use the user's current Kai artwork as the authoritative overlay.
+# Do not pin the byte size/hash: replacing Kai with another high-quality revision
+# must not break the APK build simply because the asset changed.
 raw = HD_SOURCE.read_bytes()
-if len(raw) != EXPECTED_SIZE:
-    raise RuntimeError(f"HD Kai asset size mismatch: {len(raw)} != {EXPECTED_SIZE}")
-if hashlib.sha256(raw).hexdigest() != EXPECTED_SHA256:
-    raise RuntimeError("HD Kai asset SHA-256 mismatch")
-if len(raw) < 16 or raw[:4] != b"RIFF" or raw[8:12] != b"WEBP":
+if len(raw) < 30 or raw[:4] != b"RIFF" or raw[8:12] != b"WEBP":
     raise RuntimeError("HD Kai asset is not a valid WebP container")
+
+width = height = 0
+if raw[12:16] == b"VP8X" and len(raw) >= 30:
+    width = 1 + int.from_bytes(raw[24:27], "little")
+    height = 1 + int.from_bytes(raw[27:30], "little")
+    if width < 512 or height < 768:
+        raise RuntimeError(f"HD Kai asset is too small: {width}x{height}; need at least 512x768")
+
 OVERLAY.parent.mkdir(parents=True, exist_ok=True)
 shutil.copyfile(HD_SOURCE, OVERLAY)
 
@@ -91,6 +93,6 @@ main = replace_once(main, old_tail, new_tail, "always-start Snapshot cycle")
 
 MAIN.write_text(main, encoding="utf-8")
 print(
-    "HD Kai installed (448x672, quality 100, alpha preserved). "
+    f"HD Kai installed ({width or 'WebP'}x{height or 'WebP'}, high-quality alpha asset). "
     "Snapshot auto-refresh enabled every 30s after each completion/error, including same-turn idle."
 )
