@@ -23,6 +23,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Apply provider, DNS and Kai overlay patch
         run: python3 android-apk/patch-provider-status.py
+      - name: Apply Level 0-6 Snapshot fallback backgrounds
+        run: python3 android-apk/patch-level-snapshot-backgrounds.py
       - name: Apply Snapshot provider fallback patch
         run: python3 android-apk/patch-snapshot-fallback.py
       - uses: actions/setup-java@v4
