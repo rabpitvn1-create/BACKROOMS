@@ -16,7 +16,7 @@ def sub_once(pattern: str, replacement, text: str, label: str, flags=0) -> str:
 main = sub_once(
     r'  private static final String GEMINI_IMAGE_MODEL = "gemini-3\.1-flash-image";\n',
     '  private static final String[] GEMINI_IMAGE_MODELS = {"gemini-3.1-flash-image", "gemini-3.1-flash-lite-image"};\n'
-    '  private static final String[] OPENAI_IMAGE_MODELS = {"gpt-image-2", "gpt-image-1-mini"};\n',
+    '  private static final String[] OPENAI_IMAGE_MODELS = {"gpt-image-2", "gpt-image-1.5", "gpt-image-1-mini"};\n',
     main,
     "image model families",
 )
@@ -92,21 +92,24 @@ new_pipeline = r'''  private SnapshotImage geminiImageModel(String prompt, Strin
         JSONObject body = new JSONObject()
           .put("model", model)
           .put("prompt", prompt)
-          .put("size", "1536x1024")
-          .put("quality", "low")
-          .put("output_format", "jpeg");
+          .put("size", "1536x1024");
+        if (attempt == 0) {
+          body.put("quality", "low").put("output_format", "jpeg");
+        }
         JSONObject result = new JSONObject(postJson("https://api.openai.com/v1/images/generations", BuildConfig.OPENAI_API_KEY, "Authorization", body));
         JSONArray data = result.optJSONArray("data");
         JSONObject first = data != null ? data.optJSONObject(0) : null;
         String imageData = first != null ? first.optString("b64_json", "") : "";
         if (imageData.isEmpty()) throw new Exception("GPT Image không trả ảnh.");
         if (imageData.length() > MAX_SNAPSHOT_BASE64) throw new Exception("Snapshot GPT quá lớn để hiển thị trong APK.");
-        return new SnapshotImage(imageData, "image/jpeg", model, "GPT");
+        String mimeType = attempt == 0 ? "image/jpeg" : "image/png";
+        return new SnapshotImage(imageData, mimeType, model, "GPT");
       } catch (Exception e) {
         last = e;
         if (networkFailure(e)) throw e;
         int code = e instanceof HttpError ? ((HttpError)e).status : 0;
         if (code == 429) break;
+        if (code == 400 && attempt == 0) continue;
         if (attempt == 0 && (code == 0 || retryable(code))) {
           try { Thread.sleep(400); } catch (InterruptedException ignored) {}
           continue;
@@ -117,6 +120,17 @@ new_pipeline = r'''  private SnapshotImage geminiImageModel(String prompt, Strin
     throw last != null ? last : new Exception("GPT Image không tạo được ảnh.");
   }
 
+  private String compactProviderDetail(Exception error) {
+    if (error == null || error.getMessage() == null) return "";
+    String message = error.getMessage().replace('\n', ' ').replace('\r', ' ').trim();
+    if (message.startsWith("Provider HTTP ")) {
+      int colon = message.indexOf(": ");
+      if (colon >= 0 && colon + 2 < message.length()) message = message.substring(colon + 2);
+    }
+    if (message.length() > 180) message = message.substring(0, 180) + "…";
+    return message;
+  }
+
   private String friendlyImageFailure(String provider, Exception error) {
     if (error == null) return provider + ": không khả dụng";
     if (networkFailure(error)) return provider + ": lỗi mạng/DNS";
@@ -125,8 +139,15 @@ new_pipeline = r'''  private SnapshotImage geminiImageModel(String prompt, Strin
     if (code == 401) return provider + ": API key không hợp lệ hoặc chưa được cấu hình";
     if (code == 403) return provider + ": API key chưa có quyền dùng model ảnh";
     if (code == 404) return provider + ": model ảnh không khả dụng";
-    if (code == 400) return provider + ": yêu cầu tạo ảnh bị provider từ chối";
     String message = error.getMessage() == null ? "" : error.getMessage();
+    String lower = message.toLowerCase();
+    if (code == 400) {
+      if (lower.contains("verif")) return provider + ": tổ chức/tài khoản chưa được xác minh để dùng model ảnh";
+      if (lower.contains("billing") || lower.contains("credit") || lower.contains("payment")) return provider + ": billing/credit không cho phép tạo ảnh";
+      if (lower.contains("model") && (lower.contains("access") || lower.contains("not found") || lower.contains("does not exist"))) return provider + ": tài khoản chưa có quyền dùng model ảnh";
+      String detail = compactProviderDetail(error);
+      return provider + ": HTTP 400" + (detail.isEmpty() ? "" : " - " + detail);
+    }
     if (message.contains("chưa có API key")) return provider + ": chưa có API key";
     if (message.contains("quá lớn")) return provider + ": ảnh trả về quá lớn";
     return provider + ": không tạo được ảnh";
@@ -237,4 +258,4 @@ main = sub_once(
 )
 
 MAIN.write_text(main, encoding="utf-8")
-print("Snapshot fallback patched: Gemini image models -> GPT Image models, DNS-aware.")
+print("Snapshot fallback patched: Gemini -> GPT Image 2/1.5/1 mini, with 400 diagnostics.")
