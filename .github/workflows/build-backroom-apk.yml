@@ -23,6 +23,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Apply provider status patch
         run: python3 android-apk/patch-provider-status.py
+      - name: Apply snapshot fallback patch
+        run: python3 android-apk/patch-snapshot-fallback.py
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
