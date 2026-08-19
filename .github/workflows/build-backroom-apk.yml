@@ -21,6 +21,10 @@ jobs:
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || secrets.GEMINI_API_KEY_1 || secrets.GEMINI_API_KEY_2 || secrets.GEMINI_API_KEY_3 || secrets.GEMINI_API_KEY_4 }}
     steps:
       - uses: actions/checkout@v4
+      - name: Validate Luna configuration
+        run: |
+          test -n "$LUNA_API_KEY" || (echo "Missing GitHub Secret: LUNA_API_KEY" && exit 1)
+          test -n "$LUNA_MODEL" || (echo "Missing GitHub Secret: LUNA_MODEL" && exit 1)
       - name: Apply provider, DNS and Kai overlay patch
         run: python3 android-apk/patch-provider-status.py
       - name: Apply Luna primary Game Master patch
@@ -66,7 +70,7 @@ jobs:
           - Luna tự retry tối đa 3 lần cho lỗi socket/connection abort và lỗi mạng tạm thời.
           - Text fallback: Luna -> Gemini -> GPT; GPT chỉ được thử khi có OpenAI key.
           - Base URL Luna cố định ở https://api.vilao.ai/v1; API key và model lấy từ GitHub Secrets LUNA_API_KEY và LUNA_MODEL.
-          - Đã loại toàn bộ CLAUDE_* và patch Claude khỏi build hiện hành.
+          - Provider cũ đã bị loại khỏi BuildConfig và workflow build hiện hành.
           - Snapshot vẫn dùng Gemini -> GPT Image và chỉ tự tạo khi có sự kiện hình ảnh đáng kể.
           EOF
           )
