@@ -27,6 +27,8 @@ jobs:
         run: python3 android-apk/patch-level-snapshot-backgrounds.py
       - name: Apply Snapshot provider fallback patch
         run: python3 android-apk/patch-snapshot-fallback.py
+      - name: Apply HD Kai and continuous Snapshot patch
+        run: python3 android-apk/patch-kai-hd-continuous.py
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
