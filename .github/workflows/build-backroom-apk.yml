@@ -37,6 +37,8 @@ jobs:
         run: python3 android-apk/patch-kai-hd-continuous.py
       - name: Finalize verified Kai overlay
         run: python3 android-apk/finalize-kai-overlay.py
+      - name: Inject Kai R05 character codex
+        run: python3 android-apk/patch-kai-codex.py
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -72,6 +74,7 @@ jobs:
           - Base URL Luna cố định ở https://api.vilao.ai/v1; API key và model lấy từ GitHub Secrets LUNA_API_KEY và LUNA_MODEL.
           - Provider cũ đã bị loại khỏi BuildConfig và workflow build hiện hành.
           - Snapshot vẫn dùng Gemini -> GPT Image và chỉ tự tạo khi có sự kiện hình ảnh đáng kể.
+          - Game Master nạp Kai Akechi / Twilight R05 operational codex ở mỗi lượt để khóa đúng năng lực, trang bị, giới hạn và cách giao tiếp.
           EOF
           )
           if gh release view "$TAG" >/dev/null 2>&1; then
