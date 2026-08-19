@@ -1,0 +1,1 @@
+Kai overlay is packaged in app/src/main/assets/kai_snapshot_overlay.webp. The build patch refreshes it from the HD source before Gradle, while this source asset guarantees the WebView path exists in the APK source tree.
