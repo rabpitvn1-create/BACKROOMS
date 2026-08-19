@@ -18,7 +18,19 @@ parts = sorted(PARTS_DIR.glob("part*.b64"))
 if len(parts) != EXPECTED_PARTS:
     raise RuntimeError(f"Kai overlay: expected {EXPECTED_PARTS} parts, found {len(parts)}")
 
-encoded = "".join(p.read_text(encoding="ascii").strip() for p in parts)
+chunks = []
+for p in parts:
+    text = p.read_text(encoding="ascii").strip()
+    if p.name == "part06.b64":
+        bad = "daZQ+0NyetGQvfErzgXi5lByzmQTpZaglK1PqM+CJw51oC178hyZ7P2j6hAq6"
+        good = "daZQ+0NyetGQvfErzgXi5lByzmQTpZeglK1PqM+CJw51oC178hyZ7P2j6hAq6"
+        count = text.count(bad)
+        if count != 1:
+            raise RuntimeError(f"Kai overlay: expected one known part06 corruption, found {count}")
+        text = text.replace(bad, good, 1)
+    chunks.append(text)
+
+encoded = "".join(chunks)
 raw = base64.b64decode(encoded, validate=True)
 sha = hashlib.sha256(raw).hexdigest()
 
