@@ -13,13 +13,13 @@ android {
     applicationId 'com.rabpit.backroom'
     minSdk 24
     targetSdk 35
-    versionCode 23
-    versionName '1.1.21'
+    versionCode 24
+    versionName '1.1.22'
     buildConfigField "String", "CLAUDE_API_KEY", "\"" + secret("CLAUDE_API_KEY") + "\""
     buildConfigField "String", "CLAUDE_BASE_URL", "\"" + secret("CLAUDE_BASE_URL") + "\""
     buildConfigField "String", "CLAUDE_MODEL", "\"" + secret("CLAUDE_MODEL") + "\""
     buildConfigField "String", "OPENAI_API_KEY", "\"" + secret("OPENAI_API_KEY") + "\""
-    buildConfigField "String", "GEMINI_API_KEY_1", "\"" + secret("GEMINI_API_KEY_1") + "\""
+    buildConfigField "String", "GEMINI_API_KEY", "\"" + secret("GEMINI_API_KEY") + "\""
   }
 
   buildFeatures { buildConfig true }
