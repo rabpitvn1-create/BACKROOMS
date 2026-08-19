@@ -13,8 +13,9 @@ android {
     applicationId 'com.rabpit.backroom'
     minSdk 24
     targetSdk 35
-    versionCode 16
-    versionName '1.1.14'
+    versionCode 17
+    versionName '1.1.15'
+    buildConfigField "String", "QWEN_API_KEY", "\"" + secret("QWEN_API_KEY") + "\""
     buildConfigField "String", "OPENAI_API_KEY", "\"" + secret("OPENAI_API_KEY") + "\""
     buildConfigField "String", "GEMINI_API_KEY_1", "\"" + secret("GEMINI_API_KEY_1") + "\""
     buildConfigField "String", "GEMINI_API_KEY_2", "\"" + secret("GEMINI_API_KEY_2") + "\""
