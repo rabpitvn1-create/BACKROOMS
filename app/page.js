@@ -18,6 +18,18 @@ const INITIAL_STATE = {
   updatedAt: null,
 };
 
+function levelHeader(state) {
+  const explicitNumber = state?.level?.number ?? state?.flags?.currentLevel?.number;
+  const explicitName = state?.level?.name ?? state?.flags?.currentLevel?.name;
+  if (explicitNumber != null && explicitName) return `Level ${explicitNumber} – ${explicitName}`;
+
+  const location = typeof state?.location === "string" ? state.location : "";
+  const match = location.match(/\bLevel\s+([^\s/—–-]+)\s*(?:\/|—|–|-)\s*([^—–\n]+?)(?:\s+[—–]\s+|$)/i);
+  if (match) return `Level ${match[1]} – ${match[2].trim()}`;
+
+  return state?.title || "Backrooms Session";
+}
+
 async function readJson(response) {
   const body = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(body?.error || `HTTP ${response.status}`);
@@ -63,17 +75,7 @@ export default function Home() {
   useEffect(() => {
     (async () => {
       try {
-        const loaded = await load("Đã tải New Game từ server.");
-        if (!loaded.snapshotUrl) {
-          setBusy(true);
-          try {
-            await requestSnapshot("Đang tạo snapshot mở đầu bằng Gemini…");
-          } catch (error) {
-            setStatus(`Game đã tải, nhưng snapshot chưa tạo được: ${error.message}`);
-          } finally {
-            setBusy(false);
-          }
-        }
+        await load("Đã tải New Game từ server.");
       } catch {
         // load() đã hiển thị lỗi.
       }
@@ -98,13 +100,15 @@ export default function Home() {
       setState(result.state);
       setAction("");
 
-      if (result.saved) {
-        setStatus(`Turn ${result.state.turn} đã lưu trên ${result.storage}. Đang tạo snapshot…`);
+      if (result.saved && result.snapshotRequested) {
+        setStatus(`Turn ${result.state.turn} có sự kiện đặc biệt. Đang tạo snapshot…`);
         try {
-          await requestSnapshot(`Turn ${result.state.turn} đã lưu. Gemini đang dựng snapshot…`);
+          await requestSnapshot(`Gemini đang dựng snapshot cho sự kiện đặc biệt ở Turn ${result.state.turn}…`);
         } catch (snapshotError) {
-          setStatus(`Turn ${result.state.turn} đã lưu, nhưng snapshot lỗi: ${snapshotError.message}`);
+          setStatus(`Turn ${result.state.turn} đã lưu, nhưng snapshot sự kiện bị lỗi: ${snapshotError.message}`);
         }
+      } else if (result.saved) {
+        setStatus(`Turn ${result.state.turn} đã lưu trên ${result.storage}. Snapshot cũ được giữ nguyên.`);
       } else {
         setStatus("Lượt chưa được xác nhận lưu.");
       }
@@ -163,12 +167,7 @@ export default function Home() {
       );
       setState(result.state);
       setAction("");
-      setStatus(`New Game đã sẵn sàng ở Turn 1 trên ${result.storage}. Đang tạo snapshot mở đầu…`);
-      try {
-        await requestSnapshot("Đang tạo snapshot mở đầu bằng Gemini…");
-      } catch (snapshotError) {
-        setStatus(`New Game đã tạo ở Turn 1, nhưng snapshot lỗi: ${snapshotError.message}`);
-      }
+      setStatus(`New Game đã sẵn sàng ở Turn 1 trên ${result.storage}. Snapshot chỉ tạo khi có sự kiện đặc biệt hoặc khi bạn bấm tạo thủ công.`);
     } catch (error) {
       setStatus(`Tạo New Game thất bại: ${error.message}`);
     } finally {
@@ -190,12 +189,7 @@ export default function Home() {
         }),
       );
       setState(result.state);
-      setStatus(`Đã nhập state trên ${result.storage}. Đang dựng snapshot tương ứng…`);
-      try {
-        await requestSnapshot("Đang tạo snapshot cho state vừa nhập…");
-      } catch (snapshotError) {
-        setStatus(`State đã nhập, nhưng snapshot lỗi: ${snapshotError.message}`);
-      }
+      setStatus(`Đã nhập state trên ${result.storage}. Snapshot hiện có được giữ nguyên.`);
     } catch (error) {
       setStatus(`Nhập thất bại: ${error.message}`);
     } finally {
@@ -220,7 +214,7 @@ export default function Home() {
         <header className="topbar">
           <div>
             <div className="eyebrow">BACKROOM TEXT GAME</div>
-            <h1>{state.title || "Backrooms Session"}</h1>
+            <h1>{levelHeader(state)}</h1>
           </div>
           <div className="turn">TURN <strong>{state.turn ?? 1}</strong></div>
         </header>
@@ -249,7 +243,7 @@ export default function Home() {
             value={action}
             onChange={(event) => setAction(event.target.value)}
             disabled={busy}
-            placeholder="Kai làm gì trong Turn hiện tại?"
+            placeholder="Kai sẽ làm gì tiếp theo?"
             rows={3}
           />
           <button type="submit" disabled={busy || !action.trim()}>{busy ? "ĐANG XỬ LÝ…" : "THỰC HIỆN"}</button>

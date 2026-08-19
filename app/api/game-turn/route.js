@@ -61,6 +61,7 @@ export async function POST(request) {
     const rolls = makeRolls(action);
     const generated = await generateTurn(current, action, rolls);
     const generatedFlags = objectOr(generated.flags, {});
+    const snapshotRequested = generated.snapshotEvent?.shouldGenerate === true;
 
     const nextState = {
       ...current,
@@ -78,10 +79,9 @@ export async function POST(request) {
         ...generatedFlags,
         lastRolls: { turn: current.turn + 1, ...rolls },
       },
-      snapshotUrl:
-        typeof generated.snapshotUrl === "string" || generated.snapshotUrl === null
-          ? generated.snapshotUrl
-          : current.snapshotUrl,
+      // A normal turn must never erase or replace the last meaningful image.
+      // Only /api/snapshot is allowed to update this URL after an approved event.
+      snapshotUrl: current.snapshotUrl,
       log: [
         ...(Array.isArray(current.log) ? current.log : []),
         { role: "player", text: action },
@@ -90,7 +90,16 @@ export async function POST(request) {
     };
 
     const state = await saveState(sessionId, nextState, current.revision);
-    return json({ state, storage: storageName(), saved: true, rolls });
+    return json({
+      state,
+      storage: storageName(),
+      saved: true,
+      rolls,
+      snapshotRequested,
+      snapshotReason: snapshotRequested && typeof generated.snapshotEvent?.reason === "string"
+        ? generated.snapshotEvent.reason.slice(0, 300)
+        : null,
+    });
   } catch (error) {
     if (error instanceof StateConflictError) {
       return json({ error: error.message, saved: false, storage: storageName() }, 409);
