@@ -5,16 +5,16 @@ import { useEffect, useRef, useState } from "react";
 const INITIAL_STATE = {
   version: 1,
   title: "Backrooms Session",
-  turn: 0,
+  turn: 1,
   mode: "backend",
   canonLoaded: false,
-  location: "Chưa nạp canon",
-  player: { name: "Chưa xác định", hp: null, condition: "Bình thường" },
+  location: "Đang nạp New Game…",
+  player: { name: "Kai Akechi", hp: null, condition: "Bình thường" },
   party: [],
   inventory: [],
   flags: {},
   snapshotUrl: null,
-  log: [{ role: "gm", text: "Đang tải trạng thái từ server…" }],
+  log: [{ role: "gm", text: "Đang tải Prologue và trạng thái New Game từ server…" }],
   updatedAt: null,
 };
 
@@ -69,7 +69,7 @@ export default function Home() {
       setAction("");
       setStatus(
         result.saved
-          ? `Lượt ${result.state.turn} đã được lưu trên ${result.storage}.`
+          ? `Đã xử lý lượt chơi và chuyển sang Turn ${result.state.turn}. State đã lưu trên ${result.storage}.`
           : "Lượt chưa được xác nhận lưu.",
       );
     } catch (error) {
@@ -102,9 +102,9 @@ export default function Home() {
   }
 
   async function reset() {
-    if (busy || !window.confirm("Reset trạng thái của session này trên server?")) return;
+    if (busy || !window.confirm("Bắt đầu NEW GAME từ Prologue? Save hiện tại của session này sẽ được thay bằng trạng thái Turn 1 mới.")) return;
     setBusy(true);
-    setStatus("Đang reset state server…");
+    setStatus("Đang tạo New Game từ Prologue…");
     try {
       const result = await readJson(
         await fetch("/api/game-state", {
@@ -115,9 +115,9 @@ export default function Home() {
       );
       setState(result.state);
       setAction("");
-      setStatus(`Đã reset session trên ${result.storage}.`);
+      setStatus(`New Game đã sẵn sàng ở Turn 1. State lưu trên ${result.storage}.`);
     } catch (error) {
-      setStatus(`Reset thất bại: ${error.message}`);
+      setStatus(`Tạo New Game thất bại: ${error.message}`);
     } finally {
       setBusy(false);
     }
@@ -164,7 +164,7 @@ export default function Home() {
             <div className="eyebrow">BACKROOM TEXT GAME</div>
             <h1>{state.title || "Backrooms Session"}</h1>
           </div>
-          <div className="turn">TURN <strong>{state.turn ?? 0}</strong></div>
+          <div className="turn">TURN <strong>{state.turn ?? 1}</strong></div>
         </header>
 
         <div className="snapshot">
@@ -191,7 +191,7 @@ export default function Home() {
             value={action}
             onChange={(event) => setAction(event.target.value)}
             disabled={busy}
-            placeholder="Bạn làm gì tiếp theo?"
+            placeholder="Kai làm gì trong Turn hiện tại?"
             rows={3}
           />
           <button type="submit" disabled={busy || !action.trim()}>{busy ? "ĐANG XỬ LÝ…" : "THỰC HIỆN"}</button>
@@ -218,14 +218,14 @@ export default function Home() {
             <button onClick={exportState} disabled={busy}>Xuất JSON</button>
             <button onClick={() => fileRef.current?.click()} disabled={busy}>Nhập JSON</button>
             <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={(event) => importState(event.target.files?.[0])} />
-            <button className="danger" onClick={reset} disabled={busy}>Reset trạng thái</button>
+            <button className="danger" onClick={reset} disabled={busy}>Bắt đầu lại từ đầu</button>
           </div>
         </div>
 
         <div className="card">
           <h2>Party</h2>
           <div className="chips">
-            {state.party?.length ? state.party.map((member, index) => <span key={index}>{typeof member === "string" ? member : member?.name || `#${index + 1}`}</span>) : <em>Chưa có thành viên.</em>}
+            {state.party?.length ? state.party.map((member, index) => <span key={index}>{typeof member === "string" ? member : member?.name || `#${index + 1}`}</span>) : <em>Hiện Kai đang một mình.</em>}
           </div>
         </div>
 
