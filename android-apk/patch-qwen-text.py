@@ -96,8 +96,8 @@ new_generate = r'''  private String generateText(String prompt) throws Exception
       qwenFailure = error;
     }
 
-    int code = qwenFailure instanceof HttpError ? ((HttpError)qwenFailure).status : 0;
-    if (!networkFailure(qwenFailure) && (code == 0 || retryable(code))) {
+    int qwenCode = qwenFailure instanceof HttpError ? ((HttpError)qwenFailure).status : 0;
+    if (!networkFailure(qwenFailure) && (qwenCode == 0 || retryable(qwenCode))) {
       try { Thread.sleep(350); } catch (InterruptedException ignored) {}
       try {
         return qwenText(prompt);
@@ -106,20 +106,39 @@ new_generate = r'''  private String generateText(String prompt) throws Exception
       }
     }
 
+    emit("backroomProvider", "GPT");
+    Exception gptFailure;
+    try {
+      return openAiText(prompt);
+    } catch (Exception error) {
+      gptFailure = error;
+    }
+
+    int gptCode = gptFailure instanceof HttpError ? ((HttpError)gptFailure).status : 0;
+    if (!networkFailure(gptFailure) && (gptCode == 0 || retryable(gptCode))) {
+      try { Thread.sleep(350); } catch (InterruptedException ignored) {}
+      try {
+        return openAiText(prompt);
+      } catch (Exception secondFailure) {
+        gptFailure = secondFailure;
+      }
+    }
+
     emit("backroomProvider", "Gemini");
     try {
       return geminiText(prompt);
     } catch (Exception geminiFailure) {
-      if (networkFailure(qwenFailure) && networkFailure(geminiFailure)) {
+      if (networkFailure(qwenFailure) && networkFailure(gptFailure) && networkFailure(geminiFailure)) {
         throw new Exception(networkFailureMessage());
       }
       String qwenMessage = qwenFailure != null && qwenFailure.getMessage() != null ? qwenFailure.getMessage() : "QwenCloud không khả dụng";
+      String gptMessage = gptFailure != null && gptFailure.getMessage() != null ? gptFailure.getMessage() : "GPT không khả dụng";
       String geminiMessage = geminiFailure.getMessage() != null ? geminiFailure.getMessage() : "Gemini không khả dụng";
-      throw new Exception("QwenCloud: " + qwenMessage + "; Gemini fallback: " + geminiMessage);
+      throw new Exception("QwenCloud: " + qwenMessage + "; GPT fallback: " + gptMessage + "; Gemini fallback: " + geminiMessage);
     }
   }
 '''
-main = replace_once(main, old_generate, new_generate, "Qwen-first provider switch")
+main = replace_once(main, old_generate, new_generate, "Qwen-GPT-Gemini provider switch")
 
 main = replace_once(
     main,
@@ -142,4 +161,4 @@ index = replace_once(
 
 MAIN.write_text(main, encoding="utf-8")
 INDEX.write_text(index, encoding="utf-8")
-print("QwenCloud qwen3.7-plus enabled for Game Master text, with Gemini text fallback; thinking disabled for lower latency/cost.")
+print("Game Master text provider order: QwenCloud qwen3.7-plus -> GPT -> Gemini. Qwen thinking remains disabled for lower latency/cost.")
