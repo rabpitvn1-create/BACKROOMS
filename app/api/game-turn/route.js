@@ -12,6 +12,14 @@ import {
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
+const SNAPSHOT_TYPES = new Set([
+  "level_transition",
+  "special_area",
+  "entity_encounter",
+  "character_encounter",
+  "major_event",
+]);
+
 function json(body, status = 200) {
   return NextResponse.json(body, {
     status,
@@ -49,6 +57,124 @@ function makeRolls(action) {
   };
 }
 
+function cleanKey(value) {
+  return typeof value === "string" ? value.trim().slice(0, 160) : "";
+}
+
+function normalizeLevel(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const rawNumber = value.number;
+  const number = typeof rawNumber === "number" || typeof rawNumber === "string"
+    ? String(rawNumber).trim()
+    : "";
+  const name = typeof value.name === "string" ? value.name.trim() : "";
+  if (!number || !name) return null;
+  return { number, name: name.slice(0, 120) };
+}
+
+function parseLevelText(value) {
+  if (typeof value !== "string") return null;
+  const match = value.match(/\bLevel\s+([^\s/—–-]+)\s*(?:\/|—|–|-)\s*([^—–\n]+?)(?:\s+[—–]\s+|$)/i);
+  if (!match) return null;
+  return { number: match[1].trim(), name: match[2].trim().slice(0, 120) };
+}
+
+function levelFromState(state) {
+  return normalizeLevel(state?.level)
+    || normalizeLevel(state?.flags?.currentLevel)
+    || parseLevelText(state?.location)
+    || parseLevelText(state?.title);
+}
+
+function sameLevel(a, b) {
+  if (!a || !b) return false;
+  return String(a.number).toLowerCase() === String(b.number).toLowerCase()
+    && a.name.toLowerCase() === b.name.toLowerCase();
+}
+
+function levelLabel(level) {
+  return level ? `Level ${level.number} – ${level.name}` : null;
+}
+
+function numberFlag(state, key) {
+  const value = Number(state?.flags?.[key]);
+  return Number.isFinite(value) ? value : 0;
+}
+
+function partyNames(state) {
+  if (!Array.isArray(state?.party)) return [];
+  return state.party
+    .map((member) => typeof member === "string" ? member : member?.name)
+    .filter((name) => typeof name === "string" && name.trim())
+    .map((name) => name.trim().toLowerCase());
+}
+
+function newPartyMember(current, nextState) {
+  const before = new Set(partyNames(current));
+  return partyNames(nextState).some((name) => !before.has(name));
+}
+
+function reunionBecamePresent(current, nextState, key) {
+  const before = String(current?.flags?.[key]?.continuity || "").toUpperCase();
+  const after = String(nextState?.flags?.[key]?.continuity || "").toUpperCase();
+  if (!after || after === before) return false;
+  return /(REUNITED|WITH KAI|TOGETHER|PRESENT)/.test(after);
+}
+
+function approveSnapshot(current, nextState, generated) {
+  const event = objectOr(generated?.snapshotEvent, {});
+  const type = cleanKey(event.type).toLowerCase();
+  if (event.shouldGenerate !== true || !SNAPSHOT_TYPES.has(type)) {
+    return { requested: false, type: null, key: null, reason: null };
+  }
+
+  const beforeLevel = levelFromState(current);
+  const afterLevel = levelFromState(nextState);
+  let eligible = false;
+  let triggerKey = "";
+
+  if (type === "level_transition") {
+    eligible = Boolean(beforeLevel && afterLevel && !sameLevel(beforeLevel, afterLevel));
+    triggerKey = afterLevel ? `level:${afterLevel.number}:${afterLevel.name}` : "";
+  } else if (type === "entity_encounter") {
+    const beforeCount = numberFlag(current, "entitiesConfirmedLocal");
+    const afterCount = numberFlag(nextState, "entitiesConfirmedLocal");
+    const beforeEncounter = cleanKey(current?.flags?.entityEncounterKey);
+    const afterEncounter = cleanKey(nextState?.flags?.entityEncounterKey);
+    eligible = afterCount > beforeCount || Boolean(afterEncounter && afterEncounter !== beforeEncounter);
+    triggerKey = eligible ? `entity:${afterEncounter || afterCount}:${levelLabel(afterLevel) || "unknown"}` : "";
+  } else if (type === "character_encounter") {
+    const survivorIncrease = numberFlag(nextState, "survivorsConfirmed") > numberFlag(current, "survivorsConfirmed");
+    const reunion = reunionBecamePresent(current, nextState, "iris") || reunionBecamePresent(current, nextState, "syvial");
+    eligible = survivorIncrease || newPartyMember(current, nextState) || reunion;
+    triggerKey = eligible
+      ? `character:${partyNames(nextState).sort().join(",")}:${numberFlag(nextState, "survivorsConfirmed")}:${levelLabel(afterLevel) || "unknown"}`
+      : "";
+  } else if (type === "special_area") {
+    const beforeArea = cleanKey(current?.flags?.visualAreaKey);
+    const afterArea = cleanKey(nextState?.flags?.visualAreaKey);
+    eligible = Boolean(afterArea && afterArea !== beforeArea);
+    triggerKey = eligible ? `area:${levelLabel(afterLevel) || "unknown"}:${afterArea}` : "";
+  } else if (type === "major_event") {
+    const beforeEvent = cleanKey(current?.flags?.visualEventKey);
+    const afterEvent = cleanKey(nextState?.flags?.visualEventKey);
+    eligible = Boolean(afterEvent && afterEvent !== beforeEvent);
+    triggerKey = eligible ? `event:${afterEvent}` : "";
+  }
+
+  const lastTrigger = cleanKey(current?.flags?.lastSnapshotTriggerKey);
+  if (!eligible || !triggerKey || triggerKey === lastTrigger) {
+    return { requested: false, type: null, key: null, reason: null };
+  }
+
+  return {
+    requested: true,
+    type,
+    key: triggerKey.slice(0, 300),
+    reason: typeof event.reason === "string" ? event.reason.trim().slice(0, 300) : "",
+  };
+}
+
 export async function POST(request) {
   try {
     const sessionId = await getSessionId();
@@ -61,11 +187,22 @@ export async function POST(request) {
     const rolls = makeRolls(action);
     const generated = await generateTurn(current, action, rolls);
     const generatedFlags = objectOr(generated.flags, {});
-    const snapshotRequested = generated.snapshotEvent?.shouldGenerate === true;
+    const currentLevel = levelFromState(current);
+    const nextLevel = normalizeLevel(generated.level)
+      || parseLevelText(generated.location)
+      || currentLevel;
+
+    const nextFlags = {
+      ...current.flags,
+      ...generatedFlags,
+      lastRolls: { turn: current.turn + 1, ...rolls },
+      ...(nextLevel ? { currentLevel: nextLevel } : {}),
+    };
 
     const nextState = {
       ...current,
-      title: typeof generated.title === "string" ? generated.title : current.title,
+      title: levelLabel(nextLevel) || current.title,
+      level: nextLevel || current.level,
       turn: current.turn + 1,
       mode: "ai",
       canonLoaded: true,
@@ -74,13 +211,9 @@ export async function POST(request) {
       player: objectOr(generated.player, current.player),
       party: Array.isArray(generated.party) ? generated.party : current.party,
       inventory: Array.isArray(generated.inventory) ? generated.inventory : current.inventory,
-      flags: {
-        ...current.flags,
-        ...generatedFlags,
-        lastRolls: { turn: current.turn + 1, ...rolls },
-      },
-      // A normal turn must never erase or replace the last meaningful image.
-      // Only /api/snapshot is allowed to update this URL after an approved event.
+      flags: nextFlags,
+      // Normal turns never replace the last meaningful image.
+      // Only /api/snapshot may update this URL after the server approves an event.
       snapshotUrl: current.snapshotUrl,
       log: [
         ...(Array.isArray(current.log) ? current.log : []),
@@ -89,16 +222,23 @@ export async function POST(request) {
       ],
     };
 
+    const snapshot = approveSnapshot(current, nextState, generated);
+    if (snapshot.requested) {
+      nextState.flags = {
+        ...nextState.flags,
+        lastSnapshotTriggerKey: snapshot.key,
+      };
+    }
+
     const state = await saveState(sessionId, nextState, current.revision);
     return json({
       state,
       storage: storageName(),
       saved: true,
       rolls,
-      snapshotRequested,
-      snapshotReason: snapshotRequested && typeof generated.snapshotEvent?.reason === "string"
-        ? generated.snapshotEvent.reason.slice(0, 300)
-        : null,
+      snapshotRequested: snapshot.requested,
+      snapshotType: snapshot.type,
+      snapshotReason: snapshot.reason,
     });
   } catch (error) {
     if (error instanceof StateConflictError) {
