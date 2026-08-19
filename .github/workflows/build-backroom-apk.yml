@@ -14,6 +14,7 @@ jobs:
   build-apk:
     runs-on: ubuntu-latest
     env:
+      QWEN_API_KEY: ${{ secrets.QWEN_API_KEY }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || secrets.GPT_API_KEY || secrets.OPENAI_KEY || secrets.GPT_API_KEY_1 }}
       GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 }}
       GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
@@ -23,6 +24,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Apply provider, DNS and Kai overlay patch
         run: python3 android-apk/patch-provider-status.py
+      - name: Apply QwenCloud Game Master patch
+        run: python3 android-apk/patch-qwen-text.py
       - name: Apply Level 0-6 Snapshot fallback backgrounds
         run: python3 android-apk/patch-level-snapshot-backgrounds.py
       - name: Apply Snapshot provider fallback patch
@@ -40,33 +43,34 @@ jobs:
         working-directory: android-apk
         run: gradle :app:assembleDebug --no-daemon
       - name: Prepare release APK
-        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.1.14.apk
+        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.1.15.apk
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Backroom-1.1.14-debug-apk
-          path: Backroom-1.1.14.apk
+          name: Backroom-1.1.15-debug-apk
+          path: Backroom-1.1.15.apk
           if-no-files-found: error
           retention-days: 14
-      - name: Publish GitHub Release v1.1.14
+      - name: Publish GitHub Release v1.1.15
         if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="v1.1.14"
-          TITLE="Backroom 1.1.14"
+          TAG="v1.1.15"
+          TITLE="Backroom 1.1.15"
           NOTES=$(cat <<'EOF'
-          Backroom APK 1.1.14
+          Backroom APK 1.1.15
 
-          - Snapshot tự động chỉ tạo khi có sự kiện hình ảnh đáng kể: chuyển Level, vùng đặc biệt, Entity được xác nhận, gặp nhân vật/survivor hoặc sự kiện lớn.
-          - Không còn tự tạo Snapshot liên tục khi idle hoặc sau mọi turn; ảnh gần nhất được giữ nguyên.
-          - Ô nhập đổi thành “Kai sẽ làm gì tiếp theo?”.
-          - Header dùng định dạng “Level 0 – The Lobby” và cập nhật theo Level hiện tại.
+          - Game Master và hội thoại chính chuyển sang QwenCloud qwen3.7-plus.
+          - Qwen chạy ở chế độ non-thinking để giảm độ trễ và chi phí cho từng turn.
+          - Gemini giữ vai trò fallback cho phần text nếu Qwen tạm thời không khả dụng.
+          - Snapshot ảnh vẫn dùng pipeline riêng, chỉ tự tạo khi có sự kiện hình ảnh đáng kể.
+          - Giữ header Level và ô nhập đã sửa ở 1.1.14.
           EOF
           )
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
-            gh release upload "$TAG" Backroom-1.1.14.apk --clobber
+            gh release upload "$TAG" Backroom-1.1.15.apk --clobber
           else
-            gh release create "$TAG" Backroom-1.1.14.apk --target "$GITHUB_SHA" --title "$TITLE" --notes "$NOTES"
+            gh release create "$TAG" Backroom-1.1.15.apk --target "$GITHUB_SHA" --title "$TITLE" --notes "$NOTES"
           fi
