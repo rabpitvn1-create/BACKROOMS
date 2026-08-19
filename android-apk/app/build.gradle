@@ -13,8 +13,8 @@ android {
     applicationId 'com.rabpit.backroom'
     minSdk 24
     targetSdk 35
-    versionCode 24
-    versionName '1.1.22'
+    versionCode 25
+    versionName '1.1.23'
     buildConfigField "String", "CLAUDE_API_KEY", "\"" + secret("CLAUDE_API_KEY") + "\""
     buildConfigField "String", "CLAUDE_BASE_URL", "\"" + secret("CLAUDE_BASE_URL") + "\""
     buildConfigField "String", "CLAUDE_MODEL", "\"" + secret("CLAUDE_MODEL") + "\""
