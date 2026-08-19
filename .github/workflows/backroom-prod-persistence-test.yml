@@ -2,6 +2,7 @@ name: backroom-prod-persistence-test
 
 on:
   push:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -9,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Exercise production save/load
+      - name: Exercise production canon save/load
         shell: bash
         run: |
           set -euo pipefail
@@ -20,7 +21,16 @@ jobs:
           FINAL="$RUNNER_TEMP/final.json"
           REOPEN="$RUNNER_TEMP/reopen.json"
 
-          curl --fail-with-body -sS -c "$COOKIE" -b "$COOKIE" "$BASE/api/game-state" -o "$INITIAL"
+          # A Git push and Vercel deployment are asynchronous. Wait until the canon-enabled app owns production.
+          for TRY in $(seq 1 36); do
+            STATUS="$(curl -sS -o "$INITIAL" -w '%{http_code}' -c "$COOKIE" -b "$COOKIE" "$BASE/api/game-state" || true)"
+            if [ "$STATUS" = '200' ] && jq -e '.state.canonLoaded == true and .state.turn >= 9' "$INITIAL" >/dev/null 2>&1; then
+              break
+            fi
+            sleep 5
+          done
+          jq -e '.state.canonLoaded == true and .state.turn >= 9' "$INITIAL" >/dev/null
+
           OLD_REV="$(jq -r '.state.revision' "$INITIAL")"
 
           curl --fail-with-body -sS -c "$COOKIE" -b "$COOKIE" \
@@ -28,15 +38,20 @@ jobs:
             -X POST "$BASE/api/game-state" \
             --data '{"reset":true}' -o "$RESET"
 
+          BASE_TURN="$(jq -r '.state.turn' "$RESET")"
+          jq -e '.state.canonLoaded == true' "$RESET" >/dev/null
+          jq -e '.state.location | contains("Level 0")' "$RESET" >/dev/null
+
           for N in 1 2 3; do
             OUT="$RUNNER_TEMP/turn-$N.json"
+            EXPECTED=$((BASE_TURN + N))
             curl --fail-with-body -sS -c "$COOKIE" -b "$COOKIE" \
               -H 'Content-Type: application/json' \
               -X POST "$BASE/api/game-turn" \
-              --data "{\"action\":\"Production persistence test turn $N. Reply briefly and do not alter canon.\"}" \
+              --data "{\"action\":\"Kai kiểm tra khu vực gần cánh cửa trắng, giữ nguyên nguyên tắc an toàn và không tự ý bước qua ngưỡng. Lượt kiểm thử $N.\"}" \
               -o "$OUT"
             jq -e '.saved == true' "$OUT" >/dev/null
-            jq -e --argjson n "$N" '.state.turn == $n' "$OUT" >/dev/null
+            jq -e --argjson expected "$EXPECTED" '.state.turn == $expected' "$OUT" >/dev/null
             printf 'turn_%s=%s storage=%s saved=%s log_len=%s\n' \
               "$N" \
               "$(jq -r '.state.turn' "$OUT")" \
@@ -45,35 +60,28 @@ jobs:
               "$(jq -r '.state.log | length' "$OUT")"
           done
 
+          EXPECTED_FINAL=$((BASE_TURN + 3))
           curl --fail-with-body -sS -c "$COOKIE" -b "$COOKIE" "$BASE/api/game-state" -o "$FINAL"
-          jq -e '.state.turn == 3' "$FINAL" >/dev/null
-          jq -e '.storage != "preview"' "$FINAL" >/dev/null
+          jq -e --argjson expected "$EXPECTED_FINAL" '.state.turn == $expected' "$FINAL" >/dev/null
+          jq -e '.storage != "preview" and .storage != "memory"' "$FINAL" >/dev/null
           FINAL_REV="$(jq -r '.state.revision' "$FINAL")"
           FINAL_STORAGE="$(jq -r '.storage' "$FINAL")"
           FINAL_LOG_LEN="$(jq -r '.state.log | length' "$FINAL")"
           printf 'final_turn=%s final_storage=%s final_log_len=%s\n' \
             "$(jq -r '.state.turn' "$FINAL")" "$FINAL_STORAGE" "$FINAL_LOG_LEN"
 
-          # Simulate browser/process close and reopen: a new curl process reuses only the persisted cookie jar.
           sleep 3
           curl --fail-with-body -sS -b "$COOKIE" "$BASE/api/game-state" -o "$REOPEN"
-          jq -e '.state.turn == 3' "$REOPEN" >/dev/null
+          jq -e --argjson expected "$EXPECTED_FINAL" '.state.turn == $expected' "$REOPEN" >/dev/null
           jq -e --arg rev "$FINAL_REV" '.state.revision == $rev' "$REOPEN" >/dev/null
           jq -e --arg storage "$FINAL_STORAGE" '.storage == $storage' "$REOPEN" >/dev/null
-          printf 'reopen_turn=%s reopen_storage=%s reopen_log_len=%s\n' \
-            "$(jq -r '.state.turn' "$REOPEN")" \
-            "$(jq -r '.storage' "$REOPEN")" \
-            "$(jq -r '.state.log | length' "$REOPEN")"
 
-          # Verify stale-revision protection without changing game data if the backend rejects correctly.
           STATUS="$(curl -sS -o "$RUNNER_TEMP/stale.json" -w '%{http_code}' -c "$COOKIE" -b "$COOKIE" \
             -H 'Content-Type: application/json' \
             -X POST "$BASE/api/game-state" \
             --data "$(jq -cn --arg old \"$OLD_REV\" --argjson state \"$(jq -c '.state' "$FINAL")\" '{state:$state,expectedRevision:$old}')")"
-          printf 'stale_revision_http=%s\n' "$STATUS"
           test "$STATUS" = '409'
 
-          # Verify a real manual Save POST and subsequent Load GET.
           SAVE_STATUS="$(curl --fail-with-body -sS -o "$RUNNER_TEMP/save.json" -w '%{http_code}' -c "$COOKIE" -b "$COOKIE" \
             -H 'Content-Type: application/json' \
             -X POST "$BASE/api/game-state" \
@@ -82,5 +90,5 @@ jobs:
           SAVE_REV="$(jq -r '.state.revision' "$RUNNER_TEMP/save.json")"
           curl --fail-with-body -sS -b "$COOKIE" "$BASE/api/game-state" -o "$RUNNER_TEMP/load-after-save.json"
           jq -e --arg rev "$SAVE_REV" '.state.revision == $rev' "$RUNNER_TEMP/load-after-save.json" >/dev/null
-          jq -e '.state.turn == 3' "$RUNNER_TEMP/load-after-save.json" >/dev/null
+          jq -e --argjson expected "$EXPECTED_FINAL" '.state.turn == $expected' "$RUNNER_TEMP/load-after-save.json" >/dev/null
           printf 'manual_save_http=%s load_turn=%s\n' "$SAVE_STATUS" "$(jq -r '.state.turn' "$RUNNER_TEMP/load-after-save.json")"
