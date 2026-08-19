@@ -9,13 +9,14 @@ main = MAIN.read_text(encoding="utf-8")
 index = INDEX.read_text(encoding="utf-8")
 
 
-def sub_once(pattern: str, replacement: str, text: str, label: str, flags=0) -> str:
+def sub_once(pattern: str, replacement, text: str, label: str, flags=0) -> str:
     out, count = re.subn(pattern, replacement, text, count=1, flags=flags)
     if count != 1:
         raise RuntimeError(f"{label}: expected 1 match, found {count}")
     return out
 
-# Remove all Google/Gemini model constants and key accessors from the compiled source.
+
+# Remove every Gemini model constant and secret accessor from the Java source that is compiled.
 main = re.sub(r'^  private static final String GEMINI_MODEL = .*?;\n', '', main, flags=re.M)
 main = re.sub(r'^  private static final String\[\] GEMINI_IMAGE_MODELS = .*?;\n', '', main, flags=re.M)
 main = re.sub(r'^  private static final String GEMINI_IMAGE_MODEL = .*?;\n', '', main, flags=re.M)
@@ -32,7 +33,18 @@ main = re.sub(
     flags=re.S,
 )
 
-# Final text provider order is Qwen first, OpenAI second. No third provider.
+# Own the image model list here instead of depending on a previous patch's class shape.
+main = re.sub(r'^  private static final String\[\] OPENAI_IMAGE_MODELS = .*?;\n', '', main, flags=re.M)
+anchor = '  private static final String OPENAI_MODEL = "gpt-5.4-mini";\n'
+if main.count(anchor) != 1:
+    raise RuntimeError("OPENAI_MODEL anchor not found exactly once")
+main = main.replace(
+    anchor,
+    anchor + '  private static final String[] OPENAI_IMAGE_MODELS = {"gpt-image-2", "gpt-image-1.5", "gpt-image-1-mini"};\n',
+    1,
+)
+
+# Final text order: Qwen first, then GPT. There is no third provider.
 new_generate = r'''  private String generateText(String prompt) throws Exception {
     emit("backroomProvider", "Qwen");
     Exception qwenFailure;
@@ -81,13 +93,13 @@ new_generate = r'''  private String generateText(String prompt) throws Exception
 '''
 main = sub_once(
     r'  private String generateText\(String prompt\) throws Exception \{.*?\n  \}\n\n(?=  private JSONObject parseModelJson)',
-    new_generate,
+    lambda m: new_generate,
     main,
-    "Qwen -> GPT only text pipeline",
+    "Qwen -> GPT text pipeline",
     flags=re.S,
 )
 
-# Replace the entire multi-provider image pipeline with OpenAI image generation only.
+# Replace the whole generated multi-provider image block with a self-contained GPT-only block.
 new_image_pipeline = r'''  private SnapshotImage openAiImageModel(String prompt, String model) throws Exception {
     if (BuildConfig.OPENAI_API_KEY == null || BuildConfig.OPENAI_API_KEY.isEmpty()) {
       throw new Exception("GPT chưa có API key.");
@@ -112,7 +124,7 @@ new_image_pipeline = r'''  private SnapshotImage openAiImageModel(String prompt,
         if (imageData.isEmpty()) throw new Exception("GPT Image không trả ảnh.");
         if (imageData.length() > MAX_SNAPSHOT_BASE64) throw new Exception("Snapshot GPT quá lớn để hiển thị trong APK.");
         String mimeType = attempt == 0 ? "image/jpeg" : "image/png";
-        return new SnapshotImage(imageData, mimeType, model, "GPT");
+        return new SnapshotImage(imageData, mimeType, model);
       } catch (Exception e) {
         last = e;
         if (networkFailure(e)) throw e;
@@ -178,16 +190,78 @@ new_image_pipeline = r'''  private SnapshotImage openAiImageModel(String prompt,
 '''
 main = sub_once(
     r'  private SnapshotImage geminiImageModel\(String prompt, String model\) throws Exception \{.*?\n(?=  private String clipped)',
-    new_image_pipeline,
+    lambda m: new_image_pipeline,
     main,
-    "GPT-only snapshot pipeline",
+    "GPT-only image pipeline",
     flags=re.S,
 )
 
-# No provider branding or endpoint from the removed API may survive into the APK sources.
+# Replace requestSnapshotInternal as well, so it matches our own SnapshotImage class exactly.
+new_request = r'''  private void requestSnapshotInternal(String stateJson) {
+    try {
+      JSONObject snapshotState = new JSONObject(stateJson);
+      int turn = snapshotState.optInt("turn", 1);
+      latestSnapshotTurn.updateAndGet(current -> Math.max(current, turn));
+      SnapshotImage image = snapshotImage(snapshotPrompt(snapshotState));
+      if (turn != latestSnapshotTurn.get()) return;
+      JSONObject payload = new JSONObject()
+        .put("turn", turn)
+        .put("model", image.model)
+        .put("provider", "GPT")
+        .put("dataUri", "data:" + image.mimeType + ";base64," + image.data);
+      emit("backroomSnapshot", payload.toString());
+    } catch (Exception e) {
+      try {
+        JSONObject state = new JSONObject(stateJson);
+        int turn = state.optInt("turn", 1);
+        if (turn != latestSnapshotTurn.get()) return;
+        JSONObject payload = new JSONObject()
+          .put("turn", turn)
+          .put("message", e.getMessage() == null ? "Không thể tạo snapshot." : e.getMessage());
+        emit("backroomSnapshotError", payload.toString());
+      } catch (Exception ignored) {
+        emit("backroomSnapshotError", "{\"turn\":0,\"message\":\"Không thể tạo snapshot.\"}");
+      }
+    }
+  }
+
+'''
+main = sub_once(
+    r'  private void requestSnapshotInternal\(String stateJson\) \{.*?\n  \}\n\n(?=  private void emit)',
+    lambda m: new_request,
+    main,
+    "GPT-only snapshot request",
+    flags=re.S,
+)
+
+new_snapshot_class = r'''  private static class SnapshotImage {
+    final String data;
+    final String mimeType;
+    final String model;
+    SnapshotImage(String data, String mimeType) {
+      this(data, mimeType, "GPT Image");
+    }
+    SnapshotImage(String data, String mimeType, String model) {
+      this.data = data;
+      this.mimeType = mimeType == null || mimeType.isEmpty() ? "image/jpeg" : mimeType;
+      this.model = model == null || model.isEmpty() ? "GPT Image" : model;
+    }
+  }
+
+'''
+main = sub_once(
+    r'  private static class SnapshotImage \{.*?\n  \}\n\n(?=  private static class HttpError)',
+    lambda m: new_snapshot_class,
+    main,
+    "self-contained SnapshotImage class",
+    flags=re.S,
+)
+
+# Remove old branding from UI strings; no Gemini endpoint, model, key or label may survive.
 main = main.replace("GEMINI SNAPSHOT", "AI SNAPSHOT")
 main = main.replace("Gemini đang tạo snapshot…", "GPT đang tạo snapshot…")
-main = main.replace("Gemini", "GPT")
+main = main.replace("model:r.model||'Gemini'", "model:r.model||'GPT'")
+main = main.replace("(r.model||'Gemini')", "(r.model||'GPT')")
 index = index.replace("Gemini", "AI").replace("GEMINI", "AI")
 
 for forbidden in (
@@ -204,4 +278,4 @@ for forbidden in (
 
 MAIN.write_text(main, encoding="utf-8")
 INDEX.write_text(index, encoding="utf-8")
-print("Removed Gemini completely from APK runtime. Text: Qwen -> GPT. Snapshot: GPT only.")
+print("Gemini fully removed with compile-safe self-contained runtime. Text: Qwen -> GPT. Snapshot: GPT only.")
