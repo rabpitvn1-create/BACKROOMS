@@ -21,6 +21,8 @@ jobs:
       GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
     steps:
       - uses: actions/checkout@v4
+      - name: Apply provider status patch
+        run: python3 android-apk/patch-provider-status.py
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
