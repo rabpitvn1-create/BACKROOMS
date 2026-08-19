@@ -26,14 +26,18 @@ jobs:
           REPORT="$RUNNER_TEMP/production-test-report.txt"
           SESSION_ID="$(cat /proc/sys/kernel/random/uuid)"
           COOKIE="backroom_session=$SESSION_ID"
-          RESULT="FAILED"
+          RESULT="FAILED"; STAGE="boot"
+          RESET_TURN="?"; RESET_SAVED="?"
           TURN1="?"; TURN2="?"; TURN3="?"; LOG_LEN="?"; STORAGE="?"; REOPEN_TURN="?"; SAVE_HTTP="?"; STALE_HTTP="?"
 
           publish_report() {
             local exit_code="$1"
             {
               echo "status=$RESULT"
+              echo "stage=$STAGE"
               echo "session_id=$SESSION_ID"
+              echo "reset_turn=$RESET_TURN"
+              echo "reset_saved=$RESET_SAVED"
               echo "turn_1=$TURN1"
               echo "turn_2=$TURN2"
               echo "turn_3=$TURN3"
@@ -62,6 +66,7 @@ jobs:
           }
           trap 'code=$?; publish_report "$code"' EXIT
 
+          STAGE="wait-production"
           READY=0
           for TRY in $(seq 1 80); do
             HEADERS="$RUNNER_TEMP/health.headers"
@@ -75,13 +80,19 @@ jobs:
           done
           test "$READY" = "1"
 
+          STAGE="reset"
           RESET="$RUNNER_TEMP/reset.json"
           curl --fail-with-body -sS -H "Cookie: $COOKIE" -H 'Content-Type: application/json' \
             -X POST "$BASE/api/game-state" --data '{"reset":true}' -o "$RESET"
-          RESET_REV="$(jq -r '.state.revision' "$RESET")"
-          jq -e '.state.turn == 0 and .saved == true' "$RESET" >/dev/null
+          RESET_TURN="$(jq -r '.state.turn // "missing"' "$RESET")"
+          RESET_SAVED="$(jq -r '.saved // "missing"' "$RESET")"
+          RESET_REV="$(jq -r '.state.revision // empty' "$RESET")"
+          test "$RESET_TURN" = "0"
+          test "$RESET_SAVED" = "true"
+          test -n "$RESET_REV"
 
           for N in 1 2 3; do
+            STAGE="game-turn-$N"
             OUT="$RUNNER_TEMP/turn-$N.json"
             curl --fail-with-body -sS -H "Cookie: $COOKIE" -H 'Content-Type: application/json' \
               -X POST "$BASE/api/game-turn" \
@@ -96,6 +107,7 @@ jobs:
             esac
           done
 
+          STAGE="final-load"
           FINAL="$RUNNER_TEMP/final.json"
           curl --fail-with-body -sS -H "Cookie: $COOKIE" "$BASE/api/game-state" -o "$FINAL"
           jq -e '.state.turn == 3' "$FINAL" >/dev/null
@@ -105,17 +117,20 @@ jobs:
           STORAGE="$(jq -r '.storage' "$FINAL")"
           LOG_LEN="$(jq -r '.state.log | length' "$FINAL")"
 
+          STAGE="reopen"
           sleep 2
           REOPEN="$RUNNER_TEMP/reopen.json"
           curl --fail-with-body -sS -H "Cookie: $COOKIE" "$BASE/api/game-state" -o "$REOPEN"
           jq -e --arg rev "$FINAL_REV" '.state.turn == 3 and .state.revision == $rev' "$REOPEN" >/dev/null
           REOPEN_TURN="$(jq -r '.state.turn' "$REOPEN")"
 
+          STAGE="stale-write"
           STALE_HTTP="$(curl -sS -o "$RUNNER_TEMP/stale.json" -w '%{http_code}' \
             -H "Cookie: $COOKIE" -H 'Content-Type: application/json' -X POST "$BASE/api/game-state" \
             --data "$(jq -cn --arg rev "$RESET_REV" --argjson state "$(jq -c '.state' "$FINAL")" '{state:$state,expectedRevision:$rev}')")"
           test "$STALE_HTTP" = "409"
 
+          STAGE="manual-save-load"
           SAVE_HTTP="$(curl --fail-with-body -sS -o "$RUNNER_TEMP/save.json" -w '%{http_code}' \
             -H "Cookie: $COOKIE" -H 'Content-Type: application/json' -X POST "$BASE/api/game-state" \
             --data "$(jq -cn --arg rev "$FINAL_REV" --argjson state "$(jq -c '.state' "$FINAL")" '{state:$state,expectedRevision:$rev}')")"
@@ -124,6 +139,6 @@ jobs:
           curl --fail-with-body -sS -H "Cookie: $COOKIE" "$BASE/api/game-state" -o "$RUNNER_TEMP/load-after-save.json"
           jq -e --arg rev "$SAVE_REV" '.state.turn == 3 and .state.revision == $rev' "$RUNNER_TEMP/load-after-save.json" >/dev/null
 
-          RESULT="PASSED"
+          RESULT="PASSED"; STAGE="complete"
           trap - EXIT
           publish_report 0
