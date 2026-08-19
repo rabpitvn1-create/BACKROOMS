@@ -45,6 +45,13 @@ new_css = (
 )
 main = replace_once(main, old_css, new_css, "crisp Kai CSS")
 
+main = replace_once(
+    main,
+    "kai.src='file:///android_asset/kai_snapshot_overlay.webp';",
+    "kai.src='kai_snapshot_overlay.webp';",
+    "Kai packaged relative asset path",
+)
+
 old_request = (
     "function requestSnapshot(){if(!window.Android||typeof Android.requestSnapshot!=='function')"
     "{var s=document.getElementById('status');if(s)s.textContent='Không tìm thấy Android snapshot bridge.';"
