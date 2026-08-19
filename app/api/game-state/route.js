@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSessionId } from "../../../lib/session.js";
+import { deleteSnapshot } from "../../../lib/snapshot-store.js";
 import {
   StateConflictError,
   loadState,
@@ -38,6 +39,7 @@ export async function POST(request) {
     if (!body || typeof body !== "object") return json({ error: "JSON không hợp lệ." }, 400);
 
     if (body.reset === true) {
+      await deleteSnapshot(sessionId).catch(() => {});
       const state = await resetState(sessionId);
       return json({ state, storage: storageName(), saved: true });
     }

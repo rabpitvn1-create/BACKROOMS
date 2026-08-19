@@ -46,8 +46,38 @@ export default function Home() {
     }
   }
 
+  async function requestSnapshot(label = "Đang tạo snapshot bằng Gemini…") {
+    setStatus(label);
+    const result = await readJson(
+      await fetch("/api/snapshot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+      }),
+    );
+    setState(result.state);
+    setStatus(`Snapshot Turn ${result.state.turn} đã tạo bằng ${result.imageModel}.`);
+    return result.state;
+  }
+
   useEffect(() => {
-    load().catch(() => {});
+    (async () => {
+      try {
+        const loaded = await load("Đã tải New Game từ server.");
+        if (!loaded.snapshotUrl) {
+          setBusy(true);
+          try {
+            await requestSnapshot("Đang tạo snapshot mở đầu bằng Gemini…");
+          } catch (error) {
+            setStatus(`Game đã tải, nhưng snapshot chưa tạo được: ${error.message}`);
+          } finally {
+            setBusy(false);
+          }
+        }
+      } catch {
+        // load() đã hiển thị lỗi.
+      }
+    })();
   }, []);
 
   async function submit(event) {
@@ -67,14 +97,32 @@ export default function Home() {
       );
       setState(result.state);
       setAction("");
-      setStatus(
-        result.saved
-          ? `Đã xử lý lượt chơi và chuyển sang Turn ${result.state.turn}. State đã lưu trên ${result.storage}.`
-          : "Lượt chưa được xác nhận lưu.",
-      );
+
+      if (result.saved) {
+        setStatus(`Turn ${result.state.turn} đã lưu trên ${result.storage}. Đang tạo snapshot…`);
+        try {
+          await requestSnapshot(`Turn ${result.state.turn} đã lưu. Gemini đang dựng snapshot…`);
+        } catch (snapshotError) {
+          setStatus(`Turn ${result.state.turn} đã lưu, nhưng snapshot lỗi: ${snapshotError.message}`);
+        }
+      } else {
+        setStatus("Lượt chưa được xác nhận lưu.");
+      }
     } catch (error) {
       setStatus(`Lượt không được lưu: ${error.message}`);
       await load("Đã khôi phục state server sau lỗi.").catch(() => {});
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function manualSnapshot() {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await requestSnapshot();
+    } catch (error) {
+      setStatus(`Tạo snapshot thất bại: ${error.message}`);
     } finally {
       setBusy(false);
     }
@@ -115,7 +163,12 @@ export default function Home() {
       );
       setState(result.state);
       setAction("");
-      setStatus(`New Game đã sẵn sàng ở Turn 1. State lưu trên ${result.storage}.`);
+      setStatus(`New Game đã sẵn sàng ở Turn 1 trên ${result.storage}. Đang tạo snapshot mở đầu…`);
+      try {
+        await requestSnapshot("Đang tạo snapshot mở đầu bằng Gemini…");
+      } catch (snapshotError) {
+        setStatus(`New Game đã tạo ở Turn 1, nhưng snapshot lỗi: ${snapshotError.message}`);
+      }
     } catch (error) {
       setStatus(`Tạo New Game thất bại: ${error.message}`);
     } finally {
@@ -137,7 +190,12 @@ export default function Home() {
         }),
       );
       setState(result.state);
-      setStatus(`Đã nhập state và lưu trên ${result.storage}.`);
+      setStatus(`Đã nhập state trên ${result.storage}. Đang dựng snapshot tương ứng…`);
+      try {
+        await requestSnapshot("Đang tạo snapshot cho state vừa nhập…");
+      } catch (snapshotError) {
+        setStatus(`State đã nhập, nhưng snapshot lỗi: ${snapshotError.message}`);
+      }
     } catch (error) {
       setStatus(`Nhập thất bại: ${error.message}`);
     } finally {
@@ -169,9 +227,9 @@ export default function Home() {
 
         <div className="snapshot">
           {state.snapshotUrl ? (
-            <img src={state.snapshotUrl} alt="Ảnh trạng thái hiện tại" />
+            <img key={state.snapshotUrl} src={state.snapshotUrl} alt={`Snapshot Turn ${state.turn}`} />
           ) : (
-            <div className="snapshot-empty"><span>NO SNAPSHOT</span><small>Ảnh hiện chưa được tạo.</small></div>
+            <div className="snapshot-empty"><span>GEMINI SNAPSHOT</span><small>{busy ? "Đang dựng ảnh hiện tại…" : "Chưa có ảnh. Có thể tạo snapshot thủ công."}</small></div>
           )}
         </div>
 
@@ -215,6 +273,7 @@ export default function Home() {
           <div className="actions">
             <button onClick={save} disabled={busy}>Lưu</button>
             <button onClick={() => load()} disabled={busy}>Tải</button>
+            <button onClick={manualSnapshot} disabled={busy}>Tạo Snapshot</button>
             <button onClick={exportState} disabled={busy}>Xuất JSON</button>
             <button onClick={() => fileRef.current?.click()} disabled={busy}>Nhập JSON</button>
             <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={(event) => importState(event.target.files?.[0])} />
