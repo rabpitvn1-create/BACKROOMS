@@ -14,17 +14,17 @@ jobs:
   build-apk:
     runs-on: ubuntu-latest
     env:
-      CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
-      CLAUDE_BASE_URL: ${{ secrets.CLAUDE_BASE_URL }}
-      CLAUDE_MODEL: ${{ secrets.CLAUDE_MODEL }}
+      LUNA_API_KEY: ${{ secrets.LUNA_API_KEY }}
+      LUNA_BASE_URL: https://api.vilao.ai/v1
+      LUNA_MODEL: ${{ secrets.LUNA_MODEL }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || secrets.GPT_API_KEY || secrets.OPENAI_KEY || secrets.GPT_API_KEY_1 }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || secrets.GEMINI_API_KEY_1 || secrets.GEMINI_API_KEY_2 || secrets.GEMINI_API_KEY_3 || secrets.GEMINI_API_KEY_4 }}
     steps:
       - uses: actions/checkout@v4
       - name: Apply provider, DNS and Kai overlay patch
         run: python3 android-apk/patch-provider-status.py
-      - name: Apply Claude primary Game Master patch
-        run: python3 android-apk/patch-claude-text.py
+      - name: Apply Luna primary Game Master patch
+        run: python3 android-apk/patch-luna-text.py
       - name: Apply Level 0-6 Snapshot fallback backgrounds
         run: python3 android-apk/patch-level-snapshot-backgrounds.py
       - name: Apply Snapshot provider fallback patch
@@ -44,35 +44,35 @@ jobs:
         working-directory: android-apk
         run: gradle :app:assembleDebug --no-daemon
       - name: Prepare release APK
-        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.1.23.apk
+        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.1.24.apk
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Backroom-1.1.23-debug-apk
-          path: Backroom-1.1.23.apk
+          name: Backroom-1.1.24-debug-apk
+          path: Backroom-1.1.24.apk
           if-no-files-found: error
           retention-days: 14
-      - name: Publish GitHub Release v1.1.23
+      - name: Publish GitHub Release v1.1.24
         if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="v1.1.23"
-          TITLE="Backroom 1.1.23"
+          TAG="v1.1.24"
+          TITLE="Backroom 1.1.24"
           NOTES=$(cat <<'EOF'
-          Backroom APK 1.1.23
+          Backroom APK 1.1.24
 
-          - Claude vẫn là Game Master ưu tiên số 1.
-          - Claude tự retry tối đa 3 lần cho lỗi socket/connection abort và lỗi mạng tạm thời.
-          - Text fallback vẫn giữ Claude -> Gemini -> GPT.
+          - Luna là Game Master ưu tiên số 1 qua API OpenAI-compatible của Vilao.
+          - Luna tự retry tối đa 3 lần cho lỗi socket/connection abort và lỗi mạng tạm thời.
+          - Text fallback: Luna -> Gemini -> GPT; GPT chỉ được thử khi có OpenAI key.
+          - Base URL Luna cố định ở https://api.vilao.ai/v1; API key và model lấy từ GitHub Secrets LUNA_API_KEY và LUNA_MODEL.
+          - Đã loại toàn bộ CLAUDE_* và patch Claude khỏi build hiện hành.
           - Snapshot vẫn dùng Gemini -> GPT Image và chỉ tự tạo khi có sự kiện hình ảnh đáng kể.
-          - Thay hoàn toàn asset Kai cũ bằng bản 512x768 nền trong suốt; build ghép từ 12 phần và kiểm chính xác kích thước + SHA-256 trước khi đóng APK.
-          - Kai được ép hiển thị trên lớp cao hơn nền Snapshot bằng z-index 5 và đường dẫn asset tương đối trong Android WebView.
           EOF
           )
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
-            gh release upload "$TAG" Backroom-1.1.23.apk --clobber
+            gh release upload "$TAG" Backroom-1.1.24.apk --clobber
           else
-            gh release create "$TAG" Backroom-1.1.23.apk --target "$GITHUB_SHA" --title "$TITLE" --notes "$NOTES"
+            gh release create "$TAG" Backroom-1.1.24.apk --target "$GITHUB_SHA" --title "$TITLE" --notes "$NOTES"
           fi
