@@ -13,7 +13,10 @@ export const dynamic = "force-dynamic";
 function json(body, status = 200) {
   return NextResponse.json(body, {
     status,
-    headers: { "Cache-Control": "no-store" },
+    headers: {
+      "Cache-Control": "no-store",
+      "X-Backroom-Build": process.env.VERCEL_GIT_COMMIT_SHA || "unknown",
+    },
   });
 }
 
