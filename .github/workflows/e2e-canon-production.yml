@@ -1,0 +1,69 @@
+name: isolated-canon-production-check
+
+on:
+  push:
+    branches: [e2e-canon-production]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BASE: https://backroom-rose.vercel.app
+      EXPECTED_BUILD: 92ad2236dabb1b22634adf22fa876ba25d3b5fd0
+    steps:
+      - name: Test Turn 9 canon, three turns, reload and save/load
+        shell: bash
+        run: |
+          set -euo pipefail
+          SESSION_ID="$(cat /proc/sys/kernel/random/uuid)"
+          COOKIE="backroom_session=$SESSION_ID"
+          D="$RUNNER_TEMP/backroom-e2e"
+          mkdir -p "$D"
+
+          curl --fail-with-body -sS -D "$D/initial.headers" -H "Cookie: $COOKIE" "$BASE/api/game-state" -o "$D/initial.json"
+          BUILD="$(awk 'BEGIN{IGNORECASE=1} /^x-backroom-build:/ {gsub(/\r/, ""); sub(/^[^:]+:[[:space:]]*/, ""); print; exit}' "$D/initial.headers")"
+          test "$BUILD" = "$EXPECTED_BUILD"
+          jq -e '.state.turn == 9 and .state.canonLoaded == true and .state.player.name == "Kai Akechi" and (.state.location | contains("Level 0"))' "$D/initial.json" >/dev/null
+
+          curl --fail-with-body -sS -H "Cookie: $COOKIE" -H 'Content-Type: application/json' -X POST "$BASE/api/game-state" --data '{"reset":true}' -o "$D/reset.json"
+          RESET_REV="$(jq -r '.state.revision' "$D/reset.json")"
+          jq -e '.saved == true and .state.turn == 9 and .state.canonLoaded == true' "$D/reset.json" >/dev/null
+
+          A1='Kai đứng ngoài ngưỡng và quan sát cánh cửa trắng cùng hành lang phía sau, không bước qua.'
+          A2='Kai dùng cảm biến trên Demon Jaw Mask kiểm tra độ sâu và dấu hiệu sinh học quanh ngưỡng, vẫn không bước qua.'
+          A3='Kai lùi về tuyến đã đánh dấu, kiểm tra dấu đường quay lại và môi trường gần đó, không rời vùng an toàn hiện tại.'
+
+          for N in 1 2 3; do
+            V="A$N"; ACTION="${!V}"; EXPECTED=$((9 + N))
+            curl --fail-with-body -sS -H "Cookie: $COOKIE" -H 'Content-Type: application/json' -X POST "$BASE/api/game-turn" --data "$(jq -cn --arg action "$ACTION" '{action:$action}')" -o "$D/turn-$N.json"
+            jq -e --argjson expected "$EXPECTED" '.saved == true and .state.turn == $expected and .state.canonLoaded == true' "$D/turn-$N.json" >/dev/null
+            jq -e '.rolls.survivor.dice == "d10000" and .rolls.irisReunion.dice == "d1000000" and .rolls.syvialReunion.dice == "d1000000"' "$D/turn-$N.json" >/dev/null
+            echo "turn_$N=$(jq -r '.state.turn' "$D/turn-$N.json") log_len=$(jq -r '.state.log|length' "$D/turn-$N.json") survivor_raw=$(jq -r '.rolls.survivor.raw' "$D/turn-$N.json")"
+          done
+
+          curl --fail-with-body -sS -H "Cookie: $COOKIE" "$BASE/api/game-state" -o "$D/final.json"
+          FINAL_REV="$(jq -r '.state.revision' "$D/final.json")"
+          STORAGE="$(jq -r '.storage' "$D/final.json")"
+          jq -e '.state.turn == 12 and .state.canonLoaded == true and (.state.log|length) >= 11 and .storage != "preview" and .storage != "memory"' "$D/final.json" >/dev/null
+
+          curl --fail-with-body -sS -H "Cookie: $COOKIE" "$BASE/api/game-state" -o "$D/reopen.json"
+          jq -e --arg rev "$FINAL_REV" '.state.turn == 12 and .state.revision == $rev' "$D/reopen.json" >/dev/null
+
+          SAVE_CODE="$(curl --fail-with-body -sS -o "$D/save.json" -w '%{http_code}' -H "Cookie: $COOKIE" -H 'Content-Type: application/json' -X POST "$BASE/api/game-state" --data "$(jq -cn --arg rev "$FINAL_REV" --argjson state "$(jq -c '.state' "$D/final.json")" '{state:$state,expectedRevision:$rev}')")"
+          test "$SAVE_CODE" = "200"
+          SAVE_REV="$(jq -r '.state.revision' "$D/save.json")"
+          curl --fail-with-body -sS -H "Cookie: $COOKIE" "$BASE/api/game-state" -o "$D/load.json"
+          jq -e --arg rev "$SAVE_REV" '.state.turn == 12 and .state.revision == $rev' "$D/load.json" >/dev/null
+
+          STALE_CODE="$(curl -sS -o "$D/stale.json" -w '%{http_code}' -H "Cookie: $COOKIE" -H 'Content-Type: application/json' -X POST "$BASE/api/game-state" --data "$(jq -cn --arg rev "$RESET_REV" --argjson state "$(jq -c '.state' "$D/final.json")" '{state:$state,expectedRevision:$rev}')")"
+          test "$STALE_CODE" = "409"
+
+          echo "RESULT=PASSED"
+          echo "session=$SESSION_ID"
+          echo "storage=$STORAGE"
+          echo "final_turn=$(jq -r '.state.turn' "$D/final.json")"
+          echo "final_log_len=$(jq -r '.state.log|length' "$D/final.json")"
+          echo "reopen_turn=$(jq -r '.state.turn' "$D/reopen.json")"
+          echo "manual_save_http=$SAVE_CODE"
+          echo "stale_revision_http=$STALE_CODE"
