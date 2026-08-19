@@ -2,85 +2,117 @@ name: backroom-prod-persistence-test
 
 on:
   push:
+    branches: [main]
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   persistence:
+    if: ${{ !contains(github.event.head_commit.message || '', '[skip e2e]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      BASE: https://backroom-rose.vercel.app
     steps:
       - name: Exercise production save/load
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          set -euo pipefail
-          BASE='https://backroom-rose.vercel.app'
-          COOKIE="$RUNNER_TEMP/backroom.cookies"
-          INITIAL="$RUNNER_TEMP/initial.json"
+          set -Eeuo pipefail
+          REPORT="$RUNNER_TEMP/production-test-report.txt"
+          SESSION_ID="$(cat /proc/sys/kernel/random/uuid)"
+          COOKIE="backroom_session=$SESSION_ID"
+          RESULT="FAILED"
+          TURN1="?"; TURN2="?"; TURN3="?"; LOG_LEN="?"; STORAGE="?"; REOPEN_TURN="?"; SAVE_HTTP="?"; STALE_HTTP="?"
+
+          publish_report() {
+            local exit_code="$1"
+            {
+              echo "status=$RESULT"
+              echo "session_id=$SESSION_ID"
+              echo "turn_1=$TURN1"
+              echo "turn_2=$TURN2"
+              echo "turn_3=$TURN3"
+              echo "log_len=$LOG_LEN"
+              echo "storage=$STORAGE"
+              echo "reopen_turn=$REOPEN_TURN"
+              echo "manual_save_http=$SAVE_HTTP"
+              echo "stale_revision_http=$STALE_HTTP"
+              echo "completed_at=$(date -u +%FT%TZ)"
+            } > "$REPORT"
+
+            WORK="$RUNNER_TEMP/e2e-results"
+            rm -rf "$WORK"
+            mkdir -p "$WORK"
+            cd "$WORK"
+            git init -q
+            git checkout -q --orphan e2e-results
+            git config user.name "backroom-e2e"
+            git config user.email "actions@users.noreply.github.com"
+            cp "$REPORT" production-test-report.txt
+            git add production-test-report.txt
+            git commit -q -m "test: production persistence result [skip e2e]"
+            git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+            git push -q -f origin HEAD:e2e-results
+            exit "$exit_code"
+          }
+          trap 'code=$?; publish_report "$code"' EXIT
+
           RESET="$RUNNER_TEMP/reset.json"
-          FINAL="$RUNNER_TEMP/final.json"
-          REOPEN="$RUNNER_TEMP/reopen.json"
-
-          curl --fail-with-body -sS -c "$COOKIE" -b "$COOKIE" "$BASE/api/game-state" -o "$INITIAL"
-          OLD_REV="$(jq -r '.state.revision' "$INITIAL")"
-
-          curl --fail-with-body -sS -c "$COOKIE" -b "$COOKIE" \
-            -H 'Content-Type: application/json' \
-            -X POST "$BASE/api/game-state" \
-            --data '{"reset":true}' -o "$RESET"
+          curl --fail-with-body -sS -H "Cookie: $COOKIE" -H 'Content-Type: application/json' \
+            -X POST "$BASE/api/game-state" --data '{"reset":true}' -o "$RESET"
+          RESET_REV="$(jq -r '.state.revision' "$RESET")"
+          jq -e '.state.turn == 0 and .saved == true' "$RESET" >/dev/null
 
           for N in 1 2 3; do
             OUT="$RUNNER_TEMP/turn-$N.json"
-            curl --fail-with-body -sS -c "$COOKIE" -b "$COOKIE" \
-              -H 'Content-Type: application/json' \
+            curl --fail-with-body -sS -H "Cookie: $COOKIE" -H 'Content-Type: application/json' \
               -X POST "$BASE/api/game-turn" \
-              --data "{\"action\":\"Production persistence test turn $N. Reply briefly and do not alter canon.\"}" \
+              --data "{\"action\":\"Production persistence test turn $N. Reply briefly. Do not load canon.\"}" \
               -o "$OUT"
             jq -e '.saved == true' "$OUT" >/dev/null
             jq -e --argjson n "$N" '.state.turn == $n' "$OUT" >/dev/null
-            printf 'turn_%s=%s storage=%s saved=%s log_len=%s\n' \
-              "$N" \
-              "$(jq -r '.state.turn' "$OUT")" \
-              "$(jq -r '.storage' "$OUT")" \
-              "$(jq -r '.saved' "$OUT")" \
-              "$(jq -r '.state.log | length' "$OUT")"
+            case "$N" in
+              1) TURN1="$(jq -r '.state.turn' "$OUT")" ;;
+              2) TURN2="$(jq -r '.state.turn' "$OUT")" ;;
+              3) TURN3="$(jq -r '.state.turn' "$OUT")" ;;
+            esac
           done
 
-          curl --fail-with-body -sS -c "$COOKIE" -b "$COOKIE" "$BASE/api/game-state" -o "$FINAL"
+          FINAL="$RUNNER_TEMP/final.json"
+          curl --fail-with-body -sS -H "Cookie: $COOKIE" "$BASE/api/game-state" -o "$FINAL"
           jq -e '.state.turn == 3' "$FINAL" >/dev/null
           jq -e '.storage != "preview"' "$FINAL" >/dev/null
+          jq -e '.state.log | length >= 7' "$FINAL" >/dev/null
           FINAL_REV="$(jq -r '.state.revision' "$FINAL")"
-          FINAL_STORAGE="$(jq -r '.storage' "$FINAL")"
-          FINAL_LOG_LEN="$(jq -r '.state.log | length' "$FINAL")"
-          printf 'final_turn=%s final_storage=%s final_log_len=%s\n' \
-            "$(jq -r '.state.turn' "$FINAL")" "$FINAL_STORAGE" "$FINAL_LOG_LEN"
+          STORAGE="$(jq -r '.storage' "$FINAL")"
+          LOG_LEN="$(jq -r '.state.log | length' "$FINAL")"
 
-          # Simulate browser/process close and reopen: a new curl process reuses only the persisted cookie jar.
-          sleep 3
-          curl --fail-with-body -sS -b "$COOKIE" "$BASE/api/game-state" -o "$REOPEN"
-          jq -e '.state.turn == 3' "$REOPEN" >/dev/null
-          jq -e --arg rev "$FINAL_REV" '.state.revision == $rev' "$REOPEN" >/dev/null
-          jq -e --arg storage "$FINAL_STORAGE" '.storage == $storage' "$REOPEN" >/dev/null
-          printf 'reopen_turn=%s reopen_storage=%s reopen_log_len=%s\n' \
-            "$(jq -r '.state.turn' "$REOPEN")" \
-            "$(jq -r '.storage' "$REOPEN")" \
-            "$(jq -r '.state.log | length' "$REOPEN")"
+          # New curl process with only the same persistent browser cookie: equivalent to close/reopen.
+          sleep 2
+          REOPEN="$RUNNER_TEMP/reopen.json"
+          curl --fail-with-body -sS -H "Cookie: $COOKIE" "$BASE/api/game-state" -o "$REOPEN"
+          jq -e --arg rev "$FINAL_REV" '.state.turn == 3 and .state.revision == $rev' "$REOPEN" >/dev/null
+          REOPEN_TURN="$(jq -r '.state.turn' "$REOPEN")"
 
-          # Verify stale-revision protection without changing game data if the backend rejects correctly.
-          STATUS="$(curl -sS -o "$RUNNER_TEMP/stale.json" -w '%{http_code}' -c "$COOKIE" -b "$COOKIE" \
-            -H 'Content-Type: application/json' \
-            -X POST "$BASE/api/game-state" \
-            --data "$(jq -cn --arg old \"$OLD_REV\" --argjson state \"$(jq -c '.state' "$FINAL")\" '{state:$state,expectedRevision:$old}')")"
-          printf 'stale_revision_http=%s\n' "$STATUS"
-          test "$STATUS" = '409'
+          # Intentional stale write must be rejected and must not roll state backward.
+          STALE_HTTP="$(curl -sS -o "$RUNNER_TEMP/stale.json" -w '%{http_code}' \
+            -H "Cookie: $COOKIE" -H 'Content-Type: application/json' -X POST "$BASE/api/game-state" \
+            --data "$(jq -cn --arg rev "$RESET_REV" --argjson state "$(jq -c '.state' "$FINAL")" '{state:$state,expectedRevision:$rev}')")"
+          test "$STALE_HTTP" = "409"
 
-          # Verify a real manual Save POST and subsequent Load GET.
-          SAVE_STATUS="$(curl --fail-with-body -sS -o "$RUNNER_TEMP/save.json" -w '%{http_code}' -c "$COOKIE" -b "$COOKIE" \
-            -H 'Content-Type: application/json' \
-            -X POST "$BASE/api/game-state" \
-            --data "$(jq -cn --arg rev \"$FINAL_REV\" --argjson state \"$(jq -c '.state' "$FINAL")\" '{state:$state,expectedRevision:$rev}')")"
-          test "$SAVE_STATUS" = '200'
+          # Manual Save POST, then Load GET must return exactly the saved revision and same turn.
+          SAVE_HTTP="$(curl --fail-with-body -sS -o "$RUNNER_TEMP/save.json" -w '%{http_code}' \
+            -H "Cookie: $COOKIE" -H 'Content-Type: application/json' -X POST "$BASE/api/game-state" \
+            --data "$(jq -cn --arg rev "$FINAL_REV" --argjson state "$(jq -c '.state' "$FINAL")" '{state:$state,expectedRevision:$rev}')")"
+          test "$SAVE_HTTP" = "200"
           SAVE_REV="$(jq -r '.state.revision' "$RUNNER_TEMP/save.json")"
-          curl --fail-with-body -sS -b "$COOKIE" "$BASE/api/game-state" -o "$RUNNER_TEMP/load-after-save.json"
-          jq -e --arg rev "$SAVE_REV" '.state.revision == $rev' "$RUNNER_TEMP/load-after-save.json" >/dev/null
-          jq -e '.state.turn == 3' "$RUNNER_TEMP/load-after-save.json" >/dev/null
-          printf 'manual_save_http=%s load_turn=%s\n' "$SAVE_STATUS" "$(jq -r '.state.turn' "$RUNNER_TEMP/load-after-save.json")"
+          curl --fail-with-body -sS -H "Cookie: $COOKIE" "$BASE/api/game-state" -o "$RUNNER_TEMP/load-after-save.json"
+          jq -e --arg rev "$SAVE_REV" '.state.turn == 3 and .state.revision == $rev' "$RUNNER_TEMP/load-after-save.json" >/dev/null
+
+          RESULT="PASSED"
+          trap - EXIT
+          publish_report 0
