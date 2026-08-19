@@ -1,8 +1,8 @@
 name: isolated-canon-production-check
 
 on:
-  push:
-    branches: [e2e-canon-production]
+  pull_request:
+    branches: [main]
 
 jobs:
   verify:
