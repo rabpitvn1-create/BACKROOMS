@@ -6,13 +6,13 @@ MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
 main = MAIN.read_text(encoding="utf-8")
 
 
-def sub_once(pattern: str, replacement: str, text: str, label: str, flags=0) -> str:
+def sub_once(pattern: str, replacement, text: str, label: str, flags=0) -> str:
     out, count = re.subn(pattern, replacement, text, count=1, flags=flags)
     if count != 1:
         raise RuntimeError(f"{label}: expected 1 match, found {count}")
     return out
 
-# Model families: try multiple image models inside each provider before crossing providers.
+
 main = sub_once(
     r'  private static final String GEMINI_IMAGE_MODEL = "gemini-3\.1-flash-image";\n',
     '  private static final String[] GEMINI_IMAGE_MODELS = {"gemini-3.1-flash-image", "gemini-3.1-flash-lite-image"};\n'
@@ -21,7 +21,6 @@ main = sub_once(
     "image model families",
 )
 
-# Snapshot UI is provider-neutral until a provider is actually selected.
 if main.count("GEMINI SNAPSHOT") != 1:
     raise RuntimeError("snapshot placeholder label not found exactly once")
 main = main.replace("GEMINI SNAPSHOT", "AI SNAPSHOT", 1)
@@ -32,7 +31,6 @@ if main.count("(r.model||'Gemini')") != 1:
     raise RuntimeError("snapshot completion model label not found exactly once")
 main = main.replace("(r.model||'Gemini')", "(r.model||'AI')", 1)
 
-# Native code tells the WebView when Snapshot changes provider.
 anchor = '      "window.backroomSnapshot=function(payload){'
 if main.count(anchor) != 1:
     raise RuntimeError("snapshot callback anchor not found exactly once")
@@ -69,6 +67,7 @@ new_pipeline = r'''  private SnapshotImage geminiImageModel(String prompt, Strin
           return new SnapshotImage(image.data, image.mimeType, model, "Gemini");
         } catch (Exception e) {
           last = e;
+          if (networkFailure(e)) throw e;
           int code = e instanceof HttpError ? ((HttpError)e).status : 0;
           if (code == 429) break;
           if (attempt == 0 && (code == 0 || retryable(code))) {
@@ -105,6 +104,7 @@ new_pipeline = r'''  private SnapshotImage geminiImageModel(String prompt, Strin
         return new SnapshotImage(imageData, "image/jpeg", model, "GPT");
       } catch (Exception e) {
         last = e;
+        if (networkFailure(e)) throw e;
         int code = e instanceof HttpError ? ((HttpError)e).status : 0;
         if (code == 429) break;
         if (attempt == 0 && (code == 0 || retryable(code))) {
@@ -119,6 +119,7 @@ new_pipeline = r'''  private SnapshotImage geminiImageModel(String prompt, Strin
 
   private String friendlyImageFailure(String provider, Exception error) {
     if (error == null) return provider + ": không khả dụng";
+    if (networkFailure(error)) return provider + ": lỗi mạng/DNS";
     int code = error instanceof HttpError ? ((HttpError)error).status : 0;
     if (code == 429) return provider + ": hết quota hoặc đang bị giới hạn tốc độ";
     if (code == 401) return provider + ": API key không hợp lệ hoặc chưa được cấu hình";
@@ -139,6 +140,7 @@ new_pipeline = r'''  private SnapshotImage geminiImageModel(String prompt, Strin
         return geminiImageModel(prompt, model);
       } catch (Exception e) {
         geminiFailure = e;
+        if (networkFailure(e)) break;
       }
     }
 
@@ -149,9 +151,13 @@ new_pipeline = r'''  private SnapshotImage geminiImageModel(String prompt, Strin
         return openAiImageModel(prompt, model);
       } catch (Exception e) {
         gptFailure = e;
+        if (networkFailure(e)) break;
       }
     }
 
+    if (networkFailure(geminiFailure) && networkFailure(gptFailure)) {
+      throw new Exception(networkFailureMessage());
+    }
     throw new Exception(
       friendlyImageFailure("Gemini", geminiFailure) + "; " +
       friendlyImageFailure("GPT", gptFailure)
@@ -231,4 +237,4 @@ main = sub_once(
 )
 
 MAIN.write_text(main, encoding="utf-8")
-print("Snapshot fallback patched: Gemini image models -> GPT Image models, with compact quota errors.")
+print("Snapshot fallback patched: Gemini image models -> GPT Image models, DNS-aware.")
