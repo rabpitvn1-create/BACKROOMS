@@ -1,0 +1,1 @@
+Build-time chunks for the fixed transparent Kai snapshot overlay. patch-provider-status.py reconstructs kai_snapshot_overlay.webp before Gradle builds the APK.
