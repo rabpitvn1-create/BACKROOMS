@@ -64,7 +64,7 @@ jobs:
           - Đã loại bỏ Gemini khỏi runtime APK và khỏi workflow build.
           - Không còn đọc hoặc đóng gói bất kỳ GEMINI_API_KEY nào.
           - Game Master xử lý theo thứ tự Qwen -> GPT.
-          - Snapshot ảnh dùng GPT Image בלבד, không còn fallback sang Gemini.
+          - Snapshot ảnh chỉ dùng GPT Image, không còn fallback sang Gemini.
           - Qwen API key, Base URL và model tiếp tục lấy từ GitHub Secrets.
           EOF
           )
