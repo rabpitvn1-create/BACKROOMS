@@ -39,6 +39,13 @@ main = replace_once(
 
 main = replace_once(
     main,
+    "if(typeof oldError==='function')oldError(message);scrollBottom();",
+    "if(typeof oldError==='function')oldError(message);var s=document.getElementById('status');if(s)s.textContent='Lỗi '+(window.__backroomProvider||'AI')+': '+message;scrollBottom();",
+    "provider error label",
+)
+
+main = replace_once(
+    main,
     '<div class=\\\"role\\\">GAME MASTER</div><div class=\\\"text\\\">Đang xử lý lượt…</div>',
     '<div class=\\\"role\\\">GAME MASTER</div><div class=\\\"text\\\">GPT đang xử lý lượt…</div>',
     "pending provider label",
