@@ -61,6 +61,18 @@ jobs:
           }
           trap 'code=$?; publish_report "$code"' EXIT
 
+          # Wait until the newly pushed production deployment owns the stable alias.
+          READY=0
+          for TRY in $(seq 1 40); do
+            CODE="$(curl -sS -o "$RUNNER_TEMP/health.json" -w '%{http_code}' -H "Cookie: $COOKIE" "$BASE/api/game-state" || true)"
+            if [ "$CODE" = "200" ] && jq -e '.storage == "vercel-runtime-cache" or .storage == "neon-postgres"' "$RUNNER_TEMP/health.json" >/dev/null 2>&1; then
+              READY=1
+              break
+            fi
+            sleep 3
+          done
+          test "$READY" = "1"
+
           RESET="$RUNNER_TEMP/reset.json"
           curl --fail-with-body -sS -H "Cookie: $COOKIE" -H 'Content-Type: application/json' \
             -X POST "$BASE/api/game-state" --data '{"reset":true}' -o "$RESET"
@@ -91,20 +103,19 @@ jobs:
           STORAGE="$(jq -r '.storage' "$FINAL")"
           LOG_LEN="$(jq -r '.state.log | length' "$FINAL")"
 
-          # New curl process with only the same persistent browser cookie: equivalent to close/reopen.
+          # A new curl process reuses only the persistent browser cookie: close/reopen equivalent.
           sleep 2
           REOPEN="$RUNNER_TEMP/reopen.json"
           curl --fail-with-body -sS -H "Cookie: $COOKIE" "$BASE/api/game-state" -o "$REOPEN"
           jq -e --arg rev "$FINAL_REV" '.state.turn == 3 and .state.revision == $rev' "$REOPEN" >/dev/null
           REOPEN_TURN="$(jq -r '.state.turn' "$REOPEN")"
 
-          # Intentional stale write must be rejected and must not roll state backward.
+          # Intentional stale write; the only expected 4xx in the test.
           STALE_HTTP="$(curl -sS -o "$RUNNER_TEMP/stale.json" -w '%{http_code}' \
             -H "Cookie: $COOKIE" -H 'Content-Type: application/json' -X POST "$BASE/api/game-state" \
             --data "$(jq -cn --arg rev "$RESET_REV" --argjson state "$(jq -c '.state' "$FINAL")" '{state:$state,expectedRevision:$rev}')")"
           test "$STALE_HTTP" = "409"
 
-          # Manual Save POST, then Load GET must return exactly the saved revision and same turn.
           SAVE_HTTP="$(curl --fail-with-body -sS -o "$RUNNER_TEMP/save.json" -w '%{http_code}' \
             -H "Cookie: $COOKIE" -H 'Content-Type: application/json' -X POST "$BASE/api/game-state" \
             --data "$(jq -cn --arg rev "$FINAL_REV" --argjson state "$(jq -c '.state' "$FINAL")" '{state:$state,expectedRevision:$rev}')")"
