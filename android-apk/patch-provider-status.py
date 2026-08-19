@@ -119,7 +119,9 @@ new_generate = '''  private boolean networkFailure(Exception error) {
     while (cause != null) {
       if (cause instanceof java.net.UnknownHostException ||
           cause instanceof java.net.ConnectException ||
-          cause instanceof java.net.SocketTimeoutException) return true;
+          cause instanceof java.net.SocketTimeoutException ||
+          cause instanceof java.net.SocketException ||
+          cause instanceof java.io.IOException) return true;
       cause = cause.getCause();
     }
     return false;
@@ -182,6 +184,6 @@ main = main[:gemini_start] + gemini_block + main[generate_start:]
 MAIN.write_text(main, encoding="utf-8")
 INDEX.write_text(index, encoding="utf-8")
 print(
-    f"Patched APK provider labels, DNS-aware text fallback and Kai snapshot overlay "
+    f"Patched APK provider labels, socket/DNS-aware fallback and Kai snapshot overlay "
     f"({len(overlay_bytes)} bytes)."
 )
