@@ -1,3 +1,4 @@
+import { randomInt } from "node:crypto";
 import { NextResponse } from "next/server";
 import { generateTurn } from "../../../lib/gemini.js";
 import { getSessionId } from "../../../lib/session.js";
@@ -22,6 +23,32 @@ function objectOr(value, fallback) {
   return value && typeof value === "object" && !Array.isArray(value) ? value : fallback;
 }
 
+function roll(max) {
+  return randomInt(1, max + 1);
+}
+
+function makeRolls(action) {
+  const survivor = roll(10000);
+  const iris = roll(1000000);
+  const syvial = roll(1000000);
+  const hazard = roll(10000);
+  const almondWater = roll(10000);
+  const exit = roll(10000);
+
+  const physicalRisk = /(đi|bước|chạy|leo|mở|đóng|chạm|tìm|kiểm tra|quét|scan|bắn|phá|đẩy|kéo|tiến|lùi|cúi|nhìn vào)/i.test(action);
+  const searchesWater = /(nước|water|almond|uống|khát)/i.test(action);
+  const probesExit = /(exit|lối thoát|thoát|cửa trắng|cánh cửa|ngưỡng|hành lang phía sau)/i.test(action);
+
+  return {
+    survivor: { dice: "d10000", chance: "2.00%", raw: survivor, threshold: 200, eligible: true, success: survivor <= 200 },
+    irisReunion: { dice: "d1000000", chance: "0.0025%", raw: iris, threshold: 25, eligible: true, success: iris <= 25 },
+    syvialReunion: { dice: "d1000000", chance: "0.0025%", raw: syvial, threshold: 25, eligible: true, success: syvial <= 25 },
+    hazard: { dice: "d10000", chance: "4.00%", raw: hazard, threshold: 400, eligible: physicalRisk, success: physicalRisk && hazard <= 400 },
+    almondWater: { dice: "d10000", chance: "0.20%", raw: almondWater, threshold: 20, eligible: searchesWater, success: searchesWater && almondWater <= 20 },
+    exitProbe: { dice: "d10000", chance: "1.00% discovery clue", raw: exit, threshold: 100, eligible: probesExit, success: probesExit && exit <= 100 },
+  };
+}
+
 export async function POST(request) {
   try {
     const sessionId = await getSessionId();
@@ -31,19 +58,26 @@ export async function POST(request) {
     if (action.length > 12000) return json({ error: "Hành động quá dài.", saved: false }, 400);
 
     const current = await loadState(sessionId);
-    const generated = await generateTurn(current, action);
+    const rolls = makeRolls(action);
+    const generated = await generateTurn(current, action, rolls);
 
+    const generatedFlags = objectOr(generated.flags, {});
     const nextState = {
       ...current,
       title: typeof generated.title === "string" ? generated.title : current.title,
       turn: current.turn + 1,
       mode: "ai",
-      canonLoaded: current.canonLoaded === true,
+      canonLoaded: true,
+      canonVersion: current.canonVersion,
       location: typeof generated.location === "string" ? generated.location : current.location,
       player: objectOr(generated.player, current.player),
       party: Array.isArray(generated.party) ? generated.party : current.party,
       inventory: Array.isArray(generated.inventory) ? generated.inventory : current.inventory,
-      flags: objectOr(generated.flags, current.flags),
+      flags: {
+        ...current.flags,
+        ...generatedFlags,
+        lastRolls: { turn: current.turn + 1, ...rolls },
+      },
       snapshotUrl:
         typeof generated.snapshotUrl === "string" || generated.snapshotUrl === null
           ? generated.snapshotUrl
@@ -56,7 +90,7 @@ export async function POST(request) {
     };
 
     const state = await saveState(sessionId, nextState, current.revision);
-    return json({ state, storage: storageName(), saved: true });
+    return json({ state, storage: storageName(), saved: true, rolls });
   } catch (error) {
     if (error instanceof StateConflictError) {
       return json({ error: error.message, saved: false, storage: storageName() }, 409);
