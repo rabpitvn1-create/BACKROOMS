@@ -21,12 +21,10 @@ jobs:
       GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
     steps:
       - uses: actions/checkout@v4
-      - name: Apply provider status patch
+      - name: Apply provider, DNS and Kai overlay patch
         run: python3 android-apk/patch-provider-status.py
-      - name: Apply snapshot fallback patch
+      - name: Apply Snapshot provider fallback patch
         run: python3 android-apk/patch-snapshot-fallback.py
-      - name: Apply network error patch
-        run: python3 android-apk/patch-network-errors.py
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
