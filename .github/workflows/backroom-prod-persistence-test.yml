@@ -16,7 +16,7 @@ jobs:
     env:
       BASE: https://backroom-rose.vercel.app
     steps:
-      - name: Exercise production save/load
+      - name: Exercise production canon save/load
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -59,7 +59,7 @@ jobs:
             git config user.email "actions@users.noreply.github.com"
             cp "$REPORT" production-test-report.txt
             git add production-test-report.txt
-            git commit -q -m "test: production persistence result [skip e2e]"
+            git commit -q -m "test: production canon result [skip e2e]"
             git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
             git push -q -f origin HEAD:e2e-results
             exit "$exit_code"
@@ -87,19 +87,26 @@ jobs:
           RESET_TURN="$(jq -r '.state.turn // "missing"' "$RESET")"
           RESET_SAVED="$(jq -r '.saved // "missing"' "$RESET")"
           RESET_REV="$(jq -r '.state.revision // empty' "$RESET")"
-          test "$RESET_TURN" = "0"
+          test "$RESET_TURN" = "9"
           test "$RESET_SAVED" = "true"
           test -n "$RESET_REV"
+          jq -e '.state.canonLoaded == true and .state.player.name == "Kai Akechi" and (.state.location | contains("Level 0"))' "$RESET" >/dev/null
 
           for N in 1 2 3; do
             STAGE="game-turn-$N"
             OUT="$RUNNER_TEMP/turn-$N.json"
+            case "$N" in
+              1) ACTION='Kai đứng ngoài ngưỡng và quan sát cánh cửa trắng cùng hành lang phía sau, không bước qua.' ;;
+              2) ACTION='Kai dùng cảm biến trên Demon Jaw Mask kiểm tra độ sâu và dấu hiệu sinh học quanh ngưỡng, vẫn không bước qua.' ;;
+              3) ACTION='Kai lùi về tuyến đã đánh dấu, kiểm tra dấu đường quay lại và môi trường gần đó, không rời vùng an toàn hiện tại.' ;;
+            esac
+            EXPECTED=$((RESET_TURN + N))
             curl --fail-with-body -sS -H "Cookie: $COOKIE" -H 'Content-Type: application/json' \
               -X POST "$BASE/api/game-turn" \
-              --data "{\"action\":\"Production persistence test turn $N. Reply briefly. Do not load canon.\"}" \
-              -o "$OUT"
-            jq -e '.saved == true' "$OUT" >/dev/null
-            jq -e --argjson n "$N" '.state.turn == $n' "$OUT" >/dev/null
+              --data "$(jq -cn --arg action "$ACTION" '{action:$action}')" -o "$OUT"
+            jq -e '.saved == true and .state.canonLoaded == true' "$OUT" >/dev/null
+            jq -e --argjson expected "$EXPECTED" '.state.turn == $expected' "$OUT" >/dev/null
+            jq -e '.rolls.survivor.dice == "d10000" and .rolls.irisReunion.dice == "d1000000" and .rolls.syvialReunion.dice == "d1000000"' "$OUT" >/dev/null
             case "$N" in
               1) TURN1="$(jq -r '.state.turn' "$OUT")" ;;
               2) TURN2="$(jq -r '.state.turn' "$OUT")" ;;
@@ -107,12 +114,13 @@ jobs:
             esac
           done
 
+          EXPECTED_FINAL=$((RESET_TURN + 3))
           STAGE="final-load"
           FINAL="$RUNNER_TEMP/final.json"
           curl --fail-with-body -sS -H "Cookie: $COOKIE" "$BASE/api/game-state" -o "$FINAL"
-          jq -e '.state.turn == 3' "$FINAL" >/dev/null
-          jq -e '.storage != "preview"' "$FINAL" >/dev/null
-          jq -e '.state.log | length >= 7' "$FINAL" >/dev/null
+          jq -e --argjson expected "$EXPECTED_FINAL" '.state.turn == $expected and .state.canonLoaded == true' "$FINAL" >/dev/null
+          jq -e '.storage != "preview" and .storage != "memory"' "$FINAL" >/dev/null
+          jq -e '.state.log | length >= 11' "$FINAL" >/dev/null
           FINAL_REV="$(jq -r '.state.revision' "$FINAL")"
           STORAGE="$(jq -r '.storage' "$FINAL")"
           LOG_LEN="$(jq -r '.state.log | length' "$FINAL")"
@@ -121,7 +129,7 @@ jobs:
           sleep 2
           REOPEN="$RUNNER_TEMP/reopen.json"
           curl --fail-with-body -sS -H "Cookie: $COOKIE" "$BASE/api/game-state" -o "$REOPEN"
-          jq -e --arg rev "$FINAL_REV" '.state.turn == 3 and .state.revision == $rev' "$REOPEN" >/dev/null
+          jq -e --argjson expected "$EXPECTED_FINAL" --arg rev "$FINAL_REV" '.state.turn == $expected and .state.revision == $rev' "$REOPEN" >/dev/null
           REOPEN_TURN="$(jq -r '.state.turn' "$REOPEN")"
 
           STAGE="stale-write"
@@ -137,7 +145,7 @@ jobs:
           test "$SAVE_HTTP" = "200"
           SAVE_REV="$(jq -r '.state.revision' "$RUNNER_TEMP/save.json")"
           curl --fail-with-body -sS -H "Cookie: $COOKIE" "$BASE/api/game-state" -o "$RUNNER_TEMP/load-after-save.json"
-          jq -e --arg rev "$SAVE_REV" '.state.turn == 3 and .state.revision == $rev' "$RUNNER_TEMP/load-after-save.json" >/dev/null
+          jq -e --argjson expected "$EXPECTED_FINAL" --arg rev "$SAVE_REV" '.state.turn == $expected and .state.revision == $rev' "$RUNNER_TEMP/load-after-save.json" >/dev/null
 
           RESULT="PASSED"; STAGE="complete"
           trap - EXIT
