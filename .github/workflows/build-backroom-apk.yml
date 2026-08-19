@@ -27,7 +27,7 @@ jobs:
         run: python3 android-apk/patch-level-snapshot-backgrounds.py
       - name: Apply Snapshot provider fallback patch
         run: python3 android-apk/patch-snapshot-fallback.py
-      - name: Apply HD Kai and continuous Snapshot patch
+      - name: Apply HD Kai and event-only Snapshot patch
         run: python3 android-apk/patch-kai-hd-continuous.py
       - uses: actions/setup-java@v4
         with:
@@ -42,7 +42,7 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Backroom-debug-apk
+          name: Backroom-1.1.14-debug-apk
           path: android-apk/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
