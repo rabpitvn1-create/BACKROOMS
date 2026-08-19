@@ -15,7 +15,8 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
 main = MAIN.read_text(encoding="utf-8")
 index = INDEX.read_text(encoding="utf-8")
 
-# Keep exactly one Gemini key in the final APK source.
+# Collapse every legacy Gemini slot to one effective BuildConfig key. The workflow
+# maps whichever single Gemini repository secret still exists into GEMINI_API_KEY.
 old_keys = '''  private String[] geminiKeys() {
     return new String[] {
       BuildConfig.GEMINI_API_KEY_1,
@@ -26,10 +27,10 @@ old_keys = '''  private String[] geminiKeys() {
   }
 '''
 new_keys = '''  private String[] geminiKeys() {
-    return new String[] { BuildConfig.GEMINI_API_KEY_1 };
+    return new String[] { BuildConfig.GEMINI_API_KEY };
   }
 '''
-main = replace_once(main, old_keys, new_keys, "single Gemini key")
+main = replace_once(main, old_keys, new_keys, "single effective Gemini key")
 
 claude_method = r'''  private String claudeText(String prompt) throws Exception {
     if (BuildConfig.CLAUDE_API_KEY == null || BuildConfig.CLAUDE_API_KEY.trim().isEmpty()) {
@@ -50,18 +51,33 @@ claude_method = r'''  private String claudeText(String prompt) throws Exception 
       .put("max_tokens", 1800)
       .put("stream", false);
 
-    JSONObject result = new JSONObject(postJson(
-      baseUrl + "/chat/completions",
-      BuildConfig.CLAUDE_API_KEY,
-      "Authorization",
-      body
-    ));
-    JSONArray choices = result.optJSONArray("choices");
-    JSONObject first = choices != null ? choices.optJSONObject(0) : null;
-    JSONObject responseMessage = first != null ? first.optJSONObject("message") : null;
-    String text = responseMessage != null ? responseMessage.optString("content", "").trim() : "";
-    if (text.isEmpty()) throw new Exception("Claude không trả nội dung.");
-    return text;
+    Exception last = null;
+    for (int attempt = 0; attempt < 3; attempt++) {
+      try {
+        JSONObject result = new JSONObject(postJson(
+          baseUrl + "/chat/completions",
+          BuildConfig.CLAUDE_API_KEY,
+          "Authorization",
+          body
+        ));
+        JSONArray choices = result.optJSONArray("choices");
+        JSONObject first = choices != null ? choices.optJSONObject(0) : null;
+        JSONObject responseMessage = first != null ? first.optJSONObject("message") : null;
+        String text = responseMessage != null ? responseMessage.optString("content", "").trim() : "";
+        if (text.isEmpty()) throw new Exception("Claude không trả nội dung.");
+        return text;
+      } catch (Exception e) {
+        last = e;
+        int code = e instanceof HttpError ? ((HttpError)e).status : 0;
+        boolean transport = networkFailure(e) || e instanceof java.net.SocketException || e instanceof java.io.IOException;
+        if (attempt < 2 && (transport || code == 0 || retryable(code))) {
+          try { Thread.sleep(500L * (attempt + 1)); } catch (InterruptedException ignored) {}
+          continue;
+        }
+        break;
+      }
+    }
+    throw last != null ? last : new Exception("Claude không khả dụng.");
   }
 
 '''
@@ -112,50 +128,44 @@ new_generate = r'''  private String generateText(String prompt) throws Exception
       claudeFailure = error;
     }
 
-    int claudeCode = claudeFailure instanceof HttpError ? ((HttpError)claudeFailure).status : 0;
-    if (!networkFailure(claudeFailure) && (claudeCode == 0 || retryable(claudeCode))) {
-      try { Thread.sleep(350); } catch (InterruptedException ignored) {}
-      try {
-        return claudeText(prompt);
-      } catch (Exception secondFailure) {
-        claudeFailure = secondFailure;
-      }
-    }
-
-    emit("backroomProvider", "GPT");
-    Exception gptFailure;
-    try {
-      return openAiText(prompt);
-    } catch (Exception error) {
-      gptFailure = error;
-    }
-
-    int gptCode = gptFailure instanceof HttpError ? ((HttpError)gptFailure).status : 0;
-    if (!networkFailure(gptFailure) && (gptCode == 0 || retryable(gptCode))) {
-      try { Thread.sleep(350); } catch (InterruptedException ignored) {}
-      try {
-        return openAiText(prompt);
-      } catch (Exception secondFailure) {
-        gptFailure = secondFailure;
-      }
-    }
-
     emit("backroomProvider", "Gemini");
+    Exception geminiFailure;
     try {
       return geminiText(prompt);
-    } catch (Exception geminiFailure) {
-      if (networkFailure(claudeFailure) && networkFailure(gptFailure) && networkFailure(geminiFailure)) {
-        throw new Exception(networkFailureMessage());
-      }
-      String claudeMessage = claudeFailure != null && claudeFailure.getMessage() != null ? claudeFailure.getMessage() : "Claude không khả dụng";
-      String gptMessage = gptFailure != null && gptFailure.getMessage() != null ? gptFailure.getMessage() : "GPT không khả dụng";
-      String geminiMessage = geminiFailure.getMessage() != null ? geminiFailure.getMessage() : "Gemini không khả dụng";
-      throw new Exception("Claude: " + claudeMessage + "; GPT fallback: " + gptMessage + "; Gemini fallback: " + geminiMessage);
+    } catch (Exception error) {
+      geminiFailure = error;
     }
+
+    Exception gptFailure = null;
+    if (BuildConfig.OPENAI_API_KEY != null && !BuildConfig.OPENAI_API_KEY.trim().isEmpty()) {
+      emit("backroomProvider", "GPT");
+      try {
+        return openAiText(prompt);
+      } catch (Exception error) {
+        gptFailure = error;
+      }
+      int gptCode = gptFailure instanceof HttpError ? ((HttpError)gptFailure).status : 0;
+      if (gptCode == 0 || retryable(gptCode)) {
+        try { Thread.sleep(350); } catch (InterruptedException ignored) {}
+        try {
+          return openAiText(prompt);
+        } catch (Exception secondFailure) {
+          gptFailure = secondFailure;
+        }
+      }
+    }
+
+    String claudeMessage = claudeFailure != null && claudeFailure.getMessage() != null ? claudeFailure.getMessage() : "Claude không khả dụng";
+    String geminiMessage = geminiFailure != null && geminiFailure.getMessage() != null ? geminiFailure.getMessage() : "Gemini không khả dụng";
+    if (gptFailure != null) {
+      String gptMessage = gptFailure.getMessage() != null ? gptFailure.getMessage() : "GPT không khả dụng";
+      throw new Exception("Claude: " + claudeMessage + "; Gemini fallback: " + geminiMessage + "; GPT fallback: " + gptMessage);
+    }
+    throw new Exception("Claude: " + claudeMessage + "; Gemini fallback: " + geminiMessage);
   }
 '''
 
-main = replace_once(main, old_generate, new_generate, "Claude-GPT-Gemini provider switch")
+main = replace_once(main, old_generate, new_generate, "Claude-Gemini-GPT provider switch")
 
 main = replace_once(
     main,
@@ -178,4 +188,4 @@ index = replace_once(
 
 MAIN.write_text(main, encoding="utf-8")
 INDEX.write_text(index, encoding="utf-8")
-print("Game Master provider order: Claude via secret Base URL -> GPT -> one Gemini key.")
+print("Game Master provider order: Claude (3 transport retries) -> one Gemini key -> GPT only when configured.")
