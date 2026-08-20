@@ -95,8 +95,10 @@ jobs:
         run: python3 android-apk/patch-conditional-audit.py
       - name: Score audits from validated state delta
         run: python3 android-apk/patch-audit-validated-risk.py
-      - name: Apply final authority and deadline hardening
+      - name: Apply final authority hardening
         run: python3 android-apk/patch-final-authority-hardening.py
+      - name: Bound Luna fallback deadline
+        run: python3 android-apk/patch-provider-deadline-final.py
       - name: Harden final Java compile surface
         run: python3 android-apk/patch-java-compile-hardening.py
       - name: Apply Single Player Hard Mode label
