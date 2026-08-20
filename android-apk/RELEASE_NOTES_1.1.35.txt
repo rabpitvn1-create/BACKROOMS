@@ -13,3 +13,4 @@ Deterministic Game State Core and LiteRT local command framework.
 - Adds unit tests for command resolution, game-state contracts, save codec, rule parsing, Gemini fallback and turn coordination.
 - Keeps existing Kai inventory/Omnivault continuity rules, model-first Gemini 3.6 -> 3.5 -> Flash-Lite -> Luna routing, Save/Load hardening and existing gameplay canon protections.
 - Android release build now trains/verifies the tiny LiteRT model, runs Kotlin core tests, then assembles the APK.
+- Release pipeline targets GitHub Release v1.1.35 with Backroom-1.1.35.apk.
