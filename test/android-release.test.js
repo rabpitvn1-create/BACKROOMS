@@ -29,6 +29,7 @@ test("Android release patch chain injects routed canon, authoritative ops, condi
   assert.match(workflow, /patch-gemini-health-pool\.py/);
   assert.match(workflow, /patch-conditional-audit\.py/);
   assert.match(workflow, /patch-audit-validated-risk\.py/);
+  assert.match(workflow, /patch-java-compile-hardening\.py/);
   assert.doesNotMatch(buildGradle + workflow, /SNAPSHOT_API_KEY/);
 
   for (let level = 0; level <= 6; level += 1) {
@@ -53,6 +54,7 @@ test("Android release patch chain injects routed canon, authoritative ops, condi
     "patch-gemini-health-pool.py",
     "patch-conditional-audit.py",
     "patch-audit-validated-risk.py",
+    "patch-java-compile-hardening.py",
     "patch-hard-mode-label.py",
     "patch-snapshot-unconfigured.py",
   ];
@@ -66,7 +68,14 @@ test("Android release patch chain injects routed canon, authoritative ops, condi
   const index = readFileSync(path.join(target, "app/src/main/assets/index.html"), "utf8");
 
   assert.match(main, /DRIVE_CANON_VERSION/);
+  assert.match(main, /import java\.security\.SecureRandom;/);
   assert.match(main, /SecureRandom GAME_RNG/);
+  assert.match(main, /private String lower\(String value\)/);
+  assert.match(main, /private boolean networkFailure\(Exception error\)/);
+  assert.match(main, /private String networkFailureMessage\(\)/);
+  assert.equal((main.match(/private void mergeObject\(JSONObject target, JSONObject patch\)/g) || []).length, 1);
+  assert.equal((main.match(/private void mergeObjectDeep\(JSONObject target, JSONObject patch\)/g) || []).length, 1);
+  assert.doesNotMatch(main, /JSONObject\.getNames\(/);
   assert.match(main, /makeGameplayRolls/);
   assert.match(main, /compactDriveCanon/);
   assert.match(main, /compactKaiCanon/);
