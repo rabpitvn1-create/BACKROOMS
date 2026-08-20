@@ -30,6 +30,13 @@ function levelHeader(state) {
   return state?.title || "Backrooms Session";
 }
 
+function rollLabel(name, roll) {
+  if (!roll || typeof roll !== "object") return null;
+  if (!roll.eligible) return `${name}: INELIGIBLE`;
+  if (roll.guaranteedByState) return `${name}: ĐỦ ĐIỀU KIỆN CANON`;
+  return `${name}: ${roll.raw}/${roll.threshold}${roll.success ? " — SUCCESS" : ""}`;
+}
+
 async function readJson(response) {
   const body = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(body?.error || `HTTP ${response.status}`);
@@ -107,6 +114,8 @@ export default function Home() {
         } catch (snapshotError) {
           setStatus(`Turn ${result.state.turn} đã lưu, nhưng snapshot sự kiện bị lỗi: ${snapshotError.message}`);
         }
+      } else if (result.saved && result.turnAdvanced === false) {
+        setStatus(`Đã trả lời từ state/canon hiện tại; Turn không tăng. Storage: ${result.storage}.`);
       } else if (result.saved) {
         setStatus(`Turn ${result.state.turn} đã lưu trên ${result.storage}. Snapshot cũ được giữ nguyên.`);
       } else {
@@ -256,9 +265,19 @@ export default function Home() {
           <h2>Trạng thái</h2>
           <dl>
             <div><dt>Vị trí</dt><dd>{state.location || "—"}</dd></div>
+            <div><dt>Mục tiêu</dt><dd>{state.flags?.currentObjective || "—"}</dd></div>
             <div><dt>Chế độ</dt><dd>{state.mode || "—"}</dd></div>
             <div><dt>Canon</dt><dd>{state.canonLoaded ? "Đã nạp" : "Chưa nạp"}</dd></div>
             <div><dt>Nhân vật</dt><dd>{state.player?.name || "Chưa xác định"}</dd></div>
+            <div><dt>Tình trạng</dt><dd>{state.player?.condition || "—"}</dd></div>
+          </dl>
+        </div>
+
+        <div className="card">
+          <h2>Nhu cầu & liên lạc</h2>
+          <dl>
+            {Object.entries(state.player?.needs || {}).map(([key, value]) => <div key={key}><dt>{key}</dt><dd>{String(value)}</dd></div>)}
+            {Object.entries(state.flags?.communication || {}).map(([key, value]) => <div key={`link-${key}`}><dt>{key}</dt><dd>{String(value)}</dd></div>)}
           </dl>
         </div>
 
@@ -288,6 +307,34 @@ export default function Home() {
             {state.inventory?.length ? state.inventory.map((item, index) => <span key={index}>{typeof item === "string" ? item : item?.name || `#${index + 1}`}</span>) : <em>Trống.</em>}
           </div>
         </div>
+
+        <div className="card">
+          <h2>Omnivault</h2>
+          <div className="chips">
+            {["slot1", "slot2", "slot3"].map((slot) => <span key={slot}>{slot.toUpperCase()}: {String(state.flags?.omnivault?.[slot] || "EMPTY")}</span>)}
+          </div>
+        </div>
+
+        <div className="card">
+          <h2>Manh mối & tuyến mở</h2>
+          <ul className="compact-list">
+            {(state.flags?.exploration?.clues || []).map((clue, index) => <li key={`clue-${index}`}>{String(clue)}</li>)}
+            {(state.flags?.openThreads || []).map((thread, index) => <li key={`thread-${index}`}>{String(thread)}</li>)}
+          </ul>
+        </div>
+
+        {state.flags?.lastRolls && (
+          <div className="card">
+            <h2>Dice gần nhất</h2>
+            <div className="rolls">
+              {Object.entries(state.flags.lastRolls)
+                .filter(([key]) => key !== "turn")
+                .map(([key, value]) => rollLabel(key, value))
+                .filter(Boolean)
+                .map((label) => <span key={label}>{label}</span>)}
+            </div>
+          </div>
+        )}
       </aside>
     </main>
   );

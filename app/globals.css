@@ -69,6 +69,10 @@ dd { margin: 0; color: #e1e5e8; font-size: 12px; overflow-wrap: anywhere; }
 .chips { display: flex; flex-wrap: wrap; gap: 7px; }
 .chips span { border: 1px solid #313940; background: #161b20; padding: 6px 8px; font-size: 11px; }
 .chips em { color: #6f7981; font-size: 12px; font-style: normal; }
+.compact-list { margin: 0; padding-left: 18px; display: grid; gap: 7px; color: #cfd5d9; font-size: 12px; line-height: 1.45; }
+.compact-list:empty::after { content: "Chưa có dữ kiện."; color: #6f7981; margin-left: -18px; }
+.rolls { display: grid; gap: 7px; }
+.rolls span { border-left: 2px solid #3e4850; padding-left: 8px; color: #aeb7be; font-size: 11px; overflow-wrap: anywhere; }
 
 @media (max-width: 900px) {
   .shell { grid-template-columns: 1fr; padding: 10px; }

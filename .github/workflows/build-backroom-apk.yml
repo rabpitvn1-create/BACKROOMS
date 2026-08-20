@@ -13,32 +13,8 @@ permissions:
 jobs:
   build-apk:
     runs-on: ubuntu-latest
-    env:
-      LUNA_API_KEY: ${{ secrets.LUNA_API_KEY }}
-      LUNA_BASE_URL: https://api.vilao.ai/v1
-      LUNA_MODEL: ${{ secrets.LUNA_MODEL }}
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || secrets.GPT_API_KEY || secrets.OPENAI_KEY || secrets.GPT_API_KEY_1 }}
-      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || secrets.GEMINI_API_KEY_1 || secrets.GEMINI_API_KEY_2 || secrets.GEMINI_API_KEY_3 || secrets.GEMINI_API_KEY_4 }}
     steps:
       - uses: actions/checkout@v4
-      - name: Validate Luna configuration
-        run: |
-          test -n "$LUNA_API_KEY" || (echo "Missing GitHub Secret: LUNA_API_KEY" && exit 1)
-          test -n "$LUNA_MODEL" || (echo "Missing GitHub Secret: LUNA_MODEL" && exit 1)
-      - name: Apply provider, DNS and Kai overlay patch
-        run: python3 android-apk/patch-provider-status.py
-      - name: Apply Luna primary Game Master patch
-        run: python3 android-apk/patch-luna-text.py
-      - name: Apply Level 0-6 Snapshot fallback backgrounds
-        run: python3 android-apk/patch-level-snapshot-backgrounds.py
-      - name: Apply Snapshot provider fallback patch
-        run: python3 android-apk/patch-snapshot-fallback.py
-      - name: Apply HD Kai and event-only Snapshot patch
-        run: python3 android-apk/patch-kai-hd-continuous.py
-      - name: Finalize verified Kai overlay
-        run: python3 android-apk/finalize-kai-overlay.py
-      - name: Inject Kai R05 character codex
-        run: python3 android-apk/patch-kai-codex.py
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -46,40 +22,33 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.10.2"
+      - name: Verify APK contains no provider credentials
+        run: |
+          ! grep -R -E 'buildConfigField.*(API_KEY|SECRET|TOKEN)' android-apk/app
+          ! grep -R -E 'BuildConfig\.(LUNA|OPENAI|GEMINI).*KEY' android-apk/app
       - name: Build debug APK
         working-directory: android-apk
         run: gradle :app:assembleDebug --no-daemon
       - name: Prepare release APK
-        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.1.24.apk
+        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.1.25.apk
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Backroom-1.1.24-debug-apk
-          path: Backroom-1.1.24.apk
+          name: Backroom-1.1.25-debug-apk
+          path: Backroom-1.1.25.apk
           if-no-files-found: error
           retention-days: 14
-      - name: Publish GitHub Release v1.1.24
+      - name: Publish GitHub Release v1.1.25
         if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="v1.1.24"
-          TITLE="Backroom 1.1.24"
-          NOTES=$(cat <<'EOF'
-          Backroom APK 1.1.24
-
-          - Luna là Game Master ưu tiên số 1 qua API OpenAI-compatible của Vilao.
-          - Luna tự retry tối đa 3 lần cho lỗi socket/connection abort và lỗi mạng tạm thời.
-          - Text fallback: Luna -> Gemini -> GPT; GPT chỉ được thử khi có OpenAI key.
-          - Base URL Luna cố định ở https://api.vilao.ai/v1; API key và model lấy từ GitHub Secrets LUNA_API_KEY và LUNA_MODEL.
-          - Provider cũ đã bị loại khỏi BuildConfig và workflow build hiện hành.
-          - Snapshot vẫn dùng Gemini -> GPT Image và chỉ tự tạo khi có sự kiện hình ảnh đáng kể.
-          - Game Master nạp Kai Akechi / Twilight R05 operational codex ở mỗi lượt để khóa đúng năng lực, trang bị, giới hạn và cách giao tiếp.
-          EOF
-          )
+          TAG="v1.1.25"
+          TITLE="Backroom 1.1.25"
+          NOTES=$(cat android-apk/RELEASE_NOTES_1.1.25.txt)
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
-            gh release upload "$TAG" Backroom-1.1.24.apk --clobber
+            gh release upload "$TAG" Backroom-1.1.25.apk --clobber
           else
-            gh release create "$TAG" Backroom-1.1.24.apk --target "$GITHUB_SHA" --title "$TITLE" --notes "$NOTES"
+            gh release create "$TAG" Backroom-1.1.25.apk --target "$GITHUB_SHA" --title "$TITLE" --notes "$NOTES"
           fi

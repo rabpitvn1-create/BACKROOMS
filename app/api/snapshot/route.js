@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
+import { snapshotCharacterCanon } from "../../../lib/character-canon.js";
 import { generateSnapshotImage } from "../../../lib/gemini-image.js";
+import { levelFromState } from "../../../lib/gameplay.js";
 import { getSessionId } from "../../../lib/session.js";
 import { saveSnapshot } from "../../../lib/snapshot-store.js";
+import { levelVisualCanon } from "../../../lib/world-canon.js";
 import {
   StateConflictError,
   loadState,
@@ -25,6 +28,7 @@ function tailText(value, max = 3500) {
 }
 
 function snapshotPrompt(state) {
+  const level = levelFromState(state);
   const recent = Array.isArray(state.log)
     ? state.log.slice(-4).map((entry) => `${entry.role === "player" ? "PLAYER" : "GM"}: ${tailText(entry.text, 1800)}`).join("\n\n")
     : "";
@@ -39,12 +43,16 @@ Hard visual rules:
 - Show the present scene only, not earlier events and not a montage.
 - Main character: Kai Akechi / Twilight. He is physically present at the current location.
 - Keep his known equipment/state from the supplied game state. Do not invent missing weapons, injuries, powers in use, or costume damage.
+- Use MadGod Set visuals only if CURRENT STATE explicitly says Kai is currently wearing/equipped with MadGod Set. Otherwise keep the Blackblood configuration defined below.
 - If party is empty, Kai is alone. Do NOT show Iris, Syvial, survivors, NPCs, monsters, shadows shaped like people, or Entities unless the current state explicitly confirms they are physically present.
 - Do not turn hallucinations, memories, unknown phenomena or off-screen characters into literal visible beings.
 - Do not add exits, loot, doors, water, blood, corpses, signs, text, HUD, captions, logos or UI unless the current state explicitly contains them.
-- Backrooms Level 0 should use stale yellow wallpaper, damp-looking carpet, fluorescent ceiling panels, oppressive empty office-like geometry and liminal fluorescent lighting.
+- Current environment is Level ${level.number} — ${level.name}: ${levelVisualCanon(level.number)}.
 - Photorealistic cinematic game concept art, grounded anatomy and materials, subtle atmospheric grain, no written text in the image.
 - Camera should communicate the playable situation clearly, not obscure the environment with a close-up portrait.
+
+Character visual canon for characters physically present:
+${snapshotCharacterCanon(state)}
 
 CURRENT STATE:
 Turn: ${state.turn}
