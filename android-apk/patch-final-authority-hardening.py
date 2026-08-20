@@ -42,7 +42,6 @@ new_inventory = r'''        boolean allowedNew = false;
 '''
 replace_once(old_inventory, new_inventory, "structured inventory acquisition")
 
-# Player state may not invent HP systems or arbitrary equipment.
 old_player = r'''        JSONObject current = state.optJSONObject("player");
         if (current == null) current = new JSONObject();
         for (String key : new String[] {"hp", "condition", "weapon", "armor"}) if (patch.has(key)) current.put(key, patch.get(key));
@@ -87,8 +86,6 @@ new_player = r'''        JSONObject current = state.optJSONObject("player");
 '''
 replace_once(old_player, new_player, "player authority gate")
 
-# Exploration is not allowed to manufacture an Exit-ready state. Only a successful
-# locked exit roll may advance exitCandidate/exitProgress, one tier at a time.
 old_flag = r'''        Object value = op.get("value");
         Object current = flags.opt(root);
         if (current instanceof JSONObject && value instanceof JSONObject) {
@@ -115,8 +112,6 @@ new_flag = r'''        Object value = op.get("value");
 '''
 replace_once(old_flag, new_flag, "flag authority gate")
 
-# Rejected sensitive proposals must trigger an audit. Candidate-state risk alone is
-# insufficient because rejected operations intentionally disappear from the candidate.
 old_risk_tail = r'''    if (hasParty && containsAny(reply, "yêu", "thích", "ghen", "tin tưởng", "phản bội", "người yêu", "hẹn hò", "quan hệ", "love", "trust", "betray", "relationship")) score += 2;
     return score;
   }
@@ -147,23 +142,54 @@ new_risk_tail = r'''    if (hasParty && containsAny(reply, "yêu", "thích", "gh
 '''
 replace_once(old_risk_tail, new_risk_tail, "rejected proposal audit risk")
 
-# Bound each Gemini worker attempt so five bad keys cannot consume the whole turn
-# before Luna fallback. postJson currently uses a shared 30s connect/read timeout;
-# health-pool policy gets a stricter per-worker wall-clock gate via Future.
-if "private static final int GEMINI_WORKER_TIMEOUT_SECONDS = 5;" not in text:
-    anchor = "  private volatile int lastGeminiWorker = -1;\n"
-    replace_once(anchor, anchor + "  private static final int GEMINI_WORKER_TIMEOUT_SECONDS = 5;\n", "Gemini worker timeout constant")
+# Text calls get their own strict HTTP timeout. Snapshot calls continue using the
+# original longer postJson(), so image generation is not accidentally degraded.
+fast_http = r'''  private String postJsonFast(String endpoint, String key, String authHeader, JSONObject payload) throws Exception {
+    HttpURLConnection connection = (HttpURLConnection) new URL(endpoint).openConnection();
+    connection.setRequestMethod("POST");
+    connection.setConnectTimeout(5000);
+    connection.setReadTimeout(5000);
+    connection.setDoOutput(true);
+    connection.setRequestProperty("Content-Type", "application/json");
+    connection.setRequestProperty(authHeader, authHeader.equals("Authorization") ? "Bearer " + key : key);
+    try (OutputStream output = connection.getOutputStream()) {
+      output.write(payload.toString().getBytes("UTF-8"));
+    }
+    int status = connection.getResponseCode();
+    InputStream stream = status >= 200 && status < 300 ? connection.getInputStream() : connection.getErrorStream();
+    StringBuilder body = new StringBuilder();
+    if (stream != null) {
+      try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, "UTF-8"))) {
+        String line;
+        while ((line = reader.readLine()) != null) body.append(line);
+      }
+    }
+    connection.disconnect();
+    if (status < 200 || status >= 300) {
+      String detail = body.length() > 220 ? body.substring(0, 220) : body.toString();
+      throw new HttpError(status, "Provider HTTP " + status + (detail.isEmpty() ? "" : ": " + detail));
+    }
+    return body.toString();
+  }
 
-# Keep the patch structurally testable.
-for required in [
-    "establishedStructured",
-    "worldConsequence",
-    "exitMutation",
-    "rejected sensitive proposals",
-    "GEMINI_WORKER_TIMEOUT_SECONDS = 5",
-]:
+'''
+http_anchor = "  private long geminiWorkerScoreUnsafe(int index) {\n"
+if "private String postJsonFast(" not in text:
+    replace_once(http_anchor, fast_http + http_anchor, "fast text HTTP helper")
+
+old_call = r'''              JSONObject result = new JSONObject(postJson(
+                "https://generativelanguage.googleapis.com/v1beta/models/" + GEMINI_MODEL + ":generateContent",
+                key,
+                "x-goog-api-key",
+                body
+              ));
+'''
+new_call = old_call.replace("postJson(", "postJsonFast(")
+replace_once(old_call, new_call, "Gemini fast HTTP call")
+
+for required in ["establishedStructured", "worldConsequence", "exitMutation", "JSONArray proposed", "private String postJsonFast(", "setReadTimeout(5000)"]:
     if required not in text:
         raise RuntimeError(f"final authority hardening missing marker: {required}")
 
 MAIN.write_text(text, encoding="utf-8")
-print("Final Android authority hardening applied: structured inventory, player/exit gates, rejected-op audit risk and bounded worker policy marker.")
+print("Final Android authority hardening applied: structured inventory, player/exit gates, rejected-op audit risk and real 5s Gemini text timeout.")
