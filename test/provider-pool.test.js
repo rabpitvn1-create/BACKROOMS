@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { configuredGeminiCount, providerHealthSnapshot } from "../lib/ai-provider-pool.js";
+import { configuredGeminiCount, providerHealthSnapshot, PROVIDER_LIMITS } from "../lib/ai-provider-pool.js";
 
 const keyNames = [1, 2, 3, 4, 5].map((slot) => `GEMINI_API_KEY_${slot}`);
 
@@ -33,4 +33,11 @@ test("provider pool tolerates partially configured Gemini slots", () => {
       else process.env[name] = previous[name];
     }
   }
+});
+
+test("provider deadlines fit inside the 60 second game-turn runtime", () => {
+  assert.equal(PROVIDER_LIMITS.geminiTimeoutMs, 5000);
+  assert.equal(PROVIDER_LIMITS.lunaTimeoutMs, 12000);
+  assert.ok(PROVIDER_LIMITS.totalDeadlineMs <= 42000);
+  assert.ok(PROVIDER_LIMITS.totalDeadlineMs < 60000);
 });
