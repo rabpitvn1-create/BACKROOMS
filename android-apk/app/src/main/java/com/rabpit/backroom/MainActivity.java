@@ -25,7 +25,6 @@ public class MainActivity extends Activity {
   private final ExecutorService io = Executors.newSingleThreadExecutor();
   private final ExecutorService imageIo = Executors.newSingleThreadExecutor();
   private final AtomicInteger latestSnapshotTurn = new AtomicInteger(0);
-  private static final String OPENAI_MODEL = "gpt-5.4-mini";
   private static final String GEMINI_MODEL = "gemini-3.6-flash";
   private static final String GEMINI_IMAGE_MODEL = "gemini-3.1-flash-image";
   private static final int[] RETRYABLE = {408, 429, 500, 502, 503, 504};
@@ -89,8 +88,7 @@ public class MainActivity extends Activity {
     return new String[] {
       BuildConfig.GEMINI_API_KEY_1,
       BuildConfig.GEMINI_API_KEY_2,
-      BuildConfig.GEMINI_API_KEY_3,
-      BuildConfig.GEMINI_API_KEY_4
+      BuildConfig.GEMINI_API_KEY_3
     };
   }
 
@@ -122,34 +120,6 @@ public class MainActivity extends Activity {
       throw new HttpError(status, "Provider HTTP " + status + (detail.isEmpty() ? "" : ": " + detail));
     }
     return body.toString();
-  }
-
-  private String openAiText(String prompt) throws Exception {
-    if (BuildConfig.OPENAI_API_KEY == null || BuildConfig.OPENAI_API_KEY.isEmpty()) {
-      throw new HttpError(401, "OpenAI key chưa được cấu hình.");
-    }
-    JSONObject body = new JSONObject().put("model", OPENAI_MODEL).put("input", prompt);
-    JSONObject result = new JSONObject(postJson("https://api.openai.com/v1/responses", BuildConfig.OPENAI_API_KEY, "Authorization", body));
-    StringBuilder text = new StringBuilder();
-    JSONArray output = result.optJSONArray("output");
-    if (output != null) {
-      for (int i = 0; i < output.length(); i++) {
-        JSONObject item = output.optJSONObject(i);
-        JSONArray parts = item != null ? item.optJSONArray("content") : null;
-        if (parts == null) continue;
-        for (int j = 0; j < parts.length(); j++) {
-          JSONObject part = parts.optJSONObject(j);
-          if (part == null || !"output_text".equals(part.optString("type"))) continue;
-          String piece = part.optString("text", "").trim();
-          if (!piece.isEmpty()) {
-            if (text.length() > 0) text.append('\n');
-            text.append(piece);
-          }
-        }
-      }
-    }
-    if (text.length() == 0) throw new Exception("OpenAI không trả nội dung.");
-    return text.toString();
   }
 
   private String geminiText(String prompt) throws Exception {
@@ -198,22 +168,6 @@ public class MainActivity extends Activity {
   }
 
   private String generateText(String prompt) throws Exception {
-    Exception openAiFailure;
-    try {
-      return openAiText(prompt);
-    } catch (Exception error) {
-      openAiFailure = error;
-    }
-
-    int code = openAiFailure instanceof HttpError ? ((HttpError)openAiFailure).status : 0;
-    if (code == 0 || retryable(code)) {
-      try { Thread.sleep(350); } catch (InterruptedException ignored) {}
-      try {
-        return openAiText(prompt);
-      } catch (Exception ignored) {
-        // OpenAI unavailable or exhausted; Gemini is the configured fallback.
-      }
-    }
     return geminiText(prompt);
   }
 
