@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parent
 MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
@@ -8,45 +9,34 @@ MODE_LABEL = "Single Player: Hard Mode"
 CANON_VERSION = "NOVEL-TEXTGAME-2026-08-20-DRIVE-INTEGRATION-R06"
 
 
-def replace_first_available(text: str, candidates: list[str], new: str, label: str) -> str:
-    for old in candidates:
-        if old in text:
-            return text.replace(old, new, 1)
-    raise RuntimeError(f"{label}: none of the supported anchors were found")
-
-
 main = MAIN.read_text(encoding="utf-8")
 index = INDEX.read_text(encoding="utf-8")
 
-# The orchestrator may use either the legacy R06 label or the routed-ops label.
-# Keep this patch idempotent so rebuilding an already-patched tree is harmless.
+# Runtime mode is rewritten structurally because earlier orchestration patches are
+# allowed to change their internal diagnostic label. Do not couple this patch to
+# any exact intermediate mode string.
 desired_main = f'.put("mode", "{MODE_LABEL}")'
 if desired_main not in main:
-    main = replace_first_available(
-        main,
-        [
-            '.put("mode", "ai · canon R06 · routed ops")',
-            '.put("mode", "ai · canon R06")',
-            '.put("mode", "local APK · canon R06")',
-        ],
+    main, count = re.subn(
+        r'\.put\("mode",\s*"[^"]*"\)',
         desired_main,
-        "Android gameplay mode label",
+        main,
+        count=1,
     )
+    if count != 1:
+        raise RuntimeError(f"Android gameplay mode label: expected exactly 1 structural mode setter, found {count}")
 
-# Initial/new-game state. The Drive patch owns this value before this patch runs.
+# Initial/new-game state. Keep this structural and idempotent as well.
 desired_initial = f'mode:"{MODE_LABEL}",'
 if desired_initial not in index:
-    index = replace_first_available(
-        index,
-        [
-            'mode:"local APK · canon R06",',
-            'mode:"ai · canon R06 · routed ops",',
-            'mode:"ai · canon R06",',
-            'mode:"local APK",',
-        ],
+    index, count = re.subn(
+        r'mode:"[^"]*",',
         desired_initial,
-        "initial mode label",
+        index,
+        count=1,
     )
+    if count != 1:
+        raise RuntimeError(f"initial mode label: expected exactly 1 state mode field, found {count}")
 
 # Existing saves: inject migration exactly once immediately before the canon-version migration.
 migration_anchor = f'state.canonVersion="{CANON_VERSION}";'
