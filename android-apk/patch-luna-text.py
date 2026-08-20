@@ -13,6 +13,26 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
 
 main = MAIN.read_text(encoding="utf-8")
 
+old_keys = r'''  private String[] geminiKeys() {
+    return new String[] {
+      BuildConfig.GEMINI_API_KEY_1,
+      BuildConfig.GEMINI_API_KEY_2,
+      BuildConfig.GEMINI_API_KEY_3
+    };
+  }
+'''
+new_keys = r'''  private String[] geminiKeys() {
+    return new String[] {
+      BuildConfig.GEMINI_API_KEY_1,
+      BuildConfig.GEMINI_API_KEY_2,
+      BuildConfig.GEMINI_API_KEY_3,
+      BuildConfig.GEMINI_API_KEY_4,
+      BuildConfig.GEMINI_API_KEY_5
+    };
+  }
+'''
+main = replace_once(main, old_keys, new_keys, "five Gemini Game Master keys")
+
 luna_method = r'''  private String lunaText(String prompt) throws Exception {
     if (BuildConfig.LUNA_API_KEY == null || BuildConfig.LUNA_API_KEY.trim().isEmpty()) {
       throw new HttpError(401, "Luna API key chưa được cấu hình.");
@@ -109,4 +129,4 @@ new_generate = r'''  private String generateText(String prompt) throws Exception
 main = replace_once(main, old_generate, new_generate, "Gemini-Luna provider switch")
 
 MAIN.write_text(main, encoding="utf-8")
-print("Game Master provider order: Gemini key 1 -> Gemini key 2 -> Gemini key 3 -> Luna.")
+print("Game Master provider order: Gemini key 1 -> key 2 -> key 3 -> key 4 -> key 5 -> Luna.")
