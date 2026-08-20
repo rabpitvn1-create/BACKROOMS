@@ -2,7 +2,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
-INDEX = ROOT / "app/src/main/assets/index.html"
 
 
 def replace_once(text: str, old: str, new: str, label: str) -> str:
@@ -13,27 +12,6 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
 
 
 main = MAIN.read_text(encoding="utf-8")
-index = INDEX.read_text(encoding="utf-8")
-
-# Game Master uses the three configured Gemini slots in order before falling back.
-old_keys = '''  private String[] geminiKeys() {
-    return new String[] {
-      BuildConfig.GEMINI_API_KEY_1,
-      BuildConfig.GEMINI_API_KEY_2,
-      BuildConfig.GEMINI_API_KEY_3,
-      BuildConfig.GEMINI_API_KEY_4
-    };
-  }
-'''
-new_keys = '''  private String[] geminiKeys() {
-    return new String[] {
-      BuildConfig.GEMINI_API_KEY_1,
-      BuildConfig.GEMINI_API_KEY_2,
-      BuildConfig.GEMINI_API_KEY_3
-    };
-  }
-'''
-main = replace_once(main, old_keys, new_keys, "three ordered Gemini Game Master keys")
 
 luna_method = r'''  private String lunaText(String prompt) throws Exception {
     if (BuildConfig.LUNA_API_KEY == null || BuildConfig.LUNA_API_KEY.trim().isEmpty()) {
@@ -92,32 +70,12 @@ main = replace_once(
 )
 
 old_generate = r'''  private String generateText(String prompt) throws Exception {
-    emit("backroomProvider", "GPT");
-    Exception openAiFailure;
-    try {
-      return openAiText(prompt);
-    } catch (Exception error) {
-      openAiFailure = error;
-    }
-
-    int code = openAiFailure instanceof HttpError ? ((HttpError)openAiFailure).status : 0;
-    if (!networkFailure(openAiFailure) && (code == 0 || retryable(code))) {
-      try { Thread.sleep(350); } catch (InterruptedException ignored) {}
-      try {
-        return openAiText(prompt);
-      } catch (Exception secondFailure) {
-        openAiFailure = secondFailure;
-      }
-    }
-
     emit("backroomProvider", "Gemini");
     try {
       return geminiText(prompt);
-    } catch (Exception geminiFailure) {
-      if (networkFailure(openAiFailure) && networkFailure(geminiFailure)) {
-        throw new Exception(networkFailureMessage());
-      }
-      throw geminiFailure;
+    } catch (Exception error) {
+      if (networkFailure(error)) throw new Exception(networkFailureMessage());
+      throw error;
     }
   }
 '''
@@ -139,56 +97,16 @@ new_generate = r'''  private String generateText(String prompt) throws Exception
       lunaFailure = error;
     }
 
-    Exception gptFailure = null;
-    if (BuildConfig.OPENAI_API_KEY != null && !BuildConfig.OPENAI_API_KEY.trim().isEmpty()) {
-      emit("backroomProvider", "GPT");
-      try {
-        return openAiText(prompt);
-      } catch (Exception error) {
-        gptFailure = error;
-      }
-      int gptCode = gptFailure instanceof HttpError ? ((HttpError)gptFailure).status : 0;
-      if (gptCode == 0 || retryable(gptCode)) {
-        try { Thread.sleep(350); } catch (InterruptedException ignored) {}
-        try {
-          return openAiText(prompt);
-        } catch (Exception secondFailure) {
-          gptFailure = secondFailure;
-        }
-      }
+    if (networkFailure(geminiFailure) && networkFailure(lunaFailure)) {
+      throw new Exception(networkFailureMessage());
     }
-
     String geminiMessage = geminiFailure != null && geminiFailure.getMessage() != null ? geminiFailure.getMessage() : "Gemini không khả dụng";
     String lunaMessage = lunaFailure != null && lunaFailure.getMessage() != null ? lunaFailure.getMessage() : "Luna không khả dụng";
-    if (gptFailure != null) {
-      String gptMessage = gptFailure.getMessage() != null ? gptFailure.getMessage() : "GPT không khả dụng";
-      throw new Exception("Gemini: " + geminiMessage + "; Luna fallback: " + lunaMessage + "; GPT fallback: " + gptMessage);
-    }
     throw new Exception("Gemini: " + geminiMessage + "; Luna fallback: " + lunaMessage);
   }
 '''
 
-main = replace_once(main, old_generate, new_generate, "Gemini-Gemini-Gemini-Luna-GPT provider switch")
-
-main = replace_once(
-    main,
-    "window.__backroomProvider='GPT';",
-    "window.__backroomProvider='Gemini';",
-    "default text provider label",
-)
-main = replace_once(
-    main,
-    "GPT đang xử lý lượt…",
-    "Gemini đang xử lý lượt…",
-    "pending text provider label",
-)
-index = replace_once(
-    index,
-    'statusEl.textContent="GPT đang xử lý lượt…";',
-    'statusEl.textContent="Gemini đang xử lý lượt…";',
-    "initial Gemini status",
-)
+main = replace_once(main, old_generate, new_generate, "Gemini-Luna provider switch")
 
 MAIN.write_text(main, encoding="utf-8")
-INDEX.write_text(index, encoding="utf-8")
-print("Game Master provider order: Gemini key 1 -> Gemini key 2 -> Gemini key 3 -> Luna -> GPT only when configured.")
+print("Game Master provider order: Gemini key 1 -> Gemini key 2 -> Gemini key 3 -> Luna.")
