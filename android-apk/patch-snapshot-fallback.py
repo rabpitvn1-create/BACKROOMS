@@ -15,10 +15,9 @@ def sub_once(pattern: str, replacement, text: str, label: str, flags=0) -> str:
 
 main = sub_once(
     r'  private static final String GEMINI_IMAGE_MODEL = "gemini-3\.1-flash-image";\n',
-    '  private static final String[] GEMINI_IMAGE_MODELS = {"gemini-3.1-flash-image", "gemini-3.1-flash-lite-image"};\n'
-    '  private static final String[] OPENAI_IMAGE_MODELS = {"gpt-image-2", "gpt-image-1.5", "gpt-image-1-mini"};\n',
+    '  private static final String[] GEMINI_IMAGE_MODELS = {"gemini-3.1-flash-image", "gemini-3.1-flash-lite-image"};\n',
     main,
-    "image model families",
+    "Gemini image model family",
 )
 
 if main.count("GEMINI SNAPSHOT") != 1:
@@ -82,44 +81,6 @@ new_pipeline = r'''  private SnapshotImage geminiImageModel(String prompt, Strin
     throw last != null ? last : new Exception("Gemini không tạo được ảnh.");
   }
 
-  private SnapshotImage openAiImageModel(String prompt, String model) throws Exception {
-    if (BuildConfig.OPENAI_API_KEY == null || BuildConfig.OPENAI_API_KEY.isEmpty()) {
-      throw new Exception("GPT chưa có API key.");
-    }
-    Exception last = null;
-    for (int attempt = 0; attempt < 2; attempt++) {
-      try {
-        JSONObject body = new JSONObject()
-          .put("model", model)
-          .put("prompt", prompt)
-          .put("size", "1536x1024");
-        if (attempt == 0) {
-          body.put("quality", "low").put("output_format", "jpeg");
-        }
-        JSONObject result = new JSONObject(postJson("https://api.openai.com/v1/images/generations", BuildConfig.OPENAI_API_KEY, "Authorization", body));
-        JSONArray data = result.optJSONArray("data");
-        JSONObject first = data != null ? data.optJSONObject(0) : null;
-        String imageData = first != null ? first.optString("b64_json", "") : "";
-        if (imageData.isEmpty()) throw new Exception("GPT Image không trả ảnh.");
-        if (imageData.length() > MAX_SNAPSHOT_BASE64) throw new Exception("Snapshot GPT quá lớn để hiển thị trong APK.");
-        String mimeType = attempt == 0 ? "image/jpeg" : "image/png";
-        return new SnapshotImage(imageData, mimeType, model, "GPT");
-      } catch (Exception e) {
-        last = e;
-        if (networkFailure(e)) throw e;
-        int code = e instanceof HttpError ? ((HttpError)e).status : 0;
-        if (code == 429) break;
-        if (code == 400 && attempt == 0) continue;
-        if (attempt == 0 && (code == 0 || retryable(code))) {
-          try { Thread.sleep(400); } catch (InterruptedException ignored) {}
-          continue;
-        }
-        break;
-      }
-    }
-    throw last != null ? last : new Exception("GPT Image không tạo được ảnh.");
-  }
-
   private String compactProviderDetail(Exception error) {
     if (error == null || error.getMessage() == null) return "";
     String message = error.getMessage().replace('\n', ' ').replace('\r', ' ').trim();
@@ -165,24 +126,8 @@ new_pipeline = r'''  private SnapshotImage geminiImageModel(String prompt, Strin
       }
     }
 
-    Exception gptFailure = null;
-    for (String model : OPENAI_IMAGE_MODELS) {
-      emit("backroomSnapshotProvider", "GPT");
-      try {
-        return openAiImageModel(prompt, model);
-      } catch (Exception e) {
-        gptFailure = e;
-        if (networkFailure(e)) break;
-      }
-    }
-
-    if (networkFailure(geminiFailure) && networkFailure(gptFailure)) {
-      throw new Exception(networkFailureMessage());
-    }
-    throw new Exception(
-      friendlyImageFailure("Gemini", geminiFailure) + "; " +
-      friendlyImageFailure("GPT", gptFailure)
-    );
+    if (networkFailure(geminiFailure)) throw new Exception(networkFailureMessage());
+    throw new Exception(friendlyImageFailure("Gemini", geminiFailure));
   }
 
 '''
@@ -191,7 +136,7 @@ main = sub_once(
     r'  private SnapshotImage geminiImage\(String prompt\) throws Exception \{.*?\n  \}\n\n(?=  private String clipped)',
     lambda m: new_pipeline,
     main,
-    "replace Gemini-only image pipeline",
+    "replace Gemini image pipeline",
     flags=re.S,
 )
 
@@ -258,4 +203,4 @@ main = sub_once(
 )
 
 MAIN.write_text(main, encoding="utf-8")
-print("Snapshot fallback patched: Gemini -> GPT Image 2/1.5/1 mini, with 400 diagnostics.")
+print("Snapshot hooks patched: Gemini image family only.")
