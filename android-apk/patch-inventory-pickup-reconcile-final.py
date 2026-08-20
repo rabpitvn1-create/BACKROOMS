@@ -216,7 +216,6 @@ new_initial_issues = r'''          JSONArray hardIssues = hardAuditIssues(audits
 replace_once(old_initial_issues, new_initial_issues, "initial Omnivault narrative issue")
 
 old_repair = r'''            if (reply.isEmpty()) throw new Exception("AI repair trả phản hồi rỗng; state không được thay đổi.");
-            reconcileConfirmedPickupOpsAndroid(before, generated, action);
             repaired = true;
             candidateState = applyModelOperations(before, generated.optJSONArray("ops"), rolls, action);
 '''
