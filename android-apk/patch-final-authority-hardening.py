@@ -12,6 +12,8 @@ def replace_once(old: str, new: str, label: str):
     text = text.replace(old, new, 1)
 
 # New inventory must be supported by structured state or a locked discovery roll.
+# A later reconciliation patch may additionally mark an ordinary item as
+# gm_confirmed_pickup, but only after the GM reply explicitly confirms the pickup.
 old_inventory = r'''        boolean allowedNew = acquisitionIntent(action);
         JSONObject beforeFlagsForItem = before.optJSONObject("flags");
         JSONObject beforeMadGodForItem = beforeFlagsForItem != null ? beforeFlagsForItem.optJSONObject("madGod") : null;
@@ -32,12 +34,13 @@ new_inventory = r'''        boolean allowedNew = false;
         if (!establishedStructured && omnivaultForItem != null) establishedStructured = lower(omnivaultForItem.toString()).contains(lower(name));
         if (!establishedStructured && beforeMadGodForItem != null) establishedStructured = lower(beforeMadGodForItem.toString()).contains(lower(name));
         boolean madGodAlreadySpawned = beforeMadGodForItem != null && beforeMadGodForItem.optBoolean("spawned", false);
+        boolean confirmedMundanePickup = "gm_confirmed_pickup".equals(lower(op.optString("basis", ""))) && mundanePickupName(name);
         if (existing >= 0) allowedNew = true;
         else if (acquisitionIntent(action)) {
           if (madGod) allowedNew = madGodAlreadySpawned && establishedStructured;
           else if (almond) allowedNew = establishedStructured || rollSuccess(rolls, "almondWater");
           else if (containsAny(action, "copy", "sao chép")) allowedNew = establishedStructured;
-          else allowedNew = establishedStructured || rollSuccess(rolls, "loot");
+          else allowedNew = establishedStructured || rollSuccess(rolls, "loot") || confirmedMundanePickup;
         }
 '''
 replace_once(old_inventory, new_inventory, "structured inventory acquisition")
@@ -187,9 +190,9 @@ old_call = r'''              JSONObject result = new JSONObject(postJson(
 new_call = old_call.replace("postJson(", "postJsonFast(")
 replace_once(old_call, new_call, "Gemini fast HTTP call")
 
-for required in ["establishedStructured", "worldConsequence", "exitMutation", "JSONArray proposed", "private String postJsonFast(", "setReadTimeout(5000)"]:
+for required in ["establishedStructured", "confirmedMundanePickup", "worldConsequence", "exitMutation", "JSONArray proposed", "private String postJsonFast(", "setReadTimeout(5000)"]:
     if required not in text:
         raise RuntimeError(f"final authority hardening missing marker: {required}")
 
 MAIN.write_text(text, encoding="utf-8")
-print("Final Android authority hardening applied: structured inventory, player/exit gates, rejected-op audit risk and real 5s Gemini text timeout.")
+print("Final Android authority hardening applied: structured inventory plus reconciled mundane pickup gate, player/exit gates, rejected-op audit risk and real 5s Gemini text timeout.")

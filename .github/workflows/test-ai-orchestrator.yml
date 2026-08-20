@@ -5,6 +5,7 @@ on:
     branches:
       - ai-orchestrator-r1
       - hybrid-gemini-fallback-r2
+      - inventory-pickup-sync-fix
   pull_request:
     branches:
       - main
@@ -48,6 +49,8 @@ jobs:
           python3 android-apk/patch-gameplay-parity-final.py
           python3 android-apk/patch-final-authority-hardening.py
           python3 android-apk/patch-rejected-op-repair-final.py
+          python3 android-apk/patch-inventory-pickup-reconcile-final.py
+          python3 android-apk/patch-kai-resource-policy-final.py
           python3 android-apk/patch-provider-deadline-final.py
           python3 android-apk/patch-gemini-model-matrix-final.py
           python3 android-apk/patch-java-compile-hardening.py
