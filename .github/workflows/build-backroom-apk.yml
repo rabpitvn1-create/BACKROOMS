@@ -26,6 +26,7 @@ jobs:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || secrets.GPT_API_KEY || secrets.OPENAI_KEY || secrets.GPT_API_KEY_1 }}
       GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 || secrets.GEMINI_API_KEY }}
       GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
+      GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
     steps:
       - uses: actions/checkout@v4
 
