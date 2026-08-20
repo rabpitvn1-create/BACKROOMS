@@ -15,8 +15,7 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
 main = MAIN.read_text(encoding="utf-8")
 index = INDEX.read_text(encoding="utf-8")
 
-# Collapse every legacy Gemini slot to one effective BuildConfig key. The workflow
-# maps whichever single Gemini repository secret still exists into GEMINI_API_KEY.
+# Game Master uses the two configured Gemini slots in order before falling back.
 old_keys = '''  private String[] geminiKeys() {
     return new String[] {
       BuildConfig.GEMINI_API_KEY_1,
@@ -27,10 +26,13 @@ old_keys = '''  private String[] geminiKeys() {
   }
 '''
 new_keys = '''  private String[] geminiKeys() {
-    return new String[] { BuildConfig.GEMINI_API_KEY };
+    return new String[] {
+      BuildConfig.GEMINI_API_KEY_1,
+      BuildConfig.GEMINI_API_KEY_2
+    };
   }
 '''
-main = replace_once(main, old_keys, new_keys, "single effective Gemini key")
+main = replace_once(main, old_keys, new_keys, "two ordered Gemini Game Master keys")
 
 luna_method = r'''  private String lunaText(String prompt) throws Exception {
     if (BuildConfig.LUNA_API_KEY == null || BuildConfig.LUNA_API_KEY.trim().isEmpty()) {
@@ -120,20 +122,20 @@ old_generate = r'''  private String generateText(String prompt) throws Exception
 '''
 
 new_generate = r'''  private String generateText(String prompt) throws Exception {
-    emit("backroomProvider", "Luna");
-    Exception lunaFailure;
-    try {
-      return lunaText(prompt);
-    } catch (Exception error) {
-      lunaFailure = error;
-    }
-
     emit("backroomProvider", "Gemini");
     Exception geminiFailure;
     try {
       return geminiText(prompt);
     } catch (Exception error) {
       geminiFailure = error;
+    }
+
+    emit("backroomProvider", "Luna");
+    Exception lunaFailure;
+    try {
+      return lunaText(prompt);
+    } catch (Exception error) {
+      lunaFailure = error;
     }
 
     Exception gptFailure = null;
@@ -155,37 +157,37 @@ new_generate = r'''  private String generateText(String prompt) throws Exception
       }
     }
 
-    String lunaMessage = lunaFailure != null && lunaFailure.getMessage() != null ? lunaFailure.getMessage() : "Luna không khả dụng";
     String geminiMessage = geminiFailure != null && geminiFailure.getMessage() != null ? geminiFailure.getMessage() : "Gemini không khả dụng";
+    String lunaMessage = lunaFailure != null && lunaFailure.getMessage() != null ? lunaFailure.getMessage() : "Luna không khả dụng";
     if (gptFailure != null) {
       String gptMessage = gptFailure.getMessage() != null ? gptFailure.getMessage() : "GPT không khả dụng";
-      throw new Exception("Luna: " + lunaMessage + "; Gemini fallback: " + geminiMessage + "; GPT fallback: " + gptMessage);
+      throw new Exception("Gemini: " + geminiMessage + "; Luna fallback: " + lunaMessage + "; GPT fallback: " + gptMessage);
     }
-    throw new Exception("Luna: " + lunaMessage + "; Gemini fallback: " + geminiMessage);
+    throw new Exception("Gemini: " + geminiMessage + "; Luna fallback: " + lunaMessage);
   }
 '''
 
-main = replace_once(main, old_generate, new_generate, "Luna-Gemini-GPT provider switch")
+main = replace_once(main, old_generate, new_generate, "Gemini-Gemini-Luna-GPT provider switch")
 
 main = replace_once(
     main,
     "window.__backroomProvider='GPT';",
-    "window.__backroomProvider='Luna';",
+    "window.__backroomProvider='Gemini';",
     "default text provider label",
 )
 main = replace_once(
     main,
     "GPT đang xử lý lượt…",
-    "Luna đang xử lý lượt…",
+    "Gemini đang xử lý lượt…",
     "pending text provider label",
 )
 index = replace_once(
     index,
     'statusEl.textContent="GPT đang xử lý lượt…";',
-    'statusEl.textContent="Luna đang xử lý lượt…";',
-    "initial Luna status",
+    'statusEl.textContent="Gemini đang xử lý lượt…";',
+    "initial Gemini status",
 )
 
 MAIN.write_text(main, encoding="utf-8")
 INDEX.write_text(index, encoding="utf-8")
-print("Game Master provider order: Luna (3 transport retries) -> one Gemini key -> GPT only when configured.")
+print("Game Master provider order: Gemini key 1 -> Gemini key 2 -> Luna -> GPT only when configured.")
