@@ -52,6 +52,17 @@ test("Kai Omnivault regression: empty bottle restored into water is stored as wa
   assert.equal(result.state.inventory.some((item) => /^vỏ chai rỗng$/i.test(item.name)), false);
 });
 
+test("Omnivault restore removes a writer-proposed pre-restore source item", () => {
+  const generated = {
+    reply: restoredBottleReply,
+    ops: [{ type: "inventory_upsert", item: { name: "vỏ chai rỗng", quantity: 1, state: "STORED" }, basis: "semantic_inference" }],
+  };
+  const ops = reconcileConfirmedPickupOps(baseState(), generated, restoredBottleAction);
+  assert.equal(ops.length, 1);
+  assert.equal(ops[0].basis, "omnivault_restore");
+  assert.equal(ops[0].item.name, "chai nước");
+});
+
 test("valid explicit Omnivault restore forces narrative repair if writer denies or ignores it", () => {
   const issues = confirmedPickupNarrativeIssues(
     restoredBottleAction,
