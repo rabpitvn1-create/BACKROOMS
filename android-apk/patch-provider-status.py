@@ -28,18 +28,11 @@ OVERLAY.write_bytes(overlay_bytes)
 main = MAIN.read_text(encoding="utf-8")
 index = INDEX.read_text(encoding="utf-8")
 
-index = replace_once(
-    index,
-    'statusEl.textContent="Gemini đang xử lý lượt…";window.Android.submitTurn(JSON.stringify(state),a)',
-    'statusEl.textContent="GPT đang xử lý lượt…";window.Android.submitTurn(JSON.stringify(state),a)',
-    "initial provider label",
-)
-
 main = replace_once(
     main,
     '      "window.requestSnapshot=requestSnapshot;" +\n',
     '      "window.requestSnapshot=requestSnapshot;" +\n'
-    '      "window.__backroomProvider=\'GPT\';window.backroomProvider=function(provider){window.__backroomProvider=provider||\'AI\';var s=document.getElementById(\'status\');if(s)s.textContent=window.__backroomProvider+\' đang xử lý lượt…\';var p=document.querySelector(\'[data-pending=\\\\\\"1\\\\\\"]:not(.player) .text\');if(p)p.textContent=window.__backroomProvider+\' đang xử lý lượt…\';};" +\n',
+    '      "window.__backroomProvider=\'Gemini\';window.backroomProvider=function(provider){window.__backroomProvider=provider||\'AI\';var s=document.getElementById(\'status\');if(s)s.textContent=window.__backroomProvider+\' đang xử lý lượt…\';var p=document.querySelector(\'[data-pending=\\\\\\"1\\\\\\"]:not(.player) .text\');if(p)p.textContent=window.__backroomProvider+\' đang xử lý lượt…\';};" +\n',
     "provider status callback",
 )
 
@@ -60,7 +53,7 @@ main = replace_once(
 main = replace_once(
     main,
     "Đang xử lý lượt…",
-    "GPT đang xử lý lượt…",
+    "Gemini đang xử lý lượt…",
     "pending provider label",
 )
 
@@ -93,28 +86,7 @@ main = replace_once(
     "snapshot no duplicate character",
 )
 
-old_generate = '''  private String generateText(String prompt) throws Exception {
-    Exception openAiFailure;
-    try {
-      return openAiText(prompt);
-    } catch (Exception error) {
-      openAiFailure = error;
-    }
-
-    int code = openAiFailure instanceof HttpError ? ((HttpError)openAiFailure).status : 0;
-    if (code == 0 || retryable(code)) {
-      try { Thread.sleep(350); } catch (InterruptedException ignored) {}
-      try {
-        return openAiText(prompt);
-      } catch (Exception ignored) {
-        // OpenAI unavailable or exhausted; Gemini is the configured fallback.
-      }
-    }
-    return geminiText(prompt);
-  }
-'''
-
-new_generate = '''  private boolean networkFailure(Exception error) {
+network_helpers = r'''  private boolean networkFailure(Exception error) {
     Throwable cause = error;
     while (cause != null) {
       if (cause instanceof java.net.UnknownHostException ||
@@ -131,38 +103,29 @@ new_generate = '''  private boolean networkFailure(Exception error) {
     return "Lỗi mạng/DNS: không thể kết nối tới máy chủ AI. Kiểm tra Wi-Fi/4G, Private DNS hoặc VPN.";
   }
 
-  private String generateText(String prompt) throws Exception {
-    emit("backroomProvider", "GPT");
-    Exception openAiFailure;
-    try {
-      return openAiText(prompt);
-    } catch (Exception error) {
-      openAiFailure = error;
-    }
+'''
+main = replace_once(
+    main,
+    '  private String generateText(String prompt) throws Exception {\n',
+    network_helpers + '  private String generateText(String prompt) throws Exception {\n',
+    "network helpers",
+)
 
-    int code = openAiFailure instanceof HttpError ? ((HttpError)openAiFailure).status : 0;
-    if (!networkFailure(openAiFailure) && (code == 0 || retryable(code))) {
-      try { Thread.sleep(350); } catch (InterruptedException ignored) {}
-      try {
-        return openAiText(prompt);
-      } catch (Exception secondFailure) {
-        openAiFailure = secondFailure;
-      }
-    }
-
+old_generate = r'''  private String generateText(String prompt) throws Exception {
+    return geminiText(prompt);
+  }
+'''
+new_generate = r'''  private String generateText(String prompt) throws Exception {
     emit("backroomProvider", "Gemini");
     try {
       return geminiText(prompt);
-    } catch (Exception geminiFailure) {
-      if (networkFailure(openAiFailure) && networkFailure(geminiFailure)) {
-        throw new Exception(networkFailureMessage());
-      }
-      throw geminiFailure;
+    } catch (Exception error) {
+      if (networkFailure(error)) throw new Exception(networkFailureMessage());
+      throw error;
     }
   }
 '''
-
-main = replace_once(main, old_generate, new_generate, "native provider switch")
+main = replace_once(main, old_generate, new_generate, "Gemini provider switch")
 
 gemini_start = main.find("  private String geminiText(String prompt) throws Exception {")
 generate_start = main.find("  private boolean networkFailure(Exception error)")
@@ -184,6 +147,6 @@ main = main[:gemini_start] + gemini_block + main[generate_start:]
 MAIN.write_text(main, encoding="utf-8")
 INDEX.write_text(index, encoding="utf-8")
 print(
-    f"Patched APK provider labels, socket/DNS-aware fallback and Kai snapshot overlay "
+    f"Patched Gemini provider labels, socket/DNS handling and Kai snapshot overlay "
     f"({len(overlay_bytes)} bytes)."
 )
