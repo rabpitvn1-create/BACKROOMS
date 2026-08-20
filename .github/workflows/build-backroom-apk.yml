@@ -73,6 +73,8 @@ jobs:
         run: python3 android-apk/patch-drive-canon-gameplay.py
       - name: Apply Inventory ownership persistence
         run: python3 android-apk/patch-inventory-persistence.py
+      - name: Apply dependency-routed canon and state operation reducer
+        run: python3 android-apk/patch-ai-orchestrator.py
       - name: Apply Single Player Hard Mode label
         run: python3 android-apk/patch-hard-mode-label.py
       - name: Leave Snapshot provider unconfigured
