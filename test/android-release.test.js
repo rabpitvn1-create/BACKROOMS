@@ -7,7 +7,7 @@ import { spawnSync } from "node:child_process";
 
 const root = process.cwd();
 
-test("Android release patch chain injects routed canon, authoritative ops and five Gemini keys", (t) => {
+test("Android release patch chain injects routed canon, authoritative ops, conditional audit and five Gemini keys", (t) => {
   const temporaryRoot = mkdtempSync(path.join(tmpdir(), "backroom-android-test-"));
   t.after(() => rmSync(temporaryRoot, { recursive: true, force: true }));
   const source = path.join(root, "android-apk");
@@ -22,6 +22,7 @@ test("Android release patch chain injects routed canon, authoritative ops and fi
   }
   assert.match(workflow, /patch-ai-orchestrator\.py/);
   assert.match(workflow, /patch-gemini-health-pool\.py/);
+  assert.match(workflow, /patch-conditional-audit\.py/);
   assert.doesNotMatch(buildGradle + workflow, /SNAPSHOT_API_KEY/);
 
   for (let level = 0; level <= 6; level += 1) {
@@ -42,6 +43,7 @@ test("Android release patch chain injects routed canon, authoritative ops and fi
     "patch-inventory-persistence.py",
     "patch-ai-orchestrator.py",
     "patch-gemini-health-pool.py",
+    "patch-conditional-audit.py",
     "patch-hard-mode-label.py",
     "patch-snapshot-unconfigured.py",
   ];
@@ -63,12 +65,27 @@ test("Android release patch chain injects routed canon, authoritative ops and fi
   assert.match(main, /applyModelOperations/);
   assert.match(main, /Bạn KHÔNG được trả state hoàn chỉnh/);
   assert.match(main, /RECENT LOG ONLY/);
+
   assert.match(main, /geminiCooldownUntil/);
   assert.match(main, /geminiLatencyEma/);
+  assert.match(main, /geminiInFlight/);
   assert.match(main, /chooseGeminiWorker/);
+  assert.match(main, /geminiAuditText/);
+  assert.match(main, /lastGeminiWorker/);
   assert.match(main, /noteGeminiFailure/);
   assert.match(main, /code == 429/);
   assert.match(main, /code == 401 \|\| code == 403/);
+
+  assert.match(main, /proposedTurnRisk/);
+  assert.match(main, /auditsForRisk/);
+  assert.match(main, /runAudit/);
+  assert.match(main, /hardAuditIssues/);
+  assert.match(main, /risk < 4/);
+  assert.match(main, /risk < 7/);
+  assert.match(main, /auditIo\.submit/);
+  assert.match(main, /AUDIT FEEDBACK HARD/);
+  assert.match(main, /Lượt chơi không vượt qua kiểm tra canon; state không được thay đổi/);
+
   assert.match(main, /loadUrl\("file:\/\/\/android_asset\/index\.html"\)/);
   assert.match(main, /requestSnapshot/);
   assert.match(main, /file:\/\/\/android_asset\/level_snapshots\/level_0\.webp/);
