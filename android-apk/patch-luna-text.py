@@ -15,7 +15,7 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
 main = MAIN.read_text(encoding="utf-8")
 index = INDEX.read_text(encoding="utf-8")
 
-# Game Master uses the two configured Gemini slots in order before falling back.
+# Game Master uses the three configured Gemini slots in order before falling back.
 old_keys = '''  private String[] geminiKeys() {
     return new String[] {
       BuildConfig.GEMINI_API_KEY_1,
@@ -28,11 +28,12 @@ old_keys = '''  private String[] geminiKeys() {
 new_keys = '''  private String[] geminiKeys() {
     return new String[] {
       BuildConfig.GEMINI_API_KEY_1,
-      BuildConfig.GEMINI_API_KEY_2
+      BuildConfig.GEMINI_API_KEY_2,
+      BuildConfig.GEMINI_API_KEY_3
     };
   }
 '''
-main = replace_once(main, old_keys, new_keys, "two ordered Gemini Game Master keys")
+main = replace_once(main, old_keys, new_keys, "three ordered Gemini Game Master keys")
 
 luna_method = r'''  private String lunaText(String prompt) throws Exception {
     if (BuildConfig.LUNA_API_KEY == null || BuildConfig.LUNA_API_KEY.trim().isEmpty()) {
@@ -167,7 +168,7 @@ new_generate = r'''  private String generateText(String prompt) throws Exception
   }
 '''
 
-main = replace_once(main, old_generate, new_generate, "Gemini-Gemini-Luna-GPT provider switch")
+main = replace_once(main, old_generate, new_generate, "Gemini-Gemini-Gemini-Luna-GPT provider switch")
 
 main = replace_once(
     main,
@@ -190,4 +191,4 @@ index = replace_once(
 
 MAIN.write_text(main, encoding="utf-8")
 INDEX.write_text(index, encoding="utf-8")
-print("Game Master provider order: Gemini key 1 -> Gemini key 2 -> Luna -> GPT only when configured.")
+print("Game Master provider order: Gemini key 1 -> Gemini key 2 -> Gemini key 3 -> Luna -> GPT only when configured.")
