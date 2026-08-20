@@ -2,7 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   applyTurnWithPickupReconcile,
+  confirmedPickupNarrativeIssues,
   extractConfirmedPickupCandidate,
+  extractOmnivaultRestoreTarget,
   reconcileConfirmedPickupOps,
 } from "../lib/inventory-reconcile.js";
 
@@ -29,6 +31,8 @@ function baseState() {
 
 const bottleAction = "Thấy một vỏ chai rỗng dưới chân, hắn nhặt lên, bỏ vào kho";
 const bottleReply = "Kai nhìn xuống chiếc vỏ chai nhựa rỗng nằm bên chân. Hắn nhấc nó lên kiểm tra. Nhẫn Vạn Tàng thu gọn chiếc vỏ chai rỗng vào không gian lưu trữ để dự phòng.";
+const restoredBottleAction = "Thấy một vỏ chai rỗng dưới chân, hắn nhặt lên, hoàn nguyên lại thành chai nước, bỏ vào kho.";
+const restoredBottleReply = "Kai nhấc chiếc vỏ chai rỗng lên. Luồng sáng từ Nhẫn Vạn Tàng quét qua, hoàn nguyên nó thành một chai nước đầy rồi thu chai nước vào kho không gian.";
 
 test("screenshot regression: confirmed empty bottle pickup is reconciled into inventory", () => {
   const generated = { reply: bottleReply, ops: [] };
@@ -36,6 +40,25 @@ test("screenshot regression: confirmed empty bottle pickup is reconciled into in
   assert.equal(result.rejected.length, 0);
   assert.equal(result.accepted.some((op) => op.type === "inventory_upsert" && op.basis === "gm_confirmed_pickup"), true);
   assert.equal(result.state.inventory.some((item) => /vỏ chai rỗng/i.test(item.name)), true);
+});
+
+test("Kai Omnivault regression: empty bottle restored into water is stored as water without loot roll", () => {
+  const generated = { reply: restoredBottleReply, ops: [] };
+  const result = applyTurnWithPickupReconcile(baseState(), generated, restoredBottleAction, { loot: { success: false }, almondWater: { success: false } });
+  assert.equal(extractOmnivaultRestoreTarget(restoredBottleAction), "chai nước");
+  assert.equal(result.rejected.length, 0);
+  assert.equal(result.accepted.some((op) => op.type === "inventory_upsert" && op.basis === "omnivault_restore"), true);
+  assert.equal(result.state.inventory.some((item) => /^chai nước$/i.test(item.name)), true);
+  assert.equal(result.state.inventory.some((item) => /^vỏ chai rỗng$/i.test(item.name)), false);
+});
+
+test("valid explicit Omnivault restore forces narrative repair if writer denies or ignores it", () => {
+  const issues = confirmedPickupNarrativeIssues(
+    restoredBottleAction,
+    "Kai cầm chiếc vỏ chai lên nhưng không thể hoàn nguyên nó vì cần đi tìm vật tư trước.",
+  );
+  assert.equal(issues.length, 1);
+  assert.equal(issues[0].rule, "omnivault_action_lock");
 });
 
 test("pickup candidate survives descriptive words inserted by GM reply", () => {
