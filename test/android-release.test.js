@@ -7,7 +7,7 @@ import { spawnSync } from "node:child_process";
 
 const root = process.cwd();
 
-test("Android release patch chain injects Drive R06 canon and authoritative gameplay", (t) => {
+test("Android release patch chain injects routed canon, authoritative ops and five Gemini keys", (t) => {
   const temporaryRoot = mkdtempSync(path.join(tmpdir(), "backroom-android-test-"));
   t.after(() => rmSync(temporaryRoot, { recursive: true, force: true }));
   const source = path.join(root, "android-apk");
@@ -20,11 +20,11 @@ test("Android release patch chain injects Drive R06 canon and authoritative game
     assert.match(buildGradle, new RegExp(`GEMINI_API_KEY_${slot}`));
     assert.match(workflow, new RegExp(`secrets\\.GEMINI_API_KEY_${slot}`));
   }
+  assert.match(workflow, /patch-ai-orchestrator\.py/);
   assert.doesNotMatch(buildGradle + workflow, /SNAPSHOT_API_KEY/);
+
   for (let level = 0; level <= 6; level += 1) {
-    const snapshotAsset = readFileSync(
-      path.join(source, `app/src/main/assets/level_snapshots/level_${level}.webp`),
-    );
+    const snapshotAsset = readFileSync(path.join(source, `app/src/main/assets/level_snapshots/level_${level}.webp`));
     assert.equal(snapshotAsset.subarray(0, 4).toString("ascii"), "RIFF");
     assert.equal(snapshotAsset.subarray(8, 12).toString("ascii"), "WEBP");
   }
@@ -39,30 +39,28 @@ test("Android release patch chain injects Drive R06 canon and authoritative game
     "patch-kai-codex.py",
     "patch-drive-canon-gameplay.py",
     "patch-inventory-persistence.py",
+    "patch-ai-orchestrator.py",
     "patch-hard-mode-label.py",
     "patch-snapshot-unconfigured.py",
   ];
 
   for (const script of scripts) {
-    const result = spawnSync("python3", [path.join(target, script)], {
-      cwd: target,
-      encoding: "utf8",
-    });
+    const result = spawnSync("python3", [path.join(target, script)], { cwd: target, encoding: "utf8" });
     assert.equal(result.status, 0, `${script} failed:\n${result.stdout}\n${result.stderr}`);
   }
 
-  const main = readFileSync(
-    path.join(target, "app/src/main/java/com/rabpit/backroom/MainActivity.java"),
-    "utf8",
-  );
+  const main = readFileSync(path.join(target, "app/src/main/java/com/rabpit/backroom/MainActivity.java"), "utf8");
   const index = readFileSync(path.join(target, "app/src/main/assets/index.html"), "utf8");
 
   assert.match(main, /DRIVE_CANON_VERSION/);
   assert.match(main, /SecureRandom GAME_RNG/);
   assert.match(main, /makeGameplayRolls/);
-  assert.match(main, /sanitizedParty/);
-  assert.match(main, /if \(!meta\)/);
-  assert.match(main, /MadGod success chỉ mở đường\/vị trí khám phá/);
+  assert.match(main, /compactDriveCanon/);
+  assert.match(main, /compactKaiCanon/);
+  assert.match(main, /compactStateForPrompt/);
+  assert.match(main, /applyModelOperations/);
+  assert.match(main, /Bạn KHÔNG được trả state hoàn chỉnh/);
+  assert.match(main, /RECENT LOG ONLY/);
   assert.match(main, /loadUrl\("file:\/\/\/android_asset\/index\.html"\)/);
   assert.match(main, /requestSnapshot/);
   assert.match(main, /file:\/\/\/android_asset\/level_snapshots\/level_0\.webp/);
@@ -76,7 +74,7 @@ test("Android release patch chain injects Drive R06 canon and authoritative game
     keyPositions.push(position);
   }
   for (let index = 1; index < keyPositions.length; index += 1) {
-    assert.ok(keyPositions[index] > keyPositions[index - 1], "Gemini keys must be tried in order");
+    assert.ok(keyPositions[index] > keyPositions[index - 1], "Gemini keys must be tried in order before health scheduler parity");
   }
 
   const generateStart = main.indexOf("private String generateText(String prompt)");
