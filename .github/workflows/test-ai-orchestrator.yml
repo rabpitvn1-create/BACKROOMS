@@ -49,7 +49,7 @@ jobs:
           python3 android-apk/patch-rejected-op-repair-final.py
           python3 android-apk/patch-provider-deadline-final.py
           python3 android-apk/patch-java-compile-hardening.py
-          python3 android-apk/patch-space-habitat-font.py
+          python3 android-apk/patch-save-controls-final.py
           python3 android-apk/patch-hard-mode-label.py
           python3 android-apk/patch-snapshot-unconfigured.py
       - uses: actions/setup-java@v4
