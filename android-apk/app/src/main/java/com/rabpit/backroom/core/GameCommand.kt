@@ -36,9 +36,7 @@ data class OmnivaultCommand(
   val isLiving: Boolean = false,
   val isLargeAssembly: Boolean = false,
   val isOriginal: Boolean = true,
-  val timestampEpochMs: Long = 0L,
-  val restoreResultItemId: String? = null,
-  val restoreResultName: String? = null
+  val timestampEpochMs: Long = 0L
 ) : GameCommand {
   enum class Operation { STORE, WITHDRAW, SCAN, COPY, RESTORE, QUERY }
 }
