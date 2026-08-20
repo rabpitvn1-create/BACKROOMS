@@ -75,7 +75,7 @@ class GameStateCoreTest {
     assertEquals("living_target_forbidden", living.validation.reason)
   }
 
-  @Test fun omnivaultThreeSlotsCopiesStackAndRestoreTransforms() {
+  @Test fun omnivaultThreeSlotsCopiesStackAndRestoreConservesResources() {
     var state = base()
     for (i in 1..4) {
       state = StateReducer.execute(state, item("original-$i", ItemCommand.Operation.PICKUP)).state
@@ -89,15 +89,27 @@ class GameStateCoreTest {
     assertEquals(3, copied.state.inventories.getValue(KAI_ID).items.getValue("original-4").quantity)
     assertEquals("2", copied.state.inventories.getValue(KAI_ID).items.getValue("original-4").metadata["omnivaultCopyCount"])
 
-    val withBottle = StateReducer.execute(copied.state, item("empty-bottle", ItemCommand.Operation.PICKUP)).state
+    val emptyBottle = ItemStack(
+      "empty-bottle", "Vỏ chai nước rỗng", quantity = 1, condition = "DENTED_OPEN",
+      metadata = mapOf("remainingContent" to "0", "contentType" to "water")
+    )
+    val withBottle = copied.state.copy(
+      inventories = copied.state.inventories + (KAI_ID to copied.state.inventories.getValue(KAI_ID).copy(
+        items = copied.state.inventories.getValue(KAI_ID).items + (emptyBottle.itemId to emptyBottle)
+      ))
+    )
     val restored = StateReducer.execute(withBottle, OmnivaultCommand(
       "restore", "TURN_1", KAI_ID, source = CommandSource.UI, operation = OmnivaultCommand.Operation.RESTORE,
-      itemId = "empty-bottle", itemName = "Vỏ chai nước rỗng", timestampEpochMs = 1000,
-      restoreResultItemId = "water-bottle", restoreResultName = "Chai nước"
+      itemId = "empty-bottle", itemName = "Vỏ chai nước rỗng", timestampEpochMs = 1000
     ))
-    assertFalse(restored.state.inventories.getValue(KAI_ID).items.containsKey("empty-bottle"))
-    assertEquals(1, restored.state.inventories.getValue(KAI_ID).items.getValue("water-bottle").quantity)
-    assertEquals("water-bottle", restored.state.metadata["lastReferencedItemId"])
+    val restoredBottle = restored.state.inventories.getValue(KAI_ID).items.getValue("empty-bottle")
+    assertEquals(1, restoredBottle.quantity)
+    assertEquals("BEST_CONDITION", restoredBottle.condition)
+    assertEquals("0", restoredBottle.metadata["remainingContent"])
+    assertEquals("water", restoredBottle.metadata["contentType"])
+    assertEquals("BEST_CONDITION_RESOURCE_CONSERVING", restoredBottle.metadata["restoreMode"])
+    assertFalse(restored.state.inventories.getValue(KAI_ID).items.containsKey("water-bottle"))
+    assertEquals("empty-bottle", restored.state.metadata["lastReferencedItemId"])
 
     val cooldown = StateReducer.execute(restored.state, OmnivaultCommand("restore-again", "TURN_1", KAI_ID, source = CommandSource.UI, operation = OmnivaultCommand.Operation.RESTORE, itemId = "empty-bottle", itemName = "Vỏ chai nước rỗng", timestampEpochMs = 1001))
     assertEquals("restore_cooldown_active", cooldown.validation.reason)
