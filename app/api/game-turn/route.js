@@ -1,16 +1,14 @@
 import { NextResponse } from "next/server";
 import { generateTurn } from "../../../lib/gemini.js";
 import {
-  canTransitionLevel,
   isGameplayTurn,
   levelFromState,
   levelLabel,
   makeRolls,
-  normalizeLevel,
-  parseLevelText,
   sameLevel,
 } from "../../../lib/gameplay.js";
 import { getSessionId } from "../../../lib/session.js";
+import { applyTurnOperations } from "../../../lib/state-ops.js";
 import {
   StateConflictError,
   loadState,
@@ -67,98 +65,6 @@ function reunionBecamePresent(current, nextState, key) {
   const after = String(nextState?.flags?.[key]?.continuity || "").toUpperCase();
   if (!after || after === before) return false;
   return /(REUNITED|WITH KAI|TOGETHER|PRESENT)/.test(after);
-}
-
-function mergeRuntimeFlags(current, generated) {
-  const next = { ...objectOr(current, {}), ...objectOr(generated, {}) };
-  for (const key of ["communication", "iris", "syvial", "jeff", "madGod", "exploration", "omnivault"]) {
-    next[key] = { ...objectOr(current?.[key], {}), ...objectOr(generated?.[key], {}) };
-  }
-  return next;
-}
-
-function continuityPathConfirmed(state, key) {
-  const local = String(state?.flags?.[key]?.reunionPath || "").toUpperCase();
-  const shared = String(state?.flags?.reunionPath?.[key] || "").toUpperCase();
-  return /(CONFIRMED|DIRECT|ARRIVED|CONTACT ESTABLISHED)/.test(`${local} ${shared}`);
-}
-
-function mayAddCharacter(state, name, rolls) {
-  const lowered = String(name || "").trim().toLowerCase();
-  if (!lowered) return false;
-  if (lowered.includes("iris")) return rolls?.irisReunion?.success === true || continuityPathConfirmed(state, "iris");
-  if (lowered.includes("syvial")) return rolls?.syvialReunion?.success === true || continuityPathConfirmed(state, "syvial");
-  return rolls?.survivor?.success === true;
-}
-
-function gatedParty(current, proposed, rolls) {
-  if (!Array.isArray(proposed)) return current.party;
-  const before = new Set(partyNames(current));
-  return proposed.filter((member) => {
-    const name = typeof member === "string" ? member : member?.name;
-    if (typeof name !== "string" || !name.trim()) return false;
-    return before.has(name.trim().toLowerCase()) || mayAddCharacter(current, name, rolls);
-  });
-}
-
-function gatedInventory(current, proposed, rolls) {
-  if (!Array.isArray(proposed)) return current.inventory;
-  const existingWater = (Array.isArray(current.inventory) ? current.inventory : []).filter((item) => {
-    const name = typeof item === "string" ? item : item?.name;
-    return /almond water/i.test(String(name || ""));
-  }).length;
-  const existingMadGod = (Array.isArray(current.inventory) ? current.inventory : []).filter((item) => {
-    const name = typeof item === "string" ? item : item?.name;
-    return /madgod/i.test(String(name || ""));
-  }).length;
-  let retainedWater = 0;
-  let retainedMadGod = 0;
-  return proposed.filter((item) => {
-    const name = typeof item === "string" ? item : item?.name;
-    if (/almond water/i.test(String(name || ""))) {
-      // An ineligible water roll means this turn was not discovering new water.
-      // Existing/established water can still be picked up, stored, copied, given,
-      // consumed, or otherwise moved by the turn without being deleted by the gate.
-      if (rolls?.almondWater?.eligible !== true) return true;
-      if (rolls?.almondWater?.success === true) return true;
-      retainedWater += 1;
-      return retainedWater <= existingWater;
-    }
-    if (/madgod/i.test(String(name || ""))) {
-      retainedMadGod += 1;
-      if (retainedMadGod > 1) return false;
-      if (rolls?.madGodSet?.success === true || current.flags?.madGod?.spawned === true) return true;
-      return retainedMadGod <= existingMadGod;
-    }
-    return true;
-  });
-}
-
-function gateGeneratedFlags(current, generatedFlags, rolls) {
-  const flags = mergeRuntimeFlags(current.flags, generatedFlags);
-  if (rolls?.survivor?.success !== true && numberFlag({ flags }, "survivorsConfirmed") > numberFlag(current, "survivorsConfirmed")) {
-    flags.survivorsConfirmed = numberFlag(current, "survivorsConfirmed");
-    flags.survivorRegistry = current.flags?.survivorRegistry || [];
-  }
-  if (rolls?.entityEncounter?.success !== true && numberFlag({ flags }, "entitiesConfirmedLocal") > numberFlag(current, "entitiesConfirmedLocal")) {
-    flags.entitiesConfirmedLocal = numberFlag(current, "entitiesConfirmedLocal");
-    flags.entityRegistry = current.flags?.entityRegistry || [];
-    flags.entityEncounterKey = current.flags?.entityEncounterKey;
-  }
-  if (current.flags?.madGod?.spawned === true) {
-    flags.madGod = { ...flags.madGod, spawned: true };
-  } else if (rolls?.madGodSet?.success !== true && flags.madGod?.spawned === true) {
-    flags.madGod = { ...current.flags?.madGod };
-  }
-  for (const key of ["iris", "syvial"]) {
-    const allowed = rolls?.[`${key}Reunion`]?.success === true || continuityPathConfirmed(current, key);
-    const before = String(current.flags?.[key]?.continuity || "").toUpperCase();
-    const after = String(flags?.[key]?.continuity || "").toUpperCase();
-    if (!allowed && !/(REUNITED|WITH KAI|TOGETHER|PRESENT)/.test(before) && /(REUNITED|WITH KAI|TOGETHER|PRESENT)/.test(after)) {
-      flags[key] = { ...current.flags?.[key] };
-    }
-  }
-  return flags;
 }
 
 function approveSnapshot(current, nextState, generated) {
@@ -227,53 +133,28 @@ export async function POST(request) {
     const gameplay = isGameplayTurn(action);
     const rolls = gameplay ? makeRolls(current, action) : null;
     const generated = await generateTurn(current, action, rolls, { isGameplayTurn: gameplay });
-    const currentLevel = levelFromState(current);
-    const proposedLevel = normalizeLevel(generated.level)
-      || parseLevelText(generated.location)
-      || currentLevel;
-    const nextLevel = !gameplay
-      ? currentLevel
-      : !sameLevel(currentLevel, proposedLevel) && !canTransitionLevel(current, rolls)
-        ? currentLevel
-        : proposedLevel;
 
-    const nextFlags = gameplay
-      ? {
-          ...gateGeneratedFlags(current, objectOr(generated.flags, {}), rolls),
-          lastRolls: { turn: current.turn, ...rolls },
-          ...(nextLevel ? { currentLevel: nextLevel } : {}),
-        }
-      : current.flags;
+    const operationResult = gameplay
+      ? applyTurnOperations(current, generated.ops, { action, rolls })
+      : { state: structuredClone(current), accepted: [], rejected: [] };
 
-    const generatedPlayer = objectOr(generated.player, {});
-    const nextPlayer = gameplay
-      ? {
-          ...current.player,
-          ...generatedPlayer,
-          name: current.player?.name || "Kai Akechi",
-          codename: current.player?.codename || "Twilight",
-          needs: {
-            ...objectOr(current.player?.needs, {}),
-            ...objectOr(generatedPlayer.needs, {}),
-          },
-        }
-      : current.player;
-
-    const nextState = {
-      ...current,
+    let nextState = operationResult.state;
+    const nextLevel = levelFromState(nextState);
+    nextState = {
+      ...nextState,
       title: levelLabel(nextLevel) || current.title,
       level: nextLevel || current.level,
       turn: current.turn + (gameplay ? 1 : 0),
       mode: gameplay ? "ai" : current.mode,
       canonLoaded: true,
       canonVersion: current.canonVersion,
-      location: gameplay && typeof generated.location === "string" ? generated.location : current.location,
-      player: nextPlayer,
-      party: gameplay ? gatedParty(current, generated.party, rolls) : current.party,
-      inventory: gameplay ? gatedInventory(current, generated.inventory, rolls) : current.inventory,
-      flags: nextFlags,
-      // Normal turns never replace the last meaningful image.
-      // Only /api/snapshot may update this URL after the server approves an event.
+      flags: gameplay
+        ? {
+            ...objectOr(nextState.flags, current.flags),
+            lastRolls: { turn: current.turn, ...rolls },
+            ...(nextLevel ? { currentLevel: nextLevel } : {}),
+          }
+        : current.flags,
       snapshotUrl: current.snapshotUrl,
       log: [
         ...(Array.isArray(current.log) ? current.log : []),
@@ -299,6 +180,8 @@ export async function POST(request) {
       saved: true,
       rolls,
       turnAdvanced: gameplay,
+      operationsAccepted: operationResult.accepted.length,
+      operationsRejected: operationResult.rejected.map((entry) => entry.reason),
       snapshotRequested: snapshot.requested,
       snapshotType: snapshot.type,
       snapshotReason: snapshot.reason,
