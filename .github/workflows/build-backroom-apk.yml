@@ -23,7 +23,6 @@ jobs:
       LUNA_API_KEY: ${{ secrets.LUNA_API_KEY }}
       LUNA_BASE_URL: https://api.vilao.ai/v1
       LUNA_MODEL: ${{ secrets.LUNA_MODEL }}
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || secrets.GPT_API_KEY || secrets.OPENAI_KEY || secrets.GPT_API_KEY_1 }}
       GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 || secrets.GEMINI_API_KEY }}
       GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
       GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
@@ -48,6 +47,7 @@ jobs:
         run: |
           test -n "$GEMINI_API_KEY_1" || (echo "Missing GitHub Secret: GEMINI_API_KEY_1" && exit 1)
           test -n "$GEMINI_API_KEY_2" || (echo "Missing GitHub Secret: GEMINI_API_KEY_2" && exit 1)
+          test -n "$GEMINI_API_KEY_3" || (echo "Missing GitHub Secret: GEMINI_API_KEY_3" && exit 1)
           test -n "$LUNA_API_KEY" || (echo "Missing GitHub Secret: LUNA_API_KEY" && exit 1)
           test -n "$LUNA_MODEL" || (echo "Missing GitHub Secret: LUNA_MODEL" && exit 1)
 
