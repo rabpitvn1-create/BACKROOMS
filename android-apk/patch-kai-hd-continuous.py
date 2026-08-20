@@ -160,12 +160,20 @@ index = replace_once(
     'placeholder="Kai sẽ làm gì tiếp theo?"',
     "action prompt wording",
 )
-index = replace_once(
-    index,
-    'const initial={title:"MAIN_BACKROOMS — Kai Akechi",turn:1,',
-    'const initial={title:"Level 0 – The Lobby",level:{number:0,name:"The Lobby"},turn:1,',
-    "initial Level header",
-)
+
+# Support both the original minified APK source and the readable Prologue rewrite.
+# Normalize the opening of `initial` back to the compact form expected by the
+# later Drive-canon patch, so the rest of the proven build chain remains intact.
+compact_initial = 'const initial={title:"MAIN_BACKROOMS — Kai Akechi",turn:1,'
+pretty_initial = 'const initial={\n  title:"MAIN_BACKROOMS — Kai Akechi",\n  turn:1,'
+normalized_initial = 'const initial={title:"Level 0 – The Lobby",level:{number:0,name:"The Lobby"},turn:1,'
+if compact_initial in index:
+    index = replace_once(index, compact_initial, normalized_initial, "initial Level header")
+elif pretty_initial in index:
+    index = replace_once(index, pretty_initial, normalized_initial, "initial Level header (readable Prologue layout)")
+else:
+    raise RuntimeError("initial Level header: neither compact nor readable Prologue layout was found")
+
 index = replace_once(
     index,
     'function render(){titleEl.textContent=state.title;',
