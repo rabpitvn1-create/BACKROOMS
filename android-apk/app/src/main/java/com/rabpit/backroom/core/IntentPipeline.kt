@@ -42,10 +42,10 @@ object ClauseSplitter {
 }
 
 object CommandSafety {
-  private val negative = Regex("(?:^|\\s)(?:không|đừng|chớ|chưa)\\s+(?:nhặt|lấy|bỏ|cất|đưa|dùng|trang bị|quét|scan|copy|sao chép|hoàn nguyên)", RegexOption.IGNORE_CASE)
+  private val negative = Regex("(?:^|\\s)(?:không|đừng|chớ|chưa)\\s+(?:nhặt|lấy|bỏ|cất|đưa|dùng|trang bị|quét|scan|copy|sao chép|hoàn nguyên|tạo thêm|tạo ra thêm)", RegexOption.IGNORE_CASE)
   private val memory = Regex("(?:nhớ|hồi tưởng|lần trước|đã từng|giả sử|nếu như|ước gì|có lẽ)", RegexOption.IGNORE_CASE)
   private val observation = Regex("(?:nhìn|thấy|quan sát|nghe).{0,40}(?:nhặt|lấy|bỏ|cất|đưa|dùng)", RegexOption.IGNORE_CASE)
-  private val quote = Regex("[\"“”][^\"“”]*(?:nhặt|lấy|bỏ|cất|đưa|dùng|quét|copy|hoàn nguyên)[^\"“”]*[\"“”]", RegexOption.IGNORE_CASE)
+  private val quote = Regex("[\"“”][^\"“”]*(?:nhặt|lấy|bỏ|cất|đưa|dùng|quét|copy|hoàn nguyên|tạo thêm)[^\"“”]*[\"“”]", RegexOption.IGNORE_CASE)
   private val hypotheticalQuestion = Regex("^(?:nếu|liệu|có nên|có thể).*[?？]?$", RegexOption.IGNORE_CASE)
 
   fun rejectionReason(text: String): String? = when {
@@ -65,7 +65,7 @@ class RuleIntentInterpreter : IntentInterpreter {
     Rule(GameIntent.OMNIVAULT_WITHDRAW, Regex("(?:lấy|rút|triệu hồi).*(?:khỏi|ra khỏi|từ)\\s+(?:nhẫn|omnivault|kho)", RegexOption.IGNORE_CASE)),
     Rule(GameIntent.OMNIVAULT_STORE, Regex("(?:cất|bỏ|lưu).*(?:vào|trong)\\s+(?:nhẫn|omnivault|kho)", RegexOption.IGNORE_CASE)),
     Rule(GameIntent.OMNIVAULT_SCAN, Regex("(?:quét|scan)(?:\\s|$)", RegexOption.IGNORE_CASE)),
-    Rule(GameIntent.OMNIVAULT_COPY, Regex("(?:sao chép|copy|nhân bản)(?:\\s|$)", RegexOption.IGNORE_CASE)),
+    Rule(GameIntent.OMNIVAULT_COPY, Regex("(?:sao chép|copy|nhân bản|tạo thêm|tạo ra thêm|nhân thêm)(?:\\s|$)", RegexOption.IGNORE_CASE)),
     Rule(GameIntent.OMNIVAULT_RESTORE, Regex("(?:hoàn nguyên|restore|khôi phục vật)(?:\\s|$)", RegexOption.IGNORE_CASE)),
     Rule(GameIntent.TRANSFER_ITEM, Regex("(?i:đưa|trao|chuyển)(?:.*(?i:cho|sang)\\s+\\p{L}+|\\s+\\p{Lu}\\p{L}+)") ),
     Rule(GameIntent.PICKUP_ITEM, Regex("(?:^|\\s)(?:nhặt|lượm|cầm lên|lấy lên)(?:\\s|$)", RegexOption.IGNORE_CASE)),
@@ -128,7 +128,7 @@ class DefaultQuantityResolver : QuantityResolver {
 class DefaultItemResolver : ItemResolver {
   private val pronoun = Regex("\\b(?:nó|vật đó|cái đó|món đó|thứ đó)\\b", RegexOption.IGNORE_CASE)
   private val resultTail = Regex("\\s+(?:và\\s+)?(?:nhận được|biến thành|trở thành|thành)\\s+.+$", RegexOption.IGNORE_CASE)
-  private val noise = Regex("\\b(?:kai|iris|syvial|nhặt|lượm|cầm|lấy|rút|triệu hồi|bỏ|cất|lưu|đưa|trao|chuyển|cho|sang|dùng|sử dụng|uống|ăn|trang bị|đeo|mặc|tháo|cởi|quét|scan|copy|sao chép|nhân bản|hoàn nguyên|restore|khỏi|ra|từ|vào|trong|nhẫn|omnivault|kho|rồi|một|hai|ba|bốn|năm|sáu|bảy|tám|chín|mười|trăm|\\d+)\\b", RegexOption.IGNORE_CASE)
+  private val noise = Regex("\\b(?:kai|iris|syvial|nhặt|lượm|cầm|lấy|rút|triệu hồi|bỏ|cất|lưu|đưa|trao|chuyển|cho|sang|dùng|sử dụng|uống|ăn|trang bị|đeo|mặc|tháo|cởi|quét|scan|copy|sao chép|nhân bản|tạo thêm|tạo ra thêm|nhân thêm|hoàn nguyên|restore|khỏi|ra|từ|vào|trong|nhẫn|omnivault|kho|rồi|một|hai|ba|bốn|năm|sáu|bảy|tám|chín|mười|trăm|\\d+)\\b", RegexOption.IGNORE_CASE)
 
   override fun resolve(clause: String, context: GameContext): Pair<String, String>? {
     if (pronoun.containsMatchIn(clause)) {
@@ -139,12 +139,16 @@ class DefaultItemResolver : ItemResolver {
     context.itemAliases.entries.firstOrNull { sourceClause.contains(it.key, true) }?.let { return it.value to it.key }
 
     val normalizedClause = normalize(sourceClause)
-    val knownItems = (context.state.inventories.values.flatMap { it.items.values } + context.state.omnivault.storedItems.values)
-      .distinctBy { it.itemId }
+    val knownItems = (
+      context.state.inventories.values.flatMap { it.items.values } +
+      context.state.omnivault.storedItems.values +
+      context.state.omnivault.scanSlots.map { it.templateItem }
+    ).distinctBy { it.itemId }
+    val clauseTokens = normalizedClause.split(' ').filter(String::isNotBlank)
     val fuzzy = knownItems.mapNotNull { stack ->
       val normalizedName = normalize(stack.name)
       val tokens = normalizedName.split(' ').filter(String::isNotBlank)
-      val overlap = tokens.count { token -> normalizedClause.split(' ').contains(token) }
+      val overlap = tokens.count { token -> clauseTokens.contains(token) }
       val strongPrefix = normalizedName.startsWith(normalizedClause) || normalizedClause.contains(normalizedName)
       val score = when {
         strongPrefix && normalizedClause.length >= 4 -> 100 + normalizedName.length
@@ -164,6 +168,7 @@ class DefaultItemResolver : ItemResolver {
   private fun knownPair(id: String, context: GameContext): Pair<String, String> {
     val known = context.state.inventories.values.asSequence().mapNotNull { it.items[id] }.firstOrNull()
       ?: context.state.omnivault.storedItems[id]
+      ?: context.state.omnivault.scanSlots.firstOrNull { it.templateItem.itemId == id }?.templateItem
     return id to (known?.name ?: id)
   }
 
