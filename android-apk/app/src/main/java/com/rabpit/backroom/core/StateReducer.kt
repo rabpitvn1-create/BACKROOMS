@@ -35,9 +35,16 @@ object StateReducer {
       }
     }
     if (!result.applied) return result
-    return result.copy(state = result.state.copy(turn = result.state.turn.copy(
-      executedCommandIds = result.state.turn.executedCommandIds + command.commandId
-    )))
+    val rememberedItemId = when (command) {
+      is ItemCommand -> command.itemId
+      is OmnivaultCommand -> command.restoreResultItemId ?: command.itemId
+      else -> null
+    }
+    val nextMetadata = if (rememberedItemId != null) result.state.metadata + ("lastReferencedItemId" to rememberedItemId) else result.state.metadata
+    return result.copy(state = result.state.copy(
+      metadata = nextMetadata,
+      turn = result.state.turn.copy(executedCommandIds = result.state.turn.executedCommandIds + command.commandId)
+    ))
   }
 
   fun executeAll(state: GameState, commands: List<GameCommand>): ExecutionResult {
