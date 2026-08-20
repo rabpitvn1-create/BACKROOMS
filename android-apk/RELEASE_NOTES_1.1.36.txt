@@ -1,0 +1,12 @@
+Backroom 1.1.36
+
+Omnivault reliability and inventory consistency hotfix.
+
+- Fixes Omnivault Restore target continuity for phrases such as "hoàn nguyên nó" and named restore targets.
+- Hard-locks Omnivault Restore as repair-only and resource-conserving: the same physical object returns to its best condition without creating a new object or refilling consumed water, food, ammo, fuel, medicine, charge or materials.
+- Keeps Restore item identity and stack quantity unchanged while preserving remaining-content metadata and the per-item 24-hour cooldown.
+- Fixes Omnivault Copy so duplicated objects stack on the same item ID/quantity instead of creating hidden copy-only stacks.
+- Fixes Store/Withdraw ownership checks after Copy and preserves last-item references across turns.
+- Inventory UI now displays quantities as ×N, including ×1, and cleans pickup filler such as "được" from item display names.
+- Fixes the Kotlin compilation regression caused by the removed legacy restoreResultItemId field in StateReducer.
+- Retains the deterministic Kotlin Game State Core, tiny LiteRT command classifier and Gemini structured fallback architecture from 1.1.35.
