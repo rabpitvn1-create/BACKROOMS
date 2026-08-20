@@ -153,7 +153,7 @@ main = replace_once(
     "store Snapshot event",
 )
 
-# APK-native UI wording/header. This does not depend on Vercel.
+# APK-native UI wording/header. This remains part of the standalone build.
 index = replace_once(
     index,
     'placeholder="Kai làm gì trong Turn hiện tại?"',

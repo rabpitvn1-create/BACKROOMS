@@ -16,7 +16,7 @@ function json(body, status = 200) {
     status,
     headers: {
       "Cache-Control": "no-store",
-      "X-Backroom-Build": process.env.VERCEL_GIT_COMMIT_SHA || "unknown",
+      "X-Backroom-Build": process.env.GIT_COMMIT_SHA || "local",
     },
   });
 }

@@ -12,6 +12,13 @@ Text game Next.js dùng state phía server, Gemini cho Game Master và snapshot,
 
 Backend giữ quyền phán quyết đối với dice, reunion, encounter và chuyển Level. Model không được tự tăng xác suất, reroll, tạo tài nguyên hoặc thay đổi Level nếu điều kiện server chưa cho phép.
 
+## APK độc lập
+
+- APK nạp giao diện từ `android-apk/app/src/main/assets/index.html` và lưu save bằng bộ nhớ riêng trên thiết bị.
+- Chuỗi build giữ Kai overlay, snapshot theo sự kiện, ảnh nền Level 0–6, fallback Game Master và Kai R05 codex.
+- `android-apk/patch-drive-canon-gameplay.py` nạp Drive canon R06 cùng xúc xắc/gate gameplay vào bản Android sau các patch nền.
+- Workflow phát hành hiện tạo `Backroom-1.1.26.apk` từ runtime độc lập này.
+
 ## Chạy cục bộ
 
 ```bash
@@ -25,6 +32,6 @@ Các biến môi trường chính:
 - `GEMINI_API_KEY_1` (có thể thêm `_2`, `_3`)
 - `GEMINI_MODEL`
 - `GEMINI_IMAGE_MODEL`
-- `DATABASE_URL` / `POSTGRES_URL` / `NEON_DATABASE_URL` (không bắt buộc; thiếu thì dùng Vercel Runtime Cache)
+- `DATABASE_URL` / `POSTGRES_URL` / `NEON_DATABASE_URL` (không bắt buộc; thiếu thì dùng bộ nhớ cục bộ của tiến trình)
 
 Trong ô lệnh, dùng `/status`, `/inventory`, `/party`, `/rules` hoặc `/meta ...` để hỏi/kiểm tra mà không tăng Turn hay kích hoạt dice.
