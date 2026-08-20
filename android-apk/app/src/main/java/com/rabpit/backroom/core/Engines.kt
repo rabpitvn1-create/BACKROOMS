@@ -14,6 +14,51 @@ private fun removeItem(inventory: InventoryState, itemId: String, quantity: Int)
   return inventory.copy(items = items)
 }
 
+private fun resourceAmount(item: ItemStack): Double? = item.metadata["remainingContent"]
+  ?.trim()?.replace(',', '.')?.toDoubleOrNull()
+
+private fun consumeAmount(item: ItemStack): Double = item.metadata["consumeAmount"]
+  ?.trim()?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it > 0.0 } ?: 1.0
+
+private fun formatResourceAmount(value: Double): String =
+  if (value % 1.0 == 0.0) value.toLong().toString() else value.toString().trimEnd('0').trimEnd('.')
+
+private fun isExplicitEmptyContainer(item: ItemStack): Boolean {
+  val name = item.name.lowercase()
+  val container = Regex("\\b(?:chai|bình|lọ|hộp|lon|can|bottle|container|jar|box)\\b", RegexOption.IGNORE_CASE)
+  val empty = Regex("\\b(?:rỗng|trống|hết|empty)\\b", RegexOption.IGNORE_CASE)
+  return container.containsMatchIn(name) && empty.containsMatchIn(name)
+}
+
+private fun useItem(state: GameState, source: InventoryState, command: ItemCommand): ExecutionResult {
+  val owned = source.items[command.itemId] ?: return invalid(state, "item_not_owned")
+  if (owned.quantity < command.quantity) return invalid(state, "insufficient_item_quantity")
+
+  val remaining = resourceAmount(owned)
+  if (remaining != null) {
+    if (remaining <= 0.0) return invalid(state, "item_content_empty")
+    val nextRemaining = (remaining - consumeAmount(owned) * command.quantity).coerceAtLeast(0.0)
+    val updated = owned.copy(metadata = owned.metadata + ("remainingContent" to formatResourceAmount(nextRemaining)))
+    val nextInventory = source.copy(items = source.items + (owned.itemId to updated))
+    return changed(state.copy(inventories = state.inventories + (command.actorId to nextInventory)), "item_content_consumed")
+  }
+
+  // A container explicitly described as empty must never disappear merely because the player
+  // tries to drink/eat/use from it. Restore repairs the container; it does not recreate contents.
+  if (isExplicitEmptyContainer(owned)) return invalid(state, "item_content_empty")
+
+  val consumedOnUse = owned.metadata["consumedOnUse"].equals("true", true) ||
+    (owned.metadata["consumable"].equals("true", true) && !owned.metadata["containerPersistent"].equals("true", true))
+  if (consumedOnUse) {
+    val next = removeItem(source, command.itemId, command.quantity) ?: return invalid(state, "insufficient_item_quantity")
+    return changed(state.copy(inventories = state.inventories + (command.actorId to next)), "item_consumed")
+  }
+
+  // USE is non-destructive by default. Physical tools, weapons, containers and equipment do not
+  // vanish unless the item explicitly declares that use consumes the object itself.
+  return changed(state, "item_used")
+}
+
 object InventoryEngine {
   fun execute(state: GameState, command: ItemCommand): ExecutionResult {
     if (command.quantity <= 0) return invalid(state, "quantity_must_be_positive")
@@ -21,10 +66,11 @@ object InventoryEngine {
     val item = ItemStack(command.itemId, command.itemName, command.quantity)
     return when (command.operation) {
       ItemCommand.Operation.PICKUP -> changed(state.copy(inventories = state.inventories + (command.actorId to addItem(source, item))), "inventory_pickup")
-      ItemCommand.Operation.DROP, ItemCommand.Operation.USE -> {
+      ItemCommand.Operation.DROP -> {
         val next = removeItem(source, command.itemId, command.quantity) ?: return invalid(state, "insufficient_item_quantity")
         changed(state.copy(inventories = state.inventories + (command.actorId to next)), "inventory_remove")
       }
+      ItemCommand.Operation.USE -> useItem(state, source, command)
       ItemCommand.Operation.TRANSFER -> {
         val targetId = command.targetId ?: return invalid(state, "target_required")
         if (!state.characters.containsKey(targetId)) return invalid(state, "target_unknown")
