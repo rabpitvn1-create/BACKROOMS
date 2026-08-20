@@ -116,6 +116,10 @@ function gatedInventory(current, proposed, rolls) {
   return proposed.filter((item) => {
     const name = typeof item === "string" ? item : item?.name;
     if (/almond water/i.test(String(name || ""))) {
+      // An ineligible water roll means this turn was not discovering new water.
+      // Existing/established water can still be picked up, stored, copied, given,
+      // consumed, or otherwise moved by the turn without being deleted by the gate.
+      if (rolls?.almondWater?.eligible !== true) return true;
       if (rolls?.almondWater?.success === true) return true;
       retainedWater += 1;
       return retainedWater <= existingWater;
