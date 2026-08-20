@@ -25,6 +25,7 @@ test("Android release patch chain injects routed canon, authoritative ops, condi
   }
   assert.match(workflow, /patch-gameplay-parity-final\.py/);
   assert.match(workflow, /patch-final-authority-hardening\.py/);
+  assert.match(workflow, /patch-rejected-op-repair-final\.py/);
   assert.match(workflow, /patch-provider-deadline-final\.py/);
   assert.match(workflow, /if: github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'/);
   assert.match(workflow, /git push origin HEAD:main/);
@@ -55,6 +56,7 @@ test("Android release patch chain injects routed canon, authoritative ops, condi
     "patch-audit-validated-risk.py",
     "patch-gameplay-parity-final.py",
     "patch-final-authority-hardening.py",
+    "patch-rejected-op-repair-final.py",
     "patch-provider-deadline-final.py",
     "patch-java-compile-hardening.py",
     "patch-hard-mode-label.py",
@@ -96,6 +98,9 @@ test("Android release patch chain injects routed canon, authoritative ops, condi
   assert.match(main, /worldConsequence/);
   assert.match(main, /exitMutation/);
   assert.match(main, /JSONArray proposed/);
+  assert.match(main, /rejectedOperationIssuesAndroid/);
+  assert.match(main, /state_narrative_mismatch/);
+  assert.match(main, /appendIssues\(hardIssues, rejectedOperationIssuesAndroid/);
   assert.match(main, /private String postJsonFast\(/);
   assert.match(main, /setConnectTimeout\(5000\)/);
   assert.match(main, /setReadTimeout\(5000\)/);
