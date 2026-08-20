@@ -72,8 +72,14 @@ test("valid explicit Omnivault restore forces narrative repair if writer denies 
   assert.equal(issues[0].rule, "omnivault_action_lock");
 });
 
-test("pickup candidate survives descriptive words inserted by GM reply", () => {
+test("pickup candidate ignores motion-only nhặt lên and falls back to the introduced object", () => {
   assert.equal(extractConfirmedPickupCandidate(bottleAction, bottleReply), "vỏ chai rỗng");
+});
+
+test("an explicit named pickup still wins over an unrelated earlier visible object", () => {
+  const action = "Thấy một cánh cửa ở xa, Kai nhặt vỏ chai rỗng rồi bỏ vào kho.";
+  const reply = "Kai nhặt vỏ chai rỗng rồi cất nó vào Nhẫn Vạn Tàng; cánh cửa vẫn ở phía xa.";
+  assert.equal(extractConfirmedPickupCandidate(action, reply), "vỏ chai rỗng");
 });
 
 test("existing model inventory op is marked as GM-confirmed instead of duplicated", () => {
