@@ -1,6 +1,8 @@
 from pathlib import Path
 
-MAIN = Path(__file__).resolve().parent / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
+ROOT = Path(__file__).resolve().parent
+MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
+INDEX = ROOT / "app/src/main/assets/index.html"
 text = MAIN.read_text(encoding="utf-8")
 
 core_import = "import com.rabpit.backroom.core.GameCoreFacade;\n"
@@ -62,4 +64,14 @@ for required in [core_import.strip(), field.strip(), initialization.strip(), clo
         raise RuntimeError(f"Game State Core integration missing: {required}")
 
 MAIN.write_text(text, encoding="utf-8")
-print("Final Game State Core local-command bridge applied.")
+
+html = INDEX.read_text(encoding="utf-8")
+old_chips = 'function chips(items){return items&&items.length?items.map(x=>"<span>"+esc(typeof x==="string"?x:x.name||"—")+"</span>").join(""):"<span>Trống.</span>"}'
+new_chips = 'function chips(items){return items&&items.length?items.map(x=>{if(typeof x==="string")return "<span>"+esc(x)+"</span>";const q=Math.max(1,Number(x.quantity)||1);return "<span>"+esc(x.name||"—")+" ×"+q+"</span>"}).join(""):"<span>Trống.</span>"}'
+if new_chips not in html:
+    if old_chips not in html:
+        raise RuntimeError("Inventory quantity renderer anchor not found")
+    html = html.replace(old_chips, new_chips, 1)
+INDEX.write_text(html, encoding="utf-8")
+
+print("Final Game State Core local-command bridge and quantity UI applied.")
