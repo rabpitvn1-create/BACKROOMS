@@ -82,6 +82,12 @@ object OmnivaultEngine {
     )
   }
 
+  /**
+   * Restore is strictly repair/condition restoration. It may return the same physical item
+   * to its best structural/closed/sealed state, but it MUST NOT create, refill or increase
+   * consumable resources that were already spent (water, food, fuel, ammo, medicine, charge,
+   * ingredients, etc.). Item identity and stack quantity remain unchanged.
+   */
   private fun restore(state: GameState, c: OmnivaultCommand): ExecutionResult {
     val cooldown = state.omnivault.restoreCooldownUntilEpochMs[c.itemId] ?: 0L
     if (c.timestampEpochMs < cooldown) return invalid(state, "restore_cooldown_active")
@@ -92,43 +98,29 @@ object OmnivaultEngine {
     val source = inventorySource ?: storedSource ?: return invalid(state, "restore_target_missing")
     if (source.quantity < c.quantity) return invalid(state, "insufficient_item_quantity")
 
-    var nextInventory = inventory
-    var nextStored = state.omnivault.storedItems
-    val resultId = c.restoreResultItemId
-    val resultName = c.restoreResultName
+    val restoredMetadata = source.metadata + mapOf(
+      "omnivaultRestored" to "true",
+      "restoreMode" to "BEST_CONDITION_RESOURCE_CONSERVING"
+    )
+    val restoredSource = source.copy(
+      condition = "BEST_CONDITION",
+      metadata = restoredMetadata
+    )
 
-    if (resultId != null && resultName != null) {
-      if (inventorySource != null) {
-        val remaining = inventorySource.quantity - c.quantity
-        val withoutSource = if (remaining == 0) inventory.items - c.itemId else inventory.items + (c.itemId to inventorySource.copy(quantity = remaining))
-        val existingResult = withoutSource[resultId]
-        val resultStack = ItemStack(
-          resultId,
-          resultName,
-          (existingResult?.quantity ?: 0) + c.quantity,
-          metadata = (existingResult?.metadata ?: emptyMap()) + mapOf("restoredFrom" to c.itemId)
-        )
-        nextInventory = inventory.copy(items = withoutSource + (resultId to resultStack))
-      } else if (storedSource != null) {
-        val remaining = storedSource.quantity - c.quantity
-        val withoutSource = if (remaining == 0) nextStored - c.itemId else nextStored + (c.itemId to storedSource.copy(quantity = remaining))
-        val existingResult = withoutSource[resultId]
-        val resultStack = ItemStack(
-          resultId,
-          resultName,
-          (existingResult?.quantity ?: 0) + c.quantity,
-          metadata = (existingResult?.metadata ?: emptyMap()) + mapOf("restoredFrom" to c.itemId)
-        )
-        nextStored = withoutSource + (resultId to resultStack)
-      }
-    }
+    val nextInventory = if (inventorySource != null) {
+      inventory.copy(items = inventory.items + (c.itemId to restoredSource))
+    } else inventory
+    val nextStored = if (storedSource != null) {
+      state.omnivault.storedItems + (c.itemId to restoredSource)
+    } else state.omnivault.storedItems
 
     return changed(state.copy(
       inventories = state.inventories + (c.actorId to nextInventory),
       omnivault = state.omnivault.copy(
         storedItems = nextStored,
         restoreCooldownUntilEpochMs = state.omnivault.restoreCooldownUntilEpochMs + (c.itemId to c.timestampEpochMs + RESTORE_COOLDOWN_MS)
-      )
+      ),
+      metadata = state.metadata + ("lastReferencedItemId" to c.itemId)
     ), "omnivault_restored")
   }
 }
