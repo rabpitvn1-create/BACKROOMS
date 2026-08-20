@@ -16,6 +16,22 @@ new_gate = '''        String pickupBasis = lower(op.optString("basis", ""));
         boolean confirmedMundanePickup = ("gm_confirmed_pickup".equals(pickupBasis) || "omnivault_restore".equals(pickupBasis)) && mundanePickupName(name);'''
 replace_once(old_gate, new_gate, "Omnivault restore authority basis")
 
+old_direct_candidate = '''    for (String regex : direct) {
+      String candidate = pickupRegexCandidateAndroid(action, regex);
+      if (!candidate.isEmpty()) return candidate;
+    }
+    String[] introduced = new String[] {'''
+new_direct_candidate = '''    for (String regex : direct) {
+      String candidate = pickupRegexCandidateAndroid(action, regex);
+      String weak = lower(candidate);
+      boolean directionalOnly = weak.equals("lên") || weak.equals("ra") || weak.equals("vào") || weak.equals("xuống") ||
+        weak.equals("lại") || weak.equals("qua") || weak.equals("đi") || weak.equals("đến") || weak.equals("nó") || weak.equals("đó") ||
+        weak.equals("up") || weak.equals("out") || weak.equals("in") || weak.equals("down") || weak.equals("back") || weak.equals("it") || weak.equals("that");
+      if (!candidate.isEmpty() && !directionalOnly) return candidate;
+    }
+    String[] introduced = new String[] {'''
+replace_once(old_direct_candidate, new_direct_candidate, "directional pickup candidate rejection")
+
 old_ops = '''    JSONArray ops = generated.optJSONArray("ops");
     if (ops == null) ops = new JSONArray();
     boolean matched = false;
@@ -48,6 +64,8 @@ replace_once(old_prompt, new_prompt, "Kai resource policy prompt")
 
 for required in [
     '"omnivault_restore".equals(pickupBasis)',
+    'boolean directionalOnly = weak.equals("lên")',
+    'if (!candidate.isEmpty() && !directionalOnly) return candidate;',
     'if ("omnivault_restore".equals(basis) && !source.isEmpty()',
     "ops.remove(i)",
     "Inventory là sổ continuity/sở hữu của Kai",
@@ -58,4 +76,4 @@ for required in [
         raise RuntimeError(f"Kai resource policy marker missing: {required}")
 
 MAIN.write_text(text, encoding="utf-8")
-print("Kai overpower resource policy applied: Omnivault Restore replaces the source continuity record and is not loot scarcity.")
+print("Kai overpower resource policy applied: directional pickup tokens are rejected, Omnivault Restore replaces the source continuity record, and loot scarcity cannot nerf Kai.")
