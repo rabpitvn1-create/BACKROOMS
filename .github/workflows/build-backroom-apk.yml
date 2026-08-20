@@ -101,6 +101,8 @@ jobs:
         run: python3 android-apk/patch-final-authority-hardening.py
       - name: Enforce rejected-op repair
         run: python3 android-apk/patch-rejected-op-repair-final.py
+      - name: Reconcile GM-confirmed mundane pickups
+        run: python3 android-apk/patch-inventory-pickup-reconcile-final.py
       - name: Apply Gemini runtime and Luna deadline compatibility
         run: python3 android-apk/patch-provider-deadline-final.py
       - name: Apply model-first Gemini fallback matrix
@@ -127,27 +129,27 @@ jobs:
         run: gradle :app:assembleDebug --no-daemon
 
       - name: Prepare release APK
-        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.1.33.apk
+        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.1.34.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Backroom-1.1.33-debug-apk
-          path: Backroom-1.1.33.apk
+          name: Backroom-1.1.34-debug-apk
+          path: Backroom-1.1.34.apk
           if-no-files-found: error
           retention-days: 14
 
-      - name: Publish GitHub Release v1.1.33
+      - name: Publish GitHub Release v1.1.34
         if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="v1.1.33"
-          TITLE="Backroom 1.1.33"
-          NOTES=$(cat android-apk/RELEASE_NOTES_1.1.33.txt)
+          TAG="v1.1.34"
+          TITLE="Backroom 1.1.34"
+          NOTES=$(cat android-apk/RELEASE_NOTES_1.1.34.txt)
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
-            gh release upload "$TAG" Backroom-1.1.33.apk --clobber
+            gh release upload "$TAG" Backroom-1.1.34.apk --clobber
           else
-            gh release create "$TAG" Backroom-1.1.33.apk --target "$GITHUB_SHA" --title "$TITLE" --notes "$NOTES"
+            gh release create "$TAG" Backroom-1.1.34.apk --target "$GITHUB_SHA" --title "$TITLE" --notes "$NOTES"
           fi
