@@ -1,0 +1,10 @@
+Backroom 1.1.34
+
+Inventory pickup synchronization fix.
+
+- Fixes a state/narrative mismatch where the Game Master could confirm that Kai picked up and stored an ordinary object, while Inventory stayed unchanged.
+- Adds deterministic pickup reconciliation for mundane objects confirmed by both the player action and the GM reply.
+- The reported regression case (an empty bottle picked up and stored in the Omnivault) is covered by automated tests.
+- Restricted loot, weapons, canon resources, keys, armor and special items cannot use this reconciliation path to bypass locked loot/canon gates.
+- Existing rejected-operation repair, authoritative state reducer, Save/Load hardening and model-first Gemini 3.6 -> 3.5 -> Flash-Lite -> Luna routing remain intact.
+- Android and server behavior are kept in parity.
