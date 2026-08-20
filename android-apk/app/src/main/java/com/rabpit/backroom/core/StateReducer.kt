@@ -37,7 +37,7 @@ object StateReducer {
     if (!result.applied) return result
     val rememberedItemId = when (command) {
       is ItemCommand -> command.itemId
-      is OmnivaultCommand -> command.restoreResultItemId ?: command.itemId
+      is OmnivaultCommand -> command.itemId
       else -> null
     }
     val nextMetadata = if (rememberedItemId != null) result.state.metadata + ("lastReferencedItemId" to rememberedItemId) else result.state.metadata
