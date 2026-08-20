@@ -7,7 +7,7 @@ import { spawnSync } from "node:child_process";
 
 const root = process.cwd();
 
-test("Android release patch chain keeps authoritative gameplay and model-first Gemini fallback", (t) => {
+test("Android release patch chain keeps authoritative gameplay, pickup sync and model-first Gemini fallback", (t) => {
   const temporaryRoot = mkdtempSync(path.join(tmpdir(), "backroom-android-test-"));
   t.after(() => rmSync(temporaryRoot, { recursive: true, force: true }));
   const source = path.join(root, "android-apk");
@@ -16,12 +16,13 @@ test("Android release patch chain keeps authoritative gameplay and model-first G
 
   const buildGradle = readFileSync(path.join(source, "app/build.gradle"), "utf8");
   const workflow = readFileSync(path.join(root, ".github/workflows/build-backroom-apk.yml"), "utf8");
-  assert.match(buildGradle, /versionCode 35/);
-  assert.match(buildGradle, /versionName '1\.1\.33'/);
-  assert.match(workflow, /Backroom-1\.1\.33\.apk/);
-  assert.match(workflow, /RELEASE_NOTES_1\.1\.33\.txt/);
+  assert.match(buildGradle, /versionCode 36/);
+  assert.match(buildGradle, /versionName '1\.1\.34'/);
+  assert.match(workflow, /Backroom-1\.1\.34\.apk/);
+  assert.match(workflow, /RELEASE_NOTES_1\.1\.34\.txt/);
   assert.match(workflow, /patch-save-controls-final\.py/);
   assert.match(workflow, /patch-gemini-model-matrix-final\.py/);
+  assert.match(workflow, /patch-inventory-pickup-reconcile-final\.py/);
   assert.doesNotMatch(workflow, /patch-space-habitat-font\.py/);
 
   for (let slot = 1; slot <= 5; slot += 1) {
@@ -62,6 +63,7 @@ test("Android release patch chain keeps authoritative gameplay and model-first G
     "patch-gameplay-parity-final.py",
     "patch-final-authority-hardening.py",
     "patch-rejected-op-repair-final.py",
+    "patch-inventory-pickup-reconcile-final.py",
     "patch-provider-deadline-final.py",
     "patch-gemini-model-matrix-final.py",
     "patch-java-compile-hardening.py",
@@ -108,6 +110,16 @@ test("Android release patch chain keeps authoritative gameplay and model-first G
   assert.match(main, /rejectedOperationIssuesAndroid/);
   assert.match(main, /state_narrative_mismatch/);
   assert.match(main, /appendIssues\(hardIssues, rejectedOperationIssuesAndroid/);
+
+  assert.match(main, /private String pickupCandidateAndroid\(String action\)/);
+  assert.match(main, /private boolean mundanePickupName\(String name\)/);
+  assert.match(main, /private boolean replyConfirmsPickupAndroid\(String candidate, String reply\)/);
+  assert.match(main, /private void reconcileConfirmedPickupOpsAndroid\(/);
+  assert.match(main, /gm_confirmed_pickup/);
+  assert.match(main, /if \(!meta\) reconcileConfirmedPickupOpsAndroid\(before, generated, action\)/);
+  assert.match(main, /reconcileConfirmedPickupOpsAndroid\(before, generated, action\);\n\s+repaired = true/);
+  assert.match(main, /confirmedMundanePickup/);
+  assert.match(main, /rollSuccess\(rolls, "loot"\) \|\| confirmedMundanePickup/);
 
   assert.match(main, /private String postJsonFast\(/);
   assert.match(main, /setReadTimeout\(18000\)/);
