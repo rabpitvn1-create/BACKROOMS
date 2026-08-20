@@ -21,6 +21,7 @@ android {
     buildConfigField "String", "OPENAI_API_KEY", "\"" + secret("OPENAI_API_KEY") + "\""
     buildConfigField "String", "GEMINI_API_KEY_1", "\"" + secret("GEMINI_API_KEY_1") + "\""
     buildConfigField "String", "GEMINI_API_KEY_2", "\"" + secret("GEMINI_API_KEY_2") + "\""
+    buildConfigField "String", "GEMINI_API_KEY_3", "\"" + secret("GEMINI_API_KEY_3") + "\""
   }
 
   buildFeatures { buildConfig true }
