@@ -15,7 +15,7 @@ data class GameContext(
   val state: GameState,
   val actorAliases: Map<String, String> = mapOf("kai" to KAI_ID),
   val itemAliases: Map<String, String> = emptyMap(),
-  val lastReferencedItemId: String? = null
+  val lastReferencedItemId: String? = state.metadata["lastReferencedItemId"]
 )
 
 data class IntentCandidate(
