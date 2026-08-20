@@ -85,6 +85,8 @@ jobs:
         run: python3 android-apk/patch-conditional-audit.py
       - name: Score audits from validated state delta
         run: python3 android-apk/patch-audit-validated-risk.py
+      - name: Harden final Java compile surface
+        run: python3 android-apk/patch-java-compile-hardening.py
       - name: Apply Single Player Hard Mode label
         run: python3 android-apk/patch-hard-mode-label.py
       - name: Leave Snapshot provider unconfigured
