@@ -1,4 +1,5 @@
 import "./globals.css";
+import "./space-habitat.css";
 
 export const metadata = {
   title: "Backroom Text Game",
