@@ -26,6 +26,8 @@ jobs:
       GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 || secrets.GEMINI_API_KEY }}
       GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
       GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
+      GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
+      GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
     steps:
       - uses: actions/checkout@v4
 
@@ -47,12 +49,15 @@ jobs:
         run: |
           test -n "$GEMINI_API_KEY_1" || (echo "Missing GitHub Secret: GEMINI_API_KEY_1" && exit 1)
           test -n "$GEMINI_API_KEY_2" || (echo "Missing GitHub Secret: GEMINI_API_KEY_2" && exit 1)
+          test -n "$GEMINI_API_KEY_3" || (echo "Missing GitHub Secret: GEMINI_API_KEY_3" && exit 1)
+          test -n "$GEMINI_API_KEY_4" || (echo "Missing GitHub Secret: GEMINI_API_KEY_4" && exit 1)
+          test -n "$GEMINI_API_KEY_5" || (echo "Missing GitHub Secret: GEMINI_API_KEY_5" && exit 1)
           test -n "$LUNA_API_KEY" || (echo "Missing GitHub Secret: LUNA_API_KEY" && exit 1)
           test -n "$LUNA_MODEL" || (echo "Missing GitHub Secret: LUNA_MODEL" && exit 1)
 
       - name: Apply provider, DNS and Kai overlay patch
         run: python3 android-apk/patch-provider-status.py
-      - name: Apply Gemini-first Game Master fallback patch
+      - name: Apply five-Gemini-first Game Master fallback patch
         run: python3 android-apk/patch-luna-text.py
       - name: Apply Level 0-6 Snapshot fallback backgrounds
         run: python3 android-apk/patch-level-snapshot-backgrounds.py
