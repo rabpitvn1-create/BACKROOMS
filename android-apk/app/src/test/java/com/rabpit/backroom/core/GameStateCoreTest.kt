@@ -75,20 +75,43 @@ class GameStateCoreTest {
     assertEquals("living_target_forbidden", living.validation.reason)
   }
 
-  @Test fun omnivaultThreeSlotsMarkedCopyAndRestoreCooldown() {
+  @Test fun omnivaultThreeSlotsCopiesStackAndRestoreConservesResources() {
     var state = base()
     for (i in 1..4) {
+      state = StateReducer.execute(state, item("original-$i", ItemCommand.Operation.PICKUP)).state
       state = StateReducer.execute(state, OmnivaultCommand("scan-$i", "TURN_1", KAI_ID, source = CommandSource.RULE, operation = OmnivaultCommand.Operation.SCAN, itemId = "original-$i", itemName = "Item $i", timestampEpochMs = i.toLong())).state
     }
     assertEquals(3, state.omnivault.scanSlots.size)
     assertFalse(state.omnivault.scanSlots.any { it.sourceItemId == "original-1" })
     assertTrue("original-1" in state.omnivault.markedSourceIds)
-    val copied = StateReducer.execute(state, OmnivaultCommand("copy", "TURN_1", KAI_ID, source = CommandSource.RULE, operation = OmnivaultCommand.Operation.COPY, itemId = "original-4", itemName = "Item 4", quantity = 2))
-    assertEquals(2, copied.state.inventories.getValue(KAI_ID).items.getValue("original-4:copy").quantity)
 
-    val withTarget = copied.state.copy(inventories = copied.state.inventories + (KAI_ID to copied.state.inventories.getValue(KAI_ID).copy(items = copied.state.inventories.getValue(KAI_ID).items + ("damaged" to ItemStack("damaged", "Damaged")))))
-    val restored = StateReducer.execute(withTarget, OmnivaultCommand("restore", "TURN_1", KAI_ID, source = CommandSource.UI, operation = OmnivaultCommand.Operation.RESTORE, itemId = "damaged", itemName = "Damaged", timestampEpochMs = 1000))
-    val cooldown = StateReducer.execute(restored.state, OmnivaultCommand("restore-again", "TURN_1", KAI_ID, source = CommandSource.UI, operation = OmnivaultCommand.Operation.RESTORE, itemId = "damaged", itemName = "Damaged", timestampEpochMs = 1001))
+    val copied = StateReducer.execute(state, OmnivaultCommand("copy", "TURN_1", KAI_ID, source = CommandSource.RULE, operation = OmnivaultCommand.Operation.COPY, itemId = "original-4", itemName = "Item 4", quantity = 2))
+    assertEquals(3, copied.state.inventories.getValue(KAI_ID).items.getValue("original-4").quantity)
+    assertEquals("2", copied.state.inventories.getValue(KAI_ID).items.getValue("original-4").metadata["omnivaultCopyCount"])
+
+    val emptyBottle = ItemStack(
+      "empty-bottle", "Vỏ chai nước rỗng", quantity = 1, condition = "DENTED_OPEN",
+      metadata = mapOf("remainingContent" to "0", "contentType" to "water")
+    )
+    val withBottle = copied.state.copy(
+      inventories = copied.state.inventories + (KAI_ID to copied.state.inventories.getValue(KAI_ID).copy(
+        items = copied.state.inventories.getValue(KAI_ID).items + (emptyBottle.itemId to emptyBottle)
+      ))
+    )
+    val restored = StateReducer.execute(withBottle, OmnivaultCommand(
+      "restore", "TURN_1", KAI_ID, source = CommandSource.UI, operation = OmnivaultCommand.Operation.RESTORE,
+      itemId = "empty-bottle", itemName = "Vỏ chai nước rỗng", timestampEpochMs = 1000
+    ))
+    val restoredBottle = restored.state.inventories.getValue(KAI_ID).items.getValue("empty-bottle")
+    assertEquals(1, restoredBottle.quantity)
+    assertEquals("BEST_CONDITION", restoredBottle.condition)
+    assertEquals("0", restoredBottle.metadata["remainingContent"])
+    assertEquals("water", restoredBottle.metadata["contentType"])
+    assertEquals("BEST_CONDITION_RESOURCE_CONSERVING", restoredBottle.metadata["restoreMode"])
+    assertFalse(restored.state.inventories.getValue(KAI_ID).items.containsKey("water-bottle"))
+    assertEquals("empty-bottle", restored.state.metadata["lastReferencedItemId"])
+
+    val cooldown = StateReducer.execute(restored.state, OmnivaultCommand("restore-again", "TURN_1", KAI_ID, source = CommandSource.UI, operation = OmnivaultCommand.Operation.RESTORE, itemId = "empty-bottle", itemName = "Vỏ chai nước rỗng", timestampEpochMs = 1001))
     assertEquals("restore_cooldown_active", cooldown.validation.reason)
   }
 

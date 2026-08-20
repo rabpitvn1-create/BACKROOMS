@@ -12,6 +12,7 @@ class RuleIntentInterpreterTest {
   @Test fun deterministicCommandsStayLocal() {
     assertEquals(GameIntent.PICKUP_ITEM, parse("Kai nhặt chai nước").candidates.single().intent)
     assertEquals(GameIntent.OMNIVAULT_STORE, parse("Bỏ khẩu súng vào nhẫn").candidates.single().intent)
+    assertEquals(GameIntent.OMNIVAULT_COPY, parse("Tạo thêm 3 vỏ chai nước rỗng").candidates.single().intent)
     assertEquals(GameIntent.PARTY_JOIN_REQUEST, parse("Iris vào party").candidates.single().intent)
     assertFalse(parse("Kai nhặt chai nước").requiresFallback)
   }
