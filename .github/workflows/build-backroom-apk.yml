@@ -99,6 +99,8 @@ jobs:
         run: python3 android-apk/patch-gameplay-parity-final.py
       - name: Apply final authority hardening
         run: python3 android-apk/patch-final-authority-hardening.py
+      - name: Enforce rejected-op repair
+        run: python3 android-apk/patch-rejected-op-repair-final.py
       - name: Bound Luna fallback deadline
         run: python3 android-apk/patch-provider-deadline-final.py
       - name: Harden final Java compile surface
