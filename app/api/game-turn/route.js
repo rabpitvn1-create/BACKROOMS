@@ -8,7 +8,10 @@ import {
   makeRolls,
   sameLevel,
 } from "../../../lib/gameplay.js";
-import { applyTurnWithPickupReconcile } from "../../../lib/inventory-reconcile.js";
+import {
+  applyTurnWithPickupReconcile,
+  confirmedPickupNarrativeIssues,
+} from "../../../lib/inventory-reconcile.js";
 import { getSessionId } from "../../../lib/session.js";
 import { AUDIT_LEVEL, scoreTurnRisk } from "../../../lib/turn-risk.js";
 import {
@@ -118,6 +121,13 @@ function applyServerFields(current, operationResult, generated, gameplay, rolls)
   return nextState;
 }
 
+function deterministicNarrativeIssues(action, generated, operationResult) {
+  return [
+    ...confirmedPickupNarrativeIssues(action, generated?.reply),
+    ...rejectedOperationIssues(operationResult),
+  ];
+}
+
 export async function POST(request) {
   try {
     const sessionId = await getSessionId();
@@ -138,7 +148,7 @@ export async function POST(request) {
     if (gameplay) generated.ops = operationResult.ops;
     let risk = scoreTurnRisk({ current, generated, acceptedOps: operationResult.accepted, rejectedOps: operationResult.rejected });
     let audits = await auditsForRisk({ risk, current, action, rolls, generated, operationResult });
-    let issues = [...rejectedOperationIssues(operationResult), ...hardIssues(audits)];
+    let issues = [...deterministicNarrativeIssues(action, generated, operationResult), ...hardIssues(audits)];
     let repaired = false;
 
     if (issues.length) {
@@ -154,7 +164,7 @@ export async function POST(request) {
       if (gameplay) generated.ops = operationResult.ops;
       risk = scoreTurnRisk({ current, generated, acceptedOps: operationResult.accepted, rejectedOps: operationResult.rejected });
       audits = await auditsForRisk({ risk, current, action, rolls, generated, operationResult });
-      issues = [...rejectedOperationIssues(operationResult), ...hardIssues(audits)];
+      issues = [...deterministicNarrativeIssues(action, generated, operationResult), ...hardIssues(audits)];
       repaired = true;
     }
 
