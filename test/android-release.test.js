@@ -7,7 +7,7 @@ import { spawnSync } from "node:child_process";
 
 const root = process.cwd();
 
-test("Android release patch chain injects routed canon, authoritative ops, conditional audit, five Gemini keys and outer UI font", (t) => {
+test("Android release patch chain keeps system font and hardens save controls", (t) => {
   const temporaryRoot = mkdtempSync(path.join(tmpdir(), "backroom-android-test-"));
   t.after(() => rmSync(temporaryRoot, { recursive: true, force: true }));
   const source = path.join(root, "android-apk");
@@ -16,11 +16,13 @@ test("Android release patch chain injects routed canon, authoritative ops, condi
 
   const buildGradle = readFileSync(path.join(source, "app/build.gradle"), "utf8");
   const workflow = readFileSync(path.join(root, ".github/workflows/build-backroom-apk.yml"), "utf8");
-  assert.match(buildGradle, /versionCode 32/);
-  assert.match(buildGradle, /versionName '1\.1\.30'/);
-  assert.match(workflow, /Backroom-1\.1\.30\.apk/);
-  assert.match(workflow, /RELEASE_NOTES_1\.1\.30\.txt/);
-  assert.match(workflow, /patch-space-habitat-font\.py/);
+  assert.match(buildGradle, /versionCode 33/);
+  assert.match(buildGradle, /versionName '1\.1\.31'/);
+  assert.match(workflow, /Backroom-1\.1\.31\.apk/);
+  assert.match(workflow, /RELEASE_NOTES_1\.1\.31\.txt/);
+  assert.match(workflow, /patch-save-controls-final\.py/);
+  assert.doesNotMatch(workflow, /patch-space-habitat-font\.py/);
+
   for (let slot = 1; slot <= 5; slot += 1) {
     assert.match(buildGradle, new RegExp(`GEMINI_API_KEY_${slot}`));
     assert.match(workflow, new RegExp(`secrets\\.GEMINI_API_KEY_${slot}`));
@@ -61,7 +63,7 @@ test("Android release patch chain injects routed canon, authoritative ops, condi
     "patch-rejected-op-repair-final.py",
     "patch-provider-deadline-final.py",
     "patch-java-compile-hardening.py",
-    "patch-space-habitat-font.py",
+    "patch-save-controls-final.py",
     "patch-hard-mode-label.py",
     "patch-snapshot-unconfigured.py",
   ];
@@ -113,34 +115,22 @@ test("Android release patch chain injects routed canon, authoritative ops, condi
   assert.match(main, /for \(int attempt = 0; attempt < 1; attempt\+\+\)/);
   assert.match(main, /RECENT LOG ONLY/);
 
-  assert.match(main, /geminiCooldownUntil/);
-  assert.match(main, /geminiLatencyEma/);
-  assert.match(main, /geminiInFlight/);
-  assert.match(main, /chooseGeminiWorker/);
-  assert.match(main, /geminiAuditText/);
-  assert.match(main, /lastGeminiWorker/);
-  assert.match(main, /noteGeminiFailure/);
-  assert.match(main, /code == 429/);
-  assert.match(main, /code == 401 \|\| code == 403/);
+  assert.match(index, /body\{margin:0;background:#080a0c;color:#eef1f3;font:15px system-ui,sans-serif\}/);
+  assert.doesNotMatch(index, /MBF Space Habitat|data:font\/woff2;base64/);
 
-  assert.match(main, /validatedTurnRisk/);
-  assert.doesNotMatch(main, /proposedTurnRisk/);
-  assert.match(main, /candidateState/);
-  assert.match(main, /auditsForRisk/);
-  assert.match(main, /runAudit/);
-  assert.match(main, /hardAuditIssues/);
-  assert.match(main, /risk < 4/);
-  assert.match(main, /risk < 7/);
-  assert.match(main, /auditIo\.submit/);
-  assert.match(main, /AUDIT FEEDBACK HARD/);
-
-  const baseStyle = index.indexOf("<style>");
-  const fontStyle = index.indexOf('<style data-backroom-space-habitat="1">');
-  assert.ok(baseStyle >= 0 && fontStyle > baseStyle, "Space Habitat CSS must come after APK base CSS");
-  assert.match(index, /font-family: "MBF Space Habitat"/);
-  assert.match(index, /font-family: var\(--backroom-ui-font\) !important/);
-  assert.match(index, /font-family: var\(--backroom-chat-font\) !important/);
-  assert.match(index, /data:font\/woff2;base64,/);
+  assert.match(index, /id="saveButton"/);
+  assert.match(index, /id="loadButton"/);
+  assert.match(index, /id="newGameButton"/);
+  assert.match(index, /id="deleteSaveButton"/);
+  assert.match(index, /const SAVE_KEY="backroom-apk-state"/);
+  assert.match(index, /const SNAPSHOT_KEY="backroom-apk-snapshot"/);
+  assert.match(index, /function savedState\(\)/);
+  assert.match(index, /function armDestructive\(/);
+  assert.match(index, /không đọc lại được save vừa ghi/);
+  assert.match(index, /Đã tải save Turn/);
+  assert.match(index, /localStorage\.removeItem\(SAVE_KEY\)/);
+  assert.match(index, /localStorage\.removeItem\(SNAPSHOT_KEY\)/);
+  assert.doesNotMatch(index, /confirm\(/);
 
   assert.match(main, /loadUrl\("file:\/\/\/android_asset\/index\.html"\)/);
   assert.match(main, /requestSnapshot/);
