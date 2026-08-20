@@ -95,6 +95,8 @@ jobs:
         run: python3 android-apk/patch-conditional-audit.py
       - name: Score audits from validated state delta
         run: python3 android-apk/patch-audit-validated-risk.py
+      - name: Align Android gameplay dice with server canon
+        run: python3 android-apk/patch-gameplay-parity-final.py
       - name: Apply final authority hardening
         run: python3 android-apk/patch-final-authority-hardening.py
       - name: Bound Luna fallback deadline
