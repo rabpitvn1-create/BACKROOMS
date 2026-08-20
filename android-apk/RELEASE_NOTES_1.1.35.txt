@@ -1,0 +1,15 @@
+Backroom 1.1.35
+
+Deterministic Game State Core and LiteRT local command framework.
+
+- Adds a Kotlin Game State Core as the authoritative source of truth for gameplay state.
+- Adds structured GameCommand routing, validation, StateReducer commits and deterministic execution boundaries.
+- Adds Character, Party, Inventory, Equipment/Status scaffolding and a dedicated Omnivault engine.
+- Adds turn coordination, pending-turn/idempotency foundations and save-state codec/repository support.
+- Adds RuleIntentInterpreter first, then a tiny LiteRT intent classifier for unresolved local commands, with Gemini reserved as structured fallback.
+- LiteRT interprets player intent only; it cannot directly mutate Inventory, Party, Status or Omnivault state.
+- Adds deterministic actor/item/quantity/context resolution and support for multi-stage command processing.
+- Adds a tiny intent-classifier training/evaluation pipeline and a GitHub Actions model-size gate capped at 5 MiB.
+- Adds unit tests for command resolution, game-state contracts, save codec, rule parsing, Gemini fallback and turn coordination.
+- Keeps existing Kai inventory/Omnivault continuity rules, model-first Gemini 3.6 -> 3.5 -> Flash-Lite -> Luna routing, Save/Load hardening and existing gameplay canon protections.
+- Android release build now trains/verifies the tiny LiteRT model, runs Kotlin core tests, then assembles the APK.
