@@ -24,6 +24,7 @@ test("Android release patch chain injects routed canon, authoritative ops, condi
     assert.match(workflow, new RegExp(`secrets\\.GEMINI_API_KEY_${slot}`));
   }
   assert.match(workflow, /patch-final-authority-hardening\.py/);
+  assert.match(workflow, /patch-provider-deadline-final\.py/);
   assert.match(workflow, /if: github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'/);
   assert.match(workflow, /git push origin HEAD:main/);
   assert.match(workflow, /if: github\.ref != 'refs\/heads\/main'/);
@@ -52,6 +53,7 @@ test("Android release patch chain injects routed canon, authoritative ops, condi
     "patch-conditional-audit.py",
     "patch-audit-validated-risk.py",
     "patch-final-authority-hardening.py",
+    "patch-provider-deadline-final.py",
     "patch-java-compile-hardening.py",
     "patch-hard-mode-label.py",
     "patch-snapshot-unconfigured.py",
@@ -86,6 +88,10 @@ test("Android release patch chain injects routed canon, authoritative ops, condi
   assert.match(main, /private String postJsonFast\(/);
   assert.match(main, /setConnectTimeout\(5000\)/);
   assert.match(main, /setReadTimeout\(5000\)/);
+  assert.match(main, /private String postJsonLunaFast\(/);
+  assert.match(main, /setConnectTimeout\(12000\)/);
+  assert.match(main, /setReadTimeout\(12000\)/);
+  assert.match(main, /for \(int attempt = 0; attempt < 1; attempt\+\+\)/);
   assert.match(main, /RECENT LOG ONLY/);
 
   assert.match(main, /geminiCooldownUntil/);
