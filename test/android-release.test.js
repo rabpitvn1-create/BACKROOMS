@@ -23,6 +23,7 @@ test("Android release patch chain injects routed canon, authoritative ops, condi
     assert.match(buildGradle, new RegExp(`GEMINI_API_KEY_${slot}`));
     assert.match(workflow, new RegExp(`secrets\\.GEMINI_API_KEY_${slot}`));
   }
+  assert.match(workflow, /patch-r06-source-marker\.py/);
   assert.match(workflow, /patch-ai-orchestrator\.py/);
   assert.match(workflow, /patch-state-op-hardening\.py/);
   assert.match(workflow, /patch-gemini-health-pool\.py/);
@@ -44,6 +45,7 @@ test("Android release patch chain injects routed canon, authoritative ops, condi
     "patch-kai-hd-continuous.py",
     "patch-kai-png-preferred.py",
     "patch-kai-codex.py",
+    "patch-r06-source-marker.py",
     "patch-drive-canon-gameplay.py",
     "patch-inventory-persistence.py",
     "patch-ai-orchestrator.py",
