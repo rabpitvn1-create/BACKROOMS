@@ -35,9 +35,11 @@ test("Android release patch chain injects Drive R06 canon and authoritative game
     "patch-level-snapshot-backgrounds.py",
     "patch-snapshot-fallback.py",
     "patch-kai-hd-continuous.py",
-    "finalize-kai-overlay.py",
+    "patch-kai-png-preferred.py",
     "patch-kai-codex.py",
     "patch-drive-canon-gameplay.py",
+    "patch-inventory-persistence.py",
+    "patch-hard-mode-label.py",
     "patch-snapshot-unconfigured.py",
   ];
 
