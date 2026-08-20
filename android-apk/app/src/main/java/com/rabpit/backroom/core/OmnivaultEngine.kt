@@ -52,10 +52,13 @@ object OmnivaultEngine {
   private fun scan(state: GameState, c: OmnivaultCommand): ExecutionResult {
     if (!c.isOriginal) return invalid(state, "copy_cannot_be_scanned")
     if (c.itemId in state.omnivault.markedSourceIds) return invalid(state, "source_already_marked")
+    val source = state.inventories[c.actorId]?.items?.get(c.itemId)
+      ?: state.omnivault.storedItems[c.itemId]
+      ?: return invalid(state, "scan_source_missing")
     val slots = state.omnivault.scanSlots.toMutableList()
     val slotNumber = if (slots.size < MAX_SCAN_SLOTS) slots.size + 1 else 1
     if (slots.size == MAX_SCAN_SLOTS) slots.removeAt(0)
-    slots += ScanSlot(slotNumber, c.itemId, ItemStack(c.itemId, c.itemName), c.timestampEpochMs)
+    slots += ScanSlot(slotNumber, c.itemId, source.copy(quantity = 1), c.timestampEpochMs)
     return changed(state.copy(omnivault = state.omnivault.copy(
       scanSlots = slots.mapIndexed { index, slot -> slot.copy(slot = index + 1) },
       markedSourceIds = state.omnivault.markedSourceIds + c.itemId
@@ -66,19 +69,66 @@ object OmnivaultEngine {
     val template = state.omnivault.scanSlots.firstOrNull { it.templateItem.itemId == c.itemId }?.templateItem
       ?: return invalid(state, "scan_template_missing")
     val inventory = state.inventories[c.actorId] ?: InventoryState(c.actorId)
-    val copyId = "${c.itemId}:copy"
-    val old = inventory.items[copyId]
-    val item = template.copy(itemId = copyId, quantity = (old?.quantity ?: 0) + c.quantity, metadata = template.metadata + ("omnivaultCopy" to "true"))
-    return changed(state.copy(inventories = state.inventories + (c.actorId to inventory.copy(items = inventory.items + (copyId to item)))), "omnivault_copied")
+    val old = inventory.items[c.itemId]
+    val previousCopies = old?.metadata?.get("omnivaultCopyCount")?.toIntOrNull() ?: 0
+    val merged = template.copy(
+      quantity = (old?.quantity ?: 0) + c.quantity,
+      condition = old?.condition ?: template.condition,
+      metadata = (old?.metadata ?: template.metadata) + ("omnivaultCopyCount" to (previousCopies + c.quantity).toString())
+    )
+    return changed(
+      state.copy(inventories = state.inventories + (c.actorId to inventory.copy(items = inventory.items + (c.itemId to merged)))),
+      "omnivault_copied"
+    )
   }
 
   private fun restore(state: GameState, c: OmnivaultCommand): ExecutionResult {
     val cooldown = state.omnivault.restoreCooldownUntilEpochMs[c.itemId] ?: 0L
     if (c.timestampEpochMs < cooldown) return invalid(state, "restore_cooldown_active")
-    val inventory = state.inventories[c.actorId] ?: return invalid(state, "inventory_missing")
-    if (c.itemId !in inventory.items && c.itemId !in state.omnivault.storedItems) return invalid(state, "restore_target_missing")
-    return changed(state.copy(omnivault = state.omnivault.copy(
-      restoreCooldownUntilEpochMs = state.omnivault.restoreCooldownUntilEpochMs + (c.itemId to c.timestampEpochMs + RESTORE_COOLDOWN_MS)
-    )), "omnivault_restored")
+
+    val inventory = state.inventories[c.actorId] ?: InventoryState(c.actorId)
+    val inventorySource = inventory.items[c.itemId]
+    val storedSource = state.omnivault.storedItems[c.itemId]
+    val source = inventorySource ?: storedSource ?: return invalid(state, "restore_target_missing")
+    if (source.quantity < c.quantity) return invalid(state, "insufficient_item_quantity")
+
+    var nextInventory = inventory
+    var nextStored = state.omnivault.storedItems
+    val resultId = c.restoreResultItemId
+    val resultName = c.restoreResultName
+
+    if (resultId != null && resultName != null) {
+      if (inventorySource != null) {
+        val remaining = inventorySource.quantity - c.quantity
+        val withoutSource = if (remaining == 0) inventory.items - c.itemId else inventory.items + (c.itemId to inventorySource.copy(quantity = remaining))
+        val existingResult = withoutSource[resultId]
+        val resultStack = ItemStack(
+          resultId,
+          resultName,
+          (existingResult?.quantity ?: 0) + c.quantity,
+          metadata = (existingResult?.metadata ?: emptyMap()) + mapOf("restoredFrom" to c.itemId)
+        )
+        nextInventory = inventory.copy(items = withoutSource + (resultId to resultStack))
+      } else if (storedSource != null) {
+        val remaining = storedSource.quantity - c.quantity
+        val withoutSource = if (remaining == 0) nextStored - c.itemId else nextStored + (c.itemId to storedSource.copy(quantity = remaining))
+        val existingResult = withoutSource[resultId]
+        val resultStack = ItemStack(
+          resultId,
+          resultName,
+          (existingResult?.quantity ?: 0) + c.quantity,
+          metadata = (existingResult?.metadata ?: emptyMap()) + mapOf("restoredFrom" to c.itemId)
+        )
+        nextStored = withoutSource + (resultId to resultStack)
+      }
+    }
+
+    return changed(state.copy(
+      inventories = state.inventories + (c.actorId to nextInventory),
+      omnivault = state.omnivault.copy(
+        storedItems = nextStored,
+        restoreCooldownUntilEpochMs = state.omnivault.restoreCooldownUntilEpochMs + (c.itemId to c.timestampEpochMs + RESTORE_COOLDOWN_MS)
+      )
+    ), "omnivault_restored")
   }
 }
