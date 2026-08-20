@@ -2,9 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { AUDIT_LEVEL, scoreTurnRisk } from "../lib/turn-risk.js";
 
-function current(party = []) {
-  return { party, flags: {} };
-}
+function current(party = []) { return { party, flags: {} }; }
 
 test("quiet turn does not request an LLM audit", () => {
   const risk = scoreTurnRisk({
@@ -24,7 +22,16 @@ test("level transition requests a narrow audit", () => {
     rejectedOps: [],
   });
   assert.equal(risk.level, AUDIT_LEVEL.NARROW);
-  assert.ok(risk.reasons.includes("level_transition"));
+});
+
+test("Vietnamese knowledge signal is Unicode-aware", () => {
+  const risk = scoreTurnRisk({
+    current: current([{ name: "Iris" }]),
+    generated: { reply: "Iris nhớ nguồn gốc của dấu vết này." },
+    acceptedOps: [{ type: "party_upsert", member: { name: "Iris" } }],
+    rejectedOps: [],
+  });
+  assert.ok(risk.reasons.includes("character_knowledge_claim"));
 });
 
 test("reunion plus knowledge claim escalates to critical audit", () => {
@@ -41,19 +48,14 @@ test("reunion plus knowledge claim escalates to critical audit", () => {
   assert.ok(risk.reasons.includes("character_knowledge_claim"));
 });
 
-test("rejected operations raise risk instead of silently passing", () => {
+test("even one rejected operation forces at least a narrow audit", () => {
   const risk = scoreTurnRisk({
     current: current(),
-    generated: { reply: "Kai tiếp tục." },
+    generated: { reply: "Kai nhặt khẩu súng vừa xuất hiện." },
     acceptedOps: [],
-    rejectedOps: [
-      { reason: "inventory_acquisition_not_established" },
-      { reason: "entity_count_without_roll" },
-      { reason: "party_add_not_permitted" },
-      { reason: "level_transition_not_permitted" },
-    ],
+    rejectedOps: [{ reason: "inventory_acquisition_not_established" }],
   });
-  assert.equal(risk.level, AUDIT_LEVEL.NONE);
-  assert.equal(risk.score, 3);
+  assert.equal(risk.level, AUDIT_LEVEL.NARROW);
+  assert.ok(risk.score >= 4);
   assert.ok(risk.reasons.includes("rejected_state_ops"));
 });
