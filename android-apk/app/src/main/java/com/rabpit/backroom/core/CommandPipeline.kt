@@ -32,7 +32,14 @@ class CommandResolver(
       GameIntent.OMNIVAULT_WITHDRAW -> item?.let { vaultCommand(commandId, turnId, actor, source, OmnivaultCommand.Operation.WITHDRAW, it, quantity) }
       GameIntent.OMNIVAULT_SCAN -> item?.let { vaultCommand(commandId, turnId, actor, source, OmnivaultCommand.Operation.SCAN, it, quantity) }
       GameIntent.OMNIVAULT_COPY -> item?.let { vaultCommand(commandId, turnId, actor, source, OmnivaultCommand.Operation.COPY, it, quantity) }
-      GameIntent.OMNIVAULT_RESTORE -> item?.let { vaultCommand(commandId, turnId, actor, source, OmnivaultCommand.Operation.RESTORE, it, quantity) }
+      GameIntent.OMNIVAULT_RESTORE -> item?.let {
+        val restored = restoreResult(candidate.clause)
+        OmnivaultCommand(
+          commandId, turnId, actor, source = source, operation = OmnivaultCommand.Operation.RESTORE,
+          itemId = it.first, itemName = it.second, quantity = quantity, timestampEpochMs = System.currentTimeMillis(),
+          restoreResultItemId = restored?.first, restoreResultName = restored?.second
+        )
+      }
       GameIntent.PARTY_JOIN_REQUEST -> target?.let { PartyCommand(commandId, turnId, actor, it, source, PartyCommand.Operation.ADD) }
       GameIntent.PARTY_REMOVE -> target?.let { PartyCommand(commandId, turnId, actor, it, source, PartyCommand.Operation.REMOVE) }
       GameIntent.PARTY_FOLLOW -> target?.let { PartyCommand(commandId, turnId, actor, it, source, PartyCommand.Operation.FOLLOW) }
@@ -51,6 +58,16 @@ class CommandResolver(
 
   private fun vaultCommand(id: String, turn: String, actor: String, source: CommandSource, operation: OmnivaultCommand.Operation, item: Pair<String, String>, quantity: Int) =
     OmnivaultCommand(id, turn, actor, source = source, operation = operation, itemId = item.first, itemName = item.second, quantity = quantity, timestampEpochMs = System.currentTimeMillis())
+
+  private fun restoreResult(clause: String): Pair<String, String>? {
+    val match = Regex("(?:nhận được|biến thành|trở thành|thành)\\s+(.+)$", RegexOption.IGNORE_CASE).find(clause) ?: return null
+    val name = match.groupValues[1].replace(Regex("[.,;:!?]+$"), "").trim()
+    if (name.isBlank()) return null
+    return canonicalItemId(name) to name
+  }
+
+  private fun canonicalItemId(name: String): String = name.lowercase()
+    .replace(Regex("[^\\p{L}\\p{N}]+"), "-").trim('-').ifBlank { "item-${name.hashCode().toUInt()}" }
 
   private fun stableCommandId(turnId: String, index: Int, clause: String): String {
     val digest = MessageDigest.getInstance("SHA-256").digest("$turnId|$index|${clause.trim().lowercase()}".toByteArray())
