@@ -69,6 +69,8 @@ jobs:
         run: python3 android-apk/patch-kai-png-preferred.py
       - name: Inject Kai R05 character codex
         run: python3 android-apk/patch-kai-codex.py
+      - name: Align R06 source marker validator
+        run: python3 android-apk/patch-r06-source-marker.py
       - name: Inject Drive R06 canon and gameplay gates
         run: python3 android-apk/patch-drive-canon-gameplay.py
       - name: Apply Inventory ownership persistence
