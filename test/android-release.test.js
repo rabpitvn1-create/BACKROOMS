@@ -23,6 +23,7 @@ test("Android release patch chain injects routed canon, authoritative ops, condi
     assert.match(buildGradle, new RegExp(`GEMINI_API_KEY_${slot}`));
     assert.match(workflow, new RegExp(`secrets\\.GEMINI_API_KEY_${slot}`));
   }
+  assert.match(workflow, /patch-gameplay-parity-final\.py/);
   assert.match(workflow, /patch-final-authority-hardening\.py/);
   assert.match(workflow, /patch-provider-deadline-final\.py/);
   assert.match(workflow, /if: github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'/);
@@ -52,6 +53,7 @@ test("Android release patch chain injects routed canon, authoritative ops, condi
     "patch-gemini-health-pool.py",
     "patch-conditional-audit.py",
     "patch-audit-validated-risk.py",
+    "patch-gameplay-parity-final.py",
     "patch-final-authority-hardening.py",
     "patch-provider-deadline-final.py",
     "patch-java-compile-hardening.py",
@@ -76,6 +78,15 @@ test("Android release patch chain injects routed canon, authoritative ops, condi
   assert.equal((main.match(/private void mergeObject\(JSONObject target, JSONObject patch\)/g) || []).length, 1);
   assert.equal((main.match(/private void mergeObjectDeep\(JSONObject target, JSONObject patch\)/g) || []).length, 1);
   assert.doesNotMatch(main, /JSONObject\.getNames\(/);
+
+  assert.match(main, /thresholdRoll\("survivor", 10000, 200/);
+  assert.match(main, /thresholdRoll\("irisReunion", 1000000, 25/);
+  assert.match(main, /thresholdRoll\("syvialReunion", 1000000, 25/);
+  assert.match(main, /int\[\] entityThresholds = \{5, 200, 350, 350, 10, 400, 5\}/);
+  assert.match(main, /int\[\] lootThresholds = \{35, 120, 100, 150, 180, 100, 45\}/);
+  assert.match(main, /rolls\.put\("hazard"/);
+  assert.match(main, /rolls\.put\("exitProbe", exitProbe\)/);
+  assert.match(main, /rolls\.put\("levelExit", new JSONObject\(exitProbe\.toString\(\)\)/);
 
   assert.match(main, /compactDriveCanon/);
   assert.match(main, /compactKaiCanon/);
