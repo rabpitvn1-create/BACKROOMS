@@ -7,7 +7,7 @@ import { spawnSync } from "node:child_process";
 
 const root = process.cwd();
 
-test("Android release patch chain injects routed canon, authoritative ops, conditional audit and five Gemini keys", (t) => {
+test("Android release patch chain injects routed canon, authoritative ops, conditional audit, five Gemini keys and outer UI font", (t) => {
   const temporaryRoot = mkdtempSync(path.join(tmpdir(), "backroom-android-test-"));
   t.after(() => rmSync(temporaryRoot, { recursive: true, force: true }));
   const source = path.join(root, "android-apk");
@@ -16,9 +16,11 @@ test("Android release patch chain injects routed canon, authoritative ops, condi
 
   const buildGradle = readFileSync(path.join(source, "app/build.gradle"), "utf8");
   const workflow = readFileSync(path.join(root, ".github/workflows/build-backroom-apk.yml"), "utf8");
-  assert.match(buildGradle, /versionName '1\.1\.29'/);
-  assert.match(workflow, /Backroom-1\.1\.29\.apk/);
-  assert.match(workflow, /RELEASE_NOTES_1\.1\.29\.txt/);
+  assert.match(buildGradle, /versionCode 32/);
+  assert.match(buildGradle, /versionName '1\.1\.30'/);
+  assert.match(workflow, /Backroom-1\.1\.30\.apk/);
+  assert.match(workflow, /RELEASE_NOTES_1\.1\.30\.txt/);
+  assert.match(workflow, /patch-space-habitat-font\.py/);
   for (let slot = 1; slot <= 5; slot += 1) {
     assert.match(buildGradle, new RegExp(`GEMINI_API_KEY_${slot}`));
     assert.match(workflow, new RegExp(`secrets\\.GEMINI_API_KEY_${slot}`));
@@ -59,6 +61,7 @@ test("Android release patch chain injects routed canon, authoritative ops, condi
     "patch-rejected-op-repair-final.py",
     "patch-provider-deadline-final.py",
     "patch-java-compile-hardening.py",
+    "patch-space-habitat-font.py",
     "patch-hard-mode-label.py",
     "patch-snapshot-unconfigured.py",
   ];
@@ -130,6 +133,14 @@ test("Android release patch chain injects routed canon, authoritative ops, condi
   assert.match(main, /risk < 7/);
   assert.match(main, /auditIo\.submit/);
   assert.match(main, /AUDIT FEEDBACK HARD/);
+
+  const baseStyle = index.indexOf("<style>");
+  const fontStyle = index.indexOf('<style data-backroom-space-habitat="1">');
+  assert.ok(baseStyle >= 0 && fontStyle > baseStyle, "Space Habitat CSS must come after APK base CSS");
+  assert.match(index, /font-family: "MBF Space Habitat"/);
+  assert.match(index, /font-family: var\(--backroom-ui-font\) !important/);
+  assert.match(index, /font-family: var\(--backroom-chat-font\) !important/);
+  assert.match(index, /data:font\/woff2;base64,/);
 
   assert.match(main, /loadUrl\("file:\/\/\/android_asset\/index\.html"\)/);
   assert.match(main, /requestSnapshot/);
