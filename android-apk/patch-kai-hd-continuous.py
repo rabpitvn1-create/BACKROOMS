@@ -136,22 +136,24 @@ main = replace_once(
 )
 
 player_line = '          if (generated.optJSONObject("player") != null) state.put("player", generated.optJSONObject("player"));\n'
-main = replace_once(
-    main,
-    player_line,
-    '          if (generated.optJSONObject("level") != null) state.put("level", generated.optJSONObject("level"));\n' + player_line,
-    "store Level",
-)
+if player_line in main:
+    main = replace_once(
+        main,
+        player_line,
+        '          if (generated.optJSONObject("level") != null) state.put("level", generated.optJSONObject("level"));\n' + player_line,
+        "store Level",
+    )
 flags_line = '          if (generated.optJSONObject("flags") != null) {\n'
-main = replace_once(
-    main,
-    flags_line,
-    '          JSONObject snapshotEvent = generated.optJSONObject("snapshotEvent");\n'
-    '          if (snapshotEvent == null) snapshotEvent = new JSONObject().put("shouldGenerate", false).put("kind", "").put("reason", "");\n'
-    '          state.put("_snapshotEvent", snapshotEvent);\n'
-    + flags_line,
-    "store Snapshot event",
-)
+if flags_line in main:
+    main = replace_once(
+        main,
+        flags_line,
+        '          JSONObject snapshotEvent = generated.optJSONObject("snapshotEvent");\n'
+        '          if (snapshotEvent == null) snapshotEvent = new JSONObject().put("shouldGenerate", false).put("kind", "").put("reason", "");\n'
+        '          state.put("_snapshotEvent", snapshotEvent);\n'
+        + flags_line,
+        "store Snapshot event",
+    )
 
 # APK-native UI wording/header. This remains part of the standalone build.
 index = replace_once(

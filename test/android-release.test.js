@@ -23,6 +23,7 @@ test("Android release patch chain keeps authoritative gameplay, Omnivault pickup
   assert.match(workflow, /patch-save-controls-final\.py/);
   assert.match(workflow, /patch-gemini-model-matrix-final\.py/);
   assert.match(workflow, /patch-inventory-pickup-reconcile-final\.py/);
+  assert.match(workflow, /patch-game-state-core-bridge\.py/);
   assert.match(workflow, /patch-kai-resource-policy-final\.py/);
   assert.doesNotMatch(workflow, /patch-space-habitat-font\.py/);
 
@@ -72,6 +73,7 @@ test("Android release patch chain keeps authoritative gameplay, Omnivault pickup
     "patch-save-controls-final.py",
     "patch-hard-mode-label.py",
     "patch-snapshot-unconfigured.py",
+    "patch-game-state-core-bridge.py",
   ];
 
   for (const script of scripts) {
@@ -105,6 +107,9 @@ test("Android release patch chain keeps authoritative gameplay, Omnivault pickup
   assert.match(main, /compactKaiCanon/);
   assert.match(main, /compactStateForPrompt/);
   assert.match(main, /applyModelOperations/);
+  assert.match(main, /GameCoreFacade/);
+  assert.match(main, /gameCore\.processRule\(stateJson, action\)/);
+  assert.match(main, /gameCore\.processValidatedCandidate\(/);
   assert.match(main, /establishedStructured/);
   assert.match(main, /worldConsequence/);
   assert.match(main, /exitMutation/);

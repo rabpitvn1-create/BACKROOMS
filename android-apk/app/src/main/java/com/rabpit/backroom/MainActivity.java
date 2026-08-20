@@ -7,6 +7,7 @@ import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import com.rabpit.backroom.core.GameCoreFacade;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.io.BufferedReader;
@@ -25,6 +26,7 @@ public class MainActivity extends Activity {
   private final ExecutorService io = Executors.newSingleThreadExecutor();
   private final ExecutorService imageIo = Executors.newSingleThreadExecutor();
   private final AtomicInteger latestSnapshotTurn = new AtomicInteger(0);
+  private GameCoreFacade gameCore;
   private static final String GEMINI_MODEL = "gemini-3.6-flash";
   private static final String GEMINI_IMAGE_MODEL = "gemini-3.1-flash-image";
   private static final int[] RETRYABLE = {408, 429, 500, 502, 503, 504};
@@ -33,6 +35,7 @@ public class MainActivity extends Activity {
   @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
   @Override public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    gameCore = GameCoreFacade.create(getApplicationContext(), BuildConfig.DEBUG);
     webView = new WebView(this);
     WebSettings settings = webView.getSettings();
     settings.setJavaScriptEnabled(true);
@@ -50,6 +53,7 @@ public class MainActivity extends Activity {
   }
 
   @Override protected void onDestroy() {
+    if (gameCore != null) gameCore.close();
     io.shutdownNow();
     imageIo.shutdownNow();
     if (webView != null) webView.destroy();
@@ -319,6 +323,11 @@ public class MainActivity extends Activity {
     @JavascriptInterface public void submitTurn(String stateJson, String action) {
       io.execute(() -> {
         try {
+          JSONObject localResult = new JSONObject(gameCore.processRule(stateJson, action));
+          if (localResult.optBoolean("handled", false)) {
+            emit("backroomTurn", localResult.getJSONObject("state").toString());
+            return;
+          }
           JSONObject state = new JSONObject(stateJson);
           String prompt = "Bạn là Game Master của text game Backrooms. Xử lý đúng một lượt và trả DUY NHẤT JSON hợp lệ, không markdown. " +
             "Viết tiếng Việt tự nhiên, đầy đủ ý. Không trả lời bằng câu rỗng. Không thay đổi dữ kiện chưa có căn cứ. Người chơi chỉ điều khiển Kai Akechi. " +
@@ -333,15 +342,11 @@ public class MainActivity extends Activity {
           String location = generated.optString("location", "").trim();
           if (!title.isEmpty()) state.put("title", title);
           if (!location.isEmpty()) state.put("location", location);
-          if (generated.optJSONObject("player") != null) state.put("player", generated.optJSONObject("player"));
-          if (generated.optJSONArray("party") != null) state.put("party", generated.optJSONArray("party"));
-          if (generated.optJSONArray("inventory") != null) state.put("inventory", generated.optJSONArray("inventory"));
-          if (generated.optJSONObject("flags") != null) {
-            JSONObject flags = state.optJSONObject("flags");
-            if (flags == null) flags = new JSONObject();
-            mergeObject(flags, generated.optJSONObject("flags"));
-            state.put("flags", flags);
+          JSONObject coreCommit = new JSONObject(gameCore.processValidatedCandidate(stateJson, state.toString(), action));
+          if (!coreCommit.optBoolean("handled", false)) {
+            throw new Exception("Game State Core từ chối Gemini delta: " + coreCommit.optString("error", "invalid_delta"));
           }
+          state = coreCommit.getJSONObject("state");
 
           JSONArray log = state.optJSONArray("log");
           if (log == null) log = new JSONArray();

@@ -1,4 +1,7 @@
-plugins { id 'com.android.application' }
+plugins {
+  id 'com.android.application'
+  id 'org.jetbrains.kotlin.android'
+}
 
 def secret = { name ->
   def value = System.getenv(name) ?: ""
@@ -26,4 +29,12 @@ android {
   }
 
   buildFeatures { buildConfig true }
+
+  testOptions { unitTests.returnDefaultValues = true }
+}
+
+dependencies {
+  implementation 'com.google.ai.edge.litert:litert:2.2.0'
+  testImplementation 'junit:junit:4.13.2'
+  testImplementation 'org.json:json:20240303'
 }

@@ -1,0 +1,563 @@
+text,intent,split,family
+Kai nhặt chai nước,PICKUP_ITEM,train,template-0
+Kai nhặt đèn pin,PICKUP_ITEM,train,template-0
+Kai nhặt khẩu súng,PICKUP_ITEM,train,template-0
+Kai nhặt cuộn băng,PICKUP_ITEM,train,template-0
+Kai nhặt chìa khóa,PICKUP_ITEM,train,template-0
+Kai nhặt bộ sơ cứu,PICKUP_ITEM,train,template-0
+Kai nhặt viên pin,PICKUP_ITEM,train,template-0
+Kai nhặt mặt nạ,PICKUP_ITEM,train,template-0
+nhặt chai nước lên,PICKUP_ITEM,train,template-1
+nhặt đèn pin lên,PICKUP_ITEM,train,template-1
+nhặt khẩu súng lên,PICKUP_ITEM,train,template-1
+nhặt cuộn băng lên,PICKUP_ITEM,train,template-1
+nhặt chìa khóa lên,PICKUP_ITEM,train,template-1
+nhặt bộ sơ cứu lên,PICKUP_ITEM,train,template-1
+nhặt viên pin lên,PICKUP_ITEM,train,template-1
+nhặt mặt nạ lên,PICKUP_ITEM,train,template-1
+lượm chai nước dưới sàn,PICKUP_ITEM,train,template-2
+lượm đèn pin dưới sàn,PICKUP_ITEM,train,template-2
+lượm khẩu súng dưới sàn,PICKUP_ITEM,train,template-2
+lượm cuộn băng dưới sàn,PICKUP_ITEM,train,template-2
+lượm chìa khóa dưới sàn,PICKUP_ITEM,train,template-2
+lượm bộ sơ cứu dưới sàn,PICKUP_ITEM,train,template-2
+lượm viên pin dưới sàn,PICKUP_ITEM,train,template-2
+lượm mặt nạ dưới sàn,PICKUP_ITEM,train,template-2
+Kai vứt chai nước xuống,DROP_ITEM,train,template-0
+Kai vứt đèn pin xuống,DROP_ITEM,train,template-0
+Kai vứt khẩu súng xuống,DROP_ITEM,train,template-0
+Kai vứt cuộn băng xuống,DROP_ITEM,train,template-0
+Kai vứt chìa khóa xuống,DROP_ITEM,train,template-0
+Kai vứt bộ sơ cứu xuống,DROP_ITEM,train,template-0
+Kai vứt viên pin xuống,DROP_ITEM,train,template-0
+Kai vứt mặt nạ xuống,DROP_ITEM,train,template-0
+thả chai nước ra,DROP_ITEM,train,template-1
+thả đèn pin ra,DROP_ITEM,train,template-1
+thả khẩu súng ra,DROP_ITEM,train,template-1
+thả cuộn băng ra,DROP_ITEM,train,template-1
+thả chìa khóa ra,DROP_ITEM,train,template-1
+thả bộ sơ cứu ra,DROP_ITEM,train,template-1
+thả viên pin ra,DROP_ITEM,train,template-1
+thả mặt nạ ra,DROP_ITEM,train,template-1
+bỏ chai nước xuống đất,DROP_ITEM,train,template-2
+bỏ đèn pin xuống đất,DROP_ITEM,train,template-2
+bỏ khẩu súng xuống đất,DROP_ITEM,train,template-2
+bỏ cuộn băng xuống đất,DROP_ITEM,train,template-2
+bỏ chìa khóa xuống đất,DROP_ITEM,train,template-2
+bỏ bộ sơ cứu xuống đất,DROP_ITEM,train,template-2
+bỏ viên pin xuống đất,DROP_ITEM,train,template-2
+bỏ mặt nạ xuống đất,DROP_ITEM,train,template-2
+Kai dùng chai nước,USE_ITEM,train,template-0
+Kai dùng đèn pin,USE_ITEM,train,template-0
+Kai dùng khẩu súng,USE_ITEM,train,template-0
+Kai dùng cuộn băng,USE_ITEM,train,template-0
+Kai dùng chìa khóa,USE_ITEM,train,template-0
+Kai dùng bộ sơ cứu,USE_ITEM,train,template-0
+Kai dùng viên pin,USE_ITEM,train,template-0
+Kai dùng mặt nạ,USE_ITEM,train,template-0
+sử dụng chai nước,USE_ITEM,train,template-1
+sử dụng đèn pin,USE_ITEM,train,template-1
+sử dụng khẩu súng,USE_ITEM,train,template-1
+sử dụng cuộn băng,USE_ITEM,train,template-1
+sử dụng chìa khóa,USE_ITEM,train,template-1
+sử dụng bộ sơ cứu,USE_ITEM,train,template-1
+sử dụng viên pin,USE_ITEM,train,template-1
+sử dụng mặt nạ,USE_ITEM,train,template-1
+hãy dùng chai nước ngay,USE_ITEM,train,template-2
+hãy dùng đèn pin ngay,USE_ITEM,train,template-2
+hãy dùng khẩu súng ngay,USE_ITEM,train,template-2
+hãy dùng cuộn băng ngay,USE_ITEM,train,template-2
+hãy dùng chìa khóa ngay,USE_ITEM,train,template-2
+hãy dùng bộ sơ cứu ngay,USE_ITEM,train,template-2
+hãy dùng viên pin ngay,USE_ITEM,train,template-2
+hãy dùng mặt nạ ngay,USE_ITEM,train,template-2
+Kai đưa Iris một chai nước,TRANSFER_ITEM,train,template-0
+Kai đưa Syvial một chai nước,TRANSFER_ITEM,train,template-0
+Kai đưa người đàn ông một chai nước,TRANSFER_ITEM,train,template-0
+Kai đưa Iris một đèn pin,TRANSFER_ITEM,train,template-0
+Kai đưa Syvial một đèn pin,TRANSFER_ITEM,train,template-0
+Kai đưa người đàn ông một đèn pin,TRANSFER_ITEM,train,template-0
+Kai đưa Iris một khẩu súng,TRANSFER_ITEM,train,template-0
+Kai đưa Syvial một khẩu súng,TRANSFER_ITEM,train,template-0
+Kai đưa người đàn ông một khẩu súng,TRANSFER_ITEM,train,template-0
+Kai đưa Iris một cuộn băng,TRANSFER_ITEM,train,template-0
+Kai đưa Syvial một cuộn băng,TRANSFER_ITEM,train,template-0
+Kai đưa người đàn ông một cuộn băng,TRANSFER_ITEM,train,template-0
+Kai đưa Iris một chìa khóa,TRANSFER_ITEM,train,template-0
+Kai đưa Syvial một chìa khóa,TRANSFER_ITEM,train,template-0
+Kai đưa người đàn ông một chìa khóa,TRANSFER_ITEM,train,template-0
+Kai đưa Iris một bộ sơ cứu,TRANSFER_ITEM,train,template-0
+Kai đưa Syvial một bộ sơ cứu,TRANSFER_ITEM,train,template-0
+Kai đưa người đàn ông một bộ sơ cứu,TRANSFER_ITEM,train,template-0
+Kai đưa Iris một viên pin,TRANSFER_ITEM,train,template-0
+Kai đưa Syvial một viên pin,TRANSFER_ITEM,train,template-0
+Kai đưa người đàn ông một viên pin,TRANSFER_ITEM,train,template-0
+Kai đưa Iris một mặt nạ,TRANSFER_ITEM,train,template-0
+Kai đưa Syvial một mặt nạ,TRANSFER_ITEM,train,template-0
+Kai đưa người đàn ông một mặt nạ,TRANSFER_ITEM,train,template-0
+trang bị chai nước,EQUIP_ITEM,train,template-0
+trang bị đèn pin,EQUIP_ITEM,train,template-0
+trang bị khẩu súng,EQUIP_ITEM,train,template-0
+trang bị cuộn băng,EQUIP_ITEM,train,template-0
+trang bị chìa khóa,EQUIP_ITEM,train,template-0
+trang bị bộ sơ cứu,EQUIP_ITEM,train,template-0
+trang bị viên pin,EQUIP_ITEM,train,template-0
+trang bị mặt nạ,EQUIP_ITEM,train,template-0
+Kai đeo chai nước,EQUIP_ITEM,train,template-1
+Kai đeo đèn pin,EQUIP_ITEM,train,template-1
+Kai đeo khẩu súng,EQUIP_ITEM,train,template-1
+Kai đeo cuộn băng,EQUIP_ITEM,train,template-1
+Kai đeo chìa khóa,EQUIP_ITEM,train,template-1
+Kai đeo bộ sơ cứu,EQUIP_ITEM,train,template-1
+Kai đeo viên pin,EQUIP_ITEM,train,template-1
+Kai đeo mặt nạ,EQUIP_ITEM,train,template-1
+Kai mặc chai nước,EQUIP_ITEM,train,template-2
+Kai mặc đèn pin,EQUIP_ITEM,train,template-2
+Kai mặc khẩu súng,EQUIP_ITEM,train,template-2
+Kai mặc cuộn băng,EQUIP_ITEM,train,template-2
+Kai mặc chìa khóa,EQUIP_ITEM,train,template-2
+Kai mặc bộ sơ cứu,EQUIP_ITEM,train,template-2
+Kai mặc viên pin,EQUIP_ITEM,train,template-2
+Kai mặc mặt nạ,EQUIP_ITEM,train,template-2
+tháo chai nước ra,UNEQUIP_ITEM,train,template-0
+tháo đèn pin ra,UNEQUIP_ITEM,train,template-0
+tháo khẩu súng ra,UNEQUIP_ITEM,train,template-0
+tháo cuộn băng ra,UNEQUIP_ITEM,train,template-0
+tháo chìa khóa ra,UNEQUIP_ITEM,train,template-0
+tháo bộ sơ cứu ra,UNEQUIP_ITEM,train,template-0
+tháo viên pin ra,UNEQUIP_ITEM,train,template-0
+tháo mặt nạ ra,UNEQUIP_ITEM,train,template-0
+cởi chai nước,UNEQUIP_ITEM,train,template-1
+cởi đèn pin,UNEQUIP_ITEM,train,template-1
+cởi khẩu súng,UNEQUIP_ITEM,train,template-1
+cởi cuộn băng,UNEQUIP_ITEM,train,template-1
+cởi chìa khóa,UNEQUIP_ITEM,train,template-1
+cởi bộ sơ cứu,UNEQUIP_ITEM,train,template-1
+cởi viên pin,UNEQUIP_ITEM,train,template-1
+cởi mặt nạ,UNEQUIP_ITEM,train,template-1
+bỏ trang bị chai nước,UNEQUIP_ITEM,train,template-2
+bỏ trang bị đèn pin,UNEQUIP_ITEM,train,template-2
+bỏ trang bị khẩu súng,UNEQUIP_ITEM,train,template-2
+bỏ trang bị cuộn băng,UNEQUIP_ITEM,train,template-2
+bỏ trang bị chìa khóa,UNEQUIP_ITEM,train,template-2
+bỏ trang bị bộ sơ cứu,UNEQUIP_ITEM,train,template-2
+bỏ trang bị viên pin,UNEQUIP_ITEM,train,template-2
+bỏ trang bị mặt nạ,UNEQUIP_ITEM,train,template-2
+cất chai nước vào nhẫn,OMNIVAULT_STORE,train,template-0
+cất đèn pin vào nhẫn,OMNIVAULT_STORE,train,template-0
+cất khẩu súng vào nhẫn,OMNIVAULT_STORE,train,template-0
+cất cuộn băng vào nhẫn,OMNIVAULT_STORE,train,template-0
+cất chìa khóa vào nhẫn,OMNIVAULT_STORE,train,template-0
+cất bộ sơ cứu vào nhẫn,OMNIVAULT_STORE,train,template-0
+cất viên pin vào nhẫn,OMNIVAULT_STORE,train,template-0
+cất mặt nạ vào nhẫn,OMNIVAULT_STORE,train,template-0
+bỏ chai nước trong Omnivault,OMNIVAULT_STORE,train,template-1
+bỏ đèn pin trong Omnivault,OMNIVAULT_STORE,train,template-1
+bỏ khẩu súng trong Omnivault,OMNIVAULT_STORE,train,template-1
+bỏ cuộn băng trong Omnivault,OMNIVAULT_STORE,train,template-1
+bỏ chìa khóa trong Omnivault,OMNIVAULT_STORE,train,template-1
+bỏ bộ sơ cứu trong Omnivault,OMNIVAULT_STORE,train,template-1
+bỏ viên pin trong Omnivault,OMNIVAULT_STORE,train,template-1
+bỏ mặt nạ trong Omnivault,OMNIVAULT_STORE,train,template-1
+lưu chai nước vào Nhẫn Vạn Tàng,OMNIVAULT_STORE,train,template-2
+lưu đèn pin vào Nhẫn Vạn Tàng,OMNIVAULT_STORE,train,template-2
+lưu khẩu súng vào Nhẫn Vạn Tàng,OMNIVAULT_STORE,train,template-2
+lưu cuộn băng vào Nhẫn Vạn Tàng,OMNIVAULT_STORE,train,template-2
+lưu chìa khóa vào Nhẫn Vạn Tàng,OMNIVAULT_STORE,train,template-2
+lưu bộ sơ cứu vào Nhẫn Vạn Tàng,OMNIVAULT_STORE,train,template-2
+lưu viên pin vào Nhẫn Vạn Tàng,OMNIVAULT_STORE,train,template-2
+lưu mặt nạ vào Nhẫn Vạn Tàng,OMNIVAULT_STORE,train,template-2
+lấy chai nước ra khỏi nhẫn,OMNIVAULT_WITHDRAW,train,template-0
+lấy đèn pin ra khỏi nhẫn,OMNIVAULT_WITHDRAW,train,template-0
+lấy khẩu súng ra khỏi nhẫn,OMNIVAULT_WITHDRAW,train,template-0
+lấy cuộn băng ra khỏi nhẫn,OMNIVAULT_WITHDRAW,train,template-0
+lấy chìa khóa ra khỏi nhẫn,OMNIVAULT_WITHDRAW,train,template-0
+lấy bộ sơ cứu ra khỏi nhẫn,OMNIVAULT_WITHDRAW,train,template-0
+lấy viên pin ra khỏi nhẫn,OMNIVAULT_WITHDRAW,train,template-0
+lấy mặt nạ ra khỏi nhẫn,OMNIVAULT_WITHDRAW,train,template-0
+rút chai nước từ Omnivault,OMNIVAULT_WITHDRAW,train,template-1
+rút đèn pin từ Omnivault,OMNIVAULT_WITHDRAW,train,template-1
+rút khẩu súng từ Omnivault,OMNIVAULT_WITHDRAW,train,template-1
+rút cuộn băng từ Omnivault,OMNIVAULT_WITHDRAW,train,template-1
+rút chìa khóa từ Omnivault,OMNIVAULT_WITHDRAW,train,template-1
+rút bộ sơ cứu từ Omnivault,OMNIVAULT_WITHDRAW,train,template-1
+rút viên pin từ Omnivault,OMNIVAULT_WITHDRAW,train,template-1
+rút mặt nạ từ Omnivault,OMNIVAULT_WITHDRAW,train,template-1
+triệu hồi chai nước từ kho,OMNIVAULT_WITHDRAW,train,template-2
+triệu hồi đèn pin từ kho,OMNIVAULT_WITHDRAW,train,template-2
+triệu hồi khẩu súng từ kho,OMNIVAULT_WITHDRAW,train,template-2
+triệu hồi cuộn băng từ kho,OMNIVAULT_WITHDRAW,train,template-2
+triệu hồi chìa khóa từ kho,OMNIVAULT_WITHDRAW,train,template-2
+triệu hồi bộ sơ cứu từ kho,OMNIVAULT_WITHDRAW,train,template-2
+triệu hồi viên pin từ kho,OMNIVAULT_WITHDRAW,train,template-2
+triệu hồi mặt nạ từ kho,OMNIVAULT_WITHDRAW,train,template-2
+quét chai nước,OMNIVAULT_SCAN,train,template-0
+quét đèn pin,OMNIVAULT_SCAN,train,template-0
+quét khẩu súng,OMNIVAULT_SCAN,train,template-0
+quét cuộn băng,OMNIVAULT_SCAN,train,template-0
+quét chìa khóa,OMNIVAULT_SCAN,train,template-0
+quét bộ sơ cứu,OMNIVAULT_SCAN,train,template-0
+quét viên pin,OMNIVAULT_SCAN,train,template-0
+quét mặt nạ,OMNIVAULT_SCAN,train,template-0
+scan chai nước,OMNIVAULT_SCAN,train,template-1
+scan đèn pin,OMNIVAULT_SCAN,train,template-1
+scan khẩu súng,OMNIVAULT_SCAN,train,template-1
+scan cuộn băng,OMNIVAULT_SCAN,train,template-1
+scan chìa khóa,OMNIVAULT_SCAN,train,template-1
+scan bộ sơ cứu,OMNIVAULT_SCAN,train,template-1
+scan viên pin,OMNIVAULT_SCAN,train,template-1
+scan mặt nạ,OMNIVAULT_SCAN,train,template-1
+nhẫn quét chai nước,OMNIVAULT_SCAN,train,template-2
+nhẫn quét đèn pin,OMNIVAULT_SCAN,train,template-2
+nhẫn quét khẩu súng,OMNIVAULT_SCAN,train,template-2
+nhẫn quét cuộn băng,OMNIVAULT_SCAN,train,template-2
+nhẫn quét chìa khóa,OMNIVAULT_SCAN,train,template-2
+nhẫn quét bộ sơ cứu,OMNIVAULT_SCAN,train,template-2
+nhẫn quét viên pin,OMNIVAULT_SCAN,train,template-2
+nhẫn quét mặt nạ,OMNIVAULT_SCAN,train,template-2
+sao chép chai nước,OMNIVAULT_COPY,train,template-0
+sao chép đèn pin,OMNIVAULT_COPY,train,template-0
+sao chép khẩu súng,OMNIVAULT_COPY,train,template-0
+sao chép cuộn băng,OMNIVAULT_COPY,train,template-0
+sao chép chìa khóa,OMNIVAULT_COPY,train,template-0
+sao chép bộ sơ cứu,OMNIVAULT_COPY,train,template-0
+sao chép viên pin,OMNIVAULT_COPY,train,template-0
+sao chép mặt nạ,OMNIVAULT_COPY,train,template-0
+copy chai nước,OMNIVAULT_COPY,train,template-1
+copy đèn pin,OMNIVAULT_COPY,train,template-1
+copy khẩu súng,OMNIVAULT_COPY,train,template-1
+copy cuộn băng,OMNIVAULT_COPY,train,template-1
+copy chìa khóa,OMNIVAULT_COPY,train,template-1
+copy bộ sơ cứu,OMNIVAULT_COPY,train,template-1
+copy viên pin,OMNIVAULT_COPY,train,template-1
+copy mặt nạ,OMNIVAULT_COPY,train,template-1
+nhân bản chai nước,OMNIVAULT_COPY,train,template-2
+nhân bản đèn pin,OMNIVAULT_COPY,train,template-2
+nhân bản khẩu súng,OMNIVAULT_COPY,train,template-2
+nhân bản cuộn băng,OMNIVAULT_COPY,train,template-2
+nhân bản chìa khóa,OMNIVAULT_COPY,train,template-2
+nhân bản bộ sơ cứu,OMNIVAULT_COPY,train,template-2
+nhân bản viên pin,OMNIVAULT_COPY,train,template-2
+nhân bản mặt nạ,OMNIVAULT_COPY,train,template-2
+hoàn nguyên chai nước,OMNIVAULT_RESTORE,train,template-0
+hoàn nguyên đèn pin,OMNIVAULT_RESTORE,train,template-0
+hoàn nguyên khẩu súng,OMNIVAULT_RESTORE,train,template-0
+hoàn nguyên cuộn băng,OMNIVAULT_RESTORE,train,template-0
+hoàn nguyên chìa khóa,OMNIVAULT_RESTORE,train,template-0
+hoàn nguyên bộ sơ cứu,OMNIVAULT_RESTORE,train,template-0
+hoàn nguyên viên pin,OMNIVAULT_RESTORE,train,template-0
+hoàn nguyên mặt nạ,OMNIVAULT_RESTORE,train,template-0
+restore chai nước,OMNIVAULT_RESTORE,train,template-1
+restore đèn pin,OMNIVAULT_RESTORE,train,template-1
+restore khẩu súng,OMNIVAULT_RESTORE,train,template-1
+restore cuộn băng,OMNIVAULT_RESTORE,train,template-1
+restore chìa khóa,OMNIVAULT_RESTORE,train,template-1
+restore bộ sơ cứu,OMNIVAULT_RESTORE,train,template-1
+restore viên pin,OMNIVAULT_RESTORE,train,template-1
+restore mặt nạ,OMNIVAULT_RESTORE,train,template-1
+khôi phục chai nước về trạng thái tốt nhất,OMNIVAULT_RESTORE,train,template-2
+khôi phục đèn pin về trạng thái tốt nhất,OMNIVAULT_RESTORE,train,template-2
+khôi phục khẩu súng về trạng thái tốt nhất,OMNIVAULT_RESTORE,train,template-2
+khôi phục cuộn băng về trạng thái tốt nhất,OMNIVAULT_RESTORE,train,template-2
+khôi phục chìa khóa về trạng thái tốt nhất,OMNIVAULT_RESTORE,train,template-2
+khôi phục bộ sơ cứu về trạng thái tốt nhất,OMNIVAULT_RESTORE,train,template-2
+khôi phục viên pin về trạng thái tốt nhất,OMNIVAULT_RESTORE,train,template-2
+khôi phục mặt nạ về trạng thái tốt nhất,OMNIVAULT_RESTORE,train,template-2
+xem inventory,INVENTORY_QUERY,train,manual-0
+kiểm tra túi đồ,INVENTORY_QUERY,train,manual-1
+kho đồ hiện có gì,INVENTORY_QUERY,train,manual-2
+Kai đang mang những gì,INVENTORY_QUERY,train,manual-3
+mở danh sách vật phẩm,INVENTORY_QUERY,train,manual-4
+cho tôi xem đồ của Kai,INVENTORY_QUERY,train,manual-5
+inventory của Kai,INVENTORY_QUERY,train,manual-6
+hiện vật phẩm đang sở hữu,INVENTORY_QUERY,train,manual-7
+xem hành trang,INVENTORY_QUERY,train,manual-8
+kiểm kê đồ đang có,INVENTORY_QUERY,train,manual-9
+Iris vào party,PARTY_JOIN_REQUEST,train,manual-0
+cho Syvial gia nhập đội,PARTY_JOIN_REQUEST,train,manual-1
+mời Iris tham gia nhóm,PARTY_JOIN_REQUEST,train,manual-2
+Iris hãy đi cùng Kai,PARTY_JOIN_REQUEST,train,manual-3
+thêm Iris vào party,PARTY_JOIN_REQUEST,train,manual-4
+Syvial nhập đội,PARTY_JOIN_REQUEST,train,manual-5
+mời cô ấy làm đồng đội,PARTY_JOIN_REQUEST,train,manual-6
+cho Iris theo nhóm,PARTY_JOIN_REQUEST,train,manual-7
+Iris tham gia party,PARTY_JOIN_REQUEST,train,manual-8
+đề nghị Syvial gia nhập,PARTY_JOIN_REQUEST,train,manual-9
+Iris rời party,PARTY_REMOVE,train,manual-0
+loại Syvial khỏi đội,PARTY_REMOVE,train,manual-1
+đuổi người đó khỏi nhóm,PARTY_REMOVE,train,manual-2
+xóa Iris khỏi party,PARTY_REMOVE,train,manual-3
+cho Syvial rời đội,PARTY_REMOVE,train,manual-4
+tách Iris khỏi nhóm,PARTY_REMOVE,train,manual-5
+Iris không còn trong party,PARTY_REMOVE,train,manual-6
+loại cô ấy khỏi đội hình,PARTY_REMOVE,train,manual-7
+yêu cầu Iris rời nhóm,PARTY_REMOVE,train,manual-8
+bỏ Syvial khỏi party,PARTY_REMOVE,train,manual-9
+party hiện có ai,PARTY_QUERY,train,manual-0
+xem đội hình,PARTY_QUERY,train,manual-1
+kiểm tra nhóm hiện tại,PARTY_QUERY,train,manual-2
+ai đang đi cùng Kai,PARTY_QUERY,train,manual-3
+danh sách thành viên party,PARTY_QUERY,train,manual-4
+đội còn những ai,PARTY_QUERY,train,manual-5
+mở party,PARTY_QUERY,train,manual-6
+cho xem các thành viên,PARTY_QUERY,train,manual-7
+nhóm của Kai gồm ai,PARTY_QUERY,train,manual-8
+kiểm tra đồng đội,PARTY_QUERY,train,manual-9
+xem thông tin Iris,CHARACTER_QUERY,train,manual-0
+Kai hiện ra sao,CHARACTER_QUERY,train,manual-1
+kiểm tra nhân vật Syvial,CHARACTER_QUERY,train,manual-2
+mở hồ sơ Kai,CHARACTER_QUERY,train,manual-3
+cho xem chi tiết Iris,CHARACTER_QUERY,train,manual-4
+thông tin nhân vật hiện tại,CHARACTER_QUERY,train,manual-5
+xem trạng thái nhân vật Kai,CHARACTER_QUERY,train,manual-6
+Iris là ai,CHARACTER_QUERY,train,manual-7
+kiểm tra hồ sơ Syvial,CHARACTER_QUERY,train,manual-8
+mở character detail,CHARACTER_QUERY,train,manual-9
+xem status của Kai,STATUS_QUERY,train,manual-0
+Iris đang bị trạng thái gì,STATUS_QUERY,train,manual-1
+kiểm tra tình trạng hiện tại,STATUS_QUERY,train,manual-2
+Kai có hiệu ứng nào,STATUS_QUERY,train,manual-3
+xem thương tích của Iris,STATUS_QUERY,train,manual-4
+mở bảng status,STATUS_QUERY,train,manual-5
+tình trạng Kai thế nào,STATUS_QUERY,train,manual-6
+kiểm tra hiệu ứng trạng thái,STATUS_QUERY,train,manual-7
+Kai có bị thương không,STATUS_QUERY,train,manual-8
+hiện status effects,STATUS_QUERY,train,manual-9
+gom chiếc hộp lên,PICKUP_ITEM,train,paraphrase-0
+Kai cúi nhặt món đồ,PICKUP_ITEM,train,paraphrase-1
+cầm lấy vật trước mặt,PICKUP_ITEM,train,paraphrase-2
+nhấc bình nước khỏi nền,PICKUP_ITEM,train,paraphrase-3
+thu món đồ dưới đất,PICKUP_ITEM,train,paraphrase-4
+gom radio khỏi mặt đất,PICKUP_ITEM,train,paraphrase-5
+nhặt radio nằm trên sàn,PICKUP_ITEM,train,paraphrase-6
+đặt chai xuống nền,DROP_ITEM,train,paraphrase-0
+buông món đồ đang cầm,DROP_ITEM,train,paraphrase-1
+để vật đó lại,DROP_ITEM,train,paraphrase-2
+Kai đặt khẩu súng xuống,DROP_ITEM,train,paraphrase-3
+thả tay khỏi chiếc hộp,DROP_ITEM,train,paraphrase-4
+Kai để chai rỗng xuống,DROP_ITEM,train,paraphrase-5
+đặt vật lại tại chỗ,DROP_ITEM,train,paraphrase-6
+bật chiếc radio lên,USE_ITEM,train,paraphrase-0
+Kai bật đèn pin,USE_ITEM,train,paraphrase-1
+mở radio để sử dụng,USE_ITEM,train,paraphrase-2
+uống một ngụm Almond Water,USE_ITEM,train,paraphrase-3
+áp dụng bộ cứu thương lên vết thương,USE_ITEM,train,paraphrase-4
+mở và dùng vật phẩm,USE_ITEM,train,paraphrase-5
+kích hoạt công cụ đang cầm,USE_ITEM,train,paraphrase-6
+chia Iris một chai,TRANSFER_ITEM,train,paraphrase-0
+giao radio sang tay Syvial,TRANSFER_ITEM,train,paraphrase-1
+chuyển vật đó cho cô ấy,TRANSFER_ITEM,train,paraphrase-2
+đặt viên pin vào tay Iris,TRANSFER_ITEM,train,paraphrase-3
+Kai giao món đồ cho đồng đội,TRANSFER_ITEM,train,paraphrase-4
+rút súng cầm sẵn,EQUIP_ITEM,train,paraphrase-0
+mang mặt nạ bảo hộ,EQUIP_ITEM,train,paraphrase-1
+lắp dao vào ô vũ khí,EQUIP_ITEM,train,paraphrase-2
+đưa radio vào slot trang bị,EQUIP_ITEM,train,paraphrase-3
+Kai cầm vũ khí trong tay,EQUIP_ITEM,train,paraphrase-4
+hạ súng và cất khỏi tay,UNEQUIP_ITEM,train,paraphrase-0
+gỡ mặt nạ đang đeo,UNEQUIP_ITEM,train,paraphrase-1
+tháo vật khỏi ô vũ khí,UNEQUIP_ITEM,train,paraphrase-2
+Kai bỏ vũ khí đang cầm,UNEQUIP_ITEM,train,paraphrase-3
+cất món đang trang bị,UNEQUIP_ITEM,train,paraphrase-4
+Nhẫn Vạn Tàng thu radio vào kho,OMNIVAULT_STORE,train,paraphrase-0
+cho món đó biến vào Omnivault,OMNIVAULT_STORE,train,paraphrase-1
+đưa vật vào không gian nhẫn,OMNIVAULT_STORE,train,paraphrase-2
+Omnivault cất giữ chiếc hộp,OMNIVAULT_STORE,train,paraphrase-3
+Kai chuyển vật sở hữu vào Nhẫn Vạn Tàng,OMNIVAULT_STORE,train,paraphrase-4
+gọi radio từ Nhẫn Vạn Tàng ra,OMNIVAULT_WITHDRAW,train,paraphrase-0
+lấy lại món vừa cất trong Omnivault,OMNIVAULT_WITHDRAW,train,paraphrase-1
+cho vật xuất hiện từ kho nhẫn,OMNIVAULT_WITHDRAW,train,paraphrase-2
+nhẫn triệu hồi món đã lưu,OMNIVAULT_WITHDRAW,train,paraphrase-3
+Kai đưa vật lưu trữ trở lại tay,OMNIVAULT_WITHDRAW,train,paraphrase-4
+ghi mẫu radio vào scan slot,OMNIVAULT_SCAN,train,paraphrase-0
+Omnivault đọc mẫu vật thể,OMNIVAULT_SCAN,train,paraphrase-1
+chiếu luồng quét lên kim loại,OMNIVAULT_SCAN,train,paraphrase-2
+nhẫn ghi nhận cấu trúc vật,OMNIVAULT_SCAN,train,paraphrase-3
+tạo template từ vật gốc,OMNIVAULT_SCAN,train,paraphrase-4
+tạo bản thứ hai từ mẫu nhẫn,OMNIVAULT_COPY,train,paraphrase-0
+sinh thêm bản sao radio,OMNIVAULT_COPY,train,paraphrase-1
+Omnivault dựng lại hai bản,OMNIVAULT_COPY,train,paraphrase-2
+nhân thêm vật từ scan slot,OMNIVAULT_COPY,train,paraphrase-3
+tạo một copy từ template,OMNIVAULT_COPY,train,paraphrase-4
+đưa radio về trạng thái nguyên vẹn,OMNIVAULT_RESTORE,train,paraphrase-0
+nhẫn phục hồi chai móp,OMNIVAULT_RESTORE,train,paraphrase-1
+trả vật hỏng về tình trạng tốt nhất,OMNIVAULT_RESTORE,train,paraphrase-2
+sửa vật thể bằng Hoàn nguyên,OMNIVAULT_RESTORE,train,paraphrase-3
+khôi phục trạng thái tốt nhất từng có,OMNIVAULT_RESTORE,train,paraphrase-4
+Kai còn sở hữu món nào,INVENTORY_QUERY,train,paraphrase-0
+liệt kê hành trang hiện giờ,INVENTORY_QUERY,train,paraphrase-1
+trong túi có bao nhiêu thứ,INVENTORY_QUERY,train,paraphrase-2
+cho biết đồ đang mang,INVENTORY_QUERY,train,paraphrase-3
+mở danh sách tài sản của Kai,INVENTORY_QUERY,train,paraphrase-4
+đề nghị Iris đồng hành,PARTY_JOIN_REQUEST,train,paraphrase-0
+kết nạp Syvial làm thành viên,PARTY_JOIN_REQUEST,train,paraphrase-1
+mời cô ấy đi chung đội,PARTY_JOIN_REQUEST,train,paraphrase-2
+cho Iris trở thành đồng đội,PARTY_JOIN_REQUEST,train,paraphrase-3
+yêu cầu Syvial theo cùng,PARTY_JOIN_REQUEST,train,paraphrase-4
+yêu cầu Iris tách khỏi đội hình,PARTY_REMOVE,train,paraphrase-0
+cho Syvial ngừng đồng hành,PARTY_REMOVE,train,paraphrase-1
+gạch cô ấy khỏi danh sách nhóm,PARTY_REMOVE,train,paraphrase-2
+kết thúc việc Iris đi cùng,PARTY_REMOVE,train,paraphrase-3
+đưa Syvial ra khỏi đội hình,PARTY_REMOVE,train,paraphrase-4
+những người đang đồng hành,PARTY_QUERY,train,paraphrase-0
+đội hình bốn người ra sao,PARTY_QUERY,train,paraphrase-1
+liệt kê đồng đội bên cạnh Kai,PARTY_QUERY,train,paraphrase-2
+ai là thành viên hiện tại,PARTY_QUERY,train,paraphrase-3
+cho biết nhóm đang gồm những ai,PARTY_QUERY,train,paraphrase-4
+mở trang chi tiết Iris,CHARACTER_QUERY,train,paraphrase-0
+cho biết hồ sơ Kai,CHARACTER_QUERY,train,paraphrase-1
+xem dữ liệu nhân vật đang chọn,CHARACTER_QUERY,train,paraphrase-2
+hiện character profile,CHARACTER_QUERY,train,paraphrase-3
+đọc thông tin riêng của Syvial,CHARACTER_QUERY,train,paraphrase-4
+liệt kê hiệu ứng tác động lên Iris,STATUS_QUERY,train,paraphrase-0
+tình trạng cơ thể Kai,STATUS_QUERY,train,paraphrase-1
+mở phần thương tích và trạng thái,STATUS_QUERY,train,paraphrase-2
+xem các status effect hiện hành,STATUS_QUERY,train,paraphrase-3
+Kai đang chịu ảnh hưởng gì,STATUS_QUERY,train,paraphrase-4
+Kai nhìn Iris lấy chai nước,NO_ACTION,train,hard-negative-0
+Kai nhớ lần trước mình bỏ súng vào nhẫn,NO_ACTION,train,hard-negative-1
+Kai không nhặt chai nước,NO_ACTION,train,hard-negative-2
+Iris nói nhặt chai nước lên,NO_ACTION,train,hard-negative-3
+đừng bỏ súng vào nhẫn,NO_ACTION,train,hard-negative-4
+Kai chưa dùng bộ sơ cứu,NO_ACTION,train,hard-negative-5
+nếu lấy nó ra thì sao,NO_ACTION,train,hard-negative-6
+Kai suýt nhặt chiếc đèn pin,NO_ACTION,train,hard-negative-7
+Kai không định đưa nước cho Iris,NO_ACTION,train,hard-negative-8
+khẩu súng đã được cất từ trước,NO_ACTION,train,hard-negative-9
+Kai thấy Syvial trang bị mặt nạ,NO_ACTION,train,hard-negative-10
+Iris hỏi có nên vào party không,NO_ACTION,train,hard-negative-11
+Kai nhớ đã hoàn nguyên chai rỗng,NO_ACTION,train,hard-negative-12
+đừng quét vật đó,NO_ACTION,train,hard-negative-13
+Kai nghe ai đó bảo thả súng xuống,NO_ACTION,train,hard-negative-14
+giả sử copy thêm một chai thì sao,NO_ACTION,train,hard-negative-15
+Kai quan sát chiếc chìa khóa nằm dưới sàn,NO_ACTION,train,hard-negative-16
+Iris từng trao đèn cho Kai,NO_ACTION,train,hard-negative-17
+không được dùng chai nước,NO_ACTION,train,hard-negative-18
+Kai nói rằng anh sẽ lấy nó sau,NO_ACTION,train,hard-negative-19
+liệu có nên cất nó vào nhẫn,NO_ACTION,train,hard-negative-20
+Kai nhìn khẩu súng đã được tháo ra,NO_ACTION,train,hard-negative-21
+Syvial kể rằng cô đã nhặt cuộn băng,NO_ACTION,train,hard-negative-22
+Kai không muốn Iris rời party,NO_ACTION,train,hard-negative-23
+đừng mời người lạ vào nhóm,NO_ACTION,train,hard-negative-24
+Kai nhớ lời dặn hãy dùng bộ sơ cứu,NO_ACTION,train,hard-negative-25
+Iris nhìn Kai sao chép viên pin,NO_ACTION,train,hard-negative-26
+nếu hoàn nguyên thất bại thì sao,NO_ACTION,train,hard-negative-27
+Kai tưởng tượng mình triệu hồi khẩu súng,NO_ACTION,train,hard-negative-28
+chưa cần mở inventory,NO_ACTION,train,hard-negative-29
+Kai không hỏi status của Iris,NO_ACTION,train,hard-negative-30
+Kai nhớ mình từng rút vật từ nhẫn,NO_ACTION,train,hard-negative-31
+Kai hồi tưởng lần đã lấy radio khỏi Omnivault,NO_ACTION,train,hard-negative-32
+trước đây Kai từng gọi súng từ kho ra,NO_ACTION,train,hard-negative-33
+nếu Kai trao nước cho Iris thì sao,NO_ACTION,train,hard-negative-34
+giả sử Kai giao viên pin cho cô ấy,NO_ACTION,train,hard-negative-35
+liệu đưa radio sang Syvial có ổn không,NO_ACTION,train,hard-negative-36
+Kai chưa hề sử dụng radio,NO_ACTION,train,hard-negative-37
+Kai vẫn chưa uống chai nước,NO_ACTION,train,hard-negative-38
+chưa dùng món đồ đang cầm,NO_ACTION,train,hard-negative-39
+Kai chỉ nghĩ đến việc nhặt chiếc hộp,NO_ACTION,train,hard-negative-40
+Iris kể chuyện cô từng rời party,NO_ACTION,train,hard-negative-41
+Syvial hỏi liệu cô có thể gia nhập đội,NO_ACTION,train,hard-negative-42
+đừng triệu hồi món đó từ nhẫn,NO_ACTION,train,hard-negative-43
+không được sao chép vật này,NO_ACTION,train,hard-negative-44
+Kai không muốn hoàn nguyên chai nước,NO_ACTION,train,hard-negative-45
+Iris quan sát Kai chuyển đồ,NO_ACTION,train,hard-negative-46
+Kai thấy radio được cất vào kho,NO_ACTION,train,hard-negative-47
+món đồ đã nằm trong inventory từ trước,NO_ACTION,train,hard-negative-48
+khẩu súng hiện không được trang bị,NO_ACTION,train,hard-negative-49
+mặt nạ chưa được đeo,NO_ACTION,train,hard-negative-50
+radio không nằm trong slot trang bị,NO_ACTION,train,hard-negative-51
+nếu Kai đưa món đồ cho cô ấy thì sẽ thế nào,NO_ACTION,train,hard-negative-52
+nếu Kai chuyển nước sang Iris thì sao,NO_ACTION,train,hard-negative-53
+giả sử Kai trao chai nước cho cô ấy,NO_ACTION,train,hard-negative-54
+Kai quan sát hành lang im lặng,UNKNOWN,train,unknown-0
+Tôi muốn suy nghĩ thêm,UNKNOWN,train,unknown-1
+Chuyện gì đang xảy ra,UNKNOWN,train,unknown-2
+Kai bước về phía ánh đèn,UNKNOWN,train,unknown-3
+lắng nghe tiếng động,UNKNOWN,train,unknown-4
+mùi ẩm mốc nặng hơn,UNKNOWN,train,unknown-5
+Kai gọi tên Iris,UNKNOWN,train,unknown-6
+đợi một lát,UNKNOWN,train,unknown-7
+tiếp tục tiến về phía trước,UNKNOWN,train,unknown-8
+kiểm tra căn phòng,UNKNOWN,train,unknown-9
+Kai áp tai vào bức tường,UNKNOWN,train,unknown-10
+có tiếng chân ở xa,UNKNOWN,train,unknown-11
+tìm đường thoát,UNKNOWN,train,unknown-12
+Kai dừng lại suy nghĩ,UNKNOWN,train,unknown-13
+quan sát dấu vết trên sàn,UNKNOWN,train,unknown-14
+nói chuyện với Iris,UNKNOWN,train,unknown-15
+Kai hỏi người đàn ông là ai,UNKNOWN,train,unknown-16
+giữ im lặng,UNKNOWN,train,unknown-17
+ẩn sau góc tường,UNKNOWN,train,unknown-18
+đi theo hành lang bên trái,UNKNOWN,train,unknown-19
+Kai kiểm tra cánh cửa,UNKNOWN,train,unknown-20
+thử nhớ bản đồ,UNKNOWN,train,unknown-21
+chờ xem chuyện gì xảy ra,UNKNOWN,train,unknown-22
+hỏi Iris về quá khứ,UNKNOWN,train,unknown-23
+Kai hỏi Syvial cô nhớ được gì,UNKNOWN,train,unknown-24
+trò chuyện với Iris về ký ức,UNKNOWN,train,unknown-25
+đề nghị Iris giải thích chuyện vừa rồi,UNKNOWN,train,unknown-26
+Kai hỏi người đồng hành về Backrooms,UNKNOWN,train,unknown-27
+lắng nghe câu trả lời của Syvial,UNKNOWN,train,unknown-28
+thảo luận kế hoạch với Iris,UNKNOWN,train,unknown-29
+Kai cúi xuống nhặt lấy bình nước,PICKUP_ITEM,test,heldout-0
+gom chiếc radio lên khỏi sàn,PICKUP_ITEM,test,heldout-1
+cầm lấy món đồ trước mặt,PICKUP_ITEM,test,heldout-2
+đặt chiếc radio lại xuống nền,DROP_ITEM,test,heldout-0
+buông vật đang cầm,DROP_ITEM,test,heldout-1
+Kai để chai rỗng ở lại,DROP_ITEM,test,heldout-2
+Kai bật chiếc radio,USE_ITEM,test,heldout-0
+uống một ngụm nước,USE_ITEM,test,heldout-1
+áp dụng bộ cứu thương,USE_ITEM,test,heldout-2
+chia cho Iris một viên pin,TRANSFER_ITEM,test,heldout-0
+giao chiếc radio sang tay Syvial,TRANSFER_ITEM,test,heldout-1
+Kai chuyển một chai cho cô ấy,TRANSFER_ITEM,test,heldout-2
+Kai rút súng cầm sẵn trên tay,EQUIP_ITEM,test,heldout-0
+mang mặt nạ bảo hộ lên,EQUIP_ITEM,test,heldout-1
+lắp món đồ vào ô vũ khí,EQUIP_ITEM,test,heldout-2
+Kai hạ súng và cất khỏi tay,UNEQUIP_ITEM,test,heldout-0
+gỡ mặt nạ đang đeo,UNEQUIP_ITEM,test,heldout-1
+tháo món đồ khỏi ô vũ khí,UNEQUIP_ITEM,test,heldout-2
+Nhẫn Vạn Tàng thu chiếc radio vào kho,OMNIVAULT_STORE,test,heldout-0
+Kai cho món đó biến vào Omnivault,OMNIVAULT_STORE,test,heldout-1
+đưa vật đang cầm vào không gian nhẫn,OMNIVAULT_STORE,test,heldout-2
+gọi chiếc radio từ Nhẫn Vạn Tàng ra,OMNIVAULT_WITHDRAW,test,heldout-0
+Kai lấy lại món vừa cất trong Omnivault,OMNIVAULT_WITHDRAW,test,heldout-1
+cho vật đó xuất hiện từ kho nhẫn,OMNIVAULT_WITHDRAW,test,heldout-2
+ghi mẫu chiếc radio vào một scan slot,OMNIVAULT_SCAN,test,heldout-0
+Omnivault đọc mẫu vật thể này,OMNIVAULT_SCAN,test,heldout-1
+chiếu luồng quét lên tấm kim loại,OMNIVAULT_SCAN,test,heldout-2
+tạo một bản thứ hai từ mẫu trong nhẫn,OMNIVAULT_COPY,test,heldout-0
+sinh thêm bản sao chiếc radio,OMNIVAULT_COPY,test,heldout-1
+Kai cho Omnivault dựng lại hai bản,OMNIVAULT_COPY,test,heldout-2
+đưa chiếc radio về trạng thái nguyên vẹn nhất,OMNIVAULT_RESTORE,test,heldout-0
+nhẫn phục hồi chai móp,OMNIVAULT_RESTORE,test,heldout-1
+trả vật thể hỏng về tình trạng tốt nhất trước đây,OMNIVAULT_RESTORE,test,heldout-2
+Kai còn sở hữu món đồ nào,INVENTORY_QUERY,test,heldout-0
+liệt kê hành trang hiện giờ,INVENTORY_QUERY,test,heldout-1
+trong túi đang có bao nhiêu thứ,INVENTORY_QUERY,test,heldout-2
+đề nghị Iris đồng hành cùng Kai,PARTY_JOIN_REQUEST,test,heldout-0
+kết nạp Syvial làm thành viên,PARTY_JOIN_REQUEST,test,heldout-1
+mời cô ấy đi chung đội,PARTY_JOIN_REQUEST,test,heldout-2
+yêu cầu Iris tách khỏi đội hình,PARTY_REMOVE,test,heldout-0
+cho Syvial ngừng đồng hành,PARTY_REMOVE,test,heldout-1
+gạch cô ấy khỏi danh sách nhóm,PARTY_REMOVE,test,heldout-2
+những người nào đang đồng hành,PARTY_QUERY,test,heldout-0
+đội hình bốn người hiện ra sao,PARTY_QUERY,test,heldout-1
+liệt kê đồng đội bên cạnh Kai,PARTY_QUERY,test,heldout-2
+mở trang chi tiết của Iris,CHARACTER_QUERY,test,heldout-0
+cho biết hồ sơ của Kai,CHARACTER_QUERY,test,heldout-1
+xem dữ liệu nhân vật đang chọn,CHARACTER_QUERY,test,heldout-2
+liệt kê hiệu ứng đang tác động lên Iris,STATUS_QUERY,test,heldout-0
+tình trạng cơ thể Kai hiện giờ,STATUS_QUERY,test,heldout-1
+mở phần thương tích và trạng thái,STATUS_QUERY,test,heldout-2
+Kai nhớ mình từng lấy radio khỏi nhẫn,NO_ACTION,test,heldout-0
+Iris nói: đừng nhặt vật đó,NO_ACTION,test,heldout-1
+nếu Kai đưa nước cho cô ấy thì chuyện gì xảy ra,NO_ACTION,test,heldout-2
+Kai nhìn Syvial cất súng,NO_ACTION,test,heldout-3
+Kai chưa hề dùng món đồ,NO_ACTION,test,heldout-4
+khẩu súng không được trang bị,NO_ACTION,test,heldout-5
+Kai nghiên cứu âm thanh bất thường,UNKNOWN,test,heldout-0
+thử mở cánh cửa cuối hành lang,UNKNOWN,test,heldout-1
+hỏi Iris về ký ức của cô ấy,UNKNOWN,test,heldout-2
+tiếp tục câu chuyện,UNKNOWN,test,heldout-3
+Kai chuẩn bị đối phó nguy hiểm,UNKNOWN,test,heldout-4
