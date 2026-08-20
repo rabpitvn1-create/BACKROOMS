@@ -103,6 +103,8 @@ jobs:
         run: python3 android-apk/patch-rejected-op-repair-final.py
       - name: Apply Gemini runtime and Luna deadline compatibility
         run: python3 android-apk/patch-provider-deadline-final.py
+      - name: Apply model-first Gemini fallback matrix
+        run: python3 android-apk/patch-gemini-model-matrix-final.py
       - name: Harden final Java compile surface
         run: python3 android-apk/patch-java-compile-hardening.py
       - name: Harden Save Load Delete and New Game controls
