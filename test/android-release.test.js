@@ -16,10 +16,10 @@ test("Android release patch chain injects Drive R06 canon and authoritative game
 
   const buildGradle = readFileSync(path.join(source, "app/build.gradle"), "utf8");
   const workflow = readFileSync(path.join(root, ".github/workflows/build-backroom-apk.yml"), "utf8");
-  assert.match(buildGradle, /GEMINI_API_KEY_1/);
-  assert.match(buildGradle, /GEMINI_API_KEY_2/);
-  assert.match(workflow, /secrets\.GEMINI_API_KEY_1/);
-  assert.match(workflow, /secrets\.GEMINI_API_KEY_2/);
+  for (let slot = 1; slot <= 5; slot += 1) {
+    assert.match(buildGradle, new RegExp(`GEMINI_API_KEY_${slot}`));
+    assert.match(workflow, new RegExp(`secrets\\.GEMINI_API_KEY_${slot}`));
+  }
   assert.doesNotMatch(buildGradle + workflow, /SNAPSHOT_API_KEY/);
   for (let level = 0; level <= 6; level += 1) {
     const snapshotAsset = readFileSync(
@@ -66,9 +66,16 @@ test("Android release patch chain injects Drive R06 canon and authoritative game
   assert.match(main, /file:\/\/\/android_asset\/level_snapshots\/level_0\.webp/);
   assert.match(main, /file:\/\/\/android_asset\/level_snapshots\/level_6\.webp/);
   assert.doesNotMatch(main, /backrooms-wiki\.(?:wikidot|wdfiles)\.com|upload\.wikimedia\.org/);
-  const keyOne = main.indexOf("BuildConfig.GEMINI_API_KEY_1");
-  const keyTwo = main.indexOf("BuildConfig.GEMINI_API_KEY_2");
-  assert.ok(keyOne >= 0 && keyTwo > keyOne, "Gemini keys must be tried in order");
+
+  const keyPositions = [];
+  for (let slot = 1; slot <= 5; slot += 1) {
+    const position = main.indexOf(`BuildConfig.GEMINI_API_KEY_${slot}`);
+    assert.ok(position >= 0, `Gemini key ${slot} must be wired into the APK`);
+    keyPositions.push(position);
+  }
+  for (let index = 1; index < keyPositions.length; index += 1) {
+    assert.ok(keyPositions[index] > keyPositions[index - 1], "Gemini keys must be tried in order");
+  }
 
   const generateStart = main.indexOf("private String generateText(String prompt)");
   const generateEnd = main.indexOf("private JSONObject parseModelJson", generateStart);
