@@ -16,10 +16,10 @@ test("Android release patch chain keeps authoritative gameplay and model-first G
 
   const buildGradle = readFileSync(path.join(source, "app/build.gradle"), "utf8");
   const workflow = readFileSync(path.join(root, ".github/workflows/build-backroom-apk.yml"), "utf8");
-  assert.match(buildGradle, /versionCode 34/);
-  assert.match(buildGradle, /versionName '1\.1\.32'/);
-  assert.match(workflow, /Backroom-1\.1\.32\.apk/);
-  assert.match(workflow, /RELEASE_NOTES_1\.1\.32\.txt/);
+  assert.match(buildGradle, /versionCode 35/);
+  assert.match(buildGradle, /versionName '1\.1\.33'/);
+  assert.match(workflow, /Backroom-1\.1\.33\.apk/);
+  assert.match(workflow, /RELEASE_NOTES_1\.1\.33\.txt/);
   assert.match(workflow, /patch-save-controls-final\.py/);
   assert.match(workflow, /patch-gemini-model-matrix-final\.py/);
   assert.doesNotMatch(workflow, /patch-space-habitat-font\.py/);
