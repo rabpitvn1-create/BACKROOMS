@@ -16,13 +16,18 @@ test("Android release patch chain injects routed canon, authoritative ops, condi
 
   const buildGradle = readFileSync(path.join(source, "app/build.gradle"), "utf8");
   const workflow = readFileSync(path.join(root, ".github/workflows/build-backroom-apk.yml"), "utf8");
+  assert.match(buildGradle, /versionName '1\.1\.29'/);
+  assert.match(workflow, /Backroom-1\.1\.29\.apk/);
+  assert.match(workflow, /RELEASE_NOTES_1\.1\.29\.txt/);
   for (let slot = 1; slot <= 5; slot += 1) {
     assert.match(buildGradle, new RegExp(`GEMINI_API_KEY_${slot}`));
     assert.match(workflow, new RegExp(`secrets\\.GEMINI_API_KEY_${slot}`));
   }
   assert.match(workflow, /patch-ai-orchestrator\.py/);
+  assert.match(workflow, /patch-state-op-hardening\.py/);
   assert.match(workflow, /patch-gemini-health-pool\.py/);
   assert.match(workflow, /patch-conditional-audit\.py/);
+  assert.match(workflow, /patch-audit-validated-risk\.py/);
   assert.doesNotMatch(buildGradle + workflow, /SNAPSHOT_API_KEY/);
 
   for (let level = 0; level <= 6; level += 1) {
@@ -42,8 +47,10 @@ test("Android release patch chain injects routed canon, authoritative ops, condi
     "patch-drive-canon-gameplay.py",
     "patch-inventory-persistence.py",
     "patch-ai-orchestrator.py",
+    "patch-state-op-hardening.py",
     "patch-gemini-health-pool.py",
     "patch-conditional-audit.py",
+    "patch-audit-validated-risk.py",
     "patch-hard-mode-label.py",
     "patch-snapshot-unconfigured.py",
   ];
@@ -63,6 +70,7 @@ test("Android release patch chain injects routed canon, authoritative ops, condi
   assert.match(main, /compactKaiCanon/);
   assert.match(main, /compactStateForPrompt/);
   assert.match(main, /applyModelOperations/);
+  assert.match(main, /madGodAlreadySpawned/);
   assert.match(main, /Bạn KHÔNG được trả state hoàn chỉnh/);
   assert.match(main, /RECENT LOG ONLY/);
 
@@ -76,7 +84,9 @@ test("Android release patch chain injects routed canon, authoritative ops, condi
   assert.match(main, /code == 429/);
   assert.match(main, /code == 401 \|\| code == 403/);
 
-  assert.match(main, /proposedTurnRisk/);
+  assert.match(main, /validatedTurnRisk/);
+  assert.doesNotMatch(main, /proposedTurnRisk/);
+  assert.match(main, /candidateState/);
   assert.match(main, /auditsForRisk/);
   assert.match(main, /runAudit/);
   assert.match(main, /hardAuditIssues/);
