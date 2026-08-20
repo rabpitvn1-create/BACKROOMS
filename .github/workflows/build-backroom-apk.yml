@@ -75,6 +75,8 @@ jobs:
         run: python3 android-apk/patch-inventory-persistence.py
       - name: Apply dependency-routed canon and state operation reducer
         run: python3 android-apk/patch-ai-orchestrator.py
+      - name: Apply health-weighted five-Gemini pool
+        run: python3 android-apk/patch-gemini-health-pool.py
       - name: Apply Single Player Hard Mode label
         run: python3 android-apk/patch-hard-mode-label.py
       - name: Leave Snapshot provider unconfigured
