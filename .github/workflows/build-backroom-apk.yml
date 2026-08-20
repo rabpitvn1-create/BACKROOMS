@@ -5,6 +5,8 @@ on:
   push:
     paths:
       - "android-apk/**"
+      - "lib/canon.js"
+      - "scripts/sync-prologue.py"
       - ".github/workflows/build-backroom-apk.yml"
 
 permissions:
@@ -22,6 +24,8 @@ jobs:
       GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
     steps:
       - uses: actions/checkout@v4
+      - name: Synchronize Prologue sources
+        run: python3 scripts/sync-prologue.py
       - name: Validate Game Master configuration
         run: |
           test -n "$GEMINI_API_KEY_1" || (echo "Missing GitHub Secret: GEMINI_API_KEY_1" && exit 1)
