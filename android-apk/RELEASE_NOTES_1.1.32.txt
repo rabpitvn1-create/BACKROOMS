@@ -1,0 +1,7 @@
+Backroom 1.1.32
+
+- Fix Gemini 3.6 Flash text requests incorrectly timing out after 5 seconds and falling through all five Gemini lanes to Luna.
+- Gemini writer/auditor requests now use explicit low thinking for lower latency and remove deprecated temperature sampling from Gemini 3.6 text calls.
+- Keep a fast 5-second connection timeout, allow up to 18 seconds for a Gemini response, and rotate to the next key after one attempt per lane.
+- Runtime provider status now identifies the successful Gemini lane as Gemini K1 through K5; Luna is explicitly shown as Luna fallback.
+- Preserve the 1.1.31 system-font rollback and hardened Save / Load / Delete Save / New Game controls.
