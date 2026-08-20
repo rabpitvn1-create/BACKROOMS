@@ -47,7 +47,6 @@ jobs:
         run: |
           test -n "$GEMINI_API_KEY_1" || (echo "Missing GitHub Secret: GEMINI_API_KEY_1" && exit 1)
           test -n "$GEMINI_API_KEY_2" || (echo "Missing GitHub Secret: GEMINI_API_KEY_2" && exit 1)
-          test -n "$GEMINI_API_KEY_3" || (echo "Missing GitHub Secret: GEMINI_API_KEY_3" && exit 1)
           test -n "$LUNA_API_KEY" || (echo "Missing GitHub Secret: LUNA_API_KEY" && exit 1)
           test -n "$LUNA_MODEL" || (echo "Missing GitHub Secret: LUNA_MODEL" && exit 1)
 
