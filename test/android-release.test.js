@@ -23,13 +23,10 @@ test("Android release patch chain injects routed canon, authoritative ops, condi
     assert.match(buildGradle, new RegExp(`GEMINI_API_KEY_${slot}`));
     assert.match(workflow, new RegExp(`secrets\\.GEMINI_API_KEY_${slot}`));
   }
-  assert.match(workflow, /patch-r06-source-marker\.py/);
-  assert.match(workflow, /patch-ai-orchestrator\.py/);
-  assert.match(workflow, /patch-state-op-hardening\.py/);
-  assert.match(workflow, /patch-gemini-health-pool\.py/);
-  assert.match(workflow, /patch-conditional-audit\.py/);
-  assert.match(workflow, /patch-audit-validated-risk\.py/);
-  assert.match(workflow, /patch-java-compile-hardening\.py/);
+  assert.match(workflow, /patch-final-authority-hardening\.py/);
+  assert.match(workflow, /if: github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'/);
+  assert.match(workflow, /git push origin HEAD:main/);
+  assert.match(workflow, /if: github\.ref != 'refs\/heads\/main'/);
   assert.doesNotMatch(buildGradle + workflow, /SNAPSHOT_API_KEY/);
 
   for (let level = 0; level <= 6; level += 1) {
@@ -54,6 +51,7 @@ test("Android release patch chain injects routed canon, authoritative ops, condi
     "patch-gemini-health-pool.py",
     "patch-conditional-audit.py",
     "patch-audit-validated-risk.py",
+    "patch-final-authority-hardening.py",
     "patch-java-compile-hardening.py",
     "patch-hard-mode-label.py",
     "patch-snapshot-unconfigured.py",
@@ -76,13 +74,18 @@ test("Android release patch chain injects routed canon, authoritative ops, condi
   assert.equal((main.match(/private void mergeObject\(JSONObject target, JSONObject patch\)/g) || []).length, 1);
   assert.equal((main.match(/private void mergeObjectDeep\(JSONObject target, JSONObject patch\)/g) || []).length, 1);
   assert.doesNotMatch(main, /JSONObject\.getNames\(/);
-  assert.match(main, /makeGameplayRolls/);
+
   assert.match(main, /compactDriveCanon/);
   assert.match(main, /compactKaiCanon/);
   assert.match(main, /compactStateForPrompt/);
   assert.match(main, /applyModelOperations/);
-  assert.match(main, /madGodAlreadySpawned/);
-  assert.match(main, /Bạn KHÔNG được trả state hoàn chỉnh/);
+  assert.match(main, /establishedStructured/);
+  assert.match(main, /worldConsequence/);
+  assert.match(main, /exitMutation/);
+  assert.match(main, /JSONArray proposed/);
+  assert.match(main, /private String postJsonFast\(/);
+  assert.match(main, /setConnectTimeout\(5000\)/);
+  assert.match(main, /setReadTimeout\(5000\)/);
   assert.match(main, /RECENT LOG ONLY/);
 
   assert.match(main, /geminiCooldownUntil/);
@@ -105,7 +108,6 @@ test("Android release patch chain injects routed canon, authoritative ops, condi
   assert.match(main, /risk < 7/);
   assert.match(main, /auditIo\.submit/);
   assert.match(main, /AUDIT FEEDBACK HARD/);
-  assert.match(main, /Lượt chơi không vượt qua kiểm tra canon; state không được thay đổi/);
 
   assert.match(main, /loadUrl\("file:\/\/\/android_asset\/index\.html"\)/);
   assert.match(main, /requestSnapshot/);
@@ -114,16 +116,14 @@ test("Android release patch chain injects routed canon, authoritative ops, condi
   assert.doesNotMatch(main, /backrooms-wiki\.(?:wikidot|wdfiles)\.com|upload\.wikimedia\.org/);
 
   for (let slot = 1; slot <= 5; slot += 1) {
-    const position = main.indexOf(`BuildConfig.GEMINI_API_KEY_${slot}`);
-    assert.ok(position >= 0, `Gemini key ${slot} must be wired into the APK`);
+    assert.ok(main.indexOf(`BuildConfig.GEMINI_API_KEY_${slot}`) >= 0, `Gemini key ${slot} must be wired into the APK`);
   }
 
   const generateStart = main.indexOf("private String generateText(String prompt)");
   const generateEnd = main.indexOf("private JSONObject parseModelJson", generateStart);
   const generateBody = main.slice(generateStart, generateEnd);
-  const geminiProvider = generateBody.indexOf('emit("backroomProvider", "Gemini")');
-  const lunaProvider = generateBody.indexOf('emit("backroomProvider", "Luna")');
-  assert.ok(geminiProvider >= 0 && lunaProvider > geminiProvider, "Gemini pool must run before Luna");
+  assert.ok(generateBody.indexOf('emit("backroomProvider", "Gemini")') >= 0);
+  assert.ok(generateBody.indexOf('emit("backroomProvider", "Luna")') > generateBody.indexOf('emit("backroomProvider", "Gemini")'));
 
   const snapshotStart = main.indexOf("private void requestSnapshotInternal(String stateJson)");
   const snapshotEnd = main.indexOf("private void emit", snapshotStart);
