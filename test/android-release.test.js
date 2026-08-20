@@ -21,6 +21,7 @@ test("Android release patch chain injects routed canon, authoritative ops and fi
     assert.match(workflow, new RegExp(`secrets\\.GEMINI_API_KEY_${slot}`));
   }
   assert.match(workflow, /patch-ai-orchestrator\.py/);
+  assert.match(workflow, /patch-gemini-health-pool\.py/);
   assert.doesNotMatch(buildGradle + workflow, /SNAPSHOT_API_KEY/);
 
   for (let level = 0; level <= 6; level += 1) {
@@ -40,6 +41,7 @@ test("Android release patch chain injects routed canon, authoritative ops and fi
     "patch-drive-canon-gameplay.py",
     "patch-inventory-persistence.py",
     "patch-ai-orchestrator.py",
+    "patch-gemini-health-pool.py",
     "patch-hard-mode-label.py",
     "patch-snapshot-unconfigured.py",
   ];
@@ -61,20 +63,21 @@ test("Android release patch chain injects routed canon, authoritative ops and fi
   assert.match(main, /applyModelOperations/);
   assert.match(main, /Bạn KHÔNG được trả state hoàn chỉnh/);
   assert.match(main, /RECENT LOG ONLY/);
+  assert.match(main, /geminiCooldownUntil/);
+  assert.match(main, /geminiLatencyEma/);
+  assert.match(main, /chooseGeminiWorker/);
+  assert.match(main, /noteGeminiFailure/);
+  assert.match(main, /code == 429/);
+  assert.match(main, /code == 401 \|\| code == 403/);
   assert.match(main, /loadUrl\("file:\/\/\/android_asset\/index\.html"\)/);
   assert.match(main, /requestSnapshot/);
   assert.match(main, /file:\/\/\/android_asset\/level_snapshots\/level_0\.webp/);
   assert.match(main, /file:\/\/\/android_asset\/level_snapshots\/level_6\.webp/);
   assert.doesNotMatch(main, /backrooms-wiki\.(?:wikidot|wdfiles)\.com|upload\.wikimedia\.org/);
 
-  const keyPositions = [];
   for (let slot = 1; slot <= 5; slot += 1) {
     const position = main.indexOf(`BuildConfig.GEMINI_API_KEY_${slot}`);
     assert.ok(position >= 0, `Gemini key ${slot} must be wired into the APK`);
-    keyPositions.push(position);
-  }
-  for (let index = 1; index < keyPositions.length; index += 1) {
-    assert.ok(keyPositions[index] > keyPositions[index - 1], "Gemini keys must be tried in order before health scheduler parity");
   }
 
   const generateStart = main.indexOf("private String generateText(String prompt)");
@@ -82,7 +85,7 @@ test("Android release patch chain injects routed canon, authoritative ops and fi
   const generateBody = main.slice(generateStart, generateEnd);
   const geminiProvider = generateBody.indexOf('emit("backroomProvider", "Gemini")');
   const lunaProvider = generateBody.indexOf('emit("backroomProvider", "Luna")');
-  assert.ok(geminiProvider >= 0 && lunaProvider > geminiProvider, "Gemini must run before Luna");
+  assert.ok(geminiProvider >= 0 && lunaProvider > geminiProvider, "Gemini pool must run before Luna");
 
   const snapshotStart = main.indexOf("private void requestSnapshotInternal(String stateJson)");
   const snapshotEnd = main.indexOf("private void emit", snapshotStart);
