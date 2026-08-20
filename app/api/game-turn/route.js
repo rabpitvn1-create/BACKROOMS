@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { auditTurn } from "../../../lib/ai-audit.js";
 import { generateTurn } from "../../../lib/gemini.js";
 import {
   isGameplayTurn,
@@ -9,6 +10,7 @@ import {
 } from "../../../lib/gameplay.js";
 import { getSessionId } from "../../../lib/session.js";
 import { applyTurnOperations } from "../../../lib/state-ops.js";
+import { AUDIT_LEVEL, scoreTurnRisk } from "../../../lib/turn-risk.js";
 import {
   StateConflictError,
   loadState,
@@ -121,6 +123,65 @@ function approveSnapshot(current, nextState, generated) {
   };
 }
 
+function hardIssues(audits) {
+  return audits.flatMap((audit) => Array.isArray(audit?.issues)
+    ? audit.issues.filter((issue) => issue?.severity === "hard")
+    : []);
+}
+
+async function auditsForRisk({ risk, current, action, rolls, generated, operationResult }) {
+  if (risk.level === AUDIT_LEVEL.NONE) return [];
+
+  const writerSlot = generated?._provider?.workerSlot;
+  const common = {
+    current,
+    action,
+    rolls,
+    generated,
+    acceptedOps: operationResult.accepted,
+    rejectedOps: operationResult.rejected,
+    excludeSlots: Number.isInteger(writerSlot) ? [writerSlot] : [],
+  };
+
+  if (risk.level === AUDIT_LEVEL.NARROW) {
+    return [await auditTurn({ ...common, scope: "canon" })];
+  }
+
+  const results = await Promise.all([
+    auditTurn({ ...common, scope: "canon" }),
+    auditTurn({ ...common, scope: "character" }),
+  ]);
+  return results;
+}
+
+function applyServerFields(current, operationResult, generated, gameplay, rolls) {
+  let nextState = operationResult.state;
+  const nextLevel = levelFromState(nextState);
+  nextState = {
+    ...nextState,
+    title: levelLabel(nextLevel) || current.title,
+    level: nextLevel || current.level,
+    turn: current.turn + (gameplay ? 1 : 0),
+    mode: gameplay ? "ai" : current.mode,
+    canonLoaded: true,
+    canonVersion: current.canonVersion,
+    flags: gameplay
+      ? {
+          ...objectOr(nextState.flags, current.flags),
+          lastRolls: { turn: current.turn, ...rolls },
+          ...(nextLevel ? { currentLevel: nextLevel } : {}),
+        }
+      : current.flags,
+    snapshotUrl: current.snapshotUrl,
+    log: [
+      ...(Array.isArray(current.log) ? current.log : []),
+      { role: "player", text: generated._action },
+      { role: "gm", text: generated.reply.trim() },
+    ],
+  };
+  return nextState;
+}
+
 export async function POST(request) {
   try {
     const sessionId = await getSessionId();
@@ -132,37 +193,54 @@ export async function POST(request) {
     const current = await loadState(sessionId);
     const gameplay = isGameplayTurn(action);
     const rolls = gameplay ? makeRolls(current, action) : null;
-    const generated = await generateTurn(current, action, rolls, { isGameplayTurn: gameplay });
 
-    const operationResult = gameplay
+    let generated = await generateTurn(current, action, rolls, { isGameplayTurn: gameplay });
+    generated._action = action;
+    let operationResult = gameplay
       ? applyTurnOperations(current, generated.ops, { action, rolls })
       : { state: structuredClone(current), accepted: [], rejected: [] };
+    let risk = scoreTurnRisk({
+      current,
+      generated,
+      acceptedOps: operationResult.accepted,
+      rejectedOps: operationResult.rejected,
+    });
+    let audits = await auditsForRisk({ risk, current, action, rolls, generated, operationResult });
+    let issues = hardIssues(audits);
+    let repaired = false;
 
-    let nextState = operationResult.state;
-    const nextLevel = levelFromState(nextState);
-    nextState = {
-      ...nextState,
-      title: levelLabel(nextLevel) || current.title,
-      level: nextLevel || current.level,
-      turn: current.turn + (gameplay ? 1 : 0),
-      mode: gameplay ? "ai" : current.mode,
-      canonLoaded: true,
-      canonVersion: current.canonVersion,
-      flags: gameplay
-        ? {
-            ...objectOr(nextState.flags, current.flags),
-            lastRolls: { turn: current.turn, ...rolls },
-            ...(nextLevel ? { currentLevel: nextLevel } : {}),
-          }
-        : current.flags,
-      snapshotUrl: current.snapshotUrl,
-      log: [
-        ...(Array.isArray(current.log) ? current.log : []),
-        { role: "player", text: action },
-        { role: "gm", text: generated.reply.trim() },
-      ],
-    };
+    if (issues.length) {
+      generated = await generateTurn(current, action, rolls, {
+        isGameplayTurn: gameplay,
+        auditFeedback: issues,
+        excludeSlots: audits.map((audit) => audit.workerSlot).filter(Number.isInteger),
+      });
+      generated._action = action;
+      operationResult = gameplay
+        ? applyTurnOperations(current, generated.ops, { action, rolls })
+        : { state: structuredClone(current), accepted: [], rejected: [] };
+      risk = scoreTurnRisk({
+        current,
+        generated,
+        acceptedOps: operationResult.accepted,
+        rejectedOps: operationResult.rejected,
+      });
+      audits = await auditsForRisk({ risk, current, action, rolls, generated, operationResult });
+      issues = hardIssues(audits);
+      repaired = true;
+    }
 
+    if (issues.length) {
+      return json({
+        error: "Lượt chơi không vượt qua kiểm tra canon; state không được thay đổi.",
+        saved: false,
+        storage: storageName(),
+        auditLevel: risk.level,
+        auditIssues: issues.map((issue) => ({ rule: issue.rule, reason: issue.reason })),
+      }, 422);
+    }
+
+    let nextState = applyServerFields(current, operationResult, generated, gameplay, rolls);
     const snapshot = gameplay
       ? approveSnapshot(current, nextState, generated)
       : { requested: false, type: null, key: null, reason: null };
@@ -182,6 +260,9 @@ export async function POST(request) {
       turnAdvanced: gameplay,
       operationsAccepted: operationResult.accepted.length,
       operationsRejected: operationResult.rejected.map((entry) => entry.reason),
+      auditLevel: risk.level,
+      auditCount: audits.length,
+      auditRepaired: repaired,
       snapshotRequested: snapshot.requested,
       snapshotType: snapshot.type,
       snapshotReason: snapshot.reason,
