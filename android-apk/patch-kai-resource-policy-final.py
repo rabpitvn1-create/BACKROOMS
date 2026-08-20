@@ -38,27 +38,15 @@ old_ops = '''    JSONArray ops = generated.optJSONArray("ops");
 '''
 new_ops = '''    JSONArray ops = generated.optJSONArray("ops");
     if (ops == null) ops = new JSONArray();
-    if ("omnivault_restore".equals(basis) && !source.isEmpty() &&
-        !(pickupTokenOverlapAndroid(source, finalName) && pickupTokenOverlapAndroid(finalName, source))) {
-      for (int i = ops.length() - 1; i >= 0; i--) {
-        JSONObject sourceOp = ops.optJSONObject(i);
-        if (sourceOp == null || !"inventory_upsert".equalsIgnoreCase(sourceOp.optString("type", ""))) continue;
-        JSONObject sourceItem = sourceOp.optJSONObject("item");
-        String sourceName = sourceItem != null ? sourceItem.optString("name", "") : "";
-        boolean sameSource = !sourceName.isEmpty() && pickupTokenOverlapAndroid(sourceName, source) && pickupTokenOverlapAndroid(source, sourceName);
-        boolean sameTarget = !sourceName.isEmpty() && pickupTokenOverlapAndroid(sourceName, finalName) && pickupTokenOverlapAndroid(finalName, sourceName);
-        if (sameSource && !sameTarget) ops.remove(i);
-      }
-    }
     boolean matched = false;
 '''
-replace_once(old_ops, new_ops, "drop pre-restore source operation")
+replace_once(old_ops, new_ops, "keep restore reconciliation resource-conserving")
 
 old_prompt = '''      "Inventory chỉ đổi khi Kai thật sự lấy/nhận/copy/trao/mất/tiêu thụ vật; nhìn thấy không đồng nghĩa sở hữu. MadGod roll success chỉ mở discovery route, không tự đưa set vào inventory. " +'''
-new_prompt = '''      "Inventory là sổ continuity/sở hữu của Kai, không phải cơ chế encumbrance hay survival scarcity để nerf Kai. Vật vô tri cất trong Omnivault vẫn phải hiện trong inventory. " +
-      "Loot roll chỉ quyết định đồ mới do thế giới sinh ra; không được dùng loot roll để khóa Store/Restore/Copy hợp canon của Omnivault sau khi vật nguồn đã được cảnh xác nhận. " +
-      "Khi player dùng Hoàn nguyên trên vật vô tri hợp lệ, phải mô tả đúng kết quả và inventory_upsert phải ghi vật SAU HOÀN NGUYÊN nếu player cất nó. Ví dụ: vỏ chai -> hoàn nguyên thành chai nước -> cất kho thì inventory có chai nước. " +
-      "Không dựng thiếu đạn, nước, đồ ăn hay vật tư thông thường chỉ để cân bằng Kai; thử thách phải đến từ thông tin, mục tiêu bảo vệ, không gian, quan hệ, lựa chọn hoặc đối thủ hợp canon. " +
+new_prompt = '''      "Inventory là sổ continuity/sở hữu của Kai, không phải cơ chế encumbrance. Vật vô tri cất trong Omnivault vẫn phải hiện trong inventory. " +
+      "KHÓA CỨNG HOÀN NGUYÊN: Restore chỉ đưa CHÍNH VẬT PHẨM ĐÓ về trạng thái vật lý tốt nhất có thể; giữ nguyên identity và số lượng object. Restore tuyệt đối không tạo vật phẩm mới, không đổi vật chứa thành một item tài nguyên khác, không refill và không tăng nước/thức ăn/đạn/nhiên liệu/thuốc/điện tích/nguyên liệu đã tiêu hao. " +
+      "Với vật chứa, chỉ cấu trúc vỏ/nắp/niêm phong được phục hồi; lượng vật chất bên trong sau Restore phải bằng lượng còn sót lại trước Restore. Ví dụ vỏ chai nước rỗng có thể trở về chai nguyên vẹn/đóng nắp nhưng vẫn 0 nước; hộp thức ăn rỗng có thể về hộp nguyên vẹn nhưng vẫn 0 thức ăn. " +
+      "Copy là chức năng duy nhất trong nhóm này có thể tạo thêm object từ scan template; không được dùng Restore như Copy trá hình. " +
       "Inventory chỉ đổi khi Kai thật sự lấy/nhận/copy/trao/mất/tiêu thụ vật; nhìn thấy không đồng nghĩa sở hữu. MadGod roll success chỉ mở discovery route, không tự đưa set vào inventory. " +'''
 replace_once(old_prompt, new_prompt, "Kai resource policy prompt")
 
@@ -66,14 +54,13 @@ for required in [
     '"omnivault_restore".equals(pickupBasis)',
     'boolean directionalOnly = weak.equals("lên")',
     'if (!candidate.isEmpty() && !directionalOnly) return candidate;',
-    'if ("omnivault_restore".equals(basis) && !source.isEmpty()',
-    "ops.remove(i)",
-    "Inventory là sổ continuity/sở hữu của Kai",
-    "vỏ chai -> hoàn nguyên thành chai nước -> cất kho",
-    "Không dựng thiếu đạn, nước, đồ ăn hay vật tư thông thường",
+    "KHÓA CỨNG HOÀN NGUYÊN",
+    "vẫn 0 nước",
+    "vẫn 0 thức ăn",
+    "Copy là chức năng duy nhất",
 ]:
     if required not in text:
         raise RuntimeError(f"Kai resource policy marker missing: {required}")
 
 MAIN.write_text(text, encoding="utf-8")
-print("Kai overpower resource policy applied: directional pickup tokens are rejected, Omnivault Restore replaces the source continuity record, and loot scarcity cannot nerf Kai.")
+print("Kai resource policy applied: Omnivault Restore repairs the same object while conserving all consumed resources; Restore can never behave like Copy/refill.")
