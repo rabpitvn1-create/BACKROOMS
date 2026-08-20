@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - ai-orchestrator-r1
+      - hybrid-gemini-fallback-r2
   pull_request:
     branches:
       - main
@@ -48,6 +49,7 @@ jobs:
           python3 android-apk/patch-final-authority-hardening.py
           python3 android-apk/patch-rejected-op-repair-final.py
           python3 android-apk/patch-provider-deadline-final.py
+          python3 android-apk/patch-gemini-model-matrix-final.py
           python3 android-apk/patch-java-compile-hardening.py
           python3 android-apk/patch-save-controls-final.py
           python3 android-apk/patch-hard-mode-label.py

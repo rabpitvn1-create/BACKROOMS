@@ -7,7 +7,7 @@ import { spawnSync } from "node:child_process";
 
 const root = process.cwd();
 
-test("Android release patch chain keeps system font, hardens save controls and restores Gemini lanes", (t) => {
+test("Android release patch chain keeps authoritative gameplay and model-first Gemini fallback", (t) => {
   const temporaryRoot = mkdtempSync(path.join(tmpdir(), "backroom-android-test-"));
   t.after(() => rmSync(temporaryRoot, { recursive: true, force: true }));
   const source = path.join(root, "android-apk");
@@ -16,11 +16,12 @@ test("Android release patch chain keeps system font, hardens save controls and r
 
   const buildGradle = readFileSync(path.join(source, "app/build.gradle"), "utf8");
   const workflow = readFileSync(path.join(root, ".github/workflows/build-backroom-apk.yml"), "utf8");
-  assert.match(buildGradle, /versionCode 34/);
-  assert.match(buildGradle, /versionName '1\.1\.32'/);
-  assert.match(workflow, /Backroom-1\.1\.32\.apk/);
-  assert.match(workflow, /RELEASE_NOTES_1\.1\.32\.txt/);
+  assert.match(buildGradle, /versionCode 35/);
+  assert.match(buildGradle, /versionName '1\.1\.33'/);
+  assert.match(workflow, /Backroom-1\.1\.33\.apk/);
+  assert.match(workflow, /RELEASE_NOTES_1\.1\.33\.txt/);
   assert.match(workflow, /patch-save-controls-final\.py/);
+  assert.match(workflow, /patch-gemini-model-matrix-final\.py/);
   assert.doesNotMatch(workflow, /patch-space-habitat-font\.py/);
 
   for (let slot = 1; slot <= 5; slot += 1) {
@@ -62,6 +63,7 @@ test("Android release patch chain keeps system font, hardens save controls and r
     "patch-final-authority-hardening.py",
     "patch-rejected-op-repair-final.py",
     "patch-provider-deadline-final.py",
+    "patch-gemini-model-matrix-final.py",
     "patch-java-compile-hardening.py",
     "patch-save-controls-final.py",
     "patch-hard-mode-label.py",
@@ -108,22 +110,28 @@ test("Android release patch chain keeps system font, hardens save controls and r
   assert.match(main, /appendIssues\(hardIssues, rejectedOperationIssuesAndroid/);
 
   assert.match(main, /private String postJsonFast\(/);
-  assert.match(main, /setConnectTimeout\(5000\)/);
   assert.match(main, /setReadTimeout\(18000\)/);
-  assert.match(main, /thinkingConfig/);
-  assert.match(main, /thinkingLevel", "low"/);
-  const policyStart = main.indexOf("private String geminiTextPolicy(");
-  const policyEnd = main.indexOf("private String geminiText(String prompt)", policyStart);
-  const policyBody = main.slice(policyStart, policyEnd);
-  assert.doesNotMatch(policyBody, /\.put\("temperature", temperature\)/);
-  assert.match(policyBody, /for \(int attempt = 0; attempt < 1; attempt\+\+\)/);
-  assert.match(main, /emit\("backroomProvider", "Gemini K" \+ \(lastGeminiWorker \+ 1\)\)/);
-  assert.match(main, /emit\("backroomProvider", "Luna fallback"\)/);
-
   assert.match(main, /private String postJsonLunaFast\(/);
   assert.match(main, /setConnectTimeout\(12000\)/);
   assert.match(main, /setReadTimeout\(12000\)/);
   assert.match(main, /RECENT LOG ONLY/);
+
+  assert.match(main, /private String\[\] geminiModelChain\(\)/);
+  assert.match(main, /"gemini-3\.6-flash", "gemini-3\.5-flash", "gemini-3\.5-flash-lite"/);
+  assert.match(main, /geminiModelMatrixPolicy\(prompt, new int\[\] \{0, 1, 2\}/);
+  assert.match(main, /geminiModelMatrixPolicy\(prompt, new int\[\] \{2, 1\}/);
+  assert.match(main, /geminiCredentialDisabledUntilMatrix/);
+  assert.match(main, /geminiLaneCooldownUntilMatrix/);
+  assert.match(main, /geminiModelCircuitUntilMatrix/);
+  assert.match(main, /geminiHostCircuitUntilMatrix/);
+  assert.match(main, /Integer\.bitCount\(geminiModelTransientMaskMatrix\[modelIndex\]\) >= 3/);
+  assert.match(main, /Integer\.bitCount\(geminiTransportMaskMatrix\) >= 3/);
+  assert.match(main, /code == 400 \|\| code == 404/);
+  assert.match(main, /code == 429/);
+  assert.match(main, /thinkingLevel", geminiThinkingLevel\(modelIndex\)/);
+  assert.match(main, /modelIndex == 2 \? "minimal" : "low"/);
+  assert.match(main, /geminiModelLabel\(lastGeminiModel\) \+ " K" \+ \(lastGeminiWorker \+ 1\)/);
+  assert.match(main, /emit\("backroomProvider", "Luna fallback"\)/);
 
   assert.match(index, /body\{margin:0;background:#080a0c;color:#eef1f3;font:15px system-ui,sans-serif\}/);
   assert.doesNotMatch(index, /MBF Space Habitat|data:font\/woff2;base64/);
@@ -155,9 +163,9 @@ test("Android release patch chain keeps system font, hardens save controls and r
   const generateStart = main.indexOf("private String generateText(String prompt)");
   const generateEnd = main.indexOf("private JSONObject parseModelJson", generateStart);
   const generateBody = main.slice(generateStart, generateEnd);
-  assert.ok(generateBody.indexOf('emit("backroomProvider", "Gemini")') >= 0);
-  assert.ok(generateBody.indexOf('emit("backroomProvider", "Gemini K"') > generateBody.indexOf('emit("backroomProvider", "Gemini")'));
-  assert.ok(generateBody.indexOf('emit("backroomProvider", "Luna fallback")') > generateBody.indexOf('emit("backroomProvider", "Gemini K"'));
+  assert.ok(generateBody.indexOf('emit("backroomProvider", "Gemini 3.6 Flash")') >= 0);
+  assert.ok(generateBody.indexOf("geminiModelLabel(lastGeminiModel)") > generateBody.indexOf('emit("backroomProvider", "Gemini 3.6 Flash")'));
+  assert.ok(generateBody.indexOf('emit("backroomProvider", "Luna fallback")') > generateBody.indexOf("geminiModelLabel(lastGeminiModel)"));
 
   const snapshotStart = main.indexOf("private void requestSnapshotInternal(String stateJson)");
   const snapshotEnd = main.indexOf("private void emit", snapshotStart);
