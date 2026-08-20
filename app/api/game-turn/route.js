@@ -8,8 +8,8 @@ import {
   makeRolls,
   sameLevel,
 } from "../../../lib/gameplay.js";
+import { applyTurnWithPickupReconcile } from "../../../lib/inventory-reconcile.js";
 import { getSessionId } from "../../../lib/session.js";
-import { applyTurnOperations } from "../../../lib/state-ops.js";
 import { AUDIT_LEVEL, scoreTurnRisk } from "../../../lib/turn-risk.js";
 import {
   StateConflictError,
@@ -132,7 +132,10 @@ export async function POST(request) {
 
     let generated = await generateTurn(current, action, rolls, { isGameplayTurn: gameplay });
     generated._action = action;
-    let operationResult = gameplay ? applyTurnOperations(current, generated.ops, { action, rolls }) : { state: structuredClone(current), accepted: [], rejected: [] };
+    let operationResult = gameplay
+      ? applyTurnWithPickupReconcile(current, generated, action, rolls)
+      : { state: structuredClone(current), accepted: [], rejected: [], ops: [] };
+    if (gameplay) generated.ops = operationResult.ops;
     let risk = scoreTurnRisk({ current, generated, acceptedOps: operationResult.accepted, rejectedOps: operationResult.rejected });
     let audits = await auditsForRisk({ risk, current, action, rolls, generated, operationResult });
     let issues = [...rejectedOperationIssues(operationResult), ...hardIssues(audits)];
@@ -145,7 +148,10 @@ export async function POST(request) {
         excludeSlots: audits.map((audit) => audit.workerSlot).filter(Number.isInteger),
       });
       generated._action = action;
-      operationResult = gameplay ? applyTurnOperations(current, generated.ops, { action, rolls }) : { state: structuredClone(current), accepted: [], rejected: [] };
+      operationResult = gameplay
+        ? applyTurnWithPickupReconcile(current, generated, action, rolls)
+        : { state: structuredClone(current), accepted: [], rejected: [], ops: [] };
+      if (gameplay) generated.ops = operationResult.ops;
       risk = scoreTurnRisk({ current, generated, acceptedOps: operationResult.accepted, rejectedOps: operationResult.rejected });
       audits = await auditsForRisk({ risk, current, action, rolls, generated, operationResult });
       issues = [...rejectedOperationIssues(operationResult), ...hardIssues(audits)];
