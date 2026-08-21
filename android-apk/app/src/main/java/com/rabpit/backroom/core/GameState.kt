@@ -7,9 +7,9 @@ const val KAI_BLACKBLOOD_ARMOR_ID = "kai:blackblood-armor"
 const val KAI_OMNIVAULT_RING_ID = "kai:omnivault-ring"
 
 object KaiStartingEquipment {
-  const val WEAPON_NAME = "White Wraith Magnum"
+  const val WEAPON_NAME = "W.W Magnum"
   const val ARMOR_NAME = "Blackblood Armor & linked modules"
-  const val RING_NAME = "Omnivault Ring / Nhẫn Vạn Tàng"
+  const val RING_NAME = "Omnivault Ring"
 
   val slots: Map<String, String> = linkedMapOf(
     "weapon" to KAI_WHITE_WRAITH_ID,
@@ -27,7 +27,7 @@ object KaiStartingEquipment {
   fun slotFor(itemId: String, itemName: String): String? {
     val key = "$itemId $itemName".lowercase()
     return when {
-      key.contains("white wraith") || key.contains("wraith magnum") -> "weapon"
+      key.contains("w.w magnum") || key.contains("white wraith") || key.contains("wraith magnum") -> "weapon"
       key.contains("blackblood armor") || key.contains("black blood armor") -> "armor"
       key.contains("omnivault ring") || key.contains("nhẫn omnivault") || key.contains("nhẫn vạn tàng") || key.contains("van tang") -> "ring"
       else -> null
