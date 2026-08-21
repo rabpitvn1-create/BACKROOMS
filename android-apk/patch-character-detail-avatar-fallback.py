@@ -52,3 +52,6 @@ runpy.run_path(str(ROOT / "patch-entity-encounter-plus-8pct.py"), run_name="__ma
 
 # Android immersive fullscreen: hide status/navigation bars with transient swipe reveal.
 runpy.run_path(str(ROOT / "patch-immersive-fullscreen.py"), run_name="__main__")
+
+# Final runtime authority: replace legacy canon blobs with the indexed, budgeted local knowledge packet.
+runpy.run_path(str(ROOT / "patch-knowledge-context-builder.py"), run_name="__main__")
