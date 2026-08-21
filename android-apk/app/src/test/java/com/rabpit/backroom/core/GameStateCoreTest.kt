@@ -13,10 +13,16 @@ class GameStateCoreTest {
     )
   }
 
-  private fun item(id: String, op: ItemCommand.Operation, quantity: Int = 1, target: String? = null, slot: String? = null) =
-    ItemCommand("cmd-$id-$op-$quantity-${target.orEmpty()}", "TURN_1", KAI_ID, target, CommandSource.RULE, op, id, id, quantity, slot)
+  private fun item(
+    id: String,
+    op: ItemCommand.Operation,
+    quantity: Int = 1,
+    target: String? = null,
+    slot: String? = null,
+    source: CommandSource = CommandSource.SYSTEM
+  ) = ItemCommand("cmd-$id-$op-$quantity-${target.orEmpty()}-$source", "TURN_1", KAI_ID, target, source, op, id, id, quantity, slot)
 
-  @Test fun pickupDropAndDuplicateAreDeterministic() {
+  @Test fun authoritativeGrantDropAndDuplicateAreDeterministic() {
     val picked = StateReducer.execute(base(), item("water", ItemCommand.Operation.PICKUP))
     assertEquals(1, picked.state.inventories.getValue(KAI_ID).items.getValue("water").quantity)
     val duplicate = StateReducer.execute(picked.state, item("water", ItemCommand.Operation.PICKUP))
@@ -24,6 +30,17 @@ class GameStateCoreTest {
     assertEquals(1, duplicate.state.inventories.getValue(KAI_ID).items.getValue("water").quantity)
     val dropped = StateReducer.execute(picked.state, item("water", ItemCommand.Operation.DROP))
     assertFalse(dropped.state.inventories.getValue(KAI_ID).items.containsKey("water"))
+  }
+
+  @Test fun playerPickupIsRejectedButStoryGrantIsAllowed() {
+    val playerPickup = StateReducer.execute(base(), item("water", ItemCommand.Operation.PICKUP, source = CommandSource.RULE))
+    assertFalse(playerPickup.applied)
+    assertEquals("player_pickup_unavailable", playerPickup.validation.reason)
+    assertTrue(playerPickup.state.inventories.getValue(KAI_ID).items.isEmpty())
+
+    val storyGrant = StateReducer.execute(base(), item("water", ItemCommand.Operation.PICKUP, source = CommandSource.GEMINI))
+    assertTrue(storyGrant.applied)
+    assertEquals(1, storyGrant.state.inventories.getValue(KAI_ID).items.getValue("water").quantity)
   }
 
   @Test fun transferRequiresOwnershipAndKnownTarget() {
@@ -75,7 +92,7 @@ class GameStateCoreTest {
     assertEquals("living_target_forbidden", living.validation.reason)
   }
 
-  @Test fun omnivaultThreeSlotsCopiesStackAndRestoreConservesResources() {
+  @Test fun omnivaultThreeSlotsAndCopyRemainGameplayMechanics() {
     var state = base()
     for (i in 1..4) {
       state = StateReducer.execute(state, item("original-$i", ItemCommand.Operation.PICKUP)).state
@@ -88,31 +105,19 @@ class GameStateCoreTest {
     val copied = StateReducer.execute(state, OmnivaultCommand("copy", "TURN_1", KAI_ID, source = CommandSource.RULE, operation = OmnivaultCommand.Operation.COPY, itemId = "original-4", itemName = "Item 4", quantity = 2))
     assertEquals(3, copied.state.inventories.getValue(KAI_ID).items.getValue("original-4").quantity)
     assertEquals("2", copied.state.inventories.getValue(KAI_ID).items.getValue("original-4").metadata["omnivaultCopyCount"])
+  }
 
-    val emptyBottle = ItemStack(
-      "empty-bottle", "Vỏ chai nước rỗng", quantity = 1, condition = "DENTED_OPEN",
-      metadata = mapOf("remainingContent" to "0", "contentType" to "water")
-    )
-    val withBottle = copied.state.copy(
-      inventories = copied.state.inventories + (KAI_ID to copied.state.inventories.getValue(KAI_ID).copy(
-        items = copied.state.inventories.getValue(KAI_ID).items + (emptyBottle.itemId to emptyBottle)
-      ))
-    )
-    val restored = StateReducer.execute(withBottle, OmnivaultCommand(
-      "restore", "TURN_1", KAI_ID, source = CommandSource.UI, operation = OmnivaultCommand.Operation.RESTORE,
-      itemId = "empty-bottle", itemName = "Vỏ chai nước rỗng", timestampEpochMs = 1000
+  @Test fun restoreIsNarrativeOnlyAndCannotMutateInventoryState() {
+    val withItem = StateReducer.execute(base(), item("old-gun", ItemCommand.Operation.PICKUP)).state
+    val before = withItem.inventories.getValue(KAI_ID).items.getValue("old-gun")
+    val restored = StateReducer.execute(withItem, OmnivaultCommand(
+      "restore", "TURN_1", KAI_ID, source = CommandSource.UI,
+      operation = OmnivaultCommand.Operation.RESTORE,
+      itemId = "old-gun", itemName = "Old Gun", timestampEpochMs = 1000
     ))
-    val restoredBottle = restored.state.inventories.getValue(KAI_ID).items.getValue("empty-bottle")
-    assertEquals(1, restoredBottle.quantity)
-    assertEquals("BEST_CONDITION", restoredBottle.condition)
-    assertEquals("0", restoredBottle.metadata["remainingContent"])
-    assertEquals("water", restoredBottle.metadata["contentType"])
-    assertEquals("BEST_CONDITION_RESOURCE_CONSERVING", restoredBottle.metadata["restoreMode"])
-    assertFalse(restored.state.inventories.getValue(KAI_ID).items.containsKey("water-bottle"))
-    assertEquals("empty-bottle", restored.state.metadata["lastReferencedItemId"])
-
-    val cooldown = StateReducer.execute(restored.state, OmnivaultCommand("restore-again", "TURN_1", KAI_ID, source = CommandSource.UI, operation = OmnivaultCommand.Operation.RESTORE, itemId = "empty-bottle", itemName = "Vỏ chai nước rỗng", timestampEpochMs = 1001))
-    assertEquals("restore_cooldown_active", cooldown.validation.reason)
+    assertFalse(restored.applied)
+    assertEquals("restore_narrative_only", restored.validation.reason)
+    assertEquals(before, restored.state.inventories.getValue(KAI_ID).items.getValue("old-gun"))
   }
 
   @Test fun geminiWorldDeltaNeedsGameEngineValidation() {
