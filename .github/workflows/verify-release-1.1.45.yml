@@ -1,40 +1,18 @@
-# Backroom 1.1.45 release verification trigger
-name: Train LiteRT Intent Classifier
+name: Verify Backroom 1.1.45
 
 on:
-  workflow_dispatch:
   pull_request:
-    paths:
-      - "android-apk/ml/**"
-      - "android-apk/app/src/main/java/com/rabpit/backroom/core/**"
-      - "android-apk/app/src/test/java/com/rabpit/backroom/core/**"
-      - "android-apk/app/src/main/assets/models/**"
-      - "android-apk/app/build.gradle"
-      - "android-apk/build.gradle"
-      - ".github/workflows/train-litert-intent.yml"
-  push:
     branches:
       - main
-      - "feat/**"
-      - "fix/**"
     paths:
-      - "android-apk/ml/**"
-      - "android-apk/app/src/main/java/com/rabpit/backroom/core/**"
-      - "android-apk/app/src/test/java/com/rabpit/backroom/core/**"
-      - "android-apk/app/src/main/assets/models/**"
-      - "android-apk/app/build.gradle"
-      - "android-apk/build.gradle"
-      - ".github/workflows/train-litert-intent.yml"
+      - ".github/workflows/verify-release-1.1.45.yml"
+      - "android-apk/**"
 
 permissions:
   contents: read
 
-concurrency:
-  group: litert-intent-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  train-verify-build:
+  verify-build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -46,31 +24,22 @@ jobs:
           cache: pip
           cache-dependency-path: android-apk/ml/requirements.txt
 
-      - name: Install ML toolchain
-        run: python -m pip install --requirement android-apk/ml/requirements.txt
-
-      - name: Rebuild reviewed dataset
-        run: python android-apk/ml/build_intent_dataset.py
-
-      - name: Gate dataset and feature quality
-        run: python android-apk/ml/evaluate_seed_classifier.py
-
-      - name: Train, quantize and validate exported LiteRT model
-        working-directory: android-apk/ml
-        run: >-
-          python train_intent_classifier.py
-          --dataset intent_dataset.csv
-          --labels ../app/src/main/assets/models/backroom_intent_labels.txt
-          --output ../app/src/main/assets/models/backroom_intent.tflite
-          --report intent_model_report.json
-
-      - name: Enforce APK model footprint
+      - name: Train and verify tiny LiteRT intent model
         run: |
-          test -s android-apk/app/src/main/assets/models/backroom_intent.tflite
-          bytes=$(stat -c%s android-apk/app/src/main/assets/models/backroom_intent.tflite)
+          python -m pip install --requirement android-apk/ml/requirements.txt
+          python android-apk/ml/build_intent_dataset.py
+          python android-apk/ml/evaluate_seed_classifier.py
+          cd android-apk/ml
+          python train_intent_classifier.py \
+            --dataset intent_dataset.csv \
+            --labels ../app/src/main/assets/models/backroom_intent_labels.txt \
+            --output ../app/src/main/assets/models/backroom_intent.tflite \
+            --report intent_model_report.json
+          test -s ../app/src/main/assets/models/backroom_intent.tflite
+          bytes=$(stat -c%s ../app/src/main/assets/models/backroom_intent.tflite)
           test "$bytes" -le 5242880 || (echo "LiteRT model exceeds 5 MiB: $bytes" && exit 1)
 
-      - name: Apply exact Android release patch chain before core tests
+      - name: Apply exact release patch chain
         run: |
           python3 android-apk/patch-provider-status.py
           python3 android-apk/patch-luna-text.py
@@ -101,26 +70,35 @@ jobs:
           python3 android-apk/patch-character-inventory-ui.py
           python3 android-apk/patch-character-detail-avatar-fallback.py
 
+      - name: Verify 1.1.45 and An Nhien cheat contracts
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          gradle = Path('android-apk/app/build.gradle').read_text(encoding='utf-8')
+          canon = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/AnNhienCanon.kt').read_text(encoding='utf-8')
+          facade = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt').read_text(encoding='utf-8')
+          tests = Path('android-apk/app/src/test/java/com/rabpit/backroom/core/AnNhienFollowerTest.kt').read_text(encoding='utf-8')
+          assert "versionCode 47" in gradle
+          assert "versionName '1.1.45'" in gradle
+          assert 'PARTY_CHEAT_CODE = "/annhien1234"' in canon
+          assert 'matchesPartyCheatCode(action)' in facade
+          assert 'applyAnNhienPartyCheat(legacy, state)' in facade
+          assert 'slashCheatInstantlyAddsAnNhienAndIsIdempotent' in tests
+          PY
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
-
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.10.2"
 
-      - name: Compile Kotlin core and run unit tests
+      - name: Run Kotlin core tests and build APK
         working-directory: android-apk
         run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
 
-      - name: Upload verified model and metrics
-        uses: actions/upload-artifact@v4
-        with:
-          name: backroom-litert-intent-${{ github.sha }}
-          path: |
-            android-apk/app/src/main/assets/models/backroom_intent.tflite
-            android-apk/ml/intent_model_report.json
-            android-apk/app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
-          retention-days: 14
+      - name: Verify APK exists
+        run: |
+          test -s android-apk/app/build/outputs/apk/debug/app-debug.apk
+          unzip -l android-apk/app/build/outputs/apk/debug/app-debug.apk | grep -q 'assets/index.html'
