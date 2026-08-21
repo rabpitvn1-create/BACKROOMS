@@ -11,9 +11,6 @@ def replace_once(old: str, new: str, label: str):
         raise RuntimeError(f"{label}: expected exactly 1 match, found {count}")
     text = text.replace(old, new, 1)
 
-# New inventory must be supported by structured state or a locked discovery roll.
-# A later reconciliation patch may additionally mark an ordinary item as
-# gm_confirmed_pickup, but only after the GM reply explicitly confirms the pickup.
 old_inventory = r'''        boolean allowedNew = acquisitionIntent(action);
         JSONObject beforeFlagsForItem = before.optJSONObject("flags");
         JSONObject beforeMadGodForItem = beforeFlagsForItem != null ? beforeFlagsForItem.optJSONObject("madGod") : null;
@@ -34,13 +31,12 @@ new_inventory = r'''        boolean allowedNew = false;
         if (!establishedStructured && omnivaultForItem != null) establishedStructured = lower(omnivaultForItem.toString()).contains(lower(name));
         if (!establishedStructured && beforeMadGodForItem != null) establishedStructured = lower(beforeMadGodForItem.toString()).contains(lower(name));
         boolean madGodAlreadySpawned = beforeMadGodForItem != null && beforeMadGodForItem.optBoolean("spawned", false);
-        boolean confirmedMundanePickup = "gm_confirmed_pickup".equals(lower(op.optString("basis", ""))) && mundanePickupName(name);
         if (existing >= 0) allowedNew = true;
         else if (acquisitionIntent(action)) {
           if (madGod) allowedNew = madGodAlreadySpawned && establishedStructured;
           else if (almond) allowedNew = establishedStructured || rollSuccess(rolls, "almondWater");
           else if (containsAny(action, "copy", "sao chép")) allowedNew = establishedStructured;
-          else allowedNew = establishedStructured || rollSuccess(rolls, "loot") || confirmedMundanePickup;
+          else allowedNew = establishedStructured || rollSuccess(rolls, "loot");
         }
 '''
 replace_once(old_inventory, new_inventory, "structured inventory acquisition")
@@ -145,8 +141,6 @@ new_risk_tail = r'''    if (hasParty && containsAny(reply, "yêu", "thích", "gh
 '''
 replace_once(old_risk_tail, new_risk_tail, "rejected proposal audit risk")
 
-# Text calls get their own strict HTTP timeout. Snapshot calls continue using the
-# original longer postJson(), so image generation is not accidentally degraded.
 fast_http = r'''  private String postJsonFast(String endpoint, String key, String authHeader, JSONObject payload) throws Exception {
     HttpURLConnection connection = (HttpURLConnection) new URL(endpoint).openConnection();
     connection.setRequestMethod("POST");
@@ -190,9 +184,13 @@ old_call = r'''              JSONObject result = new JSONObject(postJson(
 new_call = old_call.replace("postJson(", "postJsonFast(")
 replace_once(old_call, new_call, "Gemini fast HTTP call")
 
-for required in ["establishedStructured", "confirmedMundanePickup", "worldConsequence", "exitMutation", "JSONArray proposed", "private String postJsonFast(", "setReadTimeout(5000)"]:
+for required in ["establishedStructured", "worldConsequence", "exitMutation", "JSONArray proposed", "private String postJsonFast(", "setReadTimeout(5000)"]:
     if required not in text:
         raise RuntimeError(f"final authority hardening missing marker: {required}")
 
+for retired in ["gm_confirmed_pickup", "confirmedMundanePickup", "mundanePickupName("]:
+    if retired in text:
+        raise RuntimeError(f"retired pickup reconciliation marker survived: {retired}")
+
 MAIN.write_text(text, encoding="utf-8")
-print("Final Android authority hardening applied: structured inventory plus reconciled mundane pickup gate, player/exit gates, rejected-op audit risk and real 5s Gemini text timeout.")
+print("Final Android authority hardening applied without retired pickup reconciliation.")
