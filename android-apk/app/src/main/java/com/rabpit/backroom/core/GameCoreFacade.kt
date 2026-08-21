@@ -31,7 +31,7 @@ class GameCoreFacade private constructor(
 
     // Player text never has authority to manufacture an acquisition event. Reject immediately,
     // do not call Gemini, do not advance the turn, and do not mutate Inventory.
-    if (interpreted.candidates.any { it.intent == GameIntent.PICKUP_ITEM }) {
+    if (isDirectPlayerPickupAction(action) || interpreted.candidates.any { it.intent == GameIntent.PICKUP_ITEM }) {
       val result = syncLegacy(legacy, state, incrementTurn = false)
       val reply = validationReply("player_pickup_unavailable")
       appendLog(result, action, reply)
@@ -86,7 +86,7 @@ class GameCoreFacade private constructor(
     val commands = mutableListOf<GameCommand>()
     val current = pending.state.inventories[KAI_ID]?.items.orEmpty()
     val actionIntents = rules.interpretSync(action, contextFor(pending.state)).candidates.map { it.intent }.toSet()
-    val inventoryLocked = GameIntent.PICKUP_ITEM in actionIntents || GameIntent.OMNIVAULT_RESTORE in actionIntents
+    val inventoryLocked = isDirectPlayerPickupAction(action) || GameIntent.PICKUP_ITEM in actionIntents || GameIntent.OMNIVAULT_RESTORE in actionIntents
 
     val desiredById = mutableMapOf<String, ItemStack>()
     if (inventoryLocked) {
@@ -174,6 +174,15 @@ class GameCoreFacade private constructor(
     val actors = state.characters.values.associate { it.name.lowercase() to it.id } + mapOf("kai" to KAI_ID, "iris" to "iris", "syvial" to "syvial")
     val items = (state.inventories.values.flatMap { it.items.values } + state.omnivault.storedItems.values).associate { it.name.lowercase() to it.itemId }
     return GameContext(state, actors, items)
+  }
+
+  private fun isDirectPlayerPickupAction(action: String): Boolean {
+    val text = action.trim()
+    val omnivaultWithdrawal = Regex("(?:lấy|rút|triệu hồi).*(?:ra khỏi|khỏi|từ).*(?:omnivault|nhẫn|kho)", RegexOption.IGNORE_CASE).containsMatchIn(text)
+    if (omnivaultWithdrawal) return false
+    val directVerb = Regex("(?:^|\\s)(?:nhặt|lượm|cầm\\s+lên|lấy(?:\\s+lên)?|thu\\s+hồi|tịch\\s+thu|nhận(?:\\s+lấy)?|pick\\s+up|take|receive)(?:\\s|$)", RegexOption.IGNORE_CASE)
+    val inventoryAssertion = Regex("(?:thêm|bỏ|đưa).{0,80}(?:vào|trong)\\s+(?:inventory|kho đồ|túi đồ)", RegexOption.IGNORE_CASE)
+    return directVerb.containsMatchIn(text) || inventoryAssertion.containsMatchIn(text)
   }
 
   private fun nextTurnId(legacy: JSONObject, state: GameState): String {
