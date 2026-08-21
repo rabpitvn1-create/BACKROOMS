@@ -1,0 +1,9 @@
+Backroom 1.1.48
+
+- Replaces ephemeral GitHub runner debug signing with a fixed Android release signing identity.
+- Builds the published APK from the release variant instead of copying app-debug.apk into a release asset.
+- Verifies the APK signature certificate before upload and verifies the published asset again after download.
+- Verifies the application ID and launcher activity before publishing.
+- Keeps the Drive-authoritative knowledge database, budgeted Context Builder, deterministic story continuity, local canon validator and existing gameplay/runtime fixes from 1.1.47.
+- Signing identity fingerprint: SHA-256 85:65:06:0A:EF:73:28:0D:E5:FE:80:D2:9F:67:17:50:25:EA:F9:EB:9C:5A:B3:49:7F:CA:91:D8:3D:E1:53:CA.
+- This release starts the stable signing lineage. APKs from future releases must use the same signing identity.
