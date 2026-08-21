@@ -79,29 +79,37 @@ text = replace_method(
       MainActivity.this, before.toString(), generated.toString()));
     JSONArray issues = result.optJSONArray("issues");
     return issues == null ? new JSONArray() : issues;
-  }
-
-  private void appendIssues(JSONArray target, JSONArray source) throws Exception {
-    if (target == null || source == null) return;
-    for (int i = 0; i < source.length(); i++) {
-      JSONObject issue = source.optJSONObject(i);
-      if (issue != null) target.put(issue);
-    }
   }'''
 )
 
-# Deterministic validator always runs. It can request the single existing repair even when
-# semantic critic risk is below threshold. The semantic critic remains conditional.
-needle_first = "          JSONArray hardIssues = hardAuditIssues(audits);\n          boolean repaired = false;"
-replacement_first = "          JSONArray hardIssues = hardAuditIssues(audits);\n          appendIssues(hardIssues, localKnowledgeIssues(before, generated));\n          boolean repaired = false;"
+# Deterministic validator always runs. Rejected-op checks already have appendIssues() from
+# patch-rejected-op-repair-final.py, so reuse that helper rather than defining a duplicate.
+needle_first = (
+    "          JSONArray hardIssues = hardAuditIssues(audits);\n"
+    "          if (!meta) appendIssues(hardIssues, rejectedOperationIssuesAndroid(before, candidateState, generated));\n"
+    "          boolean repaired = false;"
+)
+replacement_first = (
+    "          JSONArray hardIssues = hardAuditIssues(audits);\n"
+    "          if (!meta) appendIssues(hardIssues, rejectedOperationIssuesAndroid(before, candidateState, generated));\n"
+    "          if (!meta) appendIssues(hardIssues, localKnowledgeIssues(before, generated));\n"
+    "          boolean repaired = false;"
+)
 if needle_first not in text:
-    raise RuntimeError("local validator first-pass anchor not found")
+    raise RuntimeError("local validator first-pass anchor not found after rejected-op hardening")
 text = text.replace(needle_first, replacement_first, 1)
 
-needle_repair = "            hardIssues = hardAuditIssues(audits);\n          }"
-replacement_repair = "            hardIssues = hardAuditIssues(audits);\n            appendIssues(hardIssues, localKnowledgeIssues(before, generated));\n          }"
+needle_repair = (
+    "            hardIssues = hardAuditIssues(audits);\n"
+    "            appendIssues(hardIssues, rejectedOperationIssuesAndroid(before, candidateState, generated));"
+)
+replacement_repair = (
+    "            hardIssues = hardAuditIssues(audits);\n"
+    "            appendIssues(hardIssues, rejectedOperationIssuesAndroid(before, candidateState, generated));\n"
+    "            appendIssues(hardIssues, localKnowledgeIssues(before, generated));"
+)
 if needle_repair not in text:
-    raise RuntimeError("local validator repair-pass anchor not found")
+    raise RuntimeError("local validator repair-pass anchor not found after rejected-op hardening")
 text = text.replace(needle_repair, replacement_repair, 1)
 
 MAIN.write_text(text, encoding="utf-8")
