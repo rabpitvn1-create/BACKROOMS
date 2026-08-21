@@ -1,6 +1,6 @@
 package com.rabpit.backroom.core
 
-const val CURRENT_SAVE_VERSION = 3
+const val CURRENT_SAVE_VERSION = 2
 const val KAI_ID = "kai"
 
 enum class CharacterPresence { ACTIVE, SEPARATED, MISSING, DEAD }
