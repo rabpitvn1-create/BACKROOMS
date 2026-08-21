@@ -65,6 +65,16 @@ data class StatusEffect(
   val metadata: Map<String, String> = emptyMap()
 )
 
+data class PhysiologyState(
+  val minutesSinceFood: Long? = null,
+  val minutesSinceWater: Long? = null,
+  val minutesAwake: Long? = null,
+  val painState: String? = null,
+  val infectionState: String? = null,
+  val thermalState: String? = null,
+  val metadata: Map<String, String> = emptyMap()
+)
+
 data class CharacterState(
   val id: String,
   val name: String,
@@ -75,6 +85,7 @@ data class CharacterState(
   val inventoryId: String = id,
   val equipmentId: String = id,
   val statusIds: Set<String> = emptySet(),
+  val physiology: PhysiologyState = PhysiologyState(),
   val metadata: Map<String, String> = emptyMap()
 )
 
