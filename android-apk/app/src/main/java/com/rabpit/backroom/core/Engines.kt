@@ -146,14 +146,39 @@ object TimeEngine {
     if (command.minutes <= 0) return invalid(state, "time_minutes_must_be_positive")
     val reason = command.reason.trim()
     if (reason.isEmpty()) return invalid(state, "time_reason_required")
+    val delta = command.minutes.toLong()
     val elapsed = state.time.elapsedSubjectiveMinutes
-    if (elapsed > Long.MAX_VALUE - command.minutes.toLong()) return invalid(state, "time_overflow")
+    if (elapsed > Long.MAX_VALUE - delta) return invalid(state, "time_overflow")
+
+    val nextCharacters = linkedMapOf<String, CharacterState>()
+    state.characters.forEach { (id, character) ->
+      if (character.presence == CharacterPresence.DEAD) {
+        nextCharacters[id] = character
+        return@forEach
+      }
+      val physiology = character.physiology
+      val food = advanceKnownCounter(physiology.minutesSinceFood, delta) ?: if (physiology.minutesSinceFood != null) return invalid(state, "physiology_time_overflow") else null
+      val water = advanceKnownCounter(physiology.minutesSinceWater, delta) ?: if (physiology.minutesSinceWater != null) return invalid(state, "physiology_time_overflow") else null
+      val awake = advanceKnownCounter(physiology.minutesAwake, delta) ?: if (physiology.minutesAwake != null) return invalid(state, "physiology_time_overflow") else null
+      nextCharacters[id] = character.copy(physiology = physiology.copy(
+        minutesSinceFood = food,
+        minutesSinceWater = water,
+        minutesAwake = awake
+      ))
+    }
+
     val nextTime = state.time.copy(
-      elapsedSubjectiveMinutes = elapsed + command.minutes.toLong(),
+      elapsedSubjectiveMinutes = elapsed + delta,
       lastAdvanceMinutes = command.minutes,
       lastAdvanceReason = reason
     )
-    return changed(state.copy(time = nextTime), "time_advanced")
+    return changed(state.copy(time = nextTime, characters = nextCharacters), "time_advanced")
+  }
+
+  private fun advanceKnownCounter(value: Long?, delta: Long): Long? {
+    if (value == null) return null
+    if (value < 0L || value > Long.MAX_VALUE - delta) return null
+    return value + delta
   }
 }
 
