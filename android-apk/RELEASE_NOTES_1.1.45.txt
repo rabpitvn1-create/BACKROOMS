@@ -6,5 +6,6 @@ Backroom 1.1.45
 - Giữ toàn bộ canon/runtime An Nhiên hiện hành: follower bắt buộc Level 0, non-combat, inventory thực phẩm riêng, trang bị cố định, survival multiplier và bonus loot/exit.
 - Giữ bản sửa chống cảnh báo sai khi người chơi chỉ tìm kiếm/lập kế hoạch.
 - Bao gồm workflow kiểm chứng release cũ đã được merge vào main.
+- Release gate 1.1.45 đã chạy GREEN: exact patch chain, LiteRT, Kotlin unit tests, APK assemble và kiểm tra cấu trúc APK đều thành công trước khi phát hành.
 
 Build: Android debug APK phát hành qua GitHub Actions và GitHub Release.
