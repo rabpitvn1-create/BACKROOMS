@@ -40,3 +40,6 @@ runpy.run_path(str(ROOT / "patch-annhien-cheat-code.py"), run_name="__main__")
 
 # Latest An Nhien equipment canon: replace the old Baby Tree slippers with pink Crocs.
 runpy.run_path(str(ROOT / "patch-an-nhien-crocs.py"), run_name="__main__")
+
+# Human-friendly character item labels: hide internal namespaces/IDs and render readable uppercase names.
+runpy.run_path(str(ROOT / "patch-friendly-item-display.py"), run_name="__main__")
