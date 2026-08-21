@@ -1,35 +1,31 @@
-name: Test AI Orchestrator
+name: Test Android Game Core
 
 on:
-  push:
-    branches:
-      - ai-orchestrator-r1
-      - hybrid-gemini-fallback-r2
-      - inventory-pickup-sync-fix
   pull_request:
     branches:
       - main
+    paths:
+      - "android-apk/**"
+      - ".github/workflows/test-ai-orchestrator.yml"
+  push:
+    branches:
+      - main
+      - "fix/**"
+      - "feature/**"
+    paths:
+      - "android-apk/**"
+      - ".github/workflows/test-ai-orchestrator.yml"
 
 permissions:
   contents: read
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: npm
-      - run: npm ci
-      - run: npm test
-
   android-build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Apply exact release patch chain
+
+      - name: Apply exact Android release patch chain
         run: |
           python3 android-apk/patch-provider-status.py
           python3 android-apk/patch-luna-text.py
@@ -49,7 +45,6 @@ jobs:
           python3 android-apk/patch-gameplay-parity-final.py
           python3 android-apk/patch-final-authority-hardening.py
           python3 android-apk/patch-rejected-op-repair-final.py
-          python3 android-apk/patch-inventory-pickup-reconcile-final.py
           python3 android-apk/patch-kai-resource-policy-final.py
           python3 android-apk/patch-provider-deadline-final.py
           python3 android-apk/patch-gemini-model-matrix-final.py
@@ -57,15 +52,35 @@ jobs:
           python3 android-apk/patch-save-controls-final.py
           python3 android-apk/patch-hard-mode-label.py
           python3 android-apk/patch-snapshot-unconfigured.py
+          python3 android-apk/patch-game-state-core-bridge.py
+          python3 android-apk/patch-character-inventory-ui.py
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
+
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.10.2"
-      - name: Compile debug APK
+
+      - name: Run authoritative Kotlin tests and compile APK
         working-directory: android-apk
-        run: gradle :app:assembleDebug --no-daemon
+        run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
+
       - name: Verify APK artifact exists
         run: test -s android-apk/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Verify Kai avatar is a packaged PNG
+        run: |
+          test -s android-apk/app/src/main/assets/avatars/kai_avatar.png
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('android-apk/app/src/main/assets/avatars/kai_avatar.png')
+          assert p.read_bytes()[:8] == b'\x89PNG\r\n\x1a\n'
+          PY
+
+      - name: Verify retired pickup reconciliation is absent
+        run: |
+          test ! -e android-apk/patch-inventory-pickup-reconcile-final.py
+          ! grep -R "gm_confirmed_pickup\|omnivault_restore" android-apk/app/src/main/java/com/rabpit/backroom/core --include='*.kt'
