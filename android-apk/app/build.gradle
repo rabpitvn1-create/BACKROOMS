@@ -8,11 +8,6 @@ def secret = { name ->
   return value.replace("\\", "\\\\").replace("\"", "\\\"")
 }
 
-def releaseKeystorePath = System.getenv("ANDROID_RELEASE_KEYSTORE_PATH") ?: ""
-def releaseStorePassword = System.getenv("ANDROID_RELEASE_STORE_PASSWORD") ?: ""
-def releaseKeyAlias = System.getenv("ANDROID_RELEASE_KEY_ALIAS") ?: ""
-def releaseKeyPassword = System.getenv("ANDROID_RELEASE_KEY_PASSWORD") ?: ""
-
 android {
   namespace 'com.rabpit.backroom'
   compileSdk 35
@@ -21,8 +16,8 @@ android {
     applicationId 'com.rabpit.backroom'
     minSdk 24
     targetSdk 35
-    versionCode 50
-    versionName '1.1.48'
+    versionCode 51
+    versionName '1.1.49'
     buildConfigField "String", "LUNA_API_KEY", "\"" + secret("LUNA_API_KEY") + "\""
     buildConfigField "String", "LUNA_BASE_URL", "\"" + secret("LUNA_BASE_URL") + "\""
     buildConfigField "String", "LUNA_MODEL", "\"" + secret("LUNA_MODEL") + "\""
@@ -33,24 +28,8 @@ android {
     buildConfigField "String", "GEMINI_API_KEY_5", "\"" + secret("GEMINI_API_KEY_5") + "\""
   }
 
-  signingConfigs {
-    release {
-      if (!releaseKeystorePath.isEmpty()) {
-        storeFile file(releaseKeystorePath)
-      }
-      storePassword releaseStorePassword
-      keyAlias releaseKeyAlias
-      keyPassword releaseKeyPassword
-      enableV1Signing true
-      enableV2Signing true
-      enableV3Signing true
-      enableV4Signing true
-    }
-  }
-
   buildTypes {
     release {
-      signingConfig signingConfigs.release
       minifyEnabled false
     }
   }

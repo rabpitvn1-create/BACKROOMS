@@ -1,37 +1,20 @@
-# BACKROOMS Text Game
+# BACKROOMS Android Text Game
 
-Text game Next.js dùng state phía server, Gemini cho Game Master và snapshot, cùng canon được tích hợp từ bộ nguồn Drive của dự án.
+Game chạy độc lập trong APK Android. Giao diện WebView, canon, ảnh Level, character data, Game State Core và save đều được đóng gói hoặc lưu cục bộ trên thiết bị; dự án không còn runtime web/Next.js.
 
-## Các lớp canon đã tích hợp
+## Runtime chính
 
-- `lib/canon.js`: Prologue, Kai Akechi, loadout và state New Game.
-- `lib/world-canon.js`: bản chất Backrooms, Level 0–6, chuyển vùng, Entity và tài nguyên.
-- `lib/character-canon.js`: Iris và Syvial; codex đầy đủ chỉ được nạp khi encounter/continuity cần dùng.
-- `lib/writing-canon.js`: điểm nhìn Kai, văn xuôi tiếng Việt, hội thoại tự nhiên và kinh dị dựa trên bằng chứng.
-- `lib/gameplay.js`: phân loại gameplay/meta, eligibility và dice server cho survivor, reunion, hazard, Entity, loot, Almond Water và Exit.
+- `android-apk/app/src/main/assets/index.html`: giao diện text game.
+- `android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java`: Android/WebView bridge và AI orchestration.
+- `android-apk/app/src/main/java/com/rabpit/backroom/core/`: Game State Core, inventory, party, continuity và save migration.
+- `android-apk/app/src/main/assets/knowledge/knowledge_db.json`: knowledge database có provenance từ nguồn Drive.
+- `.github/workflows/build-backroom-apk.yml`: test, build, emulator launch smoke test và phát hành APK.
 
-Backend giữ quyền phán quyết đối với dice, reunion, encounter và chuyển Level. Model không được tự tăng xác suất, reroll, tạo tài nguyên hoặc thay đổi Level nếu điều kiện server chưa cho phép.
-
-## APK độc lập
-
-- APK nạp giao diện từ `android-apk/app/src/main/assets/index.html` và lưu save bằng bộ nhớ riêng trên thiết bị.
-- Chuỗi build giữ Kai overlay, snapshot theo sự kiện, ảnh nền Level 0–6, fallback Game Master và Kai R05 codex.
-- `android-apk/patch-drive-canon-gameplay.py` nạp Drive canon R06 cùng xúc xắc/gate gameplay vào bản Android sau các patch nền.
-- Workflow phát hành hiện tạo `Backroom-1.1.40.apk` từ runtime độc lập này.
-
-## Chạy cục bộ
+## Build cục bộ
 
 ```bash
-npm install
-npm test
-npm run dev
+cd android-apk
+gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
 ```
 
-Các biến môi trường chính:
-
-- `GEMINI_API_KEY_1` (có thể thêm `_2`, `_3`)
-- `GEMINI_MODEL`
-- `GEMINI_IMAGE_MODEL`
-- `DATABASE_URL` / `POSTGRES_URL` / `NEON_DATABASE_URL` (không bắt buộc; thiếu thì dùng bộ nhớ cục bộ của tiến trình)
-
-Trong ô lệnh, dùng `/status`, `/inventory`, `/party`, `/rules` hoặc `/meta ...` để hỏi/kiểm tra mà không tăng Turn hay kích hoạt dice.
+APK được tạo tại `android-apk/app/build/outputs/apk/debug/app-debug.apk`.
