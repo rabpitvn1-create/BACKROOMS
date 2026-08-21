@@ -48,8 +48,10 @@ class GameCoreFacade private constructor(
     if (interpreted.candidates.any { it.intent == GameIntent.NO_ACTION || it.confidence != IntentConfidence.HIGH }) {
       return response(false, legacy, null, "fallback_required")
     }
-    val commands = interpreted.candidates.mapIndexedNotNull { index, candidate -> resolver.resolve(candidate, index, turnId, context) }
-    if (commands.size != interpreted.candidates.size || commands.isEmpty()) return response(false, legacy, null, "resolution_incomplete")
+    val resolvedCommands = interpreted.candidates.mapIndexedNotNull { index, candidate -> resolver.resolve(candidate, index, turnId, context) }
+    if (resolvedCommands.size != interpreted.candidates.size || resolvedCommands.isEmpty()) return response(false, legacy, null, "resolution_incomplete")
+    val commands = resolvedCommands.toMutableList()
+    commands += timeAdvanceCommand(turnId, action)
     commands.forEach { logger.log(PipelineLogEvent("COMMAND", turnId, it.commandId, it.source)) }
     val committed = TurnCoordinator.commit(pending.state, commands)
     if (committed.error != null) {
@@ -151,6 +153,7 @@ class GameCoreFacade private constructor(
       flagsJson = candidate.optJSONObject("flags")?.toString(),
       validatedByGameEngine = true
     )
+    commands += timeAdvanceCommand(turnId, action)
 
     val committed = TurnCoordinator.commit(pending.state, commands)
     if (committed.error != null) {
@@ -189,6 +192,15 @@ class GameCoreFacade private constructor(
     val number = legacy.optInt("turn", state.turn.currentTurnId.substringAfterLast('_').toIntOrNull() ?: 1)
     return "TURN_${number.coerceAtLeast(1)}"
   }
+
+  private fun timeAdvanceCommand(turnId: String, action: String): TimeAdvanceCommand = TimeAdvanceCommand(
+    commandId = "$turnId:SYSTEM:TIME",
+    turnId = turnId,
+    actorId = KAI_ID,
+    source = CommandSource.SYSTEM,
+    minutes = TimeCostPolicy.estimateMinutes(action),
+    reason = "player_action"
+  )
 
   private fun stableItemId(name: String): String = name.lowercase()
     .replace(Regex("[^\\p{L}\\p{N}]+"), "-").trim('-').ifBlank { "item-${name.hashCode().toUInt()}" }
@@ -234,7 +246,7 @@ class GameCoreFacade private constructor(
     if (error != null) put("error", error); if (reply != null) put("reply", reply)
   }.toString()
 
-  private fun eventReply(events: List<String>): String = when (events.lastOrNull()) {
+  private fun eventReply(events: List<String>): String = when (events.lastOrNull { it != "time_advanced" }) {
     "inventory_pickup" -> "Inventory đã được cập nhật bởi một sự kiện vật phẩm hợp lệ."
     "inventory_remove" -> "Vật phẩm đã được loại khỏi Inventory theo hành động của Kai."
     "inventory_transfer" -> "Vật phẩm đã được chuyển giao."
