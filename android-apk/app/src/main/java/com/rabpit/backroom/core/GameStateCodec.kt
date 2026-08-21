@@ -74,22 +74,38 @@ object GameStateCodec {
   )
 
   private fun item(value: ItemStack) = JSONObject().apply {
-    put("itemId", value.itemId); put("name", value.name); put("quantity", value.quantity)
-    putNullable("condition", value.condition); put("metadata", stringMap(value.metadata))
+    val normalized = ItemContentRules.normalize(value)
+    put("itemId", normalized.itemId); put("name", normalized.name); put("quantity", normalized.quantity)
+    putNullable("condition", normalized.condition); put("metadata", stringMap(normalized.metadata))
+    put("archetypeId", normalized.archetypeId); put("contentState", normalized.contentState.name)
   }
 
-  private fun decodeItem(json: JSONObject) = ItemStack(
-    json.optString("itemId"), json.optString("name"), json.optInt("quantity", 1),
-    json.nullableString("condition"), json.optJSONObject("metadata").stringsMap()
-  )
+  private fun decodeItem(json: JSONObject): ItemStack = ItemContentRules.normalize(ItemStack(
+    itemId = json.optString("itemId"),
+    name = json.optString("name"),
+    quantity = json.optInt("quantity", 1).coerceAtLeast(1),
+    condition = json.nullableString("condition"),
+    metadata = json.optJSONObject("metadata").stringsMap(),
+    archetypeId = json.optString("archetypeId", json.optString("itemId")),
+    contentState = enumOr(ContentState.NONE, json.optString("contentState"))
+  ))
+
+  private fun itemMap(json: JSONObject?): Map<String, ItemStack> {
+    if (json == null) return emptyMap()
+    val result = linkedMapOf<String, ItemStack>()
+    json.keys().forEach { key ->
+      val decoded = json.optJSONObject(key)?.let(::decodeItem) ?: return@forEach
+      val old = result[decoded.itemId]
+      result[decoded.itemId] = if (old != null && ItemContentRules.sameStackState(old, decoded)) old.copy(quantity = old.quantity + decoded.quantity) else decoded
+    }
+    return result
+  }
 
   private fun inventory(value: InventoryState) = JSONObject().apply {
-    put("ownerId", value.ownerId); put("items", JSONObject().apply { value.items.forEach { (id, stack) -> put(id, item(stack)) } })
+    put("ownerId", value.ownerId); put("items", JSONObject().apply { value.items.values.forEach { stack -> put(ItemContentRules.normalize(stack).itemId, item(stack)) } })
   }
 
-  private fun decodeInventory(json: JSONObject) = InventoryState(
-    json.optString("ownerId"), json.optJSONObject("items").objectMap(::decodeItem)
-  )
+  private fun decodeInventory(json: JSONObject) = InventoryState(json.optString("ownerId"), itemMap(json.optJSONObject("items")))
 
   private fun equipment(value: EquipmentState) = JSONObject().apply { put("ownerId", value.ownerId); put("slots", stringMap(value.slots)) }
   private fun decodeEquipment(json: JSONObject) = EquipmentState(json.optString("ownerId"), json.optJSONObject("slots").stringsMap())
@@ -107,22 +123,25 @@ object GameStateCodec {
 
   private fun omnivault(value: OmnivaultState) = JSONObject().apply {
     put("ownerId", value.ownerId)
-    put("storedItems", JSONObject().apply { value.storedItems.forEach { (id, stack) -> put(id, item(stack)) } })
+    put("storedItems", JSONObject().apply { value.storedItems.values.forEach { stack -> put(ItemContentRules.normalize(stack).itemId, item(stack)) } })
     put("scanSlots", JSONArray().apply { value.scanSlots.forEach { slot -> put(JSONObject().apply {
-      put("slot", slot.slot); put("sourceItemId", slot.sourceItemId); put("templateItem", item(slot.templateItem)); put("scannedAtEpochMs", slot.scannedAtEpochMs)
+      put("slot", slot.slot); put("sourceItemId", ItemContentRules.normalize(slot.templateItem).itemId); put("templateItem", item(slot.templateItem)); put("scannedAtEpochMs", slot.scannedAtEpochMs)
     }) } })
     put("markedSourceIds", JSONArray(value.markedSourceIds.toList()))
     put("restoreCooldownUntilEpochMs", JSONObject().apply { value.restoreCooldownUntilEpochMs.forEach { (id, time) -> put(id, time) } })
   }
 
   private fun decodeOmnivault(json: JSONObject): OmnivaultState {
-    val slots = json.optJSONArray("scanSlots").objects().map { slot -> ScanSlot(
-      slot.optInt("slot"), slot.optString("sourceItemId"), decodeItem(slot.optJSONObject("templateItem") ?: JSONObject()), slot.optLong("scannedAtEpochMs")
-    ) }
+    val slots = json.optJSONArray("scanSlots").objects().map { slot ->
+      val template = decodeItem(slot.optJSONObject("templateItem") ?: JSONObject())
+      ScanSlot(slot.optInt("slot"), template.itemId, template, slot.optLong("scannedAtEpochMs"))
+    }
     val cooldowns = mutableMapOf<String, Long>()
     json.optJSONObject("restoreCooldownUntilEpochMs")?.let { values -> values.keys().forEach { cooldowns[it] = values.optLong(it) } }
-    return OmnivaultState(json.optString("ownerId", KAI_ID), json.optJSONObject("storedItems").objectMap(::decodeItem), slots,
-      json.optJSONArray("markedSourceIds").strings().toSet(), cooldowns)
+    return OmnivaultState(
+      json.optString("ownerId", KAI_ID), itemMap(json.optJSONObject("storedItems")), slots,
+      json.optJSONArray("markedSourceIds").strings().toSet(), cooldowns
+    )
   }
 
   private fun turn(value: TurnState) = JSONObject().apply {
@@ -148,13 +167,17 @@ object LegacySaveMigration {
   fun migrate(root: JSONObject): GameState {
     val initial = GameState.initial()
     val turnNumber = root.optInt("turn", 1).coerceAtLeast(1)
-    val legacyItems = root.optJSONArray("inventory").objects().mapIndexedNotNull { index, json ->
+    val migrated = linkedMapOf<String, ItemStack>()
+    root.optJSONArray("inventory").objects().mapIndexedNotNull { index, json ->
       val name = json.optString("name").trim()
       if (name.isEmpty()) null else {
         val id = json.optString("id").ifBlank { name.lowercase().replace(Regex("[^\\p{L}\\p{N}]+"), "-").trim('-').ifBlank { "legacy-item-$index" } }
-        id to ItemStack(id, name, json.optInt("quantity", 1).coerceAtLeast(1), json.nullableString("state"), mapOf("migrated" to "legacy-v0"))
+        ItemContentRules.normalize(ItemStack(id, name, json.optInt("quantity", 1).coerceAtLeast(1), json.nullableString("state"), mapOf("migrated" to "legacy-v0")))
       }
-    }.toMap()
+    }.forEach { item ->
+      val old = migrated[item.itemId]
+      migrated[item.itemId] = if (old != null && ItemContentRules.sameStackState(old, item)) old.copy(quantity = old.quantity + item.quantity) else item
+    }
     val partyCharacters = root.optJSONArray("party").objects().mapIndexedNotNull { index, json ->
       val name = json.optString("name").trim()
       if (name.isEmpty()) null else {
@@ -167,7 +190,7 @@ object LegacySaveMigration {
     return initial.copy(
       characters = characters,
       party = PartyState(memberIds = partyIds),
-      inventories = initial.inventories + (KAI_ID to InventoryState(KAI_ID, legacyItems)) + partyCharacters.keys.associateWith { InventoryState(it) },
+      inventories = initial.inventories + (KAI_ID to InventoryState(KAI_ID, migrated)) + partyCharacters.keys.associateWith { InventoryState(it) },
       equipment = initial.equipment + partyCharacters.keys.associateWith { EquipmentState(it) },
       turn = TurnState(currentTurnId = "TURN_$turnNumber"),
       world = mapOf("title" to root.optString("title"), "location" to root.optString("location")),
