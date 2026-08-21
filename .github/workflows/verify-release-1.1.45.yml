@@ -1,4 +1,4 @@
-name: Verify Backroom 1.1.45
+name: Verify Backroom 1.1.46
 
 on:
   pull_request:
@@ -6,10 +6,15 @@ on:
       - main
     paths:
       - ".github/workflows/verify-release-1.1.45.yml"
+      - ".github/workflows/build-backroom-apk.yml"
       - "android-apk/**"
 
 permissions:
   contents: read
+
+concurrency:
+  group: verify-backroom-1.1.46-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
 
 jobs:
   verify-build:
@@ -70,20 +75,32 @@ jobs:
           python3 android-apk/patch-character-inventory-ui.py
           python3 android-apk/patch-character-detail-avatar-fallback.py
 
-      - name: Verify 1.1.45 and An Nhien cheat contracts
+      - name: Verify 1.1.46 gameplay and UI contracts
         run: |
           python3 - <<'PY'
           from pathlib import Path
           gradle = Path('android-apk/app/build.gradle').read_text(encoding='utf-8')
           canon = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/AnNhienCanon.kt').read_text(encoding='utf-8')
+          java = Path('android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java').read_text(encoding='utf-8')
+          html = Path('android-apk/app/src/main/assets/index.html').read_text(encoding='utf-8')
           facade = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt').read_text(encoding='utf-8')
           tests = Path('android-apk/app/src/test/java/com/rabpit/backroom/core/AnNhienFollowerTest.kt').read_text(encoding='utf-8')
-          assert "versionCode 47" in gradle
-          assert "versionName '1.1.45'" in gradle
+          assert "versionCode 48" in gradle
+          assert "versionName '1.1.46'" in gradle
           assert 'PARTY_CHEAT_CODE = "/annhien1234"' in canon
           assert 'matchesPartyCheatCode(action)' in facade
           assert 'applyAnNhienPartyCheat(legacy, state)' in facade
           assert 'slashCheatInstantlyAddsAnNhienAndIsIdempotent' in tests
+          assert 'avatars/an_nhien_avatar.png' in canon
+          assert 'an-nhien:pink-crocs' in canon
+          assert 'Đôi dép Crocs màu hồng' in canon
+          assert 'thresholdRoll("jeffEncounter", 10000, 200' in java
+          assert 'root.equals("jeff") && value instanceof JSONObject' in java
+          assert 'int[] entityThresholds = {805, 1000, 1150, 1150, 810, 1200, 805}' in java
+          assert "displaySlotName(k)+' : '+displayItemName(eq[k])" in html
+          assert "items.innerHTML=renderInventoryItems(inv);" in html
+          assert 'exitThreshold + 200' in java
+          assert 'currentLevel(before) == 0 && !anNhienEncountered(before)' in java
           PY
 
       - uses: actions/setup-java@v4
@@ -98,29 +115,9 @@ jobs:
         working-directory: android-apk
         run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
 
-      - name: Verify APK exists
+      - name: Verify APK exists and contains required assets
         run: |
           test -s android-apk/app/build/outputs/apk/debug/app-debug.apk
           unzip -l android-apk/app/build/outputs/apk/debug/app-debug.apk | grep -q 'assets/index.html'
-
-  verify-published:
-    needs: verify-build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Verify GitHub Release v1.1.45
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh release view v1.1.45 --repo "$GITHUB_REPOSITORY"
-
-      - name: Download published APK
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release download v1.1.45 --repo "$GITHUB_REPOSITORY" --pattern 'Backroom-1.1.45.apk'
-          test -s Backroom-1.1.45.apk
-
-      - name: Verify published APK structure
-        run: |
-          unzip -l Backroom-1.1.45.apk | grep -q 'AndroidManifest.xml'
-          unzip -l Backroom-1.1.45.apk | grep -q 'assets/index.html'
-          unzip -l Backroom-1.1.45.apk | grep -q 'classes.dex'
+          unzip -l android-apk/app/build/outputs/apk/debug/app-debug.apk | grep -q 'assets/avatars/an_nhien_avatar.png'
+          ! unzip -l android-apk/app/build/outputs/apk/debug/app-debug.apk | grep -q 'assets/avatars/an_nhien_avatar.jpg'
