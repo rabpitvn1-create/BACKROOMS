@@ -6,15 +6,24 @@ text = MAIN.read_text(encoding="utf-8")
 start = text.find("  private String lunaText(String prompt) throws Exception {")
 if start < 0:
     raise RuntimeError("lunaText anchor not found")
-end_candidates = [
-    text.find("\n  private String geminiModelChain()", start),
-    text.find("\n  private String geminiTextPolicy(", start),
-    text.find("\n  private String geminiText(", start),
-]
-end_candidates = [x for x in end_candidates if x > start]
-if not end_candidates:
-    raise RuntimeError("lunaText end anchor not found")
-end = min(end_candidates)
+brace = text.find("{", start)
+if brace < 0:
+    raise RuntimeError("lunaText opening brace not found")
+depth = 0
+end = -1
+for i in range(brace, len(text)):
+    ch = text[i]
+    if ch == "{":
+        depth += 1
+    elif ch == "}":
+        depth -= 1
+        if depth == 0:
+            end = i + 1
+            break
+if end < 0:
+    raise RuntimeError("lunaText closing brace not found")
+while end < len(text) and text[end] in "\r\n":
+    end += 1
 
 replacement = r'''  private java.util.List<String> lunaModelCandidates(String baseUrl) {
     java.util.LinkedHashSet<String> models = new java.util.LinkedHashSet<>();
@@ -115,6 +124,7 @@ replacement = r'''  private java.util.List<String> lunaModelCandidates(String ba
     }
     throw last != null ? last : new Exception("Luna không có model chat khả dụng.");
   }
+
 '''
 
 text = text[:start] + replacement + text[end:]
@@ -124,9 +134,12 @@ for marker in [
     'models.add("gpt-5.6-sol")',
     "private boolean lunaInactiveModel(",
     'emit("backroomProvider", "Luna fallback / " + model.trim())',
+    "private String postJsonLunaFast(",
+    "private String postJsonFast(",
+    "private int chooseGeminiWorker(",
 ]:
     if marker not in text:
-        raise RuntimeError(f"Luna model failover marker missing: {marker}")
+        raise RuntimeError(f"Provider helper missing after Luna patch: {marker}")
 
 MAIN.write_text(text, encoding="utf-8")
-print("Luna fallback now discovers active provider models and skips MODEL_INACTIVE candidates.")
+print("Luna fallback now discovers active provider models and skips MODEL_INACTIVE candidates without removing provider helpers.")
