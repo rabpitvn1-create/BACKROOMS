@@ -1,6 +1,6 @@
 package com.rabpit.backroom.core
 
-const val CURRENT_SAVE_VERSION = 2
+const val CURRENT_SAVE_VERSION = 3
 const val KAI_ID = "kai"
 const val KAI_WHITE_WRAITH_ID = "kai:white-wraith-magnum"
 const val KAI_BLACKBLOOD_ARMOR_ID = "kai:blackblood-armor"
