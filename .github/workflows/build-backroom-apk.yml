@@ -191,10 +191,10 @@ jobs:
           script: |
             adb install -r Backroom-1.1.49.apk
             adb logcat -c
-            adb shell am start -W -n com.rabpit.backroom/.MainActivity | tee launch-result.txt
-            grep -q 'Status: ok' launch-result.txt
-            sleep 5
+            adb shell am start -n com.rabpit.backroom/.MainActivity
+            sleep 20
             adb shell pidof com.rabpit.backroom
+            adb shell dumpsys activity activities | grep -q 'mResumedActivity.*com.rabpit.backroom/.MainActivity'
             ! adb logcat -d -b crash | grep -q 'com.rabpit.backroom'
 
       - name: Upload APK artifact
