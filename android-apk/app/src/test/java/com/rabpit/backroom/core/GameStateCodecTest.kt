@@ -12,10 +12,17 @@ class GameStateCodecTest {
       statuses = mapOf(effect.id to effect),
       characters = mapOf(KAI_ID to CharacterState(KAI_ID, "Kai Akechi", statusIds = setOf(effect.id))),
       omnivault = OmnivaultState(scanSlots = listOf(ScanSlot(1, "water", ItemStack("water", "Almond Water"), 10)), markedSourceIds = setOf("water")),
-      turn = TurnState("TURN_9", PendingTurn("TURN_9", "Kai nhặt nước", PendingTurnStatus.INTERPRETING))
+      turn = TurnState("TURN_9", PendingTurn("TURN_9", "Kai nhặt nước", PendingTurnStatus.INTERPRETING)),
+      time = GameTimeState(elapsedSubjectiveMinutes = 485L, lastAdvanceMinutes = 15, lastAdvanceReason = "travel")
     )
     val decoded = GameStateCodec.decode(GameStateCodec.encode(state))
     assertEquals(state, decoded)
+  }
+
+  @Test fun currentSaveWithoutTimeDefaultsToZeroSubjectiveMinutes() {
+    val raw = JSONObject(GameStateCodec.encode(GameState.initial())).apply { remove("time") }.toString()
+    val decoded = GameStateCodec.decode(raw)
+    assertEquals(GameTimeState(), decoded.time)
   }
 
   @Test fun freshStateKeepsSignatureGearOnlyInEquipment() {
@@ -42,6 +49,7 @@ class GameStateCodecTest {
     val migrated = GameStateCodec.decode(legacy)
     assertEquals(CURRENT_SAVE_VERSION, migrated.saveVersion)
     assertEquals("TURN_184", migrated.turn.currentTurnId)
+    assertEquals(GameTimeState(), migrated.time)
     assertEquals(1, migrated.inventories.getValue(KAI_ID).items.size)
     assertEquals(2, migrated.inventories.getValue(KAI_ID).items.values.single().quantity)
     assertEquals(KAI_WHITE_WRAITH_ID, migrated.equipment.getValue(KAI_ID).slots["weapon"])
