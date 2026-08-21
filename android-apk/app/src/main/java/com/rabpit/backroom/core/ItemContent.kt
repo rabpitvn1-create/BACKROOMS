@@ -85,8 +85,10 @@ object ItemContentRules {
     return when {
       hint.contains("water-bottle") || n.contains("chai nước") || (n.contains("chai") && (n.contains("rỗng") || n.startsWith("vỏ chai"))) ->
         ContentProfile("water-bottle", "Chai nước", "Chai nước còn ít nước", "Chai rỗng")
-      hint.contains("food-container") || n.contains("hộp thức ăn") || n.contains("hộp đồ ăn") || n.contains("vỏ thức ăn") || (n.contains("hộp") && n.contains("rỗng")) ->
-        ContentProfile("food-container", "Hộp thức ăn", "Hộp thức ăn còn ít", "Hộp rỗng")
+      hint.contains("food-container") || n.contains("hộp thức ăn") || n.contains("hộp đồ ăn") || n.contains("vỏ thức ăn") ->
+        ContentProfile("food-container", "Hộp thức ăn", "Hộp thức ăn còn ít", "Hộp thức ăn rỗng")
+      hint.contains("generic-container") || (n.contains("hộp") && n.contains("rỗng")) || n.contains("vỏ hộp") ->
+        ContentProfile("generic-container", "Hộp", "Hộp còn ít vật chứa", "Hộp rỗng")
       hint.contains("fuel-container") || n.contains("bình nhiên liệu") || n.contains("can nhiên liệu") ->
         ContentProfile("fuel-container", "Bình nhiên liệu", "Bình nhiên liệu còn ít", "Bình rỗng")
       hint.contains("ammo-cartridge") || n.contains("viên đạn") || n.contains("vỏ đạn") ->
