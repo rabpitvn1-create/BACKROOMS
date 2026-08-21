@@ -16,15 +16,9 @@ old_buttons = '''<div class="card"><h2>Save / Load</h2><div class="actions"><but
 new_buttons = '''<div class="card"><h2>Save / Load</h2><div class="actions"><button type="button" id="saveButton" onclick="save()">Lưu</button><button type="button" id="loadButton" onclick="load()">Tải</button><button type="button" id="newGameButton" class="wide" onclick="resetGame()">Bắt đầu lại từ đầu</button><button type="button" id="deleteSaveButton" class="wide danger" onclick="clearSave()">Xóa save trên máy</button></div></div>'''
 replace_once(old_buttons, new_buttons, "save control buttons")
 
-# Keep the migration code that earlier patches append after this initializer, but
-# make the initializer itself safe against corrupted localStorage and avoid ever
-# aliasing mutable state directly to the `initial` object.
 old_state = 'let state=JSON.parse(localStorage.getItem("backroom-apk-state")||"null")||initial;'
 new_state = '''let state=(()=>{try{const raw=localStorage.getItem("backroom-apk-state");if(!raw)return JSON.parse(JSON.stringify(initial));const parsed=JSON.parse(raw);return parsed&&typeof parsed==="object"&&!Array.isArray(parsed)?parsed:JSON.parse(JSON.stringify(initial));}catch(e){try{localStorage.removeItem("backroom-apk-state");}catch(ignore){}return JSON.parse(JSON.stringify(initial));}})();'''
 replace_once(old_state, new_state, "safe initial save load")
-
-# render() must only render. Previously it overwrote status messages, making Load,
-# New Game and Delete Save appear to do nothing even when state had changed.
 replace_once(';statusEl.textContent="Save được lưu riêng trên thiết bị này."}', '}', "render status side effect")
 
 old_functions = '''function save(){localStorage.setItem("backroom-apk-state",JSON.stringify(state));statusEl.textContent="Đã lưu save trên máy."}
@@ -37,6 +31,10 @@ let destructiveAction="";
 let destructiveUntil=0;
 
 function freshInitial(){return JSON.parse(JSON.stringify(initial))}
+function clearAuthoritativeCore(){
+  try{if(window.Android&&typeof Android.clearCoreState==="function")Android.clearCoreState();return true}
+  catch(e){statusEl.textContent="Không thể đồng bộ Game State Core: "+(e&&e.message?e.message:"bridge error");return false}
+}
 function savedState(){
   let raw=null;
   try{raw=localStorage.getItem(SAVE_KEY)}catch(e){statusEl.textContent="Không thể đọc bộ nhớ save: "+(e&&e.message?e.message:"storage error");return null}
@@ -63,6 +61,7 @@ function load(){
   const loaded=savedState();
   if(!loaded){if(!statusEl.textContent||!statusEl.textContent.includes("bị lỗi"))statusEl.textContent="Không có save trên máy để tải.";return false}
   state=loaded;
+  clearAuthoritativeCore();
   render();
   statusEl.textContent="Đã tải save Turn "+(state.turn||1)+" từ máy.";
   return true;
@@ -76,17 +75,19 @@ function armDestructive(kind,label,perform){
 function resetGame(){
   armDestructive("new-game","Bắt đầu lại từ đầu",()=>{
     try{localStorage.removeItem(SNAPSHOT_KEY)}catch(ignore){}
+    clearAuthoritativeCore();
     state=freshInitial();
     render();
-    if(save())statusEl.textContent="NEW GAME đã tạo và lưu ở Turn 1. Snapshot cũ đã được xóa.";
+    if(save())statusEl.textContent="NEW GAME đã tạo và lưu ở Turn 1. Game State Core và Snapshot cũ đã được xóa.";
   });
 }
 function clearSave(){
   armDestructive("delete-save","Xóa save trên máy",()=>{
     try{localStorage.removeItem(SAVE_KEY);localStorage.removeItem(SNAPSHOT_KEY)}catch(e){statusEl.textContent="Xóa save thất bại: "+(e&&e.message?e.message:"storage error");return}
+    clearAuthoritativeCore();
     state=freshInitial();
     render();
-    statusEl.textContent="Đã xóa save và snapshot trên máy. Trạng thái Turn 1 hiện chỉ ở bộ nhớ tạm; bấm Lưu hoặc chơi tiếp để tạo save mới.";
+    statusEl.textContent="Đã xóa save, Game State Core và snapshot trên máy. Trạng thái Turn 1 hiện chỉ ở bộ nhớ tạm.";
   });
 }'''
 replace_once(old_functions, new_functions, "save/load/new-game/delete behavior")
@@ -99,6 +100,8 @@ for required in [
     'const SAVE_KEY="backroom-apk-state"',
     'const SNAPSHOT_KEY="backroom-apk-snapshot"',
     'function savedState()',
+    'function clearAuthoritativeCore()',
+    'Android.clearCoreState()',
     'function armDestructive(',
     'không đọc lại được save vừa ghi',
     'localStorage.removeItem(SNAPSHOT_KEY)',
@@ -110,4 +113,4 @@ if 'confirm(' in text:
     raise RuntimeError("APK save controls must not depend on WebView confirm() dialogs")
 
 INDEX.write_text(text, encoding="utf-8")
-print("APK save/load/delete/new-game controls hardened without WebView confirm dialogs.")
+print("APK Save/Load/New Game/Delete synchronized with both WebView storage and authoritative Game State Core.")

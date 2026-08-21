@@ -35,6 +35,20 @@ if close_line not in text:
         raise RuntimeError("Game State Core close anchor not found")
     text = text.replace(anchor, anchor + close_line, 1)
 
+# Save/Load/New Game/Delete must be able to invalidate the authoritative SharedPreferences state.
+# The next gameplay action then migrates from the currently loaded WebView state instead of silently
+# resurrecting an older core save.
+clear_core_bridge = '''    @JavascriptInterface public void clearCoreState() {
+      if (gameCore != null) gameCore.clear();
+    }
+
+'''
+if "@JavascriptInterface public void clearCoreState()" not in text:
+    anchor = "  private class GameBridge {\n"
+    if anchor not in text:
+        raise RuntimeError("GameBridge anchor not found")
+    text = text.replace(anchor, anchor + clear_core_bridge, 1)
+
 local_pass = '''          JSONObject localResult = new JSONObject(gameCore.processRule(stateJson, action));
           if (localResult.optBoolean("handled", false)) {
             emit("backroomTurn", localResult.getJSONObject("state").toString());
@@ -61,7 +75,7 @@ if "gameCore.processValidatedCandidate(" not in text:
         raise RuntimeError("validated Gemini candidate anchor not found")
     text = text.replace(anchor, gemini_commit + anchor, 1)
 
-for required in [core_import.strip(), field.strip(), initialization.strip(), close_line.strip(), "gameCore.processRule(stateJson, action)", "gameCore.processValidatedCandidate("]:
+for required in [core_import.strip(), field.strip(), initialization.strip(), close_line.strip(), "@JavascriptInterface public void clearCoreState()", "gameCore.clear();", "gameCore.processRule(stateJson, action)", "gameCore.processValidatedCandidate("]:
     if required not in text:
         raise RuntimeError(f"Game State Core integration missing: {required}")
 
@@ -76,9 +90,6 @@ if "|nhặt|được|lượm|" not in intent:
     intent = intent.replace(anchor, "|nhặt|được|lượm|", 1)
 INTENT.write_text(intent, encoding="utf-8")
 
-# Every deterministic gameplay rejection becomes a visible [Warning]. Keep technical reason codes
-# internal; the player gets concise messages. Scan and Copy share the user-facing wording requested
-# by the game design.
 facade = FACADE.read_text(encoding="utf-8")
 warning_marker = 'return "[Warning] $message"'
 if warning_marker not in facade:
@@ -124,9 +135,6 @@ if warning_css not in html:
         raise RuntimeError("Warning CSS anchor not found")
     html = html.replace(css_anchor, css_anchor + warning_css, 1)
 
-# Save-control hardening runs before this patch and deliberately removes render()'s status-text
-# side effect. Patch only the stable log renderer fragment instead of matching the whole render()
-# function, so both the old and hardened UI remain compatible.
 old_log_render = 'logEl.innerHTML=(state.log||[]).map(x=>"<article class=\'message "+(x.role==="player"?"player":"")+"\'><div class=\'role\'>"+(x.role==="player"?"BẠN":"GAME MASTER")+"</div><div class=\'text\'>"+esc(x.text)+"</div></article>").join("")'
 warning_log_render = 'logEl.innerHTML=(state.log||[]).map(x=>{const w=x.role!=="player"&&String(x.text||"").trim().startsWith("[Warning]");return "<article class=\'message "+(x.role==="player"?"player":"")+(w?" warning":"")+"\'><div class=\'role\'>"+(x.role==="player"?"BẠN":"GAME MASTER")+"</div><div class=\'text\'>"+esc(x.text)+"</div></article>"}).join("")'
 if warning_log_render not in html:
@@ -135,5 +143,4 @@ if warning_log_render not in html:
     html = html.replace(old_log_render, warning_log_render, 1)
 
 INDEX.write_text(html, encoding="utf-8")
-
-print("Final Game State Core bridge, item cleanup, quantity UI and warning feedback applied.")
+print("Final Game State Core bridge applied with reset/load core invalidation, item cleanup, quantity UI and warning feedback.")

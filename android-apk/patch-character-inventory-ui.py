@@ -28,6 +28,16 @@ if party_new not in html:
         raise RuntimeError("Party + global Inventory panel anchor not found")
     html = html.replace(party_old, party_new, 1)
 
+# Removing the global Inventory panel made inventoryEl null. The old renderer still wrote to
+# inventoryEl unconditionally, throwing before the Prologue log and Party enhancement could render.
+# Make the legacy renderer tolerant of the intentionally removed element.
+unsafe_inventory_render = 'inventoryEl.innerHTML=chips(state.inventory);'
+safe_inventory_render = 'if(inventoryEl)inventoryEl.innerHTML=chips(state.inventory);'
+if safe_inventory_render not in html:
+    if unsafe_inventory_render not in html:
+        raise RuntimeError("Legacy inventory renderer anchor not found")
+    html = html.replace(unsafe_inventory_render, safe_inventory_render, 1)
+
 css_anchor = '.chips span{border:1px solid #313940;padding:5px 7px;font-size:12px}'
 css_extra = '''.party-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.party-member{border:1px solid #313940;background:#111519;padding:7px;display:grid;gap:6px;text-align:center;cursor:pointer}.party-member img{width:100%;aspect-ratio:1/1;object-fit:cover;border:1px solid #333b42}.party-member strong{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.party-member button{padding:7px;font-size:10px}.character-inventory-view{position:fixed;inset:0;z-index:50;background:#080a0c;padding:14px;overflow:auto}.character-inventory-head{display:flex;align-items:center;gap:12px;border-bottom:1px solid #2b3137;padding-bottom:12px}.character-inventory-head button{width:auto}.character-inventory-head h2{margin:3px 0 0}.character-profile{display:grid;grid-template-columns:110px 1fr;gap:14px;align-items:center;padding:16px 0}.character-profile img{width:110px;height:110px;object-fit:cover;border:1px solid #3b444c}.inventory-capacity{font-size:18px;font-weight:800}.inventory-limit{margin-top:5px;color:#8f9aa4;font-size:12px}.character-section{border:1px solid #2b3137;background:#0e1114;padding:14px;margin-top:10px}.character-section h3{margin:0 0 10px;font-size:12px;letter-spacing:.12em;text-transform:uppercase}.equipment-list{display:grid;gap:7px}.equipment-list span{border:1px solid #313940;padding:9px;color:#dce2e5}@media(max-width:520px){.party-grid{grid-template-columns:repeat(4,1fr)}.party-member{padding:4px}.party-member button{padding:5px 2px;font-size:9px}}'''
 if css_extra not in html:
@@ -69,7 +79,12 @@ script_extra = r'''
   }
   if(back)back.addEventListener('click',()=>{view.hidden=true});
   const priorRender=window.render;
-  if(typeof priorRender==='function')window.render=function(){repairState();priorRender();renderPartyCards();if(view&&!view.hidden)renderKaiInventory()};
+  if(typeof priorRender==='function')window.render=function(){
+    repairState();
+    priorRender();
+    renderPartyCards();
+    if(view&&!view.hidden)renderKaiInventory();
+  };
   repairState();
   if(typeof window.render==='function')window.render();else renderPartyCards();
 })();
@@ -82,8 +97,10 @@ if script_extra not in html:
 
 if '<div class="card"><h2>Inventory</h2>' in html:
     raise RuntimeError("Global Inventory panel still present")
+if unsafe_inventory_render in html.replace(safe_inventory_render, ''):
+    raise RuntimeError("Removed global Inventory still has an unsafe renderer write")
 if 'White Wraith Magnum"},\n    {name:"Blackblood Armor' in html:
     raise RuntimeError("Kai signature equipment still seeded into normal Inventory")
 
 INDEX.write_text(html, encoding="utf-8")
-print("Kai Party inventory UI applied: signature Equipment separated, shortened display names applied, early Prologue log repaired.")
+print("Kai Party inventory UI applied: runtime renderer fixed, Prologue/Party can render, signature Equipment separated.")
