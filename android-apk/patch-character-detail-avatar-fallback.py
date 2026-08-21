@@ -43,3 +43,6 @@ runpy.run_path(str(ROOT / "patch-an-nhien-crocs.py"), run_name="__main__")
 
 # Human-friendly character item labels: hide internal namespaces/IDs and render readable uppercase names.
 runpy.run_path(str(ROOT / "patch-friendly-item-display.py"), run_name="__main__")
+
+# Jeff the Killer uses an independent 2% roaming encounter roll on eligible physical turns.
+runpy.run_path(str(ROOT / "patch-jeff-encounter-2pct.py"), run_name="__main__")
