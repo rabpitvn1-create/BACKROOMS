@@ -114,6 +114,26 @@ jobs:
         run: python3 android-apk/patch-game-state-core-bridge.py
       - name: Apply per-character Party Inventory UI
         run: python3 android-apk/patch-character-inventory-ui.py
+      - name: Apply neutral Character Detail avatar fallback
+        run: python3 android-apk/patch-character-detail-avatar-fallback.py
+
+      - name: Verify release Party Character Detail contract
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          html = Path('android-apk/app/src/main/assets/index.html').read_text(encoding='utf-8')
+          facade = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt').read_text(encoding='utf-8')
+          assert 'state&&state.partyDetails&&Array.isArray(state.partyDetails.members)' in html
+          assert 'for(let i=0;i<max;i++)' in html
+          assert '<h3>Status</h3>' in html
+          assert '<h3>Equipment</h3>' in html
+          assert '<h3>Inventory</h3>' in html
+          assert 'Thời gian chủ quan:' in html
+          assert "member.id==='kai'?'avatars/kai_avatar.png':''" in html
+          assert "member.id==='kai'?'avatars/kai_avatar.png':'avatars/kai_avatar.png'" not in html
+          assert 'output.put("partyDetails"' in facade
+          assert 'output.put("gameTime"' in facade
+          PY
 
       - uses: actions/setup-java@v4
         with:
@@ -128,27 +148,27 @@ jobs:
         run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
 
       - name: Prepare release APK
-        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.1.40.apk
+        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.1.41.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Backroom-1.1.40-debug-apk
-          path: Backroom-1.1.40.apk
+          name: Backroom-1.1.41-debug-apk
+          path: Backroom-1.1.41.apk
           if-no-files-found: error
           retention-days: 14
 
-      - name: Publish GitHub Release v1.1.40
+      - name: Publish GitHub Release v1.1.41
         if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="v1.1.40"
-          TITLE="Backroom 1.1.40"
-          NOTES=$(cat android-apk/RELEASE_NOTES_1.1.40.txt)
+          TAG="v1.1.41"
+          TITLE="Backroom 1.1.41"
+          NOTES=$(cat android-apk/RELEASE_NOTES_1.1.41.txt)
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
-            gh release upload "$TAG" Backroom-1.1.40.apk --clobber
+            gh release upload "$TAG" Backroom-1.1.41.apk --clobber
           else
-            gh release create "$TAG" Backroom-1.1.40.apk --target "$GITHUB_SHA" --title "$TITLE" --notes "$NOTES"
+            gh release create "$TAG" Backroom-1.1.41.apk --target "$GITHUB_SHA" --title "$TITLE" --notes "$NOTES"
           fi

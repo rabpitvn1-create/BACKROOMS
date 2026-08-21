@@ -18,10 +18,49 @@ private fun removeItem(inventory: InventoryState, itemId: String, quantity: Int)
   return inventory.copy(items = items)
 }
 
+private fun parsePhysiologyEffects(raw: String?): Set<String>? {
+  if (raw == null) return emptySet()
+  val effects = raw.split(',', ';', '|').map { it.trim().uppercase() }.filter { it.isNotEmpty() }
+  if (effects.isEmpty() || effects.any { it !in setOf("WATER", "FOOD") }) return null
+  return effects.toSet()
+}
+
+private fun finishItemUse(
+  originalState: GameState,
+  inventoryResult: ExecutionResult,
+  command: ItemCommand,
+  physiologyEffects: Set<String>
+): ExecutionResult {
+  if (!inventoryResult.applied || physiologyEffects.isEmpty()) return inventoryResult
+  var current = inventoryResult.state
+  val events = inventoryResult.events.toMutableList()
+  physiologyEffects.forEachIndexed { index, effect ->
+    val operation = when (effect) {
+      "WATER" -> PhysiologyCommand.Operation.RECORD_WATER
+      "FOOD" -> PhysiologyCommand.Operation.RECORD_FOOD
+      else -> return ExecutionResult(originalState, false, validation = ValidationResult(false, "physiology_effect_invalid"))
+    }
+    val physiology = PhysiologyEngine.execute(current, PhysiologyCommand(
+      commandId = "${command.commandId}:PHYS:$index",
+      turnId = command.turnId,
+      actorId = command.actorId,
+      targetId = command.actorId,
+      source = CommandSource.SYSTEM,
+      operation = operation
+    ))
+    if (!physiology.applied) return ExecutionResult(originalState, false, validation = physiology.validation)
+    current = physiology.state
+    events += physiology.events
+  }
+  return inventoryResult.copy(state = current, events = events)
+}
+
 private fun useItem(state: GameState, source: InventoryState, command: ItemCommand): ExecutionResult {
   val ownedRaw = source.items[command.itemId] ?: return invalid(state, "item_not_owned")
   if (ownedRaw.quantity < command.quantity) return invalid(state, "insufficient_item_quantity")
   val owned = ItemContentRules.normalize(ownedRaw)
+  val physiologyEffects = parsePhysiologyEffects(owned.metadata["physiologyEffect"])
+    ?: return invalid(state, "physiology_effect_invalid")
   if (owned.contentState == ContentState.EMPTY) return invalid(state, "item_content_empty")
   if (owned.contentState == ContentState.FULL || owned.contentState == ContentState.LOW) {
     val nextVariant = ItemContentRules.nextAfterUse(owned) ?: return invalid(state, "item_content_empty")
@@ -29,15 +68,20 @@ private fun useItem(state: GameState, source: InventoryState, command: ItemComma
     val validation = InventoryPolicy.validateAddition(state, command.actorId, nextInventory, nextVariant, command.quantity)
     if (validation != null) return invalid(state, validation)
     nextInventory = addItem(nextInventory, nextVariant.copy(quantity = command.quantity))
-    return changed(state.copy(inventories = state.inventories + (command.actorId to nextInventory)), if (nextVariant.contentState == ContentState.EMPTY) "item_content_emptied" else "item_content_reduced")
+    val inventoryResult = changed(
+      state.copy(inventories = state.inventories + (command.actorId to nextInventory)),
+      if (nextVariant.contentState == ContentState.EMPTY) "item_content_emptied" else "item_content_reduced"
+    )
+    return finishItemUse(state, inventoryResult, command, physiologyEffects)
   }
   val consumedOnUse = owned.metadata["consumedOnUse"].equals("true", true) ||
     (owned.metadata["consumable"].equals("true", true) && !owned.metadata["containerPersistent"].equals("true", true))
   if (consumedOnUse) {
     val next = removeItem(source, command.itemId, command.quantity) ?: return invalid(state, "insufficient_item_quantity")
-    return changed(state.copy(inventories = state.inventories + (command.actorId to next)), "item_consumed")
+    val inventoryResult = changed(state.copy(inventories = state.inventories + (command.actorId to next)), "item_consumed")
+    return finishItemUse(state, inventoryResult, command, physiologyEffects)
   }
-  return changed(state, "item_used")
+  return finishItemUse(state, changed(state, "item_used"), command, physiologyEffects)
 }
 
 object InventoryEngine {
@@ -45,7 +89,7 @@ object InventoryEngine {
     if (command.quantity <= 0) return invalid(state, "quantity_must_be_positive")
     if (ItemContentRules.hasForbiddenPreciseAmount(command.itemName)) return invalid(state, "precise_content_amount_forbidden")
     val source = state.inventories[command.actorId] ?: InventoryState(command.actorId)
-    val item = ItemContentRules.normalize(ItemStack(command.itemId, command.itemName, command.quantity))
+    val item = ItemContentRules.normalize(ItemStack(command.itemId, command.itemName, command.quantity, metadata = command.metadata))
     return when (command.operation) {
       ItemCommand.Operation.PICKUP -> {
         val validation = InventoryPolicy.validateAddition(state, command.actorId, source, item, command.quantity)
@@ -138,6 +182,47 @@ object StatusEngine {
       }
       StatusCommand.Operation.QUERY -> ExecutionResult(state, applied = false)
     }
+  }
+}
+
+object TimeEngine {
+  fun execute(state: GameState, command: TimeAdvanceCommand): ExecutionResult {
+    if (command.minutes <= 0) return invalid(state, "time_minutes_must_be_positive")
+    val reason = command.reason.trim()
+    if (reason.isEmpty()) return invalid(state, "time_reason_required")
+    val delta = command.minutes.toLong()
+    val elapsed = state.time.elapsedSubjectiveMinutes
+    if (elapsed > Long.MAX_VALUE - delta) return invalid(state, "time_overflow")
+
+    val nextCharacters = linkedMapOf<String, CharacterState>()
+    state.characters.forEach { (id, character) ->
+      if (character.presence == CharacterPresence.DEAD) {
+        nextCharacters[id] = character
+        return@forEach
+      }
+      val physiology = character.physiology
+      val food = advanceKnownCounter(physiology.minutesSinceFood, delta) ?: if (physiology.minutesSinceFood != null) return invalid(state, "physiology_time_overflow") else null
+      val water = advanceKnownCounter(physiology.minutesSinceWater, delta) ?: if (physiology.minutesSinceWater != null) return invalid(state, "physiology_time_overflow") else null
+      val awake = advanceKnownCounter(physiology.minutesAwake, delta) ?: if (physiology.minutesAwake != null) return invalid(state, "physiology_time_overflow") else null
+      nextCharacters[id] = character.copy(physiology = physiology.copy(
+        minutesSinceFood = food,
+        minutesSinceWater = water,
+        minutesAwake = awake
+      ))
+    }
+
+    val nextTime = state.time.copy(
+      elapsedSubjectiveMinutes = elapsed + delta,
+      lastAdvanceMinutes = command.minutes,
+      lastAdvanceReason = reason
+    )
+    return changed(state.copy(time = nextTime, characters = nextCharacters), "time_advanced")
+  }
+
+  private fun advanceKnownCounter(value: Long?, delta: Long): Long? {
+    if (value == null) return null
+    if (value < 0L || value > Long.MAX_VALUE - delta) return null
+    return value + delta
   }
 }
 

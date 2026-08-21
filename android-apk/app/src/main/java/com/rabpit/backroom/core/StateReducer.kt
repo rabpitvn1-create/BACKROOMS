@@ -41,6 +41,8 @@ object StateReducer {
       is OmnivaultCommand -> OmnivaultEngine.execute(state, command)
       is PartyCommand -> PartyEngine.execute(state, command)
       is StatusCommand -> StatusEngine.execute(state, command)
+      is TimeAdvanceCommand -> TimeEngine.execute(state, command)
+      is PhysiologyCommand -> PhysiologyEngine.execute(state, command)
       is QueryCommand -> ExecutionResult(state, applied = false)
       is ValidatedLegacyStateCommand -> {
         val worldPatch = mapOfNotNull(
@@ -68,7 +70,7 @@ object StateReducer {
 
   private fun rememberedItemAfter(before: GameState, after: GameState, command: ItemCommand): String {
     if (command.operation == ItemCommand.Operation.PICKUP) {
-      return ItemContentRules.normalize(ItemStack(command.itemId, command.itemName, command.quantity)).itemId
+      return ItemContentRules.normalize(ItemStack(command.itemId, command.itemName, command.quantity, metadata = command.metadata)).itemId
     }
     if (command.operation == ItemCommand.Operation.USE) {
       val old = before.inventories[command.actorId]?.items?.get(command.itemId)

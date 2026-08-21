@@ -7,15 +7,39 @@ import org.junit.Test
 class GameStateCodecTest {
   @Test fun roundTripPreservesStructuredStateAndPendingTurn() {
     val effect = StatusEffect("s1", "INJURY", "event", "TURN_9", persistent = true)
+    val physiology = PhysiologyState(
+      minutesSinceFood = 360L,
+      minutesSinceWater = 95L,
+      minutesAwake = 870L,
+      painState = "moderate",
+      infectionState = "suspected",
+      thermalState = "cold",
+      metadata = mapOf("source" to "field_observation")
+    )
     val state = GameState.initial().copy(
       inventories = mapOf(KAI_ID to InventoryState(KAI_ID, mapOf("water" to ItemStack("water", "Almond Water", 2)))),
       statuses = mapOf(effect.id to effect),
-      characters = mapOf(KAI_ID to CharacterState(KAI_ID, "Kai Akechi", statusIds = setOf(effect.id))),
+      characters = mapOf(KAI_ID to CharacterState(KAI_ID, "Kai Akechi", statusIds = setOf(effect.id), physiology = physiology)),
       omnivault = OmnivaultState(scanSlots = listOf(ScanSlot(1, "water", ItemStack("water", "Almond Water"), 10)), markedSourceIds = setOf("water")),
-      turn = TurnState("TURN_9", PendingTurn("TURN_9", "Kai nhặt nước", PendingTurnStatus.INTERPRETING))
+      turn = TurnState("TURN_9", PendingTurn("TURN_9", "Kai nhặt nước", PendingTurnStatus.INTERPRETING)),
+      time = GameTimeState(elapsedSubjectiveMinutes = 485L, lastAdvanceMinutes = 15, lastAdvanceReason = "travel")
     )
     val decoded = GameStateCodec.decode(GameStateCodec.encode(state))
     assertEquals(state, decoded)
+    assertEquals(physiology, decoded.characters.getValue(KAI_ID).physiology)
+  }
+
+  @Test fun currentSaveWithoutTimeDefaultsToZeroSubjectiveMinutes() {
+    val raw = JSONObject(GameStateCodec.encode(GameState.initial())).apply { remove("time") }.toString()
+    val decoded = GameStateCodec.decode(raw)
+    assertEquals(GameTimeState(), decoded.time)
+  }
+
+  @Test fun currentCharacterWithoutPhysiologyDefaultsToUnknownState() {
+    val root = JSONObject(GameStateCodec.encode(GameState.initial()))
+    root.getJSONObject("characters").getJSONObject(KAI_ID).remove("physiology")
+    val decoded = GameStateCodec.decode(root.toString())
+    assertEquals(PhysiologyState(), decoded.characters.getValue(KAI_ID).physiology)
   }
 
   @Test fun freshStateKeepsSignatureGearOnlyInEquipment() {
@@ -42,6 +66,9 @@ class GameStateCodecTest {
     val migrated = GameStateCodec.decode(legacy)
     assertEquals(CURRENT_SAVE_VERSION, migrated.saveVersion)
     assertEquals("TURN_184", migrated.turn.currentTurnId)
+    assertEquals(GameTimeState(), migrated.time)
+    assertEquals(PhysiologyState(), migrated.characters.getValue(KAI_ID).physiology)
+    assertEquals(PhysiologyState(), migrated.characters.getValue("iris").physiology)
     assertEquals(1, migrated.inventories.getValue(KAI_ID).items.size)
     assertEquals(2, migrated.inventories.getValue(KAI_ID).items.values.single().quantity)
     assertEquals(KAI_WHITE_WRAITH_ID, migrated.equipment.getValue(KAI_ID).slots["weapon"])
@@ -69,6 +96,7 @@ class GameStateCodecTest {
     }
     val migrated = GameStateCodec.decode(v2)
     assertEquals(CURRENT_SAVE_VERSION, migrated.saveVersion)
+    assertEquals(PhysiologyState(), migrated.characters.getValue(KAI_ID).physiology)
     assertEquals(setOf("rope"), migrated.inventories.getValue(KAI_ID).items.keys)
     assertEquals(KAI_WHITE_WRAITH_ID, migrated.equipment.getValue(KAI_ID).slots["weapon"])
     assertEquals(KAI_BLACKBLOOD_ARMOR_ID, migrated.equipment.getValue(KAI_ID).slots["armor"])

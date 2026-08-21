@@ -65,6 +65,16 @@ data class StatusEffect(
   val metadata: Map<String, String> = emptyMap()
 )
 
+data class PhysiologyState(
+  val minutesSinceFood: Long? = null,
+  val minutesSinceWater: Long? = null,
+  val minutesAwake: Long? = null,
+  val painState: String? = null,
+  val infectionState: String? = null,
+  val thermalState: String? = null,
+  val metadata: Map<String, String> = emptyMap()
+)
+
 data class CharacterState(
   val id: String,
   val name: String,
@@ -75,6 +85,7 @@ data class CharacterState(
   val inventoryId: String = id,
   val equipmentId: String = id,
   val statusIds: Set<String> = emptySet(),
+  val physiology: PhysiologyState = PhysiologyState(),
   val metadata: Map<String, String> = emptyMap()
 )
 
@@ -105,6 +116,12 @@ data class TurnState(
   val executedCommandIds: Set<String> = emptySet()
 )
 
+data class GameTimeState(
+  val elapsedSubjectiveMinutes: Long = 0L,
+  val lastAdvanceMinutes: Int = 0,
+  val lastAdvanceReason: String? = null
+)
+
 data class GameState(
   val characters: Map<String, CharacterState>,
   val party: PartyState = PartyState(),
@@ -113,6 +130,7 @@ data class GameState(
   val statuses: Map<String, StatusEffect> = emptyMap(),
   val omnivault: OmnivaultState = OmnivaultState(),
   val turn: TurnState = TurnState(),
+  val time: GameTimeState = GameTimeState(),
   val world: Map<String, String> = emptyMap(),
   val saveVersion: Int = CURRENT_SAVE_VERSION,
   val metadata: Map<String, String> = emptyMap()

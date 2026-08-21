@@ -18,7 +18,8 @@ data class ItemCommand(
   val itemId: String,
   val itemName: String,
   val quantity: Int = 1,
-  val slot: String? = null
+  val slot: String? = null,
+  val metadata: Map<String, String> = emptyMap()
 ) : GameCommand {
   enum class Operation { PICKUP, DROP, USE, TRANSFER, STORE, WITHDRAW, EQUIP, UNEQUIP }
 }
@@ -66,6 +67,16 @@ data class StatusCommand(
 ) : GameCommand {
   enum class Operation { APPLY, REMOVE, UPDATE, QUERY }
 }
+
+data class TimeAdvanceCommand(
+  override val commandId: String,
+  override val turnId: String?,
+  override val actorId: String,
+  override val targetId: String? = null,
+  override val source: CommandSource,
+  val minutes: Int,
+  val reason: String
+) : GameCommand
 
 data class QueryCommand(
   override val commandId: String,

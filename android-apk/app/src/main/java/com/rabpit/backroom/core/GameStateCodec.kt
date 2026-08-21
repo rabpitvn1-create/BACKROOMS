@@ -17,6 +17,7 @@ object GameStateCodec {
     put("statuses", JSONObject().apply { state.statuses.forEach { (id, value) -> put(id, status(value)) } })
     put("omnivault", omnivault(state.omnivault))
     put("turn", turn(state.turn))
+    put("time", gameTime(state.time))
     put("world", stringMap(state.world))
     put("metadata", stringMap(state.metadata))
   }.toString()
@@ -63,6 +64,7 @@ object GameStateCodec {
       statuses = statuses,
       omnivault = decodeOmnivault(root.optJSONObject("omnivault") ?: JSONObject()),
       turn = decodeTurn(root.optJSONObject("turn") ?: JSONObject()),
+      time = decodeGameTime(root.optJSONObject("time")),
       world = root.optJSONObject("world").stringsMap(),
       saveVersion = CURRENT_SAVE_VERSION,
       metadata = root.optJSONObject("metadata").stringsMap() + mapOf("migratedFromVersion" to "2", "equipmentSeparated" to "true")
@@ -88,6 +90,7 @@ object GameStateCodec {
       statuses = statuses,
       omnivault = decodeOmnivault(root.optJSONObject("omnivault") ?: JSONObject()),
       turn = decodeTurn(root.optJSONObject("turn") ?: JSONObject()),
+      time = decodeGameTime(root.optJSONObject("time")),
       world = root.optJSONObject("world").stringsMap(),
       saveVersion = CURRENT_SAVE_VERSION,
       metadata = root.optJSONObject("metadata").stringsMap()
@@ -98,7 +101,7 @@ object GameStateCodec {
     put("id", value.id); put("name", value.name); putNullable("avatarRef", value.avatarRef)
     putNullable("healthState", value.healthState); put("injuries", JSONArray(value.injuries))
     put("presence", value.presence.name); put("inventoryId", value.inventoryId); put("equipmentId", value.equipmentId)
-    put("statusIds", JSONArray(value.statusIds.toList())); put("metadata", stringMap(value.metadata))
+    put("statusIds", JSONArray(value.statusIds.toList())); put("physiology", physiology(value.physiology)); put("metadata", stringMap(value.metadata))
   }
 
   private fun decodeCharacter(json: JSONObject) = CharacterState(
@@ -108,8 +111,33 @@ object GameStateCodec {
     presence = enumOr(CharacterPresence.ACTIVE, json.optString("presence")),
     inventoryId = json.optString("inventoryId", json.optString("id")),
     equipmentId = json.optString("equipmentId", json.optString("id")),
-    statusIds = json.optJSONArray("statusIds").strings().toSet(), metadata = json.optJSONObject("metadata").stringsMap()
+    statusIds = json.optJSONArray("statusIds").strings().toSet(),
+    physiology = decodePhysiology(json.optJSONObject("physiology")),
+    metadata = json.optJSONObject("metadata").stringsMap()
   )
+
+  private fun physiology(value: PhysiologyState) = JSONObject().apply {
+    putNullable("minutesSinceFood", value.minutesSinceFood)
+    putNullable("minutesSinceWater", value.minutesSinceWater)
+    putNullable("minutesAwake", value.minutesAwake)
+    putNullable("painState", value.painState)
+    putNullable("infectionState", value.infectionState)
+    putNullable("thermalState", value.thermalState)
+    put("metadata", stringMap(value.metadata))
+  }
+
+  private fun decodePhysiology(json: JSONObject?): PhysiologyState {
+    if (json == null) return PhysiologyState()
+    return PhysiologyState(
+      minutesSinceFood = json.nullableLong("minutesSinceFood")?.coerceAtLeast(0L),
+      minutesSinceWater = json.nullableLong("minutesSinceWater")?.coerceAtLeast(0L),
+      minutesAwake = json.nullableLong("minutesAwake")?.coerceAtLeast(0L),
+      painState = json.nullableString("painState"),
+      infectionState = json.nullableString("infectionState"),
+      thermalState = json.nullableString("thermalState"),
+      metadata = json.optJSONObject("metadata").stringsMap()
+    )
+  }
 
   private fun item(value: ItemStack) = JSONObject().apply {
     val normalized = ItemContentRules.normalize(value)
@@ -198,6 +226,21 @@ object GameStateCodec {
     return TurnState(json.optString("currentTurnId", "TURN_1"), pending, json.optJSONArray("completedTurnIds").strings().toSet(), json.optJSONArray("executedCommandIds").strings().toSet())
   }
 
+  private fun gameTime(value: GameTimeState) = JSONObject().apply {
+    put("elapsedSubjectiveMinutes", value.elapsedSubjectiveMinutes)
+    put("lastAdvanceMinutes", value.lastAdvanceMinutes)
+    putNullable("lastAdvanceReason", value.lastAdvanceReason)
+  }
+
+  private fun decodeGameTime(json: JSONObject?): GameTimeState {
+    if (json == null) return GameTimeState()
+    return GameTimeState(
+      elapsedSubjectiveMinutes = json.optLong("elapsedSubjectiveMinutes", 0L).coerceAtLeast(0L),
+      lastAdvanceMinutes = json.optInt("lastAdvanceMinutes", 0).coerceAtLeast(0),
+      lastAdvanceReason = json.nullableString("lastAdvanceReason")
+    )
+  }
+
   private fun stringMap(values: Map<String, String>) = JSONObject().apply { values.forEach { (key, value) -> put(key, value) } }
 }
 
@@ -245,6 +288,7 @@ object LegacySaveMigration {
 
 private fun JSONObject.putNullable(key: String, value: Any?) { put(key, value ?: JSONObject.NULL) }
 private fun JSONObject.nullableString(key: String): String? = if (!has(key) || isNull(key)) null else optString(key).takeIf { it.isNotBlank() }
+private fun JSONObject.nullableLong(key: String): Long? = if (!has(key) || isNull(key)) null else optLong(key)
 private fun JSONObject?.stringsMap(): Map<String, String> {
   if (this == null) return emptyMap()
   val result = mutableMapOf<String, String>(); keys().forEach { result[it] = optString(it) }; return result
