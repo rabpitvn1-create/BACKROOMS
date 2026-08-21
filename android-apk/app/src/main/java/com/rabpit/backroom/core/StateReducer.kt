@@ -41,7 +41,7 @@ object StateReducer {
       is OmnivaultCommand -> OmnivaultEngine.execute(state, command)
       is PartyCommand -> PartyEngine.execute(state, command)
       is StatusCommand -> StatusEngine.execute(state, command)
-      is TimeAdvanceCommand -> ExecutionResult(state, applied = false, validation = ValidationResult(false, "time_engine_not_implemented"))
+      is TimeAdvanceCommand -> TimeEngine.execute(state, command)
       is QueryCommand -> ExecutionResult(state, applied = false)
       is ValidatedLegacyStateCommand -> {
         val worldPatch = mapOfNotNull(
