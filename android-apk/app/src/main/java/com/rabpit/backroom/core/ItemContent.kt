@@ -10,34 +10,28 @@ data class ContentProfile(
   val supportsLow: Boolean = true
 )
 
-/**
- * Small deterministic registry for item-content state. The game never stores ml/grams/percentages.
- * Unstructured/legacy names are normalized once into FULL / LOW / EMPTY / NONE, then gameplay
- * operates only on the structured state.
- */
 object ItemContentRules {
   private val emptyWords = Regex("(?:\\brỗng\\b|\\btrống\\b|\\bđã hết\\b|\\bhết sạch\\b)", RegexOption.IGNORE_CASE)
   private val lowWords = Regex("(?:còn ít|sắp hết|gần hết)", RegexOption.IGNORE_CASE)
+  private val forbiddenPreciseAmount = Regex("(?:\\b\\d+(?:[.,]\\d+)?\\s*(?:ml|l|lit|lít|g|gram|kg|%)\\b|một nửa|nửa chai|nửa hộp|phần trăm)", RegexOption.IGNORE_CASE)
+
+  fun hasForbiddenPreciseAmount(text: String): Boolean = forbiddenPreciseAmount.containsMatchIn(text)
 
   fun normalize(item: ItemStack): ItemStack {
-    if (item.contentState != ContentState.NONE || item.metadata["contentState"] != null) {
-      val state = item.metadata["contentState"]?.let { runCatching { ContentState.valueOf(it) }.getOrNull() } ?: item.contentState
-      val profile = profileFor(item.name, item.archetypeId)
-      return item.copy(
-        archetypeId = profile?.archetypeId ?: item.archetypeId,
-        contentState = state,
-        name = displayName(profile, state, item.name),
-        metadata = item.metadata - "remainingContent" - "contentAmount" - "contentPercent" + ("contentState" to state.name)
-      )
+    val profile = profileFor(item.name, item.archetypeId)
+    if (profile == null) {
+      return item.copy(contentState = ContentState.NONE, metadata = item.metadata - "remainingContent" - "contentAmount" - "contentPercent")
     }
 
-    val profile = profileFor(item.name, item.archetypeId) ?: return item.copy(contentState = ContentState.NONE)
-    val state = when {
+    val explicit = item.metadata["contentState"]?.let { runCatching { ContentState.valueOf(it) }.getOrNull() }
+    val state = explicit ?: if (item.contentState != ContentState.NONE) item.contentState else when {
       emptyWords.containsMatchIn(item.name) || item.name.startsWith("vỏ ", true) -> ContentState.EMPTY
       lowWords.containsMatchIn(item.name) -> ContentState.LOW
       else -> ContentState.FULL
     }
+    val canonicalId = variantId(profile.archetypeId, state)
     return item.copy(
+      itemId = canonicalId,
       archetypeId = profile.archetypeId,
       contentState = state,
       name = displayName(profile, state, item.name),
@@ -69,7 +63,7 @@ object ItemContentRules {
 
   fun sameStackState(left: ItemStack, right: ItemStack): Boolean {
     val a = normalize(left); val b = normalize(right)
-    return a.archetypeId == b.archetypeId && a.contentState == b.contentState &&
+    return a.itemId == b.itemId && a.archetypeId == b.archetypeId && a.contentState == b.contentState &&
       a.condition == b.condition && stackMetadata(a.metadata) == stackMetadata(b.metadata)
   }
 
