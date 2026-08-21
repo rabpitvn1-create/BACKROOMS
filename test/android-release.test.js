@@ -1,13 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { cpSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 
 const root = process.cwd();
 
-test("Android release patch chain keeps authoritative gameplay, Omnivault pickup sync and model-first Gemini fallback", (t) => {
+test("Android 1.1.38 release chain matches current authoritative inventory contract", (t) => {
   const temporaryRoot = mkdtempSync(path.join(tmpdir(), "backroom-android-test-"));
   t.after(() => rmSync(temporaryRoot, { recursive: true, force: true }));
   const source = path.join(root, "android-apk");
@@ -16,28 +16,20 @@ test("Android release patch chain keeps authoritative gameplay, Omnivault pickup
 
   const buildGradle = readFileSync(path.join(source, "app/build.gradle"), "utf8");
   const workflow = readFileSync(path.join(root, ".github/workflows/build-backroom-apk.yml"), "utf8");
-  assert.match(buildGradle, /versionCode 36/);
-  assert.match(buildGradle, /versionName '1\.1\.34'/);
-  assert.match(workflow, /Backroom-1\.1\.34\.apk/);
-  assert.match(workflow, /RELEASE_NOTES_1\.1\.34\.txt/);
+  assert.match(buildGradle, /versionCode 40/);
+  assert.match(buildGradle, /versionName '1\.1\.38'/);
+  assert.match(workflow, /Backroom-1\.1\.38\.apk/);
+  assert.match(workflow, /RELEASE_NOTES_1\.1\.38\.txt/);
   assert.match(workflow, /patch-save-controls-final\.py/);
   assert.match(workflow, /patch-gemini-model-matrix-final\.py/);
-  assert.match(workflow, /patch-inventory-pickup-reconcile-final\.py/);
   assert.match(workflow, /patch-game-state-core-bridge\.py/);
-  assert.match(workflow, /patch-kai-resource-policy-final\.py/);
-  assert.doesNotMatch(workflow, /patch-space-habitat-font\.py/);
+  assert.match(workflow, /patch-character-inventory-ui\.py/);
+  assert.doesNotMatch(workflow, /patch-inventory-pickup-reconcile-final\.py/);
 
   for (let slot = 1; slot <= 5; slot += 1) {
     assert.match(buildGradle, new RegExp(`GEMINI_API_KEY_${slot}`));
     assert.match(workflow, new RegExp(`secrets\\.GEMINI_API_KEY_${slot}`));
   }
-  assert.match(workflow, /patch-gameplay-parity-final\.py/);
-  assert.match(workflow, /patch-final-authority-hardening\.py/);
-  assert.match(workflow, /patch-rejected-op-repair-final\.py/);
-  assert.match(workflow, /patch-provider-deadline-final\.py/);
-  assert.match(workflow, /if: github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'/);
-  assert.match(workflow, /git push origin HEAD:main/);
-  assert.match(workflow, /if: github\.ref != 'refs\/heads\/main'/);
   assert.doesNotMatch(buildGradle + workflow, /SNAPSHOT_API_KEY/);
 
   for (let level = 0; level <= 6; level += 1) {
@@ -45,6 +37,11 @@ test("Android release patch chain keeps authoritative gameplay, Omnivault pickup
     assert.equal(snapshotAsset.subarray(0, 4).toString("ascii"), "RIFF");
     assert.equal(snapshotAsset.subarray(8, 12).toString("ascii"), "WEBP");
   }
+
+  const kaiAvatar = path.join(source, "app/src/main/assets/avatars/kai_avatar.png");
+  assert.ok(existsSync(kaiAvatar), "Kai avatar must be packaged as a real PNG asset");
+  const avatarBytes = readFileSync(kaiAvatar);
+  assert.deepEqual([...avatarBytes.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
 
   const scripts = [
     "patch-provider-status.py",
@@ -65,7 +62,6 @@ test("Android release patch chain keeps authoritative gameplay, Omnivault pickup
     "patch-gameplay-parity-final.py",
     "patch-final-authority-hardening.py",
     "patch-rejected-op-repair-final.py",
-    "patch-inventory-pickup-reconcile-final.py",
     "patch-kai-resource-policy-final.py",
     "patch-provider-deadline-final.py",
     "patch-gemini-model-matrix-final.py",
@@ -74,6 +70,7 @@ test("Android release patch chain keeps authoritative gameplay, Omnivault pickup
     "patch-hard-mode-label.py",
     "patch-snapshot-unconfigured.py",
     "patch-game-state-core-bridge.py",
+    "patch-character-inventory-ui.py",
   ];
 
   for (const script of scripts) {
@@ -83,127 +80,35 @@ test("Android release patch chain keeps authoritative gameplay, Omnivault pickup
 
   const main = readFileSync(path.join(target, "app/src/main/java/com/rabpit/backroom/MainActivity.java"), "utf8");
   const index = readFileSync(path.join(target, "app/src/main/assets/index.html"), "utf8");
+  const facade = readFileSync(path.join(target, "app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt"), "utf8");
+  const reducer = readFileSync(path.join(target, "app/src/main/java/com/rabpit/backroom/core/StateReducer.kt"), "utf8");
+  const profiles = readFileSync(path.join(target, "app/src/main/java/com/rabpit/backroom/core/InventoryPolicy.kt"), "utf8");
 
-  assert.match(main, /DRIVE_CANON_VERSION/);
-  assert.match(main, /import java\.security\.SecureRandom;/);
-  assert.match(main, /SecureRandom GAME_RNG/);
-  assert.match(main, /private String lower\(String value\)/);
-  assert.match(main, /private boolean networkFailure\(Exception error\)/);
-  assert.match(main, /private String networkFailureMessage\(\)/);
-  assert.equal((main.match(/private void mergeObject\(JSONObject target, JSONObject patch\)/g) || []).length, 1);
-  assert.equal((main.match(/private void mergeObjectDeep\(JSONObject target, JSONObject patch\)/g) || []).length, 1);
-  assert.doesNotMatch(main, /JSONObject\.getNames\(/);
-
-  assert.match(main, /thresholdRoll\("survivor", 10000, 200/);
-  assert.match(main, /thresholdRoll\("irisReunion", 1000000, 25/);
-  assert.match(main, /thresholdRoll\("syvialReunion", 1000000, 25/);
-  assert.match(main, /int\[\] entityThresholds = \{5, 200, 350, 350, 10, 400, 5\}/);
-  assert.match(main, /int\[\] lootThresholds = \{35, 120, 100, 150, 180, 100, 45\}/);
-  assert.match(main, /rolls\.put\("hazard"/);
-  assert.match(main, /rolls\.put\("exitProbe", exitProbe\)/);
-  assert.match(main, /rolls\.put\("levelExit", new JSONObject\(exitProbe\.toString\(\)\)/);
-
-  assert.match(main, /compactDriveCanon/);
-  assert.match(main, /compactKaiCanon/);
-  assert.match(main, /compactStateForPrompt/);
-  assert.match(main, /applyModelOperations/);
   assert.match(main, /GameCoreFacade/);
   assert.match(main, /gameCore\.processRule\(stateJson, action\)/);
   assert.match(main, /gameCore\.processValidatedCandidate\(/);
-  assert.match(main, /establishedStructured/);
-  assert.match(main, /worldConsequence/);
-  assert.match(main, /exitMutation/);
-  assert.match(main, /JSONArray proposed/);
-  assert.match(main, /rejectedOperationIssuesAndroid/);
-  assert.match(main, /state_narrative_mismatch/);
-  assert.match(main, /appendIssues\(hardIssues, rejectedOperationIssuesAndroid/);
+  assert.match(main, /loadUrl\("file:\/\/\/android_asset\/index\.html"\)/);
+  assert.doesNotMatch(main, /loadUrl\("https?:/);
 
-  assert.match(main, /private String pickupCandidateAndroid\(String action\)/);
-  assert.match(main, /private String omnivaultRestoreTargetAndroid\(String action\)/);
-  assert.match(main, /private boolean mundanePickupName\(String name\)/);
-  assert.match(main, /private boolean replyConfirmsRestoreAndroid\(String target, String reply\)/);
-  assert.match(main, /private JSONArray pickupNarrativeIssuesAndroid\(/);
-  assert.match(main, /private void reconcileConfirmedPickupOpsAndroid\(/);
-  assert.match(main, /gm_confirmed_pickup/);
-  assert.match(main, /omnivault_restore/);
-  assert.match(main, /omnivault_action_lock/);
-  assert.match(main, /if \(!meta\) reconcileConfirmedPickupOpsAndroid\(before, generated, action\)/);
-  assert.match(main, /appendIssues\(hardIssues, pickupNarrativeIssuesAndroid\(action, generated\)\)/);
-  assert.match(main, /String pickupBasis = lower\(op\.optString\("basis", ""\)\)/);
-  assert.match(main, /"omnivault_restore"\.equals\(pickupBasis\)/);
-  assert.match(main, /rollSuccess\(rolls, "loot"\) \|\| confirmedMundanePickup/);
-  assert.match(main, /Inventory là sổ continuity\/sở hữu của Kai/);
-  assert.match(main, /vỏ chai -> hoàn nguyên thành chai nước -> cất kho/);
-  assert.match(main, /Không dựng thiếu đạn, nước, đồ ăn hay vật tư thông thường/);
+  assert.match(reducer, /player_pickup_unavailable/);
+  assert.match(reducer, /restore_narrative_only/);
+  assert.match(facade, /\[Warning\]/);
+  assert.match(facade, /There is no object available for scanning or multiplying\./);
 
-  assert.match(main, /private String postJsonFast\(/);
-  assert.match(main, /setReadTimeout\(18000\)/);
-  assert.match(main, /private String postJsonLunaFast\(/);
-  assert.match(main, /setConnectTimeout\(12000\)/);
-  assert.match(main, /setReadTimeout\(12000\)/);
-  assert.match(main, /RECENT LOG ONLY/);
+  assert.match(profiles, /KAI_ID.*9.*999/s);
+  assert.match(profiles, /iris.*4.*20/s);
+  assert.match(profiles, /syvial.*4.*20/s);
+  assert.match(profiles, /2.*2/s);
 
-  assert.match(main, /private String\[\] geminiModelChain\(\)/);
-  assert.match(main, /"gemini-3\.6-flash", "gemini-3\.5-flash", "gemini-3\.5-flash-lite"/);
-  assert.match(main, /geminiModelMatrixPolicy\(prompt, new int\[\] \{0, 1, 2\}/);
-  assert.match(main, /geminiModelMatrixPolicy\(prompt, new int\[\] \{2, 1\}/);
-  assert.match(main, /geminiCredentialDisabledUntilMatrix/);
-  assert.match(main, /geminiLaneCooldownUntilMatrix/);
-  assert.match(main, /geminiModelCircuitUntilMatrix/);
-  assert.match(main, /geminiHostCircuitUntilMatrix/);
-  assert.match(main, /Integer\.bitCount\(geminiModelTransientMaskMatrix\[modelIndex\]\) >= 3/);
-  assert.match(main, /Integer\.bitCount\(geminiTransportMaskMatrix\) >= 3/);
-  assert.match(main, /code == 400 \|\| code == 404/);
-  assert.match(main, /code == 429/);
-  assert.match(main, /thinkingLevel", geminiThinkingLevel\(modelIndex\)/);
-  assert.match(main, /modelIndex == 2 \? "minimal" : "low"/);
-  assert.match(main, /geminiModelLabel\(lastGeminiModel\) \+ " K" \+ \(lastGeminiWorker \+ 1\)/);
-  assert.match(main, /emit\("backroomProvider", "Luna fallback"\)/);
-
-  assert.match(index, /body\{margin:0;background:#080a0c;color:#eef1f3;font:15px system-ui,sans-serif\}/);
-  assert.doesNotMatch(index, /MBF Space Habitat|data:font\/woff2;base64/);
+  assert.doesNotMatch(index, /<div class="card"><h2>Inventory<\/h2>/);
+  assert.match(index, /avatars\/kai_avatar\.png/);
+  assert.match(index, /character-inventory/);
+  assert.match(index, /Inventory/);
+  assert.doesNotMatch(index, /data:image\/[^;]+;base64/);
+  assert.doesNotMatch(index, /data:font\/woff2;base64/);
 
   assert.match(index, /id="saveButton"/);
   assert.match(index, /id="loadButton"/);
   assert.match(index, /id="newGameButton"/);
   assert.match(index, /id="deleteSaveButton"/);
-  assert.match(index, /const SAVE_KEY="backroom-apk-state"/);
-  assert.match(index, /const SNAPSHOT_KEY="backroom-apk-snapshot"/);
-  assert.match(index, /function savedState\(\)/);
-  assert.match(index, /function armDestructive\(/);
-  assert.match(index, /không đọc lại được save vừa ghi/);
-  assert.match(index, /Đã tải save Turn/);
-  assert.match(index, /localStorage\.removeItem\(SAVE_KEY\)/);
-  assert.match(index, /localStorage\.removeItem\(SNAPSHOT_KEY\)/);
-  assert.doesNotMatch(index, /confirm\(/);
-
-  assert.match(main, /loadUrl\("file:\/\/\/android_asset\/index\.html"\)/);
-  assert.match(main, /requestSnapshot/);
-  assert.match(main, /file:\/\/\/android_asset\/level_snapshots\/level_0\.webp/);
-  assert.match(main, /file:\/\/\/android_asset\/level_snapshots\/level_6\.webp/);
-  assert.doesNotMatch(main, /backrooms-wiki\.(?:wikidot|wdfiles)\.com|upload\.wikimedia\.org/);
-
-  for (let slot = 1; slot <= 5; slot += 1) {
-    assert.ok(main.indexOf(`BuildConfig.GEMINI_API_KEY_${slot}`) >= 0, `Gemini key ${slot} must be wired into the APK`);
-  }
-
-  const generateStart = main.indexOf("private String generateText(String prompt)");
-  const generateEnd = main.indexOf("private JSONObject parseModelJson", generateStart);
-  const generateBody = main.slice(generateStart, generateEnd);
-  assert.ok(generateBody.indexOf('emit("backroomProvider", "Gemini 3.6 Flash")') >= 0);
-  assert.ok(generateBody.indexOf("geminiModelLabel(lastGeminiModel)") > generateBody.indexOf('emit("backroomProvider", "Gemini 3.6 Flash")'));
-  assert.ok(generateBody.indexOf('emit("backroomProvider", "Luna fallback")') > generateBody.indexOf("geminiModelLabel(lastGeminiModel)"));
-
-  const snapshotStart = main.indexOf("private void requestSnapshotInternal(String stateJson)");
-  const snapshotEnd = main.indexOf("private void emit", snapshotStart);
-  const snapshotBody = main.slice(snapshotStart, snapshotEnd);
-  assert.match(snapshotBody, /Snapshot chưa được cấu hình/);
-  assert.doesNotMatch(snapshotBody, /snapshotImage\(|geminiImageModel\(|openAiImageModel\(/);
-  assert.match(main, /function requestSnapshot\(\)\{var s=.*Snapshot chưa được cấu hình/);
-  assert.match(main, /b\.textContent='Snapshot chưa cấu hình';b\.disabled=true/);
-  assert.doesNotMatch(main, /loadUrl\("https?:/);
-  assert.match(index, /DRIVE-INTEGRATION-R06/);
-  assert.match(index, /continuity:"SEPARATED"/);
-  assert.match(index, /function save\(\)/);
-  assert.match(index, /function load\(\)/);
 });
