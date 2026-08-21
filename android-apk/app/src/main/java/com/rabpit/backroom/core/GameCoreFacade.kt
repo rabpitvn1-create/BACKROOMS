@@ -120,7 +120,7 @@ class GameCoreFacade private constructor(
       commands += ItemCommand(
         "$turnId:GEMINI:INV:$index", turnId, KAI_ID, source = CommandSource.GEMINI,
         operation = if (desired > old) ItemCommand.Operation.PICKUP else ItemCommand.Operation.DROP,
-        itemId = id, itemName = stack.name, quantity = kotlin.math.abs(desired - old)
+        itemId = id, itemName = stack.name, quantity = kotlin.math.abs(desired - old), metadata = stack.metadata
       )
     }
 
