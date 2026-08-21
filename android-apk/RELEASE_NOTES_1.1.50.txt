@@ -1,0 +1,9 @@
+Backroom 1.1.50
+
+- Hardens Android startup so Game State Core and LiteRT are initialized lazily instead of blocking MainActivity creation.
+- Guards immersive fullscreen, WebView bootstrap and UI enhancement injection so a component failure no longer throws the user back to the launcher.
+- Adds an in-process startup diagnostic screen if WebView itself cannot initialize.
+- Restores the stable release-signing configuration used before 1.1.49.
+- Requires 16 KB APK alignment verification for native libraries.
+- Replaces the Android 10-only launch gate with an Android 16 / API 36 cold-launch stress test before publication.
+- Preserves existing local save migration and all current gameplay, party, canon and provider behavior.
