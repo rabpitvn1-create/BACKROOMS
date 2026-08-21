@@ -1,6 +1,6 @@
 package com.rabpit.backroom.core
 
-const val CURRENT_SAVE_VERSION = 2
+const val CURRENT_SAVE_VERSION = 3
 const val KAI_ID = "kai"
 
 enum class CharacterPresence { ACTIVE, SEPARATED, MISSING, DEAD }
@@ -12,7 +12,9 @@ data class ItemStack(
   val name: String,
   val quantity: Int = 1,
   val condition: String? = null,
-  val metadata: Map<String, String> = emptyMap()
+  val metadata: Map<String, String> = emptyMap(),
+  val archetypeId: String = itemId,
+  val contentState: ContentState = ContentState.NONE
 )
 
 data class InventoryState(
