@@ -124,12 +124,15 @@ if warning_css not in html:
         raise RuntimeError("Warning CSS anchor not found")
     html = html.replace(css_anchor, css_anchor + warning_css, 1)
 
-old_render = 'function render(){titleEl.textContent=state.title;turnEl.textContent=state.turn;locationEl.textContent=state.location;modeEl.textContent=state.mode;playerEl.textContent=state.player?.name||"Kai Akechi";partyEl.innerHTML=chips(state.party);inventoryEl.innerHTML=chips(state.inventory);logEl.innerHTML=(state.log||[]).map(x=>"<article class=\'message "+(x.role==="player"?"player":"")+"\'><div class=\'role\'>"+(x.role==="player"?"BẠN":"GAME MASTER")+"</div><div class=\'text\'>"+esc(x.text)+"</div></article>").join("");logEl.scrollTop=logEl.scrollHeight;statusEl.textContent="Save được lưu riêng trên thiết bị này."}'
-warning_render = 'function render(){titleEl.textContent=state.title;turnEl.textContent=state.turn;locationEl.textContent=state.location;modeEl.textContent=state.mode;playerEl.textContent=state.player?.name||"Kai Akechi";partyEl.innerHTML=chips(state.party);inventoryEl.innerHTML=chips(state.inventory);logEl.innerHTML=(state.log||[]).map(x=>{const w=x.role!=="player"&&String(x.text||"").trim().startsWith("[Warning]");return "<article class=\'message "+(x.role==="player"?"player":"")+(w?" warning":"")+"\'><div class=\'role\'>"+(x.role==="player"?"BẠN":"GAME MASTER")+"</div><div class=\'text\'>"+esc(x.text)+"</div></article>"}).join("");logEl.scrollTop=logEl.scrollHeight;statusEl.textContent="Save được lưu riêng trên thiết bị này."}'
-if warning_render not in html:
-    if old_render not in html:
-        raise RuntimeError("Warning renderer anchor not found")
-    html = html.replace(old_render, warning_render, 1)
+# Save-control hardening runs before this patch and deliberately removes render()'s status-text
+# side effect. Patch only the stable log renderer fragment instead of matching the whole render()
+# function, so both the old and hardened UI remain compatible.
+old_log_render = 'logEl.innerHTML=(state.log||[]).map(x=>"<article class=\'message "+(x.role==="player"?"player":"")+"\'><div class=\'role\'>"+(x.role==="player"?"BẠN":"GAME MASTER")+"</div><div class=\'text\'>"+esc(x.text)+"</div></article>").join("")'
+warning_log_render = 'logEl.innerHTML=(state.log||[]).map(x=>{const w=x.role!=="player"&&String(x.text||"").trim().startsWith("[Warning]");return "<article class=\'message "+(x.role==="player"?"player":"")+(w?" warning":"")+"\'><div class=\'role\'>"+(x.role==="player"?"BẠN":"GAME MASTER")+"</div><div class=\'text\'>"+esc(x.text)+"</div></article>"}).join("")'
+if warning_log_render not in html:
+    if old_log_render not in html:
+        raise RuntimeError("Warning log renderer anchor not found")
+    html = html.replace(old_log_render, warning_log_render, 1)
 
 INDEX.write_text(html, encoding="utf-8")
 
