@@ -12,6 +12,7 @@ object AnNhienCanon {
   const val SURVIVAL_MULTIPLIER = 0.70
   const val LOOT_BONUS_POINTS = 1000
   const val EXIT_BONUS_POINTS = 200
+  const val AVATAR_REF = "avatars/an_nhien_avatar.jpg"
   const val OUTFIT_NAME = "Bộ quần áo hoa văn màu hồng"
   const val FOOTWEAR_NAME = "Đôi dép màu hồng có hình Baby Tree"
 
@@ -29,6 +30,7 @@ object AnNhienCanon {
     return base.copy(
       id = AN_NHIEN_ID,
       name = NAME,
+      avatarRef = AVATAR_REF,
       inventoryId = AN_NHIEN_ID,
       equipmentId = AN_NHIEN_ID,
       metadata = base.metadata + mapOf(
