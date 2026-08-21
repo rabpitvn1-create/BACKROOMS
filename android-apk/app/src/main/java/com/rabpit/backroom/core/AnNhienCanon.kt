@@ -12,7 +12,7 @@ object AnNhienCanon {
   const val SURVIVAL_MULTIPLIER = 0.70
   const val LOOT_BONUS_POINTS = 1000
   const val EXIT_BONUS_POINTS = 200
-  const val AVATAR_REF = "avatars/an_nhien_avatar.jpg"
+  const val AVATAR_REF = "avatars/an_nhien_avatar.png"
   const val OUTFIT_NAME = "Bộ quần áo hoa văn màu hồng"
   const val FOOTWEAR_NAME = "Đôi dép màu hồng có hình Baby Tree"
 
