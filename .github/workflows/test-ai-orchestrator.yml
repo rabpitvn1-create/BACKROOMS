@@ -61,6 +61,7 @@ jobs:
           from pathlib import Path
           html = Path('android-apk/app/src/main/assets/index.html').read_text(encoding='utf-8')
           java = Path('android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java').read_text(encoding='utf-8')
+          facade = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt').read_text(encoding='utf-8')
           assert 'const prologue=`Bữa tối bắt đầu như bao lần khác.' in html
           assert '{role:"gm",text:"MỞ ĐẦU' in html
           assert 'inventory:[]' in html
@@ -70,6 +71,13 @@ jobs:
           assert unsafe_inventory_render not in html.replace(safe_inventory_render, '')
           assert 'data-character="kai"' in html
           assert 'avatars/kai_avatar.png' in html
+          assert 'id="characterStatusList"' in html
+          assert '<h3>Status</h3>' in html
+          assert 'state&&state.partyDetails&&Array.isArray(state.partyDetails.members)' in html
+          assert 'for(let i=0;i<max;i++)' in html
+          assert 'Thời gian chủ quan:' in html
+          assert 'output.put("partyDetails"' in facade
+          assert 'output.put("gameTime"' in facade
           assert 'function clearAuthoritativeCore()' in html
           assert 'Android.clearCoreState()' in html
           assert 'function save()' in html and 'function load()' in html
