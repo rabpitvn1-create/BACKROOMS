@@ -19,23 +19,18 @@ if new_role_class not in html:
         raise RuntimeError("Message role class anchor not found")
     html = html.replace(old_role_class, new_role_class, 1)
 
-# New GM replies should land at the start of the reply, not at the bottom of a potentially long message.
+# New GM replies should land at the start of the reply. We deliberately do this after render(),
+# so older render implementations may keep their normal initial/load scroll behavior.
 old_busy = 'let busy=false;'
-new_busy = 'let busy=false;\nlet focusLatestGmReply=false;'
-if new_busy not in html:
+scroll_helper = '''let busy=false;
+function focusLatestGmStart(){requestAnimationFrame(()=>{const gmRows=logEl.querySelectorAll('.message.gm');const latest=gmRows[gmRows.length-1];if(!latest)return;const top=latest.getBoundingClientRect().top-logEl.getBoundingClientRect().top+logEl.scrollTop;logEl.scrollTop=Math.max(0,top)})}'''
+if scroll_helper not in html:
     if old_busy not in html:
         raise RuntimeError("busy state anchor not found")
-    html = html.replace(old_busy, new_busy, 1)
-
-old_scroll = 'logEl.scrollTop=logEl.scrollHeight;'
-new_scroll = '''if(focusLatestGmReply){focusLatestGmReply=false;const gmRows=logEl.querySelectorAll('.message.gm');const latest=gmRows[gmRows.length-1];if(latest){const top=latest.getBoundingClientRect().top-logEl.getBoundingClientRect().top+logEl.scrollTop;logEl.scrollTop=Math.max(0,top)}}else{logEl.scrollTop=logEl.scrollHeight;}'''
-if new_scroll not in html:
-    if old_scroll not in html:
-        raise RuntimeError("log scroll anchor not found")
-    html = html.replace(old_scroll, new_scroll, 1)
+    html = html.replace(old_busy, scroll_helper, 1)
 
 old_turn = 'window.backroomTurn=json=>{state=JSON.parse(json);actionEl.value="";busy=false;submitEl.disabled=false;save();statusEl.textContent="Turn "+state.turn+" đã lưu trên máy.";render()};'
-new_turn = 'window.backroomTurn=json=>{state=JSON.parse(json);actionEl.value="";busy=false;submitEl.disabled=false;save();statusEl.textContent="Turn "+state.turn+" đã lưu trên máy.";focusLatestGmReply=true;render()};'
+new_turn = 'window.backroomTurn=json=>{state=JSON.parse(json);actionEl.value="";busy=false;submitEl.disabled=false;save();statusEl.textContent="Turn "+state.turn+" đã lưu trên máy.";render();focusLatestGmStart()};'
 if new_turn not in html:
     if old_turn not in html:
         raise RuntimeError("backroomTurn anchor not found")
@@ -104,8 +99,9 @@ required = [
     "survivalMeter('💧'",
     "survivalMeter('Zzz'",
     '.message.gm{',
-    'focusLatestGmReply=true;',
+    'focusLatestGmStart()',
     "querySelectorAll('.message.gm')",
+    'getBoundingClientRect().top-logEl.getBoundingClientRect().top+logEl.scrollTop',
     '#characterEquipmentList span,#characterInventoryItems span{text-transform:uppercase',
 ]
 for token in required:
