@@ -15,6 +15,7 @@ on:
     branches:
       - main
       - "feat/**"
+      - "fix/**"
     paths:
       - "android-apk/ml/**"
       - "android-apk/app/src/main/java/com/rabpit/backroom/core/**"
@@ -67,6 +68,37 @@ jobs:
           test -s android-apk/app/src/main/assets/models/backroom_intent.tflite
           bytes=$(stat -c%s android-apk/app/src/main/assets/models/backroom_intent.tflite)
           test "$bytes" -le 5242880 || (echo "LiteRT model exceeds 5 MiB: $bytes" && exit 1)
+
+      - name: Apply exact Android release patch chain before core tests
+        run: |
+          python3 android-apk/patch-provider-status.py
+          python3 android-apk/patch-luna-text.py
+          python3 android-apk/patch-level-snapshot-backgrounds.py
+          python3 android-apk/patch-snapshot-fallback.py
+          python3 android-apk/patch-kai-hd-continuous.py
+          python3 android-apk/patch-kai-png-preferred.py
+          python3 android-apk/patch-kai-codex.py
+          python3 android-apk/patch-r06-source-marker.py
+          python3 android-apk/patch-drive-canon-gameplay.py
+          python3 android-apk/patch-inventory-persistence.py
+          python3 android-apk/patch-ai-orchestrator.py
+          python3 android-apk/patch-state-op-hardening.py
+          python3 android-apk/patch-gemini-health-pool.py
+          python3 android-apk/patch-conditional-audit.py
+          python3 android-apk/patch-audit-validated-risk.py
+          python3 android-apk/patch-gameplay-parity-final.py
+          python3 android-apk/patch-final-authority-hardening.py
+          python3 android-apk/patch-rejected-op-repair-final.py
+          python3 android-apk/patch-kai-resource-policy-final.py
+          python3 android-apk/patch-provider-deadline-final.py
+          python3 android-apk/patch-gemini-model-matrix-final.py
+          python3 android-apk/patch-java-compile-hardening.py
+          python3 android-apk/patch-save-controls-final.py
+          python3 android-apk/patch-hard-mode-label.py
+          python3 android-apk/patch-snapshot-unconfigured.py
+          python3 android-apk/patch-game-state-core-bridge.py
+          python3 android-apk/patch-character-inventory-ui.py
+          python3 android-apk/patch-character-detail-avatar-fallback.py
 
       - uses: actions/setup-java@v4
         with:
