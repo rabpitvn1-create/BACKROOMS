@@ -18,7 +18,8 @@ data class ItemCommand(
   val itemId: String,
   val itemName: String,
   val quantity: Int = 1,
-  val slot: String? = null
+  val slot: String? = null,
+  val metadata: Map<String, String> = emptyMap()
 ) : GameCommand {
   enum class Operation { PICKUP, DROP, USE, TRANSFER, STORE, WITHDRAW, EQUIP, UNEQUIP }
 }
