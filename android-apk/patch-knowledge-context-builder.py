@@ -112,5 +112,20 @@ if needle_repair not in text:
     raise RuntimeError("local validator repair-pass anchor not found after rejected-op hardening")
 text = text.replace(needle_repair, replacement_repair, 1)
 
+# Long-term continuity is written only after model operations have survived the reducer,
+# deterministic validator and optional semantic repair. It therefore cannot preserve a
+# rejected state claim. Meta turns never alter gameplay continuity.
+needle_commit = "          JSONObject state = candidateState;"
+replacement_commit = (
+    "          JSONObject state = candidateState;\n"
+    "          if (!meta) {\n"
+    "            state = new JSONObject(com.rabpit.backroom.core.knowledge.StoryContinuityReducer.apply(\n"
+    "              before.toString(), state.toString(), action));\n"
+    "          }"
+)
+if needle_commit not in text:
+    raise RuntimeError("validated candidate commit anchor not found for continuity reducer")
+text = text.replace(needle_commit, replacement_commit, 1)
+
 MAIN.write_text(text, encoding="utf-8")
-print("GM and conditional critic now consume the budgeted in-game knowledge packet; deterministic canon checks run every non-meta generated turn.")
+print("GM/critic use budgeted knowledge; local validator always runs; validated turns persist deterministic structured continuity.")
