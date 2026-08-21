@@ -55,6 +55,27 @@ jobs:
           python3 android-apk/patch-game-state-core-bridge.py
           python3 android-apk/patch-character-inventory-ui.py
 
+      - name: Verify packaged UI runtime contracts before compile
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          html = Path('android-apk/app/src/main/assets/index.html').read_text(encoding='utf-8')
+          java = Path('android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java').read_text(encoding='utf-8')
+          assert 'const prologue=`Bữa tối bắt đầu như bao lần khác.' in html
+          assert '{role:"gm",text:"MỞ ĐẦU' in html
+          assert 'inventory:[]' in html
+          assert 'inventoryEl.innerHTML=chips(state.inventory);' not in html
+          assert 'if(inventoryEl)inventoryEl.innerHTML=chips(state.inventory);' in html
+          assert 'data-character="kai"' in html
+          assert 'avatars/kai_avatar.png' in html
+          assert 'function clearAuthoritativeCore()' in html
+          assert 'Android.clearCoreState()' in html
+          assert 'function save()' in html and 'function load()' in html
+          assert 'function resetGame()' in html and 'function clearSave()' in html
+          assert '@JavascriptInterface public void clearCoreState()' in java
+          assert 'gameCore.clear();' in java
+          PY
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
