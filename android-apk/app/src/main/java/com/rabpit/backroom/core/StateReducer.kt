@@ -42,6 +42,7 @@ object StateReducer {
       is PartyCommand -> PartyEngine.execute(state, command)
       is StatusCommand -> StatusEngine.execute(state, command)
       is TimeAdvanceCommand -> TimeEngine.execute(state, command)
+      is PhysiologyCommand -> PhysiologyEngine.execute(state, command)
       is QueryCommand -> ExecutionResult(state, applied = false)
       is ValidatedLegacyStateCommand -> {
         val worldPatch = mapOfNotNull(
