@@ -36,12 +36,11 @@ text = text.replace(
     "      GameCoreFacade core = gameCoreOrNull();\n      if (core != null) core.clear();\n",
 )
 
-# Rebuild onCreate before inserting helpers. This prevents the helper block itself from being
-# accidentally swallowed when the old onCreate body is replaced.
+# Rebuild onCreate as a defensive startup boundary.
 method_start = '  @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})\n  @Override public void onCreate(Bundle savedInstanceState) {\n'
-helper_anchor = "\n  @Override protected void onDestroy() {\n"
+on_destroy_anchor = "\n  @Override protected void onDestroy() {\n"
 start = text.find(method_start)
-end = text.find(helper_anchor, start)
+end = text.find(on_destroy_anchor, start)
 if start < 0 or end < 0:
     raise RuntimeError("onCreate startup boundary not found")
 
@@ -117,6 +116,7 @@ helpers = '''
     setContentView(fallback);
   }
 '''
+helper_anchor = "\n  private void installUiEnhancements() {\n"
 if "private GameCoreFacade gameCoreOrNull()" not in text:
     if text.count(helper_anchor) != 1:
         raise RuntimeError("Startup helper insertion anchor missing or ambiguous")
