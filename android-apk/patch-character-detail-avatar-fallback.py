@@ -33,3 +33,7 @@ runpy.run_path(str(ROOT / "patch-an-nhien-follower-final.py"), run_name="__main_
 # Keep planning/search prose on the normal GM path. LiteRT classifications are advisory and must
 # not convert a harmless search into an authoritative pickup rejection.
 runpy.run_path(str(ROOT / "patch-search-action-false-warning.py"), run_name="__main__")
+
+# Developer slash command: /annhien1234 instantly adds An Nhien to Party without AI, dice,
+# turn advancement or silently evicting an existing member.
+runpy.run_path(str(ROOT / "patch-annhien-cheat-code.py"), run_name="__main__")
