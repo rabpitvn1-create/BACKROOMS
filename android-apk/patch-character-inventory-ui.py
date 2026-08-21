@@ -3,6 +3,15 @@ from pathlib import Path
 INDEX = Path(__file__).resolve().parent / "app/src/main/assets/index.html"
 html = INDEX.read_text(encoding="utf-8")
 
+# Signature gear belongs to Equipment, never to the normal 9-slot Inventory.
+legacy_signature_inventory = '''  inventory:[
+    {name:"White Wraith Magnum"},
+    {name:"Blackblood Armor & linked modules"},
+    {name:"Omnivault Ring / Nhẫn Vạn Tàng"}
+  ],'''
+if legacy_signature_inventory in html:
+    html = html.replace(legacy_signature_inventory, '  inventory:[],', 1)
+
 party_old = '<div class="card"><h2>Party</h2><div class="chips" id="party"></div></div>\n<div class="card"><h2>Inventory</h2><div class="chips" id="inventory"></div></div>'
 party_new = '''<div class="card"><h2>Party</h2><div id="party" class="party-grid"></div></div>
 <div id="characterInventoryView" class="character-inventory-view" hidden>
@@ -11,7 +20,7 @@ party_new = '''<div class="card"><h2>Party</h2><div id="party" class="party-grid
     <img id="characterInventoryAvatar" src="avatars/kai_avatar.png" alt="Kai Akechi">
     <div><div class="inventory-capacity" id="characterInventoryCapacity">0 / 9 loại vật phẩm</div><div class="inventory-limit">Tối đa ×999 mỗi loại</div></div>
   </div>
-  <div class="character-section"><h3>Equipment</h3><div class="equipment-list"><span>Vũ khí cá nhân</span><span>Bộ giáp</span><span>Nhẫn Omnivault</span></div></div>
+  <div class="character-section"><h3>Equipment</h3><div class="equipment-list" id="characterEquipmentList"><span>White Wraith Magnum</span><span>Blackblood Armor & linked modules</span><span>Omnivault Ring / Nhẫn Vạn Tàng</span></div></div>
   <div class="character-section"><h3>Inventory</h3><div class="chips" id="characterInventoryItems"></div></div>
 </div>'''
 if party_new not in html:
@@ -35,7 +44,21 @@ script_extra = r'''
   const items=document.getElementById('characterInventoryItems');
   const capacity=document.getElementById('characterInventoryCapacity');
   const back=document.getElementById('characterInventoryBack');
-  function kaiItems(){return Array.isArray(state&&state.inventory)?state.inventory:[]}
+  const signatureNames=['white wraith magnum','blackblood armor','omnivault ring','nhẫn vạn tàng','nhẫn omnivault'];
+  function isSignatureItem(x){const n=String((x&&x.name)||x||'').toLocaleLowerCase('vi-VN');return signatureNames.some(k=>n.includes(k))}
+  function repairState(){
+    let changed=false;
+    if(state&&Array.isArray(state.inventory)){
+      const normal=state.inventory.filter(x=>!isSignatureItem(x));
+      if(normal.length!==state.inventory.length){state.inventory=normal;changed=true}
+    }
+    const turn=Number(state&&state.turn)||1;
+    if(turn<=2&&(!Array.isArray(state&&state.log)||state.log.length===0)&&Array.isArray(initial&&initial.log)&&initial.log.length){
+      state.log=JSON.parse(JSON.stringify(initial.log));changed=true
+    }
+    if(changed){try{localStorage.setItem('backroom-apk-state',JSON.stringify(state))}catch(ignore){}}
+  }
+  function kaiItems(){repairState();return Array.isArray(state&&state.inventory)?state.inventory.filter(x=>!isSignatureItem(x)):[]}
   function renderKaiInventory(){const inv=kaiItems();capacity.textContent=inv.length+' / 9 loại vật phẩm';items.innerHTML=chips(inv)}
   function openKai(){renderKaiInventory();view.hidden=false}
   function renderPartyCards(){
@@ -46,8 +69,9 @@ script_extra = r'''
   }
   if(back)back.addEventListener('click',()=>{view.hidden=true});
   const priorRender=window.render;
-  if(typeof priorRender==='function')window.render=function(){priorRender();renderPartyCards();if(view&&!view.hidden)renderKaiInventory()};
-  renderPartyCards();
+  if(typeof priorRender==='function')window.render=function(){repairState();priorRender();renderPartyCards();if(view&&!view.hidden)renderKaiInventory()};
+  repairState();
+  if(typeof window.render==='function')window.render();else renderPartyCards();
 })();
 </script>
 '''
@@ -56,9 +80,10 @@ if script_extra not in html:
         raise RuntimeError("script footer anchor not found")
     html = html.replace(script_anchor, '</script>\n' + script_extra + '</body>', 1)
 
-# The old global inventory element must no longer remain in the main layout.
 if '<div class="card"><h2>Inventory</h2>' in html:
     raise RuntimeError("Global Inventory panel still present")
+if 'White Wraith Magnum"},\n    {name:"Blackblood Armor' in html:
+    raise RuntimeError("Kai signature equipment still seeded into normal Inventory")
 
 INDEX.write_text(html, encoding="utf-8")
-print("Kai Party avatar and character-scoped Inventory view applied; global Inventory panel removed.")
+print("Kai Party inventory UI applied: signature Equipment separated, normal Inventory filtered, early Prologue log repaired.")
