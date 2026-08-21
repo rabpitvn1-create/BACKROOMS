@@ -5,8 +5,6 @@ on:
   push:
     paths:
       - "android-apk/**"
-      - "lib/canon.js"
-      - "scripts/sync-prologue.py"
       - ".github/workflows/build-backroom-apk.yml"
 
 permissions:
@@ -52,30 +50,6 @@ jobs:
           bytes=$(stat -c%s ../app/src/main/assets/models/backroom_intent.tflite)
           test "$bytes" -le 5242880 || (echo "LiteRT model exceeds 5 MiB: $bytes" && exit 1)
 
-      - name: Synchronize Prologue sources
-        run: python3 scripts/sync-prologue.py
-
-      - name: Persist synchronized server canon on main only
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        continue-on-error: true
-        run: |
-          if ! git diff --quiet -- lib/canon.js; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add lib/canon.js
-            git commit -m "Sync Prologue source [skip ci]"
-            git push origin HEAD:main
-          fi
-
-      - name: Verify feature builds cannot persist canon
-        if: github.ref != 'refs/heads/main'
-        run: |
-          if git diff --quiet -- lib/canon.js; then
-            echo "No synchronized canon diff to persist."
-          else
-            echo "Synchronized canon diff is build-local on feature refs; main is untouched."
-          fi
-
       - name: Validate Game Master configuration
         run: |
           test -n "$GEMINI_API_KEY_1" || (echo "Missing GitHub Secret: GEMINI_API_KEY_1" && exit 1)
@@ -116,13 +90,13 @@ jobs:
         run: python3 android-apk/patch-conditional-audit.py
       - name: Score audits from validated state delta
         run: python3 android-apk/patch-audit-validated-risk.py
-      - name: Align Android gameplay dice with server canon
+      - name: Align Android gameplay dice with packaged canon
         run: python3 android-apk/patch-gameplay-parity-final.py
       - name: Apply final authority hardening
         run: python3 android-apk/patch-final-authority-hardening.py
       - name: Enforce rejected-op repair
         run: python3 android-apk/patch-rejected-op-repair-final.py
-      - name: Align Kai overpower resource policy
+      - name: Align current Kai resource policy
         run: python3 android-apk/patch-kai-resource-policy-final.py
       - name: Apply Gemini runtime and Luna deadline compatibility
         run: python3 android-apk/patch-provider-deadline-final.py
