@@ -25,3 +25,7 @@ print("Character detail avatar fallback hardened: non-Kai members without avatar
 
 # This is the final UI transformation in both test and release patch chains.
 runpy.run_path(str(ROOT / "patch-survival-hud-chat-ux.py"), run_name="__main__")
+
+# An Nhien must be applied after all existing gameplay/UI hardening so no later patch can erase
+# her deterministic encounter, party state, bonus calculations or per-character inventory rules.
+runpy.run_path(str(ROOT / "patch-an-nhien-follower.py"), run_name="__main__")
