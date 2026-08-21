@@ -36,7 +36,49 @@ text = text.replace(
     "      GameCoreFacade core = gameCoreOrNull();\n      if (core != null) core.clear();\n",
 )
 
+# Rebuild onCreate before inserting helpers. This prevents the helper block itself from being
+# accidentally swallowed when the old onCreate body is replaced.
+method_start = '  @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})\n  @Override public void onCreate(Bundle savedInstanceState) {\n'
 helper_anchor = "\n  @Override protected void onDestroy() {\n"
+start = text.find(method_start)
+end = text.find(helper_anchor, start)
+if start < 0 or end < 0:
+    raise RuntimeError("onCreate startup boundary not found")
+
+on_create = '''  @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
+  @Override public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    try {
+      applyImmersiveFullscreen();
+    } catch (Throwable error) {
+      Log.w("BackroomStartup", "Immersive fullscreen unavailable; continuing normally.", error);
+    }
+    try {
+      webView = new WebView(this);
+      WebSettings settings = webView.getSettings();
+      settings.setJavaScriptEnabled(true);
+      settings.setDomStorageEnabled(true);
+      settings.setAllowFileAccess(true);
+      webView.setWebViewClient(new WebViewClient() {
+        @Override public void onPageFinished(WebView view, String url) {
+          super.onPageFinished(view, url);
+          try {
+            installUiEnhancements();
+          } catch (Throwable error) {
+            Log.e("BackroomStartup", "UI enhancement injection failed; base game remains usable.", error);
+          }
+        }
+      });
+      webView.addJavascriptInterface(new GameBridge(), "Android");
+      setContentView(webView);
+      webView.loadUrl("file:///android_asset/index.html");
+    } catch (Throwable error) {
+      showStartupFallback(error);
+    }
+  }
+'''
+text = text[:start] + on_create + text[end:]
+
 helpers = '''
   private GameCoreFacade gameCoreOrNull() {
     if (gameCore != null) return gameCore;
@@ -80,48 +122,6 @@ if "private GameCoreFacade gameCoreOrNull()" not in text:
         raise RuntimeError("Startup helper insertion anchor missing or ambiguous")
     text = text.replace(helper_anchor, "\n" + helpers + helper_anchor, 1)
 
-# Rebuild onCreate as a defensive startup boundary. Fullscreen is cosmetic; Game Core is lazy;
-# WebView failures get an on-screen diagnostic instead of returning the user to the launcher.
-method_start = '  @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})\n  @Override public void onCreate(Bundle savedInstanceState) {\n'
-start = text.find(method_start)
-end = text.find(helper_anchor, start)
-if start < 0 or end < 0:
-    raise RuntimeError("onCreate startup boundary not found")
-
-on_create = '''  @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
-  @Override public void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    try {
-      applyImmersiveFullscreen();
-    } catch (Throwable error) {
-      Log.w("BackroomStartup", "Immersive fullscreen unavailable; continuing normally.", error);
-    }
-    try {
-      webView = new WebView(this);
-      WebSettings settings = webView.getSettings();
-      settings.setJavaScriptEnabled(true);
-      settings.setDomStorageEnabled(true);
-      settings.setAllowFileAccess(true);
-      webView.setWebViewClient(new WebViewClient() {
-        @Override public void onPageFinished(WebView view, String url) {
-          super.onPageFinished(view, url);
-          try {
-            installUiEnhancements();
-          } catch (Throwable error) {
-            Log.e("BackroomStartup", "UI enhancement injection failed; base game remains usable.", error);
-          }
-        }
-      });
-      webView.addJavascriptInterface(new GameBridge(), "Android");
-      setContentView(webView);
-      webView.loadUrl("file:///android_asset/index.html");
-    } catch (Throwable error) {
-      showStartupFallback(error);
-    }
-  }
-'''
-text = text[:start] + on_create + text[end:]
-
 # A fallback view has no WebView. Avoid teardown/emit races from producing a secondary crash.
 text = text.replace(
     '    runOnUiThread(() -> webView.evaluateJavascript(script, null));',
@@ -137,6 +137,7 @@ required = [
     "requireGameCore().processValidatedCandidate(",
     'Log.w("BackroomStartup", "Immersive fullscreen unavailable; continuing normally."',
     'Log.e("BackroomStartup", "UI enhancement injection failed; base game remains usable."',
+    "GameCoreFacade core = gameCoreOrNull();",
 ]
 for marker in required:
     if marker not in text:
