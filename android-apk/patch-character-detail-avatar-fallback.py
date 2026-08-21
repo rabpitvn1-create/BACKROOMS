@@ -37,3 +37,6 @@ runpy.run_path(str(ROOT / "patch-search-action-false-warning.py"), run_name="__m
 # Developer slash command: /annhien1234 instantly adds An Nhien to Party without AI, dice,
 # turn advancement or silently evicting an existing member.
 runpy.run_path(str(ROOT / "patch-annhien-cheat-code.py"), run_name="__main__")
+
+# Latest An Nhien equipment canon: replace the old Baby Tree slippers with pink Crocs.
+runpy.run_path(str(ROOT / "patch-an-nhien-crocs.py"), run_name="__main__")
