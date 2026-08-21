@@ -1,0 +1,55 @@
+name: Verify Backroom 1.1.41 Release
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  verify-release:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Verify release metadata
+        run: |
+          set -euo pipefail
+          test "$(gh release view v1.1.41 --repo "$GITHUB_REPOSITORY" --json tagName --jq .tagName)" = "v1.1.41"
+          test "$(gh release view v1.1.41 --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft)" = "false"
+          test "$(gh release view v1.1.41 --repo "$GITHUB_REPOSITORY" --json isPrerelease --jq .isPrerelease)" = "false"
+
+      - name: Download published APK
+        run: |
+          set -euo pipefail
+          rm -f Backroom-1.1.41.apk
+          gh release download v1.1.41 --repo "$GITHUB_REPOSITORY" --pattern 'Backroom-1.1.41.apk' --output Backroom-1.1.41.apk
+          test -s Backroom-1.1.41.apk
+
+      - name: Verify published APK structure
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile, BadZipFile
+
+          apk = Path('Backroom-1.1.41.apk')
+          assert apk.stat().st_size > 0, 'published APK is empty'
+          try:
+              with ZipFile(apk) as zf:
+                  names = set(zf.namelist())
+          except BadZipFile as exc:
+              raise AssertionError('published asset is not a valid APK/ZIP') from exc
+
+          required = {
+              'AndroidManifest.xml',
+              'assets/index.html',
+              'assets/avatars/kai_avatar.png',
+          }
+          missing = sorted(required - names)
+          assert not missing, f'missing packaged files: {missing}'
+          assert any(name.startswith('classes') and name.endswith('.dex') for name in names), 'classes*.dex missing'
+          print(f'Published APK verified: {apk.stat().st_size} bytes, {len(names)} entries')
+          PY
