@@ -141,5 +141,21 @@ object StatusEngine {
   }
 }
 
+object TimeEngine {
+  fun execute(state: GameState, command: TimeAdvanceCommand): ExecutionResult {
+    if (command.minutes <= 0) return invalid(state, "time_minutes_must_be_positive")
+    val reason = command.reason.trim()
+    if (reason.isEmpty()) return invalid(state, "time_reason_required")
+    val elapsed = state.time.elapsedSubjectiveMinutes
+    if (elapsed > Long.MAX_VALUE - command.minutes.toLong()) return invalid(state, "time_overflow")
+    val nextTime = state.time.copy(
+      elapsedSubjectiveMinutes = elapsed + command.minutes.toLong(),
+      lastAdvanceMinutes = command.minutes,
+      lastAdvanceReason = reason
+    )
+    return changed(state.copy(time = nextTime), "time_advanced")
+  }
+}
+
 internal fun invalid(state: GameState, reason: String) = ExecutionResult(state, false, validation = ValidationResult(false, reason))
 internal fun changed(state: GameState, event: String) = ExecutionResult(state, true, events = listOf(event))
