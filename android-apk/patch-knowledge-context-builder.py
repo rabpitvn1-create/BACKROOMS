@@ -69,11 +69,40 @@ text = replace_method(
       feedback +
       "\n\nOPERATION TYPES: set_location{value}; set_level{level}; patch_player{patch}; inventory_upsert{item,basis}; inventory_remove{name,basis}; " +
       "party_upsert{member}; party_remove{name}; flag_patch{root,value}. " +
-      "Chỉ dùng flag root: exploration, communication, iris, syvial, jeff, madGod, omnivault, survivorRegistry, entityRegistry, survivorsConfirmed, entitiesConfirmedLocal, visualAreaKey, visualEventKey, entityEncounterKey, reunionPath, storyContinuity. " +
+      "Chỉ dùng flag root: exploration, communication, iris, syvial, jeff, madGod, omnivault, survivorRegistry, entityRegistry, survivorsConfirmed, entitiesConfirmedLocal, visualAreaKey, visualEventKey, entityEncounterKey, reunionPath. " +
       "Inventory chỉ đổi khi Kai thật sự lấy/nhận/copy/trao/mất/tiêu thụ vật; nhìn thấy không đồng nghĩa sở hữu. MadGod roll success chỉ mở discovery route, không tự đưa set vào inventory. " +
       "JSON bắt buộc: {\"reply\":\"phản hồi Game Master bằng tiếng Việt tự nhiên\",\"ops\":[],\"snapshotEvent\":{\"shouldGenerate\":false,\"kind\":\"\",\"reason\":\"\"}}";
+  }
+
+  private JSONArray localKnowledgeIssues(JSONObject before, JSONObject generated) throws Exception {
+    JSONObject result = new JSONObject(com.rabpit.backroom.core.knowledge.KnowledgeLocalValidator.validate(
+      MainActivity.this, before.toString(), generated.toString()));
+    JSONArray issues = result.optJSONArray("issues");
+    return issues == null ? new JSONArray() : issues;
+  }
+
+  private void appendIssues(JSONArray target, JSONArray source) throws Exception {
+    if (target == null || source == null) return;
+    for (int i = 0; i < source.length(); i++) {
+      JSONObject issue = source.optJSONObject(i);
+      if (issue != null) target.put(issue);
+    }
   }'''
 )
 
+# Deterministic validator always runs. It can request the single existing repair even when
+# semantic critic risk is below threshold. The semantic critic remains conditional.
+needle_first = "          JSONArray hardIssues = hardAuditIssues(audits);\n          boolean repaired = false;"
+replacement_first = "          JSONArray hardIssues = hardAuditIssues(audits);\n          appendIssues(hardIssues, localKnowledgeIssues(before, generated));\n          boolean repaired = false;"
+if needle_first not in text:
+    raise RuntimeError("local validator first-pass anchor not found")
+text = text.replace(needle_first, replacement_first, 1)
+
+needle_repair = "            hardIssues = hardAuditIssues(audits);\n          }"
+replacement_repair = "            hardIssues = hardAuditIssues(audits);\n            appendIssues(hardIssues, localKnowledgeIssues(before, generated));\n          }"
+if needle_repair not in text:
+    raise RuntimeError("local validator repair-pass anchor not found")
+text = text.replace(needle_repair, replacement_repair, 1)
+
 MAIN.write_text(text, encoding="utf-8")
-print("GM and conditional critic now consume the budgeted in-game knowledge packet; legacy canon blobs are no longer runtime prompt inputs.")
+print("GM and conditional critic now consume the budgeted in-game knowledge packet; deterministic canon checks run every non-meta generated turn.")
