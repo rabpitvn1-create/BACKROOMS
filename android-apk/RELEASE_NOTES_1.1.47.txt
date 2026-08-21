@@ -1,0 +1,8 @@
+Backroom 1.1.47
+
+- Consolidates the Drive-authoritative in-game knowledge database and budgeted Context Builder into the release line.
+- Uses structured runtime records with source provenance, immutable character canon, compact runtime cards, relationship/address locks and registry-driven Level/Entity lookup.
+- Adds deterministic structured long-term story continuity while keeping the recent dialogue buffer bounded.
+- Keeps Iris and Syvial follower retrieval state-driven, including relevant ability modules when the scene makes them applicable.
+- Runs deterministic local canon validation before the existing conditional semantic critic path.
+- Enforces the OLD-vs-NEW context benchmark gate so average context does not grow while required canon coverage improves.
