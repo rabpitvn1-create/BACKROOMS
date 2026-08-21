@@ -1,5 +1,6 @@
 from pathlib import Path
 import re
+import runpy
 
 MAIN = Path(__file__).resolve().parent / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
 
@@ -34,10 +35,6 @@ if "private boolean networkFailure(Exception error)" not in text:
     helpers = '''  private boolean networkFailure(Exception error) {\n    Throwable cause = error;\n    while (cause != null) {\n      if (cause instanceof java.net.UnknownHostException ||\n          cause instanceof java.net.ConnectException ||\n          cause instanceof java.net.SocketTimeoutException ||\n          cause instanceof java.net.SocketException ||\n          cause instanceof java.io.IOException) return true;\n      cause = cause.getCause();\n    }\n    return false;\n  }\n\n  private String networkFailureMessage() {\n    return "Lỗi mạng/DNS: không thể kết nối tới máy chủ AI. Kiểm tra Wi-Fi/4G, Private DNS hoặc VPN.";\n  }\n\n'''
     text = text.replace(anchor, helpers + anchor, 1)
 
-# The legacy activity already owns a shallow mergeObject(). Drive R06 later
-# injected a second recursive method with the same Java signature. Rename only
-# the recursive version and use Android's JSONObject.keys() API (getNames is not
-# available in the Android org.json implementation used by this project).
 recursive_pattern = re.compile(
     r'''  private void mergeObject\(JSONObject target, JSONObject patch\) throws Exception \{\n'''
     r'''    if \(patch == null\) return;\n'''
@@ -53,15 +50,12 @@ text, renamed = recursive_pattern.subn(recursive_replacement, text, count=1)
 if renamed == 0 and "private void mergeObjectDeep(JSONObject target, JSONObject patch)" not in text:
     raise RuntimeError("recursive mergeObject definition not found")
 
-# sanitizedFlags is the only legacy R06 call that needs recursive semantics.
 if "mergeObjectDeep(safe, patch);" not in text:
     old = "    mergeObject(safe, patch);\n    return safe;\n"
     if old not in text:
         raise RuntimeError("sanitizedFlags deep-merge call not found")
     text = text.replace(old, "    mergeObjectDeep(safe, patch);\n    return safe;\n", 1)
 
-# Final structural assertions make future patch-order regressions fail here with
-# a useful message instead of producing dozens of javac errors later.
 if text.count("private void mergeObject(JSONObject target, JSONObject patch)") != 1:
     raise RuntimeError("final Java must contain exactly one shallow mergeObject definition")
 if text.count("private void mergeObjectDeep(JSONObject target, JSONObject patch)") != 1:
@@ -77,3 +71,8 @@ for required in [
 
 MAIN.write_text(text, encoding="utf-8")
 print("Final Java compile hardening applied: SecureRandom, lower/network helpers and mergeObject collision fixed.")
+
+# Provider model availability changes independently of the APK. Apply the Luna
+# active-model discovery patch after the Gemini matrix and deadline patches have
+# finalized the provider methods.
+runpy.run_path(str(Path(__file__).resolve().parent / "patch-luna-model-failover-final.py"), run_name="__main__")

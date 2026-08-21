@@ -1,0 +1,8 @@
+Backroom 1.1.43
+
+- Rebuilds the APK with the latest configured Luna API credential from GitHub Actions Secrets.
+- Luna fallback now discovers active chat models from the provider /models endpoint.
+- The configured LUNA_MODEL remains preferred when active, but MODEL_INACTIVE responses no longer stop the entire fallback path.
+- Inactive or unavailable Luna models are skipped automatically and the runtime continues through other chat-capable models.
+- Keeps the existing Gemini model/key matrix as the primary Game Master route before Luna fallback.
+- Retains all 1.1.42 survival HUD, Party Character Detail, inventory/equipment readability, and Game Master chat UX improvements.
