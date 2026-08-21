@@ -6,6 +6,12 @@ object CommandValidator {
     if (command.actorId !in state.characters) return ValidationResult(false, "actor_unknown")
     if (command.turnId != null && command.turnId != state.turn.currentTurnId) return ValidationResult(false, "turn_id_mismatch")
     if (command is ValidatedLegacyStateCommand && !command.validatedByGameEngine) return ValidationResult(false, "engine_validation_required")
+    val itemName = when (command) {
+      is ItemCommand -> command.itemName
+      is OmnivaultCommand -> command.itemName
+      else -> null
+    }
+    if (itemName != null && ItemContentRules.hasForbiddenPreciseAmount(itemName)) return ValidationResult(false, "precise_content_amount_forbidden")
     return ValidationResult(true)
   }
 }
@@ -36,7 +42,7 @@ object StateReducer {
     }
     if (!result.applied) return result
     val rememberedItemId = when (command) {
-      is ItemCommand -> command.itemId
+      is ItemCommand -> rememberedItemAfter(state, result.state, command)
       is OmnivaultCommand -> command.itemId
       else -> null
     }
@@ -45,6 +51,20 @@ object StateReducer {
       metadata = nextMetadata,
       turn = result.state.turn.copy(executedCommandIds = result.state.turn.executedCommandIds + command.commandId)
     ))
+  }
+
+  private fun rememberedItemAfter(before: GameState, after: GameState, command: ItemCommand): String {
+    if (command.operation == ItemCommand.Operation.PICKUP) {
+      return ItemContentRules.normalize(ItemStack(command.itemId, command.itemName, command.quantity)).itemId
+    }
+    if (command.operation == ItemCommand.Operation.USE) {
+      val old = before.inventories[command.actorId]?.items?.get(command.itemId)
+      if (old != null) {
+        val next = ItemContentRules.nextAfterUse(old)
+        if (next != null && after.inventories[command.actorId]?.items?.containsKey(next.itemId) == true) return next.itemId
+      }
+    }
+    return command.itemId
   }
 
   fun executeAll(state: GameState, commands: List<GameCommand>): ExecutionResult {
