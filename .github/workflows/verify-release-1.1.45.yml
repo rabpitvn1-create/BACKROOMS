@@ -7,6 +7,7 @@ on:
     paths:
       - ".github/workflows/verify-release-1.1.45.yml"
       - ".github/workflows/build-backroom-apk.yml"
+      - ".github/workflows/train-litert-intent.yml"
       - "android-apk/**"
 
 permissions:
