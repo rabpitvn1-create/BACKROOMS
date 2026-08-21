@@ -50,7 +50,8 @@ class TimeEngineTest {
   }
 
   @Test fun unknownPhysiologyCountersRemainUnknown() {
-    val state = GameState.initial()
+    val unknownKai = GameState.initial().characters.getValue(KAI_ID).copy(physiology = PhysiologyState())
+    val state = GameState.initial().copy(characters = mapOf(KAI_ID to unknownKai))
     val result = TimeEngine.execute(state, TimeAdvanceCommand("t-unknown", "TURN_1", KAI_ID, source = CommandSource.SYSTEM, minutes = 30, reason = "search"))
 
     assertTrue(result.applied)

@@ -38,6 +38,18 @@ class PhysiologyStatusPolicyTest {
     assertEquals(PhysiologyBand.CRITICAL, PhysiologyStatusPolicy.awakeBand(2160L))
   }
 
+  @Test fun survivalPercentagesDecreaseContinuouslyClampAndPreserveUnknown() {
+    assertEquals(100, PhysiologyStatusPolicy.foodPercent(0L))
+    assertEquals(50, PhysiologyStatusPolicy.foodPercent(2160L))
+    assertEquals(0, PhysiologyStatusPolicy.foodPercent(4320L))
+    assertEquals(0, PhysiologyStatusPolicy.foodPercent(9999L))
+    assertEquals(50, PhysiologyStatusPolicy.waterPercent(1440L))
+    assertEquals(50, PhysiologyStatusPolicy.restPercent(1080L))
+    assertNull(PhysiologyStatusPolicy.foodPercent(null))
+    assertNull(PhysiologyStatusPolicy.waterPercent(-1L))
+    assertNull(PhysiologyStatusPolicy.restPercent(null))
+  }
+
   @Test fun derivedStatusKeepsExplicitConditionTextWithoutInventingMeaning() {
     val derived = PhysiologyStatusPolicy.derive(PhysiologyState(
       minutesSinceFood = 800L,
@@ -50,6 +62,9 @@ class PhysiologyStatusPolicyTest {
     assertEquals(PhysiologyBand.MILD, derived.hunger)
     assertEquals(PhysiologyBand.NORMAL, derived.thirst)
     assertEquals(PhysiologyBand.MODERATE, derived.sleepDeprivation)
+    assertNotNull(derived.foodPercent)
+    assertNotNull(derived.waterPercent)
+    assertNotNull(derived.restPercent)
     assertEquals("moderate", derived.pain)
     assertEquals("suspected", derived.infection)
     assertEquals("cold", derived.thermal)
@@ -64,5 +79,8 @@ class PhysiologyStatusPolicyTest {
     assertNull(derived.pain)
     assertNull(derived.infection)
     assertNull(derived.thermal)
+    assertNull(derived.foodPercent)
+    assertNull(derived.waterPercent)
+    assertNull(derived.restPercent)
   }
 }
