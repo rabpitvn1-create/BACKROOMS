@@ -6,6 +6,19 @@ object CommandValidator {
     if (command.actorId !in state.characters) return ValidationResult(false, "actor_unknown")
     if (command.turnId != null && command.turnId != state.turn.currentTurnId) return ValidationResult(false, "turn_id_mismatch")
     if (command is ValidatedLegacyStateCommand && !command.validatedByGameEngine) return ValidationResult(false, "engine_validation_required")
+
+    // Player-facing pickup commands never create ownership. Inventory acquisition is authoritative
+    // only when emitted by validated story/drop progression (GEMINI) or deterministic SYSTEM code.
+    if (command is ItemCommand && command.operation == ItemCommand.Operation.PICKUP &&
+      command.source !in setOf(CommandSource.GEMINI, CommandSource.SYSTEM)) {
+      return ValidationResult(false, "player_pickup_unavailable")
+    }
+
+    // Restore remains a narrative capability. It must never mutate authoritative gameplay state.
+    if (command is OmnivaultCommand && command.operation == OmnivaultCommand.Operation.RESTORE) {
+      return ValidationResult(false, "restore_narrative_only")
+    }
+
     val itemName = when (command) {
       is ItemCommand -> command.itemName
       is OmnivaultCommand -> command.itemName
