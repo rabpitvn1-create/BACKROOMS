@@ -29,3 +29,7 @@ runpy.run_path(str(ROOT / "patch-survival-hud-chat-ux.py"), run_name="__main__")
 # Apply An Nhien only after all existing gameplay/UI hardening. The wrapper adapts the integration
 # to the final conditional-audit prompt that exists at this point in the build chain.
 runpy.run_path(str(ROOT / "patch-an-nhien-follower-final.py"), run_name="__main__")
+
+# Keep planning/search prose on the normal GM path. LiteRT classifications are advisory and must
+# not convert a harmless search into an authoritative pickup rejection.
+runpy.run_path(str(ROOT / "patch-search-action-false-warning.py"), run_name="__main__")
