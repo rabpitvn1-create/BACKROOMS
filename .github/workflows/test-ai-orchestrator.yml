@@ -90,6 +90,53 @@ jobs:
           assert 'gameCore.clear();' in java
           PY
 
+      - name: Verify Party Character Detail end-to-end contract
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          html = Path('android-apk/app/src/main/assets/index.html').read_text(encoding='utf-8')
+          facade = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt').read_text(encoding='utf-8')
+          serializer = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/CharacterDetailJson.kt').read_text(encoding='utf-8')
+          projection = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/CharacterDetailProjection.kt').read_text(encoding='utf-8')
+          codec_test = Path('android-apk/app/src/test/java/com/rabpit/backroom/core/GameStateCodecTest.kt').read_text(encoding='utf-8')
+          json_test = Path('android-apk/app/src/test/java/com/rabpit/backroom/core/CharacterDetailJsonTest.kt').read_text(encoding='utf-8')
+          projection_test = Path('android-apk/app/src/test/java/com/rabpit/backroom/core/CharacterDetailProjectionTest.kt').read_text(encoding='utf-8')
+
+          # Core -> projection -> serialized WebView state.
+          assert 'CharacterDetailProjection.projectParty(state)' in facade
+          assert 'CharacterDetailJson.encodeParty' in facade
+          for token in ['"leaderId"', '"maxMembers"', '"elapsedSubjectiveMinutes"', '"members"']:
+            assert token in serializer
+          for token in ['"physiology"', '"inventory"', '"equipment"', '"statuses"', '"injuries"']:
+            assert token in serializer
+          assert 'state.party.memberIds' in projection
+          assert 'inventoryId' in projection and 'equipmentId' in projection
+
+          # Serialized party -> four-slot selector -> selected member detail.
+          assert "function detailMembers()" in html
+          assert "function memberById(id)" in html
+          assert "function openMember(id)" in html
+          assert "renderMemberDetail(member)" in html
+          assert "Math.min(4" in html
+          assert "party.querySelectorAll('.party-member[data-character]')" in html
+          assert "statusRows(member)" in html
+          assert "equipmentRows(member)" in html
+          assert "Array.isArray(member.inventory)" in html
+
+          # Backward compatibility and persistence remain covered.
+          assert 'fallback=[' in html and "id:'kai'" in html
+          assert 'currentCharacterWithoutPhysiologyDefaultsToUnknownState' in codec_test
+          assert 'legacyWebViewSaveMigratesWithoutLosingNormalInventoryOrParty' in codec_test
+          assert 'encodeParty' in json_test
+          assert 'projectParty' in projection_test
+          assert "localStorage.setItem('backroom-apk-state'" in html or 'localStorage.setItem("backroom-apk-state"' in html
+          assert 'function load()' in html
+
+          # Unknown portraits must never impersonate Kai.
+          assert "member.id==='kai'?'avatars/kai_avatar.png':''" in html
+          assert "member.id==='kai'?'avatars/kai_avatar.png':'avatars/kai_avatar.png'" not in html
+          PY
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
