@@ -1,0 +1,75 @@
+from pathlib import Path
+
+ENGINE = Path(__file__).resolve().parent / "app/src/main/java/com/rabpit/backroom/core/knowledge/KnowledgeContextEngine.kt"
+text = ENGINE.read_text(encoding="utf-8")
+
+old = '        references = strings(json.optJSONArray("references")),'
+new = '        references = rawStrings(json.optJSONArray("references")),'
+if old not in text:
+    raise RuntimeError("Knowledge references parser anchor not found")
+text = text.replace(old, new, 1)
+
+old = '''      if (hasAny(actionText, "devil trigger")) {
+        direct += "CHAR.KAI.DEVIL_TRIGGER"
+        if ("syvial" in presentActors) direct += "CHAR.SYVIAL.DEVIL_TRIGGER"
+      }
+      direct.forEach { add(it, "direct structured lookup") }
+'''
+new = '''      if (hasAny(actionText, "devil trigger")) {
+        direct += "CHAR.KAI.DEVIL_TRIGGER"
+        if ("syvial" in presentActors) direct += "CHAR.SYVIAL.DEVIL_TRIGGER"
+      }
+      if (hasAny(actionText, "nói", "hỏi", "trả lời", "trò chuyện", "nói chuyện", "dialogue", "talk", "tell")) {
+        direct += "WRITING.DIALOGUE"
+      }
+      direct.forEach { add(it, "direct structured lookup") }
+'''
+if old not in text:
+    raise RuntimeError("Dialogue routing anchor not found")
+text = text.replace(old, new, 1)
+
+old = '''      return iris.contains("separated") || syvial.contains("separated") ||
+        (presentActors.size == 1 && state.optInt("turn", 1) <= 3)
+'''
+new = '''      return iris.contains("separated") || syvial.contains("separated")
+'''
+if old not in text:
+    raise RuntimeError("Main campaign separation heuristic anchor not found")
+text = text.replace(old, new, 1)
+
+old = '''  private fun strings(array: JSONArray?): Set<String> {
+    if (array == null) return emptySet()
+    val out = linkedSetOf<String>()
+    for (i in 0 until array.length()) {
+      val value = array.optString(i, "").trim()
+      if (value.isNotEmpty()) out += normalize(value)
+    }
+    return out
+  }
+'''
+new = '''  private fun rawStrings(array: JSONArray?): Set<String> {
+    if (array == null) return emptySet()
+    val out = linkedSetOf<String>()
+    for (i in 0 until array.length()) {
+      val value = array.optString(i, "").trim()
+      if (value.isNotEmpty()) out += value
+    }
+    return out
+  }
+
+  private fun strings(array: JSONArray?): Set<String> {
+    if (array == null) return emptySet()
+    val out = linkedSetOf<String>()
+    for (i in 0 until array.length()) {
+      val value = array.optString(i, "").trim()
+      if (value.isNotEmpty()) out += normalize(value)
+    }
+    return out
+  }
+'''
+if old not in text:
+    raise RuntimeError("Knowledge strings helper anchor not found")
+text = text.replace(old, new, 1)
+
+ENGINE.write_text(text, encoding="utf-8")
+print("Knowledge engine hardened: record references preserve stable IDs; dialogue uses RULES.DIALOGUE; main-story continuity is only retrieved from explicit separation state.")
