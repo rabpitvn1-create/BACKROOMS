@@ -52,9 +52,9 @@ new_leaf_methods = r'''  private String[] geminiModelChain() {
   }
 
   private int geminiModelTimeoutMs(int modelIndex) {
-    if (modelIndex == 0) return 12000;
-    if (modelIndex == 1) return 10000;
-    return 7000;
+    if (modelIndex == 0) return 45000;
+    if (modelIndex == 1) return 35000;
+    return 25000;
   }
 
   private boolean geminiModelCircuitOpenMatrix(int modelIndex) {
@@ -103,12 +103,12 @@ new_leaf_methods = r'''  private String[] geminiModelChain() {
     }
   }
 
-  private boolean geminiNetworkFailureMatrix(Exception error) {
+  private boolean geminiHostNetworkFailureMatrix(Exception error) {
     Throwable cause = error;
     while (cause != null) {
+      if (cause instanceof java.net.SocketTimeoutException) return false;
       if (cause instanceof java.net.UnknownHostException ||
           cause instanceof java.net.ConnectException ||
-          cause instanceof java.net.SocketTimeoutException ||
           cause instanceof java.net.SocketException ||
           cause instanceof java.io.IOException) return true;
       cause = cause.getCause();
@@ -124,6 +124,8 @@ new_leaf_methods = r'''  private String[] geminiModelChain() {
       geminiLaneLatencyMatrix[modelIndex][keyIndex] = oldLatency > 0 ? Math.max(1L, (oldLatency * 7L + latency * 3L) / 10L) : Math.max(1L, latency);
       geminiModelCircuitUntilMatrix[modelIndex] = 0L;
       geminiModelTransientMaskMatrix[modelIndex] = 0;
+      geminiTransportMaskMatrix &= ~(1 << keyIndex);
+      if (Integer.bitCount(geminiTransportMaskMatrix) < 3) geminiHostCircuitUntilMatrix = 0L;
     }
   }
 
@@ -131,7 +133,7 @@ new_leaf_methods = r'''  private String[] geminiModelChain() {
     synchronized (geminiMatrixLock) {
       long now = System.currentTimeMillis();
       int code = error instanceof HttpError ? ((HttpError)error).status : 0;
-      boolean transport = geminiNetworkFailureMatrix(error);
+      boolean transport = geminiHostNetworkFailureMatrix(error);
       geminiLaneFailuresMatrix[modelIndex][keyIndex] += 1;
 
       if (code == 401 || code == 403) {
@@ -155,7 +157,7 @@ new_leaf_methods = r'''  private String[] geminiModelChain() {
       if (code == 408 || code == 500 || code == 502 || code == 503 || code == 504 || code == 0) {
         geminiLaneCooldownUntilMatrix[modelIndex][keyIndex] = Math.max(geminiLaneCooldownUntilMatrix[modelIndex][keyIndex], now + 5_000L);
         geminiModelTransientMaskMatrix[modelIndex] |= (1 << keyIndex);
-        if (Integer.bitCount(geminiModelTransientMaskMatrix[modelIndex]) >= 3) {
+        if (Integer.bitCount(geminiModelTransientMaskMatrix[modelIndex]) >= 5) {
           geminiModelCircuitUntilMatrix[modelIndex] = Math.max(geminiModelCircuitUntilMatrix[modelIndex], now + 45_000L);
         }
         return "transient";
@@ -290,11 +292,11 @@ new_leaf_methods = r'''  private String[] geminiModelChain() {
   }
 
   private String geminiText(String prompt) throws Exception {
-    return geminiModelMatrixPolicy(prompt, new int[] {0, 1, 2}, -1, 1800, true, 42_000L);
+    return geminiModelMatrixPolicy(prompt, new int[] {0, 1, 2}, -1, 1800, true, 120_000L);
   }
 
   private String geminiAuditText(String prompt, int excludedIndex) throws Exception {
-    return geminiModelMatrixPolicy(prompt, new int[] {2, 1}, excludedIndex, 650, false, 18_000L);
+    return geminiModelMatrixPolicy(prompt, new int[] {2, 1}, excludedIndex, 650, false, 60_000L);
   }
 '''
 replace_once(old_leaf_methods, new_leaf_methods, "Gemini matrix writer/auditor methods")
@@ -313,8 +315,12 @@ for required in [
     'new int[] {2, 1}',
     'geminiLaneCooldownUntilMatrix',
     'geminiCredentialDisabledUntilMatrix',
-    'Integer.bitCount(geminiModelTransientMaskMatrix[modelIndex]) >= 3',
+    'Integer.bitCount(geminiModelTransientMaskMatrix[modelIndex]) >= 5',
     'Integer.bitCount(geminiTransportMaskMatrix) >= 3',
+    'cause instanceof java.net.SocketTimeoutException) return false',
+    'geminiTransportMaskMatrix &= ~(1 << keyIndex)',
+    'return 45000',
+    'true, 120_000L',
     'code == 400 || code == 404',
     'code == 429',
     'geminiModelLabel(lastGeminiModel) + " K"',

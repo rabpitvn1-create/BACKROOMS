@@ -1,0 +1,8 @@
+Backroom 1.1.44
+
+- Rebuilds the APK with the newly configured GEMINI_API_KEY_5 credential.
+- Raises Gemini response deadlines so healthy 3.6 Flash requests are not cancelled at 12 seconds.
+- Treats response-generation timeouts as model/key lane failures instead of host-wide network outages.
+- Tries all five Gemini credentials before opening a transient model circuit.
+- Clears recovered transport failures after a successful Gemini response so stale failures cannot reopen the host circuit.
+- Extends the total writer and audit budgets while retaining Luna as the final fallback.
