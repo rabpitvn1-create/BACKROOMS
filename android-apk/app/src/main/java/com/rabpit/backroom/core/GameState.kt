@@ -17,15 +17,8 @@ data class ItemStack(
   val contentState: ContentState = ContentState.NONE
 )
 
-data class InventoryState(
-  val ownerId: String,
-  val items: Map<String, ItemStack> = emptyMap()
-)
-
-data class EquipmentState(
-  val ownerId: String,
-  val slots: Map<String, String> = emptyMap()
-)
+data class InventoryState(val ownerId: String, val items: Map<String, ItemStack> = emptyMap())
+data class EquipmentState(val ownerId: String, val slots: Map<String, String> = emptyMap())
 
 data class StatusEffect(
   val id: String,
@@ -50,18 +43,9 @@ data class CharacterState(
   val metadata: Map<String, String> = emptyMap()
 )
 
-data class PartyState(
-  val leaderId: String = KAI_ID,
-  val memberIds: List<String> = listOf(KAI_ID),
-  val maxMembers: Int = 4
-)
+data class PartyState(val leaderId: String = KAI_ID, val memberIds: List<String> = listOf(KAI_ID), val maxMembers: Int = 4)
 
-data class ScanSlot(
-  val slot: Int,
-  val sourceItemId: String,
-  val templateItem: ItemStack,
-  val scannedAtEpochMs: Long
-)
+data class ScanSlot(val slot: Int, val sourceItemId: String, val templateItem: ItemStack, val scannedAtEpochMs: Long)
 
 data class OmnivaultState(
   val ownerId: String = KAI_ID,
@@ -100,7 +84,7 @@ data class GameState(
 ) {
   companion object {
     fun initial(): GameState = GameState(
-      characters = mapOf(KAI_ID to CharacterState(KAI_ID, "Kai Akechi")),
+      characters = mapOf(KAI_ID to CharacterState(KAI_ID, "Kai Akechi", avatarRef = "avatars/kai_avatar.png", metadata = mapOf("inventoryProfile" to "kai"))),
       inventories = mapOf(KAI_ID to InventoryState(KAI_ID)),
       equipment = mapOf(KAI_ID to EquipmentState(KAI_ID))
     )
