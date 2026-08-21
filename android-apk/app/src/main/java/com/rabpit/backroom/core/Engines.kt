@@ -22,26 +22,21 @@ private fun useItem(state: GameState, source: InventoryState, command: ItemComma
   val ownedRaw = source.items[command.itemId] ?: return invalid(state, "item_not_owned")
   if (ownedRaw.quantity < command.quantity) return invalid(state, "insufficient_item_quantity")
   val owned = ItemContentRules.normalize(ownedRaw)
-
   if (owned.contentState == ContentState.EMPTY) return invalid(state, "item_content_empty")
-
   if (owned.contentState == ContentState.FULL || owned.contentState == ContentState.LOW) {
     val nextVariant = ItemContentRules.nextAfterUse(owned) ?: return invalid(state, "item_content_empty")
     var nextInventory = removeItem(source, command.itemId, command.quantity) ?: return invalid(state, "insufficient_item_quantity")
+    val validation = InventoryPolicy.validateAddition(state, command.actorId, nextInventory, nextVariant, command.quantity)
+    if (validation != null) return invalid(state, validation)
     nextInventory = addItem(nextInventory, nextVariant.copy(quantity = command.quantity))
-    return changed(
-      state.copy(inventories = state.inventories + (command.actorId to nextInventory)),
-      if (nextVariant.contentState == ContentState.EMPTY) "item_content_emptied" else "item_content_reduced"
-    )
+    return changed(state.copy(inventories = state.inventories + (command.actorId to nextInventory)), if (nextVariant.contentState == ContentState.EMPTY) "item_content_emptied" else "item_content_reduced")
   }
-
   val consumedOnUse = owned.metadata["consumedOnUse"].equals("true", true) ||
     (owned.metadata["consumable"].equals("true", true) && !owned.metadata["containerPersistent"].equals("true", true))
   if (consumedOnUse) {
     val next = removeItem(source, command.itemId, command.quantity) ?: return invalid(state, "insufficient_item_quantity")
     return changed(state.copy(inventories = state.inventories + (command.actorId to next)), "item_consumed")
   }
-
   return changed(state, "item_used")
 }
 
@@ -52,7 +47,11 @@ object InventoryEngine {
     val source = state.inventories[command.actorId] ?: InventoryState(command.actorId)
     val item = ItemContentRules.normalize(ItemStack(command.itemId, command.itemName, command.quantity))
     return when (command.operation) {
-      ItemCommand.Operation.PICKUP -> changed(state.copy(inventories = state.inventories + (command.actorId to addItem(source, item))), "inventory_pickup")
+      ItemCommand.Operation.PICKUP -> {
+        val validation = InventoryPolicy.validateAddition(state, command.actorId, source, item, command.quantity)
+        if (validation != null) return invalid(state, validation)
+        changed(state.copy(inventories = state.inventories + (command.actorId to addItem(source, item))), "inventory_pickup")
+      }
       ItemCommand.Operation.DROP -> {
         val next = removeItem(source, command.itemId, command.quantity) ?: return invalid(state, "insufficient_item_quantity")
         changed(state.copy(inventories = state.inventories + (command.actorId to next)), "inventory_remove")
@@ -63,9 +62,13 @@ object InventoryEngine {
         if (!state.characters.containsKey(targetId)) return invalid(state, "target_unknown")
         val owned = source.items[command.itemId] ?: return invalid(state, "item_not_owned")
         if (owned.quantity < command.quantity) return invalid(state, "insufficient_item_quantity")
-        val from = removeItem(source, command.itemId, command.quantity) ?: return invalid(state, "insufficient_item_quantity")
+        if (command.actorId == KAI_ID && InventoryPolicy.isKaiSignatureEquipment(state, owned)) return invalid(state, "signature_equipment_locked")
         val transferred = ItemContentRules.normalize(owned).copy(quantity = command.quantity)
-        val to = addItem(state.inventories[targetId] ?: InventoryState(targetId), transferred)
+        val targetInventory = state.inventories[targetId] ?: InventoryState(targetId)
+        val validation = InventoryPolicy.validateAddition(state, targetId, targetInventory, transferred, command.quantity)
+        if (validation != null) return invalid(state, validation)
+        val from = removeItem(source, command.itemId, command.quantity) ?: return invalid(state, "insufficient_item_quantity")
+        val to = addItem(targetInventory, transferred)
         changed(state.copy(inventories = state.inventories + (command.actorId to from) + (targetId to to)), "inventory_transfer")
       }
       ItemCommand.Operation.EQUIP -> {
@@ -86,8 +89,7 @@ object InventoryEngine {
 }
 
 object PartyEngine {
-  fun execute(state: GameState, command: PartyCommand): ExecutionResult {
-    return when (command.operation) {
+  fun execute(state: GameState, command: PartyCommand): ExecutionResult = when (command.operation) {
     PartyCommand.Operation.ADD -> {
       if (!state.characters.containsKey(command.targetId)) return invalid(state, "target_unknown")
       if (!command.targetPresent) return invalid(state, "target_not_present")
@@ -110,7 +112,6 @@ object PartyEngine {
       changed(state.copy(characters = state.characters + (command.targetId to character.copy(presence = CharacterPresence.SEPARATED))), "party_member_separated")
     }
     PartyCommand.Operation.FOLLOW, PartyCommand.Operation.QUERY -> ExecutionResult(state, applied = false)
-    }
   }
 }
 
@@ -122,10 +123,7 @@ object StatusEngine {
         val effect = command.effect ?: return invalid(state, "status_effect_required")
         if (effect.id in state.statuses) return invalid(state, "status_already_exists")
         val character = state.characters.getValue(command.targetId)
-        changed(state.copy(
-          statuses = state.statuses + (effect.id to effect),
-          characters = state.characters + (command.targetId to character.copy(statusIds = character.statusIds + effect.id))
-        ), "status_applied")
+        changed(state.copy(statuses = state.statuses + (effect.id to effect), characters = state.characters + (command.targetId to character.copy(statusIds = character.statusIds + effect.id))), "status_applied")
       }
       StatusCommand.Operation.REMOVE -> {
         val id = command.statusId ?: return invalid(state, "status_id_required")

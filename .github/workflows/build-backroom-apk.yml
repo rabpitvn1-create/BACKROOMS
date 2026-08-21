@@ -140,6 +140,8 @@ jobs:
         run: python3 android-apk/patch-snapshot-unconfigured.py
       - name: Route deterministic commands through Kotlin Game State Core
         run: python3 android-apk/patch-game-state-core-bridge.py
+      - name: Apply per-character Party Inventory UI
+        run: python3 android-apk/patch-character-inventory-ui.py
 
       - uses: actions/setup-java@v4
         with:
