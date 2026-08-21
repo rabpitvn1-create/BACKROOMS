@@ -14,7 +14,7 @@ permissions:
 
 concurrency:
   group: build-backroom-apk-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build-apk:
@@ -127,6 +127,7 @@ jobs:
           java = Path('android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java').read_text(encoding='utf-8')
           facade = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt').read_text(encoding='utf-8')
           gradle = Path('android-apk/app/build.gradle').read_text(encoding='utf-8')
+          canon = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/AnNhienCanon.kt').read_text(encoding='utf-8')
           assert "versionCode 48" in gradle
           assert "versionName '1.1.46'" in gradle
           assert 'state&&state.partyDetails&&Array.isArray(state.partyDetails.members)' in html
@@ -137,9 +138,10 @@ jobs:
           assert 'output.put("partyDetails"' in facade
           assert 'output.put("gameTime"' in facade
           assert 'thresholdRoll("jeffEncounter", 10000, 200' in java
+          assert 'root.equals("jeff") && value instanceof JSONObject' in java
           assert 'int[] entityThresholds = {805, 1000, 1150, 1150, 810, 1200, 805}' in java
-          assert 'avatars/an_nhien_avatar.png' in Path('android-apk/app/src/main/java/com/rabpit/backroom/core/AnNhienCanon.kt').read_text(encoding='utf-8')
-          assert 'an-nhien:pink-crocs' in Path('android-apk/app/src/main/java/com/rabpit/backroom/core/AnNhienCanon.kt').read_text(encoding='utf-8')
+          assert 'avatars/an_nhien_avatar.png' in canon
+          assert 'an-nhien:pink-crocs' in canon
           assert 'private java.util.List<String> lunaModelCandidates(' in java
           assert 'new URL(baseUrl + "/models")' in java
           assert 'private boolean lunaInactiveModel(' in java
@@ -189,3 +191,25 @@ jobs:
           else
             gh release create "$TAG" Backroom-1.1.46.apk --target "$GITHUB_SHA" --title "$TITLE" --notes "$NOTES"
           fi
+
+      - name: Verify published APK and record GREEN release
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          rm -f Backroom-1.1.46-verified.apk
+          gh release view v1.1.46 --repo "$GITHUB_REPOSITORY"
+          gh release download v1.1.46 --repo "$GITHUB_REPOSITORY" --pattern 'Backroom-1.1.46.apk' --output Backroom-1.1.46-verified.apk
+          test -s Backroom-1.1.46-verified.apk
+          unzip -l Backroom-1.1.46-verified.apk | grep -q 'AndroidManifest.xml'
+          unzip -l Backroom-1.1.46-verified.apk | grep -q 'assets/index.html'
+          unzip -l Backroom-1.1.46-verified.apk | grep -q 'assets/avatars/an_nhien_avatar.png'
+          unzip -l Backroom-1.1.46-verified.apk | grep -q 'classes.dex'
+          SHA256=$(sha256sum Backroom-1.1.46-verified.apk | awk '{print $1}')
+          mkdir -p release-status
+          printf 'status=GREEN\nversion=1.1.46\ntag=v1.1.46\nasset=Backroom-1.1.46.apk\nsource_sha=%s\nrun_id=%s\nsha256=%s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$SHA256" > release-status/v1.1.46.txt
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add release-status/v1.1.46.txt
+          git commit -m 'Record verified Backroom 1.1.46 release'
+          git push origin HEAD:main
