@@ -29,6 +29,14 @@ class GameStateCodecTest {
     assertEquals(physiology, decoded.characters.getValue(KAI_ID).physiology)
   }
 
+  @Test fun freshRunStartsWithKnownSatisfiedPhysiologyBaseline() {
+    val physiology = GameState.initial().characters.getValue(KAI_ID).physiology
+    assertEquals(0L, physiology.minutesSinceFood)
+    assertEquals(0L, physiology.minutesSinceWater)
+    assertEquals(0L, physiology.minutesAwake)
+    assertEquals("fresh_run_entry", physiology.metadata["baseline"])
+  }
+
   @Test fun currentSaveWithoutTimeDefaultsToZeroSubjectiveMinutes() {
     val raw = JSONObject(GameStateCodec.encode(GameState.initial())).apply { remove("time") }.toString()
     val decoded = GameStateCodec.decode(raw)
@@ -67,7 +75,9 @@ class GameStateCodecTest {
     assertEquals(CURRENT_SAVE_VERSION, migrated.saveVersion)
     assertEquals("TURN_184", migrated.turn.currentTurnId)
     assertEquals(GameTimeState(), migrated.time)
-    assertEquals(PhysiologyState(), migrated.characters.getValue(KAI_ID).physiology)
+    assertEquals(0L, migrated.characters.getValue(KAI_ID).physiology.minutesSinceFood)
+    assertEquals(0L, migrated.characters.getValue(KAI_ID).physiology.minutesSinceWater)
+    assertEquals(0L, migrated.characters.getValue(KAI_ID).physiology.minutesAwake)
     assertEquals(PhysiologyState(), migrated.characters.getValue("iris").physiology)
     assertEquals(1, migrated.inventories.getValue(KAI_ID).items.size)
     assertEquals(2, migrated.inventories.getValue(KAI_ID).items.values.single().quantity)
@@ -96,7 +106,9 @@ class GameStateCodecTest {
     }
     val migrated = GameStateCodec.decode(v2)
     assertEquals(CURRENT_SAVE_VERSION, migrated.saveVersion)
-    assertEquals(PhysiologyState(), migrated.characters.getValue(KAI_ID).physiology)
+    assertEquals(0L, migrated.characters.getValue(KAI_ID).physiology.minutesSinceFood)
+    assertEquals(0L, migrated.characters.getValue(KAI_ID).physiology.minutesSinceWater)
+    assertEquals(0L, migrated.characters.getValue(KAI_ID).physiology.minutesAwake)
     assertEquals(setOf("rope"), migrated.inventories.getValue(KAI_ID).items.keys)
     assertEquals(KAI_WHITE_WRAITH_ID, migrated.equipment.getValue(KAI_ID).slots["weapon"])
     assertEquals(KAI_BLACKBLOOD_ARMOR_ID, migrated.equipment.getValue(KAI_ID).slots["armor"])

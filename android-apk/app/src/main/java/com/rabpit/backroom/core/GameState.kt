@@ -73,7 +73,17 @@ data class PhysiologyState(
   val infectionState: String? = null,
   val thermalState: String? = null,
   val metadata: Map<String, String> = emptyMap()
-)
+) {
+  companion object {
+    /** Simulation baseline for a fresh run: needs begin satisfied at Backrooms entry. */
+    fun freshRunBaseline(): PhysiologyState = PhysiologyState(
+      minutesSinceFood = 0L,
+      minutesSinceWater = 0L,
+      minutesAwake = 0L,
+      metadata = mapOf("baseline" to "fresh_run_entry")
+    )
+  }
+}
 
 data class CharacterState(
   val id: String,
@@ -137,7 +147,15 @@ data class GameState(
 ) {
   companion object {
     fun initial(): GameState = GameState(
-      characters = mapOf(KAI_ID to CharacterState(KAI_ID, "Kai Akechi", avatarRef = "avatars/kai_avatar.png", metadata = mapOf("inventoryProfile" to "kai"))),
+      characters = mapOf(
+        KAI_ID to CharacterState(
+          KAI_ID,
+          "Kai Akechi",
+          avatarRef = "avatars/kai_avatar.png",
+          physiology = PhysiologyState.freshRunBaseline(),
+          metadata = mapOf("inventoryProfile" to "kai")
+        )
+      ),
       inventories = mapOf(KAI_ID to InventoryState(KAI_ID)),
       equipment = mapOf(KAI_ID to EquipmentState(KAI_ID, KaiStartingEquipment.slots))
     )
