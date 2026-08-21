@@ -1,11 +1,9 @@
 from pathlib import Path
-import base64
 import re
 
 ROOT = Path(__file__).resolve().parent
 MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
 INDEX = ROOT / "app/src/main/assets/index.html"
-PARTS_DIR = ROOT / "kai-overlay-parts"
 OVERLAY = ROOT / "app/src/main/assets/kai_snapshot_overlay.webp"
 
 
@@ -22,15 +20,10 @@ def replace_if_needed(text: str, old: str, new: str, label: str) -> str:
     return replace_required(text, old, new, label)
 
 
-parts = sorted(PARTS_DIR.glob("part*.b64"))
-if len(parts) != 5:
-    raise RuntimeError(f"Kai overlay: expected 5 base64 parts, found {len(parts)}")
-
-encoded = "".join(part.read_text(encoding="ascii").strip() for part in parts)
-overlay_bytes = base64.b64decode(encoded, validate=True)
-if len(overlay_bytes) < 16 or overlay_bytes[:4] != b"RIFF" or overlay_bytes[8:12] != b"WEBP":
-    raise RuntimeError("Kai overlay: reconstructed file is not a valid WebP container")
-OVERLAY.write_bytes(overlay_bytes)
+# The overlay is now a normal packaged binary asset. No base64 reconstruction belongs in the build.
+raw = OVERLAY.read_bytes()
+if len(raw) < 16 or raw[:4] != b"RIFF" or raw[8:12] != b"WEBP":
+    raise RuntimeError("Kai overlay asset is not a valid packaged WebP")
 
 main = MAIN.read_text(encoding="utf-8")
 index = INDEX.read_text(encoding="utf-8")
@@ -40,12 +33,7 @@ provider_callback = (
     '      "window.__backroomProvider=\'Gemini\';window.backroomProvider=function(provider){window.__backroomProvider=provider||\'AI\';var s=document.getElementById(\'status\');if(s)s.textContent=window.__backroomProvider+\' đang xử lý lượt…\';var p=document.querySelector(\'[data-pending=\\\\\\"1\\\\\\"]:not(.player) .text\');if(p)p.textContent=window.__backroomProvider+\' đang xử lý lượt…\';};" +\n'
 )
 if "window.__backroomProvider='Gemini'" not in main:
-    main = replace_required(
-        main,
-        '      "window.requestSnapshot=requestSnapshot;" +\n',
-        provider_callback,
-        "provider status callback",
-    )
+    main = replace_required(main, '      "window.requestSnapshot=requestSnapshot;" +\n', provider_callback, "provider status callback")
 
 main = replace_if_needed(
     main,
@@ -144,4 +132,4 @@ main = main[:gemini_start] + gemini_block + main[network_start:]
 
 MAIN.write_text(main, encoding="utf-8")
 INDEX.write_text(index, encoding="utf-8")
-print(f"Patched Gemini provider labels, socket/DNS handling and Kai snapshot overlay ({len(overlay_bytes)} bytes).")
+print(f"Patched Gemini provider labels, socket/DNS handling and packaged Kai snapshot overlay ({len(raw)} bytes).")

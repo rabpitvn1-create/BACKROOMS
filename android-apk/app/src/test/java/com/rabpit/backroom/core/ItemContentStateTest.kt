@@ -4,8 +4,8 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class ItemContentStateTest {
-  private fun pickup(name: String, id: String = "raw", quantity: Int = 1) = ItemCommand(
-    "pickup-$id-$name", "TURN_1", KAI_ID, source = CommandSource.RULE,
+  private fun grant(name: String, id: String = "raw", quantity: Int = 1) = ItemCommand(
+    "grant-$id-$name", "TURN_1", KAI_ID, source = CommandSource.SYSTEM,
     operation = ItemCommand.Operation.PICKUP, itemId = id, itemName = name, quantity = quantity
   )
 
@@ -15,7 +15,7 @@ class ItemContentStateTest {
   )
 
   @Test fun waterBottleUsesThreeDiscreteStates() {
-    val full = StateReducer.execute(GameState.initial(), pickup("Chai nước", "legacy-water")).state
+    val full = StateReducer.execute(GameState.initial(), grant("Chai nước", "legacy-water")).state
     val fullId = "water-bottle:full"
     assertEquals(ContentState.FULL, full.inventories.getValue(KAI_ID).items.getValue(fullId).contentState)
     assertEquals("Chai nước", full.inventories.getValue(KAI_ID).items.getValue(fullId).name)
@@ -40,14 +40,14 @@ class ItemContentStateTest {
   }
 
   @Test fun usingOneStackMemberSplitsStateInsteadOfInventingAmounts() {
-    val full = StateReducer.execute(GameState.initial(), pickup("Chai nước", "water", 3)).state
+    val full = StateReducer.execute(GameState.initial(), grant("Chai nước", "water", 3)).state
     val used = StateReducer.execute(full, use("water-bottle:full", 1))
     assertEquals(2, used.state.inventories.getValue(KAI_ID).items.getValue("water-bottle:full").quantity)
     assertEquals(1, used.state.inventories.getValue(KAI_ID).items.getValue("water-bottle:low").quantity)
   }
 
   @Test fun preciseAmountsAreForbidden() {
-    val invalid = StateReducer.execute(GameState.initial(), pickup("Chai nước 200ml", "water-200"))
+    val invalid = StateReducer.execute(GameState.initial(), grant("Chai nước 200ml", "water-200"))
     assertFalse(invalid.applied)
     assertEquals("precise_content_amount_forbidden", invalid.validation.reason)
   }
@@ -67,8 +67,8 @@ class ItemContentStateTest {
     assertNull(ItemContentRules.nextAfterUse(casing))
   }
 
-  @Test fun restoreRepairsPhysicalStateButPreservesContentState() {
-    val empty = StateReducer.execute(GameState.initial(), pickup("Chai rỗng", "empty-water")).state
+  @Test fun restoreIsNarrativeOnlyAndDoesNotMutatePhysicalState() {
+    val empty = StateReducer.execute(GameState.initial(), grant("Chai rỗng", "empty-water")).state
     val emptyId = "water-bottle:empty"
     val damaged = empty.copy(inventories = empty.inventories + (KAI_ID to empty.inventories.getValue(KAI_ID).copy(
       items = empty.inventories.getValue(KAI_ID).items + (emptyId to empty.inventories.getValue(KAI_ID).items.getValue(emptyId).copy(condition = "DENTED"))
@@ -77,9 +77,10 @@ class ItemContentStateTest {
       "restore-empty", "TURN_1", KAI_ID, source = CommandSource.UI,
       operation = OmnivaultCommand.Operation.RESTORE, itemId = emptyId, itemName = "Chai rỗng", timestampEpochMs = 1000L
     ))
+    assertFalse(restored.applied)
+    assertEquals("restore_narrative_only", restored.validation.reason)
     val item = restored.state.inventories.getValue(KAI_ID).items.getValue(emptyId)
-    assertEquals("BEST_CONDITION", item.condition)
+    assertEquals("DENTED", item.condition)
     assertEquals(ContentState.EMPTY, item.contentState)
-    assertEquals("EMPTY", item.metadata["contentState"])
   }
 }
