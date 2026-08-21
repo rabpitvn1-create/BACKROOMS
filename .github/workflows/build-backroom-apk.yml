@@ -28,6 +28,11 @@ jobs:
       GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
       GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
       GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
+      ANDROID_RELEASE_KEYSTORE_B64: ${{ secrets.ANDROID_RELEASE_KEYSTORE_B64 }}
+      ANDROID_RELEASE_STORE_PASSWORD: ${{ secrets.ANDROID_RELEASE_STORE_PASSWORD }}
+      ANDROID_RELEASE_KEY_ALIAS: ${{ secrets.ANDROID_RELEASE_KEY_ALIAS }}
+      ANDROID_RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEY_PASSWORD }}
+      ANDROID_RELEASE_CERT_SHA256: 8565060aef73280de5fe80d29f67175025eaf9eb9c5ab3497fca91d83de153ca
     steps:
       - uses: actions/checkout@v4
 
@@ -52,7 +57,7 @@ jobs:
           bytes=$(stat -c%s ../app/src/main/assets/models/backroom_intent.tflite)
           test "$bytes" -le 5242880 || (echo "LiteRT model exceeds 5 MiB: $bytes" && exit 1)
 
-      - name: Validate Game Master configuration
+      - name: Validate Game Master and stable release signing configuration
         run: |
           test -n "$GEMINI_API_KEY_1" || (echo "Missing GitHub Secret: GEMINI_API_KEY_1" && exit 1)
           test -n "$GEMINI_API_KEY_2" || (echo "Missing GitHub Secret: GEMINI_API_KEY_2" && exit 1)
@@ -61,6 +66,18 @@ jobs:
           test -n "$GEMINI_API_KEY_5" || (echo "Missing GitHub Secret: GEMINI_API_KEY_5" && exit 1)
           test -n "$LUNA_API_KEY" || (echo "Missing GitHub Secret: LUNA_API_KEY" && exit 1)
           test -n "$LUNA_MODEL" || (echo "Missing GitHub Secret: LUNA_MODEL" && exit 1)
+          test -n "$ANDROID_RELEASE_KEYSTORE_B64" || (echo "Missing GitHub Secret: ANDROID_RELEASE_KEYSTORE_B64" && exit 1)
+          test -n "$ANDROID_RELEASE_STORE_PASSWORD" || (echo "Missing GitHub Secret: ANDROID_RELEASE_STORE_PASSWORD" && exit 1)
+          test -n "$ANDROID_RELEASE_KEY_ALIAS" || (echo "Missing GitHub Secret: ANDROID_RELEASE_KEY_ALIAS" && exit 1)
+          test -n "$ANDROID_RELEASE_KEY_PASSWORD" || (echo "Missing GitHub Secret: ANDROID_RELEASE_KEY_PASSWORD" && exit 1)
+
+      - name: Restore stable Android release keystore
+        run: |
+          KEYSTORE="$RUNNER_TEMP/backroom-release.p12"
+          printf '%s' "$ANDROID_RELEASE_KEYSTORE_B64" | base64 --decode > "$KEYSTORE"
+          test -s "$KEYSTORE"
+          chmod 600 "$KEYSTORE"
+          echo "ANDROID_RELEASE_KEYSTORE_PATH=$KEYSTORE" >> "$GITHUB_ENV"
 
       - name: Apply provider, DNS and Kai overlay patch
         run: python3 android-apk/patch-provider-status.py
@@ -116,10 +133,10 @@ jobs:
         run: python3 android-apk/patch-game-state-core-bridge.py
       - name: Apply per-character Party Inventory UI
         run: python3 android-apk/patch-character-inventory-ui.py
-      - name: Apply neutral Character Detail avatar and final UX patch
+      - name: Apply neutral Character Detail avatar and final UX/startup patches
         run: python3 android-apk/patch-character-detail-avatar-fallback.py
 
-      - name: Verify release provider and UI contracts
+      - name: Verify release provider, UI and Android startup contracts
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -128,8 +145,9 @@ jobs:
           facade = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt').read_text(encoding='utf-8')
           gradle = Path('android-apk/app/build.gradle').read_text(encoding='utf-8')
           canon = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/AnNhienCanon.kt').read_text(encoding='utf-8')
-          assert "versionCode 51" in gradle
-          assert "versionName '1.1.49'" in gradle
+          assert "versionCode 52" in gradle
+          assert "versionName '1.1.50'" in gradle
+          assert 'signingConfigs {' in gradle
           assert 'state&&state.partyDetails&&Array.isArray(state.partyDetails.members)' in html
           assert 'id="characterSurvivalHud"' in html
           assert '.message.gm{' in html
@@ -152,9 +170,20 @@ jobs:
           assert 'Integer.bitCount(geminiModelTransientMaskMatrix[modelIndex]) >= 5' in java
           assert 'geminiTransportMaskMatrix &= ~(1 << keyIndex);' in java
           assert 'true, 120_000L' in java
+          assert 'private volatile boolean gameCoreUnavailable;' in java
+          assert 'private GameCoreFacade gameCoreOrNull()' in java
+          assert 'private GameCoreFacade requireGameCore() throws Exception' in java
+          assert 'requireGameCore().processRule(' in java
+          assert 'requireGameCore().processValidatedCandidate(' in java
+          assert 'showStartupFallback(Throwable error)' in java
+          assert 'gameCore = GameCoreFacade.create(getApplicationContext(), BuildConfig.DEBUG);' in java
+          on_create = java[java.index('public void onCreate'):java.index('@Override protected void onDestroy')]
+          assert 'gameCore = GameCoreFacade.create' not in on_create
+          assert 'Immersive fullscreen unavailable; continuing normally.' in on_create
+          assert 'UI enhancement injection failed; base game remains usable.' in on_create
           PY
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
@@ -162,62 +191,77 @@ jobs:
         with:
           gradle-version: "8.10.2"
 
-      - name: Run Kotlin core tests and build debug APK
+      - name: Run Kotlin core tests and build stable release APK
         working-directory: android-apk
-        run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
+        run: gradle :app:testDebugUnitTest :app:assembleRelease --no-daemon
 
-      - name: Prepare APK
-        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.1.49.apk
+      - name: Prepare stable release APK
+        run: cp android-apk/app/build/outputs/apk/release/app-release.apk Backroom-1.1.50.apk
 
-      - name: Verify APK signature and launcher
+      - name: Verify stable signature, launcher and 16 KB native alignment
         run: |
           BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
           APKSIGNER="$BUILD_TOOLS/apksigner"
           AAPT="$BUILD_TOOLS/aapt"
+          ZIPALIGN="$BUILD_TOOLS/zipalign"
           test -x "$APKSIGNER"
           test -x "$AAPT"
-          "$APKSIGNER" verify --verbose --print-certs Backroom-1.1.49.apk
-          "$AAPT" dump badging Backroom-1.1.49.apk | grep -q "package: name='com.rabpit.backroom'"
-          "$AAPT" dump badging Backroom-1.1.49.apk | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
+          test -x "$ZIPALIGN"
+          "$APKSIGNER" verify --verbose --print-certs Backroom-1.1.50.apk
+          CERT=$("$APKSIGNER" verify --print-certs Backroom-1.1.50.apk | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | head -1 | tr '[:upper:]' '[:lower:]')
+          test "$CERT" = "$ANDROID_RELEASE_CERT_SHA256" || (echo "Unexpected release certificate: $CERT" && exit 1)
+          "$AAPT" dump badging Backroom-1.1.50.apk | grep -q "package: name='com.rabpit.backroom'"
+          "$AAPT" dump badging Backroom-1.1.50.apk | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
+          "$ZIPALIGN" -c -P 16 -v 4 Backroom-1.1.50.apk
+          rm -rf native-check && mkdir native-check
+          unzip -q Backroom-1.1.50.apk 'lib/arm64-v8a/*.so' -d native-check
+          for so in native-check/lib/arm64-v8a/*.so; do
+            readelf -lW "$so" | awk '$1=="LOAD" { if (strtonum($NF) < 0x4000) { print "Native LOAD alignment below 16 KB: " $0; bad=1 } } END { exit bad }'
+          done
 
-      - name: Install and launch APK on Android emulator
+      - name: Install and cold-launch APK repeatedly on Android 16
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 29
+          api-level: 36
           arch: x86_64
-          profile: pixel_2
+          profile: pixel_6
           disable-animations: false
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
           script: |
-            adb install -r Backroom-1.1.49.apk
-            adb logcat -c
-            adb shell am start -n com.rabpit.backroom/.MainActivity
-            sleep 20
-            adb shell pidof com.rabpit.backroom
-            adb shell dumpsys activity activities | grep -q 'mResumedActivity.*com.rabpit.backroom/.MainActivity'
-            ! adb logcat -d -b crash | grep -q 'com.rabpit.backroom'
+            adb install -r Backroom-1.1.50.apk
+            for attempt in 1 2 3; do
+              echo "Android 16 cold launch attempt $attempt"
+              adb shell am force-stop com.rabpit.backroom
+              adb logcat -c
+              adb shell am start -n com.rabpit.backroom/.MainActivity
+              sleep 12
+              adb shell pidof com.rabpit.backroom
+              adb shell dumpsys activity activities | grep -q 'mResumedActivity.*com.rabpit.backroom/.MainActivity'
+              ! adb logcat -d -b crash | grep -q 'com.rabpit.backroom'
+              ! adb logcat -d | grep -E 'FATAL EXCEPTION.*com.rabpit.backroom|Process: com.rabpit.backroom.*FATAL'
+            done
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Backroom-1.1.49-apk
-          path: Backroom-1.1.49.apk
+          name: Backroom-1.1.50-release-apk
+          path: Backroom-1.1.50.apk
           if-no-files-found: error
           retention-days: 14
 
-      - name: Publish GitHub Release v1.1.49
+      - name: Publish GitHub Release v1.1.50
         if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="v1.1.49"
-          TITLE="Backroom 1.1.49"
-          NOTES=$(cat android-apk/RELEASE_NOTES_1.1.49.txt)
+          TAG="v1.1.50"
+          TITLE="Backroom 1.1.50"
+          NOTES=$(cat android-apk/RELEASE_NOTES_1.1.50.txt)
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
-            gh release upload "$TAG" Backroom-1.1.49.apk --clobber
+            gh release upload "$TAG" Backroom-1.1.50.apk --clobber
           else
-            gh release create "$TAG" Backroom-1.1.49.apk --target "$GITHUB_SHA" --title "$TITLE" --notes "$NOTES"
+            gh release create "$TAG" Backroom-1.1.50.apk --target "$GITHUB_SHA" --title "$TITLE" --notes "$NOTES"
           fi
 
       - name: Verify published APK and record GREEN release
@@ -225,19 +269,25 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          rm -f Backroom-1.1.49-verified.apk
-          gh release view v1.1.49 --repo "$GITHUB_REPOSITORY"
-          gh release download v1.1.49 --repo "$GITHUB_REPOSITORY" --pattern 'Backroom-1.1.49.apk' --output Backroom-1.1.49-verified.apk
-          test -s Backroom-1.1.49-verified.apk
-          unzip -l Backroom-1.1.49-verified.apk | grep -q 'AndroidManifest.xml'
-          unzip -l Backroom-1.1.49-verified.apk | grep -q 'assets/index.html'
-          unzip -l Backroom-1.1.49-verified.apk | grep -q 'assets/avatars/an_nhien_avatar.png'
-          unzip -l Backroom-1.1.49-verified.apk | grep -q 'classes.dex'
-          SHA256=$(sha256sum Backroom-1.1.49-verified.apk | awk '{print $1}')
+          rm -f Backroom-1.1.50-verified.apk
+          gh release view v1.1.50 --repo "$GITHUB_REPOSITORY"
+          gh release download v1.1.50 --repo "$GITHUB_REPOSITORY" --pattern 'Backroom-1.1.50.apk' --output Backroom-1.1.50-verified.apk
+          test -s Backroom-1.1.50-verified.apk
+          unzip -l Backroom-1.1.50-verified.apk | grep -q 'AndroidManifest.xml'
+          unzip -l Backroom-1.1.50-verified.apk | grep -q 'assets/index.html'
+          unzip -l Backroom-1.1.50-verified.apk | grep -q 'assets/avatars/an_nhien_avatar.png'
+          unzip -l Backroom-1.1.50-verified.apk | grep -q 'classes.dex'
+          BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          APKSIGNER="$BUILD_TOOLS/apksigner"
+          ZIPALIGN="$BUILD_TOOLS/zipalign"
+          CERT=$("$APKSIGNER" verify --print-certs Backroom-1.1.50-verified.apk | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | head -1 | tr '[:upper:]' '[:lower:]')
+          test "$CERT" = "$ANDROID_RELEASE_CERT_SHA256" || (echo "Published APK certificate mismatch: $CERT" && exit 1)
+          "$ZIPALIGN" -c -P 16 -v 4 Backroom-1.1.50-verified.apk
+          SHA256=$(sha256sum Backroom-1.1.50-verified.apk | awk '{print $1}')
           mkdir -p release-status
-          printf 'status=GREEN\nversion=1.1.49\ntag=v1.1.49\nasset=Backroom-1.1.49.apk\nsource_sha=%s\nrun_id=%s\nsha256=%s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$SHA256" > release-status/v1.1.49.txt
+          printf 'status=GREEN\nversion=1.1.50\ntag=v1.1.50\nasset=Backroom-1.1.50.apk\nsource_sha=%s\nrun_id=%s\nsha256=%s\ncert_sha256=%s\nandroid16_smoke=passed\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$SHA256" "$CERT" > release-status/v1.1.50.txt
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add release-status/v1.1.49.txt
-          git commit -m 'Record verified Backroom 1.1.49 release'
+          git add release-status/v1.1.50.txt
+          git commit -m 'Record verified Backroom 1.1.50 release'
           git push origin HEAD:main
