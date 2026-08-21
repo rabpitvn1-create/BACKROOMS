@@ -102,3 +102,25 @@ jobs:
         run: |
           test -s android-apk/app/build/outputs/apk/debug/app-debug.apk
           unzip -l android-apk/app/build/outputs/apk/debug/app-debug.apk | grep -q 'assets/index.html'
+
+  verify-published:
+    needs: verify-build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify GitHub Release v1.1.45
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release view v1.1.45 --repo "$GITHUB_REPOSITORY"
+
+      - name: Download published APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download v1.1.45 --repo "$GITHUB_REPOSITORY" --pattern 'Backroom-1.1.45.apk'
+          test -s Backroom-1.1.45.apk
+
+      - name: Verify published APK structure
+        run: |
+          unzip -l Backroom-1.1.45.apk | grep -q 'AndroidManifest.xml'
+          unzip -l Backroom-1.1.45.apk | grep -q 'assets/index.html'
+          unzip -l Backroom-1.1.45.apk | grep -q 'classes.dex'
