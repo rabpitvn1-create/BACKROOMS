@@ -28,6 +28,23 @@ class GameCoreFacade private constructor(
     }
     val interpreted = IntentResult(candidates, candidates.any { it.confidence != IntentConfidence.HIGH && it.intent != GameIntent.NO_ACTION })
     interpreted.candidates.forEach { logger.log(PipelineLogEvent("INTENT", turnId = turnId, source = it.source, intent = it.intent, confidence = it.score)) }
+
+    // Player text never has authority to manufacture an acquisition event. Reject immediately,
+    // do not call Gemini, do not advance the turn, and do not mutate Inventory.
+    if (interpreted.candidates.any { it.intent == GameIntent.PICKUP_ITEM }) {
+      val result = syncLegacy(legacy, state, incrementTurn = false)
+      val reply = validationReply("player_pickup_unavailable")
+      appendLog(result, action, reply)
+      logger.log(PipelineLogEvent("REJECT", turnId = turnId, details = mapOf("reason" to "player_pickup_unavailable")))
+      return response(true, result, "player_pickup_unavailable", "validation_rejected", reply)
+    }
+
+    // Restore is lore/narrative-only. Route prose to the GM, but authoritative state mutation is
+    // explicitly suppressed again in processValidatedCandidate().
+    if (interpreted.candidates.any { it.intent == GameIntent.OMNIVAULT_RESTORE }) {
+      return response(false, legacy, null, "fallback_required")
+    }
+
     if (interpreted.candidates.any { it.intent == GameIntent.NO_ACTION || it.confidence != IntentConfidence.HIGH }) {
       return response(false, legacy, null, "fallback_required")
     }
@@ -67,15 +84,33 @@ class GameCoreFacade private constructor(
     val pending = TurnCoordinator.createPending(core, turnId, action)
     if (pending.error != null) return response(false, before, pending.error, "pending_rejected")
     val commands = mutableListOf<GameCommand>()
-    val desiredInventory = candidate.optJSONArray("inventory") ?: JSONArray()
-    val desiredById = mutableMapOf<String, ItemStack>()
-    for (index in 0 until desiredInventory.length()) {
-      val json = desiredInventory.optJSONObject(index) ?: continue
-      val name = json.optString("name").trim(); if (name.isEmpty()) continue
-      val id = json.optString("id").ifBlank { stableItemId(name) }
-      desiredById[id] = ItemStack(id, name, json.optInt("quantity", 1).coerceAtLeast(1), json.optString("state").takeIf(String::isNotBlank))
-    }
     val current = pending.state.inventories[KAI_ID]?.items.orEmpty()
+    val actionIntents = rules.interpretSync(action, contextFor(pending.state)).candidates.map { it.intent }.toSet()
+    val inventoryLocked = GameIntent.PICKUP_ITEM in actionIntents || GameIntent.OMNIVAULT_RESTORE in actionIntents
+
+    val desiredById = mutableMapOf<String, ItemStack>()
+    if (inventoryLocked) {
+      desiredById.putAll(current)
+    } else {
+      val desiredInventory = candidate.optJSONArray("inventory") ?: JSONArray()
+      for (index in 0 until desiredInventory.length()) {
+        val json = desiredInventory.optJSONObject(index) ?: continue
+        val name = json.optString("name").trim(); if (name.isEmpty()) continue
+        val id = json.optString("id").ifBlank { stableItemId(name) }
+        val currentStack = current[id]
+        val metadata = currentStack?.metadata.orEmpty() + jsonObjectStrings(json.optJSONObject("metadata"))
+        desiredById[id] = ItemStack(
+          id,
+          name,
+          json.optInt("quantity", 1).coerceAtLeast(1),
+          json.optString("state").takeIf(String::isNotBlank) ?: currentStack?.condition,
+          metadata,
+          currentStack?.archetypeId ?: id,
+          currentStack?.contentState ?: ContentState.NONE
+        )
+      }
+    }
+
     (current.keys + desiredById.keys).sorted().forEachIndexed { index, id ->
       val old = current[id]?.quantity ?: 0; val desired = desiredById[id]?.quantity ?: 0
       if (desired == old) return@forEachIndexed
@@ -124,7 +159,7 @@ class GameCoreFacade private constructor(
     }
     repository.save(committed.state)
     val synchronized = syncLegacy(candidate, committed.state, incrementTurn = false)
-    logger.log(PipelineLogEvent("GEMINI_COMMIT", turnId = turnId, source = CommandSource.GEMINI, details = mapOf("commands" to commands.size.toString())))
+    logger.log(PipelineLogEvent("GEMINI_COMMIT", turnId = turnId, source = CommandSource.GEMINI, details = mapOf("commands" to commands.size.toString(), "inventoryLocked" to inventoryLocked.toString())))
     return response(true, synchronized, null, "gemini_delta_committed")
   }
 
@@ -148,6 +183,13 @@ class GameCoreFacade private constructor(
 
   private fun stableItemId(name: String): String = name.lowercase()
     .replace(Regex("[^\\p{L}\\p{N}]+"), "-").trim('-').ifBlank { "item-${name.hashCode().toUInt()}" }
+
+  private fun jsonObjectStrings(json: JSONObject?): Map<String, String> {
+    if (json == null) return emptyMap()
+    val result = mutableMapOf<String, String>()
+    json.keys().forEach { key -> result[key] = json.optString(key) }
+    return result
+  }
 
   private fun syncLegacy(legacy: JSONObject, state: GameState, incrementTurn: Boolean): JSONObject {
     val output = JSONObject(legacy.toString())
@@ -184,7 +226,7 @@ class GameCoreFacade private constructor(
   }.toString()
 
   private fun eventReply(events: List<String>): String = when (events.lastOrNull()) {
-    "inventory_pickup" -> "Kai đã nhặt vật phẩm và Inventory đã được cập nhật."
+    "inventory_pickup" -> "Inventory đã được cập nhật bởi một sự kiện vật phẩm hợp lệ."
     "inventory_remove" -> "Vật phẩm đã được loại khỏi Inventory theo hành động của Kai."
     "inventory_transfer" -> "Vật phẩm đã được chuyển giao."
     "item_equipped" -> "Vật phẩm đã được trang bị."
@@ -193,17 +235,20 @@ class GameCoreFacade private constructor(
     "omnivault_withdrawn" -> "Vật phẩm đã được lấy ra khỏi Omnivault."
     "omnivault_scanned" -> "Omnivault đã ghi mẫu vào scan slot và đánh dấu bản gốc."
     "omnivault_copied" -> "Omnivault đã tạo bản sao từ mẫu còn hiệu lực."
-    "omnivault_restored" -> "Vật phẩm đã được Hoàn nguyên; cooldown riêng 24 giờ đã bắt đầu."
     else -> "Hành động đã được Game State Core xác nhận."
   }
 
-  private fun validationReply(reason: String): String = when (reason) {
-    "insufficient_item_quantity", "item_not_owned" -> "Kai không sở hữu đủ vật phẩm để thực hiện hành động đó."
-    "party_full" -> "Party đã đủ tối đa bốn thành viên."
-    "join_not_confirmed" -> "Yêu cầu gia nhập chưa đủ điều kiện hoặc chưa được NPC xác nhận."
-    "living_target_forbidden" -> "Omnivault không thể tác động lên sinh vật sống."
-    "restore_cooldown_active" -> "Vật phẩm này vẫn đang trong cooldown Hoàn nguyên 24 giờ."
-    else -> "Hành động không hợp lệ theo Game State Core: $reason."
+  private fun validationReply(reason: String): String {
+    val message = when (reason) {
+      "player_pickup_unavailable", "restore_narrative_only", "precise_content_amount_forbidden", "item_content_empty" -> "This action is not available."
+      "scan_source_missing", "scan_template_missing" -> "There is no object available for scanning or multiplying."
+      "insufficient_item_quantity", "item_not_owned" -> "This action is not available."
+      "party_full" -> "Party đã đủ tối đa bốn thành viên."
+      "join_not_confirmed" -> "Yêu cầu gia nhập chưa đủ điều kiện hoặc chưa được NPC xác nhận."
+      "living_target_forbidden" -> "Omnivault không thể tác động lên sinh vật sống."
+      else -> "This action is not available."
+    }
+    return "[Warning] $message"
   }
 
   companion object {
