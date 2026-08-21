@@ -216,6 +216,12 @@ class GameCoreFacade private constructor(
     val output = JSONObject(legacy.toString())
     if (incrementTurn) output.put("turn", output.optInt("turn", 1) + 1)
     output.put("saveVersion", CURRENT_SAVE_VERSION)
+    output.put("gameTime", JSONObject().apply {
+      put("elapsedSubjectiveMinutes", state.time.elapsedSubjectiveMinutes)
+      put("lastAdvanceMinutes", state.time.lastAdvanceMinutes)
+      state.time.lastAdvanceReason?.let { put("lastAdvanceReason", it) }
+    })
+    output.put("partyDetails", CharacterDetailJson.encodeParty(CharacterDetailProjector.projectParty(state)))
     val kaiInventory = state.inventories[KAI_ID]?.items?.values.orEmpty()
     output.put("inventory", JSONArray().apply { kaiInventory.forEach { stack -> put(JSONObject().apply {
       put("id", stack.itemId); put("name", stack.name); put("quantity", stack.quantity)
