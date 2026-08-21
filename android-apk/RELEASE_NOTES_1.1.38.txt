@@ -1,0 +1,12 @@
+Backroom 1.1.38
+
+Authoritative acquisition and Omnivault behavior correction.
+
+- Player-issued pickup/acquisition commands no longer create inventory items. Commands such as "nhặt", "lượm", "lấy", "cầm lên", "nhận" or direct "bỏ vào inventory" acquisition attempts are rejected with [Warning] This action is not available.
+- Invalid pickup attempts do not advance the turn and do not mutate Inventory.
+- Inventory acquisition remains available only to validated story/drop progression and deterministic SYSTEM events.
+- Omnivault Restore is now narrative-only. It can be described by the Game Master in story scenes but cannot mutate authoritative Inventory or Game State.
+- Gemini candidate inventory changes are locked during player pickup and Restore actions, preventing legacy reconciliation from bypassing the authority rules.
+- Omnivault Scan and Copy remain real gameplay mechanics and still require a valid owned/scanned source.
+- Missing Scan/Copy sources surface [Warning] There is no object available for scanning or multiplying.
+- Keeps the three-state FULL / LOW / EMPTY consumable flow, warning styling, deterministic Game State Core, LiteRT intent routing, and Gemini fallback architecture.
