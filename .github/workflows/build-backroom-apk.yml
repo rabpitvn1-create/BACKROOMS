@@ -183,10 +183,11 @@ jobs:
       - name: Install and launch APK on Android emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 35
+          api-level: 29
           arch: x86_64
-          profile: pixel_6
-          disable-animations: true
+          profile: pixel_2
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
           script: |
             adb install -r Backroom-1.1.49.apk
             adb logcat -c
