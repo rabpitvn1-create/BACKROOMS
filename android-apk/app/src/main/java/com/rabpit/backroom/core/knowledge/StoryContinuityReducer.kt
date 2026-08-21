@@ -30,7 +30,7 @@ object StoryContinuityReducer {
     val turn = after.optInt("turn", before.optInt("turn", 1)).coerceAtLeast(1)
     val witnesses = currentWitnesses(after)
 
-    seedMainObjectives(after, continuity)
+    syncMainObjectives(after, continuity)
     recordLevelChange(before, after, continuity, turn, witnesses)
     recordPartyChanges(before, after, continuity, turn)
     recordCommunicationChange(before, after, continuity, turn, witnesses)
@@ -54,20 +54,26 @@ object StoryContinuityReducer {
     return after.toString()
   }
 
-  private fun seedMainObjectives(after: JSONObject, continuity: JSONObject) {
+  private fun syncMainObjectives(after: JSONObject, continuity: JSONObject) {
     val flags = after.optJSONObject("flags") ?: return
     val iris = lower(flags.optJSONObject("iris")?.optString("continuity", "").orEmpty())
     val syvial = lower(flags.optJSONObject("syvial")?.optString("continuity", "").orEmpty())
-    if (!iris.contains("separated") && !syvial.contains("separated")) return
+    if (!iris.contains("separated") && !syvial.contains("separated") && continuity.optJSONArray("objectives") == null) return
     val objectives = continuity.optJSONArray("objectives") ?: JSONArray().also { continuity.put("objectives", it) }
     upsertById(objectives, JSONObject().put("id", "MAIN.SURVIVE").put("status", "active").put("fact", "Survive and learn the current environment."))
-    if (iris.contains("separated")) {
-      upsertById(objectives, JSONObject().put("id", "MAIN.REUNITE.IRIS").put("status", "active").put("fact", "Determine Iris's condition and re-establish a route to her if possible."))
-    }
-    if (syvial.contains("separated")) {
-      upsertById(objectives, JSONObject().put("id", "MAIN.REUNITE.SYVIAL").put("status", "active").put("fact", "Determine Syvial's condition and re-establish a route to her if possible."))
-    }
+    syncReunionObjective(objectives, after, "iris", iris)
+    syncReunionObjective(objectives, after, "syvial", syvial)
     upsertById(objectives, JSONObject().put("id", "MAIN.EXIT").put("status", "active").put("fact", "Seek a way out only when gameplay evidence supports one."))
+  }
+
+  private fun syncReunionObjective(objectives: JSONArray, after: JSONObject, actor: String, continuityState: String) {
+    val id = "MAIN.REUNITE.${actor.uppercase(Locale.ROOT)}"
+    when {
+      partyIds(after).contains(actor) -> upsertById(objectives, JSONObject()
+        .put("id", id).put("status", "resolved").put("fact", "$actor is currently reunited with Kai's party."))
+      continuityState.contains("separated") -> upsertById(objectives, JSONObject()
+        .put("id", id).put("status", "active").put("fact", "Determine $actor's condition and re-establish a route if possible."))
+    }
   }
 
   private fun recordLevelChange(before: JSONObject, after: JSONObject, continuity: JSONObject, turn: Int, witnesses: JSONArray) {
