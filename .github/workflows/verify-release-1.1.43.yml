@@ -1,0 +1,52 @@
+name: Verify published Backroom 1.1.43 APK
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/verify-release-1.1.43.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download published APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /tmp/backroom-release
+          gh release view v1.1.43
+          gh release download v1.1.43 --pattern "Backroom-1.1.43.apk" --dir /tmp/backroom-release
+          test -s /tmp/backroom-release/Backroom-1.1.43.apk
+
+      - name: Verify APK structure and Luna failover markers
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import zipfile
+
+          apk = Path('/tmp/backroom-release/Backroom-1.1.43.apk')
+          assert apk.stat().st_size > 0
+          with zipfile.ZipFile(apk) as z:
+              names = set(z.namelist())
+              assert 'AndroidManifest.xml' in names
+              assert 'assets/index.html' in names
+              assert 'assets/avatars/kai_avatar.png' in names
+              dex_names = sorted(n for n in names if n.startswith('classes') and n.endswith('.dex'))
+              assert dex_names, 'APK contains no classes*.dex'
+              dex = b''.join(z.read(n) for n in dex_names)
+              for marker in [b'/models', b'gpt-5.6-sol', b'model_inactive', b'Luna fallback /']:
+                  assert marker in dex, f'missing DEX marker: {marker!r}'
+          print(f'Published APK verified: {apk.stat().st_size} bytes')
+          PY
+
+      - name: Verify tagged release source version
+        run: |
+          grep -q "versionCode 45" android-apk/app/build.gradle
+          grep -q "versionName '1.1.43'" android-apk/app/build.gradle
