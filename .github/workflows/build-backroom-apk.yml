@@ -3,8 +3,7 @@ name: Build Backroom APK
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
       - "android-apk/**"
       - ".github/workflows/build-backroom-apk.yml"
@@ -33,6 +32,7 @@ jobs:
       ANDROID_RELEASE_KEY_ALIAS: ${{ secrets.ANDROID_RELEASE_KEY_ALIAS }}
       ANDROID_RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEY_PASSWORD }}
       ANDROID_RELEASE_CERT_SHA256: 8565060aef73280de5fe80d29f67175025eaf9eb9c5ab3497fca91d83de153ca
+
     steps:
       - uses: actions/checkout@v4
 
@@ -44,6 +44,7 @@ jobs:
 
       - name: Train and verify tiny LiteRT intent model
         run: |
+          set -euo pipefail
           python -m pip install --requirement android-apk/ml/requirements.txt
           python android-apk/ml/build_intent_dataset.py
           python android-apk/ml/evaluate_seed_classifier.py
@@ -59,84 +60,59 @@ jobs:
 
       - name: Validate Game Master and stable release signing configuration
         run: |
-          test -n "$GEMINI_API_KEY_1" || (echo "Missing GitHub Secret: GEMINI_API_KEY_1" && exit 1)
-          test -n "$GEMINI_API_KEY_2" || (echo "Missing GitHub Secret: GEMINI_API_KEY_2" && exit 1)
-          test -n "$GEMINI_API_KEY_3" || (echo "Missing GitHub Secret: GEMINI_API_KEY_3" && exit 1)
-          test -n "$GEMINI_API_KEY_4" || (echo "Missing GitHub Secret: GEMINI_API_KEY_4" && exit 1)
-          test -n "$GEMINI_API_KEY_5" || (echo "Missing GitHub Secret: GEMINI_API_KEY_5" && exit 1)
-          test -n "$LUNA_API_KEY" || (echo "Missing GitHub Secret: LUNA_API_KEY" && exit 1)
-          test -n "$LUNA_MODEL" || (echo "Missing GitHub Secret: LUNA_MODEL" && exit 1)
-          test -n "$ANDROID_RELEASE_KEYSTORE_B64" || (echo "Missing GitHub Secret: ANDROID_RELEASE_KEYSTORE_B64" && exit 1)
-          test -n "$ANDROID_RELEASE_STORE_PASSWORD" || (echo "Missing GitHub Secret: ANDROID_RELEASE_STORE_PASSWORD" && exit 1)
-          test -n "$ANDROID_RELEASE_KEY_ALIAS" || (echo "Missing GitHub Secret: ANDROID_RELEASE_KEY_ALIAS" && exit 1)
-          test -n "$ANDROID_RELEASE_KEY_PASSWORD" || (echo "Missing GitHub Secret: ANDROID_RELEASE_KEY_PASSWORD" && exit 1)
+          set -euo pipefail
+          for name in GEMINI_API_KEY_1 GEMINI_API_KEY_2 GEMINI_API_KEY_3 GEMINI_API_KEY_4 GEMINI_API_KEY_5 LUNA_API_KEY LUNA_MODEL ANDROID_RELEASE_KEYSTORE_B64 ANDROID_RELEASE_STORE_PASSWORD ANDROID_RELEASE_KEY_ALIAS ANDROID_RELEASE_KEY_PASSWORD; do
+            test -n "${!name:-}" || (echo "Missing GitHub Secret: $name" && exit 1)
+          done
 
       - name: Restore stable Android release keystore
         run: |
+          set -euo pipefail
           KEYSTORE="$RUNNER_TEMP/backroom-release.p12"
           printf '%s' "$ANDROID_RELEASE_KEYSTORE_B64" | base64 --decode > "$KEYSTORE"
           test -s "$KEYSTORE"
           chmod 600 "$KEYSTORE"
           echo "ANDROID_RELEASE_KEYSTORE_PATH=$KEYSTORE" >> "$GITHUB_ENV"
 
-      - name: Apply provider, DNS and Kai overlay patch
-        run: python3 android-apk/patch-provider-status.py
-      - name: Apply five-Gemini-first Game Master fallback patch
-        run: python3 android-apk/patch-luna-text.py
-      - name: Apply Level 0-6 Snapshot fallback backgrounds
-        run: python3 android-apk/patch-level-snapshot-backgrounds.py
-      - name: Prepare Snapshot UI/provider hooks
-        run: python3 android-apk/patch-snapshot-fallback.py
-      - name: Apply event-only Snapshot patch
-        run: python3 android-apk/patch-kai-hd-continuous.py
-      - name: Prefer packaged Kai PNG
-        run: python3 android-apk/patch-kai-png-preferred.py
-      - name: Inject Kai R05 character codex
-        run: python3 android-apk/patch-kai-codex.py
-      - name: Align R06 source marker validator
-        run: python3 android-apk/patch-r06-source-marker.py
-      - name: Inject Drive R06 canon and gameplay gates
-        run: python3 android-apk/patch-drive-canon-gameplay.py
-      - name: Apply Inventory ownership persistence
-        run: python3 android-apk/patch-inventory-persistence.py
-      - name: Apply dependency-routed canon and state operation reducer
-        run: python3 android-apk/patch-ai-orchestrator.py
-      - name: Harden state operation reducer
-        run: python3 android-apk/patch-state-op-hardening.py
-      - name: Apply health-weighted five-Gemini pool
-        run: python3 android-apk/patch-gemini-health-pool.py
-      - name: Apply conditional semantic audit
-        run: python3 android-apk/patch-conditional-audit.py
-      - name: Score audits from validated state delta
-        run: python3 android-apk/patch-audit-validated-risk.py
-      - name: Align Android gameplay dice with packaged canon
-        run: python3 android-apk/patch-gameplay-parity-final.py
-      - name: Apply final authority hardening
-        run: python3 android-apk/patch-final-authority-hardening.py
-      - name: Enforce rejected-op repair
-        run: python3 android-apk/patch-rejected-op-repair-final.py
-      - name: Align current Kai resource policy
-        run: python3 android-apk/patch-kai-resource-policy-final.py
-      - name: Apply Gemini runtime and Luna deadline compatibility
-        run: python3 android-apk/patch-provider-deadline-final.py
-      - name: Apply model-first Gemini fallback matrix
-        run: python3 android-apk/patch-gemini-model-matrix-final.py
-      - name: Harden final Java compile surface and Luna active-model failover
-        run: python3 android-apk/patch-java-compile-hardening.py
-      - name: Harden Save Load Delete and New Game controls
-        run: python3 android-apk/patch-save-controls-final.py
-      - name: Apply Single Player Hard Mode label
-        run: python3 android-apk/patch-hard-mode-label.py
-      - name: Leave Snapshot provider unconfigured
-        run: python3 android-apk/patch-snapshot-unconfigured.py
-      - name: Route deterministic commands through Kotlin Game State Core
-        run: python3 android-apk/patch-game-state-core-bridge.py
-      - name: Apply per-character Party Inventory UI
-        run: python3 android-apk/patch-character-inventory-ui.py
-      - name: Apply neutral Character Detail avatar and final UX/startup patches
-        run: python3 android-apk/patch-character-detail-avatar-fallback.py
+      - name: Apply Android runtime patch chain
+        run: |
+          set -euo pipefail
+          scripts=(
+            patch-provider-status.py
+            patch-luna-text.py
+            patch-level-snapshot-backgrounds.py
+            patch-snapshot-fallback.py
+            patch-kai-hd-continuous.py
+            patch-kai-png-preferred.py
+            patch-kai-codex.py
+            patch-r06-source-marker.py
+            patch-drive-canon-gameplay.py
+            patch-inventory-persistence.py
+            patch-ai-orchestrator.py
+            patch-state-op-hardening.py
+            patch-gemini-health-pool.py
+            patch-conditional-audit.py
+            patch-audit-validated-risk.py
+            patch-gameplay-parity-final.py
+            patch-final-authority-hardening.py
+            patch-rejected-op-repair-final.py
+            patch-kai-resource-policy-final.py
+            patch-provider-deadline-final.py
+            patch-gemini-model-matrix-final.py
+            patch-java-compile-hardening.py
+            patch-save-controls-final.py
+            patch-hard-mode-label.py
+            patch-snapshot-unconfigured.py
+            patch-game-state-core-bridge.py
+            patch-character-inventory-ui.py
+            patch-character-detail-avatar-fallback.py
+          )
+          for script in "${scripts[@]}"; do
+            echo "==> $script"
+            python3 "android-apk/$script"
+          done
 
-      - name: Verify release provider, UI and Android startup contracts
+      - name: Verify release provider, UI and startup contracts
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -145,48 +121,40 @@ jobs:
           facade = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt').read_text(encoding='utf-8')
           gradle = Path('android-apk/app/build.gradle').read_text(encoding='utf-8')
           canon = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/AnNhienCanon.kt').read_text(encoding='utf-8')
-          assert "versionCode 52" in gradle
-          assert "versionName '1.1.50'" in gradle
-          assert 'signingConfigs {' in gradle
-          assert 'state&&state.partyDetails&&Array.isArray(state.partyDetails.members)' in html
-          assert 'id="characterSurvivalHud"' in html
-          assert '.message.gm{' in html
-          assert 'focusLatestGmStart()' in html
-          assert '#characterEquipmentList span,#characterInventoryItems span{text-transform:uppercase' in html
-          assert 'output.put("partyDetails"' in facade
-          assert 'output.put("gameTime"' in facade
-          assert 'thresholdRoll("jeffEncounter", 10000, 200' in java
-          assert 'root.equals("jeff") && value instanceof JSONObject' in java
-          assert 'int[] entityThresholds = {805, 1000, 1150, 1150, 810, 1200, 805}' in java
-          assert 'avatars/an_nhien_avatar.png' in canon
-          assert 'an-nhien:pink-crocs' in canon
-          assert 'private java.util.List<String> lunaModelCandidates(' in java
-          assert 'new URL(baseUrl + "/models")' in java
-          assert 'private boolean lunaInactiveModel(' in java
-          assert 'models.add("gpt-5.6-sol")' in java
-          assert 'Luna fallback / ' in java
-          assert 'if (modelIndex == 0) return 45000;' in java
-          assert 'cause instanceof java.net.SocketTimeoutException) return false;' in java
-          assert 'Integer.bitCount(geminiModelTransientMaskMatrix[modelIndex]) >= 5' in java
-          assert 'geminiTransportMaskMatrix &= ~(1 << keyIndex);' in java
-          assert 'true, 120_000L' in java
-          assert 'private volatile boolean gameCoreUnavailable;' in java
-          assert 'private GameCoreFacade gameCoreOrNull()' in java
-          assert 'private GameCoreFacade requireGameCore() throws Exception' in java
-          assert 'requireGameCore().processRule(' in java
-          assert 'requireGameCore().processValidatedCandidate(' in java
-          assert 'showStartupFallback(Throwable error)' in java
-          assert 'gameCore = GameCoreFacade.create(getApplicationContext(), BuildConfig.DEBUG);' in java
+          required = [
+              ("versionCode 52", gradle), ("versionName '1.1.50'", gradle), ('signingConfigs {', gradle),
+              ('state&&state.partyDetails&&Array.isArray(state.partyDetails.members)', html),
+              ('id="characterSurvivalHud"', html), ('.message.gm{', html), ('focusLatestGmStart()', html),
+              ('#characterEquipmentList span,#characterInventoryItems span{text-transform:uppercase', html),
+              ('output.put("partyDetails"', facade), ('output.put("gameTime"', facade),
+              ('thresholdRoll("jeffEncounter", 10000, 200', java),
+              ('root.equals("jeff") && value instanceof JSONObject', java),
+              ('int[] entityThresholds = {805, 1000, 1150, 1150, 810, 1200, 805}', java),
+              ('avatars/an_nhien_avatar.png', canon), ('an-nhien:pink-crocs', canon),
+              ('private java.util.List<String> lunaModelCandidates(', java), ('new URL(baseUrl + "/models")', java),
+              ('private boolean lunaInactiveModel(', java), ('models.add("gpt-5.6-sol")', java), ('Luna fallback / ', java),
+              ('if (modelIndex == 0) return 45000;', java),
+              ('cause instanceof java.net.SocketTimeoutException) return false;', java),
+              ('Integer.bitCount(geminiModelTransientMaskMatrix[modelIndex]) >= 5', java),
+              ('geminiTransportMaskMatrix &= ~(1 << keyIndex);', java), ('true, 120_000L', java),
+              ('private volatile boolean gameCoreUnavailable;', java), ('private GameCoreFacade gameCoreOrNull()', java),
+              ('private GameCoreFacade requireGameCore() throws Exception', java), ('requireGameCore().processRule(', java),
+              ('requireGameCore().processValidatedCandidate(', java), ('showStartupFallback(Throwable error)', java),
+          ]
+          for marker, source in required:
+              assert marker in source, marker
           on_create = java[java.index('public void onCreate'):java.index('@Override protected void onDestroy')]
           assert 'gameCore = GameCoreFacade.create' not in on_create
           assert 'Immersive fullscreen unavailable; continuing normally.' in on_create
           assert 'UI enhancement injection failed; base game remains usable.' in on_create
+          assert 'GameCoreFacade.create(getApplicationContext(), BuildConfig.DEBUG)' in java
           PY
 
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
+
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.10.2"
@@ -198,15 +166,13 @@ jobs:
       - name: Prepare stable release APK
         run: cp android-apk/app/build/outputs/apk/release/app-release.apk Backroom-1.1.50.apk
 
-      - name: Verify stable signature, launcher and 16 KB native alignment
+      - name: Verify signature, launcher and 16 KB native compatibility
         run: |
+          set -euo pipefail
           BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
           APKSIGNER="$BUILD_TOOLS/apksigner"
           AAPT="$BUILD_TOOLS/aapt"
           ZIPALIGN="$BUILD_TOOLS/zipalign"
-          test -x "$APKSIGNER"
-          test -x "$AAPT"
-          test -x "$ZIPALIGN"
           "$APKSIGNER" verify --verbose --print-certs Backroom-1.1.50.apk
           CERT=$("$APKSIGNER" verify --print-certs Backroom-1.1.50.apk | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | head -1 | tr '[:upper:]' '[:lower:]')
           test "$CERT" = "$ANDROID_RELEASE_CERT_SHA256" || (echo "Unexpected release certificate: $CERT" && exit 1)
@@ -216,10 +182,13 @@ jobs:
           rm -rf native-check && mkdir native-check
           unzip -q Backroom-1.1.50.apk 'lib/arm64-v8a/*.so' -d native-check
           for so in native-check/lib/arm64-v8a/*.so; do
-            readelf -lW "$so" | awk '$1=="LOAD" { if (strtonum($NF) < 0x4000) { print "Native LOAD alignment below 16 KB: " $0; bad=1 } } END { exit bad }'
+            echo "Checking ELF alignment: $so"
+            while read -r align; do
+              (( align >= 0x4000 )) || (echo "Native LOAD alignment below 16 KB in $so: $align" && exit 1)
+            done < <(readelf -lW "$so" | awk '$1=="LOAD" {print $NF}')
           done
 
-      - name: Install and cold-launch APK repeatedly on Android 16
+      - name: Install and cold-launch repeatedly on Android 16
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 36
@@ -228,6 +197,7 @@ jobs:
           disable-animations: false
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
           script: |
+            set -euo pipefail
             adb install -r Backroom-1.1.50.apk
             for attempt in 1 2 3; do
               echo "Android 16 cold launch attempt $attempt"
@@ -269,6 +239,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set -euo pipefail
           rm -f Backroom-1.1.50-verified.apk
           gh release view v1.1.50 --repo "$GITHUB_REPOSITORY"
           gh release download v1.1.50 --repo "$GITHUB_REPOSITORY" --pattern 'Backroom-1.1.50.apk' --output Backroom-1.1.50-verified.apk
