@@ -17,6 +17,7 @@ object GameStateCodec {
     put("statuses", JSONObject().apply { state.statuses.forEach { (id, value) -> put(id, status(value)) } })
     put("omnivault", omnivault(state.omnivault))
     put("turn", turn(state.turn))
+    put("time", gameTime(state.time))
     put("world", stringMap(state.world))
     put("metadata", stringMap(state.metadata))
   }.toString()
@@ -63,6 +64,7 @@ object GameStateCodec {
       statuses = statuses,
       omnivault = decodeOmnivault(root.optJSONObject("omnivault") ?: JSONObject()),
       turn = decodeTurn(root.optJSONObject("turn") ?: JSONObject()),
+      time = decodeGameTime(root.optJSONObject("time")),
       world = root.optJSONObject("world").stringsMap(),
       saveVersion = CURRENT_SAVE_VERSION,
       metadata = root.optJSONObject("metadata").stringsMap() + mapOf("migratedFromVersion" to "2", "equipmentSeparated" to "true")
@@ -88,6 +90,7 @@ object GameStateCodec {
       statuses = statuses,
       omnivault = decodeOmnivault(root.optJSONObject("omnivault") ?: JSONObject()),
       turn = decodeTurn(root.optJSONObject("turn") ?: JSONObject()),
+      time = decodeGameTime(root.optJSONObject("time")),
       world = root.optJSONObject("world").stringsMap(),
       saveVersion = CURRENT_SAVE_VERSION,
       metadata = root.optJSONObject("metadata").stringsMap()
@@ -196,6 +199,21 @@ object GameStateCodec {
     val pendingJson = json.optJSONObject("pending")
     val pending = pendingJson?.let { PendingTurn(it.optString("turnId"), it.optString("input"), enumOr(PendingTurnStatus.CREATED, it.optString("status")), it.optJSONArray("commandIds").strings(), it.nullableString("error")) }
     return TurnState(json.optString("currentTurnId", "TURN_1"), pending, json.optJSONArray("completedTurnIds").strings().toSet(), json.optJSONArray("executedCommandIds").strings().toSet())
+  }
+
+  private fun gameTime(value: GameTimeState) = JSONObject().apply {
+    put("elapsedSubjectiveMinutes", value.elapsedSubjectiveMinutes)
+    put("lastAdvanceMinutes", value.lastAdvanceMinutes)
+    putNullable("lastAdvanceReason", value.lastAdvanceReason)
+  }
+
+  private fun decodeGameTime(json: JSONObject?): GameTimeState {
+    if (json == null) return GameTimeState()
+    return GameTimeState(
+      elapsedSubjectiveMinutes = json.optLong("elapsedSubjectiveMinutes", 0L).coerceAtLeast(0L),
+      lastAdvanceMinutes = json.optInt("lastAdvanceMinutes", 0).coerceAtLeast(0),
+      lastAdvanceReason = json.nullableString("lastAdvanceReason")
+    )
   }
 
   private fun stringMap(values: Map<String, String>) = JSONObject().apply { values.forEach { (key, value) -> put(key, value) } }
