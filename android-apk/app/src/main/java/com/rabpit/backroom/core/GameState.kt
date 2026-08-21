@@ -105,6 +105,12 @@ data class TurnState(
   val executedCommandIds: Set<String> = emptySet()
 )
 
+data class GameTimeState(
+  val elapsedSubjectiveMinutes: Long = 0L,
+  val lastAdvanceMinutes: Int = 0,
+  val lastAdvanceReason: String? = null
+)
+
 data class GameState(
   val characters: Map<String, CharacterState>,
   val party: PartyState = PartyState(),
@@ -113,6 +119,7 @@ data class GameState(
   val statuses: Map<String, StatusEffect> = emptyMap(),
   val omnivault: OmnivaultState = OmnivaultState(),
   val turn: TurnState = TurnState(),
+  val time: GameTimeState = GameTimeState(),
   val world: Map<String, String> = emptyMap(),
   val saveVersion: Int = CURRENT_SAVE_VERSION,
   val metadata: Map<String, String> = emptyMap()
