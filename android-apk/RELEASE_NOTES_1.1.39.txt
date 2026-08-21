@@ -1,0 +1,13 @@
+Backroom 1.1.39
+
+Character Inventory and Android runtime cleanup release.
+
+- Adds character-scoped Inventory UI from Party cards. Kai's avatar opens a dedicated Inventory view instead of using a global Inventory panel.
+- Kai carries up to 9 normal item stacks with up to x999 per stack. Iris and Syvial use 4 stacks / x20, while ordinary characters use 2 stacks / x2.
+- Equipment remains separate from normal Inventory capacity.
+- Kai's signature equipment and Omnivault are protected from ordinary Scan/Copy/Transfer/Store paths.
+- Keeps Omnivault Restore narrative-only and player pickup unavailable as authoritative gameplay rules.
+- Removes retired pickup/Restore reconciliation code and obsolete web/server/Next.js runtime files from the Android release path.
+- Removes base64 Kai overlay reconstruction and packages binary artwork directly.
+- Android/Kotlin Game State Core is the authoritative runtime path; LiteRT intent classifier and Gemini fallback remain integrated.
+- CI now validates the Android build, Kotlin core tests, LiteRT pipeline, Kai avatar packaging, and absence of retired reconciliation markers.
