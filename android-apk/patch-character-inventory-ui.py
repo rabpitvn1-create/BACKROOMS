@@ -20,7 +20,7 @@ party_new = '''<div class="card"><h2>Party</h2><div id="party" class="party-grid
     <img id="characterInventoryAvatar" src="avatars/kai_avatar.png" alt="Kai Akechi">
     <div><div class="inventory-capacity" id="characterInventoryCapacity">0 / 9 loại vật phẩm</div><div class="inventory-limit">Tối đa ×999 mỗi loại</div></div>
   </div>
-  <div class="character-section"><h3>Equipment</h3><div class="equipment-list" id="characterEquipmentList"><span>White Wraith Magnum</span><span>Blackblood Armor & linked modules</span><span>Omnivault Ring / Nhẫn Vạn Tàng</span></div></div>
+  <div class="character-section"><h3>Equipment</h3><div class="equipment-list" id="characterEquipmentList"><span>W.W Magnum</span><span>Blackblood Armor & linked modules</span><span>Omnivault Ring</span></div></div>
   <div class="character-section"><h3>Inventory</h3><div class="chips" id="characterInventoryItems"></div></div>
 </div>'''
 if party_new not in html:
@@ -44,7 +44,7 @@ script_extra = r'''
   const items=document.getElementById('characterInventoryItems');
   const capacity=document.getElementById('characterInventoryCapacity');
   const back=document.getElementById('characterInventoryBack');
-  const signatureNames=['white wraith magnum','blackblood armor','omnivault ring','nhẫn vạn tàng','nhẫn omnivault'];
+  const signatureNames=['w.w magnum','white wraith magnum','blackblood armor','omnivault ring','nhẫn vạn tàng','nhẫn omnivault'];
   function isSignatureItem(x){const n=String((x&&x.name)||x||'').toLocaleLowerCase('vi-VN');return signatureNames.some(k=>n.includes(k))}
   function repairState(){
     let changed=false;
@@ -86,4 +86,4 @@ if 'White Wraith Magnum"},\n    {name:"Blackblood Armor' in html:
     raise RuntimeError("Kai signature equipment still seeded into normal Inventory")
 
 INDEX.write_text(html, encoding="utf-8")
-print("Kai Party inventory UI applied: signature Equipment separated, normal Inventory filtered, early Prologue log repaired.")
+print("Kai Party inventory UI applied: signature Equipment separated, shortened display names applied, early Prologue log repaired.")
