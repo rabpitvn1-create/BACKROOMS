@@ -97,7 +97,7 @@ if script_extra not in html:
 
 if '<div class="card"><h2>Inventory</h2>' in html:
     raise RuntimeError("Global Inventory panel still present")
-if unsafe_inventory_render in html:
+if unsafe_inventory_render in html.replace(safe_inventory_render, ''):
     raise RuntimeError("Removed global Inventory still has an unsafe renderer write")
 if 'White Wraith Magnum"},\n    {name:"Blackblood Armor' in html:
     raise RuntimeError("Kai signature equipment still seeded into normal Inventory")

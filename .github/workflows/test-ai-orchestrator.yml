@@ -64,8 +64,10 @@ jobs:
           assert 'const prologue=`Bữa tối bắt đầu như bao lần khác.' in html
           assert '{role:"gm",text:"MỞ ĐẦU' in html
           assert 'inventory:[]' in html
-          assert 'inventoryEl.innerHTML=chips(state.inventory);' not in html
-          assert 'if(inventoryEl)inventoryEl.innerHTML=chips(state.inventory);' in html
+          unsafe_inventory_render = 'inventoryEl.innerHTML=chips(state.inventory);'
+          safe_inventory_render = 'if(inventoryEl)inventoryEl.innerHTML=chips(state.inventory);'
+          assert safe_inventory_render in html
+          assert unsafe_inventory_render not in html.replace(safe_inventory_render, '')
           assert 'data-character="kai"' in html
           assert 'avatars/kai_avatar.png' in html
           assert 'function clearAuthoritativeCore()' in html
