@@ -1,20 +1,9 @@
 name: Test Android Game Core
 
+# Serial execution lock: this workflow is manual-only. Main releases are validated
+# by build-backroom-apk.yml so two dependent Android build pipelines never compete.
 on:
-  pull_request:
-    branches:
-      - main
-    paths:
-      - "android-apk/**"
-      - ".github/workflows/test-ai-orchestrator.yml"
-  push:
-    branches:
-      - main
-      - "fix/**"
-      - "feature/**"
-    paths:
-      - "android-apk/**"
-      - ".github/workflows/test-ai-orchestrator.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read
