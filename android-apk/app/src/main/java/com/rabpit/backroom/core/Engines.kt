@@ -45,7 +45,7 @@ object InventoryEngine {
     if (command.quantity <= 0) return invalid(state, "quantity_must_be_positive")
     if (ItemContentRules.hasForbiddenPreciseAmount(command.itemName)) return invalid(state, "precise_content_amount_forbidden")
     val source = state.inventories[command.actorId] ?: InventoryState(command.actorId)
-    val item = ItemContentRules.normalize(ItemStack(command.itemId, command.itemName, command.quantity))
+    val item = ItemContentRules.normalize(ItemStack(command.itemId, command.itemName, command.quantity, metadata = command.metadata))
     return when (command.operation) {
       ItemCommand.Operation.PICKUP -> {
         val validation = InventoryPolicy.validateAddition(state, command.actorId, source, item, command.quantity)
