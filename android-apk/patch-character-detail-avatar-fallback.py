@@ -49,3 +49,6 @@ runpy.run_path(str(ROOT / "patch-jeff-encounter-2pct.py"), run_name="__main__")
 
 # Raise the normal Entity encounter chance by +8 percentage points on every Level 0-6.
 runpy.run_path(str(ROOT / "patch-entity-encounter-plus-8pct.py"), run_name="__main__")
+
+# Android immersive fullscreen: hide status/navigation bars with transient swipe reveal.
+runpy.run_path(str(ROOT / "patch-immersive-fullscreen.py"), run_name="__main__")
