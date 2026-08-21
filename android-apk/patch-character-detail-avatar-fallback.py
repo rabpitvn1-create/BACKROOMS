@@ -61,3 +61,7 @@ runpy.run_path(str(ROOT / "patch-knowledge-context-builder.py"), run_name="__mai
 
 # Deterministic OLD-vs-NEW context contract benchmark. Failure blocks the build.
 runpy.run_path(str(ROOT / "benchmark-knowledge-context.py"), run_name="__main__")
+
+# Last Android transformation: startup must stay alive on Android 16 even if an optional
+# fullscreen, WebView enhancement or Game State Core component fails to initialize.
+runpy.run_path(str(ROOT / "patch-startup-survival.py"), run_name="__main__")
