@@ -1,37 +1,15 @@
-# Backroom 1.1.45 release verification trigger
+# Manual maintenance workflow. Release verification trains the same LiteRT model inside the single serial release gate.
 name: Train LiteRT Intent Classifier
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - "android-apk/ml/**"
-      - "android-apk/app/src/main/java/com/rabpit/backroom/core/**"
-      - "android-apk/app/src/test/java/com/rabpit/backroom/core/**"
-      - "android-apk/app/src/main/assets/models/**"
-      - "android-apk/app/build.gradle"
-      - "android-apk/build.gradle"
-      - ".github/workflows/train-litert-intent.yml"
-  push:
-    branches:
-      - main
-      - "feat/**"
-      - "fix/**"
-    paths:
-      - "android-apk/ml/**"
-      - "android-apk/app/src/main/java/com/rabpit/backroom/core/**"
-      - "android-apk/app/src/test/java/com/rabpit/backroom/core/**"
-      - "android-apk/app/src/main/assets/models/**"
-      - "android-apk/app/build.gradle"
-      - "android-apk/build.gradle"
-      - ".github/workflows/train-litert-intent.yml"
 
 permissions:
   contents: read
 
 concurrency:
   group: litert-intent-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   train-verify-build:
