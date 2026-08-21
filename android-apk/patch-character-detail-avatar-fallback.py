@@ -1,6 +1,8 @@
 from pathlib import Path
+import runpy
 
-INDEX = Path(__file__).resolve().parent / "app/src/main/assets/index.html"
+ROOT = Path(__file__).resolve().parent
+INDEX = ROOT / "app/src/main/assets/index.html"
 html = INDEX.read_text(encoding="utf-8")
 
 old = """    detailAvatar.src=member.avatar||member.avatarRef||(member.id==='kai'?'avatars/kai_avatar.png':'avatars/kai_avatar.png');
@@ -20,3 +22,6 @@ if "member.id==='kai'?'avatars/kai_avatar.png':'avatars/kai_avatar.png'" in html
 
 INDEX.write_text(html, encoding="utf-8")
 print("Character detail avatar fallback hardened: non-Kai members without avatars use no portrait.")
+
+# This is the final UI transformation in both test and release patch chains.
+runpy.run_path(str(ROOT / "patch-survival-hud-chat-ux.py"), run_name="__main__")
