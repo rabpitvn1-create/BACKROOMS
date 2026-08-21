@@ -103,7 +103,7 @@ jobs:
           projection_test = Path('android-apk/app/src/test/java/com/rabpit/backroom/core/CharacterDetailProjectionTest.kt').read_text(encoding='utf-8')
 
           # Core -> projection -> serialized WebView state.
-          assert 'CharacterDetailProjection.projectParty(state)' in facade
+          assert 'CharacterDetailProjector.projectParty(state)' in facade
           assert 'CharacterDetailJson.encodeParty' in facade
           for token in ['"leaderId"', '"maxMembers"', '"elapsedSubjectiveMinutes"', '"members"']:
             assert token in serializer
