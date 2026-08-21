@@ -26,6 +26,9 @@ object CharacterDetailJson {
       put("hunger", character.physiology.hunger.name)
       put("thirst", character.physiology.thirst.name)
       put("sleepDeprivation", character.physiology.sleepDeprivation.name)
+      character.physiology.foodPercent?.let { put("foodPercent", it) }
+      character.physiology.waterPercent?.let { put("waterPercent", it) }
+      character.physiology.restPercent?.let { put("restPercent", it) }
       character.physiology.pain?.let { put("pain", it) }
       character.physiology.infection?.let { put("infection", it) }
       character.physiology.thermal?.let { put("thermal", it) }

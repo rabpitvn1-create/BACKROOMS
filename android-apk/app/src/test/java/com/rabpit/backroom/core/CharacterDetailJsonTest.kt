@@ -19,7 +19,10 @@ class CharacterDetailJsonTest {
         sleepDeprivation = PhysiologyBand.SEVERE,
         pain = "moderate",
         infection = null,
-        thermal = "cold"
+        thermal = "cold",
+        foodPercent = 81,
+        waterPercent = 50,
+        restPercent = 30
       ),
       inventory = listOf(ItemStack(
         itemId = "water",
@@ -52,8 +55,12 @@ class CharacterDetailJsonTest {
     assertEquals("iris", character.getString("id"))
     assertEquals("avatars/iris.png", character.getString("avatar"))
     assertEquals("INJURED", character.getString("healthState"))
-    assertEquals("MODERATE", character.getJSONObject("physiology").getString("thirst"))
-    assertEquals("cold", character.getJSONObject("physiology").getString("thermal"))
+    val physiology = character.getJSONObject("physiology")
+    assertEquals("MODERATE", physiology.getString("thirst"))
+    assertEquals("cold", physiology.getString("thermal"))
+    assertEquals(81, physiology.getInt("foodPercent"))
+    assertEquals(50, physiology.getInt("waterPercent"))
+    assertEquals(30, physiology.getInt("restPercent"))
     assertEquals("ivory", character.getJSONObject("equipment").getString("weapon"))
   }
 
@@ -123,6 +130,9 @@ class CharacterDetailJsonTest {
     assertFalse(physiology.has("pain"))
     assertFalse(physiology.has("infection"))
     assertFalse(physiology.has("thermal"))
+    assertFalse(physiology.has("foodPercent"))
+    assertFalse(physiology.has("waterPercent"))
+    assertFalse(physiology.has("restPercent"))
     assertEquals("UNKNOWN", physiology.getString("hunger"))
   }
 }
