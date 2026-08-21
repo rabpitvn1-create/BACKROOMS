@@ -54,6 +54,7 @@ jobs:
           python3 android-apk/patch-snapshot-unconfigured.py
           python3 android-apk/patch-game-state-core-bridge.py
           python3 android-apk/patch-character-inventory-ui.py
+          python3 android-apk/patch-character-detail-avatar-fallback.py
 
       - name: Verify packaged UI runtime contracts before compile
         run: |
@@ -76,6 +77,9 @@ jobs:
           assert 'state&&state.partyDetails&&Array.isArray(state.partyDetails.members)' in html
           assert 'for(let i=0;i<max;i++)' in html
           assert 'Thời gian chủ quan:' in html
+          assert "const detailAvatarSrc=member.avatar||member.avatarRef||(member.id==='kai'?'avatars/kai_avatar.png':'');" in html
+          assert 'detailAvatar.hidden=!detailAvatarSrc;' in html
+          assert "member.id==='kai'?'avatars/kai_avatar.png':'avatars/kai_avatar.png'" not in html
           assert 'output.put("partyDetails"' in facade
           assert 'output.put("gameTime"' in facade
           assert 'function clearAuthoritativeCore()' in html
