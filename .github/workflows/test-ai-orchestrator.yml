@@ -80,6 +80,21 @@ jobs:
           assert p.read_bytes()[:8] == b'\x89PNG\r\n\x1a\n'
           PY
 
+      - name: Verify Prologue and Equipment separation in packaged UI
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          text = Path('android-apk/app/src/main/assets/index.html').read_text(encoding='utf-8')
+          assert 'const prologue=`Bữa tối bắt đầu như bao lần khác.' in text
+          assert '{role:"gm",text:"MỞ ĐẦU' in text
+          assert 'inventory:[]' in text
+          assert '3 / 9 loại vật phẩm' not in text
+          assert '<span>White Wraith Magnum</span>' in text
+          assert '<span>Blackblood Armor & linked modules</span>' in text
+          assert '<span>Omnivault Ring / Nhẫn Vạn Tàng</span>' in text
+          assert 'state.inventory.filter(x=>!isSignatureItem(x))' in text
+          PY
+
       - name: Verify retired pickup reconciliation is absent
         run: |
           test ! -e android-apk/patch-inventory-pickup-reconcile-final.py
