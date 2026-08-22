@@ -150,7 +150,7 @@ named_method = '''  String saveNamed(String stateJson, String requestedName) thr
   private String normalizeSaveName(String requestedName) throws Exception {
     String name = requestedName == null ? "" : requestedName.trim();
     if (name.toLowerCase(java.util.Locale.ROOT).endsWith(".json")) name = name.substring(0, name.length() - 5).trim();
-    name = name.replaceAll("[\\\\/:*?\"<>|\\p{Cntrl}]", "-").replaceAll("\\s+", " ").trim();
+    name = name.replace((char)34, '-').replaceAll("[\\\\/:*?<>|\\p{Cntrl}]", "-").replaceAll("\\s+", " ").trim();
     while (name.endsWith(".")) name = name.substring(0, name.length() - 1).trim();
     if (name.isEmpty()) throw new Exception("Tên save không được để trống.");
     if (name.length() > 80) throw new Exception("Tên save tối đa 80 ký tự.");
@@ -182,6 +182,7 @@ for required in [
     'String saveNamed(String stateJson, String requestedName)',
     'String displayName = normalizeSaveName(requestedName)',
     'String fileName = displayName + ".json"',
+    'name.replace((char)34,',
     'Overwrite save cũ sẽ được bật ở bước 4',
 ]:
     if required not in drive:
