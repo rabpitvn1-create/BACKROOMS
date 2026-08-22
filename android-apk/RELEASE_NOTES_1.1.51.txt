@@ -1,0 +1,8 @@
+Backroom 1.1.51
+
+- Promotes the verified startup-hardening path to the official package com.rabpit.backroom.
+- Keeps Game State Core and LiteRT lazy during Activity startup.
+- Preserves guarded immersive fullscreen, WebView bootstrap, JavaScript bridge and UI enhancement injection.
+- Keeps the in-process fallback screen if WebView startup fails instead of returning to the launcher.
+- Retains Android 16 / API 36 cold-launch verification and 16 KB native alignment checks before publication.
+- Replaces the broken older installation path with a clean official build while preserving current gameplay, canon, party and provider behavior.
