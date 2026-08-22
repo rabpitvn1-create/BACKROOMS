@@ -3,7 +3,7 @@ set -eu
 
 PACKAGE="com.rabpit.backroom"
 COMPONENT="$PACKAGE/.MainActivity"
-APK="Backroom-1.1.50.apk"
+APK="Backroom-1.1.51.apk"
 
 adb install "$APK"
 
