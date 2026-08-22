@@ -19,11 +19,12 @@ if new_role_class not in html:
         raise RuntimeError("Message role class anchor not found")
     html = html.replace(old_role_class, new_role_class, 1)
 
-# New GM replies should land at the start of the reply. We deliberately do this after render(),
-# so older render implementations may keep their normal initial/load scroll behavior.
+# New GM replies should land at the start of the reply. Android's native WebView enhancement
+# also schedules a scroll-to-bottom callback after backroomTurn(), so the final correction must
+# run one frame later than those callbacks instead of racing them in the same animation frame.
 old_busy = 'let busy=false;'
 scroll_helper = '''let busy=false;
-function focusLatestGmStart(){requestAnimationFrame(()=>{const gmRows=logEl.querySelectorAll('.message.gm');const latest=gmRows[gmRows.length-1];if(!latest)return;const top=latest.getBoundingClientRect().top-logEl.getBoundingClientRect().top+logEl.scrollTop;logEl.scrollTop=Math.max(0,top)})}'''
+function focusLatestGmStart(){requestAnimationFrame(()=>requestAnimationFrame(()=>{const gmRows=logEl.querySelectorAll('.message.gm');const latest=gmRows[gmRows.length-1];if(!latest)return;const top=latest.getBoundingClientRect().top-logEl.getBoundingClientRect().top+logEl.scrollTop;logEl.scrollTop=Math.max(0,top)}))}'''
 if scroll_helper not in html:
     if old_busy not in html:
         raise RuntimeError("busy state anchor not found")
@@ -100,6 +101,7 @@ required = [
     "survivalMeter('Zzz'",
     '.message.gm{',
     'focusLatestGmStart()',
+    'requestAnimationFrame(()=>requestAnimationFrame(()=>',
     "querySelectorAll('.message.gm')",
     'getBoundingClientRect().top-logEl.getBoundingClientRect().top+logEl.scrollTop',
     '#characterEquipmentList span,#characterInventoryItems span{text-transform:uppercase',
@@ -109,4 +111,4 @@ for token in required:
         raise RuntimeError(f"Required UX contract missing: {token}")
 
 INDEX.write_text(html, encoding="utf-8")
-print("Survival HUD, uppercase character items, differentiated GM messages and reply-start scrolling applied.")
+print("Survival HUD, uppercase character items, differentiated GM messages and stable reply-start scrolling applied.")
