@@ -29,6 +29,10 @@ android {
   }
 
   buildTypes {
+    debug {
+      applicationIdSuffix '.diag'
+      versionNameSuffix '-diag'
+    }
     release {
       minifyEnabled false
     }
