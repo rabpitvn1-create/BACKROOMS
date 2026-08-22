@@ -1,0 +1,126 @@
+name: Entity Drive Overlay Step 4 Test
+
+on:
+  push:
+    branches:
+      - feature/entity-drive-overlay-step3
+    paths:
+      - "entity-overlay-test-trigger.txt"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: entity-overlay-step4-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify-entity-overlay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Capture active run id
+        run: |
+          set -euo pipefail
+          mkdir -p entity-overlay-test
+          printf 'run_id=%s\nstatus=RUNNING\nsource_sha=%s\n' "$GITHUB_RUN_ID" "$GITHUB_SHA" > entity-overlay-test/status.txt
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add entity-overlay-test/status.txt
+          git commit -m "Record Entity overlay test run $GITHUB_RUN_ID"
+          git push origin HEAD:${GITHUB_REF_NAME}
+
+      - name: Verify Drive manifest and ENT-R01 bytes
+        run: |
+          python3 - <<'PY'
+          import json
+          import urllib.request
+
+          manifest_id = "1hJ506mvF4SJ84449ktLW6Js0PmSvUTGc"
+          manifest_url = f"https://drive.google.com/uc?export=download&id={manifest_id}"
+          req = urllib.request.Request(manifest_url, headers={"User-Agent": "BACKROOMS-EntityOverlay-Step4/1.0"})
+          with urllib.request.urlopen(req, timeout=20) as response:
+              raw = response.read()
+          data = json.loads(raw.decode("utf-8"))
+          assert data.get("version") == 1
+          entry = data.get("entities", {}).get("ENT-R01")
+          assert entry is not None
+          assert entry.get("name") == "Jeff the Killer"
+          assert entry.get("fileId") == "1_9uNtlk1TGBF6iTUew_IzE2GENflXc4C"
+          assert entry.get("anchor") == "left-bottom"
+          assert float(entry.get("maxHeight")) == 0.97
+
+          image_url = f"https://drive.google.com/uc?export=view&id={entry['fileId']}&rev={entry.get('revision', 1)}"
+          req = urllib.request.Request(image_url, headers={"User-Agent": "BACKROOMS-EntityOverlay-Step4/1.0"})
+          with urllib.request.urlopen(req, timeout=30) as response:
+              head = response.read(16)
+              content_type = response.headers.get("Content-Type", "")
+          assert head.startswith(b"\x89PNG\r\n\x1a\n"), head
+          assert "image" in content_type.lower(), content_type
+          print("Drive manifest and ENT-R01 PNG are directly readable.")
+          PY
+
+      - name: Apply exact Android release patch chain
+        run: |
+          set -euo pipefail
+          scripts=(patch-provider-status.py patch-luna-text.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py)
+          for script in "${scripts[@]}"; do
+            echo "==> $script"
+            python3 "android-apk/$script"
+          done
+
+      - name: Verify Entity overlay runtime contract
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          java = Path('android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java').read_text(encoding='utf-8')
+          required = [
+              'ENTITY_MANIFEST_FILE_ID = "1hJ506mvF4SJ84449ktLW6Js0PmSvUTGc"',
+              'settings.setCacheMode(WebSettings.LOAD_DEFAULT);',
+              'private JSONObject resolveEntityOverlay(',
+              'ENTITY OVERLAY HARD LOCK:',
+              'window.backroomEntityOverlay=function(payload)',
+              "img.className='snapshot-entity'",
+              "img.style.left='0'",
+              '@JavascriptInterface public void requestEntityOverlay(String entityId)',
+              "return 'ENT-R01'",
+              "kai.className='snapshot-character'",
+          ]
+          for marker in required:
+              assert marker in java, marker
+          assert "img.style.right='0'" in java
+          assert "__baseRenderSnapshot=renderSnapshot" in java
+          print('Entity overlay contract is present after the complete patch chain.')
+          PY
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+
+      - name: Run Kotlin tests and compile debug APK
+        working-directory: android-apk
+        run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
+
+      - name: Verify compiled APK
+        run: |
+          set -euo pipefail
+          test -s android-apk/app/build/outputs/apk/debug/app-debug.apk
+          unzip -l android-apk/app/build/outputs/apk/debug/app-debug.apk | grep -q 'assets/index.html'
+          echo "Compiled APK contains the WebView UI asset."
+
+      - name: Record terminal test result
+        if: always()
+        run: |
+          set -euo pipefail
+          if [ "${{ job.status }}" = "success" ]; then STATUS=PASS; else STATUS=FAIL; fi
+          printf 'run_id=%s\nstatus=%s\nsource_sha=%s\n' "$GITHUB_RUN_ID" "$STATUS" "$GITHUB_SHA" > entity-overlay-test/status.txt
+          git add entity-overlay-test/status.txt
+          git commit -m "Record Entity overlay test result $GITHUB_RUN_ID: $STATUS" || true
+          git push origin HEAD:${GITHUB_REF_NAME}
