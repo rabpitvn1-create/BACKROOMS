@@ -31,6 +31,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Capture active run id
+        run: |
+          set -euo pipefail
+          mkdir -p release-status
+          printf 'status=RUNNING\nversion=1.1.52\nsource_sha=%s\nrun_id=%s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" > release-status/v1.1.52-running.txt
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add release-status/v1.1.52-running.txt
+          git commit -m "Record active Backroom 1.1.52 run $GITHUB_RUN_ID"
+          git push origin HEAD:main
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -44,11 +55,7 @@ jobs:
           python android-apk/ml/build_intent_dataset.py
           python android-apk/ml/evaluate_seed_classifier.py
           cd android-apk/ml
-          python train_intent_classifier.py \
-            --dataset intent_dataset.csv \
-            --labels ../app/src/main/assets/models/backroom_intent_labels.txt \
-            --output ../app/src/main/assets/models/backroom_intent.tflite \
-            --report intent_model_report.json
+          python train_intent_classifier.py --dataset intent_dataset.csv --labels ../app/src/main/assets/models/backroom_intent_labels.txt --output ../app/src/main/assets/models/backroom_intent.tflite --report intent_model_report.json
           test -s ../app/src/main/assets/models/backroom_intent.tflite
           bytes=$(stat -c%s ../app/src/main/assets/models/backroom_intent.tflite)
           test "$bytes" -le 5242880 || (echo "LiteRT model exceeds 5 MiB: $bytes" && exit 1)
@@ -63,36 +70,7 @@ jobs:
       - name: Apply Android runtime patch chain
         run: |
           set -euo pipefail
-          scripts=(
-            patch-provider-status.py
-            patch-luna-text.py
-            patch-level-snapshot-backgrounds.py
-            patch-snapshot-fallback.py
-            patch-kai-hd-continuous.py
-            patch-kai-png-preferred.py
-            patch-kai-codex.py
-            patch-r06-source-marker.py
-            patch-drive-canon-gameplay.py
-            patch-inventory-persistence.py
-            patch-ai-orchestrator.py
-            patch-state-op-hardening.py
-            patch-gemini-health-pool.py
-            patch-conditional-audit.py
-            patch-audit-validated-risk.py
-            patch-gameplay-parity-final.py
-            patch-final-authority-hardening.py
-            patch-rejected-op-repair-final.py
-            patch-kai-resource-policy-final.py
-            patch-provider-deadline-final.py
-            patch-gemini-model-matrix-final.py
-            patch-java-compile-hardening.py
-            patch-save-controls-final.py
-            patch-hard-mode-label.py
-            patch-snapshot-unconfigured.py
-            patch-game-state-core-bridge.py
-            patch-character-inventory-ui.py
-            patch-character-detail-avatar-fallback.py
-          )
+          scripts=(patch-provider-status.py patch-luna-text.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py)
           for script in "${scripts[@]}"; do
             echo "==> $script"
             python3 "android-apk/$script"
@@ -108,7 +86,7 @@ jobs:
           gradle = Path('android-apk/app/build.gradle').read_text(encoding='utf-8')
           canon = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/AnNhienCanon.kt').read_text(encoding='utf-8')
           required = [
-              ("versionCode 53", gradle), ("versionName '1.1.51'", gradle),
+              ("versionCode 54", gradle), ("versionName '1.1.52'", gradle),
               ('state&&state.partyDetails&&Array.isArray(state.partyDetails.members)', html),
               ('id="characterSurvivalHud"', html), ('.message.gm{', html), ('focusLatestGmStart()', html),
               ('#characterEquipmentList span,#characterInventoryItems span{text-transform:uppercase', html),
@@ -150,7 +128,7 @@ jobs:
         run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
 
       - name: Prepare APK
-        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.1.51.apk
+        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.1.52.apk
 
       - name: Verify debug APK, launcher and 16 KB native compatibility
         run: |
@@ -159,12 +137,12 @@ jobs:
           APKSIGNER="$BUILD_TOOLS/apksigner"
           AAPT="$BUILD_TOOLS/aapt"
           ZIPALIGN="$BUILD_TOOLS/zipalign"
-          "$APKSIGNER" verify --verbose --print-certs Backroom-1.1.51.apk
-          "$AAPT" dump badging Backroom-1.1.51.apk | grep -q "package: name='com.rabpit.backroom'"
-          "$AAPT" dump badging Backroom-1.1.51.apk | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
-          "$ZIPALIGN" -c -P 16 -v 4 Backroom-1.1.51.apk
+          "$APKSIGNER" verify --verbose --print-certs Backroom-1.1.52.apk
+          "$AAPT" dump badging Backroom-1.1.52.apk | grep -q "package: name='com.rabpit.backroom'"
+          "$AAPT" dump badging Backroom-1.1.52.apk | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
+          "$ZIPALIGN" -c -P 16 -v 4 Backroom-1.1.52.apk
           rm -rf native-check && mkdir native-check
-          unzip -q Backroom-1.1.51.apk 'lib/arm64-v8a/*.so' -d native-check
+          unzip -q Backroom-1.1.52.apk 'lib/arm64-v8a/*.so' -d native-check
           for so in native-check/lib/arm64-v8a/*.so; do
             echo "Checking ELF alignment: $so"
             while read -r align; do
@@ -175,24 +153,24 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Backroom-1.1.51-debug-apk
-          path: Backroom-1.1.51.apk
+          name: Backroom-1.1.52-debug-apk
+          path: Backroom-1.1.52.apk
           if-no-files-found: error
           retention-days: 14
 
-      - name: Publish GitHub Release v1.1.51
+      - name: Publish GitHub Release v1.1.52
         if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="v1.1.51"
-          TITLE="Backroom 1.1.51 Debug"
-          NOTES=$(cat android-apk/RELEASE_NOTES_1.1.51.txt)
+          TAG="v1.1.52"
+          TITLE="Backroom 1.1.52 Debug"
+          NOTES=$(cat android-apk/RELEASE_NOTES_1.1.52.txt)
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
-            gh release upload "$TAG" Backroom-1.1.51.apk --clobber
+            gh release upload "$TAG" Backroom-1.1.52.apk --clobber
           else
-            gh release create "$TAG" Backroom-1.1.51.apk --target "$GITHUB_SHA" --title "$TITLE" --notes "$NOTES"
+            gh release create "$TAG" Backroom-1.1.52.apk --target "$GITHUB_SHA" --title "$TITLE" --notes "$NOTES"
           fi
 
       - name: Verify published APK and record GREEN release
@@ -201,24 +179,24 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          rm -f Backroom-1.1.51-verified.apk
-          gh release view v1.1.51 --repo "$GITHUB_REPOSITORY"
-          gh release download v1.1.51 --repo "$GITHUB_REPOSITORY" --pattern 'Backroom-1.1.51.apk' --output Backroom-1.1.51-verified.apk
-          test -s Backroom-1.1.51-verified.apk
-          unzip -l Backroom-1.1.51-verified.apk | grep -q 'AndroidManifest.xml'
-          unzip -l Backroom-1.1.51-verified.apk | grep -q 'assets/index.html'
-          unzip -l Backroom-1.1.51-verified.apk | grep -q 'assets/avatars/an_nhien_avatar.png'
-          unzip -l Backroom-1.1.51-verified.apk | grep -q 'classes.dex'
+          rm -f Backroom-1.1.52-verified.apk
+          gh release view v1.1.52 --repo "$GITHUB_REPOSITORY"
+          gh release download v1.1.52 --repo "$GITHUB_REPOSITORY" --pattern 'Backroom-1.1.52.apk' --output Backroom-1.1.52-verified.apk
+          test -s Backroom-1.1.52-verified.apk
+          unzip -l Backroom-1.1.52-verified.apk | grep -q 'AndroidManifest.xml'
+          unzip -l Backroom-1.1.52-verified.apk | grep -q 'assets/index.html'
+          unzip -l Backroom-1.1.52-verified.apk | grep -q 'assets/avatars/an_nhien_avatar.png'
+          unzip -l Backroom-1.1.52-verified.apk | grep -q 'classes.dex'
           BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
           APKSIGNER="$BUILD_TOOLS/apksigner"
           ZIPALIGN="$BUILD_TOOLS/zipalign"
-          "$APKSIGNER" verify --verbose --print-certs Backroom-1.1.51-verified.apk
-          "$ZIPALIGN" -c -P 16 -v 4 Backroom-1.1.51-verified.apk
-          SHA256=$(sha256sum Backroom-1.1.51-verified.apk | awk '{print $1}')
-          mkdir -p release-status
-          printf 'status=GREEN\nversion=1.1.51\ntag=v1.1.51\nasset=Backroom-1.1.51.apk\nsource_sha=%s\nrun_id=%s\nsha256=%s\nbuild_type=debug\nandroid16_smoke=removed\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$SHA256" > release-status/v1.1.51.txt
+          "$APKSIGNER" verify --verbose --print-certs Backroom-1.1.52-verified.apk
+          "$ZIPALIGN" -c -P 16 -v 4 Backroom-1.1.52-verified.apk
+          SHA256=$(sha256sum Backroom-1.1.52-verified.apk | awk '{print $1}')
+          rm -f release-status/v1.1.52-running.txt
+          printf 'status=GREEN\nversion=1.1.52\ntag=v1.1.52\nasset=Backroom-1.1.52.apk\nsource_sha=%s\nrun_id=%s\nsha256=%s\nbuild_type=debug\nandroid16_smoke=removed\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$SHA256" > release-status/v1.1.52.txt
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add release-status/v1.1.51.txt
-          git commit -m 'Record verified Backroom 1.1.51 debug release'
+          git add release-status/v1.1.52.txt release-status/v1.1.52-running.txt
+          git commit -m 'Record verified Backroom 1.1.52 debug release'
           git push origin HEAD:main
