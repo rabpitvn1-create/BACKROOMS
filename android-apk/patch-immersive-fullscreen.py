@@ -18,14 +18,19 @@ text = ensure_after(text, "import android.os.Bundle;\n", "import android.os.Buil
 text = ensure_after(text, "import android.os.Build;\n", "import android.view.View;\nimport android.view.WindowInsets;\nimport android.view.WindowInsetsController;\nimport android.view.WindowManager;\n", "immersive imports")
 
 on_create_anchor = "  @Override public void onCreate(Bundle savedInstanceState) {\n    super.onCreate(savedInstanceState);\n"
-on_create_new = on_create_anchor + "    applyImmersiveFullscreen();\n"
-if "    applyImmersiveFullscreen();\n" not in text:
+on_create_new = on_create_anchor + "    scheduleImmersiveFullscreen();\n"
+if "    scheduleImmersiveFullscreen();\n" not in text:
     if text.count(on_create_anchor) != 1:
         raise RuntimeError("onCreate immersive anchor missing or ambiguous")
     text = text.replace(on_create_anchor, on_create_new, 1)
 
 method_anchor = "\n  @Override protected void onDestroy() {\n"
 method = '''
+  private void scheduleImmersiveFullscreen() {
+    View decor = getWindow().getDecorView();
+    decor.post(() -> applyImmersiveFullscreen());
+  }
+
   private void applyImmersiveFullscreen() {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
       getWindow().getAttributes().layoutInDisplayCutoutMode =
@@ -52,21 +57,22 @@ method = '''
 
   @Override public void onWindowFocusChanged(boolean hasFocus) {
     super.onWindowFocusChanged(hasFocus);
-    if (hasFocus) applyImmersiveFullscreen();
+    if (hasFocus) scheduleImmersiveFullscreen();
   }
 
   @Override protected void onResume() {
     super.onResume();
-    applyImmersiveFullscreen();
+    scheduleImmersiveFullscreen();
   }
 '''
-if "private void applyImmersiveFullscreen()" not in text:
+if "private void scheduleImmersiveFullscreen()" not in text:
     if text.count(method_anchor) != 1:
         raise RuntimeError("immersive method insertion anchor missing or ambiguous")
     text = text.replace(method_anchor, "\n" + method + method_anchor, 1)
 
 required = [
-    "applyImmersiveFullscreen();",
+    "scheduleImmersiveFullscreen();",
+    "decor.post(() -> applyImmersiveFullscreen())",
     "WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE",
     "WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars()",
     "View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY",
@@ -75,7 +81,7 @@ required = [
 ]
 for marker in required:
     if marker not in text:
-        raise RuntimeError(f"Immersive fullscreen contract missing: {marker}")
+        raise RuntimeError(f"Late immersive fullscreen contract missing: {marker}")
 
 MAIN.write_text(text, encoding="utf-8")
-print("Immersive fullscreen enabled: status/navigation bars hidden with transient swipe reveal and legacy fallback.")
+print("Investigation step 3 applied: immersive fullscreen preserved but deferred until the UI queue after startup.")
