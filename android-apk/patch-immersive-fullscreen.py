@@ -14,9 +14,8 @@ def ensure_after(source: str, anchor: str, addition: str, label: str) -> str:
     return source.replace(anchor, anchor + addition, 1)
 
 
-text = ensure_after(text, "import android.os.Bundle;\n", "import android.os.Build;\n", "Build import")
-text = ensure_after(text, "import android.os.Build;\n", "import android.view.View;\nimport android.view.WindowInsets;\nimport android.view.WindowInsetsController;\nimport android.view.WindowManager;\n", "immersive imports")
-
+# Investigation step 2: preserve the same lifecycle call sites but make immersive fullscreen a
+# no-op. This changes one variable only: fullscreen/insets behavior.
 on_create_anchor = "  @Override public void onCreate(Bundle savedInstanceState) {\n    super.onCreate(savedInstanceState);\n"
 on_create_new = on_create_anchor + "    applyImmersiveFullscreen();\n"
 if "    applyImmersiveFullscreen();\n" not in text:
@@ -27,27 +26,8 @@ if "    applyImmersiveFullscreen();\n" not in text:
 method_anchor = "\n  @Override protected void onDestroy() {\n"
 method = '''
   private void applyImmersiveFullscreen() {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-      getWindow().getAttributes().layoutInDisplayCutoutMode =
-          WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
-    }
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-      getWindow().setDecorFitsSystemWindows(false);
-      WindowInsetsController controller = getWindow().getInsetsController();
-      if (controller != null) {
-        controller.hide(WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars());
-        controller.setSystemBarsBehavior(
-            WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
-      }
-    } else {
-      getWindow().getDecorView().setSystemUiVisibility(
-          View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-              | View.SYSTEM_UI_FLAG_FULLSCREEN
-              | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-              | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-              | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-              | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
-    }
+    // Investigation step 2: intentionally disabled. Keep this method and all call sites so the
+    // only changed variable is WindowInsets/system-bar behavior.
   }
 
   @Override public void onWindowFocusChanged(boolean hasFocus) {
@@ -67,15 +47,24 @@ if "private void applyImmersiveFullscreen()" not in text:
 
 required = [
     "applyImmersiveFullscreen();",
-    "WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE",
-    "WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars()",
-    "View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY",
-    "LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES",
+    "private void applyImmersiveFullscreen()",
     "onWindowFocusChanged(boolean hasFocus)",
+    "@Override protected void onResume()",
+    "Investigation step 2: intentionally disabled",
 ]
 for marker in required:
     if marker not in text:
-        raise RuntimeError(f"Immersive fullscreen contract missing: {marker}")
+        raise RuntimeError(f"No-immersive investigation contract missing: {marker}")
+
+for forbidden in [
+    "WindowInsetsController",
+    "WindowInsets.Type.statusBars()",
+    "SYSTEM_UI_FLAG_IMMERSIVE_STICKY",
+    "LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES",
+    "setDecorFitsSystemWindows(false)",
+]:
+    if forbidden in text:
+        raise RuntimeError(f"Fullscreen behavior still present during step 2: {forbidden}")
 
 MAIN.write_text(text, encoding="utf-8")
-print("Immersive fullscreen enabled: status/navigation bars hidden with transient swipe reveal and legacy fallback.")
+print("Investigation step 2 applied: immersive fullscreen disabled while lifecycle call sites remain unchanged.")
