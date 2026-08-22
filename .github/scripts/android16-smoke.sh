@@ -2,7 +2,8 @@
 set -eu
 
 PACKAGE="${BACKROOM_PACKAGE:-com.rabpit.backroom}"
-COMPONENT="$PACKAGE/.MainActivity"
+ACTIVITY="${BACKROOM_ACTIVITY:-com.rabpit.backroom.MainActivity}"
+COMPONENT="$PACKAGE/$ACTIVITY"
 APK="${BACKROOM_APK:-Backroom-1.1.50.apk}"
 
 wait_for_package_service() {
@@ -57,7 +58,7 @@ wait_for_package_service "after successful install"
 
 attempt=1
 while [ "$attempt" -le 3 ]; do
-  echo "Android 16 cold launch attempt $attempt for $PACKAGE"
+  echo "Android 16 cold launch attempt $attempt for $PACKAGE using $ACTIVITY"
   adb shell am force-stop "$PACKAGE"
   adb logcat -c
 
@@ -71,9 +72,9 @@ while [ "$attempt" -le 3 ]; do
     exit 1
   fi
 
-  if ! adb shell dumpsys activity activities | grep -E -q "(mResumedActivity|topResumedActivity).*${PACKAGE}/.MainActivity"; then
+  if ! adb shell dumpsys activity activities | grep -E -q "(mResumedActivity|topResumedActivity).*${PACKAGE}/.*MainActivity"; then
     echo "MainActivity is not resumed after cold launch attempt $attempt"
-    adb shell dumpsys activity activities | grep -E "ResumedActivity|topResumedActivity|${PACKAGE}" || true
+    adb shell dumpsys activity activities | grep -E "ResumedActivity|topResumedActivity|${PACKAGE}|MainActivity" || true
     adb logcat -d -b crash || true
     exit 1
   fi
