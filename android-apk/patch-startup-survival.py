@@ -142,8 +142,15 @@ required = [
 for marker in required:
     if marker not in text:
         raise RuntimeError(f"Startup survival contract missing: {marker}")
-if eager_core in text:
-    raise RuntimeError("Eager Game State Core startup dependency still present")
+
+# The lazy helper intentionally contains the same constructor line. Only onCreate is forbidden
+# from creating the core synchronously.
+final_on_create_start = text.find(method_start)
+final_on_create_end = text.find(on_destroy_anchor, final_on_create_start)
+if final_on_create_start < 0 or final_on_create_end < 0:
+    raise RuntimeError("Final onCreate startup boundary not found")
+if eager_core in text[final_on_create_start:final_on_create_end]:
+    raise RuntimeError("Eager Game State Core startup dependency still present in onCreate")
 
 MAIN.write_text(text, encoding="utf-8")
 print("Android startup survival hardened: lazy Game Core, guarded fullscreen/WebView and in-process fallback UI.")
