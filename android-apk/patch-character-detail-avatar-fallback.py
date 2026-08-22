@@ -37,6 +37,9 @@ runpy.run_path(str(ROOT / "patch-knowledge-context-builder.py"), run_name="__mai
 runpy.run_path(str(ROOT / "benchmark-knowledge-context.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-startup-survival.py"), run_name="__main__")
 
-# Investigation step 6 must run after every normal runtime transformation so the packaged
-# index page loads while Android bridge and enhancement injection remain excluded.
+# Investigation step 6 establishes the verified WebView + packaged index baseline.
 runpy.run_path(str(ROOT / "patch-investigation-load-index.py"), run_name="__main__")
+
+# Investigation step 7 adds exactly one startup variable on top of step 6: register the
+# existing Android JavaScript bridge while keeping UI enhancement injection disabled.
+runpy.run_path(str(ROOT / "patch-investigation-js-bridge.py"), run_name="__main__")
