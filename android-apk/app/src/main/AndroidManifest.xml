@@ -2,7 +2,7 @@
   <uses-permission android:name="android.permission.INTERNET" />
   <application
     android:theme="@style/AppTheme"
-    android:label="Backroom"
+    android:label="Backroom Diagnostic"
     android:icon="@mipmap/ic_launcher"
     android:roundIcon="@mipmap/ic_launcher"
     android:allowBackup="false"
