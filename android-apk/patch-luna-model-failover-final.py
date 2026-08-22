@@ -28,6 +28,9 @@ while end < len(text) and text[end] in "\r\n":
 replacement = r'''  private java.util.List<String> lunaModelCandidates(String baseUrl) {
     java.util.LinkedHashSet<String> models = new java.util.LinkedHashSet<>();
     String configured = BuildConfig.LUNA_MODEL == null ? "" : BuildConfig.LUNA_MODEL.trim();
+    // The model selected in the GitHub Secret is authoritative and always gets first attempt.
+    // Provider discovery remains a fallback so a stale/inactive configured model can recover.
+    if (!configured.isEmpty()) models.add(configured);
     try {
       HttpURLConnection connection = (HttpURLConnection) new URL(baseUrl + "/models").openConnection();
       connection.setRequestMethod("GET");
@@ -58,7 +61,6 @@ replacement = r'''  private java.util.List<String> lunaModelCandidates(String ba
             active.add(id);
           }
         }
-        if (!configured.isEmpty() && active.contains(configured)) models.add(configured);
         for (String id : active) {
           String lower = id.toLowerCase(java.util.Locale.ROOT);
           if (lower.contains("gpt-5.6") || lower.contains("gpt-5") || lower.contains("claude") || lower.contains("gemini")) models.add(id);
@@ -67,7 +69,6 @@ replacement = r'''  private java.util.List<String> lunaModelCandidates(String ba
       }
     } catch (Exception ignored) {}
 
-    if (models.isEmpty() && !configured.isEmpty()) models.add(configured);
     models.add("gpt-5.6-sol");
     return new java.util.ArrayList<>(models);
   }
@@ -131,6 +132,7 @@ text = text[:start] + replacement + text[end:]
 for marker in [
     "private java.util.List<String> lunaModelCandidates(",
     'new URL(baseUrl + "/models")',
+    'if (!configured.isEmpty()) models.add(configured);',
     'models.add("gpt-5.6-sol")',
     "private boolean lunaInactiveModel(",
     'emit("backroomProvider", "Luna fallback / " + model.trim())',
@@ -142,4 +144,4 @@ for marker in [
         raise RuntimeError(f"Provider helper missing after Luna patch: {marker}")
 
 MAIN.write_text(text, encoding="utf-8")
-print("Luna fallback now discovers active provider models and skips MODEL_INACTIVE candidates without removing provider helpers.")
+print("Luna fallback now prioritizes the configured Secret model, then discovers active provider fallbacks.")

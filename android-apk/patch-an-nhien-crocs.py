@@ -30,3 +30,6 @@ runpy.run_path(str(ROOT / "patch-special-followers-025.py"), run_name="__main__"
 
 # Link the uploaded Iris/Syvial avatars and add instant developer Party shortcuts.
 runpy.run_path(str(ROOT / "patch-special-follower-cheats-avatars.py"), run_name="__main__")
+
+# Iris and Syvial can each carry at most 6 item types, with at most 20 units per type.
+runpy.run_path(str(ROOT / "patch-special-follower-inventory-cap.py"), run_name="__main__")
