@@ -27,3 +27,6 @@ print("An Nhiên footwear updated to pink Crocs.")
 
 # Special follower encounter policy and authoritative Iris/Syvial follower definitions.
 runpy.run_path(str(ROOT / "patch-special-followers-025.py"), run_name="__main__")
+
+# Link the uploaded Iris/Syvial avatars and add instant developer Party shortcuts.
+runpy.run_path(str(ROOT / "patch-special-follower-cheats-avatars.py"), run_name="__main__")
