@@ -119,7 +119,11 @@ flag_old = r'''    if (root.equals("jeff") || root.equals("entityRegistry") || r
 '''
 flag_new = r'''    if (root.equals("jeff") || root.equals("entityRegistry") || root.equals("entitiesConfirmedLocal") || root.equals("entityEncounterKey")) {
       JSONObject flags = before.optJSONObject("flags");
-      if (root.equals("entityEncounterKey") && flags != null && !flags.optString("entityEncounterKey", "").trim().isEmpty()) return true;
+      if (root.equals("entityEncounterKey") && flags != null) {
+        if (!flags.optString("entityEncounterKey", "").trim().isEmpty()) return true;
+        JSONObject jeff = flags.optJSONObject("jeff");
+        if (jeff != null && (jeff.optBoolean("present", false) || jeff.optBoolean("spawned", false))) return true;
+      }
       return rollSuccess(rolls, "entityEncounter") || (flags != null && flags.optInt("entitiesConfirmedLocal", 0) > 0);
     }
 '''
@@ -135,7 +139,7 @@ writer_marker = (
     '      "Inventory chỉ đổi khi Kai thật sự lấy/nhận/copy/trao/mất/tiêu thụ vật; nhìn thấy không đồng nghĩa sở hữu. MadGod roll success chỉ mở discovery route, không tự đưa set vào inventory. " +\n'
 )
 writer_rule = writer_marker + (
-    '      "ENTITY OVERLAY HARD LOCK: với Entity thường đã được xác nhận và đang trực tiếp hiện diện trong cảnh hiện tại, dùng flag_patch root=entityEncounterKey value=exact canon ID dạng ENT-1A/ENT-2C. Khi Entity đó rời cảnh, biến mất hoặc không còn trực tiếp hiện diện, đặt entityEncounterKey thành chuỗi rỗng. Jeff the Killer có thể được renderer nhận trực tiếp từ flag jeff present/spawned. Không dùng tên thường thay cho Entity ID. " +\n'
+    '      "ENTITY OVERLAY HARD LOCK: với Entity đã được xác nhận và đang trực tiếp xuất hiện hoặc đối đầu trong cảnh hiện tại, dùng flag_patch root=entityEncounterKey value=exact canon ID dạng ENT-1A/ENT-2C; Jeff the Killer dùng ENT-R01 khi hắn trực tiếp hiện diện. Nếu Entity bị tiêu diệt, Kai chạy trốn hoặc thoát khỏi Entity, Entity rời cảnh, biến mất, hoặc không còn trực tiếp hiện diện/đối đầu, bắt buộc đặt entityEncounterKey thành chuỗi rỗng ngay trong lượt đó. entityEncounterKey là trạng thái hiện diện trực quan hiện tại, không phải lịch sử encounter. Không dùng tên thường thay cho Entity ID. " +\n'
 )
 if 'ENTITY OVERLAY HARD LOCK:' not in writer:
     if writer_marker not in writer:
@@ -148,7 +152,7 @@ request_marker = (
 )
 entity_js = r'''      "var __baseRenderSnapshot=renderSnapshot,__entityOverlay={id:'',url:'',revision:0,anchor:'left-bottom',maxHeight:.97,loading:''};" +
       "function normalizeEntityId(v){if(typeof v!=='string')return '';var m=v.toUpperCase().match(/ENT-[A-Z0-9]+(?:-[A-Z0-9]+)?/);return m?m[0]:'';}" +
-      "function activeEntityId(){var f=state&&state.flags||{};if(f.jeff&&(f.jeff.present===true||f.jeff.spawned===true))return 'ENT-R01';var direct=normalizeEntityId(f.entityEncounterKey);if(direct)return direct;var reg=f.entityRegistry;if(Array.isArray(reg)){for(var i=reg.length-1;i>=0;i--){var r=reg[i],id=normalizeEntityId(r&&typeof r==='object'?(r.entityId||r.id||r.code||''):r);if(id&&(!r||typeof r!=='object'||(r.present!==false&&r.active!==false&&r.departed!==true)))return id;}}else if(reg&&typeof reg==='object'){var keys=Object.keys(reg);for(var j=keys.length-1;j>=0;j--){var id2=normalizeEntityId(keys[j])||normalizeEntityId(reg[keys[j]]&&reg[keys[j]].entityId);var rec=reg[keys[j]];if(id2&&(!rec||typeof rec!=='object'||(rec.present!==false&&rec.active!==false&&rec.departed!==true)))return id2;}}return '';}" +
+      "function activeEntityId(){var f=state&&state.flags||{};if(Object.prototype.hasOwnProperty.call(f,'entityEncounterKey'))return normalizeEntityId(f.entityEncounterKey);if(f.jeff&&(f.jeff.present===true||f.jeff.spawned===true))return 'ENT-R01';var reg=f.entityRegistry;if(Array.isArray(reg)){for(var i=reg.length-1;i>=0;i--){var r=reg[i],id=normalizeEntityId(r&&typeof r==='object'?(r.entityId||r.id||r.code||''):r);if(id&&(!r||typeof r!=='object'||(r.present!==false&&r.active!==false&&r.departed!==true)))return id;}}else if(reg&&typeof reg==='object'){var keys=Object.keys(reg);for(var j=keys.length-1;j>=0;j--){var id2=normalizeEntityId(keys[j])||normalizeEntityId(reg[keys[j]]&&reg[keys[j]].entityId);var rec=reg[keys[j]];if(id2&&(!rec||typeof rec!=='object'||(rec.present!==false&&rec.active!==false&&rec.departed!==true)))return id2;}}return '';}" +
       "function requestEntityOverlay(id){if(!id||__entityOverlay.loading===id)return;if(!window.Android||typeof Android.requestEntityOverlay!=='function')return;__entityOverlay.loading=id;Android.requestEntityOverlay(id);}" +
       "function appendEntityOverlay(){var box=document.getElementById('snapshot');if(!box)return;var old=box.querySelector('.snapshot-entity');if(old)old.remove();var id=activeEntityId();if(!id){__entityOverlay={id:'',url:'',revision:0,anchor:'left-bottom',maxHeight:.97,loading:''};return;}if(__entityOverlay.id!==id){__entityOverlay.url='';__entityOverlay.id=id;}if(!__entityOverlay.url){requestEntityOverlay(id);return;}var img=document.createElement('img');img.className='snapshot-entity';img.src=__entityOverlay.url;img.alt=id;img.style.position='absolute';img.style.bottom='0';img.style.width='auto';img.style.maxWidth='55%';img.style.height=Math.round(Math.max(.2,Math.min(1,Number(__entityOverlay.maxHeight)||.97))*100)+'%';img.style.objectFit='contain';img.style.pointerEvents='none';img.style.zIndex='2';img.style.imageRendering='auto';if(String(__entityOverlay.anchor||'').indexOf('right')===0){img.style.right='0';img.style.objectPosition='right bottom';}else{img.style.left='0';img.style.objectPosition='left bottom';}box.appendChild(img);}" +
       "renderSnapshot=function(){__baseRenderSnapshot();appendEntityOverlay();};" +
@@ -188,6 +192,8 @@ required = [
     'settings.setCacheMode(WebSettings.LOAD_DEFAULT);',
     'private JSONObject resolveEntityOverlay(',
     'ENTITY OVERLAY HARD LOCK:',
+    'Nếu Entity bị tiêu diệt, Kai chạy trốn hoặc thoát khỏi Entity',
+    "Object.prototype.hasOwnProperty.call(f,'entityEncounterKey')",
     'window.backroomEntityOverlay=function(payload)',
     "img.className='snapshot-entity'",
     "img.style.left='0'",
