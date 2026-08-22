@@ -16,8 +16,8 @@ class InventoryPolicyTest {
   @Test fun profilesMatchCharacterRules() {
     val state = stateWith(CharacterState("iris", "Iris"), CharacterState("syvial", "Syvial"), CharacterState("bob", "Bob"))
     assertEquals(InventoryProfile(9, 999), InventoryPolicy.profileFor(state, KAI_ID))
-    assertEquals(InventoryProfile(4, 20), InventoryPolicy.profileFor(state, "iris"))
-    assertEquals(InventoryProfile(4, 20), InventoryPolicy.profileFor(state, "syvial"))
+    assertEquals(InventoryProfile(6, 20), InventoryPolicy.profileFor(state, "iris"))
+    assertEquals(InventoryProfile(6, 20), InventoryPolicy.profileFor(state, "syvial"))
     assertEquals(InventoryProfile(2, 2), InventoryPolicy.profileFor(state, "bob"))
   }
 
@@ -34,9 +34,9 @@ class InventoryPolicyTest {
     val bob = CharacterState("bob", "Bob")
     var state = stateWith(iris, bob)
     state = state.copy(inventories = state.inventories +
-      ("iris" to InventoryState("iris", (1..4).associate { "i$it" to ItemStack("i$it", "I$it", 1) })) +
+      ("iris" to InventoryState("iris", (1..6).associate { "i$it" to ItemStack("i$it", "I$it", 1) })) +
       ("bob" to InventoryState("bob", mapOf("a" to ItemStack("a", "A", 2), "b" to ItemStack("b", "B", 1)))))
-    assertEquals("inventory_slot_limit", InventoryPolicy.validateAddition(state, "iris", state.inventories.getValue("iris"), ItemStack("i5", "I5"), 1))
+    assertEquals("inventory_slot_limit", InventoryPolicy.validateAddition(state, "iris", state.inventories.getValue("iris"), ItemStack("i7", "I7"), 1))
     assertEquals("inventory_stack_limit", InventoryPolicy.validateAddition(state, "bob", state.inventories.getValue("bob"), ItemStack("a", "A"), 1))
     assertEquals("inventory_slot_limit", InventoryPolicy.validateAddition(state, "bob", state.inventories.getValue("bob"), ItemStack("c", "C"), 1))
   }
