@@ -1,3 +1,3 @@
 run_id=32580647351
-status=RUNNING
+status=PASS
 source_sha=67e004f9413f0b3072387c758c0fc89dd354e699
