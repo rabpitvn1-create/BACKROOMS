@@ -65,3 +65,7 @@ runpy.run_path(str(ROOT / "benchmark-knowledge-context.py"), run_name="__main__"
 # Last Android transformation: startup must stay alive on Android 16 even if an optional
 # fullscreen, WebView enhancement or Game State Core component fails to initialize.
 runpy.run_path(str(ROOT / "patch-startup-survival.py"), run_name="__main__")
+
+# Investigation step 4 only: replace WebView startup with a native TextView probe after all
+# production startup transforms so the final APK truly contains no WebView bootstrap in onCreate.
+runpy.run_path(str(ROOT / "patch-step4-native-startup.py"), run_name="__main__")
