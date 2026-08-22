@@ -59,6 +59,10 @@ runpy.run_path(str(ROOT / "patch-knowledge-engine-source.py"), run_name="__main_
 # Final runtime authority: replace legacy canon blobs with the indexed, budgeted local knowledge packet.
 runpy.run_path(str(ROOT / "patch-knowledge-context-builder.py"), run_name="__main__")
 
+# Drive-backed Entity artwork: resolve exact canon Entity IDs through the remote manifest,
+# then overlay the matching image on the left side of Snapshot while Kai remains on the right.
+runpy.run_path(str(ROOT / "patch-entity-drive-overlay.py"), run_name="__main__")
+
 # Deterministic OLD-vs-NEW context contract benchmark. Failure blocks the build.
 runpy.run_path(str(ROOT / "benchmark-knowledge-context.py"), run_name="__main__")
 
