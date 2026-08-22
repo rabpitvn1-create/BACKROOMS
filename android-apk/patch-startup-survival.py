@@ -36,13 +36,19 @@ text = text.replace(
     "      GameCoreFacade core = gameCoreOrNull();\n      if (core != null) core.clear();\n",
 )
 
-# Rebuild onCreate as a defensive startup boundary.
+# Rebuild only onCreate. Do not consume methods inserted immediately after it, especially
+# applyImmersiveFullscreen(), which the fullscreen patch installs before onDestroy.
 method_start = '  @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})\n  @Override public void onCreate(Bundle savedInstanceState) {\n'
+immersive_anchor = "\n  private void applyImmersiveFullscreen() {\n"
 on_destroy_anchor = "\n  @Override protected void onDestroy() {\n"
 start = text.find(method_start)
-end = text.find(on_destroy_anchor, start)
-if start < 0 or end < 0:
+if start < 0:
     raise RuntimeError("onCreate startup boundary not found")
+end = text.find(immersive_anchor, start)
+if end < 0:
+    end = text.find(on_destroy_anchor, start)
+if end < 0:
+    raise RuntimeError("onCreate end boundary not found")
 
 on_create = '''  @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
   @Override public void onCreate(Bundle savedInstanceState) {
@@ -138,6 +144,7 @@ required = [
     'Log.w("BackroomStartup", "Immersive fullscreen unavailable; continuing normally."',
     'Log.e("BackroomStartup", "UI enhancement injection failed; base game remains usable."',
     "GameCoreFacade core = gameCoreOrNull();",
+    "private void applyImmersiveFullscreen()",
 ]
 for marker in required:
     if marker not in text:
@@ -146,11 +153,15 @@ for marker in required:
 # The lazy helper intentionally contains the same constructor line. Only onCreate is forbidden
 # from creating the core synchronously.
 final_on_create_start = text.find(method_start)
-final_on_create_end = text.find(on_destroy_anchor, final_on_create_start)
-if final_on_create_start < 0 or final_on_create_end < 0:
+if final_on_create_start < 0:
     raise RuntimeError("Final onCreate startup boundary not found")
+final_on_create_end = text.find(immersive_anchor, final_on_create_start)
+if final_on_create_end < 0:
+    final_on_create_end = text.find(on_destroy_anchor, final_on_create_start)
+if final_on_create_end < 0:
+    raise RuntimeError("Final onCreate end boundary not found")
 if eager_core in text[final_on_create_start:final_on_create_end]:
     raise RuntimeError("Eager Game State Core startup dependency still present in onCreate")
 
 MAIN.write_text(text, encoding="utf-8")
-print("Android startup survival hardened: lazy Game Core, guarded fullscreen/WebView and in-process fallback UI.")
+print("Android startup survival hardened: lazy Game Core, preserved immersive method, guarded WebView and in-process fallback UI.")
