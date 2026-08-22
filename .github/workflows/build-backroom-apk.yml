@@ -70,7 +70,7 @@ jobs:
       - name: Apply Android runtime patch chain
         run: |
           set -euo pipefail
-          scripts=(patch-provider-status.py patch-luna-text.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-drive-online-save-step1.py patch-online-only-save-step2.py patch-named-online-save-step3.py)
+          scripts=(patch-provider-status.py patch-luna-text.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-drive-online-save-step1.py patch-online-only-save-step2.py patch-named-online-save-step3.py patch-overwrite-online-save-step4.py)
           for script in "${scripts[@]}"; do
             echo "==> $script"
             python3 "android-apk/$script"
@@ -123,14 +123,19 @@ jobs:
               ('@JavascriptInterface public void driveSave(String stateJson, String saveName)', java),
               ('String saveNamed(String stateJson, String requestedName)', drive),
               ('String fileName = displayName + ".json"', drive),
+              ('boolean overwritten = existingId != null && !existingId.isEmpty();', drive),
+              ('updateFile(token, existingId, envelope.toString());', drive),
+              ('.put("overwritten", overwritten)', drive),
+              ('r.overwritten?"Đã overwrite save “":"Đã tạo save “"', html),
           ]
           for marker, source in required:
               assert marker in source, marker
           for forbidden in [
               'id="saveButton"', 'id="loadButton"', 'id="deleteSaveButton"',
               'localStorage.getItem("backroom-apk-state")', 'localStorage.setItem("backroom-apk-state"',
+              'Overwrite save cũ sẽ được bật ở bước 4', 'throw new Exception("Đã có save tên',
           ]:
-              assert forbidden not in html, forbidden
+              assert forbidden not in (html + drive), forbidden
           assert 'SharedPreferences' not in save_repo
           assert 'SharedPreferencesSaveRepository(' not in facade
           on_create = java[java.index('public void onCreate'):java.index('@Override protected void onDestroy')]
