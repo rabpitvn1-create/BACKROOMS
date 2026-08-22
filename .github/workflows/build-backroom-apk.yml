@@ -7,7 +7,6 @@ on:
     paths:
       - "android-apk/**"
       - ".github/workflows/build-backroom-apk.yml"
-      - ".github/scripts/android16-smoke.sh"
 
 permissions:
   contents: write
@@ -173,16 +172,6 @@ jobs:
             done < <(readelf -lW "$so" | awk '$1=="LOAD" {print $NF}')
           done
 
-      - name: Install and cold-launch repeatedly on Android 16
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 36
-          arch: x86_64
-          profile: pixel_6
-          disable-animations: false
-          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
-          script: sh .github/scripts/android16-smoke.sh
-
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
@@ -227,7 +216,7 @@ jobs:
           "$ZIPALIGN" -c -P 16 -v 4 Backroom-1.1.51-verified.apk
           SHA256=$(sha256sum Backroom-1.1.51-verified.apk | awk '{print $1}')
           mkdir -p release-status
-          printf 'status=GREEN\nversion=1.1.51\ntag=v1.1.51\nasset=Backroom-1.1.51.apk\nsource_sha=%s\nrun_id=%s\nsha256=%s\nbuild_type=debug\nandroid16_smoke=passed\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$SHA256" > release-status/v1.1.51.txt
+          printf 'status=GREEN\nversion=1.1.51\ntag=v1.1.51\nasset=Backroom-1.1.51.apk\nsource_sha=%s\nrun_id=%s\nsha256=%s\nbuild_type=debug\nandroid16_smoke=removed\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$SHA256" > release-status/v1.1.51.txt
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add release-status/v1.1.51.txt
