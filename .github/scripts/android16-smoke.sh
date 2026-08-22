@@ -1,13 +1,10 @@
 #!/bin/sh
 set -eu
 
-PACKAGE="com.rabpit.backroom"
+PACKAGE="${BACKROOM_PACKAGE:-com.rabpit.backroom}"
 COMPONENT="$PACKAGE/.MainActivity"
-APK="Backroom-1.1.50.apk"
+APK="${BACKROOM_APK:-Backroom-1.1.50.apk}"
 
-# API 36 software-emulated runners can report sys.boot_completed before PackageManager is
-# actually ready to accept a streamed install. Wait for the package service explicitly so a
-# transient emulator IPC failure is not mistaken for an application startup failure.
 adb wait-for-device
 
 pm_attempt=1
@@ -32,7 +29,7 @@ fi
 install_attempt=1
 installed=0
 while [ "$install_attempt" -le 3 ]; do
-  echo "APK install attempt $install_attempt"
+  echo "APK install attempt $install_attempt for $PACKAGE"
   if timeout 180 adb install --no-streaming "$APK"; then
     installed=1
     break
@@ -52,7 +49,7 @@ fi
 
 attempt=1
 while [ "$attempt" -le 3 ]; do
-  echo "Android 16 cold launch attempt $attempt"
+  echo "Android 16 cold launch attempt $attempt for $PACKAGE"
   adb shell am force-stop "$PACKAGE"
   adb logcat -c
 
@@ -88,4 +85,4 @@ while [ "$attempt" -le 3 ]; do
   attempt=$((attempt + 1))
 done
 
-echo "Android 16 cold-launch smoke test passed three consecutive launches."
+echo "Android 16 cold-launch smoke test passed three consecutive launches for $PACKAGE."
