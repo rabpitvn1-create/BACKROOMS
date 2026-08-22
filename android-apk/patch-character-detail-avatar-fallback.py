@@ -62,6 +62,12 @@ runpy.run_path(str(ROOT / "patch-knowledge-context-builder.py"), run_name="__mai
 # Deterministic OLD-vs-NEW context contract benchmark. Failure blocks the build.
 runpy.run_path(str(ROOT / "benchmark-knowledge-context.py"), run_name="__main__")
 
-# Last Android transformation: startup must stay alive on Android 16 even if an optional
-# fullscreen, WebView enhancement or Game State Core component fails to initialize.
+# Startup hardening rewrites onCreate to the final WebView configuration. Run this before
+# the Entity Drive patch so the loader binds to the final settings block instead of an
+# intermediate onCreate shape produced earlier in the patch chain.
 runpy.run_path(str(ROOT / "patch-startup-survival.py"), run_name="__main__")
+
+# Drive-backed Entity artwork is the last Android transformation: resolve exact canon Entity IDs
+# through the remote manifest, then overlay the matching image on the left side of Snapshot while
+# Kai remains on the right. Running last also makes the WebView cache anchor deterministic.
+runpy.run_path(str(ROOT / "patch-entity-drive-overlay.py"), run_name="__main__")
