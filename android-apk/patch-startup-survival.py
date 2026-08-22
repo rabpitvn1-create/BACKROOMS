@@ -36,15 +36,18 @@ text = text.replace(
     "      GameCoreFacade core = gameCoreOrNull();\n      if (core != null) core.clear();\n",
 )
 
-# Rebuild only onCreate. Do not consume methods inserted immediately after it, especially
-# applyImmersiveFullscreen(), which the fullscreen patch installs before onDestroy.
+# Investigation step 3: preserve both deferred fullscreen methods. The previous boundary used
+# applyImmersiveFullscreen() and would accidentally delete scheduleImmersiveFullscreen().
 method_start = '  @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})\n  @Override public void onCreate(Bundle savedInstanceState) {\n'
+schedule_anchor = "\n  private void scheduleImmersiveFullscreen() {\n"
 immersive_anchor = "\n  private void applyImmersiveFullscreen() {\n"
 on_destroy_anchor = "\n  @Override protected void onDestroy() {\n"
 start = text.find(method_start)
 if start < 0:
     raise RuntimeError("onCreate startup boundary not found")
-end = text.find(immersive_anchor, start)
+end = text.find(schedule_anchor, start)
+if end < 0:
+    end = text.find(immersive_anchor, start)
 if end < 0:
     end = text.find(on_destroy_anchor, start)
 if end < 0:
@@ -54,9 +57,9 @@ on_create = '''  @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"
   @Override public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     try {
-      applyImmersiveFullscreen();
+      scheduleImmersiveFullscreen();
     } catch (Throwable error) {
-      Log.w("BackroomStartup", "Immersive fullscreen unavailable; continuing normally.", error);
+      Log.w("BackroomStartup", "Immersive fullscreen scheduling unavailable; continuing normally.", error);
     }
     try {
       webView = new WebView(this);
@@ -141,27 +144,34 @@ required = [
     "showStartupFallback(Throwable error)",
     "requireGameCore().processRule(",
     "requireGameCore().processValidatedCandidate(",
-    'Log.w("BackroomStartup", "Immersive fullscreen unavailable; continuing normally."',
+    'Log.w("BackroomStartup", "Immersive fullscreen scheduling unavailable; continuing normally."',
     'Log.e("BackroomStartup", "UI enhancement injection failed; base game remains usable."',
     "GameCoreFacade core = gameCoreOrNull();",
+    "private void scheduleImmersiveFullscreen()",
     "private void applyImmersiveFullscreen()",
+    "scheduleImmersiveFullscreen();",
 ]
 for marker in required:
     if marker not in text:
         raise RuntimeError(f"Startup survival contract missing: {marker}")
 
-# The lazy helper intentionally contains the same constructor line. Only onCreate is forbidden
-# from creating the core synchronously.
 final_on_create_start = text.find(method_start)
 if final_on_create_start < 0:
     raise RuntimeError("Final onCreate startup boundary not found")
-final_on_create_end = text.find(immersive_anchor, final_on_create_start)
+final_on_create_end = text.find(schedule_anchor, final_on_create_start)
+if final_on_create_end < 0:
+    final_on_create_end = text.find(immersive_anchor, final_on_create_start)
 if final_on_create_end < 0:
     final_on_create_end = text.find(on_destroy_anchor, final_on_create_start)
 if final_on_create_end < 0:
     raise RuntimeError("Final onCreate end boundary not found")
-if eager_core in text[final_on_create_start:final_on_create_end]:
+final_on_create = text[final_on_create_start:final_on_create_end]
+if eager_core in final_on_create:
     raise RuntimeError("Eager Game State Core startup dependency still present in onCreate")
+if "applyImmersiveFullscreen();" in final_on_create:
+    raise RuntimeError("Step 3 invalid: onCreate still invokes immersive fullscreen synchronously")
+if "scheduleImmersiveFullscreen();" not in final_on_create:
+    raise RuntimeError("Step 3 invalid: onCreate does not schedule immersive fullscreen")
 
 MAIN.write_text(text, encoding="utf-8")
-print("Android startup survival hardened: lazy Game Core, preserved immersive method, guarded WebView and in-process fallback UI.")
+print("Investigation step 3 startup contract applied: immersive fullscreen is scheduled, not executed synchronously in onCreate.")
