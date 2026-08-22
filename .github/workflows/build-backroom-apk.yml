@@ -27,11 +27,7 @@ jobs:
       GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
       GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
       GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
-      ANDROID_RELEASE_KEYSTORE_B64: ${{ secrets.ANDROID_RELEASE_KEYSTORE_B64 }}
-      ANDROID_RELEASE_STORE_PASSWORD: ${{ secrets.ANDROID_RELEASE_STORE_PASSWORD }}
-      ANDROID_RELEASE_KEY_ALIAS: ${{ secrets.ANDROID_RELEASE_KEY_ALIAS }}
-      ANDROID_RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEY_PASSWORD }}
-      ANDROID_RELEASE_CERT_SHA256: 8565060aef73280de5fe80d29f67175025eaf9eb9c5ab3497fca91d83de153ca
+      CURRENT_APK_CERT_SHA256: c020915494d1202e08ecb5f67811c5407a038afe502289a5a59d5fc64a7f7267
 
     steps:
       - uses: actions/checkout@v4
@@ -58,21 +54,12 @@ jobs:
           bytes=$(stat -c%s ../app/src/main/assets/models/backroom_intent.tflite)
           test "$bytes" -le 5242880 || (echo "LiteRT model exceeds 5 MiB: $bytes" && exit 1)
 
-      - name: Validate Game Master and stable release signing configuration
+      - name: Validate Game Master configuration
         run: |
           set -euo pipefail
-          for name in GEMINI_API_KEY_1 GEMINI_API_KEY_2 GEMINI_API_KEY_3 GEMINI_API_KEY_4 GEMINI_API_KEY_5 LUNA_API_KEY LUNA_MODEL ANDROID_RELEASE_KEYSTORE_B64 ANDROID_RELEASE_STORE_PASSWORD ANDROID_RELEASE_KEY_ALIAS ANDROID_RELEASE_KEY_PASSWORD; do
+          for name in GEMINI_API_KEY_1 GEMINI_API_KEY_2 GEMINI_API_KEY_3 GEMINI_API_KEY_4 GEMINI_API_KEY_5 LUNA_API_KEY LUNA_MODEL; do
             test -n "${!name:-}" || (echo "Missing GitHub Secret: $name" && exit 1)
           done
-
-      - name: Restore stable Android release keystore
-        run: |
-          set -euo pipefail
-          KEYSTORE="$RUNNER_TEMP/backroom-release.p12"
-          printf '%s' "$ANDROID_RELEASE_KEYSTORE_B64" | base64 --decode > "$KEYSTORE"
-          test -s "$KEYSTORE"
-          chmod 600 "$KEYSTORE"
-          echo "ANDROID_RELEASE_KEYSTORE_PATH=$KEYSTORE" >> "$GITHUB_ENV"
 
       - name: Apply Android runtime patch chain
         run: |
@@ -122,7 +109,7 @@ jobs:
           gradle = Path('android-apk/app/build.gradle').read_text(encoding='utf-8')
           canon = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/AnNhienCanon.kt').read_text(encoding='utf-8')
           required = [
-              ("versionCode 52", gradle), ("versionName '1.1.50'", gradle), ('signingConfigs {', gradle),
+              ("versionCode 52", gradle), ("versionName '1.1.50'", gradle),
               ('state&&state.partyDetails&&Array.isArray(state.partyDetails.members)', html),
               ('id="characterSurvivalHud"', html), ('.message.gm{', html), ('focusLatestGmStart()', html),
               ('#characterEquipmentList span,#characterInventoryItems span{text-transform:uppercase', html),
@@ -159,14 +146,14 @@ jobs:
         with:
           gradle-version: "8.10.2"
 
-      - name: Run Kotlin core tests and build stable release APK
+      - name: Run Kotlin core tests and build APK
         working-directory: android-apk
-        run: gradle :app:testDebugUnitTest :app:assembleRelease --no-daemon
+        run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
 
-      - name: Prepare stable release APK
-        run: cp android-apk/app/build/outputs/apk/release/app-release.apk Backroom-1.1.50.apk
+      - name: Prepare APK
+        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.1.50.apk
 
-      - name: Verify signature, launcher and 16 KB native compatibility
+      - name: Verify upgrade-compatible signature, launcher and 16 KB native compatibility
         run: |
           set -euo pipefail
           BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
@@ -175,7 +162,7 @@ jobs:
           ZIPALIGN="$BUILD_TOOLS/zipalign"
           "$APKSIGNER" verify --verbose --print-certs Backroom-1.1.50.apk
           CERT=$("$APKSIGNER" verify --print-certs Backroom-1.1.50.apk | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | head -1 | tr '[:upper:]' '[:lower:]')
-          test "$CERT" = "$ANDROID_RELEASE_CERT_SHA256" || (echo "Unexpected release certificate: $CERT" && exit 1)
+          test "$CERT" = "$CURRENT_APK_CERT_SHA256" || (echo "APK certificate changed; refusing an update that would strand existing installs. Got: $CERT" && exit 1)
           "$AAPT" dump badging Backroom-1.1.50.apk | grep -q "package: name='com.rabpit.backroom'"
           "$AAPT" dump badging Backroom-1.1.50.apk | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
           "$ZIPALIGN" -c -P 16 -v 4 Backroom-1.1.50.apk
@@ -214,7 +201,7 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Backroom-1.1.50-release-apk
+          name: Backroom-1.1.50-apk
           path: Backroom-1.1.50.apk
           if-no-files-found: error
           retention-days: 14
@@ -252,7 +239,7 @@ jobs:
           APKSIGNER="$BUILD_TOOLS/apksigner"
           ZIPALIGN="$BUILD_TOOLS/zipalign"
           CERT=$("$APKSIGNER" verify --print-certs Backroom-1.1.50-verified.apk | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | head -1 | tr '[:upper:]' '[:lower:]')
-          test "$CERT" = "$ANDROID_RELEASE_CERT_SHA256" || (echo "Published APK certificate mismatch: $CERT" && exit 1)
+          test "$CERT" = "$CURRENT_APK_CERT_SHA256" || (echo "Published APK certificate mismatch: $CERT" && exit 1)
           "$ZIPALIGN" -c -P 16 -v 4 Backroom-1.1.50-verified.apk
           SHA256=$(sha256sum Backroom-1.1.50-verified.apk | awk '{print $1}')
           mkdir -p release-status
