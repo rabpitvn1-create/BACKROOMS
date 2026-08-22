@@ -1,4 +1,5 @@
 from pathlib import Path
+import runpy
 
 ROOT = Path(__file__).resolve().parent
 CORE = ROOT / "app/src/main/java/com/rabpit/backroom/core"
@@ -23,3 +24,6 @@ elif new_name not in canon:
 
 canon_path.write_text(canon, encoding="utf-8")
 print("An Nhiên footwear updated to pink Crocs.")
+
+# Special follower encounter policy and authoritative Iris/Syvial follower definitions.
+runpy.run_path(str(ROOT / "patch-special-followers-025.py"), run_name="__main__")
