@@ -37,6 +37,6 @@ runpy.run_path(str(ROOT / "patch-knowledge-context-builder.py"), run_name="__mai
 runpy.run_path(str(ROOT / "benchmark-knowledge-context.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-startup-survival.py"), run_name="__main__")
 
-# Investigation step 5 must run after every normal runtime transformation so its isolated
-# WebView-only startup cannot be overwritten by later patches.
-runpy.run_path(str(ROOT / "patch-investigation-webview-shell.py"), run_name="__main__")
+# Investigation step 6 must run after every normal runtime transformation so the packaged
+# index page loads while Android bridge and enhancement injection remain excluded.
+runpy.run_path(str(ROOT / "patch-investigation-load-index.py"), run_name="__main__")
