@@ -1,0 +1,164 @@
+name: Build Physical Diagnostic APK
+
+on:
+  push:
+    branches: [investigate/android16-step9-physical-diag]
+    paths:
+      - "android-apk/**"
+      - ".github/workflows/build-physical-diagnostic.yml"
+      - ".github/scripts/android16-smoke.sh"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-physical-diagnostic-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-diagnostic:
+    runs-on: ubuntu-latest
+    env:
+      LUNA_API_KEY: ${{ secrets.LUNA_API_KEY }}
+      LUNA_BASE_URL: https://api.vilao.ai/v1
+      LUNA_MODEL: ${{ secrets.LUNA_MODEL }}
+      GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 || secrets.GEMINI_API_KEY }}
+      GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
+      GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
+      GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
+      GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: android-apk/ml/requirements.txt
+
+      - name: Train and verify tiny LiteRT intent model
+        run: |
+          set -euo pipefail
+          python -m pip install --requirement android-apk/ml/requirements.txt
+          python android-apk/ml/build_intent_dataset.py
+          python android-apk/ml/evaluate_seed_classifier.py
+          cd android-apk/ml
+          python train_intent_classifier.py \
+            --dataset intent_dataset.csv \
+            --labels ../app/src/main/assets/models/backroom_intent_labels.txt \
+            --output ../app/src/main/assets/models/backroom_intent.tflite \
+            --report intent_model_report.json
+          test -s ../app/src/main/assets/models/backroom_intent.tflite
+
+      - name: Validate Game Master configuration
+        run: |
+          set -euo pipefail
+          for name in GEMINI_API_KEY_1 GEMINI_API_KEY_2 GEMINI_API_KEY_3 GEMINI_API_KEY_4 GEMINI_API_KEY_5 LUNA_API_KEY LUNA_MODEL; do
+            test -n "${!name:-}" || (echo "Missing GitHub Secret: $name" && exit 1)
+          done
+
+      - name: Apply Android runtime patch chain
+        run: |
+          set -euo pipefail
+          scripts=(
+            patch-provider-status.py
+            patch-luna-text.py
+            patch-level-snapshot-backgrounds.py
+            patch-snapshot-fallback.py
+            patch-kai-hd-continuous.py
+            patch-kai-png-preferred.py
+            patch-kai-codex.py
+            patch-r06-source-marker.py
+            patch-drive-canon-gameplay.py
+            patch-inventory-persistence.py
+            patch-ai-orchestrator.py
+            patch-state-op-hardening.py
+            patch-gemini-health-pool.py
+            patch-conditional-audit.py
+            patch-audit-validated-risk.py
+            patch-gameplay-parity-final.py
+            patch-final-authority-hardening.py
+            patch-rejected-op-repair-final.py
+            patch-kai-resource-policy-final.py
+            patch-provider-deadline-final.py
+            patch-gemini-model-matrix-final.py
+            patch-java-compile-hardening.py
+            patch-save-controls-final.py
+            patch-hard-mode-label.py
+            patch-snapshot-unconfigured.py
+            patch-game-state-core-bridge.py
+            patch-character-inventory-ui.py
+            patch-character-detail-avatar-fallback.py
+          )
+          for script in "${scripts[@]}"; do
+            echo "==> $script"
+            python3 "android-apk/$script"
+          done
+
+      - name: Verify full startup and isolated diagnostic package contracts
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          java = Path('android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java').read_text(encoding='utf-8')
+          gradle = Path('android-apk/app/build.gradle').read_text(encoding='utf-8')
+          manifest = Path('android-apk/app/src/main/AndroidManifest.xml').read_text(encoding='utf-8')
+          on_create = java[java.index('public void onCreate'):java.index('@Override protected void onDestroy')]
+          assert "applicationIdSuffix '.diag'" in gradle
+          assert 'android:label="Backroom Diagnostic"' in manifest
+          assert 'INVESTIGATION_STEP8_UI_ENHANCEMENTS' in on_create
+          assert 'webView.loadUrl("file:///android_asset/index.html")' in on_create
+          assert 'webView.addJavascriptInterface(new GameBridge(), "Android")' in on_create
+          assert 'webView.setWebViewClient(new WebViewClient()' in on_create
+          assert on_create.count('installUiEnhancements();') == 1
+          assert 'gameCore = GameCoreFacade.create' not in on_create
+          PY
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+
+      - name: Run Kotlin tests and build diagnostic debug APK
+        working-directory: android-apk
+        run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
+
+      - name: Prepare diagnostic APK
+        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.1.50-physical-diag.apk
+
+      - name: Verify diagnostic package, launcher and 16 KB native compatibility
+        run: |
+          set -euo pipefail
+          BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          APKSIGNER="$BUILD_TOOLS/apksigner"
+          AAPT="$BUILD_TOOLS/aapt"
+          ZIPALIGN="$BUILD_TOOLS/zipalign"
+          "$APKSIGNER" verify --verbose --print-certs Backroom-1.1.50-physical-diag.apk
+          "$AAPT" dump badging Backroom-1.1.50-physical-diag.apk | grep -q "package: name='com.rabpit.backroom.diag'"
+          "$AAPT" dump badging Backroom-1.1.50-physical-diag.apk | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
+          "$ZIPALIGN" -c -P 16 -v 4 Backroom-1.1.50-physical-diag.apk
+
+      - name: Install and cold-launch diagnostic repeatedly on Android 16
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          BACKROOM_PACKAGE: com.rabpit.backroom.diag
+          BACKROOM_APK: Backroom-1.1.50-physical-diag.apk
+        with:
+          api-level: 36
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
+          script: sh .github/scripts/android16-smoke.sh
+
+      - name: Upload physical diagnostic APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Backroom-1.1.50-physical-diag
+          path: Backroom-1.1.50-physical-diag.apk
+          if-no-files-found: error
+          retention-days: 14
