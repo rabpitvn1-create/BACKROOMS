@@ -91,7 +91,7 @@ jobs:
               ('id="characterSurvivalHud"', html), ('.message.gm{', html), ('focusLatestGmStart()', html),
               ('#characterEquipmentList span,#characterInventoryItems span{text-transform:uppercase', html),
               ('output.put("partyDetails"', facade), ('output.put("gameTime"', facade),
-              ('thresholdRoll("jeffEncounter", 10000, 200', java),
+              ('thresholdRoll("jeffEncounter", 10000, 800', java),
               ('root.equals("jeff") && value instanceof JSONObject', java),
               ('int[] entityThresholds = {805, 1000, 1150, 1150, 810, 1200, 805}', java),
               ('avatars/an_nhien_avatar.png', canon), ('an-nhien:pink-crocs', canon),
