@@ -7,6 +7,7 @@ on:
     paths:
       - "android-apk/**"
       - ".github/workflows/build-backroom-apk.yml"
+      - ".github/scripts/android16-smoke.sh"
 
 permissions:
   contents: write
@@ -180,20 +181,7 @@ jobs:
           profile: pixel_6
           disable-animations: false
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
-          script: |
-            set -eu
-            adb install Backroom-1.1.50.apk
-            for attempt in 1 2 3; do
-              echo "Android 16 cold launch attempt $attempt"
-              adb shell am force-stop com.rabpit.backroom
-              adb logcat -c
-              adb shell am start -n com.rabpit.backroom/.MainActivity
-              sleep 12
-              adb shell pidof com.rabpit.backroom
-              adb shell dumpsys activity activities | grep -q 'mResumedActivity.*com.rabpit.backroom/.MainActivity'
-              ! adb logcat -d -b crash | grep -q 'com.rabpit.backroom'
-              ! adb logcat -d | grep -E 'FATAL EXCEPTION.*com.rabpit.backroom|Process: com.rabpit.backroom.*FATAL'
-            done
+          script: sh .github/scripts/android16-smoke.sh
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
