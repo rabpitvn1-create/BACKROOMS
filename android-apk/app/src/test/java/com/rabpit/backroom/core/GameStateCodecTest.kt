@@ -24,7 +24,7 @@ class GameStateCodecTest {
       turn = TurnState("TURN_9", PendingTurn("TURN_9", "Kai nhặt nước", PendingTurnStatus.INTERPRETING)),
       time = GameTimeState(elapsedSubjectiveMinutes = 485L, lastAdvanceMinutes = 15, lastAdvanceReason = "travel")
     )
-    val canonicalState = AnNhienCanon.ensure(state)
+    val canonicalState = SpecialFollowersCanon.ensure(AnNhienCanon.ensure(state))
     val decoded = GameStateCodec.decode(GameStateCodec.encode(state))
     assertEquals(canonicalState, decoded)
     assertEquals(physiology, decoded.characters.getValue(KAI_ID).physiology)
