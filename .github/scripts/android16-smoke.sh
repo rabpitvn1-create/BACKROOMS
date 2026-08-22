@@ -5,40 +5,46 @@ PACKAGE="${BACKROOM_PACKAGE:-com.rabpit.backroom}"
 COMPONENT="$PACKAGE/.MainActivity"
 APK="${BACKROOM_APK:-Backroom-1.1.50.apk}"
 
-adb wait-for-device
-
-pm_attempt=1
-pm_ready=0
-while [ "$pm_attempt" -le 30 ]; do
-  if adb shell service check package 2>/dev/null | grep -q "found" \
-      && adb shell cmd package list packages >/dev/null 2>&1; then
-    pm_ready=1
-    break
-  fi
-  echo "Waiting for Android package service ($pm_attempt/30)"
-  sleep 5
-  pm_attempt=$((pm_attempt + 1))
-done
-
-if [ "$pm_ready" -ne 1 ]; then
-  echo "Android package service never became ready"
+wait_for_package_service() {
+  label="$1"
+  attempt=1
+  while [ "$attempt" -le 60 ]; do
+    boot="$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)"
+    if [ "$boot" = "1" ] \
+        && adb shell service check package 2>/dev/null | grep -q "found" \
+        && adb shell cmd package list packages >/dev/null 2>&1; then
+      echo "Android package service ready: $label"
+      return 0
+    fi
+    echo "Waiting for Android package service: $label ($attempt/60)"
+    adb wait-for-device >/dev/null 2>&1 || true
+    sleep 5
+    attempt=$((attempt + 1))
+  done
+  echo "Android package service did not recover: $label"
+  adb shell getprop sys.boot_completed || true
   adb shell service check package || true
-  exit 1
-fi
+  return 1
+}
+
+adb wait-for-device
+wait_for_package_service "before install"
 
 install_attempt=1
 installed=0
 while [ "$install_attempt" -le 3 ]; do
   echo "APK install attempt $install_attempt for $PACKAGE"
-  if timeout 180 adb install --no-streaming "$APK"; then
+  # Software-emulated API 36 can take several minutes to dex/scan a ~38 MB APK.
+  # Do not kill adb at 180s while PackageManager may still be processing it.
+  if timeout 600 adb install --no-streaming "$APK"; then
     installed=1
     break
   fi
-  echo "APK install attempt $install_attempt failed; waiting for emulator package service before retry"
-  adb wait-for-device || true
-  adb shell service check package || true
-  adb shell cmd package list packages >/dev/null 2>&1 || true
-  sleep 10
+
+  echo "APK install attempt $install_attempt failed; waiting for PackageManager to fully recover"
+  adb wait-for-device >/dev/null 2>&1 || true
+  wait_for_package_service "after failed install $install_attempt"
+  sleep 15
   install_attempt=$((install_attempt + 1))
 done
 
@@ -46,6 +52,8 @@ if [ "$installed" -ne 1 ]; then
   echo "APK installation failed after three attempts"
   exit 1
 fi
+
+wait_for_package_service "after successful install"
 
 attempt=1
 while [ "$attempt" -le 3 ]; do
