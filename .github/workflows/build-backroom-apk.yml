@@ -3,7 +3,7 @@ name: Build Backroom APK
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, investigate/android16-step5-webview-shell]
     paths:
       - "android-apk/**"
       - ".github/workflows/build-backroom-apk.yml"
@@ -133,8 +133,11 @@ jobs:
           on_create = java[java.index('public void onCreate'):java.index('@Override protected void onDestroy')]
           assert 'gameCore = GameCoreFacade.create' not in on_create
           assert 'Immersive fullscreen unavailable; continuing normally.' in on_create
-          assert 'UI enhancement injection failed; base game remains usable.' in on_create
           assert 'GameCoreFacade.create(getApplicationContext(), BuildConfig.DEBUG)' in java
+          assert 'INVESTIGATION_STEP5_WEBVIEW_SHELL' in on_create
+          assert 'webView.loadUrl(' not in on_create
+          assert 'addJavascriptInterface(' not in on_create
+          assert 'installUiEnhancements(' not in on_create
           PY
 
       - uses: actions/setup-java@v5
