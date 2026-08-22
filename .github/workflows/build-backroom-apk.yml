@@ -135,7 +135,7 @@ jobs:
               'localStorage.getItem("backroom-apk-state")', 'localStorage.setItem("backroom-apk-state"',
               'Overwrite save cũ sẽ được bật ở bước 4', 'throw new Exception("Đã có save tên',
           ]:
-              assert forbidden not in html and forbidden not in drive, forbidden
+              assert forbidden not in (html + drive), forbidden
           assert 'SharedPreferences' not in save_repo
           assert 'SharedPreferencesSaveRepository(' not in facade
           on_create = java[java.index('public void onCreate'):java.index('@Override protected void onDestroy')]
