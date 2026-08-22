@@ -13,13 +13,9 @@ def ensure_after(source: str, anchor: str, addition: str, label: str) -> str:
     return source.replace(anchor, anchor + addition, 1)
 
 
-# Android 16 must never be able to kill the Activity merely because an optional runtime
-# component failed to initialise. Log failures and keep the UI process alive.
 text = ensure_after(text, "import android.os.Bundle;\n", "import android.util.Log;\n", "Log import")
 text = ensure_after(text, "import android.webkit.WebViewClient;\n", "import android.widget.TextView;\n", "TextView import")
 
-# Game State Core is useful, but it is not allowed to be a synchronous app-start dependency.
-# Initialising it lazily also defers LiteRT/runtime class loading until gameplay actually needs it.
 eager_core = "    gameCore = GameCoreFacade.create(getApplicationContext(), BuildConfig.DEBUG);\n"
 text = text.replace(eager_core, "")
 
@@ -27,8 +23,6 @@ field_anchor = "  private GameCoreFacade gameCore;\n"
 field_addition = "  private volatile boolean gameCoreUnavailable;\n"
 text = ensure_after(text, field_anchor, field_addition, "Game Core availability field")
 
-# Existing bridge calls execute inside submitTurn's exception boundary. Route those calls through
-# a lazy accessor so a device-specific Core failure becomes a visible turn error, not an app crash.
 text = text.replace("gameCore.processRule(", "requireGameCore().processRule(")
 text = text.replace("gameCore.processValidatedCandidate(", "requireGameCore().processValidatedCandidate(")
 text = text.replace(
@@ -36,8 +30,6 @@ text = text.replace(
     "      GameCoreFacade core = gameCoreOrNull();\n      if (core != null) core.clear();\n",
 )
 
-# Investigation step 3: preserve both deferred fullscreen methods. The previous boundary used
-# applyImmersiveFullscreen() and would accidentally delete scheduleImmersiveFullscreen().
 method_start = '  @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})\n  @Override public void onCreate(Bundle savedInstanceState) {\n'
 schedule_anchor = "\n  private void scheduleImmersiveFullscreen() {\n"
 immersive_anchor = "\n  private void applyImmersiveFullscreen() {\n"
@@ -59,7 +51,7 @@ on_create = '''  @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"
     try {
       scheduleImmersiveFullscreen();
     } catch (Throwable error) {
-      Log.w("BackroomStartup", "Immersive fullscreen scheduling unavailable; continuing normally.", error);
+      Log.w("BackroomStartup", "Immersive fullscreen unavailable; continuing normally.", error);
     }
     try {
       webView = new WebView(this);
@@ -131,7 +123,6 @@ if "private GameCoreFacade gameCoreOrNull()" not in text:
         raise RuntimeError("Startup helper insertion anchor missing or ambiguous")
     text = text.replace(helper_anchor, "\n" + helpers + helper_anchor, 1)
 
-# A fallback view has no WebView. Avoid teardown/emit races from producing a secondary crash.
 text = text.replace(
     '    runOnUiThread(() -> webView.evaluateJavascript(script, null));',
     '    runOnUiThread(() -> { if (webView != null) webView.evaluateJavascript(script, null); });',
@@ -144,7 +135,7 @@ required = [
     "showStartupFallback(Throwable error)",
     "requireGameCore().processRule(",
     "requireGameCore().processValidatedCandidate(",
-    'Log.w("BackroomStartup", "Immersive fullscreen scheduling unavailable; continuing normally."',
+    'Log.w("BackroomStartup", "Immersive fullscreen unavailable; continuing normally."',
     'Log.e("BackroomStartup", "UI enhancement injection failed; base game remains usable."',
     "GameCoreFacade core = gameCoreOrNull();",
     "private void scheduleImmersiveFullscreen()",
