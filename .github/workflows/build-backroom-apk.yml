@@ -70,7 +70,7 @@ jobs:
       - name: Apply Android runtime patch chain
         run: |
           set -euo pipefail
-          scripts=(patch-provider-status.py patch-luna-text.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-drive-online-save-step1.py)
+          scripts=(patch-provider-status.py patch-luna-text.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-drive-online-save-step1.py patch-online-only-save-step2.py)
           for script in "${scripts[@]}"; do
             echo "==> $script"
             python3 "android-apk/$script"
@@ -86,6 +86,7 @@ jobs:
           gradle = Path('android-apk/app/build.gradle').read_text(encoding='utf-8')
           canon = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/AnNhienCanon.kt').read_text(encoding='utf-8')
           drive = Path('android-apk/app/src/main/java/com/rabpit/backroom/DriveOnlineSaveManager.java').read_text(encoding='utf-8')
+          save_repo = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/SaveRepository.kt').read_text(encoding='utf-8')
           required = [
               ("versionCode 56", gradle), ("versionName '1.1.54'", gradle),
               ('state&&state.partyDetails&&Array.isArray(state.partyDetails.members)', html),
@@ -116,9 +117,18 @@ jobs:
               ('SAVE_FOLDER_ID = "1R9UMFmDmLaGdu4pB2_ha07mMfWywgEaF"', drive),
               ('https://www.googleapis.com/auth/drive', drive),
               ("com.google.android.gms:play-services-auth:21.4.0", gradle),
+              ('<h2>Online Save</h2>', html), ('function save(){return saveOnline()}', html),
+              ('class InMemorySaveRepository', save_repo), ('InMemorySaveRepository()', facade),
           ]
           for marker, source in required:
               assert marker in source, marker
+          for forbidden in [
+              'id="saveButton"', 'id="loadButton"', 'id="deleteSaveButton"',
+              'localStorage.getItem("backroom-apk-state")', 'localStorage.setItem("backroom-apk-state"',
+          ]:
+              assert forbidden not in html, forbidden
+          assert 'SharedPreferences' not in save_repo
+          assert 'SharedPreferencesSaveRepository(' not in facade
           on_create = java[java.index('public void onCreate'):java.index('@Override protected void onDestroy')]
           assert 'gameCore = GameCoreFacade.create' not in on_create
           assert 'Immersive fullscreen unavailable; continuing normally.' in on_create
