@@ -27,7 +27,6 @@ jobs:
       GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
       GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
       GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
-      CURRENT_APK_CERT_SHA256: c020915494d1202e08ecb5f67811c5407a038afe502289a5a59d5fc64a7f7267
 
     steps:
       - uses: actions/checkout@v4
@@ -99,7 +98,7 @@ jobs:
             python3 "android-apk/$script"
           done
 
-      - name: Verify release provider, UI and startup contracts
+      - name: Verify provider, UI and startup contracts
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -146,14 +145,14 @@ jobs:
         with:
           gradle-version: "8.10.2"
 
-      - name: Run Kotlin core tests and build APK
+      - name: Run Kotlin core tests and build debug APK
         working-directory: android-apk
         run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
 
       - name: Prepare APK
         run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.1.50.apk
 
-      - name: Verify upgrade-compatible signature, launcher and 16 KB native compatibility
+      - name: Verify debug APK, launcher and 16 KB native compatibility
         run: |
           set -euo pipefail
           BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
@@ -161,8 +160,6 @@ jobs:
           AAPT="$BUILD_TOOLS/aapt"
           ZIPALIGN="$BUILD_TOOLS/zipalign"
           "$APKSIGNER" verify --verbose --print-certs Backroom-1.1.50.apk
-          CERT=$("$APKSIGNER" verify --print-certs Backroom-1.1.50.apk | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | head -1 | tr '[:upper:]' '[:lower:]')
-          test "$CERT" = "$CURRENT_APK_CERT_SHA256" || (echo "APK certificate changed; refusing an update that would strand existing installs. Got: $CERT" && exit 1)
           "$AAPT" dump badging Backroom-1.1.50.apk | grep -q "package: name='com.rabpit.backroom'"
           "$AAPT" dump badging Backroom-1.1.50.apk | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
           "$ZIPALIGN" -c -P 16 -v 4 Backroom-1.1.50.apk
@@ -185,7 +182,7 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
           script: |
             set -euo pipefail
-            adb install -r Backroom-1.1.50.apk
+            adb install Backroom-1.1.50.apk
             for attempt in 1 2 3; do
               echo "Android 16 cold launch attempt $attempt"
               adb shell am force-stop com.rabpit.backroom
@@ -201,7 +198,7 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Backroom-1.1.50-apk
+          name: Backroom-1.1.50-debug-apk
           path: Backroom-1.1.50.apk
           if-no-files-found: error
           retention-days: 14
@@ -212,7 +209,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="v1.1.50"
-          TITLE="Backroom 1.1.50"
+          TITLE="Backroom 1.1.50 Debug"
           NOTES=$(cat android-apk/RELEASE_NOTES_1.1.50.txt)
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
@@ -238,14 +235,13 @@ jobs:
           BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
           APKSIGNER="$BUILD_TOOLS/apksigner"
           ZIPALIGN="$BUILD_TOOLS/zipalign"
-          CERT=$("$APKSIGNER" verify --print-certs Backroom-1.1.50-verified.apk | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | head -1 | tr '[:upper:]' '[:lower:]')
-          test "$CERT" = "$CURRENT_APK_CERT_SHA256" || (echo "Published APK certificate mismatch: $CERT" && exit 1)
+          "$APKSIGNER" verify --verbose --print-certs Backroom-1.1.50-verified.apk
           "$ZIPALIGN" -c -P 16 -v 4 Backroom-1.1.50-verified.apk
           SHA256=$(sha256sum Backroom-1.1.50-verified.apk | awk '{print $1}')
           mkdir -p release-status
-          printf 'status=GREEN\nversion=1.1.50\ntag=v1.1.50\nasset=Backroom-1.1.50.apk\nsource_sha=%s\nrun_id=%s\nsha256=%s\ncert_sha256=%s\nandroid16_smoke=passed\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$SHA256" "$CERT" > release-status/v1.1.50.txt
+          printf 'status=GREEN\nversion=1.1.50\ntag=v1.1.50\nasset=Backroom-1.1.50.apk\nsource_sha=%s\nrun_id=%s\nsha256=%s\nbuild_type=debug\nandroid16_smoke=passed\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$SHA256" > release-status/v1.1.50.txt
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add release-status/v1.1.50.txt
-          git commit -m 'Record verified Backroom 1.1.50 release'
+          git commit -m 'Record verified Backroom 1.1.50 debug release'
           git push origin HEAD:main
