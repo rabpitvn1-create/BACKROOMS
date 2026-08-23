@@ -1,3 +1,7 @@
-status=RUNNING
+status=RED
 run_id=32610009741
 source_sha=8ede0b3ce8ef7089213a2eb592e854c7b758ce5d
+patch_chain=failure
+contracts=skipped
+android_build=skipped
+apk_check=skipped
