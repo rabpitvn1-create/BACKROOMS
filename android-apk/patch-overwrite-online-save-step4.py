@@ -79,3 +79,7 @@ print("Step 4 complete: saving with an existing name overwrites that exact Drive
 
 # Final gameplay input layer: keep the three primary actions downstream of every prior UI/save rewrite.
 runpy.run_path(str(ROOT / "patch-three-action-runtime-ui.py"), run_name="__main__")
+
+# MadGod must run after the final ActionRuntime/UI rewrite so its cheat bypass, permanent equipment
+# locks and Snapshot overlay routing bind to the actual release sources rather than an intermediate file.
+runpy.run_path(str(ROOT / "patch-madgod-equipment.py"), run_name="__main__")
