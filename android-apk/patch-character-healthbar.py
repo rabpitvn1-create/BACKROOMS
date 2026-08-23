@@ -1,6 +1,12 @@
 from pathlib import Path
+import runpy
 
 ROOT = Path(__file__).resolve().parent
+
+# Step 1 of the Character Status redesign is data-only. Apply the stat/vital schema before the
+# existing healthbar patch so the build always compiles and persists the new CharacterState fields.
+runpy.run_path(str(ROOT / "patch-character-stat-schema.py"), run_name="__main__")
+
 INDEX = ROOT / "app/src/main/assets/index.html"
 html = INDEX.read_text(encoding="utf-8")
 
