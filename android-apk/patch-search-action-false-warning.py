@@ -161,7 +161,7 @@ if new_quantity not in command_text:
 
 helper_anchor = '''  private fun itemCommand(id: String, turn: String, actor: String, target: String?, source: CommandSource, operation: ItemCommand.Operation, item: Pair<String, String>, quantity: Int, slot: String? = null) =
 '''
-quantity_helper = '''  private fun resolvedQuantity(candidate: IntentCandidate, actor: String, item: Pair<String, String>?, rawQuantity: Int, context: GameContext): Int {
+quantity_helper = r'''  private fun resolvedQuantity(candidate: IntentCandidate, actor: String, item: Pair<String, String>?, rawQuantity: Int, context: GameContext): Int {
     if (candidate.intent != GameIntent.OMNIVAULT_COPY || item == null) return rawQuantity
     val targetTotal = Regex("(?:thành|tổng\\s+cộng|đủ)\\s+(?:\\d+|một|hai|ba|bốn|năm|sáu|bảy|tám|chín|mười|một\\s+trăm)\\b", RegexOption.IGNORE_CASE)
       .containsMatchIn(candidate.clause)
