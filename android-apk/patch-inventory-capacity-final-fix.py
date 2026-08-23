@@ -1,4 +1,5 @@
 from pathlib import Path
+import runpy
 
 ROOT = Path(__file__).resolve().parent
 CORE = ROOT / "app/src/main/java/com/rabpit/backroom/core"
@@ -88,3 +89,7 @@ for marker in (
         raise RuntimeError("Final capacity/equipment regression contract missing: " + marker)
 
 print("Inventory capacity final fix applied; multi-slot Equipment now renders one card per item with combined slot labels.")
+
+# This is the last patch in the release chain. Keep Snapshot/overlay state synchronized only after
+# every earlier gameplay, combat, equipment and UI transform has finished touching the runtime.
+runpy.run_path(str(ROOT / "patch-visual-state-sync-final.py"), run_name="__main__")
