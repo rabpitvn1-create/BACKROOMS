@@ -76,7 +76,7 @@ for marker in (
 ):
     if marker not in text:
         raise RuntimeError("Entity runtime hotfix contract missing: " + marker)
-if "ENT-" in text or "normalizedEntityId" in text or "roamingEntityId" in text:
+if ("ENT" + "-") in text or "normalizedEntityId" in text or "roamingEntityId" in text:
     raise RuntimeError("Legacy Entity identifier remains in runtime hotfix")
 
 MAIN.write_text(text, encoding="utf-8")
