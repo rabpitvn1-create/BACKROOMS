@@ -1,0 +1,7 @@
+status=RED
+source_sha=086fcf307b24422fe2826b5d9d769ae3230164a1
+run_id=32644258262
+patch_chain=failure
+contracts=skipped
+android_build=skipped
+apk_check=skipped
