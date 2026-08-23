@@ -142,20 +142,17 @@ if "fun beginAction(legacyStateJson: String, kindRaw: String, action: String)" n
         raise RuntimeError("GameCoreFacade currentCoreState anchor missing")
     facade = facade.replace(anchor, runtime_methods + anchor, 1)
 
-# Every patched authoritative gameplay path that previously appended a direct TimeAdvanceCommand
-# must route through the same helper. The release patch chain can add extra commit paths, so do not
-# freeze this integration to the raw-source count of two.
+# The release chain adds a third time helper path that is not one of the two pending-turn commit
+# sites. Route exactly the authoritative pending-turn sites through ActionRuntime and leave unrelated
+# helper paths intact.
 time_line = "    commands += timeAdvanceCommand(turnId, action)\n"
-time_count = facade.count(time_line)
-if time_count < 2:
-    raise RuntimeError(f"GameCoreFacade expected at least 2 direct time commands, found {time_count}")
-facade = facade.replace(time_line, "")
-
 commit_line = "    val committed = TurnCoordinator.commit(pending.state, commands)"
 commit_count = facade.count(commit_line)
-if commit_count != time_count:
-    raise RuntimeError(f"GameCoreFacade time/commit path mismatch: time={time_count}, commit={commit_count}")
-facade = facade.replace(commit_line, "    val committed = commitActionRuntime(pending.state, commands, action, turnId)")
+time_count = facade.count(time_line)
+if commit_count < 2 or time_count < commit_count:
+    raise RuntimeError(f"GameCoreFacade commit routing anchors invalid: time={time_count}, commit={commit_count}")
+facade = facade.replace(time_line, "", commit_count)
+facade = facade.replace(commit_line, "    val committed = commitActionRuntime(pending.state, commands, action, turnId)", commit_count)
 
 for marker in [
     "fun beginAction(legacyStateJson: String, kindRaw: String, action: String)",
