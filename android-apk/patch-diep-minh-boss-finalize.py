@@ -15,14 +15,13 @@ if helper_start < 0 or helper_end < 0:
 
 boss_helper = r'''  private void forceEntityEncounterFlag(JSONObject candidateState, JSONObject rolls) throws Exception {
     if (candidateState == null || rolls == null) return;
-    String entityKey;
+    String entityKey = rolls.optString("roamingEntityKey", "").trim();
     JSONObject boss = rolls.optJSONObject("diepMinhEncounter");
     if (boss != null && boss.optBoolean("success", false)) {
       entityKey = "diep_minh";
     } else {
       JSONObject normal = rolls.optJSONObject("entityEncounter");
       if (normal == null || !normal.optBoolean("success", false)) return;
-      entityKey = rolls.optString("roamingEntityKey", "").trim();
       if (entityKey.isEmpty()) return;
     }
     JSONObject flags = candidateState.optJSONObject("flags");
