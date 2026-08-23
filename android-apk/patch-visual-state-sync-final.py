@@ -12,10 +12,18 @@ def replace_once(source: str, old: str, new: str, label: str) -> str:
     return source.replace(old, new, 1)
 
 
-# VISUAL_STATE_SYNC_FINAL_V1
-# Snapshot state is a projection of authoritative gameplay state. Free-text story fields and
-# historical Entity flags must never keep an obsolete visual scene alive.
+# VISUAL_STATE_SYNC_FINAL_V2
+# Snapshot state is a projection of authoritative gameplay state. Free-text story fields,
+# stale cache keys and historical Entity flags must never keep an obsolete visual scene alive.
 main = MAIN.read_text(encoding="utf-8")
+
+# Cache identity follows both the authoritative Level and the current area/location identity.
+# visualAreaKey is optional, but when present it invalidates an older cached scene even if the
+# human-readable location happens to stay unchanged.
+old_scene_key = "function visualSceneKey(){var l=state&&state.level&&state.level.number;var where=String(state&&state.location||'').trim().toLowerCase();return String(l==null?'?':l)+'|'+where}"
+new_scene_key = "function visualSceneKey(){var l=state&&state.level&&state.level.number;var where=String(state&&state.location||'').trim().toLowerCase();var area=String(state&&state.flags&&state.flags.visualAreaKey||'').trim().toLowerCase();return String(l==null?'?':l)+'|'+where+'|'+area}"
+if new_scene_key not in main:
+    main = replace_once(main, old_scene_key, new_scene_key, "area-aware Snapshot scene key")
 
 # Level fallback art must prefer the structured Level selected by the gameplay reducer. Text parsing
 # remains only as an old-save fallback when state.level is missing.
@@ -24,21 +32,20 @@ new_level_picker = "var refs={0:'file:///android_asset/level_snapshots/level_0.w
 if new_level_picker not in main:
     main = replace_once(main, old_level_picker, new_level_picker, "authoritative Snapshot Level picker")
 
-# Current Entity rendering follows active CombatRuntime first, then the explicit current-presence key.
-# Jeff/Jane historical flags are deliberately excluded: they describe continuity, not current pixels.
+# CombatRuntime is the sole visual-presence authority for Entity pixels. entityEncounterKey remains
+# a compatibility/state field, but it must never resurrect an Entity when no combat session is active.
 old_active_entity = "function activeEntityKey(){var f=state&&state.flags||{};var direct=normalizeEntityKey(f.entityEncounterKey);if(direct)return direct;if(f.jeff&&f.jeff.present===true)return 'jeff_the_killer';if(f.jane&&f.jane.present===true)return 'jane_the_killer';return '';}"
-new_active_entity = "function activeEntityKey(){var c=state&&state.combat;if(c&&c.active===true){var combatKey=normalizeEntityKey(c.entityKey);if(combatKey)return combatKey;}var f=state&&state.flags||{};return normalizeEntityKey(f.entityEncounterKey);}"
+new_active_entity = "function activeEntityKey(){var c=state&&state.combat;if(!c||c.active!==true)return '';return normalizeEntityKey(c.entityKey);}"
 if new_active_entity not in main:
-    main = replace_once(main, old_active_entity, new_active_entity, "current Entity visual source")
+    main = replace_once(main, old_active_entity, new_active_entity, "authoritative current Entity visual source")
 
-# Reconcile all Level-bearing fields before they are committed into Game State Core. This fixes the
-# previous ordering bug where a model could describe Level N in location/title, the legacy layer would
-# recognize it after the Core commit, and the next turn would resurrect the older Core Level.
+# Reconcile every Level-bearing field before the candidate enters Game State Core. Structured gameplay
+# state wins. A stale location that still names another Level is replaced with a canonical new-Level
+# location, while a legitimate area name without a conflicting Level marker is preserved.
 helper = r'''  private void reconcileVisualWorldState(JSONObject before, JSONObject candidateState, JSONObject rolls) throws Exception {
     int oldLevel = currentLevel(before);
     int structuredLevel = currentLevel(candidateState);
     int describedLevel = mentionedLevel(candidateState);
-    // Structured gameplay state wins. Free-text location/title only repairs old or incomplete candidates.
     int requestedLevel = structuredLevel != oldLevel ? structuredLevel : (describedLevel >= 0 ? describedLevel : oldLevel);
     boolean levelChange = requestedLevel != oldLevel;
 
@@ -55,8 +62,19 @@ helper = r'''  private void reconcileVisualWorldState(JSONObject before, JSONObj
     if (levelChange) {
       candidateState.put("level", new JSONObject().put("number", requestedLevel).put("name", levelName(requestedLevel)));
       candidateState.put("title", "Level " + requestedLevel + " – " + levelName(requestedLevel));
+
+      String candidateLocation = candidateState.optString("location", "").trim();
+      int locationLevel = -1;
+      if (!candidateLocation.isEmpty()) {
+        JSONObject locationProbe = new JSONObject().put("location", candidateLocation);
+        locationLevel = mentionedLevel(locationProbe);
+      }
+      if (candidateLocation.isEmpty() || (locationLevel >= 0 && locationLevel != requestedLevel)) {
+        candidateState.put("location", "Level " + requestedLevel + " / " + levelName(requestedLevel));
+      }
     } else {
-      // Keep the structured Level canonical even if free-text area/location changes within that Level.
+      // Area changes inside one Level are valid. Preserve their location text while keeping the
+      // structured Level canonical, so visualSceneKey changes with the area without corrupting Level.
       candidateState.put("level", new JSONObject().put("number", oldLevel).put("name", levelName(oldLevel)));
     }
   }
@@ -76,10 +94,12 @@ if reconcile_call not in main:
     main = main.replace(anchor, reconcile_call + anchor, 1)
 
 for marker in (
+    "var area=String(state&&state.flags&&state.flags.visualAreaKey||'')",
     "var structuredLevel=state&&state.level&&state.level.number;",
-    "function activeEntityKey(){var c=state&&state.combat;",
+    "function activeEntityKey(){var c=state&&state.combat;if(!c||c.active!==true)return '';",
     "private void reconcileVisualWorldState(JSONObject before, JSONObject candidateState, JSONObject rolls)",
     "structuredLevel != oldLevel ? structuredLevel",
+    'candidateState.put("location", "Level " + requestedLevel + " / " + levelName(requestedLevel))',
     "reconcileVisualWorldState(before, candidateState, rolls);",
 ):
     if marker not in main:
@@ -87,16 +107,50 @@ for marker in (
 for retired in (
     "if(f.jeff&&f.jeff.present===true)return 'jeff_the_killer'",
     "if(f.jane&&f.jane.present===true)return 'jane_the_killer'",
+    "return normalizeEntityKey(f.entityEncounterKey)",
 ):
     if retired in main:
-        raise RuntimeError("Historical Entity presence still drives Snapshot overlay: " + retired)
+        raise RuntimeError("Historical/stale Entity state still drives Snapshot overlay: " + retired)
 
 MAIN.write_text(main, encoding="utf-8")
 
-# Combat resolution previously cleared entityEncounterKey only in the WebView response after saving
-# Core state. The following turn could therefore project stale flagsJson back into the UI and resurrect
-# the dead Entity overlay. Persist the clear before repository.save().
+# Persistently migrate old saves whose entityEncounterKey survived after CombatRuntime had already
+# ended. The key is current-presence only, so retaining it without active combat is invalid state.
 facade = FACADE.read_text(encoding="utf-8")
+old_load = '''  private fun loadOrMigrate(legacy: JSONObject): GameState {
+    if (repository.exists()) return repository.load()
+    val migrated = GameStateCodec.decode(legacy)
+    repository.save(migrated)
+    return migrated
+  }
+'''
+new_load = '''  private fun normalizeVisualPresence(state: GameState): GameState {
+    if (CombatRuntime.active(state) != null) return state
+    val rawFlags = state.world["flagsJson"] ?: return state
+    val flags = runCatching { JSONObject(rawFlags) }.getOrNull() ?: return state
+    if (flags.optString("entityEncounterKey", "").isBlank()) return state
+    flags.put("entityEncounterKey", "")
+    return state.copy(world = state.world + ("flagsJson" to flags.toString()))
+  }
+
+  private fun loadOrMigrate(legacy: JSONObject): GameState {
+    val existed = repository.exists()
+    val loaded = if (existed) repository.load() else GameStateCodec.decode(legacy)
+    val normalized = normalizeVisualPresence(loaded)
+    if (!existed || normalized != loaded) repository.save(normalized)
+    return normalized
+  }
+'''
+if new_load not in facade:
+    facade = replace_once(facade, old_load, new_load, "persistent stale Entity visual migration")
+
+# Capture the exact Entity being resolved before CombatRuntime clears its metadata. Cleanup of unique
+# hunter continuity is then scoped to that Entity instead of blindly changing Jeff and Jane together.
+resolution_anchor = "    var resolution = CombatRuntime.resolve(current, actionKind, action)\n"
+resolution_with_key = "    val resolvedEntityKey = CombatRuntime.active(current)?.entityKey.orEmpty()\n    var resolution = CombatRuntime.resolve(current, actionKind, action)\n"
+if resolution_with_key not in facade:
+    facade = replace_once(facade, resolution_anchor, resolution_with_key, "capture resolved Entity identity")
+
 old_combat_tail = '''    if (time.applied) next = time.state
     repository.save(next)
 
@@ -113,8 +167,10 @@ new_combat_tail = '''    if (time.applied) next = time.state
         ?: legacy.optJSONObject("flags")?.let { JSONObject(it.toString()) }
         ?: JSONObject()
       flags.put("entityEncounterKey", "")
-      flags.optJSONObject("jeff")?.put("present", false)
-      flags.optJSONObject("jane")?.put("present", false)
+      when (resolvedEntityKey) {
+        "jeff_the_killer" -> flags.optJSONObject("jeff")?.put("present", false)
+        "jane_the_killer" -> flags.optJSONObject("jane")?.put("present", false)
+      }
       next = next.copy(world = next.world + ("flagsJson" to flags.toString()))
     }
     repository.save(next)
@@ -123,17 +179,30 @@ new_combat_tail = '''    if (time.applied) next = time.state
     appendLog(output, action, resolution.reply)
 '''
 if new_combat_tail not in facade:
-    facade = replace_once(facade, old_combat_tail, new_combat_tail, "persist Entity visual clear in Core")
+    facade = replace_once(facade, old_combat_tail, new_combat_tail, "persist targeted Entity visual clear in Core")
 
 for marker in (
+    "private fun normalizeVisualPresence(state: GameState): GameState",
+    'if (CombatRuntime.active(state) != null) return state',
     'flags.put("entityEncounterKey", "")',
-    'next.world["flagsJson"]?.let { JSONObject(it) }',
+    'if (!existed || normalized != loaded) repository.save(normalized)',
+    'val resolvedEntityKey = CombatRuntime.active(current)?.entityKey.orEmpty()',
+    'when (resolvedEntityKey)',
+    '"jeff_the_killer" -> flags.optJSONObject("jeff")?.put("present", false)',
+    '"jane_the_killer" -> flags.optJSONObject("jane")?.put("present", false)',
     'next = next.copy(world = next.world + ("flagsJson" to flags.toString()))',
-    'flags.optJSONObject("jeff")?.put("present", false)',
-    'flags.optJSONObject("jane")?.put("present", false)',
 ):
     if marker not in facade:
         raise RuntimeError("Combat visual cleanup persistence missing: " + marker)
 
+# Guard specifically against the previous unsafe cleanup that marked both unique hunters absent after
+# any unrelated Entity encounter ended.
+unsafe_cleanup = '''      flags.optJSONObject("jeff")?.put("present", false)
+      flags.optJSONObject("jane")?.put("present", false)
+      next = next.copy(world = next.world + ("flagsJson" to flags.toString()))
+'''
+if unsafe_cleanup in facade:
+    raise RuntimeError("Unscoped Jeff/Jane cleanup survived visual-state hardening")
+
 FACADE.write_text(facade, encoding="utf-8")
-print("Visual state sync final applied: authoritative Level/area projection and persistent Entity cleanup.")
+print("Visual state sync V2 applied: authoritative Level/area projection, stale-save migration, and targeted Entity cleanup.")
