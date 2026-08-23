@@ -24,6 +24,11 @@ print("Healing item final use call updated with healHp argument.")
 runpy.run_path(str(ROOT / "patch-entity-combat-durability.py"), run_name="__main__")
 
 # Kai's automatic Ultimate must run after Entity durability because it depends on the final evasion,
-# regeneration, and upgraded Entity HP contracts. This keeps Guilty Crown Override as the last combat
-# mechanics authority without rewriting any earlier patch in the chain.
+# regeneration, and upgraded Entity HP contracts. This keeps Guilty Crown Override as the last general
+# combat mechanic before unique boss overrides are applied.
 runpy.run_path(str(ROOT / "patch-kai-guilty-crown-override.py"), run_name="__main__")
+
+# Diệp Minh is the final unique-boss authority. Run it after every general combat transform so the
+# requested exact 2999 HP, percentage attacks, +30 regeneration and 3% independent spawn cannot be
+# accidentally modified by the generic Entity durability or Kai Ultimate patches.
+runpy.run_path(str(ROOT / "patch-diep-minh-boss.py"), run_name="__main__")

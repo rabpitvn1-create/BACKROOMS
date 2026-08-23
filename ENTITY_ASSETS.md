@@ -26,6 +26,9 @@ Runtime chỉ dùng canonical Entity key trùng chính xác với tên file bỏ
 | `jeff_the_killer` | `jeff_the_killer.png` |
 | `jane_the_killer` | `jane_the_killer.png` |
 | `slenderman` | `slenderman.png` |
+| `diep_minh` | `diep_minh.png` |
+
+`diep_minh` là boss unique dùng roll xuất hiện độc lập 3%, không nằm trong shared roaming Entity pool.
 
 Snapshot đọc trực tiếp bằng đường dẫn:
 
