@@ -56,22 +56,38 @@ helper_anchor = '  private boolean retryable(int code) {\n'
 if 'private JSONObject resolveEntityOverlay(' not in text:
     text = replace_once(text, helper_anchor, helpers + helper_anchor, "local Entity helpers")
 
+# Preserve the authorization shape expected by the later Jane patch, without any remote asset dependency.
+flag_old = r'''    if (root.equals("jeff") || root.equals("entityRegistry") || root.equals("entitiesConfirmedLocal") || root.equals("entityEncounterKey")) {
+      JSONObject flags = before.optJSONObject("flags");
+      return rollSuccess(rolls, "entityEncounter") || (flags != null && flags.optInt("entitiesConfirmedLocal", 0) > 0);
+    }
+'''
+flag_new = r'''    if (root.equals("jeff") || root.equals("entityRegistry") || root.equals("entitiesConfirmedLocal") || root.equals("entityEncounterKey")) {
+      JSONObject flags = before.optJSONObject("flags");
+      if (root.equals("entityEncounterKey") && flags != null) {
+        if (!flags.optString("entityEncounterKey", "").trim().isEmpty()) return true;
+        JSONObject jeff = flags.optJSONObject("jeff");
+        if (jeff != null && (jeff.optBoolean("present", false) || jeff.optBoolean("spawned", false))) return true;
+      }
+      return rollSuccess(rolls, "entityEncounter") || (flags != null && flags.optInt("entitiesConfirmedLocal", 0) > 0);
+    }
+'''
+if flag_new not in text:
+    text = replace_once(text, flag_old, flag_new, "Entity visual-state clear gate")
+
 writer_start = text.find('  private String writerPrompt(JSONObject before, String action, JSONObject rolls, JSONArray auditFeedback) throws Exception {')
 writer_end = text.find('  private JSONArray localKnowledgeIssues(', writer_start)
 if writer_start < 0 or writer_end < 0:
     raise RuntimeError("writerPrompt boundary not found for local Entity contract")
 writer = text[writer_start:writer_end]
-writer_marker = (
-    '      "Inventory chỉ đổi khi Kai thật sự lấy/nhận/copy/trao/mất/tiêu thụ vật; nhìn thấy không đồng nghĩa sở hữu. MadGod roll success chỉ mở discovery route, không tự đưa set vào inventory. " +\n'
-)
-writer_rule = writer_marker + (
-    '      "ENTITY ROAMING HARD LOCK: mọi Entity trong LOCAL ROAMING POOL đều có thể lang thang/incursion qua bất kỳ Level 0-6; Level gốc chỉ là habitat/canon baseline, KHÔNG khóa nơi encounter. Khi rolls.entityEncounter.success=true và rolls.roamingEntityId có giá trị, encounter thường bắt buộc dùng đúng ID đó. LOCAL ROAMING POOL: ENT-1A Hound, ENT-1B Clump, ENT-1C Duller, ENT-1D Deathmoth, ENT-1E Hostile Faceling, ENT-1F False Puddle, ENT-1G Paintings, ENT-2C Smiler, ENT-2D Skin-Stealer, ENT-2E Predatory Window, ENT-2F Biological Pipeline, ENT-3B Wretch, ENT-3D Cable Mimic, ENT-5A Beast of Level 5, ENT-5E Hotel Corpse Lure, ENT-R03 Slenderman. Jeff ENT-R01 và Jane ENT-R02 giữ roll độc lập riêng. " +\n'
-    '      "ENTITY OVERLAY HARD LOCK: với Entity đã được xác nhận và đang trực tiếp xuất hiện hoặc đối đầu trong cảnh hiện tại, dùng flag_patch root=entityEncounterKey value=exact ID. Nếu Entity bị tiêu diệt, Kai chạy trốn/thoát, Entity rời cảnh hoặc không còn trực tiếp hiện diện, đặt entityEncounterKey thành chuỗi rỗng ngay trong lượt đó. Hình ảnh Entity chỉ lấy từ APK local assets/entity, tuyệt đối không tải mạng. " +\n'
-)
+writer_marker = '      "Inventory chỉ đổi khi Kai thật sự lấy/nhận/copy/trao/mất/tiêu thụ vật; nhìn thấy không đồng nghĩa sở hữu. MadGod roll success chỉ mở discovery route, không tự đưa set vào inventory. " +\n'
+overlay_rule = '      "ENTITY OVERLAY HARD LOCK: với Entity đã được xác nhận và đang trực tiếp xuất hiện hoặc đối đầu trong cảnh hiện tại, dùng flag_patch root=entityEncounterKey value=exact canon ID dạng ENT-1A/ENT-2C; Jeff the Killer dùng ENT-R01 khi hắn trực tiếp hiện diện. Nếu Entity bị tiêu diệt, Kai chạy trốn hoặc thoát khỏi Entity, Entity rời cảnh, biến mất, hoặc không còn trực tiếp hiện diện/đối đầu, bắt buộc đặt entityEncounterKey thành chuỗi rỗng ngay trong lượt đó. entityEncounterKey là trạng thái hiện diện trực quan hiện tại, không phải lịch sử encounter. Không dùng tên thường thay cho Entity ID. " +\n'
+roaming_rule = '      "ENTITY ROAMING HARD LOCK: mọi Entity trong LOCAL ROAMING POOL đều có thể lang thang/incursion qua bất kỳ Level 0-6; Level gốc chỉ là habitat/canon baseline, KHÔNG khóa nơi encounter. Khi rolls.entityEncounter.success=true và rolls.roamingEntityId có giá trị, encounter thường bắt buộc dùng đúng ID đó. LOCAL ROAMING POOL: ENT-1A Hound, ENT-1B Clump, ENT-1C Duller, ENT-1D Deathmoth, ENT-1E Hostile Faceling, ENT-1F False Puddle, ENT-1G Paintings, ENT-2C Smiler, ENT-2D Skin-Stealer, ENT-2E Predatory Window, ENT-2F Biological Pipeline, ENT-3B Wretch, ENT-3D Cable Mimic, ENT-5A Beast of Level 5, ENT-5E Hotel Corpse Lure, ENT-R03 Slenderman. Jeff ENT-R01 và Jane ENT-R02 giữ roll độc lập riêng. " +\n'
+local_rule = '      "ENTITY ASSET LOCAL HARD LOCK: hình Entity chỉ lấy từ APK assets/entity qua file:///android_asset/entity/; cấm tải manifest hoặc ảnh Entity từ mạng. " +\n'
 if 'ENTITY ROAMING HARD LOCK:' not in writer:
     if writer_marker not in writer:
         raise RuntimeError("writerPrompt local Entity insertion marker not found")
-    writer = writer.replace(writer_marker, writer_rule, 1)
+    writer = writer.replace(writer_marker, writer_marker + overlay_rule + roaming_rule + local_rule, 1)
     text = text[:writer_start] + writer + text[writer_end:]
 
 roll_old = '    rolls.put("entityEncounter", thresholdRoll("entityEncounter", 10000, entityThresholds[level], physical && entityAllowed, entitySuffix));\n'
@@ -79,12 +95,10 @@ roll_new = '''    JSONObject normalEntityRoll = thresholdRoll("entityEncounter",
 if 'rolls.put("roamingEntityId"' not in text:
     text = replace_once(text, roll_old, roll_new, "roaming Entity deterministic pick")
 
-request_marker = (
-    '      "var snapshotBusy=false;function requestSnapshot(){var s=document.getElementById(\'status\');if(s)s.textContent=\'Snapshot chưa được cấu hình.\';}" +\n'
-)
+request_marker = '      "var snapshotBusy=false;function requestSnapshot(){var s=document.getElementById(\'status\');if(s)s.textContent=\'Snapshot chưa được cấu hình.\';}" +\n'
 entity_js = r'''      "var __baseRenderSnapshot=renderSnapshot,__entityOverlay={id:'',url:'',revision:0,anchor:'left-bottom',maxHeight:.97,loading:''};" +
       "function normalizeEntityId(v){if(typeof v!=='string')return '';var m=v.toUpperCase().match(/ENT-[A-Z0-9]+(?:-[A-Z0-9]+)?/);return m?m[0]:'';}" +
-      "function activeEntityId(){var f=state&&state.flags||{};if(Object.prototype.hasOwnProperty.call(f,'entityEncounterKey'))return normalizeEntityId(f.entityEncounterKey);if(f.jeff&&(f.jeff.present===true||f.jeff.spawned===true))return 'ENT-R01';if(f.jane&&(f.jane.present===true||f.jane.spawned===true))return 'ENT-R02';return '';}" +
+      "function activeEntityId(){var f=state&&state.flags||{};if(Object.prototype.hasOwnProperty.call(f,'entityEncounterKey'))return normalizeEntityId(f.entityEncounterKey);if(f.jeff&&(f.jeff.present===true||f.jeff.spawned===true))return 'ENT-R01';var reg=f.entityRegistry;if(Array.isArray(reg)){for(var i=reg.length-1;i>=0;i--){var r=reg[i],id=normalizeEntityId(r&&typeof r==='object'?(r.entityId||r.id||r.code||''):r);if(id&&(!r||typeof r!=='object'||(r.present!==false&&r.active!==false&&r.departed!==true)))return id;}}else if(reg&&typeof reg==='object'){var keys=Object.keys(reg);for(var j=keys.length-1;j>=0;j--){var id2=normalizeEntityId(keys[j])||normalizeEntityId(reg[keys[j]]&&reg[keys[j]].entityId);var rec=reg[keys[j]];if(id2&&(!rec||typeof rec!=='object'||(rec.present!==false&&rec.active!==false&&rec.departed!==true)))return id2;}}return '';}" +
       "function requestEntityOverlay(id){if(!id||__entityOverlay.loading===id)return;if(!window.Android||typeof Android.requestEntityOverlay!=='function')return;__entityOverlay.loading=id;Android.requestEntityOverlay(id);}" +
       "function appendEntityOverlay(){var box=document.getElementById('snapshot');if(!box)return;var old=box.querySelector('.snapshot-entity');if(old)old.remove();var id=activeEntityId();if(!id){__entityOverlay={id:'',url:'',revision:0,anchor:'left-bottom',maxHeight:.97,loading:''};return;}if(__entityOverlay.id!==id){__entityOverlay.url='';__entityOverlay.id=id;}if(!__entityOverlay.url){requestEntityOverlay(id);return;}var img=document.createElement('img');img.className='snapshot-entity';img.src=__entityOverlay.url;img.alt=id;img.style.position='absolute';img.style.bottom='0';img.style.width='auto';img.style.maxWidth='55%';img.style.height=Math.round(Math.max(.2,Math.min(1,Number(__entityOverlay.maxHeight)||.97))*100)+'%';img.style.objectFit='contain';img.style.pointerEvents='none';img.style.zIndex='2';img.style.left='0';img.style.objectPosition='left bottom';box.appendChild(img);}" +
       "renderSnapshot=function(){__baseRenderSnapshot();appendEntityOverlay();};" +
@@ -134,13 +148,9 @@ for forbidden in ["drive.google.com", "ENTITY_MANIFEST_FILE_ID", "readEntityMani
         raise RuntimeError("Remote Drive Entity dependency still present: " + forbidden)
 
 for marker in [
-    'file:///android_asset/entity/',
-    'ENT-R03',
-    'ENTITY ROAMING HARD LOCK:',
-    'rolls.put("roamingEntityId"',
-    'private JSONObject resolveEntityOverlay(',
-    'window.backroomEntityOverlay=function(payload)',
-    '@JavascriptInterface public void requestEntityOverlay(String entityId)',
+    'file:///android_asset/entity/', 'ENT-R03', 'ENTITY ROAMING HARD LOCK:',
+    'rolls.put("roamingEntityId"', 'private JSONObject resolveEntityOverlay(',
+    'window.backroomEntityOverlay=function(payload)', '@JavascriptInterface public void requestEntityOverlay(String entityId)'
 ]:
     if marker not in text:
         raise RuntimeError("Local Entity contract missing: " + marker)
