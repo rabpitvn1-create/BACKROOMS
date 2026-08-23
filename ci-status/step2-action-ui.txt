@@ -1,7 +1,3 @@
-status=RED
-run_id=32610200642
-source_sha=94fa8508bc2ecea5a8f9aa9d2194643113e4430b
-patch_chain=success
-contracts=success
-android_build=failure
-apk_check=skipped
+status=RUNNING
+run_id=32610307878
+source_sha=2ba3d3c55316551c6ee9653c0202354fd26efe38
