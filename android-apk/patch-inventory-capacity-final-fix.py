@@ -106,3 +106,8 @@ runpy.run_path(str(ROOT / "patch-lucia-follower.py"), run_name="__main__")
 # encounter contract to MainActivity. This keeps roaming Entity generation available to all three
 # primary actions without changing Lucia's own Level 0 follower rules.
 runpy.run_path(str(ROOT / "patch-entity-encounter-all-actions.py"), run_name="__main__")
+
+# Healing items are installed last so their HP/use and generic-loot contracts see the fully patched
+# runtime and cannot be overwritten by earlier gameplay, follower, equipment, or encounter patches.
+runpy.run_path(str(ROOT / "patch-healing-items.py"), run_name="__main__")
+runpy.run_path(str(ROOT / "patch-healing-items-finalize.py"), run_name="__main__")
