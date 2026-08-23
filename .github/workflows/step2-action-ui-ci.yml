@@ -1,0 +1,142 @@
+name: Step 2 Action UI CI
+
+on:
+  push:
+    branches: [step2-action-ui]
+    paths:
+      - "android-apk/patch-three-action-runtime-ui.py"
+      - "android-apk/patch-overwrite-online-save-step4.py"
+      - "android-apk/app/src/main/java/com/rabpit/backroom/core/ActionRuntime.kt"
+      - "android-apk/app/src/test/java/com/rabpit/backroom/core/ActionRuntimeTest.kt"
+      - ".github/workflows/step2-action-ui-ci.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: step2-action-ui-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  action-ui-integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Capture active run id
+        run: |
+          set -euo pipefail
+          mkdir -p ci-status
+          printf 'status=RUNNING\nrun_id=%s\nsource_sha=%s\n' "$GITHUB_RUN_ID" "$GITHUB_SHA" > ci-status/step2-action-ui.txt
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add ci-status/step2-action-ui.txt
+          git commit -m "Record Step 2 CI run $GITHUB_RUN_ID"
+          git push origin HEAD:step2-action-ui
+
+      - name: Apply exact Android runtime patch chain
+        id: patch_chain
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          scripts=(patch-provider-status.py patch-luna-text.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-drive-online-save-step1.py patch-online-only-save-step2.py patch-named-online-save-step3.py patch-overwrite-online-save-step4.py)
+          for script in "${scripts[@]}"; do
+            echo "==> $script"
+            python3 "android-apk/$script"
+          done
+
+      - name: Verify three-action runtime and UI contracts
+        id: contracts
+        if: steps.patch_chain.outcome == 'success'
+        continue-on-error: true
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          html = Path('android-apk/app/src/main/assets/index.html').read_text(encoding='utf-8')
+          java = Path('android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java').read_text(encoding='utf-8')
+          facade = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt').read_text(encoding='utf-8')
+          runtime = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/ActionRuntime.kt').read_text(encoding='utf-8')
+
+          for marker in [
+              'id="searchActionButton"', 'id="submit"', 'id="exploreActionButton"',
+              'class="primary-action execute-action"', 'STEP2_THREE_ACTIONS',
+              'submitMacroAction("SEARCH","Tìm kiếm")',
+              'submitMacroAction("EXPLORE","Khám phá")',
+              'Android.submitAction(JSON.stringify(state),"EXECUTE",a)',
+              'submitEl.disabled=busy||!hasText',
+          ]:
+              assert marker in html, marker
+          assert '<button id="submit">THỰC HIỆN</button>' not in html
+
+          for marker in [
+              '@JavascriptInterface public void submitAction(String stateJson, String actionKind, String action)',
+              'submitAction(stateJson, "EXECUTE", action);',
+              '.beginAction(stateJson, actionKind, action)',
+              '.currentActionContext()', 'SEARCH HARD LOCK:', 'EXPLORE HARD LOCK:',
+              '.abortAction("pipeline_error")',
+          ]:
+              assert marker in java, marker
+
+          for marker in [
+              'fun beginAction(legacyStateJson: String, kindRaw: String, action: String)',
+              'fun currentActionContext(): String', 'fun abortAction(reason: String): Boolean',
+              'private fun commitActionRuntime(',
+              'ActionRuntime.advance(state, active.sessionId, "resolve", minutes)',
+              'ActionRuntime.markSearchCoverage(',
+              'ActionRuntime.complete(finalState, active.sessionId)',
+          ]:
+              assert marker in facade, marker
+
+          for marker in [
+              'enum class ActionKind { SEARCH, EXECUTE, EXPLORE }',
+              'enum class SearchDepth { QUICK, NORMAL, THOROUGH }',
+              'fun markSearchCoverage(', 'fun interrupt(',
+          ]:
+              assert marker in runtime, marker
+          PY
+
+      - uses: actions/setup-java@v5
+        if: steps.patch_chain.outcome == 'success' && steps.contracts.outcome == 'success'
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+        if: steps.patch_chain.outcome == 'success' && steps.contracts.outcome == 'success'
+        with:
+          gradle-version: "8.10.2"
+
+      - name: Run core tests and assemble debug APK
+        id: android_build
+        if: steps.patch_chain.outcome == 'success' && steps.contracts.outcome == 'success'
+        continue-on-error: true
+        working-directory: android-apk
+        run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
+
+      - name: Verify debug APK exists
+        id: apk_check
+        if: steps.android_build.outcome == 'success'
+        continue-on-error: true
+        run: test -s android-apk/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Record final Step 2 status
+        if: always()
+        run: |
+          set -euo pipefail
+          if [ "${{ steps.patch_chain.outcome }}" = "success" ] && [ "${{ steps.contracts.outcome }}" = "success" ] && [ "${{ steps.android_build.outcome }}" = "success" ] && [ "${{ steps.apk_check.outcome }}" = "success" ]; then
+            status=GREEN
+          else
+            status=RED
+          fi
+          printf 'status=%s\nrun_id=%s\nsource_sha=%s\npatch_chain=%s\ncontracts=%s\nandroid_build=%s\napk_check=%s\n' "$status" "$GITHUB_RUN_ID" "$GITHUB_SHA" "${{ steps.patch_chain.outcome }}" "${{ steps.contracts.outcome }}" "${{ steps.android_build.outcome }}" "${{ steps.apk_check.outcome }}" > ci-status/step2-action-ui.txt
+          git add ci-status/step2-action-ui.txt
+          git commit -m "Record Step 2 CI $status for run $GITHUB_RUN_ID"
+          git push origin HEAD:step2-action-ui
+
+      - name: Enforce Step 2 green gate
+        if: always()
+        run: |
+          test "${{ steps.patch_chain.outcome }}" = "success"
+          test "${{ steps.contracts.outcome }}" = "success"
+          test "${{ steps.android_build.outcome }}" = "success"
+          test "${{ steps.apk_check.outcome }}" = "success"
