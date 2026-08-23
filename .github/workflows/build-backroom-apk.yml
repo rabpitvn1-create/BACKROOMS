@@ -110,16 +110,20 @@ jobs:
               ('partyDetails&&state.partyDetails.members', java),
               ('val carried = removeItem(source, command.itemId, command.quantity)', engines),
               ('assertFalse(equip.state.inventories.getValue(KAI_ID).items.containsKey(MADGOD_SET_ID))', tests),
-              ('rolls.put("roamingEntityId"', java), ('file:///android_asset/entity/', java),
+              ('rolls.put("roamingEntityKey"', java), ('file:///android_asset/entity/', java),
               ('private JSONObject resolveEntityOverlay(', java), ('window.backroomEntityOverlay=function(payload)', java),
               ('private void forceEntityEncounterFlag(JSONObject candidateState, JSONObject rolls)', java),
               ('forceEntityEncounterFlag(candidateState, rolls);', java),
+              ('boolean exploreAction = "EXPLORE".equals(actionKindNormalized);', java),
+              ('makeGameplayRolls(before, actionKind, action, meta)', java),
               ("box.style.position='relative';box.style.overflow='hidden'", java),
               ('Kai_MadGod_snapshot_overlay.png', java),
               ('class SharedPreferencesSaveRepository', save_repo),
           ]
           for marker, source in required:
               assert marker in source, marker
+          assert 'rolls.put("roamingEntityId"' not in java
+          assert 'makeGameplayRolls(before, action, meta)' not in java
           assert 'slot != "set" || MadGodCanon.slot(command.itemId' not in engines
           assert 'appendEquipmentBadge(box)' not in java
 
