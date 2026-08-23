@@ -21,6 +21,8 @@ object CharacterDetailJson {
     put("presence", character.presence.name)
     put("isLeader", character.isLeader)
     character.healthState?.let { put("healthState", it) }
+    put("currentHp", character.currentHp)
+    put("maxHp", character.maxHp)
     put("injuries", JSONArray(character.injuries))
     put("physiology", JSONObject().apply {
       put("hunger", character.physiology.hunger.name)
