@@ -1,5 +1,7 @@
 package com.rabpit.backroom.core
 
+// CharacterStatEngine.applyCompletedTurnRegen is invoked by TurnCoordinator after a completed turn.
+
 private fun addItem(inventory: InventoryState, rawItem: ItemStack): InventoryState {
   val item = ItemContentRules.normalize(rawItem)
   val old = inventory.items[item.itemId]?.let(ItemContentRules::normalize)
