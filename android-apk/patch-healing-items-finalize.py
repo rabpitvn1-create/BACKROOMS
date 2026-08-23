@@ -28,7 +28,11 @@ runpy.run_path(str(ROOT / "patch-entity-combat-durability.py"), run_name="__main
 # combat mechanic before unique boss overrides are applied.
 runpy.run_path(str(ROOT / "patch-kai-guilty-crown-override.py"), run_name="__main__")
 
-# Diệp Minh is the final unique-boss authority. Run it after every general combat transform so the
-# requested exact 2999 HP, percentage attacks, +30 regeneration and 3% independent spawn cannot be
-# accidentally modified by the generic Entity durability or Kai Ultimate patches.
+# Diệp Minh remains the unique-boss authority for exact HP, percentage attacks, regeneration and spawn.
+# Apply that first so Kai's passive gun skills can wrap the final enemy-response path without replacing
+# or weakening any of the boss contracts.
 runpy.run_path(str(ROOT / "patch-diep-minh-boss.py"), run_name="__main__")
+
+# Kai's automatic gun-skill pass is deliberately last in CombatRuntime. It adds persistent Bleeding,
+# Stun and Quick Step state around the already-final generic/boss response while preserving Guilty Crown.
+runpy.run_path(str(ROOT / "patch-kai-gun-skills.py"), run_name="__main__")
