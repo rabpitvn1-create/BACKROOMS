@@ -1,3 +1,7 @@
-status=RUNNING
+status=GREEN
 run_id=32610307878
 source_sha=2ba3d3c55316551c6ee9653c0202354fd26efe38
+patch_chain=success
+contracts=success
+android_build=success
+apk_check=success
