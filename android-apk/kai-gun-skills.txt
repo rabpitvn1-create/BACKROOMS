@@ -1,0 +1,35 @@
+KAI AKECHI / TWILIGHT — AUTOMATIC GUN SKILLS ADDENDUM
+STATUS: HARD CANON / GAMEPLAY LOCK
+
+Các kỹ năng dưới đây là kỹ năng xạ thủ tự động của Kai trong CombatRuntime. Mỗi kỹ năng có roll kích hoạt riêng theo mỗi combat turn hợp lệ. Guilty Crown Override giữ quyền ưu tiên ở turn thứ 3 và các bội số của 3; trong turn Override, bộ kỹ năng tự động này không roll để không chồng cơ chế lên Ultimate 24 phát.
+
+1. THE LAST REQUIEM
+- Kai bắn liên tục đúng 4 phát vào khớp vai của mục tiêu.
+- Tự động kích hoạt với xác suất 30% mỗi combat turn hợp lệ.
+- Gây tổng cộng 170% DMG của White Wraith / weapon damage hiện tại; 170% là tổng damage của kỹ năng, không nhân thêm lần nữa theo 4 viên đạn.
+- Khi kích hoạt thành công, mục tiêu nhận Bleeding trong 3 combat turn tiếp theo.
+- Mỗi turn Bleeding gây damage bằng 5% Max HP của mục tiêu.
+- Bleeding tái kích hoạt sẽ làm mới thời lượng về 3 turn, không cộng dồn nhiều stack song song.
+
+2. SILENT LULLABY
+- Kai nhảy lên cao và bắn liên tục đúng 4 viên vào cùng một điểm trên ngực mục tiêu.
+- Tự động kích hoạt với xác suất 20% mỗi combat turn hợp lệ.
+- Gây tổng cộng 130% DMG của White Wraith / weapon damage hiện tại.
+- Gây Stun 1 turn. Mục tiêu bị Stun mất phản ứng / phản công của chính combat turn đó.
+
+3. SALVATION
+- Kai ném súng về phía sau đối thủ, dịch chuyển tức thời đến vị trí của súng rồi bắn nhanh đúng 2 phát.
+- Tự động kích hoạt với xác suất 20% mỗi combat turn hợp lệ.
+- Gây tổng cộng 147% DMG của White Wraith / weapon damage hiện tại.
+
+4. QUICK STEP
+- Kai liên tục dịch chuyển cự ly ngắn để phá khóa mục tiêu và đổi góc né.
+- Tự động kích hoạt với xác suất 30% mỗi combat turn hợp lệ.
+- Khi kích hoạt, Kai nhận +50 điểm phần trăm Evasion đối với đòn phản công thông thường của Entity.
+- Hiệu lực kéo dài 3 combat turn tính cả turn kích hoạt; tái kích hoạt làm mới thời lượng về 3 turn.
+- Quick Step không vô hiệu hóa sát thương diện rộng bắt buộc của Devils And Gold; Silent Lullaby vẫn có thể Stun để chặn phản ứng của turn hiện tại.
+
+HARD LOCK GAMEPLAY
+- Các roll The Last Requiem, Silent Lullaby, Salvation và Quick Step độc lập với nhau trong một turn hợp lệ, vì vậy nhiều kỹ năng có thể cùng kích hoạt nếu từng roll đều thành công.
+- Kỹ năng đã kích hoạt không thực hiện thêm accuracy/evasion roll riêng; proc thành công đồng nghĩa kỹ năng trúng mục tiêu.
+- Không thay đổi Guilty Crown Override: đúng 24 phát, mỗi phát 10 HP trong gameplay hiện tại, Accuracy 200%, bỏ qua toàn bộ hiệu ứng né, tự động mỗi 3 combat turn.
