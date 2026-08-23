@@ -1,0 +1,97 @@
+name: Verify Unified Entity Pool
+
+on:
+  push:
+    branches: [fix/unified-entity-spawn-pool]
+    paths:
+      - "android-apk/**"
+      - ".github/workflows/verify-unified-entity-pool.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      LUNA_API_KEY: ${{ secrets.LUNA_API_KEY }}
+      LUNA_BASE_URL: https://api.vilao.ai/v1
+      LUNA_MODEL: ${{ secrets.LUNA_MODEL }}
+      GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 || secrets.GEMINI_API_KEY }}
+      GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
+      GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
+      GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
+      GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Apply Android runtime patch chain
+        run: |
+          set -euo pipefail
+          scripts=(patch-provider-status.py patch-luna-text.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py)
+          for script in "${scripts[@]}"; do
+            echo "==> $script"
+            python3 "android-apk/$script"
+          done
+
+      - name: Verify unified Entity contracts
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          java = Path('android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java').read_text(encoding='utf-8')
+          facade = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt').read_text(encoding='utf-8')
+          required_java = [
+              '"hotel_corpse_lure","jeff_the_killer","jane_the_killer","slenderman"',
+              'rolls.put("roamingEntityKey"',
+              'String entityKey = rolls.optString("roamingEntityKey", "").trim();',
+              'function activeEntityKey(){var f=state&&state.flags||{};return normalizeEntityKey(f.entityEncounterKey);}',
+              'ROAMING KILLER HARD LOCK: Jeff the Killer và Jane the Killer dùng cùng entityEncounter',
+          ]
+          for marker in required_java:
+              assert marker in java, marker
+          assert 'jeffEncounter' not in java
+          assert 'janeEncounter' not in java
+          required_facade = [
+              'val flags = JSONObject(next.world["flagsJson"] ?: "{}")',
+              'flags.put("entityEncounterKey", "")',
+              'next = next.copy(world = next.world + ("flagsJson" to flags.toString()))',
+          ]
+          for marker in required_facade:
+              assert marker in facade, marker
+          PY
+          git diff --check
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+
+      - name: Run tests and build debug APK
+        working-directory: android-apk
+        run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
+
+      - name: Verify APK output
+        run: |
+          set -euo pipefail
+          test -s android-apk/app/build/outputs/apk/debug/app-debug.apk
+          BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          "$BUILD_TOOLS/apksigner" verify --verbose android-apk/app/build/outputs/apk/debug/app-debug.apk
+          "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 android-apk/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload verification APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: unified-entity-pool-debug-apk
+          path: android-apk/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 3
