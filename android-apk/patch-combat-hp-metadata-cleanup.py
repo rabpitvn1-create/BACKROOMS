@@ -2,6 +2,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 COMBAT = ROOT / "app/src/main/java/com/rabpit/backroom/core/CombatRuntime.kt"
+DETAIL = ROOT / "app/src/main/java/com/rabpit/backroom/core/CharacterDetailProjection.kt"
 text = COMBAT.read_text(encoding="utf-8")
 
 # CharacterVitalState is now the sole source of truth for Kai HP. Remove every residual reference
@@ -54,4 +55,28 @@ if "CharacterStatEngine.setCurrentHp" not in text:
     raise RuntimeError("CombatRuntime no longer writes authoritative Kai HP")
 
 COMBAT.write_text(text, encoding="utf-8")
-print("Combat HP metadata cleanup applied: CharacterVitalState is the only Kai HP source.")
+
+# CharacterDetailProjection is a public test/UI projection used by older call sites with named
+# constructor arguments. New Status fields get safe defaults so adding RPG presentation data does
+# not force unrelated existing tests or callers to manufacture values they do not care about.
+detail = DETAIL.read_text(encoding="utf-8")
+replacements = {
+    '  val role: String,\n': '  val role: String = "UNSPECIFIED",\n',
+    '  val energyDisplay: String,\n': '  val energyDisplay: String = "N/A",\n',
+    '  val regenPerCompletedTurn: Int,\n': '  val regenPerCompletedTurn: Int = 0,\n',
+    '  val condition: CharacterCondition,\n': '  val condition: CharacterCondition = CharacterCondition.HEALTHY,\n',
+    '  val str: StatLineProjection,\n': '  val str: StatLineProjection = StatLineProjection(10, 0, 10),\n',
+    '  val df: StatLineProjection,\n': '  val df: StatLineProjection = StatLineProjection(10, 0, 10),\n',
+    '  val agi: StatLineProjection,\n': '  val agi: StatLineProjection = StatLineProjection(10, 0, 10),\n',
+    '  val crit: StatLineProjection,\n': '  val crit: StatLineProjection = StatLineProjection(10, 0, 10),\n',
+    '  val inventoryDetails: List<ItemDetailProjection>,\n': '  val inventoryDetails: List<ItemDetailProjection> = emptyList(),\n',
+    '  val equipmentDetails: List<ItemDetailProjection>,\n': '  val equipmentDetails: List<ItemDetailProjection> = emptyList(),\n',
+}
+for old, new in replacements.items():
+    if new not in detail:
+        if old not in detail:
+            raise RuntimeError("CharacterDetailProjection compatibility anchor missing: " + old.strip())
+        detail = detail.replace(old, new, 1)
+DETAIL.write_text(detail, encoding="utf-8")
+
+print("Combat HP metadata cleanup and Character Detail projection compatibility applied.")
