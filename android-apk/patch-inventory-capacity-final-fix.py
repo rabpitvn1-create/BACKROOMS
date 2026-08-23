@@ -110,3 +110,4 @@ runpy.run_path(str(ROOT / "patch-entity-encounter-all-actions.py"), run_name="__
 # Healing items are installed last so their HP/use and generic-loot contracts see the fully patched
 # runtime and cannot be overwritten by earlier gameplay, follower, equipment, or encounter patches.
 runpy.run_path(str(ROOT / "patch-healing-items.py"), run_name="__main__")
+runpy.run_path(str(ROOT / "patch-healing-items-finalize.py"), run_name="__main__")
