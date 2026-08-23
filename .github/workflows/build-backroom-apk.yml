@@ -70,13 +70,13 @@ jobs:
       - name: Apply Android runtime patch chain
         run: |
           set -euo pipefail
-          scripts=(patch-provider-status.py patch-luna-text.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-drive-online-save-step1.py patch-online-only-save-step2.py patch-named-online-save-step3.py patch-overwrite-online-save-step4.py)
+          scripts=(patch-provider-status.py patch-luna-text.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py)
           for script in "${scripts[@]}"; do
             echo "==> $script"
             python3 "android-apk/$script"
           done
 
-      - name: Verify provider, UI, Entity overlay and startup contracts
+      - name: Verify provider, local Entity, save and startup contracts
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -85,8 +85,9 @@ jobs:
           facade = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt').read_text(encoding='utf-8')
           gradle = Path('android-apk/app/build.gradle').read_text(encoding='utf-8')
           canon = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/AnNhienCanon.kt').read_text(encoding='utf-8')
-          drive = Path('android-apk/app/src/main/java/com/rabpit/backroom/DriveOnlineSaveManager.java').read_text(encoding='utf-8')
           save_repo = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/SaveRepository.kt').read_text(encoding='utf-8')
+          entity_dir = Path('android-apk/app/src/main/assets/entity')
+
           required = [
               ("versionCode 56", gradle), ("versionName '1.1.54'", gradle),
               ('state&&state.partyDetails&&Array.isArray(state.partyDetails.members)', html),
@@ -95,10 +96,9 @@ jobs:
               ('output.put("partyDetails"', facade), ('output.put("gameTime"', facade),
               ('thresholdRoll("jeffEncounter", 10000, 800', java),
               ('thresholdRoll("janeEncounter", 10000, 800', java),
-              ('root.equals("jeff") && value instanceof JSONObject', java),
-              ('root.equals("jane") && value instanceof JSONObject', java),
               ('int[] entityThresholds = {805, 1000, 1150, 1150, 810, 1200, 805}', java),
-              ('ENTITY_MANIFEST_FILE_ID = "1hJ506mvF4SJ84449ktLW6Js0PmSvUTGc"', java),
+              ('rolls.put("roamingEntityId"', java), ('ENT-R03', java),
+              ('file:///android_asset/entity/', java),
               ('private JSONObject resolveEntityOverlay(', java),
               ('window.backroomEntityOverlay=function(payload)', java),
               ('Jane the Killer dùng ENT-R02', java),
@@ -112,32 +112,31 @@ jobs:
               ('private volatile boolean gameCoreUnavailable;', java), ('private GameCoreFacade gameCoreOrNull()', java),
               ('private GameCoreFacade requireGameCore() throws Exception', java), ('requireGameCore().processRule(', java),
               ('requireGameCore().processValidatedCandidate(', java), ('showStartupFallback(Throwable error)', java),
-              ('id="driveConnectButton"', html), ('id="driveSaveButton"', html), ('function saveOnline()', html),
-              ('SAVE_FOLDER_ID = "1R9UMFmDmLaGdu4pB2_ha07mMfWywgEaF"', drive),
-              ('https://www.googleapis.com/auth/drive', drive),
-              ("com.google.android.gms:play-services-auth:21.4.0", gradle),
-              ('<h2>Online Save</h2>', html), ('function save(){return saveOnline()}', html),
-              ('class InMemorySaveRepository', save_repo), ('InMemorySaveRepository()', facade),
-              ('id="saveNameInput"', html), ('function currentSaveName()', html),
-              ('Android.driveSave(JSON.stringify(state),saveName)', html),
-              ('@JavascriptInterface public void driveSave(String stateJson, String saveName)', java),
-              ('String saveNamed(String stateJson, String requestedName)', drive),
-              ('String fileName = displayName + ".json"', drive),
-              ('boolean overwritten = existingId != null && !existingId.isEmpty();', drive),
-              ('updateFile(token, existingId, envelope.toString());', drive),
-              ('.put("overwritten", overwritten)', drive),
-              ('r.overwritten?"Đã overwrite save “":"Đã tạo save “"', html),
+              ('id="saveButton"', html), ('id="loadButton"', html), ('id="deleteSaveButton"', html),
+              ('localStorage.getItem("backroom-apk-state")', html), ('localStorage.setItem(SAVE_KEY,payload)', html),
+              ('class SharedPreferencesSaveRepository', save_repo), ('SharedPreferencesSaveRepository(', facade),
           ]
           for marker, source in required:
               assert marker in source, marker
+
+          required_assets = [
+              'hound.png','clump.png','duller.png','deathmoth.png','hostile_faceling.png','false_puddle.png','paintings.png',
+              'smiler.png','skin-stealer.png','predatory_window.png','biological_pipeline.png','wretch.png','cable_mimic.png',
+              'the_beast_of_level_5.png','hotel_corpse_lure.png','jeff_the_killer.png','jane_the_killer.png','slenderman.png'
+          ]
+          for name in required_assets:
+              p = entity_dir / name
+              assert p.is_file() and p.stat().st_size > 0, name
+
+          combined = html + java + gradle + facade + save_repo
           for forbidden in [
-              'id="saveButton"', 'id="loadButton"', 'id="deleteSaveButton"',
-              'localStorage.getItem("backroom-apk-state")', 'localStorage.setItem("backroom-apk-state"',
-              'Overwrite save cũ sẽ được bật ở bước 4', 'throw new Exception("Đã có save tên',
+              'drive.google.com', 'www.googleapis.com/auth/drive', 'DriveOnlineSaveManager',
+              'driveConnectButton', 'driveSaveButton', 'function saveOnline()',
+              'com.google.android.gms:play-services-auth', 'ENTITY_MANIFEST_FILE_ID',
+              'readEntityManifestRemote', 'InMemorySaveRepository'
           ]:
-              assert forbidden not in (html + drive), forbidden
-          assert 'SharedPreferences' not in save_repo
-          assert 'SharedPreferencesSaveRepository(' not in facade
+              assert forbidden not in combined, forbidden
+
           on_create = java[java.index('public void onCreate'):java.index('@Override protected void onDestroy')]
           assert 'gameCore = GameCoreFacade.create' not in on_create
           assert 'Immersive fullscreen unavailable; continuing normally.' in on_create
@@ -217,6 +216,8 @@ jobs:
           unzip -l Backroom-1.1.54-verified.apk | grep -q 'AndroidManifest.xml'
           unzip -l Backroom-1.1.54-verified.apk | grep -q 'assets/index.html'
           unzip -l Backroom-1.1.54-verified.apk | grep -q 'assets/avatars/an_nhien_avatar.png'
+          unzip -l Backroom-1.1.54-verified.apk | grep -q 'assets/entity/hound.png'
+          unzip -l Backroom-1.1.54-verified.apk | grep -q 'assets/entity/slenderman.png'
           unzip -l Backroom-1.1.54-verified.apk | grep -q 'classes.dex'
           BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
           APKSIGNER="$BUILD_TOOLS/apksigner"
