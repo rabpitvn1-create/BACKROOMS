@@ -12,7 +12,7 @@ def replace_once(source: str, old: str, new: str, label: str) -> str:
     return source.replace(old, new, 1)
 
 
-# VISUAL_STATE_SYNC_FINAL_V2
+# VISUAL_STATE_SYNC_FINAL_V3
 # Snapshot state is a projection of authoritative gameplay state. Free-text story fields,
 # stale cache keys and historical Entity flags must never keep an obsolete visual scene alive.
 main = MAIN.read_text(encoding="utf-8")
@@ -73,8 +73,6 @@ helper = r'''  private void reconcileVisualWorldState(JSONObject before, JSONObj
         candidateState.put("location", "Level " + requestedLevel + " / " + levelName(requestedLevel));
       }
     } else {
-      // Area changes inside one Level are valid. Preserve their location text while keeping the
-      // structured Level canonical, so visualSceneKey changes with the area without corrupting Level.
       candidateState.put("level", new JSONObject().put("number", oldLevel).put("name", levelName(oldLevel)));
     }
   }
@@ -114,8 +112,6 @@ for retired in (
 
 MAIN.write_text(main, encoding="utf-8")
 
-# Persistently migrate old saves whose entityEncounterKey survived after CombatRuntime had already
-# ended. The key is current-presence only, so retaining it without active combat is invalid state.
 facade = FACADE.read_text(encoding="utf-8")
 old_load = '''  private fun loadOrMigrate(legacy: JSONObject): GameState {
     if (repository.exists()) return repository.load()
@@ -144,25 +140,25 @@ new_load = '''  private fun normalizeVisualPresence(state: GameState): GameState
 if new_load not in facade:
     facade = replace_once(facade, old_load, new_load, "persistent stale Entity visual migration")
 
-# Capture the exact Entity being resolved before CombatRuntime clears its metadata. Cleanup of unique
-# hunter continuity is then scoped to that Entity instead of blindly changing Jeff and Jane together.
+# Patch processCombat within its own method boundary. Later runtime patches legitimately add HP/state
+# synchronization between TimeEngine and repository.save(), so matching the whole historical method
+# tail is intentionally avoided.
+method_start = facade.find("  fun processCombat(legacyStateJson: String, actionKind: String, action: String): String {\n")
+if method_start < 0:
+    raise RuntimeError("processCombat method missing for targeted Entity cleanup")
+method_end = facade.find("\n  fun ", method_start + 1)
+if method_end < 0:
+    method_end = facade.find("\n  private fun ", method_start + 1)
+if method_end < 0:
+    raise RuntimeError("processCombat method end missing for targeted Entity cleanup")
+method = facade[method_start:method_end]
+
 resolution_anchor = "    var resolution = CombatRuntime.resolve(current, actionKind, action)\n"
 resolution_with_key = "    val resolvedEntityKey = CombatRuntime.active(current)?.entityKey.orEmpty()\n    var resolution = CombatRuntime.resolve(current, actionKind, action)\n"
-if resolution_with_key not in facade:
-    facade = replace_once(facade, resolution_anchor, resolution_with_key, "capture resolved Entity identity")
+if resolution_with_key not in method:
+    method = replace_once(method, resolution_anchor, resolution_with_key, "capture resolved Entity identity")
 
-old_combat_tail = '''    if (time.applied) next = time.state
-    repository.save(next)
-
-    val output = syncLegacy(legacy, next, incrementTurn = true)
-    if (resolution.entityDestroyed || resolution.escaped) {
-      val flags = output.optJSONObject("flags") ?: JSONObject().also { output.put("flags", it) }
-      flags.put("entityEncounterKey", "")
-    }
-    appendLog(output, action, resolution.reply)
-'''
-new_combat_tail = '''    if (time.applied) next = time.state
-    if (resolution.entityDestroyed || resolution.escaped) {
+persistent_cleanup = '''    if (resolution.entityDestroyed || resolution.escaped) {
       val flags = next.world["flagsJson"]?.let { JSONObject(it) }
         ?: legacy.optJSONObject("flags")?.let { JSONObject(it.toString()) }
         ?: JSONObject()
@@ -173,18 +169,18 @@ new_combat_tail = '''    if (time.applied) next = time.state
       }
       next = next.copy(world = next.world + ("flagsJson" to flags.toString()))
     }
-    repository.save(next)
-
-    val output = syncLegacy(legacy, next, incrementTurn = true)
-    appendLog(output, action, resolution.reply)
 '''
-if new_combat_tail not in facade:
-    facade = replace_once(facade, old_combat_tail, new_combat_tail, "persist targeted Entity visual clear in Core")
+if persistent_cleanup not in method:
+    save_anchor = "    repository.save(next)\n"
+    if method.count(save_anchor) != 1:
+        raise RuntimeError(f"processCombat repository.save anchor expected 1, found {method.count(save_anchor)}")
+    method = method.replace(save_anchor, persistent_cleanup + save_anchor, 1)
+
+facade = facade[:method_start] + method + facade[method_end:]
 
 for marker in (
     "private fun normalizeVisualPresence(state: GameState): GameState",
     'if (CombatRuntime.active(state) != null) return state',
-    'flags.put("entityEncounterKey", "")',
     'if (!existed || normalized != loaded) repository.save(normalized)',
     'val resolvedEntityKey = CombatRuntime.active(current)?.entityKey.orEmpty()',
     'when (resolvedEntityKey)',
@@ -195,8 +191,6 @@ for marker in (
     if marker not in facade:
         raise RuntimeError("Combat visual cleanup persistence missing: " + marker)
 
-# Guard specifically against the previous unsafe cleanup that marked both unique hunters absent after
-# any unrelated Entity encounter ended.
 unsafe_cleanup = '''      flags.optJSONObject("jeff")?.put("present", false)
       flags.optJSONObject("jane")?.put("present", false)
       next = next.copy(world = next.world + ("flagsJson" to flags.toString()))
@@ -205,4 +199,4 @@ if unsafe_cleanup in facade:
     raise RuntimeError("Unscoped Jeff/Jane cleanup survived visual-state hardening")
 
 FACADE.write_text(facade, encoding="utf-8")
-print("Visual state sync V2 applied: authoritative Level/area projection, stale-save migration, and targeted Entity cleanup.")
+print("Visual state sync V3 applied: authoritative Level/area projection, stale-save migration, and method-scoped Entity cleanup.")
