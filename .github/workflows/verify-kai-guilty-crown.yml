@@ -1,0 +1,113 @@
+name: Verify Kai Guilty Crown Override
+
+on:
+  push:
+    branches: [feat/kai-guilty-crown-override]
+    paths:
+      - "android-apk/**"
+      - ".github/workflows/verify-kai-guilty-crown.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "android-apk/**"
+      - ".github/workflows/verify-kai-guilty-crown.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      LUNA_API_KEY: ${{ secrets.LUNA_API_KEY }}
+      LUNA_BASE_URL: https://api.vilao.ai/v1
+      LUNA_MODEL: ${{ secrets.LUNA_MODEL }}
+      GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 || secrets.GEMINI_API_KEY }}
+      GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
+      GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
+      GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
+      GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Apply complete Android runtime patch chain
+        id: patch_chain
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          scripts=(patch-provider-status.py patch-luna-text.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py)
+          for script in "${scripts[@]}"; do
+            echo "==> $script"
+            python3 "android-apk/$script"
+          done
+
+      - name: Verify Guilty Crown contracts and final diff
+        id: contracts
+        if: steps.patch_chain.outcome == 'success'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          root = Path('android-apk')
+          combat = (root / 'app/src/main/java/com/rabpit/backroom/core/CombatRuntime.kt').read_text(encoding='utf-8')
+          test = (root / 'app/src/test/java/com/rabpit/backroom/core/CombatRuntimeTest.kt').read_text(encoding='utf-8')
+          finalizer = (root / 'patch-healing-items-finalize.py').read_text(encoding='utf-8')
+          patch = (root / 'patch-kai-guilty-crown-override.py').read_text(encoding='utf-8')
+
+          for marker in (
+              'private const val KAI_GUILTY_CROWN_INTERVAL_TURNS = 3',
+              'private const val KAI_GUILTY_CROWN_SHOTS = 24',
+              'private const val KAI_GUILTY_CROWN_ACCURACY_PERCENT = 200',
+              'private const val KAI_GUILTY_CROWN_DAMAGE_PER_SHOT = 10',
+              'if (c.eventCounter % KAI_GUILTY_CROWN_INTERVAL_TURNS == 0)',
+              'val totalDamage = KAI_GUILTY_CROWN_SHOTS * KAI_GUILTY_CROWN_DAMAGE_PER_SHOT',
+              '24/24 phát trúng liên tiếp',
+              'bỏ qua toàn bộ hiệu ứng né',
+              'guiltyCrownOverrideTriggersAutomaticallyOnEveryThirdCombatTurn',
+              'guiltyCrownOverrideAppliesExactTwentyFourTimesTenHpBeforeNormalRegen',
+              'runpy.run_path(str(ROOT / "patch-entity-combat-durability.py"), run_name="__main__")',
+              'runpy.run_path(str(ROOT / "patch-kai-guilty-crown-override.py"), run_name="__main__")',
+          ):
+              assert marker in combat + test + finalizer + patch, marker
+
+          ultimate_start = combat.index('    if (c.eventCounter % KAI_GUILTY_CROWN_INTERVAL_TURNS == 0)')
+          ultimate_end = combat.index('    // Enemy response.', ultimate_start)
+          ultimate = combat[ultimate_start:ultimate_end]
+          assert 'roll(' not in ultimate
+          assert 'entityEvaded' not in ultimate
+          assert 'ENTITY_EVASION_PERCENT' not in ultimate
+          assert finalizer.index('patch-entity-combat-durability.py') < finalizer.index('patch-kai-guilty-crown-override.py')
+          PY
+          git diff --check
+
+      - uses: actions/setup-java@v5
+        if: steps.patch_chain.outcome == 'success' && steps.contracts.outcome == 'success'
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+        if: steps.patch_chain.outcome == 'success' && steps.contracts.outcome == 'success'
+        with:
+          gradle-version: "8.10.2"
+
+      - name: Run unit tests and build debug APK
+        id: android_build
+        if: steps.patch_chain.outcome == 'success' && steps.contracts.outcome == 'success'
+        continue-on-error: true
+        working-directory: android-apk
+        run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
+
+      - name: Enforce pre-merge green gate
+        if: always()
+        run: |
+          test "${{ steps.patch_chain.outcome }}" = "success"
+          test "${{ steps.contracts.outcome }}" = "success"
+          test "${{ steps.android_build.outcome }}" = "success"

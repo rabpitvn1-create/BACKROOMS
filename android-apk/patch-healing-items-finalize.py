@@ -19,6 +19,11 @@ if 'finishItemUse(state, inventoryResult, command, physiologyEffects)' in text o
 ENGINES.write_text(text, encoding="utf-8")
 print("Healing item final use call updated with healHp argument.")
 
-# Final combat balance authority runs after the healing-item chain so no later runtime patch can
+# Final Entity combat balance authority runs after the healing-item chain so no later runtime patch can
 # rewrite Entity HP, evasion, regeneration, or legacy combat migration semantics.
 runpy.run_path(str(ROOT / "patch-entity-combat-durability.py"), run_name="__main__")
+
+# Kai's automatic Ultimate must run after Entity durability because it depends on the final evasion,
+# regeneration, and upgraded Entity HP contracts. This keeps Guilty Crown Override as the last combat
+# mechanics authority without rewriting any earlier patch in the chain.
+runpy.run_path(str(ROOT / "patch-kai-guilty-crown-override.py"), run_name="__main__")
