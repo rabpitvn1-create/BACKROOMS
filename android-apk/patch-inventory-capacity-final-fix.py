@@ -101,3 +101,8 @@ runpy.run_path(str(ROOT / "patch-lucia-normalize-compat.py"), run_name="__main__
 # Lucia is applied after all existing runtime/UI transforms so later patches cannot erase her
 # stats, inventory policy, three-slot loadout, encounter gate, or prompt contract.
 runpy.run_path(str(ROOT / "patch-lucia-follower.py"), run_name="__main__")
+
+# Final Entity action authority runs after Lucia because Lucia still adds an EXPLORE-only follower
+# encounter contract to MainActivity. This keeps roaming Entity generation available to all three
+# primary actions without changing Lucia's own Level 0 follower rules.
+runpy.run_path(str(ROOT / "patch-entity-encounter-all-actions.py"), run_name="__main__")
