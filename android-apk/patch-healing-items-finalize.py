@@ -1,4 +1,5 @@
 from pathlib import Path
+import runpy
 
 ROOT = Path(__file__).resolve().parent
 ENGINES = ROOT / "app/src/main/java/com/rabpit/backroom/core/Engines.kt"
@@ -17,3 +18,7 @@ if 'finishItemUse(state, inventoryResult, command, physiologyEffects)' in text o
 
 ENGINES.write_text(text, encoding="utf-8")
 print("Healing item final use call updated with healHp argument.")
+
+# Final combat balance authority runs after the healing-item chain so no later runtime patch can
+# rewrite Entity HP, evasion, regeneration, or legacy combat migration semantics.
+runpy.run_path(str(ROOT / "patch-entity-combat-durability.py"), run_name="__main__")
