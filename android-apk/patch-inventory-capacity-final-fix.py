@@ -93,3 +93,11 @@ print("Inventory capacity final fix applied; multi-slot Equipment now renders on
 # This is the last patch in the release chain. Keep Snapshot/overlay state synchronized only after
 # every earlier gameplay, combat, equipment and UI transform has finished touching the runtime.
 runpy.run_path(str(ROOT / "patch-visual-state-sync-final.py"), run_name="__main__")
+
+# The existing final equipment patch adds fillStartingHp to normalizeInternal. Adapt that exact
+# final signature before Lucia attaches her save/backfill hook.
+runpy.run_path(str(ROOT / "patch-lucia-normalize-compat.py"), run_name="__main__")
+
+# Lucia is applied after all existing runtime/UI transforms so later patches cannot erase her
+# stats, inventory policy, three-slot loadout, encounter gate, or prompt contract.
+runpy.run_path(str(ROOT / "patch-lucia-follower.py"), run_name="__main__")
