@@ -17,18 +17,29 @@ def replace_once(source: str, old: str, new: str, label: str) -> str:
 def schedule_after_healthbar() -> bool:
     # patch-progression invokes this script before the health/status stack. Those later patches still
     # expect the pre-unification anchors, so schedule the real unification at the very end instead.
+    # Diệp Minh must then run once more after that final unification because the unified-pool pass
+    # rewrites forceEntityEncounterFlag and would otherwise erase the boss-priority encounter gate.
     html = INDEX.read_text(encoding="utf-8")
     if 'id="characterHpFill"' in html:
         return False
     healthbar = HEALTHBAR.read_text(encoding="utf-8")
     marker = 'runpy.run_path(str(ROOT / "patch-unified-entity-spawn-pool.py"), run_name="__main__")'
+    boss_marker = 'runpy.run_path(str(ROOT / "patch-diep-minh-boss.py"), run_name="__main__")'
     if marker not in healthbar:
         healthbar = healthbar.rstrip() + (
             '\n\n# Final Entity authority pass. Run after status/equipment/visual-state patches so their anchors remain intact.\n'
             + marker + '\n'
+            + '# Final unique-boss authority must follow the unified pool because that pass rewrites the encounter helper.\n'
+            + boss_marker + '\n'
         )
         HEALTHBAR.write_text(healthbar, encoding="utf-8")
-    print("Unified Entity spawn pool scheduled after the final health/status/visual patch stack.")
+    elif boss_marker not in healthbar:
+        healthbar = healthbar.rstrip() + (
+            '\n# Final unique-boss authority must follow the unified pool because that pass rewrites the encounter helper.\n'
+            + boss_marker + '\n'
+        )
+        HEALTHBAR.write_text(healthbar, encoding="utf-8")
+    print("Unified Entity spawn pool scheduled after the final health/status/visual patch stack; Diệp Minh scheduled immediately after it.")
     return True
 
 
