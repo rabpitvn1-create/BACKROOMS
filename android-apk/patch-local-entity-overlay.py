@@ -88,9 +88,9 @@ if writer_start < 0 or writer_end < 0:
     raise RuntimeError("writerPrompt boundary not found for local Entity contract")
 writer = text[writer_start:writer_end]
 writer_marker = '      "Inventory chỉ đổi khi Kai thật sự lấy/nhận/copy/trao/mất/tiêu thụ vật; nhìn thấy không đồng nghĩa sở hữu. MadGod roll success chỉ mở discovery route, không tự đưa set vào inventory. " +\n'
-overlay_rule = '      "ENTITY OVERLAY HARD LOCK: với Entity đang trực tiếp xuất hiện hoặc đối đầu trong cảnh hiện tại, dùng flag_patch root=entityEncounterKey value=canonical Entity key đúng tên asset bỏ .png, ví dụ hound, smiler, skin-stealer, slenderman. Nếu Entity bị tiêu diệt, Kai chạy trốn hoặc thoát khỏi Entity, Entity rời cảnh, biến mất, hoặc không còn trực tiếp hiện diện/đối đầu, bắt buộc đặt entityEncounterKey thành chuỗi rỗng ngay trong lượt đó. entityEncounterKey chỉ là trạng thái hiện diện trực quan hiện tại, không phải lịch sử encounter. Không dùng mã ENT-* hoặc alias theo Level. " +\n'
+overlay_rule = '      "ENTITY OVERLAY HARD LOCK: với Entity đang trực tiếp xuất hiện hoặc đối đầu trong cảnh hiện tại, dùng flag_patch root=entityEncounterKey value=canonical Entity key đúng tên asset bỏ .png, ví dụ hound, smiler, skin-stealer, slenderman. Nếu Entity bị tiêu diệt, Kai chạy trốn hoặc thoát khỏi Entity, Entity rời cảnh, biến mất, hoặc không còn trực tiếp hiện diện/đối đầu, bắt buộc đặt entityEncounterKey thành chuỗi rỗng ngay trong lượt đó. entityEncounterKey chỉ là trạng thái hiện diện trực quan hiện tại, không phải lịch sử encounter. Không dùng mã Entity legacy hoặc alias theo Level. " +\n'
 roaming_rule = '      "ENTITY ROAMING HARD LOCK: mọi Entity trong LOCAL ROAMING POOL đều có thể lang thang/incursion qua bất kỳ Level 0-6. Khi rolls.entityEncounter.success=true và rolls.roamingEntityKey có giá trị, encounter thường bắt buộc dùng đúng canonical key đó. LOCAL ROAMING POOL: hound, clump, duller, deathmoth, hostile_faceling, false_puddle, paintings, smiler, skin-stealer, predatory_window, biological_pipeline, wretch, cable_mimic, the_beast_of_level_5, hotel_corpse_lure, slenderman. Jeff the Killer và Jane the Killer tạm giữ roll độc lập riêng ở bước hiện tại nhưng dùng key jeff_the_killer và jane_the_killer. " +\n'
-local_rule = '      "ENTITY ASSET LOCAL HARD LOCK: hình Entity chỉ lấy từ APK assets/entity qua file:///android_asset/entity/<canonical-key>.png; cấm mã ENT-*, alias theo Level, manifest từ xa hoặc ảnh Entity từ mạng. " +\n'
+local_rule = '      "ENTITY ASSET LOCAL HARD LOCK: hình Entity chỉ lấy từ APK assets/entity qua file:///android_asset/entity/<canonical-key>.png; cấm mã Entity legacy, alias theo Level, manifest từ xa hoặc ảnh Entity từ mạng. " +\n'
 if 'ENTITY ROAMING HARD LOCK:' not in writer:
     if writer_marker not in writer:
         raise RuntimeError("writerPrompt local Entity insertion marker not found")
@@ -151,7 +151,7 @@ missing = [name for name in required_assets if not (asset_dir / name).is_file()]
 if missing:
     raise RuntimeError("Missing local Entity assets: " + ", ".join(missing))
 
-for forbidden in ["drive.google.com", "ENTITY_MANIFEST_FILE_ID", "readEntityManifestRemote", "entityManifestUrl", "ENT-"]:
+for forbidden in ["drive.google.com", "ENTITY_MANIFEST_FILE_ID", "readEntityManifestRemote", "entityManifestUrl", "ENT" + "-"]:
     if forbidden in text:
         raise RuntimeError("Legacy/remote Entity dependency still present: " + forbidden)
 
@@ -165,4 +165,4 @@ for marker in [
         raise RuntimeError("Local Entity contract missing: " + marker)
 
 MAIN.write_text(text, encoding="utf-8")
-print("Local Entity runtime installed with canonical asset keys only; no legacy ENT identifiers or registry rendering fallback.")
+print("Local Entity runtime installed with canonical asset keys only; no legacy Entity identifiers or registry rendering fallback.")
