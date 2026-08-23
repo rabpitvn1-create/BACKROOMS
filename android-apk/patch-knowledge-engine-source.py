@@ -47,33 +47,10 @@ if old not in text:
     raise RuntimeError("Structured registry lookup anchor not found")
 text = text.replace(old, new, 1)
 
-old = '''      if (confirmedEntities > 0 || entityRoll || hasAny(sceneText, "entity", "thực thể", "quái", "hound", "smiler", "skin-stealer", "jeff")) {
-        add("ENTITY.GLOBAL_HARD_LOCK", "entity state/scene requires entity rules")
-      }
-      if (hasAny(sceneText, "loot", "vật phẩm", "inventory", "almond", "liquid pain", "greek fire", "nước", "thuốc")) {
-'''
-new = '''      if (confirmedEntities > 0 || entityRoll || hasAny(sceneText, "entity", "thực thể", "quái", "hound", "smiler", "skin-stealer", "jeff")) {
-        add("ENTITY.GLOBAL_HARD_LOCK", "entity state/scene requires entity rules")
-      }
-      // Entity records already persisted in the state registry are resolved through the
-      // same database tag index. Database growth does not expand context unless a current
-      // registry value actually names/tags that record.
-      val registryText = normalize(flags?.opt("entityRegistry")?.toString().orEmpty())
-      if (registryText.isNotEmpty()) {
-        db.tagIndex.entries.asSequence()
-          .filter { (tag, _) -> tag.length >= 3 && registryText.contains(tag) }
-          .forEach { (tag, ids) ->
-            ids.forEach { id ->
-              val r = db.records[id] ?: return@forEach
-              if (r.domain == "ENTITY") add(id, "current entity registry tag: $tag")
-            }
-          }
-      }
-      if (hasAny(sceneText, "loot", "vật phẩm", "inventory", "almond", "liquid pain", "greek fire", "nước", "thuốc")) {
-'''
-if old not in text:
-    raise RuntimeError("State-driven entity registry anchor not found")
-text = text.replace(old, new, 1)
+# Deliberately do not retrieve Entity knowledge from historical entityRegistry state.
+# Current Entity presence is resolved by the current encounter key only.
+if 'flags?.opt("entityRegistry")' in text or 'current entity registry tag' in text:
+    raise RuntimeError("Historical Entity registry retrieval must not exist")
 
 old = '''      return iris.contains("separated") || syvial.contains("separated") ||
         (presentActors.size == 1 && state.optInt("turn", 1) <= 3)
@@ -119,4 +96,4 @@ if old not in text:
 text = text.replace(old, new, 1)
 
 ENGINE.write_text(text, encoding="utf-8")
-print("Knowledge engine hardened: stable references, dialogue authority, registry-driven Entity/Item lookup, explicit story gating.")
+print("Knowledge engine hardened: stable references, dialogue authority, direct Entity/Item tag lookup, no historical Entity registry retrieval.")
