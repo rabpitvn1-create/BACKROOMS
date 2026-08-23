@@ -38,7 +38,8 @@ helper = r'''  private void reconcileVisualWorldState(JSONObject before, JSONObj
     int oldLevel = currentLevel(before);
     int structuredLevel = currentLevel(candidateState);
     int describedLevel = mentionedLevel(candidateState);
-    int requestedLevel = describedLevel >= 0 ? describedLevel : structuredLevel;
+    // Structured gameplay state wins. Free-text location/title only repairs old or incomplete candidates.
+    int requestedLevel = structuredLevel != oldLevel ? structuredLevel : (describedLevel >= 0 ? describedLevel : oldLevel);
     boolean levelChange = requestedLevel != oldLevel;
 
     if (levelChange && !canTransition(before, rolls)) {
@@ -78,6 +79,7 @@ for marker in (
     "var structuredLevel=state&&state.level&&state.level.number;",
     "function activeEntityKey(){var c=state&&state.combat;",
     "private void reconcileVisualWorldState(JSONObject before, JSONObject candidateState, JSONObject rolls)",
+    "structuredLevel != oldLevel ? structuredLevel",
     "reconcileVisualWorldState(before, candidateState, rolls);",
 ):
     if marker not in main:
@@ -107,7 +109,7 @@ old_combat_tail = '''    if (time.applied) next = time.state
 '''
 new_combat_tail = '''    if (time.applied) next = time.state
     if (resolution.entityDestroyed || resolution.escaped) {
-      val flags = next.world["flagsJson"]?.let(::JSONObject)
+      val flags = next.world["flagsJson"]?.let { JSONObject(it) }
         ?: legacy.optJSONObject("flags")?.let { JSONObject(it.toString()) }
         ?: JSONObject()
       flags.put("entityEncounterKey", "")
@@ -125,6 +127,7 @@ if new_combat_tail not in facade:
 
 for marker in (
     'flags.put("entityEncounterKey", "")',
+    'next.world["flagsJson"]?.let { JSONObject(it) }',
     'next = next.copy(world = next.world + ("flagsJson" to flags.toString()))',
     'flags.optJSONObject("jeff")?.put("present", false)',
     'flags.optJSONObject("jane")?.put("present", false)',
