@@ -100,7 +100,7 @@ jobs:
           encounter = 'thresholdRoll("luciaEncounter", 10000, 5000, exploreAction && level == 0 && !flagSpawned(state, "lucia")'
           assert encounter in main, encounter
           assert 'LUCIA FOLLOWER HARD LOCK:' in main
-          assert 'Level 0 không xác nhận Hound cư trú' in main
+          assert 'không được xác nhận Hound cư trú ở Level 0' in main
           assert 'thresholdRoll("luciaEncounter", 10000, 5000, physical' not in main
           assert 'thresholdRoll("luciaEncounter", 10000, 5000, entityAllowed' not in main
 
