@@ -41,6 +41,7 @@ runpy.run_path(str(ROOT / "patch-jane-killer.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-three-action-runtime-ui.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-madgod-equipment.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-madgod-overwrite-hotfix.py"), run_name="__main__")
+runpy.run_path(str(ROOT / "patch-madgod-runtime-equip.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-entity-overlay-runtime-hotfix.py"), run_name="__main__")
 
 final_html = INDEX.read_text(encoding="utf-8")
@@ -56,9 +57,9 @@ for marker in (
     'STEP2_THREE_ACTIONS', 'madGodSetEquipped()', "return ['MadGod Set','Omnivault Ring']",
 ):
     if marker not in final_html:
-        raise RuntimeError(f"1.1.57 final UI contract missing: {marker}")
+        raise RuntimeError(f"1.1.58 final UI contract missing: {marker}")
 if '<button id="submit">THỰC HIỆN</button>' in final_html:
-    raise RuntimeError("1.1.57 still contains legacy single Execute button")
+    raise RuntimeError("1.1.58 still contains legacy single Execute button")
 
 for marker in (
     '@JavascriptInterface public void submitAction(String stateJson, String actionKind, String action)',
@@ -68,34 +69,38 @@ for marker in (
     'forceEntityEncounterFlag(candidateState, rolls);', 'Kai_MadGod_snapshot_overlay.png',
 ):
     if marker not in final_java:
-        raise RuntimeError(f"1.1.57 final Android runtime contract missing: {marker}")
+        raise RuntimeError(f"1.1.58 final Android runtime contract missing: {marker}")
 
 for marker in (
     'MadGodCanon.cheat(action)', 'applyMadGodCheat(legacy,state)',
     'fun beginAction(legacyStateJson: String, kindRaw: String, action: String)',
     'private fun commitActionRuntime(', 'ActionRuntime.markSearchCoverage(',
     'output.put("equipment",MadGodCanon.legacy(state))',
+    'if (isMadGodEquipRequest(action))',
+    'commandId = "$turnId:MADGOD:EQUIP"',
+    '"madgod_equipped"',
 ):
     if marker not in final_facade:
-        raise RuntimeError(f"1.1.57 final core contract missing: {marker}")
+        raise RuntimeError(f"1.1.58 final core contract missing: {marker}")
 
 for marker in ('const val MADGOD_SET_ID = "madgod:set"', 'const val CHEAT_CODE = "/madgod"', 'const val SET_NAME = "MadGod Set"'):
     if marker not in final_madgod:
-        raise RuntimeError(f"1.1.57 MadGod canon missing: {marker}")
+        raise RuntimeError(f"1.1.58 MadGod canon missing: {marker}")
 
 for marker in (
     'val boundSlots = equipment.slots + mapOf("weapon" to MADGOD_SET_ID, "armor" to MADGOD_SET_ID)',
     'if (command.actorId != KAI_ID) return invalid(state,"madgod_equipment_slot_mismatch")',
 ):
     if marker not in final_engines:
-        raise RuntimeError(f"1.1.57 MadGod overwrite engine missing: {marker}")
+        raise RuntimeError(f"1.1.58 MadGod overwrite engine missing: {marker}")
 if 'slot != "set" || MadGodCanon.slot(command.itemId' in final_engines:
-    raise RuntimeError("1.1.57 MadGod still requires synthetic set slot")
+    raise RuntimeError("1.1.58 MadGod still requires synthetic set slot")
 
 for marker in (
     'equipOverwritesKaisExistingWeaponAndArmorFromNormalWeaponSlot',
+    'runtimeEquipStateProjectsMadGodInsteadOfKaiDefaultGear',
 ):
     if marker not in final_tests:
-        raise RuntimeError(f"1.1.57 MadGod overwrite regression test missing: {marker}")
+        raise RuntimeError(f"1.1.58 MadGod runtime regression test missing: {marker}")
 
-print("Final 1.1.57 contract verified: MadGod overwrites Kai weapon+armor, preserves ring, local Entity overlay, /madgod, and three-action UI.")
+print("Final 1.1.58 contract verified: MadGod typed equip reaches core, overwrites Kai weapon+armor, syncs avatar/overlay/UI, preserves ring.")
