@@ -53,3 +53,12 @@ if needle not in src:
 src = src.replace(needle, replacement, 1)
 
 exec(compile(src, str(base), "exec"), {"__name__": "__main__", "__file__": str(base)})
+
+# This project ships JUnit 4 for unit tests, not kotlin-test. Keep the generated regression test on the actual test classpath.
+test_path = Path(__file__).resolve().parent / "app/src/test/java/com/rabpit/backroom/core/MadGodEquipmentTest.kt"
+test_src = test_path.read_text(encoding="utf-8")
+test_src = test_src.replace(
+    "import kotlin.test.*",
+    "import org.junit.Test\nimport org.junit.Assert.assertEquals\nimport org.junit.Assert.assertFalse\nimport org.junit.Assert.assertTrue",
+)
+test_path.write_text(test_src, encoding="utf-8")
