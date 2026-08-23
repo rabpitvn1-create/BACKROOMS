@@ -11,6 +11,9 @@ runpy.run_path(str(ROOT / "patch-character-stat-schema.py"), run_name="__main__"
 # Pressure Combat integration, and regression tests.
 runpy.run_path(str(ROOT / "patch-character-status-equipment-system.py"), run_name="__main__")
 
+# Hard cleanup after the large status patch: no retired combat HP metadata reference may survive.
+runpy.run_path(str(ROOT / "patch-combat-hp-metadata-cleanup.py"), run_name="__main__")
+
 INDEX = ROOT / "app/src/main/assets/index.html"
 html = INDEX.read_text(encoding="utf-8")
 
