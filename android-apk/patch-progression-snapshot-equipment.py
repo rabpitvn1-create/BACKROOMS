@@ -15,13 +15,11 @@ if old_equipment not in main:
     raise RuntimeError("MadGod overlay equipment detector anchor missing")
 main = main.replace(old_equipment, new_equipment, 1)
 
-# The Snapshot character already communicates the equipped set; a text badge obscures the armor.
 badge_call = "box.appendChild(kai);appendEquipmentBadge(box);if(!r)"
 if badge_call not in main:
     raise RuntimeError("Snapshot MadGod badge call anchor missing")
 main = main.replace(badge_call, "box.appendChild(kai);if(!r)", 1)
 
-# A cached image is valid only for the exact visual scene. Old cache entries intentionally expire.
 old_cache = "function cachedSnapshot(){try{var r=JSON.parse(localStorage.getItem('backroom-apk-snapshot')||'null');return r&&r.dataUri?r:null;}catch(e){return null;}}function renderSnapshot()"
 new_cache = "function visualSceneKey(){var l=state&&state.level&&state.level.number;var where=String(state&&state.location||'').trim().toLowerCase();return String(l==null?'?':l)+'|'+where}function cachedSnapshot(){try{var r=JSON.parse(localStorage.getItem('backroom-apk-snapshot')||'null');return r&&r.dataUri&&r.sceneKey===visualSceneKey()?r:null;}catch(e){return null;}}function renderSnapshot()"
 if old_cache not in main:
@@ -33,7 +31,6 @@ main = main.replace(
     1,
 )
 
-# Recognize canonical Level changes even when the writer only updates location text.
 current_level_anchor = '''  private JSONObject rollSpec(String label, int chance, boolean eligible) throws Exception {
 '''
 level_helpers = '''  private int mentionedLevel(JSONObject state) {
@@ -124,7 +121,6 @@ main = main.replace(
 
 MAIN.write_text(main, encoding="utf-8")
 
-# Character sheet must use the same robust equipment detector as the overlay.
 index = INDEX.read_text(encoding="utf-8")
 old_ui = "function madGodSetEquipped(){try{const e=state&&state.equipment;return !!(e&&e.set&&String(e.set.id||'')==='madgod:set')}catch(ignore){return false}}"
 new_ui = "function madGodSetEquipped(){try{const e=state&&state.equipment||{};if(e.set&&String(e.set.id||e.set)==='madgod:set')return true;if(['weapon','armor'].some(k=>String((e[k]&&e[k].id)||e[k]||'').toLowerCase().includes('madgod')))return true;const members=state&&state.partyDetails&&state.partyDetails.members;const kai=Array.isArray(members)&&members.find(m=>String(m&&m.id)==='kai');return !!(kai&&kai.equipment&&['weapon','armor'].some(k=>String((kai.equipment[k]&&kai.equipment[k].id)||kai.equipment[k]||'').toLowerCase().includes('madgod')))}catch(ignore){return false}}"
@@ -133,7 +129,6 @@ if old_ui not in index:
 index = index.replace(old_ui, new_ui, 1)
 INDEX.write_text(index, encoding="utf-8")
 
-# Equipped MadGod is permanent equipment state, not a carried Inventory stack.
 engines = ENGINES.read_text(encoding="utf-8")
 old_bind = '''          val boundSlots = equipment.slots + mapOf("weapon" to MADGOD_SET_ID, "armor" to MADGOD_SET_ID)
           changed(state.copy(equipment = state.equipment + (command.actorId to equipment.copy(slots = boundSlots))), "item_equipped")
@@ -180,3 +175,10 @@ if "appendEquipmentBadge(box)" in MAIN.read_text(encoding="utf-8"):
     raise RuntimeError("Snapshot MadGod text badge still renders over the overlay")
 
 print("Installed robust MadGod projection, scene-keyed Snapshot cache, location Level recognition, and six-turn progression gate.")
+
+# Pressure Combat is deliberately the final runtime patch so its combat intercept owns active encounters
+# before ActionRuntime/EXPLORE can roll a second Entity.
+pressure = ROOT / "patch-pressure-combat.py"
+if not pressure.is_file():
+    raise RuntimeError("Pressure Combat patch missing")
+exec(compile(pressure.read_text(encoding="utf-8"), str(pressure), "exec"), {"__name__": "__main__", "__file__": str(pressure)})
