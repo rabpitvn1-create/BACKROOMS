@@ -38,19 +38,9 @@ runpy.run_path(str(ROOT / "benchmark-knowledge-context.py"), run_name="__main__"
 runpy.run_path(str(ROOT / "patch-startup-survival.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-local-entity-overlay.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-jane-killer.py"), run_name="__main__")
-
-# Typed gameplay UI must exist before MadGod, because MadGod patches the final ActionRuntime bridge.
 runpy.run_path(str(ROOT / "patch-three-action-runtime-ui.py"), run_name="__main__")
-
-# MadGod is a release feature, not dead source code. Apply it after the three-action bridge so /madgod
-# intercepts beginAction/processRule correctly and the set UI/snapshot transformations target final markup.
 runpy.run_path(str(ROOT / "patch-madgod-equipment.py"), run_name="__main__")
-
-# MadGod is a forced full-set override. This hotfix removes the synthetic-slot mismatch and makes
-# one Equip replace Kai's current weapon + armor atomically while preserving unrelated slots.
 runpy.run_path(str(ROOT / "patch-madgod-overwrite-hotfix.py"), run_name="__main__")
-
-# Entity overlay hotfix runs last so both MadGod and three-action transformations cannot displace it.
 runpy.run_path(str(ROOT / "patch-entity-overlay-runtime-hotfix.py"), run_name="__main__")
 
 final_html = INDEX.read_text(encoding="utf-8")
@@ -99,12 +89,13 @@ for marker in (
 ):
     if marker not in final_engines:
         raise RuntimeError(f"1.1.57 MadGod overwrite engine missing: {marker}")
+if 'slot != "set" || MadGodCanon.slot(command.itemId' in final_engines:
+    raise RuntimeError("1.1.57 MadGod still requires synthetic set slot")
 
 for marker in (
-    'equipOverwritesKaisExistingWeaponAndArmorEvenWithoutSyntheticSetSlot',
-    'typedTrangBiMadGodSetResolvesAndOverwritesExistingGear',
+    'equipOverwritesKaisExistingWeaponAndArmorFromNormalWeaponSlot',
 ):
     if marker not in final_tests:
         raise RuntimeError(f"1.1.57 MadGod overwrite regression test missing: {marker}")
 
-print("Final 1.1.57 contract verified: MadGod overwrites Kai weapon+armor, local Entity overlay, /madgod, and three-action UI.")
+print("Final 1.1.57 contract verified: MadGod overwrites Kai weapon+armor, preserves ring, local Entity overlay, /madgod, and three-action UI.")
