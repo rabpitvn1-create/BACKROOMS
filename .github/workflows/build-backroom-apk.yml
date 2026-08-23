@@ -99,8 +99,7 @@ jobs:
               ('output.put("equipment",MadGodCanon.legacy(state))', facade),
               ('val boundSlots = equipment.slots + mapOf("weapon" to MADGOD_SET_ID, "armor" to MADGOD_SET_ID)', engines),
               ('if (command.actorId != KAI_ID) return invalid(state,"madgod_equipment_slot_mismatch")', engines),
-              ('typedTrangBiMadGodSetResolvesAndOverwritesExistingGear', tests),
-              ('equipOverwritesKaisExistingWeaponAndArmorEvenWithoutSyntheticSetSlot', tests),
+              ('equipOverwritesKaisExistingWeaponAndArmorFromNormalWeaponSlot', tests),
               ('rolls.put("roamingEntityId"', java), ('file:///android_asset/entity/', java),
               ('private JSONObject resolveEntityOverlay(', java), ('window.backroomEntityOverlay=function(payload)', java),
               ('private void forceEntityEncounterFlag(JSONObject candidateState, JSONObject rolls)', java),
@@ -111,6 +110,7 @@ jobs:
           ]
           for marker, source in required:
               assert marker in source, marker
+          assert 'slot != "set" || MadGodCanon.slot(command.itemId' not in engines
 
           required_assets = [
               'hound.png','clump.png','duller.png','deathmoth.png','hostile_faceling.png','false_puddle.png','paintings.png',
