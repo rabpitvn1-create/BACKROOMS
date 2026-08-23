@@ -4,6 +4,9 @@ ROOT = Path(__file__).resolve().parent
 FACADE = ROOT / "app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt"
 MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
 KNOWLEDGE_BUILDER = ROOT / "patch-knowledge-context-builder.py"
+INTENT = ROOT / "app/src/main/java/com/rabpit/backroom/core/IntentPipeline.kt"
+COMMAND = ROOT / "app/src/main/java/com/rabpit/backroom/core/CommandPipeline.kt"
+TEST = ROOT / "app/src/test/java/com/rabpit/backroom/core/OmnivaultNaturalFlowTest.kt"
 text = FACADE.read_text(encoding="utf-8")
 
 # LiteRT is allowed to suggest an intent, but a classifier guess must never turn ordinary
@@ -45,6 +48,7 @@ if new_inventory_assertion not in text:
 # Keep genuine validation feedback understandable instead of the generic English warning that
 # made a normal search/planning turn look like a broken action.
 translations = {
+    '"scan_source_missing", "scan_template_missing" -> "There is no object available for scanning or multiplying."': '"scan_source_missing" -> "Không tìm thấy bản gốc hợp lệ trong Inventory hoặc Omnivault để Quét."\n      "scan_template_missing" -> "Omnivault chưa có mẫu quét của vật phẩm này; hãy Quét bản gốc hợp lệ trước khi Sao chép."',
     '"precise_content_amount_forbidden" -> "This action is not available."': '"precise_content_amount_forbidden" -> "Hành động này không khả dụng với lượng nội dung được chỉ định."',
     '"item_content_empty" -> "This action is not available."': '"item_content_empty" -> "Vật phẩm này hiện không có nội dung khả dụng."',
     '"insufficient_item_quantity", "item_not_owned" -> "This action is not available."': '"insufficient_item_quantity", "item_not_owned" -> "Kai không có đủ vật phẩm cần thiết cho hành động này."',
@@ -125,19 +129,161 @@ if world_prompt_line not in builder:
     builder = builder.replace(prompt_anchor, prompt_anchor + world_prompt_line, 1)
 KNOWLEDGE_BUILDER.write_text(builder, encoding="utf-8")
 
-# Regression contracts for bug #3.
+# Omnivault natural-language flow: the resolver must carry the referenced item through sequential
+# clauses so "Quét X rồi nhân bản thành 10" resolves both commands to the same canonical object.
+intent_text = INTENT.read_text(encoding="utf-8")
+old_blank_item = '    if (name.isBlank()) return null\n'
+new_blank_item = '    if (name.isBlank()) return context.lastReferencedItemId?.let { knownPair(it, context) }\n'
+if new_blank_item not in intent_text:
+    if intent_text.count(old_blank_item) != 1:
+        raise RuntimeError(f"Omnivault blank-item fallback expected one match, found {intent_text.count(old_blank_item)}")
+    intent_text = intent_text.replace(old_blank_item, new_blank_item, 1)
+INTENT.write_text(intent_text, encoding="utf-8")
+
+command_text = COMMAND.read_text(encoding="utf-8")
+resolver_anchor = ''') {
+  fun resolve(candidate: IntentCandidate, index: Int, turnId: String, context: GameContext): GameCommand? {
+'''
+resolver_with_sequence = ''') {
+  fun resolveSequence(candidates: List<IntentCandidate>, turnId: String, context: GameContext): List<GameCommand?> {
+    var resolutionContext = context
+    return candidates.mapIndexed { index, candidate ->
+      val command = resolve(candidate, index, turnId, resolutionContext)
+      val itemId = when (command) {
+        is ItemCommand -> command.itemId
+        is OmnivaultCommand -> command.itemId
+        else -> null
+      }
+      if (itemId != null) resolutionContext = resolutionContext.copy(lastReferencedItemId = itemId)
+      command
+    }
+  }
+
+  fun resolve(candidate: IntentCandidate, index: Int, turnId: String, context: GameContext): GameCommand? {
+'''
+if 'fun resolveSequence(candidates: List<IntentCandidate>' not in command_text:
+    if command_text.count(resolver_anchor) != 1:
+        raise RuntimeError(f"CommandResolver sequence anchor expected one match, found {command_text.count(resolver_anchor)}")
+    command_text = command_text.replace(resolver_anchor, resolver_with_sequence, 1)
+
+old_quantity = '    val quantity = quantityResolver.resolve(candidate.clause)\n'
+new_quantity = '''    val rawQuantity = quantityResolver.resolve(candidate.clause)
+    val quantity = resolvedQuantity(candidate, actor, item, rawQuantity, context)
+'''
+if new_quantity not in command_text:
+    if command_text.count(old_quantity) != 1:
+        raise RuntimeError(f"CommandResolver quantity anchor expected one match, found {command_text.count(old_quantity)}")
+    command_text = command_text.replace(old_quantity, new_quantity, 1)
+
+helper_anchor = '''  private fun itemCommand(id: String, turn: String, actor: String, target: String?, source: CommandSource, operation: ItemCommand.Operation, item: Pair<String, String>, quantity: Int, slot: String? = null) =
+'''
+quantity_helper = '''  private fun resolvedQuantity(candidate: IntentCandidate, actor: String, item: Pair<String, String>?, rawQuantity: Int, context: GameContext): Int {
+    if (candidate.intent != GameIntent.OMNIVAULT_COPY || item == null) return rawQuantity
+    val targetTotal = Regex("(?:thành|tổng\\s+cộng|đủ)\\s+(?:\\d+|một|hai|ba|bốn|năm|sáu|bảy|tám|chín|mười|một\\s+trăm)\\b", RegexOption.IGNORE_CASE)
+      .containsMatchIn(candidate.clause)
+    if (!targetTotal) return rawQuantity
+    val existing = context.state.inventories[actor]?.items?.get(item.first)?.quantity ?: 0
+    return (rawQuantity - existing).coerceAtLeast(1)
+  }
+
+'''
+if 'private fun resolvedQuantity(candidate: IntentCandidate' not in command_text:
+    if helper_anchor not in command_text:
+        raise RuntimeError("CommandResolver quantity helper anchor missing")
+    command_text = command_text.replace(helper_anchor, quantity_helper + helper_anchor, 1)
+COMMAND.write_text(command_text, encoding="utf-8")
+
+facade_text = FACADE.read_text(encoding="utf-8")
+old_resolve_all = '    val resolvedCommands = interpreted.candidates.mapIndexedNotNull { index, candidate -> resolver.resolve(candidate, index, turnId, context) }\n'
+new_resolve_all = '    val resolvedCommands = resolver.resolveSequence(interpreted.candidates, turnId, context).filterNotNull()\n'
+if new_resolve_all not in facade_text:
+    if facade_text.count(old_resolve_all) != 1:
+        raise RuntimeError(f"GameCoreFacade sequential resolver anchor expected one match, found {facade_text.count(old_resolve_all)}")
+    facade_text = facade_text.replace(old_resolve_all, new_resolve_all, 1)
+FACADE.write_text(facade_text, encoding="utf-8")
+
+# Regression coverage is generated by the runtime patch so CI exercises the exact final sources.
+TEST.write_text(r'''package com.rabpit.backroom.core
+
+import org.junit.Assert.*
+import org.junit.Test
+
+class OmnivaultNaturalFlowTest {
+  private fun withAlmondWater(): GameState {
+    val state = GameState.initial()
+    val inventory = state.inventories[KAI_ID] ?: InventoryState(KAI_ID)
+    val almond = ItemStack("almond-water", "Almond Water", 1, "SEALED")
+    return state.copy(inventories = state.inventories + (KAI_ID to inventory.copy(items = inventory.items + (almond.itemId to almond))))
+  }
+
+  @Test fun scanThenCopyCarriesReferenceAndTargetsRequestedTotal() {
+    val state = withAlmondWater()
+    val context = GameContext(state)
+    val interpreted = RuleIntentInterpreter().interpretSync("Kai quét Almond Water rồi nhân bản thành 10 chai", context)
+    assertEquals(listOf(GameIntent.OMNIVAULT_SCAN, GameIntent.OMNIVAULT_COPY), interpreted.candidates.map { it.intent })
+
+    val commands = CommandResolver().resolveSequence(interpreted.candidates, state.turn.currentTurnId, context).filterNotNull()
+    assertEquals(2, commands.size)
+    val scan = commands[0] as OmnivaultCommand
+    val copy = commands[1] as OmnivaultCommand
+    assertEquals("almond-water", scan.itemId)
+    assertEquals("almond-water", copy.itemId)
+    assertEquals(9, copy.quantity)
+
+    val result = StateReducer.executeAll(state, commands)
+    assertTrue(result.applied)
+    assertEquals(10, result.state.inventories.getValue(KAI_ID).items.getValue("almond-water").quantity)
+    assertEquals("9", result.state.inventories.getValue(KAI_ID).items.getValue("almond-water").metadata["omnivaultCopyCount"])
+    assertTrue("almond-water" in result.state.omnivault.markedSourceIds)
+    assertEquals("almond-water", result.state.omnivault.scanSlots.single().sourceItemId)
+  }
+
+  @Test fun copyWithoutTemplateStillRequiresCanonicalScan() {
+    val state = withAlmondWater()
+    val rejected = StateReducer.execute(state, OmnivaultCommand(
+      "copy-without-scan", state.turn.currentTurnId, KAI_ID, source = CommandSource.RULE,
+      operation = OmnivaultCommand.Operation.COPY, itemId = "almond-water", itemName = "Almond Water", quantity = 9
+    ))
+    assertFalse(rejected.applied)
+    assertEquals("scan_template_missing", rejected.validation.reason)
+  }
+
+  @Test fun previousTurnReferenceResolvesCopyClauseWithoutRepeatingItemName() {
+    val state = withAlmondWater().copy(metadata = withAlmondWater().metadata + ("lastReferencedItemId" to "almond-water"))
+    val context = GameContext(state)
+    val candidate = RuleIntentInterpreter().interpretSync("nhân bản thành 10 chai", context).candidates.single()
+    assertEquals(GameIntent.OMNIVAULT_COPY, candidate.intent)
+    val command = CommandResolver().resolve(candidate, 0, state.turn.currentTurnId, context) as OmnivaultCommand
+    assertEquals("almond-water", command.itemId)
+    assertEquals(9, command.quantity)
+  }
+
+  @Test fun createAdditionalCopiesKeepsAdditiveMeaning() {
+    val state = withAlmondWater()
+    val context = GameContext(state)
+    val candidate = RuleIntentInterpreter().interpretSync("tạo thêm 3 bản Almond Water", context).candidates.single()
+    val command = CommandResolver().resolve(candidate, 0, state.turn.currentTurnId, context) as OmnivaultCommand
+    assertEquals(3, command.quantity)
+  }
+}
+''', encoding="utf-8")
+
+# Regression contracts for bugs #3 and #4.
 final_facade = FACADE.read_text(encoding="utf-8")
 final_java = MAIN.read_text(encoding="utf-8")
 final_builder = KNOWLEDGE_BUILDER.read_text(encoding="utf-8")
+final_intent = INTENT.read_text(encoding="utf-8")
+final_command = COMMAND.read_text(encoding="utf-8")
 for token in (
     "if (isDirectPlayerPickupAction(action))",
     new_inventory_lock.strip(),
     '(?:thêm|đưa).{0,80}(?:vào|trong)\\\\s+(?:inventory|kho đồ|túi đồ)',
     "player_pickup_unavailable",
     "Hành động này không khả dụng trong trạng thái hiện tại.",
+    "resolver.resolveSequence(interpreted.candidates, turnId, context).filterNotNull()",
 ):
     if token not in final_facade:
-        raise RuntimeError(f"Search/world-acquisition facade contract missing: {token}")
+        raise RuntimeError(f"Search/world-acquisition/Omnivault facade contract missing: {token}")
 for token in (
     'String acquisitionBasis = lower(op.optString("basis", "")).trim();',
     'boolean worldAcquisition = acquisitionBasis.equals("world_consequence");',
@@ -145,9 +291,21 @@ for token in (
 ):
     if token not in final_java:
         raise RuntimeError(f"World acquisition reducer contract missing: {token}")
+for token in (
+    'if (name.isBlank()) return context.lastReferencedItemId?.let { knownPair(it, context) }',
+):
+    if token not in final_intent:
+        raise RuntimeError(f"Omnivault item-reference contract missing: {token}")
+for token in (
+    'fun resolveSequence(candidates: List<IntentCandidate>',
+    'private fun resolvedQuantity(candidate: IntentCandidate',
+    'rawQuantity - existing',
+):
+    if token not in final_command:
+        raise RuntimeError(f"Omnivault command-resolution contract missing: {token}")
 if 'basis:\\"world_consequence\\"' not in final_builder:
     raise RuntimeError("Writer prompt does not require world_consequence Inventory handoff")
 if old_inventory_lock in final_facade or old_inventory_assertion in final_facade:
     raise RuntimeError("Legacy inventory false-positive lock survived")
 
-print("World item handoffs now synchronize GM narrative, Android reducer and Core Inventory without weakening explicit pickup or Omnivault copy rules.")
+print("World handoffs remain synchronized; Omnivault Scan -> Copy now preserves item references and requested total quantities while keeping the 3-slot/template rules authoritative.")
