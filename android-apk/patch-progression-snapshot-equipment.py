@@ -3,6 +3,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
 INDEX = ROOT / "app/src/main/assets/index.html"
+ENGINES = ROOT / "app/src/main/java/com/rabpit/backroom/core/Engines.kt"
+MADGOD_TEST = ROOT / "app/src/test/java/com/rabpit/backroom/core/MadGodEquipmentTest.kt"
 
 main = MAIN.read_text(encoding="utf-8")
 
@@ -12,6 +14,12 @@ new_equipment = "function equippedItem(s){try{var e=state&&state.equipment||{};i
 if old_equipment not in main:
     raise RuntimeError("MadGod overlay equipment detector anchor missing")
 main = main.replace(old_equipment, new_equipment, 1)
+
+# The Snapshot character already communicates the equipped set; a text badge obscures the armor.
+badge_call = "box.appendChild(kai);appendEquipmentBadge(box);if(!r)"
+if badge_call not in main:
+    raise RuntimeError("Snapshot MadGod badge call anchor missing")
+main = main.replace(badge_call, "box.appendChild(kai);if(!r)", 1)
 
 # A cached image is valid only for the exact visual scene. Old cache entries intentionally expire.
 old_cache = "function cachedSnapshot(){try{var r=JSON.parse(localStorage.getItem('backroom-apk-snapshot')||'null');return r&&r.dataUri?r:null;}catch(e){return null;}}function renderSnapshot()"
@@ -125,7 +133,35 @@ if old_ui not in index:
 index = index.replace(old_ui, new_ui, 1)
 INDEX.write_text(index, encoding="utf-8")
 
-combined = MAIN.read_text(encoding="utf-8") + "\n" + INDEX.read_text(encoding="utf-8")
+# Equipped MadGod is permanent equipment state, not a carried Inventory stack.
+engines = ENGINES.read_text(encoding="utf-8")
+old_bind = '''          val boundSlots = equipment.slots + mapOf("weapon" to MADGOD_SET_ID, "armor" to MADGOD_SET_ID)
+          changed(state.copy(equipment = state.equipment + (command.actorId to equipment.copy(slots = boundSlots))), "item_equipped")
+'''
+new_bind = '''          val boundSlots = equipment.slots + mapOf("weapon" to MADGOD_SET_ID, "armor" to MADGOD_SET_ID)
+          val carried = removeItem(source, command.itemId, command.quantity) ?: return invalid(state, "insufficient_item_quantity")
+          changed(state.copy(
+            inventories = state.inventories + (command.actorId to carried),
+            equipment = state.equipment + (command.actorId to equipment.copy(slots = boundSlots))
+          ), "item_equipped")
+'''
+if old_bind not in engines:
+    raise RuntimeError("MadGod inventory-to-equipment binding anchor missing")
+engines = engines.replace(old_bind, new_bind, 1)
+ENGINES.write_text(engines, encoding="utf-8")
+
+test = MADGOD_TEST.read_text(encoding="utf-8")
+inventory_assert_anchor = '''    assertEquals(MADGOD_SET_ID, after["armor"])
+    assertEquals(KAI_OMNIVAULT_RING_ID, after["ring"])
+'''
+inventory_assert_replacement = inventory_assert_anchor + '''    assertFalse(equip.state.inventories.getValue(KAI_ID).items.containsKey(MADGOD_SET_ID))
+'''
+if inventory_assert_anchor not in test:
+    raise RuntimeError("MadGod equipped inventory regression anchor missing")
+test = test.replace(inventory_assert_anchor, inventory_assert_replacement, 1)
+MADGOD_TEST.write_text(test, encoding="utf-8")
+
+combined = MAIN.read_text(encoding="utf-8") + "\n" + INDEX.read_text(encoding="utf-8") + "\n" + ENGINES.read_text(encoding="utf-8") + "\n" + MADGOD_TEST.read_text(encoding="utf-8")
 for marker in (
     "sceneKey:visualSceneKey()",
     "r.sceneKey===visualSceneKey()",
@@ -134,8 +170,13 @@ for marker in (
     "exploration.put(\"minimumTurns\", 6)",
     "recordLevelProgress(state, oldLevel, newLevel)",
     "partyDetails&&state.partyDetails.members",
+    "val carried = removeItem(source, command.itemId, command.quantity)",
+    "assertFalse(equip.state.inventories.getValue(KAI_ID).items.containsKey(MADGOD_SET_ID))",
 ):
     if marker not in combined:
         raise RuntimeError("Progression/snapshot/equipment contract missing: " + marker)
+
+if "appendEquipmentBadge(box)" in MAIN.read_text(encoding="utf-8"):
+    raise RuntimeError("Snapshot MadGod text badge still renders over the overlay")
 
 print("Installed robust MadGod projection, scene-keyed Snapshot cache, location Level recognition, and six-turn progression gate.")
