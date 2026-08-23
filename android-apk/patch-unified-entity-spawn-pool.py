@@ -134,43 +134,19 @@ if not schedule_after_healthbar():
 
     MAIN.write_text(text, encoding="utf-8")
 
-    # Combat cleanup must be persisted into the authoritative core world state. Clearing only the
-    # WebView projection lets the repository rehydrate the old entityEncounterKey on a later turn.
+    # Visual-state-sync V3 already performs targeted persistent cleanup inside processCombat after
+    # all HP/regen transformations. Reuse that established implementation rather than rewriting the
+    # same method a second time and fighting the patch chain over anchors.
     facade = FACADE.read_text(encoding="utf-8")
-    old_cleanup = '''    if (time.applied) next = time.state
-    next = CharacterStatEngine.applyCompletedTurnRegen(next, "COMBAT_TURN_${legacy.optInt("turn", 1)}")
-    repository.save(next)
-
-    val output = syncLegacy(legacy, next, incrementTurn = true)
-    if (resolution.entityDestroyed || resolution.escaped) {
-      val flags = output.optJSONObject("flags") ?: JSONObject().also { output.put("flags", it) }
-      flags.put("entityEncounterKey", "")
-    }
-    appendLog(output, action, resolution.reply)
-'''
-    new_cleanup = '''    if (time.applied) next = time.state
-    next = CharacterStatEngine.applyCompletedTurnRegen(next, "COMBAT_TURN_${legacy.optInt("turn", 1)}")
-    if (resolution.entityDestroyed || resolution.escaped) {
-      val flags = JSONObject(next.world["flagsJson"] ?: "{}")
-      flags.put("entityEncounterKey", "")
-      next = next.copy(world = next.world + ("flagsJson" to flags.toString()))
-    }
-    repository.save(next)
-
-    val output = syncLegacy(legacy, next, incrementTurn = true)
-    appendLog(output, action, resolution.reply)
-'''
-    if new_cleanup not in facade:
-        facade = replace_once(facade, old_cleanup, new_cleanup, "persistent combat Entity cleanup")
-
     for marker in (
-        'val flags = JSONObject(next.world["flagsJson"] ?: "{}")',
+        'private fun normalizeVisualPresence(state: GameState): GameState',
+        'val resolvedEntityKey = CombatRuntime.active(current)?.entityKey.orEmpty()',
         'flags.put("entityEncounterKey", "")',
+        '"jeff_the_killer" -> flags.optJSONObject("jeff")?.put("present", false)',
+        '"jane_the_killer" -> flags.optJSONObject("jane")?.put("present", false)',
         'next = next.copy(world = next.world + ("flagsJson" to flags.toString()))',
-        'repository.save(next)',
     ):
         if marker not in facade:
-            raise RuntimeError("Persistent combat cleanup contract missing: " + marker)
+            raise RuntimeError("Visual-state persistent combat cleanup contract missing: " + marker)
 
-    FACADE.write_text(facade, encoding="utf-8")
-    print("Unified Entity spawn pool installed after final visual/status patches: Jeff/Jane share entityEncounter + roamingEntityKey and cleanup persists.")
+    print("Unified Entity spawn pool installed after final visual/status patches: Jeff/Jane share entityEncounter + roamingEntityKey; existing CombatRuntime cleanup remains authoritative.")
