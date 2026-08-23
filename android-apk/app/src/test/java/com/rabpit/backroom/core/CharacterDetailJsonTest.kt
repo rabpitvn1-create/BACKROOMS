@@ -12,6 +12,8 @@ class CharacterDetailJsonTest {
       presence = CharacterPresence.ACTIVE,
       isLeader = false,
       healthState = "INJURED",
+      currentHp = 63,
+      maxHp = 100,
       injuries = listOf("left_arm_cut"),
       physiology = DerivedPhysiologyStatus(
         hunger = PhysiologyBand.MILD,
@@ -55,6 +57,8 @@ class CharacterDetailJsonTest {
     assertEquals("iris", character.getString("id"))
     assertEquals("avatars/iris.png", character.getString("avatar"))
     assertEquals("INJURED", character.getString("healthState"))
+    assertEquals(63, character.getInt("currentHp"))
+    assertEquals(100, character.getInt("maxHp"))
     val physiology = character.getJSONObject("physiology")
     assertEquals("MODERATE", physiology.getString("thirst"))
     assertEquals("cold", physiology.getString("thermal"))
@@ -72,6 +76,8 @@ class CharacterDetailJsonTest {
       presence = CharacterPresence.ACTIVE,
       isLeader = true,
       healthState = null,
+      currentHp = 100,
+      maxHp = 100,
       injuries = emptyList(),
       physiology = DerivedPhysiologyStatus(
         PhysiologyBand.UNKNOWN,
@@ -98,6 +104,8 @@ class CharacterDetailJsonTest {
     assertFalse(status.has("source"))
     assertFalse(status.has("metadata"))
     assertEquals("EFFECT", status.getString("type"))
+    assertEquals(100, json.getInt("currentHp"))
+    assertEquals(100, json.getInt("maxHp"))
   }
 
   @Test fun optionalUnknownFieldsRemainAbsentInsteadOfInvented() {
@@ -108,6 +116,8 @@ class CharacterDetailJsonTest {
       presence = CharacterPresence.ACTIVE,
       isLeader = false,
       healthState = null,
+      currentHp = 100,
+      maxHp = 100,
       injuries = emptyList(),
       physiology = DerivedPhysiologyStatus(
         PhysiologyBand.UNKNOWN,
