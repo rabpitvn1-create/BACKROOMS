@@ -4,29 +4,31 @@ Toàn bộ sprite Entity dùng trong APK nằm trực tiếp tại:
 
 `android-apk/app/src/main/assets/entity/`
 
-Runtime không dùng manifest từ xa, không tải ảnh mạng và không phụ thuộc Google Drive. Snapshot đọc ảnh trực tiếp bằng đường dẫn `file:///android_asset/entity/<filename>`.
+Runtime chỉ dùng canonical Entity key trùng chính xác với tên file bỏ phần mở rộng `.png`. Không có alias theo Level, không có mã Entity cũ, không có manifest từ xa và không tải ảnh mạng.
 
-| Entity ID | Entity | Local asset |
-|---|---|---|
-| `ENT-1A`, `ENT-2B`, `ENT-5D` | Hound | `hound.png` |
-| `ENT-1B`, `ENT-2A` | Clump | `clump.png` |
-| `ENT-1C` | Duller | `duller.png` |
-| `ENT-1D`, `ENT-3A` | Deathmoth | `deathmoth.png` |
-| `ENT-1E` | Hostile Faceling | `hostile_faceling.png` |
-| `ENT-1F` | False Puddle | `false_puddle.png` |
-| `ENT-1G` | Paintings | `paintings.png` |
-| `ENT-2C` | Smiler | `smiler.png` |
-| `ENT-2D`, `ENT-3C`, `ENT-5C` | Skin-Stealer | `skin-stealer.png` |
-| `ENT-2E`, `ENT-5B` | Predatory Window | `predatory_window.png` |
-| `ENT-2F` | Biological Pipeline | `biological_pipeline.png` |
-| `ENT-3B` | Wretch | `wretch.png` |
-| `ENT-3D` | Cable Mimic | `cable_mimic.png` |
-| `ENT-5A` | The Beast of Level 5 | `the_beast_of_level_5.png` |
-| `ENT-5E` | Hotel Corpse Lure | `hotel_corpse_lure.png` |
-| `ENT-R01` | Jeff the Killer | `jeff_the_killer.png` |
-| `ENT-R02` | Jane the Killer | `jane_the_killer.png` |
-| `ENT-R03` | Slenderman | `slenderman.png` |
+| Canonical Entity key | Local asset |
+|---|---|
+| `hound` | `hound.png` |
+| `clump` | `clump.png` |
+| `duller` | `duller.png` |
+| `deathmoth` | `deathmoth.png` |
+| `hostile_faceling` | `hostile_faceling.png` |
+| `false_puddle` | `false_puddle.png` |
+| `paintings` | `paintings.png` |
+| `smiler` | `smiler.png` |
+| `skin-stealer` | `skin-stealer.png` |
+| `predatory_window` | `predatory_window.png` |
+| `biological_pipeline` | `biological_pipeline.png` |
+| `wretch` | `wretch.png` |
+| `cable_mimic` | `cable_mimic.png` |
+| `the_beast_of_level_5` | `the_beast_of_level_5.png` |
+| `hotel_corpse_lure` | `hotel_corpse_lure.png` |
+| `jeff_the_killer` | `jeff_the_killer.png` |
+| `jane_the_killer` | `jane_the_killer.png` |
+| `slenderman` | `slenderman.png` |
 
-## Roaming gameplay
+Snapshot đọc trực tiếp bằng đường dẫn:
 
-Các Level gốc vẫn mô tả habitat/canon baseline, nhưng không còn khóa nơi Entity có thể xuất hiện trong gameplay. Pool Entity thường có thể roaming/incursion trên mọi Level 0–6. Jeff và Jane tiếp tục dùng roll độc lập riêng của chúng.
+`file:///android_asset/entity/<canonical-key>.png`
+
+Gameplay runtime không được suy ra Entity từ Level hoặc từ registry lịch sử. Một Entity hiện tại chỉ được nhận diện bằng canonical key đang hoạt động trong state.
