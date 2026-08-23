@@ -86,30 +86,34 @@ jobs:
           gradle = Path('android-apk/app/build.gradle').read_text(encoding='utf-8')
           madgod = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/MadGodCanon.kt').read_text(encoding='utf-8')
           engines = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/Engines.kt').read_text(encoding='utf-8')
-          tests = Path('android-apk/app/src/test/java/com/rabpit/backroom/core/MadGodEquipmentTest.kt').read_text(encoding='utf-8')
+          equipment_system = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/CharacterEquipmentSystem.kt').read_text(encoding='utf-8')
+          status_tests = Path('android-apk/app/src/test/java/com/rabpit/backroom/core/CharacterStatusEquipmentSystemTest.kt').read_text(encoding='utf-8')
           save_repo = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/SaveRepository.kt').read_text(encoding='utf-8')
           entity_dir = Path('android-apk/app/src/main/assets/entity')
 
           required = [
               ("versionCode 62", gradle), ("versionName '1.1.60'", gradle),
               ('id="searchActionButton"', html), ('id="exploreActionButton"', html), ('STEP2_THREE_ACTIONS', html),
-              ('madGodSetEquipped()', html), ("return ['MadGod Set','Omnivault Ring']", html),
+              ('madGodSetEquipped()', html), ('id="equipmentDetailModal"', html), ('window.renderCharacterStatusEquipment=render;', html),
               ('const val CHEAT_CODE = "/madgod"', madgod), ('const val MADGOD_SET_ID = "madgod:set"', madgod),
               ('MadGodCanon.cheat(action)', facade), ('applyMadGodCheat(legacy,state)', facade),
               ('if (isMadGodEquipRequest(action))', facade), ('commandId = "$turnId:MADGOD:EQUIP"', facade),
               ('"madgod_equipped"', facade), ('output.put("equipment",MadGodCanon.legacy(state))', facade),
-              ('val boundSlots = equipment.slots + mapOf("weapon" to MADGOD_SET_ID, "armor" to MADGOD_SET_ID)', engines),
-              ('if (command.actorId != KAI_ID) return invalid(state,"madgod_equipment_slot_mismatch")', engines),
-              ('equipOverwritesKaisExistingWeaponAndArmorFromNormalWeaponSlot', tests),
-              ('runtimeEquipStateProjectsMadGodInsteadOfKaiDefaultGear', tests),
+              ('ItemCommand.Operation.EQUIP -> EquipmentEngine.equip(state, command)', engines),
+              ('ItemCommand.Operation.UNEQUIP -> EquipmentEngine.unequip(state, command)', engines),
+              ('occupiesSlots = setOf(EquipmentSlot.WEAPON, EquipmentSlot.ARMOR)', equipment_system),
+              ('bonuses = EquipmentBonuses(hp = 50, str = 15, df = 30, agi = 12, crit = 12)', equipment_system),
+              ('CharacterStatEngine.preserveMissingHp', equipment_system),
+              ('fun applyCompletedTurnRegen', equipment_system),
+              ('madGodIsNotCanonicalStartingLoadoutAndCountsOnceAcrossTwoSlots', status_tests),
+              ('regenRunsExactlyOnceAndZeroHpCannotBeRescued', status_tests),
+              ('inventoryOwnsSameItemReferencedByEquipment', status_tests),
               ('sceneKey:visualSceneKey()', java), ('r.sceneKey===visualSceneKey()', java),
               ('private int mentionedLevel(JSONObject state)', java),
               ('return exitFound && progressionReady(before);', java),
               ('exploration.put("minimumTurns", 6)', java),
               ('recordLevelProgress(state, oldLevel, newLevel)', java),
               ('partyDetails&&state.partyDetails.members', java),
-              ('val carried = removeItem(source, command.itemId, command.quantity)', engines),
-              ('assertFalse(equip.state.inventories.getValue(KAI_ID).items.containsKey(MADGOD_SET_ID))', tests),
               ('rolls.put("roamingEntityKey"', java), ('file:///android_asset/entity/', java),
               ('private JSONObject resolveEntityOverlay(', java), ('window.backroomEntityOverlay=function(payload)', java),
               ('private void forceEntityEncounterFlag(JSONObject candidateState, JSONObject rolls)', java),
@@ -126,6 +130,7 @@ jobs:
           assert 'makeGameplayRolls(before, action, meta)' not in java
           assert 'slot != "set" || MadGodCanon.slot(command.itemId' not in engines
           assert 'appendEquipmentBadge(box)' not in java
+          assert 'const val MULTIPLIER = 50' not in madgod
 
           required_assets = [
               'hound.png','clump.png','duller.png','deathmoth.png','hostile_faceling.png','false_puddle.png','paintings.png',
@@ -172,6 +177,8 @@ jobs:
           grep -q 'searchActionButton' apk-check/assets/index.html
           grep -q 'exploreActionButton' apk-check/assets/index.html
           grep -q 'madGodSetEquipped' apk-check/assets/index.html
+          grep -q 'equipmentDetailModal' apk-check/assets/index.html
+          grep -q 'renderCharacterStatusEquipment' apk-check/assets/index.html
           test -s apk-check/assets/entity/hound.png
           test -s apk-check/assets/entity/slenderman.png
           test -s apk-check/assets/Kai_MadGod_snapshot_overlay.png
