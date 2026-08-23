@@ -1,0 +1,52 @@
+name: Materialize Diep Minh Asset
+
+on:
+  push:
+    branches: [feat/diep-minh-boss]
+    paths:
+      - ".github/diep-minh-transfer/READY"
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/diep-minh-boss
+
+      - name: Reconstruct raw PNG asset
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64, hashlib
+          parts = sorted(Path('.github/diep-minh-transfer').glob('part-*.b85'))
+          if len(parts) != 10:
+              raise SystemExit(f'expected 10 transfer chunks, found {len(parts)}')
+          encoded = ''.join(p.read_text(encoding='ascii') for p in parts)
+          data = base64.b85decode(encoded.encode('ascii'))
+          expected = 'c14e6d93b97d87f2a1656da675c27a6a1254c58335301ef63852233e3d09519b'
+          actual = hashlib.sha256(data).hexdigest()
+          if actual != expected:
+              raise SystemExit(f'PNG sha256 mismatch: {actual}')
+          if data[:8] != b'\x89PNG\r\n\x1a\n':
+              raise SystemExit('decoded asset is not PNG')
+          out = Path('android-apk/app/src/main/assets/entity/diep_minh.png')
+          out.parent.mkdir(parents=True, exist_ok=True)
+          out.write_bytes(data)
+          print(f'wrote {out} ({len(data)} bytes, sha256={actual})')
+          PY
+
+      - name: Commit raw asset and remove transfer scaffolding
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add android-apk/app/src/main/assets/entity/diep_minh.png
+          git rm -r .github/diep-minh-transfer
+          git rm .github/workflows/materialize-diep-minh-asset.yml
+          git commit -m "Add Diệp Minh local PNG asset"
+          git push origin HEAD:feat/diep-minh-boss
