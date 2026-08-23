@@ -182,3 +182,9 @@ pressure = ROOT / "patch-pressure-combat.py"
 if not pressure.is_file():
     raise RuntimeError("Pressure Combat patch missing")
 exec(compile(pressure.read_text(encoding="utf-8"), str(pressure), "exec"), {"__name__": "__main__", "__file__": str(pressure)})
+
+# Character healthbar runs after the final runtime/UI transforms so it binds to the actual Character Detail DOM.
+healthbar = ROOT / "patch-character-healthbar.py"
+if not healthbar.is_file():
+    raise RuntimeError("Character healthbar patch missing")
+exec(compile(healthbar.read_text(encoding="utf-8"), str(healthbar), "exec"), {"__name__": "__main__", "__file__": str(healthbar)})
