@@ -109,8 +109,15 @@ required = [
 for marker in required:
     if marker not in text:
         raise RuntimeError(f"Jane roaming contract missing: {marker}")
-if ("ENT" + "-") in text or "entityRegistry" in text:
-    raise RuntimeError("Legacy Entity identifier/registry remains in Jane runtime patch")
+if ("ENT" + "-") in text:
+    raise RuntimeError("Legacy Entity identifier remains in Jane runtime patch")
+for forbidden_runtime_marker in (
+    "var reg=f.entityRegistry",
+    "return normalizeEntityId(",
+    "roamingEntityId",
+):
+    if forbidden_runtime_marker in text:
+        raise RuntimeError("Legacy Entity rendering/runtime marker remains: " + forbidden_runtime_marker)
 
 MAIN.write_text(text, encoding="utf-8")
 
