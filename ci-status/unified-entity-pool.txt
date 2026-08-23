@@ -1,7 +1,7 @@
 status=RED
-source_sha=e2e9e9def837ef641a05077aa1f0fe77d8894067
-run_id=32644471685
-patch_chain=failure
-contracts=skipped
+source_sha=18cfb591cd39e2c9ccda3d85bc70f84a0e10af6e
+run_id=32644560258
+patch_chain=success
+contracts=failure
 android_build=skipped
 apk_check=skipped
