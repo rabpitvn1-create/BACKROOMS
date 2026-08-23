@@ -6,6 +6,7 @@ TESTS = ROOT / "app/src/test/java/com/rabpit/backroom/core"
 SYSTEM = CORE / "CharacterEquipmentSystem.kt"
 POLICY = CORE / "InventoryPolicy.kt"
 TEST = TESTS / "InventoryCapacityNewGameTest.kt"
+INDEX = ROOT / "app/src/main/assets/index.html"
 
 system = SYSTEM.read_text(encoding="utf-8")
 old = '''  fun carriedItemIds(state: GameState, characterId: String): Set<String> {
@@ -60,13 +61,30 @@ if new_expectation not in test:
     test = test.replace(old_expectation, new_expectation, 1)
 TEST.write_text(test, encoding="utf-8")
 
-combined = SYSTEM.read_text(encoding="utf-8") + POLICY.read_text(encoding="utf-8") + TEST.read_text(encoding="utf-8")
+# Character Detail must render one card per equipped item, even when one item
+# intentionally occupies multiple equipment slots (for example MadGod weapon+armor).
+html = INDEX.read_text(encoding="utf-8")
+old_equipment_renderer = '''    if(equipment){const rendered=[];Object.keys(eq).sort().forEach(slot=>{const id=eq[slot],item=details.find(x=>String(x.id)===String(id))||itemById(member,id);if(item)rendered.push(card(item,slot))});equipment.innerHTML=rendered.length?rendered.join(''):'<span>Không có trang bị được ghi nhận.</span>'}
+'''
+new_equipment_renderer = '''    if(equipment){const grouped=new Map();Object.keys(eq).sort().forEach(slot=>{const id=String(eq[slot]||'');if(!id)return;const slots=grouped.get(id)||[];slots.push(slot);grouped.set(id,slots)});const rendered=[];grouped.forEach((slots,id)=>{const item=details.find(x=>String(x.id)===id)||itemById(member,id);if(item)rendered.push(card(item,slots.join(' / ')))});equipment.innerHTML=rendered.length?rendered.join(''):'<span>Không có trang bị được ghi nhận.</span>'}
+'''
+if new_equipment_renderer not in html:
+    if old_equipment_renderer not in html:
+        raise RuntimeError("Character Equipment renderer anchor missing")
+    html = html.replace(old_equipment_renderer, new_equipment_renderer, 1)
+if old_equipment_renderer in html:
+    raise RuntimeError("Per-slot duplicate Equipment renderer survived")
+INDEX.write_text(html, encoding="utf-8")
+
+combined = SYSTEM.read_text(encoding="utf-8") + POLICY.read_text(encoding="utf-8") + TEST.read_text(encoding="utf-8") + INDEX.read_text(encoding="utf-8")
 for marker in (
     'fun usedSlots(state: GameState, characterId: String, inventory: InventoryState)',
     'InventoryCapacityPolicy.usedSlots(state, ownerId, inventory)',
     'assertEquals(2, InventoryCapacityPolicy.usedSlots(equip.state, KAI_ID))',
+    'const grouped=new Map();Object.keys(eq).sort()',
+    "rendered.push(card(item,slots.join(' / ')))",
 ):
     if marker not in combined:
-        raise RuntimeError("Final capacity regression contract missing: " + marker)
+        raise RuntimeError("Final capacity/equipment regression contract missing: " + marker)
 
-print("Inventory capacity final fix applied: validation uses candidate inventory; equipped items cost zero slots; displaced gear costs slots.")
+print("Inventory capacity final fix applied; multi-slot Equipment now renders one card per item with combined slot labels.")
