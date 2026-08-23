@@ -14,6 +14,10 @@ runpy.run_path(str(ROOT / "patch-character-status-equipment-system.py"), run_nam
 # Hard cleanup after the large status patch: no retired combat HP metadata reference may survive.
 runpy.run_path(str(ROOT / "patch-combat-hp-metadata-cleanup.py"), run_name="__main__")
 
+# Fresh canonical loadouts begin at full Effective HP. This is initialization only; later equipment
+# changes keep Missing HP through CharacterStatEngine.preserveMissingHp.
+runpy.run_path(str(ROOT / "patch-fresh-effective-hp.py"), run_name="__main__")
+
 INDEX = ROOT / "app/src/main/assets/index.html"
 html = INDEX.read_text(encoding="utf-8")
 
