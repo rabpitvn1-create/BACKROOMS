@@ -7,6 +7,8 @@ data class CharacterDetailProjection(
   val presence: CharacterPresence,
   val isLeader: Boolean,
   val healthState: String?,
+  val currentHp: Int,
+  val maxHp: Int,
   val injuries: List<String>,
   val physiology: DerivedPhysiologyStatus,
   val inventory: List<ItemStack>,
@@ -44,6 +46,7 @@ object CharacterDetailProjector {
     val equipment = state.equipment[character.equipmentId]?.slots.orEmpty().toSortedMap()
     val effects = character.statusIds.mapNotNull(state.statuses::get)
       .sortedWith(compareBy<StatusEffect> { it.type }.thenBy { it.id })
+    val health = healthFor(state, character)
 
     return CharacterDetailProjection(
       id = character.id,
@@ -52,11 +55,28 @@ object CharacterDetailProjector {
       presence = character.presence,
       isLeader = character.id == state.party.leaderId,
       healthState = character.healthState,
+      currentHp = health.first,
+      maxHp = health.second,
       injuries = character.injuries.toList(),
       physiology = PhysiologyStatusPolicy.derive(character.physiology),
       inventory = inventory,
       equipment = equipment,
       statusEffects = effects
     )
+  }
+
+  private fun healthFor(state: GameState, character: CharacterState): Pair<Int, Int> {
+    val metadata = if (character.id == KAI_ID) state.metadata else character.metadata
+    val maxHp = (
+      metadata[if (character.id == KAI_ID) "combat.playerMaxHp" else "maxHp"]?.toIntOrNull()
+        ?: metadata["healthMax"]?.toIntOrNull()
+        ?: 100
+      ).coerceIn(1, 999)
+    val currentHp = (
+      metadata[if (character.id == KAI_ID) "combat.playerHp" else "hp"]?.toIntOrNull()
+        ?: metadata["healthCurrent"]?.toIntOrNull()
+        ?: maxHp
+      ).coerceIn(0, maxHp)
+    return currentHp to maxHp
   }
 }
