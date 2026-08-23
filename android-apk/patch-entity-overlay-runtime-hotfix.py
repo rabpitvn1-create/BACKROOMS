@@ -12,14 +12,6 @@ def replace_once(source: str, old: str, new: str, label: str) -> str:
     return source.replace(old, new, 1)
 
 
-# entityEncounterKey is intentionally allowed to become an empty string when an encounter ends.
-# The old renderer returned immediately whenever the key existed, even when empty, which prevented
-# the Jeff/Jane/entityRegistry fallbacks from ever being considered after the first cleared encounter.
-old_direct = "if(Object.prototype.hasOwnProperty.call(f,'entityEncounterKey'))return normalizeEntityId(f.entityEncounterKey);"
-new_direct = "var direct=Object.prototype.hasOwnProperty.call(f,'entityEncounterKey')?normalizeEntityId(f.entityEncounterKey):'';if(direct)return direct;"
-if new_direct not in text:
-    text = replace_once(text, old_direct, new_direct, "Entity active-id empty-key fallback")
-
 # The Entity PNG is absolutely positioned. The Snapshot container must establish the positioning
 # context or the PNG can render relative to the page instead of inside the Snapshot frame.
 old_box = "function appendEntityOverlay(){var box=document.getElementById('snapshot');if(!box)return;var old=box.querySelector('.snapshot-entity');"
@@ -28,31 +20,30 @@ if new_box not in text:
     text = replace_once(text, old_box, new_box, "Entity Snapshot positioning context")
 
 # Do not depend on the language model remembering to write entityEncounterKey. The encounter roll is
-# authoritative. Persist the selected local Entity ID into the candidate before Game State Core saves
-# it, so the WebView always receives a deterministic visual-presence key for the current encounter.
+# authoritative. Persist the selected canonical local Entity key before Game State Core saves it.
 helper = r'''  private void forceEntityEncounterFlag(JSONObject candidateState, JSONObject rolls) throws Exception {
     if (candidateState == null || rolls == null) return;
-    String entityId = "";
+    String entityKey = "";
     JSONObject normal = rolls.optJSONObject("entityEncounter");
     if (normal != null && normal.optBoolean("success", false)) {
-      entityId = rolls.optString("roamingEntityId", "").trim();
+      entityKey = rolls.optString("roamingEntityKey", "").trim();
     }
     JSONObject jeff = rolls.optJSONObject("jeffEncounter");
-    if (jeff != null && jeff.optBoolean("success", false)) entityId = "ENT-R01";
+    if (jeff != null && jeff.optBoolean("success", false)) entityKey = "jeff_the_killer";
     JSONObject jane = rolls.optJSONObject("janeEncounter");
-    if (jane != null && jane.optBoolean("success", false)) entityId = "ENT-R02";
-    if (entityId.isEmpty()) return;
+    if (jane != null && jane.optBoolean("success", false)) entityKey = "jane_the_killer";
+    if (entityKey.isEmpty()) return;
     JSONObject flags = candidateState.optJSONObject("flags");
     if (flags == null) {
       flags = new JSONObject();
       candidateState.put("flags", flags);
     }
-    flags.put("entityEncounterKey", normalizedEntityId(entityId));
+    flags.put("entityEncounterKey", normalizedEntityKey(entityKey));
   }
 
 '''
 if "private void forceEntityEncounterFlag(JSONObject candidateState, JSONObject rolls)" not in text:
-    anchor = "  private JSONObject resolveEntityOverlay(String rawEntityId) throws Exception {\n"
+    anchor = "  private JSONObject resolveEntityOverlay(String rawEntityKey) throws Exception {\n"
     if anchor not in text:
         raise RuntimeError("Entity overlay resolver anchor missing")
     text = text.replace(anchor, helper + anchor, 1)
@@ -74,14 +65,19 @@ for marker in (
     "file:///android_asset/entity/",
     "private void forceEntityEncounterFlag(JSONObject candidateState, JSONObject rolls)",
     "forceEntityEncounterFlag(candidateState, rolls);",
-    "flags.put(\"entityEncounterKey\", normalizedEntityId(entityId));",
+    "flags.put(\"entityEncounterKey\", normalizedEntityKey(entityKey));",
+    "rolls.optString(\"roamingEntityKey\", \"\")",
+    "entityKey = \"jeff_the_killer\"",
+    "entityKey = \"jane_the_killer\"",
     "box.style.position='relative';box.style.overflow='hidden'",
-    "var direct=Object.prototype.hasOwnProperty.call(f,'entityEncounterKey')?normalizeEntityId(f.entityEncounterKey):'';if(direct)return direct;",
+    "function activeEntityKey()",
     "window.backroomEntityOverlay=function(payload)",
-    "@JavascriptInterface public void requestEntityOverlay(String entityId)",
+    "@JavascriptInterface public void requestEntityOverlay(String entityKey)",
 ):
     if marker not in text:
         raise RuntimeError("Entity runtime hotfix contract missing: " + marker)
+if "ENT-" in text or "normalizedEntityId" in text or "roamingEntityId" in text:
+    raise RuntimeError("Legacy Entity identifier remains in runtime hotfix")
 
 MAIN.write_text(text, encoding="utf-8")
-print("Entity overlay hotfix applied: deterministic encounter ID, Snapshot-relative PNG positioning, and empty-key fallback repair.")
+print("Entity overlay hotfix applied with canonical asset keys only.")
