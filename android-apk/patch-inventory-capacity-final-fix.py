@@ -106,3 +106,7 @@ runpy.run_path(str(ROOT / "patch-lucia-follower.py"), run_name="__main__")
 # encounter contract to MainActivity. This keeps roaming Entity generation available to all three
 # primary actions without changing Lucia's own Level 0 follower rules.
 runpy.run_path(str(ROOT / "patch-entity-encounter-all-actions.py"), run_name="__main__")
+
+# Final combat balance authority applies after all combat/runtime generation is complete so no
+# earlier pressure-combat or character-status patch can overwrite Entity durability semantics.
+runpy.run_path(str(ROOT / "patch-entity-combat-durability.py"), run_name="__main__")
