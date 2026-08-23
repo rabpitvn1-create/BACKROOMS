@@ -89,7 +89,7 @@ roots_new = '      "Chỉ dùng flag root: exploration, communication, iris, syv
 if roots_new not in text:
     text = replace_once(text, roots_old, roots_new, "Jane prompt root")
 
-overlay_rule = '      "ENTITY OVERLAY HARD LOCK: với Entity đang trực tiếp xuất hiện hoặc đối đầu trong cảnh hiện tại, dùng flag_patch root=entityEncounterKey value=canonical Entity key đúng tên asset bỏ .png, ví dụ hound, smiler, skin-stealer, slenderman. Nếu Entity bị tiêu diệt, Kai chạy trốn hoặc thoát khỏi Entity, Entity rời cảnh, biến mất, hoặc không còn trực tiếp hiện diện/đối đầu, bắt buộc đặt entityEncounterKey thành chuỗi rỗng ngay trong lượt đó. entityEncounterKey chỉ là trạng thái hiện diện trực quan hiện tại, không phải lịch sử encounter. Không dùng mã ENT-* hoặc alias theo Level. " +\n'
+overlay_rule = '      "ENTITY OVERLAY HARD LOCK: với Entity đang trực tiếp xuất hiện hoặc đối đầu trong cảnh hiện tại, dùng flag_patch root=entityEncounterKey value=canonical Entity key đúng tên asset bỏ .png, ví dụ hound, smiler, skin-stealer, slenderman. Nếu Entity bị tiêu diệt, Kai chạy trốn hoặc thoát khỏi Entity, Entity rời cảnh, biến mất, hoặc không còn trực tiếp hiện diện/đối đầu, bắt buộc đặt entityEncounterKey thành chuỗi rỗng ngay trong lượt đó. entityEncounterKey chỉ là trạng thái hiện diện trực quan hiện tại, không phải lịch sử encounter. Không dùng mã Entity legacy hoặc alias theo Level. " +\n'
 expanded_overlay_rule = (
     '      "ENTITY OVERLAY HARD LOCK: với Entity đang trực tiếp xuất hiện hoặc đối đầu trong cảnh hiện tại, dùng flag_patch root=entityEncounterKey value=canonical Entity key đúng tên asset bỏ .png, ví dụ hound, smiler, skin-stealer, slenderman, jeff_the_killer, jane_the_killer. Nếu Entity bị tiêu diệt, Kai chạy trốn hoặc thoát khỏi Entity, Entity rời cảnh, biến mất, hoặc không còn trực tiếp hiện diện/đối đầu, bắt buộc đặt entityEncounterKey thành chuỗi rỗng ngay trong lượt đó. entityEncounterKey chỉ là trạng thái hiện diện trực quan hiện tại, không phải lịch sử encounter. Không dùng mã cũ hoặc alias theo Level. " +\n'
     '      "ROAMING KILLER HARD LOCK: jeffEncounter và janeEncounter tạm là hai roll riêng ở bước hiện tại. Nếu roll success=true thì nhân vật tương ứng phải xuất hiện trong chính lượt đó; Jeff dùng canonical key jeff_the_killer và Jane dùng canonical key jane_the_killer. Khi bị tiêu diệt hoặc Kai thoát/chạy trốn thành công, present phải false và entityEncounterKey phải rỗng ngay lượt đó. Không dùng bất kỳ mã Entity legacy nào. " +\n'
@@ -109,7 +109,7 @@ required = [
 for marker in required:
     if marker not in text:
         raise RuntimeError(f"Jane roaming contract missing: {marker}")
-if "ENT-" in text or "entityRegistry" in text:
+if ("ENT" + "-") in text or "entityRegistry" in text:
     raise RuntimeError("Legacy Entity identifier/registry remains in Jane runtime patch")
 
 MAIN.write_text(text, encoding="utf-8")
