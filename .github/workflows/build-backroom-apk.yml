@@ -203,10 +203,12 @@ jobs:
           "$BUILD_TOOLS/apksigner" verify --verbose --print-certs Backroom-1.1.57-verified.apk
           "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-1.1.57-verified.apk
           SHA256=$(sha256sum Backroom-1.1.57-verified.apk | awk '{print $1}')
-          rm -f release-status/v1.1.57-running.txt
-          printf 'status=GREEN\nversion=1.1.57\ntag=v1.1.57\nasset=Backroom-1.1.57.apk\nsource_sha=%s\nrun_id=%s\nsha256=%s\nbuild_type=debug\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$SHA256" > release-status/v1.1.57.txt
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git fetch origin main
+          git checkout -B release-status-sync origin/main
+          rm -f release-status/v1.1.57-running.txt
+          printf 'status=GREEN\nversion=1.1.57\ntag=v1.1.57\nasset=Backroom-1.1.57.apk\nsource_sha=%s\nrun_id=%s\nsha256=%s\nbuild_type=debug\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$SHA256" > release-status/v1.1.57.txt
           git add release-status/v1.1.57.txt release-status/v1.1.57-running.txt
           git commit -m 'Record verified Backroom 1.1.57 debug release'
           git push origin HEAD:main
