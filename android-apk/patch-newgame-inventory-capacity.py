@@ -188,7 +188,7 @@ if 'gameCore.currentPartyDetails()' in main:
 MAIN.write_text(main, encoding="utf-8")
 
 # ---------------------------------------------------------------------------
-# 3) UI reads Core capacity and New Game resets authoritative Core immediately.
+# 3) UI reads Core capacity, hides equipped Items from Inventory, and resets Core.
 # ---------------------------------------------------------------------------
 html = INDEX.read_text(encoding="utf-8")
 html = html.replace('Android.getPartyDetails();', 'Android.getPartyDetails(JSON.stringify(state||{}));')
@@ -203,7 +203,7 @@ new_capacity = "    const cap=member&&member.inventoryCapacity;const used=cap&&N
 if old_capacity in html:
     html = html.replace(old_capacity, new_capacity, 1)
 render_anchor = "    if(inventory){inventory.innerHTML=(member.inventory||[]).map(x=>card(x,null)).join('')||'<span>Trống.</span>'}\n"
-render_with_capacity = "    if(inventory){inventory.innerHTML=(member.inventory||[]).map(x=>card(x,null)).join('')||'<span>Trống.</span>'}\n    const capEl=document.getElementById('characterInventoryCapacity'),cap=member.inventoryCapacity||{};if(capEl){const used=Number.isFinite(Number(cap.used))?Number(cap.used):(member.inventory||[]).filter(x=>x&&x.consumesInventorySlot!==false).length;const max=Number.isFinite(Number(cap.max))?Number(cap.max):9;capEl.textContent=used+' / '+max+' loại vật phẩm'}\n"
+render_with_capacity = "    const visibleInventory=(member.inventory||[]).filter(x=>x&&x.equipped!==true);if(inventory){inventory.innerHTML=visibleInventory.map(x=>card(x,null)).join('')||'<span>Trống.</span>'}\n    const capEl=document.getElementById('characterInventoryCapacity'),cap=member.inventoryCapacity||{};if(capEl){const used=Number.isFinite(Number(cap.used))?Number(cap.used):(member.inventory||[]).filter(x=>x&&x.consumesInventorySlot!==false).length;const max=Number.isFinite(Number(cap.max))?Number(cap.max):9;capEl.textContent=used+' / '+max+' loại vật phẩm'}\n"
 if render_with_capacity not in html:
     if render_anchor not in html:
         raise RuntimeError("Redesigned Inventory renderer anchor missing")
@@ -233,11 +233,14 @@ for marker in (
     'response&&response.ok===true?response.data:null',
     'member.inventoryCapacity||{}',
     'x&&x.consumesInventorySlot!==false',
+    'const visibleInventory=(member.inventory||[]).filter(x=>x&&x.equipped!==true)',
     'Android.resetNewGameCore()',
     'NEW GAME đã tạo và lưu ở Turn 1 với Character Core mới.',
 ):
     if marker not in html:
         raise RuntimeError("New Game / Inventory capacity UI contract missing: " + marker)
+if "inventory.innerHTML=(member.inventory||[]).map(x=>card(x,null))" in html:
+    raise RuntimeError("Equipped Items can still render in the Character Inventory list")
 INDEX.write_text(html, encoding="utf-8")
 
 # ---------------------------------------------------------------------------
@@ -351,10 +354,11 @@ for marker in (
     'equippedItemsConsumeZeroCapacityForAllFourCharacters',
     'madGodOccupiesTwoEquipmentSlotsButIsOneOwnedZeroCapacityItem',
     'freshNewGameKaiProjectionIsImmediatelyAuthoritative',
+    'const visibleInventory=(member.inventory||[]).filter(x=>x&&x.equipped!==true)',
 ):
     if marker not in combined:
         raise RuntimeError("Final New Game/capacity contract missing: " + marker)
 if 'gameCore.currentPartyDetails()' in MAIN.read_text(encoding="utf-8"):
     raise RuntimeError("Forbidden direct lazy-Core Character bridge remains")
 
-print("New Game + Inventory capacity fixed: authoritative cold start, equipped Items remain visible/owned but consume zero slots for every CharacterState.")
+print("New Game + Inventory capacity fixed: authoritative cold start; equipped Items remain owned but are hidden from Inventory UI and consume zero slots.")
