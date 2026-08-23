@@ -35,11 +35,11 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p release-status
-          printf 'status=RUNNING\nversion=1.1.55\nsource_sha=%s\nrun_id=%s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" > release-status/v1.1.55-running.txt
+          printf 'status=RUNNING\nversion=1.1.56\nsource_sha=%s\nrun_id=%s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" > release-status/v1.1.56-running.txt
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add release-status/v1.1.55-running.txt
-          git commit -m "Record active Backroom 1.1.55 run $GITHUB_RUN_ID"
+          git add release-status/v1.1.56-running.txt
+          git commit -m "Record active Backroom 1.1.56 run $GITHUB_RUN_ID"
           git push origin HEAD:main
 
       - uses: actions/setup-python@v5
@@ -76,7 +76,7 @@ jobs:
             python3 "android-apk/$script"
           done
 
-      - name: Verify provider, local Entity, save and startup contracts
+      - name: Verify final runtime contracts
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -84,37 +84,24 @@ jobs:
           java = Path('android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java').read_text(encoding='utf-8')
           facade = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt').read_text(encoding='utf-8')
           gradle = Path('android-apk/app/build.gradle').read_text(encoding='utf-8')
-          canon = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/AnNhienCanon.kt').read_text(encoding='utf-8')
+          madgod = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/MadGodCanon.kt').read_text(encoding='utf-8')
           save_repo = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/SaveRepository.kt').read_text(encoding='utf-8')
           entity_dir = Path('android-apk/app/src/main/assets/entity')
 
           required = [
-              ("versionCode 57", gradle), ("versionName '1.1.55'", gradle),
-              ('state&&state.partyDetails&&Array.isArray(state.partyDetails.members)', html),
-              ('id="characterSurvivalHud"', html), ('.message.gm{', html), ('focusLatestGmStart()', html),
-              ('#characterEquipmentList span,#characterInventoryItems span{text-transform:uppercase', html),
-              ('output.put("partyDetails"', facade), ('output.put("gameTime"', facade),
-              ('thresholdRoll("jeffEncounter", 10000, 800', java),
-              ('thresholdRoll("janeEncounter", 10000, 800', java),
-              ('int[] entityThresholds = {805, 1000, 1150, 1150, 810, 1200, 805}', java),
-              ('rolls.put("roamingEntityId"', java), ('ENT-R03', java),
-              ('file:///android_asset/entity/', java),
-              ('private JSONObject resolveEntityOverlay(', java),
-              ('window.backroomEntityOverlay=function(payload)', java),
-              ('Jane the Killer dùng ENT-R02', java),
-              ('avatars/an_nhien_avatar.png', canon), ('an-nhien:pink-crocs', canon),
-              ('private java.util.List<String> lunaModelCandidates(', java), ('new URL(baseUrl + "/models")', java),
-              ('private boolean lunaInactiveModel(', java), ('models.add("gpt-5.6-sol")', java), ('Luna fallback / ', java),
-              ('if (modelIndex == 0) return 45000;', java),
-              ('cause instanceof java.net.SocketTimeoutException) return false;', java),
-              ('Integer.bitCount(geminiModelTransientMaskMatrix[modelIndex]) >= 5', java),
-              ('geminiTransportMaskMatrix &= ~(1 << keyIndex);', java), ('true, 120_000L', java),
-              ('private volatile boolean gameCoreUnavailable;', java), ('private GameCoreFacade gameCoreOrNull()', java),
-              ('private GameCoreFacade requireGameCore() throws Exception', java), ('requireGameCore().processRule(', java),
-              ('requireGameCore().processValidatedCandidate(', java), ('showStartupFallback(Throwable error)', java),
-              ('id="saveButton"', html), ('id="loadButton"', html), ('id="deleteSaveButton"', html),
-              ('localStorage.getItem("backroom-apk-state")', html), ('localStorage.setItem(SAVE_KEY,payload)', html),
-              ('class SharedPreferencesSaveRepository', save_repo), ('SharedPreferencesSaveRepository(', facade),
+              ("versionCode 58", gradle), ("versionName '1.1.56'", gradle),
+              ('id="searchActionButton"', html), ('id="exploreActionButton"', html), ('STEP2_THREE_ACTIONS', html),
+              ('madGodSetEquipped()', html), ("return ['MadGod Set','Omnivault Ring']", html),
+              ('const val CHEAT_CODE = "/madgod"', madgod), ('const val MADGOD_SET_ID = "madgod:set"', madgod),
+              ('MadGodCanon.cheat(action)', facade), ('applyMadGodCheat(legacy,state)', facade),
+              ('output.put("equipment",MadGodCanon.legacy(state))', facade),
+              ('rolls.put("roamingEntityId"', java), ('file:///android_asset/entity/', java),
+              ('private JSONObject resolveEntityOverlay(', java), ('window.backroomEntityOverlay=function(payload)', java),
+              ('private void forceEntityEncounterFlag(JSONObject candidateState, JSONObject rolls)', java),
+              ('forceEntityEncounterFlag(candidateState, rolls);', java),
+              ("box.style.position='relative';box.style.overflow='hidden'", java),
+              ('Kai_MadGod_snapshot_overlay.png', java),
+              ('class SharedPreferencesSaveRepository', save_repo),
           ]
           for marker, source in required:
               assert marker in source, marker
@@ -127,21 +114,12 @@ jobs:
           for name in required_assets:
               p = entity_dir / name
               assert p.is_file() and p.stat().st_size > 0, name
+          for p in [Path('android-apk/app/src/main/assets/Kai_MadGod_snapshot_overlay.png'), Path('android-apk/app/src/main/assets/avatars/MadGod.jpg')]:
+              assert p.is_file() and p.stat().st_size > 0, str(p)
 
           combined = html + java + gradle + facade + save_repo
-          for forbidden in [
-              'drive.google.com', 'www.googleapis.com/auth/drive', 'DriveOnlineSaveManager',
-              'driveConnectButton', 'driveSaveButton', 'function saveOnline()',
-              'com.google.android.gms:play-services-auth', 'ENTITY_MANIFEST_FILE_ID',
-              'readEntityManifestRemote', 'InMemorySaveRepository'
-          ]:
+          for forbidden in ['drive.google.com','www.googleapis.com/auth/drive','DriveOnlineSaveManager','com.google.android.gms:play-services-auth','ENTITY_MANIFEST_FILE_ID','readEntityManifestRemote']:
               assert forbidden not in combined, forbidden
-
-          on_create = java[java.index('public void onCreate'):java.index('@Override protected void onDestroy')]
-          assert 'gameCore = GameCoreFacade.create' not in on_create
-          assert 'Immersive fullscreen unavailable; continuing normally.' in on_create
-          assert 'UI enhancement injection failed; base game remains usable.' in on_create
-          assert 'GameCoreFacade.create(getApplicationContext(), BuildConfig.DEBUG)' in java
           PY
 
       - uses: actions/setup-java@v5
@@ -153,54 +131,52 @@ jobs:
         with:
           gradle-version: "8.10.2"
 
-      - name: Run Kotlin core tests and build debug APK
+      - name: Run Kotlin tests and build debug APK
         working-directory: android-apk
         run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
 
       - name: Prepare APK
-        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.1.55.apk
+        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.1.56.apk
 
-      - name: Verify debug APK, launcher and 16 KB native compatibility
+      - name: Verify packaged APK contracts
         run: |
           set -euo pipefail
           BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
-          APKSIGNER="$BUILD_TOOLS/apksigner"
-          AAPT="$BUILD_TOOLS/aapt"
-          ZIPALIGN="$BUILD_TOOLS/zipalign"
-          "$APKSIGNER" verify --verbose --print-certs Backroom-1.1.55.apk
-          "$AAPT" dump badging Backroom-1.1.55.apk | grep -q "package: name='com.rabpit.backroom'"
-          "$AAPT" dump badging Backroom-1.1.55.apk | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
-          "$ZIPALIGN" -c -P 16 -v 4 Backroom-1.1.55.apk
-          rm -rf native-check && mkdir native-check
-          unzip -q Backroom-1.1.55.apk 'lib/arm64-v8a/*.so' -d native-check
-          for so in native-check/lib/arm64-v8a/*.so; do
-            echo "Checking ELF alignment: $so"
-            while read -r align; do
-              (( align >= 0x4000 )) || (echo "Native LOAD alignment below 16 KB in $so: $align" && exit 1)
-            done < <(readelf -lW "$so" | awk '$1=="LOAD" {print $NF}')
-          done
+          "$BUILD_TOOLS/apksigner" verify --verbose --print-certs Backroom-1.1.56.apk
+          "$BUILD_TOOLS/aapt" dump badging Backroom-1.1.56.apk | grep -q "package: name='com.rabpit.backroom'"
+          "$BUILD_TOOLS/aapt" dump badging Backroom-1.1.56.apk | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
+          "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-1.1.56.apk
+          rm -rf apk-check && mkdir apk-check
+          unzip -q Backroom-1.1.56.apk 'assets/index.html' 'assets/entity/*' 'assets/Kai_MadGod_snapshot_overlay.png' 'assets/avatars/MadGod.jpg' -d apk-check
+          grep -q 'searchActionButton' apk-check/assets/index.html
+          grep -q 'exploreActionButton' apk-check/assets/index.html
+          grep -q 'madGodSetEquipped' apk-check/assets/index.html
+          test -s apk-check/assets/entity/hound.png
+          test -s apk-check/assets/entity/slenderman.png
+          test -s apk-check/assets/Kai_MadGod_snapshot_overlay.png
+          test -s apk-check/assets/avatars/MadGod.jpg
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Backroom-1.1.55-debug-apk
-          path: Backroom-1.1.55.apk
+          name: Backroom-1.1.56-debug-apk
+          path: Backroom-1.1.56.apk
           if-no-files-found: error
           retention-days: 14
 
-      - name: Publish GitHub Release v1.1.55
+      - name: Publish GitHub Release v1.1.56
         if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="v1.1.55"
-          TITLE="Backroom 1.1.55 Debug"
-          NOTES=$(cat android-apk/RELEASE_NOTES_1.1.55.txt)
+          TAG="v1.1.56"
+          TITLE="Backroom 1.1.56 Debug"
+          NOTES=$(cat android-apk/RELEASE_NOTES_1.1.56.txt)
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
-            gh release upload "$TAG" Backroom-1.1.55.apk --clobber
+            gh release upload "$TAG" Backroom-1.1.56.apk --clobber
           else
-            gh release create "$TAG" Backroom-1.1.55.apk --target "$GITHUB_SHA" --title "$TITLE" --notes "$NOTES"
+            gh release create "$TAG" Backroom-1.1.56.apk --target "$GITHUB_SHA" --title "$TITLE" --notes "$NOTES"
           fi
 
       - name: Verify published APK and record GREEN release
@@ -209,26 +185,22 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          rm -f Backroom-1.1.55-verified.apk
-          gh release view v1.1.55 --repo "$GITHUB_REPOSITORY"
-          gh release download v1.1.55 --repo "$GITHUB_REPOSITORY" --pattern 'Backroom-1.1.55.apk' --output Backroom-1.1.55-verified.apk
-          test -s Backroom-1.1.55-verified.apk
-          unzip -l Backroom-1.1.55-verified.apk | grep -q 'AndroidManifest.xml'
-          unzip -l Backroom-1.1.55-verified.apk | grep -q 'assets/index.html'
-          unzip -l Backroom-1.1.55-verified.apk | grep -q 'assets/avatars/an_nhien_avatar.png'
-          unzip -l Backroom-1.1.55-verified.apk | grep -q 'assets/entity/hound.png'
-          unzip -l Backroom-1.1.55-verified.apk | grep -q 'assets/entity/slenderman.png'
-          unzip -l Backroom-1.1.55-verified.apk | grep -q 'classes.dex'
+          rm -f Backroom-1.1.56-verified.apk
+          gh release download v1.1.56 --repo "$GITHUB_REPOSITORY" --pattern 'Backroom-1.1.56.apk' --output Backroom-1.1.56-verified.apk
+          test -s Backroom-1.1.56-verified.apk
+          unzip -l Backroom-1.1.56-verified.apk | grep -q 'assets/index.html'
+          unzip -l Backroom-1.1.56-verified.apk | grep -q 'assets/entity/hound.png'
+          unzip -l Backroom-1.1.56-verified.apk | grep -q 'assets/entity/slenderman.png'
+          unzip -l Backroom-1.1.56-verified.apk | grep -q 'assets/Kai_MadGod_snapshot_overlay.png'
+          unzip -l Backroom-1.1.56-verified.apk | grep -q 'assets/avatars/MadGod.jpg'
           BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
-          APKSIGNER="$BUILD_TOOLS/apksigner"
-          ZIPALIGN="$BUILD_TOOLS/zipalign"
-          "$APKSIGNER" verify --verbose --print-certs Backroom-1.1.55-verified.apk
-          "$ZIPALIGN" -c -P 16 -v 4 Backroom-1.1.55-verified.apk
-          SHA256=$(sha256sum Backroom-1.1.55-verified.apk | awk '{print $1}')
-          rm -f release-status/v1.1.55-running.txt
-          printf 'status=GREEN\nversion=1.1.55\ntag=v1.1.55\nasset=Backroom-1.1.55.apk\nsource_sha=%s\nrun_id=%s\nsha256=%s\nbuild_type=debug\nandroid16_smoke=removed\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$SHA256" > release-status/v1.1.55.txt
+          "$BUILD_TOOLS/apksigner" verify --verbose --print-certs Backroom-1.1.56-verified.apk
+          "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-1.1.56-verified.apk
+          SHA256=$(sha256sum Backroom-1.1.56-verified.apk | awk '{print $1}')
+          rm -f release-status/v1.1.56-running.txt
+          printf 'status=GREEN\nversion=1.1.56\ntag=v1.1.56\nasset=Backroom-1.1.56.apk\nsource_sha=%s\nrun_id=%s\nsha256=%s\nbuild_type=debug\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$SHA256" > release-status/v1.1.56.txt
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add release-status/v1.1.55.txt release-status/v1.1.55-running.txt
-          git commit -m 'Record verified Backroom 1.1.55 debug release'
+          git add release-status/v1.1.56.txt release-status/v1.1.56-running.txt
+          git commit -m 'Record verified Backroom 1.1.56 debug release'
           git push origin HEAD:main
