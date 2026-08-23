@@ -176,12 +176,17 @@ if "appendEquipmentBadge(box)" in MAIN.read_text(encoding="utf-8"):
 
 print("Installed robust MadGod projection, scene-keyed Snapshot cache, location Level recognition, and six-turn progression gate.")
 
-# Pressure Combat is deliberately the final runtime patch so its combat intercept owns active encounters
-# before ActionRuntime/EXPLORE can roll a second Entity.
+# Pressure Combat owns active encounters first. The unified pool patch then rewrites the completed
+# final runtime so Jeff/Jane share the single Entity encounter channel and cleanup persists in core.
 pressure = ROOT / "patch-pressure-combat.py"
 if not pressure.is_file():
     raise RuntimeError("Pressure Combat patch missing")
 exec(compile(pressure.read_text(encoding="utf-8"), str(pressure), "exec"), {"__name__": "__main__", "__file__": str(pressure)})
+
+unified_pool = ROOT / "patch-unified-entity-spawn-pool.py"
+if not unified_pool.is_file():
+    raise RuntimeError("Unified Entity spawn pool patch missing")
+exec(compile(unified_pool.read_text(encoding="utf-8"), str(unified_pool), "exec"), {"__name__": "__main__", "__file__": str(unified_pool)})
 
 # Character healthbar runs after the final runtime/UI transforms so it binds to the actual Character Detail DOM.
 healthbar = ROOT / "patch-character-healthbar.py"
