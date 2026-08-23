@@ -60,8 +60,6 @@ if 'object InventoryCapacityPolicy {' not in system_text:
     system_text = system_text.replace(anchor, capacity_object + anchor, 1)
 system.write_text(system_text, encoding="utf-8")
 
-# Capacity enforcement must use the same carried-item rule as the UI. An owned
-# but unequipped equipment Item consumes a slot; an equipped Item does not.
 policy = INVENTORY_POLICY.read_text(encoding="utf-8")
 legacy_capacity_patterns = [
     r'''\s*val carriedTypes = inventory\.items\.values\.count \{ EquipmentCatalog\.definition\(it\.itemId\) == null \}\n\s*val addingEquipment = EquipmentCatalog\.definition\(normalized\.itemId\) != null\n\s*if \(old == null && !addingEquipment && carriedTypes >= profile\.maxTypes\) return "inventory_slot_limit"\n''',
@@ -83,8 +81,6 @@ if 'val carriedTypes = InventoryCapacityPolicy.usedSlots(state, ownerId)' not in
         raise RuntimeError("InventoryPolicy capacity enforcement anchor missing")
 INVENTORY_POLICY.write_text(policy, encoding="utf-8")
 
-# Add source-compatible projection fields after the cleanup patch has already
-# added defaults to inventoryDetails/equipmentDetails.
 detail = DETAIL.read_text(encoding="utf-8")
 if 'val inventoryCapacityUsed: Int' not in detail:
     detail = regex_once(
@@ -93,7 +89,6 @@ if 'val inventoryCapacityUsed: Int' not in detail:
         r'\1  val inventoryCapacityUsed: Int = 0,\n  val inventoryCapacityMax: Int = 9,\n',
         "Character inventory capacity projection fields",
     )
-
 if 'inventoryCapacityUsed = InventoryCapacityPolicy.usedSlots' not in detail:
     detail = regex_once(
         detail,
@@ -103,8 +98,6 @@ if 'inventoryCapacityUsed = InventoryCapacityPolicy.usedSlots' not in detail:
     )
 DETAIL.write_text(detail, encoding="utf-8")
 
-# JSON exports authoritative capacity. Item Detail itself remains shared and
-# only marks whether the owned Item currently consumes a carried slot.
 json_text = DETAIL_JSON.read_text(encoding="utf-8")
 if 'put("inventoryCapacity", JSONObject().put("used"' not in json_text:
     equipment_anchor = '    put("equipment", JSONObject(c.equipment))\n'
@@ -115,7 +108,6 @@ if 'put("inventoryCapacity", JSONObject().put("used"' not in json_text:
         '    put("inventoryCapacity", JSONObject().put("used", c.inventoryCapacityUsed).put("max", c.inventoryCapacityMax))\n' + equipment_anchor,
         1,
     )
-
 item_marker = '    put("equipped", x.equipped); put("equippedSlots", JSONArray(x.equippedSlots)); put("statItem", x.statItem); x.classification?.let { put("classification", it) }\n'
 if 'put("consumesInventorySlot", !x.equipped)' not in json_text:
     if item_marker not in json_text:
@@ -125,8 +117,6 @@ DETAIL_JSON.write_text(json_text, encoding="utf-8")
 
 # ---------------------------------------------------------------------------
 # 2) New Game / cold start owns a real Core state immediately.
-#    Never access lazy gameCore directly and never swallow failure as members=[]
-#    pretending that empty fake Character data is valid.
 # ---------------------------------------------------------------------------
 facade = FACADE.read_text(encoding="utf-8")
 old_party = '''  fun currentPartyDetails(): String {
@@ -174,11 +164,8 @@ new_bridge = '''    @JavascriptInterface public String getPartyDetails(String st
           .put("data", new JSONObject(requireGameCore().currentPartyDetails(stateJson)))
           .toString();
       } catch (Exception e) {
-        return new JSONObject()
-          .put("ok", false)
-          .put("error", "CORE_UNAVAILABLE")
-          .put("message", e.getMessage() == null ? "Core unavailable" : e.getMessage())
-          .toString();
+        String message = e.getMessage() == null ? "Core unavailable" : e.getMessage();
+        return "{\\\"ok\\\":false,\\\"error\\\":\\\"CORE_UNAVAILABLE\\\",\\\"message\\\":" + JSONObject.quote(message) + "}";
       }
     }
 
@@ -189,11 +176,8 @@ new_bridge = '''    @JavascriptInterface public String getPartyDetails(String st
           .put("data", new JSONObject(requireGameCore().resetNewGame()))
           .toString();
       } catch (Exception e) {
-        return new JSONObject()
-          .put("ok", false)
-          .put("error", "NEW_GAME_CORE_FAILED")
-          .put("message", e.getMessage() == null ? "New Game core reset failed" : e.getMessage())
-          .toString();
+        String message = e.getMessage() == null ? "New Game core reset failed" : e.getMessage();
+        return "{\\\"ok\\\":false,\\\"error\\\":\\\"NEW_GAME_CORE_FAILED\\\",\\\"message\\\":" + JSONObject.quote(message) + "}";
       }
     }
 '''
@@ -204,32 +188,26 @@ if 'gameCore.currentPartyDetails()' in main:
 MAIN.write_text(main, encoding="utf-8")
 
 # ---------------------------------------------------------------------------
-# 3) UI reads Core capacity, keeps equipped Items visible/clickable, and New
-#    Game resets both local state and authoritative Core in the same operation.
+# 3) UI reads Core capacity and New Game resets authoritative Core immediately.
 # ---------------------------------------------------------------------------
 html = INDEX.read_text(encoding="utf-8")
 html = html.replace('Android.getPartyDetails();', 'Android.getPartyDetails(JSON.stringify(state||{}));')
-
-# Both Character-detail helpers use the same envelope.
 old_parse = '''const details=JSON.parse(raw||'{}');
         if(details&&Array.isArray(details.members)&&details.members.length){'''
 new_parse = '''const response=JSON.parse(raw||'{}');
         const details=response&&response.ok===true?response.data:null;
         if(details&&Array.isArray(details.members)&&details.members.length){'''
 html = html.replace(old_parse, new_parse)
-
 old_capacity = "    capacity.textContent=inv.length+' / 9 loại vật phẩm';\n"
 new_capacity = "    const cap=member&&member.inventoryCapacity;const used=cap&&Number.isFinite(Number(cap.used))?Number(cap.used):inv.filter(x=>!(x&&x.equipped)).length;const max=cap&&Number.isFinite(Number(cap.max))?Number(cap.max):9;capacity.textContent=used+' / '+max+' loại vật phẩm';\n"
 if old_capacity in html:
     html = html.replace(old_capacity, new_capacity, 1)
-
 render_anchor = "    if(inventory){inventory.innerHTML=(member.inventory||[]).map(x=>card(x,null)).join('')||'<span>Trống.</span>'}\n"
 render_with_capacity = "    if(inventory){inventory.innerHTML=(member.inventory||[]).map(x=>card(x,null)).join('')||'<span>Trống.</span>'}\n    const capEl=document.getElementById('characterInventoryCapacity'),cap=member.inventoryCapacity||{};if(capEl){const used=Number.isFinite(Number(cap.used))?Number(cap.used):(member.inventory||[]).filter(x=>x&&x.consumesInventorySlot!==false).length;const max=Number.isFinite(Number(cap.max))?Number(cap.max):9;capEl.textContent=used+' / '+max+' loại vật phẩm'}\n"
 if render_with_capacity not in html:
     if render_anchor not in html:
         raise RuntimeError("Redesigned Inventory renderer anchor missing")
     html = html.replace(render_anchor, render_with_capacity, 1)
-
 old_reset = '''    clearAuthoritativeCore();
     state=freshInitial();
     render();
@@ -250,7 +228,6 @@ new_reset = '''    state=freshInitial();
 '''
 if 'Android.resetNewGameCore()' not in html:
     html = replace_once(html, old_reset, new_reset, "New Game Core initialization")
-
 for marker in (
     'Android.getPartyDetails(JSON.stringify(state||{}))',
     'response&&response.ok===true?response.data:null',
@@ -264,8 +241,7 @@ for marker in (
 INDEX.write_text(html, encoding="utf-8")
 
 # ---------------------------------------------------------------------------
-# Regression gates: all four current CharacterStates, future shared resolver,
-# unequip/re-equip, MadGod multi-slot, save/load, and fresh New Game projection.
+# Regression gates.
 # ---------------------------------------------------------------------------
 TEST.write_text(r'''package com.rabpit.backroom.core
 
@@ -289,7 +265,7 @@ class InventoryCapacityNewGameTest {
         assertTrue("equipped item remains Inventory-owned: $id/$itemId", state.inventories.getValue(id).items.containsKey(itemId))
         assertFalse(InventoryCapacityPolicy.consumesSlot(state, id, itemId))
       }
-      assertEquals("fresh equipped loadout must consume zero carried slots: $id", 0, InventoryCapacityPolicy.usedSlots(state, id))
+      assertEquals(0, InventoryCapacityPolicy.usedSlots(state, id))
       assertEquals(InventoryPolicy.profileFor(state, id).maxTypes, InventoryCapacityPolicy.maxSlots(state, id))
     }
   }
@@ -354,7 +330,6 @@ class InventoryCapacityNewGameTest {
 }
 ''', encoding="utf-8")
 
-# Patch-time contracts catch the exact regressions before Gradle even runs.
 combined = (
     system.read_text(encoding="utf-8") + DETAIL.read_text(encoding="utf-8") + DETAIL_JSON.read_text(encoding="utf-8") +
     FACADE.read_text(encoding="utf-8") + MAIN.read_text(encoding="utf-8") + INDEX.read_text(encoding="utf-8") +
@@ -372,6 +347,7 @@ for marker in (
     'requireGameCore().currentPartyDetails(stateJson)',
     '@JavascriptInterface public String resetNewGameCore()',
     'requireGameCore().resetNewGame()',
+    'JSONObject.quote(message)',
     'equippedItemsConsumeZeroCapacityForAllFourCharacters',
     'madGodOccupiesTwoEquipmentSlotsButIsOneOwnedZeroCapacityItem',
     'freshNewGameKaiProjectionIsImmediatelyAuthoritative',
