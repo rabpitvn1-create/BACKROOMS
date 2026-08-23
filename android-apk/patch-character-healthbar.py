@@ -42,24 +42,17 @@ refs_new = '''  const detailAvatar=document.getElementById('characterInventoryAv
 if "const hpFill=document.getElementById('characterHpFill');" not in html:
     html = replace_once(html, refs_old, refs_new, "character healthbar JS refs")
 
-fallback_old = "const fallback=[{id:'kai',name:'Kai Akechi',avatar:'avatars/kai_avatar.png',presence:'ACTIVE',isLeader:true,physiology:{hunger:'UNKNOWN',thirst:'UNKNOWN',sleepDeprivation:'UNKNOWN'},inventory:kaiItems(),equipment:signatureEquipment,statuses:[],injuries:[]}];"
-fallback_new = "const fallback=[{id:'kai',name:'Kai Akechi',avatar:'avatars/kai_avatar.png',presence:'ACTIVE',isLeader:true,currentHp:100,maxHp:100,physiology:{hunger:'UNKNOWN',thirst:'UNKNOWN',sleepDeprivation:'UNKNOWN'},inventory:kaiItems(),equipment:signatureEquipment,statuses:[],injuries:[]}];"
-if fallback_new not in html:
-    html = replace_once(html, fallback_old, fallback_new, "Kai fallback HP")
-
-party_fallback_old = "fallback.push({id:x.id,name:x.name||x.id,avatar:x.avatar,presence:x.presence||'ACTIVE',isLeader:false,physiology:{hunger:'UNKNOWN',thirst:'UNKNOWN',sleepDeprivation:'UNKNOWN'},inventory:[],equipment:{},statuses:[],injuries:[]})"
-party_fallback_new = "fallback.push({id:x.id,name:x.name||x.id,avatar:x.avatar,presence:x.presence||'ACTIVE',isLeader:false,currentHp:Number(x.currentHp)||100,maxHp:Number(x.maxHp)||100,physiology:{hunger:'UNKNOWN',thirst:'UNKNOWN',sleepDeprivation:'UNKNOWN'},inventory:[],equipment:{},statuses:[],injuries:[]})"
-if party_fallback_new not in html:
-    html = replace_once(html, party_fallback_old, party_fallback_new, "party fallback HP")
-
+# Fallback party records are intentionally left untouched. The renderer below treats missing HP as
+# full health, while authoritative partyDetails.currentHp/maxHp override that default whenever present.
 render_anchor = "    detailAvatar.alt=member.name||member.id||'Nhân vật';\n"
-health_render = '''    const maxHp=Math.max(1,Number(member.maxHp)||100);
-    const currentHp=Math.max(0,Math.min(maxHp,Number(member.currentHp)==null?maxHp:Number(member.currentHp)));
+health_render = '''    const rawMaxHp=Number(member.maxHp),rawCurrentHp=Number(member.currentHp);
+    const maxHp=Number.isFinite(rawMaxHp)&&rawMaxHp>0?rawMaxHp:100;
+    const currentHp=Number.isFinite(rawCurrentHp)?Math.max(0,Math.min(maxHp,rawCurrentHp)):maxHp;
     const hpPercent=Math.max(0,Math.min(100,currentHp*100/maxHp));
     if(hpFill)hpFill.style.width=hpPercent+'%';
     if(hpValue)hpValue.textContent=Math.round(currentHp)+'/'+Math.round(maxHp);
 '''
-if "if(hpFill)hpFill.style.width=hpPercent+'%';" not in html:
+if "const rawMaxHp=Number(member.maxHp),rawCurrentHp=Number(member.currentHp);" not in html:
     html = replace_once(html, render_anchor, render_anchor + health_render, "selected character HP render")
 
 for marker in (
@@ -67,6 +60,7 @@ for marker in (
     'id="characterHpValue"',
     'character-hp-segments',
     "const hpFill=document.getElementById('characterHpFill');",
+    "const rawMaxHp=Number(member.maxHp),rawCurrentHp=Number(member.currentHp);",
     "if(hpFill)hpFill.style.width=hpPercent+'%';",
     "hpValue.textContent=Math.round(currentHp)+'/'+Math.round(maxHp)",
 ):
