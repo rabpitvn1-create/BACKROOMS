@@ -42,8 +42,8 @@ runpy.run_path(str(ROOT / "patch-knowledge-context-builder.py"), run_name="__mai
 runpy.run_path(str(ROOT / "benchmark-knowledge-context.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-startup-survival.py"), run_name="__main__")
 
-# Drive-backed Entity artwork transformation.
-runpy.run_path(str(ROOT / "patch-entity-drive-overlay.py"), run_name="__main__")
+# Entity artwork is packaged locally in APK assets/entity. No Google Drive or remote manifest.
+runpy.run_path(str(ROOT / "patch-local-entity-overlay.py"), run_name="__main__")
 
 # Jane must run after the final Entity overlay and Context Builder rewrites so her independent
 # roll, validated state root, persistent respawn contract and ENT-R02 visual state survive all earlier transformations.
