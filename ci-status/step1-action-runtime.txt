@@ -1,3 +1,5 @@
-status=RUNNING
+status=GREEN
 run_id=32609667275
 source_sha=9b54efb20707e1a4c10f7830f2ebb9c4f6df9095
+patch_chain=success
+runtime_tests=success
