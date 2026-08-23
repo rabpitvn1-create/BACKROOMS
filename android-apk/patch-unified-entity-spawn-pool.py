@@ -3,6 +3,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
 FACADE = ROOT / "app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt"
+STATUS_EQUIPMENT_PATCH = ROOT / "patch-character-status-equipment-system.py"
 
 
 def replace_once(source: str, old: str, new: str, label: str) -> str:
@@ -147,4 +148,45 @@ for marker in (
         raise RuntimeError("Persistent combat cleanup contract missing: " + marker)
 
 FACADE.write_text(facade, encoding="utf-8")
+
+# The health/status patch runs next and normally anchors on Pressure Combat's pre-cleanup save block.
+# Teach that build-time patch about this authoritative cleanup shape so it can add regeneration without
+# removing or duplicating the Entity cleanup. This changes only the generated build workspace.
+status_patch = STATUS_EQUIPMENT_PATCH.read_text(encoding="utf-8")
+old_status_anchor = '''combat_time_anchor = ''' + "'''" + '''    if (time.applied) next = time.state
+    repository.save(next)
+
+    val output = syncLegacy(legacy, next, incrementTurn = true)
+''' + "'''" + '''
+combat_time_new = ''' + "'''" + '''    if (time.applied) next = time.state
+    next = CharacterStatEngine.applyCompletedTurnRegen(next, "COMBAT_TURN_${legacy.optInt("turn", 1)}")
+    repository.save(next)
+
+    val output = syncLegacy(legacy, next, incrementTurn = true)
+''' + "'''"
+new_status_anchor = '''combat_time_anchor = ''' + "'''" + '''    if (time.applied) next = time.state
+    if (resolution.entityDestroyed || resolution.escaped) {
+      val flags = JSONObject(next.world["flagsJson"] ?: "{}")
+      flags.put("entityEncounterKey", "")
+      next = next.copy(world = next.world + ("flagsJson" to flags.toString()))
+    }
+    repository.save(next)
+
+    val output = syncLegacy(legacy, next, incrementTurn = true)
+''' + "'''" + '''
+combat_time_new = ''' + "'''" + '''    if (time.applied) next = time.state
+    next = CharacterStatEngine.applyCompletedTurnRegen(next, "COMBAT_TURN_${legacy.optInt("turn", 1)}")
+    if (resolution.entityDestroyed || resolution.escaped) {
+      val flags = JSONObject(next.world["flagsJson"] ?: "{}")
+      flags.put("entityEncounterKey", "")
+      next = next.copy(world = next.world + ("flagsJson" to flags.toString()))
+    }
+    repository.save(next)
+
+    val output = syncLegacy(legacy, next, incrementTurn = true)
+''' + "'''"
+if new_status_anchor not in status_patch:
+    status_patch = replace_once(status_patch, old_status_anchor, new_status_anchor, "status patch combat cleanup compatibility")
+STATUS_EQUIPMENT_PATCH.write_text(status_patch, encoding="utf-8")
+
 print("Unified Entity spawn pool installed: Jeff/Jane share entityEncounter + roamingEntityKey, and combat cleanup persists direct visual state.")
