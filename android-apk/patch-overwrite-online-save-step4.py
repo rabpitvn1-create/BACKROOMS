@@ -1,4 +1,5 @@
 from pathlib import Path
+import runpy
 
 ROOT = Path(__file__).resolve().parent
 INDEX = ROOT / "app/src/main/assets/index.html"
@@ -75,3 +76,6 @@ for required in [
 INDEX.write_text(html, encoding="utf-8")
 DRIVE.write_text(drive, encoding="utf-8")
 print("Step 4 complete: saving with an existing name overwrites that exact Drive file; new names create new files.")
+
+# Final gameplay input layer: keep the three primary actions downstream of every prior UI/save rewrite.
+runpy.run_path(str(ROOT / "patch-three-action-runtime-ui.py"), run_name="__main__")
