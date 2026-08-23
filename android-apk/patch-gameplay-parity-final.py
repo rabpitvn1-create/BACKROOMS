@@ -23,7 +23,7 @@ replacement = r'''  private JSONObject thresholdRoll(String label, int max, int 
 
   private int exitThresholdAndroid(JSONObject state) {
     JSONObject flags = state.optJSONObject("flags");
-    if (flags == null) return 20;
+    if (flags == null) return 10;
     int explicit = flags.optInt("exitChanceThreshold", -1);
     if (explicit >= 0 && explicit <= 10000) return explicit;
     String progress = flags.optString("exitProgress", "");
@@ -31,10 +31,10 @@ replacement = r'''  private JSONObject thresholdRoll(String label, int max, int 
     if (progress.isEmpty() && exploration != null) progress = exploration.optString("exitProgress", "");
     String upper = progress.toUpperCase(java.util.Locale.ROOT);
     if (containsAny(upper, "READY", "GUARANTEED", "CONDITION MET", "TRANSITION AVAILABLE")) return 10000;
-    if (containsAny(upper, "NEAR", "ALMOST", "VERY STRONG")) return 300;
-    if (containsAny(upper, "STRONG", "CORRECT ROUTE")) return 200;
-    if (containsAny(upper, "CLUE", "CANDIDATE", "OPENED", "OBSERVED", "TRACKED")) return 100;
-    return 20;
+    if (containsAny(upper, "NEAR", "ALMOST", "VERY STRONG")) return 150;
+    if (containsAny(upper, "STRONG", "CORRECT ROUTE")) return 100;
+    if (containsAny(upper, "CLUE", "CANDIDATE", "OPENED", "OBSERVED", "TRACKED")) return 50;
+    return 10;
   }
 
   private boolean reunionEligibleAndroid(JSONObject state, String key) {
@@ -103,4 +103,4 @@ for marker in [
         raise RuntimeError(f"Android gameplay parity marker missing: {marker}")
 
 MAIN.write_text(text, encoding="utf-8")
-print("Android gameplay dice aligned with server canon: Level thresholds, 2% survivor, 0.0025% reunions, hazard and single locked Exit probe.")
+print("Android gameplay dice aligned with server canon: Exit probe progression chances halved; follower bonuses unchanged.")
