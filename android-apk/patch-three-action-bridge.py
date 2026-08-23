@@ -55,11 +55,15 @@ if "String actionRuntimeContext =" not in main:
 '''
     main = main[:writer_body] + directive + main[writer_body:]
 
-    return_anchor = '    return "Bạn là Game Master của text game Backrooms. Trả DUY NHẤT JSON hợp lệ, không markdown. " +\n'
-    return_pos = main.find(return_anchor, writer_body)
+    original_return = '    return "Bạn là Game Master của text game Backrooms. Trả DUY NHẤT JSON hợp lệ, không markdown. " +\n'
+    return_pos = main.find(original_return, writer_body)
     if return_pos < 0:
         raise RuntimeError("MainActivity writerPrompt return anchor missing")
-    main = main[:return_pos] + '    return actionDirective + "\\nACTION_RUNTIME: " + actionRuntimeContext + "\\n" +\n' + main[return_pos:]
+    replacement_return = (
+        '    return actionDirective + "\\nACTION_RUNTIME: " + actionRuntimeContext + "\\n" +\n'
+        '      "Bạn là Game Master của text game Backrooms. Trả DUY NHẤT JSON hợp lệ, không markdown. " +\n'
+    )
+    main = main[:return_pos] + replacement_return + main[return_pos + len(original_return):]
 
 # Technical/provider failure does not represent successful in-world progress. End the active session
 # as interrupted so the next player decision cannot inherit a stale action lock.
