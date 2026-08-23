@@ -40,8 +40,17 @@ current_helper = text[helper_start:helper_end]
 if current_helper != boss_helper:
     text = text[:helper_start] + boss_helper + text[helper_end:]
 
+# The earlier boss patch temporarily adds a GM prose line using an unstable prompt anchor. In the
+# fully generated runtime that line can land outside the Java String expression. It is not gameplay
+# authority, so remove only that prose line here rather than touching the validated dice/combat code.
+prompt_lines = [line for line in text.splitlines(keepends=True) if 'DIỆP MINH BOSS HARD LOCK:' in line]
+if len(prompt_lines) > 1:
+    raise RuntimeError(f"Expected at most one Diệp Minh prompt line, found {len(prompt_lines)}")
+if prompt_lines:
+    text = "".join(line for line in text.splitlines(keepends=True) if 'DIỆP MINH BOSS HARD LOCK:' not in line)
+
 # This finalizer must not invent the boss contract. The earlier boss patch remains responsible for
-# the independent 3% roll, canonical local asset key, display name, prompt contract, and combat rules.
+# the independent 3% roll, canonical local asset key, display name, local asset, and combat rules.
 for marker in (
     'thresholdRoll("diepMinhEncounter", 10000, 300, entityEncounterAction && entityAllowed',
     'rolls.put("diepMinhEncounter", diepMinhRoll)',
@@ -50,7 +59,6 @@ for marker in (
     "'slenderman','diep_minh']",
     'JSONObject boss = rolls.optJSONObject("diepMinhEncounter")',
     'entityKey = "diep_minh";',
-    'DIỆP MINH BOSS HARD LOCK:',
     'file:///android_asset/entity/',
 ):
     if marker not in text:
@@ -63,4 +71,4 @@ if 'diep_minh' in pool_lines[0]:
     raise RuntimeError("Diệp Minh must remain outside the shared roaming pool")
 
 MAIN.write_text(text, encoding="utf-8")
-print("Diệp Minh final encounter priority restored after unified Entity pool without re-running combat mechanics.")
+print("Diệp Minh final encounter priority restored after unified Entity pool; unstable prose-only Java insertion removed.")
