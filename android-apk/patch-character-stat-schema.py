@@ -2,9 +2,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 CORE = ROOT / "app/src/main/java/com/rabpit/backroom/core"
+TESTS = ROOT / "app/src/test/java/com/rabpit/backroom/core"
 GAME_STATE = CORE / "GameState.kt"
 CODEC = CORE / "GameStateCodec.kt"
 SCHEMA = CORE / "CharacterStats.kt"
+TEST = TESTS / "CharacterStatSchemaTest.kt"
 
 
 def replace_once(source: str, old: str, new: str, label: str) -> str:
@@ -59,7 +61,7 @@ data class CharacterVitalState(
   val lastRegenCompletedTurnId: String? = null
 )
 
-/** Derived-only view. It must never become an independent source of truth. */
+/** Derived-only view. Equipment integration comes in the later equipment step. */
 data class EffectiveCharacterStats(
   val maxHp: Int,
   val equipmentHp: Int = 0,
@@ -129,28 +131,28 @@ object CharacterStatProfiles {
     "an-nhien", "an_nhien", "annhien" -> anNhien
     else -> fallback
   }
+
+  fun initialVitals(characterId: String): CharacterVitalState =
+    CharacterVitalState(currentHp = forId(characterId).baseMaxHp)
 }
 ''', encoding="utf-8")
 
 state = GAME_STATE.read_text(encoding="utf-8")
-old_character = '''data class CharacterState(
-  val id: String,
-  val name: String,
-  val avatarRef: String? = null,
-  val healthState: String? = null,
-  val injuries: List<String> = emptyList(),
+old_character_tail = '''  val statusIds: Set<String> = emptySet(),
+  val physiology: PhysiologyState = PhysiologyState(),
+  val metadata: Map<String, String> = emptyMap()
+)
 '''
-new_character = '''data class CharacterState(
-  val id: String,
-  val name: String,
-  val avatarRef: String? = null,
-  val healthState: String? = null,
+new_character_tail = '''  val statusIds: Set<String> = emptySet(),
+  val physiology: PhysiologyState = PhysiologyState(),
+  val metadata: Map<String, String> = emptyMap(),
+  // Appended to preserve all existing positional CharacterState constructor call sites.
   val statProfile: CharacterStatProfile = CharacterStatProfiles.forId(id),
-  val vitalState: CharacterVitalState = CharacterVitalState(currentHp = CharacterStatProfiles.forId(id).baseMaxHp),
-  val injuries: List<String> = emptyList(),
+  val vitalState: CharacterVitalState = CharacterStatProfiles.initialVitals(id)
+)
 '''
-if new_character not in state:
-    state = replace_once(state, old_character, new_character, "CharacterState stat/vital fields")
+if new_character_tail not in state:
+    state = replace_once(state, old_character_tail, new_character_tail, "CharacterState stat/vital tail")
 GAME_STATE.write_text(state, encoding="utf-8")
 
 codec = CODEC.read_text(encoding="utf-8")
@@ -180,21 +182,23 @@ new_decode = '''  private fun decodeCharacter(json: JSONObject): CharacterState 
     return CharacterState(
     id = id, name = json.optString("name"),
     avatarRef = json.nullableString("avatarRef"), healthState = json.nullableString("healthState"),
-    statProfile = profile,
-    vitalState = vital,
     injuries = json.optJSONArray("injuries").strings(),
 '''
 if new_decode not in codec:
     codec = replace_once(codec, old_decode, new_decode, "Character stat decode start")
 
-old_decode_end = '''    physiology = decodePhysiology(json.optJSONObject("physiology")),
+old_decode_end = '''    statusIds = json.optJSONArray("statusIds").strings().toSet(),
+    physiology = decodePhysiology(json.optJSONObject("physiology")),
     metadata = json.optJSONObject("metadata").stringsMap()
   )
 
   private fun physiology(value: PhysiologyState) = JSONObject().apply {
 '''
-new_decode_end = '''    physiology = decodePhysiology(json.optJSONObject("physiology")),
-    metadata = json.optJSONObject("metadata").stringsMap()
+new_decode_end = '''    statusIds = json.optJSONArray("statusIds").strings().toSet(),
+    physiology = decodePhysiology(json.optJSONObject("physiology")),
+    metadata = json.optJSONObject("metadata").stringsMap(),
+    statProfile = profile,
+    vitalState = vital
   )
   }
 
@@ -275,9 +279,79 @@ new_decode_end = '''    physiology = decodePhysiology(json.optJSONObject("physio
 '''
 if new_decode_end not in codec:
     codec = replace_once(codec, old_decode_end, new_decode_end, "Character stat codec helpers")
-
 CODEC.write_text(codec, encoding="utf-8")
 
+TEST.write_text(r'''package com.rabpit.backroom.core
+
+import org.json.JSONObject
+import org.junit.Assert.*
+import org.junit.Test
+
+class CharacterStatSchemaTest {
+  @Test fun namedProfilesUseGameplayNormalizedBaselines() {
+    val kai = CharacterStatProfiles.forId(KAI_ID)
+    assertEquals(100, kai.baseMaxHp)
+    assertEquals(EnergyMode.INFINITE, kai.energy.mode)
+    assertEquals(4, kai.regen.amountPerCompletedTurn)
+    assertEquals(82, kai.str)
+    assertEquals(78, kai.df)
+    assertEquals(92, kai.agi)
+    assertEquals(95, kai.crit)
+    assertEquals(StatSource.GAMEPLAY_NORMALIZED, kai.statSource)
+
+    val iris = CharacterStatProfiles.forId("iris")
+    assertEquals(listOf(58, 60, 84, 90), listOf(iris.str, iris.df, iris.agi, iris.crit))
+    assertEquals(EnergyMode.INFINITE, iris.energy.mode)
+    assertEquals(4, iris.regen.amountPerCompletedTurn)
+
+    val syvial = CharacterStatProfiles.forId("syvial")
+    assertEquals(listOf(94, 84, 96, 88), listOf(syvial.str, syvial.df, syvial.agi, syvial.crit))
+    assertEquals(EnergyMode.INFINITE, syvial.energy.mode)
+    assertEquals(4, syvial.regen.amountPerCompletedTurn)
+
+    val anNhien = CharacterStatProfiles.forId("an-nhien")
+    assertEquals(100, anNhien.baseMaxHp)
+    assertEquals(EnergyMode.NOT_APPLICABLE, anNhien.energy.mode)
+    assertFalse(anNhien.regen.enabled)
+    assertEquals(0, anNhien.crit)
+  }
+
+  @Test fun unknownCharacterGetsSafeExtensibleFallback() {
+    val character = CharacterState("future-character", "Future Character")
+    assertEquals(100, character.statProfile.baseMaxHp)
+    assertEquals(100, character.vitalState.currentHp)
+    assertEquals(StatSource.GAMEPLAY_FALLBACK, character.statProfile.statSource)
+    assertEquals(EnergyMode.NOT_APPLICABLE, character.statProfile.energy.mode)
+    assertFalse(character.statProfile.regen.enabled)
+  }
+
+  @Test fun codecPersistsAuthoritativeProfileAndVitals() {
+    val custom = CharacterState(
+      id = KAI_ID,
+      name = "Kai Akechi",
+      statProfile = CharacterStatProfiles.forId(KAI_ID),
+      vitalState = CharacterVitalState(63, CharacterCondition.WOUNDED, "TURN_12")
+    )
+    val state = GameState.initial().copy(characters = GameState.initial().characters + (KAI_ID to custom))
+    val decoded = GameStateCodec.decode(GameStateCodec.encode(state))
+    val kai = decoded.characters.getValue(KAI_ID)
+    assertEquals(custom.statProfile, kai.statProfile)
+    assertEquals(custom.vitalState, kai.vitalState)
+  }
+
+  @Test fun currentSaveWithoutNewFieldsBackfillsProfileWithoutBreakingLoad() {
+    val root = JSONObject(GameStateCodec.encode(GameState.initial()))
+    val kai = root.getJSONObject("characters").getJSONObject(KAI_ID)
+    kai.remove("statProfile")
+    kai.remove("vitalState")
+    val decoded = GameStateCodec.decode(root.toString()).characters.getValue(KAI_ID)
+    assertEquals(CharacterStatProfiles.forId(KAI_ID), decoded.statProfile)
+    assertEquals(100, decoded.vitalState.currentHp)
+  }
+}
+''', encoding="utf-8")
+
+combined = SCHEMA.read_text(encoding="utf-8") + GAME_STATE.read_text(encoding="utf-8") + CODEC.read_text(encoding="utf-8") + TEST.read_text(encoding="utf-8")
 for marker in (
     "data class CharacterStatProfile(",
     "data class CharacterVitalState(",
@@ -287,11 +361,12 @@ for marker in (
     "HIGH-SPEED SWORDSMAN / ASSAULT / COUNTER / EXECUTION",
     "PROTECTED FOLLOWER / NON-COMBAT",
     "val statProfile: CharacterStatProfile = CharacterStatProfiles.forId(id)",
+    "val vitalState: CharacterVitalState = CharacterStatProfiles.initialVitals(id)",
     "put(\"statProfile\", characterStatProfile(value.statProfile))",
     "decodeCharacterStatProfile(json.optJSONObject(\"statProfile\"), id)",
+    "class CharacterStatSchemaTest",
 ):
-    combined = SCHEMA.read_text(encoding="utf-8") + GAME_STATE.read_text(encoding="utf-8") + CODEC.read_text(encoding="utf-8")
     if marker not in combined:
         raise RuntimeError("Character Stat schema marker missing: " + marker)
 
-print("Character Stat schema installed: normalized base stats, energy, regen rule, vitals, and save codec support.")
+print("Character Stat schema installed: normalized base stats, energy, regen rule, vitals, fallback, codec, and schema tests.")
