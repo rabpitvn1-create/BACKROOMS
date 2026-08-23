@@ -3,9 +3,13 @@ import runpy
 
 ROOT = Path(__file__).resolve().parent
 
-# Step 1 of the Character Status redesign is data-only. Apply the stat/vital schema before the
-# existing healthbar patch so the build always compiles and persists the new CharacterState fields.
+# Step 1: Character stat/vital schema.
 runpy.run_path(str(ROOT / "patch-character-stat-schema.py"), run_name="__main__")
+
+# Steps 2-10: Equipment definitions, slot semantics, normalized item stats, effective-stat resolver,
+# HP-preserving equip/unequip, completed-turn regeneration, shared Item Detail UI, persistence,
+# Pressure Combat integration, and regression tests.
+runpy.run_path(str(ROOT / "patch-character-status-equipment-system.py"), run_name="__main__")
 
 INDEX = ROOT / "app/src/main/assets/index.html"
 html = INDEX.read_text(encoding="utf-8")
@@ -48,8 +52,6 @@ refs_new = '''  const detailAvatar=document.getElementById('characterInventoryAv
 if "const hpFill=document.getElementById('characterHpFill');" not in html:
     html = replace_once(html, refs_old, refs_new, "character healthbar JS refs")
 
-# Fallback party records are intentionally left untouched. The renderer below treats missing HP as
-# full health, while authoritative partyDetails.currentHp/maxHp override that default whenever present.
 render_anchor = "    detailAvatar.alt=member.name||member.id||'Nhân vật';\n"
 health_render = '''    const rawMaxHp=Number(member.maxHp),rawCurrentHp=Number(member.currentHp);
     const maxHp=Number.isFinite(rawMaxHp)&&rawMaxHp>0?rawMaxHp:100;
@@ -69,9 +71,11 @@ for marker in (
     "const rawMaxHp=Number(member.maxHp),rawCurrentHp=Number(member.currentHp);",
     "if(hpFill)hpFill.style.width=hpPercent+'%';",
     "hpValue.textContent=Math.round(currentHp)+'/'+Math.round(maxHp)",
+    'id="equipmentDetailModal"',
+    'window.renderCharacterStatusEquipment=render;',
 ):
     if marker not in html:
-        raise RuntimeError("Character healthbar contract missing: " + marker)
+        raise RuntimeError("Character Status UI contract missing: " + marker)
 
 INDEX.write_text(html, encoding="utf-8")
-print("Character Inventory healthbar installed for the selected party member.")
+print("Character Status + Equipment + Inventory Detail UI applied.")
