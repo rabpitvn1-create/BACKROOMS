@@ -64,8 +64,11 @@ jobs:
           assert 'jeffEncounter' not in java
           assert 'janeEncounter' not in java
           required_facade = [
-              'val flags = JSONObject(next.world["flagsJson"] ?: "{}")',
+              'private fun normalizeVisualPresence(state: GameState): GameState',
+              'val resolvedEntityKey = CombatRuntime.active(current)?.entityKey.orEmpty()',
               'flags.put("entityEncounterKey", "")',
+              '"jeff_the_killer" -> flags.optJSONObject("jeff")?.put("present", false)',
+              '"jane_the_killer" -> flags.optJSONObject("jane")?.put("present", false)',
               'next = next.copy(world = next.world + ("flagsJson" to flags.toString()))',
           ]
           for marker in required_facade:
