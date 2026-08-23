@@ -90,3 +90,7 @@ print("Character Status + Equipment + Inventory Detail UI applied.")
 # Final live-render bridge: authoritative Status/HP/Inventory must work on first Character open,
 # before any gameplay turn has synchronized legacy state.partyDetails.
 runpy.run_path(str(ROOT / "patch-character-detail-live-ui-fix.py"), run_name="__main__")
+
+# Final New Game + inventory capacity contract. Equipped Items remain the one owned Inventory Item,
+# but consume zero backpack slots for every CharacterState.
+runpy.run_path(str(ROOT / "patch-newgame-inventory-capacity.py"), run_name="__main__")
