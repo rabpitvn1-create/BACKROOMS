@@ -94,3 +94,7 @@ runpy.run_path(str(ROOT / "patch-character-detail-live-ui-fix.py"), run_name="__
 # Final New Game + inventory capacity contract. Equipped Items remain the one owned Inventory Item,
 # but consume zero backpack slots for every CharacterState.
 runpy.run_path(str(ROOT / "patch-newgame-inventory-capacity.py"), run_name="__main__")
+
+# Final candidate-inventory semantics: capacity validation must evaluate the Inventory instance being
+# mutated, while equipped Items cost zero slots and displaced equipment costs a carried slot.
+runpy.run_path(str(ROOT / "patch-inventory-capacity-final-fix.py"), run_name="__main__")
