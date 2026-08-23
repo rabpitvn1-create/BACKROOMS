@@ -63,6 +63,7 @@ if not schedule_after_healthbar():
     )
 
     # The final overlay bridge must never overwrite the selected normal Entity with a second unique roll.
+    # Preserve Pressure Combat startup so the selected key immediately owns an authoritative combat session.
     helper_start = text.find('  private void forceEntityEncounterFlag(JSONObject candidateState, JSONObject rolls) throws Exception {')
     helper_end = text.find('\n  private JSONObject resolveEntityOverlay(String rawEntityKey) throws Exception {', helper_start)
     if helper_start < 0 or helper_end < 0:
@@ -78,25 +79,18 @@ if not schedule_after_healthbar():
       flags = new JSONObject();
       candidateState.put("flags", flags);
     }
-    flags.put("entityEncounterKey", normalizedEntityKey(entityKey));
+    String canonicalKey = normalizedEntityKey(entityKey);
+    flags.put("entityEncounterKey", canonicalKey);
+    requireGameCore().startCombatState(candidateState.toString(), canonicalKey);
   }
 '''
     text = text[:helper_start] + unified_helper + text[helper_end:]
 
-    # Current visual presence is authoritative only through entityEncounterKey. Old Jeff/Jane presence
-    # flags may survive migrated saves and must not resurrect a defeated/escaped overlay.
-    old_active = "function activeEntityKey(){var f=state&&state.flags||{};var direct=normalizeEntityKey(f.entityEncounterKey);if(direct)return direct;if(f.jeff&&f.jeff.present===true)return 'jeff_the_killer';if(f.jane&&f.jane.present===true)return 'jane_the_killer';return '';}"
-    new_active = "function activeEntityKey(){var f=state&&state.flags||{};return normalizeEntityKey(f.entityEncounterKey);}"
-    if new_active not in text:
-        if old_active in text:
-            text = replace_once(text, old_active, new_active, "direct-only Entity visual state")
-        else:
-            # patch-visual-state-sync-final may already have reduced activeEntityKey to another direct-only form.
-            active_start = text.find("function activeEntityKey(){")
-            active_end = text.find("}function requestEntityOverlay", active_start)
-            if active_start < 0 or active_end < 0:
-                raise RuntimeError("activeEntityKey boundary missing after visual-state sync")
-            text = text[:active_start] + new_active + text[active_end + 1:]
+    # Visual-state-sync V3 already made active CombatRuntime the sole source of Entity pixels. Keep
+    # that stronger rule: stale entityEncounterKey / Jeff / Jane flags cannot resurrect an overlay.
+    combat_visual = "function activeEntityKey(){var c=state&&state.combat;if(!c||c.active!==true)return '';return normalizeEntityKey(c.entityKey);}"
+    if combat_visual not in text:
+        raise RuntimeError("CombatRuntime visual authority missing after visual-state sync")
 
     # Rewrite temporary Step-1 prompt language so the GM cannot reason about removed rolls.
     text = text.replace(
@@ -131,7 +125,8 @@ if not schedule_after_healthbar():
         '"hotel_corpse_lure","jeff_the_killer","jane_the_killer","slenderman"',
         'rolls.put("roamingEntityKey"',
         'String entityKey = rolls.optString("roamingEntityKey", "").trim();',
-        'function activeEntityKey(){var f=state&&state.flags||{};return normalizeEntityKey(f.entityEncounterKey);}',
+        'requireGameCore().startCombatState(candidateState.toString(), canonicalKey);',
+        combat_visual,
         'ROAMING KILLER HARD LOCK: Jeff the Killer và Jane the Killer dùng cùng entityEncounter',
     ):
         if marker not in text:
