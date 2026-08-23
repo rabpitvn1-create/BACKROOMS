@@ -55,7 +55,8 @@ jobs:
               '"hotel_corpse_lure","jeff_the_killer","jane_the_killer","slenderman"',
               'rolls.put("roamingEntityKey"',
               'String entityKey = rolls.optString("roamingEntityKey", "").trim();',
-              'function activeEntityKey(){var f=state&&state.flags||{};return normalizeEntityKey(f.entityEncounterKey);}',
+              'requireGameCore().startCombatState(candidateState.toString(), canonicalKey);',
+              "function activeEntityKey(){var c=state&&state.combat;if(!c||c.active!==true)return '';return normalizeEntityKey(c.entityKey);}",
               'ROAMING KILLER HARD LOCK: Jeff the Killer và Jane the Killer dùng cùng entityEncounter',
           ]
           for marker in required_java:
