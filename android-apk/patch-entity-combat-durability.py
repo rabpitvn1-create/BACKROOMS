@@ -16,12 +16,10 @@ def replace_once(source: str, old: str, new: str, label: str) -> str:
     return source.replace(old, new, 1)
 
 
-# Final Entity combat balance authority.
-constants_old = '''  private const val PLAYER_HP = "combat.playerHp"
-  private const val PLAYER_MAX_HP = "combat.playerMaxHp"
-'''
-constants_new = '''  private const val PLAYER_HP = "combat.playerHp"
-  private const val PLAYER_MAX_HP = "combat.playerMaxHp"
+# Final Entity combat balance authority. CharacterVitalState already owns player HP by this point,
+# so anchor Entity-only constants after PREFIX instead of reviving retired combat.playerHp metadata.
+constants_old = '  private const val PREFIX = "combat."\n'
+constants_new = '''  private const val PREFIX = "combat."
   private const val ENTITY_HP_BONUS = 30
   private const val ENTITY_EVASION_PERCENT = 25
   private const val ENTITY_REGEN_PER_TURN = 1
@@ -72,10 +70,11 @@ regen_block = '''    val entityHpBeforeRegen = c.entityHp
 combat = replace_once(combat, regen_anchor, regen_block, "Entity 1 HP per combat turn regeneration")
 
 # Upgrade an already-active encounter from an older save without losing damage already dealt.
+# Player HP lines are intentionally outside this replacement because final combat cleanup routes
+# player HP through CharacterVitalState rather than retired combat.playerHp metadata.
 decode_old = '''    val profile = profiles[key] ?: return null
     val maxHp = m["${PREFIX}entityMaxHp"]?.toIntOrNull()?.coerceAtLeast(1) ?: profile.maxHp
     val hp = m["${PREFIX}entityHp"]?.toIntOrNull()?.coerceIn(0, maxHp) ?: maxHp
-    val playerMax = m[PLAYER_MAX_HP]?.toIntOrNull()?.coerceAtLeast(1) ?: 100
 '''
 decode_new = '''    val profile = profiles[key] ?: return null
     val canonicalMaxHp = profile.maxHp + ENTITY_HP_BONUS
@@ -83,7 +82,6 @@ decode_new = '''    val profile = profiles[key] ?: return null
     val maxHp = max(storedMaxHp, canonicalMaxHp)
     val storedHp = m["${PREFIX}entityHp"]?.toIntOrNull()?.coerceIn(0, storedMaxHp) ?: storedMaxHp
     val hp = if (storedMaxHp < canonicalMaxHp) min(maxHp, storedHp + (canonicalMaxHp - storedMaxHp)) else storedHp.coerceIn(0, maxHp)
-    val playerMax = m[PLAYER_MAX_HP]?.toIntOrNull()?.coerceAtLeast(1) ?: 100
 '''
 combat = replace_once(combat, decode_old, decode_new, "legacy active-combat HP migration")
 
@@ -95,9 +93,14 @@ for marker in (
     'val entityEvaded = evasionRoll < ENTITY_EVASION_PERCENT',
     'c.entityHp + ENTITY_REGEN_PER_TURN',
     'val canonicalMaxHp = profile.maxHp + ENTITY_HP_BONUS',
+    'CharacterStatEngine.effective(state, KAI_ID).maxHp',
 ):
     if marker not in combat:
         raise RuntimeError("Entity combat durability contract missing: " + marker)
+
+for forbidden in ('PLAYER_HP', 'PLAYER_MAX_HP'):
+    if forbidden in combat:
+        raise RuntimeError("Entity durability resurrected retired player combat metadata: " + forbidden)
 
 COMBAT.write_text(combat, encoding="utf-8")
 
