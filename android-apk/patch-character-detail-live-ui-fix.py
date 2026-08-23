@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parent
 INDEX = ROOT / "app/src/main/assets/index.html"
@@ -11,6 +12,13 @@ def replace_once(source: str, old: str, new: str, label: str) -> str:
     if count != 1:
         raise RuntimeError(f"{label}: expected exactly 1 match, found {count}")
     return source.replace(old, new, 1)
+
+
+def replace_regex_once(source: str, pattern: str, replacement: str, label: str) -> str:
+    updated, count = re.subn(pattern, replacement, source, count=1, flags=re.S)
+    if count != 1:
+        raise RuntimeError(f"{label}: expected exactly 1 semantic match, found {count}")
+    return updated
 
 
 # Expose one authoritative Character Detail projection that is valid even before the first gameplay turn.
@@ -49,14 +57,9 @@ MAIN.write_text(main, encoding="utf-8")
 
 html = INDEX.read_text(encoding="utf-8")
 
-# The pre-redesign Character Detail renderer was still the function that ran when a party card was tapped.
-# It fell back to static Kai data before the first turn, which caused 100/100 HP, 0/9 Inventory and the
-# three old Equipment text rows. Refresh state.partyDetails from Core before resolving any member.
-old_members = '''  function detailMembers(){
-    const members=state&&state.partyDetails&&Array.isArray(state.partyDetails.members)?state.partyDetails.members:null;
-    if(members&&members.length)return members;
-'''
-new_members = '''  function refreshCharacterDetailsFromCore(){
+# The pre-redesign Character Detail renderer still owns the first Party-card tap. Do not depend on
+# exact whitespace or on later HUD patches. Insert the Core refresh immediately before detailMembers().
+refresh_helper = '''  function refreshCharacterDetailsFromCore(){
     try{
       if(window.Android&&typeof Android.getPartyDetails==='function'){
         const raw=Android.getPartyDetails();
@@ -69,33 +72,42 @@ new_members = '''  function refreshCharacterDetailsFromCore(){
     }catch(ignore){}
     return null;
   }
-  function detailMembers(){
-    const liveMembers=refreshCharacterDetailsFromCore();
-    if(liveMembers&&liveMembers.length)return liveMembers;
-    const members=state&&state.partyDetails&&Array.isArray(state.partyDetails.members)?state.partyDetails.members:null;
-    if(members&&members.length)return members;
 '''
 if 'function refreshCharacterDetailsFromCore()' not in html:
-    html = replace_once(html, old_members, new_members, "authoritative Character Detail refresh")
+    html = replace_regex_once(
+        html,
+        r'(\s{2}function\s+detailMembers\s*\(\s*\)\s*\{)',
+        refresh_helper + r'\1',
+        "authoritative Character Detail refresh helper",
+    )
 
-# After the legacy renderer has drawn the Survival HUD, immediately let the redesigned renderer replace
-# only Character Status / Equipment / Inventory with the new cards and clickable Item Detail data.
-old_render_tail = '''    statusList.innerHTML=statusRows(member).map(row=>'<div class="character-status-row '+row[2]+'"><b>'+esc(row[0])+'</b><span>'+esc(row[1])+'</span></div>').join('');
-  }
-  function openMember(id){const member=memberById(id);renderMemberDetail(member);view.hidden=false}
-'''
-new_render_tail = '''    statusList.innerHTML=statusRows(member).map(row=>'<div class="character-status-row '+row[2]+'"><b>'+esc(row[0])+'</b><span>'+esc(row[1])+'</span></div>').join('');
-    if(typeof window.renderCharacterStatusEquipment==='function')window.renderCharacterStatusEquipment(member);
-  }
-  function openMember(id){const member=memberById(id);renderMemberDetail(member);view.hidden=false}
-'''
-if "window.renderCharacterStatusEquipment(member);" not in html:
-    html = replace_once(html, old_render_tail, new_render_tail, "Character Detail redesigned renderer hook")
+# Inject live Core data as the first source in detailMembers(), regardless of how its old fallback body
+# was formatted by survival/avatar patches.
+if 'const liveMembers=refreshCharacterDetailsFromCore();' not in html:
+    html = replace_regex_once(
+        html,
+        r'(\s{2}function\s+detailMembers\s*\(\s*\)\s*\{\s*)',
+        r'''\1const liveMembers=refreshCharacterDetailsFromCore();
+    if(liveMembers&&liveMembers.length)return liveMembers;
+    ''',
+        "authoritative Character Detail refresh call",
+    )
 
-# The redesigned renderer used only state.partyDetails. Make it resilient if another UI path invokes it
-# before the legacy Party helper has refreshed the state.
-old_new_members = "  function members(){return state&&state.partyDetails&&Array.isArray(state.partyDetails.members)?state.partyDetails.members:[]}\n"
-new_new_members = '''  function members(){
+# After the legacy renderer has drawn Survival HUD/status rows, let the redesign replace only the
+# Character Status, Equipment and Inventory surfaces with authoritative clickable cards.
+if 'window.renderCharacterStatusEquipment(member);' not in html:
+    html = replace_regex_once(
+        html,
+        r'''(statusList\.innerHTML\s*=\s*statusRows\(member\).*?\.join\(['"]{2}\)\s*;)(\s*\n\s*\})''',
+        r'''\1
+    if(typeof window.renderCharacterStatusEquipment==='function')window.renderCharacterStatusEquipment(member);\2''',
+        "Character Detail redesigned renderer hook",
+    )
+
+# The redesigned renderer itself must not require a prior gameplay turn. Replace its compact members()
+# function semantically. This is intentionally idempotent and does not care about exact quote spacing.
+if 'function members(){\n    try{\n      if(window.Android&&typeof Android.getPartyDetails' not in html:
+    new_members = '''  function members(){
     try{
       if(window.Android&&typeof Android.getPartyDetails==='function'){
         const raw=Android.getPartyDetails();
@@ -106,15 +118,22 @@ new_new_members = '''  function members(){
     return state&&state.partyDetails&&Array.isArray(state.partyDetails.members)?state.partyDetails.members:[]
   }
 '''
-if 'if(window.Android&&typeof Android.getPartyDetails' not in html[html.find('window.renderCharacterStatusEquipment')-8000:]:
-    html = replace_once(html, old_new_members, new_new_members, "new Character renderer authoritative fallback")
+    html = replace_regex_once(
+        html,
+        r'''\s{2}function\s+members\s*\(\s*\)\s*\{\s*return\s+state&&state\.partyDetails&&Array\.isArray\(state\.partyDetails\.members\)\?state\.partyDetails\.members:\[\]\s*\}\s*''',
+        '\n' + new_members,
+        "new Character renderer authoritative fallback",
+    )
 
-# Ensure opening a member always renders the live projection after view visibility changes as well. This
-# avoids a stale frame on some Android WebView versions where layout is deferred until hidden=false.
-old_open = "  function openMember(id){const member=memberById(id);renderMemberDetail(member);view.hidden=false}\n"
-new_open = "  function openMember(id){const member=memberById(id);renderMemberDetail(member);view.hidden=false;if(typeof window.renderCharacterStatusEquipment==='function')window.renderCharacterStatusEquipment(member)}\n"
-if new_open not in html:
-    html = replace_once(html, old_open, new_open, "openMember live renderer")
+# Some Android WebView builds defer layout until hidden=false. Preserve the old openMember behavior and
+# add one final authoritative render after making the view visible, without relying on exact one-line text.
+if "view.hidden=false;if(typeof window.renderCharacterStatusEquipment==='function')window.renderCharacterStatusEquipment(member)" not in html:
+    html = replace_regex_once(
+        html,
+        r'''function\s+openMember\s*\(\s*id\s*\)\s*\{\s*const\s+member\s*=\s*memberById\(id\)\s*;\s*renderMemberDetail\(member\)\s*;\s*view\.hidden\s*=\s*false\s*\}''',
+        "function openMember(id){const member=memberById(id);renderMemberDetail(member);view.hidden=false;if(typeof window.renderCharacterStatusEquipment==='function')window.renderCharacterStatusEquipment(member)}",
+        "openMember live renderer",
+    )
 
 for marker in (
     'fun currentPartyDetails(): String',
