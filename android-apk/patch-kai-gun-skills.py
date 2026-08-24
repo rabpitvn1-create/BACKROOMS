@@ -16,9 +16,7 @@ def replace_once(source: str, old: str, new: str, label: str) -> str:
 
 combat = COMBAT.read_text(encoding="utf-8")
 
-# This patch runs after the unique Diệp Minh authority. It extends the final generated CombatRuntime
-# instead of replacing earlier combat systems, so Guilty Crown, Entity durability and boss behavior
-# remain intact. The four passive rolls are deterministic and independent on eligible non-Override turns.
+# Runs after Diệp Minh so this pass wraps the final combat response instead of replacing older systems.
 constants_old = '  private const val DIEP_MINH_ULTIMATE_PERCENT = 5\n'
 constants_new = '''  private const val DIEP_MINH_ULTIMATE_PERCENT = 5
   private const val KAI_LAST_REQUIEM_CHANCE_PERCENT = 30
@@ -48,8 +46,7 @@ locals_new = '''    val log = mutableListOf<String>()
 '''
 combat = replace_once(combat, locals_old, locals_new, "Kai automatic gun-skill combat state")
 
-helper_anchor = '''  private data class PartyPercentDamage(
-'''
+helper_anchor = '  private data class PartyPercentDamage(\n'
 helper_block = r'''  private fun withCombatCounter(state: GameState, key: String, value: Int): GameState {
     val metadata = state.metadata.toMutableMap()
     if (value > 0) metadata[key] = value.toString() else metadata.remove(key)
@@ -63,10 +60,8 @@ helper_block = r'''  private fun withCombatCounter(state: GameState, key: String
 if 'private fun weaponSkillDamage(' not in combat:
     combat = replace_once(combat, helper_anchor, helper_block + helper_anchor, "Kai automatic gun-skill helpers")
 
-# Existing Bleeding ticks before this turn's passive rolls. Re-applying Last Requiem later in the turn
-# refreshes the future duration to exactly three turns instead of stacking parallel Bleeding instances.
-first_death_anchor = '''    if (c.entityHp <= 0) {
-'''
+# Insert Bleeding only before the first post-action death check inside resolve. There are intentionally
+# two entity-death checks after Guilty Crown is layered in, so a global replace would be ambiguous.
 bleed_block = '''    if (c.entityHp > 0 && bleedTurns > 0) {
       val bleedDamage = percentDamage(c.entityMaxHp, KAI_LAST_REQUIEM_BLEED_MAX_HP_PERCENT)
       val hp = max(0, c.entityHp - bleedDamage)
@@ -78,10 +73,14 @@ bleed_block = '''    if (c.entityHp > 0 && bleedTurns > 0) {
 
 '''
 if 'Bleeding từ The Last Requiem gây' not in combat:
-    combat = replace_once(combat, first_death_anchor, bleed_block + first_death_anchor, "The Last Requiem Bleeding tick")
+    resolve_start = combat.index('  fun resolve(state: GameState, actionKind: String, action: String): Resolution {\n')
+    resolve_end = combat.index('\n  fun toJson(state: GameState): JSONObject?', resolve_start)
+    death_index = combat.find('    if (c.entityHp <= 0) {\n', resolve_start, resolve_end)
+    if death_index < 0:
+        raise RuntimeError("The Last Requiem Bleeding tick: post-action death check missing")
+    combat = combat[:death_index] + bleed_block + combat[death_index:]
 
-response_anchor = '''    // Enemy response. Diệp Minh uses percentage damage; all other Entity behavior remains unchanged.
-'''
+response_anchor = '    // Enemy response. Diệp Minh uses percentage damage; all other Entity behavior remains unchanged.\n'
 skills_block = r'''    val isGuiltyCrownTurn = c.eventCounter % KAI_GUILTY_CROWN_INTERVAL_TURNS == 0
     if (!isGuiltyCrownTurn && c.entityHp > 0) {
       val weaponDamage = CharacterStatEngine.weaponDamage(resolvedState, KAI_ID)
@@ -127,26 +126,20 @@ skills_block = r'''    val isGuiltyCrownTurn = c.eventCounter % KAI_GUILTY_CROWN
 if 'The Last Requiem tự động kích hoạt' not in combat:
     combat = replace_once(combat, response_anchor, skills_block + response_anchor, "Kai automatic gun-skill proc block")
 
-# Silent Lullaby suppresses the entire current-turn Entity response, including a boss response.
-response_if_old = '''    if (c.entityKey == DIEP_MINH_KEY && c.eventCounter % DIEP_MINH_ULTIMATE_INTERVAL_TURNS == 0) {
-'''
+response_if_old = '    if (c.entityKey == DIEP_MINH_KEY && c.eventCounter % DIEP_MINH_ULTIMATE_INTERVAL_TURNS == 0) {\n'
 response_if_new = '''    if (entityStunnedThisTurn) {
       log += "Silent Lullaby: ${c.entityName} bị Stun và mất lượt phản ứng hiện tại."
     } else if (c.entityKey == DIEP_MINH_KEY && c.eventCounter % DIEP_MINH_ULTIMATE_INTERVAL_TURNS == 0) {
 '''
 combat = replace_once(combat, response_if_old, response_if_new, "Silent Lullaby stun enemy response")
 
-# Quick Step is +50 percentage points of Evasion against ordinary targeted responses. It deliberately
-# does not rewrite Devils And Gold's party-wide Max-HP pulse; Stun can still suppress that turn entirely.
-enemy_chance_old = '''      val enemyChance = (profile.aggression * 8 - defense + max(0, -c.momentum) * 7).coerceIn(8, 88)
-'''
+enemy_chance_old = '      val enemyChance = (profile.aggression * 8 - defense + max(0, -c.momentum) * 7).coerceIn(8, 88)\n'
 enemy_chance_new = '''      val quickStepEvasion = if (quickStepTurns > 0) KAI_QUICK_STEP_EVASION_BONUS_PERCENT else 0
       val enemyChance = (profile.aggression * 8 - defense + max(0, -c.momentum) * 7 - quickStepEvasion).coerceIn(0, 88)
 '''
 combat = replace_once(combat, enemy_chance_old, enemy_chance_new, "Quick Step evasion bonus")
 
-miss_old = '''        log += "${c.entityName} không xuyên được thế phòng thủ/di chuyển của Kai."
-'''
+miss_old = '        log += "${c.entityName} không xuyên được thế phòng thủ/di chuyển của Kai."\n'
 miss_new = '''        log += if (quickStepTurns > 0) {
           "Quick Step khiến ${c.entityName} hụt đòn; +${KAI_QUICK_STEP_EVASION_BONUS_PERCENT}% Evasion đang hoạt động."
         } else {
@@ -155,8 +148,7 @@ miss_new = '''        log += if (quickStepTurns > 0) {
 '''
 combat = replace_once(combat, miss_old, miss_new, "Quick Step evasion combat log")
 
-regen_anchor = '''    val entityHpBeforeRegen = c.entityHp
-'''
+regen_anchor = '    val entityHpBeforeRegen = c.entityHp\n'
 quick_step_countdown = '''    if (quickStepTurns > 0) {
       quickStepTurns = max(0, quickStepTurns - 1)
       resolvedState = withCombatCounter(resolvedState, KAI_QUICK_STEP_TURNS_KEY, quickStepTurns)
@@ -189,7 +181,6 @@ for marker in (
     if marker not in combat:
         raise RuntimeError("Kai automatic gun-skill runtime contract missing: " + marker)
 
-# Guilty Crown must stay untouched: exact 24 x 10 HP and no accuracy/evasion RNG.
 ultimate_start = combat.find('    if (c.eventCounter % KAI_GUILTY_CROWN_INTERVAL_TURNS == 0)')
 ultimate_end = combat.find('    val isGuiltyCrownTurn =', ultimate_start)
 if ultimate_start < 0 or ultimate_end < 0:
@@ -203,8 +194,6 @@ if 'roll(' in ultimate_section or 'ENTITY_EVASION_PERCENT' in ultimate_section:
 
 COMBAT.write_text(combat, encoding="utf-8")
 
-# Focused regression coverage against the fully generated runtime. Tests search deterministic turn
-# counters rather than assuming one hard-coded proc outcome from the stable-seed mixer.
 test = TEST.read_text(encoding="utf-8")
 new_tests = r'''
   @Test fun kaiAutomaticGunSkillsExposeAllFourIndependentProcContracts() {
@@ -237,7 +226,7 @@ new_tests = r'''
       val after = CombatRuntime.active(result.state) ?: continue
       assertTrue(result.reply.contains("Bleeding từ The Last Requiem gây -150 HP"))
       assertEquals("2", result.state.metadata["combat.kaiBleedTurns"])
-      assertTrue(after.entityHp <= 1880) // 2000 - 150 Bleeding + at most the boss's +30 regen, before any other passive damage.
+      assertTrue(after.entityHp <= 1880)
       verified = true
     }
     assertTrue("Expected a deterministic turn without Last Requiem refresh", verified)
