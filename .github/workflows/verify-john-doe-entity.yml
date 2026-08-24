@@ -79,15 +79,15 @@ jobs:
               'private const val JOHN_DOE_STUN_PROC_PERCENT = 20',
               'damageJohnDoePoisoned(resolvedState, JOHN_DOE_POISON_DAMAGE_PERCENT)',
               'JOHN_DOE_POISONED_PREFIX + characterId',
-              'John Doe Stun: Kai bị Stun',
+              'John Doe Stun: mục tiêu bị Stun',
               'John Doe tấn công: Kai -$damage HP',
               'thresholdRoll("johnDoeEncounter", 10000, 1000',
               'johnDoeLevel >= 0 && johnDoeLevel <= 999',
               'case "john_doe": name = "John Doe"; break;',
               '"john_doe".equals(entityKey) ? "John.png"',
               'johnDoeHasExactHpAndThirtyRegen',
-              'johnDoePoisonTracksAffectedPartyMembersSeparatelyAndTicksFourPercent',
-              'johnDoeStunUsesThirtyThenTwentyPercentAndBlocksOnlyTargetForOneTurn',
+              'johnDoePoisonTracksAffectedMembersSeparatelyAndTicksFourPercent',
+              'johnDoeStunUsesThirtyThenTwentyPercentAndBlocksOneTurnWithoutDamage',
           ):
               assert marker in combined, marker
 
