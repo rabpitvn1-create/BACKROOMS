@@ -129,3 +129,10 @@ runpy.run_path(str(ROOT / "patch-party-combat-actions-finalize.py"), run_name="_
 # Compatibility only updates older generated tests to issue the newly authoritative Party commands.
 # It does not loosen runtime gates or change gameplay.
 runpy.run_path(str(ROOT / "patch-party-combat-tests-compat.py"), run_name="__main__")
+
+# DEVIL TRIGGER is the final gameplay-only combat balance layer before SCP-173 adds target-specific
+# mitigation. First harden the generator against Party-action wording changes, then apply the
+# passive and temporarily restore only Guilty Crown's raw 24 x 10 shape for SCP-173 compatibility.
+runpy.run_path(str(ROOT / "patch-devil-trigger-generator-compat.py"), run_name="__main__")
+runpy.run_path(str(ROOT / "patch-devil-trigger-passive.py"), run_name="__main__")
+runpy.run_path(str(ROOT / "patch-devil-trigger-scp-precompat.py"), run_name="__main__")

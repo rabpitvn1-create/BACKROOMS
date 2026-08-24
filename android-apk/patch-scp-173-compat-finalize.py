@@ -1,4 +1,5 @@
 from pathlib import Path
+import runpy
 
 ROOT = Path(__file__).resolve().parent
 COMBAT = ROOT / "app/src/main/java/com/rabpit/backroom/core/CombatRuntime.kt"
@@ -51,6 +52,28 @@ new_test = '''    val json = CombatRuntime.toJson(state)!!
 if old_test not in test:
     raise RuntimeError("SCP-173 compatibility finalizer could not find targeted Concrete Body regression")
 test = test.replace(old_test, new_test, 1)
+
+# Neck Snap is a threshold regression for SCP-173, not a Devil Trigger test.
+# Force Kai into an existing cooldown turn so the new passive cannot heal him
+# above the exact 15% execution threshold before SCP-173 resolves its attack.
+neck_old = '''    state = CharacterStatEngine.setCurrentHp(state, KAI_ID, threshold)
+    state = state.copy(metadata = state.metadata + ("combat.range" to CombatRuntime.RangeBand.CLOSE.name))
+    val result = CombatRuntime.resolve(state, "SEARCH", "không thể quan sát SCP-173")
+'''
+neck_new = '''    state = CharacterStatEngine.setCurrentHp(state, KAI_ID, threshold)
+    state = state.copy(metadata = state.metadata + mapOf(
+      "combat.range" to CombatRuntime.RangeBand.CLOSE.name,
+      "passive.devilTrigger.kai.cooldownTurns" to "5"
+    ))
+    val result = CombatRuntime.resolve(state, "SEARCH", "không thể quan sát SCP-173")
+'''
+if neck_old not in test:
+    raise RuntimeError("SCP-173 compatibility finalizer could not find Neck Snap threshold regression")
+test = test.replace(neck_old, neck_new, 1)
 TEST.write_text(test, encoding="utf-8")
 
-print("SCP-173 compatibility finalizer applied: existing Guilty Crown narration preserved and deterministic Concrete Body regression retained.")
+print("SCP-173 compatibility finalizer applied: existing Guilty Crown narration preserved and deterministic Concrete Body/Neck Snap regressions retained.")
+
+# Devil Trigger temporarily restored Guilty Crown's raw block before SCP-173. Reapply the x5
+# multiplier now, after SCP-173 has installed its mitigation and compatibility narration.
+runpy.run_path(str(ROOT / "patch-devil-trigger-scp-finalize.py"), run_name="__main__")
