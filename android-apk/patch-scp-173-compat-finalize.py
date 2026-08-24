@@ -103,3 +103,8 @@ if b'data:image' in raw[:1024].lower() or b'base64,' in raw[:1024].lower():
     raise RuntimeError("SCP173.png must remain a raw PNG asset, not an embedded Data URI/Base64 payload")
 
 print("SCP-173 display mapping finalized: file:///android_asset/entity/SCP173.png")
+
+# Backroom 1.1.69 is the final balance layer. It must run after SCP-173 so Lucia's
+# new burst can reuse the final direct-damage mitigation and no later patch can
+# restore the old 25% Entity Evasion value.
+runpy.run_path(str(ROOT / "patch-v1-1-69-balance.py"), run_name="__main__")
