@@ -1,4 +1,5 @@
 from pathlib import Path
+import runpy
 
 ROOT = Path(__file__).resolve().parent
 TEST = ROOT / "app/src/test/java/com/rabpit/backroom/core/CombatRuntimeTest.kt"
@@ -58,3 +59,7 @@ text = replace_function(text, "quickStepGrantsFiftyEvasionForThreeTurnsAndCounts
 
 TEST.write_text(text, encoding="utf-8")
 print("Party combat regression compatibility applied: Silent Lullaby uses Party ATTACK; Quick Step uses Party EVADE.")
+
+# Final narrative layer: the player inhabits Kai directly, so the GM must narrate from
+# Kai's second-person limited perspective after every earlier prompt transform has completed.
+runpy.run_path(str(ROOT / "patch-kai-immersive-pov-final.py"), run_name="__main__")
