@@ -18,5 +18,25 @@ for index, line in enumerate(lines):
 if anchor_hits != 1 or new_hits != 1:
     raise RuntimeError(f"Devil Trigger Kai catalog generator compatibility expected one anchor/new assignment, got {anchor_hits}/{new_hits}")
 
-PATCH.write_text("\n".join(lines) + "\n", encoding="utf-8")
-print("Devil Trigger generator compatibility applied: Kai passive insertion no longer depends on mutable Party-action trigger wording.")
+source = "\n".join(lines) + "\n"
+
+# CharacterStatusEquipmentSystem replaces the original fixed base attack with
+# weapon/stat-based damage plus the established 70%-of-profile-max cap before
+# this finalizer runs. Adapt only the Devil Trigger generator's expected anchor
+# to that finalized form; the existing cap itself remains untouched.
+old_attack_anchor = "    '          val damage = max(1, base - profile.armor)\\n',\n"
+new_attack_anchor = "    '          val damage = min(max(1, normalized - profile.armor), max(1, profile.maxHp * 70 / 100))\\n',\n"
+old_attack_replacement = "    '          val damage = DevilTriggerPassive.damage(max(1, base - profile.armor), kaiDevilTriggerActive)\\n',\n"
+new_attack_replacement = "    '          val damage = DevilTriggerPassive.damage(min(max(1, normalized - profile.armor), max(1, profile.maxHp * 70 / 100)), kaiDevilTriggerActive)\\n',\n"
+
+for old, new, label in (
+    (old_attack_anchor, new_attack_anchor, "Kai finalized base attack anchor"),
+    (old_attack_replacement, new_attack_replacement, "Kai finalized base attack replacement"),
+):
+    count = source.count(old)
+    if count != 1:
+        raise RuntimeError(f"Devil Trigger generator compatibility {label}: expected 1 source assignment, found {count}")
+    source = source.replace(old, new, 1)
+
+PATCH.write_text(source, encoding="utf-8")
+print("Devil Trigger generator compatibility applied: Kai catalog and finalized stat-based base attack anchors synchronized.")
