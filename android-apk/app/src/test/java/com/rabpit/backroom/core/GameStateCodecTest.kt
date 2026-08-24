@@ -17,10 +17,10 @@ class GameStateCodecTest {
       metadata = mapOf("source" to "field_observation")
     )
     val state = GameState.initial().copy(
-      inventories = mapOf(KAI_ID to InventoryState(KAI_ID, mapOf("water" to ItemStack("water", "Almond Water", 2)))),
+      inventories = mapOf(KAI_ID to InventoryState(KAI_ID, mapOf(ItemCatalog.ALMOND_WATER to ItemCatalog.stack(ItemCatalog.ALMOND_WATER)!!.copy(quantity = 2)))),
       statuses = mapOf(effect.id to effect),
       characters = mapOf(KAI_ID to CharacterState(KAI_ID, "Kai Akechi", statusIds = setOf(effect.id), physiology = physiology)),
-      omnivault = OmnivaultState(scanSlots = listOf(ScanSlot(1, "water", ItemStack("water", "Almond Water"), 10)), markedSourceIds = setOf("water")),
+      omnivault = OmnivaultState(scanSlots = listOf(ScanSlot(1, ItemCatalog.ALMOND_WATER, ItemCatalog.stack(ItemCatalog.ALMOND_WATER)!!, 10)), markedSourceIds = setOf(ItemCatalog.ALMOND_WATER)),
       turn = TurnState("TURN_9", PendingTurn("TURN_9", "Kai nhặt nước", PendingTurnStatus.INTERPRETING)),
       time = GameTimeState(elapsedSubjectiveMinutes = 485L, lastAdvanceMinutes = 15, lastAdvanceReason = "travel")
     )
@@ -114,5 +114,21 @@ class GameStateCodecTest {
     assertEquals(KAI_WHITE_WRAITH_ID, migrated.equipment.getValue(KAI_ID).slots["weapon"])
     assertEquals(KAI_BLACKBLOOD_ARMOR_ID, migrated.equipment.getValue(KAI_ID).slots["armor"])
     assertEquals(KAI_OMNIVAULT_RING_ID, migrated.equipment.getValue(KAI_ID).slots["ring"])
+  }
+
+  @Test fun currentLegacyLowStackLoadsAsCanonicalWholeUnitsWithoutDuplication() {
+    val root = JSONObject(GameStateCodec.encode(GameState.initial()))
+    root.getJSONObject("inventories").getJSONObject(KAI_ID).getJSONObject("items").put(
+      "water-bottle:low",
+      JSONObject().apply {
+        put("itemId", "water-bottle:low"); put("name", "Chai nước còn ít nước"); put("quantity", 2)
+        put("metadata", JSONObject().put("contentState", "LOW").put("contentPercent", "25"))
+        put("archetypeId", "water-bottle"); put("contentState", "LOW")
+      }
+    )
+    val migrated = GameStateCodec.decode(root.toString()).inventories.getValue(KAI_ID).items
+    assertEquals(setOf(ItemCatalog.ALMOND_WATER), migrated.keys)
+    assertEquals(2, migrated.getValue(ItemCatalog.ALMOND_WATER).quantity)
+    assertEquals(ContentState.NONE, migrated.getValue(ItemCatalog.ALMOND_WATER).contentState)
   }
 }
