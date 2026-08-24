@@ -29,7 +29,7 @@ jobs:
             python3 "android-apk/$script"
           done
 
-      - name: Verify combat action bar and Party command contracts
+      - name: Verify combat action bar, icon and Party command contracts
         run: |
           set -euo pipefail
           python3 - <<'PY'
@@ -40,6 +40,7 @@ jobs:
           combat = (root / 'app/src/main/java/com/rabpit/backroom/core/CombatRuntime.kt').read_text(encoding='utf-8')
           main = (root / 'app/src/main/java/com/rabpit/backroom/MainActivity.java').read_text(encoding='utf-8')
           patch = (root / 'patch-combat-action-bar-finalize.py').read_text(encoding='utf-8')
+          base_ui_patch = (root / 'patch-three-action-ui-only.py').read_text(encoding='utf-8')
           party_patch = (root / 'patch-party-combat-actions-finalize.py').read_text(encoding='utf-8')
           chain = (root / 'patch-inventory-capacity-final-fix.py').read_text(encoding='utf-8')
           party_test = (root / 'app/src/test/java/com/rabpit/backroom/core/PartyCombatActionsTest.kt').read_text(encoding='utf-8')
@@ -59,12 +60,24 @@ jobs:
               "row.classList.toggle('combat-actions',active)",
               "middle.type='button'",
               "middle.type='submit'",
-              '<svg class="action-icon"',
+              'icon-search',
+              'icon-execute',
+              'icon-explore',
+              'icon-attack',
+              'icon-evade',
+              'icon-flee',
           )
           for marker in required_html:
               assert marker in html, marker
 
-          for forbidden in ('PRESSURE_COMBAT_HUD_V1', 'id="pressureCombatStyle"', 'id="combatHud"'):
+          for forbidden in (
+              'PRESSURE_COMBAT_HUD_V1',
+              'id="pressureCombatStyle"',
+              'id="combatHud"',
+              'footprint-icon',
+              'ai-action-icon',
+              '>AI</text>',
+          ):
               assert forbidden not in html, forbidden
 
           for marker in (
@@ -100,18 +113,33 @@ jobs:
           assert 'function activeEntityKey()' in main
           assert 'state.combat' in main
 
-          # Final order is deterministic: compact action UI, then Party action authority.
+          # Patch chain order is intentional: the base three-action UI is established first;
+          # combat finalizer replaces only the button presentation; Party authority follows it;
+          # state-fix/rest finalizers still run later through their existing nested chain.
           ui_call = 'runpy.run_path(str(ROOT / "patch-combat-action-bar-finalize.py"), run_name="__main__")'
           party_call = 'runpy.run_path(str(ROOT / "patch-party-combat-actions-finalize.py"), run_name="__main__")'
           assert ui_call in chain and party_call in chain
           assert chain.index(ui_call) < chain.index(party_call)
 
-          # No bitmap asset is introduced by either feature patch.
-          combined_patch = (patch + party_patch).lower()
+          # The normal buttons and the post-combat restoration must share the same icon language.
+          for marker in ('icon-search', 'icon-execute', 'icon-explore'):
+              assert marker in base_ui_patch
+              assert marker in patch
+          legacy_markup = (
+              'class="action-icon footprint-icon"',
+              'class="action-icon ai-action-icon"',
+              '<text x="7" y="11.8">AI</text>',
+          )
+          for obsolete in legacy_markup:
+              assert obsolete not in base_ui_patch
+              assert obsolete not in patch
+
+          # No bitmap/network dependency is introduced for action icons.
+          combined_patch = (patch + base_ui_patch + party_patch).lower()
           assert '.png' not in combined_patch
           assert '.jpg' not in combined_patch
           assert '.jpeg' not in combined_patch
-          assert '<svg' in patch
+          assert '<svg' in patch and '<svg' in base_ui_patch
 
           assert html.count('COMBAT_ACTION_BAR_V2') == 1
           assert html.count("document.addEventListener('click',interceptCombatClick,true)") == 1
@@ -146,6 +174,11 @@ jobs:
           grep -q 'Cả Party cùng tấn công' "$html"
           grep -q 'Cả Party cùng né tránh' "$html"
           grep -q 'Cả Party cùng bỏ chạy' "$html"
+          for icon in search execute explore attack evade flee; do
+            grep -q "icon-$icon" "$html"
+          done
+          ! grep -q 'footprint-icon' "$html"
+          ! grep -q 'ai-action-icon' "$html"
+          ! grep -q '>AI</text>' "$html"
           ! grep -q 'PRESSURE_COMBAT_HUD_V1' "$html"
           ! grep -q 'id="combatHud"' "$html"
-          grep -q '<svg class="action-icon"' "$html"

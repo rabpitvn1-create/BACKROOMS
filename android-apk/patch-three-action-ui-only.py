@@ -5,15 +5,22 @@ ROOT = Path(__file__).resolve().parent
 INDEX = ROOT / "app/src/main/assets/index.html"
 html = INDEX.read_text(encoding="utf-8")
 
-button_row = '''<div class="primary-action-row" id="primaryActionRow">
+# Keep the primary action icons as compact inline SVG so WebView rendering stays sharp without
+# shipping extra assets, but use one coherent 24x24 outline language instead of the old ad-hoc
+# AI text box and ellipse footprints.
+SEARCH_ICON = '<svg class="action-icon icon-search" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4.5 4.5"></path></svg>'
+EXECUTE_ICON = '<svg class="action-icon icon-execute" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"></rect><path d="m7.5 9 3 3-3 3"></path><path d="M13.5 15h3.5"></path></svg>'
+EXPLORE_ICON = '<svg class="action-icon icon-explore" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="m15.8 8.2-2.4 5.2-5.2 2.4 2.4-5.2z"></path><circle cx="12" cy="12" r="1"></circle></svg>'
+
+button_row = f'''<div class="primary-action-row" id="primaryActionRow">
 <button type="button" class="primary-action" id="searchActionButton" aria-label="Tìm kiếm">
-<svg class="action-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="5.5"></circle><path d="M14.7 14.7 20 20"></path></svg><span>Tìm kiếm</span>
+{SEARCH_ICON}<span>Tìm kiếm</span>
 </button>
 <button type="submit" class="primary-action execute-action" id="submit" aria-label="Thực hiện">
-<svg class="action-icon ai-action-icon" viewBox="0 0 28 24" aria-hidden="true"><path d="M3.5 5.5A2.5 2.5 0 0 1 6 3h11a2.5 2.5 0 0 1 2.5 2.5v7A2.5 2.5 0 0 1 17 15H6a2.5 2.5 0 0 1-2.5-2.5z"></path><text x="7" y="11.8">AI</text><path class="spark" d="M22 2v5m-2.5-2.5h5M23.5 9v3m-1.5-1.5h3"></path></svg><span>Thực hiện</span>
+{EXECUTE_ICON}<span>Thực hiện</span>
 </button>
 <button type="button" class="primary-action" id="exploreActionButton" aria-label="Khám phá">
-<svg class="action-icon footprint-icon" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="8" cy="8" rx="3" ry="4.2" transform="rotate(-20 8 8)"></ellipse><ellipse cx="15.8" cy="15.5" rx="3" ry="4.2" transform="rotate(18 15.8 15.5)"></ellipse><circle cx="5.2" cy="3.4" r="1"></circle><circle cx="18.5" cy="10.3" r="1"></circle></svg><span>Khám phá</span>
+{EXPLORE_ICON}<span>Khám phá</span>
 </button>
 </div>'''
 
@@ -28,12 +35,9 @@ css = r'''
 .primary-action-row{display:grid;grid-template-columns:1fr 1.12fr 1fr;gap:7px;width:100%}
 .primary-action{min-width:0;min-height:46px;border-radius:9px;display:flex;align-items:center;justify-content:center;gap:7px;padding:10px 8px;white-space:nowrap}
 .primary-action.execute-action{font-weight:800;border-color:#56616a;background:#20272d}
-.primary-action .action-icon{width:19px;height:19px;flex:0 0 19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.primary-action .footprint-icon ellipse,.primary-action .footprint-icon circle{fill:currentColor;stroke:none}
-.primary-action .ai-action-icon{width:22px;flex-basis:22px}
-.primary-action .ai-action-icon text{font:700 6.5px system-ui,sans-serif;fill:currentColor;stroke:none;letter-spacing:.2px}
-.primary-action .ai-action-icon .spark{stroke-width:1.4}
-@media(max-width:390px){.primary-action-row{gap:5px}.primary-action{font-size:12px;padding:9px 5px;gap:5px}.primary-action .action-icon{width:17px;height:17px;flex-basis:17px}.primary-action .ai-action-icon{width:20px;flex-basis:20px}}
+.primary-action .action-icon{width:20px;height:20px;flex:0 0 20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.primary-action .icon-execute{width:21px;flex-basis:21px}
+@media(max-width:390px){.primary-action-row{gap:5px}.primary-action{font-size:12px;padding:9px 5px;gap:5px}.primary-action .action-icon{width:18px;height:18px;flex-basis:18px}.primary-action .icon-execute{width:19px;flex-basis:19px}}
 '''
 if "STEP2_THREE_ACTIONS" not in html:
     if "</style>" not in html:
@@ -98,6 +102,9 @@ for marker in (
     'id="submit"',
     'id="exploreActionButton"',
     'class="primary-action execute-action"',
+    'icon-search',
+    'icon-execute',
+    'icon-explore',
     'Android.submitAction(JSON.stringify(state),"EXECUTE",a)',
     'submitMacroAction("SEARCH","Tìm kiếm")',
     'submitMacroAction("EXPLORE","Khám phá")',
@@ -107,8 +114,12 @@ for marker in (
     if marker not in html:
         raise RuntimeError(f"three-action UI contract missing: {marker}")
 
+for obsolete in ('footprint-icon', 'ai-action-icon', '>AI</text>'):
+    if obsolete in html:
+        raise RuntimeError("Obsolete primary action icon survived: " + obsolete)
+
 if re.search(r'<button\s+id="submit"[^>]*>\s*THỰC HIỆN\s*</button>', html, re.IGNORECASE):
     raise RuntimeError("legacy single Execute button still present")
 
 INDEX.write_text(html, encoding="utf-8")
-print("Step 2 three-button WebView UI applied.")
+print("Step 2 three-button WebView UI applied with coherent 24x24 outline action icons.")
