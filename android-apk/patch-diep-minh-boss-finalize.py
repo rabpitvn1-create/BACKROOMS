@@ -1,4 +1,5 @@
 from pathlib import Path
+import runpy
 
 ROOT = Path(__file__).resolve().parent
 MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
@@ -71,3 +72,7 @@ if 'diep_minh' in pool_lines[0]:
 
 MAIN.write_text(text, encoding="utf-8")
 print("Diệp Minh final encounter priority restored after unified Entity pool; unstable prose-only Java insertion removed.")
+
+# John Doe must run after both the shared-pool rewrite and this Diệp Minh priority restore.
+# Otherwise the shared helper would erase John's independent 10% encounter channel.
+runpy.run_path(str(ROOT / "patch-john-doe-entity.py"), run_name="__main__")
