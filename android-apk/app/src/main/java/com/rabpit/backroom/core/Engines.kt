@@ -61,6 +61,17 @@ private fun useItem(state: GameState, source: InventoryState, command: ItemComma
   val ownedRaw = source.items[command.itemId] ?: return invalid(state, "item_not_owned")
   if (ownedRaw.quantity < command.quantity) return invalid(state, "insufficient_item_quantity")
   val owned = ItemContentRules.normalize(ownedRaw)
+  val official = ItemCatalog.find(owned.itemId)
+  if (official?.type == OfficialItemType.CONSUMABLE && command.quantity != 1) return invalid(state, "consumable_use_one_unit")
+  if (official?.type == OfficialItemType.TOOL) {
+    if (command.quantity != 1) return invalid(state, "tool_use_one_unit")
+    val resource = if (owned.itemId == ItemCatalog.FLASHLIGHT) "battery" else "fuel"
+    val amount = owned.metadata[resource]?.toIntOrNull()?.coerceAtLeast(0) ?: 0
+    val nextState = if (amount == 0) "OFF" else if (owned.metadata["state"].equals("ON", true)) "OFF" else "ON"
+    val updated = owned.copy(metadata = owned.metadata + ("state" to nextState))
+    val inventory = source.copy(items = source.items + (owned.itemId to updated))
+    return changed(state.copy(inventories = state.inventories + (command.actorId to inventory)), "tool_${nextState.lowercase()}")
+  }
   val physiologyEffects = parsePhysiologyEffects(owned.metadata["physiologyEffect"])
     ?: return invalid(state, "physiology_effect_invalid")
   if (owned.contentState == ContentState.EMPTY) return invalid(state, "item_content_empty")
@@ -79,11 +90,71 @@ private fun useItem(state: GameState, source: InventoryState, command: ItemComma
   val consumedOnUse = owned.metadata["consumedOnUse"].equals("true", true) ||
     (owned.metadata["consumable"].equals("true", true) && !owned.metadata["containerPersistent"].equals("true", true))
   if (consumedOnUse) {
-    val next = removeItem(source, command.itemId, command.quantity) ?: return invalid(state, "insufficient_item_quantity")
-    val inventoryResult = changed(state.copy(inventories = state.inventories + (command.actorId to next)), "item_consumed")
+    val effected = OfficialItemEffects.apply(state, source, owned)
+    if (!effected.applied) return effected
+    val effectedInventory = effected.state.inventories[command.actorId] ?: source
+    val next = removeItem(effectedInventory, command.itemId, command.quantity) ?: return invalid(state, "insufficient_item_quantity")
+    val inventoryResult = changed(effected.state.copy(inventories = effected.state.inventories + (command.actorId to next)), "item_consumed")
     return finishItemUse(state, inventoryResult, command, physiologyEffects)
   }
   return finishItemUse(state, changed(state, "item_used"), command, physiologyEffects)
+}
+
+private object OfficialItemEffects {
+  fun apply(state: GameState, inventory: InventoryState, item: ItemStack): ExecutionResult {
+    var next = state
+    when (item.itemId) {
+      ItemCatalog.BATTERY -> next = recharge(next, inventory, ItemCatalog.FLASHLIGHT, "battery") ?: return invalid(state, "flashlight_cannot_receive_battery")
+      ItemCatalog.LIGHTER_FUEL -> next = recharge(next, inventory, ItemCatalog.LIGHTER, "fuel") ?: return invalid(state, "lighter_cannot_receive_fuel")
+    }
+    item.metadata["healHp"]?.toIntOrNull()?.takeIf { it > 0 }?.let { next = heal(next, it) }
+    when (item.metadata["statusTreatment"]) {
+      "BLEEDING_LIGHT" -> next = treatLightBleeding(next)
+    }
+    when (item.metadata["conditionReduction"]) {
+      "INFECTION_50" -> next = reduceCondition(next, infection = true)
+      "PAIN_50" -> next = reduceCondition(next, infection = false)
+    }
+    return changed(next, "official_item_effect_applied")
+  }
+
+  private fun recharge(state: GameState, inventory: InventoryState, toolId: String, resource: String): GameState? {
+    val raw = inventory.items[toolId] ?: return null
+    val tool = ItemContentRules.normalize(raw)
+    val max = tool.metadata["${resource}Max"]?.toIntOrNull() ?: 100
+    val current = tool.metadata[resource]?.toIntOrNull()?.coerceIn(0, max) ?: max
+    if (current >= max) return null
+    val updated = tool.copy(metadata = tool.metadata + (resource to (current + 50).coerceAtMost(max).toString()))
+    return state.copy(inventories = state.inventories + (inventory.ownerId to inventory.copy(items = inventory.items + (toolId to updated))))
+  }
+
+  private fun heal(state: GameState, amount: Int): GameState {
+    val max = state.metadata["combat.playerMaxHp"]?.toIntOrNull()?.coerceAtLeast(1) ?: 100
+    val hp = state.metadata["combat.playerHp"]?.toIntOrNull()?.coerceIn(0, max) ?: max
+    return state.copy(metadata = state.metadata + mapOf("combat.playerMaxHp" to max.toString(), "combat.playerHp" to (hp + amount).coerceAtMost(max).toString()))
+  }
+
+  private fun treatLightBleeding(state: GameState): GameState {
+    val kai = state.characters[KAI_ID] ?: return state
+    val bleeding = kai.statusIds.mapNotNull(state.statuses::get).firstOrNull {
+      it.type.equals("BLEEDING", true) && (it.metadata["tier"]?.lowercase() in setOf(null, "light", "mild", "1"))
+    } ?: return state
+    return state.copy(statuses = state.statuses - bleeding.id, characters = state.characters + (KAI_ID to kai.copy(statusIds = kai.statusIds - bleeding.id)))
+  }
+
+  private fun reduceCondition(state: GameState, infection: Boolean): GameState {
+    val kai = state.characters[KAI_ID] ?: return state
+    val p = kai.physiology
+    val current = if (infection) p.infectionState else p.painState
+    val reduced = when (current?.lowercase()) {
+      "critical", "severe" -> "moderate"
+      "moderate" -> "mild"
+      "mild", "light" -> "none"
+      else -> current
+    }
+    val nextP = if (infection) p.copy(infectionState = reduced) else p.copy(painState = reduced)
+    return state.copy(characters = state.characters + (KAI_ID to kai.copy(physiology = nextP)))
+  }
 }
 
 object InventoryEngine {
@@ -213,12 +284,22 @@ object TimeEngine {
       ))
     }
 
+    val drainedInventories = state.inventories.mapValues { (_, inventory) ->
+      inventory.copy(items = inventory.items.mapValues { (_, raw) ->
+        val item = ItemContentRules.normalize(raw)
+        val resource = when (item.itemId) { ItemCatalog.FLASHLIGHT -> "battery"; ItemCatalog.LIGHTER -> "fuel"; else -> null }
+        if (resource == null || !item.metadata["state"].equals("ON", true)) item else {
+          val current = item.metadata[resource]?.toIntOrNull()?.coerceAtLeast(0) ?: 0
+          item.copy(metadata = item.metadata + (resource to (current - command.minutes).coerceAtLeast(0).toString()))
+        }
+      })
+    }
     val nextTime = state.time.copy(
       elapsedSubjectiveMinutes = elapsed + delta,
       lastAdvanceMinutes = command.minutes,
       lastAdvanceReason = reason
     )
-    return changed(state.copy(time = nextTime, characters = nextCharacters), "time_advanced")
+    return changed(state.copy(time = nextTime, characters = nextCharacters, inventories = drainedInventories), "time_advanced")
   }
 
   private fun advanceKnownCounter(value: Long?, delta: Long): Long? {
