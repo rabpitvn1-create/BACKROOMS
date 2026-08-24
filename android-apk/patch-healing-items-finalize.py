@@ -3,21 +3,26 @@ import runpy
 
 ROOT = Path(__file__).resolve().parent
 ENGINES = ROOT / "app/src/main/java/com/rabpit/backroom/core/Engines.kt"
+ITEM_CATALOG = ROOT / "app/src/main/java/com/rabpit/backroom/core/ItemCatalog.kt"
 
-text = ENGINES.read_text(encoding="utf-8")
-old = 'finishItemUse(state, changed(state, "item_used"), command, physiologyEffects)'
-new = 'finishItemUse(state, changed(state, "item_used"), command, physiologyEffects, healingAmount)'
-if new not in text:
-    count = text.count(old)
-    if count != 1:
-        raise RuntimeError(f"Healing fallback-use call: expected exactly 1 anchor, found {count}")
-    text = text.replace(old, new, 1)
+MODERN_OFFICIAL_ITEMS = ITEM_CATALOG.exists() and 'OfficialItem(BANDAGE, "Bandage"' in ITEM_CATALOG.read_text(encoding="utf-8")
+if MODERN_OFFICIAL_ITEMS:
+    print("Official item catalog owns healing finalization; legacy finishItemUse rewrite skipped.")
+else:
+    text = ENGINES.read_text(encoding="utf-8")
+    old = 'finishItemUse(state, changed(state, "item_used"), command, physiologyEffects)'
+    new = 'finishItemUse(state, changed(state, "item_used"), command, physiologyEffects, healingAmount)'
+    if new not in text:
+        count = text.count(old)
+        if count != 1:
+            raise RuntimeError(f"Healing fallback-use call: expected exactly 1 anchor, found {count}")
+        text = text.replace(old, new, 1)
 
-if 'finishItemUse(state, inventoryResult, command, physiologyEffects)' in text or old in text:
-    raise RuntimeError("A pre-healing finishItemUse call survived")
+    if 'finishItemUse(state, inventoryResult, command, physiologyEffects)' in text or old in text:
+        raise RuntimeError("A pre-healing finishItemUse call survived")
 
-ENGINES.write_text(text, encoding="utf-8")
-print("Healing item final use call updated with healHp argument.")
+    ENGINES.write_text(text, encoding="utf-8")
+    print("Healing item final use call updated with healHp argument.")
 
 # Final Entity combat balance authority runs after the healing-item chain so no later runtime patch can
 # rewrite Entity HP, evasion, regeneration, or legacy combat migration semantics.
