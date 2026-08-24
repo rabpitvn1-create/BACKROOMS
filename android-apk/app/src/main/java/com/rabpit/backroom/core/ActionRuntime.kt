@@ -174,7 +174,10 @@ object ActionRuntime {
     cleared["lastAction.phase"] = phase.name
     cleared["lastAction.elapsedMinutes"] = session.elapsedMinutes.toString()
     cleared["lastAction.reason"] = reason
-    val next = state.copy(metadata = cleared)
+    var next = state.copy(metadata = cleared)
+    if (phase == ActionPhase.COMPLETED && session.kind == ActionKind.SEARCH) {
+      next = LevelLootEngine.onSearchCompleted(next, session.sessionId, session.locationKey)
+    }
     return ActionRuntimeResult(next, session.copy(phase = phase), applied = true)
   }
 
