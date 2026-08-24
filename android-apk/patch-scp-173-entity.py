@@ -713,10 +713,13 @@ if 'scp173StartsObservedWithExactHpAndStateProjection' not in test:
       "combat.eventCounter" to "2",
       "combat.scp173.cooldown.blinkPressure" to "3"
     ))
+    val before = CombatRuntime.active(state)!!.entityHp
     val result = CombatRuntime.resolve(state, "SEARCH", "duy trì quan sát")
     assertTrue(result.reply, result.reply.contains("Guilty Crown Override"))
     // Raw 240 direct physical damage -> -25% Concrete Body -> -20% OBSERVED = 144.
-    assertTrue(result.reply, result.reply.contains("tổng thực nhận -144 HP"))
+    val after = CombatRuntime.active(result.state)!!
+    assertEquals(before - 144, after.entityHp)
+    assertEquals("OBSERVED", CombatRuntime.toJson(result.state)!!.getString("observationState"))
   }
 
   @Test fun scp173UnobservedConcreteRushUsesVulnerableTwentyPlusFirstStrikeFivePercent() {
