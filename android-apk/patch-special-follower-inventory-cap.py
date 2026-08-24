@@ -57,14 +57,14 @@ class SpecialFollowerInventoryPolicyTest {
     for (ownerId in listOf(IRIS_ID, SYVIAL_ID)) {
       val inventory = InventoryState(
         ownerId,
-        mapOf("water" to ItemStack("water", "Almond Water", 19))
+        mapOf(ItemCatalog.ALMOND_WATER to ItemStack(ItemCatalog.ALMOND_WATER, "Almond Water", 19))
       )
       assertNull(
         InventoryPolicy.validateAddition(
           state,
           ownerId,
           inventory,
-          ItemStack("water", "Almond Water", 1),
+          ItemStack(ItemCatalog.ALMOND_WATER, "Almond Water", 1),
           1
         )
       )
@@ -74,7 +74,7 @@ class SpecialFollowerInventoryPolicyTest {
           state,
           ownerId,
           inventory,
-          ItemStack("water", "Almond Water", 2),
+          ItemStack(ItemCatalog.ALMOND_WATER, "Almond Water", 2),
           2
         )
       )
