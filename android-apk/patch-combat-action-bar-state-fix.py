@@ -31,11 +31,6 @@ print("Combat action bar state gate fixed: active Entity combat now reads the le
 # narration about resting cannot leave the authoritative sleep counter unchanged.
 runpy.run_path(str(ROOT / "patch-rest-physiology-state-finalize.py"), run_name="__main__")
 
-# John Doe is a late gameplay authority pass. It must run after the finalized combat/status
-# stack but before the pure UI pager, otherwise older generic Entity HP/regen layers can alter
-# its exact user-locked values.
-runpy.run_path(str(ROOT / "patch-john-doe-entity.py"), run_name="__main__")
-
-# Keep the two-page pager last. It depends on the finalized action bar, Character Detail,
-# Party and Save / Load DOM, and must not become another source of gameplay state.
+# Keep the two-page pager last within this UI/action-bar chain. Deferred Entity authority passes
+# may still run afterward from patch-character-healthbar.py by design.
 runpy.run_path(str(ROOT / "patch-two-page-swipe-ui.py"), run_name="__main__")
