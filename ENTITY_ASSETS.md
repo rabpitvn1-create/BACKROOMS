@@ -29,7 +29,7 @@ Runtime ưu tiên canonical Entity key trùng chính xác với tên file bỏ p
 | `diep_minh` | `diep_minh.png` |
 | `monster_x` | `X.png` |
 | `john_doe` | `John.png` |
-| `scp_173` | `173.png` |
+| `scp_173` | `SCP173.png` |
 
 `diep_minh` là boss unique dùng roll xuất hiện độc lập 3%, không nằm trong shared roaming Entity pool.
 
@@ -39,9 +39,9 @@ Runtime tham chiếu trực tiếp các asset case-sensitive:
 
 `file:///android_asset/entity/John.png`
 
-`file:///android_asset/entity/173.png`
+`file:///android_asset/entity/SCP173.png`
 
-Không chuyển `John.png` hoặc `173.png` sang Base64, Data URI hoặc nội dung nhúng. APK phải đóng gói file PNG thô trong assets.
+Không chuyển `John.png` hoặc `SCP173.png` sang Base64, Data URI hoặc nội dung nhúng. APK phải đóng gói file PNG thô trong assets. File `173.png` cũ được giữ nguyên để tránh phá vỡ lịch sử/compatibility của repository nhưng runtime SCP-173 hiện tại không dùng nó để hiển thị.
 
 Snapshot đọc Entity thường trực tiếp bằng đường dẫn:
 
