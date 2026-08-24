@@ -4,7 +4,7 @@ Toàn bộ sprite Entity dùng trong APK nằm trực tiếp tại:
 
 `android-apk/app/src/main/assets/entity/`
 
-Runtime chỉ dùng canonical Entity key trùng chính xác với tên file bỏ phần mở rộng `.png`. Không có alias theo Level, không có mã Entity cũ, không có manifest từ xa và không tải ảnh mạng.
+Runtime chỉ dùng canonical Entity key. Không có alias theo Level, không có mã Entity cũ, không có manifest từ xa và không tải ảnh mạng.
 
 | Canonical Entity key | Local asset |
 |---|---|
@@ -27,11 +27,18 @@ Runtime chỉ dùng canonical Entity key trùng chính xác với tên file bỏ
 | `jane_the_killer` | `jane_the_killer.png` |
 | `slenderman` | `slenderman.png` |
 | `diep_minh` | `diep_minh.png` |
+| `john_doe` | `John.png` |
 
 `diep_minh` là boss unique dùng roll xuất hiện độc lập 3%, không nằm trong shared roaming Entity pool.
 
-Snapshot đọc trực tiếp bằng đường dẫn:
+`john_doe` là roaming Entity unique dùng roll độc lập 10% trên Level 0-999. Asset của John Doe là ngoại lệ case-sensitive và bắt buộc giữ đúng đường dẫn:
 
-`file:///android_asset/entity/<canonical-key>.png`
+`android-apk/app/src/main/assets/entity/John.png`
+
+Không đổi thành `john.png`, không nhúng Data URI và không Base64-encode asset này trong source/runtime.
+
+Snapshot đọc Entity trực tiếp bằng đường dẫn local APK. Với John Doe, runtime dùng:
+
+`file:///android_asset/entity/John.png`
 
 Gameplay runtime không được suy ra Entity từ Level hoặc từ registry lịch sử. Một Entity hiện tại chỉ được nhận diện bằng canonical key đang hoạt động trong state.
