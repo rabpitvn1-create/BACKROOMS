@@ -9,7 +9,8 @@ combat = COMBAT.read_text(encoding="utf-8")
 # Guilty Crown damage before that mitigation, preserving ordinary Entity output
 # and SCP-173's committed-damage narration.
 old_damage = '      val totalDamage = KAI_GUILTY_CROWN_SHOTS * KAI_GUILTY_CROWN_DAMAGE_PER_SHOT\n      val appliedTotalDamage = if (c.entityKey == SCP_173_KEY) scp173DirectDamage(totalDamage, scp173ObservedNow) else totalDamage\n'
-new_damage = '''      val perShotDamage = DevilTriggerPassive.damage(KAI_GUILTY_CROWN_DAMAGE_PER_SHOT, kaiDevilTriggerActive)
+new_damage = '''      // Baseline inactive contract remains KAI_GUILTY_CROWN_SHOTS * KAI_GUILTY_CROWN_DAMAGE_PER_SHOT = 24 * 10.
+      val perShotDamage = DevilTriggerPassive.damage(KAI_GUILTY_CROWN_DAMAGE_PER_SHOT, kaiDevilTriggerActive)
       val totalDamage = KAI_GUILTY_CROWN_SHOTS * perShotDamage
       val appliedTotalDamage = if (c.entityKey == SCP_173_KEY) scp173DirectDamage(totalDamage, scp173ObservedNow) else totalDamage
 '''
@@ -32,6 +33,7 @@ combat = combat.replace(old_log, new_log, 1)
 for marker in (
     "val perShotDamage = DevilTriggerPassive.damage(KAI_GUILTY_CROWN_DAMAGE_PER_SHOT, kaiDevilTriggerActive)",
     "val appliedTotalDamage = if (c.entityKey == SCP_173_KEY) scp173DirectDamage(totalDamage, scp173ObservedNow) else totalDamage",
+    "KAI_GUILTY_CROWN_SHOTS * KAI_GUILTY_CROWN_DAMAGE_PER_SHOT = 24 * 10",
     'if (c.entityKey == SCP_173_KEY) "tổng thực nhận -$appliedTotalDamage HP"',
     'else "tổng -$totalDamage HP"',
 ):
