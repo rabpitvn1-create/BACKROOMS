@@ -46,10 +46,11 @@ class OfficialItemSystemTest {
       val result = use(grant(base, pair.first), pair.first, index.toString())
       assertEquals(50 + pair.second, result.state.characters.getValue(KAI_ID).vitalState.currentHp)
     }
+    val effectiveMaxHp = CharacterStatEngine.effective(base, KAI_ID).maxHp
     val nearMax = base.copy(characters = base.characters + (KAI_ID to base.characters.getValue(KAI_ID).copy(
-      vitalState = base.characters.getValue(KAI_ID).vitalState.copy(currentHp = 98)
+      vitalState = base.characters.getValue(KAI_ID).vitalState.copy(currentHp = effectiveMaxHp - 2)
     )))
-    assertEquals(100, use(grant(nearMax, ItemCatalog.BANDAGE), ItemCatalog.BANDAGE).state.characters.getValue(KAI_ID).vitalState.currentHp)
+    assertEquals(effectiveMaxHp, use(grant(nearMax, ItemCatalog.BANDAGE), ItemCatalog.BANDAGE).state.characters.getValue(KAI_ID).vitalState.currentHp)
   }
 
   @Test fun medicalItemsTreatOnlyTheirExistingAuthorities() {
