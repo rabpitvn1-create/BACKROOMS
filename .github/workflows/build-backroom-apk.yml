@@ -9,7 +9,7 @@ on:
       - ".github/workflows/build-backroom-apk.yml"
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: build-backroom-apk-${{ github.ref }}
@@ -30,17 +30,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Capture active run id
-        run: |
-          set -euo pipefail
-          mkdir -p release-status
-          printf 'status=RUNNING\nversion=1.1.63\nsource_sha=%s\nrun_id=%s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" > release-status/v1.1.63-running.txt
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add release-status/v1.1.63-running.txt
-          git commit -m "Record active Backroom 1.1.63 run $GITHUB_RUN_ID"
-          git push origin HEAD:main
 
       - uses: actions/setup-python@v5
         with:
@@ -197,19 +186,19 @@ jobs:
         working-directory: android-apk
         run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
 
-      - name: Prepare APK
-        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.1.63.apk
+      - name: Prepare CI APK
+        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-ci-debug.apk
 
       - name: Verify packaged APK contracts
         run: |
           set -euo pipefail
           BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
-          "$BUILD_TOOLS/apksigner" verify --verbose --print-certs Backroom-1.1.63.apk
-          "$BUILD_TOOLS/aapt" dump badging Backroom-1.1.63.apk | grep -q "package: name='com.rabpit.backroom'"
-          "$BUILD_TOOLS/aapt" dump badging Backroom-1.1.63.apk | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
-          "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-1.1.63.apk
+          "$BUILD_TOOLS/apksigner" verify --verbose --print-certs Backroom-ci-debug.apk
+          "$BUILD_TOOLS/aapt" dump badging Backroom-ci-debug.apk | grep -q "package: name='com.rabpit.backroom'"
+          "$BUILD_TOOLS/aapt" dump badging Backroom-ci-debug.apk | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
+          "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-ci-debug.apk
           rm -rf apk-check && mkdir apk-check
-          unzip -q Backroom-1.1.63.apk 'assets/index.html' 'assets/entity/*' 'assets/Kai_MadGod_snapshot_overlay.png' 'assets/avatars/MadGod.jpg' -d apk-check
+          unzip -q Backroom-ci-debug.apk 'assets/index.html' 'assets/entity/*' 'assets/Kai_MadGod_snapshot_overlay.png' 'assets/avatars/MadGod.jpg' -d apk-check
           grep -q 'searchActionButton' apk-check/assets/index.html
           grep -q 'exploreActionButton' apk-check/assets/index.html
           grep -q 'madGodSetEquipped' apk-check/assets/index.html
@@ -223,56 +212,10 @@ jobs:
           test -s apk-check/assets/Kai_MadGod_snapshot_overlay.png
           test -s apk-check/assets/avatars/MadGod.jpg
 
-      - name: Upload APK artifact
+      - name: Upload short-lived CI APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Backroom-1.1.63-debug-apk
-          path: Backroom-1.1.63.apk
+          name: Backroom-ci-debug-apk
+          path: Backroom-ci-debug.apk
           if-no-files-found: error
-          retention-days: 14
-
-      - name: Publish GitHub Release v1.1.63
-        if: github.ref == 'refs/heads/main'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          TAG="v1.1.63"
-          TITLE="Backroom 1.1.63 Debug"
-          NOTES=$(cat android-apk/RELEASE_NOTES_1.1.63.txt)
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
-            gh release upload "$TAG" Backroom-1.1.63.apk --clobber
-          else
-            gh release create "$TAG" Backroom-1.1.63.apk --target "$GITHUB_SHA" --title "$TITLE" --notes "$NOTES"
-          fi
-
-      - name: Verify published APK and record GREEN release
-        if: github.ref == 'refs/heads/main'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          rm -f Backroom-1.1.63-verified.apk
-          gh release download v1.1.63 --repo "$GITHUB_REPOSITORY" --pattern 'Backroom-1.1.63.apk' --output Backroom-1.1.63-verified.apk
-          test -s Backroom-1.1.63-verified.apk
-          unzip -l Backroom-1.1.63-verified.apk | grep -q 'assets/index.html'
-          unzip -l Backroom-1.1.63-verified.apk | grep -q 'assets/entity/hound.png'
-          unzip -l Backroom-1.1.63-verified.apk | grep -q 'assets/entity/slenderman.png'
-          unzip -l Backroom-1.1.63-verified.apk | grep -q 'assets/entity/diep_minh.png'
-          unzip -l Backroom-1.1.63-verified.apk | grep -q 'assets/Kai_MadGod_snapshot_overlay.png'
-          unzip -l Backroom-1.1.63-verified.apk | grep -q 'assets/avatars/MadGod.jpg'
-          unzip -p Backroom-1.1.63-verified.apk assets/index.html | grep -q 'characterSkillsModal'
-          unzip -p Backroom-1.1.63-verified.apk assets/index.html | grep -q 'characterSkillsButton'
-          BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
-          "$BUILD_TOOLS/apksigner" verify --verbose --print-certs Backroom-1.1.63-verified.apk
-          "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-1.1.63-verified.apk
-          SHA256=$(sha256sum Backroom-1.1.63-verified.apk | awk '{print $1}')
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git fetch origin main
-          git checkout -B release-status-sync origin/main
-          rm -f release-status/v1.1.63-running.txt
-          printf 'status=GREEN\nversion=1.1.63\ntag=v1.1.63\nasset=Backroom-1.1.63.apk\nsource_sha=%s\nrun_id=%s\nsha256=%s\nbuild_type=debug\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$SHA256" > release-status/v1.1.63.txt
-          git add release-status/v1.1.63.txt release-status/v1.1.63-running.txt
-          git commit -m 'Record verified Backroom 1.1.63 debug release'
-          git push origin HEAD:main
+          retention-days: 3
