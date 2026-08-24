@@ -119,3 +119,8 @@ runpy.run_path(str(ROOT / "patch-lucia-combat-evasion-compat.py"), run_name="__m
 # Companion skill gameplay/UI is deliberately the last layer. It only wraps the finalized
 # Kai/Diệp Minh/Lucia combat and Character Detail contracts, so no older patch can erase it.
 runpy.run_path(str(ROOT / "patch-companion-skills-ui-finalize.py"), run_name="__main__")
+
+# Combat action UI is the final visual layer. It removes the legacy Pressure Combat HUD from the DOM
+# while leaving CombatRuntime, scene background and Entity overlay intact, then swaps the normal
+# Search / Execute / Explore row to Attack / Evade / Flee only while combat is active.
+runpy.run_path(str(ROOT / "patch-combat-action-bar-finalize.py"), run_name="__main__")

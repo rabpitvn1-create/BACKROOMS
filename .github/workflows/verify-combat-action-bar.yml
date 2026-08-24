@@ -1,0 +1,120 @@
+name: Verify Combat Action Bar
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "android-apk/**"
+      - ".github/workflows/verify-combat-action-bar.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Apply complete Android runtime patch chain
+        run: |
+          set -euo pipefail
+          scripts=(patch-provider-status.py patch-luna-text.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py)
+          for script in "${scripts[@]}"; do
+            echo "==> $script"
+            python3 "android-apk/$script"
+          done
+
+      - name: Verify combat action bar contracts
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          root = Path('android-apk')
+          html = (root / 'app/src/main/assets/index.html').read_text(encoding='utf-8')
+          combat = (root / 'app/src/main/java/com/rabpit/backroom/core/CombatRuntime.kt').read_text(encoding='utf-8')
+          main = (root / 'app/src/main/java/com/rabpit/backroom/MainActivity.java').read_text(encoding='utf-8')
+          patch = (root / 'patch-combat-action-bar-finalize.py').read_text(encoding='utf-8')
+          chain = (root / 'patch-inventory-capacity-final-fix.py').read_text(encoding='utf-8')
+
+          required_html = (
+              'COMBAT_ACTION_BAR_V2',
+              "label:'TẤN CÔNG'",
+              "label:'NÉ TRÁNH'",
+              "label:'BỎ CHẠY'",
+              "action:'Tấn công'",
+              "action:'Né tránh'",
+              "action:'Bỏ chạy'",
+              "window.Android.submitAction(JSON.stringify(state),'EXECUTE',action)",
+              "document.addEventListener('click',interceptCombatClick,true)",
+              "form.addEventListener('submit'",
+              "actionInput.addEventListener('input'",
+              "row.classList.toggle('combat-actions',active)",
+              "middle.type='button'",
+              "middle.type='submit'",
+              '<svg class="action-icon"',
+          )
+          for marker in required_html:
+              assert marker in html, marker
+
+          for forbidden in ('PRESSURE_COMBAT_HUD_V1', 'id="pressureCombatStyle"', 'id="combatHud"'):
+              assert forbidden not in html, forbidden
+
+          # The three requested button actions must classify into existing authoritative combat intents.
+          assert '"tấn công"' in combat
+          assert '"né"' in combat and '"tránh"' in combat
+          assert '"bỏ chạy"' in combat and '"flee"' in combat
+
+          # Scene/Entity visual authority is retained while only the visible HUD is removed.
+          assert 'file:///android_asset/entity/' in main
+          assert 'function activeEntityKey()' in main
+          assert 'state.combat' in main
+
+          # The feature must remain the last visual patch layer.
+          assert 'runpy.run_path(str(ROOT / "patch-combat-action-bar-finalize.py"), run_name="__main__")' in chain
+
+          # No bitmap image asset is introduced by this feature patch.
+          lower_patch = patch.lower()
+          assert '.png' not in lower_patch
+          assert '.jpg' not in lower_patch
+          assert '.jpeg' not in lower_patch
+          assert '<svg' in patch
+
+          assert html.count('COMBAT_ACTION_BAR_V2') == 1
+          assert html.count("document.addEventListener('click',interceptCombatClick,true)") == 1
+          PY
+          git diff --check
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+
+      - name: Run all unit tests and build debug APK
+        working-directory: android-apk
+        run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
+
+      - name: Verify packaged WebView UI
+        run: |
+          set -euo pipefail
+          APK=android-apk/app/build/outputs/apk/debug/app-debug.apk
+          test -s "$APK"
+          rm -rf combat-apk-check && mkdir combat-apk-check
+          unzip -q "$APK" 'assets/index.html' -d combat-apk-check
+          html=combat-apk-check/assets/index.html
+          grep -q 'COMBAT_ACTION_BAR_V2' "$html"
+          grep -q 'TẤN CÔNG' "$html"
+          grep -q 'NÉ TRÁNH' "$html"
+          grep -q 'BỎ CHẠY' "$html"
+          ! grep -q 'PRESSURE_COMBAT_HUD_V1' "$html"
+          ! grep -q 'id="combatHud"' "$html"
+          grep -q '<svg class="action-icon"' "$html"
