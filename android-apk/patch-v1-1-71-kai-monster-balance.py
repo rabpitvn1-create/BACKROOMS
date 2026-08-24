@@ -223,7 +223,7 @@ import org.junit.Test
 
 class DevilTriggerCombatIntegrationTest {
   @Test fun kaiPassiveIsExclusiveAndSyvialLegacyMetadataIsRemoved() {
-    var state = SpecialFollowersCanon.ensure(GameState.initial()).copy(party = PartyState(listOf(KAI_ID, SYVIAL_ID)))
+    var state = SpecialFollowersCanon.ensure(GameState.initial()).copy(party = PartyState(memberIds = listOf(KAI_ID, SYVIAL_ID)))
     state = CombatRuntime.start(state, "diep_minh").copy(metadata = CombatRuntime.start(state, "diep_minh").metadata + mapOf(
       "passive.devilTrigger.kai.activeTurns" to "3",
       "passive.devilTrigger.syvial.activeTurns" to "3"
@@ -235,7 +235,7 @@ class DevilTriggerCombatIntegrationTest {
   }
 
   @Test fun devilBlessingAddsTenPercentCompanionMaxHpButNotKaiHp() {
-    var state = SpecialFollowersCanon.ensure(GameState.initial()).copy(party = PartyState(listOf(KAI_ID, IRIS_ID)))
+    var state = SpecialFollowersCanon.ensure(GameState.initial()).copy(party = PartyState(memberIds = listOf(KAI_ID, IRIS_ID)))
     val kaiBefore = CharacterStatEngine.effective(state, KAI_ID).maxHp
     val irisBefore = CharacterStatEngine.effective(state, IRIS_ID).maxHp
     state = CombatRuntime.start(state, "hound")
