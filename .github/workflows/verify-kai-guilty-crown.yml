@@ -78,7 +78,7 @@ jobs:
               assert marker in combat + test + finalizer + patch, marker
 
           ultimate_start = combat.index('    if (c.eventCounter % KAI_GUILTY_CROWN_INTERVAL_TURNS == 0)')
-          ultimate_end = combat.index('    // Enemy response.', ultimate_start)
+          ultimate_end = combat.index('    val isGuiltyCrownTurn =', ultimate_start)
           ultimate = combat[ultimate_start:ultimate_end]
           assert 'roll(' not in ultimate
           assert 'entityEvaded' not in ultimate

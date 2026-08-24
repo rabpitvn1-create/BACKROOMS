@@ -4,6 +4,7 @@ import json
 ROOT = Path(__file__).resolve().parent
 MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
 CODEX = ROOT / "kai-codex.txt"
+GUN_SKILLS = ROOT / "kai-gun-skills.txt"
 
 
 def replace_once(text: str, old: str, new: str, label: str) -> str:
@@ -15,13 +16,24 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
 
 main = MAIN.read_text(encoding="utf-8")
 codex = CODEX.read_text(encoding="utf-8").strip()
+gun_skills = GUN_SKILLS.read_text(encoding="utf-8").strip()
 
 if "KAI-AKECHI-TWILIGHT-CODEX-20260817-R05" not in codex:
     raise RuntimeError("Kai Codex: wrong or missing R05 source marker")
 if len(codex) < 5000:
     raise RuntimeError(f"Kai Codex unexpectedly short: {len(codex)} chars")
+for marker in (
+    "THE LAST REQUIEM",
+    "SILENT LULLABY",
+    "SALVATION",
+    "QUICK STEP",
+    "+50 điểm phần trăm Evasion",
+):
+    if marker not in gun_skills:
+        raise RuntimeError("Kai gun-skill addendum missing: " + marker)
 
-java_codex = json.dumps(codex, ensure_ascii=False)
+combined_codex = codex + "\n\n" + gun_skills
+java_codex = json.dumps(combined_codex, ensure_ascii=False)
 constant_anchor = "  private static final int MAX_SNAPSHOT_BASE64 = 1_500_000;\n"
 constant_block = constant_anchor + f"  private static final String KAI_CANON = {java_codex};\n"
 main = replace_once(main, constant_anchor, constant_block, "Kai canon Java constant")
@@ -37,4 +49,4 @@ state_with_canon = (
 main = replace_once(main, state_anchor, state_with_canon, "Kai canon prompt injection")
 
 MAIN.write_text(main, encoding="utf-8")
-print(f"Injected Kai R05 operational codex into APK Game Master prompt ({len(codex)} chars).")
+print(f"Injected Kai R05 operational codex plus automatic gun-skill addendum into APK Game Master prompt ({len(combined_codex)} chars).")
