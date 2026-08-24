@@ -7,7 +7,7 @@ on:
     paths:
       - ".github/workflows/release-backroom-1.1.64.yml"
   push:
-    branches: [main]
+    branches: [main, release/1.1.64]
     paths:
       - ".github/workflows/release-backroom-1.1.64.yml"
 
