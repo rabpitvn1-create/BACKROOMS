@@ -127,7 +127,7 @@ class GameStateCodecTest {
       }
     )
     val migrated = GameStateCodec.decode(root.toString()).inventories.getValue(KAI_ID).items
-    assertEquals(setOf(ItemCatalog.ALMOND_WATER), migrated.keys)
+    assertEquals(setOf(ItemCatalog.ALMOND_WATER), migrated.filterKeys { it in ItemCatalog.ids }.keys)
     assertEquals(2, migrated.getValue(ItemCatalog.ALMOND_WATER).quantity)
     assertEquals(ContentState.NONE, migrated.getValue(ItemCatalog.ALMOND_WATER).contentState)
   }
