@@ -56,10 +56,10 @@ combat = combat[:syvial_start] + '''    // Kai's probabilistic Passive is exclus
     val syvialDevilTriggerTurn: DevilTriggerTurn? = null
     resolvedState = resolvedState.copy(metadata = resolvedState.metadata -
       setOf(DEVIL_TRIGGER_SYVIAL_ACTIVE_KEY, DEVIL_TRIGGER_SYVIAL_COOLDOWN_KEY))
-    val syvialCharacter = activePartyCharacter(resolvedState, SYVIAL_ID)
-    if (syvialCharacter != null) {
+    val syvialTriggerCharacter = activePartyCharacter(resolvedState, SYVIAL_ID)
+    if (syvialTriggerCharacter != null) {
       val syvialMaxHp = CharacterStatEngine.effective(resolvedState, SYVIAL_ID).maxHp
-      val syvialHp = syvialCharacter.vitalState.currentHp.coerceIn(0, syvialMaxHp)
+      val syvialHp = syvialTriggerCharacter.vitalState.currentHp.coerceIn(0, syvialMaxHp)
       val wasActive = resolvedState.metadata[SYVIAL_DEVIL_TRIGGER_KEY].equals("true", true)
       syvialDevilTrigger = wasActive || syvialHp * 2 <= syvialMaxHp || c.entityKey == DIEP_MINH_KEY
       if (syvialDevilTrigger) {
