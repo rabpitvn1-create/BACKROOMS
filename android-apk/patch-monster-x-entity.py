@@ -166,7 +166,7 @@ COMBAT.write_text(combat, encoding="utf-8")
 main = MAIN.read_text(encoding="utf-8")
 
 level_helper_anchor = '  private int currentLevel(JSONObject state) {\n'
-raw_level_helper = '''  private int rawLevelNumber(JSONObject state) {
+raw_level_helper = r'''  private int rawLevelNumber(JSONObject state) {
     JSONObject level = state.optJSONObject("level");
     if (level != null) return Math.max(0, level.optInt("number", 0));
     String title = state.optString("title", "");
