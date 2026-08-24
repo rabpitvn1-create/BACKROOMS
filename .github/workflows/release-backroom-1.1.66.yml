@@ -96,6 +96,7 @@ jobs:
           assert fixed in html and legacy not in html
           assert 'TẤN CÔNG' in html and 'NÉ TRÁNH' in html and 'BỎ CHẠY' in html
           assert 'patch-rest-physiology-state-finalize.py' in chain
+          assert 'patch-two-page-swipe-ui.py' in chain
           assert 'RestActionPolicy.targets(state, pending.input)' in turn
           assert 'val authoritativeCommands = commands + restCommands' in turn
           assert 'StateReducer.executeAll(executing, authoritativeCommands)' in turn
@@ -104,6 +105,7 @@ jobs:
           assert 'coordinatorCommitsTimeThenKaiSleepRecoveryAtomically' in rest_test
           assert 'coordinatorSharedShiftRestRecoversKaiAndLucia' in rest_test
           PY
+          python3 android-apk/verify-two-page-swipe-ui.py android-apk/app/src/main/assets/index.html
           git diff --check
 
       - uses: actions/setup-java@v5
@@ -140,6 +142,7 @@ jobs:
           grep -q 'TẤN CÔNG' apk-check/assets/index.html
           grep -q 'NÉ TRÁNH' apk-check/assets/index.html
           grep -q 'BỎ CHẠY' apk-check/assets/index.html
+          python3 android-apk/verify-two-page-swipe-ui.py apk-check/assets/index.html
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
@@ -149,22 +152,32 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-      - name: Publish GitHub Release v1.1.66
+      - name: Publish or refresh GitHub Release v1.1.66
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          TAG=v1.1.66
+          TITLE="Backroom 1.1.66 Debug"
           cat > release-notes.txt <<'EOF'
           Backroom 1.1.66 Debug
 
-          - Sửa state nghỉ/ngủ: hành động sleep/rest hợp lệ giờ commit RECORD_SLEEP vào Game State Core sau khi thời gian trôi.
+          - Chia giao diện thành hai trang GAME và STATUS độc lập theo chiều dọc; vuốt ngang để chuyển trang nhưng vẫn dùng chung một Game State.
+          - Giữ vị trí cuộn riêng của từng trang; chặn swipe bắt đầu trên ô nhập, nút, Party card, Character Detail, Equipment Detail và Skills overlay.
+          - STATUS sắp Party trước Save / Load để phần quản lý nhân vật nằm trước thao tác lưu game.
+          - Sửa state nghỉ/ngủ: hành động sleep/rest hợp lệ commit RECORD_SLEEP vào Game State Core sau khi thời gian trôi.
           - Kai nghỉ một mình chỉ cập nhật Kai; nghỉ chia ca/cả nhóm cập nhật đúng các follower ACTIVE liên quan.
           - Character Detail không còn tình trạng narration nói đã nghỉ nhưng thanh Ngủ tiếp tục giảm.
-          - Giữ nguyên fix Combat Action Bar: Entity encounter active đổi đúng sang TẤN CÔNG / NÉ TRÁNH / BỎ CHẠY.
+          - Combat Action Bar vẫn đổi đúng sang TẤN CÔNG / NÉ TRÁNH / BỎ CHẠY khi Entity encounter đang active.
           - Giữ nguyên inventory authority, combat mechanics, follower systems, canon và các chức năng hiện có.
           EOF
-          gh release create v1.1.66 Backroom-1.1.66.apk --target "$GITHUB_SHA" --title "Backroom 1.1.66 Debug" --notes-file release-notes.txt
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --title "$TITLE" --notes-file release-notes.txt
+            gh release upload "$TAG" Backroom-1.1.66.apk --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$TAG" Backroom-1.1.66.apk --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "$TITLE" --notes-file release-notes.txt
+          fi
 
       - name: Verify published release
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
