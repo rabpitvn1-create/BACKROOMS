@@ -30,3 +30,7 @@ print("Combat action bar state gate fixed: active Entity combat now reads the le
 # Rest/sleep physiology authority is applied after every earlier gameplay/UI patch so a GM
 # narration about resting cannot leave the authoritative sleep counter unchanged.
 runpy.run_path(str(ROOT / "patch-rest-physiology-state-finalize.py"), run_name="__main__")
+
+# Keep the two-page pager last. It depends on the finalized action bar, Character Detail,
+# Party and Save / Load DOM, and must not become another source of gameplay state.
+runpy.run_path(str(ROOT / "patch-two-page-swipe-ui.py"), run_name="__main__")
