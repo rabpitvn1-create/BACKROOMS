@@ -7,6 +7,7 @@ import kotlin.math.min
 
 /** Authoritative, save-persistent combat state stored in GameState.metadata. */
 object CombatRuntime {
+  internal var lootRng: LootRng = LootRng { bound -> kotlin.random.Random.nextInt(bound) }
   private const val PREFIX = "combat."
   private const val PLAYER_HP = "combat.playerHp"
   private const val PLAYER_MAX_HP = "combat.playerMaxHp"
@@ -189,7 +190,7 @@ object CombatRuntime {
 
     if (c.entityHp <= 0) {
       val persisted = encode(state, c.copy(phase = Phase.RESOLVED, entityCondition = EntityCondition.DESTROYED))
-      val cleared = clearCombatOnly(persisted)
+      val cleared = EntityLootEngine.onDefeat(clearCombatOnly(persisted), c.encounterId, lootRng)
       return Resolution(cleared, true, log.joinToString(" ") + " ${c.entityName} đã bị tiêu diệt.", entityDestroyed = true)
     }
     if (c.escapeProgress >= 100) {
