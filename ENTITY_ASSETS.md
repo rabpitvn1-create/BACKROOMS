@@ -27,8 +27,11 @@ Runtime chỉ dùng canonical Entity key trùng chính xác với tên file bỏ
 | `jane_the_killer` | `jane_the_killer.png` |
 | `slenderman` | `slenderman.png` |
 | `diep_minh` | `diep_minh.png` |
+| `john` | `john.png` |
 
 `diep_minh` là boss unique dùng roll xuất hiện độc lập 3%, không nằm trong shared roaming Entity pool.
+
+`john` là John Doe, dùng roll xuất hiện độc lập 10% trên Level 0–999 và không nằm trong shared roaming Entity pool.
 
 Snapshot đọc trực tiếp bằng đường dẫn:
 
