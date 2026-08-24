@@ -278,7 +278,8 @@ neck_test = r'''  @Test fun scp173NeckSnapExecutesOnlyAtOrBelowFifteenPercent() 
       )).state
       state = CombatRuntime.start(state, "scp_173")
       val maxHp = CharacterStatEngine.effective(state, KAI_ID).maxHp
-      val threshold = maxOf(1, maxHp * 15 / 100)
+      // Start at 9% so Kai remains <=15% even if Devil Trigger heals 5% before SCP-173 resolves.
+      val threshold = maxOf(1, maxHp * 9 / 100)
       state = CharacterStatEngine.setCurrentHp(state, KAI_ID, threshold)
       state = state.copy(metadata = state.metadata + mapOf(
         "combat.range" to CombatRuntime.RangeBand.CLOSE.name,
