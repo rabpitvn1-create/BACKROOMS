@@ -115,7 +115,7 @@ jobs:
               'private const val JOHN_DOE_STUN_GATE_PERCENT = 30',
               'private const val JOHN_DOE_STUN_PROC_PERCENT = 20',
               'damageJohnDoePoisoned(resolvedState, JOHN_DOE_POISON_DAMAGE_PERCENT)',
-              'John Doe Stun: Kai bị Stun',
+              'John Doe Stun: mục tiêu bị Stun và không thể thực hiện hành động trong lượt hiện tại.',
               'John Doe tấn công: Kai -$damage HP',
               'thresholdRoll("johnDoeEncounter", 10000, 1000',
               'johnDoeLevel >= 0 && johnDoeLevel <= 999',
