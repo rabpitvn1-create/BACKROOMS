@@ -108,3 +108,7 @@ print("SCP-173 display mapping finalized: file:///android_asset/entity/SCP173.pn
 # new burst can reuse the final direct-damage mitigation and no later patch can
 # restore the old 25% Entity Evasion value.
 runpy.run_path(str(ROOT / "patch-v1-1-69-balance.py"), run_name="__main__")
+
+# Latest Kai/monster balance is deliberately last so older Devil Trigger, boss,
+# Entity durability and spawn-pool generators cannot overwrite its authority.
+runpy.run_path(str(ROOT / "patch-v1-1-71-kai-monster-balance.py"), run_name="__main__")
