@@ -13,6 +13,10 @@ object CommandValidator {
       command.source !in setOf(CommandSource.GEMINI, CommandSource.SYSTEM)) {
       return ValidationResult(false, "player_pickup_unavailable")
     }
+    if (command is ItemCommand && command.operation == ItemCommand.Operation.PICKUP && command.source == CommandSource.GEMINI &&
+      command.metadata["acquisitionSource"] !in setOf("SEARCH", "EXPLORE", "WORLD_EVENT", "ENTITY_DROP")) {
+      return ValidationResult(false, "acquisition_event_required")
+    }
 
     // Restore remains a narrative capability. It must never mutate authoritative gameplay state.
     if (command is OmnivaultCommand && command.operation == OmnivaultCommand.Operation.RESTORE) {
