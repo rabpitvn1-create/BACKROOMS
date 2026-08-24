@@ -18,6 +18,18 @@ object ItemContentRules {
   fun hasForbiddenPreciseAmount(text: String): Boolean = forbiddenPreciseAmount.containsMatchIn(text)
 
   fun normalize(item: ItemStack): ItemStack {
+    val official = ItemCatalog.find(item.itemId) ?: ItemCatalog.items.firstOrNull {
+      item.name.equals(it.name, true) || item.name.equals(it.metadata["englishAlias"], true)
+    }
+    if (official != null) {
+      return official.stack(item.quantity).copy(
+        condition = item.condition,
+        // Preserve authority metadata (including Omnivault bookkeeping); remove only the obsolete
+        // partial-content fields. Tool resource values naturally override their catalog defaults.
+        metadata = official.metadata + item.metadata - "remainingContent" - "contentAmount" - "contentPercent" - "contentState",
+        contentState = ContentState.NONE
+      )
+    }
     val profile = profileFor(item.name, item.archetypeId)
     if (profile == null) {
       return item.copy(contentState = ContentState.NONE, metadata = item.metadata - "remainingContent" - "contentAmount" - "contentPercent")
@@ -28,6 +40,13 @@ object ItemContentRules {
       emptyWords.containsMatchIn(item.name) || item.name.startsWith("vỏ ", true) -> ContentState.EMPTY
       lowWords.containsMatchIn(item.name) -> ContentState.LOW
       else -> ContentState.FULL
+    }
+    // Legacy consumable FULL/LOW saves become one whole canonical unit. EMPTY is retained only
+    // as unknown legacy data so loading never deletes user inventory.
+    if (state != ContentState.EMPTY && profile.archetypeId in setOf("water-bottle", "food-container", "fuel-container")) {
+      val canonical = ItemCatalog.stack(ItemCatalog.canonicalId(profile.archetypeId))!!
+      return canonical.copy(quantity = item.quantity, condition = item.condition,
+        metadata = canonical.metadata + (item.metadata - "remainingContent" - "contentAmount" - "contentPercent" - "contentState") + ("migratedPartialContent" to state.name))
     }
     val canonicalId = variantId(profile.archetypeId, state)
     return item.copy(
@@ -41,6 +60,7 @@ object ItemContentRules {
 
   fun nextAfterUse(item: ItemStack): ItemStack? {
     val normalized = normalize(item)
+    if (ItemCatalog.find(normalized.itemId)?.type == OfficialItemType.CONSUMABLE) return null
     val profile = profileFor(normalized.name, normalized.archetypeId) ?: return normalized
     val next = when (normalized.contentState) {
       ContentState.FULL -> if (profile.supportsLow) ContentState.LOW else ContentState.EMPTY
