@@ -84,13 +84,12 @@ jobs:
               'id="characterSkillsModal"',
               'function renderSkillModal()',
               'class CompanionSkillCatalogTest',
-              'runpy.run_path(str(ROOT / "patch-companion-skills-ui.py"), run_name="__main__")',
+              'runpy.run_path(str(ROOT / "patch-companion-skills-ui-finalize.py"), run_name="__main__")',
           )
           combined = catalog + detail + combat + main + html + tests + chain
           for marker in required:
               assert marker in combined, marker
 
-          # Preserve hard locks from previous combat layers.
           for marker in (
               'KAI_GUILTY_CROWN_SHOTS * KAI_GUILTY_CROWN_DAMAGE_PER_SHOT',
               'The Last Requiem tự động kích hoạt',
@@ -101,15 +100,12 @@ jobs:
           ):
               assert marker in combat, marker
 
-          # An Nhiên is still a seven-year-old non-combat follower. Utility may alter odds,
-          # but this patch must never quietly hand her a weapon or direct damage skill.
           assert '"nonCombat" to "true"' in an_nhien
           assert '"canUseWeapons" to "false"' in an_nhien
           an_start = catalog.index('private val anNhien = listOf(')
           an_end = catalog.index('private val kai = listOf(', an_start)
           assert 'Weapon DMG' not in catalog[an_start:an_end]
 
-          # One compact button opens a separate panel; no giant skill dump inside Status.
           assert html.count('id="characterSkillsButton"') == 1
           assert html.count('id="characterSkillsModal"') == 1
           assert 'memberSkills.length' in html
