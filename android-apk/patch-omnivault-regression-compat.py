@@ -104,22 +104,22 @@ if 'madGodItemsRemainForbiddenToOmnivault' not in identity:
   @Test fun madGodItemsRemainForbiddenToOmnivault() {
     val base = fresh()
     val inventory = base.inventories[KAI_ID] ?: InventoryState(KAI_ID)
-    val magnum = MadGodCanon.weapon()
-    val state = base.copy(inventories = base.inventories + (KAI_ID to inventory.copy(items = inventory.items + (magnum.itemId to magnum))))
+    val madGodSet = MadGodCanon.setItem()
+    val state = base.copy(inventories = base.inventories + (KAI_ID to inventory.copy(items = inventory.items + (madGodSet.itemId to madGodSet))))
 
-    val scanned = scan(state, magnum.itemId, magnum.name, "scan:madgod")
+    val scanned = scan(state, madGodSet.itemId, madGodSet.name, "scan:madgod")
     assertFalse(scanned.applied)
     assertEquals("madgod_omnivault_copy_forbidden", scanned.validation.reason)
 
-    val template = magnum.copy(metadata = magnum.metadata + mapOf(
+    val template = madGodSet.copy(metadata = madGodSet.metadata + mapOf(
       "omnivaultTemplateId" to "template:madgod",
       "omnivaultSourceInstanceId" to "instance:madgod:1",
       "omnivaultTemplate" to "true"
     ))
-    val templated = state.copy(omnivault = state.omnivault.copy(scanSlots = listOf(ScanSlot(1, magnum.itemId, template, 1L))))
+    val templated = state.copy(omnivault = state.omnivault.copy(scanSlots = listOf(ScanSlot(1, madGodSet.itemId, template, 1L))))
     val copied = OmnivaultEngine.execute(templated, OmnivaultCommand(
       commandId = "copy:madgod", turnId = templated.turn.currentTurnId, actorId = KAI_ID, source = CommandSource.RULE,
-      operation = OmnivaultCommand.Operation.COPY, itemId = magnum.itemId, itemName = magnum.name, quantity = 1
+      operation = OmnivaultCommand.Operation.COPY, itemId = madGodSet.itemId, itemName = madGodSet.name, quantity = 1
     ))
     assertFalse(copied.applied)
     assertEquals("madgod_omnivault_copy_forbidden", copied.validation.reason)
