@@ -4,7 +4,7 @@ Toàn bộ sprite Entity dùng trong APK nằm trực tiếp tại:
 
 `android-apk/app/src/main/assets/entity/`
 
-Runtime chỉ dùng canonical Entity key trùng chính xác với tên file bỏ phần mở rộng `.png`. Không có alias theo Level, không có mã Entity cũ, không có manifest từ xa và không tải ảnh mạng.
+Runtime ưu tiên canonical Entity key trùng chính xác với tên file bỏ phần mở rộng `.png`. Các unique Entity có asset tên khác canonical key phải có mapping cục bộ, case-sensitive, được khóa rõ trong runtime. Không có alias theo Level, không có mã Entity cũ, không có manifest từ xa và không tải ảnh mạng.
 
 | Canonical Entity key | Local asset |
 |---|---|
@@ -27,10 +27,18 @@ Runtime chỉ dùng canonical Entity key trùng chính xác với tên file bỏ
 | `jane_the_killer` | `jane_the_killer.png` |
 | `slenderman` | `slenderman.png` |
 | `diep_minh` | `diep_minh.png` |
+| `monster_x` | `X.png` |
+| `john_doe` | `John.png` |
 
 `diep_minh` là boss unique dùng roll xuất hiện độc lập 3%, không nằm trong shared roaming Entity pool.
 
-Snapshot đọc trực tiếp bằng đường dẫn:
+`monster_x` và `john_doe` là unique roaming Entity dùng roll độc lập. `john_doe` có đúng 10% encounter chance trên Level 0–999 và runtime tham chiếu trực tiếp asset case-sensitive:
+
+`file:///android_asset/entity/John.png`
+
+Không chuyển `John.png` sang Base64, Data URI hoặc nội dung nhúng. APK phải đóng gói file PNG thô trong assets.
+
+Snapshot đọc Entity thường trực tiếp bằng đường dẫn:
 
 `file:///android_asset/entity/<canonical-key>.png`
 

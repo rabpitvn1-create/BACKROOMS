@@ -18,8 +18,8 @@ def schedule_after_healthbar() -> bool:
     # patch-progression invokes this script before the health/status stack. Those later patches still
     # expect the pre-unification anchors, so schedule the real unification at the very end instead.
     # Diệp Minh's full combat patch already runs inside the healing finalizer. After this deferred
-    # unification, only its encounter-priority helper needs to be restored, then Monster X applies
-    # its unique encounter and combat authority last.
+    # unification, restore its encounter-priority helper, then Monster X, then John Doe. John must be
+    # the last gameplay-only Entity pass because it extends the finalized Monster X anchors.
     html = INDEX.read_text(encoding="utf-8")
     if 'id="characterHpFill"' in html:
         return False
@@ -27,31 +27,44 @@ def schedule_after_healthbar() -> bool:
     marker = 'runpy.run_path(str(ROOT / "patch-unified-entity-spawn-pool.py"), run_name="__main__")'
     boss_marker = 'runpy.run_path(str(ROOT / "patch-diep-minh-boss-finalize.py"), run_name="__main__")'
     monster_marker = 'runpy.run_path(str(ROOT / "patch-monster-x-entity.py"), run_name="__main__")'
+    john_marker = 'runpy.run_path(str(ROOT / "patch-john-doe-entity.py"), run_name="__main__")'
     if marker not in healthbar:
         healthbar = healthbar.rstrip() + (
             '\n\n# Final Entity authority pass. Run after status/equipment/visual-state patches so their anchors remain intact.\n'
             + marker + '\n'
             + '# Restore only Diệp Minh encounter priority after the unified pool rewrites the shared helper.\n'
             + boss_marker + '\n'
-            + '# Apply Monster X last so its unique roll and overlay binding survive the shared-pool/finalizer rewrites.\n'
+            + '# Apply Monster X after the shared-pool/finalizer rewrites.\n'
             + monster_marker + '\n'
+            + '# Apply John Doe last so its unique roll, status effects and exact John.png binding survive every earlier Entity transform.\n'
+            + john_marker + '\n'
         )
         HEALTHBAR.write_text(healthbar, encoding="utf-8")
     elif boss_marker not in healthbar:
         healthbar = healthbar.rstrip() + (
             '\n# Restore only Diệp Minh encounter priority after the unified pool rewrites the shared helper.\n'
             + boss_marker + '\n'
-            + '# Apply Monster X last so its unique roll and overlay binding survive the shared-pool/finalizer rewrites.\n'
+            + '# Apply Monster X after the shared-pool/finalizer rewrites.\n'
             + monster_marker + '\n'
+            + '# Apply John Doe last.\n'
+            + john_marker + '\n'
         )
         HEALTHBAR.write_text(healthbar, encoding="utf-8")
     elif monster_marker not in healthbar:
         healthbar = healthbar.rstrip() + (
-            '\n# Apply Monster X last so its unique roll and overlay binding survive the shared-pool/finalizer rewrites.\n'
+            '\n# Apply Monster X after the shared-pool/finalizer rewrites.\n'
             + monster_marker + '\n'
+            + '# Apply John Doe last.\n'
+            + john_marker + '\n'
         )
         HEALTHBAR.write_text(healthbar, encoding="utf-8")
-    print("Unified Entity spawn pool scheduled after the final health/status/visual patch stack; Diệp Minh finalizer follows it and Monster X runs last.")
+    elif john_marker not in healthbar:
+        healthbar = healthbar.rstrip() + (
+            '\n# Apply John Doe last so its final combat/encounter authority cannot be overwritten.\n'
+            + john_marker + '\n'
+        )
+        HEALTHBAR.write_text(healthbar, encoding="utf-8")
+    print("Unified Entity spawn pool scheduled after the final health/status/visual patch stack; Diệp Minh finalizer, Monster X, then John Doe follow in that order.")
     return True
 
 
