@@ -129,8 +129,3 @@ runpy.run_path(str(ROOT / "patch-party-combat-actions-finalize.py"), run_name="_
 # Compatibility only updates older generated tests to issue the newly authoritative Party commands.
 # It does not loosen runtime gates or change gameplay.
 runpy.run_path(str(ROOT / "patch-party-combat-tests-compat.py"), run_name="__main__")
-
-# Monster X is the final Entity authority. It runs after every existing combat/action compatibility
-# layer so its exact HP, percentage effects, independent spawn roll and local overlay binding cannot
-# be overwritten by older generic Entity transforms.
-runpy.run_path(str(ROOT / "patch-monster-x-entity.py"), run_name="__main__")
