@@ -74,15 +74,15 @@ jobs:
               'Crimson Guillotine',
               'Spatial Dominion',
               'Kế Hoạch Không Có Trong Kế Hoạch',
-              'CompanionSkillCatalog.forCharacter(character.id)',
+              'CompanionSkillCatalog.forCharacter(c.id)',
               'COMPANION_SKILLS_R01',
               '24 * 10',
               'Quăng Đại Cái Gì Đó',
               'hazardThresholds[level] * 75 / 100',
               'thresholdRoll("anNhienRead", 10000, 2000',
-              'id="characterSkillsButton"',
+              "button.id='characterSkillsButton'",
               'id="characterSkillsModal"',
-              'function renderSkillModal()',
+              'function openSkills()',
               'class CompanionSkillCatalogTest',
               'runpy.run_path(str(ROOT / "patch-companion-skills-ui-finalize.py"), run_name="__main__")',
           )
@@ -106,9 +106,9 @@ jobs:
           an_end = catalog.index('private val kai = listOf(', an_start)
           assert 'Weapon DMG' not in catalog[an_start:an_end]
 
-          assert html.count('id="characterSkillsButton"') == 1
+          assert html.count("button.id='characterSkillsButton'") == 1
           assert html.count('id="characterSkillsModal"') == 1
-          assert 'memberSkills.length' in html
+          assert "button.textContent=current.length?'Kỹ năng · '+current.length:'Kỹ năng'" in html
           PY
           git diff --check
 
