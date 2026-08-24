@@ -58,12 +58,12 @@ class PhysiologyItemEffectTest {
   @Test fun waterEffectResetsOnlyWaterCounter() {
     val granted = grant(
       stateWithPhysiology(),
-      "water",
-      "Chai nước",
+      ItemCatalog.ALMOND_WATER,
+      "Almond Water",
       mapOf("physiologyEffect" to "WATER")
     )
 
-    val result = use(granted, "use-water", "water-bottle:full")
+    val result = use(granted, "use-water", ItemCatalog.ALMOND_WATER)
 
     assertTrue(result.applied)
     val physiology = result.state.characters.getValue(KAI_ID).physiology
@@ -76,12 +76,12 @@ class PhysiologyItemEffectTest {
   @Test fun foodEffectResetsOnlyFoodCounter() {
     val granted = grant(
       stateWithPhysiology(),
-      "food",
-      "Hộp thức ăn",
+      ItemCatalog.CANNED_FOOD,
+      "Canned Food",
       mapOf("physiologyEffect" to "FOOD")
     )
 
-    val result = use(granted, "use-food", "food-container:full")
+    val result = use(granted, "use-food", ItemCatalog.CANNED_FOOD)
 
     assertTrue(result.applied)
     val physiology = result.state.characters.getValue(KAI_ID).physiology
@@ -159,8 +159,8 @@ class PhysiologyItemEffectTest {
   @Test fun duplicateUseNeverAppliesPhysiologyTwice() {
     val granted = grant(
       stateWithPhysiology(),
-      "water",
-      "Chai nước",
+      ItemCatalog.ALMOND_WATER,
+      "Almond Water",
       mapOf("physiologyEffect" to "WATER")
     )
     val command = ItemCommand(
@@ -169,8 +169,8 @@ class PhysiologyItemEffectTest {
       actorId = KAI_ID,
       source = CommandSource.RULE,
       operation = ItemCommand.Operation.USE,
-      itemId = "water-bottle:full",
-      itemName = "water-bottle:full"
+      itemId = ItemCatalog.ALMOND_WATER,
+      itemName = "Almond Water"
     )
 
     val first = StateReducer.execute(granted, command)
