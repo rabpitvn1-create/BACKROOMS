@@ -1,4 +1,5 @@
 from pathlib import Path
+import runpy
 
 ROOT = Path(__file__).resolve().parent
 COMBAT = ROOT / "app/src/main/java/com/rabpit/backroom/core/CombatRuntime.kt"
@@ -54,3 +55,7 @@ test = test.replace(old_test, new_test, 1)
 TEST.write_text(test, encoding="utf-8")
 
 print("SCP-173 compatibility finalizer applied: existing Guilty Crown narration preserved and deterministic Concrete Body regression retained.")
+
+# Devil Trigger temporarily restored Guilty Crown's raw block before SCP-173. Reapply the x5
+# multiplier now, after SCP-173 has installed its mitigation and compatibility narration.
+runpy.run_path(str(ROOT / "patch-devil-trigger-scp-finalize.py"), run_name="__main__")
