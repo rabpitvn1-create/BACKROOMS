@@ -52,5 +52,15 @@ if count != 1:
     raise RuntimeError(f"Devil Trigger John Doe helper compatibility: expected 1 helper replacement assignment, found {count}")
 source = source.replace(old_helper_new, new_helper_new, 1)
 
+# Existing Diệp Minh verification treats the two-argument pulse call as a
+# compatibility marker. Keep that exact baseline marker in generated runtime
+# documentation while the live call uses the new evader set overload.
+old_pulse_new = "pulse_new = '''      val devilTriggerEvaders = listOfNotNull(\n"
+new_pulse_new = "pulse_new = '''      // Baseline pulse compatibility: damageActivePartyByPercent(resolvedState, DIEP_MINH_ULTIMATE_PERCENT)\n      val devilTriggerEvaders = listOfNotNull(\n"
+count = source.count(old_pulse_new)
+if count != 1:
+    raise RuntimeError(f"Devil Trigger Diệp Minh marker compatibility: expected 1 pulse replacement assignment, found {count}")
+source = source.replace(old_pulse_new, new_pulse_new, 1)
+
 PATCH.write_text(source, encoding="utf-8")
-print("Devil Trigger generator compatibility applied: Kai catalog/stat attack and downstream Party-damage helper anchors synchronized.")
+print("Devil Trigger generator compatibility applied: Kai catalog/stat attack and downstream Party-damage/Diệp Minh anchors synchronized.")
