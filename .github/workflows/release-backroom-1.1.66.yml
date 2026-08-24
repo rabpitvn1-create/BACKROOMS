@@ -193,3 +193,21 @@ jobs:
           "$BUILD_TOOLS/aapt" dump badging Backroom-1.1.66-verified.apk | grep -q "versionCode='68'"
           "$BUILD_TOOLS/aapt" dump badging Backroom-1.1.66-verified.apk | grep -q "versionName='1.1.66'"
           "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-1.1.66-verified.apk
+
+      - name: Remove older Backroom GitHub Releases
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          CURRENT=v1.1.66
+          gh release list --repo "$GITHUB_REPOSITORY" --limit 100 --json tagName --jq '.[].tagName' | while read -r tag; do
+            case "$tag" in
+              v1.1.[0-9]|v1.1.[0-9][0-9])
+                if [ "$tag" != "$CURRENT" ]; then
+                  echo "Deleting obsolete release $tag (tag retained)"
+                  gh release delete "$tag" --repo "$GITHUB_REPOSITORY" --yes
+                fi
+                ;;
+            esac
+          done
