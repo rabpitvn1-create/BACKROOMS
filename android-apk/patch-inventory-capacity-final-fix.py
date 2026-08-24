@@ -125,3 +125,7 @@ runpy.run_path(str(ROOT / "patch-combat-action-bar-finalize.py"), run_name="__ma
 # Party action authority is the final combat layer. It converts the three compact buttons into one
 # simultaneous command for every ACTIVE/living Party member while preserving individual role locks.
 runpy.run_path(str(ROOT / "patch-party-combat-actions-finalize.py"), run_name="__main__")
+
+# Compatibility only updates older generated tests to issue the newly authoritative Party commands.
+# It does not loosen runtime gates or change gameplay.
+runpy.run_path(str(ROOT / "patch-party-combat-tests-compat.py"), run_name="__main__")
