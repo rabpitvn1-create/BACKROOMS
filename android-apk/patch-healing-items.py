@@ -9,6 +9,7 @@ HEALING = CORE / "HealingItems.kt"
 ITEM_CONTENT = CORE / "ItemContent.kt"
 ENGINES = CORE / "Engines.kt"
 TEST = TESTS / "HealingItemTest.kt"
+ITEM_CATALOG = CORE / "ItemCatalog.kt"
 
 
 def replace_once(source: str, old: str, new: str, label: str) -> str:
@@ -18,6 +19,92 @@ def replace_once(source: str, old: str, new: str, label: str) -> str:
     if count != 1:
         raise RuntimeError(f"{label}: expected exactly 1 anchor, found {count}")
     return source.replace(old, new, 1)
+
+
+# The official whole-unit item catalog supersedes the historical two-item healing generator.
+# Keep a small compatibility facade because later Omnivault finalizers intentionally recognize
+# HealingItems.normalize(), but never restore the retired IDs, stats, or independent loot rules.
+MODERN_OFFICIAL_ITEMS = ITEM_CATALOG.exists() and 'OfficialItem(BANDAGE, "Bandage"' in ITEM_CATALOG.read_text(encoding="utf-8")
+if MODERN_OFFICIAL_ITEMS:
+    modern_healing = r'''package com.rabpit.backroom.core
+
+const val BANDAGE_ID = ItemCatalog.BANDAGE
+const val ANTISEPTIC_ID = ItemCatalog.ANTISEPTIC
+
+object HealingItems {
+  const val DROP_ROLL_KEY = "official-item-pool"
+  const val BANDAGE_NAME = "Bandage"
+  const val ANTISEPTIC_NAME = "Antiseptic"
+  const val BANDAGE_HEAL_HP = 15
+  const val ANTISEPTIC_HEAL_HP = 10
+
+  private fun key(item: ItemStack): String = "${item.itemId} ${item.archetypeId} ${item.name}".lowercase()
+  fun healAmount(item: ItemStack): Int = when {
+    key(item).contains("bandage") || key(item).contains("băng gạc") -> BANDAGE_HEAL_HP
+    key(item).contains("antiseptic") || key(item).contains("thuốc sát trùng") -> ANTISEPTIC_HEAL_HP
+    else -> 0
+  }
+
+  fun normalize(item: ItemStack): ItemStack? {
+    val id = when (healAmount(item)) {
+      BANDAGE_HEAL_HP -> BANDAGE_ID
+      ANTISEPTIC_HEAL_HP -> ANTISEPTIC_ID
+      else -> return null
+    }
+    val canonical = ItemCatalog.stack(id) ?: return null
+    return canonical.copy(
+      itemId = id,
+      quantity = item.quantity,
+      condition = item.condition,
+      metadata = canonical.metadata + item.metadata - "remainingContent" - "contentAmount" - "contentPercent" - "contentState"
+    )
+  }
+}
+'''
+    HEALING.write_text(modern_healing, encoding="utf-8")
+
+    item_content = ITEM_CONTENT.read_text(encoding="utf-8")
+    hook = '    HealingItems.normalize(item)?.let { return it }\n'
+    if hook not in item_content:
+        anchor = '  fun normalize(item: ItemStack): ItemStack {\n'
+        item_content = replace_once(item_content, anchor, anchor + hook, "Official healing compatibility hook")
+        ITEM_CONTENT.write_text(item_content, encoding="utf-8")
+
+    engines = ENGINES.read_text(encoding="utf-8")
+    old_heal = '''  private fun heal(state: GameState, amount: Int): GameState {
+    val max = state.metadata["combat.playerMaxHp"]?.toIntOrNull()?.coerceAtLeast(1) ?: 100
+    val hp = state.metadata["combat.playerHp"]?.toIntOrNull()?.coerceIn(0, max) ?: max
+    return state.copy(metadata = state.metadata + mapOf("combat.playerMaxHp" to max.toString(), "combat.playerHp" to (hp + amount).coerceAtMost(max).toString()))
+  }
+'''
+    authoritative_heal = '''  private fun heal(state: GameState, amount: Int): GameState {
+    val character = state.characters[KAI_ID] ?: return state
+    val maxHp = CharacterStatEngine.effective(state, KAI_ID).maxHp
+    val currentHp = character.vitalState.currentHp.coerceIn(0, maxHp)
+    if (character.presence == CharacterPresence.DEAD || currentHp <= 0) return state
+    return CharacterStatEngine.setCurrentHp(state, KAI_ID, (currentHp + amount).coerceAtMost(maxHp))
+  }
+'''
+    engines = replace_once(engines, old_heal, authoritative_heal, "Official healing HP authority")
+    ENGINES.write_text(engines, encoding="utf-8")
+
+    TEST.write_text(r'''package com.rabpit.backroom.core
+
+import org.junit.Assert.*
+import org.junit.Test
+
+class HealingItemTest {
+  @Test fun officialHealingCompatibilityUsesFinalStatsAndPool() {
+    assertEquals(ItemCatalog.BANDAGE, BANDAGE_ID)
+    assertEquals(ItemCatalog.ANTISEPTIC, ANTISEPTIC_ID)
+    assertEquals(15, HealingItems.BANDAGE_HEAL_HP)
+    assertEquals(10, HealingItems.ANTISEPTIC_HEAL_HP)
+    assertEquals("official-item-pool", HealingItems.DROP_ROLL_KEY)
+    assertEquals(11, ItemCatalog.items.size)
+  }
+}
+''', encoding="utf-8")
+    print("Official healing compatibility prepared: Bandage +15, Antiseptic +10, shared 11-item pool.")
 
 
 # ---------------------------------------------------------------------------
@@ -79,7 +166,10 @@ normalize_replacement = '''  fun normalize(item: ItemStack): ItemStack {
     HealingItems.normalize(item)?.let { return it }
     val profile = profileFor(item.name, item.archetypeId)
 '''
-item_content = replace_once(item_content, normalize_anchor, normalize_replacement, "Healing item normalization")
+if not MODERN_OFFICIAL_ITEMS:
+    item_content = replace_once(item_content, normalize_anchor, normalize_replacement, "Healing item normalization")
+elif '    HealingItems.normalize(item)?.let { return it }\n' not in item_content:
+    raise RuntimeError("Official healing compatibility hook disappeared before legacy structure pass")
 ITEM_CONTENT.write_text(item_content, encoding="utf-8")
 
 
@@ -284,3 +374,56 @@ if 'thresholdRoll("bandage"' in main or 'thresholdRoll("antiseptic"' in main or 
     raise RuntimeError("Healing items must not introduce a dedicated drop roll")
 
 print("Healing items applied: Bandage +10 HP, Antiseptic +20 HP, shared generic loot gate.")
+
+if MODERN_OFFICIAL_ITEMS:
+    # The legacy section above is intentionally allowed to install the structural hooks expected by
+    # older finalizers. Restore the official facade and make that hook non-healing; ItemCatalog's
+    # OfficialItemEffects remains the single HP/status authority, preventing double healing.
+    HEALING.write_text(modern_healing, encoding="utf-8")
+    engines = ENGINES.read_text(encoding="utf-8")
+    engines = engines.replace(
+        '  val healingAmount = HealingItems.healAmount(owned)\n',
+        '  val healingAmount = 0 // OfficialItemEffects owns all healing for the 11-item catalog.\n',
+        1,
+    )
+    effect_anchor = '''  fun apply(state: GameState, inventory: InventoryState, item: ItemStack): ExecutionResult {
+    var next = state
+'''
+    effect_guard = '''  fun apply(state: GameState, inventory: InventoryState, item: ItemStack): ExecutionResult {
+    val requestedHeal = item.metadata["healHp"]?.toIntOrNull()?.coerceAtLeast(0) ?: 0
+    if (requestedHeal > 0) {
+      val actor = state.characters[KAI_ID] ?: return invalid(state, "actor_unknown")
+      if (actor.presence == CharacterPresence.DEAD || actor.vitalState.currentHp <= 0) return invalid(state, "healing_target_defeated")
+    }
+    var next = state
+'''
+    engines = replace_once(engines, effect_anchor, effect_guard, "Official healing defeated-state guard")
+    ENGINES.write_text(engines, encoding="utf-8")
+
+    main = MAIN.read_text(encoding="utf-8")
+    main = main.replace(
+        "Băng gạc là consumable hồi đúng 10 HP; Thuốc sát trùng là consumable hồi đúng 20 HP.",
+        "Bandage hồi đúng 15 HP và xử lý Bleeding nhẹ; Antiseptic hồi đúng 10 HP và giảm Infection 50%.",
+    ).replace(
+        "Cả hai dùng chung generic loot roll hiện có của Level (roll key loot)",
+        "Cả hai thuộc chung official 11-item Level loot pool",
+    )
+    MAIN.write_text(main, encoding="utf-8")
+
+    TEST.write_text(r'''package com.rabpit.backroom.core
+
+import org.junit.Assert.*
+import org.junit.Test
+
+class HealingItemTest {
+  @Test fun officialHealingCompatibilityUsesFinalStatsAndPool() {
+    assertEquals(ItemCatalog.BANDAGE, BANDAGE_ID)
+    assertEquals(ItemCatalog.ANTISEPTIC, ANTISEPTIC_ID)
+    assertEquals(15, HealingItems.BANDAGE_HEAL_HP)
+    assertEquals(10, HealingItems.ANTISEPTIC_HEAL_HP)
+    assertEquals("official-item-pool", HealingItems.DROP_ROLL_KEY)
+    assertEquals(11, ItemCatalog.items.size)
+  }
+}
+''', encoding="utf-8")
+    print("Official healing compatibility finalized without legacy stats or double healing.")
