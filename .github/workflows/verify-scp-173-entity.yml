@@ -1,0 +1,154 @@
+name: Verify SCP-173 Entity
+
+on:
+  push:
+    branches: [feature/scp-173-entity]
+    paths:
+      - "android-apk/**"
+      - "ENTITY_ASSETS.md"
+      - ".github/workflows/verify-scp-173-entity.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "android-apk/**"
+      - "ENTITY_ASSETS.md"
+      - ".github/workflows/verify-scp-173-entity.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      LUNA_API_KEY: ${{ secrets.LUNA_API_KEY }}
+      LUNA_BASE_URL: https://api.vilao.ai/v1
+      LUNA_MODEL: ${{ secrets.LUNA_MODEL }}
+      GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 || secrets.GEMINI_API_KEY }}
+      GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
+      GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
+      GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
+      GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Apply complete Android runtime patch chain first
+        id: patch_chain
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          scripts=(patch-provider-status.py patch-luna-text.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py)
+          for script in "${scripts[@]}"; do
+            echo "==> $script"
+            python3 "android-apk/$script"
+          done
+
+      - name: Verify SCP-173 contracts and final diff
+        id: contracts
+        if: steps.patch_chain.outcome == 'success'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          root = Path('android-apk')
+          combat = (root / 'app/src/main/java/com/rabpit/backroom/core/CombatRuntime.kt').read_text(encoding='utf-8')
+          java = (root / 'app/src/main/java/com/rabpit/backroom/MainActivity.java').read_text(encoding='utf-8')
+          test = (root / 'app/src/test/java/com/rabpit/backroom/core/CombatRuntimeTest.kt').read_text(encoding='utf-8')
+          patch = (root / 'patch-scp-173-entity.py').read_text(encoding='utf-8')
+          progression = (root / 'patch-progression-snapshot-equipment.py').read_text(encoding='utf-8')
+          asset = root / 'app/src/main/assets/entity/173.png'
+
+          combined = combat + java + test + patch + progression
+          for marker in (
+              'private const val SCP_173_KEY = "scp_173"',
+              'private const val SCP_173_MAX_HP = 1730',
+              'private const val SCP_173_OBSERVED_DAMAGE_REDUCTION_PERCENT = 20',
+              'private const val SCP_173_PHYSICAL_DAMAGE_REDUCTION_PERCENT = 25',
+              'private const val SCP_173_UNOBSERVED_ACTION_SPEED_PERCENT = 150',
+              'private const val SCP_173_BLINK_THRESHOLD = 3',
+              'private const val SCP_173_FIRST_UNOBSERVED_BONUS_PERCENT = 5',
+              'private const val SCP_173_SNAP_STRIKE_PERCENT = 10',
+              'private const val SCP_173_SNAP_STRIKE_STUN_PERCENT = 25',
+              'private const val SCP_173_CONCRETE_RUSH_PERCENT = 16',
+              'private const val SCP_173_CONCRETE_RUSH_VULNERABLE_PERCENT = 20',
+              'private const val SCP_173_CONCRETE_RUSH_STUN_PERCENT = 35',
+              'private const val SCP_173_CONCRETE_RUSH_COOLDOWN = 2',
+              'private const val SCP_173_NECK_SNAP_PERCENT = 30',
+              'private const val SCP_173_NECK_SNAP_COOLDOWN = 4',
+              'private const val SCP_173_EXECUTION_THRESHOLD_PERCENT = 15',
+              'private const val SCP_173_BLINK_PRESSURE_COOLDOWN = 3',
+              'private const val SCP_173_FORCED_BLINK_PERCENT = 30',
+              'Profile(SCP_173_KEY, "SCP-173", SCP_173_MAX_HP, 0, 9, 10)',
+              'scp173ApplyTransientStatus(resolvedState, targetId, "STUN", c.eventCounter + 1)',
+              'scp173ApplyTransientStatus(pressureState, characterId, "BLINK", c.eventCounter + 1)',
+              'DON\'T BLINK: SCP-173 đang OBSERVED',
+              'thresholdRoll("scp173Encounter", 10000, 500',
+              'case "scp_173": name = "SCP-173"; break;',
+              '"scp_173".equals(entityKey) ? "173.png"',
+              'scp173StartsObservedWithExactHpAndStateProjection',
+              'scp173ObservedCannotAttackMoveOrApproach',
+              'scp173ThirdObservedTurnForcesBlinkAndBecomesUnobserved',
+              'scp173ObservedConcreteBodyMitigatesGuiltyCrownDirectDamage',
+              'scp173UnobservedConcreteRushUsesVulnerableTwentyPlusFirstStrikeFivePercent',
+              'scp173NeckSnapExecutesOnlyAtOrBelowFifteenPercent',
+              'scp173SnapStrikeStunUsesStatusEngineForOneTurn',
+              'exec(compile(scp173.read_text(encoding="utf-8"), str(scp173), "exec")',
+          ):
+              assert marker in combined, marker
+
+          assert 'val bleedDamage = if (c.entityKey == SCP_173_KEY)' not in combat
+          assert 'scp173DirectDamage(bleedDamage' not in combat
+          assert 'SCP_173_KEY -> SCP_173_REGEN_PER_TURN' in combat
+          assert 'put("immunities", JSONArray(listOf("POISON", "FEAR", "KNOCKBACK")))' in combat
+          assert 'put("stunMaxTurns", 1)' in combat
+          assert 'data:image' not in java.lower()
+          assert 'base64,' not in java.lower()
+
+          assert asset.is_file() and asset.stat().st_size > 0
+          raw = asset.read_bytes()
+          assert raw[:8] == b'\x89PNG\r\n\x1a\n'
+          assert b'data:image' not in raw[:1024].lower()
+          assert b'base64,' not in raw[:1024].lower()
+          PY
+          git diff --check
+
+      - uses: actions/setup-java@v5
+        if: steps.patch_chain.outcome == 'success' && steps.contracts.outcome == 'success'
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+        if: steps.patch_chain.outcome == 'success' && steps.contracts.outcome == 'success'
+        with:
+          gradle-version: "8.10.2"
+
+      - name: Run unit tests and build debug APK
+        id: android_build
+        if: steps.patch_chain.outcome == 'success' && steps.contracts.outcome == 'success'
+        continue-on-error: true
+        working-directory: android-apk
+        run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
+
+      - name: Verify 173.png is packaged as a raw asset
+        id: packaged_asset
+        if: steps.android_build.outcome == 'success'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          unzip -l android-apk/app/build/outputs/apk/debug/app-debug.apk | grep -q 'assets/entity/173.png'
+
+      - name: Enforce pre-merge green gate
+        if: always()
+        run: |
+          test "${{ steps.patch_chain.outcome }}" = "success"
+          test "${{ steps.contracts.outcome }}" = "success"
+          test "${{ steps.android_build.outcome }}" = "success"
+          test "${{ steps.packaged_asset.outcome }}" = "success"
