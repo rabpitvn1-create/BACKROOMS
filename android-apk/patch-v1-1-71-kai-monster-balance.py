@@ -51,10 +51,29 @@ CATALOG.write_text(catalog, encoding="utf-8")
 combat = COMBAT.read_text(encoding="utf-8")
 syvial_start = combat.index("    val syvialEligibleForDevilTrigger =")
 syvial_end = combat.index("    when (intent) {", syvial_start)
-combat = combat[:syvial_start] + '''    // Kai's Devil Trigger Passive is exclusive; Syvial never enters this state machine.
+combat = combat[:syvial_start] + '''    // Kai's probabilistic Passive is exclusive. Syvial keeps her separate canon STATE:
+    // HP <= 50% or a Diệp Minh encounter, with no duration or cooldown.
     val syvialDevilTriggerTurn: DevilTriggerTurn? = null
     resolvedState = resolvedState.copy(metadata = resolvedState.metadata -
       setOf(DEVIL_TRIGGER_SYVIAL_ACTIVE_KEY, DEVIL_TRIGGER_SYVIAL_COOLDOWN_KEY))
+    val syvialCharacter = activePartyCharacter(resolvedState, SYVIAL_ID)
+    if (syvialCharacter != null) {
+      val syvialMaxHp = CharacterStatEngine.effective(resolvedState, SYVIAL_ID).maxHp
+      val syvialHp = syvialCharacter.vitalState.currentHp.coerceIn(0, syvialMaxHp)
+      val wasActive = resolvedState.metadata[SYVIAL_DEVIL_TRIGGER_KEY].equals("true", true)
+      syvialDevilTrigger = wasActive || syvialHp * 2 <= syvialMaxHp || c.entityKey == DIEP_MINH_KEY
+      if (syvialDevilTrigger) {
+        resolvedState = resolvedState.copy(metadata = resolvedState.metadata + (SYVIAL_DEVIL_TRIGGER_KEY to "true"))
+        if (!wasActive) log += "Syvial kích hoạt Devil Trigger theo Lucifer Core."
+      }
+      val regenPercent = if (syvialDevilTrigger) 4 else 2
+      if (syvialHp > 0 && syvialHp < syvialMaxHp) {
+        val heal = percentDamage(syvialMaxHp, regenPercent)
+        resolvedState = CharacterStatEngine.setCurrentHp(resolvedState, SYVIAL_ID, syvialHp + heal)
+        val after = resolvedState.characters[SYVIAL_ID]?.vitalState?.currentHp ?: syvialHp
+        log += "Lucifer Core hồi Syvial +${after - syvialHp} HP ($after/$syvialMaxHp)."
+      }
+    }
 
 ''' + combat[syvial_end:]
 
@@ -222,7 +241,7 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class DevilTriggerCombatIntegrationTest {
-  @Test fun kaiPassiveIsExclusiveAndSyvialLegacyMetadataIsRemoved() {
+  @Test fun kaiPassiveIsExclusiveAndSyvialKeepsHerSeparateState() {
     var state = SpecialFollowersCanon.ensure(GameState.initial()).copy(party = PartyState(memberIds = listOf(KAI_ID, SYVIAL_ID)))
     state = CombatRuntime.start(state, "diep_minh").copy(metadata = CombatRuntime.start(state, "diep_minh").metadata + mapOf(
       "passive.devilTrigger.kai.activeTurns" to "3",
@@ -231,6 +250,8 @@ class DevilTriggerCombatIntegrationTest {
     val result = CombatRuntime.resolve(state, "EXECUTE", "Cả Party cùng né tránh")
     assertEquals("2", result.state.metadata["passive.devilTrigger.kai.activeTurns"])
     assertNull(result.state.metadata["passive.devilTrigger.syvial.activeTurns"])
+    assertEquals("true", result.state.metadata["combat.syvialDevilTrigger"])
+    assertTrue(result.reply.contains("Syvial kích hoạt Devil Trigger theo Lucifer Core"))
     assertFalse(result.reply.contains("DEVIL TRIGGER — Lucifer Core"))
   }
 
@@ -321,6 +342,7 @@ combined = trigger + catalog + combat + stats + main
 for marker in (
     "const val TRIGGER_PERCENT = 35", "const val COOLDOWN_TURNS = 0",
     's("Devil Blessing", "PASSIVE"', "syvialDevilTriggerTurn: DevilTriggerTurn? = null",
+    "syvialHp * 2 <= syvialMaxHp", 'SYVIAL_DEVIL_TRIGGER_KEY to "true"',
     "balancedEntityBaseHp > 1000", "baseMonsterDamage * 110", "resolved * 110",
     "devilBlessingHpBonus", "int[] entityThresholds = {1805, 2000, 2150, 2150, 1810, 2200, 1805}",
 ):
