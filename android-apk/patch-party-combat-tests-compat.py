@@ -63,3 +63,7 @@ print("Party combat regression compatibility applied: Silent Lullaby uses Party 
 # Final narrative layer: the player inhabits Kai directly, so the GM must narrate from
 # Kai's second-person limited perspective after every earlier prompt transform has completed.
 runpy.run_path(str(ROOT / "patch-kai-immersive-pov-final.py"), run_name="__main__")
+
+# The combat action bar is installed earlier, but its state detector must be fixed only after every
+# later UI transform is finished. Top-level `let state` is lexical and is not `window.state`.
+runpy.run_path(str(ROOT / "patch-combat-action-bar-state-fix.py"), run_name="__main__")
