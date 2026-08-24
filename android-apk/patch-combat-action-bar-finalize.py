@@ -144,3 +144,4 @@ print("Combat action bar V2 installed: legacy Pressure Combat HUD source removed
 # healing, equipment and UI transform so no older patch can restore Gemini inventory authority or
 # reintroduce item narration before Game State Core commit.
 runpy.run_path(str(ROOT / "patch-inventory-authority-finalize.py"), run_name="__main__")
+runpy.run_path(str(ROOT / "patch-inventory-authority-compile-fix.py"), run_name="__main__")
