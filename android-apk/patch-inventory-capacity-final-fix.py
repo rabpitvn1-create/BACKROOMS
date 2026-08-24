@@ -130,6 +130,8 @@ runpy.run_path(str(ROOT / "patch-party-combat-actions-finalize.py"), run_name="_
 # It does not loosen runtime gates or change gameplay.
 runpy.run_path(str(ROOT / "patch-party-combat-tests-compat.py"), run_name="__main__")
 
-# DEVIL TRIGGER is the final gameplay-only combat balance layer. It must run after all previous
-# combat compatibility/finalizer passes so nothing can restore Syvial's legacy unlimited state.
+# DEVIL TRIGGER is the final gameplay-only combat balance layer before SCP-173 adds target-specific
+# mitigation. The tiny precompat patch temporarily restores only Guilty Crown's raw 24 x 10 shape
+# so SCP-173 can apply its established mitigation transform without losing Devil Trigger elsewhere.
 runpy.run_path(str(ROOT / "patch-devil-trigger-passive.py"), run_name="__main__")
+runpy.run_path(str(ROOT / "patch-devil-trigger-scp-precompat.py"), run_name="__main__")
