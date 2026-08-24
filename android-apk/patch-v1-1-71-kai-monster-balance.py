@@ -156,7 +156,7 @@ stats = replace_once(
 )
 weapon_anchor = "  fun weaponDamage(state: GameState, characterId: String): Int {\n"
 weapon_helper = '''  fun devilBlessingHpBonus(state: GameState, characterId: String, unblessedMaxHp: Int? = null): Int {
-    if (characterId == KAI_ID || state.metadata["combat.active"] != "true" || characterId !in state.party.memberIds) return 0
+    if (characterId == KAI_ID || state.metadata["combat.entityKey"].isNullOrBlank() || characterId !in state.party.memberIds) return 0
     val kai = state.characters[KAI_ID] ?: return 0
     val companion = state.characters[characterId] ?: return 0
     if (kai.presence != CharacterPresence.ACTIVE || kai.vitalState.currentHp <= 0 || companion.presence != CharacterPresence.ACTIVE || companion.vitalState.currentHp <= 0) return 0
@@ -244,6 +244,58 @@ class DevilTriggerCombatIntegrationTest {
   }
 }
 ''', encoding="utf-8")
+
+# Existing boss/bleed regressions intentionally asserted the previous exact HP values.
+# Move those expectations to the new final balance without weakening their original mechanics.
+combat_test_path = TESTS / "CombatRuntimeTest.kt"
+combat_test = combat_test_path.read_text(encoding="utf-8")
+for old, new in (
+    ("assertEquals(2999, started.entityMaxHp)", "assertEquals(3199, started.entityMaxHp)"),
+    ("assertEquals(2999, started.entityHp)", "assertEquals(3199, started.entityHp)"),
+    ('contains("Bleeding từ The Last Requiem gây -150 HP")', 'contains("Bleeding từ The Last Requiem gây -160 HP")'),
+    ("assertEquals(3456, combat.entityMaxHp)", "assertEquals(3656, combat.entityMaxHp)"),
+    ("assertEquals(3456, combat.entityHp)", "assertEquals(3656, combat.entityHp)"),
+    ("assertEquals(1234, CombatRuntime.active(state)!!.entityMaxHp)", "assertEquals(1434, CombatRuntime.active(state)!!.entityMaxHp)"),
+    ("assertEquals(minOf(1234, before + 30), CombatRuntime.active(next.state)!!.entityHp)", "assertEquals(minOf(1434, before + 30), CombatRuntime.active(next.state)!!.entityHp)"),
+    ("assertEquals(1730, active.entityMaxHp)", "assertEquals(1930, active.entityMaxHp)"),
+    ("assertEquals(1730, active.entityHp)", "assertEquals(1930, active.entityHp)"),
+):
+    if old not in combat_test:
+        raise RuntimeError("Updated combat regression anchor missing: " + old)
+    combat_test = combat_test.replace(old, new, 1)
+
+neck_start = combat_test.index("  @Test fun scp173NeckSnapExecutesOnlyAtOrBelowFifteenPercent() {")
+neck_end = combat_test.index("  @Test fun scp173SnapStrikeStunUsesStatusEngineForOneTurn() {", neck_start)
+neck_test = r'''  @Test fun scp173NeckSnapExecutesOnlyAtOrBelowFifteenPercent() {
+    var verified = false
+    for (counter in 0..200) {
+      if (verified) break
+      val initial = GameState.initial()
+      val blindEffect = StatusEffect("test:blind:kai:neck:$counter", "BLIND", "test", durationTurns = 5)
+      var state = StatusEngine.execute(initial, StatusCommand(
+        commandId = "test:blind:neck:$counter", turnId = null, actorId = KAI_ID, targetId = KAI_ID,
+        source = CommandSource.SYSTEM, operation = StatusCommand.Operation.APPLY, effect = blindEffect
+      )).state
+      state = CombatRuntime.start(state, "scp_173")
+      val maxHp = CharacterStatEngine.effective(state, KAI_ID).maxHp
+      val threshold = maxOf(1, maxHp * 15 / 100)
+      state = CharacterStatEngine.setCurrentHp(state, KAI_ID, threshold)
+      state = state.copy(metadata = state.metadata + mapOf(
+        "combat.range" to CombatRuntime.RangeBand.CLOSE.name,
+        "combat.eventCounter" to counter.toString()
+      ))
+      val result = CombatRuntime.resolve(state, "SEARCH", "không thể quan sát SCP-173")
+      if (!result.reply.contains("Neck Snap")) continue
+      assertEquals(0, result.state.characters.getValue(KAI_ID).vitalState.currentHp)
+      assertTrue(result.reply, result.reply.contains("Execution hợp lệ"))
+      verified = true
+    }
+    assertTrue("Expected a deterministic turn where Kai Devil Trigger does not evade Neck Snap", verified)
+  }
+
+'''
+combat_test = combat_test[:neck_start] + neck_test + combat_test[neck_end:]
+combat_test_path.write_text(combat_test, encoding="utf-8")
 
 TESTS.joinpath("KaiMonsterBalanceTest.kt").write_text(r'''package com.rabpit.backroom.core
 
