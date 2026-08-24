@@ -116,11 +116,16 @@ runpy.run_path(str(ROOT / "patch-healing-items-finalize.py"), run_name="__main__
 runpy.run_path(str(ROOT / "patch-lucia-combat-scout-finalize.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-lucia-combat-evasion-compat.py"), run_name="__main__")
 
-# Companion skill gameplay/UI is deliberately the last layer. It only wraps the finalized
-# Kai/Diệp Minh/Lucia combat and Character Detail contracts, so no older patch can erase it.
+# Companion skill gameplay/UI wraps the finalized Kai/Diệp Minh/Lucia combat and Character Detail contracts.
 runpy.run_path(str(ROOT / "patch-companion-skills-ui-finalize.py"), run_name="__main__")
 
-# Combat action UI is the final visual layer. It removes the legacy Pressure Combat HUD from the DOM
-# while leaving CombatRuntime, scene background and Entity overlay intact, then swaps the normal
-# Search / Execute / Explore row to Attack / Evade / Flee only while combat is active.
+# Combat action UI removes the legacy Pressure Combat HUD and supplies the three compact buttons.
 runpy.run_path(str(ROOT / "patch-combat-action-bar-finalize.py"), run_name="__main__")
+
+# Party action authority is the final combat layer. It converts the three compact buttons into one
+# simultaneous command for every ACTIVE/living Party member while preserving individual role locks.
+runpy.run_path(str(ROOT / "patch-party-combat-actions-finalize.py"), run_name="__main__")
+
+# Compatibility only updates older generated tests to issue the newly authoritative Party commands.
+# It does not loosen runtime gates or change gameplay.
+runpy.run_path(str(ROOT / "patch-party-combat-tests-compat.py"), run_name="__main__")
