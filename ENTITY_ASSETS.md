@@ -29,14 +29,19 @@ Runtime ưu tiên canonical Entity key trùng chính xác với tên file bỏ p
 | `diep_minh` | `diep_minh.png` |
 | `monster_x` | `X.png` |
 | `john_doe` | `John.png` |
+| `scp_173` | `173.png` |
 
 `diep_minh` là boss unique dùng roll xuất hiện độc lập 3%, không nằm trong shared roaming Entity pool.
 
-`monster_x` và `john_doe` là unique roaming Entity dùng roll độc lập. `john_doe` có đúng 10% encounter chance trên Level 0–999 và runtime tham chiếu trực tiếp asset case-sensitive:
+`monster_x`, `john_doe` và `scp_173` là unique Entity dùng roll độc lập. `john_doe` có đúng 10% encounter chance trên Level 0–999. `scp_173` có đúng 5% encounter chance trên mỗi roll encounter Entity hợp lệ và không được đưa vào shared roaming pool.
+
+Runtime tham chiếu trực tiếp các asset case-sensitive:
 
 `file:///android_asset/entity/John.png`
 
-Không chuyển `John.png` sang Base64, Data URI hoặc nội dung nhúng. APK phải đóng gói file PNG thô trong assets.
+`file:///android_asset/entity/173.png`
+
+Không chuyển `John.png` hoặc `173.png` sang Base64, Data URI hoặc nội dung nhúng. APK phải đóng gói file PNG thô trong assets.
 
 Snapshot đọc Entity thường trực tiếp bằng đường dẫn:
 
