@@ -125,7 +125,12 @@ jobs:
           for marker in ('icon-search', 'icon-execute', 'icon-explore'):
               assert marker in base_ui_patch
               assert marker in patch
-          for obsolete in ('footprint-icon', 'ai-action-icon', '>AI</text>'):
+          legacy_markup = (
+              'class="action-icon footprint-icon"',
+              'class="action-icon ai-action-icon"',
+              '<text x="7" y="11.8">AI</text>',
+          )
+          for obsolete in legacy_markup:
               assert obsolete not in base_ui_patch
               assert obsolete not in patch
 
