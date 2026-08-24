@@ -118,4 +118,4 @@ runpy.run_path(str(ROOT / "patch-lucia-combat-evasion-compat.py"), run_name="__m
 
 # Companion skill gameplay/UI is deliberately the last layer. It only wraps the finalized
 # Kai/Diệp Minh/Lucia combat and Character Detail contracts, so no older patch can erase it.
-runpy.run_path(str(ROOT / "patch-companion-skills-ui.py"), run_name="__main__")
+runpy.run_path(str(ROOT / "patch-companion-skills-ui-finalize.py"), run_name="__main__")
