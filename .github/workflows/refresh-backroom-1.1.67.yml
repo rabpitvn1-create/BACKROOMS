@@ -1,0 +1,215 @@
+name: Refresh Backroom 1.1.67 Release
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/refresh-backroom-1.1.67.yml"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/refresh-backroom-1.1.67.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-backroom-1.1.67-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  refresh-release:
+    runs-on: ubuntu-latest
+    env:
+      LUNA_API_KEY: ${{ secrets.LUNA_API_KEY }}
+      LUNA_BASE_URL: https://api.vilao.ai/v1
+      LUNA_MODEL: ${{ secrets.LUNA_MODEL }}
+      GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 || secrets.GEMINI_API_KEY }}
+      GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
+      GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
+      GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
+      GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Record active 1.1.67 refresh run
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          set -euo pipefail
+          mkdir -p release-status
+          printf 'status=RUNNING\nversion=1.1.67\nsource_sha=%s\nrun_id=%s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" > release-status/v1.1.67-running.txt
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add release-status/v1.1.67-running.txt
+          git commit -m "Record active Backroom 1.1.67 refresh run $GITHUB_RUN_ID"
+          git push origin HEAD:main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: android-apk/ml/requirements.txt
+
+      - name: Train and verify tiny LiteRT intent model
+        run: |
+          set -euo pipefail
+          python -m pip install --requirement android-apk/ml/requirements.txt
+          python android-apk/ml/build_intent_dataset.py
+          python android-apk/ml/evaluate_seed_classifier.py
+          cd android-apk/ml
+          python train_intent_classifier.py --dataset intent_dataset.csv --labels ../app/src/main/assets/models/backroom_intent_labels.txt --output ../app/src/main/assets/models/backroom_intent.tflite --report intent_model_report.json
+          test -s ../app/src/main/assets/models/backroom_intent.tflite
+          bytes=$(stat -c%s ../app/src/main/assets/models/backroom_intent.tflite)
+          test "$bytes" -le 5242880
+
+      - name: Validate Game Master configuration
+        run: |
+          set -euo pipefail
+          for name in GEMINI_API_KEY_1 GEMINI_API_KEY_2 GEMINI_API_KEY_3 GEMINI_API_KEY_4 GEMINI_API_KEY_5 LUNA_API_KEY LUNA_MODEL; do
+            test -n "${!name:-}" || (echo "Missing GitHub Secret: $name" && exit 1)
+          done
+
+      - name: Apply complete Android runtime patch chain
+        run: |
+          set -euo pipefail
+          scripts=(patch-provider-status.py patch-luna-text.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py)
+          for script in "${scripts[@]}"; do
+            echo "==> $script"
+            python3 "android-apk/$script"
+          done
+
+      - name: Stamp 1.1.67 package version
+        run: |
+          set -euo pipefail
+          sed -i "s/versionCode 65/versionCode 69/" android-apk/app/build.gradle
+          sed -i "s/versionName '1.1.63'/versionName '1.1.67'/" android-apk/app/build.gradle
+          grep -q "versionCode 69" android-apk/app/build.gradle
+          grep -q "versionName '1.1.67'" android-apk/app/build.gradle
+
+      - name: Verify latest runtime contracts
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          root = Path('android-apk')
+          core = root / 'app/src/main/java/com/rabpit/backroom/core'
+          gradle = (root / 'app/build.gradle').read_text(encoding='utf-8')
+          combat = (core / 'CombatRuntime.kt').read_text(encoding='utf-8')
+          catalog = (core / 'CompanionSkillCatalog.kt').read_text(encoding='utf-8')
+          scp_asset = root / 'app/src/main/assets/entity/173.png'
+          john_asset = root / 'app/src/main/assets/entity/John.png'
+
+          assert "versionCode 69" in gradle
+          assert "versionName '1.1.67'" in gradle
+          for marker in (
+              'private const val JOHN_DOE_KEY = "john_doe"',
+              'private const val SCP_173_KEY = "scp_173"',
+              'private const val SCP_173_MAX_HP = 1730',
+              'private const val DEVIL_TRIGGER_KAI_ACTIVE_KEY = "passive.devilTrigger.kai.activeTurns"',
+              'private const val DEVIL_TRIGGER_SYVIAL_ACTIVE_KEY = "passive.devilTrigger.syvial.activeTurns"',
+          ):
+              assert marker in combat, marker
+          assert 'DEVIL TRIGGER — Sparda Core' in catalog
+          assert 'DEVIL TRIGGER — Lucifer Core' in catalog
+          for asset in (scp_asset, john_asset):
+              assert asset.is_file() and asset.stat().st_size > 0, str(asset)
+              raw = asset.read_bytes()
+              assert raw[:8] == b'\x89PNG\r\n\x1a\n'
+              assert b'data:image' not in raw[:1024].lower()
+              assert b'base64,' not in raw[:1024].lower()
+          PY
+          git diff --check
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+
+      - name: Run Kotlin tests and build debug APK
+        working-directory: android-apk
+        run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
+
+      - name: Prepare APK
+        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.1.67.apk
+
+      - name: Verify packaged APK
+        run: |
+          set -euo pipefail
+          APK=Backroom-1.1.67.apk
+          test -s "$APK"
+          BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          "$BUILD_TOOLS/apksigner" verify --verbose --print-certs "$APK"
+          "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "package: name='com.rabpit.backroom'"
+          "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionCode='69'"
+          "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionName='1.1.67'"
+          "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
+          "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 "$APK"
+          rm -rf apk-check && mkdir apk-check
+          unzip -q "$APK" 'assets/entity/173.png' 'assets/entity/John.png' -d apk-check
+          test -s apk-check/assets/entity/173.png
+          test -s apk-check/assets/entity/John.png
+
+      - name: Upload refreshed APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Backroom-1.1.67-latest-debug-apk
+          path: Backroom-1.1.67.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Refresh GitHub Release v1.1.67
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="v1.1.67"
+          APK="Backroom-1.1.67.apk"
+          TITLE="Backroom 1.1.67 Debug"
+          cat > release-notes.txt <<'EOF'
+          Backroom 1.1.67 Debug
+
+          - Làm mới APK 1.1.67 từ trạng thái main mới nhất thay vì quay lại bản 1.1.63.
+          - Giữ nguyên ENTITY John Doe và toàn bộ gameplay đã có trong bản 1.1.67.
+          - Bổ sung SCP-173 với DON’T BLINK, encounter riêng 5% và raw asset entity/173.png.
+          - Bao gồm DEVIL TRIGGER đã merge cho Kai và Syvial.
+          - Giữ nguyên các hệ thống combat/state/status/encounter, inventory, follower và progression hiện có.
+          EOF
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --title "$TITLE" --notes-file release-notes.txt
+            gh release upload "$TAG" "$APK" --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$TAG" "$APK" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "$TITLE" --notes-file release-notes.txt
+          fi
+
+      - name: Verify refreshed release and record GREEN status
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release download v1.1.67 --repo "$GITHUB_REPOSITORY" --pattern 'Backroom-1.1.67.apk' --output Backroom-1.1.67-verified.apk
+          test -s Backroom-1.1.67-verified.apk
+          expected=$(sha256sum Backroom-1.1.67.apk | awk '{print $1}')
+          actual=$(sha256sum Backroom-1.1.67-verified.apk | awk '{print $1}')
+          test "$expected" = "$actual"
+          BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          "$BUILD_TOOLS/apksigner" verify --verbose --print-certs Backroom-1.1.67-verified.apk
+          "$BUILD_TOOLS/aapt" dump badging Backroom-1.1.67-verified.apk | grep -q "versionCode='69'"
+          "$BUILD_TOOLS/aapt" dump badging Backroom-1.1.67-verified.apk | grep -q "versionName='1.1.67'"
+          "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-1.1.67-verified.apk
+          mkdir -p release-status
+          printf 'status=GREEN\nversion=1.1.67\ntag=v1.1.67\nasset=Backroom-1.1.67.apk\nsource_sha=%s\nrun_id=%s\nsha256=%s\nbuild_type=debug\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$actual" > release-status/v1.1.67.txt
+          rm -f release-status/v1.1.67-running.txt
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add release-status/v1.1.67.txt release-status/v1.1.67-running.txt
+          git commit -m "Record verified Backroom 1.1.67 refreshed release"
+          git push origin HEAD:main
