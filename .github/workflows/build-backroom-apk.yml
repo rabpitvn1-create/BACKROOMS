@@ -35,11 +35,11 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p release-status
-          printf 'status=RUNNING\nversion=1.1.62\nsource_sha=%s\nrun_id=%s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" > release-status/v1.1.62-running.txt
+          printf 'status=RUNNING\nversion=1.1.63\nsource_sha=%s\nrun_id=%s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" > release-status/v1.1.63-running.txt
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add release-status/v1.1.62-running.txt
-          git commit -m "Record active Backroom 1.1.62 run $GITHUB_RUN_ID"
+          git add release-status/v1.1.63-running.txt
+          git commit -m "Record active Backroom 1.1.63 run $GITHUB_RUN_ID"
           git push origin HEAD:main
 
       - uses: actions/setup-python@v5
@@ -80,21 +80,30 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          html = Path('android-apk/app/src/main/assets/index.html').read_text(encoding='utf-8')
-          java = Path('android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java').read_text(encoding='utf-8')
-          facade = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt').read_text(encoding='utf-8')
-          gradle = Path('android-apk/app/build.gradle').read_text(encoding='utf-8')
-          madgod = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/MadGodCanon.kt').read_text(encoding='utf-8')
-          engines = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/Engines.kt').read_text(encoding='utf-8')
-          equipment_system = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/CharacterEquipmentSystem.kt').read_text(encoding='utf-8')
-          status_tests = Path('android-apk/app/src/test/java/com/rabpit/backroom/core/CharacterStatusEquipmentSystemTest.kt').read_text(encoding='utf-8')
-          save_repo = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/SaveRepository.kt').read_text(encoding='utf-8')
-          entity_dir = Path('android-apk/app/src/main/assets/entity')
+          root = Path('android-apk')
+          core = root / 'app/src/main/java/com/rabpit/backroom/core'
+          html = (root / 'app/src/main/assets/index.html').read_text(encoding='utf-8')
+          java = (root / 'app/src/main/java/com/rabpit/backroom/MainActivity.java').read_text(encoding='utf-8')
+          facade = (core / 'GameCoreFacade.kt').read_text(encoding='utf-8')
+          gradle = (root / 'app/build.gradle').read_text(encoding='utf-8')
+          madgod = (core / 'MadGodCanon.kt').read_text(encoding='utf-8')
+          engines = (core / 'Engines.kt').read_text(encoding='utf-8')
+          equipment_system = (core / 'CharacterEquipmentSystem.kt').read_text(encoding='utf-8')
+          status_tests = (root / 'app/src/test/java/com/rabpit/backroom/core/CharacterStatusEquipmentSystemTest.kt').read_text(encoding='utf-8')
+          save_repo = (core / 'SaveRepository.kt').read_text(encoding='utf-8')
+          combat = (core / 'CombatRuntime.kt').read_text(encoding='utf-8')
+          skill_catalog = (core / 'CompanionSkillCatalog.kt').read_text(encoding='utf-8')
+          detail_json = (core / 'CharacterDetailJson.kt').read_text(encoding='utf-8')
+          an_nhien = (core / 'AnNhienCanon.kt').read_text(encoding='utf-8')
+          skill_tests = (root / 'app/src/test/java/com/rabpit/backroom/core/CompanionSkillCatalogTest.kt').read_text(encoding='utf-8')
+          chain = (root / 'patch-inventory-capacity-final-fix.py').read_text(encoding='utf-8')
+          entity_dir = root / 'app/src/main/assets/entity'
 
           required = [
-              ("versionCode 64", gradle), ("versionName '1.1.62'", gradle),
+              ("versionCode 65", gradle), ("versionName '1.1.63'", gradle),
               ('id="searchActionButton"', html), ('id="exploreActionButton"', html), ('STEP2_THREE_ACTIONS', html),
               ('madGodSetEquipped()', html), ('id="equipmentDetailModal"', html), ('window.renderCharacterStatusEquipment=render;', html),
+              ('id="characterSkillsModal"', html), ("button.id='characterSkillsButton'", html), ('function openSkills()', html),
               ('const val CHEAT_CODE = "/madgod"', madgod), ('const val MADGOD_SET_ID = "madgod:set"', madgod),
               ('MadGodCanon.cheat(action)', facade), ('applyMadGodCheat(legacy,state)', facade),
               ('if (isMadGodEquipRequest(action))', facade), ('commandId = "$turnId:MADGOD:EQUIP"', facade),
@@ -133,9 +142,23 @@ jobs:
               ('next = next.copy(world = next.world + ("flagsJson" to flags.toString()))', facade),
               ('thresholdRoll("diepMinhEncounter", 10000, 300,', java),
               ('entityKey = "diep_minh";', java),
+              ('ARGUS // Thousandfold Execution', skill_catalog), ('Twosome Time', skill_catalog), ('Honeycomb Fire', skill_catalog),
+              ('GodKiller Override // Twenty-Four Severance', skill_catalog), ('Crimson Guillotine', skill_catalog), ('Spatial Dominion', skill_catalog),
+              ('Kế Hoạch Không Có Trong Kế Hoạch', skill_catalog), ('Quăng Đại Cái Gì Đó', skill_catalog),
+              ('CompanionSkillCatalog.forCharacter(c.id)', detail_json), ('COMPANION_SKILLS_R01', combat), ('24 * 10', combat),
+              ('hazardThresholds[level] * 75 / 100', java), ('thresholdRoll("anNhienRead", 10000, 2000', java),
+              ('class CompanionSkillCatalogTest', skill_tests),
+              ('runpy.run_path(str(ROOT / "patch-companion-skills-ui-finalize.py"), run_name="__main__")', chain),
           ]
           for marker, source in required:
               assert marker in source, marker
+          assert '"nonCombat" to "true"' in an_nhien
+          assert '"canUseWeapons" to "false"' in an_nhien
+          an_start = skill_catalog.index('private val anNhien = listOf(')
+          an_end = skill_catalog.index('private val kai = listOf(', an_start)
+          assert 'Weapon DMG' not in skill_catalog[an_start:an_end]
+          assert html.count("button.id='characterSkillsButton'") == 1
+          assert html.count('id="characterSkillsModal"') == 1
           assert 'rolls.put("roamingEntityId"' not in java
           assert 'makeGameplayRolls(before, action, meta)' not in java
           assert 'slot != "set" || MadGodCanon.slot(command.itemId' not in engines
@@ -152,13 +175,14 @@ jobs:
           for name in required_assets:
               p = entity_dir / name
               assert p.is_file() and p.stat().st_size > 0, name
-          for p in [Path('android-apk/app/src/main/assets/Kai_MadGod_snapshot_overlay.png'), Path('android-apk/app/src/main/assets/avatars/MadGod.jpg')]:
+          for p in [root / 'app/src/main/assets/Kai_MadGod_snapshot_overlay.png', root / 'app/src/main/assets/avatars/MadGod.jpg']:
               assert p.is_file() and p.stat().st_size > 0, str(p)
 
           combined = html + java + gradle + facade + save_repo
           for forbidden in ['drive.google.com','www.googleapis.com/auth/drive','DriveOnlineSaveManager','com.google.android.gms:play-services-auth','ENTITY_MANIFEST_FILE_ID','readEntityManifestRemote']:
               assert forbidden not in combined, forbidden
           PY
+          git diff --check
 
       - uses: actions/setup-java@v5
         with:
@@ -174,23 +198,25 @@ jobs:
         run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
 
       - name: Prepare APK
-        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.1.62.apk
+        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.1.63.apk
 
       - name: Verify packaged APK contracts
         run: |
           set -euo pipefail
           BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
-          "$BUILD_TOOLS/apksigner" verify --verbose --print-certs Backroom-1.1.62.apk
-          "$BUILD_TOOLS/aapt" dump badging Backroom-1.1.62.apk | grep -q "package: name='com.rabpit.backroom'"
-          "$BUILD_TOOLS/aapt" dump badging Backroom-1.1.62.apk | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
-          "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-1.1.62.apk
+          "$BUILD_TOOLS/apksigner" verify --verbose --print-certs Backroom-1.1.63.apk
+          "$BUILD_TOOLS/aapt" dump badging Backroom-1.1.63.apk | grep -q "package: name='com.rabpit.backroom'"
+          "$BUILD_TOOLS/aapt" dump badging Backroom-1.1.63.apk | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
+          "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-1.1.63.apk
           rm -rf apk-check && mkdir apk-check
-          unzip -q Backroom-1.1.62.apk 'assets/index.html' 'assets/entity/*' 'assets/Kai_MadGod_snapshot_overlay.png' 'assets/avatars/MadGod.jpg' -d apk-check
+          unzip -q Backroom-1.1.63.apk 'assets/index.html' 'assets/entity/*' 'assets/Kai_MadGod_snapshot_overlay.png' 'assets/avatars/MadGod.jpg' -d apk-check
           grep -q 'searchActionButton' apk-check/assets/index.html
           grep -q 'exploreActionButton' apk-check/assets/index.html
           grep -q 'madGodSetEquipped' apk-check/assets/index.html
           grep -q 'equipmentDetailModal' apk-check/assets/index.html
           grep -q 'renderCharacterStatusEquipment' apk-check/assets/index.html
+          grep -q 'characterSkillsModal' apk-check/assets/index.html
+          grep -q 'characterSkillsButton' apk-check/assets/index.html
           test -s apk-check/assets/entity/hound.png
           test -s apk-check/assets/entity/slenderman.png
           test -s apk-check/assets/entity/diep_minh.png
@@ -200,24 +226,24 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Backroom-1.1.62-debug-apk
-          path: Backroom-1.1.62.apk
+          name: Backroom-1.1.63-debug-apk
+          path: Backroom-1.1.63.apk
           if-no-files-found: error
           retention-days: 14
 
-      - name: Publish GitHub Release v1.1.62
+      - name: Publish GitHub Release v1.1.63
         if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="v1.1.62"
-          TITLE="Backroom 1.1.62 Debug"
-          NOTES=$(cat android-apk/RELEASE_NOTES_1.1.62.txt)
+          TAG="v1.1.63"
+          TITLE="Backroom 1.1.63 Debug"
+          NOTES=$(cat android-apk/RELEASE_NOTES_1.1.63.txt)
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
-            gh release upload "$TAG" Backroom-1.1.62.apk --clobber
+            gh release upload "$TAG" Backroom-1.1.63.apk --clobber
           else
-            gh release create "$TAG" Backroom-1.1.62.apk --target "$GITHUB_SHA" --title "$TITLE" --notes "$NOTES"
+            gh release create "$TAG" Backroom-1.1.63.apk --target "$GITHUB_SHA" --title "$TITLE" --notes "$NOTES"
           fi
 
       - name: Verify published APK and record GREEN release
@@ -226,25 +252,27 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          rm -f Backroom-1.1.62-verified.apk
-          gh release download v1.1.62 --repo "$GITHUB_REPOSITORY" --pattern 'Backroom-1.1.62.apk' --output Backroom-1.1.62-verified.apk
-          test -s Backroom-1.1.62-verified.apk
-          unzip -l Backroom-1.1.62-verified.apk | grep -q 'assets/index.html'
-          unzip -l Backroom-1.1.62-verified.apk | grep -q 'assets/entity/hound.png'
-          unzip -l Backroom-1.1.62-verified.apk | grep -q 'assets/entity/slenderman.png'
-          unzip -l Backroom-1.1.62-verified.apk | grep -q 'assets/entity/diep_minh.png'
-          unzip -l Backroom-1.1.62-verified.apk | grep -q 'assets/Kai_MadGod_snapshot_overlay.png'
-          unzip -l Backroom-1.1.62-verified.apk | grep -q 'assets/avatars/MadGod.jpg'
+          rm -f Backroom-1.1.63-verified.apk
+          gh release download v1.1.63 --repo "$GITHUB_REPOSITORY" --pattern 'Backroom-1.1.63.apk' --output Backroom-1.1.63-verified.apk
+          test -s Backroom-1.1.63-verified.apk
+          unzip -l Backroom-1.1.63-verified.apk | grep -q 'assets/index.html'
+          unzip -l Backroom-1.1.63-verified.apk | grep -q 'assets/entity/hound.png'
+          unzip -l Backroom-1.1.63-verified.apk | grep -q 'assets/entity/slenderman.png'
+          unzip -l Backroom-1.1.63-verified.apk | grep -q 'assets/entity/diep_minh.png'
+          unzip -l Backroom-1.1.63-verified.apk | grep -q 'assets/Kai_MadGod_snapshot_overlay.png'
+          unzip -l Backroom-1.1.63-verified.apk | grep -q 'assets/avatars/MadGod.jpg'
+          unzip -p Backroom-1.1.63-verified.apk assets/index.html | grep -q 'characterSkillsModal'
+          unzip -p Backroom-1.1.63-verified.apk assets/index.html | grep -q 'characterSkillsButton'
           BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
-          "$BUILD_TOOLS/apksigner" verify --verbose --print-certs Backroom-1.1.62-verified.apk
-          "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-1.1.62-verified.apk
-          SHA256=$(sha256sum Backroom-1.1.62-verified.apk | awk '{print $1}')
+          "$BUILD_TOOLS/apksigner" verify --verbose --print-certs Backroom-1.1.63-verified.apk
+          "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-1.1.63-verified.apk
+          SHA256=$(sha256sum Backroom-1.1.63-verified.apk | awk '{print $1}')
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git fetch origin main
           git checkout -B release-status-sync origin/main
-          rm -f release-status/v1.1.62-running.txt
-          printf 'status=GREEN\nversion=1.1.62\ntag=v1.1.62\nasset=Backroom-1.1.62.apk\nsource_sha=%s\nrun_id=%s\nsha256=%s\nbuild_type=debug\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$SHA256" > release-status/v1.1.62.txt
-          git add release-status/v1.1.62.txt release-status/v1.1.62-running.txt
-          git commit -m 'Record verified Backroom 1.1.62 debug release'
+          rm -f release-status/v1.1.63-running.txt
+          printf 'status=GREEN\nversion=1.1.63\ntag=v1.1.63\nasset=Backroom-1.1.63.apk\nsource_sha=%s\nrun_id=%s\nsha256=%s\nbuild_type=debug\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$SHA256" > release-status/v1.1.63.txt
+          git add release-status/v1.1.63.txt release-status/v1.1.63-running.txt
+          git commit -m 'Record verified Backroom 1.1.63 debug release'
           git push origin HEAD:main
