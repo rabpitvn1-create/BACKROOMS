@@ -41,5 +41,16 @@ for old, new, label in (
         raise RuntimeError(f"Devil Trigger generator compatibility {label}: expected 1 source assignment, found {count}")
     source = source.replace(old, new, 1)
 
+# John Doe is applied later and intentionally inserts its poison helpers at the
+# long-standing two-argument Party damage helper signature. Keep that public
+# patch-chain anchor as a tiny overload while routing to the DT-aware 3-argument
+# implementation. This preserves both existing downstream patches and DT evasion.
+old_helper_new = "helper_sig_new = '  private fun damageActivePartyByPercent(state: GameState, percent: Int, evadingCharacterIds: Set<String> = emptySet()): PartyPercentDamage {\\n'\n"
+new_helper_new = "helper_sig_new = '''  private fun damageActivePartyByPercent(state: GameState, percent: Int): PartyPercentDamage {\n    return damageActivePartyByPercent(state, percent, emptySet())\n  }\n\n  private fun damageActivePartyByPercent(state: GameState, percent: Int, evadingCharacterIds: Set<String>): PartyPercentDamage {\n'''\n"
+count = source.count(old_helper_new)
+if count != 1:
+    raise RuntimeError(f"Devil Trigger John Doe helper compatibility: expected 1 helper replacement assignment, found {count}")
+source = source.replace(old_helper_new, new_helper_new, 1)
+
 PATCH.write_text(source, encoding="utf-8")
-print("Devil Trigger generator compatibility applied: Kai catalog and finalized stat-based base attack anchors synchronized.")
+print("Devil Trigger generator compatibility applied: Kai catalog/stat attack and downstream Party-damage helper anchors synchronized.")
