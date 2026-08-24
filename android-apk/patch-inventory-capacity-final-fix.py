@@ -62,6 +62,8 @@ if new_expectation not in test:
     test = test.replace(old_expectation, new_expectation, 1)
 TEST.write_text(test, encoding="utf-8")
 
+# Character Detail must render one card per equipped item, even when one item
+# intentionally occupies multiple equipment slots (for example MadGod weapon+armor).
 html = INDEX.read_text(encoding="utf-8")
 old_equipment_renderer = '''    if(equipment){const rendered=[];Object.keys(eq).sort().forEach(slot=>{const id=eq[slot],item=details.find(x=>String(x.id)===String(id))||itemById(member,id);if(item)rendered.push(card(item,slot))});equipment.innerHTML=rendered.length?rendered.join(''):'<span>Không có trang bị được ghi nhận.</span>'}
 '''
@@ -87,14 +89,29 @@ for marker in (
         raise RuntimeError("Final capacity/equipment regression contract missing: " + marker)
 
 print("Inventory capacity final fix applied; multi-slot Equipment now renders one card per item with combined slot labels.")
+
+# This is the last patch in the release chain. Keep Snapshot/overlay state synchronized only after
+# every earlier gameplay, combat, equipment and UI transform has finished touching the runtime.
 runpy.run_path(str(ROOT / "patch-visual-state-sync-final.py"), run_name="__main__")
+
+# The existing final equipment patch adds fillStartingHp to normalizeInternal. Adapt that exact
+# final signature before Lucia attaches her save/backfill hook.
 runpy.run_path(str(ROOT / "patch-lucia-normalize-compat.py"), run_name="__main__")
+
+# Lucia is applied after all existing runtime/UI transforms so later patches cannot erase her
+# stats, inventory policy, three-slot loadout, encounter gate, or prompt contract.
 runpy.run_path(str(ROOT / "patch-lucia-follower.py"), run_name="__main__")
+
+# Final Entity action authority runs after Lucia because Lucia still adds an EXPLORE-only follower
+# encounter contract to MainActivity. This keeps roaming Entity generation available to all three
+# primary actions without changing Lucia's own Level 0 follower rules.
 runpy.run_path(str(ROOT / "patch-entity-encounter-all-actions.py"), run_name="__main__")
+
+# Healing items are installed last so their HP/use and generic-loot contracts see the fully patched
+# runtime and cannot be overwritten by earlier gameplay, follower, equipment, or encounter patches.
 runpy.run_path(str(ROOT / "patch-healing-items.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-healing-items-finalize.py"), run_name="__main__")
 
-# Lucia combat/scout must run after the finalized combat/loot stack. On current main,
-# healing finalization also pulls in Entity durability, Guilty Crown, Diệp Minh and Kai gun skills.
+# Lucia combat/scout is the final release-chain layer so it sees the finalized combat and loot state.
 runpy.run_path(str(ROOT / "patch-lucia-combat-scout-finalize.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-lucia-combat-evasion-compat.py"), run_name="__main__")
