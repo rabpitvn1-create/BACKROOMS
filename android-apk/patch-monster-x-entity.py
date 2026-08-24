@@ -160,8 +160,8 @@ COMBAT.write_text(combat, encoding="utf-8")
 
 # ---------------------------------------------------------------------------
 # Android encounter/overlay: independent 10% roll on Levels 0..999. Preserve
-# Diệp Minh's existing higher-priority unique-boss gate, then Monster X, then the
-# shared roaming pool. Monster X uses the pre-existing local asset x.png.
+# Diệp Minh's higher-priority unique-boss gate, then Monster X, then the shared
+# roaming pool. Monster X uses the existing case-sensitive local asset X.png.
 # ---------------------------------------------------------------------------
 main = MAIN.read_text(encoding="utf-8")
 
@@ -182,7 +182,7 @@ if 'private int rawLevelNumber(JSONObject state)' not in main:
 normal_roll = '    JSONObject normalEntityRoll = thresholdRoll("entityEncounter", 10000, entityThresholds[level], entityEncounterAction && entityAllowed, entitySuffix);\n'
 monster_roll = '''    int monsterXLevel = rawLevelNumber(state);
     JSONObject monsterXRoll = thresholdRoll("monsterXEncounter", 10000, 1000,
-      entityEncounterAction && monsterXLevel >= 0 && monsterXLevel <= 999, " Monster X unique roaming 10% Level 0-999");
+      entityEncounterAction && entityAllowed && monsterXLevel >= 0 && monsterXLevel <= 999, " Monster X unique roaming 10% Level 0-999");
     rolls.put("monsterXEncounter", monsterXRoll);
 '''
 if 'rolls.put("monsterXEncounter", monsterXRoll);' not in main:
@@ -196,10 +196,11 @@ name_anchor = '      case "diep_minh": name = "Diệp Minh"; break;\n'
 name_new = '      case "diep_minh": name = "Diệp Minh"; break;\n      case "monster_x": name = "Monster X"; break;\n'
 main = replace_once(main, name_anchor, name_new, "Monster X overlay display name")
 
-# Local asset filename differs from canonical key.
-asset_anchor = '    String assetPath = "file:///android_asset/entity/" + key + ".png";\n'
-asset_new = '    String assetFile = "monster_x".equals(key) ? "x.png" : key + ".png";\n    String assetPath = "file:///android_asset/entity/" + assetFile;\n'
-main = replace_once(main, asset_anchor, asset_new, "Monster X x.png overlay asset")
+# The generated resolver builds the local asset URL inline. Keep every existing
+# Entity on canonical-key.png and bind only Monster X to the existing X.png.
+asset_anchor = '      .put("url", "file:///android_asset/entity/" + entityKey + ".png");\n'
+asset_new = '      .put("url", "file:///android_asset/entity/" + ("monster_x".equals(entityKey) ? "X.png" : entityKey + ".png"));\n'
+main = replace_once(main, asset_anchor, asset_new, "Monster X X.png overlay asset")
 
 js_old = "'jeff_the_killer','jane_the_killer','slenderman','diep_minh'];"
 js_new = "'jeff_the_killer','jane_the_killer','slenderman','diep_minh','monster_x'];"
@@ -238,11 +239,11 @@ main = main[:helper_start] + helper + main[helper_end:]
 for marker in (
     'private int rawLevelNumber(JSONObject state)',
     'thresholdRoll("monsterXEncounter", 10000, 1000',
-    'monsterXLevel >= 0 && monsterXLevel <= 999',
+    'entityEncounterAction && entityAllowed && monsterXLevel >= 0 && monsterXLevel <= 999',
     'rolls.put("monsterXEncounter", monsterXRoll)',
     'case "monster_x":',
     'case "monster_x": name = "Monster X"; break;',
-    '"monster_x".equals(key) ? "x.png"',
+    '"monster_x".equals(entityKey) ? "X.png"',
     "'diep_minh','monster_x']",
     'JSONObject monsterX = rolls.optJSONObject("monsterXEncounter")',
     'entityKey = "monster_x";',
@@ -313,4 +314,4 @@ if 'monsterXHasExactHpAndFiftyRegen' not in test:
     test = test[:close] + tests + test[close:]
     TEST.write_text(test, encoding="utf-8")
 
-print("Monster X installed: exact 3456 HP, 6% Max-HP attack, 50 HP regen, party Bleeding, delayed Stun, independent 10% Level 0-999 encounter, x.png overlay binding.")
+print("Monster X installed: exact 3456 HP, 6% Max-HP attack, 50 HP regen, party Bleeding, delayed Stun, independent 10% Level 0-999 encounter, X.png overlay binding.")
