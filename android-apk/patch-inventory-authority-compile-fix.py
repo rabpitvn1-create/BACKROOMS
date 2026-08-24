@@ -96,3 +96,7 @@ if copy_safe_healing_id not in HEALING.read_text(encoding="utf-8"):
     raise RuntimeError("Omnivault healing-copy identity protection was not preserved")
 
 print("Healing contract compatibility restored without losing Omnivault copy identity.")
+
+# Final regression layer preserves pre-existing MadGod Omnivault bans and exact source
+# resolution after the identity rewrite, then updates stale natural-flow expectations.
+runpy.run_path(str(ROOT / "patch-omnivault-regression-compat.py"), run_name="__main__")
