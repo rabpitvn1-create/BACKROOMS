@@ -1,21 +1,32 @@
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parent
 INDEX = ROOT / "app/src/main/assets/index.html"
+MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
 html = INDEX.read_text(encoding="utf-8")
 
-MARKER = "COMBAT_ACTION_BAR_V1"
+MARKER = "COMBAT_ACTION_BAR_V2"
 
 if MARKER not in html:
+    # Pressure Combat's Kotlin/runtime state stays authoritative, but its old visible WebView HUD
+    # must be removed from the final packaged HTML rather than merely hidden after it renders.
+    legacy_style = re.compile(r'\s*<style id="pressureCombatStyle">.*?</style>\s*', re.DOTALL)
+    legacy_script = re.compile(r'\s*<script>\s*/\* PRESSURE_COMBAT_HUD_V1 \*/.*?</script>\s*', re.DOTALL)
+    html, style_count = legacy_style.subn("\n", html, count=1)
+    html, script_count = legacy_script.subn("\n", html, count=1)
+    if style_count != 1 or script_count != 1:
+        raise RuntimeError(
+            f"Combat action bar expected one legacy Pressure Combat HUD style/script, found style={style_count} script={script_count}"
+        )
+
     payload = r'''
 <style id="combatActionBarStyle">
-/* COMBAT_ACTION_BAR_V1 */
-#combatHud{display:none!important}
+/* COMBAT_ACTION_BAR_V2 */
 .primary-action-row.combat-actions{grid-template-columns:1fr 1fr 1fr}
 .primary-action-row.combat-actions .primary-action{color:#f7f9fa;border-color:#59636c;background:#1b2025;font-weight:800;letter-spacing:.025em}
 .primary-action-row.combat-actions .primary-action:active:not(:disabled){background:#2a3137;border-color:#87919a}
 .primary-action-row.combat-actions .action-icon{color:#fff;stroke:#fff;fill:none}
-.primary-action-row.combat-actions .combat-fill-icon{fill:#fff;stroke:none}
 @media(max-width:390px){.primary-action-row.combat-actions .primary-action{font-size:11px;gap:4px;padding:9px 4px}}
 </style>
 <script>
@@ -32,12 +43,10 @@ if MARKER not in html:
   };
 
   function combatActive(){return !!(window.state&&state.combat&&state.combat.active===true);}
-  function button(id){return document.getElementById(id);}
+  function byCombatId(id){return document.getElementById(id);}
   function setButton(el,spec){if(!el)return;el.setAttribute('aria-label',spec.aria);el.innerHTML=spec.icon+'<span>'+spec.label+'</span>';}
-  function removeLegacyHud(){var hud=document.getElementById('combatHud');if(hud)hud.remove();}
   function renderCombatActionBar(){
-    removeLegacyHud();
-    var row=button('primaryActionRow'),left=button('searchActionButton'),middle=button('submit'),right=button('exploreActionButton');
+    var row=byCombatId('primaryActionRow'),left=byCombatId('searchActionButton'),middle=byCombatId('submit'),right=byCombatId('exploreActionButton');
     if(!row||!left||!middle||!right)return;
     var active=combatActive();
     row.classList.toggle('combat-actions',active);
@@ -70,17 +79,23 @@ if MARKER not in html:
     window.Android.submitAction(JSON.stringify(state),'EXECUTE',action);
     return true;
   }
-  function intercept(ev){
+  function interceptCombatClick(ev){
     var target=ev.target&&ev.target.closest?ev.target.closest('#searchActionButton,#submit,#exploreActionButton'):null;
     if(!target||!combatActive())return;
     ev.preventDefault();ev.stopImmediatePropagation();
     var key=target.dataset.combatAction;
     if(key&&combatButtons[key])submitCombat(combatButtons[key].action);
   }
-  document.addEventListener('click',intercept,true);
+  document.addEventListener('click',interceptCombatClick,true);
 
-  var observer=new MutationObserver(function(){removeLegacyHud();});
-  observer.observe(document.body,{childList:true,subtree:true});
+  // Do not let the original free-form form submit path leak through during combat.
+  var form=byCombatId('form');
+  if(form)form.addEventListener('submit',function(ev){if(combatActive()){ev.preventDefault();ev.stopImmediatePropagation();}},true);
+
+  // The normal action UI listens to textarea input and may disable Execute when it is empty.
+  // Re-apply combat button state after that existing listener so NÉ TRÁNH never depends on textarea text.
+  var actionInput=byCombatId('action');
+  if(actionInput)actionInput.addEventListener('input',function(){if(combatActive())renderCombatActionBar();});
 
   var previousRender=window.render;
   if(typeof previousRender==='function')window.render=function(){var value=previousRender.apply(this,arguments);renderCombatActionBar();return value;};
@@ -88,7 +103,7 @@ if MARKER not in html:
   if(typeof previousTurn==='function')window.backroomTurn=function(json){var value=previousTurn.call(this,json);renderCombatActionBar();return value;};
 
   window.renderCombatActionBar=renderCombatActionBar;
-  removeLegacyHud();renderCombatActionBar();
+  renderCombatActionBar();
 })();
 </script>
 '''
@@ -96,26 +111,30 @@ if MARKER not in html:
         raise RuntimeError("Combat action bar: closing body tag missing")
     html = html.replace("</body>", payload + "\n</body>", 1)
 
-# The old Pressure Combat renderer may still exist in the generated HTML because it owns
-# the underlying combat mechanics. It must never remain visible or survive in the DOM.
 for marker in (
-    "COMBAT_ACTION_BAR_V1",
+    "COMBAT_ACTION_BAR_V2",
     "function combatActive()",
     "TẤN CÔNG",
     "NÉ TRÁNH",
     "BỎ CHẠY",
     "dataset.combatAction",
     "window.Android.submitAction(JSON.stringify(state),'EXECUTE',action)",
-    "new MutationObserver(function(){removeLegacyHud();})",
-    "#combatHud{display:none!important}",
+    "document.addEventListener('click',interceptCombatClick,true)",
+    "actionInput.addEventListener('input'",
+    "form.addEventListener('submit'",
 ):
     if marker not in html:
         raise RuntimeError("Combat action bar contract missing: " + marker)
 
-# Keep the existing scene/Snapshot/Entity overlay implementation untouched. No bitmap assets are
-# introduced by this patch; every combat button icon is inline vector SVG using currentColor/white.
-if "file:///android_asset/entity/" not in html and "file:///android_asset/entity/" not in (ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java").read_text(encoding="utf-8"):
+# The legacy HUD is gone from the final package, not merely hidden. CombatRuntime remains in Kotlin.
+for forbidden in ('PRESSURE_COMBAT_HUD_V1', 'id="pressureCombatStyle"', 'id="combatHud"'):
+    if forbidden in html:
+        raise RuntimeError("Legacy Pressure Combat HUD survived finalization: " + forbidden)
+
+# Keep scene/Snapshot/Entity visuals untouched, and do not introduce any bitmap asset for the buttons.
+main = MAIN.read_text(encoding="utf-8")
+if "file:///android_asset/entity/" not in html and "file:///android_asset/entity/" not in main:
     raise RuntimeError("Combat action bar unexpectedly lost local Entity visual authority")
 
 INDEX.write_text(html, encoding="utf-8")
-print("Combat action bar installed: legacy Pressure Combat HUD removed; Entity encounters use Attack / Evade / Flee vector buttons while combat mechanics and scene visuals remain intact.")
+print("Combat action bar V2 installed: legacy Pressure Combat HUD source removed; Entity encounters use Attack / Evade / Flee inline-vector buttons while CombatRuntime and scene visuals remain intact.")
