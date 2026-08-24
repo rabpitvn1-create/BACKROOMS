@@ -1,0 +1,144 @@
+name: Verify John Doe Entity
+
+on:
+  push:
+    branches: [feature/john-doe-entity-v3]
+    paths:
+      - "android-apk/**"
+      - "ENTITY_ASSETS.md"
+      - ".github/workflows/verify-john-doe-entity.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "android-apk/**"
+      - "ENTITY_ASSETS.md"
+      - ".github/workflows/verify-john-doe-entity.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      LUNA_API_KEY: ${{ secrets.LUNA_API_KEY }}
+      LUNA_BASE_URL: https://api.vilao.ai/v1
+      LUNA_MODEL: ${{ secrets.LUNA_MODEL }}
+      GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 || secrets.GEMINI_API_KEY }}
+      GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
+      GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
+      GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
+      GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Apply complete Android runtime patch chain first
+        id: patch_chain
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          scripts=(patch-provider-status.py patch-luna-text.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py)
+          for script in "${scripts[@]}"; do
+            echo "==> $script"
+            python3 "android-apk/$script"
+          done
+
+      - name: Verify John Doe contracts and final diff
+        id: contracts
+        if: steps.patch_chain.outcome == 'success'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          root = Path('android-apk')
+          combat = (root / 'app/src/main/java/com/rabpit/backroom/core/CombatRuntime.kt').read_text(encoding='utf-8')
+          java = (root / 'app/src/main/java/com/rabpit/backroom/MainActivity.java').read_text(encoding='utf-8')
+          test = (root / 'app/src/test/java/com/rabpit/backroom/core/CombatRuntimeTest.kt').read_text(encoding='utf-8')
+          patch = (root / 'patch-john-doe-entity.py').read_text(encoding='utf-8')
+          unified = (root / 'patch-unified-entity-spawn-pool.py').read_text(encoding='utf-8')
+          asset = root / 'app/src/main/assets/entity/John.png'
+
+          combined = combat + java + test + patch
+          for marker in (
+              'private const val JOHN_DOE_KEY = "john_doe"',
+              'private const val JOHN_DOE_MAX_HP = 1234',
+              'private const val JOHN_DOE_ATTACK_PERCENT = 6',
+              'private const val JOHN_DOE_REGEN_PER_TURN = 30',
+              'private const val JOHN_DOE_POISON_INTERVAL_TURNS = 3',
+              'private const val JOHN_DOE_POISON_CHANCE_PERCENT = 50',
+              'private const val JOHN_DOE_POISON_DAMAGE_PERCENT = 4',
+              'private const val JOHN_DOE_STUN_INTERVAL_TURNS = 2',
+              'private const val JOHN_DOE_STUN_GATE_PERCENT = 30',
+              'private const val JOHN_DOE_STUN_PROC_PERCENT = 20',
+              'damageJohnDoePoisoned(resolvedState, JOHN_DOE_POISON_DAMAGE_PERCENT)',
+              'JOHN_DOE_POISONED_PREFIX + characterId',
+              'John Doe Stun: Kai bị Stun',
+              'John Doe tấn công: Kai -$damage HP',
+              'thresholdRoll("johnDoeEncounter", 10000, 1000',
+              'johnDoeLevel >= 0 && johnDoeLevel <= 999',
+              'case "john_doe": name = "John Doe"; break;',
+              '"john_doe".equals(entityKey) ? "John.png"',
+              'johnDoeHasExactHpAndThirtyRegen',
+              'johnDoePoisonTracksAffectedPartyMembersSeparatelyAndTicksFourPercent',
+              'johnDoeStunUsesThirtyThenTwentyPercentAndBlocksOnlyTargetForOneTurn',
+          ):
+              assert marker in combined, marker
+
+          assert 'JOHN_DOE_STUN_DAMAGE' not in combat, '20% is a Stun proc chance, not damage'
+          assert 'JOHN_DOE_KEY -> JOHN_DOE_REGEN_PER_TURN' in combat
+          assert 'JOHN_DOE_KEY -> JOHN_DOE_MAX_HP' in combat
+          assert 'data:image' not in java.lower()
+          assert 'base64,' not in java.lower()
+
+          john_marker = 'runpy.run_path(str(ROOT / "patch-john-doe-entity.py"), run_name="__main__")'
+          monster_marker = 'runpy.run_path(str(ROOT / "patch-monster-x-entity.py"), run_name="__main__")'
+          assert john_marker in unified
+          assert unified.index(monster_marker) < unified.index(john_marker)
+
+          assert asset.is_file() and asset.stat().st_size > 0
+          raw = asset.read_bytes()
+          assert raw[:8] == b'\x89PNG\r\n\x1a\n'
+          assert b'data:image' not in raw[:1024].lower()
+          PY
+          git diff --check
+
+      - uses: actions/setup-java@v5
+        if: steps.patch_chain.outcome == 'success' && steps.contracts.outcome == 'success'
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+        if: steps.patch_chain.outcome == 'success' && steps.contracts.outcome == 'success'
+        with:
+          gradle-version: "8.10.2"
+
+      - name: Run unit tests and build debug APK
+        id: android_build
+        if: steps.patch_chain.outcome == 'success' && steps.contracts.outcome == 'success'
+        continue-on-error: true
+        working-directory: android-apk
+        run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
+
+      - name: Verify John.png is packaged as a raw asset
+        id: packaged_asset
+        if: steps.android_build.outcome == 'success'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          unzip -l android-apk/app/build/outputs/apk/debug/app-debug.apk | grep -q 'assets/entity/John.png'
+
+      - name: Enforce pre-merge green gate
+        if: always()
+        run: |
+          test "${{ steps.patch_chain.outcome }}" = "success"
+          test "${{ steps.contracts.outcome }}" = "success"
+          test "${{ steps.android_build.outcome }}" = "success"
+          test "${{ steps.packaged_asset.outcome }}" = "success"
