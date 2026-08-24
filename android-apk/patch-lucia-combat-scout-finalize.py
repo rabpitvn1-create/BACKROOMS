@@ -42,5 +42,17 @@ main = main[:loot_anchor_start] + loot_new + main[loot_anchor_end + 1:]
 """
 source = source[:loot_start] + loot_block + source[loot_end:]
 
+# The final composed threshold necessarily includes An Nhiên's existing +1000 term, so the
+# original Lucia-only exact threshold marker is obsolete. Keep the stronger runtime markers.
+source, marker_count = re.subn(
+    r"^\s*'int lootThreshold = Math\.min\(10000, lootThresholds\[level\] \+ luciaScoutBonus\);',\n",
+    "",
+    source,
+    count=1,
+    flags=re.MULTILINE,
+)
+if marker_count != 1:
+    raise RuntimeError("Lucia combat scout finalizer could not remove obsolete loot threshold marker")
+
 exec(compile(source, str(PATCH), "exec"), {"__name__": "__main__", "__file__": str(PATCH)})
 print("Lucia combat/scout finalizer executed with composed An Nhiên + Lucia loot bonuses.")
