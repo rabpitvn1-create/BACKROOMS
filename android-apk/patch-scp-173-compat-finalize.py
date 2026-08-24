@@ -4,6 +4,8 @@ import runpy
 ROOT = Path(__file__).resolve().parent
 COMBAT = ROOT / "app/src/main/java/com/rabpit/backroom/core/CombatRuntime.kt"
 TEST = ROOT / "app/src/test/java/com/rabpit/backroom/core/CombatRuntimeTest.kt"
+MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
+SCP_IMAGE = ROOT / "app/src/main/assets/entity/SCP173.png"
 
 combat = COMBAT.read_text(encoding="utf-8")
 
@@ -77,3 +79,27 @@ print("SCP-173 compatibility finalizer applied: existing Guilty Crown narration 
 # Devil Trigger temporarily restored Guilty Crown's raw block before SCP-173. Reapply the x5
 # multiplier now, after SCP-173 has installed its mitigation and compatibility narration.
 runpy.run_path(str(ROOT / "patch-devil-trigger-scp-finalize.py"), run_name="__main__")
+
+# Keep the old 173.png asset untouched for repository compatibility, but make the finalized
+# runtime render SCP-173 from the newly supplied SCP173.png file. This runs after every SCP
+# and Devil Trigger transform so the display mapping cannot be overwritten later in the chain.
+main = MAIN.read_text(encoding="utf-8")
+old_image_mapping = '"scp_173".equals(entityKey) ? "173.png"'
+new_image_mapping = '"scp_173".equals(entityKey) ? "SCP173.png"'
+if new_image_mapping not in main:
+    if old_image_mapping not in main:
+        raise RuntimeError("SCP-173 image mapping anchor missing from finalized MainActivity")
+    main = main.replace(old_image_mapping, new_image_mapping, 1)
+MAIN.write_text(main, encoding="utf-8")
+
+if new_image_mapping not in MAIN.read_text(encoding="utf-8"):
+    raise RuntimeError("SCP-173 finalized runtime does not point to SCP173.png")
+if not SCP_IMAGE.is_file() or SCP_IMAGE.stat().st_size <= 0:
+    raise RuntimeError("SCP-173 display asset missing: android-apk/app/src/main/assets/entity/SCP173.png")
+raw = SCP_IMAGE.read_bytes()
+if raw[:8] != b'\x89PNG\r\n\x1a\n':
+    raise RuntimeError("SCP173.png is not a valid PNG asset")
+if b'data:image' in raw[:1024].lower() or b'base64,' in raw[:1024].lower():
+    raise RuntimeError("SCP173.png must remain a raw PNG asset, not an embedded Data URI/Base64 payload")
+
+print("SCP-173 display mapping finalized: file:///android_asset/entity/SCP173.png")
