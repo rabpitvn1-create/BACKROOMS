@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 import runpy
 
 ROOT = Path(__file__).resolve().parent
@@ -38,9 +39,21 @@ for historical, normalized, label in anchor_pairs:
         command = command.replace(historical, normalized, 1)
     elif normalized not in command:
         raise RuntimeError(f"Inventory authority {label} compatibility anchor missing")
+
+# Once both branches stop calling MadGod's historical equipmentSlot helper it is dead code.
+# Removing that one generated helper also restores the resolvedQuantity -> itemCommand adjacency
+# expected by the final authority patch, without changing the behavior of any surviving caller.
+slot_helper_pattern = re.compile(
+    r'  private fun equipmentSlot\(item: Pair<String,String>\): String = MadGodCanon\.slot\(item\.first,item\.second\).*?\n\n',
+    re.DOTALL,
+)
+command, removed_helpers = slot_helper_pattern.subn('', command, count=1)
+if removed_helpers == 0 and 'private fun equipmentSlot(item: Pair<String,String>)' in command:
+    raise RuntimeError("Inventory authority could not normalize historical equipmentSlot helper")
+
 COMMAND.write_text(command, encoding="utf-8")
 
-print("Inventory authority compile fix applied: Kotlin regex corrected and final equipment resolver anchors normalized.")
+print("Inventory authority compile fix applied: Kotlin regex corrected and final resolver compatibility normalized.")
 
 # Omnivault instance identity is the last gameplay-state layer. It depends on the final
 # inventory authority/world-loot contract above and must execute after its generated Kotlin
