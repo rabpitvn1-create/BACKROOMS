@@ -3,7 +3,9 @@ import runpy
 
 ROOT = Path(__file__).resolve().parent
 ENGINES = ROOT / "app/src/main/java/com/rabpit/backroom/core/Engines.kt"
+ITEM_CATALOG = ROOT / "app/src/main/java/com/rabpit/backroom/core/ItemCatalog.kt"
 
+MODERN_OFFICIAL_ITEMS = ITEM_CATALOG.exists() and 'OfficialItem(BANDAGE, "Bandage"' in ITEM_CATALOG.read_text(encoding="utf-8")
 text = ENGINES.read_text(encoding="utf-8")
 old = 'finishItemUse(state, changed(state, "item_used"), command, physiologyEffects)'
 new = 'finishItemUse(state, changed(state, "item_used"), command, physiologyEffects, healingAmount)'
@@ -17,7 +19,8 @@ if 'finishItemUse(state, inventoryResult, command, physiologyEffects)' in text o
     raise RuntimeError("A pre-healing finishItemUse call survived")
 
 ENGINES.write_text(text, encoding="utf-8")
-print("Healing item final use call updated with healHp argument.")
+mode = "official catalog" if MODERN_OFFICIAL_ITEMS else "legacy"
+print(f"Healing item final use call updated with healHp argument ({mode} mode).")
 
 # Final Entity combat balance authority runs after the healing-item chain so no later runtime patch can
 # rewrite Entity HP, evasion, regeneration, or legacy combat migration semantics.

@@ -38,7 +38,14 @@ class GameStateCoreTest {
     assertEquals("player_pickup_unavailable", playerPickup.validation.reason)
     assertTrue(playerPickup.state.inventories.getValue(KAI_ID).items.isEmpty())
 
-    val storyGrant = StateReducer.execute(base(), item("water", ItemCommand.Operation.PICKUP, source = CommandSource.GEMINI))
+    val ungroundedStoryGrant = StateReducer.execute(base(), item("water", ItemCommand.Operation.PICKUP, source = CommandSource.GEMINI))
+    assertFalse(ungroundedStoryGrant.applied)
+    assertEquals("acquisition_event_required", ungroundedStoryGrant.validation.reason)
+
+    val groundedCommand = item("water", ItemCommand.Operation.PICKUP, source = CommandSource.GEMINI).copy(
+      metadata = mapOf("acquisitionSource" to "WORLD_EVENT")
+    )
+    val storyGrant = StateReducer.execute(base(), groundedCommand)
     assertTrue(storyGrant.applied)
     assertEquals(1, storyGrant.state.inventories.getValue(KAI_ID).items.getValue("water").quantity)
   }
