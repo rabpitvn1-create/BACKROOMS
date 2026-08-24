@@ -1,4 +1,5 @@
 from pathlib import Path
+import runpy
 
 ROOT = Path(__file__).resolve().parent
 INDEX = ROOT / "app/src/main/assets/index.html"
@@ -25,3 +26,7 @@ if html.count(new) != 1:
 
 INDEX.write_text(html, encoding="utf-8")
 print("Combat action bar state gate fixed: active Entity combat now reads the lexical game state directly.")
+
+# Rest/sleep physiology authority is applied after every earlier gameplay/UI patch so a GM
+# narration about resting cannot leave the authoritative sleep counter unchanged.
+runpy.run_path(str(ROOT / "patch-rest-physiology-state-finalize.py"), run_name="__main__")
