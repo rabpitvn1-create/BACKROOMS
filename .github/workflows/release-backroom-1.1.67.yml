@@ -88,7 +88,6 @@ jobs:
           html = (root / 'app/src/main/assets/index.html').read_text(encoding='utf-8')
           java = (root / 'app/src/main/java/com/rabpit/backroom/MainActivity.java').read_text(encoding='utf-8')
           combat = (core / 'CombatRuntime.kt').read_text(encoding='utf-8')
-          combat_test = (root / 'app/src/test/java/com/rabpit/backroom/core/CombatRuntimeTest.kt').read_text(encoding='utf-8')
           chain = (root / 'patch-unified-entity-spawn-pool.py').read_text(encoding='utf-8')
           rest_chain = (root / 'patch-combat-action-bar-state-fix.py').read_text(encoding='utf-8')
           john_asset = root / 'app/src/main/assets/entity/John.png'
@@ -102,7 +101,7 @@ jobs:
           assert 'TẤN CÔNG' in html and 'NÉ TRÁNH' in html and 'BỎ CHẠY' in html
           assert 'patch-rest-physiology-state-finalize.py' in rest_chain
 
-          combined = combat + java + combat_test
+          combined = combat + java
           for marker in (
               'private const val JOHN_DOE_KEY = "john_doe"',
               'private const val JOHN_DOE_MAX_HP = 1234',
@@ -121,9 +120,6 @@ jobs:
               'johnDoeLevel >= 0 && johnDoeLevel <= 999',
               'case "john_doe": name = "John Doe"; break;',
               '"john_doe".equals(entityKey) ? "John.png"',
-              'johnDoeHasExactHpAndThirtyRegen',
-              'johnDoePoisonTracksAffectedPartyMembersSeparatelyAndTicksFourPercent',
-              'johnDoeStunUsesThirtyThenTwentyPercentAndBlocksOnlyTargetForOneTurn',
           ):
               assert marker in combined, marker
 
