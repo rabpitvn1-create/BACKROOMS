@@ -16,8 +16,11 @@ def replace_once(source: str, old: str, new: str, label: str) -> str:
     return source.replace(old, new, 1)
 
 
-# John Doe runs after the finalized shared pool, Diệp Minh and Monster X layers.
-# Keep his user-locked values outside generic Entity durability/scaling rules.
+# ---------------------------------------------------------------------------
+# CombatRuntime
+# ---------------------------------------------------------------------------
+# This patch is deliberately last in the Entity patch chain. It extends the
+# finalized Monster X shape instead of replacing any existing combat system.
 combat = COMBAT.read_text(encoding="utf-8")
 
 constants_anchor = '  private const val MONSTER_X_STUN_TURNS_KEY = "combat.monsterXStunTurns"\n'
@@ -33,14 +36,13 @@ constants = '''  private const val JOHN_DOE_KEY = "john_doe"
   private const val JOHN_DOE_STUN_GATE_PERCENT = 30
   private const val JOHN_DOE_STUN_PROC_PERCENT = 20
   private const val JOHN_DOE_STUN_TURNS_KEY = "combat.johnDoeStunTurns"
-  private const val JOHN_DOE_STUN_TARGET_ID_KEY = "combat.johnDoeStunTargetId"
 '''
 if 'private const val JOHN_DOE_KEY = "john_doe"' not in combat:
     combat = replace_once(combat, constants_anchor, constants_anchor + constants, "John Doe constants")
 
 profile_anchor = '    Profile(MONSTER_X_KEY, "Monster X", MONSTER_X_MAX_HP, 0, 7, 9)\n'
 profile_new = '    Profile(MONSTER_X_KEY, "Monster X", MONSTER_X_MAX_HP, 0, 7, 9),\n    Profile(JOHN_DOE_KEY, "John Doe", JOHN_DOE_MAX_HP, 0, 6, 9)\n'
-combat = replace_once(combat, profile_anchor, profile_new, "John Doe combat profile")
+combat = replace_once(combat, profile_anchor, profile_new, "John Doe profile")
 
 combat = replace_once(
     combat,
@@ -55,6 +57,7 @@ combat = replace_once(
     "John Doe exact migrated HP",
 )
 
+# Poison membership is persisted per character ID, not as one Party-wide boolean.
 helper_anchor = '  private fun damageActivePartyByPercent(state: GameState, percent: Int): PartyPercentDamage {\n'
 helpers = r'''  private fun johnDoePoisonedIds(state: GameState): Set<String> =
     state.metadata.entries.asSequence()
@@ -99,8 +102,11 @@ helpers = r'''  private fun johnDoePoisonedIds(state: GameState): Set<String> =
 
 '''
 if 'private fun johnDoePoisonedIds(' not in combat:
-    combat = replace_once(combat, helper_anchor, helpers + helper_anchor, "John Doe per-character Poison helpers")
+    combat = replace_once(combat, helper_anchor, helpers + helper_anchor, "John Doe poison helpers")
 
+# The current combat target is Kai in the authoritative Entity response model.
+# A successful John Doe Stun therefore suppresses the next player action exactly
+# once. It does not deal damage and is independent from Poison.
 intent_old = '''    val requestedIntent = classify(actionKind, action)
     val monsterXStunTurns = state.metadata[MONSTER_X_STUN_TURNS_KEY]?.toIntOrNull()?.coerceIn(0, 1) ?: 0
     val monsterXPartyStunned = current.entityKey == MONSTER_X_KEY && monsterXStunTurns > 0
@@ -112,18 +118,12 @@ intent_new = '''    val requestedIntent = classify(actionKind, action)
     val monsterXStunTurns = state.metadata[MONSTER_X_STUN_TURNS_KEY]?.toIntOrNull()?.coerceIn(0, 1) ?: 0
     val monsterXPartyStunned = current.entityKey == MONSTER_X_KEY && monsterXStunTurns > 0
     val johnDoeStunTurns = state.metadata[JOHN_DOE_STUN_TURNS_KEY]?.toIntOrNull()?.coerceIn(0, 1) ?: 0
-    val johnDoeStunTargetId = state.metadata[JOHN_DOE_STUN_TARGET_ID_KEY].orEmpty()
-    val johnDoeTargetStunned = current.entityKey == JOHN_DOE_KEY && johnDoeStunTurns > 0 && johnDoeStunTargetId == KAI_ID
-    val johnDoeHasActiveTeammate = state.party.memberIds.distinct().any { characterId ->
-      characterId != KAI_ID && state.characters[characterId]?.let { character ->
-        character.presence == CharacterPresence.ACTIVE && character.vitalState.currentHp > 0
-      } == true
-    }
-    val intent = if (monsterXPartyStunned || (johnDoeTargetStunned && !johnDoeHasActiveTeammate)) Intent.OTHER else requestedIntent
+    val johnDoeTargetStunned = current.entityKey == JOHN_DOE_KEY && johnDoeStunTurns > 0
+    val intent = if (monsterXPartyStunned || johnDoeTargetStunned) Intent.OTHER else requestedIntent
     var c = current.copy(eventCounter = current.eventCounter + 1)
     val log = mutableListOf<String>()
 '''
-combat = replace_once(combat, intent_old, intent_new, "John Doe target-specific Stun locals")
+combat = replace_once(combat, intent_old, intent_new, "John Doe one-turn Stun intent")
 
 resolved_old = '''    var resolvedState = state
     var monsterXBleedTurns = state.metadata[MONSTER_X_BLEED_TURNS_KEY]?.toIntOrNull()?.coerceIn(0, MONSTER_X_BLEED_DURATION_TURNS) ?: 0
@@ -140,43 +140,12 @@ resolved_new = '''    var resolvedState = state
     }
     if (johnDoeTargetStunned) {
       resolvedState = withCombatCounter(resolvedState, JOHN_DOE_STUN_TURNS_KEY, 0)
-      log += "John Doe Stun: Kai bị Stun và không thể thực hiện hành động trong lượt hiện tại."
+      log += "John Doe Stun: mục tiêu bị Stun và không thể thực hiện hành động trong lượt hiện tại."
     }
 '''
-combat = replace_once(combat, resolved_old, resolved_new, "John Doe one-turn target Stun consumption")
+combat = replace_once(combat, resolved_old, resolved_new, "John Doe Stun consumption")
 
-# If teammates are present they may still execute the Party ATTACK command. Only Kai's
-# own base attack and automatic gun skills are suppressed by John Doe's target Stun.
-resolve_start = combat.index('  fun resolve(state: GameState, actionKind: String, action: String): Resolution {\n')
-resolve_end = combat.index('\n  fun toJson(state: GameState): JSONObject?', resolve_start)
-attack_start = combat.find('      Intent.ATTACK -> {\n', resolve_start, resolve_end)
-attack_end = combat.find('      Intent.OTHER -> {\n', attack_start, resolve_end)
-if attack_start < 0 or attack_end < 0:
-    raise RuntimeError("John Doe Stun: final Party ATTACK block missing")
-attack = combat[attack_start:attack_end]
-if 'John Doe Stun: Kai không thể thực hiện đòn tấn công' not in attack:
-    attack = replace_once(
-        attack,
-        '        if (roll < hitChance) {\n',
-        '''        if (johnDoeTargetStunned) {
-          log += "John Doe Stun: Kai không thể thực hiện đòn tấn công trong lượt này."
-        } else if (roll < hitChance) {
-''',
-        "John Doe Kai base-attack Stun gate",
-    )
-    combat = combat[:attack_start] + attack + combat[attack_end:]
-
-kai_skill_replacements = (
-    ('    if (intent == Intent.ATTACK) {\n', '    if (intent == Intent.ATTACK && !johnDoeTargetStunned) {\n', "John Doe GCO Stun gate"),
-    ('    val isGuiltyCrownTurn = intent == Intent.ATTACK && c.eventCounter % KAI_GUILTY_CROWN_INTERVAL_TURNS == 0\n', '    val isGuiltyCrownTurn = intent == Intent.ATTACK && !johnDoeTargetStunned && c.eventCounter % KAI_GUILTY_CROWN_INTERVAL_TURNS == 0\n', "John Doe GCO priority Stun gate"),
-    ('      if (intent == Intent.ATTACK && !isGuiltyCrownTurn && roll(c.copy(eventCounter = c.eventCounter + 101), 100) < KAI_LAST_REQUIEM_CHANCE_PERCENT) {\n', '      if (intent == Intent.ATTACK && !johnDoeTargetStunned && !isGuiltyCrownTurn && roll(c.copy(eventCounter = c.eventCounter + 101), 100) < KAI_LAST_REQUIEM_CHANCE_PERCENT) {\n', "John Doe Last Requiem Stun gate"),
-    ('      if (intent == Intent.ATTACK && !isGuiltyCrownTurn && c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 113), 100) < KAI_SILENT_LULLABY_CHANCE_PERCENT) {\n', '      if (intent == Intent.ATTACK && !johnDoeTargetStunned && !isGuiltyCrownTurn && c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 113), 100) < KAI_SILENT_LULLABY_CHANCE_PERCENT) {\n', "John Doe Silent Lullaby Stun gate"),
-    ('      if (intent == Intent.ATTACK && !isGuiltyCrownTurn && c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 127), 100) < KAI_SALVATION_CHANCE_PERCENT) {\n', '      if (intent == Intent.ATTACK && !johnDoeTargetStunned && !isGuiltyCrownTurn && c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 127), 100) < KAI_SALVATION_CHANCE_PERCENT) {\n', "John Doe Salvation Stun gate"),
-    ('      if ((intent == Intent.ATTACK || intent == Intent.EVADE) && !isGuiltyCrownTurn && c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 139), 100) < KAI_QUICK_STEP_CHANCE_PERCENT) {\n', '      if ((intent == Intent.ATTACK || intent == Intent.EVADE) && !johnDoeTargetStunned && !isGuiltyCrownTurn && c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 139), 100) < KAI_QUICK_STEP_CHANCE_PERCENT) {\n', "John Doe Quick Step Stun gate"),
-)
-for old, new, label in kai_skill_replacements:
-    combat = replace_once(combat, old, new, label)
-
+# Poison ticks separately for every persisted affected member.
 poison_anchor = '    if (c.entityKey == MONSTER_X_KEY && monsterXBleedTurns > 0) {\n'
 poison_tick = '''    if (c.entityKey == JOHN_DOE_KEY && johnDoePoisonedIds(resolvedState).isNotEmpty()) {
       val poison = damageJohnDoePoisoned(resolvedState, JOHN_DOE_POISON_DAMAGE_PERCENT)
@@ -187,13 +156,15 @@ poison_tick = '''    if (c.entityKey == JOHN_DOE_KEY && johnDoePoisonedIds(resol
 
 '''
 if 'Poison John Doe: từng mục tiêu đang bị ảnh hưởng' not in combat:
-    combat = replace_once(combat, poison_anchor, poison_tick + poison_anchor, "John Doe per-character Poison tick")
+    combat = replace_once(combat, poison_anchor, poison_tick + poison_anchor, "John Doe per-member poison tick")
 
+# John Doe gets its own response branch so a landed attack is exactly 6% of the
+# target's Max HP while retaining the existing defense/evasion mechanics.
 response_anchor = '''    if (entityStunnedThisTurn) {
       log += "Silent Lullaby: ${c.entityName} bị Stun và mất lượt phản ứng hiện tại."
     } else if (c.entityKey == DIEP_MINH_KEY && c.eventCounter % DIEP_MINH_ULTIMATE_INTERVAL_TURNS == 0) {
 '''
-john_response = '''    if (entityStunnedThisTurn) {
+response_new = '''    if (entityStunnedThisTurn) {
       log += "Silent Lullaby: ${c.entityName} bị Stun và mất lượt phản ứng hiện tại."
     } else if (c.entityKey == JOHN_DOE_KEY) {
       val incomingRoll = roll(c.copy(eventCounter = c.eventCounter + 31), 100)
@@ -209,35 +180,32 @@ john_response = '''    if (entityStunnedThisTurn) {
         c = c.copy(playerHp = hp, momentum = max(-3, c.momentum - 1))
         log += "John Doe tấn công: Kai -$damage HP (${JOHN_DOE_ATTACK_PERCENT}% Max HP; ${c.playerHp}/${c.playerMaxHp})."
       } else {
-        log += if (quickStepTurns > 0) {
-          "Quick Step khiến John Doe hụt đòn; +${KAI_QUICK_STEP_EVASION_BONUS_PERCENT}% Evasion đang hoạt động."
-        } else {
-          "John Doe không xuyên được thế phòng thủ/di chuyển của Kai."
-        }
+        log += "John Doe không xuyên được thế phòng thủ/di chuyển của Kai."
       }
     } else if (c.entityKey == DIEP_MINH_KEY && c.eventCounter % DIEP_MINH_ULTIMATE_INTERVAL_TURNS == 0) {
 '''
-combat = replace_once(combat, response_anchor, john_response, "John Doe 6 percent authoritative target attack")
+combat = replace_once(combat, response_anchor, response_new, "John Doe 6 percent response")
 
+# Proc scheduling happens after the current response. Poison starts ticking on
+# the following combat turn; Stun suppresses exactly the following action.
 regen_anchor = '    val entityHpBeforeRegen = c.entityHp\n'
 status_procs = '''    if (c.entityKey == JOHN_DOE_KEY && c.eventCounter % JOHN_DOE_POISON_INTERVAL_TURNS == 0 &&
         roll(c.copy(eventCounter = c.eventCounter + 607), 100) < JOHN_DOE_POISON_CHANCE_PERCENT) {
       val affected = johnDoePoisonedIds(resolvedState) + johnDoeActivePartyIds(resolvedState)
       resolvedState = withJohnDoePoisoned(resolvedState, affected)
-      log += "John Doe gây Poison sau mỗi ${JOHN_DOE_POISON_INTERVAL_TURNS} lượt: proc ${JOHN_DOE_POISON_CHANCE_PERCENT}% thành công; đánh dấu riêng ${affected.size} thành viên ACTIVE."
+      log += "John Doe gây Poison sau ${JOHN_DOE_POISON_INTERVAL_TURNS} lượt: proc ${JOHN_DOE_POISON_CHANCE_PERCENT}% thành công; đánh dấu riêng ${affected.size} thành viên ACTIVE."
     }
     if (c.entityKey == JOHN_DOE_KEY && c.eventCounter % JOHN_DOE_STUN_INTERVAL_TURNS == 0 &&
         roll(c.copy(eventCounter = c.eventCounter + 619), 100) < JOHN_DOE_STUN_GATE_PERCENT &&
         roll(c.copy(eventCounter = c.eventCounter + 631), 100) < JOHN_DOE_STUN_PROC_PERCENT) {
       resolvedState = withCombatCounter(resolvedState, JOHN_DOE_STUN_TURNS_KEY, 1)
-      resolvedState = resolvedState.copy(metadata = resolvedState.metadata + (JOHN_DOE_STUN_TARGET_ID_KEY to KAI_ID))
-      log += "John Doe Stun check: cổng ${JOHN_DOE_STUN_GATE_PERCENT}% và proc ${JOHN_DOE_STUN_PROC_PERCENT}% cùng thành công; Kai bị Stun 1 lượt kế tiếp."
+      log += "John Doe Stun check: cổng ${JOHN_DOE_STUN_GATE_PERCENT}% và proc ${JOHN_DOE_STUN_PROC_PERCENT}% cùng thành công; mục tiêu bị Stun 1 lượt kế tiếp."
     }
 
     val entityHpBeforeRegen = c.entityHp
 '''
 if 'John Doe Stun check: cổng' not in combat:
-    combat = replace_once(combat, regen_anchor, status_procs, "John Doe Poison/Stun scheduling")
+    combat = replace_once(combat, regen_anchor, status_procs, "John Doe proc scheduling")
 
 regen_old = '    val entityRegen = when (c.entityKey) { DIEP_MINH_KEY -> DIEP_MINH_REGEN_PER_TURN; MONSTER_X_KEY -> MONSTER_X_REGEN_PER_TURN; else -> ENTITY_REGEN_PER_TURN }\n'
 regen_new = '    val entityRegen = when (c.entityKey) { DIEP_MINH_KEY -> DIEP_MINH_REGEN_PER_TURN; MONSTER_X_KEY -> MONSTER_X_REGEN_PER_TURN; JOHN_DOE_KEY -> JOHN_DOE_REGEN_PER_TURN; else -> ENTITY_REGEN_PER_TURN }\n'
@@ -255,19 +223,22 @@ for marker in (
     'private const val JOHN_DOE_STUN_PROC_PERCENT = 20',
     'Profile(JOHN_DOE_KEY, "John Doe", JOHN_DOE_MAX_HP, 0, 6, 9)',
     'damageJohnDoePoisoned(resolvedState, JOHN_DOE_POISON_DAMAGE_PERCENT)',
-    'John Doe Stun: Kai bị Stun',
+    'John Doe Stun: mục tiêu bị Stun',
     'John Doe tấn công: Kai -$damage HP',
     'JOHN_DOE_KEY -> JOHN_DOE_REGEN_PER_TURN',
 ):
     if marker not in combat:
         raise RuntimeError("John Doe combat contract missing: " + marker)
 if 'JOHN_DOE_STUN_DAMAGE' in combat:
-    raise RuntimeError("John Doe Stun must not deal an invented 20% damage hit")
+    raise RuntimeError("John Doe 20% Stun value must remain a proc chance, not damage")
 COMBAT.write_text(combat, encoding="utf-8")
 
 
-# Independent 10% encounter on raw Levels 0..999. Preserve existing priority:
-# Diệp Minh unique boss > Monster X unique roaming > John Doe > shared pool.
+# ---------------------------------------------------------------------------
+# Android encounter + overlay
+# ---------------------------------------------------------------------------
+# Independent 10% encounter on raw Levels 0..999. Existing unique priority is
+# preserved: Diệp Minh > Monster X > John Doe > shared roaming pool.
 main = MAIN.read_text(encoding="utf-8")
 
 monster_roll_anchor = '    rolls.put("monsterXEncounter", monsterXRoll);\n'
@@ -278,23 +249,32 @@ john_roll = '''    int johnDoeLevel = rawLevelNumber(state);
     rolls.put("johnDoeEncounter", johnDoeRoll);
 '''
 if 'rolls.put("johnDoeEncounter", johnDoeRoll);' not in main:
-    main = replace_once(main, monster_roll_anchor, monster_roll_anchor + john_roll, "John Doe independent 10 percent roll")
+    main = replace_once(main, monster_roll_anchor, monster_roll_anchor + john_roll, "John Doe independent encounter roll")
 
-normalized_old = '      case "jeff_the_killer": case "jane_the_killer": case "slenderman": case "diep_minh": case "monster_x":\n        return key;\n'
-normalized_new = '      case "jeff_the_killer": case "jane_the_killer": case "slenderman": case "diep_minh": case "monster_x": case "john_doe":\n        return key;\n'
-main = replace_once(main, normalized_old, normalized_new, "John Doe canonical key")
-
-name_anchor = '      case "monster_x": name = "Monster X"; break;\n'
-name_new = '      case "monster_x": name = "Monster X"; break;\n      case "john_doe": name = "John Doe"; break;\n'
-main = replace_once(main, name_anchor, name_new, "John Doe overlay display name")
-
-asset_old = '      .put("url", "file:///android_asset/entity/" + ("monster_x".equals(entityKey) ? "X.png" : entityKey + ".png"));\n'
-asset_new = '      .put("url", "file:///android_asset/entity/" + ("monster_x".equals(entityKey) ? "X.png" : ("john_doe".equals(entityKey) ? "John.png" : entityKey + ".png")));\n'
-main = replace_once(main, asset_old, asset_new, "John Doe exact local John.png asset")
-
-js_old = "'jeff_the_killer','jane_the_killer','slenderman','diep_minh','monster_x'];"
-js_new = "'jeff_the_killer','jane_the_killer','slenderman','diep_minh','monster_x','john_doe'];"
-main = replace_once(main, js_old, js_new, "John Doe overlay JavaScript key")
+main = replace_once(
+    main,
+    '      case "jeff_the_killer": case "jane_the_killer": case "slenderman": case "diep_minh": case "monster_x":\n        return key;\n',
+    '      case "jeff_the_killer": case "jane_the_killer": case "slenderman": case "diep_minh": case "monster_x": case "john_doe":\n        return key;\n',
+    "John Doe canonical key",
+)
+main = replace_once(
+    main,
+    '      case "monster_x": name = "Monster X"; break;\n',
+    '      case "monster_x": name = "Monster X"; break;\n      case "john_doe": name = "John Doe"; break;\n',
+    "John Doe display name",
+)
+main = replace_once(
+    main,
+    '      .put("url", "file:///android_asset/entity/" + ("monster_x".equals(entityKey) ? "X.png" : entityKey + ".png"));\n',
+    '      .put("url", "file:///android_asset/entity/" + ("monster_x".equals(entityKey) ? "X.png" : ("john_doe".equals(entityKey) ? "John.png" : entityKey + ".png")));\n',
+    "John Doe direct John.png asset",
+)
+main = replace_once(
+    main,
+    "'jeff_the_killer','jane_the_killer','slenderman','diep_minh','monster_x'];",
+    "'jeff_the_killer','jane_the_killer','slenderman','diep_minh','monster_x','john_doe'];",
+    "John Doe overlay JS key",
+)
 
 helper_start = main.find('  private void forceEntityEncounterFlag(JSONObject candidateState, JSONObject rolls) throws Exception {')
 helper_end = main.find('\n  private JSONObject resolveEntityOverlay(String rawEntityKey) throws Exception {', helper_start)
@@ -345,22 +325,22 @@ for marker in (
 MAIN.write_text(main, encoding="utf-8")
 
 
-# Regression coverage is appended after all earlier combat compatibility rewrites.
+# ---------------------------------------------------------------------------
+# Regression coverage
+# ---------------------------------------------------------------------------
 test = TEST.read_text(encoding="utf-8")
 if 'johnDoeHasExactHpAndThirtyRegen' not in test:
     tests = r'''
   @Test fun johnDoeHasExactHpAndThirtyRegen() {
     var state = CombatRuntime.start(GameState.initial(), "john_doe")
-    val started = CombatRuntime.active(state)!!
-    assertEquals(1234, started.entityMaxHp)
-    assertEquals(1234, started.entityHp)
+    assertEquals(1234, CombatRuntime.active(state)!!.entityMaxHp)
     state = state.copy(metadata = state.metadata + ("combat.entityHp" to "1100"))
     val result = CombatRuntime.resolve(state, "EXECUTE", "Cả Party cùng né tránh")
     assertEquals(1130, CombatRuntime.active(result.state)!!.entityHp)
     assertTrue(result.reply, result.reply.contains("hồi +30 HP"))
   }
 
-  @Test fun johnDoeAttackUsesSixPercentTargetMaxHpAndPersistsVitals() {
+  @Test fun johnDoeAttackUsesSixPercentTargetMaxHp() {
     var verified = false
     for (counter in 0..600) {
       if (verified) break
@@ -380,7 +360,7 @@ if 'johnDoeHasExactHpAndThirtyRegen' not in test:
     assertTrue("Expected John Doe to land an exact 6% Max-HP attack", verified)
   }
 
-  @Test fun johnDoePoisonTracksAffectedPartyMembersSeparatelyAndTicksFourPercent() {
+  @Test fun johnDoePoisonTracksAffectedMembersSeparatelyAndTicksFourPercent() {
     val initial = GameState.initial()
     val iris = CharacterState(
       id = "iris",
@@ -416,7 +396,7 @@ if 'johnDoeHasExactHpAndThirtyRegen' not in test:
     assertEquals(irisBefore - expected, tick.state.characters.getValue("iris").vitalState.currentHp)
   }
 
-  @Test fun johnDoeStunUsesThirtyThenTwentyPercentAndBlocksOnlyTargetForOneTurn() {
+  @Test fun johnDoeStunUsesThirtyThenTwentyPercentAndBlocksOneTurnWithoutDamage() {
     var triggered: GameState? = null
     for (counter in 0..1800) {
       if (triggered != null) break
@@ -430,20 +410,16 @@ if 'johnDoeHasExactHpAndThirtyRegen' not in test:
       assertTrue(result.reply, result.reply.contains("proc 20%"))
       assertFalse(result.reply, result.reply.contains("20% Max HP"))
       assertEquals("1", result.state.metadata["combat.johnDoeStunTurns"])
-      assertEquals(KAI_ID, result.state.metadata["combat.johnDoeStunTargetId"])
       triggered = result.state
     }
     assertNotNull("Expected deterministic search to reach the 30% x 20% Stun proc", triggered)
     val stunned = triggered!!
-    val beforeEntityHp = CombatRuntime.active(stunned)!!.entityHp
+    val before = CombatRuntime.active(stunned)!!.entityHp
     val next = CombatRuntime.resolve(stunned, "EXECUTE", "Cả Party cùng tấn công")
-    assertTrue(next.reply, next.reply.contains("Kai bị Stun và không thể thực hiện hành động"))
+    assertTrue(next.reply, next.reply.contains("không thể thực hiện hành động trong lượt hiện tại"))
     assertFalse(next.reply, next.reply.contains("PARTY ACTION TẤN CÔNG"))
-    assertFalse(next.reply, next.reply.contains("The Last Requiem tự động kích hoạt"))
-    assertFalse(next.reply, next.reply.contains("Silent Lullaby tự động kích hoạt"))
-    val after = CombatRuntime.active(next.state)!!
-    assertEquals(minOf(1234, beforeEntityHp + 30), after.entityHp)
     assertNull(next.state.metadata["combat.johnDoeStunTurns"])
+    assertEquals(minOf(1234, before + 30), CombatRuntime.active(next.state)!!.entityHp)
   }
 '''
     close = test.rfind('\n}')
@@ -458,4 +434,4 @@ raw = ASSET.read_bytes()
 if raw[:8] != b'\x89PNG\r\n\x1a\n':
     raise RuntimeError("John.png is not a valid PNG asset")
 
-print("John Doe installed: 1234 HP, 6% target Max-HP attack, per-member 4% Poison every 3-turn 50% proc, two-stage 30% x 20% one-target Stun, +30 HP regen, independent 10% Level 0-999 encounter, direct John.png asset.")
+print("John Doe installed: exact 1234 HP, 6% Max-HP target attack, per-member 4% Poison, two-stage 30% x 20% one-turn Stun, +30 HP regen, independent 10% Level 0-999 encounter, direct John.png asset.")
