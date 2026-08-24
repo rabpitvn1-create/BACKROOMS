@@ -25,14 +25,14 @@ loot_start = source.find("loot_old = ")
 loot_end = source.find('main = replace_once(main, loot_old, loot_new, "Lucia +5 percentage-point loot bonus")', loot_start)
 if loot_start < 0 or loot_end < 0:
     raise RuntimeError("Lucia combat scout finalizer could not locate loot composition block")
-loot_block = r'''loot_old = '    rolls.put("loot", thresholdRoll("loot", 10000, Math.min(10000, lootThresholds[level] + (anNhienFollowing ? 1000 : 0)), search, anNhienFollowing ? " +10% An Nhiên" : ""));\n'
-loot_new = '''    int luciaScoutBonus = (partyHas(state, "lucia") || partyHas(state, "lục")) ? 500 : 0;
+loot_block = r"""loot_old = '    rolls.put(\"loot\", thresholdRoll(\"loot\", 10000, Math.min(10000, lootThresholds[level] + (anNhienFollowing ? 1000 : 0)), search, anNhienFollowing ? \" +10% An Nhiên\" : \"\"));\\n'
+loot_new = '''    int luciaScoutBonus = (partyHas(state, \"lucia\") || partyHas(state, \"lục\")) ? 500 : 0;
     int lootThreshold = Math.min(10000, lootThresholds[level] + (anNhienFollowing ? 1000 : 0) + luciaScoutBonus);
-    String lootSuffix = (anNhienFollowing ? " +10% An Nhiên" : "") +
-      (luciaScoutBonus > 0 ? " + Lucia Trinh sát chiến trường 5%" : "");
-    rolls.put("loot", thresholdRoll("loot", 10000, lootThreshold, search, lootSuffix));
+    String lootSuffix = (anNhienFollowing ? \" +10% An Nhiên\" : \"\") +
+      (luciaScoutBonus > 0 ? \" + Lucia Trinh sát chiến trường 5%\" : \"\");
+    rolls.put(\"loot\", thresholdRoll(\"loot\", 10000, lootThreshold, search, lootSuffix));
 '''
-'''
+"""
 source = source[:loot_start] + loot_block + source[loot_end:]
 
 exec(compile(source, str(PATCH), "exec"), {"__name__": "__main__", "__file__": str(PATCH)})
