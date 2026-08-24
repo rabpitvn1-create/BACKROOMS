@@ -193,3 +193,19 @@ healthbar = ROOT / "patch-character-healthbar.py"
 if not healthbar.is_file():
     raise RuntimeError("Character healthbar patch missing")
 exec(compile(healthbar.read_text(encoding="utf-8"), str(healthbar), "exec"), {"__name__": "__main__", "__file__": str(healthbar)})
+
+# SCP-173 must run after the deferred final Entity authority sequence injected into
+# patch-character-healthbar.py (unified pool -> Diệp Minh -> Monster X -> John Doe).
+# This keeps every existing Entity patch intact and lets SCP-173 extend the actual
+# finalized combat/state/status/encounter runtime instead of replacing it.
+scp173 = ROOT / "patch-scp-173-entity.py"
+if not scp173.is_file():
+    raise RuntimeError("SCP-173 Entity patch missing")
+exec(compile(scp173.read_text(encoding="utf-8"), str(scp173), "exec"), {"__name__": "__main__", "__file__": str(scp173)})
+
+# Preserve established non-SCP contracts after SCP-173 adds target-specific
+# mitigation/narration. This runs last and is intentionally tiny.
+scp173_compat = ROOT / "patch-scp-173-compat-finalize.py"
+if not scp173_compat.is_file():
+    raise RuntimeError("SCP-173 compatibility finalizer missing")
+exec(compile(scp173_compat.read_text(encoding="utf-8"), str(scp173_compat), "exec"), {"__name__": "__main__", "__file__": str(scp173_compat)})
