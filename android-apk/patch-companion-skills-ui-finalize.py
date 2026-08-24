@@ -3,6 +3,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 PATCH = ROOT / "patch-companion-skills-ui.py"
 INDEX = ROOT / "app/src/main/assets/index.html"
+TEST = ROOT / "app/src/test/java/com/rabpit/backroom/core/CompanionSkillCatalogTest.kt"
 
 source = PATCH.read_text(encoding="utf-8")
 old = "skills_anchor = '    put(\"statuses\", JSONArray().apply {\\n'"
@@ -49,6 +50,19 @@ if ui_start < 0 or ui_end < 0:
 source = source[:ui_start] + '''# 5) Character Detail UI is attached by patch-companion-skills-ui-finalize.py after all final UI transforms.\nhtml = INDEX.read_text(encoding="utf-8")\nINDEX.write_text(html, encoding="utf-8")\n\n\n''' + source[ui_end:]
 
 exec(compile(source, str(PATCH), "exec"), {"__name__": "__main__", "__file__": str(PATCH)})
+
+# The project uses JUnit 4 assertions rather than kotlin.test. Keep generated tests aligned with
+# the repository's existing test dependency instead of adding a dependency for four imports.
+test = TEST.read_text(encoding="utf-8")
+test = test.replace(
+    '''import kotlin.test.Test\nimport kotlin.test.assertEquals\nimport kotlin.test.assertFalse\nimport kotlin.test.assertTrue\n''',
+    '''import org.junit.Assert.assertEquals\nimport org.junit.Assert.assertFalse\nimport org.junit.Assert.assertTrue\nimport org.junit.Test\n''',
+    1,
+)
+for marker in ('import org.junit.Test', 'import org.junit.Assert.assertEquals'):
+    if marker not in test:
+        raise RuntimeError("Companion skill JUnit compatibility missing: " + marker)
+TEST.write_text(test, encoding="utf-8")
 
 html = INDEX.read_text(encoding="utf-8")
 if 'id="characterSkillsModal"' not in html:
@@ -113,4 +127,4 @@ for marker in (
     if marker not in html:
         raise RuntimeError("Character Skill final UI contract missing: " + marker)
 INDEX.write_text(html, encoding="utf-8")
-print("Companion skill finalizer executed: final runtime projection plus compact Character Skill sheet attached.")
+print("Companion skill finalizer executed: final runtime projection, JUnit regression compatibility, and compact Character Skill sheet attached.")
