@@ -1,0 +1,95 @@
+name: Verify Two Page Swipe UI
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "android-apk/**"
+      - ".github/workflows/verify-two-page-swipe-ui.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Apply complete Android runtime patch chain
+        run: |
+          set -euo pipefail
+          scripts=(patch-provider-status.py patch-luna-text.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py)
+          for script in "${scripts[@]}"; do
+            echo "==> $script"
+            python3 "android-apk/$script"
+          done
+
+      - name: Verify pager and patch-chain contracts
+        run: |
+          set -euo pipefail
+          python3 android-apk/verify-two-page-swipe-ui.py
+          python3 - <<'PY'
+          from pathlib import Path
+          root = Path('android-apk')
+          tail = (root / 'patch-combat-action-bar-state-fix.py').read_text(encoding='utf-8')
+          rest = 'runpy.run_path(str(ROOT / "patch-rest-physiology-state-finalize.py"), run_name="__main__")'
+          pager = 'runpy.run_path(str(ROOT / "patch-two-page-swipe-ui.py"), run_name="__main__")'
+          assert rest in tail and pager in tail
+          assert tail.index(rest) < tail.index(pager)
+          patch = (root / 'patch-two-page-swipe-ui.py').read_text(encoding='utf-8')
+          for marker in (
+              'TWO_PAGE_SWIPE_UI_V1',
+              'TWO_PAGE_SWIPE_RUNTIME_V1',
+              'status.insertBefore(partyCard,saveCard)',
+              'const SWIPE_DISTANCE=56',
+              'window.backroomPagePager={setPage,getPage:()=>shell.dataset.page}',
+          ):
+              assert marker in patch, marker
+          PY
+          git diff --check
+
+      - name: Syntax-check final two-page runtime JavaScript
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          html = Path('android-apk/app/src/main/assets/index.html').read_text(encoding='utf-8')
+          match = re.search(r'<script>\s*// TWO_PAGE_SWIPE_RUNTIME_V1(?P<body>.*?)</script>', html, re.S)
+          assert match, 'two-page runtime script missing'
+          Path('/tmp/two-page-runtime.js').write_text(match.group('body'), encoding='utf-8')
+          PY
+          node --check /tmp/two-page-runtime.js
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+
+      - name: Run all unit tests and build debug APK
+        working-directory: android-apk
+        run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
+
+      - name: Verify packaged WebView pager
+        run: |
+          set -euo pipefail
+          APK=android-apk/app/build/outputs/apk/debug/app-debug.apk
+          test -s "$APK"
+          rm -rf two-page-apk-check && mkdir two-page-apk-check
+          unzip -q "$APK" 'assets/index.html' -d two-page-apk-check
+          python3 android-apk/verify-two-page-swipe-ui.py two-page-apk-check/assets/index.html
+          grep -q 'TWO_PAGE_SWIPE_UI_V1' two-page-apk-check/assets/index.html
+          grep -q 'TWO_PAGE_SWIPE_RUNTIME_V1' two-page-apk-check/assets/index.html
+          grep -q 'searchActionButton' two-page-apk-check/assets/index.html
+          grep -q 'exploreActionButton' two-page-apk-check/assets/index.html
+          grep -q 'saveButton' two-page-apk-check/assets/index.html
+          grep -q 'partyTime' two-page-apk-check/assets/index.html
