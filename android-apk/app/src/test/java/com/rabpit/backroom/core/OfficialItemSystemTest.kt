@@ -38,13 +38,18 @@ class OfficialItemSystemTest {
   }
 
   @Test fun healingItemsUseCombatHpAuthorityAndClamp() {
-    val base = GameState.initial().copy(metadata = mapOf("combat.playerHp" to "50", "combat.playerMaxHp" to "100"))
+    val initial = GameState.initial()
+    val base = initial.copy(characters = initial.characters + (KAI_ID to initial.characters.getValue(KAI_ID).copy(
+      vitalState = initial.characters.getValue(KAI_ID).vitalState.copy(currentHp = 50)
+    )))
     listOf(ItemCatalog.ALMOND_WATER to 5, ItemCatalog.BANDAGE to 15, ItemCatalog.ANTISEPTIC to 10, ItemCatalog.PAINKILLER to 10).forEachIndexed { index, pair ->
       val result = use(grant(base, pair.first), pair.first, index.toString())
-      assertEquals(50 + pair.second, result.state.metadata["combat.playerHp"]?.toInt())
+      assertEquals(50 + pair.second, result.state.characters.getValue(KAI_ID).vitalState.currentHp)
     }
-    val nearMax = base.copy(metadata = base.metadata + ("combat.playerHp" to "98"))
-    assertEquals("100", use(grant(nearMax, ItemCatalog.BANDAGE), ItemCatalog.BANDAGE).state.metadata["combat.playerHp"])
+    val nearMax = base.copy(characters = base.characters + (KAI_ID to base.characters.getValue(KAI_ID).copy(
+      vitalState = base.characters.getValue(KAI_ID).vitalState.copy(currentHp = 98)
+    )))
+    assertEquals(100, use(grant(nearMax, ItemCatalog.BANDAGE), ItemCatalog.BANDAGE).state.characters.getValue(KAI_ID).vitalState.currentHp)
   }
 
   @Test fun medicalItemsTreatOnlyTheirExistingAuthorities() {
