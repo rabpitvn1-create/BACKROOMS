@@ -115,5 +115,5 @@ runpy.run_path(str(ROOT / "patch-healing-items-finalize.py"), run_name="__main__
 # Lucia combat/scout is deliberately the final release-chain layer. It must see the finalized
 # Diệp Minh/Kai/Entity combat and generic loot implementation, and it lives outside the Kai gun-skill
 # finalizer so the independent PR for Kai's passive skills can merge without being overwritten here.
-runpy.run_path(str(ROOT / "patch-lucia-combat-scout.py"), run_name="__main__")
+runpy.run_path(str(ROOT / "patch-lucia-combat-scout-finalize.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-lucia-combat-evasion-compat.py"), run_name="__main__")
