@@ -1,5 +1,6 @@
 from pathlib import Path
 import re
+import runpy
 
 ROOT = Path(__file__).resolve().parent
 INDEX = ROOT / "app/src/main/assets/index.html"
@@ -138,3 +139,8 @@ if "file:///android_asset/entity/" not in html and "file:///android_asset/entity
 
 INDEX.write_text(html, encoding="utf-8")
 print("Combat action bar V2 installed: legacy Pressure Combat HUD source removed; Entity encounters use Attack / Evade / Flee inline-vector buttons while CombatRuntime and scene visuals remain intact.")
+
+# Inventory authority must be the final gameplay layer. It executes after every combat, follower,
+# healing, equipment and UI transform so no older patch can restore Gemini inventory authority or
+# reintroduce item narration before Game State Core commit.
+runpy.run_path(str(ROOT / "patch-inventory-authority-finalize.py"), run_name="__main__")
