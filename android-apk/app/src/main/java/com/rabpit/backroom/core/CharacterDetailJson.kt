@@ -42,6 +42,16 @@ object CharacterDetailJson {
         put("quantity", stack.quantity)
         stack.condition?.let { put("state", it) }
         put("contentState", stack.contentState.name)
+        when (stack.itemId) {
+          ItemCatalog.FLASHLIGHT -> {
+            put("toolState", stack.metadata["state"] ?: "OFF")
+            put("battery", stack.metadata["battery"]?.toIntOrNull()?.coerceIn(0, 100) ?: 100)
+          }
+          ItemCatalog.LIGHTER -> {
+            put("toolState", stack.metadata["state"] ?: "OFF")
+            put("fuel", stack.metadata["fuel"]?.toIntOrNull()?.coerceIn(0, 100) ?: 100)
+          }
+        }
       }) }
     })
     put("equipment", JSONObject(character.equipment))
