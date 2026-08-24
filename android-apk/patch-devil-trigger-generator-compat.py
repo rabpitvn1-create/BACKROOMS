@@ -23,15 +23,18 @@ source = "\n".join(lines) + "\n"
 # CharacterStatusEquipmentSystem replaces the original fixed base attack with
 # weapon/stat-based damage plus the established 70%-of-profile-max cap before
 # this finalizer runs. Adapt only the Devil Trigger generator's expected anchor
-# to that finalized form; the existing cap itself remains untouched.
+# and matching self-check to that finalized form; the existing cap stays intact.
 old_attack_anchor = "    '          val damage = max(1, base - profile.armor)\\n',\n"
 new_attack_anchor = "    '          val damage = min(max(1, normalized - profile.armor), max(1, profile.maxHp * 70 / 100))\\n',\n"
 old_attack_replacement = "    '          val damage = DevilTriggerPassive.damage(max(1, base - profile.armor), kaiDevilTriggerActive)\\n',\n"
 new_attack_replacement = "    '          val damage = DevilTriggerPassive.damage(min(max(1, normalized - profile.armor), max(1, profile.maxHp * 70 / 100)), kaiDevilTriggerActive)\\n',\n"
+old_attack_marker = '    \'DevilTriggerPassive.damage(max(1, base - profile.armor), kaiDevilTriggerActive)\',\n'
+new_attack_marker = '    \'DevilTriggerPassive.damage(min(max(1, normalized - profile.armor), max(1, profile.maxHp * 70 / 100)), kaiDevilTriggerActive)\',\n'
 
 for old, new, label in (
     (old_attack_anchor, new_attack_anchor, "Kai finalized base attack anchor"),
     (old_attack_replacement, new_attack_replacement, "Kai finalized base attack replacement"),
+    (old_attack_marker, new_attack_marker, "Kai finalized base attack contract marker"),
 ):
     count = source.count(old)
     if count != 1:
