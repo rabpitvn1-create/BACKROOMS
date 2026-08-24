@@ -18,20 +18,27 @@ source, count = re.subn(
 if count != 1:
     raise RuntimeError("Lucia combat scout finalizer could not locate the redundant escaped-log marker")
 
-# An Nhiên's +10 percentage-point follower bonus is already installed earlier in the
-# final patch stack. Compose Lucia's +5 points with that existing threshold instead of
-# replacing it, so both followers retain their independent canon bonuses.
+# An Nhiên has already rewritten the generic loot line by this stage. Replace the fragile
+# exact-line block in the Lucia patch with a final-runtime splice that composes both bonuses.
 loot_start = source.find("loot_old = ")
-loot_end = source.find('main = replace_once(main, loot_old, loot_new, "Lucia +5 percentage-point loot bonus")', loot_start)
-if loot_start < 0 or loot_end < 0:
+loot_replace = 'main = replace_once(main, loot_old, loot_new, "Lucia +5 percentage-point loot bonus")'
+loot_replace_pos = source.find(loot_replace, loot_start)
+if loot_start < 0 or loot_replace_pos < 0:
     raise RuntimeError("Lucia combat scout finalizer could not locate loot composition block")
-loot_block = r"""loot_old = '    rolls.put(\"loot\", thresholdRoll(\"loot\", 10000, Math.min(10000, lootThresholds[level] + (anNhienFollowing ? 1000 : 0)), search, anNhienFollowing ? \" +10% An Nhiên\" : \"\"));\\n'
-loot_new = '''    int luciaScoutBonus = (partyHas(state, \"lucia\") || partyHas(state, \"lục\")) ? 500 : 0;
+loot_end = loot_replace_pos + len(loot_replace)
+loot_block = r"""loot_anchor_start = main.find('    rolls.put("loot", thresholdRoll("loot", 10000,')
+if loot_anchor_start < 0:
+    raise RuntimeError("Lucia loot bonus: generic loot roll not found")
+loot_anchor_end = main.find("\n", loot_anchor_start)
+if loot_anchor_end < 0:
+    raise RuntimeError("Lucia loot bonus: generic loot roll line is truncated")
+loot_new = '''    int luciaScoutBonus = (partyHas(state, "lucia") || partyHas(state, "lục")) ? 500 : 0;
     int lootThreshold = Math.min(10000, lootThresholds[level] + (anNhienFollowing ? 1000 : 0) + luciaScoutBonus);
-    String lootSuffix = (anNhienFollowing ? \" +10% An Nhiên\" : \"\") +
-      (luciaScoutBonus > 0 ? \" + Lucia Trinh sát chiến trường 5%\" : \"\");
-    rolls.put(\"loot\", thresholdRoll(\"loot\", 10000, lootThreshold, search, lootSuffix));
+    String lootSuffix = (anNhienFollowing ? " +10% An Nhiên" : "") +
+      (luciaScoutBonus > 0 ? " + Lucia Trinh sát chiến trường 5%" : "");
+    rolls.put("loot", thresholdRoll("loot", 10000, lootThreshold, search, lootSuffix));
 '''
+main = main[:loot_anchor_start] + loot_new + main[loot_anchor_end + 1:]
 """
 source = source[:loot_start] + loot_block + source[loot_end:]
 
