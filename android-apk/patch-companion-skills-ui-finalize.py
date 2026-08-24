@@ -5,10 +5,15 @@ PATCH = ROOT / "patch-companion-skills-ui.py"
 
 source = PATCH.read_text(encoding="utf-8")
 old = "skills_anchor = '    put(\"statuses\", JSONArray().apply {\\n'"
-new = "skills_anchor = '    put(\"equipment\", JSONObject(character.equipment))\\n'"
+new = "skills_anchor = '    put(\"equipment\", JSONObject(c.equipment))\\n'"
 if old not in source:
     raise RuntimeError("Companion skill finalizer could not locate Character Detail projection anchor")
 source = source.replace(old, new, 1)
+source = source.replace(
+    'CompanionSkillCatalog.forCharacter(character.id)',
+    'CompanionSkillCatalog.forCharacter(c.id)',
+    1,
+)
 
 # Avoid relying on a newer stdlib helper when a plain metadata comparison is enough.
 source = source.replace(
