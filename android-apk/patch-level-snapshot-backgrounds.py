@@ -90,7 +90,7 @@ parent_js = "{" + ",".join(
 
 main = MAIN.read_text(encoding="utf-8")
 
-old = "if(r){var bg=document.createElement('img');bg.className='snapshot-bg';bg.src=r.dataUri;bg.alt='Snapshot Turn '+(state.turn||'');box.appendChild(bg);var kai=document.createElement('img');kai.className='snapshot-character';kai.src='file:///android_asset/BestKai.png';kai.alt='Kai Akechi';box.appendChild(kai);}else{"
+old = "if(r){var bg=document.createElement('img');bg.className='snapshot-bg';bg.src=r.dataUri;bg.alt='Snapshot Turn '+(state.turn||'');box.appendChild(bg);var kai=document.createElement('img');kai.className='snapshot-character';kai.src='file:///android_asset/BESTKAIV2.png';kai.alt='Kai Akechi';box.appendChild(kai);}else{"
 
 # Keep the exact authoritative Level picker contract expected by later visual-state
 # patches. Structured state wins; text parsing remains a compatibility fallback for
@@ -126,7 +126,7 @@ new = (
     "bg.onerror=function(){this.onerror=null;this.src=choices[0]||refs[resolvedParent]||refs[0];};"
     "box.appendChild(bg);"
     "var kai=document.createElement('img');kai.className='snapshot-character';"
-    "kai.src='file:///android_asset/BestKai.png';kai.alt='Kai Akechi';box.appendChild(kai);if(!r){"
+    "kai.src='file:///android_asset/BESTKAIV2.png';kai.alt='Kai Akechi';box.appendChild(kai);if(!r){"
 )
 
 count = main.count(old)
