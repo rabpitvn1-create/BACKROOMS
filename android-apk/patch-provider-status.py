@@ -4,7 +4,7 @@ import re
 ROOT = Path(__file__).resolve().parent
 MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
 INDEX = ROOT / "app/src/main/assets/index.html"
-OVERLAY = ROOT / "app/src/main/assets/BestKai.png"
+OVERLAY = ROOT / "app/src/main/assets/BESTKAIV2.png"
 
 
 def replace_required(text: str, old: str, new: str, label: str) -> str:

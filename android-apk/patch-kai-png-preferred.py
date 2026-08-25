@@ -3,11 +3,11 @@ import hashlib
 
 ROOT = Path(__file__).resolve().parent
 ASSETS = ROOT / "app/src/main/assets"
-PNG = ASSETS / "BestKai.png"
+PNG = ASSETS / "BESTKAIV2.png"
 MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
 
 if not PNG.exists():
-    raise RuntimeError("BestKai.png is missing")
+    raise RuntimeError("BESTKAIV2.png is missing")
 
 raw = PNG.read_bytes()
 if len(raw) < 24 or raw[:8] != b"\x89PNG\r\n\x1a\n":
@@ -27,6 +27,6 @@ main = main.replace(old, new)
 MAIN.write_text(main, encoding="utf-8")
 
 print(
-    f"BestKai PNG selected for APK: {width}x{height}, {len(raw)} bytes, "
+    f"BESTKAIV2 PNG selected for APK: {width}x{height}, {len(raw)} bytes, "
     f"SHA-256 {hashlib.sha256(raw).hexdigest()}"
 )
