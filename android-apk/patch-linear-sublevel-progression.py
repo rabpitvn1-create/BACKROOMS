@@ -1,5 +1,6 @@
 from pathlib import Path
 import json
+import runpy
 
 ROOT = Path(__file__).resolve().parent
 MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
@@ -312,3 +313,8 @@ for forbidden in [
         raise RuntimeError("Legacy Level-skip contract survived: " + forbidden)
 
 print("Installed deterministic 43-area Backrooms Wiki route: every valid Exit advances exactly one area from Level 0 through Level 6.99.")
+
+# GM item gain is deliberately the final release-chain layer. It runs after progression,
+# combat and Entity finalizers so no later patch can restore read-only GM gains or erase
+# the compact notification from the packaged gameplay UI.
+runpy.run_path(str(ROOT / "patch-gm-item-gain-finalize.py"), run_name="__main__")
