@@ -132,3 +132,8 @@ runpy.run_path(str(ROOT / "patch-entity-party-action-budget.py"), run_name="__ma
 # Jeff/Jane final skills run last because they extend the finalized Entity response
 # budget and explicitly override both roaming killers to exactly 947 Max HP.
 runpy.run_path(str(ROOT / "patch-jeff-jane-skills.py"), run_name="__main__")
+
+# Keep the technical action ledger available to CombatRuntime regressions, but strip its
+# implementation-oriented prefixes from the final WebView log. This runs after Jeff/Jane so
+# the UI cleanup remains the last patch without changing the finalized combat mechanics.
+runpy.run_path(str(ROOT / "patch-hide-entity-action-debug.py"), run_name="__main__")
