@@ -2,20 +2,20 @@
 
 ## Active source: Backrooms Wiki | Fandom
 
-The Android patch chain now builds a local rotating image pool for Levels 0–6 from:
+The Android patch chain builds local Snapshot pools for the canonical 43-area Level 0–6 campaign route from:
 
 - https://backrooms.fandom.com/wiki/Backrooms_Wiki
-- the matching `Level_0` through `Level_6` pages on that wiki.
+- the matching Fandom page resolved for each main Level, sublevel, and special route area defined by `android-apk/patch-linear-sublevel-progression.py`.
 
-`android-apk/prepare-fandom-level-snapshots.py` queries the Fandom MediaWiki API during the Debug build, selects multiple large non-UI images from each matching Level page, downloads them into this directory, and writes `fandom_manifest.json` with the original file title, description URL, download URL, dimensions, SHA-256, and any attribution/license metadata exposed by Fandom.
+`android-apk/prepare-fandom-level-snapshots.py` reads the campaign `ROUTE` literal without executing that patch, resolves each area's Fandom page, filters out badges/UI images, downloads up to three usable images per area, and writes `fandom_manifest.json`. The manifest records the route index, parent Level, area ID/name/type, resolved page, image source metadata, SHA-256, attribution/license fields exposed by Fandom, and a `missing_areas` report.
 
-The generated files use names such as `level_0_fandom_01.jpg`. At least two images are required for every Level and up to six are packaged per Level. Runtime does not request Fandom: all selected images are inside the APK, and the Snapshot renderer rotates among the current Level's pool in five-minute buckets.
+Generated files use names such as `area_02_0_01_fandom_01.jpg`. Runtime never requests Fandom: selected images are packaged inside the APK. Snapshot chooses the current `flags.exploration.areaId` pool and rotates it in five-minute buckets. Main Levels require at least two packaged images so they can act as a safe fallback. If a non-main route area has no resolvable page or no usable image, only that area falls back to its own parent main Level pool; it never borrows another sublevel's images.
 
-Images are never mixed between Level pages. Project canon still comes from the repository's own World/Level sources; Fandom is only the visual source for these Snapshot backgrounds.
+This keeps visual selection aligned with the deterministic 43-area route while preserving old saves that only know the parent Level. Project canon still comes from repository World/Level sources; Fandom is only the visual source for Snapshot backgrounds.
 
 ## Legacy single-image fallbacks
 
-The older `level_0.webp` through `level_6.webp` assets remain in the repository for compatibility with historical builds. They came from Escape the Backrooms Wiki and are no longer the active rotating Snapshot source.
+The older `level_0.webp` through `level_6.webp` assets remain in the repository for compatibility with historical builds. They came from Escape the Backrooms Wiki and are no longer the active rotating Snapshot source unless both generated Fandom pools and their parent fallback are unavailable.
 
 | Legacy asset | Historical page | Historical CDN asset |
 | --- | --- | --- |
