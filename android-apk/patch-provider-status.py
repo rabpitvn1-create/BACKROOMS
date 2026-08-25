@@ -4,7 +4,7 @@ import re
 ROOT = Path(__file__).resolve().parent
 MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
 INDEX = ROOT / "app/src/main/assets/index.html"
-OVERLAY = ROOT / "app/src/main/assets/BestKai.png"
+OVERLAY = ROOT / "app/src/main/assets/BESTKAIV2.png"
 
 
 def replace_required(text: str, old: str, new: str, label: str) -> str:
@@ -59,7 +59,7 @@ new_css = ".snapshot{position:relative;overflow:hidden;height:230px}.snapshot .s
 main = replace_if_needed(main, old_css, new_css, "snapshot layered styles")
 
 old_render = "if(r){var img=document.createElement('img');img.src=r.dataUri;img.alt='Snapshot Turn '+(state.turn||'');box.appendChild(img);}else{"
-new_render = "if(r){var bg=document.createElement('img');bg.className='snapshot-bg';bg.src=r.dataUri;bg.alt='Snapshot Turn '+(state.turn||'');box.appendChild(bg);var kai=document.createElement('img');kai.className='snapshot-character';kai.src='file:///android_asset/BestKai.png';kai.alt='Kai Akechi';box.appendChild(kai);}else{"
+new_render = "if(r){var bg=document.createElement('img');bg.className='snapshot-bg';bg.src=r.dataUri;bg.alt='Snapshot Turn '+(state.turn||'');box.appendChild(bg);var kai=document.createElement('img');kai.className='snapshot-character';kai.src='file:///android_asset/BESTKAIV2.png';kai.alt='Kai Akechi';box.appendChild(kai);}else{"
 main = replace_if_needed(main, old_render, new_render, "snapshot character overlay")
 
 old_prompt = '"Show the present scene only, not a montage. Kai Akechi / Twilight is the main character. " +'
