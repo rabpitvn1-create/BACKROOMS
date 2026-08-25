@@ -104,6 +104,11 @@ if b'data:image' in raw[:1024].lower() or b'base64,' in raw[:1024].lower():
 
 print("SCP-173 display mapping finalized: file:///android_asset/entity/SCP173.png")
 
+# All unique Entity encounter layers now exist. Collapse their previously independent
+# simultaneous successes into one authoritative dice channel before later balance and
+# navigation layers run, so narration, overlay and CombatRuntime cannot select different Entities.
+runpy.run_path(str(ROOT / "patch-entity-encounter-authority-sync.py"), run_name="__main__")
+
 # Backroom 1.1.69 is the final balance layer. It must run after SCP-173 so Lucia's
 # new burst can reuse the final direct-damage mitigation and no later patch can
 # restore the old 25% Entity Evasion value.
