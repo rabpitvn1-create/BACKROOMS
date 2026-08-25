@@ -101,12 +101,14 @@ if 'JEFF_JANE_SKILLS_V1' not in combat:
     combat = replace_once(combat, helper_anchor, helpers + helper_anchor, "Jeff/Jane skill helpers")
 
 escape_old = '''      Intent.ESCAPE -> {
+        log += "PARTY ACTION BỎ CHẠY: ${activePartyNames(resolvedState)} cùng rút khỏi encounter trong một combat turn."
         val gain = 20 + c.momentum.coerceAtLeast(0) * 5 + when (c.cover) { Cover.HARD -> 15; Cover.PARTIAL -> 8; Cover.EXPOSED -> 0 }
         c = c.copy(escapeProgress = min(100, c.escapeProgress + gain), momentum = min(3, c.momentum + 1))
         log += "Kai dồn ưu thế vào đường thoát (${c.escapeProgress}%)."
       }
 '''
 escape_new = '''      Intent.ESCAPE -> {
+        log += "PARTY ACTION BỎ CHẠY: ${activePartyNames(resolvedState)} cùng rút khỏi encounter trong một combat turn."
         val baseGain = 20 + c.momentum.coerceAtLeast(0) * 5 + when (c.cover) { Cover.HARD -> 15; Cover.PARTIAL -> 8; Cover.EXPOSED -> 0 }
         var escapePenalty = 0
 
