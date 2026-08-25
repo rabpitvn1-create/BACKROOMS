@@ -1,5 +1,4 @@
 from pathlib import Path
-import re
 
 ROOT = Path(__file__).resolve().parent
 INDEX = ROOT / "app/src/main/assets/index.html"
@@ -17,15 +16,16 @@ if "function cleanEntityActionDebug(text)" not in html:
     if len(matches) == 1:
         html = html.replace(matches[0], new_renderer, 1)
     elif len(matches) == 0:
-        pattern = re.compile(r'logEl\\.innerHTML=\\(state\\.log\\|\\|\\[\\]\\)\\.map\\(x=>.*?\\)\\.join\\(""\\)', re.DOTALL)
-        structural_matches = list(pattern.finditer(html))
-        if len(structural_matches) != 1:
+        start_marker = "logEl.innerHTML="
+        end_marker = ";logEl.scrollTop="
+        if html.count(start_marker) != 1 or html.count(end_marker) != 1:
             raise RuntimeError(
-                "Entity action debug UI filter: expected one structural log renderer anchor, "
-                f"found {len(structural_matches)}"
+                "Entity action debug UI filter: expected one bounded log renderer, "
+                f"found starts={html.count(start_marker)} ends={html.count(end_marker)}"
             )
-        match = structural_matches[0]
-        html = html[:match.start()] + new_renderer + html[match.end():]
+        start = html.index(start_marker)
+        end = html.index(end_marker, start)
+        html = html[:start] + new_renderer + html[end:]
     else:
         raise RuntimeError(f"Entity action debug UI filter: expected one known log renderer anchor, found {len(matches)}")
 
