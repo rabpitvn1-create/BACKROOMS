@@ -38,8 +38,8 @@ main = replace_once(main, old_css, new_css, "crisp Kai CSS")
 
 main = replace_once(
     main,
-    "kai.src='file:///android_asset/BESTKAIV2.png';",
-    "kai.src='BESTKAIV2.png';",
+    "kai.src='file:///android_asset/BestKai.png';",
+    "kai.src='BestKai.png';",
     "Kai packaged relative asset path",
 )
 
