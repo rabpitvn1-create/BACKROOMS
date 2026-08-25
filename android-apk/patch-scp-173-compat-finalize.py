@@ -142,3 +142,4 @@ runpy.run_path(str(ROOT / "patch-hide-entity-action-debug.py"), run_name="__main
 # Block/Counter and single-target Control mechanics must extend the already-finalized
 # Entity/Party runtime without changing any older boss or shared Entity authority.
 runpy.run_path(str(ROOT / "patch-violet-warden-entity.py"), run_name="__main__")
+runpy.run_path(str(ROOT / "patch-violet-warden-compat.py"), run_name="__main__")
