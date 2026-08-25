@@ -279,9 +279,9 @@ replace_once(
     "per-area progress call",
 )
 
-old_prompt_return = '''    return actionDirective + "\nACTION_RUNTIME: " + actionRuntimeContext + "\n" +
+old_prompt_return = r'''    return actionDirective + "\nACTION_RUNTIME: " + actionRuntimeContext + "\n" +
 '''
-new_prompt_return = '''    return actionDirective + "\n" + linearAreaPrompt(before) + "\nACTION_RUNTIME: " + actionRuntimeContext + "\n" +
+new_prompt_return = r'''    return actionDirective + "\n" + linearAreaPrompt(before) + "\nACTION_RUNTIME: " + actionRuntimeContext + "\n" +
 '''
 replace_once(old_prompt_return, new_prompt_return, "linear route Game Master lock")
 
