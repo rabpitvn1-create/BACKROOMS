@@ -1,13 +1,18 @@
 from pathlib import Path
 import json
+import runpy
 
 ROOT = Path(__file__).resolve().parent
 MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
 SNAPSHOT_DIR = ROOT / "app/src/main/assets/level_snapshots"
 MANIFEST = SNAPSHOT_DIR / "fandom_manifest.json"
+PREPARE = ROOT / "prepare-fandom-level-snapshots.py"
 
+if not PREPARE.is_file():
+    raise RuntimeError("Fandom snapshot preparation script missing")
+runpy.run_path(str(PREPARE), run_name="__main__")
 if not MANIFEST.is_file():
-    raise RuntimeError("Fandom snapshot manifest missing; run prepare-fandom-level-snapshots.py first")
+    raise RuntimeError("Fandom snapshot manifest missing after preparation")
 
 manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
 pools = {}
