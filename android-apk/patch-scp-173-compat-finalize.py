@@ -128,3 +128,8 @@ runpy.run_path(str(ROOT / "patch-loot-pity.py"), run_name="__main__")
 # Entity action economy runs after every combat/boss/SCP/balance transform so no
 # later patch can restore the historical single-Kai response path.
 runpy.run_path(str(ROOT / "patch-entity-party-action-budget.py"), run_name="__main__")
+
+# Keep the technical action ledger available to CombatRuntime regressions, but strip its
+# implementation-oriented prefixes from the final WebView log. This also cleans existing
+# save logs when rendered, so old turns do not keep exposing the debug format.
+runpy.run_path(str(ROOT / "patch-hide-entity-action-debug.py"), run_name="__main__")
