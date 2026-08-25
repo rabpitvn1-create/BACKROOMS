@@ -1,4 +1,4 @@
-name: Build Backroom 1.2 Debug
+name: Build Backroom 1.2.1 Debug
 
 on:
   workflow_dispatch:
@@ -95,7 +95,7 @@ jobs:
           entity_dir = root / 'app/src/main/assets/entity'
 
           required = [
-              ("versionCode 75", gradle), ("versionName '1.2'", gradle),
+              ("versionCode 76", gradle), ("versionName '1.2.1'", gradle),
               ('id="searchActionButton"', html), ('id="exploreActionButton"', html), ('STEP2_THREE_ACTIONS', html),
               ('madGodSetEquipped()', html), ('id="equipmentDetailModal"', html), ('window.renderCharacterStatusEquipment=render;', html),
               ('id="characterSkillsModal"', html), ("button.id='characterSkillsButton'", html), ('function openSkills()', html),
@@ -211,17 +211,17 @@ jobs:
         run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
 
       - name: Prepare debug APK
-        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.2-debug.apk
+        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.2.1-debug.apk
 
       - name: Verify packaged debug APK contracts
         run: |
           set -euo pipefail
-          APK=Backroom-1.2-debug.apk
+          APK=Backroom-1.2.1-debug.apk
           BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
           "$BUILD_TOOLS/apksigner" verify --verbose --print-certs "$APK"
           "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "package: name='com.rabpit.backroom'"
-          "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionCode='75'"
-          "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionName='1.2'"
+          "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionCode='76'"
+          "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionName='1.2.1'"
           "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
           "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 "$APK"
           rm -rf apk-check && mkdir apk-check
@@ -245,7 +245,7 @@ jobs:
       - name: Upload debug APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Backroom-1.2-debug-apk
-          path: Backroom-1.2-debug.apk
+          name: Backroom-1.2.1-debug-apk
+          path: Backroom-1.2.1-debug.apk
           if-no-files-found: error
           retention-days: 14
