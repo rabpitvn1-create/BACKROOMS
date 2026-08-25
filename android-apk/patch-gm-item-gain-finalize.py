@@ -209,8 +209,8 @@ warning_css = '.message.warning{border-left-color:#d99a2b;background:#231a0b}.me
 gain_css = warning_css + '.message.gain{margin:5px 0 9px;padding:6px 9px;border-left-width:2px;background:#151b1f}.message.gain .role{font-size:9px;letter-spacing:.16em}.message.gain .text{font-size:12px;font-weight:700}'
 html = replace_once(html, warning_css, gain_css, "Gain chat CSS")
 
-old_renderer = 'logEl.innerHTML=(state.log||[]).map(x=>{const w=x.role!=="player"&&String(x.text||"").trim().startsWith("[Warning]");return "<article class=\'message "+(x.role==="player"?"player":"")+(w?" warning":"")+"\'><div class=\'role\'>"+(x.role==="player"?"BẠN":"GAME MASTER")+"</div><div class=\'text\'>"+esc(x.text)+"</div></article>"}).join("")'
-new_renderer = 'logEl.innerHTML=(state.log||[]).map(x=>{const w=x.role!=="player"&&String(x.text||"").trim().startsWith("[Warning]"),g=x.role==="gain";return "<article class=\'message "+(x.role==="player"?"player":"")+(w?" warning":"")+(g?" gain":"")+"\'><div class=\'role\'>"+(x.role==="player"?"BẠN":g?"GAIN":"GAME MASTER")+"</div><div class=\'text\'>"+esc(x.text)+"</div></article>"}).join("")'
+old_renderer = 'logEl.innerHTML=(state.log||[]).map(x=>{const w=x.role!=="player"&&String(x.text||"").trim().startsWith("[Warning]");return "<article class=\'message "+(x.role==="player"?"player":"gm")+(w?" warning":"")+"\'><div class=\'role\'>"+(x.role==="player"?"BẠN":"GAME MASTER")+"</div><div class=\'text\'>"+esc(x.text)+"</div></article>"}).join("")'
+new_renderer = 'logEl.innerHTML=(state.log||[]).map(x=>{const w=x.role!=="player"&&String(x.text||"").trim().startsWith("[Warning]"),g=x.role==="gain";return "<article class=\'message "+(x.role==="player"?"player":g?"gain":"gm")+(w?" warning":"")+"\'><div class=\'role\'>"+(x.role==="player"?"BẠN":g?"GAIN":"GAME MASTER")+"</div><div class=\'text\'>"+esc(x.text)+"</div></article>"}).join("")'
 html = replace_once(html, old_renderer, new_renderer, "Gain chat renderer")
 INDEX.write_text(html, encoding="utf-8")
 
