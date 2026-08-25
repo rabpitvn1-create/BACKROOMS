@@ -109,10 +109,9 @@ active_new = '''  private fun activePartyCharacter(state: GameState, characterId
 '''
 combat = replace_once(combat, active_anchor, active_new, "Violet Warden companion stun action gate")
 
-# Kai owns the legacy primary ATTACK block rather than activePartyCharacter, so
-# gate only Kai's personal attack package. The Party command and companion actions
-# continue in the same event; this avoids turning a single-target control skill into
-# a Party-wide Monster-X-style stun.
+# Kai owns the primary ATTACK resolution directly. Keep shared roll/hitChance
+# variables in their original scope because follower attacks reuse hitChance later
+# in the same Party event. Suppress only Kai's hit branch when he is stunned.
 log_anchor = '    val log = mutableListOf<String>()\n'
 kai_lock_line = '    val violetWardenKaiActionLocked = current.entityKey == VIOLET_WARDEN_KEY && violetWardenActionLocked(state, KAI_ID)\n'
 if kai_lock_line not in combat:
@@ -124,30 +123,20 @@ if attack_start < 0 or attack_end < 0:
     raise RuntimeError("Violet Warden could not bound final Party ATTACK block")
 attack = combat[attack_start:attack_end]
 if 'VIOLET_WARDEN_KAI_STUN_GATE_V1' not in attack:
-    roll_marker = '        val roll = roll(c, 100)\n'
-    joint_marker = '        val jointOrder = true // PARTY_ACTIONS_V1: every ATTACK intent includes every ACTIVE Party member.\n'
-    if attack.count(roll_marker) != 1 or attack.count(joint_marker) != 1:
-        raise RuntimeError("Violet Warden Kai stun ATTACK anchors changed")
-    attack = attack.replace(
-        roll_marker,
-        '''        // VIOLET_WARDEN_KAI_STUN_GATE_V1
-        if (!violetWardenKaiActionLocked) {
-''' + roll_marker,
-        1,
-    )
-    attack = attack.replace(
-        joint_marker,
-        '''        } else {
+    hit_marker = '        if (roll < hitChance) {\n'
+    if attack.count(hit_marker) != 1:
+        raise RuntimeError(f"Violet Warden Kai hit anchor changed: found {attack.count(hit_marker)}")
+    hit_gate = '''        // VIOLET_WARDEN_KAI_STUN_GATE_V1
+        if (violetWardenKaiActionLocked) {
           log += "Violet Warden STUN: Kai mất lượt hành động cá nhân; các thành viên ACTIVE khác vẫn tiếp tục lệnh TẤN CÔNG."
-        }
-''' + joint_marker,
-        1,
-    )
+        } else if (roll < hitChance) {
+'''
+    attack = attack.replace(hit_marker, hit_gate, 1)
     combat = combat[:attack_start] + attack + combat[attack_end:]
 
 # Automatic Kai offense must obey the same one-character lock. Keep the existing
-# action-gate text/order intact because several established regressions key off
-# those expressions; append the Violet condition rather than rewriting them.
+# action-gate text/order intact because established regressions key off those
+# expressions; append the Violet condition rather than rewriting their prefix.
 gco_marker = '''    // PARTY_ATTACK_GCO_GATE_V1
     if (intent == Intent.ATTACK) {
 '''
@@ -184,7 +173,6 @@ for marker in (
     'val violetWardenKaiActionLocked =',
     'VIOLET_WARDEN_KAI_STUN_GATE_V1',
     'Violet Warden STUN: Kai mất lượt hành động cá nhân',
-    'if (intent == Intent.ATTACK && !violetWardenKaiActionLocked) {',
     'intent == Intent.ATTACK && !isGuiltyCrownTurn',
     'put("stunTargetId"',
 ):
