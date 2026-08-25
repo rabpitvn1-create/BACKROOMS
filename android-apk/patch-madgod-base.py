@@ -115,10 +115,10 @@ f=one(f,'      "scan_source_missing", "scan_template_missing" -> "There is no ob
 
 a=A.read_text(encoding='utf-8')
 a=one(a,'.snapshot-placeholder{display:none}', '.snapshot-placeholder{display:none}.snapshot .snapshot-equipment-badge{position:absolute;right:8px;top:8px;z-index:4;padding:6px 8px;border:1px solid rgba(218,180,88,.62);border-radius:8px;background:rgba(7,9,11,.78);color:#f2dfad;font-size:10px;pointer-events:none}.snapshot .snapshot-equipment-badge b{display:block}', 'css')
-default='kai_snapshot_overlay.png' if 'kai_snapshot_overlay.png' in a else 'kai_snapshot_overlay.webp'
+default='BestKai.png'
 js="function equippedItem(s){try{return state&&state.equipment&&state.equipment[s]?state.equipment[s]:null}catch(e){return null}}function madGodEquipped(s){var x=equippedItem(s);return !!(x&&String(x.id||'').indexOf('madgod:')===0)}function kaiOverlaySource(){var a=madGodEquipped('armor'),w=madGodEquipped('weapon');if(a&&w)return 'kai_snapshot_overlay_madgod.webp';if(a)return 'kai_snapshot_overlay_madgod_armor.webp';if(w)return 'kai_snapshot_overlay_madgod_magnum.webp';return '"+default+"'}function appendEquipmentBadge(b){if(!madGodEquipped('armor')&&!madGodEquipped('weapon'))return;var d=document.createElement('div');d.className='snapshot-equipment-badge';var a=equippedItem('armor'),w=equippedItem('weapon');d.textContent=[a&&madGodEquipped('armor')?a.name:'',w&&madGodEquipped('weapon')?w.name:''].filter(Boolean).join(' • ');b.appendChild(d)}"
 a=one(a,'function cachedSnapshot(){',js+'function cachedSnapshot(){','js')
-for oldimg in ["kai.src='kai_snapshot_overlay.png';kai.alt='Kai Akechi';box.appendChild(kai);","kai.src='kai_snapshot_overlay.webp';kai.alt='Kai Akechi';box.appendChild(kai);","kai.src='file:///android_asset/kai_snapshot_overlay.webp';kai.alt='Kai Akechi';box.appendChild(kai);"]:
+for oldimg in ["kai.src='BestKai.png';kai.alt='Kai Akechi';box.appendChild(kai);","kai.src='file:///android_asset/BestKai.png';kai.alt='Kai Akechi';box.appendChild(kai);","kai.src='kai_snapshot_overlay.png';kai.alt='Kai Akechi';box.appendChild(kai);","kai.src='kai_snapshot_overlay.webp';kai.alt='Kai Akechi';box.appendChild(kai);"]:
     if oldimg in a:
         a=a.replace(oldimg,"kai.src=kaiOverlaySource();kai.onerror=function(){this.onerror=null;this.src='"+default+"'};kai.alt='Kai Akechi';box.appendChild(kai);appendEquipmentBadge(box);",1);break
 else: raise RuntimeError('overlay image anchor')
