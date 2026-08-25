@@ -135,5 +135,10 @@ runpy.run_path(str(ROOT / "patch-jeff-jane-skills.py"), run_name="__main__")
 
 # Keep the technical action ledger available to CombatRuntime regressions, but strip its
 # implementation-oriented prefixes from the final WebView log. This runs after Jeff/Jane so
-# the UI cleanup remains the last patch without changing the finalized combat mechanics.
+# the UI cleanup remains the last generic patch without changing finalized mechanics.
 runpy.run_path(str(ROOT / "patch-hide-entity-action-debug.py"), run_name="__main__")
+
+# Violet Warden is deliberately last. Its 10% all-Level unique encounter, Duel Target,
+# Block/Counter and single-target Control mechanics must extend the already-finalized
+# Entity/Party runtime without changing any older boss or shared Entity authority.
+runpy.run_path(str(ROOT / "patch-violet-warden-entity.py"), run_name="__main__")
