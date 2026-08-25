@@ -7,6 +7,13 @@ MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
 SNAPSHOT_DIR = ROOT / "app/src/main/assets/level_snapshots"
 MANIFEST = SNAPSHOT_DIR / "fandom_manifest.json"
 PREPARE = ROOT / "prepare-fandom-level-snapshots.py"
+REJECT_RENDER_TITLES = (
+    "sd-hexagon",
+    "default profile picture",
+    "site logo",
+    "readthepage",
+    "whitebackground",
+)
 
 if not PREPARE.is_file():
     raise RuntimeError("Fandom snapshot preparation script missing")
@@ -31,7 +38,7 @@ for area_id, area in areas.items():
     for record in area.get("images", []):
         name = str(record.get("local_file", "")).strip()
         title = str(record.get("file_title", "")).strip().lower()
-        if not name or "sd-hexagon" in title:
+        if not name or any(part in title for part in REJECT_RENDER_TITLES):
             continue
         asset = SNAPSHOT_DIR / name
         if not asset.is_file() or asset.stat().st_size <= 0:
@@ -116,10 +123,25 @@ if count != 1:
 main = main.replace(old_css, new_css, 1)
 
 MAIN.write_text(main, encoding="utf-8")
-missing = manifest.get("missing_areas", [])
-missing_non_main = [item for item in missing if str(item.get("area_type", "")) != "MAIN"]
+effective_missing = []
+for area_id, area in areas.items():
+    if str(area.get("area_type", "")) == "MAIN" or str(area_id) in pools:
+        continue
+    effective_missing.append(
+        {
+            "area_id": str(area_id),
+            "parent_level": int(area.get("parent_level", -1)),
+            "area_name": str(area.get("area_name", "")),
+            "reason": str(area.get("status", "no_environment_images_after_filter")) if not area.get("images") else "no_environment_images_after_filter",
+        }
+    )
+for item in effective_missing:
+    print(
+        f"SNAPSHOT_MISSING area={item['area_id']} parent=L{item['parent_level']} "
+        f"name={item['area_name']} reason={item['reason']}"
+    )
 print(
     "Backrooms Wiki Fandom area snapshots enabled with 5-minute rotation: "
-    f"dedicated={len(pools)}/43, missing_non_main={len(missing_non_main)}; "
+    f"dedicated={len(pools)}/43, missing_non_main={len(effective_missing)}; "
     "missing areas fall back only to their parent main Level; Kai stays overlaid on top."
 )
