@@ -2,7 +2,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
 INDEX = ROOT / "app/src/main/assets/index.html"
-OVERLAY = ROOT / "app/src/main/assets/BestKai.png"
+OVERLAY = ROOT / "app/src/main/assets/BESTKAIV2.png"
 
 
 def replace_once(text: str, old: str, new: str, label: str) -> str:
@@ -12,14 +12,14 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
     return text.replace(old, new, 1)
 
 
-# Keep the user's selected BestKai PNG packaged in the APK.
+# Keep the user's selected BESTKAIV2 PNG packaged in the APK.
 raw = OVERLAY.read_bytes()
 if len(raw) < 24 or raw[:8] != b"\x89PNG\r\n\x1a\n":
-    raise RuntimeError("BestKai asset is not a valid PNG")
+    raise RuntimeError("BESTKAIV2 asset is not a valid PNG")
 width = int.from_bytes(raw[16:20], "big")
 height = int.from_bytes(raw[20:24], "big")
 if width < 512 or height < 768:
-    raise RuntimeError(f"BestKai asset is too small: {width}x{height}; need at least 512x768")
+    raise RuntimeError(f"BESTKAIV2 asset is too small: {width}x{height}; need at least 512x768")
 
 main = MAIN.read_text(encoding="utf-8")
 index = INDEX.read_text(encoding="utf-8")
@@ -38,8 +38,8 @@ main = replace_once(main, old_css, new_css, "crisp Kai CSS")
 
 main = replace_once(
     main,
-    "kai.src='file:///android_asset/BestKai.png';",
-    "kai.src='BestKai.png';",
+    "kai.src='file:///android_asset/BESTKAIV2.png';",
+    "kai.src='BESTKAIV2.png';",
     "Kai packaged relative asset path",
 )
 
@@ -177,7 +177,7 @@ index = replace_once(
 MAIN.write_text(main, encoding="utf-8")
 INDEX.write_text(index, encoding="utf-8")
 print(
-    f"BestKai installed ({width}x{height}). "
+    f"BESTKAIV2 installed ({width}x{height}). "
     "Continuous Snapshot generation disabled; only explicit meaningful visual events trigger an automatic image. "
     "APK header and action prompt updated."
 )
