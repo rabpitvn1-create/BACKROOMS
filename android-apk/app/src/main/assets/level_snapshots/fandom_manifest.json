@@ -1,0 +1,1956 @@
+{
+  "source": "Backrooms Wiki | Fandom",
+  "wiki_url": "https://backrooms.fandom.com/wiki/Backrooms_Wiki",
+  "route_source": "patch-linear-sublevel-progression.py",
+  "route_count": 43,
+  "selection": {
+    "minimum_per_main_area": 2,
+    "maximum_per_area": 3,
+    "thumbnail_width": 768,
+    "policy": "Each campaign area uses only images from its own resolved Fandom page; missing areas fall back to their parent main Level at runtime."
+  },
+  "areas": {
+    "0": {
+      "route_index": 0,
+      "parent_level": 0,
+      "area_id": "0",
+      "area_name": "The Lobby",
+      "area_type": "MAIN",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 0"
+      ],
+      "images": [
+        {
+          "local_file": "area_00_0_fandom_01.webp",
+          "file_title": "File:Level 0 alt.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_0",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Level_0_alt.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/4/48/Level_0_alt.png/revision/latest?cb=20250323045617",
+          "mime": "image/webp",
+          "width": 720,
+          "height": 541,
+          "bytes": 22254,
+          "sha256": "cd4ca0e8e7570cf4d8304a3b1700e138bfa54357e53d0851578a1edbefea78cc"
+        },
+        {
+          "local_file": "area_00_0_fandom_02.webp",
+          "file_title": "File:Dated level 0 photograph.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_0",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Dated_level_0_photograph.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/8/8d/Dated_level_0_photograph.png/revision/latest?cb=20250331183333",
+          "mime": "image/webp",
+          "width": 640,
+          "height": 480,
+          "bytes": 72192,
+          "sha256": "cd381af279ebde1f4d78aef43919a6771e8783df983d3be9d81e3105eff109aa"
+        },
+        {
+          "local_file": "area_00_0_fandom_03.webp",
+          "file_title": "File:Thebackrooms.jpg",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_0",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Thebackrooms.jpg",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/0/05/Thebackrooms.jpg/revision/latest/scale-to-width-down/768?cb=20230105020740",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 576,
+          "bytes": 36976,
+          "sha256": "f3006f2f7c2b5187a0bad2531303f7ba3f0908015502c2497a68910930072ebe"
+        }
+      ],
+      "page_title": "Level 0",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_0"
+    },
+    "epsilon": {
+      "route_index": 1,
+      "parent_level": 0,
+      "area_id": "epsilon",
+      "area_name": "Incessant Hum-Buzz",
+      "area_type": "SPECIAL",
+      "status": "missing_page",
+      "resolution": "missing",
+      "page_candidates": [
+        "Level ε",
+        "Level Epsilon",
+        "Level epsilon",
+        "Incessant Hum-Buzz"
+      ],
+      "images": []
+    },
+    "0.01": {
+      "route_index": 2,
+      "parent_level": 0,
+      "area_id": "0.01",
+      "area_name": "The Exit ?",
+      "area_type": "SUBLEVEL",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 0.01",
+        "Level 0.01 - The Exit ?",
+        "Level 0.01: The Exit ?"
+      ],
+      "images": [
+        {
+          "local_file": "area_02_0_01_fandom_01.webp",
+          "file_title": "File:Image of level 0.01.webp",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_0.01",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Image_of_level_0.01.webp",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/3/3f/Image_of_level_0.01.webp/revision/latest?cb=20220520080131",
+          "mime": "image/webp",
+          "width": 640,
+          "height": 784,
+          "bytes": 182112,
+          "sha256": "45f019731fc3c13f704e2371083be1515d2c89076a78bba6cc58ffe787beee34"
+        }
+      ],
+      "page_title": "Level 0.01",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_0.01"
+    },
+    "0.1": {
+      "route_index": 3,
+      "parent_level": 0,
+      "area_id": "0.1",
+      "area_name": "Deep Emptiness",
+      "area_type": "SUBLEVEL",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 0.1",
+        "Level 0.1 - Deep Emptiness",
+        "Level 0.1: Deep Emptiness"
+      ],
+      "images": [
+        {
+          "local_file": "area_03_0_1_fandom_01.webp",
+          "file_title": "File:ReadThePage.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_0.1",
+          "description_url": "https://backrooms.fandom.com/wiki/File:ReadThePage.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/1/1b/ReadThePage.png/revision/latest/scale-to-width-down/768?cb=20260704231047",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 506,
+          "bytes": 15124,
+          "sha256": "5d5c2a2903893686d5004ea6c1641f26132e04548cb3eb40aa69d296034e0e07"
+        },
+        {
+          "local_file": "area_03_0_1_fandom_02.webp",
+          "file_title": "File:Sd-hexagon.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_0.1",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Sd-hexagon.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/a/a1/Sd-hexagon.png/revision/latest?cb=20221228171853",
+          "mime": "image/webp",
+          "width": 500,
+          "height": 577,
+          "bytes": 8302,
+          "sha256": "13fdfc80e16435e155f9c4891a2e562ae881fa627e9d173025707c6174721454"
+        },
+        {
+          "local_file": "area_03_0_1_fandom_03.webp",
+          "file_title": "File:Screenshot 2025-11-18 171356.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_0.1",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Screenshot_2025-11-18_171356.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/e/e8/Screenshot_2025-11-18_171356.png/revision/latest?cb=20251118171428",
+          "mime": "image/webp",
+          "width": 586,
+          "height": 488,
+          "bytes": 60874,
+          "sha256": "1fd1c163d19a9ae3f9d7c5e3a4dfb7caa40db2d397b2861ff478746a6eb7e11f"
+        }
+      ],
+      "page_title": "Level 0.1",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_0.1"
+    },
+    "0.11": {
+      "route_index": 4,
+      "parent_level": 0,
+      "area_id": "0.11",
+      "area_name": "Water Damage",
+      "area_type": "SUBLEVEL",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 0.11",
+        "Level 0.11 - Water Damage",
+        "Level 0.11: Water Damage"
+      ],
+      "images": [
+        {
+          "local_file": "area_04_0_11_fandom_01.webp",
+          "file_title": "File:IMG 3684.webp",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_0.11",
+          "description_url": "https://backrooms.fandom.com/wiki/File:IMG_3684.webp",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/a/a8/IMG_3684.webp/revision/latest/scale-to-width-down/768?cb=20260312035107",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 469,
+          "bytes": 22020,
+          "sha256": "869a2844bea238e73f2ab4b0d72a78e6668cd363e1370bf2cd79c87ddf159613"
+        },
+        {
+          "local_file": "area_04_0_11_fandom_02.webp",
+          "file_title": "File:Sd-hexagon.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_0.11",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Sd-hexagon.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/a/a1/Sd-hexagon.png/revision/latest?cb=20221228171853",
+          "mime": "image/webp",
+          "width": 500,
+          "height": 577,
+          "bytes": 8302,
+          "sha256": "13fdfc80e16435e155f9c4891a2e562ae881fa627e9d173025707c6174721454"
+        }
+      ],
+      "page_title": "Level 0.11",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_0.11"
+    },
+    "0.22": {
+      "route_index": 5,
+      "parent_level": 0,
+      "area_id": "0.22",
+      "area_name": "Fully Remodeled",
+      "area_type": "SUBLEVEL",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 0.22",
+        "Level 0.22 - Fully Remodeled",
+        "Level 0.22: Fully Remodeled"
+      ],
+      "images": [
+        {
+          "local_file": "area_05_0_22_fandom_01.webp",
+          "file_title": "File:Level 0.22.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_0.22",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Level_0.22.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/d/dd/Level_0.22.png/revision/latest/scale-to-width-down/768?cb=20220130125655",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 578,
+          "bytes": 34192,
+          "sha256": "6145426374ccaa5467b4e9e8829fc0a103cb089d010811d6f698a36d84be0cdc"
+        },
+        {
+          "local_file": "area_05_0_22_fandom_02.webp",
+          "file_title": "File:022extra.jpg",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_0.22",
+          "description_url": "https://backrooms.fandom.com/wiki/File:022extra.jpg",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/6/69/022extra.jpg/revision/latest/scale-to-width-down/768?cb=20230920111323",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 576,
+          "bytes": 54174,
+          "sha256": "fa61ae896e99ff8b68f96e9fbe84ce386ea47410be4f7ad836fec776e745cf35"
+        },
+        {
+          "local_file": "area_05_0_22_fandom_03.webp",
+          "file_title": "File:Default Profile Picture.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_0.22",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Default_Profile_Picture.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/a/a5/Default_Profile_Picture.png/revision/latest/scale-to-width-down/768?cb=20221106052412",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 1059,
+          "bytes": 10526,
+          "sha256": "fb82fb18a0fc5d67e12b297451acd6206826843d7842a9ed6fb7d4cf927953b0"
+        }
+      ],
+      "page_title": "Level 0.22",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_0.22"
+    },
+    "0.23": {
+      "route_index": 6,
+      "parent_level": 0,
+      "area_id": "0.23",
+      "area_name": "Half Finished",
+      "area_type": "SUBLEVEL",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 0.23",
+        "Level 0.23 - Half Finished",
+        "Level 0.23: Half Finished"
+      ],
+      "images": [
+        {
+          "local_file": "area_06_0_23_fandom_01.webp",
+          "file_title": "File:Level 0.23.webp",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_0.23",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Level_0.23.webp",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/2/23/Level_0.23.webp/revision/latest/scale-to-width-down/768?cb=20250427203112",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 735,
+          "bytes": 13392,
+          "sha256": "6c710e6c3a9bf5f8fde8b7ede50d5b941bc2fa40a9cdcebb4ea127bb4019726c"
+        },
+        {
+          "local_file": "area_06_0_23_fandom_02.webp",
+          "file_title": "File:Ventinillas.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_0.23",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Ventinillas.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/b/b9/Ventinillas.png/revision/latest/scale-to-width-down/768?cb=20250427213153",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 532,
+          "bytes": 32014,
+          "sha256": "7cdadd10c70a1a08b33620877b08ed3c4fee452ec7427b48c2c29ff49ac40a96"
+        },
+        {
+          "local_file": "area_06_0_23_fandom_03.webp",
+          "file_title": "File:1234rrr.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_0.23",
+          "description_url": "https://backrooms.fandom.com/wiki/File:1234rrr.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/4/4e/1234rrr.png/revision/latest?cb=20250427220517",
+          "mime": "image/webp",
+          "width": 556,
+          "height": 567,
+          "bytes": 50750,
+          "sha256": "0d1362a526830e2a76a311f924ceab78a576e00383f7ce7e2cca98f0ab95ce12"
+        }
+      ],
+      "page_title": "Level 0.23",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_0.23"
+    },
+    "0.41": {
+      "route_index": 7,
+      "parent_level": 0,
+      "area_id": "0.41",
+      "area_name": "Disease",
+      "area_type": "SUBLEVEL",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 0.41",
+        "Level 0.41 - Disease",
+        "Level 0.41: Disease"
+      ],
+      "images": [
+        {
+          "local_file": "area_07_0_41_fandom_01.webp",
+          "file_title": "File:0.41 Entrance.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_0.41",
+          "description_url": "https://backrooms.fandom.com/wiki/File:0.41_Entrance.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/0/0d/0.41_Entrance.png/revision/latest?cb=20260430201601",
+          "mime": "image/webp",
+          "width": 755,
+          "height": 755,
+          "bytes": 101752,
+          "sha256": "f8a2cc6a581d20badcda559da9a125cf7daf37128dec953bb0a8458e3afc7b12"
+        }
+      ],
+      "page_title": "Level 0.41",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_0.41"
+    },
+    "0.5": {
+      "route_index": 8,
+      "parent_level": 0,
+      "area_id": "0.5",
+      "area_name": "Chaotic Structure",
+      "area_type": "SUBLEVEL",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 0.5",
+        "Level 0.5 - Chaotic Structure",
+        "Level 0.5: Chaotic Structure"
+      ],
+      "images": [
+        {
+          "local_file": "area_08_0_5_fandom_01.webp",
+          "file_title": "File:Level 0.5 (Craiyon).jpg",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_0.5",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Level_0.5_(Craiyon).jpg",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/1/1f/Level_0.5_%28Craiyon%29.jpg/revision/latest?cb=20221019002803",
+          "mime": "image/webp",
+          "width": 462,
+          "height": 436,
+          "bytes": 6820,
+          "sha256": "1c30d388a3e2138940d6c1ce34f5420d353fe27ed222c674c6dd4693c22af9e8"
+        },
+        {
+          "local_file": "area_08_0_5_fandom_02.webp",
+          "file_title": "File:Sd-hexagon.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_0.5",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Sd-hexagon.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/a/a1/Sd-hexagon.png/revision/latest?cb=20221228171853",
+          "mime": "image/webp",
+          "width": 500,
+          "height": 577,
+          "bytes": 8302,
+          "sha256": "13fdfc80e16435e155f9c4891a2e562ae881fa627e9d173025707c6174721454"
+        },
+        {
+          "local_file": "area_08_0_5_fandom_03.webp",
+          "file_title": "File:Qwerty (Craiyon).jpg",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_0.5",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Qwerty_(Craiyon).jpg",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/0/08/Qwerty_%28Craiyon%29.jpg/revision/latest?cb=20221018232814",
+          "mime": "image/webp",
+          "width": 472,
+          "height": 470,
+          "bytes": 5606,
+          "sha256": "fe1375bcf2cc690330b21a5e79f06a9ce66fed3f8a5b15d329d09709de6dcec4"
+        }
+      ],
+      "page_title": "Level 0.5",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_0.5"
+    },
+    "0.66": {
+      "route_index": 9,
+      "parent_level": 0,
+      "area_id": "0.66",
+      "area_name": "The Lobby Went COLD",
+      "area_type": "SUBLEVEL",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 0.66",
+        "Level 0.66 - The Lobby Went COLD",
+        "Level 0.66: The Lobby Went COLD"
+      ],
+      "images": [
+        {
+          "local_file": "area_09_0_66_fandom_01.webp",
+          "file_title": "File:0 66.jpg",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_0.66",
+          "description_url": "https://backrooms.fandom.com/wiki/File:0_66.jpg",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/b/bf/0_66.jpg/revision/latest/scale-to-width-down/768?cb=20260509192121",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 512,
+          "bytes": 37850,
+          "sha256": "e30ce41e471adde525e66d8d7bf18c9602cb1713c870f398b2b449f80a938a7d"
+        },
+        {
+          "local_file": "area_09_0_66_fandom_02.webp",
+          "file_title": "File:Rendition.jpg",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_0.66",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Rendition.jpg",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/3/34/Rendition.jpg/revision/latest/scale-to-width-down/768?cb=20260509192123",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 512,
+          "bytes": 71060,
+          "sha256": "6f4b178ab18969f90503388f4610bf736335fad1f091fffe740ddcce29a9b797"
+        },
+        {
+          "local_file": "area_09_0_66_fandom_03.webp",
+          "file_title": "File:Sd-hexagon.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_0.66",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Sd-hexagon.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/a/a1/Sd-hexagon.png/revision/latest?cb=20221228171853",
+          "mime": "image/webp",
+          "width": 500,
+          "height": 577,
+          "bytes": 8302,
+          "sha256": "13fdfc80e16435e155f9c4891a2e562ae881fa627e9d173025707c6174721454"
+        }
+      ],
+      "page_title": "Level 0.66",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_0.66"
+    },
+    "0.7": {
+      "route_index": 10,
+      "parent_level": 0,
+      "area_id": "0.7",
+      "area_name": "Claustrophobia",
+      "area_type": "SUBLEVEL",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 0.7",
+        "Level 0.7 - Claustrophobia",
+        "Level 0.7: Claustrophobia"
+      ],
+      "images": [
+        {
+          "local_file": "area_10_0_7_fandom_01.webp",
+          "file_title": "File:Skin stealer in level 0.7.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_0.7",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Skin_stealer_in_level_0.7.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/a/ab/Skin_stealer_in_level_0.7.png/revision/latest?cb=20250929034804",
+          "mime": "image/webp",
+          "width": 551,
+          "height": 431,
+          "bytes": 11560,
+          "sha256": "ef010ef11cc8601f377971b86de874b74f0046bb626876a95861635a98cfccb5"
+        },
+        {
+          "local_file": "area_10_0_7_fandom_02.webp",
+          "file_title": "File:0.7Room2.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_0.7",
+          "description_url": "https://backrooms.fandom.com/wiki/File:0.7Room2.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/6/63/0.7Room2.png/revision/latest/scale-to-width-down/768?cb=20231215205428",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 512,
+          "bytes": 36696,
+          "sha256": "83801a64a90a66dff37dd759c2686ff77c9d6b565bca95cb77b34c2d36c22157"
+        },
+        {
+          "local_file": "area_10_0_7_fandom_03.webp",
+          "file_title": "File:0.7 bg.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_0.7",
+          "description_url": "https://backrooms.fandom.com/wiki/File:0.7_bg.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/0/0a/0.7_bg.png/revision/latest/scale-to-width-down/768?cb=20230627140225",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 432,
+          "bytes": 4424,
+          "sha256": "7914a4c06c4fb64149f73a2e0fed797e73d00eec53513ceec1e0bbce311f597c"
+        }
+      ],
+      "page_title": "Level 0.7",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_0.7"
+    },
+    "0.8": {
+      "route_index": 11,
+      "parent_level": 0,
+      "area_id": "0.8",
+      "area_name": "Inundation",
+      "area_type": "SUBLEVEL",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 0.8",
+        "Level 0.8 - Inundation",
+        "Level 0.8: Inundation"
+      ],
+      "images": [
+        {
+          "local_file": "area_11_0_8_fandom_01.webp",
+          "file_title": "File:Level0,8pic2.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_0.8",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Level0,8pic2.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/e/e8/Level0%2C8pic2.png/revision/latest/scale-to-width-down/768?cb=20230909000236",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 567,
+          "bytes": 49006,
+          "sha256": "1d5edf153038b824195034ac4a3736c8791c7e45955eb2ee27223b1fb8980d6b"
+        },
+        {
+          "local_file": "area_11_0_8_fandom_02.webp",
+          "file_title": "File:Theydonthavetobedarkbro.jpeg",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_0.8",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Theydonthavetobedarkbro.jpeg",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/4/4a/Theydonthavetobedarkbro.jpeg/revision/latest?cb=20250715025303",
+          "mime": "image/webp",
+          "width": 640,
+          "height": 480,
+          "bytes": 22110,
+          "sha256": "5c5af4521df45d887f923ccec75e4130a530fecd27d075f62a1380bf9c47c769"
+        }
+      ],
+      "page_title": "Level 0.8",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_0.8"
+    },
+    "0.99": {
+      "route_index": 12,
+      "parent_level": 0,
+      "area_id": "0.99",
+      "area_name": "Deeper Regions",
+      "area_type": "SUBLEVEL",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 0.99",
+        "Level 0.99 - Deeper Regions",
+        "Level 0.99: Deeper Regions"
+      ],
+      "images": [
+        {
+          "local_file": "area_12_0_99_fandom_01.webp",
+          "file_title": "File:The Metropolis.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_0.99",
+          "description_url": "https://backrooms.fandom.com/wiki/File:The_Metropolis.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/f/f9/The_Metropolis.png/revision/latest/scale-to-width-down/768?cb=20260331011010",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 579,
+          "bytes": 14530,
+          "sha256": "3fc7e8b2784fab186f72c85c7752a588fe77f23d1757bde5a0ddf035110ba767"
+        },
+        {
+          "local_file": "area_12_0_99_fandom_02.webp",
+          "file_title": "File:The Manifold.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_0.99",
+          "description_url": "https://backrooms.fandom.com/wiki/File:The_Manifold.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/a/ac/The_Manifold.png/revision/latest/scale-to-width-down/768?cb=20260331011317",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 580,
+          "bytes": 20852,
+          "sha256": "d37bb8f630d6061a423efbbf554e80a696cce850dd503e92a4d9beed8b6b529e"
+        },
+        {
+          "local_file": "area_12_0_99_fandom_03.webp",
+          "file_title": "File:The Mezzanine.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_0.99",
+          "description_url": "https://backrooms.fandom.com/wiki/File:The_Mezzanine.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/d/d6/The_Mezzanine.png/revision/latest/scale-to-width-down/768?cb=20260331005209",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 581,
+          "bytes": 26766,
+          "sha256": "4bb2539d2d6c43e56481c498d0eeb09c19d9aecdf94731a517ad034fd0edfea6"
+        }
+      ],
+      "page_title": "Level 0.99",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_0.99"
+    },
+    "LS-2": {
+      "route_index": 13,
+      "parent_level": 0,
+      "area_id": "LS-2",
+      "area_name": "LS-2",
+      "area_type": "SPECIAL",
+      "status": "missing_page",
+      "resolution": "missing",
+      "page_candidates": [
+        "LS-2",
+        "Level LS-2"
+      ],
+      "images": []
+    },
+    "Dullness": {
+      "route_index": 14,
+      "parent_level": 0,
+      "area_id": "Dullness",
+      "area_name": "Dullness",
+      "area_type": "SPECIAL",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Dullness",
+        "Level Dullness"
+      ],
+      "images": [
+        {
+          "local_file": "area_14_dullness_fandom_01.webp",
+          "file_title": "File:Levelminus0 2.webp",
+          "page_url": "https://backrooms.fandom.com/wiki/Dullness",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Levelminus0_2.webp",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/2/24/Levelminus0_2.webp/revision/latest/scale-to-width-down/768?cb=20231101055749",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 432,
+          "bytes": 4594,
+          "sha256": "24099d78e744b278cc2a32548ff53bf4accc972ff214eca908e3c98027a62f01"
+        },
+        {
+          "local_file": "area_14_dullness_fandom_02.webp",
+          "file_title": "File:-0.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Dullness",
+          "description_url": "https://backrooms.fandom.com/wiki/File:-0.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/4/44/-0.png/revision/latest?cb=20221109211419",
+          "mime": "image/webp",
+          "width": 588,
+          "height": 596,
+          "bytes": 93208,
+          "sha256": "c20148b61e401cbafd69e2dd837aeecbf62f26f42186236e67f8d34f9ac6cf9d"
+        },
+        {
+          "local_file": "area_14_dullness_fandom_03.webp",
+          "file_title": "File:Sd-hexagon.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Dullness",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Sd-hexagon.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/a/a1/Sd-hexagon.png/revision/latest?cb=20221228171853",
+          "mime": "image/webp",
+          "width": 500,
+          "height": 577,
+          "bytes": 8302,
+          "sha256": "13fdfc80e16435e155f9c4891a2e562ae881fa627e9d173025707c6174721454"
+        }
+      ],
+      "page_title": "Dullness",
+      "page_url": "https://backrooms.fandom.com/wiki/Dullness"
+    },
+    "Red Rooms": {
+      "route_index": 15,
+      "parent_level": 0,
+      "area_id": "Red Rooms",
+      "area_name": "Red Rooms",
+      "area_type": "SPECIAL",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Red Rooms",
+        "Level Red Rooms"
+      ],
+      "images": [
+        {
+          "local_file": "area_15_red_rooms_fandom_01.webp",
+          "file_title": "File:Eggrooms-red (1).png",
+          "page_url": "https://backrooms.fandom.com/wiki/Red_Rooms",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Eggrooms-red_(1).png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/c/cf/Eggrooms-red_%281%29.png/revision/latest/scale-to-width-down/768?cb=20230418073037",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 432,
+          "bytes": 6706,
+          "sha256": "4bd23b92fbdca7752c968f08f8f994f3e693139d2c60563ace9fbd2f450c2b6a"
+        },
+        {
+          "local_file": "area_15_red_rooms_fandom_02.webp",
+          "file_title": "File:Nolightred.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Red_Rooms",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Nolightred.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/9/99/Nolightred.png/revision/latest/scale-to-width-down/768?cb=20260601183417",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 538,
+          "bytes": 4438,
+          "sha256": "fd6e59490ac3d71304f40ea9230c47b0f9d7a9abb83477eb06f58a814d21db79"
+        },
+        {
+          "local_file": "area_15_red_rooms_fandom_03.webp",
+          "file_title": "File:Sd-hexagon.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Red_Rooms",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Sd-hexagon.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/a/a1/Sd-hexagon.png/revision/latest?cb=20221228171853",
+          "mime": "image/webp",
+          "width": 500,
+          "height": 577,
+          "bytes": 8302,
+          "sha256": "13fdfc80e16435e155f9c4891a2e562ae881fa627e9d173025707c6174721454"
+        }
+      ],
+      "page_title": "Red Rooms",
+      "page_url": "https://backrooms.fandom.com/wiki/Red_Rooms"
+    },
+    "1": {
+      "route_index": 16,
+      "parent_level": 1,
+      "area_id": "1",
+      "area_name": "Parking Zone",
+      "area_type": "MAIN",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 1"
+      ],
+      "images": [
+        {
+          "local_file": "area_16_1_fandom_01.webp",
+          "file_title": "File:Level 1 Hallway.jpg",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_1",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Level_1_Hallway.jpg",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/8/86/Level_1_Hallway.jpg/revision/latest/scale-to-width-down/768?cb=20230205205940",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 768,
+          "bytes": 51958,
+          "sha256": "ea82f762a8f3d60b6c9d7047f0f900e8ec313c56b9c51b96afb8aa802aa0771e"
+        },
+        {
+          "local_file": "area_16_1_fandom_02.webp",
+          "file_title": "File:Level 1 Rewrite.jpg",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_1",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Level_1_Rewrite.jpg",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/6/6e/Level_1_Rewrite.jpg/revision/latest/scale-to-width-down/768?cb=20240224130148",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 576,
+          "bytes": 48086,
+          "sha256": "0ac0470e54b3d322cc0a31ca386c11c3fe696bd023d1b7b171d753a19ce7db6c"
+        },
+        {
+          "local_file": "area_16_1_fandom_03.webp",
+          "file_title": "File:Level 1.jpg",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_1",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Level_1.jpg",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/d/dc/Level_1.jpg/revision/latest?cb=20220801002748",
+          "mime": "image/webp",
+          "width": 720,
+          "height": 540,
+          "bytes": 46380,
+          "sha256": "6f65dd088f361aaaeb591a91b7adaa720dc741fcf311dcb884da85858c02ae62"
+        }
+      ],
+      "page_title": "Level 1",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_1"
+    },
+    "1.01": {
+      "route_index": 17,
+      "parent_level": 1,
+      "area_id": "1.01",
+      "area_name": "The Basement of Level 1",
+      "area_type": "SUBLEVEL",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 1.01",
+        "Level 1.01 - The Basement of Level 1",
+        "Level 1.01: The Basement of Level 1"
+      ],
+      "images": [
+        {
+          "local_file": "area_17_1_01_fandom_01.webp",
+          "file_title": "File:1.01-2.jpg",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_1.01",
+          "description_url": "https://backrooms.fandom.com/wiki/File:1.01-2.jpg",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/7/79/1.01-2.jpg/revision/latest/scale-to-width-down/768?cb=20240327135504",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 576,
+          "bytes": 94188,
+          "sha256": "d9f954385913a2ab7b6d78eddfc3179a7eb81badb96811eb36fe6c7c035e3368"
+        },
+        {
+          "local_file": "area_17_1_01_fandom_02.webp",
+          "file_title": "File:1.01-3.jpg",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_1.01",
+          "description_url": "https://backrooms.fandom.com/wiki/File:1.01-3.jpg",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/1/1e/1.01-3.jpg/revision/latest/scale-to-width-down/768?cb=20241018182201",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 576,
+          "bytes": 68868,
+          "sha256": "846a941eb4d533577b8dce4d6439173aa9f7658ff38ff06ca707e450db5069bd"
+        },
+        {
+          "local_file": "area_17_1_01_fandom_03.webp",
+          "file_title": "File:Viginette7.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_1.01",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Viginette7.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/d/de/Viginette7.png/revision/latest/scale-to-width-down/768?cb=20240726034457",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 768,
+          "bytes": 39016,
+          "sha256": "41bad28661975cd1f42c3144305ea86f1506326ad51c7a465cbf1adc6dc4423e"
+        }
+      ],
+      "page_title": "Level 1.01",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_1.01"
+    },
+    "1.1": {
+      "route_index": 18,
+      "parent_level": 1,
+      "area_id": "1.1",
+      "area_name": "Fallen Vehicle",
+      "area_type": "SUBLEVEL",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 1.1",
+        "Level 1.1 - Fallen Vehicle",
+        "Level 1.1: Fallen Vehicle"
+      ],
+      "images": [
+        {
+          "local_file": "area_18_1_1_fandom_01.webp",
+          "file_title": "File:Level 1.1 2.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_1.1",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Level_1.1_2.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/1/11/Level_1.1_2.png/revision/latest?cb=20260305074242",
+          "mime": "image/webp",
+          "width": 736,
+          "height": 981,
+          "bytes": 90830,
+          "sha256": "a0bb2915375edc22fb3728ab92b79c19f6b189b67889eb2606a1c274fd940d2d"
+        },
+        {
+          "local_file": "area_18_1_1_fandom_02.webp",
+          "file_title": "File:Level 1.1.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_1.1",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Level_1.1.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/c/cf/Level_1.1.png/revision/latest?cb=20260305080245",
+          "mime": "image/webp",
+          "width": 736,
+          "height": 961,
+          "bytes": 76306,
+          "sha256": "b7d9461a042c1e3c6a210975a7101ba1d95efbd3aca2b55763ea5642b1baa0b1"
+        },
+        {
+          "local_file": "area_18_1_1_fandom_03.webp",
+          "file_title": "File:Level 1.1 3.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_1.1",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Level_1.1_3.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/0/0a/Level_1.1_3.png/revision/latest/scale-to-width-down/768?cb=20250915130654",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 419,
+          "bytes": 98514,
+          "sha256": "c329c258f3ad3c13097c967ddc02f0fc5ad60a30fe454d7a53874b80a32fba7f"
+        }
+      ],
+      "page_title": "Level 1.1",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_1.1"
+    },
+    "1.5": {
+      "route_index": 19,
+      "parent_level": 1,
+      "area_id": "1.5",
+      "area_name": "Lurking Danger",
+      "area_type": "SUBLEVEL",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 1.5",
+        "Level 1.5 - Lurking Danger",
+        "Level 1.5: Lurking Danger"
+      ],
+      "images": [
+        {
+          "local_file": "area_19_1_5_fandom_01.webp",
+          "file_title": "File:Level1.1DarkHallway.jpg",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_1.5",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Level1.1DarkHallway.jpg",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/3/3d/Level1.1DarkHallway.jpg/revision/latest/scale-to-width-down/768?cb=20241002142600",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 1024,
+          "bytes": 67158,
+          "sha256": "e83992199645dc99acf05fc1b61f9cee095c1313b45e309a1d132f1de4a6712e"
+        },
+        {
+          "local_file": "area_19_1_5_fandom_02.webp",
+          "file_title": "File:A hallway with a fire extinguisher in level 1.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_1.5",
+          "description_url": "https://backrooms.fandom.com/wiki/File:A_hallway_with_a_fire_extinguisher_in_level_1.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/e/e6/A_hallway_with_a_fire_extinguisher_in_level_1.png/revision/latest?cb=20230115121334",
+          "mime": "image/webp",
+          "width": 498,
+          "height": 667,
+          "bytes": 18604,
+          "sha256": "fc2a2c4724c424be903160e728024383b04ba1eb020624e8d5181243c772ff05"
+        },
+        {
+          "local_file": "area_19_1_5_fandom_03.webp",
+          "file_title": "File:Viginette7.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_1.5",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Viginette7.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/d/de/Viginette7.png/revision/latest/scale-to-width-down/768?cb=20240726034457",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 768,
+          "bytes": 39016,
+          "sha256": "41bad28661975cd1f42c3144305ea86f1506326ad51c7a465cbf1adc6dc4423e"
+        }
+      ],
+      "page_title": "Level 1.5",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_1.5"
+    },
+    "1.618033988749894...": {
+      "route_index": 20,
+      "parent_level": 1,
+      "area_id": "1.618033988749894...",
+      "area_name": "Midas’ Touch",
+      "area_type": "SUBLEVEL",
+      "status": "missing_page",
+      "resolution": "missing",
+      "page_candidates": [
+        "Level 1.618033988749894...",
+        "Level 1.618033988749894... - Midas’ Touch",
+        "Level 1.618033988749894...: Midas’ Touch"
+      ],
+      "images": []
+    },
+    "2": {
+      "route_index": 21,
+      "parent_level": 2,
+      "area_id": "2",
+      "area_name": "Pipe Dreams",
+      "area_type": "MAIN",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 2"
+      ],
+      "images": [
+        {
+          "local_file": "area_21_2_fandom_01.webp",
+          "file_title": "File:Twistinglevel2.jpg",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_2",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Twistinglevel2.jpg",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/f/f2/Twistinglevel2.jpg/revision/latest/scale-to-width-down/768?cb=20240420164459",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 588,
+          "bytes": 100590,
+          "sha256": "f52a1481842cb88fb0becce813a8348b13794e322ca3963d413a0616843b1a6d"
+        },
+        {
+          "local_file": "area_21_2_fandom_02.webp",
+          "file_title": "File:Cleanlevel2.jpg",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_2",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Cleanlevel2.jpg",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/f/fe/Cleanlevel2.jpg/revision/latest/scale-to-width-down/768?cb=20240420163804",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 574,
+          "bytes": 64766,
+          "sha256": "ad31cd5f9e6a77eb01fe9c59b2eff787976de554a084d4e81cc01c72889e8076"
+        },
+        {
+          "local_file": "area_21_2_fandom_03.webp",
+          "file_title": "File:Level 2 .png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_2",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Level_2_.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/3/37/Level_2_.png/revision/latest/scale-to-width-down/768?cb=20240119073549",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 1024,
+          "bytes": 133328,
+          "sha256": "bc63594d65e91109fe538c7725ea222212497e7fa33ab707683412205b5b650d"
+        }
+      ],
+      "page_title": "Level 2",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_2"
+    },
+    "2.1": {
+      "route_index": 22,
+      "parent_level": 2,
+      "area_id": "2.1",
+      "area_name": "The Subterranean Complex",
+      "area_type": "SUBLEVEL",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 2.1",
+        "Level 2.1 - The Subterranean Complex",
+        "Level 2.1: The Subterranean Complex"
+      ],
+      "images": [
+        {
+          "local_file": "area_22_2_1_fandom_01.webp",
+          "file_title": "File:Nov9.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_2.1",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Nov9.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/e/ee/Nov9.png/revision/latest/scale-to-width-down/768?cb=20251109194614",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 399,
+          "bytes": 7656,
+          "sha256": "b256e5053baace6b09107d1640543fa758662cb4caf076349f25d026dc8960ef"
+        },
+        {
+          "local_file": "area_22_2_1_fandom_02.webp",
+          "file_title": "File:Sd-hexagon.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_2.1",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Sd-hexagon.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/a/a1/Sd-hexagon.png/revision/latest?cb=20221228171853",
+          "mime": "image/webp",
+          "width": 500,
+          "height": 577,
+          "bytes": 8302,
+          "sha256": "13fdfc80e16435e155f9c4891a2e562ae881fa627e9d173025707c6174721454"
+        },
+        {
+          "local_file": "area_22_2_1_fandom_03.webp",
+          "file_title": "File:Safe2.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_2.1",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Safe2.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/6/69/Safe2.png/revision/latest?cb=20251109213438",
+          "mime": "image/webp",
+          "width": 551,
+          "height": 356,
+          "bytes": 54890,
+          "sha256": "7168f8098cbcb6f79b88e5862906a879af2f194e31238d7fcfbfd4c10b56dbe6"
+        }
+      ],
+      "page_title": "Level 2.1",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_2.1"
+    },
+    "2.71828182845...": {
+      "route_index": 23,
+      "parent_level": 2,
+      "area_id": "2.71828182845...",
+      "area_name": "Euler’s Imagination",
+      "area_type": "SUBLEVEL",
+      "status": "missing_page",
+      "resolution": "missing",
+      "page_candidates": [
+        "Level 2.71828182845...",
+        "Level 2.71828182845... - Euler’s Imagination",
+        "Level 2.71828182845...: Euler’s Imagination"
+      ],
+      "images": []
+    },
+    "2.2": {
+      "route_index": 24,
+      "parent_level": 2,
+      "area_id": "2.2",
+      "area_name": "The Red Flood",
+      "area_type": "SUBLEVEL",
+      "status": "missing_page",
+      "resolution": "missing",
+      "page_candidates": [
+        "Level 2.2",
+        "Level 2.2 - The Red Flood",
+        "Level 2.2: The Red Flood"
+      ],
+      "images": []
+    },
+    "3": {
+      "route_index": 25,
+      "parent_level": 3,
+      "area_id": "3",
+      "area_name": "Electrical Station",
+      "area_type": "MAIN",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 3"
+      ],
+      "images": [
+        {
+          "local_file": "area_25_3_fandom_01.webp",
+          "file_title": "File:Level 3room.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_3",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Level_3room.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/5/53/Level_3room.png/revision/latest/scale-to-width-down/768?cb=20220802040147",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 575,
+          "bytes": 26454,
+          "sha256": "b726ff7027c2e028b342ad9bebcf289d5cce8de8087146b930ed3ede00296e6d"
+        },
+        {
+          "local_file": "area_25_3_fandom_02.webp",
+          "file_title": "File:Level 3 new.jpg",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_3",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Level_3_new.jpg",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/f/ff/Level_3_new.jpg/revision/latest/scale-to-width-down/768?cb=20221025140157",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 849,
+          "bytes": 95078,
+          "sha256": "50da0a17d0362f86d963b07a1b07b6d23f9ea17eea175b701a8d972b61eb8e4f"
+        },
+        {
+          "local_file": "area_25_3_fandom_03.webp",
+          "file_title": "File:Waterweight.jpg",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_3",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Waterweight.jpg",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/7/7c/Waterweight.jpg/revision/latest/scale-to-width-down/768?cb=20240420165127",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 576,
+          "bytes": 39966,
+          "sha256": "48f7693657a5e35c015018ee48675d9b6c945e824c32c5455c6c9ae958a4a112"
+        }
+      ],
+      "page_title": "Level 3",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_3"
+    },
+    "3.14159265358...": {
+      "route_index": 26,
+      "parent_level": 3,
+      "area_id": "3.14159265358...",
+      "area_name": "satuЯation",
+      "area_type": "SUBLEVEL",
+      "status": "missing_page",
+      "resolution": "missing",
+      "page_candidates": [
+        "Level 3.14159265358...",
+        "Level 3.14159265358... - satuЯation",
+        "Level 3.14159265358...: satuЯation"
+      ],
+      "images": []
+    },
+    "3.53": {
+      "route_index": 27,
+      "parent_level": 3,
+      "area_id": "3.53",
+      "area_name": "The Cacophony of Corrosion",
+      "area_type": "SUBLEVEL",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 3.53",
+        "Level 3.53 - The Cacophony of Corrosion",
+        "Level 3.53: The Cacophony of Corrosion"
+      ],
+      "images": [
+        {
+          "local_file": "area_27_3_53_fandom_01.webp",
+          "file_title": "File:Level 3.53 also.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_3.53",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Level_3.53_also.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/e/e3/Level_3.53_also.png/revision/latest?cb=20260304050937",
+          "mime": "image/webp",
+          "width": 600,
+          "height": 400,
+          "bytes": 88910,
+          "sha256": "8738df59b209c016a297de4ddb0537e654ffe0c87d0b7e0398dc9f78262b91bc"
+        },
+        {
+          "local_file": "area_27_3_53_fandom_02.webp",
+          "file_title": "File:Sd-hexagon.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_3.53",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Sd-hexagon.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/a/a1/Sd-hexagon.png/revision/latest?cb=20221228171853",
+          "mime": "image/webp",
+          "width": 500,
+          "height": 577,
+          "bytes": 8302,
+          "sha256": "13fdfc80e16435e155f9c4891a2e562ae881fa627e9d173025707c6174721454"
+        }
+      ],
+      "page_title": "Level 3.53",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_3.53"
+    },
+    "4": {
+      "route_index": 28,
+      "parent_level": 4,
+      "area_id": "4",
+      "area_name": "The Abandoned Office",
+      "area_type": "MAIN",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 4"
+      ],
+      "images": [
+        {
+          "local_file": "area_28_4_fandom_01.webp",
+          "file_title": "File:Level4Workrooms1.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_4",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Level4Workrooms1.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/2/22/Level4Workrooms1.png/revision/latest/scale-to-width-down/768?cb=20250323022443",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 576,
+          "bytes": 54974,
+          "sha256": "69ea6e5fd14a9e1863ab960ba9e22a7f1f03e2ca9a283ff2215077a524ebff17"
+        },
+        {
+          "local_file": "area_28_4_fandom_02.webp",
+          "file_title": "File:Level4altbg.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_4",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Level4altbg.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/9/91/Level4altbg.png/revision/latest?cb=20250322185355",
+          "mime": "image/webp",
+          "width": 700,
+          "height": 521,
+          "bytes": 33182,
+          "sha256": "a36d452fd08f1f83471c643e4c8390984734514cc791819952e90925ba6abfa0"
+        },
+        {
+          "local_file": "area_28_4_fandom_03.webp",
+          "file_title": "File:Liminal Office.jpg",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_4",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Liminal_Office.jpg",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/6/64/Liminal_Office.jpg/revision/latest?cb=20250323030239",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 512,
+          "bytes": 23674,
+          "sha256": "e055110d5dbe210ac6e45eddeb8281173b3c858e34f62fb5e4e4b5e3eacbe9e2"
+        }
+      ],
+      "page_title": "Level 4",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_4"
+    },
+    "4.3": {
+      "route_index": 29,
+      "parent_level": 4,
+      "area_id": "4.3",
+      "area_name": "The Cubicles",
+      "area_type": "SUBLEVEL",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 4.3",
+        "Level 4.3 - The Cubicles",
+        "Level 4.3: The Cubicles"
+      ],
+      "images": [
+        {
+          "local_file": "area_29_4_3_fandom_01.webp",
+          "file_title": "File:Level4.3.jpg",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_4.3",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Level4.3.jpg",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/2/22/Level4.3.jpg/revision/latest?cb=20260424225404",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 512,
+          "bytes": 87622,
+          "sha256": "5bd49587754438930d158e2003e5e1673d16166e79c6b17a0c70e39a5d776df9"
+        },
+        {
+          "local_file": "area_29_4_3_fandom_02.webp",
+          "file_title": "File:EndlessOffice.jpeg",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_4.3",
+          "description_url": "https://backrooms.fandom.com/wiki/File:EndlessOffice.jpeg",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/2/25/EndlessOffice.jpeg/revision/latest/scale-to-width-down/768?cb=20260424225638",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 466,
+          "bytes": 68294,
+          "sha256": "dd47f7627d702d1e4de075defb104a171b5fe7393941846e83b577df8bc8540e"
+        },
+        {
+          "local_file": "area_29_4_3_fandom_03.webp",
+          "file_title": "File:Cubicles.webp",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_4.3",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Cubicles.webp",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/a/af/Cubicles.webp/revision/latest?cb=20260424185806",
+          "mime": "image/webp",
+          "width": 600,
+          "height": 337,
+          "bytes": 27040,
+          "sha256": "311c289aba09984ab7cac3dbeff4d9f1503464a1b4bdfe8e82ab0b4218fcfeff"
+        }
+      ],
+      "page_title": "Level 4.3",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_4.3"
+    },
+    "4.4": {
+      "route_index": 30,
+      "parent_level": 4,
+      "area_id": "4.4",
+      "area_name": "Intrusive Configuration",
+      "area_type": "SUBLEVEL",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 4.4",
+        "Level 4.4 - Intrusive Configuration",
+        "Level 4.4: Intrusive Configuration"
+      ],
+      "images": [
+        {
+          "local_file": "area_30_4_4_fandom_01.webp",
+          "file_title": "File:Bloodied bathroom.jpg",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_4.4",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Bloodied_bathroom.jpg",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/3/35/Bloodied_bathroom.jpg/revision/latest/scale-to-width-down/768?cb=20260512112001",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 512,
+          "bytes": 60146,
+          "sha256": "0c43f57e7bb4bd9481db93db68064b7e13a1875470b2088a222f5251bfe911eb"
+        },
+        {
+          "local_file": "area_30_4_4_fandom_02.webp",
+          "file_title": "File:Halloween cosplay smh.jpg",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_4.4",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Halloween_cosplay_smh.jpg",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/7/7b/Halloween_cosplay_smh.jpg/revision/latest/scale-to-width-down/768?cb=20260510071101",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 768,
+          "bytes": 13788,
+          "sha256": "a4b06ec3e81a4b05a7f1b26fdec9cb3c37a1bbb3dc431dc9ff2c22ad8104ee69"
+        },
+        {
+          "local_file": "area_30_4_4_fandom_03.webp",
+          "file_title": "File:Crazed state ahhhh.webp",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_4.4",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Crazed_state_ahhhh.webp",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/0/02/Crazed_state_ahhhh.webp/revision/latest?cb=20260508073809",
+          "mime": "image/webp",
+          "width": 499,
+          "height": 424,
+          "bytes": 48590,
+          "sha256": "0fb5e26d67e1b560783d056fe42789adf6bdd6fadcae2cb0b4e6f3a9cd31b8fc"
+        }
+      ],
+      "page_title": "Level 4.4",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_4.4"
+    },
+    "4.11": {
+      "route_index": 31,
+      "parent_level": 4,
+      "area_id": "4.11",
+      "area_name": "Insubstantial Skywalks",
+      "area_type": "SUBLEVEL",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 4.11",
+        "Level 4.11 - Insubstantial Skywalks",
+        "Level 4.11: Insubstantial Skywalks"
+      ],
+      "images": [
+        {
+          "local_file": "area_31_4_11_fandom_01.webp",
+          "file_title": "File:Thebackrooms.jpg",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_4.11",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Thebackrooms.jpg",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/0/05/Thebackrooms.jpg/revision/latest/scale-to-width-down/768?cb=20230105020740",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 576,
+          "bytes": 36976,
+          "sha256": "f3006f2f7c2b5187a0bad2531303f7ba3f0908015502c2497a68910930072ebe"
+        },
+        {
+          "local_file": "area_31_4_11_fandom_02.webp",
+          "file_title": "File:Sky-bridge-v0-jjxm9y16wy0e1.webp",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_4.11",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Sky-bridge-v0-jjxm9y16wy0e1.webp",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/2/2e/Sky-bridge-v0-jjxm9y16wy0e1.webp/revision/latest/scale-to-width-down/768?cb=20260303205958",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 1023,
+          "bytes": 130536,
+          "sha256": "2a4cd04777a36b1673fc1abfdeb9fd8df345c34d1f64c56cffe00df0c36ccd00"
+        },
+        {
+          "local_file": "area_31_4_11_fandom_03.webp",
+          "file_title": "File:0720171828.jpg",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_4.11",
+          "description_url": "https://backrooms.fandom.com/wiki/File:0720171828.jpg",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/2/20/0720171828.jpg/revision/latest/scale-to-width-down/768?cb=20260303205147",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 432,
+          "bytes": 83882,
+          "sha256": "33bd30e68307f0562902a395d088bc57ae04238efe4c0d1a6ffb82133b6a82bf"
+        }
+      ],
+      "page_title": "Level 4.11",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_4.11"
+    },
+    "5": {
+      "route_index": 32,
+      "parent_level": 5,
+      "area_id": "5",
+      "area_name": "Terror Hotel",
+      "area_type": "MAIN",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 5"
+      ],
+      "images": [
+        {
+          "local_file": "area_32_5_fandom_01.webp",
+          "file_title": "File:Level-5-Ballroom.webp",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_5",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Level-5-Ballroom.webp",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/9/90/Level-5-Ballroom.webp/revision/latest/scale-to-width-down/768?cb=20230508125908",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 385,
+          "bytes": 20874,
+          "sha256": "58b5940d6e4b80b7e33f67aee069dbb28f964afb657bed89ac2f63c3b6ca0c90"
+        },
+        {
+          "local_file": "area_32_5_fandom_02.webp",
+          "file_title": "File:Level 5 hallway.jpg",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_5",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Level_5_hallway.jpg",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/7/78/Level_5_hallway.jpg/revision/latest?cb=20230522085119",
+          "mime": "image/webp",
+          "width": 564,
+          "height": 752,
+          "bytes": 90358,
+          "sha256": "03c277685e23ac98d43bb079d6dc9d9dc2e37ea0d4b12ec3ac61f8aa8d9891e7"
+        },
+        {
+          "local_file": "area_32_5_fandom_03.webp",
+          "file_title": "File:Level 5 variant.jpg",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_5",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Level_5_variant.jpg",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/b/bb/Level_5_variant.jpg/revision/latest/scale-to-width-down/768?cb=20230522084406",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 1024,
+          "bytes": 97962,
+          "sha256": "719064c25ee2d8b9535fb0fc5ee159b84120be6baec2b7a80dc790a4eb011bdf"
+        }
+      ],
+      "page_title": "Level 5",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_5"
+    },
+    "5.1": {
+      "route_index": 33,
+      "parent_level": 5,
+      "area_id": "5.1",
+      "area_name": "Summer Resort",
+      "area_type": "SUBLEVEL",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 5.1",
+        "Level 5.1 - Summer Resort",
+        "Level 5.1: Summer Resort"
+      ],
+      "images": [
+        {
+          "local_file": "area_33_5_1_fandom_01.webp",
+          "file_title": "File:Hotelthing1.jpg",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_5.1",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Hotelthing1.jpg",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/6/6a/Hotelthing1.jpg/revision/latest?cb=20250103050558",
+          "mime": "image/webp",
+          "width": 555,
+          "height": 416,
+          "bytes": 12332,
+          "sha256": "1232910f1465c8a8343e05c23c8e1ac651236e68327f1b5f2be6fff6e7530cbb"
+        },
+        {
+          "local_file": "area_33_5_1_fandom_02.webp",
+          "file_title": "File:Hotelthing2.jpg",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_5.1",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Hotelthing2.jpg",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/5/5f/Hotelthing2.jpg/revision/latest?cb=20250103050610",
+          "mime": "image/webp",
+          "width": 555,
+          "height": 416,
+          "bytes": 17840,
+          "sha256": "1d1a7a8ac6865512aeeac41861e44985abc018fe2afff55ce802693fce58c3ed"
+        },
+        {
+          "local_file": "area_33_5_1_fandom_03.webp",
+          "file_title": "File:Hotelthing3.jpg",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_5.1",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Hotelthing3.jpg",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/0/0a/Hotelthing3.jpg/revision/latest?cb=20250103050621",
+          "mime": "image/webp",
+          "width": 555,
+          "height": 416,
+          "bytes": 10346,
+          "sha256": "3e53a9aaef170573c51184d40e72944155fb90478fd32c94ae78b0ae444f6126"
+        }
+      ],
+      "page_title": "Level 5.1",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_5.1"
+    },
+    "5.2": {
+      "route_index": 34,
+      "parent_level": 5,
+      "area_id": "5.2",
+      "area_name": "The Gilded Atrium",
+      "area_type": "SUBLEVEL",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 5.2",
+        "Level 5.2 - The Gilded Atrium",
+        "Level 5.2: The Gilded Atrium"
+      ],
+      "images": [
+        {
+          "local_file": "area_34_5_2_fandom_01.webp",
+          "file_title": "File:Mainatrium.jpg",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_5.2",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Mainatrium.jpg",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/d/de/Mainatrium.jpg/revision/latest/scale-to-width-down/768?cb=20250712112938",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 512,
+          "bytes": 132498,
+          "sha256": "555b0320ac1126f95a440e73402f00f69159ffb7fd4f2db3c7dd9c3c740fd5e6"
+        },
+        {
+          "local_file": "area_34_5_2_fandom_02.webp",
+          "file_title": "File:Elevators.jpg",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_5.2",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Elevators.jpg",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/3/38/Elevators.jpg/revision/latest/scale-to-width-down/768?cb=20250712114734",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 512,
+          "bytes": 74550,
+          "sha256": "831f00eb540f1268982b305cdf95291290e02f2b8c1cffd8dd95affc87969023"
+        },
+        {
+          "local_file": "area_34_5_2_fandom_03.webp",
+          "file_title": "File:Sd-hexagon.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_5.2",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Sd-hexagon.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/a/a1/Sd-hexagon.png/revision/latest?cb=20221228171853",
+          "mime": "image/webp",
+          "width": 500,
+          "height": 577,
+          "bytes": 8302,
+          "sha256": "13fdfc80e16435e155f9c4891a2e562ae881fa627e9d173025707c6174721454"
+        }
+      ],
+      "page_title": "Level 5.2",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_5.2"
+    },
+    "5.55": {
+      "route_index": 35,
+      "parent_level": 5,
+      "area_id": "5.55",
+      "area_name": "Can’t Stop Watching",
+      "area_type": "SUBLEVEL",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 5.55",
+        "Level 5.55 - Can’t Stop Watching",
+        "Level 5.55: Can’t Stop Watching"
+      ],
+      "images": [
+        {
+          "local_file": "area_35_5_55_fandom_01.webp",
+          "file_title": "File:LookBothWays 3.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_5.55",
+          "description_url": "https://backrooms.fandom.com/wiki/File:LookBothWays_3.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/6/66/LookBothWays_3.png/revision/latest?cb=20260303160538",
+          "mime": "image/webp",
+          "width": 750,
+          "height": 562,
+          "bytes": 60288,
+          "sha256": "1731eaa47f228c7b756508a68a563b047e8aa82637d9f0b89a8357fde6ccff55"
+        },
+        {
+          "local_file": "area_35_5_55_fandom_02.webp",
+          "file_title": "File:LookBothWays 1.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_5.55",
+          "description_url": "https://backrooms.fandom.com/wiki/File:LookBothWays_1.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/3/30/LookBothWays_1.png/revision/latest?cb=20260303160510",
+          "mime": "image/webp",
+          "width": 500,
+          "height": 687,
+          "bytes": 45976,
+          "sha256": "803a15421d2e6c4e159004e8f986986243aae9fe65d11ce622365fd74c02530b"
+        }
+      ],
+      "page_title": "Level 5.55",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_5.55"
+    },
+    "6": {
+      "route_index": 36,
+      "parent_level": 6,
+      "area_id": "6",
+      "area_name": "Lights Out",
+      "area_type": "MAIN",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 6"
+      ],
+      "images": [
+        {
+          "local_file": "area_36_6_fandom_01.webp",
+          "file_title": "File:Level6.1.webp",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_6",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Level6.1.webp",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/7/71/Level6.1.webp/revision/latest?cb=20250325102118",
+          "mime": "image/webp",
+          "width": 640,
+          "height": 607,
+          "bytes": 18806,
+          "sha256": "1b826283e84c717c9fa83cc1225ac0d6318d7ae67c84020955d446147c08ea50"
+        },
+        {
+          "local_file": "area_36_6_fandom_02.webp",
+          "file_title": "File:Level 6 Deviantart.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_6",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Level_6_Deviantart.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/8/84/Level_6_Deviantart.png/revision/latest?cb=20250330163843",
+          "mime": "image/webp",
+          "width": 640,
+          "height": 480,
+          "bytes": 10894,
+          "sha256": "35883c23a26932f7077f4631048fb1bfa23699883803ef26e299cbea5de039f3"
+        },
+        {
+          "local_file": "area_36_6_fandom_03.webp",
+          "file_title": "File:Untitled205 20240925204431.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_6",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Untitled205_20240925204431.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/a/ab/Untitled205_20240925204431.png/revision/latest/scale-to-width-down/768?cb=20240926004501",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 768,
+          "bytes": 16826,
+          "sha256": "b4711aa231258be68a6cc614414c226336012ee3c8618e563cee2c62a3caf68f"
+        }
+      ],
+      "page_title": "Level 6",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_6"
+    },
+    "6.1": {
+      "route_index": 37,
+      "parent_level": 6,
+      "area_id": "6.1",
+      "area_name": "Silva Subterraneus",
+      "area_type": "SUBLEVEL",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 6.1",
+        "Level 6.1 - Silva Subterraneus",
+        "Level 6.1: Silva Subterraneus"
+      ],
+      "images": [
+        {
+          "local_file": "area_37_6_1_fandom_01.webp",
+          "file_title": "File:Level6.1.webp",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_6.1",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Level6.1.webp",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/7/71/Level6.1.webp/revision/latest?cb=20250325102118",
+          "mime": "image/webp",
+          "width": 640,
+          "height": 607,
+          "bytes": 18806,
+          "sha256": "1b826283e84c717c9fa83cc1225ac0d6318d7ae67c84020955d446147c08ea50"
+        }
+      ],
+      "page_title": "Level 6.1",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_6.1"
+    },
+    "6.2": {
+      "route_index": 38,
+      "parent_level": 6,
+      "area_id": "6.2",
+      "area_name": "Eyes On The Road",
+      "area_type": "SUBLEVEL",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 6.2",
+        "Level 6.2 - Eyes On The Road",
+        "Level 6.2: Eyes On The Road"
+      ],
+      "images": [
+        {
+          "local_file": "area_38_6_2_fandom_01.webp",
+          "file_title": "File:Untitled205 20240925204431.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_6.2",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Untitled205_20240925204431.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/a/ab/Untitled205_20240925204431.png/revision/latest/scale-to-width-down/768?cb=20240926004501",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 768,
+          "bytes": 16826,
+          "sha256": "b4711aa231258be68a6cc614414c226336012ee3c8618e563cee2c62a3caf68f"
+        },
+        {
+          "local_file": "area_38_6_2_fandom_02.webp",
+          "file_title": "File:Umbrallight.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_6.2",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Umbrallight.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/8/80/Umbrallight.png/revision/latest/scale-to-width-down/768?cb=20240923185030",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 432,
+          "bytes": 9234,
+          "sha256": "8987a1d7f8c755e2ae79a3959104613f4e4eef42331d990c155a957c18a7dbd5"
+        },
+        {
+          "local_file": "area_38_6_2_fandom_03.webp",
+          "file_title": "File:Sd-hexagon.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_6.2",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Sd-hexagon.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/a/a1/Sd-hexagon.png/revision/latest?cb=20221228171853",
+          "mime": "image/webp",
+          "width": 500,
+          "height": 577,
+          "bytes": 8302,
+          "sha256": "13fdfc80e16435e155f9c4891a2e562ae881fa627e9d173025707c6174721454"
+        }
+      ],
+      "page_title": "Level 6.2",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_6.2"
+    },
+    "6.28318530718...": {
+      "route_index": 39,
+      "parent_level": 6,
+      "area_id": "6.28318530718...",
+      "area_name": "Amaxophobia",
+      "area_type": "SUBLEVEL",
+      "status": "missing_page",
+      "resolution": "missing",
+      "page_candidates": [
+        "Level 6.28318530718...",
+        "Level 6.28318530718... - Amaxophobia",
+        "Level 6.28318530718...: Amaxophobia"
+      ],
+      "images": []
+    },
+    "6.5": {
+      "route_index": 40,
+      "parent_level": 6,
+      "area_id": "6.5",
+      "area_name": "Blinding Lights",
+      "area_type": "SUBLEVEL",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 6.5",
+        "Level 6.5 - Blinding Lights",
+        "Level 6.5: Blinding Lights"
+      ],
+      "images": [
+        {
+          "local_file": "area_40_6_5_fandom_01.webp",
+          "file_title": "File:Level6.5saferoom.jpg",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_6.5",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Level6.5saferoom.jpg",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/f/ff/Level6.5saferoom.jpg/revision/latest/scale-to-width-down/768?cb=20260306170417",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 512,
+          "bytes": 26578,
+          "sha256": "14e88b164e2c8c265af44082f4cfe0f8cfb9bb505133d41e52c3cacc8d5fea97"
+        },
+        {
+          "local_file": "area_40_6_5_fandom_02.webp",
+          "file_title": "File:Grayscale site logo.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_6.5",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Grayscale_site_logo.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/b/b7/Grayscale_site_logo.png/revision/latest?cb=20221208032708",
+          "mime": "image/webp",
+          "width": 564,
+          "height": 640,
+          "bytes": 12014,
+          "sha256": "670f57a016a7923c1b862426fb28ef4a55e2bfe516ffa8a112c4fd987e4d23ea"
+        },
+        {
+          "local_file": "area_40_6_5_fandom_03.webp",
+          "file_title": "File:Sd-hexagon.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_6.5",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Sd-hexagon.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/a/a1/Sd-hexagon.png/revision/latest?cb=20221228171853",
+          "mime": "image/webp",
+          "width": 500,
+          "height": 577,
+          "bytes": 8302,
+          "sha256": "13fdfc80e16435e155f9c4891a2e562ae881fa627e9d173025707c6174721454"
+        }
+      ],
+      "page_title": "Level 6.5",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_6.5"
+    },
+    "6.66": {
+      "route_index": 41,
+      "parent_level": 6,
+      "area_id": "6.66",
+      "area_name": "Cryophobia",
+      "area_type": "SUBLEVEL",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 6.66",
+        "Level 6.66 - Cryophobia",
+        "Level 6.66: Cryophobia"
+      ],
+      "images": [
+        {
+          "local_file": "area_41_6_66_fandom_01.webp",
+          "file_title": "File:Sd-hexagon.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_6.66",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Sd-hexagon.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/a/a1/Sd-hexagon.png/revision/latest?cb=20221228171853",
+          "mime": "image/webp",
+          "width": 500,
+          "height": 577,
+          "bytes": 8302,
+          "sha256": "13fdfc80e16435e155f9c4891a2e562ae881fa627e9d173025707c6174721454"
+        }
+      ],
+      "page_title": "Level 6.66",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_6.66"
+    },
+    "6.99": {
+      "route_index": 42,
+      "parent_level": 6,
+      "area_id": "6.99",
+      "area_name": "Umbral Light",
+      "area_type": "SUBLEVEL",
+      "status": "ok",
+      "resolution": "direct",
+      "page_candidates": [
+        "Level 6.99",
+        "Level 6.99 - Umbral Light",
+        "Level 6.99: Umbral Light"
+      ],
+      "images": [
+        {
+          "local_file": "area_42_6_99_fandom_01.webp",
+          "file_title": "File:Umbrallight.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_6.99",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Umbrallight.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/8/80/Umbrallight.png/revision/latest/scale-to-width-down/768?cb=20240923185030",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 432,
+          "bytes": 9234,
+          "sha256": "8987a1d7f8c755e2ae79a3959104613f4e4eef42331d990c155a957c18a7dbd5"
+        },
+        {
+          "local_file": "area_42_6_99_fandom_02.webp",
+          "file_title": "File:Untitled205 20240925204431.png",
+          "page_url": "https://backrooms.fandom.com/wiki/Level_6.99",
+          "description_url": "https://backrooms.fandom.com/wiki/File:Untitled205_20240925204431.png",
+          "download_url": "https://static.wikia.nocookie.net/backrooms/images/a/ab/Untitled205_20240925204431.png/revision/latest/scale-to-width-down/768?cb=20240926004501",
+          "mime": "image/webp",
+          "width": 768,
+          "height": 768,
+          "bytes": 16826,
+          "sha256": "b4711aa231258be68a6cc614414c226336012ee3c8618e563cee2c62a3caf68f"
+        }
+      ],
+      "page_title": "Level 6.99",
+      "page_url": "https://backrooms.fandom.com/wiki/Level_6.99"
+    }
+  },
+  "missing_areas": [
+    {
+      "route_index": 1,
+      "parent_level": 0,
+      "area_id": "epsilon",
+      "area_name": "Incessant Hum-Buzz",
+      "area_type": "SPECIAL",
+      "reason": "missing_page",
+      "page_title": ""
+    },
+    {
+      "route_index": 13,
+      "parent_level": 0,
+      "area_id": "LS-2",
+      "area_name": "LS-2",
+      "area_type": "SPECIAL",
+      "reason": "missing_page",
+      "page_title": ""
+    },
+    {
+      "route_index": 20,
+      "parent_level": 1,
+      "area_id": "1.618033988749894...",
+      "area_name": "Midas’ Touch",
+      "area_type": "SUBLEVEL",
+      "reason": "missing_page",
+      "page_title": ""
+    },
+    {
+      "route_index": 23,
+      "parent_level": 2,
+      "area_id": "2.71828182845...",
+      "area_name": "Euler’s Imagination",
+      "area_type": "SUBLEVEL",
+      "reason": "missing_page",
+      "page_title": ""
+    },
+    {
+      "route_index": 24,
+      "parent_level": 2,
+      "area_id": "2.2",
+      "area_name": "The Red Flood",
+      "area_type": "SUBLEVEL",
+      "reason": "missing_page",
+      "page_title": ""
+    },
+    {
+      "route_index": 26,
+      "parent_level": 3,
+      "area_id": "3.14159265358...",
+      "area_name": "satuЯation",
+      "area_type": "SUBLEVEL",
+      "reason": "missing_page",
+      "page_title": ""
+    },
+    {
+      "route_index": 39,
+      "parent_level": 6,
+      "area_id": "6.28318530718...",
+      "area_name": "Amaxophobia",
+      "area_type": "SUBLEVEL",
+      "reason": "missing_page",
+      "page_title": ""
+    }
+  ]
+}

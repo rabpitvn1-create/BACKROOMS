@@ -1,12 +1,11 @@
 from pathlib import Path
+import hashlib
 import json
-import runpy
 
 ROOT = Path(__file__).resolve().parent
 MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
 SNAPSHOT_DIR = ROOT / "app/src/main/assets/level_snapshots"
 MANIFEST = SNAPSHOT_DIR / "fandom_manifest.json"
-PREPARE = ROOT / "prepare-fandom-level-snapshots.py"
 REJECT_RENDER_TITLES = (
     "sd-hexagon",
     "default profile picture",
@@ -15,11 +14,10 @@ REJECT_RENDER_TITLES = (
     "whitebackground",
 )
 
-if not PREPARE.is_file():
-    raise RuntimeError("Fandom snapshot preparation script missing")
-runpy.run_path(str(PREPARE), run_name="__main__")
+# Snapshot assets are committed into the repository and packaged directly into
+# the APK. Builds must never depend on live Fandom availability or rate limits.
 if not MANIFEST.is_file():
-    raise RuntimeError("Fandom snapshot manifest missing after preparation")
+    raise RuntimeError("Packaged Fandom snapshot manifest missing; level snapshots must be committed before build")
 
 manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
 areas = manifest.get("areas", {})
@@ -28,6 +26,7 @@ if int(manifest.get("route_count", 0)) != 43 or len(areas) != 43:
 
 pools: dict[str, list[str]] = {}
 parents: dict[str, int] = {}
+verified_assets = 0
 for area_id, area in areas.items():
     area_id = str(area_id)
     parent_level = int(area.get("parent_level", -1))
@@ -38,14 +37,34 @@ for area_id, area in areas.items():
     for record in area.get("images", []):
         name = str(record.get("local_file", "")).strip()
         title = str(record.get("file_title", "")).strip().lower()
-        if not name or any(part in title for part in REJECT_RENDER_TITLES):
+        if not name:
             continue
         asset = SNAPSHOT_DIR / name
         if not asset.is_file() or asset.stat().st_size <= 0:
-            raise RuntimeError(f"Fandom snapshot asset missing or empty: {asset}")
+            raise RuntimeError(f"Packaged Fandom snapshot asset missing or empty: {asset}")
+        expected_bytes = int(record.get("bytes") or 0)
+        if expected_bytes and asset.stat().st_size != expected_bytes:
+            raise RuntimeError(
+                f"Packaged Fandom snapshot size mismatch: {asset} "
+                f"expected={expected_bytes} actual={asset.stat().st_size}"
+            )
+        expected_sha = str(record.get("sha256") or "").strip().lower()
+        if expected_sha:
+            actual_sha = hashlib.sha256(asset.read_bytes()).hexdigest()
+            if actual_sha != expected_sha:
+                raise RuntimeError(
+                    f"Packaged Fandom snapshot checksum mismatch: {asset} "
+                    f"expected={expected_sha} actual={actual_sha}"
+                )
+        verified_assets += 1
+        if any(part in title for part in REJECT_RENDER_TITLES):
+            continue
         refs.append(f"file:///android_asset/level_snapshots/{name}")
     if refs:
         pools[area_id] = refs
+
+if verified_assets <= 0:
+    raise RuntimeError("Packaged Fandom snapshot manifest contains no image assets")
 
 for level in range(7):
     refs = pools.get(str(level), [])
@@ -141,7 +160,7 @@ for item in effective_missing:
         f"name={item['area_name']} reason={item['reason']}"
     )
 print(
-    "Backrooms Wiki Fandom area snapshots enabled with 5-minute rotation: "
-    f"dedicated={len(pools)}/43, missing_non_main={len(effective_missing)}; "
+    "Packaged Backrooms Wiki Fandom area snapshots enabled with 5-minute rotation: "
+    f"verified_assets={verified_assets}, dedicated={len(pools)}/43, missing_non_main={len(effective_missing)}; "
     "missing areas fall back only to their parent main Level; Kai stays overlaid on top."
 )
