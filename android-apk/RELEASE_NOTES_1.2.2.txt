@@ -7,4 +7,5 @@ Backroom 1.2.2 Debug
 - Giữ nguyên 11 official item, loại item và các giới hạn inventory đã được xác lập.
 - Giữ nguyên Omnivault 3 scan slots; bản copy không thể scan lại và copy vẫn theo Kai Codex.
 - Bắt đầu save generation 4; không migrate hoặc cứu save cũ của bản test trước.
+- Thay overlay mặc định của Kai bằng BestKai.png; xóa hoàn toàn các overlay mặc định cũ khỏi source và APK.
 - Đây là APK Debug để cài đặt và kiểm thử trực tiếp, không phải production release-signed APK.
