@@ -216,3 +216,10 @@ item_system = ROOT / "patch-extensible-item-system-finalize.py"
 if not item_system.is_file():
     raise RuntimeError("Extensible item system finalizer missing")
 exec(compile(item_system.read_text(encoding="utf-8"), str(item_system), "exec"), {"__name__": "__main__", "__file__": str(item_system)})
+
+# The selected default Kai overlay is finalized last so compatibility patches cannot
+# restore an obsolete asset reference or package the retired overlay binaries.
+best_kai = ROOT / "patch-best-kai-overlay-finalize.py"
+if not best_kai.is_file():
+    raise RuntimeError("BestKai overlay finalizer missing")
+exec(compile(best_kai.read_text(encoding="utf-8"), str(best_kai), "exec"), {"__name__": "__main__", "__file__": str(best_kai)})
