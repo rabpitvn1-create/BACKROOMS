@@ -1,0 +1,9 @@
+Backroom 1.2 Debug
+
+- Nâng Android package lên versionCode 75 / versionName 1.2.
+- Phát hành từ trạng thái main mới nhất sau Backroom 1.1.72, bao gồm toàn bộ thay đổi đã được hợp nhất sau mốc 1.1.72.
+- Đóng gói bộ Snapshot Level/Sublevel đã xác minh trực tiếp trong APK để game không phụ thuộc tải ảnh Fandom lúc chạy.
+- Giữ bản sửa giao diện Game Master: ẩn ledger/debug Entity action khỏi phần hội thoại người chơi nhưng không thay đổi authority của combat runtime.
+- Giữ Jeff và Jane trong hệ companion combat skills và cơ chế Game Master tự động thêm item gain hợp lệ vào Inventory.
+- Giữ toàn bộ campaign 43 khu vực, save/inventory authority, Entity overlays, combat state, character equipment/skills và các hard lock gameplay hiện hành.
+- Đây là APK Debug để cài đặt/test trực tiếp, không phải Android release-signed production build.
