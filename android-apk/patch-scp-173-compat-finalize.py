@@ -128,3 +128,7 @@ runpy.run_path(str(ROOT / "patch-loot-pity.py"), run_name="__main__")
 # Entity action economy runs after every combat/boss/SCP/balance transform so no
 # later patch can restore the historical single-Kai response path.
 runpy.run_path(str(ROOT / "patch-entity-party-action-budget.py"), run_name="__main__")
+
+# Jeff/Jane final skills run last because they extend the finalized Entity response
+# budget and explicitly override both roaming killers to exactly 947 Max HP.
+runpy.run_path(str(ROOT / "patch-jeff-jane-skills.py"), run_name="__main__")
