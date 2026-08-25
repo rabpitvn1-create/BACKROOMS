@@ -116,7 +116,10 @@ jobs:
               ('private int mentionedLevel(JSONObject state)', java),
               ('return exitFound && progressionReady(before);', java),
               ('exploration.put("minimumTurns", 6)', java),
-              ('recordLevelProgress(state, oldLevel, newLevel)', java),
+              ('BACKROOMS_FANDOM_LEVELS_0_6_R01', java),
+              ('return hasNextLinearArea(state) && levelTurns(state) >= 6;', java),
+              ('recordLevelProgress(state, before, oldLevel, newLevel, areaAdvanced)', java),
+              ('linearAreaPrompt(before)', java),
               ('partyDetails&&state.partyDetails.members', java),
               ('rolls.put("roamingEntityKey"', java), ('file:///android_asset/entity/', java),
               ('"hotel_corpse_lure","jeff_the_killer","jane_the_killer","slenderman"', java),
@@ -154,9 +157,12 @@ jobs:
               ('M4A1 Full Auto Burst', skill_catalog),
               ('20% mỗi 2 combat turn hợp lệ khi Party chọn TẤN CÔNG', skill_catalog),
               ('runpy.run_path(str(ROOT / "patch-v1-1-69-balance.py"), run_name="__main__")', scp_finalize),
+              ('runpy.run_path(str(ROOT / "patch-linear-sublevel-progression.py"), run_name="__main__")', scp_finalize),
           ]
           for marker, source in required:
               assert marker in source, marker
+          assert 'return explicitlyReady || levelTurns(state) >= 6;' not in java
+          assert 'newLevel = mentioned;' not in java
           assert 'private const val ENTITY_EVASION_PERCENT = 25' not in combat
           assert '"nonCombat" to "true"' in an_nhien
           assert '"canUseWeapons" to "false"' in an_nhien

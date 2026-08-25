@@ -109,6 +109,10 @@ print("SCP-173 display mapping finalized: file:///android_asset/entity/SCP173.pn
 # restore the old 25% Entity Evasion value.
 runpy.run_path(str(ROOT / "patch-v1-1-69-balance.py"), run_name="__main__")
 
-# Latest Kai/monster balance is deliberately last so older Devil Trigger, boss,
-# Entity durability and spawn-pool generators cannot overwrite its authority.
+# Latest Kai/monster balance remains before navigation so the progression patch does not
+# compete with combat authority or Entity spawn tuning.
 runpy.run_path(str(ROOT / "patch-v1-1-71-kai-monster-balance.py"), run_name="__main__")
+
+# Navigation authority is deliberately last. Exit success may advance only one entry in
+# the fixed Backrooms Wiki route and cannot skip sublevels by AI-authored state changes.
+runpy.run_path(str(ROOT / "patch-linear-sublevel-progression.py"), run_name="__main__")
