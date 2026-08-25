@@ -38,10 +38,10 @@ old = "if(r){var bg=document.createElement('img');bg.className='snapshot-bg';bg.
 
 new = (
     "var pools=" + pool_js + ";"
+    "var structuredLevel=state&&state.level&&state.level.number;"
     "var where=String(state&&state.location||'')+' '+String(state&&state.title||'');"
     "var lm=where.match(/Level[^0-9]*([0-6])/i);"
-    "var lv=state&&state.level&&state.level.number!=null?Number(state.level.number):(lm?Number(lm[1]):0);"
-    "if(!(lv>=0&&lv<=6))lv=0;"
+    "var lv=(structuredLevel!==undefined&&structuredLevel!==null&&Number(structuredLevel)>=0&&Number(structuredLevel)<=6)?Number(structuredLevel):(lm?Number(lm[1]):0);"
     "var choices=pools[String(lv)]||pools[lv]||pools['0']||pools[0];"
     "var bucket=Math.floor(Date.now()/300000);"
     "var seed=(bucket*17+lv*31+Number(state&&state.turn||0)*7);"
