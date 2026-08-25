@@ -145,9 +145,9 @@ if 'VIOLET_WARDEN_KAI_STUN_GATE_V1' not in attack:
     )
     combat = combat[:attack_start] + attack + combat[attack_end:]
 
-# Automatic Kai offense must obey the same one-character lock. Companion offense
-# keeps using its own activePartyCharacter gate and therefore still resolves when
-# Kai alone is stunned.
+# Automatic Kai offense must obey the same one-character lock. Keep the existing
+# action-gate text/order intact because several established regressions key off
+# those expressions; append the Violet condition rather than rewriting them.
 gco_marker = '''    // PARTY_ATTACK_GCO_GATE_V1
     if (intent == Intent.ATTACK) {
 '''
@@ -157,15 +157,15 @@ gco_new = '''    // PARTY_ATTACK_GCO_GATE_V1
 combat = replace_once(combat, gco_marker, gco_new, "Violet Warden Guilty Crown stun gate")
 combat = combat.replace(
     'intent == Intent.ATTACK && !isGuiltyCrownTurn',
-    'intent == Intent.ATTACK && !violetWardenKaiActionLocked && !isGuiltyCrownTurn',
+    'intent == Intent.ATTACK && !isGuiltyCrownTurn && !violetWardenKaiActionLocked',
 )
 combat = combat.replace(
     '(intent == Intent.ATTACK || intent == Intent.EVADE) && !isGuiltyCrownTurn',
-    '(intent == Intent.ATTACK || intent == Intent.EVADE) && !violetWardenKaiActionLocked && !isGuiltyCrownTurn',
+    '(intent == Intent.ATTACK || intent == Intent.EVADE) && !isGuiltyCrownTurn && !violetWardenKaiActionLocked',
 )
 combat = combat.replace(
     'val isGuiltyCrownTurn = intent == Intent.ATTACK && c.eventCounter % KAI_GUILTY_CROWN_INTERVAL_TURNS == 0',
-    'val isGuiltyCrownTurn = intent == Intent.ATTACK && !violetWardenKaiActionLocked && c.eventCounter % KAI_GUILTY_CROWN_INTERVAL_TURNS == 0',
+    'val isGuiltyCrownTurn = intent == Intent.ATTACK && c.eventCounter % KAI_GUILTY_CROWN_INTERVAL_TURNS == 0 && !violetWardenKaiActionLocked',
 )
 
 # Expose the active lock through the existing boss JSON for deterministic UI/tests.
@@ -185,6 +185,7 @@ for marker in (
     'VIOLET_WARDEN_KAI_STUN_GATE_V1',
     'Violet Warden STUN: Kai mất lượt hành động cá nhân',
     'if (intent == Intent.ATTACK && !violetWardenKaiActionLocked) {',
+    'intent == Intent.ATTACK && !isGuiltyCrownTurn',
     'put("stunTargetId"',
 ):
     if marker not in combat:
