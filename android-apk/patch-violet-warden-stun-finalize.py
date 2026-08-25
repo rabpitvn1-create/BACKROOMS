@@ -109,9 +109,9 @@ active_new = '''  private fun activePartyCharacter(state: GameState, characterId
 '''
 combat = replace_once(combat, active_anchor, active_new, "Violet Warden companion stun action gate")
 
-# Kai owns the primary ATTACK resolution directly. Keep shared roll/hitChance
-# variables in their original scope because follower attacks reuse hitChance later
-# in the same Party event. Suppress only Kai's hit branch when he is stunned.
+# Kai owns the primary ATTACK resolution directly. Keep shared roll/hitChance and
+# Entity-evasion variables in their original scope because follower attacks reuse
+# hitChance later in the same Party event. Suppress only Kai's hit branch.
 log_anchor = '    val log = mutableListOf<String>()\n'
 kai_lock_line = '    val violetWardenKaiActionLocked = current.entityKey == VIOLET_WARDEN_KEY && violetWardenActionLocked(state, KAI_ID)\n'
 if kai_lock_line not in combat:
@@ -123,13 +123,13 @@ if attack_start < 0 or attack_end < 0:
     raise RuntimeError("Violet Warden could not bound final Party ATTACK block")
 attack = combat[attack_start:attack_end]
 if 'VIOLET_WARDEN_KAI_STUN_GATE_V1' not in attack:
-    hit_marker = '        if (roll < hitChance) {\n'
+    hit_marker = '        if (roll < hitChance && !entityEvaded) {\n'
     if attack.count(hit_marker) != 1:
         raise RuntimeError(f"Violet Warden Kai hit anchor changed: found {attack.count(hit_marker)}")
     hit_gate = '''        // VIOLET_WARDEN_KAI_STUN_GATE_V1
         if (violetWardenKaiActionLocked) {
           log += "Violet Warden STUN: Kai mất lượt hành động cá nhân; các thành viên ACTIVE khác vẫn tiếp tục lệnh TẤN CÔNG."
-        } else if (roll < hitChance) {
+        } else if (roll < hitChance && !entityEvaded) {
 '''
     attack = attack.replace(hit_marker, hit_gate, 1)
     combat = combat[:attack_start] + attack + combat[attack_end:]
