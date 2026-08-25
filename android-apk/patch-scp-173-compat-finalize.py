@@ -118,6 +118,9 @@ runpy.run_path(str(ROOT / "patch-v1-1-69-balance.py"), run_name="__main__")
 # compete with combat authority or Entity spawn tuning.
 runpy.run_path(str(ROOT / "patch-v1-1-71-kai-monster-balance.py"), run_name="__main__")
 
-# Navigation authority is deliberately last. Exit success may advance only one entry in
-# the fixed Backrooms Wiki route and cannot skip sublevels by AI-authored state changes.
+# Navigation authority remains final for route mutation. The later loot finalizer does not
+# modify route state; it only reconciles loot probability/result authority.
 runpy.run_path(str(ROOT / "patch-linear-sublevel-progression.py"), run_name="__main__")
+
+# One save-persistent pity authority for both Game Master narration and real world loot.
+runpy.run_path(str(ROOT / "patch-loot-pity.py"), run_name="__main__")
