@@ -5,7 +5,7 @@ import org.junit.Test
 
 class InventoryPolicyTest {
   private fun stateWith(vararg characters: CharacterState): GameState {
-    val all = listOf(CharacterState(KAI_ID, "Kai Akechi")) + characters
+    val all = listOf(GameState.initial().characters.getValue(KAI_ID)) + characters
     return GameState.initial().copy(
       characters = all.associateBy { it.id },
       inventories = all.associate { it.id to InventoryState(it.id) },
@@ -14,10 +14,12 @@ class InventoryPolicyTest {
   }
 
   @Test fun profilesMatchCharacterRules() {
-    val state = stateWith(CharacterState("iris", "Iris"), CharacterState("syvial", "Syvial"), CharacterState("bob", "Bob"))
+    val iris = CharacterState("future-special-1", "Future One", metadata = mapOf("inventoryProfile" to "special_companion"))
+    val syvial = CharacterState("future-special-2", "Future Two", metadata = mapOf("inventoryProfile" to "special_companion"))
+    val state = stateWith(iris, syvial, CharacterState("bob", "Bob"))
     assertEquals(InventoryProfile(9, 999), InventoryPolicy.profileFor(state, KAI_ID))
-    assertEquals(InventoryProfile(6, 20), InventoryPolicy.profileFor(state, "iris"))
-    assertEquals(InventoryProfile(6, 20), InventoryPolicy.profileFor(state, "syvial"))
+    assertEquals(InventoryProfile(6, 20), InventoryPolicy.profileFor(state, iris.id))
+    assertEquals(InventoryProfile(6, 20), InventoryPolicy.profileFor(state, syvial.id))
     assertEquals(InventoryProfile(2, 2), InventoryPolicy.profileFor(state, "bob"))
   }
 
@@ -30,13 +32,13 @@ class InventoryPolicyTest {
   }
 
   @Test fun irisAndNormalFollowerUseSmallerLimits() {
-    val iris = CharacterState("iris", "Iris")
+    val iris = CharacterState("future-special", "Future Special", metadata = mapOf("inventoryProfile" to "special_companion"))
     val bob = CharacterState("bob", "Bob")
     var state = stateWith(iris, bob)
     state = state.copy(inventories = state.inventories +
-      ("iris" to InventoryState("iris", (1..6).associate { "i$it" to ItemStack("i$it", "I$it", 1) })) +
+      (iris.id to InventoryState(iris.id, (1..6).associate { "i$it" to ItemStack("i$it", "I$it", 1) })) +
       ("bob" to InventoryState("bob", mapOf("a" to ItemStack("a", "A", 2), "b" to ItemStack("b", "B", 1)))))
-    assertEquals("inventory_slot_limit", InventoryPolicy.validateAddition(state, "iris", state.inventories.getValue("iris"), ItemStack("i7", "I7"), 1))
+    assertEquals("inventory_slot_limit", InventoryPolicy.validateAddition(state, iris.id, state.inventories.getValue(iris.id), ItemStack("i7", "I7"), 1))
     assertEquals("inventory_stack_limit", InventoryPolicy.validateAddition(state, "bob", state.inventories.getValue("bob"), ItemStack("a", "A"), 1))
     assertEquals("inventory_slot_limit", InventoryPolicy.validateAddition(state, "bob", state.inventories.getValue("bob"), ItemStack("c", "C"), 1))
   }
