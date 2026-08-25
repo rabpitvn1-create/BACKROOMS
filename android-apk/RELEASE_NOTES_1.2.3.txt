@@ -1,0 +1,7 @@
+Backroom 1.2.3 Debug
+
+- Thay overlay Snapshot mặc định của Kai bằng BESTKAIV2.png.
+- Xóa hoàn toàn BestKai.png khỏi source và APK đóng gói.
+- Giữ nguyên Kai_MadGod_snapshot_overlay.png cho trạng thái MadGod.
+- Không thay đổi item runtime, inventory limits, item types, item quantities, Omnivault scan slots hoặc follower capacity.
+- Nâng Android versionCode lên 78 và versionName lên 1.2.3.
