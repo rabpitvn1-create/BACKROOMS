@@ -27,6 +27,8 @@ class ExtensibleItemSystemTest {
     assertEquals(3, OmnivaultEngine.MAX_SCAN_SLOTS)
     val initial = GameState.initial()
     assertEquals(ItemCapacity(9, 999), ItemSystem.capacityFor(initial, KAI_ID))
+    val strippedKai = initial.copy(characters = initial.characters + (KAI_ID to CharacterState(KAI_ID, "Kai")))
+    assertEquals(ItemCapacity(9, 999), ItemSystem.capacityFor(strippedKai, KAI_ID))
     mapOf(
       "special_companion" to ItemCapacity(6, 20),
       "lucia_gift_inventory" to ItemCapacity(3, 100),
