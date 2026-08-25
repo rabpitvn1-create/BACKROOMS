@@ -46,7 +46,8 @@ object ItemSystem {
     val explicitTypes = metadata["inventoryMaxTypes"]?.toIntOrNull()?.takeIf { it > 0 }
     val explicitPerType = metadata["inventoryMaxPerType"]?.toIntOrNull()?.takeIf { it > 0 }
     if (explicitTypes != null && explicitPerType != null) return ItemCapacity(explicitTypes, explicitPerType)
-    val profile = metadata["inventoryProfile"]?.trim()?.lowercase().orEmpty()
+    val profile = metadata["inventoryProfile"]?.trim()?.lowercase()
+      ?: if (ownerId == KAI_ID) "kai" else "normal"
     return capacityProfiles[profile] ?: capacityProfiles.getValue("normal")
   }
 
@@ -60,12 +61,18 @@ object ItemSystem {
       "FOOD" in physiologyEffects -> "FOOD"
       "WATER" in physiologyEffects -> "DRINK"
       else -> item.metadata["itemCategory"]?.uppercase()
+      ?: item.metadata["category"]?.uppercase()
       ?: item.metadata["itemType"]?.uppercase()
       ?: ItemCatalog.find(item.archetypeId)?.type?.name
       ?: "GENERIC"
     }
     return category in allowed
   }
+
+  fun restrictionReason(state: GameState, ownerId: String): String =
+    state.characters[ownerId]?.metadata?.get("inventoryRestrictionReason")
+      ?.takeIf(String::isNotBlank)
+      ?: "inventory_item_category_forbidden"
 
   fun inspect(item: ItemStack, ownerId: String? = null, locationKey: String? = null): ItemInspection {
     val normalized = ItemContentRules.normalize(item)
