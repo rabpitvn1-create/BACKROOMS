@@ -49,7 +49,7 @@ profile_new = '    Profile(SCP_173_KEY, "SCP-173", SCP_173_MAX_HP, 0, 9, 10),\n 
 combat = replace_once(combat, profile_anchor, profile_new, "Violet Warden combat profile")
 
 # Final 1.1.71 HP tier adds +200 to base HP > 1000. Keep the base at 3319 so the
-# effective encounter HP is exactly 3519, which is +10% over Diệp Minh's 3199.
+# effective encounter HP is exactly 3519, approximately +10% over Diệp Minh's 3199.
 hp_old = 'DIEP_MINH_KEY -> DIEP_MINH_MAX_HP; MONSTER_X_KEY -> MONSTER_X_MAX_HP; JOHN_DOE_KEY -> JOHN_DOE_MAX_HP; SCP_173_KEY -> SCP_173_MAX_HP; JEFF_KEY, JANE_KEY -> profile.maxHp; else -> profile.maxHp + ENTITY_HP_BONUS'
 hp_new = 'DIEP_MINH_KEY -> DIEP_MINH_MAX_HP; MONSTER_X_KEY -> MONSTER_X_MAX_HP; JOHN_DOE_KEY -> JOHN_DOE_MAX_HP; SCP_173_KEY -> SCP_173_MAX_HP; VIOLET_WARDEN_KEY -> VIOLET_WARDEN_MAX_HP; JEFF_KEY, JANE_KEY -> profile.maxHp; else -> profile.maxHp + ENTITY_HP_BONUS'
 if hp_new not in combat:
@@ -113,7 +113,7 @@ combat = combat.replace('< ENTITY_EVASION_PERCENT', '< entityEvasionPercent(c.en
 # Apply one Block resolution to the complete ATTACK package before the final
 # pre-response death gate. This preserves simultaneous Party attacks without
 # adding hidden turns. A successful Block restores 30% of damage taken in that
-# ATTACK event and primes one Riposte.
+# ATTACK event and primes one Riposte, including when the pre-block package was lethal.
 response_anchor = '    // Enemy response. Diệp Minh uses percentage damage; all other Entity behavior remains unchanged.\n'
 response_pos = combat.find(response_anchor)
 if response_pos < 0:
@@ -122,7 +122,7 @@ death_pos = combat.rfind('    if (c.entityHp <= 0) {\n', 0, response_pos)
 if death_pos < 0:
     raise RuntimeError("Violet Warden pre-response death gate missing")
 block_code = r'''    // VIOLET_WARDEN_BLOCK_V1: one directional guard resolution for the Party ATTACK package.
-    if (c.entityKey == VIOLET_WARDEN_KEY && intent == Intent.ATTACK && c.entityHp > 0) {
+    if (c.entityKey == VIOLET_WARDEN_KEY && intent == Intent.ATTACK) {
       val damageTaken = max(0, current.entityHp - c.entityHp)
       if (damageTaken > 0 && roll(c.copy(eventCounter = c.eventCounter + 1201), 100) < VIOLET_WARDEN_BLOCK_PERCENT) {
         val restored = max(1, (damageTaken * VIOLET_WARDEN_BLOCK_REDUCTION_PERCENT + 99) / 100)
@@ -285,8 +285,8 @@ if normal_new not in main:
 
 main = replace_once(
     main,
-    '      case "scp_173":\n        return key;\n',
-    '      case "scp_173": case "violet_warden":\n        return key;\n',
+    'case "john_doe": case "scp_173":\n        return key;\n',
+    'case "john_doe": case "scp_173": case "violet_warden":\n        return key;\n',
     "Violet Warden canonical key",
 )
 main = replace_once(
@@ -349,14 +349,14 @@ MAIN.write_text(main, encoding="utf-8")
 # Regression coverage.
 # ---------------------------------------------------------------------------
 test = TEST.read_text(encoding="utf-8")
-if 'violetWardenStartsAtExactlyTenPercentMoreHpThanCurrentDiepMinh' not in test:
+if 'violetWardenStartsAtApproximatelyTenPercentMoreHpThanCurrentDiepMinh' not in test:
     tests = r'''
-  @Test fun violetWardenStartsAtExactlyTenPercentMoreHpThanCurrentDiepMinh() {
+  @Test fun violetWardenStartsAtApproximatelyTenPercentMoreHpThanCurrentDiepMinh() {
     val diep = CombatRuntime.active(CombatRuntime.start(GameState.initial(), "diep_minh"))!!
     val violet = CombatRuntime.active(CombatRuntime.start(GameState.initial(), "violet_warden"))!!
     assertEquals(3199, diep.entityMaxHp)
     assertEquals(3519, violet.entityMaxHp)
-    assertEquals(diep.entityMaxHp * 110 / 100, violet.entityMaxHp)
+    assertEquals((diep.entityMaxHp * 110 + 99) / 100, violet.entityMaxHp)
   }
 
   @Test fun violetWardenProjectsDuelBlockAndFormerHumanIdentity() {
@@ -370,7 +370,7 @@ if 'violetWardenStartsAtExactlyTenPercentMoreHpThanCurrentDiepMinh' not in test:
   }
 
   @Test fun violetWardenUsesOneDuelTargetInsteadOfPartySizedDirectActions() {
-    var state = CombatRuntime.start(GameState.initial(), "violet_warden")
+    val state = CombatRuntime.start(GameState.initial(), "violet_warden")
     val result = CombatRuntime.resolve(state, "OTHER", "giữ vị trí")
     assertTrue(result.reply, result.reply.contains("Duelist's Decree") || result.reply.contains("The Violet Warden"))
     assertFalse(result.reply, result.reply.contains("ENTITY ACTION BUDGET: The Violet Warden"))
