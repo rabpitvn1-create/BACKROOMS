@@ -20,7 +20,7 @@ if width < 512 or height < 683:
 
 main = MAIN.read_text(encoding="utf-8")
 old = "kai_snapshot_overlay.webp"
-new = "BESTKAIV2.png"
+new = "BestKai.png"
 if old not in main and new not in main:
     raise RuntimeError("Kai Snapshot asset reference was not found in MainActivity.java")
 main = main.replace(old, new)
