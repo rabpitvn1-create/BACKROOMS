@@ -132,3 +132,7 @@ runpy.run_path(str(ROOT / "patch-entity-party-action-budget.py"), run_name="__ma
 # Jeff/Jane final skills run last because they extend the finalized Entity response
 # budget and explicitly override both roaming killers to exactly 947 Max HP.
 runpy.run_path(str(ROOT / "patch-jeff-jane-skills.py"), run_name="__main__")
+
+# Latest Entity appearance balance is the final spawn authority. It caps every
+# encounter channel that reached 10% or more to exactly 5% without touching lower rates.
+runpy.run_path(str(ROOT / "patch-entity-spawn-cap-5pct.py"), run_name="__main__")
