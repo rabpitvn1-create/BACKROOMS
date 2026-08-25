@@ -95,7 +95,8 @@ jobs:
               assert marker in equipment, marker
 
           assert 'val LUCIA = InventoryProfile(maxTypes = 3, maxPerType = 100)' in policy
-          assert 'if (characterId == LUCIA_ID) return LUCIA' in policy
+          assert 'ItemSystem.capacityFor(state, characterId)' in policy
+          assert '"inventoryProfile" to "lucia_gift_inventory"' in lucia
 
           encounter = 'thresholdRoll("luciaEncounter", 10000, 5000, exploreAction && level == 0 && !flagSpawned(state, "lucia")'
           assert encounter in main, encounter

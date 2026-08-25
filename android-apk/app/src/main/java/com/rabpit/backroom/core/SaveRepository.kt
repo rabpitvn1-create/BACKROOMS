@@ -1,6 +1,7 @@
 package com.rabpit.backroom.core
 
 import android.content.Context
+import org.json.JSONObject
 
 interface SaveRepository {
   fun save(state: GameState)
@@ -18,7 +19,15 @@ class SharedPreferencesSaveRepository(context: Context) : SaveRepository {
 
   @Synchronized override fun load(): GameState {
     val raw = preferences.getString(KEY_STATE, null) ?: return GameState.initial()
-    return runCatching { GameStateCodec.decode(raw) }.getOrElse { GameState.initial().copy(metadata = mapOf("loadError" to (it.message ?: "invalid_save"))) }
+    val compatible = runCatching { JSONObject(raw).optInt("saveVersion", -1) == CURRENT_SAVE_VERSION }.getOrDefault(false)
+    if (!compatible) {
+      clear()
+      return GameState.initial()
+    }
+    return runCatching { GameStateCodec.decode(raw) }.getOrElse {
+      clear()
+      GameState.initial()
+    }
   }
 
   override fun exists(): Boolean = preferences.contains(KEY_STATE)

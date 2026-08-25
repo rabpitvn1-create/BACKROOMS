@@ -209,3 +209,17 @@ scp173_compat = ROOT / "patch-scp-173-compat-finalize.py"
 if not scp173_compat.is_file():
     raise RuntimeError("SCP-173 compatibility finalizer missing")
 exec(compile(scp173_compat.read_text(encoding="utf-8"), str(scp173_compat), "exec"), {"__name__": "__main__", "__file__": str(scp173_compat)})
+
+# Item authority is finalized after every historical compatibility patch so no later
+# generator can silently restore name-based profiles, save migration or destructive DROP.
+item_system = ROOT / "patch-extensible-item-system-finalize.py"
+if not item_system.is_file():
+    raise RuntimeError("Extensible item system finalizer missing")
+exec(compile(item_system.read_text(encoding="utf-8"), str(item_system), "exec"), {"__name__": "__main__", "__file__": str(item_system)})
+
+# The selected default Kai overlay is finalized last so compatibility patches cannot
+# restore an obsolete asset reference or package the retired overlay binaries.
+best_kai = ROOT / "patch-best-kai-overlay-finalize.py"
+if not best_kai.is_file():
+    raise RuntimeError("BestKai overlay finalizer missing")
+exec(compile(best_kai.read_text(encoding="utf-8"), str(best_kai), "exec"), {"__name__": "__main__", "__file__": str(best_kai)})

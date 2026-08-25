@@ -1,4 +1,4 @@
-name: Build Backroom 1.2.1 Debug
+name: Build Backroom 1.2.2 Debug
 
 on:
   workflow_dispatch:
@@ -95,7 +95,7 @@ jobs:
           entity_dir = root / 'app/src/main/assets/entity'
 
           required = [
-              ("versionCode 76", gradle), ("versionName '1.2.1'", gradle),
+              ("versionCode 77", gradle), ("versionName '1.2.2'", gradle),
               ('id="searchActionButton"', html), ('id="exploreActionButton"', html), ('STEP2_THREE_ACTIONS', html),
               ('madGodSetEquipped()', html), ('id="equipmentDetailModal"', html), ('window.renderCharacterStatusEquipment=render;', html),
               ('id="characterSkillsModal"', html), ("button.id='characterSkillsButton'", html), ('function openSkills()', html),
@@ -132,7 +132,7 @@ jobs:
               ('boolean exploreAction = "EXPLORE".equals(actionKindNormalized);', java),
               ('makeGameplayRolls(before, actionKind, action, meta)', java),
               ("box.style.position='relative';box.style.overflow='hidden'", java),
-              ('Kai_MadGod_snapshot_overlay.png', java),
+              ('BestKai.png', java), ('Kai_MadGod_snapshot_overlay.png', java),
               ('class SharedPreferencesSaveRepository', save_repo),
               ('private fun normalizeVisualPresence(state: GameState): GameState', facade),
               ('val resolvedEntityKey = CombatRuntime.active(current)?.entityKey.orEmpty()', facade),
@@ -188,7 +188,7 @@ jobs:
           for name in required_assets:
               p = entity_dir / name
               assert p.is_file() and p.stat().st_size > 0, name
-          for p in [root / 'app/src/main/assets/Kai_MadGod_snapshot_overlay.png', root / 'app/src/main/assets/avatars/MadGod.jpg']:
+          for p in [root / 'app/src/main/assets/BestKai.png', root / 'app/src/main/assets/Kai_MadGod_snapshot_overlay.png', root / 'app/src/main/assets/avatars/MadGod.jpg']:
               assert p.is_file() and p.stat().st_size > 0, str(p)
 
           combined = html + java + gradle + facade + save_repo
@@ -211,21 +211,21 @@ jobs:
         run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
 
       - name: Prepare debug APK
-        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.2.1-debug.apk
+        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.2.2-debug.apk
 
       - name: Verify packaged debug APK contracts
         run: |
           set -euo pipefail
-          APK=Backroom-1.2.1-debug.apk
+          APK=Backroom-1.2.2-debug.apk
           BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
           "$BUILD_TOOLS/apksigner" verify --verbose --print-certs "$APK"
           "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "package: name='com.rabpit.backroom'"
-          "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionCode='76'"
-          "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionName='1.2.1'"
+          "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionCode='77'"
+          "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionName='1.2.2'"
           "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
           "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 "$APK"
           rm -rf apk-check && mkdir apk-check
-          unzip -q "$APK" 'assets/index.html' 'assets/entity/*' 'assets/Kai_MadGod_snapshot_overlay.png' 'assets/avatars/MadGod.jpg' -d apk-check
+          unzip -q "$APK" 'assets/index.html' 'assets/entity/*' 'assets/BestKai.png' 'assets/Kai_MadGod_snapshot_overlay.png' 'assets/avatars/MadGod.jpg' -d apk-check
           grep -q 'searchActionButton' apk-check/assets/index.html
           grep -q 'exploreActionButton' apk-check/assets/index.html
           grep -q 'madGodSetEquipped' apk-check/assets/index.html
@@ -239,13 +239,16 @@ jobs:
           test -s apk-check/assets/entity/173.png
           test -s apk-check/assets/entity/SCP173.png
           test -s apk-check/assets/entity/John.png
+          test -s apk-check/assets/BestKai.png
           test -s apk-check/assets/Kai_MadGod_snapshot_overlay.png
           test -s apk-check/assets/avatars/MadGod.jpg
+          ! unzip -l "$APK" | grep -q 'assets/kai_snapshot_overlay.png'
+          ! unzip -l "$APK" | grep -q 'assets/kai_snapshot_overlay.webp'
 
       - name: Upload debug APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Backroom-1.2.1-debug-apk
-          path: Backroom-1.2.1-debug.apk
+          name: Backroom-1.2.2-debug-apk
+          path: Backroom-1.2.2-debug.apk
           if-no-files-found: error
           retention-days: 14

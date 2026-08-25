@@ -48,7 +48,9 @@ object AnNhienCanon {
         "survivalMultiplier" to SURVIVAL_MULTIPLIER.toString(),
         "lootBonusPoints" to LOOT_BONUS_POINTS.toString(),
         "exitBonusPoints" to EXIT_BONUS_POINTS.toString(),
-        "inventoryProfile" to "an_nhien_food_only"
+        "inventoryProfile" to "an_nhien_food_only",
+        "inventoryAllowedCategories" to "FOOD",
+        "inventoryRestrictionReason" to "an_nhien_food_only"
       )
     )
   }

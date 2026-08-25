@@ -59,7 +59,7 @@ class GameStateCodecTest {
     assertEquals(KAI_OMNIVAULT_RING_ID, state.equipment.getValue(KAI_ID).slots["ring"])
   }
 
-  @Test fun legacyWebViewSaveMigratesWithoutLosingNormalInventoryOrParty() {
+  @Test fun legacyWebViewSaveIsRejectedInsteadOfMigrated() {
     val legacy = """{
       "turn":184,
       "title":"BACKROOMS",
@@ -72,24 +72,10 @@ class GameStateCodecTest {
       ],
       "party":[{"id":"iris","name":"Iris","avatar":"iris.png"}]
     }"""
-    val migrated = GameStateCodec.decode(legacy)
-    assertEquals(CURRENT_SAVE_VERSION, migrated.saveVersion)
-    assertEquals("TURN_184", migrated.turn.currentTurnId)
-    assertEquals(GameTimeState(), migrated.time)
-    assertEquals(0L, migrated.characters.getValue(KAI_ID).physiology.minutesSinceFood)
-    assertEquals(0L, migrated.characters.getValue(KAI_ID).physiology.minutesSinceWater)
-    assertEquals(0L, migrated.characters.getValue(KAI_ID).physiology.minutesAwake)
-    assertEquals(PhysiologyState(), migrated.characters.getValue("iris").physiology)
-    assertEquals(1, migrated.inventories.getValue(KAI_ID).items.size)
-    assertEquals(2, migrated.inventories.getValue(KAI_ID).items.values.single().quantity)
-    assertEquals(KAI_WHITE_WRAITH_ID, migrated.equipment.getValue(KAI_ID).slots["weapon"])
-    assertEquals(KAI_BLACKBLOOD_ARMOR_ID, migrated.equipment.getValue(KAI_ID).slots["armor"])
-    assertEquals(KAI_OMNIVAULT_RING_ID, migrated.equipment.getValue(KAI_ID).slots["ring"])
-    assertEquals(listOf(KAI_ID, "iris"), migrated.party.memberIds)
-    assertEquals("Level 0", migrated.world["location"])
+    assertThrows(IllegalArgumentException::class.java) { GameStateCodec.decode(legacy) }
   }
 
-  @Test fun v2CoreSaveMovesSignatureItemsOutOfInventory() {
+  @Test fun v2CoreSaveIsRejectedInsteadOfMigrated() {
     val v2 = JSONObject(GameStateCodec.encode(GameState.initial())).apply {
       put("saveVersion", 2)
       put("inventories", JSONObject().put(KAI_ID, JSONObject().apply {
@@ -105,15 +91,7 @@ class GameStateCodecTest {
       }))
       put("equipment", JSONObject().put(KAI_ID, JSONObject().put("ownerId", KAI_ID).put("slots", JSONObject())))
     }
-    val migrated = GameStateCodec.decode(v2)
-    assertEquals(CURRENT_SAVE_VERSION, migrated.saveVersion)
-    assertEquals(0L, migrated.characters.getValue(KAI_ID).physiology.minutesSinceFood)
-    assertEquals(0L, migrated.characters.getValue(KAI_ID).physiology.minutesSinceWater)
-    assertEquals(0L, migrated.characters.getValue(KAI_ID).physiology.minutesAwake)
-    assertEquals(setOf("rope"), migrated.inventories.getValue(KAI_ID).items.keys)
-    assertEquals(KAI_WHITE_WRAITH_ID, migrated.equipment.getValue(KAI_ID).slots["weapon"])
-    assertEquals(KAI_BLACKBLOOD_ARMOR_ID, migrated.equipment.getValue(KAI_ID).slots["armor"])
-    assertEquals(KAI_OMNIVAULT_RING_ID, migrated.equipment.getValue(KAI_ID).slots["ring"])
+    assertThrows(IllegalArgumentException::class.java) { GameStateCodec.decode(v2) }
   }
 
   @Test fun currentLegacyLowStackLoadsAsCanonicalWholeUnitsWithoutDuplication() {

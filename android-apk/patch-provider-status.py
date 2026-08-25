@@ -4,7 +4,7 @@ import re
 ROOT = Path(__file__).resolve().parent
 MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
 INDEX = ROOT / "app/src/main/assets/index.html"
-OVERLAY = ROOT / "app/src/main/assets/kai_snapshot_overlay.webp"
+OVERLAY = ROOT / "app/src/main/assets/BestKai.png"
 
 
 def replace_required(text: str, old: str, new: str, label: str) -> str:
@@ -20,10 +20,10 @@ def replace_if_needed(text: str, old: str, new: str, label: str) -> str:
     return replace_required(text, old, new, label)
 
 
-# The overlay is now a normal packaged binary asset. No base64 reconstruction belongs in the build.
+# The overlay is a normal packaged PNG asset. No base64 reconstruction belongs in the build.
 raw = OVERLAY.read_bytes()
-if len(raw) < 16 or raw[:4] != b"RIFF" or raw[8:12] != b"WEBP":
-    raise RuntimeError("Kai overlay asset is not a valid packaged WebP")
+if len(raw) < 24 or raw[:8] != b"\x89PNG\r\n\x1a\n":
+    raise RuntimeError("BestKai overlay asset is not a valid packaged PNG")
 
 main = MAIN.read_text(encoding="utf-8")
 index = INDEX.read_text(encoding="utf-8")
@@ -59,7 +59,7 @@ new_css = ".snapshot{position:relative;overflow:hidden;height:230px}.snapshot .s
 main = replace_if_needed(main, old_css, new_css, "snapshot layered styles")
 
 old_render = "if(r){var img=document.createElement('img');img.src=r.dataUri;img.alt='Snapshot Turn '+(state.turn||'');box.appendChild(img);}else{"
-new_render = "if(r){var bg=document.createElement('img');bg.className='snapshot-bg';bg.src=r.dataUri;bg.alt='Snapshot Turn '+(state.turn||'');box.appendChild(bg);var kai=document.createElement('img');kai.className='snapshot-character';kai.src='file:///android_asset/kai_snapshot_overlay.webp';kai.alt='Kai Akechi';box.appendChild(kai);}else{"
+new_render = "if(r){var bg=document.createElement('img');bg.className='snapshot-bg';bg.src=r.dataUri;bg.alt='Snapshot Turn '+(state.turn||'');box.appendChild(bg);var kai=document.createElement('img');kai.className='snapshot-character';kai.src='file:///android_asset/BestKai.png';kai.alt='Kai Akechi';box.appendChild(kai);}else{"
 main = replace_if_needed(main, old_render, new_render, "snapshot character overlay")
 
 old_prompt = '"Show the present scene only, not a montage. Kai Akechi / Twilight is the main character. " +'
