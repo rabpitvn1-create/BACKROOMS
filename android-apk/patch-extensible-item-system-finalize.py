@@ -43,7 +43,7 @@ old_category = '''    val normalized = ItemContentRules.normalize(item)
     val profile = profileFor(state, ownerId)
 '''
 new_category = '''    val normalized = ItemContentRules.normalize(item)
-    if (!ItemSystem.allowsItem(state, ownerId, normalized)) return "inventory_item_category_forbidden"
+    if (!ItemSystem.allowsItem(state, ownerId, normalized)) return ItemSystem.restrictionReason(state, ownerId)
     val profile = profileFor(state, ownerId)
 '''
 policy = replace_once(policy, old_category, new_category, "data-driven inventory restriction")
@@ -179,6 +179,7 @@ combined = "\n".join(path.read_text(encoding="utf-8") for path in (POLICY, ENGIN
 for marker in (
     "ItemSystem.capacityFor(state, characterId)",
     "ItemSystem.allowsItem(state, ownerId, normalized)",
+    "ItemSystem.restrictionReason(state, ownerId)",
     "inventory_dropped_to_world",
     'require(version == CURRENT_SAVE_VERSION) { "incompatible_save_version" }',
     "CharacterEquipmentSystem.normalize(GameState.initial())",
