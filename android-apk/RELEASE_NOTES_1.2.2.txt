@@ -1,0 +1,10 @@
+Backroom 1.2.2 Debug
+
+- Xây dựng item runtime dùng lâu dài cho item, follower và thế giới được bổ sung liên tục.
+- Item có state và thông tin inspect thống nhất; hỗ trợ pickup, scan, copy, transfer, use và drop.
+- DROP đưa đúng vật phẩm và số lượng trở lại world ledger thay vì xóa khỏi game state.
+- Inventory của nhân vật được cấu hình bằng metadata, không phân nhánh theo tên follower.
+- Giữ nguyên 11 official item, loại item và các giới hạn inventory đã được xác lập.
+- Giữ nguyên Omnivault 3 scan slots; bản copy không thể scan lại và copy vẫn theo Kai Codex.
+- Bắt đầu save generation 4; không migrate hoặc cứu save cũ của bản test trước.
+- Đây là APK Debug để cài đặt và kiểm thử trực tiếp, không phải production release-signed APK.
