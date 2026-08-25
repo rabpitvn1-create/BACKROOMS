@@ -32,7 +32,12 @@ for level in range(7):
         raise RuntimeError(f"Level {level} needs at least 2 packaged Fandom snapshots; found {len(refs)}")
     pools[level] = refs
 
-pool_js = json.dumps(pools, ensure_ascii=False, separators=(",", ":"))
+# This JavaScript is embedded inside a Java string literal. Keep the generated
+# object single-quoted so the later Java compilation does not see raw JSON quotes.
+pool_js = "{" + ",".join(
+    "'%s':[%s]" % (level, ",".join("'%s'" % ref for ref in refs))
+    for level, refs in pools.items()
+) + "}"
 main = MAIN.read_text(encoding="utf-8")
 
 old = "if(r){var bg=document.createElement('img');bg.className='snapshot-bg';bg.src=r.dataUri;bg.alt='Snapshot Turn '+(state.turn||'');box.appendChild(bg);var kai=document.createElement('img');kai.className='snapshot-character';kai.src='file:///android_asset/kai_snapshot_overlay.webp';kai.alt='Kai Akechi';box.appendChild(kai);}else{"
