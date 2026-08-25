@@ -18,13 +18,15 @@ if "function cleanEntityActionDebug(text)" not in html:
     elif len(matches) == 0:
         start_marker = "logEl.innerHTML="
         end_marker = ";logEl.scrollTop="
-        if html.count(start_marker) != 1 or html.count(end_marker) != 1:
+        if html.count(start_marker) != 1:
             raise RuntimeError(
-                "Entity action debug UI filter: expected one bounded log renderer, "
-                f"found starts={html.count(start_marker)} ends={html.count(end_marker)}"
+                "Entity action debug UI filter: expected one log renderer start, "
+                f"found {html.count(start_marker)}"
             )
         start = html.index(start_marker)
-        end = html.index(end_marker, start)
+        end = html.find(end_marker, start)
+        if end < 0:
+            raise RuntimeError("Entity action debug UI filter: log renderer end marker missing")
         html = html[:start] + new_renderer + html[end:]
     else:
         raise RuntimeError(f"Entity action debug UI filter: expected one known log renderer anchor, found {len(matches)}")
