@@ -21,7 +21,8 @@ for level in range(7):
     refs = []
     for record in records:
         name = str(record.get("local_file", "")).strip()
-        if not name:
+        title = str(record.get("file_title", "")).strip().lower()
+        if not name or "sd-hexagon" in title:
             continue
         asset = SNAPSHOT_DIR / name
         if not asset.is_file() or asset.stat().st_size <= 0:
