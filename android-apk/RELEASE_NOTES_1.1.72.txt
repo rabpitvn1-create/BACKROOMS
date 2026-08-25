@@ -1,0 +1,10 @@
+Backroom 1.1.72 Debug
+
+- Nâng Android package lên versionCode 74 / versionName 1.1.72.
+- Thêm persistent environment-loot pity: mỗi SEARCH/EXPLORE hợp lệ chưa ra loot cộng +1 điểm phần trăm vào lần kế tiếp; nếu vẫn xui thì lượt eligible thứ 100 được guaranteed loot success.
+- Thêm persistent Entity-drop pity độc lập: mỗi Entity kill chưa drop cộng +2 điểm phần trăm; kill thứ 50 được guaranteed drop nếu chuỗi trước đó vẫn chưa thành công.
+- Hai pity counter được lưu qua Save/Load và không reset khi chuyển Level/sublevel; mỗi hệ chỉ reset khi chính hệ đó loot/drop thành công. Bonus generic loot hiện có của An Nhiên và Lucia vẫn được giữ nguyên.
+- Nâng action economy của Entity: mỗi Entity turn có một direct action cho mỗi combatant ACTIVE/còn sống trong Party, phân phối tối đa một direct action cho mỗi mục tiêu trước khi lặp; An Nhiên vẫn là NON-COMBAT support và không tạo action slot/direct target.
+- Quick Step và Devil Trigger Evasion của Kai chỉ bảo vệ Kai; Devil Trigger riêng của Syvial chỉ bảo vệ Syvial. Damage vào companion được ghi trực tiếp vào HP của từng nhân vật.
+- Giữ cơ chế đặc thù của Diệp Minh, Monster X, John Doe và SCP-173: special/AoE/status scheduling vẫn theo combat turn; SCP-173 vẫn không tấn công khi OBSERVED và phân phối action qua Party khi UNOBSERVED.
+- Giữ nguyên tuyến campaign 43 khu vực, Snapshot offline theo area/sublevel, inventory/save authority, Entity encounter rates, HP tuning và các gameplay hard lock đã có ở 1.1.71 trừ những thay đổi loot/action economy nêu trên.
