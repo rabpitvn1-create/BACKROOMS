@@ -22,6 +22,7 @@ if width < 512 or height < 768:
 
 for path in (MAIN, INDEX):
     text = path.read_text(encoding="utf-8")
+    text = text.replace("BestKai.png", "BESTKAIV2.png")
     text = text.replace("kai_snapshot_overlay.png", "BESTKAIV2.png")
     text = text.replace("kai_snapshot_overlay.webp", "BESTKAIV2.png")
     path.write_text(text, encoding="utf-8")
