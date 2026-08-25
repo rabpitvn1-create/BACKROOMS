@@ -132,7 +132,7 @@ jobs:
               ('boolean exploreAction = "EXPLORE".equals(actionKindNormalized);', java),
               ('makeGameplayRolls(before, actionKind, action, meta)', java),
               ("box.style.position='relative';box.style.overflow='hidden'", java),
-              ('Kai_MadGod_snapshot_overlay.png', java),
+              ('BestKai.png', java), ('Kai_MadGod_snapshot_overlay.png', java),
               ('class SharedPreferencesSaveRepository', save_repo),
               ('private fun normalizeVisualPresence(state: GameState): GameState', facade),
               ('val resolvedEntityKey = CombatRuntime.active(current)?.entityKey.orEmpty()', facade),
@@ -188,7 +188,7 @@ jobs:
           for name in required_assets:
               p = entity_dir / name
               assert p.is_file() and p.stat().st_size > 0, name
-          for p in [root / 'app/src/main/assets/Kai_MadGod_snapshot_overlay.png', root / 'app/src/main/assets/avatars/MadGod.jpg']:
+          for p in [root / 'app/src/main/assets/BestKai.png', root / 'app/src/main/assets/Kai_MadGod_snapshot_overlay.png', root / 'app/src/main/assets/avatars/MadGod.jpg']:
               assert p.is_file() and p.stat().st_size > 0, str(p)
 
           combined = html + java + gradle + facade + save_repo
@@ -225,7 +225,7 @@ jobs:
           "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
           "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 "$APK"
           rm -rf apk-check && mkdir apk-check
-          unzip -q "$APK" 'assets/index.html' 'assets/entity/*' 'assets/Kai_MadGod_snapshot_overlay.png' 'assets/avatars/MadGod.jpg' -d apk-check
+          unzip -q "$APK" 'assets/index.html' 'assets/entity/*' 'assets/BestKai.png' 'assets/Kai_MadGod_snapshot_overlay.png' 'assets/avatars/MadGod.jpg' -d apk-check
           grep -q 'searchActionButton' apk-check/assets/index.html
           grep -q 'exploreActionButton' apk-check/assets/index.html
           grep -q 'madGodSetEquipped' apk-check/assets/index.html
@@ -239,8 +239,11 @@ jobs:
           test -s apk-check/assets/entity/173.png
           test -s apk-check/assets/entity/SCP173.png
           test -s apk-check/assets/entity/John.png
+          test -s apk-check/assets/BestKai.png
           test -s apk-check/assets/Kai_MadGod_snapshot_overlay.png
           test -s apk-check/assets/avatars/MadGod.jpg
+          ! unzip -l "$APK" | grep -q 'assets/kai_snapshot_overlay.png'
+          ! unzip -l "$APK" | grep -q 'assets/kai_snapshot_overlay.webp'
 
       - name: Upload debug APK artifact
         uses: actions/upload-artifact@v4
