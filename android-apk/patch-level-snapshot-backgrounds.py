@@ -36,12 +36,20 @@ main = MAIN.read_text(encoding="utf-8")
 
 old = "if(r){var bg=document.createElement('img');bg.className='snapshot-bg';bg.src=r.dataUri;bg.alt='Snapshot Turn '+(state.turn||'');box.appendChild(bg);var kai=document.createElement('img');kai.className='snapshot-character';kai.src='file:///android_asset/kai_snapshot_overlay.webp';kai.alt='Kai Akechi';box.appendChild(kai);}else{"
 
-new = (
-    "var pools=" + pool_js + ";"
+# Keep the exact authoritative Level picker contract expected by the later
+# visual-state synchronization patch. `refs` is a compatibility fallback map;
+# active rendering uses the multi-image Fandom pools below.
+level_picker = (
+    "var refs={0:'file:///android_asset/level_snapshots/level_0.webp',1:'file:///android_asset/level_snapshots/level_1.webp',2:'file:///android_asset/level_snapshots/level_2.webp',3:'file:///android_asset/level_snapshots/level_3.webp',4:'file:///android_asset/level_snapshots/level_4.webp',5:'file:///android_asset/level_snapshots/level_5.webp',6:'file:///android_asset/level_snapshots/level_6.webp'};"
     "var structuredLevel=state&&state.level&&state.level.number;"
     "var where=String(state&&state.location||'')+' '+String(state&&state.title||'');"
     "var lm=where.match(/Level[^0-9]*([0-6])/i);"
     "var lv=(structuredLevel!==undefined&&structuredLevel!==null&&Number(structuredLevel)>=0&&Number(structuredLevel)<=6)?Number(structuredLevel):(lm?Number(lm[1]):0);"
+)
+
+new = (
+    level_picker
+    + "var pools=" + pool_js + ";"
     "var choices=pools[String(lv)]||pools[lv]||pools['0']||pools[0];"
     "var bucket=Math.floor(Date.now()/300000);"
     "var seed=(bucket*17+lv*31+Number(state&&state.turn||0)*7);"
