@@ -277,3 +277,9 @@ for marker in (
         raise RuntimeError("GM item gain final contract missing: " + marker)
 
 print("Game Master item gains finalized: validated GM loot commits directly to Inventory and emits compact Gain chat notices.")
+
+# Visible-but-unowned world loot must be finalized after GM gains so the two channels stay distinct.
+world_item_patch = ROOT / "patch-world-item-availability-finalize.py"
+if not world_item_patch.is_file():
+    raise RuntimeError("World item availability finalizer missing")
+exec(compile(world_item_patch.read_text(encoding="utf-8"), str(world_item_patch), "exec"), {"__name__": "__main__", "__file__": str(world_item_patch)})
