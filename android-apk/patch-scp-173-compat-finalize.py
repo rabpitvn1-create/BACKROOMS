@@ -137,3 +137,7 @@ runpy.run_path(str(ROOT / "patch-jeff-jane-skills.py"), run_name="__main__")
 # implementation-oriented prefixes from the final WebView log. This runs after Jeff/Jane so
 # the UI cleanup remains the last patch without changing the finalized combat mechanics.
 runpy.run_path(str(ROOT / "patch-hide-entity-action-debug.py"), run_name="__main__")
+
+# Latest Entity appearance balance is the final spawn authority. It caps every
+# encounter channel that reached 10% or more to exactly 5% without touching lower rates.
+runpy.run_path(str(ROOT / "patch-entity-spawn-cap-5pct.py"), run_name="__main__")
