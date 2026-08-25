@@ -1,0 +1,9 @@
+Backroom 1.2.1 Debug
+
+- Sửa lỗi Game Master mô tả vật phẩm đang nằm trong môi trường nhưng state không lưu chúng thành world item có thể nhặt.
+- Lệnh trực tiếp như “Nhặt lấy” và “Nhặt lấy vật phẩm trên bàn” giờ được xử lý bởi Game State Core trước nhánh dùng vật phẩm, không còn rơi nhầm vào item_content_empty.
+- Khi nhiều vật phẩm cùng hiện diện tại vị trí hiện tại, lệnh nhặt chung có thể thu các vật phẩm hợp lệ trong một transaction; lệnh gọi tên chỉ lấy đúng món được gọi.
+- Thêm world_item_upsert để ghi nhận vật phẩm nhìn thấy nhưng chưa thuộc Inventory, giữ tách biệt hoàn toàn với GM item gain.
+- Có compatibility recovery cho save 1.2 đã gặp lỗi: narration gần đây về official loot như Bandage + Antiseptic có thể được phục hồi thành world item khi người chơi thử nhặt lại.
+- Thêm regression test cho hai-item pickup, named pickup, location isolation và legacy save recovery.
+- Đây là APK Debug để cài đặt/test trực tiếp, không phải Android production release-signed build.
