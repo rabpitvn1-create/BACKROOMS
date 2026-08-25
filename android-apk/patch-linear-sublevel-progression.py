@@ -279,10 +279,8 @@ replace_once(
     "per-area progress call",
 )
 
-old_prompt_return = r'''    return actionDirective + "\nACTION_RUNTIME: " + actionRuntimeContext + "\n" +
-'''
-new_prompt_return = r'''    return actionDirective + "\n" + linearAreaPrompt(before) + "\nACTION_RUNTIME: " + actionRuntimeContext + "\n" +
-'''
+old_prompt_return = r'''    return actionDirective + '''
+new_prompt_return = r'''    return actionDirective + "\n" + linearAreaPrompt(before) + '''
 replace_once(old_prompt_return, new_prompt_return, "linear route Game Master lock")
 
 MAIN.write_text(text, encoding="utf-8")
@@ -298,6 +296,7 @@ required = [
     'advanceLinearArea(before, state)',
     'recordLevelProgress(state, before, oldLevel, newLevel, areaAdvanced)',
     'LINEAR SUBLEVEL HARD LOCK:',
+    'linearAreaPrompt(before)',
     'return exitFound && progressionReady(before);',
 ]
 for marker in required:
