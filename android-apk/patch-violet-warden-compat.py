@@ -1,4 +1,5 @@
 from pathlib import Path
+import runpy
 
 ROOT = Path(__file__).resolve().parent
 COMBAT = ROOT / "app/src/main/java/com/rabpit/backroom/core/CombatRuntime.kt"
@@ -19,3 +20,7 @@ if 'val luciaEntityEvaded = luciaEvasionRoll < ENTITY_EVASION_PERCENT' not in co
 
 COMBAT.write_text(combat, encoding="utf-8")
 print("Violet Warden compatibility restored established 17% Entity Evasion call sites; Block/Counter remains additive and boss-local.")
+
+# Display authority is finalized after the Entity patch has installed Violet's overlay mapping.
+# The later stun finalizer only touches CombatRuntime, so it cannot overwrite this asset choice.
+runpy.run_path(str(ROOT / "patch-violet-display-finalize.py"), run_name="__main__")
