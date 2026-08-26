@@ -1,4 +1,4 @@
-name: Build Backroom 1.2.4 Debug
+name: Build Backroom 1.2.5 Debug
 
 on:
   workflow_dispatch:
@@ -95,7 +95,7 @@ jobs:
           entity_dir = root / 'app/src/main/assets/entity'
 
           required = [
-              ("versionCode 79", gradle), ("versionName '1.2.4'", gradle),
+              ("versionCode 80", gradle), ("versionName '1.2.5'", gradle),
               ('id="searchActionButton"', html), ('id="exploreActionButton"', html), ('STEP2_THREE_ACTIONS', html),
               ('madGodSetEquipped()', html), ('id="equipmentDetailModal"', html), ('window.renderCharacterStatusEquipment=render;', html),
               ('id="characterSkillsModal"', html), ("button.id='characterSkillsButton'", html), ('function openSkills()', html),
@@ -132,7 +132,7 @@ jobs:
               ('boolean exploreAction = "EXPLORE".equals(actionKindNormalized);', java),
               ('makeGameplayRolls(before, actionKind, action, meta)', java),
               ("box.style.position='relative';box.style.overflow='hidden'", java),
-              ('BESTKAIV2.png', java), ('Kai_MadGod_snapshot_overlay.png', java),
+              ('BESTKAIV2.png', java), ('Kai_MadGod_snapshot_overlay.png', java), ('Newviolet.png', java),
               ('class SharedPreferencesSaveRepository', save_repo),
               ('private fun normalizeVisualPresence(state: GameState): GameState', facade),
               ('val resolvedEntityKey = CombatRuntime.active(current)?.entityKey.orEmpty()', facade),
@@ -183,7 +183,7 @@ jobs:
               'hound.png','clump.png','duller.png','deathmoth.png','hostile_faceling.png','false_puddle.png','paintings.png',
               'smiler.png','skin-stealer.png','predatory_window.png','biological_pipeline.png','wretch.png','cable_mimic.png',
               'the_beast_of_level_5.png','hotel_corpse_lure.png','jeff_the_killer.png','jane_the_killer.png','slenderman.png','diep_minh.png',
-              'SCP173.png'
+              'SCP173.png','Newviolet.png'
           ]
           for name in required_assets:
               p = entity_dir / name
@@ -211,17 +211,17 @@ jobs:
         run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
 
       - name: Prepare debug APK
-        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.2.4-debug.apk
+        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.2.5-debug.apk
 
       - name: Verify packaged debug APK contracts
         run: |
           set -euo pipefail
-          APK=Backroom-1.2.4-debug.apk
+          APK=Backroom-1.2.5-debug.apk
           BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
           "$BUILD_TOOLS/apksigner" verify --verbose --print-certs "$APK"
           "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "package: name='com.rabpit.backroom'"
-          "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionCode='79'"
-          "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionName='1.2.4'"
+          "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionCode='80'"
+          "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionName='1.2.5'"
           "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
           "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 "$APK"
           rm -rf apk-check && mkdir apk-check
@@ -239,6 +239,7 @@ jobs:
           test -s apk-check/assets/entity/173.png
           test -s apk-check/assets/entity/SCP173.png
           test -s apk-check/assets/entity/John.png
+          test -s apk-check/assets/entity/Newviolet.png
           test -s apk-check/assets/BESTKAIV2.png
           test -s apk-check/assets/Kai_MadGod_snapshot_overlay.png
           test -s apk-check/assets/avatars/MadGod.jpg
@@ -249,7 +250,7 @@ jobs:
       - name: Upload debug APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Backroom-1.2.4-debug-apk
-          path: Backroom-1.2.4-debug.apk
+          name: Backroom-1.2.5-debug-apk
+          path: Backroom-1.2.5-debug.apk
           if-no-files-found: error
           retention-days: 14
