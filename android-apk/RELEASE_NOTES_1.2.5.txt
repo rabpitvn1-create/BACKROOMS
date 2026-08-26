@@ -1,0 +1,7 @@
+Backroom 1.2.5 Debug
+
+- Cập nhật ảnh hiển thị của The Violet Warden sang android-apk/app/src/main/assets/entity/Newviolet.png.
+- Giữ Violet.png cũ trong repository để bảo toàn compatibility; runtime hiện tại dùng Newviolet.png cho violet_warden.
+- Patch chain xác minh Newviolet.png tồn tại, là PNG hợp lệ và mapping cuối cùng không bị patch cũ ghi đè.
+- Giữ nguyên cơ chế combat, encounter, STUN, Block/Counter và các Entity khác.
+- Nâng Android versionCode lên 80 và versionName lên 1.2.5 để cài đặt như một bản cập nhật mới trên Android.
