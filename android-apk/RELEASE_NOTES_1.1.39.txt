@@ -10,7 +10,7 @@ Character Inventory, Prologue restoration, and Android runtime cleanup release.
 - Save schema v3 migrates older saves by moving Kai's signature gear out of Inventory while preserving normal items.
 - Kai's signature equipment and Omnivault remain protected from ordinary Scan/Copy/Transfer/Store paths.
 - Omnivault Restore remains narrative-only and direct player pickup remains unavailable as an authoritative gameplay rule.
-- Removes retired pickup/Restore reconciliation code and obsolete web/server/Next.js runtime files from the Android release path.
+- Removes retired pickup/Restore reconciliation code from the Android release path.
 - Removes base64 Kai overlay reconstruction and packages binary artwork directly.
 - Android/Kotlin Game State Core is the authoritative runtime path; LiteRT intent classifier and Gemini fallback remain integrated.
 - CI validates the Android build, Kotlin core tests, LiteRT pipeline, Kai avatar packaging, Prologue presence, Equipment/Inventory separation, and absence of retired reconciliation markers.
