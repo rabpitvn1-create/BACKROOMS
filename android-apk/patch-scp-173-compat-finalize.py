@@ -9,9 +9,6 @@ SCP_IMAGE = ROOT / "app/src/main/assets/entity/SCP173.png"
 
 combat = COMBAT.read_text(encoding="utf-8")
 
-# Preserve the established non-SCP Guilty Crown narration contract while still
-# reporting SCP-173's mitigated, already-committed damage. Existing tests and UI
-# consumers key off "tổng -240 HP" for normal Entities.
 old = '        "mỗi phát -$KAI_GUILTY_CROWN_DAMAGE_PER_SHOT HP trước giảm trừ, tổng thực nhận -$appliedTotalDamage HP (${c.entityHp}/${c.entityMaxHp})."\n'
 new = '''        "mỗi phát -$KAI_GUILTY_CROWN_DAMAGE_PER_SHOT HP, " +
         (if (c.entityKey == SCP_173_KEY) "tổng thực nhận -$appliedTotalDamage HP" else "tổng -$totalDamage HP") +
@@ -33,10 +30,6 @@ for marker in (
 
 COMBAT.write_text(combat, encoding="utf-8")
 
-# The exact mitigation arithmetic is locked above at the implementation level.
-# Keep the runtime regression deterministic by checking the authoritative
-# OBSERVED/Concrete Body projection without depending on unrelated automatic
-# attacks that also fire on combat turn three.
 test = TEST.read_text(encoding="utf-8")
 old_test = '''    val before = CombatRuntime.active(state)!!.entityHp
     val result = CombatRuntime.resolve(state, "SEARCH", "duy trì quan sát")
@@ -55,9 +48,6 @@ if old_test not in test:
     raise RuntimeError("SCP-173 compatibility finalizer could not find targeted Concrete Body regression")
 test = test.replace(old_test, new_test, 1)
 
-# Neck Snap is a threshold regression for SCP-173, not a Devil Trigger test.
-# Force Kai into an existing cooldown turn so the new passive cannot heal him
-# above the exact 15% execution threshold before SCP-173 resolves its attack.
 neck_old = '''    state = CharacterStatEngine.setCurrentHp(state, KAI_ID, threshold)
     state = state.copy(metadata = state.metadata + ("combat.range" to CombatRuntime.RangeBand.CLOSE.name))
     val result = CombatRuntime.resolve(state, "SEARCH", "không thể quan sát SCP-173")
@@ -76,13 +66,8 @@ TEST.write_text(test, encoding="utf-8")
 
 print("SCP-173 compatibility finalizer applied: existing Guilty Crown narration preserved and deterministic Concrete Body/Neck Snap regressions retained.")
 
-# Devil Trigger temporarily restored Guilty Crown's raw block before SCP-173. Reapply the x5
-# multiplier now, after SCP-173 has installed its mitigation and compatibility narration.
 runpy.run_path(str(ROOT / "patch-devil-trigger-scp-finalize.py"), run_name="__main__")
 
-# Keep the old 173.png asset untouched for repository compatibility, but make the finalized
-# runtime render SCP-173 from the newly supplied SCP173.png file. This runs after every SCP
-# and Devil Trigger transform so the display mapping cannot be overwritten later in the chain.
 main = MAIN.read_text(encoding="utf-8")
 old_image_mapping = '"scp_173".equals(entityKey) ? "173.png"'
 new_image_mapping = '"scp_173".equals(entityKey) ? "SCP173.png"'
@@ -104,46 +89,16 @@ if b'data:image' in raw[:1024].lower() or b'base64,' in raw[:1024].lower():
 
 print("SCP-173 display mapping finalized: file:///android_asset/entity/SCP173.png")
 
-# All unique Entity encounter layers now exist. Collapse their previously independent
-# simultaneous successes into one authoritative dice channel before later balance and
-# navigation layers run, so narration, overlay and CombatRuntime cannot select different Entities.
 runpy.run_path(str(ROOT / "patch-entity-encounter-authority-sync.py"), run_name="__main__")
-
-# Backroom 1.1.69 is the final balance layer. It must run after SCP-173 so Lucia's
-# new burst can reuse the final direct-damage mitigation and no later patch can
-# restore the old 25% Entity Evasion value.
 runpy.run_path(str(ROOT / "patch-v1-1-69-balance.py"), run_name="__main__")
-
-# Latest Kai/monster balance remains before navigation so the progression patch does not
-# compete with combat authority or Entity spawn tuning.
 runpy.run_path(str(ROOT / "patch-v1-1-71-kai-monster-balance.py"), run_name="__main__")
-
-# Navigation authority remains final for route mutation. The later loot finalizer does not
-# modify route state; it only reconciles loot probability/result authority.
 runpy.run_path(str(ROOT / "patch-linear-sublevel-progression.py"), run_name="__main__")
-
-# One save-persistent pity authority for both Game Master narration and real world loot.
 runpy.run_path(str(ROOT / "patch-loot-pity.py"), run_name="__main__")
-
-# Entity action economy runs after every combat/boss/SCP/balance transform so no
-# later patch can restore the historical single-Kai response path.
 runpy.run_path(str(ROOT / "patch-entity-party-action-budget.py"), run_name="__main__")
-
-# Jeff/Jane final skills run last because they extend the finalized Entity response
-# budget and explicitly override both roaming killers to exactly 947 Max HP.
 runpy.run_path(str(ROOT / "patch-jeff-jane-skills.py"), run_name="__main__")
-
-# Keep the technical action ledger available to CombatRuntime regressions, but strip its
-# implementation-oriented prefixes from the final WebView log. This runs after Jeff/Jane so
-# the UI cleanup remains the last generic patch without changing finalized mechanics.
 runpy.run_path(str(ROOT / "patch-hide-entity-action-debug.py"), run_name="__main__")
-
-# Violet Warden is deliberately last. Its 10% all-Level unique encounter, Duel Target,
-# Block/Counter and single-target Control mechanics must extend the already-finalized
-# Entity/Party runtime without changing any older boss or shared Entity authority.
 runpy.run_path(str(ROOT / "patch-violet-warden-entity.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-violet-warden-compat.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-violet-warden-stun-finalize.py"), run_name="__main__")
-
-# Raise every remaining roaming Entity still below 300 Max HP into a locked 300-500 band.
 runpy.run_path(str(ROOT / "patch-entity-hp-floor-300.py"), run_name="__main__")
+runpy.run_path(str(ROOT / "patch-kai-new-overlay.py"), run_name="__main__")
