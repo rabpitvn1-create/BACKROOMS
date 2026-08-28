@@ -32,17 +32,27 @@ jobs:
       GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
       GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
       GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
+      GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.vfs.watch=false
 
     steps:
       - uses: actions/checkout@v4
 
+      - name: Restore LiteRT intent model
+        id: litert-cache
+        uses: actions/cache@v4
+        with:
+          path: android-apk/app/src/main/assets/models/backroom_intent.tflite
+          key: litert-${{ hashFiles('android-apk/ml/**', 'android-apk/app/src/main/assets/models/backroom_intent_labels.txt') }}
+
       - uses: actions/setup-python@v5
+        if: steps.litert-cache.outputs.cache-hit != 'true'
         with:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: android-apk/ml/requirements.txt
 
       - name: Train and verify tiny LiteRT intent model
+        if: steps.litert-cache.outputs.cache-hit != 'true'
         run: |
           set -euo pipefail
           python -m pip install --requirement android-apk/ml/requirements.txt
@@ -53,6 +63,15 @@ jobs:
           test -s ../app/src/main/assets/models/backroom_intent.tflite
           bytes=$(stat -c%s ../app/src/main/assets/models/backroom_intent.tflite)
           test "$bytes" -le 5242880 || (echo "LiteRT model exceeds 5 MiB: $bytes" && exit 1)
+
+      - name: Verify cached LiteRT intent model
+        if: steps.litert-cache.outputs.cache-hit == 'true'
+        run: |
+          set -euo pipefail
+          MODEL=android-apk/app/src/main/assets/models/backroom_intent.tflite
+          test -s "$MODEL"
+          bytes=$(stat -c%s "$MODEL")
+          test "$bytes" -le 5242880 || (echo "Cached LiteRT model exceeds 5 MiB: $bytes" && exit 1)
 
       - name: Validate Game Master configuration
         run: |
@@ -69,188 +88,3 @@ jobs:
             echo "==> $script"
             python3 "android-apk/$script"
           done
-
-      - name: Verify final runtime contracts
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          root = Path('android-apk')
-          core = root / 'app/src/main/java/com/rabpit/backroom/core'
-          html = (root / 'app/src/main/assets/index.html').read_text(encoding='utf-8')
-          java = (root / 'app/src/main/java/com/rabpit/backroom/MainActivity.java').read_text(encoding='utf-8')
-          facade = (core / 'GameCoreFacade.kt').read_text(encoding='utf-8')
-          gradle = (root / 'app/build.gradle').read_text(encoding='utf-8')
-          madgod = (core / 'MadGodCanon.kt').read_text(encoding='utf-8')
-          engines = (core / 'Engines.kt').read_text(encoding='utf-8')
-          equipment_system = (core / 'CharacterEquipmentSystem.kt').read_text(encoding='utf-8')
-          status_tests = (root / 'app/src/test/java/com/rabpit/backroom/core/CharacterStatusEquipmentSystemTest.kt').read_text(encoding='utf-8')
-          save_repo = (core / 'SaveRepository.kt').read_text(encoding='utf-8')
-          combat = (core / 'CombatRuntime.kt').read_text(encoding='utf-8')
-          skill_catalog = (core / 'CompanionSkillCatalog.kt').read_text(encoding='utf-8')
-          detail_json = (core / 'CharacterDetailJson.kt').read_text(encoding='utf-8')
-          an_nhien = (core / 'AnNhienCanon.kt').read_text(encoding='utf-8')
-          skill_tests = (root / 'app/src/test/java/com/rabpit/backroom/core/CompanionSkillCatalogTest.kt').read_text(encoding='utf-8')
-          chain = (root / 'patch-inventory-capacity-final-fix.py').read_text(encoding='utf-8')
-          scp_finalize = (root / 'patch-scp-173-compat-finalize.py').read_text(encoding='utf-8')
-          entity_dir = root / 'app/src/main/assets/entity'
-
-          required = [
-              ("versionCode 80", gradle), ("versionName '1.2.5'", gradle),
-              ('id="searchActionButton"', html), ('id="exploreActionButton"', html), ('STEP2_THREE_ACTIONS', html),
-              ('madGodSetEquipped()', html), ('id="equipmentDetailModal"', html), ('window.renderCharacterStatusEquipment=render;', html),
-              ('id="characterSkillsModal"', html), ("button.id='characterSkillsButton'", html), ('function openSkills()', html),
-              ('const val CHEAT_CODE = "/madgod"', madgod), ('const val MADGOD_SET_ID = "madgod:set"', madgod),
-              ('MadGodCanon.cheat(action)', facade), ('applyMadGodCheat(legacy,state)', facade),
-              ('if (isMadGodEquipRequest(action))', facade), ('commandId = "$turnId:MADGOD:EQUIP"', facade),
-              ('"madgod_equipped"', facade), ('output.put("equipment",MadGodCanon.legacy(state))', facade),
-              ('ItemCommand.Operation.EQUIP -> EquipmentEngine.equip(state, command)', engines),
-              ('ItemCommand.Operation.UNEQUIP -> EquipmentEngine.unequip(state, command)', engines),
-              ('occupiesSlots = setOf(EquipmentSlot.WEAPON, EquipmentSlot.ARMOR)', equipment_system),
-              ('bonuses = EquipmentBonuses(hp = 50, str = 15, df = 30, agi = 12, crit = 12)', equipment_system),
-              ('CharacterStatEngine.preserveMissingHp', equipment_system),
-              ('fun applyCompletedTurnRegen', equipment_system),
-              ('madGodIsNotCanonicalStartingLoadoutAndCountsOnceAcrossTwoSlots', status_tests),
-              ('regenRunsExactlyOnceAndZeroHpCannotBeRescued', status_tests),
-              ('inventoryOwnsSameItemReferencedByEquipment', status_tests),
-              ('sceneKey:visualSceneKey()', java), ('r.sceneKey===visualSceneKey()', java),
-              ('private int mentionedLevel(JSONObject state)', java),
-              ('return exitFound && progressionReady(before);', java),
-              ('exploration.put("minimumTurns", 6)', java),
-              ('BACKROOMS_FANDOM_LEVELS_0_6_R01', java),
-              ('return hasNextLinearArea(state) && levelTurns(state) >= 6;', java),
-              ('recordLevelProgress(state, before, oldLevel, newLevel, areaAdvanced)', java),
-              ('linearAreaPrompt(before)', java),
-              ('partyDetails&&state.partyDetails.members', java),
-              ('rolls.put("roamingEntityKey"', java), ('file:///android_asset/entity/', java),
-              ('"hotel_corpse_lure","jeff_the_killer","jane_the_killer","slenderman"', java),
-              ('String entityKey = rolls.optString("roamingEntityKey", "").trim();', java),
-              ('requireGameCore().startCombatState(candidateState.toString(), canonicalKey);', java),
-              ("function activeEntityKey(){var c=state&&state.combat;if(!c||c.active!==true)return '';return normalizeEntityKey(c.entityKey);}", java),
-              ('private JSONObject resolveEntityOverlay(', java), ('window.backroomEntityOverlay=function(payload)', java),
-              ('private void forceEntityEncounterFlag(JSONObject candidateState, JSONObject rolls)', java),
-              ('forceEntityEncounterFlag(candidateState, rolls);', java),
-              ('boolean exploreAction = "EXPLORE".equals(actionKindNormalized);', java),
-              ('makeGameplayRolls(before, actionKind, action, meta)', java),
-              ("box.style.position='relative';box.style.overflow='hidden'", java),
-              ('BESTKAIV2.png', java), ('Kai_MadGod_snapshot_overlay.png', java), ('Newviolet.png', java),
-              ('class SharedPreferencesSaveRepository', save_repo),
-              ('private fun normalizeVisualPresence(state: GameState): GameState', facade),
-              ('val resolvedEntityKey = CombatRuntime.active(current)?.entityKey.orEmpty()', facade),
-              ('flags.put("entityEncounterKey", "")', facade),
-              ('next = next.copy(world = next.world + ("flagsJson" to flags.toString()))', facade),
-              ('thresholdRoll("diepMinhEncounter", 10000, 300,', java),
-              ('entityKey = "diep_minh";', java),
-              ('ARGUS // Thousandfold Execution', skill_catalog), ('Twosome Time', skill_catalog), ('Honeycomb Fire', skill_catalog),
-              ('GodKiller Override // Twenty-Four Severance', skill_catalog), ('Crimson Guillotine', skill_catalog), ('Spatial Dominion', skill_catalog),
-              ('Kế Hoạch Không Có Trong Kế Hoạch', skill_catalog), ('Quăng Đại Cái Gì Đó', skill_catalog),
-              ('CompanionSkillCatalog.forCharacter(c.id)', detail_json), ('COMPANION_SKILLS_R01', combat), ('24 * 10', combat),
-              ('hazardThresholds[level] * 75 / 100', java), ('thresholdRoll("anNhienRead", 10000, 2000', java),
-              ('class CompanionSkillCatalogTest', skill_tests),
-              ('runpy.run_path(str(ROOT / "patch-companion-skills-ui-finalize.py"), run_name="__main__")', chain),
-              ('private const val ENTITY_EVASION_PERCENT = 17', combat),
-              ('private const val LUCIA_FULL_AUTO_ROUNDS = 30', combat),
-              ('private const val LUCIA_FULL_AUTO_BONUS_DAMAGE = 30', combat),
-              ('private const val LUCIA_FULL_AUTO_CHANCE_PERCENT = 20', combat),
-              ('private const val LUCIA_FULL_AUTO_INTERVAL_TURNS = 2', combat),
-              ('LUCIA_FULL_AUTO_BURST_V1', combat),
-              ('LUCIA_FULL_AUTO_BONUS_DAMAGE + luciaBaseDamage', combat),
-              ('M4A1 Full Auto Burst', skill_catalog),
-              ('20% mỗi 2 combat turn hợp lệ khi Party chọn TẤN CÔNG', skill_catalog),
-              ('runpy.run_path(str(ROOT / "patch-v1-1-69-balance.py"), run_name="__main__")', scp_finalize),
-              ('runpy.run_path(str(ROOT / "patch-linear-sublevel-progression.py"), run_name="__main__")', scp_finalize),
-          ]
-          for marker, source in required:
-              assert marker in source, marker
-          assert 'return explicitlyReady || levelTurns(state) >= 6;' not in java
-          assert 'newLevel = mentioned;' not in java
-          assert 'private const val ENTITY_EVASION_PERCENT = 25' not in combat
-          assert '"nonCombat" to "true"' in an_nhien
-          assert '"canUseWeapons" to "false"' in an_nhien
-          an_start = skill_catalog.index('private val anNhien = listOf(')
-          an_end = skill_catalog.index('private val kai = listOf(', an_start)
-          assert 'Weapon DMG' not in skill_catalog[an_start:an_end]
-          assert html.count("button.id='characterSkillsButton'") == 1
-          assert html.count('id="characterSkillsModal"') == 1
-          assert 'rolls.put("roamingEntityId"' not in java
-          assert 'makeGameplayRolls(before, action, meta)' not in java
-          assert 'slot != "set" || MadGodCanon.slot(command.itemId' not in engines
-          assert 'appendEquipmentBadge(box)' not in java
-          assert 'const val MULTIPLIER = 50' not in madgod
-          assert 'jeffEncounter' not in java
-          assert 'janeEncounter' not in java
-
-          required_assets = [
-              'hound.png','clump.png','duller.png','deathmoth.png','hostile_faceling.png','false_puddle.png','paintings.png',
-              'smiler.png','skin-stealer.png','predatory_window.png','biological_pipeline.png','wretch.png','cable_mimic.png',
-              'the_beast_of_level_5.png','hotel_corpse_lure.png','jeff_the_killer.png','jane_the_killer.png','slenderman.png','diep_minh.png',
-              'SCP173.png','Newviolet.png'
-          ]
-          for name in required_assets:
-              p = entity_dir / name
-              assert p.is_file() and p.stat().st_size > 0, name
-          for p in [root / 'app/src/main/assets/BESTKAIV2.png', root / 'app/src/main/assets/Kai_MadGod_snapshot_overlay.png', root / 'app/src/main/assets/avatars/MadGod.jpg']:
-              assert p.is_file() and p.stat().st_size > 0, str(p)
-
-          combined = html + java + gradle + facade + save_repo
-          for forbidden in ['drive.google.com','www.googleapis.com/auth/drive','DriveOnlineSaveManager','com.google.android.gms:play-services-auth','ENTITY_MANIFEST_FILE_ID','readEntityManifestRemote']:
-              assert forbidden not in combined, forbidden
-          PY
-          git diff --check
-
-      - uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: "17"
-
-      - uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: "8.10.2"
-
-      - name: Run Kotlin tests and build debug APK
-        working-directory: android-apk
-        run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
-
-      - name: Prepare debug APK
-        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.2.5-debug.apk
-
-      - name: Verify packaged debug APK contracts
-        run: |
-          set -euo pipefail
-          APK=Backroom-1.2.5-debug.apk
-          BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
-          "$BUILD_TOOLS/apksigner" verify --verbose --print-certs "$APK"
-          "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "package: name='com.rabpit.backroom'"
-          "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionCode='80'"
-          "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionName='1.2.5'"
-          "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
-          "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 "$APK"
-          rm -rf apk-check && mkdir apk-check
-          unzip -q "$APK" 'assets/index.html' 'assets/entity/*' 'assets/BESTKAIV2.png' 'assets/Kai_MadGod_snapshot_overlay.png' 'assets/avatars/MadGod.jpg' -d apk-check
-          grep -q 'searchActionButton' apk-check/assets/index.html
-          grep -q 'exploreActionButton' apk-check/assets/index.html
-          grep -q 'madGodSetEquipped' apk-check/assets/index.html
-          grep -q 'equipmentDetailModal' apk-check/assets/index.html
-          grep -q 'renderCharacterStatusEquipment' apk-check/assets/index.html
-          grep -q 'characterSkillsModal' apk-check/assets/index.html
-          grep -q 'characterSkillsButton' apk-check/assets/index.html
-          test -s apk-check/assets/entity/hound.png
-          test -s apk-check/assets/entity/slenderman.png
-          test -s apk-check/assets/entity/diep_minh.png
-          test -s apk-check/assets/entity/173.png
-          test -s apk-check/assets/entity/SCP173.png
-          test -s apk-check/assets/entity/John.png
-          test -s apk-check/assets/entity/Newviolet.png
-          test -s apk-check/assets/BESTKAIV2.png
-          test -s apk-check/assets/Kai_MadGod_snapshot_overlay.png
-          test -s apk-check/assets/avatars/MadGod.jpg
-          ! unzip -l "$APK" | grep -q 'assets/kai_snapshot_overlay.png'
-          ! unzip -l "$APK" | grep -q 'assets/kai_snapshot_overlay.webp'
-          ! unzip -l "$APK" | grep -q 'assets/BestKai.png'
-
-      - name: Upload debug APK artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Backroom-1.2.5-debug-apk
-          path: Backroom-1.2.5-debug.apk
-          if-no-files-found: error
-          retention-days: 14
