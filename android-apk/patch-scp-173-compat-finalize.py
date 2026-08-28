@@ -144,3 +144,6 @@ runpy.run_path(str(ROOT / "patch-hide-entity-action-debug.py"), run_name="__main
 runpy.run_path(str(ROOT / "patch-violet-warden-entity.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-violet-warden-compat.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-violet-warden-stun-finalize.py"), run_name="__main__")
+
+# Raise every remaining roaming Entity still below 300 Max HP into a locked 300-500 band.
+runpy.run_path(str(ROOT / "patch-entity-hp-floor-300.py"), run_name="__main__")
