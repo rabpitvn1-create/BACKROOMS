@@ -1,5 +1,5 @@
 KAI AKECHI / TWILIGHT — OPERATIONAL CODEX
-SOURCE CANON: KAI-AKECHI-TWILIGHT-CODEX-20260817-R05
+SOURCE CANON: KAI-AKECHI-TWILIGHT-CODEX-20260829-R06
 STATUS: HARD CANON / CHARACTER LOCK
 
 MỤC ĐÍCH
@@ -15,10 +15,15 @@ Tệp này là bản canon vận hành của Kai dùng cho Game Master trong APK
 - Phân cấp chiến lực: UR+.
 - Vai trò: chỉ huy tác chiến, xạ thủ tối thượng, chuyên gia xử lý thực thể siêu nhiên cấp cao.
 
-2. NGOẠI HÌNH
-- Cao, cân đối, săn chắc, không quá đồ sộ; thể chất và mật độ cơ vượt xa người thường.
-- Tóc đen hơi dài, thường rối tự nhiên. Mắt xanh lạnh.
-- Khi chiến đấu dùng Blackblood Armor màu đen/gunmetal, Demon Jaw Mask và các module liên kết. Các điểm sáng xanh trên giáp là dấu hiệu vận hành hệ thống, không phải biến đổi sinh học.
+2. NGOẠI HÌNH / KHÓA THỊ GIÁC R06
+- Tuổi thật không rõ. Ngoại hình cơ thể tương ứng một người đàn ông khoảng 30 tuổi: cao, cân đối, săn chắc nhưng không quá đồ sộ; mật độ cơ bắp và khả năng chịu lực vượt xa người thường.
+- Khi không mặc giáp kín đầu, Kai có tóc đen hơi dài, thường rối tự nhiên, và mắt mang sắc xanh lạnh.
+- Hình tham chiếu chiến đấu chính thức hiện hành khóa Kai trong Blackblood Armor toàn thân. Vì helmet che kín toàn bộ đầu, KHÔNG suy diễn lại khuôn mặt, tóc hoặc mắt từ ảnh chiến đấu.
+- Blackblood Armor là powered armor mặc ngoài cơ thể người, nền đen–gunmetal với các mảng thép bạc sáng/tối đan xen; kết cấu nhiều lớp, faceted và phân mảnh theo giải phẫu người, có cạnh nhọn, sống giáp, gai và phiến kim loại chồng lên nhau. Các khớp có thể lộ piston, vòng xoay và chi tiết cơ khí bronze/đồng.
+- HARD VISUAL LOCK R06: không có áo choàng, không có dải vải rách phía sau và không dùng các dải sáng xanh làm điểm nhấn thị giác mặc định.
+- Helmet là cấu trúc kín toàn đầu: faceplate kéo dài thành lưới khe dọc như hàm thép, phần trán có sống giáp cao hình lưỡi kiếm, hai bên có mũi nhọn/sừng cơ khí hướng chếch ra sau; mắt nằm sâu sau vùng visor tối và không lộ trực tiếp. Tên module Demon Jaw Mask vẫn giữ nguyên nhưng hình thức thị giác hiện hành là cụm helmet/faceplate kín đầu, không còn là mặt nạ chỉ che phần dưới khuôn mặt.
+- Silhouette cố ý bất đối xứng: một vai mang pauldron lớn hình đầu rồng cơ khí với hốc mắt, hàm răng kim loại và nhiều sừng/gai kéo ngược; vai còn lại dùng các phiến giáp nhọn xếp lớp. Ngực ghép tấm faceted tạo đường chữ V; bụng và khe khớp dùng lớp nền đen mềm–khớp để giữ cơ động. Cẳng tay, đùi, đầu gối, ống chân và bàn chân dùng giáp phân đoạn dày với vây/mũi giáp nhô ra.
+- Đầu rồng ở vai chỉ là hình thức của Blackblood Armor. KHÔNG tự suy thêm năng lực riêng cho nó nếu mục trang bị không khóa chức năng đó.
 
 3. TÍNH CÁCH / NGUYÊN TẮC
 - Tự tin nhưng không mù quáng; biết mình mạnh và không cần giả khiêm tốn.
@@ -71,6 +76,7 @@ Tệp này là bản canon vận hành của Kai dùng cho Game Master trong APK
 
 9. WHITE WRAITH MAGNUM
 - Vũ khí đặc trưng, đồng bộ trực tiếp với Sparda Core.
+- KHÓA THỊ GIÁC R06: White Wraith Magnum có hình thái HANDCANNON revolver cỡ lớn, thân đen–gunmetal, cụm ổ quay cơ khí rõ, nòng cực dài và dày; tỷ lệ đủ lớn để đọc như một khẩu đại pháo cầm tay nhưng Kai vẫn sử dụng như súng ngắn. Khóa này chỉ xác định silhouette thị giác; cơ chế đạn, chế độ khai hỏa và tự sửa chữa vẫn do các quy tắc dưới đây quyết định.
 - CHỈ có MỘT loại đạn: đạn hình thành trực tiếp từ quỷ lực của Kai.
 - Vì Sparda Core cung cấp quỷ lực vô hạn, súng gần như không rơi vào trạng thái hết đạn trong vận hành thông thường; không dùng ammo count vật lý truyền thống.
 - Single Shot: mỗi lần khai hỏa phát ra MỘT viên đạn quỷ lực.
@@ -81,11 +87,14 @@ Tệp này là bản canon vận hành của Kai dùng cho Game Master trong APK
 
 10. BLACKBLOOD ARMOR & MODULES
 Blackblood Armor:
+- KHÓA THỊ GIÁC R06: giáp toàn thân đen–gunmetal và thép bạc, cấu trúc phân mảnh/faceted sắc cạnh theo giải phẫu người; helmet kín đầu có crest/sống giáp và sừng/mũi nhọn; một pauldron đầu rồng cơ khí bất đối xứng; chi tiết khớp bronze. Không áo choàng, không dải vải rách và không có ánh sáng xanh mặc định. Đây là powered armor mặc ngoài cơ thể người, không biến Kai thành robot hoặc cyborg.
 - Tăng sức mạnh/tốc độ; hấp thụ và phân tán va chạm; giảm tiếng bước chân; thích nghi môi trường khắc nghiệt; bảo vệ trước độc, nhiệt, lạnh, áp suất; theo dõi mục tiêu/phân tích chiến trường; nối Omnivault Ring.
 - Là phần mở rộng của cơ thể, không phải giáp nặng làm Kai chậm đi.
 - Tự sửa chữa bằng Sparda Core.
+- Đầu rồng ở vai là thiết kế thị giác của giáp; không tự cấp thêm năng lực không được canon hóa.
 Demon Jaw Mask:
-- Bảo vệ phần dưới mặt, đầu/cổ; lọc khí độc; tăng thị giác; theo dõi chuyển động; phân tích sinh học/quỷ lực; liên lạc mã hóa; hỗ trợ khóa mục tiêu.
+- Ở cấu hình chiến đấu đầy đủ, bao kín và bảo vệ toàn bộ đầu, khuôn mặt, hàm và cổ; visor tối che mắt. Hình thái hiện hành là helmet/faceplate kín đầu chứ không phải mặt nạ chỉ che phần dưới khuôn mặt.
+- Lọc khí độc; tăng thị giác; theo dõi chuyển động; phân tích sinh học/quỷ lực; liên lạc mã hóa; hiển thị dữ liệu chiến trường và hỗ trợ khóa mục tiêu.
 Talon Gauntlets:
 - Móng vuốt cơ khí; tăng lực đấm; hỗ trợ bám/móc; tạo trường điện từ và tác động vật kim loại cự ly ngắn; giật/khóa/nghiền vũ khí khi đủ gần.
 Phantom Greaves:
@@ -130,5 +139,9 @@ Phantom Greaves:
 - Không tự tạo loại đạn White Wraith mới.
 - Không tự biến Omnivault thành kho chứa sinh vật sống hoặc công cụ hồi sinh.
 - Không tự quyết hành động có chủ ý thay Kai; người chơi điều khiển Kai.
+
+CANON CLEANUP R06
+- Mọi dữ kiện thị giác legacy xung đột với khóa R06 — áo choàng/dải vải rách, ánh sáng xanh mặc định hoặc Demon Jaw chỉ che nửa dưới khuôn mặt — không còn thuộc hồ sơ hiện hành.
+- Tên nhân vật và mật danh chuẩn: Kai Akechi / Twilight.
 
 END OF KAI OPERATIONAL CODEX
