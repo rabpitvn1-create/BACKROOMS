@@ -136,13 +136,23 @@ GAME_STATE.write_text(game_state, encoding="utf-8")
 
 # Old saves may still contain a retired default Kai avatarRef. Upgrade only those default refs at
 # projection time; explicit special-form portraits such as avatars/MadGod.jpg remain untouched.
+# Character Status + Equipment rewrites the projection constructor into a compact one-line form,
+# while older chains use the original multiline form. Accept either verified shape.
 projection = CHARACTER_PROJECTION.read_text(encoding="utf-8")
-projection = replace_once(
-    projection,
-    "      avatarRef = character.avatarRef,",
-    '      avatarRef = if (character.id == KAI_ID && (character.avatarRef.isNullOrBlank() || character.avatarRef == "avatars/kai_avatar.png" || character.avatarRef == "avatars/Kai_New_Avatar.jpg")) "avatars/Kai2_avatar.jpg" else character.avatarRef,',
-    "legacy Kai avatar projection migration",
-)
+avatar_expression = 'if (character.id == KAI_ID && (character.avatarRef.isNullOrBlank() || character.avatarRef == "avatars/kai_avatar.png" || character.avatarRef == "avatars/Kai_New_Avatar.jpg")) "avatars/Kai2_avatar.jpg" else character.avatarRef'
+if avatar_expression not in projection:
+    multiline_anchor = "      avatarRef = character.avatarRef,"
+    compact_anchor = "      id = character.id, name = character.name, avatarRef = character.avatarRef, presence = character.presence,"
+    if multiline_anchor in projection:
+        projection = projection.replace(multiline_anchor, "      avatarRef = " + avatar_expression + ",", 1)
+    elif compact_anchor in projection:
+        projection = projection.replace(
+            compact_anchor,
+            "      id = character.id, name = character.name, avatarRef = " + avatar_expression + ", presence = character.presence,",
+            1,
+        )
+    else:
+        raise RuntimeError("legacy Kai avatar projection migration: no supported CharacterDetailProjection anchor found")
 CHARACTER_PROJECTION.write_text(projection, encoding="utf-8")
 
 # Focused regression coverage for the avatar policy; JavaScript battle selection is guarded below by
