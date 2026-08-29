@@ -1,0 +1,152 @@
+name: Release Backroom 1.2.7
+
+on:
+  workflow_run:
+    workflows: ["Build Backroom 1.2.7 Debug"]
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: release-backroom-1.2.7
+  cancel-in-progress: false
+
+jobs:
+  publish-release:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Verify release source version
+        run: |
+          set -euo pipefail
+          grep -q "versionCode 82" android-apk/app/build.gradle
+          grep -q "versionName '1.2.7'" android-apk/app/build.gradle
+          test -s android-apk/RELEASE_NOTES_1.2.7.txt
+
+      - name: Download verified 1.2.7 debug build artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BUILD_RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          set -euo pipefail
+          rm -rf release-input
+          mkdir -p release-input
+          gh run download "$BUILD_RUN_ID" --repo "$GITHUB_REPOSITORY" --name 'Backroom-1.2.7-debug-apk' --dir release-input
+          test -s release-input/Backroom-1.2.7-debug.apk
+          cp release-input/Backroom-1.2.7-debug.apk Backroom-1.2.7-debug.apk
+          sha256sum Backroom-1.2.7-debug.apk | tee release-apk.sha256
+
+      - name: Verify APK before publication
+        run: |
+          set -euo pipefail
+          APK=Backroom-1.2.7-debug.apk
+          BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          "$BUILD_TOOLS/apksigner" verify --verbose --print-certs "$APK"
+          "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "package: name='com.rabpit.backroom'"
+          "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionCode='82'"
+          "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionName='1.2.7'"
+          "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
+          "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 "$APK"
+          rm -rf apk-check && mkdir apk-check
+          unzip -q "$APK" \
+            'assets/index.html' \
+            'assets/fonts/FVF_Fernando_08.ttf' \
+            'assets/entity/Newviolet.png' \
+            'assets/Kai2_overlay.png' \
+            'assets/Kai2_Battle.png' \
+            'assets/Kai2_Battle2.png' \
+            'assets/avatars/Kai2_avatar.jpg' \
+            -d apk-check
+          test -s apk-check/assets/fonts/FVF_Fernando_08.ttf
+          test -s apk-check/assets/entity/Newviolet.png
+          test -s apk-check/assets/Kai2_overlay.png
+          test -s apk-check/assets/Kai2_Battle.png
+          test -s apk-check/assets/Kai2_Battle2.png
+          test -s apk-check/assets/avatars/Kai2_avatar.jpg
+          grep -q 'RPG_COMBAT_TEXT_STYLE_V1' apk-check/assets/index.html
+          grep -q 'fonts/FVF_Fernando_08.ttf' apk-check/assets/index.html
+          grep -q '#46F5C6' apk-check/assets/index.html
+          grep -q '#FF4D5A' apk-check/assets/index.html
+          grep -q '#59FF82' apk-check/assets/index.html
+          grep -q 'RESPONSIVE_DISPLAY_V1' apk-check/assets/index.html
+          grep -q 'user-scalable=no' apk-check/assets/index.html
+          grep -q 'window.visualViewport' apk-check/assets/index.html
+          printf '9954a134f5a3da8ca497b2cae340e75ca431e6e351010c28e6a2724395999010  apk-check/assets/fonts/FVF_Fernando_08.ttf\n' | sha256sum -c -
+
+      - name: Publish GitHub Release v1.2.7
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          if gh release view v1.2.7 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            TAG_SHA=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/v1.2.7" --jq '.object.sha')
+            if [ "$TAG_SHA" != "$RELEASE_SHA" ]; then
+              echo "v1.2.7 is already published from immutable tag $TAG_SHA; current build is $RELEASE_SHA. Not overwriting an existing release tag."
+              echo "verify_current=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "v1.2.7 already exists at the expected commit; leaving it untouched."
+            echo "verify_current=true" >> "$GITHUB_OUTPUT"
+          else
+            gh release create v1.2.7 Backroom-1.2.7-debug.apk \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$RELEASE_SHA" \
+              --title "Backroom 1.2.7 Debug" \
+              --notes-file android-apk/RELEASE_NOTES_1.2.7.txt
+            echo "verify_current=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Verify published GitHub Release
+        if: steps.release.outputs.verify_current == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          EXPECTED_SHA=$(sha256sum Backroom-1.2.7-debug.apk | awk '{print $1}')
+          rm -f Backroom-1.2.7-debug-verified.apk
+          gh release download v1.2.7 --repo "$GITHUB_REPOSITORY" --pattern 'Backroom-1.2.7-debug.apk' --output Backroom-1.2.7-debug-verified.apk
+          test -s Backroom-1.2.7-debug-verified.apk
+          ACTUAL_SHA=$(sha256sum Backroom-1.2.7-debug-verified.apk | awk '{print $1}')
+          test "$EXPECTED_SHA" = "$ACTUAL_SHA"
+          BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          "$BUILD_TOOLS/apksigner" verify --verbose --print-certs Backroom-1.2.7-debug-verified.apk
+          "$BUILD_TOOLS/aapt" dump badging Backroom-1.2.7-debug-verified.apk | grep -q "versionCode='82'"
+          "$BUILD_TOOLS/aapt" dump badging Backroom-1.2.7-debug-verified.apk | grep -q "versionName='1.2.7'"
+          "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-1.2.7-debug-verified.apk
+          rm -rf published-check && mkdir published-check
+          unzip -q Backroom-1.2.7-debug-verified.apk \
+            'assets/index.html' \
+            'assets/fonts/FVF_Fernando_08.ttf' \
+            'assets/entity/Newviolet.png' \
+            'assets/Kai2_overlay.png' \
+            'assets/Kai2_Battle.png' \
+            'assets/Kai2_Battle2.png' \
+            'assets/avatars/Kai2_avatar.jpg' \
+            -d published-check
+          test -s published-check/assets/fonts/FVF_Fernando_08.ttf
+          test -s published-check/assets/entity/Newviolet.png
+          test -s published-check/assets/Kai2_overlay.png
+          test -s published-check/assets/Kai2_Battle.png
+          test -s published-check/assets/Kai2_Battle2.png
+          test -s published-check/assets/avatars/Kai2_avatar.jpg
+          grep -q 'RPG_COMBAT_TEXT_STYLE_V1' published-check/assets/index.html
+          grep -q 'fonts/FVF_Fernando_08.ttf' published-check/assets/index.html
+          grep -q '#46F5C6' published-check/assets/index.html
+          grep -q '#FF4D5A' published-check/assets/index.html
+          grep -q '#59FF82' published-check/assets/index.html
+          grep -q 'RESPONSIVE_DISPLAY_V1' published-check/assets/index.html
+          grep -q 'user-scalable=no' published-check/assets/index.html
+          grep -q 'window.visualViewport' published-check/assets/index.html
+          printf '9954a134f5a3da8ca497b2cae340e75ca431e6e351010c28e6a2724395999010  published-check/assets/fonts/FVF_Fernando_08.ttf\n' | sha256sum -c -
+          gh release view v1.2.7 --repo "$GITHUB_REPOSITORY" --json url,tagName,name,isDraft,isPrerelease
