@@ -1,0 +1,10 @@
+Backroom 1.2.7 Debug
+
+- Phát hành bản Debug mới từ toàn bộ trạng thái ổn định của 1.2.6 và các sửa đổi đã xác minh sau đó.
+- Bổ sung font FVF Fernando 08 cho tên vật phẩm được Game Master phát hiện và tên vật phẩm GAIN thực sự; màu green-cyan #46F5C6 với glow nhẹ.
+- Chỉ phần HP delta dạng âm dùng FVF Fernando 08 màu #FF4D5A và phần HP delta dạng dương dùng màu #59FF82; phần văn bản còn lại giữ font hệ thống.
+- Tên kỹ năng tiếp tục dùng font mặc định của game và chỉ hiển thị bold, không dùng FVF Fernando 08.
+- Font được tái dựng từ các phần base64 đã lưu trong repository và được kiểm tra SHA-256 trước khi đóng APK để ngăn asset bị cắt hoặc sai dữ liệu.
+- Giữ nguyên Kai2 avatar/overlay/battle visual, Entity overlay/HUD, responsive WebView, combat runtime, inventory/equipment và toàn bộ gameplay contract đã ổn định ở 1.2.6.
+- Nâng Android versionCode lên 82 và versionName lên 1.2.7 để cài đặt như một bản cập nhật mới.
+- Pipeline 1.2.7 chạy patch chain, runtime contracts, Kotlin unit tests, assemble Debug APK, xác minh chữ ký/package/version/zipalign, kiểm tra asset FVF Fernando 08 và marker RPG_COMBAT_TEXT_STYLE_V1 trước khi upload artifact và trước/sau khi xuất bản GitHub Release.
