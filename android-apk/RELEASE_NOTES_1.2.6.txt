@@ -1,0 +1,12 @@
+Backroom 1.2.6 Debug
+
+- Tổng hợp toàn bộ thay đổi đã ổn định sau 1.2.5 vào một bản Debug mới.
+- Sửa regression của generator Entity HP floor: các expected HP trong CombatRuntimeTest và KaiMonsterBalanceTest được finalizer đồng bộ với HP cuối cùng, ngăn workflow đỏ do test giữ dữ liệu cũ.
+- Giữ quy trình release idempotent: tag phiên bản đã phát hành không bị ghi đè bởi build mới của cùng phiên bản.
+- Thay avatar mặc định của Kai bằng assets/avatars/Kai2_avatar.jpg, đồng thời migrate các save cũ còn dùng avatar Kai mặc định mà không ghi đè avatar dạng đặc biệt như MadGod.
+- Snapshot ngoài combat dùng Kai2_overlay.png. Trong mọi combat Entity/boss, Kai dùng Kai2_Battle.png và Kai2_Battle2.png luân phiên theo từng encounter; một encounter giữ nguyên pose đến khi Entity bị hạ hoặc Party chạy thoát, sau đó quay lại Kai2_overlay.png.
+- Giữ nguyên Entity overlay và HUD combat hiện có; thay đổi Kai visual không chiếm quyền hiển thị của Entity.
+- Cứng hóa giao diện WebView theo kích thước màn hình: khóa page zoom ở 1x, phản hồi thay đổi độ phân giải/Display Size, xoay màn hình, system bars và bàn phím thông qua viewport động.
+- Bổ sung reflow cho màn hình hẹp/cực hẹp và landscape thấp; giới hạn tràn ngang cho GAME/STATUS, Snapshot, action bar, Party, Character Detail, Equipment, Inventory và modal.
+- Nâng Android versionCode lên 81 và versionName lên 1.2.6 để cài đặt như bản cập nhật mới.
+- Pipeline 1.2.6 chạy patch chain, runtime contracts, Kotlin unit tests, assemble Debug APK, xác minh chữ ký/package/version/zipalign trước khi upload artifact và trước/sau khi xuất bản GitHub Release.
