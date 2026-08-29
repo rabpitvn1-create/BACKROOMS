@@ -1,16 +1,37 @@
 from pathlib import Path
+import base64
 import hashlib
 
 ROOT = Path(__file__).resolve().parent
 ASSETS = ROOT / "app/src/main/assets"
 INDEX = ASSETS / "index.html"
 FONT = ASSETS / "fonts/FVF_Fernando_08.ttf"
+FONT_PARTS = ROOT / "font-fvf-fernando-08.b64.parts"
 FONT_SHA256 = "9954a134f5a3da8ca497b2cae340e75ca431e6e351010c28e6a2724395999010"
 MARKER = "RPG_COMBAT_TEXT_STYLE_V1"
 
-if not FONT.is_file() or FONT.stat().st_size < 10000:
-    raise RuntimeError("FVF Fernando 08 font asset is missing or too small")
+
+def font_matches() -> bool:
+    return FONT.is_file() and hashlib.sha256(FONT.read_bytes()).hexdigest() == FONT_SHA256
+
+
+if not font_matches():
+    parts = sorted(FONT_PARTS.glob("*.part"))
+    if not parts:
+        raise RuntimeError("FVF Fernando 08 source parts are missing")
+    try:
+        encoded = "".join(part.read_text(encoding="ascii").strip() for part in parts)
+        font_raw = base64.b64decode(encoded, validate=True)
+    except Exception as exc:
+        raise RuntimeError("FVF Fernando 08 source parts are invalid") from exc
+    if hashlib.sha256(font_raw).hexdigest() != FONT_SHA256:
+        raise RuntimeError("FVF Fernando 08 reconstructed font does not match the user-supplied font")
+    FONT.parent.mkdir(parents=True, exist_ok=True)
+    FONT.write_bytes(font_raw)
+
 font_raw = FONT.read_bytes()
+if len(font_raw) < 10000:
+    raise RuntimeError("FVF Fernando 08 font asset is too small")
 if font_raw[:4] not in (b"\x00\x01\x00\x00", b"OTTO"):
     raise RuntimeError("FVF Fernando 08 asset is not a supported OpenType/TrueType font")
 if hashlib.sha256(font_raw).hexdigest() != FONT_SHA256:
@@ -37,6 +58,9 @@ if MARKER not in html:
   window.__rpgCombatTextStyleV1=true;
   var decorating=false;
 
+  function currentState(){
+    try{return typeof state!=='undefined'&&state?state:null}catch(_){return null}
+  }
   function uniqueNames(values){
     var seen=new Set(),out=[];
     (values||[]).forEach(function(value){
@@ -47,12 +71,12 @@ if MARKER not in html:
     return out.sort(function(a,b){return b.length-a.length});
   }
   function worldItemNames(){
-    var flags=window.state&&state.flags;
+    var current=currentState(),flags=current&&current.flags;
     var items=flags&&Array.isArray(flags.worldItems)?flags.worldItems:[];
     return uniqueNames(items.map(function(item){return item&&item.name}));
   }
   function skillNames(){
-    var details=window.state&&state.partyDetails;
+    var current=currentState(),details=current&&current.partyDetails;
     var members=details&&Array.isArray(details.members)?details.members:[];
     var names=[];
     members.forEach(function(member){
@@ -87,7 +111,8 @@ if MARKER not in html:
     }
 
     var isPlayer=article.classList.contains('player');
-    var isGain=article.classList.contains('gain')||String(article.querySelector('.role')&&article.querySelector('.role').textContent||'').trim().toUpperCase()==='GAIN';
+    var role=String(article.querySelector('.role')&&article.querySelector('.role').textContent||'').trim().toUpperCase();
+    var isGain=article.classList.contains('gain')||role==='GAIN';
     if(!isPlayer){
       addNamedRanges(text,worldItemNames(),'item',20,ranges);
       if(isGain)addNamedRanges(text,gainNames(text),'item',25,ranges);
@@ -149,6 +174,7 @@ for marker in (
     "worldItemNames()",
     "gainNames(text)",
     "skillNames()",
+    "currentState()",
     "/[+-]\\s*\\d+(?:[.,]\\d+)?\\s*HP\\b/gi",
     "new MutationObserver",
 ):
