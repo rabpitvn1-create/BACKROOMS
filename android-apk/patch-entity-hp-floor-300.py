@@ -55,6 +55,8 @@ if count < 1:
     raise RuntimeError("Entity profile rewrite did not match any Profile(...) entries")
 COMBAT.write_text(new_combat, encoding="utf-8")
 
+# This patch is the last HP authority in the generator chain, so it must also finalize
+# expectations created by earlier balance/durability patches instead of leaving stale tests behind.
 test = TEST.read_text(encoding="utf-8")
 hound_hp = changed.get("hound", encounter_hp("hound"))
 test = test.replace(
