@@ -39,6 +39,7 @@ SCRIPTS = [
     "patch-item-interaction-coherence.py",
     "patch-passive-skill-visibility.py",
     "patch-combat-total-turn-isolation.py",
+    "patch-escape-chance-hud.py",
 ]
 
 for script in SCRIPTS:
