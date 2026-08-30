@@ -104,5 +104,34 @@ runpy.run_path(str(ROOT / "patch-entity-hp-floor-300.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-kai-new-overlay.py"), run_name="__main__")
 
 # Final skill balance runs after every previous combat/entity layer so the generated runtime cannot
-# silently reintroduce Kai's handgun-era narration or erase Lucia's new AUTO skill.
-runpy.run_path(str(ROOT / "patch-kai-lucia-skill-update.py"), run_name="__main__")
+# silently reintroduce Kai's handgun-era narration or erase Lucia's new AUTO skill. Party combat has
+# already rewritten the generated catalog trigger wording, so adapt only this patch's expected Kai
+# catalog anchors before executing it. Iris and Syvial catalog entries are not modified here.
+skill_patch = ROOT / "patch-kai-lucia-skill-update.py"
+skill_source = skill_patch.read_text(encoding="utf-8")
+for old_text, new_text, label in (
+    (
+        's("The Last Requiem", "AUTO", "30% mỗi turn hợp lệ", "4 phát vào khớp vai',
+        's("The Last Requiem", "AUTO", "30% mỗi lượt TẤN CÔNG hợp lệ", "4 phát vào khớp vai',
+        "Last Requiem Party trigger anchor",
+    ),
+    (
+        's("Silent Lullaby", "AUTO", "20% mỗi turn hợp lệ", "4 phát cùng điểm ngực',
+        's("Silent Lullaby", "AUTO", "20% mỗi lượt TẤN CÔNG hợp lệ", "4 phát cùng điểm ngực',
+        "Silent Lullaby Party trigger anchor",
+    ),
+    (
+        's("Salvation", "AUTO", "20% mỗi turn hợp lệ", "Dịch chuyển ngắn theo vị trí súng',
+        's("Salvation", "AUTO", "20% mỗi lượt TẤN CÔNG hợp lệ", "Dịch chuyển ngắn theo vị trí súng',
+        "Salvation Party trigger anchor",
+    ),
+    (
+        's("Quick Step", "AUTO", "30% mỗi turn hợp lệ", "+50 điểm % Evasion',
+        's("Quick Step", "AUTO", "30% mỗi lượt TẤN CÔNG hợp lệ", "+50 điểm % Evasion',
+        "Quick Step Party trigger anchor",
+    ),
+):
+    if old_text not in skill_source:
+        raise RuntimeError("Kai/Lucia final patch compatibility missing source anchor: " + label)
+    skill_source = skill_source.replace(old_text, new_text, 1)
+exec(compile(skill_source, str(skill_patch), "exec"), {"__name__": "__main__", "__file__": str(skill_patch)})
