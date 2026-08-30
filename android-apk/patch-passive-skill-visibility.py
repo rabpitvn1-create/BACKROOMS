@@ -7,6 +7,7 @@ TESTS = ROOT / "app/src/test/java/com/rabpit/backroom/core"
 CATALOG = CORE / "CompanionSkillCatalog.kt"
 DETAIL_JSON = CORE / "CharacterDetailJson.kt"
 INDEX = ROOT / "app/src/main/assets/index.html"
+KAI_TEST = TESTS / "KaiDevilBlessingTest.kt"
 TEST = TESTS / "PassiveSkillVisibilityTest.kt"
 
 
@@ -24,6 +25,28 @@ if 's("Devil Blessing", "PASSIVE"' not in catalog:
     catalog = catalog.replace(anchor, anchor + devil_blessing, 1)
 
 CATALOG.write_text(catalog, encoding="utf-8")
+
+# patch-kai-devil-blessing.py previously encoded the intentional hidden state as
+# a regression. Replace only that obsolete expectation; the runtime blessing
+# behavior tests remain untouched.
+kai_test = KAI_TEST.read_text(encoding="utf-8")
+hidden_test = '''  @Test fun blessingIsHiddenFromSkillTable() {
+    val source = File("src/main/java/com/rabpit/backroom/core/CompanionSkillCatalog.kt").readText()
+    assertFalse(source.contains("s(\\\"Devil Blessing\\\""))
+    assertFalse(source.contains("s(\\\"DEVIL BLESSING\\\""))
+  }
+'''
+visible_test = '''  @Test fun blessingIsVisibleAsPassiveSkill() {
+    val source = File("src/main/java/com/rabpit/backroom/core/CompanionSkillCatalog.kt").readText()
+    assertEquals(1, source.split("s(\\\"Devil Blessing\\\", \\\"PASSIVE\\\"").size - 1)
+    assertFalse(source.contains("s(\\\"DEVIL BLESSING\\\""))
+  }
+'''
+if "blessingIsVisibleAsPassiveSkill" not in kai_test:
+    if kai_test.count(hidden_test) != 1:
+        raise RuntimeError("Issue #131 obsolete hidden Devil Blessing regression was not found exactly once")
+    kai_test = kai_test.replace(hidden_test, visible_test, 1)
+KAI_TEST.write_text(kai_test, encoding="utf-8")
 
 # Regression coverage checks both the catalog and the two projection layers used
 # by the WebView. Existing passives for Iris, Syvial, An Nhien and Lucia must not
@@ -76,6 +99,7 @@ required = {
     CATALOG: ('s("Devil Blessing", "PASSIVE"',),
     DETAIL_JSON: ("CompanionSkillCatalog.forCharacter(c.id).forEach",),
     INDEX: ("current.map(skill=>", "skill.kind||'SKILL'"),
+    KAI_TEST: ("blessingIsVisibleAsPassiveSkill",),
     TEST: ("passiveSkillsAreExposedForEveryPlayablePartyCharacter", "Devil Blessing"),
 }
 for path, markers in required.items():
