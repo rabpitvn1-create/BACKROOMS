@@ -1,9 +1,0 @@
-Backroom 1.1.53
-
-- Packages the latest verified main branch changes into a new APK release.
-- Integrates the Drive-backed Entity Snapshot overlay into runtime gameplay.
-- Hides the Entity overlay after the active encounter is defeated or escaped.
-- Raises Jeff the Killer's roaming encounter chance to 8% while preserving the existing encounter contract.
-- Adds Jane the Killer as a roaming entity and wires her final runtime patch into the Android build chain.
-- Retains the current Luna/Gemini provider configuration, follower system, party shortcuts, Iris/Syvial avatar links and 6x20 special-follower inventory limits.
-- Retains the existing Android package, launcher, unit-test, APK integrity and 16 KB native-alignment verification gates before publication.

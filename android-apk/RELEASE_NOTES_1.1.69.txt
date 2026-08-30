@@ -1,9 +1,0 @@
-Backroom 1.1.69 Debug
-
-- Giảm Entity Evasion từ 25% xuống 17%, tức giảm 8 điểm phần trăm trên shared Entity Evasion gate hiện hành.
-- Bổ sung Lucia "Lục" kỹ năng AUTO M4A1 Full Auto Burst.
-- M4A1 Full Auto Burst kiểm tra kích hoạt 20% mỗi 2 combat turn hợp lệ khi Party chọn TẤN CÔNG.
-- Khi kích hoạt, Lucia xả đúng 30 viên; mỗi viên gây 30 + Base DMG trước Armor. Toàn loạt vẫn chịu shared Entity Evasion gate và giữ nguyên cơ chế giảm direct damage riêng của SCP-173.
-- Giữ nguyên M4A1 Joint Attack, Trinh sát chiến trường, Party combat, companion skills, Devil Trigger, SCP-173, Entity durability, save/state và các hard lock hiện có.
-- Gom đường build Debug hiện hành về .github/workflows/build-backroom-apk.yml; các workflow release theo version 1.1.64-1.1.67 được loại khỏi nhánh phát hành mới, còn workflow kiểm thử chuyên biệt được giữ lại.
-- Android package nâng lên versionCode 71 / versionName 1.1.69.
