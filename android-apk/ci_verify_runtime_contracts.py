@@ -24,6 +24,7 @@ detail_json = (core / 'CharacterDetailJson.kt').read_text(encoding='utf-8')
 an_nhien = (core / 'AnNhienCanon.kt').read_text(encoding='utf-8')
 skill_tests = (tests / 'CompanionSkillCatalogTest.kt').read_text(encoding='utf-8')
 item_interaction_tests = (tests / 'ItemInteractionCoherenceTest.kt').read_text(encoding='utf-8')
+passive_skill_tests = (tests / 'PassiveSkillVisibilityTest.kt').read_text(encoding='utf-8')
 runtime_chain = (root / 'ci_apply_runtime_patches.py').read_text(encoding='utf-8')
 chain = (root / 'patch-inventory-capacity-final-fix.py').read_text(encoding='utf-8')
 scp_finalize = (root / 'patch-scp-173-compat-finalize.py').read_text(encoding='utf-8')
@@ -119,6 +120,10 @@ required = [
     ('class ItemInteractionCoherenceTest', item_interaction_tests),
     ('"Đưa cho Lucia"', item_interaction_tests),
     ('"Dùng băng gạc cho Lucia"', item_interaction_tests),
+    ('"patch-passive-skill-visibility.py"', runtime_chain),
+    ('s("Devil Blessing", "PASSIVE"', skill_catalog),
+    ('class PassiveSkillVisibilityTest', passive_skill_tests),
+    ('passiveSkillsAreExposedForEveryPlayablePartyCharacter', passive_skill_tests),
 ]
 for marker, source in required:
     assert marker in source, marker
@@ -131,7 +136,7 @@ assert '"canUseWeapons" to "false"' in an_nhien
 an_start = skill_catalog.index('private val anNhien = listOf(')
 an_end = skill_catalog.index('private val kai = listOf(', an_start)
 assert 'Weapon DMG' not in skill_catalog[an_start:an_end]
-assert 's("Devil Blessing"' not in skill_catalog
+assert skill_catalog.count('s("Devil Blessing", "PASSIVE"') == 1
 assert 's("DEVIL BLESSING"' not in skill_catalog
 assert html.count("button.id='characterSkillsButton'") == 1
 assert html.count('id="characterSkillsModal"') == 1
