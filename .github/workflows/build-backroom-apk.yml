@@ -162,8 +162,8 @@ jobs:
 
           required = [
               ("versionCode 84", gradle), ("versionName '1.2.9'", gradle),
-              ('DEVIL BLESSING', skill_catalog), ('kaiDevilBlessingEvasionBonus', combat),
-              ('fun kaiBlessing(value: Int)', equipment_system), ('(raw * 105 + 99) / 100', equipment_system),
+              ('devilBlessingEvasionBonus', combat), ('fun partyBlessing(value: Int)', equipment_system),
+              ('return maxOf(1, (base * 5 + 99) / 100)', equipment_system),
               ('KAI_DEVIL_WITHIN_MAX_HP = 5678', combat), ('KAI_DEVIL_WITHIN_STAT_PERCENT = 70', combat),
               ('KAI_DEVIL_WITHIN_SPARDA_PROC_PERCENT = 20', combat), ('KAI_DEVIL_WITHIN_RED_ROSARY_ROUNDS = 13', combat),
               ('KAI_DEVIL_WITHIN_DEAD_SILENCE_BLEED_TURNS = 3', combat), ('KAI_DEVIL_WITHIN_GUNSLINGER_DAMAGE_PERCENT = 5', combat),
@@ -249,6 +249,8 @@ jobs:
           an_start = skill_catalog.index('private val anNhien = listOf(')
           an_end = skill_catalog.index('private val kai = listOf(', an_start)
           assert 'Weapon DMG' not in skill_catalog[an_start:an_end]
+          assert 's("Devil Blessing"' not in skill_catalog
+          assert 's("DEVIL BLESSING"' not in skill_catalog
           assert html.count("button.id='characterSkillsButton'") == 1
           assert html.count('id="characterSkillsModal"') == 1
           assert 'rolls.put("roamingEntityId"' not in java
