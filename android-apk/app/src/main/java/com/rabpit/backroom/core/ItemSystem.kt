@@ -19,12 +19,14 @@ data class ItemInspection(
 
 /** Shared data contract for every current and future item, character and location. */
 object ItemSystem {
+  private const val INVENTORY_SLOT_BONUS = 5
+
   private val capacityProfiles = mapOf(
-    "kai" to ItemCapacity(9, 999),
-    "special_companion" to ItemCapacity(6, 20),
-    "lucia_gift_inventory" to ItemCapacity(3, 100),
-    "an_nhien_food_only" to ItemCapacity(2, 20),
-    "normal" to ItemCapacity(2, 2)
+    "kai" to ItemCapacity(14, 999),
+    "special_companion" to ItemCapacity(11, 20),
+    "lucia_gift_inventory" to ItemCapacity(8, 100),
+    "an_nhien_food_only" to ItemCapacity(7, 20),
+    "normal" to ItemCapacity(7, 2)
   )
 
   private val officialDescriptions = mapOf(
@@ -45,7 +47,9 @@ object ItemSystem {
     val metadata = state.characters[ownerId]?.metadata.orEmpty()
     val explicitTypes = metadata["inventoryMaxTypes"]?.toIntOrNull()?.takeIf { it > 0 }
     val explicitPerType = metadata["inventoryMaxPerType"]?.toIntOrNull()?.takeIf { it > 0 }
-    if (explicitTypes != null && explicitPerType != null) return ItemCapacity(explicitTypes, explicitPerType)
+    if (explicitTypes != null && explicitPerType != null) {
+      return ItemCapacity(explicitTypes + INVENTORY_SLOT_BONUS, explicitPerType)
+    }
     val profile = metadata["inventoryProfile"]?.trim()?.lowercase()
       ?: if (ownerId == KAI_ID) "kai" else "normal"
     return capacityProfiles[profile] ?: capacityProfiles.getValue("normal")
