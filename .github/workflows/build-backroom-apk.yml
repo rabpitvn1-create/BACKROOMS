@@ -95,6 +95,7 @@ jobs:
           from pathlib import Path
           root = Path('android-apk')
           core = root / 'app/src/main/java/com/rabpit/backroom/core'
+          tests = root / 'app/src/test/java/com/rabpit/backroom/core'
           html = (root / 'app/src/main/assets/index.html').read_text(encoding='utf-8')
           java = (root / 'app/src/main/java/com/rabpit/backroom/MainActivity.java').read_text(encoding='utf-8')
           facade = (core / 'GameCoreFacade.kt').read_text(encoding='utf-8')
@@ -102,13 +103,16 @@ jobs:
           madgod = (core / 'MadGodCanon.kt').read_text(encoding='utf-8')
           engines = (core / 'Engines.kt').read_text(encoding='utf-8')
           equipment_system = (core / 'CharacterEquipmentSystem.kt').read_text(encoding='utf-8')
-          status_tests = (root / 'app/src/test/java/com/rabpit/backroom/core/CharacterStatusEquipmentSystemTest.kt').read_text(encoding='utf-8')
+          item_catalog = (core / 'ItemCatalog.kt').read_text(encoding='utf-8')
+          item_system = (core / 'ItemSystem.kt').read_text(encoding='utf-8')
+          removal_tests = (tests / 'MadGodRemovalLootCapacityTest.kt').read_text(encoding='utf-8')
+          status_tests = (tests / 'CharacterStatusEquipmentSystemTest.kt').read_text(encoding='utf-8')
           save_repo = (core / 'SaveRepository.kt').read_text(encoding='utf-8')
           combat = (core / 'CombatRuntime.kt').read_text(encoding='utf-8')
           skill_catalog = (core / 'CompanionSkillCatalog.kt').read_text(encoding='utf-8')
           detail_json = (core / 'CharacterDetailJson.kt').read_text(encoding='utf-8')
           an_nhien = (core / 'AnNhienCanon.kt').read_text(encoding='utf-8')
-          skill_tests = (root / 'app/src/test/java/com/rabpit/backroom/core/CompanionSkillCatalogTest.kt').read_text(encoding='utf-8')
+          skill_tests = (tests / 'CompanionSkillCatalogTest.kt').read_text(encoding='utf-8')
           chain = (root / 'patch-inventory-capacity-final-fix.py').read_text(encoding='utf-8')
           scp_finalize = (root / 'patch-scp-173-compat-finalize.py').read_text(encoding='utf-8')
           entity_dir = root / 'app/src/main/assets/entity'
@@ -116,21 +120,29 @@ jobs:
           required = [
               ("versionCode 82", gradle), ("versionName '1.2.7'", gradle),
               ('id="searchActionButton"', html), ('id="exploreActionButton"', html), ('STEP2_THREE_ACTIONS', html),
-              ('madGodSetEquipped()', html), ('id="equipmentDetailModal"', html), ('window.renderCharacterStatusEquipment=render;', html),
+              ('id="equipmentDetailModal"', html), ('window.renderCharacterStatusEquipment=render;', html),
               ('id="characterSkillsModal"', html), ("button.id='characterSkillsButton'", html), ('function openSkills()', html),
-              ('const val CHEAT_CODE = "/madgod"', madgod), ('const val MADGOD_SET_ID = "madgod:set"', madgod),
-              ('MadGodCanon.cheat(action)', facade), ('applyMadGodCheat(legacy,state)', facade),
-              ('if (isMadGodEquipRequest(action))', facade), ('commandId = "$turnId:MADGOD:EQUIP"', facade),
-              ('"madgod_equipped"', facade), ('output.put("equipment",MadGodCanon.legacy(state))', facade),
+              ('const val CHEAT_CODE = ""', madgod), ('fun cheat(x: String): Boolean = false', madgod),
               ('ItemCommand.Operation.EQUIP -> EquipmentEngine.equip(state, command)', engines),
               ('ItemCommand.Operation.UNEQUIP -> EquipmentEngine.unequip(state, command)', engines),
-              ('occupiesSlots = setOf(EquipmentSlot.WEAPON, EquipmentSlot.ARMOR)', equipment_system),
-              ('bonuses = EquipmentBonuses(hp = 50, str = 15, df = 30, agi = 12, crit = 12)', equipment_system),
+              ('private const val SCHEMA_VERSION = "2"', equipment_system),
+              ('private fun retiredMadGodId(', equipment_system),
               ('CharacterStatEngine.preserveMissingHp', equipment_system),
               ('fun applyCompletedTurnRegen', equipment_system),
-              ('madGodIsNotCanonicalStartingLoadoutAndCountsOnceAcrossTwoSlots', status_tests),
               ('regenRunsExactlyOnceAndZeroHpCannotBeRescued', status_tests),
               ('inventoryOwnsSameItemReferencedByEquipment', status_tests),
+              ('const val BASE_DROP_BONUS_PERCENT = 5', item_catalog),
+              ('const val BASE_EXPLORATION_BONUS_BASIS_POINTS = 500', item_catalog),
+              ('BASE_DROP_BONUS_PERCENT + (killsWithoutDrop(state) + 1) * DROP_STEP_PERCENT', item_catalog),
+              ('base + BASE_EXPLORATION_BONUS_BASIS_POINTS + pity + follower', item_catalog),
+              ('"kai" to ItemCapacity(14, 999)', item_system),
+              ('"special_companion" to ItemCapacity(11, 20)', item_system),
+              ('"lucia_gift_inventory" to ItemCapacity(8, 100)', item_system),
+              ('"an_nhien_food_only" to ItemCapacity(7, 20)', item_system),
+              ('"normal" to ItemCapacity(7, 2)', item_system),
+              ('class MadGodRemovalLootCapacityTest', removal_tests),
+              ('assertEquals(7, EntityLootEngine.dropChancePercent(state))', removal_tests),
+              ('assertEquals(635, preview.threshold)', removal_tests),
               ('sceneKey:visualSceneKey()', java), ('r.sceneKey===visualSceneKey()', java),
               ('private int mentionedLevel(JSONObject state)', java),
               ('return exitFound && progressionReady(before);', java),
@@ -151,7 +163,7 @@ jobs:
               ('boolean exploreAction = "EXPLORE".equals(actionKindNormalized);', java),
               ('makeGameplayRolls(before, actionKind, action, meta)', java),
               ("box.style.position='relative';box.style.overflow='hidden'", java),
-              ('Kai_new_overlay.png', java), ('Kai_MadGod_snapshot_overlay.png', java), ('Newviolet.png', java),
+              ('Kai_new_overlay.png', java), ('Newviolet.png', java),
               ('class SharedPreferencesSaveRepository', save_repo),
               ('private fun normalizeVisualPresence(state: GameState): GameState', facade),
               ('val resolvedEntityKey = CombatRuntime.active(current)?.entityKey.orEmpty()', facade),
@@ -192,11 +204,17 @@ jobs:
           assert html.count('id="characterSkillsModal"') == 1
           assert 'rolls.put("roamingEntityId"' not in java
           assert 'makeGameplayRolls(before, action, meta)' not in java
-          assert 'slot != "set" || MadGodCanon.slot(command.itemId' not in engines
           assert 'appendEquipmentBadge(box)' not in java
-          assert 'const val MULTIPLIER = 50' not in madgod
           assert 'jeffEncounter' not in java
           assert 'janeEncounter' not in java
+
+          final_runtime = '\n'.join((html, java, facade, engines, equipment_system))
+          for retired in [
+              'madGodSetEquipped', 'if (isMadGodEquipRequest(action))', 'applyMadGodCheat(',
+              'commandId = "$turnId:MADGOD:EQUIP"', '"madgod_equipped"',
+              'Kai_MadGod_snapshot_overlay.png', 'avatars/MadGod.jpg', 'id = MADGOD_SET_ID'
+          ]:
+              assert retired not in final_runtime, retired
 
           required_assets = [
               'hound.png','clump.png','duller.png','deathmoth.png','hostile_faceling.png','false_puddle.png','paintings.png',
@@ -207,8 +225,10 @@ jobs:
           for name in required_assets:
               p = entity_dir / name
               assert p.is_file() and p.stat().st_size > 0, name
-          for p in [root / 'app/src/main/assets/Kai_new_overlay.png', root / 'app/src/main/assets/BESTKAIV2.png', root / 'app/src/main/assets/Kai_MadGod_snapshot_overlay.png', root / 'app/src/main/assets/avatars/MadGod.jpg']:
+          for p in [root / 'app/src/main/assets/Kai_new_overlay.png', root / 'app/src/main/assets/BESTKAIV2.png']:
               assert p.is_file() and p.stat().st_size > 0, str(p)
+          for p in [root / 'app/src/main/assets/Kai_MadGod_snapshot_overlay.png', root / 'app/src/main/assets/avatars/MadGod.jpg']:
+              assert not p.exists(), str(p)
 
           combined = html + java + gradle + facade + save_repo
           for forbidden in ['drive.google.com','www.googleapis.com/auth/drive','DriveOnlineSaveManager','com.google.android.gms:play-services-auth','ENTITY_MANIFEST_FILE_ID','readEntityManifestRemote']:
@@ -244,10 +264,10 @@ jobs:
           "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
           "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 "$APK"
           rm -rf apk-check && mkdir apk-check
-          unzip -q "$APK" 'assets/index.html' 'assets/entity/*' 'assets/Kai_new_overlay.png' 'assets/BESTKAIV2.png' 'assets/Kai_MadGod_snapshot_overlay.png' 'assets/avatars/MadGod.jpg' -d apk-check
+          unzip -q "$APK" 'assets/index.html' 'assets/entity/*' 'assets/Kai_new_overlay.png' 'assets/BESTKAIV2.png' -d apk-check
           grep -q 'searchActionButton' apk-check/assets/index.html
           grep -q 'exploreActionButton' apk-check/assets/index.html
-          grep -q 'madGodSetEquipped' apk-check/assets/index.html
+          ! grep -qi 'madGodSetEquipped' apk-check/assets/index.html
           grep -q 'equipmentDetailModal' apk-check/assets/index.html
           grep -q 'renderCharacterStatusEquipment' apk-check/assets/index.html
           grep -q 'characterSkillsModal' apk-check/assets/index.html
@@ -261,8 +281,8 @@ jobs:
           test -s apk-check/assets/entity/Newviolet.png
           test -s apk-check/assets/Kai_new_overlay.png
           test -s apk-check/assets/BESTKAIV2.png
-          test -s apk-check/assets/Kai_MadGod_snapshot_overlay.png
-          test -s apk-check/assets/avatars/MadGod.jpg
+          ! unzip -l "$APK" | grep -q 'assets/Kai_MadGod_snapshot_overlay.png'
+          ! unzip -l "$APK" | grep -q 'assets/avatars/MadGod.jpg'
           ! unzip -l "$APK" | grep -q 'assets/kai_snapshot_overlay.png'
           ! unzip -l "$APK" | grep -q 'assets/kai_snapshot_overlay.webp'
           ! unzip -l "$APK" | grep -q 'assets/BestKai.png'
