@@ -15,3 +15,4 @@ runpy.run_path(str(ROOT / "patch-character-item-transfer-use.py"), run_name="__m
 runpy.run_path(str(ROOT / "patch-character-item-transfer-use-compile-fix.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-skill-description-vietnamese-finalize.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-skill-description-ci-compat.py"), run_name="__main__")
+runpy.run_path(str(ROOT / "patch-skill-description-natural-vietnamese.py"), run_name="__main__")
