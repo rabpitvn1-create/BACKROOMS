@@ -37,6 +37,7 @@ SCRIPTS = [
     "patch-kai-devil-within-entity.py",
     "patch-kai-devil-blessing.py",
     "patch-item-interaction-coherence.py",
+    "patch-passive-skill-visibility.py",
 ]
 
 for script in SCRIPTS:
