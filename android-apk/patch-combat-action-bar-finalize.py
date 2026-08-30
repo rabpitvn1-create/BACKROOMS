@@ -28,14 +28,15 @@ if MARKER not in html:
 .primary-action-row.combat-actions .primary-action{color:#f7f9fa;border-color:#59636c;background:#1b2025;font-weight:800;letter-spacing:.025em}
 .primary-action-row.combat-actions .primary-action:active:not(:disabled){background:#2a3137;border-color:#87919a}
 .primary-action-row.combat-actions .action-icon{color:#fff;stroke:#fff;fill:none;stroke-width:2}
+.primary-action-row:not(.combat-actions) .solid-action-icon{fill:currentColor;stroke:none}
 @media(max-width:390px){.primary-action-row.combat-actions .primary-action{font-size:11px;gap:4px;padding:9px 4px}}
 </style>
 <script>
 (function(){
   const normalButtons={
-    search:{label:'Tìm kiếm',aria:'Tìm kiếm',icon:'<svg class="action-icon icon-search" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4.5 4.5"></path></svg>'},
-    execute:{label:'Thực hiện',aria:'Thực hiện',icon:'<svg class="action-icon icon-execute" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"></rect><path d="m7.5 9 3 3-3 3"></path><path d="M13.5 15h3.5"></path></svg>'},
-    explore:{label:'Khám phá',aria:'Khám phá',icon:'<svg class="action-icon icon-explore" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="m15.8 8.2-2.4 5.2-5.2 2.4 2.4-5.2z"></path><circle cx="12" cy="12" r="1"></circle></svg>'}
+    search:{label:'Tìm kiếm',aria:'Tìm kiếm',icon:'<svg class="action-icon solid-action-icon icon-search" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.75 3.25a7.5 7.5 0 1 0 4.58 13.44l3.99 3.99a.96.96 0 0 0 1.36-1.36l-3.99-3.99a7.5 7.5 0 0 0-5.94-12.08Zm0 2.1a5.4 5.4 0 1 1 0 10.8 5.4 5.4 0 0 1 0-10.8Z"></path></svg>'},
+    execute:{label:'Thực hiện',aria:'Thực hiện',icon:'<svg class="action-icon solid-action-icon icon-execute" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.75a9.25 9.25 0 1 0 0 18.5 9.25 9.25 0 0 0 0-18.5Zm-2.1 5.18c0-.72.8-1.15 1.4-.75l6.05 4.07a.9.9 0 0 1 0 1.5l-6.05 4.07a.9.9 0 0 1-1.4-.75V7.93Z"></path></svg>'},
+    explore:{label:'Khám phá',aria:'Khám phá',icon:'<svg class="action-icon solid-action-icon icon-explore" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.29 3.71a1.15 1.15 0 0 0-1.2-.27L4.37 9.06a1.2 1.2 0 0 0 .08 2.27l5.43 1.81 1.81 5.43a1.2 1.2 0 0 0 2.27.08l5.62-14.72a1.15 1.15 0 0 0-.29-1.22Zm-7.35 11.02-1.13-3.39-3.39-1.13 8.03-3.07-3.51 7.59Z"></path></svg>'}
   };
   const combatButtons={
     attack:{label:'TẤN CÔNG',aria:'Tấn công Entity',action:'Tấn công',icon:'<svg class="action-icon icon-attack" viewBox="0 0 24 24" aria-hidden="true"><path d="m14.8 4.2 5-2 2 2-2 5-8.1 8.1-5-5z"></path><path d="m9.2 14.8-3.7 3.7"></path><path d="m4 17 3 3"></path><path d="m3 21 2.5-2.5"></path></svg>'},
@@ -121,6 +122,8 @@ for marker in (
     "icon-search",
     "icon-execute",
     "icon-explore",
+    "solid-action-icon",
+    ".primary-action-row:not(.combat-actions) .solid-action-icon{fill:currentColor;stroke:none}",
     "icon-attack",
     "icon-evade",
     "icon-flee",
