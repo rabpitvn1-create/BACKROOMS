@@ -1,0 +1,46 @@
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path(__file__).resolve().parent
+
+SCRIPTS = [
+    "patch-provider-status.py",
+    "patch-luna-text.py",
+    "patch-level-snapshot-backgrounds.py",
+    "patch-snapshot-fallback.py",
+    "patch-kai-hd-continuous.py",
+    "patch-kai-png-preferred.py",
+    "patch-kai-codex.py",
+    "patch-r06-source-marker.py",
+    "patch-drive-canon-gameplay.py",
+    "patch-inventory-persistence.py",
+    "patch-ai-orchestrator.py",
+    "patch-state-op-hardening.py",
+    "patch-gemini-health-pool.py",
+    "patch-conditional-audit.py",
+    "patch-audit-validated-risk.py",
+    "patch-gameplay-parity-final.py",
+    "patch-final-authority-hardening.py",
+    "patch-rejected-op-repair-final.py",
+    "patch-kai-resource-policy-final.py",
+    "patch-provider-deadline-final.py",
+    "patch-gemini-model-matrix-final.py",
+    "patch-java-compile-hardening.py",
+    "patch-save-controls-final.py",
+    "patch-hard-mode-label.py",
+    "patch-snapshot-unconfigured.py",
+    "patch-game-state-core-bridge.py",
+    "patch-character-inventory-ui.py",
+    "patch-character-detail-avatar-fallback.py",
+    "patch-progression-snapshot-equipment.py",
+    "patch-kai-devil-within-entity.py",
+    "patch-kai-devil-blessing.py",
+]
+
+for script in SCRIPTS:
+    path = ROOT / script
+    if not path.is_file():
+        raise SystemExit(f"Missing runtime patch script: {script}")
+    print(f"==> {script}", flush=True)
+    subprocess.run([sys.executable, str(path)], cwd=ROOT.parent, check=True)

@@ -1,25 +1,29 @@
-name: Build Backroom 1.2.9 Debug
+name: BACKROOMS Preflight
 
 on:
   workflow_dispatch:
-  workflow_run:
-    workflows: ["BACKROOMS Preflight"]
-    types: [completed]
+  pull_request:
+    branches: [main]
+    paths:
+      - "android-apk/**"
+      - ".github/workflows/preflight-backroom.yml"
+      - ".github/workflows/build-backroom-apk.yml"
+  push:
+    paths:
+      - "android-apk/**"
+      - ".github/workflows/preflight-backroom.yml"
+      - ".github/workflows/build-backroom-apk.yml"
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: build-backroom-apk-${{ github.event.workflow_run.head_sha || github.ref }}
+  group: backrooms-preflight-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build-apk:
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.conclusion == 'success' &&
-       github.event.workflow_run.event == 'push' &&
-       github.event.workflow_run.head_branch == 'main')
+  preflight:
+    name: preflight
     runs-on: ubuntu-latest
     env:
       LUNA_API_KEY: ${{ secrets.LUNA_API_KEY }}
@@ -34,8 +38,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Restore LiteRT intent model
         id: litert-cache
@@ -73,16 +75,14 @@ jobs:
           bytes=$(stat -c%s "$MODEL")
           test "$bytes" -le 5242880 || (echo "Cached LiteRT model exceeds 5 MiB: $bytes" && exit 1)
 
-      - name: Validate Game Master configuration for manual build
-        if: github.event_name == 'workflow_dispatch'
+      - name: Validate Game Master configuration
         run: |
           set -euo pipefail
           for name in GEMINI_API_KEY_1 GEMINI_API_KEY_2 GEMINI_API_KEY_3 GEMINI_API_KEY_4 GEMINI_API_KEY_5 LUNA_API_KEY LUNA_MODEL; do
             test -n "${!name:-}" || (echo "Missing GitHub Secret: $name" && exit 1)
           done
 
-      - name: Smoke test Luna API for manual build
-        if: github.event_name == 'workflow_dispatch'
+      - name: Smoke test Luna API
         run: |
           python3 - <<'PY'
           import json
@@ -142,41 +142,15 @@ jobs:
         with:
           gradle-version: "8.10.2"
 
-      - name: Run Kotlin tests and build debug APK
+      - name: Run Kotlin tests and verification build
         working-directory: android-apk
         run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon --build-cache
 
-      - name: Prepare debug APK
+      - name: Prepare verification APK
         run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.2.9-debug.apk
 
       - name: Verify packaged debug APK contracts
         run: bash android-apk/ci_verify_packaged_apk.sh Backroom-1.2.9-debug.apk
 
-      - name: Upload debug APK artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Backroom-1.2.9-debug-apk
-          path: Backroom-1.2.9-debug.apk
-          if-no-files-found: error
-          retention-days: 14
-
-      - name: Detect release commit
-        id: release-gate
-        if: github.event_name == 'workflow_run'
-        shell: bash
-        run: |
-          if [[ "$(git log -1 --pretty=%B)" == "Release v1.2.9" ]]; then
-            echo "publish=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "publish=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Publish GitHub Release v1.2.9
-        if: steps.release-gate.outputs.publish == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release create v1.2.9 Backroom-1.2.9-debug.apk \
-            --title "Backroom 1.2.9 Debug" \
-            --notes-file android-apk/RELEASE_NOTES_1.2.9.md \
-            --target "${{ github.event.workflow_run.head_sha }}"
+      - name: Preflight passed
+        run: echo "All deterministic preflight checks passed. The release Build may run after a successful main-branch preflight."
