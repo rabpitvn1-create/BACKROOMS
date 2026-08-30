@@ -98,7 +98,7 @@ COMBAT.write_text(combat, encoding="utf-8")
 # The passive remains runtime-authoritative but has no SkillCatalog row and therefore no UI entry.
 catalog = CATALOG.read_text(encoding="utf-8")
 skill_pattern = re.compile(
-    r'^[ \\t]+s\\("(?:Devil Blessing|DEVIL BLESSING)",[^\\n]*\\),\\n',
+    r'^[ \t]+s\("(?:Devil Blessing|DEVIL BLESSING)",[^\n]*\),\n',
     re.MULTILINE,
 )
 catalog, hidden_count = skill_pattern.subn("", catalog)
