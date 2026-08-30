@@ -25,7 +25,9 @@ if 's("Devil Blessing", "PASSIVE"' not in catalog:
         raise RuntimeError(f"Issue #131 Kai skill catalog anchor: expected one, found {catalog.count(anchor)}")
     kai_start = catalog.index(anchor)
     kai_end = catalog.index("\n  )", kai_start)
-    catalog = catalog[:kai_end] + ",\n" + devil_blessing + catalog[kai_end:]
+    kai_body = catalog[kai_start:kai_end]
+    separator = "\n" if kai_body.rstrip().endswith(",") else ",\n"
+    catalog = catalog[:kai_end] + separator + devil_blessing + catalog[kai_end:]
 
 CATALOG.write_text(catalog, encoding="utf-8")
 
