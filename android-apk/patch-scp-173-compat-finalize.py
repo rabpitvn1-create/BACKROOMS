@@ -102,3 +102,7 @@ runpy.run_path(str(ROOT / "patch-violet-warden-compat.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-violet-warden-stun-finalize.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-entity-hp-floor-300.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-kai-new-overlay.py"), run_name="__main__")
+
+# Final skill balance runs after every previous combat/entity layer so the generated runtime cannot
+# silently reintroduce Kai's handgun-era narration or erase Lucia's new AUTO skill.
+runpy.run_path(str(ROOT / "patch-kai-lucia-skill-update.py"), run_name="__main__")
