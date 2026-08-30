@@ -9,7 +9,6 @@ on:
       - ".github/workflows/preflight-backroom.yml"
       - ".github/workflows/build-backroom-apk.yml"
   push:
-    branches: [main]
     paths:
       - "android-apk/**"
       - ".github/workflows/preflight-backroom.yml"
