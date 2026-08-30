@@ -85,14 +85,55 @@ combat = once(combat, '    return max(1, (resolved * 110 + 99) / 100)\n', '    r
 combat = once(combat, '          val luciaRawBurstDamage = (LUCIA_FULL_AUTO_ROUNDS * luciaPerBulletAfterArmor * 110 + 99) / 100\n', '          val luciaRawBurstDamage = (LUCIA_FULL_AUTO_ROUNDS * luciaPerBulletAfterArmor * 105 + 99) / 100\n', "Lucia attack +5%")
 combat = once(combat, '        val blessedDamage = min(c.entityHp, (24 * damagePerHit * 110 + 99) / 100)\n', '        val blessedDamage = min(c.entityHp, (24 * damagePerHit * 105 + 99) / 100)\n', "Syvial attack +5%")
 
-target_old = 'quickStep + DevilTriggerPassive.evasionBonus(kaiDevilTriggerActive)'
-target_new = 'quickStep + DevilTriggerPassive.evasionBonus(kaiDevilTriggerActive) + CharacterStatEngine.devilBlessingEvasionBonus(resolvedState, targetId)'
-if combat.count(target_old) != 2:
-    raise RuntimeError(f"Party blessing targeted evasion: expected two anchors, found {combat.count(target_old)}")
-combat = combat.replace(target_old, target_new)
-fallback_old = '      val kaiDevilTriggerEvasion = DevilTriggerPassive.evasionBonus(kaiDevilTriggerActive)\n'
-fallback_new = '      val kaiDevilTriggerEvasion = DevilTriggerPassive.evasionBonus(kaiDevilTriggerActive) + CharacterStatEngine.devilBlessingEvasionBonus(resolvedState, KAI_ID)\n'
-combat = once(combat, fallback_old, fallback_new, "Kai exclusion in fallback evasion")
+# Apply +5 Evasion to the actual companion target, not to Kai's Quick Step branch.
+# The finalized runtime has two target-specific response paths with different local IDs:
+# generic Entity responses use targetId; Violet Warden duels use duelTargetId.
+generic_evasion_old = '''        val personalEvasion = when {
+          targetId == KAI_ID -> {
+            val quickStep = if (quickStepTurns > 0) KAI_QUICK_STEP_EVASION_BONUS_PERCENT else 0
+            quickStep + DevilTriggerPassive.evasionBonus(kaiDevilTriggerActive)
+          }
+          targetId == SYVIAL_ID && syvialDevilTrigger -> 20
+          else -> 0
+        }
+'''
+generic_evasion_new = '''        val personalEvasion = (when {
+          targetId == KAI_ID -> {
+            val quickStep = if (quickStepTurns > 0) KAI_QUICK_STEP_EVASION_BONUS_PERCENT else 0
+            quickStep + DevilTriggerPassive.evasionBonus(kaiDevilTriggerActive)
+          }
+          targetId == SYVIAL_ID && syvialDevilTrigger -> 20
+          else -> 0
+        }) + CharacterStatEngine.devilBlessingEvasionBonus(resolvedState, targetId)
+'''
+combat = once(combat, generic_evasion_old, generic_evasion_new, "generic Entity companion evasion +5%")
+
+violet_evasion_old = '''            val personalEvasion = when {
+              duelTargetId == KAI_ID -> {
+                val quickStep = if (quickStepTurns > 0) KAI_QUICK_STEP_EVASION_BONUS_PERCENT else 0
+                quickStep + DevilTriggerPassive.evasionBonus(kaiDevilTriggerActive)
+              }
+              duelTargetId == SYVIAL_ID && syvialDevilTrigger -> 20
+              else -> 0
+            }
+'''
+violet_evasion_new = '''            val personalEvasion = (when {
+              duelTargetId == KAI_ID -> {
+                val quickStep = if (quickStepTurns > 0) KAI_QUICK_STEP_EVASION_BONUS_PERCENT else 0
+                quickStep + DevilTriggerPassive.evasionBonus(kaiDevilTriggerActive)
+              }
+              duelTargetId == SYVIAL_ID && syvialDevilTrigger -> 20
+              else -> 0
+            }) + CharacterStatEngine.devilBlessingEvasionBonus(resolvedState, duelTargetId)
+'''
+combat = once(combat, violet_evasion_old, violet_evasion_new, "Violet Warden companion evasion +5%")
+
+for marker in (
+    '}) + CharacterStatEngine.devilBlessingEvasionBonus(resolvedState, targetId)',
+    '}) + CharacterStatEngine.devilBlessingEvasionBonus(resolvedState, duelTargetId)',
+):
+    if marker not in combat:
+        raise RuntimeError("Scoped Devil Blessing evasion contract missing: " + marker)
 COMBAT.write_text(combat, encoding="utf-8")
 
 # The passive remains runtime-authoritative but has no SkillCatalog row and therefore no UI entry.
@@ -138,6 +179,14 @@ class KaiDevilBlessingTest {
     assertEquals((irisBefore.agi * 105 + 99) / 100, irisAfter.agi)
     assertEquals(5, CharacterStatEngine.devilBlessingEvasionBonus(state, IRIS_ID))
     assertEquals(0, CharacterStatEngine.devilBlessingEvasionBonus(state, KAI_ID))
+  }
+
+  @Test fun blessingEvasionUsesScopedCombatTargetIds() {
+    val source = File("src/main/java/com/rabpit/backroom/core/CombatRuntime.kt").readText()
+    val generic = "CharacterStatEngine.devilBlessingEvasionBonus(resolvedState, targetId)"
+    val violet = "CharacterStatEngine.devilBlessingEvasionBonus(resolvedState, duelTargetId)"
+    assertEquals(1, source.split(generic).size - 1)
+    assertEquals(1, source.split(violet).size - 1)
   }
 
   @Test fun blessingIsHiddenFromSkillTable() {
