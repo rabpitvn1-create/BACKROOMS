@@ -140,6 +140,18 @@ if death_count < 3:
     raise RuntimeError(f"Sparda defeat gates: expected at least three, found {death_count}")
 combat = combat.replace(death_anchor, '    applyDevilWithinSpardaReduction()\n    if (c.entityHp <= 0) {\n')
 
+# The generated runtime has a defeat gate immediately after Kai's automatic skill block. Move the
+# Kai-damage checkpoint in front of that gate so Sparda never halves Kai's own skill damage.
+kai_skill_tracker = '    if (devilWithinTurn) devilWithinKaiDamage += max(0, devilWithinHpBeforeKaiSkills - c.entityHp)\n\n'
+tracker_index = combat.find(kai_skill_tracker)
+if tracker_index < 0:
+    raise RuntimeError("Kai skill damage tracker missing after defeat-gate insertion")
+combat = combat[:tracker_index] + combat[tracker_index + len(kai_skill_tracker):]
+gate_index = combat.rfind('    applyDevilWithinSpardaReduction()\n', 0, tracker_index)
+if gate_index < 0:
+    raise RuntimeError("Kai skill defeat gate missing before companion skills")
+combat = combat[:gate_index] + kai_skill_tracker + combat[gate_index:]
+
 enemy_anchor = '    } else if (c.entityKey == VIOLET_WARDEN_KEY) {\n'
 devil_enemy = '''    } else if (c.entityKey == KAI_DEVIL_WITHIN_KEY) {
       val targets = entityCombatActionTargets(resolvedState)
