@@ -23,6 +23,13 @@ if "NOVEL-TEXTGAME-2026-08-20-DRIVE-INTEGRATION-R06" not in canon:
 if len(canon) < 5000:
     raise RuntimeError(f"Drive canon unexpectedly short: {len(canon)} chars")
 
+for old, new, label in (
+    ("Kênh nội bộ Black Blood im lặng.", "Kênh nội bộ SRU Force im lặng.", "prologue internal channel"),
+    ("Không biết Black Blood còn có thể tìm thấy dấu vết của ba người từ phía bên kia hay không.", "Không biết SRU Force còn có thể tìm thấy dấu vết của ba người từ phía bên kia hay không.", "prologue recovery question"),
+    ("Không có liên lạc với Iris, Syvial hay Black Blood.", "Không có liên lạc với Iris, Syvial hay SRU Force.", "prologue first turn status"),
+):
+    index = replace_once(index, old, new, label)
+
 java_canon = json.dumps(canon, ensure_ascii=False)
 constant_anchor = "  private static final int MAX_SNAPSHOT_BASE64 = 1_500_000;\n"
 constant_block = constant_anchor + (
