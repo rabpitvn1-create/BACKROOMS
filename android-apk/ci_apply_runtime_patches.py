@@ -39,6 +39,7 @@ SCRIPTS = [
     "patch-item-interaction-coherence.py",
     "patch-item-identity-authority-v2.py",
     "patch-item-identity-regression-diagnostics.py",
+    "patch-item-identity-finalize.py",
     "patch-passive-skill-visibility.py",
     "patch-combat-total-turn-isolation.py",
     "patch-escape-chance-hud.py",
