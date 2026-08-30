@@ -9,3 +9,4 @@ runpy.run_path(str(ROOT / "patch-remove-madgod-loot-capacity-final.py"), run_nam
 runpy.run_path(str(ROOT / "patch-sru-equipment-integration-finalize.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-final-whitespace-normalize.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-lucia-regen-interval.py"), run_name="__main__")
+runpy.run_path(str(ROOT / "patch-entity-loot-plus-3.py"), run_name="__main__")
