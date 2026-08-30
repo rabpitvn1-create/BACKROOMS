@@ -80,6 +80,42 @@ jobs:
             test -n "${!name:-}" || (echo "Missing GitHub Secret: $name" && exit 1)
           done
 
+      - name: Smoke test Luna API
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import urllib.error
+          import urllib.request
+
+          endpoint = os.environ["LUNA_BASE_URL"].rstrip("/") + "/chat/completions"
+          payload = json.dumps({
+              "model": os.environ["LUNA_MODEL"],
+              "messages": [{"role": "user", "content": "Reply OK"}],
+              "temperature": 0,
+              "max_tokens": 4,
+          }).encode("utf-8")
+          request = urllib.request.Request(
+              endpoint,
+              data=payload,
+              headers={
+                  "Authorization": "Bearer " + os.environ["LUNA_API_KEY"],
+                  "Content-Type": "application/json",
+              },
+              method="POST",
+          )
+          try:
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  result = json.load(response)
+          except urllib.error.HTTPError as error:
+              raise SystemExit(f"Luna API smoke test failed with HTTP {error.code}") from None
+          except (urllib.error.URLError, TimeoutError, ValueError) as error:
+              raise SystemExit(f"Luna API smoke test failed: {type(error).__name__}") from None
+          if not isinstance(result.get("choices"), list) or not result["choices"]:
+              raise SystemExit("Luna API smoke test returned no completion choices")
+          print("Luna API smoke test passed")
+          PY
+
       - name: Apply Android runtime patch chain
         run: |
           set -euo pipefail
