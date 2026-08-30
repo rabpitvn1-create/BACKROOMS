@@ -83,14 +83,11 @@ for old in (
     index = index.replace(old, "SRU_IDLE.png")
 
 # CombatRuntime owns Entity encounters. While an Entity encounter is active, Kai uses the SRU aiming
-# overlay. After defeat/escape the runtime falls back to the normal SRU idle overlay. MadGod remains
-# an explicit non-combat special-form visual and does not replace the Entity aiming state.
+# overlay. After defeat/escape the runtime falls back to the normal SRU idle overlay. No retired
+# special-form visual can override either state.
 visual_selector = (
     "function kaiCombatActive(){var c=state&&state.combat;return !!(c&&c.active===true)}"
-    "function kaiOverlaySource(){if(kaiCombatActive())return 'SRU_AIM.png';"
-    "var a=madGodEquipped('armor'),w=madGodEquipped('weapon');"
-    "if(a&&w)return 'Kai_MadGod_snapshot_overlay.png';if(a)return 'Kai_MadGod_snapshot_overlay.png';"
-    "if(w)return 'Kai_MadGod_snapshot_overlay.png';return 'SRU_IDLE.png'}"
+    "function kaiOverlaySource(){if(kaiCombatActive())return 'SRU_AIM.png';return 'SRU_IDLE.png'}"
 )
 main = sub_once(
     main,
@@ -108,12 +105,12 @@ main = replace_once(
     "SRU overlay decode fallback",
 )
 
-# Final Character UI fallback uses the SRU portrait. MadGod's explicit avatar continues to win because
-# that path is a different asset and is applied by the existing MadGod projection logic.
+# Final Character UI fallback uses the SRU portrait.
 for old_avatar in (
     "avatars/kai_avatar.png",
     "avatars/Kai_New_Avatar.jpg",
     "avatars/Kai2_avatar.jpg",
+    "avatars/MadGod.jpg",
 ):
     index = index.replace(old_avatar, "avatars/SRU_AVATAR.jpg")
 
@@ -126,18 +123,19 @@ for old_avatar in (
     'avatarRef = "avatars/kai_avatar.png"',
     'avatarRef = "avatars/Kai_New_Avatar.jpg"',
     'avatarRef = "avatars/Kai2_avatar.jpg"',
+    'avatarRef = "avatars/MadGod.jpg"',
 ):
     game_state = game_state.replace(old_avatar, 'avatarRef = "avatars/SRU_AVATAR.jpg"')
 if 'avatarRef = "avatars/SRU_AVATAR.jpg"' not in game_state:
     raise RuntimeError("SRU initial avatar anchor missing")
 GAME_STATE.write_text(game_state, encoding="utf-8")
 
-# Old saves may still contain one of the retired default Kai avatar refs. Upgrade only those defaults
-# at projection time; explicit special-form portraits such as avatars/MadGod.jpg remain untouched.
+# Old saves may still contain one of the retired Kai avatar refs. Upgrade those defaults and the
+# retired MadGod portrait to the supported SRU portrait at projection time.
 # Character Status + Equipment rewrites the projection constructor into a compact one-line form,
 # while older chains use the original multiline form. Accept either verified shape.
 projection = CHARACTER_PROJECTION.read_text(encoding="utf-8")
-avatar_expression = 'if (character.id == KAI_ID && (character.avatarRef.isNullOrBlank() || character.avatarRef == "avatars/kai_avatar.png" || character.avatarRef == "avatars/Kai_New_Avatar.jpg" || character.avatarRef == "avatars/Kai2_avatar.jpg")) "avatars/SRU_AVATAR.jpg" else character.avatarRef'
+avatar_expression = 'if (character.id == KAI_ID && (character.avatarRef.isNullOrBlank() || character.avatarRef == "avatars/kai_avatar.png" || character.avatarRef == "avatars/Kai_New_Avatar.jpg" || character.avatarRef == "avatars/Kai2_avatar.jpg" || character.avatarRef == "avatars/MadGod.jpg")) "avatars/SRU_AVATAR.jpg" else character.avatarRef'
 if avatar_expression not in projection:
     multiline_anchor = "      avatarRef = character.avatarRef,"
     compact_anchor = "      id = character.id, name = character.name, avatarRef = character.avatarRef, presence = character.presence,"
@@ -165,23 +163,17 @@ class KaiVisualPolicyTest {
     assertEquals("avatars/SRU_AVATAR.jpg", GameState.initial().characters.getValue(KAI_ID).avatarRef)
   }
 
-  @Test fun legacyDefaultKaiAvatarProjectsAsSruWithoutOverwritingSpecialForm() {
+  @Test fun retiredKaiAvatarsProjectAsSru() {
     val base = GameState.initial()
-    val legacy = base.copy(characters = base.characters + (
-      KAI_ID to base.characters.getValue(KAI_ID).copy(avatarRef = "avatars/Kai2_avatar.jpg")
-    ))
-    assertEquals(
-      "avatars/SRU_AVATAR.jpg",
-      CharacterDetailProjector.projectCharacter(legacy, KAI_ID)!!.avatarRef
-    )
-
-    val special = base.copy(characters = base.characters + (
-      KAI_ID to base.characters.getValue(KAI_ID).copy(avatarRef = "avatars/MadGod.jpg")
-    ))
-    assertEquals(
-      "avatars/MadGod.jpg",
-      CharacterDetailProjector.projectCharacter(special, KAI_ID)!!.avatarRef
-    )
+    for (retired in listOf("avatars/Kai2_avatar.jpg", "avatars/MadGod.jpg")) {
+      val legacy = base.copy(characters = base.characters + (
+        KAI_ID to base.characters.getValue(KAI_ID).copy(avatarRef = retired)
+      ))
+      assertEquals(
+        "avatars/SRU_AVATAR.jpg",
+        CharacterDetailProjector.projectCharacter(legacy, KAI_ID)!!.avatarRef
+      )
+    }
   }
 }
 ''', encoding="utf-8")
@@ -204,14 +196,14 @@ for marker in (
     "window.backroomEntityOverlay=function(payload)",
     "function activeEntityKey(){var c=state&&state.combat;if(!c||c.active!==true)return '';",
     'avatarRef = "avatars/SRU_AVATAR.jpg"',
-    "legacyDefaultKaiAvatarProjectsAsSruWithoutOverwritingSpecialForm",
+    "retiredKaiAvatarsProjectAsSru",
 ):
     if marker not in combined:
         raise RuntimeError("SRU Kai visual contract missing: " + marker)
 
 if final_main.count("Kai_new_overlay.png") != 1:
     raise RuntimeError("Kai_new_overlay.png must remain only as the single decode-fallback compatibility alias")
-if any(old in final_index for old in ("avatars/kai_avatar.png", "avatars/Kai_New_Avatar.jpg", "avatars/Kai2_avatar.jpg")):
+if any(old in final_index for old in ("avatars/kai_avatar.png", "avatars/Kai_New_Avatar.jpg", "avatars/Kai2_avatar.jpg", "avatars/MadGod.jpg")):
     raise RuntimeError("Retired Kai avatar fallback remains in finalized Character UI")
 if "Kai2_overlay.png" in final_main or "Kai2_Battle.png" in final_main or "Kai2_Battle2.png" in final_main:
     raise RuntimeError("Retired Kai2 overlay runtime reference remains in finalized MainActivity")
