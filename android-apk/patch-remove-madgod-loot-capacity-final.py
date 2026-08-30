@@ -612,3 +612,8 @@ print(
     "Final balance applied: MadGod gameplay retired and stale state purged; "
     "exploration/Entity loot +5 percentage points; inventory type slots +5 for every profile."
 )
+
+# Final layout authority: run after every historical responsive and combat-action
+# layer so fixed heights or ellipsis rules cannot reappear in the packaged APK.
+import runpy
+runpy.run_path(str(ROOT / "patch-compact-game-frame-final.py"), run_name="__main__")
