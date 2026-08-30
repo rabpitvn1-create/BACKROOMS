@@ -126,7 +126,7 @@ jobs:
       - name: Apply Android runtime patch chain
         run: |
           set -euo pipefail
-          scripts=(patch-provider-status.py patch-luna-text.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py)
+          scripts=(patch-provider-status.py patch-luna-text.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py patch-kai-devil-within-entity.py)
           for script in "${scripts[@]}"; do
             echo "==> $script"
             python3 "android-apk/$script"
@@ -162,6 +162,10 @@ jobs:
 
           required = [
               ("versionCode 84", gradle), ("versionName '1.2.9'", gradle),
+              ('KAI_DEVIL_WITHIN_MAX_HP = 5678', combat), ('KAI_DEVIL_WITHIN_STAT_PERCENT = 70', combat),
+              ('KAI_DEVIL_WITHIN_SPARDA_PROC_PERCENT = 20', combat), ('KAI_DEVIL_WITHIN_RED_ROSARY_ROUNDS = 13', combat),
+              ('KAI_DEVIL_WITHIN_DEAD_SILENCE_BLEED_TURNS = 3', combat), ('KAI_DEVIL_WITHIN_GUNSLINGER_DAMAGE_PERCENT = 5', combat),
+              ('KAI_DEVIL_WITHIN_REGEN_PERCENT = 5', combat), ('kai_the_devil_within', java), ('Kai-TheDevilWithin.png', java),
               ('id="searchActionButton"', html), ('id="exploreActionButton"', html), ('STEP2_THREE_ACTIONS', html),
               ('id="equipmentDetailModal"', html), ('window.renderCharacterStatusEquipment=render;', html),
               ('id="characterSkillsModal"', html), ("button.id='characterSkillsButton'", html), ('function openSkills()', html),
@@ -263,7 +267,7 @@ jobs:
               'hound.png','clump.png','duller.png','deathmoth.png','hostile_faceling.png','false_puddle.png','paintings.png',
               'smiler.png','skin-stealer.png','predatory_window.png','biological_pipeline.png','wretch.png','cable_mimic.png',
               'the_beast_of_level_5.png','hotel_corpse_lure.png','jeff_the_killer.png','jane_the_killer.png','slenderman.png','diep_minh.png',
-              'SCP173.png','Newviolet.png'
+              'SCP173.png','Newviolet.png','Kai-TheDevilWithin.png'
           ]
           for name in required_assets:
               p = entity_dir / name
@@ -322,6 +326,7 @@ jobs:
           test -s apk-check/assets/entity/SCP173.png
           test -s apk-check/assets/entity/John.png
           test -s apk-check/assets/entity/Newviolet.png
+          test -s apk-check/assets/entity/Kai-TheDevilWithin.png
           test -s apk-check/assets/Kai_new_overlay.png
           test -s apk-check/assets/BESTKAIV2.png
           ! unzip -l "$APK" | grep -q 'assets/Kai_MadGod_snapshot_overlay.png'
