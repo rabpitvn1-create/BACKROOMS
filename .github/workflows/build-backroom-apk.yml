@@ -1,4 +1,4 @@
-name: Build Backroom 1.2.8 Debug
+name: Build Backroom 1.2.9 Debug
 
 on:
   workflow_dispatch:
@@ -14,7 +14,7 @@ on:
       - ".github/workflows/build-backroom-apk.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: build-backroom-apk-${{ github.ref }}
@@ -161,7 +161,7 @@ jobs:
           entity_dir = root / 'app/src/main/assets/entity'
 
           required = [
-              ("versionCode 83", gradle), ("versionName '1.2.8'", gradle),
+              ("versionCode 84", gradle), ("versionName '1.2.9'", gradle),
               ('id="searchActionButton"', html), ('id="exploreActionButton"', html), ('STEP2_THREE_ACTIONS', html),
               ('id="equipmentDetailModal"', html), ('window.renderCharacterStatusEquipment=render;', html),
               ('id="characterSkillsModal"', html), ("button.id='characterSkillsButton'", html), ('function openSkills()', html),
@@ -293,17 +293,17 @@ jobs:
         run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon --build-cache
 
       - name: Prepare debug APK
-        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.2.8-debug.apk
+        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.2.9-debug.apk
 
       - name: Verify packaged debug APK contracts
         run: |
           set -euo pipefail
-          APK=Backroom-1.2.8-debug.apk
+          APK=Backroom-1.2.9-debug.apk
           BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
           "$BUILD_TOOLS/apksigner" verify --verbose --print-certs "$APK"
           "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "package: name='com.rabpit.backroom'"
-          "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionCode='83'"
-          "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionName='1.2.8'"
+          "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionCode='84'"
+          "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionName='1.2.9'"
           "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
           "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 "$APK"
           rm -rf apk-check && mkdir apk-check
@@ -333,7 +333,17 @@ jobs:
       - name: Upload debug APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Backroom-1.2.8-debug-apk
-          path: Backroom-1.2.8-debug.apk
+          name: Backroom-1.2.9-debug-apk
+          path: Backroom-1.2.9-debug.apk
           if-no-files-found: error
           retention-days: 14
+
+      - name: Publish GitHub Release v1.2.9
+        if: github.event_name == 'push' && github.event.head_commit.message == 'Release v1.2.9'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create v1.2.9 Backroom-1.2.9-debug.apk \
+            --title "Backroom 1.2.9 Debug" \
+            --notes-file android-apk/RELEASE_NOTES_1.2.9.md \
+            --target "${{ github.sha }}"
