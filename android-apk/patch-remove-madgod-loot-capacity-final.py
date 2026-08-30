@@ -312,6 +312,35 @@ index = index.replace("function madGodSetEquipped(){try{const e=state&&state.equ
 index = index.replace("madGodSetEquipped()", "false")
 INDEX.write_text(index, encoding="utf-8")
 
+# Every Entity overlay shares this renderer, so add one ground-contact shadow
+# here instead of modifying dozens of PNG assets. The shadow is recreated with
+# the overlay and remains behind the Entity while staying inside Snapshot.
+entity_renderer_start = (
+    "function appendEntityOverlay(){var box=document.getElementById('snapshot');if(!box)return;"
+    "box.style.position='relative';box.style.overflow='hidden';"
+    "var old=box.querySelector('.snapshot-entity');if(old)old.remove();"
+)
+entity_renderer_shadow = (
+    "function appendEntityOverlay(){var box=document.getElementById('snapshot');if(!box)return;"
+    "box.style.position='relative';box.style.overflow='hidden';"
+    "box.querySelectorAll('.snapshot-entity,.snapshot-entity-shadow').forEach(function(node){node.remove()});"
+)
+if entity_renderer_shadow not in main:
+    main = replace_once(main, entity_renderer_start, entity_renderer_shadow, "Entity ground shadow cleanup")
+
+entity_image_anchor = "var img=document.createElement('img');img.className='snapshot-entity';"
+entity_shadow_and_image = (
+    "var shadow=document.createElement('span');shadow.className='snapshot-entity-shadow';"
+    "shadow.setAttribute('aria-hidden','true');"
+    "shadow.style.cssText='position:absolute;left:2%;bottom:1%;width:48%;height:10%;"
+    "border-radius:50%;background:radial-gradient(ellipse,rgba(0,0,0,.78) 0%,rgba(0,0,0,.48) 48%,"
+    "rgba(0,0,0,0) 78%);filter:blur(5px);pointer-events:none;z-index:1';box.appendChild(shadow);"
+    + entity_image_anchor
+)
+if entity_shadow_and_image not in main:
+    main = replace_once(main, entity_image_anchor, entity_shadow_and_image, "Entity ground shadow element")
+MAIN.write_text(main, encoding="utf-8")
+
 # Historical dedicated regression file no longer describes a supported feature.
 legacy_test = TESTS / "MadGodEquipmentTest.kt"
 if legacy_test.exists():
@@ -534,6 +563,16 @@ final_main = MAIN.read_text(encoding="utf-8")
 final_index = INDEX.read_text(encoding="utf-8")
 final_items = ITEMS.read_text(encoding="utf-8")
 final_item_system = ITEM_SYSTEM.read_text(encoding="utf-8")
+
+for marker in (
+    "snapshot-entity-shadow",
+    "querySelectorAll('.snapshot-entity,.snapshot-entity-shadow')",
+    "background:radial-gradient(ellipse,rgba(0,0,0,.78)",
+    "filter:blur(5px)",
+    "box.appendChild(shadow)",
+):
+    if marker not in final_main:
+        raise RuntimeError("Entity ground shadow contract missing: " + marker)
 
 for marker in (
     'private const val SCHEMA_VERSION = "2"',
