@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parent
 CORE = ROOT / "app/src/main/java/com/rabpit/backroom/core"
@@ -17,32 +18,53 @@ def replace_once(source: str, old: str, new: str, label: str) -> str:
     return source.replace(old, new, 1)
 
 
+def replace_block(source: str, pattern: str, replacement: str, marker: str, label: str) -> str:
+    if marker in source:
+        return source
+    updated, count = re.subn(pattern, replacement, source, count=1, flags=re.DOTALL)
+    if count != 1:
+        raise RuntimeError(f"{label}: expected exactly 1 structural block, found {count}")
+    return updated
+
+
 # ---------------------------------------------------------------------------
-# Issue #124: item commands must distinguish the acting character from the
-# recipient. A recipient name after "cho/sang" must never silently become the
-# source actor. Character IDs and unambiguous first names are valid aliases so
-# Lucia can be addressed naturally even when her display name contains a nick.
+# Issue #124 / extensible character item actions.
+#
+# Character resolution is derived from GameState. New characters do not need a
+# new resolver branch: unique ID, full display name, unique first name and
+# metadata["aliases"] all become aliases automatically. Ambiguous aliases fail
+# closed instead of silently selecting whichever character happened to be
+# inserted first.
 # ---------------------------------------------------------------------------
 intent = INTENT.read_text(encoding="utf-8")
-old_resolvers = r'''class DefaultActorResolver : ActorResolver {
-  override fun resolve(clause: String, context: GameContext): String? =
-    context.actorAliases.entries.firstOrNull { clause.contains(it.key, true) }?.value ?: KAI_ID
-}
+new_resolvers = r'''private data class ResolverAlias(val text: String, val ids: Set<String>)
 
-class DefaultTargetResolver : TargetResolver {
-  override fun resolve(clause: String, context: GameContext): String? = context.actorAliases.entries
-    .firstOrNull { it.value != KAI_ID && Regex("\\b${Regex.escape(it.key)}\\b", RegexOption.IGNORE_CASE).containsMatchIn(clause) }?.value
-}
-'''
-new_resolvers = r'''private fun resolverCharacterAliases(context: GameContext): List<Pair<String, String>> {
-  val aliases = linkedMapOf<String, String>()
-  context.actorAliases.forEach { (alias, id) -> if (alias.isNotBlank()) aliases.putIfAbsent(alias.trim().lowercase(), id) }
-  context.state.characters.forEach { (id, character) ->
-    if (id.isNotBlank()) aliases.putIfAbsent(id.trim().lowercase(), id)
-    val firstName = character.name.trim().substringBefore(' ').trim('"', '\'', '“', '”').lowercase()
-    if (firstName.length >= 4) aliases.putIfAbsent(firstName, id)
+private fun resolverCharacterAliases(context: GameContext): List<ResolverAlias> {
+  val candidates = linkedMapOf<String, MutableSet<String>>()
+
+  fun register(raw: String, id: String) {
+    if (id !in context.state.characters) return
+    val alias = raw.trim().lowercase().replace(Regex("\\s+"), " ")
+    if (alias.isBlank()) return
+    candidates.getOrPut(alias) { linkedSetOf() }.add(id)
   }
-  return aliases.entries.map { it.key to it.value }.sortedByDescending { it.first.length }
+
+  context.state.characters.forEach { (id, character) ->
+    register(id, id)
+    register(character.name, id)
+    val firstName = character.name.trim().substringBefore(' ').lowercase()
+    if (firstName.length >= 3) register(firstName, id)
+    character.metadata["aliases"].orEmpty()
+      .split(',', ';', '|')
+      .map(String::trim)
+      .filter(String::isNotBlank)
+      .forEach { register(it, id) }
+  }
+  context.actorAliases.forEach { (alias, id) -> register(alias, id) }
+
+  return candidates.entries
+    .map { (alias, ids) -> ResolverAlias(alias, ids.toSet()) }
+    .sortedByDescending { it.text.length }
 }
 
 private fun resolverAliasRegex(alias: String): Regex = Regex(
@@ -50,11 +72,13 @@ private fun resolverAliasRegex(alias: String): Regex = Regex(
   RegexOption.IGNORE_CASE
 )
 
-private data class ResolverMention(val start: Int, val end: Int, val id: String)
+private data class ResolverMention(val start: Int, val end: Int, val ids: Set<String>)
 
 private fun resolverMentions(clause: String, context: GameContext): List<ResolverMention> =
-  resolverCharacterAliases(context).mapNotNull { (alias, id) ->
-    resolverAliasRegex(alias).find(clause)?.let { ResolverMention(it.range.first, it.range.last, id) }
+  resolverCharacterAliases(context).mapNotNull { alias ->
+    resolverAliasRegex(alias.text).find(clause)?.let {
+      ResolverMention(it.range.first, it.range.last, alias.ids)
+    }
   }.sortedWith(compareBy<ResolverMention> { it.start }.thenByDescending { it.end - it.start })
 
 class DefaultActorResolver : ActorResolver {
@@ -68,13 +92,17 @@ class DefaultActorResolver : ActorResolver {
     val mentions = resolverMentions(clause, context)
     val action = actionVerb.find(clause)
     if (action != null) {
-      // The actor is the nearest explicit character before the action verb.
-      mentions.filter { it.end < action.range.first }.maxByOrNull { it.end }?.let { return it.id }
-      // "đưa băng gạc cho Lucia" is a first-person player command: Kai is the
-      // source and Lucia is the recipient, not both source and target.
+      val actorMention = mentions
+        .filter { it.end < action.range.first }
+        .maxWithOrNull(compareBy<ResolverMention> { it.end }.thenBy { it.start })
+      if (actorMention != null) return actorMention.ids.singleOrNull()
+
+      // First-person transfer commands without an explicit source belong to Kai.
       if (transferVerb.containsMatchIn(action.value)) return KAI_ID
     }
-    return mentions.firstOrNull()?.id ?: KAI_ID
+
+    val firstMention = mentions.firstOrNull() ?: return KAI_ID
+    return firstMention.ids.singleOrNull()
   }
 }
 
@@ -84,42 +112,53 @@ class DefaultTargetResolver : TargetResolver {
   override fun resolve(clause: String, context: GameContext): String? {
     val aliases = resolverCharacterAliases(context)
 
-    // Explicit recipient syntax has highest authority and can target Kai too,
-    // allowing transfers in both directions between Party characters.
-    val recipient = aliases.mapNotNull { (alias, id) ->
-      val regex = Regex("(?:cho|sang)\\s+${Regex.escape(alias)}(?![\\p{L}\\p{N}_])", RegexOption.IGNORE_CASE)
-      regex.find(clause)?.let { Triple(it.range.first, alias.length, id) }
-    }.minWithOrNull(compareBy<Triple<Int, Int, String>> { it.first }.thenByDescending { it.second })
-    if (recipient != null) return recipient.third
+    // Explicit "cho/sang <character>" recipient syntax has highest authority.
+    // If that alias belongs to more than one character, resolution fails closed.
+    val recipient = aliases.mapNotNull { alias ->
+      val regex = Regex(
+        "(?:cho|sang)\\s+${Regex.escape(alias.text)}(?![\\p{L}\\p{N}_])",
+        RegexOption.IGNORE_CASE
+      )
+      regex.find(clause)?.let { Triple(it.range.first, alias.text.length, alias) }
+    }.minWithOrNull(
+      compareBy<Triple<Int, Int, ResolverAlias>> { it.first }.thenByDescending { it.second }
+    )
+    if (recipient != null) return recipient.third.ids.singleOrNull()
 
     val transfer = transferVerb.find(clause)
     if (transfer != null) {
-      // Legacy "Kai đưa Iris hai chai nước" has no "cho". The first character
-      // after the transfer verb is the recipient; a source named before it is
-      // therefore never selected as the target.
+      // Also support "Kai đưa Iris hai chai nước" without a "cho" connector.
       return resolverMentions(clause, context)
         .filter { it.start > transfer.range.last }
-        .minByOrNull { it.start }
-        ?.id
+        .minWithOrNull(compareBy<ResolverMention> { it.start }.thenByDescending { it.end - it.start })
+        ?.ids
+        ?.singleOrNull()
     }
 
-    // Preserve the established non-transfer target behavior.
-    return resolverMentions(clause, context).firstOrNull { it.id != KAI_ID }?.id
+    return resolverMentions(clause, context)
+      .firstOrNull { mention -> mention.ids.singleOrNull()?.let { it != KAI_ID } == true }
+      ?.ids
+      ?.singleOrNull()
   }
 }
 '''
-intent = replace_once(intent, old_resolvers, new_resolvers, "Issue 124 actor/recipient resolution")
+intent = replace_block(
+    intent,
+    r'class DefaultActorResolver : ActorResolver \{.*?\n\}\n\nclass DefaultTargetResolver : TargetResolver \{.*?\n\}\n\n(?=class DefaultQuantityResolver)',
+    new_resolvers + "\n\n",
+    "private data class ResolverAlias",
+    "Issue 124 generic actor/recipient resolver",
+)
 
-# Canonical Vietnamese aliases for the official item pool. The UI descriptions
-# are Vietnamese, so deterministic commands must accept the same vocabulary.
-item_anchor = 'class DefaultItemResolver : ItemResolver {\n  private val pronoun = Regex("\\\\b(?:nó|vật đó|cái đó|món đó|thứ đó)\\\\b", RegexOption.IGNORE_CASE)\n'
-item_new = '''class DefaultItemResolver : ItemResolver {
-  private val officialVietnameseAliases = linkedMapOf(
+# Canonical Vietnamese aliases for the current official item pool. Future
+# characters remain fully data-driven; this map only translates item vocabulary.
+official_aliases = r'''  private val officialVietnameseAliases = linkedMapOf(
     "đèn pin" to ItemCatalog.FLASHLIGHT,
     "bật lửa" to ItemCatalog.LIGHTER,
     "nước hạnh nhân" to ItemCatalog.ALMOND_WATER,
     "thực phẩm đóng hộp" to ItemCatalog.CANNED_FOOD,
     "đồ hộp" to ItemCatalog.CANNED_FOOD,
+    "pin" to ItemCatalog.BATTERY,
     "nhiên liệu bật lửa" to ItemCatalog.LIGHTER_FUEL,
     "băng gạc" to ItemCatalog.BANDAGE,
     "thuốc sát trùng" to ItemCatalog.ANTISEPTIC,
@@ -127,32 +166,38 @@ item_new = '''class DefaultItemResolver : ItemResolver {
     "cá mòi ba cô gái" to ItemCatalog.SARDINES,
     "nước suối la vie" to ItemCatalog.LA_VIE
   )
-  private val pronoun = Regex("\\b(?:nó|vật đó|cái đó|món đó|thứ đó)\\b", RegexOption.IGNORE_CASE)
 '''
-# Use a less escape-sensitive anchor fallback because this source is Kotlin text.
 if "officialVietnameseAliases" not in intent:
-    simple_anchor = '''class DefaultItemResolver : ItemResolver {
-  private val pronoun = Regex("\\b(?:nó|vật đó|cái đó|món đó|thứ đó)\\b", RegexOption.IGNORE_CASE)
-'''
-    intent = replace_once(intent, simple_anchor, item_new, "Issue 124 official Vietnamese item aliases")
+    class_anchor = "class DefaultItemResolver : ItemResolver {\n"
+    intent = replace_once(
+        intent,
+        class_anchor,
+        class_anchor + official_aliases,
+        "Issue 124 official Vietnamese item aliases",
+    )
 
-resolve_anchor = '''    val sourceClause = clause.replace(resultTail, " ")
-    context.itemAliases.entries.firstOrNull { sourceClause.contains(it.key, true) }?.let { return it.value to it.key }
+alias_lookup = r'''    officialVietnameseAliases.entries
+      .firstOrNull { (alias, _) -> resolverAliasRegex(alias).containsMatchIn(sourceClause) }
+      ?.let { (alias, id) -> return id to (ItemCatalog.find(id)?.name ?: alias) }
 '''
-resolve_new = '''    val sourceClause = clause.replace(resultTail, " ")
-    officialVietnameseAliases.entries.firstOrNull { (alias, _) -> resolverAliasRegex(alias).containsMatchIn(sourceClause) }?.let { (alias, id) ->
-      return id to (ItemCatalog.find(id)?.name ?: alias)
-    }
-    context.itemAliases.entries.firstOrNull { sourceClause.contains(it.key, true) }?.let { return it.value to it.key }
-'''
-intent = replace_once(intent, resolve_anchor, resolve_new, "Issue 124 localized official item resolution")
+if "officialVietnameseAliases.entries" not in intent:
+    source_anchor = '    val sourceClause = clause.replace(resultTail, " ")\n'
+    intent = replace_once(
+        intent,
+        source_anchor,
+        source_anchor + alias_lookup,
+        "Issue 124 localized official item resolution",
+    )
+
 INTENT.write_text(intent, encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
-# Official item effects currently hard-code Kai. Route healing, Bleeding
-# treatment, Infection and Pain reduction through the ItemCommand actor instead.
-# Recharge already follows InventoryState.ownerId and needs no special case.
+# Item effects are actor-owned.
+#
+# Inventory transfer was already owner/target based, but official consumable
+# effects still hard-coded Kai. Route HP, bleeding, infection and pain through
+# command.actorId so every present/future CharacterState uses the same engine.
 # ---------------------------------------------------------------------------
 engines = ENGINES.read_text(encoding="utf-8")
 engines = replace_once(
@@ -255,9 +300,10 @@ ENGINES.write_text(engines, encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
-# Regression: natural Vietnamese commands resolve source/recipient correctly;
-# Kai can hand Bandage to Lucia; Lucia consumes her own Bandage, heals herself,
-# and Kai's HP is untouched. Zero-HP companions cannot be revived by consumables.
+# Regression coverage deliberately uses synthetic future characters. Lucia is
+# retained as the original bug reproduction, while Mika/Reina prove that adding
+# a CharacterState plus metadata aliases is enough; no resolver code branch is
+# required. Duplicate aliases must resolve to nothing instead of the wrong NPC.
 # ---------------------------------------------------------------------------
 TEST.write_text(r'''package com.rabpit.backroom.core
 
@@ -265,21 +311,42 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class CharacterItemTransferUseTest {
-  private fun partyState(): GameState {
-    var state = LuciaCanon.ensure(GameState.initial())
+  private fun luciaPartyState(): GameState {
+    val state = LuciaCanon.ensure(GameState.initial())
     return state.copy(party = state.party.copy(memberIds = (state.party.memberIds + LUCIA_ID).distinct()))
   }
 
-  private fun commandContext(state: GameState) = GameContext(
+  private fun genericPartyState(): GameState {
+    val initial = GameState.initial()
+    val mikaId = "future:mika"
+    val reinaId = "future:reina"
+    val mika = CharacterState(
+      mikaId,
+      "Mika Sol",
+      metadata = mapOf("aliases" to "mika,mika sol,msol", "inventoryProfile" to "normal")
+    )
+    val reina = CharacterState(
+      reinaId,
+      "Reina Kuroha",
+      metadata = mapOf("aliases" to "reina,reina kuroha,kuroha", "inventoryProfile" to "normal")
+    )
+    return initial.copy(
+      characters = initial.characters + (mikaId to mika) + (reinaId to reina),
+      inventories = initial.inventories + (mikaId to InventoryState(mikaId)) + (reinaId to InventoryState(reinaId)),
+      party = initial.party.copy(memberIds = listOf(KAI_ID, mikaId, reinaId))
+    )
+  }
+
+  private fun context(state: GameState) = GameContext(
     state = state,
-    actorAliases = mapOf("kai" to KAI_ID, "lucia" to LUCIA_ID),
+    actorAliases = mapOf("kai" to KAI_ID),
     itemAliases = mapOf("bandage" to ItemCatalog.BANDAGE)
   )
 
-  private fun grantBandageTo(state: GameState, ownerId: String): GameState {
-    val item = ItemCatalog.find(ItemCatalog.BANDAGE)!!
+  private fun grant(state: GameState, ownerId: String, itemId: String): GameState {
+    val item = ItemCatalog.find(itemId)!!
     val result = InventoryEngine.execute(state, ItemCommand(
-      commandId = "grant-bandage-$ownerId",
+      commandId = "grant-$ownerId-$itemId",
       turnId = null,
       actorId = ownerId,
       source = CommandSource.SYSTEM,
@@ -293,12 +360,18 @@ class CharacterItemTransferUseTest {
     return result.state
   }
 
-  @Test fun transferRecipientDoesNotBecomeSourceActor() {
-    val state = partyState()
+  @Test fun originalLuciaTransferAndUseCommandsResolveCorrectly() {
+    val state = luciaPartyState()
     val resolver = CommandResolver()
+    val localContext = GameContext(
+      state = state,
+      actorAliases = mapOf("kai" to KAI_ID, "lucia" to LUCIA_ID),
+      itemAliases = mapOf("bandage" to ItemCatalog.BANDAGE)
+    )
+
     val transfer = resolver.resolve(
       IntentCandidate("đưa băng gạc cho Lucia", GameIntent.TRANSFER_ITEM, IntentConfidence.HIGH, .99f, CommandSource.RULE),
-      0, "TURN_1", commandContext(state)
+      0, "TURN_1", localContext
     ) as ItemCommand
     assertEquals(KAI_ID, transfer.actorId)
     assertEquals(LUCIA_ID, transfer.targetId)
@@ -306,74 +379,138 @@ class CharacterItemTransferUseTest {
 
     val use = resolver.resolve(
       IntentCandidate("Lucia dùng băng gạc", GameIntent.USE_ITEM, IntentConfidence.HIGH, .99f, CommandSource.RULE),
-      0, "TURN_1", commandContext(state)
+      0, "TURN_1", localContext
     ) as ItemCommand
     assertEquals(LUCIA_ID, use.actorId)
     assertEquals(ItemCatalog.BANDAGE, use.itemId)
 
     val reverse = resolver.resolve(
       IntentCandidate("Lucia đưa băng gạc cho Kai", GameIntent.TRANSFER_ITEM, IntentConfidence.HIGH, .99f, CommandSource.RULE),
-      0, "TURN_1", commandContext(state)
+      0, "TURN_1", localContext
     ) as ItemCommand
     assertEquals(LUCIA_ID, reverse.actorId)
     assertEquals(KAI_ID, reverse.targetId)
   }
 
-  @Test fun kaiCanTransferBandageAndLuciaCanUseItOnHerself() {
-    var state = grantBandageTo(partyState(), KAI_ID)
+  @Test fun futureCharactersResolveFromStateAndMetadataWithoutBranches() {
+    val state = genericPartyState()
+    val resolver = CommandResolver()
+
+    val transfer = resolver.resolve(
+      IntentCandidate("Mika đưa băng gạc cho Kuroha", GameIntent.TRANSFER_ITEM, IntentConfidence.HIGH, .99f, CommandSource.RULE),
+      0, "TURN_1", context(state)
+    ) as ItemCommand
+    assertEquals("future:mika", transfer.actorId)
+    assertEquals("future:reina", transfer.targetId)
+    assertEquals(ItemCatalog.BANDAGE, transfer.itemId)
+
+    val use = resolver.resolve(
+      IntentCandidate("msol dùng băng gạc", GameIntent.USE_ITEM, IntentConfidence.HIGH, .99f, CommandSource.RULE),
+      0, "TURN_1", context(state)
+    ) as ItemCommand
+    assertEquals("future:mika", use.actorId)
+  }
+
+  @Test fun ambiguousCharacterAliasFailsClosed() {
+    val initial = genericPartyState()
+    val alexOne = CharacterState("future:alex-1", "Alex One", metadata = mapOf("aliases" to "alex"))
+    val alexTwo = CharacterState("future:alex-2", "Alex Two", metadata = mapOf("aliases" to "alex"))
+    val state = initial.copy(
+      characters = initial.characters + (alexOne.id to alexOne) + (alexTwo.id to alexTwo),
+      inventories = initial.inventories + (alexOne.id to InventoryState(alexOne.id)) + (alexTwo.id to InventoryState(alexTwo.id))
+    )
+    val resolved = CommandResolver().resolve(
+      IntentCandidate("Alex dùng băng gạc", GameIntent.USE_ITEM, IntentConfidence.HIGH, .99f, CommandSource.RULE),
+      0, "TURN_1", context(state)
+    )
+    assertNull(resolved)
+  }
+
+  @Test fun genericCharactersCanTransferAndUseHealingItems() {
+    val mikaId = "future:mika"
+    val reinaId = "future:reina"
+    var state = grant(genericPartyState(), mikaId, ItemCatalog.BANDAGE)
+
     val transfer = InventoryEngine.execute(state, ItemCommand(
-      commandId = "kai-to-lucia-bandage", turnId = null, actorId = KAI_ID, targetId = LUCIA_ID,
+      commandId = "mika-to-reina-bandage", turnId = null, actorId = mikaId, targetId = reinaId,
       source = CommandSource.RULE, operation = ItemCommand.Operation.TRANSFER,
       itemId = ItemCatalog.BANDAGE, itemName = "Bandage", quantity = 1
     ))
     assertTrue(transfer.validation.reason.orEmpty(), transfer.applied)
-    assertFalse(transfer.state.inventories.getValue(KAI_ID).items.containsKey(ItemCatalog.BANDAGE))
-    assertEquals(1, transfer.state.inventories.getValue(LUCIA_ID).items.getValue(ItemCatalog.BANDAGE).quantity)
+    assertFalse(transfer.state.inventories.getValue(mikaId).items.containsKey(ItemCatalog.BANDAGE))
+    assertEquals(1, transfer.state.inventories.getValue(reinaId).items.getValue(ItemCatalog.BANDAGE).quantity)
 
-    state = CharacterStatEngine.setCurrentHp(transfer.state, LUCIA_ID, 50)
+    state = CharacterStatEngine.setCurrentHp(transfer.state, reinaId, 50)
     val kaiHpBefore = state.characters.getValue(KAI_ID).vitalState.currentHp
     val used = InventoryEngine.execute(state, ItemCommand(
-      commandId = "lucia-use-bandage", turnId = null, actorId = LUCIA_ID,
+      commandId = "reina-use-bandage", turnId = null, actorId = reinaId,
       source = CommandSource.RULE, operation = ItemCommand.Operation.USE,
       itemId = ItemCatalog.BANDAGE, itemName = "Bandage", quantity = 1
     ))
     assertTrue(used.validation.reason.orEmpty(), used.applied)
-    assertEquals(65, used.state.characters.getValue(LUCIA_ID).vitalState.currentHp)
+    assertEquals(65, used.state.characters.getValue(reinaId).vitalState.currentHp)
     assertEquals(kaiHpBefore, used.state.characters.getValue(KAI_ID).vitalState.currentHp)
-    assertFalse(used.state.inventories.getValue(LUCIA_ID).items.containsKey(ItemCatalog.BANDAGE))
+    assertFalse(used.state.inventories.getValue(reinaId).items.containsKey(ItemCatalog.BANDAGE))
   }
 
-  @Test fun companionAtZeroHpCannotConsumeHealingItem() {
-    var state = grantBandageTo(partyState(), LUCIA_ID)
-    state = CharacterStatEngine.setCurrentHp(state, LUCIA_ID, 0)
+  @Test fun genericCharacterFoodUseUpdatesOnlyItsPhysiology() {
+    val reinaId = "future:reina"
+    var state = genericPartyState()
+    val reina = state.characters.getValue(reinaId)
+    state = state.copy(characters = state.characters + (reinaId to reina.copy(
+      physiology = reina.physiology.copy(minutesSinceFood = 180L)
+    )))
+    state = grant(state, reinaId, ItemCatalog.CANNED_FOOD)
+
     val used = InventoryEngine.execute(state, ItemCommand(
-      commandId = "lucia-zero-bandage", turnId = null, actorId = LUCIA_ID,
+      commandId = "reina-eat", turnId = null, actorId = reinaId,
+      source = CommandSource.RULE, operation = ItemCommand.Operation.USE,
+      itemId = ItemCatalog.CANNED_FOOD, itemName = "Canned Food", quantity = 1
+    ))
+    assertTrue(used.validation.reason.orEmpty(), used.applied)
+    assertEquals(0L, used.state.characters.getValue(reinaId).physiology.minutesSinceFood)
+  }
+
+  @Test fun zeroHpFutureCharacterCannotConsumeHealingItem() {
+    val reinaId = "future:reina"
+    var state = grant(genericPartyState(), reinaId, ItemCatalog.BANDAGE)
+    state = CharacterStatEngine.setCurrentHp(state, reinaId, 0)
+    val used = InventoryEngine.execute(state, ItemCommand(
+      commandId = "reina-zero-bandage", turnId = null, actorId = reinaId,
       source = CommandSource.RULE, operation = ItemCommand.Operation.USE,
       itemId = ItemCatalog.BANDAGE, itemName = "Bandage", quantity = 1
     ))
     assertFalse(used.applied)
     assertEquals("healing_target_defeated", used.validation.reason)
-    assertEquals(1, used.state.inventories.getValue(LUCIA_ID).items.getValue(ItemCatalog.BANDAGE).quantity)
+    assertEquals(1, used.state.inventories.getValue(reinaId).items.getValue(ItemCatalog.BANDAGE).quantity)
   }
 }
 ''', encoding="utf-8")
 
-combined = INTENT.read_text(encoding="utf-8") + "\n" + ENGINES.read_text(encoding="utf-8") + "\n" + TEST.read_text(encoding="utf-8")
+combined = (
+    INTENT.read_text(encoding="utf-8") + "\n" +
+    ENGINES.read_text(encoding="utf-8") + "\n" +
+    TEST.read_text(encoding="utf-8")
+)
 for marker in (
-    "resolverCharacterAliases(context: GameContext)",
+    'character.metadata["aliases"]',
+    "private data class ResolverAlias",
+    "ids.singleOrNull()",
     "officialVietnameseAliases",
     '"băng gạc" to ItemCatalog.BANDAGE',
     "OfficialItemEffects.apply(state, command.actorId, source, owned)",
     "heal(state: GameState, actorId: String, amount: Int)",
     "treatLightBleeding(state: GameState, actorId: String)",
     "reduceCondition(state: GameState, actorId: String, infection: Boolean)",
-    "class CharacterItemTransferUseTest",
-    "kaiCanTransferBandageAndLuciaCanUseItOnHerself",
+    "futureCharactersResolveFromStateAndMetadataWithoutBranches",
+    "ambiguousCharacterAliasFailsClosed",
+    "genericCharactersCanTransferAndUseHealingItems",
+    "genericCharacterFoodUseUpdatesOnlyItsPhysiology",
 ):
     if marker not in combined:
-        raise RuntimeError("Issue #124 item transfer/use contract missing: " + marker)
+        raise RuntimeError("Issue #124 extensible character item contract missing: " + marker)
 
-if "state.characters[KAI_ID] ?: return invalid(state, \"actor_unknown\")" in ENGINES.read_text(encoding="utf-8"):
-    raise RuntimeError("Issue #124: official healing guard still hard-codes Kai")
-
-print("Issue #124 applied: character-to-character item transfer and actor-owned consumable use are authoritative.")
+print(
+    "Issue #124 finalized: item transfer/use is generic across CharacterState, "
+    "metadata aliases are data-driven, ambiguous names fail closed, and item effects follow actorId."
+)
