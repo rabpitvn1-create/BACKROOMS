@@ -31,7 +31,7 @@ scp_finalize = (root / 'patch-scp-173-compat-finalize.py').read_text(encoding='u
 entity_dir = root / 'app/src/main/assets/entity'
 
 required = [
-    ("versionCode 88", gradle), ("versionName '1.3.3'", gradle),
+    ("versionCode 89", gradle), ("versionName '1.3.4'", gradle),
     ('devilBlessingEvasionBonus', combat), ('fun partyBlessing(value: Int)', equipment_system),
     ('return maxOf(1, (base * 5 + 99) / 100)', equipment_system),
     ('KAI_DEVIL_WITHIN_MAX_HP = 5678', combat), ('KAI_DEVIL_WITHIN_STAT_PERCENT = 70', combat),
