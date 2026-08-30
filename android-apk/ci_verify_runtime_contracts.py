@@ -9,6 +9,9 @@ facade = (core / 'GameCoreFacade.kt').read_text(encoding='utf-8')
 gradle = (root / 'app/build.gradle').read_text(encoding='utf-8')
 madgod = (core / 'MadGodCanon.kt').read_text(encoding='utf-8')
 engines = (core / 'Engines.kt').read_text(encoding='utf-8')
+intent = (core / 'IntentPipeline.kt').read_text(encoding='utf-8')
+world_ledger = (core / 'WorldItemLedger.kt').read_text(encoding='utf-8')
+knowledge_context = (core / 'knowledge/KnowledgeContextEngine.kt').read_text(encoding='utf-8')
 equipment_system = (core / 'CharacterEquipmentSystem.kt').read_text(encoding='utf-8')
 item_catalog = (core / 'ItemCatalog.kt').read_text(encoding='utf-8')
 item_system = (core / 'ItemSystem.kt').read_text(encoding='utf-8')
@@ -20,6 +23,8 @@ skill_catalog = (core / 'CompanionSkillCatalog.kt').read_text(encoding='utf-8')
 detail_json = (core / 'CharacterDetailJson.kt').read_text(encoding='utf-8')
 an_nhien = (core / 'AnNhienCanon.kt').read_text(encoding='utf-8')
 skill_tests = (tests / 'CompanionSkillCatalogTest.kt').read_text(encoding='utf-8')
+item_interaction_tests = (tests / 'ItemInteractionCoherenceTest.kt').read_text(encoding='utf-8')
+runtime_chain = (root / 'ci_apply_runtime_patches.py').read_text(encoding='utf-8')
 chain = (root / 'patch-inventory-capacity-final-fix.py').read_text(encoding='utf-8')
 scp_finalize = (root / 'patch-scp-173-compat-finalize.py').read_text(encoding='utf-8')
 entity_dir = root / 'app/src/main/assets/entity'
@@ -102,6 +107,18 @@ required = [
     ('20% mỗi 2 combat turn hợp lệ khi Party chọn TẤN CÔNG', skill_catalog),
     ('runpy.run_path(str(ROOT / "patch-v1-1-69-balance.py"), run_name="__main__")', scp_finalize),
     ('runpy.run_path(str(ROOT / "patch-linear-sublevel-progression.py"), run_name="__main__")', scp_finalize),
+    ('"patch-item-interaction-coherence.py"', runtime_chain),
+    ('fun reconcileNarrative(', world_ledger),
+    ('reconcileNarratedWorldItems(candidateState, reply);', java),
+    ('worldItemNames().concat(ownedItemNames())', html),
+    ('item.available===false', html),
+    ('withoutCharacterAliases', intent),
+    ('recipientAfterVerb', intent),
+    ('OfficialItemEffects.apply(state, beneficiaryId', engines),
+    ('out.put("partyVitals", vitals)', knowledge_context),
+    ('class ItemInteractionCoherenceTest', item_interaction_tests),
+    ('"Đưa cho Lucia"', item_interaction_tests),
+    ('"Dùng băng gạc cho Lucia"', item_interaction_tests),
 ]
 for marker, source in required:
     assert marker in source, marker
