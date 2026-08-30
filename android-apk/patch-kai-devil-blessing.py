@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parent
 STATS = ROOT / "app/src/main/java/com/rabpit/backroom/core/CharacterEquipmentSystem.kt"
@@ -96,9 +97,14 @@ COMBAT.write_text(combat, encoding="utf-8")
 
 # The passive remains runtime-authoritative but has no SkillCatalog row and therefore no UI entry.
 catalog = CATALOG.read_text(encoding="utf-8")
-skill_row = '    s("Devil Blessing", "PASSIVE", "Khi đồng đội ACTIVE chiến đấu cùng Kai", "+10% DMG và +10% Max HP cho đồng đội; không áp dụng lên Kai.", "Chỉ hoạt động trong combat có Kai."),\n'
-catalog = once(catalog, skill_row, "", "hide Devil Blessing")
-if 's("Devil Blessing"' in catalog or 's("DEVIL BLESSING"' in catalog:
+skill_pattern = re.compile(
+    r'^[ \\t]+s\\("(?:Devil Blessing|DEVIL BLESSING)",[^\\n]*\\),\\n',
+    re.MULTILINE,
+)
+catalog, hidden_count = skill_pattern.subn("", catalog)
+if hidden_count != 1:
+    raise RuntimeError(f"hide Devil Blessing: expected one skill row, found {hidden_count}")
+if skill_pattern.search(catalog):
     raise RuntimeError("DEVIL BLESSING must stay hidden from the skill table")
 CATALOG.write_text(catalog, encoding="utf-8")
 
