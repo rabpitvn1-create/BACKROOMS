@@ -5,10 +5,6 @@ ROOT = Path(__file__).resolve().parent
 CORE = ROOT / "app/src/main/java/com/rabpit/backroom/core"
 TESTS = ROOT / "app/src/test/java/com/rabpit/backroom/core"
 
-# Apply the current SRU equipment migration after every historical compatibility
-# patch has finished mutating the generated runtime.
-runpy.run_path(str(ROOT / "patch-sru-equipment-integration.py"), run_name="__main__")
-
 SYSTEM = CORE / "CharacterEquipmentSystem.kt"
 NATURAL_TEST = TESTS / "OmnivaultNaturalFlowTest.kt"
 IDENTITY_TEST = TESTS / "OmnivaultInstanceAuthorityTest.kt"
@@ -17,11 +13,29 @@ GAME_STATE = CORE / "GameState.kt"
 SPECIAL = CORE / "SpecialFollowersCanon.kt"
 OMNIVAULT = CORE / "OmnivaultEngine.kt"
 
+# The MadGod retirement finalizer already rewrites this block to use
+# cleanedMetadata. The SRU patch was originally authored against the immediately
+# preceding form, so temporarily normalize only that anchor, then restore the
+# cleaned metadata source after the SRU mutation. This keeps both migrations.
+pre_system = SYSTEM.read_text(encoding="utf-8")
+cleaned_metadata_line = '      metadata = cleanedMetadata + ("characterEquipmentSchemaVersion" to SCHEMA_VERSION)\n'
+legacy_metadata_line = '      metadata = input.metadata + ("characterEquipmentSchemaVersion" to SCHEMA_VERSION)\n'
+restore_cleaned_metadata = cleaned_metadata_line in pre_system
+if restore_cleaned_metadata:
+    pre_system = pre_system.replace(cleaned_metadata_line, legacy_metadata_line, 1)
+    SYSTEM.write_text(pre_system, encoding="utf-8")
+
+# Apply the current SRU equipment migration after every historical compatibility
+# patch has finished mutating the generated runtime.
+runpy.run_path(str(ROOT / "patch-sru-equipment-integration.py"), run_name="__main__")
+
 # The repository's final workflow contract currently locks schema version 2.
 # SRU ID migration itself is unconditional inside normalizeInternal(), so a
 # schema bump is not required to migrate persisted literal equipment IDs.
 system = SYSTEM.read_text(encoding="utf-8")
 system = system.replace('private const val SCHEMA_VERSION = "3"', 'private const val SCHEMA_VERSION = "2"', 1)
+if restore_cleaned_metadata:
+    system = system.replace(legacy_metadata_line, cleaned_metadata_line, 1)
 SYSTEM.write_text(system, encoding="utf-8")
 
 # patch-sru-equipment-integration.py intentionally replaces the two legacy
@@ -57,5 +71,7 @@ for marker in (
 ):
     if marker not in combined:
         raise RuntimeError("Final SRU equipment contract missing: " + marker)
+if restore_cleaned_metadata and 'metadata = cleanedMetadata + ("characterEquipmentSchemaVersion" to SCHEMA_VERSION)' not in system:
+    raise RuntimeError("MadGod cleaned metadata migration was not preserved")
 
 print("Finalized current SRU equipment integration and current-canon Omnivault regression suites.")
