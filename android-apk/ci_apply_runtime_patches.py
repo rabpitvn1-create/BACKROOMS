@@ -38,6 +38,7 @@ SCRIPTS = [
     "patch-kai-devil-blessing.py",
     "patch-item-interaction-coherence.py",
     "patch-passive-skill-visibility.py",
+    "patch-combat-total-turn-isolation.py",
 ]
 
 for script in SCRIPTS:
