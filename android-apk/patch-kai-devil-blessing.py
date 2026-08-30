@@ -83,7 +83,7 @@ STATS.write_text(stats, encoding="utf-8")
 combat = COMBAT.read_text(encoding="utf-8")
 combat = once(combat, '    return max(1, (resolved * 110 + 99) / 100)\n', '    return max(1, (resolved * 105 + 99) / 100)\n', "companion attack +5%")
 combat = once(combat, '          val luciaRawBurstDamage = (LUCIA_FULL_AUTO_ROUNDS * luciaPerBulletAfterArmor * 110 + 99) / 100\n', '          val luciaRawBurstDamage = (LUCIA_FULL_AUTO_ROUNDS * luciaPerBulletAfterArmor * 105 + 99) / 100\n', "Lucia attack +5%")
-combat = once(combat, '        val blessedDamage = min(c.entityHp, (24 * damagePerHit * 110 + 99) / 100)\n', '        val blessedDamage = min(c.entityHp, (24 * damagePerHit * 105 + 99) / 100)\n', "Syvial attack +5%")
+combat = once(combat, '        val blessedDamage = min(c.entityHp, (24 * damagePerHit * 110 + 99) / 100)\n', '        val blessedDamage = min(c.entityHp, (24 * damagePerHit * 105 + 99) / 100\n', "Syvial attack +5%")
 
 target_old = 'quickStep + DevilTriggerPassive.evasionBonus(kaiDevilTriggerActive)'
 target_new = 'quickStep + DevilTriggerPassive.evasionBonus(kaiDevilTriggerActive) + CharacterStatEngine.devilBlessingEvasionBonus(resolvedState, targetId)'
@@ -102,8 +102,9 @@ skill_pattern = re.compile(
     re.MULTILINE,
 )
 catalog, hidden_count = skill_pattern.subn("", catalog)
-if hidden_count != 1:
-    raise RuntimeError(f"hide Devil Blessing: expected one skill row, found {hidden_count}")
+# Zero matches is already the desired hidden state. More than one means the catalog is malformed.
+if hidden_count > 1:
+    raise RuntimeError(f"hide Devil Blessing: expected at most one skill row, found {hidden_count}")
 if skill_pattern.search(catalog):
     raise RuntimeError("DEVIL BLESSING must stay hidden from the skill table")
 CATALOG.write_text(catalog, encoding="utf-8")
