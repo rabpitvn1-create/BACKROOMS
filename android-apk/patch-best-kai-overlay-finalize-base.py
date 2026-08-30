@@ -4,10 +4,9 @@ import shutil
 
 ROOT = Path(__file__).resolve().parent
 ASSETS = ROOT / "app/src/main/assets"
-DEFAULT_OVERLAY = ASSETS / "Kai2_overlay.png"
-BATTLE_OVERLAY_1 = ASSETS / "Kai2_Battle.png"
-BATTLE_OVERLAY_2 = ASSETS / "Kai2_Battle2.png"
-KAI_AVATAR = ASSETS / "avatars/Kai2_avatar.jpg"
+DEFAULT_OVERLAY = ASSETS / "SRU_IDLE.png"
+ENTITY_OVERLAY = ASSETS / "SRU_AIM.png"
+KAI_AVATAR = ASSETS / "avatars/SRU_AVATAR.jpg"
 LEGACY_ALIAS = ASSETS / "Kai_new_overlay.png"
 BEST_COMPAT = ASSETS / "BESTKAIV2.png"
 MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
@@ -54,92 +53,91 @@ def sub_once(source: str, pattern: str, replacement: str, label: str) -> str:
     return updated
 
 
-# Validate every user-supplied Kai2 visual before changing runtime references.
-default_w, default_h, default_raw = png_info(DEFAULT_OVERLAY, "Kai2 default overlay")
-battle1_w, battle1_h, _ = png_info(BATTLE_OVERLAY_1, "Kai2 Battle overlay 1")
-battle2_w, battle2_h, _ = png_info(BATTLE_OVERLAY_2, "Kai2 Battle overlay 2")
+# Validate the user-supplied SRU visuals before changing runtime references.
+default_w, default_h, default_raw = png_info(DEFAULT_OVERLAY, "SRU idle overlay")
+entity_w, entity_h, _ = png_info(ENTITY_OVERLAY, "SRU aim overlay")
 if not KAI_AVATAR.is_file() or KAI_AVATAR.stat().st_size < 4:
-    raise RuntimeError("Kai2 avatar is missing or empty")
+    raise RuntimeError("SRU avatar is missing or empty")
 avatar_raw = KAI_AVATAR.read_bytes()
 if not avatar_raw.startswith(b"\xff\xd8\xff"):
-    raise RuntimeError("Kai2_avatar.jpg is not a valid JPEG")
+    raise RuntimeError("SRU_AVATAR.jpg is not a valid JPEG")
 
-# Keep the historical filenames as byte-identical compatibility aliases for older build-time
-# patches, but the finalized runtime no longer chooses them as Kai's normal Snapshot source.
+# Keep historical filenames as byte-identical compatibility aliases for older build-time patches.
+# The finalized runtime does not select these aliases as Kai's normal visual source.
 shutil.copyfile(DEFAULT_OVERLAY, LEGACY_ALIAS)
 shutil.copyfile(DEFAULT_OVERLAY, BEST_COMPAT)
 
 main = MAIN.read_text(encoding="utf-8")
 index = INDEX.read_text(encoding="utf-8")
 
-# Normalize every historical normal-Kai overlay reference to the new non-combat Kai2 asset.
+# Normalize every historical normal-Kai overlay reference to the SRU idle asset.
 for old in (
     "Kai_new_overlay.png",
     "BESTKAIV2.png",
     "BestKai.png",
     "kai_snapshot_overlay.png",
     "kai_snapshot_overlay.webp",
+    "Kai2_overlay.png",
 ):
-    main = main.replace(old, "Kai2_overlay.png")
-    index = index.replace(old, "Kai2_overlay.png")
+    main = main.replace(old, "SRU_IDLE.png")
+    index = index.replace(old, "SRU_IDLE.png")
 
-# CombatRuntime's encounterId is stable for the whole fight. The UI stores only the last encountered
-# id + variant, so a new encounter toggles Battle -> Battle2 -> Battle while re-renders in the same
-# encounter keep the exact same pose. Any active CombatRuntime session gets the battle visual,
-# independent of Entity key, so normal Entities, unique Entities and bosses share the same policy.
-battle_selector = (
-    "function kaiCombatEncounterId(){var c=state&&state.combat;return c&&c.active===true?String(c.encounterId||''):''}"
-    "function kaiBattleOverlay(encounterId){try{var key='backroom-kai-battle-cycle-v1';"
-    "var saved=JSON.parse(localStorage.getItem(key)||'null');var index=0;"
-    "if(saved&&String(saved.encounterId||'')===encounterId)index=Number(saved.index)===1?1:0;"
-    "else if(saved)index=Number(saved.index)===0?1:0;"
-    "var next={encounterId:encounterId,index:index};localStorage.setItem(key,JSON.stringify(next));"
-    "return index===1?'Kai2_Battle2.png':'Kai2_Battle.png'}catch(e){return 'Kai2_Battle.png'}}"
-    "function kaiOverlaySource(){var encounterId=kaiCombatEncounterId();if(encounterId)return kaiBattleOverlay(encounterId);"
+# CombatRuntime owns Entity encounters. While an Entity encounter is active, Kai uses the SRU aiming
+# overlay. After defeat/escape the runtime falls back to the normal SRU idle overlay. MadGod remains
+# an explicit non-combat special-form visual and does not replace the Entity aiming state.
+visual_selector = (
+    "function kaiCombatActive(){var c=state&&state.combat;return !!(c&&c.active===true)}"
+    "function kaiOverlaySource(){if(kaiCombatActive())return 'SRU_AIM.png';"
     "var a=madGodEquipped('armor'),w=madGodEquipped('weapon');"
     "if(a&&w)return 'Kai_MadGod_snapshot_overlay.png';if(a)return 'Kai_MadGod_snapshot_overlay.png';"
-    "if(w)return 'Kai_MadGod_snapshot_overlay.png';return 'Kai2_overlay.png'}"
+    "if(w)return 'Kai_MadGod_snapshot_overlay.png';return 'SRU_IDLE.png'}"
 )
 main = sub_once(
     main,
-    r"function kaiOverlaySource\(\)\{var a=madGodEquipped\('armor'\),w=madGodEquipped\('weapon'\);.*?return 'Kai2_overlay\.png'\}",
-    battle_selector,
-    "Kai2 combat overlay selector",
+    r"function kaiOverlaySource\(\)\{var a=madGodEquipped\('armor'\),w=madGodEquipped\('weapon'\);.*?return 'SRU_IDLE\.png'\}",
+    visual_selector,
+    "SRU Entity overlay selector",
 )
 
 # If a WebView image decode ever fails, the legacy filename is safe because it is now a byte-for-byte
-# copy of Kai2_overlay.png. Keeping this one inert compatibility reference also preserves old CI guards.
+# copy of SRU_IDLE.png. Keeping this one inert compatibility reference also preserves old CI guards.
 main = replace_once(
     main,
-    "kai.src=kaiOverlaySource();kai.onerror=function(){this.onerror=null;this.src='Kai2_overlay.png'};kai.alt='Kai Akechi';box.appendChild(kai);",
+    "kai.src=kaiOverlaySource();kai.onerror=function(){this.onerror=null;this.src='SRU_IDLE.png'};kai.alt='Kai Akechi';box.appendChild(kai);",
     "kai.src=kaiOverlaySource();kai.onerror=function(){this.onerror=null;this.src='Kai_new_overlay.png'};kai.alt='Kai Akechi';box.appendChild(kai);",
-    "Kai2 overlay decode fallback",
+    "SRU overlay decode fallback",
 )
 
-# Final Character UI fallback uses the uploaded Kai2 portrait. MadGod's explicit avatar continues to
-# win because that path is a different asset and is applied by the existing MadGod projection logic.
-index = index.replace("avatars/kai_avatar.png", "avatars/Kai2_avatar.jpg")
-index = index.replace("avatars/Kai_New_Avatar.jpg", "avatars/Kai2_avatar.jpg")
+# Final Character UI fallback uses the SRU portrait. MadGod's explicit avatar continues to win because
+# that path is a different asset and is applied by the existing MadGod projection logic.
+for old_avatar in (
+    "avatars/kai_avatar.png",
+    "avatars/Kai_New_Avatar.jpg",
+    "avatars/Kai2_avatar.jpg",
+):
+    index = index.replace(old_avatar, "avatars/SRU_AVATAR.jpg")
 
 MAIN.write_text(main, encoding="utf-8")
 INDEX.write_text(index, encoding="utf-8")
 
-# New games persist the new avatar directly.
+# New games persist the SRU avatar directly.
 game_state = GAME_STATE.read_text(encoding="utf-8")
-game_state = replace_once(
-    game_state,
+for old_avatar in (
     'avatarRef = "avatars/kai_avatar.png"',
+    'avatarRef = "avatars/Kai_New_Avatar.jpg"',
     'avatarRef = "avatars/Kai2_avatar.jpg"',
-    "Kai2 initial avatar",
-)
+):
+    game_state = game_state.replace(old_avatar, 'avatarRef = "avatars/SRU_AVATAR.jpg"')
+if 'avatarRef = "avatars/SRU_AVATAR.jpg"' not in game_state:
+    raise RuntimeError("SRU initial avatar anchor missing")
 GAME_STATE.write_text(game_state, encoding="utf-8")
 
-# Old saves may still contain a retired default Kai avatarRef. Upgrade only those default refs at
-# projection time; explicit special-form portraits such as avatars/MadGod.jpg remain untouched.
+# Old saves may still contain one of the retired default Kai avatar refs. Upgrade only those defaults
+# at projection time; explicit special-form portraits such as avatars/MadGod.jpg remain untouched.
 # Character Status + Equipment rewrites the projection constructor into a compact one-line form,
 # while older chains use the original multiline form. Accept either verified shape.
 projection = CHARACTER_PROJECTION.read_text(encoding="utf-8")
-avatar_expression = 'if (character.id == KAI_ID && (character.avatarRef.isNullOrBlank() || character.avatarRef == "avatars/kai_avatar.png" || character.avatarRef == "avatars/Kai_New_Avatar.jpg")) "avatars/Kai2_avatar.jpg" else character.avatarRef'
+avatar_expression = 'if (character.id == KAI_ID && (character.avatarRef.isNullOrBlank() || character.avatarRef == "avatars/kai_avatar.png" || character.avatarRef == "avatars/Kai_New_Avatar.jpg" || character.avatarRef == "avatars/Kai2_avatar.jpg")) "avatars/SRU_AVATAR.jpg" else character.avatarRef'
 if avatar_expression not in projection:
     multiline_anchor = "      avatarRef = character.avatarRef,"
     compact_anchor = "      id = character.id, name = character.name, avatarRef = character.avatarRef, presence = character.presence,"
@@ -155,7 +153,7 @@ if avatar_expression not in projection:
         raise RuntimeError("legacy Kai avatar projection migration: no supported CharacterDetailProjection anchor found")
 CHARACTER_PROJECTION.write_text(projection, encoding="utf-8")
 
-# Focused regression coverage for the avatar policy; JavaScript battle selection is guarded below by
+# Focused regression coverage for the avatar policy; JavaScript Entity selection is guarded below by
 # exact finalized-runtime contract markers because the APK unit-test target does not execute WebView JS.
 VISUAL_TEST.write_text(r'''package com.rabpit.backroom.core
 
@@ -163,17 +161,17 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class KaiVisualPolicyTest {
-  @Test fun newGameUsesKai2Avatar() {
-    assertEquals("avatars/Kai2_avatar.jpg", GameState.initial().characters.getValue(KAI_ID).avatarRef)
+  @Test fun newGameUsesSruAvatar() {
+    assertEquals("avatars/SRU_AVATAR.jpg", GameState.initial().characters.getValue(KAI_ID).avatarRef)
   }
 
-  @Test fun legacyDefaultKaiAvatarProjectsAsKai2WithoutOverwritingSpecialForm() {
+  @Test fun legacyDefaultKaiAvatarProjectsAsSruWithoutOverwritingSpecialForm() {
     val base = GameState.initial()
     val legacy = base.copy(characters = base.characters + (
-      KAI_ID to base.characters.getValue(KAI_ID).copy(avatarRef = "avatars/kai_avatar.png")
+      KAI_ID to base.characters.getValue(KAI_ID).copy(avatarRef = "avatars/Kai2_avatar.jpg")
     ))
     assertEquals(
-      "avatars/Kai2_avatar.jpg",
+      "avatars/SRU_AVATAR.jpg",
       CharacterDetailProjector.projectCharacter(legacy, KAI_ID)!!.avatarRef
     )
 
@@ -200,32 +198,31 @@ final_test = VISUAL_TEST.read_text(encoding="utf-8")
 combined = "\n".join((final_main, final_index, final_state, final_projection, final_test))
 
 for marker in (
-    "function kaiCombatEncounterId(){var c=state&&state.combat;return c&&c.active===true",
-    "backroom-kai-battle-cycle-v1",
-    "if(encounterId)return kaiBattleOverlay(encounterId)",
-    "Kai2_Battle.png",
-    "Kai2_Battle2.png",
-    "return 'Kai2_overlay.png'",
+    "function kaiCombatActive(){var c=state&&state.combat;return !!(c&&c.active===true)}",
+    "if(kaiCombatActive())return 'SRU_AIM.png'",
+    "return 'SRU_IDLE.png'",
     "window.backroomEntityOverlay=function(payload)",
     "function activeEntityKey(){var c=state&&state.combat;if(!c||c.active!==true)return '';",
-    'avatarRef = "avatars/Kai2_avatar.jpg"',
-    "legacyDefaultKaiAvatarProjectsAsKai2WithoutOverwritingSpecialForm",
+    'avatarRef = "avatars/SRU_AVATAR.jpg"',
+    "legacyDefaultKaiAvatarProjectsAsSruWithoutOverwritingSpecialForm",
 ):
     if marker not in combined:
-        raise RuntimeError("Kai2 visual contract missing: " + marker)
+        raise RuntimeError("SRU Kai visual contract missing: " + marker)
 
 if final_main.count("Kai_new_overlay.png") != 1:
     raise RuntimeError("Kai_new_overlay.png must remain only as the single decode-fallback compatibility alias")
-if "avatars/kai_avatar.png" in final_index or "avatars/Kai_New_Avatar.jpg" in final_index:
+if any(old in final_index for old in ("avatars/kai_avatar.png", "avatars/Kai_New_Avatar.jpg", "avatars/Kai2_avatar.jpg")):
     raise RuntimeError("Retired Kai avatar fallback remains in finalized Character UI")
+if "Kai2_overlay.png" in final_main or "Kai2_Battle.png" in final_main or "Kai2_Battle2.png" in final_main:
+    raise RuntimeError("Retired Kai2 overlay runtime reference remains in finalized MainActivity")
 if any(path.exists() for path in RETIRED):
     raise RuntimeError("Retired Kai overlay asset remains packaged")
 if LEGACY_ALIAS.read_bytes() != default_raw or BEST_COMPAT.read_bytes() != default_raw:
-    raise RuntimeError("Kai compatibility aliases do not match Kai2_overlay.png")
+    raise RuntimeError("Kai compatibility aliases do not match SRU_IDLE.png")
 
 print(
-    "Kai2 visual policy finalized: "
-    f"default={default_w}x{default_h}, battle1={battle1_w}x{battle1_h}, battle2={battle2_w}x{battle2_h}; "
-    "Kai2_avatar.jpg is the default portrait; combat alternates Battle/Battle2 per encounter and "
-    "returns to the non-combat overlay after Entity defeat or escape."
+    "SRU Kai visual policy finalized: "
+    f"idle={default_w}x{default_h}, entity-aim={entity_w}x{entity_h}; "
+    "SRU_AVATAR.jpg is the default portrait, SRU_AIM.png is used for active Entity encounters, "
+    "and SRU_IDLE.png returns after Entity defeat or escape."
 )
