@@ -16,13 +16,16 @@ catalog = CATALOG.read_text(encoding="utf-8")
 # Issue #131: Devil Blessing is a real runtime passive, but the previous final
 # patch deliberately removed its catalog row. The Character Skill sheet reads
 # CompanionSkillCatalog, so that made the passive impossible to see even though
-# its gameplay effect remained active.
-devil_blessing = '    s("Devil Blessing", "PASSIVE", "Khi Kai đang ACTIVE trong Party và giao tranh đang diễn ra", "Các đồng đội ACTIVE trong Party nhận thêm 5% Tấn Công, Phòng Thủ, Né tránh và Max HP. Kai không nhận hiệu ứng từ chính kỹ năng này.", "Hiệu ứng chỉ áp dụng khi Kai và đồng đội mục tiêu vẫn còn khả năng chiến đấu."),\n'
+# its gameplay effect remained active. Append it to Kai's existing list so old
+# order-sensitive regressions and player-facing ordering remain stable.
+devil_blessing = '    s("Devil Blessing", "PASSIVE", "Khi Kai đang ACTIVE trong Party và giao tranh đang diễn ra", "Các đồng đội ACTIVE trong Party nhận thêm 5% Tấn Công, Phòng Thủ, Né tránh và Max HP. Kai không nhận hiệu ứng từ chính kỹ năng này.", "Hiệu ứng chỉ áp dụng khi Kai và đồng đội mục tiêu vẫn còn khả năng chiến đấu.")'
 if 's("Devil Blessing", "PASSIVE"' not in catalog:
     anchor = "  private val kai = listOf(\n"
     if catalog.count(anchor) != 1:
         raise RuntimeError(f"Issue #131 Kai skill catalog anchor: expected one, found {catalog.count(anchor)}")
-    catalog = catalog.replace(anchor, anchor + devil_blessing, 1)
+    kai_start = catalog.index(anchor)
+    kai_end = catalog.index("\n  )", kai_start)
+    catalog = catalog[:kai_end] + ",\n" + devil_blessing + catalog[kai_end:]
 
 CATALOG.write_text(catalog, encoding="utf-8")
 
