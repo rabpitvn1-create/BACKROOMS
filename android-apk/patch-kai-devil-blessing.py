@@ -5,6 +5,8 @@ STATS = ROOT / "app/src/main/java/com/rabpit/backroom/core/CharacterEquipmentSys
 COMBAT = ROOT / "app/src/main/java/com/rabpit/backroom/core/CombatRuntime.kt"
 CATALOG = ROOT / "app/src/main/java/com/rabpit/backroom/core/CompanionSkillCatalog.kt"
 TEST = ROOT / "app/src/test/java/com/rabpit/backroom/core/KaiDevilBlessingTest.kt"
+STATUS_TEST = ROOT / "app/src/test/java/com/rabpit/backroom/core/CharacterStatusEquipmentSystemTest.kt"
+NEW_GAME_TEST = ROOT / "app/src/test/java/com/rabpit/backroom/core/InventoryCapacityNewGameTest.kt"
 
 
 def once(text: str, old: str, new: str, label: str) -> str:
@@ -89,6 +91,29 @@ combat = once(combat, fallback_old, fallback_new, "Kai Devil Blessing fallback e
 if combat.count('CharacterStatEngine.kaiDevilBlessingEvasionBonus') < 3:
     raise RuntimeError("Kai Devil Blessing evasion did not reach every combat response path")
 COMBAT.write_text(combat, encoding="utf-8")
+
+# Update exact-value regressions that intentionally described Kai before the restored +5% passive.
+status_test = STATUS_TEST.read_text(encoding="utf-8")
+for old, new in (
+    ('assertEquals(100, CharacterStatEngine.effective(stripped, KAI_ID).maxHp)', 'assertEquals(105, CharacterStatEngine.effective(stripped, KAI_ID).maxHp)'),
+    ('assertEquals(125, CharacterStatEngine.effective(equip.state, KAI_ID).maxHp); assertEquals(95,', 'assertEquals(132, CharacterStatEngine.effective(equip.state, KAI_ID).maxHp); assertEquals(97,'),
+    ('assertEquals(100, CharacterStatEngine.effective(unequip.state, KAI_ID).maxHp)', 'assertEquals(105, CharacterStatEngine.effective(unequip.state, KAI_ID).maxHp)'),
+    ('assertEquals(140, e.maxHp); assertEquals(107, e.str); assertEquals(109, e.df); assertEquals(112, e.agi)', 'assertEquals(147, e.maxHp); assertEquals(113, e.str); assertEquals(115, e.df); assertEquals(118, e.agi)'),
+    ('assertEquals(107, p.str.effective)', 'assertEquals(113, p.str.effective)'),
+):
+    status_test = once(status_test, old, new, "Kai Devil Blessing status regression")
+STATUS_TEST.write_text(status_test, encoding="utf-8")
+
+new_game_test = NEW_GAME_TEST.read_text(encoding="utf-8")
+for old, new in (
+    ('assertEquals(140, kai.currentHp)', 'assertEquals(147, kai.currentHp)'),
+    ('assertEquals(140, kai.maxHp)', 'assertEquals(147, kai.maxHp)'),
+    ('assertEquals(107, kai.str.effective)', 'assertEquals(113, kai.str.effective)'),
+    ('assertEquals(109, kai.df.effective)', 'assertEquals(115, kai.df.effective)'),
+    ('assertEquals(112, kai.agi.effective)', 'assertEquals(118, kai.agi.effective)'),
+):
+    new_game_test = once(new_game_test, old, new, "Kai Devil Blessing new-game regression")
+NEW_GAME_TEST.write_text(new_game_test, encoding="utf-8")
 
 TEST.write_text(r'''package com.rabpit.backroom.core
 
