@@ -21,17 +21,16 @@ helper = r'''  // COMBAT_VIETNAMESE_NARRATION_V1
     .replace("cùng khai triển đòn đánh trong một combat turn.", "cùng khai triển đòn đánh trong một lượt tấn công.")
     .replace("cùng thực hiện trong một combat turn.", "cùng thực hiện trong một lượt chiến đấu.")
     .replace("cùng rút khỏi encounter trong một combat turn.", "cùng rút khỏi giao tranh trong một lượt chiến đấu.")
-    .replace("vulnerable Blink/Blind/Stun", "dễ bị ảnh hưởng bởi Blink/Blind/Stun")
+    .replace("vulnerable Blink/Blind/Stun", "dễ bị ảnh hưởng bởi Blink/Blind/__KEEP_STUN__")
     .replace("Stun không proc", "hiệu ứng Choáng không kích hoạt")
-    .replace("Stun 1 turn", "Choáng 1 lượt")
-    .replace("Stun 1 lượt", "Choáng 1 lượt")
-    .replace("bị Stun", "bị Choáng")
+    .replace("Stun", "Choáng")
+    .replace("__KEEP_STUN__", "Stun")
     .replace("Bleeding", "Chảy máu")
     .replace("CD ", "hồi chiêu còn ")
     .replace("tỷ lệ proc", "tỷ lệ kích hoạt")
     .replace("proc hiện tại", "kích hoạt hiện tại")
     .replace("% proc", "% tỷ lệ kích hoạt")
-    .replace("không proc", "không kích hoạt")
+    .replace("proc", "kích hoạt")
     .replace("Weapon DMG", "sát thương vũ khí")
     .replace("Base DMG", "sát thương cơ bản")
     .replace("DMG", "sát thương")
@@ -50,8 +49,9 @@ helper = r'''  // COMBAT_VIETNAMESE_NARRATION_V1
     .replace("blinkCounter", "bộ đếm chớp mắt")
     .replace("State=", "Trạng thái=")
     .replace("first UNOBSERVED strike", "đòn đầu khi không bị quan sát")
-    .replace("đang OBSERVED", "đang được quan sát")
-    .replace("ở UNOBSERVED", "không bị quan sát")
+    .replace("UNOBSERVED", "không bị quan sát")
+    .replace("OBSERVED", "được quan sát")
+    .replace("ACTIVE", "đang hoạt động")
     .replace("Execution hợp lệ", "Kết liễu hợp lệ")
     .replace("narration", "lời tường thuật")
     .replace("shell", "viên đạn")
@@ -72,30 +72,62 @@ if "COMBAT_VIETNAMESE_NARRATION_V1" not in combat:
 
 COMBAT.write_text(combat, encoding="utf-8")
 
-# Earlier generated tests assert the old wording. Only rewrite reply assertions,
-# leaving state/status identifiers and skill-catalog contracts untouched.
-reply_replacements = (
-    ("PARTY ACTION TẤN CÔNG:", "HÀNH ĐỘNG CỦA ĐỘI - TẤN CÔNG:"),
-    ("PARTY ACTION NÉ TRÁNH:", "HÀNH ĐỘNG CỦA ĐỘI - NÉ TRÁNH:"),
-    ("PARTY ACTION BỎ CHẠY:", "HÀNH ĐỘNG CỦA ĐỘI - BỎ CHẠY:"),
-    ("Bleeding từ The Last Requiem", "Chảy máu từ The Last Requiem"),
-    ("bị Stun và mất lượt phản ứng hiện tại", "bị Choáng và mất lượt phản ứng hiện tại"),
-    ("+50% Evasion trong 3 turn", "+50% Né tránh trong 3 lượt"),
-    ("Accuracy 200%", "Độ chính xác 200%"),
-    ("Stun 1 lượt", "Choáng 1 lượt"),
-    ("Execution hợp lệ", "Kết liễu hợp lệ"),
-)
+# Earlier generated tests assert the old wording. Rewrite only lines that inspect
+# Resolution.reply, leaving state/status identifiers and skill-catalog contracts untouched.
+def localize_reply_assertion(line: str) -> str:
+    replacements = (
+        ("PARTY ACTION TẤN CÔNG:", "HÀNH ĐỘNG CỦA ĐỘI - TẤN CÔNG:"),
+        ("PARTY ACTION NÉ TRÁNH:", "HÀNH ĐỘNG CỦA ĐỘI - NÉ TRÁNH:"),
+        ("PARTY ACTION BỎ CHẠY:", "HÀNH ĐỘNG CỦA ĐỘI - BỎ CHẠY:"),
+        ("cùng khai triển đòn đánh trong một combat turn.", "cùng khai triển đòn đánh trong một lượt tấn công."),
+        ("cùng thực hiện trong một combat turn.", "cùng thực hiện trong một lượt chiến đấu."),
+        ("cùng rút khỏi encounter trong một combat turn.", "cùng rút khỏi giao tranh trong một lượt chiến đấu."),
+        ("vulnerable Blink/Blind/Stun", "dễ bị ảnh hưởng bởi Blink/Blind/__KEEP_STUN__"),
+        ("Stun không proc", "hiệu ứng Choáng không kích hoạt"),
+        ("Stun", "Choáng"),
+        ("__KEEP_STUN__", "Stun"),
+        ("Bleeding", "Chảy máu"),
+        ("CD ", "hồi chiêu còn "),
+        ("tỷ lệ proc", "tỷ lệ kích hoạt"),
+        ("proc hiện tại", "kích hoạt hiện tại"),
+        ("% proc", "% tỷ lệ kích hoạt"),
+        ("proc", "kích hoạt"),
+        ("Weapon DMG", "sát thương vũ khí"),
+        ("Base DMG", "sát thương cơ bản"),
+        ("DMG", "sát thương"),
+        (" damage", " sát thương"),
+        (" Evasion", " Né tránh"),
+        ("Accuracy ", "Độ chính xác "),
+        ("(CRITICAL)", "(CHÍ MẠNG)"),
+        ("Entity turn", "lượt của Entity"),
+        ("combat turn", "lượt chiến đấu"),
+        (" turn", " lượt"),
+        ("encounter", "giao tranh"),
+        ("Party", "đội"),
+        ("Armor", "Giáp"),
+        ("buff", "hiệu ứng tăng cường"),
+        ("Forced Blink", "Blink cưỡng bức"),
+        ("blinkCounter", "bộ đếm chớp mắt"),
+        ("State=", "Trạng thái="),
+        ("first UNOBSERVED strike", "đòn đầu khi không bị quan sát"),
+        ("UNOBSERVED", "không bị quan sát"),
+        ("OBSERVED", "được quan sát"),
+        ("ACTIVE", "đang hoạt động"),
+        ("Execution hợp lệ", "Kết liễu hợp lệ"),
+        ("narration", "lời tường thuật"),
+        ("shell", "viên đạn"),
+        ("; ", " • "),
+    )
+    for old, new in replacements:
+        line = line.replace(old, new)
+    return line
+
 for path in TESTS.glob("*.kt"):
     source = path.read_text(encoding="utf-8")
     lines = []
     for line in source.splitlines(keepends=True):
         if ".reply" in line:
-            for old, new in reply_replacements:
-                line = line.replace(old, new)
-            # This assertion refers to rendered narration, not the authoritative
-            # observationState JSON, which intentionally remains OBSERVED/UNOBSERVED.
-            if 'result.reply.contains("OBSERVED")' in line:
-                line = line.replace('result.reply.contains("OBSERVED")', 'result.reply.contains("được quan sát")')
+            line = localize_reply_assertion(line)
         lines.append(line)
     updated = "".join(lines)
     if updated != source:
@@ -144,7 +176,7 @@ final_combat = COMBAT.read_text(encoding="utf-8")
 for marker in (
     "COMBAT_VIETNAMESE_NARRATION_V1",
     "HÀNH ĐỘNG CỦA ĐỘI - TẤN CÔNG:",
-    "dễ bị ảnh hưởng bởi Blink/Blind/Stun",
+    "dễ bị ảnh hưởng bởi Blink/Blind/__KEEP_STUN__",
     "hiệu ứng Choáng không kích hoạt",
     "localizeCombatNarration(log.joinToString(\" \"))",
 ):
