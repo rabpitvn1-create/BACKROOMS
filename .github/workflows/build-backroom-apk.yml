@@ -1,25 +1,28 @@
-name: Build Backroom 1.2.9 Debug
+name: BACKROOMS CI / Release 1.3.2
 
 on:
   workflow_dispatch:
-  workflow_run:
-    workflows: ["BACKROOMS Preflight"]
-    types: [completed]
+  pull_request:
+    branches: [main]
+    paths:
+      - "android-apk/**"
+      - ".github/workflows/build-backroom-apk.yml"
+  push:
+    branches: [main]
+    paths:
+      - "android-apk/**"
+      - ".github/workflows/build-backroom-apk.yml"
 
 permissions:
   contents: write
 
 concurrency:
-  group: build-backroom-apk-${{ github.event.workflow_run.head_sha || github.ref }}
-  cancel-in-progress: true
+  group: backrooms-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  build-apk:
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.conclusion == 'success' &&
-       github.event.workflow_run.event == 'push' &&
-       github.event.workflow_run.head_branch == 'main')
+  verify-build-release:
+    name: preflight-build-release
     runs-on: ubuntu-latest
     env:
       LUNA_API_KEY: ${{ secrets.LUNA_API_KEY }}
@@ -34,8 +37,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Verify 1.3.2 release source
+        run: |
+          set -euo pipefail
+          grep -q "versionCode 87" android-apk/app/build.gradle
+          grep -q "versionName '1.3.2'" android-apk/app/build.gradle
+          test -s android-apk/RELEASE_NOTES_1.3.2.md
+          test -s android-apk/ci_apply_runtime_patches.py
+          test -s android-apk/ci_verify_runtime_contracts.py
+          test -s android-apk/ci_verify_packaged_apk.sh
 
       - name: Restore LiteRT intent model
         id: litert-cache
@@ -73,16 +84,14 @@ jobs:
           bytes=$(stat -c%s "$MODEL")
           test "$bytes" -le 5242880 || (echo "Cached LiteRT model exceeds 5 MiB: $bytes" && exit 1)
 
-      - name: Validate Game Master configuration for manual build
-        if: github.event_name == 'workflow_dispatch'
+      - name: Validate Game Master configuration
         run: |
           set -euo pipefail
           for name in GEMINI_API_KEY_1 GEMINI_API_KEY_2 GEMINI_API_KEY_3 GEMINI_API_KEY_4 GEMINI_API_KEY_5 LUNA_API_KEY LUNA_MODEL; do
             test -n "${!name:-}" || (echo "Missing GitHub Secret: $name" && exit 1)
           done
 
-      - name: Smoke test Luna API for manual build
-        if: github.event_name == 'workflow_dispatch'
+      - name: Smoke test Luna API
         run: |
           python3 - <<'PY'
           import json
@@ -130,6 +139,7 @@ jobs:
 
       - name: Verify final runtime contracts
         run: |
+          set -euo pipefail
           python3 android-apk/ci_verify_runtime_contracts.py
           git diff --check
 
@@ -147,36 +157,68 @@ jobs:
         run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon --build-cache
 
       - name: Prepare debug APK
-        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.2.9-debug.apk
+        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.3.2-debug.apk
 
       - name: Verify packaged debug APK contracts
-        run: bash android-apk/ci_verify_packaged_apk.sh Backroom-1.2.9-debug.apk
+        run: bash android-apk/ci_verify_packaged_apk.sh Backroom-1.3.2-debug.apk
 
       - name: Upload debug APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Backroom-1.2.9-debug-apk
-          path: Backroom-1.2.9-debug.apk
+          name: Backroom-1.3.2-debug-apk
+          path: Backroom-1.3.2-debug.apk
           if-no-files-found: error
           retention-days: 14
 
-      - name: Detect release commit
+      - name: Detect release eligibility
         id: release-gate
-        if: github.event_name == 'workflow_run'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          if [[ "$(git log -1 --pretty=%B)" == "Release v1.2.9" ]]; then
-            echo "publish=true" >> "$GITHUB_OUTPUT"
-          else
+          set -euo pipefail
+          tag_exists=false
+          release_exists=false
+          if git ls-remote --exit-code --tags origin refs/tags/v1.3.2 >/dev/null 2>&1; then
+            tag_exists=true
+          fi
+          if gh release view v1.3.2 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            release_exists=true
+          fi
+          if [[ "$tag_exists" == true && "$release_exists" == true ]]; then
             echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "v1.3.2 is already published; skipping duplicate release."
+          elif [[ "$tag_exists" == true || "$release_exists" == true ]]; then
+            echo "Inconsistent v1.3.2 tag/release state; refusing to overwrite it."
+            exit 1
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Publish GitHub Release v1.2.9
+      - name: Publish GitHub Release v1.3.2
         if: steps.release-gate.outputs.publish == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create v1.2.9 Backroom-1.2.9-debug.apk \
-            --title "Backroom 1.2.9 Debug" \
-            --notes-file android-apk/RELEASE_NOTES_1.2.9.md \
-            --target "${{ github.event.workflow_run.head_sha }}"
+          set -euo pipefail
+          gh release create v1.3.2 Backroom-1.3.2-debug.apk \
+            --title "Backroom 1.3.2 Debug" \
+            --notes-file android-apk/RELEASE_NOTES_1.3.2.md \
+            --target "$GITHUB_SHA"
+
+      - name: Verify published v1.3.2 release
+        if: steps.release-gate.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release view v1.3.2 --repo "$GITHUB_REPOSITORY" >/dev/null
+          mkdir release-check
+          gh release download v1.3.2 --repo "$GITHUB_REPOSITORY" --pattern 'Backroom-1.3.2-debug.apk' --dir release-check
+          test -s release-check/Backroom-1.3.2-debug.apk
+          expected=$(sha256sum Backroom-1.3.2-debug.apk | awk '{print $1}')
+          actual=$(sha256sum release-check/Backroom-1.3.2-debug.apk | awk '{print $1}')
+          test "$expected" = "$actual"
+          bash android-apk/ci_verify_packaged_apk.sh release-check/Backroom-1.3.2-debug.apk
+          echo "Published release v1.3.2 verified with SHA-256 $actual"
