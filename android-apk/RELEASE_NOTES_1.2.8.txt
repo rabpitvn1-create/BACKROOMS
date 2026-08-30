@@ -1,0 +1,14 @@
+Backroom 1.2.8 Debug
+
+- Tổng hợp toàn bộ thay đổi đã xác minh sau bản 1.2.7 vào một APK Debug mới.
+- Cập nhật Kai sang bộ nhận diện SRU Force: avatar SRU_AVATAR.jpg, overlay thường SRU_IDLE.png và overlay chiến đấu SRU_AIM.png; đồng bộ kỹ năng shotgun SRU-SG và các kỹ năng tự động liên quan.
+- Gỡ hoàn toàn MadGod khỏi gameplay, lệnh kích hoạt, trang bị, avatar và overlay; dữ liệu MadGod cũ được loại bỏ khi chuẩn hóa state.
+- Tăng thêm 5 loại vật phẩm cho mọi hồ sơ Inventory: Kai 14, Iris/Syvial 11, Lucia 8, An Nhiên 7 và nhân vật thường 7; giới hạn số lượng mỗi loại giữ nguyên.
+- Tăng cơ hội nhận vật phẩm thêm 5 điểm phần trăm cho Entity loot và khám phá, đồng thời giữ nguyên cơ chế pity hiện có.
+- Sửa 11 regression test còn kiểm tra giới hạn Inventory/loot cũ và đồng bộ đúng defeat ID của bài kiểm thử pity.
+- Khắc phục issue #116: mọi Entity dùng renderer chung giờ có bóng elip mềm dưới chân, không cần chỉnh sửa từng PNG và tự áp dụng cho Entity bổ sung sau này.
+- Cập nhật Luna API thông qua GitHub Secrets vào BuildConfig; không ghi API key trong repository hoặc log build.
+- Bổ sung smoke test gọi thật Luna /chat/completions với stream=false, yêu cầu JSON và xác minh có completion trước khi build APK.
+- Giữ các hợp đồng ổn định của 1.2.7 về font FVF Fernando 08, responsive WebView, Character Detail, combat, item authority, save và asset đóng gói.
+- Nâng Android versionCode lên 83 và versionName lên 1.2.8 để cài đặt như một bản cập nhật mới.
+- Pipeline 1.2.8 chạy Luna smoke test, toàn bộ runtime patch chain, contract checks, Kotlin unit tests, assemble Debug APK, xác minh chữ ký/package/version/zipalign và kiểm tra lại APK sau khi xuất bản GitHub Release.
