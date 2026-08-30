@@ -396,6 +396,81 @@ if action_test.exists():
     source = source.replace('assertEquals(135, firstPreview.threshold)', 'assertEquals(635, firstPreview.threshold)')
     action_test.write_text(source, encoding="utf-8")
 
+# The flat +5 type-slot balance changes every inventory profile, so all older
+# generated regression tests must exercise the new limits instead of retaining
+# their pre-balance boundary values. Keep these rewrites here beside the runtime
+# balance change so future patch-chain runs cannot recreate stale assertions.
+test_replacements = {
+    "ExtensibleItemSystemTest.kt": (
+        ('ItemCapacity(9, 999)', 'ItemCapacity(14, 999)'),
+        ('"special_companion" to ItemCapacity(6, 20)', '"special_companion" to ItemCapacity(11, 20)'),
+        ('"lucia_gift_inventory" to ItemCapacity(3, 100)', '"lucia_gift_inventory" to ItemCapacity(8, 100)'),
+        ('"an_nhien_food_only" to ItemCapacity(2, 20)', '"an_nhien_food_only" to ItemCapacity(7, 20)'),
+        ('"normal" to ItemCapacity(2, 2)', '"normal" to ItemCapacity(7, 2)'),
+        ('assertEquals(InventoryProfile(7, 42), InventoryPolicy.profileFor(state, character.id))',
+         'assertEquals(InventoryProfile(12, 42), InventoryPolicy.profileFor(state, character.id))'),
+    ),
+    "InventoryCapacityNewGameTest.kt": (
+        ('assertEquals(InventoryPolicy.KAI.maxTypes, kai.inventoryCapacityMax)',
+         'assertEquals(ItemSystem.capacityFor(state, KAI_ID).maxTypes, kai.inventoryCapacityMax)'),
+    ),
+    "InventoryPolicyTest.kt": (
+        ('InventoryProfile(9, 999)', 'InventoryProfile(14, 999)'),
+        ('InventoryProfile(6, 20)', 'InventoryProfile(11, 20)'),
+        ('InventoryProfile(2, 2)', 'InventoryProfile(7, 2)'),
+        ('fun kaiRejectsTenthTypeAndThousandthItem()', 'fun kaiRejectsFifteenthTypeAndThousandthItem()'),
+        ('val items = (1..9).associate', 'val items = (1..14).associate'),
+        ('ItemStack("i10", "Item 10")', 'ItemStack("i15", "Item 15")'),
+        ('(iris.id to InventoryState(iris.id, (1..6).associate',
+         '(iris.id to InventoryState(iris.id, (1..11).associate'),
+        ('ItemStack("i7", "I7")', 'ItemStack("i12", "I12")'),
+        ('("bob" to InventoryState("bob", mapOf("a" to ItemStack("a", "A", 2), "b" to ItemStack("b", "B", 1))))',
+         '("bob" to InventoryState("bob", (listOf("a", "b", "c", "d", "e", "f", "g")).associate { it to ItemStack(it, it.uppercase(), if (it == "a") 2 else 1) }))'),
+        ('ItemStack("c", "C")', 'ItemStack("h", "H")'),
+    ),
+    "SpecialFollowerInventoryPolicyTest.kt": (
+        ('fun irisAndSyvialUseSixTypesAndTwentyPerType()', 'fun irisAndSyvialUseElevenTypesAndTwentyPerType()'),
+        ('assertEquals(6, profile.maxTypes)', 'assertEquals(11, profile.maxTypes)'),
+        ('fun seventhItemTypeIsRejectedForBothSpecialFollowers()', 'fun twelfthItemTypeIsRejectedForBothSpecialFollowers()'),
+        ('val sixItems = (1..6).associate', 'val elevenItems = (1..11).associate'),
+        ('InventoryState(ownerId, sixItems)', 'InventoryState(ownerId, elevenItems)'),
+        ('ItemStack("item-7", "Item 7", 1)', 'ItemStack("item-12", "Item 12", 1)'),
+    ),
+    "LuciaFollowerTest.kt": (
+        ('fun luciaGiftInventoryAllowsThreeTypesAndOneHundredEach()', 'fun luciaGiftInventoryAllowsEightTypesAndOneHundredEach()'),
+        ('assertEquals(3, profile.maxTypes)', 'assertEquals(8, profile.maxTypes)'),
+        ('val three = InventoryState(LUCIA_ID, mapOf(\n      "a" to ItemStack("a", "A", 100),\n      "b" to ItemStack("b", "B", 1),\n      "c" to ItemStack("c", "C", 1)\n    ))',
+         'val eight = InventoryState(LUCIA_ID, (listOf("a", "b", "c", "d", "e", "f", "g", "h")).associate { id ->\n      id to ItemStack(id, id.uppercase(), if (id == "a") 100 else 1)\n    })'),
+        ('InventoryPolicy.validateAddition(state, LUCIA_ID, three, ItemStack("d", "D", 1), 1)',
+         'InventoryPolicy.validateAddition(state, LUCIA_ID, eight, ItemStack("i", "I", 1), 1)'),
+    ),
+    "AnNhienFollowerTest.kt": (
+        ('fun inventoryAcceptsOnlyFoodAndHasTwoTypeSlots()', 'fun inventoryAcceptsOnlyFoodAndHasSevenTypeSlots()'),
+        ('val twoFoods = InventoryState(AN_NHIEN_ID, mapOf(\n      "food-1" to food,\n      "food-2" to ItemStack("food-2", "Bánh", metadata = mapOf("category" to "FOOD"))\n    ))',
+         'val sevenFoods = InventoryState(AN_NHIEN_ID, (1..7).associate { index ->\n      val id = "food-$index"\n      id to ItemStack(id, "Food $index", metadata = mapOf("category" to "FOOD"))\n    })'),
+        ('        twoFoods,\n        ItemStack("food-3", "Kẹo", metadata = mapOf("category" to "FOOD")),',
+         '        sevenFoods,\n        ItemStack("food-8", "Kẹo", metadata = mapOf("category" to "FOOD")),'),
+    ),
+}
+for test_name, replacements in test_replacements.items():
+    path = TESTS / test_name
+    if not path.exists():
+        continue
+    source = path.read_text(encoding="utf-8")
+    for old_value, new_value in replacements:
+        source = source.replace(old_value, new_value)
+    path.write_text(source, encoding="utf-8")
+
+# The earlier compatibility rewrite updates the generated defeat ID but the
+# historical assertion used a separate literal. Keep both sides identical.
+if official_test.exists():
+    source = official_test.read_text(encoding="utf-8")
+    source = source.replace(
+        'containsKey("entityLoot:pity-guaranteed-50")',
+        'containsKey("entityLoot:pity-guaranteed-48")',
+    )
+    official_test.write_text(source, encoding="utf-8")
+
 
 # ---------------------------------------------------------------------------
 # 3) Final regression contract: every inventory profile has five more type slots,
