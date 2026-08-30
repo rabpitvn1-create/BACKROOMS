@@ -83,7 +83,7 @@ STATS.write_text(stats, encoding="utf-8")
 combat = COMBAT.read_text(encoding="utf-8")
 combat = once(combat, '    return max(1, (resolved * 110 + 99) / 100)\n', '    return max(1, (resolved * 105 + 99) / 100)\n', "companion attack +5%")
 combat = once(combat, '          val luciaRawBurstDamage = (LUCIA_FULL_AUTO_ROUNDS * luciaPerBulletAfterArmor * 110 + 99) / 100\n', '          val luciaRawBurstDamage = (LUCIA_FULL_AUTO_ROUNDS * luciaPerBulletAfterArmor * 105 + 99) / 100\n', "Lucia attack +5%")
-combat = once(combat, '        val blessedDamage = min(c.entityHp, (24 * damagePerHit * 110 + 99) / 100)\n', '        val blessedDamage = min(c.entityHp, (24 * damagePerHit * 105 + 99) / 100\n', "Syvial attack +5%")
+combat = once(combat, '        val blessedDamage = min(c.entityHp, (24 * damagePerHit * 110 + 99) / 100)\n', '        val blessedDamage = min(c.entityHp, (24 * damagePerHit * 105 + 99) / 100)\n', "Syvial attack +5%")
 
 target_old = 'quickStep + DevilTriggerPassive.evasionBonus(kaiDevilTriggerActive)'
 target_new = 'quickStep + DevilTriggerPassive.evasionBonus(kaiDevilTriggerActive) + CharacterStatEngine.devilBlessingEvasionBonus(resolvedState, targetId)'
