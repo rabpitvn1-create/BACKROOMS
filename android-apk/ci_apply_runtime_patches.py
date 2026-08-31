@@ -56,6 +56,7 @@ SCRIPTS = [
     "patch-jane-doe-finalizer.py",
     "patch-jane-doe-test-compat.py",
     "patch-kai-devil-within-snapshot-finalize.py",
+    "patch-campaign-route-authority-final.py",
 ]
 
 for script in SCRIPTS:
