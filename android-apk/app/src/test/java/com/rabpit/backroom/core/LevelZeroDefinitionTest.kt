@@ -24,6 +24,23 @@ class LevelZeroDefinitionTest {
     assertTrue(definition.generationConstraints.proceduralEscapeBlueprint)
   }
 
+  @Test fun levelZeroExploreRepliesDoNotMixEnglishZoneNamesIntoVietnameseProse() {
+    val definition = loadLevelZero()
+    val registry = LevelRegistry.from(listOf(definition))
+    var state = GenericLevelRuntime.install(GameState.initial(), registry, "0", "level-zero-vietnamese-prose")
+
+    val firstExplore = GenericLevelRuntime.apply(state, registry, ActionKind.EXPLORE, "Khám phá")
+    state = firstExplore.state
+    assertEquals("Kai đi sâu hơn vào Vòng lặp huỳnh quang.", firstExplore.reply)
+
+    val secondExplore = GenericLevelRuntime.apply(state, registry, ActionKind.EXPLORE, "Khám phá")
+    assertTrue(secondExplore.reply.startsWith("Kai đi sâu hơn vào Phòng dấu mốc dịch chuyển."))
+    assertTrue(secondExplore.reply.contains("người sống sót"))
+    assertFalse(secondExplore.reply.contains("Fluorescent Loop"))
+    assertFalse(secondExplore.reply.contains("Relocated Marker Room"))
+    assertFalse(secondExplore.reply.contains("survivor", ignoreCase = true))
+  }
+
   @Test fun deterministicFallbackRequiresClueCollectionThenExecuteToLeaveLevelZero() {
     val definition = loadLevelZero()
     val registry = LevelRegistry.from(listOf(definition))
