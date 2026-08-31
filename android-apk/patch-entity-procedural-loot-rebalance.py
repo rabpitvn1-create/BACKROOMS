@@ -64,6 +64,12 @@ facade_path.write_text(facade, encoding="utf-8")
 main = MAIN.read_text(encoding="utf-8")
 main = replace_once(
     main,
+    "import com.rabpit.backroom.core.GameCoreFacade;\n",
+    "import com.rabpit.backroom.core.GameCoreFacade;\nimport com.rabpit.backroom.core.EntityEncounterPolicy;\n",
+    "EntityEncounterPolicy Java import",
+)
+main = replace_once(
+    main,
     '''    boolean entityAllowed = flags == null || flags.optBoolean("entityEncountersAllowed", true);
 ''',
     '''    JSONObject runtimeContext = new JSONObject(requireGameCore().currentActionContext());
