@@ -43,14 +43,14 @@ fallback_new = '''    if (interpreted.candidates.any { it.intent == GameIntent.N
 if fallback_new.strip() not in facade:
     facade = replace_once(facade, fallback_old, fallback_new, "persist model fallback PendingTurn")
 
-resolution_old = '''    if (resolvedCommands.size != interpreted.candidates.size || resolvedCommands.isEmpty()) return response(false, legacy, null, "resolution_incomplete")
-'''
-resolution_new = '''    if (resolvedCommands.size != interpreted.candidates.size || resolvedCommands.isEmpty()) {
-      repository.save(pending.state)
+# Inventory authority has already expanded the unresolved-command branch by this point in the patch
+# chain. Only the non-item fallback leaves Core for Gemini, so persist immediately before its single
+# resolution_incomplete return instead of trying to replace the older one-line source form.
+resolution_old = '      return response(false, legacy, null, "resolution_incomplete")\n'
+resolution_new = '''      repository.save(pending.state)
       return response(false, legacy, null, "resolution_incomplete")
-    }
 '''
-if resolution_new.strip() not in facade:
+if resolution_new not in facade:
     facade = replace_once(facade, resolution_old, resolution_new, "persist unresolved PendingTurn")
 
 # A completed turn may be replayed by a stale WebView after the commit succeeded but the response was
