@@ -38,9 +38,16 @@ test -s apk-check/assets/levels/1.json
 grep -q '"schemaVersion"' apk-check/assets/levels/1.json
 grep -q '"escapeBlueprint"' apk-check/assets/levels/1.json
 
-test -s apk-check/assets/level_profiles/2.json
-grep -q '"id": "2"' apk-check/assets/level_profiles/2.json
+for level in 2 3 4 5 6; do
+  test -s "apk-check/assets/level_profiles/$level.json"
+  grep -q "\"id\": \"$level\"" "apk-check/assets/level_profiles/$level.json"
+done
 grep -q '"pipeWaterRule": "never_drink_directly"' apk-check/assets/level_profiles/2.json
+grep -q '"primaryTransitionTarget": "4"' apk-check/assets/level_profiles/3.json
+grep -q '"residentEntities": "none_confirmed"' apk-check/assets/level_profiles/4.json
+grep -q '"mentalEffectCause": "open_multifactor"' apk-check/assets/level_profiles/5.json
+grep -q '"obeliskFunction": "OPEN"' apk-check/assets/level_profiles/6.json
+grep -q '"transitionRule": "no_method_guaranteed"' apk-check/assets/level_profiles/6.json
 
 test -s apk-check/assets/level_catalog/backrooms-0-6.json
 grep -q '"campaignId": "BACKROOMS_FANDOM_LEVELS_0_6_R01"' apk-check/assets/level_catalog/backrooms-0-6.json

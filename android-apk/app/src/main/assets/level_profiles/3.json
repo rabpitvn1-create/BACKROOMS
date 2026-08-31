@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "id": "3",
+  "canonProfile": {
+    "environmentTags": [
+      "industrial_corridor_network",
+      "transformers",
+      "conductor_circuits",
+      "large_industrial_fans",
+      "electrical_coils",
+      "electrical_panels",
+      "hot_water_pipes",
+      "wall_routed_power_cables",
+      "extreme_heat",
+      "subzero_lower_utility_tunnels",
+      "unconfirmed_power_source"
+    ],
+    "requiredZoneTags": ["entry", "escape"],
+    "allowedPhenomena": [
+      "local_blackout",
+      "geometry_shift_when_unobserved",
+      "high_voltage_hazard",
+      "machinery_persistence",
+      "subzero_utility_tunnels",
+      "anomalous_nonfreezing_water",
+      "rapid_water_level_change"
+    ],
+    "forbiddenClaims": [
+      "backrooms_confirmed_conscious",
+      "level_confirmed_intentionally_opposes_player",
+      "level3_confirmed_power_source",
+      "level3_confirmed_powers_other_levels"
+    ],
+    "transitionTags": [
+      "office_sector_metal_door",
+      "rare_elevator",
+      "industrial_corridor_to_office",
+      "extended_dark_passage",
+      "dark_region_transition"
+    ],
+    "metadata": {
+      "projectDanger": "EXTREME",
+      "canonSource": "BACKROOMS-LEVELS-R2-L0-6",
+      "fandomRewriteBoundary": "use_published_baseline_as_of_2026-08-18",
+      "primaryTransitionTarget": "4",
+      "alternateForwardTransitionTarget": "6",
+      "residentEntityPolicy": "allowed_by_entity_codex"
+    }
+  },
+  "generationConstraints": {
+    "minZones": 5,
+    "maxZones": 32,
+    "minEvidencePerRequiredFact": 2,
+    "minEvidenceSourceTypesPerRequiredFact": 2,
+    "maxRequiredActions": 8,
+    "allowSurvivors": true,
+    "allowEntities": true,
+    "proceduralTopology": true,
+    "proceduralLandmarks": true,
+    "proceduralEvidencePlacement": true,
+    "proceduralEscapeBlueprint": true
+  },
+  "metadata": {
+    "profileSource": "project-level-canon",
+    "profileRevision": "R2"
+  }
+}
