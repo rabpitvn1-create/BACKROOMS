@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "id": "6",
+  "canonProfile": {
+    "environmentTags": [
+      "dark_open_tundra",
+      "cold_ground",
+      "sparse_shrubs",
+      "dead_trees",
+      "rare_water_bodies",
+      "scattered_obelisks",
+      "near_absolute_darkness",
+      "possible_snow",
+      "few_meter_visibility_with_light",
+      "resource_scarcity"
+    ],
+    "requiredZoneTags": ["entry", "escape"],
+    "allowedPhenomena": [
+      "nonexistent_bird_calls",
+      "phantom_human_voices",
+      "phantom_companion_footsteps",
+      "orientation_loss",
+      "derealization",
+      "microsleep",
+      "exhaustion",
+      "auditory_hallucination"
+    ],
+    "forbiddenClaims": [
+      "backrooms_confirmed_conscious",
+      "level_confirmed_intentionally_opposes_player",
+      "level6_confirmed_indoor_corridor_maze",
+      "resident_entity_presence_confirmed",
+      "all_sounds_are_entities",
+      "obelisk_confirmed_gateway",
+      "obelisk_confirmed_transmitter",
+      "obelisk_confirmed_grave",
+      "obelisk_confirmed_device",
+      "level6_transition_method_guaranteed"
+    ],
+    "transitionTags": [
+      "distant_abnormal_light",
+      "deep_pit_to_cave_region",
+      "conditional_stumble_or_fall_transition"
+    ],
+    "metadata": {
+      "projectDanger": "EXTREME_UNQUANTIFIED",
+      "canonSource": "BACKROOMS-LEVELS-R2-L0-6",
+      "residentEntities": "none_confirmed",
+      "roamingIncursion": "possible_but_not_resident",
+      "obeliskFunction": "OPEN",
+      "transitionRule": "no_method_guaranteed"
+    }
+  },
+  "generationConstraints": {
+    "minZones": 5,
+    "maxZones": 30,
+    "minEvidencePerRequiredFact": 2,
+    "minEvidenceSourceTypesPerRequiredFact": 2,
+    "maxRequiredActions": 8,
+    "allowSurvivors": true,
+    "allowEntities": true,
+    "proceduralTopology": true,
+    "proceduralLandmarks": true,
+    "proceduralEvidencePlacement": true,
+    "proceduralEscapeBlueprint": true
+  },
+  "metadata": {
+    "profileSource": "project-level-canon",
+    "profileRevision": "R2"
+  }
+}
