@@ -32,87 +32,16 @@ jobs:
       - name: Install image tooling
         run: python -m pip install --disable-pip-version-check Pillow==11.3.0
 
-      - name: Align generator with current catalog and bounded source lookup
+      - name: Preserve curated approved-source metadata from current main
         shell: bash
         run: |
           set -euo pipefail
-          python - <<'PY'
-          from pathlib import Path
-          path = Path('android-apk/prepare-trusted-level-snapshots.py')
-          text = path.read_text(encoding='utf-8')
-
-          start = text.index('def load_route() -> list[tuple[int, str, str, str]]:')
-          end = text.index('\ndef fetch(', start)
-          route_lines = [
-              'def load_route() -> list[tuple[int, str, str, str]]:',
-              '    catalog_root = ROOT / "app/src/main/assets/level_catalog"',
-              '    campaign_id = "BACKROOMS_FANDOM_LEVELS_0_6_R01"',
-              '    entries: list[dict] = []',
-              '    for catalog_path in sorted(catalog_root.rglob("*.json")):',
-              '        if catalog_path.name.startswith("_"):',
-              '            continue',
-              '        raw = json.loads(catalog_path.read_text(encoding="utf-8"))',
-              '        if isinstance(raw, list):',
-              '            document_entries = raw',
-              '            inherited_campaign = ""',
-              '        elif isinstance(raw, dict):',
-              '            document_entries = raw.get("entries", [raw])',
-              '            inherited_campaign = str(raw.get("campaignId") or "").strip()',
-              '        else:',
-              '            continue',
-              '        for entry in document_entries:',
-              '            if not isinstance(entry, dict):',
-              '                continue',
-              '            item = dict(entry)',
-              '            if inherited_campaign:',
-              '                item.setdefault("campaignId", inherited_campaign)',
-              '            entries.append(item)',
-              '    route_entries = [',
-              '        entry for entry in entries',
-              '        if str(entry.get("campaignId") or "").strip() == campaign_id',
-              '        and entry.get("campaignOrder") is not None',
-              '    ]',
-              '    route_entries.sort(key=lambda entry: int(entry["campaignOrder"]))',
-              '    route = [',
-              '        (int(entry["parentMainLevel"]), str(entry["id"]).strip(), str(entry["name"]).strip(), str(entry["kind"]).strip().upper())',
-              '        for entry in route_entries',
-              '    ]',
-              '    if len(route) != 43:',
-              '        raise RuntimeError(f"Expected catalog-backed 43-area route, found {len(route)}")',
-              '    return route',
-              '',
-          ]
-          text = text[:start] + '\n'.join(route_lines) + text[end:]
-
-          text = text.replace('attempts: int = 3', 'attempts: int = 1', 1)
-          text = text.replace('urllib.request.urlopen(req, timeout=40)', 'urllib.request.urlopen(req, timeout=10)', 1)
-
-          stream_start = text.index('def candidate_stream(area_id: str, area_name: str, area_type: str) -> list[dict]:')
-          stream_end = text.index('\ndef decode_image', stream_start)
-          stream_lines = [
-              'def candidate_stream(area_id: str, area_name: str, area_type: str) -> list[dict]:',
-              '    # Fandom has a structured API and is one of the three approved sources, so use it first.',
-              '    # Wikidot EN/VN are consulted only when Fandom exposes no usable image for this area.',
-              '    try:',
-              '        fandom = fandom_candidates(area_id, area_name, area_type)',
-              '    except RuntimeError as exc:',
-              '        print(f"SOURCE_WARN area={area_id} site=fandom error={exc}")',
-              '        fandom = []',
-              '    if fandom:',
-              '        return fandom',
-              '    output: list[dict] = []',
-              '    for site_id, root in WIKIDOT_SITES:',
-              '        output.extend(wikidot_candidates(site_id, root, area_id, area_name, area_type))',
-              '        if output:',
-              '            break',
-              '    return output',
-              '',
-          ]
-          text = text[:stream_start] + '\n'.join(stream_lines) + text[stream_end:]
-          path.write_text(text, encoding='utf-8')
-          PY
+          git show origin/main:android-apk/app/src/main/assets/level_snapshots/fandom_manifest.json > /tmp/approved-source-manifest.json
+          test -s /tmp/approved-source-manifest.json
 
       - name: Rebuild all packaged Snapshot assets
+        env:
+          TRUSTED_SOURCE_MANIFEST: /tmp/approved-source-manifest.json
         run: python android-apk/prepare-trusted-level-snapshots.py
 
       - name: Remove superseded Pixel16 and Fandom-only builders
@@ -154,9 +83,10 @@ jobs:
           for area_id, area in manifest['areas'].items():
               images = area['images']
               assert len(images) == 4, (area_id, len(images))
+              assert len({item['sha256'] for item in images}) == 4, area_id
               for record in images:
                   page = record['page_url']
-                  assert page.startswith('https://backrooms-wiki.wikidot.com/') or page.startswith('https://backrooms.fandom.com/wiki/') or page.startswith('http://backrooms-vn.wikidot.com/'), page
+                  assert page.startswith('https://backrooms-wiki.wikidot.com/') or page.startswith('https://backrooms.fandom.com/wiki/') or page.startswith('http://backrooms-vn.wikidot.com/') or page.startswith('https://backrooms-vn.wikidot.com/'), page
                   asset = root / record['local_file']
                   assert asset.is_file() and asset.stat().st_size == record['bytes']
                   assert hashlib.sha256(asset.read_bytes()).hexdigest() == record['sha256']
@@ -166,7 +96,8 @@ jobs:
                   total += 1
           assert total == 172, total
           assert not list(root.glob('*pixel16*'))
-          print(f'trusted snapshot verification passed: {total} assets')
+          assert not list(root.glob('*_fandom_*'))
+          print(f'trusted snapshot verification passed: {total} assets; fallbacks={len(manifest.get("fallback_areas", []))}')
           PY
 
       - name: Commit regenerated assets to branch
