@@ -43,7 +43,10 @@ if "private val backroomsDirector: BackroomsDirector" not in facade:
         raise RuntimeError("BackroomsDirector create anchor missing")
     facade = facade.replace(create_anchor, create_replacement, 1)
 
-facade_methods = r'''  fun processRegisteredLevelAction(legacyStateJson: String, kindRaw: String, action: String): String {
+facade_methods = r'''  fun exportDirectorTelemetry(): String = backroomsDirector.exportTelemetry()
+  fun clearDirectorTelemetry(): Boolean = backroomsDirector.clearTelemetry()
+
+  fun processRegisteredLevelAction(legacyStateJson: String, kindRaw: String, action: String): String {
     val legacy = JSONObject(legacyStateJson)
     val state = loadOrMigrate(legacy)
     val kind = enumValues<ActionKind>().firstOrNull { it.name == kindRaw.trim().uppercase() }
@@ -149,6 +152,16 @@ bridge_methods = f'''    @JavascriptInterface public String exportCoreState() {{
       catch (Exception ignored) {{ return false; }}
     }}
 
+    @JavascriptInterface public String exportDirectorTelemetry() {{
+      try {{ return {core_call}.exportDirectorTelemetry(); }}
+      catch (Exception ignored) {{ return ""; }}
+    }}
+
+    @JavascriptInterface public boolean clearDirectorTelemetry() {{
+      try {{ return {core_call}.clearDirectorTelemetry(); }}
+      catch (Exception ignored) {{ return false; }}
+    }}
+
 '''
 if "@JavascriptInterface public String exportCoreState()" not in main:
     anchor = "  private class GameBridge {\n"
@@ -160,6 +173,8 @@ for marker in (
     "private val backroomsDirector: BackroomsDirector",
     "BackroomsDirector.liteRT(appContext)",
     "runSeed, backroomsDirector",
+    "fun exportDirectorTelemetry(): String",
+    "fun clearDirectorTelemetry(): Boolean",
     "fun processRegisteredLevelAction(legacyStateJson: String, kindRaw: String, action: String)",
     "RegisteredLevelActionCoordinator.applyStarted(",
     "legacyAreaId",
@@ -169,6 +184,8 @@ for marker in (
     ".processRegisteredLevelAction(stateJson, actionKind, action)",
     '@JavascriptInterface public String exportCoreState()',
     '@JavascriptInterface public boolean restoreCoreState(String coreJson)',
+    '@JavascriptInterface public String exportDirectorTelemetry()',
+    '@JavascriptInterface public boolean clearDirectorTelemetry()',
 ):
     source = facade if marker.startswith("fun ") or marker in (
         "private val backroomsDirector: BackroomsDirector",
@@ -184,4 +201,4 @@ for marker in (
 
 FACADE.write_text(facade, encoding="utf-8")
 MAIN.write_text(main, encoding="utf-8")
-print("Registered Level runtime bridge applied: LiteRT BackroomsDirector ranks only engine-legal evidence before registered Level actions commit locally.")
+print("Registered Level runtime bridge applied: LiteRT BackroomsDirector ranks only engine-legal evidence and stores bounded local-only decision telemetry.")
