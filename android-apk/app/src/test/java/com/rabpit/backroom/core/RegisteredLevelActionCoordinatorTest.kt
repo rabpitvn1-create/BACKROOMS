@@ -1,0 +1,99 @@
+package com.rabpit.backroom.core
+
+import org.junit.Assert.*
+import org.junit.Test
+
+class RegisteredLevelActionCoordinatorTest {
+  @Test fun arbitraryRegisteredLevelAutoInstallsAndOwnsSearch() {
+    val definition = fixture("742.13")
+    val registry = LevelRegistry.from(listOf(definition))
+    val started = start(GameState.initial(), ActionKind.SEARCH, "Tìm kiếm")
+
+    val result = RegisteredLevelActionCoordinator.applyStarted(
+      started, registry, ActionKind.SEARCH, "Tìm kiếm", "742.13", "run-742"
+    )
+
+    assertTrue(result.error.orEmpty(), result.handled)
+    assertNull(result.error)
+    assertEquals("742.13", result.state.levelInstance?.levelId)
+    assertEquals("742.13:run-742", result.state.levelInstance?.generationId)
+    assertNull(ActionRuntime.activeSession(result.state))
+    assertTrue("TURN_1" in result.state.turn.completedTurnIds)
+  }
+
+  @Test fun unrelatedExecuteIsLeftForExistingCommandPipeline() {
+    val definition = fixture("347.2")
+    val registry = LevelRegistry.from(listOf(definition))
+    val started = start(GameState.initial(), ActionKind.EXECUTE, "Dùng băng gạc cho Lucia")
+
+    val result = RegisteredLevelActionCoordinator.applyStarted(
+      started, registry, ActionKind.EXECUTE, "Dùng băng gạc cho Lucia", "347.2", "run-347"
+    )
+
+    assertFalse(result.handled)
+    assertNull(result.state.levelInstance)
+    assertNotNull(ActionRuntime.activeSession(result.state))
+  }
+
+  @Test fun recognizedExecuteIsResolvedWithoutGeminiReroll() {
+    val definition = fixture("999.alpha")
+    val registry = LevelRegistry.from(listOf(definition))
+    var state = GenericLevelRuntime.install(GameState.initial(), registry, "999.alpha", "run-999")
+    state = start(state, ActionKind.EXECUTE, "Mở cánh cửa thoát")
+
+    val result = RegisteredLevelActionCoordinator.applyStarted(
+      state, registry, ActionKind.EXECUTE, "Mở cánh cửa thoát", "999.alpha", "ignored"
+    )
+
+    assertTrue(result.handled)
+    assertTrue(result.progressed)
+    assertTrue(result.escaped)
+    assertTrue(result.state.levelInstance?.completed == true)
+    assertNull(ActionRuntime.activeSession(result.state))
+  }
+
+  private fun start(state: GameState, kind: ActionKind, input: String): GameState {
+    val started = ActionRuntime.start(
+      state = state,
+      sessionId = "TURN_1:${kind.name}:test",
+      turnId = "TURN_1",
+      actorId = KAI_ID,
+      kind = kind,
+      input = input,
+      locationKey = state.world["location"] ?: "fixture",
+      plannedMinutes = 1,
+      searchDepth = if (kind == ActionKind.SEARCH) SearchDepth.NORMAL else null
+    )
+    assertTrue(started.error.orEmpty(), started.applied)
+    return started.state
+  }
+
+  private fun fixture(id: String): LevelDefinition {
+    val fact = "EXIT_FACT"
+    val zones = linkedMapOf(
+      "entry" to ZoneState("entry", "Entry", setOf("exit"), setOf("entry")),
+      "exit" to ZoneState("exit", "Exit", emptySet(), setOf("escape"))
+    )
+    val evidence = listOf(
+      EvidenceState("search-clue", setOf(fact), setOf(EvidenceSource.SEARCH), "entry"),
+      EvidenceState("environment-clue", setOf(fact), setOf(EvidenceSource.ENVIRONMENT), "exit")
+    ).associateBy { it.id }
+    val action = LevelActionRule(
+      id = "open_exit",
+      matchGroups = listOf(setOf("mở"), setOf("cửa", "thoát")),
+      conditions = setOf("zone:entry"),
+      effects = listOf(LevelEffect(LevelEffectType.COMPLETE_LEVEL)),
+      reply = "Cánh cửa mở."
+    )
+    return LevelDefinition(
+      id = id,
+      name = "Fixture $id",
+      initialZoneId = "entry",
+      zones = zones,
+      escapeBlueprint = EscapeBlueprintState("fixture-exit", setOf(fact), listOf("open_exit"), locked = true),
+      evidence = evidence,
+      exploreRoute = listOf("exit"),
+      actions = mapOf(action.id to action)
+    )
+  }
+}

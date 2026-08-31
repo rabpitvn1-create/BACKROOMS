@@ -43,6 +43,7 @@ SCRIPTS = [
     "patch-item-reference-fallback-final.py",
     "patch-passive-skill-visibility.py",
     "patch-combat-total-turn-isolation.py",
+    "patch-registered-level-runtime-bridge.py",
     "patch-escape-chance-hud.py",
 ]
 

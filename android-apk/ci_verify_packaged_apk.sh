@@ -13,7 +13,7 @@ BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d |
 
 rm -rf apk-check
 mkdir apk-check
-unzip -q "$APK" 'assets/index.html' 'assets/entity/*' 'assets/Kai_new_overlay.png' 'assets/BESTKAIV2.png' -d apk-check
+unzip -q "$APK" 'assets/index.html' 'assets/levels/*' 'assets/entity/*' 'assets/Kai_new_overlay.png' 'assets/BESTKAIV2.png' -d apk-check
 
 grep -q 'searchActionButton' apk-check/assets/index.html
 grep -q 'exploreActionButton' apk-check/assets/index.html
@@ -22,6 +22,20 @@ grep -q 'equipmentDetailModal' apk-check/assets/index.html
 grep -q 'renderCharacterStatusEquipment' apk-check/assets/index.html
 grep -q 'characterSkillsModal' apk-check/assets/index.html
 grep -q 'characterSkillsButton' apk-check/assets/index.html
+
+# TURN remains an internal state key but must not be visible in the player HUD. Escape is now
+# resolved from locked Level blueprints, never from a player-facing percentage meter.
+grep -q '.turn{display:none!important}' apk-check/assets/index.html
+! grep -q 'id="escapeChance"' apk-check/assets/index.html
+! grep -q 'ESCAPE_CHANCE_HUD_R02' apk-check/assets/index.html
+! grep -q 'getEscapeChancePercent' apk-check/assets/index.html
+grep -q 'const CORE_SAVE_KEY="backroom-apk-core-state"' apk-check/assets/index.html
+grep -q 'Android.exportCoreState()' apk-check/assets/index.html
+grep -q 'Android.restoreCoreState(raw)' apk-check/assets/index.html
+
+test -s apk-check/assets/levels/1.json
+grep -q '"schemaVersion"' apk-check/assets/levels/1.json
+grep -q '"escapeBlueprint"' apk-check/assets/levels/1.json
 
 test -s apk-check/assets/entity/hound.png
 test -s apk-check/assets/entity/slenderman.png
