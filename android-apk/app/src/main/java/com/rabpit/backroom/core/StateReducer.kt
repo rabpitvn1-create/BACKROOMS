@@ -18,10 +18,7 @@ object CommandValidator {
       return ValidationResult(false, "acquisition_event_required")
     }
 
-    // Restore remains a narrative capability. It must never mutate authoritative gameplay state.
-    if (command is OmnivaultCommand && command.operation == OmnivaultCommand.Operation.RESTORE) {
-      return ValidationResult(false, "restore_narrative_only")
-    }
+    // Current canon: Omnivault RESTORE is validated and executed by OmnivaultEngine.
 
     val itemName = when (command) {
       is ItemCommand -> command.itemName

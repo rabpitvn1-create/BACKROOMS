@@ -17,16 +17,16 @@ class InventoryPolicyTest {
     val iris = CharacterState("future-special-1", "Future One", metadata = mapOf("inventoryProfile" to "special_companion"))
     val syvial = CharacterState("future-special-2", "Future Two", metadata = mapOf("inventoryProfile" to "special_companion"))
     val state = stateWith(iris, syvial, CharacterState("bob", "Bob"))
-    assertEquals(InventoryProfile(9, 999), InventoryPolicy.profileFor(state, KAI_ID))
-    assertEquals(InventoryProfile(6, 20), InventoryPolicy.profileFor(state, iris.id))
-    assertEquals(InventoryProfile(6, 20), InventoryPolicy.profileFor(state, syvial.id))
-    assertEquals(InventoryProfile(2, 2), InventoryPolicy.profileFor(state, "bob"))
+    assertEquals(InventoryProfile(14, 999), InventoryPolicy.profileFor(state, KAI_ID))
+    assertEquals(InventoryProfile(11, 20), InventoryPolicy.profileFor(state, iris.id))
+    assertEquals(InventoryProfile(11, 20), InventoryPolicy.profileFor(state, syvial.id))
+    assertEquals(InventoryProfile(7, 2), InventoryPolicy.profileFor(state, "bob"))
   }
 
-  @Test fun kaiRejectsTenthTypeAndThousandthItem() {
-    val items = (1..9).associate { "i$it" to ItemStack("i$it", "Item $it", 1) }
+  @Test fun kaiRejectsFifteenthTypeAndThousandthItem() {
+    val items = (1..14).associate { "i$it" to ItemStack("i$it", "Item $it", 1) }
     val base = stateWith().copy(inventories = mapOf(KAI_ID to InventoryState(KAI_ID, items)))
-    assertEquals("inventory_slot_limit", InventoryPolicy.validateAddition(base, KAI_ID, base.inventories.getValue(KAI_ID), ItemStack("i10", "Item 10"), 1))
+    assertEquals("inventory_slot_limit", InventoryPolicy.validateAddition(base, KAI_ID, base.inventories.getValue(KAI_ID), ItemStack("i15", "Item 15"), 1))
     val stacked = base.copy(inventories = mapOf(KAI_ID to InventoryState(KAI_ID, mapOf("water" to ItemStack("water", "Water", 999)))))
     assertEquals("inventory_stack_limit", InventoryPolicy.validateAddition(stacked, KAI_ID, stacked.inventories.getValue(KAI_ID), ItemStack("water", "Water"), 1))
   }
@@ -36,11 +36,11 @@ class InventoryPolicyTest {
     val bob = CharacterState("bob", "Bob")
     var state = stateWith(iris, bob)
     state = state.copy(inventories = state.inventories +
-      (iris.id to InventoryState(iris.id, (1..6).associate { "i$it" to ItemStack("i$it", "I$it", 1) })) +
-      ("bob" to InventoryState("bob", mapOf("a" to ItemStack("a", "A", 2), "b" to ItemStack("b", "B", 1)))))
-    assertEquals("inventory_slot_limit", InventoryPolicy.validateAddition(state, iris.id, state.inventories.getValue(iris.id), ItemStack("i7", "I7"), 1))
+      (iris.id to InventoryState(iris.id, (1..11).associate { "i$it" to ItemStack("i$it", "I$it", 1) })) +
+      ("bob" to InventoryState("bob", (listOf("a", "b", "c", "d", "e", "f", "g")).associate { it to ItemStack(it, it.uppercase(), if (it == "a") 2 else 1) })))
+    assertEquals("inventory_slot_limit", InventoryPolicy.validateAddition(state, iris.id, state.inventories.getValue(iris.id), ItemStack("i12", "I12"), 1))
     assertEquals("inventory_stack_limit", InventoryPolicy.validateAddition(state, "bob", state.inventories.getValue("bob"), ItemStack("a", "A"), 1))
-    assertEquals("inventory_slot_limit", InventoryPolicy.validateAddition(state, "bob", state.inventories.getValue("bob"), ItemStack("c", "C"), 1))
+    assertEquals("inventory_slot_limit", InventoryPolicy.validateAddition(state, "bob", state.inventories.getValue("bob"), ItemStack("h", "H"), 1))
   }
 
   @Test fun equippedKaiSignatureItemCannotBeScanned() {
@@ -50,6 +50,6 @@ class InventoryPolicyTest {
       equipment = mapOf(KAI_ID to EquipmentState(KAI_ID, mapOf("weapon" to gun.itemId)))
     )
     val result = StateReducer.execute(state, OmnivaultCommand("scan", "TURN_1", KAI_ID, source = CommandSource.RULE, operation = OmnivaultCommand.Operation.SCAN, itemId = gun.itemId, itemName = gun.name))
-    assertEquals("signature_equipment_locked", result.validation.reason)
+    assertEquals("omnivault_capability_retired", result.validation.reason)
   }
 }

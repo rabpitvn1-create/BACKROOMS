@@ -156,4 +156,26 @@ class ActionRuntimeTest {
     assertEquals(42L, advancedFollower.minutesAwake)
     assertEquals(dead.physiology, result.state.characters.getValue("dead").physiology)
   }
+
+  @Test fun environmentLootStartsWithBasePlusOnePercentAndGuaranteesTurnHundred() {
+    val level0 = stateAt().copy(world = stateAt().world + ("levelJson" to "{\"number\":0}"))
+    val first = ActionRuntime.start(level0, "LOOT-1", "TURN_1", KAI_ID, ActionKind.SEARCH, "search").state
+    val firstPreview = requireNotNull(LevelLootEngine.preparedPreview(first))
+    assertEquals(35, firstPreview.baseThreshold)
+    assertEquals(1, firstPreview.pityTurn)
+    assertEquals(635, firstPreview.threshold)
+
+    val unlucky = level0.copy(metadata = level0.metadata + (LevelLootEngine.ENVIRONMENT_PITY_KEY to "99"))
+    val hundredth = ActionRuntime.start(unlucky, "LOOT-100", "TURN_100", KAI_ID, ActionKind.EXPLORE, "explore").state
+    val hundredthPreview = requireNotNull(LevelLootEngine.preparedPreview(hundredth))
+    assertEquals(100, hundredthPreview.pityTurn)
+    assertEquals(10000, hundredthPreview.threshold)
+    assertTrue(hundredthPreview.success)
+    assertNull(hundredthPreview.roll)
+
+    val completed = ActionRuntime.complete(hundredth, "LOOT-100")
+    assertTrue(completed.applied)
+    assertTrue(completed.state.world.containsKey("levelLoot:LOOT-100"))
+    assertEquals(0, LevelLootEngine.environmentFailures(completed.state))
+  }
 }

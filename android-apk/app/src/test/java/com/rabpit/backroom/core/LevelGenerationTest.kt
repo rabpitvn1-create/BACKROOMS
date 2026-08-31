@@ -132,6 +132,202 @@ class LevelGenerationTest {
     assertTrue(BlueprintValidator.validate(decoded).valid)
   }
 
+  @Test fun directActionSelfCycleRejected() {
+    val actA = LevelActionRule("act_a", listOf(setOf("a")), setOf("action:act_a"), listOf(LevelEffect(LevelEffectType.COMPLETE_LEVEL)))
+    val candidate = candidate().copy(
+      escapeBlueprint = EscapeBlueprintState("self-cycle", setOf("F"), listOf("act_a")),
+      actions = mapOf("act_a" to actA)
+    )
+    val error = runCatching {
+      LevelInstanceGenerator.commitCandidate(definition(), "seed-self", candidate, "test")
+    }.exceptionOrNull()
+    assertNotNull(error)
+    assertTrue(error!!.message.orEmpty().contains("required_action_unreachable:act_a"))
+  }
+
+  @Test fun twoActionCycleRejected() {
+    val actA = LevelActionRule("act_a", listOf(setOf("a")), setOf("action:act_b"), listOf(LevelEffect(LevelEffectType.SET_ENVIRONMENT, "env_a", "1")))
+    val actB = LevelActionRule("act_b", listOf(setOf("b")), setOf("action:act_a"), listOf(LevelEffect(LevelEffectType.COMPLETE_LEVEL)))
+    val candidate = candidate().copy(
+      escapeBlueprint = EscapeBlueprintState("two-act-cycle", setOf("F"), listOf("act_a", "act_b")),
+      actions = mapOf("act_a" to actA, "act_b" to actB)
+    )
+    val error = runCatching {
+      LevelInstanceGenerator.commitCandidate(definition(), "seed-two-act", candidate, "test")
+    }.exceptionOrNull()
+    assertNotNull(error)
+    assertTrue(error!!.message.orEmpty().contains("required_action_unreachable:act_a"))
+  }
+
+  @Test fun requiredActionDependingOnLaterActionRejected() {
+    val actA = LevelActionRule("act_a", listOf(setOf("a")), setOf("action:act_b"), listOf(LevelEffect(LevelEffectType.SET_ENVIRONMENT, "k", "v")))
+    val actB = LevelActionRule("act_b", listOf(setOf("b")), setOf(), listOf(LevelEffect(LevelEffectType.COMPLETE_LEVEL)))
+    val candidate = candidate().copy(
+      escapeBlueprint = EscapeBlueprintState("forward-dep", setOf("F"), listOf("act_a", "act_b")),
+      actions = mapOf("act_a" to actA, "act_b" to actB)
+    )
+    val error = runCatching {
+      LevelInstanceGenerator.commitCandidate(definition(), "seed-forward", candidate, "test")
+    }.exceptionOrNull()
+    assertNotNull(error)
+    assertTrue(error!!.message.orEmpty().contains("required_action_unreachable:act_a"))
+  }
+
+  @Test fun factToActionToSameFactCycleRejected() {
+    val actA = LevelActionRule("act_a", listOf(setOf("a")), setOf("fact:F"), listOf(LevelEffect(LevelEffectType.SET_ENVIRONMENT, "gate", "open")))
+    val candidate = candidate().copy(
+      escapeBlueprint = EscapeBlueprintState("fact-action-cycle", setOf("F"), listOf("act_a")),
+      actions = mapOf("act_a" to actA),
+      evidence = mapOf(
+        "ev1" to EvidenceState("ev1", setOf("F"), setOf(EvidenceSource.SEARCH), "entry", setOf("env:gate=open")),
+        "ev2" to EvidenceState("ev2", setOf("F"), setOf(EvidenceSource.ANOMALY), "entry", setOf("env:gate=open"))
+      )
+    )
+    val error = runCatching {
+      LevelInstanceGenerator.commitCandidate(definition(), "seed-fact-act", candidate, "test")
+    }.exceptionOrNull()
+    assertNotNull(error)
+    assertTrue(error!!.message.orEmpty().contains("required_fact_unreachable:F"))
+  }
+
+  @Test fun twoFactTwoActionCycleRejected() {
+    val actA = LevelActionRule("act_a", listOf(setOf("a")), setOf("fact:F1"), listOf(LevelEffect(LevelEffectType.SET_ENVIRONMENT, "env1", "ok")))
+    val actB = LevelActionRule("act_b", listOf(setOf("b")), setOf("fact:F2"), listOf(LevelEffect(LevelEffectType.COMPLETE_LEVEL)))
+    val candidate = candidate().copy(
+      escapeBlueprint = EscapeBlueprintState("two-fact-two-act", setOf("F1", "F2"), listOf("act_a", "act_b")),
+      actions = mapOf("act_a" to actA, "act_b" to actB),
+      evidence = mapOf(
+        "ev1a" to EvidenceState("ev1a", setOf("F1"), setOf(EvidenceSource.SEARCH), "entry", setOf("fact:F2")),
+        "ev1b" to EvidenceState("ev1b", setOf("F1"), setOf(EvidenceSource.ANOMALY), "entry", setOf("fact:F2")),
+        "ev2a" to EvidenceState("ev2a", setOf("F2"), setOf(EvidenceSource.SEARCH), "entry", setOf("env:env1=ok")),
+        "ev2b" to EvidenceState("ev2b", setOf("F2"), setOf(EvidenceSource.ANOMALY), "entry", setOf("env:env1=ok"))
+      )
+    )
+    val error = runCatching {
+      LevelInstanceGenerator.commitCandidate(definition(), "seed-2f2a", candidate, "test")
+    }.exceptionOrNull()
+    assertNotNull(error)
+    assertTrue(error!!.message.orEmpty().contains("required_fact_unreachable:"))
+  }
+
+  @Test fun impossibleEnvironmentPreconditionRejected() {
+    val actA = LevelActionRule("act_a", listOf(setOf("a")), setOf("env:magic=true"), listOf(LevelEffect(LevelEffectType.COMPLETE_LEVEL)))
+    val candidate = candidate().copy(
+      escapeBlueprint = EscapeBlueprintState("impossible-env", setOf("F"), listOf("act_a")),
+      actions = mapOf("act_a" to actA)
+    )
+    val error = runCatching {
+      LevelInstanceGenerator.commitCandidate(definition(), "seed-impos-env", candidate, "test")
+    }.exceptionOrNull()
+    assertNotNull(error)
+    assertTrue(error!!.message.orEmpty().contains("required_action_unreachable:act_a"))
+  }
+
+  @Test fun environmentPreconditionMadeTrueByEarlierRequiredActionAccepted() {
+    val actA = LevelActionRule("act_a", listOf(setOf("a")), setOf(), listOf(LevelEffect(LevelEffectType.SET_ENVIRONMENT, "breaker", "off")))
+    val actB = LevelActionRule("act_b", listOf(setOf("b")), setOf("env:breaker=off"), listOf(LevelEffect(LevelEffectType.COMPLETE_LEVEL)))
+    val candidate = candidate().copy(
+      escapeBlueprint = EscapeBlueprintState("env-mutation-ok", setOf("F"), listOf("act_a", "act_b")),
+      actions = mapOf("act_a" to actA, "act_b" to actB)
+    )
+    val level = LevelInstanceGenerator.commitCandidate(definition(), "seed-env-ok", candidate, "test")
+    assertNotNull(level)
+    assertEquals(listOf("act_a", "act_b"), level.escapeBlueprint.requiredActions)
+  }
+
+  @Test fun unreachableEvidenceZoneRejectedWhenItBlocksRequiredFact() {
+    val isolatedZone = ZoneState("isolated", "Isolated Zone", emptySet(), setOf("isolated"))
+    val candidate = candidate().copy(
+      zones = candidate().zones + ("isolated" to isolatedZone),
+      evidence = mapOf(
+        "e1" to EvidenceState("e1", setOf("F"), setOf(EvidenceSource.SEARCH), "isolated"),
+        "e2" to EvidenceState("e2", setOf("F"), setOf(EvidenceSource.ANOMALY), "entry")
+      )
+    )
+    val error = runCatching {
+      LevelInstanceGenerator.commitCandidate(definition(), "seed-unreachable-ev-zone", candidate, "test")
+    }.exceptionOrNull()
+    assertNotNull(error)
+    assertTrue(error!!.message.orEmpty().contains("required_fact_unreachable:F"))
+  }
+
+  @Test fun validMultiStepPuzzleWithEvidenceQuorumAndEnvironmentMutationAndMovementAndCompletionAccepted() {
+    val hiddenZone = ZoneState("hidden", "Hidden Room", setOf("exit"), setOf("utility"))
+    val exitZone = ZoneState("exit", "Service Exit", emptySet(), setOf("escape"))
+    val entryZone = ZoneState("entry", "Entry", setOf("exit"), setOf("entry"))
+
+    val actA = LevelActionRule("act_unlock", listOf(setOf("mở")), setOf("fact:F_KEY"), listOf(
+      LevelEffect(LevelEffectType.SET_ENVIRONMENT, "door_unlocked", "true"),
+      LevelEffect(LevelEffectType.MOVE_TO_ZONE, "hidden")
+    ))
+    val actB = LevelActionRule("act_escape", listOf(setOf("thoát")), setOf("env:door_unlocked=true", "fact:F_PASSCODE"), listOf(
+      LevelEffect(LevelEffectType.COMPLETE_LEVEL)
+    ))
+
+    val evidenceMap = mapOf(
+      "e_key_search" to EvidenceState("e_key_search", setOf("F_KEY"), setOf(EvidenceSource.SEARCH), "entry"),
+      "e_key_anomaly" to EvidenceState("e_key_anomaly", setOf("F_KEY"), setOf(EvidenceSource.ANOMALY), "entry"),
+      "e_pass_search" to EvidenceState("e_pass_search", setOf("F_PASSCODE"), setOf(EvidenceSource.SEARCH), "hidden"),
+      "e_pass_survivor" to EvidenceState("e_pass_survivor", setOf("F_PASSCODE"), setOf(EvidenceSource.SURVIVOR), "hidden")
+    )
+
+    val multiStepCandidate = candidate().copy(
+      initialZoneId = "entry",
+      zones = mapOf("entry" to entryZone, "hidden" to hiddenZone, "exit" to exitZone),
+      escapeBlueprint = EscapeBlueprintState("multi-step", setOf("F_KEY", "F_PASSCODE"), listOf("act_unlock", "act_escape")),
+      actions = mapOf("act_unlock" to actA, "act_escape" to actB),
+      evidence = evidenceMap
+    )
+
+    val level = LevelInstanceGenerator.commitCandidate(definition(), "seed-multi-step", multiStepCandidate, "test")
+    assertNotNull(level)
+    assertTrue(BlueprintValidator.validate(level, definition()).valid)
+  }
+
+  @Test fun currentLevelZeroAndLevelOneProceduralDefinitionsStillValidate() {
+    val level0Def = LevelDefinitionJson.decode(java.io.File("android-apk/app/src/main/assets/levels/0.json").readText())
+    val level1Def = LevelDefinitionJson.decode(java.io.File("android-apk/app/src/main/assets/levels/1.json").readText())
+
+    val val0 = LevelDefinitionValidator.validate(level0Def)
+    assertTrue(val0.errors.joinToString(","), val0.valid)
+
+    val val1 = LevelDefinitionValidator.validate(level1Def)
+    assertTrue(val1.errors.joinToString(","), val1.valid)
+  }
+
+  @Test fun validatorIsDeterministic() {
+    val level = LevelInstanceGenerator.fromDefinition(definition(), "seed-det")
+    val res1 = BlueprintValidator.validate(level, definition())
+    val res2 = BlueprintValidator.validate(level, definition())
+
+    assertEquals(res1.valid, res2.valid)
+    assertEquals(res1.errors, res2.errors)
+  }
+
+  @Test fun validatorHasBoundedSearchBudgetRegressionForPathologicalInput() {
+    // Construct evidence chain with recursive dependencies to exercise budget check
+    val evidenceList = (0 until 6000).associate { i ->
+      "e_$i" to EvidenceState(
+        id = "e_$i",
+        supports = setOf("F_$i"),
+        sources = setOf(EvidenceSource.SEARCH),
+        zoneId = "entry",
+        discoverConditions = if (i == 0) emptySet() else setOf("fact:F_${i - 1}")
+      )
+    }
+    val candidate = candidate().copy(
+      escapeBlueprint = EscapeBlueprintState("budget-test", setOf("F_5999"), listOf("fixture_exit")),
+      evidence = evidenceList
+    )
+
+    val error = runCatching {
+      LevelInstanceGenerator.commitCandidate(definition(), "seed-budget", candidate, "test")
+    }.exceptionOrNull()
+
+    assertNotNull(error)
+    assertTrue(error!!.message.orEmpty().contains("validation_budget_exceeded") || error.message.orEmpty().contains("required_fact_unreachable"))
+  }
+
   private fun definition(): LevelDefinition {
     val zones = linkedMapOf(
       "entry" to ZoneState("entry", "Concrete Entry", setOf("exit"), setOf("entry", "parking")),

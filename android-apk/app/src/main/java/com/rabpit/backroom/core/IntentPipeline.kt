@@ -106,29 +106,135 @@ interface QuantityResolver { fun resolve(clause: String): Int }
 interface ContainerResolver { fun resolve(clause: String): String? }
 interface ReferenceResolver { fun resolve(clause: String, context: GameContext): String? }
 
+private data class ResolverAlias(val text: String, val ids: Set<String>)
+
+private fun resolverCharacterAliases(context: GameContext): List<ResolverAlias> {
+  val candidates = linkedMapOf<String, MutableSet<String>>()
+
+  fun register(raw: String, id: String) {
+    if (id !in context.state.characters) return
+    val alias = raw.trim().lowercase().replace(Regex("\\s+"), " ")
+    if (alias.isBlank()) return
+    candidates.getOrPut(alias) { linkedSetOf() }.add(id)
+  }
+
+  context.state.characters.forEach { (id, character) ->
+    register(id, id)
+    register(character.name, id)
+    val firstName = character.name.trim().substringBefore(' ').lowercase()
+    if (firstName.length >= 3) register(firstName, id)
+    character.metadata["aliases"].orEmpty()
+      .split(',', ';', '|')
+      .map(String::trim)
+      .filter(String::isNotBlank)
+      .forEach { register(it, id) }
+  }
+  context.actorAliases.forEach { (alias, id) -> register(alias, id) }
+
+  return candidates.entries
+    .map { (alias, ids) -> ResolverAlias(alias, ids.toSet()) }
+    .sortedByDescending { it.text.length }
+}
+
+private fun resolverAliasRegex(alias: String): Regex = Regex(
+  "(?<![\\p{L}\\p{N}_])${Regex.escape(alias)}(?![\\p{L}\\p{N}_])",
+  RegexOption.IGNORE_CASE
+)
+
+private data class ResolverMention(val start: Int, val end: Int, val ids: Set<String>)
+
+private fun resolverMentions(clause: String, context: GameContext): List<ResolverMention> =
+  resolverCharacterAliases(context).mapNotNull { alias ->
+    resolverAliasRegex(alias.text).find(clause)?.let {
+      ResolverMention(it.range.first, it.range.last, alias.ids)
+    }
+  }.sortedWith(compareBy<ResolverMention> { it.start }.thenByDescending { it.end - it.start })
+
 class DefaultActorResolver : ActorResolver {
-  override fun resolve(clause: String, context: GameContext): String? =
-    context.actorAliases.entries.firstOrNull { clause.contains(it.key, true) }?.value ?: KAI_ID
+  private val actionVerb = Regex(
+    "(?:nhặt|lượm|cầm\\s+lên|lấy\\s+lên|vứt|thả|bỏ\\s+xuống|đưa|trao|chuyển|dùng|sử\\s+dụng|uống|ăn|trang\\s+bị|đeo|mặc|tháo|cởi)",
+    RegexOption.IGNORE_CASE
+  )
+  private val transferVerb = Regex("(?:đưa|trao|chuyển)", RegexOption.IGNORE_CASE)
+  private val useVerb = Regex("(?:dùng|sử\\s+dụng|uống|ăn)", RegexOption.IGNORE_CASE)
+  private val recipientAfterVerb = Regex("(?:cho|lên)\\s+", RegexOption.IGNORE_CASE)
+
+  override fun resolve(clause: String, context: GameContext): String? {
+    val mentions = resolverMentions(clause, context)
+    val action = actionVerb.find(clause)
+    if (action != null) {
+      val actorMention = mentions
+        .filter { it.end < action.range.first }
+        .maxWithOrNull(compareBy<ResolverMention> { it.end }.thenBy { it.start })
+      if (actorMention != null) return actorMention.ids.singleOrNull()
+
+      // First-person transfer/use commands without an explicit source belong to Kai.
+      if (transferVerb.containsMatchIn(action.value)) return KAI_ID
+      if (useVerb.containsMatchIn(action.value) && recipientAfterVerb.find(clause, action.range.last + 1) != null) return KAI_ID
+    }
+
+    val firstMention = mentions.firstOrNull() ?: return KAI_ID
+    return firstMention.ids.singleOrNull()
+  }
 }
 
 class DefaultTargetResolver : TargetResolver {
-  override fun resolve(clause: String, context: GameContext): String? = context.actorAliases.entries
-    .firstOrNull { it.value != KAI_ID && Regex("\\b${Regex.escape(it.key)}\\b", RegexOption.IGNORE_CASE).containsMatchIn(clause) }?.value
+  private val transferVerb = Regex("(?:đưa|trao|chuyển)", RegexOption.IGNORE_CASE)
+
+  override fun resolve(clause: String, context: GameContext): String? {
+    val aliases = resolverCharacterAliases(context)
+
+    // Explicit "cho/sang <character>" recipient syntax has highest authority.
+    // If that alias belongs to more than one character, resolution fails closed.
+    val recipient = aliases.mapNotNull { alias ->
+      val regex = Regex(
+        "(?:cho|sang)\\s+${Regex.escape(alias.text)}(?![\\p{L}\\p{N}_])",
+        RegexOption.IGNORE_CASE
+      )
+      regex.find(clause)?.let { Triple(it.range.first, alias.text.length, alias) }
+    }.minWithOrNull(
+      compareBy<Triple<Int, Int, ResolverAlias>> { it.first }.thenByDescending { it.second }
+    )
+    if (recipient != null) return recipient.third.ids.singleOrNull()
+
+    val transfer = transferVerb.find(clause)
+    if (transfer != null) {
+      // Also support "Kai đưa Iris hai chai nước" without a "cho" connector.
+      return resolverMentions(clause, context)
+        .filter { it.start > transfer.range.last }
+        .minWithOrNull(compareBy<ResolverMention> { it.start }.thenByDescending { it.end - it.start })
+        ?.ids
+        ?.singleOrNull()
+    }
+
+    return resolverMentions(clause, context)
+      .firstOrNull { mention -> mention.ids.singleOrNull()?.let { it != KAI_ID } == true }
+      ?.ids
+      ?.singleOrNull()
+  }
 }
 
+
 class DefaultQuantityResolver : QuantityResolver {
-  private val words = mapOf("một" to 1, "hai" to 2, "ba" to 3, "bốn" to 4, "năm" to 5, "sáu" to 6, "bảy" to 7, "tám" to 8, "chín" to 9, "mười" to 10)
+  private val words = mapOf("mot" to 1, "hai" to 2, "ba" to 3, "bon" to 4, "nam" to 5, "sau" to 6, "bay" to 7, "tam" to 8, "chin" to 9, "muoi" to 10)
   override fun resolve(clause: String): Int {
-    Regex("\\b(\\d+)\\b").find(clause)?.groupValues?.get(1)?.toIntOrNull()?.let { return it.coerceAtLeast(1) }
-    if (Regex("\\bmột\\s+trăm\\b", RegexOption.IGNORE_CASE).containsMatchIn(clause)) return 100
-    return words.entries.firstOrNull { Regex("\\b${it.key}\\b", RegexOption.IGNORE_CASE).containsMatchIn(clause) }?.value ?: 1
+    val quantityClause = ItemCatalog.withoutOfficialMentions(clause)
+    Regex("\\b(\\d+)\\b").find(quantityClause)?.groupValues?.get(1)?.toIntOrNull()?.let { return it.coerceAtLeast(1) }
+    if (Regex("\\bmot\\s+tram\\b", RegexOption.IGNORE_CASE).containsMatchIn(quantityClause)) return 100
+    return words.entries.firstOrNull { Regex("\\b${it.key}\\b", RegexOption.IGNORE_CASE).containsMatchIn(quantityClause) }?.value ?: 1
   }
 }
 
 class DefaultItemResolver : ItemResolver {
+  private fun withoutCharacterAliases(clause: String, context: GameContext): String {
+    var result = clause
+    resolverCharacterAliases(context).forEach { alias -> result = resolverAliasRegex(alias.text).replace(result, " ") }
+    return result.replace(Regex("\\s+"), " ").trim()
+  }
+
   private val pronoun = Regex("\\b(?:nó|vật đó|cái đó|món đó|thứ đó)\\b", RegexOption.IGNORE_CASE)
   private val resultTail = Regex("\\s+(?:và\\s+)?(?:nhận được|biến thành|trở thành|thành)\\s+.+$", RegexOption.IGNORE_CASE)
-  private val noise = Regex("\\b(?:kai|iris|syvial|nhặt|lượm|cầm|lấy|rút|triệu hồi|bỏ|cất|lưu|đưa|trao|chuyển|cho|sang|dùng|sử dụng|uống|ăn|trang bị|đeo|mặc|tháo|cởi|quét|scan|copy|sao chép|nhân bản|tạo thêm|tạo ra thêm|nhân thêm|hoàn nguyên|restore|khỏi|ra|từ|vào|trong|nhẫn|omnivault|kho|rồi|một|hai|ba|bốn|năm|sáu|bảy|tám|chín|mười|trăm|\\d+)\\b", RegexOption.IGNORE_CASE)
+  private val noise = Regex("\\b(?:kai|iris|syvial|nhặt|được|lượm|cầm|lấy|rút|triệu hồi|bỏ|cất|lưu|đưa|trao|chuyển|cho|sang|dùng|sử dụng|uống|ăn|trang bị|đeo|mặc|tháo|cởi|quét|scan|copy|sao chép|nhân bản|tạo thêm|tạo ra thêm|nhân thêm|hoàn nguyên|restore|khỏi|ra|từ|vào|trong|nhẫn|omnivault|kho|rồi|một|hai|ba|bốn|năm|sáu|bảy|tám|chín|mười|trăm|\\d+)\\b", RegexOption.IGNORE_CASE)
 
   override fun resolve(clause: String, context: GameContext): Pair<String, String>? {
     if (pronoun.containsMatchIn(clause)) {
@@ -136,9 +242,14 @@ class DefaultItemResolver : ItemResolver {
     }
 
     val sourceClause = clause.replace(resultTail, " ")
-    context.itemAliases.entries.firstOrNull { sourceClause.contains(it.key, true) }?.let { return it.value to it.key }
+    val itemClause = withoutCharacterAliases(sourceClause, context)
+    ItemCatalog.officialMention(itemClause)?.let { item -> return item.id to item.name }
+    context.itemAliases.entries.firstOrNull { itemClause.contains(it.key, true) }?.let {
+      val official = ItemCatalog.resolveOfficial(it.value, it.key)
+      return (official?.id ?: ItemCatalog.identityId(it.value, it.key)) to (official?.name ?: it.key)
+    }
 
-    val normalizedClause = normalize(sourceClause)
+    val normalizedClause = normalize(itemClause)
     val knownItems = (
       context.state.inventories.values.flatMap { it.items.values } +
       context.state.omnivault.storedItems.values +
@@ -159,24 +270,33 @@ class DefaultItemResolver : ItemResolver {
     }.maxByOrNull { it.first }
     if (fuzzy != null) return fuzzy.second to fuzzy.third
 
-    val name = sourceClause.replace(noise, " ").replace(Regex("[^\\p{L}\\p{N}_ -]+"), " ").replace(Regex("\\s+"), " ").trim()
-    if (name.isBlank()) return null
-    val id = canonicalId(name)
-    return id to name
+    val name = itemClause.replace(noise, " ").replace(Regex("[^\\p{L}\\p{N}_ -]+"), " ").replace(Regex("\\s+"), " ").trim()
+    // ITEM_REFERENCE_FALLBACK_FINAL_R02
+    if (name.isBlank()) {
+      val rawRemembered = context.lastReferencedItemId ?: return null
+      val rememberedId = ItemCatalog.identityId(rawRemembered, rawRemembered)
+      val known = context.state.inventories.values.asSequence().mapNotNull { it.items[rememberedId] }.firstOrNull()
+        ?: context.state.omnivault.storedItems[rememberedId]
+        ?: context.state.omnivault.scanSlots.firstOrNull { it.templateItem.itemId == rememberedId }?.templateItem
+        ?: return null
+      return rememberedId to known.name
+    }
+    if (name.isBlank()) return context.lastReferencedItemId?.let { knownPair(it, context) }
+    val official = ItemCatalog.resolveOfficial(null, name)
+    return (official?.id ?: ItemCatalog.identityId(name = name)) to (official?.name ?: name)
   }
 
   private fun knownPair(id: String, context: GameContext): Pair<String, String> {
-    val known = context.state.inventories.values.asSequence().mapNotNull { it.items[id] }.firstOrNull()
-      ?: context.state.omnivault.storedItems[id]
-      ?: context.state.omnivault.scanSlots.firstOrNull { it.templateItem.itemId == id }?.templateItem
-    return id to (known?.name ?: id)
+    val canonicalId = ItemCatalog.identityId(id, id)
+    val known = context.state.inventories.values.asSequence().mapNotNull { it.items[canonicalId] }.firstOrNull()
+      ?: context.state.omnivault.storedItems[canonicalId]
+      ?: context.state.omnivault.scanSlots.firstOrNull { it.templateItem.itemId == canonicalId }?.templateItem
+    return canonicalId to (known?.name ?: canonicalId)
   }
 
   private fun normalize(value: String): String = value.lowercase()
     .replace(Regex("[^\\p{L}\\p{N}]+"), " ").replace(Regex("\\s+"), " ").trim()
 
-  private fun canonicalId(name: String): String = name.lowercase()
-    .replace(Regex("[^\\p{L}\\p{N}]+"), "-").trim('-').ifBlank { "item-${name.hashCode().toUInt()}" }
 }
 
 class DefaultContainerResolver : ContainerResolver {
