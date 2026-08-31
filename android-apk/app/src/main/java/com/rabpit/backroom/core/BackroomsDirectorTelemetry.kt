@@ -81,7 +81,7 @@ object DirectorTelemetryJson {
   fun decode(json: JSONObject): DirectorTelemetryRecord {
     val counts = EvidenceSource.values().associateWith { source ->
       json.optJSONObject("candidateSourceCounts")?.optInt(source.name, 0)?.coerceAtLeast(0) ?: 0
-    }
+    }.filterValues { it > 0 }
     val preferred = json.optString("modelPreferredSource")
       .takeIf(String::isNotBlank)
       ?.let { raw -> runCatching { EvidenceSource.valueOf(raw) }.getOrNull() }
