@@ -13,7 +13,7 @@ BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d |
 
 rm -rf apk-check
 mkdir apk-check
-unzip -q "$APK" 'assets/index.html' 'assets/levels/*' 'assets/level_catalog/*' 'assets/entity/*' 'assets/Kai_new_overlay.png' 'assets/BESTKAIV2.png' -d apk-check
+unzip -q "$APK" 'assets/index.html' 'assets/levels/*' 'assets/level_catalog/*' 'assets/models/*' 'assets/entity/*' 'assets/Kai_new_overlay.png' 'assets/BESTKAIV2.png' -d apk-check
 
 grep -q 'searchActionButton' apk-check/assets/index.html
 grep -q 'exploreActionButton' apk-check/assets/index.html
@@ -33,6 +33,7 @@ grep -q 'const CORE_SAVE_KEY="backroom-apk-core-state"' apk-check/assets/index.h
 grep -q 'Android.exportCoreState()' apk-check/assets/index.html
 grep -q 'Android.restoreCoreState(raw)' apk-check/assets/index.html
 
+test -s apk-check/assets/levels/0.json
 test -s apk-check/assets/levels/1.json
 grep -q '"schemaVersion"' apk-check/assets/levels/1.json
 grep -q '"escapeBlueprint"' apk-check/assets/levels/1.json
@@ -41,6 +42,17 @@ test -s apk-check/assets/level_catalog/backrooms-0-6.json
 grep -q '"campaignId": "BACKROOMS_FANDOM_LEVELS_0_6_R01"' apk-check/assets/level_catalog/backrooms-0-6.json
 grep -q '"id":"1.618033988749894..."' apk-check/assets/level_catalog/backrooms-0-6.json
 grep -q '"id":"Red Rooms"' apk-check/assets/level_catalog/backrooms-0-6.json
+
+# Both local models are build-time generated/cache-restored assets. The Director model is separate
+# from player-intent classification and can only rank evidence already declared legal by Core.
+test -s apk-check/assets/models/backroom_intent.tflite
+test -s apk-check/assets/models/backroom_intent_labels.txt
+test -s apk-check/assets/models/backrooms_director.tflite
+test -s apk-check/assets/models/backrooms_director_labels.txt
+grep -q '^SEARCH$' apk-check/assets/models/backrooms_director_labels.txt
+grep -q '^ENVIRONMENT$' apk-check/assets/models/backrooms_director_labels.txt
+grep -q '^ANOMALY$' apk-check/assets/models/backrooms_director_labels.txt
+grep -q '^SURVIVOR$' apk-check/assets/models/backrooms_director_labels.txt
 
 test -s apk-check/assets/entity/hound.png
 test -s apk-check/assets/entity/slenderman.png
