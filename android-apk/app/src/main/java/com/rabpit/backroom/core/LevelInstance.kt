@@ -334,7 +334,7 @@ object BlueprintValidator {
     if (instance.levelId != definition.id) errors += "candidate_level_mismatch:${instance.levelId}:${definition.id}"
     if (instance.zones.size < constraints.minZones) errors += "generated_zone_count_below_min"
     if (instance.zones.size > constraints.maxZones) errors += "generated_zone_count_above_max"
-    if (!instance.environmentTags.containsAll(canon.environmentTags)) {
+    if (instance.generatorVersion != "legacy" && !instance.environmentTags.containsAll(canon.environmentTags)) {
       canon.environmentTags.filterNot(instance.environmentTags::contains).forEach { errors += "missing_canon_environment_tag:$it" }
     }
     val presentZoneTags = instance.zones.values.flatMap { it.tags }.toSet()
