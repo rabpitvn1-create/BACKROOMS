@@ -60,6 +60,7 @@ SCRIPTS = [
     "patch-discovery-knowledge-projection.py",
     "patch-world-director-proposal-boundary.py",
     "patch-pending-turn-idempotent-rng.py",
+    "patch-main-story-level0-1.py",
 ]
 
 for script in SCRIPTS:
