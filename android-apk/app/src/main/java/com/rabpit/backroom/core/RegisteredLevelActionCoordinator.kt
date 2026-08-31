@@ -6,6 +6,7 @@ data class RegisteredLevelActionResult(
   val reply: String? = null,
   val progressed: Boolean = false,
   val escaped: Boolean = false,
+  val evidenceIds: Set<String> = emptySet(),
   val error: String? = null
 )
 
@@ -114,7 +115,8 @@ object RegisteredLevelActionCoordinator {
       handled = true,
       reply = outcome.reply,
       progressed = outcome.progressed,
-      escaped = outcome.escaped
+      escaped = outcome.escaped,
+      evidenceIds = outcome.evidenceIds
     )
   }
 
