@@ -49,6 +49,22 @@ object TurnCoordinator {
     it.turnId in state.turn.completedTurnIds || it.status == PendingTurnStatus.COMMITTED
   }
 
+  /**
+   * Clears an interrupted external/provider pipeline without consuming the logical turn.
+   * The same turn ID may be started again, but a different turn cannot silently steal a live pending
+   * action. This is intentionally distinct from reject(), which represents an authoritative in-game
+   * rejection and therefore completes the turn.
+   */
+  fun abandon(state: GameState, turnId: String, reason: String): TurnResult {
+    val pending = state.turn.pending ?: return TurnResult(state)
+    if (pending.turnId != turnId) return TurnResult(state, error = "pending_turn_mismatch")
+    val abandoned = state.copy(
+      turn = state.turn.copy(pending = null),
+      metadata = state.metadata + ("lastAbandonedTurn" to "${pending.turnId}:${reason.ifBlank { "interrupted" }}")
+    )
+    return TurnResult(abandoned)
+  }
+
   fun reject(state: GameState, reason: String): TurnResult {
     val pending = state.turn.pending ?: return TurnResult(state, error = "pending_turn_missing")
     val rejected = state.copy(turn = state.turn.copy(

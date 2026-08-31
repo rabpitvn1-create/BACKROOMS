@@ -59,6 +59,7 @@ SCRIPTS = [
     "patch-campaign-route-authority-final.py",
     "patch-discovery-knowledge-projection.py",
     "patch-world-director-proposal-boundary.py",
+    "patch-pending-turn-idempotent-rng.py",
 ]
 
 for script in SCRIPTS:
