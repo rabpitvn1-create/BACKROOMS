@@ -35,6 +35,7 @@ required = [
     ('object SemanticActionMapper', semantic_mapper),
     ('SemanticActionDescriptor("candidate-$index", rule.semanticDescriptions)', (core / 'RegisteredLevelActionCoordinator.kt').read_text(encoding='utf-8')),
     ('resolvedExecuteActionId = resolvedExecuteActionId', (core / 'RegisteredLevelActionCoordinator.kt').read_text(encoding='utf-8')),
+    ('put("reason", "core_owned_hidden_blueprint")', facade),
     ("versionCode 89", gradle), ("versionName '1.3.4'", gradle),
     ('devilBlessingEvasionBonus', combat), ('fun partyBlessing(value: Int)', equipment_system),
     ('return maxOf(1, (base * 5 + 99) / 100)', equipment_system),
