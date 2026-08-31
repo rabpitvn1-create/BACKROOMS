@@ -22,7 +22,8 @@ object RegisteredLevelActionCoordinator {
     kind: ActionKind,
     input: String,
     levelId: String?,
-    runSeed: String
+    runSeed: String,
+    director: BackroomsDirector = BackroomsDirector.DETERMINISTIC
   ): RegisteredLevelActionResult {
     val requestedId = levelId?.trim().orEmpty()
     if (requestedId.isEmpty() || !registry.contains(requestedId)) {
@@ -54,7 +55,7 @@ object RegisteredLevelActionCoordinator {
       return RegisteredLevelActionResult(working, handled = true, error = pending.error)
     }
 
-    val outcome = GenericLevelRuntime.apply(pending.state, registry, kind, input)
+    val outcome = GenericLevelRuntime.apply(pending.state, registry, kind, input, director)
     working = outcome.state
 
     val minutes = active.plannedMinutes ?: TimeCostPolicy.estimateMinutes(input)

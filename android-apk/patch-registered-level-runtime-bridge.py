@@ -7,6 +7,42 @@ MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
 facade = FACADE.read_text(encoding="utf-8")
 main = MAIN.read_text(encoding="utf-8")
 
+# GameCoreFacade owns one LiteRT-backed director for the app lifetime. Source builds that skip the
+# patch chain still compile and use the deterministic director defaults; packaged builds get the
+# on-device policy wired here alongside the registered-Level bridge.
+if "private val backroomsDirector: BackroomsDirector" not in facade:
+    constructor_anchor = '''  private val localModel: LiteRTIntentInterpreter,
+  private val levelRegistry: LevelRegistry
+) : AutoCloseable {'''
+    constructor_replacement = '''  private val localModel: LiteRTIntentInterpreter,
+  private val levelRegistry: LevelRegistry,
+  private val backroomsDirector: BackroomsDirector
+) : AutoCloseable {'''
+    if facade.count(constructor_anchor) != 1:
+        raise RuntimeError("BackroomsDirector facade constructor anchor missing")
+    facade = facade.replace(constructor_anchor, constructor_replacement, 1)
+
+    close_anchor = "  override fun close() = localModel.close()\n"
+    close_replacement = '''  override fun close() {
+    localModel.close()
+    backroomsDirector.close()
+  }
+'''
+    if facade.count(close_anchor) != 1:
+        raise RuntimeError("BackroomsDirector close anchor missing")
+    facade = facade.replace(close_anchor, close_replacement, 1)
+
+    create_anchor = '''        LiteRTIntentInterpreter(appContext),
+        AndroidLevelRegistry.load(appContext)
+'''
+    create_replacement = '''        LiteRTIntentInterpreter(appContext),
+        AndroidLevelRegistry.load(appContext),
+        BackroomsDirector.liteRT(appContext)
+'''
+    if facade.count(create_anchor) != 1:
+        raise RuntimeError("BackroomsDirector create anchor missing")
+    facade = facade.replace(create_anchor, create_replacement, 1)
+
 facade_methods = r'''  fun processRegisteredLevelAction(legacyStateJson: String, kindRaw: String, action: String): String {
     val legacy = JSONObject(legacyStateJson)
     val state = loadOrMigrate(legacy)
@@ -29,7 +65,7 @@ facade_methods = r'''  fun processRegisteredLevelAction(legacyStateJson: String,
     } else state
 
     val result = RegisteredLevelActionCoordinator.applyStarted(
-      seeded, levelRegistry, kind, action, levelId, runSeed
+      seeded, levelRegistry, kind, action, levelId, runSeed, backroomsDirector
     )
     if (!result.handled) return response(false, legacy, result.error, "registered_level_not_handled")
 
@@ -121,6 +157,9 @@ if "@JavascriptInterface public String exportCoreState()" not in main:
     main = main.replace(anchor, anchor + bridge_methods, 1)
 
 for marker in (
+    "private val backroomsDirector: BackroomsDirector",
+    "BackroomsDirector.liteRT(appContext)",
+    "runSeed, backroomsDirector",
     "fun processRegisteredLevelAction(legacyStateJson: String, kindRaw: String, action: String)",
     "RegisteredLevelActionCoordinator.applyStarted(",
     "legacyAreaId",
@@ -131,10 +170,18 @@ for marker in (
     '@JavascriptInterface public String exportCoreState()',
     '@JavascriptInterface public boolean restoreCoreState(String coreJson)',
 ):
-    source = facade if marker.startswith("fun ") or marker in ("RegisteredLevelActionCoordinator.applyStarted(", "legacyAreaId", "val levelId = legacyAreaId", "BlueprintValidator.validate(level, definition).valid") else main
+    source = facade if marker.startswith("fun ") or marker in (
+        "private val backroomsDirector: BackroomsDirector",
+        "BackroomsDirector.liteRT(appContext)",
+        "runSeed, backroomsDirector",
+        "RegisteredLevelActionCoordinator.applyStarted(",
+        "legacyAreaId",
+        "val levelId = legacyAreaId",
+        "BlueprintValidator.validate(level, definition).valid",
+    ) else main
     if marker not in source:
         raise RuntimeError("registered Level runtime bridge missing: " + marker)
 
 FACADE.write_text(facade, encoding="utf-8")
 MAIN.write_text(main, encoding="utf-8")
-print("Registered Level runtime bridge applied: current legacy area wins over stale Level instances; typed Level actions commit locally before legacy dice/Gemini.")
+print("Registered Level runtime bridge applied: LiteRT BackroomsDirector ranks only engine-legal evidence before registered Level actions commit locally.")
