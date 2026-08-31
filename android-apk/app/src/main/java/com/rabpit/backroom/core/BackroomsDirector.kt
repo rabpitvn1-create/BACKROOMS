@@ -22,6 +22,11 @@ data class BackroomsDirectorContext(
   val candidateSourceCounts: Map<EvidenceSource, Int>
 )
 
+data class DirectorEvidenceSelection(
+  val evidence: List<EvidenceState>,
+  val trace: DirectorDecisionTrace? = null
+)
+
 fun interface BackroomsDirectorPolicy {
   fun choose(context: BackroomsDirectorContext): DirectorEvidencePreference?
 }
@@ -33,7 +38,8 @@ fun interface BackroomsDirectorPolicy {
  */
 class BackroomsDirector(
   private val policy: BackroomsDirectorPolicy? = null,
-  private val closeablePolicy: AutoCloseable? = policy as? AutoCloseable
+  private val closeablePolicy: AutoCloseable? = policy as? AutoCloseable,
+  private val telemetry: BackroomsDirectorTelemetryStore? = null
 ) : AutoCloseable {
 
   fun selectEvidence(
@@ -41,12 +47,20 @@ class BackroomsDirector(
     definition: LevelDefinition,
     kind: ActionKind,
     eligible: List<EvidenceState>
-  ): List<EvidenceState> {
-    if (eligible.isEmpty()) return emptyList()
+  ): List<EvidenceState> = selectEvidenceWithTrace(level, definition, kind, eligible).evidence
+
+  fun selectEvidenceWithTrace(
+    level: LevelInstanceState,
+    definition: LevelDefinition,
+    kind: ActionKind,
+    eligible: List<EvidenceState>
+  ): DirectorEvidenceSelection {
+    if (eligible.isEmpty()) return DirectorEvidenceSelection(emptyList())
     val context = context(level, kind, eligible)
     val availableSources = context.candidateSourceCounts.filterValues { it > 0 }.keys
-    val modelSource = policy?.choose(context)?.toEvidenceSource()?.takeIf(availableSources::contains)
-    val selectedSource = modelSource ?: fallbackSource(context, availableSources)
+    val rawModelSource = policy?.choose(context)?.toEvidenceSource()
+    val modelAccepted = rawModelSource != null && rawModelSource in availableSources
+    val selectedSource = if (modelAccepted) rawModelSource!! else fallbackSource(context, availableSources)
 
     val sourceCandidates = eligible.filter { selectedSource in it.sources }.ifEmpty { eligible }
     val ordered = sourceCandidates.sortedWith(
@@ -55,8 +69,50 @@ class BackroomsDirector(
     // SEARCH stays investigative and incremental. Environmental events may surface a small cluster
     // of evidence from the same source when one observation legitimately supports multiple facts.
     val limit = if (kind == ActionKind.SEARCH) 1 else 2
-    return ordered.take(limit)
+    val selected = ordered.take(limit)
+    val trace = DirectorDecisionTrace(
+      sessionId = BackroomsDirectorTelemetryPrivacy.opaqueSessionId(level),
+      actionKind = kind,
+      features = BackroomsDirectorFeatures.describe(context),
+      candidateSourceCounts = context.candidateSourceCounts,
+      modelPreferredSource = rawModelSource,
+      modelAccepted = modelAccepted,
+      selectedSource = selectedSource,
+      discoveredEvidenceBefore = level.evidence.values.count(EvidenceState::discovered),
+      discoveredFactBefore = level.discoveredFacts.size,
+      worldRevisionBefore = level.revision
+    )
+    return DirectorEvidenceSelection(selected, trace)
   }
+
+  fun recordOutcome(trace: DirectorDecisionTrace?, after: LevelInstanceState, surfacedCount: Int) {
+    if (trace == null || telemetry == null) return
+    val evidenceAfter = after.evidence.values.count(EvidenceState::discovered)
+    val factsAfter = after.discoveredFacts.size
+    telemetry.record(
+      DirectorTelemetryRecord(
+        sessionId = trace.sessionId,
+        actionKind = trace.actionKind,
+        features = trace.features,
+        candidateSourceCounts = trace.candidateSourceCounts,
+        modelPreferredSource = trace.modelPreferredSource,
+        modelAccepted = trace.modelAccepted,
+        fallbackUsed = !trace.modelAccepted,
+        selectedSource = trace.selectedSource,
+        surfacedCount = surfacedCount.coerceAtLeast(0),
+        discoveredEvidenceBefore = trace.discoveredEvidenceBefore,
+        discoveredEvidenceAfter = evidenceAfter,
+        discoveredFactBefore = trace.discoveredFactBefore,
+        discoveredFactAfter = factsAfter,
+        unlockedFact = factsAfter > trace.discoveredFactBefore,
+        worldRevisionBefore = trace.worldRevisionBefore,
+        worldRevisionAfter = after.revision
+      )
+    )
+  }
+
+  fun exportTelemetry(): String = telemetry?.exportJsonl().orEmpty()
+  fun clearTelemetry(): Boolean = telemetry?.clear() ?: true
 
   private fun context(
     level: LevelInstanceState,
@@ -128,8 +184,13 @@ class BackroomsDirector(
     @JvmField val DETERMINISTIC = BackroomsDirector()
 
     fun liteRT(context: Context): BackroomsDirector {
-      val policy = LiteRTBackroomsDirectorPolicy(context.applicationContext)
-      return BackroomsDirector(policy, policy)
+      val appContext = context.applicationContext
+      val policy = LiteRTBackroomsDirectorPolicy(appContext)
+      return BackroomsDirector(
+        policy,
+        policy,
+        SharedPreferencesBackroomsDirectorTelemetryStore(appContext)
+      )
     }
   }
 }
