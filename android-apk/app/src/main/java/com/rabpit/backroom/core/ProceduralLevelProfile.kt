@@ -230,6 +230,11 @@ object ProceduralLevelProfileValidator {
 }
 
 object ProceduralLevelProfileResolver {
+  /**
+   * Resolve inheritance with an explicit stack so a valid content chain can be thousands of Levels
+   * deep without consuming the JVM call stack. The resolved map is also the per-load cache: every
+   * parent is merged at most once.
+   */
   fun resolveAll(
     profiles: Iterable<ProceduralLevelProfile>,
     catalog: LevelCatalog,
@@ -240,7 +245,6 @@ object ProceduralLevelProfileResolver {
       require(rawById.put(profile.id, profile) == null) { "duplicate_procedural_level_profile:${profile.id}" }
     }
     val resolved = linkedMapOf<String, ProceduralLevelProfile>()
-    val resolving = linkedSetOf<String>()
 
     fun fromDefinition(definition: LevelDefinition): ProceduralLevelProfile = ProceduralLevelProfile(
       id = definition.id,
@@ -250,50 +254,87 @@ object ProceduralLevelProfileResolver {
       schemaVersion = ProceduralLevelProfileJson.CURRENT_SCHEMA_VERSION
     )
 
-    fun resolve(id: String): ProceduralLevelProfile {
-      resolved[id]?.let { return it }
-      val raw = rawById[id] ?: throw IllegalArgumentException("procedural_profile_missing:$id")
+    fun validateRaw(raw: ProceduralLevelProfile) {
       val validation = ProceduralLevelProfileValidator.validate(raw, catalog)
       require(validation.valid) {
         "invalid_procedural_level_profile:${raw.id}:${validation.errors.joinToString(",")}" 
       }
-      if (!resolving.add(id)) {
-        throw IllegalArgumentException("procedural_profile_inheritance_cycle:$id")
-      }
+    }
 
-      val effective = try {
+    fun merge(raw: ProceduralLevelProfile, base: ProceduralLevelProfile): ProceduralLevelProfile {
+      val mergedConstraints = raw.generationConstraintsPatch.apply(base.generationConstraints)
+      val constraintErrors = mutableListOf<String>()
+      ProceduralLevelProfileValidator.validateConstraints(mergedConstraints, constraintErrors)
+      require(constraintErrors.isEmpty()) {
+        "invalid_inherited_generation_constraints:${raw.id}:${constraintErrors.joinToString(",")}" 
+      }
+      return raw.copy(
+        canonProfile = raw.canonPatch.apply(base.canonProfile),
+        generationConstraints = mergedConstraints,
+        metadata = raw.metadata + mapOf("profileInheritedFrom" to raw.inheritsFrom.orEmpty()),
+        schemaVersion = ProceduralLevelProfileJson.CURRENT_SCHEMA_VERSION,
+        inheritsFrom = null,
+        canonPatch = LevelCanonProfilePatch(),
+        generationConstraintsPatch = ProceduralGenerationConstraintsPatch()
+      )
+    }
+
+    fun resolve(startId: String) {
+      if (startId in resolved) return
+      val chain = mutableListOf<ProceduralLevelProfile>()
+      val positions = hashMapOf<String, Int>()
+      var currentId = startId
+      var base: ProceduralLevelProfile? = null
+
+      while (true) {
+        resolved[currentId]?.let {
+          base = it
+          break
+        }
+        val previous = positions[currentId]
+        if (previous != null) {
+          val cycle = (chain.subList(previous, chain.size).map { it.id } + currentId).joinToString("->")
+          throw IllegalArgumentException("procedural_profile_inheritance_cycle:$cycle")
+        }
+
+        positions[currentId] = chain.size
+        val raw = rawById[currentId]
+          ?: throw IllegalArgumentException("procedural_profile_missing:$currentId")
+        validateRaw(raw)
+        chain += raw
         val parentId = raw.inheritsFrom
         if (parentId == null) {
+          base = null
+          break
+        }
+
+        val parentProfile = rawById[parentId]
+        if (parentProfile != null) {
+          currentId = parentId
+          continue
+        }
+        base = baseDefinitions[parentId]?.let(::fromDefinition)
+          ?: throw IllegalArgumentException("procedural_profile_inheritance_source_missing:${raw.id}:$parentId")
+        break
+      }
+
+      var effectiveBase = base
+      for (index in chain.indices.reversed()) {
+        val raw = chain[index]
+        val effective = if (raw.inheritsFrom == null) {
           raw
         } else {
-          val base = rawById[parentId]?.let { resolve(parentId) }
-            ?: baseDefinitions[parentId]?.let(::fromDefinition)
-            ?: throw IllegalArgumentException("procedural_profile_inheritance_source_missing:${raw.id}:$parentId")
-          val mergedConstraints = raw.generationConstraintsPatch.apply(base.generationConstraints)
-          val constraintErrors = mutableListOf<String>()
-          ProceduralLevelProfileValidator.validateConstraints(mergedConstraints, constraintErrors)
-          require(constraintErrors.isEmpty()) {
-            "invalid_inherited_generation_constraints:${raw.id}:${constraintErrors.joinToString(",")}" 
-          }
-          raw.copy(
-            canonProfile = raw.canonPatch.apply(base.canonProfile),
-            generationConstraints = mergedConstraints,
-            metadata = raw.metadata + mapOf("profileInheritedFrom" to parentId),
-            schemaVersion = ProceduralLevelProfileJson.CURRENT_SCHEMA_VERSION,
-            inheritsFrom = null,
-            canonPatch = LevelCanonProfilePatch(),
-            generationConstraintsPatch = ProceduralGenerationConstraintsPatch()
-          )
+          merge(raw, effectiveBase ?: throw IllegalArgumentException(
+            "procedural_profile_inheritance_source_missing:${raw.id}:${raw.inheritsFrom}"
+          ))
         }
-      } finally {
-        resolving.remove(id)
+        val effectiveValidation = ProceduralLevelProfileValidator.validate(effective, catalog)
+        require(effectiveValidation.valid) {
+          "invalid_resolved_procedural_level_profile:${effective.id}:${effectiveValidation.errors.joinToString(",")}" 
+        }
+        resolved[raw.id] = effective
+        effectiveBase = effective
       }
-      val effectiveValidation = ProceduralLevelProfileValidator.validate(effective, catalog)
-      require(effectiveValidation.valid) {
-        "invalid_resolved_procedural_level_profile:${effective.id}:${effectiveValidation.errors.joinToString(",")}" 
-      }
-      resolved[id] = effective
-      return effective
     }
 
     rawById.keys.forEach(::resolve)
