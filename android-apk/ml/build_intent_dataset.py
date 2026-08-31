@@ -38,7 +38,7 @@ FIXED_TRAIN = {
 
 PARAPHRASE_TRAIN = {
  "PICKUP_ITEM": ["gom chiếc hộp lên", "Kai cúi nhặt món đồ", "cầm lấy vật trước mặt", "nhấc bình nước khỏi nền", "thu món đồ dưới đất", "gom radio khỏi mặt đất", "nhặt radio nằm trên sàn"],
- "DROP_ITEM": ["đặt chai xuống nền", "buông món đồ đang cầm", "để vật đó lại", "Kai đặt khẩu súng xuống", "thả tay khỏi chiếc hộp", "Kai để chai rỗng xuống", "đặt vật lại tại chỗ"],
+ "DROP_ITEM": ["đặt chai xuống nền", "buông món đồ đang cầm", "để vật đó lại", "Kai đặt khẩu súng xuống", "thả tay khỏi chiếc hộp", "Kai để chai rỗng xuống", "đặt vật lại tại chỗ", "buông đồ khỏi tay", "thả vật đang cầm xuống"],
  "USE_ITEM": ["bật chiếc radio lên", "Kai bật đèn pin", "mở radio để sử dụng", "uống một ngụm Almond Water", "áp dụng bộ cứu thương lên vết thương", "mở và dùng vật phẩm", "kích hoạt công cụ đang cầm"],
  "TRANSFER_ITEM": ["chia Iris một chai", "giao radio sang tay Syvial", "chuyển vật đó cho cô ấy", "đặt viên pin vào tay Iris", "Kai giao món đồ cho đồng đội"],
  "EQUIP_ITEM": ["rút súng cầm sẵn", "mang mặt nạ bảo hộ", "lắp dao vào ô vũ khí", "đưa radio vào slot trang bị", "Kai cầm vũ khí trong tay"],
@@ -62,13 +62,22 @@ CONTEXT_TRAIN = {
   "cho Lucia dùng băng gạc", "dùng băng gạc cho Lucia", "cho Iris uống nước hạnh nhân",
   "băng bó cho Syvial bằng băng gạc", "dùng thuốc giảm đau cho An Nhiên",
   "bật đèn pin", "châm bật lửa", "nạp pin cho đèn pin", "đổ nhiên liệu vào bật lửa",
+  "Kai uống chai nước vừa nhặt", "uống chai vừa nhặt", "uống món nước vừa nhặt",
+  "Kai băng bó cho Lucia", "băng bó Lucia bằng băng gạc", "băng bó vết thương cho Iris",
+  "cho Lucia uống nước", "cho Syvial dùng thuốc", "dùng thuốc sát trùng cho Lucia",
+  "bôi thuốc sát trùng cho Iris", "ăn thực phẩm đóng hộp", "ăn cá mòi ba cô gái",
+  "Kai dùng vật vừa nhặt", "dùng món vừa nhặt ngay", "sử dụng nó ngay",
  ],
  "TRANSFER_ITEM": [
   "đưa cho Lucia", "đưa cho Iris", "trao cho Syvial", "chuyển cho An Nhiên", "cho cô ấy",
   "đưa cái vừa nhặt cho Lucia", "trao món vừa nhặt cho Iris", "giao nó cho Syvial",
   "chuyển băng gạc sang Lucia", "đưa nước hạnh nhân cho Iris", "cho Lucia thuốc giảm đau",
   "đặt viên pin vào tay An Nhiên", "nhường món đồ này cho Lucia", "chuyển vật đang cầm cho đồng đội",
-  "giao cá mòi cho cô ấy",
+  "giao cá mòi cho cô ấy", "Kai chuyển một chai cho Iris", "Kai chuyển một chai cho Syvial",
+  "Kai chuyển một chai cho Lucia", "Kai chuyển món đồ cho cô ấy", "chuyển chai nước cho cô ấy",
+  "nhường chai nước cho Syvial", "nhường viên pin cho Iris", "nhường món vừa nhặt cho An Nhiên",
+  "trao món đang cầm cho Lucia", "giao vật vừa nhặt sang Iris", "đưa nó sang Lucia",
+  "cho Lucia món vừa nhặt",
  ],
 }
 
@@ -93,7 +102,11 @@ NO_ACTION_TRAIN = [
  "nếu Kai đưa món đồ cho cô ấy thì sẽ thế nào", "nếu Kai chuyển nước sang Iris thì sao", "giả sử Kai trao chai nước cho cô ấy",
  "đừng đưa cho Lucia", "nếu đưa cho Lucia thì sao", "Kai chưa đưa cho Lucia", "Iris bảo Kai đưa cho Lucia",
  "đừng dùng băng gạc cho Lucia", "nếu dùng thuốc giảm đau cho Iris thì sao", "Kai chưa dùng cái vừa nhặt",
- "Lucia hỏi có nên uống nước hạnh nhân không",
+ "Lucia hỏi có nên uống nước hạnh nhân không", "đừng đưa món đó cho Lucia", "đừng chuyển chai nước cho Iris",
+ "đừng trao băng gạc cho Syvial", "không được đưa cho Lucia", "nếu chuyển chai nước cho Lucia thì sao",
+ "nếu trao băng gạc cho Iris thì sao", "Kai chưa chuyển món đó cho Lucia", "Kai vẫn chưa trao chai nước cho Syvial",
+ "đừng dùng thuốc giảm đau cho Iris", "không được dùng băng gạc cho Lucia", "đừng cho Syvial uống nước",
+ "nếu cho Lucia dùng băng gạc thì sao", "Kai chưa băng bó cho Lucia", "Kai chưa uống chai vừa nhặt",
 ]
 
 UNKNOWN_TRAIN = [
@@ -104,6 +117,8 @@ UNKNOWN_TRAIN = [
  "đi theo hành lang bên trái", "Kai kiểm tra cánh cửa", "thử nhớ bản đồ", "chờ xem chuyện gì xảy ra",
  "hỏi Iris về quá khứ", "Kai hỏi Syvial cô nhớ được gì", "trò chuyện với Iris về ký ức", "đề nghị Iris giải thích chuyện vừa rồi",
  "Kai hỏi người đồng hành về Backrooms", "lắng nghe câu trả lời của Syvial", "thảo luận kế hoạch với Iris",
+ "Kai chuẩn bị đối phó thực thể", "Kai chuẩn bị tinh thần trước nguy hiểm", "Kai sẵn sàng nếu có chuyện",
+ "Kai quan sát và chuẩn bị phản ứng",
 ]
 
 TEST = {
