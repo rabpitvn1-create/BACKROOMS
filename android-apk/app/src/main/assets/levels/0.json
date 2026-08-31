@@ -6,7 +6,7 @@
   "zones": [
     {
       "id": "yellow_entry",
-      "name": "Các phòng vàng lối vào",
+      "name": "khu phòng vàng gần lối vào",
       "connections": ["fluorescent_loop"],
       "tags": ["entry", "yellow_rooms"],
       "properties": {
@@ -17,7 +17,7 @@
     },
     {
       "id": "fluorescent_loop",
-      "name": "Vòng lặp huỳnh quang",
+      "name": "khu hành lang dưới ánh đèn huỳnh quang",
       "connections": ["yellow_entry", "marker_room", "memory_corridor"],
       "tags": ["loop", "fluorescent"],
       "properties": {
@@ -27,7 +27,7 @@
     },
     {
       "id": "marker_room",
-      "name": "Phòng dấu mốc dịch chuyển",
+      "name": "căn phòng có những dấu cào xuất hiện sai vị trí",
       "connections": ["fluorescent_loop"],
       "tags": ["layout_resistance"],
       "properties": {
@@ -36,7 +36,7 @@
     },
     {
       "id": "memory_corridor",
-      "name": "Hành lang ký ức",
+      "name": "hành lang nơi các chi tiết quen thuộc bắt đầu lặp lại",
       "connections": ["fluorescent_loop", "concrete_drift"],
       "tags": ["memory_room", "transition_candidate"],
       "properties": {
@@ -46,7 +46,7 @@
     },
     {
       "id": "concrete_drift",
-      "name": "Dải bê tông chuyển tiếp",
+      "name": "đoạn hành lang nơi tường vàng dần chuyển thành bê tông",
       "connections": ["memory_corridor"],
       "tags": ["escape", "level1_transition"],
       "properties": {
