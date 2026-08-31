@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "id": "4",
+  "canonProfile": {
+    "environmentTags": [
+      "abandoned_office_network",
+      "cubicles",
+      "office_corridors",
+      "small_office_rooms",
+      "scattered_desks_and_chairs",
+      "old_computers",
+      "partially_broken_fluorescent_lights",
+      "fixed_rain_sky_windows",
+      "pervasive_rain_sound",
+      "relatively_stable_geometry"
+    ],
+    "requiredZoneTags": ["entry", "escape"],
+    "allowedPhenomena": [
+      "fixed_rain_sky",
+      "relative_geometry_stability",
+      "boundary_incursion",
+      "temporary_transition_formation",
+      "resource_oasis"
+    ],
+    "forbiddenClaims": [
+      "backrooms_confirmed_conscious",
+      "level_confirmed_intentionally_opposes_player",
+      "level4_confirmed_absolutely_safe",
+      "level4_confirmed_native_hostile_population",
+      "level4_confirmed_large_stable_civilization"
+    ],
+    "transitionTags": [
+      "classical_music_or_ballroom_audio",
+      "thick_carpet",
+      "warm_yellow_lighting",
+      "dark_wood",
+      "decorative_wallpaper",
+      "old_hotel_smell",
+      "rain_sound_disappears"
+    ],
+    "metadata": {
+      "projectDanger": "MEDIUM_BASELINE",
+      "canonSource": "BACKROOMS-LEVELS-R2-L0-6",
+      "transitionTarget": "5",
+      "residentEntities": "none_confirmed",
+      "incursionRule": "cross_boundary_entities_possible",
+      "civilizationScale": "small_survivor_groups_only"
+    }
+  },
+  "generationConstraints": {
+    "minZones": 5,
+    "maxZones": 28,
+    "minEvidencePerRequiredFact": 2,
+    "minEvidenceSourceTypesPerRequiredFact": 2,
+    "maxRequiredActions": 7,
+    "allowSurvivors": true,
+    "allowEntities": true,
+    "proceduralTopology": true,
+    "proceduralLandmarks": true,
+    "proceduralEvidencePlacement": true,
+    "proceduralEscapeBlueprint": true
+  },
+  "metadata": {
+    "profileSource": "project-level-canon",
+    "profileRevision": "R2"
+  }
+}
