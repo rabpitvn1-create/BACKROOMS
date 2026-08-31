@@ -162,6 +162,53 @@
     "evidence:e-hum-anomaly": "Khi nguồn chính tắt, tiếng máy còn lại vọng rõ từ một phía nhưng dấu luồng khí lại chạy theo hướng ngược lại.",
     "evidence:e-hum-survivor": "Dấu survivor cảnh báo đừng đi theo tiếng máy; người viết đã gạch chân chữ 'ngược'."
   },
+  "canonProfile": {
+    "environmentTags": [
+      "concrete_parking_network",
+      "hanging_lights",
+      "ramps_and_stairs",
+      "rare_nonfunctional_vehicles",
+      "high_heat",
+      "localized_cold_fog",
+      "rusted_exposed_rebar"
+    ],
+    "requiredZoneTags": ["entry", "escape"],
+    "allowedPhenomena": [
+      "blackout",
+      "localized_cold_fog",
+      "unstable_power",
+      "maintenance_power_persistence",
+      "long_range_sound"
+    ],
+    "forbiddenClaims": [
+      "backrooms_confirmed_conscious",
+      "level_confirmed_intentionally_opposes_player"
+    ],
+    "transitionTags": [
+      "narrowing_concrete",
+      "vehicles_disappear",
+      "pipes_increase",
+      "hot_humid_air",
+      "continuous_machine_hum"
+    ],
+    "metadata": {
+      "projectDanger": "VERY_HIGH",
+      "canonSource": "BACKROOMS-LEVELS-R2-L0-6"
+    }
+  },
+  "generationConstraints": {
+    "minZones": 4,
+    "maxZones": 32,
+    "minEvidencePerRequiredFact": 2,
+    "minEvidenceSourceTypesPerRequiredFact": 2,
+    "maxRequiredActions": 8,
+    "allowSurvivors": true,
+    "allowEntities": true,
+    "proceduralTopology": true,
+    "proceduralLandmarks": true,
+    "proceduralEvidencePlacement": true,
+    "proceduralEscapeBlueprint": true
+  },
   "metadata": {
     "prototype": "true",
     "generation": "deterministic-fixture"

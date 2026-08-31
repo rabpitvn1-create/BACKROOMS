@@ -17,6 +17,8 @@ data class LevelDefinition(
   val exploreRoute: List<String> = emptyList(),
   val actions: Map<String, LevelActionRule> = emptyMap(),
   val replies: Map<String, String> = emptyMap(),
+  val canonProfile: LevelCanonProfile = LevelCanonProfile(),
+  val generationConstraints: ProceduralGenerationConstraints = ProceduralGenerationConstraints(),
   val metadata: Map<String, String> = emptyMap(),
   val schemaVersion: Int = 1
 )
@@ -60,6 +62,8 @@ object LevelDefinitionJson {
     put("exploreRoute", JSONArray(value.exploreRoute))
     put("actions", JSONArray().apply { value.actions.values.forEach { put(encodeAction(it)) } })
     put("replies", stringMap(value.replies))
+    put("canonProfile", LevelCanonProfileJson.encode(value.canonProfile))
+    put("generationConstraints", ProceduralGenerationConstraintsJson.encode(value.generationConstraints))
     put("metadata", stringMap(value.metadata))
   }
 
@@ -109,6 +113,8 @@ object LevelDefinitionJson {
       exploreRoute = json.optJSONArray("exploreRoute").strings(),
       actions = actions,
       replies = json.optJSONObject("replies").stringsMap(),
+      canonProfile = LevelCanonProfileJson.decode(json.optJSONObject("canonProfile")),
+      generationConstraints = ProceduralGenerationConstraintsJson.decode(json.optJSONObject("generationConstraints")),
       metadata = json.optJSONObject("metadata").stringsMap(),
       schemaVersion = json.optInt("schemaVersion", CURRENT_SCHEMA_VERSION)
     )
@@ -230,6 +236,13 @@ object LevelDefinitionValidator {
     if (definition.schemaVersion != LevelDefinitionJson.CURRENT_SCHEMA_VERSION) errors += "unsupported_schema_version:${definition.schemaVersion}"
     if (definition.initialZoneId !in definition.zones) errors += "initial_zone_missing"
 
+    val constraints = definition.generationConstraints
+    if (constraints.minZones < 1) errors += "generation_min_zones_invalid"
+    if (constraints.maxZones < constraints.minZones) errors += "generation_zone_range_invalid"
+    if (constraints.minEvidencePerRequiredFact < 1) errors += "generation_evidence_count_invalid"
+    if (constraints.minEvidenceSourceTypesPerRequiredFact < 1) errors += "generation_evidence_sources_invalid"
+    if (constraints.maxRequiredActions < 1) errors += "generation_max_actions_invalid"
+
     definition.zones.values.forEach { zone ->
       if (zone.name.isBlank()) errors += "zone_name_missing:${zone.id}"
       zone.connections.filterNot(definition.zones::containsKey).forEach { errors += "unknown_connection:${zone.id}:$it" }
@@ -274,9 +287,12 @@ object LevelDefinitionValidator {
       environment = definition.environment,
       escapeBlueprint = definition.escapeBlueprint.copy(locked = true),
       evidence = definition.evidence,
-      npcKnowledge = definition.npcKnowledge
+      npcKnowledge = definition.npcKnowledge,
+      exploreRoute = definition.exploreRoute,
+      actions = definition.actions,
+      replies = definition.replies
     )
-    errors += BlueprintValidator.validate(instance).errors
+    errors += BlueprintValidator.validate(instance, definition).errors
     return LevelDefinitionValidation(errors.isEmpty(), errors.distinct())
   }
 
@@ -357,20 +373,6 @@ object LevelRegistryLoader {
 }
 
 object GenericLevelGenerator {
-  fun generate(definition: LevelDefinition, seed: String): LevelInstanceState {
-    val validation = LevelDefinitionValidator.validate(definition)
-    require(validation.valid) { "invalid_level:${definition.id}:${validation.errors.joinToString(",")}" }
-    return LevelInstanceState(
-      runSeed = seed,
-      levelId = definition.id,
-      generationId = "${definition.id}:$seed",
-      currentZoneId = definition.initialZoneId,
-      zones = definition.zones,
-      landmarks = definition.landmarks,
-      environment = definition.environment + ("exploreStep" to "0"),
-      escapeBlueprint = definition.escapeBlueprint.copy(locked = true),
-      evidence = definition.evidence,
-      npcKnowledge = definition.npcKnowledge
-    )
-  }
+  fun generate(definition: LevelDefinition, seed: String): LevelInstanceState =
+    LevelInstanceGenerator.fromDefinition(definition, seed)
 }
