@@ -48,7 +48,7 @@
       "id": "concrete_drift",
       "name": "đoạn hành lang nơi tường vàng dần chuyển thành bê tông",
       "connections": ["memory_corridor"],
-      "tags": ["escape", "level1_transition"],
+      "tags": ["escape", "level_transition"],
       "properties": {
         "walls": "concrete",
         "ceiling": "higher",
@@ -153,9 +153,9 @@
       "id": "continue_until_geometry_changes",
       "matchGroups": [
         ["đi đến khi", "tiếp tục cho tới", "đi tiếp cho tới"],
-        ["kiến trúc đổi", "hết đoạn chuyển", "level 1"]
+        ["kiến trúc đổi", "hết đoạn chuyển", "vượt ranh giới"]
       ],
-      "semanticDescriptions": ["tiếp tục đi cho tới khi kiến trúc chuyển hẳn sang Level kế tiếp"],
+      "semanticDescriptions": ["tiếp tục đi cho tới khi vượt khỏi ranh giới của Level hiện tại"],
       "conditions": [
         "zone:concrete_drift",
         "action:follow_transition_signs"
@@ -163,7 +163,7 @@
       "effects": [
         {"type": "COMPLETE_LEVEL"}
       ],
-      "reply": "Kai không tạo ra lối chuyển. Cậu chỉ tiếp tục theo một quá trình đã tự xuất hiện cho tới khi giấy tường biến mất, trần cao lên, cột chịu lực và vạch sơn chiếm toàn bộ tầm nhìn. Level 1 đã bắt đầu."
+      "reply": "Kai tiếp tục theo dải chuyển tiếp cho tới khi những phòng vàng phía sau biến mất hẳn. Ranh giới của Level 0 đã ở lại phía sau."
     }
   ],
   "replies": {
