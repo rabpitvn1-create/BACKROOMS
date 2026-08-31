@@ -22,7 +22,13 @@ object GenericLevelRuntime {
     return sync(state, definition, level)
   }
 
-  fun apply(state: GameState, registry: LevelRegistry, kind: ActionKind, input: String): LevelActionOutcome {
+  fun apply(
+    state: GameState,
+    registry: LevelRegistry,
+    kind: ActionKind,
+    input: String,
+    director: BackroomsDirector = BackroomsDirector.DETERMINISTIC
+  ): LevelActionOutcome {
     val stored = state.levelInstance
       ?: return LevelActionOutcome(state, "Level instance chưa được khởi tạo.", progressed = false)
     val definition = registry.get(stored.levelId)
@@ -33,13 +39,18 @@ object GenericLevelRuntime {
     if (level.completed) return LevelActionOutcome(workingState, "Lối chuyển Level đã được mở.", progressed = false, escaped = true)
 
     return when (kind) {
-      ActionKind.SEARCH -> search(workingState, definition, level)
-      ActionKind.EXPLORE -> explore(workingState, definition, level)
-      ActionKind.EXECUTE -> execute(workingState, definition, level, input)
+      ActionKind.SEARCH -> search(workingState, definition, level, director)
+      ActionKind.EXPLORE -> explore(workingState, definition, level, director)
+      ActionKind.EXECUTE -> execute(workingState, definition, level, input, director)
     }
   }
 
-  private fun search(state: GameState, definition: LevelDefinition, level: LevelInstanceState): LevelActionOutcome {
+  private fun search(
+    state: GameState,
+    definition: LevelDefinition,
+    level: LevelInstanceState,
+    director: BackroomsDirector
+  ): LevelActionOutcome {
     val searchKey = "searched:${level.currentZoneId}:${level.revision}"
     if (level.environment[searchKey] == "true") {
       return LevelActionOutcome(
@@ -51,10 +62,11 @@ object GenericLevelRuntime {
 
     val eligible = level.evidence.values
       .filter { !it.discovered && it.zoneId == level.currentZoneId && EvidenceSource.SEARCH in it.sources }
-      .firstOrNull { conditionsMet(level, it.discoverConditions) }
+      .filter { conditionsMet(level, it.discoverConditions) }
+    val selected = director.selectEvidence(level, definition, ActionKind.SEARCH, eligible).firstOrNull()
 
     val searched = level.copy(environment = level.environment + (searchKey to "true"))
-    if (eligible == null) {
+    if (selected == null) {
       return LevelActionOutcome(
         sync(state, definition, searched),
         reply(level, definition, "search:empty") ?: "Không có thêm chi tiết đáng kể trong trạng thái hiện tại.",
@@ -62,16 +74,21 @@ object GenericLevelRuntime {
       )
     }
 
-    val discovered = discover(searched, eligible.id, definition)
+    val discovered = discover(searched, selected.id, definition)
     return LevelActionOutcome(
       sync(state, definition, discovered),
-      evidenceReply(discovered, definition, eligible.id),
+      evidenceReply(discovered, definition, selected.id),
       progressed = true,
-      evidenceIds = setOf(eligible.id)
+      evidenceIds = setOf(selected.id)
     )
   }
 
-  private fun explore(state: GameState, definition: LevelDefinition, level: LevelInstanceState): LevelActionOutcome {
+  private fun explore(
+    state: GameState,
+    definition: LevelDefinition,
+    level: LevelInstanceState,
+    director: BackroomsDirector
+  ): LevelActionOutcome {
     val step = level.environment["exploreStep"]?.toIntOrNull() ?: 0
     val nextZone = level.exploreRoute.getOrNull(step) ?: chooseConnectedZone(level)
       ?: return LevelActionOutcome(
@@ -96,7 +113,7 @@ object GenericLevelRuntime {
     )
     next = commitRevision(next, "move", nextZone, "visit:$visits")
 
-    val revealed = revealEligibleNonSearchEvidence(next, definition)
+    val revealed = revealEligibleNonSearchEvidence(next, definition, ActionKind.EXPLORE, director)
     next = revealed.first
     val evidenceIds = revealed.second
     val zoneName = next.zones.getValue(nextZone).name
@@ -107,7 +124,13 @@ object GenericLevelRuntime {
     return LevelActionOutcome(sync(state, definition, next), resultReply, progressed = true, evidenceIds = evidenceIds)
   }
 
-  private fun execute(state: GameState, definition: LevelDefinition, level: LevelInstanceState, input: String): LevelActionOutcome {
+  private fun execute(
+    state: GameState,
+    definition: LevelDefinition,
+    level: LevelInstanceState,
+    input: String,
+    director: BackroomsDirector
+  ): LevelActionOutcome {
     val actionId = canonicalAction(level.actions, input)
       ?: return LevelActionOutcome(
         state,
@@ -140,7 +163,7 @@ object GenericLevelRuntime {
     rule.effects.forEach { effect -> next = applyEffect(next, effect) }
     next = commitRevision(next, "execute", actionId, actionId)
 
-    val revealed = revealEligibleNonSearchEvidence(next, definition)
+    val revealed = revealEligibleNonSearchEvidence(next, definition, ActionKind.EXECUTE, director)
     next = revealed.first
     val evidenceIds = revealed.second
     val resultReply = listOfNotNull(
@@ -209,17 +232,22 @@ object GenericLevelRuntime {
 
   private fun revealEligibleNonSearchEvidence(
     level: LevelInstanceState,
-    definition: LevelDefinition
+    definition: LevelDefinition,
+    kind: ActionKind,
+    director: BackroomsDirector
   ): Pair<LevelInstanceState, Set<String>> {
+    val eligible = level.evidence.values
+      .filter { !it.discovered && it.zoneId == level.currentZoneId && EvidenceSource.SEARCH !in it.sources }
+      .filter { conditionsMet(level, it.discoverConditions) }
+    val selected = director.selectEvidence(level, definition, kind, eligible)
+    if (selected.isEmpty()) return level to emptySet()
+
     var next = level
     val revealed = linkedSetOf<String>()
-    level.evidence.values
-      .filter { !it.discovered && it.zoneId == level.currentZoneId && EvidenceSource.SEARCH !in it.sources }
-      .filter { conditionsMet(next, it.discoverConditions) }
-      .forEach { evidence ->
-        next = discover(next, evidence.id, definition)
-        revealed += evidence.id
-      }
+    selected.forEach { evidence ->
+      next = discover(next, evidence.id, definition)
+      revealed += evidence.id
+    }
     return next to revealed
   }
 
