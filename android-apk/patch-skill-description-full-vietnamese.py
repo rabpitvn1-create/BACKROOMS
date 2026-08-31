@@ -54,7 +54,15 @@ test = test.replace(
 )
 test = test.replace(
     'org.junit.Assert.assertTrue(skill.effect.contains("Entity Evasion"))',
+    'org.junit.Assert.assertTrue(skill.effect.contains("Né tránh của Thực thể"))',
+)
+test = test.replace(
+    'org.junit.Assert.assertTrue(skill.effect.contains("Né tránh của Entity"))',
+    'org.junit.Assert.assertTrue(skill.effect.contains("Né tránh của Thực thể"))',
+)
+test = test.replace(
     'org.junit.Assert.assertTrue(skill.effect.contains("Thực thể Evasion"))',
+    'org.junit.Assert.assertTrue(skill.effect.contains("Né tránh của Thực thể"))',
 )
 test = test.replace(
     'org.junit.Assert.assertTrue(skill.effect.contains("Base DMG +5%"))',
