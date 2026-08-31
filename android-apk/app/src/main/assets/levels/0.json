@@ -1,0 +1,234 @@
+{
+  "schemaVersion": 1,
+  "id": "0",
+  "name": "The Lobby",
+  "initialZoneId": "yellow_entry",
+  "zones": [
+    {
+      "id": "yellow_entry",
+      "name": "Yellow Entry Rooms",
+      "connections": ["fluorescent_loop"],
+      "tags": ["entry", "yellow_rooms"],
+      "properties": {
+        "wallpaper": "aged_yellow",
+        "carpet": "damp",
+        "ceiling": "drop_ceiling"
+      }
+    },
+    {
+      "id": "fluorescent_loop",
+      "name": "Fluorescent Loop",
+      "connections": ["yellow_entry", "marker_room", "memory_corridor"],
+      "tags": ["loop", "fluorescent"],
+      "properties": {
+        "hum": "continuous",
+        "geometry": "nonlinear"
+      }
+    },
+    {
+      "id": "marker_room",
+      "name": "Relocated Marker Room",
+      "connections": ["fluorescent_loop"],
+      "tags": ["layout_resistance"],
+      "properties": {
+        "marker": "same_mark_multiple_positions"
+      }
+    },
+    {
+      "id": "memory_corridor",
+      "name": "Memory Corridor",
+      "connections": ["fluorescent_loop", "concrete_drift"],
+      "tags": ["memory_room", "transition_candidate"],
+      "properties": {
+        "wallShift": "yellow_to_concrete",
+        "hum": "fading"
+      }
+    },
+    {
+      "id": "concrete_drift",
+      "name": "Concrete Drift",
+      "connections": ["memory_corridor"],
+      "tags": ["escape", "level1_transition"],
+      "properties": {
+        "walls": "concrete",
+        "ceiling": "higher",
+        "floorMarkings": "painted_lines"
+      }
+    }
+  ],
+  "landmarks": {
+    "relocatedMark": "Cùng một dấu cào xuất hiện ở những vị trí không thể đồng thời đúng.",
+    "concreteSeam": "Một dải tường vàng chuyển dần sang bê tông thay vì đổi đột ngột."
+  },
+  "environment": {
+    "fluorescentHum": "continuous",
+    "transitionState": "emerging"
+  },
+  "escapeBlueprint": {
+    "solutionId": "level0-observe-and-follow-transition",
+    "requiredFacts": [
+      "MARKERS_ARE_UNRELIABLE",
+      "CONCRETE_DRIFT_IS_TRANSITION",
+      "HUM_FADES_ALONG_TRANSITION"
+    ],
+    "requiredActions": [
+      "follow_transition_signs",
+      "continue_until_geometry_changes"
+    ],
+    "locked": true
+  },
+  "evidence": [
+    {
+      "id": "e-marker-search",
+      "supports": ["MARKERS_ARE_UNRELIABLE"],
+      "sources": ["SEARCH"],
+      "zoneId": "fluorescent_loop",
+      "discoverConditions": []
+    },
+    {
+      "id": "e-marker-repeat",
+      "supports": ["MARKERS_ARE_UNRELIABLE"],
+      "sources": ["ENVIRONMENT"],
+      "zoneId": "fluorescent_loop",
+      "discoverConditions": ["visit:fluorescent_loop:2"]
+    },
+    {
+      "id": "e-transition-search",
+      "supports": ["CONCRETE_DRIFT_IS_TRANSITION"],
+      "sources": ["SEARCH"],
+      "zoneId": "memory_corridor",
+      "discoverConditions": []
+    },
+    {
+      "id": "e-transition-anomaly",
+      "supports": ["CONCRETE_DRIFT_IS_TRANSITION"],
+      "sources": ["ANOMALY"],
+      "zoneId": "memory_corridor",
+      "discoverConditions": ["visit:memory_corridor:1"]
+    },
+    {
+      "id": "e-hum-survivor",
+      "supports": ["HUM_FADES_ALONG_TRANSITION"],
+      "sources": ["SURVIVOR"],
+      "zoneId": "marker_room",
+      "discoverConditions": ["visit:marker_room:1"]
+    },
+    {
+      "id": "e-hum-anomaly",
+      "supports": ["HUM_FADES_ALONG_TRANSITION"],
+      "sources": ["ANOMALY"],
+      "zoneId": "memory_corridor",
+      "discoverConditions": ["visit:memory_corridor:1"]
+    }
+  ],
+  "npcKnowledge": {
+    "survivor-marker-note": ["e-hum-survivor"]
+  },
+  "exploreRoute": [
+    "fluorescent_loop",
+    "marker_room",
+    "fluorescent_loop",
+    "memory_corridor"
+  ],
+  "actions": [
+    {
+      "id": "follow_transition_signs",
+      "matchGroups": [
+        ["theo hành lang", "bám hành lang", "đi theo"],
+        ["tiếng ù yếu", "đèn yếu", "bê tông", "vạch sơn"]
+      ],
+      "conditions": [
+        "zone:memory_corridor",
+        "fact:MARKERS_ARE_UNRELIABLE",
+        "fact:CONCRETE_DRIFT_IS_TRANSITION",
+        "fact:HUM_FADES_ALONG_TRANSITION"
+      ],
+      "effects": [
+        {"type": "MOVE_TO_ZONE", "zoneId": "concrete_drift"}
+      ],
+      "reply": "Kai bỏ qua các dấu định vị đã chứng minh là không đáng tin và bám theo đoạn hành lang nơi tiếng đèn yếu dần, tường vàng chuyển thành bê tông."
+    },
+    {
+      "id": "continue_until_geometry_changes",
+      "matchGroups": [
+        ["đi đến khi", "tiếp tục cho tới", "đi tiếp cho tới"],
+        ["kiến trúc đổi", "hết đoạn chuyển", "level 1"]
+      ],
+      "conditions": [
+        "zone:concrete_drift",
+        "action:follow_transition_signs"
+      ],
+      "effects": [
+        {"type": "COMPLETE_LEVEL"}
+      ],
+      "reply": "Kai không tạo ra lối chuyển. Cậu chỉ tiếp tục theo một quá trình đã tự xuất hiện cho tới khi giấy tường biến mất, trần cao lên, cột chịu lực và vạch sơn chiếm toàn bộ tầm nhìn. Level 1 đã bắt đầu."
+    }
+  ],
+  "replies": {
+    "search:empty": "Kai rà lại khu vực nhưng chưa có chi tiết nào đủ khác biệt để kết luận thêm.",
+    "search:exhausted": "Những gì có thể kiểm tra trong trạng thái hiện tại đã được ghi nhận; lặp lại không tạo thêm bằng chứng.",
+    "execute:conditions_missing": "Ý tưởng chưa đủ cơ sở hoặc Kai chưa ở đúng nơi để kiểm chứng nó.",
+    "execute:no_progress": "Thử nghiệm không làm tiến triển chuỗi thoát đã khóa.",
+    "explore:moved": "Kai đi sâu hơn vào {zone}.",
+    "evidence:e-marker-search": "Dấu cào trên mép tường trùng hoàn toàn với một dấu Kai đã thấy trước đó, kể cả lỗi nhỏ ở nét cuối.",
+    "evidence:e-marker-repeat": "Sau khi vòng lại, cùng dấu cào xuất hiện ở vị trí khác dù khoảng cách và góc phòng không thể khớp. Đánh dấu vị trí ở Level 0 không đáng tin tuyệt đối.",
+    "evidence:e-transition-search": "Ở mép hành lang, giấy tường không kết thúc bằng một cánh cửa; nó nhạt dần rồi lộ bê tông, trần cũng tăng độ cao theo từng đoạn.",
+    "evidence:e-transition-anomaly": "Càng đi về phía dải bê tông, hình học bớt giống các phòng vàng và bắt đầu xuất hiện cột chịu lực cùng vạch sơn.",
+    "evidence:e-hum-survivor": "Một ghi chú survivor bị cào lên mặt sau tấm trần: 'Nếu tiếng đèn nhỏ dần mà tường hóa bê tông, đừng quay theo dấu cũ.'",
+    "evidence:e-hum-anomaly": "Tiếng huỳnh quang suy yếu theo đúng hướng kiến trúc đang chuyển sang bê tông; phía ngược lại tiếng ù lại dày lên."
+  },
+  "canonProfile": {
+    "environmentTags": [
+      "yellow_room_network",
+      "aged_yellow_wallpaper",
+      "damp_carpet",
+      "fluorescent_lights",
+      "continuous_hum",
+      "irrational_power_outlets",
+      "drop_ceiling",
+      "nonlinear_geometry",
+      "no_identical_regions"
+    ],
+    "requiredZoneTags": ["entry", "escape"],
+    "allowedPhenomena": [
+      "fluorescent_pressure",
+      "memory_rooms",
+      "layout_resistance"
+    ],
+    "forbiddenClaims": [
+      "backrooms_confirmed_conscious",
+      "level_confirmed_intentionally_opposes_player"
+    ],
+    "transitionTags": [
+      "widening_corridors",
+      "concrete_walls",
+      "fading_fluorescent_hum",
+      "higher_ceiling",
+      "support_columns",
+      "painted_lines"
+    ],
+    "metadata": {
+      "projectDanger": "HIGH",
+      "canonSource": "BACKROOMS-LEVELS-R2-L0-6",
+      "transitionRule": "cannot_be_forced_only_followed_when_present"
+    }
+  },
+  "generationConstraints": {
+    "minZones": 5,
+    "maxZones": 32,
+    "minEvidencePerRequiredFact": 2,
+    "minEvidenceSourceTypesPerRequiredFact": 2,
+    "maxRequiredActions": 6,
+    "allowSurvivors": true,
+    "allowEntities": true,
+    "proceduralTopology": true,
+    "proceduralLandmarks": true,
+    "proceduralEvidencePlacement": true,
+    "proceduralEscapeBlueprint": true
+  },
+  "metadata": {
+    "prototype": "true",
+    "generation": "deterministic-fallback",
+    "canonNote": "Level 0 transition is observed and followed, never forced by player action."
+  }
+}
