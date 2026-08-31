@@ -135,7 +135,8 @@ object LevelCatalogValidator {
 
 class LevelCatalog private constructor(
   private val entries: Map<String, LevelCatalogEntry>,
-  private val childrenByParent: Map<String, List<LevelCatalogEntry>>
+  private val childrenByParent: Map<String, List<LevelCatalogEntry>>,
+  private val transitionTargetsBySource: Map<String, Set<String>>
 ) {
   fun get(id: String): LevelCatalogEntry? = entries[id]
   fun require(id: String): LevelCatalogEntry = entries[id] ?: throw IllegalArgumentException("unknown_level_catalog_entry:$id")
@@ -148,7 +149,7 @@ class LevelCatalog private constructor(
     .filter { it.campaignId == campaignId && it.campaignOrder != null }
     .sortedWith(compareBy<LevelCatalogEntry> { it.campaignOrder }.thenBy { it.id })
   fun allowedTransitionsFrom(levelId: String): List<LevelTransition> = entries[levelId]?.outgoingTransitions.orEmpty()
-  fun canTransition(fromId: String, toId: String): Boolean = allowedTransitionsFrom(fromId).any { it.targetId == toId }
+  fun canTransition(fromId: String, toId: String): Boolean = toId in transitionTargetsBySource[fromId].orEmpty()
   val size: Int get() = entries.size
 
   companion object {
@@ -203,7 +204,8 @@ class LevelCatalog private constructor(
         .mapNotNull { child -> child.parentId?.let { it to child } }
         .groupBy({ it.first }, { it.second })
         .mapValues { (_, childEntries) -> childEntries.sortedBy { it.id } }
-      return LevelCatalog(map, children)
+      val transitionTargets = map.mapValues { (_, entry) -> entry.outgoingTransitions.mapTo(linkedSetOf()) { it.targetId } }
+      return LevelCatalog(map, children, transitionTargets)
     }
 
     private fun validateParentCycles(entries: Map<String, LevelCatalogEntry>) {
@@ -227,7 +229,7 @@ class LevelCatalog private constructor(
       }
     }
 
-    fun empty(): LevelCatalog = LevelCatalog(emptyMap(), emptyMap())
+    fun empty(): LevelCatalog = LevelCatalog(emptyMap(), emptyMap(), emptyMap())
   }
 }
 
