@@ -1,0 +1,59 @@
+name: Publish 1.3.4 Upgrade Asset
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/publish-1.3.4-upgrade.yml"
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  publish-upgrade:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download verified main APK artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          RUN_ID=33381574452
+          EXPECTED_SHA=8b0e5b773181725bed04ae2a266dbdfaf440c2af
+          actual_sha=$(gh run view "$RUN_ID" --repo "$GITHUB_REPOSITORY" --json headSha --jq .headSha)
+          conclusion=$(gh run view "$RUN_ID" --repo "$GITHUB_REPOSITORY" --json conclusion --jq .conclusion)
+          test "$actual_sha" = "$EXPECTED_SHA"
+          test "$conclusion" = "success"
+          gh run download "$RUN_ID" --repo "$GITHUB_REPOSITORY" --name Backroom-1.3.4-debug-apk --dir upgrade-source
+          test -s upgrade-source/Backroom-1.3.4-debug.apk
+          cp upgrade-source/Backroom-1.3.4-debug.apk Backroom-1.3.4-upgrade.apk
+
+      - name: Verify upgrade APK before Release upload
+        run: bash android-apk/ci_verify_packaged_apk.sh Backroom-1.3.4-upgrade.apk
+
+      - name: Upload upgrade APK to Release v1.3.4
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release view v1.3.4 --repo "$GITHUB_REPOSITORY" >/dev/null
+          gh release upload v1.3.4 Backroom-1.3.4-upgrade.apk --repo "$GITHUB_REPOSITORY" --clobber
+
+      - name: Verify Release upgrade asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          rm -rf release-upgrade-check
+          mkdir release-upgrade-check
+          gh release download v1.3.4 --repo "$GITHUB_REPOSITORY" --pattern 'Backroom-1.3.4-upgrade.apk' --dir release-upgrade-check
+          test -s release-upgrade-check/Backroom-1.3.4-upgrade.apk
+          expected=$(sha256sum Backroom-1.3.4-upgrade.apk | awk '{print $1}')
+          actual=$(sha256sum release-upgrade-check/Backroom-1.3.4-upgrade.apk | awk '{print $1}')
+          test "$expected" = "$actual"
+          bash android-apk/ci_verify_packaged_apk.sh release-upgrade-check/Backroom-1.3.4-upgrade.apk
+          echo "Upgrade Release asset verified with SHA-256 $actual"
