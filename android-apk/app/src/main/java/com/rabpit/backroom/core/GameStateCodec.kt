@@ -18,6 +18,7 @@ object GameStateCodec {
     put("omnivault", omnivault(state.omnivault))
     put("turn", turn(state.turn))
     put("time", gameTime(state.time))
+    putNullable("levelInstance", state.levelInstance?.let(LevelInstanceJson::encode))
     put("world", stringMap(state.world))
     put("metadata", stringMap(state.metadata))
   }.toString()
@@ -92,6 +93,7 @@ object GameStateCodec {
       turn = decodeTurn(root.optJSONObject("turn") ?: JSONObject()),
       time = decodeGameTime(root.optJSONObject("time")),
       world = root.optJSONObject("world").stringsMap(),
+      levelInstance = root.optJSONObject("levelInstance")?.let(LevelInstanceJson::decode),
       saveVersion = CURRENT_SAVE_VERSION,
       metadata = root.optJSONObject("metadata").stringsMap()
     )

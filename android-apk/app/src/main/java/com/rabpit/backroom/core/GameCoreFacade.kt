@@ -7,7 +7,8 @@ import org.json.JSONObject
 class GameCoreFacade private constructor(
   private val repository: SaveRepository,
   private val logger: GamePipelineLogger,
-  private val localModel: LiteRTIntentInterpreter
+  private val localModel: LiteRTIntentInterpreter,
+  private val levelRegistry: LevelRegistry
 ) : AutoCloseable {
   private val rules = RuleIntentInterpreter()
   private val resolver = CommandResolver()
@@ -70,6 +71,15 @@ class GameCoreFacade private constructor(
   }
 
   fun currentCoreState(): String = GameStateCodec.encode(repository.load())
+  fun registeredLevelIds(): String = JSONArray(levelRegistry.ids()).toString()
+  fun hasRegisteredLevel(levelId: String): Boolean = levelRegistry.contains(levelId)
+
+  fun installRegisteredLevel(levelId: String, runSeed: String): String {
+    val installed = GenericLevelRuntime.install(repository.load(), levelRegistry, levelId, runSeed)
+    repository.save(installed)
+    return GameStateCodec.encode(installed)
+  }
+
   fun clear() = repository.clear()
   override fun close() = localModel.close()
 
@@ -279,8 +289,14 @@ class GameCoreFacade private constructor(
   }
 
   companion object {
-    @JvmStatic fun create(context: Context, debugLogging: Boolean = false): GameCoreFacade = GameCoreFacade(
-      SharedPreferencesSaveRepository(context.applicationContext), AndroidGamePipelineLogger(debugLogging), LiteRTIntentInterpreter(context.applicationContext)
-    )
+    @JvmStatic fun create(context: Context, debugLogging: Boolean = false): GameCoreFacade {
+      val appContext = context.applicationContext
+      return GameCoreFacade(
+        SharedPreferencesSaveRepository(appContext),
+        AndroidGamePipelineLogger(debugLogging),
+        LiteRTIntentInterpreter(appContext),
+        AndroidLevelRegistry.load(appContext)
+      )
+    }
   }
 }

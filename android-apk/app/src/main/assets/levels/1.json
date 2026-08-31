@@ -1,0 +1,169 @@
+{
+  "schemaVersion": 1,
+  "id": "1",
+  "name": "Parking Zone",
+  "initialZoneId": "parking_a",
+  "zones": [
+    {
+      "id": "parking_a",
+      "name": "Parking A",
+      "connections": ["parking_loop"],
+      "tags": ["entry"],
+      "properties": {"material": "concrete"}
+    },
+    {
+      "id": "parking_loop",
+      "name": "Parking Loop 14",
+      "connections": ["maintenance", "blackout_hall"],
+      "tags": ["loop"],
+      "properties": {"door": "14"}
+    },
+    {
+      "id": "maintenance",
+      "name": "Maintenance Hall",
+      "connections": ["parking_loop", "blackout_hall"],
+      "tags": ["utility"],
+      "properties": {"breaker": "main"}
+    },
+    {
+      "id": "blackout_hall",
+      "name": "Blackout Hall",
+      "connections": ["service_elevator"],
+      "tags": ["dark"],
+      "properties": {"machineHum": "east"}
+    },
+    {
+      "id": "service_elevator",
+      "name": "Service Elevator",
+      "connections": [],
+      "tags": ["escape"],
+      "properties": {"doorState": "sealed"}
+    }
+  ],
+  "landmarks": {
+    "door14": "A scratched service door marked 14"
+  },
+  "environment": {
+    "power": "on"
+  },
+  "escapeBlueprint": {
+    "solutionId": "level1-service-elevator",
+    "requiredFacts": ["POWER_OFF_REQUIRED", "DOOR_14_LOOP", "REVERSE_HUM_ROUTE"],
+    "requiredActions": ["cut_power", "return_door_14", "follow_against_hum", "enter_service_elevator"],
+    "locked": true
+  },
+  "evidence": [
+    {
+      "id": "e-door-repeat",
+      "supports": ["DOOR_14_LOOP"],
+      "sources": ["ENVIRONMENT"],
+      "zoneId": "parking_loop",
+      "discoverConditions": ["visit:parking_loop:2"]
+    },
+    {
+      "id": "e-door-scratch",
+      "supports": ["DOOR_14_LOOP"],
+      "sources": ["SEARCH"],
+      "zoneId": "parking_loop",
+      "discoverConditions": []
+    },
+    {
+      "id": "e-power-panel",
+      "supports": ["POWER_OFF_REQUIRED"],
+      "sources": ["SEARCH"],
+      "zoneId": "maintenance",
+      "discoverConditions": []
+    },
+    {
+      "id": "e-power-survivor",
+      "supports": ["POWER_OFF_REQUIRED"],
+      "sources": ["SURVIVOR"],
+      "zoneId": "maintenance",
+      "discoverConditions": ["visit:maintenance:1"]
+    },
+    {
+      "id": "e-hum-anomaly",
+      "supports": ["REVERSE_HUM_ROUTE"],
+      "sources": ["ANOMALY"],
+      "zoneId": "blackout_hall",
+      "discoverConditions": ["env:power=off"]
+    },
+    {
+      "id": "e-hum-survivor",
+      "supports": ["REVERSE_HUM_ROUTE"],
+      "sources": ["SURVIVOR"],
+      "zoneId": "blackout_hall",
+      "discoverConditions": ["visit:blackout_hall:1"]
+    }
+  ],
+  "npcKnowledge": {
+    "survivor-maintenance": ["e-power-survivor"],
+    "survivor-blackout": ["e-hum-survivor"]
+  },
+  "exploreRoute": [
+    "parking_loop",
+    "maintenance",
+    "parking_loop",
+    "blackout_hall"
+  ],
+  "actions": [
+    {
+      "id": "cut_power",
+      "matchGroups": [
+        ["tắt", "ngắt", "cắt"],
+        ["điện", "nguồn", "cầu dao"]
+      ],
+      "conditions": ["zone:maintenance"],
+      "effects": [
+        {"type": "SET_ENVIRONMENT", "key": "power", "value": "off"}
+      ],
+      "reply": "Nguồn điện chính tắt. Tiếng đèn huỳnh quang biến mất và môi trường bước sang một trạng thái mới."
+    },
+    {
+      "id": "return_door_14",
+      "matchGroups": [
+        ["14"],
+        ["quay", "trở", "trở lại"]
+      ],
+      "conditions": ["zone:parking_loop", "env:power=off"],
+      "effects": [],
+      "reply": "Kai quay lại cửa 14 trong điều kiện mất điện; dấu hiệu lặp vẫn còn nguyên."
+    },
+    {
+      "id": "follow_against_hum",
+      "matchGroups": [
+        ["ngược"],
+        ["tiếng", "máy", "âm"]
+      ],
+      "conditions": ["zone:blackout_hall", "env:power=off"],
+      "effects": [
+        {"type": "MOVE_TO_ZONE", "zoneId": "service_elevator"}
+      ],
+      "reply": "Kai đi ngược hướng tiếng máy và tới được khu thang máy dịch vụ."
+    },
+    {
+      "id": "enter_service_elevator",
+      "matchGroups": [
+        ["thang máy", "elevator"],
+        ["vào", "mở", "đi"]
+      ],
+      "conditions": ["zone:service_elevator"],
+      "effects": [
+        {"type": "COMPLETE_LEVEL"}
+      ],
+      "reply": "Cửa thang máy dịch vụ nhận đúng chuỗi điều kiện và mở lối chuyển Level."
+    }
+  ],
+  "replies": {
+    "evidence:e-door-repeat": "Cửa số 14 xuất hiện lại với đúng vết xước cũ dù tuyến đường vừa đổi.",
+    "evidence:e-door-scratch": "Vết xước và lớp bụi ở cửa 14 cho thấy đây là cùng một cánh cửa, không phải hai cửa trùng số.",
+    "evidence:e-power-panel": "Sơ đồ cầu dao có một nhánh dịch vụ chỉ thay đổi trạng thái khi nguồn chính bị ngắt.",
+    "evidence:e-power-survivor": "Một dấu ghi chép của survivor nói rằng khi garage mất điện, có những cửa trước đó không tồn tại.",
+    "evidence:e-hum-anomaly": "Khi nguồn chính tắt, tiếng máy còn lại vọng rõ từ một phía nhưng dấu luồng khí lại chạy theo hướng ngược lại.",
+    "evidence:e-hum-survivor": "Dấu survivor cảnh báo đừng đi theo tiếng máy; người viết đã gạch chân chữ 'ngược'."
+  },
+  "metadata": {
+    "prototype": "true",
+    "generation": "deterministic-fixture"
+  }
+}

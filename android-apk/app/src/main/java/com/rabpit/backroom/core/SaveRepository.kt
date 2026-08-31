@@ -10,6 +10,26 @@ interface SaveRepository {
   fun clear()
 }
 
+object SaveCompatibility {
+  const val MIGRATABLE_SAVE_VERSION = 4
+
+  fun normalize(raw: String): String? = runCatching {
+    val root = JSONObject(raw)
+    when (root.optInt("saveVersion", -1)) {
+      CURRENT_SAVE_VERSION -> root.toString()
+      MIGRATABLE_SAVE_VERSION -> {
+        root.put("saveVersion", CURRENT_SAVE_VERSION)
+        root.remove("levelInstance")
+        val metadata = root.optJSONObject("metadata") ?: JSONObject()
+        metadata.put("migratedFromVersion", MIGRATABLE_SAVE_VERSION.toString())
+        root.put("metadata", metadata)
+        root.toString()
+      }
+      else -> null
+    }
+  }.getOrNull()
+}
+
 class SharedPreferencesSaveRepository(context: Context) : SaveRepository {
   private val preferences = context.getSharedPreferences("backroom_game_state_core", Context.MODE_PRIVATE)
 
@@ -19,15 +39,17 @@ class SharedPreferencesSaveRepository(context: Context) : SaveRepository {
 
   @Synchronized override fun load(): GameState {
     val raw = preferences.getString(KEY_STATE, null) ?: return GameState.initial()
-    val compatible = runCatching { JSONObject(raw).optInt("saveVersion", -1) == CURRENT_SAVE_VERSION }.getOrDefault(false)
-    if (!compatible) {
+    val normalizedRaw = SaveCompatibility.normalize(raw)
+    if (normalizedRaw == null) {
       clear()
       return GameState.initial()
     }
-    return runCatching { GameStateCodec.decode(raw) }.getOrElse {
+    val decoded = runCatching { GameStateCodec.decode(normalizedRaw) }.getOrElse {
       clear()
-      GameState.initial()
+      return GameState.initial()
     }
+    if (normalizedRaw != raw) save(decoded)
+    return decoded
   }
 
   override fun exists(): Boolean = preferences.contains(KEY_STATE)
