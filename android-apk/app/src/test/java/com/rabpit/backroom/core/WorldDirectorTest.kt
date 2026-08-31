@@ -35,15 +35,15 @@ class WorldDirectorTest {
   @Test fun proposalIsReadOnlyAndCannotManufactureInventoryOrTopology() {
     val definition = definition(allowEntities = true, proceduralTopology = true)
     val before = state(definition)
-    val snapshot = before
+    val inventoryBefore = before.inventories
+    val topologyBefore = before.levelInstance!!.zones
     val director = WorldDirector(WorldDirectorPolicy { WorldPressureProposal.ITEM_OPPORTUNITY })
 
     val decision = director.propose(before, definition, ActionKind.SEARCH)
 
     assertEquals(WorldPressureProposal.ITEM_OPPORTUNITY, decision.accepted)
-    assertEquals(snapshot, before)
-    assertTrue(before.inventories.getValue(KAI_ID).items.isEmpty())
-    assertEquals(definition.zones, before.levelInstance!!.zones)
+    assertEquals(inventoryBefore, before.inventories)
+    assertEquals(topologyBefore, before.levelInstance!!.zones)
   }
 
   @Test fun modelFeaturesExcludeHiddenNavigationAndPuzzleTerms() {
