@@ -18,11 +18,11 @@ object ItemContentRules {
   fun hasForbiddenPreciseAmount(text: String): Boolean = forbiddenPreciseAmount.containsMatchIn(text)
 
   fun normalize(item: ItemStack): ItemStack {
-    val official = ItemCatalog.find(item.itemId) ?: ItemCatalog.items.firstOrNull {
-      item.name.equals(it.name, true) || item.name.equals(it.metadata["englishAlias"], true)
-    }
+    HealingItems.normalize(item)?.let { return it }
+    val official = ItemCatalog.resolveOfficial(item.itemId, item.name)
     if (official != null) {
       return official.stack(item.quantity).copy(
+        name = item.name.takeIf(String::isNotBlank) ?: official.name,
         condition = item.condition,
         // Preserve authority metadata (including Omnivault bookkeeping); remove only the obsolete
         // partial-content fields. Tool resource values naturally override their catalog defaults.
@@ -48,7 +48,7 @@ object ItemContentRules {
       return canonical.copy(quantity = item.quantity, condition = item.condition,
         metadata = canonical.metadata + (item.metadata - "remainingContent" - "contentAmount" - "contentPercent" - "contentState") + ("migratedPartialContent" to state.name))
     }
-    val canonicalId = variantId(profile.archetypeId, state)
+    val canonicalId = if (ItemIdentity.isOmnivaultCopy(item)) item.itemId else variantId(profile.archetypeId, state)
     return item.copy(
       itemId = canonicalId,
       archetypeId = profile.archetypeId,
@@ -69,7 +69,7 @@ object ItemContentRules {
       ContentState.NONE -> return normalized
     }
     return normalized.copy(
-      itemId = variantId(profile.archetypeId, next),
+      itemId = if (ItemIdentity.isOmnivaultCopy(normalized)) normalized.itemId else variantId(profile.archetypeId, next),
       name = displayName(profile, next, normalized.name),
       contentState = next,
       metadata = normalized.metadata + ("contentState" to next.name)
@@ -87,7 +87,10 @@ object ItemContentRules {
       a.condition == b.condition && stackMetadata(a.metadata) == stackMetadata(b.metadata)
   }
 
-  private fun stackMetadata(metadata: Map<String, String>): Map<String, String> = metadata - setOf("omnivaultCopyCount", "lastUsedAt")
+  private fun stackMetadata(metadata: Map<String, String>): Map<String, String> = metadata - setOf(
+    "omnivaultCopyCount", "lastUsedAt", "physicalInstanceIds", "identitySeed", "worldInstanceId",
+    "omnivaultOriginal", "omnivaultSourceInstanceId", "omnivaultTemplateId"
+  )
 
   private fun displayName(profile: ContentProfile?, state: ContentState, fallback: String): String {
     if (profile == null) return fallback

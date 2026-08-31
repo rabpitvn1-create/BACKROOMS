@@ -258,7 +258,7 @@ class LevelGenerationTest {
 
     val actA = LevelActionRule("act_unlock", listOf(setOf("mở")), setOf("fact:F_KEY"), listOf(
       LevelEffect(LevelEffectType.SET_ENVIRONMENT, "door_unlocked", "true"),
-      LevelEffect(LevelEffectType.MOVE_TO_ZONE, zoneId = "hidden")
+      LevelEffect(LevelEffectType.MOVE_TO_ZONE, "hidden")
     ))
     val actB = LevelActionRule("act_escape", listOf(setOf("thoát")), setOf("env:door_unlocked=true", "fact:F_PASSCODE"), listOf(
       LevelEffect(LevelEffectType.COMPLETE_LEVEL)
@@ -268,7 +268,7 @@ class LevelGenerationTest {
       "e_key_search" to EvidenceState("e_key_search", setOf("F_KEY"), setOf(EvidenceSource.SEARCH), "entry"),
       "e_key_anomaly" to EvidenceState("e_key_anomaly", setOf("F_KEY"), setOf(EvidenceSource.ANOMALY), "entry"),
       "e_pass_search" to EvidenceState("e_pass_search", setOf("F_PASSCODE"), setOf(EvidenceSource.SEARCH), "hidden"),
-      "e_pass_survivor" to EvidenceState("e_pass_survivor", setOf("F_PASSCODE"), setOf(EvidenceSource.SURVIVOR), "hidden")
+      "e_pass_anomaly" to EvidenceState("e_pass_anomaly", setOf("F_PASSCODE"), setOf(EvidenceSource.ANOMALY), "hidden")
     )
 
     val multiStepCandidate = candidate().copy(
@@ -285,8 +285,23 @@ class LevelGenerationTest {
   }
 
   @Test fun currentLevelZeroAndLevelOneProceduralDefinitionsStillValidate() {
-    val level0Def = LevelDefinitionJson.decode(java.io.File("app/src/main/assets/levels/0.json").readText())
-    val level1Def = LevelDefinitionJson.decode(java.io.File("app/src/main/assets/levels/1.json").readText())
+    val candidates0 = listOf(
+      java.io.File("src/main/assets/levels/0.json"),
+      java.io.File("app/src/main/assets/levels/0.json"),
+      java.io.File("android-apk/app/src/main/assets/levels/0.json")
+    )
+    val file0 = candidates0.firstOrNull(java.io.File::isFile)
+      ?: error("Cannot locate packaged levels/0.json from ${java.io.File(".").absolutePath}")
+    val level0Def = LevelDefinitionJson.decode(file0.readText(Charsets.UTF_8))
+
+    val candidates1 = listOf(
+      java.io.File("src/main/assets/levels/1.json"),
+      java.io.File("app/src/main/assets/levels/1.json"),
+      java.io.File("android-apk/app/src/main/assets/levels/1.json")
+    )
+    val file1 = candidates1.firstOrNull(java.io.File::isFile)
+      ?: error("Cannot locate packaged levels/1.json from ${java.io.File(".").absolutePath}")
+    val level1Def = LevelDefinitionJson.decode(file1.readText(Charsets.UTF_8))
 
     val val0 = LevelDefinitionValidator.validate(level0Def)
     assertTrue(val0.errors.joinToString(","), val0.valid)
@@ -305,6 +320,7 @@ class LevelGenerationTest {
   }
 
   @Test fun validatorHasBoundedSearchBudgetRegressionForPathologicalInput() {
+    // Construct evidence chain with recursive dependencies to exercise budget check
     val evidenceList = (0 until 6000).associate { i ->
       "e_$i" to EvidenceState(
         id = "e_$i",

@@ -94,7 +94,7 @@ object KnowledgeContextEngine {
         mutability = json.getString("mutability"),
         priority = json.optInt("priority", 80),
         tags = strings(json.optJSONArray("tags")),
-        references = strings(json.optJSONArray("references")),
+        references = rawStrings(json.optJSONArray("references")),
         affordances = strings(json.optJSONArray("affordances")),
         source = SourceRef(source.getString("document"), source.optString("anchor"))
       )
@@ -215,15 +215,21 @@ object KnowledgeContextEngine {
         direct += "CHAR.KAI.DEVIL_TRIGGER"
         if ("syvial" in presentActors) direct += "CHAR.SYVIAL.DEVIL_TRIGGER"
       }
+      if (hasAny(actionText, "nói", "hỏi", "trả lời", "trò chuyện", "nói chuyện", "dialogue", "talk", "tell")) {
+        direct += "WRITING.DIALOGUE"
+      }
       direct.forEach { add(it, "direct structured lookup") }
 
-      // Exact entity/item terms use tag indexes, not semantic retrieval.
-      tokenizeTags(actionText).forEach { tag ->
-        db.tagIndex[tag].orEmpty().forEach { id ->
-          val r = db.records[id] ?: return@forEach
-          if (r.domain == "ENTITY" || r.domain == "ITEM") add(id, "explicit structured tag: $tag")
+      // Registry-driven exact tags. Adding a new Entity/Item record with tags makes it
+      // discoverable without adding a new prompt branch or hardcoded name here.
+      db.tagIndex.entries.asSequence()
+        .filter { (tag, _) -> tag.length >= 3 && actionText.contains(tag) }
+        .forEach { (tag, ids) ->
+          ids.forEach { id ->
+            val r = db.records[id] ?: return@forEach
+            if (r.domain == "ENTITY" || r.domain == "ITEM") add(id, "explicit structured tag: $tag")
+          }
         }
-      }
     }
 
     private fun addSceneAffordances() {
@@ -350,6 +356,18 @@ object KnowledgeContextEngine {
       }
       state.optJSONArray("inventory")?.let { inventory -> out.put("inventory", compactArray(inventory, 12)) }
       state.optJSONArray("party")?.let { party -> out.put("party", compactArray(party, 4)) }
+      state.optJSONObject("partyDetails")?.optJSONArray("members")?.let { members ->
+        val vitals = JSONArray()
+        for (index in 0 until minOf(members.length(), 4)) {
+          val member = members.optJSONObject(index) ?: continue
+          vitals.put(JSONObject().apply {
+            listOf("id", "name", "presence", "currentHp", "maxHp", "condition").forEach { key ->
+              if (member.has(key)) put(key, member.get(key))
+            }
+          })
+        }
+        if (vitals.length() > 0) out.put("partyVitals", vitals)
+      }
       val flags = state.optJSONObject("flags")
       if (flags != null) {
         val continuity = JSONObject()
@@ -380,8 +398,7 @@ object KnowledgeContextEngine {
       if (flags == null) return false
       val iris = normalize(flags.optJSONObject("iris")?.optString("continuity", "").orEmpty())
       val syvial = normalize(flags.optJSONObject("syvial")?.optString("continuity", "").orEmpty())
-      return iris.contains("separated") || syvial.contains("separated") ||
-        (presentActors.size == 1 && state.optInt("turn", 1) <= 3)
+      return iris.contains("separated") || syvial.contains("separated")
     }
   }
 
@@ -395,6 +412,16 @@ object KnowledgeContextEngine {
   private fun compactArray(array: JSONArray, limit: Int): JSONArray {
     val out = JSONArray()
     for (i in 0 until minOf(array.length(), limit)) out.put(array.opt(i))
+    return out
+  }
+
+  private fun rawStrings(array: JSONArray?): Set<String> {
+    if (array == null) return emptySet()
+    val out = linkedSetOf<String>()
+    for (i in 0 until array.length()) {
+      val value = array.optString(i, "").trim()
+      if (value.isNotEmpty()) out += value
+    }
     return out
   }
 

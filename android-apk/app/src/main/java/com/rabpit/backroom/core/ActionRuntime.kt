@@ -91,7 +91,7 @@ object ActionRuntime {
       "${PREFIX}searchDepth" to (searchDepth?.name.orEmpty()),
       "${PREFIX}checkpoints" to ""
     )
-    val next = state.copy(metadata = metadata)
+    val next = LevelLootEngine.prepareAction(state.copy(metadata = metadata), sessionId, kind, locationKey)
     return ActionRuntimeResult(next, activeSession(next), applied = true)
   }
 
@@ -166,7 +166,11 @@ object ActionRuntime {
   private fun finish(state: GameState, sessionId: String, phase: ActionPhase, reason: String): ActionRuntimeResult {
     val session = activeSession(state) ?: return ActionRuntimeResult(state, applied = false, error = "action_session_missing")
     if (session.sessionId != sessionId) return ActionRuntimeResult(state, session, applied = false, error = "action_session_mismatch")
-    val cleared = state.metadata.filterKeys { !it.startsWith(PREFIX) }.toMutableMap()
+    var preparedState = state
+    if (phase == ActionPhase.COMPLETED && (session.kind == ActionKind.SEARCH || session.kind == ActionKind.EXPLORE)) {
+      preparedState = LevelLootEngine.commitPrepared(preparedState, session.sessionId, session.kind, session.locationKey)
+    }
+    val cleared = preparedState.metadata.filterKeys { !it.startsWith(PREFIX) }.toMutableMap()
     cleared["lastAction.sessionId"] = session.sessionId
     cleared["lastAction.turnId"] = session.turnId
     cleared["lastAction.actorId"] = session.actorId
@@ -174,10 +178,7 @@ object ActionRuntime {
     cleared["lastAction.phase"] = phase.name
     cleared["lastAction.elapsedMinutes"] = session.elapsedMinutes.toString()
     cleared["lastAction.reason"] = reason
-    var next = state.copy(metadata = cleared)
-    if (phase == ActionPhase.COMPLETED && session.kind == ActionKind.SEARCH) {
-      next = LevelLootEngine.onSearchCompleted(next, session.sessionId, session.locationKey)
-    }
+    val next = preparedState.copy(metadata = cleared)
     return ActionRuntimeResult(next, session.copy(phase = phase), applied = true)
   }
 

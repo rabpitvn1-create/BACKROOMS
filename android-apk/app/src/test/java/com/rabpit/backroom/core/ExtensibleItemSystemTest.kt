@@ -26,14 +26,14 @@ class ExtensibleItemSystemTest {
     )
     assertEquals(3, OmnivaultEngine.MAX_SCAN_SLOTS)
     val initial = GameState.initial()
-    assertEquals(ItemCapacity(9, 999), ItemSystem.capacityFor(initial, KAI_ID))
+    assertEquals(ItemCapacity(14, 999), ItemSystem.capacityFor(initial, KAI_ID))
     val strippedKai = initial.copy(characters = initial.characters + (KAI_ID to CharacterState(KAI_ID, "Kai")))
-    assertEquals(ItemCapacity(9, 999), ItemSystem.capacityFor(strippedKai, KAI_ID))
+    assertEquals(ItemCapacity(14, 999), ItemSystem.capacityFor(strippedKai, KAI_ID))
     mapOf(
-      "special_companion" to ItemCapacity(6, 20),
-      "lucia_gift_inventory" to ItemCapacity(3, 100),
-      "an_nhien_food_only" to ItemCapacity(2, 20),
-      "normal" to ItemCapacity(2, 2)
+      "special_companion" to ItemCapacity(11, 20),
+      "lucia_gift_inventory" to ItemCapacity(8, 100),
+      "an_nhien_food_only" to ItemCapacity(7, 20),
+      "normal" to ItemCapacity(7, 2)
     ).forEach { (profile, expected) ->
       val id = "locked-profile:$profile"
       val state = initial.copy(characters = initial.characters + (id to CharacterState(
@@ -53,7 +53,7 @@ class ExtensibleItemSystemTest {
       characters = GameState.initial().characters + (character.id to character),
       inventories = GameState.initial().inventories + (character.id to InventoryState(character.id))
     )
-    assertEquals(InventoryProfile(7, 42), InventoryPolicy.profileFor(state, character.id))
+    assertEquals(InventoryProfile(12, 42), InventoryPolicy.profileFor(state, character.id))
   }
 
   @Test fun futureItemCarriesItsOwnInformationAndCapabilities() {
@@ -104,7 +104,7 @@ class ExtensibleItemSystemTest {
     assertEquals(3, OmnivaultEngine.MAX_SCAN_SLOTS)
   }
 
-  @Test fun futureContentCompletesPickupInspectScanCopyTransferUseAndDrop() {
+  @Test fun futureContentCompletesPickupInspectTransferUseAndDropWithRetiredVaultCopy() {
     val follower = CharacterState(
       "future:follower:alpha",
       "Follower Added Tomorrow",
@@ -119,9 +119,7 @@ class ExtensibleItemSystemTest {
         .put("itemType", "TOOL")
         .put("usable", "true"))
     val flags = WorldItemLedger.record(null, "future-world:1001", itemJson.toString())
-    val worldPickup = requireNotNull(
-      WorldItemLedger.consume(flags, "future-world:1001", "nhặt Future Field Kit")
-    )
+    val worldPickup = requireNotNull(WorldItemLedger.consume(flags, "future-world:1001", "nhặt Future Field Kit"))
 
     var state = GameState.initial().copy(
       characters = GameState.initial().characters + (follower.id to follower),
@@ -139,36 +137,26 @@ class ExtensibleItemSystemTest {
     val original = state.inventories.getValue(KAI_ID).items.getValue(record.itemId)
     assertEquals("A future data-defined multipurpose kit.", ItemSystem.inspect(original, KAI_ID).description)
 
-    val scan = OmnivaultEngine.execute(state, OmnivaultCommand(
-      "future-scan", state.turn.currentTurnId, KAI_ID, source = CommandSource.RULE,
-      operation = OmnivaultCommand.Operation.SCAN, itemId = original.itemId, itemName = original.name,
-      timestampEpochMs = 1001L
-    ))
-    assertTrue(scan.applied)
-    assertEquals(1, scan.state.omnivault.scanSlots.size)
-    state = scan.state
-
-    val copied = OmnivaultEngine.execute(state, OmnivaultCommand(
-      "future-copy", state.turn.currentTurnId, KAI_ID, source = CommandSource.RULE,
-      operation = OmnivaultCommand.Operation.COPY, itemId = original.itemId, itemName = original.name,
-      quantity = 2
-    ))
-    assertTrue(copied.applied)
-    state = copied.state
-    val copy = state.inventories.getValue(KAI_ID).items.values.single { ItemSystem.isOmnivaultCopy(it) }
-    assertEquals(2, copy.quantity)
+    for (op in listOf(OmnivaultCommand.Operation.SCAN, OmnivaultCommand.Operation.COPY)) {
+      val retired = OmnivaultEngine.execute(state, OmnivaultCommand(
+        "future-retired-$op", state.turn.currentTurnId, KAI_ID, source = CommandSource.RULE,
+        operation = op, itemId = original.itemId, itemName = original.name, timestampEpochMs = 1001L
+      ))
+      assertFalse(retired.applied)
+      assertEquals("omnivault_capability_retired", retired.validation.reason)
+    }
 
     val transferred = InventoryEngine.execute(state, ItemCommand(
       "future-transfer", state.turn.currentTurnId, KAI_ID, targetId = follower.id,
       source = CommandSource.RULE, operation = ItemCommand.Operation.TRANSFER,
-      itemId = copy.itemId, itemName = copy.name, quantity = 1
+      itemId = original.itemId, itemName = original.name, quantity = 1
     ))
     assertTrue(transferred.applied)
     state = transferred.state
-    assertEquals(1, state.inventories.getValue(follower.id).items.getValue(copy.itemId).quantity)
+    assertEquals(1, state.inventories.getValue(follower.id).items.getValue(original.itemId).quantity)
 
     val used = InventoryEngine.execute(state, ItemCommand(
-      "future-use", state.turn.currentTurnId, KAI_ID, source = CommandSource.RULE,
+      "future-use", state.turn.currentTurnId, follower.id, source = CommandSource.RULE,
       operation = ItemCommand.Operation.USE, itemId = original.itemId, itemName = original.name
     ))
     assertTrue(used.applied)
@@ -176,13 +164,13 @@ class ExtensibleItemSystemTest {
 
     val dropped = InventoryEngine.execute(state, ItemCommand(
       "future-drop", state.turn.currentTurnId, follower.id, source = CommandSource.RULE,
-      operation = ItemCommand.Operation.DROP, itemId = copy.itemId, itemName = copy.name
+      operation = ItemCommand.Operation.DROP, itemId = original.itemId, itemName = original.name
     ))
     assertTrue(dropped.applied)
-    assertFalse(dropped.state.inventories.getValue(follower.id).items.containsKey(copy.itemId))
+    assertFalse(dropped.state.inventories.getValue(follower.id).items.containsKey(original.itemId))
     val worldItems = JSONObject(dropped.state.world.getValue("flagsJson")).getJSONArray("worldItems")
     assertTrue((0 until worldItems.length()).map { worldItems.getJSONObject(it) }.any {
-      it.getString("id") == copy.itemId && it.getBoolean("available")
+      it.getString("id") == original.itemId && it.getBoolean("available")
     })
   }
 }
