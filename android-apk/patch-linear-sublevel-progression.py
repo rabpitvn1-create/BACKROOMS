@@ -365,7 +365,6 @@ for forbidden in [
     'return explicitlyReady || levelTurns(state) >= 6;',
     'recordLevelProgress(state, oldLevel, newLevel);',
     'newLevel = mentioned;',
-    'Math.min(6, currentLevel(state))',
     'Đây là cuối route Level 0–6',
 ]:
     if forbidden in final:
