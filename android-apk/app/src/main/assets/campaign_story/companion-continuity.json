@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "continuityId": "STORY_COMPANIONS_R01",
+  "missionYear": 2299,
+  "unit": "SRU",
+  "missionSubject": "Async",
+  "entry": {
+    "participants": ["kai", "iris", "syvial"],
+    "method": "SPATIAL_GATE",
+    "sameGate": true,
+    "allSeparatedOnArrival": true,
+    "arrivalLevelsDifferent": true,
+    "arrivalLocationsMutuallyUnknown": true
+  },
+  "companions": {
+    "lucia": {
+      "displayName": "Lucia Lục",
+      "eventType": "FIXED_ENCOUNTER",
+      "level": 0,
+      "requiresQuest": false,
+      "randomSpawn": false,
+      "storyOwned": true
+    },
+    "syvial": {
+      "displayName": "Syvial",
+      "eventType": "FIXED_REUNION",
+      "level": 37,
+      "requiresQuest": false,
+      "randomSpawn": false,
+      "storyOwned": true,
+      "initialPresence": "SEPARATED"
+    },
+    "iris": {
+      "displayName": "Iris",
+      "eventType": "FIXED_REUNION",
+      "level": 94,
+      "requiresQuest": false,
+      "randomSpawn": false,
+      "storyOwned": true,
+      "initialPresence": "SEPARATED"
+    }
+  },
+  "modelLocks": {
+    "liteRTCannotSpawnStoryCompanions": true,
+    "geminiCannotSpawnStoryCompanions": true,
+    "geminiOnlyNarratesCommittedEncounter": true,
+    "futureReunionLevelsAreBackendOnly": true
+  }
+}
