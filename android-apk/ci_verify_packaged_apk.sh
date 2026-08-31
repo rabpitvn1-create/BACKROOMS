@@ -13,7 +13,17 @@ BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d |
 
 rm -rf apk-check
 mkdir apk-check
-unzip -q "$APK" 'assets/index.html' 'assets/levels/*' 'assets/level_profiles/*' 'assets/level_catalog/*' 'assets/models/*' 'assets/entity/*' 'assets/Kai_new_overlay.png' 'assets/BESTKAIV2.png' -d apk-check
+unzip -q "$APK" \
+  'assets/index.html' \
+  'assets/levels/*' \
+  'assets/level_profiles/*' \
+  'assets/level_catalog/*' \
+  'assets/level_snapshots/*' \
+  'assets/models/*' \
+  'assets/entity/*' \
+  'assets/Kai_new_overlay.png' \
+  'assets/BESTKAIV2.png' \
+  -d apk-check
 
 grep -q 'searchActionButton' apk-check/assets/index.html
 grep -q 'exploreActionButton' apk-check/assets/index.html
@@ -23,8 +33,8 @@ grep -q 'renderCharacterStatusEquipment' apk-check/assets/index.html
 grep -q 'characterSkillsModal' apk-check/assets/index.html
 grep -q 'characterSkillsButton' apk-check/assets/index.html
 
-# TURN remains an internal state key but must not be visible in the player HUD. Escape is now
-# resolved from locked Level blueprints, never from a player-facing percentage meter.
+# TURN remains an internal state key but must not be visible in the player HUD. Escape is resolved
+# from locked Level instances, never from a player-facing percentage meter.
 grep -q '.turn{display:none!important}' apk-check/assets/index.html
 ! grep -q 'id="escapeChance"' apk-check/assets/index.html
 ! grep -q 'ESCAPE_CHANCE_HUD_R02' apk-check/assets/index.html
@@ -33,26 +43,39 @@ grep -q 'const CORE_SAVE_KEY="backroom-apk-core-state"' apk-check/assets/index.h
 grep -q 'Android.exportCoreState()' apk-check/assets/index.html
 grep -q 'Android.restoreCoreState(raw)' apk-check/assets/index.html
 
-test -s apk-check/assets/levels/0.json
-test -s apk-check/assets/levels/1.json
-grep -q '"schemaVersion"' apk-check/assets/levels/1.json
-grep -q '"escapeBlueprint"' apk-check/assets/levels/1.json
+# Level packaging is catalog-driven. The verifier has no knowledge of the last Level ID and does
+# not maintain a hand-written list of definitions/profiles. Validate the source and extracted APK
+# with the same fail-closed inventory, then require byte-independent semantic equivalence.
+SOURCE_LEVEL_REPORT=$(mktemp)
+PACKAGED_LEVEL_REPORT=$(mktemp)
+trap 'rm -f "$SOURCE_LEVEL_REPORT" "$PACKAGED_LEVEL_REPORT"' EXIT
+python3 android-apk/validate_level_content.py \
+  --assets-root android-apk/app/src/main/assets \
+  --strict --json > "$SOURCE_LEVEL_REPORT"
+python3 android-apk/validate_level_content.py \
+  --assets-root apk-check/assets \
+  --strict --json > "$PACKAGED_LEVEL_REPORT"
+python3 - "$SOURCE_LEVEL_REPORT" "$PACKAGED_LEVEL_REPORT" <<'PY'
+import json
+import sys
 
-for level in 2 3 4 5 6; do
-  test -s "apk-check/assets/level_profiles/$level.json"
-  grep -q "\"id\": \"$level\"" "apk-check/assets/level_profiles/$level.json"
-done
-grep -q '"pipeWaterRule": "never_drink_directly"' apk-check/assets/level_profiles/2.json
-grep -q '"primaryTransitionTarget": "4"' apk-check/assets/level_profiles/3.json
-grep -q '"residentEntities": "none_confirmed"' apk-check/assets/level_profiles/4.json
-grep -q '"mentalEffectCause": "open_multifactor"' apk-check/assets/level_profiles/5.json
-grep -q '"obeliskFunction": "OPEN"' apk-check/assets/level_profiles/6.json
-grep -q '"transitionRule": "no_method_guaranteed"' apk-check/assets/level_profiles/6.json
+source_path, packaged_path = sys.argv[1:]
+with open(source_path, encoding="utf-8") as handle:
+    source = json.load(handle)
+with open(packaged_path, encoding="utf-8") as handle:
+    packaged = json.load(handle)
 
-test -s apk-check/assets/level_catalog/backrooms-0-6.json
-grep -q '"campaignId": "BACKROOMS_FANDOM_LEVELS_0_6_R01"' apk-check/assets/level_catalog/backrooms-0-6.json
-grep -q '"id":"1.618033988749894..."' apk-check/assets/level_catalog/backrooms-0-6.json
-grep -q '"id":"Red Rooms"' apk-check/assets/level_catalog/backrooms-0-6.json
+for key in ("summary", "levels", "errors"):
+    if source.get(key) != packaged.get(key):
+        raise SystemExit(f"Packaged Level content differs from source report: {key}")
+if packaged.get("summary", {}).get("validationErrors") != 0:
+    raise SystemExit("Packaged Level content report contains validation errors")
+print(
+    "Catalog-driven packaged Level verification passed: "
+    f"{packaged['summary']['totalCatalogLevels']} Levels, "
+    f"{packaged['summary']['transitionEdges']} transitions"
+)
+PY
 
 # Both local models are build-time generated/cache-restored assets. The Director model is separate
 # from player-intent classification and can only rank evidence already declared legal by Core.

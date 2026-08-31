@@ -30,15 +30,40 @@ class LevelCatalogTest {
   @Test fun arbitraryFutureLevelRegistersWithoutRuntimeCodeChanges() {
     val catalog = LevelCatalogLoader.load(listOf(
       LevelCatalogDocument(
+        "level_catalog/future/742.json",
+        """{"id":"742","name":"Future Main","kind":"MAIN","campaignId":"future","campaignOrder":1000}"""
+      ),
+      LevelCatalogDocument(
         "level_catalog/future/742.13.json",
-        """{"id":"742.13","name":"Future Sublevel","kind":"SUBLEVEL","parentId":"742","parentMainLevel":742}"""
+        """{"id":"742.13","name":"Future Sublevel","kind":"SUBLEVEL","parentId":"742","campaignId":"future","campaignOrder":2000}"""
       )
     ))
 
     assertTrue(catalog.contains("742.13"))
     assertEquals("742", catalog.require("742.13").parentId)
-    assertEquals(setOf("742"), catalog.unresolvedParents())
-    assertTrue(catalog.campaign("campaign-a").isEmpty())
+    assertTrue(catalog.unresolvedParents().isEmpty())
+    assertEquals(listOf("742.13"), catalog.childrenOf("742").map { it.id })
+  }
+
+  @Test fun danglingParentFailsClosed() {
+    assertRejected("dangling_parent") {
+      LevelCatalogLoader.load(listOf(
+        LevelCatalogDocument(
+          "level_catalog/future/742.13.json",
+          """{"id":"742.13","name":"Future Sublevel","kind":"SUBLEVEL","parentId":"742"}"""
+        )
+      ))
+    }
+  }
+
+  @Test fun parentCycleFailsClosedWithoutRecursiveTraversal() {
+    assertRejected("level_parent_cycle") {
+      LevelCatalog.from(listOf(
+        LevelCatalogEntry("a", parentId = "c", name = "A", kind = LevelKind.SUBLEVEL, campaignId = "cycle"),
+        LevelCatalogEntry("b", parentId = "a", name = "B", kind = LevelKind.SUBLEVEL, campaignId = "cycle"),
+        LevelCatalogEntry("c", parentId = "b", name = "C", kind = LevelKind.SUBLEVEL, campaignId = "cycle")
+      ))
+    }
   }
 
   @Test fun separateDocumentsComposeIntoOneCampaignAutomatically() {
@@ -52,7 +77,7 @@ class LevelCatalogTest {
   }
 
   @Test fun duplicateCampaignOrderFailsClosed() {
-    try {
+    assertRejected("duplicate_campaign_order") {
       LevelCatalogLoader.load(listOf(
         LevelCatalogDocument(
           "level_catalog/bad.json",
@@ -65,9 +90,6 @@ class LevelCatalogTest {
           }""".trimIndent()
         )
       ))
-      fail("Expected duplicate campaign order to be rejected")
-    } catch (expected: IllegalArgumentException) {
-      assertTrue(expected.message.orEmpty().contains("duplicate_campaign_order"))
     }
   }
 
@@ -77,8 +99,15 @@ class LevelCatalogTest {
       LevelCatalogEntry("8", parentId = "8", name = "Self", kind = LevelKind.SUBLEVEL)
     )
 
-    invalid.forEach { entry ->
-      assertFalse(LevelCatalogValidator.validate(entry).valid)
+    invalid.forEach { entry -> assertFalse(LevelCatalogValidator.validate(entry).valid) }
+  }
+
+  private fun assertRejected(fragment: String, block: () -> Unit) {
+    try {
+      block()
+      fail("Expected $fragment")
+    } catch (expected: IllegalArgumentException) {
+      assertTrue(expected.message.orEmpty(), expected.message.orEmpty().contains(fragment))
     }
   }
 }
