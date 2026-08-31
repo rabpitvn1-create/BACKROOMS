@@ -14,14 +14,14 @@ facade_methods = r'''  fun processRegisteredLevelAction(legacyStateJson: String,
       ?: return response(false, legacy, "action_kind_invalid", "registered_level_not_handled")
     val exploration = legacy.optJSONObject("flags")?.optJSONObject("exploration")
     val legacyAreaId = exploration?.optString("areaId")?.takeIf(String::isNotBlank)
-    val levelId = state.levelInstance?.levelId
+    val levelId = legacyAreaId
       ?: state.world["levelId"]?.takeIf(String::isNotBlank)
-      ?: legacyAreaId
+      ?: state.levelInstance?.levelId
     if (levelId.isNullOrBlank() || !levelRegistry.contains(levelId)) {
       return response(false, legacy, null, "registered_level_not_handled")
     }
 
-    val runSeed = state.levelInstance?.runSeed
+    val runSeed = state.levelInstance?.takeIf { it.levelId == levelId }?.runSeed
       ?: state.metadata["runSeed"]
       ?: "run-${System.currentTimeMillis()}"
     val seeded = if (state.metadata["runSeed"].isNullOrBlank()) {
@@ -124,16 +124,17 @@ for marker in (
     "fun processRegisteredLevelAction(legacyStateJson: String, kindRaw: String, action: String)",
     "RegisteredLevelActionCoordinator.applyStarted(",
     "legacyAreaId",
+    "val levelId = legacyAreaId",
     "fun restoreCoreState(raw: String): Boolean",
     "BlueprintValidator.validate(level, definition).valid",
     ".processRegisteredLevelAction(stateJson, actionKind, action)",
     '@JavascriptInterface public String exportCoreState()',
     '@JavascriptInterface public boolean restoreCoreState(String coreJson)',
 ):
-    source = facade if marker.startswith("fun ") or marker in ("RegisteredLevelActionCoordinator.applyStarted(", "legacyAreaId", "BlueprintValidator.validate(level, definition).valid") else main
+    source = facade if marker.startswith("fun ") or marker in ("RegisteredLevelActionCoordinator.applyStarted(", "legacyAreaId", "val levelId = legacyAreaId", "BlueprintValidator.validate(level, definition).valid") else main
     if marker not in source:
         raise RuntimeError("registered Level runtime bridge missing: " + marker)
 
 FACADE.write_text(facade, encoding="utf-8")
 MAIN.write_text(main, encoding="utf-8")
-print("Registered Level runtime bridge applied: typed Level actions commit locally before legacy dice/Gemini, with canon-validated private core save/restore.")
+print("Registered Level runtime bridge applied: current legacy area wins over stale Level instances; typed Level actions commit locally before legacy dice/Gemini.")
