@@ -10,6 +10,10 @@ main = MAIN.read_text(encoding="utf-8")
 facade_methods = r'''  fun prepareLevelGeneration(legacyStateJson: String): String {
     val legacy = JSONObject(legacyStateJson)
     val state = loadOrMigrate(legacy)
+    // Hidden escape mechanics are Core-owned. Gameplay models must never generate or inspect
+    // escapeBlueprint, required facts/actions, conditions, effects or COMPLETE_LEVEL.
+    return JSONObject().put("required", false).put("reason", "core_owned_hidden_blueprint").toString()
+    @Suppress("UNREACHABLE_CODE")
     val legacyAreaId = legacy.optJSONObject("flags")?.optJSONObject("exploration")
       ?.optString("areaId")?.takeIf(String::isNotBlank)
     val levelId = legacyAreaId
@@ -112,16 +116,9 @@ provider_method = r'''  private String geminiLevelGenerationText(String prompt) 
       "Không được sửa canon. environmentTags phải chứa toàn bộ canon environmentTags. phenomena chỉ lấy từ allowedPhenomena. canonClaims không được chứa forbiddenClaims. " +
       "Dùng runSeed như khóa biến thể để các New Game có topology, landmark, evidence và escape blueprint khác nhau trong giới hạn canon. " +
       "Tạo số zone trong giới hạn. Phải có zone tag entry và escape; mọi zone/connection/action/evidence reference phải tồn tại và đường tới escape phải khả dụng. " +
-      "Mỗi requiredFact phải có đủ evidence độc lập và đủ loại source theo generationConstraints. Evidence source chỉ dùng ENVIRONMENT, SEARCH, SURVIVOR, ANOMALY. " +
-      "Nếu dùng SURVIVOR thì npcKnowledge chỉ tham chiếu evidence thật và phải được phép bởi constraints. " +
-      "Escape chỉ hoàn tất qua chuỗi requiredActions của EXECUTE; action cuối phải có effect COMPLETE_LEVEL. SEARCH/EXPLORE chỉ khám phá hoặc di chuyển, không tự hoàn tất Level. " +
-      "matchGroups là mảng các nhóm từ khóa tiếng Việt; mỗi nhóm cần ít nhất một từ khớp để nhận dạng action. " +
-      "conditions chỉ dùng grammar được cung cấp. effects chỉ dùng SET_ENVIRONMENT, MOVE_TO_ZONE, COMPLETE_LEVEL. " +
-      "JSON root bắt buộc gồm: candidateSchemaVersion, initialZoneId, zones, landmarks, environment, environmentTags, phenomena, canonClaims, escapeBlueprint, evidence, npcKnowledge, exploreRoute, actions, replies. " +
+      "Không tạo hoặc yêu cầu escapeBlueprint, solutionId, requiredFacts, requiredActions, evidence ẩn, action ID, conditions, effects hay COMPLETE_LEVEL; toàn bộ puzzle truth do Core giữ riêng. " +
+      "JSON root chỉ gồm: candidateSchemaVersion, initialZoneId, zones, landmarks, environment, environmentTags, phenomena, canonClaims, exploreRoute, replies. " +
       "Zone: {id,name,connections:[id],tags:[tag],properties:{}}. " +
-      "EscapeBlueprint: {solutionId,requiredFacts:[id],requiredActions:[actionId],locked:true}. " +
-      "Evidence: {id,supports:[factId],sources:[source],zoneId,discoverConditions:[condition]}. " +
-      "Action: {id,matchGroups:[[token]],conditions:[condition],effects:[{type,key?,value?,zoneId?}],reply}. " +
       "Dữ liệu ràng buộc từ engine: " + request.toString() + correction;
   }
 

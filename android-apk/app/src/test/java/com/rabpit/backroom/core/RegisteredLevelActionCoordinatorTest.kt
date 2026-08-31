@@ -52,6 +52,22 @@ class RegisteredLevelActionCoordinatorTest {
     assertNull(ActionRuntime.activeSession(result.state))
   }
 
+  @Test fun semanticParaphraseResolvesWithoutLegacySubstringMatch() {
+    val definition = fixture("semantic")
+    val registry = LevelRegistry.from(listOf(definition))
+    var state = GenericLevelRuntime.install(GameState.initial(), registry, "semantic", "run-semantic")
+    state = start(state, ActionKind.EXECUTE, "Đi qua lối cửa thoát")
+
+    val result = RegisteredLevelActionCoordinator.applyStarted(
+      state, registry, catalog("semantic"), ActionKind.EXECUTE,
+      "Đi qua lối cửa thoát", "semantic", "run-semantic"
+    )
+
+    assertTrue(result.handled)
+    assertTrue(result.progressed)
+    assertTrue(result.escaped)
+  }
+
   @Test fun incompleteLevelAndModelSelectedTargetOutsideGraphAreRejected() {
     val definitions = listOf(fixture("from"), fixture("allowed"), fixture("hidden"))
     val registry = LevelRegistry.from(definitions)
@@ -108,7 +124,8 @@ class RegisteredLevelActionCoordinatorTest {
       matchGroups = listOf(setOf("mở"), setOf("cửa", "thoát")),
       conditions = setOf("zone:entry"),
       effects = listOf(LevelEffect(LevelEffectType.COMPLETE_LEVEL)),
-      reply = "Cánh cửa mở."
+      reply = "Cánh cửa mở.",
+      semanticDescriptions = setOf("bước qua cánh cửa thoát")
     )
     return LevelDefinition(
       id = id,

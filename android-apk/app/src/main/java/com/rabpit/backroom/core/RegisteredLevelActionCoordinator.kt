@@ -43,9 +43,23 @@ object RegisteredLevelActionCoordinator {
       GenericLevelRuntime.install(state, registry, requestedId, runSeed)
     }
 
+    var resolvedExecuteActionId: String? = null
     if (kind == ActionKind.EXECUTE) {
       val actions = working.levelInstance?.actions?.takeIf { it.isNotEmpty() } ?: definition.actions
-      if (matchingActions(actions, input).isEmpty()) {
+      val legacyMatches = matchingActions(actions, input)
+      resolvedExecuteActionId = when {
+        legacyMatches.size == 1 -> legacyMatches.single()
+        legacyMatches.size > 1 -> null
+        else -> {
+          val safeCandidates = actions.values.sortedBy { it.id }.mapIndexed { index, rule ->
+            SemanticActionDescriptor("candidate-$index", rule.semanticDescriptions)
+          }
+          val mapping = SemanticActionMapper.resolve(input, safeCandidates)
+          val index = mapping.candidateToken?.removePrefix("candidate-")?.toIntOrNull()
+          index?.let { actions.values.sortedBy { rule -> rule.id }.getOrNull(it)?.id }
+        }
+      }
+      if (resolvedExecuteActionId == null) {
         return RegisteredLevelActionResult(state, handled = false)
       }
     }
@@ -61,7 +75,10 @@ object RegisteredLevelActionCoordinator {
       return RegisteredLevelActionResult(working, handled = true, error = pending.error)
     }
 
-    val outcome = GenericLevelRuntime.apply(pending.state, registry, kind, input, director)
+    val outcome = GenericLevelRuntime.apply(
+      pending.state, registry, kind, input, director,
+      resolvedExecuteActionId = resolvedExecuteActionId
+    )
     working = outcome.state
 
     val minutes = active.plannedMinutes ?: TimeCostPolicy.estimateMinutes(input)

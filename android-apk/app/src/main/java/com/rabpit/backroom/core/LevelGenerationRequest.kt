@@ -19,28 +19,15 @@ object LevelGenerationRequestFactory {
     put("runSeed", runSeed)
     put("canonProfile", LevelCanonProfileJson.encode(definition.canonProfile))
     put("generationConstraints", ProceduralGenerationConstraintsJson.encode(definition.generationConstraints))
-    put("allowedEvidenceSources", JSONArray(EvidenceSource.values().map { it.name }))
-    put("allowedEffectTypes", JSONArray(LevelEffectType.values().map { it.name }))
-    put("conditionGrammar", JSONArray(listOf(
-      "visit:<zoneId>:<positiveCount>",
-      "env:<key>=<value>",
-      "zone:<zoneId>",
-      "action:<actionId>",
-      "fact:<factId>"
-    )))
     put("requiredCandidateFields", JSONArray(listOf(
-      "candidateSchemaVersion", "initialZoneId", "zones", "environmentTags",
-      "escapeBlueprint", "evidence", "exploreRoute", "actions"
+      "candidateSchemaVersion", "initialZoneId", "zones", "landmarks", "environment",
+      "environmentTags", "phenomena", "canonClaims", "exploreRoute", "replies"
     )))
     put("rules", JSONObject().apply {
       put("escapeZoneTag", "escape")
       put("entryZoneTag", "entry")
-      put("requiredFactsNeedIndependentEvidence", true)
-      put("requiredFactsNeedSourceDiversity", true)
       put("runtimeProgressFieldsForbidden", true)
-      put("engineLocksBlueprintAfterValidation", true)
-      put("searchExploreMustNotDirectlyCompleteLevel", true)
-      put("executeIsOnlyEscapeActionChannel", true)
+      put("hiddenPuzzleFieldsForbidden", true)
       put("backroomsConsciousnessMustRemainUnconfirmedUnlessCanonExplicitlyAllowsIt", true)
     })
   }

@@ -28,7 +28,8 @@ data class LevelActionRule(
   val matchGroups: List<Set<String>>,
   val conditions: Set<String> = emptySet(),
   val effects: List<LevelEffect> = emptyList(),
-  val reply: String? = null
+  val reply: String? = null,
+  val semanticDescriptions: Set<String> = emptySet()
 )
 
 enum class LevelEffectType { SET_ENVIRONMENT, MOVE_TO_ZONE, COMPLETE_LEVEL }
@@ -171,6 +172,7 @@ object LevelDefinitionJson {
   private fun encodeAction(value: LevelActionRule) = JSONObject().apply {
     put("id", value.id)
     put("matchGroups", JSONArray().apply { value.matchGroups.forEach { put(JSONArray(it.sorted())) } })
+    put("semanticDescriptions", JSONArray(value.semanticDescriptions.sorted()))
     put("conditions", JSONArray(value.conditions.sorted()))
     put("effects", JSONArray().apply { value.effects.forEach { effect ->
       put(JSONObject().apply {
@@ -199,6 +201,7 @@ object LevelDefinitionJson {
     return LevelActionRule(
       id = json.optString("id"),
       matchGroups = groups,
+      semanticDescriptions = json.optJSONArray("semanticDescriptions").strings().toSet(),
       conditions = json.optJSONArray("conditions").strings().toSet(),
       effects = effects,
       reply = json.optString("reply").takeIf(String::isNotBlank)

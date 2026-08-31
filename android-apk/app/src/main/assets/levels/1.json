@@ -113,6 +113,7 @@
         ["tắt", "ngắt", "cắt"],
         ["điện", "nguồn", "cầu dao"]
       ],
+      "semanticDescriptions": ["ngắt nguồn điện chính tại cầu dao"],
       "conditions": ["zone:maintenance"],
       "effects": [
         {"type": "SET_ENVIRONMENT", "key": "power", "value": "off"}
@@ -125,6 +126,7 @@
         ["14"],
         ["quay", "trở", "trở lại"]
       ],
+      "semanticDescriptions": ["quay lại cửa mang số 14"],
       "conditions": ["zone:parking_loop", "env:power=off"],
       "effects": [],
       "reply": "Kai quay lại cửa 14 trong điều kiện mất điện; dấu hiệu lặp vẫn còn nguyên."
@@ -135,6 +137,7 @@
         ["ngược"],
         ["tiếng", "máy", "âm"]
       ],
+      "semanticDescriptions": ["đi ngược hướng tiếng máy đang vọng lại"],
       "conditions": ["zone:blackout_hall", "env:power=off"],
       "effects": [
         {"type": "MOVE_TO_ZONE", "zoneId": "service_elevator"}
@@ -147,6 +150,7 @@
         ["thang máy", "elevator"],
         ["vào", "mở", "đi"]
       ],
+      "semanticDescriptions": ["bước vào thang máy dịch vụ"],
       "conditions": ["zone:service_elevator"],
       "effects": [
         {"type": "COMPLETE_LEVEL"}
