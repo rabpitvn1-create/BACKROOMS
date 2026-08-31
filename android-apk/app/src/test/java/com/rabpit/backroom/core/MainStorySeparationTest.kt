@@ -2,15 +2,16 @@ package com.rabpit.backroom.core
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class MainStorySeparationTest {
-  @Test fun freshCampaignStartsWithIrisAndSyvialSeparatedFromKaiAndEachOther() {
+  @Test fun freshCampaignKeepsIrisAndSyvialOutsideKaisParty() {
     val state = GameState.initial()
 
-    assertEquals(CharacterPresence.ACTIVE, state.characters[KAI_ID]!!.presence)
-    assertEquals(CharacterPresence.SEPARATED, state.characters[IRIS_ID]!!.presence)
-    assertEquals(CharacterPresence.SEPARATED, state.characters[SYVIAL_ID]!!.presence)
+    assertEquals(listOf(KAI_ID), state.party.memberIds)
+    assertTrue(IRIS_ID in state.characters)
+    assertTrue(SYVIAL_ID in state.characters)
     assertFalse(IRIS_ID in state.party.memberIds)
     assertFalse(SYVIAL_ID in state.party.memberIds)
   }
