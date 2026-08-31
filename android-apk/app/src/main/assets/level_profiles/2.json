@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "id": "2",
+  "canonProfile": {
+    "environmentTags": [
+      "utility_tunnel_network",
+      "maintenance_shafts",
+      "concrete_corridors",
+      "rusted_pipe_network",
+      "crawlspaces",
+      "unfinished_electrical_network",
+      "extreme_temperature_variation",
+      "steam_burn_risk",
+      "cold_ventilation_zones",
+      "anomalous_ice_or_snow",
+      "seismic_instability",
+      "contaminated_pipe_water"
+    ],
+    "requiredZoneTags": ["entry", "escape"],
+    "allowedPhenomena": [
+      "earthquake",
+      "corridor_collapse",
+      "pipe_rupture",
+      "steam_release",
+      "route_severing",
+      "route_opening",
+      "anomalous_cold",
+      "contaminated_pipe_water"
+    ],
+    "forbiddenClaims": [
+      "backrooms_confirmed_conscious",
+      "level_confirmed_intentionally_opposes_player",
+      "pipe_water_confirmed_safe_to_drink_directly"
+    ],
+    "transitionTags": [
+      "transformers_appear",
+      "thick_power_cables",
+      "industrial_fans",
+      "electrical_cabinets",
+      "high_voltage_hum"
+    ],
+    "metadata": {
+      "projectDanger": "EXTREME",
+      "canonSource": "BACKROOMS-LEVELS-R2-L0-6",
+      "pipeWaterRule": "never_drink_directly",
+      "transitionTarget": "3"
+    }
+  },
+  "generationConstraints": {
+    "minZones": 5,
+    "maxZones": 32,
+    "minEvidencePerRequiredFact": 2,
+    "minEvidenceSourceTypesPerRequiredFact": 2,
+    "maxRequiredActions": 8,
+    "allowSurvivors": true,
+    "allowEntities": true,
+    "proceduralTopology": true,
+    "proceduralLandmarks": true,
+    "proceduralEvidencePlacement": true,
+    "proceduralEscapeBlueprint": true
+  },
+  "metadata": {
+    "profileSource": "project-level-canon",
+    "profileRevision": "R2"
+  }
+}
