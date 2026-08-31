@@ -26,9 +26,16 @@ replacements = (
     ("ACTIVE", "đang hoạt động"),
 )
 
-for old, new in replacements:
-    catalog = catalog.replace(old, new)
-
+# Only skill definition rows are player-facing. Keep compatibility comments and
+# other non-UI markers byte-for-byte intact because final runtime contracts may
+# intentionally probe those legacy markers.
+localized_lines = []
+for line in catalog.splitlines(keepends=True):
+    if '    s("' in line:
+        for old, new in replacements:
+            line = line.replace(old, new)
+    localized_lines.append(line)
+catalog = ''.join(localized_lines)
 CATALOG.write_text(catalog, encoding="utf-8")
 
 # Tighten the existing localization regression. The earlier contract allowed
@@ -75,7 +82,7 @@ for line in catalog.splitlines():
         continue
     # Ignore the canonical name and runtime kind by checking only text after
     # the first two quoted arguments.
-    parts = line.split('\"')
+    parts = line.split('"')
     prose = ' '.join(parts[5:]) if len(parts) >= 6 else line
     for token in ("DMG", "HP", "Party", "Entity", "SEARCH", "Exit", "Mana", "Game Master", " canon", " boss", "ACTIVE", "Base DMG"):
         if token in prose:
