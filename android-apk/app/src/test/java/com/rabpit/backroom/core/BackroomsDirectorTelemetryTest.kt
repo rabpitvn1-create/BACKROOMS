@@ -50,7 +50,7 @@ class BackroomsDirectorTelemetryTest {
     val exported = store.exportJsonl()
     assertTrue(BackroomsDirectorTelemetryPrivacy.validateExport(exported))
     assertFalse(exported.contains("director.test"))
-    assertFalse(exported.contains("entry"))
+    assertFalse(exported.contains("zone-secret-42"))
     assertFalse(exported.contains("anomaly-f"))
     assertFalse(exported.contains("requiredFacts"))
     assertFalse(exported.contains("requiredActions"))
@@ -107,10 +107,11 @@ class BackroomsDirectorTelemetryTest {
   }
 
   private fun definition(): LevelDefinition {
-    val zone = ZoneState("entry", "Entry", emptySet(), setOf("entry", "escape"))
+    val zoneId = "zone-secret-42"
+    val zone = ZoneState(zoneId, "Entry", emptySet(), setOf("entry", "escape"))
     val evidence = mapOf(
-      "anomaly-f" to EvidenceState("anomaly-f", setOf("F"), setOf(EvidenceSource.ANOMALY), "entry"),
-      "environment-f" to EvidenceState("environment-f", setOf("F"), setOf(EvidenceSource.ENVIRONMENT), "entry")
+      "anomaly-f" to EvidenceState("anomaly-f", setOf("F"), setOf(EvidenceSource.ANOMALY), zoneId),
+      "environment-f" to EvidenceState("environment-f", setOf("F"), setOf(EvidenceSource.ENVIRONMENT), zoneId)
     )
     val exit = LevelActionRule(
       id = "exit",
@@ -120,8 +121,8 @@ class BackroomsDirectorTelemetryTest {
     return LevelDefinition(
       id = "director.test",
       name = "Director telemetry test",
-      initialZoneId = "entry",
-      zones = mapOf("entry" to zone),
+      initialZoneId = zoneId,
+      zones = mapOf(zoneId to zone),
       escapeBlueprint = EscapeBlueprintState("hidden-solution", setOf("F"), listOf("exit")),
       evidence = evidence,
       actions = mapOf("exit" to exit),
