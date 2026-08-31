@@ -19,20 +19,25 @@ class SharedPreferencesSaveRepository(context: Context) : SaveRepository {
 
   @Synchronized override fun load(): GameState {
     val raw = preferences.getString(KEY_STATE, null) ?: return GameState.initial()
-    val compatible = runCatching { JSONObject(raw).optInt("saveVersion", -1) == CURRENT_SAVE_VERSION }.getOrDefault(false)
-    if (!compatible) {
+    val version = runCatching { JSONObject(raw).optInt("saveVersion", -1) }.getOrDefault(-1)
+    if (version != CURRENT_SAVE_VERSION && version != MIGRATABLE_SAVE_VERSION) {
       clear()
       return GameState.initial()
     }
-    return runCatching { GameStateCodec.decode(raw) }.getOrElse {
+    val decoded = runCatching { GameStateCodec.decode(raw) }.getOrElse {
       clear()
-      GameState.initial()
+      return GameState.initial()
     }
+    if (version != CURRENT_SAVE_VERSION) save(decoded)
+    return decoded
   }
 
   override fun exists(): Boolean = preferences.contains(KEY_STATE)
 
   @Synchronized override fun clear() { preferences.edit().remove(KEY_STATE).commit() }
 
-  companion object { private const val KEY_STATE = "game_state" }
+  companion object {
+    private const val KEY_STATE = "game_state"
+    private const val MIGRATABLE_SAVE_VERSION = 4
+  }
 }
