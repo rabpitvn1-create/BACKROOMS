@@ -294,7 +294,7 @@ MAIN.write_text(main, encoding="utf-8")
 final_index = INDEX.read_text(encoding="utf-8")
 if "Cả ba chủ động bước qua cùng một cổng không gian theo lệnh nhiệm vụ." not in final_index:
     raise RuntimeError("intentional_spatial_gate_prologue_not_applied")
-if "Năm 2267." not in final_index or "điều tra Async" not in final_index or "Hứa Thuý Lan" not in final_index:
+if "Năm 2267." not in final_index or "xác minh hoạt động của Async" not in final_index or "Hứa Thuý Lan" not in final_index:
     raise RuntimeError("mission_prologue_required_canon_missing")
 if "Chiếc ly rơi xuống được nửa quãng" in final_index:
     raise RuntimeError("obsolete_restaurant_portal_scene_survived")
