@@ -6,8 +6,12 @@ generated from the training templates, preventing paraphrase-family leakage.
 """
 import csv, itertools, pathlib
 
-ITEMS = ["chai nước", "đèn pin", "khẩu súng", "cuộn băng", "chìa khóa", "bộ sơ cứu", "viên pin", "mặt nạ"]
-PEOPLE = ["Iris", "Syvial", "người đàn ông"]
+ITEMS = [
+ "Đèn pin", "Bật lửa", "Nước Hạnh Nhân", "Thực phẩm đóng hộp", "Pin",
+ "Nhiên liệu bật lửa", "Băng gạc", "Thuốc sát trùng", "Thuốc giảm đau",
+ "Cá Mòi Ba Cô Gái", "Nước suối La Vie",
+]
+PEOPLE = ["Iris", "Syvial", "An Nhiên", "Lucia", "người đàn ông"]
 
 TEMPLATES = {
  "PICKUP_ITEM": ["Kai nhặt {i}", "nhặt {i} lên", "lượm {i} dưới sàn", "cầm {i} lên", "hãy lấy {i} lên"],
@@ -34,7 +38,7 @@ FIXED_TRAIN = {
 
 PARAPHRASE_TRAIN = {
  "PICKUP_ITEM": ["gom chiếc hộp lên", "Kai cúi nhặt món đồ", "cầm lấy vật trước mặt", "nhấc bình nước khỏi nền", "thu món đồ dưới đất", "gom radio khỏi mặt đất", "nhặt radio nằm trên sàn"],
- "DROP_ITEM": ["đặt chai xuống nền", "buông món đồ đang cầm", "để vật đó lại", "Kai đặt khẩu súng xuống", "thả tay khỏi chiếc hộp", "Kai để chai rỗng xuống", "đặt vật lại tại chỗ"],
+ "DROP_ITEM": ["đặt chai xuống nền", "buông món đồ đang cầm", "để vật đó lại", "Kai đặt khẩu súng xuống", "thả tay khỏi chiếc hộp", "Kai để chai rỗng xuống", "đặt vật lại tại chỗ", "buông đồ khỏi tay", "thả vật đang cầm xuống", "buông chai khỏi tay", "buông vật xuống nền", "thả đồ khỏi tay"],
  "USE_ITEM": ["bật chiếc radio lên", "Kai bật đèn pin", "mở radio để sử dụng", "uống một ngụm Almond Water", "áp dụng bộ cứu thương lên vết thương", "mở và dùng vật phẩm", "kích hoạt công cụ đang cầm"],
  "TRANSFER_ITEM": ["chia Iris một chai", "giao radio sang tay Syvial", "chuyển vật đó cho cô ấy", "đặt viên pin vào tay Iris", "Kai giao món đồ cho đồng đội"],
  "EQUIP_ITEM": ["rút súng cầm sẵn", "mang mặt nạ bảo hộ", "lắp dao vào ô vũ khí", "đưa radio vào slot trang bị", "Kai cầm vũ khí trong tay"],
@@ -50,6 +54,32 @@ PARAPHRASE_TRAIN = {
  "PARTY_QUERY": ["những người đang đồng hành", "đội hình bốn người ra sao", "liệt kê đồng đội bên cạnh Kai", "ai là thành viên hiện tại", "cho biết nhóm đang gồm những ai"],
  "CHARACTER_QUERY": ["mở trang chi tiết Iris", "cho biết hồ sơ Kai", "xem dữ liệu nhân vật đang chọn", "hiện character profile", "đọc thông tin riêng của Syvial"],
  "STATUS_QUERY": ["liệt kê hiệu ứng tác động lên Iris", "tình trạng cơ thể Kai", "mở phần thương tích và trạng thái", "xem các status effect hiện hành", "Kai đang chịu ảnh hưởng gì"],
+}
+
+CONTEXT_TRAIN = {
+ "USE_ITEM": [
+  "uống nước hạnh nhân", "uống nước", "ăn cá mòi", "dùng cái vừa nhặt", "dùng nó",
+  "cho Lucia dùng băng gạc", "dùng băng gạc cho Lucia", "cho Iris uống nước hạnh nhân",
+  "băng bó cho Syvial bằng băng gạc", "dùng thuốc giảm đau cho An Nhiên",
+  "bật đèn pin", "châm bật lửa", "nạp pin cho đèn pin", "đổ nhiên liệu vào bật lửa",
+  "Kai uống chai nước vừa nhặt", "uống chai vừa nhặt", "uống món nước vừa nhặt",
+  "Kai băng bó cho Lucia", "băng bó Lucia bằng băng gạc", "băng bó vết thương cho Iris",
+  "cho Lucia uống nước", "cho Syvial dùng thuốc", "dùng thuốc sát trùng cho Lucia",
+  "bôi thuốc sát trùng cho Iris", "ăn thực phẩm đóng hộp", "ăn cá mòi ba cô gái",
+  "Kai dùng vật vừa nhặt", "dùng món vừa nhặt ngay", "sử dụng nó ngay",
+ ],
+ "TRANSFER_ITEM": [
+  "đưa cho Lucia", "đưa cho Iris", "trao cho Syvial", "chuyển cho An Nhiên", "cho cô ấy",
+  "đưa cái vừa nhặt cho Lucia", "trao món vừa nhặt cho Iris", "giao nó cho Syvial",
+  "chuyển băng gạc sang Lucia", "đưa nước hạnh nhân cho Iris", "cho Lucia thuốc giảm đau",
+  "đặt viên pin vào tay An Nhiên", "nhường món đồ này cho Lucia", "chuyển vật đang cầm cho đồng đội",
+  "giao cá mòi cho cô ấy", "Kai chuyển một chai cho Iris", "Kai chuyển một chai cho Syvial",
+  "Kai chuyển một chai cho Lucia", "Kai chuyển món đồ cho cô ấy", "chuyển chai nước cho cô ấy",
+  "nhường chai nước cho Syvial", "nhường viên pin cho Iris", "nhường món vừa nhặt cho An Nhiên",
+  "trao món đang cầm cho Lucia", "giao vật vừa nhặt sang Iris", "đưa nó sang Lucia",
+  "cho Lucia món vừa nhặt", "nhường nước hạnh nhân cho Iris", "nhường băng gạc cho Lucia",
+  "nhường vật đang cầm cho Syvial",
+ ],
 }
 
 NO_ACTION_TRAIN = [
@@ -71,6 +101,16 @@ NO_ACTION_TRAIN = [
  "Iris quan sát Kai chuyển đồ", "Kai thấy radio được cất vào kho", "món đồ đã nằm trong inventory từ trước",
  "khẩu súng hiện không được trang bị", "mặt nạ chưa được đeo", "radio không nằm trong slot trang bị",
  "nếu Kai đưa món đồ cho cô ấy thì sẽ thế nào", "nếu Kai chuyển nước sang Iris thì sao", "giả sử Kai trao chai nước cho cô ấy",
+ "đừng đưa cho Lucia", "nếu đưa cho Lucia thì sao", "Kai chưa đưa cho Lucia", "Iris bảo Kai đưa cho Lucia",
+ "đừng dùng băng gạc cho Lucia", "nếu dùng thuốc giảm đau cho Iris thì sao", "Kai chưa dùng cái vừa nhặt",
+ "Lucia hỏi có nên uống nước hạnh nhân không", "đừng đưa món đó cho Lucia", "đừng chuyển chai nước cho Iris",
+ "đừng trao băng gạc cho Syvial", "không được đưa cho Lucia", "nếu chuyển chai nước cho Lucia thì sao",
+ "nếu trao băng gạc cho Iris thì sao", "Kai chưa chuyển món đó cho Lucia", "Kai vẫn chưa trao chai nước cho Syvial",
+ "đừng dùng thuốc giảm đau cho Iris", "không được dùng băng gạc cho Lucia", "đừng cho Syvial uống nước",
+ "nếu cho Lucia dùng băng gạc thì sao", "Kai chưa băng bó cho Lucia", "Kai chưa uống chai vừa nhặt",
+ "đừng cho Lucia dùng thuốc giảm đau", "đừng cho Syvial dùng băng gạc", "đừng cho An Nhiên dùng thuốc sát trùng",
+ "không cho Iris dùng nước hạnh nhân", "không cho Lucia uống nước", "đừng để Iris dùng món đó",
+ "không được cho Syvial dùng vật phẩm", "đừng cho cô ấy dùng băng gạc",
 ]
 
 UNKNOWN_TRAIN = [
@@ -81,13 +121,15 @@ UNKNOWN_TRAIN = [
  "đi theo hành lang bên trái", "Kai kiểm tra cánh cửa", "thử nhớ bản đồ", "chờ xem chuyện gì xảy ra",
  "hỏi Iris về quá khứ", "Kai hỏi Syvial cô nhớ được gì", "trò chuyện với Iris về ký ức", "đề nghị Iris giải thích chuyện vừa rồi",
  "Kai hỏi người đồng hành về Backrooms", "lắng nghe câu trả lời của Syvial", "thảo luận kế hoạch với Iris",
+ "Kai chuẩn bị đối phó thực thể", "Kai chuẩn bị tinh thần trước nguy hiểm", "Kai sẵn sàng nếu có chuyện",
+ "Kai quan sát và chuẩn bị phản ứng",
 ]
 
 TEST = {
  "PICKUP_ITEM": ["Kai cúi xuống nhặt lấy bình nước", "gom chiếc radio lên khỏi sàn", "cầm lấy món đồ trước mặt"],
  "DROP_ITEM": ["đặt chiếc radio lại xuống nền", "buông vật đang cầm", "Kai để chai rỗng ở lại"],
- "USE_ITEM": ["Kai bật chiếc radio", "uống một ngụm nước", "áp dụng bộ cứu thương"],
- "TRANSFER_ITEM": ["chia cho Iris một viên pin", "giao chiếc radio sang tay Syvial", "Kai chuyển một chai cho cô ấy"],
+ "USE_ITEM": ["Kai bật chiếc radio", "uống một ngụm nước", "áp dụng bộ cứu thương", "cho Syvial dùng thuốc giảm đau", "uống chai nước vừa nhặt", "băng bó cho Lucia bằng cuộn băng"],
+ "TRANSFER_ITEM": ["chia cho Iris một viên pin", "giao chiếc radio sang tay Syvial", "Kai chuyển một chai cho cô ấy", "đưa cho Lucia", "trao món vừa nhặt sang An Nhiên", "nhường chai nước cho Iris"],
  "EQUIP_ITEM": ["Kai rút súng cầm sẵn trên tay", "mang mặt nạ bảo hộ lên", "lắp món đồ vào ô vũ khí"],
  "UNEQUIP_ITEM": ["Kai hạ súng và cất khỏi tay", "gỡ mặt nạ đang đeo", "tháo món đồ khỏi ô vũ khí"],
  "OMNIVAULT_STORE": ["Nhẫn Vạn Tàng thu chiếc radio vào kho", "Kai cho món đó biến vào Omnivault", "đưa vật đang cầm vào không gian nhẫn"],
@@ -101,25 +143,24 @@ TEST = {
  "PARTY_QUERY": ["những người nào đang đồng hành", "đội hình bốn người hiện ra sao", "liệt kê đồng đội bên cạnh Kai"],
  "CHARACTER_QUERY": ["mở trang chi tiết của Iris", "cho biết hồ sơ của Kai", "xem dữ liệu nhân vật đang chọn"],
  "STATUS_QUERY": ["liệt kê hiệu ứng đang tác động lên Iris", "tình trạng cơ thể Kai hiện giờ", "mở phần thương tích và trạng thái"],
- "NO_ACTION": ["Kai nhớ mình từng lấy radio khỏi nhẫn", "Iris nói: đừng nhặt vật đó", "nếu Kai đưa nước cho cô ấy thì chuyện gì xảy ra", "Kai nhìn Syvial cất súng", "Kai chưa hề dùng món đồ", "khẩu súng không được trang bị"],
+ "NO_ACTION": ["Kai nhớ mình từng lấy radio khỏi nhẫn", "Iris nói: đừng nhặt vật đó", "nếu Kai đưa nước cho cô ấy thì chuyện gì xảy ra", "Kai nhìn Syvial cất súng", "Kai chưa hề dùng món đồ", "khẩu súng không được trang bị", "nếu đưa cái vừa nhặt cho Lucia thì sao", "đừng cho Iris dùng băng gạc", "Kai vẫn chưa trao món đó cho Syvial"],
  "UNKNOWN": ["Kai nghiên cứu âm thanh bất thường", "thử mở cánh cửa cuối hành lang", "hỏi Iris về ký ức của cô ấy", "tiếp tục câu chuyện", "Kai chuẩn bị đối phó nguy hiểm"],
 }
 
 def expand_templates():
     rows=[]
     for intent, templates in TEMPLATES.items():
-        count=0
         for template in templates:
             people = PEOPLE if "{p}" in template else [""]
             for item, person in itertools.product(ITEMS, people):
                 text=template.format(i=item,p=person)
-                rows.append((text,intent,"train",f"template-{templates.index(template)}")); count+=1
-                if count >= 24: break
-            if count >= 24: break
+                rows.append((text,intent,"train",f"template-{templates.index(template)}"))
     for intent, texts in FIXED_TRAIN.items():
         rows.extend((text,intent,"train",f"manual-{idx}") for idx,text in enumerate(texts))
     for intent, texts in PARAPHRASE_TRAIN.items():
         rows.extend((text,intent,"train",f"paraphrase-{idx}") for idx,text in enumerate(texts))
+    for intent, texts in CONTEXT_TRAIN.items():
+        rows.extend((text,intent,"train",f"context-{idx}") for idx,text in enumerate(texts))
     rows.extend((text,"NO_ACTION","train",f"hard-negative-{idx}") for idx,text in enumerate(NO_ACTION_TRAIN))
     rows.extend((text,"UNKNOWN","train",f"unknown-{idx}") for idx,text in enumerate(UNKNOWN_TRAIN))
     for intent,texts in TEST.items(): rows.extend((text,intent,"test",f"heldout-{idx}") for idx,text in enumerate(texts))
