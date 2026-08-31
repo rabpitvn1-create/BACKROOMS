@@ -64,7 +64,7 @@ object DiscoveryProjection {
         .mapNotNull { visibleText(level, definition, it.id) }
         .distinct()
         .sorted()
-        .forEach(allowedNpcStatements::put)
+        .forEach { allowedNpcStatements.put(it) }
     }
 
     return JSONObject()
@@ -204,11 +204,12 @@ visible_replacement = '''        .put("narrativeCue", cue)
 '''
 main = replace_once(main, visible_anchor, visible_replacement, "narrative visible discovery projection")
 
-prompt_line = '        + "Không được diễn giải hoặc chép lại evidenceTexts trong reply vì ứng dụng sẽ gắn nguyên văn chúng sau phần kể. "\n'
-prompt_insert = prompt_line + '''        + "discoveryProjection chỉ cho biết ý nghĩa được phép: evidence là quan sát, không phải lời giải; không được suy ra đường thoát, bước bắt buộc hay hidden fact. "
-        + "Nếu kể lời NPC, NPC chỉ được dùng nội dung trong allowedNpcStatements; nếu mảng rỗng thì không cho NPC tiết lộ thông tin puzzle. "
+prompt_tail = '        + "VISIBLE_RESOLVED_OUTCOME=" + visible.toString();\n'
+prompt_tail_replacement = '''        + "DISCOVERY_SEMANTIC_POLICY: Treat discoveryProjection evidence as observation only; never infer an escape route, required action, or hidden fact from it. "
+        + "NPC puzzle statements are limited to discoveryProjection.allowedNpcStatements; when that array is empty, reveal no puzzle information through NPC dialogue. "
+        + "VISIBLE_RESOLVED_OUTCOME=" + visible.toString();
 '''
-main = replace_once(main, prompt_line, prompt_insert, "discovery semantics narration contract")
+main = replace_once(main, prompt_tail, prompt_tail_replacement, "discovery semantics narration contract")
 
 for forbidden in ("supports", "discoverConditions", "requiredFacts", "requiredActions", "solutionId", "escapeBlueprint"):
     projection_source = (CORE / "DiscoveryProjection.kt").read_text(encoding="utf-8")
@@ -223,7 +224,7 @@ for marker in (
         raise RuntimeError("facade discovery boundary missing: " + marker)
 for marker in (
     'put("discoveryProjection", resolved.optJSONObject("discoveryProjection")',
-    "NPC chỉ được dùng nội dung trong allowedNpcStatements",
+    "NPC puzzle statements are limited to discoveryProjection.allowedNpcStatements",
 ):
     if marker not in main:
         raise RuntimeError("narrative discovery boundary missing: " + marker)
