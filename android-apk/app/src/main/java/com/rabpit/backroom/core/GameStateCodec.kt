@@ -27,9 +27,9 @@ object GameStateCodec {
 
   fun decode(root: JSONObject): GameState {
     val version = root.optInt("saveVersion", 0)
+    if (version == 4) return AnNhienCanon.ensure(migrateV4Core(root))
     return when {
       version >= CURRENT_SAVE_VERSION -> decodeCurrent(root)
-      version == 4 -> migrateV4Core(root)
       version == 2 && root.has("inventories") -> migrateV2Core(root)
       else -> LegacySaveMigration.migrate(root)
     }
