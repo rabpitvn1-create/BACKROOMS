@@ -161,6 +161,9 @@ candidate_core_replacement = '''    val core = loadOrMigrate(before)
       beforeFlags?.optJSONObject("currentLevel")?.let {
         candidateFlags.put("currentLevel", JSONObject(it.toString()))
       }
+      for (key in listOf("visualAreaKey", "visualEventKey")) {
+        if (beforeFlags?.has(key) == true) candidateFlags.put(key, beforeFlags.get(key)) else candidateFlags.remove(key)
+      }
     }
     val turnId = nextTurnId(before, core)
 '''
@@ -262,6 +265,24 @@ java_guard_helpers = f'''  private boolean hasIncompleteRegisteredLevel() {{
 
   private boolean attemptsRegisteredNavigation(JSONObject before, JSONObject generated) {{
     if (!hasIncompleteRegisteredLevel()) return false;
+    JSONArray ops = generated.optJSONArray("ops");
+    if (ops != null) {{
+      for (int i = 0; i < ops.length(); i++) {{
+        JSONObject op = ops.optJSONObject(i);
+        if (op == null) continue;
+        String type = lower(op.optString("type", "")).trim();
+        if (type.equals("set_level")) {{
+          JSONObject proposed = op.optJSONObject("level");
+          if (proposed != null && proposed.optInt("number", currentLevel(before)) != currentLevel(before)) return true;
+        }} else if (type.equals("set_location")) {{
+          String value = op.optString("value", "");
+          if (!value.equals(before.optString("location", ""))) return true;
+        }} else if (type.equals("flag_patch")) {{
+          String root = lower(op.optString("root", "")).trim();
+          if (root.equals("exploration") || root.equals("currentlevel") || root.equals("visualareakey") || root.equals("visualeventkey")) return true;
+        }}
+      }}
+    }}
     JSONObject proposedLevel = generated.optJSONObject("level");
     if (proposedLevel != null && proposedLevel.optInt("number", currentLevel(before)) != currentLevel(before)) return true;
     if (generated.has("title") && !generated.optString("title", "").equals(before.optString("title", ""))) return true;
@@ -287,23 +308,27 @@ if "linearAreaPrompt(before) + registeredLevelNarrativeLock()" not in main:
         raise RuntimeError(f"registered Level narrative lock: expected exactly 1 linearAreaPrompt call, found {main.count('linearAreaPrompt(before)')}")
     main = main.replace("linearAreaPrompt(before)", "linearAreaPrompt(before) + registeredLevelNarrativeLock()", 1)
 
-reply_anchor = '''          String reply = generated.optString("reply", "").trim();
-          if (reply.isEmpty()) reply = "Kai giữ nguyên vị trí và quan sát thêm; chưa có kết quả đủ chắc chắn để thay đổi trạng thái.";
-'''
-reply_replacement = '''          String reply = generated.optString("reply", "").trim();
-          if (reply.isEmpty()) reply = "Kai giữ nguyên vị trí và quan sát thêm; chưa có kết quả đủ chắc chắn để thay đổi trạng thái.";
-          if (attemptsRegisteredNavigation(before, generated)) {
+if "Hành động này không tạo ra chuyển dịch nào được Core xác nhận." not in main:
+    guard = '''          if (attemptsRegisteredNavigation(before, generated)) {
             reply = "Kai vẫn ở khu vực hiện tại. Hành động này không tạo ra chuyển dịch nào được Core xác nhận.";
           }
 '''
-if "Hành động này không tạo ra chuyển dịch nào được Core xác nhận." not in main:
-    replace_main_once(reply_anchor, reply_replacement, "registered Level narration fail-closed")
+    current_reply_anchor = '''          String reply = generated.optString("reply", "").trim();
+          if (reply.isEmpty()) throw new Exception("AI trả về phản hồi rỗng, lượt này không được ghi.");
+'''
+    legacy_reply_anchor = '''          String reply = generated.optString("reply", "").trim();
+          if (reply.isEmpty()) reply = "Kai giữ nguyên vị trí và quan sát thêm; chưa có kết quả đủ chắc chắn để thay đổi trạng thái.";
+'''
+    matches = [anchor for anchor in (current_reply_anchor, legacy_reply_anchor) if main.count(anchor) == 1]
+    if len(matches) != 1:
+        raise RuntimeError(f"registered Level narration fail-closed: expected one supported reply anchor, found {len(matches)}")
+    main = main.replace(matches[0], matches[0] + guard, 1)
 
 location_anchor = '''            if (generated.has("location")) state.put("location", generated.optString("location"));
 '''
 location_replacement = '''            if (transitionAccepted && generated.has("location")) state.put("location", generated.optString("location"));
 '''
-if location_replacement.strip() not in main:
+if location_replacement.strip() not in main and location_anchor in main:
     replace_main_once(location_anchor, location_replacement, "legacy location transition authority")
 
 registered_block_anchor = f'''          JSONObject registeredLevelResult = new JSONObject({core_call}.processRegisteredLevelAction(stateJson, actionKind, action));
@@ -338,6 +363,7 @@ for marker in (
     '"registered_level_handoff"',
     '.put("escaped", result.escaped)',
     "val registeredNavigationLocked = core.levelInstance?.completed == false",
+    'listOf("visualAreaKey", "visualEventKey")',
     "seeded, levelRegistry, levelCatalog, kind, action, levelId, runSeed, backroomsDirector",
     "progression_blocked",
     "Level progression only moves forward",
@@ -351,7 +377,8 @@ for marker in (
     "if (hasIncompleteRegisteredLevel()) return false;",
     "linearAreaPrompt(before) + registeredLevelNarrativeLock()",
     "attemptsRegisteredNavigation(before, generated)",
-    'if (transitionAccepted && generated.has("location"))',
+    'root.equals("visualareakey")',
+    "Hành động này không tạo ra chuyển dịch nào được Core xác nhận.",
     "advanceLinearArea(new JSONObject(stateJson), registeredState)",
     "handoffCompletedRegisteredLevel(nextAreaId)",
 ):
@@ -360,4 +387,4 @@ for marker in (
 
 FACADE.write_text(facade, encoding="utf-8")
 MAIN.write_text(main, encoding="utf-8")
-print("Forward progression contract applied: Core owns incomplete registered Levels, legacy navigation is frozen, and registered escape advances exactly once to the catalog target.")
+print("Forward progression contract applied: Core owns incomplete registered Levels, Gemini navigation ops and visual routing are frozen, and registered escape advances exactly once to the catalog target.")
