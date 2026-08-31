@@ -4,7 +4,7 @@ Toàn bộ sprite Entity dùng trong APK nằm trực tiếp tại:
 
 `android-apk/app/src/main/assets/entity/`
 
-Runtime ưu tiên canonical Entity key trùng chính xác với tên file bỏ phần mở rộng `.png`. Các unique Entity có asset tên khác canonical key phải có mapping cục bộ, case-sensitive, được khóa rõ trong runtime. Không có alias theo Level, không có mã Entity cũ, không có manifest từ xa và không tải ảnh mạng.
+Runtime ưu tiên canonical Entity key trùng chính xác với tên file bỏ phần mở rộng `.png`. Các unique Entity có asset tên khác canonical key phải có mapping cục bộ, case-sensitive, được khóa rõ trong runtime. Không có alias theo Level, không có manifest từ xa và không tải ảnh mạng.
 
 | Canonical Entity key | Local asset |
 |---|---|
@@ -28,23 +28,23 @@ Runtime ưu tiên canonical Entity key trùng chính xác với tên file bỏ p
 | `slenderman` | `slenderman.png` |
 | `diep_minh` | `diep_minh.png` |
 | `monster_x` | `X.png` |
-| `john_doe` | `John.png` |
+| `john_doe` | `Jane.png` |
 | `scp_173` | `SCP173.png` |
 | `violet_warden` | `Newviolet.png` |
 
 `diep_minh` là boss unique dùng roll xuất hiện độc lập 3%, không nằm trong shared roaming Entity pool.
 
-`monster_x`, `john_doe`, `scp_173` và `violet_warden` là unique Entity dùng roll độc lập. `john_doe` có đúng 10% encounter chance trên Level 0–999. `scp_173` có đúng 5% encounter chance trên mỗi roll encounter Entity hợp lệ. `violet_warden` có đúng 10% encounter chance trên mọi Level/sublevel hiện tại và tương lai, không có lãnh địa cố định và không được đưa vào shared roaming pool.
+`monster_x`, `john_doe`, `scp_173` và `violet_warden` là unique Entity dùng roll độc lập. `john_doe` là legacy serialization key được giữ lại để không phá active save; danh tính hiển thị hiện hành của key này là **Jane Doe**. Jane Doe có đúng 10% encounter chance trên mỗi turn/roll encounter Entity hợp lệ ở Level 0–999 và không nằm trong shared roaming pool. `scp_173` có đúng 5% encounter chance trên mỗi roll encounter Entity hợp lệ. `violet_warden` có đúng 10% encounter chance trên mọi Level/sublevel hiện tại và tương lai, không có lãnh địa cố định và không được đưa vào shared roaming pool.
 
 Runtime tham chiếu trực tiếp các asset case-sensitive:
 
-`file:///android_asset/entity/John.png`
+`file:///android_asset/entity/Jane.png`
 
 `file:///android_asset/entity/SCP173.png`
 
 `file:///android_asset/entity/Newviolet.png`
 
-Không chuyển `John.png`, `SCP173.png` hoặc `Newviolet.png` sang Base64, Data URI hoặc nội dung nhúng. APK phải đóng gói file PNG thô trong assets. File `173.png` cũ được giữ nguyên để tránh phá vỡ lịch sử/compatibility của repository nhưng runtime SCP-173 hiện tại không dùng nó để hiển thị. File `Violet.png` cũ được giữ lại cho compatibility; runtime Violet hiện tại dùng `Newviolet.png` làm ảnh hiển thị.
+Không chuyển `Jane.png`, `SCP173.png` hoặc `Newviolet.png` sang Base64, Data URI hoặc nội dung nhúng. APK phải đóng gói file PNG thô trong assets. `John.png` cũ được giữ lại trong repository để tránh phá lịch sử/compatibility nhưng runtime Jane Doe không dùng nó để hiển thị. File `173.png` cũ được giữ nguyên để tránh phá vỡ lịch sử/compatibility của repository nhưng runtime SCP-173 hiện tại không dùng nó để hiển thị. File `Violet.png` cũ được giữ lại cho compatibility; runtime Violet hiện tại dùng `Newviolet.png` làm ảnh hiển thị.
 
 Snapshot đọc Entity thường trực tiếp bằng đường dẫn:
 
