@@ -1,6 +1,6 @@
 package com.rabpit.backroom.core
 
-const val CURRENT_SAVE_VERSION = 4
+const val CURRENT_SAVE_VERSION = 5
 const val KAI_ID = "kai"
 const val KAI_WHITE_WRAITH_ID = "kai:white-wraith-magnum"
 const val KAI_BLACKBLOOD_ARMOR_ID = "kai:blackblood-armor"
@@ -142,6 +142,7 @@ data class GameState(
   val turn: TurnState = TurnState(),
   val time: GameTimeState = GameTimeState(),
   val world: Map<String, String> = emptyMap(),
+  val levelInstance: LevelInstanceState? = null,
   val saveVersion: Int = CURRENT_SAVE_VERSION,
   val metadata: Map<String, String> = emptyMap()
 ) {
