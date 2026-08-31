@@ -110,6 +110,7 @@ provider_method = r'''  private String geminiLevelGenerationText(String prompt) 
       "Chỉ tạo world blueprint cho đúng một New Game và trả DUY NHẤT một JSON object LevelGenerationCandidate, không markdown, không giải thích. " +
       "Không tạo runtime progress như discoveredFacts, completedActions, mutations, revision, completed, runSeed, levelId hay generationId. " +
       "Không được sửa canon. environmentTags phải chứa toàn bộ canon environmentTags. phenomena chỉ lấy từ allowedPhenomena. canonClaims không được chứa forbiddenClaims. " +
+      "Dùng runSeed như khóa biến thể để các New Game có topology, landmark, evidence và escape blueprint khác nhau trong giới hạn canon. " +
       "Tạo số zone trong giới hạn. Phải có zone tag entry và escape; mọi zone/connection/action/evidence reference phải tồn tại và đường tới escape phải khả dụng. " +
       "Mỗi requiredFact phải có đủ evidence độc lập và đủ loại source theo generationConstraints. Evidence source chỉ dùng ENVIRONMENT, SEARCH, SURVIVOR, ANOMALY. " +
       "Nếu dùng SURVIVOR thì npcKnowledge chỉ tham chiếu evidence thật và phải được phép bởi constraints. " +
@@ -133,38 +134,39 @@ if "private String geminiLevelGenerationText(String prompt)" not in main:
         raise RuntimeError("Gemini matrix provider anchor missing")
     main = main[:index] + provider_method + main[index:]
 
-turn_anchor = '''          JSONObject registeredLevelResult = new JSONObject(gameCore.processRegisteredLevelAction(stateJson, actionKind, action));
+core_call = "requireGameCore()" if "requireGameCore().processRegisteredLevelAction(stateJson, actionKind, action)" in main else "gameCore"
+turn_anchor = f'''          JSONObject registeredLevelResult = new JSONObject({core_call}.processRegisteredLevelAction(stateJson, actionKind, action));
 '''
 if "prepareLevelGeneration(stateJson)" not in main:
     if main.count(turn_anchor) != 1:
         raise RuntimeError(f"registered Level turn anchor expected once, got {main.count(turn_anchor)}")
-    generation_block = r'''          JSONObject generationPlan = new JSONObject(gameCore.prepareLevelGeneration(stateJson));
-          if (generationPlan.optBoolean("required", false)) {
+    generation_block = f'''          JSONObject generationPlan = new JSONObject({core_call}.prepareLevelGeneration(stateJson));
+          if (generationPlan.optBoolean("required", false)) {{
             String generationLevelId = generationPlan.getString("levelId");
             String generationRunSeed = generationPlan.getString("runSeed");
             JSONObject generationRequest = generationPlan.getJSONObject("request");
             JSONObject generationCommit = null;
             String generationRejection = null;
-            try {
-              for (int generationAttempt = 0; generationAttempt < 2; generationAttempt++) {
+            try {{
+              for (int generationAttempt = 0; generationAttempt < 2; generationAttempt++) {{
                 String generatedRaw = geminiLevelGenerationText(levelGenerationPrompt(generationRequest, generationRejection));
                 JSONObject generatedCandidate = parseModelJson(generatedRaw);
                 String generatorVersion = "gemini-procedural-v1:" + geminiModelLabel(lastGeminiModel);
-                generationCommit = new JSONObject(gameCore.commitGeneratedLevelCandidate(
+                generationCommit = new JSONObject({core_call}.commitGeneratedLevelCandidate(
                   generationLevelId, generationRunSeed, generatedCandidate.toString(), generatorVersion));
                 if (generationCommit.optBoolean("accepted", false)) break;
                 generationRejection = generationCommit.optString("error", "candidate_rejected");
-              }
-            } catch (Exception generationError) {
+              }}
+            }} catch (Exception generationError) {{
               generationRejection = generationError.getMessage();
-            }
-            if (generationCommit == null || !generationCommit.optBoolean("accepted", false)) {
-              JSONObject fallback = new JSONObject(gameCore.installDefinitionLevelFallback(generationLevelId, generationRunSeed));
-              if (!fallback.optBoolean("accepted", false)) {
+            }}
+            if (generationCommit == null || !generationCommit.optBoolean("accepted", false)) {{
+              JSONObject fallback = new JSONObject({core_call}.installDefinitionLevelFallback(generationLevelId, generationRunSeed));
+              if (!fallback.optBoolean("accepted", false)) {{
                 throw new Exception("Không thể khởi tạo Level procedural: " + fallback.optString("error", generationRejection == null ? "generation_failed" : generationRejection));
-              }
-            }
-          }
+              }}
+            }}
+          }}
 '''
     main = main.replace(turn_anchor, generation_block + turn_anchor, 1)
 
@@ -181,9 +183,9 @@ for marker in (
 for marker in (
     "private String geminiLevelGenerationText(String prompt)",
     "private String levelGenerationPrompt(JSONObject request, String rejection)",
-    "prepareLevelGeneration(stateJson)",
-    "commitGeneratedLevelCandidate(",
-    "installDefinitionLevelFallback(",
+    ".prepareLevelGeneration(stateJson)",
+    ".commitGeneratedLevelCandidate(",
+    ".installDefinitionLevelFallback(",
 ):
     if marker not in main:
         raise RuntimeError("Gemini Level generation runtime marker missing: " + marker)
