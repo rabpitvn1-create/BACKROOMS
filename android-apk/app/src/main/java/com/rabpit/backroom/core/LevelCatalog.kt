@@ -16,6 +16,7 @@ data class LevelCatalogEntry(
   val parentId: String? = null,
   val name: String,
   val kind: LevelKind,
+  /** Legacy projection used by the shipping 0-6 UI route. Generic Level identity is always [id]. */
   val parentMainLevel: Int? = null,
   val campaignId: String? = null,
   val campaignOrder: Long? = null,
@@ -25,7 +26,6 @@ data class LevelCatalogEntry(
 )
 
 data class LevelCatalogDocument(val path: String, val content: String)
-
 data class LevelCatalogValidation(val valid: Boolean, val errors: List<String>)
 
 object LevelCatalogJson {
@@ -88,7 +88,6 @@ object LevelCatalogJson {
     return result
   }
 
-
   private fun JSONArray?.transitions(): List<LevelTransition> {
     if (this == null) return emptyList()
     return (0 until length()).map { index ->
@@ -134,20 +133,22 @@ object LevelCatalogValidator {
   }
 }
 
-class LevelCatalog private constructor(private val entries: Map<String, LevelCatalogEntry>) {
+class LevelCatalog private constructor(
+  private val entries: Map<String, LevelCatalogEntry>,
+  private val childrenByParent: Map<String, List<LevelCatalogEntry>>
+) {
   fun get(id: String): LevelCatalogEntry? = entries[id]
   fun require(id: String): LevelCatalogEntry = entries[id] ?: throw IllegalArgumentException("unknown_level_catalog_entry:$id")
   fun contains(id: String): Boolean = id in entries
   fun ids(): List<String> = entries.keys.sorted()
-  fun childrenOf(parentId: String): List<LevelCatalogEntry> = entries.values.filter { it.parentId == parentId }.sortedBy { it.id }
+  fun childrenOf(parentId: String): List<LevelCatalogEntry> = childrenByParent[parentId].orEmpty()
+  /** Kept for compatibility. A successfully constructed catalog is now guaranteed to return empty. */
   fun unresolvedParents(): Set<String> = entries.values.mapNotNull { it.parentId }.filterNot(entries::containsKey).toSet()
   fun campaign(campaignId: String): List<LevelCatalogEntry> = entries.values
     .filter { it.campaignId == campaignId && it.campaignOrder != null }
     .sortedWith(compareBy<LevelCatalogEntry> { it.campaignOrder }.thenBy { it.id })
-  fun allowedTransitionsFrom(levelId: String): List<LevelTransition> =
-    entries[levelId]?.outgoingTransitions.orEmpty()
-  fun canTransition(fromId: String, toId: String): Boolean =
-    allowedTransitionsFrom(fromId).any { it.targetId == toId }
+  fun allowedTransitionsFrom(levelId: String): List<LevelTransition> = entries[levelId]?.outgoingTransitions.orEmpty()
+  fun canTransition(fromId: String, toId: String): Boolean = allowedTransitionsFrom(fromId).any { it.targetId == toId }
   val size: Int get() = entries.size
 
   companion object {
@@ -159,6 +160,18 @@ class LevelCatalog private constructor(private val entries: Map<String, LevelCat
         require(validation.valid) { "invalid_level_catalog_entry:${entry.id}:${validation.errors.joinToString(",")}" }
         map[entry.id] = entry
       }
+
+      map.values.forEach { entry ->
+        val parentId = entry.parentId ?: return@forEach
+        val parent = map[parentId] ?: throw IllegalArgumentException("dangling_parent:${entry.id}:$parentId")
+        val childCampaign = entry.campaignId?.takeIf(String::isNotBlank)
+        val parentCampaign = parent.campaignId?.takeIf(String::isNotBlank)
+        require(childCampaign == parentCampaign) {
+          "parent_campaign_mismatch:${entry.id}:$parentId"
+        }
+      }
+      validateParentCycles(map)
+
       map.values.groupBy { it.campaignId }.forEach { (campaignId, group) ->
         if (campaignId.isNullOrBlank()) return@forEach
         val ordered = group.filter { it.campaignOrder != null }
@@ -167,6 +180,7 @@ class LevelCatalog private constructor(private val entries: Map<String, LevelCat
           "duplicate_campaign_order:$campaignId:${duplicateOrders.filterNotNull().sorted().joinToString(",")}" 
         }
       }
+
       map.values.forEach { source ->
         source.outgoingTransitions.forEach { transition ->
           val target = map[transition.targetId]
@@ -184,10 +198,36 @@ class LevelCatalog private constructor(private val entries: Map<String, LevelCat
           }
         }
       }
-      return LevelCatalog(map)
+
+      val children = map.values
+        .mapNotNull { child -> child.parentId?.let { it to child } }
+        .groupBy({ it.first }, { it.second })
+        .mapValues { (_, childEntries) -> childEntries.sortedBy { it.id } }
+      return LevelCatalog(map, children)
     }
 
-    fun empty(): LevelCatalog = LevelCatalog(emptyMap())
+    private fun validateParentCycles(entries: Map<String, LevelCatalogEntry>) {
+      val complete = hashSetOf<String>()
+      entries.keys.sorted().forEach { start ->
+        if (start in complete) return@forEach
+        val chain = mutableListOf<String>()
+        val positions = hashMapOf<String, Int>()
+        var current: String? = start
+        while (current != null && current in entries && current !in complete) {
+          val previous = positions[current]
+          if (previous != null) {
+            val cycle = (chain.subList(previous, chain.size) + current).joinToString("->")
+            throw IllegalArgumentException("level_parent_cycle:$cycle")
+          }
+          positions[current] = chain.size
+          chain += current
+          current = entries.getValue(current).parentId
+        }
+        complete += chain
+      }
+    }
+
+    fun empty(): LevelCatalog = LevelCatalog(emptyMap(), emptyMap())
   }
 }
 
