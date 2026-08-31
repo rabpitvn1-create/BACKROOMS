@@ -12,8 +12,8 @@ data class RegisteredLevelActionResult(
 /**
  * Connects a registered data-driven Level to the existing persistent ActionRuntime/TurnCoordinator.
  * SEARCH and EXPLORE are authoritative to the registered Level. EXECUTE is claimed only when its
- * free-form text matches at least one action declared by the current Level definition, so ordinary
- * inventory/party/character commands can continue through the existing command pipeline.
+ * free-form text matches an action locked into the current LevelInstance, so generated puzzles can
+ * vary per New Game while unrelated inventory/party commands still use the ordinary pipeline.
  */
 object RegisteredLevelActionCoordinator {
   fun applyStarted(
@@ -30,14 +30,17 @@ object RegisteredLevelActionCoordinator {
     }
 
     val definition = registry.require(requestedId)
-    if (kind == ActionKind.EXECUTE && matchingActions(definition, input).isEmpty()) {
-      return RegisteredLevelActionResult(state, handled = false)
-    }
-
     var working = if (state.levelInstance?.levelId == requestedId) {
       state
     } else {
       GenericLevelRuntime.install(state, registry, requestedId, runSeed)
+    }
+
+    if (kind == ActionKind.EXECUTE) {
+      val actions = working.levelInstance?.actions?.takeIf { it.isNotEmpty() } ?: definition.actions
+      if (matchingActions(actions, input).isEmpty()) {
+        return RegisteredLevelActionResult(state, handled = false)
+      }
     }
 
     val active = ActionRuntime.activeSession(working)
@@ -91,9 +94,12 @@ object RegisteredLevelActionCoordinator {
     )
   }
 
-  fun matchingActions(definition: LevelDefinition, input: String): List<String> {
+  fun matchingActions(definition: LevelDefinition, input: String): List<String> =
+    matchingActions(definition.actions, input)
+
+  fun matchingActions(actions: Map<String, LevelActionRule>, input: String): List<String> {
     val text = input.lowercase()
-    return definition.actions.values
+    return actions.values
       .filter { rule -> rule.matchGroups.all { group -> group.any { token -> token.lowercase() in text } } }
       .map { it.id }
       .sorted()
