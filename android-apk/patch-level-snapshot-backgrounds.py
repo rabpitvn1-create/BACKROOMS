@@ -129,7 +129,7 @@ level_picker = (
     "var exploration=state&&state.flags&&state.flags.exploration;"
     "var structuredLevel=state&&state.level&&((state.level.id!==undefined&&state.level.id!==null)?state.level.id:state.level.number);"
     "var where=String(state&&state.location||'')+' '+String(state&&state.title||'');"
-    "var lm=where.match(/Level\\s+([^\\s\\/–—]+)/i);"
+    "var lm=where.match(/Level +([^ ]+)/i);"
     "var parsedLevel=lm?String(lm[1]).trim():'';"
     "var areaId=(exploration&&exploration.areaId!==undefined&&exploration.areaId!==null&&String(exploration.areaId).trim())?String(exploration.areaId).trim():((structuredLevel!==undefined&&structuredLevel!==null&&String(structuredLevel).trim())?String(structuredLevel).trim():(parsedLevel||'0'));"
 )
