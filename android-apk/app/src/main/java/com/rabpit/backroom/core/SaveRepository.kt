@@ -10,6 +10,26 @@ interface SaveRepository {
   fun clear()
 }
 
+object SaveCompatibility {
+  const val MIGRATABLE_SAVE_VERSION = 4
+
+  fun normalize(raw: String): String? = runCatching {
+    val root = JSONObject(raw)
+    when (root.optInt("saveVersion", -1)) {
+      CURRENT_SAVE_VERSION -> root.toString()
+      MIGRATABLE_SAVE_VERSION -> {
+        root.put("saveVersion", CURRENT_SAVE_VERSION)
+        root.remove("levelInstance")
+        val metadata = root.optJSONObject("metadata") ?: JSONObject()
+        metadata.put("migratedFromVersion", MIGRATABLE_SAVE_VERSION.toString())
+        root.put("metadata", metadata)
+        root.toString()
+      }
+      else -> null
+    }
+  }.getOrNull()
+}
+
 class SharedPreferencesSaveRepository(context: Context) : SaveRepository {
   private val preferences = context.getSharedPreferences("backroom_game_state_core", Context.MODE_PRIVATE)
 
@@ -19,16 +39,16 @@ class SharedPreferencesSaveRepository(context: Context) : SaveRepository {
 
   @Synchronized override fun load(): GameState {
     val raw = preferences.getString(KEY_STATE, null) ?: return GameState.initial()
-    val version = runCatching { JSONObject(raw).optInt("saveVersion", -1) }.getOrDefault(-1)
-    if (version != CURRENT_SAVE_VERSION && version != MIGRATABLE_SAVE_VERSION) {
+    val normalizedRaw = SaveCompatibility.normalize(raw)
+    if (normalizedRaw == null) {
       clear()
       return GameState.initial()
     }
-    val decoded = runCatching { GameStateCodec.decode(raw) }.getOrElse {
+    val decoded = runCatching { GameStateCodec.decode(normalizedRaw) }.getOrElse {
       clear()
       return GameState.initial()
     }
-    if (version != CURRENT_SAVE_VERSION) save(decoded)
+    if (normalizedRaw != raw) save(decoded)
     return decoded
   }
 
@@ -36,8 +56,5 @@ class SharedPreferencesSaveRepository(context: Context) : SaveRepository {
 
   @Synchronized override fun clear() { preferences.edit().remove(KEY_STATE).commit() }
 
-  companion object {
-    private const val KEY_STATE = "game_state"
-    private const val MIGRATABLE_SAVE_VERSION = 4
-  }
+  companion object { private const val KEY_STATE = "game_state" }
 }
