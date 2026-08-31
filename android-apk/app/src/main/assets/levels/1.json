@@ -6,35 +6,35 @@
   "zones": [
     {
       "id": "parking_a",
-      "name": "Khu đỗ xe A",
+      "name": "khu bãi đỗ xe bê tông gần lối vào",
       "connections": ["parking_loop"],
       "tags": ["entry"],
       "properties": {"material": "concrete"}
     },
     {
       "id": "parking_loop",
-      "name": "Vòng lặp bãi đỗ xe 14",
+      "name": "khu bãi đỗ xe có cửa số 14 liên tục xuất hiện lại",
       "connections": ["maintenance", "blackout_hall"],
       "tags": ["loop"],
       "properties": {"door": "14"}
     },
     {
       "id": "maintenance",
-      "name": "Hành lang bảo trì",
+      "name": "hành lang bảo trì có bảng cầu dao điện",
       "connections": ["parking_loop", "blackout_hall"],
       "tags": ["utility"],
       "properties": {"breaker": "main"}
     },
     {
       "id": "blackout_hall",
-      "name": "Hành lang mất điện",
+      "name": "hành lang tối nơi tiếng máy vọng lại từ xa",
       "connections": ["service_elevator"],
       "tags": ["dark"],
       "properties": {"machineHum": "east"}
     },
     {
       "id": "service_elevator",
-      "name": "Thang máy dịch vụ",
+      "name": "khu thang máy dịch vụ ở cuối hành lang",
       "connections": [],
       "tags": ["escape"],
       "properties": {"doorState": "sealed"}
