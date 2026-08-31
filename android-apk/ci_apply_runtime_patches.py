@@ -50,6 +50,7 @@ SCRIPTS = [
     "patch-escape-chance-hud.py",
     "patch-chicken-rice-box-test-compat.py",
     "patch-entity-procedural-loot-rebalance.py",
+    "patch-evidence-highlight-final.py",
 ]
 
 for script in SCRIPTS:
