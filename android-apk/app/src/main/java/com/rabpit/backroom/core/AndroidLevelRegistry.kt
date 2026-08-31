@@ -17,14 +17,18 @@ object AndroidLevelRegistry {
     } else {
       LevelRegistryLoader.load(definitionDocuments.sortedBy { it.path })
     }
+    val explicitDefinitions = explicitRegistry.ids().map(explicitRegistry::require)
 
     val profileDocuments = mutableListOf<ProceduralLevelProfileDocument>()
     collectProfileDocuments(assets, PROFILE_ROOT, profileDocuments)
     if (profileDocuments.isEmpty()) return explicitRegistry
 
     val catalog = AndroidLevelCatalog.load(assets)
-    val compiledProfiles = ProceduralLevelProfileLoader.load(profileDocuments.sortedBy { it.path }, catalog)
-    val explicitDefinitions = explicitRegistry.ids().map(explicitRegistry::require)
+    val compiledProfiles = ProceduralLevelProfileLoader.load(
+      profileDocuments.sortedBy { it.path },
+      catalog,
+      explicitDefinitions.associateBy { it.id }
+    )
     val explicitIds = explicitDefinitions.map { it.id }.toSet()
     val collisions = compiledProfiles.map { it.id }.filter(explicitIds::contains).sorted()
     require(collisions.isEmpty()) { "procedural_profile_conflicts_with_explicit_level:${collisions.joinToString(",")}" }
