@@ -38,59 +38,55 @@ jobs:
           set -euo pipefail
           python - <<'PY'
           from pathlib import Path
-          import re
-
           path = Path('android-apk/prepare-trusted-level-snapshots.py')
           text = path.read_text(encoding='utf-8')
-          pattern = re.compile(r"def load_route\(\) -> list\[tuple\[int, str, str, str\]\]:.*?\n\ndef fetch\(", re.S)
-          replacement = '''def load_route() -> list[tuple[int, str, str, str]]:
-              catalog_root = ROOT / "app/src/main/assets/level_catalog"
-              campaign_id = "BACKROOMS_FANDOM_LEVELS_0_6_R01"
-              entries: list[dict] = []
-              for catalog_path in sorted(catalog_root.rglob("*.json")):
-                  if catalog_path.name.startswith("_"):
-                      continue
-                  raw = json.loads(catalog_path.read_text(encoding="utf-8"))
-                  if isinstance(raw, list):
-                      document_entries = raw
-                      inherited_campaign = ""
-                  elif isinstance(raw, dict):
-                      document_entries = raw.get("entries", [raw])
-                      inherited_campaign = str(raw.get("campaignId") or "").strip()
-                  else:
-                      continue
-                  for entry in document_entries:
-                      if not isinstance(entry, dict):
-                          continue
-                      item = dict(entry)
-                      if inherited_campaign:
-                          item.setdefault("campaignId", inherited_campaign)
-                      entries.append(item)
-              route_entries = [
-                  entry for entry in entries
-                  if str(entry.get("campaignId") or "").strip() == campaign_id
-                  and entry.get("campaignOrder") is not None
-              ]
-              route_entries.sort(key=lambda entry: int(entry["campaignOrder"]))
-              route = [
-                  (
-                      int(entry["parentMainLevel"]),
-                      str(entry["id"]).strip(),
-                      str(entry["name"]).strip(),
-                      str(entry["kind"]).strip().upper(),
-                  )
-                  for entry in route_entries
-              ]
-              if len(route) != 43:
-                  raise RuntimeError(f"Expected catalog-backed 43-area route, found {len(route)}")
-              return route
-
-
-def fetch('''
-          updated, count = pattern.subn(replacement, text, count=1)
-          if count != 1:
-              raise SystemExit(f'route loader anchor mismatch: {count}')
-          path.write_text(updated, encoding='utf-8')
+          start = text.index('def load_route() -> list[tuple[int, str, str, str]]:')
+          end = text.index('\ndef fetch(', start)
+          lines = [
+              'def load_route() -> list[tuple[int, str, str, str]]:',
+              '    catalog_root = ROOT / "app/src/main/assets/level_catalog"',
+              '    campaign_id = "BACKROOMS_FANDOM_LEVELS_0_6_R01"',
+              '    entries: list[dict] = []',
+              '    for catalog_path in sorted(catalog_root.rglob("*.json")):',
+              '        if catalog_path.name.startswith("_"):',
+              '            continue',
+              '        raw = json.loads(catalog_path.read_text(encoding="utf-8"))',
+              '        if isinstance(raw, list):',
+              '            document_entries = raw',
+              '            inherited_campaign = ""',
+              '        elif isinstance(raw, dict):',
+              '            document_entries = raw.get("entries", [raw])',
+              '            inherited_campaign = str(raw.get("campaignId") or "").strip()',
+              '        else:',
+              '            continue',
+              '        for entry in document_entries:',
+              '            if not isinstance(entry, dict):',
+              '                continue',
+              '            item = dict(entry)',
+              '            if inherited_campaign:',
+              '                item.setdefault("campaignId", inherited_campaign)',
+              '            entries.append(item)',
+              '    route_entries = [',
+              '        entry for entry in entries',
+              '        if str(entry.get("campaignId") or "").strip() == campaign_id',
+              '        and entry.get("campaignOrder") is not None',
+              '    ]',
+              '    route_entries.sort(key=lambda entry: int(entry["campaignOrder"]))',
+              '    route = [',
+              '        (',
+              '            int(entry["parentMainLevel"]),',
+              '            str(entry["id"]).strip(),',
+              '            str(entry["name"]).strip(),',
+              '            str(entry["kind"]).strip().upper(),',
+              '        )',
+              '        for entry in route_entries',
+              '    ]',
+              '    if len(route) != 43:',
+              '        raise RuntimeError(f"Expected catalog-backed 43-area route, found {len(route)}")',
+              '    return route',
+              '',
+          ]
+          path.write_text(text[:start] + '\n'.join(lines) + text[end:], encoding='utf-8')
           PY
 
       - name: Rebuild all packaged Snapshot assets
@@ -156,12 +152,7 @@ def fetch('''
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A \
-            android-apk/prepare-trusted-level-snapshots.py \
-            android-apk/app/src/main/assets/level_snapshots \
-            android-apk/ci_apply_runtime_patches.py \
-            android-apk/patch-pixel16-background-overrides.py \
-            android-apk/prepare-fandom-level-snapshots.py
+          git add -A android-apk
           if git diff --cached --quiet; then
             echo "No snapshot changes to commit."
             exit 0
