@@ -193,6 +193,7 @@ object LevelInstanceJson {
   internal fun encodeAction(value: LevelActionRule) = JSONObject().apply {
     put("id", value.id)
     put("matchGroups", JSONArray().apply { value.matchGroups.forEach { put(JSONArray(it.sorted())) } })
+    put("semanticDescriptions", JSONArray(value.semanticDescriptions.sorted()))
     put("conditions", JSONArray(value.conditions.sorted()))
     put("effects", JSONArray().apply { value.effects.forEach { effect ->
       put(JSONObject().apply {
@@ -221,6 +222,7 @@ object LevelInstanceJson {
     return LevelActionRule(
       id = json.optString("id"),
       matchGroups = groups,
+      semanticDescriptions = json.optJSONArray("semanticDescriptions").strings().toSet(),
       conditions = json.optJSONArray("conditions").strings().toSet(),
       effects = effects,
       reply = json.optString("reply").takeIf(String::isNotBlank)

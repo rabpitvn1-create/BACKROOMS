@@ -102,6 +102,36 @@ class LevelInstanceTest {
     assertEquals(state.levelInstance, second.state.levelInstance)
   }
 
+  @Test fun resolvedSemanticActionStillRequiresCorrectSequenceAndConditions() {
+    val registry = registry()
+    val initial = GenericLevelRuntime.install(GameState.initial(), registry, "1", "semantic-guard")
+
+    val missingCondition = GenericLevelRuntime.apply(
+      initial, registry, ActionKind.EXECUTE, "Tắt cầu dao nguồn chính",
+      resolvedExecuteActionId = "cut_power"
+    )
+    assertFalse(missingCondition.progressed)
+    assertEquals(initial.levelInstance, missingCondition.state.levelInstance)
+
+    val wrongSequence = GenericLevelRuntime.apply(
+      initial, registry, ActionKind.EXECUTE, "Bước vào thang máy dịch vụ",
+      resolvedExecuteActionId = "enter_service_elevator"
+    )
+    assertFalse(wrongSequence.progressed)
+    assertEquals(initial.levelInstance, wrongSequence.state.levelInstance)
+  }
+
+  @Test fun searchAndExploreCannotCompleteLevel() {
+    val registry = registry()
+    val initial = GenericLevelRuntime.install(GameState.initial(), registry, "1", "non-execute")
+    val searched = GenericLevelRuntime.apply(initial, registry, ActionKind.SEARCH, "Tìm kiếm")
+    val explored = GenericLevelRuntime.apply(searched.state, registry, ActionKind.EXPLORE, "Khám phá")
+
+    assertFalse(searched.escaped)
+    assertFalse(explored.escaped)
+    assertFalse(explored.state.levelInstance?.completed == true)
+  }
+
   @Test fun playerCanSolveFixtureThroughGenericRuntimeOnly() {
     val registry = registry()
     var state = GenericLevelRuntime.install(GameState.initial(), registry, "1", "solve-seed")
@@ -162,27 +192,31 @@ class LevelInstanceTest {
         listOf(setOf("tắt", "ngắt", "cắt"), setOf("điện", "nguồn", "cầu dao")),
         setOf("zone:maintenance"),
         listOf(LevelEffect(LevelEffectType.SET_ENVIRONMENT, key = "power", value = "off")),
-        "Nguồn điện chính tắt."
+        "Nguồn điện chính tắt.",
+        semanticDescriptions = setOf("ngắt nguồn điện chính tại cầu dao")
       ),
       LevelActionRule(
         "return_door_14",
         listOf(setOf("14"), setOf("quay", "trở", "trở lại")),
         setOf("zone:parking_loop", "env:power=off"),
-        reply = "Kai quay lại cửa 14."
+        reply = "Kai quay lại cửa 14.",
+        semanticDescriptions = setOf("quay lại cửa mang số 14")
       ),
       LevelActionRule(
         "follow_against_hum",
         listOf(setOf("ngược"), setOf("tiếng", "máy", "âm")),
         setOf("zone:blackout_hall", "env:power=off"),
         listOf(LevelEffect(LevelEffectType.MOVE_TO_ZONE, zoneId = "service_elevator")),
-        "Kai đi ngược hướng tiếng máy."
+        "Kai đi ngược hướng tiếng máy.",
+        semanticDescriptions = setOf("đi ngược hướng tiếng máy đang vọng lại")
       ),
       LevelActionRule(
         "enter_service_elevator",
         listOf(setOf("thang máy", "elevator"), setOf("vào", "mở", "đi")),
         setOf("zone:service_elevator"),
         listOf(LevelEffect(LevelEffectType.COMPLETE_LEVEL)),
-        "Lối chuyển Level mở."
+        "Lối chuyển Level mở.",
+        semanticDescriptions = setOf("bước vào thang máy dịch vụ")
       )
     ).associateBy { it.id }
 

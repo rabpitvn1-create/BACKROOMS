@@ -137,6 +137,7 @@
         ["theo hành lang", "bám hành lang", "đi theo"],
         ["tiếng ù yếu", "đèn yếu", "bê tông", "vạch sơn"]
       ],
+      "semanticDescriptions": ["đi theo hành lang có tiếng ù yếu và dấu hiệu chuyển sang bê tông"],
       "conditions": [
         "zone:memory_corridor",
         "fact:MARKERS_ARE_UNRELIABLE",
@@ -154,6 +155,7 @@
         ["đi đến khi", "tiếp tục cho tới", "đi tiếp cho tới"],
         ["kiến trúc đổi", "hết đoạn chuyển", "level 1"]
       ],
+      "semanticDescriptions": ["tiếp tục đi cho tới khi kiến trúc chuyển hẳn sang Level kế tiếp"],
       "conditions": [
         "zone:concrete_drift",
         "action:follow_transition_signs"

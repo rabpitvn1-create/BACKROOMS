@@ -27,7 +27,8 @@ object GenericLevelRuntime {
     registry: LevelRegistry,
     kind: ActionKind,
     input: String,
-    director: BackroomsDirector = BackroomsDirector.DETERMINISTIC
+    director: BackroomsDirector = BackroomsDirector.DETERMINISTIC,
+    resolvedExecuteActionId: String? = null
   ): LevelActionOutcome {
     val stored = state.levelInstance
       ?: return LevelActionOutcome(state, "Level instance chưa được khởi tạo.", progressed = false)
@@ -41,7 +42,7 @@ object GenericLevelRuntime {
     return when (kind) {
       ActionKind.SEARCH -> search(workingState, definition, level, director)
       ActionKind.EXPLORE -> explore(workingState, definition, level, director)
-      ActionKind.EXECUTE -> execute(workingState, definition, level, input, director)
+      ActionKind.EXECUTE -> execute(workingState, definition, level, input, director, resolvedExecuteActionId)
     }
   }
 
@@ -131,9 +132,10 @@ object GenericLevelRuntime {
     definition: LevelDefinition,
     level: LevelInstanceState,
     input: String,
-    director: BackroomsDirector
+    director: BackroomsDirector,
+    resolvedActionId: String?
   ): LevelActionOutcome {
-    val actionId = canonicalAction(level.actions, input)
+    val actionId = resolvedActionId?.takeIf(level.actions::containsKey) ?: canonicalAction(level.actions, input)
       ?: return LevelActionOutcome(
         state,
         reply(level, definition, "execute:unresolved") ?: "Hành động đó không làm thay đổi quy luật đang chi phối khu vực này.",

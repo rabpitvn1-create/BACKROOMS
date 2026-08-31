@@ -12,6 +12,7 @@ engines = (core / 'Engines.kt').read_text(encoding='utf-8')
 intent = (core / 'IntentPipeline.kt').read_text(encoding='utf-8')
 world_ledger = (core / 'WorldItemLedger.kt').read_text(encoding='utf-8')
 knowledge_context = (core / 'knowledge/KnowledgeContextEngine.kt').read_text(encoding='utf-8')
+semantic_mapper = (core / 'SemanticActionMapper.kt').read_text(encoding='utf-8')
 equipment_system = (core / 'CharacterEquipmentSystem.kt').read_text(encoding='utf-8')
 item_catalog = (core / 'ItemCatalog.kt').read_text(encoding='utf-8')
 item_system = (core / 'ItemSystem.kt').read_text(encoding='utf-8')
@@ -31,6 +32,9 @@ scp_finalize = (root / 'patch-scp-173-compat-finalize.py').read_text(encoding='u
 entity_dir = root / 'app/src/main/assets/entity'
 
 required = [
+    ('object SemanticActionMapper', semantic_mapper),
+    ('SemanticActionDescriptor("candidate-$index", rule.semanticDescriptions)', (core / 'RegisteredLevelActionCoordinator.kt').read_text(encoding='utf-8')),
+    ('resolvedExecuteActionId = resolvedExecuteActionId', (core / 'RegisteredLevelActionCoordinator.kt').read_text(encoding='utf-8')),
     ("versionCode 89", gradle), ("versionName '1.3.4'", gradle),
     ('devilBlessingEvasionBonus', combat), ('fun partyBlessing(value: Int)', equipment_system),
     ('return maxOf(1, (base * 5 + 99) / 100)', equipment_system),

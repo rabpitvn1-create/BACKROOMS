@@ -391,7 +391,8 @@ object ProceduralLevelProfileCompiler {
       ),
       conditions = setOf("zone:${zoneIds.last()}", "fact:$FALLBACK_FACT"),
       effects = listOf(LevelEffect(LevelEffectType.COMPLETE_LEVEL)),
-      reply = "Kai không tạo ra lối thoát. Cậu chỉ tiếp tục theo mẫu chuyển vùng đã được quan sát đủ bằng chứng."
+      reply = "Kai không tạo ra lối thoát. Cậu chỉ tiếp tục theo mẫu chuyển vùng đã được quan sát đủ bằng chứng.",
+      semanticDescriptions = setOf("tiếp tục theo dấu hiệu chuyển vùng đã quan sát")
     )
 
     val replies = linkedMapOf<String, String>()

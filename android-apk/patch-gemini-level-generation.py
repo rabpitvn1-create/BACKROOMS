@@ -115,13 +115,13 @@ provider_method = r'''  private String geminiLevelGenerationText(String prompt) 
       "Mỗi requiredFact phải có đủ evidence độc lập và đủ loại source theo generationConstraints. Evidence source chỉ dùng ENVIRONMENT, SEARCH, SURVIVOR, ANOMALY. " +
       "Nếu dùng SURVIVOR thì npcKnowledge chỉ tham chiếu evidence thật và phải được phép bởi constraints. " +
       "Escape chỉ hoàn tất qua chuỗi requiredActions của EXECUTE; action cuối phải có effect COMPLETE_LEVEL. SEARCH/EXPLORE chỉ khám phá hoặc di chuyển, không tự hoàn tất Level. " +
-      "matchGroups là mảng các nhóm từ khóa tiếng Việt; mỗi nhóm cần ít nhất một từ khớp để nhận dạng action. " +
+      "matchGroups là mảng các nhóm từ khóa tiếng Việt cho fast path. semanticDescriptions là mô tả công khai, không chứa condition, effect, thứ tự hay đáp án, dùng để hiểu paraphrase. " +
       "conditions chỉ dùng grammar được cung cấp. effects chỉ dùng SET_ENVIRONMENT, MOVE_TO_ZONE, COMPLETE_LEVEL. " +
       "JSON root bắt buộc gồm: candidateSchemaVersion, initialZoneId, zones, landmarks, environment, environmentTags, phenomena, canonClaims, escapeBlueprint, evidence, npcKnowledge, exploreRoute, actions, replies. " +
       "Zone: {id,name,connections:[id],tags:[tag],properties:{}}. " +
       "EscapeBlueprint: {solutionId,requiredFacts:[id],requiredActions:[actionId],locked:true}. " +
       "Evidence: {id,supports:[factId],sources:[source],zoneId,discoverConditions:[condition]}. " +
-      "Action: {id,matchGroups:[[token]],conditions:[condition],effects:[{type,key?,value?,zoneId?}],reply}. " +
+      "Action: {id,matchGroups:[[token]],semanticDescriptions:[publicDescription],conditions:[condition],effects:[{type,key?,value?,zoneId?}],reply}. " +
       "Dữ liệu ràng buộc từ engine: " + request.toString() + correction;
   }
 
