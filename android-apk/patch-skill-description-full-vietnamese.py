@@ -38,8 +38,7 @@ for line in catalog.splitlines(keepends=True):
 catalog = ''.join(localized_lines)
 CATALOG.write_text(catalog, encoding="utf-8")
 
-# Tighten the existing localization regression. The earlier contract allowed
-# compact English abbreviations DMG/HP; this final pass intentionally does not.
+# Tighten and align existing localization regressions with the final wording.
 test = TEST.read_text(encoding="utf-8")
 test = test.replace(
     'org.junit.Assert.assertTrue(all.any { it.effect.contains("DMG") })',
@@ -48,6 +47,10 @@ test = test.replace(
 test = test.replace(
     'org.junit.Assert.assertTrue(all.any { it.effect.contains("HP") })',
     'org.junit.Assert.assertFalse(all.any { listOfNotNull(it.trigger, it.effect, it.note).joinToString(" ").contains("HP") })',
+)
+test = test.replace(
+    'org.junit.Assert.assertTrue(skill.effect.contains("Base DMG +5%"))',
+    'org.junit.Assert.assertTrue(skill.effect.contains("sát thương cơ bản +5%"))',
 )
 
 regression = r'''
@@ -80,8 +83,6 @@ TEST.write_text(test, encoding="utf-8")
 for line in catalog.splitlines():
     if '    s("' not in line:
         continue
-    # Ignore the canonical name and runtime kind by checking only text after
-    # the first two quoted arguments.
     parts = line.split('"')
     prose = ' '.join(parts[5:]) if len(parts) >= 6 else line
     for token in ("DMG", "HP", "Party", "Entity", "SEARCH", "Exit", "Mana", "Game Master", " canon", " boss", "ACTIVE", "Base DMG"):
