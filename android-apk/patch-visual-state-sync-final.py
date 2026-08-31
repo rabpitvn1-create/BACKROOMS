@@ -18,18 +18,19 @@ def replace_once(source: str, old: str, new: str, label: str) -> str:
 main = MAIN.read_text(encoding="utf-8")
 
 # Cache identity follows both the authoritative Level and the current area/location identity.
-# visualAreaKey is optional, but when present it invalidates an older cached scene even if the
-# human-readable location happens to stay unchanged.
+# Prefer an exact string Level id when present; old numeric saves remain compatible through number.
 old_scene_key = "function visualSceneKey(){var l=state&&state.level&&state.level.number;var where=String(state&&state.location||'').trim().toLowerCase();return String(l==null?'?':l)+'|'+where}"
-new_scene_key = "function visualSceneKey(){var l=state&&state.level&&state.level.number;var where=String(state&&state.location||'').trim().toLowerCase();var area=String(state&&state.flags&&state.flags.visualAreaKey||'').trim().toLowerCase();return String(l==null?'?':l)+'|'+where+'|'+area}"
+new_scene_key = "function visualSceneKey(){var level=state&&state.level;var l=level&&((level.id!==undefined&&level.id!==null)?level.id:level.number);var where=String(state&&state.location||'').trim().toLowerCase();var area=String(state&&state.flags&&state.flags.visualAreaKey||'').trim().toLowerCase();return String(l==null?'?':l)+'|'+where+'|'+area}"
 if new_scene_key not in main:
     main = replace_once(main, old_scene_key, new_scene_key, "area-aware Snapshot scene key")
 
-# Level fallback art must prefer the structured Level selected by the gameplay reducer. Text parsing
-# remains only as an old-save fallback when state.level is missing.
+# Legacy snapshot setup used a numeric 0..6 picker and this finalizer historically upgraded it to
+# structured state. The catalog-driven snapshot resolver already performs the stronger string-ID
+# projection itself, so do not force that new resolver back through the obsolete numeric anchor.
 old_level_picker = "var refs={0:'file:///android_asset/level_snapshots/level_0.webp',1:'file:///android_asset/level_snapshots/level_1.webp',2:'file:///android_asset/level_snapshots/level_2.webp',3:'file:///android_asset/level_snapshots/level_3.webp',4:'file:///android_asset/level_snapshots/level_4.webp',5:'file:///android_asset/level_snapshots/level_5.webp',6:'file:///android_asset/level_snapshots/level_6.webp'};var where=String(state&&state.location||'')+' '+String(state&&state.title||'');var lm=where.match(/Level[^0-9]*([0-6])/i);var lv=lm?Number(lm[1]):0;"
 new_level_picker = "var refs={0:'file:///android_asset/level_snapshots/level_0.webp',1:'file:///android_asset/level_snapshots/level_1.webp',2:'file:///android_asset/level_snapshots/level_2.webp',3:'file:///android_asset/level_snapshots/level_3.webp',4:'file:///android_asset/level_snapshots/level_4.webp',5:'file:///android_asset/level_snapshots/level_5.webp',6:'file:///android_asset/level_snapshots/level_6.webp'};var structuredLevel=state&&state.level&&state.level.number;var where=String(state&&state.location||'')+' '+String(state&&state.title||'');var lm=where.match(/Level[^0-9]*([0-6])/i);var lv=(structuredLevel!==undefined&&structuredLevel!==null&&Number(structuredLevel)>=0&&Number(structuredLevel)<=6)?Number(structuredLevel):(lm?Number(lm[1]):0);"
-if new_level_picker not in main:
+generic_snapshot_picker = "function resolveSnapshotPool(id)" in main
+if not generic_snapshot_picker and new_level_picker not in main:
     main = replace_once(main, old_level_picker, new_level_picker, "authoritative Snapshot Level picker")
 
 # CombatRuntime is the sole visual-presence authority for Entity pixels. entityEncounterKey remains
@@ -93,7 +94,6 @@ if reconcile_call not in main:
 
 for marker in (
     "var area=String(state&&state.flags&&state.flags.visualAreaKey||'')",
-    "var structuredLevel=state&&state.level&&state.level.number;",
     "function activeEntityKey(){var c=state&&state.combat;if(!c||c.active!==true)return '';",
     "private void reconcileVisualWorldState(JSONObject before, JSONObject candidateState, JSONObject rolls)",
     "structuredLevel != oldLevel ? structuredLevel",
@@ -102,6 +102,8 @@ for marker in (
 ):
     if marker not in main:
         raise RuntimeError("Visual state synchronization contract missing: " + marker)
+if "function resolveSnapshotPool(id)" not in main and "var structuredLevel=state&&state.level&&state.level.number;" not in main:
+    raise RuntimeError("Visual state synchronization contract missing an authoritative Snapshot Level picker")
 for retired in (
     "if(f.jeff&&f.jeff.present===true)return 'jeff_the_killer'",
     "if(f.jane&&f.jane.present===true)return 'jane_the_killer'",
