@@ -95,7 +95,7 @@ test -s apk-check/assets/entity/slenderman.png
 test -s apk-check/assets/entity/diep_minh.png
 test -s apk-check/assets/entity/173.png
 test -s apk-check/assets/entity/SCP173.png
-test -s apk-check/assets/entity/John.png
+test -s apk-check/assets/entity/Jane.png
 test -s apk-check/assets/entity/Newviolet.png
 test -s apk-check/assets/entity/Kai-TheDevilWithin.png
 test -s apk-check/assets/Kai_new_overlay.png
