@@ -96,6 +96,7 @@ required = [
     ('next = next.copy(world = next.world + ("flagsJson" to flags.toString()))', facade),
     ('thresholdRoll("diepMinhEncounter", 10000, EntityEncounterPolicy.scaledThreshold(300),', java),
     ('EntityEncounterPolicy.scaledThreshold(entityThresholds[level])', java),
+    ('import com.rabpit.backroom.core.EntityEncounterPolicy;', java),
     ('proceduralEntitiesAllowed', java),
     ('entityKey = "diep_minh";', java),
     ('ARGUS // Thousandfold Execution', skill_catalog), ('Twosome Time', skill_catalog), ('Honeycomb Fire', skill_catalog),
