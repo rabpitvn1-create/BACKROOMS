@@ -38,7 +38,7 @@ FIXED_TRAIN = {
 
 PARAPHRASE_TRAIN = {
  "PICKUP_ITEM": ["gom chiếc hộp lên", "Kai cúi nhặt món đồ", "cầm lấy vật trước mặt", "nhấc bình nước khỏi nền", "thu món đồ dưới đất", "gom radio khỏi mặt đất", "nhặt radio nằm trên sàn"],
- "DROP_ITEM": ["đặt chai xuống nền", "buông món đồ đang cầm", "để vật đó lại", "Kai đặt khẩu súng xuống", "thả tay khỏi chiếc hộp", "Kai để chai rỗng xuống", "đặt vật lại tại chỗ", "buông đồ khỏi tay", "thả vật đang cầm xuống"],
+ "DROP_ITEM": ["đặt chai xuống nền", "buông món đồ đang cầm", "để vật đó lại", "Kai đặt khẩu súng xuống", "thả tay khỏi chiếc hộp", "Kai để chai rỗng xuống", "đặt vật lại tại chỗ", "buông đồ khỏi tay", "thả vật đang cầm xuống", "buông chai khỏi tay", "buông vật xuống nền", "thả đồ khỏi tay"],
  "USE_ITEM": ["bật chiếc radio lên", "Kai bật đèn pin", "mở radio để sử dụng", "uống một ngụm Almond Water", "áp dụng bộ cứu thương lên vết thương", "mở và dùng vật phẩm", "kích hoạt công cụ đang cầm"],
  "TRANSFER_ITEM": ["chia Iris một chai", "giao radio sang tay Syvial", "chuyển vật đó cho cô ấy", "đặt viên pin vào tay Iris", "Kai giao món đồ cho đồng đội"],
  "EQUIP_ITEM": ["rút súng cầm sẵn", "mang mặt nạ bảo hộ", "lắp dao vào ô vũ khí", "đưa radio vào slot trang bị", "Kai cầm vũ khí trong tay"],
@@ -77,7 +77,8 @@ CONTEXT_TRAIN = {
   "Kai chuyển một chai cho Lucia", "Kai chuyển món đồ cho cô ấy", "chuyển chai nước cho cô ấy",
   "nhường chai nước cho Syvial", "nhường viên pin cho Iris", "nhường món vừa nhặt cho An Nhiên",
   "trao món đang cầm cho Lucia", "giao vật vừa nhặt sang Iris", "đưa nó sang Lucia",
-  "cho Lucia món vừa nhặt",
+  "cho Lucia món vừa nhặt", "nhường nước hạnh nhân cho Iris", "nhường băng gạc cho Lucia",
+  "nhường vật đang cầm cho Syvial",
  ],
 }
 
@@ -107,6 +108,9 @@ NO_ACTION_TRAIN = [
  "nếu trao băng gạc cho Iris thì sao", "Kai chưa chuyển món đó cho Lucia", "Kai vẫn chưa trao chai nước cho Syvial",
  "đừng dùng thuốc giảm đau cho Iris", "không được dùng băng gạc cho Lucia", "đừng cho Syvial uống nước",
  "nếu cho Lucia dùng băng gạc thì sao", "Kai chưa băng bó cho Lucia", "Kai chưa uống chai vừa nhặt",
+ "đừng cho Lucia dùng thuốc giảm đau", "đừng cho Syvial dùng băng gạc", "đừng cho An Nhiên dùng thuốc sát trùng",
+ "không cho Iris dùng nước hạnh nhân", "không cho Lucia uống nước", "đừng để Iris dùng món đó",
+ "không được cho Syvial dùng vật phẩm", "đừng cho cô ấy dùng băng gạc",
 ]
 
 UNKNOWN_TRAIN = [
