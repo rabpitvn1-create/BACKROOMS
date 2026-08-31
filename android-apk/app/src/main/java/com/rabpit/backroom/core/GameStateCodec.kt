@@ -18,6 +18,7 @@ object GameStateCodec {
     put("omnivault", omnivault(state.omnivault))
     put("turn", turn(state.turn))
     put("time", gameTime(state.time))
+    putNullable("levelInstance", state.levelInstance?.let(LevelInstanceJson::encode))
     put("world", stringMap(state.world))
     put("metadata", stringMap(state.metadata))
   }.toString()
@@ -28,9 +29,19 @@ object GameStateCodec {
     val version = root.optInt("saveVersion", 0)
     return when {
       version >= CURRENT_SAVE_VERSION -> decodeCurrent(root)
+      version == 4 -> migrateV4Core(root)
       version == 2 && root.has("inventories") -> migrateV2Core(root)
       else -> LegacySaveMigration.migrate(root)
     }
+  }
+
+  private fun migrateV4Core(root: JSONObject): GameState {
+    val migrated = decodeCurrent(root)
+    return migrated.copy(
+      levelInstance = null,
+      saveVersion = CURRENT_SAVE_VERSION,
+      metadata = migrated.metadata + ("migratedFromVersion" to "4")
+    )
   }
 
   private fun migrateV2Core(root: JSONObject): GameState {
@@ -92,6 +103,7 @@ object GameStateCodec {
       turn = decodeTurn(root.optJSONObject("turn") ?: JSONObject()),
       time = decodeGameTime(root.optJSONObject("time")),
       world = root.optJSONObject("world").stringsMap(),
+      levelInstance = root.optJSONObject("levelInstance")?.let(LevelInstanceJson::decode),
       saveVersion = CURRENT_SAVE_VERSION,
       metadata = root.optJSONObject("metadata").stringsMap()
     )
