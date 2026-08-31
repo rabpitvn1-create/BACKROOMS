@@ -58,6 +58,7 @@ SCRIPTS = [
     "patch-kai-devil-within-snapshot-finalize.py",
     "patch-campaign-route-authority-final.py",
     "patch-discovery-knowledge-projection.py",
+    "patch-world-director-proposal-boundary.py",
 ]
 
 for script in SCRIPTS:

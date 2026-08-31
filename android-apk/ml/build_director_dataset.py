@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Build the first seed dataset for the on-device BackroomsDirector policy.
+"""Build the seed dataset for the on-device WorldDirector proposal policy.
 
-This dataset does not encode Level IDs, puzzle answers, or evidence IDs. It teaches only a small
-source-selection policy from observable/derived behavior features. The engine still owns legality.
+The model never sees Level IDs, zone IDs, escape/transition tags, puzzle answers, evidence IDs,
+required facts/actions, inventory contents, or Entity identities. Core computes the legal proposal
+set first; LiteRT only ranks broad pressure classes inside that set.
 """
 import csv
 from pathlib import Path
@@ -13,15 +14,15 @@ ZONES = [
     "zone_loop",
     "zone_memory_room",
     "zone_utility",
-    "zone_transition_candidate",
     "zone_fluorescent",
     "zone_dark",
+    "zone_wet",
 ]
 EVIDENCE = ["evidence_none", "evidence_some", "evidence_many"]
 REVISIONS = ["revision_early", "revision_changed"]
 
 
-def add(rows, label, action, visit, candidates, *, recent="recent_move", seen=(), unseen=(), repeats=48):
+def add(rows, label, action, visit, candidates, *, recent="recent_move", repeats=64):
     for index in range(repeats):
         tokens = [
             action,
@@ -32,10 +33,7 @@ def add(rows, label, action, visit, candidates, *, recent="recent_move", seen=()
             EVIDENCE[(index // 2) % len(EVIDENCE)],
         ]
         tokens.extend(f"candidate_{name}" for name in candidates)
-        tokens.extend(f"seen_{name}" for name in seen)
-        tokens.extend(f"unseen_{name}" for name in unseen)
-        # Include harmless context variation so the model cannot memorize one exact sentence.
-        tokens.append(f"context_bucket_{index % 7}")
+        tokens.append(f"context_bucket_{index % 11}")
         split = "test" if index % 5 == 0 else "train"
         rows.append({"text": " ".join(tokens), "intent": label, "split": split})
 
@@ -43,30 +41,29 @@ def add(rows, label, action, visit, candidates, *, recent="recent_move", seen=()
 def main():
     rows = []
 
-    # SEARCH is always incremental investigation. Other source tokens may exist in the Level, but
-    # a SEARCH action only ranks evidence already tagged SEARCH by the deterministic runtime.
-    add(rows, "SEARCH", "action_search", "visit_first", ["search"], unseen=["search"])
-    add(rows, "SEARCH", "action_search", "visit_repeat", ["search"], seen=["environment"], unseen=["search"])
-    add(rows, "SEARCH", "action_search", "visit_deep", ["search"], seen=["anomaly", "survivor"], unseen=["search"])
+    # NONE is the safe abstention class. EXECUTE never asks the director to create world pressure,
+    # and any action with no legal pressure candidate remains NONE.
+    add(rows, "NONE", "action_execute", "visit_first", ["none"], recent="recent_execute")
+    add(rows, "NONE", "action_execute", "visit_repeat", ["none"], recent="recent_execute")
+    add(rows, "NONE", "action_search", "visit_first", ["none"])
 
-    # Repeated traversal favors environmental pattern evidence: loops, relocated marks, geometry
-    # drift, light changes, and other observations that only become meaningful after repetition.
-    add(rows, "ENVIRONMENT", "action_explore", "visit_repeat", ["environment", "anomaly"], unseen=["environment"])
-    add(rows, "ENVIRONMENT", "action_explore", "visit_deep", ["environment", "survivor"], seen=["survivor"], unseen=["environment"])
-    add(rows, "ENVIRONMENT", "action_explore", "visit_repeat", ["environment"], seen=["anomaly"], unseen=["environment"])
+    # Repeated/deep traversal is where local maze pressure is useful. Core only advertises this
+    # candidate when proceduralTopology is enabled and the local graph passes the liveness gate.
+    add(rows, "MAZE_PRESSURE", "action_explore", "visit_repeat", ["none", "maze_pressure", "entity_pressure"])
+    add(rows, "MAZE_PRESSURE", "action_explore", "visit_deep", ["none", "maze_pressure", "item_opportunity"])
+    add(rows, "MAZE_PRESSURE", "action_explore", "visit_deep", ["none", "maze_pressure"])
 
-    # A committed world-changing EXECUTE can make an anomaly newly observable. First-entry explore
-    # with no survivor evidence also prefers anomaly over inventing a source that is not present.
-    add(rows, "ANOMALY", "action_execute", "visit_first", ["anomaly", "environment"], recent="recent_execute", unseen=["anomaly"])
-    add(rows, "ANOMALY", "action_execute", "visit_repeat", ["anomaly", "survivor"], recent="recent_execute", unseen=["anomaly"])
-    add(rows, "ANOMALY", "action_explore", "visit_first", ["anomaly"], unseen=["anomaly"])
-    add(rows, "ANOMALY", "action_explore", "visit_first", ["anomaly", "environment"], unseen=["anomaly", "environment"])
+    # First/early exploration can request combat pressure, but Core still owns allowEntities,
+    # existing-combat checks, encounter probability, Entity selection, and actual combat start.
+    add(rows, "ENTITY_PRESSURE", "action_explore", "visit_first", ["none", "entity_pressure", "item_opportunity"])
+    add(rows, "ENTITY_PRESSURE", "action_explore", "visit_first", ["none", "entity_pressure", "maze_pressure"])
+    add(rows, "ENTITY_PRESSURE", "action_explore", "visit_repeat", ["none", "entity_pressure"])
 
-    # On first contact, legitimate survivor-origin evidence may surface before less personal clues.
-    # The runtime has already checked that the evidence exists and its discoverConditions are met.
-    add(rows, "SURVIVOR", "action_explore", "visit_first", ["survivor", "anomaly"], unseen=["survivor"])
-    add(rows, "SURVIVOR", "action_explore", "visit_first", ["survivor", "environment"], seen=["environment"], unseen=["survivor"])
-    add(rows, "SURVIVOR", "action_explore", "visit_first", ["survivor"], unseen=["survivor"])
+    # Search/resource pacing may request an item opportunity. This never grants or names an item;
+    # inventory authority and acquisition remain entirely in Core.
+    add(rows, "ITEM_OPPORTUNITY", "action_search", "visit_first", ["none", "item_opportunity"])
+    add(rows, "ITEM_OPPORTUNITY", "action_search", "visit_repeat", ["none", "item_opportunity"])
+    add(rows, "ITEM_OPPORTUNITY", "action_explore", "visit_deep", ["none", "item_opportunity", "entity_pressure"])
 
     OUT.write_text("", encoding="utf-8")
     with OUT.open("w", newline="", encoding="utf-8") as handle:
@@ -74,7 +71,8 @@ def main():
         writer.writeheader()
         writer.writerows(rows)
 
-    counts = {label: sum(1 for row in rows if row["intent"] == label) for label in ("SEARCH", "ENVIRONMENT", "ANOMALY", "SURVIVOR")}
+    labels = ("NONE", "MAZE_PRESSURE", "ENTITY_PRESSURE", "ITEM_OPPORTUNITY")
+    counts = {label: sum(1 for row in rows if row["intent"] == label) for label in labels}
     print({"rows": len(rows), "counts": counts, "output": str(OUT)})
 
 

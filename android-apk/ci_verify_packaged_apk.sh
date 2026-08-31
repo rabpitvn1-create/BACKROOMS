@@ -79,16 +79,21 @@ print(
 )
 PY
 
-# Both local models are build-time generated/cache-restored assets. The Director model is separate
-# from player-intent classification and can only rank evidence already declared legal by Core.
+# Both local models are build-time generated/cache-restored assets. The Director model now ranks
+# broad world-pressure proposals only; Core owns legality/liveness and the proposal cannot mutate
+# gameplay state by itself. Evidence-source labels are retired from the packaged model contract.
 test -s apk-check/assets/models/backroom_intent.tflite
 test -s apk-check/assets/models/backroom_intent_labels.txt
 test -s apk-check/assets/models/backrooms_director.tflite
 test -s apk-check/assets/models/backrooms_director_labels.txt
-grep -q '^SEARCH$' apk-check/assets/models/backrooms_director_labels.txt
-grep -q '^ENVIRONMENT$' apk-check/assets/models/backrooms_director_labels.txt
-grep -q '^ANOMALY$' apk-check/assets/models/backrooms_director_labels.txt
-grep -q '^SURVIVOR$' apk-check/assets/models/backrooms_director_labels.txt
+grep -q '^NONE$' apk-check/assets/models/backrooms_director_labels.txt
+grep -q '^MAZE_PRESSURE$' apk-check/assets/models/backrooms_director_labels.txt
+grep -q '^ENTITY_PRESSURE$' apk-check/assets/models/backrooms_director_labels.txt
+grep -q '^ITEM_OPPORTUNITY$' apk-check/assets/models/backrooms_director_labels.txt
+! grep -q '^SEARCH$' apk-check/assets/models/backrooms_director_labels.txt
+! grep -q '^ENVIRONMENT$' apk-check/assets/models/backrooms_director_labels.txt
+! grep -q '^ANOMALY$' apk-check/assets/models/backrooms_director_labels.txt
+! grep -q '^SURVIVOR$' apk-check/assets/models/backrooms_director_labels.txt
 
 test -s apk-check/assets/entity/hound.png
 test -s apk-check/assets/entity/slenderman.png
