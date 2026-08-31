@@ -55,9 +55,10 @@ required = [
     ('fun applyCompletedTurnRegen', equipment_system),
     ('regenRunsExactlyOnceAndZeroHpCannotBeRescued', status_tests),
     ('inventoryOwnsSameItemReferencedByEquipment', status_tests),
-    ('const val BASE_DROP_BONUS_PERCENT = 8', item_catalog),
+    ('const val DROP_CHANCE_PERCENT = 100', item_catalog),
+    ('WorldLootAcquisition.acquire(selected, lootId, KAI_ID)', item_catalog),
+    ('"acquisitionSource" to parts[3]', item_catalog),
     ('const val BASE_EXPLORATION_BONUS_BASIS_POINTS = 500', item_catalog),
-    ('BASE_DROP_BONUS_PERCENT + (killsWithoutDrop(state) + 1) * DROP_STEP_PERCENT', item_catalog),
     ('base + BASE_EXPLORATION_BONUS_BASIS_POINTS + pity + follower', item_catalog),
     ('"kai" to ItemCapacity(14, 999)', item_system),
     ('"special_companion" to ItemCapacity(11, 20)', item_system),
@@ -65,7 +66,7 @@ required = [
     ('"an_nhien_food_only" to ItemCapacity(7, 20)', item_system),
     ('"normal" to ItemCapacity(7, 2)', item_system),
     ('class MadGodRemovalLootCapacityTest', removal_tests),
-    ('assertEquals(10, EntityLootEngine.dropChancePercent(state))', removal_tests),
+    ('assertEquals(100, EntityLootEngine.dropChancePercent(state))', removal_tests),
     ('assertEquals(635, preview.threshold)', removal_tests),
     ('sceneKey:visualSceneKey()', java), ('r.sceneKey===visualSceneKey()', java),
     ('private int mentionedLevel(JSONObject state)', java),
@@ -93,7 +94,10 @@ required = [
     ('val resolvedEntityKey = CombatRuntime.active(current)?.entityKey.orEmpty()', facade),
     ('flags.put("entityEncounterKey", "")', facade),
     ('next = next.copy(world = next.world + ("flagsJson" to flags.toString()))', facade),
-    ('thresholdRoll("diepMinhEncounter", 10000, 300,', java),
+    ('thresholdRoll("diepMinhEncounter", 10000, EntityEncounterPolicy.scaledThreshold(300),', java),
+    ('EntityEncounterPolicy.scaledThreshold(entityThresholds[level])', java),
+    ('import com.rabpit.backroom.core.EntityEncounterPolicy;', java),
+    ('proceduralEntitiesAllowed', java),
     ('entityKey = "diep_minh";', java),
     ('ARGUS // Thousandfold Execution', skill_catalog), ('Twosome Time', skill_catalog), ('Honeycomb Fire', skill_catalog),
     ('GodKiller Override // Twenty-Four Severance', skill_catalog), ('Crimson Guillotine', skill_catalog), ('Spatial Dominion', skill_catalog),
@@ -132,6 +136,12 @@ required = [
 ]
 for marker, source in required:
     assert marker in source, marker
+
+entity_context_start = facade.index('put("entityEncounter", JSONObject().apply {')
+entity_context_end = facade.index('LevelLootEngine.preparedPreview', entity_context_start)
+entity_context = facade[entity_context_start:entity_context_end]
+for hidden in ['escapeBlueprint', 'solutionId', 'requiredFacts', 'requiredActions', 'completedActions', 'evidence']:
+    assert hidden not in entity_context, hidden
 
 assert 'return explicitlyReady || levelTurns(state) >= 6;' not in java
 assert 'newLevel = mentioned;' not in java
