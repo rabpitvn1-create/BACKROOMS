@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parent
 INDEX = ROOT / "app/src/main/assets/index.html"
@@ -11,12 +12,13 @@ java = MAIN.read_text(encoding="utf-8")
 # counters/state for idempotency, saves, legacy compatibility and diagnostics, but do not expose
 # them in the HUD. Registered Levels resolve escape through locked blueprints rather than a visible
 # probability meter.
-style = ".turn{display:none!important}"
-if style not in html:
-    anchor = "</style>"
-    if html.count(anchor) != 1:
-        raise RuntimeError("progress HUD hide style anchor missing")
-    html = html.replace(anchor, style + "\n" + anchor, 1)
+if ".turn{display:none!important}" not in html:
+    html, count = re.subn(r"\.turn\{[^}]*\}", ".turn{display:none!important}", html, count=1)
+    if count == 0:
+        head_end = html.find("</head>")
+        if head_end < 0:
+            raise RuntimeError("progress HUD head anchor missing")
+        html = html[:head_end] + "<style>.turn{display:none!important}</style>\n" + html[head_end:]
 
 html = html.replace('placeholder="Kai làm gì trong Turn hiện tại?"', 'placeholder="Kai làm gì?"')
 html = html.replace('placeholder="Kai làm gì trong turn hiện tại?"', 'placeholder="Kai làm gì?"')
@@ -33,7 +35,7 @@ for forbidden in (
 
 if "getEscapeChancePercent(String stateJson)" in java:
     raise RuntimeError("Obsolete Android escape-percent bridge survived")
-if style not in html:
+if ".turn{display:none!important}" not in html:
     raise RuntimeError("TURN HUD is not hidden")
 if 'id="turn"' not in html:
     raise RuntimeError("Internal WebView turn binding must remain available for legacy bookkeeping")
