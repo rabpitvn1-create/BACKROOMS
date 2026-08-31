@@ -44,9 +44,18 @@ jobs:
           grep -q "versionCode 89" android-apk/app/build.gradle
           grep -q "versionName '1.3.4'" android-apk/app/build.gradle
           test -s android-apk/RELEASE_NOTES_1.3.4.md
+          test -s android-apk/validate_level_content.py
+          test -s android-apk/test_validate_level_content.py
           test -s android-apk/ci_apply_runtime_patches.py
           test -s android-apk/ci_verify_runtime_contracts.py
           test -s android-apk/ci_verify_packaged_apk.sh
+
+      - name: Validate Level content and scale contracts
+        run: |
+          set -euo pipefail
+          cd android-apk
+          python3 -m unittest -v test_validate_level_content.py
+          python3 validate_level_content.py --strict --audit-source --report
 
       - name: Restore LiteRT intent model
         id: litert-cache
@@ -182,9 +191,13 @@ jobs:
         with:
           gradle-version: "8.10.2"
 
-      - name: Run Kotlin tests and build debug APK
+      - name: Run Kotlin tests
         working-directory: android-apk
-        run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon --build-cache
+        run: gradle :app:testDebugUnitTest --no-daemon --build-cache
+
+      - name: Build debug APK
+        working-directory: android-apk
+        run: gradle :app:assembleDebug --no-daemon --build-cache
 
       - name: Prepare debug APK
         run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.3.4-debug.apk
