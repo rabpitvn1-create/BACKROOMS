@@ -35,12 +35,13 @@ class WorldDirectorTest {
   @Test fun proposalIsReadOnlyAndCannotManufactureInventoryOrTopology() {
     val definition = definition(allowEntities = true, proceduralTopology = true)
     val before = state(definition)
+    val snapshot = before
     val director = WorldDirector(WorldDirectorPolicy { WorldPressureProposal.ITEM_OPPORTUNITY })
 
     val decision = director.propose(before, definition, ActionKind.SEARCH)
 
     assertEquals(WorldPressureProposal.ITEM_OPPORTUNITY, decision.accepted)
-    assertEquals(before, state(definition).copy(levelInstance = before.levelInstance))
+    assertEquals(snapshot, before)
     assertTrue(before.inventories.getValue(KAI_ID).items.isEmpty())
     assertEquals(definition.zones, before.levelInstance!!.zones)
   }
@@ -87,18 +88,33 @@ class WorldDirectorTest {
     val zones = mapOf(
       "a" to ZoneState("a", "A", setOf("b", "c"), setOf("loop", "entry")),
       "b" to ZoneState("b", "B", setOf("a", "c"), setOf("dark")),
-      "c" to ZoneState("c", "C", setOf("a", "b"), setOf("level_transition"))
+      "c" to ZoneState("c", "C", setOf("a", "b"), setOf("escape", "level_transition"))
+    )
+    val evidence = mapOf(
+      "f-search" to EvidenceState("f-search", setOf("F"), setOf(EvidenceSource.SEARCH), "a"),
+      "f-environment" to EvidenceState("f-environment", setOf("F"), setOf(EvidenceSource.ENVIRONMENT), "b")
+    )
+    val exit = LevelActionRule(
+      id = "exit",
+      matchGroups = listOf(setOf("exit")),
+      conditions = setOf("zone:c", "fact:F"),
+      effects = listOf(LevelEffect(LevelEffectType.COMPLETE_LEVEL))
     )
     return LevelDefinition(
       id = "world-director-test",
       name = "World Director Test",
       initialZoneId = "a",
       zones = zones,
-      escapeBlueprint = EscapeBlueprintState("hidden-solution", emptySet(), emptyList()),
-      evidence = emptyMap(),
+      escapeBlueprint = EscapeBlueprintState("hidden-solution", setOf("F"), listOf("exit")),
+      evidence = evidence,
+      exploreRoute = listOf("b", "c"),
+      actions = mapOf("exit" to exit),
       generationConstraints = ProceduralGenerationConstraints(
         minZones = 3,
         maxZones = 8,
+        minEvidencePerRequiredFact = 2,
+        minEvidenceSourceTypesPerRequiredFact = 2,
+        maxRequiredActions = 4,
         allowEntities = allowEntities,
         proceduralTopology = proceduralTopology
       )
