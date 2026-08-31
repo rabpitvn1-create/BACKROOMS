@@ -13,7 +13,7 @@ BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d |
 
 rm -rf apk-check
 mkdir apk-check
-unzip -q "$APK" 'assets/index.html' 'assets/levels/*' 'assets/level_catalog/*' 'assets/models/*' 'assets/entity/*' 'assets/Kai_new_overlay.png' 'assets/BESTKAIV2.png' -d apk-check
+unzip -q "$APK" 'assets/index.html' 'assets/levels/*' 'assets/level_profiles/*' 'assets/level_catalog/*' 'assets/models/*' 'assets/entity/*' 'assets/Kai_new_overlay.png' 'assets/BESTKAIV2.png' -d apk-check
 
 grep -q 'searchActionButton' apk-check/assets/index.html
 grep -q 'exploreActionButton' apk-check/assets/index.html
@@ -37,6 +37,10 @@ test -s apk-check/assets/levels/0.json
 test -s apk-check/assets/levels/1.json
 grep -q '"schemaVersion"' apk-check/assets/levels/1.json
 grep -q '"escapeBlueprint"' apk-check/assets/levels/1.json
+
+test -s apk-check/assets/level_profiles/2.json
+grep -q '"id": "2"' apk-check/assets/level_profiles/2.json
+grep -q '"pipeWaterRule": "never_drink_directly"' apk-check/assets/level_profiles/2.json
 
 test -s apk-check/assets/level_catalog/backrooms-0-6.json
 grep -q '"campaignId": "BACKROOMS_FANDOM_LEVELS_0_6_R01"' apk-check/assets/level_catalog/backrooms-0-6.json
