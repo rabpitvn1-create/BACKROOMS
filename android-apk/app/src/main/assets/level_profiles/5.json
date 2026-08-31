@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "id": "5",
+  "canonProfile": {
+    "environmentTags": [
+      "vast_hotel_network",
+      "early_twentieth_century_hotel_aesthetic",
+      "lobbies",
+      "ballrooms",
+      "guest_rooms",
+      "restaurants",
+      "pools",
+      "hotel_corridors",
+      "maintenance_halls",
+      "boiler_rooms",
+      "strong_non_euclidean_geometry",
+      "era_shifted_wings"
+    ],
+    "requiredZoneTags": ["entry", "escape"],
+    "allowedPhenomena": [
+      "paranoia",
+      "whispering",
+      "phantom_voice_behind",
+      "shoulder_touch_sensation",
+      "reflection_shadow",
+      "sleep_disruption",
+      "memory_sound_confusion",
+      "non_euclidean_wing_shift"
+    ],
+    "forbiddenClaims": [
+      "backrooms_confirmed_conscious",
+      "level_confirmed_intentionally_opposes_player",
+      "sanity_meter_is_canon",
+      "all_mental_effects_confirmed_level_caused",
+      "beast_confirmed_controls_entire_hotel"
+    ],
+    "transitionTags": [
+      "boiler_or_maintenance_passage",
+      "progressive_light_loss",
+      "sharp_temperature_drop",
+      "walls_fade_into_darkness",
+      "floor_becomes_ground_or_snow"
+    ],
+    "metadata": {
+      "projectDanger": "EXTREME",
+      "canonSource": "BACKROOMS-LEVELS-R2-L0-6",
+      "transitionTarget": "6",
+      "mentalEffectCause": "open_multifactor",
+      "residentEntityPolicy": "allowed_by_entity_codex"
+    }
+  },
+  "generationConstraints": {
+    "minZones": 6,
+    "maxZones": 36,
+    "minEvidencePerRequiredFact": 2,
+    "minEvidenceSourceTypesPerRequiredFact": 2,
+    "maxRequiredActions": 9,
+    "allowSurvivors": true,
+    "allowEntities": true,
+    "proceduralTopology": true,
+    "proceduralLandmarks": true,
+    "proceduralEvidencePlacement": true,
+    "proceduralEscapeBlueprint": true
+  },
+  "metadata": {
+    "profileSource": "project-level-canon",
+    "profileRevision": "R2"
+  }
+}
