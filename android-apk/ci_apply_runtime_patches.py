@@ -47,6 +47,7 @@ SCRIPTS = [
     "patch-gemini-level-generation.py",
     "patch-private-core-save-final.py",
     "patch-escape-chance-hud.py",
+    "patch-chicken-rice-box-test-compat.py",
 ]
 
 for script in SCRIPTS:

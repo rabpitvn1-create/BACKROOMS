@@ -6,8 +6,8 @@ import org.junit.Test
 
 class ExtensibleItemSystemTest {
   @Test fun existingCatalogAndKaiCodexLimitsRemainLocked() {
-    assertEquals(11, ItemCatalog.items.size)
-    assertEquals(11, ItemCatalog.ids.size)
+    assertEquals(12, ItemCatalog.items.size)
+    assertEquals(12, ItemCatalog.ids.size)
     assertEquals(
       mapOf(
         ItemCatalog.FLASHLIGHT to OfficialItemType.TOOL,
@@ -20,7 +20,8 @@ class ExtensibleItemSystemTest {
         ItemCatalog.ANTISEPTIC to OfficialItemType.CONSUMABLE,
         ItemCatalog.PAINKILLER to OfficialItemType.CONSUMABLE,
         ItemCatalog.SARDINES to OfficialItemType.CONSUMABLE,
-        ItemCatalog.LA_VIE to OfficialItemType.CONSUMABLE
+        ItemCatalog.LA_VIE to OfficialItemType.CONSUMABLE,
+        ItemCatalog.CHICKEN_RICE_BOX to OfficialItemType.CONSUMABLE
       ),
       ItemCatalog.items.associate { it.id to it.type }
     )

@@ -24,6 +24,7 @@ object ItemCatalog {
   const val PAINKILLER = "painkiller"
   const val SARDINES = "three-lady-cooks-sardines"
   const val LA_VIE = "la-vie-spring-water"
+  const val CHICKEN_RICE_BOX = "chicken-rice-box"
 
   private fun tool(vararg values: Pair<String, String>) = mapOf("itemType" to "TOOL") + values
   private fun consumable(vararg values: Pair<String, String>) =
@@ -53,6 +54,9 @@ object ItemCatalog {
     )),
     OfficialItem(LA_VIE, "Nước suối La Vie", OfficialItemType.CONSUMABLE, consumable(
       "englishAlias" to "La Vie Spring Water", "physiologyEffect" to "WATER", "hydration" to "50", "normal" to "true"
+    )),
+    OfficialItem(CHICKEN_RICE_BOX, "Hộp cơm gà", OfficialItemType.CONSUMABLE, consumable(
+      "physiologyEffect" to "FOOD", "hunger" to "100"
     ))
   )
 

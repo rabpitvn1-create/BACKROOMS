@@ -21,15 +21,34 @@ class OfficialItemSystemTest {
   ))
 
   @Test fun catalogContainsExactlyTwoToolsNineConsumablesAndNoAmmo() {
-    assertEquals(11, ItemCatalog.items.size)
-    assertEquals(11, ItemCatalog.ids.size)
+    assertEquals(12, ItemCatalog.items.size)
+    assertEquals(12, ItemCatalog.ids.size)
     assertEquals(2, ItemCatalog.items.count { it.type == OfficialItemType.TOOL })
-    assertEquals(9, ItemCatalog.items.count { it.type == OfficialItemType.CONSUMABLE })
+    assertEquals(10, ItemCatalog.items.count { it.type == OfficialItemType.CONSUMABLE })
     assertFalse(ItemCatalog.items.any { it.id.contains("ammo", true) || it.name.contains("ammo", true) })
   }
 
+  @Test fun chickenRiceBoxIsOfficialConsumableFoodWithHunger100AndResetsMinutesSinceFood() {
+    val item = ItemCatalog.find(ItemCatalog.CHICKEN_RICE_BOX)
+    assertNotNull(item)
+    assertEquals("Hộp cơm gà", item!!.name)
+    assertEquals(OfficialItemType.CONSUMABLE, item.type)
+    assertEquals("FOOD", item.metadata["physiologyEffect"])
+    assertEquals("100", item.metadata["hunger"])
+    assertTrue(ItemCatalog.items.contains(item))
+
+    val baseState = grant(GameState.initial(), ItemCatalog.CHICKEN_RICE_BOX, 1)
+    val hungryState = baseState.copy(characters = baseState.characters + (KAI_ID to baseState.characters.getValue(KAI_ID).copy(
+      physiology = baseState.characters.getValue(KAI_ID).physiology.copy(minutesSinceFood = 500L)
+    )))
+    val result = use(hungryState, ItemCatalog.CHICKEN_RICE_BOX)
+    assertTrue(result.applied)
+    assertEquals(0L, result.state.characters.getValue(KAI_ID).physiology.minutesSinceFood)
+    assertFalse(result.state.inventories.getValue(KAI_ID).items.containsKey(ItemCatalog.CHICKEN_RICE_BOX))
+  }
+
   @Test fun wholeUnitFoodAndWaterUsesConsumeExactlyOne() {
-    listOf(ItemCatalog.ALMOND_WATER, ItemCatalog.LA_VIE, ItemCatalog.CANNED_FOOD, ItemCatalog.SARDINES).forEach { id ->
+    listOf(ItemCatalog.ALMOND_WATER, ItemCatalog.LA_VIE, ItemCatalog.CANNED_FOOD, ItemCatalog.SARDINES, ItemCatalog.CHICKEN_RICE_BOX).forEach { id ->
       val result = use(grant(GameState.initial(), id, 2), id)
       assertTrue(result.applied)
       assertEquals(1, result.state.inventories.getValue(KAI_ID).items.getValue(id).quantity)
