@@ -49,6 +49,14 @@ test = test.replace(
     'org.junit.Assert.assertFalse(all.any { listOfNotNull(it.trigger, it.effect, it.note).joinToString(" ").contains("HP") })',
 )
 test = test.replace(
+    'org.junit.Assert.assertTrue(skill.effect.contains("30 + Base DMG"))',
+    'org.junit.Assert.assertTrue(skill.effect.contains("30 + sát thương cơ bản"))',
+)
+test = test.replace(
+    'org.junit.Assert.assertTrue(skill.effect.contains("Entity Evasion"))',
+    'org.junit.Assert.assertTrue(skill.effect.contains("Thực thể Evasion"))',
+)
+test = test.replace(
     'org.junit.Assert.assertTrue(skill.effect.contains("Base DMG +5%"))',
     'org.junit.Assert.assertTrue(skill.effect.contains("sát thương cơ bản +5%"))',
 )
