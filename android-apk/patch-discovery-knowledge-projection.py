@@ -40,13 +40,11 @@ object DiscoveryProjection {
   ): JSONObject {
     val level = state.levelInstance ?: return emptyProjection()
     val evidenceOut = JSONArray()
-    val surfaced = linkedSetOf<String>()
 
     surfacedEvidenceIds.sorted().forEach { id ->
       val evidence = level.evidence[id] ?: return@forEach
       if (!evidence.discovered) return@forEach
       val text = visibleText(level, definition, id) ?: return@forEach
-      surfaced += text
       evidenceOut.put(JSONObject()
         .put("text", text)
         .put("sources", JSONArray(evidence.sources.map { it.name }.sorted()))
@@ -178,8 +176,6 @@ class DiscoveryProjectionTest {
 }
 ''', encoding="utf-8")
 
-# Extend the already-existing registered visible outcome contract with the read-only discovery
-# projection. The projection is built after deterministic resolution and contains no hidden truth.
 facade_anchor = '''      .put("evidenceIds", JSONArray(result.evidenceIds.sorted()))
       .put("evidenceTexts", surfacedEvidence)
       .toString()
@@ -196,8 +192,6 @@ facade_replacement = '''      .put("evidenceIds", JSONArray(result.evidenceIds.s
 '''
 facade = replace_once(facade, facade_anchor, facade_replacement, "registered discovery projection")
 
-# Narrative Engine receives the projection but remains unable to mutate semantics. Exact evidence
-# text still comes from Core and is appended after prose by the previous boundary patch.
 visible_anchor = '''        .put("narrativeCue", cue)
         .put("evidenceIds", evidenceIds)
         .put("evidenceTexts", evidenceTexts);
@@ -210,21 +204,14 @@ visible_replacement = '''        .put("narrativeCue", cue)
 '''
 main = replace_once(main, visible_anchor, visible_replacement, "narrative visible discovery projection")
 
-prompt_anchor = '''        + "Không được diễn giải hoặc chép lại evidenceTexts trong reply vì ứng dụng sẽ gắn nguyên văn chúng sau phần kể. "
-        + "Chỉ trả JSON: {\\"reply\\":\\"...\\",\\"claims\\":{\\"progressed\\":true|false,\\"escaped\\":true|false,\\"location\\":\\"...\\",\\"evidenceIds\\":[],\\"introducedItem\\":false,\\"introducedEntity\\":false}}.\\n"
-'''
-prompt_replacement = '''        + "Không được diễn giải hoặc chép lại evidenceTexts trong reply vì ứng dụng sẽ gắn nguyên văn chúng sau phần kể. "
-        + "discoveryProjection chỉ cho biết ý nghĩa được phép: evidence là quan sát, không phải lời giải; không được suy ra đường thoát, bước bắt buộc hay hidden fact. "
+prompt_line = '        + "Không được diễn giải hoặc chép lại evidenceTexts trong reply vì ứng dụng sẽ gắn nguyên văn chúng sau phần kể. "\n'
+prompt_insert = prompt_line + '''        + "discoveryProjection chỉ cho biết ý nghĩa được phép: evidence là quan sát, không phải lời giải; không được suy ra đường thoát, bước bắt buộc hay hidden fact. "
         + "Nếu kể lời NPC, NPC chỉ được dùng nội dung trong allowedNpcStatements; nếu mảng rỗng thì không cho NPC tiết lộ thông tin puzzle. "
-        + "Chỉ trả JSON: {\\"reply\\":\\"...\\",\\"claims\\":{\\"progressed\\":true|false,\\"escaped\\":true|false,\\"location\\":\\"...\\",\\"evidenceIds\\":[],\\"introducedItem\\":false,\\"introducedEntity\\":false}}.\\n"
 '''
-main = replace_once(main, prompt_anchor, prompt_replacement, "discovery semantics narration contract")
+main = replace_once(main, prompt_line, prompt_insert, "discovery semantics narration contract")
 
-# Fail closed if future edits accidentally put hidden semantic fields into the narrator projection.
 for forbidden in ("supports", "discoverConditions", "requiredFacts", "requiredActions", "solutionId", "escapeBlueprint"):
     projection_source = (CORE / "DiscoveryProjection.kt").read_text(encoding="utf-8")
-    # Field names may appear in comments/tests only outside the serialized build body. Assert the
-    # actual JSON builder never emits them as keys.
     if f'.put("{forbidden}"' in projection_source:
         raise RuntimeError("hidden discovery field exposed: " + forbidden)
 
