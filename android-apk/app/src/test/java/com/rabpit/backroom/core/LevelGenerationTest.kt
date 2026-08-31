@@ -258,7 +258,7 @@ class LevelGenerationTest {
 
     val actA = LevelActionRule("act_unlock", listOf(setOf("mở")), setOf("fact:F_KEY"), listOf(
       LevelEffect(LevelEffectType.SET_ENVIRONMENT, "door_unlocked", "true"),
-      LevelEffect(LevelEffectType.MOVE_TO_ZONE, "hidden")
+      LevelEffect(LevelEffectType.MOVE_TO_ZONE, zoneId = "hidden")
     ))
     val actB = LevelActionRule("act_escape", listOf(setOf("thoát")), setOf("env:door_unlocked=true", "fact:F_PASSCODE"), listOf(
       LevelEffect(LevelEffectType.COMPLETE_LEVEL)
@@ -285,8 +285,8 @@ class LevelGenerationTest {
   }
 
   @Test fun currentLevelZeroAndLevelOneProceduralDefinitionsStillValidate() {
-    val level0Def = LevelDefinitionJson.decode(java.io.File("android-apk/app/src/main/assets/levels/0.json").readText())
-    val level1Def = LevelDefinitionJson.decode(java.io.File("android-apk/app/src/main/assets/levels/1.json").readText())
+    val level0Def = LevelDefinitionJson.decode(java.io.File("app/src/main/assets/levels/0.json").readText())
+    val level1Def = LevelDefinitionJson.decode(java.io.File("app/src/main/assets/levels/1.json").readText())
 
     val val0 = LevelDefinitionValidator.validate(level0Def)
     assertTrue(val0.errors.joinToString(","), val0.valid)
@@ -305,7 +305,6 @@ class LevelGenerationTest {
   }
 
   @Test fun validatorHasBoundedSearchBudgetRegressionForPathologicalInput() {
-    // Construct evidence chain with recursive dependencies to exercise budget check
     val evidenceList = (0 until 6000).associate { i ->
       "e_$i" to EvidenceState(
         id = "e_$i",
