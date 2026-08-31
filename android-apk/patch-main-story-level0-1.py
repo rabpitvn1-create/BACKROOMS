@@ -5,7 +5,6 @@ import re
 ROOT = Path(__file__).resolve().parent
 MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
 INDEX = ROOT / "app/src/main/assets/index.html"
-SPECIAL = ROOT / "app/src/main/java/com/rabpit/backroom/core/SpecialFollowersCanon.kt"
 STORY = ROOT / "app/src/main/assets/campaign_story/level0-to-level1.json"
 CATALOG = ROOT / "app/src/main/assets/level_catalog/backrooms-0-6.json"
 CAMPAIGN_ID = "BACKROOMS_FANDOM_LEVELS_0_6_R01"
@@ -60,23 +59,10 @@ def validate_story() -> list[str]:
 
 beat_ids = validate_story()
 
-# Fresh-run Core state. Existing saves preserve the presence already stored in their CharacterState.
-special = SPECIAL.read_text(encoding="utf-8")
-special = replace_once(
-    special,
-    '      id = IRIS_ID,\n      name = "Iris",\n      physiology = PhysiologyState.freshRunBaseline()\n',
-    '      id = IRIS_ID,\n      name = "Iris",\n      presence = CharacterPresence.SEPARATED,\n      physiology = PhysiologyState.freshRunBaseline()\n',
-    "fresh Iris separated presence",
-)
-special = replace_once(
-    special,
-    '      id = SYVIAL_ID,\n      name = "Syvial",\n      physiology = PhysiologyState.freshRunBaseline()\n',
-    '      id = SYVIAL_ID,\n      name = "Syvial",\n      presence = CharacterPresence.SEPARATED,\n      physiology = PhysiologyState.freshRunBaseline()\n',
-    "fresh Syvial separated presence",
-)
-SPECIAL.write_text(special, encoding="utf-8")
-
 # New Game opening: all three cross the same spatial gate, then Backrooms resolves them apart.
+# Core keeps Iris/Syvial as known campaign characters while co-location is represented by Party +
+# explicit campaign continuity. This preserves the existing invariant that a CharacterState can be
+# ACTIVE while physically absent from Kai's Party, which several combat systems already rely on.
 index = INDEX.read_text(encoding="utf-8")
 start_marker = "Chiếc ly rơi xuống được nửa quãng rồi biến mất."
 end_marker = "Trọng lực trở lại đột ngột."
@@ -116,8 +102,8 @@ index = replace_once(
     "fresh location portal wording",
 )
 
-# Later UI patches may add fields inside flags, so mutate only the communication prefix instead of
-# replacing the entire initial flags object. Humanity does love turning one literal into a small city.
+# Later UI patches add fields inside flags, so mutate only the communication prefix instead of
+# replacing the entire object. A single literal has, naturally, become municipal infrastructure.
 initial_start = index.find("const initial={")
 initial_end = index.find("log:[", initial_start)
 if initial_start < 0 or initial_end < 0:
@@ -143,6 +129,9 @@ index = index[:absolute_start] + replacement + index[absolute_end:]
 INDEX.write_text(index, encoding="utf-8")
 
 main = MAIN.read_text(encoding="utf-8")
+
+# Runtime projection deliberately omits transitionStory and hidden Level escape data. Gemini sees
+# the current beat only; Core, discovery and campaign progression remain authoritative.
 story_helpers = r'''  private JSONObject loadLevel01Story() throws Exception {
     StringBuilder content = new StringBuilder();
     try (InputStream stream = getAssets().open("campaign_story/level0-to-level1.json");
@@ -223,15 +212,19 @@ for marker in (
 MAIN.write_text(main, encoding="utf-8")
 
 final_index = INDEX.read_text(encoding="utf-8")
-final_special = SPECIAL.read_text(encoding="utf-8")
 if "Cả ba bị kéo qua cùng một cổng không gian." not in final_index:
     raise RuntimeError("spatial_gate_prologue_not_applied")
 if "sau no-clip" in final_index:
     raise RuntimeError("obsolete_no_clip_location_survived")
-if final_special.count("presence = CharacterPresence.SEPARATED") < 2:
-    raise RuntimeError("fresh_special_followers_not_separated")
+for marker in (
+    'allSeparatedOnArrival:true',
+    'iris:{exists:true,present:false,continuity:"SEPARATED",locationKnownToKai:false}',
+    'syvial:{exists:true,present:false,continuity:"SEPARATED",locationKnownToKai:false}',
+):
+    if marker not in final_index:
+        raise RuntimeError("fresh_separation_state_missing:" + marker)
 
 print(
-    f"Integrated {STORY_ID}: one spatial-gate entry, fresh Iris/Syvial separation, "
+    f"Integrated {STORY_ID}: one spatial-gate entry, three-way arrival separation, "
     f"and {len(beat_ids)} data-driven story beats from Level 0 through Level 1."
 )
