@@ -85,24 +85,43 @@ class LinkCollector(HTMLParser):
 
 
 def load_route() -> list[tuple[int, str, str, str]]:
-    module = ast.parse(ROUTE_SOURCE.read_text(encoding="utf-8"), filename=str(ROUTE_SOURCE))
-    route = None
-    for node in module.body:
-        if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == "ROUTE" for t in node.targets):
-            route = ast.literal_eval(node.value)
-            break
-    if not isinstance(route, list) or len(route) != 43:
-        raise RuntimeError(f"Expected canonical 43-area ROUTE, found {0 if route is None else len(route)}")
-    output: list[tuple[int, str, str, str]] = []
-    for item in route:
-        if not isinstance(item, tuple) or len(item) != 4:
-            raise RuntimeError(f"Invalid route entry: {item!r}")
-        parent, area_id, name, area_type = item
-        output.append((int(parent), str(area_id), str(name), str(area_type)))
-    return output
+    catalog_root = ROOT / "app/src/main/assets/level_catalog"
+    campaign_id = "BACKROOMS_FANDOM_LEVELS_0_6_R01"
+    entries: list[dict] = []
+    for catalog_path in sorted(catalog_root.rglob("*.json")):
+        if catalog_path.name.startswith("_"):
+            continue
+        raw = json.loads(catalog_path.read_text(encoding="utf-8"))
+        if isinstance(raw, list):
+            document_entries = raw
+            inherited_campaign = ""
+        elif isinstance(raw, dict):
+            document_entries = raw.get("entries", [raw])
+            inherited_campaign = str(raw.get("campaignId") or "").strip()
+        else:
+            continue
+        for entry in document_entries:
+            if not isinstance(entry, dict):
+                continue
+            item = dict(entry)
+            if inherited_campaign:
+                item.setdefault("campaignId", inherited_campaign)
+            entries.append(item)
+    route_entries = [
+        entry for entry in entries
+        if str(entry.get("campaignId") or "").strip() == campaign_id
+        and entry.get("campaignOrder") is not None
+    ]
+    route_entries.sort(key=lambda entry: int(entry["campaignOrder"]))
+    route = [
+        (int(entry["parentMainLevel"]), str(entry["id"]).strip(), str(entry["name"]).strip(), str(entry["kind"]).strip().upper())
+        for entry in route_entries
+    ]
+    if len(route) != 43:
+        raise RuntimeError(f"Expected catalog-backed 43-area route, found {len(route)}")
+    return route
 
-
-def fetch(url: str, *, referer: str | None = None, attempts: int = 3) -> tuple[bytes, str, str]:
+def fetch(url: str, *, referer: str | None = None, attempts: int = 1) -> tuple[bytes, str, str]:
     last: Exception | None = None
     headers = {"User-Agent": USER_AGENT, "Accept": "*/*"}
     if referer:
@@ -110,7 +129,7 @@ def fetch(url: str, *, referer: str | None = None, attempts: int = 3) -> tuple[b
     for attempt in range(attempts):
         try:
             req = urllib.request.Request(url, headers=headers)
-            with urllib.request.urlopen(req, timeout=40) as response:
+            with urllib.request.urlopen(req, timeout=10) as response:
                 return response.read(), response.headers.get_content_type().lower(), response.geturl()
         except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError) as exc:
             last = exc
@@ -270,15 +289,21 @@ def fandom_candidates(area_id: str, area_name: str, area_type: str) -> list[dict
 
 
 def candidate_stream(area_id: str, area_name: str, area_type: str) -> list[dict]:
+    # Fandom has a structured API and is one of the three approved sources, so use it first.
+    # Wikidot EN/VN are consulted only when Fandom exposes no usable image for this area.
+    try:
+        fandom = fandom_candidates(area_id, area_name, area_type)
+    except RuntimeError as exc:
+        print(f"SOURCE_WARN area={area_id} site=fandom error={exc}")
+        fandom = []
+    if fandom:
+        return fandom
     output: list[dict] = []
     for site_id, root in WIKIDOT_SITES:
         output.extend(wikidot_candidates(site_id, root, area_id, area_name, area_type))
-    try:
-        output.extend(fandom_candidates(area_id, area_name, area_type))
-    except RuntimeError as exc:
-        print(f"SOURCE_WARN area={area_id} site=fandom error={exc}")
+        if output:
+            break
     return output
-
 
 def decode_image(data: bytes) -> Image.Image | None:
     try:

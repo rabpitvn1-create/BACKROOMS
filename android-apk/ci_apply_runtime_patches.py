@@ -7,7 +7,6 @@ ROOT = Path(__file__).resolve().parent
 SCRIPTS = [
     "patch-provider-status.py",
     "patch-luna-text.py",
-    "patch-pixel16-background-overrides.py",
     "patch-level-snapshot-backgrounds.py",
     "patch-snapshot-fallback.py",
     "patch-kai-hd-continuous.py",
