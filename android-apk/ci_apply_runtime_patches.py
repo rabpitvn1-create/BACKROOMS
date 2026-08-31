@@ -45,6 +45,7 @@ SCRIPTS = [
     "patch-combat-total-turn-isolation.py",
     "patch-registered-level-runtime-bridge.py",
     "patch-gemini-level-generation.py",
+    "patch-forward-progression-contract.py",
     "patch-private-core-save-final.py",
     "patch-escape-chance-hud.py",
     "patch-chicken-rice-box-test-compat.py",
