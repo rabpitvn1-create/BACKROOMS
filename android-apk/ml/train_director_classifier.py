@@ -9,7 +9,8 @@ import re
 import numpy as np
 
 FEATURES = 4096
-TOKEN = re.compile(r"[^\W_]+|_", re.UNICODE)
+# Keep underscore-bearing structured feature tokens intact, matching the Kotlin tokenizer.
+TOKEN = re.compile(r"[\w]+", re.UNICODE)
 
 
 def java_hash(text):
