@@ -55,6 +55,7 @@ SCRIPTS = [
     "patch-player-facing-authority-boundary.py",
     "patch-jane-doe-finalizer.py",
     "patch-jane-doe-test-compat.py",
+    "patch-kai-devil-within-snapshot-finalize.py",
 ]
 
 for script in SCRIPTS:
