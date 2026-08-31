@@ -42,6 +42,7 @@ SCRIPTS = [
     "patch-item-identity-finalize.py",
     "patch-item-reference-fallback-final.py",
     "patch-passive-skill-visibility.py",
+    "patch-skill-description-full-vietnamese.py",
     "patch-combat-total-turn-isolation.py",
     "patch-registered-level-runtime-bridge.py",
     "patch-gemini-level-generation.py",
