@@ -3,6 +3,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 CORE = ROOT / "app/src/main/java/com/rabpit/backroom/core"
 DIRECTOR = CORE / "BackroomsDirector.kt"
+WORLD = CORE / "WorldDirector.kt"
 FACADE = CORE / "GameCoreFacade.kt"
 
 
@@ -11,6 +12,16 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
     if count != 1:
         raise RuntimeError(f"{label}: expected exactly one anchor, found {count}")
     return text.replace(old, new, 1)
+
+
+# Keep the WorldDirector source conservative across Kotlin compiler versions used by the Android
+# build. The final runtime uses an explicit lambda for enum parsing rather than a static method ref.
+world = WORLD.read_text(encoding="utf-8")
+world = world.replace(
+    ".map(WorldPressureProposal::valueOf).toList()",
+    ".map { WorldPressureProposal.valueOf(it) }.toList()",
+)
+WORLD.write_text(world, encoding="utf-8")
 
 
 # Evidence ownership moved back to deterministic Core selection. Keep the legacy class for source
@@ -144,6 +155,9 @@ for forbidden in (
 ):
     if forbidden in director:
         raise RuntimeError("LiteRT evidence ownership was not removed from app factory")
+
+if "map { WorldPressureProposal.valueOf(it) }" not in world:
+    raise RuntimeError("WorldDirector label parsing compatibility contract missing")
 
 FACADE.write_text(facade, encoding="utf-8")
 print("WorldDirector proposal boundary applied: LiteRT proposes broad world pressure, Core gates legality/liveness, evidence selection remains deterministic, and proposals do not mutate gameplay state.")
