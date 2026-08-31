@@ -53,27 +53,37 @@ jobs:
         uses: actions/cache@v4
         with:
           path: android-apk/app/src/main/assets/models/backroom_intent.tflite
-          key: litert-${{ hashFiles('android-apk/ml/**', 'android-apk/app/src/main/assets/models/backroom_intent_labels.txt') }}
+          key: litert-intent-${{ hashFiles('android-apk/ml/build_intent_dataset.py', 'android-apk/ml/evaluate_seed_classifier.py', 'android-apk/ml/train_intent_classifier.py', 'android-apk/ml/intent_dataset.csv', 'android-apk/app/src/main/assets/models/backroom_intent_labels.txt') }}
+
+      - name: Restore LiteRT BackroomsDirector model
+        id: director-cache
+        uses: actions/cache@v4
+        with:
+          path: android-apk/app/src/main/assets/models/backrooms_director.tflite
+          key: litert-director-${{ hashFiles('android-apk/ml/build_director_dataset.py', 'android-apk/ml/train_director_classifier.py', 'android-apk/app/src/main/assets/models/backrooms_director_labels.txt') }}
 
       - uses: actions/setup-python@v5
-        if: steps.litert-cache.outputs.cache-hit != 'true'
+        if: steps.litert-cache.outputs.cache-hit != 'true' || steps.director-cache.outputs.cache-hit != 'true'
         with:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: android-apk/ml/requirements.txt
 
+      - name: Install LiteRT training dependencies
+        if: steps.litert-cache.outputs.cache-hit != 'true' || steps.director-cache.outputs.cache-hit != 'true'
+        run: python -m pip install --requirement android-apk/ml/requirements.txt
+
       - name: Train and verify tiny LiteRT intent model
         if: steps.litert-cache.outputs.cache-hit != 'true'
         run: |
           set -euo pipefail
-          python -m pip install --requirement android-apk/ml/requirements.txt
           python android-apk/ml/build_intent_dataset.py
           python android-apk/ml/evaluate_seed_classifier.py
           cd android-apk/ml
           python train_intent_classifier.py --dataset intent_dataset.csv --labels ../app/src/main/assets/models/backroom_intent_labels.txt --output ../app/src/main/assets/models/backroom_intent.tflite --report intent_model_report.json
           test -s ../app/src/main/assets/models/backroom_intent.tflite
           bytes=$(stat -c%s ../app/src/main/assets/models/backroom_intent.tflite)
-          test "$bytes" -le 5242880 || (echo "LiteRT model exceeds 5 MiB: $bytes" && exit 1)
+          test "$bytes" -le 5242880 || (echo "LiteRT intent model exceeds 5 MiB: $bytes" && exit 1)
 
       - name: Verify cached LiteRT intent model
         if: steps.litert-cache.outputs.cache-hit == 'true'
@@ -82,7 +92,27 @@ jobs:
           MODEL=android-apk/app/src/main/assets/models/backroom_intent.tflite
           test -s "$MODEL"
           bytes=$(stat -c%s "$MODEL")
-          test "$bytes" -le 5242880 || (echo "Cached LiteRT model exceeds 5 MiB: $bytes" && exit 1)
+          test "$bytes" -le 5242880 || (echo "Cached LiteRT intent model exceeds 5 MiB: $bytes" && exit 1)
+
+      - name: Train and verify LiteRT BackroomsDirector model
+        if: steps.director-cache.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          python android-apk/ml/build_director_dataset.py
+          cd android-apk/ml
+          python train_director_classifier.py --dataset director_dataset.csv --labels ../app/src/main/assets/models/backrooms_director_labels.txt --output ../app/src/main/assets/models/backrooms_director.tflite --report director_model_report.json
+          test -s ../app/src/main/assets/models/backrooms_director.tflite
+          bytes=$(stat -c%s ../app/src/main/assets/models/backrooms_director.tflite)
+          test "$bytes" -le 5242880 || (echo "LiteRT BackroomsDirector model exceeds 5 MiB: $bytes" && exit 1)
+
+      - name: Verify cached LiteRT BackroomsDirector model
+        if: steps.director-cache.outputs.cache-hit == 'true'
+        run: |
+          set -euo pipefail
+          MODEL=android-apk/app/src/main/assets/models/backrooms_director.tflite
+          test -s "$MODEL"
+          bytes=$(stat -c%s "$MODEL")
+          test "$bytes" -le 5242880 || (echo "Cached LiteRT BackroomsDirector model exceeds 5 MiB: $bytes" && exit 1)
 
       - name: Validate Game Master configuration
         run: |
