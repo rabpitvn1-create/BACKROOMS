@@ -109,8 +109,8 @@ old_syvial_dt = '    s("Devil Trigger", "STATE", "HP <= 50% hoặc đối đầu
 new_syvial_dt = '    s("DEVIL TRIGGER — Lucifer Core", "PASSIVE", "READY: 30% mỗi combat turn; ACTIVE 3 turn; sau đó COOLDOWN 5 turn không roll", "+100% Evasion, DMG ×5 và hồi đúng 5% Max HP một lần ở mỗi turn Devil Trigger đang hoạt động.", "Gameplay lock: READY → 30% Trigger → DEVIL TRIGGER (3 Turns) → COOLDOWN (5 Turns) → READY. Không thêm tiêu hao HP, phản phệ, mất kiểm soát, giới hạn quỷ lực hoặc debuff."),\n'
 catalog = replace_once(catalog, old_syvial_dt, new_syvial_dt, "Syvial Devil Trigger catalog override")
 
-kai_anchor = '  private val kai = listOf(\n'
-kai_new = '  private val kai = listOf(\n    s("DEVIL TRIGGER — Sparda Core", "PASSIVE", "READY: 30% mỗi combat turn; ACTIVE 3 turn; sau đó COOLDOWN 5 turn không roll", "+100% Evasion, DMG ×5 và hồi đúng 5% Max HP một lần ở mỗi turn Devil Trigger đang hoạt động.", "Gameplay lock: READY → 30% Trigger → DEVIL TRIGGER (3 Turns) → COOLDOWN (5 Turns) → READY. Không thêm tiêu hao HP, phản phệ, mất kiểm soát, giới hạn quỷ lực hoặc debuff."),\n'
+kai_anchor = '  private val kai = listOf(\n    s("The Last Requiem", "AUTO", "30% mỗi turn hợp lệ", "4 phát vào khớp vai, 170% Weapon DMG; Bleeding 3 turn x 5% Max HP."),\n'
+kai_new = '  private val kai = listOf(\n    s("DEVIL TRIGGER — Sparda Core", "PASSIVE", "READY: 30% mỗi combat turn; ACTIVE 3 turn; sau đó COOLDOWN 5 turn không roll", "+100% Evasion, DMG ×5 và hồi đúng 5% Max HP một lần ở mỗi turn Devil Trigger đang hoạt động.", "Gameplay lock: READY → 30% Trigger → DEVIL TRIGGER (3 Turns) → COOLDOWN (5 Turns) → READY. Không thêm tiêu hao HP, phản phệ, mất kiểm soát, giới hạn quỷ lực hoặc debuff."),\n    s("The Last Requiem", "AUTO", "30% mỗi turn hợp lệ", "4 phát vào khớp vai, 170% Weapon DMG; Bleeding 3 turn x 5% Max HP."),\n'
 catalog = replace_once(catalog, kai_anchor, kai_new, "Kai Devil Trigger catalog entry")
 CATALOG.write_text(catalog, encoding="utf-8")
 
@@ -269,8 +269,8 @@ elif 'syvialHp * 2 <= syvialMaxHp' in combat or 'regenPercent = if (syvialDevilT
 # Kai direct attack damage.
 combat = replace_once(
     combat,
-    '          val damage = min(max(1, normalized - profile.armor), max(1, profile.maxHp * 70 / 100))\n',
-    '          val damage = DevilTriggerPassive.damage(min(max(1, normalized - profile.armor), max(1, profile.maxHp * 70 / 100)), kaiDevilTriggerActive)\n',
+    '          val damage = max(1, base - profile.armor)\n',
+    '          val damage = DevilTriggerPassive.damage(max(1, base - profile.armor), kaiDevilTriggerActive)\n',
     "Kai base attack Devil Trigger multiplier",
 )
 
@@ -347,12 +347,7 @@ combat = replace_once(combat, enemy_chance_old, enemy_chance_new, "Kai Devil Tri
 
 # Diệp Minh's Party-wide attack now respects +100% Evasion for Kai/Syvial while DT is active.
 helper_sig_old = '  private fun damageActivePartyByPercent(state: GameState, percent: Int): PartyPercentDamage {\n'
-helper_sig_new = '''  private fun damageActivePartyByPercent(state: GameState, percent: Int): PartyPercentDamage {
-    return damageActivePartyByPercent(state, percent, emptySet())
-  }
-
-  private fun damageActivePartyByPercent(state: GameState, percent: Int, evadingCharacterIds: Set<String>): PartyPercentDamage {
-'''
+helper_sig_new = '  private fun damageActivePartyByPercent(state: GameState, percent: Int, evadingCharacterIds: Set<String> = emptySet()): PartyPercentDamage {\n'
 combat = replace_once(combat, helper_sig_old, helper_sig_new, "Party percent damage evasion parameter")
 party_loop_anchor = '      if (character.presence != CharacterPresence.ACTIVE || character.vitalState.currentHp <= 0) return@forEach\n'
 party_loop_new = '''      if (character.presence != CharacterPresence.ACTIVE || character.vitalState.currentHp <= 0) return@forEach
@@ -364,8 +359,7 @@ party_loop_new = '''      if (character.presence != CharacterPresence.ACTIVE || 
 combat = replace_once(combat, party_loop_anchor, party_loop_new, "Party percent damage Devil Trigger evasion gate")
 
 pulse_old = '      val pulse = damageActivePartyByPercent(resolvedState, DIEP_MINH_ULTIMATE_PERCENT)\n'
-pulse_new = '''      // Baseline pulse compatibility: damageActivePartyByPercent(resolvedState, DIEP_MINH_ULTIMATE_PERCENT)
-      val devilTriggerEvaders = listOfNotNull(
+pulse_new = '''      val devilTriggerEvaders = listOfNotNull(
         KAI_ID.takeIf { kaiDevilTriggerActive },
         SYVIAL_ID.takeIf { syvialDevilTrigger }
       ).toSet()
@@ -394,7 +388,7 @@ for marker in (
     'val kaiDevilTriggerTurn =',
     'DEVIL TRIGGER — Sparda Core kích hoạt trong 3 turn',
     'DEVIL TRIGGER — Lucifer Core kích hoạt trong 3 turn',
-    'DevilTriggerPassive.damage(min(max(1, normalized - profile.armor), max(1, profile.maxHp * 70 / 100)), kaiDevilTriggerActive)',
+    'DevilTriggerPassive.damage(max(1, base - profile.armor), kaiDevilTriggerActive)',
     'val perShotDamage = DevilTriggerPassive.damage(KAI_GUILTY_CROWN_DAMAGE_PER_SHOT, kaiDevilTriggerActive)',
     'val dtMultiplier = if (syvialDevilTrigger) 500 else 100',
     'val damagePerHit = DevilTriggerPassive.damage(10, syvialDevilTrigger)',

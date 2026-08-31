@@ -22,7 +22,7 @@ class AnNhienFollowerTest {
     assertEquals(2, AnNhienCanon.equipmentSlots.size)
   }
 
-  @Test fun inventoryAcceptsOnlyFoodAndHasSevenTypeSlots() {
+  @Test fun inventoryAcceptsOnlyFoodAndHasTwoTypeSlots() {
     val state = GameState.initial()
     val inventory = state.inventories[AN_NHIEN_ID]!!
     val food = ItemStack("food-1", "Lương khô", metadata = mapOf("category" to "FOOD"))
@@ -30,17 +30,17 @@ class AnNhienFollowerTest {
     assertEquals(null, InventoryPolicy.validateAddition(state, AN_NHIEN_ID, inventory, food, 1))
     assertEquals("an_nhien_food_only", InventoryPolicy.validateAddition(state, AN_NHIEN_ID, inventory, tool, 1))
 
-    val sevenFoods = InventoryState(AN_NHIEN_ID, (1..7).associate { index ->
-      val id = "food-$index"
-      id to ItemStack(id, "Food $index", metadata = mapOf("category" to "FOOD"))
-    })
+    val twoFoods = InventoryState(AN_NHIEN_ID, mapOf(
+      "food-1" to food,
+      "food-2" to ItemStack("food-2", "Bánh", metadata = mapOf("category" to "FOOD"))
+    ))
     assertEquals(
       "inventory_slot_limit",
       InventoryPolicy.validateAddition(
         state,
         AN_NHIEN_ID,
-        sevenFoods,
-        ItemStack("food-8", "Kẹo", metadata = mapOf("category" to "FOOD")),
+        twoFoods,
+        ItemStack("food-3", "Kẹo", metadata = mapOf("category" to "FOOD")),
         1
       )
     )
@@ -101,36 +101,6 @@ class AnNhienFollowerTest {
     ))
     assertFalse(result.applied)
     assertEquals("an_nhien_equipment_locked", result.validation.reason)
-  }
-
-  @Test fun slashCheatInstantlyAddsAnNhienAndIsIdempotent() {
-    val base = GameState.initial()
-    assertTrue(AnNhienCanon.matchesPartyCheatCode(" /annhien1234 "))
-    assertFalse(AnNhienCanon.matchesPartyCheatCode("/annhien123"))
-
-    val (added, error) = AnNhienCanon.forceIntoParty(base)
-    assertEquals(null, error)
-    assertTrue(AN_NHIEN_ID in added.party.memberIds)
-    assertEquals(base.party.memberIds.size + 1, added.party.memberIds.size)
-
-    val (again, againError) = AnNhienCanon.forceIntoParty(added)
-    assertEquals(null, againError)
-    assertEquals(added.party.memberIds, again.party.memberIds)
-  }
-
-  @Test fun slashCheatDoesNotSilentlyEvictPartyMembersWhenFull() {
-    val full = GameState.initial().copy(
-      characters = GameState.initial().characters + mapOf(
-        "a" to CharacterState("a", "A"),
-        "b" to CharacterState("b", "B"),
-        "c" to CharacterState("c", "C")
-      ),
-      party = PartyState(leaderId = KAI_ID, memberIds = listOf(KAI_ID, "a", "b", "c"), maxMembers = 4)
-    )
-    val (unchanged, error) = AnNhienCanon.forceIntoParty(full)
-    assertEquals("party_full", error)
-    assertFalse(AN_NHIEN_ID in unchanged.party.memberIds)
-    assertEquals(listOf(KAI_ID, "a", "b", "c"), unchanged.party.memberIds)
   }
 
   @Test fun saveDecodeBackfillsAnNhienWithoutPuttingHerInParty() {

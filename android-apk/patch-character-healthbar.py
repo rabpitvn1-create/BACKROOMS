@@ -98,12 +98,3 @@ runpy.run_path(str(ROOT / "patch-newgame-inventory-capacity.py"), run_name="__ma
 # Final candidate-inventory semantics: capacity validation must evaluate the Inventory instance being
 # mutated, while equipped Items cost zero slots and displaced equipment costs a carried slot.
 runpy.run_path(str(ROOT / "patch-inventory-capacity-final-fix.py"), run_name="__main__")
-
-# Final Entity authority pass. Run after status/equipment/visual-state patches so their anchors remain intact.
-runpy.run_path(str(ROOT / "patch-unified-entity-spawn-pool.py"), run_name="__main__")
-# Restore only Diệp Minh encounter priority after the unified pool rewrites the shared helper.
-runpy.run_path(str(ROOT / "patch-diep-minh-boss-finalize.py"), run_name="__main__")
-# Apply Monster X after the shared-pool/finalizer rewrites.
-runpy.run_path(str(ROOT / "patch-monster-x-entity.py"), run_name="__main__")
-# Apply John Doe last so its unique roll, status effects and exact John.png binding survive every earlier Entity transform.
-runpy.run_path(str(ROOT / "patch-john-doe-entity.py"), run_name="__main__")

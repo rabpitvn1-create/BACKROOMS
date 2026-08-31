@@ -99,42 +99,34 @@ class GameStateCoreTest {
     assertEquals("living_target_forbidden", living.validation.reason)
   }
 
-  @Test fun omnivaultScanAndCopyAreRetired() {
-    val state = base()
-    val scan = StateReducer.execute(state, OmnivaultCommand(
-      "scan-retired", "TURN_1", KAI_ID, source = CommandSource.RULE,
-      operation = OmnivaultCommand.Operation.SCAN, itemId = "scrap", itemName = "Scrap"
-    ))
-    assertFalse(scan.applied)
-    assertEquals("omnivault_capability_retired", scan.validation.reason)
-    val copy = StateReducer.execute(state, OmnivaultCommand(
-      "copy-retired", "TURN_1", KAI_ID, source = CommandSource.RULE,
-      operation = OmnivaultCommand.Operation.COPY, itemId = "scrap", itemName = "Scrap"
-    ))
-    assertFalse(copy.applied)
-    assertEquals("omnivault_capability_retired", copy.validation.reason)
+  @Test fun omnivaultThreeSlotsAndCopyRemainGameplayMechanics() {
+    var state = base()
+    for (i in 1..4) {
+      state = StateReducer.execute(state, item("original-$i", ItemCommand.Operation.PICKUP)).state
+      state = StateReducer.execute(state, OmnivaultCommand("scan-$i", "TURN_1", KAI_ID, source = CommandSource.RULE, operation = OmnivaultCommand.Operation.SCAN, itemId = "original-$i", itemName = "Item $i", timestampEpochMs = i.toLong())).state
+    }
+    assertEquals(3, state.omnivault.scanSlots.size)
+    assertFalse(state.omnivault.scanSlots.any { it.sourceItemId == "original-1" })
+    assertTrue("original-1" in state.omnivault.markedSourceIds)
+
+    val copied = StateReducer.execute(state, OmnivaultCommand("copy", "TURN_1", KAI_ID, source = CommandSource.RULE, operation = OmnivaultCommand.Operation.COPY, itemId = "original-4", itemName = "Item 4", quantity = 2))
+    assertEquals(3, copied.state.inventories.getValue(KAI_ID).items.getValue("original-4").quantity)
+    assertEquals("2", copied.state.inventories.getValue(KAI_ID).items.getValue("original-4").metadata["omnivaultCopyCount"])
   }
-  @Test fun omnivaultRestoreRepairsCurrentEquipmentAndStartsCooldown() {
-    var state = CharacterEquipmentSystem.normalize(GameState.initial())
-    val inventory = state.inventories.getValue(KAI_ID)
-    val damaged = inventory.items.getValue(KAI_SRU_SG_ID).copy(condition = "DAMAGED")
-    state = state.copy(inventories = state.inventories + (KAI_ID to inventory.copy(items = inventory.items + (KAI_SRU_SG_ID to damaged))))
-    val restored = StateReducer.execute(state, OmnivaultCommand(
+
+  @Test fun restoreIsNarrativeOnlyAndCannotMutateInventoryState() {
+    val withItem = StateReducer.execute(base(), item("old-gun", ItemCommand.Operation.PICKUP)).state
+    val before = withItem.inventories.getValue(KAI_ID).items.getValue("old-gun")
+    val restored = StateReducer.execute(withItem, OmnivaultCommand(
       "restore", "TURN_1", KAI_ID, source = CommandSource.UI,
       operation = OmnivaultCommand.Operation.RESTORE,
-      itemId = KAI_SRU_SG_ID, itemName = "SRU-SG Shotgun", timestampEpochMs = 1000L
+      itemId = "old-gun", itemName = "Old Gun", timestampEpochMs = 1000
     ))
-    assertTrue(restored.applied)
-    assertEquals("READY", restored.state.inventories.getValue(KAI_ID).items.getValue(KAI_SRU_SG_ID).condition)
-    assertEquals(1000L + OmnivaultEngine.RESTORE_COOLDOWN_MS, restored.state.omnivault.restoreCooldownUntilEpochMs[KAI_SRU_SG_ID])
-    val again = StateReducer.execute(restored.state, OmnivaultCommand(
-      "restore-again", "TURN_1", KAI_ID, source = CommandSource.UI,
-      operation = OmnivaultCommand.Operation.RESTORE,
-      itemId = KAI_SRU_SG_ID, itemName = "SRU-SG Shotgun", timestampEpochMs = 2000L
-    ))
-    assertFalse(again.applied)
-    assertEquals("omnivault_restore_cooldown", again.validation.reason)
+    assertFalse(restored.applied)
+    assertEquals("restore_narrative_only", restored.validation.reason)
+    assertEquals(before, restored.state.inventories.getValue(KAI_ID).items.getValue("old-gun"))
   }
+
   @Test fun geminiWorldDeltaNeedsGameEngineValidation() {
     val rejected = StateReducer.execute(base(), ValidatedLegacyStateCommand(
       "world-invalid", "TURN_1", source = CommandSource.GEMINI, location = "Level 1", validatedByGameEngine = false

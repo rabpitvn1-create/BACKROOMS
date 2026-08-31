@@ -24,7 +24,7 @@ class GameStateCodecTest {
       turn = TurnState("TURN_9", PendingTurn("TURN_9", "Kai nhặt nước", PendingTurnStatus.INTERPRETING)),
       time = GameTimeState(elapsedSubjectiveMinutes = 485L, lastAdvanceMinutes = 15, lastAdvanceReason = "travel")
     )
-    val canonicalState = CharacterEquipmentSystem.normalize(SpecialFollowersCanon.ensure(AnNhienCanon.ensure(state)))
+    val canonicalState = SpecialFollowersCanon.ensure(AnNhienCanon.ensure(state))
     val decoded = GameStateCodec.decode(GameStateCodec.encode(state))
     assertEquals(canonicalState, decoded)
     assertEquals(physiology, decoded.characters.getValue(KAI_ID).physiology)
@@ -51,10 +51,9 @@ class GameStateCodecTest {
     assertEquals(PhysiologyState(), decoded.characters.getValue(KAI_ID).physiology)
   }
 
-  @Test fun freshStateInventoryOwnsSignatureGearReferencedByEquipment() {
+  @Test fun freshStateKeepsSignatureGearOnlyInEquipment() {
     val state = GameState.initial()
-    val owned = state.inventories.getValue(KAI_ID).items
-    state.equipment.getValue(KAI_ID).slots.values.distinct().forEach { assertTrue(it in owned) }
+    assertTrue(state.inventories.getValue(KAI_ID).items.isEmpty())
     assertEquals(KAI_WHITE_WRAITH_ID, state.equipment.getValue(KAI_ID).slots["weapon"])
     assertEquals(KAI_BLACKBLOOD_ARMOR_ID, state.equipment.getValue(KAI_ID).slots["armor"])
     assertEquals(KAI_OMNIVAULT_RING_ID, state.equipment.getValue(KAI_ID).slots["ring"])

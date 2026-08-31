@@ -6,1308 +6,422 @@
       "domain": "GAME_RULE",
       "kind": "hard-lock",
       "text": "Text Game authority: user instruction, Text Game rules, GM rules, live save/campaign state, then on-demand canon. Player controls Kai's intentional actions; GM controls world, Entity, survivor/NPC and consequences. Do not nerf canon abilities, invent facts, reset consequences, cheat dice, or fill UNKNOWN. Gameplay normally retrieves only needed canon rather than scanning the whole corpus.",
-      "source": {
-        "document": "05_TextGame/RULES/TEXT_GAME_RULES.md",
-        "anchor": "1-12"
-      },
-      "authority": "TEXT_GAME_HARD_LOCK",
-      "mutability": "IMMUTABLE",
-      "priority": 10,
-      "tags": [
-        "gameplay",
-        "authority",
-        "player agency",
-        "unknown"
-      ],
-      "references": [],
-      "affordances": []
+      "source": {"document": "05_TextGame/RULES/TEXT_GAME_RULES.md", "anchor": "1-12"},
+      "authority": "TEXT_GAME_HARD_LOCK", "mutability": "IMMUTABLE", "priority": 10,
+      "tags": ["gameplay", "authority", "player agency", "unknown"], "references": [], "affordances": []
     },
     {
       "id": "GAME.GM.FAIRNESS",
-      "domain": "GAME_RULE",
-      "kind": "hard-lock",
+      "domain": "GAME_RULE", "kind": "hard-lock",
       "text": "GM fairness: Canon/State -> real conditions -> dice only for remaining uncertainty -> consequence. No player magnetism, retroactive world edits, fake choices, counter-build cheating, automatic party joins, NPC wiki knowledge, retroactive expertise, or threat teleporting without a canon/path/time basis. Persist environment, traces, entities, relationships, knowledge and consequences. Allow quiet safety when state and rolls permit it.",
-      "source": {
-        "document": "05_TextGame/RULES/GAME_MASTER_RULES.md",
-        "anchor": "1-15"
-      },
-      "authority": "GM_HARD_LOCK",
-      "mutability": "IMMUTABLE",
-      "priority": 10,
-      "tags": [
-        "fairness",
-        "persistence",
-        "npc autonomy",
-        "information integrity"
-      ],
-      "references": [],
-      "affordances": []
+      "source": {"document": "05_TextGame/RULES/GAME_MASTER_RULES.md", "anchor": "1-15"},
+      "authority": "GM_HARD_LOCK", "mutability": "IMMUTABLE", "priority": 10,
+      "tags": ["fairness", "persistence", "npc autonomy", "information integrity"], "references": [], "affordances": []
     },
     {
       "id": "WRITING.PLAYER_AGENCY",
-      "domain": "WRITING",
-      "kind": "hard-lock",
+      "domain": "WRITING", "kind": "hard-lock",
       "text": "Do not choose Kai's intentional action for the player. Resolve what Kai can perceive from the chosen action before asking for the next choice. Menus are suggestions, not rails; free-form methods are valid, but the player cannot declare an unconfirmed result as already true.",
-      "source": {
-        "document": "05_TextGame/RULES/TEXT_GAME_RULES.md + 05_TextGame/RULES/GAME_MASTER_RULES.md",
-        "anchor": "TEXT_GAME_RULES 4; GM_RULES 2"
-      },
-      "authority": "TEXT_GAME_HARD_LOCK",
-      "mutability": "IMMUTABLE",
-      "priority": 12,
-      "tags": [
-        "player agency",
-        "choice"
-      ],
-      "references": [],
-      "affordances": []
+      "source": {"document": "05_TextGame/RULES/TEXT_GAME_RULES.md + 05_TextGame/RULES/GAME_MASTER_RULES.md", "anchor": "TEXT_GAME_RULES 4; GM_RULES 2"},
+      "authority": "TEXT_GAME_HARD_LOCK", "mutability": "IMMUTABLE", "priority": 12,
+      "tags": ["player agency", "choice"], "references": [], "affordances": []
     },
     {
       "id": "WRITING.KNOWLEDGE_BOUNDARY",
-      "domain": "WRITING",
-      "kind": "hard-lock",
+      "domain": "WRITING", "kind": "hard-lock",
       "text": "Characters know only what their background, direct observation, testimony, validated ability/device evidence, or reasonable inference supports. Backstage canon is not character knowledge. Preserve uncertainty level: reported/inferred/uncertain does not become fact. Do not turn knowledge-state labels or source metadata into dialogue.",
-      "source": {
-        "document": "00_RULES/worldcodex.md + 00_RULES/Những điều bắt buộc không được làm khi viết tiểu thuyết.md + 00_RULES/CONVERSATION.MD",
-        "anchor": "KNOWLEDGE BOUNDARY; NOVEL.KNOWLEDGE; 14-16"
-      },
-      "authority": "WRITING_HARD_LOCK",
-      "mutability": "IMMUTABLE",
-      "priority": 12,
-      "tags": [
-        "knowledge",
-        "knowledge leak",
-        "pov",
-        "uncertainty"
-      ],
-      "references": [],
-      "affordances": []
+      "source": {"document": "00_RULES/worldcodex.md + 00_RULES/Những điều bắt buộc không được làm khi viết tiểu thuyết.md + 00_RULES/CONVERSATION.MD", "anchor": "KNOWLEDGE BOUNDARY; NOVEL.KNOWLEDGE; 14-16"},
+      "authority": "WRITING_HARD_LOCK", "mutability": "IMMUTABLE", "priority": 12,
+      "tags": ["knowledge", "knowledge leak", "pov", "uncertainty"], "references": [], "affordances": []
     },
     {
       "id": "WRITING.COMPETENCE",
-      "domain": "WRITING",
-      "kind": "hard-lock",
+      "domain": "WRITING", "kind": "hard-lock",
       "text": "Never make a competent character forget established skills, equipment, experience, obvious options or canonical abilities merely to create danger. If a tool cannot solve a problem, the reason must come from real information limits, environment, conflicting objectives, protected people, injury, cost, or another established constraint. Horror must not be maintained by withholding competence.",
-      "source": {
-        "document": "00_RULES/Những điều bắt buộc không được làm khi viết tiểu thuyết.md + 00_RULES/worldcodex.md + 00_RULES/Supernatural_Horror_Craft_Guide.md",
-        "anchor": "NOVEL.COMPETENCE.NO_SUDDEN_STUPIDITY; 7; SH-SUSPENSE-01"
-      },
-      "authority": "WRITING_HARD_LOCK",
-      "mutability": "IMMUTABLE",
-      "priority": 12,
-      "tags": [
-        "competence",
-        "ability",
-        "equipment",
-        "horror"
-      ],
-      "references": [],
-      "affordances": []
+      "source": {"document": "00_RULES/Những điều bắt buộc không được làm khi viết tiểu thuyết.md + 00_RULES/worldcodex.md + 00_RULES/Supernatural_Horror_Craft_Guide.md", "anchor": "NOVEL.COMPETENCE.NO_SUDDEN_STUPIDITY; 7; SH-SUSPENSE-01"},
+      "authority": "WRITING_HARD_LOCK", "mutability": "IMMUTABLE", "priority": 12,
+      "tags": ["competence", "ability", "equipment", "horror"], "references": [], "affordances": []
     },
     {
       "id": "WRITING.DIALOGUE",
-      "domain": "WRITING",
-      "kind": "runtime-rule",
+      "domain": "WRITING", "kind": "runtime-rule",
       "text": "Dialogue authority is CONVERSATION.MD. Speak as the actual person in the current situation, not as a canon interface or an optimized psychological explanation. Keep address from active relationship canon. Dialogue may be direct, ordinary, slightly circular, interrupted by practical life, or unresolved when appropriate; do not manufacture fragmentary 'cool' speech, exposition packages, or pre-solved conversation beats.",
-      "source": {
-        "document": "00_RULES/CONVERSATION.MD",
-        "anchor": "RULES.DIALOGUE / 0-32"
-      },
-      "authority": "DIALOGUE_AUTHORITY",
-      "mutability": "IMMUTABLE",
-      "priority": 35,
-      "tags": [
-        "dialogue",
-        "address",
-        "voice"
-      ],
-      "references": [],
-      "affordances": [
-        "dialogue"
-      ]
+      "source": {"document": "00_RULES/CONVERSATION.MD", "anchor": "RULES.DIALOGUE / 0-32"},
+      "authority": "DIALOGUE_AUTHORITY", "mutability": "IMMUTABLE", "priority": 35,
+      "tags": ["dialogue", "address", "voice"], "references": [], "affordances": ["dialogue"]
     },
     {
       "id": "WORLD.CORE",
-      "domain": "WORLD",
-      "kind": "hard-canon",
+      "domain": "WORLD", "kind": "hard-canon",
       "text": "Backrooms origin is never confirmed. Levels are survivor labels for recognizable regions within one vast continuous reality, not sealed boxes; boundaries and routes can drift. Architecture, local rules, time and memory may deviate. Human biology still matters: hunger, thirst, blood loss, infection, heat, cold, exhaustion and sleep deprivation can kill. Copies of people can exist; there is no absolute method to prove an original. Death has no single universal outcome.",
-      "source": {
-        "document": "01_WORLD/world.md",
-        "anchor": "0.1-0.5"
-      },
-      "authority": "WORLD_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 20,
-      "tags": [
-        "backrooms",
-        "world",
-        "level",
-        "biology",
-        "memory",
-        "death"
-      ],
-      "references": [],
-      "affordances": []
+      "source": {"document": "01_WORLD/world.md", "anchor": "0.1-0.5"},
+      "authority": "WORLD_CANON", "mutability": "IMMUTABLE", "priority": 20,
+      "tags": ["backrooms", "world", "level", "biology", "memory", "death"], "references": [], "affordances": []
     },
     {
       "id": "STORY.MAIN.OBJECTIVE",
-      "domain": "STORY",
-      "kind": "baseline-objective",
+      "domain": "STORY", "kind": "baseline-objective",
       "text": "Initial long-term objectives for Kai: survive and learn enough of the environment to move; determine Iris and Syvial's condition; find/re-establish a route to reunite if possible; understand Backrooms exit rules; and seek communication or a route back to Frontrooms only if gameplay/canon truly supports it. None is guaranteed to complete quickly.",
-      "source": {
-        "document": "05_TextGame/STORY/MAIN_STORY.md",
-        "anchor": "3 PLAYER & MAIN OBJECTIVE"
-      },
-      "authority": "STORY_CANON",
-      "mutability": "BASELINE",
-      "priority": 42,
-      "tags": [
-        "objective",
-        "main campaign",
-        "iris",
-        "syvial",
-        "exit"
-      ],
-      "references": [],
-      "affordances": []
+      "source": {"document": "05_TextGame/STORY/MAIN_STORY.md", "anchor": "3 PLAYER & MAIN OBJECTIVE"},
+      "authority": "STORY_CANON", "mutability": "BASELINE", "priority": 42,
+      "tags": ["objective", "main campaign", "iris", "syvial", "exit"], "references": [], "affordances": []
     },
     {
       "id": "STORY.MAIN.SEPARATION",
-      "domain": "STORY",
-      "kind": "baseline-continuity",
-      "text": "After the shared no-clip event, Kai, Iris and Syvial land apart. Direct links between the three, SRU/Command, Frontrooms, beacon and outside telemetry are initially offline. Kai does not know Iris's or Syvial's location/Level. Iris and Syvial exist in the campaign from the Prologue and are separated, not first-spawned by survivor RNG. Re-establishing contact or reunion requires continuity/geography/state support; rarity rolls never teleport them.",
-      "source": {
-        "document": "05_TextGame/STORY/MAIN_STORY.md",
-        "anchor": "2; 4; 5"
-      },
-      "authority": "STORY_CANON",
-      "mutability": "BASELINE",
-      "priority": 38,
-      "tags": [
-        "main campaign",
-        "separated",
-        "communication",
-        "iris",
-        "syvial"
-      ],
-      "references": [],
-      "affordances": []
+      "domain": "STORY", "kind": "baseline-continuity",
+      "text": "After the shared no-clip event, Kai, Iris and Syvial land apart. Direct links between the three, Black Blood/Command, Frontrooms, beacon and outside telemetry are initially offline. Kai does not know Iris's or Syvial's location/Level. Iris and Syvial exist in the campaign from the Prologue and are separated, not first-spawned by survivor RNG. Re-establishing contact or reunion requires continuity/geography/state support; rarity rolls never teleport them.",
+      "source": {"document": "05_TextGame/STORY/MAIN_STORY.md", "anchor": "2; 4; 5"},
+      "authority": "STORY_CANON", "mutability": "BASELINE", "priority": 38,
+      "tags": ["main campaign", "separated", "communication", "iris", "syvial"], "references": [], "affordances": []
     },
+
     {
       "id": "CHAR.KAI.RUNTIME_CORE",
-      "domain": "CHARACTER",
-      "kind": "runtime-card",
-      "text": "Kai Akechi / Twilight is the UR+ captain of SRU (Special Response Unit), part of the police force responding to abnormal phenomena. SRU's public dossier treats him as human. His half-human/half-demon nature and parentage as the son of Sparda and Eve are writer-only KNOWLEDGE LOCK facts and must not be granted to NPCs without a valid in-story source. Origin era 2299 is not a birth year; true age is unknown. Outside danger he can be relaxed, lazy, teasing and irreverent; in real danger he becomes disciplined and decisive, prioritizing SRU teammates and civilians. R08 visual lock: exposed head and face, thick slightly long messy black hair, cold blue eyes, black-gunmetal SRU-MK20 powered armor with POLICE/SRU markings, high protective collar, tactical fabric at hips/thighs and small blue system-status accents. No enclosed helmet, jaw mask, mechanical horns, dragon pauldron, cape or ragged rear cloth from retired designs.",
-      "source": {
-        "document": "02_CHARACTERS/Kai_Codex.docx",
-        "anchor": "KAI-QUICK-01; KAI-ID-01; KAI-SECRET-01; KAI-VIS-01; KAI-PER-01"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 20,
-      "tags": [
-        "kai",
-        "twilight",
-        "present core",
-        "voice",
-        "sru",
-        "r08 visual",
-        "knowledge lock"
-      ],
-      "references": [],
-      "affordances": []
+      "domain": "CHARACTER", "kind": "runtime-card",
+      "text": "Kai Akechi / Twilight: Black Blood captain under Vatican, UR+, half-human/half-demon, son of Sparda and Eve. Origin era 2299 is not a birth year; true age is unknown. Outside danger he can be relaxed, lazy, teasing and irreverent; in real danger he becomes disciplined and decisive, prioritizing teammates/civilians. He retains full control of himself and demon power. Do not make him a reckless idiot, a moralizing hero-mouthpiece, or a puppet whose intentional actions GM chooses for the player.",
+      "source": {"document": "02_CHARACTERS/Kai_Codex.docx", "anchor": "KAI-QUICK-01; KAI-PER-01; KAI-ACTION-LOCK-01"},
+      "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 20,
+      "tags": ["kai", "twilight", "present core", "voice"], "references": [], "affordances": []
     },
     {
       "id": "CHAR.KAI.SPARDA_CORE",
-      "domain": "CHARACTER",
-      "kind": "ability",
+      "domain": "CHARACTER", "kind": "ability",
       "text": "Sparda Core provides Kai infinite demon power with no intrinsic operating limit in current canon. Do not invent depletion, a mana bar, cooldown, corruption, berserk loss of control, or backlash merely to balance him. Infinite power does not equal omniscience or automatic success at objectives constrained by information, environment or people to protect.",
-      "source": {
-        "document": "02_CHARACTERS/Kai_Codex.docx",
-        "anchor": "KAI-CORE-SPARDA-01; KAI-WEAK-01"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 44,
-      "tags": [
-        "kai",
-        "sparda core",
-        "demon power"
-      ],
-      "references": [],
-      "affordances": [
-        "direct_threat"
-      ]
+      "source": {"document": "02_CHARACTERS/Kai_Codex.docx", "anchor": "KAI-CORE-SPARDA-01; KAI-WEAK-01"},
+      "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 44,
+      "tags": ["kai", "sparda core", "demon power"], "references": [], "affordances": ["direct_threat"]
     },
     {
       "id": "CHAR.KAI.DEVIL_TRIGGER",
-      "domain": "CHARACTER",
-      "kind": "ability",
+      "domain": "CHARACTER", "kind": "ability",
       "text": "Kai's Devil Trigger strongly enhances his established physical, mental, speed, reflex and combat capabilities. Current codex does not give it an intrinsic maximum duration, cooldown, backlash, corruption or loss of control. Do not add those limits.",
-      "source": {
-        "document": "02_CHARACTERS/Kai_Codex.docx",
-        "anchor": "KAI-DT-01"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 48,
-      "tags": [
-        "kai",
-        "devil trigger"
-      ],
-      "references": [],
-      "affordances": [
-        "direct_threat"
-      ]
+      "source": {"document": "02_CHARACTERS/Kai_Codex.docx", "anchor": "KAI-DT-01"},
+      "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 48,
+      "tags": ["kai", "devil trigger"], "references": [], "affordances": ["direct_threat"]
     },
     {
       "id": "CHAR.KAI.GUILTY_CROWN_OVERRIDE",
-      "domain": "CHARACTER",
-      "kind": "ultimate",
+      "domain": "CHARACTER", "kind": "ultimate",
       "text": "Guilty Crown Override is canonically a sequence of exactly 24 consecutive shots while external time is completely stopped when Kai is in Devil Trigger. Do not alter the shot count or invent a lesser time-slow substitute without retcon.",
-      "source": {
-        "document": "02_CHARACTERS/Kai_Codex.docx",
-        "anchor": "KAI-ULT-GCO-01"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 54,
-      "tags": [
-        "kai",
-        "guilty crown override",
-        "override"
-      ],
-      "references": [
-        "CHAR.KAI.DEVIL_TRIGGER",
-        "CHAR.KAI.WHITE_WRAITH"
-      ],
-      "affordances": [
-        "high_tier_target"
-      ]
+      "source": {"document": "02_CHARACTERS/Kai_Codex.docx", "anchor": "KAI-ULT-GCO-01"},
+      "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 54,
+      "tags": ["kai", "guilty crown override", "override"], "references": ["CHAR.KAI.DEVIL_TRIGGER", "CHAR.KAI.WHITE_WRAITH"], "affordances": ["high_tier_target"]
     },
     {
       "id": "CHAR.KAI.WHITE_WRAITH",
-      "domain": "CHARACTER",
-      "kind": "equipment",
+      "domain": "CHARACTER", "kind": "equipment",
       "text": "White Wraith Magnum is Kai's signature firearm. It uses demonic ammunition formed directly from Kai's power rather than a carried conventional ammo supply. It supports single-shot and near-600-round-per-minute automatic fire per current codex. Do not invent ammunition scarcity for this weapon merely to create difficulty.",
-      "source": {
-        "document": "02_CHARACTERS/Kai_Codex.docx",
-        "anchor": "KAI-EQP-WWM-01"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 50,
-      "tags": [
-        "kai",
-        "white wraith",
-        "magnum",
-        "gun"
-      ],
-      "references": [
-        "CHAR.KAI.SPARDA_CORE"
-      ],
-      "affordances": [
-        "direct_threat"
-      ]
+      "source": {"document": "02_CHARACTERS/Kai_Codex.docx", "anchor": "KAI-EQP-WWM-01"},
+      "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 50,
+      "tags": ["kai", "white wraith", "magnum", "gun"], "references": ["CHAR.KAI.SPARDA_CORE"], "affordances": ["direct_threat"]
     },
     {
       "id": "CHAR.KAI.ARMOR",
-      "domain": "CHARACTER",
-      "kind": "equipment",
-      "text": "R08 visual/current armor lock: SRU-MK20 is Kai's black-gunmetal powered armor/exoskeleton with POLICE / SRU / SPECIAL RESPONSE UNIT identification. It leaves Kai's head and face exposed, uses a high collar that protects the neck/lower jaw without covering the face, concentrates segmented armor and assist mechanisms on the torso, shoulders, arms, knees, shins and feet, and keeps black tactical fabric around the hips, thighs and lower torso for mobility. Small blue lines are system-status accents. The current silhouette has no enclosed helmet, Demon Jaw face covering, mechanical horns, cape, ragged cloth or dragon-head pauldron.",
-      "source": {
-        "document": "02_CHARACTERS/Kai_Codex.docx",
-        "anchor": "KAI-VIS-01; KAI-EQP-SRU-MK20-01"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 54,
-      "tags": [
-        "kai",
-        "sru-mk20",
-        "powered armor",
-        "r08 visual",
-        "police",
-        "sru"
-      ],
-      "references": [],
-      "affordances": [
-        "trace_analysis",
-        "direct_threat"
-      ]
+      "domain": "CHARACTER", "kind": "equipment",
+      "text": "Blackblood Armor and linked modules self-repair using power from Sparda Core and function as an extension of Kai's body rather than a heavy slowing shell. Demon Jaw Mask supports protection, gas filtration, enhanced vision, motion tracking, biological/demonic analysis, encrypted communications and targeting support. Talon Gauntlets support claws, striking, grip/climb and short-range electromagnetic effects on metal; Phantom Greaves support bursts, jumps, mid-air direction change, wall running, landing mitigation and stronger kicks.",
+      "source": {"document": "02_CHARACTERS/Kai_Codex.docx", "anchor": "KAI-EQP-ARMOR-01"},
+      "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 54,
+      "tags": ["kai", "blackblood armor", "demon jaw", "talon", "phantom greaves"], "references": [], "affordances": ["trace_analysis", "direct_threat"]
     },
     {
       "id": "CHAR.KAI.OMNIVAULT",
-      "domain": "CHARACTER",
-      "kind": "equipment",
+      "domain": "CHARACTER", "kind": "equipment",
       "text": "Omnivault Ring is an absolute storage space for inanimate objects and never acts on living beings. Physical storage is not limited by ordinary count/size/mass, but scan-copy memory has exactly 3 slots. Copies cannot themselves be scanned; each original can serve as a scan source once before being Marked. Restore/Hoàn nguyên has per-item 24-hour cooldown after a successful restore. Scan/restore uses a light beam and can propagate across one continuous material block, but does not treat whole assembled systems such as buildings, motorcycles, tanks or complete cannons as one eligible object; personal armor and guns remain eligible complete items.",
-      "source": {
-        "document": "02_CHARACTERS/Kai_Codex.docx",
-        "anchor": "KAI-EQP-OMNIVAULT-01; KAI-WEAK-01"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 46,
-      "tags": [
-        "kai",
-        "omnivault",
-        "nhẫn vạn tàng",
-        "scan",
-        "restore",
-        "hoàn nguyên"
-      ],
-      "references": [],
-      "affordances": [
-        "item_manipulation"
-      ]
+      "source": {"document": "02_CHARACTERS/Kai_Codex.docx", "anchor": "KAI-EQP-OMNIVAULT-01; KAI-WEAK-01"},
+      "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 46,
+      "tags": ["kai", "omnivault", "nhẫn vạn tàng", "scan", "restore", "hoàn nguyên"], "references": [], "affordances": ["item_manipulation"]
     },
+
     {
       "id": "CHAR.IRIS.RUNTIME_CORE",
-      "domain": "CHARACTER",
-      "kind": "runtime-card",
-      "text": "Iris: official name has no locked surname; ARGUS is her SRU callsign. She is a half-human/half-demon daughter of Belial and a human mother who is deceased; the mother's identity, occupation, origin and cause of death remain UNKNOWN. Kai was the first SRU member to discover Iris during a supernatural residential incident; SRU later verified Belial Core, Thousandfold Cognition and standardized Project 07. Within Kai's SRU team she is Scout / Target Eliminator; Kai holds overall command and Syvial is deputy leader. She is calm, decisive, sharp, brave and caring, and a real ranged combatant/Gunslinger. Current visual lock: young woman around 18, short black bob, warm amber-brown eyes, black-gunmetal full-body mechanical armor with orange-red status lights, Ivory & Ebony, no face-covering helmet, Command Slate, tablet or drones. She has romantic feelings for Kai but he has not reciprocated; Iris and Syvial are friends/teammates with romantic rivalry, not enemies.",
-      "source": {
-        "document": "02_CHARACTERS/Iris_Codex.docx",
-        "anchor": "IRIS-ID-01; IRIS-ORIGIN-01; IRIS-ORIGIN-KAI-01; IRIS-VIS-01; IRIS-REL-01"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 22,
-      "tags": [
-        "iris",
-        "argus",
-        "present core",
-        "voice",
-        "sru",
-        "project 07",
-        "r06 visual"
-      ],
-      "references": [],
-      "affordances": []
+      "domain": "CHARACTER", "kind": "runtime-card",
+      "text": "Iris: official name has no locked surname; ARGUS is her Black Blood callsign. Half-human/half-demon daughter of Belial and a human mother; true age/origin era remain unknown. She is Scout / Target Eliminator and a real ranged combatant/Gunslinger, not a non-combatant intelligence station. Calm, decisive, sharp, brave and caring; with Kai she is more emotionally transparent but does not become childish or violent. Her knowledge is limited to what she/relevant equipment can actually observe. Preserve UNKNOWN fields and never infer her exact combat tier as UR+ from Kai/Syvial.",
+      "source": {"document": "02_CHARACTERS/Iris_Codex.docx", "anchor": "IRIS-QUICK-01; IRIS-PER-01; IRIS-CANON-GATE-01; IRIS-UNKNOWN-01"},
+      "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 22,
+      "tags": ["iris", "argus", "present core", "voice"], "references": [], "affordances": []
     },
     {
       "id": "CHAR.IRIS.ARGUS",
-      "domain": "CHARACTER",
-      "kind": "ability",
+      "domain": "CHARACTER", "kind": "ability",
       "text": "ARGUS Terrain Read combines Iris's direct observation, Recon Frame sensors and analysis of terrain, landmarks, approach/escape routes, lines of sight, cover, ambush points and abnormal traces. It is not omniscience, wall vision, remote-camera generation or automatic supernatural true-form detection. Distorted geometry and bad sensor data can mislead it, so confidence/evidence still matter.",
-      "source": {
-        "document": "02_CHARACTERS/Iris_Codex.docx",
-        "anchor": "IRIS-SCOUT-TERRAIN-01; IRIS-SCOUT-GROUND-01; IRIS-SCOUT-TARGET-01; IRIS-CANON-GATE-01"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 40,
-      "tags": [
-        "iris",
-        "argus",
-        "terrain read",
-        "trace",
-        "route",
-        "cover"
-      ],
-      "references": [],
-      "affordances": [
-        "trace_analysis"
-      ]
+      "source": {"document": "02_CHARACTERS/Iris_Codex.docx", "anchor": "IRIS-SCOUT-TERRAIN-01; IRIS-SCOUT-GROUND-01; IRIS-SCOUT-TARGET-01; IRIS-CANON-GATE-01"},
+      "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 40,
+      "tags": ["iris", "argus", "terrain read", "trace", "route", "cover"], "references": [], "affordances": ["trace_analysis"]
     },
     {
       "id": "CHAR.IRIS.THOUSANDFOLD",
-      "domain": "CHARACTER",
-      "kind": "ability",
+      "domain": "CHARACTER", "kind": "ability",
       "text": "Thousandfold Cognition accelerates Iris's reception, analysis and information processing up to 1:1000. It does not automatically accelerate her body 1000 times. Knowing the right response does not guarantee her body can physically execute it in time.",
-      "source": {
-        "document": "02_CHARACTERS/Iris_Codex.docx",
-        "anchor": "IRIS-THOUSANDFOLD-01; IRIS-WEAK-01"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 48,
-      "tags": [
-        "iris",
-        "thousandfold",
-        "cognition"
-      ],
-      "references": [],
-      "affordances": [
-        "trace_analysis",
-        "target_analysis"
-      ]
+      "source": {"document": "02_CHARACTERS/Iris_Codex.docx", "anchor": "IRIS-THOUSANDFOLD-01; IRIS-WEAK-01"},
+      "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 48,
+      "tags": ["iris", "thousandfold", "cognition"], "references": [], "affordances": ["trace_analysis", "target_analysis"]
     },
     {
       "id": "CHAR.IRIS.IVORY_EBONY",
-      "domain": "CHARACTER",
-      "kind": "equipment",
+      "domain": "CHARACTER", "kind": "equipment",
       "text": "Ivory & Ebony are Iris's two signature mechanical pistols, synchronized with Belial Core. Each shot forms directly from Iris's demon power, so carried ammunition quantity is not the limiting factor. Infinite source does not imply infinite rate of fire, weapon durability, per-shot damage or guaranteed hits; projectiles do not self-target or automatically distinguish manifestation from true body.",
-      "source": {
-        "document": "02_CHARACTERS/Iris_Codex.docx",
-        "anchor": "IRIS-COMBAT-TWIN-01; IRIS-AMMO-DEMONIC-01; IRIS-CANON-GATE-01"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 48,
-      "tags": [
-        "iris",
-        "ivory",
-        "ebony",
-        "gunslinger"
-      ],
-      "references": [],
-      "affordances": [
-        "direct_threat"
-      ]
+      "source": {"document": "02_CHARACTERS/Iris_Codex.docx", "anchor": "IRIS-COMBAT-TWIN-01; IRIS-AMMO-DEMONIC-01; IRIS-CANON-GATE-01"},
+      "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 48,
+      "tags": ["iris", "ivory", "ebony", "gunslinger"], "references": [], "affordances": ["direct_threat"]
     },
     {
       "id": "CHAR.IRIS.SUPPORT",
-      "domain": "CHARACTER",
-      "kind": "ability",
+      "domain": "CHARACTER", "kind": "ability",
       "text": "Iris has Field Galley and Field MedNet support skills. Field MedNet is battlefield medical capability, not magical healing. Field Galley is field cooking/logistics skill and does not create matter or conjure food.",
-      "source": {
-        "document": "02_CHARACTERS/Iris_Codex.docx",
-        "anchor": "FIELD GALLEY; FIELD MEDNET; IRIS-CANON-GATE-01"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 55,
-      "tags": [
-        "iris",
-        "field mednet",
-        "field galley",
-        "medical",
-        "food"
-      ],
-      "references": [],
-      "affordances": [
-        "field_medical",
-        "field_food"
-      ]
+      "source": {"document": "02_CHARACTERS/Iris_Codex.docx", "anchor": "FIELD GALLEY; FIELD MEDNET; IRIS-CANON-GATE-01"},
+      "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 55,
+      "tags": ["iris", "field mednet", "field galley", "medical", "food"], "references": [], "affordances": ["field_medical", "field_food"]
     },
     {
       "id": "REL.KAI.IRIS.BASELINE",
-      "domain": "RELATIONSHIP",
-      "kind": "baseline-edge",
+      "domain": "RELATIONSHIP", "kind": "baseline-edge",
       "text": "Iris has romantic feelings for Kai. Kai knows, but current codex does not establish that he reciprocates; official/current baseline remains teammates and commander-specialist. Iris's feelings do not grant her the right to manipulate Kai's choices, hide danger or sabotage tactics. Campaign development may change relationship state, but the codex baseline must not be rewritten.",
-      "source": {
-        "document": "02_CHARACTERS/Iris_Codex.docx",
-        "anchor": "IRIS-REL-KAI-01"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "BASELINE",
-      "priority": 28,
-      "tags": [
-        "kai",
-        "iris",
-        "relationship"
-      ],
-      "references": [
-        "ADDR.IRIS.KAI"
-      ],
-      "affordances": [
-        "dialogue"
-      ]
+      "source": {"document": "02_CHARACTERS/Iris_Codex.docx", "anchor": "IRIS-REL-KAI-01"},
+      "authority": "CHARACTER_CANON", "mutability": "BASELINE", "priority": 28,
+      "tags": ["kai", "iris", "relationship"], "references": ["ADDR.IRIS.KAI"], "affordances": ["dialogue"]
     },
     {
       "id": "ADDR.IRIS.KAI",
-      "domain": "RELATIONSHIP",
-      "kind": "address-lock",
+      "domain": "RELATIONSHIP", "kind": "address-lock",
       "text": "Iris -> Kai uses the Vietnamese anh-em system. This closeness does not prove Kai reciprocates her romantic feelings. Do not switch the address system merely because of anger, danger, jealousy, rescue, banter or a single intimate moment without continuity/retcon support.",
-      "source": {
-        "document": "02_CHARACTERS/Iris_Codex.docx",
-        "anchor": "IRIS-REL-KAI-01; IRIS-DLG-01; IRIS-CANON-GATE-01"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 24,
-      "tags": [
-        "kai",
-        "iris",
-        "address",
-        "anh em"
-      ],
-      "references": [
-        "WRITING.DIALOGUE"
-      ],
-      "affordances": [
-        "dialogue"
-      ]
+      "source": {"document": "02_CHARACTERS/Iris_Codex.docx", "anchor": "IRIS-REL-KAI-01; IRIS-DLG-01; IRIS-CANON-GATE-01"},
+      "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 24,
+      "tags": ["kai", "iris", "address", "anh em"], "references": ["WRITING.DIALOGUE"], "affordances": ["dialogue"]
     },
     {
       "id": "REL.IRIS.SYVIAL.BASELINE",
-      "domain": "RELATIONSHIP",
-      "kind": "baseline-edge",
+      "domain": "RELATIONSHIP", "kind": "baseline-edge",
       "text": "Iris and Syvial are friends and trusted teammates with romantic rivalry around Kai. They may be jealous, bicker or compete over small things, but the baseline is not hostility. In missions they trust each other enough to coordinate; romantic competition must not become mission sabotage. Exact Iris<->Syvial address is currently UNKNOWN in Iris R05 and must not be guessed.",
-      "source": {
-        "document": "02_CHARACTERS/Iris_Codex.docx",
-        "anchor": "IRIS-REL-SYVIAL-01; IRIS-UNKNOWN-01"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "BASELINE",
-      "priority": 30,
-      "tags": [
-        "iris",
-        "syvial",
-        "relationship",
-        "unknown address"
-      ],
-      "references": [],
-      "affordances": [
-        "dialogue"
-      ]
+      "source": {"document": "02_CHARACTERS/Iris_Codex.docx", "anchor": "IRIS-REL-SYVIAL-01; IRIS-UNKNOWN-01"},
+      "authority": "CHARACTER_CANON", "mutability": "BASELINE", "priority": 30,
+      "tags": ["iris", "syvial", "relationship", "unknown address"], "references": [], "affordances": ["dialogue"]
     },
+
     {
       "id": "CHAR.SYVIAL.RUNTIME_CORE",
-      "domain": "CHARACTER",
-      "kind": "runtime-card",
-      "text": "Syvial is the half-human/half-demon daughter of Lucifer and a human mother whose identity is not locked. Origin era 2299 is not a birth year; true age is unknown. She belongs to SRU and is deputy leader of Kai Akechi / Twilight's team. She is UR+ and in the same overall power tier as Kai, without sharing the same skill set or fighting style. Outside combat she is natural, social, teasing and food-loving; in danger she becomes focused and precise. She is intensely yandere toward Kai but lucid, intelligent and socially capable, and values Kai freely choosing her. Current visual lock: tall young adult woman with long legs, very long silver-white hair with a faint violet tint tied mostly in a high ponytail, bright magenta eyes, and black-gunmetal mechanical headgear around the temples; the two pointed modules are Lucifer Armor sensors, not biological horns, and her face is exposed in the reference configuration.",
-      "source": {
-        "document": "02_CHARACTERS/Syvial_Codex.docx",
-        "anchor": "SYVIAL-QUICK-01; SYVIAL-VIS-01; SYVIAL-YANDERE-01"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 22,
-      "tags": [
-        "syvial",
-        "present core",
-        "ur+",
-        "voice",
-        "sru",
-        "deputy leader",
-        "visual lock"
-      ],
-      "references": [],
-      "affordances": []
+      "domain": "CHARACTER", "kind": "runtime-card",
+      "text": "Syvial: half-human/half-demon daughter of Lucifer and a human mother whose identity is not locked; origin era 2299, true age unknown. UR+, same overall power tier as Kai, high-tier supernatural swordswoman. Outside combat she is natural, social, teasing, food-loving and capable of ordinary conversation; in danger she becomes focused and precise without turning into a fragment-speaking machine. She is intensely yandere toward Kai but lucid, intelligent and socially capable: not a random murderer, not automatically hostile to every woman, and she values Kai freely choosing her. Jealousy never deletes tactical competence.",
+      "source": {"document": "02_CHARACTERS/Syvial_Codex.docx", "anchor": "SYVIAL-QUICK-01; SYVIAL-OVERVIEW-01; SYVIAL-YANDERE-01; SYVIAL-ACTION-LOCK-01"},
+      "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 22,
+      "tags": ["syvial", "present core", "ur+", "voice"], "references": [], "affordances": []
     },
     {
       "id": "CHAR.SYVIAL.LUCIFER_CORE",
-      "domain": "CHARACTER",
-      "kind": "ability",
+      "domain": "CHARACTER", "kind": "ability",
       "text": "Lucifer Core provides Syvial infinite demon power. Current canon does not supply an intrinsic energy cap/cooldown merely for balance. Infinite power does not erase problems created by incomplete information, protected people, environment, space or an opponent strong enough to matter.",
-      "source": {
-        "document": "02_CHARACTERS/Syvial_Codex.docx",
-        "anchor": "SYVIAL-CORE-LUCIFER-01; SYVIAL-WEAK-01"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 44,
-      "tags": [
-        "syvial",
-        "lucifer core",
-        "demon power"
-      ],
-      "references": [],
-      "affordances": [
-        "direct_threat"
-      ]
+      "source": {"document": "02_CHARACTERS/Syvial_Codex.docx", "anchor": "SYVIAL-CORE-LUCIFER-01; SYVIAL-WEAK-01"},
+      "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 44,
+      "tags": ["syvial", "lucifer core", "demon power"], "references": [], "affordances": ["direct_threat"]
     },
     {
       "id": "CHAR.SYVIAL.DEVIL_TRIGGER",
-      "domain": "CHARACTER",
-      "kind": "ability",
+      "domain": "CHARACTER", "kind": "ability",
       "text": "Syvial's Devil Trigger does not create a second personality, remove control, force corruption or have an invented intrinsic duration/cooldown absent from codex. She remains herself and tactically competent while using it.",
-      "source": {
-        "document": "02_CHARACTERS/Syvial_Codex.docx",
-        "anchor": "SYVIAL-DT-01; SYVIAL-ACTION-LOCK-01"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 48,
-      "tags": [
-        "syvial",
-        "devil trigger"
-      ],
-      "references": [],
-      "affordances": [
-        "direct_threat"
-      ]
+      "source": {"document": "02_CHARACTERS/Syvial_Codex.docx", "anchor": "SYVIAL-DT-01; SYVIAL-ACTION-LOCK-01"},
+      "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 48,
+      "tags": ["syvial", "devil trigger"], "references": [], "affordances": ["direct_threat"]
     },
     {
       "id": "CHAR.SYVIAL.GODKILLER",
-      "domain": "CHARACTER",
-      "kind": "equipment",
+      "domain": "CHARACTER", "kind": "equipment",
       "text": "GodKiller is Syvial's enormous purely mechanical greatsword. Do not convert it into a gun or gunblade. Its reach and mass support space control at medium distance; in very tight space Syvial can shorten her sword work and use close combat/Spatial Shift rather than pretending the weapon never matters. She does not forget combat ability if disarmed and can call the sword back under codex capability.",
-      "source": {
-        "document": "02_CHARACTERS/Syvial_Codex.docx",
-        "anchor": "SYVIAL-EQP-GODKILLER-01; SYVIAL-STYLE-COMBAT-01; SYVIAL-ACTION-LOCK-01"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 48,
-      "tags": [
-        "syvial",
-        "godkiller",
-        "greatsword"
-      ],
-      "references": [],
-      "affordances": [
-        "direct_threat"
-      ]
+      "source": {"document": "02_CHARACTERS/Syvial_Codex.docx", "anchor": "SYVIAL-EQP-GODKILLER-01; SYVIAL-STYLE-COMBAT-01; SYVIAL-ACTION-LOCK-01"},
+      "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 48,
+      "tags": ["syvial", "godkiller", "greatsword"], "references": [], "affordances": ["direct_threat"]
     },
     {
       "id": "CHAR.SYVIAL.GODKILLER_OVERRIDE",
-      "domain": "CHARACTER",
-      "kind": "ultimate",
+      "domain": "CHARACTER", "kind": "ultimate",
       "text": "GodKiller Override / Twenty-Four Severance performs exactly 24 cuts during completely stopped external time under current canon. Do not change the count, turn it into a gun attack, or add an invented cooldown/energy bar without retcon.",
-      "source": {
-        "document": "02_CHARACTERS/Syvial_Codex.docx",
-        "anchor": "SYVIAL-ULT-GKO-01; SYVIAL-ACTION-LOCK-01"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 54,
-      "tags": [
-        "syvial",
-        "godkiller override",
-        "twenty-four severance"
-      ],
-      "references": [
-        "CHAR.SYVIAL.GODKILLER",
-        "CHAR.SYVIAL.DEVIL_TRIGGER"
-      ],
-      "affordances": [
-        "high_tier_target"
-      ]
+      "source": {"document": "02_CHARACTERS/Syvial_Codex.docx", "anchor": "SYVIAL-ULT-GKO-01; SYVIAL-ACTION-LOCK-01"},
+      "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 54,
+      "tags": ["syvial", "godkiller override", "twenty-four severance"], "references": ["CHAR.SYVIAL.GODKILLER", "CHAR.SYVIAL.DEVIL_TRIGGER"], "affordances": ["high_tier_target"]
     },
     {
       "id": "CHAR.SYVIAL.COMBAT",
-      "domain": "CHARACTER",
-      "kind": "ability",
+      "domain": "CHARACTER", "kind": "ability",
       "text": "Syvial is a high-tier supernatural swordswoman for assault, suppression, counterattack and finishing high-level targets. She controls space with GodKiller, adapts at close range, handles multiple targets by positioning rather than blind spinning, and gathers enough information before escalating against high-tier targets. She is not a weak follower or a drone waiting for Kai commands; Kai and Syvial can hold separate fronts, save each other when needed and disagree tactically from a position of comparable overall power.",
-      "source": {
-        "document": "02_CHARACTERS/Syvial_Codex.docx",
-        "anchor": "SYVIAL-COMBAT-01; SYVIAL-STYLE-COMBAT-01; SYVIAL-REL-KAI-01"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 40,
-      "tags": [
-        "syvial",
-        "combat",
-        "ur+",
-        "sword"
-      ],
-      "references": [
-        "CHAR.SYVIAL.GODKILLER"
-      ],
-      "affordances": [
-        "direct_threat"
-      ]
+      "source": {"document": "02_CHARACTERS/Syvial_Codex.docx", "anchor": "SYVIAL-COMBAT-01; SYVIAL-STYLE-COMBAT-01; SYVIAL-REL-KAI-01"},
+      "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 40,
+      "tags": ["syvial", "combat", "ur+", "sword"], "references": ["CHAR.SYVIAL.GODKILLER"], "affordances": ["direct_threat"]
     },
     {
       "id": "REL.KAI.SYVIAL.BASELINE",
-      "domain": "RELATIONSHIP",
-      "kind": "baseline-edge",
+      "domain": "RELATIONSHIP", "kind": "baseline-edge",
       "text": "Syvial's feelings for Kai are immutable character canon. How far Kai reciprocates must follow campaign continuity; do not convert one-sided feelings into an established long-term romance automatically. They are peers in overall combat tier and neither exists to be constantly rescued or protected like a fragile object. Reliable evidence that Kai is in severe danger can shift Syvial's priorities or risk tolerance, but brief lost contact does not collapse her judgment.",
-      "source": {
-        "document": "02_CHARACTERS/Syvial_Codex.docx",
-        "anchor": "SYVIAL-REL-KAI-01"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "BASELINE",
-      "priority": 28,
-      "tags": [
-        "kai",
-        "syvial",
-        "relationship"
-      ],
-      "references": [
-        "ADDR.SYVIAL.KAI"
-      ],
-      "affordances": [
-        "dialogue"
-      ]
+      "source": {"document": "02_CHARACTERS/Syvial_Codex.docx", "anchor": "SYVIAL-REL-KAI-01"},
+      "authority": "CHARACTER_CANON", "mutability": "BASELINE", "priority": 28,
+      "tags": ["kai", "syvial", "relationship"], "references": ["ADDR.SYVIAL.KAI"], "affordances": ["dialogue"]
     },
     {
       "id": "ADDR.SYVIAL.KAI",
-      "domain": "RELATIONSHIP",
-      "kind": "address-lock",
+      "domain": "RELATIONSHIP", "kind": "address-lock",
       "text": "Syvial -> Kai: Syvial says 'em' for self and normally calls him 'anh' or 'Kai'; 'Anh Kai' can be used for teasing/emphasis/clarifying before others. Kai -> Syvial: Kai says 'anh' for self and calls her 'Syvial' or 'em'. 'Cục cưng' is allowed only if campaign continuity has already locked a long-term romantic relationship; it is not the default. A direct first name can carry extra weight when serious, but is not a magic keyword to repeat every line.",
-      "source": {
-        "document": "02_CHARACTERS/Syvial_Codex.docx",
-        "anchor": "SYVIAL-REL-KAI-01 / Xưng hô và trạng thái gọi tên"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 24,
-      "tags": [
-        "kai",
-        "syvial",
-        "address",
-        "anh em"
-      ],
-      "references": [
-        "WRITING.DIALOGUE"
-      ],
-      "affordances": [
-        "dialogue"
-      ]
+      "source": {"document": "02_CHARACTERS/Syvial_Codex.docx", "anchor": "SYVIAL-REL-KAI-01 / Xưng hô và trạng thái gọi tên"},
+      "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 24,
+      "tags": ["kai", "syvial", "address", "anh em"], "references": ["WRITING.DIALOGUE"], "affordances": ["dialogue"]
     },
+
     {
       "id": "ENTITY.GLOBAL_HARD_LOCK",
-      "domain": "ENTITY",
-      "kind": "hard-lock",
+      "domain": "ENTITY", "kind": "hard-lock",
       "text": "Project Entity hard lock: no Entity is friendly or neutral toward humans and no beneficial symbiosis/parasitism is canon. An Entity may delay attack to observe, lure, split, manipulate or conduct a long hunt, but apparent help ultimately serves harmful predatory/other harmful goals. Entity origins are not unified and intelligence ranges from animal predator to superhuman. Do not assume destroying a visible body always kills the underlying Entity.",
-      "source": {
-        "document": "01_WORLD/entity.md",
-        "anchor": "0.6 Entity — HARD LOCK"
-      },
-      "authority": "WORLD_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 32,
-      "tags": [
-        "entity",
-        "hostile entity"
-      ],
-      "references": [],
-      "affordances": [
-        "direct_threat"
-      ]
+      "source": {"document": "01_WORLD/entity.md", "anchor": "0.6 Entity — HARD LOCK"},
+      "authority": "WORLD_CANON", "mutability": "IMMUTABLE", "priority": 32,
+      "tags": ["entity", "hostile entity"], "references": [], "affordances": ["direct_threat"]
     },
     {
       "id": "ITEM.GLOBAL_HARD_LOCK",
-      "domain": "ITEM",
-      "kind": "hard-lock",
+      "domain": "ITEM", "kind": "hard-lock",
       "text": "Safe food/water and medicine are scarce; guns/ammunition are uncommon for ordinary survivors; resources can reappear unreliably. Frontrooms objects can function normally, then deviate, degrade or be assimilated without a fixed timetable. Do not spawn a resource exactly when convenient just to rescue a character. Reliable information is itself a survival resource. Do not label a map/source absolutely SAFE; retain who observed it, when and with what confidence.",
-      "source": {
-        "document": "01_WORLD/items.md",
-        "anchor": "0.7-0.8; 8.6"
-      },
-      "authority": "WORLD_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 36,
-      "tags": [
-        "item",
-        "resource",
-        "scarcity"
-      ],
-      "references": [],
-      "affordances": [
-        "item_manipulation"
-      ]
+      "source": {"document": "01_WORLD/items.md", "anchor": "0.7-0.8; 8.6"},
+      "authority": "WORLD_CANON", "mutability": "IMMUTABLE", "priority": 36,
+      "tags": ["item", "resource", "scarcity"], "references": [], "affordances": ["item_manipulation"]
     },
     {
       "id": "ITEM.ALMOND_WATER",
-      "domain": "ITEM",
-      "kind": "item",
+      "domain": "ITEM", "kind": "item",
       "text": "Almond Water is a key anomalous drinking-water resource but remains scarce in Project canon. It can rehydrate and support alertness/some mild symptoms; it is not a cure-all and does not negate every Entity effect. It can expire and become poisonous. Open sources must be checked; Level 0 carpet moisture is not drinking water.",
-      "source": {
-        "document": "01_WORLD/items.md",
-        "anchor": "8.1 Object 1 — Almond Water"
-      },
-      "authority": "WORLD_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 58,
-      "tags": [
-        "almond water",
-        "water"
-      ],
-      "references": [],
-      "affordances": [
-        "resource_check"
-      ]
+      "source": {"document": "01_WORLD/items.md", "anchor": "8.1 Object 1 — Almond Water"},
+      "authority": "WORLD_CANON", "mutability": "IMMUTABLE", "priority": 58,
+      "tags": ["almond water", "water"], "references": [], "affordances": ["resource_check"]
     },
     {
       "id": "ITEM.GREEK_FIRE",
-      "domain": "ITEM",
-      "kind": "item",
+      "domain": "ITEM", "kind": "item",
       "text": "Greek Fire is an extremely rare flammable resource useful for heat, cooking and combat. It is strategically valuable and dangerous in confined spaces; it is not common starter equipment.",
-      "source": {
-        "document": "01_WORLD/items.md",
-        "anchor": "8.2 Object 5 — Greek Fire"
-      },
-      "authority": "WORLD_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 60,
-      "tags": [
-        "greek fire"
-      ],
-      "references": [],
-      "affordances": [
-        "resource_check"
-      ]
+      "source": {"document": "01_WORLD/items.md", "anchor": "8.2 Object 5 — Greek Fire"},
+      "authority": "WORLD_CANON", "mutability": "IMMUTABLE", "priority": 60,
+      "tags": ["greek fire"], "references": [], "affordances": ["resource_check"]
     },
     {
       "id": "ITEM.LIQUID_PAIN",
-      "domain": "ITEM",
-      "kind": "item",
+      "domain": "ITEM", "kind": "item",
       "text": "Liquid Pain is a red toxic, tissue-corrosive liquid with harmful fumes. It can be used against Entities and in crude traps/munitions, may appear in mislabeled containers, and must not be treated as drinking water or handled bare-handed.",
-      "source": {
-        "document": "01_WORLD/items.md",
-        "anchor": "8.3 Object 12 — Liquid Pain"
-      },
-      "authority": "WORLD_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 60,
-      "tags": [
-        "liquid pain"
-      ],
-      "references": [],
-      "affordances": [
-        "resource_check",
-        "direct_threat"
-      ]
+      "source": {"document": "01_WORLD/items.md", "anchor": "8.3 Object 12 — Liquid Pain"},
+      "authority": "WORLD_CANON", "mutability": "IMMUTABLE", "priority": 60,
+      "tags": ["liquid pain"], "references": [], "affordances": ["resource_check", "direct_threat"]
     },
+
     {
-      "id": "LEVEL.00",
-      "domain": "LEVEL",
-      "kind": "level",
+      "id": "LEVEL.00", "domain": "LEVEL", "kind": "level",
       "text": "Level 0 / The Lobby: endless-feeling yellow rooms, damp carpet, fluorescent hum, suspended ceiling and non-linear geometry. Main dangers are dehydration, exhaustion, disorientation and perceptual effects. Fluorescent Pressure can cause headache/sleeplessness/misheard footsteps; Memory Rooms can echo or corrupt memories; Layout Resistance can break detailed mapping. No resident Entity is confirmed; distant figures/voices should first be treated as hallucination, memory manifestation, perceptual copy or unclassified phenomenon unless evidence proves an incursion. Transition toward Level 1 may emerge gradually as concrete/columns/parking features replace the yellow rooms; it cannot be forced on demand.",
-      "source": {
-        "document": "01_WORLD/level.md + 01_WORLD/entity.md",
-        "anchor": "Level 0; entity 1.3"
-      },
-      "authority": "WORLD_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 34,
-      "tags": [
-        "level 0",
-        "the lobby"
-      ],
-      "references": [],
-      "affordances": [
-        "trace_analysis"
-      ]
+      "source": {"document": "01_WORLD/level.md + 01_WORLD/entity.md", "anchor": "Level 0; entity 1.3"},
+      "authority": "WORLD_CANON", "mutability": "IMMUTABLE", "priority": 34,
+      "tags": ["level 0", "the lobby"], "references": [], "affordances": ["trace_analysis"]
     },
     {
-      "id": "LEVEL.01",
-      "domain": "LEVEL",
-      "kind": "level",
+      "id": "LEVEL.01", "domain": "LEVEL", "kind": "level",
       "text": "Level 1 / Parking Zone: vast concrete parking/garage network with columns, ramps, rare disabled cars, heat and local cold fog; blackouts may last minutes to days and make mobile light both useful and revealing. Maintenance Halls can retain power but are not long-term safety; Luxury Lots are cleaner/foggier with unreliable electrical sources and relatively more supply crates, still scarce. Gradual transition toward Level 2 appears as vehicles vanish, space narrows into pipes/hot humid machinery corridors.",
-      "source": {
-        "document": "01_WORLD/level.md",
-        "anchor": "2 LEVEL 1 — PARKING ZONE"
-      },
-      "authority": "WORLD_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 34,
-      "tags": [
-        "level 1",
-        "parking zone"
-      ],
-      "references": [
-        "ENTITY.HOUND",
-        "ENTITY.FALSE_PUDDLE"
-      ],
-      "affordances": [
-        "trace_analysis",
-        "direct_threat"
-      ]
+      "source": {"document": "01_WORLD/level.md", "anchor": "2 LEVEL 1 — PARKING ZONE"},
+      "authority": "WORLD_CANON", "mutability": "IMMUTABLE", "priority": 34,
+      "tags": ["level 1", "parking zone"], "references": ["ENTITY.HOUND", "ENTITY.FALSE_PUDDLE"], "affordances": ["trace_analysis", "direct_threat"]
     },
     {
-      "id": "LEVEL.02",
-      "domain": "LEVEL",
-      "kind": "level",
+      "id": "LEVEL.02", "domain": "LEVEL", "kind": "level",
       "text": "Level 2 / Pipe Dreams: utility tunnels, shafts, rusty pipes, crawlspaces and unfinished electrical networks with extreme temperature changes. Earthquakes can collapse paths, rupture pipes, release steam and open new routes. Pipe liquid resembling Almond Water must not be drunk directly because of biological/chemical/anomalous contamination. Transition toward Level 3 occurs as high-voltage electrical infrastructure becomes dominant.",
-      "source": {
-        "document": "01_WORLD/level.md",
-        "anchor": "3 LEVEL 2 — PIPE DREAMS"
-      },
-      "authority": "WORLD_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 34,
-      "tags": [
-        "level 2",
-        "pipe dreams"
-      ],
-      "references": [
-        "ENTITY.HOUND",
-        "ENTITY.SMILER",
-        "ENTITY.SKIN_STEALER",
-        "ENTITY.BIOLOGICAL_PIPELINE"
-      ],
-      "affordances": [
-        "trace_analysis",
-        "direct_threat"
-      ]
+      "source": {"document": "01_WORLD/level.md", "anchor": "3 LEVEL 2 — PIPE DREAMS"},
+      "authority": "WORLD_CANON", "mutability": "IMMUTABLE", "priority": 34,
+      "tags": ["level 2", "pipe dreams"], "references": ["ENTITY.HOUND", "ENTITY.SMILER", "ENTITY.SKIN_STEALER", "ENTITY.BIOLOGICAL_PIPELINE"], "affordances": ["trace_analysis", "direct_threat"]
     },
     {
-      "id": "LEVEL.03",
-      "domain": "LEVEL",
-      "kind": "level",
+      "id": "LEVEL.03", "domain": "LEVEL", "kind": "level",
       "text": "Level 3 / The Electrical Station: huge industrial electrical corridors with transformers, conductors, fans, coils, panels, hot pipes and unknown power source. Local blackouts expose live-wire/machinery/Entity risk and routes can differ when power returns. Lower Utility Tunnels are below freezing, contain abnormal unfrozen standing water and have high disappearance rates. Office-sector doors/elevators may lead gradually to Level 4; some long dark passages can lead toward Level 6.",
-      "source": {
-        "document": "01_WORLD/level.md",
-        "anchor": "4 LEVEL 3 — THE ELECTRICAL STATION"
-      },
-      "authority": "WORLD_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 34,
-      "tags": [
-        "level 3",
-        "electrical station"
-      ],
-      "references": [
-        "ENTITY.DEATHMOTH",
-        "ENTITY.WRETCH",
-        "ENTITY.SKIN_STEALER",
-        "ENTITY.CABLE_MIMIC"
-      ],
-      "affordances": [
-        "trace_analysis",
-        "direct_threat"
-      ]
+      "source": {"document": "01_WORLD/level.md", "anchor": "4 LEVEL 3 — THE ELECTRICAL STATION"},
+      "authority": "WORLD_CANON", "mutability": "IMMUTABLE", "priority": 34,
+      "tags": ["level 3", "electrical station"], "references": ["ENTITY.DEATHMOTH", "ENTITY.WRETCH", "ENTITY.SKIN_STEALER", "ENTITY.CABLE_MIMIC"], "affordances": ["trace_analysis", "direct_threat"]
     },
     {
-      "id": "LEVEL.04",
-      "domain": "LEVEL",
-      "kind": "level",
+      "id": "LEVEL.04", "domain": "LEVEL", "kind": "level",
       "text": "Level 4 / The Abandoned Office: office/cubicle network with partial fluorescent lighting, fixed rainy-looking windows and more stable geometry than Levels 0-3. It is a relative rest/salvage region, never absolutely safe. No stable resident Entity population is confirmed, but incursions from other regions can occur and a place cleared today is not guaranteed clear tomorrow. Large settlements are discouraged by unstable resources/boundaries and attraction of danger. Corridors may gradually become old hotel architecture leading to Level 5.",
-      "source": {
-        "document": "01_WORLD/level.md + 01_WORLD/entity.md",
-        "anchor": "Level 4; entity 5.2"
-      },
-      "authority": "WORLD_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 34,
-      "tags": [
-        "level 4",
-        "abandoned office"
-      ],
-      "references": [],
-      "affordances": [
-        "trace_analysis"
-      ]
+      "source": {"document": "01_WORLD/level.md + 01_WORLD/entity.md", "anchor": "Level 4; entity 5.2"},
+      "authority": "WORLD_CANON", "mutability": "IMMUTABLE", "priority": 34,
+      "tags": ["level 4", "abandoned office"], "references": [], "affordances": ["trace_analysis"]
     },
     {
-      "id": "LEVEL.05",
-      "domain": "LEVEL",
-      "kind": "level",
+      "id": "LEVEL.05", "domain": "LEVEL", "kind": "level",
       "text": "Level 5 / Terror Hotel: huge non-Euclidean hotel with early-20th-century style varying by wing, including lobby/ballroom/rooms/restaurant/pool/maintenance/boiler spaces. Prolonged stay can produce paranoia, watched sensations, whispers, touch sensations, visual shadows and sleep loss; Project does not reduce this to a sanity meter and causes may overlap between isolation, sleep loss, Level and Entity. Boiler/maintenance passages can darken and cool toward Level 6.",
-      "source": {
-        "document": "01_WORLD/level.md",
-        "anchor": "6 LEVEL 5 — TERROR HOTEL"
-      },
-      "authority": "WORLD_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 34,
-      "tags": [
-        "level 5",
-        "terror hotel"
-      ],
-      "references": [
-        "ENTITY.BEAST_LEVEL_5",
-        "ENTITY.SKIN_STEALER",
-        "ENTITY.HOUND"
-      ],
-      "affordances": [
-        "trace_analysis",
-        "direct_threat"
-      ]
+      "source": {"document": "01_WORLD/level.md", "anchor": "6 LEVEL 5 — TERROR HOTEL"},
+      "authority": "WORLD_CANON", "mutability": "IMMUTABLE", "priority": 34,
+      "tags": ["level 5", "terror hotel"], "references": ["ENTITY.BEAST_LEVEL_5", "ENTITY.SKIN_STEALER", "ENTITY.HOUND"], "affordances": ["trace_analysis", "direct_threat"]
     },
     {
-      "id": "LEVEL.06",
-      "domain": "LEVEL",
-      "kind": "level",
+      "id": "LEVEL.06", "domain": "LEVEL", "kind": "level",
       "text": "Level 6 / Lights Out: resident Entity presence is not confirmed; danger remains severe through cold, darkness, scarce food/water, sleep loss, microsleep, hallucination and navigation failure. Evidence that an external Entity refuses the Level boundary does not prove the inside is safe; the reason remains OPEN. Do not convert the absence of confirmed resident Entities into safety.",
-      "source": {
-        "document": "01_WORLD/level.md + 01_WORLD/entity.md",
-        "anchor": "7 LEVEL 6; entity 7.3"
-      },
-      "authority": "WORLD_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 34,
-      "tags": [
-        "level 6",
-        "lights out"
-      ],
-      "references": [],
-      "affordances": [
-        "trace_analysis"
-      ]
+      "source": {"document": "01_WORLD/level.md + 01_WORLD/entity.md", "anchor": "7 LEVEL 6; entity 7.3"},
+      "authority": "WORLD_CANON", "mutability": "IMMUTABLE", "priority": 34,
+      "tags": ["level 6", "lights out"], "references": [], "affordances": ["trace_analysis"]
     },
+
     {
-      "id": "ENTITY.HOUND",
-      "domain": "ENTITY",
-      "kind": "entity",
+      "id": "ENTITY.HOUND", "domain": "ENTITY", "kind": "entity",
       "text": "Hound: fast aggressive four-limbed predator. Hunts in groups, favors injured/isolated humans, can pressure prey toward dead ends, and may retreat from strong resistance then return. In narrow Level 2 corridors it can attack from both ends, use deceptive footstep sounds and prioritize weaker prey.",
-      "source": {
-        "document": "01_WORLD/entity.md",
-        "anchor": "ENT-1A; ENT-2B"
-      },
-      "authority": "WORLD_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 58,
-      "tags": [
-        "hound"
-      ],
-      "references": [
-        "ENTITY.GLOBAL_HARD_LOCK"
-      ],
-      "affordances": [
-        "direct_threat"
-      ]
+      "source": {"document": "01_WORLD/entity.md", "anchor": "ENT-1A; ENT-2B"},
+      "authority": "WORLD_CANON", "mutability": "IMMUTABLE", "priority": 58,
+      "tags": ["hound"], "references": ["ENTITY.GLOBAL_HARD_LOCK"], "affordances": ["direct_threat"]
     },
     {
-      "id": "ENTITY.FALSE_PUDDLE",
-      "domain": "ENTITY",
-      "kind": "entity",
+      "id": "ENTITY.FALSE_PUDDLE", "domain": "ENTITY", "kind": "entity",
       "text": "False Puddle mimics a flat puddle of Almond Water while hiding a deep toothed mouth. It positions on traveled routes, reacts to human footstep vibration and opens when stepped on to pull prey down. Liquid Pain or sharp metal has worked in some cases, but apparent death can be feigned; recorded weakness is not absolute.",
-      "source": {
-        "document": "01_WORLD/entity.md",
-        "anchor": "ENT-1F"
-      },
-      "authority": "WORLD_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 58,
-      "tags": [
-        "false puddle"
-      ],
-      "references": [
-        "ENTITY.GLOBAL_HARD_LOCK",
-        "ITEM.LIQUID_PAIN"
-      ],
-      "affordances": [
-        "direct_threat",
-        "resource_check"
-      ]
+      "source": {"document": "01_WORLD/entity.md", "anchor": "ENT-1F"},
+      "authority": "WORLD_CANON", "mutability": "IMMUTABLE", "priority": 58,
+      "tags": ["false puddle"], "references": ["ENTITY.GLOBAL_HARD_LOCK", "ITEM.LIQUID_PAIN"], "affordances": ["direct_threat", "resource_check"]
     },
     {
-      "id": "ENTITY.SMILER",
-      "domain": "ENTITY",
-      "kind": "entity",
+      "id": "ENTITY.SMILER", "domain": "ENTITY", "kind": "entity",
       "text": "Smiler: visible primarily as a bright face-like feature in darkness. Uses blacked-out areas and dark corners, and may keep distance to pressure prey into choosing a bad route rather than immediately charging.",
-      "source": {
-        "document": "01_WORLD/entity.md",
-        "anchor": "ENT-2C"
-      },
-      "authority": "WORLD_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 58,
-      "tags": [
-        "smiler"
-      ],
-      "references": [
-        "ENTITY.GLOBAL_HARD_LOCK"
-      ],
-      "affordances": [
-        "direct_threat"
-      ]
+      "source": {"document": "01_WORLD/entity.md", "anchor": "ENT-2C"},
+      "authority": "WORLD_CANON", "mutability": "IMMUTABLE", "priority": 58,
+      "tags": ["smiler"], "references": ["ENTITY.GLOBAL_HARD_LOCK"], "affordances": ["direct_threat"]
     },
     {
-      "id": "ENTITY.SKIN_STEALER",
-      "domain": "ENTITY",
-      "kind": "entity",
+      "id": "ENTITY.SKIN_STEALER", "domain": "ENTITY", "kind": "entity",
       "text": "Skin-Stealer hunts by using human appearance and behavior. Project lock allows deep mimicry and enough copied memory to pass simple tests, potentially living with a group long-term to damage the whole team rather than killing immediately. Human-like appearance therefore never proves a contact is human.",
-      "source": {
-        "document": "01_WORLD/entity.md",
-        "anchor": "ENT-2D"
-      },
-      "authority": "WORLD_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 56,
-      "tags": [
-        "skin-stealer",
-        "skin stealer"
-      ],
-      "references": [
-        "ENTITY.GLOBAL_HARD_LOCK"
-      ],
-      "affordances": [
-        "direct_threat",
-        "identity_check"
-      ]
+      "source": {"document": "01_WORLD/entity.md", "anchor": "ENT-2D"},
+      "authority": "WORLD_CANON", "mutability": "IMMUTABLE", "priority": 56,
+      "tags": ["skin-stealer", "skin stealer"], "references": ["ENTITY.GLOBAL_HARD_LOCK"], "affordances": ["direct_threat", "identity_check"]
     },
     {
-      "id": "ENTITY.BIOLOGICAL_PIPELINE",
-      "domain": "ENTITY",
-      "kind": "entity",
+      "id": "ENTITY.BIOLOGICAL_PIPELINE", "domain": "ENTITY", "kind": "entity",
       "text": "Biological Pipeline is a tens-of-kilometres organic/mechanical-pipe-like predator whose true body may not be the visible pipe. It senses vibration/body heat, can offer apparently safe crawlspace routes, let humans go deep, alter direction, lock retreat, secrete rapidly tissue-corrosive alkaline liquid and preserve corpses/gear as false evidence of safe passage. Destroying one pipe section does not prove the Entity is dead.",
-      "source": {
-        "document": "01_WORLD/entity.md",
-        "anchor": "ENT-2F"
-      },
-      "authority": "WORLD_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 58,
-      "tags": [
-        "biological pipeline"
-      ],
-      "references": [
-        "ENTITY.GLOBAL_HARD_LOCK"
-      ],
-      "affordances": [
-        "direct_threat",
-        "trace_analysis"
-      ]
+      "source": {"document": "01_WORLD/entity.md", "anchor": "ENT-2F"},
+      "authority": "WORLD_CANON", "mutability": "IMMUTABLE", "priority": 58,
+      "tags": ["biological pipeline"], "references": ["ENTITY.GLOBAL_HARD_LOCK"], "affordances": ["direct_threat", "trace_analysis"]
     },
     {
-      "id": "ENTITY.DEATHMOTH",
-      "domain": "ENTITY",
-      "kind": "entity",
+      "id": "ENTITY.DEATHMOTH", "domain": "ENTITY", "kind": "entity",
       "text": "Deathmoth: large moth-like predator using dark ceilings/technical recesses, often attacking in groups and reacting to light/movement. At Level 3 it can exploit broken-light zones and pressure humans toward live electrical equipment.",
-      "source": {
-        "document": "01_WORLD/entity.md",
-        "anchor": "ENT-1D; ENT-3A"
-      },
-      "authority": "WORLD_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 60,
-      "tags": [
-        "deathmoth"
-      ],
-      "references": [
-        "ENTITY.GLOBAL_HARD_LOCK"
-      ],
-      "affordances": [
-        "direct_threat"
-      ]
+      "source": {"document": "01_WORLD/entity.md", "anchor": "ENT-1D; ENT-3A"},
+      "authority": "WORLD_CANON", "mutability": "IMMUTABLE", "priority": 60,
+      "tags": ["deathmoth"], "references": ["ENTITY.GLOBAL_HARD_LOCK"], "affordances": ["direct_threat"]
     },
     {
-      "id": "ENTITY.WRETCH",
-      "domain": "ENTITY",
-      "kind": "entity",
+      "id": "ENTITY.WRETCH", "domain": "ENTITY", "kind": "entity",
       "text": "Wretch: a creature believed or suspected to have once been human. It moves irregularly, tolerates pain well and hunts through sound and scent, with common reports in lower Level 3 tunnels.",
-      "source": {
-        "document": "01_WORLD/entity.md",
-        "anchor": "ENT-3B"
-      },
-      "authority": "WORLD_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 60,
-      "tags": [
-        "wretch"
-      ],
-      "references": [
-        "ENTITY.GLOBAL_HARD_LOCK"
-      ],
-      "affordances": [
-        "direct_threat"
-      ]
+      "source": {"document": "01_WORLD/entity.md", "anchor": "ENT-3B"},
+      "authority": "WORLD_CANON", "mutability": "IMMUTABLE", "priority": 60,
+      "tags": ["wretch"], "references": ["ENTITY.GLOBAL_HARD_LOCK"], "affordances": ["direct_threat"]
     },
     {
-      "id": "ENTITY.CABLE_MIMIC",
-      "domain": "ENTITY",
-      "kind": "entity",
+      "id": "ENTITY.CABLE_MIMIC", "domain": "ENTITY", "kind": "entity",
       "text": "Cable Mimic blends into electrical cable bundles, can remain still for hours and imitate machine vibration. When touched/passed it can wrap limbs and conduct current from the facility through the victim. Without checking, genuine facility cable and Entity cable may be indistinguishable.",
-      "source": {
-        "document": "01_WORLD/entity.md",
-        "anchor": "ENT-3D"
-      },
-      "authority": "WORLD_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 60,
-      "tags": [
-        "cable mimic"
-      ],
-      "references": [
-        "ENTITY.GLOBAL_HARD_LOCK"
-      ],
-      "affordances": [
-        "direct_threat",
-        "trace_analysis"
-      ]
+      "source": {"document": "01_WORLD/entity.md", "anchor": "ENT-3D"},
+      "authority": "WORLD_CANON", "mutability": "IMMUTABLE", "priority": 60,
+      "tags": ["cable mimic"], "references": ["ENTITY.GLOBAL_HARD_LOCK"], "affordances": ["direct_threat", "trace_analysis"]
     },
     {
-      "id": "ENTITY.BEAST_LEVEL_5",
-      "domain": "ENTITY",
-      "kind": "entity",
+      "id": "ENTITY.BEAST_LEVEL_5", "domain": "ENTITY", "kind": "entity",
       "text": "The Beast of Level 5 is an apex Entity with intelligence above humans. It actively hunts people, may observe a group for a long time, influence anxiety/watched sensations, exploit hotel architecture to isolate prey, allow a survivor to live as a route to others, and has no absolutely confirmed weakness. It is not a stationary boss waiting for a fight; treat it as high-level ecological pressure.",
-      "source": {
-        "document": "01_WORLD/entity.md",
-        "anchor": "ENT-5A"
-      },
-      "authority": "WORLD_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 54,
-      "tags": [
-        "beast of level 5",
-        "the beast"
-      ],
-      "references": [
-        "ENTITY.GLOBAL_HARD_LOCK"
-      ],
-      "affordances": [
-        "direct_threat",
-        "trace_analysis"
-      ]
+      "source": {"document": "01_WORLD/entity.md", "anchor": "ENT-5A"},
+      "authority": "WORLD_CANON", "mutability": "IMMUTABLE", "priority": 54,
+      "tags": ["beast of level 5", "the beast"], "references": ["ENTITY.GLOBAL_HARD_LOCK"], "affordances": ["direct_threat", "trace_analysis"]
     },
     {
-      "id": "ENTITY.JEFF",
-      "domain": "ENTITY",
-      "kind": "entity",
+      "id": "ENTITY.JEFF", "domain": "ENTITY", "kind": "entity",
       "text": "Jeff the Killer is a very rare roaming humanoid predator permitted as an incursion across Levels 0-6, not a resident of Levels 0/4/6. Origin remains UNKNOWN; Project does not confirm creepypasta-original identity, former Frontrooms humanity, Backrooms copy, or that all sightings are one metaphysical individual. Gameplay continuity does lock that killing one manifestation never permanently removes Jeff; the ontology of respawn remains OPEN. Jeff only hunts humans, uses long-term tactical observation and must never become neutral ally/trader/rescuer.",
-      "source": {
-        "document": "01_WORLD/entity.md",
-        "anchor": "ENT-R01 — JEFF THE KILLER"
-      },
-      "authority": "WORLD_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 54,
-      "tags": [
-        "jeff",
-        "jeff the killer"
-      ],
-      "references": [
-        "ENTITY.GLOBAL_HARD_LOCK"
-      ],
-      "affordances": [
-        "direct_threat",
-        "trace_analysis"
-      ]
-    },
-    {
-      "id": "ENTITY.JANE_THE_KILLER",
-      "domain": "ENTITY",
-      "kind": "unique-roaming-entity",
-      "text": "Jane the Killer is a unique humanoid predator / roaming hunter. Runtime identity uses canonical key jane_the_killer. Jane hunts humans and is never a neutral NPC, ally, merchant or rescue character.",
-      "source": {
-        "document": "latest explicit user instruction",
-        "anchor": "Jane the Killer"
-      },
-      "authority": "USER_OVERRIDE_ENTITY_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 22,
-      "tags": [
-        "jane",
-        "jane the killer",
-        "roaming hunter"
-      ],
-      "references": [
-        "ENTITY.GLOBAL_HARD_LOCK",
-        "ENTITY.JEFF"
-      ],
-      "affordances": [
-        "direct_threat",
-        "roaming_incursion"
-      ]
-    },
-    {
-      "id": "ENTITY.JEFF_SKILLS_R01",
-      "domain": "ENTITY",
-      "kind": "combat-skill-lock",
-      "text": "Jeff the Killer gameplay lock: Max HP 947. Go to Sleep deals 12% target Max HP, or 17% below 50% HP, cooldown 3 turns. Silent Stalker gives the next resolved direct strike x1.40 damage and +10% Accuracy when the target is alone, cooldown 5 turns. No Safe Route lasts 3 turns, applies -20 escape points, and a failed escape takes 7% Max HP retaliation; cooldown 7 turns.",
-      "source": {
-        "document": "latest explicit user instruction",
-        "anchor": "Jeff/Jane skill rebalance"
-      },
-      "authority": "USER_OVERRIDE_ENTITY_COMBAT",
-      "mutability": "IMMUTABLE",
-      "priority": 24,
-      "tags": [
-        "jeff",
-        "jeff the killer",
-        "skills",
-        "947 hp"
-      ]
-    },
-    {
-      "id": "ENTITY.JANE_SKILLS_R01",
-      "domain": "ENTITY",
-      "kind": "combat-skill-lock",
-      "text": "Jane the Killer gameplay lock: Max HP 947. Don't Wake Up has two 6% Max HP hits; second-hit base Accuracy is 70%; two hits apply Bleed 2% Max HP per turn for 2 turns; cooldown 3 turns. Hunter's Mark lasts 4 turns with +15% Jane Accuracy and -15 escape points on the marked target; cooldown 6 turns. Vengeful Reflex checks when Jane loses at least 20% Max HP in one turn, has a 35% proc, retaliates for 8% target Max HP, at most once per turn, cooldown 4 turns, and is not triggered by damage-over-time.",
-      "source": {
-        "document": "latest explicit user instruction",
-        "anchor": "Jeff/Jane skill rebalance"
-      },
-      "authority": "USER_OVERRIDE_ENTITY_COMBAT",
-      "mutability": "IMMUTABLE",
-      "priority": 24,
-      "tags": [
-        "jane",
-        "jane the killer",
-        "skills",
-        "bleed",
-        "947 hp"
-      ]
+      "source": {"document": "01_WORLD/entity.md", "anchor": "ENT-R01 — JEFF THE KILLER"},
+      "authority": "WORLD_CANON", "mutability": "IMMUTABLE", "priority": 54,
+      "tags": ["jeff", "jeff the killer"], "references": ["ENTITY.GLOBAL_HARD_LOCK"], "affordances": ["direct_threat", "trace_analysis"]
     }
   ]
 }

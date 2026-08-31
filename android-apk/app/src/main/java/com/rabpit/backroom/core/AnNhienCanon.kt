@@ -2,7 +2,7 @@ package com.rabpit.backroom.core
 
 const val AN_NHIEN_ID = "an-nhien"
 const val AN_NHIEN_OUTFIT_ID = "an-nhien:pink-patterned-outfit"
-const val AN_NHIEN_FOOTWEAR_ID = "an-nhien:pink-crocs"
+const val AN_NHIEN_FOOTWEAR_ID = "an-nhien:baby-tree-pink-slippers"
 
 object AnNhienCanon {
   const val NAME = "An Nhiên"
@@ -14,8 +14,7 @@ object AnNhienCanon {
   const val EXIT_BONUS_POINTS = 200
   const val AVATAR_REF = "avatars/an_nhien_avatar.png"
   const val OUTFIT_NAME = "Bộ quần áo hoa văn màu hồng"
-  const val FOOTWEAR_NAME = "Đôi dép Crocs màu hồng"
-  const val PARTY_CHEAT_CODE = "/annhien1234"
+  const val FOOTWEAR_NAME = "Đôi dép màu hồng có hình Baby Tree"
 
   val equipmentSlots: Map<String, String> = linkedMapOf(
     "outfit" to AN_NHIEN_OUTFIT_ID,
@@ -41,9 +40,8 @@ object AnNhienCanon {
         "npcType" to "follower",
         "entity" to "false",
         "joinEligible" to "true",
-        "mandatoryEncounter" to "false",
-        "encounterChance" to "0.25%",
-        "encounterLevels" to "0-6",
+        "mandatoryEncounter" to "true",
+        "encounterChance" to "100%",
         "nonCombat" to "true",
         "canUseWeapons" to "false",
         "followsPlayer" to "true",
@@ -58,10 +56,12 @@ object AnNhienCanon {
   }
 
   fun inventory(existing: InventoryState? = null): InventoryState {
-    val all = existing?.items.orEmpty().values
-    val equipmentItems = all.filter { it.itemId == AN_NHIEN_OUTFIT_ID || it.itemId == AN_NHIEN_FOOTWEAR_ID }.associateBy { it.itemId }
-    val foodItems = all.filter(::isFoodItem).sortedBy { it.itemId }.take(2).associateBy { it.itemId }
-    return InventoryState(AN_NHIEN_ID, equipmentItems + foodItems)
+    val valid = existing?.items.orEmpty().values
+      .filter(::isFoodItem)
+      .sortedBy { it.itemId }
+      .take(2)
+      .associateBy { it.itemId }
+    return InventoryState(AN_NHIEN_ID, valid)
   }
 
   fun equipment(): EquipmentState = EquipmentState(AN_NHIEN_ID, equipmentSlots)
@@ -76,17 +76,6 @@ object AnNhienCanon {
   }
 
   fun isFollowing(state: GameState): Boolean = AN_NHIEN_ID in state.party.memberIds
-
-  fun matchesPartyCheatCode(action: String): Boolean = action.trim() == PARTY_CHEAT_CODE
-
-  fun forceIntoParty(state: GameState): Pair<GameState, String?> {
-    val ensured = ensure(state)
-    if (AN_NHIEN_ID in ensured.party.memberIds) return ensured to null
-    if (ensured.party.memberIds.size >= ensured.party.maxMembers) return ensured to "party_full"
-    return ensured.copy(
-      party = ensured.party.copy(memberIds = ensured.party.memberIds + AN_NHIEN_ID)
-    ) to null
-  }
 
   fun survivalMultiplierFor(character: CharacterState): Double =
     if (character.id == AN_NHIEN_ID) SURVIVAL_MULTIPLIER else 1.0

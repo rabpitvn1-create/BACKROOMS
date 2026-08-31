@@ -105,7 +105,7 @@ class OfficialItemSystemTest {
     assertEquals(12, ToolStateQueries.flashlightRange(loaded))
   }
 
-  @Test fun entityLootStartsAtTwoPercentTotalOneItemAndIdempotent() {
+  @Test fun entityLootIsOnePercentTotalOneItemAndIdempotent() {
     val miss = EntityLootEngine.onDefeat(GameState.initial(), "defeat-miss", LootRng { 99 })
     assertFalse(miss.world.keys.any { it.startsWith("entityLoot:") })
     var calls = 0
@@ -134,21 +134,5 @@ class OfficialItemSystemTest {
     assertEquals(1, acquired.state.inventories.getValue(KAI_ID).items.getValue(ItemCatalog.BANDAGE).quantity)
     assertFalse(acquired.state.world.containsKey("entityLoot:defeat-1"))
     assertEquals("world_loot_missing", WorldLootAcquisition.acquire(acquired.state, "entityLoot:defeat-1").validation.reason)
-  }
-
-  @Test fun entityLootPityAddsTwoPointsPerMissAndGuaranteesKillFortySix() {
-    var state = GameState.initial()
-    val alwaysHigh = LootRng { bound -> if (bound == 100) 99 else 0 }
-    repeat(45) { index ->
-      state = EntityLootEngine.onDefeat(state, "pity-miss-$index", alwaysHigh)
-      assertFalse(state.world.keys.any { it == "entityLoot:pity-miss-$index" })
-    }
-    assertEquals(45, EntityLootEngine.killsWithoutDrop(state))
-    assertEquals(100, EntityLootEngine.dropChancePercent(state))
-
-    val guaranteed = EntityLootEngine.onDefeat(state, "pity-guaranteed-46", alwaysHigh)
-    assertTrue(guaranteed.world.containsKey("entityLoot:pity-guaranteed-46"))
-    assertEquals(0, EntityLootEngine.killsWithoutDrop(guaranteed))
-    assertEquals(10, EntityLootEngine.dropChancePercent(guaranteed))
   }
 }

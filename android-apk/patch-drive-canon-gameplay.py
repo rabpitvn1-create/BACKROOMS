@@ -18,7 +18,7 @@ main = MAIN.read_text(encoding="utf-8")
 index = INDEX.read_text(encoding="utf-8")
 canon = CANON.read_text(encoding="utf-8").strip()
 
-if "BACKROOMS DRIVE INTEGRATION — R06 / HARD CANON" not in canon:
+if "NOVEL-TEXTGAME-2026-08-20-DRIVE-INTEGRATION-R06" not in canon:
     raise RuntimeError("Drive canon: wrong or missing R06 source marker")
 if len(canon) < 5000:
     raise RuntimeError(f"Drive canon unexpectedly short: {len(canon)} chars")

@@ -27,28 +27,12 @@ object TurnCoordinator {
     val pending = state.turn.pending ?: return TurnResult(state, error = "pending_turn_missing")
     if (pending.turnId in state.turn.completedTurnIds) return TurnResult(state, error = "turn_already_completed")
     if (commands.any { it.turnId != pending.turnId }) return TurnResult(state, error = "command_turn_mismatch")
-    val restCommands = if (
-      commands.any { it is TimeAdvanceCommand } &&
-      commands.none { it is PhysiologyCommand && it.operation == PhysiologyCommand.Operation.RECORD_SLEEP }
-    ) {
-      RestActionPolicy.targets(state, pending.input).mapIndexed { index, targetId ->
-        PhysiologyCommand(
-          commandId = "${pending.turnId}:SYSTEM:REST:$index",
-          turnId = pending.turnId,
-          actorId = KAI_ID,
-          targetId = targetId,
-          source = CommandSource.SYSTEM,
-          operation = PhysiologyCommand.Operation.RECORD_SLEEP
-        )
-      }
-    } else emptyList()
-    val authoritativeCommands = commands + restCommands
     val executing = state.copy(turn = state.turn.copy(pending = pending.copy(
       status = PendingTurnStatus.EXECUTING,
-      commandIds = authoritativeCommands.map { it.commandId }
+      commandIds = commands.map { it.commandId }
     )))
-    val execution = StateReducer.executeAll(executing, authoritativeCommands)
-    if (!execution.applied && !authoritativeCommands.all { it is QueryCommand }) {
+    val execution = StateReducer.executeAll(executing, commands)
+    if (!execution.applied && !commands.all { it is QueryCommand }) {
       return TurnResult(state.copy(turn = state.turn.copy(pending = pending.copy(
         status = PendingTurnStatus.FAILED,
         error = execution.validation.reason
@@ -58,8 +42,7 @@ object TurnCoordinator {
       pending = null,
       completedTurnIds = execution.state.turn.completedTurnIds + pending.turnId
     ))
-    val regenerated = CharacterStatEngine.applyCompletedTurnRegen(completed, pending.turnId)
-    return TurnResult(regenerated, execution.copy(state = regenerated))
+    return TurnResult(completed, execution.copy(state = completed))
   }
 
   fun recover(state: GameState): PendingTurn? = state.turn.pending?.takeUnless {

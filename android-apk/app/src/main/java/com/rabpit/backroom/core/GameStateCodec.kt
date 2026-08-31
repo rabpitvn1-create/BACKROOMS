@@ -27,18 +27,11 @@ object GameStateCodec {
 
   fun decode(root: JSONObject): GameState {
     val version = root.optInt("saveVersion", 0)
-    require(version == CURRENT_SAVE_VERSION) { "incompatible_save_version" }
-    val decoded = decodeCurrent(root)
-    return CharacterEquipmentSystem.normalize(SpecialFollowersCanon.ensure(AnNhienCanon.ensure(decoded)))
-  }
-
-  private fun canonicalizeItemReferences(metadata: Map<String, String>, inventories: Map<String, InventoryState>): Map<String, String> {
-    val raw = metadata["lastReferencedItemId"]?.trim().orEmpty()
-    if (raw.isBlank()) return metadata
-    val owned = inventories[KAI_ID]?.items.orEmpty()
-    if (raw in owned) return metadata
-    val canonical = ItemCatalog.resolveOfficial(raw, raw)?.id ?: ItemCatalog.canonicalId(raw)
-    return if (canonical in owned) metadata + ("lastReferencedItemId" to canonical) else metadata
+    return when {
+      version >= CURRENT_SAVE_VERSION -> decodeCurrent(root)
+      version == 2 && root.has("inventories") -> migrateV2Core(root)
+      else -> LegacySaveMigration.migrate(root)
+    }
   }
 
   private fun migrateV2Core(root: JSONObject): GameState {
@@ -75,10 +68,7 @@ object GameStateCodec {
       time = decodeGameTime(root.optJSONObject("time")),
       world = root.optJSONObject("world").stringsMap(),
       saveVersion = CURRENT_SAVE_VERSION,
-      metadata = canonicalizeItemReferences(
-        root.optJSONObject("metadata").stringsMap() + mapOf("migratedFromVersion" to "2", "equipmentSeparated" to "true"),
-        inventories
-      )
+      metadata = root.optJSONObject("metadata").stringsMap() + mapOf("migratedFromVersion" to "2", "equipmentSeparated" to "true")
     )
   }
 
@@ -105,26 +95,19 @@ object GameStateCodec {
       world = root.optJSONObject("world").stringsMap(),
       levelInstance = root.optJSONObject("levelInstance")?.let(LevelInstanceJson::decode),
       saveVersion = CURRENT_SAVE_VERSION,
-      metadata = canonicalizeItemReferences(root.optJSONObject("metadata").stringsMap(), inventories)
+      metadata = root.optJSONObject("metadata").stringsMap()
     )
   }
 
   private fun character(value: CharacterState) = JSONObject().apply {
     put("id", value.id); put("name", value.name); putNullable("avatarRef", value.avatarRef)
-    putNullable("healthState", value.healthState)
-    put("statProfile", characterStatProfile(value.statProfile))
-    put("vitalState", characterVitalState(value.vitalState))
-    put("injuries", JSONArray(value.injuries))
+    putNullable("healthState", value.healthState); put("injuries", JSONArray(value.injuries))
     put("presence", value.presence.name); put("inventoryId", value.inventoryId); put("equipmentId", value.equipmentId)
     put("statusIds", JSONArray(value.statusIds.toList())); put("physiology", physiology(value.physiology)); put("metadata", stringMap(value.metadata))
   }
 
-  private fun decodeCharacter(json: JSONObject): CharacterState {
-    val id = json.optString("id")
-    val profile = decodeCharacterStatProfile(json.optJSONObject("statProfile"), id)
-    val vital = decodeCharacterVitalState(json.optJSONObject("vitalState"), profile)
-    return CharacterState(
-    id = id, name = json.optString("name"),
+  private fun decodeCharacter(json: JSONObject) = CharacterState(
+    id = json.optString("id"), name = json.optString("name"),
     avatarRef = json.nullableString("avatarRef"), healthState = json.nullableString("healthState"),
     injuries = json.optJSONArray("injuries").strings(),
     presence = enumOr(CharacterPresence.ACTIVE, json.optString("presence")),
@@ -132,88 +115,8 @@ object GameStateCodec {
     equipmentId = json.optString("equipmentId", json.optString("id")),
     statusIds = json.optJSONArray("statusIds").strings().toSet(),
     physiology = decodePhysiology(json.optJSONObject("physiology")),
-    metadata = json.optJSONObject("metadata").stringsMap(),
-    statProfile = profile,
-    vitalState = vital
+    metadata = json.optJSONObject("metadata").stringsMap()
   )
-  }
-
-  private fun characterStatProfile(value: CharacterStatProfile) = JSONObject().apply {
-    put("baseMaxHp", value.baseMaxHp)
-    put("energy", energyProfile(value.energy))
-    put("regen", hpRegenRule(value.regen))
-    put("str", value.str)
-    put("df", value.df)
-    put("agi", value.agi)
-    put("crit", value.crit)
-    put("combatRole", value.combatRole)
-    put("statSource", value.statSource.name)
-  }
-
-  private fun decodeCharacterStatProfile(json: JSONObject?, characterId: String): CharacterStatProfile {
-    val fallback = CharacterStatProfiles.forId(characterId)
-    if (json == null) return fallback
-    return CharacterStatProfile(
-      baseMaxHp = json.optInt("baseMaxHp", fallback.baseMaxHp).coerceAtLeast(1),
-      energy = decodeEnergyProfile(json.optJSONObject("energy"), fallback.energy),
-      regen = decodeHpRegenRule(json.optJSONObject("regen"), fallback.regen),
-      str = json.optInt("str", fallback.str),
-      df = json.optInt("df", fallback.df),
-      agi = json.optInt("agi", fallback.agi),
-      crit = json.optInt("crit", fallback.crit),
-      combatRole = json.optString("combatRole", fallback.combatRole),
-      statSource = enumOr(fallback.statSource, json.optString("statSource"))
-    )
-  }
-
-  private fun energyProfile(value: EnergyProfile) = JSONObject().apply {
-    put("mode", value.mode.name)
-    putNullable("max", value.max)
-  }
-
-  private fun decodeEnergyProfile(json: JSONObject?, fallback: EnergyProfile): EnergyProfile {
-    if (json == null) return fallback
-    val mode = enumOr(fallback.mode, json.optString("mode"))
-    return when (mode) {
-      EnergyMode.INFINITE -> EnergyProfile.infinite()
-      EnergyMode.NOT_APPLICABLE -> EnergyProfile.notApplicable()
-      EnergyMode.FINITE -> EnergyProfile.finite(json.optInt("max", fallback.max ?: 0))
-    }
-  }
-
-  private fun hpRegenRule(value: HpRegenRule) = JSONObject().apply {
-    put("amountPerCompletedTurn", value.amountPerCompletedTurn)
-    putNullable("sourceId", value.sourceId)
-    put("enabled", value.enabled)
-    put("intervalCompletedTurns", value.intervalCompletedTurns)
-  }
-
-  private fun decodeHpRegenRule(json: JSONObject?, fallback: HpRegenRule): HpRegenRule {
-    if (json == null) return fallback
-    return HpRegenRule(
-      amountPerCompletedTurn = json.optInt("amountPerCompletedTurn", fallback.amountPerCompletedTurn).coerceAtLeast(0),
-      sourceId = json.nullableString("sourceId") ?: fallback.sourceId,
-      enabled = json.optBoolean("enabled", fallback.enabled),
-      intervalCompletedTurns = json.optInt("intervalCompletedTurns", fallback.intervalCompletedTurns).coerceAtLeast(1)
-    )
-  }
-
-  private fun characterVitalState(value: CharacterVitalState) = JSONObject().apply {
-    put("currentHp", value.currentHp)
-    put("condition", value.condition.name)
-    putNullable("lastRegenCompletedTurnId", value.lastRegenCompletedTurnId)
-    put("completedTurnsSinceRegen", value.completedTurnsSinceRegen)
-  }
-
-  private fun decodeCharacterVitalState(json: JSONObject?, profile: CharacterStatProfile): CharacterVitalState {
-    if (json == null) return CharacterVitalState(currentHp = profile.baseMaxHp)
-    return CharacterVitalState(
-      currentHp = json.optInt("currentHp", profile.baseMaxHp).coerceAtLeast(0),
-      condition = enumOr(CharacterCondition.HEALTHY, json.optString("condition")),
-      lastRegenCompletedTurnId = json.nullableString("lastRegenCompletedTurnId"),
-      completedTurnsSinceRegen = json.optInt("completedTurnsSinceRegen", 0).coerceAtLeast(0)
-    )
-  }
 
   private fun physiology(value: PhysiologyState) = JSONObject().apply {
     putNullable("minutesSinceFood", value.minutesSinceFood)
