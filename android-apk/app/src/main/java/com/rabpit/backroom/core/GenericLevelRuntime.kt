@@ -27,7 +27,8 @@ object GenericLevelRuntime {
       ?: return LevelActionOutcome(state, "Level instance chưa được khởi tạo.", progressed = false)
     val definition = registry.get(stored.levelId)
       ?: return LevelActionOutcome(state, "Không tìm thấy Level definition cho ${stored.levelId}.", progressed = false)
-    val level = hydrateLegacyInstance(stored, definition)
+    val hydrated = hydrateLegacyInstance(stored, definition)
+    val level = reconcileDiscoveredFacts(hydrated, definition)
     val workingState = if (level == stored) state else state.copy(levelInstance = level)
     if (level.completed) return LevelActionOutcome(workingState, "Lối chuyển Level đã được mở.", progressed = false, escaped = true)
 
@@ -61,7 +62,7 @@ object GenericLevelRuntime {
       )
     }
 
-    val discovered = discover(searched, eligible.id)
+    val discovered = discover(searched, eligible.id, definition)
     return LevelActionOutcome(
       sync(state, definition, discovered),
       evidenceReply(discovered, definition, eligible.id),
@@ -95,7 +96,7 @@ object GenericLevelRuntime {
     )
     next = commitRevision(next, "move", nextZone, "visit:$visits")
 
-    val revealed = revealEligibleNonSearchEvidence(next)
+    val revealed = revealEligibleNonSearchEvidence(next, definition)
     next = revealed.first
     val evidenceIds = revealed.second
     val zoneName = next.zones.getValue(nextZone).name
@@ -139,7 +140,7 @@ object GenericLevelRuntime {
     rule.effects.forEach { effect -> next = applyEffect(next, effect) }
     next = commitRevision(next, "execute", actionId, actionId)
 
-    val revealed = revealEligibleNonSearchEvidence(next)
+    val revealed = revealEligibleNonSearchEvidence(next, definition)
     next = revealed.first
     val evidenceIds = revealed.second
     val resultReply = listOfNotNull(
@@ -206,27 +207,54 @@ object GenericLevelRuntime {
     LevelEffectType.COMPLETE_LEVEL -> level.copy(completed = true)
   }
 
-  private fun revealEligibleNonSearchEvidence(level: LevelInstanceState): Pair<LevelInstanceState, Set<String>> {
+  private fun revealEligibleNonSearchEvidence(
+    level: LevelInstanceState,
+    definition: LevelDefinition
+  ): Pair<LevelInstanceState, Set<String>> {
     var next = level
     val revealed = linkedSetOf<String>()
     level.evidence.values
       .filter { !it.discovered && it.zoneId == level.currentZoneId && EvidenceSource.SEARCH !in it.sources }
       .filter { conditionsMet(next, it.discoverConditions) }
       .forEach { evidence ->
-        next = discover(next, evidence.id)
+        next = discover(next, evidence.id, definition)
         revealed += evidence.id
       }
     return next to revealed
   }
 
-  private fun discover(level: LevelInstanceState, evidenceId: String): LevelInstanceState {
+  private fun discover(level: LevelInstanceState, evidenceId: String, definition: LevelDefinition): LevelInstanceState {
     val current = level.evidence[evidenceId] ?: return level
     if (current.discovered) return level
     val updated = current.copy(discovered = true, discoveredAtRevision = level.revision)
-    return level.copy(
-      evidence = level.evidence + (evidenceId to updated),
-      discoveredFacts = level.discoveredFacts + current.supports
-    )
+    val withEvidence = level.copy(evidence = level.evidence + (evidenceId to updated))
+    return reconcileDiscoveredFacts(withEvidence, definition)
+  }
+
+  /**
+   * A required fact becomes authoritative only after the player has actually discovered the
+   * evidence quorum promised by the generation contract. This keeps one lucky clue from silently
+   * unlocking a puzzle that was validated as requiring multiple independent observations.
+   */
+  private fun reconcileDiscoveredFacts(level: LevelInstanceState, definition: LevelDefinition): LevelInstanceState {
+    val requiredFacts = level.escapeBlueprint.requiredFacts
+    val constraints = definition.generationConstraints
+    val minEvidence = constraints.minEvidencePerRequiredFact.coerceAtLeast(1)
+    val minSources = constraints.minEvidenceSourceTypesPerRequiredFact.coerceAtLeast(1)
+
+    val earnedRequiredFacts = requiredFacts.filter { fact ->
+      val supporting = level.evidence.values.filter { it.discovered && fact in it.supports }
+      supporting.size >= minEvidence && supporting.flatMap { it.sources }.toSet().size >= minSources
+    }.toSet()
+
+    val discoveredNonRequiredFacts = level.evidence.values
+      .filter { it.discovered }
+      .flatMap { it.supports }
+      .filterNot(requiredFacts::contains)
+      .toSet()
+    val preservedNonRequiredFacts = level.discoveredFacts - requiredFacts
+    val reconciled = preservedNonRequiredFacts + discoveredNonRequiredFacts + earnedRequiredFacts
+    return if (reconciled == level.discoveredFacts) level else level.copy(discoveredFacts = reconciled)
   }
 
   private fun commitRevision(level: LevelInstanceState, kind: String, target: String, value: String): LevelInstanceState {
