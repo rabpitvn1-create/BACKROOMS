@@ -4,66 +4,114 @@ import runpy
 
 ROOT = Path(__file__).resolve().parent
 MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
+CATALOG_ROOT = ROOT / "app/src/main/assets/level_catalog"
+CAMPAIGN_ID = "BACKROOMS_FANDOM_LEVELS_0_6_R01"
 
-# Source order follows Backrooms Wiki:Levels 0-8. The game deliberately treats that
-# published list as one deterministic campaign route instead of inventing branching.
-# Main Levels remain the authoritative parent level for combat/difficulty/save rules.
-ROUTE = [
-    (0, "0", "The Lobby", "MAIN"),
-    (0, "epsilon", "Incessant Hum-Buzz", "SPECIAL"),
-    (0, "0.01", "The Exit ?", "SUBLEVEL"),
-    (0, "0.1", "Deep Emptiness", "SUBLEVEL"),
-    (0, "0.11", "Water Damage", "SUBLEVEL"),
-    (0, "0.22", "Fully Remodeled", "SUBLEVEL"),
-    (0, "0.23", "Half Finished", "SUBLEVEL"),
-    (0, "0.41", "Disease", "SUBLEVEL"),
-    (0, "0.5", "Chaotic Structure", "SUBLEVEL"),
-    (0, "0.66", "The Lobby Went COLD", "SUBLEVEL"),
-    (0, "0.7", "Claustrophobia", "SUBLEVEL"),
-    (0, "0.8", "Inundation", "SUBLEVEL"),
-    (0, "0.99", "Deeper Regions", "SUBLEVEL"),
-    (0, "LS-2", "LS-2", "SPECIAL"),
-    (0, "Dullness", "Dullness", "SPECIAL"),
-    (0, "Red Rooms", "Red Rooms", "SPECIAL"),
-    (1, "1", "Parking Zone", "MAIN"),
-    (1, "1.01", "The Basement of Level 1", "SUBLEVEL"),
-    (1, "1.1", "Fallen Vehicle", "SUBLEVEL"),
-    (1, "1.5", "Lurking Danger", "SUBLEVEL"),
-    (1, "1.618033988749894...", "Midas’ Touch", "SUBLEVEL"),
-    (2, "2", "Pipe Dreams", "MAIN"),
-    (2, "2.1", "The Subterranean Complex", "SUBLEVEL"),
-    (2, "2.71828182845...", "Euler’s Imagination", "SUBLEVEL"),
-    (2, "2.2", "The Red Flood", "SUBLEVEL"),
-    (3, "3", "Electrical Station", "MAIN"),
-    (3, "3.14159265358...", "satuЯation", "SUBLEVEL"),
-    (3, "3.53", "The Cacophony of Corrosion", "SUBLEVEL"),
-    (4, "4", "The Abandoned Office", "MAIN"),
-    (4, "4.3", "The Cubicles", "SUBLEVEL"),
-    (4, "4.4", "Intrusive Configuration", "SUBLEVEL"),
-    (4, "4.11", "Insubstantial Skywalks", "SUBLEVEL"),
-    (5, "5", "Terror Hotel", "MAIN"),
-    (5, "5.1", "Summer Resort", "SUBLEVEL"),
-    (5, "5.2", "The Gilded Atrium", "SUBLEVEL"),
-    (5, "5.55", "Can’t Stop Watching", "SUBLEVEL"),
-    (6, "6", "Lights Out", "MAIN"),
-    (6, "6.1", "Silva Subterraneus", "SUBLEVEL"),
-    (6, "6.2", "Eyes On The Road", "SUBLEVEL"),
-    (6, "6.28318530718...", "Amaxophobia", "SUBLEVEL"),
-    (6, "6.5", "Blinding Lights", "SUBLEVEL"),
-    (6, "6.66", "Cryophobia", "SUBLEVEL"),
-    (6, "6.99", "Umbral Light", "SUBLEVEL"),
+
+def catalog_documents():
+    if not CATALOG_ROOT.is_dir():
+        raise RuntimeError("Level catalog asset directory missing")
+    return sorted(
+        path for path in CATALOG_ROOT.rglob("*.json")
+        if path.is_file() and not path.name.startswith("_")
+    )
+
+
+def decode_catalog_document(path: Path):
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    if isinstance(raw, list):
+        return raw
+    if not isinstance(raw, dict):
+        raise RuntimeError(f"Level catalog document must be object or array: {path}")
+    entries = raw.get("entries")
+    if entries is None:
+        return [raw]
+    if not isinstance(entries, list):
+        raise RuntimeError(f"Level catalog entries must be an array: {path}")
+    inherited_campaign = str(raw.get("campaignId") or "").strip()
+    inherited_schema = int(raw.get("schemaVersion", 1))
+    resolved = []
+    for entry in entries:
+        if not isinstance(entry, dict):
+            raise RuntimeError(f"Level catalog entry must be an object: {path}")
+        item = dict(entry)
+        item.setdefault("schemaVersion", inherited_schema)
+        if inherited_campaign:
+            item.setdefault("campaignId", inherited_campaign)
+        resolved.append(item)
+    return resolved
+
+
+catalog_entries = []
+for document in catalog_documents():
+    catalog_entries.extend(decode_catalog_document(document))
+
+if not catalog_entries:
+    raise RuntimeError("Level catalog contains no entries")
+
+by_id = {}
+for entry in catalog_entries:
+    area_id = str(entry.get("id") or "").strip()
+    if not area_id:
+        raise RuntimeError("Level catalog entry is missing id")
+    if area_id in by_id:
+        raise RuntimeError(f"Duplicate Level catalog id: {area_id}")
+    by_id[area_id] = entry
+
+route_entries = [
+    entry for entry in catalog_entries
+    if str(entry.get("campaignId") or "").strip() == CAMPAIGN_ID
+    and entry.get("campaignOrder") is not None
 ]
+if not route_entries:
+    raise RuntimeError(f"Level catalog campaign has no ordered entries: {CAMPAIGN_ID}")
 
-if len(ROUTE) != 43:
-    raise RuntimeError(f"Linear sublevel route must contain exactly 43 areas, found {len(ROUTE)}")
-if [area_id for level, area_id, _, _ in ROUTE if level == 0] != [
-    "0", "epsilon", "0.01", "0.1", "0.11", "0.22", "0.23", "0.41", "0.5", "0.66", "0.7", "0.8", "0.99", "LS-2", "Dullness", "Red Rooms"
-]:
-    raise RuntimeError("Level 0 wiki route order drifted")
-if [area_id for level, area_id, _, _ in ROUTE if level == 2] != ["2", "2.1", "2.71828182845...", "2.2"]:
-    raise RuntimeError("Level 2 must preserve Backrooms Wiki listing order")
-if ROUTE[-1][:3] != (6, "6.99", "Umbral Light"):
-    raise RuntimeError("Linear campaign must terminate at Level 6.99")
+orders = {}
+for entry in route_entries:
+    try:
+        order = int(entry["campaignOrder"])
+    except (TypeError, ValueError, KeyError) as error:
+        raise RuntimeError(f"Invalid campaignOrder for {entry.get('id')}") from error
+    if order < 0:
+        raise RuntimeError(f"Negative campaignOrder for {entry.get('id')}")
+    if order in orders:
+        raise RuntimeError(f"Duplicate campaignOrder {order}: {orders[order]} / {entry.get('id')}")
+    orders[order] = str(entry.get("id"))
+    entry["_campaignOrder"] = order
+
+route_entries.sort(key=lambda entry: (entry["_campaignOrder"], str(entry.get("id"))))
+
+main_names = {}
+for entry in catalog_entries:
+    if str(entry.get("kind") or "").strip().upper() != "MAIN":
+        continue
+    parent = entry.get("parentMainLevel")
+    if isinstance(parent, bool):
+        continue
+    try:
+        parent_number = int(parent)
+    except (TypeError, ValueError):
+        continue
+    main_names[parent_number] = str(entry.get("name") or entry.get("id") or f"Level {parent_number}")
+
+ROUTE = []
+PARENT_NAMES = []
+for entry in route_entries:
+    area_id = str(entry.get("id") or "").strip()
+    name = str(entry.get("name") or "").strip()
+    kind = str(entry.get("kind") or "").strip().upper()
+    if kind not in {"MAIN", "SUBLEVEL", "SPECIAL"}:
+        raise RuntimeError(f"Unsupported Level kind for {area_id}: {kind}")
+    if not name:
+        raise RuntimeError(f"Level catalog entry is missing name: {area_id}")
+    try:
+        parent_level = int(entry["parentMainLevel"])
+    except (TypeError, ValueError, KeyError) as error:
+        raise RuntimeError(f"Level catalog entry is missing parentMainLevel: {area_id}") from error
+    if parent_level < 0:
+        raise RuntimeError(f"Invalid parentMainLevel for {area_id}: {parent_level}")
+    ROUTE.append((parent_level, area_id, name, kind))
+    PARENT_NAMES.append(main_names.get(parent_level, f"Level {parent_level}"))
 
 
 def j(value: str) -> str:
@@ -78,6 +126,7 @@ ids = java_string_array([item[1] for item in ROUTE])
 names = java_string_array([item[2] for item in ROUTE])
 types = java_string_array([item[3] for item in ROUTE])
 levels = ", ".join(str(item[0]) for item in ROUTE)
+parent_names = java_string_array(PARENT_NAMES)
 
 text = MAIN.read_text(encoding="utf-8")
 
@@ -92,17 +141,18 @@ def replace_once(old: str, new: str, label: str):
 
 level_turn_anchor = '''  private int levelTurns(JSONObject state) {
 '''
-helpers = r'''  private static final String LINEAR_SUBLEVEL_ROUTE_VERSION = "BACKROOMS_FANDOM_LEVELS_0_6_R01";
+helpers = r'''  private static final String LINEAR_SUBLEVEL_ROUTE_VERSION = "__ROUTE_VERSION__";
   private static final String[] LINEAR_AREA_IDS = { __IDS__ };
   private static final String[] LINEAR_AREA_NAMES = { __NAMES__ };
   private static final String[] LINEAR_AREA_TYPES = { __TYPES__ };
   private static final int[] LINEAR_AREA_LEVELS = { __LEVELS__ };
+  private static final String[] LINEAR_AREA_PARENT_NAMES = { __PARENT_NAMES__ };
 
   private int mainRouteIndex(int level) {
     for (int i = 0; i < LINEAR_AREA_IDS.length; i++) {
       if (LINEAR_AREA_LEVELS[i] == level && "MAIN".equals(LINEAR_AREA_TYPES[i])) return i;
     }
-    return 0;
+    return -1;
   }
 
   private int linearAreaIndex(JSONObject state) {
@@ -117,7 +167,8 @@ helpers = r'''  private static final String LINEAR_SUBLEVEL_ROUTE_VERSION = "BAC
         for (int i = 0; i < LINEAR_AREA_IDS.length; i++) if (LINEAR_AREA_IDS[i].equals(storedId)) return i;
       }
     }
-    return mainRouteIndex(Math.max(0, Math.min(6, currentLevel(state))));
+    int fallback = mainRouteIndex(Math.max(0, currentLevel(state)));
+    return fallback >= 0 ? fallback : 0;
   }
 
   private boolean hasNextLinearArea(JSONObject state) {
@@ -138,6 +189,7 @@ helpers = r'''  private static final String LINEAR_SUBLEVEL_ROUTE_VERSION = "BAC
   private void stampLinearArea(JSONObject state, int index, boolean resetProgress, boolean relocate) throws Exception {
     if (index < 0 || index >= LINEAR_AREA_IDS.length) throw new Exception("linear_area_index_out_of_range");
     int parentLevel = LINEAR_AREA_LEVELS[index];
+    String parentName = LINEAR_AREA_PARENT_NAMES[index];
     JSONObject flags = state.optJSONObject("flags");
     if (flags == null) flags = new JSONObject();
     JSONObject exploration = flags.optJSONObject("exploration");
@@ -158,9 +210,9 @@ helpers = r'''  private static final String LINEAR_SUBLEVEL_ROUTE_VERSION = "BAC
     }
 
     flags.put("exploration", exploration);
-    flags.put("currentLevel", new JSONObject().put("number", parentLevel).put("name", levelName(parentLevel)));
+    flags.put("currentLevel", new JSONObject().put("number", parentLevel).put("name", parentName));
     state.put("flags", flags);
-    state.put("level", new JSONObject().put("number", parentLevel).put("name", levelName(parentLevel)));
+    state.put("level", new JSONObject().put("number", parentLevel).put("name", parentName));
     if (relocate) {
       String label = linearAreaLabel(index);
       state.put("title", label);
@@ -180,16 +232,22 @@ helpers = r'''  private static final String LINEAR_SUBLEVEL_ROUTE_VERSION = "BAC
     int current = linearAreaIndex(state);
     String currentLabel = linearAreaLabel(current);
     if (current + 1 >= LINEAR_AREA_IDS.length) {
-      return "LINEAR SUBLEVEL HARD LOCK: khu hiện tại = " + currentLabel + ". Đây là cuối route Level 0–6; không tự tạo Level 7 hoặc khu kế tiếp.";
+      return "LINEAR SUBLEVEL HARD LOCK: khu hiện tại = " + currentLabel + ". Đây là cuối campaign route đã khai báo; không tự tạo khu kế tiếp.";
     }
     String nextLabel = linearAreaLabel(current + 1);
     return "LINEAR SUBLEVEL HARD LOCK: khu hiện tại = " + currentLabel + ". Một Exit hợp lệ chỉ được tiến đúng một bước tới " + nextLabel + ". Không được bỏ qua, đảo thứ tự, chọn nhánh khác hoặc nhảy thẳng sang Level chính kế tiếp.";
   }
 
 '''
-helpers = helpers.replace("__IDS__", ids).replace("__NAMES__", names).replace("__TYPES__", types).replace("__LEVELS__", levels)
+helpers = (helpers
+    .replace("__ROUTE_VERSION__", CAMPAIGN_ID)
+    .replace("__IDS__", ids)
+    .replace("__NAMES__", names)
+    .replace("__TYPES__", types)
+    .replace("__LEVELS__", levels)
+    .replace("__PARENT_NAMES__", parent_names))
 if "LINEAR_SUBLEVEL_ROUTE_VERSION" not in text:
-    replace_once(level_turn_anchor, helpers + level_turn_anchor, "linear route helper insertion")
+    replace_once(level_turn_anchor, helpers + level_turn_anchor, "catalog route helper insertion")
 
 old_ready = '''  private boolean progressionReady(JSONObject state) {
     JSONObject flags = state.optJSONObject("flags");
@@ -239,7 +297,7 @@ can_transition_sig = '''  private boolean canTransition(JSONObject before, JSONO
 '''
 if "if (!hasNextLinearArea(before)) return false;" not in text:
     replace_once(can_transition_sig, can_transition_sig + '''    if (!hasNextLinearArea(before)) return false;
-''', "linear route terminal gate")
+''', "catalog route terminal gate")
 
 old_exit_found = '''    boolean exitFound = (confirmedExit != null && !confirmedExit.trim().isEmpty()) || rollSuccess(rolls, "levelExit");
 '''
@@ -282,16 +340,15 @@ replace_once(
 
 old_prompt_return = r'''    return actionDirective + '''
 new_prompt_return = r'''    return actionDirective + "\n" + linearAreaPrompt(before) + '''
-replace_once(old_prompt_return, new_prompt_return, "linear route Game Master lock")
+replace_once(old_prompt_return, new_prompt_return, "catalog route Game Master lock")
 
 MAIN.write_text(text, encoding="utf-8")
 
 final = MAIN.read_text(encoding="utf-8")
 required = [
-    'BACKROOMS_FANDOM_LEVELS_0_6_R01',
-    '"epsilon", "0.01", "0.1", "0.11"',
-    '"2", "2.1", "2.71828182845...", "2.2"',
-    '"6.66", "6.99"',
+    CAMPAIGN_ID,
+    'LINEAR_AREA_IDS',
+    'LINEAR_AREA_PARENT_NAMES',
     'return hasNextLinearArea(state) && levelTurns(state) >= 6;',
     'boolean areaAdvanced = false;',
     'advanceLinearArea(before, state)',
@@ -302,17 +359,19 @@ required = [
 ]
 for marker in required:
     if marker not in final:
-        raise RuntimeError("Linear sublevel contract missing: " + marker)
+        raise RuntimeError("Catalog campaign contract missing: " + marker)
 
 for forbidden in [
     'return explicitlyReady || levelTurns(state) >= 6;',
     'recordLevelProgress(state, oldLevel, newLevel);',
     'newLevel = mentioned;',
+    'Math.min(6, currentLevel(state))',
+    'Đây là cuối route Level 0–6',
 ]:
     if forbidden in final:
-        raise RuntimeError("Legacy Level-skip contract survived: " + forbidden)
+        raise RuntimeError("Legacy fixed-route contract survived: " + forbidden)
 
-print("Installed deterministic 43-area Backrooms Wiki route: every valid Exit advances exactly one area from Level 0 through Level 6.99.")
+print(f"Installed data-driven campaign route from Level catalog: {len(ROUTE)} areas ({CAMPAIGN_ID}).")
 
 # GM item gain is deliberately the final release-chain layer. It runs after progression,
 # combat and Entity finalizers so no later patch can restore read-only GM gains or erase
