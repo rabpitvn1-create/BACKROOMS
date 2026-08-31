@@ -9,30 +9,32 @@ data class LevelActionOutcome(
 )
 
 /**
- * Generic deterministic runtime for any registered Level definition.
- * It never branches on a concrete Level ID. Level-specific facts, routes, matchers,
- * conditions, effects and prose live in LevelDefinition data.
+ * Generic deterministic runtime for any registered Level instance.
+ * Canon lives in LevelDefinition; generated topology, evidence, actions and prose live in the
+ * locked LevelInstance so every New Game can carry a different validated puzzle.
  */
 object GenericLevelRuntime {
   fun install(state: GameState, registry: LevelRegistry, levelId: String, seed: String): GameState {
     if (state.levelInstance?.levelId == levelId) return state
     val definition = registry.require(levelId)
     val level = GenericLevelGenerator.generate(definition, seed)
-    require(BlueprintValidator.validate(level).valid) { "invalid_generated_level:$levelId" }
+    require(BlueprintValidator.validate(level, definition).valid) { "invalid_generated_level:$levelId" }
     return sync(state, definition, level)
   }
 
   fun apply(state: GameState, registry: LevelRegistry, kind: ActionKind, input: String): LevelActionOutcome {
-    val level = state.levelInstance
+    val stored = state.levelInstance
       ?: return LevelActionOutcome(state, "Level instance chưa được khởi tạo.", progressed = false)
-    val definition = registry.get(level.levelId)
-      ?: return LevelActionOutcome(state, "Không tìm thấy Level definition cho ${level.levelId}.", progressed = false)
-    if (level.completed) return LevelActionOutcome(state, "Lối chuyển Level đã được mở.", progressed = false, escaped = true)
+    val definition = registry.get(stored.levelId)
+      ?: return LevelActionOutcome(state, "Không tìm thấy Level definition cho ${stored.levelId}.", progressed = false)
+    val level = hydrateLegacyInstance(stored, definition)
+    val workingState = if (level == stored) state else state.copy(levelInstance = level)
+    if (level.completed) return LevelActionOutcome(workingState, "Lối chuyển Level đã được mở.", progressed = false, escaped = true)
 
     return when (kind) {
-      ActionKind.SEARCH -> search(state, definition, level)
-      ActionKind.EXPLORE -> explore(state, definition, level)
-      ActionKind.EXECUTE -> execute(state, definition, level, input)
+      ActionKind.SEARCH -> search(workingState, definition, level)
+      ActionKind.EXPLORE -> explore(workingState, definition, level)
+      ActionKind.EXECUTE -> execute(workingState, definition, level, input)
     }
   }
 
@@ -41,7 +43,7 @@ object GenericLevelRuntime {
     if (level.environment[searchKey] == "true") {
       return LevelActionOutcome(
         state,
-        definition.replies["search:exhausted"] ?: "Kai kiểm tra lại khu vực nhưng điều kiện chưa thay đổi; không có dấu vết mới.",
+        reply(level, definition, "search:exhausted") ?: "Kai kiểm tra lại khu vực nhưng điều kiện chưa thay đổi; không có dấu vết mới.",
         progressed = false
       )
     }
@@ -53,8 +55,8 @@ object GenericLevelRuntime {
     val searched = level.copy(environment = level.environment + (searchKey to "true"))
     if (eligible == null) {
       return LevelActionOutcome(
-        state.copy(levelInstance = searched),
-        definition.replies["search:empty"] ?: "Không có thêm chi tiết đáng kể trong trạng thái hiện tại.",
+        sync(state, definition, searched),
+        reply(level, definition, "search:empty") ?: "Không có thêm chi tiết đáng kể trong trạng thái hiện tại.",
         progressed = false
       )
     }
@@ -62,7 +64,7 @@ object GenericLevelRuntime {
     val discovered = discover(searched, eligible.id)
     return LevelActionOutcome(
       sync(state, definition, discovered),
-      evidenceReply(definition, eligible.id),
+      evidenceReply(discovered, definition, eligible.id),
       progressed = true,
       evidenceIds = setOf(eligible.id)
     )
@@ -70,20 +72,20 @@ object GenericLevelRuntime {
 
   private fun explore(state: GameState, definition: LevelDefinition, level: LevelInstanceState): LevelActionOutcome {
     val step = level.environment["exploreStep"]?.toIntOrNull() ?: 0
-    val nextZone = definition.exploreRoute.getOrNull(step) ?: chooseConnectedZone(level)
+    val nextZone = level.exploreRoute.getOrNull(step) ?: chooseConnectedZone(level)
       ?: return LevelActionOutcome(
         state,
-        definition.replies["explore:exhausted"] ?: "Các tuyến có thể tiếp cận từ đây đã được khảo sát; tiếp tục lặp lại không tạo tiến triển mới.",
+        reply(level, definition, "explore:exhausted") ?: "Các tuyến có thể tiếp cận từ đây đã được khảo sát; tiếp tục lặp lại không tạo tiến triển mới.",
         progressed = false
       )
 
     if (nextZone !in level.zones) {
-      return LevelActionOutcome(state, "Level definition tham chiếu một vùng không tồn tại.", progressed = false)
+      return LevelActionOutcome(state, "Level instance tham chiếu một vùng không tồn tại.", progressed = false)
     }
 
     val visitsKey = "visits:$nextZone"
     val visits = (level.environment[visitsKey]?.toIntOrNull() ?: 0) + 1
-    val nextStep = if (definition.exploreRoute.getOrNull(step) == nextZone) step + 1 else step
+    val nextStep = if (level.exploreRoute.getOrNull(step) == nextZone) step + 1 else step
     var next = level.copy(
       currentZoneId = nextZone,
       environment = level.environment + mapOf(
@@ -97,21 +99,18 @@ object GenericLevelRuntime {
     next = revealed.first
     val evidenceIds = revealed.second
     val zoneName = next.zones.getValue(nextZone).name
-    val detail = evidenceIds.joinToString(" ") { evidenceReply(definition, it) }
-    val reply = if (detail.isBlank()) {
-      definition.replies["explore:moved"]?.replace("{zone}", zoneName) ?: "Kai đi sâu hơn vào $zoneName."
-    } else {
-      "${definition.replies["explore:moved"]?.replace("{zone}", zoneName) ?: "Kai đi sâu hơn vào $zoneName."} $detail"
-    }
+    val detail = evidenceIds.joinToString(" ") { evidenceReply(next, definition, it) }
+    val moved = reply(next, definition, "explore:moved")?.replace("{zone}", zoneName) ?: "Kai đi sâu hơn vào $zoneName."
+    val resultReply = if (detail.isBlank()) moved else "$moved $detail"
 
-    return LevelActionOutcome(sync(state, definition, next), reply, progressed = true, evidenceIds = evidenceIds)
+    return LevelActionOutcome(sync(state, definition, next), resultReply, progressed = true, evidenceIds = evidenceIds)
   }
 
   private fun execute(state: GameState, definition: LevelDefinition, level: LevelInstanceState, input: String): LevelActionOutcome {
-    val actionId = canonicalAction(definition, input)
+    val actionId = canonicalAction(level.actions, input)
       ?: return LevelActionOutcome(
         state,
-        definition.replies["execute:unresolved"] ?: "Hành động đó không làm thay đổi quy luật đang chi phối khu vực này.",
+        reply(level, definition, "execute:unresolved") ?: "Hành động đó không làm thay đổi quy luật đang chi phối khu vực này.",
         progressed = false
       )
 
@@ -121,16 +120,17 @@ object GenericLevelRuntime {
     if (actionId != expected) {
       return LevelActionOutcome(
         state,
-        definition.replies["execute:no_progress"] ?: "Kai thực hiện thử nghiệm, nhưng trạng thái thế giới không tạo ra tiến triển mới.",
+        reply(level, definition, "execute:no_progress") ?: "Kai thực hiện thử nghiệm, nhưng trạng thái thế giới không tạo ra tiến triển mới.",
         progressed = false
       )
     }
 
-    val rule = definition.actions.getValue(actionId)
+    val rule = level.actions[actionId]
+      ?: return LevelActionOutcome(state, "Level instance thiếu action rule đã khóa: $actionId.", progressed = false)
     if (!conditionsMet(level, rule.conditions)) {
       return LevelActionOutcome(
         state,
-        definition.replies["execute:conditions_missing"] ?: "Giả thuyết có thể có ý nghĩa, nhưng điều kiện hoặc vị trí hiện tại chưa đúng.",
+        reply(level, definition, "execute:conditions_missing") ?: "Giả thuyết có thể có ý nghĩa, nhưng điều kiện hoặc vị trí hiện tại chưa đúng.",
         progressed = false
       )
     }
@@ -142,17 +142,28 @@ object GenericLevelRuntime {
     val revealed = revealEligibleNonSearchEvidence(next)
     next = revealed.first
     val evidenceIds = revealed.second
-    val reply = listOfNotNull(
+    val resultReply = listOfNotNull(
       rule.reply,
-      evidenceIds.takeIf { it.isNotEmpty() }?.joinToString(" ") { evidenceReply(definition, it) }
+      evidenceIds.takeIf { it.isNotEmpty() }?.joinToString(" ") { evidenceReply(next, definition, it) }
     ).joinToString(" ").ifBlank { "Hành động làm trạng thái Level thay đổi." }
 
     return LevelActionOutcome(
       sync(state, definition, next),
-      reply,
+      resultReply,
       progressed = true,
       escaped = next.completed,
       evidenceIds = evidenceIds
+    )
+  }
+
+  private fun hydrateLegacyInstance(level: LevelInstanceState, definition: LevelDefinition): LevelInstanceState {
+    if (level.generatorVersion != "legacy") return level
+    return level.copy(
+      environmentTags = if (level.environmentTags.isEmpty()) definition.canonProfile.environmentTags else level.environmentTags,
+      exploreRoute = if (level.exploreRoute.isEmpty()) definition.exploreRoute else level.exploreRoute,
+      actions = if (level.actions.isEmpty()) definition.actions else level.actions,
+      replies = if (level.replies.isEmpty()) definition.replies else level.replies,
+      generatorVersion = "legacy-definition-hydrated"
     )
   }
 
@@ -161,9 +172,9 @@ object GenericLevelRuntime {
     return candidates.minWithOrNull(compareBy<String> { level.environment["visits:$it"]?.toIntOrNull() ?: 0 }.thenBy { it })
   }
 
-  private fun canonicalAction(definition: LevelDefinition, input: String): String? {
+  private fun canonicalAction(actions: Map<String, LevelActionRule>, input: String): String? {
     val text = input.lowercase()
-    val matches = definition.actions.values.filter { rule ->
+    val matches = actions.values.filter { rule ->
       rule.matchGroups.all { group -> group.any { token -> token.lowercase() in text } }
     }
     return matches.singleOrNull()?.id
@@ -244,6 +255,9 @@ object GenericLevelRuntime {
     )
   }
 
-  private fun evidenceReply(definition: LevelDefinition, id: String): String =
-    definition.replies["evidence:$id"] ?: "Kai nhận ra một chi tiết bất thường."
+  private fun reply(level: LevelInstanceState, definition: LevelDefinition, key: String): String? =
+    level.replies[key] ?: definition.replies[key]
+
+  private fun evidenceReply(level: LevelInstanceState, definition: LevelDefinition, id: String): String =
+    reply(level, definition, "evidence:$id") ?: "Kai nhận ra một chi tiết bất thường."
 }
