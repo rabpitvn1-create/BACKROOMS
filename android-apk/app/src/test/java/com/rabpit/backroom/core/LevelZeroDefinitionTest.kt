@@ -22,6 +22,12 @@ class LevelZeroDefinitionTest {
     assertTrue(definition.generationConstraints.proceduralTopology)
     assertTrue(definition.generationConstraints.proceduralEvidencePlacement)
     assertTrue(definition.generationConstraints.proceduralEscapeBlueprint)
+
+    val finish = definition.actions.getValue("continue_until_geometry_changes")
+    assertFalse(finish.matchGroups.flatten().any { it.contains("level 1", ignoreCase = true) })
+    assertFalse(finish.semanticDescriptions.any { it.contains("Level 1", ignoreCase = true) })
+    assertFalse(finish.reply.orEmpty().contains("Level 1", ignoreCase = true))
+    assertFalse("level1_transition" in definition.zones.getValue("concrete_drift").tags)
   }
 
   @Test fun levelZeroExploreRepliesDescribePlacesNaturallyInsteadOfShowingZoneLabels() {
@@ -93,6 +99,8 @@ class LevelZeroDefinitionTest {
     )
     assertTrue(finish.progressed)
     assertTrue(finish.escaped)
+    assertEquals("0", finish.state.levelInstance!!.levelId)
+    assertFalse(finish.reply.contains("Level 1", ignoreCase = true))
   }
 
   private fun loadLevelZero(): LevelDefinition {
