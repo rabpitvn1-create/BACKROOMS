@@ -51,6 +51,7 @@ SCRIPTS = [
     "patch-chicken-rice-box-test-compat.py",
     "patch-entity-procedural-loot-rebalance.py",
     "patch-evidence-highlight-final.py",
+    "patch-player-facing-authority-boundary.py",
 ]
 
 for script in SCRIPTS:
