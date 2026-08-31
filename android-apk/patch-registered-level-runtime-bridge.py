@@ -71,7 +71,8 @@ facade_methods = r'''  fun processRegisteredLevelAction(legacyStateJson: String,
       val level = restored.levelInstance
       if (level != null) {
         if (!levelRegistry.contains(level.levelId)) return false
-        if (!BlueprintValidator.validate(level).valid) return false
+        val definition = levelRegistry.require(level.levelId)
+        if (!BlueprintValidator.validate(level, definition).valid) return false
       }
       repository.save(restored)
       true
@@ -124,15 +125,15 @@ for marker in (
     "RegisteredLevelActionCoordinator.applyStarted(",
     "legacyAreaId",
     "fun restoreCoreState(raw: String): Boolean",
-    "BlueprintValidator.validate(level).valid",
+    "BlueprintValidator.validate(level, definition).valid",
     ".processRegisteredLevelAction(stateJson, actionKind, action)",
     '@JavascriptInterface public String exportCoreState()',
     '@JavascriptInterface public boolean restoreCoreState(String coreJson)',
 ):
-    source = facade if marker.startswith("fun ") or marker in ("RegisteredLevelActionCoordinator.applyStarted(", "legacyAreaId", "BlueprintValidator.validate(level).valid") else main
+    source = facade if marker.startswith("fun ") or marker in ("RegisteredLevelActionCoordinator.applyStarted(", "legacyAreaId", "BlueprintValidator.validate(level, definition).valid") else main
     if marker not in source:
         raise RuntimeError("registered Level runtime bridge missing: " + marker)
 
 FACADE.write_text(facade, encoding="utf-8")
 MAIN.write_text(main, encoding="utf-8")
-print("Registered Level runtime bridge applied: typed Level actions commit locally before legacy dice/Gemini, with private core-state save/restore.")
+print("Registered Level runtime bridge applied: typed Level actions commit locally before legacy dice/Gemini, with canon-validated private core save/restore.")
