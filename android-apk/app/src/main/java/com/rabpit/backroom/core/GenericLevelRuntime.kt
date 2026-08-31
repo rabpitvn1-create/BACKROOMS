@@ -63,7 +63,8 @@ object GenericLevelRuntime {
     val eligible = level.evidence.values
       .filter { !it.discovered && it.zoneId == level.currentZoneId && EvidenceSource.SEARCH in it.sources }
       .filter { conditionsMet(level, it.discoverConditions) }
-    val selected = director.selectEvidence(level, definition, ActionKind.SEARCH, eligible).firstOrNull()
+    val selection = director.selectEvidenceWithTrace(level, definition, ActionKind.SEARCH, eligible)
+    val selected = selection.evidence.firstOrNull()
 
     val searched = level.copy(environment = level.environment + (searchKey to "true"))
     if (selected == null) {
@@ -75,6 +76,7 @@ object GenericLevelRuntime {
     }
 
     val discovered = discover(searched, selected.id, definition)
+    director.recordOutcome(selection.trace, discovered, surfacedCount = 1)
     return LevelActionOutcome(
       sync(state, definition, discovered),
       evidenceReply(discovered, definition, selected.id),
@@ -239,7 +241,8 @@ object GenericLevelRuntime {
     val eligible = level.evidence.values
       .filter { !it.discovered && it.zoneId == level.currentZoneId && EvidenceSource.SEARCH !in it.sources }
       .filter { conditionsMet(level, it.discoverConditions) }
-    val selected = director.selectEvidence(level, definition, kind, eligible)
+    val selection = director.selectEvidenceWithTrace(level, definition, kind, eligible)
+    val selected = selection.evidence
     if (selected.isEmpty()) return level to emptySet()
 
     var next = level
@@ -248,6 +251,7 @@ object GenericLevelRuntime {
       next = discover(next, evidence.id, definition)
       revealed += evidence.id
     }
+    director.recordOutcome(selection.trace, next, surfacedCount = revealed.size)
     return next to revealed
   }
 
