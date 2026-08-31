@@ -44,6 +44,7 @@ SCRIPTS = [
     "patch-passive-skill-visibility.py",
     "patch-combat-total-turn-isolation.py",
     "patch-registered-level-runtime-bridge.py",
+    "patch-private-core-save-final.py",
     "patch-escape-chance-hud.py",
 ]
 

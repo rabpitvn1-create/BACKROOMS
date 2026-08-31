@@ -26,7 +26,6 @@ function load(){state=JSON.parse(localStorage.getItem("backroom-apk-state")||"nu
 function resetGame(){if(confirm("Bắt đầu lại từ Turn 1?")){state=JSON.parse(JSON.stringify(initial));save();render()}}
 function clearSave(){if(confirm("Xóa save trên máy?")){localStorage.removeItem("backroom-apk-state");state=JSON.parse(JSON.stringify(initial));render()}}'''
 new_functions = '''const SAVE_KEY="backroom-apk-state";
-const CORE_SAVE_KEY="backroom-apk-core-state";
 const SNAPSHOT_KEY="backroom-apk-snapshot";
 let destructiveAction="";
 let destructiveUntil=0;
@@ -35,23 +34,6 @@ function freshInitial(){return JSON.parse(JSON.stringify(initial))}
 function clearAuthoritativeCore(){
   try{if(window.Android&&typeof Android.clearCoreState==="function")Android.clearCoreState();return true}
   catch(e){statusEl.textContent="Không thể đồng bộ Game State Core: "+(e&&e.message?e.message:"bridge error");return false}
-}
-function exportAuthoritativeCore(){
-  try{
-    if(!window.Android||typeof Android.exportCoreState!=="function")return "";
-    const raw=String(Android.exportCoreState()||"");
-    if(raw)JSON.parse(raw);
-    return raw;
-  }catch(e){statusEl.textContent="Không thể đọc Game State Core để lưu: "+(e&&e.message?e.message:"bridge error");return ""}
-}
-function restoreAuthoritativeCore(){
-  let raw="";
-  try{raw=String(localStorage.getItem(CORE_SAVE_KEY)||"")}catch(ignore){}
-  if(!raw)return false;
-  try{
-    if(!window.Android||typeof Android.restoreCoreState!=="function")return false;
-    return Android.restoreCoreState(raw)===true;
-  }catch(e){return false}
 }
 function savedState(){
   let raw=null;
@@ -70,10 +52,8 @@ function save(){
     const verify=localStorage.getItem(SAVE_KEY);
     if(!verify)throw new Error("không đọc lại được save vừa ghi");
     const checked=JSON.parse(verify);
-    if(Number(checked.turn)!==Number(state.turn))throw new Error("bộ đếm nội bộ sau khi ghi không khớp");
-    const core=exportAuthoritativeCore();
-    if(core)localStorage.setItem(CORE_SAVE_KEY,core);
-    statusEl.textContent="Đã lưu save trên máy.";
+    if(Number(checked.turn)!==Number(state.turn))throw new Error("Turn sau khi ghi không khớp");
+    statusEl.textContent="Đã lưu Turn "+(state.turn||1)+" trên máy.";
     return true;
   }catch(e){statusEl.textContent="Lưu thất bại: "+(e&&e.message?e.message:"storage error");return false}
 }
@@ -81,9 +61,9 @@ function load(){
   const loaded=savedState();
   if(!loaded){if(!statusEl.textContent||!statusEl.textContent.includes("bị lỗi"))statusEl.textContent="Không có save trên máy để tải.";return false}
   state=loaded;
-  if(!restoreAuthoritativeCore())clearAuthoritativeCore();
+  clearAuthoritativeCore();
   render();
-  statusEl.textContent="Đã tải save từ máy.";
+  statusEl.textContent="Đã tải save Turn "+(state.turn||1)+" từ máy.";
   return true;
 }
 function armDestructive(kind,label,perform){
@@ -94,20 +74,20 @@ function armDestructive(kind,label,perform){
 }
 function resetGame(){
   armDestructive("new-game","Bắt đầu lại từ đầu",()=>{
-    try{localStorage.removeItem(SNAPSHOT_KEY);localStorage.removeItem(CORE_SAVE_KEY)}catch(ignore){}
+    try{localStorage.removeItem(SNAPSHOT_KEY)}catch(ignore){}
     clearAuthoritativeCore();
     state=freshInitial();
     render();
-    if(save())statusEl.textContent="NEW GAME đã tạo và lưu. Game State Core và Snapshot cũ đã được xóa.";
+    if(save())statusEl.textContent="NEW GAME đã tạo và lưu ở Turn 1. Game State Core và Snapshot cũ đã được xóa.";
   });
 }
 function clearSave(){
   armDestructive("delete-save","Xóa save trên máy",()=>{
-    try{localStorage.removeItem(SAVE_KEY);localStorage.removeItem(CORE_SAVE_KEY);localStorage.removeItem(SNAPSHOT_KEY)}catch(e){statusEl.textContent="Xóa save thất bại: "+(e&&e.message?e.message:"storage error");return}
+    try{localStorage.removeItem(SAVE_KEY);localStorage.removeItem(SNAPSHOT_KEY)}catch(e){statusEl.textContent="Xóa save thất bại: "+(e&&e.message?e.message:"storage error");return}
     clearAuthoritativeCore();
     state=freshInitial();
     render();
-    statusEl.textContent="Đã xóa save, Game State Core và snapshot trên máy. Trạng thái hiện tại chỉ ở bộ nhớ tạm.";
+    statusEl.textContent="Đã xóa save, Game State Core và snapshot trên máy. Trạng thái Turn 1 hiện chỉ ở bộ nhớ tạm.";
   });
 }'''
 replace_once(old_functions, new_functions, "save/load/new-game/delete behavior")
@@ -118,18 +98,12 @@ for required in [
     'id="newGameButton"',
     'id="deleteSaveButton"',
     'const SAVE_KEY="backroom-apk-state"',
-    'const CORE_SAVE_KEY="backroom-apk-core-state"',
     'const SNAPSHOT_KEY="backroom-apk-snapshot"',
     'function savedState()',
     'function clearAuthoritativeCore()',
-    'function exportAuthoritativeCore()',
-    'function restoreAuthoritativeCore()',
     'Android.clearCoreState()',
-    'Android.exportCoreState()',
-    'Android.restoreCoreState(raw)',
     'function armDestructive(',
     'không đọc lại được save vừa ghi',
-    'localStorage.removeItem(CORE_SAVE_KEY)',
     'localStorage.removeItem(SNAPSHOT_KEY)',
 ]:
     if required not in text:
@@ -137,8 +111,6 @@ for required in [
 
 if 'confirm(' in text:
     raise RuntimeError("APK save controls must not depend on WebView confirm() dialogs")
-if 'Đã lưu Turn ' in text or 'Đã tải save Turn ' in text or 'Turn 1' in text:
-    raise RuntimeError("Player-facing save controls must not expose the internal turn counter")
 
 INDEX.write_text(text, encoding="utf-8")
-print("APK Save/Load/New Game/Delete synchronized with WebView state plus private authoritative core state; player-facing turn counters remain hidden.")
+print("APK Save/Load/New Game/Delete synchronized with both WebView storage and authoritative Game State Core.")
