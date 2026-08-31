@@ -5,6 +5,12 @@ import org.json.JSONObject
 
 enum class LevelKind { MAIN, SUBLEVEL, SPECIAL }
 
+data class LevelTransition(
+  val targetId: String,
+  val tags: Set<String> = emptySet(),
+  val metadata: Map<String, String> = emptyMap()
+)
+
 data class LevelCatalogEntry(
   val id: String,
   val parentId: String? = null,
@@ -14,7 +20,8 @@ data class LevelCatalogEntry(
   val campaignId: String? = null,
   val campaignOrder: Long? = null,
   val metadata: Map<String, String> = emptyMap(),
-  val schemaVersion: Int = LevelCatalogJson.CURRENT_SCHEMA_VERSION
+  val schemaVersion: Int = LevelCatalogJson.CURRENT_SCHEMA_VERSION,
+  val outgoingTransitions: List<LevelTransition> = emptyList()
 )
 
 data class LevelCatalogDocument(val path: String, val content: String)
@@ -69,6 +76,7 @@ object LevelCatalogJson {
       campaignId = json.optString("campaignId").takeIf(String::isNotBlank) ?: inheritedCampaignId,
       campaignOrder = campaignOrder,
       metadata = json.optJSONObject("metadata").stringsMap(),
+      outgoingTransitions = json.optJSONArray("outgoingTransitions").transitions(),
       schemaVersion = json.optInt("schemaVersion", inheritedSchemaVersion)
     )
   }
@@ -78,6 +86,27 @@ object LevelCatalogJson {
     val result = linkedMapOf<String, String>()
     keys().forEach { key -> result[key] = optString(key) }
     return result
+  }
+
+
+  private fun JSONArray?.transitions(): List<LevelTransition> {
+    if (this == null) return emptyList()
+    return (0 until length()).map { index ->
+      when (val value = get(index)) {
+        is String -> LevelTransition(value)
+        is JSONObject -> LevelTransition(
+          targetId = value.optString("targetId"),
+          tags = value.optJSONArray("tags").stringsSet(),
+          metadata = value.optJSONObject("metadata").stringsMap()
+        )
+        else -> throw IllegalArgumentException("level_transition_not_string_or_object:$index")
+      }
+    }
+  }
+
+  private fun JSONArray?.stringsSet(): Set<String> {
+    if (this == null) return emptySet()
+    return (0 until length()).map { getString(it) }.toCollection(linkedSetOf())
   }
 }
 
@@ -94,6 +123,13 @@ object LevelCatalogValidator {
     if (entry.campaignOrder != null && entry.campaignOrder < 0L) errors += "campaign_order_invalid"
     if (entry.campaignOrder != null && entry.campaignId.isNullOrBlank()) errors += "campaign_id_missing_for_order"
     if (entry.schemaVersion != LevelCatalogJson.CURRENT_SCHEMA_VERSION) errors += "unsupported_schema_version:${entry.schemaVersion}"
+    entry.outgoingTransitions.forEach { transition ->
+      if (transition.targetId.isBlank()) errors += "transition_target_missing"
+      if (transition.targetId == entry.id) errors += "transition_self_loop:${entry.id}"
+      if (transition.targetId.any { it == '/' || it == '\\' || it.isISOControl() }) errors += "transition_target_invalid_character:${transition.targetId}"
+    }
+    val duplicateTargets = entry.outgoingTransitions.groupBy { it.targetId }.filterValues { it.size > 1 }.keys
+    duplicateTargets.sorted().forEach { errors += "duplicate_transition:${entry.id}:$it" }
     return LevelCatalogValidation(errors.isEmpty(), errors)
   }
 }
@@ -108,6 +144,10 @@ class LevelCatalog private constructor(private val entries: Map<String, LevelCat
   fun campaign(campaignId: String): List<LevelCatalogEntry> = entries.values
     .filter { it.campaignId == campaignId && it.campaignOrder != null }
     .sortedWith(compareBy<LevelCatalogEntry> { it.campaignOrder }.thenBy { it.id })
+  fun allowedTransitionsFrom(levelId: String): List<LevelTransition> =
+    entries[levelId]?.outgoingTransitions.orEmpty()
+  fun canTransition(fromId: String, toId: String): Boolean =
+    allowedTransitionsFrom(fromId).any { it.targetId == toId }
   val size: Int get() = entries.size
 
   companion object {
@@ -125,6 +165,23 @@ class LevelCatalog private constructor(private val entries: Map<String, LevelCat
         val duplicateOrders = ordered.groupBy { it.campaignOrder }.filterValues { it.size > 1 }.keys
         require(duplicateOrders.isEmpty()) {
           "duplicate_campaign_order:$campaignId:${duplicateOrders.filterNotNull().sorted().joinToString(",")}" 
+        }
+      }
+      map.values.forEach { source ->
+        source.outgoingTransitions.forEach { transition ->
+          val target = map[transition.targetId]
+            ?: throw IllegalArgumentException("dangling_transition:${source.id}:${transition.targetId}")
+          require(source.id != target.id) { "transition_self_loop:${source.id}" }
+          val sourceCampaign = source.campaignId?.takeIf(String::isNotBlank)
+          val targetCampaign = target.campaignId?.takeIf(String::isNotBlank)
+          require(sourceCampaign != null && sourceCampaign == targetCampaign) {
+            "transition_campaign_mismatch:${source.id}:${target.id}"
+          }
+          val sourceOrder = source.campaignOrder
+          val targetOrder = target.campaignOrder
+          require(sourceOrder != null && targetOrder != null && targetOrder > sourceOrder) {
+            "transition_not_forward:${source.id}:${target.id}"
+          }
         }
       }
       return LevelCatalog(map)

@@ -8,7 +8,7 @@ data class ForwardProgressionDecision(
 /**
  * Authoritative monotonic guard for entering a different catalogued Level.
  *
- * IDs are treated as opaque strings. Progression is derived only from LevelCatalog campaign data;
+ * IDs are treated as opaque strings. Reachability is derived only from explicit catalog edges;
  * numeric parsing of Level IDs is deliberately forbidden. The legacy campaign still owns its
  * exact one-step route, while this guard prevents any registered/procedural runtime path from
  * moving backward or leaving an unfinished Level.
@@ -47,6 +47,9 @@ object ForwardProgressionPolicy {
       ?: return deny("progression_target_order_missing:$requestedId")
     if (requestedOrder <= currentOrder) {
       return deny("progression_not_forward:$currentId:$requestedId")
+    }
+    if (!catalog.canTransition(currentId, requestedId)) {
+      return deny("progression_transition_not_declared:$currentId:$requestedId")
     }
 
     return ForwardProgressionDecision(allowed = true)

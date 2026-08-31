@@ -11,10 +11,10 @@ class ForwardProgressionPolicyTest {
         "schemaVersion":1,
         "campaignId":"campaign-a",
         "entries":[
-          {"id":"0","name":"Zero","kind":"MAIN","parentMainLevel":0,"campaignOrder":0},
+          {"id":"0","name":"Zero","kind":"MAIN","parentMainLevel":0,"campaignOrder":0,"outgoingTransitions":["epsilon","1"]},
           {"id":"epsilon","name":"Epsilon","kind":"SPECIAL","parentId":"0","parentMainLevel":0,"campaignOrder":1000},
-          {"id":"1","name":"One","kind":"MAIN","parentMainLevel":1,"campaignOrder":16000},
-          {"id":"1.01","name":"One Sublevel","kind":"SUBLEVEL","parentId":"1","parentMainLevel":1,"campaignOrder":17000},
+          {"id":"1","name":"One","kind":"MAIN","parentMainLevel":1,"campaignOrder":16000,"outgoingTransitions":["1.01"]},
+          {"id":"1.01","name":"One Sublevel","kind":"SUBLEVEL","parentId":"1","parentMainLevel":1,"campaignOrder":17000,"outgoingTransitions":["Red Rooms"]},
           {"id":"Red Rooms","name":"Red Rooms","kind":"SPECIAL","parentId":"1","parentMainLevel":1,"campaignOrder":18000}
         ]
       }""".trimIndent()
@@ -51,6 +51,12 @@ class ForwardProgressionPolicyTest {
 
     assertTrue(mainAdvance.allowed)
     assertTrue(specialAdvance.allowed)
+  }
+
+  @Test fun completedLevelCannotSkipUndeclaredForwardTarget() {
+    val decision = ForwardProgressionPolicy.evaluate(catalog, "0", currentCompleted = true, requestedLevelId = "1.01")
+    assertFalse(decision.allowed)
+    assertEquals("progression_transition_not_declared:0:1.01", decision.reason)
   }
 
   @Test fun completedLevelCannotMoveBackward() {

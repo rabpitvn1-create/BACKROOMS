@@ -10,7 +10,7 @@ class RegisteredLevelActionCoordinatorTest {
     val started = start(GameState.initial(), ActionKind.SEARCH, "Tìm kiếm")
 
     val result = RegisteredLevelActionCoordinator.applyStarted(
-      started, registry, ActionKind.SEARCH, "Tìm kiếm", "742.13", "run-742"
+      started, registry, catalog("742.13"), ActionKind.SEARCH, "Tìm kiếm", "742.13", "run-742"
     )
 
     assertTrue(result.error.orEmpty(), result.handled)
@@ -27,7 +27,7 @@ class RegisteredLevelActionCoordinatorTest {
     val started = start(GameState.initial(), ActionKind.EXECUTE, "Dùng băng gạc cho Lucia")
 
     val result = RegisteredLevelActionCoordinator.applyStarted(
-      started, registry, ActionKind.EXECUTE, "Dùng băng gạc cho Lucia", "347.2", "run-347"
+      started, registry, catalog("347.2"), ActionKind.EXECUTE, "Dùng băng gạc cho Lucia", "347.2", "run-347"
     )
 
     assertFalse(result.handled)
@@ -42,7 +42,7 @@ class RegisteredLevelActionCoordinatorTest {
     state = start(state, ActionKind.EXECUTE, "Mở cánh cửa thoát")
 
     val result = RegisteredLevelActionCoordinator.applyStarted(
-      state, registry, ActionKind.EXECUTE, "Mở cánh cửa thoát", "999.alpha", "ignored"
+      state, registry, catalog("999.alpha"), ActionKind.EXECUTE, "Mở cánh cửa thoát", "999.alpha", "ignored"
     )
 
     assertTrue(result.handled)
@@ -50,6 +50,31 @@ class RegisteredLevelActionCoordinatorTest {
     assertTrue(result.escaped)
     assertTrue(result.state.levelInstance?.completed == true)
     assertNull(ActionRuntime.activeSession(result.state))
+  }
+
+  @Test fun incompleteLevelAndModelSelectedTargetOutsideGraphAreRejected() {
+    val definitions = listOf(fixture("from"), fixture("allowed"), fixture("hidden"))
+    val registry = LevelRegistry.from(definitions)
+    val catalog = LevelCatalog.from(listOf(
+      graphEntry("from", 1000, listOf("allowed")),
+      graphEntry("allowed", 2000),
+      graphEntry("hidden", 3000)
+    ))
+    val installed = GenericLevelRuntime.install(GameState.initial(), registry, "from", "run")
+
+    val incomplete = RegisteredLevelActionCoordinator.applyStarted(
+      start(installed, ActionKind.SEARCH, "Tìm kiếm"), registry, catalog,
+      ActionKind.SEARCH, "Tìm kiếm", "allowed", "run"
+    )
+    assertEquals("progression_current_level_incomplete:from", incomplete.error)
+
+    val completed = installed.copy(levelInstance = installed.levelInstance?.copy(completed = true))
+    val outsideGraph = RegisteredLevelActionCoordinator.applyStarted(
+      start(completed, ActionKind.SEARCH, "Tìm kiếm"), registry, catalog,
+      ActionKind.SEARCH, "Tìm kiếm", "hidden", "run"
+    )
+    assertEquals("progression_transition_not_declared:from:hidden", outsideGraph.error)
+    assertEquals("from", outsideGraph.state.levelInstance?.levelId)
   }
 
   private fun start(state: GameState, kind: ActionKind, input: String): GameState {
@@ -96,4 +121,13 @@ class RegisteredLevelActionCoordinatorTest {
       actions = mapOf(action.id to action)
     )
   }
+
+  private fun catalog(id: String): LevelCatalog = LevelCatalog.from(listOf(
+    LevelCatalogEntry(id, name = "Fixture $id", kind = LevelKind.SPECIAL)
+  ))
+
+  private fun graphEntry(id: String, order: Long, targets: List<String> = emptyList()) = LevelCatalogEntry(
+    id = id, name = id, kind = LevelKind.SPECIAL, campaignId = "test", campaignOrder = order,
+    outgoingTransitions = targets.map(::LevelTransition)
+  )
 }

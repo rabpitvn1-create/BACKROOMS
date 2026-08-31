@@ -79,7 +79,7 @@ for entry in route_entries:
     orders[order] = str(entry.get("id"))
     entry["_campaignOrder"] = order
 
-route_entries.sort(key=lambda entry: (entry["_campaignOrder"], str(entry.get("id"))))
+route_entries.sort(key=lambda entry: str(entry.get("id")))
 
 main_names = {}
 for entry in catalog_entries:
@@ -113,6 +113,23 @@ for entry in route_entries:
     ROUTE.append((parent_level, area_id, name, kind))
     PARENT_NAMES.append(main_names.get(parent_level, f"Level {parent_level}"))
 
+route_ids = {item[1] for item in ROUTE}
+OUTGOING = {}
+for entry in route_entries:
+    source_id = str(entry.get("id") or "").strip()
+    raw_transitions = entry.get("outgoingTransitions", [])
+    if not isinstance(raw_transitions, list):
+        raise RuntimeError(f"outgoingTransitions must be an array: {source_id}")
+    targets = []
+    for transition in raw_transitions:
+        target_id = str(transition if isinstance(transition, str) else transition.get("targetId", "")).strip()
+        if not target_id or target_id not in route_ids:
+            raise RuntimeError(f"Invalid campaign transition: {source_id} -> {target_id}")
+        if target_id in targets:
+            raise RuntimeError(f"Duplicate campaign transition: {source_id} -> {target_id}")
+        targets.append(target_id)
+    OUTGOING[source_id] = targets
+
 
 def j(value: str) -> str:
     return json.dumps(value, ensure_ascii=False)
@@ -127,6 +144,7 @@ names = java_string_array([item[2] for item in ROUTE])
 types = java_string_array([item[3] for item in ROUTE])
 levels = ", ".join(str(item[0]) for item in ROUTE)
 parent_names = java_string_array(PARENT_NAMES)
+next_ids = java_string_array([OUTGOING[item[1]][0] if OUTGOING[item[1]] else "" for item in ROUTE])
 
 text = MAIN.read_text(encoding="utf-8")
 
@@ -147,6 +165,7 @@ helpers = r'''  private static final String LINEAR_SUBLEVEL_ROUTE_VERSION = "__R
   private static final String[] LINEAR_AREA_TYPES = { __TYPES__ };
   private static final int[] LINEAR_AREA_LEVELS = { __LEVELS__ };
   private static final String[] LINEAR_AREA_PARENT_NAMES = { __PARENT_NAMES__ };
+  private static final String[] LINEAR_AREA_NEXT_IDS = { __NEXT_IDS__ };
 
   private int mainRouteIndex(int level) {
     for (int i = 0; i < LINEAR_AREA_IDS.length; i++) {
@@ -172,7 +191,7 @@ helpers = r'''  private static final String LINEAR_SUBLEVEL_ROUTE_VERSION = "__R
   }
 
   private boolean hasNextLinearArea(JSONObject state) {
-    return linearAreaIndex(state) + 1 < LINEAR_AREA_IDS.length;
+    return !LINEAR_AREA_NEXT_IDS[linearAreaIndex(state)].isEmpty();
   }
 
   private String linearAreaLabel(int index) {
@@ -222,20 +241,26 @@ helpers = r'''  private static final String LINEAR_SUBLEVEL_ROUTE_VERSION = "__R
 
   private boolean advanceLinearArea(JSONObject before, JSONObject state) throws Exception {
     int current = linearAreaIndex(before);
-    int next = current + 1;
-    if (next >= LINEAR_AREA_IDS.length) return false;
-    stampLinearArea(state, next, true, true);
+    String targetId = LINEAR_AREA_NEXT_IDS[current];
+    if (targetId.isEmpty()) return false;
+    int target = -1;
+    for (int i = 0; i < LINEAR_AREA_IDS.length; i++) if (LINEAR_AREA_IDS[i].equals(targetId)) target = i;
+    if (target < 0) throw new Exception("declared_transition_target_missing");
+    stampLinearArea(state, target, true, true);
     return true;
   }
 
   private String linearAreaPrompt(JSONObject state) {
     int current = linearAreaIndex(state);
     String currentLabel = linearAreaLabel(current);
-    if (current + 1 >= LINEAR_AREA_IDS.length) {
+    String targetId = LINEAR_AREA_NEXT_IDS[current];
+    if (targetId.isEmpty()) {
       return "LINEAR SUBLEVEL HARD LOCK: khu hiện tại = " + currentLabel + ". Đây là cuối campaign route đã khai báo; không tự tạo khu kế tiếp.";
     }
-    String nextLabel = linearAreaLabel(current + 1);
-    return "LINEAR SUBLEVEL HARD LOCK: khu hiện tại = " + currentLabel + ". Một Exit hợp lệ chỉ được tiến đúng một bước tới " + nextLabel + ". Không được bỏ qua, đảo thứ tự, chọn nhánh khác hoặc nhảy thẳng sang Level chính kế tiếp.";
+    int target = -1;
+    for (int i = 0; i < LINEAR_AREA_IDS.length; i++) if (LINEAR_AREA_IDS[i].equals(targetId)) target = i;
+    String nextLabel = linearAreaLabel(target);
+    return "TRANSITION GRAPH HARD LOCK: khu hiện tại = " + currentLabel + ". Target authoritative đã khai báo là " + nextLabel + ". Model không được tự chọn target ngoài graph.";
   }
 
 '''
@@ -245,7 +270,8 @@ helpers = (helpers
     .replace("__NAMES__", names)
     .replace("__TYPES__", types)
     .replace("__LEVELS__", levels)
-    .replace("__PARENT_NAMES__", parent_names))
+    .replace("__PARENT_NAMES__", parent_names)
+    .replace("__NEXT_IDS__", next_ids))
 if "LINEAR_SUBLEVEL_ROUTE_VERSION" not in text:
     replace_once(level_turn_anchor, helpers + level_turn_anchor, "catalog route helper insertion")
 
@@ -349,9 +375,11 @@ required = [
     CAMPAIGN_ID,
     'LINEAR_AREA_IDS',
     'LINEAR_AREA_PARENT_NAMES',
+    'LINEAR_AREA_NEXT_IDS',
     'return hasNextLinearArea(state) && levelTurns(state) >= 6;',
     'boolean areaAdvanced = false;',
     'advanceLinearArea(before, state)',
+    'TRANSITION GRAPH HARD LOCK:',
     'recordLevelProgress(state, before, oldLevel, newLevel, areaAdvanced)',
     'LINEAR SUBLEVEL HARD LOCK:',
     'linearAreaPrompt(before)',
@@ -365,6 +393,7 @@ for forbidden in [
     'return explicitlyReady || levelTurns(state) >= 6;',
     'recordLevelProgress(state, oldLevel, newLevel);',
     'newLevel = mentioned;',
+    'int next = current + 1;',
     'Đây là cuối route Level 0–6',
 ]:
     if forbidden in final:
