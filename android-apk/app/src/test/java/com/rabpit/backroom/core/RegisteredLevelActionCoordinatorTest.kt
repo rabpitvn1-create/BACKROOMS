@@ -17,6 +17,7 @@ class RegisteredLevelActionCoordinatorTest {
     assertNull(result.error)
     assertEquals("742.13", result.state.levelInstance?.levelId)
     assertEquals("742.13:run-742", result.state.levelInstance?.generationId)
+    assertEquals(setOf("search-clue"), result.evidenceIds)
     assertNull(ActionRuntime.activeSession(result.state))
     assertTrue("TURN_1" in result.state.turn.completedTurnIds)
   }
