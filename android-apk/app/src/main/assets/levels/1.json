@@ -6,42 +6,42 @@
   "zones": [
     {
       "id": "parking_a",
-      "name": "Parking A",
+      "name": "Khu đỗ xe A",
       "connections": ["parking_loop"],
       "tags": ["entry"],
       "properties": {"material": "concrete"}
     },
     {
       "id": "parking_loop",
-      "name": "Parking Loop 14",
+      "name": "Vòng lặp bãi đỗ xe 14",
       "connections": ["maintenance", "blackout_hall"],
       "tags": ["loop"],
       "properties": {"door": "14"}
     },
     {
       "id": "maintenance",
-      "name": "Maintenance Hall",
+      "name": "Hành lang bảo trì",
       "connections": ["parking_loop", "blackout_hall"],
       "tags": ["utility"],
       "properties": {"breaker": "main"}
     },
     {
       "id": "blackout_hall",
-      "name": "Blackout Hall",
+      "name": "Hành lang mất điện",
       "connections": ["service_elevator"],
       "tags": ["dark"],
       "properties": {"machineHum": "east"}
     },
     {
       "id": "service_elevator",
-      "name": "Service Elevator",
+      "name": "Thang máy dịch vụ",
       "connections": [],
       "tags": ["escape"],
       "properties": {"doorState": "sealed"}
     }
   ],
   "landmarks": {
-    "door14": "A scratched service door marked 14"
+    "door14": "Một cửa dịch vụ bị cào xước, đánh số 14"
   },
   "environment": {
     "power": "on"
@@ -162,9 +162,9 @@
     "evidence:e-door-repeat": "Cửa số 14 xuất hiện lại với đúng vết xước cũ dù tuyến đường vừa đổi.",
     "evidence:e-door-scratch": "Vết xước và lớp bụi ở cửa 14 cho thấy đây là cùng một cánh cửa, không phải hai cửa trùng số.",
     "evidence:e-power-panel": "Sơ đồ cầu dao có một nhánh dịch vụ chỉ thay đổi trạng thái khi nguồn chính bị ngắt.",
-    "evidence:e-power-survivor": "Một dấu ghi chép của survivor nói rằng khi garage mất điện, có những cửa trước đó không tồn tại.",
+    "evidence:e-power-survivor": "Một ghi chép của người sống sót nói rằng khi bãi đỗ xe mất điện, có những cửa trước đó không tồn tại.",
     "evidence:e-hum-anomaly": "Khi nguồn chính tắt, tiếng máy còn lại vọng rõ từ một phía nhưng dấu luồng khí lại chạy theo hướng ngược lại.",
-    "evidence:e-hum-survivor": "Dấu survivor cảnh báo đừng đi theo tiếng máy; người viết đã gạch chân chữ 'ngược'."
+    "evidence:e-hum-survivor": "Một người sống sót cảnh báo đừng đi theo tiếng máy; người viết đã gạch chân chữ 'ngược'."
   },
   "canonProfile": {
     "environmentTags": [
