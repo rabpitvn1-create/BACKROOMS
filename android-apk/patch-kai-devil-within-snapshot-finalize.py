@@ -10,12 +10,16 @@ if not ASSET.is_file() or ASSET.stat().st_size <= 0 or ASSET.read_bytes()[:8] !=
 
 text = MAIN.read_text(encoding="utf-8")
 
-old_roll = 'thresholdRoll("kaiDevilWithinEncounter", 10000, 200,'
+legacy_rolls = [
+    'thresholdRoll("kaiDevilWithinEncounter", 10000, 200,',
+    'thresholdRoll("kaiDevilWithinEncounter", 10000, EntityEncounterPolicy.scaledThreshold(200),',
+]
 new_roll = 'thresholdRoll("kaiDevilWithinEncounter", 10000, 1000,'
-if old_roll in text:
-    if text.count(old_roll) != 1:
-        raise RuntimeError(f"Kai Devil Within encounter threshold: expected one 2% anchor, found {text.count(old_roll)}")
-    text = text.replace(old_roll, new_roll, 1)
+matched = [anchor for anchor in legacy_rolls if anchor in text]
+if matched:
+    if len(matched) != 1 or text.count(matched[0]) != 1:
+        raise RuntimeError("Kai Devil Within encounter threshold is ambiguous")
+    text = text.replace(matched[0], new_roll, 1)
 elif new_roll not in text:
     raise RuntimeError("Kai Devil Within encounter threshold anchor missing")
 
@@ -44,8 +48,11 @@ for marker in required:
     if marker not in text:
         raise RuntimeError("Kai Devil Within snapshot/rate contract missing: " + marker)
 
-if old_roll in text or "Kai - The Devil Within secret form 2% all Levels/sublevels" in text:
-    raise RuntimeError("Kai Devil Within legacy 2% encounter contract remains")
+for old_roll in legacy_rolls:
+    if old_roll in text:
+        raise RuntimeError("Kai Devil Within legacy encounter threshold remains: " + old_roll)
+if "Kai - The Devil Within secret form 2% all Levels/sublevels" in text:
+    raise RuntimeError("Kai Devil Within legacy 2% encounter label remains")
 
 MAIN.write_text(text, encoding="utf-8")
-print("Kai - The Devil Within finalized: Snapshot allowlist enabled, local Kai-TheDevilWithin.png mapping enforced, encounter rate 10%.")
+print("Kai - The Devil Within finalized: Snapshot allowlist enabled, local Kai-TheDevilWithin.png mapping enforced, exact encounter rate 10%.")
