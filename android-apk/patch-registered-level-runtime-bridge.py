@@ -68,7 +68,7 @@ facade_methods = r'''  fun exportDirectorTelemetry(): String = backroomsDirector
     } else state
 
     val result = RegisteredLevelActionCoordinator.applyStarted(
-      seeded, levelRegistry, kind, action, levelId, runSeed, backroomsDirector
+      seeded, levelRegistry, levelCatalog, kind, action, levelId, runSeed, backroomsDirector
     )
     if (!result.handled) return response(false, legacy, result.error, "registered_level_not_handled")
 

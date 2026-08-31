@@ -152,6 +152,7 @@ for marker in (
     "private val levelCatalog: LevelCatalog",
     "AndroidLevelCatalog.load(appContext)",
     "ForwardProgressionPolicy.evaluate(",
+    "seeded, levelRegistry, levelCatalog, kind, action, levelId, runSeed, backroomsDirector",
     "progression_blocked",
     "Level progression only moves forward",
     "forwardProgressionError(current, levelId)?.let { throw IllegalStateException(it) }",

@@ -19,6 +19,7 @@ object RegisteredLevelActionCoordinator {
   fun applyStarted(
     state: GameState,
     registry: LevelRegistry,
+    catalog: LevelCatalog,
     kind: ActionKind,
     input: String,
     levelId: String?,
@@ -34,6 +35,11 @@ object RegisteredLevelActionCoordinator {
     var working = if (state.levelInstance?.levelId == requestedId) {
       state
     } else {
+      val current = state.levelInstance
+      val decision = ForwardProgressionPolicy.evaluate(catalog, current?.levelId, current?.completed ?: false, requestedId)
+      if (!decision.allowed) {
+        return RegisteredLevelActionResult(state, handled = true, error = decision.reason)
+      }
       GenericLevelRuntime.install(state, registry, requestedId, runSeed)
     }
 
