@@ -6,7 +6,7 @@
   "zones": [
     {
       "id": "yellow_entry",
-      "name": "Yellow Entry Rooms",
+      "name": "Các phòng vàng lối vào",
       "connections": ["fluorescent_loop"],
       "tags": ["entry", "yellow_rooms"],
       "properties": {
@@ -17,7 +17,7 @@
     },
     {
       "id": "fluorescent_loop",
-      "name": "Fluorescent Loop",
+      "name": "Vòng lặp huỳnh quang",
       "connections": ["yellow_entry", "marker_room", "memory_corridor"],
       "tags": ["loop", "fluorescent"],
       "properties": {
@@ -27,7 +27,7 @@
     },
     {
       "id": "marker_room",
-      "name": "Relocated Marker Room",
+      "name": "Phòng dấu mốc dịch chuyển",
       "connections": ["fluorescent_loop"],
       "tags": ["layout_resistance"],
       "properties": {
@@ -36,7 +36,7 @@
     },
     {
       "id": "memory_corridor",
-      "name": "Memory Corridor",
+      "name": "Hành lang ký ức",
       "connections": ["fluorescent_loop", "concrete_drift"],
       "tags": ["memory_room", "transition_candidate"],
       "properties": {
@@ -46,7 +46,7 @@
     },
     {
       "id": "concrete_drift",
-      "name": "Concrete Drift",
+      "name": "Dải bê tông chuyển tiếp",
       "connections": ["memory_corridor"],
       "tags": ["escape", "level1_transition"],
       "properties": {
@@ -176,7 +176,7 @@
     "evidence:e-marker-repeat": "Sau khi vòng lại, cùng dấu cào xuất hiện ở vị trí khác dù khoảng cách và góc phòng không thể khớp. Đánh dấu vị trí ở Level 0 không đáng tin tuyệt đối.",
     "evidence:e-transition-search": "Ở mép hành lang, giấy tường không kết thúc bằng một cánh cửa; nó nhạt dần rồi lộ bê tông, trần cũng tăng độ cao theo từng đoạn.",
     "evidence:e-transition-anomaly": "Càng đi về phía dải bê tông, hình học bớt giống các phòng vàng và bắt đầu xuất hiện cột chịu lực cùng vạch sơn.",
-    "evidence:e-hum-survivor": "Một ghi chú survivor bị cào lên mặt sau tấm trần: 'Nếu tiếng đèn nhỏ dần mà tường hóa bê tông, đừng quay theo dấu cũ.'",
+    "evidence:e-hum-survivor": "Một ghi chú của người sống sót bị cào lên mặt sau tấm trần: 'Nếu tiếng đèn nhỏ dần mà tường hóa bê tông, đừng quay theo dấu cũ.'",
     "evidence:e-hum-anomaly": "Tiếng huỳnh quang suy yếu theo đúng hướng kiến trúc đang chuyển sang bê tông; phía ngược lại tiếng ù lại dày lên."
   },
   "canonProfile": {
