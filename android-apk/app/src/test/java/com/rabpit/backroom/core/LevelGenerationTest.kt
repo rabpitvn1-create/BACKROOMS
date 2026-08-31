@@ -132,6 +132,148 @@ class LevelGenerationTest {
     assertTrue(BlueprintValidator.validate(decoded).valid)
   }
 
+  @Test fun directActionSelfCycleIsRejected() {
+    val action = LevelActionRule(
+      id = "act_a",
+      matchGroups = listOf(setOf("a")),
+      conditions = setOf("action:act_a"),
+      effects = listOf(LevelEffect(LevelEffectType.COMPLETE_LEVEL))
+    )
+    val generated = candidate().copy(
+      escapeBlueprint = EscapeBlueprintState("self-cycle", setOf("F"), listOf("act_a"), locked = false),
+      actions = mapOf(action.id to action)
+    )
+
+    val error = runCatching {
+      LevelInstanceGenerator.commitCandidate(definition(), "seed-self-cycle", generated, "candidate-test")
+    }.exceptionOrNull()
+
+    assertNotNull(error)
+    assertTrue(error!!.message.orEmpty().contains("required_action_unreachable:act_a"))
+  }
+
+  @Test fun requiredActionCannotDependOnLaterRequiredAction() {
+    val first = LevelActionRule(
+      id = "act_a",
+      matchGroups = listOf(setOf("a")),
+      conditions = setOf("action:act_b"),
+      effects = listOf(LevelEffect(LevelEffectType.SET_ENVIRONMENT, "gate", "open"))
+    )
+    val second = LevelActionRule(
+      id = "act_b",
+      matchGroups = listOf(setOf("b")),
+      effects = listOf(LevelEffect(LevelEffectType.COMPLETE_LEVEL))
+    )
+    val generated = candidate().copy(
+      escapeBlueprint = EscapeBlueprintState("forward-dependency", setOf("F"), listOf("act_a", "act_b"), locked = false),
+      actions = mapOf(first.id to first, second.id to second)
+    )
+
+    val error = runCatching {
+      LevelInstanceGenerator.commitCandidate(definition(), "seed-forward", generated, "candidate-test")
+    }.exceptionOrNull()
+
+    assertNotNull(error)
+    assertTrue(error!!.message.orEmpty().contains("required_action_unreachable:act_a"))
+  }
+
+  @Test fun impossibleEnvironmentPreconditionIsRejected() {
+    val action = LevelActionRule(
+      id = "act_a",
+      matchGroups = listOf(setOf("a")),
+      conditions = setOf("env:magic=true"),
+      effects = listOf(LevelEffect(LevelEffectType.COMPLETE_LEVEL))
+    )
+    val generated = candidate().copy(
+      escapeBlueprint = EscapeBlueprintState("impossible-env", setOf("F"), listOf("act_a"), locked = false),
+      actions = mapOf(action.id to action)
+    )
+
+    val error = runCatching {
+      LevelInstanceGenerator.commitCandidate(definition(), "seed-impossible-env", generated, "candidate-test")
+    }.exceptionOrNull()
+
+    assertNotNull(error)
+    assertTrue(error!!.message.orEmpty().contains("required_action_unreachable:act_a"))
+  }
+
+  @Test fun earlierRequiredActionMaySatisfyLaterEnvironmentPrecondition() {
+    val first = LevelActionRule(
+      id = "act_a",
+      matchGroups = listOf(setOf("a")),
+      effects = listOf(LevelEffect(LevelEffectType.SET_ENVIRONMENT, "breaker", "off"))
+    )
+    val second = LevelActionRule(
+      id = "act_b",
+      matchGroups = listOf(setOf("b")),
+      conditions = setOf("env:breaker=off"),
+      effects = listOf(LevelEffect(LevelEffectType.COMPLETE_LEVEL))
+    )
+    val generated = candidate().copy(
+      escapeBlueprint = EscapeBlueprintState("env-chain", setOf("F"), listOf("act_a", "act_b"), locked = false),
+      actions = mapOf(first.id to first, second.id to second)
+    )
+
+    val level = LevelInstanceGenerator.commitCandidate(definition(), "seed-env-chain", generated, "candidate-test")
+
+    assertEquals(listOf("act_a", "act_b"), level.escapeBlueprint.requiredActions)
+  }
+
+  @Test fun unreachableEvidenceZoneCannotSatisfyFactQuorum() {
+    val generated = candidate().copy(
+      zones = candidate().zones + ("isolated" to ZoneState("isolated", "Isolated", emptySet(), setOf("utility"))),
+      evidence = mapOf(
+        "reachable" to EvidenceState("reachable", setOf("F"), setOf(EvidenceSource.SEARCH), "entry"),
+        "isolated" to EvidenceState("isolated", setOf("F"), setOf(EvidenceSource.ANOMALY), "isolated")
+      )
+    )
+
+    val error = runCatching {
+      LevelInstanceGenerator.commitCandidate(definition(), "seed-isolated", generated, "candidate-test")
+    }.exceptionOrNull()
+
+    assertNotNull(error)
+    assertTrue(error!!.message.orEmpty().contains("required_fact_unreachable:F"))
+  }
+
+  @Test fun moveEffectCanRevealLaterFactAndKeepPuzzleSolvable() {
+    val zones = linkedMapOf(
+      "entry" to ZoneState("entry", "Entry", setOf("exit"), setOf("entry", "parking")),
+      "hidden" to ZoneState("hidden", "Hidden", emptySet(), setOf("parking")),
+      "exit" to ZoneState("exit", "Exit", emptySet(), setOf("escape", "parking"))
+    )
+    val first = LevelActionRule(
+      id = "unlock",
+      matchGroups = listOf(setOf("unlock")),
+      conditions = setOf("fact:F"),
+      effects = listOf(LevelEffect(LevelEffectType.MOVE_TO_ZONE, zoneId = "hidden"))
+    )
+    val second = LevelActionRule(
+      id = "escape",
+      matchGroups = listOf(setOf("escape")),
+      conditions = setOf("fact:G"),
+      effects = listOf(LevelEffect(LevelEffectType.COMPLETE_LEVEL))
+    )
+    val evidence = mapOf(
+      "f-search" to EvidenceState("f-search", setOf("F"), setOf(EvidenceSource.SEARCH), "entry"),
+      "f-anomaly" to EvidenceState("f-anomaly", setOf("F"), setOf(EvidenceSource.ANOMALY), "entry"),
+      "g-search" to EvidenceState("g-search", setOf("G"), setOf(EvidenceSource.SEARCH), "hidden"),
+      "g-anomaly" to EvidenceState("g-anomaly", setOf("G"), setOf(EvidenceSource.ANOMALY), "hidden")
+    )
+    val generated = candidate().copy(
+      initialZoneId = "entry",
+      zones = zones,
+      escapeBlueprint = EscapeBlueprintState("move-chain", setOf("F", "G"), listOf("unlock", "escape"), locked = false),
+      evidence = evidence,
+      exploreRoute = listOf("exit"),
+      actions = mapOf(first.id to first, second.id to second)
+    )
+
+    val level = LevelInstanceGenerator.commitCandidate(definition(), "seed-move-chain", generated, "candidate-test")
+
+    assertTrue(BlueprintValidator.validate(level, definition()).valid)
+  }
+
   private fun definition(): LevelDefinition {
     val zones = linkedMapOf(
       "entry" to ZoneState("entry", "Concrete Entry", setOf("exit"), setOf("entry", "parking")),

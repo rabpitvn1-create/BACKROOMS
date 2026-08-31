@@ -347,7 +347,7 @@ object BlueprintValidator {
     }
 
     validateRuntimeRules(instance, errors)
-    validateSolvability(instance, errors)
+    validateSolvability(instance, constraints.minEvidencePerRequiredFact, constraints.minEvidenceSourceTypesPerRequiredFact, errors)
   }
 
   private fun validateRuntimeRules(instance: LevelInstanceState, errors: MutableList<String>) {
@@ -401,60 +401,153 @@ object BlueprintValidator {
     }
   }
 
-  private fun validateSolvability(instance: LevelInstanceState, errors: MutableList<String>) {
+  private fun validateSolvability(
+    instance: LevelInstanceState,
+    minEvidence: Int,
+    minSources: Int,
+    errors: MutableList<String>
+  ) {
     if (instance.currentZoneId !in instance.zones) return
-    val reachableZones = reachableZones(instance)
+    val maxBudget = 5000
+    var evaluationCount = 0
+
+    val reachableZones = mutableSetOf<String>()
+    fun expandReachableZones(startZoneId: String) {
+      val queue = ArrayDeque<String>()
+      queue.add(startZoneId)
+      while (queue.isNotEmpty()) {
+        val id = queue.removeFirst()
+        if (!reachableZones.add(id)) continue
+        instance.zones[id]?.connections.orEmpty().filterNot(reachableZones::contains).forEach(queue::addLast)
+      }
+    }
+
+    expandReachableZones(instance.currentZoneId)
+
     val environment = instance.environment.toMutableMap()
     val completedActions = linkedSetOf<String>()
-    val discoverableFacts = linkedSetOf<String>()
+    val discoveredEvidence = mutableSetOf<String>()
+    val discoveredFacts = linkedSetOf<String>()
 
-    fun conditionPossible(condition: String): Boolean = when {
-      condition.startsWith("visit:") -> condition.split(':').getOrNull(1).orEmpty() in reachableZones
+    val allKnownFacts = (instance.escapeBlueprint.requiredFacts + instance.evidence.values.flatMap { it.supports }).toSet()
+
+    fun conditionMet(condition: String): Boolean = when {
+      condition.startsWith("visit:") -> {
+        val parts = condition.split(':')
+        val zone = parts.getOrNull(1).orEmpty()
+        val count = parts.getOrNull(2)?.toIntOrNull() ?: 1
+        zone in reachableZones && count >= 1
+      }
       condition.startsWith("zone:") -> condition.substringAfter("zone:") in reachableZones
       condition.startsWith("env:") -> {
         val body = condition.substringAfter("env:")
-        environment[body.substringBefore('=')] == body.substringAfter('=', missingDelimiterValue = "")
+        val key = body.substringBefore('=')
+        val value = body.substringAfter('=', missingDelimiterValue = "")
+        environment[key] == value
       }
       condition.startsWith("action:") -> condition.substringAfter("action:") in completedActions
-      condition.startsWith("fact:") -> condition.substringAfter("fact:") in discoverableFacts
+      condition.startsWith("fact:") -> condition.substringAfter("fact:") in discoveredFacts
       else -> false
     }
 
-    fun revealFacts() {
-      var changed: Boolean
+    fun revealFactsAndEvidence(): Boolean {
+      var changed = false
       do {
-        changed = false
-        instance.evidence.values.forEach { evidence ->
-          if (evidence.zoneId != null && evidence.zoneId !in reachableZones) return@forEach
-          if (!evidence.discoverConditions.all(::conditionPossible)) return@forEach
-          evidence.supports.forEach { fact -> if (discoverableFacts.add(fact)) changed = true }
+        evaluationCount++
+        if (evaluationCount > maxBudget) {
+          if (!errors.contains("validation_budget_exceeded")) {
+            errors += "validation_budget_exceeded"
+          }
+          return false
         }
-      } while (changed)
+        var innerChanged = false
+        instance.evidence.values.forEach { evidence ->
+          if (evidence.id in discoveredEvidence) return@forEach
+          if (evidence.zoneId != null && evidence.zoneId !in reachableZones) return@forEach
+          if (!evidence.discoverConditions.all(::conditionMet)) return@forEach
+          discoveredEvidence += evidence.id
+          innerChanged = true
+        }
+
+        allKnownFacts.forEach { fact ->
+          if (fact in discoveredFacts) return@forEach
+          val supporting = instance.evidence.values.filter { it.id in discoveredEvidence && fact in it.supports }
+          val sources = supporting.flatMap { it.sources }.toSet()
+          if (supporting.size >= minEvidence && sources.size >= minSources) {
+            discoveredFacts += fact
+            innerChanged = true
+          }
+        }
+
+        if (innerChanged) changed = true
+      } while (innerChanged)
+      return changed
     }
 
-    revealFacts()
+    revealFactsAndEvidence()
+    if (errors.contains("validation_budget_exceeded")) return
+
     var completionPossible = false
-    for (actionId in instance.escapeBlueprint.requiredActions) {
-      val rule = instance.actions[actionId] ?: continue
-      if (!rule.conditions.all(::conditionPossible)) {
+    val requiredActions = instance.escapeBlueprint.requiredActions
+
+    for (i in requiredActions.indices) {
+      val actionId = requiredActions[i]
+      val rule = instance.actions[actionId]
+      if (rule == null) {
+        errors += "missing_action_rule:$actionId"
+        break
+      }
+
+      var actionConditionsMet = true
+      for (condition in rule.conditions) {
+        if (condition.startsWith("action:")) {
+          val reqAct = condition.substringAfter("action:")
+          if (reqAct !in completedActions) {
+            actionConditionsMet = false
+            break
+          }
+        } else if (!conditionMet(condition)) {
+          actionConditionsMet = false
+          break
+        }
+      }
+
+      if (!actionConditionsMet) {
         errors += "required_action_unreachable:$actionId"
         break
       }
+
       completedActions += actionId
+
       rule.effects.forEach { effect ->
         when (effect.type) {
-          LevelEffectType.SET_ENVIRONMENT -> if (!effect.key.isNullOrBlank() && effect.value != null) environment[effect.key] = effect.value
-          LevelEffectType.MOVE_TO_ZONE -> Unit
+          LevelEffectType.SET_ENVIRONMENT -> {
+            if (!effect.key.isNullOrBlank() && effect.value != null) {
+              environment[effect.key] = effect.value
+            }
+          }
+          LevelEffectType.MOVE_TO_ZONE -> {
+            effect.zoneId?.let { zoneId ->
+              if (zoneId in instance.zones) {
+                expandReachableZones(zoneId)
+              }
+            }
+          }
           LevelEffectType.COMPLETE_LEVEL -> completionPossible = true
         }
       }
-      revealFacts()
+
+      revealFactsAndEvidence()
+      if (errors.contains("validation_budget_exceeded")) return
     }
 
-    revealFacts()
-    instance.escapeBlueprint.requiredFacts.filterNot(discoverableFacts::contains).forEach {
+    revealFactsAndEvidence()
+    if (errors.contains("validation_budget_exceeded")) return
+
+    instance.escapeBlueprint.requiredFacts.filterNot(discoveredFacts::contains).forEach {
       errors += "required_fact_unreachable:$it"
     }
+
     if (!completionPossible) errors += "completion_effect_missing"
   }
 
