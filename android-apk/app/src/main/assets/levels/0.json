@@ -6,7 +6,7 @@
   "zones": [
     {
       "id": "yellow_entry",
-      "name": "Yellow Entry Rooms",
+      "name": "khu phòng vàng gần lối vào",
       "connections": ["fluorescent_loop"],
       "tags": ["entry", "yellow_rooms"],
       "properties": {
@@ -17,7 +17,7 @@
     },
     {
       "id": "fluorescent_loop",
-      "name": "Fluorescent Loop",
+      "name": "khu hành lang dưới ánh đèn huỳnh quang",
       "connections": ["yellow_entry", "marker_room", "memory_corridor"],
       "tags": ["loop", "fluorescent"],
       "properties": {
@@ -27,7 +27,7 @@
     },
     {
       "id": "marker_room",
-      "name": "Relocated Marker Room",
+      "name": "căn phòng có những dấu cào xuất hiện sai vị trí",
       "connections": ["fluorescent_loop"],
       "tags": ["layout_resistance"],
       "properties": {
@@ -36,7 +36,7 @@
     },
     {
       "id": "memory_corridor",
-      "name": "Memory Corridor",
+      "name": "hành lang nơi các chi tiết quen thuộc bắt đầu lặp lại",
       "connections": ["fluorescent_loop", "concrete_drift"],
       "tags": ["memory_room", "transition_candidate"],
       "properties": {
@@ -46,9 +46,9 @@
     },
     {
       "id": "concrete_drift",
-      "name": "Concrete Drift",
+      "name": "đoạn hành lang nơi tường vàng dần chuyển thành bê tông",
       "connections": ["memory_corridor"],
-      "tags": ["escape", "level1_transition"],
+      "tags": ["escape", "level_transition"],
       "properties": {
         "walls": "concrete",
         "ceiling": "higher",
@@ -153,9 +153,9 @@
       "id": "continue_until_geometry_changes",
       "matchGroups": [
         ["đi đến khi", "tiếp tục cho tới", "đi tiếp cho tới"],
-        ["kiến trúc đổi", "hết đoạn chuyển", "level 1"]
+        ["kiến trúc đổi", "hết đoạn chuyển", "vượt ranh giới"]
       ],
-      "semanticDescriptions": ["tiếp tục đi cho tới khi kiến trúc chuyển hẳn sang Level kế tiếp"],
+      "semanticDescriptions": ["tiếp tục đi cho tới khi vượt khỏi ranh giới của Level hiện tại"],
       "conditions": [
         "zone:concrete_drift",
         "action:follow_transition_signs"
@@ -163,7 +163,7 @@
       "effects": [
         {"type": "COMPLETE_LEVEL"}
       ],
-      "reply": "Kai không tạo ra lối chuyển. Cậu chỉ tiếp tục theo một quá trình đã tự xuất hiện cho tới khi giấy tường biến mất, trần cao lên, cột chịu lực và vạch sơn chiếm toàn bộ tầm nhìn. Level 1 đã bắt đầu."
+      "reply": "Kai tiếp tục theo dải chuyển tiếp cho tới khi những phòng vàng phía sau biến mất hẳn. Ranh giới của Level 0 đã ở lại phía sau."
     }
   ],
   "replies": {
@@ -176,7 +176,7 @@
     "evidence:e-marker-repeat": "Sau khi vòng lại, cùng dấu cào xuất hiện ở vị trí khác dù khoảng cách và góc phòng không thể khớp. Đánh dấu vị trí ở Level 0 không đáng tin tuyệt đối.",
     "evidence:e-transition-search": "Ở mép hành lang, giấy tường không kết thúc bằng một cánh cửa; nó nhạt dần rồi lộ bê tông, trần cũng tăng độ cao theo từng đoạn.",
     "evidence:e-transition-anomaly": "Càng đi về phía dải bê tông, hình học bớt giống các phòng vàng và bắt đầu xuất hiện cột chịu lực cùng vạch sơn.",
-    "evidence:e-hum-survivor": "Một ghi chú survivor bị cào lên mặt sau tấm trần: 'Nếu tiếng đèn nhỏ dần mà tường hóa bê tông, đừng quay theo dấu cũ.'",
+    "evidence:e-hum-survivor": "Một ghi chú của người sống sót bị cào lên mặt sau tấm trần: 'Nếu tiếng đèn nhỏ dần mà tường hóa bê tông, đừng quay theo dấu cũ.'",
     "evidence:e-hum-anomaly": "Tiếng huỳnh quang suy yếu theo đúng hướng kiến trúc đang chuyển sang bê tông; phía ngược lại tiếng ù lại dày lên."
   },
   "canonProfile": {

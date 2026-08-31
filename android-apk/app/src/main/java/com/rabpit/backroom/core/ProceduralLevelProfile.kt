@@ -390,9 +390,9 @@ object ProceduralLevelProfileCompiler {
       zones[id] = ZoneState(
         id = id,
         name = when (role) {
-          "entry" -> "${entry.name} Entry"
-          "transition" -> "${entry.name} Transition"
-          else -> "${entry.name} Survey $index"
+          "entry" -> "Khu vực lối vào"
+          "transition" -> "Khu vực chuyển tiếp"
+          else -> "Khu khảo sát $index"
         },
         connections = connections,
         tags = tags[index],
@@ -421,8 +421,16 @@ object ProceduralLevelProfileCompiler {
 
     val survivorEvidence = evidence.values.filter { EvidenceSource.SURVIVOR in it.sources }.map { it.id }.toSet()
     val npcKnowledge = if (survivorEvidence.isEmpty()) emptyMap() else mapOf("profile_survivor" to survivorEvidence)
-    val transitionSummary = canon.transitionTags.sorted().joinToString(", ") { humanize(it) }.ifBlank { "một mẫu chuyển vùng nhất quán" }
-    val environmentSummary = canon.environmentTags.sorted().take(6).joinToString(", ") { humanize(it) }.ifBlank { "môi trường đặc trưng của Level" }
+    val transitionSummary = if (canon.transitionTags.isEmpty()) {
+      "một mẫu chuyển vùng nhất quán"
+    } else {
+      "các dấu hiệu chuyển vùng đặc trưng của khu vực"
+    }
+    val environmentSummary = if (canon.environmentTags.isEmpty()) {
+      "môi trường đặc trưng của Level"
+    } else {
+      "các đặc điểm môi trường đặc trưng của Level"
+    }
 
     val action = LevelActionRule(
       id = FALLBACK_ACTION,

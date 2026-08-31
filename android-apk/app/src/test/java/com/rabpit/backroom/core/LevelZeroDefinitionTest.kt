@@ -22,6 +22,31 @@ class LevelZeroDefinitionTest {
     assertTrue(definition.generationConstraints.proceduralTopology)
     assertTrue(definition.generationConstraints.proceduralEvidencePlacement)
     assertTrue(definition.generationConstraints.proceduralEscapeBlueprint)
+
+    val finish = definition.actions.getValue("continue_until_geometry_changes")
+    assertFalse(finish.matchGroups.flatten().any { it.contains("level 1", ignoreCase = true) })
+    assertFalse(finish.semanticDescriptions.any { it.contains("Level 1", ignoreCase = true) })
+    assertFalse(finish.reply.orEmpty().contains("Level 1", ignoreCase = true))
+    assertFalse("level1_transition" in definition.zones.getValue("concrete_drift").tags)
+  }
+
+  @Test fun levelZeroExploreRepliesDescribePlacesNaturallyInsteadOfShowingZoneLabels() {
+    val definition = loadLevelZero()
+    val registry = LevelRegistry.from(listOf(definition))
+    var state = GenericLevelRuntime.install(GameState.initial(), registry, "0", "level-zero-vietnamese-prose")
+
+    val firstExplore = GenericLevelRuntime.apply(state, registry, ActionKind.EXPLORE, "Khám phá")
+    state = firstExplore.state
+    assertEquals("Kai đi sâu hơn vào khu hành lang dưới ánh đèn huỳnh quang.", firstExplore.reply)
+
+    val secondExplore = GenericLevelRuntime.apply(state, registry, ActionKind.EXPLORE, "Khám phá")
+    assertTrue(secondExplore.reply.startsWith("Kai đi sâu hơn vào căn phòng có những dấu cào xuất hiện sai vị trí."))
+    assertTrue(secondExplore.reply.contains("người sống sót"))
+    assertFalse(secondExplore.reply.contains("Fluorescent Loop"))
+    assertFalse(secondExplore.reply.contains("Relocated Marker Room"))
+    assertFalse(secondExplore.reply.contains("Vòng lặp huỳnh quang"))
+    assertFalse(secondExplore.reply.contains("Phòng dấu mốc dịch chuyển"))
+    assertFalse(secondExplore.reply.contains("survivor", ignoreCase = true))
   }
 
   @Test fun deterministicFallbackRequiresClueCollectionThenExecuteToLeaveLevelZero() {
@@ -74,6 +99,8 @@ class LevelZeroDefinitionTest {
     )
     assertTrue(finish.progressed)
     assertTrue(finish.escaped)
+    assertEquals("0", finish.state.levelInstance!!.levelId)
+    assertFalse(finish.reply.contains("Level 1", ignoreCase = true))
   }
 
   private fun loadLevelZero(): LevelDefinition {

@@ -24,6 +24,23 @@ class ProceduralLevelProfileTest {
     assertTrue(definition.zones.values.any { "escape" in it.tags })
   }
 
+  @Test fun compiledFallbackDoesNotLeakEnglishCatalogNamesOrInternalTagsIntoGameplayProse() {
+    val catalog = LevelCatalog.from(listOf(
+      LevelCatalogEntry("future", name = "Future Sublevel", kind = LevelKind.MAIN, campaignId = "future", campaignOrder = 1000)
+    ))
+    val definition = ProceduralLevelProfileCompiler.compile(profile("future"), catalog)
+
+    assertEquals("Khu vực lối vào", definition.zones.getValue("profile_entry").name)
+    assertEquals("Khu vực chuyển tiếp", definition.zones.getValue("profile_transition").name)
+    assertEquals("Khu khảo sát 1", definition.zones.getValue("profile_zone_1").name)
+
+    val playerFacing = (definition.zones.values.map { it.name } + definition.replies.values + definition.landmarks.values).joinToString(" ")
+    assertFalse(playerFacing.contains("Future Sublevel"))
+    assertFalse(playerFacing.contains("future_environment"))
+    assertFalse(playerFacing.contains("future transition", ignoreCase = true))
+    assertFalse(playerFacing.contains("future_transition"))
+  }
+
   @Test fun generationRequestExposesCanonButNotCompiledFallbackPuzzle() {
     val catalog = LevelCatalog.from(listOf(
       LevelCatalogEntry("999.alpha", name = "Alpha", kind = LevelKind.SPECIAL, campaignId = "future", campaignOrder = 1000)
