@@ -1,30 +1,30 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "storyId": "MAIN_LEVEL0_TO_LEVEL1_R01",
   "campaignId": "BACKROOMS_FANDOM_LEVELS_0_6_R01",
+  "questPlanRef": "campaign_story/level0-to-level1-quests.json",
+  "companionContinuityRef": "campaign_story/companion-continuity.json",
   "sourceRefs": [
     "TEXT.GAME.MAIN.STORY",
     "TEXT.GAME.RULES",
     "TEXT.GAME.GM.RULES",
     "BACKROOMS-WORLD-CORE-R2",
     "BACKROOMS-LEVELS-R2-L0-6",
-    "KAI-QUICK-01",
+    "KAI-AKECHI-TWILIGHT-CODEX-20260830-R08",
     "IRIS-BELIAL-SRU-CODEX-20260830-R06",
-    "SYVIAL CURRENT CODEX"
+    "SYVIAL-LUCIFER-CODEX-20260830-R04",
+    "STORY_COMPANIONS_R01"
   ],
   "entryEvent": {
-    "year": 2267,
+    "year": 2299,
     "mode": "SPATIAL_GATE",
     "entryIntent": "MISSION",
-    "locationBefore": "Black Blood mission staging area, Frontrooms",
-    "participants": [
-      "kai",
-      "iris",
-      "syvial"
-    ],
+    "locationBefore": "SRU mission staging area, Frontrooms",
+    "participants": ["kai", "iris", "syvial"],
     "sameGate": true,
     "voluntaryMissionEntry": true,
     "allSeparatedOnArrival": true,
+    "arrivalLevelsDifferent": true,
     "arrivalLocationsMutuallyUnknown": true,
     "communications": {
       "sruForce": "OFFLINE",
@@ -35,22 +35,12 @@
     "originConfirmed": false
   },
   "officialMission": {
-    "year": 2267,
-    "unit": "Black Blood",
+    "year": 2299,
+    "unit": "SRU",
     "subject": "Async",
-    "objective": "Điều tra hoạt động của Async, cổng không gian và nguy cơ của không gian phía sau đối với Frontrooms.",
+    "objective": "Điều tra hoạt động của Async, cổng không gian và nguy cơ của Backrooms đối với Frontrooms.",
     "entryMethod": "SPATIAL_GATE",
     "backroomsOriginKnown": false
-  },
-  "kaiPrivateObjective": {
-    "target": "Hứa Thuý Lan",
-    "relationship": "người Kai yêu",
-    "status": "MISSING",
-    "motive": "Kai muốn tìm Hứa Thuý Lan trong khi thực hiện nhiệm vụ điều tra.",
-    "beliefBasis": "Dữ liệu Kai có trước nhiệm vụ khiến hắn tin Hứa Thuý Lan đã rơi vào Backrooms.",
-    "backroomsPresenceConfirmed": false,
-    "currentLocationKnown": false,
-    "teamKnowledge": "UNSPECIFIED"
   },
   "hiddenStoryFacts": {
     "asyncCrossEraNetwork": {
@@ -83,37 +73,32 @@
     "storyDoesNotChooseCampaignTransition": true,
     "missionBriefIsNotDiscoveryEvidence": true,
     "neverInventAsyncTrace": true,
-    "neverConfirmHuaThuyLanInBackroomsWithoutDiscoveredEvidence": true
+    "companionContinuityStoryOwned": true,
+    "randomCompanionSpawnDisabled": true,
+    "coreOwnsQuestProgression": true,
+    "geminiCannotAdvanceQuest": true,
+    "liteRTCannotAdvanceQuest": true
   },
-  "longTermObjective": "Kai phải hoàn thành nhiệm vụ điều tra Async, sống sót và hiểu đủ quy luật cục bộ để tiến lên, lần theo dấu vết hợp lệ của Iris và Syvial, đồng thời bí mật tìm Hứa Thuý Lan. Dữ liệu trước nhiệm vụ chỉ khiến Kai tin rằng cô đã rơi vào Backrooms; sự hiện diện, tình trạng và vị trí của cô chưa được xác nhận.",
+  "longTermObjective": "Kai phải hoàn thành nhiệm vụ SRU điều tra Async, sống sót, hiểu đủ quy luật cục bộ để tiếp tục tiến sâu và tìm lại Iris cùng Syvial bằng continuity hợp lệ.",
   "beats": [
     {
       "areaId": "0",
       "title": "The Lobby",
       "phase": "MISSION_SEPARATION",
-      "storyPurpose": "Mở cuộc điều tra Async bằng hậu quả tức thời của lần vượt cổng: Kai, Iris và Syvial bị tách khỏi nhau, còn hình học Level 0 không thể tin theo trực giác thông thường.",
-      "visibleObjective": "Xác định môi trường, kiểm tra liên lạc, giữ khả năng quay lui và thu thập bằng chứng thật về khu vực hoặc Async mà không tự bịa dấu vết.",
-      "discoveryThemes": [
-        "layout_resistance",
-        "fluorescent_pressure",
-        "team_separation",
-        "measured_navigation"
-      ],
-      "characterThread": "Kai biết cả ba chủ động bước qua cùng một cổng năm 2267 để điều tra Async. Hắn không biết Iris hoặc Syvial đang ở đâu. Hắn mang mục tiêu riêng tìm Hứa Thuý Lan, nhưng dữ liệu trước nhiệm vụ chưa chứng minh cô đang ở Backrooms.",
-      "transitionStory": "Khi chuỗi bằng chứng của Level 0 được giải đúng, vùng vàng suy biến thành một vùng nhiễu tiếng đèn kéo dài thay vì nhảy thẳng tới Level 1."
+      "storyPurpose": "Mở cuộc điều tra Async bằng hậu quả tức thời của lần vượt cổng: Kai, Iris và Syvial bị phân tán tới các Level khác nhau, còn Kai bắt đầu một mình tại Level 0.",
+      "visibleObjective": "Đọc môi trường bằng bằng chứng thật, kiểm tra liên lạc và xác định quy luật cục bộ trước khi tìm đường đi sâu hơn.",
+      "discoveryThemes": ["layout_resistance", "fluorescent_pressure", "team_separation", "measured_navigation"],
+      "characterThread": "Kai biết cả ba thành viên SRU chủ động bước qua cùng một cổng năm 2299 để điều tra Async. Hắn không biết Iris hoặc Syvial đang ở đâu. Lucia Lục là cuộc gặp cố định của Level 0, không phải quest.",
+      "transitionStory": "Chuỗi bằng chứng hợp lệ của Level 0 dẫn Kai rời vùng lõi vàng và đi sâu vào hệ vùng Level 0 thay vì nhảy cóc tới Level 1."
     },
     {
       "areaId": "epsilon",
       "title": "Incessant Hum-Buzz",
       "phase": "SIGNAL_LOSS",
       "storyPurpose": "Đẩy tiếng huỳnh quang thành áp lực nhận thức và làm rõ rằng mất liên lạc không đồng nghĩa thiết bị đã hỏng.",
-      "visibleObjective": "Tách tín hiệu thật khỏi tiếng nhiễu môi trường và tìm một biến đổi không gian có thể kiểm chứng.",
-      "discoveryThemes": [
-        "persistent_hum",
-        "false_audio_cues",
-        "local_geometry_shift"
-      ],
-      "characterThread": "Không được cho Kai nghe thấy Iris, Syvial hoặc Hứa Thuý Lan chỉ vì cốt truyện cần họ; giọng quen thuộc có thể là hiện tượng và phải giữ trạng thái chưa xác nhận.",
+      "visibleObjective": "Tách tín hiệu thật khỏi nhiễu môi trường và tìm biến đổi không gian có thể kiểm chứng.",
+      "discoveryThemes": ["persistent_hum", "false_audio_cues", "local_geometry_shift"],
+      "characterThread": "Không được cho Kai nghe thấy Iris hoặc Syvial chỉ vì cốt truyện cần họ; giọng quen thuộc có thể là hiện tượng và phải giữ trạng thái chưa xác nhận.",
       "transitionStory": "Một vùng có dấu hiệu giống lối thoát xuất hiện, nhưng tính chất của nó chưa đủ để gọi là đường ra."
     },
     {
@@ -122,67 +107,47 @@
       "phase": "FALSE_CERTAINTY",
       "storyPurpose": "Dạy rằng biển báo, cửa và cảm giác 'đây là lối ra' không có quyền lực hơn bằng chứng.",
       "visibleObjective": "Kiểm tra lối chuyển bằng dấu vật lý lặp lại thay vì tin nhãn hoặc trực giác.",
-      "discoveryThemes": [
-        "false_exit",
-        "repeated_threshold",
-        "evidence_over_label"
-      ],
-      "characterThread": "Mục tiêu điều tra Async, tìm đồng đội và tìm Hứa Thuý Lan đều tồn tại, nhưng không mục tiêu nào cho phép Kai coi một dấu chưa kiểm chứng là sự thật.",
+      "discoveryThemes": ["false_exit", "repeated_threshold", "evidence_over_label"],
+      "characterThread": "Mục tiêu điều tra Async và tìm lại đồng đội cùng tồn tại, nhưng không mục tiêu nào cho phép Kai coi một dấu chưa kiểm chứng là sự thật.",
       "transitionStory": "Qua được vùng giả-lối-ra dẫn tới một khoảng không sâu và thưa dấu mốc hơn."
     },
     {
       "areaId": "0.1",
       "title": "Deep Emptiness",
       "phase": "ISOLATION",
-      "storyPurpose": "Kéo dài cảm giác đơn độc mà không dùng độc thoại giả sâu hoặc làm Kai mất năng lực nghề nghiệp.",
-      "visibleObjective": "Giữ phương hướng bằng các dữ kiện có thể đo, theo dõi thời gian chủ quan và tìm thay đổi cấu trúc thay vì bám dấu cũ.",
-      "discoveryThemes": [
-        "sparse_landmarks",
-        "distance_uncertainty",
-        "measured_navigation"
-      ],
-      "characterThread": "Kai có thể lo cho Iris, Syvial và Hứa Thuý Lan nhưng vẫn hành động có kỷ luật; không biến nỗi lo thành mất phán đoán.",
+      "storyPurpose": "Kéo dài cảm giác đơn độc mà không làm Kai mất năng lực nghề nghiệp.",
+      "visibleObjective": "Giữ phương hướng bằng dữ kiện có thể đo và tìm thay đổi cấu trúc thay vì bám dấu cũ.",
+      "discoveryThemes": ["sparse_landmarks", "distance_uncertainty", "measured_navigation"],
+      "characterThread": "Kai có thể lo cho Iris và Syvial nhưng vẫn hành động có kỷ luật; không biến nỗi lo thành mất phán đoán.",
       "transitionStory": "Âm thanh nước và độ ẩm tăng dần mở sang khu bị ngấm nước."
     },
     {
       "areaId": "0.11",
       "title": "Water Damage",
       "phase": "SURVIVAL_COST",
-      "storyPurpose": "Đưa sinh học và rủi ro môi trường trở lại trọng tâm thay vì chỉ giải mê cung.",
+      "storyPurpose": "Đưa rủi ro môi trường và sinh tồn trở lại trọng tâm thay vì chỉ giải mê cung.",
       "visibleObjective": "Phân biệt nước an toàn với nước không xác định, tránh nhiễm bẩn và dùng biến đổi độ ẩm như dấu chỉ địa hình.",
-      "discoveryThemes": [
-        "water_damage",
-        "contamination_risk",
-        "structural_decay"
-      ],
-      "characterThread": "Không có tài nguyên miễn phí chỉ vì Kai mạnh; trang bị giúp đánh giá nguy cơ nhưng không tự biến nước lạ thành an toàn.",
+      "discoveryThemes": ["water_damage", "contamination_risk", "structural_decay"],
+      "characterThread": "Trang bị giúp Kai đánh giá nguy cơ nhưng không tự biến tài nguyên lạ thành an toàn.",
       "transitionStory": "Các bề mặt hư hỏng dần nhường chỗ cho một vùng sạch và hoàn thiện quá mức."
     },
     {
       "areaId": "0.22",
       "title": "Fully Remodeled",
       "phase": "ORDERED_ANOMALY",
-      "storyPurpose": "Tạo tương phản: một nơi sạch, thẳng và có vẻ bình thường lại đáng nghi vì quá nhất quán so với Level 0.",
-      "visibleObjective": "Kiểm tra sự đồng nhất, các vật liệu mới và những điểm không khớp nhỏ thay vì mặc định khu sạch là an toàn.",
-      "discoveryThemes": [
-        "artificial_order",
-        "too_clean",
-        "micro_inconsistency"
-      ],
-      "characterThread": "Nếu xuất hiện dấu vết con người hoặc Async, phải phân biệt dấu mới/cũ và tuyệt đối không gán cho Iris, Syvial hoặc Hứa Thuý Lan khi chưa có căn cứ.",
+      "storyPurpose": "Tạo tương phản bằng một nơi sạch và có vẻ bình thường nhưng quá nhất quán so với Level 0.",
+      "visibleObjective": "Kiểm tra sự đồng nhất, vật liệu mới và những điểm không khớp nhỏ thay vì mặc định khu sạch là an toàn.",
+      "discoveryThemes": ["artificial_order", "too_clean", "micro_inconsistency"],
+      "characterThread": "Nếu xuất hiện dấu vết con người hoặc Async, phải phân biệt dấu mới/cũ và tuyệt đối không gán cho Iris hoặc Syvial khi chưa có căn cứ.",
       "transitionStory": "Các mảng hoàn thiện bắt đầu đứt đoạn, để lộ một vùng xây dở."
     },
     {
       "areaId": "0.23",
       "title": "Half Finished",
       "phase": "STRUCTURAL_READING",
-      "storyPurpose": "Cho Kai dùng năng lực quan sát kỹ thuật để đọc kết cấu thay vì giải mọi thứ bằng chiến đấu.",
+      "storyPurpose": "Cho Kai dùng quan sát kỹ thuật để đọc kết cấu thay vì giải mọi thứ bằng chiến đấu.",
       "visibleObjective": "Đọc khe xây dựng, vật liệu lộ thiên và luồng khí để chọn tuyến còn ổn định.",
-      "discoveryThemes": [
-        "unfinished_walls",
-        "exposed_structure",
-        "airflow"
-      ],
+      "discoveryThemes": ["unfinished_walls", "exposed_structure", "airflow"],
       "characterThread": "Không tạo thiết bị hoặc khả năng mới ngoài codex; dùng đúng công cụ Kai thực sự có.",
       "transitionStory": "Không khí và vật liệu chuyển sang trạng thái gây kích ứng sinh học rõ rệt."
     },
@@ -190,14 +155,10 @@
       "areaId": "0.41",
       "title": "Disease",
       "phase": "BIOLOGICAL_HAZARD",
-      "storyPurpose": "Đặt áp lực nhiễm bệnh và vệ sinh mà không dùng thanh sanity hay bệnh giả chỉ để nerf Kai.",
+      "storyPurpose": "Đặt áp lực nhiễm bẩn và vệ sinh mà không tự bịa điểm yếu mới cho Kai.",
       "visibleObjective": "Giảm phơi nhiễm, xác định nguồn nguy cơ và rời vùng bằng tuyến ít ô nhiễm hơn.",
-      "discoveryThemes": [
-        "biohazard",
-        "air_quality",
-        "surface_contamination"
-      ],
-      "characterThread": "Kháng bệnh của nhân vật phải giữ đúng canon; nguy cơ đến từ môi trường chứ không được tự bịa điểm yếu mới.",
+      "discoveryThemes": ["biohazard", "air_quality", "surface_contamination"],
+      "characterThread": "Khả năng và sức bền của Kai giữ đúng codex; nguy cơ đến từ môi trường và quyết định di chuyển.",
       "transitionStory": "Các phòng ổn định vỡ thành một cấu trúc chồng chéo khó dự đoán."
     },
     {
@@ -206,128 +167,89 @@
       "phase": "TOPOLOGY_PRESSURE",
       "storyPurpose": "Đưa World Director vào đúng vai trò tạo áp lực mê cung nhưng không được quyền khóa đường sống hoặc đổi route campaign.",
       "visibleObjective": "Tìm tuyến còn khả dụng qua cấu trúc hỗn loạn, ưu tiên đường có khả năng quay lui và dữ kiện kiểm chứng được.",
-      "discoveryThemes": [
-        "topology_shift",
-        "dead_end_pressure",
-        "route_recovery"
-      ],
-      "characterThread": "Không dùng sự hỗn loạn để teleport đồng đội, tạo bằng chứng Async hoặc ép bất kỳ reunion nào.",
+      "discoveryThemes": ["topology_shift", "dead_end_pressure", "route_recovery"],
+      "characterThread": "Không dùng sự hỗn loạn để teleport đồng đội, tạo bằng chứng Async hoặc ép reunion.",
       "transitionStory": "Nhiệt độ tụt mạnh trong khi motif vàng của Level 0 vẫn còn."
     },
     {
       "areaId": "0.66",
       "title": "The Lobby Went COLD",
       "phase": "THERMAL_PRESSURE",
-      "storyPurpose": "Biến lạnh thành rủi ro sinh tồn thực tế, không thành phép trừ HP vô cớ.",
-      "visibleObjective": "Giữ nhiệt, theo dõi dấu đóng băng và chọn tuyến có gradient nhiệt hợp lý.",
-      "discoveryThemes": [
-        "cold_gradient",
-        "thermal_anomaly",
-        "resource_cost"
-      ],
-      "characterThread": "Kai vẫn giữ cả nhiệm vụ chính thức và mục tiêu cá nhân, nhưng không được bỏ qua rủi ro cơ thể hoặc tình trạng trang bị chỉ vì mục tiêu cảm xúc.",
-      "transitionStory": "Các lối rộng co dần thành hành lang chật gây hạn chế chuyển động."
+      "storyPurpose": "Biến lạnh thành rủi ro sinh tồn thực tế thay vì hiệu ứng trang trí.",
+      "visibleObjective": "Giữ nhiệt, đánh giá thay đổi vật liệu và tiếp tục theo tuyến không làm mất khả năng quay lui.",
+      "discoveryThemes": ["cold_pressure", "thermal_gradient", "material_change"],
+      "characterThread": "Kai vẫn phải quản lý môi trường dù sức chiến đấu vượt xa người bình thường.",
+      "transitionStory": "Không gian dần bó hẹp và giảm lựa chọn di chuyển."
     },
     {
       "areaId": "0.7",
       "title": "Claustrophobia",
       "phase": "CONSTRAINED_MOVEMENT",
-      "storyPurpose": "Tạo khó khăn bằng hình học hẹp và lựa chọn tuyến, không bằng cách làm Kai quên kỹ năng hay trang bị.",
-      "visibleObjective": "Giữ đường lùi, đánh giá khe hẹp trước khi cam kết và tránh để một biến cố duy nhất khóa mọi tuyến.",
-      "discoveryThemes": [
-        "narrow_passages",
-        "commitment_risk",
-        "limited_visibility"
-      ],
-      "characterThread": "Mọi phản ứng sợ hãi phải thể hiện qua nhận thức và quyết định, không qua thanh sanity.",
-      "transitionStory": "Tiếng nước và phản xạ ánh sáng tăng lên cho tới khi không gian bị ngập."
+      "storyPurpose": "Ép lựa chọn di chuyển bằng không gian hẹp mà không tước năng lực hay ý chí của Kai.",
+      "visibleObjective": "Giữ đường rút, tránh mắc kẹt và đọc luồng khí cùng độ vang để chọn tuyến mở hơn.",
+      "discoveryThemes": ["tight_passages", "limited_turning", "airflow"],
+      "characterThread": "Áp lực không gian không biến Kai thành nhân vật hoảng loạn trái codex.",
+      "transitionStory": "Nước bắt đầu chiếm phần lớn mặt sàn và thay đổi cách di chuyển."
     },
     {
       "areaId": "0.8",
       "title": "Inundation",
       "phase": "FLOOD_NAVIGATION",
-      "storyPurpose": "Kết hợp giới hạn di chuyển, nhiễm bẩn và mất dấu mốc trong nước.",
-      "visibleObjective": "Giữ thiết bị quan trọng khỏi ngập, tránh nước không xác định và tìm tuyến dựa trên độ sâu cùng luồng chảy.",
-      "discoveryThemes": [
-        "flooding",
-        "depth_change",
-        "waterborne_risk"
-      ],
-      "characterThread": "Không dùng mặt nước như cổng thần kỳ; mọi lối chuyển phải có dấu hiệu và điều kiện thật.",
-      "transitionStory": "Mực nước giảm, để lộ những vùng sâu hơn với dấu kiến trúc chuyển tiếp rõ hơn."
+      "storyPurpose": "Đổi bài toán từ hành lang sang điều hướng trong vùng ngập.",
+      "visibleObjective": "Đánh giá độ sâu, dòng chảy và các điểm cao trước khi tiến qua khu ngập.",
+      "discoveryThemes": ["flooding", "depth_uncertainty", "elevated_routes"],
+      "characterThread": "Không cho trang bị tự giải mọi nguy cơ nước; Kai vẫn phải đọc môi trường.",
+      "transitionStory": "Dòng nước và hình học hội tụ về một vùng sâu, tối và ít nhiễu hơn."
     },
     {
       "areaId": "0.99",
       "title": "Deeper Regions",
       "phase": "CONVERGENCE",
-      "storyPurpose": "Bắt đầu gom các bài học Level 0 thành một mô hình: dấu cũ không đáng tin, gradient môi trường đáng tin hơn nhãn.",
-      "visibleObjective": "Đối chiếu các biến đổi âm thanh, vật liệu, nhiệt và hình học để chọn tuyến có tính chuyển vùng nhất quán.",
-      "discoveryThemes": [
-        "multi_signal_transition",
-        "deep_region",
-        "pattern_convergence"
-      ],
-      "characterThread": "Một tín hiệu giống thiết bị SRU, Async hoặc dấu của Hứa Thuý Lan chỉ được coi là manh mối nếu hệ thống thật sự sinh ra nó; story không tự khẳng định nguồn.",
-      "transitionStory": "Tuyến sâu dẫn vào một vùng đặc biệt LS-2 trước khi Backrooms đổi hẳn chất liệu."
+      "storyPurpose": "Cho các dấu môi trường hội tụ trước chuỗi giao diện cuối của Level 0.",
+      "visibleObjective": "Đối chiếu những thay đổi lặp lại và xác định hướng đi có tính liên tục cao nhất.",
+      "discoveryThemes": ["convergence", "deep_region", "signal_fragment"],
+      "characterThread": "Một tín hiệu giống thiết bị SRU, Async hoặc dấu của đồng đội chỉ được coi là manh mối nếu hệ thống thật sự sinh ra nó; story không tự khẳng định nguồn.",
+      "transitionStory": "Các dấu kiến trúc dẫn tới một vùng giao diện tách biệt với motif chính."
     },
     {
       "areaId": "LS-2",
       "title": "LS-2",
       "phase": "INTERFACE_ZONE",
-      "storyPurpose": "Hoạt động như một vùng giao diện giữa các biến thể của Level 0, nơi quy luật cũ chỉ còn đúng một phần.",
-      "visibleObjective": "Xác định quy luật nào còn giữ, quy luật nào đã đổi và chỉ tiến khi có đường lui hoặc dấu chuyển vùng đủ mạnh.",
-      "discoveryThemes": [
-        "rule_drift",
-        "interface_zone",
-        "partial_consistency"
-      ],
-      "characterThread": "Không giải thích nguồn gốc LS-2 hoặc Backrooms; mọi giả thuyết chỉ được giữ ở mức giả thuyết.",
-      "transitionStory": "Mọi chi tiết thị giác nhạt dần, đưa Kai vào The Dullness."
+      "storyPurpose": "Đóng vai trò vùng giao diện trước các chuyển tiếp cuối mà không tự biến thành shortcut ngoài campaign.",
+      "visibleObjective": "Xác định điểm nối ổn định và tránh coi bất kỳ bề mặt lạ nào là lối thoát mặc định.",
+      "discoveryThemes": ["interface_space", "threshold_testing", "route_continuity"],
+      "characterThread": "Mission Async vẫn là mục tiêu điều tra, không phải lời giải tự động cho mọi dị thường.",
+      "transitionStory": "Cảm nhận màu sắc và chi tiết dần bị làm phẳng."
     },
     {
       "areaId": "Dullness",
       "title": "Dullness",
       "phase": "PERCEPTUAL_FLATTENING",
-      "storyPurpose": "Tạo áp lực bằng sự đơn điệu và mất tín hiệu phân biệt, không bằng lời kể siêu hình xác nhận thế giới có ý thức.",
-      "visibleObjective": "Dùng chênh lệch nhỏ có thể đo được để tránh vòng lặp và giữ nhịp nghỉ hợp lý.",
-      "discoveryThemes": [
-        "low_contrast",
-        "repetition",
-        "measurement_over_memory"
-      ],
-      "characterThread": "Ký ức về Iris, Syvial hoặc Hứa Thuý Lan có thể bị môi trường gợi lại, nhưng không được biến thành thông tin vị trí thật.",
-      "transitionStory": "Một dải màu đỏ tăng dần trở thành mốc phân biệt đầu tiên đủ mạnh sau thời gian dài."
+      "storyPurpose": "Giảm độ tin cậy của cảm nhận mà không biến thành thanh sanity hay độc thoại siêu hình.",
+      "visibleObjective": "Dùng dấu vật lý và trình tự hành động để bù cho môi trường ngày càng khó phân biệt.",
+      "discoveryThemes": ["perceptual_flattening", "low_contrast", "physical_markers"],
+      "characterThread": "Ký ức về Iris hoặc Syvial có thể bị môi trường gợi lại, nhưng không được biến thành thông tin vị trí thật.",
+      "transitionStory": "Màu đỏ và hình học đóng kín dần thay thế vùng phẳng cảm nhận."
     },
     {
       "areaId": "Red Rooms",
       "title": "Red Rooms",
       "phase": "FINAL_LEVEL0_TRANSITION",
-      "storyPurpose": "Đóng arc Level 0 bằng một vùng chuyển rõ ràng nhưng vẫn yêu cầu kiểm chứng thay vì thưởng lối ra miễn phí.",
-      "visibleObjective": "Xác nhận rằng vật liệu, trần, âm thanh và kết cấu đang chuyển khỏi họ hàng Level 0 trước khi cam kết đi tiếp.",
-      "discoveryThemes": [
-        "red_visual_anchor",
-        "material_transition",
-        "support_columns",
-        "painted_lines"
-      ],
-      "characterThread": "Kai rời hệ vùng Level 0 mà chưa bắt buộc phải tìm thấy Iris, Syvial hoặc bằng chứng về Hứa Thuý Lan; mọi tuyến đó tiếp tục bằng continuity thực.",
-      "transitionStory": "Khi chuỗi dấu hiệu hoàn tất, các phòng chuyển thành bê tông, cột chịu lực và không gian gara: Level 1."
+      "storyPurpose": "Khép chuỗi vùng Level 0 và chuẩn bị chuyển sang Level 1 mà không giải quyết tuyến đồng đội quá sớm.",
+      "visibleObjective": "Giữ continuity tuyến đường và tìm điểm chuyển tiếp hợp lệ ra khỏi hệ vùng Level 0.",
+      "discoveryThemes": ["red_rooms", "final_threshold", "continuity_check"],
+      "characterThread": "Kai rời hệ vùng Level 0 mà chưa bắt buộc phải tìm thấy Iris hoặc Syvial; reunion do story continuity ở các Level đã khóa quyết định.",
+      "transitionStory": "Kết cấu đỏ tan vào bê tông, cột chịu lực và không gian gara của Level 1."
     },
     {
       "areaId": "1",
       "title": "Parking Zone",
       "phase": "LEVEL1_ARRIVAL",
-      "storyPurpose": "Mở giai đoạn mới: từ mất phương hướng thuần túy sang sinh tồn có tài nguyên, blackout, survivor và Entity thật sự, trong khi cuộc điều tra Async tiếp tục.",
-      "visibleObjective": "Thiết lập vị trí trong mạng gara, tìm nguồn tài nguyên đáng tin, đánh giá blackout và tiếp tục điều tra Async, tìm đồng đội và tìm bằng chứng thật về Hứa Thuý Lan mà không giả định kết quả.",
-      "discoveryThemes": [
-        "concrete_parking",
-        "blackout",
-        "maintenance_halls",
-        "resource_search",
-        "hostile_entities"
-      ],
-      "characterThread": "Reunion và tung tích Hứa Thuý Lan vẫn là các tuyến dài hạn; sang Level 1 không tự động mở khóa câu trả lời.",
-      "transitionStory": "Arc này dừng ở việc Kai xác lập được trạng thái đầu Level 1; hành trình sâu hơn dùng story asset kế tiếp."
+      "storyPurpose": "Kết thúc Act Level 0 bằng việc Kai thiết lập được một vị trí mới nhưng chưa giải quyết nhiệm vụ Async hay tìm lại đồng đội.",
+      "visibleObjective": "Thiết lập vị trí trong mạng gara, đánh giá nguy cơ mới và tiếp tục điều tra Async mà không giả định kết quả.",
+      "discoveryThemes": ["parking_structure", "resource_check", "blackout_risk"],
+      "characterThread": "Reunion với Iris và Syvial là tuyến dài hạn do story continuity quyết định; sang Level 1 không tự động mở khóa câu trả lời.",
+      "transitionStory": "Arc Level 0 → Level 1 hoàn thành tại đây; story tiếp theo phải được khai báo riêng."
     }
   ]
 }

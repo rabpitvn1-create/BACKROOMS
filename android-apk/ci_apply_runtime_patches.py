@@ -62,9 +62,9 @@ SCRIPTS = [
     "patch-world-director-proposal-boundary.py",
     "patch-pending-turn-idempotent-rng.py",
     "patch-main-story-level0-1.py",
-    "patch-story-campaign-fallback-cleanup.py",
     "patch-story-owned-companion-continuity.py",
     "patch-story-companion-runtime-invariants.py",
+    "patch-story-quest-state-level0-1.py",
 ]
 
 for script in SCRIPTS:
