@@ -143,13 +143,10 @@ if "private val storyQuestPlan: StoryQuestPlan" not in facade:
         "story quest plan app factory",
     )
 
+# Keep the already-resolved registered-Level outcome and its locked RNG intact. Insert quest
+# progression only between deterministic resolution and the existing save/visible projection.
 registered_old = '''    repository.save(result.state)
     val output = syncLegacy(legacy, result.state, incrementTurn = true)
-    val reply = result.reply ?: if (result.progressed) "Môi trường đã thay đổi." else "Không có tiến triển mới."
-    appendLog(output, action, reply)
-    logger.log(PipelineLogEvent(
-      "REGISTERED_LEVEL_COMMIT",
-      turnId = result.state.metadata["lastAction.turnId"],
 '''
 registered_new = '''    val storyState = storyQuestEngine.applySignal(
       result.state,
@@ -161,11 +158,6 @@ registered_new = '''    val storyState = storyQuestEngine.applySignal(
     )
     repository.save(storyState)
     val output = syncLegacy(legacy, storyState, incrementTurn = true)
-    val reply = result.reply ?: if (result.progressed) "Môi trường đã thay đổi." else "Không có tiến triển mới."
-    appendLog(output, action, reply)
-    logger.log(PipelineLogEvent(
-      "REGISTERED_LEVEL_COMMIT",
-      turnId = storyState.metadata["lastAction.turnId"],
 '''
 if "escapedLevelId = levelId.takeIf { result.escaped }" not in facade:
     facade = replace_once(facade, registered_old, registered_new, "registered Level story signal")
