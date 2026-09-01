@@ -168,10 +168,7 @@ class StoryQuestEngine(private val plan: StoryQuestPlan) {
     )
   }
 
-  /**
-   * Core-only progression. A single committed signal can complete at most one objective,
-   * so a model cannot skip intermediate objectives by presenting a future area/state in one turn.
-   */
+  /** Core-only progression. One committed signal can complete at most one objective. */
   fun applySignal(state: GameState, signal: StorySignal): GameState {
     val normalized = normalize(state.story)
     val areaChanged = signal.areaId != null && signal.areaId != normalized.lastObservedAreaId
@@ -190,8 +187,7 @@ class StoryQuestEngine(private val plan: StoryQuestPlan) {
     val completedQuests = if (questFinished) observed.completedQuestIds + cursor.quest.id else observed.completedQuestIds
     val actFinished = questFinished && cursor.act.quests.last().id == cursor.quest.id
     val completedActs = if (actFinished) observed.completedActIds + cursor.act.id else observed.completedActIds
-    val chapterFinished = actFinished
-    val completedChapters = if (chapterFinished) observed.completedChapterIds + cursor.chapter.id else observed.completedChapterIds
+    val completedChapters = if (actFinished) observed.completedChapterIds + cursor.chapter.id else observed.completedChapterIds
 
     val currentIndex = plan.cursors.indexOfFirst { it.objective.id == cursor.objective.id }
     val next = plan.cursors.getOrNull(currentIndex + 1)
@@ -236,16 +232,16 @@ object StoryStateJson {
     put("planId", story.planId)
     put("storyId", story.storyId)
     put("campaignId", story.campaignId)
-    putNullable("chapterId", story.chapterId)
-    putNullable("actId", story.actId)
-    putNullable("questId", story.questId)
-    putNullable("objectiveId", story.objectiveId)
+    put("chapterId", story.chapterId ?: JSONObject.NULL)
+    put("actId", story.actId ?: JSONObject.NULL)
+    put("questId", story.questId ?: JSONObject.NULL)
+    put("objectiveId", story.objectiveId ?: JSONObject.NULL)
     put("status", story.status.name)
     put("completedObjectiveIds", JSONArray(story.completedObjectiveIds.toList()))
     put("completedQuestIds", JSONArray(story.completedQuestIds.toList()))
     put("completedActIds", JSONArray(story.completedActIds.toList()))
     put("completedChapterIds", JSONArray(story.completedChapterIds.toList()))
-    putNullable("lastObservedAreaId", story.lastObservedAreaId)
+    put("lastObservedAreaId", story.lastObservedAreaId ?: JSONObject.NULL)
     put("revision", story.revision)
   }
 
