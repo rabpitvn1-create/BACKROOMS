@@ -75,7 +75,7 @@ text = replace_once(
 )
 text = replace_once(
     text,
-    '    assertEquals("UR+", syvial.metadata["combatTier"])\n',
+    '    assertEquals("0.25%", syvial.metadata["encounterChance"])\n    assertEquals("UR+", syvial.metadata["combatTier"])\n',
     '    assertEquals("UR+", syvial.metadata["combatTier"])\n    assertEquals("0%", syvial.metadata["encounterChance"])\n    assertEquals("STORY_ONLY", syvial.metadata["encounterLevels"])\n    assertEquals(CharacterPresence.SEPARATED, syvial.presence)\n    assertEquals("37", syvial.metadata["fixedEncounterLevel"])\n',
     "Syvial story-owned regression",
 )
