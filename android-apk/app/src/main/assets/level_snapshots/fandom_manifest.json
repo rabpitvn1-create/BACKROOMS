@@ -1,5 +1,5 @@
 {
-  "source": "Trusted Backrooms sources only",
+  "source": "Trusted Backrooms sources + explicit user overrides",
   "approved_source_roots": [
     "https://backrooms-wiki.wikidot.com/",
     "https://backrooms.fandom.com/wiki/Backrooms_Wiki",
@@ -12,7 +12,7 @@
     "width": 512,
     "height": 288,
     "format": "webp",
-    "policy": "Approved source-page imagery only; crop/resize/WebP encoding only; no AI generation."
+    "policy": "Approved Backrooms source imagery plus explicit user-provided overrides; crop/resize/WebP encoding only."
   },
   "areas": {
     "0": {
@@ -2014,25 +2014,25 @@
       "area_name": "The Red Flood",
       "area_type": "SUBLEVEL",
       "status": "ok",
-      "resolution": "parent_source_fallback",
+      "resolution": "user_override_plus_parent_fallback",
       "images": [
         {
           "local_file": "area_24_2_2_trusted_01.webp",
-          "file_title": "File:Twistinglevel2.jpg",
-          "page_url": "https://backrooms.fandom.com/wiki/Level_2",
-          "description_url": "https://backrooms.fandom.com/wiki/File:Twistinglevel2.jpg",
-          "download_url": "https://static.wikia.nocookie.net/backrooms/images/f/f2/Twistinglevel2.jpg/revision/latest/scale-to-width-down/768?cb=20240420164459",
-          "source_site": "approved_backrooms_source",
-          "source_license": "See source page",
-          "source_sha256": "f52a1481842cb88fb0becce813a8348b13794e322ca3963d413a0616843b1a6d",
-          "source_width": 768,
-          "source_height": 588,
-          "derived_operation": "crop+resize+webp only; no AI generation",
+          "file_title": "User-provided Level_21.webp",
+          "page_url": "https://drive.google.com/file/d/1VK-sNfwVRPUqXTbxpJ9mOVCPUHYw077G/view?usp=drivesdk",
+          "description_url": "https://drive.google.com/file/d/1VK-sNfwVRPUqXTbxpJ9mOVCPUHYw077G/view?usp=drivesdk",
+          "download_url": "https://drive.usercontent.google.com/download?id=1VK-sNfwVRPUqXTbxpJ9mOVCPUHYw077G&export=download&confirm=t",
+          "source_site": "user_google_drive",
+          "source_license": "User-provided asset",
+          "source_sha256": "2ba28d910f08ccd896c42469c3e0fc6bf191c64b6cad8caf424c261ffcc420bd",
+          "source_width": 1920,
+          "source_height": 1080,
+          "derived_operation": "user-provided source; resize+webp encoding only",
           "mime": "image/webp",
           "width": 512,
           "height": 288,
-          "bytes": 26306,
-          "sha256": "3b107ae843a53b9a17d0118971034c06b8e15ea75bbbd9b7eeb799ceef230615"
+          "bytes": 6362,
+          "sha256": "89e102d227dba390839917862ef647cd831fd432de13775c83e8b2e76462a117"
         },
         {
           "local_file": "area_24_2_2_trusted_02.webp",
