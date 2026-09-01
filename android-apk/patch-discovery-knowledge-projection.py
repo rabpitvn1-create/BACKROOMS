@@ -192,12 +192,10 @@ facade_replacement = '''      .put("evidenceIds", JSONArray(result.evidenceIds.s
 '''
 facade = replace_once(facade, facade_anchor, facade_replacement, "registered discovery projection")
 
-visible_anchor = '''        .put("narrativeCue", cue)
-        .put("evidenceIds", evidenceIds)
+visible_anchor = '''        .put("evidenceIds", evidenceIds)
         .put("evidenceTexts", evidenceTexts);
 '''
-visible_replacement = '''        .put("narrativeCue", cue)
-        .put("evidenceIds", evidenceIds)
+visible_replacement = '''        .put("evidenceIds", evidenceIds)
         .put("evidenceTexts", evidenceTexts)
         .put("discoveryProjection", resolved.optJSONObject("discoveryProjection") != null
           ? resolved.optJSONObject("discoveryProjection") : new JSONObject());

@@ -122,9 +122,28 @@ helpers = r'''  private boolean sameStringSet(JSONArray left, JSONArray right) {
     return result.replaceAll("\\s+", " ").trim();
   }
 
+  private String registeredNarrativeFallback(JSONObject resolved) {
+    boolean progressed = resolved.optBoolean("progressed", false);
+    boolean escaped = resolved.optBoolean("escaped", false);
+    StringBuilder grounded = new StringBuilder(
+      escaped ? "Bạn nhận ra mình đã thoát khỏi khu vực hiện tại."
+        : progressed ? "Bạn nhận thấy hành động vừa rồi đã tạo ra một thay đổi có ý nghĩa trong khu vực."
+        : "Bạn quan sát kết quả của hành động vừa thực hiện."
+    );
+    JSONArray evidenceTexts = resolved.optJSONArray("evidenceTexts");
+    if (evidenceTexts != null) {
+      for (int i = 0; i < evidenceTexts.length(); i++) {
+        String evidence = evidenceTexts.optString(i, "").trim();
+        if (evidence.isEmpty()) continue;
+        if (grounded.length() > 0) grounded.append(' ');
+        grounded.append(evidence);
+      }
+    }
+    return grounded.toString().trim();
+  }
+
   private String narrateRegisteredOutcome(String actionKind, String action, JSONObject state, JSONObject resolved) {
-    String fallback = resolved.optString("reply", "").trim();
-    if (fallback.isEmpty()) fallback = "Kai quan sát kết quả của hành động vừa thực hiện.";
+    String fallback = registeredNarrativeFallback(resolved);
     try {
       boolean progressed = resolved.optBoolean("progressed", false);
       boolean escaped = resolved.optBoolean("escaped", false);
@@ -133,7 +152,8 @@ helpers = r'''  private boolean sameStringSet(JSONArray left, JSONArray right) {
       if (evidenceIds == null) evidenceIds = new JSONArray();
       JSONArray evidenceTexts = resolved.optJSONArray("evidenceTexts");
       if (evidenceTexts == null) evidenceTexts = new JSONArray();
-      String cue = stripVisibleEvidence(fallback, evidenceTexts);
+      String cue = stripVisibleEvidence(resolved.optString("reply", ""), evidenceTexts);
+      String storyContext = campaignStoryBeatPrompt(state);
 
       JSONObject visible = new JSONObject()
         .put("actionType", actionKind == null ? "" : actionKind)
@@ -142,12 +162,18 @@ helpers = r'''  private boolean sameStringSet(JSONArray left, JSONArray right) {
         .put("escaped", escaped)
         .put("location", location)
         .put("narrativeCue", cue)
+        .put("storyContext", storyContext)
         .put("evidenceIds", evidenceIds)
         .put("evidenceTexts", evidenceTexts);
 
       String prompt = "Bạn là Narrative Engine của một text game Backrooms. "
         + "Kết quả gameplay bên dưới đã được xác định trước và là sự thật duy nhất của lượt này. "
-        + "Chỉ kể lại kết quả đó bằng tiếng Việt tự nhiên, nhập vai, tối đa 4 câu. "
+        + "Chỉ kể lại kết quả đó bằng tiếng Việt tự nhiên, giàu hình ảnh nhưng gọn, tối đa 4 câu. "
+        + "POV HARD LOCK: người chơi nhập vai trực tiếp Kai Akechi. Mọi văn xuôi gameplay phải dùng ngôi thứ hai giới hạn và gọi Kai là 'bạn'. "
+        + "Không được gọi nhân vật người chơi là 'Kai', 'hắn', 'anh ta' hoặc chuyển sang ngôi thứ nhất 'tôi', trừ lời thoại trực tiếp có người nói rõ ràng. "
+        + "Không tự viết suy nghĩ, quyết định, lời thoại hoặc hành động có chủ ý mới thay người chơi. "
+        + "storyContext là khóa cốt truyện cũ/canon dùng ở hậu trường: phải bám vào nhưng không được nhắc tên prompt, state, canon, Core hay hệ thống trong lời kể. "
+        + "Giữ đúng giọng nhân vật, quan hệ và cách xưng hô đã có; không biến lời kể thành báo cáo kỹ thuật hoặc câu xác nhận máy móc. "
         + "Không được tạo thêm vật phẩm, Entity/NPC, thương tích, combat outcome, cửa/lối đi, vị trí hay chuyển Level không có trong dữ liệu. "
         + "Không được thay đổi progressed/escaped/location/evidenceIds. "
         + "Không nhắc Core, Engine, blueprint, commit, validator, rule, prompt hoặc ID nội bộ trong reply. "

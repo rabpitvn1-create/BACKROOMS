@@ -133,6 +133,11 @@ required = [
     ('s("Devil Blessing", "PASSIVE"', skill_catalog),
     ('class PassiveSkillVisibilityTest', passive_skill_tests),
     ('passiveSkillsAreExposedForEveryPlayablePartyCharacter', passive_skill_tests),
+    ('POV HARD LOCK: người chơi nhập vai trực tiếp Kai Akechi.', java),
+    ('private String registeredNarrativeFallback(JSONObject resolved)', java),
+    ('String storyContext = campaignStoryBeatPrompt(state);', java),
+    ('.put("storyContext", storyContext)', java),
+    ("Không được gọi nhân vật người chơi là 'Kai', 'hắn', 'anh ta'", java),
 ]
 for marker, source in required:
     assert marker in source, marker
@@ -158,6 +163,7 @@ assert html.count('id="characterSkillsModal"') == 1
 assert 'rolls.put("roamingEntityId"' not in java
 assert 'makeGameplayRolls(before, action, meta)' not in java
 assert 'appendEquipmentBadge(box)' not in java
+assert 'Kai quan sát kết quả của hành động vừa thực hiện.' not in java
 assert 'jeffEncounter' not in java
 assert 'janeEncounter' not in java
 
