@@ -19,7 +19,6 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
     return text.replace(old, new, 1)
 
 
-# Validate the authored Level 0 -> Level 1 quest plan before wiring runtime.
 quest = json.loads(QUESTS.read_text(encoding="utf-8"))
 story = json.loads(STORY.read_text(encoding="utf-8"))
 if quest.get("planId") != "QUEST_PLAN_LEVEL0_TO_LEVEL1_R01":
@@ -27,11 +26,8 @@ if quest.get("planId") != "QUEST_PLAN_LEVEL0_TO_LEVEL1_R01":
 if quest.get("storyId") != story.get("storyId") or quest.get("campaignId") != story.get("campaignId"):
     raise RuntimeError("level01_quest_plan_story_identity_mismatch")
 for key in (
-    "coreOwnsProgression",
-    "geminiCannotAdvanceQuest",
-    "liteRTCannotAdvanceQuest",
-    "oneSignalCompletesAtMostOneObjective",
-    "luciaEncounterIsNotQuestObjective",
+    "coreOwnsProgression", "geminiCannotAdvanceQuest", "liteRTCannotAdvanceQuest",
+    "oneSignalCompletesAtMostOneObjective", "luciaEncounterIsNotQuestObjective",
 ):
     if (quest.get("locks") or {}).get(key) is not True:
         raise RuntimeError("level01_quest_lock_missing:" + key)
@@ -57,8 +53,6 @@ if actual != expected:
 if any("lucia" in json.dumps(row, ensure_ascii=False).lower() for row in objective_rows):
     raise RuntimeError("lucia_must_not_be_quest_objective")
 
-# Clean canon must live at the source. Validator strings that name forbidden legacy text are fine;
-# what must not survive is executable old canon or a post-hoc rewrite dependency.
 story_text = STORY.read_text(encoding="utf-8")
 for obsolete in ("Hứa Thuý Lan", "2267", "Black Blood"):
     if obsolete in story_text:
@@ -70,7 +64,7 @@ companion_patch_text = COMPANION_PATCH.read_text(encoding="utf-8")
 if 'story.pop("kaiPrivateObjective"' in companion_patch_text or 'story["officialMission"].update' in companion_patch_text:
     raise RuntimeError("companion_patch_must_not_rewrite_campaign_canon")
 
-# Persist typed StoryState inside authoritative GameState. This feature adds no old-save migration path.
+# Persist typed StoryState. No migration branch is added for this New Game feature.
 game_state = GAME_STATE.read_text(encoding="utf-8")
 if "val story: StoryState" not in game_state:
     game_state = replace_once(
@@ -104,16 +98,20 @@ if 'story = root.optJSONObject("story")?.let(StoryStateJson::decode)' not in cod
     codec = codec[:decode_start] + block + codec[decode_end:]
 CODEC.write_text(codec, encoding="utf-8")
 
-# GameCoreFacade owns the plan and is the only component that advances quest state.
+# Final facade at this point already owns LevelCatalog, BackroomsDirector and WorldDirector.
 facade = FACADE.read_text(encoding="utf-8")
 if "private val storyQuestPlan: StoryQuestPlan" not in facade:
     facade = replace_once(
         facade,
         '''  private val levelRegistry: LevelRegistry,
-  private val backroomsDirector: BackroomsDirector
+  private val levelCatalog: LevelCatalog,
+  private val backroomsDirector: BackroomsDirector,
+  private val worldDirector: WorldDirector
 ) : AutoCloseable {''',
         '''  private val levelRegistry: LevelRegistry,
+  private val levelCatalog: LevelCatalog,
   private val backroomsDirector: BackroomsDirector,
+  private val worldDirector: WorldDirector,
   private val storyQuestPlan: StoryQuestPlan
 ) : AutoCloseable {''',
         "story quest facade constructor",
@@ -132,10 +130,14 @@ if "private val storyQuestPlan: StoryQuestPlan" not in facade:
     facade = replace_once(
         facade,
         '''        AndroidLevelRegistry.load(appContext),
-        BackroomsDirector.liteRT(appContext)
+        AndroidLevelCatalog.load(appContext),
+        BackroomsDirector.liteRT(appContext),
+        WorldDirector.liteRT(appContext)
 ''',
         '''        AndroidLevelRegistry.load(appContext),
+        AndroidLevelCatalog.load(appContext),
         BackroomsDirector.liteRT(appContext),
+        WorldDirector.liteRT(appContext),
         AndroidStoryQuestPlan.load(appContext)
 ''',
         "story quest plan app factory",
