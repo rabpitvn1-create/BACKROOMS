@@ -65,6 +65,7 @@ SCRIPTS = [
     "patch-story-owned-companion-continuity.py",
     "patch-story-companion-runtime-invariants.py",
     "patch-story-quest-state-level0-1.py",
+    "patch-story-prologue-authority-final.py",
 ]
 
 for script in SCRIPTS:
