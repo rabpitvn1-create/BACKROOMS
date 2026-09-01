@@ -62,6 +62,7 @@ SCRIPTS = [
     "patch-world-director-proposal-boundary.py",
     "patch-pending-turn-idempotent-rng.py",
     "patch-main-story-level0-1.py",
+    "patch-story-campaign-fallback-cleanup.py",
     "patch-story-owned-companion-continuity.py",
 ]
 
