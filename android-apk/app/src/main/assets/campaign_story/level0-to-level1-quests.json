@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "planId": "QUEST_PLAN_LEVEL0_TO_LEVEL1_R01",
+  "storyId": "MAIN_LEVEL0_TO_LEVEL1_R01",
+  "campaignId": "BACKROOMS_FANDOM_LEVELS_0_6_R01",
+  "chapter": {
+    "id": "CHAPTER_01_ASYNC_INVESTIGATION",
+    "title": "Điều tra Async",
+    "act": {
+      "id": "ACT_01_SEPARATED_IN_BACKROOMS",
+      "title": "Bị phân tán trong Backrooms",
+      "quests": [
+        {
+          "id": "QUEST_01_READ_LEVEL_ZERO",
+          "title": "Đọc Level 0",
+          "objectives": [
+            {
+              "id": "OBJ_01_VERIFY_LAYOUT_ANOMALY",
+              "title": "Xác minh sự bất thường của bố cục",
+              "completion": {
+                "type": "EVIDENCE_ANY",
+                "ids": ["e-marker-search", "e-marker-repeat"]
+              }
+            },
+            {
+              "id": "OBJ_02_IDENTIFY_TRANSITION",
+              "title": "Xác định dấu hiệu chuyển tiếp đáng tin",
+              "completion": {
+                "type": "EVIDENCE_ANY",
+                "ids": ["e-transition-search", "e-transition-anomaly"]
+              }
+            },
+            {
+              "id": "OBJ_03_CONFIRM_HUM_DIRECTION",
+              "title": "Đối chiếu tiếng đèn với hướng kiến trúc thay đổi",
+              "completion": {
+                "type": "EVIDENCE_ANY",
+                "ids": ["e-hum-survivor", "e-hum-anomaly"]
+              }
+            },
+            {
+              "id": "OBJ_04_LEAVE_LEVEL_ZERO_CORE",
+              "title": "Theo chuỗi bằng chứng và rời vùng lõi Level 0",
+              "completion": {
+                "type": "LEVEL_ESCAPED",
+                "levelId": "0"
+              }
+            }
+          ]
+        },
+        {
+          "id": "QUEST_02_CROSS_LEVEL_ZERO_REGIONS",
+          "title": "Đi xuyên các vùng của Level 0",
+          "objectives": [
+            {
+              "id": "OBJ_05_REACH_BIOHAZARD_REGION",
+              "title": "Tiến qua các vùng biến dạng tới khu nguy cơ sinh học",
+              "completion": {
+                "type": "ENTER_AREA",
+                "areaId": "0.41"
+              }
+            },
+            {
+              "id": "OBJ_06_REACH_DEEP_REGION",
+              "title": "Vượt áp lực địa hình và tiến tới vùng sâu",
+              "completion": {
+                "type": "ENTER_AREA",
+                "areaId": "0.99"
+              }
+            },
+            {
+              "id": "OBJ_07_REACH_RED_ROOMS",
+              "title": "Đi qua các vùng giao diện và tới Red Rooms",
+              "completion": {
+                "type": "ENTER_AREA",
+                "areaId": "Red Rooms"
+              }
+            },
+            {
+              "id": "OBJ_08_REACH_LEVEL_ONE",
+              "title": "Vượt khỏi hệ vùng Level 0 và tới Level 1",
+              "completion": {
+                "type": "ENTER_AREA",
+                "areaId": "1"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "locks": {
+    "coreOwnsProgression": true,
+    "geminiCannotAdvanceQuest": true,
+    "liteRTCannotAdvanceQuest": true,
+    "oneSignalCompletesAtMostOneObjective": true,
+    "luciaEncounterIsNotQuestObjective": true
+  }
+}
