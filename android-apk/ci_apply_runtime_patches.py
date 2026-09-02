@@ -70,6 +70,7 @@ SCRIPTS = [
     "patch-sru-force-codex.py",
     "patch-action-runtime-terminal-cleanup.py",
     "patch-level-zero-observation-boundary.py",
+    "patch-kai-r08-knowledge-final.py",
 ]
 
 for script in SCRIPTS:
