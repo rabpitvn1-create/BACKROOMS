@@ -32,6 +32,38 @@
       "tags": ["duller"],
       "references": ["ENTITY.GLOBAL_HARD_LOCK"],
       "affordances": ["direct_threat", "trace_analysis"]
+    },
+    {
+      "id": "ENTITY.HOUND.CODEX_R01",
+      "domain": "ENTITY",
+      "kind": "entity-codex",
+      "text": "Hound visual/behavior supplement: externally corroborated descriptions depict a gaunt humanoid adapted to quadrupedal movement, with long dark hair around the head/back, elongated bony limbs, sharp claws and an oversized mouth lined with sharp teeth. It attacks by rushing and mauling at close range and has substantial striking/biting power despite its thin frame. The Wikidot account additionally reports that sustained direct eye contact can intimidate a Hound briefly, but this is a temporary reaction rather than neutrality or taming. Project canon remains authoritative for encounter behavior: Hounds are hostile predators, may hunt in groups, favor injured or isolated humans, pressure prey toward dead ends, can withdraw from strong resistance and return, and in Level 2 may coordinate through narrow corridors and deceptive footstep cues. External claims about eggs, transformation syndromes or bite-borne conversion vary by continuity and are not imported into game canon here.",
+      "source": {
+        "document": "Internet synthesis + repo canon (2026-09-03)",
+        "anchor": "The Backrooms Wikidot — Entity 8 Hound; Backrooms Wiki/Fandom — Entity 8 Hounds; repo canon: ENTITY.HOUND + ENTITY.GLOBAL_HARD_LOCK"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "BASELINE",
+      "priority": 59,
+      "tags": ["hound"],
+      "references": ["ENTITY.HOUND", "ENTITY.GLOBAL_HARD_LOCK"],
+      "affordances": ["direct_threat", "trace_analysis"]
+    },
+    {
+      "id": "ENTITY.FALSE_PUDDLE.CODEX_R01",
+      "domain": "ENTITY",
+      "kind": "entity-codex",
+      "text": "False Puddle visual/behavior supplement: it camouflages as an ordinary flat Almond Water puddle while concealing a deep mouth or pit lined with sharp teeth beneath the liquid surface. External references consistently describe it as stationary: it does not chase prey, but waits on traversed ground for an unaware target to step into or interact with the apparent puddle, then snaps or closes around the victim and pulls/holds them down for consumption. Liquid Pain and sharp metal are repeatedly described as ways to force closure or injure the mouth lining, which agrees with current project canon; however, exact depth measurements differ among external versions and are not fixed here. Project canon also preserves the warning that apparent death can be feigned, so a closed or motionless False Puddle must not automatically be treated as neutralized. Alternate fan continuities that portray False Puddles as benevolent or harmless are incompatible with this game's entity hard lock and are excluded.",
+      "source": {
+        "document": "Internet synthesis + repo canon (2026-09-03)",
+        "anchor": "Backrooms Wiki/Fandom — Level 1 False Puddles; Backrooms Infinity Wiki — False Puddles; repo canon: ENTITY.FALSE_PUDDLE + ENTITY.GLOBAL_HARD_LOCK"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "BASELINE",
+      "priority": 59,
+      "tags": ["false puddle"],
+      "references": ["ENTITY.FALSE_PUDDLE", "ENTITY.GLOBAL_HARD_LOCK"],
+      "affordances": ["direct_threat", "trace_analysis"]
     }
   ]
 }
