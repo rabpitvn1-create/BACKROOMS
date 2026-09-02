@@ -28,4 +28,4 @@ Area `epsilon` (`Incessant Hum-Buzz`) uses `level_epsilon_1.webp` through `level
 
 Area `0.01` (`The Exit ?`) uses `level_0.01_1.webp` through `level_0.01_4.webp` copied byte-for-byte from the project Google Drive folder `Backrooms Level`. All four are 1672x941 WebP originals. Their exact sizes and SHA-256 values are hard-locked in `patch-level-snapshot-backgrounds.py`. The former `area_02_0_01_trusted_01.webp` through `area_02_0_01_trusted_04.webp` assets are removed after replacement.
 
-`fandom_manifest.json` retains the historical Level 0.01 Fandom records for provenance, while runtime loading uses `ORIGINAL_QUALITY_OVERRIDES["0.01"]` as the authoritative packaged pool.
+`fandom_manifest.json` retains the historical Level 0.01 Fandom records for provenance, while runtime loading uses `ORIGINAL_QUALITY_OVERRIDES["0.01"]` as the authoritative packaged pool. This gives `0.01` its own dedicated Snapshot pool instead of inheriting Level 0 imagery through parent fallback.
