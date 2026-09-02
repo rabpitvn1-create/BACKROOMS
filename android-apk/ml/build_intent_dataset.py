@@ -147,6 +147,46 @@ TEST = {
  "UNKNOWN": ["Kai nghiên cứu âm thanh bất thường", "thử mở cánh cửa cuối hành lang", "hỏi Iris về ký ức của cô ấy", "tiếp tục câu chuyện", "Kai chuẩn bị đối phó nguy hiểm"],
 }
 
+# LITERT_DIALOGUE_GUARD_R01
+# Non-mutating dialogue/equipment inquiries and companion tactical commands.
+# Training examples are intentionally paraphrased away from the held-out reproductions below.
+UNKNOWN_TRAIN.extend([
+    "Kai hỏi Lucia cô đang dùng loại súng nào",
+    "Kai hỏi Lucia vũ khí cô mang theo là gì",
+    "Kai muốn biết loại đạn Lucia đang dùng",
+    "Kai hỏi đạn của Lucia có cùng chuẩn với đạn của mình không",
+    "Kai hỏi khẩu súng của Lucia dùng loại đạn nào",
+    "Kai hỏi Lucia còn bao nhiêu đạn",
+    "Kai hỏi Syvial cô đang sử dụng vũ khí gì",
+    "Kai hỏi Iris trang bị cô đang dùng hoạt động thế nào",
+    "Kai hỏi người đồng hành về loại vũ khí họ mang",
+    "Kai hỏi Lucia liệu cô có dư một viên đạn không",
+    "Kai hỏi Lucia có thể chia cho mình một viên đạn hay không",
+    "Kai muốn xin Lucia một ít đạn nhưng mới chỉ hỏi",
+    "bảo Lucia trinh sát phía trước",
+    "Lucia đi do thám hành lang",
+    "yêu cầu Lucia quan sát khu vực phía trước",
+    "bảo Lucia canh cửa",
+    "Lucia kiểm tra góc khuất",
+    "yêu cầu Lucia thăm dò căn phòng",
+    "bảo Iris quan sát khu vực",
+    "yêu cầu Syvial giữ vị trí",
+    "Lucia theo dõi phía sau",
+    "Lucia kiểm tra hành lang trước mặt",
+])
+
+# Held-out regression cases. Do NOT copy these exact sentences into training rows.
+TEST["UNKNOWN"].extend([
+    "Bạn hỏi cô ấy sử dụng súng gì và muốn biết loại đạn cô ấy sử dụng có giống với của mình không",
+    "Bạn hỏi xin cô ấy một viên đạn.",
+    "Bạn yêu cầu Lucia đi Trinh Sát",
+    "Lucia đang dùng loại súng nào vậy?",
+    "Loại đạn cô ấy bắn có cùng chuẩn với súng của tôi không?",
+    "Tôi hỏi Lucia xem cô ấy có thể cho tôi một viên đạn được không.",
+    "Cho Lucia tiến lên do thám khu vực phía trước.",
+    "Bảo Lucia giữ góc hành lang và quan sát.",
+])
+
 def expand_templates():
     rows=[]
     for intent, templates in TEMPLATES.items():
