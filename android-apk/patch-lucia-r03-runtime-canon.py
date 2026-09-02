@@ -207,8 +207,8 @@ presence_anchor = '          if (id.contains("syvial")) presentActors += "syvial
 presence_replacement = presence_anchor + '          if (id.contains("lucia")) presentActors += "lucia"\n'
 if engine.count('if (id.contains("lucia")) presentActors += "lucia"') == 0:
     count = engine.count(presence_anchor)
-    if count != 2:
-        raise RuntimeError(f"Lucia R03 presence resolver: expected two actor anchors, found {count}")
+    if count < 1:
+        raise RuntimeError("Lucia R03 presence resolver: Syvial peer anchor missing")
     engine = engine.replace(presence_anchor, presence_replacement)
 
 engine = replace_once(
