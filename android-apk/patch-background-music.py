@@ -1,9 +1,12 @@
 from pathlib import Path
 import hashlib
+import subprocess
+import sys
 
 ROOT = Path(__file__).resolve().parent
 MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
 BGM = ROOT / "app/src/main/res/raw/backroom_bgm.m4a"
+FETCH = ROOT / "fetch-background-music.py"
 EXPECTED_BGM_BYTES = 4_063_885
 EXPECTED_BGM_SHA256 = "f9eca6ee4c8618d310296b19b0f919c50b0e6c85b6d55f73753cce83bef3cce2"
 
@@ -23,9 +26,15 @@ def sha256(path: Path) -> str:
     return h.hexdigest()
 
 
-if not BGM.is_file():
-    raise RuntimeError("Background music asset is missing; run fetch-background-music.py first")
-if BGM.stat().st_size != EXPECTED_BGM_BYTES or sha256(BGM) != EXPECTED_BGM_SHA256:
+def valid_bgm() -> bool:
+    return BGM.is_file() and BGM.stat().st_size == EXPECTED_BGM_BYTES and sha256(BGM) == EXPECTED_BGM_SHA256
+
+
+if not valid_bgm():
+    if not FETCH.is_file():
+        raise RuntimeError("Background music fetcher is missing")
+    subprocess.run([sys.executable, str(FETCH)], cwd=ROOT, check=True)
+if not valid_bgm():
     raise RuntimeError("Background music asset does not match the pinned Drive source")
 
 main = MAIN.read_text(encoding="utf-8")
