@@ -38,9 +38,10 @@
     "1"
   ],
   "completedSteps": [
-    "PROLOGUE"
+    "PROLOGUE",
+    "0"
   ],
-  "nextStep": "0",
+  "nextStep": "epsilon",
   "globalRules": {
     "sourceReload": "Trước mỗi bước mới phải đọc lại trực tiếp Novel/00_RULES và các nguồn Character/World/Continuity liên quan; không dùng trí nhớ hoặc bản tóm tắt cũ thay nguồn.",
     "survival": "Giữ trọng lượng của đói, khát, mệt, thương tích, nhiễm bẩn, nhiệt độ, đường rút và tài nguyên. Năng lực mạnh của Kai không xóa bài toán môi trường; đồng thời không được làm Kai quên năng lực hoặc trang bị để tạo nguy hiểm giả.",
@@ -65,6 +66,15 @@
       "itemPolicy": "Không cấp loot mới trong prologue; chỉ dùng loadout đã khóa của đội SRU.",
       "relationshipStage": "Lucia chưa có mặt trong prologue và không thuộc nhóm SRU bước qua cổng. Không cài tình cảm Lucia-Kai, không cho Kai nghĩ về Lucia và không nhập cô vào nhiệm vụ Async.",
       "endingState": "Kai ở Level 0 một mình, nhiệm vụ Async còn hiệu lực, vị trí Iris và Syvial UNKNOWN, Lucia chưa materialize."
+    },
+    "0": {
+      "phase": "LEVEL0_FIRST_SURVIVAL_AND_FIXED_ENCOUNTER",
+      "storyUpdate": "Kai bắt đầu đọc The Lobby như một hiện trường chứ không như một mê cung có lời giải sẵn: tường vàng lệch sắc, thảm ẩm, trần thả, tiếng huỳnh quang và các khoảng cách không giữ quan hệ ổn định. Hắn kiểm tra liên lạc, ghi mốc cục bộ, quan sát sự lặp sai của phòng và đối chiếu dấu vật lý trước khi đổi hướng; tiếng ù, cảm giác có chuyển động ngoài tầm nhìn hoặc chi tiết quen thuộc chỉ được giữ ở mức hiện tượng chưa xác nhận, không tự biến thành Entity hay dấu Async. Khi Core kích hoạt fixed encounter hợp lệ của Lucia ở Level 0, hai người gặp nhau như hai survivor có mục tiêu trước mắt tương thích: giữ mạng, kiểm chứng môi trường và tìm tuyến đi sâu hơn. Lucia không được materialize sớm hơn gate, không được gán vào SRU và không tự biết nhiệm vụ Async nếu Kai chưa nói. Sau cuộc gặp, phần truyện chuyển từ sinh tồn đơn độc sang phối hợp thận trọng giữa một đội trưởng SRU có năng lực vượt chuẩn và một nữ binh con người được huấn luyện tốt, trong đó chênh lệch sức mạnh không xóa nhu cầu quản lý nước, đạn, nghỉ, nhiễm bẩn, đường rút và độ tin cậy của bản đồ.",
+      "survivalFocus": "Level 0 gây áp lực bằng mất phương hướng, thiếu nước, thiếu ngủ, tiếng đèn và thảm ẩm hơn là combat. Kai dùng năng lực và thiết bị đúng codex để kiểm tra lớp đầu của vấn đề nhưng không thể ép không gian trở nên tuyến tính. Lucia giữ kỷ luật con người: tiết kiệm đạn, dùng tường làm điểm tựa, mở rộng tìm kiếm có cấu trúc, đánh dấu bằng phấn và dùng laser xanh chỉ để kiểm bề mặt gần. Nếu hai người cùng hiện diện, họ phải duy trì đường quay lui, ghi mốc theo thời điểm và coi mọi dấu cũ là dữ kiện có thể đã hết hạn.",
+      "npcPolicy": "Lucia là fixed story encounter, không tính là survivor ngẫu nhiên. Ngoài Lucia, chỉ kể survivor/NPC khi Core/RNG đã commit encounter trong chính state; người đó có thể chia sẻ ghi chú, cảnh báo hoặc tin đồn nhưng thông tin phải mang mức chắc chắn phù hợp và không tự trở thành bằng chứng về Exit, Async, Iris, Syvial hay Entity.",
+      "itemPolicy": "Không tự sinh loot để cứu tình thế. Almond Water ở Level 0 vẫn rất hiếm; Ceiling Wire và Dry Wallpaper Fiber chỉ có thể được khai thác khi hành động, vị trí và Core/world-loot cho phép. Không uống nước thấm trong thảm. Không kể Kai hoặc Lucia đã nhận vật phẩm chỉ vì vật đó hợp Level; mọi vật phẩm phải đi qua kết quả loot/inventory hiện hành.",
+      "relationshipStage": "SEED_OF_TRUST. Tình cảm lãng mạn chưa được tuyên bố hay tự nhận diện thành lời. Sau khi Core materialize Lucia và hai người thực sự có thời gian phối hợp, nền tảng đầu tiên chỉ là sự chú ý và thiện cảm có lý do: Lucia có thể bắt đầu đánh giá cao việc Kai vẫn đọc bằng chứng, tôn trọng năng lực của cô và không biến chênh lệch sức mạnh thành quyền quyết định hộ cô; Kai ghi nhận Lucia là người có phương pháp, biết tiết kiệm tài nguyên và không nói chắc khi bằng chứng chưa đủ. Đây là mầm quan hệ, không phải bằng chứng rằng Lucia đã yêu hoặc Kai đã biết cô thích mình. Xưng hô tiếp tục OPEN.",
+      "endingState": "Bước Level 0 được khóa như giai đoạn sống sót, kiểm chứng và thiết lập khả năng phối hợp. Kai vẫn chưa biết vị trí Iris/Syvial và chưa có bằng chứng mới về Async nếu Core chưa surface. Lucia chỉ trở thành bạn đồng hành nếu fixed encounter đã được Core commit; route kế tiếp vẫn là epsilon, không nhảy thẳng sang Level 1."
     }
   }
 }
