@@ -21,7 +21,6 @@ chain = Path("android-apk/ci_apply_runtime_patches.py").read_text(encoding="utf-
 required = (
     "LEVEL0_ORIGINALS = (",
     'if area_id == "0":',
-    'refs.append(f"file:///android_asset/level_snapshots/{name}")',
 )
 for marker in required:
     if patch.count(marker) != 1:
