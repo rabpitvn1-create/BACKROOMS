@@ -3,6 +3,7 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parent
+AUDIT_RUNNER = ROOT / "ci_patch_audit_runner.py"
 
 SCRIPTS = [
     "patch-provider-status.py",
@@ -79,9 +80,16 @@ SCRIPTS = [
     "patch-background-music.py",
 ]
 
+if not AUDIT_RUNNER.is_file():
+    raise SystemExit(f"Missing runtime patch audit runner: {AUDIT_RUNNER.name}")
+
 for script in SCRIPTS:
     path = ROOT / script
     if not path.is_file():
         raise SystemExit(f"Missing runtime patch script: {script}")
     print(f"==> {script}", flush=True)
-    subprocess.run([sys.executable, str(path)], cwd=ROOT.parent, check=True)
+    subprocess.run(
+        [sys.executable, str(AUDIT_RUNNER), str(path)],
+        cwd=ROOT.parent,
+        check=True,
+    )
