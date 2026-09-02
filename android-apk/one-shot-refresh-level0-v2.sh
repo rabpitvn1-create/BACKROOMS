@@ -36,7 +36,12 @@ text = text.replace(old, new, 1)
 rm_line = 'git rm android-apk/one-shot-refresh-level0.sh\n'
 if text.count(rm_line) != 1:
     raise SystemExit(f"Unexpected one-shot self-delete line count: {text.count(rm_line)}")
-text = text.replace(rm_line, rm_line + 'git rm android-apk/one-shot-refresh-level0-v2.sh\n', 1)
+text = text.replace(
+    rm_line,
+    'git rm -f android-apk/one-shot-refresh-level0.sh\n'
+    'git rm android-apk/one-shot-refresh-level0-v2.sh\n',
+    1,
+)
 path.write_text(text, encoding="utf-8")
 PY
 
