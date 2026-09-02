@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
-"""Build the seed dataset for the on-device WorldDirector proposal policy.
+"""Build the synthetic seed dataset for the on-device WorldDirector proposal policy.
 
-The model never sees Level IDs, zone IDs, escape/transition tags, puzzle answers, evidence IDs,
-required facts/actions, inventory contents, or Entity identities. Core computes the legal proposal
-set first; LiteRT only ranks broad pressure classes inside that set.
+This dataset belongs only to WORLD_DIRECTOR_PRESSURE_V1. The model never sees Level IDs, zone IDs,
+escape/transition tags, puzzle answers, evidence IDs, required facts/actions, inventory contents, or
+Entity identities. Core computes the legal proposal set first; LiteRT only ranks broad pressure
+classes inside that set.
 """
 import csv
 from pathlib import Path
 
 OUT = Path(__file__).with_name("director_dataset.csv")
+LABELS_PATH = Path(__file__).parents[1] / "app/src/main/assets/models/backrooms_director_labels.txt"
+WORLD_DIRECTOR_LABELS = ("NONE", "MAZE_PRESSURE", "ENTITY_PRESSURE", "ITEM_OPPORTUNITY")
 
 ZONES = [
     "zone_loop",
@@ -38,7 +41,18 @@ def add(rows, label, action, visit, candidates, *, recent="recent_move", repeats
         rows.append({"text": " ".join(tokens), "intent": label, "split": split})
 
 
+def validate_label_contract():
+    labels = tuple(line.strip() for line in LABELS_PATH.read_text(encoding="utf-8").splitlines() if line.strip())
+    if labels != WORLD_DIRECTOR_LABELS:
+        raise SystemExit(
+            "WorldDirector label contract mismatch: "
+            f"expected={WORLD_DIRECTOR_LABELS!r} actual={labels!r}. "
+            "Evidence-source labels/telemetry must use a separate model contract."
+        )
+
+
 def main():
+    validate_label_contract()
     rows = []
 
     # NONE is the safe abstention class. EXECUTE never asks the director to create world pressure,
@@ -71,9 +85,8 @@ def main():
         writer.writeheader()
         writer.writerows(rows)
 
-    labels = ("NONE", "MAZE_PRESSURE", "ENTITY_PRESSURE", "ITEM_OPPORTUNITY")
-    counts = {label: sum(1 for row in rows if row["intent"] == label) for label in labels}
-    print({"rows": len(rows), "counts": counts, "output": str(OUT)})
+    counts = {label: sum(1 for row in rows if row["intent"] == label) for label in WORLD_DIRECTOR_LABELS}
+    print({"contract": "WORLD_DIRECTOR_PRESSURE_V1", "rows": len(rows), "counts": counts, "output": str(OUT)})
 
 
 if __name__ == "__main__":

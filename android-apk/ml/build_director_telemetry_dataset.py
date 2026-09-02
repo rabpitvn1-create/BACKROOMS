@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
-"""Convert an exported BackroomsDirector JSONL trace into a safe offline CSV.
+"""Validate/export BackroomsDirector evidence-selection telemetry as a safe offline CSV.
 
-This is intentionally not a reward model or an automatic retraining step. It preserves outcome
-signals so later experiments can derive labels without giving gameplay telemetry puzzle authority.
+IMPORTANT CONTRACT BOUNDARY:
+This telemetry belongs to deterministic registered-Level evidence selection (SEARCH / ENVIRONMENT /
+ANOMALY / SURVIVOR). The production LiteRT asset was retargeted by PR #174 to WorldDirector
+pressure proposals (NONE / MAZE_PRESSURE / ENTITY_PRESSURE / ITEM_OPPORTUNITY). Therefore this
+script intentionally does NOT derive WorldDirector labels, rewards, or a production training dataset.
+A future evidence-selector experiment may consume this CSV under a separate model/label contract.
 """
 import argparse
 import csv
@@ -56,7 +60,7 @@ def main():
         writer = csv.DictWriter(handle, fieldnames=FIELDS)
         writer.writeheader()
         writer.writerows(rows)
-    print({"rows": len(rows), "output": str(args.output)})
+    print({"contract": "BACKROOMS_EVIDENCE_TELEMETRY_V1", "rows": len(rows), "output": str(args.output)})
 
 
 if __name__ == "__main__":

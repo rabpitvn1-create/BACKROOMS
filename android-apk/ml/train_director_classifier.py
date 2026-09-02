@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Train/export the tiny hashed-feature classifier used by LiteRTBackroomsDirectorPolicy."""
+"""Train/export the tiny hashed-feature classifier used by LiteRTWorldDirectorPolicy.
+
+Contract: this trainer is ONLY for WorldDirector pressure proposals:
+NONE / MAZE_PRESSURE / ENTITY_PRESSURE / ITEM_OPPORTUNITY.
+BackroomsDirector evidence-selection telemetry uses a different semantic contract and must never be
+adapted into these labels by heuristic mapping.
+"""
 import argparse
 import csv
 import json
@@ -9,6 +15,7 @@ import re
 import numpy as np
 
 FEATURES = 4096
+EXPECTED_LABELS = ["NONE", "MAZE_PRESSURE", "ENTITY_PRESSURE", "ITEM_OPPORTUNITY"]
 # Keep underscore-bearing structured feature tokens intact, matching the Kotlin tokenizer.
 TOKEN = re.compile(r"[\w]+", re.UNICODE)
 
@@ -46,7 +53,24 @@ def main():
     from sklearn.linear_model import LogisticRegression
 
     labels = [line.strip() for line in pathlib.Path(args.labels).read_text().splitlines() if line.strip()]
+    if labels != EXPECTED_LABELS:
+        raise SystemExit(
+            "WorldDirector label contract mismatch: "
+            f"expected={EXPECTED_LABELS!r} actual={labels!r}. "
+            "Do not feed BackroomsDirector evidence labels/telemetry into this trainer."
+        )
+
     rows = list(csv.DictReader(pathlib.Path(args.dataset).open(encoding="utf-8")))
+    required_columns = {"text", "intent", "split"}
+    if not rows or not required_columns.issubset(rows[0]):
+        raise SystemExit("WorldDirector dataset must contain text,intent,split columns")
+    dataset_labels = {row["intent"] for row in rows}
+    if dataset_labels != set(EXPECTED_LABELS):
+        raise SystemExit(
+            "WorldDirector dataset label contract mismatch: "
+            f"expected={sorted(EXPECTED_LABELS)!r} actual={sorted(dataset_labels)!r}"
+        )
+
     train = [row for row in rows if row["split"] == "train"]
     test = [row for row in rows if row["split"] == "test"]
     if not train or not test:
@@ -116,6 +140,7 @@ def main():
         )
 
     report = {
+        "contract": "WORLD_DIRECTOR_PRESSURE_V1",
         "test_accuracy": exported_accuracy,
         "high_confidence_coverage": coverage,
         "accepted_accuracy": accepted_accuracy,
