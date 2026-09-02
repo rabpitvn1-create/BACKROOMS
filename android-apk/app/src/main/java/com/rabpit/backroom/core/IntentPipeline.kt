@@ -47,8 +47,23 @@ object CommandSafety {
   private val observation = Regex("(?:nhìn|thấy|quan sát|nghe).{0,40}(?:nhặt|lấy|bỏ|cất|đưa|dùng)", RegexOption.IGNORE_CASE)
   private val quote = Regex("[\"“”][^\"“”]*(?:nhặt|lấy|bỏ|cất|đưa|dùng|quét|copy|hoàn nguyên|tạo thêm)[^\"“”]*[\"“”]", RegexOption.IGNORE_CASE)
   private val hypotheticalQuestion = Regex("^(?:nếu|liệu|có nên|có thể).*[?？]?$", RegexOption.IGNORE_CASE)
+  // LITERT_DIALOGUE_GUARD_R01:
+  // Questions about weapons/ammunition and requests that are still speech must never become
+  // authoritative inventory mutations merely because they contain words such as "dùng" or "sử dụng".
+  private val nonMutatingItemInquiry = Regex(
+    """(?:^|\s)(?:hỏi|muốn\s+biết|xin\s+hỏi|thắc\s+mắc).{0,140}(?:súng|đạn|vũ\s+khí|trang\s+bị|dùng|sử\s+dụng|xin|cho)|""" +
+      """(?:súng|đạn|vũ\s+khí|trang\s+bị).{0,100}(?:gì|nào|bao\s+nhiêu|có\s+giống|giống.*không|thế\s+nào)""",
+    RegexOption.IGNORE_CASE
+  )
+  private val companionTacticalCommand = Regex(
+    """(?:^|\s)(?:yêu\s+cầu|bảo|cho)?\s*(?:lucia|iris|syvial|an\s+nhiên).{0,60}""" +
+      """(?:trinh\s+sát|do\s+thám|thăm\s+dò|quan\s+sát|canh|giữ\s+vị\s+trí|kiểm\s+tra|theo\s+dõi)""",
+    RegexOption.IGNORE_CASE
+  )
 
   fun rejectionReason(text: String): String? = when {
+    nonMutatingItemInquiry.containsMatchIn(text) -> "non_mutating_item_inquiry"
+    companionTacticalCommand.containsMatchIn(text) -> "companion_tactical_command"
     negative.containsMatchIn(text) -> "negated_action"
     memory.containsMatchIn(text) -> "memory_or_hypothetical"
     observation.containsMatchIn(text) -> "observed_narrative"
@@ -67,7 +82,7 @@ class RuleIntentInterpreter : IntentInterpreter {
     Rule(GameIntent.OMNIVAULT_SCAN, Regex("(?:quét|scan)(?:\\s|$)", RegexOption.IGNORE_CASE)),
     Rule(GameIntent.OMNIVAULT_COPY, Regex("(?:sao chép|copy|nhân bản|tạo thêm|tạo ra thêm|nhân thêm)(?:\\s|$)", RegexOption.IGNORE_CASE)),
     Rule(GameIntent.OMNIVAULT_RESTORE, Regex("(?:hoàn nguyên|restore|khôi phục vật)(?:\\s|$)", RegexOption.IGNORE_CASE)),
-    Rule(GameIntent.TRANSFER_ITEM, Regex("(?i:đưa|trao|chuyển)(?:.*(?i:cho|sang)\\s+\\p{L}+|\\s+\\p{Lu}\\p{L}+)") ),
+    Rule(GameIntent.TRANSFER_ITEM, Regex("(?i:đưa|trao|chuyển)(?:.*(?i:cho|sang)\\s+\\p{L}+|\\s+\\p{Lu}\\p{L}+)" ) ),
     Rule(GameIntent.PICKUP_ITEM, Regex("(?:^|\\s)(?:nhặt|lượm|cầm lên|lấy lên)(?:\\s|$)", RegexOption.IGNORE_CASE)),
     Rule(GameIntent.DROP_ITEM, Regex("(?:^|\\s)(?:vứt|thả|bỏ xuống)(?:\\s|$)", RegexOption.IGNORE_CASE)),
     Rule(GameIntent.USE_ITEM, Regex("(?:^|\\s)(?:dùng|sử dụng|uống|ăn)(?:\\s|$)", RegexOption.IGNORE_CASE)),
