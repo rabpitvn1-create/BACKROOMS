@@ -67,6 +67,7 @@ SCRIPTS = [
     "patch-story-quest-state-level0-1.py",
     "patch-story-prologue-authority-final.py",
     "patch-dialogue-prose-runtime.py",
+    "patch-sru-force-codex.py",
 ]
 
 for script in SCRIPTS:

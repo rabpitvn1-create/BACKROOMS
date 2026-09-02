@@ -1,0 +1,29 @@
+SRU — SPECIAL RESPONSE UNIT / LỰC LƯỢNG PHẢN ỨNG ĐẶC BIỆT
+CANON ID: SRU-FORCE-2299-R01
+STATUS: CURRENT / USER-LOCKED GAME CANON
+SCOPE: SRU organization lore, operational doctrine and Kai's command context in origin era 2299.
+
+BEGIN_RUNTIME_CANON
+SRU — Special Response Unit / Lực lượng Phản ứng Đặc biệt — là đơn vị phản ứng hiện trường trực thuộc lực lượng Cảnh Sát chống hiện tượng dị thường trong thời đại năm 2299. SRU được thành lập để xử lý các sự cố mà lực lượng cảnh sát thông thường, đội chống khủng bố hoặc quy trình bắt giữ tiêu chuẩn không còn đủ khả năng giải quyết, đặc biệt là thực thể phi nhân, không gian biến dạng, hiện tượng siêu nhiên và các mối đe dọa dị thường đang diễn ra.
+
+SRU không phải đơn vị nghiên cứu ngồi phân loại hồ sơ sau sự kiện. Nhiệm vụ của họ bắt đầu khi hiện trường vẫn còn nguy hiểm: phong tỏa khu vực, sơ tán dân thường, xác định mối đe dọa, cứu người mắc kẹt, giữ đường rút và vô hiệu hóa mục tiêu khi không còn phương án khống chế an toàn. Khi một sự cố vượt khỏi khả năng của hỏa lực, chiến thuật hoặc kiến thức thông thường, SRU là lực lượng được điều tới để trực tiếp can thiệp.
+
+Kai Akechi / Twilight giữ chức Đội trưởng SRU. Hồ sơ SRU công khai phân loại Kai là con người; mọi dữ kiện về bản chất bán nhân / bán quỷ và huyết thống của hắn vẫn chịu KNOWLEDGE LOCK riêng. Trong tác chiến, Kai thường đảm nhiệm phần nguy hiểm nhất của tuyến tiếp cận: mở đường vào vùng nhiễm, giữ chân mục tiêu cấp cao, bảo vệ hành lang sơ tán hoặc tạo khoảng trống để đồng đội và dân thường rút ra. Quyền chỉ huy của Kai không biến SRU thành đơn vị chỉ có thể hoạt động khi hắn trực tiếp có mặt.
+
+Cơ cấu SRU sử dụng các tổ nhỏ đủ độc lập để tiếp tục nhiệm vụ khi liên lạc với chỉ huy hoặc trung tâm bị cắt. Một tổ có thể bao gồm nhân sự chiến đấu, trinh sát, cứu hộ-y tế và kỹ thuật dị thường tùy nhiệm vụ. Thành viên được phép thay đổi chiến thuật tại chỗ nếu điều kiện thực tế khác báo cáo ban đầu. Học thuyết SRU ưu tiên giảm thương vong, bảo vệ dân thường, giữ khả năng rút lui và duy trì năng lực chiến đấu của đội hơn việc thu hồi mẫu vật, bảo vệ tài sản hoặc giữ thể diện cho cấp hành chính.
+
+SRU không yêu cầu nhân sự tiếp tục thực hiện một mệnh lệnh đã trở nên rõ ràng là vô trách nhiệm chỉ để bảo toàn hình thức chỉ huy. Người ra quyết định phải chấp nhận rằng điều kiện dị thường có thể làm tình báo ban đầu sai, vô hiệu hóa tuyến rút hoặc thay đổi bản chất của mục tiêu. Vì vậy, quyền phán đoán tại hiện trường là một phần chính thức của học thuyết đơn vị chứ không phải hành vi bất tuân mặc định.
+
+Dòng SRU-MK20 là powered armor / exoskeleton nhận diện tiêu biểu của SRU, với nền đen–gunmetal và đánh dấu POLICE / SRU / SPECIAL RESPONSE UNIT. Kai sử dụng SRU-MK20 cùng SRU-SG Shotgun trong cấu hình chiến đấu hiện hành. Trang bị của từng thành viên có thể khác theo vai trò; việc Kai sở hữu năng lực và thiết bị đặc biệt không được dùng để suy rằng mọi nhân sự SRU có cùng cấp chiến lực hoặc cùng cơ chế trang bị.
+
+Trong nội bộ lực lượng năm 2299, SRU nổi tiếng là đơn vị đắt đỏ, khó chuẩn hóa và thường gây khó chịu cho bộ phận hành chính vì họ đặt điều kiện hiện trường lên trên thủ tục. Tuy nhiên, vai trò của đơn vị rất rõ: khi hiện trường vẫn còn người cần cứu và mối đe dọa đã vượt khỏi giới hạn của lực lượng thông thường, SRU là lực lượng bước vào trước.
+END_RUNTIME_CANON
+
+CANON LOCKS
+- SRU thuộc Cảnh Sát chống hiện tượng dị thường, không thuộc Vatican / Black Blood trong continuity hiện hành.
+- Kai là Đội trưởng SRU.
+- Hồ sơ công khai của SRU coi Kai là con người; bí mật huyết thống của Kai không tự động trở thành kiến thức NPC.
+- SRU là lực lượng phản ứng hiện trường, không phải tổ chức nghiên cứu toàn tri hoặc cơ quan có quyền năng tuyệt đối.
+- Tổ SRU phải có khả năng tiếp tục hoạt động khi Kai bị tách khỏi đội hình.
+- Ưu tiên tác chiến: dân thường và thương vong -> đường rút / khả năng sống sót của đội -> vô hiệu hóa mối đe dọa -> mục tiêu vật chất hoặc hành chính.
+- SRU-MK20 là nhận diện powered armor tiêu biểu; Kai hiện dùng SRU-MK20 và SRU-SG Shotgun.
