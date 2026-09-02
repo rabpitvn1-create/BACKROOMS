@@ -47,7 +47,7 @@ luna_http = r'''  private String postJsonLunaFast(String endpoint, String key, S
     HttpURLConnection connection = (HttpURLConnection) new URL(endpoint).openConnection();
     connection.setRequestMethod("POST");
     connection.setConnectTimeout(12000);
-    connection.setReadTimeout(12000);
+    connection.setReadTimeout(30000);
     connection.setDoOutput(true);
     connection.setRequestProperty("Content-Type", "application/json");
     connection.setRequestProperty(authHeader, authHeader.equals("Authorization") ? "Bearer " + key : key);
@@ -99,7 +99,7 @@ replace_once(
 for required in [
     "private String postJsonLunaFast(",
     "setConnectTimeout(12000)",
-    "setReadTimeout(12000)",
+    "setReadTimeout(30000)",
     "setReadTimeout(18000)",
     'new JSONObject().put("thinkingLevel", "low")',
     'emit("backroomProvider", "Gemini K" + (lastGeminiWorker + 1))',
@@ -113,4 +113,4 @@ if '.put("temperature", temperature)' in policy:
     raise RuntimeError("Gemini 3.6 text policy still sends deprecated temperature")
 
 MAIN.write_text(text, encoding="utf-8")
-print("Android provider runtime: Gemini 3.6 LOW thinking, 18s read timeout, one request per key, then one 12s Luna fallback.")
+print("Android provider runtime: Gemini matrix stays bounded; Luna fallback now allows a 30s read window after recent provider latency exceeded 12s.")

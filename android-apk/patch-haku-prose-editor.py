@@ -17,7 +17,7 @@ helper = r'''  private String postJsonHaku(JSONObject payload) throws Exception 
     HttpURLConnection connection = (HttpURLConnection) new URL("https://api.vilao.ai/v1/chat/completions").openConnection();
     connection.setRequestMethod("POST");
     connection.setConnectTimeout(5000);
-    connection.setReadTimeout(12000);
+    connection.setReadTimeout(30000);
     connection.setDoOutput(true);
     connection.setRequestProperty("Content-Type", "application/json");
     connection.setRequestProperty("Accept", "application/json");
@@ -116,7 +116,7 @@ for marker in [
     "BuildConfig.HAKU_API_KEY",
     '"claude-haiku-4-5-20251001"',
     "reply = hakuPolishReply(reply);",
-    "setReadTimeout(12000)",
+    "setReadTimeout(30000)",
     "Editing is presentation-only",
 ]:
     if marker not in main:
@@ -126,4 +126,4 @@ if main.count("reply = hakuPolishReply(reply);") != 2:
     raise RuntimeError("Haku prose editor must run at exactly two final Gemini prose boundaries")
 
 MAIN.write_text(main, encoding="utf-8")
-print("Haku prose editor enabled after Gemini: presentation-only, fail-open, state/ops untouched.")
+print("Haku prose editor enabled after Gemini: presentation-only, fail-open, 30s read window, state/ops untouched.")
