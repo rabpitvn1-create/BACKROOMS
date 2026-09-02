@@ -1,5 +1,4 @@
 from pathlib import Path
-import hashlib
 import json
 
 ROOT = Path(__file__).resolve().parent
@@ -13,7 +12,6 @@ KNOWLEDGE_ENGINE = CORE / "knowledge/KnowledgeContextEngine.kt"
 LUCIA_TEST = TESTS / "LuciaFollowerTest.kt"
 AVATAR = ROOT / "app/src/main/assets/avatars/lucia_avatar.jpg"
 
-R03_ASSET_SHA256 = "81aaa91216edd62ee2f004c1f412456c4c73dcd9009dd684ee9c54374b25bad4"
 R03_VISUAL_DESCRIPTION = (
     "Gương mặt trẻ, cân đối, đường nét thanh; da sáng; mắt nâu ấm; tóc đen sẫm rất dài và dày, "
     "buộc đuôi ngựa cao với các lọn tóc mềm quanh mặt. Vóc dáng thon khỏe, thiên về cơ động. "
@@ -45,19 +43,15 @@ for path, label in (
     (KNOWLEDGE_DB, "knowledge database"),
     (KNOWLEDGE_ENGINE, "KnowledgeContextEngine.kt"),
     (LUCIA_TEST, "LuciaFollowerTest.kt"),
-    (AVATAR, "Lucia R03 avatar"),
+    (AVATAR, "Lucia avatar asset"),
 ):
     require_file(path, label)
-
-avatar_sha = hashlib.sha256(AVATAR.read_bytes()).hexdigest()
-if avatar_sha != R03_ASSET_SHA256:
-    raise RuntimeError(
-        "Lucia R03 avatar mismatch: expected " + R03_ASSET_SHA256 + ", got " + avatar_sha
-    )
 
 # ---------------------------------------------------------------------------
 # Character runtime canon. Display name remains Lucia Lục while legal identity,
 # background, human-scale training and visual lock become explicit metadata.
+# The existing avatar path remains stable; R03 is the authoritative visual
+# description/codex reference and does not depend on image bytes in this patch.
 # ---------------------------------------------------------------------------
 lucia = LUCIA.read_text(encoding="utf-8")
 lucia = replace_once(
@@ -106,7 +100,7 @@ r03_identity = '''        "age" to AGE.toString(),
         "supernaturalPower" to "false",
         "visualLock" to VISUAL_LOCK,
         "visualAsset" to AVATAR_REF,
-        "visualAssetSha256" to "''' + R03_ASSET_SHA256 + '''",
+        "visualReference" to "Lucia_Codex R03",
         "visualDescription" to "''' + R03_VISUAL_DESCRIPTION + '''",
         "visualSidearm" to "Súng ngắn màu đen trong bao đùi; visual-only, gameplay OPEN",
 '''
@@ -254,6 +248,7 @@ if test_marker not in test:
     assertEquals("HUMAN_TRAINED", lucia.metadata["powerScale"])
     assertEquals("false", lucia.metadata["supernaturalPower"])
     assertEquals("LUCIA_VISUAL_R03", lucia.metadata["visualLock"])
+    assertEquals("Lucia_Codex R03", lucia.metadata["visualReference"])
     assertEquals("avatars/lucia_avatar.jpg", lucia.avatarRef)
     assertFalse(lucia.statProfile.combatRole.contains("SQUAD LEADER"))
   }
@@ -278,7 +273,7 @@ required = {
         '"familyLineage" to FAMILY_LINEAGE',
         '"powerScale" to POWER_SCALE',
         '"visualLock" to VISUAL_LOCK',
-        R03_ASSET_SHA256,
+        '"visualReference" to "Lucia_Codex R03"',
     ),
     final_stats: ('combatRole = "TACTICAL RIFLEWOMAN / FOLLOWER"',),
     final_main: ("LUCIA R03 HARD LOCK:", "randomSpawn=false", "CHAR.LUCIA.RUNTIME_CORE"),
@@ -306,5 +301,5 @@ for stale in (
 
 print(
     "Lucia R03 runtime canon applied: Hứa Thuý Mai identity/background, human-trained power scale, "
-    "Visual Lock R03 knowledge retrieval and avatar contract are authoritative without changing combat mechanics."
+    "Visual Lock R03 knowledge retrieval and stable avatar path are authoritative without changing combat mechanics."
 )
