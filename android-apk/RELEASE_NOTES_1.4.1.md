@@ -17,7 +17,7 @@ Bản 1.4.1 đóng gói các thay đổi sau v1.4.0, tập trung vào sửa đ�
 - Haku không được thay đổi gameplay state, ops, canon validation, dice, tên riêng, con số, vật phẩm, địa điểm, quan hệ, kết quả, POV, xưng hô hay ý nghĩa lời thoại.
 - Registered-Level narration chỉ gửi phần prose tự do qua Haku sau khi claim đã được xác thực; exact surfaced evidence được nối lại sau đó và không đi qua editor.
 - Editor fail-open: timeout, provider error hoặc output không hợp lệ sẽ giữ nguyên prose Gemini, không fail turn và không reroll gameplay.
-- CI có Haku API smoke test trước runtime patch chain để bắt lỗi secret/provider sớm hơn thay vì để tới lúc người dùng mở game mới phát hiện, một truyền thống phần mềm đáng buồn nhưng phổ biến.
+- CI có Haku API smoke test trước runtime patch chain để phát hiện sớm lỗi secret/provider.
 
 ## Phiên bản và phát hành
 
