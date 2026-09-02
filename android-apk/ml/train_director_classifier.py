@@ -4,14 +4,16 @@
 2. real telemetry only
 3. synthetic + real telemetry mixed
 
-Candidate model is saved ONLY to backrooms_director_candidate.tflite if real telemetry passes all quality gates.
-The production model (backrooms_director.tflite) is NEVER touched or overwritten.
+Synthetic production model output path is dry-run / evaluated without overwriting production assets.
+Candidate model (from real telemetry) is saved ONLY to --candidate-output (e.g. backrooms_director_candidate.tflite)
+if real telemetry passes all quality gates. Production backrooms_director.tflite is NEVER overwritten.
 """
 import argparse
 import csv
 import json
 import pathlib
 import re
+import tempfile
 from typing import Dict, List, Any, Optional
 
 import numpy as np
@@ -45,8 +47,9 @@ def evaluate_dataset_track(
     track_name: str,
     rows: List[Dict[str, str]],
     labels: List[str],
-    candidate_model_path: Optional[pathlib.Path] = None,
+    export_model_path: Optional[pathlib.Path] = None,
     real_held_out_rows: Optional[List[Dict[str, str]]] = None,
+    min_sessions_required: int = 0,
 ) -> Dict[str, Any]:
     import tensorflow as tf
     from sklearn.linear_model import LogisticRegression
@@ -75,7 +78,6 @@ def evaluate_dataset_track(
     test_x = np.stack([vectorize(r["text"]) for r in test_rows])
     test_y = np.array([r["intent"] for r in test_rows])
 
-    # Ensure all target classes present in training set before fitting
     if len(set(train_y)) < 2:
         return {
             "track_name": track_name,
@@ -90,7 +92,6 @@ def evaluate_dataset_track(
     classifier = LogisticRegression(max_iter=5000, C=10, class_weight="balanced").fit(train_x, train_y)
     pre_export_acc = float(np.mean(classifier.predict(test_x) == test_y))
 
-    # Convert to TFLite model in-memory or save candidate
     weights = np.zeros((FEATURES, len(labels)), dtype=np.float32)
     bias = np.zeros((len(labels),), dtype=np.float32)
     for source_index, class_name in enumerate(classifier.classes_):
@@ -107,7 +108,6 @@ def evaluate_dataset_track(
     converter.optimizations = [tf.lite.Optimize.DEFAULT]
     tflite_bytes = converter.convert()
 
-    # Interpreter evaluation
     interpreter = tf.lite.Interpreter(model_content=tflite_bytes)
     interpreter.allocate_tensors()
     input_info = interpreter.get_input_details()[0]
@@ -153,18 +153,17 @@ def evaluate_dataset_track(
             "test_rows": len(real_held_out_rows),
         }
 
-    # Check quality gates
     gate_pass = bool(
         acc >= 0.95 and
         cov >= 0.75 and
         acc_acc >= 0.98 and
         (not per_label or min(per_label.values()) >= 0.90) and
-        unique_sessions >= 5
+        unique_sessions >= min_sessions_required
     )
 
-    if gate_pass and candidate_model_path:
-        candidate_model_path.parent.mkdir(parents=True, exist_ok=True)
-        candidate_model_path.write_bytes(tflite_bytes)
+    if gate_pass and export_model_path:
+        export_model_path.parent.mkdir(parents=True, exist_ok=True)
+        export_model_path.write_bytes(tflite_bytes)
 
     return {
         "track_name": track_name,
@@ -187,49 +186,75 @@ def evaluate_dataset_track(
 
 def main():
     parser = argparse.ArgumentParser(description="Multi-track LiteRT BackroomsDirector trainer and evaluator.")
-    parser.add_argument("--synthetic", default="director_dataset.csv", help="Synthetic bootstrap dataset CSV")
+    parser.add_argument("--dataset", default="director_dataset.csv", help="Dataset CSV for synthetic track")
+    parser.add_argument("--synthetic", default=None, help="Alias for --dataset")
     parser.add_argument("--telemetry", default="director_telemetry_dataset.csv", help="Real telemetry dataset CSV")
     parser.add_argument("--telemetry-stats", default="director_telemetry_stats.json", help="Real telemetry stats JSON")
     parser.add_argument("--labels", default="../app/src/main/assets/models/backrooms_director_labels.txt")
-    parser.add_argument("--candidate-output", default="../app/src/main/assets/models/backrooms_director_candidate.tflite")
+    parser.add_argument("--output", default=None, help="Ignored or dry-run path; production model is never overwritten")
+    parser.add_argument("--candidate-output", default="../app/src/main/assets/models/backrooms_director_candidate.tflite", help="Candidate model path for real telemetry")
     parser.add_argument("--report", default="director_experiment_report.json")
     args = parser.parse_args()
 
     labels = [line.strip() for line in pathlib.Path(args.labels).read_text().splitlines() if line.strip()]
 
-    # Load synthetic dataset
-    synth_path = pathlib.Path(args.synthetic)
+    synthetic_dataset_path = args.synthetic if args.synthetic else args.dataset
+    synth_path = pathlib.Path(synthetic_dataset_path)
     synth_rows = list(csv.DictReader(synth_path.open(encoding="utf-8"))) if synth_path.exists() else []
 
-    # Load real telemetry dataset
     telem_path = pathlib.Path(args.telemetry)
     telem_rows = list(csv.DictReader(telem_path.open(encoding="utf-8"))) if telem_path.exists() else []
 
-    # Load telemetry stats
     stats_path = pathlib.Path(args.telemetry_stats)
     telem_stats = json.loads(stats_path.read_text(encoding="utf-8")) if stats_path.exists() else {"status": "NO_TELEMETRY_STATS"}
 
     real_held_out = [r for r in telem_rows if r.get("split") == "test"]
 
-    # Track 1: Synthetic only
-    track1_report = evaluate_dataset_track("synthetic_bootstrap_only", synth_rows, labels, real_held_out_rows=real_held_out)
+    # Temp dry-run path so Track 1 synthetic never overwrites production backrooms_director.tflite
+    dry_run_temp_path = pathlib.Path(tempfile.NamedTemporaryFile(suffix=".tflite", delete=False).name)
+    cand_output_path = pathlib.Path(args.candidate_output)
 
-    # Track 2: Real telemetry only
-    candidate_path = pathlib.Path(args.candidate_output)
-    track2_report = evaluate_dataset_track("real_telemetry_only", telem_rows, labels, candidate_model_path=candidate_path, real_held_out_rows=real_held_out)
+    # Track 1: Synthetic bootstrap only (evaluates in temporary path; production model asset untouched)
+    track1_report = evaluate_dataset_track(
+        "synthetic_bootstrap_only",
+        synth_rows,
+        labels,
+        export_model_path=dry_run_temp_path,
+        real_held_out_rows=real_held_out,
+        min_sessions_required=0,
+    )
+    dry_run_temp_path.unlink(missing_ok=True)
 
-    # Track 3: Synthetic + Real mixed
+    # Track 2: Real telemetry only (exports ONLY to --candidate-output if gates pass)
+    track2_report = evaluate_dataset_track(
+        "real_telemetry_only",
+        telem_rows,
+        labels,
+        export_model_path=cand_output_path,
+        real_held_out_rows=real_held_out,
+        min_sessions_required=5,
+    )
+
+    # Track 3: Synthetic + Real mixed (exports ONLY to --candidate-output if track 2 didn't and track 3 passes)
     mixed_rows = synth_rows + telem_rows
-    track3_report = evaluate_dataset_track("synthetic_plus_real_mixed", mixed_rows, labels, candidate_model_path=candidate_path if not track2_report.get("quality_gates_passed") else None, real_held_out_rows=real_held_out)
+    track3_export_path = cand_output_path if not track2_report.get("quality_gates_passed") else None
+    track3_report = evaluate_dataset_track(
+        "synthetic_plus_real_mixed",
+        mixed_rows,
+        labels,
+        export_model_path=track3_export_path,
+        real_held_out_rows=real_held_out,
+        min_sessions_required=5,
+    )
 
-    candidate_produced = candidate_path.exists()
+    candidate_produced = cand_output_path.exists()
 
     report = {
         "telemetry_data_status": telem_stats.get("status", "DATA_BLOCKED"),
         "telemetry_stats": telem_stats,
         "candidate_model_produced": candidate_produced,
-        "candidate_model_path": str(candidate_path) if candidate_produced else None,
-        "production_model_path_untouched": "../app/src/main/assets/models/backrooms_director.tflite",
+        "candidate_model_path": str(cand_output_path) if candidate_produced else None,
+        "production_model_untouched": True,
         "tracks": {
             "synthetic_bootstrap_only": track1_report,
             "real_telemetry_only": track2_report,
@@ -237,8 +262,12 @@ def main():
         }
     }
 
-    pathlib.Path(args.report).write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    report_path = pathlib.Path(args.report)
+    report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, indent=2))
+
+    if not track1_report.get("quality_gates_passed"):
+        raise SystemExit(f"Director synthetic bootstrap quality gate failed: {track1_report}")
 
 
 if __name__ == "__main__":

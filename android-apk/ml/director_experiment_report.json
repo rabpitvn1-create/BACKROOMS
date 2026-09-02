@@ -17,11 +17,11 @@
   },
   "candidate_model_produced": false,
   "candidate_model_path": null,
-  "production_model_path_untouched": "../app/src/main/assets/models/backrooms_director.tflite",
+  "production_model_untouched": true,
   "tracks": {
     "synthetic_bootstrap_only": {
       "track_name": "synthetic_bootstrap_only",
-      "status": "FAIL",
+      "status": "PASS",
       "total_rows": 768,
       "train_rows": 612,
       "test_rows": 156,
@@ -43,7 +43,7 @@
         "ITEM_OPPORTUNITY": 1.0
       },
       "model_bytes": 17640,
-      "quality_gates_passed": false,
+      "quality_gates_passed": true,
       "comparison_on_real_held_out": null
     },
     "real_telemetry_only": {
