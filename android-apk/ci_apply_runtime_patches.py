@@ -10,7 +10,6 @@ SCRIPTS = [
     "patch-level-snapshot-backgrounds.py",
     "patch-snapshot-fallback.py",
     "patch-kai-hd-continuous.py",
-    "patch-kai-png-preferred.py",
     "patch-kai-codex.py",
     "patch-drive-canon-gameplay.py",
     "patch-inventory-persistence.py",
