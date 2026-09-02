@@ -32,8 +32,11 @@ grep -q 'equipmentDetailModal' apk-check/assets/index.html
 grep -q 'renderCharacterStatusEquipment' apk-check/assets/index.html
 grep -q 'characterSkillsModal' apk-check/assets/index.html
 grep -q 'characterSkillsButton' apk-check/assets/index.html
-grep -q 'EVIDENCE_HIGHLIGHT_V1' apk-check/assets/index.html
-grep -q 'rpg-evidence-badge' apk-check/assets/index.html
+# Observations must blend into ordinary prose, including when loading a save with an old ledger.
+if grep -Eq 'EVIDENCE_HIGHLIGHT_V1|rpg-evidence-badge|evidenceHighlightStyle' apk-check/assets/index.html; then
+  echo 'Packaged APK still exposes evidence highlighting' >&2
+  exit 1
+fi
 
 # TURN remains an internal state key but must not be visible in the player HUD. Escape is resolved
 # from locked Level instances, never from a player-facing percentage meter.
