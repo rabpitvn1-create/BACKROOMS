@@ -70,6 +70,7 @@ SCRIPTS = [
     "patch-action-runtime-terminal-cleanup.py",
     "patch-level-zero-observation-boundary.py",
     "patch-kai-r08-knowledge-final.py",
+    "patch-lucia-r03-runtime-canon.py",
 ]
 
 for script in SCRIPTS:
