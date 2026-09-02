@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "records": [
+    {
+      "id": "ENTITY.CLUMP",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Clump: a bulky mass of human-like limbs adapted to cramped spaces such as vents, pipes, cabinets and narrow recesses. It commonly hunts from concealment, remaining still until prey comes close, then rapidly extending one or more long arms to seize, immobilize and drag the victim toward its central mass or into the confined space where it is hiding. When forced to move it can be unexpectedly fast and can use its many limbs to climb or traverse vents. External references agree on the limb-cluster appearance, close-range ambush/grab tactic and confined-space preference, but disagree on exact reach and speed, so no hard numeric range is canon here. Project hard lock applies: a Clump is never friendly or neutral toward humans.",
+      "source": {
+        "document": "Internet synthesis (2026-09-03)",
+        "anchor": "Backrooms Wiki/Fandom — Entity 5 Clumps; Backrooms Exploration Wiki — Entity 5 Clumps; repo override: ENTITY.GLOBAL_HARD_LOCK"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "BASELINE",
+      "priority": 58,
+      "tags": ["clump"],
+      "references": ["ENTITY.GLOBAL_HARD_LOCK"],
+      "affordances": ["direct_threat", "trace_analysis"]
+    },
+    {
+      "id": "ENTITY.DULLER",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Duller: a tall, elongated dark-gray humanoid with long arms, an unnatural or frail-looking frame and no normal human facial features. External references agree that it can no-clip part of its body through solid walls, especially an arm, to seize prey on the opposite side and drag the victim away; despite its thin appearance it can move quickly and exert substantial strength. External sources conflict on overt behavior: one describes direct avoidance outside its wall-ambush tactic while another describes active stalking and hostility. Project canon therefore resolves only the gameplay boundary, not the disputed behavior: a Duller is never friendly or neutral toward humans, and apparent withdrawal must not be treated as safety. Hallucination/gas abilities, exact body variants and exact reach remain uncommitted because they are not consistently corroborated across the checked sources.",
+      "source": {
+        "document": "Internet synthesis (2026-09-03)",
+        "anchor": "Backrooms Wiki/Fandom — Entity 6 Dullers; The Backrooms Wikidot — Entity 6 Dullers; repo override: ENTITY.GLOBAL_HARD_LOCK"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "BASELINE",
+      "priority": 58,
+      "tags": ["duller"],
+      "references": ["ENTITY.GLOBAL_HARD_LOCK"],
+      "affordances": ["direct_threat", "trace_analysis"]
+    }
+  ]
+}
