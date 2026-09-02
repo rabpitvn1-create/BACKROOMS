@@ -82,7 +82,7 @@ class RuleIntentInterpreter : IntentInterpreter {
     Rule(GameIntent.OMNIVAULT_SCAN, Regex("(?:quét|scan)(?:\\s|$)", RegexOption.IGNORE_CASE)),
     Rule(GameIntent.OMNIVAULT_COPY, Regex("(?:sao chép|copy|nhân bản|tạo thêm|tạo ra thêm|nhân thêm)(?:\\s|$)", RegexOption.IGNORE_CASE)),
     Rule(GameIntent.OMNIVAULT_RESTORE, Regex("(?:hoàn nguyên|restore|khôi phục vật)(?:\\s|$)", RegexOption.IGNORE_CASE)),
-    Rule(GameIntent.TRANSFER_ITEM, Regex("(?i:đưa|trao|chuyển)(?:.*(?i:cho|sang)\\s+\\p{L}+|\\s+\\p{Lu}\\p{L}+)" ) ),
+    Rule(GameIntent.TRANSFER_ITEM, Regex("(?i:đưa|trao|chuyển)(?:.*(?i:cho|sang)\\s+\\p{L}+|\\s+\\p{Lu}\\p{L}+)") ),
     Rule(GameIntent.PICKUP_ITEM, Regex("(?:^|\\s)(?:nhặt|lượm|cầm lên|lấy lên)(?:\\s|$)", RegexOption.IGNORE_CASE)),
     Rule(GameIntent.DROP_ITEM, Regex("(?:^|\\s)(?:vứt|thả|bỏ xuống)(?:\\s|$)", RegexOption.IGNORE_CASE)),
     Rule(GameIntent.USE_ITEM, Regex("(?:^|\\s)(?:dùng|sử dụng|uống|ăn)(?:\\s|$)", RegexOption.IGNORE_CASE)),
