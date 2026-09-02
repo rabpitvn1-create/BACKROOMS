@@ -34,7 +34,7 @@ object RegisteredLevelActionCoordinator {
 
     val definition = registry.require(requestedId)
     var working = if (state.levelInstance?.levelId == requestedId) {
-      state
+      GenericLevelRuntime.install(state, registry, requestedId, runSeed)
     } else {
       val current = state.levelInstance
       val decision = ForwardProgressionPolicy.evaluate(catalog, current?.levelId, current?.completed ?: false, requestedId)
@@ -60,7 +60,7 @@ object RegisteredLevelActionCoordinator {
           index?.let { actions.values.sortedBy { rule -> rule.id }.getOrNull(it)?.id }
         }
       }
-      if (resolvedExecuteActionId == null) {
+      if (resolvedExecuteActionId == null && !isNavigationAttempt(input)) {
         return RegisteredLevelActionResult(state, handled = false)
       }
     }
@@ -122,6 +122,15 @@ object RegisteredLevelActionCoordinator {
 
   fun matchingActions(definition: LevelDefinition, input: String): List<String> =
     matchingActions(definition.actions, input)
+
+  // A movement command that does not match a legal action still belongs to the Level runtime.
+  // Letting it fall through to the writer lets prose cross a boundary without a Core transition.
+  private fun isNavigationAttempt(input: String): Boolean {
+    val text = java.text.Normalizer.normalize(input.lowercase(), java.text.Normalizer.Form.NFD)
+      .replace(Regex("\\p{M}+"), "").replace('đ', 'd').trim()
+    return Regex("^(?:(?:kai(?: akechi)?(?:\\s+(?:va|cung)\\s+(?:lucia|iris|syvial))?|ban|toi|ca hai|ca nhom)\\s+)?(?:(?:se|thu|tiep tuc)\\s+)?(?:di|buoc|chay|tang toc|tien|re|quay lai|bam theo|theo hanh lang|vuot|roi khoi|sang level|qua level|no[ -]?clip)\\b")
+      .containsMatchIn(text)
+  }
 
   fun matchingActions(actions: Map<String, LevelActionRule>, input: String): List<String> {
     val text = input.lowercase()

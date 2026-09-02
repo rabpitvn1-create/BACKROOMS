@@ -4,6 +4,20 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class ForwardProgressionPolicyTest {
+  @Test fun shippedCampaignVisitsEveryLevelZeroAreaBeforeLevelOne() {
+    val file = listOf("src/main/assets", "app/src/main/assets", "android-apk/app/src/main/assets")
+      .map { java.io.File(it, "level_catalog/backrooms-0-6.json") }.first { it.isFile }
+    val shipped = LevelCatalogLoader.load(listOf(LevelCatalogDocument(file.path, file.readText())))
+    val route = listOf("0", "epsilon", "0.01", "0.1", "0.11", "0.22", "0.23", "0.41", "0.5", "0.66", "0.7", "0.8", "0.99", "LS-2", "Dullness", "Red Rooms", "1")
+    route.zipWithNext().forEach { (from, to) ->
+      assertTrue("$from -> $to", ForwardProgressionPolicy.evaluate(shipped, from, true, to).allowed)
+      assertFalse("unfinished $from -> $to", ForwardProgressionPolicy.evaluate(shipped, from, false, to).allowed)
+    }
+    route.dropLast(2).forEach { from ->
+      assertFalse("$from must not skip to 1", ForwardProgressionPolicy.evaluate(shipped, from, true, "1").allowed)
+    }
+  }
+
   private val catalog = LevelCatalogLoader.load(listOf(
     LevelCatalogDocument(
       "level_catalog/test.json",

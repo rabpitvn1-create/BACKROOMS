@@ -123,13 +123,10 @@ helpers = r'''  private boolean sameStringSet(JSONArray left, JSONArray right) {
   }
 
   private String registeredNarrativeFallback(JSONObject resolved) {
-    boolean progressed = resolved.optBoolean("progressed", false);
-    boolean escaped = resolved.optBoolean("escaped", false);
-    StringBuilder grounded = new StringBuilder(
-      escaped ? "Bạn nhận ra mình đã thoát khỏi khu vực hiện tại."
-        : progressed ? "Bạn nhận thấy hành động vừa rồi đã tạo ra một thay đổi có ý nghĩa trong khu vực."
-        : "Bạn quan sát kết quả của hành động vừa thực hiện."
-    );
+    // The Core reply already contains this turn's observations exactly once.
+    String cue = resolved.optString("reply", "").trim();
+    if (!cue.isEmpty()) return cue.replace("Kai", "Bạn");
+    StringBuilder grounded = new StringBuilder("Bạn vẫn ở nguyên khu vực.");
     JSONArray evidenceTexts = resolved.optJSONArray("evidenceTexts");
     if (evidenceTexts != null) {
       for (int i = 0; i < evidenceTexts.length(); i++) {
@@ -144,6 +141,8 @@ helpers = r'''  private boolean sameStringSet(JSONArray left, JSONArray right) {
 
   private String narrateRegisteredOutcome(String actionKind, String action, JSONObject state, JSONObject resolved) {
     String fallback = registeredNarrativeFallback(resolved);
+    // A failed experiment must not become successful movement in free-form prose.
+    if (!resolved.optBoolean("progressed", false)) return fallback;
     try {
       boolean progressed = resolved.optBoolean("progressed", false);
       boolean escaped = resolved.optBoolean("escaped", false);
@@ -176,6 +175,8 @@ helpers = r'''  private boolean sameStringSet(JSONArray left, JSONArray right) {
         + "Giữ đúng giọng nhân vật, quan hệ và cách xưng hô đã có; không biến lời kể thành báo cáo kỹ thuật hoặc câu xác nhận máy móc. "
         + "Không được tạo thêm vật phẩm, Entity/NPC, thương tích, combat outcome, cửa/lối đi, vị trí hay chuyển Level không có trong dữ liệu. "
         + "Không được thay đổi progressed/escaped/location/evidenceIds. "
+        + "Khi areaId là 0 hoặc epsilon, cảnh vẫn là giấy tường vàng, thảm ẩm và đèn huỳnh quang; không dùng gara hay bãi đỗ xe của Level 1. "
+        + "Manh mối chỉ là chi tiết cảm giác: không gọi là bằng chứng, dấu hiệu đúng đường hay kết luận cần làm gì để thoát. "
         + "Không nhắc Core, Engine, blueprint, commit, validator, rule, prompt hoặc ID nội bộ trong reply. "
         + "Không diễn giải hoặc chép lại evidenceTexts trong reply vì ứng dụng sẽ gắn nguyên văn chúng sau phần kể. "
         + "Chỉ trả JSON: {\"reply\":\"...\",\"claims\":{\"progressed\":true|false,\"escaped\":true|false,\"location\":\"...\",\"evidenceIds\":[],\"introducedItem\":false,\"introducedEntity\":false}}.\n"
@@ -186,6 +187,8 @@ helpers = r'''  private boolean sameStringSet(JSONArray left, JSONArray right) {
       JSONObject claims = generated.optJSONObject("claims");
       if (reply.isEmpty() || claims == null) throw new Exception("registered_narrative_shape_invalid");
       if (containsInternalNarrativeTerm(reply)) throw new Exception("registered_narrative_internal_term");
+      if (com.rabpit.backroom.core.LevelNarrativePolicy.contradictsArea(currentStoryAreaId(state), reply))
+        throw new Exception("registered_narrative_area_scenery_mismatch");
       if (claims.optBoolean("progressed", !progressed) != progressed) throw new Exception("registered_narrative_progress_mismatch");
       if (claims.optBoolean("escaped", !escaped) != escaped) throw new Exception("registered_narrative_escape_mismatch");
       if (!claims.optString("location", "").trim().equals(location)) throw new Exception("registered_narrative_location_mismatch");
