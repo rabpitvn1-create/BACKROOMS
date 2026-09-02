@@ -1,0 +1,91 @@
+{
+  "telemetry_data_status": "DATA_BLOCKED",
+  "telemetry_stats": {
+    "status": "DATA_BLOCKED",
+    "message": "No real telemetry data input found.",
+    "total_rows_read": 0,
+    "accepted_rows": 0,
+    "rejections": {
+      "input_missing": 1
+    },
+    "sessions": 0,
+    "splits": {
+      "train": 0,
+      "val": 0,
+      "test": 0
+    }
+  },
+  "candidate_model_produced": false,
+  "candidate_model_path": null,
+  "production_model_path_untouched": "../app/src/main/assets/models/backrooms_director.tflite",
+  "tracks": {
+    "synthetic_bootstrap_only": {
+      "track_name": "synthetic_bootstrap_only",
+      "status": "FAIL",
+      "total_rows": 768,
+      "train_rows": 612,
+      "test_rows": 156,
+      "unique_sessions": 0,
+      "class_distribution": {
+        "NONE": 192,
+        "MAZE_PRESSURE": 192,
+        "ENTITY_PRESSURE": 192,
+        "ITEM_OPPORTUNITY": 192
+      },
+      "pre_export_accuracy": 1.0,
+      "test_accuracy": 1.0,
+      "high_confidence_coverage": 1.0,
+      "accepted_accuracy": 1.0,
+      "per_label_recall": {
+        "NONE": 1.0,
+        "MAZE_PRESSURE": 1.0,
+        "ENTITY_PRESSURE": 1.0,
+        "ITEM_OPPORTUNITY": 1.0
+      },
+      "model_bytes": 17640,
+      "quality_gates_passed": false,
+      "comparison_on_real_held_out": null
+    },
+    "real_telemetry_only": {
+      "track_name": "real_telemetry_only",
+      "status": "DATA_BLOCKED_INSUFFICIENT_ROWS",
+      "total_rows": 0,
+      "train_rows": 0,
+      "test_rows": 0,
+      "unique_sessions": 0,
+      "class_distribution": {
+        "NONE": 0,
+        "MAZE_PRESSURE": 0,
+        "ENTITY_PRESSURE": 0,
+        "ITEM_OPPORTUNITY": 0
+      }
+    },
+    "synthetic_plus_real_mixed": {
+      "track_name": "synthetic_plus_real_mixed",
+      "status": "FAIL",
+      "total_rows": 768,
+      "train_rows": 612,
+      "test_rows": 156,
+      "unique_sessions": 0,
+      "class_distribution": {
+        "NONE": 192,
+        "MAZE_PRESSURE": 192,
+        "ENTITY_PRESSURE": 192,
+        "ITEM_OPPORTUNITY": 192
+      },
+      "pre_export_accuracy": 1.0,
+      "test_accuracy": 1.0,
+      "high_confidence_coverage": 1.0,
+      "accepted_accuracy": 1.0,
+      "per_label_recall": {
+        "NONE": 1.0,
+        "MAZE_PRESSURE": 1.0,
+        "ENTITY_PRESSURE": 1.0,
+        "ITEM_OPPORTUNITY": 1.0
+      },
+      "model_bytes": 17640,
+      "quality_gates_passed": false,
+      "comparison_on_real_held_out": null
+    }
+  }
+}

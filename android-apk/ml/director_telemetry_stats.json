@@ -1,0 +1,15 @@
+{
+  "status": "DATA_BLOCKED",
+  "message": "No real telemetry data input found.",
+  "total_rows_read": 0,
+  "accepted_rows": 0,
+  "rejections": {
+    "input_missing": 1
+  },
+  "sessions": 0,
+  "splits": {
+    "train": 0,
+    "val": 0,
+    "test": 0
+  }
+}
