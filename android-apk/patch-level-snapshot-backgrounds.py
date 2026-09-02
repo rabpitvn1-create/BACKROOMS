@@ -24,6 +24,12 @@ ORIGINAL_QUALITY_OVERRIDES = {
         ("level_0_3.webp", 268618, "7e8cfe0a09b30d932df5a37748c5be51517b51011f320e0835338ab0249e4696"),
         ("level_0_4.webp", 212864, "2b0dbbe6c8f70c5722b97578ebf98207f6ea81b9985afaed2c2f96818ce5cf87"),
     ),
+    "0.01": (
+        ("level_0.01_1.webp", 535304, "59d07f7e8664cf4e24e8e5c95c1ad5d91fbc319af5c6a5a74d5696b8e609d5e9"),
+        ("level_0.01_2.webp", 534180, "cdefc4ece01a7269e7424acd159f25cf0d934d849ef472889aec49abf835da5b"),
+        ("level_0.01_3.webp", 556052, "c03ff0963fb81b9908c847ae4031549a2764fb1bb73fb52702ca3a89b91bdee0"),
+        ("level_0.01_4.webp", 450190, "89da48027b7faba019b9d9450ada63b83776a6a61d79e2baefbc1ba6ae26aee2"),
+    ),
     "epsilon": (
         ("level_epsilon_1.webp", 1647706, "a7270abc3995d7944ae87101e584b5af1d78edfd54f55ae8ee644d14957f0452"),
         ("level_epsilon_2.webp", 1598158, "52fcd023419ae4b1df1d957309479a73a71672184a457deb71b5f6121acf4a23"),
