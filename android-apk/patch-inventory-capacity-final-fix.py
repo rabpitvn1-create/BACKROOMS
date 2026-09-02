@@ -114,7 +114,6 @@ runpy.run_path(str(ROOT / "patch-healing-items-finalize.py"), run_name="__main__
 
 # Lucia combat/scout is the final release-chain layer so it sees the finalized combat and loot state.
 runpy.run_path(str(ROOT / "patch-lucia-combat-scout-finalize.py"), run_name="__main__")
-runpy.run_path(str(ROOT / "patch-lucia-combat-evasion-compat.py"), run_name="__main__")
 
 # Companion skill gameplay/UI wraps the finalized Kai/Diệp Minh/Lucia combat and Character Detail contracts.
 runpy.run_path(str(ROOT / "patch-companion-skills-ui-finalize.py"), run_name="__main__")

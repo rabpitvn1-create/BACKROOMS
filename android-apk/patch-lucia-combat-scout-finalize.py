@@ -3,6 +3,7 @@ import re
 
 ROOT = Path(__file__).resolve().parent
 PATCH = ROOT / "patch-lucia-combat-scout.py"
+COMBAT = ROOT / "app/src/main/java/com/rabpit/backroom/core/CombatRuntime.kt"
 
 source = PATCH.read_text(encoding="utf-8")
 source, count = re.subn(
@@ -47,4 +48,28 @@ if marker_count != 1:
     raise RuntimeError("Lucia combat scout finalizer could not remove obsolete loot threshold marker")
 
 exec(compile(source, str(PATCH), "exec"), {"__name__": "__main__", "__file__": str(PATCH)})
-print("Lucia combat/scout finalizer executed with composed An Nhiên + Lucia loot bonuses.")
+
+text = COMBAT.read_text(encoding="utf-8")
+old = '''          val luciaRoll = roll(c.copy(eventCounter = c.eventCounter + 83), 100)
+          if (luciaRoll < hitChance) {
+'''
+new = '''          val luciaRoll = roll(c.copy(eventCounter = c.eventCounter + 83), 100)
+          val luciaEvasionRoll = roll(c.copy(eventCounter = c.eventCounter + 97), 100)
+          val luciaEntityEvaded = luciaEvasionRoll < ENTITY_EVASION_PERCENT
+          if (luciaRoll < hitChance && !luciaEntityEvaded) {
+'''
+if new not in text:
+    count = text.count(old)
+    if count != 1:
+        raise RuntimeError(f"Lucia Entity evasion compatibility: expected 1 anchor, found {count}")
+    text = text.replace(old, new, 1)
+for marker in (
+    'val luciaEvasionRoll = roll(c.copy(eventCounter = c.eventCounter + 97), 100)',
+    'val luciaEntityEvaded = luciaEvasionRoll < ENTITY_EVASION_PERCENT',
+    'if (luciaRoll < hitChance && !luciaEntityEvaded)',
+):
+    if marker not in text:
+        raise RuntimeError("Lucia Entity evasion contract missing: " + marker)
+COMBAT.write_text(text, encoding="utf-8")
+
+print("Lucia combat/scout finalizer executed with composed loot bonuses and Entity evasion compatibility.")
