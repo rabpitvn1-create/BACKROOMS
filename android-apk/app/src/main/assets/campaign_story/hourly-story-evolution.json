@@ -39,9 +39,10 @@
   ],
   "completedSteps": [
     "PROLOGUE",
-    "0"
+    "0",
+    "epsilon"
   ],
-  "nextStep": "epsilon",
+  "nextStep": "0.01",
   "globalRules": {
     "sourceReload": "Trước mỗi bước mới phải đọc lại trực tiếp Novel/00_RULES và các nguồn Character/World/Continuity liên quan; không dùng trí nhớ hoặc bản tóm tắt cũ thay nguồn.",
     "survival": "Giữ trọng lượng của đói, khát, mệt, thương tích, nhiễm bẩn, nhiệt độ, đường rút và tài nguyên. Năng lực mạnh của Kai không xóa bài toán môi trường; đồng thời không được làm Kai quên năng lực hoặc trang bị để tạo nguy hiểm giả.",
@@ -75,6 +76,15 @@
       "itemPolicy": "Không tự sinh loot để cứu tình thế. Almond Water ở Level 0 vẫn rất hiếm; Ceiling Wire và Dry Wallpaper Fiber chỉ có thể được khai thác khi hành động, vị trí và Core/world-loot cho phép. Không uống nước thấm trong thảm. Không kể Kai hoặc Lucia đã nhận vật phẩm chỉ vì vật đó hợp Level; mọi vật phẩm phải đi qua kết quả loot/inventory hiện hành.",
       "relationshipStage": "SEED_OF_TRUST. Tình cảm lãng mạn chưa được tuyên bố hay tự nhận diện thành lời. Sau khi Core materialize Lucia và hai người thực sự có thời gian phối hợp, nền tảng đầu tiên chỉ là sự chú ý và thiện cảm có lý do: Lucia có thể bắt đầu đánh giá cao việc Kai vẫn đọc bằng chứng, tôn trọng năng lực của cô và không biến chênh lệch sức mạnh thành quyền quyết định hộ cô; Kai ghi nhận Lucia là người có phương pháp, biết tiết kiệm tài nguyên và không nói chắc khi bằng chứng chưa đủ. Đây là mầm quan hệ, không phải bằng chứng rằng Lucia đã yêu hoặc Kai đã biết cô thích mình. Xưng hô tiếp tục OPEN.",
       "endingState": "Bước Level 0 được khóa như giai đoạn sống sót, kiểm chứng và thiết lập khả năng phối hợp. Kai vẫn chưa biết vị trí Iris/Syvial và chưa có bằng chứng mới về Async nếu Core chưa surface. Lucia chỉ trở thành bạn đồng hành nếu fixed encounter đã được Core commit; route kế tiếp vẫn là epsilon, không nhảy thẳng sang Level 1."
+    },
+    "epsilon": {
+      "phase": "SIGNAL_LOSS",
+      "storyUpdate": "Khi Core đã commit chuyển vùng từ lõi Level 0 sang epsilon, Kai xử lý Incessant Hum-Buzz như một bài toán tín hiệu chứ không như bằng chứng rằng liên lạc SRU đã hồi phục hay thiết bị đã hỏng. Tiếng huỳnh quang dai dẳng trở thành áp lực nhận thức: hướng âm có thể không khớp với cấu trúc nhìn thấy, nhịp hoặc âm sắc có thể gợi thành bước chân hay giọng quen thuộc, còn các quan hệ khoảng cách cục bộ có thể lệch sau khi rời tầm quan sát. Kai dùng đúng cảm biến, liên lạc và kỹ năng đã khóa để đối chiếu nguồn âm, thời điểm, vị trí và biến đổi kiến trúc; không bắn mò, không gọi một cue chưa xác nhận là Entity, Iris, Syvial hay dấu Async. Nếu Lucia đã được Core materialize và cùng đi tiếp, cô hỗ trợ bằng kỷ luật đánh dấu, quan sát bề mặt gần và kiểm tra chéo những gì cả hai thật sự nghe/thấy; cô không được tự biết mission backend hay kết luận thay Kai. Một vùng mang dấu hiệu giống lối thoát có thể được ghi nhận ở cuối bước, nhưng chỉ như một threshold cần kiểm chứng, không phải đường ra đã xác nhận.",
+      "survivalFocus": "Áp lực chính là tiếng ù liên tục cộng với khát, thiếu ngủ và sai lệch định hướng: đau đầu, giảm tập trung và cue âm giả có thể làm việc đo đạc tốn thời gian hơn, nhưng không xóa năng lực nghề nghiệp của Kai. Nếu Lucia hiện diện, giới hạn sinh lý con người của cô khiến việc nghỉ ngắn, giữ nước, tiết kiệm đạn và tránh đứng lâu dưới vùng âm gây khó chịu có trọng lượng thật. Cả hai ưu tiên đường có khả năng quay lui, ghi mốc theo thời điểm, kiểm tra chéo dấu cũ và không kéo dài truy đuổi một âm thanh không có bằng chứng vật lý.",
+      "npcPolicy": "Không thêm survivor/NPC ngẫu nhiên chỉ để giải thích tiếng ù hoặc chỉ đường. Chỉ khi Core/RNG đã commit encounter mới được kể người đó xuất hiện; lời họ về giọng nói, lối thoát, Entity hay các thành viên SRU vẫn là lời kể có giới hạn cho tới khi được kiểm chứng. Lucia, nếu đã materialize từ fixed encounter Level 0, tiếp tục là companion story-owned chứ không phải roll ngẫu nhiên.",
+      "itemPolicy": "Không tạo loot hoặc tài nguyên mới trong epsilon. Chỉ sử dụng trang bị/vật phẩm đã có trong state hiện hành; mọi Almond Water, salvage, pin, đạn hay vật phẩm khác chỉ được kể là tìm thấy/nhận/nhặt khi Core/world-loot/inventory đã commit. Tiếng ù, nhiễu hoặc một vùng trông giống lối ra không tự cấp vật phẩm hay nguồn điện đáng tin.",
+      "relationshipStage": "EARLY_ATTENTIVE_TRUST. Chỉ áp dụng nếu Lucia đã được Core materialize và hai người thực sự cùng trải qua epsilon. Tình cảm chưa cần tăng thành một mốc mới rõ rệt: Lucia có thể dành thêm sự chú ý cho cách Kai kiểm chứng cue thay vì phô sức mạnh, còn Kai có thể nhận ra cô đang chủ động đối chiếu quan sát với mình và giữ nhịp phối hợp ổn định. Một vài dấu hiệu lặp lại có thể bắt đầu thành mẫu mà Kai ghi nhận, nhưng chưa đủ để hắn kết luận Lucia có tình cảm. Không thú nhận, không ghen, không cứu mạng làm công tắc quan hệ; xưng hô vẫn OPEN. Nếu Lucia không ở party theo state, bước này không tự tạo tiến triển quan hệ.",
+      "endingState": "epsilon được khóa như bước kiểm chứng tín hiệu và sai lệch cục bộ. Mất liên lạc với Frontrooms/Iris/Syvial vẫn chưa được giải thích; không có giọng quen, tiếng động hay nhiễu nào tự trở thành bằng chứng về vị trí đồng đội, Async hoặc Entity. Nếu Core surface một threshold hợp lệ hướng tới 0.01, nó vẫn chỉ là dấu chuyển tiếp cần kiểm tra cho tới khi transition được commit. Route kế tiếp duy nhất của continuity là 0.01; không nhảy Level 1."
     }
   }
 }
