@@ -11,6 +11,14 @@ BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d |
 "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
 "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 "$APK"
 
+# The BGM is fetched from the pinned user-provided Drive file during the runtime patch chain,
+# then bundled into res/raw. Verify the exact source bytes survive APK packaging and that the
+# compiled Activity still contains the native playback lifecycle helper.
+unzip -l "$APK" | grep -q 'res/raw/backroom_bgm.m4a'
+BGM_SHA256=$(unzip -p "$APK" 'res/raw/backroom_bgm.m4a' | sha256sum | awk '{print $1}')
+test "$BGM_SHA256" = 'f9eca6ee4c8618d310296b19b0f919c50b0e6c85b6d55f73753cce83bef3cce2'
+unzip -p "$APK" classes.dex | strings | grep -q 'startBackgroundMusic'
+
 rm -rf apk-check
 mkdir apk-check
 unzip -q "$APK" \
