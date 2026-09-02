@@ -74,6 +74,7 @@ SCRIPTS = [
     "patch-kai-r10-skill-catalog-precompat.py",
     "patch-kai-r10-runtime-canon.py",
     "patch-kai-r10-test-compile-fix.py",
+    "patch-haku-prose-editor.py",
 ]
 
 for script in SCRIPTS:
