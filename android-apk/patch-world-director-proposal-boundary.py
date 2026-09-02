@@ -102,7 +102,7 @@ proposal_method = r'''  fun proposeWorldPressure(kindRaw: String): String {
     val decision = if (definition == null) {
       WorldDirectorDecision(null, WorldPressureProposal.NONE, "no_registered_level", "")
     } else {
-      worldDirector.propose(state, definition, kind)
+      worldDirector.propose(state, definition, kind, turnKey)
     }
     logger.log(PipelineLogEvent(
       "WORLD_DIRECTOR_PROPOSAL",
@@ -144,7 +144,7 @@ for marker in (
     "worldDirector.close()",
     "fun proposeWorldPressure(kindRaw: String): String",
     '"WORLD_DIRECTOR_PROPOSAL"',
-    "worldDirector.propose(state, definition, kind)",
+    "worldDirector.propose(state, definition, kind",
     "proposeWorldPressure(kind.name)",
 ):
     if marker not in facade:

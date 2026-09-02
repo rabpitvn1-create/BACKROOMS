@@ -45,10 +45,16 @@ fun interface WorldDirectorPolicy {
  */
 class WorldDirector(
   private val policy: WorldDirectorPolicy? = null,
-  private val closeablePolicy: AutoCloseable? = policy as? AutoCloseable
+  private val closeablePolicy: AutoCloseable? = policy as? AutoCloseable,
+  private val telemetry: WorldDirectorTelemetryStore? = null
 ) : AutoCloseable {
 
-  fun propose(state: GameState, definition: LevelDefinition, kind: ActionKind): WorldDirectorDecision {
+  fun propose(
+    state: GameState,
+    definition: LevelDefinition,
+    kind: ActionKind,
+    turnKey: String? = null
+  ): WorldDirectorDecision {
     val level = state.levelInstance?.takeIf { it.levelId == definition.id }
       ?: return WorldDirectorDecision(null, WorldPressureProposal.NONE, "no_registered_level", "")
     val legal = legalProposals(state, level, definition, kind)
@@ -63,12 +69,39 @@ class WorldDirector(
     )
     val featureText = WorldDirectorFeatures.describe(context)
     val raw = policy?.choose(context)
-    return when {
+    val decision = when {
       raw == null -> WorldDirectorDecision(null, WorldPressureProposal.NONE, "model_abstained", featureText)
       raw !in legal -> WorldDirectorDecision(raw, WorldPressureProposal.NONE, "core_rejected_illegal_proposal", featureText)
       else -> WorldDirectorDecision(raw, raw, "core_accepted_proposal", featureText)
     }
+
+    runCatching {
+      telemetry?.let { store ->
+        val effectiveTurnKey = turnKey?.ifBlank { null }
+          ?: state.metadata["lastAction.turnId"]
+          ?: state.turn.currentTurnId
+        store.record(WorldDirectorTelemetryRecord(
+          sessionId = WorldDirectorTelemetryPrivacy.opaqueSessionId(level),
+          actionKind = kind,
+          turnId = effectiveTurnKey,
+          features = featureText,
+          legalProposals = legal.toList().sortedBy { it.name },
+          rawProposed = raw,
+          acceptedProposal = decision.accepted,
+          reason = decision.reason,
+          modelAccepted = raw != null && raw in legal && raw == decision.accepted,
+          visitCount = context.visitCount,
+          discoveredEvidenceCount = context.discoveredEvidenceCount,
+          worldRevision = context.revision
+        ))
+      }
+    }
+
+    return decision
   }
+
+  fun exportTelemetry(): String = telemetry?.exportJsonl().orEmpty()
+  fun clearTelemetry(): Boolean = telemetry?.clear() ?: true
 
   private fun legalProposals(
     state: GameState,
@@ -120,8 +153,9 @@ class WorldDirector(
     @JvmField val DETERMINISTIC = WorldDirector()
 
     fun liteRT(context: Context): WorldDirector {
-      val policy = LiteRTWorldDirectorPolicy(context.applicationContext)
-      return WorldDirector(policy, policy)
+      val appContext = context.applicationContext
+      val policy = LiteRTWorldDirectorPolicy(appContext)
+      return WorldDirector(policy, policy, SharedPreferencesWorldDirectorTelemetryStore(appContext))
     }
   }
 }
@@ -197,7 +231,7 @@ class LiteRTWorldDirectorPolicy(
       interpreter?.let { loaded -> labels?.let { return loaded to it } }
       return try {
         val loadedLabels = appContext.assets.open(labelsAsset).bufferedReader().useLines { lines ->
-          lines.map(String::trim).filter(String::isNotEmpty).map(WorldPressureProposal::valueOf).toList()
+          lines.map(String::trim).filter(String::isNotEmpty).map { WorldPressureProposal.valueOf(it) }.toList()
         }
         require(loadedLabels.isNotEmpty()) { "world_director_labels_empty" }
         val descriptor = appContext.assets.openFd(modelAsset)

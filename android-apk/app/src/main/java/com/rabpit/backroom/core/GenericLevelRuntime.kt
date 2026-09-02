@@ -34,13 +34,13 @@ object GenericLevelRuntime {
     resolvedExecuteActionId: String? = null
   ): LevelActionOutcome {
     val stored = state.levelInstance
-      ?: return LevelActionOutcome(state, "Level instance chưa được khởi tạo.", progressed = false)
+      ?: return LevelActionOutcome(state, "Kai chưa thể xác định được một lối đi ổn định từ vị trí hiện tại.", progressed = false)
     val definition = registry.get(stored.levelId)
-      ?: return LevelActionOutcome(state, "Không tìm thấy Level definition cho ${stored.levelId}.", progressed = false)
+      ?: return LevelActionOutcome(state, "Không gian quanh Kai không khớp với bất kỳ khu vực quen thuộc nào.", progressed = false)
     val hydrated = refreshLevelZeroPresentation(hydrateLegacyInstance(stored, definition), definition)
     val level = reconcileDiscoveredFacts(hydrated, definition)
     val workingState = if (level == stored) state else sync(state, definition, level)
-    if (level.completed) return LevelActionOutcome(workingState, "Lối chuyển Level đã được mở.", progressed = false, escaped = true)
+    if (level.completed) return LevelActionOutcome(workingState, "Một lối chuyển tiếp đã hiện ra trước mặt Kai.", progressed = false, escaped = true)
 
     return when (kind) {
       ActionKind.SEARCH -> search(workingState, definition, level, director)
@@ -104,7 +104,7 @@ object GenericLevelRuntime {
       )
 
     if (nextZone !in level.zones) {
-      return LevelActionOutcome(state, "Level instance tham chiếu một vùng không tồn tại.", progressed = false)
+      return LevelActionOutcome(state, "Lối đi trước mặt đột ngột khép lại như thể chưa từng tồn tại.", progressed = false)
     }
 
     val visitsKey = "visits:$nextZone"
@@ -147,7 +147,7 @@ object GenericLevelRuntime {
 
     val expectedIndex = level.completedActions.size
     val expected = level.escapeBlueprint.requiredActions.getOrNull(expectedIndex)
-      ?: return LevelActionOutcome(state, "Không còn bước Escape nào chưa hoàn thành trong blueprint đã khóa.", progressed = false)
+      ?: return LevelActionOutcome(state, "Kai không tìm thấy thêm bước nào có thể tiếp tục theo hướng vừa thử.", progressed = false)
     if (actionId != expected) {
       return LevelActionOutcome(
         state,
@@ -157,7 +157,7 @@ object GenericLevelRuntime {
     }
 
     val rule = level.actions[actionId]
-      ?: return LevelActionOutcome(state, "Level instance thiếu action rule đã khóa: $actionId.", progressed = false)
+      ?: return LevelActionOutcome(state, "Hành động đó không tạo ra phản ứng nào có thể tiếp tục.", progressed = false)
     if (!conditionsMet(level, rule.conditions)) {
       return LevelActionOutcome(
         state,
@@ -176,7 +176,7 @@ object GenericLevelRuntime {
     val resultReply = listOfNotNull(
       rule.reply,
       evidenceIds.takeIf { it.isNotEmpty() }?.joinToString(" ") { evidenceReply(next, definition, it) }
-    ).joinToString(" ").ifBlank { "Hành động làm trạng thái Level thay đổi." }
+    ).joinToString(" ").ifBlank { "Không gian quanh Kai thay đổi sau hành động đó." }
 
     return LevelActionOutcome(
       sync(state, definition, next),

@@ -138,6 +138,12 @@ required = [
     ('String storyContext = campaignStoryBeatPrompt(state);', java),
     ('.put("storyContext", storyContext)', java),
     ("Không được gọi nhân vật người chơi là 'Kai', 'hắn', 'anh ta'", java),
+    ('fun exportWorldDirectorTelemetry(): String = worldDirector.exportTelemetry()', facade),
+    ('fun clearWorldDirectorTelemetry(): Boolean = worldDirector.clearTelemetry()', facade),
+    ('@JavascriptInterface public String exportWorldDirectorTelemetry()', java),
+    ('@JavascriptInterface public boolean clearWorldDirectorTelemetry()', java),
+    ('private const val PREFS_NAME = "world_director_telemetry"', (core / 'WorldDirectorTelemetry.kt').read_text(encoding='utf-8')),
+    ('class WorldDirectorTelemetryTest', (tests / 'WorldDirectorTelemetryTest.kt').read_text(encoding='utf-8')),
 ]
 for marker, source in required:
     assert marker in source, marker

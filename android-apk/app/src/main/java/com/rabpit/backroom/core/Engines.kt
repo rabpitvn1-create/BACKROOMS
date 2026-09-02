@@ -2,23 +2,28 @@ package com.rabpit.backroom.core
 
 // CharacterStatEngine.applyCompletedTurnRegen is invoked by TurnCoordinator after a completed turn.
 
+private data class ItemTake(val inventory: InventoryState, val taken: ItemStack)
+
 private fun addItem(inventory: InventoryState, rawItem: ItemStack): InventoryState {
   val item = ItemContentRules.normalize(rawItem)
   val old = inventory.items[item.itemId]?.let(ItemContentRules::normalize)
   val merged = if (old == null) item else {
     if (!ItemContentRules.sameStackState(old, item)) return inventory.copy(items = inventory.items + (item.itemId to item))
-    old.copy(quantity = old.quantity + item.quantity)
+    ItemIdentity.merge(old, item)
   }
   return inventory.copy(items = inventory.items + (item.itemId to merged))
 }
 
-private fun removeItem(inventory: InventoryState, itemId: String, quantity: Int): InventoryState? {
-  val old = inventory.items[itemId] ?: return null
-  if (quantity <= 0 || old.quantity < quantity) return null
-  val items = if (old.quantity == quantity) inventory.items - itemId
-  else inventory.items + (itemId to old.copy(quantity = old.quantity - quantity))
-  return inventory.copy(items = items)
+private fun takeItem(inventory: InventoryState, itemId: String, quantity: Int): ItemTake? {
+  val old = inventory.items[itemId]?.let(ItemContentRules::normalize) ?: return null
+  val split = ItemIdentity.split(old, quantity, "legacy:${inventory.ownerId}:${old.itemId}") ?: return null
+  val items = if (split.remaining == null) inventory.items - itemId
+    else inventory.items + (itemId to split.remaining)
+  return ItemTake(inventory.copy(items = items), split.taken)
 }
+
+private fun removeItem(inventory: InventoryState, itemId: String, quantity: Int): InventoryState? =
+  takeItem(inventory, itemId, quantity)?.inventory
 
 private fun parsePhysiologyEffects(raw: String?): Set<String>? {
   if (raw == null) return emptySet()
@@ -31,9 +36,12 @@ private fun finishItemUse(
   originalState: GameState,
   inventoryResult: ExecutionResult,
   command: ItemCommand,
-  physiologyEffects: Set<String>
+  beneficiaryId: String,
+  physiologyEffects: Set<String>,
+  healHp: Int
 ): ExecutionResult {
-  if (!inventoryResult.applied || physiologyEffects.isEmpty()) return inventoryResult
+  if (!inventoryResult.applied) return inventoryResult
+  if (physiologyEffects.isEmpty() && healHp <= 0) return inventoryResult
   var current = inventoryResult.state
   val events = inventoryResult.events.toMutableList()
   physiologyEffects.forEachIndexed { index, effect ->
@@ -45,14 +53,24 @@ private fun finishItemUse(
     val physiology = PhysiologyEngine.execute(current, PhysiologyCommand(
       commandId = "${command.commandId}:PHYS:$index",
       turnId = command.turnId,
-      actorId = command.actorId,
-      targetId = command.actorId,
+      actorId = beneficiaryId,
+      targetId = beneficiaryId,
       source = CommandSource.SYSTEM,
       operation = operation
     ))
     if (!physiology.applied) return ExecutionResult(originalState, false, validation = physiology.validation)
     current = physiology.state
     events += physiology.events
+  }
+  if (healHp > 0) {
+    val character = current.characters[beneficiaryId]
+      ?: return ExecutionResult(originalState, false, validation = ValidationResult(false, "actor_unknown"))
+    val maxHp = CharacterStatEngine.effective(current, beneficiaryId).maxHp
+    val beforeHp = character.vitalState.currentHp.coerceIn(0, maxHp)
+    val requested = healHp.toLong() * command.quantity.toLong()
+    val nextHp = (beforeHp.toLong() + requested).coerceAtMost(maxHp.toLong()).toInt()
+    current = CharacterStatEngine.setCurrentHp(current, beneficiaryId, nextHp)
+    events += if (nextHp > beforeHp) "hp_healed:${nextHp - beforeHp}" else "hp_already_full"
   }
   return inventoryResult.copy(state = current, events = events)
 }
@@ -74,46 +92,63 @@ private fun useItem(state: GameState, source: InventoryState, command: ItemComma
   }
   val physiologyEffects = parsePhysiologyEffects(owned.metadata["physiologyEffect"])
     ?: return invalid(state, "physiology_effect_invalid")
+  val targetable = owned.metadata["healHp"]?.toIntOrNull()?.let { it > 0 } == true ||
+    physiologyEffects.isNotEmpty() || owned.metadata.containsKey("statusTreatment") || owned.metadata.containsKey("conditionReduction")
+  val beneficiaryId = if (targetable) command.targetId ?: command.actorId else command.actorId
+  if (beneficiaryId !in state.characters) return invalid(state, "target_unknown")
+  val healingAmount = 0 // OfficialItemEffects owns all healing for the 11-item catalog.
+  if (healingAmount > 0) {
+    val actor = state.characters[command.actorId] ?: return invalid(state, "actor_unknown")
+    if (actor.presence == CharacterPresence.DEAD || actor.vitalState.currentHp <= 0) {
+      return invalid(state, "healing_target_defeated")
+    }
+  }
   if (owned.contentState == ContentState.EMPTY) return invalid(state, "item_content_empty")
   if (owned.contentState == ContentState.FULL || owned.contentState == ContentState.LOW) {
-    val nextVariant = ItemContentRules.nextAfterUse(owned) ?: return invalid(state, "item_content_empty")
-    var nextInventory = removeItem(source, command.itemId, command.quantity) ?: return invalid(state, "insufficient_item_quantity")
+    val removal = takeItem(source, command.itemId, command.quantity) ?: return invalid(state, "insufficient_item_quantity")
+    val nextVariant = ItemContentRules.nextAfterUse(removal.taken) ?: return invalid(state, "item_content_empty")
+    var nextInventory = removal.inventory
     val validation = InventoryPolicy.validateAddition(state, command.actorId, nextInventory, nextVariant, command.quantity)
     if (validation != null) return invalid(state, validation)
-    nextInventory = addItem(nextInventory, nextVariant.copy(quantity = command.quantity))
+    nextInventory = addItem(nextInventory, nextVariant)
     val inventoryResult = changed(
       state.copy(inventories = state.inventories + (command.actorId to nextInventory)),
       if (nextVariant.contentState == ContentState.EMPTY) "item_content_emptied" else "item_content_reduced"
     )
-    return finishItemUse(state, inventoryResult, command, physiologyEffects)
+    return finishItemUse(state, inventoryResult, command, beneficiaryId, physiologyEffects, healingAmount)
   }
   val consumedOnUse = owned.metadata["consumedOnUse"].equals("true", true) ||
     (owned.metadata["consumable"].equals("true", true) && !owned.metadata["containerPersistent"].equals("true", true))
   if (consumedOnUse) {
-    val effected = OfficialItemEffects.apply(state, source, owned)
+    val effected = OfficialItemEffects.apply(state, beneficiaryId, source, owned)
     if (!effected.applied) return effected
     val effectedInventory = effected.state.inventories[command.actorId] ?: source
     val next = removeItem(effectedInventory, command.itemId, command.quantity) ?: return invalid(state, "insufficient_item_quantity")
     val inventoryResult = changed(effected.state.copy(inventories = effected.state.inventories + (command.actorId to next)), "item_consumed")
-    return finishItemUse(state, inventoryResult, command, physiologyEffects)
+    return finishItemUse(state, inventoryResult, command, beneficiaryId, physiologyEffects, healingAmount)
   }
-  return finishItemUse(state, changed(state, "item_used"), command, physiologyEffects)
+  return finishItemUse(state, changed(state, "item_used"), command, beneficiaryId, physiologyEffects, healingAmount)
 }
 
 private object OfficialItemEffects {
-  fun apply(state: GameState, inventory: InventoryState, item: ItemStack): ExecutionResult {
+  fun apply(state: GameState, actorId: String, inventory: InventoryState, item: ItemStack): ExecutionResult {
+    val requestedHeal = item.metadata["healHp"]?.toIntOrNull()?.coerceAtLeast(0) ?: 0
+    if (requestedHeal > 0) {
+      val actor = state.characters[actorId] ?: return invalid(state, "actor_unknown")
+      if (actor.presence == CharacterPresence.DEAD || actor.vitalState.currentHp <= 0) return invalid(state, "healing_target_defeated")
+    }
     var next = state
     when (item.itemId) {
       ItemCatalog.BATTERY -> next = recharge(next, inventory, ItemCatalog.FLASHLIGHT, "battery") ?: return invalid(state, "flashlight_cannot_receive_battery")
       ItemCatalog.LIGHTER_FUEL -> next = recharge(next, inventory, ItemCatalog.LIGHTER, "fuel") ?: return invalid(state, "lighter_cannot_receive_fuel")
     }
-    item.metadata["healHp"]?.toIntOrNull()?.takeIf { it > 0 }?.let { next = heal(next, it) }
+    item.metadata["healHp"]?.toIntOrNull()?.takeIf { it > 0 }?.let { next = heal(next, actorId, it) }
     when (item.metadata["statusTreatment"]) {
-      "BLEEDING_LIGHT" -> next = treatLightBleeding(next)
+      "BLEEDING_LIGHT" -> next = treatLightBleeding(next, actorId)
     }
     when (item.metadata["conditionReduction"]) {
-      "INFECTION_50" -> next = reduceCondition(next, infection = true)
-      "PAIN_50" -> next = reduceCondition(next, infection = false)
+      "INFECTION_50" -> next = reduceCondition(next, actorId, infection = true)
+      "PAIN_50" -> next = reduceCondition(next, actorId, infection = false)
     }
     return changed(next, "official_item_effect_applied")
   }
@@ -128,23 +163,25 @@ private object OfficialItemEffects {
     return state.copy(inventories = state.inventories + (inventory.ownerId to inventory.copy(items = inventory.items + (toolId to updated))))
   }
 
-  private fun heal(state: GameState, amount: Int): GameState {
-    val max = state.metadata["combat.playerMaxHp"]?.toIntOrNull()?.coerceAtLeast(1) ?: 100
-    val hp = state.metadata["combat.playerHp"]?.toIntOrNull()?.coerceIn(0, max) ?: max
-    return state.copy(metadata = state.metadata + mapOf("combat.playerMaxHp" to max.toString(), "combat.playerHp" to (hp + amount).coerceAtMost(max).toString()))
+  private fun heal(state: GameState, actorId: String, amount: Int): GameState {
+    val character = state.characters[actorId] ?: return state
+    val maxHp = CharacterStatEngine.effective(state, actorId).maxHp
+    val currentHp = character.vitalState.currentHp.coerceIn(0, maxHp)
+    if (character.presence == CharacterPresence.DEAD || currentHp <= 0) return state
+    return CharacterStatEngine.setCurrentHp(state, actorId, (currentHp + amount).coerceAtMost(maxHp))
   }
 
-  private fun treatLightBleeding(state: GameState): GameState {
-    val kai = state.characters[KAI_ID] ?: return state
-    val bleeding = kai.statusIds.mapNotNull(state.statuses::get).firstOrNull {
+  private fun treatLightBleeding(state: GameState, actorId: String): GameState {
+    val actor = state.characters[actorId] ?: return state
+    val bleeding = actor.statusIds.mapNotNull(state.statuses::get).firstOrNull {
       it.type.equals("BLEEDING", true) && (it.metadata["tier"]?.lowercase() in setOf(null, "light", "mild", "1"))
     } ?: return state
-    return state.copy(statuses = state.statuses - bleeding.id, characters = state.characters + (KAI_ID to kai.copy(statusIds = kai.statusIds - bleeding.id)))
+    return state.copy(statuses = state.statuses - bleeding.id, characters = state.characters + (actorId to actor.copy(statusIds = actor.statusIds - bleeding.id)))
   }
 
-  private fun reduceCondition(state: GameState, infection: Boolean): GameState {
-    val kai = state.characters[KAI_ID] ?: return state
-    val p = kai.physiology
+  private fun reduceCondition(state: GameState, actorId: String, infection: Boolean): GameState {
+    val actor = state.characters[actorId] ?: return state
+    val p = actor.physiology
     val current = if (infection) p.infectionState else p.painState
     val reduced = when (current?.lowercase()) {
       "critical", "severe" -> "moderate"
@@ -153,7 +190,7 @@ private object OfficialItemEffects {
       else -> current
     }
     val nextP = if (infection) p.copy(infectionState = reduced) else p.copy(painState = reduced)
-    return state.copy(characters = state.characters + (KAI_ID to kai.copy(physiology = nextP)))
+    return state.copy(characters = state.characters + (actorId to actor.copy(physiology = nextP)))
   }
 }
 
@@ -162,7 +199,10 @@ object InventoryEngine {
     if (command.quantity <= 0) return invalid(state, "quantity_must_be_positive")
     if (ItemContentRules.hasForbiddenPreciseAmount(command.itemName)) return invalid(state, "precise_content_amount_forbidden")
     val source = state.inventories[command.actorId] ?: InventoryState(command.actorId)
-    val item = ItemContentRules.normalize(ItemStack(command.itemId, command.itemName, command.quantity, metadata = command.metadata))
+    val normalizedItem = ItemContentRules.normalize(ItemStack(command.itemId, command.itemName, command.quantity, metadata = command.metadata))
+    val item = if (command.operation == ItemCommand.Operation.PICKUP)
+      ItemIdentity.ensureOriginalInstances(normalizedItem, command.metadata["worldInstanceId"] ?: command.commandId)
+    else normalizedItem
     return when (command.operation) {
       ItemCommand.Operation.PICKUP -> {
         val validation = InventoryPolicy.validateAddition(state, command.actorId, source, item, command.quantity)
@@ -170,36 +210,30 @@ object InventoryEngine {
         changed(state.copy(inventories = state.inventories + (command.actorId to addItem(source, item))), "inventory_pickup")
       }
       ItemCommand.Operation.DROP -> {
-        val next = removeItem(source, command.itemId, command.quantity) ?: return invalid(state, "insufficient_item_quantity")
-        changed(state.copy(inventories = state.inventories + (command.actorId to next)), "inventory_remove")
+        if (EquipmentEngine.isEquipped(state, command.actorId, command.itemId)) return invalid(state, "item_equipped_locked")
+        val removal = takeItem(source, command.itemId, command.quantity) ?: return invalid(state, "insufficient_item_quantity")
+        val withoutItem = state.copy(inventories = state.inventories + (command.actorId to removal.inventory))
+        changed(ItemSystem.placeInWorld(withoutItem, removal.taken), "inventory_dropped_to_world")
       }
       ItemCommand.Operation.USE -> useItem(state, source, command)
       ItemCommand.Operation.TRANSFER -> {
+        if (EquipmentEngine.isEquipped(state, command.actorId, command.itemId)) return invalid(state, "item_equipped_locked")
         val targetId = command.targetId ?: return invalid(state, "target_required")
         if (!state.characters.containsKey(targetId)) return invalid(state, "target_unknown")
         val owned = source.items[command.itemId] ?: return invalid(state, "item_not_owned")
         if (owned.quantity < command.quantity) return invalid(state, "insufficient_item_quantity")
         if (command.actorId == KAI_ID && InventoryPolicy.isKaiSignatureEquipment(state, owned)) return invalid(state, "signature_equipment_locked")
-        val transferred = ItemContentRules.normalize(owned).copy(quantity = command.quantity)
+        val removal = takeItem(source, command.itemId, command.quantity) ?: return invalid(state, "insufficient_item_quantity")
+        val transferred = removal.taken
         val targetInventory = state.inventories[targetId] ?: InventoryState(targetId)
         val validation = InventoryPolicy.validateAddition(state, targetId, targetInventory, transferred, command.quantity)
         if (validation != null) return invalid(state, validation)
-        val from = removeItem(source, command.itemId, command.quantity) ?: return invalid(state, "insufficient_item_quantity")
+        val from = removal.inventory
         val to = addItem(targetInventory, transferred)
         changed(state.copy(inventories = state.inventories + (command.actorId to from) + (targetId to to)), "inventory_transfer")
       }
-      ItemCommand.Operation.EQUIP -> {
-        if ((source.items[command.itemId]?.quantity ?: 0) < command.quantity) return invalid(state, "item_not_owned")
-        val slot = command.slot ?: return invalid(state, "equipment_slot_required")
-        val equipment = state.equipment[command.actorId] ?: EquipmentState(command.actorId)
-        changed(state.copy(equipment = state.equipment + (command.actorId to equipment.copy(slots = equipment.slots + (slot to command.itemId)))), "item_equipped")
-      }
-      ItemCommand.Operation.UNEQUIP -> {
-        val slot = command.slot ?: return invalid(state, "equipment_slot_required")
-        val equipment = state.equipment[command.actorId] ?: return invalid(state, "equipment_missing")
-        if (equipment.slots[slot] != command.itemId) return invalid(state, "item_not_equipped")
-        changed(state.copy(equipment = state.equipment + (command.actorId to equipment.copy(slots = equipment.slots - slot))), "item_unequipped")
-      }
+      ItemCommand.Operation.EQUIP -> EquipmentEngine.equip(state, command)
+      ItemCommand.Operation.UNEQUIP -> EquipmentEngine.unequip(state, command)
       ItemCommand.Operation.STORE, ItemCommand.Operation.WITHDRAW -> invalid(state, "use_omnivault_command")
     }
   }
@@ -213,18 +247,28 @@ object PartyEngine {
       if (!command.consentConfirmed) return invalid(state, "join_not_confirmed")
       if (command.targetId in state.party.memberIds) return invalid(state, "already_in_party")
       if (state.party.memberIds.size >= state.party.maxMembers) return invalid(state, "party_full")
-      changed(state.copy(party = state.party.copy(memberIds = state.party.memberIds + command.targetId)), "party_member_added")
+      val character = state.characters.getValue(command.targetId)
+      changed(
+        state.copy(
+          party = state.party.copy(memberIds = state.party.memberIds + command.targetId),
+          characters = state.characters + (command.targetId to character.copy(presence = CharacterPresence.ACTIVE))
+        ),
+        "party_member_added"
+      )
     }
     PartyCommand.Operation.REMOVE -> {
+      if (command.targetId == AN_NHIEN_ID) return invalid(state, "an_nhien_follower_locked")
       if (command.targetId == state.party.leaderId) return invalid(state, "cannot_remove_leader")
       if (command.targetId !in state.party.memberIds) return invalid(state, "not_in_party")
       changed(state.copy(party = state.party.copy(memberIds = state.party.memberIds - command.targetId)), "party_member_removed")
     }
     PartyCommand.Operation.SET_LEADER -> {
+      if (command.targetId == AN_NHIEN_ID) return invalid(state, "an_nhien_cannot_lead")
       if (command.targetId !in state.party.memberIds) return invalid(state, "leader_not_in_party")
       changed(state.copy(party = state.party.copy(leaderId = command.targetId)), "party_leader_changed")
     }
     PartyCommand.Operation.SEPARATE -> {
+      if (command.targetId == AN_NHIEN_ID) return invalid(state, "an_nhien_follower_locked")
       val character = state.characters[command.targetId] ?: return invalid(state, "target_unknown")
       changed(state.copy(characters = state.characters + (command.targetId to character.copy(presence = CharacterPresence.SEPARATED))), "party_member_separated")
     }

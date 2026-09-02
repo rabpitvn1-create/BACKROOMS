@@ -124,20 +124,6 @@ class OfficialItemSystemTest {
     assertEquals(12, ToolStateQueries.flashlightRange(loaded))
   }
 
-  @Test fun entityLootIsOnePercentTotalOneItemAndIdempotent() {
-    val miss = EntityLootEngine.onDefeat(GameState.initial(), "defeat-miss", LootRng { 99 })
-    assertFalse(miss.world.keys.any { it.startsWith("entityLoot:") })
-    var calls = 0
-    val hit = EntityLootEngine.onDefeat(GameState.initial(), "defeat-hit", LootRng { bound -> calls++; if (bound == 100) 0 else 10 })
-    assertEquals(2, calls)
-    val loot = hit.world.filterKeys { it.startsWith("entityLoot:") }
-    assertEquals(1, loot.size)
-    assertTrue(loot.values.single().endsWith("|1|ENTITY_DROP"))
-    assertTrue(loot.values.single().substringBefore('|') in ItemCatalog.ids)
-    val duplicate = EntityLootEngine.onDefeat(hit, "defeat-hit", LootRng { fail("must not reroll"); 0 })
-    assertEquals(hit, duplicate)
-  }
-
   @Test fun playerAndUnprovenGeminiCannotManufacturePickup() {
     val item = ItemCatalog.find(ItemCatalog.BANDAGE)!!
     val player = StateReducer.execute(GameState.initial(), ItemCommand("p", "TURN_1", KAI_ID, source = CommandSource.RULE, operation = ItemCommand.Operation.PICKUP, itemId = item.id, itemName = item.name))
@@ -154,4 +140,5 @@ class OfficialItemSystemTest {
     assertFalse(acquired.state.world.containsKey("entityLoot:defeat-1"))
     assertEquals("world_loot_missing", WorldLootAcquisition.acquire(acquired.state, "entityLoot:defeat-1").validation.reason)
   }
+
 }

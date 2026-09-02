@@ -1,0 +1,223 @@
+{
+  "benchmark": "offline context-contract OLD vs NEW",
+  "corpus_cases": 8,
+  "token_estimator": "ceil(chars/4), same estimator for OLD and NEW",
+  "old": {
+    "average_context_tokens": 4034.62,
+    "p50_context_tokens": 3813,
+    "p95_context_tokens": 5027,
+    "missing_required_context": 5,
+    "irrelevant_retrieved_context_units": 44,
+    "canon_errors": 0,
+    "story_continuity_errors": 1,
+    "character_errors": 0,
+    "address_errors": 0,
+    "knowledge_leaks": 0,
+    "ability_overreach": 2,
+    "competence_suppression": 0,
+    "critic_invocation_rate": "unchanged conditional policy; provider-run metric not fabricated offline",
+    "repair_rate": "provider-run metric not fabricated offline"
+  },
+  "new": {
+    "average_context_tokens": 2433.12,
+    "p50_context_tokens": 2337,
+    "p95_context_tokens": 2941,
+    "missing_required_context": 0,
+    "irrelevant_retrieved_context_units": 3,
+    "canon_errors": 0,
+    "story_continuity_errors": 0,
+    "character_errors": 0,
+    "address_errors": 0,
+    "knowledge_leaks": 0,
+    "ability_overreach": 0,
+    "competence_suppression": 0,
+    "critic_invocation_rate": "same validated-risk threshold; deterministic validator runs every generated non-meta turn",
+    "repair_rate": "single repair remains; deterministic validator can trigger it without forcing semantic critic"
+  },
+  "cases": [
+    {
+      "case": "level0_quiet_exploration",
+      "old_tokens": 3574,
+      "new_tokens": 2073,
+      "old_missing": [
+        "STORY.MAIN.OBJECTIVE",
+        "STORY.MAIN.SEPARATION"
+      ],
+      "new_missing": [],
+      "selected": [
+        "CHAR.KAI.RUNTIME_CORE",
+        "GAME.GM.FAIRNESS",
+        "GAME.TEXT.CORE",
+        "LEVEL.00",
+        "STORY.MAIN.OBJECTIVE",
+        "STORY.MAIN.SEPARATION",
+        "WORLD.CORE",
+        "WRITING.COMPETENCE",
+        "WRITING.KNOWLEDGE_BOUNDARY",
+        "WRITING.PLAYER_AGENCY"
+      ]
+    },
+    {
+      "case": "iris_present_trace",
+      "old_tokens": 3795,
+      "new_tokens": 2388,
+      "old_missing": [],
+      "new_missing": [],
+      "selected": [
+        "ADDR.IRIS.KAI",
+        "CHAR.IRIS.ARGUS",
+        "CHAR.IRIS.RUNTIME_CORE",
+        "CHAR.KAI.RUNTIME_CORE",
+        "GAME.GM.FAIRNESS",
+        "GAME.TEXT.CORE",
+        "LEVEL.01",
+        "REL.KAI.IRIS.BASELINE",
+        "WORLD.CORE",
+        "WRITING.COMPETENCE",
+        "WRITING.KNOWLEDGE_BOUNDARY",
+        "WRITING.PLAYER_AGENCY"
+      ]
+    },
+    {
+      "case": "iris_thousandfold",
+      "old_tokens": 3817,
+      "new_tokens": 2334,
+      "old_missing": [
+        "CHAR.IRIS.THOUSANDFOLD"
+      ],
+      "new_missing": [],
+      "selected": [
+        "ADDR.IRIS.KAI",
+        "CHAR.IRIS.RUNTIME_CORE",
+        "CHAR.IRIS.THOUSANDFOLD",
+        "CHAR.KAI.RUNTIME_CORE",
+        "GAME.GM.FAIRNESS",
+        "GAME.TEXT.CORE",
+        "LEVEL.02",
+        "REL.KAI.IRIS.BASELINE",
+        "WORLD.CORE",
+        "WRITING.COMPETENCE",
+        "WRITING.KNOWLEDGE_BOUNDARY",
+        "WRITING.PLAYER_AGENCY"
+      ]
+    },
+    {
+      "case": "iris_field_mednet",
+      "old_tokens": 3813,
+      "new_tokens": 2337,
+      "old_missing": [
+        "CHAR.IRIS.SUPPORT"
+      ],
+      "new_missing": [],
+      "selected": [
+        "ADDR.IRIS.KAI",
+        "CHAR.IRIS.RUNTIME_CORE",
+        "CHAR.IRIS.SUPPORT",
+        "CHAR.KAI.RUNTIME_CORE",
+        "GAME.GM.FAIRNESS",
+        "GAME.TEXT.CORE",
+        "LEVEL.03",
+        "REL.KAI.IRIS.BASELINE",
+        "WORLD.CORE",
+        "WRITING.COMPETENCE",
+        "WRITING.KNOWLEDGE_BOUNDARY",
+        "WRITING.PLAYER_AGENCY"
+      ]
+    },
+    {
+      "case": "syvial_direct_threat",
+      "old_tokens": 5027,
+      "new_tokens": 2699,
+      "old_missing": [],
+      "new_missing": [],
+      "selected": [
+        "ADDR.SYVIAL.KAI",
+        "CHAR.KAI.RUNTIME_CORE",
+        "CHAR.SYVIAL.COMBAT",
+        "CHAR.SYVIAL.RUNTIME_CORE",
+        "ENTITY.GLOBAL_HARD_LOCK",
+        "ENTITY.HOUND",
+        "GAME.GM.FAIRNESS",
+        "GAME.TEXT.CORE",
+        "LEVEL.02",
+        "REL.KAI.SYVIAL.BASELINE",
+        "WORLD.CORE",
+        "WRITING.COMPETENCE",
+        "WRITING.KNOWLEDGE_BOUNDARY",
+        "WRITING.PLAYER_AGENCY"
+      ]
+    },
+    {
+      "case": "both_followers_dialogue",
+      "old_tokens": 3801,
+      "new_tokens": 2941,
+      "old_missing": [
+        "REL.IRIS.SYVIAL.BASELINE"
+      ],
+      "new_missing": [],
+      "selected": [
+        "ADDR.IRIS.KAI",
+        "ADDR.SYVIAL.KAI",
+        "CHAR.IRIS.RUNTIME_CORE",
+        "CHAR.KAI.RUNTIME_CORE",
+        "CHAR.SYVIAL.RUNTIME_CORE",
+        "GAME.GM.FAIRNESS",
+        "GAME.TEXT.CORE",
+        "LEVEL.04",
+        "REL.IRIS.SYVIAL.BASELINE",
+        "REL.KAI.IRIS.BASELINE",
+        "REL.KAI.SYVIAL.BASELINE",
+        "WORLD.CORE",
+        "WRITING.COMPETENCE",
+        "WRITING.KNOWLEDGE_BOUNDARY",
+        "WRITING.PLAYER_AGENCY"
+      ]
+    },
+    {
+      "case": "omnivault_scan",
+      "old_tokens": 4619,
+      "new_tokens": 1961,
+      "old_missing": [],
+      "new_missing": [],
+      "selected": [
+        "CHAR.KAI.OMNIVAULT",
+        "CHAR.KAI.RUNTIME_CORE",
+        "GAME.GM.FAIRNESS",
+        "GAME.TEXT.CORE",
+        "LEVEL.01",
+        "WORLD.CORE",
+        "WRITING.COMPETENCE",
+        "WRITING.KNOWLEDGE_BOUNDARY",
+        "WRITING.PLAYER_AGENCY"
+      ]
+    },
+    {
+      "case": "level5_beast",
+      "old_tokens": 3831,
+      "new_tokens": 2732,
+      "old_missing": [],
+      "new_missing": [],
+      "selected": [
+        "ADDR.SYVIAL.KAI",
+        "CHAR.KAI.RUNTIME_CORE",
+        "CHAR.SYVIAL.COMBAT",
+        "CHAR.SYVIAL.RUNTIME_CORE",
+        "ENTITY.BEAST_LEVEL_5",
+        "ENTITY.GLOBAL_HARD_LOCK",
+        "GAME.GM.FAIRNESS",
+        "GAME.TEXT.CORE",
+        "LEVEL.05",
+        "REL.KAI.SYVIAL.BASELINE",
+        "WORLD.CORE",
+        "WRITING.COMPETENCE",
+        "WRITING.KNOWLEDGE_BOUNDARY",
+        "WRITING.PLAYER_AGENCY"
+      ]
+    }
+  ],
+  "limitations": [
+    "This benchmark measures packaged context size and deterministic required-record coverage on the same corpus.",
+    "It does not invent model-output error rates, critic invocation rates, or repair rates without actually running providers.",
+    "A live-provider regression can be layered on later, but CI acceptance remains deterministic and reproducible."
+  ]
+}
