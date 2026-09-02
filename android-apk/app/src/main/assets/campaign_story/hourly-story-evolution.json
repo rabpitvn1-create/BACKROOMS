@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "evolutionId": "MAIN_STORY_HOURLY_EVOLUTION_R01",
+  "storyId": "MAIN_LEVEL0_TO_LEVEL1_R01",
+  "campaignId": "BACKROOMS_FANDOM_LEVELS_0_6_R01",
+  "cadence": "ONE_COMMITTED_STORY_STEP_PER_HOUR",
+  "sourceRefs": [
+    "RULES.BOOT",
+    "RULES.DIALOGUE",
+    "RULES.FORBIDDEN",
+    "RULES.WRITING",
+    "RULES.INTIMACY",
+    "RULES.SUPERNATURAL_HORROR",
+    "BACKROOMS-WORLD-CORE-R2",
+    "BACKROOMS-LEVELS-R2-L0-6",
+    "BACKROOMS-ITEMS-R2",
+    "HUA-THUY-MAI-LUCIA-LUC-CODEX-R03",
+    "KAI-AKECHI-TWILIGHT-CODEX-20260830-R08"
+  ],
+  "sequence": [
+    "PROLOGUE",
+    "0",
+    "epsilon",
+    "0.01",
+    "0.1",
+    "0.11",
+    "0.22",
+    "0.23",
+    "0.41",
+    "0.5",
+    "0.66",
+    "0.7",
+    "0.8",
+    "0.99",
+    "LS-2",
+    "Dullness",
+    "Red Rooms",
+    "1"
+  ],
+  "completedSteps": [
+    "PROLOGUE"
+  ],
+  "nextStep": "0",
+  "globalRules": {
+    "sourceReload": "Trước mỗi bước mới phải đọc lại trực tiếp Novel/00_RULES và các nguồn Character/World/Continuity liên quan; không dùng trí nhớ hoặc bản tóm tắt cũ thay nguồn.",
+    "survival": "Giữ trọng lượng của đói, khát, mệt, thương tích, nhiễm bẩn, nhiệt độ, đường rút và tài nguyên. Năng lực mạnh của Kai không xóa bài toán môi trường; đồng thời không được làm Kai quên năng lực hoặc trang bị để tạo nguy hiểm giả.",
+    "proceduralNpc": "NPC/survivor ngẫu nhiên chỉ được xuất hiện khi Core/RNG đã commit encounter. Khi xuất hiện, họ phải có nhu cầu sinh tồn cụ thể, tri thức giới hạn và thông tin có mức độ tin cậy; lời kể của họ không tự biến thành sự thật đã xác minh.",
+    "items": "Vật phẩm chỉ được nhận hoặc nhặt khi Core/world-loot/inventory đã xác nhận. Chỉ dùng item có trong runtime catalog hoặc BACKROOMS-ITEMS-R2; không tạo vật phẩm đúng lúc để cứu nhân vật và không kể vật đã vào inventory nếu state chưa commit.",
+    "relationship": {
+      "direction": "Tình cảm lãng mạn của Lucia dành cho Kai được phép hình thành và tăng dần từ trải nghiệm sống sót chung sau fixed encounter ở Level 0.",
+      "kaiAwareness": "Kai không ngu ngốc hoặc mù dấu hiệu. Hắn dần nhận ra một mẫu từ hành vi, sự chú ý, lựa chọn và cách Lucia nói với mình, nhưng không đọc ý nghĩ và không nhảy từ một cử chỉ đơn lẻ sang kết luận chắc chắn.",
+      "progressionRule": "Không bắt mọi cảnh phải tăng tình cảm. Cho phép những đoạn chỉ sinh tồn, tranh luận, nghỉ, làm việc, khó chịu hoặc không có subtext. Không ép thú nhận, không dùng một lần cứu mạng làm nút chuyển quan hệ, và không biến tình cảm thành lý do làm ai mất năng lực phán đoán.",
+      "addressRule": "Xưng hô Lucia-Kai vẫn OPEN cho tới khi continuity khóa riêng. Không tự chọn hoặc đổi đại từ chỉ vì tình cảm tăng; khi cần thoại trước mốc đó, ưu tiên cấu trúc tự nhiên không bịa hệ xưng hô.",
+      "knowledgeRule": "Lucia chỉ biết những gì cô quan sát, được kể hoặc kiểm chứng; Kai chỉ suy ra tình cảm từ dấu hiệu đã thật sự xảy ra trong continuity. Không dùng knowledge hậu trường làm trực giác toàn tri."
+    },
+    "dialogue": "Hội thoại phải qua RULES.DIALOGUE: nói như người thật trong tình huống, không đọc dàn ý/canon thành lời, không thoại cụt giả ngầu, không therapist hóa nhân vật, không tối ưu mọi câu thành câu đinh.",
+    "horror": "Bất an phải phát sinh từ logic môi trường bị sai lệch, bằng chứng chưa đủ và cái giá sinh tồn; không giữ suspense bằng cách làm nhân vật quên kiểm tra hiển nhiên."
+  },
+  "steps": {
+    "PROLOGUE": {
+      "phase": "ASYNC_INVESTIGATION_AND_SEPARATION",
+      "storyUpdate": "Mở ở năm 2299 tại khu chuẩn bị nhiệm vụ SRU. Điều đội thật sự biết chỉ đủ để xác lập nhiệm vụ điều tra Async, cổng không gian và nguy cơ Backrooms; không biến mission brief thành bằng chứng về nguồn gốc hay mục tiêu cuối của Async. Kai, Iris và Syvial chủ động bước qua cùng một cổng theo lệnh nhiệm vụ. Sự chuyển vùng làm khoảng cách mất nghĩa và phân tán cả ba tới các Level khác nhau. Kai chạm xuống Level 0 một mình, liên lạc SRU/Frontrooms/Iris/Syvial đều ngoại tuyến, rồi bắt đầu đọc môi trường bằng những gì có thể kiểm chứng.",
+      "survivalFocus": "Thiết lập ngay rằng sức chiến đấu của Kai không giải được sự phi Euclid, mất liên lạc, định hướng và độ tin cậy của môi trường. Hắn vẫn kiểm tra trang bị, đánh dấu vị trí và hành động có kỷ luật.",
+      "npcPolicy": "Không đưa survivor ngẫu nhiên vào phần prologue trước khi gameplay Core bắt đầu.",
+      "itemPolicy": "Không cấp loot mới trong prologue; chỉ dùng loadout đã khóa của đội SRU.",
+      "relationshipStage": "Lucia chưa có mặt trong prologue và không thuộc nhóm SRU bước qua cổng. Không cài tình cảm Lucia-Kai, không cho Kai nghĩ về Lucia và không nhập cô vào nhiệm vụ Async.",
+      "endingState": "Kai ở Level 0 một mình, nhiệm vụ Async còn hiệu lực, vị trí Iris và Syvial UNKNOWN, Lucia chưa materialize."
+    }
+  }
+}
