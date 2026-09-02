@@ -1,0 +1,63 @@
+name: Refresh Level 0.01 original snapshots
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/refresh-level-0-01-originals.yml'
+      - '.github/scripts/refresh_level_0_01_originals.py'
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-level-0-01-originals:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'codex/level-0-01-original-quality'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+
+      - name: Download exact Drive originals
+        shell: bash
+        run: |
+          set -euo pipefail
+          dir='android-apk/app/src/main/assets/level_snapshots'
+          curl -L --fail --retry 3 'https://drive.usercontent.google.com/download?id=1kWNl29RQKCe9Hn8a7K4wLeFiXRaoBTK1&export=download&confirm=t' -o "$dir/level_0.01_1.webp"
+          curl -L --fail --retry 3 'https://drive.usercontent.google.com/download?id=1i1jBYHtPn-IDCPY_fwS6yuMAY9mtb2Cy&export=download&confirm=t' -o "$dir/level_0.01_2.webp"
+          curl -L --fail --retry 3 'https://drive.usercontent.google.com/download?id=1StqVPH7ihE5hwMFtKfkgm25UAMsH9gQ9&export=download&confirm=t' -o "$dir/level_0.01_3.webp"
+          curl -L --fail --retry 3 'https://drive.usercontent.google.com/download?id=1n4J2w-zPxk0nIcCD6GkLqp5sOTsZcaGd&export=download&confirm=t' -o "$dir/level_0.01_4.webp"
+          echo '59d07f7e8664cf4e24e8e5c95c1ad5d91fbc319af5c6a5a74d5696b8e609d5e9  android-apk/app/src/main/assets/level_snapshots/level_0.01_1.webp' | sha256sum -c -
+          echo 'cdefc4ece01a7269e7424acd159f25cf0d934d849ef472889aec49abf835da5b  android-apk/app/src/main/assets/level_snapshots/level_0.01_2.webp' | sha256sum -c -
+          echo 'c03ff0963fb81b9908c847ae4031549a2764fb1bb73fb52702ca3a89b91bdee0  android-apk/app/src/main/assets/level_snapshots/level_0.01_3.webp' | sha256sum -c -
+          echo '89da48027b7faba019b9d9450ada63b83776a6a61d79e2baefbc1ba6ae26aee2  android-apk/app/src/main/assets/level_snapshots/level_0.01_4.webp' | sha256sum -c -
+
+      - name: Update snapshot authority and remove old Level 0.01 assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          python .github/scripts/refresh_level_0_01_originals.py
+          git rm -f \
+            android-apk/app/src/main/assets/level_snapshots/area_02_0_01_trusted_01.webp \
+            android-apk/app/src/main/assets/level_snapshots/area_02_0_01_trusted_02.webp \
+            android-apk/app/src/main/assets/level_snapshots/area_02_0_01_trusted_03.webp \
+            android-apk/app/src/main/assets/level_snapshots/area_02_0_01_trusted_04.webp
+          git rm -f .github/workflows/refresh-level-0-01-originals.yml .github/scripts/refresh_level_0_01_originals.py
+          git add android-apk/patch-level-snapshot-backgrounds.py \
+            android-apk/app/src/main/assets/level_snapshots/SOURCES.md \
+            android-apk/app/src/main/assets/level_snapshots/level_0.01_1.webp \
+            android-apk/app/src/main/assets/level_snapshots/level_0.01_2.webp \
+            android-apk/app/src/main/assets/level_snapshots/level_0.01_3.webp \
+            android-apk/app/src/main/assets/level_snapshots/level_0.01_4.webp
+          git diff --cached --check
+
+      - name: Commit exact originals to PR branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'rabpitvn1-create'
+          git config user.email 'rabpitvn1@gmail.com'
+          git commit -m 'Use original-quality Level 0.01 snapshots'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
