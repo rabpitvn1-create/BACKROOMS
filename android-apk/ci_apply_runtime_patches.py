@@ -8,6 +8,7 @@ SCRIPTS = [
     "patch-provider-status.py",
     "patch-luna-text.py",
     "patch-level-snapshot-backgrounds.py",
+    "patch-level0-snapshot-override.py",
     "patch-snapshot-fallback.py",
     "patch-kai-hd-continuous.py",
     "patch-kai-png-preferred.py",
