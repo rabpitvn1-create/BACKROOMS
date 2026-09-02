@@ -13,11 +13,20 @@ BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d |
 
 # The BGM is fetched from the pinned user-provided Drive file during the runtime patch chain,
 # then bundled into res/raw. Verify the exact source bytes survive APK packaging and that the
-# compiled Activity still contains the native playback lifecycle helper.
+# compiled Activity still contains the native playback lifecycle helper. MainActivity can live
+# in any classes*.dex shard, so scan every DEX rather than assuming classes.dex.
 unzip -l "$APK" | grep -q 'res/raw/backroom_bgm.m4a'
 BGM_SHA256=$(unzip -p "$APK" 'res/raw/backroom_bgm.m4a' | sha256sum | awk '{print $1}')
+echo "Packaged BGM SHA-256: $BGM_SHA256"
 test "$BGM_SHA256" = 'f9eca6ee4c8618d310296b19b0f919c50b0e6c85b6d55f73753cce83bef3cce2'
-unzip -p "$APK" classes.dex | strings | grep -q 'startBackgroundMusic'
+BGM_HELPER_FOUND=false
+while IFS= read -r dex; do
+  if unzip -p "$APK" "$dex" | strings | grep 'startBackgroundMusic' >/dev/null; then
+    BGM_HELPER_FOUND=true
+    break
+  fi
+done < <(zipinfo -1 "$APK" | grep -E '^classes([0-9]+)?\.dex$')
+test "$BGM_HELPER_FOUND" = true
 
 rm -rf apk-check
 mkdir apk-check
