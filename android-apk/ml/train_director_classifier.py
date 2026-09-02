@@ -4,16 +4,15 @@
 2. real telemetry only
 3. synthetic + real telemetry mixed
 
-Synthetic production model output path is dry-run / evaluated without overwriting production assets.
 Candidate model (from real telemetry) is saved ONLY to --candidate-output (e.g. backrooms_director_candidate.tflite)
-if real telemetry passes all quality gates. Production backrooms_director.tflite is NEVER overwritten.
+if real telemetry passes all quality gates.
+Production model (backrooms_director.tflite) is generated when requested via --output if synthetic bootstrap passes gates.
 """
 import argparse
 import csv
 import json
 import pathlib
 import re
-import tempfile
 from typing import Dict, List, Any, Optional
 
 import numpy as np
@@ -191,7 +190,7 @@ def main():
     parser.add_argument("--telemetry", default="director_telemetry_dataset.csv", help="Real telemetry dataset CSV")
     parser.add_argument("--telemetry-stats", default="director_telemetry_stats.json", help="Real telemetry stats JSON")
     parser.add_argument("--labels", default="../app/src/main/assets/models/backrooms_director_labels.txt")
-    parser.add_argument("--output", default=None, help="Ignored or dry-run path; production model is never overwritten")
+    parser.add_argument("--output", default="../app/src/main/assets/models/backrooms_director.tflite", help="Synthetic model output path when building CI asset")
     parser.add_argument("--candidate-output", default="../app/src/main/assets/models/backrooms_director_candidate.tflite", help="Candidate model path for real telemetry")
     parser.add_argument("--report", default="director_experiment_report.json")
     args = parser.parse_args()
@@ -210,20 +209,18 @@ def main():
 
     real_held_out = [r for r in telem_rows if r.get("split") == "test"]
 
-    # Temp dry-run path so Track 1 synthetic never overwrites production backrooms_director.tflite
-    dry_run_temp_path = pathlib.Path(tempfile.NamedTemporaryFile(suffix=".tflite", delete=False).name)
+    prod_output_path = pathlib.Path(args.output) if args.output else None
     cand_output_path = pathlib.Path(args.candidate_output)
 
-    # Track 1: Synthetic bootstrap only (evaluates in temporary path; production model asset untouched)
+    # Track 1: Synthetic bootstrap only (exports to --output if provided and gates pass)
     track1_report = evaluate_dataset_track(
         "synthetic_bootstrap_only",
         synth_rows,
         labels,
-        export_model_path=dry_run_temp_path,
+        export_model_path=prod_output_path,
         real_held_out_rows=real_held_out,
         min_sessions_required=0,
     )
-    dry_run_temp_path.unlink(missing_ok=True)
 
     # Track 2: Real telemetry only (exports ONLY to --candidate-output if gates pass)
     track2_report = evaluate_dataset_track(
@@ -254,7 +251,6 @@ def main():
         "telemetry_stats": telem_stats,
         "candidate_model_produced": candidate_produced,
         "candidate_model_path": str(cand_output_path) if candidate_produced else None,
-        "production_model_untouched": True,
         "tracks": {
             "synthetic_bootstrap_only": track1_report,
             "real_telemetry_only": track2_report,
