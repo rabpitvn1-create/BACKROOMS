@@ -75,6 +75,7 @@ SCRIPTS = [
     "patch-kai-r10-runtime-canon.py",
     "patch-kai-r10-test-compile-fix.py",
     "patch-haku-prose-editor.py",
+    "patch-background-music.py",
 ]
 
 for script in SCRIPTS:
