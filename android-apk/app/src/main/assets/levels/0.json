@@ -27,7 +27,7 @@
     },
     {
       "id": "marker_room",
-      "name": "căn phòng có những dấu cào xuất hiện sai vị trí",
+      "name": "căn phòng có một tấm trần lệch",
       "connections": ["fluorescent_loop"],
       "tags": ["layout_resistance"],
       "properties": {
@@ -40,25 +40,25 @@
       "connections": ["fluorescent_loop", "concrete_drift"],
       "tags": ["memory_room", "transition_candidate"],
       "properties": {
-        "wallShift": "yellow_to_concrete",
-        "hum": "fading"
+        "wallShift": "yellow_to_paler_yellow",
+        "hum": "layered"
       }
     },
     {
       "id": "concrete_drift",
-      "name": "đoạn hành lang nơi tường vàng dần chuyển thành bê tông",
+      "name": "đoạn hành lang hẹp dưới dãy đèn rung nhẹ",
       "connections": ["memory_corridor"],
       "tags": ["escape", "level_transition"],
       "properties": {
-        "walls": "concrete",
-        "ceiling": "higher",
-        "floorMarkings": "painted_lines"
+        "walls": "aged_yellow_wallpaper",
+        "ceiling": "drop_ceiling",
+        "carpet": "damp"
       }
     }
   ],
   "landmarks": {
     "relocatedMark": "Cùng một dấu cào xuất hiện ở những vị trí không thể đồng thời đúng.",
-    "concreteSeam": "Một dải tường vàng chuyển dần sang bê tông thay vì đổi đột ngột."
+    "concreteSeam": "Một dải giấy tường vàng nhạt hơn nằm dưới dãy đèn rung nhẹ."
   },
   "environment": {
     "fluorescentHum": "continuous",
@@ -135,9 +135,9 @@
       "id": "follow_transition_signs",
       "matchGroups": [
         ["theo hành lang", "bám hành lang", "đi theo"],
-        ["tiếng ù yếu", "đèn yếu", "bê tông", "vạch sơn"]
+        ["tiếng ù chồng", "đèn rung", "giấy tường nhạt", "tiếng ù yếu", "đèn yếu", "bê tông", "vạch sơn"]
       ],
-      "semanticDescriptions": ["đi theo hành lang có tiếng ù yếu và dấu hiệu chuyển sang bê tông"],
+      "semanticDescriptions": ["đi theo hành lang có đèn rung và tiếng ù chồng lên nhau"],
       "conditions": [
         "zone:memory_corridor",
         "fact:MARKERS_ARE_UNRELIABLE",
@@ -147,7 +147,7 @@
       "effects": [
         {"type": "MOVE_TO_ZONE", "zoneId": "concrete_drift"}
       ],
-      "reply": "Kai bỏ qua các dấu định vị đã chứng minh là không đáng tin và bám theo đoạn hành lang nơi tiếng đèn yếu dần, tường vàng chuyển thành bê tông."
+      "reply": "Bạn bước vào đoạn hành lang hẹp. Giấy tường vẫn vàng, thảm vẫn ẩm; tiếng ù phía trên chồng thành hai lớp khó tách."
     },
     {
       "id": "continue_until_geometry_changes",
@@ -163,21 +163,21 @@
       "effects": [
         {"type": "COMPLETE_LEVEL"}
       ],
-      "reply": "Kai tiếp tục theo dải chuyển tiếp cho tới khi những phòng vàng phía sau biến mất hẳn. Ranh giới của Level 0 đã ở lại phía sau."
+      "reply": "Qua khúc ngoặt, tiếng đèn dội liên tục sát tai bạn. Những căn phòng vàng phía sau khuất đi; phía trước vẫn là giấy tường cũ và thảm ẩm."
     }
   ],
   "replies": {
     "search:empty": "Kai rà lại khu vực nhưng chưa có chi tiết nào đủ khác biệt để kết luận thêm.",
     "search:exhausted": "Những gì có thể kiểm tra trong trạng thái hiện tại đã được ghi nhận; lặp lại không tạo thêm bằng chứng.",
     "execute:conditions_missing": "Ý tưởng chưa đủ cơ sở hoặc Kai chưa ở đúng nơi để kiểm chứng nó.",
-    "execute:no_progress": "Thử nghiệm không làm tiến triển chuỗi thoát đã khóa.",
+    "execute:no_progress": "Bạn thử lại, nhưng hành lang trước mặt không thay đổi.",
     "explore:moved": "Kai đi sâu hơn vào {zone}.",
-    "evidence:e-marker-search": "Dấu cào trên mép tường trùng hoàn toàn với một dấu Kai đã thấy trước đó, kể cả lỗi nhỏ ở nét cuối.",
-    "evidence:e-marker-repeat": "Sau khi vòng lại, cùng dấu cào xuất hiện ở vị trí khác dù khoảng cách và góc phòng không thể khớp. Đánh dấu vị trí ở Level 0 không đáng tin tuyệt đối.",
-    "evidence:e-transition-search": "Ở mép hành lang, giấy tường không kết thúc bằng một cánh cửa; nó nhạt dần rồi lộ bê tông, trần cũng tăng độ cao theo từng đoạn.",
-    "evidence:e-transition-anomaly": "Càng đi về phía dải bê tông, hình học bớt giống các phòng vàng và bắt đầu xuất hiện cột chịu lực cùng vạch sơn.",
-    "evidence:e-hum-survivor": "Một ghi chú của người sống sót bị cào lên mặt sau tấm trần: 'Nếu tiếng đèn nhỏ dần mà tường hóa bê tông, đừng quay theo dấu cũ.'",
-    "evidence:e-hum-anomaly": "Tiếng huỳnh quang suy yếu theo đúng hướng kiến trúc đang chuyển sang bê tông; phía ngược lại tiếng ù lại dày lên."
+    "evidence:e-marker-search": "Dưới mép giấy bong có ba vết cào ngắn; nét cuối gãy sang bên, giống chỗ bạn đã rà tay trước đó.",
+    "evidence:e-marker-repeat": "Ba vết cào nằm sát chân tường bên trái. Lần trước, cạnh chúng là một góc rẽ bên phải.",
+    "evidence:e-transition-search": "Dưới đường nối giấy tường, màu vàng nhạt hơn kéo dài qua góc khuất; không có mép cửa hay khe hở.",
+    "evidence:e-transition-anomaly": "Ở góc hành lang, một dãy bóng đèn rung rất nhẹ. Thảm ẩm kéo dài bên dưới, cùng sắc vàng nhạt trên tường.",
+    "evidence:e-hum-survivor": "Mặt sau tấm trần lệch có vài chữ người sống sót để lại: '...hai tiếng... vẫn còn...' Phần còn lại đã bị nước làm nhòe.",
+    "evidence:e-hum-anomaly": "Đứng sát dải giấy nhạt màu, bạn nghe một tiếng rung mảnh chồng lên tiếng ù đều. Lùi vài bước, âm mảnh ấy chìm đi."
   },
   "canonProfile": {
     "environmentTags": [
@@ -202,12 +202,9 @@
       "level_confirmed_intentionally_opposes_player"
     ],
     "transitionTags": [
-      "widening_corridors",
-      "concrete_walls",
-      "fading_fluorescent_hum",
-      "higher_ceiling",
-      "support_columns",
-      "painted_lines"
+      "yellow_wallpaper_continuity",
+      "layered_fluorescent_hum",
+      "damp_carpet_continuity"
     ],
     "metadata": {
       "projectDanger": "HIGH",
@@ -231,6 +228,8 @@
   "metadata": {
     "prototype": "true",
     "generation": "deterministic-fallback",
-    "canonNote": "Level 0 transition is observed and followed, never forced by player action."
+    "canonNote": "Level 0 leads to epsilon, never directly to Level 1. Internal zone/fact IDs retain legacy names for save compatibility.",
+    "presentationRevision": "level0-epsilon-observations-v1",
+    "campaignExitTarget": "epsilon"
   }
 }

@@ -40,13 +40,56 @@ class LevelZeroDefinitionTest {
     assertEquals("Kai đi sâu hơn vào khu hành lang dưới ánh đèn huỳnh quang.", firstExplore.reply)
 
     val secondExplore = GenericLevelRuntime.apply(state, registry, ActionKind.EXPLORE, "Khám phá")
-    assertTrue(secondExplore.reply.startsWith("Kai đi sâu hơn vào căn phòng có những dấu cào xuất hiện sai vị trí."))
+    assertTrue(secondExplore.reply.startsWith("Kai đi sâu hơn vào căn phòng có một tấm trần lệch."))
     assertTrue(secondExplore.reply.contains("người sống sót"))
     assertFalse(secondExplore.reply.contains("Fluorescent Loop"))
     assertFalse(secondExplore.reply.contains("Relocated Marker Room"))
     assertFalse(secondExplore.reply.contains("Vòng lặp huỳnh quang"))
     assertFalse(secondExplore.reply.contains("Phòng dấu mốc dịch chuyển"))
     assertFalse(secondExplore.reply.contains("survivor", ignoreCase = true))
+  }
+
+  @Test fun levelZeroPresentationLeadsToEpsilonWithoutParkingArchitecture() {
+    val definition = loadLevelZero()
+    assertEquals("epsilon", definition.metadata["campaignExitTarget"])
+    val visible = definition.zones.values.map { it.name } + definition.replies.values +
+      definition.actions.values.mapNotNull { it.reply }
+    visible.forEach { assertFalse(it, LevelNarrativePolicy.contradictsArea("0", it)) }
+    assertFalse(definition.replies.getValue("evidence:e-marker-repeat").contains("không đáng tin"))
+    assertFalse(definition.replies.getValue("evidence:e-hum-survivor").contains("đừng quay"))
+  }
+
+  @Test fun continuedFixtureSaveRefreshesPresentationWithoutResettingProgress() {
+    val definition = loadLevelZero()
+    val registry = LevelRegistry.from(listOf(definition))
+    val installed = GenericLevelRuntime.install(GameState.initial(), registry, "0", "old-save")
+    val initial = installed.levelInstance!!
+    val saved = initial.copy(
+      currentZoneId = "concrete_drift",
+      zones = initial.zones + ("concrete_drift" to initial.zones.getValue("concrete_drift").copy(name = "bãi đỗ xe bê tông")),
+      replies = initial.replies + ("evidence:e-hum-survivor" to "đừng quay theo dấu cũ"),
+      evidence = initial.evidence.mapValues { (_, item) -> item.copy(discovered = true, discoveredAtRevision = 3) },
+      discoveredFacts = initial.escapeBlueprint.requiredFacts,
+      completedActions = listOf("follow_transition_signs"),
+      revision = 7
+    )
+    val original = installed.copy(levelInstance = saved)
+    val restored = GameStateCodec.decode(GameStateCodec.encode(original))
+    val refreshedState = GenericLevelRuntime.install(restored, registry, "0", "ignored")
+    val refreshed = refreshedState.levelInstance!!
+    assertEquals(saved.runSeed, refreshed.runSeed)
+    assertEquals(saved.generationId, refreshed.generationId)
+    assertEquals(saved.currentZoneId, refreshed.currentZoneId)
+    assertEquals(saved.evidence, refreshed.evidence)
+    assertEquals(saved.discoveredFacts, refreshed.discoveredFacts)
+    assertEquals(saved.completedActions, refreshed.completedActions)
+    assertEquals(saved.revision, refreshed.revision)
+    assertEquals(original.inventories, refreshedState.inventories)
+    assertFalse(refreshedState.world.getValue("location").contains("bê tông"))
+    assertEquals(definition.replies, refreshed.replies)
+    assertEquals(refreshedState, GenericLevelRuntime.install(refreshedState, registry, "0", "ignored"))
+    val finish = GenericLevelRuntime.apply(refreshedState, registry, ActionKind.EXECUTE, "tiếp tục cho tới khi kiến trúc đổi hẳn")
+    assertTrue(finish.escaped)
   }
 
   @Test fun deterministicFallbackRequiresClueCollectionThenExecuteToLeaveLevelZero() {
@@ -74,7 +117,7 @@ class LevelZeroDefinitionTest {
       state,
       registry,
       ActionKind.EXECUTE,
-      "đi theo hành lang bê tông nơi tiếng ù yếu"
+      "đi theo hành lang có đèn rung và tiếng ù chồng lên nhau"
     )
     assertFalse(premature.progressed)
 
@@ -85,7 +128,7 @@ class LevelZeroDefinitionTest {
       state,
       registry,
       ActionKind.EXECUTE,
-      "đi theo hành lang bê tông nơi tiếng ù yếu"
+      "đi theo hành lang có đèn rung và tiếng ù chồng lên nhau"
     )
     assertTrue(follow.progressed)
     assertFalse(follow.escaped)

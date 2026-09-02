@@ -36,6 +36,26 @@ class RegisteredLevelActionCoordinatorTest {
     assertNotNull(ActionRuntime.activeSession(result.state))
   }
 
+  @Test fun unmatchedMovementCannotFallThroughToWriter() {
+    val definition = fixture("0")
+    val registry = LevelRegistry.from(listOf(definition))
+    for (input in listOf("Kai chạy nhanh qua ranh giới vào bãi đỗ xe", "Đi tới Level 1", "Kai đi tiếp", "Kai tăng tốc bước chân", "Kai và Lucia đi tiếp")) {
+      val installed = GenericLevelRuntime.install(GameState.initial(), registry, "0", "run")
+      val before = installed.levelInstance!!
+      val result = RegisteredLevelActionCoordinator.applyStarted(
+        start(installed, ActionKind.EXECUTE, input), registry, catalog("0"),
+        ActionKind.EXECUTE, input, "0", "run"
+      )
+      assertTrue(input, result.handled)
+      assertNull(result.error)
+      assertFalse(result.progressed)
+      assertFalse(result.escaped)
+      assertEquals(before.currentZoneId, result.state.levelInstance!!.currentZoneId)
+      assertEquals(before.discoveredFacts, result.state.levelInstance!!.discoveredFacts)
+      assertNull(ActionRuntime.activeSession(result.state))
+    }
+  }
+
   @Test fun recognizedExecuteIsResolvedWithoutGeminiReroll() {
     val definition = fixture("999.alpha")
     val registry = LevelRegistry.from(listOf(definition))

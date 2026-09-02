@@ -15,7 +15,10 @@ data class LevelActionOutcome(
  */
 object GenericLevelRuntime {
   fun install(state: GameState, registry: LevelRegistry, levelId: String, seed: String): GameState {
-    if (state.levelInstance?.levelId == levelId) return state
+    if (state.levelInstance?.levelId == levelId) {
+      val definition = registry.require(levelId)
+      return sync(state, definition, refreshLevelZeroPresentation(state.levelInstance, definition))
+    }
     val definition = registry.require(levelId)
     val level = GenericLevelGenerator.generate(definition, seed)
     require(BlueprintValidator.validate(level, definition).valid) { "invalid_generated_level:$levelId" }
@@ -34,9 +37,9 @@ object GenericLevelRuntime {
       ?: return LevelActionOutcome(state, "Level instance chưa được khởi tạo.", progressed = false)
     val definition = registry.get(stored.levelId)
       ?: return LevelActionOutcome(state, "Không tìm thấy Level definition cho ${stored.levelId}.", progressed = false)
-    val hydrated = hydrateLegacyInstance(stored, definition)
+    val hydrated = refreshLevelZeroPresentation(hydrateLegacyInstance(stored, definition), definition)
     val level = reconcileDiscoveredFacts(hydrated, definition)
-    val workingState = if (level == stored) state else state.copy(levelInstance = level)
+    val workingState = if (level == stored) state else sync(state, definition, level)
     if (level.completed) return LevelActionOutcome(workingState, "Lối chuyển Level đã được mở.", progressed = false, escaped = true)
 
     return when (kind) {
@@ -192,6 +195,29 @@ object GenericLevelRuntime {
       actions = if (level.actions.isEmpty()) definition.actions else level.actions,
       replies = if (level.replies.isEmpty()) definition.replies else level.replies,
       generatorVersion = "legacy-definition-hydrated"
+    )
+  }
+
+  /** Refresh only presentation from the shipped fixture; keep the saved puzzle and progress.
+   * Legacy IDs deliberately remain stable, including concrete_drift and its supporting facts.
+   * Model-generated/custom instances must never be silently replaced with a different topology.
+   */
+  private fun refreshLevelZeroPresentation(level: LevelInstanceState, definition: LevelDefinition): LevelInstanceState {
+    if (level.levelId != "0" || definition.metadata["presentationRevision"] != "level0-epsilon-observations-v1") return level
+    if (level.generatorVersion !in setOf(LevelInstanceGenerator.DEFINITION_GENERATOR_VERSION, "legacy-definition-hydrated")) return level
+    if (level.escapeBlueprint != definition.escapeBlueprint || level.zones.keys != definition.zones.keys) return level
+    if (level.actions.keys != definition.actions.keys || level.evidence.keys != definition.evidence.keys) return level
+    return level.copy(
+      zones = level.zones.mapValues { (id, zone) ->
+        val current = definition.zones.getValue(id)
+        zone.copy(name = current.name, properties = current.properties)
+      },
+      landmarks = definition.landmarks,
+      actions = level.actions.mapValues { (id, action) ->
+        val current = definition.actions.getValue(id)
+        action.copy(reply = current.reply, matchGroups = current.matchGroups, semanticDescriptions = current.semanticDescriptions)
+      },
+      replies = level.replies + definition.replies
     )
   }
 

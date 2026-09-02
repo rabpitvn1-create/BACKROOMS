@@ -90,7 +90,7 @@ class BackroomsDirectorTest {
     assertTrue("HUM_FADES_ALONG_TRANSITION" in facts)
 
     val follow = GenericLevelRuntime.apply(
-      state, registry, ActionKind.EXECUTE, "đi theo hành lang bê tông nơi tiếng ù yếu"
+      state, registry, ActionKind.EXECUTE, "đi theo hành lang có đèn rung và tiếng ù chồng lên nhau"
     )
     val finish = GenericLevelRuntime.apply(
       follow.state, registry, ActionKind.EXECUTE, "tiếp tục cho tới khi kiến trúc đổi hẳn"

@@ -69,6 +69,7 @@ SCRIPTS = [
     "patch-dialogue-prose-runtime.py",
     "patch-sru-force-codex.py",
     "patch-action-runtime-terminal-cleanup.py",
+    "patch-level-zero-observation-boundary.py",
 ]
 
 for script in SCRIPTS:
