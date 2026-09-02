@@ -32,38 +32,6 @@
       "tags": ["duller"],
       "references": ["ENTITY.GLOBAL_HARD_LOCK"],
       "affordances": ["direct_threat", "trace_analysis"]
-    },
-    {
-      "id": "ENTITY.DEATHMOTH",
-      "domain": "ENTITY",
-      "kind": "entity",
-      "text": "Deathmoth: a large moth-like insectoid predator with scaled membranous wings, prominent antennae and clawed segmented legs; exact body size and caste anatomy vary across external references, so no single numeric form is locked here. Project canon takes precedence: encountered Deathmoths are hostile predators that use dark ceilings and technical recesses, often attack in groups, react to light and movement, and on Level 3 can exploit broken-light zones to pressure humans toward live electrical hazards. External references additionally corroborate coordinated swarm attacks and corrosive ejecta in aggressive variants, used to injure or incapacitate prey before feeding or transporting organic matter. Older external material describes some males as harmless or tamable; that directly conflicts with ENTITY.GLOBAL_HARD_LOCK and is not canon in this game. Do not infer that a quieter individual is safe, and do not assign archived hive/caste rules to every encounter unless current game state establishes them.",
-      "source": {
-        "document": "Internet synthesis + repo canon (2026-09-03)",
-        "anchor": "The Backrooms Wikidot — Entity 4 Deathmoths (current + archived); Backrooms Exploration Wiki — Entity 4 Deathmoths; repo canon: ENT-1D/ENT-3A + ENTITY.GLOBAL_HARD_LOCK"
-      },
-      "authority": "WORLD_CANON",
-      "mutability": "BASELINE",
-      "priority": 60,
-      "tags": ["deathmoth"],
-      "references": ["ENTITY.GLOBAL_HARD_LOCK"],
-      "affordances": ["direct_threat", "trace_analysis"]
-    },
-    {
-      "id": "ENTITY.SMILER",
-      "domain": "ENTITY",
-      "kind": "entity",
-      "text": "Smiler: a hostile presence most reliably identified in darkness by bright reflective or glowing eyes and a wide grin of visible sharp teeth; the rest of its body is not reliably established and should remain visually uncommitted unless directly observed. Project canon takes precedence: Smilers use blacked-out areas and dark corners and may keep distance to pressure prey into choosing a bad route instead of charging immediately. External references consistently associate them with light attraction and escalation when prey panics, retreats abruptly or makes loud noise; once committed, they can chase or lunge from darkness. Eye contact and slow controlled withdrawal are reported survival tactics, but they are not absolute guarantees. External sources disagree on whether Smilers literally lack a body or whether direct light destroys them, so neither claim is canon here. ENTITY.GLOBAL_HARD_LOCK applies even when a Smiler appears stationary or merely watches.",
-      "source": {
-        "document": "Internet synthesis + repo canon (2026-09-03)",
-        "anchor": "The Backrooms Wikidot — Entity 3 Smilers; Backrooms Exploration Wiki — Entity 3 Smiler; repo canon: ENT-2C + ENTITY.GLOBAL_HARD_LOCK"
-      },
-      "authority": "WORLD_CANON",
-      "mutability": "BASELINE",
-      "priority": 58,
-      "tags": ["smiler"],
-      "references": ["ENTITY.GLOBAL_HARD_LOCK"],
-      "affordances": ["direct_threat", "trace_analysis"]
     }
   ]
 }
