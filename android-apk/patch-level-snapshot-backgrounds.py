@@ -15,14 +15,22 @@ REJECT_RENDER_TITLES = (
     "whitebackground",
 )
 
-# Exact byte-for-byte Level 0 originals from the project's Google Drive.
+# Exact byte-for-byte originals explicitly supplied from the project's Google Drive.
 # Do not resize, crop, recompress, or re-encode these files. CI hard-locks both size and SHA-256.
-LEVEL0_ORIGINALS = (
-    ("level_0_1.webp", 217992, "619a3a035d6ba4e5c9fa8301e57e6b8d643272d52e4ff86105f8c3a517a84762"),
-    ("level_0_2.webp", 145638, "34da3b0d0f1914be884cad5d388bbe8c263050e48f63c1656861558e9e5961fb"),
-    ("level_0_3.webp", 268618, "7e8cfe0a09b30d932df5a37748c5be51517b51011f320e0835338ab0249e4696"),
-    ("level_0_4.webp", 212864, "2b0dbbe6c8f70c5722b97578ebf98207f6ea81b9985afaed2c2f96818ce5cf87"),
-)
+ORIGINAL_QUALITY_OVERRIDES = {
+    "0": (
+        ("level_0_1.webp", 217992, "619a3a035d6ba4e5c9fa8301e57e6b8d643272d52e4ff86105f8c3a517a84762"),
+        ("level_0_2.webp", 145638, "34da3b0d0f1914be884cad5d388bbe8c263050e48f63c1656861558e9e5961fb"),
+        ("level_0_3.webp", 268618, "7e8cfe0a09b30d932df5a37748c5be51517b51011f320e0835338ab0249e4696"),
+        ("level_0_4.webp", 212864, "2b0dbbe6c8f70c5722b97578ebf98207f6ea81b9985afaed2c2f96818ce5cf87"),
+    ),
+    "epsilon": (
+        ("level_epsilon_1.webp", 1647706, "a7270abc3995d7944ae87101e584b5af1d78edfd54f55ae8ee644d14957f0452"),
+        ("level_epsilon_2.webp", 1598158, "52fcd023419ae4b1df1d957309479a73a71672184a457deb71b5f6121acf4a23"),
+        ("level_epsilon_3.webp", 1579430, "f1c1574ba1402b690c565c3d9ab3ea46694a37a2077235d855644418643ed5e7"),
+        ("level_epsilon_4.webp", 605806, "6b3f541dbfbc89b604ab187656666111a4b845fc95bcd026762721cad0cec082"),
+    ),
+}
 
 # Snapshot assets are optional visual data. The Level catalog is the authoritative roster and
 # relationship source; snapshot manifests may cover only a subset of known Levels. Builds stay
@@ -67,23 +75,23 @@ for area_id, area in areas.items():
         legacy_parent = str(area.get("parent_level")).strip()
         if legacy_parent and legacy_parent != area_id:
             legacy_parents[area_id] = legacy_parent
-    if area_id == "0":
+    if area_id in ORIGINAL_QUALITY_OVERRIDES:
         refs: list[str] = []
-        for name, expected_bytes, expected_sha in LEVEL0_ORIGINALS:
+        for name, expected_bytes, expected_sha in ORIGINAL_QUALITY_OVERRIDES[area_id]:
             asset = SNAPSHOT_DIR / name
             if not asset.is_file() or asset.stat().st_size != expected_bytes:
                 actual = asset.stat().st_size if asset.is_file() else 0
                 raise RuntimeError(
-                    f"Original Level 0 snapshot size mismatch: {asset} "
+                    f"Original-quality snapshot size mismatch area={area_id}: {asset} "
                     f"expected={expected_bytes} actual={actual}"
                 )
             data = asset.read_bytes()
             if data[:4] != b"RIFF" or data[8:12] != b"WEBP":
-                raise RuntimeError(f"Original Level 0 snapshot is not a WebP container: {asset}")
+                raise RuntimeError(f"Original-quality snapshot is not a WebP container area={area_id}: {asset}")
             actual_sha = hashlib.sha256(data).hexdigest()
             if actual_sha != expected_sha:
                 raise RuntimeError(
-                    f"Original Level 0 snapshot checksum mismatch: {asset} "
+                    f"Original-quality snapshot checksum mismatch area={area_id}: {asset} "
                     f"expected={expected_sha} actual={actual_sha}"
                 )
             verified_assets += 1
