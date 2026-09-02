@@ -130,6 +130,28 @@ class ActionRuntimeTest {
     assertEquals("action_session_already_active", second.error)
   }
 
+  @Test fun terminalLocalRejectionCanReleaseSessionAndAllowNextTurn() {
+    val started = ActionRuntime.start(
+      stateAt(), "S1", "TURN_1", KAI_ID, ActionKind.EXECUTE, "Dùng vật phẩm"
+    ).state
+    val pending = TurnCoordinator.createPending(started, "TURN_1", "Dùng vật phẩm")
+    assertNull(pending.error)
+
+    val rejected = TurnCoordinator.reject(pending.state, "item_not_owned")
+    assertNull(rejected.state.turn.pending)
+    assertTrue("TURN_1" in rejected.state.turn.completedTurnIds)
+    assertNotNull(ActionRuntime.activeSession(rejected.state))
+
+    val released = ActionRuntime.interrupt(rejected.state, "S1", "local_terminal")
+    assertTrue(released.applied)
+    assertNull(ActionRuntime.activeSession(released.state))
+
+    val next = ActionRuntime.start(
+      released.state, "S2", "TURN_2", KAI_ID, ActionKind.EXECUTE, "Hành động kế tiếp"
+    )
+    assertTrue(next.applied)
+  }
+
   @Test fun actionTimeAdvancesKnownPartyPhysiologyWithoutMovingDeadCharacters() {
     val follower = CharacterState(
       id = "follower",
