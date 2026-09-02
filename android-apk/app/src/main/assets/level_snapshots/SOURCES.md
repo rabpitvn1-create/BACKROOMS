@@ -18,7 +18,7 @@ If a sub-area has no usable approved-source image, it uses its parent main Level
 
 Level 0 uses `level_0_1.webp` through `level_0_4.webp` copied byte-for-byte from the project Google Drive folder `Backrooms Level`. All four are 1672x941 WebP originals. Their exact sizes and SHA-256 values are hard-locked in `patch-level-snapshot-backgrounds.py`. The former `area_00_0_trusted_01.webp` through `area_00_0_trusted_04.webp` assets are removed after replacement.
 
-`fandom_manifest.json` still preserves the historical Level 0 source metadata for provenance, but runtime loading deliberately bypasses those legacy Level 0 file records. `LEVEL0_ORIGINALS` is the authoritative packaged Level 0 pool.
+`fandom_manifest.json` still preserves the historical Level 0 source metadata for provenance, but runtime loading deliberately bypasses those legacy Level 0 file records. `ORIGINAL_QUALITY_OVERRIDES["0"]` is the authoritative packaged Level 0 pool.
 
 ## Epsilon original-quality override
 
