@@ -9,16 +9,19 @@ import kotlin.math.ceil
 /**
  * Local, indexed runtime knowledge store and budgeted context builder.
  *
- * Canon is packaged in assets/knowledge/knowledge_db.json. The model never scans the
- * whole database. Structured IDs, references, present actors and scene affordances are
- * resolved here before a small packet is handed to the Game Master.
+ * Canon is packaged in assets/knowledge/knowledge_db.json plus curated supplement files.
+ * The model never scans the whole database. Structured IDs, references, present actors
+ * and scene affordances are resolved here before a small packet is handed to the Game Master.
  */
 object KnowledgeContextEngine {
   const val TARGET_CONTEXT_BUDGET = 2200
   const val SOFT_CONTEXT_CEILING = 2800
   const val HARD_CONTEXT_CEILING = 3400
 
-  private const val ASSET = "knowledge/knowledge_db.json"
+  private val ASSETS = listOf(
+    "knowledge/knowledge_db.json",
+    "knowledge/entity_codex_supplement.json"
+  )
   private const val RECENT_DIALOGUE_ENTRIES = 4
   private const val RECENT_DIALOGUE_CHARS = 700
 
@@ -78,28 +81,29 @@ object KnowledgeContextEngine {
   }
 
   private fun load(context: Context): Database {
-    val raw = context.assets.open(ASSET).bufferedReader(Charsets.UTF_8).use { it.readText() }
-    val root = JSONObject(raw)
-    val array = root.getJSONArray("records")
     val records = linkedMapOf<String, Record>()
-    for (i in 0 until array.length()) {
-      val json = array.getJSONObject(i)
-      val source = json.getJSONObject("source")
-      val record = Record(
-        id = json.getString("id"),
-        domain = json.getString("domain"),
-        kind = json.getString("kind"),
-        text = json.getString("text").trim(),
-        authority = json.getString("authority"),
-        mutability = json.getString("mutability"),
-        priority = json.optInt("priority", 80),
-        tags = strings(json.optJSONArray("tags")),
-        references = strings(json.optJSONArray("references")),
-        affordances = strings(json.optJSONArray("affordances")),
-        source = SourceRef(source.getString("document"), source.optString("anchor"))
-      )
-      require(record.id !in records) { "Duplicate knowledge record id: ${record.id}" }
-      records[record.id] = record
+    ASSETS.forEach { asset ->
+      val raw = context.assets.open(asset).bufferedReader(Charsets.UTF_8).use { it.readText() }
+      val array = JSONObject(raw).getJSONArray("records")
+      for (i in 0 until array.length()) {
+        val json = array.getJSONObject(i)
+        val source = json.getJSONObject("source")
+        val record = Record(
+          id = json.getString("id"),
+          domain = json.getString("domain"),
+          kind = json.getString("kind"),
+          text = json.getString("text").trim(),
+          authority = json.getString("authority"),
+          mutability = json.getString("mutability"),
+          priority = json.optInt("priority", 80),
+          tags = strings(json.optJSONArray("tags")),
+          references = strings(json.optJSONArray("references")),
+          affordances = strings(json.optJSONArray("affordances")),
+          source = SourceRef(source.getString("document"), source.optString("anchor"))
+        )
+        require(record.id !in records) { "Duplicate knowledge record id: ${record.id}" }
+        records[record.id] = record
+      }
     }
     fun index(selector: (Record) -> Set<String>): Map<String, Set<String>> {
       val out = linkedMapOf<String, MutableSet<String>>()
