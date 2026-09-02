@@ -37,4 +37,22 @@ class RuleIntentInterpreterTest {
     assertEquals(GameIntent.UNKNOWN, result.candidates.single().intent)
     assertTrue(result.requiresFallback)
   }
+
+  @Test fun dialogueAndTacticalRequestsStayOutOfItemAuthority() {
+    val nonMutating = listOf(
+      "Bạn hỏi cô ấy sử dụng súng gì và muốn biết loại đạn cô ấy sử dụng có giống với của mình không",
+      "Bạn hỏi xin cô ấy một viên đạn.",
+      "Bạn yêu cầu Lucia đi Trinh Sát",
+      "Lucia đang dùng loại súng nào vậy?",
+      "Bảo Lucia giữ góc hành lang và quan sát."
+    )
+    nonMutating.forEach { input ->
+      val candidate = parse(input).candidates.single()
+      assertEquals(input, GameIntent.NO_ACTION, candidate.intent)
+      assertEquals(input, IntentConfidence.HIGH, candidate.confidence)
+    }
+
+    assertEquals(GameIntent.USE_ITEM, parse("Kai dùng băng gạc").candidates.single().intent)
+    assertEquals(GameIntent.TRANSFER_ITEM, parse("Kai đưa Lucia một chai nước hạnh nhân").candidates.single().intent)
+  }
 }
