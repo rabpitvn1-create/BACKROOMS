@@ -183,13 +183,15 @@ class BackroomsDirector(
   companion object {
     @JvmField val DETERMINISTIC = BackroomsDirector()
 
+    /**
+     * Historical name retained for factory compatibility. Since PR #174 the packaged LiteRT asset
+     * belongs exclusively to WorldDirector pressure proposals, so evidence selection remains
+     * deterministic Core behavior while this factory only enables local evidence telemetry.
+     */
     fun liteRT(context: Context): BackroomsDirector {
       val appContext = context.applicationContext
-      val policy = LiteRTBackroomsDirectorPolicy(appContext)
       return BackroomsDirector(
-        policy,
-        policy,
-        SharedPreferencesBackroomsDirectorTelemetryStore(appContext)
+        telemetry = SharedPreferencesBackroomsDirectorTelemetryStore(appContext)
       )
     }
   }
@@ -223,6 +225,11 @@ object BackroomsDirectorFeatures {
   private fun sanitize(value: String): String = value.lowercase().replace(Regex("[^a-z0-9_]+"), "_").trim('_')
 }
 
+/**
+ * Legacy evidence-source policy implementation retained for isolated experiments/tests only.
+ * It is intentionally not wired to the application factory because the packaged director model
+ * now uses WorldPressureProposal labels instead of DirectorEvidencePreference labels.
+ */
 class LiteRTBackroomsDirectorPolicy(
   context: Context,
   private val modelAsset: String = "models/backrooms_director.tflite",
