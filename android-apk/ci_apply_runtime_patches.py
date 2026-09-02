@@ -73,6 +73,7 @@ SCRIPTS = [
     "patch-lucia-r03-runtime-canon.py",
     "patch-kai-r10-skill-catalog-precompat.py",
     "patch-kai-r10-runtime-canon.py",
+    "patch-kai-r10-test-compile-fix.py",
 ]
 
 for script in SCRIPTS:
