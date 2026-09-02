@@ -1,0 +1,86 @@
+name: Import Lucia avatar from Drive
+
+on:
+  push:
+    branches: [fix/lucia-avatar-drive]
+    paths:
+      - ".github/workflows/import-lucia-avatar-drive.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  import-avatar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/lucia-avatar-drive
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install image tooling
+        run: python -m pip install --disable-pip-version-check Pillow==11.3.0
+
+      - name: Replace Lucia avatar with user-provided Drive image
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import hashlib
+          import io
+          import urllib.request
+
+          FILE_ID = "1OF3iEF9Js_46o2t5-ChkECCM1mPT-HnA"
+          DOWNLOAD_URL = f"https://drive.usercontent.google.com/download?id={FILE_ID}&export=download&confirm=t"
+          EXPECTED_SIZE = 87005
+          EXPECTED_SHA256 = "c6145cde037c6128f50f0e8c8820ee2febcc66cb840e260c6f1801c9725b403e"
+          EXPECTED_DIMENSIONS = (488, 542)
+          TARGET = Path("android-apk/app/src/main/assets/avatars/lucia_avatar.jpg")
+
+          if not TARGET.is_file():
+              raise RuntimeError("Existing Lucia avatar is missing; refusing an ambiguous replacement")
+
+          old_bytes = TARGET.read_bytes()
+          request = urllib.request.Request(DOWNLOAD_URL, headers={"User-Agent": "Mozilla/5.0"})
+          with urllib.request.urlopen(request, timeout=60) as response:
+              source_bytes = response.read()
+
+          if len(source_bytes) != EXPECTED_SIZE:
+              raise RuntimeError(f"Unexpected Drive avatar size: {len(source_bytes)}")
+          source_sha = hashlib.sha256(source_bytes).hexdigest()
+          if source_sha != EXPECTED_SHA256:
+              raise RuntimeError(f"Unexpected Drive avatar SHA-256: {source_sha}")
+          if source_bytes == old_bytes:
+              raise RuntimeError("Drive avatar is identical to the existing Lucia avatar")
+
+          with Image.open(io.BytesIO(source_bytes)) as image:
+              image.load()
+              if image.format != "JPEG":
+                  raise RuntimeError(f"Expected JPEG avatar, got {image.format}")
+              if image.size != EXPECTED_DIMENSIONS:
+                  raise RuntimeError(f"Unexpected Lucia avatar dimensions: {image.size}")
+
+          TARGET.write_bytes(source_bytes)
+          if hashlib.sha256(TARGET.read_bytes()).hexdigest() != EXPECTED_SHA256:
+              raise RuntimeError("Written Lucia avatar checksum mismatch")
+
+          print(f"Replaced Lucia avatar: {EXPECTED_DIMENSIONS[0]}x{EXPECTED_DIMENSIONS[1]} JPEG, {EXPECTED_SIZE} bytes, sha256={EXPECTED_SHA256}")
+          PY
+
+      - name: Commit avatar replacement and remove importer
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm .github/workflows/import-lucia-avatar-drive.yml
+          git add -A android-apk/app/src/main/assets/avatars/lucia_avatar.jpg .github/workflows/import-lucia-avatar-drive.yml
+          git diff --cached --check
+          git commit -m "Replace Lucia avatar with Drive image"
+          git push origin HEAD:fix/lucia-avatar-drive
