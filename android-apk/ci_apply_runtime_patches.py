@@ -65,6 +65,7 @@ SCRIPTS = [
     "patch-story-companion-runtime-invariants.py",
     "patch-story-quest-state-level0-1.py",
     "patch-story-prologue-authority-final.py",
+    "patch-hourly-main-story-evolution.py",
     "patch-dialogue-prose-runtime.py",
     "patch-sru-force-codex.py",
     "patch-action-runtime-terminal-cleanup.py",
