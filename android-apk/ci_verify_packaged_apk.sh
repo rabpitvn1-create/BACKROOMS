@@ -11,6 +11,12 @@ BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d |
 "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
 "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 "$APK"
 
+# The bundled BGM must survive AAPT packaging byte-for-byte so the native MediaPlayer
+# can loop the exact local resource without a network dependency.
+unzip -l "$APK" | grep -q 'res/raw/backroom_bgm.ogg'
+BGM_SHA256=$(unzip -p "$APK" 'res/raw/backroom_bgm.ogg' | sha256sum | awk '{print $1}')
+test "$BGM_SHA256" = '6226297414fe6ccdd0dab618b27cdaa49497e4e3e93d1570c1285928598caf31'
+
 rm -rf apk-check
 mkdir apk-check
 unzip -q "$APK" \
