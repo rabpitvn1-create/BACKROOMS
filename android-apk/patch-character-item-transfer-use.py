@@ -83,7 +83,7 @@ private fun resolverMentions(clause: String, context: GameContext): List<Resolve
 
 class DefaultActorResolver : ActorResolver {
   private val actionVerb = Regex(
-    "(?:nhặt|lượm|cầm\\s+lên|lấy\\s+lên|vứt|thả|bỏ\\s+xuống|đưa|trao|chuyển|dùng|sử\\s+dụng|uống|ăn|trang\\s+bị|đeo|mặc|tháo|cởi)",
+    "(?<![\\p{L}\\p{N}_])(?:nhặt|lượm|cầm\\s+lên|lấy\\s+lên|vứt|thả|bỏ\\s+xuống|đưa|trao|chuyển|dùng|sử\\s+dụng|uống|ăn|trang\\s+bị|đeo|mặc|tháo|cởi)(?![\\p{L}\\p{N}_])",
     RegexOption.IGNORE_CASE
   )
   private val transferVerb = Regex("(?:đưa|trao|chuyển)", RegexOption.IGNORE_CASE)

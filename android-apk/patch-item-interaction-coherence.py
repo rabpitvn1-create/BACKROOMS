@@ -153,6 +153,24 @@ actor_field_new = r'''  private val transferVerb = Regex("(?:đưa|trao|chuyển
   override fun resolve(clause: String, context: GameContext): String? {
 '''
 actor_block = once(actor_block, actor_field_old, actor_field_new, "use-on-recipient actor patterns")
+actor_block = once(actor_block, '''    if (action != null) {
+      val actorMention = mentions
+''', r'''    if (action != null) {
+      // "Kai cho Lucia ăn ...": the source is before "cho", not the name nearest "ăn".
+      // Resolve both sides exactly so unknown/ambiguous recipients cannot turn into self-use.
+      val giving = Regex("(?<![\\p{L}\\p{N}_])cho\\s+", RegexOption.IGNORE_CASE).find(clause)
+      if (useVerb.matches(action.value) && giving != null && giving.range.last < action.range.first) {
+        val aliases = resolverCharacterAliases(context)
+        val recipientText = clause.substring(giving.range.last + 1, action.range.first)
+          .trim().replace(Regex("\\s+"), " ")
+        val recipientIds = aliases.filter { it.text.equals(recipientText, true) }.flatMap { it.ids }.toSet()
+        if (recipientIds.size != 1) return null
+        val giverText = clause.substring(0, giving.range.first).trim().replace(Regex("\\s+"), " ")
+        if (giverText.isEmpty() || giverText.equals("tôi", true) || giverText.equals("bạn", true)) return KAI_ID
+        return aliases.filter { it.text.equals(giverText, true) }.flatMap { it.ids }.toSet().singleOrNull()
+      }
+      val actorMention = mentions
+''', "recipient-before-use keeps giver ownership")
 intent = intent[:actor_start] + actor_block + intent[actor_end:]
 actor_logic_old = '''      // First-person transfer commands without an explicit source belong to Kai.
       if (transferVerb.containsMatchIn(action.value)) return KAI_ID
