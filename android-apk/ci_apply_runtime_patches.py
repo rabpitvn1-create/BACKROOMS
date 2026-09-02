@@ -12,7 +12,6 @@ SCRIPTS = [
     "patch-kai-hd-continuous.py",
     "patch-kai-png-preferred.py",
     "patch-kai-codex.py",
-    "patch-r06-source-marker.py",
     "patch-drive-canon-gameplay.py",
     "patch-inventory-persistence.py",
     "patch-ai-orchestrator.py",
