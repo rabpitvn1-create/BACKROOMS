@@ -71,6 +71,9 @@ SCRIPTS = [
     "patch-level-zero-observation-boundary.py",
     "patch-kai-r08-knowledge-final.py",
     "patch-lucia-r03-runtime-canon.py",
+    "patch-kai-r10-skill-catalog-precompat.py",
+    "patch-kai-r10-runtime-canon.py",
+    "patch-kai-r10-test-compile-fix.py",
 ]
 
 for script in SCRIPTS:
