@@ -77,6 +77,7 @@ SCRIPTS = [
     "patch-kai-r10-test-compile-fix.py",
     "patch-haku-prose-editor.py",
     "patch-background-music.py",
+    "patch-turnbased-party-ap-final.py",
 ]
 
 if not AUDIT_RUNNER.is_file():
