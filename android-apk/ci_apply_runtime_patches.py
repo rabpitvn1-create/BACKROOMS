@@ -78,7 +78,7 @@ SCRIPTS = [
     "patch-kai-r10-test-compile-fix.py",
     "patch-background-music.py",
     "patch-turnbased-party-ap-final.py",
-    "patch-interleaved-party-combat-final.py",
+    "patch-interleaved-party-combat-final-v2.py",
     "patch-lucia-entity-overlay-final.py",
     "patch-combat-overlay-feedback.py",
 ]
