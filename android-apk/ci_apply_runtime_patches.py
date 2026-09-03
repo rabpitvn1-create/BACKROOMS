@@ -92,6 +92,7 @@ SCRIPTS = [
     "patch-provider-haku-luna-lock-gemini-final.py",
     "patch-auto-light-flicker.py",
     "patch-combat-presentation-authority-final.py",
+    "patch-combat-summary-final.py",
 ]
 
 for required in (AUDIT_RUNNER, ORPHAN_AUDIT):
