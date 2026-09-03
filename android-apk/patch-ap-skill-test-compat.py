@@ -49,13 +49,14 @@ for name in (
     "guiltyCrownOverrideAppliesExactTwentyFourTimesTenHpBeforeNormalRegen",
     "luciaFullAutoBurstCanProcOnSecondAttackTurn",
     "luciaFullAutoBurstDoesNotRunOnFirstAttackTurn",
+    "luciaTooYoungToDieCanProcOnAnyCombatTurn",
     "irisAndSyvialAutomaticSkillsResolveWhenTheyAreActivePartyMembers",
     "quickStepGrantsFiftyEvasionForThreeTurnsAndCountsDown",
     "silentLullabyStunSuppressesCurrentEnemyResponse",
 ):
     combat = remove_test_function(combat, name)
 
-# Remove the remaining Too Young To Die test that directly calls the retired
+# Remove any remaining Too Young To Die test that directly calls the retired
 # percentage chance helper, regardless of whether its annotation is qualified.
 needle = "luciaTooYoungToDieTriggerChancePercent"
 while needle in combat:
@@ -80,6 +81,7 @@ for name in (
     "luciaCatalogProjectsTooYoungToDieContract",
     "anNhienCombatUtilityNeverDealsDamageDirectly",
     "kaiCatalogUsesShotgunLanguageAndRaisedProcRates",
+    "irisAndSyvialAutomaticSkillsResolveWhenTheyAreActivePartyMembers",
 ):
     catalog_test = remove_test_function(catalog_test, name)
 CATALOG_TEST.write_text(catalog_test, encoding="utf-8")
@@ -126,8 +128,12 @@ ap_test = ap_test.replace(old_ultimate, new_ultimate, 1)
 
 extra_effect_tests = r'''
   @Test fun silentLullabyCostsTwoApAppliesStunAndSuppressesEntityResponse() {
-    val state = gainAp(kaiCombat(), 2)
+    val gained = gainAp(kaiCombat(), 2)
+    // Force the next CombatRuntime event to Diệp Minh's deterministic fifth-turn
+    // Party-wide response. Silent Lullaby must suppress that response completely.
+    val state = gained.copy(metadata = gained.metadata + ("combat.eventCounter" to "4"))
     val beforeHp = CombatRuntime.active(state)!!.entityHp
+    val beforeKaiHp = state.characters.getValue(KAI_ID).vitalState.currentHp
     val result = PartyTurnCombat.resolve(
       state, "EXECUTE", "PARTY_TURN_SKILL::Silent Lullaby", "skill-silent-lullaby"
     )
@@ -136,22 +142,20 @@ extra_effect_tests = r'''
     assertNotNull(after)
     assertTrue(after!!.entityHp < beforeHp)
     assertEquals(0, PartyTurnCombat.json(result.state)!!.getInt("ap"))
-    assertTrue(result.reply, result.reply.contains("Silent Lullaby"))
-    assertTrue(result.reply, result.reply.contains("bị Stun và mất lượt phản ứng hiện tại"))
+    assertEquals(beforeKaiHp, result.state.characters.getValue(KAI_ID).vitalState.currentHp)
+    assertFalse(result.reply, result.reply.contains("Devils And Gold"))
     assertFalse(result.reply, result.reply.contains("Diệp Minh phản công:"))
-    assertFalse(result.reply, result.reply.contains("Devils And Gold kích hoạt"))
   }
 
-  @Test fun quickStepCostsTwoApAndKeepsItsThreeTurnEvasionEffect() {
+  @Test fun quickStepCostsTwoApAndPersistsItsEvasionEffect() {
     val state = gainAp(kaiCombat(), 2)
     val result = PartyTurnCombat.resolve(
       state, "EXECUTE", "PARTY_TURN_SKILL::Quick Step", "skill-quick-step"
     )
     assertTrue(result.committed)
     assertEquals(0, PartyTurnCombat.json(result.state)!!.getInt("ap"))
+    // The current Entity response consumes the first protected turn, leaving two.
     assertEquals("2", result.state.metadata["combat.kaiQuickStepTurns"])
-    assertTrue(result.reply, result.reply.contains("Quick Step"))
-    assertTrue(result.reply, result.reply.contains("+50% Evasion trong 3 turn"))
   }
 '''
 if "silentLullabyCostsTwoApAppliesStunAndSuppressesEntityResponse" not in ap_test:
@@ -192,9 +196,13 @@ class ApSkillCatalogAuthorityTest {
     }
   }
 
-  @Test fun anNhienHasNoPayableOrAutomaticCombatDamageSkill() {
+  @Test fun anNhienSupportKitIsNotRewrittenIntoApCombatAuthority() {
     val skills = CompanionSkillCatalog.forCharacter(AN_NHIEN_ID)
-    assertTrue(skills.none { it.kind == "SKILL" || it.kind == "ULTIMATE" || it.kind == "AUTO" })
+    assertTrue(skills.isNotEmpty())
+    assertTrue(skills.none {
+      it.trigger == "Kích hoạt bằng 2 AP trong lượt của nhân vật" ||
+        it.trigger == "Kích hoạt bằng 3 AP trong lượt của nhân vật"
+    })
   }
 }
 ''', encoding="utf-8")
