@@ -116,36 +116,33 @@ def validate_story() -> list[str]:
 
 beat_ids = validate_story()
 
-# New Game opening: SRU intentionally crosses one mission gate in 2299.
-# Backrooms then disperses all three members to different Levels.
+# New Game opening is source-clean: the checked-in seed already carries the SRU / Async mission premise.
 index = INDEX.read_text(encoding="utf-8")
-start_marker = "Chiếc ly rơi xuống được nửa quãng rồi biến mất."
-end_marker = "Trọng lực trở lại đột ngột."
-start_pos = index.find(start_marker)
-end_pos = index.find(end_marker, start_pos)
-if start_pos < 0 or end_pos < 0:
-    raise RuntimeError("main_story_spatial_gate_prologue_anchor_missing")
-end_pos += len(end_marker)
-portal_scene = '''Năm 2299.
+prologue_start = index.find("const prologue=`")
+initial_start = index.find("const initial={", prologue_start)
+if prologue_start < 0 or initial_start < 0:
+    raise RuntimeError("main_story_source_clean_prologue_anchor_missing")
+portal_scene = r'''Năm 2299.
 
 Cổng không gian trước mặt đội SRU đã ổn định đủ lâu để bắt đầu nhiệm vụ. Lệnh điều tra chỉ rõ mục tiêu: tiến vào, xác minh hoạt động của Async và đánh giá nguy cơ của Backrooms đối với Frontrooms.
 
-Kai kiểm tra lần cuối trang bị. Iris và Syvial đã sẵn sàng ở hai bên. Không ai bị kéo vào. Không ai no-clip. Cả ba chủ động bước qua cùng một cổng không gian theo lệnh nhiệm vụ.
+Kai kiểm tra lần cuối trang bị. Iris và Syvial đã sẵn sàng ở hai bên. Không ai bị kéo vào ngoài ý muốn. Cả ba chủ động bước qua cùng một cổng không gian theo lệnh nhiệm vụ.
 
-Kai vẫn nhìn thấy Iris và Syvial khi vượt qua ranh giới. Rồi khoảng cách giữa ba người mất ý nghĩa. Backrooms phân tán họ tới những Level khác nhau; Kai không biết hai người còn lại đã bị ném tới đâu.
+Kai vẫn nhìn thấy Iris và Syvial khi vượt qua ranh giới. Rồi khoảng cách giữa ba người mất ý nghĩa. Backrooms phân tán họ tới những Level khác nhau; Kai không biết hai người còn lại đã bị đưa tới đâu.
 
-Không có cảm giác rơi tự do. Không có gió quất vào người, không có lực kéo tăng dần, cũng không còn khái niệm rõ ràng về trên hay dưới. Cơ thể Kai vẫn ở đó, nhưng khoảng cách xung quanh hắn dường như không còn được đo theo cách quen thuộc.
+Cảm giác chuyển tiếp kéo dài chưa tới một nhịp tim. Trọng lực trở lại đột ngột.
 
-Cảm giác ấy kéo dài chưa tới một nhịp tim.
-
-Trọng lực trở lại đột ngột.'''
-index = index[:start_pos] + portal_scene + index[end_pos:]
-index = replace_once(
+Kai bắt đầu một mình tại Level 0. Nhiệm vụ điều tra Async vẫn còn hiệu lực, nhưng mission brief không tự biến bất kỳ dấu vết nào trong Backrooms thành bằng chứng.'''
+index = index[:prologue_start] + "const prologue=`" + portal_scene + "`;\n\n" + index[initial_start:]
+clean_location = 'location:"Level 0 / The Lobby — khu phòng vàng ban đầu sau khi đi qua cổng nhiệm vụ",'
+index, location_count = re.subn(
+    r'location:"Level 0 / The Lobby — khu phòng vàng ban đầu sau [^"]+",',
+    clean_location,
     index,
-    'location:"Level 0 / The Lobby — khu phòng vàng ban đầu sau no-clip",',
-    'location:"Level 0 / The Lobby — khu phòng vàng ban đầu sau khi đi qua cổng nhiệm vụ",',
-    "fresh location portal wording",
+    count=1,
 )
+if location_count != 1 and clean_location not in index:
+    raise RuntimeError("main_story_source_clean_location_anchor_missing")
 
 # Later UI patches add fields inside flags, so mutate only the communication prefix.
 initial_start = index.find("const initial={")

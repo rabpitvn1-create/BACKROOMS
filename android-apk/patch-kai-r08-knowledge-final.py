@@ -18,7 +18,7 @@ records = {record.get("id"): record for record in data.get("records", [])}
 
 separation = require_record(records, "STORY.MAIN.SEPARATION")
 separation["text"] = (
-    "After the shared no-clip event, Kai, Iris and Syvial land apart. Direct links between the three, SRU/Command, "
+    "In 2299, Kai, Iris and Syvial voluntarily cross the same spatial gate on an SRU mission to investigate Async, then land apart. Direct links between the three, SRU/Command, "
     "Frontrooms, beacon and outside telemetry are initially offline. Kai does not know Iris's or Syvial's location/Level. "
     "Iris and Syvial exist in the campaign from the Prologue and are separated, not first-spawned by survivor RNG. "
     "Re-establishing contact or reunion requires continuity/geography/state support; rarity rolls never teleport them."
