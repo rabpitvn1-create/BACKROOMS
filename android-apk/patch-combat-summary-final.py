@@ -113,9 +113,9 @@ helpers = r'''  private fun bulletCombatLines(lines: List<String>): String = lin
     lines += passiveStartLines(before, engine.state)
 
     val escapedEntity = Regex.escape(entityName)
-    val regenMatch = Regex("""$escapedEntity hồi \\+(\\d+) HP""").find(raw)
+    val regenMatch = Regex("""$escapedEntity hồi \+(\d+) HP""").find(raw)
     val regen = regenMatch?.groupValues?.getOrNull(1)?.toIntOrNull() ?: 0
-    val directHit = Regex("""Đòn đánh trúng $escapedEntity: -(\\d+) HP""").find(raw)
+    val directHit = Regex("""Đòn đánh trúng $escapedEntity: -(\d+) HP""").find(raw)
     when {
       directHit != null -> lines += "$actorName tấn công trúng $entityName: -${directHit.groupValues[1]} HP."
       raw.contains("$entityName né đòn") || raw.contains("Đòn đánh trượt") ->
@@ -135,7 +135,7 @@ helpers = r'''  private fun bulletCombatLines(lines: List<String>): String = lin
     if (engine.entityDestroyed) {
       lines += "$entityName đã bị tiêu diệt."
     } else {
-      val entityHit = Regex("""$escapedEntity phản công: [^.]*?-(\\d+) HP""").find(raw)
+      val entityHit = Regex("""$escapedEntity phản công: [^.]*?-(\d+) HP""").find(raw)
       when {
         entityHit != null -> lines += "$entityName tấn công trúng $actorName: -${entityHit.groupValues[1]} HP."
         raw.contains("$entityName không xuyên được") || raw.contains("$entityName hụt đòn") ->
