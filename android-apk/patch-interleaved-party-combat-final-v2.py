@@ -61,7 +61,7 @@ source = source.replace(old_direct, new_direct, 1)
 # Visual-state hardening inserts resolvedEntityKey between the combat-active guard
 # and resolver invocation. Replace the legacy all-at-once anchor with two narrow
 # anchors so that cleanup identity remains intact.
-old_idempotency = r'''active_old = '''    val current = loadOrMigrate(legacy)
+old_idempotency = r"""active_old = '''    val current = loadOrMigrate(legacy)
     if (CombatRuntime.active(current) == null) return response(false, legacy, null, "combat_inactive")
 
     var resolution = PartyTurnCombat.resolve(current, actionKind, action)
@@ -81,9 +81,9 @@ active_new = '''    val current = loadOrMigrate(legacy)
     var resolution = PartyTurnCombat.resolve(current, actionKind, action, combatRequestKey)
 '''
 method = replace_once(method, active_old, active_new, "Combat request idempotency entry")
-'''
+"""
 
-new_idempotency = r'''active_guard_old = '''    val current = loadOrMigrate(legacy)
+new_idempotency = r"""active_guard_old = '''    val current = loadOrMigrate(legacy)
     if (CombatRuntime.active(current) == null) return response(false, legacy, null, "combat_inactive")
 '''
 active_guard_new = '''    val current = loadOrMigrate(legacy)
@@ -105,7 +105,7 @@ method = replace_once(
     "    var resolution = PartyTurnCombat.resolve(current, actionKind, action, combatRequestKey)\n",
     "Combat request idempotency resolver",
 )
-'''
+"""
 
 if old_idempotency not in source:
     raise RuntimeError("Interleaved combat V2 could not locate legacy facade idempotency block")
