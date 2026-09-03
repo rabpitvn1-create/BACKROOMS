@@ -106,7 +106,7 @@ jobs:
           set -euo pipefail
           python android-apk/ml/build_director_dataset.py
           cd android-apk/ml
-          python train_director_classifier.py --dataset director_dataset.csv --labels ../app/src/main/assets/models/backrooms_director_labels.txt --output ../app/src/main/assets/models/backrooms_director.tflite --report intent_model_report.json
+          python train_director_classifier.py --dataset director_dataset.csv --labels ../app/src/main/assets/models/backrooms_director_labels.txt --output ../app/src/main/assets/models/backrooms_director.tflite --report director_model_report.json
           test -s ../app/src/main/assets/models/backrooms_director.tflite
           bytes=$(stat -c%s ../app/src/main/assets/models/backrooms_director.tflite)
           test "$bytes" -le 5242880 || (echo "LiteRT BackroomsDirector model exceeds 5 MiB: $bytes" && exit 1)
