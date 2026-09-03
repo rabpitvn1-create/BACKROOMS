@@ -221,8 +221,68 @@
     });
   }
 
+  function drawDimmer(canvas, components) {
+    var ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.globalCompositeOperation = 'source-over';
+
+    components.forEach(function (component) {
+      var cx = component.minX + component.width / 2;
+      var cy = component.minY + component.height / 2;
+      var rx = Math.max(1.6, component.width * 0.78);
+      var ry = Math.max(1.6, component.height * 0.9);
+      var radius = Math.max(rx, ry);
+      var gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+      gradient.addColorStop(0, 'rgba(0,0,0,0.92)');
+      gradient.addColorStop(0.58, 'rgba(0,0,0,0.62)');
+      gradient.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.scale(rx / radius, ry / radius);
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(0, 0, radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    });
+  }
+
   function sourceKey(img, width, height) {
     return String(img.currentSrc || img.src || '') + '|' + width + 'x' + height;
+  }
+
+  function isPackagedAssetSource(src) {
+    return /^file:\/\/\/android_asset\/level_snapshots\//.test(String(src || ''));
+  }
+
+  function decodeBase64Rgba(encoded, win) {
+    if (!encoded) return new Uint8ClampedArray(0);
+    var binary = '';
+    if (win && typeof win.atob === 'function') binary = win.atob(encoded);
+    else if (typeof Buffer !== 'undefined') binary = Buffer.from(encoded, 'base64').toString('binary');
+    else throw new Error('No base64 decoder available');
+    var out = new Uint8ClampedArray(binary.length);
+    for (var i = 0; i < binary.length; i++) out[i] = binary.charCodeAt(i) & 255;
+    return out;
+  }
+
+  function analyzePackagedImage(img, box, win) {
+    if (!win.Android || typeof win.Android.sampleAutoLightPixels !== 'function') {
+      throw new Error('Native packaged-light sampler unavailable');
+    }
+    var cssWidth = Math.max(1, Math.round(box.clientWidth || img.clientWidth || 320));
+    var cssHeight = Math.max(1, Math.round(box.clientHeight || img.clientHeight || 180));
+    var raw = win.Android.sampleAutoLightPixels(String(img.currentSrc || img.src || ''), cssWidth, cssHeight);
+    if (!raw) throw new Error('Native packaged-light sampler returned no data');
+    var sample = JSON.parse(raw);
+    var width = Number(sample.width || 0);
+    var height = Number(sample.height || 0);
+    var rgba = decodeBase64Rgba(String(sample.rgba || ''), win);
+    if (width <= 0 || height <= 0 || rgba.length < width * height * 4) {
+      throw new Error('Native packaged-light sampler returned invalid data');
+    }
+    return detectLightComponents(rgba, width, height);
   }
 
   function analyzeImage(img, box, win) {
@@ -232,6 +292,13 @@
     var detectHeight = clamp(Math.round(DETECT_WIDTH * cssHeight / cssWidth), 48, 96);
     var key = sourceKey(img, detectWidth, detectHeight);
     if (cache.has(key)) return cache.get(key);
+
+    var src = String(img.currentSrc || img.src || '');
+    if (isPackagedAssetSource(src)) {
+      var packaged = analyzePackagedImage(img, box, win);
+      cache.set(key, packaged);
+      return packaged;
+    }
 
     var detector = win.document.createElement('canvas');
     detector.width = detectWidth;
@@ -256,25 +323,40 @@
     try {
       var components = analyzeImage(img, box, win);
       if (box.__autoLightToken !== token || !img.isConnected) return;
-      var old = box.querySelector('.snapshot-auto-light-layer');
-      if (old) old.remove();
+      var oldLayers = box.querySelectorAll('.snapshot-auto-light-layer');
+      for (var oldIndex = 0; oldIndex < oldLayers.length; oldIndex++) oldLayers[oldIndex].remove();
       if (!components.length) {
         box.setAttribute('data-auto-light', 'none');
         return;
       }
 
-      var canvas = win.document.createElement('canvas');
-      canvas.className = 'snapshot-auto-light-layer';
-      canvas.setAttribute('aria-hidden', 'true');
-      canvas.width = DETECT_WIDTH;
-      canvas.height = clamp(Math.round(DETECT_WIDTH * Math.max(1, box.clientHeight) / Math.max(1, box.clientWidth)), 48, 96);
-      drawGlow(canvas, components, canvas.width, canvas.height);
+      var detectHeight = clamp(Math.round(DETECT_WIDTH * Math.max(1, box.clientHeight) / Math.max(1, box.clientWidth)), 48, 96);
+      var glow = win.document.createElement('canvas');
+      glow.className = 'snapshot-auto-light-layer snapshot-auto-light-glow';
+      glow.setAttribute('aria-hidden', 'true');
+      glow.width = DETECT_WIDTH;
+      glow.height = detectHeight;
+      drawGlow(glow, components, glow.width, glow.height);
+
+      var dim = win.document.createElement('canvas');
+      dim.className = 'snapshot-auto-light-layer snapshot-auto-light-dim';
+      dim.setAttribute('aria-hidden', 'true');
+      dim.width = DETECT_WIDTH;
+      dim.height = detectHeight;
+      drawDimmer(dim, components);
+
       var hash = 0;
       for (var i = 0; i < src.length; i++) hash = (hash * 33 + src.charCodeAt(i)) >>> 0;
-      canvas.style.setProperty('--auto-light-period', (4.2 + (hash % 2800) / 1000).toFixed(2) + 's');
-      canvas.style.setProperty('--auto-light-delay', '-' + ((hash >>> 3) % 2400) + 'ms');
-      box.appendChild(canvas);
+      var period = (4.2 + (hash % 2800) / 1000).toFixed(2) + 's';
+      var delay = '-' + ((hash >>> 3) % 2400) + 'ms';
+      glow.style.setProperty('--auto-light-period', period);
+      glow.style.setProperty('--auto-light-delay', delay);
+      dim.style.setProperty('--auto-light-period', period);
+      dim.style.setProperty('--auto-light-delay', delay);
+      box.appendChild(glow);
+      box.appendChild(dim);
       box.setAttribute('data-auto-light', 'active');
+      box.setAttribute('data-auto-light-mode', isPackagedAssetSource(src) ? 'native-sample' : 'canvas-sample');
       box.setAttribute('data-auto-light-count', String(components.length));
     } catch (error) {
       box.setAttribute('data-auto-light', 'unavailable');
@@ -327,6 +409,7 @@
   return {
     detectLightComponents: detectLightComponents,
     coverCrop: coverCrop,
+    isPackagedAssetSource: isPackagedAssetSource,
     install: install,
     _clearCache: function () { cache.clear(); }
   };
