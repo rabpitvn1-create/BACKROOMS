@@ -40,6 +40,7 @@ unzip -q "$APK" \
   'assets/entity/*' \
   'assets/Kai_new_overlay.png' \
   'assets/BESTKAIV2.png' \
+  'assets/file_000000000dbc8209b74585555f5786dc.png' \
   -d apk-check
 
 grep -q 'searchActionButton' apk-check/assets/index.html
@@ -125,6 +126,7 @@ test -s apk-check/assets/entity/Newviolet.png
 test -s apk-check/assets/entity/Kai-TheDevilWithin.png
 test -s apk-check/assets/Kai_new_overlay.png
 test -s apk-check/assets/BESTKAIV2.png
+test -s apk-check/assets/file_000000000dbc8209b74585555f5786dc.png
 
 ! unzip -l "$APK" | grep -q 'assets/Kai_MadGod_snapshot_overlay.png'
 ! unzip -l "$APK" | grep -q 'assets/avatars/MadGod.jpg'
