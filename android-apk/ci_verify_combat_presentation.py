@@ -15,6 +15,11 @@ for marker in (
     'private fun compactSkillReply(',
     'private fun compactSkillStatuses(',
     'private fun passiveActivationLines(',
+    'private fun compactAttackReply(',
+    'private fun passiveStartLines(',
+    'joinToString("\\n") { "• $it" }',
+    '"• Action Point : $newAp/$MAX_AP."',
+    '"${passive.name} kích hoạt: [DEVIL TRIGGER] trong ${passive.turns} lượt."',
     '"$actorName sử dụng: [$selected] lên $entityName."',
     'if (kind.uppercase() == "ULTIMATE") 3 else 2',
 ):
@@ -35,10 +40,17 @@ for line in combat.splitlines():
         assert 'tự kích hoạt' not in line, line
 
 assert font.is_file() and font.stat().st_size > 0
-for marker in ("@font-face", "DFVN Broad.otf", ".combat-nameplate", "text-shadow"):
+for marker in (
+    "@font-face", "DFVN Broad.otf", ".combat-nameplate", "text-shadow",
+    ".combat-nameplate-hp", ".combat-nameplate-stacked", "font-size:clamp(9px,2.4vw,13px)",
+):
     assert marker in css, marker
-for marker in ("function renderNameplates", "function impactMagnitude", "cameraKick", "hit(ghost, -1, entityHit.damage)"):
+for marker in (
+    "function renderNameplates", "function appendNameplate", "combat-nameplate-hp",
+    "name.length > 13", "function impactMagnitude", "cameraKick", "hit(ghost, -1, entityHit.damage)",
+):
     assert marker in fx, marker
+assert "textOverflow" not in fx
 
 for marker in ("pixels:pixels.slice()", "function paintMask", "native-mask", "canvas-mask"):
     assert marker in light, marker
