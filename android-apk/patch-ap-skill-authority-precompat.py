@@ -32,14 +32,14 @@ if first_removed_at is None:
     raise RuntimeError("AP skill precompat did not remove legacy counters")
 
 # The finalizer historically used the old pre-budget Dead Angle block as its
-# insertion anchor. Put a zero-behaviour sentinel immediately before the next
-# authoritative defeat checkpoint so the finalizer can replace only the
-# sentinel, never any Entity-specific response code between the old counter and
-# defeat handling.
+# insertion anchor. The correct execution point for a manually selected skill is
+# the player phase, immediately before the existing authoritative defeat check
+# and before any Entity response. Put a zero-behaviour sentinel there so the
+# finalizer can replace only the sentinel while preserving every Entity branch.
 defeat_anchor = '    if (c.entityHp <= 0) {\n'
-defeat_at = combat.find(defeat_anchor, first_removed_at)
+defeat_at = combat.rfind(defeat_anchor, 0, first_removed_at)
 if defeat_at < 0:
-    raise RuntimeError("AP skill precompat could not locate post-response defeat checkpoint")
+    raise RuntimeError("AP skill precompat could not locate pre-response defeat checkpoint")
 sentinel = '''        if (irisActive && c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 281), 100) < 15) {
           // AP_SKILL_COUNTER_SENTINEL: replaced by the final authority patch before compile.
         }
@@ -53,4 +53,4 @@ if "AP_SKILL_COUNTER_SENTINEL" not in combat:
     raise RuntimeError("AP skill counter sentinel missing")
 
 COMBAT.write_text(combat, encoding="utf-8")
-print("AP skill precompat applied: legacy percentage counter blocks retired without deleting Entity response logic.")
+print("AP skill precompat applied: legacy percentage counters retired; manual skills anchor before Entity response.")
