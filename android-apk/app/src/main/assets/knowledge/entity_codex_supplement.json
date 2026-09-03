@@ -160,6 +160,38 @@
       "tags": ["the beast of level 5", "beast of level 5", "the beast"],
       "references": ["ENTITY.BEAST_LEVEL_5", "ENTITY.GLOBAL_HARD_LOCK"],
       "affordances": ["direct_threat", "trace_analysis"]
+    },
+    {
+      "id": "ENTITY.SCP_173",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "SCP-173: the primary SCP Foundation entry describes an animate, extremely hostile sculpture constructed from concrete and rebar with traces of spray paint. Its defining behavior is observational: it cannot move while held in direct line of sight, but once observation breaks it can close distance and kill by snapping the neck at the base of the skull or by strangulation; scraping stone sounds are also reported while it is unobserved. Independent summaries of the same original article corroborate the concrete/rebar body, movement-only-when-unobserved rule and lethal neck attack. Project gameplay canon is more specific and remains authoritative: the canonical key is scp_173, combat tracks OBSERVED versus UNOBSERVED state from living party line-of-sight and blink/vision-blocking conditions, and its existing runtime already implements blink pressure, high-speed unobserved attacks, Neck Snap/Concrete Rush behavior and Concrete Body damage mitigation. No external containment-site history, excretion mechanic, exact real-world sculpture appearance or fan-continuity powers are required for this game's codex, and no Internet detail may weaken the committed observation/blink combat rules.",
+      "source": {
+        "document": "Internet synthesis + repo gameplay canon (2026-09-03)",
+        "anchor": "SCP Foundation — SCP-173; Wikipedia — SCP-173; repo canon: scp_173 runtime + patch-scp-173-entity.py + ENTITY.GLOBAL_HARD_LOCK"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "BASELINE",
+      "priority": 60,
+      "tags": ["scp-173", "scp 173", "scp_173"],
+      "references": ["ENTITY.GLOBAL_HARD_LOCK"],
+      "affordances": ["direct_threat", "observation_check", "trace_analysis"]
+    },
+    {
+      "id": "ENTITY.SLENDERMAN",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Slenderman: Internet sources agree on a core visual silhouette but not on one universal canon. The character is most commonly depicted as an unnaturally tall, very thin humanoid with a pale or white featureless face, dressed in a black suit and tie; many later interpretations also add elongated arms or black tendril-like appendages. Across the original meme's descendants, the most stable behavioral theme is prolonged stalking and the abduction, intimidation or psychological torment of victims, while teleportation, sickness effects, memory loss, electronics distortion, exact height, preferred victim age and tentacle mechanics vary substantially by continuity. Project canon therefore imports only the stable visual/stalking baseline. In this game the canonical key slenderman is a hostile roaming Entity in the shared encounter pool and ENTITY.GLOBAL_HARD_LOCK overrides adaptations that portray him as neutral, protective or selectively benign. The combat runtime's existing Slenderman profile and global Entity durability rules remain authoritative; no external supernatural ability is added to combat merely because it appears in a particular creepypasta, ARG, game or film adaptation.",
+      "source": {
+        "document": "Internet synthesis + repo gameplay canon (2026-09-03)",
+        "anchor": "Know Your Meme — Slender Man; Wikipedia — Slender Man; repo canon: slenderman runtime key + unified roaming pool + ENTITY.GLOBAL_HARD_LOCK"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "BASELINE",
+      "priority": 58,
+      "tags": ["slenderman", "slender man"],
+      "references": ["ENTITY.GLOBAL_HARD_LOCK"],
+      "affordances": ["direct_threat", "trace_analysis"]
     }
   ]
 }
