@@ -36,7 +36,7 @@ required = [
     ('SemanticActionDescriptor("candidate-$index", rule.semanticDescriptions)', (core / 'RegisteredLevelActionCoordinator.kt').read_text(encoding='utf-8')),
     ('resolvedExecuteActionId = resolvedExecuteActionId', (core / 'RegisteredLevelActionCoordinator.kt').read_text(encoding='utf-8')),
     ('put("reason", "core_owned_hidden_blueprint")', facade),
-    ("versionCode 100", gradle), ("versionName '1.4.4.1'", gradle),
+    ("versionCode 101", gradle), ("versionName '1.4.4.2'", gradle),
     ('devilBlessingEvasionBonus', combat), ('fun partyBlessing(value: Int)', equipment_system),
     ('return maxOf(1, (base * 5 + 99) / 100)', equipment_system),
     ('KAI_DEVIL_WITHIN_MAX_HP = 5678', combat), ('KAI_DEVIL_WITHIN_STAT_PERCENT = 70', combat),
