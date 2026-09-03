@@ -86,7 +86,7 @@ def sync_runtime_knowledge() -> None:
         raise RuntimeError("SRU character knowledge sync: missing records: " + ", ".join(missing))
 
     records["STORY.MAIN.SEPARATION"]["text"] = (
-        "After the shared no-clip event, Kai, Iris and Syvial land apart. Direct links between the three, SRU/Command, "
+        "In 2299, Kai, Iris and Syvial voluntarily cross the same spatial gate on an SRU mission to investigate Async, then land apart. Direct links between the three, SRU/Command, "
         "Frontrooms, beacon and outside telemetry are initially offline. Kai does not know Iris's or Syvial's location/Level. "
         "Iris and Syvial exist in the campaign from the Prologue and are separated, not first-spawned by survivor RNG. "
         "Re-establishing contact or reunion requires continuity/geography/state support; rarity rolls never teleport them."
