@@ -87,7 +87,12 @@ new_idempotency = r"""active_guard_old = '''    val current = loadOrMigrate(lega
     if (CombatRuntime.active(current) == null) return response(false, legacy, null, "combat_inactive")
 '''
 active_guard_new = '''    val current = loadOrMigrate(legacy)
-    val combatRequestKey = PartyTurnCombat.requestKey(legacy.optString("combatRequestId"))
+    // Request IDs belong to combat submissions, never to the persistent world state.
+    val combatCommand = actionKind == "EXECUTE" && (action in setOf(
+      "PARTY_TURN_ATK", "PARTY_TURN_DEFEND", "PARTY_TURN_RUN"
+    ) || action.startsWith("PARTY_TURN_SKILL::"))
+    val combatRequestKey = if (combatCommand) PartyTurnCombat.requestKey(legacy.optString("combatRequestId")) else ""
+    legacy.remove("combatRequestId")
     if (CombatRuntime.active(current) == null) {
       val replay = PartyTurnCombat.replayReply(current, combatRequestKey)
       if (replay != null) {
@@ -115,5 +120,21 @@ exec(
     compile(source, str(LEGACY), "exec"),
     {"__name__": "__main__", "__file__": str(LEGACY)},
 )
+
+# Strip transport metadata before the original callback saves the response, and
+# repair already-persisted WebView saves on startup. Core also rejects stale IDs
+# on non-combat commands, including clients running the older UI.
+html_path = ROOT / "app/src/main/assets/index.html"
+html = html_path.read_text(encoding="utf-8")
+old_callback = "if(typeof previousTurn==='function')window.backroomTurn=function(json){var value=previousTurn.call(this,json);renderCombatActionBar();return value;};"
+new_callback = "if(typeof previousTurn==='function')window.backroomTurn=function(json){var response=JSON.parse(json);delete response.combatRequestId;var value=previousTurn.call(this,JSON.stringify(response));renderCombatActionBar();return value;};"
+if html.count(old_callback) != 1:
+    raise RuntimeError("Combat response cleanup callback anchor missing")
+html = html.replace(old_callback, new_callback, 1)
+anchor = "  window.submitPartyTurnAction=submitCombat;"
+if html.count(anchor) != 1:
+    raise RuntimeError("Combat saved-state cleanup anchor missing")
+html = html.replace(anchor, "  if(typeof state!=='undefined'&&state)delete state.combatRequestId;\n" + anchor, 1)
+html_path.write_text(html, encoding="utf-8")
 
 print("Interleaved combat V2 applied: Entity skills keep full-roster semantics, direct attacks are actor-scoped, and facade anchors preserve visual cleanup.")

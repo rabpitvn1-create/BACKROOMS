@@ -5,7 +5,7 @@ const vm = require('node:vm');
 const path = require('node:path');
 
 // Execute the actual generated WebView scripts, including capture-phase routing.
-function fixture(partyTurn = true) {
+function fixture(partyTurn = true, savedRequestId) {
   const html = fs.readFileSync(path.join(__dirname, 'app/src/main/assets/index.html'), 'utf8');
   const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]);
   const listeners = {}, nodes = {}, calls = [];
@@ -28,6 +28,7 @@ function fixture(partyTurn = true) {
       addEventListener: (type, cb) => { listeners[type] = cb; } },
     setTimeout: cb => cb(), syncPrimaryActions() {}, appendMacroPending() {} };
   if (partyTurn) context.state.combat.partyTurn = { actorName: 'Kai', ap: 2, skills: [{name:'Test skill',cost:1}] };
+  if (savedRequestId) context.state.combatRequestId = savedRequestId;
   context.window = context;
   context.Android = { submitAction: (...args) => calls.push(args) };
   context.backroomTurn = json => { context.state = JSON.parse(json); context.busy = false; };
@@ -42,6 +43,31 @@ function fixture(partyTurn = true) {
   }
   return {context,nodes,calls,clickLegacy};
 }
+
+test('terminal combat response cannot contaminate the next world action or save', () => {
+  const {context,nodes,calls} = fixture();
+  nodes.partyTurnCombat.querySelector('[data-party-action="atk"]').onclick();
+  const sent = JSON.parse(calls[0][0]);
+  assert.ok(sent.combatRequestId);
+  assert.equal(context.state.combatRequestId, undefined);
+  context.backroomTurn(JSON.stringify({turn:2,combatRequestId:sent.combatRequestId,inventory:[{id:'loot'}]}));
+  // The original callback is where the production WebView persists its state.
+  const saved = JSON.parse(JSON.stringify(context.state));
+  assert.equal(saved.combatRequestId, undefined);
+  assert.equal(saved.turn, 2);
+  assert.equal(saved.inventory[0].id, 'loot');
+  assert.equal(context.busy, false);
+  assert.equal(nodes.primaryActionRow.style.display, '');
+  for (const kind of ['SEARCH', 'EXECUTE', 'EXPLORE']) {
+    context.Android.submitAction(JSON.stringify(context.state), kind, 'tiếp tục');
+    assert.equal(JSON.parse(calls.at(-1)[0]).combatRequestId, undefined);
+  }
+});
+
+test('loading an older save removes its final combat request ID', () => {
+  const {context} = fixture(false, 'stale-final-hit');
+  assert.equal(context.state.combatRequestId, undefined);
+});
 
 for (const [id, action, command] of [
   ['searchActionButton','atk','PARTY_TURN_ATK'],
