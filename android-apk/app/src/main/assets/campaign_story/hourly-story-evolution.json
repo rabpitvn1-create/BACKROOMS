@@ -40,9 +40,10 @@
   "completedSteps": [
     "PROLOGUE",
     "0",
-    "epsilon"
+    "epsilon",
+    "0.01"
   ],
-  "nextStep": "0.01",
+  "nextStep": "0.1",
   "globalRules": {
     "sourceReload": "Trước mỗi bước mới phải đọc lại trực tiếp Novel/00_RULES và các nguồn Character/World/Continuity liên quan; không dùng trí nhớ hoặc bản tóm tắt cũ thay nguồn.",
     "survival": "Giữ trọng lượng của đói, khát, mệt, thương tích, nhiễm bẩn, nhiệt độ, đường rút và tài nguyên. Năng lực mạnh của Kai không xóa bài toán môi trường; đồng thời không được làm Kai quên năng lực hoặc trang bị để tạo nguy hiểm giả.",
@@ -85,6 +86,15 @@
       "itemPolicy": "Không tạo loot hoặc tài nguyên mới trong epsilon. Chỉ sử dụng trang bị/vật phẩm đã có trong state hiện hành; mọi Almond Water, salvage, pin, đạn hay vật phẩm khác chỉ được kể là tìm thấy/nhận/nhặt khi Core/world-loot/inventory đã commit. Tiếng ù, nhiễu hoặc một vùng trông giống lối ra không tự cấp vật phẩm hay nguồn điện đáng tin.",
       "relationshipStage": "EARLY_ATTENTIVE_TRUST. Chỉ áp dụng nếu Lucia đã được Core materialize và hai người thực sự cùng trải qua epsilon. Tình cảm chưa cần tăng thành một mốc mới rõ rệt: Lucia có thể dành thêm sự chú ý cho cách Kai kiểm chứng cue thay vì phô sức mạnh, còn Kai có thể nhận ra cô đang chủ động đối chiếu quan sát với mình và giữ nhịp phối hợp ổn định. Một vài dấu hiệu lặp lại có thể bắt đầu thành mẫu mà Kai ghi nhận, nhưng chưa đủ để hắn kết luận Lucia có tình cảm. Không thú nhận, không ghen, không cứu mạng làm công tắc quan hệ; xưng hô vẫn OPEN. Nếu Lucia không ở party theo state, bước này không tự tạo tiến triển quan hệ.",
       "endingState": "epsilon được khóa như bước kiểm chứng tín hiệu và sai lệch cục bộ. Mất liên lạc với Frontrooms/Iris/Syvial vẫn chưa được giải thích; không có giọng quen, tiếng động hay nhiễu nào tự trở thành bằng chứng về vị trí đồng đội, Async hoặc Entity. Nếu Core surface một threshold hợp lệ hướng tới 0.01, nó vẫn chỉ là dấu chuyển tiếp cần kiểm tra cho tới khi transition được commit. Route kế tiếp duy nhất của continuity là 0.01; không nhảy Level 1."
+    },
+    "0.01": {
+      "phase": "FALSE_CERTAINTY",
+      "storyUpdate": "Khi Core đã commit chuyển vùng vào 0.01 / The Exit ?, Kai không coi biển EXIT, một cánh cửa hợp lý hay cảm giác “đã tìm thấy đường ra” là bằng chứng đủ. Hắn kiểm tra từng threshold bằng dấu vật lý có thể lặp lại: vị trí tương đối, kích thước, độ vang, luồng khí, thời gian di chuyển và việc một dấu mốc còn giữ quan hệ sau khi rời tầm nhìn. Nếu một cánh cửa hoặc hành lang trả họ về một cấu trúc gần giống điểm xuất phát nhưng sai một vài chi tiết, sai lệch đó được ghi như dữ kiện của vùng chứ không bị nâng thành ý chí của Backrooms hay trò đánh lừa có chủ đích. Kai vẫn giữ nhiệm vụ Async và việc tìm Iris/Syvial ở trạng thái mục tiêu dài hạn, nhưng không dùng mục tiêu ấy để hợp thức hóa một lối đi chưa kiểm chứng. Nếu Lucia đang ở party theo Core, cô phối hợp bằng cách giữ mốc gần, kiểm bề mặt, tiết kiệm đạn và báo đúng điều cô thấy thay vì gọi tên kết luận. Chỉ khi Core commit transition hợp lệ sang 0.1, nhóm mới rời vùng giả-lối-ra.",
+      "survivalFocus": "Cái giá của 0.01 nằm ở thời gian và hao mòn: mỗi lần kiểm một threshold sai tiêu tốn nước, sự tỉnh táo, sức chân, thời gian nghỉ và độ tin cậy của bản đồ; với Lucia, giới hạn con người khiến thiếu ngủ, khát và mỏi cơ phải được tính thật. Kai có thể dùng cảm biến, phản xạ và năng lực đã khóa để giảm sai số, nhưng không có năng lực nào biến nhãn EXIT thành sự thật hoặc cưỡng ép topology tuân hình học tuyến tính. Cả hai ưu tiên tuyến có thể quay lui, không tách nhau chỉ để thử hai cửa cùng lúc nếu state không cho phép, và không đổi an toàn lấy tốc độ chỉ vì một threshold trông thuyết phục.",
+      "npcPolicy": "Không sinh survivor/NPC để xác nhận “đây là lối ra” hoặc làm người hướng dẫn miễn phí. Nếu Core/RNG đã commit encounter, NPC chỉ có thể cung cấp trải nghiệm cục bộ, nhu cầu sinh tồn và lời kể giới hạn; việc họ từng đi qua một cửa hoặc tin một biển báo vẫn phải được kiểm chứng riêng. Lucia tiếp tục là fixed/story-owned companion nếu đã được Core materialize, không phải RNG encounter.",
+      "itemPolicy": "Không tạo vật phẩm cứu nguy trong 0.01. Chỉ dùng vật phẩm/trang bị đã tồn tại trong inventory/runtime state; mọi Almond Water, Ceiling Wire, Dry Wallpaper Fiber, pin, đạn hoặc salvage chỉ được kể là tìm thấy/nhặt khi Core/world-loot/inventory đã commit. Biển EXIT, cửa, ổ cắm hay cấu trúc kỹ thuật không tự được coi là loot và không cung cấp nguồn điện đáng tin nếu chưa đo.",
+      "relationshipStage": "QUIET_PATTERN_FORMING. Chỉ áp dụng nếu Lucia đang thực sự đồng hành. Bước này không bắt buộc tăng romance; trọng tâm là công việc lặp và cách hai người xử lý thất vọng khi nhiều threshold tỏ ra vô dụng. Lucia có thể dần ưu tiên kiểm tra chéo với Kai trước khi tự kết luận và chú ý tới cách hắn không áp đặt quyết định chỉ vì mạnh hơn; Kai có thể nhận ra sự chú ý ấy đang lặp lại qua nhiều lựa chọn nhỏ, nhưng vẫn chỉ coi đó là một mẫu hành vi có thể có nhiều cách giải thích. Không thú nhận, không ghen, không đọc ý nghĩ, xưng hô vẫn OPEN.",
+      "endingState": "0.01 được khóa như bài học evidence-over-label: không có EXIT, cửa, trực giác hay lời kể nào tự trở thành đường thoát đã xác nhận. Vị trí Iris/Syvial vẫn UNKNOWN và không có bằng chứng Async mới nếu Core chưa surface. Khi và chỉ khi Core commit transition sang 0.1, continuity chuyển sang Deep Emptiness; không nhảy Level 1 và không sửa route/RNG để ép tiến trình."
     }
   }
 }
