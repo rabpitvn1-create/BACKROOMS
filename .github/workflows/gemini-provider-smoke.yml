@@ -1,4 +1,4 @@
-name: BACKROOMS Gemini Provider Smoke
+name: BACKROOMS Gemini Provider Lock
 
 on:
   workflow_dispatch:
@@ -19,7 +19,7 @@ permissions:
   contents: read
 
 jobs:
-  gemini-provider-smoke:
+  gemini-provider-lock:
     runs-on: ubuntu-latest
     env:
       GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 || secrets.GEMINI_API_KEY }}
@@ -28,83 +28,13 @@ jobs:
       GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
       GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
     steps:
-      - name: Live smoke Gemini K1-K5
+      - uses: actions/checkout@v4
+
+      - name: Verify Gemini is intentionally runtime-locked
         shell: bash
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          import concurrent.futures
-          import json
-          import os
-          import socket
-          import urllib.error
-          import urllib.request
-
-          MODEL = "gemini-3.5-flash-lite"
-          ENDPOINT = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent"
-          KEYS = [(index, os.environ.get(f"GEMINI_API_KEY_{index}", "").strip()) for index in range(1, 6)]
-
-          missing = [f"K{index}" for index, key in KEYS if not key]
-          if missing:
-              raise SystemExit("Missing Gemini secrets: " + ", ".join(missing))
-
-          payload = json.dumps({
-              "contents": [{"role": "user", "parts": [{"text": "Reply OK"}]}],
-              "generationConfig": {"maxOutputTokens": 8},
-          }).encode("utf-8")
-
-          def probe(entry):
-              index, key = entry
-              request = urllib.request.Request(
-                  ENDPOINT,
-                  data=payload,
-                  headers={
-                      "x-goog-api-key": key,
-                      "Content-Type": "application/json",
-                      "Accept": "application/json",
-                  },
-                  method="POST",
-              )
-              try:
-                  with urllib.request.urlopen(request, timeout=30) as response:
-                      result = json.load(response)
-                  candidates = result.get("candidates")
-                  if not isinstance(candidates, list) or not candidates:
-                      return index, "invalid_response", None
-                  return index, "healthy", None
-              except urllib.error.HTTPError as error:
-                  return index, "http", error.code
-              except (urllib.error.URLError, TimeoutError, socket.timeout, ValueError):
-                  return index, "transport", None
-
-          with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-              results = sorted(executor.map(probe, KEYS))
-
-          healthy = []
-          auth_failed = []
-          degraded = []
-          for index, kind, code in results:
-              lane = f"K{index}"
-              if kind == "healthy":
-                  healthy.append(lane)
-                  print(f"Gemini {lane}: healthy")
-              elif kind == "http" and code in (401, 403):
-                  auth_failed.append(lane)
-                  print(f"Gemini {lane}: auth failure HTTP {code}")
-              elif kind == "http":
-                  degraded.append((lane, f"HTTP {code}"))
-                  print(f"Gemini {lane}: degraded HTTP {code}")
-              else:
-                  degraded.append((lane, kind))
-                  print(f"Gemini {lane}: degraded {kind}")
-
-          if auth_failed:
-              raise SystemExit("Gemini credential authentication failed: " + ", ".join(auth_failed))
-          if not healthy:
-              details = ", ".join(f"{lane}={reason}" for lane, reason in degraded)
-              raise SystemExit("No healthy Gemini generation lane. " + details)
-
-          print("Gemini pool smoke passed; healthy lanes: " + ", ".join(healthy))
-          if degraded:
-              print("Gemini pool is degraded but still serviceable: " + ", ".join(lane for lane, _ in degraded))
-          PY
+          test -s android-apk/patch-provider-haku-luna-lock-gemini-final.py
+          grep -q 'GEMINI_RUNTIME_ENABLED = false' android-apk/patch-provider-haku-luna-lock-gemini-final.py
+          grep -q 'patch-provider-haku-luna-lock-gemini-final.py' android-apk/ci_apply_runtime_patches.py
+          echo 'Gemini credentials remain configured, but no live Gemini probe is executed while runtime lock is active.'

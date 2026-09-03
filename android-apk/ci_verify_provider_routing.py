@@ -1,0 +1,88 @@
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent
+MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
+GRADLE = ROOT / "app/build.gradle"
+CHAIN = ROOT / "ci_apply_runtime_patches.py"
+
+java = MAIN.read_text(encoding="utf-8")
+gradle = GRADLE.read_text(encoding="utf-8")
+chain = CHAIN.read_text(encoding="utf-8")
+
+
+def method_block(signature: str) -> str:
+    start = java.find(signature)
+    if start < 0:
+        raise AssertionError(f"missing method: {signature}")
+    brace = java.find("{", start)
+    if brace < 0:
+        raise AssertionError(f"missing opening brace: {signature}")
+    depth = 0
+    for index in range(brace, len(java)):
+        char = java[index]
+        if char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                return java[start:index + 1]
+    raise AssertionError(f"missing closing brace: {signature}")
+
+
+# Canonical active text router.
+generate = method_block("  private String generateText(String prompt) throws Exception ")
+assert "AiProviderRouter.route(" in generate
+assert "this::hakuFallbackText" in generate
+assert "this::lunaText" in generate
+assert generate.index("this::hakuFallbackText") < generate.index("this::lunaText")
+assert "geminiText(" not in generate
+assert "geminiKeyFallbackText(" not in generate
+assert '"AI provider selected: " + provider' in generate
+assert 'fromProvider + " failed; fallback to " + toProvider' in generate
+
+# Audit and procedural helpers must route through the same policy, never Gemini.
+audit = method_block("  private String geminiAuditText(String prompt, int excludedIndex) throws Exception ")
+assert "return generateText(prompt);" in audit
+assert "geminiKeyFallbackText(" not in audit
+if "  private String geminiLevelGenerationText(String prompt) throws Exception " in java:
+    level_generation = method_block("  private String geminiLevelGenerationText(String prompt) throws Exception ")
+    assert "return generateText(prompt);" in level_generation
+    assert "geminiModelMatrixPolicy(" not in level_generation
+
+# Snapshot is intentionally network-free while Gemini is locked.
+snapshot = method_block("  private void requestSnapshotInternal(String stateJson) ")
+assert "geminiImage(" not in snapshot
+assert "generativelanguage.googleapis.com" not in snapshot
+
+# Defense-in-depth lock remains explicit and reversible.
+assert "private static final boolean GEMINI_RUNTIME_ENABLED = false;" in java
+assert "Gemini runtime intentionally locked." in java
+assert "geminiText(prompt)" not in java
+assert "geminiModelMatrixPolicy(prompt" not in java
+
+# Credentials/config stay packaged for reversible re-enable, but they are not router inputs.
+for marker in [
+    'buildConfigField "String", "HAKU_API_KEY"',
+    'buildConfigField "String", "LUNA_API_KEY"',
+    'buildConfigField "String", "LUNA_BASE_URL"',
+    'buildConfigField "String", "LUNA_MODEL"',
+    'buildConfigField "String", "GEMINI_API_KEY_1"',
+    'buildConfigField "String", "GEMINI_API_KEY_5"',
+]:
+    assert marker in gradle, marker
+assert '"claude-haiku-4-5-20251001"' in java
+assert 'baseUrl + "/chat/completions"' in java
+assert '"patch-provider-haku-luna-lock-gemini-final.py"' in chain
+
+# Local/Core validation remains in front of provider generation. A handled rejection
+# returns before any provider request, so invalid deterministic actions cannot consume AI.
+submit_start = java.index("    @JavascriptInterface public void submitTurn(String stateJson, String action) {")
+submit_end = java.index("    @JavascriptInterface public void requestSnapshot(String stateJson)", submit_start)
+submit = java[submit_start:submit_end]
+local_call = submit.index("processRule(stateJson, action)")
+handled = submit.index('optBoolean("handled", false)', local_call)
+handled_return = submit.index("return;", handled)
+first_provider = submit.index("generateText(", handled_return)
+assert local_call < handled < handled_return < first_provider
+
+print("Provider routing verified: HAKU -> LUNA -> controlled failure; Gemini locked; validation precedes provider calls.")

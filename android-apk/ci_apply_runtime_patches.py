@@ -80,6 +80,7 @@ SCRIPTS = [
     "patch-turnbased-party-ap-final.py",
     "patch-lucia-entity-overlay-final.py",
     "patch-combat-overlay-feedback.py",
+    "patch-provider-haku-luna-lock-gemini-final.py",
 ]
 
 for required in (AUDIT_RUNNER, ORPHAN_AUDIT):
