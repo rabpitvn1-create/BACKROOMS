@@ -87,9 +87,9 @@ SCRIPTS = [
     "patch-ap-skill-test-compat.py",
     "patch-lucia-entity-overlay-final.py",
     "patch-combat-overlay-feedback.py",
-    "patch-auto-light-flicker.py",
     "patch-entity-encounter-narrative-authority-final.py",
     "patch-provider-haku-luna-lock-gemini-final.py",
+    "patch-auto-light-flicker.py",
 ]
 
 for required in (AUDIT_RUNNER, ORPHAN_AUDIT):

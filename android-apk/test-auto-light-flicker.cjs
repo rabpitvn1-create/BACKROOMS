@@ -76,3 +76,10 @@ test('cover crop matches CSS object-fit cover geometry', () => {
     sh: 607.5
   });
 });
+
+test('packaged Level snapshots use the native sampler instead of WebView canvas readback', () => {
+  assert.equal(engine.isPackagedAssetSource('file:///android_asset/level_snapshots/level_0_1.webp'), true);
+  assert.equal(engine.isPackagedAssetSource('file:///android_asset/level_snapshots/area_03_0_1_trusted_01.webp'), true);
+  assert.equal(engine.isPackagedAssetSource('file:///android_asset/entity/hound.png'), false);
+  assert.equal(engine.isPackagedAssetSource('data:image/webp;base64,AAAA'), false);
+});
