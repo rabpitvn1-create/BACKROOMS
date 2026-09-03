@@ -25,6 +25,10 @@ jobs:
     name: preflight-build-release
     runs-on: ubuntu-latest
     env:
+      LUNA_API_KEY: ${{ secrets.LUNA_API_KEY }}
+      LUNA_BASE_URL: https://api.vilao.ai/v1
+      LUNA_MODEL: ${{ secrets.LUNA_MODEL }}
+      HAKU_API_KEY: ${{ secrets.HAKU_API_KEY }}
       GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 || secrets.GEMINI_API_KEY }}
       GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
       GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
@@ -123,7 +127,7 @@ jobs:
       - name: Validate Game Master configuration
         run: |
           set -euo pipefail
-          for name in GEMINI_API_KEY_1 GEMINI_API_KEY_2 GEMINI_API_KEY_3 GEMINI_API_KEY_4 GEMINI_API_KEY_5; do
+          for name in GEMINI_API_KEY_1 GEMINI_API_KEY_2 GEMINI_API_KEY_3 GEMINI_API_KEY_4 GEMINI_API_KEY_5 LUNA_API_KEY LUNA_MODEL HAKU_API_KEY; do
             test -n "${!name:-}" || (echo "Missing GitHub Secret: $name" && exit 1)
           done
 
