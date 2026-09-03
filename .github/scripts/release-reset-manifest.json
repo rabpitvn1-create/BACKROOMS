@@ -1,0 +1,441 @@
+{
+  "repository": "rabpitvn1-create/BACKROOMS",
+  "keepTag": "v1.0.0.0.0",
+  "oldReleases": [
+    {
+      "id": 381970695,
+      "tag": "v1.4.4.8",
+      "tagSha": "de8b3fedaef03c27cbc4699bc9d14b7d369978a0"
+    },
+    {
+      "id": 381923001,
+      "tag": "v1.4.4.7",
+      "tagSha": "0ab89ecbb8e4f8eb9705c29faa3d3d56e036b75d"
+    },
+    {
+      "id": 381817513,
+      "tag": "v1.4.4.6",
+      "tagSha": "ab0e561b6931c0b97a2e98eeb223a8b9f3620842"
+    },
+    {
+      "id": 381727345,
+      "tag": "v1.4.4.5",
+      "tagSha": "9af0450729f474df00c81b2fb3d1fcdd85fde415"
+    },
+    {
+      "id": 381697353,
+      "tag": "v1.4.4.4",
+      "tagSha": "29eaa9aab7dc4f03520022a84b967ea501dfbded"
+    },
+    {
+      "id": 381684271,
+      "tag": "v1.4.4.3",
+      "tagSha": "04ce5bfa0b01357301409be64492778e4d044a56"
+    },
+    {
+      "id": 381657424,
+      "tag": "v1.4.4.2",
+      "tagSha": "e3d43d471237fe11215afd559dec9908ce902009"
+    },
+    {
+      "id": 381617540,
+      "tag": "v1.4.4.1",
+      "tagSha": "82cca438c5507afdb2efc8fa680b2fa1b4a1db60"
+    },
+    {
+      "id": 381597589,
+      "tag": "v1.4.4",
+      "tagSha": "1bfac6e697ffa42c7e58174a2e02b6ef647449f6"
+    },
+    {
+      "id": 381408461,
+      "tag": "v1.4.3",
+      "tagSha": "89b79d7ad361058632e950f3023097a73f6546f6"
+    },
+    {
+      "id": 381344112,
+      "tag": "v1.4.2",
+      "tagSha": "fec0d095f01c475255a38e07f940fd42a27f0518"
+    },
+    {
+      "id": 381315124,
+      "tag": "v1.4.1",
+      "tagSha": "4e2f354f7dc5d814846fa7d7a8a4d8c3af9f844e"
+    },
+    {
+      "id": 381144100,
+      "tag": "v1.4.0",
+      "tagSha": "9641b9983a4f1bb178bcf0d726886bafc3049e77"
+    },
+    {
+      "id": 380983220,
+      "tag": "v1.3.9",
+      "tagSha": "bc261185e607774f9e8047af237444882446d8eb"
+    },
+    {
+      "id": 380962960,
+      "tag": "v1.3.8",
+      "tagSha": "b25fb13fd76d4b9193ad23a609eecc5b1c82e508"
+    },
+    {
+      "id": 380184074,
+      "tag": "v1.3.7",
+      "tagSha": "5331cc98f534e8ba7d80b0a4b69a1dfbf6ecc6cd"
+    },
+    {
+      "id": 380156384,
+      "tag": "v1.3.6",
+      "tagSha": "459547b05a9f176bbeeccdc15cc15b2505142a9d"
+    },
+    {
+      "id": 379714520,
+      "tag": "v1.3.5",
+      "tagSha": "b9d505441b633059286a522eefe4878438a9d905"
+    },
+    {
+      "id": 379437533,
+      "tag": "v1.3.4",
+      "tagSha": "685e3001d94fde3a58a81bbb59acc4cd7e9d4a6a"
+    },
+    {
+      "id": 379325540,
+      "tag": "v1.3.3",
+      "tagSha": "0f3e51774e01a5fd803e686b6289b26605481c05"
+    },
+    {
+      "id": 379298355,
+      "tag": "v1.3.2",
+      "tagSha": "eae9163895318c0d5bace69dc0d69160716d2761"
+    },
+    {
+      "id": 379257324,
+      "tag": "v1.3.1",
+      "tagSha": "66533fd08a3f45265babef4afc508b948cd73e05"
+    },
+    {
+      "id": 379214819,
+      "tag": "v1.3",
+      "tagSha": "413dde8bb1bb9136b3593ef0496aab21da96d3ae"
+    },
+    {
+      "id": 379196724,
+      "tag": "v1.2.9",
+      "tagSha": "f02e054eef8b6d9907d77a8354c23430337450d0"
+    },
+    {
+      "id": 379187920,
+      "tag": "v1.2.8",
+      "tagSha": "94fcc99f24247f5001d5f06dd0d5ec9956127601"
+    },
+    {
+      "id": 378878874,
+      "tag": "v1.2.7",
+      "tagSha": "0cd58451c4ec6aa2ef3d4e5cc7e47f24f9c467d8"
+    },
+    {
+      "id": 378865011,
+      "tag": "v1.2.6",
+      "tagSha": "28500fa7262c726d14eff687d3107aa0396c1bbe"
+    },
+    {
+      "id": 377128371,
+      "tag": "v1.2.5",
+      "tagSha": "53f6e3352cc37a25e1fe8c5169c3786970e15b7b"
+    },
+    {
+      "id": 376740191,
+      "tag": "v1.2.4",
+      "tagSha": "794b7b422fac07f91d72cdfbf5c4653e1e229564"
+    },
+    {
+      "id": 376520888,
+      "tag": "v1.2.3",
+      "tagSha": "24e269720bbc56f2d49b42e000fb4fb37044b7ce"
+    },
+    {
+      "id": 376422980,
+      "tag": "v1.2.2",
+      "tagSha": "f55f0989bc7ab1a3abbed9312e1e929ebc7fc1d4"
+    },
+    {
+      "id": 376262174,
+      "tag": "v1.2.1",
+      "tagSha": "e3e3219488677b6bc3f20e8a70d507aa5d6c41d9"
+    },
+    {
+      "id": 376214528,
+      "tag": "v1.2",
+      "tagSha": "044f33cede0b5d152fc17393e41ae1b30ee4f28d"
+    },
+    {
+      "id": 376148329,
+      "tag": "v1.1.72",
+      "tagSha": "805fcacce3edf6293a6ffd3ae44db0ea40850afc"
+    },
+    {
+      "id": 376092803,
+      "tag": "v1.1.71",
+      "tagSha": "f2e261c2576fcdd1ecd92ead1316118639345f69"
+    },
+    {
+      "id": 375721581,
+      "tag": "v1.1.67",
+      "tagSha": "f6dcd106e2c34421a50df99746d6e8e5336d6c75"
+    },
+    {
+      "id": 375556385,
+      "tag": "v1.1.66",
+      "tagSha": "2accda3968953f5b6cb985b010fe44d20e3a556d"
+    },
+    {
+      "id": 375521167,
+      "tag": "v1.1.65",
+      "tagSha": "2653d8738779797350029996c52b2a98a83ad20b"
+    },
+    {
+      "id": 375474307,
+      "tag": "v1.1.64",
+      "tagSha": "d1479181f741a326abff949cc9cafeb51df3670c"
+    },
+    {
+      "id": 375387553,
+      "tag": "v1.1.63",
+      "tagSha": "936ed6ba8f8fce0282593e62d5d14973d82ce1fd"
+    },
+    {
+      "id": 375351637,
+      "tag": "v1.1.62",
+      "tagSha": "362acb064d8936888325184c72cfea97b4cd49ba"
+    },
+    {
+      "id": 375241399,
+      "tag": "v1.1.61",
+      "tagSha": "ab915e8f11f00607365f3578559448d96d4b413b"
+    },
+    {
+      "id": 375142519,
+      "tag": "v1.1.60",
+      "tagSha": "aa8172fd6f2ffab35fd90b9a332ad8fb83448b1e"
+    },
+    {
+      "id": 375140554,
+      "tag": "v1.1.59",
+      "tagSha": "76e820779d074e610573a27689651d0e2da01374"
+    },
+    {
+      "id": 375135607,
+      "tag": "v1.1.58",
+      "tagSha": "abfdf93bb65cdfc086cc9a3689f8357d00fab988"
+    },
+    {
+      "id": 375123176,
+      "tag": "v1.1.57",
+      "tagSha": "e42c12a0ba715eea5d1d8dc00e4c3a47b659c632"
+    },
+    {
+      "id": 375119624,
+      "tag": "v1.1.56",
+      "tagSha": "172083e8a6879f4b2dcf3abb13f689b655639f04"
+    },
+    {
+      "id": 375114380,
+      "tag": "v1.1.55",
+      "tagSha": "15664743cc0d9d41eb9e313882efeb357f296a51"
+    },
+    {
+      "id": 374990481,
+      "tag": "v1.1.54",
+      "tagSha": "9a43d504c6a2aa296c69924b633d2f98b5f34b07"
+    },
+    {
+      "id": 374976045,
+      "tag": "v1.1.53",
+      "tagSha": "15aae1b1a7a48da16276d6eda769aea91f285e28"
+    },
+    {
+      "id": 374925250,
+      "tag": "v1.1.52",
+      "tagSha": "6900ca21d5c7c2b0479a0cf70e31f2fc860be9d9"
+    },
+    {
+      "id": 374892972,
+      "tag": "v1.1.51",
+      "tagSha": "df639bc00641b2cf21607b2ea4d75ea36c7079b4"
+    },
+    {
+      "id": 374766743,
+      "tag": "v1.1.50",
+      "tagSha": "fee7fdeee97b2aeb978cd73ae5477ef03ab6cd07"
+    },
+    {
+      "id": 374715144,
+      "tag": "v1.1.49",
+      "tagSha": "94c00c166b526b37b43b6249741e0b49f26d6dcd"
+    },
+    {
+      "id": 374688098,
+      "tag": "v1.1.47",
+      "tagSha": "f1ffb64e9e806c0b6aefb32c7c672de6102b437a"
+    },
+    {
+      "id": 374379216,
+      "tag": "v1.1.46",
+      "tagSha": "1fb2ff0308e539aad99ddcae3c5c3676fcf5fbe4"
+    },
+    {
+      "id": 374335356,
+      "tag": "v1.1.45",
+      "tagSha": "af184c0124be6aedd90f83e6a057523f7bf4e521"
+    },
+    {
+      "id": 374289014,
+      "tag": "v1.1.44",
+      "tagSha": "d2a70db71ab47d2863e698a373938d148acde456"
+    },
+    {
+      "id": 374258733,
+      "tag": "v1.1.43",
+      "tagSha": "630a38314769f7b4d950285d17829b7110ecba26"
+    },
+    {
+      "id": 374248763,
+      "tag": "v1.1.42",
+      "tagSha": "e6e4db40e26e102e32ef794491232fea3f82b7b7"
+    },
+    {
+      "id": 374214701,
+      "tag": "v1.1.41",
+      "tagSha": "e14c2dca2df560991fb7193db2b4795b03b1918f"
+    },
+    {
+      "id": 374165862,
+      "tag": "v1.1.40",
+      "tagSha": "41f6aa4100ea918334d0854c948ae9b9cb9d1452"
+    },
+    {
+      "id": 374145133,
+      "tag": "v1.1.39",
+      "tagSha": "aadb384246ba75fb288def12976c0638dd946755"
+    },
+    {
+      "id": 374142823,
+      "tag": "v1.1.38",
+      "tagSha": "6a179951f89cfa0292d3954f883032056dd524ef"
+    },
+    {
+      "id": 374107422,
+      "tag": "v1.1.37",
+      "tagSha": "cc7d9bdc13b1c9c1dd8bc322827ad942da062bcc"
+    },
+    {
+      "id": 374090700,
+      "tag": "v1.1.36",
+      "tagSha": "c0053f0315c81c35fae592045c3b46562db3342c"
+    },
+    {
+      "id": 374063125,
+      "tag": "v1.1.35",
+      "tagSha": "e2ed59c33c39457f95de24808e71bf043478b287"
+    },
+    {
+      "id": 373868730,
+      "tag": "v1.1.34",
+      "tagSha": "9cc934fb1b2c4d64d9eb022917593b16bfbb3e05"
+    },
+    {
+      "id": 373853049,
+      "tag": "v1.1.33",
+      "tagSha": "2c824c1732339dbb3ba4d3d0a276504ed954bf1f"
+    },
+    {
+      "id": 373843034,
+      "tag": "v1.1.32",
+      "tagSha": "539476f7ec8834bf9255fec2818b6be6e06825f2"
+    },
+    {
+      "id": 373834991,
+      "tag": "v1.1.31",
+      "tagSha": "7b028baca870629bfa5a742cc0baa3977bb2e62f"
+    },
+    {
+      "id": 373816051,
+      "tag": "v1.1.30",
+      "tagSha": "08856a402e3f79b44b42d83ab54a6273a9d6be9c"
+    },
+    {
+      "id": 373805182,
+      "tag": "v1.1.29",
+      "tagSha": "53040ae34398bedd3206ab75b6092b40db13c1f7"
+    },
+    {
+      "id": 373703985,
+      "tag": "v1.1.28",
+      "tagSha": "74827c34743bee2fdc444c91d61823262e1500a3"
+    },
+    {
+      "id": 373550855,
+      "tag": "v1.1.27",
+      "tagSha": "7e5f5cec8a4b2aa7c528ce96170b029a64e88402"
+    },
+    {
+      "id": 373531370,
+      "tag": "v1.1.26",
+      "tagSha": "9b121ff5c9f229240cb70e1da09851c9d505ba90"
+    },
+    {
+      "id": 373521211,
+      "tag": "v1.1.25",
+      "tagSha": "186a911cbacf634f9e5f493c9c11fc81a47f7658"
+    },
+    {
+      "id": 373159447,
+      "tag": "v1.1.24",
+      "tagSha": "e13b1201c9e2152baa486afabd97fe3f59799462"
+    },
+    {
+      "id": 373132468,
+      "tag": "v1.1.23",
+      "tagSha": "4f48bdb117311dff3f3c1319d9b7b85036c21b2d"
+    },
+    {
+      "id": 373111468,
+      "tag": "v1.1.22",
+      "tagSha": "ff9e0a0e63f19781160f9d823c472fcab6c7d57f"
+    },
+    {
+      "id": 373106811,
+      "tag": "v1.1.21",
+      "tagSha": "45b4ecf24c4b2520c61e44a01fc2214d2e98b1ab"
+    },
+    {
+      "id": 373073968,
+      "tag": "v1.1.20",
+      "tagSha": "61c6ca11ce76503c220a90e4b4dca6d1d1940f93"
+    },
+    {
+      "id": 373066369,
+      "tag": "v1.1.18",
+      "tagSha": "97d51358cb04dc4b48028c230757145c83ab71a0"
+    },
+    {
+      "id": 373041356,
+      "tag": "v1.1.17",
+      "tagSha": "26c201fd879c0c7c2d1d9e4fb4a88f7a646f21db"
+    },
+    {
+      "id": 373021206,
+      "tag": "v1.1.16",
+      "tagSha": "e0bb0887c6ce0bcb43fdbf91768ada313f25d31d"
+    },
+    {
+      "id": 373017664,
+      "tag": "v1.1.15",
+      "tagSha": "b17c236386dccf3403c9f76bcb740531f54b8ca1"
+    },
+    {
+      "id": 372992116,
+      "tag": "v1.1.14",
+      "tagSha": "9b5045177f1dc08b99b93ee41b0d2ecb22a93839"
+    }
+  ]
+}
