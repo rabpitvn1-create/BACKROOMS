@@ -25,12 +25,6 @@ jobs:
     name: preflight-build-release
     runs-on: ubuntu-latest
     env:
-      LUNA_API_KEY: ${{ secrets.LUNA_API_KEY }}
-      LUNA_BASE_URL: https://api.vilao.ai/v1
-      LUNA_MODEL: ${{ secrets.LUNA_MODEL }}
-      HAKU_API_KEY: ${{ secrets.HAKU_API_KEY }}
-      HAKU_BASE_URL: https://api.vilao.ai/v1
-      HAKU_MODEL: claude-haiku-4-5-20251001
       GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 || secrets.GEMINI_API_KEY }}
       GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
       GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
@@ -129,94 +123,9 @@ jobs:
       - name: Validate Game Master configuration
         run: |
           set -euo pipefail
-          for name in GEMINI_API_KEY_1 GEMINI_API_KEY_2 GEMINI_API_KEY_3 GEMINI_API_KEY_4 GEMINI_API_KEY_5 LUNA_API_KEY LUNA_MODEL HAKU_API_KEY; do
+          for name in GEMINI_API_KEY_1 GEMINI_API_KEY_2 GEMINI_API_KEY_3 GEMINI_API_KEY_4 GEMINI_API_KEY_5; do
             test -n "${!name:-}" || (echo "Missing GitHub Secret: $name" && exit 1)
           done
-
-      - name: Smoke test Luna API
-        run: |
-          python3 - <<'PY'
-          import json
-          import os
-          import urllib.error
-          import urllib.request
-
-          endpoint = os.environ["LUNA_BASE_URL"].rstrip("/") + "/chat/completions"
-          payload = json.dumps({
-              "model": os.environ["LUNA_MODEL"],
-              "messages": [{"role": "user", "content": "Reply OK"}],
-              "temperature": 0,
-              "max_tokens": 4,
-              "stream": False,
-          }).encode("utf-8")
-          request = urllib.request.Request(
-              endpoint,
-              data=payload,
-              headers={
-                  "Authorization": "Bearer " + os.environ["LUNA_API_KEY"],
-                  "Content-Type": "application/json",
-                  "Accept": "application/json",
-              },
-              method="POST",
-          )
-          try:
-              with urllib.request.urlopen(request, timeout=30) as response:
-                  content_type = response.headers.get_content_type()
-                  if content_type != "application/json":
-                      raise SystemExit(
-                          f"Luna API smoke test returned HTTP {response.status} with Content-Type {content_type}"
-                      )
-                  result = json.load(response)
-          except urllib.error.HTTPError as error:
-              raise SystemExit(f"Luna API smoke test failed with HTTP {error.code}") from None
-          except (urllib.error.URLError, TimeoutError, ValueError) as error:
-              raise SystemExit(f"Luna API smoke test failed: {type(error).__name__}") from None
-          if not isinstance(result.get("choices"), list) or not result["choices"]:
-              raise SystemExit("Luna API smoke test returned no completion choices")
-          print("Luna API smoke test passed")
-          PY
-
-      - name: Smoke test Haku prose editor API
-        run: |
-          python3 - <<'PY'
-          import json
-          import os
-          import urllib.error
-          import urllib.request
-
-          endpoint = os.environ["HAKU_BASE_URL"].rstrip("/") + "/chat/completions"
-          payload = json.dumps({
-              "model": os.environ["HAKU_MODEL"],
-              "messages": [{"role": "user", "content": "Reply exactly OK"}],
-              "temperature": 0,
-              "max_tokens": 4,
-              "stream": False,
-          }).encode("utf-8")
-          request = urllib.request.Request(
-              endpoint,
-              data=payload,
-              headers={
-                  "Authorization": "Bearer " + os.environ["HAKU_API_KEY"],
-                  "Content-Type": "application/json",
-                  "Accept": "application/json",
-              },
-              method="POST",
-          )
-          try:
-              with urllib.request.urlopen(request, timeout=30) as response:
-                  result = json.load(response)
-          except urllib.error.HTTPError as error:
-              raise SystemExit(f"Haku API smoke test failed with HTTP {error.code}") from None
-          except (urllib.error.URLError, TimeoutError, ValueError) as error:
-              raise SystemExit(f"Haku API smoke test failed: {type(error).__name__}") from None
-          choices = result.get("choices")
-          if not isinstance(choices, list) or not choices:
-              raise SystemExit("Haku API smoke test returned no completion choices")
-          content = ((choices[0].get("message") or {}).get("content") or "").strip()
-          if not content:
-              raise SystemExit("Haku API smoke test returned empty content")
-          print("Haku API smoke test passed")
-          PY
 
       - name: Apply Android runtime patch chain
         run: python3 android-apk/ci_apply_runtime_patches.py

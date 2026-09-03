@@ -21,7 +21,6 @@ android {
     buildConfigField "String", "LUNA_API_KEY", "\"" + secret("LUNA_API_KEY") + "\""
     buildConfigField "String", "LUNA_BASE_URL", "\"" + secret("LUNA_BASE_URL") + "\""
     buildConfigField "String", "LUNA_MODEL", "\"" + secret("LUNA_MODEL") + "\""
-    buildConfigField "String", "HAKU_API_KEY", "\"" + secret("HAKU_API_KEY") + "\""
     buildConfigField "String", "GEMINI_API_KEY_1", "\"" + secret("GEMINI_API_KEY_1") + "\""
     buildConfigField "String", "GEMINI_API_KEY_2", "\"" + secret("GEMINI_API_KEY_2") + "\""
     buildConfigField "String", "GEMINI_API_KEY_3", "\"" + secret("GEMINI_API_KEY_3") + "\""
