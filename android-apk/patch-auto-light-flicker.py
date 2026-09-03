@@ -3,13 +3,15 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 HTML = ROOT / "app/src/main/assets/index.html"
+MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
 ENGINE = ROOT / "app/src/main/assets/auto-light-flicker.js"
 
 if not ENGINE.is_file() or ENGINE.stat().st_size <= 0:
     raise RuntimeError("Auto light flicker engine asset is missing")
 
 html = HTML.read_text(encoding="utf-8")
-if ".snapshot-bg" not in html:
+main = MAIN.read_text(encoding="utf-8")
+if "className='snapshot-bg'" not in main:
     raise RuntimeError("Auto light flicker requires the final layered snapshot background renderer")
 
 style = r'''<style id="autoLightFlickerStyle">
