@@ -458,19 +458,6 @@ html = html.replace(
 )
 INDEX.write_text(html, encoding="utf-8")
 
-# Snapshot refreshes also arrive asynchronously from the native Entity asset callback.
-# Detach/reuse the visual layer so those refreshes cannot erase a hit or actor handoff.
-main_path = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
-main = main_path.read_text(encoding="utf-8")
-main = replace_once(
-    main,
-    "renderSnapshot=function(){__baseRenderSnapshot();appendEntityOverlay();};",
-    "renderSnapshot=function(){var fx=window.CombatOverlayFeedback;if(fx)fx.beforeSnapshot();__baseRenderSnapshot();appendEntityOverlay();if(fx)fx.afterSnapshot();};",
-    "Preserve combat visual layer across native snapshot redraws",
-)
-main_path.write_text(main, encoding="utf-8")
-
-
 # Focused regressions.
 PARTY_TEST.write_text(r'''package com.rabpit.backroom.core
 

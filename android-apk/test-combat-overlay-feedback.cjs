@@ -50,7 +50,10 @@ function fixture() {
   function redraw() {
     fx.beforeSnapshot(); snap.replaceChildren();
     const kai = new Element(); kai.className = 'snapshot-character'; kai.attrs.src = 'SRU_AIM.png'; snap.appendChild(kai);
-    if (context.state.combat) { const entity = new Element(); entity.className = 'snapshot-entity'; entity.attrs.src = 'entity/hound.png'; snap.appendChild(entity); }
+    if (context.state.combat) {
+      const entity = new Element(); entity.className = 'snapshot-entity'; entity.attrs.src = 'entity/hound.png'; snap.appendChild(entity);
+      const lucia = new Element(); lucia.className = 'snapshot-lucia-entity'; lucia.attrs.src = 'file:///android_asset/file_000000000dbc8209b74585555f5786dc.png'; snap.appendChild(lucia);
+    }
     fx.afterSnapshot();
   }
   const wait = () => new Promise(resolve => setTimeout(resolve, 45));
@@ -68,6 +71,8 @@ test('Entity hit precedes Kai-to-Lucia handoff; native redraw never replays it',
   const f = fixture(); await f.wait(); assert.equal(f.events.length, 0);
   const packet = f.response('lucia', [{targetId:'entity',damage:10}]); await f.wait();
   assert.equal(f.actor().dataset.actorId, 'lucia');
+  assert.equal(f.actor().src, 'file_000000000dbc8209b74585555f5786dc.png');
+  assert.ok(f.snap.className.includes('party-overlay-lucia'));
   assert.equal(f.events.filter(e=>e.hit).length, 1);
   assert.equal(f.events[0].kind, 'combat-fx-entity');
   assert.ok(f.events.some(e=>e.actor==='kai'&&!e.hit));
@@ -81,6 +86,7 @@ test('Counterattack flashes Kai, not the outgoing Lucia; empty hits do not flash
   const f = fixture(); await f.wait(); f.response('lucia', []); await f.wait(); f.events.length = 0;
   f.response('kai', [{targetId:'kai',damage:4}]); await f.wait();
   assert.deepEqual(f.events.filter(e=>e.hit).map(e=>e.actor), ['kai']);
+  assert.ok(!f.snap.className.includes('party-overlay-lucia'));
   f.events.length = 0; f.response('lucia', []); await f.wait();
   assert.equal(f.events.filter(e=>e.hit).length, 0);
 });

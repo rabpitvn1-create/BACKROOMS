@@ -48,7 +48,6 @@ SCRIPTS = [
     "patch-forward-progression-contract.py",
     "patch-private-core-save-final.py",
     "patch-escape-chance-hud.py",
-    "patch-chicken-rice-box-test-compat.py",
     "patch-entity-procedural-loot-rebalance.py",
     "patch-evidence-highlight-final.py",
     "patch-registered-level-narrative-boundary.py",
@@ -78,6 +77,8 @@ SCRIPTS = [
     "patch-haku-prose-editor.py",
     "patch-background-music.py",
     "patch-turnbased-party-ap-final.py",
+    "patch-lucia-entity-overlay-final.py",
+    "patch-combat-overlay-feedback.py",
 ]
 
 if not AUDIT_RUNNER.is_file():

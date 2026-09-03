@@ -14,14 +14,15 @@
     return snap;
   }
   function asset(ref) {
-    var value = String(ref || '');
+    var value = String(ref || '').replace(/^file:\/\/\/android_asset\//, '');
     if (/^(file:|https?:|data:)/.test(value)) return value;
     return value.replace(/^\/+/, '');
   }
   function actor(id, name, avatar) {
-    var kai = box() && box().querySelector('.snapshot-character');
-    return { id: String(id), name: String(name || id), src: id === 'kai' ?
-      (kai && kai.getAttribute('src') || 'SRU_AIM.png') : asset(avatar) };
+    var selector = id === 'kai' ? '.snapshot-character' : id === 'lucia' ? '.snapshot-lucia-entity' : null;
+    var native = selector && box() && box().querySelector(selector);
+    var fallback = id === 'kai' ? 'SRU_AIM.png' : id === 'lucia' ? 'file_000000000dbc8209b74585555f5786dc.png' : asset(avatar);
+    return { id: String(id), name: String(name || id), src: asset(native && native.getAttribute('src') || fallback) };
   }
   function readView() {
     var s = typeof state !== 'undefined' && state || {};
@@ -77,6 +78,7 @@
     var snap = attach();
     if (snap) {
       snap.classList.toggle('party-overlay-active', !!current);
+      snap.classList.toggle('party-overlay-lucia', !!current && current.actor.id === 'lucia');
       snap.classList.remove('entity-hit-active');
     }
   }
@@ -86,7 +88,10 @@
     current = incoming;
     if (incoming) layer.appendChild(incoming.node);
     var snap = attach();
-    if (snap) snap.classList.toggle('party-overlay-active', !!incoming || !!outgoing);
+    if (snap) {
+      snap.classList.toggle('party-overlay-active', !!incoming || !!outgoing);
+      snap.classList.toggle('party-overlay-lucia', !!((incoming && incoming.actor.id === 'lucia') || (outgoing && outgoing.actor.id === 'lucia')));
+    }
     await Promise.all([
       outgoing && animate(outgoing.node, [{ opacity: 1, transform: 'translateX(0)' },
         { opacity: 0, transform: 'translateX(10px)' }], 200),
@@ -95,7 +100,10 @@
     ]);
     if (token !== generation) return;
     if (outgoing) outgoing.node.remove();
-    if (snap) snap.classList.toggle('party-overlay-active', !!incoming);
+    if (snap) {
+      snap.classList.toggle('party-overlay-active', !!incoming);
+      snap.classList.toggle('party-overlay-lucia', !!incoming && incoming.actor.id === 'lucia');
+    }
   }
   async function present(view, feedback, token, entityImage) {
     var hits = feedback && Array.isArray(feedback.hits) ? feedback.hits : [];
