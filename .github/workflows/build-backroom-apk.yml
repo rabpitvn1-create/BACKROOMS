@@ -49,6 +49,7 @@ jobs:
           test -s android-apk/test_validate_level_content.py
           test -s android-apk/ci_apply_runtime_patches.py
           test -s android-apk/ci_verify_runtime_contracts.py
+          test -s android-apk/ci_verify_provider_routing.py
           test -s android-apk/ci_verify_packaged_apk.sh
 
       - name: Validate Level content and scale contracts
@@ -124,10 +125,10 @@ jobs:
           bytes=$(stat -c%s "$MODEL")
           test "$bytes" -le 5242880 || (echo "Cached LiteRT BackroomsDirector model exceeds 5 MiB: $bytes" && exit 1)
 
-      - name: Validate Game Master configuration
+      - name: Validate active Game Master configuration
         run: |
           set -euo pipefail
-          for name in GEMINI_API_KEY_1 GEMINI_API_KEY_2 GEMINI_API_KEY_3 GEMINI_API_KEY_4 GEMINI_API_KEY_5 LUNA_API_KEY LUNA_MODEL HAKU_API_KEY; do
+          for name in HAKU_API_KEY LUNA_API_KEY LUNA_MODEL; do
             test -n "${!name:-}" || (echo "Missing GitHub Secret: $name" && exit 1)
           done
 
@@ -138,6 +139,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 android-apk/ci_verify_runtime_contracts.py
+          python3 android-apk/ci_verify_provider_routing.py
           node --test android-apk/test-combat-overlay-feedback.cjs
           node --test android-apk/test-combat-action-protocol.cjs
           git diff --check
