@@ -4,6 +4,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parent
 AUDIT_RUNNER = ROOT / "ci_patch_audit_runner.py"
+ORPHAN_AUDIT = ROOT / "ci_patch_orphan_audit.py"
 
 SCRIPTS = [
     "patch-provider-status.py",
@@ -80,8 +81,12 @@ SCRIPTS = [
     "patch-lucia-entity-overlay-final.py",
 ]
 
-if not AUDIT_RUNNER.is_file():
-    raise SystemExit(f"Missing runtime patch audit runner: {AUDIT_RUNNER.name}")
+for required in (AUDIT_RUNNER, ORPHAN_AUDIT):
+    if not required.is_file():
+        raise SystemExit(f"Missing runtime patch audit tool: {required.name}")
+
+# Inspect reachability before any patch is allowed to mutate another patch file.
+subprocess.run([sys.executable, str(ORPHAN_AUDIT)], cwd=ROOT.parent, check=True)
 
 for script in SCRIPTS:
     path = ROOT / script
