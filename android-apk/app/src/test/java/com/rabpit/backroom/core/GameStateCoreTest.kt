@@ -67,18 +67,33 @@ class GameStateCoreTest {
     assertNull(unequipped.state.equipment.getValue(KAI_ID).slots["weapon"])
   }
 
-  @Test fun partyNeedsPresenceConsentAndHasFourMemberLimit() {
-    val people = (1..4).map { CharacterState("p$it", "P$it") }
+  @Test fun partyNeedsPresenceConsentAndEnforcesConfiguredMemberLimit() {
+    val capacity = GameState.initial().party.maxMembers
+    val people = (1..capacity).map { CharacterState("p$it", "P$it") }
     var state = base(*people.toTypedArray())
-    for (i in 1..3) {
+    for (i in 1 until capacity) {
       val command = PartyCommand("join-$i", "TURN_1", KAI_ID, "p$i", CommandSource.UI, PartyCommand.Operation.ADD, true, true)
-      state = StateReducer.execute(state, command).state
+      val joined = StateReducer.execute(state, command)
+      assertTrue("Party slot ${i + 1} should accept a confirmed, present member", joined.applied)
+      state = joined.state
     }
-    assertEquals(4, state.party.memberIds.size)
-    val full = StateReducer.execute(state, PartyCommand("join-4", "TURN_1", KAI_ID, "p4", CommandSource.UI, PartyCommand.Operation.ADD, true, true))
+    assertEquals(listOf(KAI_ID) + people.dropLast(1).map { it.id }, state.party.memberIds)
+    assertEquals(capacity, state.party.memberIds.size)
+    val overflow = people.last().id
+    val full = StateReducer.execute(state, PartyCommand("join-overflow", "TURN_1", KAI_ID, overflow, CommandSource.UI, PartyCommand.Operation.ADD, true, true))
+    assertFalse(full.applied)
     assertEquals("party_full", full.validation.reason)
-    val noConsent = StateReducer.execute(base(people[0]), PartyCommand("no-consent", "TURN_1", KAI_ID, "p1", CommandSource.LITERT, PartyCommand.Operation.ADD, false, true))
+    assertEquals(state.party, full.state.party)
+
+    val beforeJoin = base(people[0])
+    val noConsent = StateReducer.execute(beforeJoin, PartyCommand("no-consent", "TURN_1", KAI_ID, "p1", CommandSource.LITERT, PartyCommand.Operation.ADD, false, true))
+    assertFalse(noConsent.applied)
     assertEquals("join_not_confirmed", noConsent.validation.reason)
+    assertEquals(beforeJoin.party, noConsent.state.party)
+    val notPresent = StateReducer.execute(beforeJoin, PartyCommand("not-present", "TURN_1", KAI_ID, "p1", CommandSource.UI, PartyCommand.Operation.ADD, true, false))
+    assertFalse(notPresent.applied)
+    assertEquals("target_not_present", notPresent.validation.reason)
+    assertEquals(beforeJoin.party, notPresent.state.party)
   }
 
   @Test fun statusIsStructuredAndRemovable() {
