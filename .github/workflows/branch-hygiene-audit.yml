@@ -1,0 +1,52 @@
+name: Branch Hygiene Audit
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * 1"
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/scripts/branch_audit.py"
+      - ".github/scripts/test_branch_audit.py"
+      - ".github/workflows/branch-hygiene-audit.yml"
+      - "BRANCH_POLICY.md"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  audit:
+    name: read-only-branch-audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Test branch classifier
+        run: python -m unittest -v .github/scripts/test_branch_audit.py
+
+      - name: Audit repository branches
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python .github/scripts/branch_audit.py \
+            --repo "$GITHUB_REPOSITORY" \
+            --output-json branch-audit.json \
+            --output-markdown branch-audit.md
+          cat branch-audit.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: branch-hygiene-audit
+          path: |
+            branch-audit.json
+            branch-audit.md
+          if-no-files-found: error
+          retention-days: 14
