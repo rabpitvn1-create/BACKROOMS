@@ -30,6 +30,7 @@
     var turn = combat && combat.partyTurn;
     return {
       encounter: combat && String(combat.encounterId || ''),
+      combat: combat,
       actor: turn && turn.actorId ? actor(turn.actorId, turn.actorName, turn.actorAvatar) : null,
       members: s.partyDetails && s.partyDetails.members || [],
       feedback: s.combatFeedback
@@ -44,6 +45,48 @@
     img.onerror = function () { img.style.visibility = 'hidden'; };
     return img;
   }
+  function compactName(id, name) {
+    if (String(id) === 'kai') return 'KAI';
+    return String(name || id || '').trim().toUpperCase();
+  }
+  function hpText(currentHp, maxHp) {
+    var now = Number(currentHp), max = Number(maxHp);
+    if (!Number.isFinite(now) || !Number.isFinite(max) || max <= 0) return '';
+    return '[' + Math.max(0, Math.round(now)) + '/' + Math.max(1, Math.round(max)) + ']';
+  }
+  function removeNameplates(snap) {
+    if (!snap) return;
+    var party = snap.querySelector('.combat-nameplate-party');
+    var entity = snap.querySelector('.combat-nameplate-entity');
+    if (party) party.remove();
+    if (entity) entity.remove();
+  }
+  function renderNameplates(view) {
+    var snap = attach();
+    if (!snap) return;
+    removeNameplates(snap);
+    var combat = view && view.combat;
+    if (!combat || !view.actor) { delete snap.dataset.combatActive; return; }
+    snap.dataset.combatActive = 'true';
+
+    var member = view.members.find(function (item) { return String(item.id) === String(view.actor.id); });
+    var partyHp = member && hpText(member.currentHp, member.maxHp);
+    if (!partyHp && view.actor.id === 'kai') partyHp = hpText(combat.playerHp, combat.playerMaxHp);
+    if (partyHp) {
+      var partyLabel = document.createElement('div');
+      partyLabel.className = 'combat-nameplate combat-nameplate-party';
+      partyLabel.textContent = compactName(view.actor.id, member && member.name || view.actor.name) + ' ' + partyHp;
+      snap.appendChild(partyLabel);
+    }
+
+    var entityHp = hpText(combat.entityHp, combat.entityMaxHp);
+    if (entityHp) {
+      var entityLabel = document.createElement('div');
+      entityLabel.className = 'combat-nameplate combat-nameplate-entity';
+      entityLabel.textContent = compactName(combat.entityKey, combat.entityName || combat.entityKey || 'Entity') + ' ' + entityHp;
+      snap.appendChild(entityLabel);
+    }
+  }
   function remember(id) {
     if (!id) return;
     seen.add(id);
@@ -53,7 +96,6 @@
     if (!node || reduced.matches || !node.animate || document.hidden) return Promise.resolve();
     var animation = node.animate(frames, { duration: duration, easing: 'ease-out' });
     animations.push(animation);
-    // oncancel also settles interrupted transitions on rapid responses or combat exit.
     return new Promise(function (resolve) {
       function done() {
         animations = animations.filter(function (item) { return item !== animation; });
@@ -63,13 +105,30 @@
       animation.oncancel = done;
     });
   }
-  function hit(node, direction) {
+  function impactMagnitude(damage) {
+    var value = Math.max(1, Number(damage) || 1);
+    return Math.max(12, Math.min(22, Math.round(9 + Math.log2(value + 1) * 2.2)));
+  }
+  function hit(node, direction, damage) {
+    var magnitude = impactMagnitude(damage);
     return animate(node, [
-      { transform: 'translateX(0)', filter: 'brightness(1)' },
-      { transform: 'translateX(' + (direction * 5) + 'px)', filter: 'brightness(1.7)', offset: .25 },
-      { transform: 'translateX(' + (-direction * 2) + 'px)', filter: 'brightness(1)', offset: .65 },
-      { transform: 'translateX(0)', filter: 'brightness(1)' }
-    ], 160);
+      { transform: 'translateX(0) scale(1)', filter: 'brightness(1) contrast(1)' },
+      { transform: 'translateX(' + (direction * magnitude) + 'px) scale(.985,1.015)', filter: 'brightness(2.15) contrast(1.25)', offset: .18 },
+      { transform: 'translateX(' + (-direction * Math.round(magnitude * .42)) + 'px) scale(1.01,.99)', filter: 'brightness(1.25) contrast(1.08)', offset: .48 },
+      { transform: 'translateX(' + (direction * Math.round(magnitude * .18)) + 'px) scale(1)', filter: 'brightness(1.05) contrast(1)', offset: .72 },
+      { transform: 'translateX(0) scale(1)', filter: 'brightness(1) contrast(1)' }
+    ], 245);
+  }
+  function cameraKick(direction, damage) {
+    var snap = box();
+    if (!snap) return Promise.resolve();
+    var px = Math.max(2, Math.min(5, Math.round(2 + Math.log2(Math.max(1, Number(damage) || 1) + 1) * .42)));
+    return animate(snap, [
+      { transform: 'translate(0,0)' },
+      { transform: 'translate(' + (direction * px) + 'px,' + (-Math.max(1, px - 2)) + 'px)', offset: .24 },
+      { transform: 'translate(' + (-direction * Math.max(1, px - 2)) + 'px,1px)', offset: .58 },
+      { transform: 'translate(0,0)' }
+    ], 150);
   }
   function settle(a) {
     layer.replaceChildren();
@@ -107,7 +166,7 @@
   }
   async function present(view, feedback, token, entityImage) {
     var hits = feedback && Array.isArray(feedback.hits) ? feedback.hits : [];
-    var entityHit = hits.some(function (h) { return h.targetId === 'entity' && h.damage > 0; });
+    var entityHit = hits.find(function (h) { return h.targetId === 'entity' && h.damage > 0; });
     if (entityHit && entityImage) {
       var ghost = entityImage.cloneNode(true);
       ghost.className = 'combat-fx-entity';
@@ -115,12 +174,11 @@
       layer.appendChild(ghost);
       var snap = attach();
       if (snap) snap.classList.add('entity-hit-active');
-      await hit(ghost, -1);
+      await Promise.all([hit(ghost, -1, entityHit.damage), cameraKick(-1, entityHit.damage)]);
       ghost.remove();
       if (token !== generation) return;
       if (snap) snap.classList.remove('entity-hit-active');
     }
-    // Show the actual damaged character, never flash Lucia for damage applied to Kai.
     var partyHits = hits.filter(function (h) { return h.targetId !== 'entity' && h.damage > 0; });
     var target = partyHits.find(function (h) { return current && h.targetId === current.actor.id; }) ||
       partyHits.find(function (h) { return view.actor && h.targetId === view.actor.id; }) || partyHits[0];
@@ -130,7 +188,7 @@
       if (damaged) {
         await swap(damaged, token);
         if (token !== generation) return;
-        await hit(current && current.node, 1);
+        await Promise.all([hit(current && current.node, 1, target.damage), cameraKick(1, target.damage)]);
         if (token !== generation) return;
       }
     }
@@ -141,8 +199,8 @@
     var snap = attach();
     if (!snap) return;
     var view = readView(), event = view.feedback;
+    renderNameplates(view);
     var fresh = event && typeof event.id === 'string' && !seen.has(event.id);
-    // Initial/load rendering establishes a baseline; old saved hits must not replay.
     var feedback = initialized && fresh && previous && previous.encounter === event.encounterId ? event : null;
     if (fresh) remember(event.id);
     if (feedback && (!Array.isArray(feedback.hits) || !feedback.hits.some(function (h) { return h.damage > 0; }))) feedback = null;
@@ -152,7 +210,6 @@
     if (!changed && !feedback) return;
     generation += 1;
     animations.slice().forEach(function (a) { a.cancel(); });
-    // Finish any interrupted presentation at its prior authoritative actor first.
     if (previous) settle(previous.actor);
     var entityImage = snap.querySelector('.snapshot-entity') ||
       (feedback && cachedEncounter === feedback.encounterId ? cachedEntity : null);

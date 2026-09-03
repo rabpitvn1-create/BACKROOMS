@@ -91,13 +91,13 @@ SCRIPTS = [
     "patch-readable-gm-evidence.py",
     "patch-provider-haku-luna-lock-gemini-final.py",
     "patch-auto-light-flicker.py",
+    "patch-combat-presentation-authority-final.py",
 ]
 
 for required in (AUDIT_RUNNER, ORPHAN_AUDIT):
     if not required.is_file():
         raise SystemExit(f"Missing runtime patch audit tool: {required.name}")
 
-# Inspect reachability before any patch is allowed to mutate another patch file.
 subprocess.run([sys.executable, str(ORPHAN_AUDIT)], cwd=ROOT.parent, check=True)
 
 for script in SCRIPTS:

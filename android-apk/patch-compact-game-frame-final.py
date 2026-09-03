@@ -36,7 +36,7 @@ if MARKER not in html:
 .shell.two-page-shell>.game{display:flex;flex-direction:column;overflow:hidden;min-height:0}
 .game>.topbar{flex:0 0 auto;padding:8px 10px;gap:6px}
 .game>.topbar h1{margin-top:2px;font-size:clamp(17px,5vw,22px);line-height:1.08}
-.game>.snapshot{flex:0 0 clamp(138px,28dvh,224px);height:auto;margin:4px 4px 0}
+.game>.snapshot{flex:0 0 clamp(150px,30dvh,244px);height:auto;margin:4px 4px 0}
 .game>.log{flex:1 1 auto;height:auto;min-height:112px;overflow-y:auto;padding:5px 4px;gap:6px}
 .game>.log .message{padding:8px 10px}
 .game>.composer{flex:0 0 auto;padding:5px 4px 4px;gap:5px}
@@ -59,13 +59,13 @@ if MARKER not in html:
   .shell.two-page-shell>.game,.shell.two-page-shell>.side{top:calc(3px + env(safe-area-inset-top));bottom:calc(3px + env(safe-area-inset-bottom));width:calc(100% - 6px);max-width:calc(100% - 6px)}
   .shell.two-page-shell[data-page="game"]>.game{left:3px}.shell.two-page-shell[data-page="game"]>.side{left:calc(100% + 3px)}
   .shell.two-page-shell[data-page="status"]>.game{left:calc(-100% - 3px)}.shell.two-page-shell[data-page="status"]>.side{left:3px}
-  .game>.topbar{padding:6px 8px}.game>.snapshot{flex-basis:clamp(126px,26dvh,190px);margin:3px 3px 0}
+  .game>.topbar{padding:6px 8px}.game>.snapshot{flex-basis:clamp(136px,28dvh,204px);margin:3px 3px 0}
   .game>.log{padding:4px 3px;gap:4px}.game>.log .message{padding:7px 8px}
   .game>.composer{padding:4px 3px 3px}.game>.composer textarea{min-height:52px}
   .primary-action-row{gap:3px}.primary-action-row .primary-action,.primary-action-row.combat-actions .primary-action{padding:6px 1px;gap:2px}
 }
 @media(orientation:landscape) and (max-height:520px){
-  .game>.snapshot{flex-basis:clamp(88px,25dvh,128px)}
+  .game>.snapshot{flex-basis:clamp(92px,26dvh,136px)}
   .game>.log{min-height:84px}.game>.composer textarea{min-height:44px;max-height:15dvh}
 }
 </style>
@@ -75,6 +75,7 @@ if MARKER not in html:
 for marker in (
     MARKER,
     ".shell.two-page-shell>.game{display:flex;flex-direction:column;overflow:hidden;min-height:0}",
+    ".game>.snapshot{flex:0 0 clamp(150px,30dvh,244px)",
     ".game>.log{flex:1 1 auto;height:auto;min-height:112px;overflow-y:auto",
     "overflow:visible;text-overflow:clip;white-space:nowrap",
     "font-size:clamp(9px,2.8vw,12px)",
@@ -86,4 +87,4 @@ if html.count(MARKER) != 1:
     raise RuntimeError("Compact game frame must be installed exactly once")
 
 INDEX.write_text(html, encoding="utf-8")
-print("Compact game frame finalized: one viewport frame, compact spacing, scrolling log and full action labels.")
+print("Compact game frame finalized: slightly taller Snapshot, compact spacing, scrolling log and full action labels.")
