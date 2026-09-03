@@ -107,6 +107,28 @@ object PartyTurnCombat {
 
   data class Actor(val id: String, val name: String, val avatarRef: String?)
 
+  // Response-only visual data, captured before facade regeneration and terminal cleanup.
+  fun feedback(before: GameState, result: CombatRuntime.Resolution): JSONObject {
+    val encounter = CombatRuntime.active(before)
+    val after = CombatRuntime.active(result.state)
+    val hits = JSONArray()
+    if (encounter != null && result.handled) {
+      val remaining = if (result.entityDestroyed) 0 else after?.entityHp ?: encounter.entityHp
+      val damage = (encounter.entityHp - remaining).coerceAtLeast(0)
+      if (damage > 0) hits.put(JSONObject().put("targetId", "entity").put("damage", damage))
+      before.characters.forEach { (id, character) ->
+        val hp = result.state.characters[id]?.vitalState?.currentHp ?: character.vitalState.currentHp
+        val lost = (character.vitalState.currentHp - hp).coerceAtLeast(0)
+        if (lost > 0) hits.put(JSONObject().put("targetId", id).put("damage", lost))
+      }
+    }
+    return JSONObject().apply {
+      put("id", java.util.UUID.randomUUID().toString())
+      put("encounterId", encounter?.encounterId ?: "")
+      put("hits", hits)
+    }
+  }
+
   fun init(state: GameState): GameState {
     if (CombatRuntime.active(state) == null) return clear(state)
     val metadata = state.metadata.filterKeys { !it.startsWith(PREFIX) }.toMutableMap()
@@ -316,12 +338,32 @@ projection_new = '''    CombatRuntime.toJson(state)?.let { combat ->
       output.put("combat", combat)
     } ?: output.remove("combat")'''
 facade = replace_once(facade, projection, projection_new, "Party combat JSON projection")
+facade = replace_once(
+    facade,
+    '    var next = resolution.state\n',
+    '    val combatFeedback = PartyTurnCombat.feedback(current, resolution)\n    var next = resolution.state\n',
+    "Capture damage before completed-turn regeneration",
+)
+facade = replace_once(
+    facade,
+    '    appendLog(output, action, resolution.reply)',
+    '    output.put("combatFeedback", combatFeedback)\n    appendLog(output, action, resolution.reply)',
+    "Attach response-only combat feedback",
+)
+facade = replace_once(
+    facade,
+    '    val output = JSONObject(legacy.toString())',
+    '    val output = JSONObject(legacy.toString())\n    output.remove("combatFeedback")',
+    "Discard feedback from previous saves and non-combat responses",
+)
 FACADE.write_text(facade, encoding="utf-8")
 
 
 # Final mobile UI override. Existing historical action bar stays as compatibility substrate.
 html = INDEX.read_text(encoding="utf-8")
 ui = r'''
+<link rel="stylesheet" href="combat-overlay-feedback.css">
+<script src="combat-overlay-feedback.js"></script>
 <style id="partyTurnCombatStyle">
 #partyTurnCombat{display:none;margin-top:6px}
 #partyTurnCombat.active{display:block}
@@ -379,13 +421,7 @@ ui = r'''
     p.classList.add('open');p.setAttribute('aria-hidden','false');
   };
   function actorOverlay(t){
-    var snap=document.getElementById('snapshot');if(!snap)return;
-    var old=snap.querySelector('.snapshot-party-actor');if(old)old.remove();
-    if(!t||!t.actorAvatar)return;snap.style.position='relative';
-    var img=document.createElement('img');img.className='snapshot-party-actor';
-    var ref=String(t.actorAvatar||'').replace(/^\/+/,'');
-    img.src=ref.indexOf('file:')===0?ref:'file:///android_asset/'+ref;
-    img.alt=String(t.actorName||'Party actor');snap.appendChild(img);
+    if(window.CombatOverlayFeedback)window.CombatOverlayFeedback.renderActor(t);
   }
   window.renderPartyTurnCombat=function(){
     var box=ensure(),t=turn();
@@ -422,7 +458,6 @@ html = html.replace(
 )
 INDEX.write_text(html, encoding="utf-8")
 
-
 # Focused regressions.
 PARTY_TEST.write_text(r'''package com.rabpit.backroom.core
 
@@ -430,6 +465,39 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class PartyTurnCombatTest {
+  @Test fun feedbackIncludesLethalEntityDamageAfterCombatCleanup() {
+    val state = PartyTurnCombat.init(CombatRuntime.start(GameState.initial(), "hound"))
+    val hp = CombatRuntime.active(state)!!.entityHp
+    val result = CombatRuntime.applyPartyTurnDamage(state, KAI_ID, hp, "ATK")
+    assertTrue(result.entityDestroyed)
+    assertNull(CombatRuntime.active(result.state))
+    val packet = PartyTurnCombat.feedback(state, result)
+    assertEquals(CombatRuntime.active(state)!!.encounterId, packet.getString("encounterId"))
+    val hit = packet.getJSONArray("hits").getJSONObject(0)
+    assertEquals("entity", hit.getString("targetId"))
+    assertEquals(hp, hit.getInt("damage"))
+    assertTrue(packet.getString("id").isNotBlank())
+  }
+
+  @Test fun feedbackTargetsTheDamagedCharacterBeforeFacadeRegen() {
+    val state = PartyTurnCombat.init(CombatRuntime.start(GameState.initial(), "hound"))
+    val hp = state.characters.getValue(KAI_ID).vitalState.currentHp
+    val damaged = CharacterStatEngine.setCurrentHp(state, KAI_ID, hp - 3)
+    val result = CombatRuntime.Resolution(damaged, handled = true)
+    val hits = PartyTurnCombat.feedback(state, result).getJSONArray("hits")
+    assertEquals(1, hits.length())
+    assertEquals(KAI_ID, hits.getJSONObject(0).getString("targetId"))
+    assertEquals(3, hits.getJSONObject(0).getInt("damage"))
+  }
+
+  @Test fun rejectedActionsAndEscapeDoNotInventHits() {
+    val state = PartyTurnCombat.init(CombatRuntime.start(GameState.initial(), "hound"))
+    val rejected = PartyTurnCombat.resolve(state, "EXECUTE", "PARTY_TURN_SKILL::missing")
+    assertEquals(0, PartyTurnCombat.feedback(state, rejected).getJSONArray("hits").length())
+    val escaped = CombatRuntime.Resolution(GameState.initial(), handled = true, escaped = true)
+    assertEquals(0, PartyTurnCombat.feedback(state, escaped).getJSONArray("hits").length())
+  }
+
   @Test fun freshPartyCapacityIsSevenAndKaiOpensCombat() {
     var state = GameState.initial()
     assertEquals(7, state.party.maxMembers)
