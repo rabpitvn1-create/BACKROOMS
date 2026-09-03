@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-APK=${1:-Backroom-1.4.4.4-debug.apk}
+APK=${1:-Backroom-1.4.4.5-debug.apk}
 BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
 
 "$BUILD_TOOLS/apksigner" verify --verbose --print-certs "$APK"
 "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "package: name='com.rabpit.backroom'"
-"$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionCode='103'"
-"$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionName='1.4.4.4'"
+"$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionCode='104'"
+"$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionName='1.4.4.5'"
 "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
 "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 "$APK"
 
@@ -73,9 +73,6 @@ grep -q 'const CORE_SAVE_KEY="backroom-apk-core-state"' apk-check/assets/index.h
 grep -q 'Android.exportCoreState()' apk-check/assets/index.html
 grep -q 'Android.restoreCoreState(raw)' apk-check/assets/index.html
 
-# Level packaging is catalog-driven. The verifier has no knowledge of the last Level ID and does
-# not maintain a hand-written list of definitions/profiles. Validate the source and extracted APK
-# with the same fail-closed inventory, then require byte-independent semantic equivalence.
 SOURCE_LEVEL_REPORT=$(mktemp)
 PACKAGED_LEVEL_REPORT=$(mktemp)
 trap 'rm -f "$SOURCE_LEVEL_REPORT" "$PACKAGED_LEVEL_REPORT"' EXIT
@@ -107,9 +104,6 @@ print(
 )
 PY
 
-# Both local models are build-time generated/cache-restored assets. The Director model now ranks
-# broad world-pressure proposals only; Core owns legality/liveness and the proposal cannot mutate
-# gameplay state by itself. Evidence-source labels are retired from the packaged model contract.
 test -s apk-check/assets/models/backroom_intent.tflite
 test -s apk-check/assets/models/backroom_intent_labels.txt
 test -s apk-check/assets/models/backrooms_director.tflite
