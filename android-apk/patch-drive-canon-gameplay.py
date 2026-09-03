@@ -28,7 +28,21 @@ for old, new, label in (
     ("Không biết Black Blood còn có thể tìm thấy dấu vết của ba người từ phía bên kia hay không.", "Không biết SRU Force còn có thể tìm thấy dấu vết của ba người từ phía bên kia hay không.", "prologue recovery question"),
     ("Không có liên lạc với Iris, Syvial hay Black Blood.", "Không có liên lạc với Iris, Syvial hay SRU Force.", "prologue first turn status"),
 ):
-    index = replace_once(index, old, new, label)
+    count = index.count(old)
+    if count > 1:
+        raise RuntimeError(f"{label}: expected at most 1 legacy match, found {count}")
+    if count == 1:
+        index = index.replace(old, new, 1)
+
+# Source-clean builds no longer contain the legacy restaurant/Black Blood prologue,
+# so the compatibility rewrite above is intentionally allowed to be a no-op.
+prologue_start = index.find("const prologue=`")
+initial_start = index.find("const initial={", prologue_start)
+if prologue_start < 0 or initial_start < 0:
+    raise RuntimeError("Drive canon: prologue boundary missing")
+prologue_block = index[prologue_start:initial_start]
+if "Black Blood" in prologue_block:
+    raise RuntimeError("Drive canon: legacy Black Blood prologue survived")
 
 java_canon = json.dumps(canon, ensure_ascii=False)
 constant_anchor = "  private static final int MAX_SNAPSHOT_BASE64 = 1_500_000;\n"
