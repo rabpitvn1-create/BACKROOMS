@@ -32,6 +32,8 @@ rm -rf apk-check
 mkdir apk-check
 unzip -q "$APK" \
   'assets/index.html' \
+  'assets/combat-overlay-feedback.js' \
+  'assets/combat-overlay-feedback.css' \
   'assets/levels/*' \
   'assets/level_profiles/*' \
   'assets/level_catalog/*' \
@@ -41,6 +43,11 @@ unzip -q "$APK" \
   'assets/Kai_new_overlay.png' \
   'assets/BESTKAIV2.png' \
   -d apk-check
+
+grep -q 'src="combat-overlay-feedback.js"' apk-check/assets/index.html
+grep -q 'href="combat-overlay-feedback.css"' apk-check/assets/index.html
+cmp android-apk/app/src/main/assets/combat-overlay-feedback.js apk-check/assets/combat-overlay-feedback.js
+cmp android-apk/app/src/main/assets/combat-overlay-feedback.css apk-check/assets/combat-overlay-feedback.css
 
 grep -q 'searchActionButton' apk-check/assets/index.html
 grep -q 'exploreActionButton' apk-check/assets/index.html

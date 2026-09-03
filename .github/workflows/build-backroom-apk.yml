@@ -225,6 +225,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 android-apk/ci_verify_runtime_contracts.py
+          node --test android-apk/test-combat-overlay-feedback.cjs
           git diff --check
 
       - uses: actions/setup-java@v5

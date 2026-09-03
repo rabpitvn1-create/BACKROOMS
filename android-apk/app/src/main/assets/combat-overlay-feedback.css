@@ -1,0 +1,5 @@
+.snapshot .combat-fx-layer{position:absolute;inset:0;z-index:3;pointer-events:none}
+.snapshot .combat-fx-layer .snapshot-party-actor{position:absolute;right:0;bottom:0;width:auto;height:97%;max-width:55%;max-height:97%;object-fit:contain;object-position:right bottom;border-radius:0;pointer-events:none}
+.snapshot.party-overlay-active>.snapshot-character{visibility:hidden}
+.snapshot.entity-hit-active>.snapshot-entity{visibility:hidden}
+.snapshot .combat-fx-entity{position:absolute;left:0;bottom:0;width:auto;height:97%;max-width:55%;object-fit:contain;object-position:left bottom;pointer-events:none}
