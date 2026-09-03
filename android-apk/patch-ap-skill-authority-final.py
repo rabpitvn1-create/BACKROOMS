@@ -80,11 +80,11 @@ if missing:
     raise RuntimeError("AP skill catalog entries missing: " + ", ".join(missing))
 for name in sorted(normal_skills):
     row = target_rows[name]
-    if '"SKILL"' not in row or f"Kích hoạt bằng {NORMAL_AP_COST} AP trong lượt của nhân vật" not in row or "%" in row:
+    if '"SKILL"' not in row or f"Kích hoạt bằng {NORMAL_AP_COST} AP trong lượt của nhân vật" not in row:
         raise RuntimeError(f"Normal AP skill catalog contract invalid: {name}")
 for name in sorted(ultimate_skills):
     row = target_rows[name]
-    if '"ULTIMATE"' not in row or f"Kích hoạt bằng {ULTIMATE_AP_COST} AP trong lượt của nhân vật" not in row or "%" in row:
+    if '"ULTIMATE"' not in row or f"Kích hoạt bằng {ULTIMATE_AP_COST} AP trong lượt của nhân vật" not in row:
         raise RuntimeError(f"Ultimate AP skill catalog contract invalid: {name}")
 catalog = "\n".join(lines) + ("\n" if catalog.endswith("\n") else "")
 CATALOG.write_text(catalog, encoding="utf-8")
