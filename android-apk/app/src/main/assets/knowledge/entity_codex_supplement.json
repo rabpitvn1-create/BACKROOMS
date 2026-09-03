@@ -192,6 +192,38 @@
       "tags": ["slenderman", "slender man"],
       "references": ["ENTITY.GLOBAL_HARD_LOCK"],
       "affordances": ["direct_threat", "trace_analysis"]
+    },
+    {
+      "id": "ENTITY.JEFF.CODEX_R01",
+      "domain": "ENTITY",
+      "kind": "entity-codex",
+      "text": "Jeff the Killer visual/behavior supplement: independent Internet summaries consistently depict the iconic creepypasta version as a pale or unnaturally white humanoid with long dark hair, a noseless or heavily altered face, an abnormally wide carved-looking grin and staring eyes often described as lacking eyelids. A knife is the character's signature weapon. The most stable attack pattern across retellings is a human-scale stalker/serial-killer approach: Jeff enters or approaches victims' homes, closes to knife range and attacks lethally, with 'Go to sleep' strongly associated with the character before a kill. Project canon is deliberately narrower about origin and broader about Backrooms deployment: ENTITY.JEFF treats Jeff as a rare roaming humanoid predator/incursion and explicitly leaves whether he is the creepypasta original, a former Frontrooms human, a Backrooms copy or a single persistent individual UNKNOWN. Therefore the Internet backstory, surname, exact burn/bleach sequence and self-mutilation history are not promoted to game canon. Existing gameplay remains authoritative for combat behavior, including Jeff's Go to Sleep pressure, Silent Stalker ambush behavior and No Safe Route escape pressure; this codex adds no numeric balance or new ability.",
+      "source": {
+        "document": "Internet synthesis + repo canon (2026-09-03)",
+        "anchor": "Creepypasta.com — Creepypasta Characters: Jeff the Killer; Dictionary.com — Jeff the Killer; Know Your Meme — Jeff the Killer; repo canon: ENTITY.JEFF + ENTITY.JEFF_SKILLS_R01 + ENTITY.GLOBAL_HARD_LOCK"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "BASELINE",
+      "priority": 59,
+      "tags": ["jeff", "jeff the killer", "jeff_the_killer"],
+      "references": ["ENTITY.JEFF", "ENTITY.JEFF_SKILLS_R01", "ENTITY.GLOBAL_HARD_LOCK"],
+      "affordances": ["direct_threat", "trace_analysis"]
+    },
+    {
+      "id": "ENTITY.JANE_THE_KILLER.CODEX_R01",
+      "domain": "ENTITY",
+      "kind": "entity-codex",
+      "text": "Jane the Killer visual/behavior supplement: the widely circulated Jane Arkensaw/Jane Everlasting continuity depicts Jane after her disfigurement wearing a white mask with dark eye areas and a painted dark feminine smile, a long black curly wig, a long black dress and gloves, and carrying a kitchen knife. That continuity frames her core motivation and combat behavior around hunting Jeff for revenge, with the knife as her principal close-range weapon; secondary summaries independently preserve the mask, black clothing/wig and knife baseline. This conflicts directly with repository gameplay canon at the behavioral boundary: ENTITY.JANE_THE_KILLER defines Jane as a unique roaming humanoid predator that hunts humans and is never a neutral NPC, ally, merchant or rescue character. Repo canon wins, so external claims that Jane only attacks Jeff, protects innocents, or is generally friendly to other humans are explicitly not imported. The Arkensaw name, exact burn origin, family history and claims about whom she morally chooses to kill remain continuity-specific rather than game facts. Existing gameplay remains authoritative for Jane's Don't Wake Up, bleed pressure, Hunter's Mark and Vengeful Reflex mechanics; this codex changes no combat numbers or spawn balance.",
+      "source": {
+        "document": "Internet synthesis + repo canon (2026-09-03)",
+        "anchor": "Creepypasta Wiki — Jane the Killer/Jane Everlasting story; Creepypasta Biographies Wiki — Jane the Killer; secondary game summary: ROBLOX Survive and Kill the Killers in Area 51 Wiki — Jane; repo canon: ENTITY.JANE_THE_KILLER + ENTITY.JANE_SKILLS_R01 + ENTITY.GLOBAL_HARD_LOCK"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "BASELINE",
+      "priority": 59,
+      "tags": ["jane", "jane the killer", "jane_the_killer"],
+      "references": ["ENTITY.JANE_THE_KILLER", "ENTITY.JANE_SKILLS_R01", "ENTITY.GLOBAL_HARD_LOCK"],
+      "affordances": ["direct_threat", "trace_analysis"]
     }
   ]
 }
