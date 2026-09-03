@@ -96,6 +96,38 @@
       "tags": ["skin-stealer", "skin stealer"],
       "references": ["ENTITY.SKIN_STEALER", "ENTITY.GLOBAL_HARD_LOCK"],
       "affordances": ["direct_threat", "identity_check", "trace_analysis"]
+    },
+    {
+      "id": "ENTITY.HOSTILE_FACELING",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Hostile Faceling: externally documented Facelings are humanlike humanoids whose defining visual trait is the absence of normal facial features; clothing, age, build and other human traits can vary widely. When a Faceling becomes aggressive, external accounts describe direct physical assault at close range, including hitting and scratching, with nearby Facelings sometimes joining to defend one another; another continuity describes hostile adults attacking relentlessly alone or in groups. The repository is stricter than the broader Internet continuities: the game exposes the canonical key hostile_faceling and ENTITY.GLOBAL_HARD_LOCK states that no Entity is friendly or neutral toward humans. Therefore Internet claims that most ordinary Facelings are docile, helpful, bond with humans or can be calmed into safe companionship are not imported into this Hostile Faceling record. No gender-specific weapons, disease transmission percentages, telepathy, exact group size, numeric strength or special mutation subtype is promoted to game canon because those details are continuity-specific or insufficiently corroborated.",
+      "source": {
+        "document": "Internet synthesis + repo canon (2026-09-03)",
+        "anchor": "The Backrooms Wikidot — Entity 9 Facelings; Backrooms Wiki/Fandom — Entity 9 Facelings; repo canon: hostile_faceling runtime key + ENTITY.GLOBAL_HARD_LOCK"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "BASELINE",
+      "priority": 58,
+      "tags": ["hostile faceling", "faceling"],
+      "references": ["ENTITY.GLOBAL_HARD_LOCK"],
+      "affordances": ["direct_threat", "trace_analysis"]
+    },
+    {
+      "id": "ENTITY.PREDATORY_WINDOW",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Predatory Window: external Backrooms sources describe an anomalous window manifestation that visually resembles architecture appropriate to its surroundings while showing an impossible or misleading scene, commonly with a dark indistinct humanoid silhouette behind the glass. The consistently supported attack pattern is lure-and-grab: the Window uses whispers, gestures or a compelling presentation to draw a person close, then manifests or extends an arm at short range to seize and pull the victim through the window. Modern Wikidot material treats Windows as immobile once manifested, while older/alternate continuities differ on exact biology, additional attacks and whether some Windows are harmless. Project canon selects the explicit predatory_window runtime key and ENTITY.GLOBAL_HARD_LOCK, so innocuous/safe Window variants and claims that crowd proximity makes the Entity genuinely passive or neutral are excluded from game canon. The repository's unified roaming/incursion pool may place Predatory Window encounters outside the external sources' typical habitats; that runtime placement rule wins over outside habitat claims. Exact grab distance, thoughtspace origin, glass-shard attacks, fumes, transformation outcomes and safe-entry routes remain uncommitted because they are version-specific or not consistently corroborated.",
+      "source": {
+        "document": "Internet synthesis + repo canon (2026-09-03)",
+        "anchor": "The Backrooms Wikidot — Entity 2 The Windows (current + archived); Backrooms Wiki/Fandom — Entity 2 Windows; repo canon: predatory_window runtime key + ENTITY.GLOBAL_HARD_LOCK + unified roaming pool"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "BASELINE",
+      "priority": 58,
+      "tags": ["predatory window", "window"],
+      "references": ["ENTITY.GLOBAL_HARD_LOCK"],
+      "affordances": ["direct_threat", "trace_analysis"]
     }
   ]
 }
