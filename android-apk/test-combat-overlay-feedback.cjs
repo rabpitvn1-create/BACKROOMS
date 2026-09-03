@@ -1,5 +1,5 @@
 const { test } = require('node:test');
-const assert = require('node:assert/strict');
+const assert=require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
@@ -9,7 +9,7 @@ const path = require('node:path');
 function fixture() {
   const events = [];
   class Element {
-    constructor() { this.children = []; this.dataset = {}; this.style = {}; this.attrs = {}; this.className = ''; }
+    constructor() { this.children = []; this.dataset = {}; this.style = {}; this.attrs = {}; this.className = ''; this.textContent = ''; }
     get classList() { return {
       toggle: (name, on) => { const names = new Set(this.className.split(' ').filter(Boolean)); on ? names.add(name) : names.delete(name); this.className = [...names].join(' '); },
       add: name => this.classList.toggle(name, true), remove: name => this.classList.toggle(name, false)
@@ -39,10 +39,16 @@ function fixture() {
     hidden:false, createElement: () => new Element(), getElementById: id => id === 'snapshot' ? snap : null,
     addEventListener: (event, callback) => { listeners[event] = callback; }
   }, window: { matchMedia: () => media, requestAnimationFrame: callback => setTimeout(callback, 0) } };
-  const members = [{id:'kai',name:'Kai',avatar:'SRU_AIM.png'}, {id:'lucia',name:'Lucia',avatar:'avatars/lucia_avatar.jpg'}];
+  const members = [
+    {id:'kai',name:'Kai',avatar:'SRU_AIM.png',currentHp:140,maxHp:140},
+    {id:'lucia',name:'Lucia',avatar:'avatars/lucia_avatar.jpg',currentHp:120,maxHp:120}
+  ];
   function view(id, packet, encounter = 'encounter-1') {
     context.state = { partyDetails: {members}, combatFeedback: packet,
-      combat: id ? {active:true,encounterId:encounter,partyTurn:{actorId:id,actorName:id,actorAvatar:members.find(m=>m.id===id).avatar}} : null };
+      combat: id ? {
+        active:true,encounterId:encounter,entityKey:'predatory_window',entityName:'Predatory Window',entityHp:476,entityMaxHp:476,
+        playerHp:140,playerMaxHp:140,partyTurn:{actorId:id,actorName:id,actorAvatar:members.find(m=>m.id===id).avatar}
+      } : null };
   }
   view('kai');
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, 'app/src/main/assets/combat-overlay-feedback.js'), 'utf8'), context);
@@ -116,4 +122,17 @@ test('Rapid responses and app backgrounding cancel old animation nodes', async (
   f.context.document.hidden = true; f.listeners.visibilitychange(); await f.wait();
   assert.equal(f.actor().dataset.actorId, 'lucia');
   assert.equal(f.snap.querySelector('.combat-fx-layer').children.length, 1);
+});
+
+test('Combat nameplates keep HP separate and stack long names instead of clipping HP', async () => {
+  const f = fixture(); await f.wait();
+  const party = f.snap.querySelector('.combat-nameplate-party');
+  const entity = f.snap.querySelector('.combat-nameplate-entity');
+  assert.ok(party); assert.ok(entity);
+  assert.equal(party.querySelector('.combat-nameplate-name').textContent, 'KAI');
+  assert.equal(party.querySelector('.combat-nameplate-hp').textContent, '[140/140]');
+  assert.equal(entity.querySelector('.combat-nameplate-name').textContent, 'PREDATORY WINDOW');
+  assert.equal(entity.querySelector('.combat-nameplate-hp').textContent, '[476/476]');
+  assert.ok(entity.className.includes('combat-nameplate-stacked'));
+  assert.ok(!party.className.includes('combat-nameplate-stacked'));
 });
