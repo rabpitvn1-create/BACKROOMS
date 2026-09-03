@@ -1,6 +1,5 @@
 from pathlib import Path
 import re
-import runpy
 
 MAIN = Path(__file__).resolve().parent / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
 
@@ -70,9 +69,4 @@ for required in [
         raise RuntimeError(f"final Java compile helper missing: {required}")
 
 MAIN.write_text(text, encoding="utf-8")
-print("Final Java compile hardening applied: SecureRandom, lower/network helpers and mergeObject collision fixed.")
-
-# Provider model availability changes independently of the APK. Apply the Luna
-# active-model discovery patch after the Gemini matrix and deadline patches have
-# finalized the provider methods.
-runpy.run_path(str(Path(__file__).resolve().parent / "patch-luna-model-failover-final.py"), run_name="__main__")
+print("Final Java compile hardening applied: SecureRandom, lower/network helpers and mergeObject collision fixed. Luna model discovery removed; configured LUNA_MODEL is used directly.")
