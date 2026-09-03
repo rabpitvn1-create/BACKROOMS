@@ -40,7 +40,7 @@ for marker in ("@font-face", "DFVN Broad.otf", ".combat-nameplate", "text-shadow
 for marker in ("function renderNameplates", "function impactMagnitude", "cameraKick", "hit(ghost, -1, entityHit.damage)"):
     assert marker in fx, marker
 
-for marker in ("pixels: pixels.slice()", "function paintMask", "native-mask", "canvas-mask"):
+for marker in ("pixels:pixels.slice()", "function paintMask", "native-mask", "canvas-mask"):
     assert marker in light, marker
 assert "createRadialGradient" not in light
 
