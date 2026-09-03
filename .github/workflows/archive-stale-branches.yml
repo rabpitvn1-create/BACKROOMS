@@ -1,0 +1,122 @@
+name: Archive Remaining Stale Branches
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/scripts/archive_stale_branches.py"
+      - ".github/scripts/test_archive_stale_branches.py"
+      - ".github/workflows/archive-stale-branches.yml"
+  push:
+    branches: [main]
+    paths:
+      - ".github/scripts/archive_stale_branches.py"
+      - ".github/scripts/test_archive_stale_branches.py"
+      - ".github/workflows/archive-stale-branches.yml"
+
+jobs:
+  plan:
+    name: plan-stale-branch-archive
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Test archive safety contract
+        run: python .github/scripts/test_archive_stale_branches.py -v
+
+      - name: Build pinned archive manifest
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python .github/scripts/archive_stale_branches.py \
+            --repo "$GITHUB_REPOSITORY" \
+            --plan \
+            --output stale-branch-archive-manifest.json
+
+      - name: Summarize archive plan
+        run: |
+          python - <<'PY'
+          import json, os
+          data = json.load(open('stale-branch-archive-manifest.json', encoding='utf-8'))
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as out:
+              out.write('# Stale Branch Archive Plan\n\n')
+              out.write(f"Total branches: **{data['branchCount']}**\n\n")
+              out.write(f"Archive candidates: **{data['archiveCandidateCount']}**\n\n")
+              out.write(f"Retained branches: **{data['retainedCount']}**\n\n")
+              out.write('Planning is read-only. No ref is removed in this job.\n')
+          PY
+
+      - name: Preserve archive manifest before mutation
+        uses: actions/upload-artifact@v4
+        with:
+          name: stale-branch-archive-manifest
+          path: stale-branch-archive-manifest.json
+          if-no-files-found: error
+          retention-days: 90
+
+  apply:
+    name: archive-and-remove-stale-branch-refs
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: plan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Download preserved archive manifest
+        uses: actions/download-artifact@v4
+        with:
+          name: stale-branch-archive-manifest
+
+      - name: Create archive anchor tag, verify it, then remove stale refs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="archive/branch-hygiene-${GITHUB_SHA:0:12}"
+          python .github/scripts/archive_stale_branches.py \
+            --repo "$GITHUB_REPOSITORY" \
+            --apply-manifest stale-branch-archive-manifest.json \
+            --archive-tag "$TAG" \
+            --output stale-branch-archive-result.json
+
+      - name: Summarize archive result
+        if: always()
+        run: |
+          python - <<'PY'
+          import json, os, pathlib
+          path = pathlib.Path('stale-branch-archive-result.json')
+          if not path.exists():
+              raise SystemExit(0)
+          data = json.loads(path.read_text(encoding='utf-8'))
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as out:
+              out.write('# Stale Branch Archive Result\n\n')
+              out.write(f"Archive tag: `{data.get('archiveTag', '-')}`\n\n")
+              out.write(f"Archive anchor: `{data.get('archiveAnchorSha', '-')}`\n\n")
+              out.write(f"Deleted branch refs: **{data.get('deletedCount', 0)}**\n\n")
+              out.write(f"Skipped after revalidation: **{data.get('skippedCount', len(data.get('skipped', [])))}**\n\n")
+              out.write(f"Errors: **{data.get('errorCount', len(data.get('errors', [])))}**\n")
+          PY
+
+      - name: Preserve archive result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stale-branch-archive-result
+          path: stale-branch-archive-result.json
+          if-no-files-found: warn
+          retention-days: 90
