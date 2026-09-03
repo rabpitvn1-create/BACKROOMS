@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-APK=${1:-Backroom-1.4.4.8-debug.apk}
+APK=${1:-Backroom-1.0.0.0.0-debug.apk}
 BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
 
 "$BUILD_TOOLS/apksigner" verify --verbose --print-certs "$APK"
 "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "package: name='com.rabpit.backroom'"
-"$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionCode='107'"
-"$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionName='1.4.4.8'"
+"$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionCode='108'"
+"$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionName='1.0.0.0.0'"
 "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
 "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 "$APK"
 
@@ -35,6 +35,7 @@ unzip -q "$APK" \
   'assets/combat-overlay-feedback.js' \
   'assets/combat-overlay-feedback.css' \
   'assets/auto-light-flicker.js' \
+  'assets/evidence-text.js' \
   'assets/levels/*' \
   'assets/level_profiles/*' \
   'assets/level_catalog/*' \
@@ -53,6 +54,8 @@ cmp android-apk/app/src/main/assets/combat-overlay-feedback.css apk-check/assets
 grep -q 'src="auto-light-flicker.js"' apk-check/assets/index.html
 grep -q 'id="autoLightFlickerStyle"' apk-check/assets/index.html
 cmp android-apk/app/src/main/assets/auto-light-flicker.js apk-check/assets/auto-light-flicker.js
+grep -q 'src="evidence-text.js"' apk-check/assets/index.html
+cmp android-apk/app/src/main/assets/evidence-text.js apk-check/assets/evidence-text.js
 
 grep -q 'searchActionButton' apk-check/assets/index.html
 grep -q 'exploreActionButton' apk-check/assets/index.html
@@ -61,7 +64,7 @@ grep -q 'equipmentDetailModal' apk-check/assets/index.html
 grep -q 'renderCharacterStatusEquipment' apk-check/assets/index.html
 grep -q 'characterSkillsModal' apk-check/assets/index.html
 grep -q 'characterSkillsButton' apk-check/assets/index.html
-# Observations must blend into ordinary prose, including when loading a save with an old ledger.
+# Discovered evidence uses plain bold text; obsolete clue badges stay removed.
 if grep -Eq 'EVIDENCE_HIGHLIGHT_V1|rpg-evidence-badge|evidenceHighlightStyle' apk-check/assets/index.html; then
   echo 'Packaged APK still exposes evidence highlighting' >&2
   exit 1
