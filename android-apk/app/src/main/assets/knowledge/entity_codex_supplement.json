@@ -128,6 +128,38 @@
       "tags": ["predatory window", "window"],
       "references": ["ENTITY.GLOBAL_HARD_LOCK"],
       "affordances": ["direct_threat", "trace_analysis"]
+    },
+    {
+      "id": "ENTITY.BIOLOGICAL_PIPELINE.CODEX_R01",
+      "domain": "ENTITY",
+      "kind": "entity-codex",
+      "text": "Biological Pipeline visual/behavior supplement: external Backrooms material depicts a vast organic pipeline organism whose accessible interior resembles a crawlable digestive tract integrated with or hidden behind the pipes and crawlspaces of Level 2. The exact body plan is disputed even in the source continuity, so the game does not lock whether the visible pipeline is the whole organism or only an exposed tract. External accounts describe ingestion rather than pursuit: a person can enter the tract and remain alive while moving, but prolonged immobility can trigger digestion; the entity uses a highly caustic alkaline secretion rather than ordinary stomach acid. Secondary continuity material independently preserves the same broad premise of a flesh-like pipeline that digests entrants, but does not justify importing exact chemistry or timing as universal facts. Project canon remains authoritative and is more aggressive: this game's Biological Pipeline senses vibration/body heat, can present apparently safe crawl routes, let prey travel deep, alter direction, seal retreat, secrete rapidly tissue-corrosive alkaline liquid and preserve corpses or gear as misleading evidence of safe passage. External claims that traversal is usually safe or useful therefore do not override the repo's predatory behavior. Exact length, digestion delay, chemical name, aluminum anatomy and claims that other entities fear the network remain external-only.",
+      "source": {
+        "document": "Internet synthesis + repo canon (2026-09-03)",
+        "anchor": "Backrooms Wiki/Fandom — Level 2: The Biological Pipeline; Pressure Ideas Wiki — Documents/Backrooms Entities: The Biological Pipeline; repo canon: ENTITY.BIOLOGICAL_PIPELINE + ENTITY.GLOBAL_HARD_LOCK"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "BASELINE",
+      "priority": 59,
+      "tags": ["biological pipeline", "pipeline"],
+      "references": ["ENTITY.BIOLOGICAL_PIPELINE", "ENTITY.GLOBAL_HARD_LOCK"],
+      "affordances": ["direct_threat", "trace_analysis"]
+    },
+    {
+      "id": "ENTITY.BEAST_LEVEL_5.CODEX_R01",
+      "domain": "ENTITY",
+      "kind": "entity-codex",
+      "text": "The Beast of Level 5 visual/behavior supplement: the current Backrooms Fandom continuity depicts a tall humanoid chimera combining cephalopod, human and moth traits, with a dark blue octopus-like head, vivid violet eyes, multiple upper tentacular limbs, lower clawed arms and a dark furred formal suit whose outer layer can resemble moth wings. That continuity portrays the Beast as highly intelligent, capable of camouflage, prolonged stalking and psychological pressure before direct confrontation; when attacking physically it may use claws, tentacles and environmental manipulation within hotel-like spaces. The same source also portrays bargaining, soul-contracts and periods of apparently gentlemanly conduct, but those behaviors conflict with the repository's stricter ENTITY.GLOBAL_HARD_LOCK and its existing apex-hunter canon: in this game the Beast actively hunts humans, may observe groups for a long time, exploit anxiety and architecture to isolate prey, and any seemingly cooperative conduct can only serve an eventual harmful strategy. The repository also allows unified roaming/incursion behavior beyond Level 5, so the external claim that most of its highest reality-warping power is tied to hotel levels cannot be assumed as a gameplay boundary. Exact height, ancient-history claims, named metaphysical planes, soul mechanics, transformation stages, number of hearts and purported reality-warping feats are not promoted to game canon without independent corroboration.",
+      "source": {
+        "document": "Internet synthesis + repo canon (2026-09-03)",
+        "anchor": "Backrooms Wiki/Fandom — Entity 18: The Beast of Level 5; repo canon: ENTITY.BEAST_LEVEL_5 + ENTITY.GLOBAL_HARD_LOCK + unified roaming pool"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "BASELINE",
+      "priority": 59,
+      "tags": ["the beast of level 5", "beast of level 5", "the beast"],
+      "references": ["ENTITY.BEAST_LEVEL_5", "ENTITY.GLOBAL_HARD_LOCK"],
+      "affordances": ["direct_threat", "trace_analysis"]
     }
   ]
 }
