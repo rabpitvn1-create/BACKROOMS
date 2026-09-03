@@ -1,5 +1,4 @@
 from pathlib import Path
-import re
 
 MAIN = Path(__file__).resolve().parent / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
 text = MAIN.read_text(encoding="utf-8")
@@ -129,8 +128,8 @@ new_leaf_methods = r'''  private String geminiKeyFallbackText(String prompt, int
 replace_once(old_leaf_methods, new_leaf_methods, "single-model Gemini key fallback")
 
 # patch-provider-deadline-final ran immediately before this finalizer and still
-# contains the historical Gemini -> Luna provider switch. Replace that final
-# dispatch boundary so the completed runtime can only call Gemini key fallback.
+# contains the historical Gemini -> Luna provider switch. Replace the complete
+# Java method structurally instead of relying on neighboring-method formatting.
 new_generate = r'''  private String generateText(String prompt) throws Exception {
     emit("backroomProvider", "Gemini");
     try {
@@ -143,15 +142,33 @@ new_generate = r'''  private String generateText(String prompt) throws Exception
     }
   }
 '''
-pattern = r'  private String generateText\(String prompt\) throws Exception \{.*?\n  \}\n(?=\n  private JSONObject parseModelJson)'
-text, count = re.subn(pattern, lambda _: new_generate.rstrip("\n"), text, count=1, flags=re.S)
-if count != 1:
-    raise RuntimeError(f"Gemini-only generateText boundary: expected 1 method, found {count}")
+generate_start = text.find("  private String generateText(String prompt) throws Exception {")
+if generate_start < 0:
+    raise RuntimeError("Gemini-only generateText method not found")
+brace = text.find("{", generate_start)
+if brace < 0:
+    raise RuntimeError("Gemini-only generateText opening brace not found")
+depth = 0
+generate_end = -1
+for index in range(brace, len(text)):
+    char = text[index]
+    if char == "{":
+        depth += 1
+    elif char == "}":
+        depth -= 1
+        if depth == 0:
+            generate_end = index + 1
+            break
+if generate_end < 0:
+    raise RuntimeError("Gemini-only generateText closing brace not found")
+while generate_end < len(text) and text[generate_end] in "\r\n":
+    generate_end += 1
+text = text[:generate_start] + new_generate + text[generate_end:]
 
 # Final runtime assertions. Historical Luna helpers may still exist until the next
 # provider defragmentation batch, but no player-facing text route may call them.
 generate_start = text.index("  private String generateText(String prompt) throws Exception {")
-generate_end = text.index("\n  private JSONObject parseModelJson", generate_start)
+generate_end = generate_start + len(new_generate)
 generate_block = text[generate_start:generate_end]
 for forbidden in ["lunaText(", "Luna fallback", "geminiModelChain()", "gemini-3.5-flash"]:
     if forbidden in generate_block:
