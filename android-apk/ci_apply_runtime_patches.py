@@ -81,6 +81,7 @@ SCRIPTS = [
     "patch-interleaved-party-combat-final-v2.py",
     "patch-interleaved-party-combat-final-v3.py",
     "patch-interleaved-party-combat-final-v4.py",
+    "patch-interleaved-party-combat-final-v5.py",
     "patch-lucia-entity-overlay-final.py",
     "patch-combat-overlay-feedback.py",
 ]
