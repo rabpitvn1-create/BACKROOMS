@@ -2,6 +2,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
+VERIFY = ROOT / "ci_verify_runtime_contracts.py"
 
 text = MAIN.read_text(encoding="utf-8")
 
@@ -175,4 +176,22 @@ for marker in (
         raise RuntimeError("Entity narrative authority marker missing: " + marker)
 
 MAIN.write_text(text, encoding="utf-8")
+
+# Replace the stale verifier assumption that the final force helper must read roamingEntityKey
+# directly. The new contract is stronger: narration and combat must share one selector.
+verify = VERIFY.read_text(encoding="utf-8")
+stale_contract = '    (\'String entityKey = rolls.optString("roamingEntityKey", "").trim();\', java),\n'
+new_contract = '''    ('EntityEncounterNarrativeAuthority.selectedEntityKey', java),
+    ('EntityEncounterNarrativeAuthority.visibleFact', java),
+    ('EntityEncounterNarrativeAuthority.ensureReply', java),
+    ('String canonicalKey = encounterEntityKey(rolls);', java),
+    ('encounterNarrativeFact(rolls)', java),
+    ('reply = ensureEncounterNarrative(rolls, reply);', java),
+'''
+if new_contract not in verify:
+    if verify.count(stale_contract) != 1:
+        raise RuntimeError(f"stale Entity runtime verifier contract expected once, found {verify.count(stale_contract)}")
+    verify = verify.replace(stale_contract, new_contract, 1)
+VERIFY.write_text(verify, encoding="utf-8")
+
 print("Entity encounter narration synchronized: one selected canonical Entity now drives GM visible fact, deterministic prose guard, overlay flag and CombatRuntime startup.")
