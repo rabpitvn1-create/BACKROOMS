@@ -20,9 +20,9 @@ new = r'''# Jeff/Jane and later Entity patches insert status/skill work between 
 # roster declaration and the ordinary direct-action loop. Preserve that full
 # roster for status ticks, marks, AoE and other explicit mechanics; scope only
 # the generic direct-action loop to the Party actor that just completed a turn.
-ordinary_marker = '''    } else if (c.entityKey != SCP_173_KEY &&
+ordinary_marker = """    } else if (c.entityKey != SCP_173_KEY &&
         !(c.entityKey == DIEP_MINH_KEY && c.eventCounter % DIEP_MINH_ULTIMATE_INTERVAL_TURNS == 0)) {
-'''
+"""
 ordinary_start = combat.find(ordinary_marker)
 ordinary_end = combat.find('    } else if (c.entityKey == JOHN_DOE_KEY) {\n', ordinary_start)
 if ordinary_start < 0 or ordinary_end < 0:
