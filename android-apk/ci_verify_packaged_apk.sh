@@ -34,6 +34,7 @@ unzip -q "$APK" \
   'assets/index.html' \
   'assets/combat-overlay-feedback.js' \
   'assets/combat-overlay-feedback.css' \
+  'assets/auto-light-flicker.js' \
   'assets/levels/*' \
   'assets/level_profiles/*' \
   'assets/level_catalog/*' \
@@ -49,6 +50,9 @@ grep -q 'src="combat-overlay-feedback.js"' apk-check/assets/index.html
 grep -q 'href="combat-overlay-feedback.css"' apk-check/assets/index.html
 cmp android-apk/app/src/main/assets/combat-overlay-feedback.js apk-check/assets/combat-overlay-feedback.js
 cmp android-apk/app/src/main/assets/combat-overlay-feedback.css apk-check/assets/combat-overlay-feedback.css
+grep -q 'src="auto-light-flicker.js"' apk-check/assets/index.html
+grep -q 'id="autoLightFlickerStyle"' apk-check/assets/index.html
+cmp android-apk/app/src/main/assets/auto-light-flicker.js apk-check/assets/auto-light-flicker.js
 
 grep -q 'searchActionButton' apk-check/assets/index.html
 grep -q 'exploreActionButton' apk-check/assets/index.html
