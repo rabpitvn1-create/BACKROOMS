@@ -22,23 +22,20 @@ replacements = (
     ),
 )
 
+changed = 0
 for old, new, label in replacements:
-    if new in text:
-        continue
     count = text.count(old)
-    if count != 1:
-        raise RuntimeError(
-            f"{label} actor identity regression: expected one stale display-name assertion, found {count}"
-        )
-    text = text.replace(old, new, 1)
+    if count > 0:
+        text = text.replace(old, new)
+        changed += count
+    if new not in text:
+        raise RuntimeError(f"{label} actor identity regression marker missing after normalization")
+
+if changed == 0:
+    raise RuntimeError("Actor identity regression finalizer made no changes")
 
 TEST.write_text(text, encoding="utf-8")
 
-final = TEST.read_text(encoding="utf-8")
-for _, marker, label in replacements:
-    if marker not in final:
-        raise RuntimeError(f"{label} actor identity regression marker missing")
-
 print(
-    "Interleaved combat V5 applied: actor sequencing regressions key Kai/Iris/Lucia by stable character ids, not mutable display names."
+    f"Interleaved combat V5 applied: normalized {changed} actor-order assertions to stable Kai/Iris/Lucia ids."
 )
