@@ -361,6 +361,16 @@ FACADE.write_text(facade, encoding="utf-8")
 
 # Final mobile UI override. Existing historical action bar stays as compatibility substrate.
 html = INDEX.read_text(encoding="utf-8")
+# Retarget the historical primary row too: old saves may lack partyTurn until
+# their first response, but every combat request must use the current protocol.
+for legacy, command in (
+    ("Cả Party cùng tấn công", "PARTY_TURN_ATK"),
+    ("Cả Party cùng né tránh", "PARTY_TURN_DEFEND"),
+    ("Cả Party cùng bỏ chạy", "PARTY_TURN_RUN"),
+):
+    html = replace_once(html, "action:'" + legacy + "'", "action:'" + command + "'", "Combat button " + command)
+html = replace_once(html, "label:'NÉ TRÁNH',aria:'Né tránh Entity'", "label:'PHÒNG THỦ',aria:'Phòng thủ, AP +1'", "Defend label")
+html = replace_once(html, "  window.renderCombatActionBar=renderCombatActionBar;", "  window.submitPartyTurnAction=submitCombat;\n  window.renderCombatActionBar=renderCombatActionBar;", "Shared combat bridge")
 ui = r'''
 <link rel="stylesheet" href="combat-overlay-feedback.css">
 <script src="combat-overlay-feedback.js"></script>
@@ -394,12 +404,12 @@ ui = r'''
   function combat(){return state&&state.combat&&state.combat.active===true?state.combat:null}
   function turn(){var c=combat();return c&&c.partyTurn?c.partyTurn:null}
   function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-  function send(action){if(typeof submitAction==='function')submitAction('EXECUTE',action)}
+  function send(action){window.submitPartyTurnAction(action);window.renderPartyTurnCombat()}
   function ensure(){
-    var old=document.getElementById('combatActionBar');if(old)old.style.display='none';
+    var old=document.getElementById('primaryActionRow');if(old)old.style.display=turn()?'none':'';
     var box=document.getElementById('partyTurnCombat');if(box)return box;
     box=document.createElement('section');box.id='partyTurnCombat';
-    var target=document.querySelector('.actions')||document.getElementById('log')||document.body;
+    var target=old||document.getElementById('log')||document.body;
     if(target.parentNode)target.parentNode.insertBefore(box,target);else document.body.appendChild(box);
     return box;
   }
@@ -408,7 +418,7 @@ ui = r'''
   };
   window.openPartySkillPopup=function(){
     var t=turn(),p=document.getElementById('partySkillPopup'),list=document.getElementById('partySkillList');
-    if(!t||!p||!list)return;list.innerHTML='';
+    if(!t||!p||!list||busy)return;list.innerHTML='';
     var skills=Array.isArray(t.skills)?t.skills:[];
     if(!skills.length)list.innerHTML='<div>Không có Skill khả dụng cho lượt này.</div>';
     skills.forEach(function(s){
@@ -429,20 +439,23 @@ ui = r'''
     box.className='active';
     box.innerHTML='<div class="party-turn-strip"><span class="party-turn-actor">TURN '+Number(t.round||1)+' · '+esc(t.actorName||'PARTY')+'</span><span class="party-turn-ap">AP '+Number(t.ap||0)+'/'+Number(t.maxAp||7)+'</span></div>'+
       '<div class="party-turn-actions">'+
-      '<button type="button" data-party-action="atk">ATK<br><small>AP +1</small></button>'+
-      '<button type="button" data-party-action="def">DEFEND<br><small>AP +1</small></button>'+
+      '<button type="button" data-party-action="atk">TẤN CÔNG<br><small>AP +1</small></button>'+
+      '<button type="button" data-party-action="def">PHÒNG THỦ<br><small>AP +1</small></button>'+
       '<button type="button" data-party-action="skill">SKILL</button>'+
       '<button type="button" data-party-action="run">RUN</button></div>';
     box.querySelector('[data-party-action="atk"]').onclick=function(){send('PARTY_TURN_ATK')};
     box.querySelector('[data-party-action="def"]').onclick=function(){send('PARTY_TURN_DEFEND')};
     box.querySelector('[data-party-action="skill"]').onclick=openPartySkillPopup;
     box.querySelector('[data-party-action="run"]').onclick=function(){send('PARTY_TURN_RUN')};
+    box.querySelectorAll('button').forEach(function(button){button.disabled=busy});
     actorOverlay(t);
   };
   var oldRender=window.render;
   if(typeof oldRender==='function')window.render=function(){oldRender.apply(this,arguments);window.renderPartyTurnCombat()};
   var oldTurn=window.backroomTurn;
   if(typeof oldTurn==='function')window.backroomTurn=function(json){oldTurn.call(this,json);window.renderPartyTurnCombat()};
+  var oldError=window.backroomError;
+  if(typeof oldError==='function')window.backroomError=function(message){oldError.call(this,message);window.renderCombatActionBar();window.renderPartyTurnCombat()};
   setTimeout(window.renderPartyTurnCombat,0);
 })();
 </script>
