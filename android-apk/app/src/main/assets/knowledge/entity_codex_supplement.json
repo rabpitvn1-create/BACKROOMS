@@ -64,6 +64,38 @@
       "tags": ["false puddle"],
       "references": ["ENTITY.FALSE_PUDDLE", "ENTITY.GLOBAL_HARD_LOCK"],
       "affordances": ["direct_threat", "trace_analysis"]
+    },
+    {
+      "id": "ENTITY.WRETCH.CODEX_R01",
+      "domain": "ENTITY",
+      "kind": "entity-codex",
+      "text": "Wretch visual/behavior supplement: external Backrooms references consistently describe Wretches as distorted humanlike or zombie-like figures, commonly gaunt or skeletal-looking with exposed, reddish or otherwise visibly damaged flesh and severe bodily deformity. They are treated as dangerous close-range attackers that pursue or assault humans with brute force, and some continuities describe erratic vocalization, crude tool use or variable solitary/group behavior. Project canon remains authoritative where it is more specific: this game's Wretch moves irregularly, tolerates pain well, hunts through sound and scent, is commonly reported in lower Level 3 tunnels, and is never friendly or neutral toward humans. External material more strongly states that Wretches are former humans transformed by deprivation and a 'Wretched Cycle'; the repository only says they are believed or suspected to have once been human, so that stronger origin claim remains external-only and is not promoted to game canon. Exact mutation stages, transmission mechanics, cures, weapon use and numeric speed/strength are not imported.",
+      "source": {
+        "document": "Internet synthesis + repo canon (2026-09-03)",
+        "anchor": "The Backrooms Wikidot — Entity 15 Wretches; Backrooms Database Official Wiki — Entity 15 Wretches; repo canon: ENTITY.WRETCH + ENTITY.GLOBAL_HARD_LOCK"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "BASELINE",
+      "priority": 59,
+      "tags": ["wretch"],
+      "references": ["ENTITY.WRETCH", "ENTITY.GLOBAL_HARD_LOCK"],
+      "affordances": ["direct_threat", "trace_analysis"]
+    },
+    {
+      "id": "ENTITY.SKIN_STEALER.CODEX_R01",
+      "domain": "ENTITY",
+      "kind": "entity-codex",
+      "text": "Skin-Stealer visual/behavior supplement: external references commonly depict the undisguised entity as a tall pale-yellow or beige humanoid with sunken light-colored eyes and an abnormal flesh surface adapted to hold a victim's skin as a disguise. They can wear human skin and mimic speech; when attacking, external accounts describe overpowering isolated victims at close range with substantial physical strength. Project canon takes precedence over major continuity conflicts: in this game a Skin-Stealer can perform deep behavioral mimicry, retain enough copied memory to pass simple tests, live with a group for an extended period and damage the team before revealing itself; human appearance is therefore never proof of humanity, and ENTITY.GLOBAL_HARD_LOCK means it is never friendly or neutral toward humans. Wikidot-derived versions that describe non-hungry Skin-Stealers as docile and unable to understand language conflict with these repository locks, so those behavioral limits are explicitly rejected for runtime canon. External details such as transparent blood, a fixed disguise lifetime, precise hunger-state timing or exact anatomy remain uncommitted unless separately established in-repo.",
+      "source": {
+        "document": "Internet synthesis + repo canon (2026-09-03)",
+        "anchor": "The Backrooms Wikidot — Entity 10 Skin-Stealer; Backrooms Database Official Wiki — Entity 10 Skin-Stealers; repo canon: ENTITY.SKIN_STEALER + ENTITY.GLOBAL_HARD_LOCK"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "BASELINE",
+      "priority": 59,
+      "tags": ["skin-stealer", "skin stealer"],
+      "references": ["ENTITY.SKIN_STEALER", "ENTITY.GLOBAL_HARD_LOCK"],
+      "affordances": ["direct_threat", "identity_check", "trace_analysis"]
     }
   ]
 }
