@@ -78,6 +78,7 @@ SCRIPTS = [
     "patch-haku-prose-editor.py",
     "patch-background-music.py",
     "patch-turnbased-party-ap-final.py",
+    "patch-lucia-entity-overlay-final.py",
 ]
 
 if not AUDIT_RUNNER.is_file():
