@@ -13,8 +13,8 @@ def replace_once(old: str, new: str, label: str):
 
 
 # Keep the existing writer-worker marker because the conditional audit deliberately
-# avoids the key that produced the writer response. There is no model matrix now:
-# the only text model is the fixed GEMINI_MODEL and credentials are tried K1 -> K5.
+# avoids the key that produced the writer response. The runtime uses one Gemini
+# text model and deterministic credential fallback K1 -> K5.
 field_anchor = "  private volatile int lastGeminiWorker = -1;\n"
 if field_anchor not in text:
     raise RuntimeError("Gemini writer worker field missing")
@@ -34,7 +34,44 @@ old_leaf_methods = r'''  private String geminiText(String prompt) throws Excepti
   }
 '''
 
-new_leaf_methods = r'''  private String geminiKeyFallbackText(String prompt, int excludedIndex, int maxOutputTokens, boolean rememberWorker) throws Exception {
+new_leaf_methods = r'''  private boolean socketTimeoutFailure(Exception error) {
+    Throwable cause = error;
+    while (cause != null) {
+      if (cause instanceof java.net.SocketTimeoutException) return true;
+      cause = cause.getCause();
+    }
+    return false;
+  }
+
+  private String postJsonGeminiLane(String endpoint, String key, JSONObject payload) throws Exception {
+    HttpURLConnection connection = (HttpURLConnection) new URL(endpoint).openConnection();
+    connection.setRequestMethod("POST");
+    connection.setConnectTimeout(4000);
+    connection.setReadTimeout(8000);
+    connection.setDoOutput(true);
+    connection.setRequestProperty("Content-Type", "application/json");
+    connection.setRequestProperty("x-goog-api-key", key);
+    try (OutputStream output = connection.getOutputStream()) {
+      output.write(payload.toString().getBytes("UTF-8"));
+    }
+    int status = connection.getResponseCode();
+    InputStream stream = status >= 200 && status < 300 ? connection.getInputStream() : connection.getErrorStream();
+    StringBuilder body = new StringBuilder();
+    if (stream != null) {
+      try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, "UTF-8"))) {
+        String line;
+        while ((line = reader.readLine()) != null) body.append(line);
+      }
+    }
+    connection.disconnect();
+    if (status < 200 || status >= 300) {
+      String detail = body.length() > 220 ? body.substring(0, 220) : body.toString();
+      throw new HttpError(status, "Gemini HTTP " + status + (detail.isEmpty() ? "" : ": " + detail));
+    }
+    return body.toString();
+  }
+
+  private String geminiKeyFallbackText(String prompt, int excludedIndex, int maxOutputTokens, boolean rememberWorker) throws Exception {
     String[] keys = geminiKeys();
     Exception last = null;
     if (rememberWorker) lastGeminiWorker = -1;
@@ -53,6 +90,7 @@ new_leaf_methods = r'''  private String geminiKeyFallbackText(String prompt, int
         String key = keys[keyIndex];
         if (key == null || key.trim().isEmpty()) continue;
 
+        emit("backroomProvider", "Gemini K" + (keyIndex + 1));
         try {
           JSONObject part = new JSONObject().put("text", prompt);
           JSONObject contents = new JSONObject()
@@ -66,10 +104,9 @@ new_leaf_methods = r'''  private String geminiKeyFallbackText(String prompt, int
             .put("contents", new JSONArray().put(contents))
             .put("generationConfig", config);
 
-          JSONObject result = new JSONObject(postJson(
+          JSONObject result = new JSONObject(postJsonGeminiLane(
             "https://generativelanguage.googleapis.com/v1beta/models/" + GEMINI_MODEL + ":generateContent",
             key,
-            "x-goog-api-key",
             body
           ));
           JSONArray candidates = result.optJSONArray("candidates");
@@ -96,11 +133,16 @@ new_leaf_methods = r'''  private String geminiKeyFallbackText(String prompt, int
         } catch (Exception error) {
           last = error;
           int code = error instanceof HttpError ? ((HttpError)error).status : 0;
-          // DNS/socket failures and model-level 400/404 failures are not key-specific.
-          // Do not waste all five credentials on the same host/model outage.
+
+          // A read timeout is a lane failure: immediately try the next credential.
+          if (socketTimeoutFailure(error)) continue;
+
+          // DNS/connect/socket failures and model-level 400/404 are host/model
+          // failures, so stop burning Gemini credentials and move to Luna/Haku.
           if (networkFailure(error) || code == 400 || code == 404) throw error;
-          // Auth/quota/transient failures are credential-lane failures: move once
-          // to the next key. No retry on the same key.
+
+          // Auth/quota/408/5xx/empty-response failures are lane failures.
+          // Never retry the same key; continue directly to the next key.
         }
       }
     }
@@ -108,7 +150,7 @@ new_leaf_methods = r'''  private String geminiKeyFallbackText(String prompt, int
   }
 
   // Compatibility shim for the procedural-Level patch. modelOrder and budgets are
-  // intentionally ignored: the runtime has one text model and only key fallback.
+  // intentionally ignored: the runtime has one Gemini text model and key fallback.
   private String geminiModelMatrixPolicy(String prompt, int[] modelOrder, int excludedKeyIndex, int maxOutputTokens, boolean rememberWorker, long totalBudgetMs) throws Exception {
     return geminiKeyFallbackText(prompt, excludedKeyIndex, maxOutputTokens, rememberWorker);
   }
@@ -124,30 +166,108 @@ new_leaf_methods = r'''  private String geminiKeyFallbackText(String prompt, int
   private String geminiAuditText(String prompt, int excludedIndex) throws Exception {
     return geminiKeyFallbackText(prompt, excludedIndex, 650, false);
   }
-'''
-replace_once(old_leaf_methods, new_leaf_methods, "single-model Gemini key fallback")
 
-# patch-provider-deadline-final ran immediately before this finalizer and still
-# contains the historical Gemini -> Luna provider switch. Replace the complete
-# Java method structurally instead of relying on neighboring-method formatting.
+  private String postJsonHakuFallback(JSONObject payload) throws Exception {
+    HttpURLConnection connection = (HttpURLConnection) new URL("https://api.vilao.ai/v1/chat/completions").openConnection();
+    connection.setRequestMethod("POST");
+    connection.setConnectTimeout(5000);
+    connection.setReadTimeout(22000);
+    connection.setDoOutput(true);
+    connection.setRequestProperty("Content-Type", "application/json");
+    connection.setRequestProperty("Accept", "application/json");
+    connection.setRequestProperty("Authorization", "Bearer " + BuildConfig.HAKU_API_KEY);
+    try (OutputStream output = connection.getOutputStream()) {
+      output.write(payload.toString().getBytes("UTF-8"));
+    }
+
+    int status = connection.getResponseCode();
+    InputStream stream = status >= 200 && status < 300 ? connection.getInputStream() : connection.getErrorStream();
+    StringBuilder response = new StringBuilder();
+    if (stream != null) {
+      try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, "UTF-8"))) {
+        String line;
+        while ((line = reader.readLine()) != null) response.append(line);
+      }
+    }
+    connection.disconnect();
+    if (status < 200 || status >= 300) {
+      String detail = response.length() > 220 ? response.substring(0, 220) : response.toString();
+      throw new HttpError(status, "Haku HTTP " + status + (detail.isEmpty() ? "" : ": " + detail));
+    }
+    return response.toString();
+  }
+
+  private String hakuFallbackText(String prompt) throws Exception {
+    if (BuildConfig.HAKU_API_KEY == null || BuildConfig.HAKU_API_KEY.trim().isEmpty()) {
+      throw new HttpError(401, "Haku API key chưa được cấu hình.");
+    }
+
+    JSONArray messages = new JSONArray()
+      .put(new JSONObject().put("role", "user").put("content", prompt));
+    JSONObject body = new JSONObject()
+      .put("model", "claude-haiku-4-5-20251001")
+      .put("messages", messages)
+      .put("temperature", 0.75)
+      .put("max_tokens", 1800)
+      .put("stream", false);
+
+    JSONObject result = new JSONObject(postJsonHakuFallback(body));
+    JSONArray choices = result.optJSONArray("choices");
+    JSONObject first = choices != null ? choices.optJSONObject(0) : null;
+    JSONObject message = first != null ? first.optJSONObject("message") : null;
+    String responseText = message != null ? message.optString("content", "").trim() : "";
+    if (responseText.isEmpty()) throw new Exception("Haku không trả nội dung.");
+    return responseText;
+  }
+'''
+replace_once(old_leaf_methods, new_leaf_methods, "provider key fallback methods")
+
+# patch-provider-deadline-final ran immediately before this finalizer. Replace the
+# complete dispatch boundary structurally so text routing is:
+# Gemini K1 -> K2 -> K3 -> K4 -> K5 -> Luna -> Haku.
 new_generate = r'''  private String generateText(String prompt) throws Exception {
-    emit("backroomProvider", "Gemini");
+    Exception geminiFailure = null;
+    Exception lunaFailure = null;
+    Exception hakuFailure = null;
+
+    emit("backroomProvider", "Gemini K1");
     try {
       String result = geminiText(prompt);
       emit("backroomProvider", "Gemini K" + (lastGeminiWorker + 1));
       return result;
     } catch (Exception error) {
-      if (networkFailure(error)) throw new Exception(networkFailureMessage());
-      throw error;
+      geminiFailure = error;
     }
+
+    emit("backroomProvider", "Luna fallback");
+    try {
+      return lunaText(prompt);
+    } catch (Exception error) {
+      lunaFailure = error;
+    }
+
+    emit("backroomProvider", "Haku fallback");
+    try {
+      return hakuFallbackText(prompt);
+    } catch (Exception error) {
+      hakuFailure = error;
+    }
+
+    if (networkFailure(geminiFailure) && networkFailure(lunaFailure) && networkFailure(hakuFailure)) {
+      throw new Exception(networkFailureMessage());
+    }
+    String geminiMessage = geminiFailure != null && geminiFailure.getMessage() != null ? geminiFailure.getMessage() : "Gemini không khả dụng";
+    String lunaMessage = lunaFailure != null && lunaFailure.getMessage() != null ? lunaFailure.getMessage() : "Luna không khả dụng";
+    String hakuMessage = hakuFailure != null && hakuFailure.getMessage() != null ? hakuFailure.getMessage() : "Haku không khả dụng";
+    throw new Exception("Gemini: " + geminiMessage + "; Luna: " + lunaMessage + "; Haku: " + hakuMessage);
   }
 '''
 generate_start = text.find("  private String generateText(String prompt) throws Exception {")
 if generate_start < 0:
-    raise RuntimeError("Gemini-only generateText method not found")
+    raise RuntimeError("provider generateText method not found")
 brace = text.find("{", generate_start)
 if brace < 0:
-    raise RuntimeError("Gemini-only generateText opening brace not found")
+    raise RuntimeError("provider generateText opening brace not found")
 depth = 0
 generate_end = -1
 for index in range(brace, len(text)):
@@ -160,29 +280,40 @@ for index in range(brace, len(text)):
             generate_end = index + 1
             break
 if generate_end < 0:
-    raise RuntimeError("Gemini-only generateText closing brace not found")
+    raise RuntimeError("provider generateText closing brace not found")
 while generate_end < len(text) and text[generate_end] in "\r\n":
     generate_end += 1
 text = text[:generate_start] + new_generate + text[generate_end:]
 
-# Final runtime assertions. Historical Luna helpers may still exist until the next
-# provider defragmentation batch, but no player-facing text route may call them.
 generate_start = text.index("  private String generateText(String prompt) throws Exception {")
 generate_end = generate_start + len(new_generate)
 generate_block = text[generate_start:generate_end]
-for forbidden in ["lunaText(", "Luna fallback", "geminiModelChain()", "gemini-3.5-flash"]:
-    if forbidden in generate_block:
-        raise RuntimeError("Gemini-only dispatch still contains: " + forbidden)
+ordered_markers = [
+    "geminiText(prompt)",
+    "lunaText(prompt)",
+    "hakuFallbackText(prompt)",
+]
+positions = [generate_block.find(marker) for marker in ordered_markers]
+if any(pos < 0 for pos in positions) or positions != sorted(positions):
+    raise RuntimeError("provider fallback order must be Gemini -> Luna -> Haku")
 
 for required in [
-    "private String geminiKeyFallbackText(",
-    "for (int keyIndex = 0; keyIndex < keyCount; keyIndex++)",
-    '"https://generativelanguage.googleapis.com/v1beta/models/" + GEMINI_MODEL + ":generateContent"',
-    'emit("backroomProvider", "Gemini K" + (lastGeminiWorker + 1))',
+    "private String postJsonGeminiLane(",
+    "connection.setReadTimeout(8000);",
+    "private boolean socketTimeoutFailure(",
+    'emit("backroomProvider", "Gemini K" + (keyIndex + 1))',
+    "private String hakuFallbackText(",
+    "BuildConfig.HAKU_API_KEY",
+    '"claude-haiku-4-5-20251001"',
+    'emit("backroomProvider", "Luna fallback")',
+    'emit("backroomProvider", "Haku fallback")',
     'return "Gemini 3.6 Flash";',
 ]:
     if required not in text:
-        raise RuntimeError("Gemini key fallback marker missing: " + required)
+        raise RuntimeError("provider fallback marker missing: " + required)
+
+if "hakuPolishReply(" in text:
+    raise RuntimeError("retired Haku prose-editor call returned")
 
 MAIN.write_text(text, encoding="utf-8")
-print("Android text routing simplified: Gemini 3.6 Flash only, deterministic K1 -> K5 fallback, no Luna dispatch.")
+print("Android text routing: Gemini K1->K5 with timeout lane fallback, then Luna, then Haku provider fallback; no prose-editor pass.")
