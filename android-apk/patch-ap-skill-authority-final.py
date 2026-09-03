@@ -55,6 +55,7 @@ ultimate_skills = {
 }
 lines = catalog.splitlines()
 seen = set()
+target_rows = {}
 for index, line in enumerate(lines):
     match = re.match(r'(\s*s\(\")([^\"]+)(\",\s*\")([^\"]+)(\",\s*\")([^\"]*)(\".*)', line)
     if not match:
@@ -65,23 +66,27 @@ for index, line in enumerate(lines):
             match.group(1) + name + match.group(3) + "SKILL" + match.group(5)
             + f"Kích hoạt bằng {NORMAL_AP_COST} AP trong lượt của nhân vật" + match.group(7)
         )
+        target_rows[name] = lines[index]
         seen.add(name)
     elif name in ultimate_skills:
         lines[index] = (
             match.group(1) + name + match.group(3) + "ULTIMATE" + match.group(5)
             + f"Kích hoạt bằng {ULTIMATE_AP_COST} AP trong lượt của nhân vật" + match.group(7)
         )
+        target_rows[name] = lines[index]
         seen.add(name)
 missing = sorted((normal_skills | ultimate_skills) - seen)
 if missing:
     raise RuntimeError("AP skill catalog entries missing: " + ", ".join(missing))
+for name in sorted(normal_skills):
+    row = target_rows[name]
+    if '"SKILL"' not in row or f"Kích hoạt bằng {NORMAL_AP_COST} AP trong lượt của nhân vật" not in row or "%" in row:
+        raise RuntimeError(f"Normal AP skill catalog contract invalid: {name}")
+for name in sorted(ultimate_skills):
+    row = target_rows[name]
+    if '"ULTIMATE"' not in row or f"Kích hoạt bằng {ULTIMATE_AP_COST} AP trong lượt của nhân vật" not in row or "%" in row:
+        raise RuntimeError(f"Ultimate AP skill catalog contract invalid: {name}")
 catalog = "\n".join(lines) + ("\n" if catalog.endswith("\n") else "")
-for forbidden in (
-    "38% ở mỗi lượt hợp lệ", "27% ở mỗi lượt hợp lệ", "26% ở mỗi lượt hợp lệ",
-    "35% ở mỗi lượt hợp lệ", "20% mỗi 2", "15% mỗi",
-):
-    if forbidden in catalog:
-        raise RuntimeError("Legacy combat skill proc text survived: " + forbidden)
 CATALOG.write_text(catalog, encoding="utf-8")
 
 combat = require(COMBAT)
