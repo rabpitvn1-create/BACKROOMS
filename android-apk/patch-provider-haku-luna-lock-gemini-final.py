@@ -32,11 +32,11 @@ def replace_method(signature: str, replacement: str) -> None:
     text = text[:start] + replacement.rstrip() + "\n\n" + text[end:]
 
 
-def insert_method_guard(signature: str, guard: str) -> None:
+def insert_method_guard_if_present(signature: str, guard: str) -> bool:
     global text
     start = text.find(signature)
     if start < 0:
-        raise RuntimeError(f"guard target missing: {signature}")
+        return False
     brace = text.find("{", start)
     if brace < 0:
         raise RuntimeError(f"guard opening brace missing: {signature}")
@@ -44,31 +44,32 @@ def insert_method_guard(signature: str, guard: str) -> None:
     nearby = text[insertion:insertion + 320]
     if guard.strip() not in nearby:
         text = text[:insertion] + "\n" + guard + text[insertion:]
+    return True
 
 
 # Keep Gemini integration/configuration reversible, but make its runtime lock explicit.
+# This finalizer runs after the whole legacy patch stack, so do not depend on optional
+# Gemini image constants that snapshot-disable patches are allowed to remove.
 lock_field = "  private static final boolean GEMINI_RUNTIME_ENABLED = false;\n"
 if lock_field not in text:
-    anchor = '  private static final String GEMINI_IMAGE_MODEL = "gemini-3.1-flash-image";\n'
-    if anchor not in text:
-        raise RuntimeError("Gemini image model anchor missing")
-    text = text.replace(anchor, anchor + lock_field, 1)
+    class_anchor = "public class MainActivity extends Activity {\n"
+    if class_anchor not in text:
+        raise RuntimeError("MainActivity class anchor missing")
+    text = text.replace(class_anchor, class_anchor + lock_field, 1)
 
-# Defense in depth: even an accidental future call through a dormant Gemini helper
-# must fail before opening a network connection.
+# Defense in depth: any dormant Gemini network helper that survives the final patch
+# stack must fail before opening a connection. Removed helpers need no guard.
 lock_guard = '    if (!GEMINI_RUNTIME_ENABLED) throw new HttpError(503, "Gemini runtime intentionally locked.");\n'
-insert_method_guard(
+guarded = 0
+for signature in [
     "  private String geminiKeyFallbackText(String prompt, int excludedIndex, int maxOutputTokens, boolean rememberWorker) throws Exception ",
-    lock_guard,
-)
-insert_method_guard(
     "  private String postJsonGeminiLane(String endpoint, String key, JSONObject payload) throws Exception ",
-    lock_guard,
-)
-insert_method_guard(
     "  private SnapshotImage geminiImage(String prompt) throws Exception ",
-    lock_guard,
-)
+]:
+    if insert_method_guard_if_present(signature, lock_guard):
+        guarded += 1
+if guarded == 0:
+    raise RuntimeError("No dormant Gemini helper remained to guard; inspect provider patch stack")
 
 provider_router = r'''  private boolean providerFallbackEligible(Exception error) {
     if (error instanceof HttpError) {
