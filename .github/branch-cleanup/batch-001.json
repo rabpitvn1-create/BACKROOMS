@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "batch": "001",
+  "purpose": "Review-only manifest for the first repository branch cleanup batch. This file performs no deletion.",
+  "issue": 290,
+  "auditPullRequest": 291,
+  "auditHeadSha": "8fb43b21fc3a4cb5b4e710f459f0a1a230400305",
+  "auditArtifactDigest": "sha256:782aff221a5aae9a3952582edf865db473f894040e045c8a4281c39d946b86dc",
+  "verifiedAgainstMainSha": "12bd2344e2b9330eafc0a37058b6423d8ff6c265",
+  "selectionRule": "Only tmp/* and verify/* branches that are unprotected, have no open PR, and have ahead_by == 0 versus main are included.",
+  "destructiveActions": false,
+  "candidates": [
+    {
+      "branch": "tmp/rebase-261",
+      "tipSha": "c18e6bfa7ed2b8509988aa05ad57fc3626b0e7d4",
+      "compareStatus": "behind",
+      "aheadBy": 0,
+      "behindBy": 146,
+      "protected": false,
+      "openPrNumbers": [],
+      "relatedPr": null,
+      "tagsAtTip": [],
+      "preservation": "tip commit is already reachable from main",
+      "reason": "temporary branch; zero unique commits"
+    },
+    {
+      "branch": "tmp-noop",
+      "tipSha": "905c67642216aed4ba6cb8a21818157a7f359b18",
+      "compareStatus": "behind",
+      "aheadBy": 0,
+      "behindBy": 591,
+      "protected": false,
+      "openPrNumbers": [],
+      "relatedPr": null,
+      "tagsAtTip": [],
+      "preservation": "tip commit is already reachable from main",
+      "reason": "temporary branch; zero unique commits"
+    },
+    {
+      "branch": "verify/discussed-fixes-20260821",
+      "tipSha": "e66ef89839bae6f24eb44c3651f8698896b12e1f",
+      "compareStatus": "behind",
+      "aheadBy": 0,
+      "behindBy": 1598,
+      "protected": false,
+      "openPrNumbers": [],
+      "relatedPr": 30,
+      "tagsAtTip": [],
+      "preservation": "merged PR #30 and tip commit are retained in main history",
+      "reason": "verification branch; zero unique commits"
+    },
+    {
+      "branch": "verify/published-1.1.45",
+      "tipSha": "c73b9ee5b4b4946658fa026530200209493d8d25",
+      "compareStatus": "behind",
+      "aheadBy": 0,
+      "behindBy": 1612,
+      "protected": false,
+      "openPrNumbers": [],
+      "relatedPr": 29,
+      "tagsAtTip": [],
+      "preservation": "merged PR #29 and tip commit are retained in main history",
+      "reason": "verification branch; zero unique commits"
+    },
+    {
+      "branch": "verify/release-1.1.42",
+      "tipSha": "b176084b4ae7cfde986c06819fa3b1d315f3ced5",
+      "compareStatus": "behind",
+      "aheadBy": 0,
+      "behindBy": 1636,
+      "protected": false,
+      "openPrNumbers": [],
+      "relatedPr": 21,
+      "tagsAtTip": [],
+      "preservation": "merged PR #21 and tip commit are retained in main history",
+      "reason": "verification branch; zero unique commits"
+    },
+    {
+      "branch": "verify/release-1.1.45",
+      "tipSha": "aafcda672f690caaebc92ec8e196102bbe922c46",
+      "compareStatus": "behind",
+      "aheadBy": 0,
+      "behindBy": 1615,
+      "protected": false,
+      "openPrNumbers": [],
+      "relatedPr": 28,
+      "tagsAtTip": [],
+      "preservation": "merged PR #28 and tip commit are retained in main history",
+      "reason": "verification branch; zero unique commits"
+    }
+  ],
+  "excludedManualReview": [
+    {
+      "branch": "verify/release-1.1.41",
+      "tipSha": "4145e2af81d266ad319a3bb41b8f4d796c1067fd",
+      "compareStatus": "diverged",
+      "aheadBy": 1,
+      "behindBy": 1647,
+      "relatedPr": 19,
+      "reason": "one unique commit remains; do not delete"
+    },
+    {
+      "branch": "verify/release-1.1.43",
+      "tipSha": "43045a91ae1c52880090f8c641e7aa9456ca0daa",
+      "compareStatus": "diverged",
+      "aheadBy": 1,
+      "behindBy": 1630,
+      "relatedPr": 23,
+      "reason": "one unique commit remains; do not delete"
+    }
+  ]
+}
