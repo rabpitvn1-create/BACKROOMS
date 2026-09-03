@@ -1,0 +1,124 @@
+name: Apply Safe Branch Cleanup
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/scripts/apply_branch_cleanup.py"
+      - ".github/scripts/test_apply_branch_cleanup.py"
+      - ".github/workflows/apply-safe-branch-cleanup.yml"
+  push:
+    branches: [main]
+    paths:
+      - ".github/scripts/apply_branch_cleanup.py"
+      - ".github/scripts/test_apply_branch_cleanup.py"
+      - ".github/workflows/apply-safe-branch-cleanup.yml"
+  workflow_dispatch:
+
+jobs:
+  plan:
+    name: plan-safe-branch-cleanup
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Test cleanup safety contract
+        run: python .github/scripts/test_apply_branch_cleanup.py -v
+
+      - name: Build pinned cleanup manifest
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python .github/scripts/apply_branch_cleanup.py \
+            --repo "$GITHUB_REPOSITORY" \
+            --plan \
+            --output branch-cleanup-manifest.json
+
+      - name: Summarize plan
+        run: |
+          python - <<'PY'
+          import json, os
+          data = json.load(open('branch-cleanup-manifest.json', encoding='utf-8'))
+          counts = data['counts']
+          summary = os.environ['GITHUB_STEP_SUMMARY']
+          with open(summary, 'a', encoding='utf-8') as out:
+              out.write('# Safe Branch Cleanup Plan\n\n')
+              out.write(f"Total branches: **{data['branchCount']}**\n\n")
+              out.write(f"SAFE_DELETE candidates: **{counts['SAFE_DELETE']}**\n\n")
+              out.write(f"MANUAL_REVIEW retained: **{counts['MANUAL_REVIEW']}**\n\n")
+              out.write(f"KEEP: **{counts['KEEP']}**\n\n")
+              out.write('No branch is deleted by the plan job.\n')
+          PY
+
+      - name: Preserve cleanup manifest before deletion
+        uses: actions/upload-artifact@v4
+        with:
+          name: safe-branch-cleanup-manifest
+          path: branch-cleanup-manifest.json
+          if-no-files-found: error
+          retention-days: 90
+
+  apply:
+    name: apply-pinned-safe-branch-cleanup
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: plan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Download preserved manifest
+        uses: actions/download-artifact@v4
+        with:
+          name: safe-branch-cleanup-manifest
+
+      - name: Revalidate exact tips and apply cleanup
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python .github/scripts/apply_branch_cleanup.py \
+            --repo "$GITHUB_REPOSITORY" \
+            --apply-manifest branch-cleanup-manifest.json \
+            --output branch-cleanup-result.json
+
+      - name: Summarize result
+        if: always()
+        run: |
+          python - <<'PY'
+          import json, os, pathlib
+          path = pathlib.Path('branch-cleanup-result.json')
+          if not path.exists():
+              raise SystemExit(0)
+          data = json.loads(path.read_text(encoding='utf-8'))
+          summary = os.environ['GITHUB_STEP_SUMMARY']
+          with open(summary, 'a', encoding='utf-8') as out:
+              out.write('# Safe Branch Cleanup Result\n\n')
+              out.write(f"Candidates: **{data['candidateCount']}**\n\n")
+              out.write(f"Deleted: **{data['deletedCount']}**\n\n")
+              out.write(f"Skipped after revalidation: **{data['skippedCount']}**\n\n")
+              out.write(f"Errors: **{data['errorCount']}**\n")
+          PY
+
+      - name: Preserve cleanup result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: safe-branch-cleanup-result
+          path: branch-cleanup-result.json
+          if-no-files-found: warn
+          retention-days: 90
