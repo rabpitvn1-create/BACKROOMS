@@ -177,21 +177,43 @@ for marker in (
 
 MAIN.write_text(text, encoding="utf-8")
 
-# Replace the stale verifier assumption that the final force helper must read roamingEntityKey
-# directly. The new contract is stronger: narration and combat must share one selector.
+# Align final runtime verification with the shared selector. Old contracts asserted that
+# selection details lived directly in MainActivity; the new stronger contract verifies the
+# Java bridge plus the canonical unique-Entity priority table in the Kotlin authority.
 verify = VERIFY.read_text(encoding="utf-8")
-stale_contract = '    (\'String entityKey = rolls.optString("roamingEntityKey", "").trim();\', java),\n'
-new_contract = '''    ('EntityEncounterNarrativeAuthority.selectedEntityKey', java),
+authority_load = "entity_narrative_authority = (core / 'EntityEncounterNarrativeAuthority.kt').read_text(encoding='utf-8')\n"
+load_anchor = "combat = (core / 'CombatRuntime.kt').read_text(encoding='utf-8')\n"
+if authority_load not in verify:
+    if verify.count(load_anchor) != 1:
+        raise RuntimeError(f"runtime verifier CombatRuntime load anchor expected once, found {verify.count(load_anchor)}")
+    verify = verify.replace(load_anchor, load_anchor + authority_load, 1)
+
+stale_force_contract = '    (\'String entityKey = rolls.optString("roamingEntityKey", "").trim();\', java),\n'
+shared_force_contract = '''    ('EntityEncounterNarrativeAuthority.selectedEntityKey', java),
     ('EntityEncounterNarrativeAuthority.visibleFact', java),
     ('EntityEncounterNarrativeAuthority.ensureReply', java),
     ('String canonicalKey = encounterEntityKey(rolls);', java),
     ('encounterNarrativeFact(rolls)', java),
     ('reply = ensureEncounterNarrative(rolls, reply);', java),
 '''
-if new_contract not in verify:
-    if verify.count(stale_contract) != 1:
-        raise RuntimeError(f"stale Entity runtime verifier contract expected once, found {verify.count(stale_contract)}")
-    verify = verify.replace(stale_contract, new_contract, 1)
+if stale_force_contract in verify:
+    verify = verify.replace(stale_force_contract, shared_force_contract, 1)
+elif shared_force_contract not in verify:
+    raise RuntimeError("shared Entity force/narrative runtime verifier contract missing")
+
+stale_diep_contract = '    (\'entityKey = "diep_minh";\', java),\n'
+priority_contract = '''    ('"diepMinhEncounter" to "diep_minh"', entity_narrative_authority),
+    ('"monsterXEncounter" to "monster_x"', entity_narrative_authority),
+    ('"johnDoeEncounter" to "john_doe"', entity_narrative_authority),
+    ('"scp173Encounter" to "scp_173"', entity_narrative_authority),
+    ('"violetWardenEncounter" to "violet_warden"', entity_narrative_authority),
+    ('"kaiDevilWithinEncounter" to "kai_the_devil_within"', entity_narrative_authority),
+'''
+if stale_diep_contract in verify:
+    verify = verify.replace(stale_diep_contract, priority_contract, 1)
+elif priority_contract not in verify:
+    raise RuntimeError("shared Entity unique-priority runtime verifier contract missing")
+
 VERIFY.write_text(verify, encoding="utf-8")
 
 print("Entity encounter narration synchronized: one selected canonical Entity now drives GM visible fact, deterministic prose guard, overlay flag and CombatRuntime startup.")
