@@ -61,6 +61,23 @@
     if (party) party.remove();
     if (entity) entity.remove();
   }
+  function appendNameplate(snap, side, name, hp) {
+    if (!snap || !name || !hp) return null;
+    var label = document.createElement('div');
+    label.className = 'combat-nameplate combat-nameplate-' + side;
+    var nameNode = document.createElement('span');
+    nameNode.className = 'combat-nameplate-name';
+    nameNode.textContent = name;
+    var hpNode = document.createElement('span');
+    hpNode.className = 'combat-nameplate-hp';
+    hpNode.textContent = hp;
+    label.appendChild(nameNode);
+    label.appendChild(hpNode);
+    snap.appendChild(label);
+    var measuredOverflow = Number(label.scrollWidth || 0) > Number(label.clientWidth || 0) && Number(label.clientWidth || 0) > 0;
+    if (name.length > 13 || measuredOverflow) label.classList.add('combat-nameplate-stacked');
+    return label;
+  }
   function renderNameplates(view) {
     var snap = attach();
     if (!snap) return;
@@ -72,20 +89,20 @@
     var member = view.members.find(function (item) { return String(item.id) === String(view.actor.id); });
     var partyHp = member && hpText(member.currentHp, member.maxHp);
     if (!partyHp && view.actor.id === 'kai') partyHp = hpText(combat.playerHp, combat.playerMaxHp);
-    if (partyHp) {
-      var partyLabel = document.createElement('div');
-      partyLabel.className = 'combat-nameplate combat-nameplate-party';
-      partyLabel.textContent = compactName(view.actor.id, member && member.name || view.actor.name) + ' ' + partyHp;
-      snap.appendChild(partyLabel);
-    }
+    if (partyHp) appendNameplate(
+      snap,
+      'party',
+      compactName(view.actor.id, member && member.name || view.actor.name),
+      partyHp
+    );
 
     var entityHp = hpText(combat.entityHp, combat.entityMaxHp);
-    if (entityHp) {
-      var entityLabel = document.createElement('div');
-      entityLabel.className = 'combat-nameplate combat-nameplate-entity';
-      entityLabel.textContent = compactName(combat.entityKey, combat.entityName || combat.entityKey || 'Entity') + ' ' + entityHp;
-      snap.appendChild(entityLabel);
-    }
+    if (entityHp) appendNameplate(
+      snap,
+      'entity',
+      compactName(combat.entityKey, combat.entityName || combat.entityKey || 'Entity'),
+      entityHp
+    );
   }
   function remember(id) {
     if (!id) return;
