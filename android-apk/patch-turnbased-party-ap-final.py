@@ -31,12 +31,13 @@ state = replace_once(
 STATE.write_text(state, encoding="utf-8")
 
 codec = CODEC.read_text(encoding="utf-8")
-codec = replace_once(
-    codec,
-    '      maxMembers = partyJson.optInt("maxMembers", 4).coerceAtLeast(1)',
-    '      maxMembers = 7',
-    "PartyState save migration",
-)
+legacy_codec_cap = '      maxMembers = partyJson.optInt("maxMembers", 4).coerceAtLeast(1)'
+codec_count = codec.count(legacy_codec_cap)
+if codec_count < 1:
+    raise RuntimeError("PartyState save migration: legacy maxMembers decoder anchor missing")
+codec = codec.replace(legacy_codec_cap, '      maxMembers = 7')
+if legacy_codec_cap in codec:
+    raise RuntimeError("PartyState save migration: stale maxMembers decoder remains")
 CODEC.write_text(codec, encoding="utf-8")
 
 if AN_TEST.is_file():
