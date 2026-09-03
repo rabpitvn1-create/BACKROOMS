@@ -224,6 +224,38 @@
       "tags": ["jane", "jane the killer", "jane_the_killer"],
       "references": ["ENTITY.JANE_THE_KILLER", "ENTITY.JANE_SKILLS_R01", "ENTITY.GLOBAL_HARD_LOCK"],
       "affordances": ["direct_threat", "trace_analysis"]
+    },
+    {
+      "id": "ENTITY.PAINTINGS",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Paintings: the external game-derived Backrooms source that explicitly treats Paintings as an Entity depicts apparently ordinary framed pictures containing human figures with varying appearance. The frame itself is stationary; its threat begins only at close range, when the depicted person reaches out of the image to seize and kill a nearby victim. A second Backrooms source confirms that Level 1 can contain rooms with paintings but does not independently establish the hostile entity behavior, so the grab mechanic remains sourced specifically to the Paintings continuity rather than generalized to every painting in the Backrooms. Project canon is narrower and authoritative: paintings is a canonical hostile runtime key in the roaming pool, and ENTITY.GLOBAL_HARD_LOCK forbids treating this Entity as friendly or neutral. Because the repository currently supplies no further Paintings-specific behavior, exact detection radius, instant-kill certainty, relationship to Windows/Portraitors, origin, sentience and ability to relocate are not promoted beyond the external continuity. Ordinary decorative paintings elsewhere in Backrooms material are not automatically this Entity.",
+      "source": {
+        "document": "Internet synthesis + repo runtime canon (2026-09-03)",
+        "anchor": "Backrooms Infinity Wiki/Fandom — Paintings; The Backrooms Wikidot — Level 1 (rooms with paintings); repo canon: paintings runtime key + unified roaming pool + ENTITY.GLOBAL_HARD_LOCK"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "BASELINE",
+      "priority": 58,
+      "tags": ["paintings", "painting"],
+      "references": ["ENTITY.GLOBAL_HARD_LOCK"],
+      "affordances": ["direct_threat", "trace_analysis"]
+    },
+    {
+      "id": "ENTITY.DEATHMOTH.CODEX_R01",
+      "domain": "ENTITY",
+      "kind": "entity-codex",
+      "text": "Deathmoth visual/behavior supplement: established Backrooms continuities consistently depict Deathmoths as oversized moth-like creatures, commonly large enough to be an obvious aerial threat and strongly associated with ceilings, enclosed technical spaces and attraction to light. Archived Wikidot-derived material distinguishes mostly harmless or tamable males from much larger hostile females capable of spitting corrosive fluid, while the current Fandom continuity instead develops a different anatomy and hunting biology; those sex-specific powers and exact body measurements therefore remain continuity-specific rather than universal game facts. The reliable shared combat cues are flight, moth-like approach, reaction to illumination and potentially dangerous close contact or swarm pressure. Project canon is stricter and remains authoritative: this game's Deathmoth is a hostile predator, may attack in groups, reacts to light/movement, uses dark ceilings and technical recesses, and at Level 3 can exploit broken-light zones to pressure humans toward live electrical hazards. External claims that males are harmless, tameable, affectionate or merely passive conflict with ENTITY.GLOBAL_HARD_LOCK and are explicitly rejected. Acid spit, hive castes, exact wingspan, sex-based hostility and specific reproductive biology are not added to gameplay without separate repo canon.",
+      "source": {
+        "document": "Internet synthesis + repo canon (2026-09-03)",
+        "anchor": "The Backrooms Wikidot (archived) — Entity 4 Deathmoths; Backrooms Exploration Wikidot — Entity 4 Deathmoths; Backrooms Wiki/Fandom — Entity 4 Deathmoths; repo canon: ENTITY.DEATHMOTH + ENTITY.GLOBAL_HARD_LOCK"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "BASELINE",
+      "priority": 59,
+      "tags": ["deathmoth", "death moth", "deathmoths"],
+      "references": ["ENTITY.DEATHMOTH", "ENTITY.GLOBAL_HARD_LOCK"],
+      "affordances": ["direct_threat", "trace_analysis"]
     }
   ]
 }
