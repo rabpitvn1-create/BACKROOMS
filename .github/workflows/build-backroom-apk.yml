@@ -51,6 +51,8 @@ jobs:
           test -s android-apk/ci_verify_runtime_contracts.py
           test -s android-apk/ci_verify_provider_routing.py
           test -s android-apk/ci_verify_packaged_apk.sh
+          test -s android-apk/app/src/main/assets/auto-light-flicker.js
+          test -s android-apk/test-auto-light-flicker.cjs
 
       - name: Validate Level content and scale contracts
         run: |
@@ -142,6 +144,7 @@ jobs:
           python3 android-apk/ci_verify_provider_routing.py
           node --test android-apk/test-combat-overlay-feedback.cjs
           node --test android-apk/test-combat-action-protocol.cjs
+          node --test android-apk/test-auto-light-flicker.cjs
           git diff --check
 
       - uses: actions/setup-java@v5
