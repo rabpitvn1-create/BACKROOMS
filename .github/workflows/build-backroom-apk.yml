@@ -145,6 +145,7 @@ jobs:
           node --test android-apk/test-combat-overlay-feedback.cjs
           node --test android-apk/test-combat-action-protocol.cjs
           node --test android-apk/test-auto-light-flicker.cjs
+          node --test android-apk/test-evidence-text.cjs
           git diff --check
 
       - uses: actions/setup-java@v5

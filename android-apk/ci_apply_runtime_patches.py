@@ -89,6 +89,7 @@ SCRIPTS = [
     "patch-combat-overlay-feedback.py",
     "patch-auto-light-flicker.py",
     "patch-entity-encounter-narrative-authority-final.py",
+    "patch-readable-gm-evidence.py",
     "patch-provider-haku-luna-lock-gemini-final.py",
 ]
 
