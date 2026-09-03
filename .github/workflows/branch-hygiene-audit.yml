@@ -28,7 +28,7 @@ jobs:
           python-version: "3.12"
 
       - name: Test branch classifier
-        run: python -m unittest -v .github/scripts/test_branch_audit.py
+        run: python .github/scripts/test_branch_audit.py -v
 
       - name: Audit repository branches
         env:
