@@ -109,5 +109,17 @@ new_legacy = '''    val decoded = GameStateCodec.decode(root)
 if old_legacy not in text:
     raise RuntimeError("Legacy re-key assertion anchor missing")
 text = text.replace(old_legacy, new_legacy, 1)
+
+chicken_old = '''    "Nước suối La Vie" to ItemCatalog.LA_VIE
+  )'''
+chicken_new = '''    "Nước suối La Vie" to ItemCatalog.LA_VIE,
+    "Hộp cơm gà" to ItemCatalog.CHICKEN_RICE_BOX
+  )'''
+if chicken_new not in text:
+    count = text.count(chicken_old)
+    if count != 1:
+        raise RuntimeError(f"Chicken rice identity regression anchor count={count}")
+    text = text.replace(chicken_old, chicken_new, 1)
+
 TEST.write_text(text, encoding="utf-8")
-print("Item identity regressions split by official item; legacy assertion checks canonical re-key without assuming an otherwise empty final inventory.")
+print("Item identity regressions split by official item; legacy assertion checks canonical re-key without assuming an otherwise empty final inventory; chicken rice coverage follows the final 12-item catalog.")
