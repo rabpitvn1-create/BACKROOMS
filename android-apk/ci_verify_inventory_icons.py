@@ -52,9 +52,11 @@ for marker in (
     "const INVENTORY_ICON_IDS=new Set(",
     "function inventoryIconMarkup(item)",
     "inventory-icons/'+encodeURIComponent(key)+'.webp",
-    "inventoryIconMarkup(item)",
 ):
     assert marker in html, marker
+card_pos = html.find("function card(item,slot)")
+assert card_pos >= 0, "inventory card renderer missing"
+assert "inventoryIconMarkup(item)" in html[card_pos:], "inventory card renderer is not using generated icons"
 
 for item_id in ids + ["generic"]:
     path = ICON_DIR / f"{item_id}.webp"
