@@ -24,6 +24,7 @@ class FoundationCoordinator private constructor(context: Context) {
   private val pendingProjection = AtomicReference<String?>(null)
   private val preparedProjectionHash = AtomicReference<String?>(null)
   private val pins = ConcurrentHashMap<String, FoundationHandle>()
+  private val lastFailure = AtomicReference<String?>(null)
 
   fun warm(stateProjectionJson: String) {
     pendingProjection.set(stateProjectionJson)
@@ -61,8 +62,17 @@ class FoundationCoordinator private constructor(context: Context) {
     role: FoundationSliceRole
   ): String {
     val handle = pin(turnId, stateProjectionJson) ?: return ""
-    return FoundationTurnSliceBuilder(store).build(handle, legacyStateJson, action, rollsJson, role)
+    return try {
+      FoundationTurnSliceBuilder(store).build(handle, legacyStateJson, action, rollsJson, role).also {
+        lastFailure.set(null)
+      }
+    } catch (error: Throwable) {
+      rememberFailure("FOUNDATION_SLICE", error)
+      ""
+    }
   }
+
+  fun lastFailure(): String = lastFailure.get().orEmpty()
 
   private fun prepare(stateProjectionJson: String): FoundationHandle? {
     val projectionHash = FoundationDigest.sha256(stateProjectionJson)
@@ -73,17 +83,60 @@ class FoundationCoordinator private constructor(context: Context) {
     }
   }
 
-  private fun rebuild(stateProjectionJson: String): FoundationHandle? = runCatching {
-    val build = compiler.compile(catalog.load(), stateProjectionJson)
+  private fun rebuild(stateProjectionJson: String): FoundationHandle? {
+    val build = try {
+      compiler.compile(catalog.load(), stateProjectionJson)
+    } catch (error: Throwable) {
+      rememberFailure("FOUNDATION_COMPILE", error)
+      return null
+    }
+
     val current = active.get()
     if (current != null && current.manifest.sourcePackHash == build.sourcePackHash &&
-      current.manifest.objects == build.objects.associate { it.section to it.objectHash }) return@runCatching current
-    val manifest = compiler.manifest(build)
-    scheduler.install(store, manifest, build.objects)
-    store.putManifest(manifest)
-    store.activate(manifest)
-    FoundationHandle(manifest).also(active::set)
-  }.getOrNull()
+      current.manifest.objects == build.objects.associate { it.section to it.objectHash }) {
+      lastFailure.set(null)
+      return current
+    }
+
+    val manifest = try {
+      compiler.manifest(build)
+    } catch (error: Throwable) {
+      rememberFailure("FOUNDATION_MANIFEST", error)
+      return null
+    }
+
+    try {
+      scheduler.install(store, manifest, build.objects)
+      store.putManifest(manifest)
+    } catch (error: Throwable) {
+      rememberFailure("FOUNDATION_INSTALL", error)
+      return null
+    }
+
+    return try {
+      store.activate(manifest)
+      FoundationHandle(manifest).also {
+        active.set(it)
+        lastFailure.set(null)
+      }
+    } catch (error: Throwable) {
+      rememberFailure("FOUNDATION_ACTIVATE", error)
+      null
+    }
+  }
+
+  private fun rememberFailure(phase: String, error: Throwable) {
+    val message = (error.message ?: error::class.java.simpleName)
+      .replace('\r', ' ')
+      .replace('\n', ' ')
+      .take(420)
+    lastFailure.set(JSONObject()
+      .put("component", "FOUNDATION")
+      .put("phase", phase)
+      .put("errorType", error::class.java.simpleName)
+      .put("message", message)
+      .toString())
+  }
 
   companion object {
     @Volatile private var instance: FoundationCoordinator? = null
@@ -113,6 +166,9 @@ object FoundationRuntime {
 
   @JvmStatic
   fun releaseTurn(context: Context, turnId: String) = FoundationCoordinator.get(context).release(turnId)
+
+  @JvmStatic
+  fun lastFailure(context: Context): String = FoundationCoordinator.get(context).lastFailure()
 }
 
 internal class FoundationTurnSliceBuilder(private val store: FoundationStore) {
