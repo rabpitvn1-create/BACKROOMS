@@ -120,8 +120,11 @@ SCRIPTS = [
     "patch-hourly-character-auto-skill-kai-01.py",
     "patch-hourly-character-auto-skill-kai-02.py",
     "patch-hourly-character-auto-skill-syvial-04.py",
+    "patch-syvial-generated-test-compat-final.py",
     "patch-persistent-foundation-final.py",
     "patch-gemini-foundation-authority-final.py",
+    "patch-issue330-runtime-diagnostics-final.py",
+    "patch-issue330-turn-correlation-final.py",
 ]
 
 for required in (AUDIT_RUNNER, ORPHAN_AUDIT, COMPACT_VERIFY, ENCOUNTER_VERIFY):

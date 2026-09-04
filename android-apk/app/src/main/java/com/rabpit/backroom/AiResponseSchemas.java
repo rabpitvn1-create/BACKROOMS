@@ -11,6 +11,25 @@ import org.json.JSONObject;
 public final class AiResponseSchemas {
   public enum Role { WRITER, REPAIR, AUDIT }
 
+  /** Typed validation failure so diagnostics can report the exact schema/role and reason. */
+  public static final class ValidationException extends Exception {
+    private final Role role;
+    private final String reason;
+
+    ValidationException(Role role, String reason) {
+      super("AI response schema violation [" + role.name() + "]: " + reason);
+      this.role = role;
+      this.reason = reason;
+    }
+
+    public Role role() { return role; }
+    public String reason() { return reason; }
+  }
+
+  private static final class SchemaProblem extends Exception {
+    SchemaProblem(String message) { super(message); }
+  }
+
   private static final Set<String> AUDIT_RULES = new HashSet<>(Arrays.asList(
     "canon_conflict", "knowledge_leak", "state_narrative_mismatch", "competence_suppression",
     "ability_overreach", "unsupported_claim", "character_voice", "address_error"
@@ -23,9 +42,15 @@ public final class AiResponseSchemas {
   private AiResponseSchemas() {}
 
   public static String validate(Role role, String canonicalJson) throws Exception {
-    JSONObject value = new JSONObject(canonicalJson);
-    if (role == Role.AUDIT) validateAudit(value); else validateWriter(value);
-    return value.toString();
+    try {
+      JSONObject value = new JSONObject(canonicalJson);
+      if (role == Role.AUDIT) validateAudit(value); else validateWriter(value);
+      return value.toString();
+    } catch (SchemaProblem problem) {
+      throw new ValidationException(role, problem.getMessage());
+    } catch (org.json.JSONException problem) {
+      throw new ValidationException(role, "invalid JSON: " + safeMessage(problem));
+    }
   }
 
   private static void validateWriter(JSONObject value) throws Exception {
@@ -86,7 +111,13 @@ public final class AiResponseSchemas {
     return result;
   }
 
-  private static void fail(String message) throws Exception {
-    throw new Exception("AI response schema violation: " + message);
+  private static void fail(String message) throws SchemaProblem {
+    throw new SchemaProblem(message);
+  }
+
+  private static String safeMessage(Throwable error) {
+    String value = error == null || error.getMessage() == null ? error == null ? "unknown" : error.getClass().getSimpleName() : error.getMessage();
+    value = value.replace('\r', ' ').replace('\n', ' ').trim();
+    return value.length() <= 240 ? value : value.substring(0, 240) + "…";
   }
 }

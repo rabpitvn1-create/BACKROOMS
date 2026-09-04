@@ -42,6 +42,7 @@ required_files = {
 require(required_files <= {path.name for path in FOUNDATION.glob("*.kt")}, "Foundation source set incomplete")
 require("PERSISTENT_FOUNDATION_RUNTIME_R01" in main, "runtime integration marker missing")
 require("GEMINI_FOUNDATION_AUTHORITY_R02" in main, "Gemini/Foundation final authority missing")
+require("ISSUE330_STRUCTURED_DIAGNOSTICS_R01" in main, "structured diagnostics final authority missing")
 require("fun foundationStateProjection()" in core, "Core-owned projection missing")
 require('it.key != "flagsJson"' in core, "unbounded legacy flags leaked into Core projection")
 require("FoundationRuntime.buildSlice" in main, "role-aware turn slice is not active")
@@ -58,7 +59,8 @@ require("private static final boolean GEMINI_RUNTIME_ENABLED = true;" in main, "
 require("private static final boolean GEMINI_RUNTIME_ENABLED = false;" not in main, "retired Gemini lock survived")
 require("Gemini runtime intentionally locked." not in main, "retired Gemini guard survived")
 require('emit("backroomFoundation", "active role=" + role + " slice=v1")' in main, "Foundation active telemetry missing")
-require('emit("backroomFoundation", "legacy-fallback role=" + role)' in main, "Foundation fallback telemetry missing")
+require('emit("backroomFoundation", "legacy-fallback role=" + role + "; phase=" + phase + "; reason="' in main, "Foundation detailed fallback telemetry missing")
+require("FoundationRuntime.lastFailure" in main, "Foundation failure reason is not surfaced")
 
 structured = method_block(
     main,
@@ -79,5 +81,8 @@ require("AtomicFile(target)" in foundation_text, "active pointer is not committe
 require("FoundationSection.entries" in foundation_text, "six-section completeness is not enforced")
 require('FoundationJobStatus.RUNNING' in foundation_text and 'leaseUntilEpochMs' in foundation_text, "durable job leases missing")
 require('remoteEnrichmentEnabled", false' in foundation_text, "local-first build policy is not explicit")
+require("private val lastFailure = AtomicReference<String?>(null)" in foundation_text, "Foundation failure ledger missing")
+for phase in ("FOUNDATION_COMPILE", "FOUNDATION_INSTALL", "FOUNDATION_ACTIVATE", "FOUNDATION_SLICE"):
+    require(phase in foundation_text, f"Foundation diagnostic phase missing: {phase}")
 
-print("Persistent Foundation runtime contracts verified with Gemini K1-K6 high-priority provider authority.")
+print("Persistent Foundation runtime contracts verified with Gemini K1-K6 high-priority provider authority and phase-specific failure diagnostics.")

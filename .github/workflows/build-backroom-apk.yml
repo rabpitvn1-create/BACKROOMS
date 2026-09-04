@@ -1,4 +1,4 @@
-name: BACKROOMS CI / Release 1.0.0.0.10
+name: BACKROOMS CI / Release 1.0.0.0.11
 
 on:
   workflow_dispatch:
@@ -41,20 +41,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Verify 1.0.0.0.10 release source
+      - name: Verify 1.0.0.0.11 release source
         run: |
           set -euo pipefail
-          grep -q "versionCode 118" android-apk/app/build.gradle
-          grep -q "versionName '1.0.0.0.10'" android-apk/app/build.gradle
-          test -s android-apk/RELEASE_NOTES_1.0.0.0.10.md
+          grep -q "versionCode 119" android-apk/app/build.gradle
+          grep -q "versionName '1.0.0.0.11'" android-apk/app/build.gradle
+          test -s android-apk/RELEASE_NOTES_1.0.0.0.11.md
           test -s android-apk/validate_level_content.py
           test -s android-apk/test_validate_level_content.py
           test -s android-apk/ci_apply_runtime_patches.py
           test -s android-apk/ci_verify_runtime_contracts.py
           test -s android-apk/ci_verify_provider_routing.py
           test -s android-apk/ci_verify_persistent_foundation.py
+          test -s android-apk/ci_verify_issue330_runtime_diagnostics.py
           test -s android-apk/ci_verify_packaged_apk.sh
           test -s android-apk/patch-gemini-foundation-authority-final.py
+          test -s android-apk/patch-issue330-runtime-diagnostics-final.py
+          test -s android-apk/app/src/main/java/com/rabpit/backroom/RuntimeDiagnostics.java
+          test -s android-apk/app/src/test/java/com/rabpit/backroom/RuntimeDiagnosticsTest.java
           test -s android-apk/INVENTORY_ICON_RULES.md
           test -s android-apk/inventory_icon_manifest.json
           test -s android-apk/generate_inventory_icons.py
@@ -176,6 +180,7 @@ jobs:
           python3 android-apk/ci_verify_runtime_contracts.py
           python3 android-apk/ci_verify_provider_routing.py
           python3 android-apk/ci_verify_persistent_foundation.py
+          python3 android-apk/ci_verify_issue330_runtime_diagnostics.py
           python3 android-apk/ci_verify_inventory_icons.py
           node --test android-apk/test-combat-overlay-feedback.cjs
           node --test android-apk/test-combat-action-protocol.cjs
@@ -202,18 +207,18 @@ jobs:
         run: gradle :app:assembleDebug --no-daemon --build-cache
 
       - name: Prepare debug APK
-        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.0.0.0.10-debug.apk
+        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.0.0.0.11-debug.apk
 
       - name: Verify packaged debug APK contracts
         run: |
-          bash android-apk/ci_verify_packaged_apk.sh Backroom-1.0.0.0.10-debug.apk
-          python3 android-apk/ci_verify_packaged_inventory_icons.py Backroom-1.0.0.0.10-debug.apk
+          bash android-apk/ci_verify_packaged_apk.sh Backroom-1.0.0.0.11-debug.apk
+          python3 android-apk/ci_verify_packaged_inventory_icons.py Backroom-1.0.0.0.11-debug.apk
 
       - name: Upload debug APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Backroom-1.0.0.0.10-debug-apk
-          path: Backroom-1.0.0.0.10-debug.apk
+          name: Backroom-1.0.0.0.11-debug-apk
+          path: Backroom-1.0.0.0.11-debug.apk
           if-no-files-found: error
           retention-days: 14
 
@@ -227,47 +232,47 @@ jobs:
           set -euo pipefail
           tag_exists=false
           release_exists=false
-          if git ls-remote --exit-code --tags origin refs/tags/v1.0.0.0.10 >/dev/null 2>&1; then
+          if git ls-remote --exit-code --tags origin refs/tags/v1.0.0.0.11 >/dev/null 2>&1; then
             tag_exists=true
           fi
-          if gh release view v1.0.0.0.10 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+          if gh release view v1.0.0.0.11 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             release_exists=true
           fi
           if [[ "$tag_exists" == true && "$release_exists" == true ]]; then
             echo "publish=false" >> "$GITHUB_OUTPUT"
-            echo "v1.0.0.0.10 is already published; skipping duplicate release."
+            echo "v1.0.0.0.11 is already published; skipping duplicate release."
           elif [[ "$tag_exists" == true || "$release_exists" == true ]]; then
-            echo "Inconsistent v1.0.0.0.10 tag/release state; refusing to overwrite it."
+            echo "Inconsistent v1.0.0.0.11 tag/release state; refusing to overwrite it."
             exit 1
           else
             echo "publish=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Publish GitHub Release v1.0.0.0.10
+      - name: Publish GitHub Release v1.0.0.0.11
         if: steps.release-gate.outputs.publish == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          gh release create v1.0.0.0.10 Backroom-1.0.0.0.10-debug.apk \
+          gh release create v1.0.0.0.11 Backroom-1.0.0.0.11-debug.apk \
             --latest \
-            --title "Backroom 1.0.0.0.10 Debug" \
-            --notes-file android-apk/RELEASE_NOTES_1.0.0.0.10.md \
+            --title "Backroom 1.0.0.0.11 Debug" \
+            --notes-file android-apk/RELEASE_NOTES_1.0.0.0.11.md \
             --target "$GITHUB_SHA"
 
-      - name: Verify published v1.0.0.0.10 release
+      - name: Verify published v1.0.0.0.11 release
         if: steps.release-gate.outputs.publish == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          gh release view v1.0.0.0.10 --repo "$GITHUB_REPOSITORY" >/dev/null
+          gh release view v1.0.0.0.11 --repo "$GITHUB_REPOSITORY" >/dev/null
           mkdir release-check
-          gh release download v1.0.0.0.10 --repo "$GITHUB_REPOSITORY" --pattern 'Backroom-1.0.0.0.10-debug.apk' --dir release-check
-          test -s release-check/Backroom-1.0.0.0.10-debug.apk
-          expected=$(sha256sum Backroom-1.0.0.0.10-debug.apk | awk '{print $1}')
-          actual=$(sha256sum release-check/Backroom-1.0.0.0.10-debug.apk | awk '{print $1}')
+          gh release download v1.0.0.0.11 --repo "$GITHUB_REPOSITORY" --pattern 'Backroom-1.0.0.0.11-debug.apk' --dir release-check
+          test -s release-check/Backroom-1.0.0.0.11-debug.apk
+          expected=$(sha256sum Backroom-1.0.0.0.11-debug.apk | awk '{print $1}')
+          actual=$(sha256sum release-check/Backroom-1.0.0.0.11-debug.apk | awk '{print $1}')
           test "$expected" = "$actual"
-          bash android-apk/ci_verify_packaged_apk.sh release-check/Backroom-1.0.0.0.10-debug.apk
-          python3 android-apk/ci_verify_packaged_inventory_icons.py release-check/Backroom-1.0.0.0.10-debug.apk
-          echo "Published release v1.0.0.0.10 verified with SHA-256 $actual"
+          bash android-apk/ci_verify_packaged_apk.sh release-check/Backroom-1.0.0.0.11-debug.apk
+          python3 android-apk/ci_verify_packaged_inventory_icons.py release-check/Backroom-1.0.0.0.11-debug.apk
+          echo "Published release v1.0.0.0.11 verified with SHA-256 $actual"
