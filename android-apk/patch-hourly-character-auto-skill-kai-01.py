@@ -57,7 +57,8 @@ if "KAI_LOCKLINE_BURST_CHANCE_PERCENT" not in combat:
 
 helper_anchor = "  fun partyTurnSkillRejection(state: GameState, characterId: String, skillName: String): String? {\n"
 helper = '''  internal fun kaiLocklineBurstEligible(state: GameState): Boolean =
-    activePartyCharacter(state, KAI_ID) != null && partyTurnActorMatches(state, KAI_ID)
+    activePartyCharacter(state, KAI_ID) != null &&
+      state.metadata["partyCombat.actorContext"]?.trim() == KAI_ID
 
 '''
 if "kaiLocklineBurstEligible" not in combat:
@@ -69,8 +70,10 @@ if "kaiLocklineBurstEligible" not in combat:
     )
 
 # Layer after the latest character AUTO patch and before the authoritative
-# post-player-action death gate. The proc is rolled only on Kai's own serialized
-# actor turn and normal weapon damage still passes through existing Armor math.
+# post-player-action death gate. The proc is rolled only on Kai's explicit
+# serialized actor turn. A missing actor context is not treated as Kai's turn,
+# preventing direct/legacy CombatRuntime calls from accidentally rolling AUTO.
+# Normal weapon damage still passes through existing Armor math.
 if "KAI_LOCKLINE_BURST_R01" not in combat:
     latest_character_marker = "    // LUCIA_SIGHTLINE_BURST_R01:"
     latest_character_pos = combat.find(latest_character_marker)
@@ -143,7 +146,7 @@ class KaiLocklineBurstTest {
     }
   }
 
-  @Test fun locklineBurstOnlyUsesKaisOwnActiveActorTurn() {
+  @Test fun locklineBurstOnlyUsesKaisOwnExplicitActiveActorTurn() {
     val valid = kaiCombat()
     assertTrue(CombatRuntime.kaiLocklineBurstEligible(valid))
 
@@ -151,6 +154,11 @@ class KaiLocklineBurstTest {
       metadata = valid.metadata + ("partyCombat.actorContext" to LUCIA_ID)
     )
     assertFalse(CombatRuntime.kaiLocklineBurstEligible(wrongActor))
+
+    val missingActor = valid.copy(
+      metadata = valid.metadata - "partyCombat.actorContext"
+    )
+    assertFalse(CombatRuntime.kaiLocklineBurstEligible(missingActor))
 
     val inactive = kaiCombat(CharacterPresence.SEPARATED)
     assertFalse(CombatRuntime.kaiLocklineBurstEligible(inactive))
@@ -196,6 +204,6 @@ class KaiLocklineBurstTest {
 ''', encoding="utf-8")
 
 print(
-    "Hourly character AUTO skill 08 applied: Kai Lockline Burst, 40% personal-turn proc, "
+    "Hourly character AUTO skill 08 applied: Kai Lockline Burst, 40% explicit personal-turn proc, "
     "105% SRU Assault Rifle MK19 weapon damage, compact statusless combat log."
 )
