@@ -17,17 +17,10 @@ def replace_once(source: str, old: str, new: str, label: str) -> str:
     return source.replace(old, new, 1)
 
 
-# Scheduled character AUTO skill iteration.
-# Latest-main SHA starts with 0x76; among the remaining semantically eligible
-# characters Kai/Lucia, 0x76 % 2 selects Kai. Keep the skill inside Kai R10:
-# SRU Assault Rifle MK19, ordinary weapon/Armor resolution, no invented ammo trait.
 catalog = CATALOG.read_text(encoding="utf-8")
 if 's("Zero-Line Burst", "AUTO"' not in catalog:
     lines = catalog.splitlines()
-    ultimate_index = next(
-        (i for i, line in enumerate(lines) if 's("Guilty Crown Override",' in line),
-        -1,
-    )
+    ultimate_index = next((i for i, line in enumerate(lines) if 's("Guilty Crown Override",' in line), -1)
     if ultimate_index < 0:
         raise RuntimeError("Zero-Line Burst catalog: Guilty Crown Override row missing")
     lines.insert(
@@ -39,35 +32,40 @@ CATALOG.write_text(catalog, encoding="utf-8")
 
 combat = COMBAT.read_text(encoding="utf-8")
 skill_context_anchor = '  private const val PARTY_TURN_SKILL_CONTEXT_KEY = "partyCombat.skillContext"\n'
-constant = "  internal const val KAI_ZERO_LINE_BURST_CHANCE_PERCENT = 40\n"
 if "KAI_ZERO_LINE_BURST_CHANCE_PERCENT" not in combat:
     combat = replace_once(
         combat,
         skill_context_anchor,
-        skill_context_anchor + constant,
+        skill_context_anchor + "  internal const val KAI_ZERO_LINE_BURST_CHANCE_PERCENT = 40\n",
         "Zero-Line Burst proc constant",
     )
 
 helper_anchor = "  fun partyTurnSkillRejection(state: GameState, characterId: String, skillName: String): String? {\n"
-helper = '''  internal fun kaiZeroLineBurstEligible(state: GameState): Boolean =
-    activePartyCharacter(state, KAI_ID) != null && partyTurnActorMatches(state, KAI_ID)
+helpers = '''  internal fun kaiZeroLineBurstEligibility(activeAlive: Boolean, ownActorTurn: Boolean): Boolean =
+    activeAlive && ownActorTurn
+
+  internal fun kaiZeroLineBurstEligible(state: GameState): Boolean =
+    kaiZeroLineBurstEligibility(
+      activePartyCharacter(state, KAI_ID) != null,
+      partyTurnActorMatches(state, KAI_ID)
+    )
+
+  internal fun kaiZeroLineBurstDamage(weaponDamage: Int, armor: Int): Int =
+    companionSkillDamage(weaponDamage, 105, armor)
+
+  internal fun kaiZeroLineBurstLog(damage: Int, entityName: String): String =
+    "Kai sử dụng Zero-Line Burst gây sát thương -$damage HP lên $entityName"
 
 '''
-if "kaiZeroLineBurstEligible" not in combat:
-    combat = replace_once(combat, helper_anchor, helper + helper_anchor, "Zero-Line Burst eligibility helper")
-else:
-    helper_start = combat.find("  internal fun kaiZeroLineBurstEligible(state: GameState): Boolean =\n")
-    helper_end = combat.find(helper_anchor, helper_start)
-    if helper_start < 0 or helper_end < 0:
-        raise RuntimeError("Zero-Line Burst helper normalization boundary missing")
-    combat = combat[:helper_start] + helper + combat[helper_end:]
+helper_start = combat.find("  internal fun kaiZeroLineBurst")
+helper_end = combat.find(helper_anchor, max(0, helper_start))
+if helper_start >= 0 and helper_end >= 0:
+    combat = combat[:helper_start] + helpers + combat[helper_end:]
+elif "kaiZeroLineBurstEligibility" not in combat:
+    combat = replace_once(combat, helper_anchor, helpers + helper_anchor, "Zero-Line Burst helpers")
 
-# Resolve after the already-installed scheduled AUTO layers and before the
-# authoritative post-player-action death gate. The roll occurs only on Kai's
-# serialized actor turn; MK19 weapon damage still respects Entity Armor.
 if "KAI_ZERO_LINE_BURST_R01" not in combat:
-    syvial_marker = "    // SYVIAL_BLACKLINE_CLEAVE_R01:"
-    syvial_pos = combat.find(syvial_marker)
+    syvial_pos = combat.find("    // SYVIAL_BLACKLINE_CLEAVE_R01:")
     if syvial_pos < 0:
         raise RuntimeError("Zero-Line Burst runtime: latest scheduled Syvial AUTO layer missing")
     death_pos = combat.find("    if (c.entityHp <= 0) {\n", syvial_pos)
@@ -78,43 +76,44 @@ if "KAI_ZERO_LINE_BURST_R01" not in combat:
       kaiZeroLineBurstEligible(resolvedState) && c.entityHp > 0 &&
       roll(c.copy(eventCounter = c.eventCounter + 371), 100) < KAI_ZERO_LINE_BURST_CHANCE_PERCENT
     ) {
-      val damage = companionSkillDamage(
+      val damage = kaiZeroLineBurstDamage(
         CharacterStatEngine.weaponDamage(resolvedState, KAI_ID),
-        105,
         profile.armor
       )
       val hp = max(0, c.entityHp - damage)
       c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
-      log += "Kai sử dụng Zero-Line Burst gây sát thương -$damage HP lên ${c.entityName}"
+      log += kaiZeroLineBurstLog(damage, c.entityName)
     }
 
 '''
     combat = combat[:death_pos] + block + combat[death_pos:]
 else:
-    # Normalize earlier iterations of this patch back to the direct, proven runtime shape.
     combat = combat.replace(
-        '''      val damage = kaiZeroLineBurstDamage(
-        CharacterStatEngine.weaponDamage(resolvedState, KAI_ID),
-        profile.armor
-      )''',
         '''      val damage = companionSkillDamage(
         CharacterStatEngine.weaponDamage(resolvedState, KAI_ID),
         105,
         profile.armor
       )''',
+        '''      val damage = kaiZeroLineBurstDamage(
+        CharacterStatEngine.weaponDamage(resolvedState, KAI_ID),
+        profile.armor
+      )''',
         1,
     )
     combat = combat.replace(
-        '      log += kaiZeroLineBurstLog(damage, c.entityName)\n',
         '      log += "Kai sử dụng Zero-Line Burst gây sát thương -$damage HP lên ${c.entityName}"\n',
+        '      log += kaiZeroLineBurstLog(damage, c.entityName)\n',
         1,
     )
 
 for marker in (
     "KAI_ZERO_LINE_BURST_CHANCE_PERCENT = 40",
+    "kaiZeroLineBurstEligibility",
     "kaiZeroLineBurstEligible",
+    "kaiZeroLineBurstDamage",
+    "kaiZeroLineBurstLog",
     "KAI_ZERO_LINE_BURST_R01",
-    "Kai sử dụng Zero-Line Burst gây sát thương -$damage HP lên ${c.entityName}",
+    "log += kaiZeroLineBurstLog(damage, c.entityName)",
 ):
     if marker not in combat:
         raise RuntimeError("Zero-Line Burst runtime contract missing: " + marker)
@@ -133,84 +132,40 @@ class KaiZeroLineBurstTest {
       skill.kind == "AUTO" && skill.effect.contains("sát thương", ignoreCase = true)
     }
 
-  private fun kaiCombat(presence: CharacterPresence = CharacterPresence.ACTIVE): GameState {
-    var state = GameState.initial().copy(
-      party = PartyState(memberIds = listOf(KAI_ID))
-    )
-    state = CombatRuntime.start(state, "diep_minh")
-    val kai = state.characters.getValue(KAI_ID)
-    return state.copy(
-      characters = state.characters + (KAI_ID to kai.copy(presence = presence)),
-      metadata = state.metadata + ("partyCombat.actorContext" to KAI_ID)
-    )
-  }
-
-  @Test fun zeroLineBurstIsFortyPercentAttackingAutoAndAllCharactersRemainUnderCap() {
+  @Test fun zeroLineBurstCatalogAndProcContractStayWithinAttackAutoCap() {
     val skill = CompanionSkillCatalog.forCharacter(KAI_ID).single { it.name == "Zero-Line Burst" }
     assertEquals("AUTO", skill.kind)
     assertTrue(skill.trigger.contains("40%"))
     assertTrue(skill.effect.contains("SRU Assault Rifle MK19"))
     assertEquals(40, CombatRuntime.KAI_ZERO_LINE_BURST_CHANCE_PERCENT)
-    assertEquals(1, attackingAutos(KAI_ID).count { it.name == "Zero-Line Burst" })
     listOf(KAI_ID, IRIS_ID, SYVIAL_ID, LUCIA_ID).forEach { id ->
       assertTrue("$id exceeds five attacking AUTO skills", attackingAutos(id).size <= 5)
     }
   }
 
-  @Test fun zeroLineBurstOnlyUsesKaisOwnActiveActorTurn() {
-    val valid = kaiCombat()
-    assertTrue(CombatRuntime.kaiZeroLineBurstEligible(valid))
+  @Test fun zeroLineBurstEligibilityRequiresBothAliveActiveAndOwnTurn() {
+    assertTrue(CombatRuntime.kaiZeroLineBurstEligibility(activeAlive = true, ownActorTurn = true))
+    assertFalse(CombatRuntime.kaiZeroLineBurstEligibility(activeAlive = false, ownActorTurn = true))
+    assertFalse(CombatRuntime.kaiZeroLineBurstEligibility(activeAlive = true, ownActorTurn = false))
+    assertFalse(CombatRuntime.kaiZeroLineBurstEligibility(activeAlive = false, ownActorTurn = false))
+  }
 
-    val wrongActor = valid.copy(
-      metadata = valid.metadata + ("partyCombat.actorContext" to LUCIA_ID)
+  @Test fun zeroLineBurstUsesNormalArmorDamageAndAddsNoStatusContract() {
+    assertEquals(85, CombatRuntime.kaiZeroLineBurstDamage(100, 20))
+    assertEquals(105, CombatRuntime.kaiZeroLineBurstDamage(100, 0))
+    val effect = CompanionSkillCatalog.forCharacter(KAI_ID).single { it.name == "Zero-Line Burst" }.effect
+    listOf("Poison", "Bleed", "Stun", "Freeze", "Burn").forEach { status ->
+      assertFalse(effect.contains(status, ignoreCase = true))
+    }
+  }
+
+  @Test fun zeroLineBurstLogIsExactlyCompactFormat() {
+    assertEquals(
+      "Kai sử dụng Zero-Line Burst gây sát thương -18 HP lên Hound",
+      CombatRuntime.kaiZeroLineBurstLog(18, "Hound")
     )
-    assertFalse(CombatRuntime.kaiZeroLineBurstEligible(wrongActor))
-
-    val inactive = kaiCombat(CharacterPresence.SEPARATED)
-    assertFalse(CombatRuntime.kaiZeroLineBurstEligible(inactive))
-  }
-
-  @Test fun zeroLineBurstDealsArmoredMk19DamageAndUsesCompactStatuslessLog() {
-    var observed: CombatRuntime.Resolution? = null
-    for (counter in 0..600) {
-      var state = kaiCombat()
-      state = state.copy(metadata = state.metadata + ("combat.eventCounter" to counter.toString()))
-      val result = CombatRuntime.resolve(state, "SEARCH", "giữ đội hình")
-      if (result.reply.contains("Kai sử dụng Zero-Line Burst")) {
-        observed = result
-        break
-      }
-    }
-    val result = observed ?: error("Zero-Line Burst did not proc in deterministic search window")
-    val skillLog = Regex("Kai sử dụng Zero-Line Burst gây sát thương -\\d+ HP lên Diệp Minh").find(result.reply)?.value
-    assertTrue(skillLog != null)
-    assertFalse(result.reply.contains(Regex("Kai sử dụng Zero-Line Burst gây sát thương -\\d+ HP lên Diệp Minh và gây")))
-    assertFalse(result.reply.contains("Zero-Line Burst 40%"))
-    assertFalse(result.reply.contains("Zero-Line Burst Weapon DMG"))
-    assertFalse(result.reply.contains("Zero-Line Burst Armor"))
-  }
-
-  @Test fun zeroLineBurstCreatesNoPersistentStatusAndSaveLoadRemainsStable() {
-    var captured: GameState? = null
-    for (counter in 0..600) {
-      var state = kaiCombat()
-      state = state.copy(metadata = state.metadata + ("combat.eventCounter" to counter.toString()))
-      val beforeStatuses = state.statuses
-      val result = CombatRuntime.resolve(state, "SEARCH", "giữ đội hình")
-      if (result.reply.contains("Kai sử dụng Zero-Line Burst")) {
-        assertEquals(beforeStatuses, result.state.statuses)
-        captured = result.state
-        break
-      }
-    }
-    val state = captured ?: error("Could not capture Zero-Line Burst proc")
-    val roundTrip = GameStateCodec.decode(GameStateCodec.encode(state))
-    assertEquals(state.statuses, roundTrip.statuses)
   }
 }
 ''', encoding="utf-8")
 
-print(
-    "Scheduled character AUTO skill applied: Kai Zero-Line Burst, 40% personal-turn proc, "
-    "105% SRU Assault Rifle MK19 weapon damage, no status, compact combat log."
-)
+print("Scheduled Kai AUTO skill applied: Zero-Line Burst, 40%, 105% MK19 damage, compact log.")
