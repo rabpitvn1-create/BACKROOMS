@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "size": 128,
+  "format": "webp",
+  "background": "transparent",
+  "text": false,
+  "items": [
+    {"id": "flashlight", "recipe": "flashlight"},
+    {"id": "lighter", "recipe": "lighter"},
+    {"id": "almond-water", "recipe": "almond_water_bottle"},
+    {"id": "canned-food", "recipe": "canned_food"},
+    {"id": "battery", "recipe": "battery"},
+    {"id": "lighter-fuel", "recipe": "lighter_fuel"},
+    {"id": "bandage", "recipe": "bandage"},
+    {"id": "antiseptic", "recipe": "antiseptic"},
+    {"id": "painkiller", "recipe": "painkiller"},
+    {"id": "three-lady-cooks-sardines", "recipe": "sardines_can"},
+    {"id": "la-vie-spring-water", "recipe": "spring_water_bottle"},
+    {"id": "chicken-rice-box", "recipe": "chicken_rice_box"}
+  ]
+}
