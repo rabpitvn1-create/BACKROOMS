@@ -24,6 +24,10 @@ if 'id="inventoryIconStyle"' not in html:
         raise RuntimeError("inventory icon style insertion anchor missing")
     html = html.replace("</head>", style + "</head>", 1)
 
+card_pos = html.find("function card(item,slot)")
+if card_pos < 0:
+    raise RuntimeError("inventory card renderer missing")
+
 if "const INVENTORY_ICON_IDS=" not in html:
     pattern = re.compile(r"(  function iconFor\(item\)\{[^\n]+\}\n)")
     match = pattern.search(html)
@@ -37,8 +41,10 @@ if "const INVENTORY_ICON_IDS=" not in html:
         + "  function inventoryIconMarkup(item){const id=String(item&&item.id||'').trim().toLowerCase();const key=INVENTORY_ICON_IDS.has(id)?id:'generic';return '<div class=\\\"equipment-card-icon inventory-card-icon\\\"><img class=\\\"inventory-item-icon-image\\\" src=\\\"inventory-icons/'+encodeURIComponent(key)+'.webp\\\" alt=\\\"\\\" aria-hidden=\\\"true\\\" loading=\\\"lazy\\\" decoding=\\\"async\\\"></div>'}\n"
     )
     html = html[:match.start()] + helper + html[match.end():]
+    card_pos = html.find("function card(item,slot)")
 
-if "inventoryIconMarkup(item)" not in html.split("function card(item,slot)", 1)[-1]:
+card_tail = html[card_pos:]
+if "inventoryIconMarkup(item)" not in card_tail:
     candidates = [
         '<div class=\\"equipment-card-icon\\">\'+e(iconFor(item))+\'</div>',
         '<div class="equipment-card-icon">\'+e(iconFor(item))+\'</div>',
@@ -46,12 +52,17 @@ if "inventoryIconMarkup(item)" not in html.split("function card(item,slot)", 1)[
     replacement = "'+(slot?'<div class=\\\"equipment-card-icon\\\">'+e(iconFor(item))+'</div>':inventoryIconMarkup(item))+'"
     replaced = False
     for old in candidates:
-        if old in html:
-            html = html.replace(old, replacement, 1)
+        absolute = html.find(old, card_pos)
+        if absolute >= 0:
+            html = html[:absolute] + replacement + html[absolute + len(old):]
             replaced = True
             break
     if not replaced:
         raise RuntimeError("inventory card legacy icon markup anchor missing")
+
+card_pos = html.find("function card(item,slot)")
+if "inventoryIconMarkup(item)" not in html[card_pos:]:
+    raise RuntimeError("inventory card renderer did not adopt generated icon markup")
 
 for required in (
     MARKER,
@@ -61,7 +72,6 @@ for required in (
     "inventory-icons/'+encodeURIComponent(key)+'.webp",
     'class=\\"inventory-item-icon-image\\"',
     'alt=\\"\\"',
-    "inventoryIconMarkup(item)",
 ):
     if required not in html:
         raise RuntimeError("inventory icon runtime contract missing: " + required)
