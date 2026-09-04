@@ -120,7 +120,7 @@ if 'dullerStillframeLungeIsEntityTurnOnlyAccuracyPressureWithGuardCounterplay' n
     for (counter in 0..300) {
       var state = CombatRuntime.start(GameState.initial(), "duller")
       state = state.copy(metadata = state.metadata + ("combat.eventCounter" to counter.toString()))
-      val result = CombatRuntime.resolve(state, "GUARD", "giữ đội hình và khoảng cách sau vật che")
+      val result = CombatRuntime.resolve(state, "GUARD", "cố thủ, giữ đội hình và khoảng cách sau vật che")
       if (result.reply.contains("Stillframe Lunge:")) {
         guardResult = result
         break
