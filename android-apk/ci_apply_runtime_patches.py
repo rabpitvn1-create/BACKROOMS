@@ -112,6 +112,7 @@ SCRIPTS = [
     "patch-hourly-entity-skill-hound-01.py",
     "patch-hourly-entity-skill-slenderman-01.py",
     "patch-hourly-entity-skill-wretch-01.py",
+    "patch-hourly-entity-skill-predatory-window-01.py",
     "patch-hourly-character-auto-skill-lucia-01.py",
     "patch-hourly-character-auto-skill-iris-01.py",
     "patch-hourly-character-auto-skill-syvial-02.py",
