@@ -3,6 +3,7 @@
 
 The candidate keeps the exact 4096 hashed-feature input and four proposal outputs used by
 LiteRTWorldDirectorPolicy. It is never copied into the production asset path by this script.
+A Haku-trained candidate must beat the seed-only baseline before it can be considered promotable.
 """
 from __future__ import annotations
 
@@ -165,7 +166,10 @@ def main() -> int:
     def score(haku_metrics: dict, seed_metrics: dict) -> float:
         return haku_metrics["accuracy"] + 0.25 * seed_metrics["accuracy"]
 
+    # Baseline is deliberately eligible for selection. Distillation must demonstrate an actual
+    # teacher-data gain rather than replacing a stronger existing model merely because it trained.
     candidates = [
+        ("seed_only_baseline", baseline, baseline_haku, baseline_seed),
         ("haku_only", haku_only, haku_only_haku, haku_only_seed),
         ("haku_seed_blend", blend, blend_haku, blend_seed),
     ]
@@ -179,17 +183,28 @@ def main() -> int:
 
     per_label = selected_haku.get("perLabelRecall") or {}
     min_recall = min(per_label.values()) if per_label else 0.0
+    teacher_gain = selected_haku["accuracy"] - baseline_haku["accuracy"]
+    selected_uses_haku = selected_name != "seed_only_baseline"
+
+    # Match the existing production WorldDirector quality bar and require a positive held-out
+    # teacher gain. A merely valid/distilled model is not sufficient for runtime promotion.
     promotion_eligible = (
-        exported["accuracy"] >= 0.80
-        and exported["acceptedAccuracy"] >= 0.90
-        and selected_seed["accuracy"] >= 0.90
-        and min_recall >= 0.55
+        selected_uses_haku
+        and teacher_gain > 0.0
+        and exported["accuracy"] >= 0.95
+        and exported["acceptedAccuracy"] >= 0.98
+        and exported["highConfidenceCoverage"] >= 0.75
+        and selected_seed["accuracy"] >= 0.95
+        and min_recall >= 0.90
         and output.stat().st_size <= 5 * 1024 * 1024
     )
 
     report = {
         "contract": "WORLD_DIRECTOR_PRESSURE_V1_HAKU_CANDIDATE",
         "selected": selected_name,
+        "selectedUsesHaku": selected_uses_haku,
+        "teacherAccuracyGainOverBaseline": teacher_gain,
+        "hakuTrainingImprovedBaseline": selected_uses_haku and teacher_gain > 0.0,
         "modelBytes": output.stat().st_size,
         "promotionEligible": promotion_eligible,
         "productionAssetModified": False,
