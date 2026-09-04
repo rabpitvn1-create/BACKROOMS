@@ -90,6 +90,7 @@ provider_router = r'''  private boolean providerFallbackEligible(Exception error
       this::hakuFallbackText,
       this::lunaText,
       this::providerFallbackEligible,
+      (provider, response) -> parseModelJson(response).toString(),
       new AiProviderRouter.Observer() {
         @Override public void onSelected(String provider) {
           emit("backroomProvider", "AI provider selected: " + provider);
@@ -136,6 +137,7 @@ for marker in [
     "this::hakuFallbackText",
     "this::lunaText",
     "this::providerFallbackEligible",
+    "(provider, response) -> parseModelJson(response).toString()",
     '"AI provider selected: " + provider',
     'fromProvider + " failed; fallback to " + toProvider',
 ]:
@@ -178,4 +180,4 @@ for required in [
         raise RuntimeError("provider lock/reversibility marker missing: " + required)
 
 MAIN.write_text(text, encoding="utf-8")
-print("Final AI routing: HAKU primary -> LUNA fallback -> controlled failure; Gemini runtime locked and snapshot network-free.")
+print("Final AI routing: HAKU primary -> LUNA fallback -> controlled failure; malformed provider JSON is rejected inside the route; Gemini runtime locked and snapshot network-free.")
