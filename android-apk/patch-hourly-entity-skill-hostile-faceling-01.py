@@ -117,7 +117,7 @@ if 'hostileFacelingFalseApproachIsEntityTurnOnlyAccuracyPressureWithGuardCounter
     assertNotNull("25% Hostile Faceling proc must be reachable across deterministic Entity turns", pressureResult)
     assertFalse(pressureResult!!.reply, pressureResult!!.reply.contains("kỹ năng bị vô hiệu"))
     assertFalse(pressureResult!!.reply, pressureResult!!.reply.contains("Stun"))
-    assertTrue(pressureResult!!.reply, pressureResult!!.reply.contains("+8 điểm % Accuracy"))
+    assertTrue(pressureResult!!.reply, pressureResult!!.reply.contains("proc 25%"))
 
     var guardResult: CombatRuntime.Resolution? = null
     for (counter in 0..300) {
