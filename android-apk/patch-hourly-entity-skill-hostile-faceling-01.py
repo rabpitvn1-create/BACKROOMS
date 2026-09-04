@@ -26,8 +26,8 @@ def replace_once(source: str, old: str, new: str, label: str) -> str:
 #
 # Balance: 25% per Hostile Faceling Entity turn, no bonus damage, no Stun, no forced
 # escape loss, and no persistence across turns. On proc, direct Entity actions gain
-# only +8 percentage points to hit chance for that turn. READ fully counters the
-# feint by explicitly studying the Entity's telegraph instead of trusting its gait.
+# only +8 percentage points Accuracy for that turn. READ fully counters the feint by
+# explicitly studying the Entity's telegraph instead of trusting its gait.
 combat = COMBAT.read_text(encoding="utf-8")
 
 constant_anchor = '  internal const val DULLER_STILLFRAME_LUNGE_PROC_PERCENT = 23\n  private const val DULLER_STILLFRAME_LUNGE_ACCURACY_BONUS = 10\n'
@@ -42,18 +42,22 @@ if 'HOSTILE_FACELING_FALSE_APPROACH_PROC_PERCENT = 25' not in combat:
         "Hostile Faceling False Approach constants",
     )
 
-response_anchor = '    // Enemy response. READ/guard/evasion reduce expected incoming damage; attacking blindly is riskier.\n'
-response_block = response_anchor + '''    // HOSTILE_FACELING_FALSE_APPROACH_V1: exactly one proc check on Hostile Faceling's Entity response turn.
-    val hostileFacelingFalseApproachProc = c.entityKey == "hostile_faceling" &&
-      roll(c.copy(eventCounter = c.eventCounter + 2137), 100) < HOSTILE_FACELING_FALSE_APPROACH_PROC_PERCENT
-    val hostileFacelingFalseApproachActive = hostileFacelingFalseApproachProc && intent != Intent.READ
-    if (hostileFacelingFalseApproachProc) {
-      if (intent == Intent.READ) {
-        log += "False Approach: proc ${HOSTILE_FACELING_FALSE_APPROACH_PROC_PERCENT}% nhưng Party chủ động đọc telegraph và nhận ra dáng người giả; kỹ năng bị vô hiệu."
-      } else {
-        log += "False Approach: Hostile Faceling bắt chước dáng người vô hại rồi đổi nhịp áp sát; proc ${HOSTILE_FACELING_FALSE_APPROACH_PROC_PERCENT}%, +$HOSTILE_FACELING_FALSE_APPROACH_ACCURACY_BONUS điểm % Accuracy trong Entity turn này."
+# The final interleaved Party combat runtime no longer contains the legacy
+# "Enemy response" comment. Anchor to the stable Entity-response action-budget
+# line used by the immediately preceding Duller hourly skill patch instead.
+response_anchor = '      log += "ENTITY ACTION BUDGET: ${c.entityName} = ${entityDirectTargets.size}; one direct action per completed Party actor turn."\n'
+response_block = response_anchor + '''
+      // HOSTILE_FACELING_FALSE_APPROACH_V1: exactly one proc check on Hostile Faceling's Entity response turn.
+      val hostileFacelingFalseApproachProc = c.entityKey == "hostile_faceling" &&
+        roll(c.copy(eventCounter = c.eventCounter + 2137), 100) < HOSTILE_FACELING_FALSE_APPROACH_PROC_PERCENT
+      val hostileFacelingFalseApproachActive = hostileFacelingFalseApproachProc && intent != Intent.READ
+      if (hostileFacelingFalseApproachProc) {
+        if (intent == Intent.READ) {
+          log += "False Approach: proc ${HOSTILE_FACELING_FALSE_APPROACH_PROC_PERCENT}% nhưng Party chủ động đọc telegraph và nhận ra dáng người giả; kỹ năng bị vô hiệu."
+        } else {
+          log += "False Approach: Hostile Faceling bắt chước dáng người vô hại rồi đổi nhịp áp sát; proc ${HOSTILE_FACELING_FALSE_APPROACH_PROC_PERCENT}%, +$HOSTILE_FACELING_FALSE_APPROACH_ACCURACY_BONUS điểm % Accuracy trong Entity turn này."
+        }
       }
-    }
 '''
 if 'HOSTILE_FACELING_FALSE_APPROACH_V1' not in combat:
     combat = replace_once(
@@ -63,17 +67,24 @@ if 'HOSTILE_FACELING_FALSE_APPROACH_V1' not in combat:
         "Hostile Faceling False Approach Entity-turn proc",
     )
 
-enemy_chance_old = '    val enemyChance = (profile.aggression * 8 - defense + max(0, -c.momentum) * 7).coerceIn(8, 88)\n'
-enemy_chance_new = '''    val enemyChance = (
-      profile.aggression * 8 - defense + max(0, -c.momentum) * 7 +
-        (if (hostileFacelingFalseApproachActive) HOSTILE_FACELING_FALSE_APPROACH_ACCURACY_BONUS else 0)
-      ).coerceIn(8, 88)
+# Duller runs immediately before this patch and has already extended the final
+# direct-Entity-action accuracy accumulator. Append our bounded turn-local bonus.
+accuracy_old = '''        val killerAccuracyBonus =
+          (if (hunterMarked) JANE_HUNTER_MARK_ACCURACY_BONUS else 0) +
+          (if (jeffSilentStalker && entityTargets.size == 1) JEFF_SILENT_STALKER_SOLO_ACCURACY_BONUS else 0) +
+          (if (dullerStillframeLungeActive) DULLER_STILLFRAME_LUNGE_ACCURACY_BONUS else 0)
+'''
+accuracy_new = '''        val killerAccuracyBonus =
+          (if (hunterMarked) JANE_HUNTER_MARK_ACCURACY_BONUS else 0) +
+          (if (jeffSilentStalker && entityTargets.size == 1) JEFF_SILENT_STALKER_SOLO_ACCURACY_BONUS else 0) +
+          (if (dullerStillframeLungeActive) DULLER_STILLFRAME_LUNGE_ACCURACY_BONUS else 0) +
+          (if (hostileFacelingFalseApproachActive) HOSTILE_FACELING_FALSE_APPROACH_ACCURACY_BONUS else 0)
 '''
 if '(if (hostileFacelingFalseApproachActive) HOSTILE_FACELING_FALSE_APPROACH_ACCURACY_BONUS else 0)' not in combat:
     combat = replace_once(
         combat,
-        enemy_chance_old,
-        enemy_chance_new,
+        accuracy_old,
+        accuracy_new,
         "Hostile Faceling False Approach Accuracy bonus",
     )
 
