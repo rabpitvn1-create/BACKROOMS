@@ -41,21 +41,30 @@ new_messages = '''    JSONArray messages = new JSONArray()
 '''
 text = replace_once(text, old_messages, new_messages, "HAKU strict JSON request")
 
-# 22s was tuned for the old 1800-token cap. A slightly larger read window prevents the new
-# completion budget from turning otherwise valid HAKU responses into artificial timeouts.
-text = replace_once(
-    text,
+# 22s was tuned for the old 1800-token cap. MainActivity also contains a legitimate Luna 22s
+# timeout, so scope this replacement strictly to postJsonHakuFallback instead of touching all
+# connection timeouts in the file.
+haku_post_signature = "  private String postJsonHakuFallback(JSONObject payload) throws Exception {"
+haku_post_start = text.find(haku_post_signature)
+if haku_post_start < 0:
+    raise RuntimeError("HAKU post method missing")
+haku_post_end = text.find("\n  private ", haku_post_start + len(haku_post_signature))
+if haku_post_end < 0:
+    raise RuntimeError("HAKU post method end anchor missing")
+haku_post = text[haku_post_start:haku_post_end]
+haku_post = replace_once(
+    haku_post,
     '    connection.setReadTimeout(22000);\n',
     '    connection.setReadTimeout(30000);\n',
     "HAKU read timeout",
 )
+text = text[:haku_post_start] + haku_post + text[haku_post_end:]
 
 for marker in (
     '"role", "system"',
     'Return exactly one valid JSON object.',
     '.put("temperature", 0.2)',
     '.put("max_tokens", 3200)',
-    'connection.setReadTimeout(30000);',
     'AiProviderRouter.route(',
     'this::hakuFallbackText',
     'this::lunaText',
@@ -63,13 +72,34 @@ for marker in (
     if marker not in text:
         raise RuntimeError("HAKU reliability contract missing: " + marker)
 
+# Check provider-specific settings in their own methods. Luna may legitimately keep its 22s
+# read timeout, so it must not be treated as an obsolete global marker.
+haku_method_start = text.find("  private String hakuFallbackText(String prompt) throws Exception {")
+if haku_method_start < 0:
+    raise RuntimeError("HAKU request method missing")
+haku_method_end = text.find("\n  private ", haku_method_start + 2)
+if haku_method_end < 0:
+    raise RuntimeError("HAKU request method end anchor missing")
+haku_method = text[haku_method_start:haku_method_end]
+
+for marker in (
+    '"role", "system"',
+    'Return exactly one valid JSON object.',
+    '.put("temperature", 0.2)',
+    '.put("max_tokens", 3200)',
+):
+    if marker not in haku_method:
+        raise RuntimeError("HAKU request reliability marker missing: " + marker)
 for forbidden in (
     '.put("temperature", 0.75)',
     '.put("max_tokens", 1800)',
-    'connection.setReadTimeout(22000);',
 ):
-    if forbidden in text:
-        raise RuntimeError("Obsolete HAKU reliability setting survived: " + forbidden)
+    if forbidden in haku_method:
+        raise RuntimeError("Obsolete HAKU request setting survived: " + forbidden)
+if 'connection.setReadTimeout(30000);' not in haku_post:
+    raise RuntimeError("HAKU 30s read timeout missing")
+if 'connection.setReadTimeout(22000);' in haku_post:
+    raise RuntimeError("Obsolete HAKU 22s read timeout survived")
 
 MAIN.write_text(text, encoding="utf-8")
-print("HAKU reliability hardened: strict JSON system contract, lower sampling drift, larger completion budget and aligned read timeout.")
+print("HAKU reliability hardened: strict JSON system contract, lower sampling drift, larger completion budget and HAKU-scoped read timeout.")
