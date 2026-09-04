@@ -26,7 +26,8 @@ def replace_once(source: str, old: str, new: str, label: str) -> str:
 #
 # Balance: 23% per Duller Entity turn, no bonus damage, no Stun, no forced escape
 # loss. On proc, direct Entity actions gain only +10 percentage points Accuracy for
-# that turn. READ explicitly counters the entire skill.
+# that turn. GUARD explicitly counters the entire skill by holding formation and
+# denying the false-distance opening.
 combat = COMBAT.read_text(encoding="utf-8")
 
 constant_anchor = '  private const val PARTY_TURN_SKILL_CONTEXT_KEY = "partyCombat.skillContext"\n'
@@ -46,10 +47,10 @@ response_block = response_anchor + '''
       // DULLER_STILLFRAME_LUNGE_V1: exactly one proc check on Duller's Entity response turn.
       val dullerStillframeLungeProc = c.entityKey == "duller" &&
         roll(c.copy(eventCounter = c.eventCounter + 1973), 100) < DULLER_STILLFRAME_LUNGE_PROC_PERCENT
-      val dullerStillframeLungeActive = dullerStillframeLungeProc && intent != Intent.READ
+      val dullerStillframeLungeActive = dullerStillframeLungeProc && intent != Intent.GUARD
       if (dullerStillframeLungeProc) {
-        if (intent == Intent.READ) {
-          log += "Stillframe Lunge: proc ${DULLER_STILLFRAME_LUNGE_PROC_PERCENT}% nhưng Party quan sát nhịp đứng im của Duller; kỹ năng bị vô hiệu."
+        if (intent == Intent.GUARD) {
+          log += "Stillframe Lunge: proc ${DULLER_STILLFRAME_LUNGE_PROC_PERCENT}% nhưng Party giữ đội hình và khoảng cách sau vật che; kỹ năng bị vô hiệu."
         } else {
           log += "Stillframe Lunge: Duller bất động đánh lừa khoảng cách rồi lao tới; proc ${DULLER_STILLFRAME_LUNGE_PROC_PERCENT}%, +$DULLER_STILLFRAME_LUNGE_ACCURACY_BONUS điểm % Accuracy trong Entity turn này."
         }
@@ -85,7 +86,7 @@ for marker in (
     'DULLER_STILLFRAME_LUNGE_PROC_PERCENT = 23',
     'DULLER_STILLFRAME_LUNGE_ACCURACY_BONUS = 10',
     'c.entityKey == "duller"',
-    'intent != Intent.READ',
+    'intent != Intent.GUARD',
     'if (dullerStillframeLungeActive) DULLER_STILLFRAME_LUNGE_ACCURACY_BONUS else 0',
 ):
     if marker not in combat:
@@ -95,9 +96,9 @@ COMBAT.write_text(combat, encoding="utf-8")
 
 
 test = TEST.read_text(encoding="utf-8")
-if 'dullerStillframeLungeIsEntityTurnOnlyAccuracyPressureWithReadCounterplay' not in test:
+if 'dullerStillframeLungeIsEntityTurnOnlyAccuracyPressureWithGuardCounterplay' not in test:
     tests = r'''
-  @Test fun dullerStillframeLungeIsEntityTurnOnlyAccuracyPressureWithReadCounterplay() {
+  @Test fun dullerStillframeLungeIsEntityTurnOnlyAccuracyPressureWithGuardCounterplay() {
     assertEquals(23, CombatRuntime.DULLER_STILLFRAME_LUNGE_PROC_PERCENT)
     var pressureResult: CombatRuntime.Resolution? = null
 
@@ -115,20 +116,20 @@ if 'dullerStillframeLungeIsEntityTurnOnlyAccuracyPressureWithReadCounterplay' no
     assertTrue(pressureResult!!.reply, pressureResult!!.reply.contains("+10 điểm % Accuracy"))
     assertFalse(pressureResult!!.reply, pressureResult!!.reply.contains("Stun"))
 
-    var readResult: CombatRuntime.Resolution? = null
+    var guardResult: CombatRuntime.Resolution? = null
     for (counter in 0..300) {
       var state = CombatRuntime.start(GameState.initial(), "duller")
       state = state.copy(metadata = state.metadata + ("combat.eventCounter" to counter.toString()))
-      val result = CombatRuntime.resolve(state, "READ", "đọc nhịp đứng im và khoảng cách của Duller")
+      val result = CombatRuntime.resolve(state, "GUARD", "giữ đội hình và khoảng cách sau vật che")
       if (result.reply.contains("Stillframe Lunge:")) {
-        readResult = result
+        guardResult = result
         break
       }
     }
 
-    assertNotNull("Duller proc must also be reachable on a READ Entity-response turn", readResult)
-    assertTrue(readResult!!.reply, readResult!!.reply.contains("kỹ năng bị vô hiệu"))
-    assertFalse(readResult!!.reply, readResult!!.reply.contains("+10 điểm % Accuracy"))
+    assertNotNull("Duller proc must also be reachable on a GUARD Entity-response turn", guardResult)
+    assertTrue(guardResult!!.reply, guardResult!!.reply.contains("kỹ năng bị vô hiệu"))
+    assertFalse(guardResult!!.reply, guardResult!!.reply.contains("+10 điểm % Accuracy"))
   }
 '''
     close = test.rfind("}\n")
@@ -137,4 +138,4 @@ if 'dullerStillframeLungeIsEntityTurnOnlyAccuracyPressureWithReadCounterplay' no
     test = test[:close] + tests + test[close:]
 
 TEST.write_text(test, encoding="utf-8")
-print("Hourly Entity skill applied: Duller Stillframe Lunge (ACTIVE, 23% on Duller Entity turn, READ counterplay).")
+print("Hourly Entity skill applied: Duller Stillframe Lunge (ACTIVE, 23% on Duller Entity turn, GUARD counterplay).")
