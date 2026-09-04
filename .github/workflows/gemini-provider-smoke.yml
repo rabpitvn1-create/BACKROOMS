@@ -63,20 +63,58 @@ jobs:
           payload='{"contents":[{"parts":[{"text":"Return exactly one JSON object with ok=true."}]}],"generationConfig":{"responseMimeType":"application/json","maxOutputTokens":32,"thinkingConfig":{"thinkingLevel":"low"}}}'
           names=(GEMINI_API_KEY GEMINI_API_KEY_2 GEMINI_API_KEY_3 GEMINI_API_KEY_4 GEMINI_API_KEY_5 GEMINI_API_KEY_6)
           passed=0
+          max_attempts=3
+
           for index in "${!names[@]}"; do
             name="${names[$index]}"
             key="${!name:-}"
             [[ -n "$key" ]] || continue
-            code=$(curl --silent --show-error --output "/tmp/gemini-$index.json" --write-out '%{http_code}' \
-              --request POST "$endpoint" \
-              --header 'Content-Type: application/json' \
-              --header "x-goog-api-key: $key" \
-              --data "$payload")
-            if [[ ! "$code" =~ ^2 ]]; then
-              echo "Gemini credential K$((index + 1)) smoke failed with HTTP $code"
+
+            attempt=1
+            while true; do
+              output="/tmp/gemini-$index-$attempt.json"
+              if code=$(curl --silent --show-error \
+                --connect-timeout 8 \
+                --max-time 30 \
+                --output "$output" \
+                --write-out '%{http_code}' \
+                --request POST "$endpoint" \
+                --header 'Content-Type: application/json' \
+                --header "x-goog-api-key: $key" \
+                --data "$payload"); then
+                curl_status=0
+              else
+                curl_status=$?
+                code=000
+              fi
+
+              if [[ "$code" =~ ^2 ]]; then
+                passed=$((passed + 1))
+                echo "Gemini credential K$((index + 1)) live smoke passed on attempt $attempt"
+                break
+              fi
+
+              retryable=false
+              if [[ "$curl_status" -ne 0 ]]; then
+                retryable=true
+              elif [[ "$code" =~ ^(408|429|500|502|503|504)$ ]]; then
+                retryable=true
+              fi
+
+              if [[ "$retryable" == true && "$attempt" -lt "$max_attempts" ]]; then
+                echo "Gemini credential K$((index + 1)) transient smoke failure (HTTP $code, curl=$curl_status); retrying"
+                sleep $((attempt * 2))
+                attempt=$((attempt + 1))
+                continue
+              fi
+
+              if [[ "$curl_status" -ne 0 ]]; then
+                echo "Gemini credential K$((index + 1)) smoke failed with curl status $curl_status after $attempt attempt(s)"
+              else
+                echo "Gemini credential K$((index + 1)) smoke failed with HTTP $code after $attempt attempt(s)"
+              fi
               exit 1
-            fi
-            passed=$((passed + 1))
-            echo "Gemini credential K$((index + 1)) live smoke passed"
+            done
           done
+
           test "$passed" -ge 5 || (echo "Expected at least five active Gemini credentials, got $passed" && exit 1)
