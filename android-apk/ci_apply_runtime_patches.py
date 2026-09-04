@@ -100,6 +100,7 @@ SCRIPTS = [
     "patch-inventory-icons.py",
     "patch-issue311-debug-log-export.py",
     "patch-canon-audit-softlock-final.py",
+    "patch-skin-stealer-false-familiar.py",
 ]
 
 for required in (AUDIT_RUNNER, ORPHAN_AUDIT, COMPACT_VERIFY, ENCOUNTER_VERIFY):
