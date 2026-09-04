@@ -102,6 +102,7 @@ SCRIPTS = [
     "patch-canon-audit-softlock-final.py",
     "patch-hourly-character-auto-skill-syvial-01.py",
     "patch-hourly-entity-skill-clump-01.py",
+    "patch-hourly-character-auto-skill-lucia-01.py",
 ]
 
 for required in (AUDIT_RUNNER, ORPHAN_AUDIT, COMPACT_VERIFY, ENCOUNTER_VERIFY):
