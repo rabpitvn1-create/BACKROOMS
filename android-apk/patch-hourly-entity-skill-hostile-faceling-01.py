@@ -112,7 +112,7 @@ if 'hostileFacelingFalseApproachIsEntityTurnOnlyAccuracyPressureWithReadCounterp
     for (counter in 0..300) {
       var state = CombatRuntime.start(GameState.initial(), "hostile_faceling")
       state = state.copy(metadata = state.metadata + ("combat.eventCounter" to counter.toString()))
-      val result = CombatRuntime.resolve(state, "OTHER", "tiến lên quan sát hình người phía trước")
+      val result = CombatRuntime.resolve(state, "ATTACK", "Kai bắn Hostile Faceling")
       if (result.reply.contains("False Approach:")) {
         pressureResult = result
         break
