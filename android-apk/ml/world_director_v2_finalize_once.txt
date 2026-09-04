@@ -1,4 +1,0 @@
-WORLD_DIRECTOR_V2_FINALIZE_ONCE
-previous_recovery_failure=JSONDecodeError_on_48_state_batch
-micro_batch_size=10
-max_additional_effective_haku_budget_vnd=220
