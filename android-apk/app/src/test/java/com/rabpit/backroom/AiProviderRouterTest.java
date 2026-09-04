@@ -67,6 +67,35 @@ public class AiProviderRouterTest {
     );
   }
 
+  @Test public void malformedHakuResponseFallsBackToValidatedLunaResponse() throws Exception {
+    AtomicInteger haku = new AtomicInteger();
+    AtomicInteger luna = new AtomicInteger();
+    RecordingObserver observer = new RecordingObserver();
+
+    String result = AiProviderRouter.route(
+      "prompt",
+      prompt -> { haku.incrementAndGet(); return "plain prose, not JSON"; },
+      prompt -> { luna.incrementAndGet(); return "{\"reply\":\"ok\"}"; },
+      error -> true,
+      (provider, response) -> {
+        String text = response == null ? "" : response.trim();
+        if (!text.startsWith("{") || !text.endsWith("}")) {
+          throw new Exception("AI trả JSON không hợp lệ.");
+        }
+        return text;
+      },
+      observer
+    );
+
+    assertEquals("{\"reply\":\"ok\"}", result);
+    assertEquals(1, haku.get());
+    assertEquals(1, luna.get());
+    assertEquals(
+      List.of("selected:HAKU", "fallback:HAKU->LUNA", "selected:LUNA"),
+      observer.events
+    );
+  }
+
   @Test public void hakuAndLunaFailureReturnsControlledErrorWithoutGemini() throws Exception {
     AtomicInteger haku = new AtomicInteger();
     AtomicInteger luna = new AtomicInteger();
