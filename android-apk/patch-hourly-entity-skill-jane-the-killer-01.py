@@ -94,7 +94,7 @@ if 'janeVeiledAdvanceIsEntityTurnOnlyCoverPressureWithReadCounterplay' not in te
         "combat.eventCounter" to counter.toString(),
         "combat.cover" to "HARD"
       ))
-      val result = CombatRuntime.resolve(state, "OTHER", "giữ vị trí và quan sát lối đi")
+      val result = CombatRuntime.resolve(state, "GUARD", "giữ vật che chắn và khóa tư thế phòng thủ")
       if (result.reply.contains("Veiled Advance:")) {
         pressureResult = result
         break
