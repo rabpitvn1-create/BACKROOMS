@@ -51,6 +51,12 @@ jobs:
           test -s android-apk/ci_verify_runtime_contracts.py
           test -s android-apk/ci_verify_provider_routing.py
           test -s android-apk/ci_verify_packaged_apk.sh
+          test -s android-apk/INVENTORY_ICON_RULES.md
+          test -s android-apk/inventory_icon_manifest.json
+          test -s android-apk/generate_inventory_icons.py
+          test -s android-apk/patch-inventory-icons.py
+          test -s android-apk/ci_verify_inventory_icons.py
+          test -s android-apk/ci_verify_packaged_inventory_icons.py
           test -s android-apk/app/src/main/assets/auto-light-flicker.js
           test -s android-apk/test-auto-light-flicker.cjs
 
@@ -134,6 +140,24 @@ jobs:
             test -n "${!name:-}" || (echo "Missing GitHub Secret: $name" && exit 1)
           done
 
+      - name: Prepare inventory WebP encoder
+        run: |
+          set -euo pipefail
+          if command -v cwebp >/dev/null 2>&1; then
+            exit 0
+          fi
+          if command -v magick >/dev/null 2>&1 && magick -list format | grep -Eq '^[[:space:]]*WEBP'; then
+            exit 0
+          fi
+          if command -v convert >/dev/null 2>&1 && convert -list format | grep -Eq '^[[:space:]]*WEBP'; then
+            exit 0
+          fi
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends webp
+
+      - name: Generate deterministic inventory WebP icons
+        run: python3 android-apk/generate_inventory_icons.py
+
       - name: Apply Android runtime patch chain
         run: python3 android-apk/ci_apply_runtime_patches.py
 
@@ -142,6 +166,7 @@ jobs:
           set -euo pipefail
           python3 android-apk/ci_verify_runtime_contracts.py
           python3 android-apk/ci_verify_provider_routing.py
+          python3 android-apk/ci_verify_inventory_icons.py
           node --test android-apk/test-combat-overlay-feedback.cjs
           node --test android-apk/test-combat-action-protocol.cjs
           node --test android-apk/test-auto-light-flicker.cjs
@@ -170,7 +195,9 @@ jobs:
         run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.0.0.0.2-debug.apk
 
       - name: Verify packaged debug APK contracts
-        run: bash android-apk/ci_verify_packaged_apk.sh Backroom-1.0.0.0.2-debug.apk
+        run: |
+          bash android-apk/ci_verify_packaged_apk.sh Backroom-1.0.0.0.2-debug.apk
+          python3 android-apk/ci_verify_packaged_inventory_icons.py Backroom-1.0.0.0.2-debug.apk
 
       - name: Upload debug APK artifact
         uses: actions/upload-artifact@v4
@@ -232,4 +259,5 @@ jobs:
           actual=$(sha256sum release-check/Backroom-1.0.0.0.2-debug.apk | awk '{print $1}')
           test "$expected" = "$actual"
           bash android-apk/ci_verify_packaged_apk.sh release-check/Backroom-1.0.0.0.2-debug.apk
+          python3 android-apk/ci_verify_packaged_inventory_icons.py release-check/Backroom-1.0.0.0.2-debug.apk
           echo "Published release v1.0.0.0.2 verified with SHA-256 $actual"
