@@ -97,7 +97,7 @@ if 'slendermanSilentInterceptIsEntityTurnOnlyCoverPressureWithReadCounterplay' n
         "combat.eventCounter" to counter.toString(),
         "combat.cover" to "HARD"
       ))
-      val result = CombatRuntime.resolve(state, "GUARD", "giữ vị trí che chắn và theo dõi Slenderman")
+      val result = CombatRuntime.resolve(state, "GUARD", "giữ vững vị trí và phòng thủ")
       if (result.reply.contains("Silent Intercept:")) {
         pressureResult = result
         break
