@@ -95,6 +95,7 @@ SCRIPTS = [
     "patch-combat-presentation-authority-final.py",
     "patch-combat-summary-final.py",
     "patch-stun-expiry-character-shadow-final.py",
+    "patch-inventory-icons.py",
 ]
 
 for required in (AUDIT_RUNNER, ORPHAN_AUDIT, COMPACT_VERIFY):
