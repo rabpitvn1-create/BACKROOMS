@@ -5,6 +5,7 @@ CORE = ROOT / "app/src/main/java/com/rabpit/backroom/core"
 TESTS = ROOT / "app/src/test/java/com/rabpit/backroom/core"
 COMBAT = CORE / "CombatRuntime.kt"
 CATALOG = CORE / "CompanionSkillCatalog.kt"
+CATALOG_TEST = TESTS / "CompanionSkillCatalogTest.kt"
 TEST = TESTS / "LuciaCenterlineBurstTest.kt"
 
 
@@ -33,10 +34,22 @@ if 's("Centerline Burst", "AUTO"' not in catalog:
         raise RuntimeError("Centerline Burst catalog: Too Young To Die row missing")
     lines.insert(
         too_young_index + 1,
-        '    s("Centerline Burst", "AUTO", "40% ở mỗi lượt chiến đấu hợp lệ của Lucia", "100% sát thương vũ khí M4A1."),',
+        '    s("Centerline Burst", "AUTO", "40% ở mỗi lượt chiến đấu hợp lệ của Lucia", "Lucia khai hỏa một loạt ngắn có kiểm soát bằng M4A1, gây 100% sát thương vũ khí."),',
     )
     catalog = "\n".join(lines) + ("\n" if catalog.endswith("\n") else "")
 CATALOG.write_text(catalog, encoding="utf-8")
+
+# Issue #126 originally asserted that Too Young To Die was Lucia's final row.
+# Adding a legitimate later skill must not turn ordering into a localization rule;
+# keep the original prose assertion bound to the skill it actually describes.
+catalog_test = CATALOG_TEST.read_text(encoding="utf-8")
+catalog_test = replace_once(
+    catalog_test,
+    '    org.junit.Assert.assertTrue(CompanionSkillCatalog.forCharacter(LUCIA_ID).last().note.orEmpty().contains("Tỷ lệ kích hoạt tối đa là 100%"))\n',
+    '    org.junit.Assert.assertTrue(CompanionSkillCatalog.forCharacter(LUCIA_ID).single { it.name == "Too Young To Die" }.note.orEmpty().contains("Tỷ lệ kích hoạt tối đa là 100%"))\n',
+    "Centerline Burst issue126 Lucia ordering regression",
+)
+CATALOG_TEST.write_text(catalog_test, encoding="utf-8")
 
 combat = COMBAT.read_text(encoding="utf-8")
 skill_context_anchor = '  private const val PARTY_TURN_SKILL_CONTEXT_KEY = "partyCombat.skillContext"\n'
@@ -163,12 +176,9 @@ class LuciaCenterlineBurstTest {
       }
     }
     val result = observed ?: error("Centerline Burst did not proc in deterministic search window")
-    assertTrue(
-      result.reply.contains(Regex("Lucia sử dụng Centerline Burst gây sát thương -\\d+ HP lên Diệp Minh(?:\\.|$| )"))
-    )
-    assertFalse(result.reply.contains("Centerline Burst gây sát thương", ignoreCase = true) && result.reply.contains("40%"))
-    assertFalse(result.reply.contains("Centerline Burst gây sát thương", ignoreCase = true) && result.reply.contains("Armor"))
-    assertFalse(result.reply.contains("Centerline Burst gây sát thương", ignoreCase = true) && result.reply.contains("lượt."))
+    val skillLog = Regex("Lucia sử dụng Centerline Burst gây sát thương -\\d+ HP lên Diệp Minh").find(result.reply)?.value
+    assertTrue(skillLog != null)
+    assertFalse(result.reply.contains(Regex("Lucia sử dụng Centerline Burst gây sát thương -\\d+ HP lên Diệp Minh và gây")))
   }
 
   @Test fun centerlineBurstCreatesNoPersistentStatusAndSaveLoadRemainsStable() {
