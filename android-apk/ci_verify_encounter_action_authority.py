@@ -22,22 +22,26 @@ for marker in required:
     if marker not in text:
         raise SystemExit("encounter action authority missing: " + marker)
 
-# Companion first contact is deterministic story authority, not a random encounter roll.
+# Lucia first contact is deterministic story authority, not a random encounter roll.
 if 'thresholdRoll("luciaEncounter"' in text:
     raise SystemExit("Lucia first contact regressed to a random threshold roll")
 
-# Every remaining random *Encounter threshold in the generated Android bridge is an Entity
-# channel. Verify the final composed runtime, after all scaling/balance finalizers, rather than
-# pinning the test to a particular threshold expression that later patches may legitimately wrap.
+# The generated bridge also has a legacy/random follower roll named anNhienEncounter.
+# It is a companion channel, not an Entity channel, so do not apply Entity eligibility rules to it.
+NON_ENTITY_ENCOUNTERS = {"anNhienEncounter"}
+
+# Verify every remaining random Entity encounter threshold after the complete patch chain.
+# Later balance patches may wrap the threshold expression, but they must never bypass the
+# shared EXPLORE-only eligibility gate.
 encounter_calls = re.findall(
     r'thresholdRoll\("([^"]*Encounter)"[\s\S]*?\);',
     text,
 )
-if not encounter_calls:
+entity_labels = sorted(set(encounter_calls) - NON_ENTITY_ENCOUNTERS)
+if not entity_labels:
     raise SystemExit("no random Entity encounter threshold calls found")
 
-for label in sorted(set(encounter_calls)):
-    # Re-find each complete call so its eligibility expression can be inspected.
+for label in entity_labels:
     match = re.search(
         r'thresholdRoll\("' + re.escape(label) + r'"[\s\S]*?\);',
         text,
@@ -58,6 +62,6 @@ for marker in forbidden:
         raise SystemExit("unsafe all-action encounter authority survived: " + marker)
 
 print(
-    "Encounter action authority verified: all random Entity channels are EXPLORE-only; "
+    "Encounter action authority verified: random Entity channels are EXPLORE-only; "
     "dialogue/EXECUTE and SEARCH cannot spawn new Entities; Lucia first contact is story-owned."
 )
