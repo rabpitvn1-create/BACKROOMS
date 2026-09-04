@@ -85,15 +85,19 @@ assert "Return exactly one valid JSON object." in haku
 assert '.put("temperature", 0.2)' in haku
 assert '.put("max_tokens", 3200)' in haku
 
-# Foundation/provider diagnostics are bounded and secret-redacted by the debug exporter.
+# Foundation/provider diagnostics are bounded, structured and secret-redacted by the exporter.
 foundation = method_block(
     "  private String foundationPacket(JSONObject before, String action, JSONObject rolls, String role, String turnId) throws Exception "
 )
 assert 'emit("backroomFoundation", "active role=" + role + " slice=v1")' in foundation
-assert 'emit("backroomFoundation", "legacy-fallback role=" + role)' in foundation
+assert 'emit("backroomFoundation", "legacy-fallback role=" + role + "; phase=" + phase + "; reason="' in foundation
+assert "FoundationRuntime.lastFailure" in foundation
 assert 'emit("backroomProviderError", providerErrorSummary(provider, error))' in java
+assert 'diagnostic("GEMINI", "PROVIDER_RESPONSE", "FAILED_TRANSIENT"' in java
+assert 'diagnostic("AI_PROVIDER", phase, "FAILED"' in java
 assert '"backroomFoundation".equals(function)' in java
 assert "BuildConfig.GEMINI_API_KEY_6" in java
+assert "[ERROR_SUMMARY]" in java and "[ROOT_CAUSE]" in java and "[ERROR_TIMELINE]" in java
 
 # Audit/procedural compatibility helpers inherit the active high-priority router.
 audit = method_block("  private String geminiAuditText(String prompt, int excludedIndex) throws Exception ")
@@ -120,7 +124,8 @@ assert '"claude-haiku-4-5-20251001"' in java
 assert 'baseUrl + "/chat/completions"' in java
 assert '"patch-persistent-foundation-final.py"' in chain
 assert '"patch-gemini-foundation-authority-final.py"' in chain
-assert chain.index('"patch-persistent-foundation-final.py"') < chain.index('"patch-gemini-foundation-authority-final.py"')
+assert '"patch-issue330-runtime-diagnostics-final.py"' in chain
+assert chain.index('"patch-persistent-foundation-final.py"') < chain.index('"patch-gemini-foundation-authority-final.py"') < chain.index('"patch-issue330-runtime-diagnostics-final.py"')
 
 # Local/Core validation remains ahead of all network generation.
 submit_start = java.index("    @JavascriptInterface public void submitTurn(String stateJson, String action) {")
@@ -137,4 +142,4 @@ provider_calls = [
 assert provider_calls, "no provider call found after deterministic validation"
 assert local_call < handled < handled_return < min(provider_calls)
 
-print("Provider routing verified: Persistent Foundation -> GEMINI K1-K6 high priority -> HAKU -> LUNA -> controlled failure; per-attempt schema validation and sanitized diagnostics active.")
+print("Provider routing verified: Persistent Foundation -> GEMINI K1-K6 high priority -> HAKU -> LUNA -> controlled failure; per-attempt schema validation and structured diagnostics active.")
