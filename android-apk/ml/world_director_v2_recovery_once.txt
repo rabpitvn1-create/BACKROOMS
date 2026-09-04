@@ -1,0 +1,4 @@
+WORLD_DIRECTOR_V2_RECOVERY_ONCE
+reason=first_haku_v2_run_hit_github_timeout_before_final_flush
+max_additional_haku_budget_vnd=240
+safety_reserve_vnd=10
