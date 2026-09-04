@@ -7,9 +7,26 @@ import static org.junit.Assert.fail;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.json.JSONObject;
 import org.junit.Test;
 
 public class AiProviderRouterTest {
+  private static String validateModelJson(String response) throws Exception {
+    if (response == null) throw new Exception("AI không trả dữ liệu.");
+    String text = response.trim();
+    if (text.startsWith("```")) {
+      int firstNewline = text.indexOf('\n');
+      if (firstNewline >= 0) text = text.substring(firstNewline + 1);
+      int fence = text.lastIndexOf("```");
+      if (fence >= 0) text = text.substring(0, fence);
+      text = text.trim();
+    }
+    int start = text.indexOf('{');
+    int end = text.lastIndexOf('}');
+    if (start < 0 || end <= start) throw new Exception("AI trả JSON không hợp lệ.");
+    return new JSONObject(text.substring(start, end + 1)).toString();
+  }
+
   private static final class RecordingObserver implements AiProviderRouter.Observer {
     final List<String> events = new ArrayList<>();
 
@@ -22,7 +39,7 @@ public class AiProviderRouterTest {
     }
   }
 
-  @Test public void hakuSuccessDoesNotCallLunaOrGemini() throws Exception {
+  @Test public void validHakuJsonDoesNotCallLunaOrGemini() throws Exception {
     AtomicInteger haku = new AtomicInteger();
     AtomicInteger luna = new AtomicInteger();
     AtomicInteger gemini = new AtomicInteger();
@@ -30,13 +47,14 @@ public class AiProviderRouterTest {
 
     String result = AiProviderRouter.route(
       "prompt",
-      prompt -> { haku.incrementAndGet(); return "haku-result"; },
-      prompt -> { luna.incrementAndGet(); return "luna-result"; },
+      prompt -> { haku.incrementAndGet(); return "{\"reply\":\"haku-result\"}"; },
+      prompt -> { luna.incrementAndGet(); return "{\"reply\":\"luna-result\"}"; },
       error -> true,
+      (provider, response) -> validateModelJson(response),
       observer
     );
 
-    assertEquals("haku-result", result);
+    assertEquals("{\"reply\":\"haku-result\"}", result);
     assertEquals(1, haku.get());
     assertEquals(0, luna.get());
     assertEquals(0, gemini.get());
@@ -65,6 +83,73 @@ public class AiProviderRouterTest {
       List.of("selected:HAKU", "fallback:HAKU->LUNA", "selected:LUNA"),
       observer.events
     );
+  }
+
+  @Test public void malformedHakuResponseFallsBackToValidatedLunaResponse() throws Exception {
+    AtomicInteger haku = new AtomicInteger();
+    AtomicInteger luna = new AtomicInteger();
+    RecordingObserver observer = new RecordingObserver();
+
+    String result = AiProviderRouter.route(
+      "prompt",
+      prompt -> { haku.incrementAndGet(); return "plain prose, not JSON"; },
+      prompt -> { luna.incrementAndGet(); return "{\"reply\":\"ok\"}"; },
+      error -> true,
+      (provider, response) -> validateModelJson(response),
+      observer
+    );
+
+    assertEquals("{\"reply\":\"ok\"}", result);
+    assertEquals(1, haku.get());
+    assertEquals(1, luna.get());
+    assertEquals(
+      List.of("selected:HAKU", "fallback:HAKU->LUNA", "selected:LUNA"),
+      observer.events
+    );
+  }
+
+  @Test public void malformedHakuAndMalformedLunaReturnControlledFailure() throws Exception {
+    AtomicInteger haku = new AtomicInteger();
+    AtomicInteger luna = new AtomicInteger();
+    RecordingObserver observer = new RecordingObserver();
+
+    try {
+      AiProviderRouter.route(
+        "prompt",
+        prompt -> { haku.incrementAndGet(); return "plain Haku prose"; },
+        prompt -> { luna.incrementAndGet(); return "{malformed Luna JSON}"; },
+        error -> true,
+        (provider, response) -> validateModelJson(response),
+        observer
+      );
+      fail("Expected ProviderChainException");
+    } catch (AiProviderRouter.ProviderChainException error) {
+      assertEquals("AI provider chain failed: HAKU -> LUNA.", error.getMessage());
+      assertTrue(error.getCause() != null);
+    }
+
+    assertEquals(1, haku.get());
+    assertEquals(1, luna.get());
+    assertEquals(
+      List.of("selected:HAKU", "fallback:HAKU->LUNA", "selected:LUNA"),
+      observer.events
+    );
+  }
+
+  @Test public void emptyHakuResponseFallsBackToValidLunaJson() throws Exception {
+    AtomicInteger luna = new AtomicInteger();
+
+    String result = AiProviderRouter.route(
+      "prompt",
+      prompt -> "   ",
+      prompt -> { luna.incrementAndGet(); return "{\"reply\":\"luna-result\"}"; },
+      error -> true,
+      (provider, response) -> validateModelJson(response),
+      new RecordingObserver()
+    );
+
+    assertEquals("{\"reply\":\"luna-result\"}", result);
+    assertEquals(1, luna.get());
   }
 
   @Test public void hakuAndLunaFailureReturnsControlledErrorWithoutGemini() throws Exception {

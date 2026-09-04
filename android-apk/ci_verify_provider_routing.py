@@ -35,10 +35,16 @@ assert "AiProviderRouter.route(" in generate
 assert "this::hakuFallbackText" in generate
 assert "this::lunaText" in generate
 assert generate.index("this::hakuFallbackText") < generate.index("this::lunaText")
+assert "(provider, response) -> parseModelJson(response).toString()" in generate
+assert generate.index("this::providerFallbackEligible") < generate.index("parseModelJson(response)")
 assert "geminiText(" not in generate
 assert "geminiKeyFallbackText(" not in generate
 assert '"AI provider selected: " + provider' in generate
 assert 'fromProvider + " failed; fallback to " + toProvider' in generate
+
+# A malformed successful HTTP response must fail inside the provider route so Haku
+# can fall through to Luna instead of escaping later from parseModelJson().
+assert "AI trả JSON không hợp lệ." in java
 
 # Audit and procedural helpers must route through the same policy, never Gemini.
 audit = method_block("  private String geminiAuditText(String prompt, int excludedIndex) throws Exception ")
@@ -85,4 +91,4 @@ handled_return = submit.index("return;", handled)
 first_provider = submit.index("generateText(", handled_return)
 assert local_call < handled < handled_return < first_provider
 
-print("Provider routing verified: HAKU -> LUNA -> controlled failure; Gemini locked; validation precedes provider calls.")
+print("Provider routing verified: HAKU -> LUNA -> controlled failure; malformed provider JSON falls back; Gemini locked; validation precedes provider calls.")
