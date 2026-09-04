@@ -6,6 +6,7 @@ ROOT = Path(__file__).resolve().parent
 AUDIT_RUNNER = ROOT / "ci_patch_audit_runner.py"
 ORPHAN_AUDIT = ROOT / "ci_patch_orphan_audit.py"
 COMPACT_VERIFY = ROOT / "ci_verify_compact_combat_summary.py"
+ENCOUNTER_VERIFY = ROOT / "ci_verify_encounter_action_authority.py"
 
 SCRIPTS = [
     "patch-provider-status.py",
@@ -91,6 +92,7 @@ SCRIPTS = [
     "patch-entity-encounter-narrative-authority-final.py",
     "patch-readable-gm-evidence.py",
     "patch-provider-haku-luna-lock-gemini-final.py",
+    "patch-haku-json-reliability-final.py",
     "patch-auto-light-flicker.py",
     "patch-combat-presentation-authority-final.py",
     "patch-combat-summary-final.py",
@@ -98,7 +100,7 @@ SCRIPTS = [
     "patch-inventory-icons.py",
 ]
 
-for required in (AUDIT_RUNNER, ORPHAN_AUDIT, COMPACT_VERIFY):
+for required in (AUDIT_RUNNER, ORPHAN_AUDIT, COMPACT_VERIFY, ENCOUNTER_VERIFY):
     if not required.is_file():
         raise SystemExit(f"Missing runtime patch audit tool: {required.name}")
 
@@ -116,3 +118,4 @@ for script in SCRIPTS:
     )
 
 subprocess.run([sys.executable, str(COMPACT_VERIFY)], cwd=ROOT.parent, check=True)
+subprocess.run([sys.executable, str(ENCOUNTER_VERIFY)], cwd=ROOT.parent, check=True)

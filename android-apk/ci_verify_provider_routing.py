@@ -46,6 +46,19 @@ assert 'fromProvider + " failed; fallback to " + toProvider' in generate
 # can fall through to Luna instead of escaping later from parseModelJson().
 assert "AI trả JSON không hợp lệ." in java
 
+# HAKU primary should be configured to produce parseable JSON directly, not merely
+# rely on Luna after a malformed/truncated completion.
+haku = method_block("  private String hakuFallbackText(String prompt) throws Exception ")
+assert '"role", "system"' in haku
+assert "Return exactly one valid JSON object." in haku
+assert '.put("temperature", 0.2)' in haku
+assert '.put("max_tokens", 3200)' in haku
+assert '.put("temperature", 0.75)' not in haku
+assert '.put("max_tokens", 1800)' not in haku
+haku_post = method_block("  private String postJsonHakuFallback(JSONObject payload) throws Exception ")
+assert "connection.setReadTimeout(30000);" in haku_post
+assert "connection.setReadTimeout(22000);" not in haku_post
+
 # Audit and procedural helpers must route through the same policy, never Gemini.
 audit = method_block("  private String geminiAuditText(String prompt, int excludedIndex) throws Exception ")
 assert "return generateText(prompt);" in audit
@@ -79,6 +92,7 @@ for marker in [
 assert '"claude-haiku-4-5-20251001"' in java
 assert 'baseUrl + "/chat/completions"' in java
 assert '"patch-provider-haku-luna-lock-gemini-final.py"' in chain
+assert '"patch-haku-json-reliability-final.py"' in chain
 
 # Local/Core validation remains in front of provider generation. A handled rejection
 # returns before any provider request, so invalid deterministic actions cannot consume AI.
@@ -91,4 +105,4 @@ handled_return = submit.index("return;", handled)
 first_provider = submit.index("generateText(", handled_return)
 assert local_call < handled < handled_return < first_provider
 
-print("Provider routing verified: HAKU -> LUNA -> controlled failure; malformed provider JSON falls back; Gemini locked; validation precedes provider calls.")
+print("Provider routing verified: HAKU -> LUNA -> controlled failure; HAKU strict JSON reliability contract active; malformed provider JSON falls back; Gemini locked; validation precedes provider calls.")
