@@ -10,9 +10,11 @@ on:
       - "android-apk/ml/simulate_world_director_v2_trajectories.py"
       - "android-apk/ml/test_world_director_v2_features.py"
       - "android-apk/ml/haku_world_director_v2_teacher.py"
+      - "android-apk/ml/expand_world_director_v2_gemini_labels.py"
       - "android-apk/ml/build_world_director_v2_multiteacher_dataset.py"
       - "android-apk/ml/train_world_director_v2_candidate.py"
-      - "android-apk/ml/world_director_v2_gemini_labels.jsonl"
+      - "android-apk/ml/run_world_director_v2_candidate.py"
+      - "android-apk/ml/world_director_v2_gemini_labels.csv.gz.b64"
 
 permissions:
   contents: read
@@ -48,14 +50,29 @@ jobs:
         run: |
           set -euo pipefail
           test -n "${HAKU_API_KEY:-}" || (echo "Missing GitHub Secret: HAKU_API_KEY" && exit 1)
-          test -s work/android-apk/ml/world_director_v2_gemini_labels.jsonl || (echo "Missing Gemini V2 label pack" && exit 1)
+          test -s work/android-apk/ml/world_director_v2_gemini_labels.csv.gz.b64 || (echo "Missing compact Gemini V2 label pack" && exit 1)
+          python - <<'PY'
+          import base64, csv, gzip, pathlib
+          source = pathlib.Path('work/android-apk/ml/world_director_v2_gemini_labels.csv.gz.b64')
+          target = pathlib.Path('work/android-apk/ml/world_director_v2_gemini_labels.csv')
+          target.write_bytes(gzip.decompress(base64.b64decode(source.read_text(encoding='utf-8').strip())))
+          with target.open(encoding='utf-8', newline='') as handle:
+              reader = csv.DictReader(handle)
+              rows = list(reader)
+          assert reader.fieldnames == ['sampleId', 'proposal', 'confidence', 'reasonCode'], reader.fieldnames
+          assert len(rows) == 647, len(rows)
+          assert len({row['sampleId'] for row in rows}) == 647
+          print('Compact Gemini V2 pack decoded: 647 unique labels')
+          PY
           python -m py_compile \
             work/android-apk/ml/simulate_world_director_trajectories.py \
             work/android-apk/ml/simulate_world_director_v2_trajectories.py \
             work/android-apk/ml/test_world_director_v2_features.py \
             work/android-apk/ml/haku_world_director_v2_teacher.py \
+            work/android-apk/ml/expand_world_director_v2_gemini_labels.py \
             work/android-apk/ml/build_world_director_v2_multiteacher_dataset.py \
-            work/android-apk/ml/train_world_director_v2_candidate.py
+            work/android-apk/ml/train_world_director_v2_candidate.py \
+            work/android-apk/ml/run_world_director_v2_candidate.py
           cd work/android-apk/ml
           python -m unittest -v test_world_director_v2_features.py
           cd "$GITHUB_WORKSPACE"
@@ -76,12 +93,44 @@ jobs:
             --output "$GITHUB_WORKSPACE/world-director-v2-snapshots.jsonl" \
             --report "$GITHUB_WORKSPACE/world-director-v2-snapshot-report.json"
 
+      - name: Reconstruct and verify Gemini V2 labels
+        run: |
+          set -euo pipefail
+          python work/android-apk/ml/expand_world_director_v2_gemini_labels.py \
+            --contexts world-director-v2-snapshots.jsonl \
+            --labels work/android-apk/ml/world_director_v2_gemini_labels.csv \
+            --output world-director-v2-gemini-expanded.jsonl \
+            --report world-director-v2-gemini-expanded-report.json
+          python - <<'PY'
+          import json
+          report = json.load(open('world-director-v2-gemini-expanded-report.json', encoding='utf-8'))
+          assert report['labels'] == 647, report
+          assert report['allIdsReproduced'] is True, report
+          PY
+
+      - name: Install LiteRT training dependencies before paid teacher
+        run: |
+          set -euo pipefail
+          python -m pip install --requirement work/android-apk/ml/requirements.txt
+          PYTHONPATH=work/android-apk/ml python - <<'PY'
+          import run_world_director_v2_candidate as runner
+          rows = [
+              {'text': 'probe_none', 'intent': 'NONE'},
+              {'text': 'probe_maze', 'intent': 'MAZE_PRESSURE'},
+              {'text': 'probe_entity', 'intent': 'ENTITY_PRESSURE'},
+              {'text': 'probe_item', 'intent': 'ITEM_OPPORTUNITY'},
+          ]
+          model = runner.compatible_fit(rows, 16384)
+          assert set(model.classes_) == {'NONE', 'MAZE_PRESSURE', 'ENTITY_PRESSURE', 'ITEM_OPPORTUNITY'}
+          print('scikit-learn V2 estimator compatibility smoke passed')
+          PY
+
       - name: Label V2 contexts with budget-capped Haku
         run: |
           set -euo pipefail
           python work/android-apk/ml/haku_world_director_v2_teacher.py \
             --input world-director-v2-snapshots.jsonl \
-            --gemini-labels work/android-apk/ml/world_director_v2_gemini_labels.jsonl \
+            --gemini-labels world-director-v2-gemini-expanded.jsonl \
             --output world-director-v2-haku-labels.jsonl \
             --report world-director-v2-haku-report.json \
             --model claude-haiku-4-5-20251001 \
@@ -96,7 +145,7 @@ jobs:
         run: |
           set -euo pipefail
           python work/android-apk/ml/build_world_director_v2_multiteacher_dataset.py \
-            --gemini work/android-apk/ml/world_director_v2_gemini_labels.jsonl \
+            --gemini world-director-v2-gemini-expanded.jsonl \
             --haku world-director-v2-haku-labels.jsonl \
             --output world-director-v2-multiteacher-dataset.csv \
             --report world-director-v2-multiteacher-dataset-report.json
@@ -105,13 +154,12 @@ jobs:
         working-directory: work/android-apk/ml
         run: python build_director_dataset.py
 
-      - name: Install LiteRT training dependencies
-        run: python -m pip install --requirement work/android-apk/ml/requirements.txt
-
       - name: Train and export artifact-only V2 LiteRT candidate
+        env:
+          PYTHONPATH: work/android-apk/ml
         run: |
           set -euo pipefail
-          python work/android-apk/ml/train_world_director_v2_candidate.py \
+          python work/android-apk/ml/run_world_director_v2_candidate.py \
             --teacher-dataset world-director-v2-multiteacher-dataset.csv \
             --seed-dataset work/android-apk/ml/director_dataset.csv \
             --output world-director-v2-candidate.tflite \
@@ -141,6 +189,7 @@ jobs:
           lines = ['## WorldDirector V2 multi-teacher distillation']
           for path, title in [
               ('world-director-v2-snapshot-report.json', 'Context universe'),
+              ('world-director-v2-gemini-expanded-report.json', 'Gemini reconstruction'),
               ('world-director-v2-haku-report.json', 'Haku'),
               ('world-director-v2-multiteacher-dataset-report.json', 'Consensus'),
               ('world-director-v2-candidate-report.json', 'Candidate'),
@@ -161,6 +210,7 @@ jobs:
           name: world-director-v2-multiteacher-candidate
           path: |
             world-director-v2-snapshot-report.json
+            world-director-v2-gemini-expanded-report.json
             world-director-v2-haku-labels.jsonl
             world-director-v2-haku-report.json
             world-director-v2-multiteacher-dataset.csv
