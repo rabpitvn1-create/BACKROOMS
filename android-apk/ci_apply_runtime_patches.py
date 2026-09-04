@@ -99,6 +99,7 @@ SCRIPTS = [
     "patch-stun-expiry-character-shadow-final.py",
     "patch-inventory-icons.py",
     "patch-issue311-debug-log-export.py",
+    "patch-skin-stealer-false-familiar.py",
 ]
 
 for required in (AUDIT_RUNNER, ORPHAN_AUDIT, COMPACT_VERIFY, ENCOUNTER_VERIFY):
