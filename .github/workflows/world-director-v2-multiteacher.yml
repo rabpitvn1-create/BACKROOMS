@@ -1,0 +1,171 @@
+name: WorldDirector V2 Gemini Haku Distillation
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened]
+    branches: [main]
+    paths:
+      - ".github/workflows/world-director-v2-multiteacher.yml"
+      - "android-apk/ml/simulate_world_director_v2_trajectories.py"
+      - "android-apk/ml/test_world_director_v2_features.py"
+      - "android-apk/ml/haku_world_director_v2_teacher.py"
+      - "android-apk/ml/build_world_director_v2_multiteacher_dataset.py"
+      - "android-apk/ml/train_world_director_v2_candidate.py"
+      - "android-apk/ml/world_director_v2_gemini_labels.jsonl"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: world-director-v2-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  train-candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      HAKU_API_KEY: ${{ secrets.HAKU_API_KEY }}
+      # Remaining from the previously authorized 4,103 VND ceiling after the V1 paid run.
+      HAKU_V2_BUDGET_VND: "3945"
+      HAKU_V2_SAFETY_RESERVE_VND: "250"
+
+    steps:
+      - name: Checkout candidate branch
+        uses: actions/checkout@v4
+        with:
+          path: work
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: work/android-apk/ml/requirements.txt
+
+      - name: Preflight V2 contract and provider boundaries
+        run: |
+          set -euo pipefail
+          test -n "${HAKU_API_KEY:-}" || (echo "Missing GitHub Secret: HAKU_API_KEY" && exit 1)
+          test -s work/android-apk/ml/world_director_v2_gemini_labels.jsonl || (echo "Missing Gemini V2 label pack" && exit 1)
+          python -m py_compile \
+            work/android-apk/ml/simulate_world_director_trajectories.py \
+            work/android-apk/ml/simulate_world_director_v2_trajectories.py \
+            work/android-apk/ml/test_world_director_v2_features.py \
+            work/android-apk/ml/haku_world_director_v2_teacher.py \
+            work/android-apk/ml/build_world_director_v2_multiteacher_dataset.py \
+            work/android-apk/ml/train_world_director_v2_candidate.py
+          cd work/android-apk/ml
+          python -m unittest -v test_world_director_v2_features.py
+          cd "$GITHUB_WORKSPACE"
+          python work/android-apk/ci_apply_runtime_patches.py
+          python work/android-apk/ci_verify_provider_routing.py
+
+      - name: Generate deterministic V2 context universe
+        run: |
+          set -euo pipefail
+          cd work/android-apk/ml
+          python simulate_world_director_v2_trajectories.py \
+            --levels ../app/src/main/assets/levels \
+            --runs 960 \
+            --turns 120 \
+            --history 16 \
+            --history-positions 4 \
+            --seed 2299 \
+            --output "$GITHUB_WORKSPACE/world-director-v2-snapshots.jsonl" \
+            --report "$GITHUB_WORKSPACE/world-director-v2-snapshot-report.json"
+
+      - name: Label V2 contexts with budget-capped Haku
+        run: |
+          set -euo pipefail
+          python work/android-apk/ml/haku_world_director_v2_teacher.py \
+            --input world-director-v2-snapshots.jsonl \
+            --gemini-labels work/android-apk/ml/world_director_v2_gemini_labels.jsonl \
+            --output world-director-v2-haku-labels.jsonl \
+            --report world-director-v2-haku-report.json \
+            --model claude-haiku-4-5-20251001 \
+            --batch-size 32 \
+            --max-unique 8192 \
+            --max-output-tokens 1900 \
+            --budget-vnd "$HAKU_V2_BUDGET_VND" \
+            --safety-reserve-vnd "$HAKU_V2_SAFETY_RESERVE_VND" \
+            --max-requests 240
+
+      - name: Build conservative Gemini Haku consensus dataset
+        run: |
+          set -euo pipefail
+          python work/android-apk/ml/build_world_director_v2_multiteacher_dataset.py \
+            --gemini work/android-apk/ml/world_director_v2_gemini_labels.jsonl \
+            --haku world-director-v2-haku-labels.jsonl \
+            --output world-director-v2-multiteacher-dataset.csv \
+            --report world-director-v2-multiteacher-dataset-report.json
+
+      - name: Build deterministic V1 seed anchor
+        working-directory: work/android-apk/ml
+        run: python build_director_dataset.py
+
+      - name: Install LiteRT training dependencies
+        run: python -m pip install --requirement work/android-apk/ml/requirements.txt
+
+      - name: Train and export artifact-only V2 LiteRT candidate
+        run: |
+          set -euo pipefail
+          python work/android-apk/ml/train_world_director_v2_candidate.py \
+            --teacher-dataset world-director-v2-multiteacher-dataset.csv \
+            --seed-dataset work/android-apk/ml/director_dataset.csv \
+            --output world-director-v2-candidate.tflite \
+            --report world-director-v2-candidate-report.json
+          test -s world-director-v2-candidate.tflite
+          bytes=$(stat -c%s world-director-v2-candidate.tflite)
+          test "$bytes" -le 5242880 || (echo "V2 candidate exceeds current artifact gate: $bytes" && exit 1)
+
+      - name: Verify production model remains untouched
+        run: |
+          set -euo pipefail
+          test ! -e work/android-apk/app/src/main/assets/models/backrooms_director.tflite
+          git -C work diff --exit-code -- android-apk/app/src/main/assets/models
+          python - <<'PY'
+          import json
+          report = json.load(open('world-director-v2-candidate-report.json', encoding='utf-8'))
+          assert report.get('productionAssetModified') is False
+          assert report.get('featureCount') == 16384
+          PY
+
+      - name: Summarize V2 training
+        if: always()
+        run: |
+          python - <<'PY'
+          import json, pathlib, os
+          out = pathlib.Path(os.environ['GITHUB_STEP_SUMMARY'])
+          lines = ['## WorldDirector V2 multi-teacher distillation']
+          for path, title in [
+              ('world-director-v2-snapshot-report.json', 'Context universe'),
+              ('world-director-v2-haku-report.json', 'Haku'),
+              ('world-director-v2-multiteacher-dataset-report.json', 'Consensus'),
+              ('world-director-v2-candidate-report.json', 'Candidate'),
+          ]:
+              p = pathlib.Path(path)
+              if p.exists():
+                  lines.append(f'### {title}')
+                  lines.append('```json')
+                  lines.append(json.dumps(json.loads(p.read_text()), ensure_ascii=False, indent=2)[:12000])
+                  lines.append('```')
+          out.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+          PY
+
+      - name: Upload V2 distillation artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: world-director-v2-multiteacher-candidate
+          path: |
+            world-director-v2-snapshot-report.json
+            world-director-v2-haku-labels.jsonl
+            world-director-v2-haku-report.json
+            world-director-v2-multiteacher-dataset.csv
+            world-director-v2-multiteacher-dataset-report.json
+            world-director-v2-candidate.tflite
+            world-director-v2-candidate-report.json
+          if-no-files-found: warn
+          retention-days: 30
