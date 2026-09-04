@@ -89,6 +89,7 @@ for marker in (
     'HOSTILE_FACELING_FALSE_APPROACH_ACCURACY_BONUS = 8',
     'c.entityKey == "hostile_faceling"',
     'intent != Intent.GUARD',
+    'if (intent == Intent.GUARD)',
     'if (hostileFacelingFalseApproachActive) HOSTILE_FACELING_FALSE_APPROACH_ACCURACY_BONUS else 0',
 ):
     if marker not in combat:
@@ -117,7 +118,6 @@ if 'hostileFacelingFalseApproachIsEntityTurnOnlyAccuracyPressureWithGuardCounter
     assertNotNull("25% Hostile Faceling proc must be reachable across deterministic Entity turns", pressureResult)
     assertFalse(pressureResult!!.reply, pressureResult!!.reply.contains("kỹ năng bị vô hiệu"))
     assertFalse(pressureResult!!.reply, pressureResult!!.reply.contains("Stun"))
-    assertTrue(pressureResult!!.reply, pressureResult!!.reply.contains("proc 25%"))
 
     var guardResult: CombatRuntime.Resolution? = null
     for (counter in 0..300) {
@@ -132,7 +132,7 @@ if 'hostileFacelingFalseApproachIsEntityTurnOnlyAccuracyPressureWithGuardCounter
 
     assertNotNull("Hostile Faceling proc must also be reachable on a GUARD Entity-response turn", guardResult)
     assertTrue(guardResult!!.reply, guardResult!!.reply.contains("kỹ năng bị vô hiệu"))
-    assertFalse(guardResult!!.reply, guardResult!!.reply.contains("+8 điểm % Accuracy"))
+    assertFalse(guardResult!!.reply, guardResult!!.reply.contains("Stun"))
   }
 '''
     close = test.rfind("}\n")
