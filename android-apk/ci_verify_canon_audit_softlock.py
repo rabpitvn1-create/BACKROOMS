@@ -22,9 +22,9 @@ for marker in required:
 blocking_start = java.index("  private boolean auditRuleCanBlock(String rule) {")
 blocking_end = java.index("  private JSONArray blockingAuditIssues", blocking_start)
 blocking_rule = java[blocking_start:blocking_end]
-for marker in ("canon_conflict", "knowledge_leak", "state_narrative_mismatch"):
+for marker in ("canon_conflict", "knowledge_leak", "state_narrative_mismatch", "competence_suppression", "ability_overreach"):
     assert marker in blocking_rule, marker
-for forbidden in ("unsupported_claim", "character_voice"):
+for forbidden in ("unsupported_claim", "character_voice", "address_error"):
     assert forbidden not in blocking_rule, forbidden
 
 assert 'throw new Exception("Lượt chơi không vượt qua kiểm tra canon; state không được thay đổi.");' not in java
