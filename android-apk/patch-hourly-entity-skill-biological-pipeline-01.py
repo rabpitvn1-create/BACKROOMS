@@ -26,8 +26,8 @@ def replace_once(source: str, old: str, new: str, label: str) -> str:
 # without inventing mobility, ranged damage, or hard crowd control.
 #
 # Balance: 21% per Biological Pipeline Entity turn. No direct damage, no Stun, no
-# Cover loss and no persistent stack. On proc it removes only 6 Escape progress and
-# one Opening. EVADE fully counters the constriction by abandoning the closing route.
+# Cover loss and no persistent stack. On proc it removes only 6 Escape progress.
+# EVADE fully counters the constriction by abandoning the closing route.
 combat = COMBAT.read_text(encoding="utf-8")
 
 constant_anchor = '  private const val PARTY_TURN_SKILL_CONTEXT_KEY = "partyCombat.skillContext"\n'
@@ -51,12 +51,10 @@ response_block = response_anchor + '''
           log += "Route Constriction: proc ${BIOLOGICAL_PIPELINE_ROUTE_CONSTRICTION_PROC_PERCENT}% nhưng Party bỏ tuyến đang khép và đổi góc né; kỹ năng bị vô hiệu."
         } else {
           val escapeBefore = c.escapeProgress
-          val openingBefore = c.opening
           c = c.copy(
-            escapeProgress = max(0, escapeBefore - BIOLOGICAL_PIPELINE_ROUTE_CONSTRICTION_ESCAPE_LOSS),
-            opening = max(0, openingBefore - 1)
+            escapeProgress = max(0, escapeBefore - BIOLOGICAL_PIPELINE_ROUTE_CONSTRICTION_ESCAPE_LOSS)
           )
-          log += "Route Constriction: Biological Pipeline đổi hướng đường ống quanh lối rút; proc ${BIOLOGICAL_PIPELINE_ROUTE_CONSTRICTION_PROC_PERCENT}%, Escape ${escapeBefore} -> ${c.escapeProgress}, Opening ${openingBefore} -> ${c.opening}."
+          log += "Route Constriction: Biological Pipeline đổi hướng đường ống quanh lối rút; proc ${BIOLOGICAL_PIPELINE_ROUTE_CONSTRICTION_PROC_PERCENT}%, Escape ${escapeBefore} -> ${c.escapeProgress}."
         }
       }
 '''
@@ -75,7 +73,6 @@ for marker in (
     'c.entityKey == "biological_pipeline"',
     'intent == Intent.EVADE',
     'escapeProgress = max(0, escapeBefore - BIOLOGICAL_PIPELINE_ROUTE_CONSTRICTION_ESCAPE_LOSS)',
-    'opening = max(0, openingBefore - 1)',
 ):
     if marker not in combat:
         raise RuntimeError("Biological Pipeline Route Constriction runtime contract missing: " + marker)
@@ -94,8 +91,7 @@ if 'biologicalPipelineRouteConstrictionIsEntityTurnOnlyPressureWithEvadeCounterp
       var state = CombatRuntime.start(GameState.initial(), "biological_pipeline")
       state = state.copy(metadata = state.metadata + mapOf(
         "combat.eventCounter" to counter.toString(),
-        "combat.escapeProgress" to "40",
-        "combat.opening" to "2"
+        "combat.escapeProgress" to "40"
       ))
       val result = CombatRuntime.resolve(state, "OTHER", "giữ tuyến và quan sát đường ống")
       if (result.reply.contains("Route Constriction:")) {
@@ -106,22 +102,18 @@ if 'biologicalPipelineRouteConstrictionIsEntityTurnOnlyPressureWithEvadeCounterp
 
     assertNotNull("21% Biological Pipeline proc must be reachable across deterministic Entity turns", pressureResult)
     assertFalse(pressureResult!!.reply, pressureResult!!.reply.contains("kỹ năng bị vô hiệu"))
-    assertFalse(pressureResult!!.reply, pressureResult!!.reply.contains("Stun"))
     assertTrue(pressureResult!!.reply, pressureResult!!.reply.contains("Escape 40 -> 34"))
-    assertTrue(pressureResult!!.reply, pressureResult!!.reply.contains("Opening 2 -> 1"))
-    val pressured = CombatRuntime.active(pressureResult!!.state)!!
-    assertEquals(34, pressured.escapeProgress)
-    assertEquals(1, pressured.opening)
+    assertFalse(pressureResult!!.reply, pressureResult!!.reply.contains("Stun"))
+    assertEquals(34, CombatRuntime.active(pressureResult!!.state)!!.escapeProgress)
 
     var evadeResult: CombatRuntime.Resolution? = null
     for (counter in 0..300) {
       var state = CombatRuntime.start(GameState.initial(), "biological_pipeline")
       state = state.copy(metadata = state.metadata + mapOf(
         "combat.eventCounter" to counter.toString(),
-        "combat.escapeProgress" to "40",
-        "combat.opening" to "2"
+        "combat.escapeProgress" to "40"
       ))
-      val result = CombatRuntime.resolve(state, "EVADE", "né khỏi tuyến đang khép và đổi góc")
+      val result = CombatRuntime.resolve(state, "EVADE", "né khỏi tuyến đang khép và đổi góc di chuyển")
       if (result.reply.contains("Route Constriction:")) {
         evadeResult = result
         break
@@ -131,8 +123,7 @@ if 'biologicalPipelineRouteConstrictionIsEntityTurnOnlyPressureWithEvadeCounterp
     assertNotNull("Biological Pipeline proc must also be reachable on an EVADE Entity-response turn", evadeResult)
     assertTrue(evadeResult!!.reply, evadeResult!!.reply.contains("kỹ năng bị vô hiệu"))
     assertFalse(evadeResult!!.reply, evadeResult!!.reply.contains("Escape 40 -> 34"))
-    assertFalse(evadeResult!!.reply, evadeResult!!.reply.contains("Stun"))
-    assertTrue(CombatRuntime.active(evadeResult!!.state)!!.escapeProgress >= 40)
+    assertTrue(CombatRuntime.active(evadeResult!!.state)!!.escapeProgress >= 50)
   }
 '''
     close = test.rfind("}\n")
