@@ -26,8 +26,8 @@ def replace_once(source: str, old: str, new: str, label: str) -> str:
 #
 # Balance: 25% per Hostile Faceling Entity turn, no bonus damage, no Stun, no forced
 # escape loss, and no persistence across turns. On proc, direct Entity actions gain
-# only +8 percentage points Accuracy for that turn. READ fully counters the feint by
-# explicitly studying the Entity's telegraph instead of trusting its gait.
+# only +8 percentage points Accuracy for that turn. GUARD fully counters the feint by
+# holding formation and denying the deceptive approach opening.
 combat = COMBAT.read_text(encoding="utf-8")
 
 constant_anchor = '  internal const val DULLER_STILLFRAME_LUNGE_PROC_PERCENT = 23\n  private const val DULLER_STILLFRAME_LUNGE_ACCURACY_BONUS = 10\n'
@@ -42,18 +42,15 @@ if 'HOSTILE_FACELING_FALSE_APPROACH_PROC_PERCENT = 25' not in combat:
         "Hostile Faceling False Approach constants",
     )
 
-# The final interleaved Party combat runtime no longer contains the legacy
-# "Enemy response" comment. Anchor to the stable Entity-response action-budget
-# line used by the immediately preceding Duller hourly skill patch instead.
 response_anchor = '      log += "ENTITY ACTION BUDGET: ${c.entityName} = ${entityDirectTargets.size}; one direct action per completed Party actor turn."\n'
 response_block = response_anchor + '''
       // HOSTILE_FACELING_FALSE_APPROACH_V1: exactly one proc check on Hostile Faceling's Entity response turn.
       val hostileFacelingFalseApproachProc = c.entityKey == "hostile_faceling" &&
         roll(c.copy(eventCounter = c.eventCounter + 2137), 100) < HOSTILE_FACELING_FALSE_APPROACH_PROC_PERCENT
-      val hostileFacelingFalseApproachActive = hostileFacelingFalseApproachProc && intent != Intent.READ
+      val hostileFacelingFalseApproachActive = hostileFacelingFalseApproachProc && intent != Intent.GUARD
       if (hostileFacelingFalseApproachProc) {
-        if (intent == Intent.READ) {
-          log += "False Approach: proc ${HOSTILE_FACELING_FALSE_APPROACH_PROC_PERCENT}% nhưng Party chủ động đọc telegraph và nhận ra dáng người giả; kỹ năng bị vô hiệu."
+        if (intent == Intent.GUARD) {
+          log += "False Approach: proc ${HOSTILE_FACELING_FALSE_APPROACH_PROC_PERCENT}% nhưng Party giữ đội hình và khoảng cách; kỹ năng bị vô hiệu."
         } else {
           log += "False Approach: Hostile Faceling bắt chước dáng người vô hại rồi đổi nhịp áp sát; proc ${HOSTILE_FACELING_FALSE_APPROACH_PROC_PERCENT}%, +$HOSTILE_FACELING_FALSE_APPROACH_ACCURACY_BONUS điểm % Accuracy trong Entity turn này."
         }
@@ -67,8 +64,6 @@ if 'HOSTILE_FACELING_FALSE_APPROACH_V1' not in combat:
         "Hostile Faceling False Approach Entity-turn proc",
     )
 
-# Duller runs immediately before this patch and has already extended the final
-# direct-Entity-action accuracy accumulator. Append our bounded turn-local bonus.
 accuracy_old = '''        val killerAccuracyBonus =
           (if (hunterMarked) JANE_HUNTER_MARK_ACCURACY_BONUS else 0) +
           (if (jeffSilentStalker && entityTargets.size == 1) JEFF_SILENT_STALKER_SOLO_ACCURACY_BONUS else 0) +
@@ -93,7 +88,7 @@ for marker in (
     'HOSTILE_FACELING_FALSE_APPROACH_PROC_PERCENT = 25',
     'HOSTILE_FACELING_FALSE_APPROACH_ACCURACY_BONUS = 8',
     'c.entityKey == "hostile_faceling"',
-    'intent != Intent.READ',
+    'intent != Intent.GUARD',
     'if (hostileFacelingFalseApproachActive) HOSTILE_FACELING_FALSE_APPROACH_ACCURACY_BONUS else 0',
 ):
     if marker not in combat:
@@ -103,9 +98,9 @@ COMBAT.write_text(combat, encoding="utf-8")
 
 
 test = TEST.read_text(encoding="utf-8")
-if 'hostileFacelingFalseApproachIsEntityTurnOnlyAccuracyPressureWithReadCounterplay' not in test:
+if 'hostileFacelingFalseApproachIsEntityTurnOnlyAccuracyPressureWithGuardCounterplay' not in test:
     tests = r'''
-  @Test fun hostileFacelingFalseApproachIsEntityTurnOnlyAccuracyPressureWithReadCounterplay() {
+  @Test fun hostileFacelingFalseApproachIsEntityTurnOnlyAccuracyPressureWithGuardCounterplay() {
     assertEquals(25, CombatRuntime.HOSTILE_FACELING_FALSE_APPROACH_PROC_PERCENT)
     var pressureResult: CombatRuntime.Resolution? = null
 
@@ -124,20 +119,20 @@ if 'hostileFacelingFalseApproachIsEntityTurnOnlyAccuracyPressureWithReadCounterp
     assertFalse(pressureResult!!.reply, pressureResult!!.reply.contains("Stun"))
     assertTrue(pressureResult!!.reply, pressureResult!!.reply.contains("+8 điểm % Accuracy"))
 
-    var readResult: CombatRuntime.Resolution? = null
+    var guardResult: CombatRuntime.Resolution? = null
     for (counter in 0..300) {
       var state = CombatRuntime.start(GameState.initial(), "hostile_faceling")
       state = state.copy(metadata = state.metadata + ("combat.eventCounter" to counter.toString()))
-      val result = CombatRuntime.resolve(state, "READ", "quan sát kỹ dáng đi và đọc nhịp tiếp cận của thực thể")
+      val result = CombatRuntime.resolve(state, "GUARD", "cố thủ, giữ đội hình và khoảng cách sau vật che")
       if (result.reply.contains("False Approach:")) {
-        readResult = result
+        guardResult = result
         break
       }
     }
 
-    assertNotNull("Hostile Faceling proc must also be reachable on a READ Entity-response turn", readResult)
-    assertTrue(readResult!!.reply, readResult!!.reply.contains("kỹ năng bị vô hiệu"))
-    assertFalse(readResult!!.reply, readResult!!.reply.contains("+8 điểm % Accuracy"))
+    assertNotNull("Hostile Faceling proc must also be reachable on a GUARD Entity-response turn", guardResult)
+    assertTrue(guardResult!!.reply, guardResult!!.reply.contains("kỹ năng bị vô hiệu"))
+    assertFalse(guardResult!!.reply, guardResult!!.reply.contains("+8 điểm % Accuracy"))
   }
 '''
     close = test.rfind("}\n")
@@ -146,4 +141,4 @@ if 'hostileFacelingFalseApproachIsEntityTurnOnlyAccuracyPressureWithReadCounterp
     test = test[:close] + tests + test[close:]
 
 TEST.write_text(test, encoding="utf-8")
-print("Hourly Entity skill applied: Hostile Faceling False Approach (ACTIVE, 25% on Hostile Faceling Entity turn, READ counterplay).")
+print("Hourly Entity skill applied: Hostile Faceling False Approach (ACTIVE, 25% on Hostile Faceling Entity turn, GUARD counterplay).")
