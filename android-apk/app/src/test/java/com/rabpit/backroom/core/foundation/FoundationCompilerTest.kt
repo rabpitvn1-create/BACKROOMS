@@ -40,6 +40,7 @@ class FoundationCompilerTest {
     val first = compiler.manifest(build, 1L)
     val second = compiler.manifest(build, 2L)
     assertEquals(first.manifestId, second.manifestId)
+    assertEquals(first.toJson(), second.toJson())
     assertTrue(first.manifestId.matches(Regex("[a-f0-9]{64}")))
   }
 

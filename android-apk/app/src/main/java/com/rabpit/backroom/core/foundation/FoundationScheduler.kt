@@ -154,6 +154,7 @@ internal class FoundationBuildScheduler(
       .put("schemaVersion", 1)
       .put("manifestId", manifest.manifestId)
       .put("sourcePackHash", manifest.sourcePackHash)
+      .put("builtAtEpochMs", manifest.createdAtEpochMs)
       .put("workerCount", 2)
       .put("remoteEnrichmentEnabled", false)
       .put("completedSections", JSONArray(FoundationSection.entries.map { it.wireName }))))

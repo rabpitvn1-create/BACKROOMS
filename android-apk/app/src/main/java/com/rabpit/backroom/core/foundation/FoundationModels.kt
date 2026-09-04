@@ -57,7 +57,6 @@ data class FoundationManifest(
     put("sourcePackHash", sourcePackHash)
     put("compilerVersion", compilerVersion)
     put("schemaVersion", schemaVersion)
-    put("createdAtEpochMs", createdAtEpochMs)
     put("objects", JSONObject().apply {
       objects.entries.sortedBy { it.key.wireName }.forEach { (section, hash) -> put(section.wireName, hash) }
     })
@@ -76,7 +75,8 @@ data class FoundationManifest(
         sourcePackHash = json.getString("sourcePackHash"),
         compilerVersion = json.getString("compilerVersion"),
         schemaVersion = json.getInt("schemaVersion"),
-        createdAtEpochMs = json.getLong("createdAtEpochMs"),
+        // Wall-clock diagnostics are intentionally outside identity-bearing content.
+        createdAtEpochMs = json.optLong("createdAtEpochMs", 0L),
         objects = objects
       )
     }
