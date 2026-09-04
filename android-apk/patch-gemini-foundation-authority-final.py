@@ -212,10 +212,18 @@ main = replace_method(
 )
 
 # Make Foundation/provider diagnostics visible in the bounded, redacted TXT log.
-old_capture = '    if ("backroomProvider".equals(function) || function.endsWith("Error")) {'
-new_capture = '    if ("backroomProvider".equals(function) || "backroomFoundation".equals(function) || function.endsWith("Error")) {'
+# The canon-audit finalizer already extends the provider capture condition, so preserve
+# that telemetry and add Foundation instead of assuming the pre-audit form still exists.
+capture_with_audit = '    if ("backroomProvider".equals(function) || "backroomAudit".equals(function) || function.endsWith("Error")) {'
+capture_without_audit = '    if ("backroomProvider".equals(function) || function.endsWith("Error")) {'
+new_capture = '    if ("backroomProvider".equals(function) || "backroomAudit".equals(function) || "backroomFoundation".equals(function) || function.endsWith("Error")) {'
 if new_capture not in main:
-    main = replace_once(main, old_capture, new_capture, "Foundation debug event capture")
+    if capture_with_audit in main:
+        main = replace_once(main, capture_with_audit, new_capture, "Foundation debug event capture after audit")
+    elif capture_without_audit in main:
+        main = replace_once(main, capture_without_audit, new_capture, "Foundation debug event capture")
+    else:
+        raise RuntimeError("Foundation debug event capture anchor missing")
 
 old_secrets = '''    String[] configuredSecrets = {
       BuildConfig.HAKU_API_KEY,
