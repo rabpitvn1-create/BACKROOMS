@@ -63,7 +63,7 @@ jobs:
           payload='{"contents":[{"parts":[{"text":"Return exactly one JSON object with ok=true."}]}],"generationConfig":{"responseMimeType":"application/json","maxOutputTokens":32,"thinkingConfig":{"thinkingLevel":"low"}}}'
           names=(GEMINI_API_KEY GEMINI_API_KEY_2 GEMINI_API_KEY_3 GEMINI_API_KEY_4 GEMINI_API_KEY_5 GEMINI_API_KEY_6)
           passed=0
-          max_attempts=3
+          max_attempts=5
 
           for index in "${!names[@]}"; do
             name="${names[$index]}"
@@ -73,9 +73,11 @@ jobs:
             attempt=1
             while true; do
               output="/tmp/gemini-$index-$attempt.json"
+              headers="/tmp/gemini-$index-$attempt.headers"
               if code=$(curl --silent --show-error \
                 --connect-timeout 8 \
                 --max-time 30 \
+                --dump-header "$headers" \
                 --output "$output" \
                 --write-out '%{http_code}' \
                 --request POST "$endpoint" \
@@ -102,8 +104,16 @@ jobs:
               fi
 
               if [[ "$retryable" == true && "$attempt" -lt "$max_attempts" ]]; then
-                echo "Gemini credential K$((index + 1)) transient smoke failure (HTTP $code, curl=$curl_status); retrying"
-                sleep $((attempt * 2))
+                retry_after=$(awk 'BEGIN{IGNORECASE=1} /^Retry-After:[[:space:]]*[0-9]+/ {gsub("\r", "", $2); print $2; exit}' "$headers" 2>/dev/null || true)
+                if [[ "$retry_after" =~ ^[0-9]+$ ]]; then
+                  (( retry_after > 30 )) && retry_after=30
+                  delay=$retry_after
+                else
+                  # Exponential backoff with bounded deterministic jitter: 2-18 seconds.
+                  delay=$(( (1 << attempt) + ((index + attempt) % 3) ))
+                fi
+                echo "Gemini credential K$((index + 1)) transient smoke failure (HTTP $code, curl=$curl_status); retrying in ${delay}s"
+                sleep "$delay"
                 attempt=$((attempt + 1))
                 continue
               fi
