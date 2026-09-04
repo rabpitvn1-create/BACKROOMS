@@ -8,6 +8,7 @@
 .snapshot[data-combat-active="true"]>.snapshot-character,
 .snapshot[data-combat-active="true"]>.snapshot-lucia-entity,
 .snapshot[data-combat-active="true"]>.snapshot-entity{bottom:28px!important;height:calc(97% - 28px)!important;max-height:calc(97% - 28px)!important}
+.snapshot[data-combat-active="true"]>.snapshot-character-shadow{bottom:calc(28px + 1.5%)!important}
 .snapshot .combat-nameplate{position:absolute;bottom:3px;z-index:4;max-width:46%;display:flex;align-items:baseline;gap:3px;pointer-events:none;font-family:'DFVN Broad',system-ui,sans-serif;font-size:clamp(9px,2.4vw,13px);line-height:1.05;color:#f6f7f8;letter-spacing:.01em;white-space:nowrap;text-shadow:0 2px 1px rgba(0,0,0,.95),0 3px 5px rgba(0,0,0,.92)}
 .snapshot .combat-nameplate-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .snapshot .combat-nameplate-hp{flex:0 0 auto;white-space:nowrap;font-variant-numeric:tabular-nums}
