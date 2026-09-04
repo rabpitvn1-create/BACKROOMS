@@ -36,16 +36,11 @@ constant_block = '''  internal const val CLUMP_TANGLE_DRAG_PROC_PERCENT = 24
 if 'CLUMP_TANGLE_DRAG_PROC_PERCENT = 24' not in combat:
     combat = replace_once(combat, constant_anchor, constant_anchor + constant_block, "Clump Tangle Drag constants")
 
-# Interleaved combat scopes an ordinary Entity direct response to the completed
-# Party actor turn. Hook immediately after that final response-turn marker, so
-# there is exactly one proc check per Clump response and no out-of-turn trigger.
-response_anchor = '''      val entityTargets = entityDirectActionTargets(resolvedState)
-      log += "ENTITY ACTION BUDGET: ${c.entityName} = ${entityTargets.size}; one direct action per completed Party actor turn."
-      val partyDefense = when (intent) { Intent.EVADE -> 34; Intent.GUARD -> 30; Intent.MOVE -> 18; Intent.READ -> 12; else -> 0 } +
-'''
-response_block = '''      val entityTargets = entityDirectActionTargets(resolvedState)
-      log += "ENTITY ACTION BUDGET: ${c.entityName} = ${entityTargets.size}; one direct action per completed Party actor turn."
-
+# Interleaved combat V2 preserves the full Entity roster for status/AoE work and
+# introduces entityDirectTargets only for the ordinary direct-response action.
+# Its final action-budget line is the stable boundary of that Clump response turn.
+response_anchor = '      log += "ENTITY ACTION BUDGET: ${c.entityName} = ${entityDirectTargets.size}; one direct action per completed Party actor turn."\n'
+response_block = response_anchor + '''
       // CLUMP_TANGLE_DRAG_V1: exactly one proc check on Clump's own Entity response turn.
       if (c.entityKey == "clump" &&
           roll(c.copy(eventCounter = c.eventCounter + 1907), 100) < CLUMP_TANGLE_DRAG_PROC_PERCENT) {
@@ -67,8 +62,6 @@ response_block = '''      val entityTargets = entityDirectActionTargets(resolved
           log += "Tangle Drag: Clump quét nhiều chi kéo đội hình khỏi vị trí; proc ${CLUMP_TANGLE_DRAG_PROC_PERCENT}%, Cover ${coverBefore.name} -> ${coverAfter.name}, tiến độ thoát ${escapeBefore}% -> ${c.escapeProgress}%."
         }
       }
-
-      val partyDefense = when (intent) { Intent.EVADE -> 34; Intent.GUARD -> 30; Intent.MOVE -> 18; Intent.READ -> 12; else -> 0 } +
 '''
 combat = replace_once(combat, response_anchor, response_block, "Clump Tangle Drag Entity-turn proc")
 
