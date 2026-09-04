@@ -91,6 +91,7 @@ SCRIPTS = [
     "patch-entity-encounter-narrative-authority-final.py",
     "patch-readable-gm-evidence.py",
     "patch-provider-haku-luna-lock-gemini-final.py",
+    "patch-haku-json-reliability-final.py",
     "patch-auto-light-flicker.py",
     "patch-combat-presentation-authority-final.py",
     "patch-combat-summary-final.py",
