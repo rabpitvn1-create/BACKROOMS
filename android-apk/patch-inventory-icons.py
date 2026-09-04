@@ -76,8 +76,10 @@ for required in (
     if required not in html:
         raise RuntimeError("inventory icon runtime contract missing: " + required)
 
-helper_start = html.index(f"/* {MARKER} */")
-helper_end = html.index("function card(item,slot)", helper_start)
+# Inspect only the helper we inject. Existing runtime code legitimately contains SVG action icons;
+# those are unrelated UI assets and must not trip the inventory-image hard lock.
+helper_start = html.index("function inventoryIconMarkup(item)")
+helper_end = html.index("\n", helper_start)
 helper_block = html[helper_start:helper_end]
 for forbidden in ("data:image", "base64,", "<svg", "<text"):
     if forbidden in helper_block:
