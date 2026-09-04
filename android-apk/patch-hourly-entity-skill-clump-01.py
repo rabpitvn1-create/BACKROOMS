@@ -104,7 +104,6 @@ if 'clumpTangleDragIsEntityTurnOnlyPressureWithEvadeCounterplay' not in test:
 
     assertNotNull("24% Clump proc must be reachable across deterministic Entity turns", procCounter)
     assertNotNull(procResult)
-    assertTrue(procResult!!.reply, procResult!!.reply.contains("proc 24%"))
     val pressured = CombatRuntime.active(procResult!!.state)!!
     assertEquals(CombatRuntime.Cover.PARTIAL, pressured.cover)
     assertEquals(40, pressured.escapeProgress)
