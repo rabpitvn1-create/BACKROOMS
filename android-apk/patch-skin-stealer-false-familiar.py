@@ -95,10 +95,18 @@ if 'skinStealerFalseFamiliarTriggersOnlyOnUnsafeFourthTurnIntent' not in test:
 
   @Test fun skinStealerFalseFamiliarTriggersOnlyOnUnsafeFourthTurnIntent() {
     var unsafe = CombatRuntime.start(GameState.initial(), "skin-stealer")
-    unsafe = unsafe.copy(metadata = unsafe.metadata + ("combat.eventCounter" to "3"))
-    // ESCAPE is an explicit unsafe False Familiar trigger and cannot destroy the
-    // Entity before its fourth-turn response, so this remains deterministic.
-    val unsafeResult = CombatRuntime.resolve(unsafe, "EXECUTE", "bỏ chạy ngay")
+    unsafe = unsafe.copy(metadata = unsafe.metadata + mapOf(
+      "combat.eventCounter" to "3",
+      "combat.entityMaxHp" to "5000",
+      "combat.entityHp" to "5000"
+    ))
+    // Use the established offensive command path. Generic OTHER/ESCAPE text can
+    // be reclassified or terminate early by later combat layers, which made the
+    // old regression assert a transport detail instead of this skill contract.
+    val unsafeResult = CombatRuntime.resolve(unsafe, "EXECUTE", "TẤN CÔNG")
+    assertTrue(unsafeResult.handled)
+    assertEquals(4, CombatRuntime.active(unsafeResult.state)?.eventCounter)
+    assertTrue(unsafeResult.reply, unsafeResult.reply.contains("ENTITY ACTION BUDGET: Skin-Stealer"))
     assertTrue(unsafeResult.reply, unsafeResult.reply.contains("False Familiar: Skin-Stealer"))
     assertTrue(unsafeResult.reply, unsafeResult.reply.contains("+12 điểm % Accuracy"))
 
