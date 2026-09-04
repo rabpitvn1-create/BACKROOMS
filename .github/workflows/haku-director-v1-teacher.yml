@@ -1,0 +1,169 @@
+name: Haku WorldDirector V1 Teacher
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened]
+    branches: [main]
+    paths:
+      - ".github/workflows/haku-director-v1-teacher.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: haku-director-v1-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  train-candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      HAKU_API_KEY: ${{ secrets.HAKU_API_KEY }}
+      HAKU_BUDGET_VND: "4103"
+      HAKU_SAFETY_RESERVE_VND: "250"
+
+    steps:
+      - name: Checkout candidate branch
+        uses: actions/checkout@v4
+        with:
+          path: work
+
+      - name: Checkout safe trajectory simulator
+        uses: actions/checkout@v4
+        with:
+          repository: rabpitvn1-create/BACKROOMS
+          ref: main
+          path: simulator
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: work/android-apk/ml/requirements.txt
+
+      - name: Preflight Haku distillation tooling
+        run: |
+          set -euo pipefail
+          test -n "${HAKU_API_KEY:-}" || (echo "Missing GitHub Secret: HAKU_API_KEY" && exit 1)
+          python -m py_compile \
+            work/android-apk/ml/haku_world_director_v1_teacher.py \
+            work/android-apk/ml/build_haku_director_dataset.py \
+            work/android-apk/ml/train_haku_director_candidate.py \
+            simulator/android-apk/ml/simulate_world_director_trajectories.py
+          python work/android-apk/ci_apply_runtime_patches.py
+          python work/android-apk/ci_verify_provider_routing.py
+
+      - name: Generate registered-Level V1 contexts
+        run: |
+          set -euo pipefail
+          python simulator/android-apk/ml/simulate_world_director_trajectories.py \
+            --levels work/android-apk/app/src/main/assets/levels \
+            --runs 480 \
+            --turns 120 \
+            --history 1 \
+            --seed 4103 \
+            --output "$GITHUB_WORKSPACE/haku-v1-snapshots.jsonl" \
+            --report "$GITHUB_WORKSPACE/haku-v1-trajectory-report.json"
+
+      - name: Label V1 contexts with budget-capped Haku teacher
+        run: |
+          set -euo pipefail
+          python work/android-apk/ml/haku_world_director_v1_teacher.py \
+            --input "$GITHUB_WORKSPACE/haku-v1-snapshots.jsonl" \
+            --output "$GITHUB_WORKSPACE/haku-v1-labels.jsonl" \
+            --report "$GITHUB_WORKSPACE/haku-v1-teacher-report.json" \
+            --model claude-haiku-4-5-20251001 \
+            --batch-size 24 \
+            --max-unique 4096 \
+            --max-output-tokens 1400 \
+            --budget-vnd "$HAKU_BUDGET_VND" \
+            --safety-reserve-vnd "$HAKU_SAFETY_RESERVE_VND" \
+            --max-requests 400
+
+      - name: Build held-out Haku dataset
+        run: |
+          set -euo pipefail
+          python work/android-apk/ml/build_haku_director_dataset.py \
+            --input "$GITHUB_WORKSPACE/haku-v1-labels.jsonl" \
+            --output "$GITHUB_WORKSPACE/haku-v1-director-dataset.csv" \
+            --report "$GITHUB_WORKSPACE/haku-v1-dataset-report.json" \
+            --min-confidence 0.60
+
+      - name: Build deterministic seed anchor
+        working-directory: work/android-apk/ml
+        run: python build_director_dataset.py
+
+      - name: Install LiteRT training dependencies
+        run: python -m pip install --requirement work/android-apk/ml/requirements.txt
+
+      - name: Train and export artifact-only LiteRT candidate
+        run: |
+          set -euo pipefail
+          python work/android-apk/ml/train_haku_director_candidate.py \
+            --haku-dataset "$GITHUB_WORKSPACE/haku-v1-director-dataset.csv" \
+            --seed-dataset work/android-apk/ml/director_dataset.csv \
+            --output "$GITHUB_WORKSPACE/haku-director-v1-candidate.tflite" \
+            --report "$GITHUB_WORKSPACE/haku-director-v1-candidate-report.json"
+          test -s "$GITHUB_WORKSPACE/haku-director-v1-candidate.tflite"
+          bytes=$(stat -c%s "$GITHUB_WORKSPACE/haku-director-v1-candidate.tflite")
+          test "$bytes" -le 5242880 || (echo "Candidate exceeds 5 MiB: $bytes" && exit 1)
+
+      - name: Verify production model asset was not modified
+        run: |
+          set -euo pipefail
+          test ! -e work/android-apk/app/src/main/assets/models/backrooms_director.tflite
+          git -C work diff --exit-code -- android-apk/app/src/main/assets/models
+          python - <<'PY'
+          import json
+          report = json.load(open('haku-director-v1-candidate-report.json', encoding='utf-8'))
+          assert report.get('productionAssetModified') is False
+          PY
+
+      - name: Summarize candidate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json, pathlib
+          out = pathlib.Path(__import__('os').environ['GITHUB_STEP_SUMMARY'])
+          teacher = pathlib.Path('haku-v1-teacher-report.json')
+          candidate = pathlib.Path('haku-director-v1-candidate-report.json')
+          lines = ['## Haku WorldDirector V1 candidate']
+          if teacher.exists():
+              r = json.loads(teacher.read_text())
+              lines += [
+                  f"- Haku labels: {r.get('labels')}",
+                  f"- Requests: {r.get('requests')}",
+                  f"- Estimated spend: {r.get('estimatedSpendVnd')} VND",
+                  f"- Hard user budget: {r.get('userBudgetVnd')} VND",
+                  f"- Safety reserve: {r.get('safetyReserveVnd')} VND",
+                  f"- Stop reason: {r.get('stopped')}",
+              ]
+          if candidate.exists():
+              r = json.loads(candidate.read_text())
+              lines += [
+                  f"- Selected training mix: {r.get('selected')}",
+                  f"- Candidate bytes: {r.get('modelBytes')}",
+                  f"- Candidate promotionEligible: {r.get('promotionEligible')}",
+                  '- Production asset modified: false',
+              ]
+          out.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+          PY
+
+      - name: Upload Haku distillation artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: haku-world-director-v1-candidate
+          path: |
+            haku-v1-trajectory-report.json
+            haku-v1-teacher-report.json
+            haku-v1-labels.jsonl
+            haku-v1-director-dataset.csv
+            haku-v1-dataset-report.json
+            haku-director-v1-candidate.tflite
+            haku-director-v1-candidate-report.json
+          if-no-files-found: warn
+          retention-days: 30
