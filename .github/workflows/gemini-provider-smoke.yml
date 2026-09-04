@@ -66,11 +66,15 @@ jobs:
           configured=0
           pool_success=0
 
+          for name in "${names[@]}"; do
+            [[ -n "${!name:-}" ]] && configured=$((configured + 1))
+          done
+          test "$configured" -ge 5 || (echo "Expected at least five configured Gemini credentials, got $configured" && exit 1)
+
           for index in "${!names[@]}"; do
             name="${names[$index]}"
             key="${!name:-}"
             [[ -n "$key" ]] || continue
-            configured=$((configured + 1))
 
             attempt=1
             while true; do
@@ -133,5 +137,4 @@ jobs:
             done
           done
 
-          test "$configured" -ge 5 || (echo "Expected at least five configured Gemini credentials, got $configured" && exit 1)
           test "$pool_success" -eq 1 || (echo "All configured Gemini credentials were unavailable after bounded retry/failover" && exit 1)
