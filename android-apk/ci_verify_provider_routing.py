@@ -29,88 +29,100 @@ def method_block(signature: str) -> str:
     raise AssertionError(f"missing closing brace: {signature}")
 
 
-# Canonical active text router.
+# Canonical runtime text router: Gemini has hard high priority.
 generate = method_block("  private String generateText(String prompt) throws Exception ")
 assert "AiProviderRouter.route(" in generate
-assert "this::hakuFallbackText" in generate
-assert "this::lunaText" in generate
-assert generate.index("this::hakuFallbackText") < generate.index("this::lunaText")
+for marker in ("this::geminiText", "this::hakuFallbackText", "this::lunaText"):
+    assert marker in generate, marker
+assert generate.index("this::geminiText") < generate.index("this::hakuFallbackText") < generate.index("this::lunaText")
 assert "(provider, response) -> parseModelJson(response).toString()" in generate
-assert generate.index("this::providerFallbackEligible") < generate.index("parseModelJson(response)")
-assert "geminiText(" not in generate
-assert "geminiKeyFallbackText(" not in generate
-assert '"AI provider selected: " + provider' in generate
-assert 'fromProvider + " failed; fallback to " + toProvider' in generate
+assert "providerObserver()" in generate
 
-# A malformed successful HTTP response must fail inside the provider route so Haku
-# can fall through to Luna instead of escaping later from parseModelJson().
-assert "AI trả JSON không hợp lệ." in java
+# Foundation writer/repair/audit uses the same high-priority chain and validates each attempt.
+structured = method_block(
+    "  private String generateStructuredText(String prompt, AiResponseSchemas.Role role, TurnBudget budget) throws Exception "
+)
+for marker in ("this::geminiFoundationText", "this::hakuFallbackText", "this::lunaText"):
+    assert marker in structured, marker
+assert structured.index("this::geminiFoundationText") < structured.index("this::hakuFallbackText") < structured.index("this::lunaText")
+assert "AiResponseSchemas.validate(role" in structured
+assert "activeTurnBudget.set(budget)" in structured
+assert "activeTurnBudget.remove()" in structured
 
-# HAKU primary should be configured to produce parseable JSON directly, not merely
-# rely on Luna after a malformed/truncated completion.
+# Gemini is fully enabled and the retired lock cannot survive final runtime generation.
+assert "private static final boolean GEMINI_RUNTIME_ENABLED = true;" in java
+assert "private static final boolean GEMINI_RUNTIME_ENABLED = false;" not in java
+assert "Gemini runtime intentionally locked." not in java
+assert "GEMINI_FOUNDATION_AUTHORITY_R02" in java
+
+keys = method_block("  private String[] geminiKeys() ")
+for marker in (
+    "BuildConfig.GEMINI_API_KEY",
+    "BuildConfig.GEMINI_API_KEY_2",
+    "BuildConfig.GEMINI_API_KEY_3",
+    "BuildConfig.GEMINI_API_KEY_4",
+    "BuildConfig.GEMINI_API_KEY_5",
+    "BuildConfig.GEMINI_API_KEY_6",
+):
+    assert marker in keys, marker
+assert "Math.min(6, keys.length)" in method_block(
+    "  private String geminiKeyFallbackText(String prompt, int excludedIndex, int maxOutputTokens, boolean rememberWorker) throws Exception "
+)
+
+# All network providers share one monotonic Foundation turn budget.
+gemini_post = method_block("  private String postJsonGeminiLane(String endpoint, String key, JSONObject payload) throws Exception ")
+assert "providerTimeout(4000, 250)" in gemini_post
+assert "providerTimeout(8000, 500)" in gemini_post
+haku_post = method_block("  private String postJsonHakuFallback(JSONObject payload) throws Exception ")
+assert "providerTimeout(30000, 500)" in haku_post
+luna_post = method_block("  private String postJsonLunaFast(String endpoint, String key, String authHeader, JSONObject payload) throws Exception ")
+assert "providerTimeout(22000, 500)" in luna_post
+
+# Haku keeps its strict JSON contract as a secondary provider.
 haku = method_block("  private String hakuFallbackText(String prompt) throws Exception ")
 assert '"role", "system"' in haku
 assert "Return exactly one valid JSON object." in haku
 assert '.put("temperature", 0.2)' in haku
 assert '.put("max_tokens", 3200)' in haku
-assert '.put("temperature", 0.75)' not in haku
-assert '.put("max_tokens", 1800)' not in haku
-haku_post = method_block("  private String postJsonHakuFallback(JSONObject payload) throws Exception ")
-assert (
-    "connection.setReadTimeout(30000);" in haku_post
-    or "connection.setReadTimeout(providerTimeout(30000, 500));" in haku_post
+
+# Foundation/provider diagnostics are bounded and secret-redacted by the debug exporter.
+foundation = method_block(
+    "  private String foundationPacket(JSONObject before, String action, JSONObject rolls, String role, String turnId) throws Exception "
 )
-assert "connection.setReadTimeout(22000);" not in haku_post
+assert 'emit("backroomFoundation", "active role=" + role + " slice=v1")' in foundation
+assert 'emit("backroomFoundation", "legacy-fallback role=" + role)' in foundation
+assert 'emit("backroomProviderError", providerErrorSummary(provider, error))' in java
+assert '"backroomFoundation".equals(function)' in java
+assert "BuildConfig.GEMINI_API_KEY_6" in java
 
-# When the persistent runtime finalizer is installed, semantic validation happens
-# inside each provider attempt and transport timeouts are capped by one turn budget.
-if "PERSISTENT_FOUNDATION_RUNTIME_R01" in java:
-    structured = method_block(
-        "  private String generateStructuredText(String prompt, AiResponseSchemas.Role role, TurnBudget budget) throws Exception "
-    )
-    assert "AiProviderRouter.route(" in structured
-    assert "AiResponseSchemas.validate(role" in structured
-    assert structured.index("this::hakuFallbackText") < structured.index("this::lunaText")
-    assert "activeTurnBudget.set(budget)" in structured
-    assert "activeTurnBudget.remove()" in structured
-
-# Audit and procedural helpers must route through the same policy, never Gemini.
+# Audit/procedural compatibility helpers inherit the active high-priority router.
 audit = method_block("  private String geminiAuditText(String prompt, int excludedIndex) throws Exception ")
 assert "return generateText(prompt);" in audit
-assert "geminiKeyFallbackText(" not in audit
 if "  private String geminiLevelGenerationText(String prompt) throws Exception " in java:
     level_generation = method_block("  private String geminiLevelGenerationText(String prompt) throws Exception ")
     assert "return generateText(prompt);" in level_generation
-    assert "geminiModelMatrixPolicy(" not in level_generation
 
-# Snapshot is intentionally network-free while Gemini is locked.
+# Snapshot remains network-free; the obsolete UI action was already replaced by debug export.
 snapshot = method_block("  private void requestSnapshotInternal(String stateJson) ")
 assert "geminiImage(" not in snapshot
 assert "generativelanguage.googleapis.com" not in snapshot
 
-# Defense-in-depth lock remains explicit and reversible.
-assert "private static final boolean GEMINI_RUNTIME_ENABLED = false;" in java
-assert "Gemini runtime intentionally locked." in java
-assert "geminiText(prompt)" not in java
-assert "geminiModelMatrixPolicy(prompt" not in java
-
-# Credentials/config stay packaged for reversible re-enable, but they are not router inputs.
 for marker in [
     'buildConfigField "String", "HAKU_API_KEY"',
     'buildConfigField "String", "LUNA_API_KEY"',
     'buildConfigField "String", "LUNA_BASE_URL"',
     'buildConfigField "String", "LUNA_MODEL"',
-    'buildConfigField "String", "GEMINI_API_KEY_1"',
-    'buildConfigField "String", "GEMINI_API_KEY_5"',
+    'buildConfigField "String", "GEMINI_API_KEY"',
+    'buildConfigField "String", "GEMINI_API_KEY_6"',
 ]:
     assert marker in gradle, marker
 assert '"claude-haiku-4-5-20251001"' in java
 assert 'baseUrl + "/chat/completions"' in java
-assert '"patch-provider-haku-luna-lock-gemini-final.py"' in chain
-assert '"patch-haku-json-reliability-final.py"' in chain
+assert '"patch-persistent-foundation-final.py"' in chain
+assert '"patch-gemini-foundation-authority-final.py"' in chain
+assert chain.index('"patch-persistent-foundation-final.py"') < chain.index('"patch-gemini-foundation-authority-final.py"')
 
-# Local/Core validation remains in front of provider generation. A handled rejection
-# returns before any provider request, so invalid deterministic actions cannot consume AI.
+# Local/Core validation remains ahead of all network generation.
 submit_start = java.index("    @JavascriptInterface public void submitTurn(String stateJson, String action) {")
 submit_end = java.index("    @JavascriptInterface public void requestSnapshot(String stateJson)", submit_start)
 submit = java[submit_start:submit_end]
@@ -123,7 +135,6 @@ provider_calls = [
     if (position := submit.find(marker, handled_return)) >= 0
 ]
 assert provider_calls, "no provider call found after deterministic validation"
-first_provider = min(provider_calls)
-assert local_call < handled < handled_return < first_provider
+assert local_call < handled < handled_return < min(provider_calls)
 
-print("Provider routing verified: HAKU -> LUNA -> controlled failure; HAKU strict JSON reliability contract active; malformed provider JSON falls back; Gemini locked; validation precedes provider calls.")
+print("Provider routing verified: Persistent Foundation -> GEMINI K1-K6 high priority -> HAKU -> LUNA -> controlled failure; per-attempt schema validation and sanitized diagnostics active.")

@@ -1,4 +1,4 @@
-name: BACKROOMS CI / Release 1.0.0.0.7
+name: BACKROOMS CI / Release 1.0.0.0.8
 
 on:
   workflow_dispatch:
@@ -29,22 +29,24 @@ jobs:
       LUNA_BASE_URL: https://api.vilao.ai/v1
       LUNA_MODEL: ${{ secrets.LUNA_MODEL }}
       HAKU_API_KEY: ${{ secrets.HAKU_API_KEY }}
-      GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 || secrets.GEMINI_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || secrets.GEMINI_API_KEY_1 }}
+      GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY || secrets.GEMINI_API_KEY_1 }}
       GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
       GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
       GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
       GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
+      GEMINI_API_KEY_6: ${{ secrets.GEMINI_API_KEY_6 }}
       GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.vfs.watch=false
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Verify 1.0.0.0.7 release source
+      - name: Verify 1.0.0.0.8 release source
         run: |
           set -euo pipefail
-          grep -q "versionCode 115" android-apk/app/build.gradle
-          grep -q "versionName '1.0.0.0.7'" android-apk/app/build.gradle
-          test -s android-apk/RELEASE_NOTES_1.0.0.0.7.md
+          grep -q "versionCode 116" android-apk/app/build.gradle
+          grep -q "versionName '1.0.0.0.8'" android-apk/app/build.gradle
+          test -s android-apk/RELEASE_NOTES_1.0.0.0.8.md
           test -s android-apk/validate_level_content.py
           test -s android-apk/test_validate_level_content.py
           test -s android-apk/ci_apply_runtime_patches.py
@@ -52,6 +54,7 @@ jobs:
           test -s android-apk/ci_verify_provider_routing.py
           test -s android-apk/ci_verify_persistent_foundation.py
           test -s android-apk/ci_verify_packaged_apk.sh
+          test -s android-apk/patch-gemini-foundation-authority-final.py
           test -s android-apk/INVENTORY_ICON_RULES.md
           test -s android-apk/inventory_icon_manifest.json
           test -s android-apk/generate_inventory_icons.py
@@ -137,9 +140,14 @@ jobs:
       - name: Validate active Game Master configuration
         run: |
           set -euo pipefail
-          for name in HAKU_API_KEY LUNA_API_KEY LUNA_MODEL; do
+          for name in HAKU_API_KEY LUNA_API_KEY LUNA_MODEL GEMINI_API_KEY GEMINI_API_KEY_2 GEMINI_API_KEY_3 GEMINI_API_KEY_4 GEMINI_API_KEY_5; do
             test -n "${!name:-}" || (echo "Missing GitHub Secret: $name" && exit 1)
           done
+          if [[ -n "${GEMINI_API_KEY_6:-}" ]]; then
+            echo 'Gemini K6 is provisioned.'
+          else
+            echo 'Gemini K6 slot is supported but not provisioned; K1-K5 remain active.'
+          fi
 
       - name: Prepare inventory WebP encoder
         run: |
@@ -194,18 +202,18 @@ jobs:
         run: gradle :app:assembleDebug --no-daemon --build-cache
 
       - name: Prepare debug APK
-        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.0.0.0.7-debug.apk
+        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.0.0.0.8-debug.apk
 
       - name: Verify packaged debug APK contracts
         run: |
-          bash android-apk/ci_verify_packaged_apk.sh Backroom-1.0.0.0.7-debug.apk
-          python3 android-apk/ci_verify_packaged_inventory_icons.py Backroom-1.0.0.0.7-debug.apk
+          bash android-apk/ci_verify_packaged_apk.sh Backroom-1.0.0.0.8-debug.apk
+          python3 android-apk/ci_verify_packaged_inventory_icons.py Backroom-1.0.0.0.8-debug.apk
 
       - name: Upload debug APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Backroom-1.0.0.0.7-debug-apk
-          path: Backroom-1.0.0.0.7-debug.apk
+          name: Backroom-1.0.0.0.8-debug-apk
+          path: Backroom-1.0.0.0.8-debug.apk
           if-no-files-found: error
           retention-days: 14
 
@@ -219,47 +227,47 @@ jobs:
           set -euo pipefail
           tag_exists=false
           release_exists=false
-          if git ls-remote --exit-code --tags origin refs/tags/v1.0.0.0.7 >/dev/null 2>&1; then
+          if git ls-remote --exit-code --tags origin refs/tags/v1.0.0.0.8 >/dev/null 2>&1; then
             tag_exists=true
           fi
-          if gh release view v1.0.0.0.7 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+          if gh release view v1.0.0.0.8 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             release_exists=true
           fi
           if [[ "$tag_exists" == true && "$release_exists" == true ]]; then
             echo "publish=false" >> "$GITHUB_OUTPUT"
-            echo "v1.0.0.0.7 is already published; skipping duplicate release."
+            echo "v1.0.0.0.8 is already published; skipping duplicate release."
           elif [[ "$tag_exists" == true || "$release_exists" == true ]]; then
-            echo "Inconsistent v1.0.0.0.7 tag/release state; refusing to overwrite it."
+            echo "Inconsistent v1.0.0.0.8 tag/release state; refusing to overwrite it."
             exit 1
           else
             echo "publish=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Publish GitHub Release v1.0.0.0.7
+      - name: Publish GitHub Release v1.0.0.0.8
         if: steps.release-gate.outputs.publish == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          gh release create v1.0.0.0.7 Backroom-1.0.0.0.7-debug.apk \
+          gh release create v1.0.0.0.8 Backroom-1.0.0.0.8-debug.apk \
             --latest \
-            --title "Backroom 1.0.0.0.7 Debug" \
-            --notes-file android-apk/RELEASE_NOTES_1.0.0.0.7.md \
+            --title "Backroom 1.0.0.0.8 Debug" \
+            --notes-file android-apk/RELEASE_NOTES_1.0.0.0.8.md \
             --target "$GITHUB_SHA"
 
-      - name: Verify published v1.0.0.0.7 release
+      - name: Verify published v1.0.0.0.8 release
         if: steps.release-gate.outputs.publish == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          gh release view v1.0.0.0.7 --repo "$GITHUB_REPOSITORY" >/dev/null
+          gh release view v1.0.0.0.8 --repo "$GITHUB_REPOSITORY" >/dev/null
           mkdir release-check
-          gh release download v1.0.0.0.7 --repo "$GITHUB_REPOSITORY" --pattern 'Backroom-1.0.0.0.7-debug.apk' --dir release-check
-          test -s release-check/Backroom-1.0.0.0.7-debug.apk
-          expected=$(sha256sum Backroom-1.0.0.0.7-debug.apk | awk '{print $1}')
-          actual=$(sha256sum release-check/Backroom-1.0.0.0.7-debug.apk | awk '{print $1}')
+          gh release download v1.0.0.0.8 --repo "$GITHUB_REPOSITORY" --pattern 'Backroom-1.0.0.0.8-debug.apk' --dir release-check
+          test -s release-check/Backroom-1.0.0.0.8-debug.apk
+          expected=$(sha256sum Backroom-1.0.0.0.8-debug.apk | awk '{print $1}')
+          actual=$(sha256sum release-check/Backroom-1.0.0.0.8-debug.apk | awk '{print $1}')
           test "$expected" = "$actual"
-          bash android-apk/ci_verify_packaged_apk.sh release-check/Backroom-1.0.0.0.7-debug.apk
-          python3 android-apk/ci_verify_packaged_inventory_icons.py release-check/Backroom-1.0.0.0.7-debug.apk
-          echo "Published release v1.0.0.0.7 verified with SHA-256 $actual"
+          bash android-apk/ci_verify_packaged_apk.sh release-check/Backroom-1.0.0.0.8-debug.apk
+          python3 android-apk/ci_verify_packaged_inventory_icons.py release-check/Backroom-1.0.0.0.8-debug.apk
+          echo "Published release v1.0.0.0.8 verified with SHA-256 $actual"

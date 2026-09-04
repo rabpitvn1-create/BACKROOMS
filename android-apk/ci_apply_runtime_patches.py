@@ -105,6 +105,7 @@ SCRIPTS = [
     "patch-hourly-entity-skill-deathmoth-01.py",
     "patch-hourly-character-auto-skill-lucia-01.py",
     "patch-persistent-foundation-final.py",
+    "patch-gemini-foundation-authority-final.py",
 ]
 
 for required in (AUDIT_RUNNER, ORPHAN_AUDIT, COMPACT_VERIFY, ENCOUNTER_VERIFY):
