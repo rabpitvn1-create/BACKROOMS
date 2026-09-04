@@ -106,6 +106,7 @@ SCRIPTS = [
     "patch-hourly-entity-skill-duller-01.py",
     "patch-hourly-entity-skill-hostile-faceling-01.py",
     "patch-hourly-entity-skill-false-puddle-01.py",
+    "patch-hourly-entity-skill-biological-pipeline-01.py",
     "patch-hourly-character-auto-skill-lucia-01.py",
     "patch-hourly-character-auto-skill-iris-01.py",
     "patch-hourly-character-auto-skill-syvial-02.py",
