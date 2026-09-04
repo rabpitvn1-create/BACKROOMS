@@ -32,21 +32,33 @@ constants_block = '''  private const val JANE_VENGEFUL_COOLDOWN = 4
 '''
 combat = replace_once(combat, constants_anchor, constants_block, "Skin-Stealer False Familiar constants")
 
-# Interleaved Party combat may rename the direct target helper/log after the
-# Jeff/Jane layer. Insert the skill state immediately before partyDefense using a
-# stable anchor that survives those rewrites.
-party_defense_anchor = '''      val partyDefense = when (intent) { Intent.EVADE -> 34; Intent.GUARD -> 30; Intent.MOVE -> 18; Intent.READ -> 12; else -> 0 } +
-'''
+# The final runtime has more than one partyDefense block because boss-local AI
+# (notably Violet Warden) owns a separate branch. Anchor False Familiar to the
+# ordinary Entity action-budget block so only the shared roaming response gets it.
+ordinary_prefix_variants = (
+    '''      val entityTargets = entityDirectActionTargets(resolvedState)
+      log += "ENTITY ACTION BUDGET: ${c.entityName} = ${entityTargets.size}; one direct action per completed Party actor turn."
+''',
+    '''      val entityDirectTargets = entityDirectActionTargets(resolvedState)
+      log += "ENTITY ACTION BUDGET: ${c.entityName} = ${entityDirectTargets.size}; one direct action per completed Party actor turn."
+''',
+    '''      val entityTargets = entityCombatActionTargets(resolvedState)
+      log += "ENTITY ACTION BUDGET: ${c.entityName} = ${entityTargets.size}; one direct action per ACTIVE combatant, no repeated target."
+''',
+)
 skill_state = '''      val skinStealerFalseFamiliarActive = c.entityKey == SKIN_STEALER_KEY &&
         c.eventCounter % SKIN_STEALER_FALSE_FAMILIAR_INTERVAL_TURNS == 0 &&
         intent in setOf(Intent.ATTACK, Intent.ESCAPE, Intent.OTHER)
       if (skinStealerFalseFamiliarActive) {
         log += "False Familiar: Skin-Stealer bắt chước cử chỉ/giọng người để dụ Party phản ứng sai; +$SKIN_STEALER_FALSE_FAMILIAR_ACCURACY_BONUS điểm % Accuracy trong Entity turn này. READ/EVADE/MOVE/GUARD vô hiệu kỹ năng."
       }
-      val partyDefense = when (intent) { Intent.EVADE -> 34; Intent.GUARD -> 30; Intent.MOVE -> 18; Intent.READ -> 12; else -> 0 } +
 '''
 if 'val skinStealerFalseFamiliarActive =' not in combat:
-    combat = replace_once(combat, party_defense_anchor, skill_state, "Skin-Stealer False Familiar activation")
+    matches = [prefix for prefix in ordinary_prefix_variants if prefix in combat]
+    if len(matches) != 1:
+        raise RuntimeError(f"Skin-Stealer ordinary response anchor: expected exactly 1 variant, found {len(matches)}")
+    prefix = matches[0]
+    combat = combat.replace(prefix, prefix + skill_state, 1)
 
 killer_bonus_old = '''        val killerAccuracyBonus =
           (if (hunterMarked) JANE_HUNTER_MARK_ACCURACY_BONUS else 0) +
