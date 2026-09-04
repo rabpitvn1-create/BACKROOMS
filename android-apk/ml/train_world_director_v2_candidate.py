@@ -89,7 +89,6 @@ def fit(rows: list[dict], feature_count: int, weights: list[float] | None = None
         C=8.0,
         class_weight="balanced",
         solver="liblinear",
-        multi_class="ovr",
     )
     classifier.fit(x, y, sample_weight=np.asarray(weights, dtype=np.float64) if weights is not None else None)
     return classifier
