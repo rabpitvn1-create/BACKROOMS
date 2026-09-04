@@ -61,7 +61,8 @@ if "SYVIAL_TORQUE_SEVER_CHANCE_PERCENT" not in combat:
 
 helper_anchor = "  fun partyTurnSkillRejection(state: GameState, characterId: String, skillName: String): String? {\n"
 helper = '''  internal fun syvialTorqueSeverEligible(state: GameState): Boolean =
-    activePartyCharacter(state, SYVIAL_ID) != null && partyTurnActorMatches(state, SYVIAL_ID)
+    activePartyCharacter(state, SYVIAL_ID) != null &&
+      state.metadata["partyCombat.actorContext"]?.trim() == SYVIAL_ID
 
 '''
 if "syvialTorqueSeverEligible" not in combat:
