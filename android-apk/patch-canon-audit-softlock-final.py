@@ -44,23 +44,22 @@ def replace_once(source: str, old: str, new: str, label: str) -> str:
 text = MAIN.read_text(encoding="utf-8")
 
 run_audit = r'''  private JSONObject runAudit(JSONObject before, String action, JSONObject rolls, JSONObject generated, JSONObject candidateState, String scope, int excludedWorker) throws Exception {
-    JSONObject compact = compactStateForPrompt(before);
-    JSONObject candidateCompact = compactStateForPrompt(candidateState);
     String reply = generated.optString("reply", "");
     if (reply.length() > 7000) reply = reply.substring(0, 7000);
+    String packet = auditScopeCanon(before, action, rolls, scope);
+    JSONObject candidateCompact = compactStateForPrompt(candidateState);
     String prompt = "Bạn là auditor riêng cho một lượt text game Backrooms. Không viết lại truyện, không tạo state, không thêm canon. " +
-      "Chỉ báo lỗi khi có bằng chứng cụ thể từ canon/state/dice. Chỉ canon_conflict, knowledge_leak và state_narrative_mismatch được phép severity=hard. " +
-      "unsupported_claim và character_voice chỉ được severity=soft vì chúng cần repair nhưng không được tự khóa cả lượt. " +
+      "Chỉ báo lỗi khi có bằng chứng cụ thể từ KNOWLEDGE PACKET/state/dice. " +
+      "Chỉ canon_conflict, knowledge_leak, state_narrative_mismatch, competence_suppression và ability_overreach được phép severity=hard. " +
+      "unsupported_claim, character_voice và address_error chỉ được severity=soft vì cần repair nhưng không được tự khóa cả lượt bằng đánh giá chủ quan. " +
       "Mọi issue hard bắt buộc có claim và reason cụ thể. Khi PROPOSED OPS khác VALIDATED CANDIDATE STATE thì candidate state thắng vì Android đã loại operation không hợp lệ. Trả DUY NHẤT JSON.\n\n" +
       "AUDIT SCOPE: " + scope + "\n\n" +
-      "AUTHORITATIVE CANON SLICE:\n" + auditScopeCanon(before, action, rolls, scope) + "\n\n" +
-      "CURRENT STATE:\n" + compact.toString() + "\n\n" +
+      "BUDGETED KNOWLEDGE PACKET:\n" + packet + "\n\n" +
       "VALIDATED CANDIDATE STATE:\n" + candidateCompact.toString() + "\n\n" +
-      "PLAYER ACTION:\n" + action + "\n\n" +
       "LOCKED DICE:\n" + rolls.toString() + "\n\n" +
       "PROPOSED OPS (UNTRUSTED REFERENCE ONLY):\n" + (generated.optJSONArray("ops") == null ? "[]" : generated.optJSONArray("ops").toString()) + "\n\n" +
       "PROPOSED REPLY:\n" + reply + "\n\n" +
-      "Rule hợp lệ: canon_conflict, knowledge_leak, state_narrative_mismatch, unsupported_claim, character_voice. " +
+      "Rule hợp lệ: canon_conflict, knowledge_leak, state_narrative_mismatch, competence_suppression, ability_overreach, unsupported_claim, character_voice, address_error. " +
       "JSON: {\"pass\":true,\"issues\":[]} hoặc {\"pass\":false,\"issues\":[{\"rule\":\"knowledge_leak\",\"severity\":\"hard\",\"claim\":\"...\",\"reason\":\"...\"},{\"rule\":\"character_voice\",\"severity\":\"soft\",\"claim\":\"...\",\"reason\":\"...\"}]}";
     JSONObject result = parseModelJson(geminiAuditText(prompt, excludedWorker));
     JSONArray issues = result.optJSONArray("issues");
@@ -103,7 +102,9 @@ helpers = r'''
     String normalized = lower(rule).trim();
     return "canon_conflict".equals(normalized)
       || "knowledge_leak".equals(normalized)
-      || "state_narrative_mismatch".equals(normalized);
+      || "state_narrative_mismatch".equals(normalized)
+      || "competence_suppression".equals(normalized)
+      || "ability_overreach".equals(normalized);
   }
 
   private JSONArray blockingAuditIssues(JSONArray hardIssues) {
@@ -150,8 +151,6 @@ text = text.replace(
 old_gate = '''          if (hardIssues.length() > 0) {
             throw new Exception("Lượt chơi không vượt qua kiểm tra canon; state không được thay đổi.");
           }
-
-          JSONObject state = candidateState;
 '''
 new_gate = '''          JSONArray blockingIssues = blockingAuditIssues(hardIssues);
           if (hardIssues.length() > 0) {
@@ -160,8 +159,6 @@ new_gate = '''          JSONArray blockingIssues = blockingAuditIssues(hardIssue
           if (blockingIssues.length() > 0) {
             throw new Exception("Lượt chơi không vượt qua kiểm tra canon (" + auditIssueRules(blockingIssues) + "); state không được thay đổi.");
           }
-
-          JSONObject state = candidateState;
 '''
 text = replace_once(text, old_gate, new_gate, "final canon audit gate")
 
@@ -203,7 +200,10 @@ for marker in (
 blocking_start = text.index("  private boolean auditRuleCanBlock(String rule) {")
 blocking_end = text.index("  private JSONArray blockingAuditIssues", blocking_start)
 blocking_rule = text[blocking_start:blocking_end]
-for forbidden in ("unsupported_claim", "character_voice"):
+for required in ("canon_conflict", "knowledge_leak", "state_narrative_mismatch", "competence_suppression", "ability_overreach"):
+    if required not in blocking_rule:
+        raise RuntimeError("objective audit rule is not blocking: " + required)
+for forbidden in ("unsupported_claim", "character_voice", "address_error"):
     if forbidden in blocking_rule:
         raise RuntimeError("subjective audit rule became blocking: " + forbidden)
 
