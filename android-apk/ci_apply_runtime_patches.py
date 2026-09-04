@@ -100,6 +100,7 @@ SCRIPTS = [
     "patch-inventory-icons.py",
     "patch-issue311-debug-log-export.py",
     "patch-canon-audit-softlock-final.py",
+    "patch-hourly-character-auto-skill-syvial-01.py",
     "patch-skin-stealer-false-familiar.py",
 ]
 
