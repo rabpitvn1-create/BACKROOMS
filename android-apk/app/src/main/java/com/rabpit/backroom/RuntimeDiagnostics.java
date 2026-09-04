@@ -139,6 +139,15 @@ public final class RuntimeDiagnostics {
 
   private Event rootCause() {
     List<Event> scope = scopedEvents();
+    // A successful state commit proves that provider/key failures earlier in the same
+    // correlation were recovered by fallback and must not poison ERROR_SUMMARY.
+    for (int i = scope.size() - 1; i >= 0; i--) {
+      Event event = scope.get(i);
+      if ("TURN_PIPELINE".equalsIgnoreCase(event.component)
+          && "STATE_COMMIT".equalsIgnoreCase(event.phase)
+          && "OK".equalsIgnoreCase(event.result)) return null;
+      if ("BLOCKED".equalsIgnoreCase(event.result) || "FAILED_FINAL".equalsIgnoreCase(event.result)) break;
+    }
     for (int i = scope.size() - 1; i >= 0; i--) {
       Event event = scope.get(i);
       if ("BLOCKED".equalsIgnoreCase(event.result)) return event;
