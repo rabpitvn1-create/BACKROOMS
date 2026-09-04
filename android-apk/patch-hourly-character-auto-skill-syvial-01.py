@@ -5,6 +5,7 @@ CORE = ROOT / "app/src/main/java/com/rabpit/backroom/core"
 TESTS = ROOT / "app/src/test/java/com/rabpit/backroom/core"
 COMBAT = CORE / "CombatRuntime.kt"
 CATALOG = CORE / "CompanionSkillCatalog.kt"
+CATALOG_TEST = TESTS / "CompanionSkillCatalogTest.kt"
 TEST = TESTS / "SyvialHellscarRendTest.kt"
 
 
@@ -32,10 +33,22 @@ if 's("Hellscar Rend", "AUTO"' not in catalog:
         raise RuntimeError("Hellscar Rend catalog: Spatial Dominion row missing")
     lines.insert(
         spatial_index,
-        '    s("Hellscar Rend", "AUTO", "40% ở mỗi lượt chiến đấu hợp lệ của Syvial", "100% DMG vũ khí; Bleed 2 lượt."),',
+        '    s("Hellscar Rend", "AUTO", "40% ở mỗi lượt chiến đấu hợp lệ của Syvial", "100% sát thương vũ khí; Chảy máu 2 lượt."),',
     )
     catalog = "\n".join(lines) + ("\n" if catalog.endswith("\n") else "")
 CATALOG.write_text(catalog, encoding="utf-8")
+
+# The new row is added after the catalog's existing regression suite was authored.
+# Update only the exact Syvial catalog-size contract; do not weaken localization
+# or gameplay assertions.
+catalog_test = CATALOG_TEST.read_text(encoding="utf-8")
+catalog_test = replace_once(
+    catalog_test,
+    "    assertEquals(10, CompanionSkillCatalog.forCharacter(SYVIAL_ID).size)\n",
+    "    assertEquals(11, CompanionSkillCatalog.forCharacter(SYVIAL_ID).size)\n",
+    "Hellscar Rend catalog count regression",
+)
+CATALOG_TEST.write_text(catalog_test, encoding="utf-8")
 
 combat = COMBAT.read_text(encoding="utf-8")
 skill_context_anchor = '  private const val PARTY_TURN_SKILL_CONTEXT_KEY = "partyCombat.skillContext"\n'
@@ -46,6 +59,21 @@ if "SYVIAL_HELLSCAR_REND_CHANCE_PERCENT" not in combat:
         skill_context_anchor,
         skill_context_anchor + constant,
         "Hellscar Rend proc constant",
+    )
+
+# Keep eligibility explicit and unit-testable. This reuses final AP actor authority
+# plus the existing ACTIVE/alive party-character gate.
+helper_anchor = "  fun partyTurnSkillRejection(state: GameState, characterId: String, skillName: String): String? {\n"
+helper = '''  internal fun syvialHellscarRendEligible(state: GameState): Boolean =
+    activePartyCharacter(state, SYVIAL_ID) != null && partyTurnActorMatches(state, SYVIAL_ID)
+
+'''
+if "syvialHellscarRendEligible" not in combat:
+    combat = replace_once(
+        combat,
+        helper_anchor,
+        helper + helper_anchor,
+        "Hellscar Rend eligibility helper",
     )
 
 # Insert after the final AP Counterphase block and before its authoritative
@@ -64,9 +92,8 @@ if "SYVIAL_HELLSCAR_REND_R01" not in combat:
         raise RuntimeError("Hellscar Rend runtime: post-player-action death gate missing")
     block = '''    // SYVIAL_HELLSCAR_REND_R01: one independent 40% AUTO roll on Syvial's own valid actor turn.
     // Reuse the existing bounded Syvial Bleed counter; max/refresh semantics remain capped at 3.
-    val hellscarSyvial = activePartyCharacter(resolvedState, SYVIAL_ID)
     if (
-      hellscarSyvial != null && partyTurnActorMatches(resolvedState, SYVIAL_ID) && c.entityHp > 0 &&
+      syvialHellscarRendEligible(resolvedState) && c.entityHp > 0 &&
       roll(c.copy(eventCounter = c.eventCounter + 307), 100) < SYVIAL_HELLSCAR_REND_CHANCE_PERCENT
     ) {
       val damage = companionSkillDamage(
@@ -86,8 +113,8 @@ if "SYVIAL_HELLSCAR_REND_R01" not in combat:
 
 for marker in (
     "SYVIAL_HELLSCAR_REND_CHANCE_PERCENT = 40",
+    "syvialHellscarRendEligible",
     "SYVIAL_HELLSCAR_REND_R01",
-    "partyTurnActorMatches(resolvedState, SYVIAL_ID)",
     "Syvial sử dụng Hellscar Rend gây sát thương -$damage HP lên ${c.entityName} và gây Bleed 2 lượt.",
 ):
     if marker not in combat:
@@ -104,8 +131,7 @@ import org.junit.Test
 class SyvialHellscarRendTest {
   private fun attackingAutos(characterId: String): List<CharacterSkillDefinition> =
     CompanionSkillCatalog.forCharacter(characterId).filter { skill ->
-      skill.kind == "AUTO" &&
-        (skill.effect.contains("DMG") || skill.effect.contains("sát thương", ignoreCase = true))
+      skill.kind == "AUTO" && skill.effect.contains("sát thương", ignoreCase = true)
     }
 
   private fun syvialCombat(presence: CharacterPresence = CharacterPresence.ACTIVE): GameState {
@@ -151,22 +177,17 @@ class SyvialHellscarRendTest {
     assertTrue((result.state.metadata["combat.syvialBleedTurns"]?.toIntOrNull() ?: 0) in 2..3)
   }
 
-  @Test fun hellscarRendDoesNotProcForAnotherActorOrInactiveSyvial() {
-    for (counter in 0..160) {
-      var wrongActor = syvialCombat().copy(
-        metadata = syvialCombat().metadata + mapOf(
-          "partyCombat.actorContext" to KAI_ID,
-          "combat.eventCounter" to counter.toString()
-        )
-      )
-      val wrongActorResult = CombatRuntime.resolve(wrongActor, "SEARCH", "giữ đội hình")
-      assertFalse(wrongActorResult.reply.contains("Hellscar Rend"))
+  @Test fun hellscarRendEligibilityRequiresSyvialsOwnActiveActorTurn() {
+    val valid = syvialCombat()
+    assertTrue(CombatRuntime.syvialHellscarRendEligible(valid))
 
-      var inactive = syvialCombat(CharacterPresence.SEPARATED)
-      inactive = inactive.copy(metadata = inactive.metadata + ("combat.eventCounter" to counter.toString()))
-      val inactiveResult = CombatRuntime.resolve(inactive, "SEARCH", "giữ đội hình")
-      assertFalse(inactiveResult.reply.contains("Hellscar Rend"))
-    }
+    val wrongActor = valid.copy(
+      metadata = valid.metadata + ("partyCombat.actorContext" to KAI_ID)
+    )
+    assertFalse(CombatRuntime.syvialHellscarRendEligible(wrongActor))
+
+    val inactive = syvialCombat(CharacterPresence.SEPARATED)
+    assertFalse(CombatRuntime.syvialHellscarRendEligible(inactive))
   }
 
   @Test fun hellscarBleedPersistsAcrossSaveLoadAndExpiresWithoutInfiniteStacking() {
