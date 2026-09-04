@@ -101,6 +101,8 @@ SCRIPTS = [
     "patch-issue311-debug-log-export.py",
     "patch-canon-audit-softlock-final.py",
     "patch-hourly-character-auto-skill-syvial-01.py",
+    "patch-hourly-entity-skill-clump-01.py",
+    "patch-hourly-character-auto-skill-lucia-01.py",
     "patch-persistent-foundation-final.py",
 ]
 
