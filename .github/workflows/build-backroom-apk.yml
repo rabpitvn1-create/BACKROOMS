@@ -50,6 +50,7 @@ jobs:
           test -s android-apk/ci_apply_runtime_patches.py
           test -s android-apk/ci_verify_runtime_contracts.py
           test -s android-apk/ci_verify_provider_routing.py
+          test -s android-apk/ci_verify_persistent_foundation.py
           test -s android-apk/ci_verify_packaged_apk.sh
           test -s android-apk/INVENTORY_ICON_RULES.md
           test -s android-apk/inventory_icon_manifest.json
@@ -166,6 +167,7 @@ jobs:
           set -euo pipefail
           python3 android-apk/ci_verify_runtime_contracts.py
           python3 android-apk/ci_verify_provider_routing.py
+          python3 android-apk/ci_verify_persistent_foundation.py
           python3 android-apk/ci_verify_inventory_icons.py
           node --test android-apk/test-combat-overlay-feedback.cjs
           node --test android-apk/test-combat-action-protocol.cjs

@@ -56,8 +56,23 @@ assert '.put("max_tokens", 3200)' in haku
 assert '.put("temperature", 0.75)' not in haku
 assert '.put("max_tokens", 1800)' not in haku
 haku_post = method_block("  private String postJsonHakuFallback(JSONObject payload) throws Exception ")
-assert "connection.setReadTimeout(30000);" in haku_post
+assert (
+    "connection.setReadTimeout(30000);" in haku_post
+    or "connection.setReadTimeout(providerTimeout(30000, 500));" in haku_post
+)
 assert "connection.setReadTimeout(22000);" not in haku_post
+
+# When the persistent runtime finalizer is installed, semantic validation happens
+# inside each provider attempt and transport timeouts are capped by one turn budget.
+if "PERSISTENT_FOUNDATION_RUNTIME_R01" in java:
+    structured = method_block(
+        "  private String generateStructuredText(String prompt, AiResponseSchemas.Role role, TurnBudget budget) throws Exception "
+    )
+    assert "AiProviderRouter.route(" in structured
+    assert "AiResponseSchemas.validate(role" in structured
+    assert structured.index("this::hakuFallbackText") < structured.index("this::lunaText")
+    assert "activeTurnBudget.set(budget)" in structured
+    assert "activeTurnBudget.remove()" in structured
 
 # Audit and procedural helpers must route through the same policy, never Gemini.
 audit = method_block("  private String geminiAuditText(String prompt, int excludedIndex) throws Exception ")
@@ -102,7 +117,13 @@ submit = java[submit_start:submit_end]
 local_call = submit.index("processRule(stateJson, action)")
 handled = submit.index('optBoolean("handled", false)', local_call)
 handled_return = submit.index("return;", handled)
-first_provider = submit.index("generateText(", handled_return)
+provider_calls = [
+    position
+    for marker in ("generateText(", "generateStructuredText(")
+    if (position := submit.find(marker, handled_return)) >= 0
+]
+assert provider_calls, "no provider call found after deterministic validation"
+first_provider = min(provider_calls)
 assert local_call < handled < handled_return < first_provider
 
 print("Provider routing verified: HAKU -> LUNA -> controlled failure; HAKU strict JSON reliability contract active; malformed provider JSON falls back; Gemini locked; validation precedes provider calls.")

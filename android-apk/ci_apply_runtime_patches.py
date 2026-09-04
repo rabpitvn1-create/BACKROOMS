@@ -101,6 +101,7 @@ SCRIPTS = [
     "patch-issue311-debug-log-export.py",
     "patch-canon-audit-softlock-final.py",
     "patch-hourly-character-auto-skill-syvial-01.py",
+    "patch-persistent-foundation-final.py",
 ]
 
 for required in (AUDIT_RUNNER, ORPHAN_AUDIT, COMPACT_VERIFY, ENCOUNTER_VERIFY):
