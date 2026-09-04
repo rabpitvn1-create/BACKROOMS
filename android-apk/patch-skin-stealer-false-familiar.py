@@ -33,8 +33,8 @@ constants_block = '''  private const val JANE_VENGEFUL_COOLDOWN = 4
 combat = replace_once(combat, constants_anchor, constants_block, "Skin-Stealer False Familiar constants")
 
 # The final runtime has more than one partyDefense block because boss-local AI
-# (notably Violet Warden) owns a separate branch. Anchor False Familiar to the
-# ordinary Entity action-budget block so only the shared roaming response gets it.
+# owns a separate branch. Anchor False Familiar to the ordinary Entity action
+# budget block so only the shared roaming response gets it.
 ordinary_prefix_variants = (
     '''      val entityTargets = entityDirectActionTargets(resolvedState)
       log += "ENTITY ACTION BUDGET: ${c.entityName} = ${entityTargets.size}; one direct action per completed Party actor turn."
@@ -96,7 +96,9 @@ if 'skinStealerFalseFamiliarTriggersOnlyOnUnsafeFourthTurnIntent' not in test:
   @Test fun skinStealerFalseFamiliarTriggersOnlyOnUnsafeFourthTurnIntent() {
     var unsafe = CombatRuntime.start(GameState.initial(), "skin-stealer")
     unsafe = unsafe.copy(metadata = unsafe.metadata + ("combat.eventCounter" to "3"))
-    val unsafeResult = CombatRuntime.resolve(unsafe, "ATTACK", "bắn Skin-Stealer")
+    // OTHER preserves the Entity for its response; an ATTACK here can legitimately
+    // kill a normal Skin-Stealer before the fourth-turn skill has a chance to act.
+    val unsafeResult = CombatRuntime.resolve(unsafe, "OTHER", "tiếp tục áp sát bất chấp dấu hiệu")
     assertTrue(unsafeResult.reply, unsafeResult.reply.contains("False Familiar: Skin-Stealer"))
     assertTrue(unsafeResult.reply, unsafeResult.reply.contains("+12 điểm % Accuracy"))
 
