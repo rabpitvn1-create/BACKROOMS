@@ -17,28 +17,36 @@ def replace_once(source: str, old: str, new: str, label: str) -> str:
 # CLUMP_TANGLE_DRAG_V1
 #
 # Active Entity skill. The proc is evaluated only inside Clump's Entity-response
-# branch, after the player action has resolved and only if Clump actually gets a
-# response turn. It therefore cannot proc from taking damage, HP thresholds, or
-# any out-of-turn event.
+# branch, after the current Party actor has resolved and only if Clump actually
+# receives its response turn. It therefore cannot proc from taking damage, HP
+# thresholds, or any out-of-turn event.
 #
 # Balance: 24% per Clump Entity turn. It adds no direct damage and no Stun. A
 # successful proc degrades cover by one step, trims 10 escape progress, and costs
 # one momentum. EVADE is explicit counterplay and negates the whole skill.
 combat = COMBAT.read_text(encoding="utf-8")
 
-constant_anchor = '  private const val PLAYER_MAX_HP = "combat.playerMaxHp"\n'
-constant_block = '''  private const val CLUMP_TANGLE_DRAG_PROC_PERCENT = 24
+# This late patch runs after the AP/interleaved-combat finalizers. Anchor to the
+# final Party-turn context constant, which is deliberately retained by those
+# finalizers, rather than to early legacy combat HP constants that are rewritten.
+constant_anchor = '  private const val PARTY_TURN_SKILL_CONTEXT_KEY = "partyCombat.skillContext"\n'
+constant_block = '''  internal const val CLUMP_TANGLE_DRAG_PROC_PERCENT = 24
   private const val CLUMP_TANGLE_DRAG_ESCAPE_LOSS = 10
 '''
-if 'private const val CLUMP_TANGLE_DRAG_PROC_PERCENT = 24' not in combat:
+if 'CLUMP_TANGLE_DRAG_PROC_PERCENT = 24' not in combat:
     combat = replace_once(combat, constant_anchor, constant_anchor + constant_block, "Clump Tangle Drag constants")
 
-response_anchor = '''      log += "ENTITY ACTION BUDGET: ${c.entityName} = ${entityTargets.size}; one direct action per ACTIVE combatant, no repeated target."
+# Interleaved combat scopes an ordinary Entity direct response to the completed
+# Party actor turn. Hook immediately after that final response-turn marker, so
+# there is exactly one proc check per Clump response and no out-of-turn trigger.
+response_anchor = '''      val entityTargets = entityDirectActionTargets(resolvedState)
+      log += "ENTITY ACTION BUDGET: ${c.entityName} = ${entityTargets.size}; one direct action per completed Party actor turn."
       val partyDefense = when (intent) { Intent.EVADE -> 34; Intent.GUARD -> 30; Intent.MOVE -> 18; Intent.READ -> 12; else -> 0 } +
 '''
-response_block = '''      log += "ENTITY ACTION BUDGET: ${c.entityName} = ${entityTargets.size}; one direct action per ACTIVE combatant, no repeated target."
+response_block = '''      val entityTargets = entityDirectActionTargets(resolvedState)
+      log += "ENTITY ACTION BUDGET: ${c.entityName} = ${entityTargets.size}; one direct action per completed Party actor turn."
 
-      // CLUMP_TANGLE_DRAG_V1: exactly one proc check on Clump's own Entity turn.
+      // CLUMP_TANGLE_DRAG_V1: exactly one proc check on Clump's own Entity response turn.
       if (c.entityKey == "clump" &&
           roll(c.copy(eventCounter = c.eventCounter + 1907), 100) < CLUMP_TANGLE_DRAG_PROC_PERCENT) {
         if (intent == Intent.EVADE) {
@@ -82,6 +90,7 @@ test = TEST.read_text(encoding="utf-8")
 if 'clumpTangleDragIsEntityTurnOnlyPressureWithEvadeCounterplay' not in test:
     tests = r'''
   @Test fun clumpTangleDragIsEntityTurnOnlyPressureWithEvadeCounterplay() {
+    assertEquals(24, CombatRuntime.CLUMP_TANGLE_DRAG_PROC_PERCENT)
     var procCounter: Int? = null
     var procResult: CombatRuntime.Resolution? = null
 
