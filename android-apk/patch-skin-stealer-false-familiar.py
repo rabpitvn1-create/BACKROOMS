@@ -96,9 +96,9 @@ if 'skinStealerFalseFamiliarTriggersOnlyOnUnsafeFourthTurnIntent' not in test:
   @Test fun skinStealerFalseFamiliarTriggersOnlyOnUnsafeFourthTurnIntent() {
     var unsafe = CombatRuntime.start(GameState.initial(), "skin-stealer")
     unsafe = unsafe.copy(metadata = unsafe.metadata + ("combat.eventCounter" to "3"))
-    // OTHER preserves the Entity for its response; an ATTACK here can legitimately
-    // kill a normal Skin-Stealer before the fourth-turn skill has a chance to act.
-    val unsafeResult = CombatRuntime.resolve(unsafe, "OTHER", "tiếp tục áp sát bất chấp dấu hiệu")
+    // ESCAPE is an explicit unsafe False Familiar trigger and cannot destroy the
+    // Entity before its fourth-turn response, so this remains deterministic.
+    val unsafeResult = CombatRuntime.resolve(unsafe, "EXECUTE", "bỏ chạy ngay")
     assertTrue(unsafeResult.reply, unsafeResult.reply.contains("False Familiar: Skin-Stealer"))
     assertTrue(unsafeResult.reply, unsafeResult.reply.contains("+12 điểm % Accuracy"))
 
