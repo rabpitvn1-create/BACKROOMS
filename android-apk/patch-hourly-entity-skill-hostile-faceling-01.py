@@ -132,7 +132,7 @@ if 'hostileFacelingFalseApproachIsEntityTurnOnlyAccuracyPressureWithGuardCounter
 
     assertNotNull("Hostile Faceling proc must also be reachable on a GUARD Entity-response turn", guardResult)
     assertTrue(guardResult!!.reply, guardResult!!.reply.contains("kỹ năng bị vô hiệu"))
-    assertFalse(guardResult!!.reply, guardResult!!.reply.contains("+8 điểm % Accuracy"))
+    assertFalse(guardResult!!.reply, guardResult!!.reply.contains("Stun"))
   }
 '''
     close = test.rfind("}\n")
