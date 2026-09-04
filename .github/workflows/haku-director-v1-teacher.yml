@@ -34,7 +34,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: rabpitvn1-create/BACKROOMS
-          ref: train/world-director-teacher-data
+          ref: main
           path: simulator
 
       - name: Set up Python
