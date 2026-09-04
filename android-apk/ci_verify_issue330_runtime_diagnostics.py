@@ -42,7 +42,8 @@ for marker in (
     '.put("source", "android_reducer")',
     'issue.put("source", "local_validator")',
     'auditIssueDetails(hardIssues)',
-    'claim=",
+    "claim=",
+    "reason=",
 ):
     assert marker in main, marker
 
