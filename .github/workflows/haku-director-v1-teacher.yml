@@ -52,6 +52,7 @@ jobs:
             work/android-apk/ml/build_haku_director_dataset.py \
             work/android-apk/ml/train_haku_director_candidate.py \
             simulator/android-apk/ml/simulate_world_director_trajectories.py
+          python work/android-apk/ci_apply_runtime_patches.py
           python work/android-apk/ci_verify_provider_routing.py
 
       - name: Generate registered-Level V1 contexts
