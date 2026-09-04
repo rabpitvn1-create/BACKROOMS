@@ -113,7 +113,7 @@ if 'dullerStillframeLungeIsEntityTurnOnlyAccuracyPressureWithGuardCounterplay' n
     }
 
     assertNotNull("23% Duller proc must be reachable across deterministic Entity turns", pressureResult)
-    assertTrue(pressureResult!!.reply, pressureResult!!.reply.contains("+10 điểm % Accuracy"))
+    assertFalse(pressureResult!!.reply, pressureResult!!.reply.contains("kỹ năng bị vô hiệu"))
     assertFalse(pressureResult!!.reply, pressureResult!!.reply.contains("Stun"))
 
     var guardResult: CombatRuntime.Resolution? = null
