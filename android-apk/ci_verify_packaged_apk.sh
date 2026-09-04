@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-APK=${1:-Backroom-1.0.0.0.7-debug.apk}
+APK=${1:-Backroom-1.0.0.0.8-debug.apk}
 BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
 
 "$BUILD_TOOLS/apksigner" verify --verbose --print-certs "$APK"
 "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "package: name='com.rabpit.backroom'"
-"$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionCode='115'"
-"$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionName='1.0.0.0.7'"
+"$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionCode='116'"
+"$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionName='1.0.0.0.8'"
 "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
 "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 "$APK"
 
@@ -64,14 +64,11 @@ grep -q 'equipmentDetailModal' apk-check/assets/index.html
 grep -q 'renderCharacterStatusEquipment' apk-check/assets/index.html
 grep -q 'characterSkillsModal' apk-check/assets/index.html
 grep -q 'characterSkillsButton' apk-check/assets/index.html
-# Discovered evidence uses plain bold text; obsolete clue badges stay removed.
 if grep -Eq 'EVIDENCE_HIGHLIGHT_V1|rpg-evidence-badge|evidenceHighlightStyle' apk-check/assets/index.html; then
   echo 'Packaged APK still exposes evidence highlighting' >&2
   exit 1
 fi
 
-# TURN remains an internal state key but must not be visible in the player HUD. Escape is resolved
-# from locked Level instances, never from a player-facing percentage meter.
 grep -q '.turn{display:none!important}' apk-check/assets/index.html
 ! grep -q 'id="escapeChance"' apk-check/assets/index.html
 ! grep -q 'ESCAPE_CHANCE_HUD_R02' apk-check/assets/index.html

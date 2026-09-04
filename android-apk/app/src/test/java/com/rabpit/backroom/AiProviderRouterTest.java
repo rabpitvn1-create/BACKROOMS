@@ -37,16 +37,21 @@ public class AiProviderRouterTest {
     @Override public void onFallback(String fromProvider, String toProvider, Exception error) {
       events.add("fallback:" + fromProvider + "->" + toProvider);
     }
+
+    @Override public void onFailure(String provider, Exception error) {
+      events.add("failure:" + provider);
+    }
   }
 
-  @Test public void validHakuJsonDoesNotCallLunaOrGemini() throws Exception {
+  @Test public void validGeminiJsonStopsBeforeHakuAndLuna() throws Exception {
+    AtomicInteger gemini = new AtomicInteger();
     AtomicInteger haku = new AtomicInteger();
     AtomicInteger luna = new AtomicInteger();
-    AtomicInteger gemini = new AtomicInteger();
     RecordingObserver observer = new RecordingObserver();
 
     String result = AiProviderRouter.route(
       "prompt",
+      prompt -> { gemini.incrementAndGet(); return "{\"reply\":\"gemini-result\"}"; },
       prompt -> { haku.incrementAndGet(); return "{\"reply\":\"haku-result\"}"; },
       prompt -> { luna.incrementAndGet(); return "{\"reply\":\"luna-result\"}"; },
       error -> true,
@@ -54,150 +59,135 @@ public class AiProviderRouterTest {
       observer
     );
 
-    assertEquals("{\"reply\":\"haku-result\"}", result);
-    assertEquals(1, haku.get());
+    assertEquals("{\"reply\":\"gemini-result\"}", result);
+    assertEquals(1, gemini.get());
+    assertEquals(0, haku.get());
     assertEquals(0, luna.get());
-    assertEquals(0, gemini.get());
-    assertEquals(List.of("selected:HAKU"), observer.events);
+    assertEquals(List.of("selected:GEMINI"), observer.events);
   }
 
-  @Test public void fallbackEligibleHakuFailureCallsLunaOnly() throws Exception {
+  @Test public void geminiFailureFallsBackToHakuAndStops() throws Exception {
+    AtomicInteger gemini = new AtomicInteger();
     AtomicInteger haku = new AtomicInteger();
     AtomicInteger luna = new AtomicInteger();
-    AtomicInteger gemini = new AtomicInteger();
     RecordingObserver observer = new RecordingObserver();
 
     String result = AiProviderRouter.route(
       "prompt",
-      prompt -> { haku.incrementAndGet(); throw new Exception("provider unavailable"); },
+      prompt -> { gemini.incrementAndGet(); throw new Exception("gemini unavailable"); },
+      prompt -> { haku.incrementAndGet(); return "haku-result"; },
+      prompt -> { luna.incrementAndGet(); return "luna-result"; },
+      error -> true,
+      observer
+    );
+
+    assertEquals("haku-result", result);
+    assertEquals(1, gemini.get());
+    assertEquals(1, haku.get());
+    assertEquals(0, luna.get());
+    assertEquals(
+      List.of("selected:GEMINI", "failure:GEMINI", "fallback:GEMINI->HAKU", "selected:HAKU"),
+      observer.events
+    );
+  }
+
+  @Test public void geminiAndHakuFailuresFallBackToLuna() throws Exception {
+    AtomicInteger gemini = new AtomicInteger();
+    AtomicInteger haku = new AtomicInteger();
+    AtomicInteger luna = new AtomicInteger();
+    RecordingObserver observer = new RecordingObserver();
+
+    String result = AiProviderRouter.route(
+      "prompt",
+      prompt -> { gemini.incrementAndGet(); throw new Exception("gemini unavailable"); },
+      prompt -> { haku.incrementAndGet(); throw new Exception("haku unavailable"); },
       prompt -> { luna.incrementAndGet(); return "luna-result"; },
       error -> true,
       observer
     );
 
     assertEquals("luna-result", result);
+    assertEquals(1, gemini.get());
     assertEquals(1, haku.get());
     assertEquals(1, luna.get());
-    assertEquals(0, gemini.get());
     assertEquals(
-      List.of("selected:HAKU", "fallback:HAKU->LUNA", "selected:LUNA"),
+      List.of(
+        "selected:GEMINI",
+        "failure:GEMINI",
+        "fallback:GEMINI->HAKU",
+        "selected:HAKU",
+        "failure:HAKU",
+        "fallback:HAKU->LUNA",
+        "selected:LUNA"
+      ),
       observer.events
     );
   }
 
-  @Test public void malformedHakuResponseFallsBackToValidatedLunaResponse() throws Exception {
-    AtomicInteger haku = new AtomicInteger();
-    AtomicInteger luna = new AtomicInteger();
+  @Test public void malformedResponsesFallThroughUntilValidLunaJson() throws Exception {
     RecordingObserver observer = new RecordingObserver();
 
     String result = AiProviderRouter.route(
       "prompt",
-      prompt -> { haku.incrementAndGet(); return "plain prose, not JSON"; },
-      prompt -> { luna.incrementAndGet(); return "{\"reply\":\"ok\"}"; },
+      prompt -> "plain Gemini prose",
+      prompt -> "{malformed Haku JSON}",
+      prompt -> "{\"reply\":\"luna-ok\"}",
       error -> true,
       (provider, response) -> validateModelJson(response),
       observer
     );
 
-    assertEquals("{\"reply\":\"ok\"}", result);
-    assertEquals(1, haku.get());
-    assertEquals(1, luna.get());
+    assertEquals("{\"reply\":\"luna-ok\"}", result);
     assertEquals(
-      List.of("selected:HAKU", "fallback:HAKU->LUNA", "selected:LUNA"),
+      List.of(
+        "selected:GEMINI",
+        "failure:GEMINI",
+        "fallback:GEMINI->HAKU",
+        "selected:HAKU",
+        "failure:HAKU",
+        "fallback:HAKU->LUNA",
+        "selected:LUNA"
+      ),
       observer.events
     );
   }
 
-  @Test public void malformedHakuAndMalformedLunaReturnControlledFailure() throws Exception {
-    AtomicInteger haku = new AtomicInteger();
-    AtomicInteger luna = new AtomicInteger();
+  @Test public void allThreeFailuresReturnControlledFailureWithLunaCause() throws Exception {
     RecordingObserver observer = new RecordingObserver();
 
     try {
       AiProviderRouter.route(
         "prompt",
-        prompt -> { haku.incrementAndGet(); return "plain Haku prose"; },
-        prompt -> { luna.incrementAndGet(); return "{malformed Luna JSON}"; },
+        prompt -> { throw new Exception("gemini down"); },
+        prompt -> { throw new Exception("haku down"); },
+        prompt -> { throw new Exception("luna down"); },
         error -> true,
-        (provider, response) -> validateModelJson(response),
         observer
       );
       fail("Expected ProviderChainException");
     } catch (AiProviderRouter.ProviderChainException error) {
-      assertEquals("AI provider chain failed: HAKU -> LUNA.", error.getMessage());
+      assertEquals("AI provider chain failed: GEMINI -> HAKU -> LUNA.", error.getMessage());
       assertTrue(error.getCause() != null);
+      assertEquals("luna down", error.getCause().getMessage());
+      assertEquals(2, error.getSuppressed().length);
     }
 
-    assertEquals(1, haku.get());
-    assertEquals(1, luna.get());
     assertEquals(
-      List.of("selected:HAKU", "fallback:HAKU->LUNA", "selected:LUNA"),
+      List.of(
+        "selected:GEMINI",
+        "failure:GEMINI",
+        "fallback:GEMINI->HAKU",
+        "selected:HAKU",
+        "failure:HAKU",
+        "fallback:HAKU->LUNA",
+        "selected:LUNA",
+        "failure:LUNA"
+      ),
       observer.events
     );
   }
 
-  @Test public void emptyHakuResponseFallsBackToValidLunaJson() throws Exception {
-    AtomicInteger luna = new AtomicInteger();
-
-    String result = AiProviderRouter.route(
-      "prompt",
-      prompt -> "   ",
-      prompt -> { luna.incrementAndGet(); return "{\"reply\":\"luna-result\"}"; },
-      error -> true,
-      (provider, response) -> validateModelJson(response),
-      new RecordingObserver()
-    );
-
-    assertEquals("{\"reply\":\"luna-result\"}", result);
-    assertEquals(1, luna.get());
-  }
-
-  @Test public void hakuAndLunaFailureReturnsControlledErrorWithoutGemini() throws Exception {
-    AtomicInteger haku = new AtomicInteger();
-    AtomicInteger luna = new AtomicInteger();
-    AtomicInteger gemini = new AtomicInteger();
-    RecordingObserver observer = new RecordingObserver();
-
-    try {
-      AiProviderRouter.route(
-        "prompt",
-        prompt -> { haku.incrementAndGet(); throw new Exception("haku down"); },
-        prompt -> { luna.incrementAndGet(); throw new Exception("luna down"); },
-        error -> true,
-        observer
-      );
-      fail("Expected ProviderChainException");
-    } catch (AiProviderRouter.ProviderChainException error) {
-      assertEquals("AI provider chain failed: HAKU -> LUNA.", error.getMessage());
-    }
-
-    assertEquals(1, haku.get());
-    assertEquals(1, luna.get());
-    assertEquals(0, gemini.get());
-  }
-
-  @Test public void geminiCredentialsHaveNoRoutingEffect() throws Exception {
-    String geminiCredentialStillConfigured = "present-but-runtime-locked";
-    AtomicInteger haku = new AtomicInteger();
-    AtomicInteger luna = new AtomicInteger();
-    AtomicInteger gemini = new AtomicInteger();
-
-    String result = AiProviderRouter.route(
-      "prompt",
-      prompt -> { haku.incrementAndGet(); return "ok"; },
-      prompt -> { luna.incrementAndGet(); return "fallback"; },
-      error -> true,
-      new RecordingObserver()
-    );
-
-    assertEquals("present-but-runtime-locked", geminiCredentialStillConfigured);
-    assertEquals("ok", result);
-    assertEquals(1, haku.get());
-    assertEquals(0, luna.get());
-    assertEquals(0, gemini.get());
-  }
-
-  @Test public void nonFallbackEligibleHakuFailureStopsAtHaku() throws Exception {
+  @Test public void nonFallbackEligibleGeminiFailureStopsImmediately() throws Exception {
     AtomicInteger haku = new AtomicInteger();
     AtomicInteger luna = new AtomicInteger();
     RecordingObserver observer = new RecordingObserver();
@@ -205,18 +195,68 @@ public class AiProviderRouterTest {
     try {
       AiProviderRouter.route(
         "prompt",
-        prompt -> { haku.incrementAndGet(); throw new IllegalArgumentException("invalid request"); },
+        prompt -> { throw new IllegalArgumentException("invalid request"); },
+        prompt -> { haku.incrementAndGet(); return "should-not-run"; },
         prompt -> { luna.incrementAndGet(); return "should-not-run"; },
         error -> false,
         observer
       );
-      fail("Expected validation failure");
+      fail("Expected Gemini failure");
     } catch (IllegalArgumentException error) {
       assertTrue(error.getMessage().contains("invalid request"));
     }
 
-    assertEquals(1, haku.get());
+    assertEquals(0, haku.get());
     assertEquals(0, luna.get());
-    assertEquals(List.of("selected:HAKU"), observer.events);
+    assertEquals(List.of("selected:GEMINI", "failure:GEMINI"), observer.events);
+  }
+
+  @Test public void nonFallbackEligibleHakuFailureStopsBeforeLuna() throws Exception {
+    AtomicInteger luna = new AtomicInteger();
+    AtomicInteger policyCalls = new AtomicInteger();
+    RecordingObserver observer = new RecordingObserver();
+
+    try {
+      AiProviderRouter.route(
+        "prompt",
+        prompt -> { throw new Exception("gemini retryable"); },
+        prompt -> { throw new IllegalArgumentException("haku invalid request"); },
+        prompt -> { luna.incrementAndGet(); return "should-not-run"; },
+        error -> policyCalls.incrementAndGet() == 1,
+        observer
+      );
+      fail("Expected Haku failure");
+    } catch (IllegalArgumentException error) {
+      assertTrue(error.getMessage().contains("haku invalid request"));
+    }
+
+    assertEquals(0, luna.get());
+    assertEquals(
+      List.of(
+        "selected:GEMINI",
+        "failure:GEMINI",
+        "fallback:GEMINI->HAKU",
+        "selected:HAKU",
+        "failure:HAKU"
+      ),
+      observer.events
+    );
+  }
+
+  @Test public void twoProviderCompatibilityOverloadStillUsesHakuThenLuna() throws Exception {
+    RecordingObserver observer = new RecordingObserver();
+    String result = AiProviderRouter.route(
+      "prompt",
+      prompt -> { throw new Exception("haku down"); },
+      prompt -> "luna-result",
+      error -> true,
+      observer
+    );
+
+    assertEquals("luna-result", result);
+    assertEquals(
+      List.of("selected:HAKU", "failure:HAKU", "fallback:HAKU->LUNA", "selected:LUNA"),
+      observer.events
+    );
   }
 }

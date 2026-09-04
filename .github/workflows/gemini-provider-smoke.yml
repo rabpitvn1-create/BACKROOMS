@@ -1,4 +1,4 @@
-name: BACKROOMS Gemini Provider Lock
+name: BACKROOMS Gemini High Priority
 
 on:
   workflow_dispatch:
@@ -19,22 +19,55 @@ permissions:
   contents: read
 
 jobs:
-  gemini-provider-lock:
+  gemini-high-priority:
     runs-on: ubuntu-latest
     env:
-      GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 || secrets.GEMINI_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
       GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
       GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
       GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
+      GEMINI_API_KEY_6: ${{ secrets.GEMINI_API_KEY_6 }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Verify Gemini is intentionally runtime-locked
+      - name: Verify Gemini high-priority runtime authority
         shell: bash
         run: |
           set -euo pipefail
-          test -s android-apk/patch-provider-haku-luna-lock-gemini-final.py
-          grep -q 'GEMINI_RUNTIME_ENABLED = false' android-apk/patch-provider-haku-luna-lock-gemini-final.py
-          grep -q 'patch-provider-haku-luna-lock-gemini-final.py' android-apk/ci_apply_runtime_patches.py
-          echo 'Gemini credentials remain configured, but no live Gemini probe is executed while runtime lock is active.'
+          test -s android-apk/patch-gemini-foundation-authority-final.py
+          grep -q 'GEMINI_RUNTIME_ENABLED = true' android-apk/patch-gemini-foundation-authority-final.py
+          grep -q 'Math.min(6, keys.length)' android-apk/patch-gemini-foundation-authority-final.py
+          grep -q 'this::geminiFoundationText' android-apk/patch-gemini-foundation-authority-final.py
+          grep -q 'patch-gemini-foundation-authority-final.py' android-apk/ci_apply_runtime_patches.py
+          grep -q 'buildConfigField "String", "GEMINI_API_KEY_6"' android-apk/app/build.gradle
+
+      - name: Require complete Hua-s-Family Gemini key set
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in GEMINI_API_KEY GEMINI_API_KEY_2 GEMINI_API_KEY_3 GEMINI_API_KEY_4 GEMINI_API_KEY_5 GEMINI_API_KEY_6; do
+            test -n "${!name:-}" || (echo "Missing GitHub Secret: $name" && exit 1)
+          done
+
+      - name: Live smoke all six Gemini credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          endpoint='https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent'
+          payload='{"contents":[{"parts":[{"text":"Return exactly one JSON object with ok=true."}]}],"generationConfig":{"responseMimeType":"application/json","maxOutputTokens":32,"thinkingConfig":{"thinkingLevel":"low"}}}'
+          names=(GEMINI_API_KEY GEMINI_API_KEY_2 GEMINI_API_KEY_3 GEMINI_API_KEY_4 GEMINI_API_KEY_5 GEMINI_API_KEY_6)
+          for index in "${!names[@]}"; do
+            name="${names[$index]}"
+            key="${!name}"
+            code=$(curl --silent --show-error --output "/tmp/gemini-$index.json" --write-out '%{http_code}' \
+              --request POST "$endpoint" \
+              --header 'Content-Type: application/json' \
+              --header "x-goog-api-key: $key" \
+              --data "$payload")
+            if [[ ! "$code" =~ ^2 ]]; then
+              echo "Gemini credential K$((index + 1)) smoke failed with HTTP $code"
+              exit 1
+            fi
+            echo "Gemini credential K$((index + 1)) live smoke passed"
+          done
