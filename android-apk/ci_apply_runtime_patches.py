@@ -117,6 +117,7 @@ SCRIPTS = [
     "patch-hourly-character-auto-skill-syvial-03.py",
     "patch-hourly-character-auto-skill-lucia-02.py",
     "patch-hourly-character-auto-skill-kai-01.py",
+    "patch-hourly-character-auto-skill-syvial-04.py",
     "patch-persistent-foundation-final.py",
     "patch-gemini-foundation-authority-final.py",
     "patch-issue330-runtime-diagnostics-final.py",
