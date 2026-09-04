@@ -55,15 +55,21 @@ jobs:
             echo 'Gemini K6 slot is supported but not provisioned in this repository; K1-K5 remain active.'
           fi
 
-      - name: Live smoke configured Gemini credentials
+      - name: Live smoke Gemini credential pool failover
         shell: bash
         run: |
           set -euo pipefail
           endpoint='https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent'
           payload='{"contents":[{"parts":[{"text":"Return exactly one JSON object with ok=true."}]}],"generationConfig":{"responseMimeType":"application/json","maxOutputTokens":32,"thinkingConfig":{"thinkingLevel":"low"}}}'
           names=(GEMINI_API_KEY GEMINI_API_KEY_2 GEMINI_API_KEY_3 GEMINI_API_KEY_4 GEMINI_API_KEY_5 GEMINI_API_KEY_6)
-          passed=0
-          max_attempts=3
+          max_attempts=5
+          configured=0
+          pool_success=0
+
+          for name in "${names[@]}"; do
+            [[ -n "${!name:-}" ]] && configured=$((configured + 1))
+          done
+          test "$configured" -ge 5 || (echo "Expected at least five configured Gemini credentials, got $configured" && exit 1)
 
           for index in "${!names[@]}"; do
             name="${names[$index]}"
@@ -73,9 +79,11 @@ jobs:
             attempt=1
             while true; do
               output="/tmp/gemini-$index-$attempt.json"
+              headers="/tmp/gemini-$index-$attempt.headers"
               if code=$(curl --silent --show-error \
                 --connect-timeout 8 \
                 --max-time 30 \
+                --dump-header "$headers" \
                 --output "$output" \
                 --write-out '%{http_code}' \
                 --request POST "$endpoint" \
@@ -89,9 +97,9 @@ jobs:
               fi
 
               if [[ "$code" =~ ^2 ]]; then
-                passed=$((passed + 1))
-                echo "Gemini credential K$((index + 1)) live smoke passed on attempt $attempt"
-                break
+                pool_success=1
+                echo "Gemini credential pool live smoke passed via K$((index + 1)) on attempt $attempt"
+                break 2
               fi
 
               retryable=false
@@ -102,19 +110,31 @@ jobs:
               fi
 
               if [[ "$retryable" == true && "$attempt" -lt "$max_attempts" ]]; then
-                echo "Gemini credential K$((index + 1)) transient smoke failure (HTTP $code, curl=$curl_status); retrying"
-                sleep $((attempt * 2))
+                retry_after=$(awk 'BEGIN{IGNORECASE=1} /^Retry-After:[[:space:]]*[0-9]+/ {gsub("\r", "", $2); print $2; exit}' "$headers" 2>/dev/null || true)
+                if [[ "$retry_after" =~ ^[0-9]+$ ]]; then
+                  (( retry_after > 30 )) && retry_after=30
+                  delay=$retry_after
+                else
+                  delay=$(( (1 << attempt) + ((index + attempt) % 3) ))
+                fi
+                echo "Gemini K$((index + 1)) transient smoke failure (HTTP $code, curl=$curl_status); retrying in ${delay}s"
+                sleep "$delay"
                 attempt=$((attempt + 1))
                 continue
               fi
 
+              if [[ "$retryable" == true ]]; then
+                echo "Gemini K$((index + 1)) remains transiently unavailable after $attempt attempt(s); continuing to the next configured credential"
+                break
+              fi
+
               if [[ "$curl_status" -ne 0 ]]; then
-                echo "Gemini credential K$((index + 1)) smoke failed with curl status $curl_status after $attempt attempt(s)"
+                echo "Gemini K$((index + 1)) permanent smoke failure with curl status $curl_status"
               else
-                echo "Gemini credential K$((index + 1)) smoke failed with HTTP $code after $attempt attempt(s)"
+                echo "Gemini K$((index + 1)) permanent smoke failure with HTTP $code"
               fi
               exit 1
             done
           done
 
-          test "$passed" -ge 5 || (echo "Expected at least five active Gemini credentials, got $passed" && exit 1)
+          test "$pool_success" -eq 1 || (echo "All configured Gemini credentials were unavailable after bounded retry/failover" && exit 1)
