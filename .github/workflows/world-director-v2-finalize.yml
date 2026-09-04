@@ -1,0 +1,167 @@
+name: WorldDirector V2 Finalize
+
+on:
+  pull_request:
+    types: [synchronize]
+    branches: [main]
+    paths:
+      - "android-apk/ml/world_director_v2_finalize_once.txt"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: world-director-v2-finalize-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      HAKU_API_KEY: ${{ secrets.HAKU_API_KEY }}
+      # Worst-case accounting:
+      # V1 ~157.58 + first V2 <=3695 + failed recovery 5 + this run <=220 = 4077.58 VND.
+      # This remains below the user-authorized 4103 VND ceiling.
+      HAKU_FINAL_BUDGET_VND: "230"
+      HAKU_FINAL_RESERVE_VND: "10"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: work
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: work/android-apk/ml/requirements.txt
+
+      - name: Validate finalization inputs
+        run: |
+          set -euo pipefail
+          test -n "${HAKU_API_KEY:-}" || (echo "Missing GitHub Secret: HAKU_API_KEY" && exit 1)
+          test -s work/android-apk/ml/world_director_v2_finalize_once.txt
+          test -s work/android-apk/ml/world_director_v2_gemini_labels.csv.gz.b64
+          python -m py_compile \
+            work/android-apk/ml/simulate_world_director_v2_trajectories.py \
+            work/android-apk/ml/expand_world_director_v2_gemini_labels.py \
+            work/android-apk/ml/haku_world_director_v2_teacher.py \
+            work/android-apk/ml/haku_world_director_v2_recovery.py \
+            work/android-apk/ml/build_world_director_v2_multiteacher_dataset.py \
+            work/android-apk/ml/run_world_director_v2_candidate.py
+          cd work/android-apk/ml
+          python -m unittest -v test_world_director_v2_features.py
+
+      - name: Decode Gemini labels
+        run: |
+          python - <<'PY'
+          import base64, csv, gzip, pathlib
+          src = pathlib.Path('work/android-apk/ml/world_director_v2_gemini_labels.csv.gz.b64')
+          dst = pathlib.Path('work/android-apk/ml/world_director_v2_gemini_labels.csv')
+          dst.write_bytes(gzip.decompress(base64.b64decode(src.read_text(encoding='utf-8').strip())))
+          with dst.open(encoding='utf-8', newline='') as handle:
+              reader = csv.DictReader(handle)
+              rows = list(reader)
+          assert reader.fieldnames == ['sampleId', 'proposal', 'confidence', 'reasonCode']
+          assert len(rows) == 647 and len({r['sampleId'] for r in rows}) == 647
+          PY
+
+      - name: Generate V2 context universe
+        run: |
+          set -euo pipefail
+          cd work/android-apk/ml
+          python simulate_world_director_v2_trajectories.py \
+            --levels ../app/src/main/assets/levels \
+            --runs 960 --turns 120 --history 16 --history-positions 4 --seed 2299 \
+            --output "$GITHUB_WORKSPACE/v2-snapshots.jsonl" \
+            --report "$GITHUB_WORKSPACE/v2-snapshot-report.json"
+
+      - name: Reconstruct Gemini labels
+        run: |
+          set -euo pipefail
+          python work/android-apk/ml/expand_world_director_v2_gemini_labels.py \
+            --contexts v2-snapshots.jsonl \
+            --labels work/android-apk/ml/world_director_v2_gemini_labels.csv \
+            --output v2-gemini.jsonl \
+            --report v2-gemini-report.json
+          python - <<'PY'
+          import json
+          r=json.load(open('v2-gemini-report.json', encoding='utf-8'))
+          assert r['labels']==647 and r['allIdsReproduced'] is True, r
+          PY
+
+      - name: Label compact Haku overlap
+        run: |
+          set -euo pipefail
+          PYTHONPATH=work/android-apk/ml python work/android-apk/ml/haku_world_director_v2_recovery.py \
+            --input v2-snapshots.jsonl \
+            --gemini-labels v2-gemini.jsonl \
+            --output v2-haku.jsonl \
+            --report v2-haku-report.json \
+            --model claude-haiku-4-5-20251001 \
+            --batch-size 10 \
+            --max-unique 200 \
+            --max-output-tokens 700 \
+            --budget-vnd "$HAKU_FINAL_BUDGET_VND" \
+            --safety-reserve-vnd "$HAKU_FINAL_RESERVE_VND" \
+            --max-requests 20
+          test -s v2-haku.jsonl
+
+      - name: Build conservative consensus
+        run: |
+          python work/android-apk/ml/build_world_director_v2_multiteacher_dataset.py \
+            --gemini v2-gemini.jsonl \
+            --haku v2-haku.jsonl \
+            --output v2-consensus.csv \
+            --report v2-consensus-report.json
+
+      - name: Build V1 anchor
+        working-directory: work/android-apk/ml
+        run: python build_director_dataset.py
+
+      - name: Install training dependencies
+        run: python -m pip install --requirement work/android-apk/ml/requirements.txt
+
+      - name: Train and verify LiteRT V2 candidate
+        env:
+          PYTHONPATH: work/android-apk/ml
+        run: |
+          set -euo pipefail
+          python work/android-apk/ml/run_world_director_v2_candidate.py \
+            --teacher-dataset v2-consensus.csv \
+            --seed-dataset work/android-apk/ml/director_dataset.csv \
+            --output v2-candidate.tflite \
+            --report v2-candidate-report.json
+          test -s v2-candidate.tflite
+          test $(stat -c%s v2-candidate.tflite) -le 5242880
+          python - <<'PY'
+          import json
+          r=json.load(open('v2-candidate-report.json', encoding='utf-8'))
+          assert r['productionAssetModified'] is False
+          assert r['featureCount']==16384
+          print('promotionEligible=', r['promotionEligible'])
+          print('teacherAccuracyGainOverV1=', r['teacherAccuracyGainOverV1'])
+          PY
+
+      - name: Verify source tree unchanged by training
+        run: git -C work diff --exit-code -- android-apk/app/src/main/assets/models
+
+      - name: Upload final V2 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: world-director-v2-final-evidence
+          path: |
+            v2-snapshot-report.json
+            v2-gemini-report.json
+            v2-haku.jsonl
+            v2-haku-report.json
+            v2-consensus.csv
+            v2-consensus-report.json
+            v2-candidate.tflite
+            v2-candidate-report.json
+          if-no-files-found: warn
+          retention-days: 30
