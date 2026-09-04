@@ -14,14 +14,15 @@ def replace_once(source: str, old: str, new: str, label: str) -> str:
     return source.replace(old, new, 1)
 
 
-# Final authority: all three primary gameplay actions may start a new Entity encounter.
-# Keep exploreAction because existing release verification still checks the typed-action bridge,
-# then derive one explicit encounter gate for SEARCH / EXECUTE / EXPLORE.
+# Final encounter authority: only EXPLORE may start a NEW roaming Entity encounter.
+# SEARCH is observation/resource discovery inside the current location. EXECUTE is the
+# player's explicit freeform intent, including dialogue. Neither may ambush the player
+# with a fresh Entity merely because another ordinary turn was submitted.
+#
+# Keep entityEncounterAction as a compatibility alias because later unique-Entity
+# patches share this gate instead of inventing their own action semantics.
 explore_line = '    boolean exploreAction = "EXPLORE".equals(actionKindNormalized);\n'
-encounter_line = (
-    '    boolean entityEncounterAction = exploreAction || '
-    '"SEARCH".equals(actionKindNormalized) || "EXECUTE".equals(actionKindNormalized);\n'
-)
+encounter_line = '    boolean entityEncounterAction = exploreAction;\n'
 if encounter_line not in text:
     if explore_line not in text:
         raise RuntimeError("Typed action encounter anchor missing")
@@ -35,65 +36,50 @@ normal_new = (
     '    JSONObject normalEntityRoll = thresholdRoll("entityEncounter", 10000, '
     'entityThresholds[level], entityEncounterAction && entityAllowed, entitySuffix);\n'
 )
-text = replace_once(text, normal_old, normal_new, "shared Entity encounter gate")
+text = replace_once(text, normal_old, normal_new, "shared EXPLORE-only Entity encounter gate")
 
 # Jeff/Jane may still exist as temporary independent rolls at this point in the patch chain.
-# The final unified-pool pass removes those channels, but making them use the same action gate here
-# keeps this patch correct even if it is inspected or executed before that final unification.
+# The final unified-pool pass can remove those channels later, but while they exist they must
+# obey the same EXPLORE-only authority.
 for label in ("jeffEncounter", "janeEncounter"):
     old = f'    rolls.put("{label}", thresholdRoll("{label}", 10000, 800, exploreAction && entityAllowed'
     new = f'    rolls.put("{label}", thresholdRoll("{label}", 10000, 800, entityEncounterAction && entityAllowed'
     if old in text:
         text = text.replace(old, new, 1)
 
-# The GM prompt must agree with the authoritative local dice. Otherwise the model can suppress a
-# successful local roll because an obsolete prose rule still says SEARCH/EXECUTE cannot encounter.
-search_old_variants = (
-    "SEARCH không được khởi tạo encounter Entity mới và entityEncounter/jeffEncounter/janeEncounter phải ineligible;",
-    "SEARCH không được khởi tạo encounter Entity mới và entityEncounter phải ineligible;",
-)
-search_new = "SEARCH vẫn roll entityEncounter theo tỷ lệ Level và có thể khởi tạo roaming Entity mới;"
-if search_new not in text:
-    replaced = False
-    for old in search_old_variants:
-        if old in text:
-            text = text.replace(old, search_new, 1)
-            replaced = True
-            break
-    if not replaced:
-        raise RuntimeError("SEARCH Entity prompt gate anchor missing")
+# Keep GM prose aligned with local authoritative dice. A dialogue/EXECUTE turn must never be
+# narrated as a fresh random encounter, and SEARCH must not silently become EXPLORE.
+search_required = "SEARCH không được khởi tạo encounter Entity mới và entityEncounter/jeffEncounter/janeEncounter phải ineligible;"
+search_fallback = "SEARCH không được khởi tạo encounter Entity mới và entityEncounter phải ineligible;"
+if search_required not in text and search_fallback not in text:
+    raise RuntimeError("SEARCH EXPLORE-only Entity prompt gate missing")
 
-explore_old = "đây là action duy nhất được phép kích hoạt roll encounter Entity mới;"
-explore_new = "EXPLORE roll Entity theo cùng cơ chế với SEARCH và EXECUTE;"
-if explore_new not in text:
-    if explore_old in text:
-        text = text.replace(explore_old, explore_new, 1)
+explore_required = "đây là action duy nhất được phép kích hoạt roll encounter Entity mới;"
+if explore_required not in text:
+    raise RuntimeError("EXPLORE Entity prompt authority missing")
 
-execute_old = "không tự đổi mục tiêu và không khởi tạo encounter Entity mới."
-execute_new = "không tự đổi mục tiêu; EXECUTE vẫn roll Entity và có thể khởi tạo roaming encounter mới."
-if execute_new not in text:
-    if execute_old not in text:
-        raise RuntimeError("EXECUTE Entity prompt gate anchor missing")
-    text = text.replace(execute_old, execute_new, 1)
+execute_required = "không tự đổi mục tiêu và không khởi tạo encounter Entity mới."
+if execute_required not in text:
+    raise RuntimeError("EXECUTE Entity prompt authority missing")
 
 for marker in (
     'boolean exploreAction = "EXPLORE".equals(actionKindNormalized);',
-    'boolean entityEncounterAction = exploreAction || "SEARCH".equals(actionKindNormalized) || "EXECUTE".equals(actionKindNormalized);',
+    'boolean entityEncounterAction = exploreAction;',
     'thresholdRoll("entityEncounter", 10000, entityThresholds[level], entityEncounterAction && entityAllowed',
-    search_new,
-    execute_new,
+    explore_required,
+    execute_required,
 ):
     if marker not in text:
-        raise RuntimeError("All-action Entity encounter contract missing: " + marker)
+        raise RuntimeError("EXPLORE-only Entity encounter contract missing: " + marker)
 
 for forbidden in (
-    'thresholdRoll("entityEncounter", 10000, entityThresholds[level], exploreAction && entityAllowed',
-    "SEARCH không được khởi tạo encounter Entity mới",
-    "đây là action duy nhất được phép kích hoạt roll encounter Entity mới",
-    "không tự đổi mục tiêu và không khởi tạo encounter Entity mới",
+    'boolean entityEncounterAction = exploreAction || "SEARCH".equals(actionKindNormalized) || "EXECUTE".equals(actionKindNormalized);',
+    "SEARCH vẫn roll entityEncounter theo tỷ lệ Level và có thể khởi tạo roaming Entity mới;",
+    "EXPLORE roll Entity theo cùng cơ chế với SEARCH và EXECUTE;",
+    "EXECUTE vẫn roll Entity và có thể khởi tạo roaming encounter mới.",
 ):
     if forbidden in text:
-        raise RuntimeError("Obsolete EXPLORE-only Entity gate survived: " + forbidden)
+        raise RuntimeError("Obsolete all-action Entity encounter contract survived: " + forbidden)
 
 MAIN.write_text(text, encoding="utf-8")
-print("Final Entity encounter action gate installed: SEARCH, EXECUTE and EXPLORE can all spawn Entity encounters.")
+print("Final Entity encounter action gate installed: new roaming Entity encounters are EXPLORE-only; SEARCH/EXECUTE remain encounter-safe.")
