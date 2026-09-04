@@ -94,6 +94,7 @@ SCRIPTS = [
     "patch-auto-light-flicker.py",
     "patch-combat-presentation-authority-final.py",
     "patch-combat-summary-final.py",
+    "patch-stun-expiry-character-shadow-final.py",
 ]
 
 for required in (AUDIT_RUNNER, ORPHAN_AUDIT, COMPACT_VERIFY):
