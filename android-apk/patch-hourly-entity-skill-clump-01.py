@@ -114,7 +114,7 @@ if 'clumpTangleDragIsEntityTurnOnlyPressureWithEvadeCounterplay' not in test:
       "combat.cover" to CombatRuntime.Cover.HARD.name,
       "combat.escapeProgress" to "50"
     ))
-    val evaded = CombatRuntime.resolve(evade, "EXECUTE", "né vòng chi của Clump")
+    val evaded = CombatRuntime.resolve(evade, "EXECUTE", "Cả Party cùng né tránh")
     assertTrue(evaded.reply, evaded.reply.contains("Tangle Drag:"))
     assertTrue(evaded.reply, evaded.reply.contains("không mất Cover hay tiến độ thoát"))
     val safe = CombatRuntime.active(evaded.state)!!
