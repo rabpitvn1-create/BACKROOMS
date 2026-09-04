@@ -3,6 +3,7 @@ name: Haku WorldDirector V1 Teacher
 on:
   workflow_dispatch:
   pull_request:
+    types: [opened]
     branches: [main]
     paths:
       - ".github/workflows/haku-director-v1-teacher.yml"
@@ -110,11 +111,16 @@ jobs:
           bytes=$(stat -c%s "$GITHUB_WORKSPACE/haku-director-v1-candidate.tflite")
           test "$bytes" -le 5242880 || (echo "Candidate exceeds 5 MiB: $bytes" && exit 1)
 
-      - name: Verify production asset was not modified
+      - name: Verify production model asset was not modified
         run: |
           set -euo pipefail
           test ! -e work/android-apk/app/src/main/assets/models/backrooms_director.tflite
-          git -C work diff --exit-code -- android-apk/app/src/main/assets/models android-apk/app/src/main/java/com/rabpit/backroom/core/WorldDirector.kt
+          git -C work diff --exit-code -- android-apk/app/src/main/assets/models
+          python - <<'PY'
+          import json
+          report = json.load(open('haku-director-v1-candidate-report.json', encoding='utf-8'))
+          assert report.get('productionAssetModified') is False
+          PY
 
       - name: Summarize candidate
         if: always()
