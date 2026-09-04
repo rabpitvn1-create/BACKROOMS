@@ -136,13 +136,15 @@ class SyvialHellscarRendTest {
 
   private fun syvialCombat(presence: CharacterPresence = CharacterPresence.ACTIVE): GameState {
     val ensured = SpecialFollowersCanon.ensure(GameState.initial())
-    val syvial = ensured.characters.getValue(SYVIAL_ID)
     var state = ensured.copy(
-      party = PartyState(memberIds = listOf(KAI_ID, SYVIAL_ID)),
-      characters = ensured.characters + (SYVIAL_ID to syvial.copy(presence = presence))
+      party = PartyState(memberIds = listOf(KAI_ID, SYVIAL_ID))
     )
     state = CombatRuntime.start(state, "diep_minh")
-    return state.copy(metadata = state.metadata + ("partyCombat.actorContext" to SYVIAL_ID))
+    val syvial = state.characters.getValue(SYVIAL_ID)
+    return state.copy(
+      characters = state.characters + (SYVIAL_ID to syvial.copy(presence = presence)),
+      metadata = state.metadata + ("partyCombat.actorContext" to SYVIAL_ID)
+    )
   }
 
   @Test fun hellscarRendIsAFortyPercentAttackingAutoWithoutRevivingLegacyAutos() {
