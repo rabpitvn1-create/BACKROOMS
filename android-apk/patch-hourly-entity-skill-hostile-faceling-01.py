@@ -107,7 +107,7 @@ if 'hostileFacelingFalseApproachIsEntityTurnOnlyAccuracyPressureWithGuardCounter
     for (counter in 0..300) {
       var state = CombatRuntime.start(GameState.initial(), "hostile_faceling")
       state = state.copy(metadata = state.metadata + ("combat.eventCounter" to counter.toString()))
-      val result = CombatRuntime.resolve(state, "ATTACK", "Kai bắn Hostile Faceling")
+      val result = CombatRuntime.resolve(state, "OTHER", "giữ đội hình và quan sát Hostile Faceling")
       if (result.reply.contains("False Approach:")) {
         pressureResult = result
         break
@@ -132,6 +132,7 @@ if 'hostileFacelingFalseApproachIsEntityTurnOnlyAccuracyPressureWithGuardCounter
 
     assertNotNull("Hostile Faceling proc must also be reachable on a GUARD Entity-response turn", guardResult)
     assertTrue(guardResult!!.reply, guardResult!!.reply.contains("kỹ năng bị vô hiệu"))
+    assertFalse(guardResult!!.reply, guardResult!!.reply.contains("+8 điểm % Accuracy"))
   }
 '''
     close = test.rfind("}\n")
