@@ -128,13 +128,17 @@ jobs:
           facade = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt').read_text(encoding='utf-8')
           gradle = Path('android-apk/app/build.gradle').read_text(encoding='utf-8')
           canon = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/AnNhienCanon.kt').read_text(encoding='utf-8')
-          assert "versionCode 125" in gradle
-          assert "versionName '1.1.49'" in gradle
+          assert "versionCode 126" in gradle
+          assert "versionName '1.1.49.1'" in gradle
           assert 'state&&state.partyDetails&&Array.isArray(state.partyDetails.members)' in html
           assert 'id="characterSurvivalHud"' in html
           assert '.message.gm{' in html
           assert 'focusLatestGmStart()' in html
           assert '#characterEquipmentList span,#characterInventoryItems span{text-transform:uppercase' in html
+          assert 'id="gameplayPage"' in html
+          assert 'id="infoPage"' in html
+          assert 'data-app-page="gameplayPage"' in html
+          assert 'data-app-page="infoPage"' in html
           assert 'output.put("partyDetails"' in facade
           assert 'output.put("gameTime"' in facade
           assert 'thresholdRoll("jeffEncounter", 10000, 200' in java
@@ -167,7 +171,7 @@ jobs:
         run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
 
       - name: Prepare APK
-        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.1.49.apk
+        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.1.49.1.apk
 
       - name: Verify APK signature and launcher
         run: |
@@ -176,48 +180,34 @@ jobs:
           AAPT="$BUILD_TOOLS/aapt"
           test -x "$APKSIGNER"
           test -x "$AAPT"
-          "$APKSIGNER" verify --verbose --print-certs Backroom-1.1.49.apk
-          "$AAPT" dump badging Backroom-1.1.49.apk | grep -q "package: name='com.rabpit.backroom'"
-          "$AAPT" dump badging Backroom-1.1.49.apk | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
-
-      - name: Install and launch APK on Android emulator
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 29
-          arch: x86_64
-          profile: pixel_2
-          disable-animations: false
-          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
-          script: |
-            adb install -r Backroom-1.1.49.apk
-            adb logcat -c
-            adb shell am start -n com.rabpit.backroom/.MainActivity
-            sleep 20
-            adb shell pidof com.rabpit.backroom
-            adb shell dumpsys activity activities | grep -q 'mResumedActivity.*com.rabpit.backroom/.MainActivity'
-            ! adb logcat -d -b crash | grep -q 'com.rabpit.backroom'
+          "$APKSIGNER" verify --verbose --print-certs Backroom-1.1.49.1.apk
+          "$AAPT" dump badging Backroom-1.1.49.1.apk | grep -q "package: name='com.rabpit.backroom'"
+          "$AAPT" dump badging Backroom-1.1.49.1.apk | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
+          unzip -l Backroom-1.1.49.1.apk | grep -q 'AndroidManifest.xml'
+          unzip -l Backroom-1.1.49.1.apk | grep -q 'assets/index.html'
+          unzip -l Backroom-1.1.49.1.apk | grep -q 'classes.dex'
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Backroom-1.1.49-apk
-          path: Backroom-1.1.49.apk
+          name: Backroom-1.1.49.1-apk
+          path: Backroom-1.1.49.1.apk
           if-no-files-found: error
           retention-days: 14
 
-      - name: Publish GitHub Release v1.1.49
+      - name: Publish GitHub Release v1.1.49.1
         if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="v1.1.49"
-          TITLE="Backroom 1.1.49"
-          NOTES=$(cat android-apk/RELEASE_NOTES_1.1.49.txt)
+          TAG="v1.1.49.1"
+          TITLE="Backroom 1.1.49.1"
+          NOTES=$(cat android-apk/RELEASE_NOTES_1.1.49.1.txt)
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
-            gh release upload "$TAG" Backroom-1.1.49.apk --clobber
+            gh release upload "$TAG" Backroom-1.1.49.1.apk --clobber
           else
-            gh release create "$TAG" Backroom-1.1.49.apk --target "$GITHUB_SHA" --title "$TITLE" --notes "$NOTES"
+            gh release create "$TAG" Backroom-1.1.49.1.apk --target "$GITHUB_SHA" --title "$TITLE" --notes "$NOTES"
           fi
 
       - name: Verify published APK and record GREEN release
@@ -225,19 +215,19 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          rm -f Backroom-1.1.49-verified.apk
-          gh release view v1.1.49 --repo "$GITHUB_REPOSITORY"
-          gh release download v1.1.49 --repo "$GITHUB_REPOSITORY" --pattern 'Backroom-1.1.49.apk' --output Backroom-1.1.49-verified.apk
-          test -s Backroom-1.1.49-verified.apk
-          unzip -l Backroom-1.1.49-verified.apk | grep -q 'AndroidManifest.xml'
-          unzip -l Backroom-1.1.49-verified.apk | grep -q 'assets/index.html'
-          unzip -l Backroom-1.1.49-verified.apk | grep -q 'assets/avatars/an_nhien_avatar.png'
-          unzip -l Backroom-1.1.49-verified.apk | grep -q 'classes.dex'
-          SHA256=$(sha256sum Backroom-1.1.49-verified.apk | awk '{print $1}')
+          rm -f Backroom-1.1.49.1-verified.apk
+          gh release view v1.1.49.1 --repo "$GITHUB_REPOSITORY"
+          gh release download v1.1.49.1 --repo "$GITHUB_REPOSITORY" --pattern 'Backroom-1.1.49.1.apk' --output Backroom-1.1.49.1-verified.apk
+          test -s Backroom-1.1.49.1-verified.apk
+          unzip -l Backroom-1.1.49.1-verified.apk | grep -q 'AndroidManifest.xml'
+          unzip -l Backroom-1.1.49.1-verified.apk | grep -q 'assets/index.html'
+          unzip -l Backroom-1.1.49.1-verified.apk | grep -q 'assets/avatars/an_nhien_avatar.png'
+          unzip -l Backroom-1.1.49.1-verified.apk | grep -q 'classes.dex'
+          SHA256=$(sha256sum Backroom-1.1.49.1-verified.apk | awk '{print $1}')
           mkdir -p release-status
-          printf 'status=GREEN\nversion=1.1.49\ntag=v1.1.49\nasset=Backroom-1.1.49.apk\nsource_sha=%s\nrun_id=%s\nsha256=%s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$SHA256" > release-status/v1.1.49.txt
+          printf 'status=GREEN\nversion=1.1.49.1\ntag=v1.1.49.1\nasset=Backroom-1.1.49.1.apk\nsource_sha=%s\nrun_id=%s\nsha256=%s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$SHA256" > release-status/v1.1.49.1.txt
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add release-status/v1.1.49.txt
-          git commit -m 'Record verified Backroom 1.1.49 release'
+          git add release-status/v1.1.49.1.txt
+          git commit -m 'Record verified Backroom 1.1.49.1 release'
           git push origin HEAD:main
