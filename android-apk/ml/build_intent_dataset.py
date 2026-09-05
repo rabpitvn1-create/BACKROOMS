@@ -17,9 +17,9 @@ PEOPLE = ["Iris", "Syvial", "Lucia", "An Nhiên"]
 
 TEMPLATES = {
     "DISCARD_ITEM": ["vứt {i} đi", "Kai bỏ {i} đi", "quăng {i}", "ném {i} đi", "loại bỏ {i}"],
-    "USE_ITEM": ["Kai dùng {i}", "sử dụng {i}", "uống {i}", "ăn {i}", "kích hoạt {i}"],
+    "USE_ITEM": ["Kai dùng {i}", "sử dụng {i}", "kích hoạt {i}", "dùng {i} ngay", "thử dùng {i}"],
     "TRANSFER_ITEM": ["Kai đưa {i} cho {p}", "trao {i} cho {p}", "chuyển {i} sang {p}", "giao {i} cho {p}"],
-    "GIVE_AND_USE_ITEM": ["Kai đưa {i} cho {p} dùng", "đưa {p} {i} để dùng", "trao {i} cho {p} rồi bảo dùng", "đưa {i} cho {p} uống"],
+    "GIVE_AND_USE_ITEM": ["Kai đưa {i} cho {p} dùng", "đưa {p} {i} để dùng", "trao {i} cho {p} rồi bảo dùng", "đưa {i} cho {p} sử dụng"],
     "REQUEST_ITEM": ["Kai xin {i} từ {p}", "xin {p} đưa {i} cho Kai", "lấy {i} từ kho của {p}", "yêu cầu {p} chuyển {i} cho Kai"],
     "EQUIP_ITEM": ["trang bị {i}", "Kai đeo {i}", "Kai cầm {i} làm trang bị", "gắn {i} vào ô trang bị"],
     "UNEQUIP_ITEM": ["tháo {i}", "bỏ trang bị {i}", "gỡ {i} khỏi ô trang bị", "Kai cất {i} đang trang bị"],
@@ -29,6 +29,8 @@ TEMPLATES = {
 }
 
 FIXED = {
+    "USE_ITEM": ["uống chai Almond Water", "ăn hộp khẩu phần", "bật đèn pin", "dùng băng cứu thương"],
+    "GIVE_AND_USE_ITEM": ["đưa chai Almond Water cho Iris uống", "đưa hộp khẩu phần cho Lucia ăn", "đưa đèn pin cho Syvial dùng"],
     "INVENTORY_QUERY": ["xem inventory", "mở inventory", "kiểm kê kho đồ", "hành trang của Kai có gì", "xem kho đồ của Iris", "kiểm tra inventory"],
     "OMNIVAULT_QUERY": ["xem kho Omnivault", "kiểm tra nhẫn Vạn Tàng", "mở kho trong nhẫn", "Omnivault đang cất gì", "kiểm tra Omnivault"],
     "PARTY_JOIN_REQUEST": ["mời Lucia vào party", "cho Syvial gia nhập đội", "kết nạp Iris vào nhóm", "mời An Nhiên đi cùng đội", "mời Iris tham gia party"],
@@ -89,7 +91,7 @@ if labels != expected:
     raise SystemExit(f"intent label mismatch: missing={sorted(expected-labels)} extra={sorted(labels-expected)}")
 
 with OUTPUT.open("w", encoding="utf-8", newline="") as handle:
-    writer = csv.writer(handle)
+    writer = csv.writer(handle, lineterminator="\n")
     writer.writerow(["text", "intent", "split", "source"])
     writer.writerows(rows)
 
