@@ -140,7 +140,7 @@ class LuciaCrosslineBurstTest {
 
   @Test fun procUsesCompactExactStatuslessLog() {
     var observed: CombatRuntime.Resolution? = null
-    var statusesBefore: List<StatusEffect> = emptyList()
+    var statusesBefore: Map<String, StatusEffect> = emptyMap()
     for (counter in 0..1400) {
       var s = state()
       s = s.copy(metadata = s.metadata + ("combat.eventCounter" to counter.toString()))
