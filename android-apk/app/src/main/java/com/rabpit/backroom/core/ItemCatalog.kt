@@ -39,7 +39,7 @@ data class ItemDefinition(
     instanceNonce: String? = null
   ): ItemStack {
     require(quantity > 0) { "quantity_must_be_positive" }
-    require(quantity <= maxStack || stackMode == ItemStackMode.STACK) { "item_stack_limit" }
+    require(quantity <= maxStack) { "item_stack_limit" }
     val contentState = if (contentModel == "FULL_LOW_EMPTY") ContentState.FULL else ContentState.NONE
     val baseId = if (stackMode == ItemStackMode.INSTANCE) "$id@${instanceNonce ?: turnId}" else id
     val runtimeId = if (contentState == ContentState.NONE) baseId else "$baseId:${contentState.name.lowercase()}"
