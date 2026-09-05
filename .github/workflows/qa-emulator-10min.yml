@@ -1,0 +1,57 @@
+name: QA Emulator 10 Minute Playtest
+
+on:
+  push:
+    branches:
+      - qa/emulator-10min-20260906
+    paths:
+      - ".github/workflows/qa-emulator-10min.yml"
+      - "android-apk/qa/emulator-10min-playtest.sh"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  emulator-playtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download verified release APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download v1.1.49.5 \
+            --repo "$GITHUB_REPOSITORY" \
+            --pattern 'Backroom-1.1.49.5.apk' \
+            --output Backroom-1.1.49.5.apk
+          test -s Backroom-1.1.49.5.apk
+          echo "cc85035ef345483b74a94da04da26dcb1e4af278e934a60f9bf54b3a535ef116  Backroom-1.1.49.5.apk" | sha256sum -c -
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run released APK for first 10 minutes
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: APK_PATH=Backroom-1.1.49.5.apk QA_OUT=qa-artifacts bash android-apk/qa/emulator-10min-playtest.sh
+
+      - name: Upload playtest evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backroom-1.1.49.5-emulator-10min
+          path: qa-artifacts/
+          if-no-files-found: warn
+          retention-days: 14
