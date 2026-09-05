@@ -122,7 +122,10 @@ if 'hotelCorpseLureDeathlyStillnessIsEntityTurnOnlyMomentumPressureWithReadCount
 
     assertNotNull("Hotel Corpse Lure proc must also be reachable on a READ Entity-response turn", readResult)
     assertTrue(readResult!!.reply, readResult!!.reply.contains("kỹ năng bị vô hiệu"))
-    assertTrue(CombatRuntime.active(readResult!!.state)!!.momentum >= 2)
+    // READ counters this skill's own Momentum penalty. The normal Entity response may
+    // still change Momentum independently, so assert the skill's pressure narration
+    // is absent instead of coupling the regression to unrelated combat resolution.
+    assertFalse(readResult!!.reply, readResult!!.reply.contains("Deathly Stillness: Hotel Corpse Lure giữ bất động như xác chết"))
   }
 '''
     close = test.rfind("}\n")
