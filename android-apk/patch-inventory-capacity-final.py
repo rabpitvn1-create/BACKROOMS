@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parent
 INDEX = ROOT / "app/src/main/assets/index.html"
@@ -6,18 +7,22 @@ html = INDEX.read_text(encoding="utf-8")
 
 # Inventory V2 owns capacity and ownership semantics. This patch only makes the already-authoritative
 # 14x9999 / 8x99 contract visible in Character Detail; it never mutates Core inventory state.
-old_capacity = "capacity.textContent=inv.length+' / '+(member&&member.id==='kai'?14:8)+' ô vật phẩm';"
-profile_line = "const inventoryProfile=member&&member.id==='kai'?{slots:14,maxPerType:9999}:{slots:8,maxPerType:99};"
+profile_line = "    const inventoryProfile=member&&member.id==='kai'?{slots:14,maxPerType:9999}:{slots:8,maxPerType:99};"
 new_capacity = "\n".join([
     profile_line,
-    "capacity.textContent=inv.length+' / '+inventoryProfile.slots+' ô vật phẩm';",
-    "const inventoryLimit=document.getElementById('characterInventoryLimit');",
-    "if(inventoryLimit)inventoryLimit.textContent='Tối đa '+inventoryProfile.maxPerType+' đơn vị mỗi loại · Equipment không chiếm Kho đồ';",
+    "    capacity.textContent=inv.length+' / '+inventoryProfile.slots+' ô vật phẩm';",
+    "    const inventoryLimit=document.getElementById('characterInventoryLimit');",
+    "    if(inventoryLimit)inventoryLimit.textContent='Tối đa '+inventoryProfile.maxPerType+' đơn vị mỗi loại · Equipment không chiếm Kho đồ';",
 ])
-if profile_line not in html:
-    if html.count(old_capacity) != 1:
-        raise RuntimeError(f"Inventory V2 capacity renderer anchor count: {html.count(old_capacity)}")
-    html = html.replace(old_capacity, new_capacity, 1)
+
+# Earlier character patches may rewrite the renderer before V2 runs, so never depend on a single
+# legacy 9-slot expression. Replace the one final capacity assignment regardless of its old ternary.
+if profile_line.strip() not in html:
+    capacity_pattern = re.compile(r"(?m)^\s*capacity\.textContent=[^\n]+;$")
+    matches = capacity_pattern.findall(html)
+    if len(matches) != 1:
+        raise RuntimeError(f"Inventory V2 capacity renderer count: {len(matches)}")
+    html = capacity_pattern.sub(new_capacity, html, count=1)
 
 old_limit = '<div class="inventory-limit">Inventory của nhân vật đang chọn</div>'
 new_limit = '<div class="inventory-limit" id="characterInventoryLimit">Tối đa 9999 đơn vị mỗi loại · Equipment không chiếm Kho đồ</div>'
@@ -35,7 +40,7 @@ for marker in [
     if marker not in html:
         raise RuntimeError(f"Inventory V2 presentation marker missing: {marker}")
 
-for legacy in ["0 / 9 loại vật phẩm", " / 9 loại vật phẩm", "2 slot thực phẩm", "8x100"]:
+for legacy in ["0 / 9 loại vật phẩm", " / 9 loại vật phẩm", "2 slot thực phẩm", "maxPerType:100"]:
     if legacy in html:
         raise RuntimeError(f"Legacy inventory presentation survived V2: {legacy}")
 
