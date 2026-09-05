@@ -16,11 +16,15 @@ class GameStateCodecTest {
       thermalState = "cold",
       metadata = mapOf("source" to "field_observation")
     )
+    val storedWater = ItemStack("water", "Almond Water", 1)
     val state = GameState.initial().copy(
       inventories = mapOf(KAI_ID to InventoryState(KAI_ID, mapOf("water" to ItemStack("water", "Almond Water", 2)))),
       statuses = mapOf(effect.id to effect),
       characters = mapOf(KAI_ID to CharacterState(KAI_ID, "Kai Akechi", statusIds = setOf(effect.id), physiology = physiology)),
-      omnivault = OmnivaultState(scanSlots = listOf(ScanSlot(1, "water", ItemStack("water", "Almond Water"), 10)), markedSourceIds = setOf("water")),
+      omnivault = OmnivaultState(
+        storedItems = mapOf(storedWater.itemId to storedWater),
+        restoreCooldownUntilEpochMs = mapOf(storedWater.itemId to 10L)
+      ),
       turn = TurnState("TURN_9", PendingTurn("TURN_9", "Kai nhặt nước", PendingTurnStatus.INTERPRETING)),
       time = GameTimeState(elapsedSubjectiveMinutes = 485L, lastAdvanceMinutes = 15, lastAdvanceReason = "travel")
     )
@@ -28,6 +32,8 @@ class GameStateCodecTest {
     val decoded = GameStateCodec.decode(GameStateCodec.encode(state))
     assertEquals(canonicalState, decoded)
     assertEquals(physiology, decoded.characters.getValue(KAI_ID).physiology)
+    assertEquals(storedWater, decoded.omnivault.storedItems.getValue("water"))
+    assertEquals(10L, decoded.omnivault.restoreCooldownUntilEpochMs.getValue("water"))
   }
 
   @Test fun freshRunStartsWithKnownSatisfiedPhysiologyBaseline() {
