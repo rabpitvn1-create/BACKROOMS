@@ -104,3 +104,7 @@ runpy.run_path(str(ROOT / "patch-newgame-canon-compat.py"), run_name="__main__")
 # Combat no longer consumes the encounter immediately. Stage it, wait for the player to press Start
 # Combat, slow timeline playback to readable pacing, and bootstrap New Game from current Core canon.
 runpy.run_path(str(ROOT / "patch-combat-start-pacing-newgame.py"), run_name="__main__")
+
+# Final Snapshot polish is CSS/JS only: authoritative timeline-driven hit reactions, simple dark
+# ellipse ground shadows for pixel overlays, and runtime detection/bloom for lamp-like fixtures.
+runpy.run_path(str(ROOT / "patch-combat-visual-effects.py"), run_name="__main__")
