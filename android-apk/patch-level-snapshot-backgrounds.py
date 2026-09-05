@@ -29,11 +29,14 @@ for level in range(7):
     refs[level] = row
 
 refs_js = json.dumps(refs, ensure_ascii=False, separators=(",", ":"))
+# This JavaScript is injected inside a Java string literal in MainActivity.java.
+# Escape it for the Java source while preserving valid JSON at runtime.
+refs_java = refs_js.replace("\\", "\\\\").replace('"', '\\"')
 
 old = "if(r){var bg=document.createElement('img');bg.className='snapshot-bg';bg.src=r.dataUri;bg.alt='Snapshot Turn '+(state.turn||'');box.appendChild(bg);var kai=document.createElement('img');kai.className='snapshot-character';kai.src='file:///android_asset/kai_snapshot_overlay.webp';kai.alt='Kai Akechi';box.appendChild(kai);}else{"
 
 new = (
-    f"var refs={refs_js};"
+    f"var refs={refs_java};"
     "var where=String(state&&state.location||'')+' '+String(state&&state.title||'');"
     "var lm=where.match(/Level[^0-9]*([0-6])/i);var lv=lm?Number(lm[1]):0;"
     "var seq=refs[lv]||refs[0];"
