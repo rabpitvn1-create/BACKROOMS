@@ -1,0 +1,103 @@
+name: Test Entity Roaming 3 Percent
+
+on:
+  push:
+    branches:
+      - feature/entity-roaming-3pct
+  pull_request:
+    paths:
+      - "android-apk/**"
+      - ".github/workflows/test-entity-roaming-3pct.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  android-entity-roaming:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Apply exact Android patch chain
+        run: |
+          python3 android-apk/patch-provider-status.py
+          python3 android-apk/patch-luna-text.py
+          python3 android-apk/patch-level-snapshot-backgrounds.py
+          python3 android-apk/patch-snapshot-fallback.py
+          python3 android-apk/patch-kai-hd-continuous.py
+          python3 android-apk/patch-kai-png-preferred.py
+          python3 android-apk/patch-kai-codex.py
+          python3 android-apk/patch-r06-source-marker.py
+          python3 android-apk/patch-drive-canon-gameplay.py
+          python3 android-apk/patch-inventory-persistence.py
+          python3 android-apk/patch-ai-orchestrator.py
+          python3 android-apk/patch-state-op-hardening.py
+          python3 android-apk/patch-gemini-health-pool.py
+          python3 android-apk/patch-conditional-audit.py
+          python3 android-apk/patch-audit-validated-risk.py
+          python3 android-apk/patch-gameplay-parity-final.py
+          python3 android-apk/patch-final-authority-hardening.py
+          python3 android-apk/patch-rejected-op-repair-final.py
+          python3 android-apk/patch-kai-resource-policy-final.py
+          python3 android-apk/patch-provider-deadline-final.py
+          python3 android-apk/patch-gemini-model-matrix-final.py
+          python3 android-apk/patch-java-compile-hardening.py
+          python3 android-apk/patch-save-controls-final.py
+          python3 android-apk/patch-hard-mode-label.py
+          python3 android-apk/patch-snapshot-unconfigured.py
+          python3 android-apk/patch-game-state-core-bridge.py
+          python3 android-apk/patch-character-inventory-ui.py
+          python3 android-apk/patch-character-detail-avatar-fallback.py
+
+      - name: Verify independent 3 percent roaming contract
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          java = Path('android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java').read_text(encoding='utf-8')
+          kce = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/knowledge/KnowledgeContextEngine.kt').read_text(encoding='utf-8')
+          db = json.loads(Path('android-apk/app/src/main/assets/knowledge/knowledge_db.json').read_text(encoding='utf-8'))
+          additions = json.loads(Path('android-apk/entity-runtime-additions.json').read_text(encoding='utf-8'))
+
+          expected = additions['expectedEntityIds']
+          assert len(expected) == 18
+          assert len(set(expected)) == 18
+          assert java.count('thresholdRoll("ENTITY.') == 18
+          for entity_id in expected:
+              assert f'thresholdRoll("{entity_id}", 10000, 300, physical' in java
+          assert '.put("chancePerEntityPercent", 3.0)' in java
+          assert '.put("independentPerEntity", true)' in java
+          assert '.put("allPlayableLevels", true)' in java
+          assert '.put("environmentRestricted", false)' in java
+          assert 'ENTITY ROAMING HARD LOCK:' in java
+          assert 'thresholdRoll("jeffEncounter", 10000, 200' not in java
+          assert 'successIds = entityEncounter?.optJSONArray("successIds")' in kce
+          assert 'successful independent 3% roaming roll' in kce
+
+          entity_records = {
+              r['id'] for r in db['records']
+              if r.get('domain') == 'ENTITY' and r.get('kind') == 'entity'
+          }
+          assert set(expected).issubset(entity_records)
+          policy = next(r for r in db['records'] if r.get('id') == 'ENTITY.ROAMING_POLICY')
+          assert '3.0000%' in policy['text']
+          assert 'every playable Level' in policy['text']
+          PY
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+
+      - name: Run unit tests and build debug APK
+        working-directory: android-apk
+        run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
