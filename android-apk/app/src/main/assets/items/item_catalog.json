@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "id": "almond-water",
+      "name": "Almond Water",
+      "category": "CONSUMABLE",
+      "stackMode": "STACK",
+      "maxStack": 99,
+      "transferable": true,
+      "discardable": true,
+      "effects": ["WATER"],
+      "contentModel": "FULL_LOW_EMPTY",
+      "stateNames": {
+        "FULL": "Almond Water",
+        "LOW": "Almond Water còn ít",
+        "EMPTY": "Chai Almond Water rỗng"
+      },
+      "aliases": ["nước hạnh nhân", "almond water", "chai almond water"]
+    },
+    {
+      "id": "ration-box",
+      "name": "Hộp khẩu phần",
+      "category": "CONSUMABLE",
+      "stackMode": "STACK",
+      "maxStack": 99,
+      "transferable": true,
+      "discardable": true,
+      "effects": ["FOOD"],
+      "aliases": ["khẩu phần", "hộp thức ăn", "ration"]
+    },
+    {
+      "id": "bandage",
+      "name": "Băng cứu thương",
+      "category": "CONSUMABLE",
+      "stackMode": "STACK",
+      "maxStack": 99,
+      "transferable": true,
+      "discardable": true,
+      "effects": [],
+      "aliases": ["băng", "cuộn băng", "bandage"]
+    },
+    {
+      "id": "flashlight",
+      "name": "Đèn pin",
+      "category": "TOOL",
+      "stackMode": "STACK",
+      "maxStack": 8,
+      "transferable": true,
+      "discardable": true,
+      "effects": [],
+      "aliases": ["đèn", "flashlight"]
+    },
+    {
+      "id": "battery",
+      "name": "Viên pin",
+      "category": "MATERIAL",
+      "stackMode": "STACK",
+      "maxStack": 99,
+      "transferable": true,
+      "discardable": true,
+      "effects": [],
+      "aliases": ["pin", "battery"]
+    },
+    {
+      "id": "scrap-metal",
+      "name": "Mảnh kim loại",
+      "category": "MATERIAL",
+      "stackMode": "STACK",
+      "maxStack": 99,
+      "transferable": true,
+      "discardable": true,
+      "effects": [],
+      "aliases": ["phế liệu", "mảnh sắt", "scrap"]
+    }
+  ]
+}
