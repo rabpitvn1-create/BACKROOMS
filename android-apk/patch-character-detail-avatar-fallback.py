@@ -22,6 +22,8 @@ print("Character detail avatar fallback hardened: non-Kai members without avatar
 
 # Ordered final runtime transformation chain. Inventory V2 owns all item semantics. Capacity
 # hardening verifies Core first, then aligns presentation/writer text without creating item state.
+# The foundation-canon finalizer runs after gameplay/inventory finalizers and only normalizes
+# canon knowledge plus retrieval routing.
 PATCH_CHAIN = [
     "patch-survival-hud-chat-ux.py",
     "patch-an-nhien-follower-final.py",
@@ -58,6 +60,7 @@ PATCH_CHAIN = [
     "patch-inventory-capacity-ui-final.py",
     "patch-inventory-capacity-prompt-final.py",
     "patch-inventory-capacity-test-compat.py",
+    "patch-sru-backrooms-async-canon.py",
 ]
 
 for patch_name in PATCH_CHAIN:

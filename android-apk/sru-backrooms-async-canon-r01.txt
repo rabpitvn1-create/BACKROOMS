@@ -1,0 +1,56 @@
+SRU / BACKROOMS / ASYNC // FOUNDATION CANON R01
+
+Mã: SRU-BACKROOMS-ASYNC-FOUNDATION-R01
+Trạng thái: CURRENT / PROJECT CANON
+Phạm vi: bản chất SRU, Kai/Syvial/Iris trong SRU, nhiệm vụ Backrooms năm 2299 và vai trò lịch sử của Async.
+Ghi chú: Phần Async phỏng theo continuity Kane Pixels về Project KV31, LPMDS, Threshold và The Complex. Chỉ các dữ kiện khóa dưới đây được nhập vào Project; nguồn ngoài không được dùng để giải thích nguồn gốc cuối cùng của Backrooms.
+
+1. BẢN CHẤT SRU
+
+SRU, viết tắt của Special Response Unit, là Lực lượng Phản ứng Đặc biệt trực thuộc Cảnh Sát chống hiện tượng dị thường. Đơn vị được triển khai khi sự cố, thực thể hoặc hiện tượng đã vượt quá khả năng xử lý thông thường, đặc biệt khi tiếp cận sai có thể làm thương vong lan rộng.
+
+SRU không hoạt động theo nguyên tắc “thấy dị thường là tiêu diệt”. Ưu tiên là xác định tình hình, bảo vệ người còn sống, ngăn sự cố mở rộng, rồi khống chế hoặc tiêu diệt mục tiêu khi cần. Vì dị thường có thể phá vỡ hình học, thời gian, nhận thức hoặc dữ liệu cảm biến, hỏa lực phải đi cùng quan sát và kiểm chứng.
+
+2. KAI, SYVIAL VÀ IRIS
+
+Kai Akechi / Twilight là Đội trưởng SRU, chỉ huy hiện trường, xạ thủ chủ lực và người xử lý mục tiêu dị thường cấp cao. Hồ sơ SRU công khai phân loại Kai là con người; sự thật về huyết thống và nguồn sức mạnh của hắn thuộc KNOWLEDGE LOCK dành cho người viết.
+
+Syvial là Đội phó trong đội Kai, chiến binh UR+ chuyên đột kích, áp chế, phản kích và kết liễu mục tiêu cấp cao. Cô không phải vệ sĩ cá nhân hay vũ khí chỉ chờ lệnh. Quan hệ tình cảm với Kai không được dùng để xóa trí thông minh, kỷ luật hoặc khả năng tác chiến độc lập.
+
+Iris / ARGUS là Scout / Target Eliminator. Cô đọc địa hình, vật che, lối thoát, điểm phục kích và dấu vết bằng quan sát trực tiếp, cảm biến giáp và năng lực xử lý thông tin, rồi dùng Ivory & Ebony để loại bỏ mục tiêu đã xác định. Kai phát hiện Iris trong một sự cố siêu nhiên; sau xác minh, SRU chuẩn hóa Project 07 cho cô.
+
+Kai giữ quyền quyết định và hỏa lực chủ lực, Syvial tạo sức ép trực diện, Iris mở rộng trinh sát và lựa chọn góc tiếp cận. Lucia / Hứa Thuý Mai không thuộc nhóm SRU ban đầu; gặp Kai ở Level 0 không tự biến cô thành thành viên SRU.
+
+3. NHIỆM VỤ BACKROOMS NĂM 2299
+
+Đến năm 2299, Cảnh Sát chống hiện tượng dị thường đã tích lũy hồ sơ mất tích qua nhiều thời đại. Một số nạn nhân biến mất khỏi nơi không có tuyến rời đi hợp lý, dấu vết dừng đột ngột, hoặc trở về sau khoảng thời gian không tương thích với trải nghiệm và mức lão hóa.
+
+Khi SRU đặt các lời kể cạnh nhau, những mô tả lặp lại xuất hiện: kiến trúc kéo dài bất thường, hành lang sai lệch, không gian phi lý, thời gian lệch và khu vực thay đổi khi không còn bị quan sát. “Backrooms” chỉ là tên con người dùng cho thực tại ấy, không phải lời giải về nguồn gốc.
+
+SRU hình thành giả thuyết rằng Backrooms có thể là mắt xích chung của chuỗi mất tích. Khi truy ngược tài liệu lịch sử, Async trở thành đầu mối quan trọng nhất vì tổ chức này từng chủ động mở một lối vào không gian được gọi là The Complex.
+
+Nhiệm vụ có bốn mục tiêu nối nhau: xác nhận Backrooms có liên quan tới các vụ mất tích; tìm bằng chứng về người đã biến mất; xác định Async đã tiếp cận nơi này tới mức nào và hoạt động của họ có quan hệ nhân quả hay chỉ là một lần tiếp xúc; cuối cùng, nếu có thể, tìm quy luật thoát hoặc tuyến trở về Frontrooms đủ đáng tin.
+
+Kai, Syvial và Iris là ba thành viên ban đầu. Họ tiến vào qua cổng thời-không đã được SRU thử nghiệm ổn định, nhưng sự cố chuyển tiếp phân tán đội hình. Kai xuất hiện tại Level 0, không biết vị trí Iris và Syvial; liên lạc cùng dữ liệu bên ngoài ban đầu mất. Từ đó điều tra trở thành cả sinh tồn, tìm đồng đội và khôi phục đường về. Đoàn tụ phải tuân theo địa lý, continuity và state, không dùng random spawn để đưa Iris hoặc Syvial tới Kai.
+
+4. ASYNC
+
+Async Research Institute là tổ chức nghiên cứu tư nhân được Project phỏng theo continuity Kane Pixels. Project KV31 dùng Low-Proximity Magnetic Distortion System để tạo cổng ổn định tới không gian khác. Các thử nghiệm cuối thập niên 1980 dẫn tới Threshold, cho phép Async tiếp cận The Complex rồi khảo sát phía bên kia.
+
+KV31 không được khóa như một âm mưu hủy diệt. The Complex từng được nhìn như nguồn không gian cho lưu trữ, công nghiệp, hạ tầng và nhu cầu dân sự. Vì vậy Async không được mặc định là phản diện; giá trị của họ trong canon là đã chứng minh con người có thể chủ động mở một cửa vào nơi tương ứng với Backrooms.
+
+Nhưng The Complex không vận hành như không gian trống do Async kiểm soát. Hình học bất thường, sai lệch thời gian, người xuất hiện bên trong mà không có bằng chứng đã đi qua Threshold và các mối nguy ngoài dự kiến khiến quan hệ nhân quả vẫn chưa rõ.
+
+Project khóa ba điều: Async đã tiếp cận The Complex bằng Threshold và nghiên cứu nó; hồ sơ Async là đầu mối lịch sử hợp lệ cho SRU năm 2299; không có bằng chứng được phép coi là lời giải cuối rằng Async đã tạo ra Backrooms hoặc gây ra toàn bộ chuỗi mất tích.
+
+Hai giả thuyết cùng tồn tại. Async có thể đã tạo ra hoặc mở rộng một cơ chế làm ranh giới giữa Frontrooms và Backrooms dễ xuyên thủng hơn. Hoặc họ chỉ khoan được một cánh cửa nhân tạo vào thực tại vốn tồn tại từ trước và đã có khả năng lấy người khỏi nhiều thời đại. Các khả năng trung gian vẫn OPEN.
+
+SRU không bước vào Backrooms để săn Async. Họ đi vào để kiểm chứng quan hệ giữa người mất tích, Backrooms, The Complex, Threshold và những gì Async đã làm. Async có thể là nguyên nhân, chất xúc tác, nhân chứng hoặc chỉ là đầu mối kỹ thuật đầu tiên đủ rõ. Canon hiện hành không chọn trước đáp án.
+
+5. KHÓA DIỄN GIẢI
+
+Nguồn gốc thật của Backrooms không được xác nhận. Không lời kể của Async, survivor, Entity hay tài liệu lịch sử nào tự động là sự thật tối hậu. “The Complex” là tên lịch sử gắn với Async; “Backrooms” là nhãn cho thực tại rộng lớn hơn.
+
+Nhiệm vụ năm 2299 bắt đầu bằng điều tra, không phải bản án. Kai, Syvial và Iris được phép tìm thấy bằng chứng làm yếu hoặc đảo ngược giả thuyết ban đầu. Mọi phát hiện mới phải đi qua continuity trước khi thành kiến thức nhân vật hoặc canon mới.
+
+Câu hỏi trung tâm giữ OPEN: con người đã tìm thấy Backrooms, hay việc con người cố mở cửa vào đó đã làm ranh giới với Backrooms thay đổi? Cho tới khi người dùng khóa đáp án, Game Master không được tự giải quyết câu hỏi này.
