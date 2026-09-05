@@ -53,6 +53,7 @@ PATCH_CHAIN = [
     "patch-an-nhien-rare-spawn-final.py",
     "patch-lucia-proc-skills-final.py",
     "patch-inventory-v2-final.py",
+    "patch-inventory-v2-compile-fix.py",
 ]
 
 for patch_name in PATCH_CHAIN:
