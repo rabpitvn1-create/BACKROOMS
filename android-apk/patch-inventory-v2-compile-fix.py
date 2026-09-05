@@ -97,6 +97,10 @@ text = text.replace(
     "private fun validationReply(reason: String): String",
     "private fun validationReply(reason: String?): String"
 )
+text = text.replace(
+    'committed.execution?.events?.joinToString(","), eventReply(committed.execution?.events.orEmpty()))',
+    'committed.execution?.events?.joinToString(",") ?: "rule_committed", eventReply(committed.execution?.events.orEmpty()))'
+)
 
 # Rejections that explicitly do not advance the displayed turn must not add that turn ID to
 # completedTurnIds. Otherwise the next action reuses the same TURN_n and is rejected as already done.
@@ -126,6 +130,7 @@ for marker in [
     "private fun jsonObjects(",
     "private fun clearPendingWithoutConsumingTurn(",
     'reason: String = error ?: "unhandled"',
+    '?: "rule_committed"',
     "validationReply(reason: String?)",
 ]:
     if marker not in text:
