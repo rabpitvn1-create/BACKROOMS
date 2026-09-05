@@ -25,7 +25,6 @@ class LootTables private constructor(
   private val tables: Map<String, List<LootEntry>>
 ) {
   fun entries(key: String): List<LootEntry> = tables[key].orEmpty()
-
   fun resolve(primary: String, fallback: String): List<LootEntry> = entries(primary).ifEmpty { entries(fallback) }
 
   companion object {
@@ -71,10 +70,9 @@ object LootEngine {
       ?.optJSONObject("loot") ?: return null
     if (!lootRoll.optBoolean("success", false)) return null
     val level = candidate.optJSONObject("level")?.optInt("number", 0)?.coerceAtLeast(0) ?: 0
-    val sourceId = "explore:$turnId"
     return chooseGrant(
       origin = LootOrigin.EXPLORE_LOOT,
-      sourceId = sourceId,
+      sourceId = "explore:$turnId",
       recipientId = recipientId,
       entries = tables.resolve("explore:$level", "explore:default"),
       catalog = catalog,
@@ -99,17 +97,27 @@ object LootEngine {
     )
   }
 
-  fun commandFor(grant: LootGrant, turnId: String?): LootGrantCommand = LootGrantCommand(
-    commandId = "LOOT:${grant.origin}:${grant.sourceId}:${grant.definitionId}",
-    turnId = turnId,
-    actorId = grant.recipientId,
-    targetId = grant.recipientId,
-    source = CommandSource.SYSTEM,
-    origin = grant.origin,
-    sourceId = grant.sourceId,
-    definitionId = grant.definitionId,
-    quantity = grant.quantity
-  )
+  fun commandFor(grant: LootGrant, turnId: String?, catalog: ItemCatalog): LootGrantCommand {
+    val definition = catalog.definition(grant.definitionId) ?: error("loot_unknown_item:${grant.definitionId}")
+    val item = definition.instantiate(
+      quantity = grant.quantity,
+      origin = grant.origin,
+      sourceId = grant.sourceId,
+      turnId = turnId ?: grant.sourceId,
+      instanceNonce = grant.sourceId
+    )
+    return LootGrantCommand(
+      commandId = "LOOT:${grant.origin}:${grant.sourceId}:${item.itemId}",
+      turnId = turnId,
+      actorId = grant.recipientId,
+      targetId = grant.recipientId,
+      source = CommandSource.SYSTEM,
+      origin = grant.origin,
+      sourceId = grant.sourceId,
+      item = item,
+      quantity = grant.quantity
+    )
+  }
 
   private fun chooseGrant(
     origin: LootOrigin,
@@ -121,8 +129,7 @@ object LootEngine {
   ): LootGrant? {
     if (entries.isEmpty()) return null
     val total = entries.sumOf { it.weight }.coerceAtLeast(1)
-    val hash = positiveHash(seed)
-    var cursor = (hash % total.toLong()).toInt()
+    var cursor = (positiveHash(seed) % total.toLong()).toInt()
     val chosen = entries.firstOrNull { entry ->
       if (cursor < entry.weight) true else {
         cursor -= entry.weight
@@ -132,11 +139,8 @@ object LootEngine {
     val itemId = chosen.itemId ?: return null
     val definition = catalog.definition(itemId) ?: error("loot_unknown_item:$itemId")
     val quantityRange = chosen.maxQuantity - chosen.minQuantity + 1
-    val quantityHash = positiveHash("$seed|quantity")
-    val quantity = chosen.minQuantity + (quantityHash % quantityRange.toLong()).toInt()
-    require(quantity <= definition.maxStack || definition.stackMode == ItemStackMode.INSTANCE) {
-      "loot_quantity_exceeds_definition:$itemId:$quantity"
-    }
+    val quantity = chosen.minQuantity + (positiveHash("$seed|quantity") % quantityRange.toLong()).toInt()
+    require(quantity <= definition.maxStack) { "loot_quantity_exceeds_definition:$itemId:$quantity" }
     return LootGrant(origin, sourceId, itemId, quantity, recipientId)
   }
 
