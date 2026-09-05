@@ -1,0 +1,122 @@
+name: Cleanup Legacy Versions
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/cleanup-legacy-versions.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete obsolete releases, tags, and stale branches
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const currentRelease = 'v1.1.49.4';
+            const obsoleteReleases = [
+              'v1.1.49',
+              'v1.1.49.1',
+              'v1.1.49.2',
+              'v1.1.49.3',
+            ];
+            const staleBranches = [
+              'canon/refresh-kai-iris-syvial-lucia-v2',
+              'debug/1.1.49-api35-startup',
+              'feature/entity-roster-overlays',
+              'feature/entity-roster-overlays-v2',
+              'fix/combat-ux-regression',
+              'fix/combat-ux-regression-final',
+              'fix/combat-ux-regression-v2',
+              'fix/combat-ux-regression-working',
+              'fix/combat-visual-newgame-popup',
+              'fix/combat-visual-newgame-popup-2',
+            ];
+
+            const openPrs = await github.paginate(github.rest.pulls.list, {
+              owner,
+              repo,
+              state: 'open',
+              per_page: 100,
+            });
+            const protectedHeads = new Set(
+              openPrs
+                .filter(pr => pr.head.repo && pr.head.repo.full_name === `${owner}/${repo}`)
+                .map(pr => pr.head.ref)
+            );
+
+            for (const tag of obsoleteReleases) {
+              try {
+                const release = await github.rest.repos.getReleaseByTag({ owner, repo, tag });
+                await github.rest.repos.deleteRelease({ owner, repo, release_id: release.data.id });
+                core.info(`Deleted release ${tag}`);
+              } catch (error) {
+                if (error.status !== 404) throw error;
+                core.info(`Release ${tag} already absent`);
+              }
+
+              try {
+                await github.rest.git.deleteRef({ owner, repo, ref: `tags/${tag}` });
+                core.info(`Deleted tag ${tag}`);
+              } catch (error) {
+                if (error.status !== 404) throw error;
+                core.info(`Tag ${tag} already absent`);
+              }
+            }
+
+            for (const branch of staleBranches) {
+              if (protectedHeads.has(branch)) {
+                core.notice(`Skipping ${branch}: it backs an open PR`);
+                continue;
+              }
+              try {
+                await github.rest.git.deleteRef({ owner, repo, ref: `heads/${branch}` });
+                core.info(`Deleted stale branch ${branch}`);
+              } catch (error) {
+                if (error.status !== 404) throw error;
+                core.info(`Branch ${branch} already absent`);
+              }
+            }
+
+            const releases = await github.paginate(github.rest.repos.listReleases, {
+              owner,
+              repo,
+              per_page: 100,
+            });
+            const tags = await github.paginate(github.rest.repos.listTags, {
+              owner,
+              repo,
+              per_page: 100,
+            });
+            const branches = await github.paginate(github.rest.repos.listBranches, {
+              owner,
+              repo,
+              per_page: 100,
+            });
+
+            if (!releases.some(release => release.tag_name === currentRelease)) {
+              throw new Error(`Current release ${currentRelease} is missing after cleanup`);
+            }
+
+            const releaseNames = new Set(releases.map(release => release.tag_name));
+            const tagNames = new Set(tags.map(tag => tag.name));
+            const branchNames = new Set(branches.map(branch => branch.name));
+
+            const leftoverReleases = obsoleteReleases.filter(tag => releaseNames.has(tag));
+            const leftoverTags = obsoleteReleases.filter(tag => tagNames.has(tag));
+            const leftoverBranches = staleBranches.filter(
+              branch => !protectedHeads.has(branch) && branchNames.has(branch)
+            );
+
+            if (leftoverReleases.length || leftoverTags.length || leftoverBranches.length) {
+              throw new Error(JSON.stringify({ leftoverReleases, leftoverTags, leftoverBranches }));
+            }
+
+            core.info(`Cleanup verified. Kept current release ${currentRelease}.`);
+            core.info(`Open PR heads preserved: ${[...protectedHeads].join(', ') || '(none)'}`);
