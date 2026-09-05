@@ -1,0 +1,13 @@
+Backroom 1.1.49.3
+
+- Expands the GAME story area to use the available viewport more effectively and moves the action controls down toward the bottom navigation.
+- Adds a dedicated KHÁM PHÁ & TÌM KIẾM action beside THỰC HIỆN, using the existing Android turn pipeline while preserving typed drafts during exploration turns.
+- Adds the deterministic automatic turn-based Combat Core with Kai-first party rotation, Entity retaliation, sequential multi-Entity queues, and Android-authoritative combat outcomes.
+- Adds HP / DEFEND / AGI / CRIT combat rules, evasion, 300% critical damage, diminishing DEF damage reduction, coexisting Bleed/Stun/Poison effects, and SURVIVAL progression persisted through existing character metadata.
+- Adds combat-only HP/SURVIVAL gauges and sequential party/Entity combat overlay presentation.
+- Adds Kai's codex-derived proc skill layer: Combat Analysis, Demonic Regeneration, Supernatural Resistance, Ballistic Prediction, SRU Assault Rifle Mastery, Controlled Burst, Weak Point Shot, CQC Break, Devil Trigger, and Guilty Crown Override.
+- Devil Trigger uses the approved 50% inactive proc with x5 effective combat stats for exactly three Kai turns; Guilty Crown Override remains an independent 30% proc with the fixed 24-shot aggregate contract.
+- Adds Kai's SKILLS table to the Status panel while keeping it hidden for characters without an implemented skill book.
+- Preserves save compatibility and the existing descriptive health state while storing numeric combat state separately.
+- Bumps Android versionCode to 128 and versionName to 1.1.49.3 for upgrade installation over 1.1.49.2.
+- Release validation runs the exact runtime patch chain, combat/skill regression tests, Kotlin unit tests, debug APK assembly, signature/package checks, and published-APK verification.
