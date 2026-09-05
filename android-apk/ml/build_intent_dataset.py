@@ -88,7 +88,6 @@ for label, templates in TEMPLATES.items():
     expanded = []
     for template in templates:
         expanded.extend(expand(template))
-    # Deterministic split by authored position. Test rows are withheld from training.
     for index, text in enumerate(expanded):
         split = "test" if index % 7 == 0 else "train"
         rows.append((text, label, split, "inventory-v2-template"))
@@ -110,7 +109,7 @@ if labels != expected:
 
 with OUTPUT.open("w", encoding="utf-8", newline="") as handle:
     writer = csv.writer(handle)
-    writer.writerow(["text", "label", "split", "source"])
+    writer.writerow(["text", "intent", "split", "source"])
     writer.writerows(rows)
 
 print(f"Wrote {len(rows)} Inventory V2 intent rows to {OUTPUT}")
