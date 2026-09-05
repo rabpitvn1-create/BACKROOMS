@@ -73,7 +73,7 @@ private fun applyItemEffect(
     } else {
       PhysiologyCommand.Operation.RECORD_FOOD
     }
-    return PhysiologyEngine.execute(current = state, command = PhysiologyCommand(
+    return PhysiologyEngine.execute(state, PhysiologyCommand(
       commandId = "${command.commandId}:EFFECT:$effectIndex",
       turnId = command.turnId,
       actorId = command.actorId,
