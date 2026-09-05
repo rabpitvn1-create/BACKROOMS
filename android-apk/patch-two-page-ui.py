@@ -10,9 +10,14 @@ if 'id="gameplayPage"' in html:
 
 style_anchor = "</style>"
 style = r'''
-.app-page{display:none}.app-page.active{display:block}.shell{padding-bottom:calc(86px + env(safe-area-inset-bottom))}
-.page-nav{position:fixed;z-index:40;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px;border:1px solid #2b3137;background:#0b0e11f2;box-shadow:0 12px 36px #000a}
-.page-nav button{min-height:44px;background:#13181d;color:#8f9aa4;border-color:#303840;letter-spacing:.08em}
+.app-page{display:none}.app-page.active{display:block}.shell{padding-bottom:calc(68px + env(safe-area-inset-bottom))}
+#gameplayPage .topbar{padding:9px 12px;gap:8px}
+#gameplayPage .topbar h1{margin-top:2px;font-size:19px;line-height:1.15}
+#gameplayPage .topbar .eyebrow{font-size:9px;line-height:1.1}
+#gameplayPage .topbar .turn{font-size:10px;line-height:1.15}
+#gameplayPage .topbar .turn strong{font-size:17px}
+.page-nav{position:fixed;z-index:40;left:8px;right:8px;bottom:calc(6px + env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:5px;border:1px solid #2b3137;background:#0b0e11f2;box-shadow:0 12px 36px #000a}
+.page-nav button{min-height:36px;padding:8px 10px;font-size:12px;background:#13181d;color:#8f9aa4;border-color:#303840;letter-spacing:.08em}
 .page-nav button.active{background:#252d34;color:#fff;border-color:#59646e}
 #infoPage>.status{margin:0 0 10px;border:1px solid #2b3137;background:#0e1114}
 #infoPage .side{margin-top:0}
@@ -92,9 +97,11 @@ for marker in [
     'data-app-page="infoPage"',
     "window.showAppPage=showAppPage",
     '#infoPage>.status',
+    '#gameplayPage .topbar{padding:9px 12px;gap:8px}',
+    '.page-nav button{min-height:36px;padding:8px 10px;font-size:12px',
 ]:
     if marker not in html:
         raise RuntimeError(f"Two-page UI contract missing: {marker}")
 
 INDEX.write_text(html, encoding="utf-8")
-print("Two-page UI applied: GAME ends at THỰC HIỆN; status and remaining panels are on THÔNG TIN.")
+print("Two-page UI applied: compact GAME header/nav keep THỰC HIỆN visible; status and remaining panels are on THÔNG TIN.")
