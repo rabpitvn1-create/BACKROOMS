@@ -37,8 +37,10 @@ old = "if(r){var bg=document.createElement('img');bg.className='snapshot-bg';bg.
 
 new = (
     f"var refs={refs_java};"
+    "var levelNumber=state&&state.level&&state.level.number;"
     "var where=String(state&&state.location||'')+' '+String(state&&state.title||'');"
-    "var lm=where.match(/Level[^0-9]*([0-6])/i);var lv=lm?Number(lm[1]):0;"
+    "var lm=where.match(/Level[^0-9]*([0-6])/i);"
+    "var lv=levelNumber!=null?Math.max(0,Math.min(6,Number(levelNumber)||0)):(lm?Number(lm[1]):0);"
     "var seq=refs[lv]||refs[0];"
     "var snapshotTurn=Math.max(1,Number(state&&state.turn||1)||1);"
     "var snapshotSlot=Math.floor((snapshotTurn-1)/3)%seq.length;"
@@ -63,4 +65,4 @@ if count != 1:
 main = main.replace(old_css, new_css, 1)
 
 MAIN.write_text(main, encoding="utf-8")
-print("Four local snapshots per Level 0-6 enabled; background rotates deterministically every three turns while Kai stays overlaid on top.")
+print("Four local snapshots per Level 0-6 enabled; canonical state.level drives the background and rotation advances every three turns while Kai stays overlaid on top.")
