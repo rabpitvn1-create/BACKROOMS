@@ -17,12 +17,20 @@ def ensure_after(source: str, anchor: str, addition: str, label: str) -> str:
 text = ensure_after(text, "import android.os.Bundle;\n", "import android.os.Build;\n", "Build import")
 text = ensure_after(text, "import android.os.Build;\n", "import android.view.View;\nimport android.view.WindowInsets;\nimport android.view.WindowInsetsController;\nimport android.view.WindowManager;\n", "immersive imports")
 
+# Android 11+ can throw from Window#getInsetsController before the DecorView exists.
+# Remove the legacy early call immediately after super.onCreate(), then apply
+# immersive flags only after setContentView() has attached the window decor.
 on_create_anchor = "  @Override public void onCreate(Bundle savedInstanceState) {\n    super.onCreate(savedInstanceState);\n"
-on_create_new = on_create_anchor + "    applyImmersiveFullscreen();\n"
-if "    applyImmersiveFullscreen();\n" not in text:
-    if text.count(on_create_anchor) != 1:
-        raise RuntimeError("onCreate immersive anchor missing or ambiguous")
-    text = text.replace(on_create_anchor, on_create_new, 1)
+unsafe_on_create = on_create_anchor + "    applyImmersiveFullscreen();\n"
+if unsafe_on_create in text:
+    text = text.replace(unsafe_on_create, on_create_anchor, 1)
+
+content_view_anchor = "    setContentView(webView);\n"
+safe_on_create = content_view_anchor + "    applyImmersiveFullscreen();\n"
+if safe_on_create not in text:
+    if text.count(content_view_anchor) != 1:
+        raise RuntimeError("setContentView immersive anchor missing or ambiguous")
+    text = text.replace(content_view_anchor, safe_on_create, 1)
 
 method_anchor = "\n  @Override protected void onDestroy() {\n"
 method = '''
@@ -66,7 +74,7 @@ if "private void applyImmersiveFullscreen()" not in text:
     text = text.replace(method_anchor, "\n" + method + method_anchor, 1)
 
 required = [
-    "applyImmersiveFullscreen();",
+    safe_on_create,
     "WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE",
     "WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars()",
     "View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY",
@@ -76,6 +84,8 @@ required = [
 for marker in required:
     if marker not in text:
         raise RuntimeError(f"Immersive fullscreen contract missing: {marker}")
+if unsafe_on_create in text:
+    raise RuntimeError("Immersive fullscreen must not run before setContentView")
 
 MAIN.write_text(text, encoding="utf-8")
-print("Immersive fullscreen enabled: status/navigation bars hidden with transient swipe reveal and legacy fallback.")
+print("Immersive fullscreen enabled after content attachment with Android 11+ startup safety.")
