@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "orderSource": "android-apk/entity-runtime-additions.json#expectedEntityIds",
   "lastUpdatedIds": [
-    "ENTITY.JEFF",
-    "ENTITY.JANE",
-    "ENTITY.SLENDERMAN"
+    "ENTITY.ASYNC_MEMBER",
+    "ENTITY.HOUND",
+    "ENTITY.CLUMP"
   ],
-  "nextIndex": 18
+  "nextIndex": 2
 }
