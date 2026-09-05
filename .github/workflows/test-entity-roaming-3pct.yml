@@ -67,6 +67,8 @@ jobs:
           additions = json.loads(Path('android-apk/entity-runtime-additions.json').read_text(encoding='utf-8'))
           overlay_manifest = json.loads(Path('android-apk/entity-overlay-source.json').read_text(encoding='utf-8'))
           overlay_dir = Path('android-apk/app/src/main/assets/entity_overlays')
+          party_overlay_manifest = json.loads(Path('android-apk/party-entity-overlay-source.json').read_text(encoding='utf-8'))
+          party_overlay_dir = Path('android-apk/app/src/main/assets/party_entity_overlays')
 
           expected = additions['expectedEntityIds']
           assert len(expected) == 18
@@ -105,6 +107,22 @@ jobs:
           assert 'file:///android_asset/entity_overlays/' in html
           assert 'encounter.successIds' in html
           assert 'snapshot-entity-overlay' in html
+
+          party_entries = party_overlay_manifest['assets']
+          assert party_overlay_manifest['qualityPolicy'] == 'exact-original-png-bytes-no-resize-no-recompression'
+          assert party_overlay_manifest['triggerPolicy'] == 'active-party-member-during-successful-entity-encounter'
+          assert {e['id'] for e in party_entries} == {'lucia', 'syvial'}
+          assert len(list(party_overlay_dir.glob('*.png'))) == 2
+          for entry in party_entries:
+              data = (party_overlay_dir / Path(entry['runtimeFile']).name).read_bytes()
+              assert len(data) == entry['size'], entry['id']
+              assert hashlib.sha256(data).hexdigest() == entry['sha256'], entry['id']
+          assert '<!-- PARTY_ENTITY_OVERLAYS_BEGIN -->' in html
+          assert 'file:///android_asset/party_entity_overlays/' in html
+          assert 'state.partyDetails&&Array.isArray(state.partyDetails.members)' in html
+          assert "presence==='ACTIVE'" in html
+          assert 'snapshot-party-entity-overlay' in html
+          assert 'partyEntityOverlaySig' in html
           PY
 
       - uses: actions/setup-java@v4
