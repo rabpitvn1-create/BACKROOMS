@@ -41,7 +41,9 @@ jobs:
           profile: pixel_2
           disable-animations: false
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
-          script: bash android-apk/qa-emulator-level0-to2.sh Backroom-1.1.49.4.apk
+          script: |
+            adb shell settings put secure immersive_mode_confirmations confirmed || true
+            bash android-apk/qa-emulator-level0-to2.sh Backroom-1.1.49.4.apk
 
       - name: Publish QA summary
         if: always()
