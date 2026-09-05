@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "tables": {
+    "explore:default": [
+      {"itemId": "almond-water", "weight": 30},
+      {"itemId": "ration-box", "weight": 20},
+      {"itemId": "bandage", "weight": 20},
+      {"itemId": "flashlight", "weight": 10},
+      {"itemId": "battery", "weight": 15},
+      {"itemId": "scrap-metal", "weight": 5}
+    ],
+    "explore:0": [
+      {"itemId": "almond-water", "weight": 20},
+      {"itemId": "ration-box", "weight": 15},
+      {"itemId": "bandage", "weight": 20},
+      {"itemId": "flashlight", "weight": 15},
+      {"itemId": "battery", "weight": 20},
+      {"itemId": "scrap-metal", "weight": 10}
+    ],
+    "explore:1": [
+      {"itemId": "almond-water", "weight": 30},
+      {"itemId": "ration-box", "weight": 25},
+      {"itemId": "bandage", "weight": 20},
+      {"itemId": "flashlight", "weight": 5},
+      {"itemId": "battery", "weight": 10},
+      {"itemId": "scrap-metal", "weight": 10}
+    ],
+    "entity:default": [
+      {"weight": 70},
+      {"itemId": "bandage", "weight": 8},
+      {"itemId": "battery", "weight": 8},
+      {"itemId": "scrap-metal", "weight": 14}
+    ],
+    "entity:ENTITY.HOUND": [
+      {"weight": 65},
+      {"itemId": "bandage", "weight": 10},
+      {"itemId": "scrap-metal", "weight": 25}
+    ],
+    "entity:ENTITY.SMILER": [
+      {"weight": 75},
+      {"itemId": "battery", "weight": 15},
+      {"itemId": "scrap-metal", "weight": 10}
+    ]
+  }
+}
