@@ -1,0 +1,135 @@
+name: Inventory V2 Preflight
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'android-apk/app/src/main/assets/items/**'
+      - 'android-apk/app/src/main/assets/models/backroom_intent_labels.txt'
+      - 'android-apk/app/src/main/java/com/rabpit/backroom/core/ItemCatalog.kt'
+      - 'android-apk/app/src/main/java/com/rabpit/backroom/core/LootEngine.kt'
+      - 'android-apk/inventory-v2/**'
+      - 'android-apk/ml/build_intent_dataset.py'
+      - 'android-apk/patch-inventory-v2-final.py'
+      - 'android-apk/patch-character-detail-avatar-fallback.py'
+      - 'android-apk/validate-item-content.py'
+      - '.github/workflows/preflight-inventory-v2.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: inventory-v2-preflight-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: android-apk/ml/requirements.txt
+
+      - name: Validate item catalog and loot tables
+        run: python3 android-apk/validate-item-content.py
+
+      - name: Install ML toolchain
+        run: python -m pip install --requirement android-apk/ml/requirements.txt
+
+      - name: Rebuild and gate LiteRT intent dataset
+        run: |
+          python3 android-apk/ml/build_intent_dataset.py
+          python3 android-apk/ml/evaluate_seed_classifier.py
+
+      - name: Train and validate exported LiteRT model
+        working-directory: android-apk/ml
+        run: >-
+          python train_intent_classifier.py
+          --dataset intent_dataset.csv
+          --labels ../app/src/main/assets/models/backroom_intent_labels.txt
+          --output ../app/src/main/assets/models/backroom_intent.tflite
+          --report intent_model_report.json
+
+      - name: Apply exact Android release patch chain
+        run: |
+          python3 android-apk/patch-provider-status.py
+          python3 android-apk/patch-luna-text.py
+          python3 android-apk/patch-level-snapshot-backgrounds.py
+          python3 android-apk/patch-snapshot-fallback.py
+          python3 android-apk/patch-kai-hd-continuous.py
+          python3 android-apk/patch-kai-png-preferred.py
+          python3 android-apk/patch-kai-codex.py
+          python3 android-apk/patch-r06-source-marker.py
+          python3 android-apk/patch-drive-canon-gameplay.py
+          python3 android-apk/patch-inventory-persistence.py
+          python3 android-apk/patch-ai-orchestrator.py
+          python3 android-apk/patch-state-op-hardening.py
+          python3 android-apk/patch-gemini-health-pool.py
+          python3 android-apk/patch-conditional-audit.py
+          python3 android-apk/patch-audit-validated-risk.py
+          python3 android-apk/patch-gameplay-parity-final.py
+          python3 android-apk/patch-final-authority-hardening.py
+          python3 android-apk/patch-rejected-op-repair-final.py
+          python3 android-apk/patch-kai-resource-policy-final.py
+          python3 android-apk/patch-provider-deadline-final.py
+          python3 android-apk/patch-gemini-model-matrix-final.py
+          python3 android-apk/patch-java-compile-hardening.py
+          python3 android-apk/patch-save-controls-final.py
+          python3 android-apk/patch-hard-mode-label.py
+          python3 android-apk/patch-snapshot-unconfigured.py
+          python3 android-apk/patch-game-state-core-bridge.py
+          python3 android-apk/patch-character-inventory-ui.py
+          python3 android-apk/patch-character-detail-avatar-fallback.py
+
+      - name: Verify Inventory V2 final runtime contract
+        run: |
+          python3 android-apk/validate-item-content.py
+          python3 - <<'PY'
+          from pathlib import Path
+          core = Path('android-apk/app/src/main/java/com/rabpit/backroom/core')
+          intent = (core / 'IntentPipeline.kt').read_text(encoding='utf-8')
+          command = (core / 'GameCommand.kt').read_text(encoding='utf-8')
+          state = (core / 'GameState.kt').read_text(encoding='utf-8')
+          facade = (core / 'GameCoreFacade.kt').read_text(encoding='utf-8')
+          engine = (core / 'Engines.kt').read_text(encoding='utf-8')
+          omni = (core / 'OmnivaultEngine.kt').read_text(encoding='utf-8')
+          assert 'DISCARD_ITEM' in intent
+          assert 'GIVE_AND_USE_ITEM' in intent
+          assert 'REQUEST_ITEM' in intent
+          assert 'PICKUP_ITEM' not in intent
+          assert 'OMNIVAULT_SCAN' not in intent
+          assert 'OMNIVAULT_COPY' not in intent
+          assert 'Operation.DISCARD' in engine
+          assert 'LootGrantCommand' in command
+          assert 'LootEngine.exploreGrant' in facade
+          assert 'CURRENT_SAVE_VERSION = 4' in state
+          assert 'scanSlots' not in state
+          assert 'markedSourceIds' not in state
+          assert 'Operation.SCAN' not in omni
+          assert 'Operation.COPY' not in omni
+          PY
+          git diff --check
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+
+      - name: Run Kotlin tests and build debug APK
+        working-directory: android-apk
+        run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
+
+      - name: Verify debug APK
+        run: |
+          test -s android-apk/app/build/outputs/apk/debug/app-debug.apk
+          unzip -l android-apk/app/build/outputs/apk/debug/app-debug.apk | grep -q 'assets/items/item_catalog.json'
+          unzip -l android-apk/app/build/outputs/apk/debug/app-debug.apk | grep -q 'assets/items/loot_tables.json'
