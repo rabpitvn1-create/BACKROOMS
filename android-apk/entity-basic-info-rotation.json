@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "orderSource": "android-apk/entity-runtime-additions.json#expectedEntityIds",
   "lastUpdatedIds": [
-    "ENTITY.DEATHMOTH",
-    "ENTITY.HOSTILE_FACELING",
-    "ENTITY.FALSE_PUDDLE"
+    "ENTITY.PAINTINGS",
+    "ENTITY.SMILER",
+    "ENTITY.SKIN_STEALER"
   ],
-  "nextIndex": 6
+  "nextIndex": 9
 }
