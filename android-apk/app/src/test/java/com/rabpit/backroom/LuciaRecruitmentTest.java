@@ -16,11 +16,20 @@ public class LuciaRecruitmentTest {
           .put("spawned", true).put("identityKnown", identity)));
   }
 
-  private JSONObject apply(JSONObject before, JSONArray ops) throws Exception {
+  private JSONObject apply(JSONObject before, JSONArray ops, JSONObject rolls, String action) throws Exception {
     Method method = MainActivity.class.getDeclaredMethod("applyModelOperations",
       JSONObject.class, JSONArray.class, JSONObject.class, String.class);
     method.setAccessible(true);
-    return (JSONObject) method.invoke(activity, before, ops, new JSONObject(), "Mời Lucia gia nhập party");
+    return (JSONObject) method.invoke(activity, before, ops, rolls, action);
+  }
+
+  private JSONObject apply(JSONObject before, JSONArray ops) throws Exception {
+    return apply(before, ops, new JSONObject(), "Mời Lucia gia nhập party");
+  }
+
+  private JSONObject encounterRoll() throws Exception {
+    return new JSONObject().put("luciaEncounter", new JSONObject()
+      .put("eligible", true).put("success", true).put("storyOwned", true));
   }
 
   private JSONObject identityOp() throws Exception {
@@ -31,6 +40,22 @@ public class LuciaRecruitmentTest {
   private JSONObject joinOp() throws Exception {
     return new JSONObject().put("type", "party_upsert").put("member", new JSONObject()
       .put("id", "lucia").put("name", "Lucia Lục").put("present", true).put("joinConfirmed", true));
+  }
+
+  @Test public void firstContactIntroductionPersistsIdentityForLaterInvitation() throws Exception {
+    JSONObject before = new JSONObject().put("level", new JSONObject().put("number", 0))
+      .put("party", new JSONArray()).put("flags", new JSONObject());
+
+    JSONObject introduced = apply(before, new JSONArray().put(identityOp()), encounterRoll(), "Khám phá");
+    JSONObject lucia = introduced.getJSONObject("flags").getJSONObject("lucia");
+    assertTrue(lucia.getBoolean("encountered"));
+    assertTrue(lucia.getBoolean("present"));
+    assertTrue(lucia.getBoolean("identityKnown"));
+    assertFalse(lucia.optBoolean("follower", false));
+    assertEquals(0, introduced.getJSONArray("party").length());
+
+    JSONObject joined = apply(introduced, new JSONArray().put(joinOp()));
+    assertEquals("lucia", joined.getJSONArray("party").getJSONObject(0).getString("id"));
   }
 
   @Test public void identityThenLaterInvitationAddsLuciaWithoutRandomSurvivorRoll() throws Exception {

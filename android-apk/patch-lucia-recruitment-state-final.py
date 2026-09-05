@@ -27,10 +27,15 @@ main = replace_once(main,
       lucia.optBoolean("encountered", false) && lucia.optBoolean("present", false);
   }
 
+  private boolean luciaContactEstablishedOrEncountering(JSONObject before, JSONObject rolls) {
+    return luciaContactPresent(before) ||
+      (currentLevel(before) == 0 && rollSuccess(rolls, "luciaEncounter"));
+  }
+
   private boolean flagRootAllowed(JSONObject before, String root, JSONObject rolls) {''')
 main = replace_once(main,
     '    if (root == null) return false;',
-    '    if (root == null) return false;\n    if (root.equals("lucia")) return luciaContactPresent(before);')
+    '    if (root == null) return false;\n    if (root.equals("lucia")) return luciaContactEstablishedOrEncountering(before, rolls);')
 # Only dialogue facts may be written: presence and encounter remain engine-owned.
 main = replace_once(main,
     '        Object value = op.get("value");',
@@ -42,6 +47,29 @@ main = replace_once(main,
           if (Boolean.TRUE.equals(proposed.opt("identityKnown"))) dialogue.put("identityKnown", true);
           value = dialogue;
         }''')
+# The story-owned encounter commit runs after model ops in applyModelOperations(). If Lucia
+# introduces herself on that first-contact turn, preserve the already validated dialogue fact
+# instead of resetting identityKnown to false at the deterministic encounter tail.
+main = replace_once(main,
+    '''      if (lucia == null) lucia = new JSONObject();
+      lucia.put("exists", true)
+        .put("encountered", true)
+        .put("present", true)
+        .put("spawned", true)
+        .put("follower", false)
+        .put("followerCandidate", true)
+        .put("identityKnown", false)
+        .put("joinConfirmed", false)''',
+    '''      if (lucia == null) lucia = new JSONObject();
+      boolean luciaIdentityKnownFromDialogue = lucia.optBoolean("identityKnown", false);
+      lucia.put("exists", true)
+        .put("encountered", true)
+        .put("present", true)
+        .put("spawned", true)
+        .put("follower", false)
+        .put("followerCandidate", true)
+        .put("identityKnown", luciaIdentityKnownFromDialogue)
+        .put("joinConfirmed", false)''')
 main = replace_once(main,
     'Chỉ dùng flag root: exploration, communication, iris, syvial,',
     'Chỉ dùng flag root: exploration, communication, lucia, iris, syvial,')
@@ -71,4 +99,4 @@ facade = replace_once(facade,
       luciaBefore.optBoolean("encountered", false) && luciaBefore.optBoolean("present", false) &&
       before.optJSONObject("level")?.optInt("number", -1) == 0''')
 FACADE.write_text(facade)
-print('Lucia dialogue flags, story recruitment and invitation routing repaired.')
+print('Lucia dialogue flags, first-contact identity persistence, story recruitment and invitation routing repaired.')
