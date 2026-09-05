@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "qualityPolicy": "exact-original-png-bytes-no-resize-no-recompression",
+  "triggerPolicy": "active-party-member-during-successful-entity-encounter",
+  "assets": [
+    {
+      "id": "lucia",
+      "name": "Lucia",
+      "driveFileId": "1MTpCrPHymZxqQpsDNlFS3f5Rl_3Bhka2",
+      "sourceFile": "LUCIA.png",
+      "runtimeFile": "app/src/main/assets/party_entity_overlays/lucia.png",
+      "size": 1501870,
+      "sha256": "c1077f762254555b92232a18a50d930dfe8d572bfc1327da3ddeb8859d63029d",
+      "width": 1086,
+      "height": 1448
+    },
+    {
+      "id": "syvial",
+      "name": "Syvial",
+      "driveFileId": "1JJK9FilclU25446m2ABjOKb5zEJzBE-X",
+      "sourceFile": "Syvial.png",
+      "runtimeFile": "app/src/main/assets/party_entity_overlays/syvial.png",
+      "size": 2138768,
+      "sha256": "2130a7201b48cf709bb53c9eb083874a7b84571a6d221cb7f13e96be469ca373",
+      "width": 1024,
+      "height": 1536
+    }
+  ]
+}
