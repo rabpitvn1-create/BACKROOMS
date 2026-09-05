@@ -2,44 +2,72 @@
   "schemaVersion": 1,
   "tables": {
     "explore:default": [
-      {"itemId": "almond-water", "weight": 30},
-      {"itemId": "ration-box", "weight": 20},
-      {"itemId": "bandage", "weight": 20},
-      {"itemId": "flashlight", "weight": 10},
-      {"itemId": "battery", "weight": 15},
-      {"itemId": "scrap-metal", "weight": 5}
+      {"itemId":"almond-water","weight":24},
+      {"itemId":"ration-box","weight":15},
+      {"itemId":"bandage","weight":16},
+      {"itemId":"frozen-fruits","weight":10},
+      {"itemId":"royal-ration","weight":2},
+      {"itemId":"agrugua-fruit","weight":5},
+      {"itemId":"dark-reparation-vial-turquoise","weight":2},
+      {"itemId":"flashlight","weight":8},
+      {"itemId":"battery","weight":12},
+      {"itemId":"scrap-metal","weight":6}
     ],
     "explore:0": [
-      {"itemId": "almond-water", "weight": 20},
-      {"itemId": "ration-box", "weight": 15},
-      {"itemId": "bandage", "weight": 20},
-      {"itemId": "flashlight", "weight": 15},
-      {"itemId": "battery", "weight": 20},
-      {"itemId": "scrap-metal", "weight": 10}
+      {"itemId":"almond-water","weight":20},
+      {"itemId":"ration-box","weight":14},
+      {"itemId":"bandage","weight":18},
+      {"itemId":"frozen-fruits","weight":7},
+      {"itemId":"royal-ration","weight":1},
+      {"itemId":"agrugua-fruit","weight":3},
+      {"itemId":"dark-reparation-vial-turquoise","weight":1},
+      {"itemId":"flashlight","weight":14},
+      {"itemId":"battery","weight":15},
+      {"itemId":"scrap-metal","weight":7}
     ],
     "explore:1": [
-      {"itemId": "almond-water", "weight": 30},
-      {"itemId": "ration-box", "weight": 25},
-      {"itemId": "bandage", "weight": 20},
-      {"itemId": "flashlight", "weight": 5},
-      {"itemId": "battery", "weight": 10},
-      {"itemId": "scrap-metal", "weight": 10}
+      {"itemId":"almond-water","weight":26},
+      {"itemId":"ration-box","weight":20},
+      {"itemId":"bandage","weight":16},
+      {"itemId":"frozen-fruits","weight":8},
+      {"itemId":"royal-ration","weight":1},
+      {"itemId":"agrugua-fruit","weight":4},
+      {"itemId":"dark-reparation-vial-turquoise","weight":1},
+      {"itemId":"flashlight","weight":5},
+      {"itemId":"battery","weight":10},
+      {"itemId":"scrap-metal","weight":9}
     ],
     "entity:default": [
-      {"weight": 70},
-      {"itemId": "bandage", "weight": 8},
-      {"itemId": "battery", "weight": 8},
-      {"itemId": "scrap-metal", "weight": 14}
+      {"weight":62},
+      {"itemId":"almond-water","weight":5},
+      {"itemId":"bandage","weight":7},
+      {"itemId":"frozen-fruits","weight":3},
+      {"itemId":"royal-ration","weight":1},
+      {"itemId":"agrugua-fruit","weight":3},
+      {"itemId":"dark-reparation-vial-turquoise","weight":1},
+      {"itemId":"battery","weight":7},
+      {"itemId":"scrap-metal","weight":11}
     ],
     "entity:ENTITY.HOUND": [
-      {"weight": 65},
-      {"itemId": "bandage", "weight": 10},
-      {"itemId": "scrap-metal", "weight": 25}
+      {"weight":64},
+      {"itemId":"almond-water","weight":4},
+      {"itemId":"bandage","weight":8},
+      {"itemId":"frozen-fruits","weight":2},
+      {"itemId":"royal-ration","weight":1},
+      {"itemId":"agrugua-fruit","weight":3},
+      {"itemId":"dark-reparation-vial-turquoise","weight":1},
+      {"itemId":"scrap-metal","weight":17}
     ],
     "entity:ENTITY.SMILER": [
-      {"weight": 75},
-      {"itemId": "battery", "weight": 15},
-      {"itemId": "scrap-metal", "weight": 10}
+      {"weight":70},
+      {"itemId":"almond-water","weight":3},
+      {"itemId":"bandage","weight":5},
+      {"itemId":"frozen-fruits","weight":2},
+      {"itemId":"royal-ration","weight":1},
+      {"itemId":"agrugua-fruit","weight":2},
+      {"itemId":"dark-reparation-vial-turquoise","weight":1},
+      {"itemId":"battery","weight":10},
+      {"itemId":"scrap-metal","weight":6}
     ]
   }
 }

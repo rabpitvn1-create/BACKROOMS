@@ -18,49 +18,191 @@ private fun removeItem(inventory: InventoryState, itemId: String, quantity: Int)
   return inventory.copy(items = items)
 }
 
-private fun parsePhysiologyEffects(raw: String?): Set<String>? {
-  if (raw == null) return emptySet()
-  val effects = raw.split(',', ';', '|').map { it.trim().uppercase() }.filter { it.isNotEmpty() }
-  if (effects.isEmpty() || effects.any { it !in setOf("WATER", "FOOD") }) return null
-  return effects.toSet()
+private val additiveItemEffect = Regex("^(WATER|FOOD|REST|HP)\\+([1-9][0-9]{0,3})$")
+
+private fun parseItemEffects(item: ItemStack): Set<String>? {
+  val catalogEffects = ItemDefinitionMetadata.effects(item)
+  val legacyEffects = item.metadata["physiologyEffect"]
+    ?.split(',', ';', '|')
+    ?.map { it.trim().uppercase() }
+    ?.filter(String::isNotEmpty)
+    ?.toSet()
+    .orEmpty()
+  val effects = if (catalogEffects.isNotEmpty()) catalogEffects else legacyEffects
+  if (effects.any { !isKnownItemEffect(it) }) return null
+  return effects
+}
+
+private fun isKnownItemEffect(effect: String): Boolean {
+  if (effect in setOf("WATER", "FOOD", "CLEAR_BLEED", "CLEAR_MILD_SICKNESS")) return true
+  val match = additiveItemEffect.matchEntire(effect) ?: return false
+  val kind = match.groupValues[1]
+  val amount = match.groupValues[2].toIntOrNull() ?: return false
+  return when (kind) {
+    "WATER", "FOOD", "REST" -> amount in 1..100
+    "HP" -> amount in 1..999
+    else -> false
+  }
 }
 
 private fun finishItemUse(
   originalState: GameState,
   inventoryResult: ExecutionResult,
   command: ItemCommand,
-  physiologyEffects: Set<String>
+  effects: Set<String>
 ): ExecutionResult {
-  if (!inventoryResult.applied || physiologyEffects.isEmpty()) return inventoryResult
+  if (!inventoryResult.applied || effects.isEmpty()) return inventoryResult
   var current = inventoryResult.state
   val events = inventoryResult.events.toMutableList()
-  physiologyEffects.forEachIndexed { index, effect ->
-    val operation = when (effect) {
-      "WATER" -> PhysiologyCommand.Operation.RECORD_WATER
-      "FOOD" -> PhysiologyCommand.Operation.RECORD_FOOD
-      else -> return ExecutionResult(originalState, false, validation = ValidationResult(false, "physiology_effect_invalid"))
-    }
-    val physiology = PhysiologyEngine.execute(current, PhysiologyCommand(
-      commandId = "${command.commandId}:PHYS:$index",
-      turnId = command.turnId,
+  effects.forEachIndexed { index, effect ->
+    val applied = applyItemEffect(
+      state = current,
       actorId = command.actorId,
-      targetId = command.actorId,
-      source = CommandSource.SYSTEM,
-      operation = operation
-    ))
-    if (!physiology.applied) return ExecutionResult(originalState, false, validation = physiology.validation)
-    current = physiology.state
-    events += physiology.events
+      effect = effect,
+      quantity = command.quantity,
+      command = command,
+      effectIndex = index
+    )
+    if (!applied.applied) return ExecutionResult(originalState, false, validation = applied.validation)
+    current = applied.state
+    events += applied.events
   }
   return inventoryResult.copy(state = current, events = events)
+}
+
+private fun applyItemEffect(
+  state: GameState,
+  actorId: String,
+  effect: String,
+  quantity: Int,
+  command: ItemCommand,
+  effectIndex: Int
+): ExecutionResult {
+  val character = state.characters[actorId] ?: return invalid(state, "target_unknown")
+  if (character.presence == CharacterPresence.DEAD) return invalid(state, "item_effect_target_dead")
+
+  if (effect == "WATER" || effect == "FOOD") {
+    val operation = if (effect == "WATER") {
+      PhysiologyCommand.Operation.RECORD_WATER
+    } else {
+      PhysiologyCommand.Operation.RECORD_FOOD
+    }
+    return PhysiologyEngine.execute(
+      state,
+      PhysiologyCommand(
+        commandId = "${command.commandId}:EFFECT:$effectIndex",
+        turnId = command.turnId,
+        actorId = actorId,
+        targetId = actorId,
+        source = CommandSource.SYSTEM,
+        operation = operation
+      )
+    )
+  }
+
+  additiveItemEffect.matchEntire(effect)?.let { match ->
+    val kind = match.groupValues[1]
+    val perUse = match.groupValues[2].toInt()
+    val amount = if (kind == "HP") perUse * quantity else (perUse * quantity).coerceAtMost(100)
+    return when (kind) {
+      "FOOD" -> {
+        val physiology = character.physiology.copy(
+          minutesSinceFood = PhysiologyStatusPolicy.recoverFood(character.physiology.minutesSinceFood, amount)
+        )
+        changed(
+          state.copy(characters = state.characters + (actorId to character.copy(physiology = physiology))),
+          "item_effect_food:$amount"
+        )
+      }
+      "WATER" -> {
+        val physiology = character.physiology.copy(
+          minutesSinceWater = PhysiologyStatusPolicy.recoverWater(character.physiology.minutesSinceWater, amount)
+        )
+        changed(
+          state.copy(characters = state.characters + (actorId to character.copy(physiology = physiology))),
+          "item_effect_water:$amount"
+        )
+      }
+      "REST" -> {
+        val physiology = character.physiology.copy(
+          minutesAwake = PhysiologyStatusPolicy.recoverRest(character.physiology.minutesAwake, amount)
+        )
+        changed(
+          state.copy(characters = state.characters + (actorId to character.copy(physiology = physiology))),
+          "item_effect_rest:$amount"
+        )
+      }
+      "HP" -> {
+        val stats = CombatProgression.read(character)
+        val healed = stats.copy(currentHp = (stats.currentHp + amount).coerceAtMost(stats.maxHp))
+        val updated = CombatProgression.write(character, healed)
+        changed(state.copy(characters = state.characters + (actorId to updated)), "item_effect_hp:$amount")
+      }
+      else -> invalid(state, "item_effect_invalid")
+    }
+  }
+
+  return when (effect) {
+    "CLEAR_BLEED" -> clearBleeding(state, character)
+    "CLEAR_MILD_SICKNESS" -> clearMildSickness(state, character)
+    else -> invalid(state, "item_effect_invalid")
+  }
+}
+
+private fun clearBleeding(state: GameState, character: CharacterState): ExecutionResult {
+  val bleedStatusIds = character.statusIds.filter { statusId ->
+    val status = state.statuses[statusId]
+    val key = listOfNotNull(statusId, status?.type).joinToString(" ").lowercase()
+    key.contains("bleed") || key.contains("chảy máu") || key.contains("chay mau")
+  }.toSet()
+  val remainingStatuses = state.statuses - bleedStatusIds
+  val remainingInjuries = character.injuries.filterNot { injury ->
+    val key = injury.lowercase()
+    key.contains("bleed") || key.contains("chảy máu") || key.contains("chay mau")
+  }
+  val updated = character.copy(
+    statusIds = character.statusIds - bleedStatusIds,
+    injuries = remainingInjuries
+  )
+  return changed(
+    state.copy(statuses = remainingStatuses, characters = state.characters + (character.id to updated)),
+    "item_effect_bleed_cleared"
+  )
+}
+
+private fun clearMildSickness(state: GameState, character: CharacterState): ExecutionResult {
+  fun isMild(value: String?): Boolean {
+    val normalized = value?.trim()?.lowercase() ?: return false
+    return normalized in setOf("mild", "light", "minor", "nhẹ", "nhe")
+  }
+
+  val removableStatusIds = character.statusIds.filter { statusId ->
+    val status = state.statuses[statusId] ?: return@filter false
+    val key = "$statusId ${status.type}".lowercase()
+    val sickness = key.contains("sickness") || key.contains("infection") || key.contains("illness")
+    sickness && isMild(status.metadata["severity"])
+  }.toSet()
+  val physiology = character.physiology.copy(
+    infectionState = if (isMild(character.physiology.infectionState)) null else character.physiology.infectionState
+  )
+  val updated = character.copy(
+    physiology = physiology,
+    statusIds = character.statusIds - removableStatusIds
+  )
+  return changed(
+    state.copy(
+      statuses = state.statuses - removableStatusIds,
+      characters = state.characters + (character.id to updated)
+    ),
+    "item_effect_mild_sickness_cleared"
+  )
 }
 
 private fun useItem(state: GameState, source: InventoryState, command: ItemCommand): ExecutionResult {
   val ownedRaw = source.items[command.itemId] ?: return invalid(state, "item_not_owned")
   if (ownedRaw.quantity < command.quantity) return invalid(state, "insufficient_item_quantity")
   val owned = ItemContentRules.normalize(ownedRaw)
-  val physiologyEffects = parsePhysiologyEffects(owned.metadata["physiologyEffect"])
-    ?: return invalid(state, "physiology_effect_invalid")
+  val effects = parseItemEffects(owned) ?: return invalid(state, "item_effect_invalid")
   if (owned.contentState == ContentState.EMPTY) return invalid(state, "item_content_empty")
   if (owned.contentState == ContentState.FULL || owned.contentState == ContentState.LOW) {
     val nextVariant = ItemContentRules.nextAfterUse(owned) ?: return invalid(state, "item_content_empty")
@@ -72,16 +214,17 @@ private fun useItem(state: GameState, source: InventoryState, command: ItemComma
       state.copy(inventories = state.inventories + (command.actorId to nextInventory)),
       if (nextVariant.contentState == ContentState.EMPTY) "item_content_emptied" else "item_content_reduced"
     )
-    return finishItemUse(state, inventoryResult, command, physiologyEffects)
+    return finishItemUse(state, inventoryResult, command, effects)
   }
-  val consumedOnUse = owned.metadata["consumedOnUse"].equals("true", true) ||
+  val catalogConsumable = owned.metadata["catalog.category"].equals("CONSUMABLE", true)
+  val consumedOnUse = catalogConsumable || owned.metadata["consumedOnUse"].equals("true", true) ||
     (owned.metadata["consumable"].equals("true", true) && !owned.metadata["containerPersistent"].equals("true", true))
   if (consumedOnUse) {
     val next = removeItem(source, command.itemId, command.quantity) ?: return invalid(state, "insufficient_item_quantity")
     val inventoryResult = changed(state.copy(inventories = state.inventories + (command.actorId to next)), "item_consumed")
-    return finishItemUse(state, inventoryResult, command, physiologyEffects)
+    return finishItemUse(state, inventoryResult, command, effects)
   }
-  return finishItemUse(state, changed(state, "item_used"), command, physiologyEffects)
+  return finishItemUse(state, changed(state, "item_used"), command, effects)
 }
 
 object InventoryEngine {
