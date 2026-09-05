@@ -3,7 +3,7 @@ name: Materialize Entity Overlays
 on:
   push:
     branches:
-      - feature/async-member-entity
+      - feature/entity-roaming-3pct
     paths:
       - "android-apk/entity-overlay-source.json"
       - ".github/workflows/materialize-entity-overlays.yml"
