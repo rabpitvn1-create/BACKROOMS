@@ -1,5 +1,7 @@
 from pathlib import Path
 import json
+import struct
+import zlib
 
 ROOT = Path(__file__).resolve().parent
 APP = ROOT / "app"
@@ -16,11 +18,83 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
     return text.replace(old, new, 1)
 
 
+def png_alpha(path: Path) -> tuple[int, int, list[int]]:
+    data = path.read_bytes()
+    if not data.startswith(b"\x89PNG\r\n\x1a\n"):
+        raise RuntimeError(f"not a PNG: {path}")
+    pos = 8
+    width = height = bit_depth = color_type = interlace = None
+    compressed = bytearray()
+    transparency = b""
+    while pos + 12 <= len(data):
+        length = struct.unpack(">I", data[pos:pos + 4])[0]
+        kind = data[pos + 4:pos + 8]
+        payload = data[pos + 8:pos + 8 + length]
+        pos += 12 + length
+        if kind == b"IHDR":
+            width, height, bit_depth, color_type, _, _, interlace = struct.unpack(">IIBBBBB", payload)
+        elif kind == b"IDAT":
+            compressed.extend(payload)
+        elif kind == b"tRNS":
+            transparency = payload
+        elif kind == b"IEND":
+            break
+    if not width or not height or bit_depth != 8 or interlace != 0:
+        raise RuntimeError(f"unsupported PNG layout for foot profile: {path.name}")
+    channels = {0: 1, 2: 3, 3: 1, 4: 2, 6: 4}.get(color_type)
+    if channels is None:
+        raise RuntimeError(f"unsupported PNG color type {color_type}: {path.name}")
+    raw = zlib.decompress(bytes(compressed))
+    stride = width * channels
+    rows = []
+    cursor = 0
+    previous = bytearray(stride)
+
+    def paeth(a: int, b: int, c: int) -> int:
+        p = a + b - c
+        pa = abs(p - a); pb = abs(p - b); pc = abs(p - c)
+        return a if pa <= pb and pa <= pc else b if pb <= pc else c
+
+    for _ in range(height):
+        filter_type = raw[cursor]
+        cursor += 1
+        scan = bytearray(raw[cursor:cursor + stride])
+        cursor += stride
+        for i in range(stride):
+            left = scan[i - channels] if i >= channels else 0
+            up = previous[i]
+            upper_left = previous[i - channels] if i >= channels else 0
+            if filter_type == 1:
+                scan[i] = (scan[i] + left) & 0xff
+            elif filter_type == 2:
+                scan[i] = (scan[i] + up) & 0xff
+            elif filter_type == 3:
+                scan[i] = (scan[i] + ((left + up) // 2)) & 0xff
+            elif filter_type == 4:
+                scan[i] = (scan[i] + paeth(left, up, upper_left)) & 0xff
+            elif filter_type != 0:
+                raise RuntimeError(f"unsupported PNG filter {filter_type}: {path.name}")
+        rows.append(scan)
+        previous = scan
+
+    alpha = [255] * (width * height)
+    for y, row in enumerate(rows):
+        for x in range(width):
+            at = x * channels
+            if color_type == 6:
+                value = row[at + 3]
+            elif color_type == 4:
+                value = row[at + 1]
+            elif color_type == 3:
+                index = row[at]
+                value = transparency[index] if index < len(transparency) else 255
+            else:
+                value = 255
+            alpha[y * width + x] = value
+    return width, height, alpha
+
+
 def sprite_foot_profiles() -> dict[str, dict[str, float]]:
-    try:
-        import tensorflow as tf
-    except Exception as error:
-        raise RuntimeError(f"sprite foot profile generation requires TensorFlow: {error}") from error
     roots = []
     for rel in ["kai_snapshot_overlay.png", "kai_snapshot_overlay_combat.png"]:
         path = ASSETS / rel
@@ -31,25 +105,21 @@ def sprite_foot_profiles() -> dict[str, dict[str, float]]:
             roots.extend(sorted(folder.glob("*.png")))
     result = {}
     for path in roots:
-        rgba = tf.io.decode_png(path.read_bytes(), channels=4).numpy()
-        alpha = rgba[:, :, 3]
-        ys, xs = (alpha > 18).nonzero()
-        if len(xs) == 0:
+        width, height, alpha = png_alpha(path)
+        opaque = [(index % width, index // width) for index, value in enumerate(alpha) if value > 18]
+        if not opaque:
             continue
-        max_y = int(ys.max())
-        band_start = max(0, max_y - max(2, int(round(rgba.shape[0] * 0.12))))
-        band = (alpha[band_start:max_y + 1, :] > 18).nonzero()
-        if len(band[1]) == 0:
-            min_x = int(xs.min())
-            max_x = int(xs.max())
-        else:
-            min_x = int(band[1].min())
-            max_x = int(band[1].max())
+        max_y = max(y for _, y in opaque)
+        band_start = max(0, max_y - max(2, int(round(height * 0.12))))
+        band_x = [x for x, y in opaque if band_start <= y <= max_y]
+        if not band_x:
+            band_x = [x for x, _ in opaque]
+        min_x = min(band_x); max_x = max(band_x)
         key = str(path.relative_to(ASSETS)).replace("\\", "/")
         result[key] = {
-            "centerX": round((min_x + max_x + 1) / (2.0 * rgba.shape[1]), 6),
-            "bottomY": round((max_y + 1) / float(rgba.shape[0]), 6),
-            "footWidth": round((max_x - min_x + 1) / float(rgba.shape[1]), 6),
+            "centerX": round((min_x + max_x + 1) / (2.0 * width), 6),
+            "bottomY": round((max_y + 1) / float(height), 6),
+            "footWidth": round((max_x - min_x + 1) / float(width), 6),
         }
     if not result:
         raise RuntimeError("no sprite foot profiles generated")
