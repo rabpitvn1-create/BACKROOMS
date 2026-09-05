@@ -2,6 +2,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 FACADE = ROOT / "app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt"
+CHARACTER_CANON_TEST = ROOT / "app/src/test/java/com/rabpit/backroom/core/CharacterCanonR07Test.kt"
 text = FACADE.read_text(encoding="utf-8")
 
 # Inventory V2 replaces contextFor late in the patch chain. Preserve the projection/turn helpers
@@ -141,4 +142,20 @@ if "TurnCoordinator.reject(created.state" in text:
     raise RuntimeError("Inventory V2 compile fix: rejected action can still consume a turn")
 
 FACADE.write_text(text, encoding="utf-8")
-print("Inventory V2 facade compile surface restored; rejected inventory actions preserve the current turn.")
+
+# CharacterCanonR07Test is generated earlier by the legacy character-canon patch. Inventory V2's
+# explicit global companion rule is 8 item types and 99 per type, so align that generated assertion
+# after the V2 policy has become final authority.
+if CHARACTER_CANON_TEST.is_file():
+    test = CHARACTER_CANON_TEST.read_text(encoding="utf-8")
+    old = '''    assertEquals(8, profile.maxTypes)
+    assertEquals(100, profile.maxPerType)'''
+    new = '''    assertEquals(8, profile.maxTypes)
+    assertEquals(99, profile.maxPerType)'''
+    if new not in test:
+        if test.count(old) != 1:
+            raise RuntimeError(f"Inventory V2 generated Lucia capacity test anchor expected once, found {test.count(old)}")
+        test = test.replace(old, new, 1)
+    CHARACTER_CANON_TEST.write_text(test, encoding="utf-8")
+
+print("Inventory V2 facade compile surface restored; rejected actions preserve turns and generated companion limits match V2.")
