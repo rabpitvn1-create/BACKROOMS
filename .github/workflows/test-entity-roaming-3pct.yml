@@ -61,6 +61,7 @@ jobs:
           from pathlib import Path
 
           java = Path('android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java').read_text(encoding='utf-8')
+          combat = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/CombatCore.kt').read_text(encoding='utf-8')
           kce = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/knowledge/KnowledgeContextEngine.kt').read_text(encoding='utf-8')
           html = Path('android-apk/app/src/main/assets/index.html').read_text(encoding='utf-8')
           db = json.loads(Path('android-apk/app/src/main/assets/knowledge/knowledge_db.json').read_text(encoding='utf-8'))
@@ -71,9 +72,10 @@ jobs:
           party_overlay_dir = Path('android-apk/app/src/main/assets/party_entity_overlays')
 
           expected = additions['expectedEntityIds']
-          assert len(expected) == 18
-          assert len(set(expected)) == 18
-          assert java.count('thresholdRoll("ENTITY.') == 18
+          assert len(expected) == 19
+          assert len(set(expected)) == 19
+          assert 'ENTITY.ASYNC_MEMBER' in expected
+          assert java.count('thresholdRoll("ENTITY.') == 19
           for entity_id in expected:
               assert f'thresholdRoll("{entity_id}", 10000, 300, physical' in java
           assert '.put("chancePerEntityPercent", 3.0)' in java
@@ -90,15 +92,23 @@ jobs:
               if r.get('domain') == 'ENTITY' and r.get('kind') == 'entity'
           }
           assert set(expected).issubset(entity_records)
+          async_record = next(r for r in db['records'] if r.get('id') == 'ENTITY.ASYNC_MEMBER')
+          assert '60/60' in async_record['text']
+          assert "Let's catch you" in async_record['text']
+          assert 'Anysc Evade' in async_record['text']
           policy = next(r for r in db['records'] if r.get('id') == 'ENTITY.ROAMING_POLICY')
+          assert '19 Entity entries' in policy['text']
           assert '3.0000%' in policy['text']
           assert 'every playable Level' in policy['text']
 
           entries = overlay_manifest['entities']
           assert overlay_manifest['qualityPolicy'] == 'exact-original-png-bytes-no-resize-no-recompression'
-          assert len(entries) == 18
+          assert len(entries) == 19
           assert {e['id'] for e in entries} == set(expected)
-          assert len(list(overlay_dir.glob('*.png'))) == 18
+          assert len(list(overlay_dir.glob('*.png'))) == 19
+          async_overlay = next(e for e in entries if e['id'] == 'ENTITY.ASYNC_MEMBER')
+          assert async_overlay['file'] == 'async_member.png'
+          assert async_overlay['driveFileId'] == '1QLdwXwXNcFNrGLgr-qJl0cBuNBnUw0WI'
           for entry in entries:
               data = (overlay_dir / entry['file']).read_bytes()
               assert len(data) == entry['size'], entry['file']
@@ -107,6 +117,16 @@ jobs:
           assert 'file:///android_asset/entity_overlays/' in html
           assert 'encounter.successIds' in html
           assert 'snapshot-entity-overlay' in html
+
+          assert 'ASYNC_MEMBER_ENTITY_PATCHED' in combat
+          assert 'BASE_HP_POOL = 60' in combat
+          assert 'BASE_HP_STAT = 7' in combat
+          assert 'BASE_DEFEND = 8' in combat
+          assert 'BASE_AGI = 9' in combat
+          assert 'BASE_CRIT = 10' in combat
+          assert 'EVADE_CHANCE = 0.25' in combat
+          assert 'LETS_CATCH_YOU_PROC = 0.20' in combat
+          assert 'LETS_CATCH_YOU_STUN_TURNS = 2' in combat
 
           party_entries = party_overlay_manifest['assets']
           assert party_overlay_manifest['qualityPolicy'] == 'exact-original-png-bytes-no-resize-no-recompression'
