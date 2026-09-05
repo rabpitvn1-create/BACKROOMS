@@ -36,7 +36,7 @@ required = [
     ('SemanticActionDescriptor("candidate-$index", rule.semanticDescriptions)', (core / 'RegisteredLevelActionCoordinator.kt').read_text(encoding='utf-8')),
     ('resolvedExecuteActionId = resolvedExecuteActionId', (core / 'RegisteredLevelActionCoordinator.kt').read_text(encoding='utf-8')),
     ('put("reason", "core_owned_hidden_blueprint")', facade),
-    ("versionCode 122", gradle), ("versionName '1.0.0.0.14'", gradle),
+    ("versionCode 123", gradle), ("versionName '1.0.0.0.15'", gradle),
     ('ISSUE330_STRUCTURED_DIAGNOSTICS_R01', java), ('new RuntimeDiagnostics(160)', java),
     ('[ERROR_SUMMARY]', java), ('[ROOT_CAUSE]', java), ('[ERROR_TIMELINE]', java),
     ('devilBlessingEvasionBonus', combat), ('fun partyBlessing(value: Int)', equipment_system),
