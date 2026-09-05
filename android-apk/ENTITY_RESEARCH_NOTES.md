@@ -53,9 +53,21 @@ Purpose: provenance for the Entity records added to the Android runtime. Externa
 - **Project override:** the external article includes a docile state when not hungry. Project canon rejects that disposition. `ENT-2D` stays authoritative and is stronger on infiltration: Skin-Stealers can deeply imitate human behavior and retain enough copied memory to pass simple tests or sabotage a group over time.
 
 ### Predatory Window
-- Current Backrooms Wiki Entity 2 describes anomalous Windows as predatory manifestations that show misleading perceived landscapes and can physically seize human prey.
+- Current Backrooms Wiki Entity 2 describes Windows as predatory thoughtspace manifestations that can take many ordinary window shapes/styles, show blurred familiar-looking landscapes unrelated to the real exterior, and in occupied instances contain a dark indistinct humanoid silhouette. It also describes lure-like perceived whispers/gestures and dangerous close interaction.
 - Source: https://backrooms-wiki.wikidot.com/entity-2
-- Project use: retain the simpler `ENT-2E / ENT-5B` implementation: impossible window placement, deceptive silhouette/scene, unreliable reach, and a grab/pull attack. Every instance is hostile.
+- Project use: retain the simpler `ENT-2E / ENT-5B` implementation: impossible window placement, deceptive scene/silhouette, unreliable reach, and a grab/pull attack. Every instance is hostile; the wider thoughtspace lifecycle is not imported as a mandatory gameplay mechanic.
+
+### Biological Pipeline
+- No current Wikidot Entity article was found for the exact name `Biological Pipeline` in this research pass.
+- Lower-authority external reference describes long flesh-made pipes that digest people travelling through them: https://pressure-ideas.fandom.com/wiki/Documents/Backrooms_Entities
+- Source boundary: this external page is only corroborating inspiration, not authoritative Backrooms Wiki canon.
+- Project use: `ENT-2F` remains authoritative. The Entity is a vast organic/mechanical pipe-like predator; visible pipe/crawlspace sections can lure humans deeper, alter or lock routes, sense prey and release tissue-corrosive alkaline liquid. Destroying one visible section does not prove the whole Entity is dead.
+
+### Wretch
+- Current Backrooms Wiki Entity 15 describes once-human, zombie-like entities produced through the Wretched Cycle. Advanced forms are skeletal humanoids with dry reddish-brown flaky skin, holes/pustules, tissue loss, displaced or excessive teeth/nails, exposed or distorted eyes and brown sludge leaking from body openings; mutations can include misplaced eyes or deformed limbs.
+- Source: https://backrooms-wiki.wikidot.com/entity-15
+- Source note: the page is currently marked as being rewritten, so stable morphology and broad hostile behavior are used rather than treating every detail as permanent canon.
+- Project use: preserve the existing Wretch record's hunting-through-sound-and-scent behavior. Human origin or remaining personal belongings do not imply friendliness; a fully hostile encountered Wretch remains governed by `ENTITY.GLOBAL_HARD_LOCK`.
 
 ### Hotel Corpse Lure
 - No authoritative external source was found for this exact Project entity.

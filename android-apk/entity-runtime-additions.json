@@ -122,7 +122,7 @@
       "id": "ENTITY.PREDATORY_WINDOW",
       "domain": "ENTITY",
       "kind": "entity",
-      "text": "Predatory Window is a window-like anomalous manifestation that can appear where no real window should exist. It may display misleading scenery or a dark human-like silhouette and use visual or auditory bait to draw humans closer. At close range a figure or arm can reach out and pull a victim through; apparent depth and reach are unreliable. Project canon treats every Predatory Window as hostile.",
+      "text": "Predatory Window is a hostile anomalous window manifestation. Appearance: it can take many ordinary window shapes and styles suited to its surroundings, yet show a blurred, familiar-looking landscape unrelated to the real space beyond the wall; occupied instances contain a dark, indistinct humanoid silhouette with few reliable features. Current Backrooms Wiki material describes lure-like perceived whispers and gestures plus dangerous close interaction. Project canon keeps ENT-2E / ENT-5B authoritative and simpler: impossible placement, deceptive scene or silhouette, unreliable reach, and a grab/pull attack; every instance is hostile.",
       "source": {"document": "01_WORLD/entity.md", "anchor": "ENT-2E; ENT-5B"},
       "authority": "WORLD_CANON",
       "mutability": "IMMUTABLE",
@@ -130,6 +130,32 @@
       "tags": ["predatory window", "the windows", "window entity"],
       "references": ["ENTITY.GLOBAL_HARD_LOCK"],
       "affordances": ["direct_threat", "trace_analysis"]
+    },
+    {
+      "id": "ENTITY.BIOLOGICAL_PIPELINE",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Biological Pipeline is a vast hostile organic/mechanical pipe-like predator whose visible passage may be only part of its body. Appearance: it presents as a long pipe or crawl-tunnel with flesh-like biological surfaces integrated into otherwise mechanical piping, creating a route that can be mistaken for traversable infrastructure. Lower-authority external material independently describes long flesh-made pipes that digest people who enter, but no current Wikidot Entity article was found for this exact name. Project canon ENT-2F remains authoritative: it can sense prey, lure humans deeper, redirect or lock passage and release tissue-corrosive alkaline liquid; destroying one section does not prove the whole Entity dead.",
+      "source": {"document": "01_WORLD/entity.md", "anchor": "ENT-2F"},
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 58,
+      "tags": ["biological pipeline"],
+      "references": ["ENTITY.GLOBAL_HARD_LOCK"],
+      "affordances": ["direct_threat", "trace_analysis"]
+    },
+    {
+      "id": "ENTITY.WRETCH",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Wretch is a hostile human-derived creature associated with the Wretched Cycle. Appearance: advanced Wretches are skeletal humanoids with dry reddish-brown flaky skin, holes and pustules, severe tissue loss, displaced or excessive teeth and nails, permanently exposed or distorted eyes, and brown sludge leaking from the mouth or other openings; mutations can add misplaced eyes or deformed limbs. Current Backrooms Wiki says transformation follows deprivation and can produce anything from shambling to very fast, unusually strong individuals. Project canon preserves the established hunting-through-sound-and-scent behavior and does not treat any retained human trace as friendliness or reversibility after a fully hostile encounter.",
+      "source": {"document": "01_WORLD/entity.md", "anchor": "ENT-3B"},
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 60,
+      "tags": ["wretch"],
+      "references": ["ENTITY.GLOBAL_HARD_LOCK"],
+      "affordances": ["direct_threat"]
     },
     {
       "id": "ENTITY.HOTEL_CORPSE_LURE",
