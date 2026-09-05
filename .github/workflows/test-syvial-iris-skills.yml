@@ -5,6 +5,10 @@ on:
     branches: [main]
     paths:
       - "android-apk/patch-syvial-iris-skills-final.py"
+      - "android-apk/patch-syvial-iris-skills-cycle-2-final.py"
+      - "android-apk/patch-syvial-iris-skills-cycle-2-test-compat.py"
+      - "android-apk/patch-syvial-iris-skills-cycle-3-final.py"
+      - "android-apk/patch-syvial-iris-skills-cycle-3-test-compat.py"
       - "android-apk/patch-character-detail-avatar-fallback.py"
       - ".github/workflows/test-syvial-iris-skills.yml"
 
@@ -22,8 +26,13 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Compile skill finalizer
-        run: python3 -m py_compile android-apk/patch-syvial-iris-skills-final.py
+      - name: Compile skill finalizers
+        run: |
+          python3 -m py_compile android-apk/patch-syvial-iris-skills-final.py
+          python3 -m py_compile android-apk/patch-syvial-iris-skills-cycle-2-final.py
+          python3 -m py_compile android-apk/patch-syvial-iris-skills-cycle-2-test-compat.py
+          python3 -m py_compile android-apk/patch-syvial-iris-skills-cycle-3-final.py
+          python3 -m py_compile android-apk/patch-syvial-iris-skills-cycle-3-test-compat.py
 
       - name: Apply exact Android release patch chain
         run: |
@@ -67,18 +76,23 @@ jobs:
           serializer = (core / 'CharacterDetailJson.kt').read_text(encoding='utf-8')
           generated_test = (root / 'app/src/test/java/com/rabpit/backroom/core/SyvialIrisSkillGeneratedTest.kt').read_text(encoding='utf-8')
 
-          assert 'SYVIAL_IRIS_SKILLS_CYCLE_1_PATCHED' in combat
-          assert 'object SyvialSkillBook' in combat
-          assert 'object IrisSkillBook' in combat
-          assert '"GodKiller Crimson Cleave"' in combat
-          assert '"Lucifer Breakline"' in combat
-          assert '"Lucifer Armor Combat Sync"' in combat
-          assert '"ARGUS Crossfire"' in combat
-          assert '"Ivory & Ebony Killbox"' in combat
-          assert '"Thousandfold Firing Solution"' in combat
+          assert 'SYVIAL_IRIS_SKILLS_CYCLE_3_PATCHED' in combat
+          for name in (
+              'GodKiller Pursuit Cut',
+              'Lucifer Armor Breakstep',
+              'Lucifer Core Edge Discipline',
+              'ARGUS Flank Punisher',
+              'Ivory & Ebony Twin Burst',
+              'Thousandfold Threat Sort',
+          ):
+              assert f'"{name}"' in combat
           assert 'resolveSyvialAction(actor, enemy, timeline)' in combat
           assert 'resolveIrisAction(actor, enemy, timeline)' in combat
           assert '+ SyvialSkillBook.skillsFor(character.id) + IrisSkillBook.skillsFor(character.id)' in serializer
+          assert 'assertEquals(6, SyvialSkillBook.activeSkills.size)' in generated_test
+          assert 'assertEquals(3, SyvialSkillBook.passiveSkills.size)' in generated_test
+          assert 'assertEquals(6, IrisSkillBook.activeSkills.size)' in generated_test
+          assert 'assertEquals(3, IrisSkillBook.passiveSkills.size)' in generated_test
           assert 'it.procChance in 0.20..0.40' in generated_test
           PY
 
