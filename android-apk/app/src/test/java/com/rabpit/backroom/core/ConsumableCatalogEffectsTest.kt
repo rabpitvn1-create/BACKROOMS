@@ -39,7 +39,7 @@ class ConsumableCatalogEffectsTest {
     state,
     ItemCommand(
       commandId = "use-$itemId",
-      turnId = "TURN_EFFECT_TEST",
+      turnId = state.turn.currentTurnId,
       actorId = KAI_ID,
       source = CommandSource.RULE,
       operation = ItemCommand.Operation.USE,
@@ -52,7 +52,7 @@ class ConsumableCatalogEffectsTest {
     val state = stateWithItem("frozen-fruits", "FOOD+20,REST+25")
     val result = use(state, "frozen-fruits")
 
-    assertTrue(result.applied)
+    assertTrue(result.validation.reason, result.applied)
     val physiology = result.state.characters.getValue(KAI_ID).physiology
     assertEquals(2136L, physiology.minutesSinceFood)
     assertEquals(2000L, physiology.minutesSinceWater)
@@ -64,7 +64,7 @@ class ConsumableCatalogEffectsTest {
     val state = stateWithItem("almond-test", "WATER+40,FOOD+10")
     val result = use(state, "almond-test")
 
-    assertTrue(result.applied)
+    assertTrue(result.validation.reason, result.applied)
     val physiology = result.state.characters.getValue(KAI_ID).physiology
     assertEquals(2568L, physiology.minutesSinceFood)
     assertEquals(848L, physiology.minutesSinceWater)
@@ -80,7 +80,7 @@ class ConsumableCatalogEffectsTest {
     )
     val result = use(state, "agrugua-fruit")
 
-    assertTrue(result.applied)
+    assertTrue(result.validation.reason, result.applied)
     assertEquals(40, CombatProgression.read(result.state.characters.getValue(KAI_ID)).currentHp)
   }
 
@@ -108,7 +108,7 @@ class ConsumableCatalogEffectsTest {
 
     val result = use(state, "bandage")
 
-    assertTrue(result.applied)
+    assertTrue(result.validation.reason, result.applied)
     val kai = result.state.characters.getValue(KAI_ID)
     assertEquals(30, CombatProgression.read(kai).currentHp)
     assertFalse(bleed.id in kai.statusIds)
@@ -148,7 +148,7 @@ class ConsumableCatalogEffectsTest {
 
     val result = use(state, "dark-reparation-vial-turquoise")
 
-    assertTrue(result.applied)
+    assertTrue(result.validation.reason, result.applied)
     val kai = result.state.characters.getValue(KAI_ID)
     assertNull(kai.physiology.infectionState)
     assertFalse(mild.id in kai.statusIds)
