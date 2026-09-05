@@ -37,10 +37,20 @@ Purpose: provenance for the Entity records added to the Android runtime. Externa
 - Project use: preserve `ENT-1F`: it reacts to human movement/footsteps, opens when stepped on, and is always hostile. Reported depth and weakness values are source-dependent; Liquid Pain or sharp metal remain recorded countermeasures, not guaranteed kills.
 
 ### Paintings
-- Fandom-derived Level 1 material describes living paintings/drawings whose depicted organisms can reach out, grab nearby wanderers, and drag them into the image; moving eyes are also reported.
-- Reference: https://backrooms-liminality.fandom.com/wiki/Level_1
-- Supporting game reference: https://roblox-bi-game.fandom.com/wiki/Paintings
-- Project use: keep `ENT-1G` as a hostile visual lure/grab predator. These sources are lower-authority inspiration, not Project canon.
+- Current Wikidot has no Paintings Entity article. Fandom-derived Level 1 material describes ordinary-looking framed canvases or rough drawings whose depicted organisms can reach outside the image and drag nearby wanderers in; game-derived references depict human figures whose arms reach from the picture when approached.
+- References: https://backrooms-endless-archive.fandom.com/wiki/Level_1%3A_Habitable_zone ; https://roblox-bi-game.fandom.com/wiki/Paintings
+- Source boundary: these are lower-authority Fandom/game references, not current Wikidot canon.
+- Project use: keep `ENT-1G` authoritative: suspicious living Paintings are hostile visual-lure/grab predators; do not approach or touch without control of the area.
+
+### Smiler
+- Current Backrooms Wiki Entity 3 describes Smilers as dark-area predators identified by reflective eyes and teeth gleaming in darkness. The page says they are attracted to light and may attack when prey panics, retreats, makes loud noise, or breaks eye contact.
+- Source: https://backrooms-wiki.wikidot.com/entity-3/section
+- Project use: preserve `ENT-2C`: a Smiler can hold distance in blacked-out corners and pressure humans toward a bad route instead of immediately charging. External escape advice is contextual, not a guaranteed pacification rule; every encountered Smiler remains hostile.
+
+### Skin-Stealer
+- Current Backrooms Wiki Entity 10 describes a tall pale-yellow humanoid true form with sunken white eyes and microscopic sucker-like bumps over its flesh. It can attach stolen human skin until it looks warm and convincingly human; its blood is translucent and it can mimic heard speech without understanding language.
+- Source: https://backrooms-wiki.wikidot.com/entity-10
+- **Project override:** the external article includes a docile state when not hungry. Project canon rejects that disposition. `ENT-2D` stays authoritative and is stronger on infiltration: Skin-Stealers can deeply imitate human behavior and retain enough copied memory to pass simple tests or sabotage a group over time.
 
 ### Predatory Window
 - Current Backrooms Wiki Entity 2 describes anomalous Windows as predatory manifestations that show misleading perceived landscapes and can physically seize human prey.

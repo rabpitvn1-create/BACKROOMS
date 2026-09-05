@@ -83,7 +83,7 @@
       "id": "ENTITY.PAINTINGS",
       "domain": "ENTITY",
       "kind": "entity",
-      "text": "Paintings are apparently ordinary pictures or drawings containing depicted beings that can behave as living predators. Eyes may track humans; hands or limbs can extend beyond the image plane, seize a nearby person and pull the victim into the picture. Some images change after taking a victim. Project canon treats suspect living Paintings as hostile and warns against touching or approaching them without control of the area.",
+      "text": "Paintings are hostile anomalous pictures or drawings that can behave as living predators. Appearance: at rest they can look like ordinary framed canvases or rough drawings; some depict human or other living figures, sometimes with eyes that appear to track nearby people. When prey approaches, a depicted hand, arm, or other limb may extend beyond the image plane to seize and pull the victim into the picture. External references for this Entity are lower-authority Fandom/game material rather than current Wikidot canon. Project canon keeps ENT-1G authoritative: suspicious living Paintings are hostile visual-lure/grab threats and should not be approached or touched without control of the area.",
       "source": {"document": "01_WORLD/entity.md", "anchor": "ENT-1G"},
       "authority": "WORLD_CANON",
       "mutability": "IMMUTABLE",
@@ -91,6 +91,32 @@
       "tags": ["paintings", "painting"],
       "references": ["ENTITY.GLOBAL_HARD_LOCK"],
       "affordances": ["direct_threat", "trace_analysis"]
+    },
+    {
+      "id": "ENTITY.SMILER",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Smiler is a darkness-adapted hostile predator recognized mainly by a face-like pattern glowing in blacked-out areas. Appearance: reflective luminous eyes and a wide row of bright teeth hang in the darkness while the rest of the body is usually obscured or not reliably visible. Current Backrooms Wiki material says Smilers are attracted to light and may react to panic, retreat, loud noise, or loss of eye contact. Project canon keeps ENT-2C authoritative: a Smiler may remain at distance in dark corners to pressure humans toward a bad route instead of immediately charging; every encountered Smiler remains hostile.",
+      "source": {"document": "01_WORLD/entity.md", "anchor": "ENT-2C"},
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 58,
+      "tags": ["smiler"],
+      "references": ["ENTITY.GLOBAL_HARD_LOCK"],
+      "affordances": ["direct_threat"]
+    },
+    {
+      "id": "ENTITY.SKIN_STEALER",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Skin-Stealer is a hostile humanoid infiltrator that can disguise itself with human skin. Appearance: its true form is a tall pale-yellow humanoid with sunken white eyes and flesh covered in microscopic sucker-like bumps; when wearing stolen skin it can appear warm and convincingly human. Current Backrooms Wiki material also describes translucent blood and speech mimicry, but portrays unfed individuals as sometimes docile. Project canon overrides that disposition and goes further on infiltration: ENT-2D allows deep behavioral mimicry and enough copied memory to pass simple tests, including long-term group sabotage. Human appearance never proves a contact is human.",
+      "source": {"document": "01_WORLD/entity.md", "anchor": "ENT-2D"},
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": ["skin-stealer", "skin stealer"],
+      "references": ["ENTITY.GLOBAL_HARD_LOCK"],
+      "affordances": ["direct_threat", "identity_check"]
     },
     {
       "id": "ENTITY.PREDATORY_WINDOW",
