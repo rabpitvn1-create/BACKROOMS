@@ -8,7 +8,7 @@ The release build fetches 28 source images into `level_snapshots/rotation/`: fou
 - turns 10–12 → slot 4
 - turn 13 repeats slot 1
 
-The source manifest is `android-apk/snapshot_sources.json`. `android-apk/fetch-level-snapshots.py` verifies that all 28 downloads are supported image files and rejects duplicate bytes before the APK is built. The selected images are environment shots without a site logo/watermark in the image content; site UI and page chrome are never captured.
+The source manifest is `android-apk/snapshot_sources.json`. `android-apk/fetch-level-snapshots.py` verifies that all 28 downloads are supported image files, stay below the build size limit, and do not duplicate another selected image byte-for-byte.
 
 ## Level 0 — The Lobby
 
@@ -48,35 +48,40 @@ The source manifest is `android-apk/snapshot_sources.json`. `android-apk/fetch-l
 
 ## Level 4 — The Abandoned Office
 
-The four workroom files are from the Backrooms Fandom Level 4 page. The Fandom file/source page remains authoritative for any file-specific attribution or license note beyond the community page license.
+The previous Fandom `Special:Redirect/file` endpoints returned HTTP 403 from GitHub Actions, so they were removed from the build path. The replacement set uses direct Wikimedia Commons media URLs with explicit free-file attribution and licensing.
 
-| Slot | Image | Source |
-| --- | --- | --- |
-| 1 | Level4Workrooms1.png | https://backrooms.fandom.com/wiki/Level_4 |
-| 2 | Level4Workrooms2.png | https://backrooms.fandom.com/wiki/Level_4 |
-| 3 | Level4Workrooms3.png | https://backrooms.fandom.com/wiki/Level_4 |
-| 4 | Level4Workrooms4.png | https://backrooms.fandom.com/wiki/Level_4 |
+| Slot | Image | Author | License | Source |
+| --- | --- | --- | --- | --- |
+| 1 | Empty office | Ged Carroll | CC BY 2.0 | https://commons.wikimedia.org/wiki/File:Empty_office.jpg |
+| 2 | Office cubicles | David R. Tribble | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Office-Cubicals-5205.jpg |
+| 3 | Empty Office Real Estate | Carl Lender | CC BY 2.0 | https://commons.wikimedia.org/wiki/File:Empty_Office_Real_Estate_(22789285225).jpg |
+| 4 | Empty room of office | Np6824 | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Empty_room_of_office.jpg |
 
 ## Level 5 — Terror Hotel
+
+The three existing Backrooms Wikidot images remain because the CI runner has already fetched them successfully. Only the former Fandom ballroom slot was replaced with a stable Commons source.
 
 | Slot | Image | Author | License | Source |
 | --- | --- | --- | --- | --- |
 | 1 | Main Hall | Steam Pipe Trunk Distribution Venue | CC BY 2.0 | https://backrooms-wiki.wikidot.com/level-5 |
 | 2 | HMS Belfast boiler room | Les Chatfield | CC BY 2.0 | https://backrooms-wiki.wikidot.com/level-5 |
 | 3 | Boiler room | Joshua Crauswell | CC BY-SA 2.0 | https://backrooms-wiki.wikidot.com/level-5 |
-| 4 | Level-5-Ballroom | See Fandom file/source page | See Fandom file/source page | https://backrooms.fandom.com/wiki/Level_5 |
+| 4 | Ballroom of the Corinthia Hotel London | Daniel X. O'Neil | CC BY 2.0 | https://commons.wikimedia.org/wiki/File:Ballroom_of_the_Corinthia_Hotel_London_2012-12-27.jpg |
 
 ## Level 6 — Lights Out
 
-These four Level 6 files are referenced by the current Backrooms Fandom Level 6 article. The Fandom file/source page remains authoritative for file-specific attribution and licensing.
+The current project canon treats the Level 6 baseline as a near-black outdoor tundra rather than the older dark-corridor interpretation. The replacement set therefore uses polar-night, snowfall, frozen-lake and snowy-night landscapes instead of Fandom corridor art.
 
-| Slot | Image | Source |
-| --- | --- | --- |
-| 1 | Level 6 Deviantart | https://backrooms.fandom.com/wiki/Level_6 |
-| 2 | Untitled205 20240925204431 | https://backrooms.fandom.com/wiki/Level_6 |
-| 3 | Lights Out | https://backrooms.fandom.com/wiki/Level_6 |
-| 4 | Umbrallight | https://backrooms.fandom.com/wiki/Level_6 |
+| Slot | Image | Author | License | Source |
+| --- | --- | --- | --- | --- |
+| 1 | Polar Night | Stefan Rimaila | CC BY 3.0 | https://commons.wikimedia.org/wiki/File:Polar_Night_(94208663).jpeg |
+| 2 | Blue hour and snowfall over Øvervatnet lake | Frankemann | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Blue_hour_and_snowfall_over_%C3%98vervatnet_lake.jpg |
+| 3 | Nordkinnhalvøya polar night | Algkalv | CC BY 3.0 | https://commons.wikimedia.org/wiki/File:Nordkinnhalvoya-polar-night.jpg |
+| 4 | Mount Field National Park Snowy Night | Matheus Hobold Sovernigo | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Mount_Field_National_Park_Snowy_Night.jpg |
 
-## Selection notes
+## Source reliability notes
 
-The source pool considered for this snapshot refresh was the set supplied for the project: Backrooms Wikidot, Backrooms Fandom, Liminal Archives, Backrooms Freewriting, Backrooms Exploration, Backrooms Archives, Lost Souls, The Backrooms Canon, Backrooms Wiki 2021 Archival, Kane Pixels Backrooms Fandom, and Backrooms WikiOasis. Duplicate/mirrored files were not counted as separate candidates. Selection favors clean environment composition, recognizability at Snapshot-card size, and compatibility with the existing Kai foreground overlay.
+- Levels 0–3 and Level 5 slots 1–3 use the established Backrooms Wikidot/Wikidot file hosts.
+- Level 4, Level 5 slot 4 and all Level 6 slots use direct `upload.wikimedia.org` files rather than Fandom or Commons redirect endpoints.
+- Selected originals fit the fetcher's 12 MiB per-image ceiling.
+- Build validation still fails closed if a source disappears, returns non-image content, exceeds the size limit, or duplicates another selected snapshot.
