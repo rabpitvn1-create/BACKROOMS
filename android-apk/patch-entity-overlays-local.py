@@ -1,6 +1,7 @@
 from pathlib import Path
 import hashlib
 import json
+import runpy
 import struct
 
 ROOT = Path(__file__).resolve().parent
@@ -157,3 +158,7 @@ for marker in required:
 
 INDEX.write_text(html, encoding="utf-8")
 print("18 exact original PNG Entity overlays verified byte-for-byte and wired into Snapshot rendering.")
+
+# Last-mile character canon runs after every existing generated runtime transform so legacy
+# equipment/knowledge/follower patches cannot overwrite Kai R10, Iris R06, Syvial R04 or Lucia R03.
+runpy.run_path(str(ROOT / "patch-character-canon-r07.py"), run_name="__main__")
