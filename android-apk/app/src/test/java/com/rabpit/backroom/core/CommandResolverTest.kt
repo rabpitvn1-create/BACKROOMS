@@ -5,8 +5,17 @@ import org.junit.Test
 
 class CommandResolverTest {
   private val resolver = CommandResolver()
+  private val base = GameState.initial()
   private val context = GameContext(
-    GameState.initial().copy(characters = GameState.initial().characters + ("iris" to CharacterState("iris", "Iris"))),
+    base.copy(
+      characters = base.characters + ("iris" to CharacterState("iris", "Iris")),
+      inventories = base.inventories + (
+        KAI_ID to InventoryState(
+          KAI_ID,
+          mapOf("almond-water" to ItemStack("almond-water", "chai nước", 3))
+        )
+      )
+    ),
     actorAliases = mapOf("kai" to KAI_ID, "iris" to "iris"),
     itemAliases = mapOf("chai nước" to "almond-water")
   )

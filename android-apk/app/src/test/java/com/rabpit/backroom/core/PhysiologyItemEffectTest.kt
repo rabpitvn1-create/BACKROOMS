@@ -25,17 +25,25 @@ class PhysiologyItemEffectTest {
     name: String,
     metadata: Map<String, String>
   ): GameState {
+    val sourceId = "test:$id"
+    val item = ItemStack(
+      itemId = id,
+      name = name,
+      metadata = metadata + mapOf(
+        "loot.origin" to LootOrigin.EXPLORE_LOOT.name,
+        "loot.sourceId" to sourceId,
+        "loot.turnId" to "TURN_1"
+      )
+    )
     val result = StateReducer.execute(
       state,
-      ItemCommand(
+      LootGrantCommand(
         commandId = "grant-$id",
         turnId = "TURN_1",
         actorId = KAI_ID,
-        source = CommandSource.SYSTEM,
-        operation = ItemCommand.Operation.PICKUP,
-        itemId = id,
-        itemName = name,
-        metadata = metadata
+        origin = LootOrigin.EXPLORE_LOOT,
+        sourceId = sourceId,
+        item = item
       )
     )
     assertTrue(result.applied)
@@ -137,7 +145,7 @@ class PhysiologyItemEffectTest {
     val result = use(granted, "use-bad-tonic", "bad-tonic")
 
     assertFalse(result.applied)
-    assertEquals("physiology_effect_invalid", result.validation.reason)
+    assertEquals("item_effect_invalid", result.validation.reason)
     assertEquals(granted, result.state)
   }
 

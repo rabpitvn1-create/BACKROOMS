@@ -31,7 +31,7 @@ class AnNhienFollowerTest {
     assertEquals(2, AnNhienCanon.equipmentSlots.size)
   }
 
-  @Test fun inventoryAcceptsOnlyFoodAndHasTwoTypeSlots() {
+  @Test fun inventoryAcceptsOnlyFoodAndUsesNormalV2Capacity() {
     val state = GameState.initial()
     val inventory = state.inventories[AN_NHIEN_ID]!!
     val food = ItemStack("food-1", "Lương khô", metadata = mapOf("category" to "FOOD"))
@@ -39,19 +39,34 @@ class AnNhienFollowerTest {
     assertEquals(null, InventoryPolicy.validateAddition(state, AN_NHIEN_ID, inventory, food, 1))
     assertEquals("an_nhien_food_only", InventoryPolicy.validateAddition(state, AN_NHIEN_ID, inventory, tool, 1))
 
-    val twoFoods = InventoryState(AN_NHIEN_ID, mapOf(
-      "food-1" to food,
-      "food-2" to ItemStack("food-2", "Bánh", metadata = mapOf("category" to "FOOD"))
-    ))
+    val profile = InventoryPolicy.profileFor(state, AN_NHIEN_ID)
+    assertEquals(8, profile.maxTypes)
+    assertEquals(99, profile.maxPerType)
+
+    val eightFoods = InventoryState(
+      AN_NHIEN_ID,
+      (1..8).associate { index ->
+        "food-$index" to ItemStack("food-$index", "Food $index", metadata = mapOf("category" to "FOOD"))
+      }
+    )
     assertEquals(
       "inventory_slot_limit",
       InventoryPolicy.validateAddition(
         state,
         AN_NHIEN_ID,
-        twoFoods,
-        ItemStack("food-3", "Kẹo", metadata = mapOf("category" to "FOOD")),
+        eightFoods,
+        ItemStack("food-9", "Food 9", metadata = mapOf("category" to "FOOD")),
         1
       )
+    )
+
+    val ninetyNine = InventoryState(
+      AN_NHIEN_ID,
+      mapOf("food-1" to food.copy(quantity = 99))
+    )
+    assertEquals(
+      "inventory_stack_limit",
+      InventoryPolicy.validateAddition(state, AN_NHIEN_ID, ninetyNine, food, 1)
     )
   }
 
