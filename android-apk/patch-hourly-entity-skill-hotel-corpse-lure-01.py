@@ -113,7 +113,8 @@ if 'hotelCorpseLureDeathlyStillnessIsEntityTurnOnlyMomentumPressureWithReadCount
         "combat.eventCounter" to counter.toString(),
         "combat.momentum" to "2"
       ))
-      val result = CombatRuntime.resolve(state, "READ", "phân tích dấu hiệu của xác giả và nhận diện mồi nhử trong khách sạn")
+      // CombatRuntime maps the player-facing SEARCH action to the internal READ intent.
+      val result = CombatRuntime.resolve(state, "SEARCH", "đọc dấu hiệu của xác giả và nhận diện mồi nhử trong khách sạn")
       if (result.reply.contains("Deathly Stillness:")) {
         readResult = result
         break
