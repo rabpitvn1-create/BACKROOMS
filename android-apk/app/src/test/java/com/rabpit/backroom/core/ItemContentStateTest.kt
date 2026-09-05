@@ -95,7 +95,7 @@ class ItemContentStateTest {
     assertNull(ItemContentRules.nextAfterUse(casing))
   }
 
-  @Test fun restoreIsNarrativeOnlyAndDoesNotMutatePhysicalState() {
+  @Test fun restoreRejectsNonEquipmentWithoutMutatingPhysicalState() {
     val empty = StateReducer.execute(GameState.initial(), grant("Chai rỗng", "empty-water")).state
     val emptyId = "water-bottle:empty"
     val damaged = empty.copy(inventories = empty.inventories + (KAI_ID to empty.inventories.getValue(KAI_ID).copy(
@@ -106,7 +106,7 @@ class ItemContentStateTest {
       operation = OmnivaultCommand.Operation.RESTORE, itemId = emptyId, itemName = "Chai rỗng", timestampEpochMs = 1000L
     ))
     assertFalse(restored.applied)
-    assertEquals("restore_narrative_only", restored.validation.reason)
+    assertEquals("restore_equipment_only", restored.validation.reason)
     val item = restored.state.inventories.getValue(KAI_ID).items.getValue(emptyId)
     assertEquals("DENTED", item.condition)
     assertEquals(ContentState.EMPTY, item.contentState)
