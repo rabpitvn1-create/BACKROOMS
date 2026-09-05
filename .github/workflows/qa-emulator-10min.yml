@@ -7,6 +7,7 @@ on:
     paths:
       - ".github/workflows/qa-emulator-10min.yml"
       - "android-apk/qa/emulator-10min-playtest.sh"
+      - "android-apk/qa/emulator-10min-playtest-v3.sh"
   workflow_dispatch:
 
 permissions:
@@ -45,7 +46,7 @@ jobs:
           profile: pixel_6
           disable-animations: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: APK_PATH=Backroom-1.1.49.5.apk QA_OUT=qa-artifacts bash android-apk/qa/emulator-10min-playtest.sh
+          script: APK_PATH=Backroom-1.1.49.5.apk QA_OUT=qa-artifacts bash android-apk/qa/emulator-10min-playtest-v3.sh
 
       - name: Upload playtest evidence
         if: always()
