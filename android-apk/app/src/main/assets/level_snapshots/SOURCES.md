@@ -26,7 +26,7 @@ The source manifest is `android-apk/snapshot_sources.json`. `android-apk/fetch-l
 | 1 | 003 | SunCon Photos | CC BY 2.0 | https://backrooms-wiki.wikidot.com/level-1 |
 | 2 | TQM Site Walk at Putra Place 057 | SunCon Photos | CC BY 2.0 | https://backrooms-wiki.wikidot.com/level-1 |
 | 3 | 2015-01-12 TQM Site Walk Putra Place | SunCon Photos | CC BY 2.0 | https://backrooms-wiki.wikidot.com/level-1 |
-| 4 | 2014-12-11 TQM Site Walk Putra Place | SunCon Photos | CC BY 2.0 | https://backrooms-wiki.wikidot.com/level-1 |
+| 4 | Dora 1 - Interiør på bakkenivå (2013) | Municipal Archives of Trondheim | CC BY 2.0 | https://backrooms-wiki.wikidot.com/level-1 |
 
 ## Level 2 — Pipe Dreams / Abandoned Utility Halls
 
