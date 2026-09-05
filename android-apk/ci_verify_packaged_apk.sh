@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-APK=${1:-Backroom-1.0.0.0.13-debug.apk}
+APK=${1:-Backroom-1.0.0.0.14-debug.apk}
 BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
 
 "$BUILD_TOOLS/apksigner" verify --verbose --print-certs "$APK"
 "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "package: name='com.rabpit.backroom'"
-"$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionCode='121'"
-"$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionName='1.0.0.0.13'"
+"$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionCode='122'"
+"$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "versionName='1.0.0.0.14'"
 "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
 "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 "$APK"
 
