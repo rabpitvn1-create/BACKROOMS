@@ -30,7 +30,7 @@ jobs:
             --output Backroom-1.1.49.5.apk
           test -s Backroom-1.1.49.5.apk
           sha256sum Backroom-1.1.49.5.apk | tee release-apk-sha256.txt
-          gh release view v1.1.49.5 --repo "$GITHUB_REPOSITORY" --json tagName,targetCommitish,updatedAt > release-metadata.json
+          gh release view v1.1.49.5 --repo "$GITHUB_REPOSITORY" --json tagName,targetCommitish,publishedAt > release-metadata.json
 
       - name: Enable KVM
         run: |
