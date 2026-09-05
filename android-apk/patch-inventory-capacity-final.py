@@ -205,13 +205,16 @@ for token in [
 
 INDEX.write_text(html, encoding="utf-8")
 
-# Keep GM/runtime knowledge aligned so no legacy prompt can tell the model to enforce old limits.
+# Keep the final writer prompt aligned. The knowledge-context patch replaces the older KAI LOADOUT
+# prompt before this finalizer runs, so anchor to the current writer rule that is guaranteed to exist.
 java = MAIN.read_text(encoding="utf-8")
-old_loadout = "KAI LOADOUT: Kai mang tối đa 9 loại vật phẩm thường, mỗi loại tối đa x999; vũ khí ban đầu, giáp ban đầu và Omnivault Ring là Equipment riêng, không chiếm Inventory slot và không được Scan/Copy/Transfer/Store như vật phẩm thường. "
-new_loadout = "INVENTORY CAPACITY: Kai có 14 slot vật phẩm thường, mỗi loại tối đa x9999. Mọi nhân vật khác có 8 slot vật phẩm, mỗi loại tối đa x99. Equipment là vùng riêng và không chiếm Inventory slot. Vũ khí ban đầu, giáp ban đầu và Omnivault Ring của Kai vẫn là Equipment và không được Scan/Copy/Transfer/Store như vật phẩm thường. "
-if old_loadout in java:
-    java = java.replace(old_loadout, new_loadout, 1)
-if "INVENTORY CAPACITY: Kai có 14 slot" not in java:
+prompt_anchor = "Inventory chỉ đổi khi Kai thật sự lấy/nhận/copy/trao/mất/tiêu thụ vật; nhìn thấy không đồng nghĩa sở hữu. MadGod roll success chỉ mở discovery route, không tự đưa set vào inventory. "
+capacity_prompt = "INVENTORY CAPACITY: Kai có 14 slot vật phẩm thường, mỗi loại tối đa x9999. Mọi nhân vật khác có 8 slot vật phẩm, mỗi loại tối đa x99. Equipment là vùng riêng và không chiếm Inventory slot. "
+if capacity_prompt not in java:
+    if java.count(prompt_anchor) != 1:
+        raise RuntimeError(f"Final inventory writer prompt anchor count: {java.count(prompt_anchor)}")
+    java = java.replace(prompt_anchor, capacity_prompt + prompt_anchor, 1)
+if capacity_prompt not in java:
     raise RuntimeError("Final inventory GM policy marker missing")
 MAIN.write_text(java, encoding="utf-8")
 
