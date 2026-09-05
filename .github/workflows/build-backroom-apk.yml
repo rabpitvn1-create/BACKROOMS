@@ -67,6 +67,8 @@ jobs:
           test -s android-apk/ci_verify_packaged_inventory_icons.py
           test -s android-apk/app/src/main/assets/auto-light-flicker.js
           test -s android-apk/test-auto-light-flicker.cjs
+          test -s android-apk/app/src/androidTest/java/com/rabpit/backroom/Level0JourneySmokeTest.java
+          test -s android-apk/run-level0-journey-smoke.sh
 
       - name: Validate Level content and scale contracts
         run: |
@@ -213,6 +215,33 @@ jobs:
         run: |
           bash android-apk/ci_verify_packaged_apk.sh Backroom-1.0.0.0.16-debug.apk
           python3 android-apk/ci_verify_packaged_inventory_icons.py Backroom-1.0.0.0.16-debug.apk
+
+      - name: Enable Android emulator KVM access
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm || true
+
+      - name: Play from New Game through Level 0 on Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          script: cd android-apk && bash run-level0-journey-smoke.sh
+
+      - name: Upload gameplay smoke failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: level0-journey-smoke-failure
+          path: |
+            android-apk/app/build/reports/androidTests/connected/**
+            android-apk/app/build/outputs/androidTest-results/connected/**
+            android-apk/app/build/reports/gameplay-smoke/**
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Upload debug APK artifact
         uses: actions/upload-artifact@v4
