@@ -38,8 +38,8 @@ jobs:
           root = Path('.')
           manifest = json.loads((root / 'android-apk/entity-overlay-source.json').read_text(encoding='utf-8'))
           entries = manifest['entities']
-          assert len(entries) == 18
-          assert len({e['id'] for e in entries}) == 18
+          assert len(entries) == 19
+          assert len({e['id'] for e in entries}) == 19
           out = root / 'android-apk/app/src/main/assets/entity_overlays'
           out.mkdir(parents=True, exist_ok=True)
 

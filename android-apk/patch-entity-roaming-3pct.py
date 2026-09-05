@@ -17,7 +17,7 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
     return text.replace(old, new, 1)
 
 
-# Merge the six missing Entity records, Jane, Slenderman, and the global roaming rule.
+# Merge the missing Entity records and the global roaming rule.
 db = json.loads(KNOWLEDGE.read_text(encoding="utf-8"))
 add = json.loads(ADDITIONS.read_text(encoding="utf-8"))
 records = db.get("records")
@@ -37,8 +37,8 @@ expected = add["expectedEntityIds"]
 missing = [rid for rid in expected if rid not in entity_ids]
 if missing:
     raise RuntimeError(f"Entity roster incomplete after merge: {missing}")
-if len(expected) != 18 or len(set(expected)) != 18:
-    raise RuntimeError("Entity roaming roster must contain exactly 18 unique Entity IDs")
+if len(expected) != 19 or len(set(expected)) != 19:
+    raise RuntimeError("Entity roaming roster must contain exactly 19 unique Entity IDs")
 KNOWLEDGE.write_text(json.dumps(db, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 # Teach the budgeted knowledge builder to inject the exact Entity records that won their
@@ -52,7 +52,7 @@ old_entity_state = '''      val confirmedEntities = flags?.optInt("entitiesConfi
 new_entity_state = '''      val confirmedEntities = flags?.optInt("entitiesConfirmedLocal", 0) ?: 0
       val entityEncounter = rolls.optJSONObject("entityEncounter")
       val entityRoll = entityEncounter?.optBoolean("success", false) ?: false
-      if (confirmedEntities > 0 || entityRoll || hasAny(sceneText, "entity", "thực thể", "quái", "hound", "smiler", "skin-stealer", "jeff")) {
+      if (confirmedEntities > 0 || entityRoll || hasAny(sceneText, "entity", "thực thể", "quái", "hound", "smiler", "skin-stealer", "jeff", "async member")) {
         add("ENTITY.GLOBAL_HARD_LOCK", "entity state/scene requires entity rules")
         add("ENTITY.ROAMING_POLICY", "entity state/scene requires roaming policy")
       }
@@ -67,7 +67,7 @@ if new_entity_state not in kce:
     kce = replace_once(kce, old_entity_state, new_entity_state, "knowledge Entity roll routing")
 KCE.write_text(kce, encoding="utf-8")
 
-# Replace the old one-pool-per-Level roll plus Jeff's special 2% roll with 18 independent
+# Replace the old one-pool-per-Level roll plus Jeff's special 2% roll with 19 independent
 # 3% rolls. The only eligibility gate retained is a physical gameplay action; Level and
 # environment never participate in the decision.
 main = MAIN.read_text(encoding="utf-8")
@@ -96,6 +96,7 @@ specs = [
     ("ENTITY.JEFF", "Jeff the Killer"),
     ("ENTITY.JANE", "Jane the Killer"),
     ("ENTITY.SLENDERMAN", "Slenderman"),
+    ("ENTITY.ASYNC_MEMBER", "Async Member"),
 ]
 if [entity_id for entity_id, _ in specs] != expected:
     raise RuntimeError("Java encounter roster differs from entity-runtime-additions.json")
@@ -138,10 +139,11 @@ if 'chancePerEntityPercent", 3.0' not in main:
 # The later knowledge-context patch replaces the older writer prompt entirely, so insert the
 # current roaming rule into the final writer prompt rather than depending on Jeff's retired 2% text.
 policy_text = (
-    'ENTITY ROAMING HARD LOCK: entityEncounter chứa đúng 18 roll độc lập, mỗi Entity 3.0000% trên mỗi lượt physical. '
+    'ENTITY ROAMING HARD LOCK: entityEncounter chứa đúng 19 roll độc lập, mỗi Entity 3.0000% trên mỗi lượt physical. '
     'Không giới hạn Level hoặc môi trường. Mọi ID trong entityEncounter.successIds phải thật sự xuất hiện trong lượt đó; '
     'Entity không thắng roll không được tự nhiên xuất hiện mới. Nhiều ID có thể cùng thắng và cùng xuất hiện trong một lượt. '
-    'Tất cả Entity đều thù địch với con người. Jeff dùng chính roll ENTITY.JEFF này, không có tỷ lệ riêng. '
+    'Tất cả Entity encounter đều thù địch với con người; riêng Async Member là một combatant con người và không suy rộng thành mọi nhân sự Async đều thù địch. '
+    'Jeff dùng chính roll ENTITY.JEFF này, không có tỷ lệ riêng. '
 )
 if "ENTITY ROAMING HARD LOCK:" not in main:
     prompt_anchor = '      "Nếu meta=true, chỉ trả thông tin được hỏi, ops=[] và snapshotEvent=false. Không nhắc database/context/state/roll/prompt trong văn xuôi.\\n\\n" +\n'
@@ -155,6 +157,7 @@ required = [
     'thresholdRoll("ENTITY.JEFF", 10000, 300, physical',
     'thresholdRoll("ENTITY.JANE", 10000, 300, physical',
     'thresholdRoll("ENTITY.SLENDERMAN", 10000, 300, physical',
+    'thresholdRoll("ENTITY.ASYNC_MEMBER", 10000, 300, physical',
     '.put("chancePerEntityPercent", 3.0)',
     '.put("independentPerEntity", true)',
     '.put("allPlayableLevels", true)',
@@ -168,4 +171,4 @@ if 'thresholdRoll("jeffEncounter", 10000, 200' in main:
     raise RuntimeError("Legacy Jeff 2% roll still present after roaming patch")
 
 MAIN.write_text(main, encoding="utf-8")
-print("18 Entity entries now roll independently at 3.0000% on physical turns across every playable Level with no environment gate.")
+print("19 Entity entries now roll independently at 3.0000% on physical turns across every playable Level with no environment gate.")
