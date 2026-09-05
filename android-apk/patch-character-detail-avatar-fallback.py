@@ -96,3 +96,7 @@ runpy.run_path(str(ROOT / "patch-kai-skills-final.py"), run_name="__main__")
 # Survival growth can occur while Devil Trigger owns a temporary enlarged HP pool. Normalize against
 # base HP for progression, then rebuild the temporary x5 envelope so the save cannot be corrupted.
 runpy.run_path(str(ROOT / "patch-kai-skills-progression-compat.py"), run_name="__main__")
+
+# Combat no longer consumes the encounter immediately. Stage it, wait for the player to press Start
+# Combat, slow timeline playback to readable pacing, and bootstrap New Game from current Core canon.
+runpy.run_path(str(ROOT / "patch-combat-start-pacing-newgame.py"), run_name="__main__")
