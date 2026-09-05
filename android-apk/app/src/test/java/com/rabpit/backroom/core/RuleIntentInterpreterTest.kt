@@ -26,18 +26,23 @@ class RuleIntentInterpreterTest {
   }
 
   @Test fun splitsMultipleActions() {
-    val result = parse("Kai lấy hai chai nước ra khỏi nhẫn rồi đưa Iris một chai")
+    val result = parse("Kai lấy hai chai nước ra khỏi nhẫn rồi đưa một chai cho Iris")
     assertEquals(listOf(GameIntent.OMNIVAULT_WITHDRAW, GameIntent.TRANSFER_ITEM), result.candidates.map { it.intent })
   }
 
-  @Test fun narrativeMemoryNegationAndQuotesDoNotExecute() {
+  @Test fun safetyHandledMemoryNegationAndQuotesDoNotExecute() {
     val samples = listOf(
-      "Kai nhìn Iris lấy chai nước",
       "Kai nhớ lần trước mình bỏ súng vào nhẫn",
       "Kai không nhặt chai nước",
       "Iris nói: “nhặt chai nước lên”"
     )
     samples.forEach { assertEquals(it, GameIntent.NO_ACTION, parse(it).candidates.single().intent) }
+  }
+
+  @Test fun pureNarrativeObservationFallsBackWithoutExecutingLocalCommand() {
+    val result = parse("Kai nhìn Iris lấy chai nước")
+    assertEquals(GameIntent.UNKNOWN, result.candidates.single().intent)
+    assertTrue(result.requiresFallback)
   }
 
   @Test fun unknownRequiresFallback() {
