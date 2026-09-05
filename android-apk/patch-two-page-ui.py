@@ -11,13 +11,16 @@ if 'id="gameplayPage"' in html:
 style_anchor = "</style>"
 style = r'''
 .app-page{display:none}.app-page.active{display:block}.shell{padding-bottom:calc(56px + env(safe-area-inset-bottom))}
+/* Fill the space above navigation; let the document scroll on short viewports. */
+#gameplayPage .game{height:calc(100vh - 66px - env(safe-area-inset-bottom));height:calc(100dvh - 66px - env(safe-area-inset-bottom));min-height:540px;display:flex;flex-direction:column}
+#gameplayPage .topbar,#gameplayPage .snapshot,#gameplayPage .composer{flex-shrink:0}
 #gameplayPage .topbar{padding:7px 10px;gap:6px}
 #gameplayPage .topbar h1{margin-top:1px;font-size:18px;line-height:1.12}
 #gameplayPage .topbar .eyebrow{font-size:8px;line-height:1.05}
 #gameplayPage .topbar .turn{font-size:9px;line-height:1.1}
 #gameplayPage .topbar .turn strong{font-size:16px}
 #gameplayPage .snapshot{margin:6px 8px}
-#gameplayPage .log{height:38vh;padding:6px 8px;gap:6px}
+#gameplayPage .log{height:auto;min-height:96px;flex:1 1 0;padding:6px 8px;gap:6px}
 #gameplayPage .message{padding:8px 9px}
 #gameplayPage .role{margin-bottom:4px}
 #gameplayPage .composer{gap:5px;padding:6px 8px 7px}
@@ -105,7 +108,7 @@ for marker in [
     "window.showAppPage=showAppPage",
     '#infoPage>.status',
     '#gameplayPage .topbar{padding:7px 10px;gap:6px}',
-    '#gameplayPage .log{height:38vh;padding:6px 8px;gap:6px}',
+    '#gameplayPage .log{height:auto;min-height:96px;flex:1 1 0;padding:6px 8px;gap:6px}',
     '#gameplayPage .composer{gap:5px;padding:6px 8px 7px}',
     '.page-nav button{min-height:34px;padding:6px 8px;font-size:11px',
 ]:
