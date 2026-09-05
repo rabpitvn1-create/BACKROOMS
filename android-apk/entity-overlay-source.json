@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "sourceFolder": "https://drive.google.com/drive/folders/1ItwH66Zg0SQgV-PKs7a28mAT6-aQ-iQY",
+  "qualityPolicy": "exact-original-png-bytes-no-resize-no-recompression",
+  "entities": [
+    {"id":"ENTITY.HOUND","name":"Hound","file":"hound.png","driveFileId":"1iVod4TXfRjKhEeOKdMYbMkCkPxYrj0AP","size":20050,"sha256":"ef7143a4c4ec7d13fb61365d9f2915dbd5e1830f0ab6a35fc70e53832500ffcf","width":128,"height":128},
+    {"id":"ENTITY.CLUMP","name":"Clump","file":"clump.png","driveFileId":"1o_E6MCDCC4pZu_HpQGTXGNx_evoGw5wU","size":1207912,"sha256":"a7776f353412753875d4742498135ea7053f60512a82fdf48c350c1e03135b21","width":1254,"height":1254},
+    {"id":"ENTITY.DULLER","name":"Duller","file":"duller.png","driveFileId":"1swd7CwscCiCcJcvPXvB54XgJDpvJW658","size":538073,"sha256":"64f85af7f614321d04fc635b0ba6936b8009406d35a07f679d6f5b0330296e64","width":1192,"height":1319},
+    {"id":"ENTITY.DEATHMOTH","name":"Deathmoth","file":"deathmoth.png","driveFileId":"1JcA7Xw3Uy-Vm_l9me73xKlMTevjKiuBM","size":1693171,"sha256":"65c82199035c47fe31b57a57a65fa12a6bc89059e36daa46debaa6777fac11bc","width":1536,"height":1024},
+    {"id":"ENTITY.HOSTILE_FACELING","name":"Hostile Faceling","file":"hostile_faceling.png","driveFileId":"1uNbLNw8nEiqFCnyaFzUOgTsyDcoduEqN","size":935412,"sha256":"463045c1a5946a03a776688cc15291d8d56f8b2698170873198b6af8d3a0c0ed","width":1024,"height":1536},
+    {"id":"ENTITY.FALSE_PUDDLE","name":"False Puddle","file":"false_puddle.png","driveFileId":"1Rhi-1oRjcUjz_pJZ-EXTW99vIiWhrLv0","size":1609447,"sha256":"f53b359322ccc9fc98ddd06f96e07d49bacd2e6a4690ac93557b178a13bee17f","width":1536,"height":1024},
+    {"id":"ENTITY.PAINTINGS","name":"Paintings","file":"paintings.png","driveFileId":"1EG9mdZAVa-YMTlhN9KV8GXGxdVMXB1cr","size":2186289,"sha256":"7e2ee6c31165e1ee6cee724a06cee553b23da9b431f625f100d58ff1a4c49182","width":1536,"height":1024},
+    {"id":"ENTITY.SMILER","name":"Smiler","file":"smiler.png","driveFileId":"1tN2s9n7ZTrFiKKUk08PmGpvNTXT_66fO","size":480023,"sha256":"9cd8eccba8d8524466cedeed932470f97da794ab8612c0337c6e751f6ac1c18b","width":1254,"height":1254},
+    {"id":"ENTITY.SKIN_STEALER","name":"Skin-Stealer","file":"skin-stealer.png","driveFileId":"1svH2ohpMy4V6winJMFLyqRSrGud8Tzrb","size":1445387,"sha256":"405da46af901ea6a86782fba980dd1087cdbfa2b516c6eb0e6aa424db6a3b231","width":1024,"height":1536},
+    {"id":"ENTITY.PREDATORY_WINDOW","name":"Predatory Window","file":"predatory_window.png","driveFileId":"1hLV8gKjCXcB7VnueDDjg9M8CJ_LyezsN","size":1118035,"sha256":"994de30ea6aeb1006ee8556156fe504e26f6d86655d754e3c9ad25e9a2e69228","width":1254,"height":1254},
+    {"id":"ENTITY.BIOLOGICAL_PIPELINE","name":"Biological Pipeline","file":"biological_pipeline.png","driveFileId":"1cKWnaMSs00bpOM9W1pr1DvC1AFhGJQwy","size":596473,"sha256":"0474fa10a7ff4f06089df8c5b937576278a11951ae73f24cd2c1afd5cb78f413","width":1086,"height":1448},
+    {"id":"ENTITY.WRETCH","name":"Wretch","file":"wretch.png","driveFileId":"1AeN0HOtHMoNbYWnHp8w6o8NEgLLcalHM","size":1268508,"sha256":"6716b4bee87b5dcc80f1f4fa25ab37baecb44165aa84e632c98dc2f13b82449a","width":1024,"height":1536},
+    {"id":"ENTITY.CABLE_MIMIC","name":"Cable Mimic","file":"cable_mimic.png","driveFileId":"17M-G_htGBwKEiXpJWWmHMvggHfbQjKtx","size":346814,"sha256":"15ccdd6a14c0e80e0acec072090aaeb134c6c6b66570cc4e05c9041017399fdb","width":1254,"height":1254},
+    {"id":"ENTITY.BEAST_LEVEL_5","name":"The Beast of Level 5","file":"the_beast_of_level_5.png","driveFileId":"1AwSmNRVUtngIJo-hvhmMpMiZJNv7FXt3","size":620452,"sha256":"2286b0b113b5ab7131402c093d3cadae048ad5c34595cdd1096ff8fc1872ae04","width":1122,"height":1402},
+    {"id":"ENTITY.HOTEL_CORPSE_LURE","name":"Hotel Corpse Lure","file":"hotel_corpse_lure.png","driveFileId":"14Sl7i6YNFCSlZV8jGIsQCAwqar4k1lKe","size":620452,"sha256":"2286b0b113b5ab7131402c093d3cadae048ad5c34595cdd1096ff8fc1872ae04","width":1122,"height":1402},
+    {"id":"ENTITY.JEFF","name":"Jeff the Killer","file":"jeff_the_killer.png","driveFileId":"1_9uNtlk1TGBF6iTUew_IzE2GENflXc4C","size":649863,"sha256":"8783556524be40ce33b61e47e0446b51667b796b47442f8403b0875a4d568157","width":1254,"height":1254},
+    {"id":"ENTITY.JANE","name":"Jane the Killer","file":"jane_the_killer.png","driveFileId":"1-9yGgrlNx7RPCw2QmmtFbzG_tjGibHNK","size":644907,"sha256":"0a55c8e144893e546195fb7b5296cbe7b8d63ea5f7c4d96ae56bb4029120d4c3","width":1254,"height":1254},
+    {"id":"ENTITY.SLENDERMAN","name":"Slenderman","file":"slenderman.png","driveFileId":"1gwABRH-hg-nwe-0idxDRi_6PDHqx85tN","size":1332556,"sha256":"5bcb33b7b4e9513543ca0fda8ab4c6772152cc41d91c9a8a96681da3826b2201","width":1024,"height":1536}
+  ]
+}
