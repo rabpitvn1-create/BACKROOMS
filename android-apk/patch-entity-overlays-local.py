@@ -24,8 +24,8 @@ def png_dimensions(data: bytes) -> tuple[int, int]:
 
 manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
 entries = manifest.get("entities") or []
-if len(entries) != 18 or len({entry["id"] for entry in entries}) != 18:
-    raise RuntimeError("Entity overlay manifest must contain exactly 18 unique Entity IDs")
+if len(entries) != 19 or len({entry["id"] for entry in entries}) != 19:
+    raise RuntimeError("Entity overlay manifest must contain exactly 19 unique Entity IDs")
 if manifest.get("qualityPolicy") != "exact-original-png-bytes-no-resize-no-recompression":
     raise RuntimeError("Entity overlay quality policy changed")
 
@@ -156,7 +156,7 @@ for marker in required:
         raise RuntimeError(f"Entity overlay runtime marker missing: {marker}")
 
 INDEX.write_text(html, encoding="utf-8")
-print("18 exact original PNG Entity overlays verified byte-for-byte and wired into Snapshot rendering.")
+print("19 exact original PNG Entity overlays verified byte-for-byte and wired into Snapshot rendering.")
 
 # Last-mile character canon runs after every existing generated runtime transform so legacy
 # equipment/knowledge/follower patches cannot overwrite Kai R10, Iris R06, Syvial R04 or Lucia R03.
