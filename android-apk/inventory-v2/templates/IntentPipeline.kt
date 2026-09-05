@@ -40,17 +40,17 @@ object ClauseSplitter {
 object CommandSafety {
   private val negative = Regex("(?:^|\\s)(?:không|đừng|chớ|chưa)\\s+(?:vứt|bỏ|đưa|trao|chuyển|xin|dùng|sử dụng|uống|ăn|trang bị|tháo|cất|rút|hoàn nguyên)", RegexOption.IGNORE_CASE)
   private val memory = Regex("(?:nhớ|hồi tưởng|lần trước|đã từng|giả sử|nếu như|ước gì|có lẽ)", RegexOption.IGNORE_CASE)
-  private val quote = Regex("[\"“”][^\"“”]*(?:vứt|đưa|xin|dùng|cất|rút|hoàn nguyên)[^\"“”]*[\"“”]", RegexOption.IGNORE_CASE)
+  private val quote = Regex("[\"“”][^\"“”]*(?:nhặt|lượm|cầm\\s+lên|lấy\\s+lên|pick\\s+up|vứt|quăng|ném|bỏ|đưa|trao|chuyển|xin|dùng|sử dụng|uống|ăn|trang bị|tháo|cất|rút|hoàn nguyên|quét|scan|sao chép|copy|nhân bản|tạo thêm)[^\"“”]*[\"“”]", RegexOption.IGNORE_CASE)
   private val hypotheticalQuestion = Regex("^(?:nếu|liệu|có nên|có thể).*[?？]?$", RegexOption.IGNORE_CASE)
   private val worldPickup = Regex("(?:^|\\s)(?:nhặt|lượm|cầm\\s+lên|lấy\\s+lên|pick\\s+up)(?:\\s|$)", RegexOption.IGNORE_CASE)
   private val retiredCreation = Regex("(?:quét|scan|sao chép|copy|nhân bản|tạo thêm|tạo ra thêm|nhân thêm).*(?:omnivault|nhẫn|vật|đồ|item)|(?:omnivault|nhẫn).*(?:quét|scan|sao chép|copy|nhân bản|tạo thêm|tạo ra)", RegexOption.IGNORE_CASE)
 
   fun rejectionReason(text: String): String? = when {
+    quote.containsMatchIn(text) -> "quoted_action"
     worldPickup.containsMatchIn(text) -> "world_item_unavailable"
     retiredCreation.containsMatchIn(text) -> "omnivault_creation_removed"
     negative.containsMatchIn(text) -> "negated_action"
     memory.containsMatchIn(text) -> "memory_or_hypothetical"
-    quote.containsMatchIn(text) -> "quoted_action"
     hypotheticalQuestion.matches(text.trim()) -> "question_or_hypothetical"
     else -> null
   }
