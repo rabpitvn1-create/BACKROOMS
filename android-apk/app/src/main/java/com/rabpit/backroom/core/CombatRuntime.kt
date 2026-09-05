@@ -11,8 +11,6 @@ data class CombatRuntimeResult(
 
 object CombatRuntime {
   private const val LAST_ENCOUNTER_KEY = "combat.lastEncounterId"
-  private const val SCALE_LEVEL_KEY = "combat.scale.level"
-  private const val SCALE_HP_STAT_KEY = "combat.scale.kaiHpStat"
 
   fun resolveEncounter(
     state: GameState,
@@ -25,22 +23,7 @@ object CombatRuntime {
     if (state.metadata[LAST_ENCOUNTER_KEY] == encounterId) return CombatRuntimeResult(state, null)
 
     val level = levelNumber(candidate, state)
-    val kaiCharacter = state.characters[KAI_ID] ?: return CombatRuntimeResult(state, null)
-    val kaiStats = CombatProgression.read(kaiCharacter)
-    val previousScaleLevel = state.metadata[SCALE_LEVEL_KEY]?.toIntOrNull()
-    val scaleHpStat = if (previousScaleLevel == level) {
-      state.metadata[SCALE_HP_STAT_KEY]?.toIntOrNull()?.coerceAtLeast(CombatRules.BASE_STAT) ?: kaiStats.hpStat
-    } else {
-      kaiStats.hpStat
-    }
-    val scalingKai = kaiStats.copy(hpStat = scaleHpStat)
-
-    val runtimeMetadata = state.metadata + mapOf(
-      LAST_ENCOUNTER_KEY to encounterId,
-      SCALE_LEVEL_KEY to level.toString(),
-      SCALE_HP_STAT_KEY to scaleHpStat.toString()
-    )
-    val baseState = state.copy(metadata = runtimeMetadata)
+    val baseState = state.copy(metadata = state.metadata + (LAST_ENCOUNTER_KEY to encounterId))
     val party = baseState.party.memberIds.mapNotNull { id ->
       val character = baseState.characters[id] ?: return@mapNotNull null
       if (character.presence != CharacterPresence.ACTIVE) return@mapNotNull null
@@ -58,8 +41,7 @@ object CombatRuntime {
       encounterId = encounterId,
       partyInput = party,
       entityIds = entityIds,
-      level = level,
-      scalingKaiStats = scalingKai
+      level = level
     )
 
     val updatedCharacters = baseState.characters.toMutableMap()
