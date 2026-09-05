@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "orderSource": "android-apk/entity-runtime-additions.json#expectedEntityIds",
   "lastUpdatedIds": [
-    "ENTITY.PREDATORY_WINDOW",
-    "ENTITY.BIOLOGICAL_PIPELINE",
-    "ENTITY.WRETCH"
+    "ENTITY.CABLE_MIMIC",
+    "ENTITY.BEAST_LEVEL_5",
+    "ENTITY.HOTEL_CORPSE_LURE"
   ],
-  "nextIndex": 12
+  "nextIndex": 15
 }
