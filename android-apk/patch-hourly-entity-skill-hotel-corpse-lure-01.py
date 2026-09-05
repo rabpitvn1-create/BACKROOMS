@@ -93,7 +93,7 @@ if 'hotelCorpseLureDeathlyStillnessIsEntityTurnOnlyMomentumPressureWithReadCount
         "combat.eventCounter" to counter.toString(),
         "combat.momentum" to "2"
       ))
-      val result = CombatRuntime.resolve(state, "GUARD", "giữ tư thế phòng thủ và quan sát lối tiếp cận, không phân tích mồi nhử")
+      val result = CombatRuntime.resolve(state, "GUARD", "đỡ đòn và giữ tư thế phòng thủ")
       if (result.reply.contains("Deathly Stillness:")) {
         pressureResult = result
         break
