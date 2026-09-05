@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "qualityPolicy": "overlays-exact-original-png-avatar-jpeg-decoded-to-png-without-resize",
+  "assets": [
+    {
+      "role": "normalOverlay",
+      "driveFileId": "1TljsWKD2yzP3T76t8lja3k6pk0-NdpKX",
+      "sourceFile": "Kai_SRU.png",
+      "runtimeFile": "app/src/main/assets/kai_snapshot_overlay.png",
+      "sourceSize": 1823802,
+      "sourceSha256": "fc0efba2aa370bbee011996095abe456041433639d1d94a034291333a56a932e",
+      "width": 1024,
+      "height": 1536,
+      "runtimePolicy": "exact-source-bytes"
+    },
+    {
+      "role": "entityEncounterOverlay",
+      "driveFileId": "1j4aue5IdmsxrsFdSrj2RGdqfQOldj8YL",
+      "sourceFile": "Kai_SRU2.png",
+      "runtimeFile": "app/src/main/assets/kai_snapshot_overlay_combat.png",
+      "sourceSize": 1865396,
+      "sourceSha256": "5515f6864e389be40a513d5d22ddab8be9625671c6dbe9c43f69460b1422d63e",
+      "width": 1024,
+      "height": 1536,
+      "runtimePolicy": "exact-source-bytes"
+    },
+    {
+      "role": "avatar",
+      "driveFileId": "1BIJS1fd1wWCBJqFzD2_WEGXkE746DQuX",
+      "sourceFile": "SRU_AVATAR.jpg",
+      "runtimeFile": "app/src/main/assets/avatars/kai_avatar.png",
+      "sourceSize": 39886,
+      "sourceSha256": "9035c5664b87b3851f5c349106b85d551f700028e0e159b4fbf4933f81016f8a",
+      "width": 350,
+      "height": 347,
+      "runtimePolicy": "decode-jpeg-and-encode-png-without-resize"
+    }
+  ]
+}

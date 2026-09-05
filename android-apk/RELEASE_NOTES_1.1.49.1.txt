@@ -3,6 +3,12 @@ Backroom 1.1.49.1
 - Splits the Android game UI into two pages: GAME and THÔNG TIN.
 - GAME contains the main gameplay flow through the THỰC HIỆN action button.
 - THÔNG TIN contains status, Save/Load, Party, Inventory and character information panels.
+- Completes the Entity roster at 18 entries, including the six previously missing Entity records plus Jane the Killer and Slenderman.
+- Locks every Entity as hostile to humans.
+- Replaces Level-specific Entity pools with 18 independent roaming rolls at exactly 3% per Entity on physical gameplay turns, with no Level or environment restriction.
+- Adds Snapshot overlays for all 18 Entity entries using the exact original PNG bytes from the project Drive folder with no resize or recompression.
+- Gives Kai two Snapshot overlays: the normal SRU pose is used by default, while the aiming SRU pose is selected whenever the current Entity encounter roll contains at least one successful Entity.
+- Replaces Kai's Party and Character Detail portrait with the new SRU avatar while preserving the existing avatars/kai_avatar.png runtime contract.
 - Keeps the Android 15 startup safety fix from 1.1.49.
 - Bumps Android versionCode to 126 for upgrade installation over versionCode 125.
-- Release validation keeps unit/build/signature/package checks; Android emulator execution is intentionally skipped for this release.
+- Release validation keeps unit/build/signature/package checks and verifies Entity/Kai visual assets; Android emulator execution is intentionally skipped for this release.

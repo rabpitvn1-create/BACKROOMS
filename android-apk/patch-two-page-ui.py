@@ -10,16 +10,23 @@ if 'id="gameplayPage"' in html:
 
 style_anchor = "</style>"
 style = r'''
-.app-page{display:none}.app-page.active{display:block}.shell{padding-bottom:calc(68px + env(safe-area-inset-bottom))}
-#gameplayPage .topbar{padding:9px 12px;gap:8px}
-#gameplayPage .topbar h1{margin-top:2px;font-size:19px;line-height:1.15}
-#gameplayPage .topbar .eyebrow{font-size:9px;line-height:1.1}
-#gameplayPage .topbar .turn{font-size:10px;line-height:1.15}
-#gameplayPage .topbar .turn strong{font-size:17px}
-.page-nav{position:fixed;z-index:40;left:8px;right:8px;bottom:calc(6px + env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:5px;border:1px solid #2b3137;background:#0b0e11f2;box-shadow:0 12px 36px #000a}
-.page-nav button{min-height:36px;padding:8px 10px;font-size:12px;background:#13181d;color:#8f9aa4;border-color:#303840;letter-spacing:.08em}
+.app-page{display:none}.app-page.active{display:block}.shell{padding-bottom:calc(56px + env(safe-area-inset-bottom))}
+#gameplayPage .topbar{padding:7px 10px;gap:6px}
+#gameplayPage .topbar h1{margin-top:1px;font-size:18px;line-height:1.12}
+#gameplayPage .topbar .eyebrow{font-size:8px;line-height:1.05}
+#gameplayPage .topbar .turn{font-size:9px;line-height:1.1}
+#gameplayPage .topbar .turn strong{font-size:16px}
+#gameplayPage .snapshot{margin:6px 8px}
+#gameplayPage .log{height:38vh;padding:6px 8px;gap:6px}
+#gameplayPage .message{padding:8px 9px}
+#gameplayPage .role{margin-bottom:4px}
+#gameplayPage .composer{gap:5px;padding:6px 8px 7px}
+#gameplayPage .composer textarea{min-height:64px;padding:8px}
+#gameplayPage .composer #submit{min-height:38px;padding:9px 10px}
+.page-nav{position:fixed;z-index:40;left:6px;right:6px;bottom:calc(4px + env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border:1px solid #2b3137;background:#0b0e11f2;box-shadow:0 10px 28px #0009}
+.page-nav button{min-height:34px;padding:6px 8px;font-size:11px;background:#13181d;color:#8f9aa4;border-color:#303840;letter-spacing:.07em}
 .page-nav button.active{background:#252d34;color:#fff;border-color:#59646e}
-#infoPage>.status{margin:0 0 10px;border:1px solid #2b3137;background:#0e1114}
+#infoPage>.status{margin:0 0 8px;border:1px solid #2b3137;background:#0e1114}
 #infoPage .side{margin-top:0}
 '''
 if html.count(style_anchor) != 1:
@@ -97,11 +104,13 @@ for marker in [
     'data-app-page="infoPage"',
     "window.showAppPage=showAppPage",
     '#infoPage>.status',
-    '#gameplayPage .topbar{padding:9px 12px;gap:8px}',
-    '.page-nav button{min-height:36px;padding:8px 10px;font-size:12px',
+    '#gameplayPage .topbar{padding:7px 10px;gap:6px}',
+    '#gameplayPage .log{height:38vh;padding:6px 8px;gap:6px}',
+    '#gameplayPage .composer{gap:5px;padding:6px 8px 7px}',
+    '.page-nav button{min-height:34px;padding:6px 8px;font-size:11px',
 ]:
     if marker not in html:
         raise RuntimeError(f"Two-page UI contract missing: {marker}")
 
 INDEX.write_text(html, encoding="utf-8")
-print("Two-page UI applied: compact GAME header/nav keep THỰC HIỆN visible; status and remaining panels are on THÔNG TIN.")
+print("Two-page UI applied: compact spacing keeps THỰC HIỆN fully visible while preserving GAME and THÔNG TIN navigation.")

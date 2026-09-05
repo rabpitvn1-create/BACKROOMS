@@ -119,15 +119,21 @@ jobs:
       - name: Apply neutral Character Detail avatar and final UX patch
         run: python3 android-apk/patch-character-detail-avatar-fallback.py
 
-      - name: Verify release provider and UI contracts
+      - name: Verify release provider, roaming and overlay contracts
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import hashlib
+          import json
+
           html = Path('android-apk/app/src/main/assets/index.html').read_text(encoding='utf-8')
           java = Path('android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java').read_text(encoding='utf-8')
           facade = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt').read_text(encoding='utf-8')
           gradle = Path('android-apk/app/build.gradle').read_text(encoding='utf-8')
           canon = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/AnNhienCanon.kt').read_text(encoding='utf-8')
+          overlay_manifest = json.loads(Path('android-apk/entity-overlay-source.json').read_text(encoding='utf-8'))
+          overlay_dir = Path('android-apk/app/src/main/assets/entity_overlays')
+
           assert "versionCode 126" in gradle
           assert "versionName '1.1.49.1'" in gradle
           assert 'state&&state.partyDetails&&Array.isArray(state.partyDetails.members)' in html
@@ -141,9 +147,32 @@ jobs:
           assert 'data-app-page="infoPage"' in html
           assert 'output.put("partyDetails"' in facade
           assert 'output.put("gameTime"' in facade
-          assert 'thresholdRoll("jeffEncounter", 10000, 200' in java
+
+          entries = overlay_manifest['entities']
+          expected_entity_ids = [entry['id'] for entry in entries]
+          assert overlay_manifest['qualityPolicy'] == 'exact-original-png-bytes-no-resize-no-recompression'
+          assert len(entries) == 18 and len(set(expected_entity_ids)) == 18
+          assert java.count('thresholdRoll("ENTITY.') == 18
+          for entity_id in expected_entity_ids:
+              assert f'thresholdRoll("{entity_id}", 10000, 300, physical' in java
+          assert '.put("chancePerEntityPercent", 3.0)' in java
+          assert '.put("independentPerEntity", true)' in java
+          assert '.put("allPlayableLevels", true)' in java
+          assert '.put("environmentRestricted", false)' in java
+          assert 'thresholdRoll("jeffEncounter", 10000, 200' not in java
+          assert 'ENTITY ROAMING HARD LOCK:' in java
           assert 'root.equals("jeff") && value instanceof JSONObject' in java
-          assert 'int[] entityThresholds = {805, 1000, 1150, 1150, 810, 1200, 805}' in java
+
+          assert len(list(overlay_dir.glob('*.png'))) == 18
+          for entry in entries:
+              data = (overlay_dir / entry['file']).read_bytes()
+              assert len(data) == entry['size'], entry['file']
+              assert hashlib.sha256(data).hexdigest() == entry['sha256'], entry['file']
+          assert '<!-- ENTITY_OVERLAY_LOCAL_BEGIN -->' in html
+          assert 'file:///android_asset/entity_overlays/' in html
+          assert 'encounter.successIds' in html
+          assert 'snapshot-entity-overlay' in html
+
           assert 'avatars/an_nhien_avatar.png' in canon
           assert 'an-nhien:pink-crocs' in canon
           assert 'private java.util.List<String> lunaModelCandidates(' in java
@@ -185,6 +214,7 @@ jobs:
           "$AAPT" dump badging Backroom-1.1.49.1.apk | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
           unzip -l Backroom-1.1.49.1.apk | grep -q 'AndroidManifest.xml'
           unzip -l Backroom-1.1.49.1.apk | grep -q 'assets/index.html'
+          unzip -l Backroom-1.1.49.1.apk | grep -q 'assets/entity_overlays/slenderman.png'
           unzip -l Backroom-1.1.49.1.apk | grep -q 'classes.dex'
 
       - name: Upload APK artifact
@@ -222,6 +252,7 @@ jobs:
           unzip -l Backroom-1.1.49.1-verified.apk | grep -q 'AndroidManifest.xml'
           unzip -l Backroom-1.1.49.1-verified.apk | grep -q 'assets/index.html'
           unzip -l Backroom-1.1.49.1-verified.apk | grep -q 'assets/avatars/an_nhien_avatar.png'
+          unzip -l Backroom-1.1.49.1-verified.apk | grep -q 'assets/entity_overlays/slenderman.png'
           unzip -l Backroom-1.1.49.1-verified.apk | grep -q 'classes.dex'
           SHA256=$(sha256sum Backroom-1.1.49.1-verified.apk | awk '{print $1}')
           mkdir -p release-status
