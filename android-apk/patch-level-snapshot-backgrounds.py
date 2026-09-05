@@ -1,10 +1,17 @@
 from pathlib import Path
 import json
+import subprocess
+import sys
 
 ROOT = Path(__file__).resolve().parent
 MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
 ROTATION = ROOT / "app/src/main/assets/level_snapshots/rotation"
+FETCHER = ROOT / "fetch-level-snapshots.py"
 main = MAIN.read_text(encoding="utf-8")
+
+rotation_files = list(ROTATION.glob("level_*_*.*")) if ROTATION.exists() else []
+if len(rotation_files) != 28:
+    subprocess.run([sys.executable, str(FETCHER)], check=True)
 
 refs = {}
 for level in range(7):
