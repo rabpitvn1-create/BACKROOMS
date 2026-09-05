@@ -20,8 +20,9 @@ if "member.id==='kai'?'avatars/kai_avatar.png':'avatars/kai_avatar.png'" in html
 INDEX.write_text(html, encoding="utf-8")
 print("Character detail avatar fallback hardened: non-Kai members without avatars use no portrait.")
 
-# Ordered final runtime transformation chain. Inventory V2 deliberately runs last so no legacy
-# character, canon, combat, UI, or resource patch can reintroduce pickup/world-item/copy authority.
+# Ordered final runtime transformation chain. Inventory V2 remains the final gameplay/inventory
+# authority; the foundation-canon finalizer runs after it only to normalize knowledge records and
+# retrieval routing, and does not mutate inventory or transaction behavior.
 PATCH_CHAIN = [
     "patch-survival-hud-chat-ux.py",
     "patch-an-nhien-follower-final.py",
@@ -54,6 +55,7 @@ PATCH_CHAIN = [
     "patch-lucia-proc-skills-final.py",
     "patch-inventory-v2-final.py",
     "patch-inventory-v2-compile-fix.py",
+    "patch-sru-backrooms-async-canon.py",
 ]
 
 for patch_name in PATCH_CHAIN:
