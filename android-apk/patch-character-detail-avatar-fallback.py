@@ -55,6 +55,7 @@ PATCH_CHAIN = [
     "patch-an-nhien-rare-spawn-final.py",
     "patch-lucia-proc-skills-final.py",
     "patch-async-member-entity-final.py",
+    "patch-syvial-iris-skills-final.py",
     "patch-inventory-v2-final.py",
     "patch-inventory-v2-compile-fix.py",
     "patch-inventory-capacity-final.py",
