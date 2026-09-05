@@ -73,6 +73,22 @@ object PhysiologyStatusPolicy {
   fun waterPercent(minutesSinceWater: Long?): Int? = remainingPercent(minutesSinceWater, WATER_CRITICAL_MINUTES)
   fun restPercent(minutesAwake: Long?): Int? = remainingPercent(minutesAwake, REST_CRITICAL_MINUTES)
 
+  fun recoverFood(minutesSinceFood: Long?, percent: Int): Long? =
+    recoverCounter(minutesSinceFood, FOOD_CRITICAL_MINUTES, percent)
+
+  fun recoverWater(minutesSinceWater: Long?, percent: Int): Long? =
+    recoverCounter(minutesSinceWater, WATER_CRITICAL_MINUTES, percent)
+
+  fun recoverRest(minutesAwake: Long?, percent: Int): Long? =
+    recoverCounter(minutesAwake, REST_CRITICAL_MINUTES, percent)
+
+  private fun recoverCounter(minutes: Long?, emptyAt: Long, percent: Int): Long? {
+    if (minutes == null || minutes < 0L) return minutes
+    val safePercent = percent.coerceIn(0, 100)
+    val recoveredMinutes = (emptyAt * safePercent) / 100L
+    return (minutes - recoveredMinutes).coerceAtLeast(0L)
+  }
+
   private fun band(
     minutes: Long?,
     mildAt: Long,
