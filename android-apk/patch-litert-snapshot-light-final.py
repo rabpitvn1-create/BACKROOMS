@@ -17,12 +17,13 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
     return text.replace(old, new, 1)
 
 
-def build_light_model() -> None:
+def build_light_model() -> bool:
     try:
         import numpy as np
         import tensorflow as tf
     except Exception as error:
-        raise RuntimeError(f"LiteRT light model build requires TensorFlow/Numpy: {error}") from error
+        print(f"LiteRT light model build skipped in lightweight CI: {error}")
+        return False
 
     MODEL.parent.mkdir(parents=True, exist_ok=True)
     inputs = tf.keras.Input(shape=(81, 144, 3), dtype=tf.float32, name="snapshot_rgb")
@@ -52,9 +53,10 @@ def build_light_model() -> None:
     result = interpreter.get_tensor(output_info["index"])
     if float(result[0, 9, 70, 0]) < 0.9 or float(result[0, 9, 70, 1]) <= 0.0:
         raise RuntimeError("LiteRT light model synthetic fixture self-check failed")
+    return True
 
 
-build_light_model()
+model_built = build_light_model()
 
 (CORE / "SnapshotLightAnalyzer.kt").write_text(r'''package com.rabpit.backroom.core
 
@@ -85,36 +87,29 @@ class SnapshotLightAnalyzer(
 
   private val app = context.applicationContext
   private val lock = Any()
-  private val interpreter: Interpreter
+  private val interpreter: Interpreter? = loadInterpreter(modelAsset)
 
-  init {
+  private fun loadInterpreter(modelAsset: String): Interpreter? = runCatching {
     val descriptor = app.assets.openFd(modelAsset)
     val mapped = descriptor.createInputStream().channel.use { channel ->
       channel.map(FileChannel.MapMode.READ_ONLY, descriptor.startOffset, descriptor.declaredLength)
     }
     descriptor.close()
-    interpreter = Interpreter(mapped, Interpreter.Options().apply { setNumThreads(2) })
-    require(interpreter.getInputTensor(0).shape().contentEquals(intArrayOf(1, H, W, CHANNELS))) { "unexpected_light_model_input" }
-    require(interpreter.getOutputTensor(0).shape().contentEquals(intArrayOf(1, H, W, 2))) { "unexpected_light_model_output" }
-  }
+    val loaded = Interpreter(mapped, Interpreter.Options().apply { setNumThreads(2) })
+    require(loaded.getInputTensor(0).shape().contentEquals(intArrayOf(1, H, W, CHANNELS))) { "unexpected_light_model_input" }
+    require(loaded.getOutputTensor(0).shape().contentEquals(intArrayOf(1, H, W, 2))) { "unexpected_light_model_output" }
+    loaded
+  }.getOrNull()
 
   fun analyze(source: String): String {
     val bitmap = decodeSource(source) ?: return emptyResult("decode_unavailable")
     val scaledBitmap = Bitmap.createScaledBitmap(bitmap, W, H, true)
     return try {
-      val input = ByteBuffer.allocateDirect(W * H * CHANNELS * 4).order(ByteOrder.nativeOrder())
       val pixels = IntArray(W * H)
       scaledBitmap.getPixels(pixels, 0, W, 0, 0, W, H)
-      for (pixel in pixels) {
-        input.putFloat(((pixel shr 16) and 0xff) / 255f)
-        input.putFloat(((pixel shr 8) and 0xff) / 255f)
-        input.putFloat((pixel and 0xff) / 255f)
-      }
-      input.rewind()
-      val output = Array(1) { Array(H) { Array(W) { FloatArray(2) } } }
-      synchronized(lock) { interpreter.run(input, output) }
-      val lights = detect(output[0])
-      JSONObject().put("model", "litert-luma-contrast-v1").put("lights", JSONArray().apply {
+      val features = runFeatures(pixels)
+      val lights = detect(features)
+      JSONObject().put("model", if (interpreter != null) "litert-luma-contrast-v1" else "cpu-luma-contrast-fallback-v1").put("lights", JSONArray().apply {
         lights.forEach { light ->
           put(JSONObject()
             .put("x", light.minX.toDouble() / W)
@@ -128,6 +123,42 @@ class SnapshotLightAnalyzer(
       if (scaledBitmap !== bitmap && !scaledBitmap.isRecycled) scaledBitmap.recycle()
       if (!bitmap.isRecycled) bitmap.recycle()
     }
+  }
+
+  private fun runFeatures(pixels: IntArray): Array<Array<FloatArray>> {
+    val runtime = interpreter
+    if (runtime != null) {
+      val input = ByteBuffer.allocateDirect(W * H * CHANNELS * 4).order(ByteOrder.nativeOrder())
+      for (pixel in pixels) {
+        input.putFloat(((pixel shr 16) and 0xff) / 255f)
+        input.putFloat(((pixel shr 8) and 0xff) / 255f)
+        input.putFloat((pixel and 0xff) / 255f)
+      }
+      input.rewind()
+      val output = Array(1) { Array(H) { Array(W) { FloatArray(2) } } }
+      synchronized(lock) { runtime.run(input, output) }
+      return output[0]
+    }
+    val lum = Array(H) { FloatArray(W) }
+    val integral = Array(H + 1) { DoubleArray(W + 1) }
+    for (y in 0 until H) for (x in 0 until W) {
+      val pixel = pixels[y * W + x]
+      val value = (.2126 * ((pixel shr 16) and 0xff) + .7152 * ((pixel shr 8) and 0xff) + .0722 * (pixel and 0xff)) / 255.0
+      lum[y][x] = value.toFloat()
+      integral[y + 1][x + 1] = value + integral[y][x + 1] + integral[y + 1][x] - integral[y][x]
+    }
+    val output = Array(H) { Array(W) { FloatArray(2) } }
+    val radius = 5
+    for (y in 0 until H) for (x in 0 until W) {
+      val x0 = max(0, x - radius); val x1 = min(W - 1, x + radius)
+      val y0 = max(0, y - radius); val y1 = min(H - 1, y + radius)
+      val sum = integral[y1 + 1][x1 + 1] - integral[y0][x1 + 1] - integral[y1 + 1][x0] + integral[y0][x0]
+      val mean = sum / ((x1 - x0 + 1) * (y1 - y0 + 1))
+      val value = lum[y][x]
+      output[y][x][0] = value
+      output[y][x][1] = max(0.0, value.toDouble() - mean).toFloat()
+    }
+    return output
   }
 
   private data class Light(
@@ -223,7 +254,7 @@ class SnapshotLightAnalyzer(
     .put("lights", JSONArray())
     .toString()
 
-  override fun close() = synchronized(lock) { interpreter.close() }
+  override fun close() = synchronized(lock) { interpreter?.close() }
 }
 ''', encoding="utf-8")
 
@@ -254,6 +285,6 @@ if "@JavascriptInterface public String analyzeSnapshotLights" not in main:
     main = main.replace(anchor, bridge_method + anchor, 1)
 MAIN.write_text(main, encoding="utf-8")
 
-if not MODEL.is_file() or MODEL.stat().st_size <= 0:
-    raise RuntimeError("LiteRT Snapshot light model missing")
-print("LiteRT Snapshot light analyzer generated and wired into Android bridge.")
+if model_built and (not MODEL.is_file() or MODEL.stat().st_size <= 0):
+    raise RuntimeError("LiteRT Snapshot light model missing after successful build")
+print("Snapshot light analyzer wired: LiteRT when model build dependencies are present, deterministic CPU fallback otherwise.")
