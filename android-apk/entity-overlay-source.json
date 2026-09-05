@@ -20,6 +20,7 @@
     {"id":"ENTITY.HOTEL_CORPSE_LURE","name":"Hotel Corpse Lure","file":"hotel_corpse_lure.png","driveFileId":"14Sl7i6YNFCSlZV8jGIsQCAwqar4k1lKe","size":620452,"sha256":"2286b0b113b5ab7131402c093d3cadae048ad5c34595cdd1096ff8fc1872ae04","width":1122,"height":1402},
     {"id":"ENTITY.JEFF","name":"Jeff the Killer","file":"jeff_the_killer.png","driveFileId":"1_9uNtlk1TGBF6iTUew_IzE2GENflXc4C","size":649863,"sha256":"8783556524be40ce33b61e47e0446b51667b796b47442f8403b0875a4d568157","width":1254,"height":1254},
     {"id":"ENTITY.JANE","name":"Jane the Killer","file":"jane_the_killer.png","driveFileId":"1-9yGgrlNx7RPCw2QmmtFbzG_tjGibHNK","size":644907,"sha256":"0a55c8e144893e546195fb7b5296cbe7b8d63ea5f7c4d96ae56bb4029120d4c3","width":1254,"height":1254},
-    {"id":"ENTITY.SLENDERMAN","name":"Slenderman","file":"slenderman.png","driveFileId":"1gwABRH-hg-nwe-0idxDRi_6PDHqx85tN","size":1332556,"sha256":"5bcb33b7b4e9513543ca0fda8ab4c6772152cc41d91c9a8a96681da3826b2201","width":1024,"height":1536}
+    {"id":"ENTITY.SLENDERMAN","name":"Slenderman","file":"slenderman.png","driveFileId":"1gwABRH-hg-nwe-0idxDRi_6PDHqx85tN","size":1332556,"sha256":"5bcb33b7b4e9513543ca0fda8ab4c6772152cc41d91c9a8a96681da3826b2201","width":1024,"height":1536},
+    {"id":"ENTITY.ASYNC_MEMBER","name":"Async Member","file":"async_member.png","driveFileId":"1QLdwXwXNcFNrGLgr-qJl0cBuNBnUw0WI","size":958866,"sha256":"b4bda34fb8d0aa89adb9f515b6c2be1de485049b387c9acc343c9d09581ee255","width":1086,"height":1448}
   ]
 }

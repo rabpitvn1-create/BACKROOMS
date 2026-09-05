@@ -59,6 +59,17 @@ Project decision:
 - It is never friendly or neutral.
 - Later fan powers are **not automatically imported**. In particular, the GM may not grant free teleportation, omniscience, automatic equipment failure, or retroactive threat placement. Movement and positioning still obey the Game Master fairness/path/time rules.
 
+## ENT-R04 — ASYNC MEMBER
+
+This entry is a direct user-retcon combat definition, not imported external Async lore.
+- Classification: human hostile combatant when selected through the Entity encounter roster.
+- This does **not** make every Async employee hostile and does not override the Foundation Canon rule that Async as an organization is not pre-labeled as the villain.
+- Base HP pool: `60/60`.
+- Base stats: `HP Stat 7 / Defend 8 / Agi 9 / Crit 10`.
+- Active `[Let's catch you]`: 20% proc on each Async Member combat turn; on proc the attack uses current BaseDMG +20%, then a successful hit applies `[Choáng]` for 2 turns.
+- Passive `[Anysc Evade]`: always active; Evasion is fixed at 25%.
+- Overlay source: Drive file `1QLdwXwXNcFNrGLgr-qJl0cBuNBnUw0WI`, retained byte-for-byte as `async_member.png`.
+
 ## Runtime encounter policy
 
-All 18 Entity entries are roaming-capable across every playable Level. Each Entity receives its own independent 3.0000% appearance roll on an eligible physical gameplay turn. The roll is not restricted by Level or environment. Multiple Entity rolls may succeed on the same turn. Existing continuity can keep an Entity present without requiring another appearance roll.
+All 19 Entity entries are roaming-capable across every playable Level. Each Entity receives its own independent 3.0000% appearance roll on an eligible physical gameplay turn. The roll is not restricted by Level or environment. Multiple Entity rolls may succeed on the same turn. Existing continuity can keep an Entity present without requiring another appearance roll.
