@@ -59,6 +59,8 @@ PATCH_CHAIN = [
     "patch-syvial-iris-skills-final.py",
     "patch-syvial-iris-skills-cycle-2-final.py",
     "patch-syvial-iris-skills-cycle-2-test-compat.py",
+    "patch-syvial-iris-skills-cycle-3-final.py",
+    "patch-syvial-iris-skills-cycle-3-test-compat.py",
     "patch-inventory-v2-final.py",
     "patch-inventory-v2-compile-fix.py",
     "patch-inventory-capacity-final.py",
