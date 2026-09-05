@@ -50,11 +50,17 @@ continuity = (CORE / "StoryCompanionContinuity.kt").read_text(encoding="utf-8")
 assert 'const val LUCIA_LEVEL = 0' in continuity
 assert 'randomSpawnAllowed' in continuity
 
+# Inventory V2 is the final runtime authority and intentionally retires Omnivault
+# SCAN/COPY after the earlier character-canon patch has run. Verify the final engine,
+# not the transient pre-Inventory-V2 compatibility markers.
 omni = (CORE / "OmnivaultEngine.kt").read_text(encoding="utf-8")
-assert 'omnivault_scan_retired_r10' in omni
-assert 'omnivault_copy_retired_r10' in omni
 assert 'OmnivaultCommand.Operation.STORE -> store' in omni
 assert 'OmnivaultCommand.Operation.WITHDRAW -> withdraw' in omni
+assert 'OmnivaultCommand.Operation.RESTORE -> restore' in omni
+assert 'OmnivaultCommand.Operation.SCAN' not in omni
+assert 'OmnivaultCommand.Operation.COPY' not in omni
+assert 'omnivault_scanned' not in omni
+assert 'omnivault_copied' not in omni
 
 main = MAIN.read_text(encoding="utf-8")
 for marker in [
