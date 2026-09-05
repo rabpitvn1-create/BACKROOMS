@@ -33,6 +33,13 @@ jobs:
           test -s Backroom-1.1.49.4.apk
           sha256sum Backroom-1.1.49.4.apk | tee apk-sha256.txt
 
+      - name: Capture packaged WebView source
+        run: |
+          mkdir -p qa-emulator-output/packaged-source
+          unzip -p Backroom-1.1.49.4.apk assets/index.html > qa-emulator-output/packaged-source/index.html
+          nl -ba qa-emulator-output/packaged-source/index.html | sed -n '535,565p' > qa-emulator-output/packaged-source/index-lines-535-565.txt
+          cat qa-emulator-output/packaged-source/index-lines-535-565.txt
+
       - name: Traverse fresh game on Android emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
