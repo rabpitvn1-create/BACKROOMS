@@ -9,6 +9,9 @@ object AnNhienCanon {
   const val AGE = 7
   const val SPECIES = "human"
   const val HOME_LEVEL = 0
+  const val ENCOUNTER_ROLL_MAX = 40_000_000
+  const val ENCOUNTER_ROLL_THRESHOLD = 1
+  const val ENCOUNTER_CHANCE_PERCENT = "0.0000025%"
   const val SURVIVAL_MULTIPLIER = 0.70
   const val LOOT_BONUS_POINTS = 1000
   const val EXIT_BONUS_POINTS = 200
@@ -40,8 +43,8 @@ object AnNhienCanon {
         "npcType" to "follower",
         "entity" to "false",
         "joinEligible" to "true",
-        "mandatoryEncounter" to "true",
-        "encounterChance" to "100%",
+        "mandatoryEncounter" to "false",
+        "encounterChance" to ENCOUNTER_CHANCE_PERCENT,
         "nonCombat" to "true",
         "canUseWeapons" to "false",
         "followsPlayer" to "true",

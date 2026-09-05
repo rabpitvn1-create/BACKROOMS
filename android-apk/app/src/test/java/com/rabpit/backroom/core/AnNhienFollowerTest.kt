@@ -14,6 +14,15 @@ class AnNhienFollowerTest {
     assertEquals("An Nhiên", an!!.name)
     assertEquals("7", an.metadata["age"])
     assertEquals("human", an.metadata["species"])
+    assertEquals("false", an.metadata["mandatoryEncounter"])
+    assertEquals("0.0000025%", an.metadata["encounterChance"])
+    assertEquals(40_000_000, AnNhienCanon.ENCOUNTER_ROLL_MAX)
+    assertEquals(1, AnNhienCanon.ENCOUNTER_ROLL_THRESHOLD)
+    assertEquals(
+      0.0000025,
+      AnNhienCanon.ENCOUNTER_ROLL_THRESHOLD * 100.0 / AnNhienCanon.ENCOUNTER_ROLL_MAX,
+      1e-15
+    )
     assertEquals("true", an.metadata["nonCombat"])
     assertEquals("0.7", an.metadata["survivalMultiplier"])
     assertFalse(AN_NHIEN_ID in state.party.memberIds)
