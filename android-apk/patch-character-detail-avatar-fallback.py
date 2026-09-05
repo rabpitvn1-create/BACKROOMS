@@ -76,3 +76,7 @@ runpy.run_path(str(ROOT / "patch-entity-overlays-local.py"), run_name="__main__"
 # Kai uses a relaxed overlay normally and the aiming overlay whenever the current Entity roll
 # contains one or more successful encounters. The patch also validates the new Kai avatar asset.
 runpy.run_path(str(ROOT / "patch-kai-dual-overlay-final.py"), run_name="__main__")
+
+# Lucia and Syvial contribute their supplied combat overlays only when they are ACTIVE Party members
+# and the current turn contains at least one successful Entity encounter roll.
+runpy.run_path(str(ROOT / "patch-party-entity-overlays-final.py"), run_name="__main__")
