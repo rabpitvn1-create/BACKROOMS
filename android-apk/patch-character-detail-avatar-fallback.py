@@ -44,10 +44,9 @@ runpy.run_path(str(ROOT / "patch-an-nhien-crocs.py"), run_name="__main__")
 # Human-friendly character item labels: hide internal namespaces/IDs and render readable uppercase names.
 runpy.run_path(str(ROOT / "patch-friendly-item-display.py"), run_name="__main__")
 
-# Jeff the Killer uses an independent 2% roaming encounter roll on eligible physical turns.
+# Legacy Entity patches run first because later code depends on their established anchors.
+# The final roaming patch below replaces their probabilities with the current 18 x 3% rule.
 runpy.run_path(str(ROOT / "patch-jeff-encounter-2pct.py"), run_name="__main__")
-
-# Raise the normal Entity encounter chance by +8 percentage points on every Level 0-6.
 runpy.run_path(str(ROOT / "patch-entity-encounter-plus-8pct.py"), run_name="__main__")
 
 # Android immersive fullscreen: hide status/navigation bars with transient swipe reveal.
@@ -64,3 +63,8 @@ runpy.run_path(str(ROOT / "benchmark-knowledge-context.py"), run_name="__main__"
 
 # Final presentation split: GAME ends at THỰC HIỆN; all following status/panels live on page 2.
 runpy.run_path(str(ROOT / "patch-two-page-ui.py"), run_name="__main__")
+
+# Current Entity rule: all 18 entries roam every playable Level and each rolls independently
+# at exactly 3% on physical gameplay turns. This intentionally supersedes the legacy Level pool
+# and Jeff-specific probability above.
+runpy.run_path(str(ROOT / "patch-entity-roaming-3pct.py"), run_name="__main__")
