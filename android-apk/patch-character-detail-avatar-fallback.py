@@ -84,3 +84,7 @@ runpy.run_path(str(ROOT / "patch-party-entity-overlays-final.py"), run_name="__m
 # Final combat authority and presentation: deterministic auto-turn Basic Attack combat, sequential
 # Entity queue, Survival progression, character-only HP/SURVIVAL bars and turn-synchronized overlays.
 runpy.run_path(str(ROOT / "patch-auto-turn-combat-final.py"), run_name="__main__")
+
+# Preserve the older descriptive healthState field and source compatibility for direct projection
+# constructors after the combat projection has been injected.
+runpy.run_path(str(ROOT / "patch-auto-turn-combat-compat.py"), run_name="__main__")
