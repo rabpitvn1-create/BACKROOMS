@@ -106,10 +106,23 @@
       "affordances": ["direct_threat", "trace_analysis"]
     },
     {
+      "id": "ENTITY.ASYNC_MEMBER",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Async Member is a human hostile combatant entry representing an armed Async field member when encountered through the Entity combat roster; this entry does not classify every Async employee as hostile. Base HP pool is 60/60. Base combat stats are HP Stat 7, Defend 8, Agi 9 and Crit 10. Active skill [Let's catch you] rolls once on each Async Member combat turn at 20% proc; when it procs, the attack uses current BaseDMG +20%, resolves through normal Evasion/Critical/DF rules, and on a successful hit applies [Choáng] for 2 turns. Passive [Anysc Evade] is always active and fixes this combatant's Evasion at 25%.",
+      "source": {"document": "USER_RETCON_2026-09-05", "anchor": "Async Member human Entity: HP 60/60; stats 7-8-9-10; Let's catch you; Anysc Evade"},
+      "authority": "USER_RETCON",
+      "mutability": "IMMUTABLE",
+      "priority": 60,
+      "tags": ["async member", "async", "human", "let's catch you", "anysc evade"],
+      "references": ["ENTITY.GLOBAL_HARD_LOCK", "WORLD.ASYNC.BASELINE"],
+      "affordances": ["direct_threat", "identity_check"]
+    },
+    {
       "id": "ENTITY.ROAMING_POLICY",
       "domain": "ENTITY",
       "kind": "hard-lock",
-      "text": "Gameplay roaming policy: every one of the 18 Entity entries may appear on every playable Level regardless of local environment or resident-population lore. Each entry receives its own independent 3.0000% appearance roll on an eligible physical gameplay turn. Multiple different Entity rolls may succeed in the same turn. This roaming rule does not make an Entity friendly, neutral or resident to a Level.",
+      "text": "Gameplay roaming policy: every one of the 19 Entity entries may appear on every playable Level regardless of local environment or resident-population lore. Each entry receives its own independent 3.0000% appearance roll on an eligible physical gameplay turn. Multiple different Entity rolls may succeed in the same turn. This roaming rule does not make an Entity friendly, neutral or resident to a Level.",
       "source": {"document": "android-apk/ENTITY_RESEARCH_NOTES.md", "anchor": "Runtime encounter policy"},
       "authority": "GAME_RULE",
       "mutability": "IMMUTABLE",
@@ -137,7 +150,8 @@
     "ENTITY.HOTEL_CORPSE_LURE",
     "ENTITY.JEFF",
     "ENTITY.JANE",
-    "ENTITY.SLENDERMAN"
+    "ENTITY.SLENDERMAN",
+    "ENTITY.ASYNC_MEMBER"
   ],
   "encounterPolicy": {
     "threshold": 300,
