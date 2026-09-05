@@ -1,0 +1,11 @@
+Backroom 1.1.49.2
+
+- Adds four fixed environment snapshots for every playable Level 0 through Level 6, for 28 distinct Level images total.
+- Rotates each Level's snapshot deterministically every three turns: slots 1–4 span a 12-turn cycle and then repeat.
+- Keeps Kai layered above the Level background while preserving the existing Entity encounter overlay behavior.
+- Reworks Level 4–6 snapshot sourcing after upstream Fandom media endpoints proved unreliable in GitHub Actions.
+- Uses freely licensed empty-office imagery for Level 4, keeps the proven Backrooms Wikidot hotel/boiler imagery plus a licensed ballroom for Level 5, and uses polar-night/snow/tundra scenes for the current Level 6 canon.
+- Hardens the snapshot downloader with source-aware Referer headers, a descriptive User-Agent, bounded retries, HTTP 429 Retry-After handling, image validation, size limits and duplicate-byte rejection.
+- Keeps the exact Android release patch chain in preflight so snapshot integration is tested against the same transformations used for the APK release.
+- Bumps Android versionCode to 127 for upgrade installation over versionCode 126.
+- Release validation runs snapshot source validation, deterministic rotation checks, Kotlin unit tests, debug APK assembly, signature/package checks and published-APK verification.
