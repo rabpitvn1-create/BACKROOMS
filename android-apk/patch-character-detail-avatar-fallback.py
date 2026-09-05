@@ -71,6 +71,7 @@ PATCH_CHAIN = [
     "patch-level-transition-sync.py",
     "patch-runtime-recruitment-authority-final.py",
     "patch-litert-snapshot-light-final.py",
+    "patch-snapshot-light-compile-fix.py",
     "patch-snapshot-visual-runtime-final.py",
 ]
 
