@@ -108,3 +108,4 @@ runpy.run_path(str(ROOT / "patch-combat-start-pacing-newgame.py"), run_name="__m
 # Final Snapshot polish is CSS/JS only: authoritative timeline-driven hit reactions, simple dark
 # ellipse ground shadows for pixel overlays, and runtime detection/bloom for lamp-like fixtures.
 runpy.run_path(str(ROOT / "patch-combat-visual-effects.py"), run_name="__main__")
+runpy.run_path(str(ROOT / "patch-combat-visual-effects-loop-guard.py"), run_name="__main__")
