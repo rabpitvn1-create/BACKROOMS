@@ -128,7 +128,7 @@ jobs:
           facade = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt').read_text(encoding='utf-8')
           gradle = Path('android-apk/app/build.gradle').read_text(encoding='utf-8')
           canon = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/AnNhienCanon.kt').read_text(encoding='utf-8')
-          assert "versionCode 51" in gradle
+          assert "versionCode 125" in gradle
           assert "versionName '1.1.49'" in gradle
           assert 'state&&state.partyDetails&&Array.isArray(state.partyDetails.members)' in html
           assert 'id="characterSurvivalHud"' in html
