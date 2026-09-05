@@ -72,3 +72,7 @@ runpy.run_path(str(ROOT / "patch-entity-roaming-3pct.py"), run_name="__main__")
 # Snapshot overlays always use the exact original PNG bytes committed from the Drive source folder.
 # The patch verifies SHA-256, byte size and dimensions before wiring them into the UI.
 runpy.run_path(str(ROOT / "patch-entity-overlays-local.py"), run_name="__main__")
+
+# Kai uses a relaxed overlay normally and the aiming overlay whenever the current Entity roll
+# contains one or more successful encounters. The patch also validates the new Kai avatar asset.
+runpy.run_path(str(ROOT / "patch-kai-dual-overlay-final.py"), run_name="__main__")
