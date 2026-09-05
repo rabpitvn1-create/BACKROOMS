@@ -11,6 +11,7 @@ on:
       - 'android-apk/inventory-v2/**'
       - 'android-apk/ml/build_intent_dataset.py'
       - 'android-apk/patch-inventory-v2-final.py'
+      - 'android-apk/patch-inventory-v2-compile-fix.py'
       - 'android-apk/patch-character-detail-avatar-fallback.py'
       - 'android-apk/validate-item-content.py'
       - '.github/workflows/preflight-inventory-v2.yml'
@@ -35,8 +36,10 @@ jobs:
           cache: pip
           cache-dependency-path: android-apk/ml/requirements.txt
 
-      - name: Validate item catalog and loot tables
-        run: python3 android-apk/validate-item-content.py
+      - name: Validate Inventory V2 Python and item data
+        run: |
+          python3 -m py_compile android-apk/patch-inventory-v2-final.py android-apk/patch-inventory-v2-compile-fix.py android-apk/validate-item-content.py android-apk/ml/build_intent_dataset.py
+          python3 android-apk/validate-item-content.py
 
       - name: Install ML toolchain
         run: python -m pip install --requirement android-apk/ml/requirements.txt
@@ -112,6 +115,9 @@ jobs:
           assert 'markedSourceIds' not in state
           assert 'Operation.SCAN' not in omni
           assert 'Operation.COPY' not in omni
+          assert 'clearPendingWithoutConsumingTurn' in facade
+          assert 'TurnCoordinator.reject(created.state' not in facade
+          assert '.objects()' not in facade
           PY
           git diff --check
 
