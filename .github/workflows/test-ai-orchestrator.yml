@@ -52,7 +52,8 @@ jobs:
           html = Path('android-apk/app/src/main/assets/index.html').read_text(encoding='utf-8')
           java = Path('android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java').read_text(encoding='utf-8')
           facade = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt').read_text(encoding='utf-8')
-          assert 'const prologue=`Bữa tối bắt đầu như bao lần khác.' in html
+          assert 'const prologue=`Năm 2299.' in html
+          assert 'const prologue=`Bữa tối bắt đầu như bao lần khác.' not in html
           assert '{role:"gm",text:"MỞ ĐẦU' in html
           assert 'inventory:[]' in html
           unsafe_inventory_render = 'inventoryEl.innerHTML=chips(state.inventory);'
@@ -156,7 +157,8 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           text = Path('android-apk/app/src/main/assets/index.html').read_text(encoding='utf-8')
-          assert 'const prologue=`Bữa tối bắt đầu như bao lần khác.' in text
+          assert 'const prologue=`Năm 2299.' in text
+          assert 'const prologue=`Bữa tối bắt đầu như bao lần khác.' not in text
           assert '{role:"gm",text:"MỞ ĐẦU' in text
           assert 'inventory:[]' in text
           assert '3 / 9 loại vật phẩm' not in text
