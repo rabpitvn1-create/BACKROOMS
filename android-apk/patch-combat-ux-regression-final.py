@@ -2,8 +2,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 INDEX = ROOT / "app/src/main/assets/index.html"
-CORE = ROOT / "app/src/main/java/com/rabpit/backroom/core/CombatCore.kt"
-TEST = ROOT / "app/src/test/java/com/rabpit/backroom/core/CombatUxRegressionGeneratedTest.kt"
 
 
 def replace_once(text: str, old: str, new: str, label: str) -> str:
@@ -14,22 +12,6 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
         raise RuntimeError(f"{label}: expected exactly one anchor, found {count}")
     return text.replace(old, new, 1)
 
-
-# Solo Kai must not pretend to switch party actors every round.
-core = CORE.read_text(encoding="utf-8")
-core = replace_once(
-    core,
-    "    var partyCursor = 0\n    var actions = 0\n",
-    "    var partyCursor = 0\n    var actions = 0\n    var lastFocusedActorId: String? = null\n    var lastFocusedEnemyId: String? = null\n",
-    "combat focus state",
-)
-core = replace_once(
-    core,
-    "      timeline += CombatTimelineEvent(\"FOCUS\", actorId = actor.id, enemyId = enemy.id, text = actor.name)\n",
-    "      if (lastFocusedActorId != actor.id || lastFocusedEnemyId != enemy.id) {\n        timeline += CombatTimelineEvent(\"FOCUS\", actorId = actor.id, enemyId = enemy.id, text = actor.name)\n        lastFocusedActorId = actor.id\n        lastFocusedEnemyId = enemy.id\n      }\n",
-    "solo focus dedupe",
-)
-CORE.write_text(core, encoding="utf-8")
 
 html = INDEX.read_text(encoding="utf-8")
 
@@ -57,7 +39,8 @@ new_markup = '''    if(panel.parentElement!==document.body)document.body.appendC
 '''
 html = replace_once(html, old_markup, new_markup, "combat modal markup")
 
-# Old saves can still contain repeated FOCUS events. Do not replay a fake switch for the same actor.
+# Keep authoritative FOCUS timeline events for skill duration/tests, but suppress the visual pause when
+# the same actor keeps acting. With solo Kai, only the first focus transition is visible.
 html = replace_once(
     html,
     "focusTurn(event.actorId,event.enemyId);await sleep(650);continue;",
@@ -122,6 +105,7 @@ for token in [
     'Android.freshGameState(JSON.stringify(template))',
     'position:fixed;inset:0;z-index:10050',
     'class="pending-combat-dialog" role="dialog"',
+    "const sameActor=nextActor!==''&&nextActor===currentActor",
     'Math.min(rect.width*.27,rect.height*.18)',
     "typeof target.animate==='function'",
     '.combat-impact-burst{display:none!important}',
@@ -132,40 +116,6 @@ for token in [
         raise RuntimeError(f"combat UX regression contract missing: {token}")
 if "addImpactBurst(target);animateShadowFollow(620);" in html:
     raise RuntimeError("legacy hash impact glyph is still active")
-if "lastFocusedActorId" not in core:
-    raise RuntimeError("solo party focus dedupe missing")
 
 INDEX.write_text(html, encoding="utf-8")
-
-TEST.write_text(r'''package com.rabpit.backroom.core
-
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
-import org.junit.Test
-
-class CombatUxRegressionGeneratedTest {
-  private class ConstantRandom(private val value: Double) : CombatRandom {
-    override fun nextDouble(): Double = value
-  }
-
-  @Test fun soloKaiDoesNotEmitRepeatedFocusSwitches() {
-    val kai = CombatantState(
-      id = KAI_ID,
-      name = "Kai Akechi",
-      isEntity = false,
-      stats = CombatStats(),
-      baseDamage = CombatProfiles.partyBaseDamage(KAI_ID)
-    )
-    val result = AutoTurnCombatEngine(ConstantRandom(0.99)).resolve(
-      encounterId = "SOLO_FOCUS",
-      partyInput = listOf(kai),
-      entityIds = listOf("ENTITY.HOUND"),
-      level = 0
-    )
-    assertEquals(1, result.timeline.count { it.kind == "FOCUS" && it.actorId == KAI_ID })
-    assertTrue(result.timeline.count { it.kind == "ATTACK" && it.actorId == KAI_ID } > 1)
-  }
-}
-''', encoding="utf-8")
-
-print("Combat UX regressions fixed: real popup, Turn-1 Core hydration, solo focus dedupe, proper shadows, symmetric hit reaction, and visible lamp pulse.")
+print("Combat UX regressions fixed: real popup, Turn-1 Core hydration, no fake solo visual switch, proper shadows, symmetric hit reaction, and visible lamp pulse.")
