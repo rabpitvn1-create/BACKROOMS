@@ -11,7 +11,54 @@ def replace_once(old: str, new: str, label: str):
         raise RuntimeError(f"{label}: expected exactly 1 match, found {count}")
     text = text.replace(old, new, 1)
 
-helpers = r'''  private JSONArray rejectedOperationIssuesAndroid(JSONObject before, JSONObject candidate, JSONObject generated) throws Exception {
+helpers = r'''  private boolean flagValueEqualsAndroid(Object left, Object right) {
+    if (left instanceof JSONObject && right instanceof JSONObject) {
+      JSONObject a = (JSONObject) left;
+      JSONObject b = (JSONObject) right;
+      if (a.length() != b.length()) return false;
+      Iterator<String> keys = a.keys();
+      while (keys.hasNext()) {
+        String key = keys.next();
+        if (!b.has(key) || !flagValueEqualsAndroid(a.opt(key), b.opt(key))) return false;
+      }
+      return true;
+    }
+    if (left instanceof JSONArray && right instanceof JSONArray) {
+      JSONArray a = (JSONArray) left;
+      JSONArray b = (JSONArray) right;
+      if (a.length() != b.length()) return false;
+      for (int i = 0; i < a.length(); i++) {
+        if (!flagValueEqualsAndroid(a.opt(i), b.opt(i))) return false;
+      }
+      return true;
+    }
+    // Do not confuse a string such as "false" with the boolean false.
+    if (left == null || left == JSONObject.NULL) return right == null || right == JSONObject.NULL;
+    if (left instanceof Number && right instanceof Number) return left.toString().equals(right.toString());
+    return left.equals(right);
+  }
+
+  private boolean flagPatchSatisfiedAndroid(JSONObject flags, JSONObject op) {
+    String root = op.optString("root", "").trim();
+    if (root.isEmpty() || !op.has("value") || flags == null || !flags.has(root)) return false;
+    Object actual = flags.opt(root);
+    Object requested = op.opt("value");
+    // Mirror applyModelOperations: object flag patches merge at the root; scalars replace.
+    // Reapplying an already satisfied patch is a no-op, not evidence of rejection.
+    if (actual instanceof JSONObject && requested instanceof JSONObject) {
+      JSONObject current = (JSONObject) actual;
+      JSONObject patch = (JSONObject) requested;
+      Iterator<String> keys = patch.keys();
+      while (keys.hasNext()) {
+        String key = keys.next();
+        if (!current.has(key) || !flagValueEqualsAndroid(current.opt(key), patch.opt(key))) return false;
+      }
+      return true;
+    }
+    return flagValueEqualsAndroid(actual, requested);
+  }
+
+  private JSONArray rejectedOperationIssuesAndroid(JSONObject before, JSONObject candidate, JSONObject generated) throws Exception {
     JSONArray issues = new JSONArray();
     JSONArray proposed = generated.optJSONArray("ops");
     if (proposed == null) return issues;
@@ -33,17 +80,24 @@ helpers = r'''  private JSONArray rejectedOperationIssuesAndroid(JSONObject befo
       } else if (type.equals("patch_player")) {
         rejected = !jsonChanged(before.optJSONObject("player"), candidate.optJSONObject("player"));
       } else if (type.equals("flag_patch")) {
-        String root = op.optString("root", "");
+        String root = op.optString("root", "").trim();
         Object beforeRoot = beforeFlags != null ? beforeFlags.opt(root) : null;
         Object afterRoot = afterFlags != null ? afterFlags.opt(root) : null;
-        rejected = !jsonChanged(beforeRoot, afterRoot);
+        rejected = !jsonChanged(beforeRoot, afterRoot) && !flagPatchSatisfiedAndroid(afterFlags, op);
       }
       if (rejected) {
+        String operationDetail = "opIndex=" + i;
+        if (type.equals("flag_patch")) {
+          String root = op.optString("root", "").trim().replaceAll("[^A-Za-z0-9_]", "?");
+          operationDetail += " root=" + root.substring(0, Math.min(64, root.length()));
+        }
         issues.put(new JSONObject()
           .put("rule", "state_narrative_mismatch")
           .put("severity", "hard")
           .put("claim", type)
-          .put("reason", "Android reducer rejected this proposed state operation. Rewrite reply without narrating the rejected change and omit the invalid op."));
+          .put("opIndex", i)
+          .put("reason", "Android reducer rejected this proposed state operation. " + operationDetail
+            + ". Rewrite reply without narrating the rejected change and omit the invalid op."));
       }
     }
     return issues;
