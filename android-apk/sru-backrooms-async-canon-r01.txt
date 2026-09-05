@@ -13,17 +13,17 @@ SRU không hoạt động theo nguyên tắc “thấy dị thường là tiêu 
 
 2. KAI, SYVIAL VÀ IRIS
 
-Kai Akechi / Twilight là Đội trưởng SRU, giữ quyền chỉ huy hiện trường, đồng thời là xạ thủ chủ lực và người xử lý mục tiêu dị thường cấp cao. Hồ sơ SRU công khai phân loại Kai là con người. Sự thật về huyết thống và nguồn sức mạnh của hắn thuộc KNOWLEDGE LOCK dành cho người viết, không phải kiến thức mặc định của nhân vật khác.
+Kai Akechi / Twilight là Đội trưởng SRU, chỉ huy hiện trường, xạ thủ chủ lực và người xử lý mục tiêu dị thường cấp cao. Hồ sơ SRU công khai phân loại Kai là con người; sự thật về huyết thống và nguồn sức mạnh của hắn thuộc KNOWLEDGE LOCK dành cho người viết.
 
 Syvial là Đội phó trong đội Kai, chiến binh UR+ chuyên đột kích, áp chế, phản kích và kết liễu mục tiêu cấp cao. Cô không phải vệ sĩ cá nhân hay vũ khí chỉ chờ lệnh. Quan hệ tình cảm với Kai không được dùng để xóa trí thông minh, kỷ luật hoặc khả năng tác chiến độc lập.
 
-Iris / ARGUS là Scout / Target Eliminator. Cô đọc địa hình, đường ngắm, vật che, lối thoát, điểm phục kích và dấu vết bằng quan sát trực tiếp, cảm biến giáp và năng lực xử lý thông tin, rồi dùng Ivory & Ebony để loại bỏ mục tiêu đã xác định. Kai là người đầu tiên của SRU phát hiện Iris trong một sự cố siêu nhiên; sau xác minh, SRU chuẩn hóa Project 07 cho cô.
+Iris / ARGUS là Scout / Target Eliminator. Cô đọc địa hình, vật che, lối thoát, điểm phục kích và dấu vết bằng quan sát trực tiếp, cảm biến giáp và năng lực xử lý thông tin, rồi dùng Ivory & Ebony để loại bỏ mục tiêu đã xác định. Kai phát hiện Iris trong một sự cố siêu nhiên; sau xác minh, SRU chuẩn hóa Project 07 cho cô.
 
 Kai giữ quyền quyết định và hỏa lực chủ lực, Syvial tạo sức ép trực diện, Iris mở rộng trinh sát và lựa chọn góc tiếp cận. Lucia / Hứa Thuý Mai không thuộc nhóm SRU ban đầu; gặp Kai ở Level 0 không tự biến cô thành thành viên SRU.
 
 3. NHIỆM VỤ BACKROOMS NĂM 2299
 
-Đến năm 2299, Cảnh Sát chống hiện tượng dị thường đã tích lũy hồ sơ mất tích trải dài qua nhiều thời đại. Các vụ việc không có chung địa điểm hay phương thức, nhưng một số nạn nhân biến mất khỏi nơi không có tuyến rời đi hợp lý, dấu vết dừng đột ngột, hoặc trở về sau khoảng thời gian không tương thích với trải nghiệm và mức lão hóa của họ.
+Đến năm 2299, Cảnh Sát chống hiện tượng dị thường đã tích lũy hồ sơ mất tích qua nhiều thời đại. Một số nạn nhân biến mất khỏi nơi không có tuyến rời đi hợp lý, dấu vết dừng đột ngột, hoặc trở về sau khoảng thời gian không tương thích với trải nghiệm và mức lão hóa.
 
 Khi SRU đặt các lời kể cạnh nhau, những mô tả lặp lại xuất hiện: kiến trúc kéo dài bất thường, hành lang sai lệch, không gian phi lý, thời gian lệch và khu vực thay đổi khi không còn bị quan sát. “Backrooms” chỉ là tên con người dùng cho thực tại ấy, không phải lời giải về nguồn gốc.
 
@@ -31,11 +31,11 @@ SRU hình thành giả thuyết rằng Backrooms có thể là mắt xích chung
 
 Nhiệm vụ có bốn mục tiêu nối nhau: xác nhận Backrooms có liên quan tới các vụ mất tích; tìm bằng chứng về người đã biến mất; xác định Async đã tiếp cận nơi này tới mức nào và hoạt động của họ có quan hệ nhân quả hay chỉ là một lần tiếp xúc; cuối cùng, nếu có thể, tìm quy luật thoát hoặc tuyến trở về Frontrooms đủ đáng tin.
 
-Kai, Syvial và Iris là ba thành viên ban đầu. Họ tiến vào qua cổng thời-không đã được SRU thử nghiệm và đánh giá ổn định. Sự cố trong quá trình chuyển tiếp phân tán đội hình. Kai xuất hiện tại Level 0, không biết vị trí Iris và Syvial; liên lạc trực tiếp cùng dữ liệu bên ngoài ban đầu mất. Từ đó nhiệm vụ điều tra đồng thời trở thành bài toán sinh tồn, tìm lại đồng đội và khôi phục đường về. Đoàn tụ phải tuân theo địa lý, continuity và state, không được dùng random spawn để dịch chuyển Iris hoặc Syvial tới Kai.
+Kai, Syvial và Iris là ba thành viên ban đầu. Họ tiến vào qua cổng thời-không đã được SRU thử nghiệm ổn định, nhưng sự cố chuyển tiếp phân tán đội hình. Kai xuất hiện tại Level 0, không biết vị trí Iris và Syvial; liên lạc cùng dữ liệu bên ngoài ban đầu mất. Từ đó điều tra trở thành cả sinh tồn, tìm đồng đội và khôi phục đường về. Đoàn tụ phải tuân theo địa lý, continuity và state, không dùng random spawn để đưa Iris hoặc Syvial tới Kai.
 
 4. ASYNC
 
-Async Research Institute là tổ chức nghiên cứu tư nhân trong lớp lịch sử Project phỏng theo continuity Kane Pixels. Async gắn với Project KV31 và Low-Proximity Magnetic Distortion System, chương trình nhằm tạo một cổng ổn định tới không gian khác. Các thử nghiệm cuối thập niên 1980 dẫn tới Threshold, lối vào nhân tạo cho phép Async tiếp cận The Complex, sau đó khảo sát và dựng hạ tầng quan sát phía bên kia.
+Async Research Institute là tổ chức nghiên cứu tư nhân được Project phỏng theo continuity Kane Pixels. Project KV31 dùng Low-Proximity Magnetic Distortion System để tạo cổng ổn định tới không gian khác. Các thử nghiệm cuối thập niên 1980 dẫn tới Threshold, cho phép Async tiếp cận The Complex rồi khảo sát phía bên kia.
 
 KV31 không được khóa như một âm mưu hủy diệt. The Complex từng được nhìn như nguồn không gian cho lưu trữ, công nghiệp, hạ tầng và nhu cầu dân sự. Vì vậy Async không được mặc định là phản diện; giá trị của họ trong canon là đã chứng minh con người có thể chủ động mở một cửa vào nơi tương ứng với Backrooms.
 
@@ -49,7 +49,7 @@ SRU không bước vào Backrooms để săn Async. Họ đi vào để kiểm c
 
 5. KHÓA DIỄN GIẢI
 
-Nguồn gốc thật của Backrooms không được xác nhận. Không lời kể của Async, survivor, Entity hay tài liệu lịch sử nào tự động trở thành sự thật tối hậu. “The Complex” là tên lịch sử gắn với Async; “Backrooms” là nhãn con người dùng cho thực tại rộng lớn hơn.
+Nguồn gốc thật của Backrooms không được xác nhận. Không lời kể của Async, survivor, Entity hay tài liệu lịch sử nào tự động là sự thật tối hậu. “The Complex” là tên lịch sử gắn với Async; “Backrooms” là nhãn cho thực tại rộng lớn hơn.
 
 Nhiệm vụ năm 2299 bắt đầu bằng điều tra, không phải bản án. Kai, Syvial và Iris được phép tìm thấy bằng chứng làm yếu hoặc đảo ngược giả thuyết ban đầu. Mọi phát hiện mới phải đi qua continuity trước khi thành kiến thức nhân vật hoặc canon mới.
 
