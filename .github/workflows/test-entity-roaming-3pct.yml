@@ -53,16 +53,20 @@ jobs:
           python3 android-apk/patch-character-inventory-ui.py
           python3 android-apk/patch-character-detail-avatar-fallback.py
 
-      - name: Verify independent 3 percent roaming contract
+      - name: Verify independent 3 percent roaming and lossless overlays
         run: |
           python3 - <<'PY'
+          import hashlib
           import json
           from pathlib import Path
 
           java = Path('android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java').read_text(encoding='utf-8')
           kce = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/knowledge/KnowledgeContextEngine.kt').read_text(encoding='utf-8')
+          html = Path('android-apk/app/src/main/assets/index.html').read_text(encoding='utf-8')
           db = json.loads(Path('android-apk/app/src/main/assets/knowledge/knowledge_db.json').read_text(encoding='utf-8'))
           additions = json.loads(Path('android-apk/entity-runtime-additions.json').read_text(encoding='utf-8'))
+          overlay_manifest = json.loads(Path('android-apk/entity-overlay-source.json').read_text(encoding='utf-8'))
+          overlay_dir = Path('android-apk/app/src/main/assets/entity_overlays')
 
           expected = additions['expectedEntityIds']
           assert len(expected) == 18
@@ -87,6 +91,20 @@ jobs:
           policy = next(r for r in db['records'] if r.get('id') == 'ENTITY.ROAMING_POLICY')
           assert '3.0000%' in policy['text']
           assert 'every playable Level' in policy['text']
+
+          entries = overlay_manifest['entities']
+          assert overlay_manifest['qualityPolicy'] == 'exact-original-png-bytes-no-resize-no-recompression'
+          assert len(entries) == 18
+          assert {e['id'] for e in entries} == set(expected)
+          assert len(list(overlay_dir.glob('*.png'))) == 18
+          for entry in entries:
+              data = (overlay_dir / entry['file']).read_bytes()
+              assert len(data) == entry['size'], entry['file']
+              assert hashlib.sha256(data).hexdigest() == entry['sha256'], entry['file']
+          assert '<!-- ENTITY_OVERLAY_LOCAL_BEGIN -->' in html
+          assert 'file:///android_asset/entity_overlays/' in html
+          assert 'encounter.successIds' in html
+          assert 'snapshot-entity-overlay' in html
           PY
 
       - uses: actions/setup-java@v4
