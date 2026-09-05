@@ -80,3 +80,7 @@ runpy.run_path(str(ROOT / "patch-kai-dual-overlay-final.py"), run_name="__main__
 # Lucia and Syvial contribute their supplied combat overlays only when they are ACTIVE Party members
 # and the current turn contains at least one successful Entity encounter roll.
 runpy.run_path(str(ROOT / "patch-party-entity-overlays-final.py"), run_name="__main__")
+
+# Final combat authority and presentation: deterministic auto-turn Basic Attack combat, sequential
+# Entity queue, Survival progression, character-only HP/SURVIVAL bars and turn-synchronized overlays.
+runpy.run_path(str(ROOT / "patch-auto-turn-combat-final.py"), run_name="__main__")
