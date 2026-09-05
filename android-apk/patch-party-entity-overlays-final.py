@@ -100,22 +100,23 @@ if START not in html:
 
   function activePartyIds(){{
     var ids={{}};
+    var detailedPresence={{}};
     try{{
       if(typeof state==='undefined'||!state)return ids;
-      var members=state.partyDetails&&Array.isArray(state.partyDetails.members)?state.partyDetails.members:null;
-      if(members&&members.length){{
-        members.forEach(function(member){{
-          if(!memberIsActive(member))return;
-          var id=normalizedMemberId(member);
-          if(id)ids[id]=true;
-        }});
-        return ids;
-      }}
+      var members=state.partyDetails&&Array.isArray(state.partyDetails.members)?state.partyDetails.members:[];
+      members.forEach(function(member){{
+        var id=normalizedMemberId(member);
+        if(!id)return;
+        var active=memberIsActive(member);
+        detailedPresence[id]=active;
+        if(active)ids[id]=true;
+      }});
       var legacy=Array.isArray(state.party)?state.party:[];
       legacy.forEach(function(member){{
-        if(!memberIsActive(member))return;
         var id=normalizedMemberId(member);
-        if(id)ids[id]=true;
+        if(!id)return;
+        if(Object.prototype.hasOwnProperty.call(detailedPresence,id))return;
+        if(memberIsActive(member))ids[id]=true;
       }});
     }}catch(error){{}}
     return ids;
@@ -190,6 +191,7 @@ for marker in (
     "state.partyDetails&&Array.isArray(state.partyDetails.members)",
     "encounter.successIds",
     "presence==='ACTIVE'",
+    "Object.prototype.hasOwnProperty.call(detailedPresence,id)",
     "snapshot-party-entity-overlay",
     "partyEntityOverlaySig",
 ):
