@@ -1,0 +1,8 @@
+Backroom 1.1.49.6
+
+- Fixes Character Detail inventory interaction so items can be inspected and consumables can be used through the authoritative Android.submitTurn -> Game Core path.
+- Repairs legacy/pre-Inventory-V2 official item stacks by re-hydrating catalog metadata before intent resolution, including AGRUGUA FRUIT consumable/effect behavior without mutating unknown non-catalog items.
+- Restores HAKU as the active primary Game Master text provider from the configured GitHub Secret, with LUNA fallback and controlled failure behavior while keeping Gemini compatibility code inactive on the active route.
+- Preserves the current save schema and gameplay-state compatibility; this release does not introduce a save-version bump.
+- Bumps Android versionCode to 131 and versionName to 1.1.49.6 for upgrade installation over 1.1.49.5.
+- Release validation rebuilds and gates the LiteRT intent model, applies the exact Android runtime patch chain, verifies the HAKU/LUNA provider contract, runs Kotlin unit tests, assembles and verifies the APK, publishes v1.1.49.6, then downloads the published asset and records GREEN release status.
