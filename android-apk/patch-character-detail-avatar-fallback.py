@@ -88,3 +88,7 @@ runpy.run_path(str(ROOT / "patch-auto-turn-combat-final.py"), run_name="__main__
 # Preserve the older descriptive healthState field and source compatibility for direct projection
 # constructors after the combat projection has been injected.
 runpy.run_path(str(ROOT / "patch-auto-turn-combat-compat.py"), run_name="__main__")
+
+# Kai's codex-derived proc skill layer runs after the combat/Status projection is fully materialized:
+# independent multi-proc actives, 3-turn x5 Devil Trigger, 30% standalone Guilty Crown, and Status table.
+runpy.run_path(str(ROOT / "patch-kai-skills-final.py"), run_name="__main__")
