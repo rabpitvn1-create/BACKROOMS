@@ -121,3 +121,7 @@ runpy.run_path(str(ROOT / "patch-an-nhien-rare-spawn-final.py"), run_name="__mai
 # Final inventory authority runs after every character/canon/UI transform so older profile values
 # cannot leak back into gameplay, tests, UI labels, or the GM prompt.
 runpy.run_path(str(ROOT / "patch-inventory-capacity-final.py"), run_name="__main__")
+
+# Legacy generated character tests still encode superseded 2x20 / 8x100 capacities. Keep their
+# behavioral checks but align only those capacity expectations with the final user rule.
+runpy.run_path(str(ROOT / "patch-inventory-capacity-test-compat.py"), run_name="__main__")
