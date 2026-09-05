@@ -109,3 +109,7 @@ runpy.run_path(str(ROOT / "patch-combat-start-pacing-newgame.py"), run_name="__m
 # ellipse ground shadows for pixel overlays, and runtime detection/bloom for lamp-like fixtures.
 runpy.run_path(str(ROOT / "patch-combat-visual-effects.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-combat-visual-effects-loop-guard.py"), run_name="__main__")
+
+# Final inventory authority: Kai gets 14 normal slots with 9999 per type; every other character
+# gets 8 normal slots with 99 per type. Equipment slots stay separate from normal inventory.
+runpy.run_path(str(ROOT / "patch-inventory-capacity-final.py"), run_name="__main__")
