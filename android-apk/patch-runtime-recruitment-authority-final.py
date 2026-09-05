@@ -28,9 +28,13 @@ def replace_between(text: str, start: str, end: str, replacement: str, label: st
 
 
 facade = FACADE.read_text(encoding="utf-8")
-party_start = "    val desiredParty = candidate.optJSONArray(\"party\")"
+party_starts = [
+    "    val desiredParty = candidate.optJSONArray(\"party\")",
+    "    val desiredParty = jsonObjects(candidate.optJSONArray(\"party\"))",
+]
 world_command = "    commands += ValidatedLegacyStateCommand("
-if party_start in facade:
+party_start = next((anchor for anchor in party_starts if anchor in facade), None)
+if party_start is not None:
     facade = replace_between(
         facade,
         party_start,
