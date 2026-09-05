@@ -9,14 +9,22 @@
       "maxStack": 9999,
       "transferable": true,
       "discardable": true,
-      "effects": ["WATER"],
+      "effects": [
+        "WATER+40",
+        "FOOD+10"
+      ],
       "contentModel": "FULL_LOW_EMPTY",
       "stateNames": {
         "FULL": "Almond Water",
         "LOW": "Almond Water còn ít",
         "EMPTY": "Chai Almond Water rỗng"
       },
-      "aliases": ["nước hạnh nhân", "almond water", "chai almond water"]
+      "icon": "items/icons/item_almond_water.webp",
+      "aliases": [
+        "nước hạnh nhân",
+        "almond water",
+        "chai almond water"
+      ]
     },
     {
       "id": "ration-box",
@@ -26,8 +34,14 @@
       "maxStack": 9999,
       "transferable": true,
       "discardable": true,
-      "effects": ["FOOD"],
-      "aliases": ["khẩu phần", "hộp thức ăn", "ration"]
+      "effects": [
+        "FOOD"
+      ],
+      "aliases": [
+        "khẩu phần",
+        "hộp thức ăn",
+        "ration"
+      ]
     },
     {
       "id": "bandage",
@@ -37,8 +51,91 @@
       "maxStack": 9999,
       "transferable": true,
       "discardable": true,
-      "effects": [],
-      "aliases": ["băng", "cuộn băng", "bandage"]
+      "effects": [
+        "HP+10",
+        "CLEAR_BLEED"
+      ],
+      "icon": "items/icons/item_bandage.webp",
+      "aliases": [
+        "băng",
+        "cuộn băng",
+        "bandage"
+      ]
+    },
+    {
+      "id": "frozen-fruits",
+      "name": "Frozen Fruits",
+      "category": "CONSUMABLE",
+      "stackMode": "STACK",
+      "maxStack": 9999,
+      "transferable": true,
+      "discardable": true,
+      "effects": [
+        "FOOD+20",
+        "REST+25"
+      ],
+      "icon": "items/icons/item_frozen_fruits.webp",
+      "aliases": [
+        "frozen fruit",
+        "frozen fruits",
+        "trái cây đông lạnh",
+        "quả băng"
+      ]
+    },
+    {
+      "id": "royal-ration",
+      "name": "Royal Ration",
+      "category": "CONSUMABLE",
+      "stackMode": "STACK",
+      "maxStack": 9999,
+      "transferable": true,
+      "discardable": true,
+      "effects": [
+        "FOOD+100"
+      ],
+      "icon": "items/icons/item_royal_ration.webp",
+      "aliases": [
+        "royal ration",
+        "royal rations",
+        "khẩu phần hoàng gia"
+      ]
+    },
+    {
+      "id": "agrugua-fruit",
+      "name": "Agrugua Fruit",
+      "category": "CONSUMABLE",
+      "stackMode": "STACK",
+      "maxStack": 9999,
+      "transferable": true,
+      "discardable": true,
+      "effects": [
+        "HP+30"
+      ],
+      "icon": "items/icons/item_agrugua_fruit.webp",
+      "aliases": [
+        "agrugua",
+        "agrugua fruit",
+        "quả agrugua"
+      ]
+    },
+    {
+      "id": "dark-reparation-vial-turquoise",
+      "name": "Dark Reparation Vial - Turquoise",
+      "category": "CONSUMABLE",
+      "stackMode": "STACK",
+      "maxStack": 9999,
+      "transferable": true,
+      "discardable": true,
+      "effects": [
+        "HP+20",
+        "CLEAR_MILD_SICKNESS"
+      ],
+      "icon": "items/icons/item_dark_reparation_vial_turquoise.webp",
+      "aliases": [
+        "dark reparation vial",
+        "turquoise vial",
+        "lọ phục hồi đen xanh ngọc"
+      ]
     },
     {
       "id": "flashlight",
@@ -49,7 +146,10 @@
       "transferable": true,
       "discardable": true,
       "effects": [],
-      "aliases": ["đèn", "flashlight"]
+      "aliases": [
+        "đèn",
+        "flashlight"
+      ]
     },
     {
       "id": "battery",
@@ -60,7 +160,10 @@
       "transferable": true,
       "discardable": true,
       "effects": [],
-      "aliases": ["pin", "battery"]
+      "aliases": [
+        "pin",
+        "battery"
+      ]
     },
     {
       "id": "scrap-metal",
@@ -71,7 +174,11 @@
       "transferable": true,
       "discardable": true,
       "effects": [],
-      "aliases": ["phế liệu", "mảnh sắt", "scrap"]
+      "aliases": [
+        "phế liệu",
+        "mảnh sắt",
+        "scrap"
+      ]
     }
   ]
 }
