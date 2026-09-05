@@ -1,0 +1,8 @@
+Backroom 1.1.49.1
+
+- Splits the Android game UI into two pages: GAME and THÔNG TIN.
+- GAME contains the main gameplay flow through the THỰC HIỆN action button.
+- THÔNG TIN contains status, Save/Load, Party, Inventory and character information panels.
+- Keeps the Android 15 startup safety fix from 1.1.49.
+- Bumps Android versionCode to 126 for upgrade installation over versionCode 125.
+- Release validation keeps unit/build/signature/package checks; Android emulator execution is intentionally skipped for this release.
