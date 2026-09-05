@@ -134,8 +134,8 @@ jobs:
           overlay_manifest = json.loads(Path('android-apk/entity-overlay-source.json').read_text(encoding='utf-8'))
           overlay_dir = Path('android-apk/app/src/main/assets/entity_overlays')
 
-          assert "versionCode 128" in gradle
-          assert "versionName '1.1.49.3'" in gradle
+          assert "versionCode 129" in gradle
+          assert "versionName '1.1.49.4'" in gradle
           assert 'state&&state.partyDetails&&Array.isArray(state.partyDetails.members)' in html
           assert 'id="characterSurvivalHud"' in html
           assert '.message.gm{' in html
@@ -200,7 +200,7 @@ jobs:
         run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
 
       - name: Prepare APK
-        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.1.49.3.apk
+        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.1.49.4.apk
 
       - name: Verify APK signature and launcher
         run: |
@@ -209,35 +209,35 @@ jobs:
           AAPT="$BUILD_TOOLS/aapt"
           test -x "$APKSIGNER"
           test -x "$AAPT"
-          "$APKSIGNER" verify --verbose --print-certs Backroom-1.1.49.3.apk
-          "$AAPT" dump badging Backroom-1.1.49.3.apk | grep -q "package: name='com.rabpit.backroom'"
-          "$AAPT" dump badging Backroom-1.1.49.3.apk | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
-          unzip -l Backroom-1.1.49.3.apk | grep -q 'AndroidManifest.xml'
-          unzip -l Backroom-1.1.49.3.apk | grep -q 'assets/index.html'
-          unzip -l Backroom-1.1.49.3.apk | grep -q 'assets/entity_overlays/slenderman.png'
-          unzip -l Backroom-1.1.49.3.apk | grep -q 'classes.dex'
+          "$APKSIGNER" verify --verbose --print-certs Backroom-1.1.49.4.apk
+          "$AAPT" dump badging Backroom-1.1.49.4.apk | grep -q "package: name='com.rabpit.backroom'"
+          "$AAPT" dump badging Backroom-1.1.49.4.apk | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
+          unzip -l Backroom-1.1.49.4.apk | grep -q 'AndroidManifest.xml'
+          unzip -l Backroom-1.1.49.4.apk | grep -q 'assets/index.html'
+          unzip -l Backroom-1.1.49.4.apk | grep -q 'assets/entity_overlays/slenderman.png'
+          unzip -l Backroom-1.1.49.4.apk | grep -q 'classes.dex'
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Backroom-1.1.49.3-apk
-          path: Backroom-1.1.49.3.apk
+          name: Backroom-1.1.49.4-apk
+          path: Backroom-1.1.49.4.apk
           if-no-files-found: error
           retention-days: 14
 
-      - name: Publish GitHub Release v1.1.49.3
+      - name: Publish GitHub Release v1.1.49.4
         if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="v1.1.49.3"
-          TITLE="Backroom 1.1.49.3"
-          NOTES=$(cat android-apk/RELEASE_NOTES_1.1.49.3.txt)
+          TAG="v1.1.49.4"
+          TITLE="Backroom 1.1.49.4"
+          NOTES=$(cat android-apk/RELEASE_NOTES_1.1.49.4.txt)
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
-            gh release upload "$TAG" Backroom-1.1.49.3.apk --clobber
+            gh release upload "$TAG" Backroom-1.1.49.4.apk --clobber
           else
-            gh release create "$TAG" Backroom-1.1.49.3.apk --target "$GITHUB_SHA" --title "$TITLE" --notes "$NOTES"
+            gh release create "$TAG" Backroom-1.1.49.4.apk --target "$GITHUB_SHA" --title "$TITLE" --notes "$NOTES"
           fi
 
       - name: Verify published APK and record GREEN release
@@ -245,20 +245,20 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          rm -f Backroom-1.1.49.3-verified.apk
-          gh release view v1.1.49.3 --repo "$GITHUB_REPOSITORY"
-          gh release download v1.1.49.3 --repo "$GITHUB_REPOSITORY" --pattern 'Backroom-1.1.49.3.apk' --output Backroom-1.1.49.3-verified.apk
-          test -s Backroom-1.1.49.3-verified.apk
-          unzip -l Backroom-1.1.49.3-verified.apk | grep -q 'AndroidManifest.xml'
-          unzip -l Backroom-1.1.49.3-verified.apk | grep -q 'assets/index.html'
-          unzip -l Backroom-1.1.49.3-verified.apk | grep -q 'assets/avatars/an_nhien_avatar.png'
-          unzip -l Backroom-1.1.49.3-verified.apk | grep -q 'assets/entity_overlays/slenderman.png'
-          unzip -l Backroom-1.1.49.3-verified.apk | grep -q 'classes.dex'
-          SHA256=$(sha256sum Backroom-1.1.49.3-verified.apk | awk '{print $1}')
+          rm -f Backroom-1.1.49.4-verified.apk
+          gh release view v1.1.49.4 --repo "$GITHUB_REPOSITORY"
+          gh release download v1.1.49.4 --repo "$GITHUB_REPOSITORY" --pattern 'Backroom-1.1.49.4.apk' --output Backroom-1.1.49.4-verified.apk
+          test -s Backroom-1.1.49.4-verified.apk
+          unzip -l Backroom-1.1.49.4-verified.apk | grep -q 'AndroidManifest.xml'
+          unzip -l Backroom-1.1.49.4-verified.apk | grep -q 'assets/index.html'
+          unzip -l Backroom-1.1.49.4-verified.apk | grep -q 'assets/avatars/an_nhien_avatar.png'
+          unzip -l Backroom-1.1.49.4-verified.apk | grep -q 'assets/entity_overlays/slenderman.png'
+          unzip -l Backroom-1.1.49.4-verified.apk | grep -q 'classes.dex'
+          SHA256=$(sha256sum Backroom-1.1.49.4-verified.apk | awk '{print $1}')
           mkdir -p release-status
-          printf 'status=GREEN\nversion=1.1.49.3\ntag=v1.1.49.3\nasset=Backroom-1.1.49.3.apk\nsource_sha=%s\nrun_id=%s\nsha256=%s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$SHA256" > release-status/v1.1.49.3.txt
+          printf 'status=GREEN\nversion=1.1.49.4\ntag=v1.1.49.4\nasset=Backroom-1.1.49.4.apk\nsource_sha=%s\nrun_id=%s\nsha256=%s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$SHA256" > release-status/v1.1.49.4.txt
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add release-status/v1.1.49.3.txt
-          git commit -m 'Record verified Backroom 1.1.49.3 release'
+          git add release-status/v1.1.49.4.txt
+          git commit -m 'Record verified Backroom 1.1.49.4 release'
           git push origin HEAD:main
