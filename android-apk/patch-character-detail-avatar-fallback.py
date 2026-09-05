@@ -109,3 +109,7 @@ runpy.run_path(str(ROOT / "patch-combat-start-pacing-newgame.py"), run_name="__m
 # ellipse ground shadows for pixel overlays, and runtime detection/bloom for lamp-like fixtures.
 runpy.run_path(str(ROOT / "patch-combat-visual-effects.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-combat-visual-effects-loop-guard.py"), run_name="__main__")
+
+# Correct regressions found on-device after the first visual pass. This must stay last because it
+# replaces final generated HTML/CombatCore anchors produced by every patch above.
+runpy.run_path(str(ROOT / "patch-combat-ux-regression-final.py"), run_name="__main__")
