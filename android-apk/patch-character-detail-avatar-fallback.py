@@ -61,3 +61,6 @@ runpy.run_path(str(ROOT / "patch-knowledge-context-builder.py"), run_name="__mai
 
 # Deterministic OLD-vs-NEW context contract benchmark. Failure blocks the build.
 runpy.run_path(str(ROOT / "benchmark-knowledge-context.py"), run_name="__main__")
+
+# Final presentation split: GAME ends at THỰC HIỆN; all following status/panels live on page 2.
+runpy.run_path(str(ROOT / "patch-two-page-ui.py"), run_name="__main__")
