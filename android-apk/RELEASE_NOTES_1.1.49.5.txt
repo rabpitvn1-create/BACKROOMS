@@ -1,0 +1,10 @@
+Backroom 1.1.49.5
+
+- Ships the Inventory V2 architecture on the release line: data-driven item definitions, Explore Loot / Entity Drop as the only authoritative quantity sources, real ownership transfer/request/give-and-use, discard as a destructive sink, and Equipment separated from normal Inventory capacity.
+- Keeps the final capacity contract at 14 normal slots with up to x9999 per stackable type for Kai, and 8 slots with up to x99 for every non-Kai character, while preserving character-specific eligibility rules such as An Nhiên FOOD-only.
+- Removes legacy world-item pickup ownership, narrative inventory reconciliation, and Omnivault Scan/Copy/create paths from the authoritative item flow.
+- Includes the Level-transition synchronization fix so Snapshot imagery and the Information tab follow the authoritative Core level after transitions.
+- Includes the latest Syvial/Iris skill-cycle updates and current Entity basic-information refreshes already merged to main.
+- Preserves the existing save schema and current gameplay state compatibility.
+- Bumps Android versionCode to 130 and versionName to 1.1.49.5 for upgrade installation over 1.1.49.4.
+- Release validation rebuilds and gates the LiteRT intent model, applies the exact Android runtime patch chain, runs Kotlin unit tests, assembles and verifies the APK, publishes v1.1.49.5, then downloads the published asset and records GREEN release status.
