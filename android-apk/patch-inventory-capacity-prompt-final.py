@@ -28,7 +28,9 @@ policy = (
 )
 marker = "INVENTORY V2 CONTRACT: Inventory chỉ tăng từ Explore Loot hoặc Entity Drop"
 if marker not in main:
-    anchor = '"GAMEPLAY_ROLLS do Android sinh là bất biến:'
+    # ENTITY ROAMING HARD LOCK is emitted by the final knowledge/canon chain and survives the later
+    # combat transforms. Use it rather than an older GAMEPLAY_ROLLS spelling that changes by patch.
+    anchor = "ENTITY ROAMING HARD LOCK:"
     pos = main.find(anchor)
     if pos < 0:
         raise RuntimeError("Inventory V2 writer anchor missing")
