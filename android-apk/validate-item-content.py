@@ -15,6 +15,7 @@ CATEGORIES = {"CONSUMABLE", "TOOL", "AMMO", "MATERIAL", "EQUIPMENT", "KEY_ITEM",
 STACK_MODES = {"STACK", "INSTANCE"}
 CONTENT_MODELS = {"FULL_LOW_EMPTY"}
 KNOWN_EFFECTS = {"WATER", "FOOD"}
+DEFAULT_STACK_LIMIT = 9999
 
 
 def fail(message: str) -> None:
@@ -56,7 +57,7 @@ for index, item in enumerate(items):
     stack_mode = str(item.get("stackMode", "STACK")).upper()
     if stack_mode not in STACK_MODES:
         fail(f"{where}.stackMode is invalid: {stack_mode}")
-    max_stack = item.get("maxStack", 1 if stack_mode == "INSTANCE" else 99)
+    max_stack = item.get("maxStack", 1 if stack_mode == "INSTANCE" else DEFAULT_STACK_LIMIT)
     if not isinstance(max_stack, int) or max_stack <= 0:
         fail(f"{where}.maxStack must be a positive integer")
     if stack_mode == "INSTANCE" and max_stack != 1:
@@ -112,7 +113,7 @@ for table_name, entries in tables.items():
             fail(f"{where} has an invalid quantity range")
         if item_id is not None:
             definition = next(item for item in items if item["id"] == item_id)
-            stack_limit = definition.get("maxStack", 1 if definition.get("stackMode") == "INSTANCE" else 99)
+            stack_limit = definition.get("maxStack", 1 if definition.get("stackMode") == "INSTANCE" else DEFAULT_STACK_LIMIT)
             if maximum > stack_limit:
                 fail(f"{where}.maxQuantity exceeds {item_id} maxStack={stack_limit}")
 
