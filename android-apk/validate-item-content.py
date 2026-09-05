@@ -6,7 +6,8 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-ASSETS = ROOT / "app/src/main/assets/items"
+ASSETS_ROOT = ROOT / "app/src/main/assets"
+ASSETS = ASSETS_ROOT / "items"
 CATALOG = ASSETS / "item_catalog.json"
 LOOT = ASSETS / "loot_tables.json"
 
@@ -14,7 +15,9 @@ ID_RE = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
 CATEGORIES = {"CONSUMABLE", "TOOL", "AMMO", "MATERIAL", "EQUIPMENT", "KEY_ITEM", "OTHER"}
 STACK_MODES = {"STACK", "INSTANCE"}
 CONTENT_MODELS = {"FULL_LOW_EMPTY"}
-KNOWN_EFFECTS = {"WATER", "FOOD"}
+LEGACY_EFFECTS = {"WATER", "FOOD"}
+CLEAR_EFFECTS = {"CLEAR_BLEED", "CLEAR_MILD_SICKNESS"}
+ADDITIVE_EFFECT_RE = re.compile(r"^(WATER|FOOD|REST|HP)\+([1-9][0-9]{0,3})$")
 DEFAULT_STACK_LIMIT = 9999
 
 
@@ -27,6 +30,39 @@ def read_json(path: Path) -> dict:
         return json.loads(path.read_text(encoding="utf-8"))
     except Exception as exc:
         fail(f"{path.relative_to(ROOT)}: {exc}")
+
+
+def valid_effect(raw: object) -> bool:
+    effect = str(raw).strip().upper()
+    if effect in LEGACY_EFFECTS or effect in CLEAR_EFFECTS:
+        return True
+    match = ADDITIVE_EFFECT_RE.fullmatch(effect)
+    if not match:
+        return False
+    kind, value_raw = match.groups()
+    value = int(value_raw)
+    if kind in {"WATER", "FOOD", "REST"}:
+        return 1 <= value <= 100
+    return 1 <= value <= 999
+
+
+def webp_dimensions(path: Path) -> tuple[int, int] | None:
+    data = path.read_bytes()
+    if len(data) < 30 or data[:4] != b"RIFF" or data[8:12] != b"WEBP":
+        return None
+    chunk = data[12:16]
+    if chunk == b"VP8X":
+        width = 1 + int.from_bytes(data[24:27], "little")
+        height = 1 + int.from_bytes(data[27:30], "little")
+        return width, height
+    if chunk == b"VP8L":
+        if len(data) < 25 or data[20] != 0x2F:
+            return None
+        bits = int.from_bytes(data[21:25], "little")
+        width = 1 + (bits & 0x3FFF)
+        height = 1 + ((bits >> 14) & 0x3FFF)
+        return width, height
+    return None
 
 
 catalog = read_json(CATALOG)
@@ -72,9 +108,23 @@ for index, item in enumerate(items):
     effects = item.get("effects", [])
     if not isinstance(effects, list):
         fail(f"{where}.effects must be an array")
-    unknown_effects = {str(effect).upper() for effect in effects} - KNOWN_EFFECTS
-    if unknown_effects:
-        fail(f"{where}.effects contains unknown handlers: {sorted(unknown_effects)}")
+    invalid_effects = [str(effect) for effect in effects if not valid_effect(effect)]
+    if invalid_effects:
+        fail(f"{where}.effects contains unknown handlers: {invalid_effects}")
+    icon = str(item.get("icon", "")).strip()
+    if icon:
+        if not icon.startswith("items/icons/") or not icon.endswith(".webp"):
+            fail(f"{where}.icon must be a WebP under items/icons/")
+        icon_path = (ASSETS_ROOT / icon).resolve()
+        try:
+            icon_path.relative_to(ASSETS_ROOT.resolve())
+        except ValueError:
+            fail(f"{where}.icon escapes the assets directory")
+        if not icon_path.is_file():
+            fail(f"{where}.icon does not exist: {icon}")
+        dims = webp_dimensions(icon_path)
+        if dims != (128, 128):
+            fail(f"{where}.icon must be 128x128 WebP, got {dims}")
     aliases = [name, item_id, *item.get("aliases", [])]
     for raw_alias in aliases:
         alias = str(raw_alias).strip().lower()
