@@ -1,48 +1,97 @@
 name: Preflight Snapshot Rotation
 
 on:
-  push:
+  pull_request:
     branches:
       - main
     paths:
+      - "android-apk/fetch-level-snapshots.py"
+      - "android-apk/snapshot_sources.json"
+      - "android-apk/patch-level-snapshot-backgrounds.py"
+      - "android-apk/app/src/main/assets/level_snapshots/**"
       - ".github/workflows/preflight-snapshot-rotation.yml"
+  workflow_dispatch:
 
 permissions:
-  actions: write
   contents: read
 
 jobs:
-  cleanup-stale-workflow-history:
+  snapshot-preflight:
     runs-on: ubuntu-latest
     steps:
-      - name: Delete obsolete workflow run history
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPO: ${{ github.repository }}
-        shell: bash
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate source manifest and fetch 28 images
         run: |
-          set -euo pipefail
+          python3 -m py_compile android-apk/fetch-level-snapshots.py android-apk/patch-level-snapshot-backgrounds.py
+          python3 android-apk/fetch-level-snapshots.py
+          test "$(find android-apk/app/src/main/assets/level_snapshots/rotation -maxdepth 1 -type f | wc -l)" -eq 28
 
-          gh api --paginate "/repos/${REPO}/actions/runs?per_page=100" \
-            --jq '.workflow_runs[] | [.id, .name] | @tsv' > /tmp/all-runs.tsv
+      - name: Apply exact Android release patch chain
+        run: |
+          python3 android-apk/patch-provider-status.py
+          python3 android-apk/patch-luna-text.py
+          python3 android-apk/patch-level-snapshot-backgrounds.py
+          python3 android-apk/patch-snapshot-fallback.py
+          python3 android-apk/patch-kai-hd-continuous.py
+          python3 android-apk/patch-kai-png-preferred.py
+          python3 android-apk/patch-kai-codex.py
+          python3 android-apk/patch-r06-source-marker.py
+          python3 android-apk/patch-drive-canon-gameplay.py
+          python3 android-apk/patch-inventory-persistence.py
+          python3 android-apk/patch-ai-orchestrator.py
+          python3 android-apk/patch-state-op-hardening.py
+          python3 android-apk/patch-gemini-health-pool.py
+          python3 android-apk/patch-conditional-audit.py
+          python3 android-apk/patch-audit-validated-risk.py
+          python3 android-apk/patch-gameplay-parity-final.py
+          python3 android-apk/patch-final-authority-hardening.py
+          python3 android-apk/patch-rejected-op-repair-final.py
+          python3 android-apk/patch-kai-resource-policy-final.py
+          python3 android-apk/patch-provider-deadline-final.py
+          python3 android-apk/patch-gemini-model-matrix-final.py
+          python3 android-apk/patch-java-compile-hardening.py
+          python3 android-apk/patch-save-controls-final.py
+          python3 android-apk/patch-hard-mode-label.py
+          python3 android-apk/patch-snapshot-unconfigured.py
+          python3 android-apk/patch-game-state-core-bridge.py
+          python3 android-apk/patch-character-inventory-ui.py
+          python3 android-apk/patch-character-detail-avatar-fallback.py
 
-          deleted=0
-          while IFS=$'\t' read -r run_id run_name; do
-            case "$run_name" in
-              "Import Lucia avatar from Drive"|\
-              "Import Packaged Level Snapshots"|\
-              "Import Red Flood Drive snapshot"|\
-              "Local Save Level Sync CI"|\
-              "One-shot legacy premise cleanup"|\
-              "Apply hourly Dullness continuity"|\
-              "Apply hourly story step"|\
-              "Build Physical Diagnostic APK"|\
-              "Entity Drive Overlay Step 4 Test")
-                echo "Deleting run ${run_id}: ${run_name}"
-                gh api --method DELETE "/repos/${REPO}/actions/runs/${run_id}"
-                deleted=$((deleted + 1))
-                ;;
-            esac
-          done < /tmp/all-runs.tsv
+      - name: Verify deterministic four-image rotation contract
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
 
-          echo "Deleted ${deleted} obsolete workflow runs."
+          manifest = json.loads(Path('android-apk/snapshot_sources.json').read_text(encoding='utf-8'))
+          assert manifest['rotation_turns'] == 3
+          assert [entry['level'] for entry in manifest['levels']] == list(range(7))
+          assert all([image['slot'] for image in entry['images']] == [1, 2, 3, 4] for entry in manifest['levels'])
+
+          java = Path('android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java').read_text(encoding='utf-8')
+          assert 'Math.floor((snapshotTurn-1)/3)%seq.length' in java
+          assert "bg.src=seq[snapshotSlot]" in java
+          assert "Snapshot '+(snapshotSlot+1)+' / 4" in java
+          for level in range(7):
+              for slot in range(1, 5):
+                  marker = f'level_snapshots/rotation/level_{level}_{slot}.'
+                  assert marker in java, marker
+          PY
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+
+      - name: Run Android unit tests and compile debug APK
+        working-directory: android-apk
+        run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
