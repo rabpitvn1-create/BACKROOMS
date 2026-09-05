@@ -73,6 +73,7 @@ PATCH_CHAIN = [
     "patch-litert-snapshot-light-final.py",
     "patch-snapshot-light-compile-fix.py",
     "patch-snapshot-visual-runtime-final.py",
+    "patch-issue406-item-use-final.py",
 ]
 
 for patch_name in PATCH_CHAIN:
