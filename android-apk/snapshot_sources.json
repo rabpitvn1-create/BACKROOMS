@@ -1,0 +1,310 @@
+{
+  "rotation_turns": 3,
+  "levels": [
+    {
+      "level": 0,
+      "images": [
+        {
+          "slot": 1,
+          "name": "Backrooms",
+          "author": "Bob Mazza",
+          "license": "CC0 1.0",
+          "source_page": "https://backrooms-wiki.wikidot.com/level-0",
+          "urls": [
+            "https://backrooms-wiki.wikidot.com/local--files/level-0/OGLevel0.jpg",
+            "https://backrooms-wiki.wdfiles.com/local--files/level-0/OGLevel0.jpg"
+          ]
+        },
+        {
+          "slot": 2,
+          "name": "4",
+          "author": "Alfarex",
+          "license": "CC BY-SA 4.0",
+          "source_page": "https://backrooms-wiki.wikidot.com/level-0",
+          "urls": [
+            "https://backrooms-wiki.wikidot.com/local--files/level-0/1",
+            "https://backrooms-wiki.wdfiles.com/local--files/level-0/1"
+          ]
+        },
+        {
+          "slot": 3,
+          "name": "3",
+          "author": "Alfarex",
+          "license": "CC BY-SA 4.0",
+          "source_page": "https://backrooms-wiki.wikidot.com/level-0",
+          "urls": [
+            "https://backrooms-wiki.wikidot.com/local--files/level-0/3",
+            "https://backrooms-wiki.wdfiles.com/local--files/level-0/3"
+          ]
+        },
+        {
+          "slot": 4,
+          "name": "5",
+          "author": "Alfarex",
+          "license": "CC BY-SA 4.0",
+          "source_page": "https://backrooms-wiki.wikidot.com/level-0",
+          "urls": [
+            "https://backrooms-wiki.wikidot.com/local--files/level-0/5",
+            "https://backrooms-wiki.wdfiles.com/local--files/level-0/5"
+          ]
+        }
+      ]
+    },
+    {
+      "level": 1,
+      "images": [
+        {
+          "slot": 1,
+          "name": "003",
+          "author": "SunCon Photos",
+          "license": "CC BY 2.0",
+          "source_page": "https://backrooms-wiki.wikidot.com/level-1",
+          "urls": [
+            "https://backrooms-wiki.wikidot.com/local--files/level-1/artlivesinme",
+            "https://backrooms-wiki.wdfiles.com/local--files/level-1/artlivesinme"
+          ]
+        },
+        {
+          "slot": 2,
+          "name": "TQM Site Walk at Putra Place 057",
+          "author": "SunCon Photos",
+          "license": "CC BY 2.0",
+          "source_page": "https://backrooms-wiki.wikidot.com/level-1",
+          "urls": [
+            "https://backrooms-wiki.wikidot.com/local--files/level-1/Carrousel%20suncon%202",
+            "https://backrooms-wiki.wdfiles.com/local--files/level-1/Carrousel%20suncon%202"
+          ]
+        },
+        {
+          "slot": 3,
+          "name": "2015-01-12 TQM Site Walk Putra Place",
+          "author": "SunCon Photos",
+          "license": "CC BY 2.0",
+          "source_page": "https://backrooms-wiki.wikidot.com/level-1",
+          "urls": [
+            "https://backrooms-wiki.wikidot.com/local--files/level-1/Carrousel%20suncon%203",
+            "https://backrooms-wiki.wdfiles.com/local--files/level-1/Carrousel%20suncon%203"
+          ]
+        },
+        {
+          "slot": 4,
+          "name": "2014-06-13 TQM Site Walk Putra Place",
+          "author": "SunCon Photos",
+          "license": "CC BY 2.0",
+          "source_page": "https://backrooms-wiki.wikidot.com/level-1",
+          "urls": [
+            "https://backrooms-wiki.wikidot.com/local--files/level-1/Carrousel%20suncon%204",
+            "https://backrooms-wiki.wdfiles.com/local--files/level-1/Carrousel%20suncon%204"
+          ]
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "images": [
+        {
+          "slot": 1,
+          "name": "Northbound Tunnel",
+          "author": "taberandrew",
+          "license": "CC BY 2.0",
+          "source_page": "https://backrooms-wiki.wikidot.com/level-2",
+          "urls": ["https://backrooms-wiki.wdfiles.com/local--files/level-2/2first.jpg"]
+        },
+        {
+          "slot": 2,
+          "name": "Ice Tunnel",
+          "author": "Alan Light",
+          "license": "CC BY 2.0",
+          "source_page": "https://backrooms-wiki.wikidot.com/level-2",
+          "urls": ["https://backrooms-wiki.wdfiles.com/local--files/level-2/2piping.jpg"]
+        },
+        {
+          "slot": 3,
+          "name": "fluorescent lights",
+          "author": "OiMax",
+          "license": "CC BY 2.0",
+          "source_page": "https://backrooms-wiki.wikidot.com/level-2",
+          "urls": ["https://backrooms-wiki.wdfiles.com/local--files/level-2/2fluorescent.jpg"]
+        },
+        {
+          "slot": 4,
+          "name": "Fluorescent Light",
+          "author": "uetchy",
+          "license": "CC BY 2.0",
+          "source_page": "https://backrooms-wiki.wikidot.com/level-2",
+          "urls": ["https://backrooms-wiki.wdfiles.com/local--files/level-2/2fluorescent2.jpg"]
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "images": [
+        {
+          "slot": 1,
+          "name": "Prison Tour",
+          "author": "Steve Mays",
+          "license": "CC BY 2.0",
+          "source_page": "https://backrooms-wiki.wikidot.com/level-3",
+          "urls": ["https://natedagreat563.wdfiles.com/local--files/storage-unit-4/Level3FirstPhoto"]
+        },
+        {
+          "slot": 2,
+          "name": "sewers",
+          "author": "Graeme Maclean",
+          "license": "CC BY 2.0",
+          "source_page": "https://backrooms-wiki.wikidot.com/level-3",
+          "urls": ["https://natedagreat563.wdfiles.com/local--files/storage-unit-4/Level3Thin"]
+        },
+        {
+          "slot": 3,
+          "name": "Level3HallNew",
+          "author": "Natedagreat563",
+          "license": "CC BY-SA 3.0",
+          "source_page": "https://backrooms-wiki.wikidot.com/level-3",
+          "urls": ["https://natedagreat563.wdfiles.com/local--files/storage-unit-4/Level3HallNew"]
+        },
+        {
+          "slot": 4,
+          "name": "Prison Tour (dark hall)",
+          "author": "Steve Mays",
+          "license": "CC BY 2.0",
+          "source_page": "https://backrooms-wiki.wikidot.com/level-3",
+          "urls": [
+            "https://natedagreat563.wdfiles.com/local--files/storage-unit-4/Level3Dark",
+            "https://natedagreat563.wdfiles.com/local--files/storage-unit-4/DarkLevel3"
+          ]
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "images": [
+        {
+          "slot": 1,
+          "name": "Level4Workrooms1",
+          "author": "Backrooms Wiki contributors",
+          "license": "See Fandom file/source page",
+          "source_page": "https://backrooms.fandom.com/wiki/Level_4",
+          "urls": ["https://backrooms.fandom.com/wiki/Special:Redirect/file/Level4Workrooms1.png"]
+        },
+        {
+          "slot": 2,
+          "name": "Level4Workrooms2",
+          "author": "Backrooms Wiki contributors",
+          "license": "See Fandom file/source page",
+          "source_page": "https://backrooms.fandom.com/wiki/Level_4",
+          "urls": ["https://backrooms.fandom.com/wiki/Special:Redirect/file/Level4Workrooms2.png"]
+        },
+        {
+          "slot": 3,
+          "name": "Level4Workrooms3",
+          "author": "Backrooms Wiki contributors",
+          "license": "See Fandom file/source page",
+          "source_page": "https://backrooms.fandom.com/wiki/Level_4",
+          "urls": ["https://backrooms.fandom.com/wiki/Special:Redirect/file/Level4Workrooms3.png"]
+        },
+        {
+          "slot": 4,
+          "name": "Level4Workrooms4",
+          "author": "Backrooms Wiki contributors",
+          "license": "See Fandom file/source page",
+          "source_page": "https://backrooms.fandom.com/wiki/Level_4",
+          "urls": ["https://backrooms.fandom.com/wiki/Special:Redirect/file/Level4Workrooms4.png"]
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "images": [
+        {
+          "slot": 1,
+          "name": "Main Hall",
+          "author": "Steam Pipe Trunk Distribution Venue",
+          "license": "CC BY 2.0",
+          "source_page": "https://backrooms-wiki.wikidot.com/level-5",
+          "urls": ["https://backrooms-wiki.wdfiles.com/local--files/level-5/Level-5-1-cc.png"]
+        },
+        {
+          "slot": 2,
+          "name": "HMS Belfast boiler room",
+          "author": "Les Chatfield",
+          "license": "CC BY 2.0",
+          "source_page": "https://backrooms-wiki.wikidot.com/level-5",
+          "urls": ["https://backrooms-wiki.wdfiles.com/local--files/level-5/Level-5-2-cc.jpg"]
+        },
+        {
+          "slot": 3,
+          "name": "Boiler room",
+          "author": "Joshua Crauswell",
+          "license": "CC BY-SA 2.0",
+          "source_page": "https://backrooms-wiki.wikidot.com/level-5",
+          "urls": ["https://backrooms-wiki.wdfiles.com/local--files/level-5/Level-5-3-cc.jpg"]
+        },
+        {
+          "slot": 4,
+          "name": "Level-5-Ballroom",
+          "author": "Backrooms Wiki contributors",
+          "license": "See Fandom file/source page",
+          "source_page": "https://backrooms.fandom.com/wiki/Level_5",
+          "urls": [
+            "https://backrooms.fandom.com/wiki/Special:Redirect/file/Level-5-Ballroom.jpg",
+            "https://backrooms.fandom.com/wiki/Special:Redirect/file/Level-5-Ballroom.png",
+            "https://backrooms.fandom.com/wiki/Special:Redirect/file/Level-5-Ballroom.jpeg"
+          ]
+        }
+      ]
+    },
+    {
+      "level": 6,
+      "images": [
+        {
+          "slot": 1,
+          "name": "Level 6 Deviantart",
+          "author": "See source page",
+          "license": "See Fandom file/source page",
+          "source_page": "https://backrooms.fandom.com/wiki/Level_6",
+          "urls": [
+            "https://backrooms.fandom.com/wiki/Special:Redirect/file/Level_6_Deviantart.jpg",
+            "https://backrooms.fandom.com/wiki/Special:Redirect/file/Level_6_Deviantart.png",
+            "https://backrooms.fandom.com/wiki/Special:Redirect/file/Level_6_Deviantart.jpeg"
+          ]
+        },
+        {
+          "slot": 2,
+          "name": "Untitled205 20240925204431",
+          "author": "See source page",
+          "license": "See Fandom file/source page",
+          "source_page": "https://backrooms.fandom.com/wiki/Level_6",
+          "urls": [
+            "https://backrooms.fandom.com/wiki/Special:Redirect/file/Untitled205_20240925204431.png",
+            "https://backrooms.fandom.com/wiki/Special:Redirect/file/Untitled205_20240925204431.jpg",
+            "https://backrooms.fandom.com/wiki/Special:Redirect/file/Untitled205_20240925204431.jpeg"
+          ]
+        },
+        {
+          "slot": 3,
+          "name": "Lights Out",
+          "author": "Escape the Backrooms Wiki image contributor",
+          "license": "See Fandom file/source page",
+          "source_page": "https://backrooms.fandom.com/wiki/Level_6",
+          "urls": [
+            "https://backrooms.fandom.com/wiki/Special:Redirect/file/Lights_Out.jpg",
+            "https://backrooms.fandom.com/wiki/Special:Redirect/file/Lights_Out.png"
+          ]
+        },
+        {
+          "slot": 4,
+          "name": "Umbrallight",
+          "author": "See source page",
+          "license": "See Fandom file/source page",
+          "source_page": "https://backrooms.fandom.com/wiki/Level_6",
+          "urls": [
+            "https://backrooms.fandom.com/wiki/Special:Redirect/file/Umbrallight.png",
+            "https://backrooms.fandom.com/wiki/Special:Redirect/file/Umbrallight.jpg",
+            "https://backrooms.fandom.com/wiki/Special:Redirect/file/Umbrallight.jpeg"
+          ]
+        }
+      ]
+    }
+  ]
+}
