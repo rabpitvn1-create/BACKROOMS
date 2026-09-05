@@ -132,6 +132,7 @@ SCRIPTS = [
     "patch-issue330-runtime-diagnostics-final.py",
     "patch-issue330-turn-correlation-final.py",
     "patch-lucia-recruitment-state-final.py",
+    "patch-new-game-level0-runtime-entry.py",
 ]
 
 for required in (AUDIT_RUNNER, ORPHAN_AUDIT, COMPACT_VERIFY, ENCOUNTER_VERIFY):
