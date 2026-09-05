@@ -110,6 +110,10 @@ runpy.run_path(str(ROOT / "patch-combat-start-pacing-newgame.py"), run_name="__m
 runpy.run_path(str(ROOT / "patch-combat-visual-effects.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-combat-visual-effects-loop-guard.py"), run_name="__main__")
 
+# Correct regressions found on-device after the first visual pass. This must stay last because it
+# replaces final generated HTML/CombatCore anchors produced by every patch above.
+runpy.run_path(str(ROOT / "patch-combat-ux-regression-final.py"), run_name="__main__")
+
 # Last-mile gameplay retcon: An Nhiên is optional and rolls at exactly 0.0000025% on eligible
-# physical Level-0 turns. This must run after Lucia/canon/combat transforms so no legacy gate returns.
+# physical Level-0 turns. It intentionally runs after all combat/canon/UX transforms.
 runpy.run_path(str(ROOT / "patch-an-nhien-rare-spawn-final.py"), run_name="__main__")
