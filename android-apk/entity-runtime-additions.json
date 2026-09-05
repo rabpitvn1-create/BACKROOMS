@@ -149,13 +149,13 @@
       "domain": "ENTITY",
       "kind": "entity",
       "text": "Wretch is a hostile human-derived creature associated with the Wretched Cycle. Appearance: advanced Wretches are skeletal humanoids with dry reddish-brown flaky skin, holes and pustules, severe tissue loss, displaced or excessive teeth and nails, permanently exposed or distorted eyes, and brown sludge leaking from the mouth or other openings; mutations can add misplaced eyes or deformed limbs. Current Backrooms Wiki says transformation follows deprivation and can produce anything from shambling to very fast, unusually strong individuals. Project canon preserves the established hunting-through-sound-and-scent behavior and does not treat any retained human trace as friendliness or reversibility after a fully hostile encounter.",
-      "source": {"document": "01_WORLD/entity.md", "anchor": "ENT-3A"},
+      "source": {"document": "01_WORLD/entity.md", "anchor": "ENT-3B"},
       "authority": "WORLD_CANON",
       "mutability": "IMMUTABLE",
-      "priority": 58,
-      "tags": ["wretch", "wretches"],
+      "priority": 60,
+      "tags": ["wretch"],
       "references": ["ENTITY.GLOBAL_HARD_LOCK"],
-      "affordances": ["direct_threat", "trace_analysis"]
+      "affordances": ["direct_threat"]
     },
     {
       "id": "ENTITY.HOTEL_CORPSE_LURE",
