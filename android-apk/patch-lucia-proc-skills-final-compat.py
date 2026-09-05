@@ -41,6 +41,23 @@ for old, new, label in [
         raise RuntimeError(f"Lucia compat {label}: expected exactly one source match, found {code.count(old)}")
     code = code.replace(old, new, 1)
 
+# Make the engine-level regression deterministic without depending on incidental RNG
+# calls from entity retaliation. Zero keeps every Lucia proc successful while Evasion
+# prevents the target from dying before Lucia reaches her second combat turn.
+old_rng = r'''    val random = SequenceRandom(listOf(
+      0.99, 0.99,
+      0.00, 0.00, 0.99, 0.99,
+      0.99, 0.99,
+      0.99, 0.99,
+      0.00, 0.00, 0.99, 0.99, 0.99
+    ))
+'''
+new_rng = r'''    val random = SequenceRandom(emptyList(), fallback = 0.0)
+'''
+if code.count(old_rng) != 1:
+    raise RuntimeError(f"Lucia compat RNG regression anchor: expected exactly one source match, found {code.count(old_rng)}")
+code = code.replace(old_rng, new_rng, 1)
+
 # The older An Nhiên finalizer already owns the Level-0 transition guard. Extend it
 # after Lucia first-contact logic exists so a pre-discovered exit cannot skip Lucia.
 insert_before_write = '''MAIN.write_text(main, encoding="utf-8")\n'''
