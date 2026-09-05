@@ -127,12 +127,12 @@ new_risk_tail = r'''    if (hasParty && containsAny(reply, "yêu", "thích", "gh
         if ((type.equals("inventory_upsert") || type.equals("inventory_remove")) && !jsonChanged(before.optJSONArray("inventory"), candidate.optJSONArray("inventory"))) score = Math.max(score, 4);
         if (type.equals("patch_player") && !jsonChanged(before.optJSONObject("player"), candidate.optJSONObject("player"))) score = Math.max(score, 4);
         if (type.equals("flag_patch")) {
-          String root = op.optString("root", "");
+          String root = op.optString("root", "").trim();
           JSONObject beforeFlagsLocal = before.optJSONObject("flags");
           JSONObject afterFlagsLocal = candidate.optJSONObject("flags");
           Object beforeRoot = beforeFlagsLocal != null ? beforeFlagsLocal.opt(root) : null;
           Object afterRoot = afterFlagsLocal != null ? afterFlagsLocal.opt(root) : null;
-          if (!jsonChanged(beforeRoot, afterRoot)) score = Math.max(score, 4);
+          if (!jsonChanged(beforeRoot, afterRoot) && !flagPatchSatisfiedAndroid(afterFlagsLocal, op)) score = Math.max(score, 4);
         }
       }
     }
