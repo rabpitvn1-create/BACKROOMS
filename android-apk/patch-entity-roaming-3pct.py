@@ -135,22 +135,20 @@ if 'chancePerEntityPercent", 3.0' not in main:
     if count != 1:
         raise RuntimeError(f"Entity roaming roll block: expected exactly 1 match, found {count}")
 
-# Replace Jeff's old special 2% prose with the same all-Entity 3% policy.
-old_jeff_prompt = (
-    '            "JEFF THE KILLER HARD LOCK: jeffEncounter là roll độc lập 2.0000% trên mỗi lượt physical đủ điều kiện ở Level 0–6 khi Jeff chưa hiện diện. '
-    'Nếu jeffEncounter success=true thì phải xảy ra cuộc gặp Jeff trong chính lượt đó và phải trả flag_patch root=jeff với present=true, spawned=true. '
-    'Nếu success=false và Jeff chưa hiện diện từ state trước thì không được cho Jeff xuất hiện hoặc khẳng định dấu vết chắc chắn là của hắn. '
-    'Nếu Jeff đã present/spawned từ state trước thì tiếp tục cuộc săn không cần reroll. Jeff chỉ săn con người, không phải đồng minh hay NPC trung lập. " +\n'
+# The later knowledge-context patch replaces the older writer prompt entirely, so insert the
+# current roaming rule into the final writer prompt rather than depending on Jeff's retired 2% text.
+policy_text = (
+    'ENTITY ROAMING HARD LOCK: entityEncounter chứa đúng 18 roll độc lập, mỗi Entity 3.0000% trên mỗi lượt physical. '
+    'Không giới hạn Level hoặc môi trường. Mọi ID trong entityEncounter.successIds phải thật sự xuất hiện trong lượt đó; '
+    'Entity không thắng roll không được tự nhiên xuất hiện mới. Nhiều ID có thể cùng thắng và cùng xuất hiện trong một lượt. '
+    'Tất cả Entity đều thù địch với con người. Jeff dùng chính roll ENTITY.JEFF này, không có tỷ lệ riêng. '
 )
-new_policy_prompt = (
-    '            "ENTITY ROAMING HARD LOCK: entityEncounter chứa đúng 18 roll độc lập, mỗi Entity 3.0000% trên mỗi lượt physical. Không giới hạn Level hoặc môi trường. '
-    'Mọi ID trong entityEncounter.successIds phải thật sự xuất hiện trong lượt đó; Entity không thắng roll không được tự nhiên xuất hiện mới. Nhiều ID có thể cùng thắng và cùng xuất hiện trong một lượt. '
-    'Tất cả Entity đều thù địch với con người. Jeff dùng chính roll ENTITY.JEFF này, không có tỷ lệ riêng. " +\n'
-)
-if new_policy_prompt not in main:
-    if old_jeff_prompt not in main:
-        raise RuntimeError("Old Jeff 2% hard-lock prompt anchor missing")
-    main = main.replace(old_jeff_prompt, new_policy_prompt, 1)
+if "ENTITY ROAMING HARD LOCK:" not in main:
+    prompt_anchor = '      "Nếu meta=true, chỉ trả thông tin được hỏi, ops=[] và snapshotEvent=false. Không nhắc database/context/state/roll/prompt trong văn xuôi.\\n\\n" +\n'
+    if prompt_anchor not in main:
+        raise RuntimeError("Final knowledge writer prompt anchor missing")
+    prompt_line = f'      "{policy_text}" +\n'
+    main = main.replace(prompt_anchor, prompt_anchor + prompt_line, 1)
 
 required = [
     'thresholdRoll("ENTITY.HOUND", 10000, 300, physical',
