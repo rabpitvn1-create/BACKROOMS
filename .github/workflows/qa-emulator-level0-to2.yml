@@ -1,0 +1,65 @@
+name: QA Emulator Level 0 to 2
+
+on:
+  push:
+    branches:
+      - qa/emulator-level0-to2-20260905
+    paths:
+      - ".github/workflows/qa-emulator-level0-to2.yml"
+      - "android-apk/qa-emulator-level0-to2.sh"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qa-emulator-level0-to2-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  emulator-traversal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download current published APK
+        run: |
+          gh release download v1.1.49.4 \
+            --repo "$GITHUB_REPOSITORY" \
+            --pattern 'Backroom-1.1.49.4.apk' \
+            --output Backroom-1.1.49.4.apk
+          test -s Backroom-1.1.49.4.apk
+          sha256sum Backroom-1.1.49.4.apk | tee apk-sha256.txt
+
+      - name: Traverse fresh game on Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
+          script: bash android-apk/qa-emulator-level0-to2.sh Backroom-1.1.49.4.apk
+
+      - name: Publish QA summary
+        if: always()
+        run: |
+          if test -f qa-emulator-output/report.md; then
+            cat qa-emulator-output/report.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo '# Emulator traversal report' >> "$GITHUB_STEP_SUMMARY"
+            echo 'QA script did not produce report.md.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload emulator evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-emulator-level0-to2-evidence
+          path: |
+            qa-emulator-output
+            apk-sha256.txt
+          if-no-files-found: warn
+          retention-days: 14
