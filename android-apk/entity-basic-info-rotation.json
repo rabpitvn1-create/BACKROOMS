@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "orderSource": "android-apk/entity-runtime-additions.json#expectedEntityIds",
   "lastUpdatedIds": [
-    "ENTITY.CABLE_MIMIC",
-    "ENTITY.BEAST_LEVEL_5",
-    "ENTITY.HOTEL_CORPSE_LURE"
+    "ENTITY.JEFF",
+    "ENTITY.JANE",
+    "ENTITY.SLENDERMAN"
   ],
-  "nextIndex": 15
+  "nextIndex": 18
 }

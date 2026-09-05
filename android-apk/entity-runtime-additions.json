@@ -197,10 +197,23 @@
       "affordances": ["direct_threat", "identity_check", "trace_analysis"]
     },
     {
+      "id": "ENTITY.JEFF",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Jeff the Killer is a very rare roaming humanoid predator. Appearance: survivors compare him to the best-known Internet-horror depiction, a pale or white-faced young man with dark hair, unnaturally exposed eyes or absent-looking eyelids, and a wide carved or scar-like smile; a knife is a common visual association. External folklore has conflicting origins, so Project canon keeps his identity and human history UNKNOWN. He hunts humans through observation and close ambush, never becomes an ally, and killing one manifestation does not permanently remove Jeff; the reason remains OPEN.",
+      "source": {"document": "01_WORLD/entity.md", "anchor": "ENT-R01 — JEFF THE KILLER"},
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 54,
+      "tags": ["jeff", "jeff the killer"],
+      "references": ["ENTITY.GLOBAL_HARD_LOCK"],
+      "affordances": ["direct_threat", "trace_analysis", "identity_check"]
+    },
+    {
       "id": "ENTITY.JANE",
       "domain": "ENTITY",
       "kind": "entity",
-      "text": "Jane the Killer is a roaming humanoid predator. Internet folklore contains multiple incompatible Jane identities and origin stories, so Project canon does not lock a Frontrooms identity, burn history, supernatural power set or relationship to Jeff; survivors use the name only because of resemblance. Jane stalks humans, uses misdirection and close-range ambush, and may use a blade. She is never an ally, trader, rescuer or neutral contact. Whether separate sightings are one individual and what happens after a confirmed kill remain OPEN.",
+      "text": "Jane the Killer is a roaming humanoid predator whose external folklore has several incompatible identities. Appearance: common versions depict a woman in dark clothing with either an ivory-white face and coal-black hair/eyes, or a white mask with dark eye coverings and painted black lips; a kitchen knife is frequently associated with the character. Because those versions conflict, Project canon locks none of their origins, powers or relationship to Jeff. Jane stalks humans, uses misdirection and close-range ambush, and is never friendly or neutral.",
       "source": {"document": "android-apk/ENTITY_RESEARCH_NOTES.md", "anchor": "ENT-R02 — JANE THE KILLER"},
       "authority": "WORLD_CANON",
       "mutability": "IMMUTABLE",
@@ -213,7 +226,7 @@
       "id": "ENTITY.SLENDERMAN",
       "domain": "ENTITY",
       "kind": "entity",
-      "text": "Slenderman is a roaming anomalous humanoid predator. Survivors use the name because the figure resembles the 2009 Internet horror character: unnaturally tall and thin, faceless, dark-suited, sometimes with long appendage-like limbs. Origin and identity are UNKNOWN. Project behavior: it stalks humans across long sightlines, isolates targets and closes for abduction or lethal attack. It is never friendly or neutral. Do not grant teleportation, omniscience or automatic equipment failure; movement and threat positioning must still obey GM fairness, path, time and evidence.",
+      "text": "Slenderman is a roaming anomalous humanoid predator named for the 2009 Internet-horror figure. Appearance: an unnaturally tall, extremely thin humanoid with a smooth featureless white head, very long arms, and a dark suit; some later depictions add elongated or tentacle-like appendages. External fiction has no single fixed canon, so Project canon keeps origin and identity UNKNOWN and does not automatically import teleportation, omniscience or equipment-failure powers. It stalks humans across long sightlines, isolates targets and closes for abduction or lethal attack under normal fairness, path, time and evidence rules.",
       "source": {"document": "android-apk/ENTITY_RESEARCH_NOTES.md", "anchor": "ENT-R03 — SLENDERMAN"},
       "authority": "WORLD_CANON",
       "mutability": "IMMUTABLE",
