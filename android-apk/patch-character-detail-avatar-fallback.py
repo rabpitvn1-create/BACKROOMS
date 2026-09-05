@@ -97,6 +97,9 @@ runpy.run_path(str(ROOT / "patch-kai-skills-final.py"), run_name="__main__")
 # base HP for progression, then rebuild the temporary x5 envelope so the save cannot be corrupted.
 runpy.run_path(str(ROOT / "patch-kai-skills-progression-compat.py"), run_name="__main__")
 
+# Normalize the final facade around the An Nhien cheat before inserting the pending-combat guard.
+runpy.run_path(str(ROOT / "patch-combat-start-anchor-compat.py"), run_name="__main__")
+
 # Combat no longer consumes the encounter immediately. Stage it, wait for the player to press Start
 # Combat, slow timeline playback to readable pacing, and bootstrap New Game from current Core canon.
 runpy.run_path(str(ROOT / "patch-combat-start-pacing-newgame.py"), run_name="__main__")
