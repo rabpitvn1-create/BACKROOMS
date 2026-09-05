@@ -1,0 +1,107 @@
+name: Clean post-1.1.49 refs
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  prune-post-baseline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Remove releases tags and branches newer than 1.1.49 baseline
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASELINE_SHA: 94c00c166b526b37b43b6249741e0b49f26d6dcd
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --force --prune --tags origin '+refs/heads/*:refs/remotes/origin/*'
+          baseline_epoch=$(git show -s --format=%ct "$BASELINE_SHA")
+
+          gh release list --repo "$GITHUB_REPOSITORY" --limit 1000 --json tagName,publishedAt \
+            --jq '.[] | [.tagName,.publishedAt] | @tsv' |
+          while IFS=$'\t' read -r tag published; do
+            [[ -n "$tag" ]] || continue
+            [[ "$tag" == "v1.1.49" ]] && continue
+            published_epoch=$(date -d "$published" +%s)
+            if (( published_epoch > baseline_epoch )); then
+              echo "Deleting post-1.1.49 release: $tag"
+              gh release delete "$tag" --repo "$GITHUB_REPOSITORY" --yes --cleanup-tag=false
+            fi
+          done
+
+          while IFS= read -r tag; do
+            [[ -n "$tag" ]] || continue
+            [[ "$tag" == "v1.1.49" ]] && continue
+            commit=$(git rev-list -n 1 "$tag")
+            tag_epoch=$(git show -s --format=%ct "$commit")
+            if (( tag_epoch > baseline_epoch )); then
+              echo "Deleting post-1.1.49 tag: $tag"
+              git push origin ":refs/tags/$tag"
+            fi
+          done < <(git tag --list)
+
+          while IFS= read -r remote_ref; do
+            branch=${remote_ref#origin/}
+            [[ "$branch" == "HEAD" || "$branch" == "main" ]] && continue
+            commit=$(git rev-parse "$remote_ref")
+            branch_epoch=$(git show -s --format=%ct "$commit")
+            if (( branch_epoch > baseline_epoch )); then
+              echo "Deleting post-1.1.49 branch: $branch"
+              git push origin --delete "$branch"
+            fi
+          done < <(git for-each-ref --format='%(refname:short)' refs/remotes/origin)
+
+      - name: Verify no active post-baseline refs remain
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASELINE_SHA: 94c00c166b526b37b43b6249741e0b49f26d6dcd
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --force --prune --tags origin '+refs/heads/*:refs/remotes/origin/*'
+          baseline_epoch=$(git show -s --format=%ct "$BASELINE_SHA")
+          failed=0
+
+          while IFS= read -r tag; do
+            [[ -n "$tag" ]] || continue
+            [[ "$tag" == "v1.1.49" ]] && continue
+            commit=$(git rev-list -n 1 "$tag")
+            tag_epoch=$(git show -s --format=%ct "$commit")
+            if (( tag_epoch > baseline_epoch )); then
+              echo "Post-baseline tag survived: $tag"
+              failed=1
+            fi
+          done < <(git tag --list)
+
+          while IFS= read -r remote_ref; do
+            branch=${remote_ref#origin/}
+            [[ "$branch" == "HEAD" || "$branch" == "main" ]] && continue
+            commit=$(git rev-parse "$remote_ref")
+            branch_epoch=$(git show -s --format=%ct "$commit")
+            if (( branch_epoch > baseline_epoch )); then
+              echo "Post-baseline branch survived: $branch"
+              failed=1
+            fi
+          done < <(git for-each-ref --format='%(refname:short)' refs/remotes/origin)
+
+          while IFS=$'\t' read -r tag published; do
+            [[ -n "$tag" ]] || continue
+            [[ "$tag" == "v1.1.49" ]] && continue
+            published_epoch=$(date -d "$published" +%s)
+            if (( published_epoch > baseline_epoch )); then
+              echo "Post-baseline release survived: $tag"
+              failed=1
+            fi
+          done < <(gh release list --repo "$GITHUB_REPOSITORY" --limit 1000 --json tagName,publishedAt --jq '.[] | [.tagName,.publishedAt] | @tsv')
+
+          exit "$failed"
