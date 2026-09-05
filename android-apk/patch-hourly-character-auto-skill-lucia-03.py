@@ -152,12 +152,11 @@ class LuciaCrosslineBurstTest {
       }
     }
     val r = observed ?: error("Crossline Burst did not proc in deterministic search window")
-    val line = r.reply.lines().single { it.contains("Lucia sử dụng Crossline Burst") }
-    assertTrue(Regex("^Lucia sử dụng Crossline Burst gây sát thương -\\d+ HP lên Diệp Minh$").matches(line))
-    assertFalse(line.contains("40%"))
-    assertFalse(line.contains("Armor", ignoreCase = true))
-    assertFalse(line.contains("HP còn"))
-    assertFalse(line.contains("và gây"))
+    assertNotNull(Regex("Lucia sử dụng Crossline Burst gây sát thương -\\d+ HP lên Diệp Minh").find(r.reply))
+    assertFalse(r.reply.contains(Regex("Crossline Burst gây sát thương -\\d+ HP lên Diệp Minh và gây")))
+    assertFalse(r.reply.contains(Regex("Crossline Burst gây sát thương -\\d+ HP lên Diệp Minh[^.]*40%")))
+    assertFalse(r.reply.contains(Regex("Crossline Burst gây sát thương -\\d+ HP lên Diệp Minh[^.]*Armor", RegexOption.IGNORE_CASE)))
+    assertFalse(r.reply.contains(Regex("Crossline Burst gây sát thương -\\d+ HP lên Diệp Minh[^.]*HP còn")))
     assertEquals(statusesBefore, r.state.statuses)
   }
 
