@@ -157,3 +157,31 @@ for marker in required:
 
 INDEX.write_text(html, encoding="utf-8")
 print("18 exact original PNG Entity overlays verified byte-for-byte and wired into Snapshot rendering.")
+
+# Last-mile character canon runs after every existing generated runtime transform so legacy
+# equipment/knowledge/follower patches cannot overwrite Kai R10, Iris R06, Syvial R04 or Lucia R03.
+# Normalize the chained JSONObject write into two equivalent statements before execution;
+# this keeps the finalizer's fail-closed marker aligned with the actual generated Java.
+canon_path = ROOT / "patch-character-canon-r07.py"
+canon_code = canon_path.read_text(encoding="utf-8")
+old_chain = '''      lucia.put("exists", true)
+        .put("encountered", true)'''
+new_chain = '''      lucia.put("encountered", true);
+      lucia.put("exists", true)'''
+if canon_code.count(old_chain) != 1:
+    raise RuntimeError(f"Character Canon R07 Lucia encounter chain: expected exactly one source anchor, found {canon_code.count(old_chain)}")
+canon_code = canon_code.replace(old_chain, new_chain, 1)
+exec(compile(canon_code, str(canon_path), "exec"), {"__name__": "__main__", "__file__": str(canon_path)})
+
+# Decode now backfills both An Nhiên and Lucia. Keep the existing round-trip regression
+# aligned with the canonical post-decode state rather than comparing against a state that
+# intentionally omits the new fixed story character.
+codec_test = ROOT / "app/src/test/java/com/rabpit/backroom/core/GameStateCodecTest.kt"
+codec_text = codec_test.read_text(encoding="utf-8")
+old_canonical = "    val canonicalState = AnNhienCanon.ensure(state)"
+new_canonical = "    val canonicalState = LuciaCanon.ensure(AnNhienCanon.ensure(state))"
+if new_canonical not in codec_text:
+    if codec_text.count(old_canonical) != 1:
+        raise RuntimeError(f"Character Canon R07 codec regression anchor: expected exactly one match, found {codec_text.count(old_canonical)}")
+    codec_text = codec_text.replace(old_canonical, new_canonical, 1)
+    codec_test.write_text(codec_text, encoding="utf-8")
