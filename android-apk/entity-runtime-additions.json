@@ -41,10 +41,23 @@
       "affordances": ["direct_threat", "trace_analysis"]
     },
     {
+      "id": "ENTITY.DEATHMOTH",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Deathmoth is an insectoid roaming predator derived from the Backrooms' giant-moth concept. Appearance: the common form has two pairs of membranous scaled wings, compound eyes plus small ocelli, feathered antennae and segmented claw-tipped legs; females are bulkier than males and retain stronger mandibles. Current external lore contains multiple castes and even docile/tamable males, but Project canon rejects any friendly or domesticated interpretation: every encountered Deathmoth is hostile to humans. Combat behavior should preserve aerial harassment, swarming pressure and close-range biting/tearing without importing unlisted caste powers automatically.",
+      "source": {"document": "01_WORLD/entity.md", "anchor": "ENT-1D"},
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 58,
+      "tags": ["deathmoth", "death moth"],
+      "references": ["ENTITY.GLOBAL_HARD_LOCK"],
+      "affordances": ["direct_threat"]
+    },
+    {
       "id": "ENTITY.HOSTILE_FACELING",
       "domain": "ENTITY",
       "kind": "entity",
-      "text": "Hostile Faceling resembles a human body without a normal face and can imitate human routines or behavior well enough to lower guard and blend into distant silhouettes. External Backrooms sources include non-hostile Facelings, but Project canon overrides that completely: every Faceling encountered near humans is a predator. It may approach under human-like behavior, close distance, then hunt; it is never an ally, trader, rescuer or neutral civilian.",
+      "text": "Hostile Faceling is a humanoid predator that closely resembles a person except for its missing normal facial features. Appearance: body shape, skin tone, hair, clothing, age and build can vary like humans, but the face remains blank or featureless, creating an otherwise human silhouette at a distance. Current Backrooms Wiki material describes many Facelings as docile and capable of human-like routines and social behavior; Project canon explicitly overrides that disposition. Here, every encountered Faceling is hostile and may imitate ordinary human routines only to lower vigilance, approach and hunt.",
       "source": {"document": "01_WORLD/entity.md", "anchor": "ENT-1E"},
       "authority": "WORLD_CANON",
       "mutability": "IMMUTABLE",
@@ -52,6 +65,19 @@
       "tags": ["hostile faceling", "faceling"],
       "references": ["ENTITY.GLOBAL_HARD_LOCK"],
       "affordances": ["direct_threat", "identity_check"]
+    },
+    {
+      "id": "ENTITY.FALSE_PUDDLE",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "False Puddle is an immobile ambush predator disguised as a shallow puddle of Almond Water. Appearance: while dormant it looks like an ordinary flat pool, but beneath the surface is a deep mouth-like pit lined with sharp teeth; when triggered, the apparent puddle becomes the opening of that toothed cavity. External references consistently describe the disguise and trap mechanism, while exact depth and weaknesses vary by source. Project canon keeps the established rule that it reacts to nearby human movement, opens when stepped on, and remains hostile; Liquid Pain or sharp metal are recorded countermeasures, not guaranteed kills.",
+      "source": {"document": "01_WORLD/entity.md", "anchor": "ENT-1F"},
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 58,
+      "tags": ["false puddle"],
+      "references": ["ENTITY.GLOBAL_HARD_LOCK", "ITEM.LIQUID_PAIN"],
+      "affordances": ["direct_threat", "resource_check"]
     },
     {
       "id": "ENTITY.PAINTINGS",

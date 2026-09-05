@@ -20,10 +20,21 @@ Purpose: provenance for the Entity records added to the Android runtime. Externa
 - Source: https://backrooms-wiki.wikidot.com/entity-6
 - Project use: combine that reference with the existing `ENT-1C` blind-corner/watch behavior; apparent retreat never means neutrality.
 
+### Deathmoth
+- Current Backrooms Wiki Entity 4 (page revision last edited 2026-01-31) describes Common Deathmoths with two pairs of scaled membranous wings, compound eyes plus ocelli, feathered antennae, and segmented claw-tipped legs. Females are larger and retain stronger mandibles; the page also introduces larval, Praetorian and Empress castes.
+- Source: https://backrooms-wiki.wikidot.com/entity-4
+- **Project override:** the external article permits docile/tamable males. `ENT-1D` does not: every encountered Deathmoth is hostile to humans. Caste-specific toxin, corrosive, pheromone and colony powers are not imported automatically unless separately established by Project canon.
+
 ### Hostile Faceling
-- Backrooms Wiki Entity 9 describes humanoid beings without normal facial features that imitate human practices and routines. The external article includes peaceful/helpful behavior.
+- Current Backrooms Wiki Entity 9 describes humanoid beings that resemble humans in body shape, skin tone, clothing, hair, age and build while lacking normal facial features. It also describes human-like routines, social behavior and many docile/helpful individuals.
 - Source: https://backrooms-wiki.wikidot.com/entity-9
-- **Project override:** the peaceful/helpful portion is rejected. `ENT-1E` is always hostile to humans and uses human-like behavior only to reduce vigilance or hunt.
+- **Project override:** the peaceful/helpful portion is rejected. `ENT-1E` is always hostile to humans and uses human-like behavior only to reduce vigilance, approach or hunt.
+
+### False Puddle
+- The current Wikidot Entity roster does not provide a False Puddle article. Legacy/Fandom-derived Level 1 material consistently describes a puddle-shaped ambush entity that mimics Almond Water while concealing a deep toothed mouth and remaining stationary until prey steps into it.
+- Reference: https://backrooms.fandom.com/wiki/Level_1
+- Supporting current game reference: https://www.curseforge.com/minecraft/mc-mods/uniks-backrooms (updated 2026-08-28), which still lists False Puddle as a hostile Backrooms entity and warns players not to step into suspicious puddles.
+- Project use: preserve `ENT-1F`: it reacts to human movement/footsteps, opens when stepped on, and is always hostile. Reported depth and weakness values are source-dependent; Liquid Pain or sharp metal remain recorded countermeasures, not guaranteed kills.
 
 ### Paintings
 - Fandom-derived Level 1 material describes living paintings/drawings whose depicted organisms can reach out, grab nearby wanderers, and drag them into the image; moving eyes are also reported.
