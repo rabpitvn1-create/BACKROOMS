@@ -1,7 +1,6 @@
 from pathlib import Path
 import hashlib
 import json
-import runpy
 import struct
 
 ROOT = Path(__file__).resolve().parent
@@ -161,4 +160,15 @@ print("18 exact original PNG Entity overlays verified byte-for-byte and wired in
 
 # Last-mile character canon runs after every existing generated runtime transform so legacy
 # equipment/knowledge/follower patches cannot overwrite Kai R10, Iris R06, Syvial R04 or Lucia R03.
-runpy.run_path(str(ROOT / "patch-character-canon-r07.py"), run_name="__main__")
+# Normalize the chained JSONObject write into two equivalent statements before execution;
+# this keeps the finalizer's fail-closed marker aligned with the actual generated Java.
+canon_path = ROOT / "patch-character-canon-r07.py"
+canon_code = canon_path.read_text(encoding="utf-8")
+old_chain = '''      lucia.put("exists", true)
+        .put("encountered", true)'''
+new_chain = '''      lucia.put("encountered", true);
+      lucia.put("exists", true)'''
+if canon_code.count(old_chain) != 1:
+    raise RuntimeError(f"Character Canon R07 Lucia encounter chain: expected exactly one source anchor, found {canon_code.count(old_chain)}")
+canon_code = canon_code.replace(old_chain, new_chain, 1)
+exec(compile(canon_code, str(canon_path), "exec"), {"__name__": "__main__", "__file__": str(canon_path)})
