@@ -3,7 +3,9 @@ from __future__ import annotations
 import hashlib
 import json
 import shutil
+import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -11,7 +13,11 @@ ROOT = Path(__file__).resolve().parent
 MANIFEST = ROOT / "snapshot_sources.json"
 OUT_DIR = ROOT / "app/src/main/assets/level_snapshots/rotation"
 MAX_BYTES = 12 * 1024 * 1024
-USER_AGENT = "BACKROOMS-APK-SnapshotFetcher/1.0 (+https://github.com/rabpitvn1-create/BACKROOMS)"
+USER_AGENT = (
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/140.0 Safari/537.36"
+)
+IMAGE_SUFFIXES = (".jpg", ".png", ".jpeg", ".webp")
 
 
 def image_extension(data: bytes) -> str | None:
@@ -26,14 +32,25 @@ def image_extension(data: bytes) -> str | None:
     return None
 
 
-def download(url: str) -> bytes:
-    request = urllib.request.Request(
-        url,
-        headers={
-            "User-Agent": USER_AGENT,
-            "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
-        },
-    )
+def candidate_urls(url: str) -> list[str]:
+    candidates = [url]
+    path = urllib.parse.urlsplit(url).path.lower()
+    if not path.endswith(IMAGE_SUFFIXES):
+        candidates.extend(url + suffix for suffix in IMAGE_SUFFIXES)
+    return candidates
+
+
+def download_once(url: str) -> bytes:
+    headers = {
+        "User-Agent": USER_AGENT,
+        "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+    }
+    if "fandom.com" in url:
+        headers["Referer"] = "https://backrooms.fandom.com/"
+    elif "wikidot.com" in url or "wdfiles.com" in url:
+        headers["Referer"] = "https://backrooms-wiki.wikidot.com/"
+
+    request = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(request, timeout=30) as response:
         data = response.read(MAX_BYTES + 1)
     if len(data) > MAX_BYTES:
@@ -43,6 +60,24 @@ def download(url: str) -> bytes:
     if image_extension(data) is None:
         raise RuntimeError("response is not a supported PNG/JPEG/GIF/WebP image")
     return data
+
+
+def download(url: str) -> bytes:
+    last_error: BaseException | None = None
+    for attempt in range(1, 4):
+        try:
+            return download_once(url)
+        except urllib.error.HTTPError as exc:
+            last_error = exc
+            if exc.code < 500 or attempt == 3:
+                raise
+        except (urllib.error.URLError, TimeoutError, ConnectionError) as exc:
+            last_error = exc
+            if attempt == 3:
+                raise
+        time.sleep(attempt)
+    assert last_error is not None
+    raise last_error
 
 
 def main() -> None:
@@ -79,13 +114,19 @@ def main() -> None:
             if not isinstance(urls, list) or not urls:
                 raise RuntimeError(f"Level {level} slot {slot} has no download URL")
 
+            expanded_urls: list[str] = []
+            for raw_url in urls:
+                for candidate in candidate_urls(str(raw_url)):
+                    if candidate not in expanded_urls:
+                        expanded_urls.append(candidate)
+
             data: bytes | None = None
             failures: list[str] = []
             chosen_url = ""
-            for url in urls:
+            for url in expanded_urls:
                 try:
-                    data = download(str(url))
-                    chosen_url = str(url)
+                    data = download(url)
+                    chosen_url = url
                     break
                 except (OSError, RuntimeError, urllib.error.URLError, urllib.error.HTTPError) as exc:
                     failures.append(f"{url}: {exc}")
