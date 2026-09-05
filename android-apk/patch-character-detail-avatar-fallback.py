@@ -68,3 +68,7 @@ runpy.run_path(str(ROOT / "patch-two-page-ui.py"), run_name="__main__")
 # at exactly 3% on physical gameplay turns. This intentionally supersedes the legacy Level pool
 # and Jeff-specific probability above.
 runpy.run_path(str(ROOT / "patch-entity-roaming-3pct.py"), run_name="__main__")
+
+# Snapshot overlays always use the exact original PNG bytes committed from the Drive source folder.
+# The patch verifies SHA-256, byte size and dimensions before wiring them into the UI.
+runpy.run_path(str(ROOT / "patch-entity-overlays-local.py"), run_name="__main__")
