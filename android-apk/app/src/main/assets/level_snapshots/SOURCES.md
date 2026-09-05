@@ -15,7 +15,7 @@ The source manifest is `android-apk/snapshot_sources.json`. `android-apk/fetch-l
 | Slot | Image | Author | License | Source |
 | --- | --- | --- | --- | --- |
 | 1 | Backrooms / original Level 0 photo | Bob Mazza | CC0 1.0 | https://backrooms-wiki.wikidot.com/level-0 |
-| 2 | Render “4” | Alfarex | CC BY-SA 4.0 | https://backrooms-wiki.wikidot.com/level-0 |
+| 2 | Arches | Bob Mazza | CC0 1.0 | https://backrooms-wiki.wikidot.com/level-0 |
 | 3 | Render “3” | Alfarex | CC BY-SA 4.0 | https://backrooms-wiki.wikidot.com/level-0 |
 | 4 | Render “5” / blackout variation | Alfarex | CC BY-SA 4.0 | https://backrooms-wiki.wikidot.com/level-0 |
 
