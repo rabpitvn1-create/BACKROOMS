@@ -1,0 +1,13 @@
+Backroom 1.1.49.4
+
+- Adds an explicit BẮT ĐẦU COMBAT gate so Entity encounters are staged first and the story can be read before battle playback begins.
+- Prevents HP, SURVIVAL, skill proc, crit/evasion, damage, and combat outcome resolution until the player actually starts the pending combat.
+- Slows automatic combat playback to readable turn/action pacing while preserving deterministic Combat Core outcomes.
+- Fixes New Game bootstrap so current Core canon is shown immediately instead of briefly exposing legacy Kai equipment before later synchronization.
+- Adds stronger directional hit reactions for successful ATTACK/SKILL damage events, with impact flash, knockback, squash, recovery, and shadow-follow behavior.
+- Adds simple dark pixel-style ellipse shadows under visible party and Entity overlays to ground sprites against the Backrooms snapshot.
+- Detects lamp-like bright fixtures in local snapshots at runtime and adds bloom mapped through the background crop without generating, resizing, or recompressing source images.
+- Animates detected lamp bloom as a smooth repeating low-to-high intensity pulse.
+- Preserves pending combat in the existing save metadata and keeps the release save schema compatible.
+- Bumps Android versionCode to 129 and versionName to 1.1.49.4 for upgrade installation over 1.1.49.3.
+- Release validation runs the exact runtime patch chain, Entity roaming/lossless overlay checks, Kotlin unit tests, debug APK assembly, signature/package checks, and published-APK verification.
