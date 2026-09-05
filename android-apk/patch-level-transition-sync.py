@@ -4,14 +4,6 @@ ROOT = Path(__file__).resolve().parent
 MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
 INDEX = ROOT / "app/src/main/assets/index.html"
 
-
-def replace_once(text: str, old: str, new: str, label: str) -> str:
-    count = text.count(old)
-    if count != 1:
-        raise RuntimeError(f"{label}: expected exactly 1 match, found {count}")
-    return text.replace(old, new, 1)
-
-
 main = MAIN.read_text(encoding="utf-8")
 index = INDEX.read_text(encoding="utf-8")
 
@@ -22,7 +14,11 @@ new_level_commit = (
     '        String canonicalLevelLocation = "Level " + number + " – " + levelName(number);\n'
     '        state.put("level", safeLevel).put("title", canonicalLevelLocation).put("location", canonicalLevelLocation);\n'
 )
-main = replace_once(main, old_level_commit, new_level_commit, "level transition location synchronization")
+if new_level_commit not in main:
+    count = main.count(old_level_commit)
+    if count != 1:
+        raise RuntimeError(f"level transition location synchronization: expected 1 match, found {count}")
+    main = main.replace(old_level_commit, new_level_commit, 1)
 
 # The Information page treats state.level as authoritative. This also repairs display
 # for existing saves where level was committed but the legacy location string stayed stale.
@@ -38,7 +34,11 @@ new_render = (
     '}'
     'function render(){titleEl.textContent=levelHeader(state);turnEl.textContent=state.turn;locationEl.textContent=displayLocation(state);'
 )
-index = replace_once(index, old_render, new_render, "Information location renderer")
+if 'locationEl.textContent=displayLocation(state);' not in index:
+    count = index.count(old_render)
+    if count != 1:
+        raise RuntimeError(f"Information location renderer: expected 1 match, found {count}")
+    index = index.replace(old_render, new_render, 1)
 
 MAIN.write_text(main, encoding="utf-8")
 INDEX.write_text(index, encoding="utf-8")
