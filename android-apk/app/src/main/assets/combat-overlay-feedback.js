@@ -21,7 +21,7 @@
   function actor(id, name, avatar) {
     var selector = id === 'kai' ? '.snapshot-character' : id === 'lucia' ? '.snapshot-lucia-entity' : null;
     var native = selector && box() && box().querySelector(selector);
-    var fallback = id === 'kai' ? 'SRU_AIM.png' : id === 'lucia' ? 'file_000000000dbc8209b74585555f5786dc.png' : asset(avatar);
+    var fallback = id === 'kai' ? 'SRU_AIM.png' : id === 'lucia' ? 'file_000000000dbc8209b74585555f5786dc.png' : id === 'syvial' ? 'Syvial.png' : asset(avatar);
     return { id: String(id), name: String(name || id), src: asset(native && native.getAttribute('src') || fallback) };
   }
   function readView() {

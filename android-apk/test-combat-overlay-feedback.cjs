@@ -41,6 +41,7 @@ function fixture() {
   }, window: { matchMedia: () => media, requestAnimationFrame: callback => setTimeout(callback, 0) } };
   const members = [
     {id:'kai',name:'Kai',avatar:'SRU_AIM.png',currentHp:140,maxHp:140},
+    {id:'syvial',name:'Syvial',avatar:'avatars/Syvial_avatar.jpg',currentHp:140,maxHp:140},
     {id:'lucia',name:'Lucia',avatar:'avatars/lucia_avatar.jpg',currentHp:120,maxHp:120}
   ];
   function view(id, packet, encounter = 'encounter-1') {
@@ -72,6 +73,14 @@ function fixture() {
   redraw();
   return {fx, snap, events, media, context, listeners, view, redraw, wait, actor, response};
 }
+
+test('Syvial combat overlay uses the dedicated root asset without changing her avatar metadata', async () => {
+  const f = fixture(); await f.wait();
+  f.response('syvial', []); await f.wait();
+  assert.equal(f.actor().dataset.actorId, 'syvial');
+  assert.equal(f.actor().src, 'Syvial.png');
+  assert.equal(f.context.state.combat.partyTurn.actorAvatar, 'avatars/Syvial_avatar.jpg');
+});
 
 test('Entity hit precedes Kai-to-Lucia handoff; native redraw never replays it', async () => {
   const f = fixture(); await f.wait(); assert.equal(f.events.length, 0);
