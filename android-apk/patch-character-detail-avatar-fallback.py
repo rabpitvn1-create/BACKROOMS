@@ -97,6 +97,10 @@ runpy.run_path(str(ROOT / "patch-kai-skills-final.py"), run_name="__main__")
 # base HP for progression, then rebuild the temporary x5 envelope so the save cannot be corrupted.
 runpy.run_path(str(ROOT / "patch-kai-skills-progression-compat.py"), run_name="__main__")
 
+# Lucia keeps the same independent proc contract without supernatural mechanics. Her fixed Level-0
+# encounter is blocked until five gameplay turns have completed, and the first contact is mandatory.
+runpy.run_path(str(ROOT / "patch-lucia-proc-skills-final.py"), run_name="__main__")
+
 # Normalize final generated anchors and the pre-Core character-detail fallback before inserting the gate.
 runpy.run_path(str(ROOT / "patch-combat-start-anchor-compat.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-newgame-canon-compat.py"), run_name="__main__")
