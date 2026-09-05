@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "orderSource": "android-apk/entity-runtime-additions.json#expectedEntityIds",
+  "lastUpdatedIds": [
+    "ENTITY.HOUND",
+    "ENTITY.CLUMP",
+    "ENTITY.DULLER"
+  ],
+  "nextIndex": 3
+}

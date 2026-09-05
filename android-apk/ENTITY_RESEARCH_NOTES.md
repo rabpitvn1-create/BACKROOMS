@@ -2,15 +2,21 @@
 
 Purpose: provenance for the Entity records added to the Android runtime. External sources are research references only. Project canon and the user-requested hard lock win on conflict: **every Entity is hostile to humans; no Entity is a neutral/friendly ally, trader, rescuer, or beneficial symbiote.**
 
-## Existing six entities completed in the runtime
+## Existing entities researched for runtime
+
+### Hound
+- Backrooms Wiki Entity 8 describes Hounds as aggressive humanoids adapted to moving on all fours. Their limbs support quadrupedal travel; long black hair covers much of the head, and close observation reveals sharp claws plus an abnormally large mouth with sharp teeth. The page also reports that direct eye contact may intimidate them briefly.
+- Source: https://backrooms-wiki.wikidot.com/entity-8
+- Project use: preserve `ENT-1A / ENT-2B` pack pressure, pursuit and retreat/return behavior. Eye-contact intimidation is contextual external reference, not a guarantee that overrides combat state or the hostile-to-humans hard lock.
 
 ### Clump
-- Backrooms Wiki Entity 5 describes Clumps as dangerous bundles of human limbs with exceptional speed, agility, and strength, commonly using tight spaces.
+- Backrooms Wiki Entity 5 describes Clumps as dangerous tangled bundles of human-like limbs with exceptional speed and agility. It reports large specimens around 3 feet across, a longest limb used to seize prey, and a central mouth with razor-sharp teeth.
 - Source: https://backrooms-wiki.wikidot.com/entity-5
+- Source note: the current page is explicitly marked outdated by the wiki, so only stable morphology/behavioral basics are used as external reference.
 - Project use: preserve the existing `ENT-1B / ENT-2A` hunting behavior from `01_WORLD/entity.md`; all instances hunt humans.
 
 ### Duller
-- Backrooms Wiki Entity 6 describes tall grey faceless humanoids with long arms, high speed/strength, and a hunting method that can reach/no-clip an arm through a wall to seize prey from a neighboring hall.
+- Backrooms Wiki Entity 6 describes a tall dark-grey faceless and earless humanoid with a frail skeletal frame, unusually long/extensible arms, wobbly stance and unnatural gait. It also reports high speed/strength and a hunting method that can no-clip an arm through a wall to seize prey from a neighboring hall.
 - Source: https://backrooms-wiki.wikidot.com/entity-6
 - Project use: combine that reference with the existing `ENT-1C` blind-corner/watch behavior; apparent retreat never means neutrality.
 

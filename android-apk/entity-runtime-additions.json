@@ -2,10 +2,23 @@
   "schemaVersion": 2,
   "records": [
     {
+      "id": "ENTITY.HOUND",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Hound is a highly aggressive humanoid predator adapted to quadrupedal movement. Appearance: a sickly thin human-like body travels on elongated arms and legs; long black hair obscures much of the head, while sharp claws and an abnormally large mouth packed with sharp teeth become visible at close range. External reference material says eye contact can briefly intimidate one, but Project canon keeps Hounds hostile to humans. They remain fast pursuit predators that pressure injured or isolated prey and can withdraw from strong resistance before returning.",
+      "source": {"document": "01_WORLD/entity.md", "anchor": "ENT-1A; ENT-2B"},
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 58,
+      "tags": ["hound"],
+      "references": ["ENTITY.GLOBAL_HARD_LOCK"],
+      "affordances": ["direct_threat"]
+    },
+    {
       "id": "ENTITY.CLUMP",
       "domain": "ENTITY",
       "kind": "entity",
-      "text": "Clump is a compact mass of human-like limbs with extreme speed, agility and strength. It favors tight or dark recesses, corners, crawlspaces and under-vehicle spaces, then seizes or wraps human prey with multiple limbs and pulls victims out of formation. Project hard lock: Clumps are hostile to humans; stillness, retreat or hiding is never evidence of neutrality.",
+      "text": "Clump is a compact ambush predator built from a tangled bundle of human-like limbs. Appearance: many arms and legs knot around a dense central mass, with the longest limb able to stretch outward; external descriptions place large recorded specimens around 3 feet across and report a central mouth lined with razor-like teeth. It has extreme speed and agility and favors tight or dark recesses, corners and crawlspaces before seizing prey. Project hard lock: every Clump is hostile to humans; stillness or hiding is never neutrality.",
       "source": {"document": "01_WORLD/entity.md", "anchor": "ENT-1B; ENT-2A"},
       "authority": "WORLD_CANON",
       "mutability": "IMMUTABLE",
@@ -18,7 +31,7 @@
       "id": "ENTITY.DULLER",
       "domain": "ENTITY",
       "kind": "entity",
-      "text": "Duller is a tall grey faceless humanoid with unnaturally long arms, deceptive strength and very fast movement. External reports describe a hunting tactic in which it remains in a parallel hall and extends or no-clips an arm through a wall to seize prey, while direct approaches may make it retreat. Project canon also keeps its tendency to watch from blind corners before closing. All Dullers are hostile to humans; apparent retreat is hunting behavior, not friendliness.",
+      "text": "Duller is a fast, deceptively strong humanoid hunter. Appearance: a tall dark-grey, faceless and earless figure with a frail skeletal build, unusually long arms, a wobbly stance and unnatural walking motion; its arms can extend far beyond normal human reach. External reports describe a tactic of remaining in a parallel hall and no-clipping an arm through a wall to seize prey, while a direct approach may make it retreat. Project canon preserves its blind-corner watching behavior and hard-locks every Duller as hostile; retreat is not friendliness.",
       "source": {"document": "01_WORLD/entity.md", "anchor": "ENT-1C"},
       "authority": "WORLD_CANON",
       "mutability": "IMMUTABLE",
