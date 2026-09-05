@@ -118,6 +118,10 @@ runpy.run_path(str(ROOT / "patch-combat-ux-regression-final.py"), run_name="__ma
 # physical Level-0 turns. It intentionally runs after all combat/canon/UX transforms.
 runpy.run_path(str(ROOT / "patch-an-nhien-rare-spawn-final.py"), run_name="__main__")
 
+# Align the final writer prompt through a stable post-knowledge anchor before enforcing the
+# authoritative InventoryPolicy/UI/test limits below.
+runpy.run_path(str(ROOT / "patch-inventory-capacity-prompt-final.py"), run_name="__main__")
+
 # Final inventory authority runs after every character/canon/UI transform so older profile values
 # cannot leak back into gameplay, tests, UI labels, or the GM prompt.
 runpy.run_path(str(ROOT / "patch-inventory-capacity-final.py"), run_name="__main__")
