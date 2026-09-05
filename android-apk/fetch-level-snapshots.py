@@ -13,10 +13,7 @@ ROOT = Path(__file__).resolve().parent
 MANIFEST = ROOT / "snapshot_sources.json"
 OUT_DIR = ROOT / "app/src/main/assets/level_snapshots/rotation"
 MAX_BYTES = 12 * 1024 * 1024
-USER_AGENT = (
-    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-    "(KHTML, like Gecko) Chrome/140.0 Safari/537.36"
-)
+USER_AGENT = "BACKROOMS-APK-SnapshotFetcher/1.1 (+https://github.com/rabpitvn1-create/BACKROOMS)"
 IMAGE_SUFFIXES = (".jpg", ".png", ".jpeg", ".webp")
 
 
@@ -40,15 +37,18 @@ def candidate_urls(url: str) -> list[str]:
     return candidates
 
 
-def download_once(url: str) -> bytes:
+def download_once(url: str, source_page: str = "") -> bytes:
     headers = {
         "User-Agent": USER_AGENT,
         "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+        "Accept-Encoding": "gzip, deflate",
     }
-    if "fandom.com" in url:
-        headers["Referer"] = "https://backrooms.fandom.com/"
+    if "upload.wikimedia.org" in url:
+        headers["Referer"] = source_page or "https://commons.wikimedia.org/"
+    elif "fandom.com" in url:
+        headers["Referer"] = source_page or "https://backrooms.fandom.com/"
     elif "wikidot.com" in url or "wdfiles.com" in url:
-        headers["Referer"] = "https://backrooms-wiki.wikidot.com/"
+        headers["Referer"] = source_page or "https://backrooms-wiki.wikidot.com/"
 
     request = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(request, timeout=30) as response:
@@ -62,13 +62,25 @@ def download_once(url: str) -> bytes:
     return data
 
 
-def download(url: str) -> bytes:
+def retry_delay(error: urllib.error.HTTPError, attempt: int) -> int:
+    retry_after = error.headers.get("Retry-After") if error.headers else None
+    try:
+        requested = int(retry_after or 0)
+    except (TypeError, ValueError):
+        requested = 0
+    return min(60, max(attempt * 2, requested))
+
+
+def download(url: str, source_page: str = "") -> bytes:
     last_error: BaseException | None = None
     for attempt in range(1, 4):
         try:
-            return download_once(url)
+            return download_once(url, source_page)
         except urllib.error.HTTPError as exc:
             last_error = exc
+            if exc.code == 429 and attempt < 3:
+                time.sleep(retry_delay(exc, attempt))
+                continue
             if exc.code < 500 or attempt == 3:
                 raise
         except (urllib.error.URLError, TimeoutError, ConnectionError) as exc:
@@ -110,6 +122,7 @@ def main() -> None:
 
         for image in images:
             slot = int(image["slot"])
+            source_page = str(image.get("source_page") or "")
             urls = image.get("urls")
             if not isinstance(urls, list) or not urls:
                 raise RuntimeError(f"Level {level} slot {slot} has no download URL")
@@ -125,7 +138,7 @@ def main() -> None:
             chosen_url = ""
             for url in expanded_urls:
                 try:
-                    data = download(url)
+                    data = download(url, source_page)
                     chosen_url = url
                     break
                 except (OSError, RuntimeError, urllib.error.URLError, urllib.error.HTTPError) as exc:
