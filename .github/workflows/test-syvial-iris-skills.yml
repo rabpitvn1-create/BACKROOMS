@@ -1,0 +1,99 @@
+name: Test Syvial Iris Skills
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "android-apk/patch-syvial-iris-skills-final.py"
+      - "android-apk/patch-character-detail-avatar-fallback.py"
+      - ".github/workflows/test-syvial-iris-skills.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  syvial-iris-skills:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Compile skill finalizer
+        run: python3 -m py_compile android-apk/patch-syvial-iris-skills-final.py
+
+      - name: Apply exact Android release patch chain
+        run: |
+          python3 android-apk/patch-provider-status.py
+          python3 android-apk/patch-luna-text.py
+          python3 android-apk/patch-level-snapshot-backgrounds.py
+          python3 android-apk/patch-snapshot-fallback.py
+          python3 android-apk/patch-kai-hd-continuous.py
+          python3 android-apk/patch-kai-png-preferred.py
+          python3 android-apk/patch-kai-codex.py
+          python3 android-apk/patch-r06-source-marker.py
+          python3 android-apk/patch-drive-canon-gameplay.py
+          python3 android-apk/patch-inventory-persistence.py
+          python3 android-apk/patch-ai-orchestrator.py
+          python3 android-apk/patch-state-op-hardening.py
+          python3 android-apk/patch-gemini-health-pool.py
+          python3 android-apk/patch-conditional-audit.py
+          python3 android-apk/patch-audit-validated-risk.py
+          python3 android-apk/patch-gameplay-parity-final.py
+          python3 android-apk/patch-final-authority-hardening.py
+          python3 android-apk/patch-rejected-op-repair-final.py
+          python3 android-apk/patch-kai-resource-policy-final.py
+          python3 android-apk/patch-provider-deadline-final.py
+          python3 android-apk/patch-gemini-model-matrix-final.py
+          python3 android-apk/patch-java-compile-hardening.py
+          python3 android-apk/patch-save-controls-final.py
+          python3 android-apk/patch-hard-mode-label.py
+          python3 android-apk/patch-snapshot-unconfigured.py
+          python3 android-apk/patch-game-state-core-bridge.py
+          python3 android-apk/patch-character-inventory-ui.py
+          python3 android-apk/patch-character-detail-avatar-fallback.py
+
+      - name: Verify generated skill contracts
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          root = Path('android-apk')
+          core = root / 'app/src/main/java/com/rabpit/backroom/core'
+          combat = (core / 'CombatCore.kt').read_text(encoding='utf-8')
+          serializer = (core / 'CharacterDetailJson.kt').read_text(encoding='utf-8')
+          generated_test = (root / 'app/src/test/java/com/rabpit/backroom/core/SyvialIrisSkillGeneratedTest.kt').read_text(encoding='utf-8')
+
+          assert 'SYVIAL_IRIS_SKILLS_CYCLE_1_PATCHED' in combat
+          assert 'object SyvialSkillBook' in combat
+          assert 'object IrisSkillBook' in combat
+          assert '"GodKiller Crimson Cleave"' in combat
+          assert '"Lucifer Breakline"' in combat
+          assert '"Lucifer Armor Combat Sync"' in combat
+          assert '"ARGUS Crossfire"' in combat
+          assert '"Ivory & Ebony Killbox"' in combat
+          assert '"Thousandfold Firing Solution"' in combat
+          assert 'resolveSyvialAction(actor, enemy, timeline)' in combat
+          assert 'resolveIrisAction(actor, enemy, timeline)' in combat
+          assert '+ SyvialSkillBook.skillsFor(character.id) + IrisSkillBook.skillsFor(character.id)' in serializer
+          assert 'it.procChance in 0.20..0.40' in generated_test
+          PY
+
+      - name: Check generated diff
+        run: git diff --check
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+
+      - name: Run unit tests and build debug APK
+        working-directory: android-apk
+        run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
