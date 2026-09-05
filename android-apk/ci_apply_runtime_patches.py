@@ -116,6 +116,7 @@ SCRIPTS = [
     "patch-hourly-entity-skill-hotel-corpse-lure-01.py",
     "patch-hourly-entity-skill-jeff-the-killer-01.py",
     "patch-hourly-entity-skill-john-doe-01.py",
+    "patch-hourly-entity-skill-monster-x-02.py",
     "patch-hourly-character-auto-skill-lucia-01.py",
     "patch-hourly-character-auto-skill-iris-01.py",
     "patch-hourly-character-auto-skill-syvial-02.py",
