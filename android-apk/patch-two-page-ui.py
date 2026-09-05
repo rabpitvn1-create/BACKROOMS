@@ -8,6 +8,45 @@ if 'id="gameplayPage"' in html:
     print("Two-page UI already applied.")
     raise SystemExit(0)
 
+# Both actions share the existing Android turn pipeline and in-flight guard.
+button_anchor = '<button id="submit">THỰC HIỆN</button>'
+if html.count(button_anchor) != 1:
+    raise RuntimeError("Action button anchor missing or ambiguous")
+html = html.replace(button_anchor, '<div class="composer-actions"><button type="submit" id="submit">THỰC HIỆN</button><button type="button" id="explore">KHÁM PHÁ &amp; TÌM KIẾM</button></div>', 1)
+
+old_submit = 'formEl.addEventListener("submit",e=>{e.preventDefault();const a=actionEl.value.trim();if(!a||busy)return;if(!window.Android){statusEl.textContent="Không tìm thấy Android bridge.";return}busy=true;submitEl.disabled=true;statusEl.textContent="Gemini đang xử lý lượt…";window.Android.submitTurn(JSON.stringify(state),a)});'
+new_submit = r'''const exploreEl=byId("explore");
+const explorationAction="Kai khám phá khu vực hiện tại và tìm kiếm manh mối, vật phẩm cùng dấu hiệu nguy hiểm xung quanh.";
+let explorationTurn=false;
+function setActionBusy(value){
+  busy=value;
+  submitEl.disabled=value;
+  exploreEl.disabled=value;
+  submitEl.textContent=value&&!explorationTurn?"ĐANG THỰC HIỆN…":"THỰC HIỆN";
+  exploreEl.textContent=value&&explorationTurn?"ĐANG KHÁM PHÁ…":"KHÁM PHÁ & TÌM KIẾM";
+}
+function submitAction(action,explore=false){
+  if(busy||!action)return;
+  if(!window.Android){statusEl.textContent="Không tìm thấy Android bridge.";return}
+  explorationTurn=explore;
+  setActionBusy(true);
+  statusEl.textContent="Gemini đang xử lý lượt…";
+  try{window.Android.submitTurn(JSON.stringify(state),action)}
+  catch(error){window.backroomError(error.message||String(error))}
+}
+formEl.addEventListener("submit",e=>{e.preventDefault();submitAction(actionEl.value.trim())});
+exploreEl.addEventListener("click",()=>submitAction(explorationAction,true));'''
+if html.count(old_submit) != 1:
+    raise RuntimeError("Action submit handler anchor missing or ambiguous")
+html = html.replace(old_submit, new_submit, 1)
+# Preserve the player's draft when an exploration turn completes.
+turn_anchor = 'actionEl.value="";busy=false;submitEl.disabled=false;'
+error_anchor = 'busy=false;submitEl.disabled=false;statusEl.textContent="Lỗi Gemini: "'
+if html.count(turn_anchor) != 1 or html.count(error_anchor) != 1:
+    raise RuntimeError("Action completion/error anchors missing or ambiguous")
+html = html.replace(turn_anchor, 'if(!explorationTurn)actionEl.value="";explorationTurn=false;setActionBusy(false);', 1)
+html = html.replace(error_anchor, 'explorationTurn=false;setActionBusy(false);statusEl.textContent="Lỗi Gemini: "', 1)
+
 style_anchor = "</style>"
 style = r'''
 .app-page{display:none}.app-page.active{display:block}.shell{padding-bottom:calc(56px + env(safe-area-inset-bottom))}
@@ -25,7 +64,9 @@ style = r'''
 #gameplayPage .role{margin-bottom:4px}
 #gameplayPage .composer{gap:5px;padding:6px 8px 7px}
 #gameplayPage .composer textarea{min-height:64px;padding:8px}
-#gameplayPage .composer #submit{min-height:38px;padding:9px 10px}
+#gameplayPage .composer-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+#gameplayPage .composer-actions button{min-width:0;min-height:44px;padding:8px 5px;font-size:12px;line-height:1.25}
+#gameplayPage .composer-actions button:disabled{opacity:.5}
 .page-nav{position:fixed;z-index:40;left:6px;right:6px;bottom:calc(4px + env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border:1px solid #2b3137;background:#0b0e11f2;box-shadow:0 10px 28px #0009}
 .page-nav button{min-height:34px;padding:6px 8px;font-size:11px;background:#13181d;color:#8f9aa4;border-color:#303840;letter-spacing:.07em}
 .page-nav button.active{background:#252d34;color:#fff;border-color:#59646e}
