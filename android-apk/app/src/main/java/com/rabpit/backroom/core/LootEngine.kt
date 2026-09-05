@@ -119,6 +119,11 @@ object LootEngine {
     )
   }
 
+  fun wasGrantCommitted(state: GameState, sourceId: String): Boolean {
+    val marker = state.metadata["loot.processed.$sourceId"] ?: return false
+    return marker.isNotBlank() && !marker.startsWith("lost:")
+  }
+
   private fun chooseGrant(
     origin: LootOrigin,
     sourceId: String,
