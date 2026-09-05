@@ -4,28 +4,50 @@ ROOT = Path(__file__).resolve().parent
 MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
 main = MAIN.read_text(encoding="utf-8")
 
-policy = (
-    "INVENTORY CAPACITY: Kai có 14 slot vật phẩm thường, mỗi loại tối đa x9999. "
-    "Mọi nhân vật khác có 8 slot vật phẩm, mỗi loại tối đa x99. "
-    "Equipment là vùng riêng và không chiếm Inventory slot. "
-)
-marker = "INVENTORY CAPACITY: Kai có 14 slot"
+# Remove legacy prompt lines that contradict Inventory V2 by allowing story/SYSTEM/Copy to create
+# ownership. Core now has exactly two quantity sources: Explore Loot and Entity Drop.
+retired_fragments = [
+    "Inventory chỉ đổi khi Kai thật sự lấy/nhận/copy/trao/mất/tiêu thụ vật",
+    "Inventory chỉ tăng từ story/drop/SYSTEM đã được xác thực hoặc từ Copy/transfer hợp lệ",
+]
+lines = []
+for line in main.splitlines():
+    if any(fragment in line for fragment in retired_fragments):
+        continue
+    # The old operation schema let Gemini reconcile inventory directly. It is retired in V2.
+    if "inventory_upsert{item,basis}" in line or "inventory_remove{name,basis}" in line:
+        continue
+    lines.append(line)
+main = "\n".join(lines) + "\n"
 
-# The final knowledge writer prompt always carries the roaming hard-lock line. Insert this
-# capacity rule as its own adjacent Java string literal instead of depending on an obsolete
-# earlier KAI LOADOUT sentence that later prompt rewrites may remove.
+policy = (
+    "INVENTORY V2 CONTRACT: Inventory chỉ tăng từ Explore Loot hoặc Entity Drop do Core commit. "
+    "Transfer, Request và Give-and-use chỉ di chuyển ownership hiện có; Use và Discard chỉ có thể giảm quantity. "
+    "AI, UI, LiteRT, narrative và Omnivault không được tạo, copy, duplicate hay reconcile vật phẩm. "
+    "Kai có 14 slot vật phẩm thường tối đa x9999 mỗi loại; mọi nhân vật khác có 8 slot tối đa x99; Equipment tách riêng. "
+)
+marker = "INVENTORY V2 CONTRACT: Inventory chỉ tăng từ Explore Loot hoặc Entity Drop"
 if marker not in main:
-    anchor = "ENTITY ROAMING HARD LOCK:"
+    anchor = '"GAMEPLAY_ROLLS do Android sinh là bất biến:'
     pos = main.find(anchor)
     if pos < 0:
-        raise RuntimeError("Final writer prompt anchor missing for inventory capacity")
-    line_start = main.rfind("      ", 0, pos)
-    if line_start < 0:
-        raise RuntimeError("Final writer prompt line start missing for inventory capacity")
-    main = main[:line_start] + f'      "{policy}" +\n' + main[line_start:]
+        raise RuntimeError("Inventory V2 writer anchor missing")
+    line_start = main.rfind("\n", 0, pos) + 1
+    main = main[:line_start] + '            "' + policy + '" +\n' + main[line_start:]
 
-if marker not in main:
-    raise RuntimeError("Final inventory capacity writer marker missing after insertion")
+for fragment in retired_fragments + ["inventory_upsert{item,basis}", "inventory_remove{name,basis}"]:
+    if fragment in main:
+        raise RuntimeError(f"Retired inventory writer authority survived V2: {fragment}")
+
+for marker_required in [
+    marker,
+    "Explore Loot hoặc Entity Drop",
+    "Kai có 14 slot",
+    "8 slot tối đa x99",
+    "Equipment tách riêng",
+]:
+    if marker_required not in main:
+        raise RuntimeError(f"Inventory V2 writer marker missing: {marker_required}")
 
 MAIN.write_text(main, encoding="utf-8")
-print("Final GM inventory capacity prompt aligned: Kai 14x9999, all other characters 8x99, Equipment separate.")
+print("Inventory V2 writer prompt aligned: no narrative/Copy ownership creation, capacity guidance matches Core.")
