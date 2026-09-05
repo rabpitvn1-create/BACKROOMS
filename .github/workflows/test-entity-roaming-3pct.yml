@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feature/entity-roaming-3pct
+      - feature/async-member-entity
   pull_request:
     paths:
       - "android-apk/**"
