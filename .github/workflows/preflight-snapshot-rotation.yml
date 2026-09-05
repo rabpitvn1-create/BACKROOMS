@@ -8,6 +8,7 @@ on:
       - "android-apk/fetch-level-snapshots.py"
       - "android-apk/snapshot_sources.json"
       - "android-apk/patch-level-snapshot-backgrounds.py"
+      - "android-apk/patch-level-transition-sync.py"
       - "android-apk/app/src/main/assets/level_snapshots/**"
       - ".github/workflows/preflight-snapshot-rotation.yml"
   workflow_dispatch:
@@ -27,7 +28,7 @@ jobs:
 
       - name: Validate source manifest and fetch 28 images
         run: |
-          python3 -m py_compile android-apk/fetch-level-snapshots.py android-apk/patch-level-snapshot-backgrounds.py
+          python3 -m py_compile android-apk/fetch-level-snapshots.py android-apk/patch-level-snapshot-backgrounds.py android-apk/patch-level-transition-sync.py
           python3 android-apk/fetch-level-snapshots.py
           test "$(find android-apk/app/src/main/assets/level_snapshots/rotation -maxdepth 1 -type f | wc -l)" -eq 28
 
@@ -61,8 +62,9 @@ jobs:
           python3 android-apk/patch-game-state-core-bridge.py
           python3 android-apk/patch-character-inventory-ui.py
           python3 android-apk/patch-character-detail-avatar-fallback.py
+          python3 android-apk/patch-level-transition-sync.py
 
-      - name: Verify deterministic four-image rotation contract
+      - name: Verify deterministic four-image rotation and level-state sync contract
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -74,9 +76,16 @@ jobs:
           assert all([image['slot'] for image in entry['images']] == [1, 2, 3, 4] for entry in manifest['levels'])
 
           java = Path('android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java').read_text(encoding='utf-8')
+          html = Path('android-apk/app/src/main/assets/index.html').read_text(encoding='utf-8')
           assert 'Math.floor((snapshotTurn-1)/3)%seq.length' in java
+          assert 'var levelNumber=state&&state.level&&state.level.number;' in java
+          assert 'var lv=levelNumber!=null?' in java
           assert "bg.src=seq[snapshotSlot]" in java
           assert "Snapshot '+(snapshotSlot+1)+' / 4" in java
+          assert 'put("location", canonicalLevelLocation)' in java
+          assert 'function displayLocation(s)' in html
+          assert 'Number(m[1])!==n?canonical' in html
+          assert 'locationEl.textContent=displayLocation(state)' in html
           for level in range(7):
               for slot in range(1, 5):
                   marker = f'level_snapshots/rotation/level_{level}_{slot}.'
