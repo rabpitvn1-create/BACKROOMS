@@ -33,7 +33,8 @@ jobs:
       - name: Require Claude API credential
         env:
           CLAUDE_API: ${{ secrets.CLAUDE_API }}
-        run: test -n "$CLAUDE_API" || (echo "Missing GitHub Secret: CLAUDE_API" && exit 1)
+        run: |
+          test -n "$CLAUDE_API" || (echo "Missing GitHub Secret CLAUDE_API" && exit 1)
 
       - name: Ask Claude Opus to author the Snapshot patch
         env:
