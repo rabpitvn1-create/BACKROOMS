@@ -14,13 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 120
     env:
-      # CLAUDE_API_KEY is used directly with Anthropic's native Messages API.
-      # haku_snapshot_teacher still reads the legacy env names, while
-      # claude_snapshot_compat replaces only the transport/parsing layer.
       CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
-      HAKU_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
-      HAKU_API_URL: https://api.anthropic.com/v1/messages
-      HAKU_SNAPSHOT_MODEL: claude-haiku-4-5-20251001
+      CLAUDE_MODEL: ${{ secrets.CLAUDE_MODEL }}
+      CLAUDE_BASE_URL: ${{ secrets.CLAUDE_BASE_URL }}
     steps:
       - uses: actions/checkout@v4
 
@@ -43,9 +39,11 @@ jobs:
           python android-apk/ml/test_haku_snapshot_candidate_teacher.py -v
           python android-apk/ml/test_claude_snapshot_compat.py -v
 
-      - name: Require Claude credential
+      - name: Require Claude configuration
         run: |
           test -n "$CLAUDE_API_KEY" || (echo "Missing GitHub Secret: CLAUDE_API_KEY" && exit 1)
+          test -n "$CLAUDE_MODEL" || (echo "Missing GitHub Secret: CLAUDE_MODEL" && exit 1)
+          test -n "$CLAUDE_BASE_URL" || (echo "Missing GitHub Secret: CLAUDE_BASE_URL" && exit 1)
 
       - name: Validate Claude vision credential
         run: |
@@ -61,7 +59,7 @@ jobs:
           python android-apk/fetch-level-snapshots.py
           test "$(find android-apk/app/src/main/assets/level_snapshots/rotation -maxdepth 1 -type f | wc -l)" -eq 28
 
-      - name: Label fallback and rotation candidates with Claude Haiku 4.5
+      - name: Label fallback and rotation candidates with Claude
         run: |
           python android-apk/ml/claude_snapshot_runner.py candidates \
             --glob 'android-apk/app/src/main/assets/level_snapshots/rotation/*' \
