@@ -1,0 +1,165 @@
+name: Claude Snapshot Auto Coder
+
+on:
+  push:
+    branches:
+      - opus/snapshot-character-entity-layout-v1
+    paths:
+      - .github/workflows/claude-snapshot-autocoder.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: claude-snapshot-autocoder
+  cancel-in-progress: false
+
+env:
+  CLAUDE_MODEL: claude-opus-4-8
+
+jobs:
+  opus-snapshot-autocoder:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Require Claude API credential
+        env:
+          CLAUDE_API: ${{ secrets.CLAUDE_API }}
+        run: test -n "$CLAUDE_API" || (echo "Missing GitHub Secret: CLAUDE_API" && exit 1)
+
+      - name: Ask Claude Opus to author the Snapshot patch
+        env:
+          CLAUDE_API: ${{ secrets.CLAUDE_API }}
+        run: |
+          python android-apk/ml/claude_snapshot_autocoder.py \
+            --model "$CLAUDE_MODEL" \
+            --output /tmp/claude_snapshot.patch
+
+      - name: Validate Claude patch boundary
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          patch = Path('/tmp/claude_snapshot.patch').read_text(encoding='utf-8')
+          allowed = {
+              'android-apk/app/src/main/java/com/rabpit/backroom/core/CombatCore.kt',
+              'android-apk/app/src/test/java/com/rabpit/backroom/core/CombatCoreTest.kt',
+              'android-apk/patch-auto-turn-combat-final.py',
+              'android-apk/patch-combat-runtime-ux-final.py',
+              'android-apk/patch-snapshot-visual-runtime-v3.py',
+              'android-apk/patch-kai-hd-continuous.py',
+          }
+          paths = set(re.findall(r'^diff --git a/(.+?) b/(.+?)$', patch, re.M))
+          touched = {a for a, b in paths if a == b}
+          if not touched:
+              raise SystemExit('Claude patch touched no recognized files')
+          if len(patch.splitlines()) > 1800:
+              raise SystemExit(f'Claude patch too large: {len(patch.splitlines())} lines')
+          unexpected = sorted(touched - allowed)
+          if unexpected:
+              raise SystemExit('Claude attempted unexpected files: ' + ', '.join(unexpected))
+          if any(a != b for a, b in paths):
+              raise SystemExit('Claude patch may not rename files')
+          if 'GITHUB_TOKEN' in patch or 'CLAUDE_API' in patch or 'secrets.' in patch:
+              raise SystemExit('Claude patch attempted to reference credentials/workflow secrets')
+          print('Allowed Claude changes:', ', '.join(sorted(touched)))
+          PY
+          git apply --check --whitespace=error-all /tmp/claude_snapshot.patch
+
+      - name: Apply Claude patch
+        run: |
+          git apply --whitespace=fix /tmp/claude_snapshot.patch
+          python - <<'PY'
+          import subprocess
+          allowed = {
+              'android-apk/app/src/main/java/com/rabpit/backroom/core/CombatCore.kt',
+              'android-apk/app/src/test/java/com/rabpit/backroom/core/CombatCoreTest.kt',
+              'android-apk/patch-auto-turn-combat-final.py',
+              'android-apk/patch-combat-runtime-ux-final.py',
+              'android-apk/patch-snapshot-visual-runtime-v3.py',
+              'android-apk/patch-kai-hd-continuous.py',
+          }
+          changed = set(subprocess.check_output(['git','diff','--name-only'], text=True).splitlines())
+          unexpected = sorted(changed - allowed)
+          if unexpected:
+              raise SystemExit('Unexpected working-tree changes: ' + ', '.join(unexpected))
+          if not changed:
+              raise SystemExit('Claude patch applied no changes')
+          print('Applied files:', ', '.join(sorted(changed)))
+          PY
+
+      - name: Validate Python finalizers
+        run: |
+          python -m py_compile \
+            android-apk/patch-auto-turn-combat-final.py \
+            android-apk/patch-combat-runtime-ux-final.py \
+            android-apk/patch-snapshot-visual-runtime-v3.py \
+            android-apk/patch-kai-hd-continuous.py
+
+      - name: Guard Snapshot side and lifecycle invariants
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          visual = Path('android-apk/patch-snapshot-visual-runtime-v3.py').read_text(encoding='utf-8')
+          combat = Path('android-apk/app/src/main/java/com/rabpit/backroom/core/CombatCore.kt').read_text(encoding='utf-8')
+          tests = Path('android-apk/app/src/test/java/com/rabpit/backroom/core/CombatCoreTest.kt').read_text(encoding='utf-8')
+
+          forbidden = [
+              "targetX=rr.width*(role==='entity'?.76:.24)",
+              ".snapshot.entity-encounter-present .snapshot-character{left:var(--stage-left",
+          ]
+          for token in forbidden:
+              if token in visual:
+                  raise SystemExit('Old left-character/right-entity staging survived: ' + token)
+
+          if 'CombatTimelineEvent("FOCUS", actorId = enemy.id' not in combat:
+              raise SystemExit('Entity turn still lacks an authoritative FOCUS event')
+          if 'FOCUS' not in tests or 'ENTITY' not in tests:
+              raise SystemExit('Combat regression test coverage was not extended')
+          PY
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+
+      - name: Run Kotlin core regression tests
+        working-directory: android-apk
+        run: gradle :app:testDebugUnitTest --no-daemon
+
+      - name: Commit verified Claude patch
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add \
+            android-apk/app/src/main/java/com/rabpit/backroom/core/CombatCore.kt \
+            android-apk/app/src/test/java/com/rabpit/backroom/core/CombatCoreTest.kt \
+            android-apk/patch-auto-turn-combat-final.py \
+            android-apk/patch-combat-runtime-ux-final.py \
+            android-apk/patch-snapshot-visual-runtime-v3.py \
+            android-apk/patch-kai-hd-continuous.py
+          git diff --cached --quiet && (echo "No verified Claude changes to commit" && exit 1)
+          git commit -m "Fix Snapshot turn visuals with Claude Opus 4.8"
+          git push origin HEAD:opus/snapshot-character-entity-layout-v1
+
+      - name: Upload Claude patch for audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: claude-snapshot-autocoder-patch
+          path: /tmp/claude_snapshot.patch
+          if-no-files-found: warn
+          retention-days: 7
