@@ -1,3 +1,5 @@
+import pathlib
+import tempfile
 import unittest
 
 import haku_snapshot_candidate_teacher as teacher
@@ -70,6 +72,13 @@ class HakuSnapshotCandidateTeacherTest(unittest.TestCase):
         pixels = [(255, 255, 255)] * (teacher.W * teacher.H)
         candidates = teacher.extract_candidates_from_rgb(pixels, max_candidates=8)
         self.assertEqual([], candidates)
+
+    def test_image_data_url_rejects_oversized_payload(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = pathlib.Path(tmp) / "candidate.jpg"
+            path.write_bytes(b"x" * (teacher.MARKED_MAX_BYTES + 1))
+            with self.assertRaisesRegex(teacher.TeacherError, "transport budget"):
+                teacher._image_data_url(path)
 
 
 if __name__ == "__main__":
