@@ -14,9 +14,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 120
     env:
+      # Use the requested CLAUDE_API_KEY with the project's proven OpenAI-compatible
+      # Claude gateway. Do not assume this secret is an Anthropic Console API key.
       CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
       HAKU_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
-      HAKU_API_URL: https://api.anthropic.com/v1/chat/completions
+      HAKU_API_URL: https://api.vilao.ai/v1/chat/completions
       HAKU_SNAPSHOT_MODEL: claude-haiku-4-5-20251001
     steps:
       - uses: actions/checkout@v4
@@ -40,11 +42,10 @@ jobs:
         run: |
           test -n "$CLAUDE_API_KEY" || (echo "Missing GitHub Secret: CLAUDE_API_KEY" && exit 1)
 
-      - name: Record non-blocking Claude vision probe
+      - name: Validate Claude vision credential
         run: |
           python android-apk/ml/haku_snapshot_teacher.py probe \
-            --output snapshot_teacher/haku_snapshot_probe.json \
-            || echo "Claude geometry probe drifted; candidate consensus remains the training gate."
+            --output snapshot_teacher/haku_snapshot_probe.json
 
       - name: Install Snapshot image decoder
         run: |
