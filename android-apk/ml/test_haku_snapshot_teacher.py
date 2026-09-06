@@ -29,21 +29,30 @@ class HakuSnapshotTeacherTest(unittest.TestCase):
 
     def test_probe_png_and_assessment(self):
         with tempfile.TemporaryDirectory() as tmp:
-            path = pathlib.Path(tmp) / "probe.png"
-            expected = teacher.write_probe_png(path)
-            self.assertTrue(path.read_bytes().startswith(b"\x89PNG"))
-            annotation = {
+            left_path = pathlib.Path(tmp) / "left.png"
+            right_path = pathlib.Path(tmp) / "right.png"
+            left_expected = teacher.write_probe_png(left_path, x0=12, x1=61)
+            right_expected = teacher.write_probe_png(right_path, x0=82, x1=131)
+            self.assertTrue(left_path.read_bytes().startswith(b"\x89PNG"))
+            left = teacher.validate_annotation({
                 "lights": [{
-                    "x": expected["x"],
-                    "y": expected["y"],
-                    "w": expected["w"],
-                    "h": expected["h"],
-                    "kind": "linear",
-                    "confidence": 0.99,
+                    "x": left_expected["x"], "y": left_expected["y"],
+                    "w": left_expected["w"], "h": left_expected["h"],
+                    "kind": "linear", "confidence": 0.99,
                 }],
                 "ambient": 0.05,
-            }
-            teacher.assess_probe(teacher.validate_annotation(annotation), expected)
+            })
+            right = teacher.validate_annotation({
+                "lights": [{
+                    "x": right_expected["x"], "y": right_expected["y"],
+                    "w": right_expected["w"], "h": right_expected["h"],
+                    "kind": "linear", "confidence": 0.99,
+                }],
+                "ambient": 0.05,
+            })
+            result = teacher.assess_probe_pair(left, left_expected, right, right_expected)
+            self.assertTrue(result["vision_supported"])
+            self.assertTrue(result["precise_localization"])
 
     def test_consensus_rejects_light_count_disagreement(self):
         one = teacher.validate_annotation({
