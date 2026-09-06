@@ -68,6 +68,7 @@ PATCH_CHAIN = [
     "patch-snapshot-light-runtime-v3.py",
     "patch-snapshot-visual-runtime-v3.py",
     "patch-issue406-item-use-final.py",
+    "patch-snapshot-turn-visual-contract-final.py",
 ]
 
 for patch_name in PATCH_CHAIN:
