@@ -15,93 +15,168 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - name: Probe Anthropic authentication and Opus
+      - name: Probe configured Claude provider and Opus
         env:
           CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+          CLAUDE_BASE_URL: ${{ secrets.CLAUDE_BASE_URL || secrets.CLAUDE_API_URL || secrets.CLAUDE_URL }}
           CLAUDE_MODEL: claude-opus-4-8
         run: |
           python - <<'PY'
           import hashlib
           import json
           import os
-          import sys
           import urllib.error
           import urllib.request
+          from urllib.parse import urlsplit
 
           key = os.environ.get('CLAUDE_API_KEY', '').strip()
+          raw_base = os.environ.get('CLAUDE_BASE_URL', '').strip().rstrip('/')
           model = os.environ.get('CLAUDE_MODEL', 'claude-opus-4-8').strip()
+
           if not key:
-              print('probe_error=missing_secret')
+              print('probe_error=missing_api_key_secret')
+              raise SystemExit(1)
+          if not raw_base:
+              print('probe_error=missing_base_url_secret')
+              raise SystemExit(1)
+          if not raw_base.startswith(('https://', 'http://')):
+              print('probe_error=invalid_base_url_scheme')
               raise SystemExit(1)
 
-          # Safe diagnostics only. Never print any part of the key itself.
+          # Accept either a provider base URL or a full messages/chat-completions URL.
+          base = raw_base
+          for suffix in ('/chat/completions', '/messages'):
+              if base.endswith(suffix):
+                  base = base[:-len(suffix)]
+                  break
+
+          parsed = urlsplit(base)
           print('key_present=true')
           print(f'key_length={len(key)}')
           print('key_sha256_12=' + hashlib.sha256(key.encode('utf-8')).hexdigest()[:12])
-          print('key_family=' + ('anthropic' if key.startswith('sk-ant-') else 'other'))
+          print('provider_host=' + (parsed.hostname or 'unknown'))
+          print('provider_path=' + (parsed.path or '/'))
 
-          headers = {
-              'x-api-key': key,
-              'anthropic-version': '2023-06-01',
-              'content-type': 'application/json',
-          }
-
-          def request(req, label):
+          def call(url, method='GET', headers=None, body=None, label='request'):
+              req = urllib.request.Request(
+                  url,
+                  data=None if body is None else json.dumps(body).encode('utf-8'),
+                  headers=headers or {},
+                  method=method,
+              )
               try:
                   with urllib.request.urlopen(req, timeout=45) as response:
-                      body = response.read().decode('utf-8', errors='replace')
+                      text = response.read().decode('utf-8', errors='replace')
                       print(f'{label}_status={response.status}')
-                      return response.status, body
+                      return response.status, text
               except urllib.error.HTTPError as error:
-                  body = error.read().decode('utf-8', errors='replace')[:1200]
+                  text = error.read().decode('utf-8', errors='replace')[:800]
                   print(f'{label}_status={error.code}')
-                  print(f'{label}_error={body}')
-                  return error.code, body
+                  print(f'{label}_error={text}')
+                  return error.code, text
               except Exception as error:
                   print(f'{label}_exception={type(error).__name__}:{error}')
                   return 0, ''
 
-          models_req = urllib.request.Request(
-              'https://api.anthropic.com/v1/models',
-              headers=headers,
-              method='GET',
-          )
-          models_status, models_body = request(models_req, 'models')
+          anthropic_headers = {
+              'x-api-key': key,
+              'anthropic-version': '2023-06-01',
+              'content-type': 'application/json',
+          }
+          bearer_headers = {
+              'Authorization': f'Bearer {key}',
+              'content-type': 'application/json',
+          }
+
+          # First probe the provider's models endpoint with both common auth styles.
+          models_url = base + '/models'
+          models_status, models_body = call(models_url, headers=anthropic_headers, label='models_x_api_key')
+          auth_style = 'anthropic' if models_status == 200 else None
           if models_status != 200:
-              raise SystemExit(2)
+              models_status, models_body = call(models_url, headers=bearer_headers, label='models_bearer')
+              if models_status == 200:
+                  auth_style = 'bearer'
 
-          try:
-              payload = json.loads(models_body)
-              ids = [m.get('id') for m in payload.get('data', []) if isinstance(m, dict)]
-              print(f'models_count={len(ids)}')
-              print('opus_4_8_listed=' + ('true' if model in ids else 'false'))
-          except Exception as error:
-              print(f'models_parse_warning={type(error).__name__}')
+          if models_status == 200:
+              try:
+                  payload = json.loads(models_body)
+                  data = payload.get('data', []) if isinstance(payload, dict) else []
+                  ids = [m.get('id') for m in data if isinstance(m, dict) and isinstance(m.get('id'), str)]
+                  print(f'models_count={len(ids)}')
+                  print('requested_model_listed=' + ('true' if model in ids else 'false'))
+              except Exception as error:
+                  print(f'models_parse_warning={type(error).__name__}')
+          else:
+              print('models_endpoint_unavailable=true')
 
-          message_body = {
+          # Probe Anthropic-compatible Messages API.
+          anthropic_body = {
               'model': model,
               'max_tokens': 16,
-              'messages': [
-                  {'role': 'user', 'content': 'Reply exactly: OPUS_OK'}
-              ],
+              'messages': [{'role': 'user', 'content': 'Reply exactly: OPUS_OK'}],
           }
-          messages_req = urllib.request.Request(
-              'https://api.anthropic.com/v1/messages',
-              data=json.dumps(message_body).encode('utf-8'),
-              headers=headers,
+          a_status, a_body = call(
+              base + '/messages',
               method='POST',
+              headers=anthropic_headers,
+              body=anthropic_body,
+              label='messages_anthropic',
           )
-          messages_status, messages_body = request(messages_req, 'messages')
-          if messages_status != 200:
-              raise SystemExit(3)
+          if a_status == 200:
+              try:
+                  payload = json.loads(a_body)
+                  texts = [b.get('text', '') for b in payload.get('content', []) if isinstance(b, dict) and b.get('type') == 'text']
+                  print('response_model=' + str(payload.get('model', '')))
+                  print('response_text=' + ' '.join(texts)[:120])
+              except Exception as error:
+                  print(f'messages_parse_warning={type(error).__name__}')
+              print('provider_protocol=anthropic_messages')
+              print('probe_result=PASS')
+              raise SystemExit(0)
 
-          try:
-              payload = json.loads(messages_body)
-              texts = [b.get('text', '') for b in payload.get('content', []) if isinstance(b, dict) and b.get('type') == 'text']
-              print('response_model=' + str(payload.get('model', '')))
-              print('response_text=' + ' '.join(texts)[:120])
-          except Exception as error:
-              print(f'messages_parse_warning={type(error).__name__}')
+          # Probe OpenAI-compatible Chat Completions API, common for gateways/proxies.
+          openai_body = {
+              'model': model,
+              'max_tokens': 16,
+              'messages': [{'role': 'user', 'content': 'Reply exactly: OPUS_OK'}],
+          }
+          o_status, o_body = call(
+              base + '/chat/completions',
+              method='POST',
+              headers=bearer_headers,
+              body=openai_body,
+              label='chat_completions_bearer',
+          )
+          if o_status == 200:
+              try:
+                  payload = json.loads(o_body)
+                  choices = payload.get('choices', []) if isinstance(payload, dict) else []
+                  text = ''
+                  if choices and isinstance(choices[0], dict):
+                      msg = choices[0].get('message', {})
+                      if isinstance(msg, dict):
+                          text = str(msg.get('content', ''))
+                  print('response_model=' + str(payload.get('model', '')))
+                  print('response_text=' + text[:120])
+              except Exception as error:
+                  print(f'chat_parse_warning={type(error).__name__}')
+              print('provider_protocol=openai_chat_completions')
+              print('probe_result=PASS')
+              raise SystemExit(0)
 
-          print('probe_result=PASS')
+          # Some gateways expose OpenAI-shaped endpoints but accept x-api-key.
+          ox_status, ox_body = call(
+              base + '/chat/completions',
+              method='POST',
+              headers=anthropic_headers,
+              body=openai_body,
+              label='chat_completions_x_api_key',
+          )
+          if ox_status == 200:
+              print('provider_protocol=openai_chat_completions_x_api_key')
+              print('probe_result=PASS')
+              raise SystemExit(0)
+
+          print('probe_result=FAIL')
+          raise SystemExit(2)
           PY
