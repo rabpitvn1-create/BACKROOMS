@@ -14,8 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 120
     env:
-      HAKU_API_KEY: ${{ secrets.HAKU_API_KEY }}
-      HAKU_API_URL: https://api.vilao.ai/v1/chat/completions
+      CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+      HAKU_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+      HAKU_API_URL: https://api.anthropic.com/v1/chat/completions
       HAKU_SNAPSHOT_MODEL: claude-haiku-4-5-20251001
     steps:
       - uses: actions/checkout@v4
@@ -35,15 +36,15 @@ jobs:
           python android-apk/ml/test_haku_snapshot_teacher.py -v
           python android-apk/ml/test_haku_snapshot_candidate_teacher.py -v
 
-      - name: Require HAKU credential
+      - name: Require Claude credential
         run: |
-          test -n "$HAKU_API_KEY" || (echo "Missing GitHub Secret: HAKU_API_KEY" && exit 1)
+          test -n "$CLAUDE_API_KEY" || (echo "Missing GitHub Secret: CLAUDE_API_KEY" && exit 1)
 
-      - name: Record non-blocking HAKU vision probe
+      - name: Record non-blocking Claude vision probe
         run: |
           python android-apk/ml/haku_snapshot_teacher.py probe \
             --output snapshot_teacher/haku_snapshot_probe.json \
-            || echo "HAKU geometry probe drifted; candidate consensus remains the training gate."
+            || echo "Claude geometry probe drifted; candidate consensus remains the training gate."
 
       - name: Install Snapshot image decoder
         run: |
@@ -54,13 +55,13 @@ jobs:
           python android-apk/fetch-level-snapshots.py
           test "$(find android-apk/app/src/main/assets/level_snapshots/rotation -maxdepth 1 -type f | wc -l)" -eq 28
 
-      - name: Label fallback and rotation candidates with HAKU
+      - name: Label fallback and rotation candidates with Claude Haiku 4.5
         run: |
           python android-apk/ml/haku_snapshot_candidate_teacher.py \
             --glob 'android-apk/app/src/main/assets/level_snapshots/rotation/*' \
             --limit 35 \
             --passes 2 \
-            --max-candidates 4 \
+            --max-candidates 8 \
             --output snapshot_teacher/haku_snapshot_candidate_labels.jsonl
 
       - name: Install LiteRT training dependencies
