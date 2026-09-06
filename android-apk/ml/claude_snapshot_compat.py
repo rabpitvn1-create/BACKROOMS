@@ -84,6 +84,12 @@ def extract_choice_text(response: Any, error_type: type[Exception]) -> str:
         raise error_type("Claude response root is not an object")
     choices = response.get("choices")
     if not isinstance(choices, list) or not choices:
+        # Some CLAUDE_BASE_URL providers expose Anthropic Messages-shaped
+        # payloads even when the request endpoint is OpenAI-compatible.
+        # Detect the response contract from the payload rather than guessing
+        # solely from the URL.
+        if isinstance(response.get("content"), list):
+            return extract_anthropic_text(response, error_type)
         raise error_type("Claude response has no choices")
     first = choices[0]
     if not isinstance(first, dict) or not isinstance(first.get("message"), dict):
