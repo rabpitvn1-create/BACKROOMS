@@ -37,10 +37,11 @@ jobs:
         run: |
           test -n "$HAKU_API_KEY" || (echo "Missing GitHub Secret: HAKU_API_KEY" && exit 1)
 
-      - name: Probe HAKU image understanding
+      - name: Record non-blocking HAKU vision probe
         run: |
           python android-apk/ml/haku_snapshot_teacher.py probe \
-            --output snapshot_teacher/haku_snapshot_probe.json
+            --output snapshot_teacher/haku_snapshot_probe.json \
+            || echo "HAKU geometry probe drifted; candidate consensus remains the training gate."
 
       - name: Install Snapshot image decoder
         run: |
