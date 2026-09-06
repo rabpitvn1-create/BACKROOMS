@@ -21,6 +21,23 @@ class HakuSnapshotCandidateTeacherTest(unittest.TestCase):
                 "confidence": 0.8,
             })
 
+    def test_parse_candidate_content_accepts_identical_duplicate_objects(self):
+        text = (
+            '{"fixture":false,"kind":"none","confidence":0.9}\n'
+            '{"fixture":false,"kind":"none","confidence":0.9}'
+        )
+        value = teacher.parse_candidate_content(text)
+        self.assertFalse(value["fixture"])
+        self.assertEqual("none", value["kind"])
+
+    def test_parse_candidate_content_rejects_disagreeing_duplicate_objects(self):
+        text = (
+            '{"fixture":false,"kind":"none","confidence":0.9}\n'
+            '{"fixture":true,"kind":"linear","confidence":0.9}'
+        )
+        with self.assertRaises(teacher.TeacherError):
+            teacher.parse_candidate_content(text)
+
     def test_consensus_candidate_requires_semantic_agreement(self):
         a = {"fixture": True, "kind": "linear", "confidence": 0.9}
         b = {"fixture": False, "kind": "none", "confidence": 0.9}
