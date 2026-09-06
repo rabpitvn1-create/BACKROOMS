@@ -21,13 +21,6 @@ ANTHROPIC_VERSION = "2023-06-01"
 
 
 def resolve_api_url(base_url: str) -> str:
-    """Resolve CLAUDE_BASE_URL into the concrete vision endpoint.
-
-    The configured value may be a provider base URL (for example ``.../v1``) or
-    an already-complete endpoint. Anthropic's public host uses Messages; all
-    other bases default to the project's OpenAI-compatible chat/completions
-    contract.
-    """
     value = base_url.strip().rstrip("/")
     if not value:
         raise ValueError("CLAUDE_BASE_URL is required")
@@ -38,14 +31,12 @@ def resolve_api_url(base_url: str) -> str:
     path = parsed.path.rstrip("/")
     if path.endswith("/chat/completions") or path.endswith("/messages"):
         return value
-
     if parsed.hostname == "api.anthropic.com":
         if path.endswith("/v1"):
             return value + "/messages"
         if path in {"", "/"}:
             return value + "/v1/messages"
         return value + "/messages"
-
     if path.endswith("/v1"):
         return value + "/chat/completions"
     if path in {"", "/"}:
@@ -73,34 +64,81 @@ def _content_text(content: Any) -> str:
                 value = item.get("content")
             if isinstance(value, str):
                 parts.append(value)
+            elif isinstance(value, list):
+                nested = _content_text(value)
+                if nested:
+                    parts.append(nested)
         return "\n".join(parts)
     if content is None:
         return ""
     return str(content)
 
 
+def _message_text(message: Any) -> str:
+    if isinstance(message, str):
+        return message.strip()
+    if not isinstance(message, dict):
+        return ""
+    reasoning = _content_text(message.get("reasoning_content")).strip()
+    content = _content_text(message.get("content")).strip()
+    text = _content_text(message.get("text")).strip()
+    return "\n".join(part for part in (reasoning, content, text) if part)
+
+
 def extract_choice_text(response: Any, error_type: type[Exception]) -> str:
     if not isinstance(response, dict):
         raise error_type("Claude response root is not an object")
+
     choices = response.get("choices")
-    if not isinstance(choices, list) or not choices:
-        # Some CLAUDE_BASE_URL providers expose Anthropic Messages-shaped
-        # payloads even when the request endpoint is OpenAI-compatible.
-        # Detect the response contract from the payload rather than guessing
-        # solely from the URL.
-        if isinstance(response.get("content"), list):
+    if isinstance(choices, list) and choices:
+        first = choices[0]
+        if isinstance(first, dict):
+            text = _message_text(first.get("message"))
+            if not text:
+                text = _content_text(first.get("text")).strip()
+            if text:
+                return text
+        raise error_type("Claude response choice contained no text")
+
+    # Anthropic Messages-shaped payloads can be returned by custom gateways
+    # even when the request endpoint itself is OpenAI-compatible.
+    if isinstance(response.get("content"), list):
+        try:
             return extract_anthropic_text(response, error_type)
-        raise error_type("Claude response has no choices")
-    first = choices[0]
-    if not isinstance(first, dict) or not isinstance(first.get("message"), dict):
-        raise error_type("Claude response choice has no message")
-    message = first["message"]
-    reasoning = _content_text(message.get("reasoning_content")).strip()
-    content = _content_text(message.get("content")).strip()
-    joined = "\n".join(part for part in (reasoning, content) if part)
-    if not joined:
-        raise error_type("Claude response message contained no text")
-    return joined
+        except Exception:
+            text = _content_text(response.get("content")).strip()
+            if text:
+                return text
+
+    for key in ("output_text", "text", "content"):
+        text = _content_text(response.get(key)).strip()
+        if text:
+            return text
+
+    message_text = _message_text(response.get("message"))
+    if message_text:
+        return message_text
+
+    data = response.get("data")
+    if isinstance(data, dict):
+        return extract_choice_text(data, error_type)
+
+    output = response.get("output")
+    if isinstance(output, list):
+        parts: list[str] = []
+        for item in output:
+            if not isinstance(item, dict):
+                continue
+            text = _message_text(item)
+            if not text:
+                text = _content_text(item.get("content")).strip()
+            if text:
+                parts.append(text)
+        if parts:
+            return "\n".join(parts)
+
+    shape = ",".join(f"{key}:{type(value).__name__}" for key, value in sorted(response.items()))
+    raise error_type(f"Claude response contained no supported text field; shape={shape[:500]}")
 
 
 def extract_anthropic_text(response: Any, error_type: type[Exception]) -> str:
@@ -185,10 +223,7 @@ def _image_source(path: pathlib.Path, error_type: type[Exception]) -> dict[str, 
 
 
 def _anthropic_headers(api_key: str, *, bearer: bool) -> dict[str, str]:
-    headers = {
-        "Content-Type": "application/json",
-        "anthropic-version": ANTHROPIC_VERSION,
-    }
+    headers = {"Content-Type": "application/json", "anthropic-version": ANTHROPIC_VERSION}
     if bearer:
         headers["Authorization"] = f"Bearer {api_key}"
     else:
@@ -226,7 +261,6 @@ def call_anthropic_message(
     encoded = json.dumps(body, separators=(",", ":")).encode("utf-8")
     raw: str | None = None
     last_unauthorized: urllib.error.HTTPError | None = None
-
     for bearer in (False, True):
         request = urllib.request.Request(
             api_url,
@@ -246,12 +280,10 @@ def call_anthropic_message(
             raise error_type(f"Claude HTTP {error.code}: {detail}") from error
         except urllib.error.URLError as error:
             raise error_type(f"Claude connection failed: {error.reason}") from error
-
     if raw is None:
         if last_unauthorized is not None:
             raise error_type("Claude HTTP 401: credential rejected by both supported authentication forms")
         raise error_type("Claude Messages request produced no response")
-
     try:
         payload = json.loads(raw)
     except json.JSONDecodeError as error:
