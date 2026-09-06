@@ -1,0 +1,75 @@
+name: Train HAKU Snapshot Teacher Data
+
+on:
+  push:
+    branches:
+      - ai/haku-snapshot-teacher-v1
+    paths:
+      - "android-apk/ml/haku_snapshot_teacher.py"
+      - "android-apk/ml/test_haku_snapshot_teacher.py"
+      - ".github/workflows/train-haku-snapshot-teacher.yml"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Probe HAKU vision only, or bootstrap labels from packaged Snapshot images"
+        required: true
+        default: probe
+        type: choice
+        options:
+          - probe
+          - bootstrap
+      limit:
+        description: "Maximum packaged Snapshot images to label in bootstrap mode"
+        required: true
+        default: "7"
+      passes:
+        description: "Independent HAKU annotations per image before consensus"
+        required: true
+        default: "3"
+
+permissions:
+  contents: read
+
+jobs:
+  haku-snapshot-teacher:
+    runs-on: ubuntu-latest
+    env:
+      HAKU_API_KEY: ${{ secrets.HAKU_API_KEY }}
+      HAKU_API_URL: https://api.vilao.ai/v1/chat/completions
+      HAKU_SNAPSHOT_MODEL: claude-haiku-4-5-20251001
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate HAKU Snapshot teacher code
+        run: |
+          python -m py_compile android-apk/ml/haku_snapshot_teacher.py android-apk/ml/test_haku_snapshot_teacher.py
+          python android-apk/ml/test_haku_snapshot_teacher.py -v
+
+      - name: Require HAKU credential
+        run: test -n "$HAKU_API_KEY" || (echo "Missing GitHub Secret: HAKU_API_KEY" && exit 1)
+
+      - name: Probe HAKU image understanding
+        run: |
+          python android-apk/ml/haku_snapshot_teacher.py probe \
+            --output snapshot_teacher/haku_snapshot_probe.json
+
+      - name: Bootstrap packaged Snapshot labels
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'bootstrap' }}
+        run: |
+          python android-apk/ml/haku_snapshot_teacher.py annotate \
+            --limit "${{ inputs.limit }}" \
+            --passes "${{ inputs.passes }}" \
+            --output snapshot_teacher/haku_snapshot_labels.jsonl
+
+      - name: Upload HAKU Snapshot teacher artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: haku-snapshot-teacher-${{ github.run_id }}
+          path: snapshot_teacher/
+          if-no-files-found: warn
+          retention-days: 14
