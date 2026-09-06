@@ -20,11 +20,8 @@ if "member.id==='kai'?'avatars/kai_avatar.png':'avatars/kai_avatar.png'" in html
 INDEX.write_text(html, encoding="utf-8")
 print("Character detail avatar fallback hardened: non-Kai members without avatars use no portrait.")
 
-# Ordered final runtime transformation chain. Inventory V2 owns all item semantics. Capacity
-# hardening verifies Core first, then aligns presentation/writer text without creating item state.
-# The foundation-canon finalizer runs after gameplay/inventory finalizers and only normalizes
-# canon knowledge plus retrieval routing. Level transition sync runs before final Runtime authority
-# and visual finalizers so later transforms cannot restore GM Party authority or stale visual layers.
+# Ordered final runtime transformation chain. Snapshot visuals are intentionally rebuilt by one
+# renderer only. Legacy lamp/shadow patch stacks were removed so they cannot fight over the DOM.
 PATCH_CHAIN = [
     "patch-survival-hud-chat-ux.py",
     "patch-an-nhien-follower-final.py",
@@ -50,9 +47,7 @@ PATCH_CHAIN = [
     "patch-combat-start-anchor-compat.py",
     "patch-newgame-canon-compat.py",
     "patch-combat-start-pacing-newgame.py",
-    "patch-combat-visual-effects.py",
-    "patch-combat-visual-effects-loop-guard.py",
-    "patch-combat-ux-regression-final.py",
+    "patch-combat-runtime-ux-final.py",
     "patch-an-nhien-rare-spawn-final.py",
     "patch-lucia-proc-skills-final.py",
     "patch-async-member-entity-final.py",
@@ -70,9 +65,8 @@ PATCH_CHAIN = [
     "patch-sru-backrooms-async-canon.py",
     "patch-level-transition-sync.py",
     "patch-runtime-recruitment-authority-final.py",
-    "patch-litert-snapshot-light-final.py",
-    "patch-snapshot-light-compile-fix.py",
-    "patch-snapshot-visual-runtime-final.py",
+    "patch-snapshot-light-runtime-v3.py",
+    "patch-snapshot-visual-runtime-v3.py",
     "patch-issue406-item-use-final.py",
 ]
 

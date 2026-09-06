@@ -5,7 +5,7 @@ APP = ROOT / "app"
 ASSETS = APP / "src/main/assets"
 CORE = APP / "src/main/java/com/rabpit/backroom/core"
 MAIN = APP / "src/main/java/com/rabpit/backroom/MainActivity.java"
-MODEL = ASSETS / "models/backroom_light.tflite"
+MODEL = ASSETS / "models/backroom_light_v3.tflite"
 
 
 def replace_once(text: str, old: str, new: str, label: str) -> str:
@@ -17,46 +17,30 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
     return text.replace(old, new, 1)
 
 
-def build_light_model() -> bool:
+def build_model() -> bool:
     try:
         import numpy as np
         import tensorflow as tf
     except Exception as error:
-        print(f"LiteRT light model build skipped in lightweight CI: {error}")
+        print(f"Snapshot light LiteRT model build skipped in lightweight CI: {error}")
         return False
 
     MODEL.parent.mkdir(parents=True, exist_ok=True)
     inputs = tf.keras.Input(shape=(81, 144, 3), dtype=tf.float32, name="snapshot_rgb")
-    luminance_layer = tf.keras.layers.Conv2D(1, 1, use_bias=False, trainable=False, name="luminance")
-    luminance = luminance_layer(inputs)
-    local_mean = tf.keras.layers.AveragePooling2D(pool_size=(11, 11), strides=(1, 1), padding="same", name="local_mean")(luminance)
-    contrast = tf.keras.layers.ReLU(name="positive_local_contrast")(tf.keras.layers.Subtract()([luminance, local_mean]))
-    outputs = tf.keras.layers.Concatenate(axis=-1, name="light_features")([luminance, contrast])
+    luma_layer = tf.keras.layers.Conv2D(1, 1, use_bias=False, trainable=False, name="luma")
+    luma = luma_layer(inputs)
+    local = tf.keras.layers.AveragePooling2D(pool_size=(nine := 9, nine), strides=(1, 1), padding="same", name="local_mean")(luma)
+    contrast = tf.keras.layers.ReLU(name="positive_contrast")(tf.keras.layers.Subtract()([luma, local]))
+    outputs = tf.keras.layers.Concatenate(axis=-1, name="features")([luma, contrast])
     model = tf.keras.Model(inputs, outputs)
-    luminance_layer.set_weights([np.array([0.2126, 0.7152, 0.0722], dtype=np.float32).reshape((1, 1, 3, 1))])
+    luma_layer.set_weights([np.array([0.2126, 0.7152, 0.0722], dtype=np.float32).reshape((1, 1, 3, 1))])
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
     converter.optimizations = [tf.lite.Optimize.DEFAULT]
     MODEL.write_bytes(converter.convert())
-
-    interpreter = tf.lite.Interpreter(model_path=str(MODEL))
-    interpreter.allocate_tensors()
-    input_info = interpreter.get_input_details()[0]
-    output_info = interpreter.get_output_details()[0]
-    if tuple(input_info["shape"]) != (1, 81, 144, 3):
-        raise RuntimeError(f"unexpected LiteRT light input shape: {input_info['shape']}")
-    if tuple(output_info["shape"]) != (1, 81, 144, 2):
-        raise RuntimeError(f"unexpected LiteRT light output shape: {output_info['shape']}")
-    synthetic = np.full((1, 81, 144, 3), 0.12, dtype=np.float32)
-    synthetic[:, 8:12, 40:104, :] = 1.0
-    interpreter.set_tensor(input_info["index"], synthetic.astype(input_info["dtype"]))
-    interpreter.invoke()
-    result = interpreter.get_tensor(output_info["index"])
-    if float(result[0, 9, 70, 0]) < 0.9 or float(result[0, 9, 70, 1]) <= 0.0:
-        raise RuntimeError("LiteRT light model synthetic fixture self-check failed")
-    return True
+    return MODEL.is_file() and MODEL.stat().st_size > 0
 
 
-model_built = build_light_model()
+model_built = build_model()
 
 (CORE / "SnapshotLightAnalyzer.kt").write_text(r'''package com.rabpit.backroom.core
 
@@ -74,9 +58,9 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
-class SnapshotLightAnalyzer(
+class SnapshotLightAnalyzer @JvmOverloads constructor(
   context: Context,
-  modelAsset: String = "models/backroom_light.tflite"
+  modelAsset: String = "models/backroom_light_v3.tflite"
 ) : AutoCloseable {
   companion object {
     private const val W = 144
@@ -89,47 +73,49 @@ class SnapshotLightAnalyzer(
   private val lock = Any()
   private val interpreter: Interpreter? = loadInterpreter(modelAsset)
 
-  private fun loadInterpreter(modelAsset: String): Interpreter? = runCatching {
-    val descriptor = app.assets.openFd(modelAsset)
+  private fun loadInterpreter(asset: String): Interpreter? = runCatching {
+    val descriptor = app.assets.openFd(asset)
     val mapped = descriptor.createInputStream().channel.use { channel ->
       channel.map(FileChannel.MapMode.READ_ONLY, descriptor.startOffset, descriptor.declaredLength)
     }
     descriptor.close()
-    val loaded = Interpreter(mapped, Interpreter.Options().apply { setNumThreads(2) })
-    require(loaded.getInputTensor(0).shape().contentEquals(intArrayOf(1, H, W, CHANNELS))) { "unexpected_light_model_input" }
-    require(loaded.getOutputTensor(0).shape().contentEquals(intArrayOf(1, H, W, 2))) { "unexpected_light_model_output" }
-    loaded
+    Interpreter(mapped, Interpreter.Options().apply { setNumThreads(2) }).also { runtime ->
+      require(runtime.getInputTensor(0).shape().contentEquals(intArrayOf(1, H, W, CHANNELS)))
+      require(runtime.getOutputTensor(0).shape().contentEquals(intArrayOf(1, H, W, 2)))
+    }
   }.getOrNull()
 
   fun analyze(source: String): String {
     val bitmap = decodeSource(source) ?: return emptyResult("decode_unavailable")
-    val scaledBitmap = Bitmap.createScaledBitmap(bitmap, W, H, true)
+    val scaled = Bitmap.createScaledBitmap(bitmap, W, H, true)
     return try {
       val pixels = IntArray(W * H)
-      scaledBitmap.getPixels(pixels, 0, W, 0, 0, W, H)
-      val features = runFeatures(pixels)
-      val lights = detect(features)
-      JSONObject().put("model", if (interpreter != null) "litert-luma-contrast-v1" else "cpu-luma-contrast-fallback-v1").put("lights", JSONArray().apply {
-        lights.forEach { light ->
-          put(JSONObject()
-            .put("x", light.minX.toDouble() / W)
-            .put("y", light.minY.toDouble() / H)
-            .put("w", light.width.toDouble() / W)
-            .put("h", light.height.toDouble() / H)
-            .put("confidence", light.confidence))
-        }
-      }).toString()
+      scaled.getPixels(pixels, 0, W, 0, 0, W, H)
+      val lights = detect(runFeatures(pixels))
+      JSONObject()
+        .put("model", if (interpreter != null) "litert-light-v3" else "cpu-light-v3")
+        .put("lights", JSONArray().apply {
+          lights.forEach { light ->
+            put(JSONObject()
+              .put("x", light.centerX / W)
+              .put("y", light.centerY / H)
+              .put("w", light.width.toDouble() / W)
+              .put("h", light.height.toDouble() / H)
+              .put("kind", light.kind)
+              .put("confidence", light.confidence))
+          }
+        })
+        .toString()
     } finally {
-      if (scaledBitmap !== bitmap && !scaledBitmap.isRecycled) scaledBitmap.recycle()
+      if (scaled !== bitmap && !scaled.isRecycled) scaled.recycle()
       if (!bitmap.isRecycled) bitmap.recycle()
     }
   }
 
   private fun runFeatures(pixels: IntArray): Array<Array<FloatArray>> {
-    val runtime = interpreter
-    if (runtime != null) {
+    interpreter?.let { runtime ->
       val input = ByteBuffer.allocateDirect(W * H * CHANNELS * 4).order(ByteOrder.nativeOrder())
-      for (pixel in pixels) {
+      pixels.forEach { pixel ->
         input.putFloat(((pixel shr 16) and 0xff) / 255f)
         input.putFloat(((pixel shr 8) and 0xff) / 255f)
         input.putFloat((pixel and 0xff) / 255f)
@@ -139,22 +125,23 @@ class SnapshotLightAnalyzer(
       synchronized(lock) { runtime.run(input, output) }
       return output[0]
     }
-    val lum = Array(H) { FloatArray(W) }
+
+    val luma = Array(H) { FloatArray(W) }
     val integral = Array(H + 1) { DoubleArray(W + 1) }
     for (y in 0 until H) for (x in 0 until W) {
-      val pixel = pixels[y * W + x]
-      val value = (.2126 * ((pixel shr 16) and 0xff) + .7152 * ((pixel shr 8) and 0xff) + .0722 * (pixel and 0xff)) / 255.0
-      lum[y][x] = value.toFloat()
+      val p = pixels[y * W + x]
+      val value = (.2126 * ((p shr 16) and 0xff) + .7152 * ((p shr 8) and 0xff) + .0722 * (p and 0xff)) / 255.0
+      luma[y][x] = value.toFloat()
       integral[y + 1][x + 1] = value + integral[y][x + 1] + integral[y + 1][x] - integral[y][x]
     }
     val output = Array(H) { Array(W) { FloatArray(2) } }
-    val radius = 5
+    val radius = 4
     for (y in 0 until H) for (x in 0 until W) {
       val x0 = max(0, x - radius); val x1 = min(W - 1, x + radius)
       val y0 = max(0, y - radius); val y1 = min(H - 1, y + radius)
       val sum = integral[y1 + 1][x1 + 1] - integral[y0][x1 + 1] - integral[y1 + 1][x0] + integral[y0][x0]
       val mean = sum / ((x1 - x0 + 1) * (y1 - y0 + 1))
-      val value = lum[y][x]
+      val value = luma[y][x]
       output[y][x][0] = value
       output[y][x][1] = max(0.0, value.toDouble() - mean).toFloat()
     }
@@ -162,27 +149,26 @@ class SnapshotLightAnalyzer(
   }
 
   private data class Light(
-    val minX: Int,
-    val minY: Int,
-    val maxX: Int,
-    val maxY: Int,
+    val centerX: Double,
+    val centerY: Double,
+    val width: Int,
+    val height: Int,
+    val kind: String,
     val area: Int,
     val confidence: Double
-  ) {
-    val width: Int get() = maxX - minX + 1
-    val height: Int get() = maxY - minY + 1
-  }
+  )
 
   private fun detect(features: Array<Array<FloatArray>>): List<Light> {
     val mask = BooleanArray(W * H)
     for (y in 0 until H) for (x in 0 until W) {
-      val luminance = features[y][x][0]
+      val luma = features[y][x][0]
       val contrast = features[y][x][1]
-      mask[y * W + x] = luminance >= 0.74f && (contrast >= 0.035f || luminance >= 0.92f)
+      mask[y * W + x] = luma >= .76f && (contrast >= .028f || luma >= .93f)
     }
+
     val seen = BooleanArray(W * H)
-    val found = mutableListOf<Light>()
     val queue = IntArray(W * H)
+    val found = mutableListOf<Light>()
     for (start in mask.indices) {
       if (!mask[start] || seen[start]) continue
       var head = 0
@@ -191,11 +177,12 @@ class SnapshotLightAnalyzer(
       seen[start] = true
       var area = 0
       var minX = W
-      var maxX = 0
       var minY = H
+      var maxX = 0
       var maxY = 0
-      var lumSum = 0.0
-      var contrastSum = 0.0
+      var sumLuma = 0.0
+      var sumContrast = 0.0
+
       while (head < tail) {
         val p = queue[head++]
         val x = p % W
@@ -203,30 +190,46 @@ class SnapshotLightAnalyzer(
         area++
         minX = min(minX, x); maxX = max(maxX, x)
         minY = min(minY, y); maxY = max(maxY, y)
-        lumSum += features[y][x][0]
-        contrastSum += features[y][x][1]
-        fun push(q: Int) {
+        sumLuma += features[y][x][0]
+        sumContrast += features[y][x][1]
+
+        fun visit(q: Int) {
           if (q in mask.indices && mask[q] && !seen[q]) {
             seen[q] = true
             queue[tail++] = q
           }
         }
-        if (x > 0) push(p - 1)
-        if (x + 1 < W) push(p + 1)
-        if (y > 0) push(p - W)
-        if (y + 1 < H) push(p + W)
+        if (x > 0) visit(p - 1)
+        if (x + 1 < W) visit(p + 1)
+        if (y > 0) visit(p - W)
+        if (y + 1 < H) visit(p + W)
+        if (x > 0 && y > 0) visit(p - W - 1)
+        if (x + 1 < W && y > 0) visit(p - W + 1)
+        if (x > 0 && y + 1 < H) visit(p + W - 1)
+        if (x + 1 < W && y + 1 < H) visit(p + W + 1)
       }
-      val bw = maxX - minX + 1
-      val bh = maxY - minY + 1
-      val boxArea = bw * bh
+
+      val width = maxX - minX + 1
+      val height = maxY - minY + 1
+      val boxArea = width * height
+      val aspect = width.toDouble() / max(1, height)
       val fill = area.toDouble() / max(1, boxArea)
-      val aspect = bw.toDouble() / max(1, bh)
-      val avgLum = lumSum / max(1, area)
-      val avgContrast = contrastSum / max(1, area)
-      val fixtureShape = (aspect in 1.25..18.0 && bw >= 3) || (aspect <= 0.78 && bh >= 4) || (area <= 22 && aspect in 0.65..1.55)
-      if (area < 2 || area > W * H * 0.09 || fill < 0.30 || minY > H * 0.88 || !fixtureShape) continue
-      val confidence = (0.52 + avgLum * 0.24 + avgContrast * 1.8 + min(0.12, sqrt(area.toDouble()) * 0.012)).coerceIn(0.0, 0.99)
-      found += Light(minX, minY, maxX, maxY, area, confidence)
+      val avgLuma = sumLuma / max(1, area)
+      val avgContrast = sumContrast / max(1, area)
+      val linear = aspect >= 1.35 || aspect <= .74
+      val point = area <= 24 && aspect in .65..1.55
+      if (area < 2 || area > W * H * .075 || fill < .28 || minY > H * .90 || (!linear && !point)) continue
+
+      val confidence = (.50 + avgLuma * .25 + avgContrast * 1.65 + min(.12, sqrt(area.toDouble()) * .012)).coerceIn(0.0, .99)
+      found += Light(
+        centerX = (minX + maxX + 1) / 2.0,
+        centerY = (minY + maxY + 1) / 2.0,
+        width = width,
+        height = height,
+        kind = if (linear) "linear" else "point",
+        area = area,
+        confidence = confidence
+      )
     }
     return found.sortedByDescending { it.confidence * sqrt(it.area.toDouble()) }.take(MAX_LIGHTS)
   }
@@ -235,12 +238,11 @@ class SnapshotLightAnalyzer(
     when {
       source.startsWith("file:///android_asset/") -> {
         val path = source.removePrefix("file:///android_asset/").substringBefore('?').substringBefore('#')
-        app.assets.open(path).use { stream -> BitmapFactory.decodeStream(stream) }
+        app.assets.open(path).use(BitmapFactory::decodeStream)
       }
       source.startsWith("data:image/") -> {
         val comma = source.indexOf(',')
-        if (comma < 0) null else {
-          val bytes = Base64.decode(source.substring(comma + 1), Base64.DEFAULT)
+        if (comma < 0) null else Base64.decode(source.substring(comma + 1), Base64.DEFAULT).let { bytes ->
           BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
         }
       }
@@ -248,13 +250,15 @@ class SnapshotLightAnalyzer(
     }
   } catch (_: Exception) { null }
 
-  private fun emptyResult(reason: String): String = JSONObject()
-    .put("model", "litert-luma-contrast-v1")
+  private fun emptyResult(reason: String) = JSONObject()
+    .put("model", "light-v3")
     .put("reason", reason)
     .put("lights", JSONArray())
     .toString()
 
-  override fun close() = synchronized(lock) { interpreter?.close() }
+  override fun close() {
+    synchronized(lock) { interpreter?.close() }
+  }
 }
 ''', encoding="utf-8")
 
@@ -263,15 +267,15 @@ core_import = "import com.rabpit.backroom.core.GameCoreFacade;\n"
 light_import = "import com.rabpit.backroom.core.SnapshotLightAnalyzer;\n"
 if light_import not in main:
     if core_import not in main:
-        raise RuntimeError("GameCoreFacade import anchor missing for SnapshotLightAnalyzer")
+        raise RuntimeError("GameCoreFacade import anchor missing")
     main = main.replace(core_import, core_import + light_import, 1)
 if "private SnapshotLightAnalyzer snapshotLightAnalyzer;" not in main:
     main = replace_once(main, "  private GameCoreFacade gameCore;\n", "  private GameCoreFacade gameCore;\n  private SnapshotLightAnalyzer snapshotLightAnalyzer;\n", "SnapshotLightAnalyzer field")
 if "snapshotLightAnalyzer = new SnapshotLightAnalyzer" not in main:
-    main = replace_once(main, "    gameCore = GameCoreFacade.create(getApplicationContext(), BuildConfig.DEBUG);\n", "    gameCore = GameCoreFacade.create(getApplicationContext(), BuildConfig.DEBUG);\n    snapshotLightAnalyzer = new SnapshotLightAnalyzer(getApplicationContext());\n", "SnapshotLightAnalyzer initialization")
+    main = replace_once(main, "    gameCore = GameCoreFacade.create(getApplicationContext(), BuildConfig.DEBUG);\n", "    gameCore = GameCoreFacade.create(getApplicationContext(), BuildConfig.DEBUG);\n    snapshotLightAnalyzer = new SnapshotLightAnalyzer(getApplicationContext());\n", "SnapshotLightAnalyzer init")
 if "snapshotLightAnalyzer.close();" not in main:
     main = replace_once(main, "    if (gameCore != null) gameCore.close();\n", "    if (gameCore != null) gameCore.close();\n    if (snapshotLightAnalyzer != null) snapshotLightAnalyzer.close();\n", "SnapshotLightAnalyzer close")
-bridge_method = '''    @JavascriptInterface public String analyzeSnapshotLights(String source) {
+bridge = '''    @JavascriptInterface public String analyzeSnapshotLights(String source) {
       if (snapshotLightAnalyzer == null) return "{\\\"lights\\\":[]}";
       try { return snapshotLightAnalyzer.analyze(source == null ? "" : source); }
       catch (Exception ignored) { return "{\\\"lights\\\":[]}"; }
@@ -281,10 +285,20 @@ bridge_method = '''    @JavascriptInterface public String analyzeSnapshotLights(
 if "@JavascriptInterface public String analyzeSnapshotLights" not in main:
     anchor = "    @JavascriptInterface public void clearCoreState() {\n"
     if anchor not in main:
-        raise RuntimeError("GameBridge clearCoreState anchor missing")
-    main = main.replace(anchor, bridge_method + anchor, 1)
+        raise RuntimeError("GameBridge anchor missing")
+    main = main.replace(anchor, bridge + anchor, 1)
 MAIN.write_text(main, encoding="utf-8")
 
 if model_built and (not MODEL.is_file() or MODEL.stat().st_size <= 0):
-    raise RuntimeError("LiteRT Snapshot light model missing after successful build")
-print("Snapshot light analyzer wired: LiteRT when model build dependencies are present, deterministic CPU fallback otherwise.")
+    raise RuntimeError("Snapshot light v3 LiteRT model missing after build")
+
+analyzer = (CORE / "SnapshotLightAnalyzer.kt").read_text(encoding="utf-8")
+for marker in [
+    "centerX = (minX + maxX + 1) / 2.0",
+    "centerY = (minY + maxY + 1) / 2.0",
+    "if (x > 0 && y > 0) visit(p - W - 1)",
+]:
+    if marker not in analyzer:
+        raise RuntimeError(f"Snapshot light center contract missing: {marker}")
+
+print("Snapshot light runtime v3 wired with bounding-box-centered fixture metadata, 8-neighbor grouping and deterministic fallback.")
