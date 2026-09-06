@@ -1,0 +1,8 @@
+Backroom 1.1.49.9
+
+- Adds the HAKU Snapshot teacher bootstrap with a tiny balanced LiteRT fixture filter trained from normalized detector features, image-level holdout separation, regression coverage, and unchanged quality gates.
+- Finalizes Snapshot battle staging so Party characters remain on the right, hostile Entities remain on the left, Kai keeps the battle pose for the combat session, turn FOCUS IDs stay authoritative, and contact shadows use pixel-art-aligned grounding.
+- Adds Level 0–1 sub-level support for 0.1, 0.2, 0.3, 0.5, 0.7, 1.1, 1.2, 1.3 and 1.5 while preserving integer parent-level state semantics.
+- Packages 24 researched sub-level Snapshot images with variable-length rotation while retaining the existing Level 0–6 Snapshot rotation behavior.
+- Bumps Android versionCode to 134 and versionName to 1.1.49.9 for upgrade installation over 1.1.49.8.
+- Release validation rebuilds and gates the LiteRT intent model, applies the exact Android runtime patch chain, verifies provider/Entity/overlay contracts, runs Kotlin unit tests, assembles and verifies the APK, publishes v1.1.49.9, then downloads the published asset and records GREEN release status.
