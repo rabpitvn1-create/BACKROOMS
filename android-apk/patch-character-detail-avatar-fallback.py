@@ -34,6 +34,7 @@ PATCH_CHAIN = [
     "patch-immersive-fullscreen.py",
     "patch-knowledge-engine-source.py",
     "patch-knowledge-context-builder.py",
+    "patch-sublevels-0-1.py",
     "benchmark-knowledge-context.py",
     "patch-two-page-ui.py",
     "patch-entity-roaming-3pct.py",
