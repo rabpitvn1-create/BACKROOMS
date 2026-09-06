@@ -38,11 +38,13 @@ jobs:
             android-apk/ml/test_haku_snapshot_teacher.py \
             android-apk/ml/test_haku_snapshot_candidate_teacher.py \
             android-apk/ml/test_claude_snapshot_compat.py \
-            android-apk/ml/test_merge_snapshot_teacher_labels.py
+            android-apk/ml/test_merge_snapshot_teacher_labels.py \
+            android-apk/ml/test_train_snapshot_fixture_filter.py
           python android-apk/ml/test_haku_snapshot_teacher.py -v
           python android-apk/ml/test_haku_snapshot_candidate_teacher.py -v
           python android-apk/ml/test_claude_snapshot_compat.py -v
           python android-apk/ml/test_merge_snapshot_teacher_labels.py -v
+          python android-apk/ml/test_train_snapshot_fixture_filter.py -v
 
       - name: Require Claude configuration
         run: |
