@@ -32,7 +32,7 @@ text = replace_method(
     if (reply.length() > 7000) reply = reply.substring(0, 7000);
     String packet = auditScopeCanon(before, action, rolls, scope);
     String prompt = "Bạn là auditor độc lập cho một lượt text game Backrooms. Không viết lại truyện, không tạo state, không thêm canon. " +
-      "Chỉ báo HARD khi có xung đột cụ thể chứng minh được từ KNOWLEDGE PACKET hoặc dice. Không báo lỗi vì sở thích văn phong. Trả DUY NHẤT JSON. " +
+      "Chỉ báo HARD khi có xung đột cụ thể chứng minh được từ KNOWLEDGE PACKET, dice, hoặc quy tắc address_error cố định dưới đây. Không báo lỗi vì sở thích văn phong khác. Trả DUY NHẤT JSON. " +
       "Quy tắc address_error: trong phần dẫn truyện, player-character Kai phải luôn được gọi là 'Bạn' và được kể ở ngôi thứ hai; việc gọi player là Kai/Twilight/hắn/anh ấy/cậu ấy hoặc kể hành động của player ở ngôi thứ ba là lỗi HARD. Tên Kai vẫn được phép xuất hiện trong lời thoại trực tiếp khi một nhân vật thực sự gọi hoặc nhắc tên anh ấy.\n\n" +
       "AUDIT SCOPE: " + scope + "\n\n" +
       "BUDGETED KNOWLEDGE PACKET:\n" + packet + "\n\n" +
