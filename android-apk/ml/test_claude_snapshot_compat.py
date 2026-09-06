@@ -9,6 +9,27 @@ class ClaudeSnapshotCompatTest(unittest.TestCase):
     def setUp(self):
         compat.install()
 
+    def test_resolve_openai_compatible_v1_base(self):
+        self.assertEqual(
+            "https://gateway.example/v1/chat/completions",
+            compat.resolve_api_url("https://gateway.example/v1/"),
+        )
+
+    def test_resolve_preserves_complete_chat_endpoint(self):
+        endpoint = "https://gateway.example/custom/chat/completions"
+        self.assertEqual(endpoint, compat.resolve_api_url(endpoint))
+
+    def test_resolve_anthropic_base_uses_messages(self):
+        self.assertEqual(
+            "https://api.anthropic.com/v1/messages",
+            compat.resolve_api_url("https://api.anthropic.com"),
+        )
+        self.assertTrue(compat.uses_anthropic_messages("https://api.anthropic.com/v1/messages"))
+
+    def test_resolve_rejects_relative_base(self):
+        with self.assertRaisesRegex(ValueError, "absolute http"):
+            compat.resolve_api_url("api.example/v1")
+
     def test_annotation_accepts_reasoning_preamble_before_json(self):
         content = (
             "I need to inspect the fixture first.\n"
