@@ -220,6 +220,24 @@ def build_arrays(samples: list[Sample], *, augment: bool) -> tuple[Any, Any]:
     return np.stack(xs, axis=0), np.asarray(ys, dtype=np.float32)
 
 
+def _balanced_sample_weights(labels: Any) -> Any:
+    """Give each class equal aggregate weight for validation/selection."""
+    try:
+        import numpy as np
+    except ImportError as error:
+        raise TrainingError("numpy is required") from error
+
+    values = np.asarray(labels, dtype=np.float32).reshape(-1)
+    positives = int((values >= 0.5).sum())
+    negatives = int(len(values) - positives)
+    if positives == 0 or negatives == 0:
+        raise TrainingError("balanced sample weights require both classes")
+    total = positives + negatives
+    positive_weight = total / (2.0 * positives)
+    negative_weight = total / (2.0 * negatives)
+    return np.where(values >= 0.5, positive_weight, negative_weight).astype(np.float32)
+
+
 def _metrics(labels: Any, probabilities: Any, threshold: float = 0.5) -> dict[str, float | int]:
     labels_list = [int(value) for value in labels]
     predictions = [1 if float(value) >= threshold else 0 for value in probabilities]
@@ -283,6 +301,7 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
     train_samples, test_samples = split_by_image(samples)
     x_train, y_train = build_arrays(train_samples, augment=True)
     x_test, y_test = build_arrays(test_samples, augment=False)
+    validation_weights = _balanced_sample_weights(y_test)
 
     model = tf.keras.Sequential(
         [
@@ -309,14 +328,14 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
     model.fit(
         x_train,
         y_train,
-        validation_data=(x_test, y_test),
+        validation_data=(x_test, y_test, validation_weights),
         epochs=args.epochs,
         batch_size=min(args.batch_size, len(y_train)),
         verbose=2,
         class_weight=class_weight,
         callbacks=[
             tf.keras.callbacks.EarlyStopping(
-                monitor="val_loss", patience=8, restore_best_weights=True, min_delta=1e-4
+                monitor="val_loss", patience=16, restore_best_weights=True, min_delta=1e-4
             )
         ],
     )
@@ -357,6 +376,7 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
     if size_bytes > args.max_model_bytes:
         gate_failures.append(f"model size {size_bytes} > {args.max_model_bytes}")
 
+    test_pos, test_neg = _class_counts(test_samples)
     report = {
         "model_version": MODEL_VERSION,
         "seed": SEED,
@@ -368,7 +388,10 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
             "test_unique_images": len({sample.sha256 for sample in test_samples}),
             "train_candidates": len(train_samples),
             "test_candidates": len(test_samples),
+            "test_fixtures": test_pos,
+            "test_negatives": test_neg,
             "augmented_train_examples": int(len(y_train)),
+            "balanced_validation_weighting": True,
         },
         "tflite": {
             "size_bytes": size_bytes,
