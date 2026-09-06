@@ -61,7 +61,7 @@ jobs:
             --glob 'android-apk/app/src/main/assets/level_snapshots/rotation/*' \
             --limit 35 \
             --passes 2 \
-            --max-candidates 8 \
+            --max-candidates 4 \
             --output snapshot_teacher/haku_snapshot_candidate_labels.jsonl
 
       - name: Install LiteRT training dependencies
