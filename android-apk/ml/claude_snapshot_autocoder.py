@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Ask Claude Opus for one tightly-scoped Snapshot visual patch.
+"""Ask the configured Claude provider for one tightly-scoped Snapshot visual patch.
 
 The model is a code author, not an executor. It receives an allowlisted repository
 context and must return a unified diff. GitHub Actions validates and applies that
@@ -11,12 +11,10 @@ import argparse
 import json
 import os
 import pathlib
-import sys
 import urllib.error
 import urllib.request
 
-API_URL = "https://api.anthropic.com/v1/messages"
-DEFAULT_MODEL = "claude-opus-4-8"
+DEFAULT_MODEL = "claude-fable-5"
 
 CONTEXT_FILES = [
     "android-apk/app/src/main/java/com/rabpit/backroom/core/CombatCore.kt",
@@ -120,16 +118,39 @@ def build_prompt() -> str:
 def extract_text(payload: object) -> str:
     if not isinstance(payload, dict):
         raise RuntimeError("Claude response root is not an object")
+
+    # ViLao is OpenAI-compatible for normal runtime traffic.
+    choices = payload.get("choices")
+    if isinstance(choices, list) and choices:
+        first = choices[0]
+        if isinstance(first, dict):
+            message = first.get("message")
+            if isinstance(message, dict):
+                content = message.get("content")
+                if isinstance(content, str) and content.strip():
+                    return content.strip()
+                if isinstance(content, list):
+                    texts = [
+                        block.get("text", "")
+                        for block in content
+                        if isinstance(block, dict) and isinstance(block.get("text"), str)
+                    ]
+                    joined = "\n".join(texts).strip()
+                    if joined:
+                        return joined
+
+    # Keep Anthropic-shaped responses as a compatibility fallback.
     content = payload.get("content")
-    if not isinstance(content, list):
-        raise RuntimeError("Claude response has no content blocks")
-    texts: list[str] = []
-    for block in content:
-        if isinstance(block, dict) and block.get("type") == "text" and isinstance(block.get("text"), str):
-            texts.append(block["text"])
-    if not texts:
-        raise RuntimeError("Claude response contained no text block")
-    return "\n".join(texts).strip()
+    if isinstance(content, list):
+        texts: list[str] = []
+        for block in content:
+            if isinstance(block, dict) and block.get("type") == "text" and isinstance(block.get("text"), str):
+                texts.append(block["text"])
+        joined = "\n".join(texts).strip()
+        if joined:
+            return joined
+
+    raise RuntimeError("Claude response contained no usable text")
 
 
 def normalize_patch(text: str) -> str:
@@ -149,21 +170,37 @@ def normalize_patch(text: str) -> str:
     return cleaned.rstrip() + "\n"
 
 
-def call_claude(api_key: str, model: str, timeout: int) -> str:
+def chat_completions_url(base_url: str) -> str:
+    base = base_url.strip().rstrip("/")
+    if not base.startswith(("https://", "http://")):
+        raise RuntimeError("CLAUDE_BASE_URL must be an http(s) URL")
+    for suffix in ("/chat/completions", "/messages"):
+        if base.endswith(suffix):
+            base = base[: -len(suffix)]
+            break
+    return base + "/chat/completions"
+
+
+def call_claude(api_key: str, base_url: str, model: str, timeout: int) -> str:
     body = {
         "model": model,
+        "messages": [
+            {
+                "role": "system",
+                "content": "Return only the requested unified git diff. Never return prose, markdown fences, or shell commands.",
+            },
+            {"role": "user", "content": build_prompt()},
+        ],
+        "temperature": 0.1,
         "max_tokens": 24000,
-        "thinking": {"type": "adaptive"},
-        "output_config": {"effort": "high"},
-        "messages": [{"role": "user", "content": build_prompt()}],
+        "stream": False,
     }
     request = urllib.request.Request(
-        API_URL,
+        chat_completions_url(base_url),
         data=json.dumps(body, ensure_ascii=False).encode("utf-8"),
         headers={
             "content-type": "application/json",
-            "x-api-key": api_key,
-            "anthropic-version": "2023-06-01",
+            "Authorization": f"Bearer {api_key}",
         },
         method="POST",
     )
@@ -172,9 +209,9 @@ def call_claude(api_key: str, model: str, timeout: int) -> str:
             raw = response.read().decode("utf-8")
     except urllib.error.HTTPError as error:
         detail = error.read().decode("utf-8", errors="replace")[:1200]
-        raise RuntimeError(f"Claude API HTTP {error.code}: {detail}") from error
+        raise RuntimeError(f"Claude provider HTTP {error.code}: {detail}") from error
     except urllib.error.URLError as error:
-        raise RuntimeError(f"Claude API connection failed: {error.reason}") from error
+        raise RuntimeError(f"Claude provider connection failed: {error.reason}") from error
     payload = json.loads(raw)
     return normalize_patch(extract_text(payload))
 
@@ -182,6 +219,7 @@ def call_claude(api_key: str, model: str, timeout: int) -> str:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", default=os.environ.get("CLAUDE_MODEL", DEFAULT_MODEL))
+    parser.add_argument("--base-url", default=os.environ.get("CLAUDE_BASE_URL", ""))
     parser.add_argument("--timeout", type=int, default=300)
     parser.add_argument("--output", default="/tmp/claude_snapshot.patch")
     args = parser.parse_args()
@@ -189,8 +227,10 @@ def main() -> None:
     key = os.environ.get("CLAUDE_API", "").strip()
     if not key:
         raise SystemExit("CLAUDE_API is required")
+    if not args.base_url.strip():
+        raise SystemExit("CLAUDE_BASE_URL is required")
 
-    patch = call_claude(key, args.model, args.timeout)
+    patch = call_claude(key, args.base_url, args.model, args.timeout)
     output = pathlib.Path(args.output)
     output.write_text(patch, encoding="utf-8")
     print(json.dumps({"model": args.model, "patch_lines": len(patch.splitlines())}, sort_keys=True))
