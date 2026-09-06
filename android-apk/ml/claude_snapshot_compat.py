@@ -85,9 +85,31 @@ def _message_text(message: Any) -> str:
     return "\n".join(part for part in (reasoning, content, text) if part)
 
 
+def _provider_error_summary(response: dict[str, Any]) -> str | None:
+    error = response.get("error")
+    if not isinstance(error, dict):
+        return None
+    fields: list[str] = []
+    for key in ("type", "code", "status"):
+        value = error.get(key)
+        if isinstance(value, (str, int)) and str(value).strip():
+            fields.append(f"{key}={value}")
+    outer_type = response.get("type")
+    if isinstance(outer_type, str) and outer_type.strip() and outer_type != "error":
+        fields.append(f"response_type={outer_type}")
+    return ", ".join(fields) if fields else "unspecified"
+
+
 def extract_choice_text(response: Any, error_type: type[Exception]) -> str:
     if not isinstance(response, dict):
         raise error_type("Claude response root is not an object")
+
+    provider_error = _provider_error_summary(response)
+    if provider_error is not None:
+        # Do not echo provider messages here. They can contain model ids, URLs,
+        # request fragments, or other configured values. Type/code/status are
+        # enough to diagnose routing without leaking secret-backed settings.
+        raise error_type(f"Claude provider returned an error envelope: {provider_error}")
 
     choices = response.get("choices")
     if isinstance(choices, list) and choices:
@@ -100,8 +122,6 @@ def extract_choice_text(response: Any, error_type: type[Exception]) -> str:
                 return text
         raise error_type("Claude response choice contained no text")
 
-    # Anthropic Messages-shaped payloads can be returned by custom gateways
-    # even when the request endpoint itself is OpenAI-compatible.
     if isinstance(response.get("content"), list):
         try:
             return extract_anthropic_text(response, error_type)
