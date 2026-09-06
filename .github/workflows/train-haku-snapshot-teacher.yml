@@ -51,6 +51,7 @@ jobs:
           test -n "$CLAUDE_BASE_URL" || (echo "Missing GitHub Secret: CLAUDE_BASE_URL" && exit 1)
 
       - name: Validate Claude vision credential
+        id: claude_probe
         continue-on-error: true
         run: |
           python android-apk/ml/claude_snapshot_runner.py probe \
@@ -92,6 +93,7 @@ jobs:
           test "$(find android-apk/app/src/main/assets/level_snapshots/rotation -maxdepth 1 -type f | wc -l)" -eq 28
 
       - name: Enrich Snapshot labels with live Claude
+        if: steps.claude_probe.outcome == 'success'
         continue-on-error: true
         run: |
           python android-apk/ml/claude_snapshot_runner.py candidates \
