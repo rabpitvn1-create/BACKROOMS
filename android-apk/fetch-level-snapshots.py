@@ -11,10 +11,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 MANIFEST = ROOT / "snapshot_sources.json"
+SUBLEVEL_MANIFEST = ROOT / "sublevel_snapshot_sources.json"
 OUT_DIR = ROOT / "app/src/main/assets/level_snapshots/rotation"
 MAX_BYTES = 12 * 1024 * 1024
-USER_AGENT = "BACKROOMS-APK-SnapshotFetcher/1.1 (+https://github.com/rabpitvn1-create/BACKROOMS)"
+USER_AGENT = "BACKROOMS-APK-SnapshotFetcher/1.2 (+https://github.com/rabpitvn1-create/BACKROOMS)"
 IMAGE_SUFFIXES = (".jpg", ".png", ".jpeg", ".webp")
+EXPECTED_SUBLEVELS = ["0.1", "0.2", "0.3", "0.5", "0.7", "1.1", "1.2", "1.3", "1.5"]
 
 
 def image_extension(data: bytes) -> str | None:
@@ -43,7 +45,7 @@ def download_once(url: str, source_page: str = "") -> bytes:
         "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
         "Accept-Encoding": "gzip, deflate",
     }
-    if "upload.wikimedia.org" in url:
+    if "upload.wikimedia.org" in url or "commons.wikimedia.org" in url:
         headers["Referer"] = source_page or "https://commons.wikimedia.org/"
     elif "fandom.com" in url:
         headers["Referer"] = source_page or "https://backrooms.fandom.com/"
@@ -92,6 +94,61 @@ def download(url: str, source_page: str = "") -> bytes:
     raise last_error
 
 
+def fetch_image_set(
+    label_prefix: str,
+    output_prefix: str,
+    images: list[dict],
+    source_page: str,
+    seen_hashes: dict[str, str],
+) -> int:
+    slots = [int(image.get("slot", -1)) for image in images]
+    expected_slots = list(range(1, len(images) + 1))
+    if slots != expected_slots:
+        raise RuntimeError(f"{label_prefix} snapshot slots must be {expected_slots}, found {slots}")
+
+    downloaded = 0
+    for image in images:
+        slot = int(image["slot"])
+        urls = image.get("urls")
+        if not isinstance(urls, list) or not urls:
+            raise RuntimeError(f"{label_prefix} slot {slot} has no download URL")
+
+        expanded_urls: list[str] = []
+        for raw_url in urls:
+            for candidate in candidate_urls(str(raw_url)):
+                if candidate not in expanded_urls:
+                    expanded_urls.append(candidate)
+
+        data: bytes | None = None
+        failures: list[str] = []
+        chosen_url = ""
+        for url in expanded_urls:
+            try:
+                data = download(url, source_page)
+                chosen_url = url
+                break
+            except (OSError, RuntimeError, urllib.error.URLError, urllib.error.HTTPError) as exc:
+                failures.append(f"{url}: {exc}")
+
+        if data is None:
+            details = "\n  ".join(failures)
+            raise RuntimeError(f"unable to fetch {label_prefix} slot {slot}:\n  {details}")
+
+        digest = hashlib.sha256(data).hexdigest()
+        label = f"{label_prefix} slot {slot}"
+        if digest in seen_hashes:
+            raise RuntimeError(f"duplicate snapshot bytes: {label} duplicates {seen_hashes[digest]}")
+        seen_hashes[digest] = label
+
+        ext = image_extension(data)
+        assert ext is not None
+        output = OUT_DIR / f"{output_prefix}_{slot}.{ext}"
+        output.write_bytes(data)
+        downloaded += 1
+        print(f"{label}: {output.name} ({len(data)} bytes) <- {chosen_url}")
+    return downloaded
+
+
 def main() -> None:
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
     levels = manifest.get("levels")
@@ -102,6 +159,14 @@ def main() -> None:
     actual_levels = [int(entry.get("level", -1)) for entry in levels]
     if actual_levels != expected_levels:
         raise RuntimeError(f"snapshot levels must be {expected_levels}, found {actual_levels}")
+
+    sublevel_manifest = json.loads(SUBLEVEL_MANIFEST.read_text(encoding="utf-8"))
+    sublevels = sublevel_manifest.get("sublevels")
+    if not isinstance(sublevels, list):
+        raise RuntimeError("sublevel snapshot manifest must contain a sublevels list")
+    actual_sublevels = [str(entry.get("id", "")) for entry in sublevels]
+    if actual_sublevels != EXPECTED_SUBLEVELS:
+        raise RuntimeError(f"sublevel snapshots must be {EXPECTED_SUBLEVELS}, found {actual_sublevels}")
 
     if OUT_DIR.exists():
         shutil.rmtree(OUT_DIR)
@@ -115,56 +180,37 @@ def main() -> None:
         images = level_entry.get("images")
         if not isinstance(images, list) or len(images) != 4:
             raise RuntimeError(f"Level {level} must define exactly four snapshots")
+        downloaded += fetch_image_set(
+            f"Level {level}",
+            f"level_{level}",
+            images,
+            str(images[0].get("source_page") or "") if images else "",
+            seen_hashes,
+        )
 
-        slots = [int(image.get("slot", -1)) for image in images]
-        if slots != [1, 2, 3, 4]:
-            raise RuntimeError(f"Level {level} snapshot slots must be [1, 2, 3, 4], found {slots}")
+    sublevel_total = 0
+    for entry in sublevels:
+        sublevel_id = str(entry["id"])
+        parent = int(entry.get("parentLevel", -1))
+        if parent not in (0, 1) or not sublevel_id.startswith(f"{parent}."):
+            raise RuntimeError(f"invalid parent for sublevel {sublevel_id}: {parent}")
+        images = entry.get("images")
+        if not isinstance(images, list) or not 1 <= len(images) <= 4:
+            raise RuntimeError(f"Level {sublevel_id} must define between one and four verified snapshots")
+        count = fetch_image_set(
+            f"Level {sublevel_id}",
+            f"sublevel_{sublevel_id.replace('.', '_')}",
+            images,
+            str(entry.get("source_page") or ""),
+            seen_hashes,
+        )
+        sublevel_total += count
+        downloaded += count
 
-        for image in images:
-            slot = int(image["slot"])
-            source_page = str(image.get("source_page") or "")
-            urls = image.get("urls")
-            if not isinstance(urls, list) or not urls:
-                raise RuntimeError(f"Level {level} slot {slot} has no download URL")
+    if downloaded != 28 + sublevel_total:
+        raise RuntimeError(f"snapshot count mismatch: downloaded {downloaded}, sublevel total {sublevel_total}")
 
-            expanded_urls: list[str] = []
-            for raw_url in urls:
-                for candidate in candidate_urls(str(raw_url)):
-                    if candidate not in expanded_urls:
-                        expanded_urls.append(candidate)
-
-            data: bytes | None = None
-            failures: list[str] = []
-            chosen_url = ""
-            for url in expanded_urls:
-                try:
-                    data = download(url, source_page)
-                    chosen_url = url
-                    break
-                except (OSError, RuntimeError, urllib.error.URLError, urllib.error.HTTPError) as exc:
-                    failures.append(f"{url}: {exc}")
-
-            if data is None:
-                details = "\n  ".join(failures)
-                raise RuntimeError(f"unable to fetch Level {level} slot {slot}:\n  {details}")
-
-            digest = hashlib.sha256(data).hexdigest()
-            label = f"Level {level} slot {slot}"
-            if digest in seen_hashes:
-                raise RuntimeError(f"duplicate snapshot bytes: {label} duplicates {seen_hashes[digest]}")
-            seen_hashes[digest] = label
-
-            ext = image_extension(data)
-            assert ext is not None
-            output = OUT_DIR / f"level_{level}_{slot}.{ext}"
-            output.write_bytes(data)
-            downloaded += 1
-            print(f"{label}: {output.name} ({len(data)} bytes) <- {chosen_url}")
-
-    if downloaded != 28:
-        raise RuntimeError(f"expected 28 snapshots, downloaded {downloaded}")
-
-    print(f"Fetched {downloaded} distinct Level snapshots into {OUT_DIR}.")
+    print(f"Fetched 28 parent snapshots plus {sublevel_total} distinct sub-level snapshots into {OUT_DIR}.")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "researchDate": "2026-09-06",
+  "authority": "PROJECT_ADAPTATION_FROM_EXTERNAL_REFERENCE",
+  "policy": "These numeric sub-sections expand the existing Project Level 0 and Level 1 without replacing parent canon. Parent state.level.number remains 0 or 1; entering a sub-level changes the human-readable location only. Project WORLD, ENTITY and ITEM hard locks remain authoritative. External factions, neutral/friendly Entity behavior, abundance claims and absolute safety ratings are not imported automatically.",
+  "sourceIndex": "https://backrooms-wiki.wikidot.com/normal-levels-i/level-0",
+  "sublevels": [
+    {
+      "id": "0.1",
+      "parentLevel": 0,
+      "name": "Zenith Station",
+      "source": "https://backrooms-wiki.wikidot.com/level-0-1",
+      "sourceStatus": "listed",
+      "environment": "A colossal futuristic metal-and-glass station embedded as a Level 0 sub-section, with broad chambers, glass apertures, damaged electronics and space-station-like architecture.",
+      "gameplay": "Treat it as a rare architectural pocket inside Project Level 0. Keep Level 0's resource scarcity and Project Entity rules unless an encounter/resource is separately validated. Return routes lead back into Level 0 continuity.",
+      "locationLabel": "Level 0.1 – Zenith Station"
+    },
+    {
+      "id": "0.2",
+      "parentLevel": 0,
+      "name": "Remodeled Mess",
+      "source": "https://backrooms-wiki.wikidot.com/level-0-2",
+      "sourceStatus": "listed",
+      "environment": "A remodeled Level 0 pocket with dry red carpet, white walls, working-looking fixtures and an under-construction feel. After entry, ceilings, walls and floors can collapse in a spreading chain reaction before the area later appears reset.",
+      "gameplay": "Use structural collapse, dust and unstable flooring as the main hazards. A door can return to Level 0. Do not import the external remodeling organization as established Project canon.",
+      "locationLabel": "Level 0.2 – Remodeled Mess"
+    },
+    {
+      "id": "0.3",
+      "parentLevel": 0,
+      "name": "The Icy Rooms",
+      "source": "https://backrooms-wiki.wikidot.com/level-0-3",
+      "sourceStatus": "trimmed-open-for-rewrite",
+      "environment": "A Level 0-like interior overwhelmed by ice, frost and severe cold, with frozen carpet, walls and large ice masses obstructing rooms.",
+      "gameplay": "Cold exposure, slippery surfaces and blocked routes are authoritative Project-adaptation hazards. Keep the source's trimmed/rewrite status in provenance rather than treating every old detail as current canon.",
+      "locationLabel": "Level 0.3 – The Icy Rooms"
+    },
+    {
+      "id": "0.5",
+      "parentLevel": 0,
+      "name": "Aquaclaustrophobic Infirmary",
+      "source": "https://backrooms-wiki.wikidot.com/level-0-5",
+      "sourceStatus": "listed-current-2026",
+      "environment": "Waterlogged cream-walled passages with short blue lighting lead into abandoned medical/infirmary spaces. Dirty standing water, confinement, poor visibility and biological contamination make prolonged travel dangerous.",
+      "gameplay": "Use water exposure, infection risk, fatigue and difficult exits as environmental pressure. Any medical supplies remain subject to Project scarcity and loot authority.",
+      "locationLabel": "Level 0.5 – Aquaclaustrophobic Infirmary"
+    },
+    {
+      "id": "0.7",
+      "parentLevel": 0,
+      "name": "The Reminiscence District",
+      "source": "https://backrooms-wiki.wikidot.com/level-0-7",
+      "sourceStatus": "listed-current-2026",
+      "environment": "A temporal/historical Level 0 sub-section whose architecture changes through older-looking eras as one travels deeper, including early-modern, medieval and ancient-looking interiors.",
+      "gameplay": "Treat historical layers as unstable spatial/temporal regions, not proof of a definitive Backrooms history. Fire, old materials, toxic finishes, isolation and deeper hostile encounters can increase risk. Backtracking can return to Level 0.",
+      "locationLabel": "Level 0.7 – The Reminiscence District"
+    },
+    {
+      "id": "1.1",
+      "parentLevel": 1,
+      "name": "Corrupted Corridor",
+      "source": "https://backrooms-wiki.wikidot.com/level-1-1",
+      "sourceStatus": "trimmed-open-for-rewrite",
+      "environment": "A very long straight white-and-blue corridor inside Level 1. It grows progressively less stable: slopes, repeating sections, abnormal colors, blocked passages and deep dark sectors become more severe with distance.",
+      "gameplay": "Use increasing geometric instability as the progression spine. Project Entity hard locks decide actual encounters. Source settlement/faction claims are not imported. Backtracking or local transitions return to Level 1.",
+      "locationLabel": "Level 1.1 – Corrupted Corridor"
+    },
+    {
+      "id": "1.2",
+      "parentLevel": 1,
+      "name": "Concrete Garden",
+      "source": "https://backrooms-wiki.wikidot.com/level-1-2",
+      "sourceStatus": "listed",
+      "environment": "Grey concrete corridors and pillars are overtaken by grass, flowers and dense plant growth, creating an anomalous garden within Level 1 architecture.",
+      "gameplay": "Vegetation is not automatically edible or safe. Prolonged exposure can distort memory, identity and the body in the source concept; in Project gameplay those effects require observable buildup and cannot become an instant hidden penalty. Return transitions reconnect to Level 1.",
+      "locationLabel": "Level 1.2 – Concrete Garden"
+    },
+    {
+      "id": "1.3",
+      "parentLevel": 1,
+      "name": "Malignance",
+      "source": "https://backrooms-wiki.wikidot.com/level-1-3",
+      "sourceStatus": "listed-current",
+      "environment": "A pristine white medical complex whose initially restorative spaces become corrupted by malignant biological overgrowth and dangerous decay-like effects.",
+      "gameplay": "Use the current dangerous/corrupted interpretation, not the early safe-hospital premise as a free healing station. Any healing, transformation or contamination must be earned by explicit state and observable evidence.",
+      "locationLabel": "Level 1.3 – Malignance"
+    },
+    {
+      "id": "1.5",
+      "parentLevel": 1,
+      "name": "Inverted",
+      "source": "https://backrooms-wiki.wikidot.com/level-1-5",
+      "sourceStatus": "listed-current-2026",
+      "environment": "An inverted reality pocket with black-and-white distortions, upside-down geometry, fluorescent fixtures that appear to radiate darkness and surroundings that can be illuminated without a normal source.",
+      "gameplay": "Make orientation, perception and route reliability the main hazards. The area is difficult to exit; no guaranteed exit is created. Keep Project fairness: effects need spatial/time/evidence basis and cannot arbitrarily disable established capabilities.",
+      "locationLabel": "Level 1.5 – Inverted"
+    }
+  ]
+}

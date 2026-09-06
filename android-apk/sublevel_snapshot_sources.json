@@ -1,0 +1,102 @@
+{
+  "rotation_turns": 3,
+  "researchDate": "2026-09-06",
+  "sublevels": [
+    {
+      "id": "0.1",
+      "parentLevel": 0,
+      "name": "Zenith Station",
+      "source_page": "https://backrooms-wiki.wikidot.com/level-0-1",
+      "images": [
+        {"slot": 1, "name": "Zenith Station", "author": "DJANDYW.COM", "license": "CC BY-SA 2.0", "urls": ["https://backrooms-wiki.wdfiles.com/local--files/level-0-1/zenith-station.jpg"]},
+        {"slot": 2, "name": "Zenith Room", "author": "TORLEY", "license": "CC BY-SA 2.0", "urls": ["https://backrooms-wiki.wdfiles.com/local--files/level-0-1/zenith-room.jpg"]}
+      ]
+    },
+    {
+      "id": "0.2",
+      "parentLevel": 0,
+      "name": "Remodeled Mess",
+      "source_page": "https://backrooms-wiki.wikidot.com/level-0-2",
+      "images": [
+        {"slot": 1, "name": "RemodeledReplacement", "author": "ReyDay", "license": "CC BY-SA 3.0", "urls": ["https://backrooms-wiki.wdfiles.com/local--files/level-0-2/RemodeledReplacement", "https://backrooms-wiki.wikidot.com/local--files/level-0-2/RemodeledReplacement"]}
+      ]
+    },
+    {
+      "id": "0.3",
+      "parentLevel": 0,
+      "name": "The Icy Rooms",
+      "source_page": "https://backrooms-wiki.wikidot.com/level-0-3",
+      "images": [
+        {"slot": 1, "name": "Part1", "author": "erix!", "license": "CC BY 2.0", "urls": ["https://backrooms-wiki.wdfiles.com/local--files/level-0-3/Part1.jpg"]},
+        {"slot": 2, "name": "Part2", "author": "gterez", "license": "CC BY-SA 2.0", "urls": ["https://backrooms-wiki.wdfiles.com/local--files/level-0-3/Part2.jpg"]},
+        {"slot": 3, "name": "Part3", "author": "darkday", "license": "CC BY 2.0", "urls": ["https://backrooms-wiki.wdfiles.com/local--files/level-0-3/Part3.jpg"]}
+      ]
+    },
+    {
+      "id": "0.5",
+      "parentLevel": 0,
+      "name": "Aquaclaustrophobic Infirmary",
+      "source_page": "https://backrooms-wiki.wikidot.com/level-0-5",
+      "images": [
+        {"slot": 1, "name": "The Corridor", "author": "Aragonofdoros", "license": "CC BY-SA 3.0", "urls": ["https://upload.wikimedia.org/wikipedia/commons/f/f1/The_Corridor.jpg"]},
+        {"slot": 2, "name": "Hospital abandoned building", "author": "Christo", "license": "CC BY-SA 4.0", "urls": ["https://upload.wikimedia.org/wikipedia/commons/a/a8/Slovakia%2C_Kom%C3%A1rno%2C_hospital%2C_abandoned_building_3%2C_55.jpg"]},
+        {"slot": 3, "name": "Duelmen watchtower staircase", "author": "Dietmar Rabich", "license": "CC BY-SA 4.0", "urls": ["https://commons.wikimedia.org/wiki/Special:Redirect/file/D%C3%BClmen%2C_Kirchspiel%2C_Sondermunitionslager_D%C3%BClmen-Visbeck%2C_Wachturm%2C_Treppe_--_2024_--_5893.jpg?width=1280"]}
+      ]
+    },
+    {
+      "id": "0.7",
+      "parentLevel": 0,
+      "name": "The Reminiscence District",
+      "source_page": "https://backrooms-wiki.wikidot.com/level-0-7",
+      "images": [
+        {"slot": 1, "name": "Naba Vrindaban Mandir", "author": "ProbuddhoG", "license": "CC BY-SA 3.0", "urls": ["https://commons.wikimedia.org/wiki/Special:Redirect/file/Naba_Vrindaban_Mandir_1.JPG?width=1280"]},
+        {"slot": 2, "name": "Castle corridor", "author": "Nemracc", "license": "CC BY-SA 4.0", "urls": ["https://commons.wikimedia.org/wiki/Special:Redirect/file/Castle%2C_ruin_Hardenburg%2C_Bad_D%C3%BCrkheim_10_corridor_in_the_western_bulwark.jpg?width=1280"]},
+        {"slot": 3, "name": "Basement of the Lutheran Church", "author": "MBH", "license": "CC BY-SA 4.0", "urls": ["https://commons.wikimedia.org/wiki/Special:Redirect/file/Basement_of_the_Lutheran_Church_of_Saints_Peter_and_Paul_(Saint_Petersburg)_15.jpg?width=1280"]},
+        {"slot": 4, "name": "Ten Pound Gill Cave", "author": "Peter Bond", "license": "CC BY-SA 2.0", "urls": ["https://commons.wikimedia.org/wiki/Special:Redirect/file/Ten_Pound_Gill_Cave_-_geograph.org.uk_-_2115608.jpg?width=1280"]}
+      ]
+    },
+    {
+      "id": "1.1",
+      "parentLevel": 1,
+      "name": "Corrupted Corridor",
+      "source_page": "https://backrooms-wiki.wikidot.com/level-1-1",
+      "images": [
+        {"slot": 1, "name": "Sector 1", "author": "Anthony O'Connor", "license": "CC BY-SA 2.0", "urls": ["https://backrooms-sandbox-2.wdfiles.com/local--files/kvn7-level-1-1/Sector-1"]},
+        {"slot": 2, "name": "Sector 2", "author": "Steven Connor / edit by kvn7", "license": "CC BY-SA 3.0", "urls": ["https://backrooms-sandbox-2.wdfiles.com/local--files/kvn7-level-1-1/Sector-2"]},
+        {"slot": 3, "name": "Sector 3", "author": "Steven Connor / edit by kvn7", "license": "CC BY-SA 3.0", "urls": ["https://backrooms-sandbox-2.wdfiles.com/local--files/kvn7-level-1-1/Sector-3"]},
+        {"slot": 4, "name": "Sector 4", "author": "Steven Connor / edit by kvn7", "license": "CC BY-SA 3.0", "urls": ["https://backrooms-sandbox-2.wdfiles.com/local--files/kvn7-level-1-1/Sector-4"]}
+      ]
+    },
+    {
+      "id": "1.2",
+      "parentLevel": 1,
+      "name": "Concrete Garden",
+      "source_page": "https://backrooms-wiki.wikidot.com/level-1-2",
+      "images": [
+        {"slot": 1, "name": "Garden 1", "author": "LaundryFan_04", "license": "CC BY 3.0", "urls": ["https://backrooms-wiki.wdfiles.com/local--files/level-1-2/garden%201.png"]},
+        {"slot": 2, "name": "Garden 2", "author": "LaundryFan_04", "license": "CC BY 3.0", "urls": ["https://backrooms-wiki.wdfiles.com/local--files/level-1-2/Garden%202.png"]},
+        {"slot": 3, "name": "Garden 3", "author": "LaundryFan_04", "license": "CC BY 3.0", "urls": ["https://backrooms-wiki.wdfiles.com/local--files/level-1-2/Garden%203.png"]}
+      ]
+    },
+    {
+      "id": "1.3",
+      "parentLevel": 1,
+      "name": "Malignance",
+      "source_page": "https://backrooms-wiki.wikidot.com/level-1-3",
+      "images": [
+        {"slot": 1, "name": "White Halls", "author": "Alfarex", "license": "CC BY 3.0", "urls": ["https://backrooms-wiki.wdfiles.com/local--files/level-1-3/halls.png"]},
+        {"slot": 2, "name": "Decay Halls", "author": "Alfarex", "license": "CC BY 3.0", "urls": ["https://backrooms-wiki.wdfiles.com/local--files/level-1-3/rot.png"]}
+      ]
+    },
+    {
+      "id": "1.5",
+      "parentLevel": 1,
+      "name": "Inverted",
+      "source_page": "https://backrooms-wiki.wikidot.com/level-1-5",
+      "images": [
+        {"slot": 1, "name": "1-5", "author": "Tesserax", "license": "CC BY-SA 3.0", "urls": ["https://backrooms-wiki.wdfiles.com/local--files/level-1-5/1-5"]},
+        {"slot": 2, "name": "Level-1.5", "author": "Tesserax", "license": "CC BY-SA 3.0", "urls": ["https://backrooms-wiki.wdfiles.com/local--files/level-1-5/Level-1.5.jpg"]}
+      ]
+    }
+  ]
+}

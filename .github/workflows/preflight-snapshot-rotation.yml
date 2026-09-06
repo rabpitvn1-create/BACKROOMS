@@ -7,8 +7,12 @@ on:
     paths:
       - "android-apk/fetch-level-snapshots.py"
       - "android-apk/snapshot_sources.json"
+      - "android-apk/sublevel_snapshot_sources.json"
+      - "android-apk/sublevels_0_1.json"
+      - "android-apk/patch-sublevels-0-1.py"
       - "android-apk/patch-level-snapshot-backgrounds.py"
       - "android-apk/patch-level-transition-sync.py"
+      - "android-apk/patch-character-detail-avatar-fallback.py"
       - "android-apk/app/src/main/assets/level_snapshots/**"
       - ".github/workflows/preflight-snapshot-rotation.yml"
   workflow_dispatch:
@@ -26,11 +30,29 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Validate source manifest and fetch 28 images
+      - name: Validate source manifests and fetch parent plus sub-level images
         run: |
-          python3 -m py_compile android-apk/fetch-level-snapshots.py android-apk/patch-level-snapshot-backgrounds.py android-apk/patch-level-transition-sync.py
+          python3 -m py_compile \
+            android-apk/fetch-level-snapshots.py \
+            android-apk/patch-level-snapshot-backgrounds.py \
+            android-apk/patch-level-transition-sync.py \
+            android-apk/patch-sublevels-0-1.py
           python3 android-apk/fetch-level-snapshots.py
-          test "$(find android-apk/app/src/main/assets/level_snapshots/rotation -maxdepth 1 -type f | wc -l)" -eq 28
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+
+          root = Path('android-apk')
+          parent = json.loads((root / 'snapshot_sources.json').read_text(encoding='utf-8'))
+          sub = json.loads((root / 'sublevel_snapshot_sources.json').read_text(encoding='utf-8'))
+          expected = 28 + sum(len(entry['images']) for entry in sub['sublevels'])
+          actual = len(list((root / 'app/src/main/assets/level_snapshots/rotation').glob('*')))
+          assert actual == expected, (actual, expected)
+          assert [entry['id'] for entry in sub['sublevels']] == ['0.1','0.2','0.3','0.5','0.7','1.1','1.2','1.3','1.5']
+          assert all(1 <= len(entry['images']) <= 4 for entry in sub['sublevels'])
+          assert all([image['slot'] for image in entry['images']] == list(range(1, len(entry['images']) + 1)) for entry in sub['sublevels'])
+          assert [entry['level'] for entry in parent['levels']] == list(range(7))
+          PY
 
       - name: Apply exact Android release patch chain
         run: |
@@ -64,24 +86,36 @@ jobs:
           python3 android-apk/patch-character-detail-avatar-fallback.py
           python3 android-apk/patch-level-transition-sync.py
 
-      - name: Verify deterministic four-image rotation and level-state sync contract
+      - name: Verify sub-level knowledge, variable rotation and parent-level state contract
         run: |
           python3 - <<'PY'
           from pathlib import Path
           import json
 
-          manifest = json.loads(Path('android-apk/snapshot_sources.json').read_text(encoding='utf-8'))
+          root = Path('android-apk')
+          manifest = json.loads((root / 'snapshot_sources.json').read_text(encoding='utf-8'))
+          sub = json.loads((root / 'sublevel_snapshot_sources.json').read_text(encoding='utf-8'))
+          catalog = json.loads((root / 'sublevels_0_1.json').read_text(encoding='utf-8'))
+          knowledge = json.loads((root / 'app/src/main/assets/knowledge/knowledge_db.json').read_text(encoding='utf-8'))
           assert manifest['rotation_turns'] == 3
           assert [entry['level'] for entry in manifest['levels']] == list(range(7))
           assert all([image['slot'] for image in entry['images']] == [1, 2, 3, 4] for entry in manifest['levels'])
+          assert [entry['id'] for entry in catalog['sublevels']] == [entry['id'] for entry in sub['sublevels']]
 
-          java = Path('android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java').read_text(encoding='utf-8')
-          html = Path('android-apk/app/src/main/assets/index.html').read_text(encoding='utf-8')
+          records = {record['id']: record for record in knowledge['records']}
+          assert 'SUBLEVEL.INDEX.00' in records
+          assert 'SUBLEVEL.INDEX.01' in records
+          assert 'SUBLEVEL.INDEX.00' in records['LEVEL.00']['references']
+          assert 'SUBLEVEL.INDEX.01' in records['LEVEL.01']['references']
+          assert 'state.level.number at the integer parent' in records['SUBLEVEL.INDEX.00']['text']
+
+          java = (root / 'app/src/main/java/com/rabpit/backroom/MainActivity.java').read_text(encoding='utf-8')
+          html = (root / 'app/src/main/assets/index.html').read_text(encoding='utf-8')
           assert 'Math.floor((snapshotTurn-1)/3)%seq.length' in java
           assert 'var levelNumber=state&&state.level&&state.level.number;' in java
-          assert 'var lv=levelNumber!=null?' in java
-          assert "bg.src=seq[snapshotSlot]" in java
-          assert "Snapshot '+(snapshotSlot+1)+' / 4" in java
+          assert "var subkey=sm&&subrefs[sm[1]]?sm[1]:'';" in java
+          assert 'var seq=subkey?subrefs[subkey]:(refs[lv]||refs[0]);' in java
+          assert "Snapshot '+(snapshotSlot+1)+' / '+seq.length" in java
           assert 'put("location", canonicalLevelLocation)' in java
           assert 'function displayLocation(s)' in html
           assert 'Number(m[1])!==n?canonical' in html
@@ -89,6 +123,10 @@ jobs:
           for level in range(7):
               for slot in range(1, 5):
                   marker = f'level_snapshots/rotation/level_{level}_{slot}.'
+                  assert marker in java, marker
+          for entry in sub['sublevels']:
+              for image in entry['images']:
+                  marker = f"level_snapshots/rotation/sublevel_{entry['id'].replace('.', '_')}_{image['slot']}."
                   assert marker in java, marker
           PY
 
