@@ -61,6 +61,31 @@ class ClaudeSnapshotCompatTest(unittest.TestCase):
         text = compat.extract_choice_text(payload, annotation_teacher.TeacherError)
         self.assertEqual('{"lights":[],"ambient":0.1}', text)
 
+    def test_choice_text_accepts_nested_data_envelope(self):
+        payload = {
+            "data": {
+                "choices": [{"message": {"content": '{"lights":[],"ambient":0.2}'}}]
+            }
+        }
+        text = compat.extract_choice_text(payload, annotation_teacher.TeacherError)
+        self.assertEqual('{"lights":[],"ambient":0.2}', text)
+
+    def test_provider_error_summary_omits_message(self):
+        payload = {
+            "type": "error",
+            "error": {
+                "type": "routing_error",
+                "code": "MODEL_ROUTE_FAILED",
+                "message": "contains configured values that must not be echoed",
+            },
+        }
+        with self.assertRaises(annotation_teacher.TeacherError) as caught:
+            compat.extract_choice_text(payload, annotation_teacher.TeacherError)
+        text = str(caught.exception)
+        self.assertIn("type=routing_error", text)
+        self.assertIn("code=MODEL_ROUTE_FAILED", text)
+        self.assertNotIn("configured values", text)
+
     def test_anthropic_response_extracts_only_final_text_blocks(self):
         payload = {
             "content": [
