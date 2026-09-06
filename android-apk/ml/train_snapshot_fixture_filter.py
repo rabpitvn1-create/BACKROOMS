@@ -319,6 +319,7 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
         optimizer=tf.keras.optimizers.Adam(learning_rate=1e-3),
         loss=tf.keras.losses.BinaryCrossentropy(),
         metrics=[tf.keras.metrics.BinaryAccuracy(name="accuracy")],
+        weighted_metrics=[tf.keras.metrics.BinaryAccuracy(name="balanced_accuracy")],
     )
 
     train_pos = max(1, int(y_train.sum()))
@@ -335,7 +336,11 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
         class_weight=class_weight,
         callbacks=[
             tf.keras.callbacks.EarlyStopping(
-                monitor="val_loss", patience=16, restore_best_weights=True, min_delta=1e-4
+                monitor="val_balanced_accuracy",
+                mode="max",
+                patience=16,
+                restore_best_weights=True,
+                min_delta=1e-4,
             )
         ],
     )
@@ -392,6 +397,7 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
             "test_negatives": test_neg,
             "augmented_train_examples": int(len(y_train)),
             "balanced_validation_weighting": True,
+            "selection_metric": "val_balanced_accuracy",
         },
         "tflite": {
             "size_bytes": size_bytes,
