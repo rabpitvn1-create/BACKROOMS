@@ -3,12 +3,14 @@ from __future__ import annotations
 
 import importlib.util
 import pathlib
+import sys
 import unittest
 
 MODULE_PATH = pathlib.Path(__file__).with_name("train_snapshot_fixture_filter.py")
 SPEC = importlib.util.spec_from_file_location("train_snapshot_fixture_filter", MODULE_PATH)
 assert SPEC is not None and SPEC.loader is not None
 trainer = importlib.util.module_from_spec(SPEC)
+sys.modules[SPEC.name] = trainer
 SPEC.loader.exec_module(trainer)
 
 
