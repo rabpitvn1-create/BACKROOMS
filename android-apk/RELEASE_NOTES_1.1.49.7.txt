@@ -1,0 +1,8 @@
+Backroom 1.1.49.7
+
+- Rebuilds the Snapshot visual runtime to correct Entity encounter staging, Kai facing, and one-slot Entity rotation without restoring the removed legacy visual stack.
+- Grounds Kai, Party and Entity shadows from deterministic sprite contact profiles; shadows are centered under visible contact points, use a dark-center ellipse, fade smoothly outward, and extend slightly beyond the foot/contact span.
+- Reworks Snapshot lamp analysis and rendering so fixture centers come from detected fixture bounds, 8-neighbor grouping keeps contiguous light regions together, and a fixed luminous core is surrounded by a subtle breathing halo instead of a drifting rectangular bloom.
+- Keeps hit feedback driven by authoritative ATTACK/SKILL timeline events and preserves existing save-schema/gameplay-state compatibility.
+- Bumps Android versionCode to 132 and versionName to 1.1.49.7 for upgrade installation over 1.1.49.6.
+- Release validation rebuilds and gates the LiteRT intent model, applies the exact Android runtime patch chain, verifies provider/Entity/overlay contracts, runs Kotlin unit tests, assembles and verifies the APK, publishes v1.1.49.7, then downloads the published asset and records GREEN release status.
