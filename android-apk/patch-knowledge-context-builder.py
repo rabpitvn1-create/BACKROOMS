@@ -32,7 +32,8 @@ text = replace_method(
     if (reply.length() > 7000) reply = reply.substring(0, 7000);
     String packet = auditScopeCanon(before, action, rolls, scope);
     String prompt = "Bạn là auditor độc lập cho một lượt text game Backrooms. Không viết lại truyện, không tạo state, không thêm canon. " +
-      "Chỉ báo HARD khi có xung đột cụ thể chứng minh được từ KNOWLEDGE PACKET hoặc dice. Không báo lỗi vì sở thích văn phong. Trả DUY NHẤT JSON.\n\n" +
+      "Chỉ báo HARD khi có xung đột cụ thể chứng minh được từ KNOWLEDGE PACKET hoặc dice. Không báo lỗi vì sở thích văn phong. Trả DUY NHẤT JSON. " +
+      "Quy tắc address_error: trong phần dẫn truyện, player-character Kai phải luôn được gọi là 'Bạn' và được kể ở ngôi thứ hai; việc gọi player là Kai/Twilight/hắn/anh ấy/cậu ấy hoặc kể hành động của player ở ngôi thứ ba là lỗi HARD. Tên Kai vẫn được phép xuất hiện trong lời thoại trực tiếp khi một nhân vật thực sự gọi hoặc nhắc tên anh ấy.\n\n" +
       "AUDIT SCOPE: " + scope + "\n\n" +
       "BUDGETED KNOWLEDGE PACKET:\n" + packet + "\n\n" +
       "LOCKED DICE:\n" + rolls.toString() + "\n\n" +
@@ -61,6 +62,7 @@ text = replace_method(
       "KNOWLEDGE PACKET là context đã được Context Builder chọn từ in-game database theo state/scene/present actors/action/story. " +
       "Source trace trong packet chỉ dùng hậu trường; không để nhân vật nói tên record/file/anchor. UNKNOWN phải giữ UNKNOWN. " +
       "Người chơi chỉ điều khiển hành động có chủ ý của Kai; GM không tự chọn thay. GAMEPLAY_ROLLS do Android sinh là bất biến. " +
+      "DẪN TRUYỆN BẮT BUỘC dùng ngôi thứ hai đối với player-character Kai: luôn gọi player là 'Bạn', không kể 'Kai làm...', 'Kai thấy...', 'anh ấy...', 'hắn...' hay 'cậu ấy...' để chỉ player. Chỉ được dùng tên Kai trong lời thoại trực tiếp khi nhân vật khác thực sự gọi hoặc nhắc tên anh ấy. " +
       "Bạn KHÔNG được trả state hoàn chỉnh. Chỉ đề xuất state change bằng ops; Android sẽ kiểm và có thể từ chối từng operation. " +
       "Nếu meta=true, chỉ trả thông tin được hỏi, ops=[] và snapshotEvent=false. Không nhắc database/context/state/roll/prompt trong văn xuôi.\n\n" +
       "BUDGETED KNOWLEDGE PACKET:\n" + packet +
@@ -71,7 +73,7 @@ text = replace_method(
       "party_upsert{member}; party_remove{name}; flag_patch{root,value}. " +
       "Chỉ dùng flag root: exploration, communication, iris, syvial, jeff, madGod, omnivault, survivorRegistry, entityRegistry, survivorsConfirmed, entitiesConfirmedLocal, visualAreaKey, visualEventKey, entityEncounterKey, reunionPath. " +
       "Inventory chỉ đổi khi Kai thật sự lấy/nhận/copy/trao/mất/tiêu thụ vật; nhìn thấy không đồng nghĩa sở hữu. MadGod roll success chỉ mở discovery route, không tự đưa set vào inventory. " +
-      "JSON bắt buộc: {\"reply\":\"phản hồi Game Master bằng tiếng Việt tự nhiên\",\"ops\":[],\"snapshotEvent\":{\"shouldGenerate\":false,\"kind\":\"\",\"reason\":\"\"}}";
+      "JSON bắt buộc: {\"reply\":\"phản hồi Game Master bằng tiếng Việt tự nhiên, dẫn truyện ngôi thứ hai và gọi player là Bạn\",\"ops\":[],\"snapshotEvent\":{\"shouldGenerate\":false,\"kind\":\"\",\"reason\":\"\"}}";
   }
 
   private JSONArray localKnowledgeIssues(JSONObject before, JSONObject generated) throws Exception {
@@ -128,4 +130,4 @@ if needle_commit not in text:
 text = text.replace(needle_commit, replacement_commit, 1)
 
 MAIN.write_text(text, encoding="utf-8")
-print("GM/critic use budgeted knowledge; local validator always runs; validated turns persist deterministic structured continuity.")
+print("GM/critic use budgeted knowledge; GM narration addresses the player as Bạn in second person; local validator always runs; validated turns persist deterministic structured continuity.")
