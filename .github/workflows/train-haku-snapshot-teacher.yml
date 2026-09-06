@@ -1,4 +1,4 @@
-name: HAKU Snapshot Vision Probe
+name: HAKU Snapshot Teacher Bootstrap
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  haku-snapshot-vision-probe:
+  haku-snapshot-teacher-bootstrap:
     runs-on: ubuntu-latest
     env:
       HAKU_API_KEY: ${{ secrets.HAKU_API_KEY }}
@@ -25,8 +25,13 @@ jobs:
 
       - name: Validate Snapshot teacher code
         run: |
-          python -m py_compile android-apk/ml/haku_snapshot_teacher.py android-apk/ml/test_haku_snapshot_teacher.py
+          python -m py_compile \
+            android-apk/ml/haku_snapshot_teacher.py \
+            android-apk/ml/haku_snapshot_candidate_teacher.py \
+            android-apk/ml/test_haku_snapshot_teacher.py \
+            android-apk/ml/test_haku_snapshot_candidate_teacher.py
           python android-apk/ml/test_haku_snapshot_teacher.py -v
+          python android-apk/ml/test_haku_snapshot_candidate_teacher.py -v
 
       - name: Require HAKU credential
         run: |
@@ -37,11 +42,23 @@ jobs:
           python android-apk/ml/haku_snapshot_teacher.py probe \
             --output snapshot_teacher/haku_snapshot_probe.json
 
-      - name: Upload probe report
+      - name: Install Snapshot image decoder
+        run: |
+          python -m pip install pillow
+
+      - name: Bootstrap deterministic candidates with HAKU semantics
+        run: |
+          python android-apk/ml/haku_snapshot_candidate_teacher.py \
+            --limit 1 \
+            --passes 3 \
+            --max-candidates 4 \
+            --output snapshot_teacher/haku_snapshot_candidate_labels.jsonl
+
+      - name: Upload Snapshot teacher artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: haku-snapshot-vision-probe
+          name: haku-snapshot-teacher-bootstrap
           path: snapshot_teacher/
           if-no-files-found: warn
           retention-days: 14
