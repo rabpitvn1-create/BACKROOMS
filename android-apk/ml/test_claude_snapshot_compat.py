@@ -86,6 +86,18 @@ class ClaudeSnapshotCompatTest(unittest.TestCase):
         self.assertIn("code=MODEL_ROUTE_FAILED", text)
         self.assertNotIn("configured values", text)
 
+    def test_provider_quota_error_is_sanitized(self):
+        payload = {
+            "type": "error",
+            "error": {
+                "type": "insufficient_quota",
+                "message": "secret-backed provider details",
+            },
+        }
+        with self.assertRaisesRegex(annotation_teacher.TeacherError, "type=insufficient_quota") as caught:
+            compat.extract_choice_text(payload, annotation_teacher.TeacherError)
+        self.assertNotIn("provider details", str(caught.exception))
+
     def test_anthropic_response_extracts_only_final_text_blocks(self):
         payload = {
             "content": [
