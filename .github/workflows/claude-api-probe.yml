@@ -67,19 +67,26 @@ jobs:
               print('root_error_type=' + str(err.get('type')))
               print('root_error_code=' + str(err.get('code')))
               print('root_error_message=' + str(err.get('message'))[:500])
+              raise SystemExit(2)
+
           choices = payload.get('choices', []) if isinstance(payload, dict) else []
           print('choices_count=' + str(len(choices) if isinstance(choices, list) else -1))
-          if isinstance(choices, list) and choices and isinstance(choices[0], dict):
-              choice = choices[0]
-              print('choice_keys=' + ','.join(sorted(choice.keys())))
-              print('finish_reason=' + str(choice.get('finish_reason')))
-              message = choice.get('message')
-              if isinstance(message, dict):
-                  print('message_keys=' + ','.join(sorted(message.keys())))
-                  for field in ('content', 'reasoning_content', 'reasoning', 'text', 'output_text'):
-                      value = message.get(field)
-                      print(f'{field}_type={type(value).__name__}')
-                      if isinstance(value, str):
-                          print(f'{field}_len={len(value)}')
-                          print(f'{field}_preview={value[:160]}')
+          if not (isinstance(choices, list) and choices and isinstance(choices[0], dict)):
+              raise SystemExit('provider returned no choices')
+          choice = choices[0]
+          print('choice_keys=' + ','.join(sorted(choice.keys())))
+          print('finish_reason=' + str(choice.get('finish_reason')))
+          message = choice.get('message')
+          if not isinstance(message, dict):
+              raise SystemExit('provider returned no assistant message')
+          print('message_keys=' + ','.join(sorted(message.keys())))
+          content = message.get('content')
+          print('content_type=' + type(content).__name__)
+          if not isinstance(content, str):
+              raise SystemExit('provider returned non-text content')
+          print('content_len=' + str(len(content)))
+          print('content_preview=' + content[:160])
+          if content.strip() != 'MODEL_OK':
+              raise SystemExit('provider did not return MODEL_OK')
+          print('probe_result=PASS')
           PY
