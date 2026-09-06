@@ -32,13 +32,15 @@ Decide whether the marked region is a real visible light-emitting fixture/source
 should attach a glow to. Reject bright walls/floors, reflections, windows that merely look bright,
 painted bloom, UI, character/entity sprites, and unrelated bright objects.
 
-Return exactly:
+Return exactly ONE JSON object with this schema and no other text:
 {"fixture":true,"kind":"linear","confidence":0.0}
-or
-{"fixture":false,"kind":"none","confidence":0.0}
 
-When fixture=true, kind must be "linear" or "point". Do not return coordinates. Geometry is supplied
-by a deterministic detector and must not be re-estimated by you."""
+Rules:
+- fixture is true or false.
+- when fixture=true, kind is "linear" or "point".
+- when fixture=false, kind is "none".
+- confidence is in [0,1].
+- do not return coordinates. Geometry comes from the deterministic detector and must not be re-estimated."""
 
 
 def _number(value: Any, name: str) -> float:
@@ -158,7 +160,7 @@ def call_haku_candidate(
             },
         ],
         "temperature": 0,
-        "max_tokens": 300,
+        "max_tokens": 120,
         "stream": False,
     }
     request = urllib.request.Request(
