@@ -49,10 +49,10 @@
       "name": "The Reminiscence District",
       "source_page": "https://backrooms-wiki.wikidot.com/level-0-7",
       "images": [
-        {"slot": 1, "name": "cc_lvl0.jpg", "author": "Alfarex", "license": "CC BY-SA 3.0", "urls": ["https://backrooms-wiki.wdfiles.com/local--files/level-0/cc_lvl0.jpg"]},
-        {"slot": 2, "name": "Naba Vrindaban Mandir", "author": "ProbuddhoG", "license": "CC BY-SA 3.0", "urls": ["https://commons.wikimedia.org/wiki/Special:Redirect/file/Naba_Vrindaban_Mandir_1.JPG?width=1280"]},
-        {"slot": 3, "name": "Castle corridor", "author": "Nemracc", "license": "CC BY-SA 4.0", "urls": ["https://commons.wikimedia.org/wiki/Special:Redirect/file/Castle%2C_ruin_Hardenburg%2C_Bad_D%C3%BCrkheim_10_corridor_in_the_western_bulwark.jpg?width=1280"]},
-        {"slot": 4, "name": "Basement of the Lutheran Church", "author": "MBH", "license": "CC BY-SA 4.0", "urls": ["https://commons.wikimedia.org/wiki/Special:Redirect/file/Basement_of_the_Lutheran_Church_of_Saints_Peter_and_Paul_(Saint_Petersburg)_15.jpg?width=1280"]}
+        {"slot": 1, "name": "Naba Vrindaban Mandir", "author": "ProbuddhoG", "license": "CC BY-SA 3.0", "urls": ["https://commons.wikimedia.org/wiki/Special:Redirect/file/Naba_Vrindaban_Mandir_1.JPG?width=1280"]},
+        {"slot": 2, "name": "Castle corridor", "author": "Nemracc", "license": "CC BY-SA 4.0", "urls": ["https://commons.wikimedia.org/wiki/Special:Redirect/file/Castle%2C_ruin_Hardenburg%2C_Bad_D%C3%BCrkheim_10_corridor_in_the_western_bulwark.jpg?width=1280"]},
+        {"slot": 3, "name": "Basement of the Lutheran Church", "author": "MBH", "license": "CC BY-SA 4.0", "urls": ["https://commons.wikimedia.org/wiki/Special:Redirect/file/Basement_of_the_Lutheran_Church_of_Saints_Peter_and_Paul_(Saint_Petersburg)_15.jpg?width=1280"]},
+        {"slot": 4, "name": "Ten Pound Gill Cave", "author": "Peter Bond", "license": "CC BY-SA 2.0", "urls": ["https://commons.wikimedia.org/wiki/Special:Redirect/file/Ten_Pound_Gill_Cave_-_geograph.org.uk_-_2115608.jpg?width=1280"]}
       ]
     },
     {
