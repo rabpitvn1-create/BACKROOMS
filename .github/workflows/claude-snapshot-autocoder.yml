@@ -40,9 +40,23 @@ jobs:
         env:
           CLAUDE_API: ${{ secrets.CLAUDE_API_KEY }}
         run: |
-          python android-apk/ml/claude_snapshot_autocoder.py \
-            --model "$CLAUDE_MODEL" \
-            --output /tmp/claude_snapshot.patch
+          set +e
+          rc=1
+          for attempt in 1 2 3; do
+            echo "Claude API attempt ${attempt}/3"
+            rm -f /tmp/claude_snapshot.patch
+            python android-apk/ml/claude_snapshot_autocoder.py \
+              --model "$CLAUDE_MODEL" \
+              --output /tmp/claude_snapshot.patch
+            rc=$?
+            if [ "$rc" -eq 0 ]; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              sleep $((attempt * 5))
+            fi
+          done
+          exit "$rc"
 
       - name: Validate Claude patch boundary
         run: |
