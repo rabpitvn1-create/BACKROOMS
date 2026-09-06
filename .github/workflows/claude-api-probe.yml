@@ -62,6 +62,11 @@ jobs:
 
           payload = json.loads(raw)
           print('root_keys=' + ','.join(sorted(payload.keys())) if isinstance(payload, dict) else 'root_not_object')
+          if isinstance(payload, dict) and isinstance(payload.get('error'), dict):
+              err = payload['error']
+              print('root_error_type=' + str(err.get('type')))
+              print('root_error_code=' + str(err.get('code')))
+              print('root_error_message=' + str(err.get('message'))[:500])
           choices = payload.get('choices', []) if isinstance(payload, dict) else []
           print('choices_count=' + str(len(choices) if isinstance(choices, list) else -1))
           if isinstance(choices, list) and choices and isinstance(choices[0], dict):
@@ -77,10 +82,4 @@ jobs:
                       if isinstance(value, str):
                           print(f'{field}_len={len(value)}')
                           print(f'{field}_preview={value[:160]}')
-          for field in ('content', 'text', 'output_text', 'response'):
-              value = payload.get(field) if isinstance(payload, dict) else None
-              print(f'root_{field}_type={type(value).__name__}')
-              if isinstance(value, str):
-                  print(f'root_{field}_len={len(value)}')
-                  print(f'root_{field}_preview={value[:160]}')
           PY
