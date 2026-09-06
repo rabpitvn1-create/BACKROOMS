@@ -1,0 +1,136 @@
+name: HAKU Snapshot Teacher Bootstrap
+
+on:
+  push:
+    branches:
+      - ai/haku-snapshot-teacher-v1
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  haku-snapshot-teacher-bootstrap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      # Authoritative Claude configuration for this workflow. Do not derive or
+      # discover provider settings from legacy HAKU_* variables.
+      CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+      CLAUDE_MODEL: ${{ secrets.CLAUDE_MODEL }}
+      CLAUDE_BASE_URL: ${{ secrets.CLAUDE_BASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate Snapshot teacher code
+        run: |
+          python -m py_compile \
+            android-apk/ml/haku_snapshot_teacher.py \
+            android-apk/ml/haku_snapshot_candidate_teacher.py \
+            android-apk/ml/claude_snapshot_compat.py \
+            android-apk/ml/claude_snapshot_runner.py \
+            android-apk/ml/merge_snapshot_teacher_labels.py \
+            android-apk/ml/train_snapshot_fixture_filter.py \
+            android-apk/ml/test_haku_snapshot_teacher.py \
+            android-apk/ml/test_haku_snapshot_candidate_teacher.py \
+            android-apk/ml/test_claude_snapshot_compat.py \
+            android-apk/ml/test_merge_snapshot_teacher_labels.py \
+            android-apk/ml/test_train_snapshot_fixture_filter.py
+          python android-apk/ml/test_haku_snapshot_teacher.py -v
+          python android-apk/ml/test_haku_snapshot_candidate_teacher.py -v
+          python android-apk/ml/test_claude_snapshot_compat.py -v
+          python android-apk/ml/test_merge_snapshot_teacher_labels.py -v
+          python android-apk/ml/test_train_snapshot_fixture_filter.py -v
+
+      - name: Require Claude configuration
+        run: |
+          test -n "$CLAUDE_API_KEY" || (echo "Missing GitHub Secret: CLAUDE_API_KEY" && exit 1)
+          test -n "$CLAUDE_MODEL" || (echo "Missing GitHub Secret: CLAUDE_MODEL" && exit 1)
+          test -n "$CLAUDE_BASE_URL" || (echo "Missing GitHub Secret: CLAUDE_BASE_URL" && exit 1)
+
+      - name: Validate Claude vision credential
+        id: claude_probe
+        continue-on-error: true
+        run: |
+          python android-apk/ml/claude_snapshot_runner.py probe \
+            --output snapshot_teacher/claude_snapshot_probe.json
+
+      - name: Materialize trusted Snapshot seed labels
+        run: |
+          python - <<'PY'
+          import base64
+          import hashlib
+          import json
+          import pathlib
+          import zlib
+
+          payload_path = pathlib.Path("android-apk/ml/snapshot_teacher_seed.zlib.b64")
+          manifest_path = pathlib.Path("android-apk/ml/snapshot_teacher_seed_manifest.json")
+          output_path = pathlib.Path("snapshot_teacher/trusted_snapshot_seed.jsonl")
+
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          compressed = base64.b64decode(payload_path.read_text(encoding="ascii").strip(), validate=True)
+          data = zlib.decompress(compressed)
+          digest = hashlib.sha256(data).hexdigest()
+          expected = manifest["corpus"]["seed_file_sha256"]
+          if digest != expected:
+              raise RuntimeError(f"trusted Snapshot seed digest mismatch: {digest} != {expected}")
+
+          output_path.parent.mkdir(parents=True, exist_ok=True)
+          output_path.write_bytes(data)
+          print(f"Materialized trusted Snapshot seed: sha256={digest}")
+          PY
+
+      - name: Install Snapshot image decoder
+        run: |
+          python -m pip install pillow==12.3.0
+
+      - name: Fetch 28 rotation Snapshots
+        run: |
+          python android-apk/fetch-level-snapshots.py
+          test "$(find android-apk/app/src/main/assets/level_snapshots/rotation -maxdepth 1 -type f | wc -l)" -eq 28
+
+      - name: Enrich Snapshot labels with live Claude
+        if: steps.claude_probe.outcome == 'success'
+        continue-on-error: true
+        run: |
+          python android-apk/ml/claude_snapshot_runner.py candidates \
+            --glob 'android-apk/app/src/main/assets/level_snapshots/rotation/*' \
+            --limit 35 \
+            --passes 2 \
+            --max-candidates 4 \
+            --output snapshot_teacher/claude_snapshot_live_labels.jsonl
+
+      - name: Merge trusted and live Snapshot labels
+        run: |
+          python android-apk/ml/merge_snapshot_teacher_labels.py \
+            --input snapshot_teacher/trusted_snapshot_seed.jsonl \
+            --optional-input snapshot_teacher/claude_snapshot_live_labels.jsonl \
+            --output snapshot_teacher/haku_snapshot_candidate_labels.jsonl
+
+      - name: Install LiteRT training dependencies
+        run: |
+          python -m pip install -r android-apk/ml/requirements.txt
+
+      - name: Train tiny Snapshot fixture filter
+        run: |
+          python android-apk/ml/train_snapshot_fixture_filter.py \
+            --labels snapshot_teacher/haku_snapshot_candidate_labels.jsonl \
+            --output snapshot_teacher/backroom_snapshot_filter_v0.tflite \
+            --report snapshot_teacher/backroom_snapshot_filter_v0_report.json \
+            --min-samples 60 \
+            --min-per-class 12 \
+            --min-images 16
+
+      - name: Upload Snapshot teacher artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: haku-snapshot-teacher-bootstrap
+          path: snapshot_teacher/
+          if-no-files-found: warn
+          retention-days: 14
