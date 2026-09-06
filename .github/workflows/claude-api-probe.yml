@@ -15,11 +15,11 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - name: Probe configured Claude provider and Opus
+      - name: Probe configured Claude provider and subscribed model
         env:
           CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
           CLAUDE_BASE_URL: ${{ secrets.CLAUDE_BASE_URL || secrets.CLAUDE_API_URL || secrets.CLAUDE_URL }}
-          CLAUDE_MODEL: claude-opus-4-8
+          CLAUDE_MODEL: claude-fable-5
         run: |
           python - <<'PY'
           import hashlib
@@ -31,7 +31,7 @@ jobs:
 
           key = os.environ.get('CLAUDE_API_KEY', '').strip()
           raw_base = os.environ.get('CLAUDE_BASE_URL', '').strip().rstrip('/')
-          model = os.environ.get('CLAUDE_MODEL', 'claude-opus-4-8').strip()
+          model = os.environ.get('CLAUDE_MODEL', 'claude-fable-5').strip()
 
           if not key:
               print('probe_error=missing_api_key_secret')
@@ -108,7 +108,7 @@ jobs:
           anthropic_body = {
               'model': model,
               'max_tokens': 16,
-              'messages': [{'role': 'user', 'content': 'Reply exactly: OPUS_OK'}],
+              'messages': [{'role': 'user', 'content': 'Reply exactly: MODEL_OK'}],
           }
           a_status, a_body = call(
               base + '/messages',
@@ -132,7 +132,7 @@ jobs:
           openai_body = {
               'model': model,
               'max_tokens': 16,
-              'messages': [{'role': 'user', 'content': 'Reply exactly: OPUS_OK'}],
+              'messages': [{'role': 'user', 'content': 'Reply exactly: MODEL_OK'}],
           }
           o_status, o_body = call(
               base + '/chat/completions',
