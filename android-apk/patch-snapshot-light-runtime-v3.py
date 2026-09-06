@@ -29,7 +29,7 @@ def build_model() -> bool:
     inputs = tf.keras.Input(shape=(81, 144, 3), dtype=tf.float32, name="snapshot_rgb")
     luma_layer = tf.keras.layers.Conv2D(1, 1, use_bias=False, trainable=False, name="luma")
     luma = luma_layer(inputs)
-    local = tf.keras.layers.AveragePooling2D(pool_size=( nine := 9, nine), strides=(1, 1), padding="same", name="local_mean")(luma)
+    local = tf.keras.layers.AveragePooling2D(pool_size=(nine := 9, nine), strides=(1, 1), padding="same", name="local_mean")(luma)
     contrast = tf.keras.layers.ReLU(name="positive_contrast")(tf.keras.layers.Subtract()([luma, local]))
     outputs = tf.keras.layers.Concatenate(axis=-1, name="features")([luma, contrast])
     model = tf.keras.Model(inputs, outputs)
@@ -97,8 +97,8 @@ class SnapshotLightAnalyzer @JvmOverloads constructor(
         .put("lights", JSONArray().apply {
           lights.forEach { light ->
             put(JSONObject()
-              .put("x", light.centerX.toDouble() / W)
-              .put("y", light.centerY.toDouble() / H)
+              .put("x", light.centerX / W)
+              .put("y", light.centerY / H)
               .put("w", light.width.toDouble() / W)
               .put("h", light.height.toDouble() / H)
               .put("kind", light.kind)
@@ -180,8 +180,6 @@ class SnapshotLightAnalyzer @JvmOverloads constructor(
       var minY = H
       var maxX = 0
       var maxY = 0
-      var sumX = 0.0
-      var sumY = 0.0
       var sumLuma = 0.0
       var sumContrast = 0.0
 
@@ -192,7 +190,6 @@ class SnapshotLightAnalyzer @JvmOverloads constructor(
         area++
         minX = min(minX, x); maxX = max(maxX, x)
         minY = min(minY, y); maxY = max(maxY, y)
-        sumX += x + .5; sumY += y + .5
         sumLuma += features[y][x][0]
         sumContrast += features[y][x][1]
 
@@ -206,6 +203,10 @@ class SnapshotLightAnalyzer @JvmOverloads constructor(
         if (x + 1 < W) visit(p + 1)
         if (y > 0) visit(p - W)
         if (y + 1 < H) visit(p + W)
+        if (x > 0 && y > 0) visit(p - W - 1)
+        if (x + 1 < W && y > 0) visit(p - W + 1)
+        if (x > 0 && y + 1 < H) visit(p + W - 1)
+        if (x + 1 < W && y + 1 < H) visit(p + W + 1)
       }
 
       val width = maxX - minX + 1
@@ -221,8 +222,8 @@ class SnapshotLightAnalyzer @JvmOverloads constructor(
 
       val confidence = (.50 + avgLuma * .25 + avgContrast * 1.65 + min(.12, sqrt(area.toDouble()) * .012)).coerceIn(0.0, .99)
       found += Light(
-        centerX = sumX / area,
-        centerY = sumY / area,
+        centerX = (minX + maxX + 1) / 2.0,
+        centerY = (minY + maxY + 1) / 2.0,
         width = width,
         height = height,
         kind = if (linear) "linear" else "point",
@@ -290,4 +291,14 @@ MAIN.write_text(main, encoding="utf-8")
 
 if model_built and (not MODEL.is_file() or MODEL.stat().st_size <= 0):
     raise RuntimeError("Snapshot light v3 LiteRT model missing after build")
-print("Snapshot light runtime v3 wired with center/extent metadata and deterministic fallback.")
+
+analyzer = (CORE / "SnapshotLightAnalyzer.kt").read_text(encoding="utf-8")
+for marker in [
+    "centerX = (minX + maxX + 1) / 2.0",
+    "centerY = (minY + maxY + 1) / 2.0",
+    "if (x > 0 && y > 0) visit(p - W - 1)",
+]:
+    if marker not in analyzer:
+        raise RuntimeError(f"Snapshot light center contract missing: {marker}")
+
+print("Snapshot light runtime v3 wired with bounding-box-centered fixture metadata, 8-neighbor grouping and deterministic fallback.")
