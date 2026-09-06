@@ -21,7 +21,7 @@ INDEX.write_text(html, encoding="utf-8")
 print("Character detail avatar fallback hardened: non-Kai members without avatars use no portrait.")
 
 # Ordered final runtime transformation chain. Snapshot visuals are intentionally rebuilt by one
-# renderer only. Legacy lamp/shadow patch stacks were removed so they cannot fight over the DOM.
+# renderer only. Legacy visual patch stacks were removed so they cannot fight over the DOM.
 PATCH_CHAIN = [
     "patch-survival-hud-chat-ux.py",
     "patch-an-nhien-follower-final.py",

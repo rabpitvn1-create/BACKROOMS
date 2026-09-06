@@ -55,7 +55,7 @@ main = replace_if_needed(
 )
 
 old_css = ".snapshot-placeholder{display:grid;place-items:center;gap:7px;text-align:center;color:#69737c}"
-new_css = ".snapshot{position:relative;overflow:hidden;height:230px}.snapshot .snapshot-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}.snapshot .snapshot-character{position:absolute;right:0;bottom:0;width:46%;height:96%;object-fit:contain;object-position:right bottom;z-index:2;pointer-events:none;filter:drop-shadow(0 4px 8px rgba(0,0,0,.58))}.snapshot-placeholder{position:relative;z-index:3;width:100%;height:100%;display:grid;place-items:center;gap:7px;text-align:center;color:#69737c}"
+new_css = ".snapshot{position:relative;overflow:hidden;height:230px}.snapshot .snapshot-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}.snapshot .snapshot-character{position:absolute;right:0;bottom:0;width:46%;height:96%;object-fit:contain;object-position:right bottom;z-index:2;pointer-events:none}.snapshot-placeholder{position:relative;z-index:3;width:100%;height:100%;display:grid;place-items:center;gap:7px;text-align:center;color:#69737c}"
 main = replace_if_needed(main, old_css, new_css, "snapshot layered styles")
 
 old_render = "if(r){var img=document.createElement('img');img.src=r.dataUri;img.alt='Snapshot Turn '+(state.turn||'');box.appendChild(img);}else{"

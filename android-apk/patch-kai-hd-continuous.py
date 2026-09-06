@@ -35,8 +35,7 @@ index = INDEX.read_text(encoding="utf-8")
 
 old_css = (
     ".snapshot .snapshot-character{position:absolute;right:0;bottom:0;width:46%;height:96%;"
-    "object-fit:contain;object-position:right bottom;z-index:2;pointer-events:none;"
-    "filter:drop-shadow(0 4px 8px rgba(0,0,0,.58))}"
+    "object-fit:contain;object-position:right bottom;z-index:2;pointer-events:none}"
 )
 new_css = (
     ".snapshot .snapshot-character{position:absolute;right:0;bottom:0;height:97%;width:auto;"

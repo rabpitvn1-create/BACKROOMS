@@ -49,7 +49,7 @@ def png_alpha(path: Path) -> tuple[int, int, list[int]]:
         elif kind == b"IEND":
             break
     if not width or not height or bit_depth != 8 or interlace != 0:
-        raise RuntimeError(f"unsupported PNG layout for ground profile: {path.name}")
+        raise RuntimeError(f"unsupported PNG layout for stage profile: {path.name}")
     channels = {0: 1, 2: 3, 3: 1, 4: 2, 6: 4}.get(color_type)
     if channels is None:
         raise RuntimeError(f"unsupported PNG color type {color_type}: {path.name}")
@@ -106,7 +106,7 @@ def png_alpha(path: Path) -> tuple[int, int, list[int]]:
     return width, height, alpha
 
 
-def sprite_ground_profiles() -> dict[str, dict[str, float]]:
+def sprite_stage_profiles() -> dict[str, dict[str, float | int]]:
     roots = []
     for rel in ["kai_snapshot_overlay.png", "kai_snapshot_overlay_combat.png"]:
         path = ASSETS / rel
@@ -116,13 +116,15 @@ def sprite_ground_profiles() -> dict[str, dict[str, float]]:
         if folder.is_dir():
             roots.extend(sorted(folder.glob("*.png")))
 
-    result = {}
+    result: dict[str, dict[str, float | int]] = {}
     for path in roots:
         width, height, alpha = png_alpha(path)
         opaque = [(index % width, index // width) for index, value in enumerate(alpha) if value > 24]
         if not opaque:
             continue
 
+        visible_min_x = min(x for x, _ in opaque)
+        visible_max_x = max(x for x, _ in opaque)
         max_y = max(y for _, y in opaque)
         contact_depth = max(4, int(round(height * 0.045)))
         band_start = max(0, max_y - contact_depth)
@@ -143,15 +145,18 @@ def sprite_ground_profiles() -> dict[str, dict[str, float]]:
         result[key] = {
             "centerX": round((min_x + max_x + 1) / (2.0 * width), 6),
             "bottomY": round((max_y + 1) / float(height), 6),
-            "contactWidth": round((max_x - min_x + 1) / float(width), 6),
+            "visibleMinX": round(visible_min_x / float(width), 6),
+            "visibleMaxX": round((visible_max_x + 1) / float(width), 6),
+            "sourceWidth": width,
+            "sourceHeight": height,
         }
 
     if not result:
-        raise RuntimeError("no sprite ground profiles generated")
+        raise RuntimeError("no sprite stage profiles generated")
     return result
 
 
-ground_profiles = sprite_ground_profiles()
+stage_profiles = sprite_stage_profiles()
 html = INDEX.read_text(encoding="utf-8")
 
 # Remove every previous snapshot visual implementation before rebuilding. These markers are
@@ -193,24 +198,20 @@ html = replace_once(
 )
 
 style = r'''<style id="snapshot-visual-runtime-v3-style">
-/* Encounter staging is anchored by the visible ground contact, not the transparent image box. */
+/* Encounter staging uses visible sprite bounds and one shared contact line. */
 .snapshot .snapshot-character{z-index:4!important}
 .snapshot .snapshot-party-entity-layer,.snapshot .snapshot-party-entity-overlay{z-index:5!important}
-.snapshot.entity-encounter-present .snapshot-character{left:var(--stage-left,7%)!important;right:auto!important;bottom:var(--stage-bottom,0px)!important;object-position:left bottom!important;scale:-1 1!important}
+.snapshot.entity-encounter-present .snapshot-character{left:var(--stage-left,auto)!important;right:auto!important;bottom:var(--stage-bottom,0px)!important;object-position:right bottom!important;scale:1 1!important}
 .snapshot:not(.entity-encounter-present) .snapshot-character{scale:1 1!important}
-.snapshot.entity-encounter-present .snapshot-party-entity-overlay{left:var(--stage-left,7%)!important;right:auto!important;bottom:var(--stage-bottom,0px)!important;max-width:48%!important}
+.snapshot.entity-encounter-present .snapshot-party-entity-overlay{left:var(--stage-left,auto)!important;right:auto!important;bottom:var(--stage-bottom,0px)!important;max-width:48%!important}
 .snapshot.entity-encounter-present:not(.combat-turn-managed) .snapshot-party-entity-overlay{opacity:0!important}
 .snapshot .snapshot-entities{position:absolute!important;inset:0!important;display:block!important;z-index:6!important;overflow:hidden!important;pointer-events:none!important}
-.snapshot .snapshot-entity-overlay{position:absolute!important;left:var(--stage-left,52%)!important;right:auto!important;bottom:var(--stage-bottom,2.2%)!important;width:auto!important;height:91%!important;max-width:50%!important;opacity:0;transform:translateX(64px) scale(.97);transform-origin:50% 92%!important;transition:opacity .26s ease,transform .38s cubic-bezier(.2,.82,.26,1)!important}
+.snapshot .snapshot-entity-overlay{position:absolute!important;left:var(--stage-left,0px)!important;right:auto!important;bottom:var(--stage-bottom,2.2%)!important;width:auto!important;height:91%!important;max-width:50%!important;opacity:0;transform:translateX(-64px) scale(.97);transform-origin:50% 92%!important;transition:opacity .26s ease,transform .38s cubic-bezier(.2,.82,.26,1)!important}
 .snapshot:not(.combat-turn-managed) .snapshot-entity-overlay:first-child{opacity:1!important;transform:translateX(0) scale(1)!important}
 .snapshot.combat-turn-managed .snapshot-entity-overlay.combat-active-entity{opacity:1!important;transform:translateX(0) scale(1)!important}
-.snapshot.combat-turn-managed .snapshot-entity-overlay.entity-slide-out-v3{opacity:0!important;transform:translateX(82px) scale(.96)!important}
+.snapshot.combat-turn-managed .snapshot-entity-overlay.entity-slide-out-v3{opacity:0!important;transform:translateX(-82px) scale(.96)!important}
 .snapshot .snapshot-entity-overlay.entity-slide-in-v3{animation:entitySlideInV3 .48s cubic-bezier(.18,.82,.24,1) both!important}
-@keyframes entitySlideInV3{0%{opacity:0;transform:translateX(86px) scale(.95)}66%{opacity:1;transform:translateX(-4px) scale(1.01)}100%{opacity:1;transform:translateX(0) scale(1)}}
-
-/* Soft contact ellipse: darkest at the foot center, fading smoothly beyond the foot span. */
-.snapshot .snapshot-contact-shadow-layer-v3{position:absolute;inset:0;z-index:3;overflow:hidden;pointer-events:none}
-.snapshot .snapshot-contact-shadow-v3{position:absolute;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(ellipse at center,rgba(0,0,0,.64) 0 27%,rgba(0,0,0,.42) 48%,rgba(0,0,0,.17) 70%,rgba(0,0,0,0) 100%);filter:blur(.65px);pointer-events:none;transition:left 55ms linear,top 55ms linear,width 55ms linear,opacity 65ms linear}
+@keyframes entitySlideInV3{0%{opacity:0;transform:translateX(-86px) scale(.95)}66%{opacity:1;transform:translateX(4px) scale(1.01)}100%{opacity:1;transform:translateX(0) scale(1)}}
 
 /* Hit feedback comes only from authoritative ATTACK/SKILL timeline events. */
 .snapshot .snapshot-hit-spark-v3{position:absolute;z-index:12;pointer-events:none;border-radius:50%;background:radial-gradient(circle,rgba(255,253,242,.96) 0 12%,rgba(255,226,177,.70) 30%,rgba(255,188,122,.18) 58%,rgba(255,188,122,0) 76%);mix-blend-mode:screen;animation:hitSparkV3 .36s ease-out both}
@@ -228,7 +229,7 @@ style = r'''<style id="snapshot-visual-runtime-v3-style">
 
 script_template = r'''<script id="snapshot-visual-runtime-v3-script">
 (function(){
-  const GROUND_PROFILES=__GROUND_PROFILES__;
+  const STAGE_PROFILES=__STAGE_PROFILES__;
   const lightCache=new Map();
   let scheduled=false;
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -240,7 +241,7 @@ script_template = r'''<script id="snapshot-visual-runtime-v3-script">
     const at=src.indexOf(marker);
     return at>=0?src.substring(at+marker.length).split('?')[0].split('#')[0]:'';
   }
-  function groundProfile(node){return GROUND_PROFILES[assetKey(node)]||{centerX:.5,bottomY:.96,contactWidth:.20}}
+  function stageProfile(node){return STAGE_PROFILES[assetKey(node)]||{centerX:.5,bottomY:.96,visibleMinX:0,visibleMaxX:1,sourceWidth:1,sourceHeight:1}}
 
   function actorNodes(box){
     const out=[];
@@ -250,63 +251,29 @@ script_template = r'''<script id="snapshot-visual-runtime-v3-script">
     return out;
   }
 
-  function visualCenterX(node,role,p){
-    const raw=clamp(Number(p.centerX)||.5,0,1);
-    return role==='kai'&&root()&&root().classList.contains('entity-encounter-present')?1-raw:raw;
-  }
-
   function syncStage(){
     const box=root();if(!box||!box.classList.contains('entity-encounter-present'))return;
     const rr=box.getBoundingClientRect();if(rr.width<2||rr.height<2)return;
+    const targetY=rr.height*.965;
     actorNodes(box).forEach(([,node,role])=>{
       const rect=node.getBoundingClientRect();
       if(rect.width<3||rect.height<3)return;
-      const p=groundProfile(node);
-      const targetX=rr.width*(role==='entity'?.76:.24);
-      const targetY=rr.height*.965;
-      const centerX=visualCenterX(node,role,p);
-      const left=targetX-rect.width*centerX;
+      const p=stageProfile(node);
+      const visibleMinX=clamp(Number(p.visibleMinX)||0,0,1);
+      const visibleMaxX=clamp(Number(p.visibleMaxX)||1,visibleMinX,1);
+      let left;
+      if(role==='entity'){
+        left=rr.width*.008-rect.width*visibleMinX;
+      }else{
+        left=rr.width*.995-rect.width*visibleMaxX;
+      }
+      const minLeft=rr.width*.004-rect.width*visibleMinX;
+      const maxLeft=rr.width*.996-rect.width*visibleMaxX;
+      left=clamp(left,minLeft,maxLeft);
       const bottom=rr.height-targetY-rect.height*(1-clamp(Number(p.bottomY)||.96,.55,1));
       node.style.setProperty('--stage-left',left.toFixed(2)+'px');
       node.style.setProperty('--stage-bottom',bottom.toFixed(2)+'px');
     });
-  }
-
-  function ensureShadowLayer(box){
-    let layer=box.querySelector('.snapshot-contact-shadow-layer-v3');
-    if(!layer){layer=document.createElement('div');layer.className='snapshot-contact-shadow-layer-v3';box.appendChild(layer)}
-    return layer;
-  }
-
-  function syncShadows(){
-    const box=root();if(!box)return;
-    const rr=box.getBoundingClientRect();if(rr.width<2||rr.height<2)return;
-    const layer=ensureShadowLayer(box),live=new Set();
-    actorNodes(box).forEach(([key,node,role])=>{
-      const cs=getComputedStyle(node),rect=node.getBoundingClientRect();
-      if(cs.display==='none'||Number(cs.opacity||1)<.10||rect.width<3||rect.height<3)return;
-      live.add(key);
-      const p=groundProfile(node);
-      const x=rect.left-rr.left+rect.width*visualCenterX(node,role,p);
-      const y=rect.top-rr.top+rect.height*clamp(Number(p.bottomY)||.96,.55,1)+1.5;
-      const contactWidth=rect.width*clamp(Number(p.contactWidth)||.20,.06,.72);
-      const width=clamp(contactWidth*1.22,24,role==='entity'?118:94);
-      const height=clamp(width*.18,6,15);
-      let shadow=Array.from(layer.children).find(child=>child.dataset.shadowKey===key);
-      if(!shadow){shadow=document.createElement('div');shadow.className='snapshot-contact-shadow-v3';shadow.dataset.shadowKey=key;layer.appendChild(shadow)}
-      shadow.style.left=clamp(x,6,rr.width-6)+'px';
-      shadow.style.top=clamp(y,5,rr.height-4)+'px';
-      shadow.style.width=width+'px';
-      shadow.style.height=height+'px';
-      shadow.style.opacity='1';
-    });
-    Array.from(layer.children).forEach(node=>{if(!live.has(node.dataset.shadowKey||''))node.remove()});
-  }
-
-  function animateShadows(ms){
-    const until=performance.now()+ms;
-    function frame(){syncStage();syncShadows();if(performance.now()<until)requestAnimationFrame(frame)}
-    requestAnimationFrame(frame);
   }
 
   function combatant(id){
@@ -331,7 +298,6 @@ script_template = r'''<script id="snapshot-visual-runtime-v3-script">
     spark.style.top=clamp(tr.top-rr.top+tr.height*.42,8,rr.height-8)+'px';
     spark.style.width=clamp(Math.min(tr.width*.36,tr.height*.30),26,74)+'px';
     spark.style.height=spark.style.width;box.appendChild(spark);
-    animateShadows(700);
     if(typeof target.animate==='function'){
       const animation=target.animate([
         {offset:0,transform:'translateX(0)',filter:'brightness(1) contrast(1)'},
@@ -343,7 +309,7 @@ script_template = r'''<script id="snapshot-visual-runtime-v3-script">
       ],{duration:560,easing:'cubic-bezier(.16,.82,.28,1)',fill:'none'});
       try{await animation.finished}catch(ignore){await sleep(560)}
     }else await sleep(560);
-    spark.remove();syncStage();syncShadows();
+    spark.remove();syncStage();
   }
 
   function encounterClass(){
@@ -402,21 +368,21 @@ script_template = r'''<script id="snapshot-visual-runtime-v3-script">
     if(bg.complete)run();else bg.addEventListener('load',run,{once:true});
   }
 
-  function sync(){scheduled=false;encounterClass();syncStage();syncShadows();syncLights()}
+  function sync(){scheduled=false;encounterClass();syncStage();syncLights()}
   function schedule(){if(scheduled)return;scheduled=true;requestAnimationFrame(sync)}
   function attach(){
     const box=root();if(!box)return;
     new MutationObserver(schedule).observe(box,{childList:true,subtree:true,attributes:true,attributeFilter:['src','class']});
     if(window.ResizeObserver)new ResizeObserver(schedule).observe(box);
     box.querySelectorAll('img').forEach(img=>{if(!img.complete)img.addEventListener('load',schedule,{once:true})});
-    window.__backroomCombatVisuals=Object.assign({},window.__backroomCombatVisuals||{},{hit,syncStage,syncShadows,syncLights});
+    window.__backroomCombatVisuals=Object.assign({},window.__backroomCombatVisuals||{},{hit,syncStage,syncLights});
     schedule();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attach,{once:true});else attach();
 })();
 </script>'''
 
-script = script_template.replace("__GROUND_PROFILES__", json.dumps(ground_profiles, separators=(",", ":")))
+script = script_template.replace("__STAGE_PROFILES__", json.dumps(stage_profiles, separators=(",", ":")))
 
 marker = "<!-- SNAPSHOT_VISUAL_RUNTIME_V3 -->"
 if marker not in html:
@@ -427,24 +393,22 @@ if marker not in html:
 for forbidden in [
     "snapshot-light-bloom-v2",
     "snapshot-light-bloom{",
-    "snapshot-ground-shadow-v2",
-    "snapshot-ground-shadow{",
     "backroomLampPulse",
     "runtimeLampPulse",
     "detectFixtureCandidates(bg)",
     "FOOT_PROFILES",
 ]:
     if forbidden in html:
-        raise RuntimeError(f"legacy snapshot visual code survived rebuild: {forbidden}")
+        raise RuntimeError(f"removed snapshot visual code survived rebuild: {forbidden}")
 
 for required in [
     marker,
-    "scale:-1 1!important",
-    "GROUND_PROFILES=",
-    "targetX=rr.width*(role==='entity'?.76:.24)",
-    "contactWidth*1.22",
-    "snapshot-contact-shadow-v3",
-    "radial-gradient(ellipse at center,rgba(0,0,0,.64)",
+    "STAGE_PROFILES=",
+    "visibleMinX",
+    "visibleMaxX",
+    "role==='entity'",
+    "rr.width*.008-rect.width*visibleMinX",
+    "rr.width*.995-rect.width*visibleMaxX",
     "snapshot-light-halo-v3",
     "snapshot-light-core-v3",
     "lampHaloBreathV4",
@@ -456,4 +420,4 @@ for required in [
         raise RuntimeError(f"snapshot visual v3 contract missing: {required}")
 
 INDEX.write_text(html, encoding="utf-8")
-print("Snapshot visual runtime v3 finalized: ground-anchored encounter staging, foot-span shadows, centered breathing lamp glow, Entity rotation and hit feedback.")
+print("Snapshot visual runtime v3 finalized: Character right, Entity left, shared contact line, centered breathing lamp glow, Entity rotation and hit feedback.")

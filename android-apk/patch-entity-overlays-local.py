@@ -61,7 +61,7 @@ if START not in html:
 <style>
 .snapshot{{position:relative;overflow:hidden}}
 .snapshot .snapshot-entities{{position:absolute;inset:0;z-index:4;pointer-events:none;display:flex;align-items:flex-end;justify-content:flex-start;gap:0;overflow:hidden}}
-.snapshot .snapshot-entity-overlay{{display:block;width:auto;object-fit:contain;object-position:left bottom;flex:0 1 auto;pointer-events:none;filter:drop-shadow(0 4px 9px rgba(0,0,0,.72))}}
+.snapshot .snapshot-entity-overlay{{display:block;width:auto;object-fit:contain;object-position:left bottom;flex:0 1 auto;pointer-events:none}}
 </style>
 <script>
 (function(){{

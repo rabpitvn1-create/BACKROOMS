@@ -58,7 +58,7 @@ if START not in html:
     block = f'''{START}
 <style>
 .snapshot .snapshot-party-entity-layer{{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden}}
-.snapshot .snapshot-party-entity-overlay{{position:absolute;bottom:0;display:block;width:auto;object-fit:contain;object-position:center bottom;pointer-events:none;filter:drop-shadow(0 4px 9px rgba(0,0,0,.7))}}
+.snapshot .snapshot-party-entity-overlay{{position:absolute;bottom:0;display:block;width:auto;object-fit:contain;object-position:center bottom;pointer-events:none}}
 .snapshot .snapshot-party-entity-layer[data-count="1"] .snapshot-party-entity-overlay{{right:34%;height:94%;max-width:43%}}
 .snapshot .snapshot-party-entity-layer[data-count="2"] .snapshot-party-entity-overlay:nth-child(1){{right:50%;height:89%;max-width:31%}}
 .snapshot .snapshot-party-entity-layer[data-count="2"] .snapshot-party-entity-overlay:nth-child(2){{right:27%;height:91%;max-width:31%}}
