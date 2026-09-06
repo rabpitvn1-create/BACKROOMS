@@ -6,6 +6,7 @@ on:
       - opus/snapshot-character-entity-layout-v1
     paths:
       - .github/workflows/claude-snapshot-autocoder.yml
+      - android-apk/ml/claude_snapshot_autocoder.py
   workflow_dispatch:
 
 permissions:
@@ -16,7 +17,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  CLAUDE_MODEL: claude-opus-4-8
+  CLAUDE_MODEL: claude-fable-5
 
 jobs:
   opus-snapshot-autocoder:
@@ -30,15 +31,18 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Require Claude API credential
+      - name: Require Claude provider configuration
         env:
           CLAUDE_API: ${{ secrets.CLAUDE_API_KEY }}
+          CLAUDE_BASE_URL: ${{ secrets.CLAUDE_BASE_URL || secrets.CLAUDE_API_URL || secrets.CLAUDE_URL }}
         run: |
           test -n "$CLAUDE_API" || (echo "Missing GitHub Secret CLAUDE_API_KEY" && exit 1)
+          test -n "$CLAUDE_BASE_URL" || (echo "Missing Claude provider URL secret" && exit 1)
 
-      - name: Ask Claude Opus to author the Snapshot patch
+      - name: Ask Claude Fable 5 to author the Snapshot patch
         env:
           CLAUDE_API: ${{ secrets.CLAUDE_API_KEY }}
+          CLAUDE_BASE_URL: ${{ secrets.CLAUDE_BASE_URL || secrets.CLAUDE_API_URL || secrets.CLAUDE_URL }}
         run: |
           set +e
           rc=1
@@ -47,6 +51,7 @@ jobs:
             rm -f /tmp/claude_snapshot.patch
             python android-apk/ml/claude_snapshot_autocoder.py \
               --model "$CLAUDE_MODEL" \
+              --base-url "$CLAUDE_BASE_URL" \
               --output /tmp/claude_snapshot.patch
             rc=$?
             if [ "$rc" -eq 0 ]; then
@@ -167,7 +172,7 @@ jobs:
             android-apk/patch-snapshot-visual-runtime-v3.py \
             android-apk/patch-kai-hd-continuous.py
           git diff --cached --quiet && (echo "No verified Claude changes to commit" && exit 1)
-          git commit -m "Fix Snapshot turn visuals with Claude Opus 4.8"
+          git commit -m "Fix Snapshot turn visuals with Claude Fable 5"
           git push origin HEAD:opus/snapshot-character-entity-layout-v1
 
       - name: Upload Claude patch for audit
