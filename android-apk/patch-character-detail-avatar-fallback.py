@@ -70,6 +70,7 @@ PATCH_CHAIN = [
     "patch-issue406-item-use-final.py",
     "patch-snapshot-turn-visual-preclean.py",
     "patch-snapshot-turn-visual-contract-final.py",
+    "patch-snapshot-turn-test-compat.py",
 ]
 
 for patch_name in PATCH_CHAIN:
