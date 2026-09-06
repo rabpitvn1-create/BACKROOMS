@@ -227,9 +227,16 @@ def _png_chunk(kind: bytes, payload: bytes) -> bytes:
     )
 
 
-def write_probe_png(path: pathlib.Path, width: int = 144, height: int = 81) -> dict[str, float]:
-    x0, x1 = 17, 88
-    y0, y1 = 11, 20
+def write_probe_png(
+    path: pathlib.Path,
+    width: int = 144,
+    height: int = 81,
+    *,
+    x0: int = 17,
+    x1: int = 88,
+    y0: int = 11,
+    y1: int = 20,
+) -> dict[str, float]:
     rows = bytearray()
     for y in range(height):
         rows.append(0)
@@ -251,18 +258,51 @@ def write_probe_png(path: pathlib.Path, width: int = 144, height: int = 81) -> d
     }
 
 
-def assess_probe(annotation: dict[str, Any], expected: dict[str, float]) -> None:
+def probe_metrics(annotation: dict[str, Any], expected: dict[str, float]) -> dict[str, float]:
     lights = annotation["lights"]
     if len(lights) != 1:
         raise TeacherError(f"vision probe expected exactly one light, got {len(lights)}")
     light = lights[0]
     if light["kind"] != "linear":
         raise TeacherError(f"vision probe expected linear fixture, got {light['kind']}")
-    center_error = math.hypot(light["x"] - expected["x"], light["y"] - expected["y"])
-    if center_error > 0.12:
-        raise TeacherError(f"vision probe center error too large: {center_error:.4f}")
-    if abs(light["w"] - expected["w"]) > 0.22 or abs(light["h"] - expected["h"]) > 0.16:
-        raise TeacherError("vision probe extent error too large")
+    return {
+        "predicted_x": light["x"],
+        "predicted_y": light["y"],
+        "center_error": math.hypot(light["x"] - expected["x"], light["y"] - expected["y"]),
+        "width_error": abs(light["w"] - expected["w"]),
+        "height_error": abs(light["h"] - expected["h"]),
+    }
+
+
+def assess_probe_pair(
+    left_annotation: dict[str, Any],
+    left_expected: dict[str, float],
+    right_annotation: dict[str, Any],
+    right_expected: dict[str, float],
+) -> dict[str, Any]:
+    left = probe_metrics(left_annotation, left_expected)
+    right = probe_metrics(right_annotation, right_expected)
+    shift = right["predicted_x"] - left["predicted_x"]
+    if shift < 0.20:
+        raise TeacherError(
+            f"HAKU did not spatially discriminate the two probe images: predicted_x_shift={shift:.4f}"
+        )
+    precise = (
+        left["center_error"] <= 0.12
+        and right["center_error"] <= 0.12
+        and left["width_error"] <= 0.22
+        and right["width_error"] <= 0.22
+        and left["height_error"] <= 0.16
+        and right["height_error"] <= 0.16
+    )
+    return {
+        "vision_supported": True,
+        "spatial_discrimination": True,
+        "precise_localization": precise,
+        "predicted_x_shift": shift,
+        "left": left,
+        "right": right,
+    }
 
 
 def _sorted_lights(annotation: dict[str, Any]) -> list[dict[str, Any]]:
@@ -326,23 +366,38 @@ def discover_images(patterns: Iterable[str], limit: int | None) -> list[pathlib.
 
 def run_probe(args: argparse.Namespace, api_key: str) -> dict[str, Any]:
     with tempfile.TemporaryDirectory(prefix="haku-snapshot-probe-") as tmp:
-        image = pathlib.Path(tmp) / "vision_probe.png"
-        expected = write_probe_png(image)
-        annotation = call_haku(
-            image,
+        root = pathlib.Path(tmp)
+        left_image = root / "vision_probe_left.png"
+        right_image = root / "vision_probe_right.png"
+        left_expected = write_probe_png(left_image, x0=12, x1=61)
+        right_expected = write_probe_png(right_image, x0=82, x1=131)
+        left_annotation = call_haku(
+            left_image,
             PROBE_PROMPT,
             api_key=api_key,
             api_url=args.api_url,
             model=args.model,
             timeout=args.timeout,
         )
-        assess_probe(annotation, expected)
+        right_annotation = call_haku(
+            right_image,
+            PROBE_PROMPT,
+            api_key=api_key,
+            api_url=args.api_url,
+            model=args.model,
+            timeout=args.timeout,
+        )
+        assessment = assess_probe_pair(
+            left_annotation, left_expected, right_annotation, right_expected
+        )
         return {
-            "vision_supported": True,
+            **assessment,
             "model": args.model,
             "api_url": args.api_url,
-            "expected": expected,
-            "annotation": annotation,
+            "left_expected": left_expected,
+            "right_expected": right_expected,
+            "left_annotation": left_annotation,
+            "right_annotation": right_annotation,
         }
 
 
