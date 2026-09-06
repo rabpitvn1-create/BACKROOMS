@@ -57,7 +57,7 @@ current_stage = '''  function syncStage(){
     actorNodes(box).forEach(([,node,role])=>{
       const rect=node.getBoundingClientRect();
       if(rect.width<3||rect.height<3)return;
-      const p=groundProfile(node);
+      const p=stageProfile(node);
       const visibleMinX=clamp(Number(p.visibleMinX)||0,0,1);
       const visibleMaxX=clamp(Number(p.visibleMaxX)||1,visibleMinX,1);
       let left;
@@ -152,12 +152,6 @@ if "  function ensureShadowLayer(box){\n" not in html:
         raise RuntimeError(f"Snapshot turn preclean expected one combatant anchor, found {html.count(script_anchor)}")
     html = html.replace(script_anchor, shadow_script + script_anchor, 1)
 
-html = replace_once(
-    html,
-    "    const spark=document.createElement('div');spark.className='snapshot-hit-spark-v3';\n",
-    "    const spark=document.createElement('div');spark.className='snapshot-hit-spark-v3';\n",
-    "hit spark anchor",
-)
 if "    animateShadows(700);\n" not in html:
     hit_anchor = "    spark.style.height=spark.style.width;box.appendChild(spark);\n"
     if html.count(hit_anchor) != 1:
