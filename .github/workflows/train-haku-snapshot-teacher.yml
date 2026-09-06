@@ -12,6 +12,7 @@ permissions:
 jobs:
   haku-snapshot-teacher-bootstrap:
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     env:
       HAKU_API_KEY: ${{ secrets.HAKU_API_KEY }}
       HAKU_API_URL: https://api.vilao.ai/v1/chat/completions
@@ -28,6 +29,7 @@ jobs:
           python -m py_compile \
             android-apk/ml/haku_snapshot_teacher.py \
             android-apk/ml/haku_snapshot_candidate_teacher.py \
+            android-apk/ml/train_snapshot_fixture_filter.py \
             android-apk/ml/test_haku_snapshot_teacher.py \
             android-apk/ml/test_haku_snapshot_candidate_teacher.py
           python android-apk/ml/test_haku_snapshot_teacher.py -v
@@ -47,13 +49,33 @@ jobs:
         run: |
           python -m pip install pillow==12.3.0
 
-      - name: Bootstrap Level 0-6 candidates with HAKU semantics
+      - name: Fetch 28 rotation Snapshots
+        run: |
+          python android-apk/fetch-level-snapshots.py
+          test "$(find android-apk/app/src/main/assets/level_snapshots/rotation -maxdepth 1 -type f | wc -l)" -eq 28
+
+      - name: Label fallback and rotation candidates with HAKU
         run: |
           python android-apk/ml/haku_snapshot_candidate_teacher.py \
-            --limit 7 \
-            --passes 3 \
+            --glob 'android-apk/app/src/main/assets/level_snapshots/rotation/*' \
+            --limit 35 \
+            --passes 2 \
             --max-candidates 4 \
             --output snapshot_teacher/haku_snapshot_candidate_labels.jsonl
+
+      - name: Install LiteRT training dependencies
+        run: |
+          python -m pip install -r android-apk/ml/requirements.txt
+
+      - name: Train tiny Snapshot fixture filter
+        run: |
+          python android-apk/ml/train_snapshot_fixture_filter.py \
+            --labels snapshot_teacher/haku_snapshot_candidate_labels.jsonl \
+            --output snapshot_teacher/backroom_snapshot_filter_v0.tflite \
+            --report snapshot_teacher/backroom_snapshot_filter_v0_report.json \
+            --min-samples 60 \
+            --min-per-class 18 \
+            --min-images 16
 
       - name: Upload Snapshot teacher artifacts
         if: always()
