@@ -15,8 +15,8 @@ jobs:
     timeout-minutes: 120
     env:
       # Use the requested CLAUDE_API_KEY with the project's OpenAI-compatible
-      # Claude gateway. The exact provider-prefixed model is resolved from the
-      # models available to this key instead of being hard-coded.
+      # Claude gateway. Resolve the provider's subscribed Claude model instead
+      # of hard-coding an unavailable model id.
       CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
       HAKU_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
       HAKU_API_URL: https://api.vilao.ai/v1/chat/completions
@@ -32,11 +32,15 @@ jobs:
           python -m py_compile \
             android-apk/ml/haku_snapshot_teacher.py \
             android-apk/ml/haku_snapshot_candidate_teacher.py \
+            android-apk/ml/claude_snapshot_compat.py \
+            android-apk/ml/claude_snapshot_runner.py \
             android-apk/ml/train_snapshot_fixture_filter.py \
             android-apk/ml/test_haku_snapshot_teacher.py \
-            android-apk/ml/test_haku_snapshot_candidate_teacher.py
+            android-apk/ml/test_haku_snapshot_candidate_teacher.py \
+            android-apk/ml/test_claude_snapshot_compat.py
           python android-apk/ml/test_haku_snapshot_teacher.py -v
           python android-apk/ml/test_haku_snapshot_candidate_teacher.py -v
+          python android-apk/ml/test_claude_snapshot_compat.py -v
 
       - name: Require Claude credential
         run: |
@@ -109,7 +113,7 @@ jobs:
 
       - name: Validate Claude vision credential
         run: |
-          python android-apk/ml/haku_snapshot_teacher.py probe \
+          python android-apk/ml/claude_snapshot_runner.py probe \
             --output snapshot_teacher/haku_snapshot_probe.json
 
       - name: Install Snapshot image decoder
@@ -123,7 +127,7 @@ jobs:
 
       - name: Label fallback and rotation candidates with Claude
         run: |
-          python android-apk/ml/haku_snapshot_candidate_teacher.py \
+          python android-apk/ml/claude_snapshot_runner.py candidates \
             --glob 'android-apk/app/src/main/assets/level_snapshots/rotation/*' \
             --limit 35 \
             --passes 2 \
