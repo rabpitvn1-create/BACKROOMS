@@ -25,6 +25,9 @@ W = 144
 H = 81
 RADIUS = 4
 DETECTOR_VERSION = "snapshot-light-v3-candidate-geometry"
+MARKED_MAX_SIDE = 1024
+MARKED_JPEG_QUALITY = 82
+MARKED_MAX_BYTES = 2 * 1024 * 1024
 
 CANDIDATE_PROMPT = """You are classifying ONE deterministic bright-region candidate in a Backrooms Snapshot.
 The candidate is marked by a magenta rectangle in the supplied image.
@@ -134,6 +137,8 @@ def _image_data_url(path: pathlib.Path) -> str:
     data = path.read_bytes()
     if not data:
         raise TeacherError(f"candidate image is empty: {path}")
+    if len(data) > MARKED_MAX_BYTES:
+        raise TeacherError(f"candidate image exceeds transport budget: {len(data)} > {MARKED_MAX_BYTES}")
     return f"data:{mime};base64,{base64.b64encode(data).decode('ascii')}"
 
 
@@ -330,10 +335,17 @@ def load_candidates(path: pathlib.Path, max_candidates: int) -> tuple[Any, list[
 
 def mark_candidate(image: Any, candidate: dict[str, Any], output: pathlib.Path) -> None:
     try:
-        from PIL import ImageDraw
+        from PIL import Image, ImageDraw
     except ImportError as error:
         raise TeacherError("Pillow is required to mark Snapshot candidates") from error
-    marked = image.copy()
+    marked = image.copy().convert("RGB")
+    image_w, image_h = marked.size
+    longest = max(image_w, image_h)
+    if longest > MARKED_MAX_SIDE:
+        scale = MARKED_MAX_SIDE / float(longest)
+        target = (max(1, int(round(image_w * scale))), max(1, int(round(image_h * scale))))
+        resampling = getattr(Image, "Resampling", Image)
+        marked = marked.resize(target, resample=resampling.LANCZOS)
     draw = ImageDraw.Draw(marked)
     image_w, image_h = marked.size
     x, y, w, h = candidate["x"], candidate["y"], candidate["w"], candidate["h"]
@@ -348,7 +360,10 @@ def mark_candidate(image: Any, candidate: dict[str, Any], output: pathlib.Path) 
             outline=(255, 0, 255),
         )
     output.parent.mkdir(parents=True, exist_ok=True)
-    marked.save(output, format="PNG")
+    marked.save(output, format="JPEG", quality=MARKED_JPEG_QUALITY, optimize=True)
+    size = output.stat().st_size
+    if size > MARKED_MAX_BYTES:
+        raise TeacherError(f"marked candidate exceeds transport budget: {size} > {MARKED_MAX_BYTES}")
 
 
 def discover_images(patterns: Iterable[str], limit: int | None) -> list[pathlib.Path]:
@@ -385,7 +400,7 @@ def run(args: argparse.Namespace, api_key: str) -> dict[str, int]:
                 continue
             for index, candidate in enumerate(candidates):
                 total_candidates += 1
-                marked = temp_root / f"candidate_{hashlib.sha1(str(image_path).encode()).hexdigest()[:8]}_{index}.png"
+                marked = temp_root / f"candidate_{hashlib.sha1(str(image_path).encode()).hexdigest()[:8]}_{index}.jpg"
                 mark_candidate(image, candidate, marked)
                 try:
                     labels = [
@@ -466,9 +481,9 @@ def main() -> None:
         raise SystemExit("--passes must be >= 1")
     if args.max_candidates < 1:
         raise SystemExit("--max-candidates must be >= 1")
-    api_key = os.environ.get("HAKU_API_KEY", "").strip()
+    api_key = os.environ.get("CLAUDE_API_KEY", "").strip() or os.environ.get("HAKU_API_KEY", "").strip()
     if not api_key:
-        raise SystemExit("HAKU_API_KEY is required")
+        raise SystemExit("CLAUDE_API_KEY or HAKU_API_KEY is required")
     summary = run(args, api_key)
     print(json.dumps(summary, sort_keys=True))
 
