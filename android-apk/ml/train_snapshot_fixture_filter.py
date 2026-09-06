@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Train a tiny LiteRT filter that answers one question: fixture or not-fixture.
 
-The deterministic Snapshot detector remains responsible for geometry. HAKU supplies
-semantic labels only. This trainer reopens the original image, crops context around
-accepted detector candidates, splits by image SHA to prevent leakage, and exports a
-small TFLite binary classifier.
+The deterministic Snapshot detector remains authoritative for candidate geometry and
+appearance measurements. HAKU supplies semantic fixture/not-fixture labels only. The
+student learns from normalized detector features, splits by source-image SHA to prevent
+leakage, and exports a tiny TFLite logistic classifier.
 """
 from __future__ import annotations
 
@@ -13,14 +13,24 @@ import hashlib
 import json
 import math
 import pathlib
-import random
 from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any, Iterable
 
 SEED = 20260906
-INPUT_SIZE = 48
 MODEL_VERSION = "snapshot-fixture-filter-v0"
+FEATURE_NAMES = (
+    "x",
+    "y",
+    "w",
+    "h",
+    "log_aspect",
+    "avg_contrast",
+    "avg_luma",
+    "detector_confidence",
+    "fill",
+    "extent_area",
+)
 
 
 class TrainingError(RuntimeError):
@@ -71,12 +81,17 @@ def _load_records(path: pathlib.Path, min_teacher_confidence: float) -> list[Sam
             raise TrainingError(f"teacher confidence out of range at line {line_number}")
         if confidence < min_teacher_confidence:
             continue
-        for key in ("x", "y", "w", "h"):
+
+        for key in ("x", "y", "w", "h", "avg_contrast", "avg_luma", "detector_confidence", "fill"):
             value = _finite_number(candidate.get(key), f"candidate.{key}")
             if not 0.0 <= value <= 1.0:
                 raise TrainingError(f"candidate.{key} out of range at line {line_number}")
+        aspect = _finite_number(candidate.get("aspect"), "candidate.aspect")
+        if aspect <= 0:
+            raise TrainingError(f"candidate.aspect must be positive at line {line_number}")
         if candidate["w"] <= 0 or candidate["h"] <= 0:
             raise TrainingError(f"candidate extent must be positive at line {line_number}")
+
         image = pathlib.Path(str(record.get("image", "")))
         if not image.is_file():
             raise TrainingError(f"source image missing for line {line_number}: {image}")
@@ -87,6 +102,7 @@ def _load_records(path: pathlib.Path, min_teacher_confidence: float) -> list[Sam
             image_hash_cache[image] = actual_sha
         if actual_sha != expected_sha:
             raise TrainingError(f"source image SHA mismatch at line {line_number}: {image}")
+
         samples.append(
             Sample(
                 image=image,
@@ -102,9 +118,9 @@ def _load_records(path: pathlib.Path, min_teacher_confidence: float) -> list[Sam
 
 
 def _class_counts(samples: Iterable[Sample]) -> tuple[int, int]:
-    positives = sum(sample.label for sample in samples)
-    total = sum(1 for _ in samples) if not isinstance(samples, list) else len(samples)
-    return positives, total - positives
+    sample_list = samples if isinstance(samples, list) else list(samples)
+    positives = sum(sample.label for sample in sample_list)
+    return positives, len(sample_list) - positives
 
 
 def _stable_image_order(shas: Iterable[str]) -> list[str]:
@@ -120,13 +136,22 @@ def split_by_image(samples: list[Sample], test_fraction: float = 0.20) -> tuple[
 
     order = _stable_image_order(groups)
     target_groups = max(2, int(round(len(order) * test_fraction)))
-    test_shas: list[str] = []
-
-    positive_sha = next((sha for sha in order if any(s.label == 1 for s in groups[sha])), None)
-    negative_sha = next((sha for sha in order if any(s.label == 0 for s in groups[sha]) and sha != positive_sha), None)
-    if positive_sha is None or negative_sha is None:
+    negative_shas = [sha for sha in order if any(sample.label == 0 for sample in groups[sha])]
+    positive_shas = [sha for sha in order if any(sample.label == 1 for sample in groups[sha])]
+    if not negative_shas or not positive_shas:
         raise TrainingError("cannot build holdout with both fixture and negative examples")
-    test_shas.extend([positive_sha, negative_sha])
+
+    test_shas: list[str] = []
+    # A single negative-bearing source makes specificity effectively one-image luck.
+    # When the corpus permits it, hold out two distinct negative-bearing images while
+    # always leaving at least one such image in training.
+    negative_holdouts = min(2, max(1, len(negative_shas) - 1), target_groups)
+    test_shas.extend(negative_shas[:negative_holdouts])
+
+    positive_sha = next((sha for sha in positive_shas if sha not in test_shas), None)
+    if positive_sha is not None and len(test_shas) < target_groups:
+        test_shas.append(positive_sha)
+
     for sha in order:
         if len(test_shas) >= target_groups:
             break
@@ -145,97 +170,30 @@ def split_by_image(samples: list[Sample], test_fraction: float = 0.20) -> tuple[
     return train, test
 
 
-def _bounded_interval(center: float, span: float) -> tuple[float, float]:
-    span = min(1.0, max(0.02, span))
-    start = center - span / 2.0
-    end = center + span / 2.0
-    if start < 0.0:
-        end -= start
-        start = 0.0
-    if end > 1.0:
-        start -= end - 1.0
-        end = 1.0
-    return max(0.0, start), min(1.0, end)
-
-
-def crop_candidate(image: Any, candidate: dict[str, Any], size: int = INPUT_SIZE) -> Any:
-    from PIL import Image
-
-    x = float(candidate["x"])
-    y = float(candidate["y"])
-    w = float(candidate["w"])
-    h = float(candidate["h"])
-    crop_w = min(0.95, max(0.18, w * 2.2))
-    crop_h = min(0.95, max(0.18, h * 3.0))
-    x0, x1 = _bounded_interval(x, crop_w)
-    y0, y1 = _bounded_interval(y, crop_h)
-    width, height = image.size
-    box = (
-        int(round(x0 * width)),
-        int(round(y0 * height)),
-        max(1, int(round(x1 * width))),
-        max(1, int(round(y1 * height))),
-    )
-    resampling = getattr(Image, "Resampling", Image)
-    return image.crop(box).resize((size, size), resample=resampling.BILINEAR).convert("RGB")
-
-
-def _augment_train_crop(crop: Any) -> list[Any]:
-    from PIL import ImageEnhance, ImageFilter
-
+def candidate_features(candidate: dict[str, Any]) -> list[float]:
+    aspect = max(1e-6, float(candidate["aspect"]))
     return [
-        crop,
-        ImageEnhance.Brightness(crop).enhance(0.78),
-        ImageEnhance.Brightness(crop).enhance(1.20),
-        ImageEnhance.Contrast(crop).enhance(0.78),
-        ImageEnhance.Contrast(crop).enhance(1.18),
-        crop.filter(ImageFilter.GaussianBlur(radius=0.55)),
+        float(candidate["x"]),
+        float(candidate["y"]),
+        float(candidate["w"]),
+        float(candidate["h"]),
+        max(-3.0, min(3.0, math.log(aspect))) / 3.0,
+        float(candidate["avg_contrast"]),
+        float(candidate["avg_luma"]),
+        float(candidate["detector_confidence"]),
+        float(candidate["fill"]),
+        float(candidate["w"]) * float(candidate["h"]),
     ]
 
 
-def build_arrays(samples: list[Sample], *, augment: bool) -> tuple[Any, Any]:
-    try:
-        import numpy as np
-        from PIL import Image
-    except ImportError as error:
-        raise TrainingError("numpy and Pillow are required") from error
-
-    xs: list[Any] = []
-    ys: list[float] = []
-    cache: dict[pathlib.Path, Any] = {}
-    try:
-        for sample in samples:
-            image = cache.get(sample.image)
-            if image is None:
-                image = Image.open(sample.image).convert("RGB")
-                cache[sample.image] = image
-            crop = crop_candidate(image, sample.candidate)
-            variants = _augment_train_crop(crop) if augment else [crop]
-            for variant in variants:
-                xs.append(np.asarray(variant, dtype=np.float32) / 255.0)
-                ys.append(float(sample.label))
-    finally:
-        for image in cache.values():
-            image.close()
-    return np.stack(xs, axis=0), np.asarray(ys, dtype=np.float32)
-
-
-def _balanced_sample_weights(labels: Any) -> Any:
-    """Give each class equal aggregate weight for validation/selection."""
+def build_feature_arrays(samples: list[Sample]) -> tuple[Any, Any]:
     try:
         import numpy as np
     except ImportError as error:
         raise TrainingError("numpy is required") from error
-
-    values = np.asarray(labels, dtype=np.float32).reshape(-1)
-    positives = int((values >= 0.5).sum())
-    negatives = int(len(values) - positives)
-    if positives == 0 or negatives == 0:
-        raise TrainingError("balanced sample weights require both classes")
-    total = positives + negatives
-    positive_weight = total / (2.0 * positives)
-    negative_weight = total / (2.0 * negatives)
-    return np.where(values >= 0.5, positive_weight, negative_weight).astype(np.float32)
+    x = np.asarray([candidate_features(sample.candidate) for sample in samples], dtype=np.float32)
+    y = np.asarray([float(sample.label) for sample in samples], dtype=np.float32)
+    return x, y
 
 
 def _metrics(labels: Any, probabilities: Any, threshold: float = 0.5) -> dict[str, float | int]:
@@ -264,14 +222,45 @@ def _metrics(labels: Any, probabilities: Any, threshold: float = 0.5) -> dict[st
     }
 
 
+def _fit_logistic_student(x_train: Any, y_train: Any) -> tuple[Any, Any, dict[str, Any]]:
+    try:
+        import numpy as np
+        from sklearn.linear_model import LogisticRegression
+        from sklearn.preprocessing import StandardScaler
+    except ImportError as error:
+        raise TrainingError("numpy and scikit-learn are required for training") from error
+
+    scaler = StandardScaler()
+    normalized = scaler.fit_transform(x_train)
+    classifier = LogisticRegression(
+        C=0.1,
+        class_weight="balanced",
+        max_iter=2000,
+        random_state=SEED,
+        solver="lbfgs",
+    )
+    classifier.fit(normalized, y_train.astype(np.int32))
+
+    scale = np.where(scaler.scale_ == 0.0, 1.0, scaler.scale_)
+    normalized_coef = classifier.coef_[0].astype(np.float64)
+    raw_coef = normalized_coef / scale
+    raw_intercept = float(classifier.intercept_[0] - np.dot(normalized_coef, scaler.mean_ / scale))
+    metadata = {
+        "estimator": "balanced_logistic_regression",
+        "C": 0.1,
+        "solver": "lbfgs",
+        "max_iter": 2000,
+    }
+    return raw_coef.astype(np.float32), np.asarray([raw_intercept], dtype=np.float32), metadata
+
+
 def train(args: argparse.Namespace) -> dict[str, Any]:
     try:
         import numpy as np
         import tensorflow as tf
     except ImportError as error:
-        raise TrainingError("tensorflow and numpy are required for training") from error
+        raise TrainingError("tensorflow and numpy are required for TFLite export") from error
 
-    random.seed(SEED)
     np.random.seed(SEED)
     tf.keras.utils.set_random_seed(SEED)
 
@@ -299,51 +288,18 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
         raise TrainingError("Snapshot corpus is not broad enough yet: " + "; ".join(failures))
 
     train_samples, test_samples = split_by_image(samples)
-    x_train, y_train = build_arrays(train_samples, augment=True)
-    x_test, y_test = build_arrays(test_samples, augment=False)
-    validation_weights = _balanced_sample_weights(y_test)
+    x_train, y_train = build_feature_arrays(train_samples)
+    x_test, y_test = build_feature_arrays(test_samples)
+    raw_coef, raw_intercept, training_metadata = _fit_logistic_student(x_train, y_train)
 
     model = tf.keras.Sequential(
         [
-            tf.keras.layers.Input(shape=(INPUT_SIZE, INPUT_SIZE, 3), name="snapshot_crop"),
-            tf.keras.layers.Conv2D(8, 3, strides=2, padding="same", activation="relu"),
-            tf.keras.layers.MaxPooling2D(2),
-            tf.keras.layers.Conv2D(16, 3, strides=2, padding="same", activation="relu"),
-            tf.keras.layers.GlobalAveragePooling2D(),
-            tf.keras.layers.Dense(8, activation="relu"),
+            tf.keras.layers.Input(shape=(len(FEATURE_NAMES),), name="snapshot_candidate_features"),
             tf.keras.layers.Dense(1, activation="sigmoid", name="fixture_probability"),
         ],
         name=MODEL_VERSION,
     )
-    model.compile(
-        optimizer=tf.keras.optimizers.Adam(learning_rate=1e-3),
-        loss=tf.keras.losses.BinaryCrossentropy(),
-        metrics=[tf.keras.metrics.BinaryAccuracy(name="accuracy")],
-        weighted_metrics=[tf.keras.metrics.BinaryAccuracy(name="balanced_accuracy")],
-    )
-
-    train_pos = max(1, int(y_train.sum()))
-    train_neg = max(1, int(len(y_train) - y_train.sum()))
-    total = train_pos + train_neg
-    class_weight = {0: total / (2.0 * train_neg), 1: total / (2.0 * train_pos)}
-    model.fit(
-        x_train,
-        y_train,
-        validation_data=(x_test, y_test, validation_weights),
-        epochs=args.epochs,
-        batch_size=min(args.batch_size, len(y_train)),
-        verbose=2,
-        class_weight=class_weight,
-        callbacks=[
-            tf.keras.callbacks.EarlyStopping(
-                monitor="val_balanced_accuracy",
-                mode="max",
-                patience=16,
-                restore_best_weights=True,
-                min_delta=1e-4,
-            )
-        ],
-    )
+    model.layers[-1].set_weights([raw_coef.reshape((-1, 1)), raw_intercept])
 
     output = pathlib.Path(args.output)
     report_path = pathlib.Path(args.report)
@@ -360,8 +316,11 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
     input_info = interpreter.get_input_details()[0]
     output_info = interpreter.get_output_details()[0]
     probabilities: list[float] = []
-    for image in x_test:
-        interpreter.set_tensor(input_info["index"], np.expand_dims(image, axis=0).astype(input_info["dtype"]))
+    for features in x_test:
+        interpreter.set_tensor(
+            input_info["index"],
+            np.expand_dims(features, axis=0).astype(input_info["dtype"]),
+        )
         interpreter.invoke()
         probabilities.append(float(interpreter.get_tensor(output_info["index"]).reshape(-1)[0]))
 
@@ -385,9 +344,11 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
     report = {
         "model_version": MODEL_VERSION,
         "seed": SEED,
-        "input_shape": [1, INPUT_SIZE, INPUT_SIZE, 3],
+        "input_shape": [1, len(FEATURE_NAMES)],
+        "input_features": list(FEATURE_NAMES),
         "output": "fixture_probability",
         "corpus": corpus,
+        "training": training_metadata,
         "split": {
             "train_unique_images": len({sample.sha256 for sample in train_samples}),
             "test_unique_images": len({sample.sha256 for sample in test_samples}),
@@ -395,9 +356,7 @@ def train(args: argparse.Namespace) -> dict[str, Any]:
             "test_candidates": len(test_samples),
             "test_fixtures": test_pos,
             "test_negatives": test_neg,
-            "augmented_train_examples": int(len(y_train)),
-            "balanced_validation_weighting": True,
-            "selection_metric": "val_balanced_accuracy",
+            "image_level_split": True,
         },
         "tflite": {
             "size_bytes": size_bytes,
@@ -423,8 +382,6 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--min-samples", type=int, default=60)
     parser.add_argument("--min-per-class", type=int, default=18)
     parser.add_argument("--min-images", type=int, default=16)
-    parser.add_argument("--epochs", type=int, default=60)
-    parser.add_argument("--batch-size", type=int, default=24)
     parser.add_argument("--min-balanced-accuracy", type=float, default=0.70)
     parser.add_argument("--min-fixture-recall", type=float, default=0.70)
     parser.add_argument("--min-negative-specificity", type=float, default=0.70)
