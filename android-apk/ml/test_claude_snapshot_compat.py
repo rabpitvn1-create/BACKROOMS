@@ -32,6 +32,25 @@ class ClaudeSnapshotCompatTest(unittest.TestCase):
         parsed = annotation_teacher.parse_message_content(text)
         self.assertEqual([], parsed["lights"])
 
+    def test_anthropic_response_extracts_only_final_text_blocks(self):
+        payload = {
+            "content": [
+                {"type": "thinking", "thinking": "internal reasoning"},
+                {"type": "text", "text": '{"lights":[],"ambient":0.1}'},
+            ],
+            "stop_reason": "end_turn",
+        }
+        text = compat.extract_anthropic_text(payload, annotation_teacher.TeacherError)
+        self.assertEqual('{"lights":[],"ambient":0.1}', text)
+
+    def test_anthropic_response_requires_final_text(self):
+        payload = {
+            "content": [{"type": "thinking", "thinking": "internal reasoning"}],
+            "stop_reason": "max_tokens",
+        }
+        with self.assertRaisesRegex(annotation_teacher.TeacherError, "no final text"):
+            compat.extract_anthropic_text(payload, annotation_teacher.TeacherError)
+
     def test_candidate_accepts_json_after_thinking_text(self):
         content = '<thinking>check marked region</thinking>\n{"fixture":false,"kind":"none","confidence":0.93}'
         value = candidate_teacher.parse_candidate_content(content)
