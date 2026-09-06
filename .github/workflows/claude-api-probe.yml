@@ -15,161 +15,72 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - name: Probe configured Claude provider and subscribed model
+      - name: Inspect Claude Fable response shape
         env:
           CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
           CLAUDE_BASE_URL: ${{ secrets.CLAUDE_BASE_URL || secrets.CLAUDE_API_URL || secrets.CLAUDE_URL }}
           CLAUDE_MODEL: claude-fable-5
         run: |
           python - <<'PY'
-          import hashlib
           import json
           import os
           import urllib.error
           import urllib.request
-          from urllib.parse import urlsplit
 
           key = os.environ.get('CLAUDE_API_KEY', '').strip()
-          raw_base = os.environ.get('CLAUDE_BASE_URL', '').strip().rstrip('/')
+          base = os.environ.get('CLAUDE_BASE_URL', '').strip().rstrip('/')
           model = os.environ.get('CLAUDE_MODEL', 'claude-fable-5').strip()
-
-          if not key:
-              print('probe_error=missing_api_key_secret')
-              raise SystemExit(1)
-          if not raw_base:
-              print('probe_error=missing_base_url_secret')
-              raise SystemExit(1)
-          if not raw_base.startswith(('https://', 'http://')):
-              print('probe_error=invalid_base_url_scheme')
-              raise SystemExit(1)
-
-          base = raw_base
+          if not key or not base:
+              raise SystemExit('missing provider configuration')
           for suffix in ('/chat/completions', '/messages'):
               if base.endswith(suffix):
                   base = base[:-len(suffix)]
                   break
 
-          parsed = urlsplit(base)
-          print('key_present=true')
-          print(f'key_length={len(key)}')
-          print('key_sha256_12=' + hashlib.sha256(key.encode('utf-8')).hexdigest()[:12])
-          print('provider_host=' + (parsed.hostname or 'unknown'))
-          print('provider_path=' + (parsed.path or '/'))
-
-          def call(url, method='GET', headers=None, body=None, label='request'):
-              req = urllib.request.Request(
-                  url,
-                  data=None if body is None else json.dumps(body).encode('utf-8'),
-                  headers=headers or {},
-                  method=method,
-              )
-              try:
-                  with urllib.request.urlopen(req, timeout=45) as response:
-                      text = response.read().decode('utf-8', errors='replace')
-                      print(f'{label}_status={response.status}')
-                      return response.status, text
-              except urllib.error.HTTPError as error:
-                  text = error.read().decode('utf-8', errors='replace')[:800]
-                  print(f'{label}_status={error.code}')
-                  print(f'{label}_error={text}')
-                  return error.code, text
-              except Exception as error:
-                  print(f'{label}_exception={type(error).__name__}:{error}')
-                  return 0, ''
-
-          anthropic_headers = {
-              'x-api-key': key,
-              'anthropic-version': '2023-06-01',
-              'content-type': 'application/json',
-          }
-          bearer_headers = {
-              'Authorization': f'Bearer {key}',
-              'content-type': 'application/json',
-          }
-
-          models_url = base + '/models'
-          models_status, models_body = call(models_url, headers=anthropic_headers, label='models_x_api_key')
-          if models_status != 200:
-              models_status, models_body = call(models_url, headers=bearer_headers, label='models_bearer')
-
-          if models_status == 200:
-              try:
-                  payload = json.loads(models_body)
-                  data = payload.get('data', []) if isinstance(payload, dict) else []
-                  ids = [m.get('id') for m in data if isinstance(m, dict) and isinstance(m.get('id'), str)]
-                  print(f'models_count={len(ids)}')
-                  print('available_models=' + ','.join(ids[:20]))
-                  print('requested_model_listed=' + ('true' if model in ids else 'false'))
-              except Exception as error:
-                  print(f'models_parse_warning={type(error).__name__}')
-          else:
-              print('models_endpoint_unavailable=true')
-
-          anthropic_body = {
-              'model': model,
-              'max_tokens': 16,
-              'messages': [{'role': 'user', 'content': 'Reply exactly: MODEL_OK'}],
-          }
-          a_status, a_body = call(
-              base + '/messages',
-              method='POST',
-              headers=anthropic_headers,
-              body=anthropic_body,
-              label='messages_anthropic',
-          )
-          if a_status == 200:
-              try:
-                  payload = json.loads(a_body)
-                  texts = [b.get('text', '') for b in payload.get('content', []) if isinstance(b, dict) and b.get('type') == 'text']
-                  print('response_model=' + str(payload.get('model', '')))
-                  print('response_text=' + ' '.join(texts)[:120])
-              except Exception as error:
-                  print(f'messages_parse_warning={type(error).__name__}')
-              print('provider_protocol=anthropic_messages')
-              print('probe_result=PASS')
-              raise SystemExit(0)
-
-          openai_body = {
-              'model': model,
-              'max_tokens': 16,
-              'messages': [{'role': 'user', 'content': 'Reply exactly: MODEL_OK'}],
-          }
-          o_status, o_body = call(
+          req = urllib.request.Request(
               base + '/chat/completions',
+              data=json.dumps({
+                  'model': model,
+                  'messages': [{'role': 'user', 'content': 'Reply exactly: MODEL_OK'}],
+                  'max_tokens': 128,
+                  'stream': False,
+              }).encode('utf-8'),
+              headers={
+                  'Authorization': f'Bearer {key}',
+                  'Content-Type': 'application/json',
+              },
               method='POST',
-              headers=bearer_headers,
-              body=openai_body,
-              label='chat_completions_bearer',
           )
-          if o_status == 200:
-              try:
-                  payload = json.loads(o_body)
-                  choices = payload.get('choices', []) if isinstance(payload, dict) else []
-                  text = ''
-                  if choices and isinstance(choices[0], dict):
-                      msg = choices[0].get('message', {})
-                      if isinstance(msg, dict):
-                          text = str(msg.get('content', ''))
-                  print('response_model=' + str(payload.get('model', '')))
-                  print('response_text=' + text[:120])
-              except Exception as error:
-                  print(f'chat_parse_warning={type(error).__name__}')
-              print('provider_protocol=openai_chat_completions')
-              print('probe_result=PASS')
-              raise SystemExit(0)
+          try:
+              with urllib.request.urlopen(req, timeout=45) as response:
+                  raw = response.read().decode('utf-8', errors='replace')
+                  print('status=' + str(response.status))
+          except urllib.error.HTTPError as error:
+              print('status=' + str(error.code))
+              print('error=' + error.read().decode('utf-8', errors='replace')[:800])
+              raise
 
-          ox_status, ox_body = call(
-              base + '/chat/completions',
-              method='POST',
-              headers=anthropic_headers,
-              body=openai_body,
-              label='chat_completions_x_api_key',
-          )
-          if ox_status == 200:
-              print('provider_protocol=openai_chat_completions_x_api_key')
-              print('probe_result=PASS')
-              raise SystemExit(0)
-
-          print('probe_result=FAIL')
-          raise SystemExit(2)
+          payload = json.loads(raw)
+          print('root_keys=' + ','.join(sorted(payload.keys())) if isinstance(payload, dict) else 'root_not_object')
+          choices = payload.get('choices', []) if isinstance(payload, dict) else []
+          print('choices_count=' + str(len(choices) if isinstance(choices, list) else -1))
+          if isinstance(choices, list) and choices and isinstance(choices[0], dict):
+              choice = choices[0]
+              print('choice_keys=' + ','.join(sorted(choice.keys())))
+              print('finish_reason=' + str(choice.get('finish_reason')))
+              message = choice.get('message')
+              if isinstance(message, dict):
+                  print('message_keys=' + ','.join(sorted(message.keys())))
+                  for field in ('content', 'reasoning_content', 'reasoning', 'text', 'output_text'):
+                      value = message.get(field)
+                      print(f'{field}_type={type(value).__name__}')
+                      if isinstance(value, str):
+                          print(f'{field}_len={len(value)}')
+                          print(f'{field}_preview={value[:160]}')
+          for field in ('content', 'text', 'output_text', 'response'):
+              value = payload.get(field) if isinstance(payload, dict) else None
+              print(f'root_{field}_type={type(value).__name__}')
+              if isinstance(value, str):
+                  print(f'root_{field}_len={len(value)}')
+                  print(f'root_{field}_preview={value[:160]}')
           PY
