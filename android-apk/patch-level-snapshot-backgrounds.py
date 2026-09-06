@@ -69,7 +69,7 @@ new = (
     f"var refs={refs_java};var subrefs={subrefs_java};"
     "var levelNumber=state&&state.level&&state.level.number;"
     "var where=String(state&&state.location||'')+' '+String(state&&state.title||'');"
-    "var sm=where.match(/Level\\s*([01]\\.[0-9]+)/i);"
+    "var sm=where.match(/Level[ ]*([01][.][0-9]+)/i);"
     "var subkey=sm&&subrefs[sm[1]]?sm[1]:'';"
     "var lm=where.match(/Level[^0-9]*([0-6])/i);"
     "var lv=levelNumber!=null?Math.max(0,Math.min(6,Number(levelNumber)||0)):(lm?Number(lm[1]):0);"
