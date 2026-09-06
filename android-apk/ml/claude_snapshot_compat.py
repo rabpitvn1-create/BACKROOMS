@@ -1,22 +1,61 @@
 #!/usr/bin/env python3
-"""Claude-native transport and strict response compatibility for Snapshot teachers.
+"""Claude transport and strict response compatibility for Snapshot teachers.
 
-The existing Snapshot teacher modules were built around an OpenAI-compatible gateway.
-When ``CLAUDE_API_KEY`` is requested we instead use Anthropic's native Messages API:
-``POST /v1/messages`` with the supported API-key or bearer-token authentication form.
-Deterministic candidate geometry and the existing strict schema validators remain
-authoritative.
+The Snapshot teacher still owns deterministic geometry and schema validation. This
+adapter only normalizes Claude endpoint configuration and response shapes. Generic
+``CLAUDE_BASE_URL`` values use the existing OpenAI-compatible transport, while an
+Anthropic Messages base URL switches only the HTTP transport to native Messages.
 """
 from __future__ import annotations
 
 import base64
 import json
+import os
 import pathlib
 import urllib.error
 import urllib.request
 from typing import Any, Callable
+from urllib.parse import urlparse
 
 ANTHROPIC_VERSION = "2023-06-01"
+
+
+def resolve_api_url(base_url: str) -> str:
+    """Resolve CLAUDE_BASE_URL into the concrete vision endpoint.
+
+    The configured value may be a provider base URL (for example ``.../v1``) or
+    an already-complete endpoint. Anthropic's public host uses Messages; all
+    other bases default to the project's OpenAI-compatible chat/completions
+    contract.
+    """
+    value = base_url.strip().rstrip("/")
+    if not value:
+        raise ValueError("CLAUDE_BASE_URL is required")
+    parsed = urlparse(value)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        raise ValueError("CLAUDE_BASE_URL must be an absolute http(s) URL")
+
+    path = parsed.path.rstrip("/")
+    if path.endswith("/chat/completions") or path.endswith("/messages"):
+        return value
+
+    if parsed.hostname == "api.anthropic.com":
+        if path.endswith("/v1"):
+            return value + "/messages"
+        if path in {"", "/"}:
+            return value + "/v1/messages"
+        return value + "/messages"
+
+    if path.endswith("/v1"):
+        return value + "/chat/completions"
+    if path in {"", "/"}:
+        return value + "/v1/chat/completions"
+    return value + "/chat/completions"
+
+
+def uses_anthropic_messages(api_url: str) -> bool:
+    parsed = urlparse(api_url.strip())
+    return parsed.hostname == "api.anthropic.com" or parsed.path.rstrip("/").endswith("/messages")
 
 
 def _content_text(content: Any) -> str:
@@ -41,7 +80,6 @@ def _content_text(content: Any) -> str:
 
 
 def extract_choice_text(response: Any, error_type: type[Exception]) -> str:
-    """Compatibility parser for any older OpenAI-compatible stored responses."""
     if not isinstance(response, dict):
         raise error_type("Claude response root is not an object")
     choices = response.get("choices")
@@ -60,7 +98,6 @@ def extract_choice_text(response: Any, error_type: type[Exception]) -> str:
 
 
 def extract_anthropic_text(response: Any, error_type: type[Exception]) -> str:
-    """Return only final text blocks from an Anthropic Messages response."""
     if not isinstance(response, dict):
         raise error_type("Claude Messages response root is not an object")
     content = response.get("content")
@@ -184,10 +221,6 @@ def call_anthropic_message(
     raw: str | None = None
     last_unauthorized: urllib.error.HTTPError | None = None
 
-    # Console API keys conventionally use x-api-key. Anthropic also supports
-    # bearer authorization for token-based credentials, so retry only a 401
-    # with that alternate documented auth form. Other HTTP failures are real
-    # request/model failures and must not be hidden behind retries.
     for bearer in (False, True):
         request = urllib.request.Request(
             api_url,
@@ -235,6 +268,26 @@ def install() -> None:
             "Snapshot annotation",
         )
 
+    def candidate_choice(response: Any) -> str:
+        return extract_choice_text(response, candidate_teacher.TeacherError)
+
+    def candidate_content(content: Any) -> dict[str, Any]:
+        return select_schema_object(
+            content,
+            candidate_teacher.validate_candidate_label,
+            candidate_teacher.TeacherError,
+            "candidate label",
+        )
+
+    annotation_teacher._extract_choice_content = annotation_choice
+    annotation_teacher.parse_message_content = annotation_content
+    candidate_teacher._extract_choice_content = candidate_choice
+    candidate_teacher.parse_candidate_content = candidate_content
+
+    api_url = os.environ.get("HAKU_API_URL", "").strip()
+    if not api_url or not uses_anthropic_messages(api_url):
+        return
+
     def annotation_call(
         image_path: pathlib.Path,
         prompt: str,
@@ -256,17 +309,6 @@ def install() -> None:
             error_type=annotation_teacher.TeacherError,
         )
         return annotation_content(text)
-
-    def candidate_choice(response: Any) -> str:
-        return extract_choice_text(response, candidate_teacher.TeacherError)
-
-    def candidate_content(content: Any) -> dict[str, Any]:
-        return select_schema_object(
-            content,
-            candidate_teacher.validate_candidate_label,
-            candidate_teacher.TeacherError,
-            "candidate label",
-        )
 
     def candidate_call(
         marked_image: pathlib.Path,
@@ -290,9 +332,5 @@ def install() -> None:
         )
         return candidate_content(text)
 
-    annotation_teacher._extract_choice_content = annotation_choice
-    annotation_teacher.parse_message_content = annotation_content
     annotation_teacher.call_haku = annotation_call
-    candidate_teacher._extract_choice_content = candidate_choice
-    candidate_teacher.parse_candidate_content = candidate_content
     candidate_teacher.call_haku_candidate = candidate_call
