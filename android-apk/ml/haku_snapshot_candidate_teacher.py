@@ -89,10 +89,27 @@ def parse_candidate_content(content: Any) -> dict[str, Any]:
         if lines and lines[-1].strip() == "```":
             lines = lines[:-1]
         text = "\n".join(lines).strip()
-    try:
-        return validate_candidate_label(json.loads(text))
-    except json.JSONDecodeError as error:
-        raise TeacherError(f"HAKU returned invalid candidate JSON: {error}") from error
+
+    decoder = json.JSONDecoder()
+    labels: list[dict[str, Any]] = []
+    cursor = 0
+    while cursor < len(text):
+        while cursor < len(text) and text[cursor].isspace():
+            cursor += 1
+        if cursor >= len(text):
+            break
+        try:
+            payload, end = decoder.raw_decode(text, cursor)
+        except json.JSONDecodeError as error:
+            raise TeacherError(f"HAKU returned invalid candidate JSON: {error}") from error
+        labels.append(validate_candidate_label(payload))
+        cursor = end
+    if not labels:
+        raise TeacherError("HAKU returned an empty candidate response")
+    first = labels[0]
+    if any(label != first for label in labels[1:]):
+        raise TeacherError("HAKU returned multiple disagreeing candidate objects")
+    return first
 
 
 def _extract_choice_content(response: Any) -> Any:
@@ -302,7 +319,10 @@ def load_candidates(path: pathlib.Path, max_candidates: int) -> tuple[Any, list[
     image = Image.open(path).convert("RGB")
     resampling = getattr(Image, "Resampling", Image)
     scaled = image.resize((W, H), resample=resampling.BILINEAR)
-    pixels = list(scaled.getdata())
+    if hasattr(scaled, "get_flattened_data"):
+        pixels = list(scaled.get_flattened_data())
+    else:
+        pixels = list(scaled.getdata())
     return image, extract_candidates_from_rgb(pixels, max_candidates=max_candidates)
 
 
