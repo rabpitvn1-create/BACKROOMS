@@ -53,6 +53,14 @@ class ClaudeSnapshotCompatTest(unittest.TestCase):
         parsed = annotation_teacher.parse_message_content(text)
         self.assertEqual([], parsed["lights"])
 
+    def test_choice_text_accepts_anthropic_payload_without_choices(self):
+        payload = {
+            "content": [{"type": "text", "text": '{"lights":[],"ambient":0.1}'}],
+            "stop_reason": "end_turn",
+        }
+        text = compat.extract_choice_text(payload, annotation_teacher.TeacherError)
+        self.assertEqual('{"lights":[],"ambient":0.1}', text)
+
     def test_anthropic_response_extracts_only_final_text_blocks(self):
         payload = {
             "content": [
