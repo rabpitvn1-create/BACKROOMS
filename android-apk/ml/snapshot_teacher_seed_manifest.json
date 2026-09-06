@@ -1,0 +1,42 @@
+{
+  "corpus": {
+    "accepted": 60,
+    "fixture": 47,
+    "not_fixture": 13,
+    "seed_file_sha256": "02049c0bb864266d1159af6de5f63a5ffd7d01b1c8133d95fcf74a132df4c013",
+    "teacher_models": [
+      "claude-haiku-4-5-20251001"
+    ],
+    "unique_images": 23
+  },
+  "policy": {
+    "accepted_only": true,
+    "conflicts_allowed": false,
+    "geometry_authority": "snapshot-light-v3-candidate-geometry",
+    "synthetic_labels": false
+  },
+  "purpose": "Trusted accepted Claude labels used to keep tiny Snapshot fixture-filter training reproducible when the live provider is temporarily unavailable.",
+  "schema": "backrooms.snapshot-teacher-seed.v1",
+  "sources": [
+    {
+      "accepted_contributed": 58,
+      "artifact_digest": "sha256:cc78739de08f3fad5e3beac57b3fd344a3b8e001b892a854994650cfdd809e5c",
+      "artifact_id": 9980802489,
+      "head_sha": "aa1a490bb224aa2e8a45092eabe9123a10c8ac13",
+      "workflow_run_id": 34004224873
+    },
+    {
+      "accepted_contributed": 2,
+      "artifact_digest": "sha256:c6db431d0d8f9c1494c34aaf944e7d9b795a69693787de012c7f493f5d5f9a89",
+      "artifact_id": 9980254864,
+      "head_sha": "bfdc1130be6aecda192cd2cf4fb91832f8c445b7",
+      "workflow_run_id": 34003382134
+    }
+  ],
+  "training_gate": {
+    "min_images": 16,
+    "min_per_class": 12,
+    "min_samples": 60,
+    "note": "The class floor is intentionally set below the 13 trusted negatives while corpus, image-diversity, image-hash, split, and evaluation gates remain enforced."
+  }
+}
