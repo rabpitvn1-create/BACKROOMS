@@ -29,7 +29,8 @@ jobs:
           python android-apk/ml/test_haku_snapshot_teacher.py -v
 
       - name: Require HAKU credential
-        run: test -n "$HAKU_API_KEY" || (echo "Missing GitHub Secret: HAKU_API_KEY" && exit 1)
+        run: |
+          test -n "$HAKU_API_KEY" || (echo "Missing GitHub Secret: HAKU_API_KEY" && exit 1)
 
       - name: Probe HAKU image understanding
         run: |
