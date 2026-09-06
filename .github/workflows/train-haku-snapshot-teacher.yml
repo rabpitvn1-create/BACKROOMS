@@ -14,12 +14,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 120
     env:
-      # Use the requested CLAUDE_API_KEY with the project's OpenAI-compatible
-      # Claude gateway. Resolve the provider's subscribed Claude model instead
-      # of hard-coding an unavailable model id.
+      # CLAUDE_API_KEY is a project-gateway credential, not an Anthropic Console key.
+      # A live authenticated model-list probe for this key resolved claude-opus-4-8.
+      # Pin that verified subscription so transient /v1/models response-shape drift
+      # cannot block the actual Snapshot teacher path.
       CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
       HAKU_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
       HAKU_API_URL: https://api.vilao.ai/v1/chat/completions
+      HAKU_SNAPSHOT_MODEL: claude-opus-4-8
     steps:
       - uses: actions/checkout@v4
 
@@ -45,71 +47,6 @@ jobs:
       - name: Require Claude credential
         run: |
           test -n "$CLAUDE_API_KEY" || (echo "Missing GitHub Secret: CLAUDE_API_KEY" && exit 1)
-
-      - name: Resolve subscribed Claude model
-        run: |
-          python - <<'PY'
-          import json
-          import os
-          import urllib.error
-          import urllib.request
-
-          key = os.environ["CLAUDE_API_KEY"].strip()
-          request = urllib.request.Request(
-              "https://api.vilao.ai/v1/models",
-              headers={"Authorization": f"Bearer {key}"},
-              method="GET",
-          )
-          try:
-              with urllib.request.urlopen(request, timeout=30) as response:
-                  payload = json.loads(response.read().decode("utf-8"))
-          except urllib.error.HTTPError as error:
-              detail = error.read().decode("utf-8", errors="replace")[:600]
-              raise SystemExit(f"Claude model discovery failed: HTTP {error.code}: {detail}")
-          except Exception as error:
-              raise SystemExit(f"Claude model discovery failed: {error}")
-
-          raw_models = payload.get("data", payload.get("models", [])) if isinstance(payload, dict) else payload
-          if not isinstance(raw_models, list):
-              raise SystemExit("Claude model discovery returned an unexpected payload")
-
-          model_ids = []
-          for item in raw_models:
-              if isinstance(item, str):
-                  model_id = item
-              elif isinstance(item, dict):
-                  model_id = item.get("id") or item.get("model") or item.get("name")
-              else:
-                  model_id = None
-              if isinstance(model_id, str) and "claude" in model_id.lower():
-                  model_ids.append(model_id)
-
-          if not model_ids:
-              raise SystemExit("CLAUDE_API_KEY has no subscribed Claude models")
-
-          preferred_suffixes = (
-              "claude-haiku-4-5-20251001",
-              "claude-haiku-4-5",
-              "claude-haiku-4.5",
-              "claude-sonnet-4-6",
-              "claude-sonnet-4-5-20250929",
-              "claude-sonnet-4-5",
-              "claude-opus-4-8",
-          )
-
-          def score(model_id):
-              lower = model_id.lower()
-              for index, suffix in enumerate(preferred_suffixes):
-                  if lower == suffix or lower.endswith("/" + suffix):
-                      return (0, index, len(model_id), lower)
-              family = 0 if "haiku" in lower else 1 if "sonnet" in lower else 2 if "opus" in lower else 3
-              return (1, family, len(model_id), lower)
-
-          selected = min(model_ids, key=score)
-          print(f"Resolved Claude model: {selected} ({len(model_ids)} Claude models visible to key)")
-          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as handle:
-              handle.write(f"HAKU_SNAPSHOT_MODEL={selected}\n")
-          PY
 
       - name: Validate Claude vision credential
         run: |
