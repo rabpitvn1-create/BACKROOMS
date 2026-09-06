@@ -32,13 +32,13 @@ jobs:
 
       - name: Require Claude API credential
         env:
-          CLAUDE_API: ${{ secrets.CLAUDE_API }}
+          CLAUDE_API: ${{ secrets.Claude_api }}
         run: |
-          test -n "$CLAUDE_API" || (echo "Missing GitHub Secret CLAUDE_API" && exit 1)
+          test -n "$CLAUDE_API" || (echo "Missing GitHub Secret Claude_api" && exit 1)
 
       - name: Ask Claude Opus to author the Snapshot patch
         env:
-          CLAUDE_API: ${{ secrets.CLAUDE_API }}
+          CLAUDE_API: ${{ secrets.Claude_api }}
         run: |
           python android-apk/ml/claude_snapshot_autocoder.py \
             --model "$CLAUDE_MODEL" \
