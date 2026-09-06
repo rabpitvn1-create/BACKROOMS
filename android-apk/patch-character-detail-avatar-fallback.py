@@ -71,6 +71,7 @@ PATCH_CHAIN = [
     "patch-snapshot-turn-visual-preclean.py",
     "patch-snapshot-turn-visual-contract-final.py",
     "patch-snapshot-turn-test-compat.py",
+    "patch-snapshot-battle-visual-polish.py",
 ]
 
 for patch_name in PATCH_CHAIN:
