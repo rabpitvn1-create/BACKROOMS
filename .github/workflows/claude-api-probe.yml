@@ -1,0 +1,107 @@
+name: Claude API Probe
+
+on:
+  push:
+    branches:
+      - opus/snapshot-character-entity-layout-v1
+    paths:
+      - .github/workflows/claude-api-probe.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe Anthropic authentication and Opus
+        env:
+          CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+          CLAUDE_MODEL: claude-opus-4-8
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          import os
+          import sys
+          import urllib.error
+          import urllib.request
+
+          key = os.environ.get('CLAUDE_API_KEY', '').strip()
+          model = os.environ.get('CLAUDE_MODEL', 'claude-opus-4-8').strip()
+          if not key:
+              print('probe_error=missing_secret')
+              raise SystemExit(1)
+
+          # Safe diagnostics only. Never print any part of the key itself.
+          print('key_present=true')
+          print(f'key_length={len(key)}')
+          print('key_sha256_12=' + hashlib.sha256(key.encode('utf-8')).hexdigest()[:12])
+          print('key_family=' + ('anthropic' if key.startswith('sk-ant-') else 'other'))
+
+          headers = {
+              'x-api-key': key,
+              'anthropic-version': '2023-06-01',
+              'content-type': 'application/json',
+          }
+
+          def request(req, label):
+              try:
+                  with urllib.request.urlopen(req, timeout=45) as response:
+                      body = response.read().decode('utf-8', errors='replace')
+                      print(f'{label}_status={response.status}')
+                      return response.status, body
+              except urllib.error.HTTPError as error:
+                  body = error.read().decode('utf-8', errors='replace')[:1200]
+                  print(f'{label}_status={error.code}')
+                  print(f'{label}_error={body}')
+                  return error.code, body
+              except Exception as error:
+                  print(f'{label}_exception={type(error).__name__}:{error}')
+                  return 0, ''
+
+          models_req = urllib.request.Request(
+              'https://api.anthropic.com/v1/models',
+              headers=headers,
+              method='GET',
+          )
+          models_status, models_body = request(models_req, 'models')
+          if models_status != 200:
+              raise SystemExit(2)
+
+          try:
+              payload = json.loads(models_body)
+              ids = [m.get('id') for m in payload.get('data', []) if isinstance(m, dict)]
+              print(f'models_count={len(ids)}')
+              print('opus_4_8_listed=' + ('true' if model in ids else 'false'))
+          except Exception as error:
+              print(f'models_parse_warning={type(error).__name__}')
+
+          message_body = {
+              'model': model,
+              'max_tokens': 16,
+              'messages': [
+                  {'role': 'user', 'content': 'Reply exactly: OPUS_OK'}
+              ],
+          }
+          messages_req = urllib.request.Request(
+              'https://api.anthropic.com/v1/messages',
+              data=json.dumps(message_body).encode('utf-8'),
+              headers=headers,
+              method='POST',
+          )
+          messages_status, messages_body = request(messages_req, 'messages')
+          if messages_status != 200:
+              raise SystemExit(3)
+
+          try:
+              payload = json.loads(messages_body)
+              texts = [b.get('text', '') for b in payload.get('content', []) if isinstance(b, dict) and b.get('type') == 'text']
+              print('response_model=' + str(payload.get('model', '')))
+              print('response_text=' + ' '.join(texts)[:120])
+          except Exception as error:
+              print(f'messages_parse_warning={type(error).__name__}')
+
+          print('probe_result=PASS')
+          PY
