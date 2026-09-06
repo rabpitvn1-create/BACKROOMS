@@ -3,8 +3,9 @@
 
 The existing Snapshot teacher modules were built around an OpenAI-compatible gateway.
 When ``CLAUDE_API_KEY`` is requested we instead use Anthropic's native Messages API:
-``POST /v1/messages`` with ``x-api-key`` and ``anthropic-version``. Deterministic
-candidate geometry and the existing strict schema validators remain authoritative.
+``POST /v1/messages`` with the supported API-key or bearer-token authentication form.
+Deterministic candidate geometry and the existing strict schema validators remain
+authoritative.
 """
 from __future__ import annotations
 
@@ -140,6 +141,18 @@ def _image_source(path: pathlib.Path, error_type: type[Exception]) -> dict[str, 
     }
 
 
+def _anthropic_headers(api_key: str, *, bearer: bool) -> dict[str, str]:
+    headers = {
+        "Content-Type": "application/json",
+        "anthropic-version": ANTHROPIC_VERSION,
+    }
+    if bearer:
+        headers["Authorization"] = f"Bearer {api_key}"
+    else:
+        headers["x-api-key"] = api_key
+    return headers
+
+
 def call_anthropic_message(
     image_path: pathlib.Path,
     prompt: str,
@@ -167,24 +180,39 @@ def call_anthropic_message(
         ],
         "stream": False,
     }
-    request = urllib.request.Request(
-        api_url,
-        data=json.dumps(body, separators=(",", ":")).encode("utf-8"),
-        headers={
-            "Content-Type": "application/json",
-            "x-api-key": api_key,
-            "anthropic-version": ANTHROPIC_VERSION,
-        },
-        method="POST",
-    )
-    try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
-            raw = response.read().decode("utf-8")
-    except urllib.error.HTTPError as error:
-        detail = error.read().decode("utf-8", errors="replace")[:800]
-        raise error_type(f"Claude HTTP {error.code}: {detail}") from error
-    except urllib.error.URLError as error:
-        raise error_type(f"Claude connection failed: {error.reason}") from error
+    encoded = json.dumps(body, separators=(",", ":")).encode("utf-8")
+    raw: str | None = None
+    last_unauthorized: urllib.error.HTTPError | None = None
+
+    # Console API keys conventionally use x-api-key. Anthropic also supports
+    # bearer authorization for token-based credentials, so retry only a 401
+    # with that alternate documented auth form. Other HTTP failures are real
+    # request/model failures and must not be hidden behind retries.
+    for bearer in (False, True):
+        request = urllib.request.Request(
+            api_url,
+            data=encoded,
+            headers=_anthropic_headers(api_key, bearer=bearer),
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                raw = response.read().decode("utf-8")
+            break
+        except urllib.error.HTTPError as error:
+            if error.code == 401 and not bearer:
+                last_unauthorized = error
+                continue
+            detail = error.read().decode("utf-8", errors="replace")[:800]
+            raise error_type(f"Claude HTTP {error.code}: {detail}") from error
+        except urllib.error.URLError as error:
+            raise error_type(f"Claude connection failed: {error.reason}") from error
+
+    if raw is None:
+        if last_unauthorized is not None:
+            raise error_type("Claude HTTP 401: credential rejected by both supported authentication forms")
+        raise error_type("Claude Messages request produced no response")
+
     try:
         payload = json.loads(raw)
     except json.JSONDecodeError as error:
