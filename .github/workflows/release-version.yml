@@ -34,9 +34,9 @@ jobs:
       GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
       GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
       GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
-      HAIKU_API: ${{ secrets.HAIKU_API }}
-      HAIKU_BASE_URL: ${{ secrets.HAIKU_BASE_URL || vars.HAIKU_BASE_URL }}
-      HAIKU_MODEL: ${{ secrets.HAIKU_MODEL || vars.HAIKU_MODEL }}
+      HAKU_API_KEY: ${{ secrets.HAKU_API_KEY }}
+      HAKU_BASE_URL: ${{ secrets.HAKU_BASE_URL || vars.HAKU_BASE_URL }}
+      HAKU_MODEL: ${{ secrets.HAKU_MODEL || vars.HAKU_MODEL }}
 
     steps:
       - uses: actions/checkout@v4
@@ -147,10 +147,10 @@ jobs:
       - name: Validate Game Master configuration
         run: |
           set -euo pipefail
-          for name in GEMINI_API_KEY_1 GEMINI_API_KEY_2 GEMINI_API_KEY_3 GEMINI_API_KEY_4 GEMINI_API_KEY_5 HAIKU_API; do
+          for name in GEMINI_API_KEY_1 GEMINI_API_KEY_2 GEMINI_API_KEY_3 GEMINI_API_KEY_4 GEMINI_API_KEY_5 HAKU_API_KEY; do
             test -n "${!name:-}" || (echo "Missing GitHub Secret: $name" && exit 1)
           done
-          echo "Optional Haiku base/model overrides: ${HAIKU_BASE_URL:+configured} ${HAIKU_MODEL:+configured}"
+          echo "Optional Haku base/model overrides: ${HAKU_BASE_URL:+configured} ${HAKU_MODEL:+configured}"
 
       - name: Smoke test Gemini 3.8 Flash
         if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'

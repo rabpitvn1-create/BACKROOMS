@@ -384,19 +384,19 @@ public class MainActivity extends Activity {
   }
 
   private boolean haikuConfigured() {
-    return BuildConfig.HAIKU_API != null && !BuildConfig.HAIKU_API.trim().isEmpty();
+    return BuildConfig.HAKU_API_KEY != null && !BuildConfig.HAKU_API_KEY.trim().isEmpty();
   }
 
   private String haikuModel() {
-    String configured = BuildConfig.HAIKU_MODEL == null ? "" : BuildConfig.HAIKU_MODEL.trim();
+    String configured = BuildConfig.HAKU_MODEL == null ? "" : BuildConfig.HAKU_MODEL.trim();
     return configured.isEmpty() ? HAIKU_DEFAULT_MODEL : configured;
   }
 
   private String haikuBaseUrl() throws Exception {
-    String configured = BuildConfig.HAIKU_BASE_URL == null ? "" : BuildConfig.HAIKU_BASE_URL.trim();
+    String configured = BuildConfig.HAKU_BASE_URL == null ? "" : BuildConfig.HAKU_BASE_URL.trim();
     String base = configured.isEmpty() ? HAIKU_DEFAULT_BASE_URL : configured;
     if (!base.toLowerCase(java.util.Locale.ROOT).startsWith("https://")) {
-      throw new Exception("HAIKU_BASE_URL phải dùng HTTPS.");
+      throw new Exception("HAKU_BASE_URL phải dùng HTTPS.");
     }
     while (base.endsWith("/") && base.length() > "https://".length()) {
       base = base.substring(0, base.length() - 1);
@@ -420,10 +420,10 @@ public class MainActivity extends Activity {
     connection.setDoOutput(true);
     connection.setRequestProperty("Content-Type", "application/json");
     if (anthropic) {
-      connection.setRequestProperty("x-api-key", BuildConfig.HAIKU_API);
+      connection.setRequestProperty("x-api-key", BuildConfig.HAKU_API_KEY);
       connection.setRequestProperty("anthropic-version", "2023-06-01");
     } else {
-      connection.setRequestProperty("Authorization", "Bearer " + BuildConfig.HAIKU_API);
+      connection.setRequestProperty("Authorization", "Bearer " + BuildConfig.HAKU_API_KEY);
     }
     try (OutputStream output = connection.getOutputStream()) {
       output.write(payload.toString().getBytes("UTF-8"));
@@ -528,7 +528,7 @@ public class MainActivity extends Activity {
   }
 
   private String haikuText(String prompt) throws Exception {
-    if (!haikuConfigured()) throw new Exception("HAIKU_API chưa được cấu hình.");
+    if (!haikuConfigured()) throw new Exception("HAKU_API_KEY chưa được cấu hình.");
     Exception last = null;
     for (int attempt = 0; attempt < 2; attempt++) {
       try {

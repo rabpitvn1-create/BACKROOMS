@@ -40,9 +40,9 @@ android {
     buildConfigField "String", "GEMINI_API_KEY_3", "\"" + secret("GEMINI_API_KEY_3") + "\""
     buildConfigField "String", "GEMINI_API_KEY_4", "\"" + secret("GEMINI_API_KEY_4") + "\""
     buildConfigField "String", "GEMINI_API_KEY_5", "\"" + secret("GEMINI_API_KEY_5") + "\""
-    buildConfigField "String", "HAIKU_API", "\"" + secret("HAIKU_API") + "\""
-    buildConfigField "String", "HAIKU_BASE_URL", "\"" + secret("HAIKU_BASE_URL") + "\""
-    buildConfigField "String", "HAIKU_MODEL", "\"" + secret("HAIKU_MODEL") + "\""
+    buildConfigField "String", "HAKU_API_KEY", "\"" + secret("HAKU_API_KEY") + "\""
+    buildConfigField "String", "HAKU_BASE_URL", "\"" + secret("HAKU_BASE_URL") + "\""
+    buildConfigField "String", "HAKU_MODEL", "\"" + secret("HAKU_MODEL") + "\""
   }
 
   buildTypes {
