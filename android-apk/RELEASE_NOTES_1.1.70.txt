@@ -1,0 +1,5 @@
+Backroom 1.1.70
+
+- Bump version từ 1.1.69 lên 1.1.70 (versionCode 114).
+- Giữ nguyên baseline V2 hiện hành với Cao Minh là protagonist authoritative, cùng Character Stats/skills và asset/overlay đã đồng bộ ở 1.1.69.
+- Không có thay đổi gameplay mới trong commit bump này.
