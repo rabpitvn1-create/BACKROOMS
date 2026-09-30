@@ -30,3 +30,8 @@ test('Play remains primary for special presentation selectors',()=>{
   assert.match(inventory,/\.inventory-item-name\{font-family:'Play','Pretendard Std'/);
   assert.match(snapshot,/\.combat-float\{[^}]*font-family:Play,"Pretendard Std"/);
 });
+
+test('Lucia Lục keeps the normal Pretendard font inside semantic narration',()=>{
+  assert.match(gm,/\.semantic-lucia-name\{font-family:'Pretendard Std',system-ui,sans-serif\}/);
+  assert.match(gm,/matched\.toLocaleLowerCase\('vi'\) === 'lucia lục'/);
+});

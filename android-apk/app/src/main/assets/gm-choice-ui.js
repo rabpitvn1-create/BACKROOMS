@@ -11,6 +11,7 @@
     ".message.gm .gm-main-text{font-family:'Play','Pretendard Std',system-ui,sans-serif}",
     ".semantic{font-family:'Play','Pretendard Std',system-ui,sans-serif;font-weight:700;text-decoration:none}",
     ".semantic-character{color:#67d5ff}",
+    ".semantic-lucia-name{font-family:'Pretendard Std',system-ui,sans-serif}",
     ".semantic-entity{color:#ff6b6b}",
     ".semantic-item{color:#f6c85f}",
     ".semantic-skill{color:#c792ea}",
@@ -154,6 +155,7 @@
       }
       var span = document.createElement('span');
       span.className = 'semantic semantic-' + type;
+      if (matched.toLocaleLowerCase('vi') === 'lucia lục') span.className += ' semantic-lucia-name';
       span.textContent = matched;
       container.appendChild(span);
       cursor = match.index + matched.length;
