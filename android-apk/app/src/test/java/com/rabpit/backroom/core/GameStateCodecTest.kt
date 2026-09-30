@@ -16,11 +16,13 @@ class GameStateCodecTest {
       thermalState = "cold",
       metadata = mapOf("source" to "field_observation")
     )
+    val waterStack = V2ItemCatalog.normalize(ItemStack("water", "Almond Water", 2))!!
+    val scanWater = V2ItemCatalog.normalize(ItemStack("water", "Almond Water"))!!
     val state = GameState.initial().copy(
-      inventories = mapOf(KAI_ID to InventoryState(KAI_ID, mapOf("water" to ItemStack("water", "Almond Water", 2)))),
+      inventories = mapOf(KAI_ID to InventoryState(KAI_ID, mapOf(waterStack.itemId to waterStack))),
       statuses = mapOf(effect.id to effect),
       characters = mapOf(KAI_ID to CharacterState(KAI_ID, "Kai Akechi", statusIds = setOf(effect.id), physiology = physiology)),
-      omnivault = OmnivaultState(scanSlots = listOf(ScanSlot(1, "water", ItemStack("water", "Almond Water"), 10)), markedSourceIds = setOf("water")),
+      omnivault = OmnivaultState(scanSlots = listOf(ScanSlot(1, scanWater.itemId, scanWater, 10)), markedSourceIds = setOf("water")),
       turn = TurnState("TURN_9", PendingTurn("TURN_9", "Kai nhặt nước", PendingTurnStatus.INTERPRETING)),
       time = GameTimeState(elapsedSubjectiveMinutes = 485L, lastAdvanceMinutes = 15, lastAdvanceReason = "travel")
     )
