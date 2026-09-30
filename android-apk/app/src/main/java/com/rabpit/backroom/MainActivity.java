@@ -700,7 +700,7 @@ public class MainActivity extends Activity {
     JSONObject knowledgeView = GmNarrativePacket.projectState(state);
     return GmShadowPlanner.buildPrompt(
         plannerContext, knowledgeView, levelContext, entityContext, itemContext,
-        characterContext, canon.promptText());
+        characterContext, gameCore.shadowCommandRegistry(), canon.promptText());
   }
 
   private JSONObject cachedShadowProposal(String plannerKey) throws Exception {
@@ -755,12 +755,21 @@ public class MainActivity extends Activity {
               .optString("proposalFingerprint", "");
         }
 
+        JSONObject authority = new JSONObject(
+            gameCore.validateShadowTransaction(contextCopy.toString(), proposal.toString()));
+        JSONObject resolved = authority.optJSONObject("resolvedTurn");
+        JSONArray evidence = resolved == null ? null : resolved.optJSONArray("committedEvents");
+        int evidenceCount = evidence == null ? 0 : evidence.length();
         JSONObject comparison = GmShadowPlanner.compareToV2(
             proposal, contextCopy.getJSONObject("stateSnapshot"), afterCopy, selectedCopy);
         Log.d(TAG, "GM SHADOW TELEMETRY: key=" + plannerKey.substring(0, 12)
             + " proposal=" + (proposalFingerprint.length() >= 12
                 ? proposalFingerprint.substring(0, 12) : proposalFingerprint)
             + " cache=" + cacheHit
+            + " authorityValid=" + authority.optBoolean("valid", false)
+            + " acceptedGroups=" + authority.optInt("acceptedGroups", 0)
+            + " rejectedGroups=" + authority.optInt("rejectedGroups", 0)
+            + " evidence=" + evidenceCount
             + " compare=" + comparison);
       } catch (Exception error) {
         Log.w(TAG, "GM shadow planner unavailable; V2 authoritative turn is unaffected: "

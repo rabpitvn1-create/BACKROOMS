@@ -23,7 +23,7 @@ public final class GmShadowPlanner {
   public static final int MAX_GROUPS = 8;
   public static final int MAX_COMMANDS = 32;
   public static final int MAX_PROPOSAL_CHARS = 12_000;
-  public static final int MAX_PROMPT_CHARS = 28_000;
+  public static final int MAX_PROMPT_CHARS = 32_000;
 
   private static final Set<String> FORBIDDEN_COMMAND_KEYS = Set.of(
       "state", "stateJson", "statePatch", "rawState", "patch", "jsonPatch", "jsonPointer", "path");
@@ -41,6 +41,7 @@ public final class GmShadowPlanner {
       String entityContext,
       String itemContext,
       String characterContext,
+      String commandRegistryContext,
       String canonContext) throws JSONException {
     if (plannerContext == null) throw new IllegalArgumentException("planner_context_missing");
     String turnId = plannerContext.optString("turnId", "").trim();
@@ -51,7 +52,7 @@ public final class GmShadowPlanner {
     if (action.isEmpty()) throw new IllegalArgumentException("action_missing");
 
     StringBuilder out = new StringBuilder();
-    out.append("SHADOW GM PLANNER — PHASE 2.\n")
+    out.append("SHADOW GM PLANNER — PHASE 3.\n")
         .append("Bạn chỉ lập kế hoạch giao dịch cho một lượt. Đây là SHADOW MODE: proposal của bạn ")
         .append("không được phép sửa GameState, không được quyết định canon và không được viết narration cuối.\n")
         .append("Mọi thay đổi phải nằm trong causalGroups atomic và commands có type + payload. ")
@@ -72,6 +73,7 @@ public final class GmShadowPlanner {
     appendSection(out, "ENTITY_CORE", safe(entityContext), 2400);
     appendSection(out, "ITEM_CORE", safe(itemContext), 2400);
     appendSection(out, "CHARACTER_CORE", safe(characterContext), 3200);
+    appendSection(out, "TYPED_COMMAND_REGISTRY", safe(commandRegistryContext), 2600);
     appendSection(out, "CANON", safe(canonContext), 6500);
 
     if (out.length() > MAX_PROMPT_CHARS) {

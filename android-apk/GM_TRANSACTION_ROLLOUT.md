@@ -1,6 +1,6 @@
 # GM Transaction Rollout
 
-Status: PHASE 2 — SHADOW GM PLANNER ACTIVE IN DEBUG; V2 REMAINS AUTHORITATIVE
+Status: PHASE 3 — TYPED COMMAND AUTHORITY ACTIVE IN SHADOW; V2 REMAINS AUTHORITATIVE
 
 This rollout preserves the current V2 Core/save/runtime while reintroducing GM planning authority in controlled stages. No phase may skip the transaction boundary.
 
@@ -86,10 +86,22 @@ Introduce a command registry with one deterministic owner per mutation family, f
 
 Unknown commands are rejected. Raw JSON patch commands are forbidden.
 
+Implemented in Phase 3:
+- `GmCommandAuthority` is the single typed-command registry; each registered command has exactly one Core owner.
+- Active dry-run adapters cover item use/share/discard, legal Level transition, stat upgrade and combat start. They invoke existing Core code against a private copied state.
+- Entity encounter, character encounter and chest discovery are registered to their deterministic owners but marked `PHASE4_SELECTION_GATE`; they are deliberately rejected in Phase 3 so the GM cannot bypass V2 candidate/RNG selection.
+- Unknown command types and unknown payload fields fail closed.
+- Causal groups are simulated atomically. If any command in a group fails, all state changes and committed-event evidence from that group are discarded.
+- Every accepted command emits a Core-owned typed event. `GmTransactionContract` exposes evidence only for fully accepted groups.
+- `GameCoreFacade.validateShadowTransaction()` operates only on the copied Phase-2 snapshot and has no persistence path.
+- Debug telemetry records authority validity, accepted/rejected group counts and evidence count alongside the V2 comparison. Gameplay remains V2 authoritative.
+
 Exit gate:
 - every accepted planner command maps to exactly one Core owner;
 - every accepted command produces committed-event evidence;
-- causal-group rollback tests cover partial failures.
+- causal-group rollback tests cover partial failures;
+- selection/RNG-owned mutations remain fail-closed until Phase 4;
+- existing V2 Android tests/build remain green.
 
 ## Phase 4 — Transaction commit behind a feature flag
 

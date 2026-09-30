@@ -32,6 +32,7 @@ public final class GameCoreFacade implements AutoCloseable {
   private final SurvivalCore survivalCore;
   private final CharacterDetailCore characterDetailCore;
   private final EmergentTurnEngine emergentTurnEngine;
+  private final GmCommandAuthority gmCommandAuthority;
   private final Map<String, PreparedTurn> preparedTurns = new LinkedHashMap<>();
 
   private GameCoreFacade(Context context, boolean debugLogging) {
@@ -49,6 +50,8 @@ public final class GameCoreFacade implements AutoCloseable {
     this.survivalCore = new SurvivalCore();
     this.characterDetailCore = new CharacterDetailCore();
     this.emergentTurnEngine = new EmergentTurnEngine();
+    this.gmCommandAuthority = new GmCommandAuthority(
+        itemCore, levelCore, entityCore, characterEncounterCore, characterProgressionCore);
   }
 
   public static GameCoreFacade create(Context context, boolean debugLogging) {
@@ -316,6 +319,50 @@ public final class GameCoreFacade implements AutoCloseable {
     } catch (Exception e) {
       try {
         output.put("available", false).put("reason", safeMessage(e));
+      } catch (Exception ignored) {}
+      return output.toString();
+    }
+  }
+
+  /** Phase-3 planner-visible command registry. Descriptive only; no state is touched. */
+  public synchronized String shadowCommandRegistry() {
+    return gmCommandAuthority.promptContext();
+  }
+
+  /**
+   * Phase-3 dry-run authority validation. The adapter receives only the copied Phase-2 snapshot
+   * and can never persist or mutate liveStateJson.
+   */
+  public synchronized String validateShadowTransaction(String plannerContextJson, String proposalJson) {
+    JSONObject output = new JSONObject();
+    try {
+      JSONObject context = new JSONObject(plannerContextJson == null ? "{}" : plannerContextJson);
+      JSONObject proposal = new JSONObject(proposalJson == null ? "{}" : proposalJson);
+      if (!context.optBoolean("available", false)) {
+        return output.put("valid", false)
+            .put("reason", "planner_context_unavailable")
+            .put("commandResults", new JSONArray())
+            .put("resolvedTurn", new JSONObject())
+            .toString();
+      }
+      JSONObject snapshot = context.optJSONObject("stateSnapshot");
+      if (snapshot == null) {
+        return output.put("valid", false)
+            .put("reason", "planner_state_snapshot_missing")
+            .put("commandResults", new JSONArray())
+            .put("resolvedTurn", new JSONObject())
+            .toString();
+      }
+      return gmCommandAuthority.validate(
+          snapshot, proposal,
+          context.optString("turnId", ""),
+          context.optString("baseStateHash", "")).toString();
+    } catch (Exception e) {
+      try {
+        output.put("valid", false)
+            .put("reason", safeMessage(e))
+            .put("commandResults", new JSONArray())
+            .put("resolvedTurn", new JSONObject());
       } catch (Exception ignored) {}
       return output.toString();
     }

@@ -23,12 +23,14 @@ public class GmShadowPlannerTest {
 
     String promptA = GmShadowPlanner.buildPrompt(
         a, new JSONObject().put("actor", "cao_minh"),
-        "level", "entity", "item", "character", "canon");
+        "level", "entity", "item", "character", "registry", "canon");
     String promptB = GmShadowPlanner.buildPrompt(
         b, new JSONObject().put("actor", "cao_minh"),
-        "level", "entity", "item", "character", "canon");
+        "level", "entity", "item", "character", "registry", "canon");
 
     assertEquals(promptA, promptB);
+    assertTrue(promptA.contains("TYPED_COMMAND_REGISTRY"));
+    assertTrue(promptA.contains("registry"));
     assertEquals(GmShadowPlanner.plannerKey(a, promptA), GmShadowPlanner.plannerKey(b, promptB));
   }
 
