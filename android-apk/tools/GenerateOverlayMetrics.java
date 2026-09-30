@@ -88,7 +88,7 @@ class GenerateOverlayMetrics {
     try(var paths=Files.list(ASSETS)) {
       paths.filter(p -> {
         String name=p.getFileName().toString();
-        return name.matches(".*_(snapshot|entity)_overlay\\.png") || name.equals("luctram_overlay.png");
+        return name.matches(".*_(snapshot|entity)_overlay\\.png") || name.equals("luctram_overlay.png") || name.equals("lucia_overlay.png");
       }).forEach(files::add);
     }
     try(var paths=Files.list(ASSETS.resolve("entity"))) {

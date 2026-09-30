@@ -29,7 +29,8 @@ var SnapshotOverlayLayout = (function(){
     "entity/tam_ma_cao_minh.webp":{"width":864,"height":1536,"paint":{"left":3,"top":233,"right":864,"bottom":1286},"body":{"left":4,"top":235,"right":860,"bottom":1282},"sha256":"91f4f8de815bfa2a9fc87a52f0ff946f3af9dd348f18616b8348adcbe81b1a32"},
     "entity/the_beast_of_level_5.webp":{"width":864,"height":1536,"paint":{"left":17,"top":0,"right":864,"bottom":1496},"body":{"left":18,"top":0,"right":862,"bottom":1479},"sha256":"0d2e7d76b8d8acc18143c53f332583f252dee51c9a1358195f520b82a0c1dc75"},
     "entity/wretch.webp":{"width":864,"height":1536,"paint":{"left":9,"top":207,"right":858,"bottom":1332},"body":{"left":22,"top":208,"right":852,"bottom":1325},"sha256":"21857546b2d789ee9d1831e02fd8132e718b7563a7ba02adf682dce8b5b0bc99"},
-    "luctram_overlay.png":{"width":1024,"height":1536,"paint":{"left":2,"top":0,"right":1016,"bottom":1482},"body":{"left":3,"top":4,"right":1016,"bottom":1469},"sha256":"838a4d6b14797aa1e906789725de1a67dbeb176f7ca4ea4e6155c17a07c78d4b"}
+    "luctram_overlay.png":{"width":1024,"height":1536,"paint":{"left":2,"top":0,"right":1016,"bottom":1482},"body":{"left":3,"top":4,"right":1016,"bottom":1469},"sha256":"838a4d6b14797aa1e906789725de1a67dbeb176f7ca4ea4e6155c17a07c78d4b"},
+    "lucia_overlay.png":{"width":1024,"height":1536,"paint":{"left":17,"top":9,"right":1013,"bottom":1494},"body":{"left":17,"top":10,"right":1012,"bottom":1493},"sha256":"66ae60dcd2a08eb644ccc67b953e0b7de62c4c28ddfd24c26cea143db1d3961b"}
   };
   // END GENERATED OVERLAY METRICS
   function assetMetric(src){
@@ -143,7 +144,7 @@ if(typeof module!=='undefined'&&module.exports)module.exports=SnapshotOverlayLay
   try{localStorage.removeItem('backroom-apk-snapshot');}catch(_){}
   function localLevelSnapshot(){try{if(!window.Android||typeof Android.levelSnapshot!=='function')return null;return JSON.parse(Android.levelSnapshot(JSON.stringify(state)));}catch(e){return null;}}
   var __entityKeys=['hound','clump','duller','deathmoth','hostile_faceling','false_puddle','paintings','smiler','skin-stealer','predatory_window','biological_pipeline','wretch','cable_mimic','the_beast_of_level_5','hotel_corpse_lure','jeff_the_killer','async_rifleman','copx','jane_the_killer','slenderman','diep_minh'];
-  var __combatCharacterOverlays={cao_minh:'file:///android_asset/cao_minh_entity_overlay.png',luc_tram:'file:///android_asset/luctram_overlay.png'};
+  var __combatCharacterOverlays={cao_minh:'file:///android_asset/cao_minh_entity_overlay.png',lucia:'file:///android_asset/lucia_overlay.png',luc_tram:'file:///android_asset/luctram_overlay.png'};
   window.__combatVisualActorIndex=null;
   window.__combatVisualEntityKey='';
   function normalizeEntityKey(v){if(v===null||v===undefined)return '';var k=String(v).trim().toLowerCase().replace(/\s+/g,'_');if(k==='skin_stealer')k='skin-stealer';return __entityKeys.indexOf(k)>=0?k:'';}
