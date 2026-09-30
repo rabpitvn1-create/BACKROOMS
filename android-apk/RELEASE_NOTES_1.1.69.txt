@@ -1,0 +1,6 @@
+Backroom 1.1.69
+
+- Retire Kai Akechi khỏi runtime hiện hành và dùng Cao Minh / Vạn Giới Ma Tôn làm protagonist authoritative theo baseline V2, kèm avatar và snapshot overlay tương ứng.
+- Đồng bộ Character Stats/skills của Cao Minh: STR/DEF/SKL/VIT, bonus Ma Tôn +99 tách khỏi stat gốc, Đại Đạo Ma Tôn, bộ Huyết Ma skill và Huyết Ma Nhị Thập Tứ Trảm.
+- Chuẩn hóa runtime/build path theo V2 Java-only baseline và patch registry/patchctl, giữ Core là nguồn state có thẩm quyền.
+- Củng cố kiểm chứng asset combat overlay cho Cao Minh, Lucia Lục và Lục Trầm trước khi đóng gói APK.

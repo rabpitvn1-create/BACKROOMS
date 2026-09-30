@@ -14,9 +14,9 @@ Thiết kế và quy trình mở rộng Markdown canon: [Canon Retriever contrac
 
 ## Phiên bản hiện tại
 
-**Backroom 1.1.68** (`versionCode 112`). Chuẩn bị trước một tầng A/B/C trong một lần gọi Gemini, chuyển sang lưu thủ công và chỉnh font GAME MASTER.
+**Backroom 1.1.69** (`versionCode 113`). Chuyển protagonist runtime sang Cao Minh theo baseline V2, đồng bộ Character Stats/skills và củng cố asset/overlay cùng pipeline kiểm chứng.
 
-APK debug và ghi chú phiên bản được phát hành tại [GitHub Releases](https://github.com/rabpitvn1-create/BACKROOMsV2/releases). Xem [ghi chú 1.1.68](android-apk/RELEASE_NOTES_1.1.68.txt) để biết các thay đổi.
+APK debug và ghi chú phiên bản được phát hành tại [GitHub Releases](https://github.com/rabpitvn1-create/BACKROOMsV2/releases). Xem [ghi chú 1.1.69](android-apk/RELEASE_NOTES_1.1.69.txt) để biết các thay đổi.
 
 ## Build cục bộ
 
