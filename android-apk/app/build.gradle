@@ -7,6 +7,10 @@ def secret = { name ->
   return value.replace("\\", "\\\\").replace("\"", "\\\"")
 }
 
+def featureFlag = { name ->
+  return (System.getenv(name) ?: "false").trim().equalsIgnoreCase("true")
+}
+
 def playBoldFont = file('src/main/assets/fonts/Play-Bold.ttf')
 def playBoldUrl = 'https://raw.githubusercontent.com/google/fonts/e36afc7567e2c4dbe669ca5810e0c77f307295a0/ofl/play/Play-Bold.ttf'
 
@@ -43,6 +47,7 @@ android {
     buildConfigField "String", "HAKU_API_KEY", "\"" + secret("HAKU_API_KEY") + "\""
     buildConfigField "String", "HAKU_BASE_URL", "\"" + secret("HAKU_BASE_URL") + "\""
     buildConfigField "String", "HAKU_MODEL", "\"" + secret("HAKU_MODEL") + "\""
+    buildConfigField "boolean", "GM_TRANSACTION_COMMIT_ENABLED", featureFlag("GM_TRANSACTION_COMMIT_ENABLED").toString()
   }
 
   buildTypes {

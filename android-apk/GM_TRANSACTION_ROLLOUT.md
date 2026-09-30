@@ -107,6 +107,19 @@ Exit gate:
 
 Planner transactions can become authoritative only when the feature flag is enabled.
 
+### Phase 4A — Commit gate only
+
+Status: implemented, intentionally NOT armed.
+
+- Build flag `GM_TRANSACTION_COMMIT_ENABLED` exists and defaults to `false` when the environment variable is absent.
+- `GmTransactionCommitGate` is fail-closed.
+- With the flag OFF it returns `gm_transaction_commit_disabled`.
+- Even with the flag ON, Phase 4A returns `phase4_commit_not_armed`; no code path can persist a planner transaction yet.
+- Turn ID and base-state hash mismatches are rejected before any future commit can be armed.
+- Phase 4A changes no live gameplay behavior. V2 remains the only authoritative turn path.
+
+Phase 4 will advance in small sub-phases: 4B atomic execution state, 4C selection/RNG gates, then 4D live commit wiring behind the same flag.
+
 Commit protocol:
 1. verify turnId and baseStateHash;
 2. validate all commands;
