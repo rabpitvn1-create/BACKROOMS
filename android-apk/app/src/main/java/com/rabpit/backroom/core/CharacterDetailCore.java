@@ -101,19 +101,15 @@ final class CharacterDetailCore {
     if ("cao_minh".equals(id)) {
       JSONArray passives = new JSONArray()
           .put(new JSONObject()
-              .put("name", "Đại Đạo Ma Tôn")
+              .put("name", CharacterStatCore.DAI_DAO_MA_TON_PASSIVE)
               .put("description",
-                  "Sau mỗi lượt combat của Cao Minh: hồi 10% Max HP, cộng dồn +20% Attack và +20% Critical trong trận. Đồng đội nhận +50% Critical.")
+                  "Tất cả Stats +10% theo stat gốc. Sau mỗi lượt combat của Cao Minh: hồi 10% Max HP, cộng dồn +20% Attack và +20% Critical trong trận. Đồng đội nhận +50% Critical.")
+              .put("allStatsBonusPercent", CharacterStatCore.DAI_DAO_MA_TON_STAT_BONUS_PERCENT)
+              .put("separateFromBaseStats", true)
               .put("healMaxHpPercent", 10)
               .put("attackPerTurnPercent", 20)
               .put("criticalPerTurnPercent", 20)
-              .put("allyCriticalBonusPercent", 50))
-          .put(new JSONObject()
-              .put("name", CharacterStatCore.MA_TON_PASSIVE)
-              .put("description",
-                  "Tất cả Stats nhận +99 điểm dưới dạng bonus riêng. Bonus không cộng vào stat gốc, không làm tăng giá nâng Core và được hiển thị theo dạng 5 (+99).")
-              .put("allStatsBonus", CharacterStatCore.MA_TON_STAT_BONUS)
-              .put("separateFromBaseStats", true));
+              .put("allyCriticalBonusPercent", 50));
       member.put("passives", passives);
     }
 

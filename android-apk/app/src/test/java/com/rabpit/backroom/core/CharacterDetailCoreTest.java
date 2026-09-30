@@ -30,26 +30,26 @@ public class CharacterDetailCoreTest {
     assertEquals(3, details.getInt("coreCount"));
     JSONObject cao = details.getJSONArray("members").getJSONObject(0);
     assertEquals(50, cao.getInt("currentHp"));
-    assertEquals(545, cao.getInt("maxHp"));
+    assertEquals(55, cao.getInt("maxHp"));
     JSONObject stats = cao.getJSONObject("stats");
     assertEquals(5, stats.getJSONObject("STR").getInt("base"));
-    assertEquals(99, stats.getJSONObject("STR").getInt("passiveBonus"));
-    assertEquals(104, stats.getJSONObject("STR").getInt("effective"));
-    assertEquals(104, stats.getJSONObject("DEF").getInt("effective"));
-    assertEquals(104, stats.getJSONObject("SKL").getInt("effective"));
-    assertEquals(104, stats.getJSONObject("VIT").getInt("effective"));
+    assertEquals(10, stats.getJSONObject("STR").getInt("passiveBonusPercent"));
+    assertEquals(1, stats.getJSONObject("STR").getInt("passiveBonus"));
+    assertEquals(6, stats.getJSONObject("STR").getInt("effective"));
+    assertEquals(6, stats.getJSONObject("DEF").getInt("effective"));
+    assertEquals(6, stats.getJSONObject("SKL").getInt("effective"));
+    assertEquals(6, stats.getJSONObject("VIT").getInt("effective"));
     assertFalse(cao.has("explorer"));
     assertFalse(cao.has("exp"));
     JSONArray passives = cao.getJSONArray("passives");
-    assertEquals(2, passives.length());
+    assertEquals(1, passives.length());
     assertEquals("Đại Đạo Ma Tôn", passives.getJSONObject(0).getString("name"));
+    assertEquals(10, passives.getJSONObject(0).getInt("allStatsBonusPercent"));
+    assertEquals(true, passives.getJSONObject(0).getBoolean("separateFromBaseStats"));
     assertEquals(10, passives.getJSONObject(0).getInt("healMaxHpPercent"));
     assertEquals(20, passives.getJSONObject(0).getInt("attackPerTurnPercent"));
     assertEquals(20, passives.getJSONObject(0).getInt("criticalPerTurnPercent"));
     assertEquals(50, passives.getJSONObject(0).getInt("allyCriticalBonusPercent"));
-    assertEquals("Ma Tôn", passives.getJSONObject(1).getString("name"));
-    assertEquals(99, passives.getJSONObject(1).getInt("allStatsBonus"));
-    assertEquals(true, passives.getJSONObject(1).getBoolean("separateFromBaseStats"));
     assertEquals("NORMAL", cao.getJSONObject("physiology").getString("hunger"));
   }
 
@@ -96,7 +96,7 @@ public class CharacterDetailCoreTest {
     new CharacterDetailCore().projectState(state);
     JSONObject member = state.getJSONObject("partyDetails").getJSONArray("members").getJSONObject(0);
     assertEquals("Bị hạ", member.getString("condition"));
-    assertEquals(106, member.getJSONObject("stats").getJSONObject("STR").getInt("effective"));
+    assertEquals(8, member.getJSONObject("stats").getJSONObject("STR").getInt("effective"));
     assertEquals(2, member.getJSONArray("statusEffects").getJSONObject(0)
         .getInt("remainingTurns"));
   }

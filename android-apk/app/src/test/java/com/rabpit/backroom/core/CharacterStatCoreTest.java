@@ -7,7 +7,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 public class CharacterStatCoreTest {
-  @Test public void maTonProjectsSeparateNinetyNineBonusIntoCombatStats() throws Exception {
+  @Test public void daiDaoMaTonProjectsTenPercentBonusIntoCombatStats() throws Exception {
     JSONObject state = baseState();
     CharacterProgressionCore progression = new CharacterProgressionCore();
     progression.normalizeState(state);
@@ -19,19 +19,20 @@ public class CharacterStatCoreTest {
 
     for (String key : new String[]{"STR","DEF","SKL","VIT"}) {
       assertEquals(5, stats.getJSONObject(key).getInt("base"));
-      assertEquals(99, stats.getJSONObject(key).getInt("passiveBonus"));
-      assertEquals(104, stats.getJSONObject(key).getInt("effective"));
+      assertEquals(10, stats.getJSONObject(key).getInt("passiveBonusPercent"));
+      assertEquals(1, stats.getJSONObject(key).getInt("passiveBonus"));
+      assertEquals(6, stats.getJSONObject(key).getInt("effective"));
       assertEquals(0, stats.getJSONObject(key).getInt("temporaryModifier"));
     }
-    assertEquals(327, status.getInt("damage"));
-    assertEquals(90.8d, status.getDouble("defendPercent"), 0.001d);
-    assertEquals(50, status.getInt("criticalChancePercent"));
-    assertEquals(35, status.getInt("evasionPercent"));
-    assertEquals(50, status.getInt("resCriticalPercent"));
-    assertEquals(50, status.getInt("resEvasionPercent"));
+    assertEquals(33, status.getInt("damage"));
+    assertEquals(9.1d, status.getDouble("defendPercent"), 0.001d);
+    assertEquals(7, status.getInt("criticalChancePercent"));
+    assertEquals(2, status.getInt("evasionPercent"));
+    assertEquals(2, status.getInt("resCriticalPercent"));
+    assertEquals(2, status.getInt("resEvasionPercent"));
   }
 
-  @Test public void maTonBonusStaysSeparateFromBaseAndCoreUpgrade() throws Exception {
+  @Test public void daiDaoMaTonPercentStaysSeparateFromBaseAndCoreUpgrade() throws Exception {
     JSONObject state = baseState();
     CharacterProgressionCore progression = new CharacterProgressionCore();
     progression.normalizeState(state);
@@ -39,8 +40,9 @@ public class CharacterStatCoreTest {
     JSONObject before = new CharacterStatCore().project(state, "cao_minh", progression)
         .getJSONObject("stats").getJSONObject("STR");
     assertEquals(5, before.getInt("base"));
-    assertEquals(99, before.getInt("passiveBonus"));
-    assertEquals(104, before.getInt("effective"));
+    assertEquals(10, before.getInt("passiveBonusPercent"));
+    assertEquals(1, before.getInt("passiveBonus"));
+    assertEquals(6, before.getInt("effective"));
     assertEquals(1, before.getInt("nextCoreCost"));
 
     progression.grantCore(state, 1);
@@ -50,8 +52,9 @@ public class CharacterStatCoreTest {
     JSONObject after = new CharacterStatCore().project(state, "cao_minh", progression)
         .getJSONObject("stats").getJSONObject("STR");
     assertEquals(6, after.getInt("base"));
-    assertEquals(99, after.getInt("passiveBonus"));
-    assertEquals(105, after.getInt("effective"));
+    assertEquals(10, after.getInt("passiveBonusPercent"));
+    assertEquals(1, after.getInt("passiveBonus"));
+    assertEquals(7, after.getInt("effective"));
     assertEquals(1, after.getInt("nextCoreCost"));
   }
 
@@ -68,12 +71,12 @@ public class CharacterStatCoreTest {
         state, state.getJSONObject("player"), "cao_minh", progression);
     JSONObject status = projected.getJSONObject("combatStatus");
 
-    assertEquals(456, status.getInt("damage"));
-    assertEquals(91.2d, status.getDouble("defendPercent"), 0.001d);
-    assertEquals(50, status.getInt("criticalChancePercent"));
-    assertEquals(35, status.getInt("evasionPercent"));
-    assertEquals(50, status.getInt("resCriticalPercent"));
-    assertEquals(50, status.getInt("resEvasionPercent"));
+    assertEquals(64, status.getInt("damage"));
+    assertEquals(37.5d, status.getDouble("defendPercent"), 0.001d);
+    assertEquals(17, status.getInt("criticalChancePercent"));
+    assertEquals(12, status.getInt("evasionPercent"));
+    assertEquals(12, status.getInt("resCriticalPercent"));
+    assertEquals(12, status.getInt("resEvasionPercent"));
   }
 
   @Test public void companionsDoNotReceiveMaTonBonus() throws Exception {
@@ -84,6 +87,7 @@ public class CharacterStatCoreTest {
     JSONObject syvial = new CharacterStatCore().project(state, "syvial", progression);
     JSONObject str = syvial.getJSONObject("stats").getJSONObject("STR");
     assertEquals(5, str.getInt("base"));
+    assertEquals(0, str.getInt("passiveBonusPercent"));
     assertEquals(0, str.getInt("passiveBonus"));
     assertEquals(5, str.getInt("effective"));
   }
@@ -105,13 +109,14 @@ public class CharacterStatCoreTest {
         state, state.getJSONObject("player"), "cao_minh", progression);
     JSONObject vit = projected.getJSONObject("stats").getJSONObject("VIT");
     assertEquals(5, vit.getInt("base"));
-    assertEquals(99, vit.getInt("passiveBonus"));
-    assertEquals(103, vit.getInt("effective"));
+    assertEquals(10, vit.getInt("passiveBonusPercent"));
+    assertEquals(1, vit.getInt("passiveBonus"));
+    assertEquals(5, vit.getInt("effective"));
     assertEquals(-1, vit.getInt("temporaryModifier"));
-    assertEquals(540, projected.getInt("maxHp"));
+    assertEquals(50, projected.getInt("maxHp"));
     assertEquals(30, projected.getInt("currentHp"));
     new SurvivalCore().restoreWater(state, "cao_minh", 100);
-    assertEquals(545, new CharacterStatCore().project(
+    assertEquals(55, new CharacterStatCore().project(
         state, state.getJSONObject("player"), "cao_minh", progression).getInt("maxHp"));
     assertEquals(30, progression.profile(state, "cao_minh").getInt("currentHp"));
   }
@@ -126,17 +131,17 @@ public class CharacterStatCoreTest {
     progression.applyStatusEffect(state, "cao_minh", "focus", "item:b", "explorer_turn",
         1, "STR", -1);
     CharacterStatCore stats = new CharacterStatCore();
-    assertEquals(105, stats.project(state, "cao_minh", progression)
+    assertEquals(7, stats.project(state, "cao_minh", progression)
         .getJSONObject("stats").getJSONObject("STR").getInt("effective"));
     String saved = state.toString();
     state = new JSONObject(saved);
-    assertEquals(105, stats.project(state, "cao_minh", progression)
+    assertEquals(7, stats.project(state, "cao_minh", progression)
         .getJSONObject("stats").getJSONObject("STR").getInt("effective"));
     progression.advanceStatusEffects(state, "cao_minh", "explorer_turn");
-    assertEquals(106, stats.project(state, "cao_minh", progression)
+    assertEquals(8, stats.project(state, "cao_minh", progression)
         .getJSONObject("stats").getJSONObject("STR").getInt("effective"));
     progression.advanceStatusEffects(state, "cao_minh", "explorer_turn");
-    assertEquals(104, stats.project(state, "cao_minh", progression)
+    assertEquals(6, stats.project(state, "cao_minh", progression)
         .getJSONObject("stats").getJSONObject("STR").getInt("effective"));
   }
 

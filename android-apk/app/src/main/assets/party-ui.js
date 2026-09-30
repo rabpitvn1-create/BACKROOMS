@@ -214,14 +214,18 @@
       var statLine=member&&member.stats&&member.stats[key];
       var permanent=Number(statLine&&statLine.base);
       var passiveBonus=Number(statLine&&statLine.passiveBonus);
+      var passiveBonusPercent=Number(statLine&&statLine.passiveBonusPercent);
       var projectedBase=Number.isFinite(permanent)?permanent:current;
+      var passivePercentOnly=Number.isFinite(passiveBonusPercent)&&passiveBonusPercent>0;
       var passiveOnly=Number.isFinite(passiveBonus)&&passiveBonus>0;
       var projectedWithPassive=projectedBase+(passiveOnly?passiveBonus:0);
-      var statText=passiveOnly
-        ?String(projectedBase)+' (+'+String(passiveBonus)+')'
-        :(Number.isFinite(permanent)&&permanent!==current
-          ?String(permanent)+' → '+String(current):String(current));
-      if(passiveOnly&&current!==projectedWithPassive)statText+=' → '+String(current);
+      var statText=passivePercentOnly
+        ?String(projectedBase)+' (+'+String(passiveBonusPercent)+'%)'
+        :(passiveOnly
+          ?String(projectedBase)+' (+'+String(passiveBonus)+')'
+          :(Number.isFinite(permanent)&&permanent!==current
+            ?String(permanent)+' → '+String(current):String(current)));
+      if((passivePercentOnly||passiveOnly)&&current!==projectedWithPassive)statText+=' → '+String(current);
       value.textContent=statText
         +' · tiếp theo: '+(Number.isFinite(cost)?String(cost):'—')+' Core';
       var button=document.createElement('button');button.type='button';button.className='core-stat-upgrade';

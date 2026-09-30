@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
-  "syncedAt": "2026-09-28",
-  "authority": "Google Drive / 02_CHARACTERS + scoped USER_RETCON android-apk/DIEP_MINH_CANON.md + explicit USER_RETCON Đại Đạo Ma Tôn (2026-09-27) + explicit USER_RETCON Ma Tôn (+99 Stats) (2026-09-27) + explicit USER_RETCON Lucia Lục ≠ Lục Trầm (2026-09-28)",
+  "syncedAt": "2026-10-01",
+  "authority": "Google Drive / 02_CHARACTERS + scoped USER_RETCON android-apk/DIEP_MINH_CANON.md + explicit USER_RETCON Đại Đạo Ma Tôn (+10% All Stats) (2026-10-01) + explicit USER_RETCON Lucia Lục ≠ Lục Trầm (2026-09-28)",
   "instruction": "Google Drive character canon is authoritative except where a newer explicit USER_RETCON is committed as current canon. DIEP_MINH_CANON.md supersedes only the old OPEN Cao Minh ↔ Diệp Minh edge. The primary protagonist is Cao Minh / Vạn Giới Ma Tôn R15 under canonical runtime id `cao_minh`. The retired `kai` player id/identity is not current runtime canon. KNOWLEDGE_LOCK is backstage knowledge only; remaining OPEN/UNKNOWN fields stay unresolved. Gameplay projection values are internal mechanics and must not be turned into cultivation lore, energy limits or dialogue terminology. Lucia Lục/Hứa Thuý Mai is a separate character under runtime id `lucia`; never alias or migrate her to Lục Trầm (`luc_tram`).",
   "characters": {
     "cao_minh": {
@@ -71,20 +71,16 @@
           "stacking": "additive_for_current_combat",
           "allyCriticalPercentagePoints": 50,
           "criticalCapPercent": 100,
-          "reset": "combat_end"
-        },
-        "maTon": {
-          "type": "passive",
-          "allStatsBonus": 99,
+          "reset": "combat_end",
+          "allStatsBonusPercent": 10,
           "stats": [
             "STR",
             "DEF",
             "SKL",
             "VIT"
           ],
-          "storage": "separate_bonus_projection",
-          "display": "base (+99)",
-          "example": "5 (+99), not 104",
+          "storage": "separate_percent_projection",
+          "display": "base (+10%)",
           "affectsEffectiveCombatStats": true,
           "mutatesBaseStats": false,
           "affectsCoreUpgradeCost": false

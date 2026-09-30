@@ -24,7 +24,7 @@ public class CharacterProgressionCoreTest {
       assertFalse(stats.has("CRIT"));
       assertFalse(stats.has("LUCK"));
       assertEquals(50, core.profile(state, id).getInt("currentHp"));
-      assertEquals("cao_minh".equals(id) ? 545 : 50, core.profile(state, id).getInt("maxHp"));
+      assertEquals("cao_minh".equals(id) ? 55 : 50, core.profile(state, id).getInt("maxHp"));
       assertEquals(0, core.profile(state, id).getJSONArray("statusEffects").length());
     }
   }
@@ -44,7 +44,7 @@ public class CharacterProgressionCoreTest {
     assertEquals(5, migrated.getJSONObject("stats").getInt("SKL"));
     assertEquals(5, migrated.getJSONObject("stats").getInt("VIT"));
     assertEquals(31, migrated.getInt("currentHp"));
-    assertEquals(545, migrated.getInt("maxHp"));
+    assertEquals(55, migrated.getInt("maxHp"));
     assertFalse(migrated.has("explorer"));
     assertFalse(migrated.has("exp"));
     assertFalse(migrated.has("baseStats"));
@@ -59,7 +59,7 @@ public class CharacterProgressionCoreTest {
     JSONObject state = baseState();
     core.normalizeState(state);
     assertEquals(50, core.profile(state, "cao_minh").getInt("baseMaxHp"));
-    assertEquals(545, core.profile(state, "cao_minh").getInt("maxHp"));
+    assertEquals(55, core.profile(state, "cao_minh").getInt("maxHp"));
     assertEquals(50, core.profile(state, "luc_tram").getInt("baseMaxHp"));
     assertEquals(50, core.profile(state, "luc_tram").getInt("maxHp"));
 
@@ -77,9 +77,9 @@ public class CharacterProgressionCoreTest {
 
     core.upgradeStat(state, "cao_minh", "VIT");
 
-    assertEquals(550, core.profile(state, "cao_minh").getInt("maxHp"));
+    assertEquals(60, core.profile(state, "cao_minh").getInt("maxHp"));
     assertEquals(35, core.profile(state, "cao_minh").getInt("currentHp"));
-    assertEquals(550, state.getJSONObject("player").getInt("maxHp"));
+    assertEquals(60, state.getJSONObject("player").getInt("maxHp"));
     assertEquals(35, state.getJSONObject("player").getInt("hp"));
   }
 
@@ -87,16 +87,16 @@ public class CharacterProgressionCoreTest {
     CharacterProgressionCore core = new CharacterProgressionCore();
     JSONObject state = baseState();
     core.normalizeState(state);
-    core.setCurrentHp(state, "cao_minh", 500);
+    core.setCurrentHp(state, "cao_minh", 50);
     core.applyStatusEffect(state, "cao_minh", "frail", "core:injury", "explorer_turn",
         1, "VIT", -2);
-    assertEquals(535, core.profile(state, "cao_minh").getInt("maxHp"));
-    assertEquals(500, core.profile(state, "cao_minh").getInt("currentHp"));
+    assertEquals(45, core.profile(state, "cao_minh").getInt("maxHp"));
+    assertEquals(45, core.profile(state, "cao_minh").getInt("currentHp"));
     core.advanceStatusEffects(state, "cao_minh", "explorer_turn");
-    assertEquals(545, core.profile(state, "cao_minh").getInt("maxHp"));
-    assertEquals(500, core.profile(state, "cao_minh").getInt("currentHp"));
-    assertEquals(45, core.healCurrentHp(state, "cao_minh", Integer.MAX_VALUE));
-    assertEquals(545, core.profile(state, "cao_minh").getInt("currentHp"));
+    assertEquals(55, core.profile(state, "cao_minh").getInt("maxHp"));
+    assertEquals(45, core.profile(state, "cao_minh").getInt("currentHp"));
+    assertEquals(10, core.healCurrentHp(state, "cao_minh", Integer.MAX_VALUE));
+    assertEquals(55, core.profile(state, "cao_minh").getInt("currentHp"));
   }
 
   @Test public void aiCandidateCannotChangePlayerNumericState() throws Exception {
@@ -113,7 +113,7 @@ public class CharacterProgressionCoreTest {
         .getJSONObject("stats").put("STR", 999);
     core.protectFromCandidate(before, candidate);
     assertEquals(27, candidate.getJSONObject("player").getInt("hp"));
-    assertEquals(545, candidate.getJSONObject("player").getInt("maxHp"));
+    assertEquals(55, candidate.getJSONObject("player").getInt("maxHp"));
     assertEquals(24, candidate.getJSONObject("player").getInt("attack"));
     assertFalse(candidate.getJSONObject("player").has("ATK"));
     assertEquals(5, core.profile(candidate, "cao_minh").getJSONObject("stats").getInt("STR"));
