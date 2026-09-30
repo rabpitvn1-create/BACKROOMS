@@ -400,7 +400,6 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
     // excluded from Poker Dice Skill selection so it cannot alter evade/dice outcomes.
     output.put("Thiên Ma Bộ", "skill");
     output.put(DAI_DAO_MA_TON, "skill");
-    output.put(CharacterStatCore.MA_TON_PASSIVE, "skill");
     return output;
   }
 
