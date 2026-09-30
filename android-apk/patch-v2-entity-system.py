@@ -64,7 +64,9 @@ main = main.replace(entity_suffix, "", 1)
 
 normal_start_marker = '    JSONObject normalEntityRoll = thresholdRoll("entityEncounter", 10000, entityThresholds[level], entityEncounterAction && entityAllowed, entitySuffix);\n'
 normal_start = main.find(normal_start_marker)
-normal_end = main.find('    rolls.put("loot"', normal_start)
+normal_end = main.find('    int luciaScoutBonus', normal_start)
+if normal_end < 0:
+    normal_end = main.find('    rolls.put("loot"', normal_start)
 if normal_start < 0 or normal_end < 0:
     raise RuntimeError("Final shared Entity roll block not found")
 
