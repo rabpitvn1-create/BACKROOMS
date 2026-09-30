@@ -9,7 +9,7 @@ import org.json.JSONObject;
 import org.junit.Test;
 
 public class GmTransactionContractTest {
-  @Test public void almondWaterPickupRejectedCannotBecomeCommittedClaim() {
+  @Test public void almondWaterPickupRejectedCannotBecomeCommittedClaim() throws Exception {
     JSONObject proposal = proposal(
         group("discover-water",
             command("discover-water", "DISCOVER_ITEM", "almond_water")),
@@ -35,7 +35,7 @@ public class GmTransactionContractTest {
         committed.getJSONArray("groups").getJSONObject(1).getString("status"));
   }
 
-  @Test public void anyRejectedCommandRollsBackWholeCausalGroup() {
+  @Test public void anyRejectedCommandRollsBackWholeCausalGroup() throws Exception {
     JSONObject proposal = proposal(
         group("open-chest",
             command("open", "OPEN_CHEST", "chest-7"),
@@ -56,7 +56,7 @@ public class GmTransactionContractTest {
         committed, "CHEST_OPENED", "chest-7"));
   }
 
-  @Test public void proposalRejectsDuplicateCommandIds() {
+  @Test public void proposalRejectsDuplicateCommandIds() throws Exception {
     JSONObject proposal = proposal(
         group("g1", command("same", "DISCOVER_ITEM", "almond_water")),
         group("g2", command("same", "ADD_INVENTORY_ITEM", "almond_water")));
@@ -64,7 +64,7 @@ public class GmTransactionContractTest {
     assertEquals("command_id_duplicate", GmTransactionContract.validateProposal(proposal));
   }
 
-  @Test public void proposalRequiresAtomicCausalGroups() {
+  @Test public void proposalRequiresAtomicCausalGroups() throws Exception {
     JSONObject group = group("g1", command("c1", "DISCOVER_ITEM", "almond_water"));
     group.put("atomic", false);
 
@@ -72,7 +72,7 @@ public class GmTransactionContractTest {
         GmTransactionContract.validateProposal(proposal(group)));
   }
 
-  private static JSONObject proposal(JSONObject... groups) {
+  private static JSONObject proposal(JSONObject... groups) throws Exception {
     JSONArray array = new JSONArray();
     for (JSONObject group : groups) array.put(group);
     return new JSONObject()
@@ -82,7 +82,7 @@ public class GmTransactionContractTest {
         .put("causalGroups", array);
   }
 
-  private static JSONObject group(String groupId, JSONObject... commands) {
+  private static JSONObject group(String groupId, JSONObject... commands) throws Exception {
     JSONArray array = new JSONArray();
     for (JSONObject command : commands) array.put(command);
     return new JSONObject()
@@ -91,14 +91,14 @@ public class GmTransactionContractTest {
         .put("commands", array);
   }
 
-  private static JSONObject command(String commandId, String type, String subjectKey) {
+  private static JSONObject command(String commandId, String type, String subjectKey) throws Exception {
     return new JSONObject()
         .put("commandId", commandId)
         .put("type", type)
         .put("payload", new JSONObject().put("subjectKey", subjectKey));
   }
 
-  private static JSONObject accepted(String commandId, String eventType, String subjectKey) {
+  private static JSONObject accepted(String commandId, String eventType, String subjectKey) throws Exception {
     return new JSONObject()
         .put("commandId", commandId)
         .put("accepted", true)
@@ -107,7 +107,7 @@ public class GmTransactionContractTest {
             .put("subjectKey", subjectKey));
   }
 
-  private static JSONObject rejected(String commandId, String reason) {
+  private static JSONObject rejected(String commandId, String reason) throws Exception {
     return new JSONObject()
         .put("commandId", commandId)
         .put("accepted", false)
