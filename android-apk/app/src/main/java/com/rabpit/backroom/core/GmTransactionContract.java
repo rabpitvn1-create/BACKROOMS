@@ -5,6 +5,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
@@ -72,7 +73,7 @@ public final class GmTransactionContract {
    * <p>Every causal group is atomic. One rejected command rejects the whole group. Accepted
    * commands must carry a Core-produced event; only those events become committed evidence.
    */
-  public static JSONObject resolveValidatedTurn(JSONObject proposal, JSONObject validation) {
+  public static JSONObject resolveValidatedTurn(JSONObject proposal, JSONObject validation) throws JSONException {
     String proposalError = validateProposal(proposal);
     if (!proposalError.isEmpty()) {
       throw new IllegalArgumentException(proposalError);
