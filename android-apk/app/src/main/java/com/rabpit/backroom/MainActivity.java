@@ -703,14 +703,14 @@ public class MainActivity extends Activity {
         characterContext, canon.promptText());
   }
 
-  private JSONObject cachedShadowProposal(String plannerKey) {
+  private JSONObject cachedShadowProposal(String plannerKey) throws Exception {
     synchronized (shadowPlannerCache) {
       JSONObject cached = shadowPlannerCache.get(plannerKey);
       return cached == null ? null : new JSONObject(cached.toString());
     }
   }
 
-  private void cacheShadowProposal(String plannerKey, JSONObject proposal) {
+  private void cacheShadowProposal(String plannerKey, JSONObject proposal) throws Exception {
     synchronized (shadowPlannerCache) {
       if (!shadowPlannerCache.containsKey(plannerKey) && shadowPlannerCache.size() >= 16) {
         String oldest = shadowPlannerCache.keySet().iterator().next();
@@ -721,7 +721,8 @@ public class MainActivity extends Activity {
   }
 
   private void scheduleShadowPlanner(
-      JSONObject plannerContext, String prompt, JSONObject v2CommittedState, JSONObject selectedCandidate) {
+      JSONObject plannerContext, String prompt, JSONObject v2CommittedState, JSONObject selectedCandidate)
+      throws Exception {
     if (!BuildConfig.DEBUG || plannerContext == null || prompt == null || v2CommittedState == null) return;
     final JSONObject contextCopy = new JSONObject(plannerContext.toString());
     final JSONObject afterCopy = new JSONObject(v2CommittedState.toString());
