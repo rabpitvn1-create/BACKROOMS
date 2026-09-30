@@ -30,7 +30,7 @@ var SnapshotOverlayLayout = (function(){
     "entity/the_beast_of_level_5.webp":{"width":864,"height":1536,"paint":{"left":17,"top":0,"right":864,"bottom":1496},"body":{"left":18,"top":0,"right":862,"bottom":1479},"sha256":"0d2e7d76b8d8acc18143c53f332583f252dee51c9a1358195f520b82a0c1dc75"},
     "entity/wretch.webp":{"width":864,"height":1536,"paint":{"left":9,"top":207,"right":858,"bottom":1332},"body":{"left":22,"top":208,"right":852,"bottom":1325},"sha256":"21857546b2d789ee9d1831e02fd8132e718b7563a7ba02adf682dce8b5b0bc99"},
     "lucia_overlay.png":{"width":1024,"height":1536,"paint":{"left":17,"top":9,"right":1013,"bottom":1494},"body":{"left":17,"top":10,"right":1012,"bottom":1493},"sha256":"66ae60dcd2a08eb644ccc67b953e0b7de62c4c28ddfd24c26cea143db1d3961b"},
-    "luctram_overlay.png":{"width":1024,"height":1536,"paint":{"left":2,"top":0,"right":1016,"bottom":1482},"body":{"left":3,"top":4,"right":1016,"bottom":1469},"sha256":"838a4d6b14797aa1e906789725de1a67dbeb176f7ca4ea4e6155c17a07c78d4b"}
+    "luctram_overlay.png":{"width":941,"height":1672,"paint":{"left":6,"top":9,"right":941,"bottom":1650},"body":{"left":7,"top":11,"right":940,"bottom":1638},"sha256":"38b0501ec67e76a589bf83f63254d71cf5d8ab991a5c32393db0de49c01a1704"}
   };
   // END GENERATED OVERLAY METRICS
   function assetMetric(src){
