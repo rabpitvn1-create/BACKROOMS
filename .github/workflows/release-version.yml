@@ -270,9 +270,12 @@ jobs:
           ! unzip -l Backroom-1.1.71.apk | grep -q 'assets/avatars/kai_avatar.jpg'
           ! unzip -l Backroom-1.1.71.apk | grep -q 'assets/avatars/kai_avatar.png'
           unzip -l Backroom-1.1.71.apk | grep -q 'assets/avatars/luctram_avatar.png'
+          unzip -l Backroom-1.1.71.apk | grep -q 'assets/avatars/lucia_avatar.png'
           unzip -l Backroom-1.1.71.apk | grep -q 'assets/luctram_overlay.png'
           unzip -l Backroom-1.1.71.apk | grep -q 'assets/lucia_overlay.png'
           cmp <(unzip -p Backroom-1.1.71.apk assets/avatars/luctram_avatar.png) android-apk/app/src/main/assets/avatars/luctram_avatar.png
+          cmp <(unzip -p Backroom-1.1.71.apk assets/avatars/lucia_avatar.png) android-apk/app/src/main/assets/avatars/lucia_avatar.png
+          test "$(unzip -p Backroom-1.1.71.apk assets/avatars/lucia_avatar.png | sha256sum | awk '{print $1}')" = '935b40cfc59d77c688f21901328992e2398b7457a50a1ccf6a5b54bc7ca91b4d'
           cmp <(unzip -p Backroom-1.1.71.apk assets/luctram_overlay.png) android-apk/app/src/main/assets/luctram_overlay.png
           cmp <(unzip -p Backroom-1.1.71.apk assets/lucia_overlay.png) android-apk/app/src/main/assets/lucia_overlay.png
           test "$(unzip -p Backroom-1.1.71.apk assets/lucia_overlay.png | sha256sum | awk '{print $1}')" = '66ae60dcd2a08eb644ccc67b953e0b7de62c4c28ddfd24c26cea143db1d3961b'
