@@ -50,20 +50,6 @@ jobs:
           python3 android-apk/tools/patchctl.py apply full
           cat android-apk/build/generated/patch-report.json
 
-      - name: Commit Entity Core runtime
-        run: |
-          set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add android-apk/app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.java android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java
-          if git diff --cached --quiet; then
-            echo 'Entity Core runtime already connected.'
-          else
-            git commit -m 'Connect Entity Core to gameplay runtime'
-            TARGET_BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
-            git push origin HEAD:"${TARGET_BRANCH}"
-          fi
-
       - name: Install Pretendard Std UI font
         run: |
           set -euo pipefail
