@@ -6,14 +6,14 @@ const path=require('node:path');
 const root=path.join(__dirname,'..','app','src','main','assets');
 const ui=fs.readFileSync(path.join(root,'gm-choice-ui.js'),'utf8');
 
-test('GM choices use the normal turn pipeline',()=>{
+test('GM choices keep the normal turn pipeline with two fixed Explorer actions',()=>{
   assert.match(ui,/function submitExplorerChoice\(entry, choice\)/);
   assert.match(ui,/form\.requestSubmit\(\)/);
-  assert.match(ui,/function fallbackExplorerChoices\(\)/);
-  assert.match(ui,/\{id:'A',text:'Quan sát kỹ khu vực xung quanh'/);
-  assert.match(ui,/\{id:'B',text:'Kiểm tra các lối đi hoặc điểm bất thường gần nhất'/);
-  assert.match(ui,/\{id:'C',text:'Tiếp tục khám phá '/);
-  assert.match(ui,/choice\.id \|\| String\.fromCharCode\(65 \+ index\)/);
+  assert.match(ui,/function fixedExplorerChoices\(\)/);
+  assert.match(ui,/\{id:'A',text:'Khám phá',action:'Khám phá'\}/);
+  assert.match(ui,/\{id:'B',text:'Tìm kiếm',action:'Tìm kiếm'\}/);
+  assert.doesNotMatch(ui,/id:'C'/);
+  assert.match(ui,/makeChoiceButton\('', choice\.text \|\| choice\.action \|\| ''/);
   assert.match(ui,/prefix \? prefix \+ '\. ' : '• '/);
   assert.doesNotMatch(ui,/state\.story|resolveStoryDecision|prepareStoryDecision|returnJourney|attackStoryEntity/);
 });

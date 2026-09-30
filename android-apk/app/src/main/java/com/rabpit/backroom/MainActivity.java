@@ -356,8 +356,8 @@ public class MainActivity extends Activity {
                 .put("items", new JSONObject().put("type", "STRING"))))
         .put("required", new JSONArray().put("reply").put("choices").put("encounterDialogue"));
     JSONObject branches = new JSONObject().put("type", "OBJECT")
-        .put("properties", new JSONObject().put("A", branch).put("B", branch).put("C", branch))
-        .put("required", new JSONArray().put("A").put("B").put("C"));
+        .put("properties", new JSONObject().put("A", branch).put("B", branch))
+        .put("required", new JSONArray().put("A").put("B"));
     return new JSONObject().put("type", "OBJECT")
         .put("properties", new JSONObject().put("branches", branches))
         .put("required", new JSONArray().put("branches"));
@@ -709,17 +709,17 @@ public class MainActivity extends Activity {
     prefetchIo.execute(() -> {
       try {
         JSONArray choices = new JSONArray(choicesJson);
-        if (choices.length() != 3) return;
+        if (choices.length() != 2) return;
         String baseHash = gameCore.currentStateHash();
         Map<String, String> actions = new LinkedHashMap<>();
         Map<String, JSONObject> previews = new LinkedHashMap<>();
         StringBuilder prompt = new StringBuilder(
-            "Generate exactly one independent next-turn narration per branch A/B/C. "
+            "Generate exactly one independent next-turn narration per branch A/B. "
                 + "Each branch has its own hypothetical Core-committed outcome and canon. "
                 + "Never transfer events, facts, entities, loot or future choices between branches. "
                 + "Each reply must be at most 1800 characters, choices 0-3. "
-                + "Return only JSON with branches A, B and C; each contains reply, choices and encounterDialogue.\n");
-        for (int i = 0; i < 3; i++) {
+                + "Return only JSON with branches A and B; each contains reply, choices and encounterDialogue.\n");
+        for (int i = 0; i < 2; i++) {
           String id = String.valueOf((char) ('A' + i));
           JSONObject choice = choices.getJSONObject(i);
           String action = choice.optString("action", "").trim();
@@ -735,7 +735,7 @@ public class MainActivity extends Activity {
         if (generation != prefetchGeneration.get() || !baseHash.equals(gameCore.currentStateHash())) return;
         JSONObject output = geminiBranchBatch(prompt.toString());
         JSONObject branches = output.optJSONObject("branches");
-        if (branches == null || branches.length() != 3 || output.length() != 1) return;
+        if (branches == null || branches.length() != 2 || output.length() != 1) return;
         Map<String, PrefetchBranch> valid = new LinkedHashMap<>();
         for (String id : actions.keySet()) {
           JSONObject generated = branches.optJSONObject(id);

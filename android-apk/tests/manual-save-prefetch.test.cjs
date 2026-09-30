@@ -58,3 +58,11 @@ test('preview shares turn resolution without persisting or retaining attempts', 
   assert.equal((batch.match(/postJson\(/g) || []).length, 1);
   assert.doesNotMatch(batch, /generateText\(|haikuText\(|for\s*\(int attempt/);
 });
+
+test('Explorer prefetch prepares exactly the two fixed actions', () => {
+  const prefetch = bridge.slice(bridge.indexOf('private void prefetchChoices('),
+    bridge.indexOf('private String worldProposalPrompt(', bridge.indexOf('private void prefetchChoices(')));
+  assert.match(prefetch, /choices\.length\(\) != 2/);
+  assert.match(prefetch, /branch A\/B/);
+  assert.doesNotMatch(prefetch, /A\/B\/C|branches A, B and C|i < 3/);
+});

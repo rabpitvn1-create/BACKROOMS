@@ -16,7 +16,7 @@ test('Poker Dice uses one reusable inline panel inside the GM log', () => {
   assert.doesNotMatch(source, /\.combat-dice-panel\{[^}]*position:fixed/);
 });
 
-test('combat hides Explorer A B C choices while the inline dice panel is active', () => {
+test('combat hides the two fixed Explorer choices while the inline dice panel is active', () => {
   const start = source.indexOf('function appendExplorerChoices');
   const end = source.indexOf('function renderSemanticLog', start);
   assert.ok(start >= 0 && end > start);

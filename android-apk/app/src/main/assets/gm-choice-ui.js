@@ -51,6 +51,7 @@
   var status = document.getElementById('status');
   var defaultPlaceholder = action ? action.getAttribute('placeholder') : '';
   window.__combatBusy = false;
+  var explorerChoiceBusy = false;
   window.__combatAnimationToken = 0;
   var COMBAT_PHASE_MS = 1000;
 
@@ -171,11 +172,10 @@
   }
 
   function submitExplorerChoice(entry, choice) {
-    if (!choice || window.__combatBusy || (state.combat && state.combat.active)) return;
+    if (!choice || explorerChoiceBusy || window.__combatBusy || (state.combat && state.combat.active)) return;
     var text = String(choice.action || choice.text || '').trim();
     if (!text || !form || !action) return;
-    if (Array.isArray(entry.choices)) entry.choices.forEach(function(x){ x.disabled = true; });
-    choice.selected = true;
+    explorerChoiceBusy = true;
     if (typeof window.render === 'function') window.render();
     action.value = text;
     if (typeof form.requestSubmit === 'function') form.requestSubmit();
@@ -207,25 +207,16 @@
     Android.restartAfterDeath();
   }
 
-  function fallbackExplorerChoices() {
-    var level = Number.isInteger(state && state.currentLevel) ? state.currentLevel : 0;
-    var levelText = 'Level ' + level;
+  function fixedExplorerChoices() {
     return [
-      {id:'A',text:'Quan sát kỹ khu vực xung quanh',action:'Quan sát kỹ khu vực xung quanh'},
-      {id:'B',text:'Kiểm tra các lối đi hoặc điểm bất thường gần nhất',action:'Kiểm tra các lối đi hoặc điểm bất thường gần nhất'},
-      {id:'C',text:'Tiếp tục khám phá ' + levelText,action:'Tiếp tục khám phá ' + levelText,highlights:[{text:levelText,type:'location'}]}
+      {id:'A',text:'Khám phá',action:'Khám phá'},
+      {id:'B',text:'Tìm kiếm',action:'Tìm kiếm'}
     ];
   }
 
-  function displayedExplorerChoices(entry) {
-    var choices = Array.isArray(entry && entry.choices) ? entry.choices.slice(0, 3) : [];
-    fallbackExplorerChoices().forEach(function(fallback){
-      if (choices.length < 3 && !choices.some(function(choice){
-        return String(choice.action || choice.text || '').trim() === fallback.action;
-      })) choices.push(fallback);
-    });
-    return choices.map(function(choice, index){
-      return Object.assign({}, choice, {id:String.fromCharCode(65 + index)});
+  function displayedExplorerChoices() {
+    return fixedExplorerChoices().map(function(choice){
+      return Object.assign({}, choice);
     });
   }
 
@@ -299,7 +290,7 @@
     if (!hasChest && !choices.length) return;
 
     var actionable = latest && !(state.combat && state.combat.active)
-      && !window.__combatBusy && !(typeof busy !== 'undefined' && busy);
+      && !explorerChoiceBusy && !window.__combatBusy && !(typeof busy !== 'undefined' && busy);
     var box = document.createElement('div');
     box.className = 'gm-choices explorer-choices';
 
@@ -308,10 +299,9 @@
         !actionable, false, function(){ submitChestChoice(); }));
     }
 
-    choices.slice(0, 3).forEach(function(choice, index){
+    choices.slice(0, 2).forEach(function(choice){
       var disabled = !actionable || !!choice.disabled || !!choice.selected;
-      var prefix = String(choice.id || String.fromCharCode(65 + index)).trim().toUpperCase();
-      box.appendChild(makeChoiceButton(prefix, choice.text || choice.action || '', entry,
+      box.appendChild(makeChoiceButton('', choice.text || choice.action || '', entry,
         choice.highlights || [], disabled, !!choice.selected,
         function(){ submitExplorerChoice(entry, choice); }));
     });
@@ -682,6 +672,7 @@
   var previousTurn = window.backroomTurn;
   window.backroomTurn = function(json){
     var previousGmScrollKey = latestGmScrollKey();
+    explorerChoiceBusy = false;
     window.__combatBusy = false;
     if (typeof previousTurn === 'function') previousTurn(json);
     syncComposer();
@@ -773,6 +764,7 @@
 
   var previousError = window.backroomError;
   window.backroomError = function(message){
+    explorerChoiceBusy = false;
     diceRollAnimating = false;
     ++diceRollToken;
     window.__combatFeedbackBusy = false;
@@ -792,7 +784,7 @@
     var entry = index < 0 ? null : state.log[index];
     if (!entry || index !== state.log.length - 1) return;
     var choices = displayedExplorerChoices(entry);
-    if (choices.length !== 3) return;
+    if (choices.length !== 2) return;
     var actions = choices.map(function(choice, i){
       return {id:String.fromCharCode(65 + i),action:String(choice.action || choice.text || '').trim()};
     });
