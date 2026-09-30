@@ -72,14 +72,25 @@ object HealingItems {
 # Canonicalize model/story variants such as "bandage" or unaccented Vietnamese
 # into the two authoritative item IDs before stacking or use effects are read.
 item_content = ITEM_CONTENT.read_text(encoding="utf-8")
-normalize_anchor = '''  fun normalize(item: ItemStack): ItemStack {
+if 'HealingItems.normalize(item)?.let { return it }' not in item_content:
+    v2_anchor = '''  fun normalize(item: ItemStack): ItemStack {
+    V2ItemCatalog.normalize(item)?.let { return it }
+'''
+    if v2_anchor in item_content:
+        v2_replacement = '''  fun normalize(item: ItemStack): ItemStack {
+    HealingItems.normalize(item)?.let { return it }
+    V2ItemCatalog.normalize(item)?.let { return it }
+'''
+        item_content = replace_once(item_content, v2_anchor, v2_replacement, "Healing item + V2 catalog normalization")
+    else:
+        normalize_anchor = '''  fun normalize(item: ItemStack): ItemStack {
     val profile = profileFor(item.name, item.archetypeId)
 '''
-normalize_replacement = '''  fun normalize(item: ItemStack): ItemStack {
+        normalize_replacement = '''  fun normalize(item: ItemStack): ItemStack {
     HealingItems.normalize(item)?.let { return it }
     val profile = profileFor(item.name, item.archetypeId)
 '''
-item_content = replace_once(item_content, normalize_anchor, normalize_replacement, "Healing item normalization")
+        item_content = replace_once(item_content, normalize_anchor, normalize_replacement, "Healing item normalization")
 ITEM_CONTENT.write_text(item_content, encoding="utf-8")
 
 
