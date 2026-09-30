@@ -27,6 +27,10 @@ public final class GmShadowPlanner {
 
   private static final Set<String> FORBIDDEN_COMMAND_KEYS = Set.of(
       "state", "stateJson", "statePatch", "rawState", "patch", "jsonPatch", "jsonPointer", "path");
+  private static final Set<String> PROPOSAL_KEYS = Set.of(
+      "schemaVersion", "turnId", "baseStateHash", "causalGroups");
+  private static final Set<String> GROUP_KEYS = Set.of("groupId", "atomic", "commands");
+  private static final Set<String> COMMAND_KEYS = Set.of("commandId", "type", "payload");
 
   private GmShadowPlanner() {}
 
@@ -85,6 +89,7 @@ public final class GmShadowPlanner {
     if (serialized.length() > MAX_PROPOSAL_CHARS) {
       return rejected(result, "proposal_too_large");
     }
+    if (!hasOnlyKeys(raw, PROPOSAL_KEYS)) return rejected(result, "proposal_unknown_field");
 
     String contractReason = GmTransactionContract.validateProposal(raw);
     if (!contractReason.isEmpty()) return rejected(result, contractReason);
@@ -100,11 +105,13 @@ public final class GmShadowPlanner {
     int commandCount = 0;
     for (int i = 0; i < groups.length(); i++) {
       JSONObject group = groups.getJSONObject(i);
+      if (!hasOnlyKeys(group, GROUP_KEYS)) return rejected(result, "causal_group_unknown_field");
       JSONArray commands = group.getJSONArray("commands");
       commandCount += commands.length();
       if (commandCount > MAX_COMMANDS) return rejected(result, "too_many_commands");
       for (int c = 0; c < commands.length(); c++) {
         JSONObject command = commands.getJSONObject(c);
+        if (!hasOnlyKeys(command, COMMAND_KEYS)) return rejected(result, "command_unknown_field");
         String type = command.getString("type");
         if (!type.matches("[A-Z][A-Z0-9_]{1,63}")) return rejected(result, "command_type_invalid");
         for (String key : FORBIDDEN_COMMAND_KEYS) {
@@ -211,6 +218,12 @@ public final class GmShadowPlanner {
     }
     if (value instanceof Number || value instanceof Boolean) return String.valueOf(value);
     return JSONObject.quote(String.valueOf(value));
+  }
+
+  private static boolean hasOnlyKeys(JSONObject object, Set<String> allowed) {
+    Iterator<String> keys = object.keys();
+    while (keys.hasNext()) if (!allowed.contains(keys.next())) return false;
+    return true;
   }
 
   private static boolean containsForbiddenMutationKey(Object value) {

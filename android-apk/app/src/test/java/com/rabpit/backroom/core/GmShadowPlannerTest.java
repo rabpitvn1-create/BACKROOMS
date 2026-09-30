@@ -43,6 +43,15 @@ public class GmShadowPlannerTest {
     assertEquals("base_state_hash_mismatch", wrongHash.getString("reason"));
   }
 
+  @Test public void unknownSchemaFieldsFailClosed() throws Exception {
+    JSONObject proposal = proposal("turn-7", "hash-before").put("narration", "không được phép");
+
+    JSONObject validation = GmShadowPlanner.validateProposal(proposal, "turn-7", "hash-before");
+
+    assertFalse(validation.getBoolean("valid"));
+    assertEquals("proposal_unknown_field", validation.getString("reason"));
+  }
+
   @Test public void rawStatePatchIsRejectedEvenInsidePayload() throws Exception {
     JSONObject proposal = proposal("turn-7", "hash-before");
     proposal.getJSONArray("causalGroups").getJSONObject(0)

@@ -18,6 +18,7 @@ import com.rabpit.backroom.core.CombatChoiceEngine;
 import com.rabpit.backroom.core.GameCoreFacade;
 import com.rabpit.backroom.core.GmChoiceContract;
 import com.rabpit.backroom.core.GmNarrativePacket;
+import com.rabpit.backroom.core.GmShadowPlanner;
 import com.rabpit.backroom.core.CanonRetriever;
 import com.rabpit.backroom.core.GmNarratorContract;
 import com.rabpit.backroom.core.NarrationGuard;
@@ -47,8 +48,10 @@ public class MainActivity extends Activity {
   private WebView webView;
   private final ExecutorService io = Executors.newSingleThreadExecutor();
   private final ExecutorService prefetchIo = Executors.newSingleThreadExecutor();
+  private final ExecutorService shadowPlannerIo = Executors.newSingleThreadExecutor();
   private final AtomicLong prefetchGeneration = new AtomicLong();
   private volatile PrefetchCache prefetchCache;
+  private final Map<String, JSONObject> shadowPlannerCache = new LinkedHashMap<>();
   private GameCoreFacade gameCore;
   private CanonRetriever canonRetriever;
   private static final String GEMINI_MODEL = "gemini-3.8-flash";
@@ -158,6 +161,7 @@ public class MainActivity extends Activity {
     if (gameCore != null) gameCore.close();
     prefetchGeneration.incrementAndGet();
     prefetchIo.shutdownNow();
+    shadowPlannerIo.shutdownNow();
     io.shutdownNow();
     if (webView != null) webView.destroy();
     super.onDestroy();
@@ -675,6 +679,95 @@ public class MainActivity extends Activity {
         recentContext(state), state, action, gmStyleExamplesContext(), canon.promptText());
   }
 
+  private String shadowPlannerPrompt(JSONObject plannerContext) throws Exception {
+    if (plannerContext == null || !plannerContext.optBoolean("available", false)) {
+      throw new IllegalStateException("Shadow planner context unavailable.");
+    }
+    JSONObject state = plannerContext.getJSONObject("stateSnapshot");
+    String action = plannerContext.getString("action");
+    String coreJson = state.toString();
+    String levelContext = gameCore.levelPromptContext(coreJson, action);
+    String entityContext = gameCore.entityPromptContext(coreJson);
+    String itemContext = gameCore.itemPromptContext(coreJson);
+    String characterContext = gameCore.characterPromptContext(coreJson);
+    String levelName = levelContext.startsWith("CURRENT LEVEL NODE: ")
+        ? levelContext.substring("CURRENT LEVEL NODE: ".length()).split("\\n", 2)[0] : "";
+    CanonRetriever.CanonPacket canon = canonRetriever == null ? null
+        : canonRetriever.retrieve(state, action, CanonRetriever.DEFAULT_BUDGET, true, levelName);
+    if (canon == null || canon.budgetExceeded || !canon.missingMandatoryRefs.isEmpty()) {
+      throw new IllegalStateException("Shadow planner canon unavailable or incomplete.");
+    }
+    JSONObject knowledgeView = GmNarrativePacket.projectState(state);
+    return GmShadowPlanner.buildPrompt(
+        plannerContext, knowledgeView, levelContext, entityContext, itemContext,
+        characterContext, canon.promptText());
+  }
+
+  private JSONObject cachedShadowProposal(String plannerKey) {
+    synchronized (shadowPlannerCache) {
+      JSONObject cached = shadowPlannerCache.get(plannerKey);
+      return cached == null ? null : new JSONObject(cached.toString());
+    }
+  }
+
+  private void cacheShadowProposal(String plannerKey, JSONObject proposal) {
+    synchronized (shadowPlannerCache) {
+      if (!shadowPlannerCache.containsKey(plannerKey) && shadowPlannerCache.size() >= 16) {
+        String oldest = shadowPlannerCache.keySet().iterator().next();
+        shadowPlannerCache.remove(oldest);
+      }
+      shadowPlannerCache.put(plannerKey, new JSONObject(proposal.toString()));
+    }
+  }
+
+  private void scheduleShadowPlanner(
+      JSONObject plannerContext, String prompt, JSONObject v2CommittedState, JSONObject selectedCandidate) {
+    if (!BuildConfig.DEBUG || plannerContext == null || prompt == null || v2CommittedState == null) return;
+    final JSONObject contextCopy = new JSONObject(plannerContext.toString());
+    final JSONObject afterCopy = new JSONObject(v2CommittedState.toString());
+    final JSONObject selectedCopy = selectedCandidate == null
+        ? new JSONObject() : new JSONObject(selectedCandidate.toString());
+    final String promptCopy = prompt;
+
+    shadowPlannerIo.execute(() -> {
+      try {
+        String plannerKey = GmShadowPlanner.plannerKey(contextCopy, promptCopy);
+        JSONObject proposal = cachedShadowProposal(plannerKey);
+        boolean cacheHit = proposal != null;
+        String proposalFingerprint;
+
+        if (proposal == null) {
+          JSONObject raw = parseModelJson(generateText(promptCopy));
+          JSONObject validation = GmShadowPlanner.validateProposal(
+              raw, contextCopy.getString("turnId"), contextCopy.getString("baseStateHash"));
+          if (!validation.optBoolean("valid", false)) {
+            Log.w(TAG, "GM SHADOW REJECTED (fail-closed): "
+                + validation.optString("reason", "invalid proposal"));
+            return;
+          }
+          proposal = validation.getJSONObject("proposal");
+          proposalFingerprint = validation.getString("proposalFingerprint");
+          cacheShadowProposal(plannerKey, proposal);
+        } else {
+          proposalFingerprint = GmShadowPlanner.validateProposal(
+              proposal, contextCopy.getString("turnId"), contextCopy.getString("baseStateHash"))
+              .optString("proposalFingerprint", "");
+        }
+
+        JSONObject comparison = GmShadowPlanner.compareToV2(
+            proposal, contextCopy.getJSONObject("stateSnapshot"), afterCopy, selectedCopy);
+        Log.d(TAG, "GM SHADOW TELEMETRY: key=" + plannerKey.substring(0, 12)
+            + " proposal=" + (proposalFingerprint.length() >= 12
+                ? proposalFingerprint.substring(0, 12) : proposalFingerprint)
+            + " cache=" + cacheHit
+            + " compare=" + comparison);
+      } catch (Exception error) {
+        Log.w(TAG, "GM shadow planner unavailable; V2 authoritative turn is unaffected: "
+            + providerErrorSummary(error));
+      }
+    });
+  }
+
   private static final class PrefetchBranch {
     final String action, outcomeHash;
     final JSONObject narration;
@@ -851,6 +944,25 @@ public class MainActivity extends Activity {
 
           String turnId = prepared.getString("turnId");
           JSONObject selected = prepared.optJSONObject("selectedCandidate");
+          JSONObject shadowContext = null;
+          String shadowPrompt = null;
+          if (BuildConfig.DEBUG) {
+            try {
+              shadowContext = new JSONObject(gameCore.shadowPlannerContext(turnId));
+              if (shadowContext.optBoolean("available", false)) {
+                shadowPrompt = shadowPlannerPrompt(shadowContext);
+              } else {
+                Log.w(TAG, "GM shadow context unavailable: "
+                    + shadowContext.optString("reason", "unknown"));
+                shadowContext = null;
+              }
+            } catch (Exception shadowContextError) {
+              Log.w(TAG, "GM shadow prompt unavailable; live V2 turn continues unchanged: "
+                  + providerErrorSummary(shadowContextError));
+              shadowContext = null;
+              shadowPrompt = null;
+            }
+          }
           JSONObject proposal = new JSONObject();
           if (prepared.optBoolean("proposalRequired", false) && cached == null) {
             try {
@@ -936,6 +1048,11 @@ public class MainActivity extends Activity {
           if (CombatChoiceEngine.isKnownEntity(newEncounter)) {
             state = new JSONObject(
                 gameCore.startCombatRuntime(newEncounter, log.length() - 1));
+          }
+
+          if (BuildConfig.DEBUG && shadowContext != null && shadowPrompt != null
+              && committedBeforeNarration != null) {
+            scheduleShadowPlanner(shadowContext, shadowPrompt, committedBeforeNarration, selected);
           }
 
           if (BuildConfig.DEBUG) {

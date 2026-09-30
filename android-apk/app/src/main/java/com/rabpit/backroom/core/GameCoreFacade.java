@@ -274,6 +274,53 @@ public final class GameCoreFacade implements AutoCloseable {
     return output.toString();
   }
 
+  /**
+   * Phase-2 read-only envelope for the shadow GM planner. The returned snapshot is copied from
+   * authoritative live state, omits the narrative log for prompt budget, and cannot commit.
+   */
+  public synchronized String shadowPlannerContext(String turnId) {
+    JSONObject persisted = parseState(liveStateJson);
+    JSONObject output = new JSONObject();
+    try {
+      PreparedTurn prepared = preparedTurns.get(turnId);
+      if (prepared == null) {
+        return output.put("available", false).put("reason", "turn_attempt_missing").toString();
+      }
+      String liveHash = fingerprint(persisted);
+      if (!prepared.baseHash.equals(liveHash)
+          || emergentTurnEngine.stateVersion(persisted) != prepared.preTurnStateVersion) {
+        return output.put("available", false).put("reason", "stale_turn_attempt").toString();
+      }
+
+      JSONObject snapshot = clientSafeState(persisted);
+      snapshot.remove("log");
+      JSONObject draws = new JSONObject();
+      for (TurnRng.Scope scope : TurnRng.Scope.values()) {
+        draws.put(scope.name(), prepared.rng.drawsUsed(scope));
+      }
+      JSONObject rngContext = new JSONObject()
+          .put("turnId", prepared.turnId)
+          .put("preTurnStateVersion", prepared.preTurnStateVersion)
+          .put("canonVersion", EmergentTurnEngine.CANON_VERSION)
+          .put("rngSchemaVersion", EmergentTurnEngine.RNG_SCHEMA_VERSION)
+          .put("drawsUsed", draws);
+
+      return output.put("available", true)
+          .put("schemaVersion", GmTransactionContract.SCHEMA_VERSION)
+          .put("turnId", prepared.turnId)
+          .put("baseStateHash", prepared.baseHash)
+          .put("action", prepared.action)
+          .put("stateSnapshot", snapshot)
+          .put("rngContext", rngContext)
+          .toString();
+    } catch (Exception e) {
+      try {
+        output.put("available", false).put("reason", safeMessage(e));
+      } catch (Exception ignored) {}
+      return output.toString();
+    }
+  }
+
   public synchronized String completePreparedTurn(String turnId, String proposalJson) {
     JSONObject persisted = parseState(liveStateJson);
     try {

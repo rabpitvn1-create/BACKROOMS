@@ -1,6 +1,6 @@
 # GM Transaction Rollout
 
-Status: PHASE 1 — CONTRACT FROZEN, NOT WIRED TO LIVE GAMEPLAY
+Status: PHASE 2 — SHADOW GM PLANNER ACTIVE IN DEBUG; V2 REMAINS AUTHORITATIVE
 
 This rollout preserves the current V2 Core/save/runtime while reintroducing GM planning authority in controlled stages. No phase may skip the transaction boundary.
 
@@ -56,10 +56,20 @@ The GM Planner receives:
 
 It emits a transaction proposal only. The proposal is validated and logged but never committed. CI and debug builds compare planner proposals against the V2 outcome.
 
+Implemented in Phase 2:
+- `GameCoreFacade.shadowPlannerContext()` exposes a copied, read-only pre-commit state snapshot/hash plus deterministic RNG identity and draw counters.
+- `GmShadowPlanner` builds a bounded prompt from Core contexts, canon retrieval and the actor knowledge projection.
+- Debug builds run the planner asynchronously only after the normal V2 turn has committed and narrated, so provider failure or invalid planner output cannot delay, reroll or mutate the live turn.
+- Accepted shadow proposals are cached by a deterministic planner key; the same turn context reuses the same accepted proposal rather than asking the provider to re-plan.
+- Structural schema is strict and fail-closed; raw state/json-patch fields are rejected.
+- Shadow telemetry compares proposed command types with the V2 top-level state delta and selected situation using hashes/keys only, not raw canon or raw state logs.
+- Current scope is prepared explorer turns. Query-only and combat-runtime paths remain fully deterministic and are not shadow-planned in this phase.
+
 Exit gate:
 - zero direct-state mutation by planner;
-- deterministic replay for the same turn;
-- proposal schema violations fail closed.
+- deterministic replay for the same turn context through proposal reuse;
+- proposal schema violations fail closed;
+- existing V2 Android tests/build remain green.
 
 ## Phase 3 — Typed command authority adapters
 
