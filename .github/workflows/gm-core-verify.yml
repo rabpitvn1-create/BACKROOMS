@@ -3,7 +3,12 @@ name: Verify GM Core Restoration
 on:
   push:
     branches:
+      - main
       - feature/gm-ai-core-restoration
+    paths:
+      - "android-apk/**"
+      - ".github/scripts/**"
+      - ".github/workflows/gm-core-verify.yml"
   pull_request:
     branches:
       - main
@@ -17,19 +22,35 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate patch graph
+        run: python3 android-apk/tools/patchctl.py validate
+
+      - name: Apply patch profile
+        run: |
+          python3 android-apk/tools/patchctl.py apply full
+          cat android-apk/build/generated/patch-report.json
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
+
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.10.2'
+
       - name: Check web assets
         run: |
           node --check android-apk/app/src/main/assets/gm-choice-ui.js
           node --check android-apk/app/src/main/assets/player-action-ui.js
           node --check android-apk/app/src/main/assets/snapshot-ui.js
           node --test android-apk/tests/gm-choice-ui.test.cjs android-apk/tests/player-action-gm-contract.test.cjs android-apk/tests/viewport-layout.test.cjs
+
       - name: Test and build Android
         working-directory: android-apk
         run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
