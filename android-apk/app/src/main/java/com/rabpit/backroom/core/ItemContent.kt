@@ -18,6 +18,7 @@ object ItemContentRules {
   fun hasForbiddenPreciseAmount(text: String): Boolean = forbiddenPreciseAmount.containsMatchIn(text)
 
   fun normalize(item: ItemStack): ItemStack {
+    V2ItemCatalog.normalize(item)?.let { return it }
     val profile = profileFor(item.name, item.archetypeId)
     if (profile == null) {
       return item.copy(contentState = ContentState.NONE, metadata = item.metadata - "remainingContent" - "contentAmount" - "contentPercent")
