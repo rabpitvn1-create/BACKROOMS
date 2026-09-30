@@ -1,16 +1,26 @@
 # BACKROOMS Android Text Game
 
-Game chạy độc lập trong APK Android. Giao diện WebView, canon, ảnh Level, character data, Game State Core và save đều được đóng gói hoặc lưu cục bộ trên thiết bị; dự án không còn runtime web/Next.js.
+Game chạy độc lập trong APK Android. Giao diện vẫn dùng WebView/HTML/JavaScript vì đó là UI của game; phần Android native, Game State Core và đường build APK đã được chuẩn hóa sang Java 17, không còn Kotlin, Python hay LiteRT trong runtime/build path.
 
 ## Runtime chính
 
-- `android-apk/app/src/main/assets/index.html`: giao diện text game.
+Thiết kế và quy trình mở rộng Markdown canon: [Canon Retriever contract](android-apk/CANON_RETRIEVER_README.md).
+
+- `android-apk/app/src/main/assets/index.html`: giao diện text game chạy trong WebView.
 - `android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java`: Android/WebView bridge và AI orchestration.
-- `android-apk/app/src/main/java/com/rabpit/backroom/core/`: Game State Core, inventory, party, continuity và save migration.
-- `android-apk/app/src/main/assets/knowledge/knowledge_db.json`: knowledge database có provenance từ nguồn Drive.
-- `.github/workflows/build-backroom-apk.yml`: test, build, emulator launch smoke test và phát hành APK.
+- `android-apk/app/src/main/java/com/rabpit/backroom/core/`: Game State Core thuần Java, kiểm tra state/inventory/party và save cục bộ.
+- `android-apk/app/src/main/assets/knowledge/knowledge_db.json`: knowledge database đóng gói trong APK.
+- `.github/workflows/build-backroom-apk.yml`: kiểm tra Java-only baseline, test, build và phát hành APK.
+
+## Phiên bản hiện tại
+
+**Backroom 1.1.68** (`versionCode 112`). Chuẩn bị trước một tầng A/B/C trong một lần gọi Gemini, chuyển sang lưu thủ công và chỉnh font GAME MASTER.
+
+APK debug và ghi chú phiên bản được phát hành tại [GitHub Releases](https://github.com/rabpitvn1-create/BACKROOMsV2/releases). Xem [ghi chú 1.1.68](android-apk/RELEASE_NOTES_1.1.68.txt) để biết các thay đổi.
 
 ## Build cục bộ
+
+Yêu cầu JDK 17 và Gradle 8.10.2 hoặc tương thích với Android Gradle Plugin đang cấu hình.
 
 ```bash
 cd android-apk
