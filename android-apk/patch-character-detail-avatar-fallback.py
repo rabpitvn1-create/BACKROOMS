@@ -52,15 +52,13 @@ final_engines = (ROOT / "app/src/main/java/com/rabpit/backroom/core/Engines.kt")
 final_tests = (ROOT / "app/src/test/java/com/rabpit/backroom/core/MadGodEquipmentTest.kt").read_text(encoding="utf-8")
 
 for marker in (
-    'id="searchActionButton"', 'id="submit"', 'id="exploreActionButton"',
+    'id="searchActionButton"', 'id="combatMiddleButton"', 'id="exploreActionButton"',
+    'id="playerActionOpen"', 'id="playerActionModal"', 'id="submit"',
     'submitMacroAction("SEARCH","Tìm kiếm")', 'submitMacroAction("EXPLORE","Khám phá")',
-    'STEP2_THREE_ACTIONS', 'madGodSetEquipped()', "return ['MadGod Set','Omnivault Ring']",
+    'STEP2_V2_ACTION_LAYOUT', 'madGodSetEquipped()', "return ['MadGod Set','Omnivault Ring']",
 ):
     if marker not in final_html:
         raise RuntimeError(f"1.1.58 final UI contract missing: {marker}")
-if '<button id="submit">THỰC HIỆN</button>' in final_html:
-    raise RuntimeError("1.1.58 still contains legacy single Execute button")
-
 for marker in (
     '@JavascriptInterface public void submitAction(String stateJson, String actionKind, String action)',
     '.beginAction(stateJson, actionKind, action)', 'SEARCH HARD LOCK:', 'EXPLORE HARD LOCK:',
@@ -103,4 +101,4 @@ for marker in (
     if marker not in final_tests:
         raise RuntimeError(f"1.1.58 MadGod runtime regression test missing: {marker}")
 
-print("Final 1.1.58 contract verified: MadGod typed equip reaches core, overwrites Kai weapon+armor, syncs avatar/overlay/UI, preserves ring.")
+print("Final 1.1.58 contract verified: V2 shell keeps PLAYER ACTION separate, Search/Explore occupy the GM choice area, and MadGod/runtime contracts remain intact.")

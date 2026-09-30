@@ -87,7 +87,8 @@ jobs:
 
           required = [
               ("versionCode 65", gradle), ("versionName '1.1.63'", gradle),
-              ('id="searchActionButton"', html), ('id="exploreActionButton"', html), ('STEP2_THREE_ACTIONS', html),
+              ('id="searchActionButton"', html), ('id="combatMiddleButton"', html), ('id="exploreActionButton"', html),
+              ('id="playerActionOpen"', html), ('id="playerActionModal"', html), ('STEP2_V2_ACTION_LAYOUT', html),
               ('madGodSetEquipped()', html), ('id="equipmentDetailModal"', html), ('window.renderCharacterStatusEquipment=render;', html),
               ('id="characterSkillsModal"', html), ("button.id='characterSkillsButton'", html), ('function openSkills()', html),
               ('const val CHEAT_CODE = "/madgod"', madgod), ('const val MADGOD_SET_ID = "madgod:set"', madgod),
@@ -198,6 +199,8 @@ jobs:
           unzip -q Backroom-1.1.63.apk 'assets/index.html' 'assets/entity/*' 'assets/Kai_MadGod_snapshot_overlay.png' 'assets/avatars/MadGod.jpg' -d apk-check
           grep -q 'searchActionButton' apk-check/assets/index.html
           grep -q 'exploreActionButton' apk-check/assets/index.html
+          grep -q 'playerActionOpen' apk-check/assets/index.html
+          grep -q 'playerActionModal' apk-check/assets/index.html
           grep -q 'madGodSetEquipped' apk-check/assets/index.html
           grep -q 'equipmentDetailModal' apk-check/assets/index.html
           grep -q 'renderCharacterStatusEquipment' apk-check/assets/index.html

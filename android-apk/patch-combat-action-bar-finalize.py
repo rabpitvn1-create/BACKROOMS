@@ -34,7 +34,6 @@ if MARKER not in html:
 (function(){
   const normalButtons={
     search:{label:'Tìm kiếm',aria:'Tìm kiếm',icon:'<svg class="action-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="5.5"></circle><path d="M14.7 14.7 20 20"></path></svg>'},
-    execute:{label:'Thực hiện',aria:'Thực hiện',icon:'<svg class="action-icon ai-action-icon" viewBox="0 0 28 24" aria-hidden="true"><path d="M3.5 5.5A2.5 2.5 0 0 1 6 3h11a2.5 2.5 0 0 1 2.5 2.5v7A2.5 2.5 0 0 1 17 15H6a2.5 2.5 0 0 1-2.5-2.5z"></path><text x="7" y="11.8">AI</text><path class="spark" d="M22 2v5m-2.5-2.5h5M23.5 9v3m-1.5-1.5h3"></path></svg>'},
     explore:{label:'Khám phá',aria:'Khám phá',icon:'<svg class="action-icon footprint-icon" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="8" cy="8" rx="3" ry="4.2" transform="rotate(-20 8 8)"></ellipse><ellipse cx="15.8" cy="15.5" rx="3" ry="4.2" transform="rotate(18 15.8 15.5)"></ellipse><circle cx="5.2" cy="3.4" r="1"></circle><circle cx="18.5" cy="10.3" r="1"></circle></svg>'}
   };
   const combatButtons={
@@ -47,20 +46,20 @@ if MARKER not in html:
   function byCombatId(id){return document.getElementById(id);}
   function setButton(el,spec){if(!el)return;el.setAttribute('aria-label',spec.aria);el.innerHTML=spec.icon+'<span>'+spec.label+'</span>';}
   function renderCombatActionBar(){
-    var row=byCombatId('primaryActionRow'),left=byCombatId('searchActionButton'),middle=byCombatId('submit'),right=byCombatId('exploreActionButton');
+    var row=byCombatId('primaryActionRow'),left=byCombatId('searchActionButton'),middle=byCombatId('combatMiddleButton'),right=byCombatId('exploreActionButton'),playerAction=byCombatId('playerActionOpen');
     if(!row||!left||!middle||!right)return;
     var active=combatActive();
     row.classList.toggle('combat-actions',active);
     if(active){
+      middle.hidden=false;
       setButton(left,combatButtons.attack);setButton(middle,combatButtons.evade);setButton(right,combatButtons.flee);
       left.dataset.combatAction='attack';middle.dataset.combatAction='evade';right.dataset.combatAction='flee';
-      middle.type='button';
       var locked=typeof busy!=='undefined'&&busy;
-      left.disabled=locked;middle.disabled=locked;right.disabled=locked;
+      left.disabled=locked;middle.disabled=locked;right.disabled=locked;if(playerAction)playerAction.disabled=true;
     }else{
-      setButton(left,normalButtons.search);setButton(middle,normalButtons.execute);setButton(right,normalButtons.explore);
+      setButton(left,normalButtons.search);setButton(right,normalButtons.explore);
       delete left.dataset.combatAction;delete middle.dataset.combatAction;delete right.dataset.combatAction;
-      middle.type='submit';
+      middle.hidden=true;middle.innerHTML='';
       if(typeof syncPrimaryActions==='function')syncPrimaryActions();
     }
   }
@@ -81,7 +80,7 @@ if MARKER not in html:
     return true;
   }
   function interceptCombatClick(ev){
-    var target=ev.target&&ev.target.closest?ev.target.closest('#searchActionButton,#submit,#exploreActionButton'):null;
+    var target=ev.target&&ev.target.closest?ev.target.closest('#searchActionButton,#combatMiddleButton,#exploreActionButton'):null;
     if(!target||!combatActive())return;
     ev.preventDefault();ev.stopImmediatePropagation();
     var key=target.dataset.combatAction;
