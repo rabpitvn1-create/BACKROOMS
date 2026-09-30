@@ -2,11 +2,6 @@ name: Build Backroom APK
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - "android-apk/**"
-      - ".github/workflows/build-backroom-apk.yml"
 
 permissions:
   contents: write
