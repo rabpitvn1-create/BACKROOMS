@@ -1,0 +1,630 @@
+{
+  "schemaVersion": 1,
+  "rollMode": "independent_per_entity",
+  "source": "01_WORLD/entity.md — BACKROOMS-ENTITY-R4 CURRENT / PROJECT CANON",
+  "rules": {
+    "minimumRatePercent": 3,
+    "maximumRatePercent": 3.5,
+    "sharedPool": false,
+    "maxActiveEncounters": 1,
+    "legacyOverlayOnlyKeys": [
+      "jane_the_killer",
+      "slenderman",
+      "diep_minh"
+    ],
+    "roamingAllLevels": true,
+    "canonLevelRestrictionsApplied": false,
+    "levelMetadataMeaning": "reference_only_not_runtime_eligibility",
+    "entitySkillProcPolicy": "Each skill rolls independently once per valid Entity response; if none proc, use the normal basic attack.",
+    "treasureMaximumRatePercent": 4,
+    "treasurePriorityBeforeStandardPool": true
+  },
+  "entities": [
+    {
+      "key": "hound",
+      "name": "Hound",
+      "ratePercent": 3.5,
+      "levels": [
+        1,
+        2,
+        4,
+        5
+      ],
+      "canon": "Fast aggressive four-limbed predator. Hunts humans, often in groups, and exploits isolation, injury and constrained routes.",
+      "autoProcSkills": [
+        {
+          "name": "Dead Bite",
+          "damagePercent": 120,
+          "procPercent": 35
+        },
+        {
+          "name": "Rending Pounce",
+          "damagePercent": 115,
+          "procPercent": 32
+        },
+        {
+          "name": "Pack Maul",
+          "damagePercent": 110,
+          "procPercent": 34
+        }
+      ]
+    },
+    {
+      "key": "clump",
+      "name": "Clump",
+      "ratePercent": 3.5,
+      "levels": [
+        1,
+        2
+      ],
+      "canon": "Mass of limbs and muscle that ambushes from dark recesses, technical gaps and crawlspaces and drags humans out of formation.",
+      "autoProcSkills": [
+        {
+          "name": "Grasping Crush",
+          "damagePercent": 120,
+          "procPercent": 34
+        },
+        {
+          "name": "Limb Barrage",
+          "damagePercent": 115,
+          "procPercent": 35
+        },
+        {
+          "name": "Drag Down",
+          "damagePercent": 110,
+          "procPercent": 31
+        }
+      ]
+    },
+    {
+      "key": "duller",
+      "name": "Duller",
+      "ratePercent": 3.25,
+      "levels": [
+        1
+      ],
+      "canon": "Distorted humanoid Entity that watches before approaching and exploits concrete-column blind spots.",
+      "autoProcSkills": [
+        {
+          "name": "Blindside Strike",
+          "damagePercent": 125,
+          "procPercent": 33
+        },
+        {
+          "name": "Distorted Lunge",
+          "damagePercent": 115,
+          "procPercent": 35
+        },
+        {
+          "name": "Column Ambush",
+          "damagePercent": 120,
+          "procPercent": 30
+        }
+      ]
+    },
+    {
+      "key": "deathmoth",
+      "name": "Deathmoth",
+      "ratePercent": 3.4,
+      "levels": [
+        1,
+        3,
+        4
+      ],
+      "canon": "Large moth-like predator that uses dark ceilings and technical recesses and reacts to light and movement.",
+      "autoProcSkills": [
+        {
+          "name": "Ceiling Dive",
+          "damagePercent": 110,
+          "procPercent": 31
+        },
+        {
+          "name": "Wing Strike",
+          "damagePercent": 115,
+          "procPercent": 32
+        },
+        {
+          "name": "Dark Recess Ambush",
+          "damagePercent": 120,
+          "procPercent": 23
+        }
+      ]
+    },
+    {
+      "key": "hostile_faceling",
+      "name": "Hostile Faceling",
+      "ratePercent": 3.2,
+      "levels": [
+        1
+      ],
+      "canon": "Human-shaped faceless predator. Apparent human-like behavior only reduces vigilance before it hunts.",
+      "autoProcSkills": [
+        {
+          "name": "Sudden Grasp",
+          "damagePercent": 110,
+          "procPercent": 35
+        },
+        {
+          "name": "Close-Quarters Strike",
+          "damagePercent": 115,
+          "procPercent": 26
+        },
+        {
+          "name": "Predatory Lunge",
+          "damagePercent": 120,
+          "procPercent": 27
+        }
+      ]
+    },
+    {
+      "key": "false_puddle",
+      "name": "False Puddle",
+      "ratePercent": 3.15,
+      "levels": [
+        1
+      ],
+      "canon": "Predator mimicking a flat puddle of Almond Water. It reacts to human footsteps and opens a toothed mouth when prey steps on it.",
+      "autoProcSkills": [
+        {
+          "name": "Toothed Snap",
+          "damagePercent": 110,
+          "procPercent": 31
+        },
+        {
+          "name": "Footstep Ambush",
+          "damagePercent": 115,
+          "procPercent": 27
+        },
+        {
+          "name": "Puddle Bite",
+          "damagePercent": 120,
+          "procPercent": 25
+        }
+      ]
+    },
+    {
+      "key": "paintings",
+      "name": "Paintings",
+      "ratePercent": 3.1,
+      "levels": [
+        1
+      ],
+      "canon": "Predatory paintings whose depicted beings can watch, reach beyond the surface and pull victims into the image.",
+      "autoProcSkills": [
+        {
+          "name": "Canvas Reach",
+          "damagePercent": 110,
+          "procPercent": 33
+        },
+        {
+          "name": "Frame Ambush",
+          "damagePercent": 115,
+          "procPercent": 27
+        },
+        {
+          "name": "Pulling Grasp",
+          "damagePercent": 120,
+          "procPercent": 21
+        }
+      ]
+    },
+    {
+      "key": "smiler",
+      "name": "Smiler",
+      "ratePercent": 3.4,
+      "levels": [
+        2
+      ],
+      "canon": "Darkness-using predator seen mainly as a bright face-like feature. It can pressure prey into choosing a bad route rather than charging immediately.",
+      "autoProcSkills": [
+        {
+          "name": "Darkness Lunge",
+          "damagePercent": 110,
+          "procPercent": 32
+        },
+        {
+          "name": "Blindside Strike",
+          "damagePercent": 115,
+          "procPercent": 26
+        },
+        {
+          "name": "Shadow Bite",
+          "damagePercent": 120,
+          "procPercent": 23
+        }
+      ]
+    },
+    {
+      "key": "skin-stealer",
+      "name": "Skin-Stealer",
+      "ratePercent": 3.25,
+      "levels": [
+        2,
+        3,
+        4,
+        5
+      ],
+      "canon": "Human-mimicking predator capable of deep disguise and long infiltration. Human appearance never proves a contact is human.",
+      "autoProcSkills": [
+        {
+          "name": "Disguised Strike",
+          "damagePercent": 110,
+          "procPercent": 32
+        },
+        {
+          "name": "Close-Range Slash",
+          "damagePercent": 115,
+          "procPercent": 29
+        },
+        {
+          "name": "Ambush Lunge",
+          "damagePercent": 120,
+          "procPercent": 21
+        }
+      ]
+    },
+    {
+      "key": "predatory_window",
+      "name": "Predatory Window",
+      "ratePercent": 3.1,
+      "levels": [
+        2,
+        4,
+        5
+      ],
+      "canon": "A window-like predatory manifestation in impossible locations that lures humans close and can reach through an unreliable apparent space.",
+      "autoProcSkills": [
+        {
+          "name": "Window Reach",
+          "damagePercent": 110,
+          "procPercent": 34
+        },
+        {
+          "name": "Threshold Grasp",
+          "damagePercent": 115,
+          "procPercent": 28
+        },
+        {
+          "name": "Close-Range Pull",
+          "damagePercent": 120,
+          "procPercent": 25
+        }
+      ]
+    },
+    {
+      "key": "biological_pipeline",
+      "name": "Biological Pipeline",
+      "ratePercent": 3,
+      "levels": [
+        2
+      ],
+      "canon": "Huge organic/mechanical pipeline-like predator that senses vibration and heat, offers false safe routes, traps retreat and can secrete tissue-corrosive alkaline liquid.",
+      "autoProcSkills": [
+        {
+          "name": "Constriction",
+          "damagePercent": 110,
+          "procPercent": 33
+        },
+        {
+          "name": "Pipeline Crush",
+          "damagePercent": 115,
+          "procPercent": 30
+        },
+        {
+          "name": "Corrosive Contact",
+          "damagePercent": 120,
+          "procPercent": 20
+        }
+      ]
+    },
+    {
+      "key": "wretch",
+      "name": "Wretch",
+      "ratePercent": 3.3,
+      "levels": [
+        3
+      ],
+      "canon": "Irregular, pain-tolerant predator believed or suspected to have once been human. It tracks prey through sound and scent.",
+      "autoProcSkills": [
+        {
+          "name": "Ragged Swipe",
+          "damagePercent": 110,
+          "procPercent": 32
+        },
+        {
+          "name": "Pain-Fueled Lunge",
+          "damagePercent": 115,
+          "procPercent": 27
+        },
+        {
+          "name": "Scent-Tracked Strike",
+          "damagePercent": 120,
+          "procPercent": 22
+        }
+      ]
+    },
+    {
+      "key": "cable_mimic",
+      "name": "Cable Mimic",
+      "ratePercent": 3.2,
+      "levels": [
+        3
+      ],
+      "canon": "Entity that blends into electrical cable bundles, waits motionless, then wraps limbs and can conduct facility current through a victim.",
+      "autoProcSkills": [
+        {
+          "name": "Cable Lash",
+          "damagePercent": 110,
+          "procPercent": 35
+        },
+        {
+          "name": "Bundle Constriction",
+          "damagePercent": 115,
+          "procPercent": 29
+        },
+        {
+          "name": "Current-Driven Grip",
+          "damagePercent": 120,
+          "procPercent": 28
+        }
+      ]
+    },
+    {
+      "key": "the_beast_of_level_5",
+      "name": "The Beast of Level 5",
+      "ratePercent": 3,
+      "levels": [
+        5
+      ],
+      "canon": "Apex Level 5 Entity with above-human intelligence that hunts humans through long observation, isolation and manipulation of hotel architecture.",
+      "autoProcSkills": [
+        {
+          "name": "Cornered Strike",
+          "damagePercent": 110,
+          "procPercent": 33
+        },
+        {
+          "name": "Isolated Prey Ambush",
+          "damagePercent": 115,
+          "procPercent": 32
+        },
+        {
+          "name": "Hotel Corridor Lunge",
+          "damagePercent": 120,
+          "procPercent": 21
+        }
+      ]
+    },
+    {
+      "key": "hotel_corpse_lure",
+      "name": "Hotel Corpse Lure",
+      "ratePercent": 3,
+      "levels": [
+        5
+      ],
+      "canon": "Level 5 corpse-lure phenomenon or Entity that can preserve heat, voice, movement or useful-looking clues to draw humans closer.",
+      "autoProcSkills": [
+        {
+          "name": "Corpse-Lure Grasp",
+          "damagePercent": 110,
+          "procPercent": 35
+        },
+        {
+          "name": "Close-Range Ambush",
+          "damagePercent": 115,
+          "procPercent": 28
+        },
+        {
+          "name": "Sudden Strike",
+          "damagePercent": 120,
+          "procPercent": 20
+        }
+      ]
+    },
+    {
+      "key": "jeff_the_killer",
+      "name": "Jeff the Killer",
+      "ratePercent": 3,
+      "levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "canon": "Very rare roaming humanoid predator permitted as an incursion across Levels 0–6. It hunts humans and may conduct long tactical observation.",
+      "autoProcSkills": [
+        {
+          "name": "Stalking Slash",
+          "damagePercent": 110,
+          "procPercent": 34
+        },
+        {
+          "name": "Close-Range Lunge",
+          "damagePercent": 115,
+          "procPercent": 29
+        },
+        {
+          "name": "Tactical Ambush",
+          "damagePercent": 120,
+          "procPercent": 23
+        }
+      ]
+    },
+    {
+      "key": "async_rifleman",
+      "name": "ASYNC Rifleman",
+      "faction": "ASYNC",
+      "ratePercent": 3,
+      "levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "canon": "Hostile ASYNC hazmat rifle operator. Uses disciplined mid-range bursts, cover and coordinated crossfire; avoids reckless charges when a firing position is available.",
+      "autoProcSkills": [
+        {
+          "name": "Controlled Burst",
+          "damagePercent": 110,
+          "procPercent": 32
+        },
+        {
+          "name": "Cover Fire",
+          "damagePercent": 115,
+          "procPercent": 32
+        },
+        {
+          "name": "Crossfire Burst",
+          "damagePercent": 120,
+          "procPercent": 28
+        }
+      ]
+    },
+    {
+      "key": "copx",
+      "name": "CopX",
+      "ratePercent": 3,
+      "levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "canon": "CopX is a corroded late-1980s security automaton, its ivory armor split around exposed servos and a handgun still held in a rigid right arm. Broken evacuation orders leak from its speaker before it identifies moving humans as intruders. It holds long sightlines, fires short measured bursts, then turns stiffly toward movement; cover and sudden changes of angle can break its aim. Its ammunition and sensors are finite, its joints can jam, and it cannot teleport, see through walls or enforce real authority. Sightings since 1987 do not prove that every CopX is the same machine. It is hostile to humans; apparent warnings are degraded threat signals, never a promise of rescue. Defeating one chassis ends that encounter, not necessarily every future sighting.",
+      "autoProcSkills": [
+        {
+          "name": "Static Burst",
+          "damagePercent": 110,
+          "procPercent": 30
+        },
+        {
+          "name": "Servo Pivot",
+          "damagePercent": 115,
+          "procPercent": 25
+        },
+        {
+          "name": "Last Directive",
+          "damagePercent": 120,
+          "procPercent": 20
+        }
+      ]
+    },
+    {
+      "key": "tam_ma_cao_minh",
+      "name": "Tâm Ma Cao Minh",
+      "spawnClass": "treasure",
+      "ratePercent": 4,
+      "levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "canon": "A rare hostile mirror-manifestation of Cao Minh. It resembles and echoes Cao Minh but acts as an independent predatory Entity; its exact origin remains unresolved. Treat it as a roaming Treasure Entity, not a resident population.",
+      "autoProcSkills": [
+        {
+          "name": "Tâm Ma Trảm",
+          "damagePercent": 120,
+          "procPercent": 35
+        },
+        {
+          "name": "Huyết Ảnh Phản Kích",
+          "damagePercent": 115,
+          "procPercent": 40
+        },
+        {
+          "name": "Ma Hổ Phệ",
+          "damagePercent": 110,
+          "procPercent": 45
+        }
+      ]
+    }
+  ],
+  "legacyEntities": [
+    {
+      "key": "diep_minh",
+      "name": "Diệp Minh",
+      "asset": "entity/diep_minh.webp",
+      "autoSpawn": false,
+      "canonRefs": [
+        "DIEP-MINH-VIS-01",
+        "DIEP-MINH-CAO-REL-01",
+        "DIEP-MINH-BACKROOMS-01"
+      ],
+      "canon": "Diệp Minh là tử địch không đội trời chung của Cao Minh. Hắn từng trực tiếp góp phần vào đại kiếp thảm sát Cao gia, biến cố đã đẩy Cao Minh vào tuyệt vọng và trở thành một nguyên nhân quyết định khiến hắn bước vào ma đạo; Diệp Minh không mặc định là chủ mưu duy nhất. Ngoại hình khóa theo entity/diep_minh.webp: nam tử trẻ tóc đen, pháp giáp đen-vàng; nửa phải còn hình người, nửa trái dị hóa thành ma thể đen-đỏ với hồng quang, tua nhánh và vuốt; tay phải cầm trường kiếm tỏa kim quang, quanh thân có phù vàng chữ đỏ và họa tiết âm dương/bát quái. Diệp Minh nguyên bản đã chết trước các lần xuất hiện trong Backrooms. Thực thể hiện tại nhận ra Cao Minh và giữ ký ức cốt lõi về huyết cừu, nhưng việc nó là tàn hồn, bản sao, tái tạo hay một cơ chế khác của Backrooms vẫn OPEN. Một manifestation có thể bị tiêu diệt nhưng không bị xóa vĩnh viễn; không có thời gian hoặc địa điểm tái xuất cố định.",
+      "autoProcSkills": [
+        {
+          "name": "Golden Sword Slash",
+          "damagePercent": 110,
+          "procPercent": 32
+        },
+        {
+          "name": "Demonic Claw",
+          "damagePercent": 115,
+          "procPercent": 32
+        },
+        {
+          "name": "Sword-Claw Assault",
+          "damagePercent": 120,
+          "procPercent": 21
+        }
+      ]
+    },
+    {
+      "key": "jane_the_killer",
+      "name": "Jane",
+      "autoSpawn": false,
+      "autoProcSkills": [
+        {
+          "name": "Stalking Strike",
+          "damagePercent": 110,
+          "procPercent": 33
+        },
+        {
+          "name": "Close-Range Slash",
+          "damagePercent": 115,
+          "procPercent": 27
+        },
+        {
+          "name": "Sudden Lunge",
+          "damagePercent": 120,
+          "procPercent": 25
+        }
+      ]
+    },
+    {
+      "key": "slenderman",
+      "name": "Slenderman",
+      "autoSpawn": false,
+      "autoProcSkills": [
+        {
+          "name": "Tendril Strike",
+          "damagePercent": 110,
+          "procPercent": 31
+        },
+        {
+          "name": "Tendril Sweep",
+          "damagePercent": 115,
+          "procPercent": 26
+        },
+        {
+          "name": "Looming Grasp",
+          "damagePercent": 120,
+          "procPercent": 21
+        }
+      ]
+    }
+  ]
+}

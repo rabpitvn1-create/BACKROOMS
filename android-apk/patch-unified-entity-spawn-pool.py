@@ -25,6 +25,7 @@ def schedule_after_healthbar() -> bool:
     healthbar = HEALTHBAR.read_text(encoding="utf-8")
     marker = 'runpy.run_path(str(ROOT / "patch-unified-entity-spawn-pool.py"), run_name="__main__")'
     boss_marker = 'runpy.run_path(str(ROOT / "patch-diep-minh-boss-finalize.py"), run_name="__main__")'
+    v2_marker = 'runpy.run_path(str(ROOT / "patch-v2-entity-system.py"), run_name="__main__")'
     if marker not in healthbar:
         healthbar = healthbar.rstrip() + (
             '\n\n# Final Entity authority pass. Run after status/equipment/visual-state patches so their anchors remain intact.\n'
@@ -37,6 +38,12 @@ def schedule_after_healthbar() -> bool:
         healthbar = healthbar.rstrip() + (
             '\n# Restore only Diệp Minh encounter priority after the unified pool rewrites the shared helper.\n'
             + boss_marker + '\n'
+        )
+        HEALTHBAR.write_text(healthbar, encoding="utf-8")
+    if v2_marker not in healthbar:
+        healthbar = healthbar.rstrip() + (
+            '\n# Final V2 Entity authority: independent rates, WebP-first overlays, legacy-rate fallback.\n'
+            + v2_marker + '\n'
         )
         HEALTHBAR.write_text(healthbar, encoding="utf-8")
     print("Unified Entity spawn pool scheduled after the final health/status/visual patch stack; Diệp Minh encounter finalizer scheduled immediately after it.")
