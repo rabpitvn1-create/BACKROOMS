@@ -111,7 +111,7 @@ jobs:
               ('recordLevelProgress(state, oldLevel, newLevel)', java),
               ('partyDetails&&state.partyDetails.members', java),
               ('rolls.put("roamingEntityKey"', java), ('file:///android_asset/entity/', java),
-              ('"hotel_corpse_lure","jeff_the_killer","jane_the_killer","slenderman"', java),
+              ('ENTITY V2 SPAWN HARD LOCK:', java), ('entity:async_rifleman', java),
               ('String entityKey = rolls.optString("roamingEntityKey", "").trim();', java),
               ('requireGameCore().startCombatState(candidateState.toString(), canonicalKey);', java),
               ("function activeEntityKey(){var c=state&&state.combat;if(!c||c.active!==true)return '';return normalizeEntityKey(c.entityKey);}", java),
