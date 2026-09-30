@@ -43,14 +43,12 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
-      - name: Apply Entity Core runtime
+      - name: Apply patch profile
         run: |
           set -euo pipefail
-          if grep -Fq 'new EntityCore(appContext)' android-apk/app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.java; then
-            echo 'Entity Core runtime already connected.'
-          else
-            python3 .github/scripts/apply-entity-core-runtime.py
-          fi
+          python3 android-apk/tools/patchctl.py validate
+          python3 android-apk/tools/patchctl.py apply full
+          cat android-apk/build/generated/patch-report.json
 
       - name: Commit Entity Core runtime
         run: |
