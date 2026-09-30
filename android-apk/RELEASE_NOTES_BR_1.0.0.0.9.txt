@@ -1,0 +1,6 @@
+BR 1.0.0.0.9
+
+- Cập nhật regression test Story loading để xác nhận hourglass WebP từ `story_choice_hourglass_backrooms.webp`.
+- Sửa luồng recovery khi Story provider lỗi: lần lỗi đầu tự retry mà không hiển thị lỗi/scroll GM sai; lỗi lặp lại mới chuyển sang nút retry thủ công.
+- Điều chỉnh nền loading Story tối hơn để tăng độ đọc của overlay trong WebView.
+- Tăng versionCode từ 106 lên 107 để Android nhận đây là bản cập nhật mới.

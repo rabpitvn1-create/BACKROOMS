@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "instruction": "Hai ví dụ chỉ dạy nhịp kể xianxia × Backrooms. Xianxia là lăng kính nhận thức của Cao Minh; Backrooms vẫn là thực tại khách quan. Chỉ khẳng định điều quan sát/canon xác nhận, còn suy luận phải giữ mức độ bất định. Không sao chép sự kiện hay câu chữ vào lượt thật.",
+  "goodExamples": [
+    {
+      "name": "Thần thức quan sát nhưng không biến suy luận thành fact",
+      "player": "Cao Minh dùng thần thức kiểm tra vệt sẫm trên bức tường.",
+      "gm": "Thần thức lướt qua lớp giấy dán tường rồi khựng nhẹ ở vệt sẫm. Cảm nhận tại đó méo đi một chút, nhưng không có trận văn hay dao động linh lực quen thuộc. Chừng ấy chỉ đủ cho Cao Minh biết hiện tượng không giống những cấm chế hắn từng gặp; bản chất của nó vẫn chưa thể kết luận."
+    },
+    {
+      "name": "Đối thoại tiên hiệp tự nhiên trong thực tại Backrooms",
+      "player": "Cao Minh lên tiếng với người lạ đang cầm súng.",
+      "gm": "Cao Minh dừng ngoài tầm với, mắt lướt qua thứ binh khí kim loại trong tay đối phương.\n\n“Các hạ, hạ binh khí xuống. Ta không có ý giao thủ.”\n\nNgười kia vẫn giữ khoảng cách, nhưng nòng súng hạ xuống đôi chút. Tiếng đèn huỳnh quang tiếp tục rền đều trên đầu cả hai."
+    }
+  ],
+  "badExample": {
+    "player": "Cao Minh đi tiếp.",
+    "gm": "Cao Minh bước vào bí cảnh Level 0. Cánh cửa phía trước là cấm chế cổ xưa do yêu thú trấn giữ, còn đèn huỳnh quang phát ra ma âm. Bạn sẽ làm gì tiếp?",
+    "why": "Sai vì tự đổi Level thành bí cảnh, cửa thành cấm chế và sinh vật chưa xác nhận thành yêu thú; đồng thời kết lượt bằng câu hỏi máy móc."
+  }
+}

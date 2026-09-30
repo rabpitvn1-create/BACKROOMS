@@ -1,0 +1,12 @@
+Backroom 1.1.66
+
+- Thêm passive Ma Tôn cho Cao Minh: STR/DEF/SKL/VIT nhận +99 dưới dạng bonus riêng; UI hiển thị 5 (+99), progression và giá nâng Core vẫn dùng stat gốc.
+- Đổi font mặc định của game sang Pretendard Std (SIL OFL 1.1), đóng gói offline; Play vẫn giữ cho Character/thành phần đặc biệt.
+- Khôi phục Prologue đầy đủ của Cao Minh như opening độc lập; Prologue chạy trước vòng GM AI và không phục hồi StoryCore/chapter system.
+- Thay authored Story Core bằng gameplay do GM AI điều khiển.
+- A/B/C và PLAYER ACTION dùng chung một luồng GM AI qua submitTurn().
+- Giữ các Core hiện đại làm nguồn sự thật cho Level, Entity, Loot, Inventory, Party, Survival, Progression và Combat.
+- Xóa StoryCore, StoryRepository, Story decision/return journey/bootstrap/handoff, authored Story assets và Story-only NPC/visuals.
+- Save schema tăng lên 13; save cũ không được migrate và sẽ được reset theo kiến trúc mới.
+- Lục Trầm tạm thời được giữ ở trạng thái deferred; cơ chế thay Lucia sẽ xử lý ở phase riêng.
+- Thêm regression tests cho GM-driven narrative boundary, A/B/C và PLAYER ACTION.

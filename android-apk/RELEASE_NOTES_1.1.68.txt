@@ -1,0 +1,6 @@
+Backroom 1.1.68
+
+- GAME MASTER chuẩn bị nội dung cho ba lựa chọn A/B/C của đúng lượt kế tiếp bằng một lần gọi Gemini; Core tính trước từng nhánh trên bản sao state, không thay đổi game đang chơi.
+- Khi chọn nhánh đã sẵn sàng, narration được dùng ngay nếu state và outcome còn khớp. Hành động tự nhập hoặc nhánh chưa chuẩn bị xong vẫn dùng xử lý lượt bình thường.
+- Nút Lưu tạo checkpoint thủ công; nút Tải khôi phục checkpoint. Tiến độ chưa lưu không được giữ sau khi ứng dụng bị hủy.
+- Nhãn và narration GAME MASTER dùng font Play; giao diện của người chơi giữ font hiện tại.

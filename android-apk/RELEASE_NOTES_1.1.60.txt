@@ -1,6 +1,0 @@
-Backroom 1.1.60 Debug
-
-- MadGod Set được chuyển khỏi Inventory ngay khi trang bị thành công.
-- Permanent binding weapon + armor vẫn được giữ trong Equipment state.
-- Loại bỏ nhãn MadGod Set che phần đầu và giáp trên Snapshot overlay.
-- Thêm regression contract kiểm tra item đã equip không còn chiếm slot Inventory.

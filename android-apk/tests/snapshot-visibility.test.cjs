@@ -1,0 +1,76 @@
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const source=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/snapshot-ui.js'),'utf8');
+const geometry=require('../app/src/main/assets/snapshot-ui.js');
+function boot({unknown=false,unloaded=false,canvasContextMissing=false,stateOverride=null}={}){
+ const elements=[],styles=[],pending=[],warnings=[];let reads=0;
+ const box={clientWidth:350,clientHeight:250,appendChild(el){el.parentElement=this;elements.push(el);},querySelectorAll(selector){return elements.filter(e=>selector.includes('img.')&&e.tagName==='IMG'&&e.className.includes('snapshot-grounded'));}};
+ Object.defineProperty(box,'textContent',{set(){elements.length=0;}});
+ const document={readyState:'complete',head:{appendChild(el){styles.push(el.textContent);}},getElementById(id){return id==='snapshot'?box:null;},querySelectorAll(){return [];},createElement(tag){
+  if(tag==='canvas')return {getContext(){reads++;if(canvasContextMissing)return null;return {drawImage(){},getImageData(){throw new Error('SecurityError: canvas has been tainted by cross-origin data');}};}};
+  return {tagName:tag.toUpperCase(),style:{},dataset:{},className:'',complete:!unloaded,naturalWidth:0,naturalHeight:0,setAttribute(){},addEventListener(type,cb){if(type==='load')pending.push({el:this,cb});},set src(url){this.url=url;const m=geometry.assetMetric(url)||geometry.assetMetric('cao_minh_snapshot_overlay.png');this.naturalWidth=m.width;this.naturalHeight=m.height;},get src(){return this.url;}};
+ }};
+ const ctx={document,console:{warn(...args){warnings.push(args);}},localStorage:{removeItem(){}},setTimeout,clearTimeout,Image:function(){throw Error('Detached image preload must not gate overlays');},state:stateOverride||{flags:{},combat:{active:true,participants:[{id:'cao_minh'},{id:'luc_tram'}]}}};
+ ctx.window=ctx;ctx.addEventListener=()=>{};
+ vm.createContext(ctx);
+ let js=source;if(unknown)js=js.replaceAll('file:///android_asset/cao_minh_snapshot_overlay.png','file:///android_asset/unregistered.png');
+ vm.runInContext(js,ctx);
+ return {ctx,box,elements,styles,pending,warnings,reads:()=>reads};
+}
+function visible(img){assert.notEqual(img.style.visibility,'hidden');assert.ok(parseFloat(img.style.width)>0);assert.ok(parseFloat(img.style.height)>0);}
+test('bundled standing/combat/Entity render without any readable canvas or detached preloads',()=>{
+ const r=boot();visible(r.elements.find(e=>e.className.includes('snapshot-character')));
+ for(const actor of [0,1]){r.ctx.backroomSetCombatVisualActor(actor,'deathmoth');r.elements.filter(e=>e.className.includes('snapshot-grounded')).forEach(visible);}
+ assert.equal(r.reads(),0);assert.ok(!r.styles.join('').includes('visibility:hidden'));
+});
+test('unknown sprite remains visible when canvas throws SecurityError',()=>{
+ const r=boot({unknown:true});visible(r.elements.find(e=>e.className.includes('snapshot-character')));assert.equal(r.reads(),1);
+});
+test('unknown sprite remains visible when canvas context is unavailable',()=>{
+ const r=boot({unknown:true,canvasContextMissing:true});visible(r.elements.find(e=>e.className.includes('snapshot-character')));
+});
+test('late image load aligns independently, without waiting for other characters',()=>{
+ const r=boot({unloaded:true});assert.ok(r.pending.length>0);
+ for(const {el,cb} of r.pending){el.complete=true;cb();visible(el);}
+ assert.equal(r.reads(),0);
+});
+test('generated bounds exist for all registered overlays',()=>{
+ const assets=path.join(__dirname,'../app/src/main/assets');
+ const names=['cao_minh_snapshot_overlay.png','cao_minh_entity_overlay.png','luctram_overlay.png',...fs.readdirSync(path.join(assets,'entity')).filter(n=>n.endsWith('.webp')).map(n=>'entity/'+n)];
+ for(const name of names){const m=geometry.assetMetric('file:///android_asset/'+name),data=fs.readFileSync(path.join(assets,name));assert.ok(m,name);assert.ok(data.length>0,name);if(name.endsWith('.png')){assert.equal(m.width,data.readUInt32BE(16));assert.equal(m.height,data.readUInt32BE(20));}else{assert.ok(m.width>0&&m.height>0,name);}assert.ok(m.paint.right<=m.width&&m.body.bottom<=m.height);}
+});
+
+
+test('snapshot has no combat status icon HUD and uses smaller HP damage text',()=>{
+ assert.doesNotMatch(source,/combat-status-hud/);
+ assert.doesNotMatch(source,/__combatStatusIcons/);
+ assert.doesNotMatch(source,/android_asset\/status\/status_/);
+ assert.match(source,/\.combat-float\{[^}]*font-size:19px/);
+});
+
+test('combat floating overlay only accepts numeric HP damage',()=>{
+ assert.match(source,/if\(!\/\^-\\d\+ HP\$\/i\.test\(text\)\)return;/);
+ assert.doesNotMatch(source,/floater\.textContent=.*PROC/);
+});
+
+
+test('combat floating damage stays readable long enough on mobile',()=>{
+ assert.match(source,/animation:combat-float-up 1\.6s ease-out forwards/);
+ assert.match(source,/12%\{opacity:1\}80%\{opacity:1\}100%\{opacity:0/);
+ assert.match(source,/setTimeout\(function\(\)\{floater\.remove\(\);\},1800\)/);
+});
+
+
+test('simultaneous floating damage uses separate vertical lanes instead of one anchor',()=>{
+ assert.match(source,/querySelectorAll\('\.combat-float\[data-target="'\+target\+'"\]'\)\.length/);
+ assert.match(source,/floater\.dataset\.target=target/);
+ assert.match(source,/floater\.style\.top=\(anchor\.y-lane\*26\)\+'px'/);
+});
+
+
+
+
+test('snapshot runtime has no scripted NPC overlay hooks',()=>{
+ assert.doesNotMatch(source,/snapshot-npc|storyPrimaryNpc|__backroomStoryVisuals/);
+});

@@ -1,7 +1,0 @@
-Backroom 1.1.30
-
-- Sửa font giao diện ngoài khung chat không hiển thị trong APK do bị CSS gốc ghi đè.
-- Áp dụng MBF Space Habitat cho header, snapshot, status, sidebar, party, inventory và các nút điều khiển.
-- Giữ font hệ thống dễ đọc cho nội dung hội thoại và ô nhập hành động.
-- Font được nhúng cục bộ trong APK, không cần mạng để tải.
-- Tăng versionCode lên 32 để Android nhận đây là bản cập nhật mới thay vì nhầm với 1.1.29.
