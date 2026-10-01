@@ -30,6 +30,13 @@ final class EntityCore {
     loadRegistry(context);
   }
 
+  JSONObject presentation(String key) throws Exception {
+    EntityDefinition entity = entities.get(key);
+    LegacyEntityDefinition legacy = legacyEntities.get(key);
+    JSONObject data = entity != null ? entity.presentation : legacy == null ? null : legacy.presentation;
+    return data == null ? new JSONObject() : new JSONObject(data.toString());
+  }
+
   @Deprecated
   void prepareEncounter(JSONObject state) {
     throw new IllegalStateException(
@@ -167,7 +174,8 @@ final class EntityCore {
             ? validTreasureAutoSpawnRatePercent(rate)
             : validAutoSpawnRatePercent(rate);
         if (key.isEmpty() || !validRate) continue;
-        entities.put(key, new EntityDefinition(key, name, rate, canon, treasure));
+        entities.put(key, new EntityDefinition(key, name, rate, canon, treasure,
+            record.optJSONObject("presentation")));
       }
 
       JSONArray legacyRecords = root.optJSONArray("legacyEntities");
@@ -179,7 +187,8 @@ final class EntityCore {
           String name = record.optString("name", key).trim();
           String canon = record.optString("canon", "").trim();
           if (key.isEmpty() || canon.isEmpty()) continue;
-          legacyEntities.put(key, new LegacyEntityDefinition(key, name, canon));
+          legacyEntities.put(key, new LegacyEntityDefinition(key, name, canon,
+              record.optJSONObject("presentation")));
         }
       }
     } catch (Exception ignored) {}
@@ -212,11 +221,13 @@ final class EntityCore {
     final String key;
     final String name;
     final String canon;
+    final JSONObject presentation;
 
-    LegacyEntityDefinition(String key, String name, String canon) {
+    LegacyEntityDefinition(String key, String name, String canon, JSONObject presentation) {
       this.key = key;
       this.name = name;
       this.canon = canon;
+      this.presentation = presentation;
     }
   }
 
@@ -226,13 +237,16 @@ final class EntityCore {
     final double ratePercent;
     final String canon;
     final boolean treasure;
+    final JSONObject presentation;
 
-    EntityDefinition(String key, String name, double ratePercent, String canon, boolean treasure) {
+    EntityDefinition(String key, String name, double ratePercent, String canon, boolean treasure,
+                     JSONObject presentation) {
       this.key = key;
       this.name = name;
       this.ratePercent = ratePercent;
       this.canon = canon;
       this.treasure = treasure;
+      this.presentation = presentation;
     }
   }
 }

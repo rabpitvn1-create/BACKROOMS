@@ -1,12 +1,7 @@
 {
   "version": 2,
-  "instruction": "Hai ví dụ chỉ dạy nhịp kể xianxia × Backrooms. Xianxia là lăng kính nhận thức của Cao Minh; Backrooms vẫn là thực tại khách quan. Chỉ khẳng định điều quan sát/canon xác nhận, còn suy luận phải giữ mức độ bất định. Không sao chép sự kiện hay câu chữ vào lượt thật.",
+  "instruction": "Ví dụ chỉ dạy nhịp kể xianxia × Backrooms. Xianxia là lăng kính nhận thức của Cao Minh; Backrooms vẫn là thực tại khách quan. Chỉ khẳng định điều quan sát/canon xác nhận, còn suy luận phải giữ mức độ bất định. Không sao chép sự kiện, câu chữ hay khung câu vào lượt thật; Explore không cần theo cấu trúc của ví dụ đối thoại.",
   "goodExamples": [
-    {
-      "name": "Thần thức quan sát nhưng không biến suy luận thành fact",
-      "player": "Cao Minh dùng thần thức kiểm tra vệt sẫm trên bức tường.",
-      "gm": "Thần thức lướt qua lớp giấy dán tường rồi khựng nhẹ ở vệt sẫm. Cảm nhận tại đó méo đi một chút, nhưng không có trận văn hay dao động linh lực quen thuộc. Chừng ấy chỉ đủ cho Cao Minh biết hiện tượng không giống những cấm chế hắn từng gặp; bản chất của nó vẫn chưa thể kết luận."
-    },
     {
       "name": "Đối thoại tiên hiệp tự nhiên trong thực tại Backrooms",
       "player": "Cao Minh lên tiếng với người lạ đang cầm súng.",

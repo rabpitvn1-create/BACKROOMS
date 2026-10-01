@@ -242,6 +242,26 @@ jobs:
         working-directory: android-apk
         run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
 
+      - name: Run PR #425 emulator gameplay audit
+        if: github.event_name == 'pull_request' && github.event.pull_request.number == 425
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
+          script: bash .github/scripts/emu-audit.sh
+
+      - name: Upload PR #425 emulator audit
+        if: always() && github.event_name == 'pull_request' && github.event.pull_request.number == 425
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-425-emulator-audit
+          path: emu-audit
+          if-no-files-found: warn
+          retention-days: 7
+
       - name: Prepare APK
         run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.1.73.apk
 

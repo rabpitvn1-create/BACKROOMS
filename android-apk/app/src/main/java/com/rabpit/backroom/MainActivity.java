@@ -335,23 +335,11 @@ public class MainActivity extends Activity {
     return output;
   }
 
-  /** Exactly one physical request per attempt. Other provider helpers retain their legacy contract. */
+  /** Count content requests; key rotation and transport retries stay inside the existing provider chain. */
   private String generateNarrationText(String prompt, int[] calls, boolean retry) throws Exception {
     prompt = SafePresentationView.narrativeText(new JSONObject(gameCore.currentCoreState()), prompt);
-    for (String key : geminiKeys()) {
-      if (key == null || key.trim().isEmpty()) continue;
-      calls[retry ? 1 : 0]++;
-      return geminiTextOnce(prompt, key);
-    }
-    if (haikuConfigured()) {
-      String base = haikuBaseUrl();
-      calls[retry ? 1 : 0]++;
-      String output = base.endsWith("/messages") || base.contains("api.anthropic.com")
-          ? haikuAnthropicText(prompt) : haikuOpenAiText(prompt);
-      parseModelJson(output);
-      return output;
-    }
-    throw new IllegalStateException("No narration provider configured");
+    calls[retry ? 1 : 0]++;
+    return generateText(prompt);
   }
 
   private String geminiResponseText(String raw) throws Exception {
@@ -973,7 +961,7 @@ public class MainActivity extends Activity {
                 + narrationEvidence.optString("reason", "unknown"));
           }
 
-          JSONArray safeEvents = SafePresentationView.events(state, "cao_minh", narrationEvidence);
+          JSONArray safeEvents = gameCore.safePresentationEvents(state, narrationEvidence);
           JSONObject safeEvidence = SafePresentationView.evidence(state, narrationEvidence);
           String presentationBaseHash = GameCoreFacade.presentationBaseHash(state);
           final JSONObject narrationState = state;
@@ -985,7 +973,7 @@ public class MainActivity extends Activity {
             return parseModelJson(generateNarrationText(prompt, providerCalls, !rejection.isEmpty()));
           }, candidate -> NarrationGuard.validate(candidate, narrationState, safeEvidence));
           String reply = generated.optString("reply", "");
-          Log.d(TAG, "PRESENTATION PROVIDER CALLS: turnId=" + turnId
+          Log.d(TAG, "PRESENTATION CONTENT ATTEMPTS: turnId=" + turnId
               + " initial=" + providerCalls[0] + " retry=" + providerCalls[1]
               + " total=" + (providerCalls[0] + providerCalls[1]));
 
