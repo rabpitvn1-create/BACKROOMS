@@ -130,8 +130,10 @@ public class CanonRetrieverTest {
     assertFalse(packet.promptText().contains("Wrong for this runtime."));
   }
   @Test public void importedLevelZeroPointFiveMatchesCommittedLevel() throws Exception {
-    Path source = Paths.get("src/main/assets/canon/BACKROOMS_WORLD.md");
-    if (!Files.isRegularFile(source)) source = Paths.get("app/src/main/assets/canon/BACKROOMS_WORLD.md");
+    Path source = Paths.get("src/main/assets/content/world/backrooms-world.md");
+    if (!Files.isRegularFile(source)) {
+      source = Paths.get("app/src/main/assets/content/world/backrooms-world.md");
+    }
     Map<String, String> files = wiki();
     files.put("BACKROOMS_WORLD.md", new String(Files.readAllBytes(source), StandardCharsets.UTF_8));
     JSONObject state = new JSONObject().put("currentLevelKey", "0.5").put("party", new JSONArray());
