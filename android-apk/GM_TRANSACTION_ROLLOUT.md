@@ -1,6 +1,6 @@
 # GM Transaction Rollout
 
-Status: PHASE 6C.6 — CAO FAMILY HISTORY MIGRATION COMPLETE; PHASE 6C.7 NEXT
+Status: PHASE 6C.7 — TANG KIEM COC HISTORY MIGRATION COMPLETE; PHASE 6C.8 NEXT
 
 This rollout preserves the current V2 Core/save/runtime while reintroducing GM planning authority in controlled stages. No phase may skip the transaction boundary.
 
@@ -352,7 +352,17 @@ Status: COMPLETE.
 - Tests verify that only the structured copy ships and that the core history markers remain present.
 - Compatibility loading and retrieval behavior remain unchanged.
 
-Phase 6C.7 will migrate the Táng Kiếm Cốc history source separately, still without reconciling POV/backstage conflicts.
+### Phase 6C.7 — Táng Kiếm Cốc history migration
+
+Status: COMPLETE.
+
+- `Tang_Kiem_Coc_Huyet_Ma_Kiem_Tich_Quang.md` was migrated unchanged to `content/history/tang-kiem-coc-huyet-ma-kiem.md`.
+- The legacy `assets/canon/Tang_Kiem_Coc_Huyet_Ma_Kiem_Tich_Quang.md` copy was removed; registry compatibility preserves the logical source identity.
+- Registry classification remains `HISTORY / UNCLASSIFIED / UNCLASSIFIED`; this move does not reconcile objective backstage history with Lục Trầm POV/BELIEF or current character canon.
+- Tests verify that only the structured copy ships and that Táng Kiếm Cốc / Huyết Ma Kiếm core history markers remain present.
+- Compatibility loading and retrieval behavior remain unchanged.
+
+Phase 6C.8 will continue with another isolated source only after this migration remains green.
 
 Expand content without changing transaction semantics:
 
