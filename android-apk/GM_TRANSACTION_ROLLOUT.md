@@ -182,7 +182,19 @@ Status: implemented, NO PERSIST.
 - Evidence conflicts, tampering or detachment from the original turn/base state fail closed.
 - The Phase-4A commit gate remains unarmed and there is still no persistence path for planner transactions.
 
-Phase 4C is complete. Phase 4D is the first phase allowed to consider a real authoritative persist, still behind the existing feature gate.
+Phase 4C is complete.
+
+### Phase 4D.1 — Authoritative turn resolver
+
+Status: implemented and gated; not wired to MainActivity yet.
+
+- The commit gate is now logically armed only when `GM_TRANSACTION_COMMIT_ENABLED=true`; the build default remains `false`.
+- `GmAuthoritativeTurnResolver` composes the already-prepared deterministic turn base with the replay-verified GM state delta. It has no persistence dependency.
+- A Core-selected ENTITY/CHEST/CHARACTER situation must appear as matching committed selection evidence or the entire authoritative resolution fails.
+- `GmCommittedEventAdapter` converts every accepted typed event into a canon-registered DomainEvent. Unmapped event types fail closed.
+- Prepared player-action DomainEvents are preserved first; GM DomainEvents are appended with continuous event sequence, then thread-resolution/dormancy checks run.
+- `COMBAT_STARTED` is now a registered canon DomainEvent so a GM-started combat mutation cannot exist without event evidence.
+- No runtime caller invokes authoritative GM persistence yet. V2 remains live authority until 4D.2 wiring passes CI.
 
 Commit protocol:
 1. verify turnId and baseStateHash;

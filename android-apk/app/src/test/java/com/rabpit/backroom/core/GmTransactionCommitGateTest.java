@@ -2,6 +2,7 @@ package com.rabpit.backroom.core;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -18,14 +19,14 @@ public class GmTransactionCommitGateTest {
     assertEquals("gm_transaction_commit_disabled", gate.getString("reason"));
   }
 
-  @Test public void enabledFlagStillCannotCommitDuringPhase4A() throws Exception {
+  @Test public void enabledFlagArmsOnlyAfterTurnAndBaseValidation() throws Exception {
     JSONObject proposal = proposal();
 
     JSONObject gate = GmTransactionCommitGate.preflight(
         true, "turn-4", "base-hash", proposal);
 
-    assertFalse(gate.getBoolean("allowed"));
-    assertEquals("phase4_commit_not_armed", gate.getString("reason"));
+    assertTrue(gate.getBoolean("allowed"));
+    assertEquals("", gate.getString("reason"));
   }
 
   @Test public void staleTurnAndStateFailBeforeArming() throws Exception {
