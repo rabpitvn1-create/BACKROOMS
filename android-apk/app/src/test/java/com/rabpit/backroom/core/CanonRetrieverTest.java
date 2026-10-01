@@ -376,14 +376,14 @@ public class CanonRetrieverTest {
   @Test public void shippedRegistryRetrievalIsReadOnlyBudgetedAndDeterministic() throws Exception {
     Path assets = Paths.get("app/src/main/assets");
     if (!Files.isDirectory(assets)) assets = Paths.get("src/main/assets");
-    JSONObject registry = new JSONObject(Files.readString(assets.resolve("canon/canon-registry.json")));
+    JSONObject registry = new JSONObject(new String(Files.readAllBytes(assets.resolve("canon/canon-registry.json")), StandardCharsets.UTF_8));
     Map<String, String> physical = new LinkedHashMap<>();
     JSONArray sources = registry.getJSONArray("sources");
     JSONArray reversed = new JSONArray();
     for (int i = 0; i < sources.length(); i++) {
       JSONObject source = sources.getJSONObject(i);
       String path = source.getString("contentPath");
-      physical.put(path, Files.readString(assets.resolve("content").resolve(path)));
+      physical.put(path, new String(Files.readAllBytes(assets.resolve("content").resolve(path)), StandardCharsets.UTF_8));
       reversed.put(sources.getJSONObject(sources.length() - i - 1));
     }
     Map<String, String> resolved = CanonRetriever.resolveRegistrySources(registry, Map.of(), physical);
