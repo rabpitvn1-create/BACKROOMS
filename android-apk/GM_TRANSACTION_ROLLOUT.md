@@ -1,6 +1,6 @@
 # GM Transaction Rollout
 
-Status: PHASE 5 — COMMITTED-EVIDENCE NARRATION COMPLETE; PHASE 6 NEXT
+Status: PHASE 6A — CANON INVENTORY COMPLETE; PHASE 6B NEXT
 
 This rollout preserves the current V2 Core/save/runtime while reintroducing GM planning authority in controlled stages. No phase may skip the transaction boundary.
 
@@ -266,6 +266,18 @@ Exit gate:
 
 
 ## Phase 6 — Canon/content platform
+
+### Phase 6A — Canon inventory and authority map
+
+Status: COMPLETE / AUDIT ONLY.
+
+- `CANON_INVENTORY_PHASE6A.md` inventories every direct Markdown source currently shipped under `assets/canon`.
+- Current `CanonRetriever` behavior, mandatory subjects, supplemental selection and supported section metadata are recorded before any registry changes.
+- Sources with explicit CURRENT/CHARACTER/WORLD authority are distinguished from unclassified history/visual/character sources without silently promoting the latter.
+- Verified coverage/authority gaps are recorded, including Syvial's missing Markdown mirror, the out-of-pool scoped `DIEP_MINH_CANON.md`, and the Cao Minh R17 local declaration versus R15 source-map statements.
+- No source was moved, rewritten or reconciled and runtime retrieval behavior is unchanged.
+
+Phase 6B will define the registry schema and validation rules only after this inventory is frozen.
 
 Expand content without changing transaction semantics:
 
