@@ -162,19 +162,19 @@ let state=normalizeCoreState(initial);
 let busy=false;
 
 function inferLevelKey(s){
-  const existing=String(s?.currentLevelKey||"").trim();
+  const existing=String(s&&s.currentLevelKey||"").trim();
   if(existing)return existing;
-  const location=String(s?.location||"").toLowerCase();
+  const location=String(s&&s.location||"").toLowerCase();
   if(location.includes("manila room"))return "manila_room";
   if(location.includes("the torment")||/\btorment\b/.test(location))return "the_torment";
   if(location.includes("red rooms")||location.includes("red room"))return "red_rooms";
-  const m=String(s?.location||"").match(/\bLevel\s*([0-6](?:\.[0-9]+)?)\b/i);
+  const m=String(s&&s.location||"").match(/\bLevel\s*([0-6](?:\.[0-9]+)?)\b/i);
   if(m)return m[1];
-  return String(Number.isInteger(s?.currentLevel)?s.currentLevel:0);
+  return String(Number.isInteger(s&&s.currentLevel)?s.currentLevel:0);
 }
 function ensureCurrentLevel(s){
-  if(!Number.isInteger(s?.currentLevel)||s.currentLevel<0||s.currentLevel>6){
-    const m=String(s?.location||"").match(/\bLevel\s*([0-6])\b/i);
+  if(!Number.isInteger(s&&s.currentLevel)||s.currentLevel<0||s.currentLevel>6){
+    const m=String(s&&s.location||"").match(/\bLevel\s*([0-6])\b/i);
     s.currentLevel=m?Number(m[1]):0;
   }
   s.currentLevelKey=inferLevelKey(s);
@@ -183,7 +183,7 @@ function ensureCurrentLevel(s){
 ensureCurrentLevel(state);
 state.characterCanon=CURRENT_CHARACTER_CANON;
 if(state.turn===1){
-  const playerName=String(state.player?.name||"").trim().toLowerCase();
+  const playerName=String((state.player&&state.player.name)||"").trim().toLowerCase();
   const legacyOpening=playerName.includes("kai")||playerName.includes("twilight");
   if(legacyOpening){
     state.title=initial.title;
@@ -201,9 +201,9 @@ if(state.turn===1){
 
 function esc(s){const d=document.createElement("div");d.textContent=s||"";return d.innerHTML}
 function chips(items){return items&&items.length?items.map(x=>"<span>"+esc(typeof x==="string"?x:x.name||"—")+"</span>").join(""):"<span>Trống.</span>"}
-function levelTitle(){const key=String(state?.currentLevelKey||state?.currentLevel||0);return LEVEL_NODE_TITLES[key]||("Level "+key)}
-function partyDisplayItems(){const result=[];const seen=new Set();const add=x=>{if(!x)return;const name=typeof x==="string"?x:String(x.name||x.id||"").trim();if(!name)return;const key=name.toLocaleLowerCase("vi");if(seen.has(key))return;seen.add(key);result.push(typeof x==="string"?{name}:x)};add(state?.player||{name:"Cao Minh"});(Array.isArray(state?.party)?state.party:[]).filter(x=>x&&x.joined===true).forEach(add);return result}
-function render(){titleEl.textContent=levelTitle();locationEl.textContent=state.location;modeEl.textContent=state.mode;playerEl.textContent=state.player?.name||"Cao Minh";partyEl.innerHTML=chips(partyDisplayItems());inventoryEl.innerHTML=chips(state.inventory);logEl.innerHTML=(state.log||[]).map(x=>"<article class='message "+(x.role==="player"?"player":"")+"'><div class='role'>"+(x.role==="player"?"BẠN":"GAME MASTER")+"</div><div class='text'>"+esc(x.role==="player"&&x.text==="__loot:open_chest"?"Mở rương":x.text)+"</div></article>").join("")}
+function levelTitle(){const key=String(state&&state.currentLevelKey||state&&state.currentLevel||0);return LEVEL_NODE_TITLES[key]||("Level "+key)}
+function partyDisplayItems(){const result=[];const seen=new Set();const add=x=>{if(!x)return;const name=typeof x==="string"?x:String(x.name||x.id||"").trim();if(!name)return;const key=name.toLocaleLowerCase("vi");if(seen.has(key))return;seen.add(key);result.push(typeof x==="string"?{name}:x)};add(state&&state.player||{name:"Cao Minh"});(Array.isArray(state&&state.party)?state.party:[]).filter(x=>x&&x.joined===true).forEach(add);return result}
+function render(){titleEl.textContent=levelTitle();locationEl.textContent=state.location;modeEl.textContent=state.mode;playerEl.textContent=(state.player&&state.player.name)||"Cao Minh";partyEl.innerHTML=chips(partyDisplayItems());inventoryEl.innerHTML=chips(state.inventory);logEl.innerHTML=(state.log||[]).map(x=>"<article class='message "+(x.role==="player"?"player":"")+"'><div class='role'>"+(x.role==="player"?"BẠN":"GAME MASTER")+"</div><div class='text'>"+esc(x.role==="player"&&x.text==="__loot:open_chest"?"Mở rương":x.text)+"</div></article>").join("")}
 function save(){if(busy||window.__combatBusy)return;try{if(!window.Android||!Android.saveCheckpoint)throw Error("Core chưa sẵn sàng");Android.saveCheckpoint();statusEl.textContent="Đã lưu game."}catch(error){statusEl.textContent=error.message||"Không thể lưu game."}}
 function load(){if(busy||window.__combatBusy)return;try{if(!window.Android||!Android.loadCheckpoint)throw Error("Core chưa sẵn sàng");state=ensureCurrentLevel(JSON.parse(Android.loadCheckpoint()));state.characterCanon=CURRENT_CHARACTER_CANON;render();if(window.backroomPrefetchChoices)window.backroomPrefetchChoices();statusEl.textContent="Đã tải bản lưu."}catch(error){statusEl.textContent=error.message||"Chưa có bản lưu."}}
 function freshCoreGame(){const fresh=JSON.parse(JSON.stringify(initial));return window.Android&&typeof Android.startNewGame==="function"?JSON.parse(Android.startNewGame(JSON.stringify(fresh))):fresh}
