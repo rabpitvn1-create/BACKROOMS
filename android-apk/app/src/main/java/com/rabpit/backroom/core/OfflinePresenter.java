@@ -50,11 +50,33 @@ public final class OfflinePresenter {
       if ("ENTITY_ENCOUNTER_STARTED".equals(type)) {
         String actor = view.optString("actor", "Cao Minh");
         String style = view.optString("approachStyle", "emerge");
-        sentence = "hold_distance".equals(style)
-            ? subject + " xuất hiện phía trước, giữ khoảng cách và nâng một vật kim loại dài về phía " + actor + "."
-            : "charge".equals(style)
-                ? subject + " lao ra và áp sát " + actor + "."
-                : subject + " xuất hiện và chắn đường " + actor + ".";
+        if (view.has("entityAppearance")) {
+          String location = view.optString("entityLocation", "phía trước");
+          String held = view.optString("heldObject", "").trim();
+          sentence = "charge".equals(style)
+              ? subject + " xuất hiện " + location + " rồi lập tức lao về phía " + actor + "."
+              : "approach".equals(style)
+                  ? subject + " xuất hiện " + location + " và bắt đầu tiến về phía " + actor + "."
+                  : "hold_distance".equals(style)
+                      ? subject + " xuất hiện " + location + ", giữ khoảng cách"
+                          + (held.isEmpty() ? " với " : " và hướng " + held + " về phía ") + actor + "."
+                      : subject + " hiện ra " + location + ".";
+          if (!subject.equals(view.optString("entityAppearance"))) {
+            sentence += " Trước mắt " + actor + " là " + view.optString("entityAppearance") + ".";
+          }
+          JSONArray details = view.optJSONArray("details");
+          if (details != null) for (int j = 0; j < details.length(); j++) {
+            String detail = details.optString(j, "").trim();
+            if (!detail.isEmpty()) sentence += " " + detail;
+          }
+        } else {
+          // Keep compatibility with legacy projected views that have no registry presentation block.
+          sentence = "hold_distance".equals(style)
+              ? subject + " xuất hiện phía trước, giữ khoảng cách và nâng một vật kim loại dài về phía " + actor + "."
+              : "charge".equals(style)
+                  ? subject + " lao ra và áp sát " + actor + "."
+                  : subject + " xuất hiện và chắn đường " + actor + ".";
+        }
       }
       if ("CHEST_SPAWNED".equals(type)) {
         sentence = view.optString("actor", "Cao Minh") + " phát hiện một chiếc rương "

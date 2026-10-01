@@ -31,6 +31,10 @@
         5
       ],
       "canon": "Fast aggressive four-limbed predator. Hunts humans, often in groups, and exploits isolation, injury and constrained routes.",
+      "presentation": {
+        "appearance": "một sinh vật bò bằng bốn chi",
+        "approachStyle": "charge"
+      },
       "autoProcSkills": [
         {
           "name": "Dead Bite",
@@ -58,6 +62,10 @@
         2
       ],
       "canon": "Mass of limbs and muscle that ambushes from dark recesses, technical gaps and crawlspaces and drags humans out of formation.",
+      "presentation": {
+        "appearance": "một khối cơ thịt với nhiều chi",
+        "approachStyle": "emerge"
+      },
       "autoProcSkills": [
         {
           "name": "Grasping Crush",
@@ -84,6 +92,10 @@
         1
       ],
       "canon": "Distorted humanoid Entity that watches before approaching and exploits concrete-column blind spots.",
+      "presentation": {
+        "appearance": "một hình người méo mó",
+        "approachStyle": "approach"
+      },
       "autoProcSkills": [
         {
           "name": "Blindside Strike",
@@ -112,6 +124,10 @@
         4
       ],
       "canon": "Large moth-like predator that uses dark ceilings and technical recesses and reacts to light and movement.",
+      "presentation": {
+        "appearance": "một sinh vật lớn có hình dạng như bướm đêm",
+        "approachStyle": "emerge"
+      },
       "autoProcSkills": [
         {
           "name": "Ceiling Dive",
@@ -138,6 +154,10 @@
         1
       ],
       "canon": "Human-shaped faceless predator. Apparent human-like behavior only reduces vigilance before it hunts.",
+      "presentation": {
+        "appearance": "một hình người không có khuôn mặt",
+        "approachStyle": "emerge"
+      },
       "autoProcSkills": [
         {
           "name": "Sudden Grasp",
@@ -164,6 +184,10 @@
         1
       ],
       "canon": "Predator mimicking a flat puddle of Almond Water. It reacts to human footsteps and opens a toothed mouth when prey steps on it.",
+      "presentation": {
+        "appearance": "một vũng chất lỏng phẳng",
+        "approachStyle": "emerge"
+      },
       "autoProcSkills": [
         {
           "name": "Toothed Snap",
@@ -190,6 +214,10 @@
         1
       ],
       "canon": "Predatory paintings whose depicted beings can watch, reach beyond the surface and pull victims into the image.",
+      "presentation": {
+        "appearance": "một bức tranh có những hình dạng bên trong",
+        "approachStyle": "emerge"
+      },
       "autoProcSkills": [
         {
           "name": "Canvas Reach",
@@ -216,6 +244,10 @@
         2
       ],
       "canon": "Darkness-using predator seen mainly as a bright face-like feature. It can pressure prey into choosing a bad route rather than charging immediately.",
+      "presentation": {
+        "appearance": "một hình sáng giống khuôn mặt",
+        "approachStyle": "hold_distance"
+      },
       "autoProcSkills": [
         {
           "name": "Darkness Lunge",
@@ -245,6 +277,10 @@
         5
       ],
       "canon": "Human-mimicking predator capable of deep disguise and long infiltration. Human appearance never proves a contact is human.",
+      "presentation": {
+        "appearance": "một hình người",
+        "approachStyle": "emerge"
+      },
       "autoProcSkills": [
         {
           "name": "Disguised Strike",
@@ -273,6 +309,10 @@
         5
       ],
       "canon": "A window-like predatory manifestation in impossible locations that lures humans close and can reach through an unreliable apparent space.",
+      "presentation": {
+        "appearance": "một hình dạng giống ô cửa sổ",
+        "approachStyle": "emerge"
+      },
       "autoProcSkills": [
         {
           "name": "Window Reach",
@@ -299,6 +339,10 @@
         2
       ],
       "canon": "Huge organic/mechanical pipeline-like predator that senses vibration and heat, offers false safe routes, traps retreat and can secrete tissue-corrosive alkaline liquid.",
+      "presentation": {
+        "appearance": "một đường ống lớn với mô thịt và các bộ phận cơ khí",
+        "approachStyle": "emerge"
+      },
       "autoProcSkills": [
         {
           "name": "Constriction",
@@ -325,6 +369,10 @@
         3
       ],
       "canon": "Irregular, pain-tolerant predator believed or suspected to have once been human. It tracks prey through sound and scent.",
+      "presentation": {
+        "appearance": "một sinh vật có hình dạng bất thường",
+        "approachStyle": "emerge"
+      },
       "autoProcSkills": [
         {
           "name": "Ragged Swipe",
@@ -351,6 +399,10 @@
         3
       ],
       "canon": "Entity that blends into electrical cable bundles, waits motionless, then wraps limbs and can conduct facility current through a victim.",
+      "presentation": {
+        "appearance": "một bó dây cáp",
+        "approachStyle": "emerge"
+      },
       "autoProcSkills": [
         {
           "name": "Cable Lash",
@@ -377,6 +429,10 @@
         5
       ],
       "canon": "Apex Level 5 Entity with above-human intelligence that hunts humans through long observation, isolation and manipulation of hotel architecture.",
+      "presentation": {
+        "appearance": "một sinh vật",
+        "approachStyle": "emerge"
+      },
       "autoProcSkills": [
         {
           "name": "Cornered Strike",
@@ -403,6 +459,10 @@
         5
       ],
       "canon": "Level 5 corpse-lure phenomenon or Entity that can preserve heat, voice, movement or useful-looking clues to draw humans closer.",
+      "presentation": {
+        "appearance": "một hình hài giống thi thể",
+        "approachStyle": "emerge"
+      },
       "autoProcSkills": [
         {
           "name": "Corpse-Lure Grasp",
@@ -435,6 +495,10 @@
         6
       ],
       "canon": "Very rare roaming humanoid predator permitted as an incursion across Levels 0–6. It hunts humans and may conduct long tactical observation.",
+      "presentation": {
+        "appearance": "một hình người",
+        "approachStyle": "emerge"
+      },
       "autoProcSkills": [
         {
           "name": "Stalking Slash",
@@ -468,6 +532,11 @@
         6
       ],
       "canon": "Hostile ASYNC hazmat rifle operator. Uses disciplined mid-range bursts, cover and coordinated crossfire; avoids reckless charges when a firing position is available.",
+      "presentation": {
+        "appearance": "một người mặc đồ bảo hộ kín",
+        "heldObject": "một vật kim loại dài",
+        "approachStyle": "hold_distance"
+      },
       "autoProcSkills": [
         {
           "name": "Controlled Burst",
@@ -500,6 +569,14 @@
         6
       ],
       "canon": "CopX is a corroded late-1980s security automaton, its ivory armor split around exposed servos and a handgun still held in a rigid right arm. Broken evacuation orders leak from its speaker before it identifies moving humans as intruders. It holds long sightlines, fires short measured bursts, then turns stiffly toward movement; cover and sudden changes of angle can break its aim. Its ammunition and sensors are finite, its joints can jam, and it cannot teleport, see through walls or enforce real authority. Sightings since 1987 do not prove that every CopX is the same machine. It is hostile to humans; apparent warnings are degraded threat signals, never a promise of rescue. Defeating one chassis ends that encounter, not necessarily every future sighting.",
+      "presentation": {
+        "appearance": "một hình người phủ lớp giáp trắng ngà đã ăn mòn",
+        "details": [
+          "Những khe nứt trên lớp giáp để lộ các khớp máy bên dưới."
+        ],
+        "heldObject": "một vật kim loại ngắn ở tay phải",
+        "approachStyle": "hold_distance"
+      },
       "autoProcSkills": [
         {
           "name": "Static Burst",
@@ -533,6 +610,10 @@
         6
       ],
       "canon": "A rare hostile mirror-manifestation of Cao Minh. It resembles and echoes Cao Minh but acts as an independent predatory Entity; its exact origin remains unresolved. Treat it as a roaming Treasure Entity, not a resident population.",
+      "presentation": {
+        "appearance": "một hình người có diện mạo giống Cao Minh",
+        "approachStyle": "emerge"
+      },
       "autoProcSkills": [
         {
           "name": "Tâm Ma Trảm",
@@ -564,6 +645,14 @@
         "DIEP-MINH-BACKROOMS-01"
       ],
       "canon": "Diệp Minh là tử địch không đội trời chung của Cao Minh. Hắn từng trực tiếp góp phần vào đại kiếp thảm sát Cao gia, biến cố đã đẩy Cao Minh vào tuyệt vọng và trở thành một nguyên nhân quyết định khiến hắn bước vào ma đạo; Diệp Minh không mặc định là chủ mưu duy nhất. Ngoại hình khóa theo entity/diep_minh.webp: nam tử trẻ tóc đen, pháp giáp đen-vàng; nửa phải còn hình người, nửa trái dị hóa thành ma thể đen-đỏ với hồng quang, tua nhánh và vuốt; tay phải cầm trường kiếm tỏa kim quang, quanh thân có phù vàng chữ đỏ và họa tiết âm dương/bát quái. Diệp Minh nguyên bản đã chết trước các lần xuất hiện trong Backrooms. Thực thể hiện tại nhận ra Cao Minh và giữ ký ức cốt lõi về huyết cừu, nhưng việc nó là tàn hồn, bản sao, tái tạo hay một cơ chế khác của Backrooms vẫn OPEN. Một manifestation có thể bị tiêu diệt nhưng không bị xóa vĩnh viễn; không có thời gian hoặc địa điểm tái xuất cố định.",
+      "presentation": {
+        "appearance": "một nam tử trẻ tóc đen trong bộ giáp đen-vàng",
+        "details": [
+          "Nửa trái cơ thể có màu đen-đỏ, với những tua nhánh và vuốt; tay phải cầm một thanh kiếm tỏa ánh vàng."
+        ],
+        "heldObject": "một thanh kiếm tỏa ánh vàng",
+        "approachStyle": "emerge"
+      },
       "autoProcSkills": [
         {
           "name": "Golden Sword Slash",

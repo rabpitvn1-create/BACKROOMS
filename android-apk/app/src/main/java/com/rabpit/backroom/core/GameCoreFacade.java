@@ -581,6 +581,10 @@ public final class GameCoreFacade implements AutoCloseable {
 
   public static String presentationBaseHash(JSONObject snapshot) { return fingerprint(snapshot); }
 
+  public JSONArray safePresentationEvents(JSONObject snapshot, JSONObject evidence) throws Exception {
+    return SafePresentationView.events(snapshot, "cao_minh", evidence, entityCore);
+  }
+
   /** Validity check and append share the same lock as all authoritative writes. */
   public synchronized String commitPresentation(String turnId, int expectedStateVersion,
       String baseHash, String presentationId, String action, String gmEntryJson) {
@@ -842,7 +846,7 @@ public final class GameCoreFacade implements AutoCloseable {
       if (wasActive && !active && "victory".equals(outcome)) {
         JSONObject evidence = CommittedTurnNarrationEvidence.fromState(working, turnId);
         JSONObject closure = OfflinePresenter.present(
-            SafePresentationView.events(working, "cao_minh", evidence),
+            safePresentationEvents(working, evidence),
             () -> { throw new IllegalStateException("Victory presentation must be offline"); });
         JSONArray log = working.optJSONArray("log");
         if (log == null) log = new JSONArray();

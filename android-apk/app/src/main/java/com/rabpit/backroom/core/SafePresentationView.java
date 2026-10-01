@@ -127,11 +127,36 @@ public final class SafePresentationView {
   }
 
   public static JSONArray events(JSONObject state, String actor, JSONObject evidence) throws Exception {
+    return events(state, actor, evidence, null);
+  }
+
+  static JSONArray events(JSONObject state, String actor, JSONObject evidence, EntityCore entities)
+      throws Exception {
     JSONArray output = new JSONArray();
     JSONArray source = evidence == null ? null : evidence.optJSONArray("events");
     if (source != null) for (int i = 0; i < source.length(); i++) {
       JSONObject item = source.optJSONObject(i);
-      if (item != null) output.put(event(state, actor, item));
+      if (item == null) continue;
+      JSONObject view = event(state, actor, item);
+      String type = item.optString("eventType", "");
+      if (entities != null && ("ENTITY_ENCOUNTER_STARTED".equals(type) || "COMBAT_VICTORY".equals(type))) {
+        JSONArray refs = item.optJSONArray("targetRefs");
+        String subject = refs == null ? "" : refs.optString(0, "");
+        JSONObject data = entities.presentation(subject);
+        String appearance = text(state, actor, data.optString("appearance", "")).trim();
+        if (!appearance.isEmpty()) {
+          view.put("entityAppearance", appearance);
+          if (!CharacterKnowledge.knows(state, actor, subject, "knownName")) view.put("subject", appearance);
+          view.put("heldObject", text(state, actor, data.optString("heldObject", "")));
+          view.put("details", value(state, actor, data.optJSONArray("details") == null
+              ? new JSONArray() : data.optJSONArray("details")));
+          view.put("approachStyle", data.optString("approachStyle", "emerge"));
+          String level = state.optString("currentLevelKey", String.valueOf(state.optInt("currentLevel", 0)));
+          view.put("entityLocation", "0".equals(level) ? "ở cuối dãy hành lang vàng"
+              : "1".equals(level) ? "bên cạnh một cột bê tông" : "phía trước");
+        }
+      }
+      output.put(view);
     }
     return output;
   }

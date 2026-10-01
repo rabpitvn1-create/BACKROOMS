@@ -973,7 +973,7 @@ public class MainActivity extends Activity {
                 + narrationEvidence.optString("reason", "unknown"));
           }
 
-          JSONArray safeEvents = SafePresentationView.events(state, "cao_minh", narrationEvidence);
+          JSONArray safeEvents = gameCore.safePresentationEvents(state, narrationEvidence);
           JSONObject safeEvidence = SafePresentationView.evidence(state, narrationEvidence);
           String presentationBaseHash = GameCoreFacade.presentationBaseHash(state);
           final JSONObject narrationState = state;
