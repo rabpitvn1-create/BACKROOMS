@@ -183,9 +183,8 @@ function ensureCurrentLevel(s){
 ensureCurrentLevel(state);
 state.characterCanon=CURRENT_CHARACTER_CANON;
 if(state.turn===1){
-  const currentOpening=String(state.log?.[0]?.text||"");
   const playerName=String(state.player?.name||"").trim().toLowerCase();
-  const legacyOpening=currentOpening!==initial.log[0].text||playerName.includes("kai")||playerName.includes("twilight");
+  const legacyOpening=playerName.includes("kai")||playerName.includes("twilight");
   if(legacyOpening){
     state.title=initial.title;
     state.currentLevel=initial.currentLevel;

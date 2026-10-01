@@ -1,6 +1,6 @@
 # GM Transaction Rollout
 
-Status: PHASE 6E.3 — MARKDOWN KNOWLEDGE BOUNDARY IMPLEMENTED; CONTINUITY AUDIT NEXT
+Status: PHASE 6E — KNOWLEDGE / CONTINUITY FIREWALL IMPLEMENTED; PHASE 6F NEXT
 
 This rollout preserves the current V2 Core/save/runtime while reintroducing GM planning authority in controlled stages. No phase may skip the transaction boundary.
 
@@ -561,3 +561,11 @@ Only one phase becomes authoritative at a time. A phase moves forward only after
 - Section requires cannot bypass source authority or supersedes. A dependency source containing restricted sections fails closed as a whole closure.
 - `CanonPacket.requiredComplete` distinguishes failed required dependency closure from absent optional Markdown subject coverage. Planner/Narrator callers reject incomplete required closure. Core Level/Entity compatibility context remains available for missing subject coverage.
 - Untagged prose remains reference context, never actor knowledge or mutable continuity authority; boundary audit reports it rather than inventing lore tags.
+
+### Phase 6E.4 — Live continuity/save regression
+
+- Companion normalization preserves explicit current presence and empty inventory; baseline cannot bring an absent actor back into the scene.
+- A current Cao Minh save at turn 1 is no longer reset merely because the baseline prologue changed. Explicit retired protagonist compatibility remains unchanged.
+- Red/green regressions cover JSON reload, injury, depletion, inventory, location, knowledge, relationships, promises, debts and consequences.
+- Existing Lucia/Lục Trầm separation, Táng Kiếm Cốc POV/backstage locks and local R17 versus external R15 conflict remain pinned by source contract tests. No lore was reconciled.
+- Phase 6E is implemented. Unmarked prose is reference context; the tooling audit reports boundary gaps without inventing canon classifications.

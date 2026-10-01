@@ -10,6 +10,26 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class CharacterEncounterCoreTest {
+  @Test public void normalizationPreservesLivePresenceAndMutableContinuityAcrossReload() throws Exception {
+    JSONObject member = new JSONObject().put("id", "lucia").put("present", false)
+        .put("inventory", new JSONArray()).put("injury", "wounded").put("depletion", 7)
+        .put("location", "away").put("knowledge", new JSONObject().put("observed", "turn:4"))
+        .put("relationship", "distrust").put("promises", new JSONArray().put("promise:1"))
+        .put("debts", new JSONArray().put("debt:1")).put("consequences", "live");
+    JSONObject state = state(1, 7).put("party", new JSONArray().put(member));
+    CharacterEncounterCore core = new CharacterEncounterCore();
+    core.normalizeState(state);
+    state = new JSONObject(state.toString());
+    core.normalizeState(state);
+    JSONObject saved = state.getJSONArray("party").getJSONObject(0);
+    for (String key : new String[] {"present", "inventory", "injury", "depletion", "location",
+        "knowledge", "relationship", "promises", "debts", "consequences"}) {
+      assertEquals(key, member.get(key).toString(), saved.get(key).toString());
+    }
+    assertFalse(saved.getBoolean("present"));
+    assertEquals(0, saved.getJSONArray("inventory").length());
+  }
+
   @Test public void candidatesUseCanonRatesAndLucTramRequiresLeavingLevelZero() throws Exception {
     CharacterEncounterCore core = new CharacterEncounterCore();
 

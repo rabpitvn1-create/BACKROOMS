@@ -233,7 +233,7 @@ final class CharacterEncounterCore {
     member.put("id", id);
     member.put("name", displayName(id));
     member.put("joined", true);
-    member.put("present", true);
+    member.put("present", member.optBoolean("present", true));
     member.put("joinConfirmed", true);
     if (!member.has("inventory")) member.put("inventory", defaultInventory(id));
     member.remove("level");

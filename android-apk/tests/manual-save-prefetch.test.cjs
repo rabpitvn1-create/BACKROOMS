@@ -66,3 +66,19 @@ test('Explorer prefetch prepares exactly the two fixed actions', () => {
   assert.match(prefetch, /branch A\/B/);
   assert.doesNotMatch(prefetch, /A\/B\/C|branches A, B and C|i < 3/);
 });
+
+ test('turn-one current save survives a changed baseline prologue', () => {
+  const fragment = html.slice(html.indexOf('ensureCurrentLevel(state);'), html.indexOf('function esc('));
+  const saved = {turn: 1, title: 'current', currentLevel: 2, currentLevelKey: '2',
+    location: 'live location', player: {name: 'Cao Minh', hp: 7, depletion: 4},
+    party: [{id: 'lucia', present: false}], inventory: [], flags: {consequence: 'live'},
+    knowledge: {seen: 'live'}, relationship: 'live', promises: ['live'], debts: ['live'],
+    log: [{text: 'saved opening'}]};
+  const sandbox = {state: structuredClone(saved), CURRENT_CHARACTER_CANON: {version: 'new'},
+    initial: {log: [{text: 'new baseline prologue'}], player: {name: 'Cao Minh', hp: 50},
+      inventory: [{name: 'baseline'}], location: 'baseline', currentLevel: 0, currentLevelKey: '0'},
+    ensureCurrentLevel: value => value};
+  vm.runInNewContext(fragment, sandbox);
+  delete sandbox.state.characterCanon;
+  assert.deepEqual(sandbox.state, saved);
+});
