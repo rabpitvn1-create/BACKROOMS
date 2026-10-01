@@ -54,26 +54,37 @@ public final class GmSelectionGate {
           .put("authorizationHash", "");
     }
 
-    String traceScope = trace.optString("rngScope", "");
-    int drawSeq = trace.optInt("rngDrawSeq", -1);
-    if (!RNG_SCOPE.equals(traceScope) || drawSeq < 0 || rng == null) {
-      return packet.put("valid", false)
-          .put("reason", "selection_rng_evidence_missing")
-          .put("authorizationHash", "");
+    String selectionMode = trace.optString("selectionMode", "").trim();
+    if ("MANDATORY".equals(selectionMode)) {
+      packet.put("selectionMode", "MANDATORY")
+          .put("rngScope", "")
+          .put("rngDrawSeq", -1)
+          .put("rngDrawsUsed", rng == null ? 0 : rng.drawsUsed(TurnRng.Scope.CANDIDATE_SELECTION))
+          .put("rngDrawKey", "")
+          .put("valid", true)
+          .put("reason", "");
+    } else {
+      String traceScope = trace.optString("rngScope", "");
+      int drawSeq = trace.optInt("rngDrawSeq", -1);
+      if (!RNG_SCOPE.equals(traceScope) || drawSeq < 0 || rng == null) {
+        return packet.put("valid", false)
+            .put("reason", "selection_rng_evidence_missing")
+            .put("authorizationHash", "");
+      }
+      int drawsUsed = rng.drawsUsed(TurnRng.Scope.CANDIDATE_SELECTION);
+      if (drawsUsed != drawSeq + 1) {
+        return packet.put("valid", false)
+            .put("reason", "selection_rng_counter_mismatch")
+            .put("authorizationHash", "");
+      }
+      packet.put("selectionMode", "WEIGHTED_RNG")
+          .put("rngScope", traceScope)
+          .put("rngDrawSeq", drawSeq)
+          .put("rngDrawsUsed", drawsUsed)
+          .put("rngDrawKey", rng.drawKey(TurnRng.Scope.CANDIDATE_SELECTION, drawSeq))
+          .put("valid", true)
+          .put("reason", "");
     }
-    int drawsUsed = rng.drawsUsed(TurnRng.Scope.CANDIDATE_SELECTION);
-    if (drawsUsed != drawSeq + 1) {
-      return packet.put("valid", false)
-          .put("reason", "selection_rng_counter_mismatch")
-          .put("authorizationHash", "");
-    }
-
-    packet.put("rngScope", traceScope)
-        .put("rngDrawSeq", drawSeq)
-        .put("rngDrawsUsed", drawsUsed)
-        .put("rngDrawKey", rng.drawKey(TurnRng.Scope.CANDIDATE_SELECTION, drawSeq))
-        .put("valid", true)
-        .put("reason", "");
     packet.put("authorizationHash", hashWithoutAuthorizationHash(packet));
     return packet;
   }
@@ -139,16 +150,28 @@ public final class GmSelectionGate {
     if (!safe(expectedBaseStateHash).equals(authorization.optString("baseStateHash", ""))) {
       return "selection_base_state_mismatch";
     }
-    if (!RNG_SCOPE.equals(authorization.optString("rngScope", ""))) {
-      return "selection_rng_scope_invalid";
-    }
+    String selectionMode = authorization.optString("selectionMode", "WEIGHTED_RNG");
     int drawSeq = authorization.optInt("rngDrawSeq", -1);
     int drawsUsed = authorization.optInt("rngDrawsUsed", -1);
-    if (drawSeq < 0 || drawsUsed != drawSeq + 1) {
-      return "selection_rng_counter_mismatch";
-    }
-    if (authorization.optString("rngDrawKey", "").trim().isEmpty()) {
-      return "selection_rng_draw_key_missing";
+    if ("MANDATORY".equals(selectionMode)) {
+      if (!authorization.optString("rngScope", "").isEmpty()
+          || drawSeq != -1
+          || drawsUsed < 0
+          || !authorization.optString("rngDrawKey", "").isEmpty()) {
+        return "selection_mandatory_evidence_invalid";
+      }
+    } else if ("WEIGHTED_RNG".equals(selectionMode)) {
+      if (!RNG_SCOPE.equals(authorization.optString("rngScope", ""))) {
+        return "selection_rng_scope_invalid";
+      }
+      if (drawSeq < 0 || drawsUsed != drawSeq + 1) {
+        return "selection_rng_counter_mismatch";
+      }
+      if (authorization.optString("rngDrawKey", "").trim().isEmpty()) {
+        return "selection_rng_draw_key_missing";
+      }
+    } else {
+      return "selection_mode_invalid";
     }
     String expectedHash = authorization.optString("authorizationHash", "");
     if (expectedHash.isEmpty() || !expectedHash.equals(hashWithoutAuthorizationHash(authorization))) {
@@ -168,6 +191,7 @@ public final class GmSelectionGate {
         .put("payloadKey", authorization.optString("payloadKey", ""))
         .put("eligibilityRuleId", authorization.optString("eligibilityRuleId", ""))
         .put("selectedNone", authorization.optBoolean("selectedNone", false))
+        .put("selectionMode", authorization.optString("selectionMode", "WEIGHTED_RNG"))
         .put("rngScope", authorization.optString("rngScope", ""))
         .put("rngDrawSeq", authorization.optInt("rngDrawSeq", -1))
         .put("rngDrawsUsed", authorization.optInt("rngDrawsUsed", -1))

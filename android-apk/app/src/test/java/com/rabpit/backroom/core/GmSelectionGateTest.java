@@ -69,6 +69,23 @@ public class GmSelectionGateTest {
     assertEquals("selection_rng_counter_mismatch", auth.getString("reason"));
   }
 
+  @Test public void mandatorySelectionAuthorizesWithoutConsumingCandidateRng() throws Exception {
+    JSONObject selected = selected("ENTITY", "entity:hound", "hound");
+    JSONObject auth = GmSelectionGate.issue(
+        "turn-mandatory", "base-hash", selected,
+        mandatoryTracedState("entity:hound"), null);
+
+    assertTrue(auth.getBoolean("valid"));
+    assertEquals("MANDATORY", auth.getString("selectionMode"));
+    assertEquals(-1, auth.getInt("rngDrawSeq"));
+    JSONObject allowed = GmSelectionGate.authorize(
+        auth, "turn-mandatory", "base-hash", "START_ENTITY_ENCOUNTER",
+        new JSONObject().put("entityKey", "hound"));
+    assertTrue(allowed.getBoolean("allowed"));
+    assertEquals("MANDATORY",
+        allowed.getJSONObject("selectionEvidence").getString("selectionMode"));
+  }
+
   @Test public void tamperedAuthorizationHashFailsClosed() throws Exception {
     TurnRng rng = resumedCandidateRng("turn-4c", 3, 1);
     JSONObject auth = GmSelectionGate.issue(
@@ -97,6 +114,16 @@ public class GmSelectionGateTest {
         .put("payloadKey", payloadKey)
         .put("eligibilityRuleId", "canon:" + situationKey)
         .put("selectedNone", false);
+  }
+
+  private static JSONObject mandatoryTracedState(String selectedSituationKey) throws Exception {
+    JSONObject trace = new JSONObject()
+        .put("turn", 4)
+        .put("selectedSituationKey", selectedSituationKey)
+        .put("selectedNone", false)
+        .put("selectionMode", "MANDATORY");
+    return new JSONObject().put(EmergentTurnEngine.ROOT_KEY,
+        new JSONObject().put("selectionTrace", new JSONArray().put(trace)));
   }
 
   private static JSONObject tracedState(

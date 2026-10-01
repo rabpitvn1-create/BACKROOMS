@@ -223,6 +223,7 @@ Status: implemented behind `GM_TRANSACTION_COMMIT_ENABLED`.
 - Debug shadow comparison continues only when V2 is live authority.
 - If a GM transaction already starts combat, the post-narration bridge does not start combat a second time.
 - Successful GM commit is persisted before narration; narration failure therefore regenerates/falls back from the same committed state without rerunning gameplay.
+- Scheduler candidates selected in `MANDATORY` mode are authorized without inventing a fake RNG draw; their trace is bound by `selectionMode=MANDATORY` and the authorization hash. Weighted selections still require the exact `CANDIDATE_SELECTION` draw evidence.
 
 Phase 4D is complete at the code level. The feature flag remains OFF by default; enabling it is an explicit rollout decision.
 
