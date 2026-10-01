@@ -43,6 +43,11 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
+      - name: Audit canon sources
+        run: |
+          python3 -m unittest discover -s android-apk/tools/tests -p 'test_canon_audit.py'
+          python3 android-apk/tools/canon_audit.py
+
       - name: Apply patch profile
         run: |
           set -euo pipefail

@@ -30,6 +30,11 @@ jobs:
       - name: Validate patch graph
         run: python3 android-apk/tools/patchctl.py validate
 
+      - name: Audit canon sources
+        run: |
+          python3 -m unittest discover -s android-apk/tools/tests -p 'test_canon_audit.py'
+          python3 android-apk/tools/canon_audit.py
+
       - name: Apply patch profile
         run: |
           python3 android-apk/tools/patchctl.py apply full

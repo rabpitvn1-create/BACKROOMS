@@ -1,6 +1,6 @@
 # GM Transaction Rollout
 
-Status: PHASE 6E — KNOWLEDGE / CONTINUITY FIREWALL IMPLEMENTED; PHASE 6F NEXT
+Status: PHASE 6F.1 — REGISTRY / PHYSICAL SOURCE AUDIT IMPLEMENTED; COVERAGE AUDIT NEXT
 
 This rollout preserves the current V2 Core/save/runtime while reintroducing GM planning authority in controlled stages. No phase may skip the transaction boundary.
 
@@ -569,3 +569,10 @@ Only one phase becomes authoritative at a time. A phase moves forward only after
 - Red/green regressions cover JSON reload, injury, depletion, inventory, location, knowledge, relationships, promises, debts and consequences.
 - Existing Lucia/Lục Trầm separation, Táng Kiếm Cốc POV/backstage locks and local R17 versus external R15 conflict remain pinned by source contract tests. No lore was reconciled.
 - Phase 6E is implemented. Unmarked prose is reference context; the tooling audit reports boundary gaps without inventing canon classifications.
+
+### Phase 6F.1 — Registry and source audit CLI
+
+- `python3 android-apk/tools/canon_audit.py` validates registry shape, source identity/classification, structured path safety/existence and dependency/supersedes targets/cycles.
+- Deterministic JSON reports include authority/status/owner/version and source graph edges. The CLI has no write path and adds no dependencies.
+- Both CI workflows run its focused Python tests and shipped-source audit. The existing `CanonRegistry` JVM tests remain the runtime schema gate.
+- Supersedes and lore disagreements are reported; content and authority are never auto-repaired.
