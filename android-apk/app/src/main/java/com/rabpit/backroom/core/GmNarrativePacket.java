@@ -60,6 +60,9 @@ public final class GmNarrativePacket {
         + "EXPLORER CHOICES: trả 0-3 gợi ý hành động ngắn, cụ thể và phù hợp với tình huống hiện tại; "
         + "đây là gợi ý của GM, không phải nhánh kịch bản cố định. Nếu Entity đang đối đầu trực tiếp thì choices=[].\n"
         + "ENCOUNTER DIALOGUE: chỉ khi Character Core có pending intro; khi đó trả đúng 2-5 câu thoại. Nếu không thì [].\n"
+        + "CLAIMS: claims[] là bắt buộc. Mỗi câu khẳng định gameplay state vừa thay đổi trong lượt này phải có một claim "
+        + "{eventId,kind,subject} khớp nguyên văn với COMMITTED TURN EVIDENCE. Không có mutation claim thì claims=[]. "
+        + "Không được tự tạo eventId/kind/subject và không dùng post-state để suy ra mutation.\n"
         + safe(levelContext) + "\n"
         + safe(entityContext) + "\n"
         + safe(itemContext) + "\n"
@@ -73,7 +76,8 @@ public final class GmNarrativePacket {
         + "READ-ONLY STATE: " + promptState.toString() + "\n"
         + "PLAYER ACTION: " + safe(action) + "\n"
         + "OUTPUT: chỉ JSON hợp lệ, không markdown. JSON không có quyền thay đổi state.\n"
-        + "{\"reply\":\"phản hồi Game Master\",\"choices\":[{\"text\":\"Gợi ý 1\"}],\"encounterDialogue\":[]}";
+        + "{\"reply\":\"phản hồi Game Master\",\"choices\":[{\"text\":\"Gợi ý 1\"}],\"encounterDialogue\":[],"
+        + "\"claims\":[{\"eventId\":\"turn:e1\",\"kind\":\"ITEM_ACQUIRED\",\"subject\":\"Almond Water\"}]}";
   }
 
   private static String situationContext(JSONObject state) {
