@@ -155,6 +155,52 @@ public class CharacterEncounterCoreTest {
         .put("log", new JSONArray().put(new JSONObject().put("role", "gm").put("text", "Test")));
   }
 
+  @Test public void promptAddsBoundedCurrentCanonOnlyForPresentCompanions() throws Exception {
+    String current = new JSONObject().put("characters", new JSONObject()
+        .put("cao_minh", new JSONObject().put("runtime", "STALE_CAO_R15_MARKER"))
+        .put("luc_tram", new JSONObject()
+            .put("name", "Lục Trầm")
+            .put("canonVersion", "R05")
+            .put("runtime", "LUC_RUNTIME_MARKER")
+            .put("dialogue", "LUC_DIALOGUE_MARKER")
+            .put("relationship", "LUC_RELATIONSHIP_MARKER")
+            .put("visual", "LUC_VISUAL_MARKER")
+            .put("abilities", "LUC_ABILITIES_MARKER")
+            .put("equipment", "LUC_EQUIPMENT_MARKER")
+            .put("knowledgeLock", "WRITER_SECRET_MARKER")
+            .put("gameplay", "GAMEPLAY_ONLY_MARKER"))
+        .put("syvial", new JSONObject()
+            .put("name", "Syvial")
+            .put("revision", "CURRENT")
+            .put("runtime", "SYVIAL_RUNTIME_MARKER")
+            .put("abilities", "SYVIAL_ABILITIES_MARKER")
+            .put("equipment", "SYVIAL_EQUIPMENT_MARKER"))
+        .put("lucia", new JSONObject()
+            .put("name", "Lucia Lục")
+            .put("runtime", "ABSENT_LUCIA_MARKER"))).toString();
+    JSONObject state = state(2, 9).put("party", new JSONArray()
+        .put(new JSONObject().put("id", "luc_tram").put("present", true))
+        .put(new JSONObject().put("id", "syvial").put("present", true))
+        .put(new JSONObject().put("id", "lucia").put("present", false)));
+
+    String prompt = new CharacterEncounterCore(current).promptContext(state);
+
+    assertTrue(prompt.contains("CURRENT CHARACTER CANON"));
+    assertTrue(prompt.contains("LUC_RUNTIME_MARKER"));
+    assertTrue(prompt.contains("LUC_DIALOGUE_MARKER"));
+    assertTrue(prompt.contains("LUC_RELATIONSHIP_MARKER"));
+    assertTrue(prompt.contains("LUC_VISUAL_MARKER"));
+    assertTrue(prompt.contains("LUC_ABILITIES_MARKER"));
+    assertTrue(prompt.contains("LUC_EQUIPMENT_MARKER"));
+    assertTrue(prompt.contains("SYVIAL_RUNTIME_MARKER"));
+    assertTrue(prompt.contains("SYVIAL_ABILITIES_MARKER"));
+    assertTrue(prompt.contains("SYVIAL_EQUIPMENT_MARKER"));
+    assertFalse(prompt.contains("ABSENT_LUCIA_MARKER"));
+    assertFalse(prompt.contains("STALE_CAO_R15_MARKER"));
+    assertFalse(prompt.contains("WRITER_SECRET_MARKER"));
+    assertFalse(prompt.contains("GAMEPLAY_ONLY_MARKER"));
+  }
+
   @Test public void lucTramPendingPromptIsReunionNotFirstContact() throws Exception {
     JSONObject state = state(1, 5)
         .put("characterEncounter", new JSONObject()

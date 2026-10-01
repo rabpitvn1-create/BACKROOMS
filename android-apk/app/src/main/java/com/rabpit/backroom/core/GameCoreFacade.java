@@ -47,7 +47,7 @@ public final class GameCoreFacade implements AutoCloseable {
     this.levelCore = new LevelCore(appContext);
     this.entityCore = new EntityCore(appContext);
     this.itemCore = new ItemCore();
-    this.characterEncounterCore = new CharacterEncounterCore();
+    this.characterEncounterCore = new CharacterEncounterCore(appContext);
     this.characterProgressionCore = new CharacterProgressionCore();
     this.survivalCore = new SurvivalCore();
     this.characterDetailCore = new CharacterDetailCore();

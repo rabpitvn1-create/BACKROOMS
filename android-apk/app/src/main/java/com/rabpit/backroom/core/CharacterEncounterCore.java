@@ -1,8 +1,12 @@
 package com.rabpit.backroom.core;
 
+import android.content.Context;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -20,6 +24,46 @@ final class CharacterEncounterCore {
   private static final String PENDING_INTRO = "pendingIntro";
   private static final String JUST_ENCOUNTERED = "justEncountered";
   private static final String[] CANONICAL_ORDER = {"lucia", "luc_tram", "syvial"};
+  private static final String CURRENT_CANON_ASSET = "knowledge/characters_current.json";
+  private static final int MAX_CURRENT_CANON_CONTEXT_CHARS = 2400;
+  private static final int MAX_CANON_FIELD_CHARS = 220;
+
+  private final JSONObject currentCanon;
+
+  CharacterEncounterCore() {
+    this.currentCanon = new JSONObject();
+  }
+
+  CharacterEncounterCore(Context context) {
+    this.currentCanon = loadCurrentCanon(context);
+  }
+
+  CharacterEncounterCore(String currentCanonJson) {
+    this.currentCanon = parseCurrentCanon(currentCanonJson);
+  }
+
+  private static JSONObject loadCurrentCanon(Context context) {
+    if (context == null) return new JSONObject();
+    try (InputStream in = context.getAssets().open(CURRENT_CANON_ASSET)) {
+      ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+      byte[] buffer = new byte[8192];
+      int count;
+      while ((count = in.read(buffer)) != -1) bytes.write(buffer, 0, count);
+      return parseCurrentCanon(new String(bytes.toByteArray(), StandardCharsets.UTF_8));
+    } catch (Exception ignored) {
+      return new JSONObject();
+    }
+  }
+
+  private static JSONObject parseCurrentCanon(String raw) {
+    try {
+      JSONObject root = new JSONObject(raw == null ? "{}" : raw);
+      JSONObject characters = root.optJSONObject("characters");
+      return characters == null ? new JSONObject() : new JSONObject(characters.toString());
+    } catch (Exception ignored) {
+      return new JSONObject();
+    }
+  }
 
   void normalizeState(JSONObject state) throws Exception {
     if (state == null) return;
@@ -183,7 +227,7 @@ final class CharacterEncounterCore {
       String pendingNames = displayNames(pending);
       boolean pendingLucia = containsString(pending, "lucia");
       boolean pendingLucTram = containsString(pending, "luc_tram");
-      return "CHARACTER ENCOUNTER CORE:\n" +
+      String encounterContext = "CHARACTER ENCOUNTER CORE:\n" +
           "Joined: " + listText(joined) + ".\n" +
           "Lucia Lục eligibility: 10% first-contact candidate on Level 0 only; Lucia Lục is NOT Lục Trầm.\n" +
           "Lục Trầm eligibility: 0.25% reunion candidate only after Level 0; Core owns the roll.\n" +
@@ -210,9 +254,75 @@ final class CharacterEncounterCore {
                           "Do not imply the character was present in earlier Backrooms turns. " +
                           "Return encounterDialogue with 2-5 short Vietnamese spoken lines total, canon-accurate and natural. " +
                           "Do not invent Cao Minh's dialogue/decision, ask the player to approve Party membership, or advance an extra Explorer Turn.");
+      String canonContext = currentCanonPromptContext(state);
+      return canonContext.isEmpty() ? encounterContext : encounterContext + "\n" + canonContext;
     } catch (Exception e) {
       return "CHARACTER ENCOUNTER CORE: unavailable. Do not spawn characters or mutate Party.";
     }
+  }
+
+  private String currentCanonPromptContext(JSONObject state) {
+    JSONArray party = state == null ? null : state.optJSONArray("party");
+    if (party == null || currentCanon.length() == 0) return "";
+
+    List<String> present = new ArrayList<>();
+    for (String id : CANONICAL_ORDER) {
+      JSONObject member = partyMember(party, id);
+      if (member != null && member.optBoolean("present", true) && currentCanon.optJSONObject(id) != null) {
+        present.add(id);
+      }
+    }
+    if (present.isEmpty()) return "";
+
+    int perCharacter = MAX_CURRENT_CANON_CONTEXT_CHARS / present.size();
+    StringBuilder out = new StringBuilder(
+        "CURRENT CHARACTER CANON (present companions only; narration baseline):\n"
+            + "Registered CURRENT Markdown/USER_RETCON and live continuity override this projection. "
+            + "KNOWLEDGE_LOCK/gameplay are omitted. Cao Minh structured R15 is intentionally not injected; "
+            + "registered R17 plus CAO MINH NARRATIVE CARD remain runtime narration authority.\n");
+    for (String id : present) {
+      String card = currentCanonCard(id, perCharacter);
+      if (!card.isEmpty()) out.append(card).append('\n');
+    }
+    return out.toString().trim();
+  }
+
+  private String currentCanonCard(String id, int limit) {
+    JSONObject canon = currentCanon.optJSONObject(id);
+    if (canon == null || limit <= 0) return "";
+    StringBuilder out = new StringBuilder("- ")
+        .append(canon.optString("name", displayName(id)).trim());
+    String version = canon.optString("canonVersion", canon.optString("revision", "")).trim();
+    if (!version.isEmpty()) out.append(" [").append(version).append(']');
+    appendCanonField(out, "IDENTITY", canon.optString("runtime", ""), limit);
+    appendCanonField(out, "VOICE", canon.optString("dialogue", ""), limit);
+    appendCanonField(out, "RELATIONSHIP", canon.optString("relationship", ""), limit);
+    appendCanonField(out, "VISUAL", canon.optString("visual", ""), limit);
+    appendCanonField(out, "ABILITIES", canon.optString("abilities", ""), limit);
+    appendCanonField(out, "EQUIPMENT", canon.optString("equipment", ""), limit);
+    return out.toString();
+  }
+
+  private static void appendCanonField(StringBuilder out, String label, String raw, int limit) {
+    String value = raw == null ? "" : raw.trim();
+    if (value.isEmpty() || out.length() >= limit) return;
+    int room = Math.min(MAX_CANON_FIELD_CHARS, limit - out.length() - label.length() - 5);
+    if (room < 24) return;
+    if (value.length() > room) {
+      int cut = value.lastIndexOf(' ', room - 1);
+      if (cut < room / 2) cut = room - 1;
+      value = value.substring(0, cut).trim() + "…";
+    }
+    out.append("\n  ").append(label).append(": ").append(value);
+  }
+
+  private static JSONObject partyMember(JSONArray party, String id) {
+    if (party == null) return null;
+    for (int i = 0; i < party.length(); i++) {
+      JSONObject member = party.optJSONObject(i);
+      if (id.equals(characterId(member))) return member;
+    }
+    return null;
   }
 
   static boolean isJoinedMember(JSONObject member) {
