@@ -1,6 +1,6 @@
 # GM Transaction Rollout
 
-Status: PHASE 6G.2 — NESTED KNOWLEDGE PAYLOAD HARDENING IMPLEMENTED; CLOSEOUT NEXT
+Status: PHASE 6G.3 — STATUS / AUTHORITY MATRIX HARDENED; CLOSEOUT NEXT
 
 This rollout preserves the current V2 Core/save/runtime while reintroducing GM planning authority in controlled stages. No phase may skip the transaction boundary.
 
@@ -597,3 +597,9 @@ Only one phase becomes authoritative at a time. A phase moves forward only after
 - Belief display fields are text-only and evidence references must be strings; structured payloads cannot smuggle writer knowledge through a safe key.
 - Actor state projection recursively filters explicitly declared hidden/foreign knowledge bindings and known backstage keys (`knowledgeLock`, `writerSecret`) without mutating the save. Ordinary runtime fields remain available.
 - Red/green regressions cover nested secrets, foreign actor bindings, structured belief payloads, malformed references and unchanged current HP/save.
+
+### Phase 6G.3 — Status and authority matrix
+
+- CURRENT status cannot promote UNCLASSIFIED authority into retrieval. REFERENCE authority remains supplemental context and cannot provide a mandatory canon source.
+- Source supersedes remains fail-closed even when the replacing source cannot be exposed. No authority is inferred or rewritten.
+- A red/green regression pins the status/authority cross-product independently of shipped registry data.

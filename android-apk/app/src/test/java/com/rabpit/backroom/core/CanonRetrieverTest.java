@@ -409,6 +409,25 @@ public class CanonRetrieverTest {
     assertTrue(new CanonRetriever(resolved, registry).retrieve(scene, "đợi", 1, true).budgetExceeded);
   }
 
+  @Test public void currentStatusCannotPromoteUnclassifiedOrReferenceAuthority() throws Exception {
+    Map<String, String> files = new LinkedHashMap<>();
+    files.put("World.md", "# World\n## Tầng 0 — Lobby\nREFERENCE_WORLD\n");
+    files.put("Unknown.md", "# Unknown Topic\nUNCLASSIFIED_FACT\n");
+    JSONObject world = registrySource("world", "World.md", "world/world.md", "WORLD",
+        "REFERENCE", "CURRENT", new JSONArray().put("level:0"));
+    JSONObject unknown = registrySource("unknown", "Unknown.md", "world/unknown.md", "WORLD",
+        "UNCLASSIFIED", "CURRENT", new JSONArray());
+    JSONObject registry = new JSONObject().put("schemaVersion", 1)
+        .put("sources", new JSONArray().put(world).put(unknown));
+    CanonRetriever index = new CanonRetriever(files, registry);
+    CanonRetriever.CanonPacket packet = index.retrieve(state(), "Unknown Topic", 4000, true);
+    assertFalse(packet.promptText().contains("UNCLASSIFIED_FACT"));
+    assertTrue(packet.missingMandatoryRefs.contains("level:0"));
+    assertFalse(packet.mandatory.stream().anyMatch(s -> "World.md".equals(s.section.sourceFile)));
+    assertTrue(index.retrieve(state(), "Tầng 0 — Lobby", 4000, true)
+        .supplemental.stream().anyMatch(s -> "World.md".equals(s.section.sourceFile)));
+  }
+
   private static JSONObject registrySource(
       String id, String path, String contentPath, String type, String authority, String status,
       JSONArray mandatoryFor) throws Exception {

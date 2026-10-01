@@ -468,7 +468,9 @@ public final class CanonRetriever {
     String id = source.optString("id", "");
     if (supersededIds.contains(id)) return false;
     String status = source.optString("status", "");
-    if (mandatory) return "CURRENT".equals(status);
+    String authority = source.optString("authority", "");
+    if ("UNCLASSIFIED".equals(authority)) return false;
+    if (mandatory) return "CURRENT".equals(status) && !"REFERENCE".equals(authority);
     return "CURRENT".equals(status) || "REFERENCE".equals(status);
   }
 
