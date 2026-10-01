@@ -77,13 +77,16 @@ public final class CanonRetriever {
   }
 
   public static final class CanonPacket {
+    public static final int CONTRACT_VERSION = 1;
+    public final int contractVersion = CONTRACT_VERSION;
     public final List<Selected> mandatory, dependencies, supplemental;
     public final List<String> missingMandatoryRefs, missingRefs, trace;
     public final int charCount;
     public final boolean budgetExceeded;
+    private final String sourceMetadataJson;
     private CanonPacket(List<Selected> mandatory, List<Selected> dependencies,
         List<Selected> supplemental, List<String> missingMandatoryRefs, List<String> missingRefs,
-        List<String> trace, int charCount, boolean budgetExceeded) {
+        List<String> trace, int charCount, boolean budgetExceeded, JSONArray sourceMetadata) {
       this.mandatory = Collections.unmodifiableList(new ArrayList<>(mandatory));
       this.dependencies = Collections.unmodifiableList(new ArrayList<>(dependencies));
       this.supplemental = Collections.unmodifiableList(new ArrayList<>(supplemental));
@@ -92,6 +95,14 @@ public final class CanonRetriever {
       this.trace = Collections.unmodifiableList(new ArrayList<>(trace));
       this.charCount = charCount;
       this.budgetExceeded = budgetExceeded;
+      this.sourceMetadataJson = sourceMetadata == null ? "[]" : sourceMetadata.toString();
+    }
+    public JSONArray sourceMetadata() {
+      try {
+        return new JSONArray(sourceMetadataJson);
+      } catch (Exception impossible) {
+        return new JSONArray();
+      }
     }
     public String promptText() {
       StringBuilder out = new StringBuilder();
@@ -365,7 +376,46 @@ public final class CanonRetriever {
       }
     }
     if (debug) for (Selected s : mandatory) trace.add(s.reason + ":" + s.section.sectionId);
-    return new CanonPacket(mandatory, dependencies, supplemental, missing, missingRefs, trace, size, exceeded);
+    JSONArray sourceMetadata = packetSourceMetadata(mandatory, dependencies, supplemental);
+    return new CanonPacket(
+        mandatory, dependencies, supplemental, missing, missingRefs, trace, size, exceeded,
+        sourceMetadata);
+  }
+
+  private JSONArray packetSourceMetadata(
+      List<Selected> mandatory, List<Selected> dependencies, List<Selected> supplemental) {
+    JSONArray output = new JSONArray();
+    if (!registryBacked) return output;
+
+    Set<String> paths = new LinkedHashSet<>();
+    for (Selected selected : mandatory) paths.add(selected.section.sourceFile);
+    for (Selected selected : dependencies) paths.add(selected.section.sourceFile);
+    for (Selected selected : supplemental) paths.add(selected.section.sourceFile);
+    List<String> ordered = new ArrayList<>(paths);
+    Collections.sort(ordered);
+
+    for (String path : ordered) {
+      JSONObject source = registryByPath.get(path);
+      if (source == null) continue;
+      JSONObject projected = new JSONObject();
+      projected.put("id", source.optString("id", ""))
+          .put("path", source.optString("path", ""))
+          .put("contentPath", source.optString("contentPath", ""))
+          .put("type", source.optString("type", ""))
+          .put("authority", source.optString("authority", ""))
+          .put("status", source.optString("status", ""))
+          .put("version", source.optString("version", ""))
+          .put("owner", source.optString("owner", ""))
+          .put("mandatoryFor", copyArray(source.optJSONArray("mandatoryFor")))
+          .put("dependencies", copyArray(source.optJSONArray("dependencies")))
+          .put("supersedes", copyArray(source.optJSONArray("supersedes")));
+      output.put(projected);
+    }
+    return output;
+  }
+
+  private static JSONArray copyArray(JSONArray source) {
+    return source == null ? new JSONArray() : new JSONArray(source.toString());
   }
 
   private void collect(Section s, List<Section> out, Set<String> local, Set<String> used,
