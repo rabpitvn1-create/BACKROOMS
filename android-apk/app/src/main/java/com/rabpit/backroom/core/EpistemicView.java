@@ -33,7 +33,7 @@ final class EpistemicView {
 
     JSONArray beliefs = actorBeliefs(state, actorId);
     if (beliefs.length() > 0) output.put("beliefs", beliefs);
-    return output;
+    return (JSONObject) SafePresentationView.value(state, actorId, output);
   }
 
   private static Object visibleValue(Object value, String actorId) throws Exception {
