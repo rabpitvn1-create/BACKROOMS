@@ -258,8 +258,12 @@ public class CanonRegistryTest {
     assertEquals("characters/cao-minh.md", cao.getString("contentPath"));
 
     if (!Files.isRegularFile(currentMap)) {
+      currentMap = Paths.get("../CHARACTER_CODEX_CURRENT.md");
+    }
+    if (!Files.isRegularFile(currentMap)) {
       currentMap = Paths.get("android-apk/CHARACTER_CODEX_CURRENT.md");
     }
+    assertTrue(Files.isRegularFile(currentMap));
     String sourceMap = new String(Files.readAllBytes(currentMap), StandardCharsets.UTF_8);
     assertTrue(sourceMap.contains("Cao Minh / Vạn Giới Ma Tôn — R15"));
     assertTrue(sourceMap.contains("Cao_Minh_Codex.docx"));
