@@ -1,6 +1,6 @@
 # GM Transaction Rollout
 
-Status: PHASE 6C.9 — PROJECT WORLD BASELINE MIGRATION COMPLETE; PHASE 6C.10 NEXT
+Status: PHASE 6C.12 — LUCIA MIGRATION REVIEW COMPLETE; PHASE 6C.13 NEXT
 
 This rollout preserves the current V2 Core/save/runtime while reintroducing GM planning authority in controlled stages. No phase may skip the transaction boundary.
 
@@ -406,7 +406,17 @@ Status: COMPLETE.
 - Tests verify the structured-only file location plus the unchanged authority/status and empty mandatory binding.
 - Compatibility loading and retrieval behavior remain unchanged.
 
-Phase 6C.12 will review Lucia migration separately because it is a scoped CURRENT USER_RETCON with an identity hard lock.
+### Phase 6C.12 — Lucia migration authority and path review
+
+Status: COMPLETE / REVIEW ONLY.
+
+- `LUCIA_MIGRATION_REVIEW_PHASE6C12.md` freezes Lucia's scoped CURRENT USER_RETCON authority and the hard identity split `lucia != luc_tram`.
+- Registry authority/status/owner/mandatory binding are unchanged.
+- The review identifies every current physical-path reference that must move atomically with the Markdown: machine-readable knowledge sources, current source maps and the Lucia separation regression test.
+- The Canon Registry logical `path=Lucia_Codex.md` remains unchanged for compatibility; only the physical source is allowed to move to `content/characters/lucia.md`.
+- No source was moved and runtime behavior is unchanged.
+
+Phase 6C.13 may perform the byte-preserving Lucia move plus those path-reference updates only.
 
 Expand content without changing transaction semantics:
 
