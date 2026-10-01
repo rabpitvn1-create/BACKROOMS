@@ -1,6 +1,6 @@
 # GM Transaction Rollout
 
-Status: PHASE 6B — CANON REGISTRY SCHEMA COMPLETE; PHASE 6C NEXT
+Status: PHASE 6C.1 — STRUCTURED CONTENT LAYOUT DECLARED; PHASE 6C.2 NEXT
 
 This rollout preserves the current V2 Core/save/runtime while reintroducing GM planning authority in controlled stages. No phase may skip the transaction boundary.
 
@@ -288,7 +288,17 @@ Status: COMPLETE / NOT YET USED BY RETRIEVAL.
 - `CanonRegistryTest` validates the shipped registry and fail-closed behavior for duplicate IDs, missing references, cycles, unknown authority/fields and missing character owner.
 - `CanonRetriever` does not consume the registry yet. Runtime retrieval and gameplay behavior are unchanged.
 
-Phase 6C will introduce the structured content layout in small migration batches while preserving compatibility with the current asset paths.
+### Phase 6C.1 — Structured content layout declaration
+
+Status: COMPLETE / NO SOURCE MOVES.
+
+- Registry entries now carry both legacy `path` and planned structured `contentPath`.
+- `CanonRegistry` validates structured paths against the allowed content roots and rejects traversal, backslashes and duplicate destinations.
+- The asset tree now reserves the content namespaces: world, levels, sublevels, entities, items, factions, phenomena, characters, history, wiki, codex and continuity.
+- Existing Markdown remains under `assets/canon`; `CanonRetriever` still reads the legacy direct paths, so runtime behavior is unchanged.
+- No canon source has two authoritative copies. The new tree is only a migration destination declaration.
+
+Phase 6C.2 will migrate one low-risk content batch only after compatibility loading is prepared.
 
 Expand content without changing transaction semantics:
 
