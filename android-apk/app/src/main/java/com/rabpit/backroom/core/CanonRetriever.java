@@ -5,6 +5,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import java.io.InputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -106,20 +107,88 @@ public final class CanonRetriever {
   }
 
   public static CanonRetriever fromAssets(Context context) throws Exception {
-    Map<String, String> files = new LinkedHashMap<>();
+    Map<String, String> legacyFiles = new LinkedHashMap<>();
     String[] names = context.getAssets().list("canon");
     if (names == null) throw new IllegalStateException("Cannot list canon assets");
     Arrays.sort(names);
     for (String name : names) if (name.toLowerCase(Locale.ROOT).endsWith(".md")) {
-      try (InputStream in = context.getAssets().open("canon/" + name)) {
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        byte[] buffer = new byte[8192];
-        int count;
-        while ((count = in.read(buffer)) != -1) bytes.write(buffer, 0, count);
-        files.put(name, new String(bytes.toByteArray(), StandardCharsets.UTF_8));
+      legacyFiles.put(name, readAsset(context, "canon/" + name));
+    }
+
+    String registryRaw;
+    try {
+      registryRaw = readAsset(context, "canon/canon-registry.json");
+    } catch (IOException missingRegistry) {
+      return new CanonRetriever(legacyFiles);
+    }
+
+    JSONObject registry = new JSONObject(registryRaw);
+    JSONObject validation = CanonRegistry.validate(registry);
+    if (!validation.optBoolean("valid", false)) {
+      throw new IllegalStateException(
+          "Invalid canon registry: " + validation.optJSONArray("errors"));
+    }
+
+    Map<String, String> structuredFiles = new LinkedHashMap<>();
+    JSONArray sources = registry.getJSONArray("sources");
+    for (int i = 0; i < sources.length(); i++) {
+      JSONObject source = sources.getJSONObject(i);
+      String contentPath = source.getString("contentPath");
+      try {
+        structuredFiles.put(contentPath, readAsset(context, "content/" + contentPath));
+      } catch (IOException missingStructuredCopy) {
+        // 6C compatibility: unresolved sources continue to use their legacy canon path.
       }
     }
-    return new CanonRetriever(files);
+    return new CanonRetriever(resolveRegistrySources(registry, legacyFiles, structuredFiles));
+  }
+
+  static Map<String, String> resolveRegistrySources(
+      JSONObject registry, Map<String, String> legacyFiles, Map<String, String> structuredFiles) {
+    JSONObject validation = CanonRegistry.validate(registry);
+    if (!validation.optBoolean("valid", false)) {
+      throw new IllegalArgumentException(
+          "Invalid canon registry: " + validation.optJSONArray("errors"));
+    }
+
+    Map<String, String> resolved = new LinkedHashMap<>();
+    Set<String> registeredLegacyPaths = new LinkedHashSet<>();
+    JSONArray sources = registry.optJSONArray("sources");
+    for (int i = 0; sources != null && i < sources.length(); i++) {
+      JSONObject source = sources.optJSONObject(i);
+      String legacyPath = source == null ? "" : source.optString("path", "");
+      String contentPath = source == null ? "" : source.optString("contentPath", "");
+      registeredLegacyPaths.add(legacyPath);
+
+      String text = structuredFiles == null ? null : structuredFiles.get(contentPath);
+      if (text == null && legacyFiles != null) text = legacyFiles.get(legacyPath);
+      if (text == null) {
+        throw new IllegalStateException(
+            "Registered canon source is missing: " + source.optString("id", legacyPath));
+      }
+      resolved.put(legacyPath, text);
+    }
+
+    if (legacyFiles != null) {
+      List<String> extras = new ArrayList<>(legacyFiles.keySet());
+      Collections.sort(extras);
+      for (String legacyPath : extras) {
+        if (!registeredLegacyPaths.contains(legacyPath)) {
+          resolved.put(legacyPath, legacyFiles.get(legacyPath));
+        }
+      }
+    }
+    return resolved;
+  }
+
+  private static String readAsset(Context context, String path) throws IOException {
+    try (InputStream in = context.getAssets().open(path)) {
+      ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+      byte[] buffer = new byte[8192];
+      int count;
+      while ((count = in.read(buffer)) != -1) bytes.write(buffer, 0, count);
+      return new String(bytes.toByteArray(), StandardCharsets.UTF_8);
+    }
   }
 
   public CanonRetriever(Map<String, String> markdownFiles) {

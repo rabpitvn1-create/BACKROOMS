@@ -28,6 +28,59 @@ public class CanonRetrieverTest {
             .put(new JSONObject().put("id", "absent_friend").put("present", false)))
         .put("flags", new JSONObject().put("entityEncounterKey", "wretch"));
   }
+  @Test public void compatibilityLoaderPrefersStructuredContentButKeepsLegacyIdentity()
+      throws Exception {
+    JSONObject registry = new JSONObject().put("schemaVersion", 1)
+        .put("sources", new JSONArray().put(new JSONObject()
+            .put("id", "async").put("path", "ASYNC.md")
+            .put("contentPath", "history/async.md")
+            .put("type", "HISTORY").put("authority", "UNCLASSIFIED")
+            .put("status", "UNCLASSIFIED").put("version", "").put("owner", "")
+            .put("dependencies", new JSONArray()).put("mandatoryFor", new JSONArray())
+            .put("supersedes", new JSONArray()).put("note", "")));
+    Map<String, String> legacy = new LinkedHashMap<>();
+    legacy.put("ASYNC.md", "# Legacy\nlegacy");
+    legacy.put("Extra.md", "# Extra\nextra");
+    Map<String, String> structured = new LinkedHashMap<>();
+    structured.put("history/async.md", "# Structured\nstructured");
+
+    Map<String, String> resolved =
+        CanonRetriever.resolveRegistrySources(registry, legacy, structured);
+    CanonRetriever index = new CanonRetriever(resolved);
+
+    assertEquals("# Structured\nstructured", resolved.get("ASYNC.md"));
+    assertEquals("# Extra\nextra", resolved.get("Extra.md"));
+    assertTrue(index.sections().stream()
+        .anyMatch(s -> s.sourceFile.equals("ASYNC.md") && s.rawText.contains("structured")));
+  }
+
+  @Test public void compatibilityLoaderFallsBackToLegacyAndFailsIfBothCopiesMissing()
+      throws Exception {
+    JSONObject source = new JSONObject()
+        .put("id", "history").put("path", "History.md")
+        .put("contentPath", "history/history.md")
+        .put("type", "HISTORY").put("authority", "UNCLASSIFIED")
+        .put("status", "UNCLASSIFIED").put("version", "").put("owner", "")
+        .put("dependencies", new JSONArray()).put("mandatoryFor", new JSONArray())
+        .put("supersedes", new JSONArray()).put("note", "");
+    JSONObject registry = new JSONObject().put("schemaVersion", 1)
+        .put("sources", new JSONArray().put(source));
+    Map<String, String> legacy = new LinkedHashMap<>();
+    legacy.put("History.md", "# History\nlegacy");
+
+    assertEquals("# History\nlegacy",
+        CanonRetriever.resolveRegistrySources(registry, legacy, new LinkedHashMap<>())
+            .get("History.md"));
+
+    try {
+      CanonRetriever.resolveRegistrySources(
+          registry, new LinkedHashMap<>(), new LinkedHashMap<>());
+      fail("Missing registered source must fail closed");
+    } catch (IllegalStateException expected) {
+      assertTrue(expected.getMessage().contains("Registered canon source is missing"));
+    }
+  }
+
   @Test public void parserKeepsPreamblePathsFencesRawAndStableIds() {
     Map<String, String> files = Map.of("new.md", "Preamble\n# Root\nParent\n```md\n## Fake\n```\n## Child\nRaw\n");
     CanonRetriever index = new CanonRetriever(files);
