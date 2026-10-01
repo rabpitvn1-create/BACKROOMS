@@ -122,4 +122,18 @@ public class NarrationGuardTest {
 
     assertFalse(NarrationGuard.validate(generated, new JSONObject(), evidence).isEmpty());
   }
+
+  @Test public void pendingIntroAcknowledgementUsesCommittedCharacterEvidence() throws Exception {
+    JSONObject none = new JSONObject().put("available", true)
+        .put("claims", new JSONArray());
+    JSONObject evidence = new JSONObject().put("available", true)
+        .put("claims", new JSONArray().put(new JSONObject()
+            .put("eventId", "t:e1")
+            .put("kind", "CHARACTER_ENCOUNTERED")
+            .put("subject", "syvial")
+            .put("value", "syvial")));
+
+    assertFalse(GameCoreFacade.shouldAcknowledgePendingIntro(none));
+    assertTrue(GameCoreFacade.shouldAcknowledgePendingIntro(evidence));
+  }
 }
