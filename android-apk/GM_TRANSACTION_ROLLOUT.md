@@ -196,6 +196,20 @@ Status: implemented and gated; not wired to MainActivity yet.
 - `COMBAT_STARTED` is now a registered canon DomainEvent so a GM-started combat mutation cannot exist without event evidence.
 - No runtime caller invokes authoritative GM persistence yet. V2 remains live authority until 4D.2 wiring passes CI.
 
+### Phase 4D.2 — Core authoritative commit API
+
+Status: implemented behind the existing build flag; MainActivity still uses V2.
+
+- `GameCoreFacade.completePreparedTurnWithGmTransaction()` is the only new persistence entry point.
+- The caller supplies only `turnId + proposal`. Core reconstructs selection authorization, execution base, execution draft and CommitCandidate from its retained `PreparedTurn`; UI/model cannot submit an authoritative after-state.
+- Live `stateVersion` and base-state hash are checked immediately before resolution.
+- The GM delta is applied on top of the deterministic prepared-turn state, preserving player-action time/route/recovery and Core selection trace.
+- Prepared player-action events and mapped GM events are committed together through one `EmergentTurnEngine.commitAuthoritative()`, producing exactly one state revision.
+- Commit log records immutable `gmTransaction` metadata: transaction hash, proposal fingerprint, before/after execution hashes and selection evidence.
+- Failed gate/validation/candidate verification performs no persist and keeps the prepared turn available for a bounded retry. Stale turns are discarded.
+- Successful commit persists once, removes the prepared turn and returns transaction hash plus committed GM evidence.
+- This API is not yet invoked by `MainActivity`; default/live behavior is still V2 until 4D.3.
+
 Commit protocol:
 1. verify turnId and baseStateHash;
 2. validate all commands;

@@ -401,6 +401,109 @@ public final class GameCoreFacade implements AutoCloseable {
     }
   }
 
+  /**
+   * Phase-4D authoritative GM transaction commit. This method rebuilds every execution artifact
+   * from the retained PreparedTurn; callers cannot submit an afterState or a CommitCandidate.
+   */
+  public synchronized String completePreparedTurnWithGmTransaction(
+      String turnId, String proposalJson) {
+    JSONObject persisted = parseState(liveStateJson);
+    try {
+      normalizeCoreState(persisted);
+      emergentTurnEngine.normalizeState(persisted);
+
+      if (emergentTurnEngine.hasCommitted(persisted, turnId)) {
+        preparedTurns.remove(turnId);
+        return response(true, persisted, null, "duplicate_commit", null);
+      }
+
+      PreparedTurn prepared = preparedTurns.get(turnId);
+      if (prepared == null) {
+        return response(false, persisted, "Không có turn attempt phù hợp.",
+            "turn_attempt_missing", null);
+      }
+      if (emergentTurnEngine.stateVersion(persisted) != prepared.preTurnStateVersion
+          || !fingerprint(persisted).equals(prepared.baseHash)) {
+        preparedTurns.remove(turnId);
+        return response(false, persisted, "State đã thay đổi trước GM COMMIT.",
+            "stale_turn_attempt", null);
+      }
+
+      JSONObject proposal = parseState(proposalJson);
+      JSONObject gate = GmTransactionCommitGate.preflight(
+          gmTransactionCommitEnabled, prepared.turnId, prepared.baseHash, proposal);
+      if (!gate.optBoolean("allowed", false)) {
+        return response(false, persisted,
+            gate.optString("reason", "GM transaction gate rejected."),
+            "gm_transaction_gate_rejected", null);
+      }
+
+      JSONObject selectionAuthorization = GmSelectionGate.issue(
+          prepared.turnId, prepared.baseHash, prepared.selected, prepared.working, prepared.rng);
+      GmAuthoritativeTurnResolver resolver =
+          new GmAuthoritativeTurnResolver(gmCommandAuthority, emergentTurnEngine);
+      JSONObject resolved = resolver.resolve(
+          deepCopy(prepared.working),
+          new JSONArray(prepared.events.toString()),
+          new JSONObject(prepared.selected.toString()),
+          selectionAuthorization,
+          proposal,
+          prepared.turnId,
+          prepared.baseHash);
+      if (!resolved.optBoolean("valid", false)) {
+        return response(false, persisted,
+            resolved.optString("reason", "GM transaction rejected."),
+            "gm_transaction_rejected", null);
+      }
+
+      JSONObject candidateEnvelope = resolved.getJSONObject("candidateEnvelope");
+      JSONObject candidate = candidateEnvelope.getJSONObject("candidate");
+      if (!GmCommitCandidateBuilder.verify(
+          deepCopy(prepared.working), proposal, candidateEnvelope)) {
+        return response(false, persisted, "CommitCandidate verification failed.",
+            "gm_commit_candidate_invalid", null);
+      }
+
+      JSONObject working = resolved.getJSONObject("finalState");
+      JSONArray events = resolved.getJSONArray("events");
+      int preVersion = emergentTurnEngine.stateVersion(persisted);
+      JSONObject metadata = new JSONObject()
+          .put("authority", "GM_TRANSACTION")
+          .put("transactionHash", candidate.getString("transactionHash"))
+          .put("proposalFingerprint", candidate.getString("proposalFingerprint"))
+          .put("beforeStateHash", candidate.getString("beforeStateHash"))
+          .put("afterStateHash", candidate.getString("afterStateHash"))
+          .put("selectionEvidence",
+              new JSONObject(candidate.getJSONObject("selectionEvidence").toString()));
+
+      emergentTurnEngine.commitAuthoritative(
+          persisted, working, prepared.turnId, events, prepared.selected, metadata);
+      if (emergentTurnEngine.stateVersion(working) != preVersion + 1) {
+        throw new IllegalStateException("GM commit stateVersion drift");
+      }
+
+      working.put("saveVersion", CURRENT_SAVE_VERSION);
+      projectBeforePersist(working);
+      emergentTurnEngine.catchUpProjections(working);
+      persist(working);
+      preparedTurns.remove(turnId);
+
+      JSONObject output = new JSONObject()
+          .put("handled", true)
+          .put("reason", "gm_transaction_committed")
+          .put("state", clientSafeState(working))
+          .put("turnId", prepared.turnId)
+          .put("selectedCandidate", new JSONObject(prepared.selected.toString()))
+          .put("transactionHash", candidate.getString("transactionHash"))
+          .put("committedEvents", new JSONArray(candidate.getJSONArray("committedEvents").toString()));
+      if (!prepared.replyHint.isEmpty()) output.put("replyHint", prepared.replyHint);
+      return output.toString();
+    } catch (Exception e) {
+      debug("completePreparedTurnWithGmTransaction failed: " + e.getMessage());
+      return response(false, persisted, safeMessage(e), "gm_transaction_precommit_fault", null);
+    }
+  }
+
   public synchronized String completePreparedTurn(String turnId, String proposalJson) {
     JSONObject persisted = parseState(liveStateJson);
     try {

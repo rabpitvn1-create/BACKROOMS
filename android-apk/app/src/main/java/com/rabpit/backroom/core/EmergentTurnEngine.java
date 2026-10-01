@@ -379,11 +379,17 @@ final class EmergentTurnEngine {
 
   void commitAuthoritative(JSONObject state, String turnId, JSONArray events, JSONObject selection)
       throws Exception {
-    commitAuthoritative(null, state, turnId, events, selection);
+    commitAuthoritative(null, state, turnId, events, selection, null);
   }
 
   void commitAuthoritative(JSONObject beforeState, JSONObject state, String turnId,
                            JSONArray events, JSONObject selection) throws Exception {
+    commitAuthoritative(beforeState, state, turnId, events, selection, null);
+  }
+
+  void commitAuthoritative(JSONObject beforeState, JSONObject state, String turnId,
+                           JSONArray events, JSONObject selection, JSONObject commitMetadata)
+      throws Exception {
     normalizeState(state);
     validateBatch(turnId, events);
     if (hasCommitted(state, turnId)) return;
@@ -436,6 +442,10 @@ final class EmergentTurnEngine {
         .put("resolverVersion", RESOLVER_VERSION)
         .put("stateDelta", stateDelta)
         .put("events", new JSONArray(events.toString()));
+
+    if (commitMetadata != null && commitMetadata.length() > 0) {
+      commit.put("gmTransaction", new JSONObject(commitMetadata.toString()));
+    }
 
     if (selection != null && !selection.optBoolean("selectedNone", false)) {
       commit.put("sourceSituationKey", selection.optString("situationKey", ""))

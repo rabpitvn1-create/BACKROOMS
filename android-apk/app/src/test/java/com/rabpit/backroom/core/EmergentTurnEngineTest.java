@@ -160,6 +160,33 @@ public class EmergentTurnEngineTest {
   }
 
 
+  @Test public void gmTransactionMetadataIsPinnedInSingleAuthoritativeCommit() throws Exception {
+    EmergentTurnEngine engine = new EmergentTurnEngine();
+    JSONObject before = new JSONObject().put("turn", 4).put("location", "A");
+    engine.normalizeState(before);
+    JSONObject after = new JSONObject(before.toString()).put("location", "B");
+    String turnId = engine.nextTurnId(before, "gm transaction");
+    JSONArray events = new JSONArray();
+    events.put(engine.event(turnId, events, "TEST_MOVED", "LOCAL", "cao_minh",
+        new JSONObject().put("factPredicate", "moved").put("factValue", "B")
+            .put("causedBy", "gm_transaction").put("observedByPlayer", true), null));
+    int beforeVersion = engine.stateVersion(before);
+    JSONObject metadata = new JSONObject()
+        .put("authority", "GM_TRANSACTION")
+        .put("transactionHash", "tx-hash")
+        .put("proposalFingerprint", "proposal-hash")
+        .put("selectionEvidence", new JSONObject());
+
+    engine.commitAuthoritative(before, after, turnId, events, null, metadata);
+
+    JSONObject root = after.getJSONObject(EmergentTurnEngine.ROOT_KEY);
+    JSONObject commit = root.getJSONArray("commitLog")
+        .getJSONObject(root.getJSONArray("commitLog").length() - 1);
+    assertEquals(beforeVersion + 1, engine.stateVersion(after));
+    assertEquals("GM_TRANSACTION", commit.getJSONObject("gmTransaction").getString("authority"));
+    assertEquals("tx-hash", commit.getJSONObject("gmTransaction").getString("transactionHash"));
+  }
+
   @Test public void narrativeSkeletonDefaultsToReadOnlyNonPlotContract() throws Exception {
     EmergentTurnEngine engine = new EmergentTurnEngine();
     JSONObject state = new JSONObject().put("turn", 1);
