@@ -729,6 +729,7 @@ public final class GameCoreFacade implements AutoCloseable {
               + ":" + (beforeCombat == null ? 0 : beforeCombat.optInt("actorIndex", 0)));
 
       boolean wasActive = CombatChoiceEngine.isActive(working);
+      if (!wasActive) return response(true, persisted, null, "duplicate_combat_resolution", null);
       CombatChoiceEngine.resolveFinalized(working);
       CombatChoiceEngine.normalizeTerminalEncounter(working);
       boolean active = CombatChoiceEngine.isActive(working);
@@ -773,6 +774,17 @@ public final class GameCoreFacade implements AutoCloseable {
         throw new IllegalStateException("Combat commit stateVersion drift");
       }
       working.put("saveVersion", CURRENT_SAVE_VERSION);
+      if (wasActive && !active && "victory".equals(outcome)) {
+        JSONObject evidence = CommittedTurnNarrationEvidence.fromState(working, turnId);
+        JSONObject closure = OfflinePresenter.present(
+            SafePresentationView.events(working, "cao_minh", evidence),
+            () -> { throw new IllegalStateException("Victory presentation must be offline"); });
+        JSONArray log = working.optJSONArray("log");
+        if (log == null) log = new JSONArray();
+        log.put(new JSONObject().put("role", "gm").put("text", closure.getString("reply"))
+            .put("presentationId", turnId + ":victory"));
+        working.put("log", log);
+      }
       projectBeforePersist(working);
       emergentTurnEngine.catchUpProjections(working);
       persist(working);

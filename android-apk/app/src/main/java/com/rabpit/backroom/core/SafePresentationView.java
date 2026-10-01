@@ -99,6 +99,16 @@ public final class SafePresentationView {
     return raw instanceof String ? text(state, actor, (String) raw) : raw;
   }
 
+  public static JSONArray events(JSONObject state, String actor, JSONObject evidence) throws Exception {
+    JSONArray output = new JSONArray();
+    JSONArray source = evidence == null ? null : evidence.optJSONArray("events");
+    if (source != null) for (int i = 0; i < source.length(); i++) {
+      JSONObject item = source.optJSONObject(i);
+      if (item != null) output.put(event(state, actor, item));
+    }
+    return output;
+  }
+
   /** No raw identity, inventory internals, objective HUD or lore enters the offline presenter. */
   public static JSONObject event(JSONObject state, String actor, JSONObject event) throws Exception {
     String type = event.optString("eventType", "");

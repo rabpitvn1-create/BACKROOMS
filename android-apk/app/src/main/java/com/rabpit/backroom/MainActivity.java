@@ -19,6 +19,8 @@ import com.rabpit.backroom.core.CommittedTurnNarrationEvidence;
 import com.rabpit.backroom.core.GameCoreFacade;
 import com.rabpit.backroom.core.GmChoiceContract;
 import com.rabpit.backroom.core.GmNarrativePacket;
+import com.rabpit.backroom.core.OfflinePresenter;
+import com.rabpit.backroom.core.SafePresentationView;
 import com.rabpit.backroom.core.GmShadowPlanner;
 import com.rabpit.backroom.core.CanonRetriever;
 import com.rabpit.backroom.core.GmNarratorContract;
@@ -880,6 +882,9 @@ public class MainActivity extends Activity {
               || actions.containsValue(action)) return;
           JSONObject preview = new JSONObject(gameCore.previewTurn(action, baseHash));
           if (!preview.optBoolean("handled", false)) return;
+          JSONObject previewState = preview.getJSONObject("state");
+          JSONObject previewEvidence = CommittedTurnNarrationEvidence.fromState(previewState, preview.getString("turnId"));
+          if (OfflinePresenter.isOffline(SafePresentationView.events(previewState, "cao_minh", previewEvidence))) return;
           actions.put(id, action);
           previews.put(id, preview);
           prompt.append("\n=== BRANCH ").append(id).append(" ONLY ===\n")
@@ -1031,9 +1036,10 @@ public class MainActivity extends Activity {
 
           String turnId = prepared.getString("turnId");
           JSONObject selected = prepared.optJSONObject("selectedCandidate");
+          boolean offlineTurn = selected != null && OfflinePresenter.offlineKind(selected.optString("kind", ""));
           JSONObject shadowContext = null;
           String shadowPrompt = null;
-          if (BuildConfig.GM_TRANSACTION_COMMIT_ENABLED || BuildConfig.DEBUG) {
+          if (!offlineTurn && (BuildConfig.GM_TRANSACTION_COMMIT_ENABLED || BuildConfig.DEBUG)) {
             try {
               shadowContext = new JSONObject(gameCore.shadowPlannerContext(turnId));
               if (shadowContext.optBoolean("available", false)) {
@@ -1051,7 +1057,7 @@ public class MainActivity extends Activity {
             }
           }
           JSONObject committed;
-          if (BuildConfig.GM_TRANSACTION_COMMIT_ENABLED) {
+          if (!offlineTurn && BuildConfig.GM_TRANSACTION_COMMIT_ENABLED) {
             if (shadowContext == null || shadowPrompt == null) {
               throw new Exception("GM transaction planner unavailable before commit.");
             }
@@ -1074,7 +1080,7 @@ public class MainActivity extends Activity {
             }
           } else {
             JSONObject proposal = new JSONObject();
-            if (prepared.optBoolean("proposalRequired", false) && cached == null) {
+            if (!offlineTurn && prepared.optBoolean("proposalRequired", false) && cached == null) {
               try {
                 String proposalPrompt = worldProposalPrompt(selected);
                 JSONObject rawProposal = parseModelJson(generateText(proposalPrompt));
@@ -1120,13 +1126,16 @@ public class MainActivity extends Activity {
 
           JSONObject generated;
           String reply;
-          boolean narrationValidated = false;
+          JSONArray safeEvents = SafePresentationView.events(state, "cao_minh", narrationEvidence);
+          boolean offlineNarration = OfflinePresenter.isOffline(safeEvents);
           try {
             boolean hit = cached != null && cached.outcomeHash.equals(gameCore.currentStateHash());
-            generated = hit ? new JSONObject(cached.narration.toString())
-                : parseModelJson(generateText(narrationPrompt(state, action, turnId)));
-            String narrationViolation =
-                NarrationGuard.validate(generated, state, narrationEvidence);
+            final JSONObject narrationState = state;
+            generated = OfflinePresenter.present(safeEvents, () -> hit
+                ? new JSONObject(cached.narration.toString())
+                : parseModelJson(generateText(narrationPrompt(narrationState, action, turnId))));
+            String narrationViolation = offlineNarration ? ""
+                : NarrationGuard.validate(generated, state, narrationEvidence);
             if (!narrationViolation.isEmpty()) {
               generated = parseModelJson(generateText(
                   narrationPrompt(state, action, turnId) + "\nVALIDATION REJECTED: " + narrationViolation
@@ -1139,7 +1148,7 @@ public class MainActivity extends Activity {
               }
             }
             reply = generated.optString("reply", "").trim();
-            narrationValidated = true;
+
           } catch (Exception narrationError) {
             Log.w(TAG, "Narration provider failed or contradicted committed authority; using deterministic template: "
                 + providerErrorSummary(narrationError));
@@ -1168,7 +1177,7 @@ public class MainActivity extends Activity {
                 gameCore.startCombatRuntime(newEncounter, log.length() - 1));
           }
 
-          if (BuildConfig.DEBUG && !BuildConfig.GM_TRANSACTION_COMMIT_ENABLED
+          if (!offlineTurn && BuildConfig.DEBUG && !BuildConfig.GM_TRANSACTION_COMMIT_ENABLED
               && shadowContext != null && shadowPrompt != null && committedBeforeNarration != null) {
             scheduleShadowPlanner(shadowContext, shadowPrompt, committedBeforeNarration, selected);
           }
