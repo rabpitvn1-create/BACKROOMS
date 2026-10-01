@@ -4,6 +4,7 @@
     {
       "id": "async-backroomsv2",
       "path": "ASYNC_BackroomsV2.md",
+      "contentPath": "history/async-backroomsv2.md",
       "type": "HISTORY",
       "authority": "UNCLASSIFIED",
       "status": "UNCLASSIFIED",
@@ -17,6 +18,7 @@
     {
       "id": "backrooms-world",
       "path": "BACKROOMS_WORLD.md",
+      "contentPath": "world/backrooms-world.md",
       "type": "WORLD",
       "authority": "PROJECT_OVERRIDE",
       "status": "CURRENT",
@@ -30,6 +32,7 @@
     {
       "id": "backrooms-world-sublevels-1-6",
       "path": "BACKROOMS_WORLD_SUBLEVELS_1_6.md",
+      "contentPath": "sublevels/backrooms-world-sublevels-1-6.md",
       "type": "WORLD",
       "authority": "WORLD_CANON",
       "status": "CURRENT",
@@ -43,6 +46,7 @@
     {
       "id": "backrooms-linh-khi",
       "path": "Backrooms_Linh_Khi.md",
+      "contentPath": "phenomena/backrooms-linh-khi.md",
       "type": "ENVIRONMENT",
       "authority": "UNCLASSIFIED",
       "status": "CANDIDATE",
@@ -56,6 +60,7 @@
     {
       "id": "backrooms-linh-khi-anh-huong-tu-si",
       "path": "Backrooms_Linh_Khi_Anh_Huong_Tu_Si.md",
+      "contentPath": "phenomena/backrooms-linh-khi-anh-huong-tu-si.md",
       "type": "ENVIRONMENT",
       "authority": "UNCLASSIFIED",
       "status": "CANDIDATE",
@@ -69,6 +74,7 @@
     {
       "id": "cao-minh",
       "path": "Cao_Minh_Codex.md",
+      "contentPath": "characters/cao-minh.md",
       "type": "CHARACTER",
       "authority": "CHARACTER_CANON",
       "status": "CURRENT",
@@ -84,6 +90,7 @@
     {
       "id": "entity-visual-reference",
       "path": "Entity.md",
+      "contentPath": "entities/entity-visual-reference.md",
       "type": "ENTITY_REFERENCE",
       "authority": "REFERENCE",
       "status": "REFERENCE",
@@ -97,6 +104,7 @@
     {
       "id": "huyet-tay-cao-gia",
       "path": "Huyet_Tay_Cao_Gia.md",
+      "contentPath": "history/huyet-tay-cao-gia.md",
       "type": "HISTORY",
       "authority": "UNCLASSIFIED",
       "status": "UNCLASSIFIED",
@@ -110,6 +118,7 @@
     {
       "id": "lucia",
       "path": "Lucia_Codex.md",
+      "contentPath": "characters/lucia.md",
       "type": "CHARACTER",
       "authority": "SCOPED_USER_RETCON",
       "status": "CURRENT",
@@ -125,6 +134,7 @@
     {
       "id": "luc-tram",
       "path": "Lục_Trầm_Codex.md",
+      "contentPath": "characters/luc-tram.md",
       "type": "CHARACTER",
       "authority": "CHARACTER_CANON",
       "status": "CURRENT",
@@ -140,6 +150,7 @@
     {
       "id": "tang-kiem-coc-huyet-ma-kiem",
       "path": "Tang_Kiem_Coc_Huyet_Ma_Kiem_Tich_Quang.md",
+      "contentPath": "history/tang-kiem-coc-huyet-ma-kiem.md",
       "type": "HISTORY",
       "authority": "UNCLASSIFIED",
       "status": "UNCLASSIFIED",
@@ -153,6 +164,7 @@
     {
       "id": "trac-lam",
       "path": "Trac_Lam_Codex.md",
+      "contentPath": "characters/trac-lam.md",
       "type": "CHARACTER",
       "authority": "UNCLASSIFIED",
       "status": "UNCLASSIFIED",
