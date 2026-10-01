@@ -203,6 +203,44 @@ public class CanonRetrieverTest {
     }
     assertTrue(index.retrieve(state(), "Tôi đợi.", 3000, false).supplemental.isEmpty());
   }
+  @Test public void parentLevelMandatoryDoesNotSelectNumericSublevel() throws Exception {
+    Map<String, String> files = wiki();
+    files.put("BACKROOMS_WORLD.md",
+        "# World\n"
+            + "## Tầng 0 — The Lobby\n"
+            + "PARENT_LEVEL_ZERO_CANON_WITH_ENOUGH_TEXT_TO_BE_LONGER_THAN_THE_CHILD_SECTION.\n"
+            + "## Level 0.66 — The Lobby Went COLD\n"
+            + "CHILD_LEVEL_ZERO_SIXTY_SIX.\n");
+    JSONObject state = new JSONObject().put("currentLevelKey", "0")
+        .put("party", new JSONArray()).put("flags", new JSONObject());
+    CanonRetriever.CanonPacket packet = new CanonRetriever(files).retrieve(
+        state, "Tôi đợi.", 3000, true, "Level 0 — The Lobby");
+    assertFalse(packet.missingMandatoryRefs.toString(),
+        packet.missingMandatoryRefs.contains("level:0"));
+    assertTrue(packet.promptText().contains("PARENT_LEVEL_ZERO_CANON"));
+    assertFalse(packet.promptText().contains("CHILD_LEVEL_ZERO_SIXTY_SIX"));
+  }
+
+  @Test public void conflictingParentTitleDoesNotFallThroughToNumericSublevel()
+      throws Exception {
+    Map<String, String> files = wiki();
+    files.put("BACKROOMS_WORLD.md",
+        "# World\n"
+            + "## Level 5 — Wrong Name\n"
+            + "WRONG_PARENT_LEVEL_FIVE.\n"
+            + "## Level 5.1 — GRAND OPENING OF THE TERROR HOTEL CASINO\n"
+            + "<!-- canon: core=true -->\n"
+            + "SIBLING_LEVEL_FIVE_ONE.\n");
+    JSONObject state = new JSONObject().put("currentLevelKey", "5")
+        .put("party", new JSONArray()).put("flags", new JSONObject());
+    CanonRetriever.CanonPacket packet = new CanonRetriever(files).retrieve(
+        state, "Tôi đợi.", 3000, true, "Level 5 — Terror Hotel");
+    assertTrue(packet.missingMandatoryRefs.toString(),
+        packet.missingMandatoryRefs.contains("level:5"));
+    assertFalse(packet.promptText().contains("WRONG_PARENT_LEVEL_FIVE"));
+    assertFalse(packet.promptText().contains("SIBLING_LEVEL_FIVE_ONE"));
+  }
+
   @Test public void conflictingWorldLevelNameCannotOverrideCommittedLevel() throws Exception {
     Map<String, String> files = wiki();
     files.put("BACKROOMS_WORLD.md", files.get("BACKROOMS_WORLD.md")
