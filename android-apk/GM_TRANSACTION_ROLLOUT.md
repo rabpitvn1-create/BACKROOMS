@@ -460,7 +460,18 @@ Status: COMPLETE / REVIEW ONLY.
 - Canon Registry logical identity remains `Cao_Minh_Codex.md`; the planned physical destination remains `content/characters/cao-minh.md`.
 - Cao Minh knowledge locks, OPEN fields, Diệp Minh scoped USER_RETCON and dynamic save ownership remain unchanged.
 
-Phase 6C.17 may perform a byte-preserving physical move only. The R17/R15 authority conflict remains explicit after migration.
+### Phase 6C.17 — Cao Minh local structured-source migration
+
+Status: COMPLETE / AUTHORITY CONFLICT PRESERVED.
+
+- Local `Cao_Minh_Codex.md` bytes were moved to `content/characters/cao-minh.md`.
+- Canon Registry logical `path=Cao_Minh_Codex.md`, `CHARACTER_CANON / CURRENT / R17`, owner and mandatory binding remain unchanged.
+- Repository source maps still name Drive R15; migration does not reconcile, supersede or rewrite that provenance.
+- The test suite pins both facts simultaneously: local structured R17 remains R17 while the external source-map R15 statement remains present.
+- OPEN/UNKNOWN, KNOWLEDGE_LOCK, dynamic continuity/save ownership and scoped Diệp Minh USER_RETCON remain unchanged.
+- No legacy physical copy remains after the move.
+
+Phase 6C is complete. Phase 6D may now make retrieval consume registry authority metadata instead of using the registry only as a physical compatibility map.
 
 Expand content without changing transaction semantics:
 

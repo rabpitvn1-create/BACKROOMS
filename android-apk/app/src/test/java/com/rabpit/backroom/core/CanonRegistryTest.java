@@ -232,6 +232,39 @@ public class CanonRegistryTest {
     assertEquals("character:luc_tram", lucTram.getJSONArray("mandatoryFor").getString(0));
   }
 
+  @Test public void caoMinhLocalCanonIsMigratedWithoutResolvingR17R15Conflict() throws Exception {
+    Path structured = Paths.get("src/main/assets/content/characters/cao-minh.md");
+    Path legacy = Paths.get("src/main/assets/canon/Cao_Minh_Codex.md");
+    Path registryPath = Paths.get("src/main/assets/canon/canon-registry.json");
+    Path currentMap = Paths.get("CHARACTER_CODEX_CURRENT.md");
+    if (!Files.isRegularFile(structured)) {
+      structured = Paths.get("app/src/main/assets/content/characters/cao-minh.md");
+      legacy = Paths.get("app/src/main/assets/canon/Cao_Minh_Codex.md");
+      registryPath = Paths.get("app/src/main/assets/canon/canon-registry.json");
+      currentMap = Paths.get("CHARACTER_CODEX_CURRENT.md");
+    }
+
+    assertTrue(Files.isRegularFile(structured));
+    assertFalse(Files.exists(legacy));
+    String local = new String(Files.readAllBytes(structured), StandardCharsets.UTF_8);
+    assertTrue(local.contains("Master Codex R17"));
+    assertTrue(local.contains("CAO-MINH-VAN-GIOI-MA-TON-CODEX-20260928-R17"));
+
+    JSONObject registry = new JSONObject(
+        new String(Files.readAllBytes(registryPath), StandardCharsets.UTF_8));
+    JSONObject cao = CanonRegistry.byId(registry).get("cao-minh");
+    assertEquals("R17", cao.getString("version"));
+    assertEquals("Cao_Minh_Codex.md", cao.getString("path"));
+    assertEquals("characters/cao-minh.md", cao.getString("contentPath"));
+
+    if (!Files.isRegularFile(currentMap)) {
+      currentMap = Paths.get("android-apk/CHARACTER_CODEX_CURRENT.md");
+    }
+    String sourceMap = new String(Files.readAllBytes(currentMap), StandardCharsets.UTF_8);
+    assertTrue(sourceMap.contains("Cao Minh / Vạn Giới Ma Tôn — R15"));
+    assertTrue(sourceMap.contains("Cao_Minh_Codex.docx"));
+  }
+
   @Test public void duplicateIdAndPathFailClosed() throws Exception {
     JSONObject source = source(
         "same", "A.md", "world/a.md", "WORLD", "WORLD_CANON", "CURRENT");
