@@ -1,0 +1,10 @@
+{
+  "name": "BACKROOMS Ponytail",
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "secrets": {
+    "VILAO_API_KEY": {
+      "description": "Vilao API key for Ponytail; supplied by GitHub Codespaces Secrets only."
+    }
+  },
+  "postCreateCommand": "bash tools/ponytail.sh --setup"
+}
