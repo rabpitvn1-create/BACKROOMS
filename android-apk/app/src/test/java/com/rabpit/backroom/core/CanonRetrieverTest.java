@@ -262,6 +262,51 @@ public class CanonRetrieverTest {
     assertEquals(selected.promptText(), new CanonRetriever(files).retrieve(state(), "Alpha", 3000, true).promptText());
   }
 
+  @Test public void canonPacketExposesDeterministicAuthorityMetadataWithoutChangingPrompt()
+      throws Exception {
+    Map<String, String> files = new LinkedHashMap<>();
+    files.put("BACKROOMS_WORLD.md", "# World\n## Tầng 0 — Lobby\nWorld.\n");
+    files.put("Hero.md", "# Hero\n## Identity\nHero.\n");
+    files.put("Current.md", "# Current\n## Current Topic\nCURRENT_FACT.\n");
+    files.put("Dependency.md", "# Dependency\n## Base\nDEPENDENCY_FACT.\n");
+
+    JSONObject hero = registrySource("hero", "Hero.md", "characters/hero.md", "CHARACTER",
+        "CHARACTER_CANON", "CURRENT", new JSONArray().put("character:cao_minh"));
+    JSONObject current = registrySource("current", "Current.md", "world/current.md", "WORLD",
+        "WORLD_CANON", "CURRENT", new JSONArray())
+        .put("version", "R1")
+        .put("dependencies", new JSONArray().put("dependency"));
+    JSONObject dependency = registrySource("dependency", "Dependency.md", "world/dependency.md",
+        "WORLD", "PROJECT_OVERRIDE", "CURRENT", new JSONArray());
+    JSONObject registry = new JSONObject().put("schemaVersion", 1)
+        .put("sources", new JSONArray().put(hero).put(current).put(dependency));
+    JSONObject state = new JSONObject().put("currentLevelKey", "0")
+        .put("party", new JSONArray()).put("flags", new JSONObject());
+
+    CanonRetriever.CanonPacket packet =
+        new CanonRetriever(files, registry).retrieve(state, "Current Topic", 4000, true);
+    JSONArray metadata = packet.sourceMetadata();
+
+    assertEquals(CanonRetriever.CanonPacket.CONTRACT_VERSION, packet.contractVersion);
+    assertTrue(packet.promptText().contains("CURRENT_FACT"));
+    assertFalse(packet.promptText().contains("WORLD_CANON"));
+    assertEquals(3, metadata.length());
+
+    JSONObject currentMeta = null;
+    for (int i = 0; i < metadata.length(); i++) {
+      JSONObject source = metadata.getJSONObject(i);
+      if ("current".equals(source.getString("id"))) currentMeta = source;
+    }
+    assertNotNull(currentMeta);
+    assertEquals("WORLD_CANON", currentMeta.getString("authority"));
+    assertEquals("CURRENT", currentMeta.getString("status"));
+    assertEquals("R1", currentMeta.getString("version"));
+    assertEquals("dependency", currentMeta.getJSONArray("dependencies").getString(0));
+
+    metadata.getJSONObject(0).put("authority", "MUTATED");
+    assertFalse(packet.sourceMetadata().toString().contains("MUTATED"));
+  }
+
   private static JSONObject registrySource(
       String id, String path, String contentPath, String type, String authority, String status,
       JSONArray mandatoryFor) throws Exception {
