@@ -84,7 +84,7 @@ public class GmCommandAuthorityTest {
     assertEquals(0, validation.getInt("acceptedGroups"));
     JSONObject result = validation.getJSONArray("commandResults").getJSONObject(0);
     assertEquals("EntityCore", result.getString("owner"));
-    assertEquals("phase4_selection_gate_required", result.getString("reason"));
+    assertEquals("selection_authorization_missing", result.getString("reason"));
   }
 
   private static JSONObject fundedState() throws Exception {

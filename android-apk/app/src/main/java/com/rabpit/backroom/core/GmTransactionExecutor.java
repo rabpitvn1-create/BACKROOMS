@@ -27,6 +27,12 @@ public final class GmTransactionExecutor {
   public JSONObject execute(
       JSONObject beforeState, JSONObject proposal, String expectedTurnId, String expectedBaseHash)
       throws JSONException {
+    return execute(beforeState, proposal, expectedTurnId, expectedBaseHash, null);
+  }
+
+  public JSONObject execute(
+      JSONObject beforeState, JSONObject proposal, String expectedTurnId, String expectedBaseHash,
+      JSONObject selectionAuthorization) throws JSONException {
     JSONObject output = new JSONObject();
 
     String structural = GmTransactionContract.validateProposal(proposal);
@@ -54,7 +60,8 @@ public final class GmTransactionExecutor {
 
       for (int c = 0; c < commands.length(); c++) {
         JSONObject command = commands.getJSONObject(c);
-        JSONObject result = authority.evaluateCommand(groupState, command);
+        JSONObject result = authority.evaluateCommand(
+            groupState, command, selectionAuthorization, expectedTurnId, expectedBaseHash);
         groupResults.add(result);
         if (!result.optBoolean("accepted", false)) groupAccepted = false;
       }
@@ -77,6 +84,18 @@ public final class GmTransactionExecutor {
         .put("turnId", proposal.getString("turnId"))
         .put("commandResults", commandResults);
     JSONObject resolved = GmTransactionContract.resolveValidatedTurn(proposal, validation);
+    JSONObject selectionEvidence = new JSONObject();
+    JSONArray committedEvents = resolved.optJSONArray("committedEvents");
+    if (committedEvents != null) {
+      for (int i = 0; i < committedEvents.length(); i++) {
+        JSONObject event = committedEvents.optJSONObject(i);
+        JSONObject evidence = event == null ? null : event.optJSONObject("selectionEvidence");
+        if (evidence != null) {
+          selectionEvidence = new JSONObject(evidence.toString());
+          break;
+        }
+      }
+    }
 
     return output.put("valid", true)
         .put("reason", "")
@@ -88,6 +107,7 @@ public final class GmTransactionExecutor {
         .put("rejectedGroups", rejectedGroups)
         .put("simulatedBeforeHash", hash(beforeState))
         .put("simulatedAfterHash", hash(working))
+        .put("selectionEvidence", selectionEvidence)
         .put("afterState", copy(working));
   }
 
@@ -100,6 +120,7 @@ public final class GmTransactionExecutor {
         .put("rejectedGroups", 0)
         .put("simulatedBeforeHash", "")
         .put("simulatedAfterHash", "")
+        .put("selectionEvidence", new JSONObject())
         .put("afterState", new JSONObject());
   }
 

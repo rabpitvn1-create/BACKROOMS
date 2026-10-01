@@ -69,15 +69,12 @@ public final class GmCommandAuthority {
     register("START_COMBAT", "CombatChoiceEngine", "ACTIVE",
         "{entityKey}", this::startCombat);
 
-    // These mutation families already have deterministic Core owners, but their current V2 path
-    // also requires candidate/RNG selection. Phase 3 registers ownership while refusing to bypass
-    // that missing gate. Phase 4 may enable them only after the gate is explicit.
-    register("START_ENTITY_ENCOUNTER", "EntityCore", "PHASE4_SELECTION_GATE",
-        "{entityKey}", this::selectionGateRequired);
-    register("START_CHARACTER_ENCOUNTER", "CharacterEncounterCore", "PHASE4_SELECTION_GATE",
-        "{characterId}", this::selectionGateRequired);
-    register("DISCOVER_CHEST", "ItemCore", "PHASE4_SELECTION_GATE",
-        "{}", this::selectionGateRequired);
+    register("START_ENTITY_ENCOUNTER", "EntityCore", "ACTIVE_SELECTION_GATED",
+        "{entityKey}", this::startEntityEncounter);
+    register("START_CHARACTER_ENCOUNTER", "CharacterEncounterCore", "ACTIVE_SELECTION_GATED",
+        "{characterId}", this::startCharacterEncounter);
+    register("DISCOVER_CHEST", "ItemCore", "ACTIVE_SELECTION_GATED",
+        "{}", this::discoverChest);
   }
 
   private void register(String type, String owner, String status, String payloadShape, Adapter adapter) {
@@ -96,8 +93,8 @@ public final class GmCommandAuthority {
           .append(" status=").append(spec.status)
           .append(" payload=").append(spec.payloadShape).append('\n');
     }
-    out.append("PHASE4_SELECTION_GATE có thể được đề xuất trong shadow mode nhưng hiện luôn bị "
-        + "authority từ chối để không bypass candidate/RNG selection của V2.");
+    out.append("ACTIVE_SELECTION_GATED chỉ hợp lệ khi command khớp chính xác SituationCandidate "
+        + "mà Core đã chọn bằng CANDIDATE_SELECTION TurnRng cho cùng turn/base state.");
     return out.toString();
   }
 
@@ -116,13 +113,25 @@ public final class GmCommandAuthority {
   public JSONObject validate(
       JSONObject beforeState, JSONObject proposal, String expectedTurnId, String expectedBaseHash)
       throws JSONException {
+    return validate(beforeState, proposal, expectedTurnId, expectedBaseHash, null);
+  }
+
+  public JSONObject validate(
+      JSONObject beforeState, JSONObject proposal, String expectedTurnId, String expectedBaseHash,
+      JSONObject selectionAuthorization) throws JSONException {
     JSONObject draft = new GmTransactionExecutor(this).execute(
-        beforeState, proposal, expectedTurnId, expectedBaseHash);
+        beforeState, proposal, expectedTurnId, expectedBaseHash, selectionAuthorization);
     draft.remove("afterState");
     return draft;
   }
 
   JSONObject evaluateCommand(JSONObject groupState, JSONObject command) throws JSONException {
+    return evaluateCommand(groupState, command, null, "", "");
+  }
+
+  JSONObject evaluateCommand(
+      JSONObject groupState, JSONObject command, JSONObject selectionAuthorization,
+      String expectedTurnId, String expectedBaseHash) throws JSONException {
     String commandId = command.optString("commandId", "");
     String type = command.optString("type", "");
     Spec spec = specs.get(type);
@@ -133,10 +142,24 @@ public final class GmCommandAuthority {
     JSONObject payload = command.optJSONObject("payload");
     if (payload == null) return rejected(commandId, type, spec.owner, "command_payload_missing");
 
+    JSONObject selection = null;
+    if (selectionGated(type)) {
+      selection = GmSelectionGate.authorize(
+          selectionAuthorization, expectedTurnId, expectedBaseHash, type, payload);
+      if (!selection.optBoolean("allowed", false)) {
+        return rejected(commandId, type, spec.owner,
+            selection.optString("reason", "selection_authorization_invalid"));
+      }
+    }
+
     try {
       JSONObject event = spec.adapter.apply(groupState, payload);
       if (event == null) return rejected(commandId, type, spec.owner, "core_event_missing");
       event.put("owner", spec.owner).put("commandType", type);
+      if (selection != null) {
+        event.put("selectionEvidence",
+            new JSONObject(selection.getJSONObject("selectionEvidence").toString()));
+      }
       return new JSONObject()
           .put("commandId", commandId)
           .put("type", type)
@@ -222,8 +245,36 @@ public final class GmCommandAuthority {
     return event("COMBAT_STARTED", entityKey);
   }
 
-  private JSONObject selectionGateRequired(JSONObject state, JSONObject payload) {
-    throw new IllegalStateException("phase4_selection_gate_required");
+  private JSONObject startEntityEncounter(JSONObject state, JSONObject payload) throws Exception {
+    requireOnly(payload, "entityKey");
+    if (entityCore == null) throw new IllegalStateException("owner_unavailable");
+    String entityKey = required(payload, "entityKey");
+    entityCore.activateEncounterCandidate(state, entityKey);
+    return event("ENTITY_ENCOUNTER_STARTED", entityKey);
+  }
+
+  private JSONObject startCharacterEncounter(JSONObject state, JSONObject payload) throws Exception {
+    requireOnly(payload, "characterId");
+    if (characterEncounterCore == null) throw new IllegalStateException("owner_unavailable");
+    String characterId = required(payload, "characterId");
+    characterEncounterCore.activateEncounterCandidate(state, characterId);
+    return event("luc_tram".equals(characterId) ? "CHARACTER_REUNION" : "CHARACTER_ENCOUNTERED",
+        characterId);
+  }
+
+  private JSONObject discoverChest(JSONObject state, JSONObject payload) throws Exception {
+    requireOnly(payload);
+    if (itemCore == null) throw new IllegalStateException("owner_unavailable");
+    itemCore.activateExplorationChest(state);
+    String levelKey = state.optString(LevelCore.LEVEL_KEY,
+        String.valueOf(state.optInt("currentLevel", 0)));
+    return event("CHEST_SPAWNED", levelKey);
+  }
+
+  private static boolean selectionGated(String type) {
+    return "START_ENTITY_ENCOUNTER".equals(type)
+        || "START_CHARACTER_ENCOUNTER".equals(type)
+        || "DISCOVER_CHEST".equals(type);
   }
 
   private static JSONObject event(String eventType, String subjectKey) throws JSONException {
@@ -275,7 +326,7 @@ public final class GmCommandAuthority {
       return "core_rejected";
     }
     String message = error.getMessage().trim();
-    if (message.startsWith("payload_") || message.startsWith("phase4_")
+    if (message.startsWith("payload_") || message.startsWith("phase4_") || message.startsWith("selection_")
         || message.startsWith("level_") || message.startsWith("entity_")
         || message.startsWith("combat_") || message.equals("owner_unavailable")) {
       return message;
