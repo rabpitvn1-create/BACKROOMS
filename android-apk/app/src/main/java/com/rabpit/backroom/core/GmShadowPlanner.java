@@ -53,6 +53,7 @@ public final class GmShadowPlanner {
 
     StringBuilder out = new StringBuilder();
     out.append("GM TRANSACTION PLANNER — PHASE 4D.\n")
+        .append(KnowledgeContinuityFirewall.promptContext()).append("\n")
         .append("Bạn chỉ lập kế hoạch giao dịch cho một lượt. Proposal không được phép sửa GameState trực tiếp, ")
         .append("không được quyết định canon và không được viết narration cuối; Core mới là nơi ACCEPT/REJECT và commit.\n")
         .append("Mọi thay đổi phải nằm trong causalGroups atomic và commands có type + payload. ")

@@ -1,6 +1,6 @@
 # GM Transaction Rollout
 
-Status: PHASE 6E.1 — KNOWLEDGE/CONTINUITY FIREWALL CONTRACT COMPLETE; PHASE 6E.2 NEXT
+Status: PHASE 6E.2 — ACTOR PROJECTION IMPLEMENTED; MARKDOWN BOUNDARY NEXT
 
 This rollout preserves the current V2 Core/save/runtime while reintroducing GM planning authority in controlled stages. No phase may skip the transaction boundary.
 
@@ -546,3 +546,11 @@ Canon Registry and retrieval provide bounded context to both Planner and validat
 ## Rollout rule
 
 Only one phase becomes authoritative at a time. A phase moves forward only after its regression tests and current Android CI are green. The previous authoritative path remains available until the next phase has demonstrated parity and save integrity.
+
+### Phase 6E.2 — Runtime actor belief projection
+
+- `EpistemicView` uses the firewall for explicit per-actor `knowledgeBinding`. Hidden, OPEN, foreign actor and invalid bindings fail closed.
+- Known provenance requires a nonempty evidence reference; this reference records provenance, not proof of objective truth.
+- Legacy beliefs remain subjective with UNKNOWN provenance; arbitrary hidden fields and unvalidated confirmedFactId are not exposed. Saves are not rewritten.
+- Planner and Narrator share the same knowledge/continuity instruction. No lore authority conflict is reconciled.
+- Regression: actor identity, writer-secret exclusion, OPEN exclusion, defensive projection and legacy compatibility.

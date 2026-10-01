@@ -74,6 +74,26 @@ public class KnowledgeContinuityFirewallTest {
     }
   }
 
+  @Test public void actorProjectionRejectsHiddenAndForeignBindingsWithoutChangingSave() throws Exception {
+    JSONObject belief = new JSONObject().put("actorId", "lucia").put("claimId", "c1")
+        .put("beliefValue", "subjective").put("confidence", "CONFIRMED")
+        .put("writerSecret", "hidden").put("confirmedFactId", "unvalidated");
+    String before = belief.toString();
+    JSONObject view = KnowledgeContinuityFirewall.actorBeliefView(belief, "lucia");
+    assertEquals("ACTOR_BELIEF", view.getString("truthRole"));
+    assertEquals("UNKNOWN", view.getJSONObject("knowledgeBinding").getString("knowledgeState"));
+    assertFalse(view.has("writerSecret"));
+    assertFalse(view.has("confirmedFactId"));
+    assertEquals(before, belief.toString());
+    assertTrue(KnowledgeContinuityFirewall.actorBeliefView(belief, "luc_tram") == null);
+    for (String kind : new String[] {"WRITER-SECRET", "OPEN/UNKNOWN"}) {
+      belief.put("knowledgeBinding", binding(kind, "UNKNOWN", "lucia", "BASELINE_CANON"));
+      assertTrue(KnowledgeContinuityFirewall.actorBeliefView(belief, "lucia") == null);
+    }
+    belief.put("knowledgeBinding", binding("POV/BELIEF", "TOLD", "luc_tram", "LIVE_STATE"));
+    assertTrue(KnowledgeContinuityFirewall.actorBeliefView(belief, "lucia") == null);
+  }
+
   private static JSONObject binding(
       String canonClass, String knowledgeState, String actorId, String originLayer) throws Exception {
     return new JSONObject()

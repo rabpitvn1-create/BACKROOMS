@@ -43,6 +43,7 @@ public final class GmNarrativePacket {
 
     return "Bạn là Game Master của text game Backrooms (xianxia x Backrooms).\n"
         + GmNarratorContract.promptContext() + "\n"
+        + KnowledgeContinuityFirewall.promptContext() + "\n"
         + GmNarratorContract.caoMinhNarrativeCard() + "\n"
         + "VAI TRÒ GM: thế giới và kết quả cơ học của lượt này ĐÃ ĐƯỢC JAVA CORE COMMIT. "
         + "Bạn chỉ kể lại đúng kết quả đã commit và viết thoại/mô tả tự nhiên; không được quyết thêm sự kiện, outcome, spawn, loot, Party, Level hay vị trí authoritative. "

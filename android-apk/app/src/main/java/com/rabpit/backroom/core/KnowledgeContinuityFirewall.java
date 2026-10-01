@@ -133,6 +133,36 @@ public final class KnowledgeContinuityFirewall {
     return state != KnowledgeState.UNKNOWN;
   }
 
+  /** Safe legacy-compatible belief projection; no hidden payload or fact promotion. */
+  static JSONObject actorBeliefView(JSONObject belief, String actorId) throws Exception {
+    if (belief == null || actorId == null || actorId.isEmpty()
+        || !actorId.equals(belief.optString("actorId", ""))) return null;
+    JSONObject binding = belief.optJSONObject("knowledgeBinding");
+    if (belief.has("knowledgeBinding")) {
+      if (binding == null || !canExposeToActor(binding, actorId)) return null;
+    } else {
+      binding = new JSONObject().put("schemaVersion", CONTRACT_VERSION)
+          .put("canonClass", "POV/BELIEF").put("knowledgeState", "UNKNOWN")
+          .put("actorId", actorId).put("originLayer", "LIVE_STATE").put("evidenceRef", "");
+    }
+    JSONObject view = new JSONObject();
+    for (String key : new String[] {"claimId", "actorId", "beliefValue", "confidence"}) {
+      if (belief.has(key)) view.put(key, belief.get(key));
+    }
+    return view.put("knowledgeBinding", new JSONObject(binding.toString()))
+        .put("truthRole", "ACTOR_BELIEF");
+  }
+
+  static String promptContext() {
+    return "KNOWLEDGE FIREWALL: SELF-CANON belongs to its owner; CROSS-CANON needs the owner's "
+        + "current source. POV/BELIEF is subjective. WRITER-SECRET is not character knowledge. "
+        + "WORLD-CANON does not imply actor knowledge. DYNAMIC comes from live continuity/save "
+        + "and wins over baseline injury, depletion, inventory, location, knowledge, relationship, "
+        + "promises, debts and consequences. OPEN/UNKNOWN remains unresolved. KNOWN-BEFORE, "
+        + "OBSERVED, TOLD, VERIFIED and INFERRED require provenance. TOLD can be false; INFERRED "
+        + "remains uncertain; UNKNOWN grants no knowledge. Never reconcile lore conflicts by inference.";
+  }
+
   /**
    * Only live DYNAMIC bindings may assert current mutable continuity.
    * Baseline canon never overwrites injury, inventory, location, relationship or other live state.

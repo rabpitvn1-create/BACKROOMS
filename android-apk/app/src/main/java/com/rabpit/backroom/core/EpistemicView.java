@@ -81,7 +81,8 @@ final class EpistemicView {
     for (int i = 0; i < beliefs.length(); i++) {
       JSONObject belief = beliefs.optJSONObject(i);
       if (belief == null || !expected.equals(belief.optString("actorId", ""))) continue;
-      output.put(new JSONObject(belief.toString()));
+      JSONObject view = KnowledgeContinuityFirewall.actorBeliefView(belief, expected);
+      if (view != null) output.put(view);
     }
     return output;
   }
