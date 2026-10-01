@@ -31,6 +31,8 @@ public class GmShadowPlannerTest {
     assertEquals(promptA, promptB);
     assertTrue(promptA.contains("TYPED_COMMAND_REGISTRY"));
     assertTrue(promptA.contains("registry"));
+    assertTrue(promptA.contains("selectionAuthorization.valid=true"));
+    assertTrue(promptA.contains("khớp chính xác"));
     assertEquals(GmShadowPlanner.plannerKey(a, promptA), GmShadowPlanner.plannerKey(b, promptB));
   }
 

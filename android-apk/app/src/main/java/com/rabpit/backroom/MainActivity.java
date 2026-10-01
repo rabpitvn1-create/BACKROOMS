@@ -684,7 +684,7 @@ public class MainActivity extends Activity {
     if (plannerContext == null || !plannerContext.optBoolean("available", false)) {
       throw new IllegalStateException("Shadow planner context unavailable.");
     }
-    JSONObject state = plannerContext.getJSONObject("stateSnapshot");
+    JSONObject state = plannerContext.getJSONObject("executionBaseState");
     String action = plannerContext.getString("action");
     String coreJson = state.toString();
     String levelContext = gameCore.levelPromptContext(coreJson, action);
@@ -719,6 +719,41 @@ public class MainActivity extends Activity {
       }
       shadowPlannerCache.put(plannerKey, new JSONObject(proposal.toString()));
     }
+  }
+
+  private JSONObject authoritativeGmProposal(
+      JSONObject plannerContext, String prompt, String validationFeedback) throws Exception {
+    if (plannerContext == null || prompt == null) {
+      throw new IllegalStateException("GM planner context unavailable.");
+    }
+    String plannerKey = GmShadowPlanner.plannerKey(plannerContext, prompt);
+    boolean retry = validationFeedback != null && !validationFeedback.trim().isEmpty();
+    JSONObject proposal = retry ? null : cachedShadowProposal(plannerKey);
+
+    if (proposal == null) {
+      String effectivePrompt = prompt;
+      if (retry) {
+        effectivePrompt += "\nVALIDATION REJECTED: " + validationFeedback
+            + "\nRepair only the rejected transaction. Keep the same turnId, baseStateHash and Core-selected candidate.";
+      }
+      JSONObject raw = parseModelJson(generateText(effectivePrompt));
+      JSONObject validation = GmShadowPlanner.validateProposal(
+          raw, plannerContext.getString("turnId"), plannerContext.getString("baseStateHash"));
+      if (!validation.optBoolean("valid", false)) {
+        throw new IllegalStateException(
+            "GM proposal validation failed: " + validation.optString("reason", "invalid_proposal"));
+      }
+      proposal = validation.getJSONObject("proposal");
+      if (!retry) cacheShadowProposal(plannerKey, proposal);
+    } else {
+      JSONObject validation = GmShadowPlanner.validateProposal(
+          proposal, plannerContext.getString("turnId"), plannerContext.getString("baseStateHash"));
+      if (!validation.optBoolean("valid", false)) {
+        throw new IllegalStateException(
+            "Cached GM proposal invalid: " + validation.optString("reason", "invalid_proposal"));
+      }
+    }
+    return proposal;
   }
 
   private void scheduleShadowPlanner(
@@ -764,7 +799,7 @@ public class MainActivity extends Activity {
         JSONArray evidence = resolved == null ? null : resolved.optJSONArray("committedEvents");
         int evidenceCount = evidence == null ? 0 : evidence.length();
         JSONObject comparison = GmShadowPlanner.compareToV2(
-            proposal, contextCopy.getJSONObject("stateSnapshot"), afterCopy, selectedCopy);
+            proposal, contextCopy.getJSONObject("executionBaseState"), afterCopy, selectedCopy);
         Log.d(TAG, "GM SHADOW TELEMETRY: key=" + plannerKey.substring(0, 12)
             + " proposal=" + (proposalFingerprint.length() >= 12
                 ? proposalFingerprint.substring(0, 12) : proposalFingerprint)
@@ -812,6 +847,10 @@ public class MainActivity extends Activity {
   }
 
   private void prefetchChoices(String choicesJson) {
+    if (BuildConfig.GM_TRANSACTION_COMMIT_ENABLED) {
+      invalidatePrefetch();
+      return;
+    }
     final long generation = prefetchGeneration.incrementAndGet();
     prefetchCache = null;
     prefetchIo.execute(() -> {
@@ -930,7 +969,7 @@ public class MainActivity extends Activity {
           JSONObject submitted = new JSONObject(stateJson);
           JSONObject persisted = new JSONObject(gameCore.currentCoreState());
           if (persisted.length() > 0) submitted = persisted;
-          PrefetchCache ready = prefetchCache;
+          PrefetchCache ready = BuildConfig.GM_TRANSACTION_COMMIT_ENABLED ? null : prefetchCache;
           String baseHash = gameCore.currentStateHash();
           invalidatePrefetch();
           PrefetchBranch cached = ready != null && ready.baseHash.equals(baseHash)
@@ -961,7 +1000,7 @@ public class MainActivity extends Activity {
           JSONObject selected = prepared.optJSONObject("selectedCandidate");
           JSONObject shadowContext = null;
           String shadowPrompt = null;
-          if (BuildConfig.DEBUG) {
+          if (BuildConfig.GM_TRANSACTION_COMMIT_ENABLED || BuildConfig.DEBUG) {
             try {
               shadowContext = new JSONObject(gameCore.shadowPlannerContext(turnId));
               if (shadowContext.optBoolean("available", false)) {
@@ -972,44 +1011,68 @@ public class MainActivity extends Activity {
                 shadowContext = null;
               }
             } catch (Exception shadowContextError) {
-              Log.w(TAG, "GM shadow prompt unavailable; live V2 turn continues unchanged: "
+              Log.w(TAG, "GM transaction planner context unavailable: "
                   + providerErrorSummary(shadowContextError));
               shadowContext = null;
               shadowPrompt = null;
             }
           }
-          JSONObject proposal = new JSONObject();
-          if (prepared.optBoolean("proposalRequired", false) && cached == null) {
-            try {
-              String proposalPrompt = worldProposalPrompt(selected);
-              JSONObject rawProposal = parseModelJson(generateText(proposalPrompt));
-              JSONObject validation = new JSONObject(
-                  gameCore.validateWorldProposal(selected.toString(), rawProposal.toString()));
-
-              if (!validation.optBoolean("valid", false)) {
-                String reason = validation.optString("reason", "proposal rejected");
-                rawProposal = parseModelJson(generateText(
-                    proposalPrompt + "\nVALIDATION REJECTED: " + reason
-                        + "\nRetry the SAME selected SituationCandidate. Do not change the situation or actor."));
-                validation = new JSONObject(
-                    gameCore.validateWorldProposal(selected.toString(), rawProposal.toString()));
-              }
-
-              if (!validation.optBoolean("valid", false)) {
-                throw new Exception(validation.optString("reason", "World proposal validation failed."));
-              }
-              proposal = validation.getJSONObject("proposal");
-            } catch (Exception proposalError) {
-              Log.w(TAG, "World proposal unavailable/invalid after bounded retry; Core will use canonical fallback: "
-                  + providerErrorSummary(proposalError));
-              proposal = new JSONObject();
+          JSONObject committed;
+          if (BuildConfig.GM_TRANSACTION_COMMIT_ENABLED) {
+            if (shadowContext == null || shadowPrompt == null) {
+              throw new Exception("GM transaction planner unavailable before commit.");
             }
-          }
 
-          JSONObject committed = new JSONObject(
-              gameCore.completePreparedTurn(turnId, proposal.toString()));
-          if (!committed.optBoolean("handled", false)) {
-            throw new Exception(committed.optString("error", "Game State Core từ chối COMMIT."));
+            JSONObject gmProposal = authoritativeGmProposal(shadowContext, shadowPrompt, "");
+            committed = new JSONObject(
+                gameCore.completePreparedTurnWithGmTransaction(turnId, gmProposal.toString()));
+
+            if (!committed.optBoolean("handled", false)) {
+              String reason = committed.optString("error",
+                  committed.optString("reason", "GM transaction rejected."));
+              gmProposal = authoritativeGmProposal(shadowContext, shadowPrompt, reason);
+              committed = new JSONObject(
+                  gameCore.completePreparedTurnWithGmTransaction(turnId, gmProposal.toString()));
+            }
+
+            if (!committed.optBoolean("handled", false)) {
+              throw new Exception(committed.optString(
+                  "error", "GM transaction bị Core từ chối sau bounded retry."));
+            }
+          } else {
+            JSONObject proposal = new JSONObject();
+            if (prepared.optBoolean("proposalRequired", false) && cached == null) {
+              try {
+                String proposalPrompt = worldProposalPrompt(selected);
+                JSONObject rawProposal = parseModelJson(generateText(proposalPrompt));
+                JSONObject validation = new JSONObject(
+                    gameCore.validateWorldProposal(selected.toString(), rawProposal.toString()));
+
+                if (!validation.optBoolean("valid", false)) {
+                  String reason = validation.optString("reason", "proposal rejected");
+                  rawProposal = parseModelJson(generateText(
+                      proposalPrompt + "\nVALIDATION REJECTED: " + reason
+                          + "\nRetry the SAME selected SituationCandidate. Do not change the situation or actor."));
+                  validation = new JSONObject(
+                      gameCore.validateWorldProposal(selected.toString(), rawProposal.toString()));
+                }
+
+                if (!validation.optBoolean("valid", false)) {
+                  throw new Exception(validation.optString("reason", "World proposal validation failed."));
+                }
+                proposal = validation.getJSONObject("proposal");
+              } catch (Exception proposalError) {
+                Log.w(TAG, "World proposal unavailable/invalid after bounded retry; Core will use canonical fallback: "
+                    + providerErrorSummary(proposalError));
+                proposal = new JSONObject();
+              }
+            }
+
+            committed = new JSONObject(
+                gameCore.completePreparedTurn(turnId, proposal.toString()));
+            if (!committed.optBoolean("handled", false)) {
+              throw new Exception(committed.optString("error", "Game State Core từ chối COMMIT."));
+            }
           }
 
           JSONObject state = committed.getJSONObject("state");
@@ -1060,19 +1123,20 @@ public class MainActivity extends Activity {
           state = new JSONObject(
               gameCore.commitNarration(state.toString(), acknowledgePendingIntro));
 
-          if (CombatChoiceEngine.isKnownEntity(newEncounter)) {
+          if (CombatChoiceEngine.isKnownEntity(newEncounter) && !CombatChoiceEngine.isActive(state)) {
             state = new JSONObject(
                 gameCore.startCombatRuntime(newEncounter, log.length() - 1));
           }
 
-          if (BuildConfig.DEBUG && shadowContext != null && shadowPrompt != null
-              && committedBeforeNarration != null) {
+          if (BuildConfig.DEBUG && !BuildConfig.GM_TRANSACTION_COMMIT_ENABLED
+              && shadowContext != null && shadowPrompt != null && committedBeforeNarration != null) {
             scheduleShadowPlanner(shadowContext, shadowPrompt, committedBeforeNarration, selected);
           }
 
           if (BuildConfig.DEBUG) {
             Log.d(TAG, "EMERGENT TURN TELEMETRY: total=" + (System.currentTimeMillis() - tStart)
                 + "ms turnId=" + turnId
+                + " authority=" + (BuildConfig.GM_TRANSACTION_COMMIT_ENABLED ? "GM_TRANSACTION" : "V2")
                 + " situation=" + (selected == null ? "NONE" : selected.optString("situationKey", "NONE")));
           }
           emit("backroomTurn", state.toString());

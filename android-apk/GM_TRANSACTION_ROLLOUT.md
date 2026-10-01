@@ -1,6 +1,6 @@
 # GM Transaction Rollout
 
-Status: PHASE 4C — SELECTION/RNG AUTHORITY ACTIVE IN SHADOW; V2 REMAINS AUTHORITATIVE
+Status: PHASE 4D — GM TRANSACTION AUTHORITY WIRED BEHIND FEATURE FLAG
 
 This rollout preserves the current V2 Core/save/runtime while reintroducing GM planning authority in controlled stages. No phase may skip the transaction boundary.
 
@@ -210,6 +210,22 @@ Status: implemented behind the existing build flag; MainActivity still uses V2.
 - Successful commit persists once, removes the prepared turn and returns transaction hash plus committed GM evidence.
 - This API is not yet invoked by `MainActivity`; default/live behavior is still V2 until 4D.3.
 
+### Phase 4D.3 — Runtime authority switch
+
+Status: implemented behind `GM_TRANSACTION_COMMIT_ENABLED`.
+
+- Default builds keep `GM_TRANSACTION_COMMIT_ENABLED=false` and continue through the existing V2 `completePreparedTurn()` path.
+- Enabled builds synchronously run the GM transaction planner before commit and call only `completePreparedTurnWithGmTransaction()`.
+- There is no same-turn fallback to V2 when GM authority is enabled. Provider/schema/Core rejection gets one bounded repair attempt; a second failure leaves the turn uncommitted.
+- Planner context now uses `executionBaseState`: the deterministic post-player-action/pre-GM state retained by Core. `baseStateHash` still binds the transaction to the pre-turn live revision.
+- A Core-selected situation must be represented by the exact matching selection-gated command; the planner cannot substitute another Entity/Character/Chest.
+- V2 speculative narration prefetch is disabled in GM-authoritative builds because its preview outcome is not the GM transaction outcome.
+- Debug shadow comparison continues only when V2 is live authority.
+- If a GM transaction already starts combat, the post-narration bridge does not start combat a second time.
+- Successful GM commit is persisted before narration; narration failure therefore regenerates/falls back from the same committed state without rerunning gameplay.
+
+Phase 4D is complete at the code level. The feature flag remains OFF by default; enabling it is an explicit rollout decision.
+
 Commit protocol:
 1. verify turnId and baseStateHash;
 2. validate all commands;
@@ -218,7 +234,7 @@ Commit protocol:
 5. persist one authoritative state revision;
 6. emit immutable committed-event ledger.
 
-V2 remains the fallback path until parity and save-integrity gates pass.
+V2 remains the default path while the feature flag is OFF. An enabled GM-authority turn never silently falls back to V2 after planning begins.
 
 ## Phase 5 — Narrator consumes committed reality only
 

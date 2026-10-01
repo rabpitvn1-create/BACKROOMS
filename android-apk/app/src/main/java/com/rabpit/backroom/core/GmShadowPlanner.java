@@ -52,12 +52,15 @@ public final class GmShadowPlanner {
     if (action.isEmpty()) throw new IllegalArgumentException("action_missing");
 
     StringBuilder out = new StringBuilder();
-    out.append("SHADOW GM PLANNER — PHASE 3.\n")
-        .append("Bạn chỉ lập kế hoạch giao dịch cho một lượt. Đây là SHADOW MODE: proposal của bạn ")
-        .append("không được phép sửa GameState, không được quyết định canon và không được viết narration cuối.\n")
+    out.append("GM TRANSACTION PLANNER — PHASE 4D.\n")
+        .append("Bạn chỉ lập kế hoạch giao dịch cho một lượt. Proposal không được phép sửa GameState trực tiếp, ")
+        .append("không được quyết định canon và không được viết narration cuối; Core mới là nơi ACCEPT/REJECT và commit.\n")
         .append("Mọi thay đổi phải nằm trong causalGroups atomic và commands có type + payload. ")
         .append("Không dùng raw JSON patch, path, jsonPointer, statePatch hoặc chép lại GameState như một mutation.\n")
-        .append("Nếu không có thay đổi hợp lý, trả causalGroups rỗng. ")
+        .append("Nếu selectionAuthorization.valid=true và selectedNone=false, phải đề xuất đúng MỘT command ")
+        .append("START_ENTITY_ENCOUNTER / START_CHARACTER_ENCOUNTER / DISCOVER_CHEST khớp chính xác ")
+        .append("selectedKind + payloadKey; không được đổi candidate. Nếu selectedNone=true, không đề xuất các command selection-gated.\n")
+        .append("Ngoài selection bắt buộc nói trên, nếu không có thay đổi hợp lý thì có thể trả causalGroups rỗng. ")
         .append("Không lấp OPEN/UNKNOWN. Không biến writer knowledge thành character knowledge.\n")
         .append("OUTPUT CHỈ JSON đúng schema:\n")
         .append("{\"schemaVersion\":1,\"turnId\":\"").append(escape(turnId))

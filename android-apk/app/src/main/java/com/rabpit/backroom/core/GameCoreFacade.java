@@ -302,8 +302,8 @@ public final class GameCoreFacade implements AutoCloseable {
         return output.put("available", false).put("reason", "stale_turn_attempt").toString();
       }
 
-      JSONObject snapshot = clientSafeState(persisted);
-      snapshot.remove("log");
+      JSONObject executionBase = clientSafeState(prepared.working);
+      executionBase.remove("log");
       JSONObject draws = new JSONObject();
       for (TurnRng.Scope scope : TurnRng.Scope.values()) {
         draws.put(scope.name(), prepared.rng.drawsUsed(scope));
@@ -321,8 +321,9 @@ public final class GameCoreFacade implements AutoCloseable {
           .put("schemaVersion", GmTransactionContract.SCHEMA_VERSION)
           .put("turnId", prepared.turnId)
           .put("baseStateHash", prepared.baseHash)
+          .put("executionBaseHash", fingerprint(prepared.working))
           .put("action", prepared.action)
-          .put("stateSnapshot", snapshot)
+          .put("executionBaseState", executionBase)
           .put("selectionAuthorization", selectionAuthorization)
           .put("rngContext", rngContext)
           .toString();
@@ -377,10 +378,10 @@ public final class GameCoreFacade implements AutoCloseable {
             .put("resolvedTurn", new JSONObject())
             .toString();
       }
-      JSONObject snapshot = context.optJSONObject("stateSnapshot");
+      JSONObject snapshot = context.optJSONObject("executionBaseState");
       if (snapshot == null) {
         return output.put("valid", false)
-            .put("reason", "planner_state_snapshot_missing")
+            .put("reason", "planner_execution_base_missing")
             .put("commandResults", new JSONArray())
             .put("resolvedTurn", new JSONObject())
             .toString();
