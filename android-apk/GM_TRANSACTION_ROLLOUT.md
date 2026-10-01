@@ -1,6 +1,6 @@
 # GM Transaction Rollout
 
-Status: PHASE 6C.12 — LUCIA MIGRATION REVIEW COMPLETE; PHASE 6C.13 NEXT
+Status: PHASE 6C.13 — LUCIA STRUCTURED MIGRATION COMPLETE; PHASE 6C.14 NEXT
 
 This rollout preserves the current V2 Core/save/runtime while reintroducing GM planning authority in controlled stages. No phase may skip the transaction boundary.
 
@@ -416,7 +416,19 @@ Status: COMPLETE / REVIEW ONLY.
 - The Canon Registry logical `path=Lucia_Codex.md` remains unchanged for compatibility; only the physical source is allowed to move to `content/characters/lucia.md`.
 - No source was moved and runtime behavior is unchanged.
 
-Phase 6C.13 may perform the byte-preserving Lucia move plus those path-reference updates only.
+### Phase 6C.13 — Lucia structured-source migration
+
+Status: COMPLETE.
+
+- `Lucia_Codex.md` was migrated unchanged to `content/characters/lucia.md`.
+- The legacy `assets/canon/Lucia_Codex.md` copy was removed; Canon Registry logical `path=Lucia_Codex.md` remains unchanged for compatibility.
+- Registry classification remains `CHARACTER / SCOPED_USER_RETCON / CURRENT`, owner `lucia`, with `mandatoryFor=character:lucia`.
+- Current physical-path references in `characters_current.json`, `knowledge_db.json`, `CHARACTER_CODEX_CURRENT.md` and `KNOWLEDGE_SOURCE_MAP.md` now point to the structured source.
+- `LuciaSeparationContractTest` reads the structured source and asserts the legacy physical copy is absent.
+- Identity and relationship hard locks are unchanged: `lucia != luc_tram`, no alias/merge, and Lucia ↔ Cao Minh remains OPEN unless continuity establishes otherwise.
+- Runtime encounter/equipment/gameplay projection semantics are unchanged.
+
+Phase 6C.14 will review Lục Trầm migration separately because it is CURRENT CHARACTER_CANON with explicit knowledge/dynamic-state ownership rules.
 
 Expand content without changing transaction semantics:
 
