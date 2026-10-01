@@ -200,20 +200,20 @@ public class CanonRegistryTest {
     assertEquals(0, tracLam.getJSONArray("mandatoryFor").length());
   }
 
-  @Test public void lucTramReviewPinsCurrentCanonKnowledgeAndDynamicStateRules() throws Exception {
+  @Test public void lucTramIsMigratedWithoutChangingCanonAuthority() throws Exception {
     Path legacy = Paths.get("src/main/assets/canon/Lục_Trầm_Codex.md");
     Path structured = Paths.get("src/main/assets/content/characters/luc-tram.md");
     Path registryPath = Paths.get("src/main/assets/canon/canon-registry.json");
-    if (!Files.isRegularFile(legacy)) {
+    if (!Files.isRegularFile(structured)) {
       legacy = Paths.get("app/src/main/assets/canon/Lục_Trầm_Codex.md");
       structured = Paths.get("app/src/main/assets/content/characters/luc-tram.md");
       registryPath = Paths.get("app/src/main/assets/canon/canon-registry.json");
     }
 
-    assertTrue(Files.isRegularFile(legacy));
-    assertFalse(Files.exists(structured));
+    assertTrue(Files.isRegularFile(structured));
+    assertFalse(Files.exists(legacy));
 
-    String text = new String(Files.readAllBytes(legacy), StandardCharsets.UTF_8);
+    String text = new String(Files.readAllBytes(structured), StandardCharsets.UTF_8);
     assertTrue(text.contains("CURRENT / CHARACTER CANON"));
     assertTrue(text.contains("E. KNOWLEDGE FIREWALL"));
     assertTrue(text.contains("H. BASELINE ≠ CURRENT STATE"));

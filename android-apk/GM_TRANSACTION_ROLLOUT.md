@@ -439,7 +439,18 @@ Status: COMPLETE / NO SOURCE MOVE.
 - Tests pin the legacy/current location, planned structured destination, registry authority/status/version/owner, mandatory binding and core firewall text.
 - Runtime behavior and retrieval semantics are unchanged.
 
-Phase 6C.15 may migrate the local Lục Trầm source byte-for-byte and update only direct local-file readers.
+### Phase 6C.15 — Lục Trầm structured-source migration
+
+Status: COMPLETE.
+
+- `Lục_Trầm_Codex.md` was migrated byte-for-byte to `content/characters/luc-tram.md`.
+- Canon Registry logical `path=Lục_Trầm_Codex.md` remains unchanged; registry authority/status/version/owner and `mandatoryFor=character:luc_tram` remain unchanged.
+- Direct local regression readers now resolve the structured physical source.
+- Drive provenance records are unchanged.
+- READ FIRST knowledge firewall, `BASELINE != CURRENT STATE`, Lucia/Lục Trầm identity separation and Táng Kiếm Cốc POV/backstage boundaries are unchanged.
+- The legacy physical copy is removed in this phase; retrieval logical identity remains stable.
+
+Phase 6C.16 will review Cao Minh migration authority without using file movement to resolve the R17-local / R15-source-map conflict.
 
 Expand content without changing transaction semantics:
 
