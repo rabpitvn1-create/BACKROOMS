@@ -1,6 +1,6 @@
 # GM Transaction Rollout
 
-Status: PHASE 6C.5 — CULTIVATOR AURA EFFECTS MIGRATION COMPLETE; PHASE 6C.6 NEXT
+Status: PHASE 6C.6 — CAO FAMILY HISTORY MIGRATION COMPLETE; PHASE 6C.7 NEXT
 
 This rollout preserves the current V2 Core/save/runtime while reintroducing GM planning authority in controlled stages. No phase may skip the transaction boundary.
 
@@ -342,7 +342,17 @@ Status: COMPLETE.
 - Tests verify that only the structured copy ships and that the key anti-overreach locks remain present.
 - Compatibility loading and retrieval behavior remain unchanged.
 
-Phase 6C.6 will migrate one additional low-risk source after this migration remains green.
+### Phase 6C.6 — Cao-family history migration
+
+Status: COMPLETE.
+
+- `Huyet_Tay_Cao_Gia.md` was migrated unchanged to `content/history/huyet-tay-cao-gia.md`.
+- The legacy `assets/canon/Huyet_Tay_Cao_Gia.md` copy was removed; registry compatibility preserves the logical source identity.
+- Registry classification remains `HISTORY / UNCLASSIFIED / UNCLASSIFIED`; the move does not resolve or elevate overlapping Cao Minh / Diệp Minh character material.
+- Tests verify that only the structured copy ships and that the core history markers remain present.
+- Compatibility loading and retrieval behavior remain unchanged.
+
+Phase 6C.7 will migrate the Táng Kiếm Cốc history source separately, still without reconciling POV/backstage conflicts.
 
 Expand content without changing transaction semantics:
 

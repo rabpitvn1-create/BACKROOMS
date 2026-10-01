@@ -96,6 +96,24 @@ public class CanonRegistryTest {
     assertTrue(text.contains("không được suy thành Cao Minh có ma nguyên vô hạn"));
   }
 
+  @Test public void caoFamilyMassacreHistoryIsMigratedToStructuredContentOnly() throws Exception {
+    Path structured = Paths.get(
+        "src/main/assets/content/history/huyet-tay-cao-gia.md");
+    Path legacy = Paths.get("src/main/assets/canon/Huyet_Tay_Cao_Gia.md");
+    if (!Files.isRegularFile(structured)) {
+      structured = Paths.get(
+          "app/src/main/assets/content/history/huyet-tay-cao-gia.md");
+      legacy = Paths.get("app/src/main/assets/canon/Huyet_Tay_Cao_Gia.md");
+    }
+
+    assertTrue(Files.isRegularFile(structured));
+    assertFalse(Files.exists(legacy));
+    String text = new String(Files.readAllBytes(structured), StandardCharsets.UTF_8);
+    assertTrue(text.contains("Cao gia có hơn bốn trăm người"));
+    assertTrue(text.contains("Diệp Minh"));
+    assertTrue(text.contains("Cao Minh trở về"));
+  }
+
   @Test public void duplicateIdAndPathFailClosed() throws Exception {
     JSONObject source = source(
         "same", "A.md", "world/a.md", "WORLD", "WORLD_CANON", "CURRENT");
