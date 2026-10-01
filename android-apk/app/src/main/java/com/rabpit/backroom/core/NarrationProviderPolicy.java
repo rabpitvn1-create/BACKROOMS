@@ -25,8 +25,6 @@ public final class NarrationProviderPolicy {
     } catch (Exception error) {
       // ponytail: transport/content failures fall back locally; no hidden key rotation or retry loop.
     }
-    return OfflinePresenter.present(safeEvents, () -> new JSONObject()
-        .put("reply", "Cao Minh quan sát khu vực trước mặt.").put("choices", new JSONArray())
-        .put("encounterDialogue", new JSONArray()).put("claims", new JSONArray()));
+    return OfflinePresenter.fallback(safeEvents);
   }
 }

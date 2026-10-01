@@ -23,6 +23,20 @@ public final class OfflinePresenter {
   }
 
   /** Provider is deliberately injectable: a poison provider proves zero calls on offline paths. */
+  public static JSONObject fallback(JSONArray views) throws Exception {
+    String actor = "người lữ hành";
+    if (views != null) for (int i = 0; i < views.length(); i++) {
+      JSONObject view = views.optJSONObject(i);
+      if (view != null && !view.optString("actor", "").trim().isEmpty()) {
+        actor = view.optString("actor").trim();
+        break;
+      }
+    }
+    return new JSONObject().put("reply", Character.toUpperCase(actor.charAt(0)) + actor.substring(1)
+        + " quan sát khu vực trước mặt.").put("choices", new JSONArray())
+        .put("encounterDialogue", new JSONArray()).put("claims", new JSONArray());
+  }
+
   public static JSONObject present(JSONArray views, Provider provider) throws Exception {
     if (!isOffline(views)) return provider.generate();
     StringBuilder reply = new StringBuilder();
@@ -59,7 +73,7 @@ public final class OfflinePresenter {
         reply.append(Character.toUpperCase(sentence.charAt(0))).append(sentence.substring(1));
       }
     }
-    if (reply.length() == 0) reply.append("Cao Minh quan sát khu vực trước mặt.");
+    if (reply.length() == 0) return fallback(views);
     return new JSONObject().put("reply", reply.toString()).put("choices", new JSONArray())
         .put("encounterDialogue", new JSONArray()).put("claims", new JSONArray());
   }

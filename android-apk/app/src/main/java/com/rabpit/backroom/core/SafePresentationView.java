@@ -16,7 +16,7 @@ public final class SafePresentationView {
       {"firearm", "súng", "một vật kim loại dài", "firearm", "rifle", "riflewoman", "rifleman", "gun", "gunblade", "pistol", "bullet", "bullets", "khẩu súng", "súng", "đạn"},
       {"laser", "laser", "một điểm sáng", "laser"},
       {"cao_minh_title", "Đại Đạo Ma Tôn", "người đàn ông", "Đại Đạo Ma Tôn"},
-      {"cultivation", "tu tiên", "những khả năng khác thường", "tu tiên", "xianxia"},
+      {"cultivation", "tu tiên", "những khả năng khác thường", "tu tiên", "xianxia", "cultivation", "tu sĩ", "kiếm tu", "linh lực", "thần thức"},
       {"cao_minh", "Cao Minh", "người đàn ông", "Cao Minh"},
       {"luc_tram", "Lục Trầm", "người phụ nữ cầm kiếm", "Lục Trầm"},
       {"lucia", "Lucia Lục", "cô gái cầm một vật kim loại dài", "Lucia Lục", "Lucia", "Hứa Thuý Mai", "Hứa Thúy Mai"},
@@ -87,8 +87,8 @@ public final class SafePresentationView {
     JSONArray party = state == null ? null : state.optJSONArray("party");
     if (party != null) for (int i = 0; i < party.length(); i++) {
       JSONObject member = party.optJSONObject(i);
-      if (member == null || !member.optBoolean("present", true)) continue;
-      String actor = member.optString("id", "");
+      if (member != null && !member.optBoolean("present", true)) continue;
+      String actor = member == null ? "" : member.optString("id", "");
       for (String subject : new String[] {"cao_minh_title", "cultivation"}) {
         if (CharacterKnowledge.knows(state, actor, subject, "knownName")) continue;
         for (String[] row : SUBJECTS) if (row[0].equals(subject)) {

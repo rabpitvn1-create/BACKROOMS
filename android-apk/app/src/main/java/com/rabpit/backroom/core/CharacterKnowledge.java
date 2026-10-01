@@ -29,7 +29,8 @@ final class CharacterKnowledge {
   }
 
   private static boolean priorName(String actor, String subject) {
-    return actor.equals(subject)
+    return (("cao_minh".equals(actor) || "luc_tram".equals(actor)
+        || "lucia".equals(actor) || "syvial".equals(actor)) && actor.equals(subject))
         || (("cao_minh".equals(actor) || "luc_tram".equals(actor))
             && ("cao_minh".equals(subject) || "luc_tram".equals(subject)
                 || "cultivation".equals(subject)))
@@ -39,6 +40,7 @@ final class CharacterKnowledge {
   }
 
   static boolean knows(JSONObject state, String actor, String subject, String field) {
+    if (actor == null || subject == null) return false;
     JSONObject root = state == null ? null : state.optJSONObject(ROOT);
     JSONObject owner = root == null ? null : root.optJSONObject(actor);
     JSONObject knowledge = owner == null ? null : owner.optJSONObject(subject);

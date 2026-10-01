@@ -72,6 +72,26 @@ public class SafePresentationViewTest {
     assertFalse(state.toString().contains("knownEffect"));
   }
 
+  @Test public void incompleteActorViewsRemainSafeAndFallbackUsesTheProjectedActor() throws Exception {
+    JSONObject state = new JSONObject().put("party", new JSONArray().put("Lucia"));
+    assertFalse(SafePresentationView.narrativeText(state, "Đại Đạo Ma Tôn").contains("Đại Đạo Ma Tôn"));
+    assertEquals("bóng người mặc trang bị kín người",
+        SafePresentationView.label(state, "async_rifleman", "async_rifleman"));
+    assertEquals("bóng người mặc trang bị kín người", SafePresentationView.label(state, null, "async_rifleman"));
+    state.put("party", new JSONArray().put(new JSONObject().put("id", "syvial")));
+    String lore = "tu tiên cultivation thần thức linh lực kiếm tu tu sĩ";
+    String request = SafePresentationView.narrativeText(state, lore);
+    for (String term : lore.split(" ")) assertFalse(request.contains(term));
+    state.put(CharacterKnowledge.ROOT, new JSONObject().put("cao_minh",
+        new JSONObject().put("cao_minh", new JSONObject().put("knownName", false))));
+    JSONArray views = new JSONArray().put(SafePresentationView.event(state, "cao_minh",
+        new JSONObject().put("eventType", "PLAYER_ACTION_RESOLVED")));
+    JSONObject fallback = NarrationProviderPolicy.present(views,
+        rejection -> new JSONObject().put("reply", "invalid"), generated -> "hard rejection");
+    assertTrue(fallback.getString("reply"), fallback.getString("reply").startsWith("Người đàn ông"));
+    assertFalse(fallback.toString().contains("Cao Minh"));
+  }
+
   @Test public void knownNamesAreStableUnderRepeatedProjection() throws Exception {
     JSONObject state = new JSONObject();
     CharacterKnowledge.normalize(state);
