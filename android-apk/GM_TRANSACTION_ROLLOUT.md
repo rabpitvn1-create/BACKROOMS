@@ -1,6 +1,6 @@
 # GM Transaction Rollout
 
-Status: PHASE 6D.3 — CANON PACKET AUTHORITY CONTRACT COMPLETE; PHASE 6E.1 NEXT
+Status: PHASE 6E.1 — KNOWLEDGE/CONTINUITY FIREWALL CONTRACT COMPLETE; PHASE 6E.2 NEXT
 
 This rollout preserves the current V2 Core/save/runtime while reintroducing GM planning authority in controlled stages. No phase may skip the transaction boundary.
 
@@ -506,7 +506,22 @@ Status: COMPLETE.
 - Source-level dependencies now include the complete dependency source rather than a single representative section, fixing the 6D.2 regression.
 - Tests pin contract version, metadata content/defensive copying, deterministic source graph behavior and unchanged prompt text.
 
-Phase 6D is complete. Phase 6E.1 will formalize the knowledge/continuity firewall before any hidden or POV material is made registry-addressable.
+Phase 6D is complete.
+
+### Phase 6E.1 — Knowledge / continuity firewall contract
+
+Status: COMPLETE / CONTRACT ONLY.
+
+- `KnowledgeContinuityFirewall.CONTRACT_VERSION=1` formalizes the seven canon classes: `SELF-CANON`, `CROSS-CANON`, `POV/BELIEF`, `WRITER-SECRET`, `WORLD-CANON`, `DYNAMIC`, and `OPEN/UNKNOWN`.
+- It also freezes the actor knowledge states: `KNOWN-BEFORE`, `OBSERVED`, `TOLD`, `VERIFIED`, `INFERRED`, and `UNKNOWN`.
+- `DYNAMIC` current-state claims must originate from `LIVE_STATE`; baseline canon cannot overwrite mutable continuity.
+- `OPEN/UNKNOWN` cannot be promoted into known canon by changing its knowledge state.
+- `WRITER-SECRET` remains backstage-only and is never automatic character knowledge.
+- Actor-visible bindings are actor-scoped; POV/BELIEF cannot become global current-state authority.
+- Tests pin the knowledge firewall and `BASELINE != CURRENT STATE` invariant.
+- No runtime source is tagged or filtered by this contract yet; retrieval/narration behavior is unchanged.
+
+Phase 6E.2 will map live actor beliefs and canon-section visibility onto this contract before enabling section-level knowledge filtering.
 
 Expand content without changing transaction semantics:
 
