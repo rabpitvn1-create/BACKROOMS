@@ -89,6 +89,23 @@ public final class GmCommitCandidateBuilder {
     }
 
     JSONArray committedEvents = copyArray(resolvedExpected.optJSONArray("committedEvents"));
+    JSONObject selectionEvidence;
+    try {
+      selectionEvidence = selectionEvidenceFromEvents(committedEvents);
+    } catch (Exception error) {
+      return reject(rejected, "selection_evidence_conflict");
+    }
+    JSONObject draftSelectionEvidence = executionDraft.optJSONObject("selectionEvidence");
+    if (draftSelectionEvidence == null) draftSelectionEvidence = new JSONObject();
+    if (!canonical(selectionEvidence).equals(canonical(draftSelectionEvidence))) {
+      return reject(rejected, "execution_selection_evidence_mismatch");
+    }
+    if (selectionEvidence.length() > 0) {
+      String selectionReason = GmSelectionGate.validationReason(
+          selectionEvidence, turnId, baseStateHash);
+      if (!selectionReason.isEmpty()) return reject(rejected, selectionReason);
+    }
+
     String proposalFingerprint = hashCanonical(proposal);
 
     JSONObject candidate = new JSONObject()
@@ -102,6 +119,7 @@ public final class GmCommitCandidateBuilder {
         .put("committedGroups", committedGroups)
         .put("rejectedGroups", rejectedGroups)
         .put("committedEvents", committedEvents)
+        .put("selectionEvidence", selectionEvidence)
         .put("replayVerified", true);
 
     String transactionHash = hashCanonical(candidate);
@@ -127,6 +145,19 @@ public final class GmCommitCandidateBuilder {
       if (!hash(beforeState).equals(candidate.optString("beforeStateHash", ""))) return false;
       if (!hashCanonical(proposal).equals(candidate.optString("proposalFingerprint", ""))) return false;
 
+      JSONObject candidateSelection = candidate.optJSONObject("selectionEvidence");
+      if (candidateSelection == null) return false;
+      JSONObject eventSelection = selectionEvidenceFromEvents(
+          candidate.optJSONArray("committedEvents"));
+      if (!canonical(candidateSelection).equals(canonical(eventSelection))) return false;
+      if (candidateSelection.length() > 0
+          && !GmSelectionGate.validationReason(
+              candidateSelection,
+              candidate.optString("turnId", ""),
+              candidate.optString("baseStateHash", "")).isEmpty()) {
+        return false;
+      }
+
       JSONObject stateDelta = candidate.optJSONObject("stateDelta");
       if (stateDelta == null) return false;
       JSONObject replayed = AuthoritativeStatePatch.apply(beforeState, stateDelta);
@@ -139,6 +170,22 @@ public final class GmCommitCandidateBuilder {
     } catch (Exception error) {
       return false;
     }
+  }
+
+  private static JSONObject selectionEvidenceFromEvents(JSONArray events) throws JSONException {
+    JSONObject selected = new JSONObject();
+    if (events == null) return selected;
+    for (int i = 0; i < events.length(); i++) {
+      JSONObject event = events.optJSONObject(i);
+      JSONObject evidence = event == null ? null : event.optJSONObject("selectionEvidence");
+      if (evidence == null || evidence.length() == 0) continue;
+      if (selected.length() == 0) {
+        selected = new JSONObject(evidence.toString());
+      } else if (!canonical(selected).equals(canonical(evidence))) {
+        throw new IllegalArgumentException("selection_evidence_conflict");
+      }
+    }
+    return selected;
   }
 
   private static JSONObject reject(JSONObject output, String reason) throws JSONException {

@@ -1,6 +1,6 @@
 # GM Transaction Rollout
 
-Status: PHASE 3 — TYPED COMMAND AUTHORITY ACTIVE IN SHADOW; V2 REMAINS AUTHORITATIVE
+Status: PHASE 4C — SELECTION/RNG AUTHORITY ACTIVE IN SHADOW; V2 REMAINS AUTHORITATIVE
 
 This rollout preserves the current V2 Core/save/runtime while reintroducing GM planning authority in controlled stages. No phase may skip the transaction boundary.
 
@@ -170,7 +170,19 @@ Status: implemented in shadow execution, NO PERSIST.
 - Shadow planner sees the authorization in TURN_CONTEXT, but cannot choose a different Entity/Character/Chest than Core selected.
 - No selection-gated result is persisted; V2 remains the live authority.
 
-4C.3 will bind the same selection evidence into `CommitCandidate`.
+### Phase 4C.3 — Selection evidence pinned to CommitCandidate
+
+Status: implemented, NO PERSIST.
+
+- `GmSelectionGate.evidence()` now carries the complete verifiable authorization identity, including turn/base-state binding, RNG counter identity and authorization hash.
+- `GmCommitCandidateBuilder` recomputes selection evidence from committed events and requires it to match the 4B.1 execution draft.
+- A candidate containing selection-gated state must pass `GmSelectionGate.validationReason()` again before it is created.
+- `selectionEvidence` is part of the canonical `CommitCandidate`, so `transactionHash` binds state delta, committed events and the exact Core RNG selection together.
+- `verify()` checks that candidate-level evidence equals event-level evidence and remains cryptographically intact before replay validation succeeds.
+- Evidence conflicts, tampering or detachment from the original turn/base state fail closed.
+- The Phase-4A commit gate remains unarmed and there is still no persistence path for planner transactions.
+
+Phase 4C is complete. Phase 4D is the first phase allowed to consider a real authoritative persist, still behind the existing feature gate.
 
 Commit protocol:
 1. verify turnId and baseStateHash;

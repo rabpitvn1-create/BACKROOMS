@@ -119,6 +119,72 @@ public class GmCommitCandidateBuilderTest {
     assertFalse(GmCommitCandidateBuilder.verify(before, proposal, envelope));
   }
 
+  @Test public void selectionEvidenceIsPinnedIntoCommitCandidateAndTransactionHash() throws Exception {
+    JSONObject before = fundedState().put("currentLevel", 0).put(LevelCore.LEVEL_KEY, "0");
+    JSONObject proposal = proposal(
+        group("g1", command("character", "START_CHARACTER_ENCOUNTER",
+            new JSONObject().put("characterId", "syvial"))));
+    JSONObject authorization = selectionAuthorization(
+        "CHARACTER", "character:syvial", "syvial");
+    JSONObject draft = executor().execute(
+        before, proposal, "turn-4b2", "base-hash", authorization);
+
+    JSONObject envelope = GmCommitCandidateBuilder.build(before, proposal, draft);
+    JSONObject candidate = envelope.getJSONObject("candidate");
+    JSONObject evidence = candidate.getJSONObject("selectionEvidence");
+
+    assertTrue(envelope.getBoolean("valid"));
+    assertEquals("turn-4b2", evidence.getString("turnId"));
+    assertEquals("character:syvial", evidence.getString("selectedSituationKey"));
+    assertEquals("CANDIDATE_SELECTION", evidence.getString("rngScope"));
+    assertEquals(0, evidence.getInt("rngDrawSeq"));
+    assertFalse(evidence.getString("rngDrawKey").isEmpty());
+    assertFalse(evidence.getString("authorizationHash").isEmpty());
+    assertTrue(GmCommitCandidateBuilder.verify(before, proposal, envelope));
+
+    String transactionHash = candidate.getString("transactionHash");
+    candidate.getJSONObject("selectionEvidence").put("rngDrawKey", "tampered");
+    assertFalse(GmCommitCandidateBuilder.verify(before, proposal, envelope));
+    assertEquals(transactionHash, candidate.getString("transactionHash"));
+  }
+
+  @Test public void executionSelectionEvidenceCannotDriftFromCommittedEvents() throws Exception {
+    JSONObject before = fundedState().put("currentLevel", 0).put(LevelCore.LEVEL_KEY, "0");
+    JSONObject proposal = proposal(
+        group("g1", command("character", "START_CHARACTER_ENCOUNTER",
+            new JSONObject().put("characterId", "syvial"))));
+    JSONObject draft = executor().execute(
+        before, proposal, "turn-4b2", "base-hash",
+        selectionAuthorization("CHARACTER", "character:syvial", "syvial"));
+    draft.getJSONObject("selectionEvidence").put("payloadKey", "luc_tram");
+
+    JSONObject envelope = GmCommitCandidateBuilder.build(before, proposal, draft);
+
+    assertFalse(envelope.getBoolean("valid"));
+    assertEquals("execution_selection_evidence_mismatch", envelope.getString("reason"));
+  }
+
+  private static JSONObject selectionAuthorization(
+      String kind, String situationKey, String payloadKey) throws Exception {
+    TurnRng rng = new TurnRng(
+        "turn-4b2", 0, EmergentTurnEngine.CANON_VERSION, EmergentTurnEngine.RNG_SCHEMA_VERSION);
+    rng.resume(TurnRng.Scope.CANDIDATE_SELECTION, 1);
+    JSONObject selected = new JSONObject()
+        .put("situationKey", situationKey)
+        .put("kind", kind)
+        .put("payloadKey", payloadKey)
+        .put("eligibilityRuleId", "canon:" + situationKey)
+        .put("selectedNone", false);
+    JSONObject trace = new JSONObject()
+        .put("selectedSituationKey", situationKey)
+        .put("selectedNone", false)
+        .put("rngScope", TurnRng.Scope.CANDIDATE_SELECTION.name())
+        .put("rngDrawSeq", 0);
+    JSONObject working = new JSONObject().put(EmergentTurnEngine.ROOT_KEY,
+        new JSONObject().put("selectionTrace", new JSONArray().put(trace)));
+    return GmSelectionGate.issue("turn-4b2", "base-hash", selected, working, rng);
+  }
+
   private static String stateHash(JSONObject value) throws Exception {
     java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
     byte[] bytes = digest.digest(

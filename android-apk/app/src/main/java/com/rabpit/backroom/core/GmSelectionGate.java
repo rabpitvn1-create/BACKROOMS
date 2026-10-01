@@ -160,13 +160,20 @@ public final class GmSelectionGate {
   public static JSONObject evidence(JSONObject authorization) throws JSONException {
     if (authorization == null) return new JSONObject();
     return new JSONObject()
+        .put("schemaVersion", authorization.optInt("schemaVersion", -1))
+        .put("turnId", authorization.optString("turnId", ""))
+        .put("baseStateHash", authorization.optString("baseStateHash", ""))
         .put("selectedSituationKey", authorization.optString("selectedSituationKey", ""))
         .put("selectedKind", authorization.optString("selectedKind", ""))
         .put("payloadKey", authorization.optString("payloadKey", ""))
         .put("eligibilityRuleId", authorization.optString("eligibilityRuleId", ""))
+        .put("selectedNone", authorization.optBoolean("selectedNone", false))
         .put("rngScope", authorization.optString("rngScope", ""))
         .put("rngDrawSeq", authorization.optInt("rngDrawSeq", -1))
+        .put("rngDrawsUsed", authorization.optInt("rngDrawsUsed", -1))
         .put("rngDrawKey", authorization.optString("rngDrawKey", ""))
+        .put("valid", authorization.optBoolean("valid", false))
+        .put("reason", authorization.optString("reason", ""))
         .put("authorizationHash", authorization.optString("authorizationHash", ""));
   }
 
