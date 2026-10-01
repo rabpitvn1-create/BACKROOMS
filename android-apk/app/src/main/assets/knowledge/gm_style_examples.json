@@ -1,12 +1,7 @@
 {
   "version": 2,
-  "instruction": "Hai ví dụ chỉ dạy nhịp kể xianxia × Backrooms. Xianxia là lăng kính nhận thức của Cao Minh; Backrooms vẫn là thực tại khách quan. Chỉ khẳng định điều quan sát/canon xác nhận, còn suy luận phải giữ mức độ bất định. Không sao chép sự kiện hay câu chữ vào lượt thật.",
+  "instruction": "Ví dụ chỉ dạy nhịp kể xianxia × Backrooms. Xianxia là lăng kính nhận thức của Cao Minh; Backrooms vẫn là thực tại khách quan. Chỉ khẳng định điều quan sát/canon xác nhận, còn suy luận phải giữ mức độ bất định. Không sao chép sự kiện, câu chữ hay khung câu vào lượt thật; Explore không cần theo cấu trúc của ví dụ đối thoại.",
   "goodExamples": [
-    {
-      "name": "Khám phá ngắn, không tự tạo dấu vết từ canon nền",
-      "player": "Cao Minh tiếp tục khám phá hành lang; Core không commit biến cố mới.",
-      "gm": "Cao Minh tiếp tục đi theo hành lang. Thảm ẩm níu nhẹ dưới mỗi bước chân; tiếng đèn huỳnh quang rền đều trên đầu, lấp đầy khoảng không quanh hắn.\n\nHắn giữ hướng đang đi, lần lượt qua những đoạn hành lang nối tiếp. Cuộc khám phá vẫn nằm trong khung cảnh quen thuộc ấy, chưa mang lại thêm điều gì đáng để dừng bước."
-    },
     {
       "name": "Đối thoại tiên hiệp tự nhiên trong thực tại Backrooms",
       "player": "Cao Minh lên tiếng với người lạ đang cầm súng.",
