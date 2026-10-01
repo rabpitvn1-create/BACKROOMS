@@ -121,6 +121,21 @@ Status: implemented, intentionally NOT armed.
 
 Phase 4 will advance in small sub-phases: 4B atomic execution state, 4C selection/RNG gates, then 4D live commit wiring behind the same flag.
 
+### Phase 4B.1 — Pure transaction executor
+
+Status: implemented, NO PERSIST.
+
+- `GmTransactionExecutor` executes only against deep-copied state and has no Android `Context`, `SharedPreferences`, `GameCoreFacade` or persistence dependency.
+- Phase 3 validation delegates atomic execution to this same executor, so shadow validation and 4B.1 cannot drift into two different rollback rules.
+- Accepted causal groups advance the private working copy; if any command in a group is rejected, every mutation from that group is discarded.
+- A later rejected group cannot erase an earlier accepted group.
+- The caller's `beforeState` is checked for mutation and remains unchanged.
+- The executor exposes an in-memory `afterState` plus before/after hashes only as an execution draft. It is not a commit candidate and is not persisted.
+- Same input + same proposal produces the same `afterState` and hash for the currently enabled deterministic command adapters.
+- Commands behind `PHASE4_SELECTION_GATE` remain rejected.
+
+Phase 4B.2 will add state-delta/replay verification and a commit-candidate envelope. It remains a separate step.
+
 Commit protocol:
 1. verify turnId and baseStateHash;
 2. validate all commands;

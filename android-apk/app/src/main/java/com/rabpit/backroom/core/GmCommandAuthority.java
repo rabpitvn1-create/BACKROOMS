@@ -1,13 +1,8 @@
 package com.rabpit.backroom.core;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.json.JSONArray;
@@ -15,11 +10,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * Phase-3 typed command registry and dry-run authority adapters.
+ * Typed command registry and deterministic Core authority adapters.
  *
- * <p>Every adapter mutates only a private state copy. This class has no persistence path.
- * Unknown commands fail closed. A causal group is simulated atomically: one rejected command
- * discards all state changes and event evidence from that group.
+ * <p>The authority owns command-to-Core mapping only. Phase 4B.1 execution is delegated to
+ * {@link GmTransactionExecutor}, which supplies private state copies and atomic causal groups.
+ * This class has no persistence path and unknown commands fail closed.
  */
 public final class GmCommandAuthority {
   private interface Adapter {
@@ -121,69 +116,13 @@ public final class GmCommandAuthority {
   public JSONObject validate(
       JSONObject beforeState, JSONObject proposal, String expectedTurnId, String expectedBaseHash)
       throws JSONException {
-    JSONObject output = new JSONObject();
-    String structural = GmTransactionContract.validateProposal(proposal);
-    if (!structural.isEmpty()) {
-      return output.put("valid", false).put("reason", structural)
-          .put("commandResults", new JSONArray())
-          .put("resolvedTurn", new JSONObject());
-    }
-    if (!safe(expectedTurnId).equals(proposal.optString("turnId", ""))) {
-      return output.put("valid", false).put("reason", "turn_id_mismatch")
-          .put("commandResults", new JSONArray())
-          .put("resolvedTurn", new JSONObject());
-    }
-    if (!safe(expectedBaseHash).equals(proposal.optString("baseStateHash", ""))) {
-      return output.put("valid", false).put("reason", "base_state_hash_mismatch")
-          .put("commandResults", new JSONArray())
-          .put("resolvedTurn", new JSONObject());
-    }
-
-    JSONObject working = copy(beforeState);
-    JSONArray commandResults = new JSONArray();
-    JSONArray groups = proposal.getJSONArray("causalGroups");
-    int acceptedGroups = 0;
-    int rejectedGroups = 0;
-
-    for (int i = 0; i < groups.length(); i++) {
-      JSONObject group = groups.getJSONObject(i);
-      JSONObject groupState = copy(working);
-      JSONArray groupCommands = group.getJSONArray("commands");
-      List<JSONObject> groupResults = new ArrayList<>();
-      boolean groupAccepted = true;
-
-      for (int c = 0; c < groupCommands.length(); c++) {
-        JSONObject command = groupCommands.getJSONObject(c);
-        JSONObject result = evaluate(groupState, command);
-        groupResults.add(result);
-        if (!result.optBoolean("accepted", false)) groupAccepted = false;
-      }
-
-      for (JSONObject result : groupResults) commandResults.put(result);
-      if (groupAccepted) {
-        working = groupState;
-        acceptedGroups++;
-      } else {
-        rejectedGroups++;
-      }
-    }
-
-    JSONObject validation = new JSONObject()
-        .put("turnId", proposal.getString("turnId"))
-        .put("commandResults", commandResults);
-    JSONObject resolved = GmTransactionContract.resolveValidatedTurn(proposal, validation);
-
-    return output.put("valid", true)
-        .put("reason", "")
-        .put("commandResults", commandResults)
-        .put("resolvedTurn", resolved)
-        .put("acceptedGroups", acceptedGroups)
-        .put("rejectedGroups", rejectedGroups)
-        .put("simulatedBeforeHash", hash(beforeState))
-        .put("simulatedAfterHash", hash(working));
+    JSONObject draft = new GmTransactionExecutor(this).execute(
+        beforeState, proposal, expectedTurnId, expectedBaseHash);
+    draft.remove("afterState");
+    return draft;
   }
 
-  private JSONObject evaluate(JSONObject groupState, JSONObject command) throws JSONException {
+  JSONObject evaluateCommand(JSONObject groupState, JSONObject command) throws JSONException {
     String commandId = command.optString("commandId", "");
     String type = command.optString("type", "");
     Spec spec = specs.get(type);
@@ -342,26 +281,6 @@ public final class GmCommandAuthority {
       return message;
     }
     return "core_rejected:" + error.getClass().getSimpleName();
-  }
-
-  private static JSONObject copy(JSONObject source) {
-    try {
-      return new JSONObject(source == null ? "{}" : source.toString());
-    } catch (Exception error) {
-      throw new IllegalArgumentException("state_copy_failed", error);
-    }
-  }
-
-  private static String hash(JSONObject state) {
-    try {
-      byte[] digest = MessageDigest.getInstance("SHA-256")
-          .digest(GmShadowPlanner.canonicalJson(state).getBytes(StandardCharsets.UTF_8));
-      StringBuilder hex = new StringBuilder();
-      for (byte b : digest) hex.append(String.format("%02x", b & 0xff));
-      return hex.toString();
-    } catch (Exception error) {
-      throw new IllegalStateException("SHA-256 unavailable", error);
-    }
   }
 
   private static String safe(String value) {
