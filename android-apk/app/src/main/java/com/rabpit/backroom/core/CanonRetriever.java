@@ -29,6 +29,8 @@ public final class CanonRetriever {
   private final List<Section> sections;
   private final Map<String, Section> byId;
   private final Map<String, JSONObject> registryByPath;
+  private final Map<String, JSONObject> registryById;
+  private final Set<String> supersededIds;
   private final boolean registryBacked;
 
   public static final class Section {
@@ -155,14 +157,11 @@ public final class CanonRetriever {
     }
 
     Map<String, String> resolved = new LinkedHashMap<>();
-    Set<String> registeredLegacyPaths = new LinkedHashSet<>();
     JSONArray sources = registry.optJSONArray("sources");
     for (int i = 0; sources != null && i < sources.length(); i++) {
       JSONObject source = sources.optJSONObject(i);
       String legacyPath = source == null ? "" : source.optString("path", "");
       String contentPath = source == null ? "" : source.optString("contentPath", "");
-      registeredLegacyPaths.add(legacyPath);
-
       String text = structuredFiles == null ? null : structuredFiles.get(contentPath);
       if (text == null && legacyFiles != null) text = legacyFiles.get(legacyPath);
       if (text == null) {
@@ -172,15 +171,6 @@ public final class CanonRetriever {
       resolved.put(legacyPath, text);
     }
 
-    if (legacyFiles != null) {
-      List<String> extras = new ArrayList<>(legacyFiles.keySet());
-      Collections.sort(extras);
-      for (String legacyPath : extras) {
-        if (!registeredLegacyPaths.contains(legacyPath)) {
-          resolved.put(legacyPath, legacyFiles.get(legacyPath));
-        }
-      }
-    }
     return resolved;
   }
 
@@ -200,6 +190,8 @@ public final class CanonRetriever {
 
   CanonRetriever(Map<String, String> markdownFiles, JSONObject registry) {
     Map<String, JSONObject> metadata = new LinkedHashMap<>();
+    Map<String, JSONObject> metadataById = new LinkedHashMap<>();
+    Set<String> superseded = new LinkedHashSet<>();
     if (registry != null) {
       JSONObject validation = CanonRegistry.validate(registry);
       if (!validation.optBoolean("valid", false)) {
@@ -211,7 +203,16 @@ public final class CanonRetriever {
         JSONObject source = sources.optJSONObject(i);
         if (source != null) {
           try {
-            metadata.put(source.optString("path", ""), new JSONObject(source.toString()));
+            JSONObject copy = new JSONObject(source.toString());
+            metadata.put(source.optString("path", ""), copy);
+            metadataById.put(source.optString("id", ""), copy);
+            if ("CURRENT".equals(source.optString("status", ""))) {
+              JSONArray replaced = source.optJSONArray("supersedes");
+              for (int r = 0; replaced != null && r < replaced.length(); r++) {
+                String id = replaced.optString(r, "").trim();
+                if (!id.isEmpty()) superseded.add(id);
+              }
+            }
           } catch (Exception copyError) {
             throw new IllegalArgumentException("Invalid canon registry source copy", copyError);
           }
@@ -220,6 +221,8 @@ public final class CanonRetriever {
     }
     registryBacked = registry != null;
     registryByPath = Collections.unmodifiableMap(metadata);
+    registryById = Collections.unmodifiableMap(metadataById);
+    supersededIds = Collections.unmodifiableSet(superseded);
 
     List<Section> result = new ArrayList<>();
     Map<String, Section> lookup = new LinkedHashMap<>();
@@ -307,6 +310,12 @@ public final class CanonRetriever {
     }
     for (int i = 0; i < mandatory.size() + dependencies.size(); i++) {
       Section s = i < mandatory.size() ? mandatory.get(i).section : dependencies.get(i - mandatory.size()).section;
+      for (Section target : registryDependencySections(s, missingRefs)) {
+        if (used.add(target.sectionId)) {
+          dependencies.add(new Selected(target, "registry-requires:" + s.sectionId));
+          size += target.size();
+        }
+      }
       for (String ref : s.requires) {
         Section target = byId.get(ref);
         if (target == null) {
@@ -331,6 +340,10 @@ public final class CanonRetriever {
         if (supplemental.size() >= 3) break;
         int score = score(s, query);
         if (conflictsWithLevel(s, level, levelDisplayName)) continue;
+        if (!sourceAllowed(s, false)) {
+          if (debug && score >= 12) trace.add("authority-skip:" + s.sectionId);
+          continue;
+        }
         if (score < 12 || used.contains(s.sectionId)) continue;
         List<Section> closure = new ArrayList<>();
         Set<String> local = new LinkedHashSet<>();
@@ -359,6 +372,9 @@ public final class CanonRetriever {
       List<String> missing) {
     if (used.contains(s.sectionId) || !local.add(s.sectionId)) return;
     out.add(s);
+    for (Section next : registryDependencySections(s, missing)) {
+      collect(next, out, local, used, missing);
+    }
     for (String ref : s.requires) {
       Section next = byId.get(ref);
       if (next == null) missing.add(s.sectionId + " -> " + ref);
@@ -366,10 +382,57 @@ public final class CanonRetriever {
     }
   }
 
+  private boolean sourceAllowed(Section section, boolean mandatory) {
+    if (!registryBacked) return true;
+    JSONObject source = registryByPath.get(section.sourceFile);
+    return source != null && sourceAllowed(source, mandatory);
+  }
+
+  private boolean sourceAllowed(JSONObject source, boolean mandatory) {
+    if (source == null) return false;
+    String id = source.optString("id", "");
+    if (supersededIds.contains(id)) return false;
+    String status = source.optString("status", "");
+    if (mandatory) return "CURRENT".equals(status);
+    return "CURRENT".equals(status) || "REFERENCE".equals(status);
+  }
+
+  private List<Section> registryDependencySections(Section section, List<String> missing) {
+    List<Section> result = new ArrayList<>();
+    if (!registryBacked || section == null) return result;
+    JSONObject source = registryByPath.get(section.sourceFile);
+    JSONArray dependencies = source == null ? null : source.optJSONArray("dependencies");
+    for (int i = 0; dependencies != null && i < dependencies.length(); i++) {
+      String dependencyId = dependencies.optString(i, "").trim();
+      JSONObject dependency = registryById.get(dependencyId);
+      if (dependency == null || !sourceAllowed(dependency, false)) {
+        missing.add("registry:" + source.optString("id", section.sourceFile)
+            + " -> " + dependencyId);
+        continue;
+      }
+      Section representative = representativeForSource(dependency.optString("path", ""));
+      if (representative == null) {
+        missing.add("registry:" + source.optString("id", section.sourceFile)
+            + " -> " + dependencyId);
+      } else {
+        result.add(representative);
+      }
+    }
+    return result;
+  }
+
+  private Section representativeForSource(String sourcePath) {
+    List<Section> candidates = new ArrayList<>();
+    for (Section section : sections) {
+      if (sourcePath.equals(section.sourceFile)) candidates.add(section);
+    }
+    return bestCore(candidates);
+  }
+
   private Section coreFor(String subject, String levelDisplayName) {
     JSONObject bound = mandatorySourceFor(subject);
     if (bound != null) {
-      if (!"CURRENT".equals(bound.optString("status", ""))) return null;
+      if (!sourceAllowed(bound, true)) return null;
       Section registryCore = coreForSource(
           bound.optString("path", ""), subject, levelDisplayName);
       if (registryCore != null) return registryCore;

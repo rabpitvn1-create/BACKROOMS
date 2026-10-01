@@ -482,7 +482,18 @@ Status: COMPLETE.
 - Existing filename/heading heuristics remain only as compatibility fallback for subjects without an explicit registry binding, including Level and Entity lookup.
 - Stable logical source paths and section IDs are unchanged.
 
-Phase 6D.2 will enforce registry authority/status for supplemental selection and source-level dependency/supersedes rules.
+### Phase 6D.2 — Registry authority policy and source graph
+
+Status: COMPLETE.
+
+- Registry-backed supplemental retrieval accepts only `CURRENT` or `REFERENCE` sources.
+- `UNCLASSIFIED` and `CANDIDATE` sources remain stored/indexable content but are not injected into Planner/Narrator prompts as current canon.
+- CURRENT source-level `supersedes` removes superseded sources from retrieval.
+- Source-level `dependencies` are included deterministically; missing or authority-ineligible dependencies fail closed for that selection.
+- Registry-backed physical resolution no longer auto-indexes unregistered legacy Markdown extras.
+- Public constructor behavior without a registry remains available for isolated tests/tools, preserving parser compatibility.
+
+Phase 6D.3 will expose registry authority metadata in the emitted CanonPacket and freeze the runtime retrieval contract.
 
 Expand content without changing transaction semantics:
 

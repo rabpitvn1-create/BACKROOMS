@@ -49,7 +49,7 @@ public class CanonRetrieverTest {
     CanonRetriever index = new CanonRetriever(resolved);
 
     assertEquals("# Structured\nstructured", resolved.get("ASYNC.md"));
-    assertEquals("# Extra\nextra", resolved.get("Extra.md"));
+    assertFalse(resolved.containsKey("Extra.md"));
     assertTrue(index.sections().stream()
         .anyMatch(s -> s.sourceFile.equals("ASYNC.md") && s.rawText.contains("structured")));
   }
@@ -102,6 +102,67 @@ public class CanonRetrieverTest {
     assertFalse(packet.promptText().contains("WRONG_CAO"));
     assertTrue(packet.mandatory.stream()
         .anyMatch(s -> "Hero.md".equals(s.section.sourceFile)));
+  }
+
+  @Test public void registryPolicyExcludesUnclassifiedAndCandidateSupplementalSources()
+      throws Exception {
+    Map<String, String> files = new LinkedHashMap<>();
+    files.put("BACKROOMS_WORLD.md", "# World\n## Tầng 0 — Lobby\nWorld.\n");
+    files.put("Hero.md", "# Hero\n## Identity\nHero.\n");
+    files.put("History.md", "# History\n## Forbidden Topic\nUNCLASSIFIED_FACT.\n");
+    files.put("Candidate.md", "# Candidate\n## Candidate Topic\nCANDIDATE_FACT.\n");
+    files.put("Reference.md", "# Reference\n## Visual Topic\nREFERENCE_FACT.\n");
+
+    JSONArray sources = new JSONArray()
+        .put(registrySource("hero", "Hero.md", "characters/hero.md", "CHARACTER",
+            "CHARACTER_CANON", "CURRENT", new JSONArray().put("character:cao_minh")))
+        .put(registrySource("history", "History.md", "history/history.md", "HISTORY",
+            "UNCLASSIFIED", "UNCLASSIFIED", new JSONArray()))
+        .put(registrySource("candidate", "Candidate.md", "phenomena/candidate.md", "ENVIRONMENT",
+            "UNCLASSIFIED", "CANDIDATE", new JSONArray()))
+        .put(registrySource("reference", "Reference.md", "entities/reference.md", "ENTITY_REFERENCE",
+            "REFERENCE", "REFERENCE", new JSONArray()));
+    JSONObject registry = new JSONObject().put("schemaVersion", 1).put("sources", sources);
+    JSONObject state = new JSONObject().put("currentLevelKey", "0")
+        .put("party", new JSONArray()).put("flags", new JSONObject());
+
+    CanonRetriever index = new CanonRetriever(files, registry);
+    assertTrue(index.retrieve(state, "Visual Topic", 3000, true)
+        .promptText().contains("REFERENCE_FACT"));
+    assertFalse(index.retrieve(state, "Forbidden Topic", 3000, true)
+        .promptText().contains("UNCLASSIFIED_FACT"));
+    assertFalse(index.retrieve(state, "Candidate Topic", 3000, true)
+        .promptText().contains("CANDIDATE_FACT"));
+  }
+
+  @Test public void registryDependenciesAndSupersedesAreDeterministic() throws Exception {
+    Map<String, String> files = new LinkedHashMap<>();
+    files.put("BACKROOMS_WORLD.md", "# World\n## Tầng 0 — Lobby\nWorld.\n");
+    files.put("Hero.md", "# Hero\n## Identity\nHero.\n");
+    files.put("Current.md", "# Current\n## Current Topic\nCURRENT_FACT.\n");
+    files.put("Dependency.md", "# Dependency\n## Base\nDEPENDENCY_FACT.\n");
+    files.put("Old.md", "# Old\n## Old Topic\nOLD_FACT.\n");
+
+    JSONObject hero = registrySource("hero", "Hero.md", "characters/hero.md", "CHARACTER",
+        "CHARACTER_CANON", "CURRENT", new JSONArray().put("character:cao_minh"));
+    JSONObject current = registrySource("current", "Current.md", "world/current.md", "WORLD",
+        "WORLD_CANON", "CURRENT", new JSONArray())
+        .put("dependencies", new JSONArray().put("dependency"))
+        .put("supersedes", new JSONArray().put("old"));
+    JSONObject dependency = registrySource("dependency", "Dependency.md", "world/dependency.md",
+        "WORLD", "WORLD_CANON", "CURRENT", new JSONArray());
+    JSONObject old = registrySource("old", "Old.md", "world/old.md", "WORLD",
+        "WORLD_CANON", "CURRENT", new JSONArray());
+    JSONObject registry = new JSONObject().put("schemaVersion", 1)
+        .put("sources", new JSONArray().put(hero).put(current).put(dependency).put(old));
+    JSONObject state = new JSONObject().put("currentLevelKey", "0")
+        .put("party", new JSONArray()).put("flags", new JSONObject());
+
+    CanonRetriever index = new CanonRetriever(files, registry);
+    CanonRetriever.CanonPacket selected = index.retrieve(state, "Current Topic", 3000, true);
+    assertTrue(selected.promptText().contains("CURRENT_FACT"));
+    assertTrue(selected.promptText().contains("DEPENDENCY_FACT"));
+    assertFalse(index.retrieve(state, "Old Topic", 3000, true).promptText().contains("OLD_FACT"));
   }
 
   @Test public void parserKeepsPreamblePathsFencesRawAndStableIds() {
