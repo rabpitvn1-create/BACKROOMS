@@ -77,7 +77,7 @@ test('player turn commits Core before bounded presentation and never schedules p
     bridge.indexOf('private String geminiResponseText('));
   assert.match(provider, /SafePresentationView\.narrativeText/);
   assert.match(provider, /calls\[retry \? 1 : 0\]\+\+/);
-  assert.doesNotMatch(provider, /catch \(|geminiText\(|haikuText\(|sleep|attempt/);
+  assert.doesNotMatch(provider, /catch \(|geminiText\(|haikuText\(|haikuTextOnce\(|sleep|attempt/);
 });
 
  test('turn-one current save survives a changed baseline prologue', () => {

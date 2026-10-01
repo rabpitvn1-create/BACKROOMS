@@ -344,8 +344,12 @@ public class MainActivity extends Activity {
       return geminiTextOnce(prompt, key);
     }
     if (haikuConfigured()) {
+      String base = haikuBaseUrl();
       calls[retry ? 1 : 0]++;
-      return haikuTextOnce(prompt);
+      String output = base.endsWith("/messages") || base.contains("api.anthropic.com")
+          ? haikuAnthropicText(prompt) : haikuOpenAiText(prompt);
+      parseModelJson(output);
+      return output;
     }
     throw new IllegalStateException("No narration provider configured");
   }
