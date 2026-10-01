@@ -148,6 +148,16 @@ Status: implemented, NO PERSIST.
 - The candidate deliberately does not contain the full `afterState`; 4B.2 remains an in-memory verification artifact and has no persistence path.
 - Selection/RNG-gated commands remain closed until 4C. The Phase-4A commit gate remains unarmed.
 
+### Phase 4C.1 — Core selection authorization
+
+Status: implemented as a pure gate; gated adapters are not opened yet.
+
+- `GmSelectionGate` binds an authorization packet to the prepared turn ID, base-state hash, the exact Core-selected `SituationCandidate`, and the exact `CANDIDATE_SELECTION` RNG draw trace.
+- `START_ENTITY_ENCOUNTER`, `START_CHARACTER_ENCOUNTER` and `DISCOVER_CHEST` are eligible only when their payload matches the exact selected candidate. A `NONE` selection can never authorize one of these commands.
+- The packet records `rngDrawSeq`, `rngDrawsUsed`, `rngDrawKey` and an authorization hash. Counter drift, stale turn/base state, candidate mismatch or packet tampering fail closed.
+- This step does not yet change `GmCommandAuthority`; the three commands remain blocked until 4C.2 wires the gate into the pure executor.
+- No persistence or feature-gate behavior changes.
+
 Commit protocol:
 1. verify turnId and baseStateHash;
 2. validate all commands;
