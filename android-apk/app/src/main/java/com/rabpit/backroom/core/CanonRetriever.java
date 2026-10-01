@@ -28,6 +28,8 @@ public final class CanonRetriever {
   private static final Pattern META = Pattern.compile("<!--\\s*canon:\\s*(.*?)\\s*-->", Pattern.CASE_INSENSITIVE);
   private final List<Section> sections;
   private final Map<String, Section> byId;
+  private final Map<String, JSONObject> registryByPath;
+  private final boolean registryBacked;
 
   public static final class Section {
     public final String sourceFile, headingPath, sectionId, rawText, searchableText;
@@ -140,7 +142,8 @@ public final class CanonRetriever {
         // 6C compatibility: unresolved sources continue to use their legacy canon path.
       }
     }
-    return new CanonRetriever(resolveRegistrySources(registry, legacyFiles, structuredFiles));
+    return new CanonRetriever(
+        resolveRegistrySources(registry, legacyFiles, structuredFiles), registry);
   }
 
   static Map<String, String> resolveRegistrySources(
@@ -192,6 +195,28 @@ public final class CanonRetriever {
   }
 
   public CanonRetriever(Map<String, String> markdownFiles) {
+    this(markdownFiles, null);
+  }
+
+  CanonRetriever(Map<String, String> markdownFiles, JSONObject registry) {
+    Map<String, JSONObject> metadata = new LinkedHashMap<>();
+    if (registry != null) {
+      JSONObject validation = CanonRegistry.validate(registry);
+      if (!validation.optBoolean("valid", false)) {
+        throw new IllegalArgumentException(
+            "Invalid canon registry: " + validation.optJSONArray("errors"));
+      }
+      JSONArray sources = registry.optJSONArray("sources");
+      for (int i = 0; sources != null && i < sources.length(); i++) {
+        JSONObject source = sources.optJSONObject(i);
+        if (source != null) {
+          metadata.put(source.optString("path", ""), new JSONObject(source.toString()));
+        }
+      }
+    }
+    registryBacked = registry != null;
+    registryByPath = Collections.unmodifiableMap(metadata);
+
     List<Section> result = new ArrayList<>();
     Map<String, Section> lookup = new LinkedHashMap<>();
     List<String> names = new ArrayList<>(markdownFiles.keySet());
@@ -338,8 +363,17 @@ public final class CanonRetriever {
   }
 
   private Section coreFor(String subject, String levelDisplayName) {
+    JSONObject bound = mandatorySourceFor(subject);
+    if (bound != null) {
+      if (!"CURRENT".equals(bound.optString("status", ""))) return null;
+      Section registryCore = coreForSource(
+          bound.optString("path", ""), subject, levelDisplayName);
+      if (registryCore != null) return registryCore;
+      return null;
+    }
+
     String[] parts = subject.split(":", 2);
-    String key = normalize(parts[1].replace('_', ' '));
+    String key = normalize(parts.length > 1 ? parts[1].replace('_', ' ') : "");
     List<Section> candidates = new ArrayList<>();
     for (Section s : sections) {
       String heading = normalize(s.heading);
@@ -352,11 +386,53 @@ public final class CanonRetriever {
           : "entity".equals(parts[0]) ? heading.equals(key) || file.equals(key)
           : file.startsWith(key) && (file.contains("codex") || heading.equals(key));
       if (belongs && !("level".equals(parts[0])
-          && conflictsWithLevel(s, parts[1], levelDisplayName))) candidates.add(s);
+          && conflictsWithLevel(s, parts.length > 1 ? parts[1] : "", levelDisplayName))) {
+        candidates.add(s);
+      }
     }
-    if (candidates.isEmpty()) return null;
+    return bestCore(candidates);
+  }
+
+  private JSONObject mandatorySourceFor(String subject) {
+    if (!registryBacked || subject == null || subject.trim().isEmpty()) return null;
+    for (JSONObject source : registryByPath.values()) {
+      JSONArray mandatoryFor = source.optJSONArray("mandatoryFor");
+      if (mandatoryFor == null) continue;
+      for (int i = 0; i < mandatoryFor.length(); i++) {
+        if (subject.equals(mandatoryFor.optString(i, ""))) return source;
+      }
+    }
+    return null;
+  }
+
+  private Section coreForSource(String sourcePath, String subject, String levelDisplayName) {
+    String[] parts = subject == null ? new String[0] : subject.split(":", 2);
+    String type = parts.length == 0 ? "" : parts[0];
+    String key = normalize(parts.length > 1 ? parts[1].replace('_', ' ') : "");
+    String expectedLevelHeading = normalize(levelDisplayName);
+    List<Section> candidates = new ArrayList<>();
+    for (Section s : sections) {
+      if (!sourcePath.equals(s.sourceFile)) continue;
+      String heading = normalize(s.heading);
+      boolean belongs = "level".equals(type)
+          ? (heading.startsWith("tang " + key + " ")
+              || heading.startsWith("level " + key + " ")
+              || (!expectedLevelHeading.isEmpty() && heading.equals(expectedLevelHeading)))
+          : "entity".equals(type) ? heading.equals(key) || s.fileTerms.equals(key)
+          : true;
+      if (belongs && !("level".equals(type)
+          && conflictsWithLevel(s, parts.length > 1 ? parts[1] : "", levelDisplayName))) {
+        candidates.add(s);
+      }
+    }
+    return bestCore(candidates);
+  }
+
+  private static Section bestCore(List<Section> candidates) {
+    if (candidates == null || candidates.isEmpty()) return null;
     candidates.sort(Comparator.<Section>comparingInt(s -> s.core ? 0
-        : normalize(s.heading).matches(".*(ho so nhanh|truy xuat nhanh|identity|dinh danh|tong quan).*" ) ? 1 : 2)
+        : normalize(s.heading).matches(
+            ".*(ho so nhanh|truy xuat nhanh|identity|dinh danh|tong quan).*") ? 1 : 2)
         .thenComparingInt(Section::size).thenComparing(s -> s.sectionId));
     return candidates.get(0);
   }

@@ -81,6 +81,29 @@ public class CanonRetrieverTest {
     }
   }
 
+  @Test public void registryMandatoryBindingOverridesFilenameHeuristic() throws Exception {
+    Map<String, String> files = new LinkedHashMap<>();
+    files.put("BACKROOMS_WORLD.md", "# World\n## Tầng 0 — Lobby\nWorld.\n");
+    files.put("Cao_Minh_Codex.md", "# Wrong\n## Định danh\nWRONG_CAO.\n");
+    files.put("Hero.md", "# Hero\n## Identity\nREGISTRY_CAO.\n");
+
+    JSONObject hero = registrySource(
+        "hero", "Hero.md", "characters/hero.md", "CHARACTER", "CHARACTER_CANON", "CURRENT",
+        new JSONArray().put("character:cao_minh"));
+    JSONObject registry = new JSONObject().put("schemaVersion", 1)
+        .put("sources", new JSONArray().put(hero));
+
+    JSONObject state = new JSONObject().put("currentLevelKey", "0")
+        .put("party", new JSONArray()).put("flags", new JSONObject());
+    CanonRetriever.CanonPacket packet =
+        new CanonRetriever(files, registry).retrieve(state, "đợi", 3000, true);
+
+    assertTrue(packet.promptText().contains("REGISTRY_CAO"));
+    assertFalse(packet.promptText().contains("WRONG_CAO"));
+    assertTrue(packet.mandatory.stream()
+        .anyMatch(s -> "Hero.md".equals(s.section.sourceFile)));
+  }
+
   @Test public void parserKeepsPreamblePathsFencesRawAndStableIds() {
     Map<String, String> files = Map.of("new.md", "Preamble\n# Root\nParent\n```md\n## Fake\n```\n## Child\nRaw\n");
     CanonRetriever index = new CanonRetriever(files);
@@ -176,5 +199,16 @@ public class CanonRetrieverTest {
     assertEquals(4, tight.mandatory.size());
     assertTrue(tight.supplemental.isEmpty());
     assertEquals(selected.promptText(), new CanonRetriever(files).retrieve(state(), "Alpha", 3000, true).promptText());
+  }
+
+  private static JSONObject registrySource(
+      String id, String path, String contentPath, String type, String authority, String status,
+      JSONArray mandatoryFor) throws Exception {
+    return new JSONObject()
+        .put("id", id).put("path", path).put("contentPath", contentPath)
+        .put("type", type).put("authority", authority).put("status", status)
+        .put("version", "").put("owner", "CHARACTER".equals(type) ? id : "")
+        .put("dependencies", new JSONArray()).put("mandatoryFor", mandatoryFor)
+        .put("supersedes", new JSONArray()).put("note", "");
   }
 }

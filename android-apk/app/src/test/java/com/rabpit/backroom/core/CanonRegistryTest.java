@@ -325,6 +325,23 @@ public class CanonRegistryTest {
         .contains("source_content_path_invalid:world"));
   }
 
+  @Test public void duplicateMandatorySubjectFailsClosed() throws Exception {
+    JSONObject a = source(
+        "a", "A.md", "characters/a.md", "CHARACTER", "CHARACTER_CANON", "CURRENT")
+        .put("owner", "a")
+        .put("mandatoryFor", new JSONArray().put("character:hero"));
+    JSONObject b = source(
+        "b", "B.md", "characters/b.md", "CHARACTER", "CHARACTER_CANON", "CURRENT")
+        .put("owner", "b")
+        .put("mandatoryFor", new JSONArray().put("character:hero"));
+
+    JSONObject validation = CanonRegistry.validate(registry(a, b));
+
+    assertFalse(validation.getBoolean("valid"));
+    assertTrue(validation.getJSONArray("errors").toString()
+        .contains("mandatory_subject_duplicate:character:hero:a:b"));
+  }
+
   @Test public void characterAuthorityRequiresOwner() throws Exception {
     JSONObject source = source(
         "cao-minh", "Cao_Minh_Codex.md", "characters/cao-minh.md",

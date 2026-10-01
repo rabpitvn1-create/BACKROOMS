@@ -471,7 +471,18 @@ Status: COMPLETE / AUTHORITY CONFLICT PRESERVED.
 - OPEN/UNKNOWN, KNOWLEDGE_LOCK, dynamic continuity/save ownership and scoped Diệp Minh USER_RETCON remain unchanged.
 - No legacy physical copy remains after the move.
 
-Phase 6C is complete. Phase 6D may now make retrieval consume registry authority metadata instead of using the registry only as a physical compatibility map.
+### Phase 6D.1 — Registry-backed mandatory retrieval
+
+Status: COMPLETE.
+
+- `CanonRetriever.fromAssets()` now retains the validated registry instead of discarding its metadata after physical path resolution.
+- Exact `mandatoryFor` bindings take priority over filename heuristics for mandatory subjects.
+- A registry-bound mandatory source must be `CURRENT`; otherwise the subject fails closed as missing.
+- `CanonRegistry` rejects invalid mandatory subject syntax and duplicate ownership of the same mandatory subject.
+- Existing filename/heading heuristics remain only as compatibility fallback for subjects without an explicit registry binding, including Level and Entity lookup.
+- Stable logical source paths and section IDs are unchanged.
+
+Phase 6D.2 will enforce registry authority/status for supplemental selection and source-level dependency/supersedes rules.
 
 Expand content without changing transaction semantics:
 

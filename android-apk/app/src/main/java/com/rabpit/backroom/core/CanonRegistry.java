@@ -52,6 +52,7 @@ public final class CanonRegistry {
     if (sources == null) return result(false, errors.put("sources_missing"), 0);
 
     Map<String, JSONObject> byId = new LinkedHashMap<>();
+    Map<String, String> mandatoryOwners = new LinkedHashMap<>();
     Set<String> paths = new HashSet<>();
     Set<String> contentPaths = new HashSet<>();
     for (int i = 0; i < sources.length(); i++) {
@@ -99,6 +100,22 @@ public final class CanonRegistry {
       requireStringArray(source, "dependencies", errors, id);
       requireStringArray(source, "mandatoryFor", errors, id);
       requireStringArray(source, "supersedes", errors, id);
+
+      JSONArray mandatoryFor = source.optJSONArray("mandatoryFor");
+      if (mandatoryFor != null) {
+        for (int m = 0; m < mandatoryFor.length(); m++) {
+          String subject = mandatoryFor.optString(m, "").trim();
+          if (subject.isEmpty()) continue;
+          if (!subject.matches("(character|level|entity):[A-Za-z0-9_.-]+")) {
+            errors.put("mandatory_subject_invalid:" + id + ":" + subject);
+            continue;
+          }
+          String previous = mandatoryOwners.putIfAbsent(subject, id);
+          if (previous != null && !previous.equals(id)) {
+            errors.put("mandatory_subject_duplicate:" + subject + ":" + previous + ":" + id);
+          }
+        }
+      }
 
       String owner = source.optString("owner", "").trim();
       if (("CHARACTER_CANON".equals(authority) || "SCOPED_USER_RETCON".equals(authority))
