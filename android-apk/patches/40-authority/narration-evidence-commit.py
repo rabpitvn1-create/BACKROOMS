@@ -57,5 +57,31 @@ new = '''  public synchronized String commitNarration(String stateJson, String t
 
 if old not in source:
     raise SystemExit("GameCoreFacade commitNarration marker not found")
+source = source.replace(old, new, 1)
 
-path.write_text(source.replace(old, new, 1), encoding="utf-8")
+chest_old = '''                .put("factValue", itemName)
+                .put("causedBy", "player")
+'''
+chest_new = '''                .put("factValue", itemName)
+                .put("coreReward", coreReward)
+                .put("causedBy", "player")
+'''
+if chest_old not in source:
+    raise SystemExit("GameCoreFacade chest evidence marker not found")
+source = source.replace(chest_old, chest_new, 1)
+
+combat_old = '''              .put("factValue", outcome.isEmpty() ? "ongoing" : outcome)
+              .put("resolvedActor", resolvedActor)
+              .put("causedBy", "player")
+'''
+combat_new = '''              .put("factValue", outcome.isEmpty() ? "ongoing" : outcome)
+              .put("resolvedActor", resolvedActor)
+              .put("droppedItem", combat == null ? "" : combat.optString("droppedItem", ""))
+              .put("coreReward", combat == null ? 0 : Math.max(0, combat.optInt("coreDropReward", 0)))
+              .put("causedBy", "player")
+'''
+if combat_old not in source:
+    raise SystemExit("GameCoreFacade combat evidence marker not found")
+source = source.replace(combat_old, combat_new, 1)
+
+path.write_text(source, encoding="utf-8")
