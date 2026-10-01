@@ -620,6 +620,7 @@ public class MainActivity extends Activity {
       if (entry == null) continue;
       String role = entry.optString("role", "");
       String text = entry.optString("text", "").trim();
+      if (entry.has("battleLog") || entry.optString("presentationId", "").endsWith(":victory")) continue;
       if (text.isEmpty()) continue;
       visible.add(0, ("player".equals(role) ? "PLAYER: " : "GM: ") + clipped(text, 680));
     }
@@ -1122,6 +1123,7 @@ public class MainActivity extends Activity {
           String reply;
           JSONArray safeEvents = SafePresentationView.events(state, "cao_minh", narrationEvidence);
           JSONObject safeEvidence = SafePresentationView.evidence(state, narrationEvidence);
+          String presentationBaseHash = GameCoreFacade.presentationBaseHash(state);
           boolean offlineNarration = OfflinePresenter.isOffline(safeEvents);
           try {
             boolean hit = cached != null && cached.outcomeHash.equals(gameCore.currentStateHash());
@@ -1155,21 +1157,22 @@ public class MainActivity extends Activity {
           if (encounterDialogue == null) encounterDialogue = new JSONArray();
           reply = appendEncounterDialogue(reply, encounterDialogue);
 
-          JSONArray log = state.optJSONArray("log");
-          if (log == null) log = new JSONArray();
-          log.put(new JSONObject().put("role", "player").put("text", action));
           JSONObject gmEntry = GmChoiceContract.gmEntry(reply, generated, state);
           String newEncounter = encounterKey(state);
           if (CombatChoiceEngine.isKnownEntity(newEncounter)) gmEntry.remove("choices");
-          log.put(gmEntry);
-          state.put("log", log);
-
-          state = new JSONObject(
-              gameCore.commitNarration(state.toString(), turnId));
+          JSONObject appended = new JSONObject(gameCore.commitPresentation(turnId,
+              narrationEvidence.optInt("stateVersion", -1), presentationBaseHash,
+              turnId + ":narration", action, gmEntry.toString()));
+          state = appended.getJSONObject("state");
+          if (!appended.optBoolean("handled", false)) {
+            Log.d(TAG, "PRESENTATION DROP: " + appended.optString("reason", "unknown"));
+            emit("backroomTurn", state.toString());
+            return;
+          }
 
           if (CombatChoiceEngine.isKnownEntity(newEncounter) && !CombatChoiceEngine.isActive(state)) {
             state = new JSONObject(
-                gameCore.startCombatRuntime(newEncounter, log.length() - 1));
+                gameCore.startCombatRuntime(newEncounter, lastGmLogIndex(state)));
           }
 
           if (!offlineTurn && BuildConfig.DEBUG && !BuildConfig.GM_TRANSACTION_COMMIT_ENABLED
@@ -1189,7 +1192,7 @@ public class MainActivity extends Activity {
           if (committedBeforeNarration != null) {
             try {
               JSONObject payload = new JSONObject()
-                  .put("state", committedBeforeNarration)
+                  .put("state", new JSONObject(gameCore.currentCoreState()))
                   .put("message", message);
               emit("backroomCommittedError", payload.toString());
             } catch (Exception ignored) {

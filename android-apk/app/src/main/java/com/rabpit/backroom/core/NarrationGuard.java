@@ -39,6 +39,13 @@ public final class NarrationGuard {
       return "Committed turn evidence is unavailable.";
     }
 
+    if (!CommittedTurnNarrationEvidence.hasClaim(committedTurnEvidence, "COMBAT_RESULT", "")) {
+      String text = generated.optString("reply", "").toLowerCase(Locale.ROOT);
+      if (text.contains("bị tiêu diệt") || text.contains("đã tiêu diệt") || text.contains("trận chiến kết thúc")) {
+        return "Combat closure lacks current-turn evidence.";
+      }
+    }
+
     JSONArray declared = generated.optJSONArray("claims");
     if (declared == null) return "claims[] is required for committed-turn narration.";
     if (declared.length() > 16) return "claims[] exceeds the maximum of 16.";

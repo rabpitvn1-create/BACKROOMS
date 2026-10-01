@@ -26,7 +26,7 @@ final class EpistemicView {
     }
 
     JSONObject combat = state.optJSONObject("combat");
-    if (combat != null && CanonVisibilityRegistry.rootVisibility("combat")
+    if (combat != null && combat.optBoolean("active", false) && CanonVisibilityRegistry.rootVisibility("combat")
         != CanonVisibilityRegistry.Visibility.EPISTEMIC) {
       output.put("combat", visibleValue(visibleCombat(combat), actorId));
     }
