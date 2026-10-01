@@ -1,6 +1,6 @@
 # GM Transaction Rollout
 
-Status: PHASE 6C.4 — BACKROOMS AURA MIGRATION COMPLETE; PHASE 6C.5 NEXT
+Status: PHASE 6C.5 — CULTIVATOR AURA EFFECTS MIGRATION COMPLETE; PHASE 6C.6 NEXT
 
 This rollout preserves the current V2 Core/save/runtime while reintroducing GM planning authority in controlled stages. No phase may skip the transaction boundary.
 
@@ -331,7 +331,18 @@ Status: COMPLETE.
 - Tests verify that only the structured copy ships and that the UNKNOWN-origin lock remains present.
 - Compatibility loading and retrieval behavior remain unchanged.
 
-Phase 6C.5 will migrate the paired cultivator-effects phenomenon source only after this migration remains green.
+### Phase 6C.5 — Cultivator aura-effects migration
+
+Status: COMPLETE.
+
+- `Backrooms_Linh_Khi_Anh_Huong_Tu_Si.md` was migrated unchanged to `content/phenomena/backrooms-linh-khi-anh-huong-tu-si.md`.
+- The legacy `assets/canon/Backrooms_Linh_Khi_Anh_Huong_Tu_Si.md` copy was removed; registry compatibility preserves the logical source identity.
+- Registry classification remains `ENVIRONMENT / UNCLASSIFIED / CANDIDATE`; this migration does not promote cross-character statements above their owning character canon.
+- Existing hard locks remain unchanged: dense aura improves available resources but does not imply automatic breakthrough, infinite energy, immunity to Backrooms rules, or universal cultivation amplification.
+- Tests verify that only the structured copy ships and that the key anti-overreach locks remain present.
+- Compatibility loading and retrieval behavior remain unchanged.
+
+Phase 6C.6 will migrate one additional low-risk source after this migration remains green.
 
 Expand content without changing transaction semantics:
 
