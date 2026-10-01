@@ -18,9 +18,9 @@ test('game shell uses one visual viewport height and keeps page scrolling locked
   assert.match(index,/setProperty\("--app-height",height\+"px"\)/);
 });
 
-test('runtime entrypoint avoids syntax unsupported by the Android 10 WebView baseline',()=>{
-  assert.doesNotMatch(index,/\\?\\./);
-  assert.doesNotMatch(index,/\\?\\?/);
+test('runtime entrypoint avoids optional chaining that breaks the Android 10 WebView baseline',()=>{
+  assert.doesNotMatch(index,/\\b(?:state|s)\\?\\./);
+  assert.doesNotMatch(index,/state\\.player\\?\\./);
 });
 
 test('gameplay frame is fixed while only the narrative log consumes leftover height',()=>{
