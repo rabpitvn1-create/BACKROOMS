@@ -156,6 +156,24 @@ public class CanonRegistryTest {
     assertTrue(text.contains("ItemCore"));
   }
 
+  @Test public void backroomsWorldBaselineIsMigratedToStructuredContentOnly() throws Exception {
+    Path structured = Paths.get(
+        "src/main/assets/content/world/backrooms-world.md");
+    Path legacy = Paths.get("src/main/assets/canon/BACKROOMS_WORLD.md");
+    if (!Files.isRegularFile(structured)) {
+      structured = Paths.get(
+          "app/src/main/assets/content/world/backrooms-world.md");
+      legacy = Paths.get("app/src/main/assets/canon/BACKROOMS_WORLD.md");
+    }
+
+    assertTrue(Files.isRegularFile(structured));
+    assertFalse(Files.exists(legacy));
+    String text = new String(Files.readAllBytes(structured), StandardCharsets.UTF_8);
+    assertTrue(text.contains("BACKROOMS — THIẾT KẾ THẾ GIỚI"));
+    assertTrue(text.contains("HARD LOCK của Project"));
+    assertTrue(text.contains("Trong BACKROOMsV2, Core quyết định tuyến hiện hành"));
+  }
+
   @Test public void duplicateIdAndPathFailClosed() throws Exception {
     JSONObject source = source(
         "same", "A.md", "world/a.md", "WORLD", "WORLD_CANON", "CURRENT");

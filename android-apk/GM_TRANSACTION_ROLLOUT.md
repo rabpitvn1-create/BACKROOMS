@@ -1,6 +1,6 @@
 # GM Transaction Rollout
 
-Status: PHASE 6C.8 — SUBLEVEL WORLD CANON MIGRATION COMPLETE; PHASE 6C.9 NEXT
+Status: PHASE 6C.9 — PROJECT WORLD BASELINE MIGRATION COMPLETE; PHASE 6C.10 NEXT
 
 This rollout preserves the current V2 Core/save/runtime while reintroducing GM planning authority in controlled stages. No phase may skip the transaction boundary.
 
@@ -373,7 +373,18 @@ Status: COMPLETE.
 - Tests verify that only the structured copy ships and that CURRENT / PROJECT CANON plus Core-ownership markers remain present.
 - Compatibility loading and retrieval behavior remain unchanged.
 
-Phase 6C.9 will migrate the project world baseline separately after this migration remains green.
+### Phase 6C.9 — Project world-baseline migration
+
+Status: COMPLETE.
+
+- `BACKROOMS_WORLD.md` was migrated unchanged to `content/world/backrooms-world.md`.
+- The legacy `assets/canon/BACKROOMS_WORLD.md` copy was removed; registry compatibility preserves the logical source identity.
+- Registry classification remains `WORLD / PROJECT_OVERRIDE / CURRENT`.
+- Existing project hard locks remain unchanged, including the Level 6 override and Core ownership of live route/spawn/damage/item outcomes.
+- Tests verify that only the structured copy ships and that project hard-lock/Core-authority markers remain present.
+- Compatibility loading and retrieval behavior remain unchanged.
+
+Phase 6C.10 will begin character-source migration only after a separate authority review.
 
 Expand content without changing transaction semantics:
 
