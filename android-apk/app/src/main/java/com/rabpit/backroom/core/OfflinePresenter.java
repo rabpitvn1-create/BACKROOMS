@@ -9,7 +9,7 @@ public final class OfflinePresenter {
 
   private OfflinePresenter() {}
 
-  public static boolean offlineKind(String kind) { return "ENTITY".equals(kind) || "CHEST".equals(kind); }
+  public static boolean offlineKind(String kind) { return "ENTITY".equals(kind) || "CHEST".equals(kind) || "CHARACTER".equals(kind); }
 
   public static boolean isOffline(JSONArray views) {
     if (views == null) return false;
@@ -18,7 +18,8 @@ public final class OfflinePresenter {
       if (view == null) continue;
       String type = view.optString("eventType", "");
       if ("ENTITY_ENCOUNTER_STARTED".equals(type) || "COMBAT_VICTORY".equals(type)
-          || "CHEST_SPAWNED".equals(type) || "CHEST_OPENED".equals(type)) return true;
+          || "CHEST_SPAWNED".equals(type) || "CHEST_OPENED".equals(type)
+          || "CHARACTER_ENCOUNTERED".equals(type) || "CHARACTER_REUNION".equals(type)) return true;
     }
     return false;
   }
@@ -50,6 +51,10 @@ public final class OfflinePresenter {
       if ("CHEST_OPENED".equals(type)) {
         sentence = view.optString("actor", "Cao Minh") + " mở chiếc rương. Bên trong là "
             + view.optString("loot", "một vật phẩm") + ".";
+      }
+      if ("CHARACTER_ENCOUNTERED".equals(type) || "CHARACTER_REUNION".equals(type)) {
+        sentence = subject + " xuất hiện phía trước " + view.optString("actor", "Cao Minh") + "."
+            + " " + view.optString("introDetail", "Người đó đứng trong khu vực trước mặt.");
       }
       if (!sentence.isEmpty()) {
         if (reply.length() > 0) reply.append(' ');

@@ -150,6 +150,11 @@ public final class SafePresentationView {
       view.put("approachStyle", "async_rifleman".equals(subject) ? "hold_distance"
           : "hound".equals(subject) ? "charge" : "emerge");
     }
+    if ("CHARACTER_ENCOUNTERED".equals(type) || "CHARACTER_REUNION".equals(type)) {
+      view.put("introDetail", "lucia".equals(subject) ? "Trong tay cô là một vật kim loại dài."
+          : "syvial".equals(subject) ? "Cô mang theo một thanh kiếm lớn."
+          : "Tay cô giữ một thanh kiếm.");
+    }
     String level = state.optString("currentLevelKey", String.valueOf(state.optInt("currentLevel", 0)));
     view.put("chestLocation", "0".equals(level) ? "sát chân tường trên lớp thảm ẩm màu vàng"
         : "1".equals(level) ? "bên cạnh một cột bê tông" : "trong khu vực hiện tại");

@@ -59,6 +59,24 @@ public class OfflinePresenterTest {
         .getString("reply").contains("thảm"));
   }
 
+  @Test public void firstContactAndReunionNeverCallProviderOrInventRelationships() throws Exception {
+    JSONObject state = new JSONObject();
+    for (String id : new String[] {"lucia", "syvial", "luc_tram"}) {
+      String type = "luc_tram".equals(id) ? "CHARACTER_REUNION" : "CHARACTER_ENCOUNTERED";
+      JSONObject generated = OfflinePresenter.present(views(state, type, id), POISON);
+      String reply = generated.getString("reply");
+      assertFalse(reply.contains("M4A1"));
+      assertFalse(reply.contains("laser"));
+      assertFalse(reply.contains("lần đầu"));
+      assertEquals(0, generated.getJSONArray("encounterDialogue").length());
+      assertTrue(reply.split("[.!?]").length <= 3);
+      if ("luc_tram".equals(id)) assertTrue(reply.contains("Lục Trầm"));
+      else assertFalse(reply.contains("Lucia") || reply.contains("Syvial"));
+      assertTrue(OfflinePresenter.offlineKind("CHARACTER"));
+    }
+    assertEquals("{}", state.toString());
+  }
+
   @Test public void normalExploreStillCallsProviderExactlyOnce() throws Exception {
     int[] calls = {0};
     JSONObject result = OfflinePresenter.present(views(new JSONObject(), "PLAYER_ACTION_RESOLVED", "cao_minh"),
