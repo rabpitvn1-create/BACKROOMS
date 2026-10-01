@@ -183,8 +183,11 @@ public final class SafePresentationView {
     String level = state.optString("currentLevelKey", String.valueOf(state.optInt("currentLevel", 0)));
     view.put("chestLocation", "0".equals(level) ? "sát chân tường trên lớp thảm ẩm màu vàng"
         : "1".equals(level) ? "bên cạnh một cột bê tông" : "trong khu vực hiện tại");
-    if ("CHEST_OPENED".equals(type) && params != null) {
-      view.put("loot", text(state, actor, params.optString("factValue", "vật phẩm")));
+    if ("CHEST_OPENED".equals(type)) {
+      // Committed narration evidence flattens factValue; retain raw-event compatibility.
+      String loot = event.optString("factValue", "").trim();
+      if (loot.isEmpty() && params != null) loot = params.optString("factValue", "").trim();
+      view.put("loot", text(state, actor, loot.isEmpty() ? "một vật phẩm" : loot));
     }
     return view;
   }

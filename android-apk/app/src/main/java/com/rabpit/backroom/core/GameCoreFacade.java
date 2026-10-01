@@ -614,7 +614,8 @@ public final class GameCoreFacade implements AutoCloseable {
       }
       gmEntry = (JSONObject) SafePresentationView.value(state, "cao_minh", gmEntry);
       gmEntry.put("presentationId", presentationId);
-      log.put(new JSONObject().put("role", "player").put("text", action == null ? "" : action));
+      String displayAction = ItemCore.OPEN_CHEST_ACTION.equals(action) ? "Mở rương" : action;
+      log.put(new JSONObject().put("role", "player").put("text", displayAction == null ? "" : displayAction));
       log.put(gmEntry);
       state.put("log", log);
       if (shouldAcknowledgePendingIntro(evidence)) characterEncounterCore.acknowledgePendingIntro(state);

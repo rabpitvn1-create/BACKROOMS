@@ -373,7 +373,8 @@
       article.appendChild(role);
       var text = document.createElement('div');
       text.className = 'text gm-main-text';
-      appendRichText(text, entry.text || '', entry, []);
+      var displayText = player && entry.text === '__loot:open_chest' ? 'Mở rương' : entry.text;
+      appendRichText(text, displayText || '', entry, []);
       article.appendChild(text);
       if (!player) {
         appendBattleSection(article, entry, index);
