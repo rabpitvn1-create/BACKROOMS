@@ -428,7 +428,18 @@ Status: COMPLETE.
 - Identity and relationship hard locks are unchanged: `lucia != luc_tram`, no alias/merge, and Lucia ↔ Cao Minh remains OPEN unless continuity establishes otherwise.
 - Runtime encounter/equipment/gameplay projection semantics are unchanged.
 
-Phase 6C.14 will review Lục Trầm migration separately because it is CURRENT CHARACTER_CANON with explicit knowledge/dynamic-state ownership rules.
+### Phase 6C.14 — Lục Trầm migration review
+
+Status: COMPLETE / NO SOURCE MOVE.
+
+- `LUC_TRAM_MIGRATION_REVIEW_PHASE6C14.md` freezes `CHARACTER_CANON / CURRENT / R05`, owner `luc_tram`, and mandatory binding `character:luc_tram`.
+- The READ FIRST knowledge firewall and `BASELINE != CURRENT STATE` rules are migration invariants.
+- Lucia/Lục Trầm separation and Táng Kiếm Cốc POV/backstage boundaries remain unchanged.
+- Existing machine-readable knowledge records retain their Drive provenance; a local Markdown move must not rewrite them into local-source provenance.
+- Tests pin the legacy/current location, planned structured destination, registry authority/status/version/owner, mandatory binding and core firewall text.
+- Runtime behavior and retrieval semantics are unchanged.
+
+Phase 6C.15 may migrate the local Lục Trầm source byte-for-byte and update only direct local-file readers.
 
 Expand content without changing transaction semantics:
 

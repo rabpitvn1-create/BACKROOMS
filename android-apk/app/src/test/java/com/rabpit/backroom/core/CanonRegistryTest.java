@@ -200,6 +200,38 @@ public class CanonRegistryTest {
     assertEquals(0, tracLam.getJSONArray("mandatoryFor").length());
   }
 
+  @Test public void lucTramReviewPinsCurrentCanonKnowledgeAndDynamicStateRules() throws Exception {
+    Path legacy = Paths.get("src/main/assets/canon/Lục_Trầm_Codex.md");
+    Path structured = Paths.get("src/main/assets/content/characters/luc-tram.md");
+    Path registryPath = Paths.get("src/main/assets/canon/canon-registry.json");
+    if (!Files.isRegularFile(legacy)) {
+      legacy = Paths.get("app/src/main/assets/canon/Lục_Trầm_Codex.md");
+      structured = Paths.get("app/src/main/assets/content/characters/luc-tram.md");
+      registryPath = Paths.get("app/src/main/assets/canon/canon-registry.json");
+    }
+
+    assertTrue(Files.isRegularFile(legacy));
+    assertFalse(Files.exists(structured));
+
+    String text = new String(Files.readAllBytes(legacy), StandardCharsets.UTF_8);
+    assertTrue(text.contains("CURRENT / CHARACTER CANON"));
+    assertTrue(text.contains("E. KNOWLEDGE FIREWALL"));
+    assertTrue(text.contains("H. BASELINE ≠ CURRENT STATE"));
+    assertTrue(text.contains("Lucia Lục / Hứa Thuý Mai là một nhân vật riêng"));
+
+    JSONObject registry = new JSONObject(
+        new String(Files.readAllBytes(registryPath), StandardCharsets.UTF_8));
+    JSONObject lucTram = CanonRegistry.byId(registry).get("luc-tram");
+    assertEquals("CHARACTER_CANON", lucTram.getString("authority"));
+    assertEquals("CURRENT", lucTram.getString("status"));
+    assertEquals("R05", lucTram.getString("version"));
+    assertEquals("luc_tram", lucTram.getString("owner"));
+    assertEquals("Lục_Trầm_Codex.md", lucTram.getString("path"));
+    assertEquals("characters/luc-tram.md", lucTram.getString("contentPath"));
+    assertEquals(1, lucTram.getJSONArray("mandatoryFor").length());
+    assertEquals("character:luc_tram", lucTram.getJSONArray("mandatoryFor").getString(0));
+  }
+
   @Test public void duplicateIdAndPathFailClosed() throws Exception {
     JSONObject source = source(
         "same", "A.md", "world/a.md", "WORLD", "WORLD_CANON", "CURRENT");
