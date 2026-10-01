@@ -410,23 +410,25 @@ public final class CanonRetriever {
             + " -> " + dependencyId);
         continue;
       }
-      Section representative = representativeForSource(dependency.optString("path", ""));
-      if (representative == null) {
+      List<Section> dependencySections =
+          sectionsForSource(dependency.optString("path", ""));
+      if (dependencySections.isEmpty()) {
         missing.add("registry:" + source.optString("id", section.sourceFile)
             + " -> " + dependencyId);
       } else {
-        result.add(representative);
+        result.addAll(dependencySections);
       }
     }
     return result;
   }
 
-  private Section representativeForSource(String sourcePath) {
+  private List<Section> sectionsForSource(String sourcePath) {
     List<Section> candidates = new ArrayList<>();
     for (Section section : sections) {
       if (sourcePath.equals(section.sourceFile)) candidates.add(section);
     }
-    return bestCore(candidates);
+    candidates.sort(Comparator.comparing(s -> s.sectionId));
+    return candidates;
   }
 
   private Section coreFor(String subject, String levelDisplayName) {
