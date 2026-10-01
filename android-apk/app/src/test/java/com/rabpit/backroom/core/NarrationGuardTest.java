@@ -67,4 +67,59 @@ public class NarrationGuardTest {
     assertFalse(CommittedTurnNarrationEvidence.hasClaim(
         evidence, "ITEM_ACQUIRED", "Almond Water"));
   }
+
+  @Test public void rejectsAlmondWaterAcquisitionWithoutCurrentTurnEvidence() throws Exception {
+    JSONObject state = new JSONObject().put("inventory", new JSONArray().put(
+        new JSONObject().put("id", "almond-water").put("name", "Almond Water").put("quantity", 1)));
+    JSONObject evidence = new JSONObject()
+        .put("available", true)
+        .put("claims", new JSONArray());
+    JSONObject generated = new JSONObject()
+        .put("reply", "Cao Minh nhặt được Almond Water và cất vào người.")
+        .put("choices", new JSONArray())
+        .put("encounterDialogue", new JSONArray())
+        .put("claims", new JSONArray());
+
+    String violation = NarrationGuard.validate(generated, state, evidence);
+
+    assertTrue(violation.contains("without committed evidence"));
+  }
+
+  @Test public void acceptsAlmondWaterAcquisitionOnlyWithMatchingDeclaredEvidence() throws Exception {
+    JSONObject state = new JSONObject().put("inventory", new JSONArray().put(
+        new JSONObject().put("id", "almond-water").put("name", "Almond Water").put("quantity", 1)));
+    JSONObject evidenceClaim = new JSONObject()
+        .put("eventId", "turn:e1")
+        .put("kind", "ITEM_ACQUIRED")
+        .put("subject", "Almond Water")
+        .put("value", "Almond Water");
+    JSONObject evidence = new JSONObject()
+        .put("available", true)
+        .put("claims", new JSONArray().put(evidenceClaim));
+    JSONObject generated = new JSONObject()
+        .put("reply", "Cao Minh nhặt được Almond Water và cất vào người.")
+        .put("choices", new JSONArray())
+        .put("encounterDialogue", new JSONArray())
+        .put("claims", new JSONArray().put(new JSONObject()
+            .put("eventId", "turn:e1")
+            .put("kind", "ITEM_ACQUIRED")
+            .put("subject", "Almond Water")));
+
+    assertTrue(NarrationGuard.validate(generated, state, evidence).isEmpty());
+  }
+
+  @Test public void rejectsEvidenceClaimThatDoesNotExistInCommittedTurn() throws Exception {
+    JSONObject evidence = new JSONObject().put("available", true)
+        .put("claims", new JSONArray().put(new JSONObject()
+            .put("eventId", "turn:e0").put("kind", "LEVEL_ENTERED")
+            .put("subject", "1").put("value", "1")));
+    JSONObject generated = new JSONObject()
+        .put("reply", "Cao Minh quan sát hành lang.")
+        .put("choices", new JSONArray())
+        .put("encounterDialogue", new JSONArray())
+        .put("claims", new JSONArray().put(new JSONObject()
+            .put("eventId", "fake:e9").put("kind", "LEVEL_ENTERED").put("subject", "1")));
+
+    assertFalse(NarrationGuard.validate(generated, new JSONObject(), evidence).isEmpty());
+  }
 }
