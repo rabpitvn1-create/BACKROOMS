@@ -373,6 +373,7 @@ public class MainActivity extends Activity {
 
   /** Exactly one physical Gemini request; failures leave the normal turn path untouched. */
   private JSONObject geminiBranchBatch(String prompt) throws Exception {
+    prompt = SafePresentationView.narrativeText(new JSONObject(gameCore.currentCoreState()), prompt);
     String key = "";
     for (String configured : geminiKeys()) if (configured != null && !configured.trim().isEmpty()) {
       key = configured;
@@ -567,6 +568,7 @@ public class MainActivity extends Activity {
   }
 
   private String generateText(String prompt) throws Exception {
+    prompt = SafePresentationView.narrativeText(new JSONObject(gameCore.currentCoreState()), prompt);
     Exception geminiError;
     try {
       // geminiText() rotates through GEMINI_API_KEY_1..5 before it gives up.
@@ -907,7 +909,7 @@ public class MainActivity extends Activity {
           JSONObject previewState = preview.getJSONObject("state");
           JSONObject evidence = CommittedTurnNarrationEvidence.fromState(
               previewState, preview.getString("turnId"));
-          if (!NarrationGuard.validate(generated, previewState, evidence).isEmpty()) continue;
+          if (!NarrationGuard.validate(generated, previewState, SafePresentationView.evidence(previewState, evidence)).isEmpty()) continue;
           valid.put(id, new PrefetchBranch(actions.get(id), preview.getString("outcomeHash"), generated));
         }
         if (generation == prefetchGeneration.get() && baseHash.equals(gameCore.currentStateHash())) {
@@ -956,23 +958,14 @@ public class MainActivity extends Activity {
   }
 
   private JSONObject narrationFallback(JSONObject state, String replyHint, JSONObject evidence) {
-    JSONObject generated = new JSONObject();
     try {
-      String reply = replyHint == null ? "" : replyHint.trim();
-      JSONObject emergent = state == null ? null : state.optJSONObject("emergent");
-      JSONObject selection = emergent == null ? null : emergent.optJSONObject("lastSelection");
-      if (reply.isEmpty() && selection != null && !selection.optBoolean("selectedNone", false)) {
-        reply = selection.optString("publicSummary", "").trim();
-      }
-      if (reply.isEmpty()) {
-        reply = "Không có biến cố mới. Cao Minh vẫn ở " + state.optString("location", "khu vực hiện tại") + ".";
-      }
-      generated.put("reply", reply)
-          .put("choices", new JSONArray())
-          .put("encounterDialogue", new JSONArray())
-          .put("claims", narrationClaims(evidence));
-    } catch (Exception ignored) {}
-    return generated;
+      return OfflinePresenter.present(SafePresentationView.events(state, "cao_minh", evidence),
+          () -> new JSONObject().put("reply", "Cao Minh quan sát khu vực trước mặt.")
+              .put("choices", new JSONArray()).put("encounterDialogue", new JSONArray())
+              .put("claims", new JSONArray()));
+    } catch (Exception error) {
+      throw new IllegalStateException("Safe presentation fallback failed", error);
+    }
   }
 
   private void emit(String function, String json) {
@@ -1128,6 +1121,7 @@ public class MainActivity extends Activity {
           JSONObject generated;
           String reply;
           JSONArray safeEvents = SafePresentationView.events(state, "cao_minh", narrationEvidence);
+          JSONObject safeEvidence = SafePresentationView.evidence(state, narrationEvidence);
           boolean offlineNarration = OfflinePresenter.isOffline(safeEvents);
           try {
             boolean hit = cached != null && cached.outcomeHash.equals(gameCore.currentStateHash());
@@ -1136,14 +1130,14 @@ public class MainActivity extends Activity {
                 ? new JSONObject(cached.narration.toString())
                 : parseModelJson(generateText(narrationPrompt(narrationState, action, turnId))));
             String narrationViolation = offlineNarration ? ""
-                : NarrationGuard.validate(generated, state, narrationEvidence);
+                : NarrationGuard.validate(generated, state, safeEvidence);
             if (!narrationViolation.isEmpty()) {
               generated = parseModelJson(generateText(
                   narrationPrompt(state, action, turnId) + "\nVALIDATION REJECTED: " + narrationViolation
                       + "\nRegenerate narration only from the SAME committed turn evidence. "
                       + "Do not add, reroll or mutate world state."));
               narrationViolation =
-                  NarrationGuard.validate(generated, state, narrationEvidence);
+                  NarrationGuard.validate(generated, state, safeEvidence);
               if (!narrationViolation.isEmpty()) {
                 throw new Exception("Narration validation failed: " + narrationViolation);
               }

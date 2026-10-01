@@ -685,12 +685,35 @@ public final class GameCoreFacade implements AutoCloseable {
   }
 
   private void normalizeCoreState(JSONObject state) throws Exception {
+    CharacterKnowledge.normalize(state);
     levelCore.normalizeState(state);
     characterProgressionCore.normalizeState(state);
     survivalCore.normalizeState(state);
     itemCore.normalizeInventory(state);
     characterEncounterCore.normalizeState(state);
     CombatChoiceEngine.normalizeTerminalEncounter(state);
+  }
+
+  /** Core caller only: no JavaScript or model-output route exposes these updates. */
+  public synchronized String markNameKnown(String actor, String subject, String sourceEvent) {
+    return markKnowledge(actor, subject, "knownName", sourceEvent);
+  }
+
+  public synchronized String markEffectKnown(String actor, String subject, String sourceEvent) {
+    return markKnowledge(actor, subject, "knownEffect", sourceEvent);
+  }
+
+  private String markKnowledge(String actor, String subject, String field, String sourceEvent) {
+    JSONObject state = parseState(liveStateJson);
+    try {
+      CharacterKnowledge.normalize(state);
+      CharacterKnowledge.mark(state, actor, subject, field, sourceEvent);
+      preparedTurns.clear();
+      persist(state);
+      return clientSafeState(state).toString();
+    } catch (Exception error) {
+      throw new IllegalArgumentException("Invalid Core knowledge update", error);
+    }
   }
 
   public synchronized String startCombatRuntime(String entityKey, int gmLogIndex) {
@@ -1274,6 +1297,7 @@ public final class GameCoreFacade implements AutoCloseable {
   private void projectBeforePersist(JSONObject state) {
     if (state == null) return;
     try {
+      CharacterKnowledge.normalize(state);
       characterProgressionCore.normalizeState(state);
       survivalCore.normalizeState(state);
       itemCore.normalizeInventory(state);

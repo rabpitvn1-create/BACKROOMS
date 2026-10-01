@@ -13,7 +13,7 @@ public final class SafePresentationView {
   // ponytail: finite managed vocabulary, not a general lore/knowledge classifier.
   private static final String[][] SUBJECTS = {
       {"lucia_m4a1", "M4A1", "một vật kim loại dài", "M4A1"},
-      {"firearm", "súng", "một vật kim loại dài", "firearm", "rifle", "khẩu súng"},
+      {"firearm", "súng", "một vật kim loại dài", "firearm", "rifle", "riflewoman", "rifleman", "gun", "gunblade", "pistol", "bullet", "bullets", "khẩu súng", "súng", "đạn"},
       {"laser", "laser", "một điểm sáng", "laser"},
       {"cao_minh_title", "Đại Đạo Ma Tôn", "người đàn ông", "Đại Đạo Ma Tôn"},
       {"cultivation", "tu tiên", "những khả năng khác thường", "tu tiên", "xianxia"},
@@ -66,19 +66,46 @@ public final class SafePresentationView {
     List<String[]> replacements = new ArrayList<>();
     for (String[] row : SUBJECTS) {
       String visible = label(state, actor, row[0]);
-      replacements.add(new String[] {row[0], visible}); // Internal IDs are never narrator labels.
+      replacements.add(new String[] {row[0], visible, ""}); // Internal IDs are never narrator labels.
       if (!CharacterKnowledge.knows(state, actor, row[0], "knownName")) {
-        for (int i = 3; i < row.length; i++) replacements.add(new String[] {row[i], visible});
+        for (int i = 3; i < row.length; i++) replacements.add(new String[] {row[i], visible, "(?iu)"});
       }
     }
     replacements.sort(Comparator.comparingInt((String[] row) -> row[0].length()).reversed());
     String result = raw;
     for (String[] pair : replacements) {
-      result = Pattern.compile("(?iu)(?<![\\p{L}\\p{N}])" + Pattern.quote(pair[0])
+      result = Pattern.compile(pair[2] + "(?<![\\p{L}\\p{N}])" + Pattern.quote(pair[0])
           + "(?![\\p{L}\\p{N}])").matcher(result)
           .replaceAll(java.util.regex.Matcher.quoteReplacement(pair[1]));
     }
     return result;
+  }
+
+  /** Shared scene context cannot teach a foreign actor these managed lore terms. */
+  public static String narrativeText(JSONObject state, String raw) {
+    String result = text(state, "cao_minh", raw);
+    JSONArray party = state == null ? null : state.optJSONArray("party");
+    if (party != null) for (int i = 0; i < party.length(); i++) {
+      JSONObject member = party.optJSONObject(i);
+      if (member == null || !member.optBoolean("present", true)) continue;
+      String actor = member.optString("id", "");
+      for (String subject : new String[] {"cao_minh_title", "cultivation"}) {
+        if (CharacterKnowledge.knows(state, actor, subject, "knownName")) continue;
+        for (String[] row : SUBJECTS) if (row[0].equals(subject)) {
+          for (int j = 3; j < row.length; j++) result = Pattern.compile("(?iu)" + Pattern.quote(row[j]))
+              .matcher(result).replaceAll(java.util.regex.Matcher.quoteReplacement(row[2]));
+        }
+      }
+    }
+    return result;
+  }
+
+  public static JSONObject evidence(JSONObject state, JSONObject evidence) throws Exception {
+    return (JSONObject) value(state, "cao_minh", evidence);
+  }
+
+  static boolean leaks(JSONObject state, String prose) {
+    return !narrativeText(state, prose).equals(prose == null ? "" : prose);
   }
 
   static Object value(JSONObject state, String actor, Object raw) throws Exception {

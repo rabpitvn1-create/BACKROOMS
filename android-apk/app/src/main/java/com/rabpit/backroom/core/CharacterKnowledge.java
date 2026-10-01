@@ -20,9 +20,9 @@ final class CharacterKnowledge {
     seed(state, "cao_minh", "luc_tram");
     seed(state, "luc_tram", "cao_minh");
     for (String actor : new String[] {"cao_minh", "luc_tram"}) {
-      seed(state, actor, "cao_minh_title");
       seed(state, actor, "cultivation");
     }
+    seed(state, "cao_minh", "cao_minh_title");
     seed(state, "lucia", "lucia_m4a1");
     seed(state, "lucia", "firearm");
     seed(state, "lucia", "laser");
@@ -32,7 +32,8 @@ final class CharacterKnowledge {
     return actor.equals(subject)
         || (("cao_minh".equals(actor) || "luc_tram".equals(actor))
             && ("cao_minh".equals(subject) || "luc_tram".equals(subject)
-                || "cao_minh_title".equals(subject) || "cultivation".equals(subject)))
+                || "cultivation".equals(subject)))
+        || ("cao_minh".equals(actor) && "cao_minh_title".equals(subject))
         || ("lucia".equals(actor) && ("lucia_m4a1".equals(subject)
             || "firearm".equals(subject) || "laser".equals(subject)));
   }

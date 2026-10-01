@@ -41,7 +41,7 @@ public final class GmNarrativePacket {
     String recent = clip(recentContext, MAX_RECENT_CONTEXT_CHARS);
     String style = clip(gmStyleExamples, 1800);
 
-    return "Bạn là Game Master của text game Backrooms (xianxia x Backrooms).\n"
+    String packet = "Bạn là Game Master của text game Backrooms (xianxia x Backrooms).\n"
         + GmNarratorContract.promptContext() + "\n"
         + KnowledgeContinuityFirewall.promptContext() + "\n"
         + GmNarratorContract.caoMinhNarrativeCard() + "\n"
@@ -79,6 +79,7 @@ public final class GmNarrativePacket {
         + "OUTPUT: chỉ JSON hợp lệ, không markdown. JSON không có quyền thay đổi state.\n"
         + "{\"reply\":\"phản hồi Game Master\",\"choices\":[{\"text\":\"Gợi ý 1\"}],\"encounterDialogue\":[],"
         + "\"claims\":[{\"eventId\":\"turn:e1\",\"kind\":\"ITEM_ACQUIRED\",\"subject\":\"Almond Water\"}]}";
+    return SafePresentationView.narrativeText(state, packet);
   }
 
   private static String situationContext(JSONObject state) {
