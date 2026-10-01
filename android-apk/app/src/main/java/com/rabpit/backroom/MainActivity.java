@@ -15,6 +15,7 @@ import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import android.view.WindowManager;
 import com.rabpit.backroom.core.CombatChoiceEngine;
+import com.rabpit.backroom.core.CommittedTurnNarrationEvidence;
 import com.rabpit.backroom.core.GameCoreFacade;
 import com.rabpit.backroom.core.GmChoiceContract;
 import com.rabpit.backroom.core.GmNarrativePacket;
@@ -655,7 +656,7 @@ public class MainActivity extends Activity {
     return Math.max(0, log.length() - 1);
   }
 
-  private String narrationPrompt(JSONObject state, String action) throws Exception {
+  private String narrationPrompt(JSONObject state, String action, String turnId) throws Exception {
     String coreJson = state.toString();
     String levelContext = gameCore.levelPromptContext(coreJson, action);
     String entityContext = gameCore.entityPromptContext(coreJson);
@@ -676,8 +677,13 @@ public class MainActivity extends Activity {
         "Markdown canon missing/conflicting; Core context remains authoritative: "
             + canon.missingMandatoryRefs);
     if (BuildConfig.DEBUG) Log.d(TAG, "CANON RETRIEVAL: " + canon.trace);
+    JSONObject evidence = CommittedTurnNarrationEvidence.fromState(state, turnId);
+    if (!evidence.optBoolean("available", false)) {
+      throw new IllegalStateException(
+          "Committed turn evidence unavailable: " + evidence.optString("reason", "unknown"));
+    }
     return GmNarrativePacket.build(levelContext, entityContext, itemContext, characterContext,
-        recentContext(state), state, action, gmStyleExamplesContext(), canon.promptText());
+        recentContext(state), state, action, gmStyleExamplesContext(), canon.promptText(), evidence);
   }
 
   private String shadowPlannerPrompt(JSONObject plannerContext) throws Exception {
@@ -865,7 +871,7 @@ public class MainActivity extends Activity {
                 + "Each branch has its own hypothetical Core-committed outcome and canon. "
                 + "Never transfer events, facts, entities, loot or future choices between branches. "
                 + "Each reply must be at most 1800 characters, choices 0-3. "
-                + "Return only JSON with branches A and B; each contains reply, choices and encounterDialogue.\n");
+                + "Return only JSON with branches A and B; each contains reply, choices, encounterDialogue and claims.\n");
         for (int i = 0; i < 2; i++) {
           String id = String.valueOf((char) ('A' + i));
           JSONObject choice = choices.getJSONObject(i);
@@ -877,7 +883,8 @@ public class MainActivity extends Activity {
           actions.put(id, action);
           previews.put(id, preview);
           prompt.append("\n=== BRANCH ").append(id).append(" ONLY ===\n")
-              .append(narrationPrompt(preview.getJSONObject("state"), action)).append('\n');
+              .append(narrationPrompt(
+                  preview.getJSONObject("state"), action, preview.getString("turnId"))).append('\n');
         }
         if (generation != prefetchGeneration.get() || !baseHash.equals(gameCore.currentStateHash())) return;
         JSONObject output = geminiBranchBatch(prompt.toString());
@@ -886,12 +893,16 @@ public class MainActivity extends Activity {
         Map<String, PrefetchBranch> valid = new LinkedHashMap<>();
         for (String id : actions.keySet()) {
           JSONObject generated = branches.optJSONObject(id);
-          if (generated == null || generated.length() != 3
+          if (generated == null || generated.length() != 4
               || generated.optJSONArray("choices") == null
               || generated.optJSONArray("encounterDialogue") == null
+              || generated.optJSONArray("claims") == null
               || generated.optString("reply", "").length() > 1800) continue;
           JSONObject preview = previews.get(id);
-          if (!NarrationGuard.validate(generated, preview.getJSONObject("state")).isEmpty()) continue;
+          JSONObject previewState = preview.getJSONObject("state");
+          JSONObject evidence = CommittedTurnNarrationEvidence.fromState(
+              previewState, preview.getString("turnId"));
+          if (!NarrationGuard.validate(generated, previewState, evidence).isEmpty()) continue;
           valid.put(id, new PrefetchBranch(actions.get(id), preview.getString("outcomeHash"), generated));
         }
         if (generation == prefetchGeneration.get() && baseHash.equals(gameCore.currentStateHash())) {
@@ -918,7 +929,28 @@ public class MainActivity extends Activity {
         + "OUTPUT chỉ JSON: {\"actionType\":\"INTERCEPT\",\"intentTag\":\"opportunistic\"}";
   }
 
-  private JSONObject narrationFallback(JSONObject state, String replyHint) {
+  private JSONArray narrationClaims(JSONObject evidence) {
+    JSONArray output = new JSONArray();
+    JSONArray claims = evidence == null ? null : evidence.optJSONArray("claims");
+    if (claims == null) return output;
+    for (int i = 0; i < claims.length() && output.length() < 16; i++) {
+      JSONObject claim = claims.optJSONObject(i);
+      if (claim == null) continue;
+      String eventId = claim.optString("eventId", "").trim();
+      String kind = claim.optString("kind", "").trim();
+      String subject = claim.optString("subject", "").trim();
+      if (eventId.isEmpty() || kind.isEmpty() || subject.isEmpty()) continue;
+      try {
+        output.put(new JSONObject()
+            .put("eventId", eventId)
+            .put("kind", kind)
+            .put("subject", subject));
+      } catch (Exception ignored) {}
+    }
+    return output;
+  }
+
+  private JSONObject narrationFallback(JSONObject state, String replyHint, JSONObject evidence) {
     JSONObject generated = new JSONObject();
     try {
       String reply = replyHint == null ? "" : replyHint.trim();
@@ -932,7 +964,8 @@ public class MainActivity extends Activity {
       }
       generated.put("reply", reply)
           .put("choices", new JSONArray())
-          .put("encounterDialogue", new JSONArray());
+          .put("encounterDialogue", new JSONArray())
+          .put("claims", narrationClaims(evidence));
     } catch (Exception ignored) {}
     return generated;
   }
@@ -1078,6 +1111,12 @@ public class MainActivity extends Activity {
           JSONObject state = committed.getJSONObject("state");
           committedBeforeNarration = new JSONObject(state.toString());
           String replyHint = committed.optString("replyHint", "");
+          JSONObject narrationEvidence =
+              CommittedTurnNarrationEvidence.fromState(state, turnId);
+          if (!narrationEvidence.optBoolean("available", false)) {
+            throw new Exception("Committed turn evidence unavailable after commit: "
+                + narrationEvidence.optString("reason", "unknown"));
+          }
 
           JSONObject generated;
           String reply;
@@ -1085,13 +1124,16 @@ public class MainActivity extends Activity {
           try {
             boolean hit = cached != null && cached.outcomeHash.equals(gameCore.currentStateHash());
             generated = hit ? new JSONObject(cached.narration.toString())
-                : parseModelJson(generateText(narrationPrompt(state, action)));
-            String narrationViolation = NarrationGuard.validate(generated, state);
+                : parseModelJson(generateText(narrationPrompt(state, action, turnId)));
+            String narrationViolation =
+                NarrationGuard.validate(generated, state, narrationEvidence);
             if (!narrationViolation.isEmpty()) {
               generated = parseModelJson(generateText(
-                  narrationPrompt(state, action) + "\nVALIDATION REJECTED: " + narrationViolation
-                      + "\nRegenerate narration only. Do not add or mutate world state."));
-              narrationViolation = NarrationGuard.validate(generated, state);
+                  narrationPrompt(state, action, turnId) + "\nVALIDATION REJECTED: " + narrationViolation
+                      + "\nRegenerate narration only from the SAME committed turn evidence. "
+                      + "Do not add, reroll or mutate world state."));
+              narrationViolation =
+                  NarrationGuard.validate(generated, state, narrationEvidence);
               if (!narrationViolation.isEmpty()) {
                 throw new Exception("Narration validation failed: " + narrationViolation);
               }
@@ -1101,7 +1143,7 @@ public class MainActivity extends Activity {
           } catch (Exception narrationError) {
             Log.w(TAG, "Narration provider failed or contradicted committed authority; using deterministic template: "
                 + providerErrorSummary(narrationError));
-            generated = narrationFallback(state, replyHint);
+            generated = narrationFallback(state, replyHint, narrationEvidence);
             reply = generated.optString("reply", "");
           }
 
@@ -1118,10 +1160,8 @@ public class MainActivity extends Activity {
           log.put(gmEntry);
           state.put("log", log);
 
-          boolean acknowledgePendingIntro = narrationValidated
-              && encounterDialogue.length() >= 2 && encounterDialogue.length() <= 5;
           state = new JSONObject(
-              gameCore.commitNarration(state.toString(), acknowledgePendingIntro));
+              gameCore.commitNarration(state.toString(), turnId));
 
           if (CombatChoiceEngine.isKnownEntity(newEncounter) && !CombatChoiceEngine.isActive(state)) {
             state = new JSONObject(
