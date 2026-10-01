@@ -21,7 +21,7 @@ Hai file trên đã được đồng bộ sang **Cao Minh R15**, **Lucia Lục s
 
 - `Cao_Minh_Codex.docx` — Drive ID `1TDBphEo1wxrdlRXTI9WUOJPinmWv1PHq` — R15.
 - `Syvial_Codex.docx` — nguồn riêng của Syvial.
-- `Lucia_Codex.docx` — nguồn lịch sử của Lucia; hiện connector không truy cập được. Scoped source hiện hành: `app/src/main/assets/canon/Lucia_Codex.md`.
+- `Lucia_Codex.docx` — nguồn lịch sử của Lucia; hiện connector không truy cập được. Scoped source hiện hành: `app/src/main/assets/content/characters/lucia.md`.
 - `Lục_Trầm_Codex` — Drive ID `1TCyLifr0usajTt6Gp3f2o_nWsAdrwqtfd4N9t0KeK3s` — nguồn hiện hành của Lục Trầm R05.
 
 ### Cao Minh source map

@@ -7,7 +7,7 @@ Tài liệu này là bản wiki gọn dùng để audit repository. Khi có xung
 
 - Cao Minh: `Cao_Minh_Codex.docx` — Drive ID `1TDBphEo1wxrdlRXTI9WUOJPinmWv1PHq`
 - Syvial: `Syvial_Codex.docx` — Drive ID `1Bqg24Nix78nhzSoE-YuiUdEt4oWrvdCY`
-- Lucia Lục / Hứa Thuý Mai: scoped USER_RETCON `app/src/main/assets/canon/Lucia_Codex.md`; historical Drive source currently unavailable.
+- Lucia Lục / Hứa Thuý Mai: scoped USER_RETCON `app/src/main/assets/content/characters/lucia.md`; historical Drive source currently unavailable.
 - Lục Trầm: `Lục_Trầm_Codex` — Drive ID `1TCyLifr0usajTt6Gp3f2o_nWsAdrwqtfd4N9t0KeK3s`
 
 `UNKNOWN`, `OPEN`, `CHƯA KHÓA` phải giữ nguyên là chưa biết. `KNOWLEDGE_LOCK` là canon hậu trường cho GM/người viết, không tự biến thành kiến thức mà nhân vật trong truyện biết.
@@ -101,7 +101,7 @@ Syvial giữ canon độc lập từ tài liệu riêng. Trong campaign R15, kh�
 
 ## Lucia Lục / Hứa Thuý Mai — SCOPED RESTORE R01
 
-Nguồn hiện hành trong repository: `app/src/main/assets/canon/Lucia_Codex.md`. Nguồn Drive lịch sử `Lucia_Codex.docx` hiện không truy cập được, vì vậy chỉ khóa các dữ kiện đã xác nhận trong lịch sử repo và yêu cầu người dùng mới nhất.
+Nguồn hiện hành trong repository: `app/src/main/assets/content/characters/lucia.md`. Nguồn Drive lịch sử `Lucia_Codex.docx` hiện không truy cập được, vì vậy chỉ khóa các dữ kiện đã xác nhận trong lịch sử repo và yêu cầu người dùng mới nhất.
 
 **IDENTITY HARD LOCK:** Lucia Lục / Hứa Thuý Mai và Lục Trầm là **hai nhân vật khác nhau**. Runtime id tương ứng là `lucia` và `luc_tram`; không alias, rename, migrate hoặc merge.
 

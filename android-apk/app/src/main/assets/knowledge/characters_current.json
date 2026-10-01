@@ -109,7 +109,7 @@
     },
     "lucia": {
       "name": "Lucia Lục / Hứa Thuý Mai",
-      "source": "app/src/main/assets/canon/Lucia_Codex.md",
+      "source": "app/src/main/assets/content/characters/lucia.md",
       "revision": "R01-scoped-restore",
       "aliases": [
         "lucia",

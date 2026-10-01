@@ -53,6 +53,15 @@ public class LuciaSeparationContractTest {
     assertEquals(0.25d, chance(levelOne, "character:luc_tram"), 0.0000001d);
     assertFalse(levelOne.toString().contains("character:lucia"));
 
+    Path luciaStructured = Paths.get("src/main/assets/content/characters/lucia.md");
+    Path luciaLegacy = Paths.get("src/main/assets/canon/Lucia_Codex.md");
+    if (!Files.isRegularFile(luciaStructured)) {
+      luciaStructured = Paths.get("app/src/main/assets/content/characters/lucia.md");
+      luciaLegacy = Paths.get("app/src/main/assets/canon/Lucia_Codex.md");
+    }
+    assertTrue(Files.isRegularFile(luciaStructured));
+    assertFalse(Files.exists(luciaLegacy));
+
     String luciaCanon = readCanon("Lucia_Codex.md");
     String lucTramCanon = readCanon("Lục_Trầm_Codex.md");
     assertTrue(luciaCanon.contains("Lucia Lục / Hứa Thuý Mai và Lục Trầm là hai nhân vật khác nhau"));
@@ -94,6 +103,15 @@ public class LuciaSeparationContractTest {
   }
 
   private static String readCanon(String name) throws Exception {
+    if ("Lucia_Codex.md".equals(name)) {
+      Path structured = Paths.get("src/main/assets/content/characters/lucia.md");
+      if (!Files.isRegularFile(structured)) {
+        structured = Paths.get("app/src/main/assets/content/characters/lucia.md");
+      }
+      if (Files.isRegularFile(structured)) {
+        return new String(Files.readAllBytes(structured), StandardCharsets.UTF_8);
+      }
+    }
     Path path = Paths.get("src/main/assets/canon", name);
     if (!Files.isRegularFile(path)) path = Paths.get("app/src/main/assets/canon", name);
     return new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
