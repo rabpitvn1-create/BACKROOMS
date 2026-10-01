@@ -57,6 +57,20 @@
         "android-apk/app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.java"
       ],
       "note": "Historical V2 import helper retained in the registry but disabled because the current V2 baseline already contains the integrated Entity Core runtime."
+    },
+    {
+      "id": "narration-evidence-commit",
+      "phase": 40,
+      "script": "android-apk/patches/40-authority/narration-evidence-commit.py",
+      "enabled": true,
+      "profiles": [
+        "full"
+      ],
+      "after": [],
+      "touches": [
+        "android-apk/app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.java"
+      ],
+      "note": "Phase 5: narration may persist logs, while pending encounter acknowledgement is derived from committed turn evidence rather than model output."
     }
   ]
 }
