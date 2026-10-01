@@ -94,6 +94,16 @@ public class KnowledgeContinuityFirewallTest {
     assertTrue(KnowledgeContinuityFirewall.actorBeliefView(belief, "lucia") == null);
   }
 
+  @Test public void structuredBeliefPayloadCannotSmuggleWriterKnowledge() throws Exception {
+    JSONObject belief = new JSONObject().put("actorId", "cao_minh")
+        .put("beliefValue", new JSONObject().put("writerSecret", "hidden"));
+    assertTrue(KnowledgeContinuityFirewall.actorBeliefView(belief, "cao_minh") == null);
+    JSONObject forged = binding("POV/BELIEF", "VERIFIED", "cao_minh", "LIVE_STATE")
+        .put("evidenceRef", new JSONObject().put("secret", "hidden"));
+    assertEquals("evidence_ref_invalid", KnowledgeContinuityFirewall.validate(forged));
+    assertFalse(KnowledgeContinuityFirewall.canExposeToActor(forged, "cao_minh"));
+  }
+
   private static JSONObject binding(
       String canonClass, String knowledgeState, String actorId, String originLayer) throws Exception {
     return new JSONObject()

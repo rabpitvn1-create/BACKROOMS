@@ -107,6 +107,9 @@ public final class KnowledgeContinuityFirewall {
       return "writer_secret_not_actor_knowledge";
     }
 
+    if (binding.has("evidenceRef") && !(binding.opt("evidenceRef") instanceof String)) {
+      return "evidence_ref_invalid";
+    }
     if (knowledgeState != KnowledgeState.UNKNOWN
         && binding.optString("evidenceRef", "").trim().isEmpty()) {
       return "evidence_ref_required";
@@ -147,7 +150,10 @@ public final class KnowledgeContinuityFirewall {
     }
     JSONObject view = new JSONObject();
     for (String key : new String[] {"claimId", "actorId", "beliefValue", "confidence"}) {
-      if (belief.has(key)) view.put(key, belief.get(key));
+      if (belief.has(key)) {
+        if (!(belief.opt(key) instanceof String)) return null;
+        view.put(key, belief.get(key));
+      }
     }
     return view.put("knowledgeBinding", new JSONObject(binding.toString()))
         .put("truthRole", "ACTOR_BELIEF");

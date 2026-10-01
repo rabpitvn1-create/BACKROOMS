@@ -23,6 +23,23 @@ public class GmNarrativePacketTest {
     throw new IllegalStateException("Unable to locate test asset: " + relativePath);
   }
 
+  @Test public void declaredNestedSecretsAndForeignKnowledgeStayOutOfActorView() throws Exception {
+    JSONObject binding = new JSONObject().put("schemaVersion", 1).put("canonClass", "WRITER-SECRET")
+        .put("knowledgeState", "UNKNOWN").put("actorId", "cao_minh")
+        .put("originLayer", "BASELINE_CANON").put("evidenceRef", "");
+    JSONObject state = new JSONObject().put("player", new JSONObject().put("hp", 7)
+        .put("knowledgeLock", "SECRET_1").put("writerSecret", "SECRET_2")
+        .put("hidden", new JSONObject().put("knowledgeBinding", binding).put("value", "SECRET_3")));
+    String before = state.toString();
+    JSONObject view = GmNarrativePacket.projectState(state);
+    assertFalse(view.toString().contains("SECRET_"));
+    org.junit.Assert.assertEquals(7, view.getJSONObject("player").getInt("hp"));
+    org.junit.Assert.assertEquals(before, state.toString());
+    binding.put("canonClass", "POV/BELIEF").put("knowledgeState", "OBSERVED")
+        .put("originLayer", "LIVE_STATE").put("evidenceRef", "turn:1").put("actorId", "lucia");
+    assertFalse(GmNarrativePacket.projectState(state).toString().contains("SECRET_3"));
+  }
+
   @Test public void projectionDropsHeavyCoreContextAndHistory() throws Exception {
     JSONObject state = new JSONObject()
         .put("currentLevel", 0)

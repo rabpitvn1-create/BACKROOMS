@@ -21,20 +21,45 @@ final class EpistemicView {
       }
       if (!state.has(key)) continue;
       Object value = state.get(key);
-      if (value instanceof JSONObject) output.put(key, new JSONObject(value.toString()));
-      else if (value instanceof JSONArray) output.put(key, new JSONArray(value.toString()));
-      else output.put(key, value);
+      Object visible = visibleValue(value, actorId);
+      if (visible != null) output.put(key, visible);
     }
 
     JSONObject combat = state.optJSONObject("combat");
     if (combat != null && CanonVisibilityRegistry.rootVisibility("combat")
         != CanonVisibilityRegistry.Visibility.EPISTEMIC) {
-      output.put("combat", visibleCombat(combat));
+      output.put("combat", visibleValue(visibleCombat(combat), actorId));
     }
 
     JSONArray beliefs = actorBeliefs(state, actorId);
     if (beliefs.length() > 0) output.put("beliefs", beliefs);
     return output;
+  }
+
+  private static Object visibleValue(Object value, String actorId) throws Exception {
+    if (value instanceof JSONObject) {
+      JSONObject source = (JSONObject) value;
+      if (source.has("knowledgeBinding") && !KnowledgeContinuityFirewall.canExposeToActor(
+          source.optJSONObject("knowledgeBinding"), actorId)) return null;
+      JSONObject copy = new JSONObject();
+      java.util.Iterator<String> keys = source.keys();
+      while (keys.hasNext()) {
+        String key = keys.next();
+        if ("knowledgeLock".equals(key) || "writerSecret".equals(key)) continue;
+        Object visible = visibleValue(source.get(key), actorId);
+        if (visible != null) copy.put(key, visible);
+      }
+      return copy;
+    }
+    if (value instanceof JSONArray) {
+      JSONArray source = (JSONArray) value, copy = new JSONArray();
+      for (int i = 0; i < source.length(); i++) {
+        Object visible = visibleValue(source.get(i), actorId);
+        if (visible != null) copy.put(visible);
+      }
+      return copy;
+    }
+    return value;
   }
 
   private static JSONObject visibleCombat(JSONObject combat) throws Exception {
