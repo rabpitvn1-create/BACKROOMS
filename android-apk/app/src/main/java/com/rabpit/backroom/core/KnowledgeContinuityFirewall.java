@@ -107,6 +107,11 @@ public final class KnowledgeContinuityFirewall {
       return "writer_secret_not_actor_knowledge";
     }
 
+    if (knowledgeState != KnowledgeState.UNKNOWN
+        && binding.optString("evidenceRef", "").trim().isEmpty()) {
+      return "evidence_ref_required";
+    }
+
     return "";
   }
 

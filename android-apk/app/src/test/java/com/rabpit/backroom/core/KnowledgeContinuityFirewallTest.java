@@ -59,6 +59,21 @@ public class KnowledgeContinuityFirewallTest {
     assertFalse(KnowledgeContinuityFirewall.canSupplyCurrentState(baseline));
   }
 
+  @Test public void knownProvenanceRequiresReferenceAndUnknownGrantsNoKnowledge() throws Exception {
+    for (KnowledgeContinuityFirewall.KnowledgeState kind
+        : KnowledgeContinuityFirewall.KnowledgeState.values()) {
+      JSONObject claim = binding("POV/BELIEF", kind.wireName, "luc_tram", "LIVE_STATE")
+          .put("evidenceRef", "");
+      if (kind == KnowledgeContinuityFirewall.KnowledgeState.UNKNOWN) {
+        assertTrue(KnowledgeContinuityFirewall.validate(claim).isEmpty());
+      } else {
+        assertEquals("evidence_ref_required", KnowledgeContinuityFirewall.validate(claim));
+      }
+      assertFalse(KnowledgeContinuityFirewall.canExposeToActor(claim, "luc_tram"));
+      assertFalse(KnowledgeContinuityFirewall.canSupplyCurrentState(claim));
+    }
+  }
+
   private static JSONObject binding(
       String canonClass, String knowledgeState, String actorId, String originLayer) throws Exception {
     return new JSONObject()
@@ -67,6 +82,6 @@ public class KnowledgeContinuityFirewallTest {
         .put("knowledgeState", knowledgeState)
         .put("actorId", actorId)
         .put("originLayer", originLayer)
-        .put("evidenceRef", "");
+        .put("evidenceRef", "source:test");
   }
 }
