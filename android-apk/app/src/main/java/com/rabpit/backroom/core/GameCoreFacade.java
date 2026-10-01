@@ -308,6 +308,8 @@ public final class GameCoreFacade implements AutoCloseable {
       for (TurnRng.Scope scope : TurnRng.Scope.values()) {
         draws.put(scope.name(), prepared.rng.drawsUsed(scope));
       }
+      JSONObject selectionAuthorization = GmSelectionGate.issue(
+          prepared.turnId, prepared.baseHash, prepared.selected, prepared.working, prepared.rng);
       JSONObject rngContext = new JSONObject()
           .put("turnId", prepared.turnId)
           .put("preTurnStateVersion", prepared.preTurnStateVersion)
@@ -321,6 +323,7 @@ public final class GameCoreFacade implements AutoCloseable {
           .put("baseStateHash", prepared.baseHash)
           .put("action", prepared.action)
           .put("stateSnapshot", snapshot)
+          .put("selectionAuthorization", selectionAuthorization)
           .put("rngContext", rngContext)
           .toString();
     } catch (Exception e) {
@@ -385,7 +388,8 @@ public final class GameCoreFacade implements AutoCloseable {
       return gmCommandAuthority.validate(
           snapshot, proposal,
           context.optString("turnId", ""),
-          context.optString("baseStateHash", "")).toString();
+          context.optString("baseStateHash", ""),
+          context.optJSONObject("selectionAuthorization")).toString();
     } catch (Exception e) {
       try {
         output.put("valid", false)

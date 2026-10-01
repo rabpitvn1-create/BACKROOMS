@@ -158,6 +158,20 @@ Status: implemented as a pure gate; gated adapters are not opened yet.
 - This step does not yet change `GmCommandAuthority`; the three commands remain blocked until 4C.2 wires the gate into the pure executor.
 - No persistence or feature-gate behavior changes.
 
+### Phase 4C.2 — Selection-gated Core adapters
+
+Status: implemented in shadow execution, NO PERSIST.
+
+- `GameCoreFacade.shadowPlannerContext()` issues selection authorization from the retained `PreparedTurn`, selected candidate, working-state trace and the same scoped `TurnRng`.
+- `GmTransactionExecutor` passes that Core-issued authorization to `GmCommandAuthority`.
+- `START_ENTITY_ENCOUNTER`, `START_CHARACTER_ENCOUNTER` and `DISCOVER_CHEST` invoke their existing Core owners only when the command exactly matches the authorized candidate.
+- Missing authorization, `NONE`, stale turn/base state or candidate redirection remains fail-closed.
+- Accepted gated events carry `selectionEvidence`; the execution draft exposes it only when the containing causal group is fully accepted.
+- Shadow planner sees the authorization in TURN_CONTEXT, but cannot choose a different Entity/Character/Chest than Core selected.
+- No selection-gated result is persisted; V2 remains the live authority.
+
+4C.3 will bind the same selection evidence into `CommitCandidate`.
+
 Commit protocol:
 1. verify turnId and baseStateHash;
 2. validate all commands;

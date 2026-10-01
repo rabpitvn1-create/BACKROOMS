@@ -95,6 +95,80 @@ public class GmTransactionExecutorTest {
     assertEquals("selection_authorization_missing", result.getString("reason"));
   }
 
+  @Test public void selectedCharacterCommandExecutesOnlyWithMatchingCoreAuthorization() throws Exception {
+    JSONObject state = fundedState().put("currentLevel", 1).put(LevelCore.LEVEL_KEY, "1");
+    JSONObject proposal = proposal(
+        group("g1", command("character", "START_CHARACTER_ENCOUNTER",
+            new JSONObject().put("characterId", "syvial"))));
+    JSONObject authorization = authorization("CHARACTER", "character:syvial", "syvial");
+
+    JSONObject draft = executor().execute(
+        state, proposal, "turn-4b1", "base-hash", authorization);
+
+    assertEquals(1, draft.getInt("acceptedGroups"));
+    assertEquals("syvial",
+        draft.getJSONObject("afterState").getJSONArray("party").getJSONObject(0).getString("id"));
+    assertEquals("character:syvial",
+        draft.getJSONObject("selectionEvidence").getString("selectedSituationKey"));
+    JSONObject event = draft.getJSONObject("resolvedTurn")
+        .getJSONArray("committedEvents").getJSONObject(0);
+    assertEquals("CHARACTER_ENCOUNTERED", event.getString("eventType"));
+    assertEquals("CANDIDATE_SELECTION",
+        event.getJSONObject("selectionEvidence").getString("rngScope"));
+  }
+
+  @Test public void selectedChestCommandUsesCoreCandidateInsteadOfGmSpawnAuthority() throws Exception {
+    JSONObject state = fundedState().put("currentLevel", 0).put(LevelCore.LEVEL_KEY, "0");
+    JSONObject proposal = proposal(
+        group("g1", command("chest", "DISCOVER_CHEST", new JSONObject())));
+    JSONObject authorization = authorization("CHEST", "resource:chest:0", "0");
+
+    JSONObject draft = executor().execute(
+        state, proposal, "turn-4b1", "base-hash", authorization);
+
+    assertEquals(1, draft.getInt("acceptedGroups"));
+    assertTrue(draft.getJSONObject("afterState").getJSONObject("flags")
+        .getBoolean("chestPresent"));
+    assertEquals("resource:chest:0",
+        draft.getJSONObject("selectionEvidence").getString("selectedSituationKey"));
+  }
+
+  @Test public void mismatchedSelectedCandidateCannotBeRedirectedByGm() throws Exception {
+    JSONObject state = fundedState().put("currentLevel", 1).put(LevelCore.LEVEL_KEY, "1");
+    JSONObject proposal = proposal(
+        group("g1", command("character", "START_CHARACTER_ENCOUNTER",
+            new JSONObject().put("characterId", "syvial"))));
+    JSONObject authorization = authorization("CHARACTER", "character:luc_tram", "luc_tram");
+
+    JSONObject draft = executor().execute(
+        state, proposal, "turn-4b1", "base-hash", authorization);
+
+    assertEquals(0, draft.getInt("acceptedGroups"));
+    assertEquals("selection_candidate_mismatch",
+        draft.getJSONArray("commandResults").getJSONObject(0).getString("reason"));
+  }
+
+  private static JSONObject authorization(String kind, String situationKey, String payloadKey)
+      throws Exception {
+    TurnRng rng = new TurnRng(
+        "turn-4b1", 0, EmergentTurnEngine.CANON_VERSION, EmergentTurnEngine.RNG_SCHEMA_VERSION);
+    rng.resume(TurnRng.Scope.CANDIDATE_SELECTION, 1);
+    JSONObject selected = new JSONObject()
+        .put("situationKey", situationKey)
+        .put("kind", kind)
+        .put("payloadKey", payloadKey)
+        .put("eligibilityRuleId", "canon:" + situationKey)
+        .put("selectedNone", false);
+    JSONObject trace = new JSONObject()
+        .put("selectedSituationKey", situationKey)
+        .put("selectedNone", false)
+        .put("rngScope", TurnRng.Scope.CANDIDATE_SELECTION.name())
+        .put("rngDrawSeq", 0);
+    JSONObject working = new JSONObject().put(EmergentTurnEngine.ROOT_KEY,
+        new JSONObject().put("selectionTrace", new JSONArray().put(trace)));
+    return GmSelectionGate.issue("turn-4b1", "base-hash", selected, working, rng);
+  }
+
   private static JSONObject fundedState() throws Exception {
     JSONObject state = GameCoreFacade.newGameState(new JSONObject());
     CharacterProgressionCore progression = new CharacterProgressionCore();
