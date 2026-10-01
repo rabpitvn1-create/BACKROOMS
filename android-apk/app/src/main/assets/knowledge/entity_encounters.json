@@ -32,8 +32,11 @@
       ],
       "canon": "Fast aggressive four-limbed predator. Hunts humans, often in groups, and exploits isolation, injury and constrained routes.",
       "presentation": {
-        "appearance": "một sinh vật bò bằng bốn chi",
-        "approachStyle": "charge"
+        "appearance": "một sinh vật bốn chân gầy trơ xương",
+        "approachStyle": "charge",
+        "details": [
+          "Da xám nhợt căng sát cơ thể, các chi dài kết thúc bằng móng đen; hàm miệng lộ nhiều răng nhọn."
+        ]
       },
       "autoProcSkills": [
         {
@@ -63,8 +66,11 @@
       ],
       "canon": "Mass of limbs and muscle that ambushes from dark recesses, technical gaps and crawlspaces and drags humans out of formation.",
       "presentation": {
-        "appearance": "một khối cơ thịt với nhiều chi",
-        "approachStyle": "emerge"
+        "appearance": "một khối cơ thể hỗn độn với nhiều tay chân",
+        "approachStyle": "emerge",
+        "details": [
+          "Các chi quấn chặt quanh phần lõi tối màu và mọc ra theo nhiều hướng."
+        ]
       },
       "autoProcSkills": [
         {
@@ -93,8 +99,11 @@
       ],
       "canon": "Distorted humanoid Entity that watches before approaching and exploits concrete-column blind spots.",
       "presentation": {
-        "appearance": "một hình người méo mó",
-        "approachStyle": "approach"
+        "appearance": "một hình người rất cao và gầy với làn da xám trơn",
+        "approachStyle": "approach",
+        "details": [
+          "Tay chân dài bất thường, đầu bầu dục nhẵn không có ngũ quan."
+        ]
       },
       "autoProcSkills": [
         {
@@ -125,8 +134,11 @@
       ],
       "canon": "Large moth-like predator that uses dark ceilings and technical recesses and reacts to light and movement.",
       "presentation": {
-        "appearance": "một sinh vật lớn có hình dạng như bướm đêm",
-        "approachStyle": "emerge"
+        "appearance": "một sinh vật giống thiêu thân khổng lồ",
+        "approachStyle": "emerge",
+        "details": [
+          "Thân màu kem bẩn phủ lông ngắn, hai cánh rộng sờn rách và lốm đốm; mắt kép lớn màu đen."
+        ]
       },
       "autoProcSkills": [
         {
@@ -155,8 +167,11 @@
       ],
       "canon": "Human-shaped faceless predator. Apparent human-like behavior only reduces vigilance before it hunts.",
       "presentation": {
-        "appearance": "một hình người không có khuôn mặt",
-        "approachStyle": "emerge"
+        "appearance": "một hình người có khuôn mặt phẳng không ngũ quan",
+        "approachStyle": "emerge",
+        "details": [
+          "Tóc đen dài phủ trên quần áo tối màu rách nát, các ngón tay nhọn như móng."
+        ]
       },
       "autoProcSkills": [
         {
@@ -185,8 +200,11 @@
       ],
       "canon": "Predator mimicking a flat puddle of Almond Water. It reacts to human footsteps and opens a toothed mouth when prey steps on it.",
       "presentation": {
-        "appearance": "một vũng chất lỏng phẳng",
-        "approachStyle": "emerge"
+        "appearance": "một hình người bằng chất lỏng đen đặc",
+        "approachStyle": "emerge",
+        "details": [
+          "Thân bóng nhớt có nhiều khoảng rỗng, đầu không có khuôn mặt; nửa thân dưới tan thành một vũng đen."
+        ]
       },
       "autoProcSkills": [
         {
@@ -215,8 +233,11 @@
       ],
       "canon": "Predatory paintings whose depicted beings can watch, reach beyond the surface and pull victims into the image.",
       "presentation": {
-        "appearance": "một bức tranh có những hình dạng bên trong",
-        "approachStyle": "emerge"
+        "appearance": "một người phụ nữ trắng bệch nhô khỏi bức tranh có khung vàng cổ",
+        "approachStyle": "emerge",
+        "details": [
+          "Hai hốc mắt tối, miệng há rộng bất thường; những móng dài đỏ sẫm nằm trên hai bàn tay vươn khỏi khung."
+        ]
       },
       "autoProcSkills": [
         {
@@ -245,8 +266,11 @@
       ],
       "canon": "Darkness-using predator seen mainly as a bright face-like feature. It can pressure prey into choosing a bad route rather than charging immediately.",
       "presentation": {
-        "appearance": "một hình sáng giống khuôn mặt",
-        "approachStyle": "hold_distance"
+        "appearance": "một bóng người cao gầy với đường viền mờ",
+        "approachStyle": "hold_distance",
+        "details": [
+          "Hai mắt trắng sáng và nụ cười rộng với hàng răng trắng nổi bật trên khuôn mặt."
+        ]
       },
       "autoProcSkills": [
         {
@@ -278,8 +302,11 @@
       ],
       "canon": "Human-mimicking predator capable of deep disguise and long infiltration. Human appearance never proves a contact is human.",
       "presentation": {
-        "appearance": "một hình người",
-        "approachStyle": "emerge"
+        "appearance": "một hình người cao gầy với những lớp mô hồng xám",
+        "approachStyle": "emerge",
+        "details": [
+          "Bó cơ và màng thịt căng quanh nhiều khoảng rỗng, tay chân dài bất thường; phần đầu méo mó."
+        ]
       },
       "autoProcSkills": [
         {
@@ -310,8 +337,11 @@
       ],
       "canon": "A window-like predatory manifestation in impossible locations that lures humans close and can reach through an unreliable apparent space.",
       "presentation": {
-        "appearance": "một hình dạng giống ô cửa sổ",
-        "approachStyle": "emerge"
+        "appearance": "một cửa sổ có khung mục và rèm vàng bẩn",
+        "approachStyle": "emerge",
+        "details": [
+          "Sau kính là bóng người có đôi mắt sáng, những cánh tay xương xẩu xuyên qua cửa với móng cong sắc."
+        ]
       },
       "autoProcSkills": [
         {
@@ -340,8 +370,11 @@
       ],
       "canon": "Huge organic/mechanical pipeline-like predator that senses vibration and heat, offers false safe routes, traps retreat and can secrete tissue-corrosive alkaline liquid.",
       "presentation": {
-        "appearance": "một đường ống lớn với mô thịt và các bộ phận cơ khí",
-        "approachStyle": "emerge"
+        "appearance": "một khối hình người khổng lồ kết từ các đường ống kim loại gỉ",
+        "approachStyle": "emerge",
+        "details": [
+          "Van và khớp nối chằng chịt, các chi phân nhánh thành nhiều đoạn ống xen những mảng mô tối màu."
+        ]
       },
       "autoProcSkills": [
         {
@@ -370,8 +403,11 @@
       ],
       "canon": "Irregular, pain-tolerant predator believed or suspected to have once been human. It tracks prey through sound and scent.",
       "presentation": {
-        "appearance": "một sinh vật có hình dạng bất thường",
-        "approachStyle": "emerge"
+        "appearance": "một thân người suy kiệt với đầu trọc và da xám mục",
+        "approachStyle": "emerge",
+        "details": [
+          "Mắt trắng đục, xương sườn lộ rõ; một bàn tay phình lớn với những ngón dài cong."
+        ]
       },
       "autoProcSkills": [
         {
@@ -400,8 +436,11 @@
       ],
       "canon": "Entity that blends into electrical cable bundles, waits motionless, then wraps limbs and can conduct facility current through a victim.",
       "presentation": {
-        "appearance": "một bó dây cáp",
-        "approachStyle": "emerge"
+        "appearance": "một hình người kết từ dây điện và dây cáp đen đỏ quấn xoắn",
+        "approachStyle": "emerge",
+        "details": [
+          "Các đầu nối mọc lộn xộn trên thân, phần đầu gần như chỉ còn một miệng lớn chứa nhiều lớp răng nhọn."
+        ]
       },
       "autoProcSkills": [
         {
@@ -430,8 +469,11 @@
       ],
       "canon": "Apex Level 5 Entity with above-human intelligence that hunts humans through long observation, isolation and manipulation of hotel architecture.",
       "presentation": {
-        "appearance": "một sinh vật",
-        "approachStyle": "emerge"
+        "appearance": "một hình người cao lớn mặc lễ phục đen cũ rách",
+        "approachStyle": "emerge",
+        "details": [
+          "Phần đầu là khối thịt với nhiều xúc tu rủ xuống, các ngón tay kéo dài thành móng cong sắc."
+        ]
       },
       "autoProcSkills": [
         {
@@ -460,8 +502,11 @@
       ],
       "canon": "Level 5 corpse-lure phenomenon or Entity that can preserve heat, voice, movement or useful-looking clues to draw humans closer.",
       "presentation": {
-        "appearance": "một hình hài giống thi thể",
-        "approachStyle": "emerge"
+        "appearance": "một thân người đàn ông lớn tuổi gầy quắt",
+        "approachStyle": "emerge",
+        "details": [
+          "Da tái xám, mắt trắng đục; áo choàng khách sạn đỏ sẫm rách nát phủ trên người, một tay ôm vật gì đó trước ngực còn tay kia duỗi về phía trước."
+        ]
       },
       "autoProcSkills": [
         {
@@ -496,8 +541,11 @@
       ],
       "canon": "Very rare roaming humanoid predator permitted as an incursion across Levels 0–6. It hunts humans and may conduct long tactical observation.",
       "presentation": {
-        "appearance": "một hình người",
-        "approachStyle": "emerge"
+        "appearance": "một người đàn ông gầy với da trắng bệch và tóc đen dài rối",
+        "approachStyle": "emerge",
+        "details": [
+          "Miệng kéo thành nụ cười đỏ rộng bất thường; hắn mặc áo khoác trắng có mũ và cầm một vật có lưỡi sắc."
+        ]
       },
       "autoProcSkills": [
         {
@@ -691,7 +739,14 @@
           "damagePercent": 120,
           "procPercent": 25
         }
-      ]
+      ],
+      "presentation": {
+        "approachStyle": "emerge",
+        "appearance": "một phụ nữ da trắng nhợt với tóc đen dài",
+        "details": [
+          "Vùng quanh mắt đen đậm, cô mặc trang phục đen ôm sát và cầm một vật có lưỡi sắc."
+        ]
+      }
     },
     {
       "key": "slenderman",
@@ -713,7 +768,14 @@
           "damagePercent": 120,
           "procPercent": 21
         }
-      ]
+      ],
+      "presentation": {
+        "approachStyle": "emerge",
+        "appearance": "một hình người rất cao mặc âu phục đen với cà vạt đỏ",
+        "details": [
+          "Đầu trắng nhẵn không có khuôn mặt, tay chân dài bất thường; nhiều xúc tu đen mọc sau lưng."
+        ]
+      }
     }
   ]
 }

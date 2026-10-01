@@ -53,17 +53,16 @@ public final class OfflinePresenter {
         if (view.has("entityAppearance")) {
           String location = view.optString("entityLocation", "phía trước");
           String held = view.optString("heldObject", "").trim();
+          String appearance = view.optString("entityAppearance");
+          String reference = subject.equals(appearance) ? subject : subject + ", " + appearance + ",";
           sentence = "charge".equals(style)
-              ? subject + " xuất hiện " + location + " rồi lập tức lao về phía " + actor + "."
+              ? reference + " xuất hiện " + location + " rồi lập tức lao về phía " + actor + "."
               : "approach".equals(style)
-                  ? subject + " xuất hiện " + location + " và bắt đầu tiến về phía " + actor + "."
+                  ? reference + " xuất hiện " + location + " và bắt đầu tiến về phía " + actor + "."
                   : "hold_distance".equals(style)
-                      ? subject + " xuất hiện " + location + ", giữ khoảng cách"
+                      ? reference + " xuất hiện " + location + ", giữ khoảng cách"
                           + (held.isEmpty() ? " với " : " và hướng " + held + " về phía ") + actor + "."
-                      : subject + " hiện ra " + location + ".";
-          if (!subject.equals(view.optString("entityAppearance"))) {
-            sentence += " Trước mắt " + actor + " là " + view.optString("entityAppearance") + ".";
-          }
+                      : reference + " hiện ra " + location + ".";
           JSONArray details = view.optJSONArray("details");
           if (details != null) for (int j = 0; j < details.length(); j++) {
             String detail = details.optString(j, "").trim();
