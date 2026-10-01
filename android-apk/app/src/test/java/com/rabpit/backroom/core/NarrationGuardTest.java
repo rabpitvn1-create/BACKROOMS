@@ -136,4 +136,23 @@ public class NarrationGuardTest {
     assertFalse(GameCoreFacade.shouldAcknowledgePendingIntro(none));
     assertTrue(GameCoreFacade.shouldAcknowledgePendingIntro(evidence));
   }
+
+  @Test public void chestEventProjectsExactItemEvidence() throws Exception {
+    JSONObject state = GameCoreFacade.newGameState(new JSONObject());
+    EmergentTurnEngine engine = new EmergentTurnEngine();
+    engine.normalizeState(state);
+    JSONObject before = new JSONObject(state.toString());
+    String turnId = engine.nextTurnId(state, "chest");
+    JSONArray events = new JSONArray();
+    events.put(engine.event(turnId, events, "CHEST_OPENED", "LOCAL", "0",
+        new JSONObject().put("factPredicate", "chest_opened")
+            .put("factValue", "Almond Water")
+            .put("observedByPlayer", true), null));
+    engine.commitAuthoritative(before, state, turnId, events, null);
+
+    JSONObject evidence = CommittedTurnNarrationEvidence.fromState(state, turnId);
+
+    assertTrue(CommittedTurnNarrationEvidence.hasClaim(
+        evidence, "ITEM_ACQUIRED", "Almond Water"));
+  }
 }
