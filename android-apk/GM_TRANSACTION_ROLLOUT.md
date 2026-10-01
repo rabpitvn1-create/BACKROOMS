@@ -1,6 +1,6 @@
 # GM Transaction Rollout
 
-Status: PHASE 6C.1 — STRUCTURED CONTENT LAYOUT DECLARED; PHASE 6C.2 NEXT
+Status: PHASE 6C.2 — FIRST STRUCTURED CONTENT MIGRATION COMPLETE; PHASE 6C.3 NEXT
 
 This rollout preserves the current V2 Core/save/runtime while reintroducing GM planning authority in controlled stages. No phase may skip the transaction boundary.
 
@@ -298,7 +298,19 @@ Status: COMPLETE / NO SOURCE MOVES.
 - Existing Markdown remains under `assets/canon`; `CanonRetriever` still reads the legacy direct paths, so runtime behavior is unchanged.
 - No canon source has two authoritative copies. The new tree is only a migration destination declaration.
 
-Phase 6C.2 will migrate one low-risk content batch only after compatibility loading is prepared.
+### Phase 6C.2 — Compatibility loader + first migration
+
+Status: COMPLETE.
+
+- `CanonRetriever.fromAssets()` now resolves registered sources from `content/<contentPath>` first and falls back to the legacy `canon/<path>` during migration.
+- Logical source identity remains the legacy registry `path`, so section IDs and prompt SOURCE labels remain stable when bytes move.
+- Unregistered legacy Markdown remains discoverable during the transition.
+- Missing registered sources fail closed if neither structured nor legacy copy exists.
+- `ASYNC_BackroomsV2.md` was migrated unchanged to `content/history/async-backroomsv2.md` and the legacy copy was removed.
+- Tests cover structured precedence, legacy fallback, missing-source failure and the shipped ASYNC migration.
+- No gameplay authority or canon classification changed.
+
+Phase 6C.3 will migrate the next low-risk batch only after this path remains green.
 
 Expand content without changing transaction semantics:
 

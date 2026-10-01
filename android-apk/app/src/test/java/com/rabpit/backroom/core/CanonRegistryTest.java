@@ -27,6 +27,21 @@ public class CanonRegistryTest {
     assertEquals(12, validation.getInt("sourceCount"));
   }
 
+  @Test public void asyncHistoryIsMigratedToStructuredContentOnly() throws Exception {
+    Path structured = Paths.get("src/main/assets/content/history/async-backroomsv2.md");
+    Path legacy = Paths.get("src/main/assets/canon/ASYNC_BackroomsV2.md");
+    if (!Files.isRegularFile(structured)) {
+      structured = Paths.get("app/src/main/assets/content/history/async-backroomsv2.md");
+      legacy = Paths.get("app/src/main/assets/canon/ASYNC_BackroomsV2.md");
+    }
+
+    assertTrue(Files.isRegularFile(structured));
+    assertFalse(Files.exists(legacy));
+    String text = new String(Files.readAllBytes(structured), StandardCharsets.UTF_8);
+    assertTrue(text.contains("ASYNC RESEARCH INSTITUTE"));
+    assertTrue(text.contains("Project KV31"));
+  }
+
   @Test public void duplicateIdAndPathFailClosed() throws Exception {
     JSONObject source = source(
         "same", "A.md", "world/a.md", "WORLD", "WORLD_CANON", "CURRENT");
