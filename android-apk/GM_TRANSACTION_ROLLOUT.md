@@ -1,6 +1,6 @@
 # GM Transaction Rollout
 
-Status: PHASE 6C.2 — FIRST STRUCTURED CONTENT MIGRATION COMPLETE; PHASE 6C.3 NEXT
+Status: PHASE 6C.3 — ENTITY REFERENCE MIGRATION COMPLETE; PHASE 6C.4 NEXT
 
 This rollout preserves the current V2 Core/save/runtime while reintroducing GM planning authority in controlled stages. No phase may skip the transaction boundary.
 
@@ -310,7 +310,17 @@ Status: COMPLETE.
 - Tests cover structured precedence, legacy fallback, missing-source failure and the shipped ASYNC migration.
 - No gameplay authority or canon classification changed.
 
-Phase 6C.3 will migrate the next low-risk batch only after this path remains green.
+### Phase 6C.3 — Entity visual-reference migration
+
+Status: COMPLETE.
+
+- `Entity.md` was migrated unchanged to `content/entities/entity-visual-reference.md`.
+- The legacy `assets/canon/Entity.md` copy was removed; registry compatibility preserves the logical source identity `Entity.md`.
+- Registry classification remains `ENTITY_REFERENCE / REFERENCE`; this migration does not promote visual prose into Entity mechanics, spawn, damage, loot or route authority.
+- Tests verify that only the structured copy ships and that expected visual-reference content remains present.
+- Compatibility loading and retrieval behavior remain unchanged.
+
+Phase 6C.4 will migrate the next small low-risk batch after this migration remains green.
 
 Expand content without changing transaction semantics:
 

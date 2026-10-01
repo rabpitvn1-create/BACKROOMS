@@ -42,6 +42,23 @@ public class CanonRegistryTest {
     assertTrue(text.contains("Project KV31"));
   }
 
+  @Test public void entityVisualReferenceIsMigratedToStructuredContentOnly() throws Exception {
+    Path structured = Paths.get(
+        "src/main/assets/content/entities/entity-visual-reference.md");
+    Path legacy = Paths.get("src/main/assets/canon/Entity.md");
+    if (!Files.isRegularFile(structured)) {
+      structured = Paths.get(
+          "app/src/main/assets/content/entities/entity-visual-reference.md");
+      legacy = Paths.get("app/src/main/assets/canon/Entity.md");
+    }
+
+    assertTrue(Files.isRegularFile(structured));
+    assertFalse(Files.exists(legacy));
+    String text = new String(Files.readAllBytes(structured), StandardCharsets.UTF_8);
+    assertTrue(text.contains("MÔ TẢ THỊ GIÁC THỰC THỂ"));
+    assertTrue(text.contains("## Wretch"));
+  }
+
   @Test public void duplicateIdAndPathFailClosed() throws Exception {
     JSONObject source = source(
         "same", "A.md", "world/a.md", "WORLD", "WORLD_CANON", "CURRENT");
