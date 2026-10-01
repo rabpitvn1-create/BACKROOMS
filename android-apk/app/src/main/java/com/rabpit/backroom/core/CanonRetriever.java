@@ -415,7 +415,12 @@ public final class CanonRetriever {
   }
 
   private static JSONArray copyArray(JSONArray source) {
-    return source == null ? new JSONArray() : new JSONArray(source.toString());
+    if (source == null) return new JSONArray();
+    try {
+      return new JSONArray(source.toString());
+    } catch (Exception impossible) {
+      return new JSONArray();
+    }
   }
 
   private void collect(Section s, List<Section> out, Set<String> local, Set<String> used,
