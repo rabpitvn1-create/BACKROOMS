@@ -21,32 +21,35 @@ old = '''  public synchronized String commitNarration(String stateJson, boolean 
 
 new = '''  public synchronized String commitNarration(String stateJson, String turnId) {
     JSONObject submitted = parseState(stateJson);
-    JSONObject state = parseState(liveStateJson);
+    JSONObject current = parseState(liveStateJson);
     try {
-      normalizeCoreState(state);
-      JSONObject evidence = CommittedTurnNarrationEvidence.fromState(state, turnId);
-      if (!evidence.optBoolean("available", false)) {
-        throw new IllegalStateException(
-            "Committed narration evidence unavailable: " + evidence.optString("reason", "unknown"));
+      JSONArray incoming = submitted.optJSONArray("log");
+      if (incoming == null || incoming.length() < 2) return clientSafeState(current).toString();
+      int size = incoming.length();
+      JSONObject player = incoming.optJSONObject(size - 2);
+      JSONObject gm = incoming.optJSONObject(size - 1);
+      if (player == null || gm == null || !"player".equals(player.optString("role", ""))) {
+        return clientSafeState(current).toString();
       }
-      JSONArray log = submitted.optJSONArray("log");
-      if (log != null) state.put("log", new JSONArray(log.toString()));
-      if (shouldAcknowledgePendingIntro(evidence)) {
-        characterEncounterCore.acknowledgePendingIntro(state);
-      }
-      persist(state);
-      return clientSafeState(state).toString();
-    } catch (Exception e) {
-      throw new IllegalStateException("Không thể lưu narration.", e);
+      JSONArray prefix = new JSONArray();
+      for (int i = 0; i < size - 2; i++) prefix.put(incoming.get(i));
+      submitted.put("log", prefix);
+      if (prefix.length() == 0 && !current.has("log")) submitted.remove("log");
+      JSONObject root = submitted.optJSONObject(EmergentTurnEngine.ROOT_KEY);
+      JSONObject result = new JSONObject(commitPresentation(turnId,
+          root == null ? -1 : root.optInt("stateVersion", -1), fingerprint(submitted),
+          turnId + ":narration", player.optString("text", ""), gm.toString()));
+      return result.getJSONObject("state").toString();
+    } catch (Exception error) {
+      throw new IllegalStateException("Không thể lưu narration.", error);
     }
   }
 
-  /** Compatibility overload: model output no longer controls encounter acknowledgement. */
+  /** Compatibility overload: use the submitted turn, never rebind a late response to live state. */
   public synchronized String commitNarration(String stateJson, boolean ignoredModelSignal) {
-    JSONObject state = parseState(liveStateJson);
-    JSONObject root = state.optJSONObject(EmergentTurnEngine.ROOT_KEY);
-    String turnId = root == null ? "" : root.optString("lastCommittedTurnId", "");
-    return commitNarration(stateJson, turnId);
+    JSONObject submitted = parseState(stateJson);
+    JSONObject root = submitted.optJSONObject(EmergentTurnEngine.ROOT_KEY);
+    return commitNarration(stateJson, root == null ? "" : root.optString("lastCommittedTurnId", ""));
   }
 
   static boolean shouldAcknowledgePendingIntro(JSONObject evidence) {

@@ -52,19 +52,32 @@ test('preview shares turn resolution without persisting or retaining attempts', 
   assert.match(preview, /prepareExplorerTurnData\(normalized, text\)/);
   assert.match(preview, /finishWorkingTurn\(normalized, prepared, new JSONObject\(\)\)/);
   assert.doesNotMatch(preview, /\bpersist\(|preparedTurns\.(?:put|clear)/);
-  assert.match(bridge, /geminiBranchBatch\(prompt\.toString\(\)\)/);
   const batch = bridge.slice(bridge.indexOf('private JSONObject geminiBranchBatch('),
     bridge.indexOf('private boolean haikuConfigured()'));
   assert.equal((batch.match(/postJson\(/g) || []).length, 1);
   assert.doesNotMatch(batch, /generateText\(|haikuText\(|for\s*\(int attempt/);
 });
 
-test('Explorer prefetch prepares exactly the two fixed actions', () => {
+test('Explorer prefetch does not dispatch speculative provider requests', () => {
   const prefetch = bridge.slice(bridge.indexOf('private void prefetchChoices('),
     bridge.indexOf('private String worldProposalPrompt(', bridge.indexOf('private void prefetchChoices(')));
-  assert.match(prefetch, /choices\.length\(\) != 2/);
-  assert.match(prefetch, /branch A\/B/);
-  assert.doesNotMatch(prefetch, /A\/B\/C|branches A, B and C|i < 3/);
+  assert.match(prefetch, /invalidatePrefetch\(\)/);
+  assert.doesNotMatch(prefetch, /geminiBranchBatch\(|generateText\(|postJson\(|prefetchIo\.execute|previewTurn\(/);
+});
+
+test('player turn commits Core before bounded presentation and never schedules planner calls', () => {
+  const turn = bridge.slice(bridge.indexOf('public void submitTurn('), bridge.indexOf('public void combatRoll('));
+  assert.match(turn, /completePreparedTurn\(turnId, "\{\}"\)/);
+  assert.match(turn, /NarrationProviderPolicy\.present\(safeEvents/);
+  assert.match(turn, /generateNarrationText\(prompt, providerCalls/);
+  assert.match(turn, /commitPresentation\(turnId/);
+  assert.doesNotMatch(turn, /generateText\(|authoritativeGmProposal\(|scheduleShadowPlanner\(|completePreparedTurnWithGmTransaction\(/);
+  assert.ok(turn.indexOf('completePreparedTurn(') < turn.indexOf('NarrationProviderPolicy.present('));
+  const provider = bridge.slice(bridge.indexOf('private String generateNarrationText('),
+    bridge.indexOf('private String geminiResponseText('));
+  assert.match(provider, /SafePresentationView\.narrativeText/);
+  assert.match(provider, /calls\[retry \? 1 : 0\]\+\+/);
+  assert.doesNotMatch(provider, /catch \(|geminiText\(|haikuText\(|haikuTextOnce\(|sleep|attempt/);
 });
 
  test('turn-one current save survives a changed baseline prologue', () => {

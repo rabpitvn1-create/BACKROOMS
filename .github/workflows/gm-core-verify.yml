@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - feature/gm-ai-core-restoration
+      - feature/offline-presentation-boundary
     paths:
       - "android-apk/**"
       - ".github/scripts/**"

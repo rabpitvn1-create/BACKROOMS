@@ -14,7 +14,7 @@ public final class NarrationGuard {
   private static final Set<String> FORBIDDEN_ROOT_KEYS = new HashSet<>(Arrays.asList(
       "transitionTarget", "sceneLabel", "state", "stateDelta", "currentLevel",
       "currentLevelKey", "location", "flags", "inventory", "party", "combat",
-      "facts", "historicalFacts", "beliefs", "threads", "threadRegistry", "narrativeSkeleton", "emergent"));
+      "characterKnowledge", "facts", "historicalFacts", "beliefs", "threads", "threadRegistry", "narrativeSkeleton", "emergent"));
   private static final Set<String> CLAIM_KEYS = new HashSet<>(Arrays.asList(
       "eventId", "kind", "subject"));
   private static final String[] ACQUISITION_PHRASES = {
@@ -37,6 +37,13 @@ public final class NarrationGuard {
     if (committedTurnEvidence == null
         || !committedTurnEvidence.optBoolean("available", false)) {
       return "Committed turn evidence is unavailable.";
+    }
+
+    if (!CommittedTurnNarrationEvidence.hasClaim(committedTurnEvidence, "COMBAT_RESULT", "")) {
+      String text = generated.optString("reply", "").toLowerCase(Locale.ROOT);
+      if (text.contains("bị tiêu diệt") || text.contains("đã tiêu diệt") || text.contains("trận chiến kết thúc")) {
+        return "Combat closure lacks current-turn evidence.";
+      }
     }
 
     JSONArray declared = generated.optJSONArray("claims");
@@ -73,6 +80,7 @@ public final class NarrationGuard {
     if (generated == null) return "Narration payload is missing.";
     String reply = generated.optString("reply", "").trim();
     if (reply.isEmpty()) return "reply is required.";
+    if (SafePresentationView.leaks(committedState, reply)) return "Managed knowledge term in reply.";
 
     for (String key : FORBIDDEN_ROOT_KEYS) {
       if (generated.has(key)) return "Narration attempted authoritative field: " + key;
@@ -89,7 +97,17 @@ public final class NarrationGuard {
       }
     }
 
+    if (choices != null) for (int i = 0; i < choices.length(); i++) {
+      if (SafePresentationView.leaks(committedState, choices.optJSONObject(i).optString("text", ""))) {
+        return "Managed knowledge term in choice.";
+      }
+    }
     JSONArray dialogue = generated.optJSONArray("encounterDialogue");
+    if (dialogue != null) for (int i = 0; i < dialogue.length(); i++) {
+      if (SafePresentationView.leaks(committedState, dialogue.optString(i, ""))) {
+        return "Managed knowledge term in dialogue.";
+      }
+    }
     int dialogueCount = dialogue == null ? 0 : dialogue.length();
     int pendingCount = pendingEncounterCount(committedState);
     if (pendingCount == 0 && dialogueCount != 0) {

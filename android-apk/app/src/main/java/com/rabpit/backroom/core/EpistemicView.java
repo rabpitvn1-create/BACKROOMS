@@ -26,14 +26,14 @@ final class EpistemicView {
     }
 
     JSONObject combat = state.optJSONObject("combat");
-    if (combat != null && CanonVisibilityRegistry.rootVisibility("combat")
+    if (combat != null && combat.optBoolean("active", false) && CanonVisibilityRegistry.rootVisibility("combat")
         != CanonVisibilityRegistry.Visibility.EPISTEMIC) {
       output.put("combat", visibleValue(visibleCombat(combat), actorId));
     }
 
     JSONArray beliefs = actorBeliefs(state, actorId);
     if (beliefs.length() > 0) output.put("beliefs", beliefs);
-    return output;
+    return (JSONObject) SafePresentationView.value(state, actorId, output);
   }
 
   private static Object visibleValue(Object value, String actorId) throws Exception {

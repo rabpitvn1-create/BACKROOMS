@@ -579,6 +579,48 @@ public final class GameCoreFacade implements AutoCloseable {
     }
   }
 
+  public static String presentationBaseHash(JSONObject snapshot) { return fingerprint(snapshot); }
+
+  /** Validity check and append share the same lock as all authoritative writes. */
+  public synchronized String commitPresentation(String turnId, int expectedStateVersion,
+      String baseHash, String presentationId, String action, String gmEntryJson) {
+    JSONObject state = parseState(liveStateJson);
+    try {
+      JSONArray log = state.optJSONArray("log");
+      if (log == null) log = new JSONArray();
+      for (int i = 0; i < log.length(); i++) {
+        JSONObject entry = log.optJSONObject(i);
+        if (entry != null && presentationId != null
+            && presentationId.equals(entry.optString("presentationId", ""))) {
+          return response(false, state, null, "duplicate_presentation", null);
+        }
+      }
+      JSONObject root = state.optJSONObject(EmergentTurnEngine.ROOT_KEY);
+      JSONObject evidence = CommittedTurnNarrationEvidence.fromState(state, turnId);
+      if (root == null || root.optInt("stateVersion", -1) != expectedStateVersion
+          || !fingerprint(state).equals(baseHash) || !evidence.optBoolean("available", false)
+          || !(turnId + ":narration").equals(presentationId)) {
+        return response(false, state, null, "stale_presentation", null);
+      }
+      JSONObject gmEntry = new JSONObject(gmEntryJson);
+      String text = gmEntry.optString("text", "");
+      if (!"gm".equals(gmEntry.optString("role", "")) || text.trim().isEmpty()
+          || SafePresentationView.leaks(state, text)) {
+        return response(false, state, null, "unsafe_presentation", null);
+      }
+      gmEntry = (JSONObject) SafePresentationView.value(state, "cao_minh", gmEntry);
+      gmEntry.put("presentationId", presentationId);
+      log.put(new JSONObject().put("role", "player").put("text", action == null ? "" : action));
+      log.put(gmEntry);
+      state.put("log", log);
+      if (shouldAcknowledgePendingIntro(evidence)) characterEncounterCore.acknowledgePendingIntro(state);
+      persist(state);
+      return response(true, state, null, "presentation_committed", null);
+    } catch (Exception error) {
+      return response(false, parseState(liveStateJson), safeMessage(error), "presentation_rejected", null);
+    }
+  }
+
   private void applySelectedSituation(JSONObject working, JSONArray events, String turnId,
                                       JSONObject selected, JSONObject proposal) throws Exception {
     String kind = selected.optString("kind", "");
@@ -684,12 +726,35 @@ public final class GameCoreFacade implements AutoCloseable {
   }
 
   private void normalizeCoreState(JSONObject state) throws Exception {
+    CharacterKnowledge.normalize(state);
     levelCore.normalizeState(state);
     characterProgressionCore.normalizeState(state);
     survivalCore.normalizeState(state);
     itemCore.normalizeInventory(state);
     characterEncounterCore.normalizeState(state);
     CombatChoiceEngine.normalizeTerminalEncounter(state);
+  }
+
+  /** Core caller only: no JavaScript or model-output route exposes these updates. */
+  public synchronized String markNameKnown(String actor, String subject, String sourceEvent) {
+    return markKnowledge(actor, subject, "knownName", sourceEvent);
+  }
+
+  public synchronized String markEffectKnown(String actor, String subject, String sourceEvent) {
+    return markKnowledge(actor, subject, "knownEffect", sourceEvent);
+  }
+
+  private String markKnowledge(String actor, String subject, String field, String sourceEvent) {
+    JSONObject state = parseState(liveStateJson);
+    try {
+      CharacterKnowledge.normalize(state);
+      CharacterKnowledge.mark(state, actor, subject, field, sourceEvent);
+      preparedTurns.clear();
+      persist(state);
+      return clientSafeState(state).toString();
+    } catch (Exception error) {
+      throw new IllegalArgumentException("Invalid Core knowledge update", error);
+    }
   }
 
   public synchronized String startCombatRuntime(String entityKey, int gmLogIndex) {
@@ -729,6 +794,7 @@ public final class GameCoreFacade implements AutoCloseable {
               + ":" + (beforeCombat == null ? 0 : beforeCombat.optInt("actorIndex", 0)));
 
       boolean wasActive = CombatChoiceEngine.isActive(working);
+      if (!wasActive) return response(true, persisted, null, "duplicate_combat_resolution", null);
       CombatChoiceEngine.resolveFinalized(working);
       CombatChoiceEngine.normalizeTerminalEncounter(working);
       boolean active = CombatChoiceEngine.isActive(working);
@@ -773,6 +839,17 @@ public final class GameCoreFacade implements AutoCloseable {
         throw new IllegalStateException("Combat commit stateVersion drift");
       }
       working.put("saveVersion", CURRENT_SAVE_VERSION);
+      if (wasActive && !active && "victory".equals(outcome)) {
+        JSONObject evidence = CommittedTurnNarrationEvidence.fromState(working, turnId);
+        JSONObject closure = OfflinePresenter.present(
+            SafePresentationView.events(working, "cao_minh", evidence),
+            () -> { throw new IllegalStateException("Victory presentation must be offline"); });
+        JSONArray log = working.optJSONArray("log");
+        if (log == null) log = new JSONArray();
+        log.put(new JSONObject().put("role", "gm").put("text", closure.getString("reply"))
+            .put("presentationId", turnId + ":victory"));
+        working.put("log", log);
+      }
       projectBeforePersist(working);
       emergentTurnEngine.catchUpProjections(working);
       persist(working);
@@ -1261,6 +1338,7 @@ public final class GameCoreFacade implements AutoCloseable {
   private void projectBeforePersist(JSONObject state) {
     if (state == null) return;
     try {
+      CharacterKnowledge.normalize(state);
       characterProgressionCore.normalizeState(state);
       survivalCore.normalizeState(state);
       itemCore.normalizeInventory(state);
