@@ -1036,7 +1036,8 @@ public class MainActivity extends Activity {
 
           String turnId = prepared.getString("turnId");
           JSONObject selected = prepared.optJSONObject("selectedCandidate");
-          boolean offlineTurn = selected != null && OfflinePresenter.offlineKind(selected.optString("kind", ""));
+          boolean offlineTurn = prepared.optBoolean("chestOpened", false)
+              || (selected != null && OfflinePresenter.offlineKind(selected.optString("kind", "")));
           JSONObject shadowContext = null;
           String shadowPrompt = null;
           if (!offlineTurn && (BuildConfig.GM_TRANSACTION_COMMIT_ENABLED || BuildConfig.DEBUG)) {

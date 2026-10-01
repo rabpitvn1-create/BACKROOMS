@@ -664,7 +664,8 @@ public final class GameCoreFacade implements AutoCloseable {
           .put("state", clientSafeState(committedState))
           .put("turnId", prepared.turnId)
           .put("selectedCandidate", new JSONObject(prepared.selected.toString()))
-          .put("proposalRequired", prepared.selected.optBoolean("proposalRequired", false));
+          .put("proposalRequired", prepared.selected.optBoolean("proposalRequired", false))
+          .put("chestOpened", itemCore.isOpenChestAction(prepared.action));
       if (!prepared.replyHint.isEmpty()) output.put("replyHint", prepared.replyHint);
     } catch (Exception ignored) {}
     return output.toString();

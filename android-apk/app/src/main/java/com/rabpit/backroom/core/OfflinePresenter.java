@@ -9,7 +9,7 @@ public final class OfflinePresenter {
 
   private OfflinePresenter() {}
 
-  public static boolean offlineKind(String kind) { return "ENTITY".equals(kind); }
+  public static boolean offlineKind(String kind) { return "ENTITY".equals(kind) || "CHEST".equals(kind); }
 
   public static boolean isOffline(JSONArray views) {
     if (views == null) return false;
@@ -17,7 +17,8 @@ public final class OfflinePresenter {
       JSONObject view = views.optJSONObject(i);
       if (view == null) continue;
       String type = view.optString("eventType", "");
-      if ("ENTITY_ENCOUNTER_STARTED".equals(type) || "COMBAT_VICTORY".equals(type)) return true;
+      if ("ENTITY_ENCOUNTER_STARTED".equals(type) || "COMBAT_VICTORY".equals(type)
+          || "CHEST_SPAWNED".equals(type) || "CHEST_OPENED".equals(type)) return true;
     }
     return false;
   }
@@ -41,6 +42,14 @@ public final class OfflinePresenter {
             : "charge".equals(style)
                 ? subject + " lao ra và áp sát " + actor + "."
                 : subject + " xuất hiện và chắn đường " + actor + ".";
+      }
+      if ("CHEST_SPAWNED".equals(type)) {
+        sentence = view.optString("actor", "Cao Minh") + " phát hiện một chiếc rương "
+            + view.optString("chestLocation", "trong khu vực hiện tại") + ".";
+      }
+      if ("CHEST_OPENED".equals(type)) {
+        sentence = view.optString("actor", "Cao Minh") + " mở chiếc rương. Bên trong là "
+            + view.optString("loot", "một vật phẩm") + ".";
       }
       if (!sentence.isEmpty()) {
         if (reply.length() > 0) reply.append(' ');
