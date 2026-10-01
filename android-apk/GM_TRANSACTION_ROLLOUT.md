@@ -450,7 +450,17 @@ Status: COMPLETE.
 - READ FIRST knowledge firewall, `BASELINE != CURRENT STATE`, Lucia/Lục Trầm identity separation and Táng Kiếm Cốc POV/backstage boundaries are unchanged.
 - The legacy physical copy is removed in this phase; retrieval logical identity remains stable.
 
-Phase 6C.16 will review Cao Minh migration authority without using file movement to resolve the R17-local / R15-source-map conflict.
+### Phase 6C.16 — Cao Minh migration authority review
+
+Status: COMPLETE / REVIEW ONLY.
+
+- The local Markdown remains `CHARACTER_CANON / CURRENT / R17`, owner `cao_minh`, with mandatory binding `character:cao_minh`.
+- Repository source maps still identify the Drive R15 source as the external current source. This disagreement is recorded rather than reconciled.
+- Physical migration is explicitly separated from authority resolution: moving bytes must not rewrite Drive provenance, downgrade R17, promote R15, or infer which source supersedes the other.
+- Canon Registry logical identity remains `Cao_Minh_Codex.md`; the planned physical destination remains `content/characters/cao-minh.md`.
+- Cao Minh knowledge locks, OPEN fields, Diệp Minh scoped USER_RETCON and dynamic save ownership remain unchanged.
+
+Phase 6C.17 may perform a byte-preserving physical move only. The R17/R15 authority conflict remains explicit after migration.
 
 Expand content without changing transaction semantics:
 
