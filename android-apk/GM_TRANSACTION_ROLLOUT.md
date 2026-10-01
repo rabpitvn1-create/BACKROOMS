@@ -1,6 +1,6 @@
 # GM Transaction Rollout
 
-Status: PHASE 4D — GM TRANSACTION AUTHORITY WIRED BEHIND FEATURE FLAG
+Status: PHASE 5 — COMMITTED-EVIDENCE NARRATION COMPLETE; PHASE 6 NEXT
 
 This rollout preserves the current V2 Core/save/runtime while reintroducing GM planning authority in controlled stages. No phase may skip the transaction boundary.
 
@@ -239,15 +239,31 @@ V2 remains the default path while the feature flag is OFF. An enabled GM-authori
 
 ## Phase 5 — Narrator consumes committed reality only
 
+Status: COMPLETE / FROZEN.
+
 Narrator input is built after transaction commit from:
-- CommittedTurn;
+- committed-turn evidence;
 - post-commit authoritative state;
 - canon packet;
 - POV/knowledge view.
 
-Narration cannot be used as the source of state. State claims require committed-event evidence. If narration fails validation, regenerate narration from the same CommittedTurn without rerunning gameplay.
+Implemented:
+- `CommittedTurnNarrationEvidence` projects only player-observable evidence from the latest matching commit.
+- `GmNarrativePacket` exposes committed evidence separately from post-state and requires narrator `claims[]`.
+- `NarrationGuard` validates declared claims against committed `eventId + kind + subject` evidence and rejects unsupported current-turn mutation claims.
+- The Almond Water regression is covered: inventory that existed before the turn is not evidence that Almond Water was acquired during the current turn.
+- Chest/combat loot evidence is exposed explicitly to narration when Core actually committed the reward.
+- Narration retry uses the same committed turn and cannot reroll or mutate gameplay.
+- Pending character-intro acknowledgement is Core-owned and derived from committed encounter evidence rather than model output.
+- Narration may persist presentation/log data only; it is not a gameplay authority.
 
-The historical Almond Water bug is a release blocker in this phase.
+Exit gate:
+- committed state exists before narration;
+- every current-turn mutation claim must be supported by committed evidence;
+- narration failure cannot rerun gameplay;
+- historical Almond Water contradiction remains impossible;
+- Android verification and release workflows are green.
+
 
 ## Phase 6 — Canon/content platform
 
