@@ -1,6 +1,6 @@
 # GM Transaction Rollout
 
-Status: PHASE 6G.3 — STATUS / AUTHORITY MATRIX HARDENED; CLOSEOUT NEXT
+Status: PHASES 1–5 AND 6A–6G COMPLETE; DEFAULT V2 ROLLOUT / GM COMMIT FLAG OFF UNCHANGED
 
 This rollout preserves the current V2 Core/save/runtime while reintroducing GM planning authority in controlled stages. No phase may skip the transaction boundary.
 
@@ -519,9 +519,9 @@ Status: COMPLETE / CONTRACT ONLY.
 - `WRITER-SECRET` remains backstage-only and is never automatic character knowledge.
 - Actor-visible bindings are actor-scoped; POV/BELIEF cannot become global current-state authority.
 - Tests pin the knowledge firewall and `BASELINE != CURRENT STATE` invariant.
-- No runtime source is tagged or filtered by this contract yet; retrieval/narration behavior is unchanged.
+- This subphase introduced the contract; runtime actor projection and explicit Markdown filtering are integrated in 6E.2–6E.3 below.
 
-Phase 6E.2 will map live actor beliefs and canon-section visibility onto this contract before enabling section-level knowledge filtering.
+Phase 6E.2–6E.4 complete runtime projection, explicit-marker filtering and continuity protection.
 
 Expand content without changing transaction semantics:
 
@@ -534,18 +534,14 @@ content/
   items/
   factions/
   phenomena/
-characters/
-history/
-wiki/
-codex/
-continuity/
+  characters/
+  history/
+  wiki/
+  codex/
+  continuity/
 ```
 
 Canon Registry and retrieval provide bounded context to both Planner and validators. Content growth must not create new direct state-mutation paths.
-
-## Rollout rule
-
-Only one phase becomes authoritative at a time. A phase moves forward only after its regression tests and current Android CI are green. The previous authoritative path remains available until the next phase has demonstrated parity and save integrity.
 
 ### Phase 6E.2 — Runtime actor belief projection
 
@@ -603,3 +599,20 @@ Only one phase becomes authoritative at a time. A phase moves forward only after
 - CURRENT status cannot promote UNCLASSIFIED authority into retrieval. REFERENCE authority remains supplemental context and cannot provide a mandatory canon source.
 - Source supersedes remains fail-closed even when the replacing source cannot be exposed. No authority is inferred or rewritten.
 - A red/green regression pins the status/authority cross-product independently of shipped registry data.
+
+### Phase 6G.4 — Closeout
+
+Status: COMPLETE.
+
+- All twelve registered physical sources exist. The canon/content inventory contains no orphan Markdown, duplicate physical copies or duplicate source bytes.
+- Shipped-source retrieval, required dependency closure, source/section supersedes, status/authority, explicit visibility and conservative prompt budget have focused regressions.
+- JSON reload/current continuity, exact character identities, local R17 versus source-map R15, Táng Kiếm Cốc locks, Phase 1–5 transaction invariants, historical Almond Water and committed narration evidence remain in the regression suite.
+- Local verification after code hardening: 287 JVM tests, 61 Node tests and 6 Python audit tests pass. Android test/build and published APK checks are gated by both workflows at the final HEAD.
+- `CANON_RETRIEVER_README.md`, this status header and related build/source-map documentation reflect the registry-backed runtime.
+- Compatibility fallbacks remain: Core context for Markdown subject gaps, legacy source resolution and legacy actor beliefs. No proof authorizes removing them.
+- `GM_TRANSACTION_COMMIT_ENABLED` remains false by default. A future opt-in is a separate rollout decision.
+- Advisory conflicts/coverage are intentional boundaries, not automatic lore repairs: R17/R15 remains UNRESOLVED; Syvial/Level subjects retain Core compatibility; unmarked prose is reference-only and is not inferred into actor knowledge.
+
+## Rollout rule
+
+Only one phase becomes authoritative at a time. A phase moves forward only after its regression tests and current Android CI are green. The previous authoritative path remains available until the next phase has demonstrated parity and save integrity.

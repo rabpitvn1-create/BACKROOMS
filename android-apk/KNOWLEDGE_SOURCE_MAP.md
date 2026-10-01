@@ -88,4 +88,5 @@ Hai file trên đã được đồng bộ sang **Cao Minh R15**, **Lucia Lục s
 - Default equipment set: Huyết Ma Kiếm, Huyết Ma Chiến Khải, Vạn Tàng Giới.
 - CharacterEncounterCore sở hữu spawn/join character.
 - Gameplay numbers không tự biến thành lore.
-- New-game canon version: `cao-minh-r15`; save thuộc canon cũ được reset về baseline R15 thay vì trộn hai continuity.
+- New-game machine-readable baseline remains `cao-minh-r15`. A valid current Cao Minh checkpoint owns DYNAMIC continuity; baseline/prologue updates do not reset injury, depletion, inventory, location, knowledge, relationships, promises, debts or consequences. Existing explicit retired-protagonist opening compatibility remains.
+- Registry-backed local Markdown is R17, while this external/source-map baseline remains R15. This conflict is recorded as UNRESOLVED; Phase 6 does not infer a superseding authority or rewrite either source.
