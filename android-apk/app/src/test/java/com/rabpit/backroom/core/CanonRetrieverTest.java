@@ -301,6 +301,14 @@ public class CanonRetrieverTest {
     assertEquals("WORLD_CANON", currentMeta.getString("authority"));
     assertEquals("CURRENT", currentMeta.getString("status"));
     assertEquals("R1", currentMeta.getString("version"));
+    assertEquals("Current.md", currentMeta.getString("path"));
+    assertEquals("world/current.md", currentMeta.getString("contentPath"));
+    assertEquals("WORLD", currentMeta.getString("type"));
+    assertEquals("", currentMeta.getString("owner"));
+    JSONObject selection = currentMeta.getJSONArray("selectionReasons").getJSONObject(0);
+    assertEquals("supplemental", selection.getString("role"));
+    assertTrue(selection.getString("reason").startsWith("search:"));
+    assertTrue(selection.getString("sectionId").startsWith("current::"));
     assertEquals("dependency", currentMeta.getJSONArray("dependencies").getString(0));
 
     metadata.getJSONObject(0).put("authority", "MUTATED");
@@ -341,6 +349,64 @@ public class CanonRetrieverTest {
     assertFalse(packet.requiredComplete);
     assertFalse(packet.missingRefs.isEmpty());
     assertFalse(packet.promptText().contains("OLD_FACT"));
+  }
+
+  @Test public void mandatoryHeuristicsCannotBypassRegistryStatusOrSupersedes() throws Exception {
+    Map<String, String> files = new LinkedHashMap<>();
+    files.put("BACKROOMS_WORLD.md", "# World\n## Tầng 0 — Lobby\nOLD_WORLD_FACT\n");
+    files.put("Hero.md", "# Hero\n## Identity\nHero\n");
+    JSONObject old = registrySource("world", "BACKROOMS_WORLD.md", "world/world.md", "WORLD",
+        "WORLD_CANON", "CURRENT", new JSONArray());
+    JSONObject hero = registrySource("hero", "Hero.md", "characters/hero.md", "CHARACTER",
+        "CHARACTER_CANON", "CURRENT", new JSONArray().put("character:cao_minh"))
+        .put("supersedes", new JSONArray().put("world"));
+    JSONObject registry = new JSONObject().put("schemaVersion", 1)
+        .put("sources", new JSONArray().put(old).put(hero));
+    CanonRetriever.CanonPacket packet = new CanonRetriever(files, registry).retrieve(state(), "đợi", 4000, true);
+    assertTrue(packet.missingMandatoryRefs.contains("level:0"));
+    assertFalse(packet.promptText().contains("OLD_WORLD_FACT"));
+    hero.put("supersedes", new JSONArray());
+    old.put("status", "CANDIDATE");
+    assertFalse(new CanonRetriever(files, registry).retrieve(state(), "đợi", 4000, true)
+        .promptText().contains("OLD_WORLD_FACT"));
+    assertTrue(new CanonRetriever(files).retrieve(state(), "đợi", 4000, true)
+        .promptText().contains("OLD_WORLD_FACT"));
+  }
+
+  @Test public void shippedRegistryRetrievalIsReadOnlyBudgetedAndDeterministic() throws Exception {
+    Path assets = Paths.get("app/src/main/assets");
+    if (!Files.isDirectory(assets)) assets = Paths.get("src/main/assets");
+    JSONObject registry = new JSONObject(Files.readString(assets.resolve("canon/canon-registry.json")));
+    Map<String, String> physical = new LinkedHashMap<>();
+    JSONArray sources = registry.getJSONArray("sources");
+    JSONArray reversed = new JSONArray();
+    for (int i = 0; i < sources.length(); i++) {
+      JSONObject source = sources.getJSONObject(i);
+      String path = source.getString("contentPath");
+      physical.put(path, Files.readString(assets.resolve("content").resolve(path)));
+      reversed.put(sources.getJSONObject(sources.length() - i - 1));
+    }
+    Map<String, String> resolved = CanonRetriever.resolveRegistrySources(registry, Map.of(), physical);
+    JSONObject scene = state().put("party", new JSONArray()
+        .put(new JSONObject().put("id", "lucia").put("present", true))
+        .put(new JSONObject().put("id", "luc_tram").put("present", true)));
+    String before = scene.toString();
+    CanonRetriever.CanonPacket packet = new CanonRetriever(resolved, registry)
+        .retrieve(scene, "đợi", CanonRetriever.DEFAULT_BUDGET, true, "Level 0 — The Lobby");
+    JSONObject reorder = new JSONObject().put("schemaVersion", 1).put("sources", reversed);
+    CanonRetriever.CanonPacket same = new CanonRetriever(resolved, reorder)
+        .retrieve(scene, "đợi", CanonRetriever.DEFAULT_BUDGET, true, "Level 0 — The Lobby");
+    assertEquals(before, scene.toString());
+    assertTrue(packet.requiredComplete);
+    assertFalse(packet.budgetExceeded);
+    assertTrue(packet.charCount <= CanonRetriever.DEFAULT_BUDGET);
+    assertEquals(packet.promptText(), same.promptText());
+    assertEquals(packet.sourceMetadata().toString(), same.sourceMetadata().toString());
+    for (CanonRetriever.Selected selected : packet.all()) {
+      assertTrue(KnowledgeContinuityFirewall.canExposeMarkdown(
+          selected.section.headingPath, selected.section.rawText));
+    }
+    assertTrue(new CanonRetriever(resolved, registry).retrieve(scene, "đợi", 1, true).budgetExceeded);
   }
 
   private static JSONObject registrySource(

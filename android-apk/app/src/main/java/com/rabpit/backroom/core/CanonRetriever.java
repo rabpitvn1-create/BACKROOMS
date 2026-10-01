@@ -413,6 +413,18 @@ public final class CanonRetriever {
             .put("mandatoryFor", copyArray(source.optJSONArray("mandatoryFor")))
             .put("dependencies", copyArray(source.optJSONArray("dependencies")))
             .put("supersedes", copyArray(source.optJSONArray("supersedes")));
+        JSONArray selections = new JSONArray();
+        List<List<Selected>> groups = Arrays.asList(mandatory, dependencies, supplemental);
+        String[] roles = {"mandatory", "dependency", "supplemental"};
+        for (int group = 0; group < groups.size(); group++) {
+          for (Selected selected : groups.get(group)) {
+            if (path.equals(selected.section.sourceFile)) {
+              selections.put(new JSONObject().put("sectionId", selected.section.sectionId)
+                  .put("role", roles[group]).put("reason", selected.reason));
+            }
+          }
+        }
+        projected.put("selectionReasons", selections);
         output.put(projected);
       } catch (Exception error) {
         throw new IllegalStateException("canon_packet_metadata_failed", error);
@@ -518,7 +530,7 @@ public final class CanonRetriever {
               || (!expectedLevelHeading.isEmpty() && heading.equals(expectedLevelHeading))))
           : "entity".equals(parts[0]) ? heading.equals(key) || file.equals(key)
           : file.startsWith(key) && (file.contains("codex") || heading.equals(key));
-      if (belongs && KnowledgeContinuityFirewall.canExposeMarkdown(s.headingPath, s.rawText)
+      if (belongs && sourceAllowed(s, true)
           && !("level".equals(parts[0])
           && conflictsWithLevel(s, parts.length > 1 ? parts[1] : "", levelDisplayName))) {
         candidates.add(s);
@@ -554,7 +566,7 @@ public final class CanonRetriever {
               || (!expectedLevelHeading.isEmpty() && heading.equals(expectedLevelHeading)))
           : "entity".equals(type) ? heading.equals(key) || s.fileTerms.equals(key)
           : true;
-      if (belongs && KnowledgeContinuityFirewall.canExposeMarkdown(s.headingPath, s.rawText)
+      if (belongs && sourceAllowed(s, true)
           && !("level".equals(type)
           && conflictsWithLevel(s, parts.length > 1 ? parts[1] : "", levelDisplayName))) {
         candidates.add(s);

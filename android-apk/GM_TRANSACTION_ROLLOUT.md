@@ -1,6 +1,6 @@
 # GM Transaction Rollout
 
-Status: PHASE 6F — CONTENT TOOLING IMPLEMENTED; PHASE 6G HARDENING NEXT
+Status: PHASE 6G.1 — RETRIEVAL / REGRESSION HARDENING IMPLEMENTED; CLOSEOUT NEXT
 
 This rollout preserves the current V2 Core/save/runtime while reintroducing GM planning authority in controlled stages. No phase may skip the transaction boundary.
 
@@ -583,3 +583,11 @@ Only one phase becomes authoritative at a time. A phase moves forward only after
 - Current audit: 12 sources present; no orphan Markdown or duplicate physical/byte copies. Character mandatory bindings cover Cao Minh, Lucia and Lục Trầm. Syvial and Level subjects still require existing Core/heading compatibility, reported explicitly rather than removed.
 - Cao Minh local R17 versus source-map R15 remains `UNRESOLVED`. Unmarked prose remains reference-only; marker counts do not automatically classify lore or confer character knowledge.
 - Phase 6F is implemented with standard-library Python; both workflows enforce structural errors while preserving advisory authority/coverage reports.
+
+### Phase 6G.1 — Retrieval and audit hardening
+
+- Mandatory filename/heading compatibility now obeys the same CURRENT/status/supersedes/visibility guards as explicit registry bindings. It cannot resurrect a replaced source.
+- Packet metadata includes deterministic per-section selection reasons and roles, linked to source logical/physical identity. Metadata remains absent from lore prose.
+- Shipped-registry regressions exercise all physical sources, reordered registry entries, state immutability, default prompt budget, tiny-budget failure and explicit knowledge boundaries.
+- Existing save, identity, authority-conflict, GM transaction, historical Almond Water and narration evidence regressions remain in the complete CI suite.
+- Compatibility fallback and default-off GM transaction rollout flag remain unchanged.
