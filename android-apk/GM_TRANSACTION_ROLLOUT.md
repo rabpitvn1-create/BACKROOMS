@@ -1,6 +1,6 @@
 # GM Transaction Rollout
 
-Status: PHASE 6A — CANON INVENTORY COMPLETE; PHASE 6B NEXT
+Status: PHASE 6B — CANON REGISTRY SCHEMA COMPLETE; PHASE 6C NEXT
 
 This rollout preserves the current V2 Core/save/runtime while reintroducing GM planning authority in controlled stages. No phase may skip the transaction boundary.
 
@@ -277,7 +277,18 @@ Status: COMPLETE / AUDIT ONLY.
 - Verified coverage/authority gaps are recorded, including Syvial's missing Markdown mirror, the out-of-pool scoped `DIEP_MINH_CANON.md`, and the Cao Minh R17 local declaration versus R15 source-map statements.
 - No source was moved, rewritten or reconciled and runtime retrieval behavior is unchanged.
 
-Phase 6B will define the registry schema and validation rules only after this inventory is frozen.
+### Phase 6B — Canon registry schema and validation
+
+Status: COMPLETE / NOT YET USED BY RETRIEVAL.
+
+- `canon-registry.json` explicitly registers the twelve Markdown sources inventoried in 6A.
+- Each source records stable ID, file path, type, authority, status, version/owner, dependencies, mandatory subjects, supersedes and an audit note.
+- `CanonRegistry` validates schema version, unknown fields, source IDs/paths, authority/type/status enums, character ownership, duplicate IDs/paths, dependency/supersedes references and dependency cycles.
+- The shipped registry deliberately preserves 6A uncertainty: unclassified/candidate sources are not silently promoted to CURRENT canon.
+- `CanonRegistryTest` validates the shipped registry and fail-closed behavior for duplicate IDs, missing references, cycles, unknown authority/fields and missing character owner.
+- `CanonRetriever` does not consume the registry yet. Runtime retrieval and gameplay behavior are unchanged.
+
+Phase 6C will introduce the structured content layout in small migration batches while preserving compatibility with the current asset paths.
 
 Expand content without changing transaction semantics:
 
