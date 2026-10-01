@@ -91,7 +91,7 @@ public final class NarrationGuard {
     }
 
     if (choices != null) for (int i = 0; i < choices.length(); i++) {
-      if (SafePresentationView.leaks(committedState, choices.getJSONObject(i).optString("text", ""))) {
+      if (SafePresentationView.leaks(committedState, choices.optJSONObject(i).optString("text", ""))) {
         return "Managed knowledge term in choice.";
       }
     }
