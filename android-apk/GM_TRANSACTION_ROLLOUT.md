@@ -384,7 +384,18 @@ Status: COMPLETE.
 - Tests verify that only the structured copy ships and that project hard-lock/Core-authority markers remain present.
 - Compatibility loading and retrieval behavior remain unchanged.
 
-Phase 6C.10 will begin character-source migration only after a separate authority review.
+### Phase 6C.10 — Character migration authority review
+
+Status: COMPLETE / NO CHARACTER SOURCE MOVED.
+
+- `CHARACTER_MIGRATION_REVIEW_PHASE6C10.md` records the current repository authority for all remaining character Markdown sources before any move.
+- Trác Lâm is the lowest-risk next migration: registry status remains `CHARACTER / UNCLASSIFIED / UNCLASSIFIED`, it has no `mandatoryFor` binding, and no repository source-map marks the local file as CURRENT character canon.
+- Lucia remains a scoped CURRENT USER_RETCON and must retain the hard identity split `lucia != luc_tram`.
+- Lục Trầm remains CURRENT CHARACTER_CANON R05 and owns `character:luc_tram` mandatory retrieval.
+- Cao Minh remains blocked from authority cleanup: the local R17 declaration and repository source maps naming Drive R15 are intentionally not reconciled by migration.
+- File movement must not promote, demote, merge or reconcile any character source.
+
+Phase 6C.11 will migrate only Trác Lâm, preserving its UNCLASSIFIED authority/status.
 
 Expand content without changing transaction semantics:
 
