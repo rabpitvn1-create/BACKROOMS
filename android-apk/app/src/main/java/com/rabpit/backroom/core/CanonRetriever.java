@@ -83,10 +83,11 @@ public final class CanonRetriever {
     public final List<String> missingMandatoryRefs, missingRefs, trace;
     public final int charCount;
     public final boolean budgetExceeded;
+    public final boolean requiredComplete;
     private final String sourceMetadataJson;
     private CanonPacket(List<Selected> mandatory, List<Selected> dependencies,
         List<Selected> supplemental, List<String> missingMandatoryRefs, List<String> missingRefs,
-        List<String> trace, int charCount, boolean budgetExceeded, JSONArray sourceMetadata) {
+        List<String> trace, int charCount, boolean budgetExceeded, boolean requiredComplete, JSONArray sourceMetadata) {
       this.mandatory = Collections.unmodifiableList(new ArrayList<>(mandatory));
       this.dependencies = Collections.unmodifiableList(new ArrayList<>(dependencies));
       this.supplemental = Collections.unmodifiableList(new ArrayList<>(supplemental));
@@ -95,6 +96,7 @@ public final class CanonRetriever {
       this.trace = Collections.unmodifiableList(new ArrayList<>(trace));
       this.charCount = charCount;
       this.budgetExceeded = budgetExceeded;
+      this.requiredComplete = requiredComplete;
       this.sourceMetadataJson = sourceMetadata == null ? "[]" : sourceMetadata.toString();
     }
     public JSONArray sourceMetadata() {
@@ -329,7 +331,7 @@ public final class CanonRetriever {
       }
       for (String ref : s.requires) {
         Section target = byId.get(ref);
-        if (target == null) {
+        if (target == null || !sourceAllowed(target, false)) {
           String failure = s.sectionId + " -> " + ref;
           missingRefs.add(failure);
           missing.add(failure);
@@ -341,6 +343,7 @@ public final class CanonRetriever {
         }
       }
     }
+    boolean requiredComplete = missingRefs.isEmpty();
     if (size > budget) exceeded = true;
     if (!exceeded) {
       String query = normalize(action == null ? "" : action);
@@ -379,7 +382,7 @@ public final class CanonRetriever {
     JSONArray sourceMetadata = packetSourceMetadata(mandatory, dependencies, supplemental);
     return new CanonPacket(
         mandatory, dependencies, supplemental, missing, missingRefs, trace, size, exceeded,
-        sourceMetadata);
+        requiredComplete, sourceMetadata);
   }
 
   private JSONArray packetSourceMetadata(
@@ -436,12 +439,13 @@ public final class CanonRetriever {
     }
     for (String ref : s.requires) {
       Section next = byId.get(ref);
-      if (next == null) missing.add(s.sectionId + " -> " + ref);
+      if (next == null || !sourceAllowed(next, false)) missing.add(s.sectionId + " -> " + ref);
       else collect(next, out, local, used, missing);
     }
   }
 
   private boolean sourceAllowed(Section section, boolean mandatory) {
+    if (!KnowledgeContinuityFirewall.canExposeMarkdown(section.headingPath, section.rawText)) return false;
     if (!registryBacked) return true;
     JSONObject source = registryByPath.get(section.sourceFile);
     return source != null && sourceAllowed(source, mandatory);
@@ -471,7 +475,8 @@ public final class CanonRetriever {
       }
       List<Section> dependencySections =
           sectionsForSource(dependency.optString("path", ""));
-      if (dependencySections.isEmpty()) {
+      if (dependencySections.isEmpty()
+          || dependencySections.stream().anyMatch(s -> !sourceAllowed(s, false))) {
         missing.add("registry:" + source.optString("id", section.sourceFile)
             + " -> " + dependencyId);
       } else {
@@ -513,7 +518,8 @@ public final class CanonRetriever {
               || (!expectedLevelHeading.isEmpty() && heading.equals(expectedLevelHeading))))
           : "entity".equals(parts[0]) ? heading.equals(key) || file.equals(key)
           : file.startsWith(key) && (file.contains("codex") || heading.equals(key));
-      if (belongs && !("level".equals(parts[0])
+      if (belongs && KnowledgeContinuityFirewall.canExposeMarkdown(s.headingPath, s.rawText)
+          && !("level".equals(parts[0])
           && conflictsWithLevel(s, parts.length > 1 ? parts[1] : "", levelDisplayName))) {
         candidates.add(s);
       }
@@ -548,7 +554,8 @@ public final class CanonRetriever {
               || (!expectedLevelHeading.isEmpty() && heading.equals(expectedLevelHeading)))
           : "entity".equals(type) ? heading.equals(key) || s.fileTerms.equals(key)
           : true;
-      if (belongs && !("level".equals(type)
+      if (belongs && KnowledgeContinuityFirewall.canExposeMarkdown(s.headingPath, s.rawText)
+          && !("level".equals(type)
           && conflictsWithLevel(s, parts.length > 1 ? parts[1] : "", levelDisplayName))) {
         candidates.add(s);
       }

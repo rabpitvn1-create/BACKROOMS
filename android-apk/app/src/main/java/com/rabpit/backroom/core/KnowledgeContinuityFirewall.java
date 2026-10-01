@@ -153,6 +153,17 @@ public final class KnowledgeContinuityFirewall {
         .put("truthRole", "ACTOR_BELIEF");
   }
 
+  /** Conservative explicit-marker boundary. Never infer unmarked lore classifications. */
+  static boolean canExposeMarkdown(String headingPath, String rawText) {
+    String text = ((headingPath == null ? "" : headingPath) + "\n"
+        + (rawText == null ? "" : rawText)).toUpperCase(java.util.Locale.ROOT)
+        .replaceAll("(REQUIRES|REFS)=[^;>]*", "");
+    return !text.matches("(?s).*(WRITER-SECRET|KNOWLEDGE[ _]LOCK|TUYỆT MẬT|"
+        + "CROSS-CANON WARNING|DYNAMIC WARNING|"
+        + "CLASS\\s*=\\s*(CROSS-CANON|POV/BELIEF|DYNAMIC|OPEN/UNKNOWN)|"
+        + "\\[(POV/BELIEF|CROSS-CANON|DYNAMIC|OPEN/UNKNOWN)\\]).*");
+  }
+
   static String promptContext() {
     return "KNOWLEDGE FIREWALL: SELF-CANON belongs to its owner; CROSS-CANON needs the owner's "
         + "current source. POV/BELIEF is subjective. WRITER-SECRET is not character knowledge. "

@@ -667,7 +667,7 @@ public class MainActivity extends Activity {
     CanonRetriever.CanonPacket canon = canonRetriever == null ? null
         : canonRetriever.retrieve(state, action, CanonRetriever.DEFAULT_BUDGET,
             BuildConfig.DEBUG, levelName);
-    if (canon == null || canon.budgetExceeded) {
+    if (canon == null || canon.budgetExceeded || !canon.requiredComplete) {
       Log.w(TAG, "Canon retrieval unavailable/over budget/missing refs: "
           + (canon == null ? "index unavailable" : "size=" + canon.charCount
               + " missing=" + canon.missingMandatoryRefs + " requires=" + canon.missingRefs));
@@ -701,7 +701,7 @@ public class MainActivity extends Activity {
         ? levelContext.substring("CURRENT LEVEL NODE: ".length()).split("\\n", 2)[0] : "";
     CanonRetriever.CanonPacket canon = canonRetriever == null ? null
         : canonRetriever.retrieve(state, action, CanonRetriever.DEFAULT_BUDGET, true, levelName);
-    if (canon == null || canon.budgetExceeded || !canon.missingMandatoryRefs.isEmpty()) {
+    if (canon == null || canon.budgetExceeded || !canon.requiredComplete || !canon.missingMandatoryRefs.isEmpty()) {
       throw new IllegalStateException("Shadow planner canon unavailable or incomplete.");
     }
     JSONObject knowledgeView = GmNarrativePacket.projectState(state);

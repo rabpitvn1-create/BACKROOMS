@@ -64,3 +64,7 @@ Inspect source Markdown and this contract; copy the file verbatim; run parser an
 - Do not add embeddings or a vector database without evidence that the current search fails.
 - Do not rewrite Core, continuity or skeleton architecture to add a canon type.
 - Prefer data-driven behavior when adding Markdown; test the resulting selection and budget.
+
+## Knowledge boundary (Phase 6E)
+
+Explicit secret and knowledge-lock markers, inherited restricted headings and explicit POV/cross-canon/dynamic/open boundary markers are withheld from retrieval. The conservative filter uses declared markers only; unmarked prose is not automatically classified. Section requires cannot bypass status/supersedes or visibility. A restricted dependency source fails closed as a whole source. `requiredComplete=false` stops Planner/Narrator calls when mandatory dependency closure fails; missing Markdown subject coverage still uses existing Core compatibility context. Actor beliefs with explicit knowledge bindings pass the separate firewall; legacy beliefs stay subjective/UNKNOWN and never become canon. Live continuity wins over baseline for all mutable state.

@@ -1,6 +1,6 @@
 # GM Transaction Rollout
 
-Status: PHASE 6E.2 — ACTOR PROJECTION IMPLEMENTED; MARKDOWN BOUNDARY NEXT
+Status: PHASE 6E.3 — MARKDOWN KNOWLEDGE BOUNDARY IMPLEMENTED; CONTINUITY AUDIT NEXT
 
 This rollout preserves the current V2 Core/save/runtime while reintroducing GM planning authority in controlled stages. No phase may skip the transaction boundary.
 
@@ -554,3 +554,10 @@ Only one phase becomes authoritative at a time. A phase moves forward only after
 - Legacy beliefs remain subjective with UNKNOWN provenance; arbitrary hidden fields and unvalidated confirmedFactId are not exposed. Saves are not rewritten.
 - Planner and Narrator share the same knowledge/continuity instruction. No lore authority conflict is reconciled.
 - Regression: actor identity, writer-secret exclusion, OPEN exclusion, defensive projection and legacy compatibility.
+
+### Phase 6E.3 — Explicit Markdown boundaries
+
+- Retrieval conservatively excludes explicit writer-secret/KNOWLEDGE LOCK markers, inherited secret headings, and explicit POV/cross-canon/dynamic/open boundary markers. It does not infer classifications from unmarked prose or edit lore.
+- Section requires cannot bypass source authority or supersedes. A dependency source containing restricted sections fails closed as a whole closure.
+- `CanonPacket.requiredComplete` distinguishes failed required dependency closure from absent optional Markdown subject coverage. Planner/Narrator callers reject incomplete required closure. Core Level/Entity compatibility context remains available for missing subject coverage.
+- Untagged prose remains reference context, never actor knowledge or mutable continuity authority; boundary audit reports it rather than inventing lore tags.

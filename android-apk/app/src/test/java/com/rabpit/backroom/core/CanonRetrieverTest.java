@@ -307,6 +307,42 @@ public class CanonRetrieverTest {
     assertFalse(packet.sourceMetadata().toString().contains("MUTATED"));
   }
 
+  @Test public void explicitWriterMarkersAndInheritedSecretHeadingsCannotEnterPrompt() throws Exception {
+    Map<String, String> files = wiki();
+    files.put("Secrets.md", "# KNOWLEDGE LOCK\n## Public-looking child\nHIDDEN_FACT\n"
+        + "# Ordinary\nPUBLIC_FACT\n");
+    CanonRetriever index = new CanonRetriever(files);
+    assertFalse(index.retrieve(state(), "Public-looking child", 4000, true)
+        .promptText().contains("HIDDEN_FACT"));
+    assertTrue(index.retrieve(state(), "Ordinary", 4000, true).promptText().contains("PUBLIC_FACT"));
+    files.put("Extra.md", "# Extra\n## Alpha\n"
+        + "<!-- canon: requires=secrets::knowledge_lock_public_looking_child -->\nA\n");
+    CanonRetriever.CanonPacket blocked = new CanonRetriever(files).retrieve(state(), "Alpha", 4000, true);
+    assertTrue(blocked.supplemental.isEmpty());
+    assertFalse(blocked.missingRefs.isEmpty());
+    assertFalse(blocked.promptText().contains("HIDDEN_FACT"));
+  }
+
+  @Test public void sectionRequiresCannotBypassSupersedesAndMandatoryFailureIsExplicit() throws Exception {
+    Map<String, String> files = wiki();
+    files.put("Hero.md", "# Hero\n## Identity\nHero\n<!-- canon: requires=old::old_topic -->\n");
+    files.put("Current.md", "# Current\nCurrent\n");
+    files.put("Old.md", "# Old Topic\nOLD_FACT\n");
+    JSONObject hero = registrySource("hero", "Hero.md", "characters/hero.md", "CHARACTER",
+        "CHARACTER_CANON", "CURRENT", new JSONArray().put("character:cao_minh"));
+    JSONObject current = registrySource("current", "Current.md", "world/current.md", "WORLD",
+        "WORLD_CANON", "CURRENT", new JSONArray()).put("supersedes", new JSONArray().put("old"));
+    JSONObject old = registrySource("old", "Old.md", "world/old.md", "WORLD",
+        "WORLD_CANON", "CURRENT", new JSONArray());
+    JSONObject registry = new JSONObject().put("schemaVersion", 1)
+        .put("sources", new JSONArray().put(hero).put(current).put(old));
+    CanonRetriever.CanonPacket packet = new CanonRetriever(files, registry)
+        .retrieve(state(), "đợi", 4000, true);
+    assertFalse(packet.requiredComplete);
+    assertFalse(packet.missingRefs.isEmpty());
+    assertFalse(packet.promptText().contains("OLD_FACT"));
+  }
+
   private static JSONObject registrySource(
       String id, String path, String contentPath, String type, String authority, String status,
       JSONArray mandatoryFor) throws Exception {
