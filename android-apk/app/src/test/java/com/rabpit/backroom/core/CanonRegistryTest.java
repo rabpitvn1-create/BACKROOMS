@@ -28,8 +28,10 @@ public class CanonRegistryTest {
   }
 
   @Test public void duplicateIdAndPathFailClosed() throws Exception {
-    JSONObject source = source("same", "A.md", "WORLD", "WORLD_CANON", "CURRENT");
-    JSONObject duplicate = source("same", "A.md", "WORLD", "WORLD_CANON", "CURRENT");
+    JSONObject source = source(
+        "same", "A.md", "world/a.md", "WORLD", "WORLD_CANON", "CURRENT");
+    JSONObject duplicate = source(
+        "same", "A.md", "world/a.md", "WORLD", "WORLD_CANON", "CURRENT");
     JSONObject registry = registry(source, duplicate);
 
     JSONObject validation = CanonRegistry.validate(registry);
@@ -38,11 +40,14 @@ public class CanonRegistryTest {
     assertFalse(validation.getBoolean("valid"));
     assertTrue(errors.contains("source_id_duplicate:same"));
     assertTrue(errors.contains("source_path_duplicate:A.md"));
+    assertTrue(errors.contains("source_content_path_duplicate:world/a.md"));
   }
 
   @Test public void missingDependencyAndCycleAreVisible() throws Exception {
-    JSONObject a = source("a", "A.md", "WORLD", "WORLD_CANON", "CURRENT");
-    JSONObject b = source("b", "B.md", "HISTORY", "UNCLASSIFIED", "UNCLASSIFIED");
+    JSONObject a = source(
+        "a", "A.md", "world/a.md", "WORLD", "WORLD_CANON", "CURRENT");
+    JSONObject b = source(
+        "b", "B.md", "history/b.md", "HISTORY", "UNCLASSIFIED", "UNCLASSIFIED");
     a.put("dependencies", new JSONArray().put("b"));
     b.put("dependencies", new JSONArray().put("a").put("missing"));
 
@@ -55,7 +60,8 @@ public class CanonRegistryTest {
   }
 
   @Test public void unknownAuthorityAndUnknownFieldFailClosed() throws Exception {
-    JSONObject source = source("a", "A.md", "WORLD", "NOT_REAL", "CURRENT")
+    JSONObject source = source(
+        "a", "A.md", "world/a.md", "WORLD", "NOT_REAL", "CURRENT")
         .put("mystery", true);
 
     JSONObject validation = CanonRegistry.validate(registry(source));
@@ -66,9 +72,21 @@ public class CanonRegistryTest {
     assertTrue(errors.contains("unknown_field:source:0:mystery"));
   }
 
+  @Test public void invalidStructuredContentPathFailsClosed() throws Exception {
+    JSONObject source = source(
+        "world", "World.md", "../outside.md", "WORLD", "WORLD_CANON", "CURRENT");
+
+    JSONObject validation = CanonRegistry.validate(registry(source));
+
+    assertFalse(validation.getBoolean("valid"));
+    assertTrue(validation.getJSONArray("errors").toString()
+        .contains("source_content_path_invalid:world"));
+  }
+
   @Test public void characterAuthorityRequiresOwner() throws Exception {
     JSONObject source = source(
-        "cao-minh", "Cao_Minh_Codex.md", "CHARACTER", "CHARACTER_CANON", "CURRENT");
+        "cao-minh", "Cao_Minh_Codex.md", "characters/cao-minh.md",
+        "CHARACTER", "CHARACTER_CANON", "CURRENT");
 
     JSONObject validation = CanonRegistry.validate(registry(source));
 
@@ -78,7 +96,8 @@ public class CanonRegistryTest {
   }
 
   @Test public void byIdReturnsDefensiveCopiesOnlyForValidRegistry() throws Exception {
-    JSONObject source = source("world", "World.md", "WORLD", "WORLD_CANON", "CURRENT");
+    JSONObject source = source(
+        "world", "World.md", "world/world.md", "WORLD", "WORLD_CANON", "CURRENT");
     JSONObject registry = registry(source);
 
     JSONObject copy = CanonRegistry.byId(registry).get("world");
@@ -97,10 +116,12 @@ public class CanonRegistryTest {
   }
 
   private static JSONObject source(
-      String id, String path, String type, String authority, String status) throws Exception {
+      String id, String path, String contentPath, String type, String authority, String status)
+      throws Exception {
     return new JSONObject()
         .put("id", id)
         .put("path", path)
+        .put("contentPath", contentPath)
         .put("type", type)
         .put("authority", authority)
         .put("status", status)
