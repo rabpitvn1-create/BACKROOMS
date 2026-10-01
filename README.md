@@ -14,9 +14,9 @@ Thiết kế và quy trình mở rộng Markdown canon: [Canon Retriever contrac
 
 ## Phiên bản hiện tại
 
-**Backroom 1.1.71** (`versionCode 115`). Giữ nguyên baseline V2 hiện hành, cấu hình Haku mới và hai lựa chọn Explorer cố định Khám phá / Tìm kiếm.
+**Backroom 1.1.72** (`versionCode 116`). Hoàn tất rollout Phase 6 với GM transaction authority, canon registry/knowledge firewall fail-closed và các chỉnh sửa nhân vật hiện hành.
 
-APK debug và ghi chú phiên bản được phát hành tại [GitHub Releases](https://github.com/rabpitvn1-create/BACKROOMS/releases). Xem [ghi chú 1.1.71](android-apk/RELEASE_NOTES_1.1.71.txt) để biết các thay đổi.
+APK debug và ghi chú phiên bản được phát hành tại [GitHub Releases](https://github.com/rabpitvn1-create/BACKROOMS/releases). Xem [ghi chú 1.1.72](android-apk/RELEASE_NOTES_1.1.72.txt) để biết các thay đổi.
 
 ## Build cục bộ
 

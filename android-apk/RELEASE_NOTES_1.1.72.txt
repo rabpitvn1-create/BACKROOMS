@@ -1,0 +1,7 @@
+Backroom 1.1.72
+
+- Hoàn tất Phase 6 GM transaction rollout: shadow planning, selection/commit gates, authoritative turn resolution và narration evidence được tách rõ khỏi state có thẩm quyền.
+- Củng cố canon registry với dependency/supersedes, authority metadata, provenance và audit; các nguồn không phân loại, reference-only hoặc vi phạm boundary bị xử lý fail-closed.
+- Thêm knowledge continuity firewall và actor knowledge projection để ngăn hidden/backstage knowledge rò vào góc nhìn nhân vật.
+- Giữ các chỉnh sửa nhân vật hiện hành: Lucia Lục dùng font thường và avatar đóng gói từ Google Drive; Đại Đạo Ma Tôn dùng +10% STR/DEF/SKL/VIT theo stat gốc.
+- Bump version từ 1.1.71 lên 1.1.72 (versionCode 116).
