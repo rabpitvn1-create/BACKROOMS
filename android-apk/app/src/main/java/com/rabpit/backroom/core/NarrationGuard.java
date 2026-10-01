@@ -141,8 +141,22 @@ public final class NarrationGuard {
       if (!CommittedTurnNarrationEvidence.hasClaim(evidence, "ITEM_ACQUIRED", item)) {
         return "Narration claims item acquisition without committed evidence: " + item;
       }
+      if (!declaresClaim(generated.optJSONArray("claims"), "ITEM_ACQUIRED", item)) {
+        return "Narration item acquisition is missing a declared evidence claim: " + item;
+      }
     }
     return "";
+  }
+
+  private static boolean declaresClaim(JSONArray claims, String kind, String subject) {
+    if (claims == null) return false;
+    for (int i = 0; i < claims.length(); i++) {
+      JSONObject claim = claims.optJSONObject(i);
+      if (claim == null) continue;
+      if (kind.equals(claim.optString("kind", ""))
+          && subject.equalsIgnoreCase(claim.optString("subject", ""))) return true;
+    }
+    return false;
   }
 
   private static boolean statesPositiveAcquisition(String prose, String item) {
