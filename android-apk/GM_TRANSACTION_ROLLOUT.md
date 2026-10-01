@@ -134,7 +134,19 @@ Status: implemented, NO PERSIST.
 - Same input + same proposal produces the same `afterState` and hash for the currently enabled deterministic command adapters.
 - Commands behind `PHASE4_SELECTION_GATE` remain rejected.
 
-Phase 4B.2 will add state-delta/replay verification and a commit-candidate envelope. It remains a separate step.
+### Phase 4B.2 — Replay-verified commit candidate
+
+Status: implemented, NO PERSIST.
+
+- `GmCommitCandidateBuilder` accepts only a valid 4B.1 execution draft.
+- It recomputes the evidence ledger from `proposal + commandResults`; a tampered execution ledger is rejected.
+- It builds `stateDelta` with the existing `AuthoritativeStatePatch` format used by V2 commit records.
+- The delta is replayed against the original `beforeState`. Replay must match the full `afterState`, not only the authoritative roots. Any accidental mutation to excluded/derived roots such as `log` is therefore rejected.
+- The candidate carries `beforeStateHash`, `afterStateHash`, `proposalFingerprint`, accepted/rejected group ledgers, committed-event evidence and `transactionHash`.
+- `transactionHash` is computed over the canonical candidate payload before the hash field is inserted. Same input + same proposal + same deterministic execution yields the same transaction hash.
+- `verify()` replays the state delta and validates proposal fingerprint, hashes and transaction hash.
+- The candidate deliberately does not contain the full `afterState`; 4B.2 remains an in-memory verification artifact and has no persistence path.
+- Selection/RNG-gated commands remain closed until 4C. The Phase-4A commit gate remains unarmed.
 
 Commit protocol:
 1. verify turnId and baseStateHash;
