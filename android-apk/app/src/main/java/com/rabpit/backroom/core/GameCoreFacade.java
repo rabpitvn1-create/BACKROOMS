@@ -24,6 +24,7 @@ public final class GameCoreFacade implements AutoCloseable {
   private final SharedPreferences preferences;
   private String liveStateJson;
   private final boolean debugLogging;
+  private final boolean gmTransactionCommitEnabled;
   private final LevelCore levelCore;
   private final EntityCore entityCore;
   private final ItemCore itemCore;
@@ -35,13 +36,14 @@ public final class GameCoreFacade implements AutoCloseable {
   private final GmCommandAuthority gmCommandAuthority;
   private final Map<String, PreparedTurn> preparedTurns = new LinkedHashMap<>();
 
-  private GameCoreFacade(Context context, boolean debugLogging) {
+  private GameCoreFacade(Context context, boolean debugLogging, boolean gmTransactionCommitEnabled) {
     Context appContext = context.getApplicationContext();
     this.preferences = appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
     String checkpoint = preferences.getString(MANUAL_SAVE_KEY, "");
     this.liveStateJson = checkpoint != null && !checkpoint.isEmpty()
         ? checkpoint : preferences.getString(STATE_KEY, "{}");
     this.debugLogging = debugLogging;
+    this.gmTransactionCommitEnabled = gmTransactionCommitEnabled;
     this.levelCore = new LevelCore(appContext);
     this.entityCore = new EntityCore(appContext);
     this.itemCore = new ItemCore();
@@ -55,7 +57,12 @@ public final class GameCoreFacade implements AutoCloseable {
   }
 
   public static GameCoreFacade create(Context context, boolean debugLogging) {
-    return new GameCoreFacade(context, debugLogging);
+    return new GameCoreFacade(context, debugLogging, false);
+  }
+
+  public static GameCoreFacade create(
+      Context context, boolean debugLogging, boolean gmTransactionCommitEnabled) {
+    return new GameCoreFacade(context, debugLogging, gmTransactionCommitEnabled);
   }
 
   public synchronized String processRule(String legacyStateJson, String action) {
@@ -319,6 +326,28 @@ public final class GameCoreFacade implements AutoCloseable {
     } catch (Exception e) {
       try {
         output.put("available", false).put("reason", safeMessage(e));
+      } catch (Exception ignored) {}
+      return output.toString();
+    }
+  }
+
+  /**
+   * Phase-4A gate probe. This method cannot persist; it only reports whether the future commit
+   * protocol is allowed to advance past the feature gate.
+   */
+  public synchronized String plannerCommitGate(String plannerContextJson, String proposalJson) {
+    JSONObject output = new JSONObject();
+    try {
+      JSONObject context = new JSONObject(plannerContextJson == null ? "{}" : plannerContextJson);
+      JSONObject proposal = new JSONObject(proposalJson == null ? "{}" : proposalJson);
+      return GmTransactionCommitGate.preflight(
+          gmTransactionCommitEnabled,
+          context.optString("turnId", ""),
+          context.optString("baseStateHash", ""),
+          proposal).toString();
+    } catch (Exception e) {
+      try {
+        output.put("allowed", false).put("reason", "commit_gate_error");
       } catch (Exception ignored) {}
       return output.toString();
     }

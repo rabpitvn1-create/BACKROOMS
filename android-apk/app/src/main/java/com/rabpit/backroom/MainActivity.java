@@ -66,7 +66,8 @@ public class MainActivity extends Activity {
   @Override public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
-    gameCore = GameCoreFacade.create(getApplicationContext(), BuildConfig.DEBUG);
+    gameCore = GameCoreFacade.create(
+        getApplicationContext(), BuildConfig.DEBUG, BuildConfig.GM_TRANSACTION_COMMIT_ENABLED);
     try {
       canonRetriever = CanonRetriever.fromAssets(getApplicationContext());
     } catch (Exception error) {
@@ -757,6 +758,8 @@ public class MainActivity extends Activity {
 
         JSONObject authority = new JSONObject(
             gameCore.validateShadowTransaction(contextCopy.toString(), proposal.toString()));
+        JSONObject commitGate = new JSONObject(
+            gameCore.plannerCommitGate(contextCopy.toString(), proposal.toString()));
         JSONObject resolved = authority.optJSONObject("resolvedTurn");
         JSONArray evidence = resolved == null ? null : resolved.optJSONArray("committedEvents");
         int evidenceCount = evidence == null ? 0 : evidence.length();
@@ -767,6 +770,8 @@ public class MainActivity extends Activity {
                 ? proposalFingerprint.substring(0, 12) : proposalFingerprint)
             + " cache=" + cacheHit
             + " authorityValid=" + authority.optBoolean("valid", false)
+            + " commitGateAllowed=" + commitGate.optBoolean("allowed", false)
+            + " commitGateReason=" + commitGate.optString("reason", "")
             + " acceptedGroups=" + authority.optInt("acceptedGroups", 0)
             + " rejectedGroups=" + authority.optInt("rejectedGroups", 0)
             + " evidence=" + evidenceCount

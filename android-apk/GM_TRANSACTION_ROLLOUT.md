@@ -115,6 +115,7 @@ Status: implemented, intentionally NOT armed.
 - `GmTransactionCommitGate` is fail-closed.
 - With the flag OFF it returns `gm_transaction_commit_disabled`.
 - Even with the flag ON, Phase 4A returns `phase4_commit_not_armed`; no code path can persist a planner transaction yet.
+- `MainActivity` passes the build flag into `GameCoreFacade`; the existing asynchronous shadow telemetry probes the gate but never invokes a commit or persistence method.
 - Turn ID and base-state hash mismatches are rejected before any future commit can be armed.
 - Phase 4A changes no live gameplay behavior. V2 remains the only authoritative turn path.
 
