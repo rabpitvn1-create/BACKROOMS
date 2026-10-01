@@ -29,6 +29,14 @@ public final class GmNarrativePacket {
       String levelContext, String entityContext, String itemContext, String characterContext,
       String recentContext, JSONObject state, String action, String gmStyleExamples,
       String canonText) throws Exception {
+    return build(levelContext, entityContext, itemContext, characterContext,
+        recentContext, state, action, gmStyleExamples, canonText, new JSONObject());
+  }
+
+  public static String build(
+      String levelContext, String entityContext, String itemContext, String characterContext,
+      String recentContext, JSONObject state, String action, String gmStyleExamples,
+      String canonText, JSONObject committedTurnEvidence) throws Exception {
     JSONObject promptState = projectState(state);
     String recent = clip(recentContext, MAX_RECENT_CONTEXT_CHARS);
     String style = clip(gmStyleExamples, 1800);
@@ -45,6 +53,8 @@ public final class GmNarrativePacket {
         + style + "\n"
         + "CORE-OWNED: Java Core sở hữu toàn bộ world outcome: Level/route, Entity spawn, Loot, Inventory, Party, Survival, Progression, Combat, Fact và Thread. "
         + "Không đề xuất transitionTarget/sceneLabel để thay đổi state. Nếu Core context không xác nhận một sự kiện, không được kể nó như đã xảy ra.\n"
+        + "COMMITTED-EVIDENCE RULE: mọi phát biểu rằng gameplay state vừa THAY ĐỔI trong lượt này phải được chứng minh bởi COMMITTED TURN EVIDENCE của đúng turn. "
+        + "Post-state chỉ cho biết hiện trạng; nó không tự chứng minh rằng item, Level, Party, stat hoặc combat vừa thay đổi trong lượt này.\n"
         + "EPISTEMIC: READ-ONLY STATE đã được lọc theo góc nhìn Cao Minh. Belief confidence=CONFIRMED chỉ có nghĩa actor tin chắc; "
         + "không tự coi belief là objective truth nếu không có confirmedFactId/fact tương ứng. Không suy ra hidden state bị thiếu khỏi context.\n"
         + "EXPLORER CHOICES: trả 0-3 gợi ý hành động ngắn, cụ thể và phù hợp với tình huống hiện tại; "
@@ -57,6 +67,8 @@ public final class GmNarrativePacket {
         + "MARKDOWN CANON (read-only; apply only to committed scene, never override Core state):\n"
         + safe(canonText) + "\n"
         + situationContext(state) + "\n"
+        + "COMMITTED TURN EVIDENCE (read-only; only these events justify current-turn mutation claims):\n"
+        + (committedTurnEvidence == null ? "{}" : committedTurnEvidence.toString()) + "\n"
         + "RECENT CONTEXT (chỉ giữ continuity, không lặp nguyên văn):\n" + recent + "\n"
         + "READ-ONLY STATE: " + promptState.toString() + "\n"
         + "PLAYER ACTION: " + safe(action) + "\n"
