@@ -397,19 +397,23 @@ public final class CanonRetriever {
     for (String path : ordered) {
       JSONObject source = registryByPath.get(path);
       if (source == null) continue;
-      JSONObject projected = new JSONObject();
-      projected.put("id", source.optString("id", ""))
-          .put("path", source.optString("path", ""))
-          .put("contentPath", source.optString("contentPath", ""))
-          .put("type", source.optString("type", ""))
-          .put("authority", source.optString("authority", ""))
-          .put("status", source.optString("status", ""))
-          .put("version", source.optString("version", ""))
-          .put("owner", source.optString("owner", ""))
-          .put("mandatoryFor", copyArray(source.optJSONArray("mandatoryFor")))
-          .put("dependencies", copyArray(source.optJSONArray("dependencies")))
-          .put("supersedes", copyArray(source.optJSONArray("supersedes")));
-      output.put(projected);
+      try {
+        JSONObject projected = new JSONObject();
+        projected.put("id", source.optString("id", ""))
+            .put("path", source.optString("path", ""))
+            .put("contentPath", source.optString("contentPath", ""))
+            .put("type", source.optString("type", ""))
+            .put("authority", source.optString("authority", ""))
+            .put("status", source.optString("status", ""))
+            .put("version", source.optString("version", ""))
+            .put("owner", source.optString("owner", ""))
+            .put("mandatoryFor", copyArray(source.optJSONArray("mandatoryFor")))
+            .put("dependencies", copyArray(source.optJSONArray("dependencies")))
+            .put("supersedes", copyArray(source.optJSONArray("supersedes")));
+        output.put(projected);
+      } catch (Exception error) {
+        throw new IllegalStateException("canon_packet_metadata_failed", error);
+      }
     }
     return output;
   }
