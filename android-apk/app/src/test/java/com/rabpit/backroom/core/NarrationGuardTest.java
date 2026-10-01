@@ -45,4 +45,26 @@ public class NarrationGuardTest {
         .put("encounterDialogue", new JSONArray());
     assertFalse(NarrationGuard.validate(generated, state).isEmpty());
   }
+
+  @Test public void committedTurnEvidenceDoesNotTreatOldInventoryAsNewLoot() throws Exception {
+    EmergentTurnEngine engine = new EmergentTurnEngine();
+    JSONObject state = GameCoreFacade.newGameState(new JSONObject());
+    state.put("inventory", new JSONArray().put(
+        new JSONObject().put("id", "almond-water").put("name", "Almond Water").put("quantity", 1)));
+    engine.normalizeState(state);
+    JSONObject before = new JSONObject(state.toString());
+    String turnId = engine.nextTurnId(state, "đi tiếp");
+    JSONArray events = new JSONArray();
+    events.put(engine.event(turnId, events, "PLAYER_ACTION_RESOLVED", "LOCAL", "cao_minh",
+        new JSONObject().put("factPredicate", "player_action").put("factValue", "đi tiếp")
+            .put("causedBy", "player").put("impactEligible", false)
+            .put("observedByPlayer", true), null));
+    engine.commitAuthoritative(before, state, turnId, events, null);
+
+    JSONObject evidence = CommittedTurnNarrationEvidence.fromState(state, turnId);
+
+    assertTrue(evidence.getBoolean("available"));
+    assertFalse(CommittedTurnNarrationEvidence.hasClaim(
+        evidence, "ITEM_ACQUIRED", "Almond Water"));
+  }
 }
