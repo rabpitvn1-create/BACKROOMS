@@ -134,6 +134,28 @@ public class CanonRegistryTest {
     assertTrue(text.contains("Người không phải hắn giết."));
   }
 
+  @Test public void backroomsSublevelsCanonIsMigratedToStructuredContentOnly() throws Exception {
+    Path structured = Paths.get(
+        "src/main/assets/content/sublevels/backrooms-world-sublevels-1-6.md");
+    Path legacy = Paths.get(
+        "src/main/assets/canon/BACKROOMS_WORLD_SUBLEVELS_1_6.md");
+    if (!Files.isRegularFile(structured)) {
+      structured = Paths.get(
+          "app/src/main/assets/content/sublevels/backrooms-world-sublevels-1-6.md");
+      legacy = Paths.get(
+          "app/src/main/assets/canon/BACKROOMS_WORLD_SUBLEVELS_1_6.md");
+    }
+
+    assertTrue(Files.isRegularFile(structured));
+    assertFalse(Files.exists(legacy));
+    String text = new String(Files.readAllBytes(structured), StandardCharsets.UTF_8);
+    assertTrue(text.contains("BACKROOMS WORLD — SUBLEVELS LEVEL 1–6"));
+    assertTrue(text.contains("CURRENT / PROJECT CANON"));
+    assertTrue(text.contains("level_graph.json"));
+    assertTrue(text.contains("EntityCore"));
+    assertTrue(text.contains("ItemCore"));
+  }
+
   @Test public void duplicateIdAndPathFailClosed() throws Exception {
     JSONObject source = source(
         "same", "A.md", "world/a.md", "WORLD", "WORLD_CANON", "CURRENT");
