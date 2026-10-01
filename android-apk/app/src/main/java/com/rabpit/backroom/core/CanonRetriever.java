@@ -210,7 +210,11 @@ public final class CanonRetriever {
       for (int i = 0; sources != null && i < sources.length(); i++) {
         JSONObject source = sources.optJSONObject(i);
         if (source != null) {
-          metadata.put(source.optString("path", ""), new JSONObject(source.toString()));
+          try {
+            metadata.put(source.optString("path", ""), new JSONObject(source.toString()));
+          } catch (Exception copyError) {
+            throw new IllegalArgumentException("Invalid canon registry source copy", copyError);
+          }
         }
       }
     }
