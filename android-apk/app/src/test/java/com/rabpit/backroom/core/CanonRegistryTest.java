@@ -174,6 +174,32 @@ public class CanonRegistryTest {
     assertTrue(text.contains("Trong BACKROOMsV2, Core quyết định tuyến hiện hành"));
   }
 
+  @Test public void tracLamIsMigratedWithoutAuthorityPromotion() throws Exception {
+    Path structured = Paths.get(
+        "src/main/assets/content/characters/trac-lam.md");
+    Path legacy = Paths.get("src/main/assets/canon/Trac_Lam_Codex.md");
+    Path registryPath = Paths.get("src/main/assets/canon/canon-registry.json");
+    if (!Files.isRegularFile(structured)) {
+      structured = Paths.get(
+          "app/src/main/assets/content/characters/trac-lam.md");
+      legacy = Paths.get("app/src/main/assets/canon/Trac_Lam_Codex.md");
+      registryPath = Paths.get("app/src/main/assets/canon/canon-registry.json");
+    }
+
+    assertTrue(Files.isRegularFile(structured));
+    assertFalse(Files.exists(legacy));
+    String text = new String(Files.readAllBytes(structured), StandardCharsets.UTF_8);
+    assertTrue(text.contains("# TRÁC LÂM"));
+    assertTrue(text.contains("Đội trưởng SRU-03"));
+
+    JSONObject registry = new JSONObject(
+        new String(Files.readAllBytes(registryPath), StandardCharsets.UTF_8));
+    JSONObject tracLam = CanonRegistry.byId(registry).get("trac-lam");
+    assertEquals("UNCLASSIFIED", tracLam.getString("authority"));
+    assertEquals("UNCLASSIFIED", tracLam.getString("status"));
+    assertEquals(0, tracLam.getJSONArray("mandatoryFor").length());
+  }
+
   @Test public void duplicateIdAndPathFailClosed() throws Exception {
     JSONObject source = source(
         "same", "A.md", "world/a.md", "WORLD", "WORLD_CANON", "CURRENT");

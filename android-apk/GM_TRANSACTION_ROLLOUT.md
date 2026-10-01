@@ -395,7 +395,18 @@ Status: COMPLETE / NO CHARACTER SOURCE MOVED.
 - Cao Minh remains blocked from authority cleanup: the local R17 declaration and repository source maps naming Drive R15 are intentionally not reconciled by migration.
 - File movement must not promote, demote, merge or reconcile any character source.
 
-Phase 6C.11 will migrate only Trác Lâm, preserving its UNCLASSIFIED authority/status.
+### Phase 6C.11 — Trác Lâm character-source migration
+
+Status: COMPLETE.
+
+- `Trac_Lam_Codex.md` was migrated unchanged to `content/characters/trac-lam.md`.
+- The legacy `assets/canon/Trac_Lam_Codex.md` copy was removed; registry compatibility preserves the logical source identity.
+- Registry classification remains `CHARACTER / UNCLASSIFIED / UNCLASSIFIED`; the move does not promote Trác Lâm to CURRENT character canon.
+- `mandatoryFor` remains empty, so this migration does not create a new mandatory retrieval binding.
+- Tests verify the structured-only file location plus the unchanged authority/status and empty mandatory binding.
+- Compatibility loading and retrieval behavior remain unchanged.
+
+Phase 6C.12 will review Lucia migration separately because it is a scoped CURRENT USER_RETCON with an identity hard lock.
 
 Expand content without changing transaction semantics:
 
