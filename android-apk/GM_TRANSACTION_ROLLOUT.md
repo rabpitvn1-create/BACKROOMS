@@ -1,6 +1,6 @@
 # GM Transaction Rollout
 
-Status: PHASE 6C.3 — ENTITY REFERENCE MIGRATION COMPLETE; PHASE 6C.4 NEXT
+Status: PHASE 6C.4 — BACKROOMS AURA MIGRATION COMPLETE; PHASE 6C.5 NEXT
 
 This rollout preserves the current V2 Core/save/runtime while reintroducing GM planning authority in controlled stages. No phase may skip the transaction boundary.
 
@@ -320,7 +320,18 @@ Status: COMPLETE.
 - Tests verify that only the structured copy ships and that expected visual-reference content remains present.
 - Compatibility loading and retrieval behavior remain unchanged.
 
-Phase 6C.4 will migrate the next small low-risk batch after this migration remains green.
+### Phase 6C.4 — Backrooms aura phenomenon migration
+
+Status: COMPLETE.
+
+- `Backrooms_Linh_Khi.md` was migrated unchanged to `content/phenomena/backrooms-linh-khi.md`.
+- The legacy `assets/canon/Backrooms_Linh_Khi.md` copy was removed; registry compatibility preserves the logical source identity.
+- Registry classification remains `ENVIRONMENT / UNCLASSIFIED / CANDIDATE`; migration does not promote the source to CURRENT authority.
+- The source's HARD LOCK remains unchanged: Backrooms aura is unusually dense, while its origin remains `UNKNOWN`.
+- Tests verify that only the structured copy ships and that the UNKNOWN-origin lock remains present.
+- Compatibility loading and retrieval behavior remain unchanged.
+
+Phase 6C.5 will migrate the paired cultivator-effects phenomenon source only after this migration remains green.
 
 Expand content without changing transaction semantics:
 

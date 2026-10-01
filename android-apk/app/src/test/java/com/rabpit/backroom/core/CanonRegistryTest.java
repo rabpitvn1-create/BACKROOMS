@@ -59,6 +59,23 @@ public class CanonRegistryTest {
     assertTrue(text.contains("## Wretch"));
   }
 
+  @Test public void backroomsAuraIsMigratedToStructuredContentOnly() throws Exception {
+    Path structured = Paths.get(
+        "src/main/assets/content/phenomena/backrooms-linh-khi.md");
+    Path legacy = Paths.get("src/main/assets/canon/Backrooms_Linh_Khi.md");
+    if (!Files.isRegularFile(structured)) {
+      structured = Paths.get(
+          "app/src/main/assets/content/phenomena/backrooms-linh-khi.md");
+      legacy = Paths.get("app/src/main/assets/canon/Backrooms_Linh_Khi.md");
+    }
+
+    assertTrue(Files.isRegularFile(structured));
+    assertFalse(Files.exists(legacy));
+    String text = new String(Files.readAllBytes(structured), StandardCharsets.UTF_8);
+    assertTrue(text.contains("LINH KHÍ TRONG BACKROOMS"));
+    assertTrue(text.contains("Nguồn gốc của lượng linh khí này là **UNKNOWN**"));
+  }
+
   @Test public void duplicateIdAndPathFailClosed() throws Exception {
     JSONObject source = source(
         "same", "A.md", "world/a.md", "WORLD", "WORLD_CANON", "CURRENT");
