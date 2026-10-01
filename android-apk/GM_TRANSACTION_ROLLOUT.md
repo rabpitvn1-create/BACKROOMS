@@ -1,6 +1,6 @@
 # GM Transaction Rollout
 
-Status: PHASE 6C.13 — LUCIA STRUCTURED MIGRATION COMPLETE; PHASE 6C.14 NEXT
+Status: PHASE 6D.3 — CANON PACKET AUTHORITY CONTRACT COMPLETE; PHASE 6E.1 NEXT
 
 This rollout preserves the current V2 Core/save/runtime while reintroducing GM planning authority in controlled stages. No phase may skip the transaction boundary.
 
@@ -493,7 +493,20 @@ Status: COMPLETE.
 - Registry-backed physical resolution no longer auto-indexes unregistered legacy Markdown extras.
 - Public constructor behavior without a registry remains available for isolated tests/tools, preserving parser compatibility.
 
-Phase 6D.3 will expose registry authority metadata in the emitted CanonPacket and freeze the runtime retrieval contract.
+### Phase 6D.3 — CanonPacket authority contract
+
+Status: COMPLETE.
+
+- `CanonPacket.CONTRACT_VERSION=1` freezes the public retrieval packet version.
+- Registry-backed packets expose defensive `sourceMetadata()` snapshots for each selected registered source.
+- Metadata includes logical/physical source identity, type, authority, status, version, owner, mandatory bindings, dependencies and supersedes.
+- Metadata ordering is deterministic by logical source path and cannot be mutated through the returned JSON snapshot.
+- `promptText()` remains unchanged: authority metadata is not silently injected into lore prose.
+- Non-registry constructor behavior remains compatible and returns an empty metadata array.
+- Source-level dependencies now include the complete dependency source rather than a single representative section, fixing the 6D.2 regression.
+- Tests pin contract version, metadata content/defensive copying, deterministic source graph behavior and unchanged prompt text.
+
+Phase 6D is complete. Phase 6E.1 will formalize the knowledge/continuity firewall before any hidden or POV material is made registry-addressable.
 
 Expand content without changing transaction semantics:
 
