@@ -72,7 +72,6 @@ public class OfflinePresenterTest {
       assertTrue(reply.split("[.!?]").length <= 3);
       if ("luc_tram".equals(id)) assertTrue(reply.contains("Lục Trầm"));
       else assertFalse(reply.contains("Lucia") || reply.contains("Syvial"));
-      assertTrue(OfflinePresenter.offlineKind("CHARACTER"));
     }
     assertEquals("{}", state.toString());
   }

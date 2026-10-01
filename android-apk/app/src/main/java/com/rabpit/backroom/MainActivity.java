@@ -20,6 +20,7 @@ import com.rabpit.backroom.core.GameCoreFacade;
 import com.rabpit.backroom.core.GmChoiceContract;
 import com.rabpit.backroom.core.GmNarrativePacket;
 import com.rabpit.backroom.core.OfflinePresenter;
+import com.rabpit.backroom.core.NarrationProviderPolicy;
 import com.rabpit.backroom.core.SafePresentationView;
 import com.rabpit.backroom.core.GmShadowPlanner;
 import com.rabpit.backroom.core.CanonRetriever;
@@ -308,17 +309,7 @@ public class MainActivity extends Activity {
       if (key == null || key.trim().isEmpty()) continue;
       configured = true;
       try {
-        JSONObject part = new JSONObject().put("text", prompt);
-        JSONObject contents = new JSONObject().put("role", "user").put("parts", new JSONArray().put(part));
-        JSONObject config = new JSONObject()
-            .put("responseMimeType", "application/json")
-            .put("thinkingConfig", new JSONObject().put("thinkingLevel", "low"));
-        JSONObject body = new JSONObject().put("contents", new JSONArray().put(contents)).put("generationConfig", config);
-        String output = geminiResponseText(postJson(
-            "https://generativelanguage.googleapis.com/v1beta/models/" + GEMINI_MODEL + ":generateContent",
-            key, "x-goog-api-key", body));
-        parseModelJson(output);
-        return output;
+        return geminiTextOnce(prompt, key);
       } catch (Exception error) {
         last = error;
         int status = error instanceof HttpError ? ((HttpError)error).status : 0;
@@ -328,6 +319,35 @@ public class MainActivity extends Activity {
     }
     if (!configured) throw new Exception("Không có Gemini API key trong APK.");
     throw last != null ? last : new Exception("Tất cả Gemini API key đều không khả dụng.");
+  }
+
+  private String geminiTextOnce(String prompt, String key) throws Exception {
+    JSONObject part = new JSONObject().put("text", prompt);
+    JSONObject contents = new JSONObject().put("role", "user").put("parts", new JSONArray().put(part));
+    JSONObject config = new JSONObject()
+        .put("responseMimeType", "application/json")
+        .put("thinkingConfig", new JSONObject().put("thinkingLevel", "low"));
+    JSONObject body = new JSONObject().put("contents", new JSONArray().put(contents)).put("generationConfig", config);
+    String output = geminiResponseText(postJson(
+        "https://generativelanguage.googleapis.com/v1beta/models/" + GEMINI_MODEL + ":generateContent",
+        key, "x-goog-api-key", body));
+    parseModelJson(output);
+    return output;
+  }
+
+  /** Exactly one physical request per attempt. Other provider helpers retain their legacy contract. */
+  private String generateNarrationText(String prompt, int[] calls, boolean retry) throws Exception {
+    prompt = SafePresentationView.narrativeText(new JSONObject(gameCore.currentCoreState()), prompt);
+    for (String key : geminiKeys()) {
+      if (key == null || key.trim().isEmpty()) continue;
+      calls[retry ? 1 : 0]++;
+      return geminiTextOnce(prompt, key);
+    }
+    if (haikuConfigured()) {
+      calls[retry ? 1 : 0]++;
+      return haikuTextOnce(prompt);
+    }
+    throw new IllegalStateException("No narration provider configured");
   }
 
   private String geminiResponseText(String raw) throws Exception {
@@ -858,69 +878,8 @@ public class MainActivity extends Activity {
   }
 
   private void prefetchChoices(String choicesJson) {
-    if (BuildConfig.GM_TRANSACTION_COMMIT_ENABLED) {
-      invalidatePrefetch();
-      return;
-    }
-    final long generation = prefetchGeneration.incrementAndGet();
-    prefetchCache = null;
-    prefetchIo.execute(() -> {
-      try {
-        JSONArray choices = new JSONArray(choicesJson);
-        if (choices.length() != 2) return;
-        String baseHash = gameCore.currentStateHash();
-        Map<String, String> actions = new LinkedHashMap<>();
-        Map<String, JSONObject> previews = new LinkedHashMap<>();
-        StringBuilder prompt = new StringBuilder(
-            "Generate exactly one independent next-turn narration per branch A/B. "
-                + "Each branch has its own hypothetical Core-committed outcome and canon. "
-                + "Never transfer events, facts, entities, loot or future choices between branches. "
-                + "Each reply must be at most 1800 characters, choices 0-3. "
-                + "Return only JSON with branches A and B; each contains reply, choices, encounterDialogue and claims.\n");
-        for (int i = 0; i < 2; i++) {
-          String id = String.valueOf((char) ('A' + i));
-          JSONObject choice = choices.getJSONObject(i);
-          String action = choice.optString("action", "").trim();
-          if (!id.equals(choice.optString("id", "")) || action.isEmpty()
-              || actions.containsValue(action)) return;
-          JSONObject preview = new JSONObject(gameCore.previewTurn(action, baseHash));
-          if (!preview.optBoolean("handled", false)) return;
-          JSONObject previewState = preview.getJSONObject("state");
-          JSONObject previewEvidence = CommittedTurnNarrationEvidence.fromState(previewState, preview.getString("turnId"));
-          if (OfflinePresenter.isOffline(SafePresentationView.events(previewState, "cao_minh", previewEvidence))) return;
-          actions.put(id, action);
-          previews.put(id, preview);
-          prompt.append("\n=== BRANCH ").append(id).append(" ONLY ===\n")
-              .append(narrationPrompt(
-                  preview.getJSONObject("state"), action, preview.getString("turnId"))).append('\n');
-        }
-        if (generation != prefetchGeneration.get() || !baseHash.equals(gameCore.currentStateHash())) return;
-        JSONObject output = geminiBranchBatch(prompt.toString());
-        JSONObject branches = output.optJSONObject("branches");
-        if (branches == null || branches.length() != 2 || output.length() != 1) return;
-        Map<String, PrefetchBranch> valid = new LinkedHashMap<>();
-        for (String id : actions.keySet()) {
-          JSONObject generated = branches.optJSONObject(id);
-          if (generated == null || generated.length() != 4
-              || generated.optJSONArray("choices") == null
-              || generated.optJSONArray("encounterDialogue") == null
-              || generated.optJSONArray("claims") == null
-              || generated.optString("reply", "").length() > 1800) continue;
-          JSONObject preview = previews.get(id);
-          JSONObject previewState = preview.getJSONObject("state");
-          JSONObject evidence = CommittedTurnNarrationEvidence.fromState(
-              previewState, preview.getString("turnId"));
-          if (!NarrationGuard.validate(generated, previewState, SafePresentationView.evidence(previewState, evidence)).isEmpty()) continue;
-          valid.put(id, new PrefetchBranch(actions.get(id), preview.getString("outcomeHash"), generated));
-        }
-        if (generation == prefetchGeneration.get() && baseHash.equals(gameCore.currentStateHash())) {
-          prefetchCache = new PrefetchCache(baseHash, valid);
-        }
-      } catch (Exception error) {
-        Log.w(TAG, "Branch prefetch unavailable; normal turn path remains available: "
-            + providerErrorSummary(error));
-      }
-    });
+    // Resolve Core outcomes only on submission; speculative requests break the per-event call budget.
+    invalidatePrefetch();
   }
 
   private String worldProposalPrompt(JSONObject selected) {
@@ -937,37 +896,6 @@ public class MainActivity extends Activity {
         + "OUTPUT chỉ JSON: {\"actionType\":\"INTERCEPT\",\"intentTag\":\"opportunistic\"}";
   }
 
-  private JSONArray narrationClaims(JSONObject evidence) {
-    JSONArray output = new JSONArray();
-    JSONArray claims = evidence == null ? null : evidence.optJSONArray("claims");
-    if (claims == null) return output;
-    for (int i = 0; i < claims.length() && output.length() < 16; i++) {
-      JSONObject claim = claims.optJSONObject(i);
-      if (claim == null) continue;
-      String eventId = claim.optString("eventId", "").trim();
-      String kind = claim.optString("kind", "").trim();
-      String subject = claim.optString("subject", "").trim();
-      if (eventId.isEmpty() || kind.isEmpty() || subject.isEmpty()) continue;
-      try {
-        output.put(new JSONObject()
-            .put("eventId", eventId)
-            .put("kind", kind)
-            .put("subject", subject));
-      } catch (Exception ignored) {}
-    }
-    return output;
-  }
-
-  private JSONObject narrationFallback(JSONObject state, String replyHint, JSONObject evidence) {
-    try {
-      return OfflinePresenter.present(SafePresentationView.events(state, "cao_minh", evidence),
-          () -> new JSONObject().put("reply", "Cao Minh quan sát khu vực trước mặt.")
-              .put("choices", new JSONArray()).put("encounterDialogue", new JSONArray())
-              .put("claims", new JSONArray()));
-    } catch (Exception error) {
-      throw new IllegalStateException("Safe presentation fallback failed", error);
-    }
-  }
 
   private void emit(String function, String json) {
     String script = "window." + function + "(" + JSONObject.quote(json) + ")";
@@ -1001,11 +929,7 @@ public class MainActivity extends Activity {
           JSONObject submitted = new JSONObject(stateJson);
           JSONObject persisted = new JSONObject(gameCore.currentCoreState());
           if (persisted.length() > 0) submitted = persisted;
-          PrefetchCache ready = BuildConfig.GM_TRANSACTION_COMMIT_ENABLED ? null : prefetchCache;
-          String baseHash = gameCore.currentStateHash();
           invalidatePrefetch();
-          PrefetchBranch cached = ready != null && ready.baseHash.equals(baseHash)
-              ? ready.forAction(action == null ? "" : action.trim()) : null;
 
           if (CombatChoiceEngine.isActive(submitted)) {
             throw new Exception("Đang chiến đấu. Hãy dùng khung Poker Dice trong GAME MASTER.");
@@ -1030,88 +954,14 @@ public class MainActivity extends Activity {
 
           String turnId = prepared.getString("turnId");
           JSONObject selected = prepared.optJSONObject("selectedCandidate");
-          boolean offlineTurn = prepared.optBoolean("chestOpened", false)
-              || (selected != null && OfflinePresenter.offlineKind(selected.optString("kind", "")));
-          JSONObject shadowContext = null;
-          String shadowPrompt = null;
-          if (!offlineTurn && (BuildConfig.GM_TRANSACTION_COMMIT_ENABLED || BuildConfig.DEBUG)) {
-            try {
-              shadowContext = new JSONObject(gameCore.shadowPlannerContext(turnId));
-              if (shadowContext.optBoolean("available", false)) {
-                shadowPrompt = shadowPlannerPrompt(shadowContext);
-              } else {
-                Log.w(TAG, "GM shadow context unavailable: "
-                    + shadowContext.optString("reason", "unknown"));
-                shadowContext = null;
-              }
-            } catch (Exception shadowContextError) {
-              Log.w(TAG, "GM transaction planner context unavailable: "
-                  + providerErrorSummary(shadowContextError));
-              shadowContext = null;
-              shadowPrompt = null;
-            }
-          }
-          JSONObject committed;
-          if (!offlineTurn && BuildConfig.GM_TRANSACTION_COMMIT_ENABLED) {
-            if (shadowContext == null || shadowPrompt == null) {
-              throw new Exception("GM transaction planner unavailable before commit.");
-            }
-
-            JSONObject gmProposal = authoritativeGmProposal(shadowContext, shadowPrompt, "");
-            committed = new JSONObject(
-                gameCore.completePreparedTurnWithGmTransaction(turnId, gmProposal.toString()));
-
-            if (!committed.optBoolean("handled", false)) {
-              String reason = committed.optString("error",
-                  committed.optString("reason", "GM transaction rejected."));
-              gmProposal = authoritativeGmProposal(shadowContext, shadowPrompt, reason);
-              committed = new JSONObject(
-                  gameCore.completePreparedTurnWithGmTransaction(turnId, gmProposal.toString()));
-            }
-
-            if (!committed.optBoolean("handled", false)) {
-              throw new Exception(committed.optString(
-                  "error", "GM transaction bị Core từ chối sau bounded retry."));
-            }
-          } else {
-            JSONObject proposal = new JSONObject();
-            if (!offlineTurn && prepared.optBoolean("proposalRequired", false) && cached == null) {
-              try {
-                String proposalPrompt = worldProposalPrompt(selected);
-                JSONObject rawProposal = parseModelJson(generateText(proposalPrompt));
-                JSONObject validation = new JSONObject(
-                    gameCore.validateWorldProposal(selected.toString(), rawProposal.toString()));
-
-                if (!validation.optBoolean("valid", false)) {
-                  String reason = validation.optString("reason", "proposal rejected");
-                  rawProposal = parseModelJson(generateText(
-                      proposalPrompt + "\nVALIDATION REJECTED: " + reason
-                          + "\nRetry the SAME selected SituationCandidate. Do not change the situation or actor."));
-                  validation = new JSONObject(
-                      gameCore.validateWorldProposal(selected.toString(), rawProposal.toString()));
-                }
-
-                if (!validation.optBoolean("valid", false)) {
-                  throw new Exception(validation.optString("reason", "World proposal validation failed."));
-                }
-                proposal = validation.getJSONObject("proposal");
-              } catch (Exception proposalError) {
-                Log.w(TAG, "World proposal unavailable/invalid after bounded retry; Core will use canonical fallback: "
-                    + providerErrorSummary(proposalError));
-                proposal = new JSONObject();
-              }
-            }
-
-            committed = new JSONObject(
-                gameCore.completePreparedTurn(turnId, proposal.toString()));
-            if (!committed.optBoolean("handled", false)) {
-              throw new Exception(committed.optString("error", "Game State Core từ chối COMMIT."));
-            }
+          // Core selects and commits all deterministic outcomes, independent of the experimental GM flag.
+          JSONObject committed = new JSONObject(gameCore.completePreparedTurn(turnId, "{}"));
+          if (!committed.optBoolean("handled", false)) {
+            throw new Exception(committed.optString("error", "Game State Core từ chối COMMIT."));
           }
 
           JSONObject state = committed.getJSONObject("state");
           committedBeforeNarration = new JSONObject(state.toString());
-          String replyHint = committed.optString("replyHint", "");
           JSONObject narrationEvidence =
               CommittedTurnNarrationEvidence.fromState(state, turnId);
           if (!narrationEvidence.optBoolean("available", false)) {
@@ -1119,39 +969,21 @@ public class MainActivity extends Activity {
                 + narrationEvidence.optString("reason", "unknown"));
           }
 
-          JSONObject generated;
-          String reply;
           JSONArray safeEvents = SafePresentationView.events(state, "cao_minh", narrationEvidence);
           JSONObject safeEvidence = SafePresentationView.evidence(state, narrationEvidence);
           String presentationBaseHash = GameCoreFacade.presentationBaseHash(state);
-          boolean offlineNarration = OfflinePresenter.isOffline(safeEvents);
-          try {
-            boolean hit = cached != null && cached.outcomeHash.equals(gameCore.currentStateHash());
-            final JSONObject narrationState = state;
-            generated = OfflinePresenter.present(safeEvents, () -> hit
-                ? new JSONObject(cached.narration.toString())
-                : parseModelJson(generateText(narrationPrompt(narrationState, action, turnId))));
-            String narrationViolation = offlineNarration ? ""
-                : NarrationGuard.validate(generated, state, safeEvidence);
-            if (!narrationViolation.isEmpty()) {
-              generated = parseModelJson(generateText(
-                  narrationPrompt(state, action, turnId) + "\nVALIDATION REJECTED: " + narrationViolation
-                      + "\nRegenerate narration only from the SAME committed turn evidence. "
-                      + "Do not add, reroll or mutate world state."));
-              narrationViolation =
-                  NarrationGuard.validate(generated, state, safeEvidence);
-              if (!narrationViolation.isEmpty()) {
-                throw new Exception("Narration validation failed: " + narrationViolation);
-              }
-            }
-            reply = generated.optString("reply", "").trim();
-
-          } catch (Exception narrationError) {
-            Log.w(TAG, "Narration provider failed or contradicted committed authority; using deterministic template: "
-                + providerErrorSummary(narrationError));
-            generated = narrationFallback(state, replyHint, narrationEvidence);
-            reply = generated.optString("reply", "");
-          }
+          final JSONObject narrationState = state;
+          int[] providerCalls = {0, 0};
+          JSONObject generated = NarrationProviderPolicy.present(safeEvents, rejection -> {
+            String prompt = narrationPrompt(narrationState, action, turnId);
+            if (!rejection.isEmpty()) prompt += "\nVALIDATION REJECTED: " + rejection
+                + "\nChỉ kể đúng evidence của lượt đã commit; không thêm hoặc sửa world state.";
+            return parseModelJson(generateNarrationText(prompt, providerCalls, !rejection.isEmpty()));
+          }, candidate -> NarrationGuard.validate(candidate, narrationState, safeEvidence));
+          String reply = generated.optString("reply", "");
+          Log.d(TAG, "PRESENTATION PROVIDER CALLS: turnId=" + turnId
+              + " initial=" + providerCalls[0] + " retry=" + providerCalls[1]
+              + " total=" + (providerCalls[0] + providerCalls[1]));
 
           JSONArray encounterDialogue = generated.optJSONArray("encounterDialogue");
           if (encounterDialogue == null) encounterDialogue = new JSONArray();
@@ -1175,15 +1007,10 @@ public class MainActivity extends Activity {
                 gameCore.startCombatRuntime(newEncounter, lastGmLogIndex(state)));
           }
 
-          if (!offlineTurn && BuildConfig.DEBUG && !BuildConfig.GM_TRANSACTION_COMMIT_ENABLED
-              && shadowContext != null && shadowPrompt != null && committedBeforeNarration != null) {
-            scheduleShadowPlanner(shadowContext, shadowPrompt, committedBeforeNarration, selected);
-          }
-
           if (BuildConfig.DEBUG) {
             Log.d(TAG, "EMERGENT TURN TELEMETRY: total=" + (System.currentTimeMillis() - tStart)
                 + "ms turnId=" + turnId
-                + " authority=" + (BuildConfig.GM_TRANSACTION_COMMIT_ENABLED ? "GM_TRANSACTION" : "V2")
+                + " authority=CORE_V2"
                 + " situation=" + (selected == null ? "NONE" : selected.optString("situationKey", "NONE")));
           }
           emit("backroomTurn", state.toString());

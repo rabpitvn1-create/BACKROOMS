@@ -9,8 +9,6 @@ public final class OfflinePresenter {
 
   private OfflinePresenter() {}
 
-  public static boolean offlineKind(String kind) { return "ENTITY".equals(kind) || "CHEST".equals(kind) || "CHARACTER".equals(kind); }
-
   public static boolean isOffline(JSONArray views) {
     if (views == null) return false;
     for (int i = 0; i < views.length(); i++) {
