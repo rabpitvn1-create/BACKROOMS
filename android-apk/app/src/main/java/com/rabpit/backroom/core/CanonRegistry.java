@@ -19,7 +19,7 @@ public final class CanonRegistry {
   private static final Set<String> ROOT_KEYS =
       new HashSet<>(Arrays.asList("schemaVersion", "sources"));
   private static final Set<String> SOURCE_KEYS = new HashSet<>(Arrays.asList(
-      "id", "path", "type", "authority", "status", "version", "owner",
+      "id", "path", "contentPath", "type", "authority", "status", "version", "owner",
       "dependencies", "mandatoryFor", "supersedes", "note"));
   private static final Set<String> TYPES = new HashSet<>(Arrays.asList(
       "WORLD", "CHARACTER", "HISTORY", "ENVIRONMENT", "ENTITY_REFERENCE"));
@@ -53,6 +53,7 @@ public final class CanonRegistry {
 
     Map<String, JSONObject> byId = new LinkedHashMap<>();
     Set<String> paths = new HashSet<>();
+    Set<String> contentPaths = new HashSet<>();
     for (int i = 0; i < sources.length(); i++) {
       JSONObject source = sources.optJSONObject(i);
       if (source == null) {
@@ -63,6 +64,7 @@ public final class CanonRegistry {
 
       String id = required(source, "id", errors, i);
       String path = required(source, "path", errors, i);
+      String contentPath = required(source, "contentPath", errors, i);
       String type = required(source, "type", errors, i);
       String authority = required(source, "authority", errors, i);
       String status = required(source, "status", errors, i);
@@ -73,6 +75,9 @@ public final class CanonRegistry {
       if (!path.isEmpty()
           && (!path.endsWith(".md") || path.contains("/") || path.contains("\\"))) {
         errors.put("source_path_invalid:" + path);
+      }
+      if (!contentPath.isEmpty() && !validContentPath(contentPath)) {
+        errors.put("source_content_path_invalid:" + id);
       }
       if (!type.isEmpty() && !TYPES.contains(type)) errors.put("source_type_invalid:" + id);
       if (!authority.isEmpty() && !AUTHORITIES.contains(authority)) {
@@ -87,6 +92,9 @@ public final class CanonRegistry {
         else byId.put(id, source);
       }
       if (!path.isEmpty() && !paths.add(path)) errors.put("source_path_duplicate:" + path);
+      if (!contentPath.isEmpty() && !contentPaths.add(contentPath)) {
+        errors.put("source_content_path_duplicate:" + contentPath);
+      }
 
       requireStringArray(source, "dependencies", errors, id);
       requireStringArray(source, "mandatoryFor", errors, id);
@@ -123,6 +131,20 @@ public final class CanonRegistry {
       result.put(source.getString("id"), new JSONObject(source.toString()));
     }
     return result;
+  }
+
+  private static boolean validContentPath(String path) {
+    if (path == null || path.trim().isEmpty() || !path.equals(path.trim())) return false;
+    if (!path.endsWith(".md") || path.startsWith("/") || path.contains("\\")
+        || path.contains("..") || path.contains("//")) return false;
+    String[] roots = {
+        "world/", "levels/", "sublevels/", "entities/", "items/", "factions/",
+        "phenomena/", "characters/", "history/", "wiki/", "codex/", "continuity/"
+    };
+    for (String root : roots) {
+      if (path.startsWith(root) && path.length() > root.length()) return true;
+    }
+    return false;
   }
 
   private static void validateRefs(
