@@ -92,7 +92,7 @@ public class GmTransactionExecutorTest {
     assertEquals(draft.getString("simulatedBeforeHash"), draft.getString("simulatedAfterHash"));
     JSONObject result = draft.getJSONArray("commandResults").getJSONObject(0);
     assertFalse(result.getBoolean("accepted"));
-    assertEquals("phase4_selection_gate_required", result.getString("reason"));
+    assertEquals("selection_authorization_missing", result.getString("reason"));
   }
 
   private static JSONObject fundedState() throws Exception {
