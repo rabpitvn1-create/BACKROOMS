@@ -68,3 +68,7 @@ Inspect source Markdown and this contract; copy the file verbatim; run parser an
 ## Knowledge boundary (Phase 6E)
 
 Explicit secret and knowledge-lock markers, inherited restricted headings and explicit POV/cross-canon/dynamic/open boundary markers are withheld from retrieval. The conservative filter uses declared markers only; unmarked prose is not automatically classified. Section requires cannot bypass status/supersedes or visibility. A restricted dependency source fails closed as a whole source. `requiredComplete=false` stops Planner/Narrator calls when mandatory dependency closure fails; missing Markdown subject coverage still uses existing Core compatibility context. Actor beliefs with explicit knowledge bindings pass the separate firewall; legacy beliefs stay subjective/UNKNOWN and never become canon. Live continuity wins over baseline for all mutable state.
+
+## Content audit tooling
+
+Run `python3 android-apk/tools/canon_audit.py` from the repository root. The read-only JSON report covers registry/source validity, missing graph targets, cycles, structured path safety, authority/status, supersedes, duplicate copies/bytes, orphan Markdown, mandatory coverage, explicit knowledge boundary markers and revision conflicts. Structural errors exit nonzero. Advisory coverage/conflict reports never repair lore. Both CI workflows run the audit and `python3 -m unittest discover -s android-apk/tools/tests -p 'test_canon_audit.py'`.

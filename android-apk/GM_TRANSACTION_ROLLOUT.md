@@ -1,6 +1,6 @@
 # GM Transaction Rollout
 
-Status: PHASE 6F.1 — REGISTRY / PHYSICAL SOURCE AUDIT IMPLEMENTED; COVERAGE AUDIT NEXT
+Status: PHASE 6F — CONTENT TOOLING IMPLEMENTED; PHASE 6G HARDENING NEXT
 
 This rollout preserves the current V2 Core/save/runtime while reintroducing GM planning authority in controlled stages. No phase may skip the transaction boundary.
 
@@ -576,3 +576,10 @@ Only one phase becomes authoritative at a time. A phase moves forward only after
 - Deterministic JSON reports include authority/status/owner/version and source graph edges. The CLI has no write path and adds no dependencies.
 - Both CI workflows run its focused Python tests and shipped-source audit. The existing `CanonRegistry` JVM tests remain the runtime schema gate.
 - Supersedes and lore disagreements are reported; content and authority are never auto-repaired.
+
+### Phase 6F.2 — Coverage, conflict and boundary reports
+
+- Audit adds orphan content, duplicate physical/byte copies, mandatory ownership/coverage, superseded bindings, explicit knowledge markers and comparable source-map revision conflicts.
+- Current audit: 12 sources present; no orphan Markdown or duplicate physical/byte copies. Character mandatory bindings cover Cao Minh, Lucia and Lục Trầm. Syvial and Level subjects still require existing Core/heading compatibility, reported explicitly rather than removed.
+- Cao Minh local R17 versus source-map R15 remains `UNRESOLVED`. Unmarked prose remains reference-only; marker counts do not automatically classify lore or confer character knowledge.
+- Phase 6F is implemented with standard-library Python; both workflows enforce structural errors while preserving advisory authority/coverage reports.

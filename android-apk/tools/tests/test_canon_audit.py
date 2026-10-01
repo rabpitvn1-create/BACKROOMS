@@ -46,3 +46,40 @@ class CanonAuditTest(unittest.TestCase):
             self.assertEqual(['missing'], report['supersedes']['world'])
             self.assertEqual('CURRENT', report['authorityStatus'][0]['status'])
             self.assertEqual(before, physical.read_bytes())
+
+    def test_orphans_duplicate_copies_and_binding_collisions_are_reported(self):
+        with tempfile.TemporaryDirectory() as directory:
+            assets = Path(directory)
+            (assets / 'content/world').mkdir(parents=True)
+            (assets / 'canon').mkdir()
+            (assets / 'content/world/world.md').write_text('# WORLD\nOPEN\n')
+            (assets / 'content/world/other.md').write_text('# OTHER\n')
+            (assets / 'canon/world.md').write_text('# WORLD\nOPEN\n')
+            a, b = source(), source('b', 'world/other.md')
+            a['mandatoryFor'] = b['mandatoryFor'] = ['character:hero']
+            report = module.audit(assets, {'schemaVersion': 1, 'sources': [a, b]})
+            self.assertIn('duplicate_physical_copy:world', report['errors'])
+            self.assertIn('mandatory_subject_duplicate:character:hero', report['errors'])
+            orphan = module.audit(assets, {'schemaVersion': 1, 'sources': [a]})
+            self.assertIn('world/other.md', orphan['orphanContent'])
+
+    def test_shipped_conflict_and_compatibility_coverage_remain_unresolved(self):
+        assets = Path(__file__).parents[2] / 'app/src/main/assets'
+        report = module.audit(assets)
+        self.assertIn({'sourceId': 'cao-minh', 'local': 'R17', 'sourceMap': 'R15',
+                       'resolution': 'UNRESOLVED'}, report['authorityConflicts'])
+        self.assertIn('character:syvial', report['mandatoryCoverage']['requiresCoreCompatibility'])
+        self.assertEqual('lucia', report['mandatoryCoverage']['explicit']['character:lucia'])
+        self.assertEqual('luc-tram', report['mandatoryCoverage']['explicit']['character:luc_tram'])
+        self.assertEqual([], report['orphanContent'])
+        self.assertEqual([], report['duplicatePhysicalCopies'])
+
+    def test_malformed_registry_arrays_fail_closed_without_crashing(self):
+        with tempfile.TemporaryDirectory() as directory:
+            a = source()
+            a.update(supersedes=None, dependencies={}, mandatoryFor=42, authority=[])
+            report = module.audit(Path(directory), {'schemaVersion': 1, 'sources': [a]})
+            self.assertIn('supersedes_invalid:world', report['errors'])
+            self.assertIn('dependencies_invalid:world', report['errors'])
+            self.assertIn('mandatoryFor_invalid:world', report['errors'])
+            self.assertIn('authority_invalid:world', report['errors'])

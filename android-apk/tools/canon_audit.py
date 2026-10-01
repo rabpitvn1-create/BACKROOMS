@@ -2,6 +2,7 @@
 """Read-only canon registry/content audit. Reports conflicts; never resolves lore."""
 import argparse
 import graphlib
+import hashlib
 import json
 import re
 from pathlib import Path, PurePosixPath
@@ -96,14 +97,92 @@ def audit(assets, registry=None):
         graphlib.TopologicalSorter(graph).prepare()
     except graphlib.CycleError:
         errors.append('dependency_cycle')
+    coverage = coverage_report(assets, sources)
+    errors.extend(coverage.pop('errors'))
     return {
-        'errors': sorted(set(errors)), 'sourceCount': len(sources),
+        **coverage, 'errors': sorted(set(errors)), 'sourceCount': len(sources),
         'authorityStatus': [{k: s.get(k, '') for k in ['id', 'path', 'contentPath', 'type',
                              'authority', 'status', 'version', 'owner']}
                             for s in sorted(sources, key=lambda s: s['id'])],
         'dependencies': {s['id']: s.get('dependencies', []) for s in sorted(sources, key=lambda s: s['id'])},
         'supersedes': {s['id']: s.get('supersedes', []) for s in sorted(sources, key=lambda s: s['id'])},
     }
+
+
+def coverage_report(assets, sources):
+    """Inventory and boundary diagnostics only; advisory conflicts never rewrite content."""
+    assets = Path(assets).resolve()
+    errors, warnings, bindings, hashes, boundaries, duplicates = [], [], {}, {}, {}, []
+    registered = set()
+    for source in sorted(sources, key=lambda s: s['id']):
+        sid, physical = source['id'], source.get('contentPath', '')
+        if not isinstance(physical, str):
+            continue
+        registered.add(physical)
+        target = (assets / 'content' / physical).resolve()
+        if target.is_relative_to(assets / 'content') and target.is_file():
+            raw = target.read_bytes()
+            text = raw.decode('utf-8')
+            hashes.setdefault(hashlib.sha256(raw).hexdigest(), []).append(sid)
+            boundaries[sid] = {
+                'secretMarkers': len(re.findall(r'WRITER-SECRET|KNOWLEDGE[ _]LOCK|TUYỆT MẬT', text, re.I)),
+                'povMarkers': len(re.findall(r'POV/BELIEF|POV-BELIEF', text, re.I)),
+                'dynamicMarkers': len(re.findall(r'DYNAMIC', text, re.I)),
+                'openMarkers': len(re.findall(r'OPEN|UNKNOWN', text, re.I)),
+                'unmarkedProseIsReferenceOnly': True,
+            }
+            legacy = source.get('path', '')
+            if isinstance(legacy, str) and '/' not in legacy and '\\' not in legacy \
+                    and (assets / 'canon' / legacy).is_file():
+                duplicates.append(sid)
+                errors.append(f'duplicate_physical_copy:{sid}')
+        values = source.get('mandatoryFor', [])
+        for subject in values if isinstance(values, list) else []:
+            if not isinstance(subject, str) or not re.fullmatch(r'(character|level|entity):[A-Za-z0-9_.-]+', subject):
+                errors.append(f'mandatory_subject_invalid:{sid}')
+                continue
+            if subject in bindings:
+                errors.append(f'mandatory_subject_duplicate:{subject}')
+            bindings[subject] = sid
+            if source.get('status') != 'CURRENT':
+                warnings.append(f'mandatory_source_not_current:{subject}:{sid}')
+    duplicated_bytes = sorted(sorted(ids) for ids in hashes.values() if len(ids) > 1)
+    for ids in duplicated_bytes:
+        errors.append('duplicate_source_bytes:' + ','.join(ids))
+    physical_files = {str(p.relative_to(assets / 'content')) for p in (assets / 'content').rglob('*.md')}
+    orphan = sorted(physical_files - registered)
+    orphan += sorted('canon/' + p.name for p in (assets / 'canon').glob('*.md')
+                     if p.name not in {s.get('path') for s in sources if isinstance(s.get('path'), str)})
+    warnings.extend('orphan_content:' + name for name in orphan)
+    expected, conflicts = set(), []
+    char_file = assets / 'knowledge/characters_current.json'
+    if char_file.is_file():
+        characters = json.loads(char_file.read_text(encoding='utf-8')).get('characters', {})
+        expected.update('character:' + actor for actor in characters)
+        for source in sources:
+            actor = source.get('owner', '')
+            current = characters.get(actor, {}) if isinstance(actor, str) else {}
+            local = re.search(r'\bR\d+\b', str(source.get('version', '')))
+            external = re.search(r'\bR\d+\b', str(current.get('revision', '')))
+            if local and external and local.group() != external.group():
+                conflicts.append({'sourceId': source['id'], 'local': local.group(),
+                                  'sourceMap': external.group(), 'resolution': 'UNRESOLVED'})
+    level_file = assets / 'knowledge/level_knowledge.json'
+    if level_file.is_file():
+        levels = json.loads(level_file.read_text(encoding='utf-8')).get('levels', {})
+        expected.update('level:' + key for key in levels)
+    replaced = set()
+    for source in sources:
+        targets = source.get('supersedes', [])
+        if source.get('status') == 'CURRENT' and isinstance(targets, list):
+            replaced.update(target for target in targets if isinstance(target, str))
+    warnings.extend(f'mandatory_source_superseded:{subject}:{sid}'
+                    for subject, sid in bindings.items() if sid in replaced)
+    return dict(errors=sorted(set(errors)), warnings=sorted(set(warnings)),
+                orphanContent=orphan, duplicatePhysicalCopies=duplicates, duplicateSourceBytes=duplicated_bytes,
+                mandatoryCoverage={'explicit': dict(sorted(bindings.items())),
+                                   'requiresCoreCompatibility': sorted(expected - set(bindings))},
+                knowledgeBoundaries=boundaries, authorityConflicts=conflicts)
 
 
 def main():
