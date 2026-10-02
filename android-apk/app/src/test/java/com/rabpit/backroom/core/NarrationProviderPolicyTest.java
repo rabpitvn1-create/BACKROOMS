@@ -72,7 +72,7 @@ public class NarrationProviderPolicyTest {
     assertEquals("Cao Minh đi tiếp.", result.getString("reply"));
   }
 
-  @Test public void managedLeakGetsOneRetryThenSafeFallbackWithoutKnowledgeMutation() throws Exception {
+  @Test public void authorityLeakFallsBackWithoutSecondContentCallOrKnowledgeMutation() throws Exception {
     JSONObject state = new JSONObject();
     JSONObject evidence = new JSONObject().put("available", true).put("claims", new JSONArray());
     int[] calls = {0, 0};
@@ -81,24 +81,23 @@ public class NarrationProviderPolicyTest {
       return new JSONObject().put("reply", "Lucia dùng M4A1 có laser.").put("claims", new JSONArray());
     }, generated -> NarrationGuard.validate(generated, state, evidence));
     assertEquals(1, calls[0]);
-    assertEquals(1, calls[1]);
-    assertEquals(2, calls[0] + calls[1]);
+    assertEquals(0, calls[1]);
+    assertEquals(1, calls[0] + calls[1]);
     assertFalse(result.toString().contains("M4A1"));
     assertEquals("{}", state.toString());
   }
 
-  @Test public void validRetryIsAcceptedWithinTheSameTwoCallBudget() throws Exception {
+  @Test public void hardValidationRejectionUsesLocalFallbackInsteadOfRepairCall() throws Exception {
     int[] calls = {0, 0};
     JSONObject result = NarrationProviderPolicy.present(new JSONArray(), rejection -> {
       calls[rejection.isEmpty() ? 0 : 1]++;
-      return new JSONObject().put("reply", rejection.isEmpty() ? "invalid" : "Cao Minh đi tiếp.");
-    }, generated -> "invalid".equals(generated.optString("reply")) ? "AUTHORITY: hard rejection" : "");
+      return new JSONObject().put("reply", "invalid");
+    }, generated -> "AUTHORITY: hard rejection");
     assertEquals(1, calls[0]);
-    assertEquals(1, calls[1]);
-    assertEquals(2, calls[0] + calls[1]);
-    assertEquals("Cao Minh đi tiếp.", result.getString("reply"));
+    assertEquals(0, calls[1]);
+    assertEquals(1, calls[0] + calls[1]);
+    assertFalse("invalid".equals(result.getString("reply")));
   }
-
   @Test public void transportErrorDoesNotStartAnUnboundedRetryOrProviderFallback() throws Exception {
     int[] calls = {0, 0};
     JSONObject result = NarrationProviderPolicy.present(new JSONArray(), rejection -> {

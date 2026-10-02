@@ -3,7 +3,7 @@ package com.rabpit.backroom.core;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-/** One initial content attempt, at most one hard-validation repair, then safe local fallback. */
+/** At most one writer content attempt per scene; any rejection falls back locally. */
 public final class NarrationProviderPolicy {
   @FunctionalInterface public interface Provider { JSONObject generate(String rejection) throws Exception; }
   @FunctionalInterface public interface Validator { String validate(JSONObject generated); }
@@ -18,13 +18,9 @@ public final class NarrationProviderPolicy {
     }
     try {
       JSONObject generated = provider.generate("");
-      String rejection = validator.validate(generated);
-      if (rejection.isEmpty()) return generated;
-      if (!rejection.startsWith("AUTHORITY:")) return fallback(safeEvents);
-      generated = provider.generate(rejection);
       if (validator.validate(generated).isEmpty()) return generated;
     } catch (Exception error) {
-      // The provider owns bounded transport failover; this layer never starts an extra content attempt on failure.
+      // The provider owns bounded transport failover; this layer never starts another content attempt.
     }
     return fallback(safeEvents);
   }
