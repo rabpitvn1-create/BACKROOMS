@@ -103,7 +103,7 @@ public final class OfflinePresenter {
             + " " + view.optString("introDetail", "Người đó đứng trong khu vực trước mặt.");
         if (encounterDialogue.length() == 0) {
           if ("CHARACTER_REUNION".equals(type)) {
-            encounterDialogue.put("Cao Minh.");
+            encounterDialogue.put("Lại là anh.");
             encounterDialogue.put("Tôi không ngờ chúng ta lại gặp nhau ở đây.");
           } else {
             encounterDialogue.put("Tôi không muốn gây thêm rắc rối.");
