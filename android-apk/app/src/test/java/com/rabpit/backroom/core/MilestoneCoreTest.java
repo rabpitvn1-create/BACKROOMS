@@ -16,21 +16,24 @@ public class MilestoneCoreTest {
     MilestoneCore core = MilestoneCore.fromText(readAsset("knowledge/milestone_runtime.json"));
 
     String levelZero = core.promptContext(state("0", 0));
+    assertTrue(levelZero.contains("MILESTONE — CURRENT LEVEL ONLY"));
     assertTrue(levelZero.contains("ACT I — NGƯỜI ĐẦU TIÊN"));
     assertTrue(levelZero.contains("Lucia first contact"));
-    assertTrue(levelZero.contains("WRITER SECRETS — NOT ACTOR KNOWLEDGE"));
-    assertTrue(levelZero.contains("slow-burn"));
+    assertFalse(levelZero.contains("WRITER SECRETS"));
+    assertFalse(levelZero.contains("slow-burn"));
+    assertFalse(levelZero.contains("FORBIDDEN REVEALS"));
     assertFalse(levelZero.contains("ACT XIV — LUCIA VÀ LỤC TRẦM"));
     assertTrue(levelZero.length() < MilestoneCore.MAX_CONTEXT_CHARS);
 
     String levelFiveTwo = core.promptContext(state("5.2", 5));
     assertTrue(levelFiveTwo.contains("ACT XIV — LUCIA VÀ LỤC TRẦM"));
     assertTrue(levelFiveTwo.contains("không tự tạo cú trượt/rơi"));
+    assertFalse(levelFiveTwo.contains("ACT I — NGƯỜI ĐẦU TIÊN"));
 
     String levelSix = core.promptContext(state("6", 6));
     assertTrue(levelSix.contains("FINALE — CHÚNG TA CHƯA HIỂU GÌ"));
-    assertTrue(levelSix.contains("TERMINAL LOCK"));
-    assertTrue(levelSix.contains("Level 6.1 is outside scope"));
+    assertTrue(levelSix.contains("BOUNDARY: milestone ends at Level 6"));
+    assertTrue(levelSix.contains("Level 6.1 is outside this milestone"));
   }
 
   @Test public void runtimeProjectionRejectsDifferentMilestoneSourceHash() throws Exception {
