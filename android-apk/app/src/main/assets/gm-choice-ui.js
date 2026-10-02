@@ -209,17 +209,22 @@
     Android.restartAfterDeath();
   }
 
-  function fixedExplorerChoices() {
-    return [
-      {id:'A',text:'Khám phá',action:'Khám phá'},
-      {id:'B',text:'Tìm kiếm',action:'Tìm kiếm'}
-    ];
+  function fallbackExplorerChoice() {
+    if (chestPresent()) {
+      return {id:'A',text:'Mở chiếc rương vừa phát hiện',action:'__loot:open_chest'};
+    }
+    try {
+      if (state && state.levelRoute && state.levelRoute.exitAvailable === true) {
+        return {id:'A',text:'Tiến qua ranh giới vừa được tìm thấy',action:'Tiếp tục qua ranh giới'};
+      }
+    } catch (_) {}
+    return {id:'A',text:'Tiếp tục thăm dò khu vực phía trước',action:'Khám phá'};
   }
 
-  function displayedExplorerChoices() {
-    return fixedExplorerChoices().map(function(choice){
-      return Object.assign({}, choice);
-    });
+  function displayedExplorerChoices(entry) {
+    var generated = entry && Array.isArray(entry.choices) ? entry.choices : [];
+    var choice = generated.length ? generated[0] : fallbackExplorerChoice();
+    return choice ? [Object.assign({}, choice)] : [];
   }
 
   function submitChestChoice() {
@@ -286,22 +291,16 @@
       return;
     }
 
-    var hasChest = latest && chestPresent();
     var choices = latest && !(state.combat && state.combat.active)
         ? displayedExplorerChoices(entry) : [];
-    if (!hasChest && !choices.length) return;
+    if (!choices.length) return;
 
     var actionable = latest && !(state.combat && state.combat.active)
       && !explorerChoiceBusy && !window.__combatBusy && !(typeof busy !== 'undefined' && busy);
     var box = document.createElement('div');
     box.className = 'gm-choices explorer-choices';
 
-    if (hasChest) {
-      box.appendChild(makeChoiceButton('', 'Mở Rương', entry, [{text:'Rương',type:'item'}],
-        !actionable, false, function(){ submitChestChoice(); }));
-    }
-
-    choices.slice(0, 2).forEach(function(choice){
+    choices.slice(0, 1).forEach(function(choice){
       var disabled = !actionable || !!choice.disabled || !!choice.selected;
       box.appendChild(makeChoiceButton('', choice.text || choice.action || '', entry,
         choice.highlights || [], disabled, !!choice.selected,
