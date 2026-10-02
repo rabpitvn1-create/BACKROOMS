@@ -116,7 +116,7 @@ public class GmNarrativePacketTest {
         new JSONObject().put("available", true).put("claims", new org.json.JSONArray()));
 
     assertTrue(packet.contains("QUIET TURN"));
-    assertTrue(packet.contains("composition môi trường mới"));
+    assertTrue(packet.contains("kể action qua môi trường hợp lệ"));
     assertFalse(packet.contains("không có biến cố chủ động mới"));
   }
 
