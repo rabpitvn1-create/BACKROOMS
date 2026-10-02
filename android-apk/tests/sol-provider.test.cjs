@@ -11,15 +11,43 @@ function method(name) {
   return source.slice(start, source.indexOf('\n  private ', start + 1));
 }
 
-test('shared flow keeps one-request Gemini happy path before SOL and Haiku fallbacks', () => {
+test('shared flow tries LUNA before existing Gemini, SOL and Haiku fallbacks', () => {
   const flow = method('generateText');
   assert.match(flow, /SafePresentationView\.narrativeText/);
+  assert.match(flow, /try\s*\{\s*String output = lunaText\(prompt\);[\s\S]*?return output;\s*\} catch \(Exception error\) \{[\s\S]*?\}\s*Exception geminiError;/);
+  assert.ok(flow.indexOf('lunaText(prompt)') < flow.indexOf('geminiText(prompt)'));
   assert.ok(flow.indexOf('geminiText(prompt)') < flow.indexOf('solText(prompt)'));
   assert.ok(flow.indexOf('solText(prompt)') < flow.indexOf('haikuText(prompt)'));
   assert.match(method('geminiText'), /ProviderRetryPolicy\.shouldRotateGeminiKey/);
   assert.match(method('haikuText'), /ProviderRetryPolicy\.shouldRetrySameProvider/);
   assert.match(method('generateNarrationText'), /return generateText\(prompt\)/);
   assert.doesNotMatch(flow, /CompletableFuture|invokeAny|parallelStream/);
+});
+
+test('LUNA skips absent keys and validates JSON using shared OpenAI transport and parser', () => {
+  const luna = method('lunaText');
+  assert.match(luna, /if \(BuildConfig\.LUNA_API_KEY == null \|\| BuildConfig\.LUNA_API_KEY\.trim\(\)\.isEmpty\(\)\) \{\s*throw new Exception\(/);
+  assert.ok(luna.indexOf('LUNA_API_KEY.trim().isEmpty()') < luna.indexOf('postJson('));
+  assert.match(luna, /BuildConfig\.LUNA_MODEL == null \? "" : BuildConfig\.LUNA_MODEL\.trim\(\)/);
+  assert.match(luna, /model\.isEmpty\(\) \? "gpt-6-luna" : model/);
+  assert.match(luna, /BuildConfig\.LUNA_BASE_URL == null \? "" : BuildConfig\.LUNA_BASE_URL\.trim\(\)/);
+  assert.match(luna, /base\.isEmpty\(\) \? "https:\/\/api\.apiz\.vn\/v1" : base/);
+  assert.match(luna, /openAiResponseText\(postJson\(base \+ "\/chat\/completions",\s*BuildConfig\.LUNA_API_KEY, "Authorization", body\)\)/);
+  assert.match(luna, /parseModelJson\(output\);\s*return output;/);
+  assert.doesNotMatch(luna, /reasoning_effort|for\s*\(/);
+});
+
+test('LUNA config uses shared secret helper and optional release env', () => {
+  const release = fs.readFileSync(path.join(root, '.github/workflows/release-version.yml'), 'utf8');
+  const gradle = fs.readFileSync(path.join(root, 'android-apk/app/build.gradle'), 'utf8');
+  for (const name of ['LUNA_API_KEY', 'LUNA_BASE_URL', 'LUNA_MODEL']) {
+    assert.ok(gradle.includes('buildConfigField "String", "' + name + '", "\\"" + secret("' + name + '") + "\\""'));
+  }
+  assert.ok(release.includes('LUNA_API_KEY: $' + '{{ secrets.LUNA_API_KEY }}'));
+  for (const name of ['LUNA_BASE_URL', 'LUNA_MODEL']) {
+    assert.ok(release.includes(name + ': $' + '{{ secrets.' + name + ' || vars.' + name + ' }}'));
+  }
+  assert.doesNotMatch(release, /for name in [^\n]*LUNA/);
 });
 
 test('SOL uses low reasoning with shared OpenAI payload, bearer transport and parser', () => {

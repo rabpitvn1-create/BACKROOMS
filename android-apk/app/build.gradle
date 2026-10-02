@@ -35,6 +35,9 @@ android {
     targetSdk 35
     versionCode 118
     versionName '1.1.74'
+    buildConfigField "String", "LUNA_API_KEY", "\"" + secret("LUNA_API_KEY") + "\""
+    buildConfigField "String", "LUNA_BASE_URL", "\"" + secret("LUNA_BASE_URL") + "\""
+    buildConfigField "String", "LUNA_MODEL", "\"" + secret("LUNA_MODEL") + "\""
     buildConfigField "String", "SOL_API_KEY", "\"" + secret("SOL_API_KEY") + "\""
     buildConfigField "String", "GEMINI_API_KEY_1", "\"" + secret("GEMINI_API_KEY_1") + "\""
     buildConfigField "String", "GEMINI_API_KEY_2", "\"" + secret("GEMINI_API_KEY_2") + "\""

@@ -501,6 +501,21 @@ public class MainActivity extends Activity {
         openAiBody(haikuModel(), prompt), false));
   }
 
+  private String lunaText(String prompt) throws Exception {
+    if (BuildConfig.LUNA_API_KEY == null || BuildConfig.LUNA_API_KEY.trim().isEmpty()) {
+      throw new Exception("LUNA_API_KEY chưa được cấu hình.");
+    }
+    String model = BuildConfig.LUNA_MODEL == null ? "" : BuildConfig.LUNA_MODEL.trim();
+    String base = BuildConfig.LUNA_BASE_URL == null ? "" : BuildConfig.LUNA_BASE_URL.trim();
+    base = base.isEmpty() ? "https://api.apiz.vn/v1" : base;
+    while (base.endsWith("/")) base = base.substring(0, base.length() - 1);
+    JSONObject body = openAiBody(model.isEmpty() ? "gpt-6-luna" : model, prompt);
+    String output = openAiResponseText(postJson(base + "/chat/completions",
+        BuildConfig.LUNA_API_KEY, "Authorization", body));
+    parseModelJson(output);
+    return output;
+  }
+
   private String solText(String prompt) throws Exception {
     if (BuildConfig.SOL_API_KEY == null || BuildConfig.SOL_API_KEY.trim().isEmpty()) {
       throw new Exception("SOL_API_KEY chưa được cấu hình.");
@@ -596,10 +611,20 @@ public class MainActivity extends Activity {
 
   private String generateText(String prompt) throws Exception {
     prompt = SafePresentationView.narrativeText(new JSONObject(gameCore.currentCoreState()), prompt);
-    Exception geminiError;
     long providerStart = SystemClock.elapsedRealtime();
     try {
-      // Restore the pre-1.1.74 fast path: successful Gemini narration is one physical provider path.
+      String output = lunaText(prompt);
+      if (BuildConfig.DEBUG) Log.d(TAG, "NARRATION PROVIDER: LUNA success "
+          + (SystemClock.elapsedRealtime() - providerStart) + "ms");
+      return output;
+    } catch (Exception error) {
+      if (BuildConfig.DEBUG) Log.d(TAG, "NARRATION PROVIDER: LUNA unavailable "
+          + (SystemClock.elapsedRealtime() - providerStart) + "ms");
+    }
+
+    Exception geminiError;
+    providerStart = SystemClock.elapsedRealtime();
+    try {
       String output = geminiText(prompt);
       if (BuildConfig.DEBUG) Log.d(TAG, "NARRATION PROVIDER: Gemini success "
           + (SystemClock.elapsedRealtime() - providerStart) + "ms");

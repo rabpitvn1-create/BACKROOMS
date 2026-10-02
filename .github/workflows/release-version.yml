@@ -29,6 +29,9 @@ jobs:
   build-apk:
     runs-on: ubuntu-latest
     env:
+      LUNA_API_KEY: ${{ secrets.LUNA_API_KEY }}
+      LUNA_BASE_URL: ${{ secrets.LUNA_BASE_URL || vars.LUNA_BASE_URL }}
+      LUNA_MODEL: ${{ secrets.LUNA_MODEL || vars.LUNA_MODEL }}
       SOL_API_KEY: ${{ secrets.SOL_API_KEY }}
       GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 || secrets.GEMINI_API_KEY }}
       GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
