@@ -51,6 +51,19 @@ public class SceneContextCompilerTest {
     assertFalse(packet.levelScene.contains("MUTATED"));
   }
 
+  @Test public void runtimeWriterPromptOnlyRendersTheCompiledContract() throws Exception {
+    JSONObject state = state().put("emergent", new JSONObject().put("lastSelection", new JSONObject()
+        .put("situationKey", "INTERNAL_SITUATION").put("publicSummary", "UNCOMMITTED_SUMMARY")
+        .put("candidateWeights", "SCHEDULER_WEIGHTS")))
+        .put("narrativeSkeleton", "FULL_SKELETON").put("beliefs", "FULL_EPISTEMIC");
+    String prompt = GmNarrativePacket.buildScene(compile(state, "Khám phá"));
+    assertTrue(prompt.contains("CURRENT LEVEL"));
+    for (String marker : new String[] {"INTERNAL_SITUATION", "UNCOMMITTED_SUMMARY", "SCHEDULER_WEIGHTS",
+        "FULL_SKELETON", "FULL_EPISTEMIC", "READ-ONLY STATE", "COMMITTED TURN EVIDENCE", "eventId"}) {
+      assertFalse(prompt.contains(marker));
+    }
+  }
+
   @Test public void committedFactsRetainOutcomeButDropEventBookkeeping() throws Exception {
     JSONObject evidence = evidence().put("turnId", "INTERNAL_ID").put("commitSeq", 999)
         .put("claims", new JSONArray().put(new JSONObject().put("eventId", "INTERNAL_ID")

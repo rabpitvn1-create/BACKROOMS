@@ -13,7 +13,11 @@ function method(name) {
 
 test('shared flow tries LUNA before existing Gemini, SOL and Haiku fallbacks', () => {
   const flow = method('generateText');
-  assert.match(flow, /SafePresentationView\.narrativeText/);
+  const compiler = fs.readFileSync(path.join(root,
+    'android-apk/app/src/main/java/com/rabpit/backroom/core/SceneContextCompiler.java'), 'utf8');
+  assert.match(method('narrationPrompt'), /SceneContextCompiler\.compile/);
+  assert.match(compiler, /SafePresentationView\.narrativeText/);
+  assert.doesNotMatch(flow, /currentCoreState/);
   assert.match(flow, /try\s*\{\s*String output = lunaText\(prompt\);[\s\S]*?return output;\s*\} catch \(Exception error\) \{[\s\S]*?\}\s*Exception geminiError;/);
   assert.ok(flow.indexOf('lunaText(prompt)') < flow.indexOf('geminiText(prompt)'));
   assert.ok(flow.indexOf('geminiText(prompt)') < flow.indexOf('solText(prompt)'));

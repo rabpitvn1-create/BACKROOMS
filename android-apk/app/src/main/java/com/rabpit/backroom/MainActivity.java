@@ -20,6 +20,7 @@ import com.rabpit.backroom.core.CommittedTurnNarrationEvidence;
 import com.rabpit.backroom.core.GameCoreFacade;
 import com.rabpit.backroom.core.GmChoiceContract;
 import com.rabpit.backroom.core.GmNarrativePacket;
+import com.rabpit.backroom.core.SceneContextCompiler;
 import com.rabpit.backroom.core.OfflinePresenter;
 import com.rabpit.backroom.core.NarrationProviderPolicy;
 import com.rabpit.backroom.core.SafePresentationView;
@@ -278,7 +279,6 @@ public class MainActivity extends Activity {
 
   /** Count content requests; key rotation and transport retries stay inside the existing provider chain. */
   private String generateNarrationText(String prompt, int[] calls, boolean retry) throws Exception {
-    prompt = SafePresentationView.narrativeText(new JSONObject(gameCore.currentCoreState()), prompt);
     calls[retry ? 1 : 0]++;
     return generateText(prompt);
   }
@@ -556,7 +556,6 @@ public class MainActivity extends Activity {
   }
 
   private String generateText(String prompt) throws Exception {
-    prompt = SafePresentationView.narrativeText(new JSONObject(gameCore.currentCoreState()), prompt);
     long providerStart = SystemClock.elapsedRealtime();
     try {
       String output = lunaText(prompt);
@@ -629,35 +628,6 @@ public class MainActivity extends Activity {
     return new JSONObject(text.substring(start, end + 1));
   }
 
-  private String clipped(Object value, int max) {
-    String text = value == null ? "" : String.valueOf(value);
-    return text.length() > max ? text.substring(text.length() - max) : text;
-  }
-
-  private String recentContext(JSONObject state) {
-    JSONArray log = state == null ? null : state.optJSONArray("log");
-    if (log == null || log.length() == 0) return "(chưa có lượt trước)";
-
-    java.util.ArrayList<String> visible = new java.util.ArrayList<>();
-    for (int i = log.length() - 1; i >= 0 && visible.size() < 6; i--) {
-      JSONObject entry = log.optJSONObject(i);
-      if (entry == null) continue;
-      String role = entry.optString("role", "");
-      String text = entry.optString("text", "").trim();
-      if (entry.has("battleLog") || entry.optString("presentationId", "").endsWith(":victory")) continue;
-      if (text.isEmpty()) continue;
-      visible.add(0, ("player".equals(role) ? "PLAYER: " : "GM: ") + clipped(text, 680));
-    }
-
-    StringBuilder recent = new StringBuilder();
-    for (String line : visible) {
-      if (recent.length() > 0) recent.append('\n');
-      if (recent.length() + line.length() > GmNarrativePacket.MAX_RECENT_CONTEXT_CHARS) break;
-      recent.append(line);
-    }
-    return recent.length() == 0 ? "(chưa có lượt trước)" : recent.toString();
-  }
-
   private String appendEncounterDialogue(String reply, JSONArray dialogue) {
     if (dialogue == null || dialogue.length() == 0) return reply;
     StringBuilder output = new StringBuilder(reply == null ? "" : reply.trim());
@@ -686,26 +656,11 @@ public class MainActivity extends Activity {
   }
 
   private String narrationPrompt(JSONObject state, String action, String turnId) throws Exception {
-    String coreJson = state.toString();
-    String levelContext = gameCore.levelSceneContext(coreJson, action);
-    String characterContext = gameCore.characterSceneContext(coreJson);
-    JSONObject evidence = CommittedTurnNarrationEvidence.fromState(state, turnId);
-    if (!evidence.optBoolean("available", false)) {
-      throw new IllegalStateException(
-          "Committed turn evidence unavailable: " + evidence.optString("reason", "unknown"));
-    }
     if (milestoneCore == null) {
-      throw new IllegalStateException("Milestone runtime không khả dụng; không gọi AI narration.");
+      throw new IllegalStateException("Milestone runtime unavailable for narration.");
     }
     return GmNarrativePacket.buildScene(
-        levelContext,
-        characterContext,
-        gameCore.narrativeSceneContinuityContext(coreJson, action),
-        recentContext(state),
-        state,
-        action,
-        milestoneCore.promptContext(state),
-        evidence);
+        SceneContextCompiler.compile(gameCore, milestoneCore, state, action, turnId));
   }
 
   private void prefetchChoices(String choicesJson) {

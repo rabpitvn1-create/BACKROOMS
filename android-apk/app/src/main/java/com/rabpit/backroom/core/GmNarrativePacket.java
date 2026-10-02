@@ -9,6 +9,28 @@ public final class GmNarrativePacket {
 
   private GmNarrativePacket() {}
 
+  /** Runtime renderer: every scene dependency is already selected by the compiler. */
+  public static String buildScene(SceneContextCompiler.SceneContext scene) {
+    return "Bạn là Game Master của sandbox text game Backrooms.\n"
+        + "Core quyết định WHAT HAPPENED; bạn quyết định HOW IT FEELS. "
+        + "Tự do chọn nhịp kể, ánh sáng, âm thanh, texture, bố cục, focus, atmosphere và chi tiết môi trường vô hại.\n"
+        + "Không tự tạo Level transition, Entity, encounter, item/loot, inventory, combat result, injury/stat, "
+        + "Party hoặc persistent relationship mutation; không giải canon secret chưa được phép.\n"
+        + "Milestone chỉ là hướng truyện; không ép scene, lời thoại hay outcome. "
+        + "Không tự thêm lời nói, suy nghĩ, quyết định hoặc action tiếp theo cho Cao Minh.\n"
+        + "Kể ngôi thứ ba hạn định, tiếng Việt tự nhiên; xianxia là lăng kính, Backrooms là thực tại. "
+        + "Recent chỉ để giữ continuity và tránh lặp prose, không recap hay theo template.\n"
+        + "CURRENT LEVEL:\n" + scene.levelScene + "\n"
+        + "CURRENT CHARACTERS — present/pending; người chỉ được nhắc không có mặt trong scene:\n" + scene.characterScene + "\n"
+        + "CURRENT STORY — milestone current node only:\n" + scene.storyBoundary + "\n"
+        + "RELEVANT CONTINUITY:\n" + scene.relevantContinuity + "\n"
+        + "COMMITTED SCENE FACTS:\n" + scene.committedSceneFacts + "\n"
+        + "RECENT:\n" + scene.recentContext + "\n"
+        + "PLAYER ACTION: " + scene.playerAction + "\n"
+        + "OUTPUT chỉ JSON: {\"reply\":\"...\",\"choices\":[{\"text\":\"...\"}],\"encounterDialogue\":[]}. "
+        + "choices có 0-3 gợi ý hành động, không phải outcome; thoại theo nhân vật Core xác nhận.";
+  }
+
   public static JSONObject projectState(JSONObject state) throws Exception {
     return EpistemicView.forActor(state, "cao_minh");
   }

@@ -58,7 +58,7 @@ public final class SceneContextCompiler {
 
   private static SceneContext assemble(JSONObject state, String action, JSONObject evidence,
       String level, String characters, String story, String continuity) throws Exception {
-    return new SceneContext(state, level, characters, story, continuity,
+    return new SceneContext(state, level, GmNarratorContract.caoMinhNarrativeCard() + "\n" + characters, story, continuity,
         committedFacts(state, evidence), recent(state), action);
   }
 
