@@ -5,17 +5,17 @@
     {
       "name": "Explore — không gian trước",
       "player": "Cao Minh đi tiếp theo hành lang.",
-      "gm": "Ánh đèn phủ đều lên tường nhạt màu khi Cao Minh tiến qua. Khoảng hành lang phía trước đổi tỷ lệ trong tầm nhìn; texture ẩm của thảm rõ hơn ở gần chân, còn các đường giao giữa tường và trần lùi dần về sau. Tiếng bước chân bị vật liệu mềm nuốt bớt, để tiếng điện trên cao làm nền. Scene không tự thêm vật thể, dấu vết hay phát hiện mới."
+      "gm": "Ánh đèn phủ đều lên những mảng tường nhạt màu khi Cao Minh tiến qua. Các đường giao giữa tường và trần chậm rãi trượt sang hai bên, khiến chiều sâu phía trước thay đổi theo từng quãng đã vượt. Lớp thảm ẩm làm tiếng bước chân ngắn và đục hơn; xa hơn, tiếng điện kéo thành một nền đều. Cùng một hành lang, nhưng khoảng cách và phối cảnh khiến phần không gian trước mắt không còn giống hệt góc nhìn ban đầu."
     },
     {
       "name": "Explore — âm thanh trước",
       "player": "Cao Minh tiếp tục khám phá khu vực hiện tại.",
-      "gm": "Tiếng rè của hệ thống chiếu sáng được đặt lên trước, rồi tầm nhìn kéo từ gần ra xa. Cao Minh tiếp tục đúng hành động đã nhập; các mặt phẳng, góc nối và khoảng cách đổi tương quan theo chuyển động, trong khi vật liệu và ánh sáng vẫn thuộc môi trường đã commit. Lượt này giàu cảm giác hơn mà không sinh clue, event hay ý định mới."
+      "gm": "Tiếng rè của hệ thống chiếu sáng nổi rõ trước khi mắt quen lại với những mặt phẳng kéo dài xung quanh. Cao Minh tiếp tục tiến theo hướng đã chọn; phần tường ở gần lướt khỏi tầm nhìn nhanh hơn những góc xa, còn ánh sáng giữ sắc độ đều trên bề mặt cũ. Nhịp bước và độ vang thay đổi nhẹ theo khoảng trống phía trước, đủ làm quãng đường có chiều sâu mà không cần một điểm bất thường mới xuất hiện."
     }
   ],
   "badExample": {
     "player": "Cao Minh đi tiếp.",
     "gm": "Cao Minh đi tiếp trong hành lang. Không có biến cố mới. Vẫn chỉ là hành lang như trước.",
-    "why": "Sai vì lặp skeleton và dùng câu meta thay cho scene."
+    "why": "Sai vì lặp skeleton và dùng câu meta thay cho mô tả scene."
   }
 }

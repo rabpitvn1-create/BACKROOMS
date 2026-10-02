@@ -147,6 +147,12 @@ public class GmNarrativePacketTest {
     String second = good.getJSONObject(1).getString("gm");
     assertFalse(first.substring(0, Math.min(24, first.length()))
         .equals(second.substring(0, Math.min(24, second.length()))));
+    for (int i = 0; i < good.length(); i++) {
+      String prose = good.getJSONObject(i).getString("gm").toLowerCase(java.util.Locale.ROOT);
+      for (String meta : new String[] {"core", "commit", "event", "clue", "scene"}) {
+        assertFalse("Good Explore prose must stay in-world: " + meta, prose.contains(meta));
+      }
+    }
 
     JSONObject state = new JSONObject().put("currentLevelKey", "0")
         .put("party", new org.json.JSONArray());
