@@ -77,7 +77,7 @@ public class LevelCoreTest {
     String[] progression = {
         "1","1.2","1.3","1.5","base_alpha","traders_vault",
         "2","2.1","3","3.5","4","office_market",
-        "5","5.1","5.2","5.3","6","6.1"
+        "5","5.1","5.2","5.3","6"
     };
     for (int i = 0; i < progression.length; i++) {
       assertTrue("Missing graph node " + progression[i], graph.contains(progression[i]));
@@ -86,6 +86,9 @@ public class LevelCoreTest {
             graph.allows(progression[i], progression[i + 1]));
       }
     }
+    assertTrue(graph.contains("6.1"));
+    assertTrue(graph.outgoing("6").isEmpty());
+    assertFalse(graph.allows("6", "6.1"));
     assertTrue(graph.contains("6.31"));
     assertTrue(graph.outgoing("6.31").isEmpty());
     assertFalse(graph.allows("6.1", "6.31"));
