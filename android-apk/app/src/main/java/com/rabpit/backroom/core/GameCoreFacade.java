@@ -723,10 +723,11 @@ public final class GameCoreFacade implements AutoCloseable {
   }
 
   /**
-   * Writer-only deterministic forecast for the next default Explorer advances.
+   * Writer-only deterministic forecast for the next default world advances.
    * This never persists, never reaches the client-safe state and never grants authority to narration.
    */
-  public synchronized String oracleSceneContext(String stateJson) {
+  public synchronized String oracleWindow(String stateJson) {
+    JSONObject output = new JSONObject();
     JSONObject submitted = parseState(stateJson);
     JSONObject persisted = parseState(liveStateJson);
     JSONObject base = persisted.length() > 0 ? persisted : submitted;
@@ -735,13 +736,16 @@ public final class GameCoreFacade implements AutoCloseable {
       normalizeCoreState(forecast);
       emergentTurnEngine.normalizeState(forecast);
       emergentTurnEngine.catchUpProjections(forecast);
+      JSONArray steps = new JSONArray();
       if (CombatChoiceEngine.isActive(forecast)) {
-        return "CORE ORACLE WINDOW: paused while combat is active.";
+        output.put("context", "CORE ORACLE WINDOW: paused while combat is active.")
+            .put("steps", steps);
+        return output.toString();
       }
 
       StringBuilder out = new StringBuilder();
       out.append("CORE ORACLE WINDOW — HIDDEN WRITER KNOWLEDGE\n")
-          .append("Default action for every forecast slot: Khám phá. ")
+          .append("Each slot follows the same single Core-routed default action the UI would expose. ")
           .append("These are deterministic Core forecasts, not player-visible facts and not narration authority.\n");
 
       for (int step = 1; step <= 6; step++) {
@@ -750,6 +754,14 @@ public final class GameCoreFacade implements AutoCloseable {
         JSONObject selected = prepared.selected;
         JSONObject route = prepared.working.optJSONObject(LevelCore.ROUTE_STATE);
         String routeResult = route == null ? "" : route.optString("lastResult", "").trim();
+
+        JSONObject stepInfo = new JSONObject()
+            .put("offset", step)
+            .put("action", defaultAction)
+            .put("routeResult", routeResult)
+            .put("worldKind", selected.optBoolean("selectedNone", false)
+                ? "QUIET" : selected.optString("kind", "WORLD"))
+            .put("payloadKey", selected.optString("payloadKey", ""));
 
         out.append("STEP +").append(step).append(": action=").append(defaultAction).append("; ");
         if (!routeResult.isEmpty()) {
@@ -771,6 +783,9 @@ public final class GameCoreFacade implements AutoCloseable {
         out.append('\n');
 
         JSONObject next = finishWorkingTurn(forecast, prepared, new JSONObject());
+        stepInfo.put("authorityHash", oracleAuthorityHash(next));
+        steps.put(stepInfo);
+
         if ("ENTITY".equals(selected.optString("kind", ""))) {
           JSONObject flags = next.optJSONObject("flags");
           if (flags != null) flags.put("entityEncounterKey", "");
@@ -784,9 +799,33 @@ public final class GameCoreFacade implements AutoCloseable {
       out.append("ORACLE CONTRACT: use future knowledge only for pacing, continuity and the single next-action wording. ")
           .append("Do not reveal, imply or instantiate a future Entity, chest, member meeting, route result or hidden identity ")
           .append("before that outcome is committed by Core. If live state diverges, live Core state wins.");
-      return out.toString();
+      output.put("context", out.toString()).put("steps", steps);
+      return output.toString();
+    } catch (Exception e) {
+      try {
+        output.put("context", "CORE ORACLE WINDOW: unavailable. Do not invent future outcomes.")
+            .put("steps", new JSONArray());
+      } catch (Exception ignored) {}
+      return output.toString();
+    }
+  }
+
+  public synchronized String oracleSceneContext(String stateJson) {
+    try {
+      return new JSONObject(oracleWindow(stateJson)).optString(
+          "context", "CORE ORACLE WINDOW: unavailable. Do not invent future outcomes.");
     } catch (Exception e) {
       return "CORE ORACLE WINDOW: unavailable. Do not invent future outcomes.";
+    }
+  }
+
+  public static String oracleAuthorityHash(JSONObject snapshot) {
+    try {
+      JSONObject authoritative = new JSONObject(snapshot == null ? "{}" : snapshot.toString());
+      authoritative.remove("log");
+      return fingerprint(authoritative);
+    } catch (Exception e) {
+      throw new IllegalStateException("Cannot fingerprint oracle authority state", e);
     }
   }
 

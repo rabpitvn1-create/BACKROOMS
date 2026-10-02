@@ -148,6 +148,25 @@ public class PresentationCoreTest {
     assertFalse(nextState.toString().contains("pendingBattleNarration"));
   }
 
+  @Test public void oracleWindowIsDeterministicReadOnlyAndMatchesNextDefaultCommit() throws Exception {
+    GameCoreFacade core = core(state());
+    String before = core.currentCoreState();
+
+    JSONObject first = new JSONObject(core.oracleWindow(before));
+    JSONObject second = new JSONObject(core.oracleWindow(before));
+    assertEquals(first.toString(), second.toString());
+    assertEquals(6, first.getJSONArray("steps").length());
+    assertEquals(before, core.currentCoreState());
+
+    JSONObject step = first.getJSONArray("steps").getJSONObject(0);
+    assertFalse(step.getString("action").trim().isEmpty());
+    assertFalse(step.getString("authorityHash").trim().isEmpty());
+
+    JSONObject committed = committed(core, step.getString("action")).getJSONObject("state");
+    assertEquals(step.getString("authorityHash"), GameCoreFacade.oracleAuthorityHash(committed));
+  }
+
+
   @Test public void explicitCoreUpdatesSurviveActualCheckpointSaveAndLoad() throws Exception {
     GameCoreFacade core = core(state());
     core.markEffectKnown("cao_minh", "lucia_m4a1", "core:observed-shot");
