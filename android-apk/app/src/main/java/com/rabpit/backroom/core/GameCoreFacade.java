@@ -722,6 +722,73 @@ public final class GameCoreFacade implements AutoCloseable {
     }
   }
 
+  /**
+   * Writer-only deterministic forecast for the next default Explorer advances.
+   * This never persists, never reaches the client-safe state and never grants authority to narration.
+   */
+  public synchronized String oracleSceneContext(String stateJson) {
+    JSONObject submitted = parseState(stateJson);
+    JSONObject persisted = parseState(liveStateJson);
+    JSONObject base = persisted.length() > 0 ? persisted : submitted;
+    try {
+      JSONObject forecast = deepCopy(base);
+      normalizeCoreState(forecast);
+      emergentTurnEngine.normalizeState(forecast);
+      emergentTurnEngine.catchUpProjections(forecast);
+      if (CombatChoiceEngine.isActive(forecast)) {
+        return "CORE ORACLE WINDOW: paused while combat is active.";
+      }
+
+      StringBuilder out = new StringBuilder();
+      out.append("CORE ORACLE WINDOW — HIDDEN WRITER KNOWLEDGE\n")
+          .append("Default action for every forecast slot: Khám phá. ")
+          .append("These are deterministic Core forecasts, not player-visible facts and not narration authority.\n");
+
+      for (int step = 1; step <= 6; step++) {
+        PreparedTurn prepared = prepareExplorerTurnData(forecast, "Khám phá");
+        JSONObject selected = prepared.selected;
+        JSONObject route = prepared.working.optJSONObject(LevelCore.ROUTE_STATE);
+        String routeResult = route == null ? "" : route.optString("lastResult", "").trim();
+
+        out.append("STEP +").append(step).append(": ");
+        if (!routeResult.isEmpty()) {
+          out.append("explorer=").append(routeResult).append("; ");
+        } else {
+          out.append("explorer=NO_ROUTE_ROLL; ");
+        }
+
+        if (selected.optBoolean("selectedNone", false)) {
+          out.append("world=QUIET");
+        } else {
+          String kind = selected.optString("kind", "WORLD").trim();
+          String payload = selected.optString("payloadKey", "").trim();
+          out.append("world=").append(kind.isEmpty() ? "WORLD" : kind);
+          if (!payload.isEmpty()) out.append(":").append(payload);
+          String summary = selected.optString("publicSummary", "").trim();
+          if (!summary.isEmpty()) out.append("; summary=").append(summary.replace('\n', ' '));
+        }
+        out.append('\n');
+
+        JSONObject next = finishWorkingTurn(forecast, prepared, new JSONObject());
+        if ("ENTITY".equals(selected.optString("kind", ""))) {
+          JSONObject flags = next.optJSONObject("flags");
+          if (flags != null) flags.put("entityEncounterKey", "");
+        }
+        if ("CHARACTER".equals(selected.optString("kind", ""))) {
+          characterEncounterCore.acknowledgePendingIntro(next);
+        }
+        forecast = deepCopy(next);
+      }
+
+      out.append("ORACLE CONTRACT: use future knowledge only for pacing, continuity and the single next-action wording. ")
+          .append("Do not reveal, imply or instantiate a future Entity, chest, member meeting, route result or hidden identity ")
+          .append("before that outcome is committed by Core. If live state diverges, live Core state wins.");
+      return out.toString();
+    } catch (Exception e) {
+      return "CORE ORACLE WINDOW: unavailable. Do not invent future outcomes.";
+    }
+  }
+
   public synchronized String narrativeContinuityContext(String stateJson) {
     JSONObject state = parseState(stateJson);
     try {
