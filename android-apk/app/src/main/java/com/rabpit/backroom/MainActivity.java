@@ -1027,8 +1027,8 @@ public class MainActivity extends Activity {
             promptMs[timingIndex] += SystemClock.elapsedRealtime() - promptStart;
             long providerRequestStart = SystemClock.elapsedRealtime();
             try {
-              return parseModelJson(generateNarrationText(
-                  prompt, providerCalls, !rejection.isEmpty()));
+              return parseModelJson(generateNarrationText(prompt, providerCalls,
+                  !rejection.isEmpty()));
             } finally {
               providerMs[timingIndex] += SystemClock.elapsedRealtime() - providerRequestStart;
             }
