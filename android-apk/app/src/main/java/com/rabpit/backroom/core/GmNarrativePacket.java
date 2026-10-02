@@ -44,9 +44,8 @@ public final class GmNarrativePacket {
         + "READ-ONLY VIEW: " + promptState.toString() + "\n"
         + "PLAYER ACTION: " + safe(action) + "\n"
         + "OUTPUT chỉ JSON: {\"reply\":\"...\",\"choices\":[{\"text\":\"...\"}],"
-        + "\"encounterDialogue\":[],\"claims\":[]}. "
-        + "choices có 0-3 gợi ý ngắn; encounterDialogue chỉ dùng khi Character Core có pending intro; "
-        + "claims chỉ khai báo mutation đã có trong COMMITTED TURN EVIDENCE.";
+        + "\"encounterDialogue\":[]}. "
+        + "choices có 0-3 gợi ý ngắn; encounterDialogue chỉ dùng khi Character Core có pending intro.";
     return SafePresentationView.narrativeText(state, packet);
   }
 

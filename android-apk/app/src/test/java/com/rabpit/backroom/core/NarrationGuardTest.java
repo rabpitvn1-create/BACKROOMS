@@ -85,25 +85,20 @@ public class NarrationGuardTest {
     assertTrue(violation.contains("without committed evidence"));
   }
 
-  @Test public void acceptsAlmondWaterAcquisitionOnlyWithMatchingDeclaredEvidence() throws Exception {
+  @Test public void acceptsAlmondWaterAcquisitionWithCommittedEvidenceWithoutModelClaimBookkeeping() throws Exception {
     JSONObject state = new JSONObject().put("inventory", new JSONArray().put(
         new JSONObject().put("id", "almond-water").put("name", "Almond Water").put("quantity", 1)));
-    JSONObject evidenceClaim = new JSONObject()
-        .put("eventId", "turn:e1")
-        .put("kind", "ITEM_ACQUIRED")
-        .put("subject", "Almond Water")
-        .put("value", "Almond Water");
     JSONObject evidence = new JSONObject()
         .put("available", true)
-        .put("claims", new JSONArray().put(evidenceClaim));
-    JSONObject generated = new JSONObject()
-        .put("reply", "Cao Minh nhặt được Almond Water và cất vào người.")
-        .put("choices", new JSONArray())
-        .put("encounterDialogue", new JSONArray())
         .put("claims", new JSONArray().put(new JSONObject()
             .put("eventId", "turn:e1")
             .put("kind", "ITEM_ACQUIRED")
-            .put("subject", "Almond Water")));
+            .put("subject", "Almond Water")
+            .put("value", "Almond Water")));
+    JSONObject generated = new JSONObject()
+        .put("reply", "Cao Minh nhặt được Almond Water và cất vào người.")
+        .put("choices", new JSONArray())
+        .put("encounterDialogue", new JSONArray());
 
     assertTrue(NarrationGuard.validate(generated, state, evidence).isEmpty());
   }

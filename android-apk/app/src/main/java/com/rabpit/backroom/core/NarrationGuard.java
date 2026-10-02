@@ -47,26 +47,26 @@ public final class NarrationGuard {
     }
 
     JSONArray declared = generated.optJSONArray("claims");
-    if (declared == null) return "claims[] is required for committed-turn narration.";
-    if (declared.length() > 16) return "claims[] exceeds the maximum of 16.";
-
-    JSONArray allowed = committedTurnEvidence.optJSONArray("claims");
-    if (allowed == null) allowed = new JSONArray();
-    Set<String> seen = new HashSet<>();
-    for (int i = 0; i < declared.length(); i++) {
-      JSONObject claim = declared.optJSONObject(i);
-      if (claim == null) return "Each narration claim must be an object.";
-      if (!hasOnlyKeys(claim, CLAIM_KEYS)) return "Narration claim contains an unknown field.";
-      String eventId = claim.optString("eventId", "").trim();
-      String kind = claim.optString("kind", "").trim();
-      String subject = claim.optString("subject", "").trim();
-      if (eventId.isEmpty() || kind.isEmpty() || subject.isEmpty()) {
-        return "Narration claim requires eventId, kind and subject.";
-      }
-      String key = eventId + "|" + kind + "|" + subject.toLowerCase(Locale.ROOT);
-      if (!seen.add(key)) return "Narration claim is duplicated: " + eventId;
-      if (!matchesAllowedClaim(allowed, eventId, kind, subject)) {
-        return "Narration claim lacks committed evidence: " + kind + ":" + subject;
+    if (declared != null) {
+      if (declared.length() > 16) return "claims[] exceeds the maximum of 16.";
+      JSONArray allowed = committedTurnEvidence.optJSONArray("claims");
+      if (allowed == null) allowed = new JSONArray();
+      Set<String> seen = new HashSet<>();
+      for (int i = 0; i < declared.length(); i++) {
+        JSONObject claim = declared.optJSONObject(i);
+        if (claim == null) return "Each narration claim must be an object.";
+        if (!hasOnlyKeys(claim, CLAIM_KEYS)) return "Narration claim contains an unknown field.";
+        String eventId = claim.optString("eventId", "").trim();
+        String kind = claim.optString("kind", "").trim();
+        String subject = claim.optString("subject", "").trim();
+        if (eventId.isEmpty() || kind.isEmpty() || subject.isEmpty()) {
+          return "Narration claim requires eventId, kind and subject.";
+        }
+        String key = eventId + "|" + kind + "|" + subject.toLowerCase(Locale.ROOT);
+        if (!seen.add(key)) return "Narration claim is duplicated: " + eventId;
+        if (!matchesAllowedClaim(allowed, eventId, kind, subject)) {
+          return "Narration claim lacks committed evidence: " + kind + ":" + subject;
+        }
       }
     }
 
@@ -159,22 +159,8 @@ public final class NarrationGuard {
       if (!CommittedTurnNarrationEvidence.hasClaim(evidence, "ITEM_ACQUIRED", item)) {
         return "Narration claims item acquisition without committed evidence: " + item;
       }
-      if (!declaresClaim(generated.optJSONArray("claims"), "ITEM_ACQUIRED", item)) {
-        return "Narration item acquisition is missing a declared evidence claim: " + item;
-      }
     }
     return "";
-  }
-
-  private static boolean declaresClaim(JSONArray claims, String kind, String subject) {
-    if (claims == null) return false;
-    for (int i = 0; i < claims.length(); i++) {
-      JSONObject claim = claims.optJSONObject(i);
-      if (claim == null) continue;
-      if (kind.equals(claim.optString("kind", ""))
-          && subject.equalsIgnoreCase(claim.optString("subject", ""))) return true;
-    }
-    return false;
   }
 
   private static boolean statesPositiveAcquisition(String prose, String item) {
