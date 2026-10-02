@@ -2,6 +2,8 @@ package com.rabpit.backroom;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.res.AssetFileDescriptor;
+import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -46,7 +48,12 @@ public class MainActivity extends Activity {
   // Không tự thêm quyết định, ý định, lời nói hoặc hành động tiếp theo cho Cao Minh
 
   // Semantic highlight type note: type chỉ được là character, entity, item, skill, effect, location hoặc stat
+  private static final String BACKGROUND_MUSIC_ASSET = "BackroomsBM.mp3";
+  private static final float BACKGROUND_MUSIC_VOLUME = 0.18f;
   private WebView webView;
+  private MediaPlayer backgroundMusic;
+  private boolean backgroundMusicPrepared;
+  private boolean activityResumed;
   private final ExecutorService io = Executors.newSingleThreadExecutor();
   private final ExecutorService narrationFutureIo = Executors.newSingleThreadExecutor();
   private final Object narrationFutureLock = new Object();
@@ -83,13 +90,22 @@ public class MainActivity extends Activity {
     });
     webView.addJavascriptInterface(new GameBridge(), "Android");
     setContentView(webView);
+    initializeBackgroundMusic();
     safeApplyImmersiveFullscreen("onCreate");
     webView.loadUrl("file:///android_asset/index.html");
   }
 
   @Override protected void onResume() {
     super.onResume();
+    activityResumed = true;
     safeApplyImmersiveFullscreen("onResume");
+    resumeBackgroundMusic();
+  }
+
+  @Override protected void onPause() {
+    activityResumed = false;
+    pauseBackgroundMusic();
+    super.onPause();
   }
 
   @Override public void onWindowFocusChanged(boolean hasFocus) {
@@ -156,11 +172,76 @@ public class MainActivity extends Activity {
   }
 
   @Override protected void onDestroy() {
+    releaseBackgroundMusic();
     if (gameCore != null) gameCore.close();
     io.shutdownNow();
     narrationFutureIo.shutdownNow();
     if (webView != null) webView.destroy();
     super.onDestroy();
+  }
+
+  private void initializeBackgroundMusic() {
+    if (backgroundMusic != null) return;
+    MediaPlayer player = new MediaPlayer();
+    try (AssetFileDescriptor descriptor = getAssets().openFd(BACKGROUND_MUSIC_ASSET)) {
+      player.setDataSource(
+          descriptor.getFileDescriptor(), descriptor.getStartOffset(), descriptor.getLength());
+      player.setLooping(true);
+      player.setVolume(BACKGROUND_MUSIC_VOLUME, BACKGROUND_MUSIC_VOLUME);
+      player.setOnPreparedListener(prepared -> {
+        if (backgroundMusic != prepared) return;
+        backgroundMusicPrepared = true;
+        resumeBackgroundMusic();
+      });
+      player.setOnErrorListener((failed, what, extra) -> {
+        Log.w(TAG, "Background music playback failed: what=" + what + " extra=" + extra);
+        if (backgroundMusic == failed) releaseBackgroundMusic();
+        return true;
+      });
+      backgroundMusic = player;
+      player.prepareAsync();
+    } catch (Exception error) {
+      try {
+        player.release();
+      } catch (Exception ignored) {}
+      backgroundMusic = null;
+      backgroundMusicPrepared = false;
+      Log.w(TAG, "Unable to initialize background music", error);
+    }
+  }
+
+  private void resumeBackgroundMusic() {
+    MediaPlayer player = backgroundMusic;
+    if (!activityResumed || !backgroundMusicPrepared || player == null) return;
+    try {
+      if (!player.isPlaying()) player.start();
+    } catch (IllegalStateException error) {
+      Log.w(TAG, "Unable to resume background music", error);
+    }
+  }
+
+  private void pauseBackgroundMusic() {
+    MediaPlayer player = backgroundMusic;
+    if (!backgroundMusicPrepared || player == null) return;
+    try {
+      if (player.isPlaying()) player.pause();
+    } catch (IllegalStateException error) {
+      Log.w(TAG, "Unable to pause background music", error);
+    }
+  }
+
+  private void releaseBackgroundMusic() {
+    MediaPlayer player = backgroundMusic;
+    backgroundMusic = null;
+    backgroundMusicPrepared = false;
+    if (player == null) return;
+    try {
+      player.setOnPreparedListener(null);
+      player.setOnErrorListener(null);
+      player.release();
+    } catch (Exception error) {
+      Log.w(TAG, "Unable to release background music", error);
+    }
   }
 
   private String readAssetText(String path) throws Exception {

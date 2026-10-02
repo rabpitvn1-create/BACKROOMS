@@ -136,3 +136,18 @@ test('oracle narration cache reuses only Core-matching future capsules', () => {
   delete sandbox.state.characterCanon;
   assert.deepEqual(sandbox.state, saved);
 });
+
+
+test('packaged Backrooms background music loops only while the Activity is resumed', () => {
+  const music = path.join(root, 'assets', 'BackroomsBM.mp3');
+  assert.ok(fs.existsSync(music));
+  assert.ok(fs.statSync(music).size > 1024);
+  assert.match(bridge, /BACKGROUND_MUSIC_ASSET = "BackroomsBM\.mp3"/);
+  assert.match(bridge, /BACKGROUND_MUSIC_VOLUME = 0\.18f/);
+  assert.match(bridge, /initializeBackgroundMusic\(\)/);
+  assert.match(bridge, /player\.setLooping\(true\)/);
+  assert.match(bridge, /player\.prepareAsync\(\)/);
+  assert.match(bridge, /activityResumed = true;[\s\S]*resumeBackgroundMusic\(\);/);
+  assert.match(bridge, /activityResumed = false;[\s\S]*pauseBackgroundMusic\(\);[\s\S]*super\.onPause\(\);/);
+  assert.match(bridge, /releaseBackgroundMusic\(\);[\s\S]*if \(gameCore != null\) gameCore\.close\(\);/);
+});
