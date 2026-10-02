@@ -284,22 +284,23 @@ final class NarrativeSkeleton {
   private static boolean refsRelevant(
       JSONArray refs, JSONArray relevantRefs, JSONObject state, String action) {
     if (refs == null || refs.length() == 0) return false;
+    boolean specificDependency = false;
     for (int i = 0; i < refs.length(); i++) {
       String ref = safe(refs.optString(i, ""));
-      if (containsString(relevantRefs, ref) || actionMentionsRef(action, state, ref)) return true;
+      if (ref.isEmpty() || "cao_minh".equals(ref)) continue;
+      if (!containsString(relevantRefs, ref) && !actionMentionsRef(action, state, ref)) return false;
+      specificDependency = true;
     }
-    return false;
+    return specificDependency;
   }
 
   private static boolean actionMentionsRef(String action, JSONObject state, String ref) {
     String key = safe(ref);
     if (key.isEmpty() || key.matches("-?\\d+(?:\\.\\d+)?")) return false;
-    String haystack = mentionKey(action);
-    if (haystack.isEmpty()) return false;
-    String raw = mentionKey(key);
-    String label = mentionKey(displayRef(state, key));
-    return (!raw.isEmpty() && haystack.contains(raw))
-        || (!label.isEmpty() && haystack.contains(label));
+    if ("lucia".equals(key) || "luc_tram".equals(key) || "syvial".equals(key)) {
+      return SceneContextCompiler.sceneCharacterRefs(state, action).contains(key);
+    }
+    return SceneContextCompiler.mentions(action, key, displayRef(state, key));
   }
 
   private static String mentionKey(String value) {

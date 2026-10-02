@@ -202,7 +202,7 @@ final class CharacterEncounterCore {
     }
   }
 
-  private static String sceneVoiceCard(String id) {
+  static String sceneVoiceCard(String id) {
     if ("lucia".equals(id)) {
       return "Lucia Lục: trained soldier from a far-future world; practical, technical and evidence-driven. "
           + "Outside real tactical urgency she speaks in complete natural sentences. She does not automatically know cultivation concepts.";
@@ -370,7 +370,7 @@ final class CharacterEncounterCore {
     return "lucia".equals(id) || "luc_tram".equals(id) || "syvial".equals(id);
   }
 
-  private static String displayName(String id) {
+  static String displayName(String id) {
     if ("lucia".equals(id)) return "Lucia Lục";
     if ("luc_tram".equals(id)) return "Lục Trầm";
     if ("syvial".equals(id)) return "Syvial";

@@ -41,6 +41,11 @@ public final class MilestoneCore {
   }
 
   public String promptContext(JSONObject state) throws Exception {
+    return promptContext(state, "");
+  }
+
+  public String promptContext(JSONObject state, String action) throws Exception {
+    java.util.Set<String> sceneCharacters = SceneContextCompiler.sceneCharacterRefs(state, action);
     String levelKey = state == null ? "0"
         : state.optString(LevelCore.LEVEL_KEY, String.valueOf(state.optInt("currentLevel", 0))).trim();
     JSONObject level = root.getJSONObject("levels").optJSONObject(levelKey);
@@ -55,8 +60,9 @@ public final class MilestoneCore {
     } else {
       out.append("MILESTONE ID: ").append(level.optString("milestoneId", "")).append('\n');
       out.append("CURRENT NODE: ").append(levelKey).append(" — ")
-          .append(level.getString("act")).append('\n');
-      appendList(out, "GUIDANCE", level.getJSONArray("guidance"));
+          .append(SceneContextCompiler.hasForeignCharacter(level.getString("act"), sceneCharacters)
+              ? "current story direction" : level.getString("act")).append('\n');
+      appendList(out, "GUIDANCE", level.getJSONArray("guidance"), sceneCharacters);
     }
 
     if ("6".equals(levelKey)) {
@@ -98,11 +104,11 @@ public final class MilestoneCore {
     }
   }
 
-  private static void appendList(StringBuilder out, String title, JSONArray values) {
+  private static void appendList(StringBuilder out, String title, JSONArray values, java.util.Set<String> sceneCharacters) {
     out.append(title).append(":\n");
     for (int i = 0; values != null && i < values.length(); i++) {
       String value = values.optString(i, "").trim();
-      if (!value.isEmpty()) out.append("- ").append(value).append('\n');
+      if (!value.isEmpty() && !SceneContextCompiler.hasForeignCharacter(value, sceneCharacters)) out.append("- ").append(value).append('\n');
     }
   }
 

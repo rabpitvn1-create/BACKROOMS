@@ -793,6 +793,7 @@ public class MainActivity extends Activity {
           reply = appendEncounterDialogue(reply, encounterDialogue);
 
           JSONObject gmEntry = GmChoiceContract.gmEntry(reply, generated, state);
+          gmEntry.put("sceneLevelKey", state.optString("currentLevelKey", String.valueOf(state.optInt("currentLevel", 0))));
           String newEncounter = encounterKey(state);
           if (CombatChoiceEngine.isKnownEntity(newEncounter)) gmEntry.remove("choices");
           JSONObject appended = new JSONObject(gameCore.commitPresentation(turnId,

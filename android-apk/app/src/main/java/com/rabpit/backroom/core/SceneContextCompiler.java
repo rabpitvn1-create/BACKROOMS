@@ -42,7 +42,7 @@ public final class SceneContextCompiler {
     requireEvidence(evidence);
     String snapshot = state.toString();
     return assemble(state, action, evidence, core.levelSceneContext(snapshot, action),
-        core.characterSceneContext(snapshot), milestone.promptContext(state),
+        core.characterSceneContext(snapshot) + mentionedCharacters(state, action), milestone.promptContext(state, action),
         core.narrativeSceneContinuityContext(snapshot, action));
   }
 
@@ -52,7 +52,7 @@ public final class SceneContextCompiler {
     requireEvidence(evidence);
     JSONObject snapshot = new JSONObject(state.toString());
     return assemble(snapshot, action, evidence, level.scenePromptContext(snapshot, action),
-        characters.scenePromptContext(snapshot), milestone.promptContext(snapshot),
+        characters.scenePromptContext(snapshot) + mentionedCharacters(snapshot, action), milestone.promptContext(snapshot, action),
         NarrativeSkeleton.sceneContext(snapshot.optJSONObject(EmergentTurnEngine.ROOT_KEY), snapshot, action));
   }
 
@@ -120,12 +120,16 @@ public final class SceneContextCompiler {
     JSONArray log = state.optJSONArray("log");
     java.util.ArrayList<String> lines = new java.util.ArrayList<>();
     int length = 0;
+    String levelKey = state.optString("currentLevelKey", String.valueOf(state.optInt("currentLevel", 0)));
+    java.util.Set<String> refs = sceneCharacterRefs(state, "");
     for (int i = log == null ? -1 : log.length() - 1; i >= 0 && lines.size() < 4; i--) {
       JSONObject entry = log.optJSONObject(i);
       if (entry == null || entry.has("battleLog")
           || entry.optString("presentationId", "").endsWith(":victory")) continue;
+      String recordedLevel = entry.optString("sceneLevelKey", "");
+      if (!recordedLevel.isEmpty() && !levelKey.equals(recordedLevel)) break;
       String text = entry.optString("text", "").trim();
-      if (text.isEmpty()) continue;
+      if (text.isEmpty() || hasForeignCharacter(text, refs) || hasForeignLevel(text, levelKey)) continue;
       if (text.length() > 600) text = text.substring(text.length() - 600);
       String line = ("player".equals(entry.optString("role", "")) ? "PLAYER: " : "GM: ") + text;
       if (length + line.length() + 1 > 1800) break;
@@ -133,6 +137,63 @@ public final class SceneContextCompiler {
       length += line.length() + 1;
     }
     return String.join("\n", lines);
+  }
+
+  static java.util.Set<String> sceneCharacterRefs(JSONObject state, String action) {
+    java.util.Set<String> refs = new java.util.LinkedHashSet<>();
+    refs.add("cao_minh");
+    JSONArray party = state == null ? null : state.optJSONArray("party");
+    for (int i = 0; party != null && i < party.length(); i++) {
+      JSONObject member = party.optJSONObject(i);
+      if (member != null && member.optBoolean("present", true)) refs.add(member.optString("id", ""));
+    }
+    JSONObject encounter = state == null ? null : state.optJSONObject("characterEncounter");
+    JSONArray pending = encounter == null ? null : encounter.optJSONArray("pendingIntro");
+    for (int i = 0; pending != null && i < pending.length(); i++) refs.add(pending.optString(i, ""));
+    for (String id : new String[] {"lucia", "luc_tram", "syvial"}) {
+      if (CharacterKnowledge.knows(state, "cao_minh", id, "knownName")
+          && mentions(action, id, CharacterEncounterCore.displayName(id))) refs.add(id);
+    }
+    return refs;
+  }
+
+  private static String mentionedCharacters(JSONObject state, String action) {
+    java.util.Set<String> present = sceneCharacterRefs(state, "");
+    StringBuilder out = new StringBuilder();
+    for (String id : sceneCharacterRefs(state, action)) {
+      if (present.contains(id)) continue;
+      out.append("\nMENTIONED ONLY — continuity, not current presence: ")
+          .append(CharacterEncounterCore.sceneVoiceCard(id));
+    }
+    return out.toString();
+  }
+
+  static boolean hasForeignCharacter(String text, java.util.Set<String> refs) {
+    for (String id : new String[] {"lucia", "luc_tram", "syvial"}) {
+      if (!refs.contains(id) && mentions(text, id, CharacterEncounterCore.displayName(id))) return true;
+    }
+    return false;
+  }
+
+  static boolean mentions(String text, String id, String name) {
+    String haystack = " " + mentionKey(text) + " ";
+    for (String label : new String[] {id, name}) {
+      String needle = mentionKey(label);
+      if (!needle.isEmpty() && haystack.contains(" " + needle + " ")) return true;
+    }
+    return false;
+  }
+
+  private static String mentionKey(String text) {
+    return (text == null ? "" : text).toLowerCase(java.util.Locale.ROOT)
+        .replaceAll("[^\\p{L}\\p{N}]+", " ").trim().replaceAll("\\s+", " ");
+  }
+
+  private static boolean hasForeignLevel(String text, String current) {
+    java.util.regex.Matcher levels = java.util.regex.Pattern.compile("(?i)level\\s+(-?\\d+(?:\\.\\d+)?)").matcher(text);
+    while (levels.find()) if (!current.equals(levels.group(1))) return true;
+    String named = LevelCore.rawLevelKeyFromLocation(text);
+    return !named.isEmpty() && !current.equals(named);
   }
 
   private static void append(StringBuilder out, String text) {

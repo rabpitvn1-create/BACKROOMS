@@ -345,8 +345,7 @@ final class LevelCore {
     return "identity".equals(section) || "architecture".equals(section) || "zones".equals(section)
         || "sensory".equals(section) || "anomalies".equals(section) || "hazards".equals(section)
         || "navigation".equals(section) || "microLocations".equals(section)
-        || "environmentStates".equals(section) || "environmentEvents".equals(section)
-        || "interactionRules".equals(section) || "actionConsequences".equals(section)
+        || "environmentStates".equals(section)
         || "navigationPatterns".equals(section) || "quietTurnPatterns".equals(section)
         || "narrativeGrammar".equals(section) || "antiRepetition".equals(section)
         || "variationPool".equals(section) || "sceneSeeds".equals(section);

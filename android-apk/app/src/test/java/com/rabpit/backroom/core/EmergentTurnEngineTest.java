@@ -511,6 +511,7 @@ public class EmergentTurnEngineTest {
         .put(new JSONObject().put("keyRefs", new JSONArray().put("6"))
             .put("summary", "OTHER_LEVEL_MYSTERY"));
 
+    CharacterKnowledge.mark(state, "cao_minh", "lucia", "knownName", "core:prior-continuity");
     String context = NarrativeSkeleton.sceneContext(
         root, state, "Cao Minh nhớ lại lời Lucia trước khi tiếp tục.");
 

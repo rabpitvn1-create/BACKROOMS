@@ -64,6 +64,70 @@ public class SceneContextCompilerTest {
     }
   }
 
+  @Test public void dependencyRoutingDropsFutureAndAbsentThreadsEvenWithSharedProtagonist() throws Exception {
+    JSONObject state = state();
+    new EmergentTurnEngine().normalizeState(state);
+    JSONObject skeleton = state.getJSONObject(EmergentTurnEngine.ROOT_KEY).getJSONObject(NarrativeSkeleton.ROOT_KEY);
+    skeleton.getJSONArray("longTermTensions")
+        .put(new JSONObject().put("keyRefs", new JSONArray().put("cao_minh").put("6"))
+            .put("summary", "FUTURE_THREAD"))
+        .put(new JSONObject().put("keyRefs", new JSONArray().put("0").put("syvial"))
+            .put("summary", "ABSENT_CHARACTER_THREAD"))
+        .put(new JSONObject().put("keyRefs", new JSONArray().put("0").put("cao_minh"))
+            .put("summary", "CURRENT_THREAD"));
+    String prompt = GmNarrativePacket.buildScene(compile(state, "Khám phá"));
+    assertTrue(prompt.contains("CURRENT_THREAD"));
+    assertFalse(prompt.contains("FUTURE_THREAD"));
+    assertFalse(prompt.contains("ABSENT_CHARACTER_THREAD"));
+    assertFalse(prompt.contains("first contact"));
+    assertFalse(prompt.contains("Táng Kiếm Cốc"));
+  }
+
+  @Test public void mentionedKnownCharacterRetrievesContinuityWithoutMakingThemPresent() throws Exception {
+    JSONObject state = state();
+    CharacterKnowledge.mark(state, "cao_minh", "lucia", "knownName", "core:prior-meeting");
+    new EmergentTurnEngine().normalizeState(state);
+    state.getJSONObject(EmergentTurnEngine.ROOT_KEY).getJSONObject(NarrativeSkeleton.ROOT_KEY)
+        .getJSONArray("importantRelationships").put(new JSONObject()
+            .put("actorRefs", new JSONArray().put("cao_minh").put("lucia"))
+            .put("summary", "KNOWN_MENTIONED_CONTINUITY"));
+    SceneContextCompiler.SceneContext scene = compile(state, "Cao Minh nhớ lời Lucia");
+    assertTrue(scene.relevantContinuity.contains("KNOWN_MENTIONED_CONTINUITY"));
+    assertTrue(scene.characterScene.contains("MENTIONED ONLY"));
+    assertTrue(scene.characterScene.contains("Lucia"));
+    assertFalse(scene.characterScene.contains("PRESENT: Cao Minh, Lucia"));
+    assertEquals(0, state.getJSONArray("party").length());
+  }
+
+  @Test public void recentDropsForeignSceneSubjectsAndOldLevelProse() throws Exception {
+    JSONObject state = state().put("log", new JSONArray()
+        .put(new JSONObject().put("role", "gm").put("text", "Level 6 OTHER_LEVEL_PROSE"))
+        .put(new JSONObject().put("role", "gm").put("text", "Syvial ABSENT_CHARACTER_PROSE"))
+        .put(new JSONObject().put("role", "gm").put("text", "Current corridor prose")));
+    String recent = compile(state, "Khám phá").recentContext;
+    assertTrue(recent.contains("Current corridor prose"));
+    assertFalse(recent.contains("OTHER_LEVEL_PROSE"));
+    assertFalse(recent.contains("ABSENT_CHARACTER_PROSE"));
+  }
+
+  @Test public void levelPaletteNeverProvidesInteractionOrOutcomeRules() throws Exception {
+    String knowledge = new JSONObject().put("schemaVersion", 2)
+        .put("sectionOrder", new JSONArray().put("identity").put("interactionRules").put("actionConsequences"))
+        .put("levels", new JSONObject().put("0", new JSONObject()
+            .put("identity", new JSONArray().put("CURRENT_LEVEL_MOTIF"))
+            .put("interactionRules", new JSONArray().put("INTERACTION_RULE_MARKER"))
+            .put("actionConsequences", new JSONArray().put("ACTION_OUTCOME_RULE_MARKER")))
+            .put("6", new JSONObject().put("identity", new JSONArray().put("OTHER_LEVEL_MOTIF"))))
+        .toString();
+    SceneContextCompiler.SceneContext scene = SceneContextCompiler.compile(
+        LevelCore.withKnowledge(knowledge, bound -> 0), new CharacterEncounterCore(), milestone(),
+        state(), "kiểm tra", evidence());
+    assertTrue(scene.levelScene.contains("CURRENT_LEVEL_MOTIF"));
+    assertFalse(scene.levelScene.contains("OTHER_LEVEL_MOTIF"));
+    assertFalse(scene.levelScene.contains("INTERACTION_RULE_MARKER"));
+    assertFalse(scene.levelScene.contains("ACTION_OUTCOME_RULE_MARKER"));
+  }
+
   @Test public void committedFactsRetainOutcomeButDropEventBookkeeping() throws Exception {
     JSONObject evidence = evidence().put("turnId", "INTERNAL_ID").put("commitSeq", 999)
         .put("claims", new JSONArray().put(new JSONObject().put("eventId", "INTERNAL_ID")

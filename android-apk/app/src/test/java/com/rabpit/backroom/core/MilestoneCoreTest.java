@@ -18,14 +18,17 @@ public class MilestoneCoreTest {
     String levelZero = core.promptContext(state("0", 0));
     assertTrue(levelZero.contains("MILESTONE — CURRENT LEVEL ONLY"));
     assertTrue(levelZero.contains("ACT I — NGƯỜI ĐẦU TIÊN"));
-    assertTrue(levelZero.contains("Lucia first contact"));
+    assertFalse(levelZero.contains("Lucia first contact"));
     assertFalse(levelZero.contains("WRITER SECRETS"));
     assertFalse(levelZero.contains("slow-burn"));
     assertFalse(levelZero.contains("FORBIDDEN REVEALS"));
     assertFalse(levelZero.contains("ACT XIV — LUCIA VÀ LỤC TRẦM"));
     assertTrue(levelZero.length() < MilestoneCore.MAX_CONTEXT_CHARS);
 
-    String levelFiveTwo = core.promptContext(state("5.2", 5));
+    JSONObject fiveTwoState = state("5.2", 5).put("party", new org.json.JSONArray()
+        .put(new JSONObject().put("id", "lucia").put("present", true))
+        .put(new JSONObject().put("id", "luc_tram").put("present", true)));
+    String levelFiveTwo = core.promptContext(fiveTwoState);
     assertTrue(levelFiveTwo.contains("ACT XIV — LUCIA VÀ LỤC TRẦM"));
     assertTrue(levelFiveTwo.contains("không tự tạo cú trượt/rơi"));
     assertFalse(levelFiveTwo.contains("ACT I — NGƯỜI ĐẦU TIÊN"));
