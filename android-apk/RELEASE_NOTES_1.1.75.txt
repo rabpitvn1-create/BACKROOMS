@@ -1,0 +1,9 @@
+Backroom 1.1.75
+
+- Tích hợp Milestone story bible vào runtime narration theo Level hiện tại; route Milestone kết thúc tại Level 6 và không tự chuyển sang Level 6.1.
+- Bổ sung các lock canon quan trọng cho Lucia và linh khí Backrooms, giữ ranh giới knowledge/secret để narrator không giải mystery sớm.
+- Đưa long-horizon continuity từ committed Core history vào narrator qua NarrativeSkeleton; giữ recent context làm short-term memory và không cho continuity projection sở hữu state/outcome.
+- Loại bỏ narrative transition authority cũ, shadow planner/prefetch scaffolding, GM transaction subsystem đã retire và migration của retired skeleton projection.
+- Sửa level canon key matching và tiếp tục giới hạn prompt để narration không vượt budget.
+- Bổ sung LUNA vào chuỗi provider narration trước các fallback hiện có.
+- Bump version từ 1.1.74 lên 1.1.75 (versionCode 119); đồng bộ tên APK, release tag, ghi chú và kiểm tra metadata APK.
