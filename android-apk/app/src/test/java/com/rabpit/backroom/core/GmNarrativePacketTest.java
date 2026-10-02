@@ -95,6 +95,36 @@ public class GmNarrativePacketTest {
     assertFalse(projected.getJSONArray("beliefs").toString().contains("secret"));
   }
 
+  @Test public void runtimeScenePacketUsesOnlyCurrentSceneDependencies() throws Exception {
+    JSONObject state = new JSONObject()
+        .put("currentLevel", 0)
+        .put("currentLevelKey", "0")
+        .put("turn", 2)
+        .put("location", "Hành lang vàng nhạt")
+        .put("player", new JSONObject().put("name", "Cao Minh"))
+        .put("party", new org.json.JSONArray());
+
+    String packet = GmNarrativePacket.buildScene(
+        "LEVEL_MARKER",
+        "CHARACTER_MARKER",
+        "RECENT_MARKER",
+        state,
+        "Khám phá",
+        "MILESTONE_NODE_MARKER",
+        new JSONObject().put("available", true).put("claims", new org.json.JSONArray()));
+
+    assertTrue(packet.contains("sandbox text game Backrooms"));
+    assertTrue(packet.contains("LEVEL_MARKER"));
+    assertTrue(packet.contains("CHARACTER_MARKER"));
+    assertTrue(packet.contains("RECENT_MARKER"));
+    assertTrue(packet.contains("MILESTONE_NODE_MARKER"));
+    assertFalse(packet.contains("MARKDOWN CANON"));
+    assertFalse(packet.contains("LONG-HORIZON CONTINUITY MEMORY"));
+    assertFalse(packet.contains("ENTITY CORE:"));
+    assertFalse(packet.contains("ITEM CORE:"));
+    assertFalse(packet.contains("GM STYLE FEW-SHOT EXAMPLES"));
+  }
+
   @Test public void ordinaryLevelZeroPacketUsesRealKnowledgeAndStaysBudgeted() throws Exception {
     LevelCore core = LevelCore.withKnowledge(
         readRepoAsset("knowledge/level_knowledge.json"), bound -> 0);

@@ -23,8 +23,6 @@ import com.rabpit.backroom.core.GmNarrativePacket;
 import com.rabpit.backroom.core.OfflinePresenter;
 import com.rabpit.backroom.core.NarrationProviderPolicy;
 import com.rabpit.backroom.core.SafePresentationView;
-import com.rabpit.backroom.core.CanonRetriever;
-import com.rabpit.backroom.core.GmNarratorContract;
 import com.rabpit.backroom.core.NarrationGuard;
 import com.rabpit.backroom.core.MilestoneCore;
 import com.rabpit.backroom.core.ProviderRetryPolicy;
@@ -50,26 +48,18 @@ public class MainActivity extends Activity {
   private WebView webView;
   private final ExecutorService io = Executors.newSingleThreadExecutor();
   private GameCoreFacade gameCore;
-  private CanonRetriever canonRetriever;
   private MilestoneCore milestoneCore;
   private static final String GEMINI_MODEL = "gemini-3.8-flash";
   private static final String HAIKU_DEFAULT_BASE_URL = "https://api.anthropic.com/v1/messages";
   private static final String HAIKU_DEFAULT_MODEL = "claude-haiku-4-5-20251001";
   private static final long HAIKU_RETRY_DELAY_MS = 1_200L;
   private static final int[] RETRYABLE = {408, 429, 500, 502, 503, 504};
-  private static final String GM_STYLE_EXAMPLES_ASSET = "knowledge/gm_style_examples.json";
-  private String gmStyleExamplesCache;
 
   @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
   @Override public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
     gameCore = GameCoreFacade.create(getApplicationContext(), BuildConfig.DEBUG);
-    try {
-      canonRetriever = CanonRetriever.fromAssets(getApplicationContext());
-    } catch (Exception error) {
-      Log.e(TAG, "Canon assets failed validation", error);
-    }
     try {
       milestoneCore = MilestoneCore.fromAssets(getApplicationContext());
     } catch (Exception error) {
@@ -175,50 +165,6 @@ public class MainActivity extends Activity {
       while ((line = reader.readLine()) != null) text.append(line).append('\n');
     }
     return text.toString();
-  }
-
-  private String gmStyleExamplesContext() {
-    if (gmStyleExamplesCache != null) return gmStyleExamplesCache;
-    try {
-      JSONObject root = new JSONObject(readAssetText(GM_STYLE_EXAMPLES_ASSET));
-      StringBuilder output = new StringBuilder("GM STYLE FEW-SHOT EXAMPLES:\n");
-      String instruction = root.optString("instruction", "").trim();
-      if (!instruction.isEmpty()) output.append(instruction).append("\n");
-
-      JSONArray examples = root.optJSONArray("goodExamples");
-      if (examples != null) {
-        for (int i = 0; i < examples.length(); i++) {
-          JSONObject example = examples.optJSONObject(i);
-          if (example == null) continue;
-          String player = example.optString("player", "").trim();
-          String gm = example.optString("gm", "").trim();
-          if (player.isEmpty() || gm.isEmpty()) continue;
-          output.append("\nGOOD EXAMPLE ").append(i + 1).append("\n");
-          output.append("PLAYER: ").append(player).append("\n");
-          output.append("GM: ").append(gm).append("\n");
-        }
-      }
-
-      JSONObject bad = root.optJSONObject("badExample");
-      if (bad != null) {
-        String player = bad.optString("player", "").trim();
-        String gm = bad.optString("gm", "").trim();
-        String why = bad.optString("why", "").trim();
-        if (!player.isEmpty() && !gm.isEmpty()) {
-          output.append("\nBAD EXAMPLE — DO NOT IMITATE\n");
-          output.append("PLAYER: ").append(player).append("\n");
-          output.append("GM: ").append(gm).append("\n");
-          if (!why.isEmpty()) output.append("WHY BAD: ").append(why).append("\n");
-        }
-      }
-
-      output.append("\nUse these examples only as style references. Never copy their wording, events, imagery, locations, conclusions, or hidden outcomes into the current turn unless current state independently supports them.\n");
-      gmStyleExamplesCache = output.toString();
-    } catch (Exception error) {
-      Log.w(TAG, "Unable to load GM style examples; using narrative contract only.", error);
-      gmStyleExamplesCache = "";
-    }
-    return gmStyleExamplesCache;
   }
 
   private void installUiScripts() {
@@ -742,24 +688,7 @@ public class MainActivity extends Activity {
   private String narrationPrompt(JSONObject state, String action, String turnId) throws Exception {
     String coreJson = state.toString();
     String levelContext = gameCore.levelPromptContext(coreJson, action);
-    String entityContext = gameCore.entityPromptContext(coreJson);
-    String itemContext = gameCore.itemPromptContext(coreJson);
     String characterContext = gameCore.characterPromptContext(coreJson);
-    String levelName = levelContext.startsWith("CURRENT LEVEL NODE: ")
-        ? levelContext.substring("CURRENT LEVEL NODE: ".length()).split("\\n", 2)[0] : "";
-    CanonRetriever.CanonPacket canon = canonRetriever == null ? null
-        : canonRetriever.retrieve(state, action, CanonRetriever.DEFAULT_BUDGET,
-            BuildConfig.DEBUG, levelName);
-    if (canon == null || canon.budgetExceeded || !canon.requiredComplete) {
-      Log.w(TAG, "Canon retrieval unavailable/over budget/missing refs: "
-          + (canon == null ? "index unavailable" : "size=" + canon.charCount
-              + " missing=" + canon.missingMandatoryRefs + " requires=" + canon.missingRefs));
-      throw new IllegalStateException("Canon bắt buộc không khả dụng trong budget; không gọi AI narration.");
-    }
-    if (!canon.missingMandatoryRefs.isEmpty()) Log.w(TAG,
-        "Markdown canon missing/conflicting; Core context remains authoritative: "
-            + canon.missingMandatoryRefs);
-    if (BuildConfig.DEBUG) Log.d(TAG, "CANON RETRIEVAL: " + canon.trace);
     JSONObject evidence = CommittedTurnNarrationEvidence.fromState(state, turnId);
     if (!evidence.optBoolean("available", false)) {
       throw new IllegalStateException(
@@ -768,11 +697,14 @@ public class MainActivity extends Activity {
     if (milestoneCore == null) {
       throw new IllegalStateException("Milestone runtime không khả dụng; không gọi AI narration.");
     }
-    String milestoneContext = milestoneCore.promptContext(state);
-    String continuityContext = gameCore.narrativeContinuityContext(coreJson);
-    return GmNarrativePacket.build(levelContext, entityContext, itemContext, characterContext,
-        recentContext(state), state, action, gmStyleExamplesContext(), canon.promptText(),
-        milestoneContext, continuityContext, evidence);
+    return GmNarrativePacket.buildScene(
+        levelContext,
+        characterContext,
+        recentContext(state),
+        state,
+        action,
+        milestoneCore.promptContext(state),
+        evidence);
   }
 
   private void prefetchChoices(String choicesJson) {

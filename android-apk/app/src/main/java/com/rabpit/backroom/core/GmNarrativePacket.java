@@ -12,6 +12,44 @@ public final class GmNarrativePacket {
     return EpistemicView.forActor(state, "cao_minh");
   }
 
+  public static String buildScene(
+      String levelContext,
+      String characterContext,
+      String recentContext,
+      JSONObject state,
+      String action,
+      String milestoneContext,
+      JSONObject committedTurnEvidence) throws Exception {
+    JSONObject promptState = projectState(state);
+    String recent = clip(recentContext, 1800);
+
+    String packet = "Bạn là Game Master của một sandbox text game Backrooms.\n"
+        + "MỤC TIÊU: biến action và các fact đã commit thành một cảnh sống động, tự nhiên và có không khí. "
+        + "Bạn được tự do chọn nhịp câu, hình ảnh, cảm giác không gian, ánh sáng, âm thanh, vật liệu và góc quan sát miễn chúng phù hợp CURRENT LEVEL. "
+        + "Đừng viết theo template và đừng recap lượt trước.\n"
+        + "RANH GIỚI: Core đã quyết định gameplay state. Không tự tạo hoặc thay đổi Level, Entity, item/loot, Party, combat outcome, injury, stat hay relationship state. "
+        + "Chi tiết mô tả vô hại không làm thay đổi state được phép sáng tạo.\n"
+        + "PLAYER AGENCY: không tự thêm lời nói, suy nghĩ, quyết định hoặc hành động tiếp theo cho Cao Minh ngoài action người chơi vừa nhập.\n"
+        + "VOICE: kể ngôi thứ ba hạn định quanh Cao Minh; tiếng Việt tự nhiên; Backrooms là thực tại, xianxia là lăng kính của Cao Minh. "
+        + "Không kết mặc định bằng câu hỏi tu từ hay 'Bạn sẽ làm gì tiếp?'.\n"
+        + GmNarratorContract.caoMinhNarrativeCard() + "\n"
+        + "CURRENT LEVEL — chỉ context của node hiện tại:\n" + safe(levelContext) + "\n"
+        + "CURRENT CHARACTERS — chỉ dùng người Core xác nhận đang present/pending:\n"
+        + safe(characterContext) + "\n"
+        + "CURRENT MILESTONE — chỉ node của Level hiện tại:\n" + safe(milestoneContext) + "\n"
+        + situationContext(state) + "\n"
+        + "COMMITTED TURN EVIDENCE — fact thay đổi state của đúng lượt này:\n"
+        + (committedTurnEvidence == null ? "{}" : committedTurnEvidence.toString()) + "\n"
+        + "RECENT CONTEXT — dùng để giữ continuity và tránh lặp cách diễn đạt:\n" + recent + "\n"
+        + "READ-ONLY VIEW: " + promptState.toString() + "\n"
+        + "PLAYER ACTION: " + safe(action) + "\n"
+        + "OUTPUT chỉ JSON: {\"reply\":\"...\",\"choices\":[{\"text\":\"...\"}],"
+        + "\"encounterDialogue\":[],\"claims\":[]}. "
+        + "choices có 0-3 gợi ý ngắn; encounterDialogue chỉ dùng khi Character Core có pending intro; "
+        + "claims chỉ khai báo mutation đã có trong COMMITTED TURN EVIDENCE.";
+    return SafePresentationView.narrativeText(state, packet);
+  }
+
   public static String build(
       String levelContext,
       String entityContext,
