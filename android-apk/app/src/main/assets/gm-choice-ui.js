@@ -786,7 +786,7 @@
     var entry = index < 0 ? null : state.log[index];
     if (!entry || index !== state.log.length - 1) return;
     var choices = displayedExplorerChoices(entry);
-    if (choices.length !== 2) return;
+    if (choices.length !== 1) return;
     var actions = choices.map(function(choice, i){
       return {id:String.fromCharCode(65 + i),action:String(choice.action || choice.text || '').trim()};
     });
