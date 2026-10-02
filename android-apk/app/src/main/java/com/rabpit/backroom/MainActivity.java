@@ -163,7 +163,6 @@ public class MainActivity extends Activity {
     if (gameCore != null) gameCore.close();
     prefetchGeneration.incrementAndGet();
     prefetchIo.shutdownNow();
-    shadowPlannerIo.shutdownNow();
     io.shutdownNow();
     if (webView != null) webView.destroy();
     super.onDestroy();
