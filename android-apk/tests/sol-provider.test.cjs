@@ -11,15 +11,15 @@ function method(name) {
   return source.slice(start, source.indexOf('\n  private ', start + 1));
 }
 
-test('shared flow tries SOL before Gemini rotation and later Haiku', () => {
+test('shared flow keeps one-request Gemini happy path before SOL and Haiku fallbacks', () => {
   const flow = method('generateText');
   assert.match(flow, /SafePresentationView\.narrativeText/);
-  assert.match(flow, /try\s*\{\s*return solText\(prompt\);\s*\} catch \(Exception/);
-  assert.ok(flow.indexOf('solText(prompt)') < flow.indexOf('geminiText(prompt)'));
-  assert.ok(flow.indexOf('geminiText(prompt)') < flow.indexOf('haikuText(prompt)'));
+  assert.ok(flow.indexOf('geminiText(prompt)') < flow.indexOf('solText(prompt)'));
+  assert.ok(flow.indexOf('solText(prompt)') < flow.indexOf('haikuText(prompt)'));
   assert.match(method('geminiText'), /ProviderRetryPolicy\.shouldRotateGeminiKey/);
   assert.match(method('haikuText'), /ProviderRetryPolicy\.shouldRetrySameProvider/);
   assert.match(method('generateNarrationText'), /return generateText\(prompt\)/);
+  assert.doesNotMatch(flow, /CompletableFuture|invokeAny|parallelStream/);
 });
 
 test('SOL uses low reasoning with shared OpenAI payload, bearer transport and parser', () => {
@@ -65,4 +65,17 @@ test('Gemini batch keeps one physical request and prefetch dispatches none', () 
     source.indexOf('  private String worldProposalPrompt('));
   assert.match(prefetch, /invalidatePrefetch\(\)/);
   assert.doesNotMatch(prefetch, /solText\(|generateText\(|geminiBranchBatch\(|postJson\(/);
+});
+
+test('debug telemetry separates core prompt provider validation repair and total latency', () => {
+  const start = source.indexOf('@JavascriptInterface public void submitTurn(');
+  const end = source.indexOf('@JavascriptInterface public void combatRoll(', start);
+  const submit = source.slice(start, end);
+  for (const marker of ['core=', 'prompt=', 'provider=', 'validation=', 'repair=', 'total=']) {
+    assert.ok(submit.includes(marker), 'missing timing marker ' + marker);
+  }
+  assert.ok(submit.includes('providerInitial='));
+  assert.ok(submit.includes('providerRepair='));
+  assert.match(submit, /BuildConfig\.DEBUG/);
+  assert.doesNotMatch(submit, /Log\.[dvwi]\([^\n]*(?:SOL_API_KEY|GEMINI_API_KEY|HAKU_API_KEY|PLAYER ACTION)/);
 });

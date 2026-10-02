@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
@@ -601,31 +602,49 @@ public class MainActivity extends Activity {
 
   private String generateText(String prompt) throws Exception {
     prompt = SafePresentationView.narrativeText(new JSONObject(gameCore.currentCoreState()), prompt);
-    Exception solError;
-    try {
-      return solText(prompt);
-    } catch (Exception error) {
-      solError = error;
-      Log.w(TAG, "SOL failed; falling back to Gemini.");
-    }
     Exception geminiError;
+    long providerStart = SystemClock.elapsedRealtime();
     try {
-      // geminiText() rotates through GEMINI_API_KEY_1..5 before it gives up.
-      return geminiText(prompt);
+      // Restore the pre-1.1.74 fast path: successful Gemini narration is one physical provider path.
+      String output = geminiText(prompt);
+      if (BuildConfig.DEBUG) Log.d(TAG, "NARRATION PROVIDER: Gemini success "
+          + (SystemClock.elapsedRealtime() - providerStart) + "ms");
+      return output;
     } catch (Exception error) {
       geminiError = error;
-      Log.w(TAG, "All Gemini keys failed; falling back to Haiku.");
+      if (BuildConfig.DEBUG) Log.d(TAG, "NARRATION PROVIDER: Gemini failed "
+          + (SystemClock.elapsedRealtime() - providerStart) + "ms");
+      Log.w(TAG, "All Gemini keys failed; falling back to SOL.");
     }
 
+    Exception solError;
+    providerStart = SystemClock.elapsedRealtime();
     try {
-      return haikuText(prompt);
+      String output = solText(prompt);
+      if (BuildConfig.DEBUG) Log.d(TAG, "NARRATION PROVIDER: SOL success "
+          + (SystemClock.elapsedRealtime() - providerStart) + "ms");
+      return output;
+    } catch (Exception error) {
+      solError = error;
+      if (BuildConfig.DEBUG) Log.d(TAG, "NARRATION PROVIDER: SOL failed "
+          + (SystemClock.elapsedRealtime() - providerStart) + "ms");
+      Log.w(TAG, "SOL failed; falling back to Haiku.");
+    }
+
+    providerStart = SystemClock.elapsedRealtime();
+    try {
+      String output = haikuText(prompt);
+      if (BuildConfig.DEBUG) Log.d(TAG, "NARRATION PROVIDER: Haiku success "
+          + (SystemClock.elapsedRealtime() - providerStart) + "ms");
+      return output;
     } catch (Exception haikuError) {
+      if (BuildConfig.DEBUG) Log.d(TAG, "NARRATION PROVIDER: Haiku failed "
+          + (SystemClock.elapsedRealtime() - providerStart) + "ms");
       throw new Exception(
-          "SOL, toàn bộ 5 Gemini key và Haiku fallback đều không khả dụng. SOL: "
-              + providerErrorSummary(solError)
-              + " | Gemini: " + providerErrorSummary(geminiError)
-              + " | Haiku: "
-              + providerErrorSummary(haikuError));
+          "Toàn bộ 5 Gemini key, SOL và Haiku fallback đều không khả dụng. Gemini: "
+              + providerErrorSummary(geminiError)
+              + " | SOL: " + providerErrorSummary(solError)
+              + " | Haiku: " + providerErrorSummary(haikuError));
     }
   }
 
@@ -944,7 +963,7 @@ public class MainActivity extends Activity {
     @JavascriptInterface public void submitTurn(String stateJson, String action) {
       io.execute(() -> {
         JSONObject committedBeforeNarration = null;
-        long tStart = System.currentTimeMillis();
+        long tStart = SystemClock.elapsedRealtime();
         try {
           JSONObject submitted = new JSONObject(stateJson);
           JSONObject persisted = new JSONObject(gameCore.currentCoreState());
@@ -963,6 +982,7 @@ public class MainActivity extends Activity {
             return;
           }
 
+          long coreStart = SystemClock.elapsedRealtime();
           JSONObject prepared = new JSONObject(gameCore.processRule(submitted.toString(), action));
           if (prepared.optBoolean("handled", false)) {
             emit("backroomTurn", prepared.getJSONObject("state").toString());
@@ -979,6 +999,7 @@ public class MainActivity extends Activity {
           if (!committed.optBoolean("handled", false)) {
             throw new Exception(committed.optString("error", "Game State Core từ chối COMMIT."));
           }
+          long coreMs = SystemClock.elapsedRealtime() - coreStart;
 
           JSONObject state = committed.getJSONObject("state");
           committedBeforeNarration = new JSONObject(state.toString());
@@ -994,12 +1015,31 @@ public class MainActivity extends Activity {
           String presentationBaseHash = GameCoreFacade.presentationBaseHash(state);
           final JSONObject narrationState = state;
           int[] providerCalls = {0, 0};
+          long[] promptMs = {0L, 0L};
+          long[] providerMs = {0L, 0L};
+          long[] validationMs = {0L};
           JSONObject generated = NarrationProviderPolicy.present(safeEvents, rejection -> {
+            int timingIndex = rejection.isEmpty() ? 0 : 1;
+            long promptStart = SystemClock.elapsedRealtime();
             String prompt = narrationPrompt(narrationState, action, turnId);
             if (!rejection.isEmpty()) prompt += "\nVALIDATION REJECTED: " + rejection
                 + "\nChỉ kể đúng evidence của lượt đã commit; không thêm hoặc sửa world state.";
-            return parseModelJson(generateNarrationText(prompt, providerCalls, !rejection.isEmpty()));
-          }, candidate -> NarrationGuard.validate(candidate, narrationState, safeEvidence));
+            promptMs[timingIndex] += SystemClock.elapsedRealtime() - promptStart;
+            long providerRequestStart = SystemClock.elapsedRealtime();
+            try {
+              return parseModelJson(generateNarrationText(
+                  prompt, providerCalls, !rejection.isEmpty()));
+            } finally {
+              providerMs[timingIndex] += SystemClock.elapsedRealtime() - providerRequestStart;
+            }
+          }, candidate -> {
+            long validationStart = SystemClock.elapsedRealtime();
+            try {
+              return NarrationGuard.validate(candidate, narrationState, safeEvidence);
+            } finally {
+              validationMs[0] += SystemClock.elapsedRealtime() - validationStart;
+            }
+          });
           String reply = generated.optString("reply", "");
           Log.d(TAG, "PRESENTATION CONTENT ATTEMPTS: turnId=" + turnId
               + " initial=" + providerCalls[0] + " retry=" + providerCalls[1]
@@ -1028,7 +1068,15 @@ public class MainActivity extends Activity {
           }
 
           if (BuildConfig.DEBUG) {
-            Log.d(TAG, "EMERGENT TURN TELEMETRY: total=" + (System.currentTimeMillis() - tStart)
+            long totalMs = SystemClock.elapsedRealtime() - tStart;
+            Log.d(TAG, "EMERGENT TURN TELEMETRY: total=" + totalMs
+                + "ms core=" + coreMs
+                + "ms prompt=" + (promptMs[0] + promptMs[1])
+                + "ms provider=" + (providerMs[0] + providerMs[1])
+                + "ms validation=" + validationMs[0]
+                + "ms repair=" + (promptMs[1] + providerMs[1])
+                + "ms providerInitial=" + providerMs[0]
+                + "ms providerRepair=" + providerMs[1]
                 + "ms turnId=" + turnId
                 + " authority=CORE_V2"
                 + " situation=" + (selected == null ? "NONE" : selected.optString("situationKey", "NONE")));
