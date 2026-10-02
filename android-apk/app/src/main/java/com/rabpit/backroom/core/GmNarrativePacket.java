@@ -12,6 +12,56 @@ public final class GmNarrativePacket {
     return EpistemicView.forActor(state, "cao_minh");
   }
 
+  static JSONObject projectSceneState(JSONObject state) throws Exception {
+    JSONObject actorView = projectState(state);
+    JSONObject scene = new JSONObject();
+    copySceneField(actorView, scene, "turn");
+
+    JSONObject player = actorView.optJSONObject("player");
+    if (player != null) {
+      JSONObject compactPlayer = new JSONObject();
+      for (String key : new String[] {"name", "condition", "hp", "maxHp"}) {
+        copySceneField(player, compactPlayer, key);
+      }
+      if (compactPlayer.length() > 0) scene.put("player", compactPlayer);
+    }
+
+    JSONArray party = actorView.optJSONArray("party");
+    if (party != null) {
+      JSONArray present = new JSONArray();
+      for (int i = 0; i < party.length(); i++) {
+        JSONObject member = party.optJSONObject(i);
+        if (member == null || !member.optBoolean("present", true)) continue;
+        JSONObject compact = new JSONObject();
+        for (String key : new String[] {"id", "name", "present", "injury", "depletion", "location"}) {
+          copySceneField(member, compact, key);
+        }
+        if (compact.length() > 0) present.put(compact);
+      }
+      if (present.length() > 0) scene.put("party", present);
+    }
+
+    JSONObject time = actorView.optJSONObject("gameTime");
+    if (time != null) {
+      JSONObject compactTime = new JSONObject();
+      for (String key : new String[] {"elapsedSubjectiveMinutes", "day", "hour", "minute"}) {
+        copySceneField(time, compactTime, key);
+      }
+      if (compactTime.length() > 0) scene.put("gameTime", compactTime);
+    }
+
+    JSONObject combat = actorView.optJSONObject("combat");
+    if (combat != null && combat.optBoolean("active", false)) {
+      scene.put("combat", new JSONObject(combat.toString()));
+    }
+    return scene;
+  }
+
+  private static void copySceneField(JSONObject source, JSONObject target, String key)
+      throws Exception {
+    if (source != null && source.has(key)) target.put(key, source.get(key));
+  }
+
   public static String buildScene(
       String levelContext,
       String characterContext,
@@ -21,7 +71,7 @@ public final class GmNarrativePacket {
       String action,
       String milestoneContext,
       JSONObject committedTurnEvidence) throws Exception {
-    JSONObject promptState = projectState(state);
+    JSONObject promptState = projectSceneState(state);
     String recent = clip(recentContext, 1800);
 
     String packet = "Bạn là Game Master của một sandbox text game Backrooms.\n"
@@ -45,7 +95,7 @@ public final class GmNarrativePacket {
         + "COMMITTED TURN EVIDENCE — fact thay đổi state của đúng lượt này:\n"
         + (committedTurnEvidence == null ? "{}" : committedTurnEvidence.toString()) + "\n"
         + "RECENT CONTEXT — dùng để giữ continuity và tránh lặp cách diễn đạt:\n" + recent + "\n"
-        + "READ-ONLY VIEW: " + promptState.toString() + "\n"
+        + "SCENE STATUS — compact Core facts only: " + promptState.toString() + "\n"
         + "PLAYER ACTION: " + safe(action) + "\n"
         + "OUTPUT chỉ JSON: {\"reply\":\"...\",\"choices\":[{\"text\":\"...\"}],"
         + "\"encounterDialogue\":[]}. "

@@ -95,6 +95,39 @@ public class GmNarrativePacketTest {
     assertFalse(projected.getJSONArray("beliefs").toString().contains("secret"));
   }
 
+  @Test public void sceneStateProjectionDropsWorldScaleState() throws Exception {
+    JSONObject state = new JSONObject()
+        .put("turn", 7)
+        .put("currentLevelKey", "0")
+        .put("location", "Hành lang vàng")
+        .put("player", new JSONObject()
+            .put("name", "Cao Minh").put("condition", "Ổn định")
+            .put("privateProgression", "DROP_PLAYER_DETAIL"))
+        .put("inventory", new org.json.JSONArray().put("DROP_INVENTORY"))
+        .put("characterProgression", new JSONObject().put("secret", "DROP_PROGRESSION"))
+        .put("party", new org.json.JSONArray()
+            .put(new JSONObject().put("id", "lucia").put("name", "Lucia Lục")
+                .put("present", true).put("injury", "wounded").put("knowledge", "DROP_PARTY_DETAIL"))
+            .put(new JSONObject().put("id", "syvial").put("name", "Syvial")
+                .put("present", false)))
+        .put("gameTime", new JSONObject()
+            .put("elapsedSubjectiveMinutes", 45).put("internalClockSeed", "DROP_TIME_DETAIL"));
+
+    JSONObject scene = GmNarrativePacket.projectSceneState(state);
+    String serialized = scene.toString();
+
+    assertTrue(serialized.contains("Cao Minh"));
+    assertTrue(serialized.contains("Lucia Lục"));
+    assertTrue(serialized.contains("wounded"));
+    assertTrue(serialized.contains("elapsedSubjectiveMinutes"));
+    assertFalse(serialized.contains("DROP_INVENTORY"));
+    assertFalse(serialized.contains("DROP_PROGRESSION"));
+    assertFalse(serialized.contains("DROP_PLAYER_DETAIL"));
+    assertFalse(serialized.contains("DROP_PARTY_DETAIL"));
+    assertFalse(serialized.contains("DROP_TIME_DETAIL"));
+    assertFalse(serialized.contains("Syvial"));
+  }
+
   @Test public void runtimeScenePacketUsesOnlyCurrentSceneDependencies() throws Exception {
     JSONObject state = new JSONObject()
         .put("currentLevel", 0)
