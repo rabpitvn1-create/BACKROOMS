@@ -155,6 +155,24 @@ public class CharacterEncounterCoreTest {
         .put("log", new JSONArray().put(new JSONObject().put("role", "gm").put("text", "Test")));
   }
 
+  @Test public void scenePromptIncludesOnlyPresentOrPendingCharacters() throws Exception {
+    JSONObject state = state(0, 4).put(LevelCore.LEVEL_KEY, "0")
+        .put("party", new JSONArray()
+            .put(new JSONObject().put("id", "lucia").put("present", true))
+            .put(new JSONObject().put("id", "syvial").put("present", false)));
+    CharacterEncounterCore core = new CharacterEncounterCore();
+
+    String prompt = core.scenePromptContext(state);
+
+    assertTrue(prompt.contains("PRESENT: Cao Minh, Lucia Lục"));
+    assertTrue(prompt.contains("trained soldier from a far-future world"));
+    assertFalse(prompt.contains("Syvial: independent"));
+    assertFalse(prompt.contains("Lục Trầm: Chính Đạo"));
+    assertFalse(prompt.contains("10%"));
+    assertFalse(prompt.contains("0.25%"));
+    assertFalse(prompt.contains("Encounter pool"));
+  }
+
   @Test public void lucTramPendingPromptIsReunionNotFirstContact() throws Exception {
     JSONObject state = state(1, 5)
         .put("characterEncounter", new JSONObject()

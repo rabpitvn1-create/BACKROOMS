@@ -482,6 +482,35 @@ public class LevelCoreTest {
     assertFalse(explorePrompt.contains("INTERACT_FACT"));
   }
 
+  @Test public void sceneContextRoutesOnlyEnvironmentalDependencies() throws Exception {
+    String knowledge = new JSONObject()
+        .put("schemaVersion", 2)
+        .put("sectionOrder", new org.json.JSONArray()
+            .put("identity").put("architecture").put("sensory").put("resources")
+            .put("entities").put("gmConstraints").put("sceneSeeds"))
+        .put("levels", new JSONObject().put("0", new JSONObject()
+            .put("name", "Level 0")
+            .put("identity", new org.json.JSONArray().put("IDENTITY_FACT"))
+            .put("architecture", new org.json.JSONArray().put("ARCH_FACT"))
+            .put("sensory", new org.json.JSONArray().put("SENSORY_FACT"))
+            .put("resources", new org.json.JSONArray().put("ITEM_MARKER"))
+            .put("entities", new org.json.JSONArray().put("ENTITY_MARKER"))
+            .put("gmConstraints", new org.json.JSONArray().put("GLOBAL_CONSTRAINT_MARKER"))
+            .put("sceneSeeds", new org.json.JSONArray().put("SCENE_SEED"))))
+        .toString();
+    LevelCore core = LevelCore.withKnowledge(knowledge, new SequenceRng(0));
+    JSONObject state = state(1, "Level 0 / Start").put(LevelCore.LEVEL_KEY, "0");
+
+    String scene = core.scenePromptContext(state, "Cao Minh quan sát xung quanh");
+
+    assertTrue(scene.contains("LEVEL: Level 0"));
+    assertTrue(scene.contains("SENSORY_FACT"));
+    assertFalse(scene.contains("ITEM_MARKER"));
+    assertFalse(scene.contains("ENTITY_MARKER"));
+    assertFalse(scene.contains("GLOBAL_CONSTRAINT_MARKER"));
+    assertTrue(scene.length() <= LevelCore.MAX_SCENE_CONTEXT_CHARS);
+  }
+
   @Test public void levelZeroKnowledgeContextBudgetUsesRealAsset() throws Exception {
     LevelCore core = LevelCore.withKnowledge(
         readRepoAsset("knowledge/level_knowledge.json"), new SequenceRng(0));

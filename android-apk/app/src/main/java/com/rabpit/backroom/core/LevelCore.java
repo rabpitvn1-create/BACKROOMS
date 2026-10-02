@@ -50,6 +50,8 @@ final class LevelCore {
   private static final int LEVEL_MISMATCH = -2;
   private static final int ROUTE_ROLL_BOUND = 100;
   static final int MAX_KNOWLEDGE_CONTEXT_CHARS = 3200;
+  static final int MAX_SCENE_CONTEXT_CHARS = 2200;
+  private static final int MAX_SCENE_PALETTE_CHARS = 1500;
 
   private final Map<String, JSONObject> knowledgeByLevelKey = new LinkedHashMap<>();
   private final Map<String, String> legacyCanonByLevelKey = new LinkedHashMap<>();
@@ -278,6 +280,98 @@ final class LevelCore {
         + "VALID NEXT LEVEL TRANSITION: " + allowed + "\n"
         + transitionInstruction + "\n"
         + routeInstruction;
+  }
+
+  String scenePromptContext(JSONObject state, String action) {
+    String levelKey = resolveLevelKey(state);
+    int turn = Math.max(1, state == null ? 1 : state.optInt("turn", 1));
+    StringBuilder out = new StringBuilder();
+    out.append("LEVEL: ").append(displayNameForKey(levelKey)).append('\n');
+    String location = state == null ? "" : state.optString("location", "").trim();
+    if (!location.isEmpty()) out.append("LOCATION: ").append(location).append('\n');
+
+    String palette = sceneKnowledgeContext(levelKey, turn, action);
+    if (!palette.isEmpty()) {
+      out.append("ENVIRONMENT PALETTE — descriptive possibilities for this Level, not spawned items/entities:\n")
+          .append(palette).append('\n');
+    }
+
+    try {
+      JSONObject route = normalizeRouteState(state, levelKey);
+      boolean rolledThisTurn = route.optInt("lastRollTurn", -1) == turn;
+      String result = rolledThisTurn ? route.optString("lastResult", "") : "";
+      if ("RESET".equals(result)) {
+        out.append("ROUTE FACT: this movement folded back toward familiar ground.\n");
+      } else if ("SUCCESS".equals(result)) {
+        out.append("ROUTE FACT: exploration progressed inside this Level; no exit was reached.\n");
+      } else if ("EXIT_AVAILABLE".equals(result) || route.optBoolean("exitAvailable", false)) {
+        String next = nextForKey(levelKey);
+        out.append("ROUTE FACT: a real boundary may now be encountered")
+            .append(next == null ? "" : " toward " + displayNameForKey(next))
+            .append("; crossing still requires the player's action.\n");
+      }
+    } catch (Exception ignored) {}
+
+    if (out.length() > MAX_SCENE_CONTEXT_CHARS) {
+      return out.substring(0, MAX_SCENE_CONTEXT_CHARS);
+    }
+    return out.toString().trim();
+  }
+
+  String sceneKnowledgeContext(String levelKey, int turn, String action) {
+    JSONObject bundle = knowledgeByLevelKey.get(normalizeKey(levelKey));
+    if (bundle == null) return "";
+    StringBuilder out = new StringBuilder();
+    String category = categorizeAction(action);
+    JSONArray order = knowledgeSectionOrder.length() == 0
+        ? new JSONArray().put("identity").put("architecture").put("zones").put("sensory")
+            .put("anomalies").put("hazards").put("navigation").put("microLocations")
+            .put("environmentStates").put("environmentEvents").put("interactionRules")
+            .put("actionConsequences").put("navigationPatterns").put("quietTurnPatterns")
+            .put("variationPool").put("sceneSeeds")
+        : knowledgeSectionOrder;
+
+    for (int i = 0; i < order.length() && out.length() < MAX_SCENE_PALETTE_CHARS; i++) {
+      String section = order.optString(i, "").trim();
+      if (!sceneSectionAllowed(section) || !isSectionRelevantForCategory(section, category)) continue;
+      JSONArray values = bundle.optJSONArray(section);
+      if (values == null || values.length() == 0) continue;
+      appendSceneSection(out, values, section, turn);
+    }
+    return out.toString().trim();
+  }
+
+  private static boolean sceneSectionAllowed(String section) {
+    return "identity".equals(section) || "architecture".equals(section) || "zones".equals(section)
+        || "sensory".equals(section) || "anomalies".equals(section) || "hazards".equals(section)
+        || "navigation".equals(section) || "microLocations".equals(section)
+        || "environmentStates".equals(section) || "environmentEvents".equals(section)
+        || "interactionRules".equals(section) || "actionConsequences".equals(section)
+        || "navigationPatterns".equals(section) || "quietTurnPatterns".equals(section)
+        || "narrativeGrammar".equals(section) || "antiRepetition".equals(section)
+        || "variationPool".equals(section) || "sceneSeeds".equals(section);
+  }
+
+  private static void appendSceneSection(
+      StringBuilder out, JSONArray values, String section, int turn) {
+    if (values == null || values.length() == 0 || out.length() >= MAX_SCENE_PALETTE_CHARS) return;
+    int configured = rotatingSectionLimit(section);
+    int count = Math.min(values.length(), configured > 0 ? Math.min(configured, 2) : 1);
+    int start = values.length() > count
+        ? Math.floorMod((Math.max(1, turn) - 1) * count + section.hashCode(), values.length())
+        : 0;
+    StringBuilder block = new StringBuilder();
+    block.append(out.length() == 0 ? "" : "\n").append(sectionLabel(section)).append(":\n");
+    int added = 0;
+    for (int i = 0; i < count; i++) {
+      String value = values.optString((start + i) % values.length(), "").trim();
+      if (value.isEmpty()) continue;
+      String line = "- " + value + "\n";
+      if (out.length() + block.length() + line.length() > MAX_SCENE_PALETTE_CHARS) break;
+      block.append(line);
+      added++;
+    }
+    if (added > 0) out.append(block);
   }
 
   String snapshotDescriptor(JSONObject state) {

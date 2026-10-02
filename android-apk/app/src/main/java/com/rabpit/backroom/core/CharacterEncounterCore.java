@@ -161,6 +161,62 @@ final class CharacterEncounterCore {
     return output;
   }
 
+  String scenePromptContext(JSONObject state) {
+    try {
+      normalizeState(state);
+      JSONArray party = state.getJSONArray("party");
+      JSONArray pending = state.getJSONObject(ENCOUNTER_STATE).optJSONArray(PENDING_INTRO);
+      List<String> activeIds = new ArrayList<>();
+      List<String> activeNames = new ArrayList<>();
+      for (int i = 0; i < party.length(); i++) {
+        JSONObject member = party.optJSONObject(i);
+        String id = characterId(member);
+        if (!isEncounterCharacter(id) || member == null || !member.optBoolean("present", true)) continue;
+        if (!activeIds.contains(id)) activeIds.add(id);
+        activeNames.add(displayName(id));
+      }
+      for (int i = 0; pending != null && i < pending.length(); i++) {
+        String id = pending.optString(i, "").trim().toLowerCase(Locale.ROOT);
+        if (isEncounterCharacter(id) && !activeIds.contains(id)) activeIds.add(id);
+      }
+
+      StringBuilder out = new StringBuilder("PRESENT: Cao Minh");
+      if (!activeNames.isEmpty()) out.append(", ").append(join(activeNames));
+      out.append(".\n");
+      String pendingNames = displayNames(pending);
+      out.append("PENDING INTRO: ").append(pendingNames.isEmpty() ? "none" : pendingNames).append(".\n");
+
+      for (String id : activeIds) {
+        out.append("- ").append(sceneVoiceCard(id)).append('\n');
+      }
+
+      if (pendingNames.isEmpty()) {
+        out.append("encounterDialogue must be [].");
+      } else {
+        out.append("The pending encounter is already committed. Show the meeting in the current location, ")
+            .append("use 2-5 natural spoken lines, and do not decide Cao Minh's reply or Party membership.");
+      }
+      return out.toString();
+    } catch (Exception e) {
+      return "PRESENT: Cao Minh. PENDING INTRO: unknown; do not invent another character.";
+    }
+  }
+
+  private static String sceneVoiceCard(String id) {
+    if ("lucia".equals(id)) {
+      return "Lucia Lục: trained soldier from a far-future world; practical, technical and evidence-driven. "
+          + "Outside real tactical urgency she speaks in complete natural sentences. She does not automatically know cultivation concepts.";
+    }
+    if ("luc_tram".equals(id)) {
+      return "Lục Trầm: Chính Đạo Kiếm Tu from Cao Minh's original xianxia world. She and Cao Minh have a hostile past; "
+          + "she speaks clearly and fully, proper but not archaic, and does not become a cold one-liner machine or instant romance.";
+    }
+    if ("syvial".equals(id)) {
+      return "Syvial: independent high-tier supernatural swordswoman; no pre-existing relationship with Cao Minh unless live continuity says otherwise.";
+    }
+    return displayName(id);
+  }
+
   String promptContext(JSONObject state) {
     try {
       normalizeState(state);

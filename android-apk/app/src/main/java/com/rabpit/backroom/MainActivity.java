@@ -687,8 +687,8 @@ public class MainActivity extends Activity {
 
   private String narrationPrompt(JSONObject state, String action, String turnId) throws Exception {
     String coreJson = state.toString();
-    String levelContext = gameCore.levelPromptContext(coreJson, action);
-    String characterContext = gameCore.characterPromptContext(coreJson);
+    String levelContext = gameCore.levelSceneContext(coreJson, action);
+    String characterContext = gameCore.characterSceneContext(coreJson);
     JSONObject evidence = CommittedTurnNarrationEvidence.fromState(state, turnId);
     if (!evidence.optBoolean("available", false)) {
       throw new IllegalStateException(

@@ -689,6 +689,27 @@ public final class GameCoreFacade implements AutoCloseable {
     }
   }
 
+  public synchronized String levelSceneContext(String stateJson, String action) {
+    JSONObject state = parseState(stateJson);
+    try {
+      levelCore.normalizeState(state);
+      return levelCore.scenePromptContext(state, action);
+    } catch (Exception e) {
+      return "LEVEL: current node unavailable.";
+    }
+  }
+
+  public synchronized String characterSceneContext(String stateJson) {
+    JSONObject state = parseState(stateJson);
+    try {
+      levelCore.normalizeState(state);
+      characterEncounterCore.normalizeState(state);
+      return characterEncounterCore.scenePromptContext(state);
+    } catch (Exception e) {
+      return "PRESENT: Cao Minh. PENDING INTRO: unknown.";
+    }
+  }
+
   public synchronized String narrativeContinuityContext(String stateJson) {
     JSONObject state = parseState(stateJson);
     try {
