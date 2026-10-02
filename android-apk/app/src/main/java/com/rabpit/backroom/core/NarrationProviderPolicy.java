@@ -12,6 +12,10 @@ public final class NarrationProviderPolicy {
 
   public static JSONObject present(JSONArray safeEvents, Provider provider, Validator validator)
       throws Exception {
+    if (OfflinePresenter.isCoreOwnedEntityLifecycle(safeEvents)) {
+      return OfflinePresenter.present(safeEvents,
+          () -> { throw new IllegalStateException("Core-owned Entity lifecycle must not call writer"); });
+    }
     try {
       JSONObject generated = provider.generate("");
       String rejection = validator.validate(generated);

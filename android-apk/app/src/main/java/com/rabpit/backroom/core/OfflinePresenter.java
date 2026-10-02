@@ -9,6 +9,18 @@ public final class OfflinePresenter {
 
   private OfflinePresenter() {}
 
+  public static boolean isCoreOwnedEntityLifecycle(JSONArray views) {
+    if (views == null) return false;
+    for (int i = 0; i < views.length(); i++) {
+      JSONObject view = views.optJSONObject(i);
+      if (view == null) continue;
+      String type = view.optString("eventType", "");
+      if ("ENTITY_ENCOUNTER_STARTED".equals(type) || "COMBAT_VICTORY".equals(type)
+          || "COMBAT_DEFEAT".equals(type)) return true;
+    }
+    return false;
+  }
+
   public static boolean isOffline(JSONArray views) {
     if (views == null) return false;
     for (int i = 0; i < views.length(); i++) {

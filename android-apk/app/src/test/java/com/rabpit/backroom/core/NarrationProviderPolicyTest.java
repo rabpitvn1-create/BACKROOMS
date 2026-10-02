@@ -6,9 +6,23 @@ import org.json.JSONObject;
 import org.junit.Test;
 
 public class NarrationProviderPolicyTest {
-  @Test public void committedSpecialScenesUseWriterOnceAndKeepLocalTemplatesForFailure() throws Exception {
-    for (String type : new String[] {"ENTITY_ENCOUNTER_STARTED", "COMBAT_VICTORY", "CHEST_SPAWNED",
-        "CHEST_OPENED", "CHARACTER_ENCOUNTERED", "CHARACTER_REUNION"}) {
+  @Test public void entityLifecycleBypassesWriterEntirely() throws Exception {
+    for (String type : new String[] {"ENTITY_ENCOUNTER_STARTED", "COMBAT_VICTORY"}) {
+      JSONArray views = new JSONArray().put(SafePresentationView.event(new JSONObject(), "cao_minh",
+          new JSONObject().put("eventType", type).put("targetRefs", new JSONArray().put("async_rifleman"))));
+      int[] calls = {0};
+      JSONObject result = NarrationProviderPolicy.present(views, rejection -> {
+        calls[0]++;
+        throw new AssertionError("writer must not run for Core-owned Entity lifecycle");
+      }, generated -> "");
+      assertEquals(0, calls[0]);
+      assertFalse(result.getString("reply").isEmpty());
+    }
+  }
+
+  @Test public void nonEntitySpecialScenesStillUseWriterOnceAndKeepLocalTemplatesForFailure() throws Exception {
+    for (String type : new String[] {"CHEST_SPAWNED", "CHEST_OPENED",
+        "CHARACTER_ENCOUNTERED", "CHARACTER_REUNION"}) {
       JSONArray views = new JSONArray().put(SafePresentationView.event(new JSONObject(), "cao_minh",
           new JSONObject().put("eventType", type).put("targetRefs", new JSONArray().put("async_rifleman"))));
       int[] calls = {0};
@@ -24,7 +38,6 @@ public class NarrationProviderPolicyTest {
       assertFalse(result.getString("reply").isEmpty());
     }
   }
-
   @Test public void creativeExploreUsesRealGuardAndOneProviderAttempt() throws Exception {
     JSONObject state = GameCoreFacade.newGameState(new JSONObject());
     JSONObject evidence = new JSONObject().put("available", true).put("claims", new JSONArray());
