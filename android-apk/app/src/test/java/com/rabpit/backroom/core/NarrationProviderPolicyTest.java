@@ -37,12 +37,13 @@ public class NarrationProviderPolicyTest {
   }
 
   @Test public void formatErrorDoesNotTriggerAuthorityRepair() throws Exception {
+    JSONObject state = new JSONObject();
+    JSONObject evidence = new JSONObject().put("available", true).put("claims", new JSONArray());
     int[] calls = {0};
     NarrationProviderPolicy.present(new JSONArray(), rejection -> {
       calls[0]++;
       return new JSONObject().put("reply", "");
-    }, generated -> NarrationGuard.validate(generated, new JSONObject(),
-        new JSONObject().put("available", true).put("claims", new JSONArray())));
+    }, generated -> NarrationGuard.validate(generated, state, evidence));
     assertEquals(1, calls[0]);
   }
 
