@@ -1,16 +1,21 @@
 {
-  "version": 2,
-  "instruction": "Ví dụ chỉ dạy nhịp kể xianxia × Backrooms. Xianxia là lăng kính nhận thức của Cao Minh; Backrooms vẫn là thực tại khách quan. Chỉ khẳng định điều quan sát/canon xác nhận, còn suy luận phải giữ mức độ bất định. Không sao chép sự kiện, câu chữ hay khung câu vào lượt thật; Explore không cần theo cấu trúc của ví dụ đối thoại.",
+  "version": 3,
+  "instruction": "Ví dụ chỉ dạy nhịp kể, không phải canon. Không sao chép câu chữ/sự kiện/hình ảnh. Với Explore liên tiếp, coi recent context là negative repetition memory: tránh mở/kết câu, skeleton và cặp chi tiết vừa dùng; đổi điểm tập trung, nhịp câu, kênh cảm giác mà không thêm event.",
   "goodExamples": [
     {
-      "name": "Đối thoại tiên hiệp tự nhiên trong thực tại Backrooms",
-      "player": "Cao Minh lên tiếng với người lạ đang cầm súng.",
-      "gm": "Cao Minh dừng ngoài tầm với, mắt lướt qua thứ binh khí kim loại trong tay đối phương.\n\n“Các hạ, hạ binh khí xuống. Ta không có ý giao thủ.”\n\nNgười kia vẫn giữ khoảng cách, nhưng nòng súng hạ xuống đôi chút. Tiếng đèn huỳnh quang tiếp tục rền đều trên đầu cả hai."
+      "name": "Explore — không gian trước",
+      "player": "Cao Minh đi tiếp theo hành lang.",
+      "gm": "Ánh đèn trải phẳng lên những mảng tường nhạt màu, làm khoảng hành lang phía trước trông dài hơn khi Cao Minh tiến qua. Thảm dưới chân tiếp tục giữ một độ ẩm nặng nề; tiếng bước chân bị lớp vật liệu mềm nuốt bớt, chỉ còn tiếng điện đều trên cao. Quãng đường vừa đi không đưa thêm vật thể, dấu vết hay biến cố nào vào scene; sự thay đổi nằm ở góc nhìn và khoảng cách đã được vượt qua."
+    },
+    {
+      "name": "Explore — âm thanh trước",
+      "player": "Cao Minh tiếp tục khám phá khu vực hiện tại.",
+      "gm": "Tiếng rè của hệ thống chiếu sáng chiếm lấy phần nền âm thanh. Gần hơn là tiếng ma sát rất nhẹ từ bước di chuyển đã nhập; xa hơn, các mặt phẳng và góc hành lang vẫn nối nhau trong cùng cấu trúc mà Core đang giữ. Không cần một phát hiện mới để lượt này có trọng lượng: ánh sáng, độ sâu và vật liệu thay đổi tương quan theo chuyển động, còn scene không được tự bổ sung dấu vết hay vật thể."
     }
   ],
   "badExample": {
     "player": "Cao Minh đi tiếp.",
-    "gm": "Cao Minh bước vào bí cảnh Level 0. Cánh cửa phía trước là cấm chế cổ xưa do yêu thú trấn giữ, còn đèn huỳnh quang phát ra ma âm. Bạn sẽ làm gì tiếp?",
-    "why": "Sai vì tự đổi Level thành bí cảnh, cửa thành cấm chế và sinh vật chưa xác nhận thành yêu thú; đồng thời kết lượt bằng câu hỏi máy móc."
+    "gm": "Cao Minh đi tiếp trong hành lang. Không có biến cố mới. Vẫn chỉ là hành lang như trước.",
+    "why": "Sai vì lặp skeleton và dùng câu meta thay cho mô tả scene."
   }
 }

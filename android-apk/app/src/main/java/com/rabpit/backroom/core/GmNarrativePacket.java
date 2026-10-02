@@ -78,7 +78,7 @@ public final class GmNarrativePacket {
         + situationContext(state) + "\n"
         + "COMMITTED TURN EVIDENCE (read-only; only these events justify current-turn mutation claims):\n"
         + (committedTurnEvidence == null ? "{}" : committedTurnEvidence.toString()) + "\n"
-        + "RECENT CONTEXT (để NHỚ continuity và TRÁNH LẶP; không kể lại hay paraphrase các lượt trước):\n" + recent + "\n"
+        + "RECENT CONTEXT — NEGATIVE REPETITION MEMORY (để NHỚ continuity và TRÁNH LẶP; không kể lại hay paraphrase các lượt trước):\n" + recent + "\n"
         + "READ-ONLY STATE: " + promptState.toString() + "\n"
         + "PLAYER ACTION: " + safe(action) + "\n"
         + "OUTPUT: chỉ JSON hợp lệ, không markdown. JSON không có quyền thay đổi state.\n"

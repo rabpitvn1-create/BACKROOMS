@@ -125,6 +125,34 @@ public class GmNarrativePacketTest {
     assertTrue(packet.contains("world outcome"));
   }
 
+  @Test public void exploreContractTargetsRicherProseWithoutInventingEvents() throws Exception {
+    String contract = GmNarratorContract.promptContext();
+    assertFalse(contract.contains("35–70"));
+    assertTrue(contract.contains("70–120 từ"));
+    assertTrue(contract.contains("soft target, not a hard minimum"));
+    assertTrue(contract.contains("không tạo thêm event/clue/vật thể"));
+    assertTrue(contract.contains("NEGATIVE REPETITION MEMORY"));
+    assertTrue(contract.contains("Không tự thêm việc Cao Minh"));
+  }
+
+  @Test public void styleExamplesTeachDistinctExploreShapesAndNegativeMemory() throws Exception {
+    String examples = readRepoAsset("knowledge/gm_style_examples.json");
+    org.json.JSONObject root = new org.json.JSONObject(examples);
+    org.json.JSONArray good = root.getJSONArray("goodExamples");
+    assertTrue(good.length() >= 2);
+    String first = good.getJSONObject(0).getString("gm");
+    String second = good.getJSONObject(1).getString("gm");
+    assertFalse(first.substring(0, Math.min(24, first.length()))
+        .equals(second.substring(0, Math.min(24, second.length()))));
+
+    JSONObject state = new JSONObject().put("currentLevelKey", "0")
+        .put("party", new org.json.JSONArray());
+    String packet = GmNarrativePacket.build("", "", "", "",
+        "GM: Cao Minh đi tiếp trong hành lang.\nPLAYER: Khám phá.", state, "Khám phá", examples);
+    assertTrue(packet.contains("NEGATIVE REPETITION MEMORY"));
+    assertTrue(packet.contains("không kể lại hay paraphrase"));
+  }
+
   @Test public void packetMakesGmNarrativelyFreeWhileKeepingMechanicsCoreOwned() throws Exception {
     JSONObject state = new JSONObject()
         .put("currentLevel", 0)
@@ -145,6 +173,9 @@ public class GmNarrativePacketTest {
     assertTrue(packet.contains("ĐÃ ĐƯỢC JAVA CORE COMMIT"));
     assertTrue(packet.contains("Không có cốt truyện, chương hay diễn biến định sẵn"));
     assertTrue(packet.contains("Java Core sở hữu toàn bộ world outcome"));
+    assertTrue(packet.contains("COMMITTED-EVIDENCE RULE"));
+    assertTrue(packet.contains("BACKGROUND CANON ≠ TURN EVIDENCE"));
+    assertTrue(packet.contains("PLAYER AGENCY"));
     assertTrue(packet.contains("EXPLORER CHOICES"));
   }
 }
