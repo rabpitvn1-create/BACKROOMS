@@ -121,7 +121,8 @@ public class GmNarrativePacketTest {
     assertTrue("Ordinary narrative packet should stay under 13k chars, was: " + packet.length(),
         packet.length() < 13000);
     assertFalse(packet.contains("FULL_CANON_MARKER"));
-    assertFalse(packet.contains("\"transitionTarget\""));
+    assertFalse(packet.contains("transitionTarget"));
+    assertFalse(packet.contains("sceneLabel"));
     assertTrue(packet.contains("world outcome"));
   }
 

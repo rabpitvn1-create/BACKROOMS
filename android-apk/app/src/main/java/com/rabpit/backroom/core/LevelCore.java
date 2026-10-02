@@ -210,37 +210,23 @@ final class LevelCore {
 
     String next = nextForKey(levelKey);
     String allowed;
-    String allowedKeys;
     if (levelGraph.available()) {
       StringBuilder values = new StringBuilder();
-      StringBuilder keys = new StringBuilder();
       for (String target : levelGraph.outgoing(levelKey)) {
-        if (values.length() > 0) {
-          values.append(", ");
-          keys.append(", ");
-        }
+        if (values.length() > 0) values.append(", ");
         values.append(displayNameForKey(target));
-        keys.append(target);
       }
       allowed = values.length() == 0 ? "none" : values.toString();
-      allowedKeys = keys.length() == 0 ? "none" : keys.toString();
     } else if (next != null) {
       allowed = displayName(next);
-      allowedKeys = next;
     } else {
       StringBuilder values = new StringBuilder();
-      StringBuilder keys = new StringBuilder();
       for (int target = 0; target <= 6; target++) {
         if (target == level || !GameCoreRules.levelTransitionAllowed(level, target)) continue;
-        if (values.length() > 0) {
-          values.append(", ");
-          keys.append(", ");
-        }
+        if (values.length() > 0) values.append(", ");
         values.append(displayName(String.valueOf(target)));
-        keys.append(target);
       }
       allowed = values.length() == 0 ? "none" : values.toString();
-      allowedKeys = keys.length() == 0 ? "none" : keys.toString();
     }
 
     JSONObject route;
@@ -282,14 +268,6 @@ final class LevelCore {
         : "LEVEL TRANSITION: LOCKED. Keep currentLevelKey unchanged and keep the environment inside "
             + displayNameForKey(levelKey) + ".";
 
-    String narrativeTransitionInstruction = exitAvailable
-        ? "NARRATIVE TRANSITION SIGNAL: sceneLabel is descriptive only and never changes Level state. "
-            + "If this turn actually crosses an allowed boundary, return transitionTarget as one exact key from ["
-            + allowedKeys + "]. Otherwise transitionTarget must be empty."
-        : "NARRATIVE TRANSITION SIGNAL: sceneLabel is descriptive only and never changes Level state. "
-            + "transitionTarget must be empty because the route is locked.";
-
-
     return "CURRENT LEVEL NODE: " + displayNameForKey(levelKey) + "\n"
         + "CURRENT LEVEL KEY: " + levelKey + "\n"
         + "PARENT LEVEL NUMBER: " + level + "\n"
@@ -299,7 +277,6 @@ final class LevelCore {
         + "Entity spawning, item spawning, combat, stats and hidden route progress remain Core-owned.\n"
         + "VALID NEXT LEVEL TRANSITION: " + allowed + "\n"
         + transitionInstruction + "\n"
-        + narrativeTransitionInstruction + "\n"
         + routeInstruction;
   }
 
