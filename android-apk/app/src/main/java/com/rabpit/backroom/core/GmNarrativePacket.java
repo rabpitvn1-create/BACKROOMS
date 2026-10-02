@@ -1,5 +1,6 @@
 package com.rabpit.backroom.core;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /** Builds the compact read-only narrative packet sent to the text provider. */
