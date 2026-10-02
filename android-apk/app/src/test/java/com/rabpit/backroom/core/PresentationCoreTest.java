@@ -167,6 +167,31 @@ public class PresentationCoreTest {
   }
 
 
+  @Test public void oracleShowsExactCoreChestLootInsteadOfLeavingWriterBlind() throws Exception {
+    JSONObject initial = state();
+    initial.put("flags", new JSONObject().put("chestPresent", true));
+    GameCoreFacade core = core(initial);
+    String before = core.currentCoreState();
+
+    JSONObject oracle = new JSONObject(core.oracleWindow(before));
+    JSONObject first = oracle.getJSONArray("steps").getJSONObject(0);
+    assertEquals(ItemCore.OPEN_CHEST_ACTION, first.getString("action"));
+    JSONArray events = first.getJSONArray("presentationEvents");
+    boolean sawOpened = false;
+    boolean sawLoot = false;
+    for (int i = 0; i < events.length(); i++) {
+      JSONObject event = events.optJSONObject(i);
+      if (event == null || !"CHEST_OPENED".equals(event.optString("eventType", ""))) continue;
+      sawOpened = true;
+      sawLoot = !event.optString("loot", "").trim().isEmpty();
+    }
+    assertTrue(sawOpened);
+    assertTrue(sawLoot);
+    assertEquals(before, core.currentCoreState());
+    assertTrue(oracle.getString("context").contains("PRESENTATION EVENTS"));
+  }
+
+
   @Test public void explicitCoreUpdatesSurviveActualCheckpointSaveAndLoad() throws Exception {
     GameCoreFacade core = core(state());
     core.markEffectKnown("cao_minh", "lucia_m4a1", "core:observed-shot");
