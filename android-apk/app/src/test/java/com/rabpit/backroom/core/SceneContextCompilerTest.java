@@ -137,4 +137,61 @@ public class SceneContextCompilerTest {
     assertFalse(facts.contains("INTERNAL_ID"));
     assertFalse(facts.contains("commitSeq"));
   }
+  @Test public void levelZeroExploreRuntimePacketAndAttemptMetrics() throws Exception {
+    LevelCore level = LevelCore.withKnowledge(new String(Files.readAllBytes(
+        Paths.get("src/main/assets/knowledge/level_knowledge.json")), java.nio.charset.StandardCharsets.UTF_8), bound -> 0);
+    MilestoneCore milestones = milestone();
+    JSONObject state = GameCoreFacade.newGameState(new JSONObject());
+    String before = state.toString();
+    JSONObject committed = evidence();
+    String action = "Khám phá";
+    CharacterEncounterCore characters = new CharacterEncounterCore();
+    for (int i = 0; i < 5; i++) SceneContextCompiler.compile(level, characters, milestones, state, action, committed);
+    long[] construction = new long[31], provider = new long[31], validation = new long[31];
+    String prompt = "";
+    for (int i = 0; i < construction.length; i++) {
+      long start = System.nanoTime();
+      SceneContextCompiler.SceneContext scene = SceneContextCompiler.compile(level, characters, milestones, state, action, committed);
+      prompt = GmNarrativePacket.buildScene(scene);
+      construction[i] = System.nanoTime() - start;
+      assertTrue(scene.storyBoundary.contains("CURRENT NODE: 0 —"));
+      for (String absent : new String[] {"Lucia", "Syvial", "Lục Trầm"}) assertFalse(prompt.contains(absent));
+      assertFalse(scene.storyBoundary.contains("Lucia"));
+      assertFalse(scene.storyBoundary.contains("Syvial"));
+      assertFalse(scene.storyBoundary.contains("Lục Trầm"));
+      assertFalse(scene.levelScene.matches("(?s).*Level [1-6](?:[^0-9]|$).*"));
+      for (String excluded : new String[] {"CanonRetriever", "NarrativeSkeleton", "EntityCore", "ItemCore",
+          "HIDDEN ROUTE OUTCOME", "candidateWeights", "eventId", "COMMITTED TURN EVIDENCE"}) {
+        assertFalse(excluded, prompt.contains(excluded));
+      }
+      int[] attempts = {0, 0};
+      long[] times = {0, 0};
+      JSONObject result = NarrationProviderPolicy.present(new JSONArray(), rejection -> {
+        long requestStart = System.nanoTime();
+        attempts[rejection.isEmpty() ? 0 : 1]++;
+        JSONObject generated = new JSONObject().put("reply", "Ánh đèn run nhẹ trên mép thảm; Cao Minh lắng nghe tiếng ù.");
+        times[0] += System.nanoTime() - requestStart;
+        return generated;
+      }, generated -> {
+        long validationStart = System.nanoTime();
+        String reason = NarrationGuard.validate(generated, state, committed);
+        times[1] += System.nanoTime() - validationStart;
+        return reason;
+      });
+      assertTrue(result.getString("reply").contains("Ánh đèn"));
+      assertEquals(1, attempts[0]);
+      assertEquals(0, attempts[1]);
+      provider[i] = times[0];
+      validation[i] = times[1];
+    }
+    assertEquals(before, state.toString());
+    java.util.Arrays.sort(construction);
+    java.util.Arrays.sort(provider);
+    java.util.Arrays.sort(validation);
+    System.out.println("SCENE VERIFY Level 0: promptChars=" + prompt.length()
+        + " constructionMedianUs=" + construction[15] / 1000
+        + " injectedProviderMedianUs=" + provider[15] / 1000
+        + " validationMedianUs=" + validation[15] / 1000 + " attempts=1 repairCount=0");
+  }
+
 }

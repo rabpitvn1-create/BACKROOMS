@@ -103,7 +103,7 @@ test('debug telemetry separates core prompt provider validation repair and total
   const start = source.indexOf('@JavascriptInterface public void submitTurn(');
   const end = source.indexOf('@JavascriptInterface public void combatRoll(', start);
   const submit = source.slice(start, end);
-  for (const marker of ['core=', 'prompt=', 'provider=', 'validation=', 'repair=', 'total=']) {
+  for (const marker of ['core=', 'prompt=', 'provider=', 'validation=', 'repair=', 'total=', 'promptCharsInitial=', 'promptCharsRepair=', 'repairCount=']) {
     assert.ok(submit.includes(marker), 'missing timing marker ' + marker);
   }
   assert.ok(submit.includes('providerInitial='));

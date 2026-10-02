@@ -759,6 +759,7 @@ public class MainActivity extends Activity {
           final JSONObject narrationState = state;
           int[] providerCalls = {0, 0};
           long[] promptMs = {0L, 0L};
+          int[] promptChars = {0, 0};
           long[] providerMs = {0L, 0L};
           long[] validationMs = {0L};
           JSONObject generated = NarrationProviderPolicy.present(safeEvents, rejection -> {
@@ -767,6 +768,7 @@ public class MainActivity extends Activity {
             String prompt = narrationPrompt(narrationState, action, turnId);
             if (!rejection.isEmpty()) prompt += "\nVALIDATION REJECTED: " + rejection
                 + "\nChỉ kể đúng evidence của lượt đã commit; không thêm hoặc sửa world state.";
+            promptChars[timingIndex] = prompt.length();
             promptMs[timingIndex] += SystemClock.elapsedRealtime() - promptStart;
             long providerRequestStart = SystemClock.elapsedRealtime();
             try {
@@ -821,7 +823,10 @@ public class MainActivity extends Activity {
                 + "ms repair=" + (promptMs[1] + providerMs[1])
                 + "ms providerInitial=" + providerMs[0]
                 + "ms providerRepair=" + providerMs[1]
-                + "ms turnId=" + turnId
+                + "ms promptCharsInitial=" + promptChars[0]
+                + " promptCharsRepair=" + promptChars[1]
+                + " repairCount=" + providerCalls[1]
+                + " turnId=" + turnId
                 + " authority=CORE_V2"
                 + " situation=" + (selected == null ? "NONE" : selected.optString("situationKey", "NONE")));
           }
