@@ -202,6 +202,68 @@ final class NarrativeSkeleton {
     return !containsForbiddenPlanningKey(skeleton);
   }
 
+  static final int MAX_PROMPT_CONTEXT_CHARS = 4200;
+
+  static String promptContext(JSONObject root) {
+    JSONObject skeleton = root == null ? null : root.optJSONObject(ROOT_KEY);
+    if (!contractValid(skeleton)) {
+      return "LONG-HORIZON CONTINUITY MEMORY: unavailable. Do not invent prior continuity.";
+    }
+
+    StringBuilder out = new StringBuilder();
+    out.append("LONG-HORIZON CONTINUITY MEMORY — READ-ONLY, DERIVED FROM COMMITTED CORE HISTORY\n");
+    out.append("This is continuity guidance, not current-turn evidence and not actor knowledge by itself. ")
+        .append("Never turn an unresolved question, mystery or relationship summary into a new fact, event, confession, ")
+        .append("decision or state change. Current Core state and COMMITTED TURN EVIDENCE remain authoritative.\n");
+    out.append("DERIVED THROUGH: commitSeq=").append(skeleton.optInt("derivedFromCommitSeq", 0))
+        .append(", turn=").append(skeleton.optInt("derivedFromTurn", 0)).append('\n');
+
+    appendPromptSummaries(out, "IMPORTANT RELATIONSHIPS",
+        skeleton.optJSONArray("importantRelationships"), 6);
+    appendPromptSummaries(out, "LONG-TERM TENSIONS",
+        skeleton.optJSONArray("longTermTensions"), 6);
+    appendPromptSummaries(out, "ANCHOR MYSTERIES — unresolved, never reveal as solved",
+        skeleton.optJSONArray("anchorMysteries"), 4);
+    appendPromptQuestions(out, "UNRESOLVED WORLD QUESTIONS",
+        skeleton.optJSONArray("unresolvedWorldQuestions"), 5);
+
+    if (out.length() > MAX_PROMPT_CONTEXT_CHARS) {
+      return out.substring(0, MAX_PROMPT_CONTEXT_CHARS)
+          + "\n[continuity memory clipped; do not infer omitted history]";
+    }
+    return out.toString();
+  }
+
+  private static void appendPromptSummaries(
+      StringBuilder out, String title, JSONArray entries, int maxItems) {
+    out.append(title).append(":\n");
+    int written = 0;
+    for (int i = 0; entries != null && i < entries.length() && written < maxItems; i++) {
+      JSONObject entry = entries.optJSONObject(i);
+      if (entry == null) continue;
+      String summary = safe(entry.optString("summary", ""));
+      if (summary.isEmpty()) continue;
+      out.append("- ").append(summary).append('\n');
+      written++;
+    }
+    if (written == 0) out.append("- none committed\n");
+  }
+
+  private static void appendPromptQuestions(
+      StringBuilder out, String title, JSONArray entries, int maxItems) {
+    out.append(title).append(":\n");
+    int written = 0;
+    for (int i = 0; entries != null && i < entries.length() && written < maxItems; i++) {
+      JSONObject entry = entries.optJSONObject(i);
+      if (entry == null) continue;
+      String question = safe(entry.optString("question", ""));
+      if (question.isEmpty()) continue;
+      out.append("- ").append(question).append('\n');
+      written++;
+    }
+    if (written == 0) out.append("- none committed\n");
+  }
+
   static double attentionStrength(JSONObject root, String tag) {
     JSONObject skeleton = root == null ? null : root.optJSONObject(ROOT_KEY);
     JSONArray hints = skeleton == null ? null : skeleton.optJSONArray("attentionHints");

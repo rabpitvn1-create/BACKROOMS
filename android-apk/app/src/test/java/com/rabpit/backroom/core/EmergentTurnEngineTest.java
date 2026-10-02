@@ -443,6 +443,38 @@ public class EmergentTurnEngineTest {
     assertEquals(0.0d, NarrativeSkeleton.attentionStrength(root, "DANGER"), 0.000001d);
   }
 
+  @Test public void narrativeSkeletonPromptCarriesBoundedCommittedContinuityOnly() throws Exception {
+    EmergentTurnEngine engine = new EmergentTurnEngine();
+    JSONObject state = new JSONObject()
+        .put("turn", 12)
+        .put("currentLevel", 1)
+        .put("currentLevelKey", "1")
+        .put("player", new JSONObject().put("name", "Cao Minh"))
+        .put("party", new JSONArray().put(
+            new JSONObject().put("id", "luc_tram").put("name", "Lục Trầm")));
+    engine.normalizeState(state);
+    String turnId = engine.nextTurnId(state, "long continuity");
+    JSONArray events = new JSONArray();
+    events.put(engine.event(turnId, events, "CHARACTER_REUNION", "SOCIAL", "luc_tram",
+        new JSONObject().put("factPredicate", "character_reunion")
+            .put("factValue", "luc_tram").put("observedByPlayer", true),
+        new JSONArray().put(engine.threadEffect(
+            "LUC_TRAM_RELATIONSHIP", new JSONArray().put("luc_tram"), "SEED_OR_ADVANCE", null))));
+    engine.commitAuthoritative(state, turnId, events, null);
+    engine.catchUpProjections(state);
+
+    JSONObject root = state.getJSONObject(EmergentTurnEngine.ROOT_KEY);
+    String context = NarrativeSkeleton.promptContext(root);
+    assertTrue(context.contains("LONG-HORIZON CONTINUITY MEMORY"));
+    assertTrue(context.contains("Cao Minh và Lục Trầm đã tái ngộ"));
+    assertTrue(context.contains("not current-turn evidence"));
+    assertFalse(context.contains("attentionHints"));
+    assertFalse(context.contains("nextEvent"));
+    assertFalse(context.contains("plotCursor"));
+    assertTrue(context.length() <= NarrativeSkeleton.MAX_PROMPT_CONTEXT_CHARS
+        + "\n[continuity memory clipped; do not infer omitted history]".length());
+  }
+
   @Test public void narrativeSkeletonCannotCreateOrUnlockCandidates() throws Exception {
     EmergentTurnEngine engine = new EmergentTurnEngine();
     JSONObject state = new JSONObject().put("turn", 6);
