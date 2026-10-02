@@ -11,6 +11,18 @@ ponytail_home="$ponytail_root/codex"
 if [[ "${1:-}" == "--setup" ]]; then
   umask 077
   mkdir -p "$ponytail_home"
+  # Prepare search and the same Java/Gradle versions used by CI.
+  if ! command -v rg >/dev/null; then
+    sudo apt-get update -o Dir::Etc::sourceparts=- -qq >"$ponytail_root/setup.log" 2>&1
+    sudo apt-get install -o Dir::Etc::sourceparts=- -y -qq ripgrep >>"$ponytail_root/setup.log" 2>&1
+  fi
+  set +u
+  source /usr/local/sdkman/bin/sdkman-init.sh
+  sdkman_auto_answer=true
+  cd "$repo_root"
+  sdk env install >>"$ponytail_root/setup.log" 2>&1
+  sdk env >/dev/null
+  set -u
   npm install --prefix "$ponytail_root/cli" --no-audit --no-fund @openai/codex@0.159.3
   install -m 600 "$repo_root/tools/ponytail-config.toml" "$ponytail_home/config.toml"
   "$ponytail_cli" --version
@@ -29,6 +41,10 @@ umask 077
 mkdir -p "$ponytail_home"
 install -m 600 "$repo_root/tools/ponytail-config.toml" "$ponytail_home/config.toml"
 cd "$repo_root"
+set +u
+source /usr/local/sdkman/bin/sdkman-init.sh
+sdk env >/dev/null
+set -u
 
 if [[ "${1:-}" == "--smoke-test" ]]; then
   # Read-only inference; verify the final answer, not a model-list response.

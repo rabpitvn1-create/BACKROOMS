@@ -1,0 +1,20 @@
+name: Verify Ponytail Tools
+on:
+  push:
+    branches: [main]
+    paths: ['tools/ponytail*', '.sdkmanrc', 'AGENTS.md', 'tools/REPO_MAP.md', '.github/workflows/ponytail-tools.yml']
+  pull_request:
+    paths: ['tools/ponytail*', '.sdkmanrc', 'AGENTS.md', 'tools/REPO_MAP.md', '.github/workflows/ponytail-tools.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: bash -n tools/ponytail.sh
+      - run: python3 -c "import tomllib; c=tomllib.load(open('tools/ponytail-config.toml','rb')); assert c['model_reasoning_effort']=='medium'"
