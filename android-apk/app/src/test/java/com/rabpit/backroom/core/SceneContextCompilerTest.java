@@ -9,7 +9,8 @@ import org.junit.Test;
 
 public class SceneContextCompilerTest {
   static MilestoneCore milestone() throws Exception {
-    return MilestoneCore.fromText(Files.readString(Paths.get("src/main/assets/knowledge/milestone_runtime.json")));
+    return MilestoneCore.fromText(new String(Files.readAllBytes(Paths.get("src/main/assets/knowledge/milestone_runtime.json")),
+        java.nio.charset.StandardCharsets.UTF_8));
   }
 
   static JSONObject state() throws Exception {
