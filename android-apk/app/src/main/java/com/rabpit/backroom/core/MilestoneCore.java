@@ -15,7 +15,7 @@ public final class MilestoneCore {
   static final int MAX_CONTEXT_CHARS = 2400;
   static final String ASSET = "knowledge/milestone_runtime.json";
   static final String SOURCE_SHA256 =
-      "13d56b4417d6a916120d5b8a4155b3755aefef0bd07e2a7015c64eb3949ca144";
+      "e7e7f66a9327e5945b4f2f5931f7c6f0908e539aa695c6418016b5824d8e6d69";
 
   private final JSONObject root;
 
@@ -53,6 +53,7 @@ public final class MilestoneCore {
     if (level == null) {
       out.append("CURRENT NODE: outside configured milestone scope.\n");
     } else {
+      out.append("MILESTONE ID: ").append(level.optString("milestoneId", "")).append('\n');
       out.append("CURRENT NODE: ").append(levelKey).append(" — ")
           .append(level.getString("act")).append('\n');
       appendList(out, "GUIDANCE", level.getJSONArray("guidance"));

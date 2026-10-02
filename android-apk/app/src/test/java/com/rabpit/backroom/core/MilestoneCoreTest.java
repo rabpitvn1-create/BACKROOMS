@@ -47,6 +47,27 @@ public class MilestoneCoreTest {
     }
   }
 
+  @Test public void v2SourceAndEveryNodeArePinnedWithoutFutureOrSecretDump() throws Exception {
+    String raw = readAsset("knowledge/milestone_runtime.json");
+    JSONObject runtime = new JSONObject(raw);
+    byte[] source = Files.readAllBytes(Paths.get("docs/milestone-v2.md"));
+    byte[] hash = java.security.MessageDigest.getInstance("SHA-256").digest(source);
+    StringBuilder hex = new StringBuilder();
+    for (byte value : hash) hex.append(String.format("%02x", value & 255));
+    assertTrue(runtime.getString("sourceSha256").equals(hex.toString()));
+    assertTrue(runtime.getString("sourceDocumentId").equals("MS-V2"));
+    MilestoneCore core = MilestoneCore.fromText(raw);
+    for (int i = 0; i < runtime.getJSONArray("route").length(); i++) {
+      String key = runtime.getJSONArray("route").getString(i);
+      String context = core.promptContext(state(key, 0));
+      assertTrue(context.contains("CURRENT NODE: " + key + " —"));
+      assertTrue(context.contains(runtime.getJSONObject("levels").getJSONObject(key).getString("milestoneId")));
+      assertFalse(context.contains(runtime.getString("oneLineCore")));
+      assertFalse(context.contains("writerSecrets"));
+      assertTrue(context.length() <= MilestoneCore.MAX_CONTEXT_CHARS);
+    }
+  }
+
   private static JSONObject state(String levelKey, int parentLevel) throws Exception {
     return new JSONObject()
         .put(LevelCore.LEVEL_KEY, levelKey)

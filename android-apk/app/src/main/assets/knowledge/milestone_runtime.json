@@ -1,21 +1,43 @@
 {
   "schemaVersion": 1,
   "id": "cao-minh-lucia-luc-tram-level0-to-level6",
-  "sourceName": "Milestone.md",
-  "sourceSha256": "13d56b4417d6a916120d5b8a4155b3755aefef0bd07e2a7015c64eb3949ca144",
-  "sourceBytes": 65799,
-  "sourceLines": 1308,
+  "sourceName": "Milestone v2.md",
+  "sourceSha256": "e7e7f66a9327e5945b4f2f5931f7c6f0908e539aa695c6418016b5824d8e6d69",
+  "sourceBytes": 40392,
+  "sourceLines": 673,
   "scope": {
     "startLevelKey": "0",
     "endLevelKey": "6",
     "terminalAtEnd": true
   },
   "route": [
-    "0", "0.1", "0.2", "0.5", "0.7", "manila_room", "the_torment", "red_rooms",
-    "1", "1.2", "1.3", "1.5", "base_alpha", "traders_vault",
-    "2", "2.1", "3", "3.5", "4", "office_market", "5", "5.1", "5.2", "5.3", "6"
+    "0",
+    "0.1",
+    "0.2",
+    "0.5",
+    "0.7",
+    "manila_room",
+    "the_torment",
+    "red_rooms",
+    "1",
+    "1.2",
+    "1.3",
+    "1.5",
+    "base_alpha",
+    "traders_vault",
+    "2",
+    "2.1",
+    "3",
+    "3.5",
+    "4",
+    "office_market",
+    "5",
+    "5.1",
+    "5.2",
+    "5.3",
+    "6"
   ],
-  "oneLineCore": "Ba người từ hai nền văn minh bước qua một thế giới vừa là thánh địa đối với tu sĩ, vừa âm thầm đầu độc phàm nhân; họ học cách tin nhau, yêu nhau và sống sót mà không hề biết rằng các dấu hiệu trên đường đang cùng chỉ về một bí mật mà đến Level 6 họ vẫn chưa đủ gần để gọi tên.",
+  "oneLineCore": "Ba người từ hai nền văn minh bước qua một thế giới vừa là thánh địa đối với tu sĩ, vừa âm thầm đầu độc phàm nhân; họ học cách tin nhau, yêu nhau và sống sót mà không hề biết rằng những dấu hiệu họ gặp trên đường — sự điên loạn của survivor, những vật phẩm giúp họ tỉnh táo và những Entity ngày càng giống người — đang cùng chỉ về một bí mật mà đến Level 6 họ vẫn chưa đủ gần để gọi tên.",
   "authorityLocks": [
     "Milestone là story bible đọc-only. Java Core, committed events và live continuity sở hữu state/outcome; không được dùng Milestone để tự tạo encounter, injury, loot, Level transition, relationship state hoặc hành động của Cao Minh.",
     "Project canon và user lock thắng nguồn tham khảo. Story beat chỉ được kể khi hiện trạng/evidence cho phép; không ép người chơi quay về một scene đã định trước.",
@@ -77,159 +99,186 @@
     "0": {
       "act": "ACT I — NGƯỜI ĐẦU TIÊN",
       "guidance": [
-        "Cao Minh bắt đầu một mình; linh khí cực dày nhưng không có nguồn rõ là nghịch lý đầu tiên. Không nerf hắn; sức mạnh vẫn không cho lời giải topology.",
+        "Cao Minh biết linh khí thường xuyên dày hơn quê nhà hàng chục lần nhưng nguồn UNKNOWN; topology không cho bản đồ tuyệt đối. Không suy ra madness hay nguồn gốc Entity; không cấp đột phá, vô hạn năng lượng hoặc miễn luật Backrooms.",
         "Nếu Character Core đã commit Lucia first contact, cô đang tự sinh tồn và hợp tác vì dữ kiện/thực dụng, không phải anh hùng cứu mỹ nhân.",
         "Nếu Lucia có dấu hiệu môi trường, Cao Minh chỉ được cảnh báo theo kiến thức tu hành rằng cơ thể cô không luyện hóa như tu sĩ; không kết luận toàn bộ madness do linh khí."
-      ]
+      ],
+      "milestoneId": "MS-L00"
     },
     "0.1": {
       "act": "ACT II — ZENITH STATION",
       "guidance": [
         "Cho dữ kiện kỹ thuật/cơ khí/điện của Lucia bổ sung khí cơ/thần thức của Cao Minh. Không làm một người ngu để người kia tỏa sáng."
-      ]
+      ],
+      "milestoneId": "MS-L001-L002"
     },
     "0.2": {
       "act": "ACT II — REMODELED MESS",
       "guidance": [
         "Khi có hazard kết cấu đã được Core/canon xác nhận, Cao Minh không mặc định chém xuyên; Lucia có authority kỹ thuật nếu cô có căn cứ."
-      ]
+      ],
+      "milestoneId": "MS-L001-L002"
     },
     "0.5": {
       "act": "ACT III — SURVIVAL KHÔNG PHẢI TRẬN ĐẤU",
       "guidance": [
-        "Survival pressure đến từ nước bẩn, vết thương, mất nhiệt, nhiễm bẩn, kiệt sức và môi trường Lucia chưa hiểu; không biến Lucia thành gánh nặng.",
+        "Nếu survival state đã commit cho thấy lạnh, ngâm nước hoặc kiệt sức, kể áp lực cơ thể theo observable facts; không tự tạo injury, triệu chứng hay quy chắc nguyên nhân cho linh khí. Lucia giữ agency và chuyên môn.",
         "Quan hệ Cao Minh–Lucia tiến bằng thói quen tính người kia vào quyết định, không bằng confession."
-      ]
+      ],
+      "milestoneId": "MS-L005"
     },
     "0.7": {
       "act": "ACT IV — THE REMINISCENCE DISTRICT",
       "guidance": [
         "Tài liệu/ký ức môi trường không phải sự thật tuyệt đối. Lucia đánh giá độ tin cậy nguồn; Cao Minh hiểu truyền thừa/ghi chép cũng có thể sai."
-      ]
+      ],
+      "milestoneId": "MS-L007-MR-TM-RR"
     },
     "manila_room": {
       "act": "ACT IV — MANILA ROOM",
       "guidance": [
         "Khoảng nghỉ để Cao Minh và Lucia nói về hai thế giới bằng chi tiết đời thường và hiểu sai khái niệm tự nhiên; không exposition như đọc codex."
-      ]
+      ],
+      "milestoneId": "MS-L007-MR-TM-RR"
     },
     "the_torment": {
       "act": "ACT IV — THE TORMENT",
       "guidance": [
         "Gray spread là hazard/hiện tượng cần quan sát nếu canon hiện tại cho phép; không biến thành boss và không suy lore từ một lần quan sát."
-      ]
+      ],
+      "milestoneId": "MS-L007-MR-TM-RR"
     },
     "red_rooms": {
       "act": "ACT IV — RED ROOMS",
       "guidance": [
         "Căng thẳng từ dead-end topology, suy kiệt và mất đường quay lại. Cao Minh–Lucia đã có partnership thật nhưng chưa cần gọi là romance."
-      ]
+      ],
+      "milestoneId": "MS-L007-MR-TM-RR"
     },
     "1": {
       "act": "ACT V — NGƯỜI THỨ BA",
       "guidance": [
         "Nếu Character Core commit Lục Trầm reunion, đây là tái ngộ căng thẳng có lịch sử chứ không first contact/instant trust. Lucia không mặc định là tình địch.",
         "Ưu tiên nguy hiểm Backrooms hiện tại trước việc giải quyết thù cũ; thoại phải đủ ý, không trailer câu cụt."
-      ]
+      ],
+      "milestoneId": "MS-L01"
     },
     "1.2": {
       "act": "ACT VI — CONCRETE GARDEN",
       "guidance": [
         "Lucia thấy Cao Minh/Lục Trầm có ngôn ngữ chiến đấu chung; Lục Trầm thấy Cao Minh đã có thói quen với Lucia. Triangle là quá khứ đối diện hiện tại, không tranh giành."
-      ]
+      ],
+      "milestoneId": "MS-L012-L015"
     },
     "1.3": {
       "act": "ACT VI — MALIGNANCE",
       "guidance": [
         "Nếu có survivor hazard đã commit, bất đồng đạo đức phải biến thành phương án cụ thể: Lục Trầm muốn thử cứu, Lucia đánh giá feasibility, Cao Minh không coi cứu người là nghĩa vụ tuyệt đối."
-      ]
+      ],
+      "milestoneId": "MS-L012-L015"
     },
     "1.5": {
       "act": "ACT VI — INVERTED",
       "guidance": [
         "Tín hiệu/âm thanh méo hỗ trợ challenge-response và cơ chế xác minh; Lucia có authority chiến thuật thật khi phương án có căn cứ."
-      ]
+      ],
+      "milestoneId": "MS-L012-L015"
     },
     "base_alpha": {
       "act": "ACT VII — SURVIVOR KNOWLEDGE",
       "guidance": [
         "Survivor chỉ kể symptom/correlation/kinh nghiệm; không ai giải thích linh khí. Cao Minh/Lục Trầm có thể thấy tương đồng nhưng chưa đủ kết luận."
-      ]
+      ],
+      "milestoneId": "MS-BA-TV"
     },
     "traders_vault": {
       "act": "ACT VII — SURVIVOR KNOWLEDGE",
       "guidance": [
         "Objects là economy/survival culture; NPC biết thứ gì hữu dụng bằng kinh nghiệm nhưng item không trở thành lore dump hoặc thuốc giải linh khí."
-      ]
+      ],
+      "milestoneId": "MS-BA-TV"
     },
     "2": {
       "act": "ACT VIII — ARC CỦA LUCIA",
       "guidance": [
         "Pipe Dreams cho tư duy kỹ thuật Lucia dẫn phương án trước áp suất, điện, hơi nóng và chain reaction; Cao Minh/Lục Trầm không trở nên ngu để cô tỏa sáng."
-      ]
+      ],
+      "milestoneId": "MS-L02-L021"
     },
     "2.1": {
       "act": "ACT VIII/IX — LOCKED",
       "guidance": [
-        "Tiếp tục ưu thế kỹ thuật của Lucia. Nếu Core/evidence tạo một injury/hazard tương thích, dùng nó để xây trust Lucia–Lục Trầm; không tự tạo injury chỉ vì story bible."
-      ]
+        "Lucia dẫn phương án kỹ thuật nếu đang present và có căn cứ. Lục Trầm chỉ bị thương nếu Core đã commit injury; không làm nàng yếu để ép một scene cứu nhau. Trust giữa hai người phát triển từ continuity đã biết."
+      ],
+      "milestoneId": "MS-L02-L021"
     },
     "3": {
       "act": "ACT X — UNDERSTATED HORROR",
       "guidance": [
         "Điện, tiếng máy, nhiễu cảm biến, ánh chớp và vùng nhìn không ổn định tạo horror. Silhouette có thể là motif khi canon/evidence cho phép; không cần xác nhận Entity/boss."
-      ]
+      ],
+      "milestoneId": "MS-L03-L035"
     },
     "3.5": {
       "act": "ACT X — UNDERSTATED HORROR",
       "guidance": [
         "Giữ dữ kiện không chắc chắn và mâu thuẫn giữa phép đo; không dùng câu triết lý để giải thích nỗi sợ."
-      ]
+      ],
+      "milestoneId": "MS-L03-L035"
     },
     "4": {
       "act": "ACT XI — KHOẢNG THỞ VÀ ĐỜI THƯỜNG",
       "guidance": [
         "Cho quan hệ phát triển ngoài adrenaline: bảo dưỡng trang bị, nói về tông môn/tương lai, hai nền văn minh soi nhau; Cao Minh không cần giành câu kết."
-      ]
+      ],
+      "milestoneId": "MS-L04-OM"
     },
     "office_market": {
       "act": "ACT XI — OFFICE MARKET",
       "guidance": [
         "Tiếp xúc rõ hơn văn hóa survivor, Objects và kinh nghiệm giảm triệu chứng nhưng vẫn không biết cơ chế linh khí."
-      ]
+      ],
+      "milestoneId": "MS-L04-OM"
     },
     "5": {
       "act": "ACT XII — HORROR CỦA SỰ THOẢI MÁI",
       "guidance": [
         "Sự đáng ngờ đến từ nơi quá sạch/thuận tiện, thiếu ngủ và triệu chứng chồng lấp. Không xác định ngay cái gì do Level, linh khí hay bản thân."
-      ]
+      ],
+      "milestoneId": "MS-L05"
     },
     "5.1": {
       "act": "ACT XIII — TEMPTATION",
       "guidance": [
         "Nếu Core/canon có giao dịch/tài nguyên/thông tin, cả ba kiểm tra điều kiện và cái giá; không tự dựng ảo ảnh ước muốn sâu nhất hay bài kiểm tra đạo đức."
-      ]
+      ],
+      "milestoneId": "MS-L051"
     },
     "5.2": {
       "act": "ACT XIV — LUCIA VÀ LỤC TRẦM",
       "guidance": [
         "Horror độ cao/không gian. Nếu Core/evidence commit hazard cứu nhau tương thích, để Lucia–Lục Trầm chọn giúp nhau như đồng đội; không tự tạo cú trượt/rơi từ story bible."
-      ]
+      ],
+      "milestoneId": "MS-L052"
     },
     "5.3": {
       "act": "ACT XV — MEMORY VÀ CAO TRÀO CẢM XÚC",
       "guidance": [
         "Memory effect phải tăng dần nếu canon/evidence xác nhận; sách không phải canon oracle. Táng Kiếm Cốc có thể được gợi mở nhưng không giải sạch và không ép Lục Trầm tha thứ.",
-        "Cao Minh không giấu dữ liệu chỉ để giữ hình ảnh bản thân; relationship beat lớn không cần confession."
-      ]
+        "Cao Minh không giấu dữ liệu chỉ để giữ hình ảnh bản thân; relationship beat lớn không cần confession.",
+        "Không ép lựa chọn giữa Lucia và Lục Trầm; cảm xúc biểu hiện qua trao đổi kế hoạch và quan tâm trong continuity đã có, không tự commit confession hoặc tha thứ."
+      ],
+      "milestoneId": "MS-L053"
     },
     "6": {
       "act": "FINALE — CHÚNG TA CHƯA HIỂU GÌ",
       "guidance": [
         "Lights Out phá niềm tin rằng quan sát đủ lâu sẽ hiểu mọi Level: cảm biến/thần thức vẫn có dữ kiện nhưng không ghép thành mô hình không gian đáng tin; linh khí vẫn dày và vẫn không có nguồn.",
-        "Không boss arena, không lời giải, không tuyên bố đây là khởi đầu. Kết luận cảm xúc: sau toàn bộ route, điều rõ nhất là nhóm vẫn biết quá ít.",
+        "Định hướng finale là giới hạn tri thức: không boss arena, không lời giải, không tuyên bố đây là khởi đầu. Cảnh kết nguyên bản được giữ trong source; không ép thoại, action hoặc cutscene nếu Core/player chưa cho phép.",
         "MILESTONE TERMINAL: không đi, kể hoặc gợi nội dung Level 6.1."
-      ]
+      ],
+      "milestoneId": "MS-L06-ENTRY"
     }
-  }
+  },
+  "sourceDocumentId": "MS-V2"
 }
