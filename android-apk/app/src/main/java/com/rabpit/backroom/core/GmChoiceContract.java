@@ -200,7 +200,7 @@ public final class GmChoiceContract {
     return output;
   }
 
-  private static String defaultCoreAction(JSONObject state) {
+  static String defaultCoreAction(JSONObject state) {
     if (state != null) {
       JSONObject flags = state.optJSONObject("flags");
       if (flags != null && flags.optBoolean("chestPresent", false)) {
@@ -208,7 +208,7 @@ public final class GmChoiceContract {
       }
       JSONObject route = state.optJSONObject(LevelCore.ROUTE_STATE);
       if (route != null && route.optBoolean("exitAvailable", false)) {
-        return "Tiếp tục qua ranh giới";
+        return "Đi qua ranh giới";
       }
     }
     return "Khám phá";

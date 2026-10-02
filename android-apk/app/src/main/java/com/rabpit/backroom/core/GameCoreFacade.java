@@ -745,12 +745,13 @@ public final class GameCoreFacade implements AutoCloseable {
           .append("These are deterministic Core forecasts, not player-visible facts and not narration authority.\n");
 
       for (int step = 1; step <= 6; step++) {
-        PreparedTurn prepared = prepareExplorerTurnData(forecast, "Khám phá");
+        String defaultAction = GmChoiceContract.defaultCoreAction(forecast);
+        PreparedTurn prepared = prepareExplorerTurnData(forecast, defaultAction);
         JSONObject selected = prepared.selected;
         JSONObject route = prepared.working.optJSONObject(LevelCore.ROUTE_STATE);
         String routeResult = route == null ? "" : route.optString("lastResult", "").trim();
 
-        out.append("STEP +").append(step).append(": ");
+        out.append("STEP +").append(step).append(": action=").append(defaultAction).append("; ");
         if (!routeResult.isEmpty()) {
           out.append("explorer=").append(routeResult).append("; ");
         } else {

@@ -151,6 +151,25 @@ public class GmChoiceContractTest {
     assertHighlight(choice.getJSONArray("highlights"), "Bandage", "item");
   }
 
+  @Test public void singleDefaultChoiceRoutesMechanicsWithoutTrustingWriterText() throws Exception {
+    JSONObject ordinary = new JSONObject();
+    assertEquals("Khám phá", GmChoiceContract.defaultCoreAction(ordinary));
+
+    JSONObject chest = new JSONObject().put("flags", new JSONObject().put("chestPresent", true));
+    assertEquals(ItemCore.OPEN_CHEST_ACTION, GmChoiceContract.defaultCoreAction(chest));
+
+    JSONObject exit = new JSONObject().put(LevelCore.ROUTE_STATE,
+        new JSONObject().put("exitAvailable", true));
+    assertEquals("Đi qua ranh giới", GmChoiceContract.defaultCoreAction(exit));
+
+    JSONObject generated = new JSONObject().put("choices",
+        new JSONArray().put(new JSONObject().put("text", "Quan sát khe sáng phía trước"))
+            .put(new JSONObject().put("text", "Writer choice thứ hai không được dùng")));
+    JSONObject entry = GmChoiceContract.gmEntry("", generated, ordinary);
+    assertEquals(1, entry.getJSONArray("choices").length());
+    assertEquals("Khám phá", entry.getJSONArray("choices").getJSONObject(0).getString("action"));
+  }
+
   private static void assertHighlight(JSONArray values, String text, String type) throws Exception {
     for (int i = 0; i < values.length(); i++) {
       JSONObject value = values.optJSONObject(i);

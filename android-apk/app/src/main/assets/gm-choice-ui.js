@@ -215,7 +215,7 @@
     }
     try {
       if (state && state.levelRoute && state.levelRoute.exitAvailable === true) {
-        return {id:'A',text:'Tiến qua ranh giới vừa được tìm thấy',action:'Tiếp tục qua ranh giới'};
+        return {id:'A',text:'Tiến qua ranh giới vừa được tìm thấy',action:'Đi qua ranh giới'};
       }
     } catch (_) {}
     return {id:'A',text:'Tiếp tục thăm dò khu vực phía trước',action:'Khám phá'};
