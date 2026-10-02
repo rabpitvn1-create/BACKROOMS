@@ -39,6 +39,7 @@ android {
     targetSdk 35
     versionCode 117
     versionName '1.1.73'
+    buildConfigField "String", "SOL_API_KEY", "\"" + secret("SOL_API_KEY") + "\""
     buildConfigField "String", "GEMINI_API_KEY_1", "\"" + secret("GEMINI_API_KEY_1") + "\""
     buildConfigField "String", "GEMINI_API_KEY_2", "\"" + secret("GEMINI_API_KEY_2") + "\""
     buildConfigField "String", "GEMINI_API_KEY_3", "\"" + secret("GEMINI_API_KEY_3") + "\""

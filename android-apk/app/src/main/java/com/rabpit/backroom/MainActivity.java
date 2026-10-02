@@ -492,16 +492,36 @@ public class MainActivity extends Activity {
     return text.toString();
   }
 
-  private String haikuOpenAiText(String prompt) throws Exception {
-    JSONObject body = new JSONObject()
-        .put("model", haikuModel())
+  private JSONObject openAiBody(String model, String prompt) throws Exception {
+    return new JSONObject()
+        .put("model", model)
         .put("temperature", 0.6)
         .put("max_tokens", 2048)
         .put("messages", new JSONArray().put(
             new JSONObject().put("role", "user").put("content", prompt)));
-    JSONObject result = new JSONObject(postJsonHaiku(haikuEndpoint("/chat/completions"), body, false));
+  }
+
+  private String haikuOpenAiText(String prompt) throws Exception {
+    return openAiResponseText(postJsonHaiku(haikuEndpoint("/chat/completions"),
+        openAiBody(haikuModel(), prompt), false));
+  }
+
+  private String solText(String prompt) throws Exception {
+    if (BuildConfig.SOL_API_KEY == null || BuildConfig.SOL_API_KEY.trim().isEmpty()) {
+      throw new Exception("SOL_API_KEY chưa được cấu hình.");
+    }
+    JSONObject body = openAiBody("vgpt/gpt-6.1-sol", prompt)
+        .put("reasoning_effort", "low");
+    String output = openAiResponseText(postJson("https://api.vilao.ai/v1/chat/completions",
+        BuildConfig.SOL_API_KEY, "Authorization", body));
+    parseModelJson(output);
+    return output;
+  }
+
+  private String openAiResponseText(String raw) throws Exception {
+    JSONObject result = new JSONObject(raw);
     JSONArray choices = result.optJSONArray("choices");
-    if (choices == null || choices.length() == 0) throw new Exception("Haiku không trả nội dung.");
+    if (choices == null || choices.length() == 0) throw new Exception("AI không trả nội dung.");
     JSONObject first = choices.optJSONObject(0);
     JSONObject message = first == null ? null : first.optJSONObject("message");
     Object rawContent = message == null ? null : message.opt("content");
@@ -519,7 +539,7 @@ public class MainActivity extends Activity {
         }
       }
     }
-    if (text.length() == 0) throw new Exception("Haiku không trả nội dung.");
+    if (text.length() == 0) throw new Exception("AI không trả nội dung.");
     return text.toString();
   }
 
@@ -581,6 +601,13 @@ public class MainActivity extends Activity {
 
   private String generateText(String prompt) throws Exception {
     prompt = SafePresentationView.narrativeText(new JSONObject(gameCore.currentCoreState()), prompt);
+    Exception solError;
+    try {
+      return solText(prompt);
+    } catch (Exception error) {
+      solError = error;
+      Log.w(TAG, "SOL failed; falling back to Gemini.");
+    }
     Exception geminiError;
     try {
       // geminiText() rotates through GEMINI_API_KEY_1..5 before it gives up.
@@ -594,8 +621,9 @@ public class MainActivity extends Activity {
       return haikuText(prompt);
     } catch (Exception haikuError) {
       throw new Exception(
-          "Toàn bộ 5 Gemini key và Haiku fallback đều không khả dụng. Gemini: "
-              + providerErrorSummary(geminiError)
+          "SOL, toàn bộ 5 Gemini key và Haiku fallback đều không khả dụng. SOL: "
+              + providerErrorSummary(solError)
+              + " | Gemini: " + providerErrorSummary(geminiError)
               + " | Haiku: "
               + providerErrorSummary(haikuError));
     }

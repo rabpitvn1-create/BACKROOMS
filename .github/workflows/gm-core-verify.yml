@@ -55,7 +55,7 @@ jobs:
           node --check android-apk/app/src/main/assets/gm-choice-ui.js
           node --check android-apk/app/src/main/assets/player-action-ui.js
           node --check android-apk/app/src/main/assets/snapshot-ui.js
-          node --test android-apk/tests/manual-save-prefetch.test.cjs android-apk/tests/gm-choice-ui.test.cjs android-apk/tests/player-action-gm-contract.test.cjs android-apk/tests/viewport-layout.test.cjs android-apk/tests/snapshot-layout.test.cjs android-apk/tests/snapshot-visibility.test.cjs
+          node --test android-apk/tests/sol-provider.test.cjs android-apk/tests/manual-save-prefetch.test.cjs android-apk/tests/gm-choice-ui.test.cjs android-apk/tests/player-action-gm-contract.test.cjs android-apk/tests/viewport-layout.test.cjs android-apk/tests/snapshot-layout.test.cjs android-apk/tests/snapshot-visibility.test.cjs
 
       - name: Test and build Android
         working-directory: android-apk
