@@ -14,9 +14,9 @@ Thiết kế và quy trình mở rộng Markdown canon: [Canon Retriever contrac
 
 ## Phiên bản hiện tại
 
-**Backroom 1.1.73** (`versionCode 117`). Entity, rương và hook gặp nhân vật dùng presentation offline; bổ sung knowledge projection an toàn và chặn narration cũ/duplicate tại append.
+**Backroom 1.1.74** (`versionCode 118`). Cải thiện presentation offline của Entity/rương và narration Explore; thử SOL với reasoning low trước Gemini fallback.
 
-APK debug và ghi chú phiên bản được phát hành tại [GitHub Releases](https://github.com/rabpitvn1-create/BACKROOMS/releases). Xem [ghi chú 1.1.73](android-apk/RELEASE_NOTES_1.1.73.txt) để biết các thay đổi.
+APK debug và ghi chú phiên bản được phát hành tại [GitHub Releases](https://github.com/rabpitvn1-create/BACKROOMS/releases). Xem [ghi chú 1.1.74](android-apk/RELEASE_NOTES_1.1.74.txt) để biết các thay đổi.
 
 ## Build cục bộ
 
