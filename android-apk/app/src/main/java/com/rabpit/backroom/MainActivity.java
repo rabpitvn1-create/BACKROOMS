@@ -48,6 +48,9 @@ public class MainActivity extends Activity {
   // Semantic highlight type note: type chỉ được là character, entity, item, skill, effect, location hoặc stat
   private WebView webView;
   private final ExecutorService io = Executors.newSingleThreadExecutor();
+  private final ExecutorService narrationFutureIo = Executors.newSingleThreadExecutor();
+  private final Object narrationFutureLock = new Object();
+  private long narrationFutureEpoch = 0L;
   private GameCoreFacade gameCore;
   private MilestoneCore milestoneCore;
   private JSONArray narrationFutureCache = new JSONArray();
@@ -155,6 +158,7 @@ public class MainActivity extends Activity {
   @Override protected void onDestroy() {
     if (gameCore != null) gameCore.close();
     io.shutdownNow();
+    narrationFutureIo.shutdownNow();
     if (webView != null) webView.destroy();
     super.onDestroy();
   }
@@ -678,57 +682,111 @@ public class MainActivity extends Activity {
   }
 
   private void clearNarrationFutureCache() {
-    narrationFutureCache = new JSONArray();
+    synchronized (narrationFutureLock) {
+      narrationFutureCache = new JSONArray();
+      narrationFutureEpoch++;
+    }
   }
 
   private JSONObject pollNarrationFuture(String action, JSONObject committedState) {
-    if (narrationFutureCache == null || narrationFutureCache.length() == 0) return null;
-    try {
-      JSONObject slot = narrationFutureCache.optJSONObject(0);
-      if (slot == null) {
-        clearNarrationFutureCache();
+    synchronized (narrationFutureLock) {
+      // Every submitted turn invalidates any refill still being generated for the previous state.
+      narrationFutureEpoch++;
+      if (narrationFutureCache == null || narrationFutureCache.length() == 0) return null;
+      try {
+        JSONObject slot = narrationFutureCache.optJSONObject(0);
+        if (slot == null) {
+          narrationFutureCache = new JSONArray();
+          return null;
+        }
+        String expectedAction = slot.optString("action", "");
+        String expectedHash = slot.optString("authorityHash", "");
+        String actualAction = action == null ? "" : action.trim();
+        String actualHash = GameCoreFacade.oracleAuthorityHash(committedState);
+        if (!expectedAction.equals(actualAction) || !expectedHash.equals(actualHash)) {
+          narrationFutureCache = new JSONArray();
+          return null;
+        }
+        narrationFutureCache.remove(0);
+        if ("CHARACTER".equals(slot.optString("worldKind", ""))) {
+          narrationFutureCache = new JSONArray();
+          return null;
+        }
+        JSONObject payload = slot.optJSONObject("payload");
+        return payload == null ? null : new JSONObject(payload.toString());
+      } catch (Exception error) {
+        narrationFutureCache = new JSONArray();
         return null;
       }
-      String expectedAction = slot.optString("action", "");
-      String expectedHash = slot.optString("authorityHash", "");
-      String actualAction = action == null ? "" : action.trim();
-      String actualHash = GameCoreFacade.oracleAuthorityHash(committedState);
-      if (!expectedAction.equals(actualAction) || !expectedHash.equals(actualHash)) {
-        clearNarrationFutureCache();
-        return null;
-      }
-      narrationFutureCache.remove(0);
-      if ("CHARACTER".equals(slot.optString("worldKind", ""))) {
-        clearNarrationFutureCache();
-        return null;
-      }
-      JSONObject payload = slot.optJSONObject("payload");
-      return payload == null ? null : new JSONObject(payload.toString());
-    } catch (Exception error) {
-      clearNarrationFutureCache();
-      return null;
+    }
+  }
+
+  private void replaceNarrationFutureLocked(JSONArray future, JSONArray oracleSteps) throws Exception {
+    narrationFutureCache = new JSONArray();
+    narrationFutureEpoch++;
+    if (future == null || oracleSteps == null) return;
+    int count = Math.min(future.length(), oracleSteps.length());
+    for (int i = 0; i < count; i++) {
+      JSONObject payload = future.optJSONObject(i);
+      JSONObject step = oracleSteps.optJSONObject(i);
+      if (payload == null || step == null || payload.optString("reply", "").trim().isEmpty()) break;
+      JSONObject clean = new JSONObject(payload.toString());
+      clean.remove("future");
+      narrationFutureCache.put(new JSONObject()
+          .put("action", step.optString("action", ""))
+          .put("authorityHash", step.optString("authorityHash", ""))
+          .put("worldKind", step.optString("worldKind", ""))
+          .put("payload", clean));
     }
   }
 
   private void captureNarrationFuture(JSONArray future, JSONArray oracleSteps) {
-    clearNarrationFutureCache();
-    if (future == null || oracleSteps == null) return;
-    int count = Math.min(future.length(), oracleSteps.length());
-    try {
-      for (int i = 0; i < count; i++) {
-        JSONObject payload = future.optJSONObject(i);
-        JSONObject step = oracleSteps.optJSONObject(i);
-        if (payload == null || step == null || payload.optString("reply", "").trim().isEmpty()) break;
-        JSONObject clean = new JSONObject(payload.toString());
-        clean.remove("future");
-        narrationFutureCache.put(new JSONObject()
-            .put("action", step.optString("action", ""))
-            .put("authorityHash", step.optString("authorityHash", ""))
-            .put("worldKind", step.optString("worldKind", ""))
-            .put("payload", clean));
+    synchronized (narrationFutureLock) {
+      try {
+        replaceNarrationFutureLocked(future, oracleSteps);
+      } catch (Exception error) {
+        narrationFutureCache = new JSONArray();
+        narrationFutureEpoch++;
       }
+    }
+  }
+
+  private void captureNarrationFutureIfEpoch(JSONArray future, JSONArray oracleSteps, long expectedEpoch) {
+    synchronized (narrationFutureLock) {
+      if (narrationFutureEpoch != expectedEpoch) return;
+      try {
+        replaceNarrationFutureLocked(future, oracleSteps);
+      } catch (Exception error) {
+        narrationFutureCache = new JSONArray();
+        narrationFutureEpoch++;
+      }
+    }
+  }
+
+  private void scheduleNarrationFutureRefill(JSONObject committedState, String action, String turnId) {
+    try {
+      final long expectedEpoch;
+      synchronized (narrationFutureLock) {
+        expectedEpoch = narrationFutureEpoch;
+      }
+      JSONObject oracle = new JSONObject(gameCore.oracleWindow(committedState.toString()));
+      JSONArray steps = oracle.optJSONArray("steps");
+      if (steps == null || steps.length() == 0) return;
+      final JSONArray oracleSteps = new JSONArray(steps.toString());
+      final String prompt = narrationPrompt(committedState, action, turnId + ":rolling-refill",
+          oracle.optString("context", "CORE ORACLE WINDOW: unavailable."));
+      narrationFutureIo.execute(() -> {
+        try {
+          JSONObject parsed = parseModelJson(generateText(prompt));
+          JSONArray future = parsed.optJSONArray("future");
+          if (future == null || future.length() == 0) return;
+          captureNarrationFutureIfEpoch(new JSONArray(future.toString()), oracleSteps, expectedEpoch);
+        } catch (Exception error) {
+          Log.d(TAG, "Rolling narration refill skipped: " + error.getMessage());
+        }
+      });
     } catch (Exception error) {
-      clearNarrationFutureCache();
+      Log.d(TAG, "Unable to schedule rolling narration refill: " + error.getMessage());
     }
   }
 
@@ -878,6 +936,9 @@ public class MainActivity extends Activity {
           }
           if (freshGenerated[0] != null && generated == freshGenerated[0]) {
             captureNarrationFuture(freshFuture[0], freshOracleSteps[0]);
+          }
+          if (cachedForProvider != null && generated == cachedForProvider) {
+            scheduleNarrationFutureRefill(narrationState, action, turnId);
           }
           String reply = generated.optString("reply", "");
           Log.d(TAG, "PRESENTATION CONTENT ATTEMPTS: turnId=" + turnId

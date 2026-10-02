@@ -113,6 +113,11 @@ test('oracle narration cache reuses only Core-matching future capsules', () => {
   assert.match(bridge, /BATCH OUTPUT/);
   assert.match(bridge, /parsed\.remove\("future"\)/);
   assert.match(bridge, /if \(cachedForProvider != null\) return cachedForProvider;/);
+  assert.match(bridge, /private final ExecutorService narrationFutureIo = Executors\.newSingleThreadExecutor\(\)/);
+  assert.match(bridge, /scheduleNarrationFutureRefill\(JSONObject committedState, String action, String turnId\)/);
+  assert.match(bridge, /narrationFutureEpoch\+\+/);
+  assert.match(bridge, /captureNarrationFutureIfEpoch\(new JSONArray\(future\.toString\(\)\), oracleSteps, expectedEpoch\)/);
+  assert.match(bridge, /if \(cachedForProvider != null && generated == cachedForProvider\) \{[\s\S]*scheduleNarrationFutureRefill\(narrationState, action, turnId\);/);
 });
 
 
