@@ -143,7 +143,7 @@ if(typeof module!=='undefined'&&module.exports)module.exports=SnapshotOverlayLay
   function scrollBottom(){var l=document.getElementById('log');if(l)requestAnimationFrame(function(){l.scrollTop=l.scrollHeight;});}
   try{localStorage.removeItem('backroom-apk-snapshot');}catch(_){}
   function localLevelSnapshot(){try{if(!window.Android||typeof Android.levelSnapshot!=='function')return null;return JSON.parse(Android.levelSnapshot(JSON.stringify(state)));}catch(e){return null;}}
-  var __entityKeys=['hound','clump','duller','deathmoth','hostile_faceling','false_puddle','paintings','smiler','skin-stealer','predatory_window','biological_pipeline','wretch','cable_mimic','the_beast_of_level_5','hotel_corpse_lure','jeff_the_killer','async_rifleman','copx','jane_the_killer','slenderman','diep_minh'];
+  var __entityKeys=['hound','clump','duller','deathmoth','hostile_faceling','false_puddle','paintings','smiler','skin-stealer','predatory_window','biological_pipeline','wretch','cable_mimic','the_beast_of_level_5','hotel_corpse_lure','jeff_the_killer','async_rifleman','copx','tam_ma_cao_minh','jane_the_killer','slenderman','diep_minh'];
   var __combatCharacterOverlays={cao_minh:'file:///android_asset/cao_minh_entity_overlay.png',lucia:'file:///android_asset/lucia_overlay.png',luc_tram:'file:///android_asset/luctram_overlay.png'};
   window.__combatVisualActorIndex=null;
   window.__combatVisualEntityKey='';
