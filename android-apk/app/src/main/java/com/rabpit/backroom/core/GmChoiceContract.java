@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 
 /** Sanitizes and deterministically enriches Explorer choice/highlight projection before WebView. */
 public final class GmChoiceContract {
-  private static final int MAX_CHOICES = 3;
+  private static final int MAX_CHOICES = 1;
   private static final int MAX_CHOICE_TEXT = 180;
   private static final int MAX_HIGHLIGHTS = 24;
   private static final int MAX_HIGHLIGHT_TEXT = 120;
@@ -174,6 +174,7 @@ public final class GmChoiceContract {
   static JSONArray sanitizeChoices(JSONArray input, JSONObject state) throws Exception {
     JSONArray output = new JSONArray();
     if (input == null) return output;
+    String coreAction = defaultCoreAction(state);
     for (int i = 0; i < input.length() && output.length() < MAX_CHOICES; i++) {
       Object raw = input.opt(i);
       String text = "";
@@ -191,12 +192,26 @@ public final class GmChoiceContract {
       JSONObject choice = new JSONObject()
           .put("id", String.valueOf((char)('A' + output.length())))
           .put("text", text)
-          .put("action", text);
+          .put("action", coreAction);
       JSONArray highlights = deterministicHighlights(text, state, rawHighlights);
       if (highlights.length() > 0) choice.put("highlights", highlights);
       output.put(choice);
     }
     return output;
+  }
+
+  private static String defaultCoreAction(JSONObject state) {
+    if (state != null) {
+      JSONObject flags = state.optJSONObject("flags");
+      if (flags != null && flags.optBoolean("chestPresent", false)) {
+        return ItemCore.OPEN_CHEST_ACTION;
+      }
+      JSONObject route = state.optJSONObject(LevelCore.ROUTE_STATE);
+      if (route != null && route.optBoolean("exitAvailable", false)) {
+        return "Tiếp tục qua ranh giới";
+      }
+    }
+    return "Khám phá";
   }
 
   public static String normalizePlayerFacingVietnamese(String input) {
