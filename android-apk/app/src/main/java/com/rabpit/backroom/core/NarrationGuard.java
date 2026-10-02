@@ -57,7 +57,7 @@ public final class NarrationGuard {
     for (String sentence : prose.split("(?<=[.!?;])\\s+|\\n+")) {
       String lower = sentence.toLowerCase(Locale.ROOT);
       if (lower.contains("nhớ lại") || lower.contains("hồi tưởng") || lower.contains("trước kia")) continue;
-      if (positive(lower, "(?:trận chiến kết thúc|chiến thắng trận|(?:entity|đối thủ|kẻ địch|quái vật).{0,20}(?:đã chết|bị giết|bị tiêu diệt)|(?:đã tiêu diệt|đã giết).{0,20}(?:entity|đối thủ|kẻ địch|quái vật))")) {
+      if (positive(lower, "(?:trận chiến kết thúc|chiến thắng trận|(?:entity|đối thủ|kẻ địch|quái vật|sinh vật).{0,20}(?:đã chết|bị giết|bị tiêu diệt)|(?:đã tiêu diệt|đã giết).{0,20}(?:entity|đối thủ|kẻ địch|quái vật|sinh vật))")) {
         JSONObject combat = committedState == null ? null : committedState.optJSONObject("combat");
         boolean existingTerminal = combat != null && !combat.optBoolean("active", false)
             && ("victory".equals(combat.optString("outcome", "")) || "defeat".equals(combat.optString("outcome", "")));

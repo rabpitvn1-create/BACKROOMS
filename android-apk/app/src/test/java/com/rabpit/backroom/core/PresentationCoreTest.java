@@ -141,7 +141,10 @@ public class PresentationCoreTest {
     assertFalse(CommittedTurnNarrationEvidence.hasClaim(evidence, "COMBAT_RESULT", ""));
     JSONObject generated = new JSONObject().put("reply", "Sinh vật bị tiêu diệt.")
         .put("choices", new JSONArray()).put("encounterDialogue", new JSONArray()).put("claims", new JSONArray());
-    assertFalse(NarrationGuard.validate(generated, nextState, evidence).isEmpty());
+    // Core already owns the terminal outcome; the writer need not re-prove it with a new event claim.
+    String beforeValidation = nextState.toString();
+    assertTrue(NarrationGuard.validate(generated, nextState, evidence).isEmpty());
+    assertEquals(beforeValidation, nextState.toString());
     assertFalse(nextState.toString().contains("pendingBattleNarration"));
   }
 
