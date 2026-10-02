@@ -1,6 +1,7 @@
 # Installed into Ponytail's separate user-level CODEX_HOME by ponytail.sh.
 # Provider settings in project-local .codex/config.toml are ignored by Codex.
-model = "occ/claude-opus-5-5"
+model = "vgpt/gpt-6.1-sol"
+model_reasoning_effort = "medium"
 model_provider = "vilao"
 approval_policy = "on-request"
 sandbox_mode = "workspace-write"
