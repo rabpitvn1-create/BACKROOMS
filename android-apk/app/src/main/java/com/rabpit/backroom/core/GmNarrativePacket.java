@@ -220,7 +220,9 @@ public final class GmNarrativePacket {
     JSONObject root = state.optJSONObject(EmergentTurnEngine.ROOT_KEY);
     JSONObject selection = root == null ? null : root.optJSONObject("lastSelection");
     if (selection == null || selection.optBoolean("selectedNone", false)) {
-      return "WORLD SITUATION ĐÃ COMMIT: không có biến cố chủ động mới trong lượt này.";
+      return "WORLD SITUATION: QUIET TURN. Không có Core event cần được kể. "
+          + "Không nói hoặc paraphrase rằng 'không có gì xảy ra'; dùng lượt này cho chuyển động/chú ý "
+          + "của người chơi và một composition môi trường mới nhưng vẫn nằm trong Level palette.";
     }
     String summary = selection.optString("publicSummary", "").trim();
     JSONObject proposal = selection.optJSONObject("worldProposal");

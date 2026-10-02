@@ -95,6 +95,31 @@ public class GmNarrativePacketTest {
     assertFalse(projected.getJSONArray("beliefs").toString().contains("secret"));
   }
 
+  @Test public void quietSceneDoesNotPrimeNoEventTemplate() throws Exception {
+    JSONObject state = new JSONObject()
+        .put("currentLevel", 0)
+        .put("currentLevelKey", "0")
+        .put("turn", 3)
+        .put("player", new JSONObject().put("name", "Cao Minh"))
+        .put("party", new org.json.JSONArray())
+        .put(EmergentTurnEngine.ROOT_KEY, new JSONObject()
+            .put("lastSelection", new JSONObject().put("selectedNone", true)));
+
+    String packet = GmNarrativePacket.buildScene(
+        "LEVEL_MARKER",
+        "CHARACTER_MARKER",
+        "",
+        "RECENT_MARKER",
+        state,
+        "Khám phá",
+        "MILESTONE_MARKER",
+        new JSONObject().put("available", true).put("claims", new org.json.JSONArray()));
+
+    assertTrue(packet.contains("QUIET TURN"));
+    assertTrue(packet.contains("composition môi trường mới"));
+    assertFalse(packet.contains("không có biến cố chủ động mới"));
+  }
+
   @Test public void sceneStateProjectionDropsWorldScaleState() throws Exception {
     JSONObject state = new JSONObject()
         .put("turn", 7)
