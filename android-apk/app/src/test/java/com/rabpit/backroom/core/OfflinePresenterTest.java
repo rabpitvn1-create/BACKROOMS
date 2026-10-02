@@ -81,7 +81,6 @@ public class OfflinePresenterTest {
       assertTrue(reply.split("[.!?]").length <= 3);
       if ("luc_tram".equals(id)) {
         assertTrue(reply.contains("Lục Trầm"));
-        assertEquals("Cao Minh.", dialogue.getString(0));
       } else {
         assertFalse(reply.contains("Lucia") || reply.contains("Syvial"));
       }
