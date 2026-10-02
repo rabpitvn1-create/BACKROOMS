@@ -22,6 +22,7 @@ if [[ "${1:-}" == "--setup" ]]; then
   cd "$repo_root"
   sdk env install >>"$ponytail_root/setup.log" 2>&1
   sdk env >/dev/null
+export PATH="$JAVA_HOME/bin:$PATH"
   set -u
   npm install --prefix "$ponytail_root/cli" --no-audit --no-fund @openai/codex@0.159.3
   install -m 600 "$repo_root/tools/ponytail-config.toml" "$ponytail_home/config.toml"
@@ -44,7 +45,20 @@ cd "$repo_root"
 set +u
 source /usr/local/sdkman/bin/sdkman-init.sh
 sdk env >/dev/null
+export PATH="$JAVA_HOME/bin:$PATH"
 set -u
+
+if [[ "${1:-}" == "--env-check" ]]; then
+  rg --version | head -1
+  java -version 2>&1 | head -1
+  gradle --version | grep '^Gradle '
+  if [[ -d "${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/nonexistent}}" ]]; then
+    echo 'Android SDK: configured (build still requires installed platform/build tools)'
+  else
+    echo 'Android SDK: unavailable; run APK verification on existing game CI'
+  fi
+  exit 0
+fi
 
 if [[ "${1:-}" == "--smoke-test" ]]; then
   # Read-only inference; verify the final answer, not a model-list response.

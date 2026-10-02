@@ -2,6 +2,8 @@
 # Provider settings in project-local .codex/config.toml are ignored by Codex.
 model = "vgpt/gpt-6.1-sol"
 model_reasoning_effort = "medium"
+# Initial conservative output budget; expand saved log ranges when needed.
+tool_output_token_limit = 2000
 model_provider = "vilao"
 approval_policy = "on-request"
 sandbox_mode = "workspace-write"

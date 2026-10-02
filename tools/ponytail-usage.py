@@ -10,28 +10,29 @@ def analyze(path):
     rows = []
     events = collections.Counter()
     previous = None
-    for line in Path(path).open():
-        event = json.loads(line)
-        payload = event.get('payload') or {}
-        kind = payload.get('type', event.get('type', 'other'))
-        if event.get('type') == 'response_item' and kind == 'function_call':
-            events['tool_calls'] += 1
-            if payload.get('name') == 'spawn_agent':
-                events['subagent_calls'] += 1
-        if kind in ('error', 'retry', 'compacted', 'context_compacted'):
-            events[kind] += 1
-        info = payload.get('info') or {}
-        usage = info.get('last_token_usage')
-        if kind != 'token_count' or not usage:
-            continue
-        snapshot = info.get('total_token_usage')
-        if snapshot is not None and snapshot == previous:
-            continue
-        previous = snapshot
-        row = {k: usage.get(k) for k in ('input_tokens', 'cached_input_tokens', 'cache_write_tokens', 'output_tokens', 'total_tokens')}
-        row['context_window'] = info.get('model_context_window')
-        row['uncached_input_tokens'] = (row['input_tokens'] - row['cached_input_tokens'] - row['cache_write_tokens']) if all(row[k] is not None for k in ('input_tokens', 'cached_input_tokens', 'cache_write_tokens')) else None
-        rows.append(row)
+    with Path(path).open() as stream:
+        for line in stream:
+            event = json.loads(line)
+            payload = event.get('payload') or {}
+            kind = payload.get('type', event.get('type', 'other'))
+            if event.get('type') == 'response_item' and kind == 'function_call':
+                events['tool_calls'] += 1
+                if payload.get('name') == 'spawn_agent':
+                    events['subagent_calls'] += 1
+            if kind in ('error', 'retry', 'compacted', 'context_compacted'):
+                events[kind] += 1
+            info = payload.get('info') or {}
+            usage = info.get('last_token_usage')
+            if kind != 'token_count' or not usage:
+                continue
+            snapshot = info.get('total_token_usage')
+            if snapshot is not None and snapshot == previous:
+                continue
+            previous = snapshot
+            row = {k: usage.get(k) for k in ('input_tokens', 'cached_input_tokens', 'cache_write_tokens', 'output_tokens', 'total_tokens')}
+            row['context_window'] = info.get('model_context_window')
+            row['uncached_input_tokens'] = (row['input_tokens'] - row['cached_input_tokens'] - row['cache_write_tokens']) if all(row[k] is not None for k in ('input_tokens', 'cached_input_tokens', 'cache_write_tokens')) else None
+            rows.append(row)
     def metrics(group):
         if not group:
             return None

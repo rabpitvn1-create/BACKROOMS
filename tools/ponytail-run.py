@@ -35,6 +35,7 @@ def run(command):
             lines += 1
             if re.search('error|fail|exception|tests? (run|passed)|BUILD (SUCCESSFUL|FAILED)|# (tests|pass|fail)', line, re.I):
                 important.append(line.rstrip()[:300])
+        child.stdout.close()
         code = child.wait()
     counts = [0, 0, 0, 0]
     found = 0

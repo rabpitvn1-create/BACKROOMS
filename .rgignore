@@ -1,0 +1,13 @@
+# Search exclusions only; this does not restrict access or change build inputs.
+**/build/
+**/.gradle/
+**/node_modules/
+*.apk
+*.aab
+*.jar
+*.class
+*.zip
+*.png
+*.jpg
+*.webp
+*.pdf
