@@ -744,9 +744,10 @@ public class MainActivity extends Activity {
       throw new IllegalStateException("Milestone runtime không khả dụng; không gọi AI narration.");
     }
     String milestoneContext = milestoneCore.promptContext(state);
+    String continuityContext = gameCore.narrativeContinuityContext(coreJson);
     return GmNarrativePacket.build(levelContext, entityContext, itemContext, characterContext,
         recentContext(state), state, action, gmStyleExamplesContext(), canon.promptText(),
-        milestoneContext, evidence);
+        milestoneContext, continuityContext, evidence);
   }
 
   private void prefetchChoices(String choicesJson) {

@@ -207,12 +207,16 @@ public class GmNarrativePacketTest {
         "",
         "CANON_MARKER",
         "MILESTONE_MARKER\nWRITER SECRET: do not reveal as actor knowledge.",
+        "CONTINUITY_MARKER\nCao Minh và Lục Trầm đã tái ngộ theo committed history.",
         new JSONObject());
 
     assertTrue(packet.contains("MILESTONE STORY BIBLE"));
     assertTrue(packet.contains("MILESTONE_MARKER"));
     assertTrue(packet.contains("not actor knowledge"));
     assertTrue(packet.contains("never overrides Core or committed evidence"));
+    assertTrue(packet.contains("LONG-HORIZON CONTINUITY MEMORY"));
+    assertTrue(packet.contains("CONTINUITY_MARKER"));
+    assertTrue(packet.contains("not current-turn evidence"));
     assertTrue(packet.contains("CANON_MARKER"));
   }
 }

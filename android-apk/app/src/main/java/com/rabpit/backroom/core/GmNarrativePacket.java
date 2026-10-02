@@ -45,6 +45,16 @@ public final class GmNarrativePacket {
       String levelContext, String entityContext, String itemContext, String characterContext,
       String recentContext, JSONObject state, String action, String gmStyleExamples,
       String canonText, String milestoneContext, JSONObject committedTurnEvidence) throws Exception {
+    return build(levelContext, entityContext, itemContext, characterContext,
+        recentContext, state, action, gmStyleExamples, canonText, milestoneContext, "",
+        committedTurnEvidence);
+  }
+
+  public static String build(
+      String levelContext, String entityContext, String itemContext, String characterContext,
+      String recentContext, JSONObject state, String action, String gmStyleExamples,
+      String canonText, String milestoneContext, String continuityContext,
+      JSONObject committedTurnEvidence) throws Exception {
     JSONObject promptState = projectState(state);
     String recent = clip(recentContext, MAX_RECENT_CONTEXT_CHARS);
     String style = clip(gmStyleExamples, 1800);
@@ -84,6 +94,9 @@ public final class GmNarrativePacket {
         + safe(characterContext) + "\n"
         + "MILESTONE STORY BIBLE (writer guidance; not actor knowledge; never overrides Core or committed evidence):\n"
         + safe(milestoneContext) + "\n"
+        + "LONG-HORIZON CONTINUITY MEMORY (read-only projection of committed history; not current-turn evidence; "
+        + "do not promote unresolved material to actor knowledge or objective truth):\n"
+        + safe(continuityContext) + "\n"
         + "MARKDOWN CANON (read-only; apply only to committed scene, never override Core state):\n"
         + safe(canonText) + "\n"
         + situationContext(state) + "\n"
