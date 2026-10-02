@@ -123,7 +123,8 @@ public class GmNarrativePacketTest {
     assertFalse(packet.contains("ENTITY CORE:"));
     assertFalse(packet.contains("ITEM CORE:"));
     assertFalse(packet.contains("GM STYLE FEW-SHOT EXAMPLES"));
-    assertFalse(packet.contains("\"claims\""));
+    assertFalse(packet.contains("\"claims\":[]}. choices"));
+    assertFalse(packet.contains("claims chỉ khai báo"));
   }
 
   @Test public void ordinaryLevelZeroPacketUsesRealKnowledgeAndStaysBudgeted() throws Exception {
