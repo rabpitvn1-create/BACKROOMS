@@ -92,11 +92,7 @@ public final class GmNarrativePacket {
         + safe(entityContext) + "\n"
         + safe(itemContext) + "\n"
         + safe(characterContext) + "\n"
-        + "MILESTONE STORY BIBLE (writer guidance; not actor knowledge; never overrides Core or committed evidence):\n"
-        + safe(milestoneContext) + "\n"
-        + "LONG-HORIZON CONTINUITY MEMORY (read-only projection of committed history; not current-turn evidence; "
-        + "do not promote unresolved material to actor knowledge or objective truth):\n"
-        + safe(continuityContext) + "\n"
+        + writerGuidance(milestoneContext, continuityContext)
         + "MARKDOWN CANON (read-only; apply only to committed scene, never override Core state):\n"
         + safe(canonText) + "\n"
         + situationContext(state) + "\n"
@@ -109,6 +105,22 @@ public final class GmNarrativePacket {
         + "{\"reply\":\"phản hồi Game Master\",\"choices\":[{\"text\":\"Gợi ý 1\"}],\"encounterDialogue\":[],"
         + "\"claims\":[{\"eventId\":\"turn:e1\",\"kind\":\"ITEM_ACQUIRED\",\"subject\":\"Almond Water\"}]}";
     return SafePresentationView.narrativeText(state, packet);
+  }
+
+  private static String writerGuidance(String milestoneContext, String continuityContext) {
+    String milestone = safe(milestoneContext);
+    String continuity = safe(continuityContext);
+    StringBuilder out = new StringBuilder();
+    if (!milestone.isEmpty()) {
+      out.append("MILESTONE STORY BIBLE (writer guidance; not actor knowledge; never overrides Core or committed evidence):\n")
+          .append(milestone).append('\n');
+    }
+    if (!continuity.isEmpty()) {
+      out.append("LONG-HORIZON CONTINUITY MEMORY (read-only projection of committed history; not current-turn evidence; ")
+          .append("do not promote unresolved material to actor knowledge or objective truth):\n")
+          .append(continuity).append('\n');
+    }
+    return out.toString();
   }
 
   private static String situationContext(JSONObject state) {
