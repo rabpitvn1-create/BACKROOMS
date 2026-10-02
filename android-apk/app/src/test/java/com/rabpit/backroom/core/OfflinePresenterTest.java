@@ -68,10 +68,23 @@ public class OfflinePresenterTest {
       assertFalse(reply.contains("M4A1"));
       assertFalse(reply.contains("laser"));
       assertFalse(reply.contains("lần đầu"));
-      assertEquals(0, generated.getJSONArray("encounterDialogue").length());
+      JSONArray dialogue = generated.getJSONArray("encounterDialogue");
+      assertTrue(dialogue.length() >= 2 && dialogue.length() <= 5);
+      for (int i = 0; i < dialogue.length(); i++) {
+        String line = dialogue.getString(i);
+        assertFalse(reply.contains(line));
+        assertFalse(line.contains("M4A1"));
+        assertFalse(line.contains("laser"));
+        assertFalse(line.contains("Lucia"));
+        assertFalse(line.contains("Syvial"));
+      }
       assertTrue(reply.split("[.!?]").length <= 3);
-      if ("luc_tram".equals(id)) assertTrue(reply.contains("Lục Trầm"));
-      else assertFalse(reply.contains("Lucia") || reply.contains("Syvial"));
+      if ("luc_tram".equals(id)) {
+        assertTrue(reply.contains("Lục Trầm"));
+        assertEquals("Cao Minh.", dialogue.getString(0));
+      } else {
+        assertFalse(reply.contains("Lucia") || reply.contains("Syvial"));
+      }
     }
     assertEquals("{}", state.toString());
   }

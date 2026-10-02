@@ -113,6 +113,37 @@ public class NarrationProviderPolicyTest {
     assertFalse("invalid".equals(result.getString("reply")));
   }
 
+  @Test public void characterEncounterFallbackPreservesDialogueAfterWriterFailureOrRejectedRepair()
+      throws Exception {
+    JSONObject state = new JSONObject();
+    JSONArray views = new JSONArray().put(SafePresentationView.event(state, "cao_minh",
+        new JSONObject().put("eventType", "CHARACTER_ENCOUNTERED")
+            .put("targetRefs", new JSONArray().put("lucia"))));
+
+    JSONObject transportFallback = NarrationProviderPolicy.present(views, rejection -> {
+      throw new java.io.IOException("provider unavailable");
+    }, generated -> "");
+    JSONArray transportDialogue = transportFallback.getJSONArray("encounterDialogue");
+    assertTrue(transportDialogue.length() >= 2 && transportDialogue.length() <= 5);
+
+    int[] calls = {0, 0};
+    JSONObject rejectedFallback = NarrationProviderPolicy.present(views, rejection -> {
+      calls[rejection.isEmpty() ? 0 : 1]++;
+      return new JSONObject().put("reply", "invalid");
+    }, generated -> "AUTHORITY: hard rejection");
+    assertEquals(1, calls[0]);
+    assertEquals(1, calls[1]);
+    JSONArray rejectedDialogue = rejectedFallback.getJSONArray("encounterDialogue");
+    assertTrue(rejectedDialogue.length() >= 2 && rejectedDialogue.length() <= 5);
+
+    for (int i = 0; i < rejectedDialogue.length(); i++) {
+      String line = rejectedDialogue.getString(i);
+      assertFalse(rejectedFallback.getString("reply").contains(line));
+    }
+    assertFalse(rejectedFallback.toString().contains("M4A1"));
+    assertFalse(rejectedFallback.toString().contains("laser"));
+  }
+
   @Test public void transportErrorDoesNotStartContentRepairOrUnboundedRetry() throws Exception {
     int[] calls = {0, 0};
     JSONObject result = NarrationProviderPolicy.present(new JSONArray(), rejection -> {

@@ -52,6 +52,7 @@ public final class OfflinePresenter {
   public static JSONObject present(JSONArray views, Provider provider) throws Exception {
     if (!isOffline(views)) return provider.generate();
     StringBuilder reply = new StringBuilder();
+    JSONArray encounterDialogue = new JSONArray();
     for (int i = 0; i < views.length(); i++) {
       JSONObject view = views.optJSONObject(i);
       if (view == null) continue;
@@ -100,6 +101,15 @@ public final class OfflinePresenter {
       if ("CHARACTER_ENCOUNTERED".equals(type) || "CHARACTER_REUNION".equals(type)) {
         sentence = subject + " xuất hiện phía trước " + view.optString("actor", "Cao Minh") + "."
             + " " + view.optString("introDetail", "Người đó đứng trong khu vực trước mặt.");
+        if (encounterDialogue.length() == 0) {
+          if ("CHARACTER_REUNION".equals(type)) {
+            encounterDialogue.put("Cao Minh.");
+            encounterDialogue.put("Tôi không ngờ chúng ta lại gặp nhau ở đây.");
+          } else {
+            encounterDialogue.put("Tôi không muốn gây thêm rắc rối.");
+            encounterDialogue.put("Trước tiên, chúng ta nên xác định nơi này là đâu.");
+          }
+        }
       }
       if (!sentence.isEmpty()) {
         if (reply.length() > 0) reply.append(' ');
@@ -108,6 +118,6 @@ public final class OfflinePresenter {
     }
     if (reply.length() == 0) return fallback(views);
     return new JSONObject().put("reply", reply.toString()).put("choices", new JSONArray())
-        .put("encounterDialogue", new JSONArray()).put("claims", new JSONArray());
+        .put("encounterDialogue", encounterDialogue).put("claims", new JSONArray());
   }
 }
