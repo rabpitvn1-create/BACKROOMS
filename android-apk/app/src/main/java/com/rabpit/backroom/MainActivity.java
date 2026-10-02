@@ -659,8 +659,15 @@ public class MainActivity extends Activity {
     if (milestoneCore == null) {
       throw new IllegalStateException("Milestone runtime unavailable for narration.");
     }
-    return GmNarrativePacket.buildScene(
+    String prompt = GmNarrativePacket.buildScene(
         SceneContextCompiler.compile(gameCore, milestoneCore, state, action, turnId));
+    return prompt + "\n" + gameCore.oracleSceneContext(state.toString()) + "\n"
+        + "ORACLE USE: đây là tri thức backstage của Game Master về sáu lượt Khám phá mặc định kế tiếp. "
+        + "Dùng nó để chuẩn bị nhịp kể và viết đúng MỘT lựa chọn mặc định phong phú cho lượt kế tiếp. "
+        + "Không được tiết lộ, ám chỉ hay cho nhân vật biết trước Entity, Rương, cuộc gặp nhân vật hoặc kết quả Explorer "
+        + "chưa được Core commit. Lựa chọn phải chỉ dựa trên affordance người chơi hiện có thể quan sát; "
+        + "không quyết định suy nghĩ, cảm xúc hay động cơ của Cao Minh. "
+        + "Khi không có combat/khóa gameplay, choices phải có đúng 1 phần tử.";
   }
 
   private void prefetchChoices(String choicesJson) {
