@@ -37,8 +37,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.Map;
 
 public class MainActivity extends Activity {
   private static final String TAG = "BackroomMain";
@@ -50,9 +48,6 @@ public class MainActivity extends Activity {
   // Semantic highlight type note: type chỉ được là character, entity, item, skill, effect, location hoặc stat
   private WebView webView;
   private final ExecutorService io = Executors.newSingleThreadExecutor();
-  private final ExecutorService prefetchIo = Executors.newSingleThreadExecutor();
-  private final AtomicLong prefetchGeneration = new AtomicLong();
-  private volatile PrefetchCache prefetchCache;
   private GameCoreFacade gameCore;
   private CanonRetriever canonRetriever;
   private static final String GEMINI_MODEL = "gemini-3.8-flash";
@@ -161,8 +156,6 @@ public class MainActivity extends Activity {
 
   @Override protected void onDestroy() {
     if (gameCore != null) gameCore.close();
-    prefetchGeneration.incrementAndGet();
-    prefetchIo.shutdownNow();
     io.shutdownNow();
     if (webView != null) webView.destroy();
     super.onDestroy();
@@ -745,37 +738,8 @@ public class MainActivity extends Activity {
         recentContext(state), state, action, gmStyleExamplesContext(), canon.promptText(), evidence);
   }
 
-  private static final class PrefetchBranch {
-    final String action, outcomeHash;
-    final JSONObject narration;
-    PrefetchBranch(String action, String outcomeHash, JSONObject narration) {
-      this.action = action;
-      this.outcomeHash = outcomeHash;
-      this.narration = narration;
-    }
-  }
-
-  private static final class PrefetchCache {
-    final String baseHash;
-    final Map<String, PrefetchBranch> branches;
-    PrefetchCache(String baseHash, Map<String, PrefetchBranch> branches) {
-      this.baseHash = baseHash;
-      this.branches = branches;
-    }
-    PrefetchBranch forAction(String action) {
-      for (PrefetchBranch branch : branches.values()) if (branch.action.equals(action)) return branch;
-      return null;
-    }
-  }
-
-  private void invalidatePrefetch() {
-    prefetchGeneration.incrementAndGet();
-    prefetchCache = null;
-  }
-
   private void prefetchChoices(String choicesJson) {
-    // Resolve Core outcomes only on submission; speculative requests break the per-event call budget.
-    invalidatePrefetch();
+    // Intentionally no-op: Explorer outcomes are resolved only after explicit submission.
   }
 
   private String worldProposalPrompt(JSONObject selected) {
@@ -808,12 +772,10 @@ public class MainActivity extends Activity {
     }
 
     @JavascriptInterface public String loadCheckpoint() {
-      invalidatePrefetch();
       return gameCore.loadCheckpoint();
     }
 
     @JavascriptInterface public void clearCheckpoint() {
-      invalidatePrefetch();
       gameCore.clearCheckpoint();
     }
 
@@ -825,8 +787,7 @@ public class MainActivity extends Activity {
           JSONObject submitted = new JSONObject(stateJson);
           JSONObject persisted = new JSONObject(gameCore.currentCoreState());
           if (persisted.length() > 0) submitted = persisted;
-          invalidatePrefetch();
-
+    
           if (CombatChoiceEngine.isActive(submitted)) {
             throw new Exception("Đang chiến đấu. Hãy dùng khung Poker Dice trong GAME MASTER.");
           }
@@ -1060,7 +1021,6 @@ public class MainActivity extends Activity {
     }
 
     @JavascriptInterface public String startNewGame(String initialJson) {
-      invalidatePrefetch();
       return gameCore.startNewGame(initialJson);
     }
   }

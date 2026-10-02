@@ -58,11 +58,12 @@ test('preview shares turn resolution without persisting or retaining attempts', 
   assert.doesNotMatch(batch, /generateText\(|haikuText\(|for\s*\(int attempt/);
 });
 
-test('Explorer prefetch does not dispatch speculative provider requests', () => {
+test('Explorer prefetch bridge is a no-op and owns no speculative cache', () => {
   const prefetch = bridge.slice(bridge.indexOf('private void prefetchChoices('),
     bridge.indexOf('private String worldProposalPrompt(', bridge.indexOf('private void prefetchChoices(')));
-  assert.match(prefetch, /invalidatePrefetch\(\)/);
-  assert.doesNotMatch(prefetch, /geminiBranchBatch\(|generateText\(|postJson\(|prefetchIo\.execute|previewTurn\(/);
+  assert.match(prefetch, /Intentionally no-op/);
+  assert.doesNotMatch(prefetch, /geminiBranchBatch\(|generateText\(|postJson\(|previewTurn\(/);
+  assert.doesNotMatch(bridge, /prefetchIo|prefetchGeneration|prefetchCache|PrefetchBranch|PrefetchCache/);
 });
 
 test('bridge contains no retired shadow-planner orchestration', () => {
