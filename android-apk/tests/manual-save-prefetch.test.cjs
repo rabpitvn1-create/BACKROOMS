@@ -75,6 +75,13 @@ test('Core facade exposes no retired shadow-planner adapter surface', () => {
   assert.doesNotMatch(core, /shadowPlannerContext\(|plannerCommitGate\(|validateShadowTransaction\(|shadowCommandRegistry\(/);
 });
 
+test('retired GM transaction commit gate is absent from runtime wiring', () => {
+  const gradle = fs.readFileSync(path.join(__dirname, '..', 'app', 'build.gradle'), 'utf8');
+  assert.doesNotMatch(bridge, /GM_TRANSACTION_COMMIT_ENABLED/);
+  assert.doesNotMatch(core, /completePreparedTurnWithGmTransaction\(|gmTransactionCommitEnabled|gmCommandAuthority/);
+  assert.doesNotMatch(gradle, /GM_TRANSACTION_COMMIT_ENABLED|featureFlag/);
+});
+
 test('player turn commits Core before bounded presentation and never schedules planner calls', () => {
   const turn = bridge.slice(bridge.indexOf('public void submitTurn('), bridge.indexOf('public void combatRoll('));
   assert.match(turn, /completePreparedTurn\(turnId, "\{\}"\)/);

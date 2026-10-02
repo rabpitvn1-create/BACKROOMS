@@ -62,8 +62,7 @@ public class MainActivity extends Activity {
   @Override public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
-    gameCore = GameCoreFacade.create(
-        getApplicationContext(), BuildConfig.DEBUG, BuildConfig.GM_TRANSACTION_COMMIT_ENABLED);
+    gameCore = GameCoreFacade.create(getApplicationContext(), BuildConfig.DEBUG);
     try {
       canonRetriever = CanonRetriever.fromAssets(getApplicationContext());
     } catch (Exception error) {
