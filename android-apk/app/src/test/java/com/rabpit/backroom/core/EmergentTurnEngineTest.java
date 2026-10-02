@@ -211,28 +211,30 @@ public class EmergentTurnEngineTest {
     assertFalse(skeleton.has("spawnSchedule"));
   }
 
-  @Test public void campaignSkeletonMigratesSeparatelyFromNarrativeSkeleton() throws Exception {
+  @Test public void retiredSkeletonProjectionIsDiscardedInsteadOfMigrated() throws Exception {
     EmergentTurnEngine engine = new EmergentTurnEngine();
     JSONObject state = new JSONObject().put("turn", 7);
     engine.normalizeState(state);
     JSONObject root = state.getJSONObject(EmergentTurnEngine.ROOT_KEY);
 
-    JSONObject legacy = new JSONObject(root.getJSONObject(CampaignSkeleton.ROOT_KEY).toString());
-    legacy.getJSONObject("axes").getJSONObject("entity_attention").put("score", 0.42d);
+    JSONObject retired = new JSONObject(root.getJSONObject(CampaignSkeleton.ROOT_KEY).toString());
+    retired.getJSONObject("axes").getJSONObject("entity_attention").put("score", 0.42d);
     root.remove(CampaignSkeleton.ROOT_KEY);
     root.remove(NarrativeSkeleton.ROOT_KEY);
-    root.put("skeleton", legacy);
+    root.put("skeleton", retired);
     JSONObject watermarks = root.getJSONObject("projectionWatermarks");
     watermarks.remove("campaignSkeleton");
     watermarks.remove("narrativeSkeleton");
+    watermarks.put("skeleton", 99);
 
     engine.normalizeState(state);
 
-    JSONObject migrated = root.getJSONObject(CampaignSkeleton.ROOT_KEY);
-    assertEquals(0.42d,
-        migrated.getJSONObject("axes").getJSONObject("entity_attention").getDouble("score"), 0.000001d);
+    JSONObject current = root.getJSONObject(CampaignSkeleton.ROOT_KEY);
+    assertEquals(0.0d,
+        current.getJSONObject("axes").getJSONObject("entity_attention").getDouble("score"), 0.000001d);
     assertTrue(root.has(NarrativeSkeleton.ROOT_KEY));
     assertFalse(root.has("skeleton"));
+    assertFalse(root.getJSONObject("projectionWatermarks").has("skeleton"));
   }
 
   @Test public void oldNarrativeProjectionRebuildsWithoutARecentCommit() throws Exception {

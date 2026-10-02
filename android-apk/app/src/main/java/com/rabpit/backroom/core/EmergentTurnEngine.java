@@ -56,8 +56,7 @@ final class EmergentTurnEngine {
     JSONObject watermarks = ensureObject(root, "projectionWatermarks");
     watermarks.put("selectionCooldown", Math.max(0, watermarks.optInt("selectionCooldown", 0)));
     watermarks.put("scheduler", Math.max(0, watermarks.optInt("scheduler", 0)));
-    int campaignSkeletonMark = Math.max(0,
-        watermarks.optInt("campaignSkeleton", watermarks.optInt("skeleton", 0)));
+    int campaignSkeletonMark = Math.max(0, watermarks.optInt("campaignSkeleton", 0));
     if (campaignSkeletonReset) campaignSkeletonMark = 0;
     watermarks.put("campaignSkeleton",
         Math.min(root.getInt("commitSequence"), campaignSkeletonMark));

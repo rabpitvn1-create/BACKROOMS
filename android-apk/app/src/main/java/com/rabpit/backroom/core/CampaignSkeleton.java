@@ -21,17 +21,14 @@ final class CampaignSkeleton {
   private CampaignSkeleton() {}
 
   /**
-   * Migrates the legacy PR #160 "skeleton" projection without letting NarrativeSkeleton replace it.
-   * Returns true when replay from commit history is required.
+   * Normalizes the current projection and discards the retired pre-v1 "skeleton" field.
+   * Legacy projection data is not migrated into current authority.
    */
   static boolean normalize(JSONObject root, JSONObject state) throws Exception {
     JSONObject current = root.optJSONObject(ROOT_KEY);
-    JSONObject legacy = root.optJSONObject("skeleton");
     boolean reset = false;
 
-    if (current == null && legacy != null) {
-      current = new JSONObject(legacy.toString());
-    } else if (current == null) {
+    if (current == null) {
       current = empty();
       reset = true;
     }
