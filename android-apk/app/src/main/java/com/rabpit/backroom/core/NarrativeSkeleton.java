@@ -203,6 +203,109 @@ final class NarrativeSkeleton {
   }
 
   static final int MAX_PROMPT_CONTEXT_CHARS = 4200;
+  static final int MAX_SCENE_CONTEXT_CHARS = 900;
+
+  static String sceneContext(JSONObject root, JSONObject state, String action) {
+    JSONObject skeleton = root == null ? null : root.optJSONObject(ROOT_KEY);
+    if (!contractValid(skeleton)) return "";
+
+    JSONArray relevantRefs = new JSONArray().put("cao_minh");
+    addUniqueString(relevantRefs, currentLevelRef(state));
+
+    JSONArray party = state == null ? null : state.optJSONArray("party");
+    for (int i = 0; party != null && i < party.length(); i++) {
+      JSONObject member = party.optJSONObject(i);
+      if (member == null || !member.optBoolean("present", true)) continue;
+      addUniqueString(relevantRefs, member.optString("id", ""));
+    }
+    JSONObject encounter = state == null ? null : state.optJSONObject("characterEncounter");
+    JSONArray pending = encounter == null ? null : encounter.optJSONArray("pendingIntro");
+    for (int i = 0; pending != null && i < pending.length(); i++) {
+      addUniqueString(relevantRefs, pending.optString(i, ""));
+    }
+
+    StringBuilder out = new StringBuilder();
+    appendSceneRelationships(out, skeleton.optJSONArray("importantRelationships"),
+        relevantRefs, state, action, 3);
+    appendSceneSummaries(out, "OPEN CONTINUITY", skeleton.optJSONArray("longTermTensions"),
+        relevantRefs, state, action, 2);
+    appendSceneSummaries(out, "UNRESOLVED MYSTERY", skeleton.optJSONArray("anchorMysteries"),
+        relevantRefs, state, action, 1);
+
+    if (out.length() > MAX_SCENE_CONTEXT_CHARS) {
+      return out.substring(0, MAX_SCENE_CONTEXT_CHARS);
+    }
+    return out.toString().trim();
+  }
+
+  private static void appendSceneRelationships(
+      StringBuilder out, JSONArray entries, JSONArray relevantRefs, JSONObject state,
+      String action, int maxItems) {
+    int written = 0;
+    for (int i = 0; entries != null && i < entries.length() && written < maxItems; i++) {
+      JSONObject entry = entries.optJSONObject(i);
+      JSONArray actors = entry == null ? null : entry.optJSONArray("actorRefs");
+      if (!relationshipRelevant(actors, relevantRefs, state, action)) continue;
+      String summary = safe(entry.optString("summary", ""));
+      if (summary.isEmpty()) continue;
+      if (out.length() == 0) out.append("RELEVANT COMMITTED CONTINUITY:\n");
+      out.append("- ").append(summary).append('\n');
+      written++;
+    }
+  }
+
+  private static void appendSceneSummaries(
+      StringBuilder out, String label, JSONArray entries, JSONArray relevantRefs, JSONObject state,
+      String action, int maxItems) {
+    int written = 0;
+    for (int i = 0; entries != null && i < entries.length() && written < maxItems; i++) {
+      JSONObject entry = entries.optJSONObject(i);
+      JSONArray refs = entry == null ? null : entry.optJSONArray("keyRefs");
+      if (!refsRelevant(refs, relevantRefs, state, action)) continue;
+      String summary = safe(entry.optString("summary", ""));
+      if (summary.isEmpty()) continue;
+      if (out.length() == 0) out.append("RELEVANT COMMITTED CONTINUITY:\n");
+      out.append("- ").append(label).append(": ").append(summary).append('\n');
+      written++;
+    }
+  }
+
+  private static boolean relationshipRelevant(
+      JSONArray actors, JSONArray relevantRefs, JSONObject state, String action) {
+    if (actors == null || actors.length() < 2) return false;
+    for (int i = 0; i < actors.length(); i++) {
+      String ref = safe(actors.optString(i, ""));
+      if (ref.isEmpty()) continue;
+      if (!containsString(relevantRefs, ref) && !actionMentionsRef(action, state, ref)) return false;
+    }
+    return true;
+  }
+
+  private static boolean refsRelevant(
+      JSONArray refs, JSONArray relevantRefs, JSONObject state, String action) {
+    if (refs == null || refs.length() == 0) return false;
+    for (int i = 0; i < refs.length(); i++) {
+      String ref = safe(refs.optString(i, ""));
+      if (containsString(relevantRefs, ref) || actionMentionsRef(action, state, ref)) return true;
+    }
+    return false;
+  }
+
+  private static boolean actionMentionsRef(String action, JSONObject state, String ref) {
+    String key = safe(ref);
+    if (key.isEmpty() || key.matches("-?\\d+(?:\\.\\d+)?")) return false;
+    String haystack = mentionKey(action);
+    if (haystack.isEmpty()) return false;
+    String raw = mentionKey(key);
+    String label = mentionKey(displayRef(state, key));
+    return (!raw.isEmpty() && haystack.contains(raw))
+        || (!label.isEmpty() && haystack.contains(label));
+  }
+
+  private static String mentionKey(String value) {
+    String text = safe(value).toLowerCase(Locale.ROOT).replace('_', ' ').replace('-', ' ');
+    return text.replaceAll("[^\\p{L}\\p{N}]+", " ").trim().replaceAll("\\s+", " ");
+  }
 
   static String promptContext(JSONObject root) {
     JSONObject skeleton = root == null ? null : root.optJSONObject(ROOT_KEY);

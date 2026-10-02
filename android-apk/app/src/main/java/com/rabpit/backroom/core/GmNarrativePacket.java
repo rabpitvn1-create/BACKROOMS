@@ -15,6 +15,7 @@ public final class GmNarrativePacket {
   public static String buildScene(
       String levelContext,
       String characterContext,
+      String continuityContext,
       String recentContext,
       JSONObject state,
       String action,
@@ -37,6 +38,9 @@ public final class GmNarrativePacket {
         + "CURRENT CHARACTERS — chỉ dùng người Core xác nhận đang present/pending:\n"
         + safe(characterContext) + "\n"
         + "CURRENT MILESTONE — chỉ node của Level hiện tại:\n" + safe(milestoneContext) + "\n"
+        + (safe(continuityContext).isEmpty() ? "" :
+            "RELEVANT LONG-TERM CONTINUITY — chỉ fact cũ có dependency với scene hiện tại:\n"
+                + safe(continuityContext) + "\n")
         + situationContext(state) + "\n"
         + "COMMITTED TURN EVIDENCE — fact thay đổi state của đúng lượt này:\n"
         + (committedTurnEvidence == null ? "{}" : committedTurnEvidence.toString()) + "\n"

@@ -700,6 +700,7 @@ public class MainActivity extends Activity {
     return GmNarrativePacket.buildScene(
         levelContext,
         characterContext,
+        gameCore.narrativeSceneContinuityContext(coreJson, action),
         recentContext(state),
         state,
         action,

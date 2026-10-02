@@ -477,6 +477,53 @@ public class EmergentTurnEngineTest {
         + "\n[continuity memory clipped; do not infer omitted history]".length());
   }
 
+  @Test public void narrativeSkeletonSceneContextRoutesOnlyRelevantMemory() throws Exception {
+    EmergentTurnEngine engine = new EmergentTurnEngine();
+    JSONObject state = new JSONObject()
+        .put("turn", 12)
+        .put("currentLevel", 1)
+        .put("currentLevelKey", "1")
+        .put("player", new JSONObject().put("name", "Cao Minh"))
+        .put("party", new JSONArray().put(
+            new JSONObject().put("id", "luc_tram").put("name", "Lục Trầm").put("present", true)));
+    engine.normalizeState(state);
+
+    JSONObject root = state.getJSONObject(EmergentTurnEngine.ROOT_KEY);
+    JSONObject skeleton = root.getJSONObject(NarrativeSkeleton.ROOT_KEY);
+    skeleton.getJSONArray("importantRelationships")
+        .put(new JSONObject()
+            .put("actorRefs", new JSONArray().put("cao_minh").put("luc_tram"))
+            .put("summary", "PRESENT_RELATIONSHIP"))
+        .put(new JSONObject()
+            .put("actorRefs", new JSONArray().put("cao_minh").put("lucia"))
+            .put("summary", "MENTIONED_RELATIONSHIP"))
+        .put(new JSONObject()
+            .put("actorRefs", new JSONArray().put("cao_minh").put("syvial"))
+            .put("summary", "UNRELATED_RELATIONSHIP"));
+    skeleton.getJSONArray("longTermTensions")
+        .put(new JSONObject().put("keyRefs", new JSONArray().put("luc_tram"))
+            .put("summary", "PRESENT_TENSION"))
+        .put(new JSONObject().put("keyRefs", new JSONArray().put("hound"))
+            .put("summary", "UNRELATED_TENSION"));
+    skeleton.getJSONArray("anchorMysteries")
+        .put(new JSONObject().put("keyRefs", new JSONArray().put("1"))
+            .put("summary", "CURRENT_LEVEL_MYSTERY"))
+        .put(new JSONObject().put("keyRefs", new JSONArray().put("6"))
+            .put("summary", "OTHER_LEVEL_MYSTERY"));
+
+    String context = NarrativeSkeleton.sceneContext(
+        root, state, "Cao Minh nhớ lại lời Lucia trước khi tiếp tục.");
+
+    assertTrue(context.contains("PRESENT_RELATIONSHIP"));
+    assertTrue(context.contains("MENTIONED_RELATIONSHIP"));
+    assertTrue(context.contains("PRESENT_TENSION"));
+    assertTrue(context.contains("CURRENT_LEVEL_MYSTERY"));
+    assertFalse(context.contains("UNRELATED_RELATIONSHIP"));
+    assertFalse(context.contains("UNRELATED_TENSION"));
+    assertFalse(context.contains("OTHER_LEVEL_MYSTERY"));
+    assertTrue(context.length() <= NarrativeSkeleton.MAX_SCENE_CONTEXT_CHARS);
+  }
+
   @Test public void narrativeSkeletonCannotCreateOrUnlockCandidates() throws Exception {
     EmergentTurnEngine engine = new EmergentTurnEngine();
     JSONObject state = new JSONObject().put("turn", 6);

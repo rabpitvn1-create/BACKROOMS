@@ -710,6 +710,18 @@ public final class GameCoreFacade implements AutoCloseable {
     }
   }
 
+  public synchronized String narrativeSceneContinuityContext(String stateJson, String action) {
+    JSONObject state = parseState(stateJson);
+    try {
+      emergentTurnEngine.normalizeState(state);
+      emergentTurnEngine.catchUpProjections(state);
+      return NarrativeSkeleton.sceneContext(
+          state.getJSONObject(EmergentTurnEngine.ROOT_KEY), state, action);
+    } catch (Exception e) {
+      return "";
+    }
+  }
+
   public synchronized String narrativeContinuityContext(String stateJson) {
     JSONObject state = parseState(stateJson);
     try {

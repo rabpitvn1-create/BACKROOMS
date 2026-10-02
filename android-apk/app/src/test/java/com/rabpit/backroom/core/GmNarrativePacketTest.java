@@ -107,6 +107,7 @@ public class GmNarrativePacketTest {
     String packet = GmNarrativePacket.buildScene(
         "LEVEL_MARKER",
         "CHARACTER_MARKER",
+        "CONTINUITY_MARKER",
         "RECENT_MARKER",
         state,
         "Khám phá",
@@ -118,6 +119,7 @@ public class GmNarrativePacketTest {
     assertTrue(packet.contains("CHARACTER_MARKER"));
     assertTrue(packet.contains("RECENT_MARKER"));
     assertTrue(packet.contains("MILESTONE_NODE_MARKER"));
+    assertTrue(packet.contains("CONTINUITY_MARKER"));
     assertFalse(packet.contains("MARKDOWN CANON"));
     assertFalse(packet.contains("LONG-HORIZON CONTINUITY MEMORY"));
     assertFalse(packet.contains("ENTITY CORE:"));
