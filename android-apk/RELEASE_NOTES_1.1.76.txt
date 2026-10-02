@@ -1,0 +1,9 @@
+Backroom 1.1.76
+
+- Cập nhật Milestone v2; narrator chỉ nhận hướng truyện của node hiện tại.
+- Chuyển narration sang SceneContextCompiler với contract bảy trường, chọn đúng Level, nhân vật và continuity liên quan.
+- Loại world dump, raw CanonRetriever/NarrativeSkeleton, rule Entity/Item và metadata scheduler khỏi writer prompt.
+- Giữ Core quyết định state/outcome; LUNA là narrator primary, kể cả encounter và loot đã commit.
+- Guard chỉ chặn authority violation; Explore hợp lệ dùng một content attempt, repair chỉ dành cho hard authority violation.
+- Bổ sung regression tests và telemetry về kích thước prompt, thời gian và repair count; giữ save/load và gameplay authority hiện tại.
+- Bump version từ 1.1.75 lên 1.1.76 (versionCode 120), đồng bộ APK, tag và kiểm tra bản phát hành.
