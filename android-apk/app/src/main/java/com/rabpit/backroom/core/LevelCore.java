@@ -119,11 +119,14 @@ final class LevelCore {
     if (route.optInt("lastRollTurn", -1) == turn) return;
 
     int streak = route.optInt("streak", 0);
+    int attempts = Math.max(0, route.optInt("attempts", 0));
     if (streak == 0 && route.optString("originLocation", "").trim().isEmpty()) {
       route.put("originLocation", state.optString("location", ""));
     }
 
     int roll = nextRoll(turnRng, ROUTE_ROLL_BOUND);
+    attempts++;
+    route.put("attempts", attempts);
     route.put("lastRollTurn", turn);
 
     if (roll < ROUTE_SUCCESS_PERCENT) {
@@ -133,7 +136,9 @@ final class LevelCore {
       streak = Math.min(ROUTE_REQUIRED_STREAK, streak + increment);
       route.put("streak", streak);
       route.remove("returnLocation");
-      if (streak >= ROUTE_REQUIRED_STREAK) {
+      boolean routeReady = streak >= ROUTE_REQUIRED_STREAK
+          && attempts >= minimumRouteAttemptsForKey(levelKey);
+      if (routeReady) {
         route.put("exitAvailable", true);
         route.put("lastResult", "EXIT_AVAILABLE");
       } else {
@@ -513,10 +518,15 @@ final class LevelCore {
     }
 
     int streak = Math.max(0, Math.min(ROUTE_REQUIRED_STREAK, route.optInt("streak", 0)));
-    boolean routeReady = streak >= ROUTE_REQUIRED_STREAK;
+    int attempts = route.has("attempts")
+        ? Math.max(0, route.optInt("attempts", 0))
+        : streak;
+    boolean routeReady = streak >= ROUTE_REQUIRED_STREAK
+        && attempts >= minimumRouteAttemptsForKey(levelKey);
     route.put("level", parentLevelForKey(levelKey));
     route.put("levelKey", levelKey);
     route.put("streak", routeReady ? ROUTE_REQUIRED_STREAK : streak);
+    route.put("attempts", attempts);
     route.put("exitAvailable", routeReady);
     state.put(ROUTE_STATE, route);
     return route;
@@ -527,10 +537,15 @@ final class LevelCore {
         .put("level", parentLevelForKey(levelKey))
         .put("levelKey", normalizeKey(levelKey))
         .put("streak", 0)
+        .put("attempts", 0)
         .put("readinessReason", "")
         .put("exitAvailable", false)
         .put("lastRollTurn", -1)
         .put("lastResult", "");
+  }
+
+  private static int minimumRouteAttemptsForKey(String levelKey) {
+    return "0.1".equals(normalizeKey(levelKey)) ? ROUTE_REQUIRED_STREAK : 0;
   }
 
   private String resolveLevelKey(JSONObject state) {

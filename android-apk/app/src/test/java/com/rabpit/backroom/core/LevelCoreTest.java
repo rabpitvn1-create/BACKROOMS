@@ -309,6 +309,48 @@ public class LevelCoreTest {
     assertEquals("EXIT_AVAILABLE", route.getString("lastResult"));
   }
 
+  @Test public void levelZeroPointOneCannotExitInFiveTurnsAfterTripleBoost() throws Exception {
+    LevelCore core = new LevelCore(null, new SequenceRng(1, 1, 1, 0, 1, 1));
+    JSONObject state = state(1, "Level 0.1 / Zenith Station")
+        .put(LevelCore.LEVEL_KEY, "0.1");
+
+    for (int turn = 1; turn <= 5; turn++) {
+      state.put("turn", turn);
+      core.rollRouteForExplorerAction(state, ROUTE_ACTION);
+    }
+
+    JSONObject route = state.getJSONObject(LevelCore.ROUTE_STATE);
+    assertEquals(LevelCore.ROUTE_REQUIRED_STREAK, route.getInt("streak"));
+    assertEquals(5, route.getInt("attempts"));
+    assertFalse(route.getBoolean("exitAvailable"));
+    assertEquals("SUCCESS", route.getString("lastResult"));
+
+    state.put("turn", 6);
+    core.rollRouteForExplorerAction(state, ROUTE_ACTION);
+    assertEquals(6, route.getInt("attempts"));
+    assertTrue(route.getBoolean("exitAvailable"));
+    assertEquals("EXIT_AVAILABLE", route.getString("lastResult"));
+  }
+
+  @Test public void legacyReadyPointOneRouteWithoutAttemptCountStaysReady() throws Exception {
+    LevelCore core = new LevelCore(null, new SequenceRng(5));
+    JSONObject state = state(9, "Level 0.1 / Zenith Station")
+        .put(LevelCore.LEVEL_KEY, "0.1")
+        .put(LevelCore.ROUTE_STATE, new JSONObject()
+            .put("level", 0)
+            .put("levelKey", "0.1")
+            .put("streak", LevelCore.ROUTE_REQUIRED_STREAK)
+            .put("exitAvailable", true)
+            .put("lastRollTurn", 8)
+            .put("lastResult", "EXIT_AVAILABLE"));
+
+    core.normalizeState(state);
+
+    JSONObject route = state.getJSONObject(LevelCore.ROUTE_STATE);
+    assertEquals(LevelCore.ROUTE_REQUIRED_STREAK, route.getInt("attempts"));
+    assertTrue(route.getBoolean("exitAvailable"));
+  }
+
   @Test public void oneFailureResetsFiveSuccessesToZero() throws Exception {
     LevelCore core = new LevelCore(null, new SequenceRng(5,5,5,5,5,60));
     JSONObject state = state(1, "Level 0 / Start");
