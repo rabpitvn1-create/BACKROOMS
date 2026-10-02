@@ -92,7 +92,11 @@ test('player turn commits Core before bounded presentation and never schedules p
   assert.ok(turn.indexOf('completePreparedTurn(') < turn.indexOf('NarrationProviderPolicy.present('));
   const provider = bridge.slice(bridge.indexOf('private String generateNarrationText('),
     bridge.indexOf('private String geminiResponseText('));
-  assert.match(provider, /SafePresentationView\.narrativeText/);
+  const compiler = fs.readFileSync(path.join(root,
+    'java/com/rabpit/backroom/core/SceneContextCompiler.java'), 'utf8');
+  assert.match(compiler, /SafePresentationView\.narrativeText/);
+  assert.match(bridge, /SceneContextCompiler\.compile\(gameCore, milestoneCore, state, action, turnId\)/);
+  assert.doesNotMatch(provider, /currentCoreState/);
   assert.match(provider, /calls\[retry \? 1 : 0\]\+\+/);
   assert.doesNotMatch(provider, /catch \(|geminiText\(|haikuText\(|haikuTextOnce\(|sleep|attempt/);
 });
