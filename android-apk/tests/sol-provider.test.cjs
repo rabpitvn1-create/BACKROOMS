@@ -63,7 +63,7 @@ test('Gemini batch keeps one physical request and prefetch dispatches none', () 
   assert.doesNotMatch(batch, /solText\(|generateText\(|haikuText\(|geminiText\(/);
   const prefetch = source.slice(source.indexOf('  private void prefetchChoices('),
     source.indexOf('  private String worldProposalPrompt('));
-  assert.match(prefetch, /invalidatePrefetch\(\)/);
+  assert.match(prefetch, /Intentionally no-op/);
   assert.doesNotMatch(prefetch, /solText\(|generateText\(|geminiBranchBatch\(|postJson\(/);
 });
 
