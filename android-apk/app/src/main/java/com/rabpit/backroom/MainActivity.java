@@ -50,6 +50,7 @@ public class MainActivity extends Activity {
   private final ExecutorService io = Executors.newSingleThreadExecutor();
   private GameCoreFacade gameCore;
   private MilestoneCore milestoneCore;
+  private JSONArray narrationFutureCache = new JSONArray();
   private static final String GEMINI_MODEL = "gemini-3.8-flash";
   private static final String HAIKU_DEFAULT_BASE_URL = "https://api.anthropic.com/v1/messages";
   private static final String HAIKU_DEFAULT_MODEL = "claude-haiku-4-5-20251001";
@@ -412,7 +413,7 @@ public class MainActivity extends Activity {
   private String haikuAnthropicText(String prompt) throws Exception {
     JSONObject body = new JSONObject()
         .put("model", haikuModel())
-        .put("max_tokens", 2048)
+        .put("max_tokens", 4096)
         .put("temperature", 0.6)
         .put("messages", new JSONArray().put(
             new JSONObject().put("role", "user").put("content", prompt)));
@@ -437,7 +438,7 @@ public class MainActivity extends Activity {
     return new JSONObject()
         .put("model", model)
         .put("temperature", 0.6)
-        .put("max_tokens", 2048)
+        .put("max_tokens", 4096)
         .put("messages", new JSONArray().put(
             new JSONObject().put("role", "user").put("content", prompt)));
   }
@@ -655,19 +656,80 @@ public class MainActivity extends Activity {
     return Math.max(0, log.length() - 1);
   }
 
-  private String narrationPrompt(JSONObject state, String action, String turnId) throws Exception {
+  private String narrationPrompt(
+      JSONObject state, String action, String turnId, String oracleContext) throws Exception {
     if (milestoneCore == null) {
       throw new IllegalStateException("Milestone runtime unavailable for narration.");
     }
     String prompt = GmNarrativePacket.buildScene(
         SceneContextCompiler.compile(gameCore, milestoneCore, state, action, turnId));
-    return prompt + "\n" + gameCore.oracleSceneContext(state.toString()) + "\n"
-        + "ORACLE USE: đây là tri thức backstage của Game Master về sáu lượt Khám phá mặc định kế tiếp. "
+    return prompt + "\n" + oracleContext + "\n"
+        + "ORACLE USE: đây là tri thức backstage của Game Master về sáu world-step mặc định kế tiếp. "
         + "Dùng nó để chuẩn bị nhịp kể và viết đúng MỘT lựa chọn mặc định phong phú cho lượt kế tiếp. "
         + "Không được tiết lộ, ám chỉ hay cho nhân vật biết trước Entity, Rương, cuộc gặp nhân vật hoặc kết quả Explorer "
-        + "chưa được Core commit. Lựa chọn phải chỉ dựa trên affordance người chơi hiện có thể quan sát; "
+        + "chưa được Core commit trong reply hiện tại. Lựa chọn phải chỉ dựa trên affordance người chơi hiện có thể quan sát; "
         + "không quyết định suy nghĩ, cảm xúc hay động cơ của Cao Minh. "
-        + "Khi không có combat/khóa gameplay, choices phải có đúng 1 phần tử.";
+        + "Khi không có combat/khóa gameplay, choices phải có đúng 1 phần tử.\n"
+        + "BATCH OUTPUT: ngoài reply/choices/encounterDialogue của scene HIỆN TẠI, trả thêm field future là mảng 6 capsule "
+        + "theo đúng thứ tự STEP +1 đến STEP +6 của CORE ORACLE WINDOW. Mỗi capsule có dạng "
+        + "{\\\"reply\\\":\\\"...\\\",\\\"choices\\\":[{\\\"text\\\":\\\"...\\\"}],\\\"encounterDialogue\\\":[]}. "
+        + "Mỗi capsule chỉ được dùng outcome của chính step đó và các step trước nó, không được leak step sau. "
+        + "Viết capsule gọn, tự nhiên; đây chỉ là presentation cache, Core sẽ bỏ capsule nếu state hoặc Player Action lệch oracle.";
+  }
+
+  private void clearNarrationFutureCache() {
+    narrationFutureCache = new JSONArray();
+  }
+
+  private JSONObject pollNarrationFuture(String action, JSONObject committedState) {
+    if (narrationFutureCache == null || narrationFutureCache.length() == 0) return null;
+    try {
+      JSONObject slot = narrationFutureCache.optJSONObject(0);
+      if (slot == null) {
+        clearNarrationFutureCache();
+        return null;
+      }
+      String expectedAction = slot.optString("action", "");
+      String expectedHash = slot.optString("authorityHash", "");
+      String actualAction = action == null ? "" : action.trim();
+      String actualHash = GameCoreFacade.oracleAuthorityHash(committedState);
+      if (!expectedAction.equals(actualAction) || !expectedHash.equals(actualHash)) {
+        clearNarrationFutureCache();
+        return null;
+      }
+      narrationFutureCache.remove(0);
+      if ("CHARACTER".equals(slot.optString("worldKind", ""))) {
+        clearNarrationFutureCache();
+        return null;
+      }
+      JSONObject payload = slot.optJSONObject("payload");
+      return payload == null ? null : new JSONObject(payload.toString());
+    } catch (Exception error) {
+      clearNarrationFutureCache();
+      return null;
+    }
+  }
+
+  private void captureNarrationFuture(JSONArray future, JSONArray oracleSteps) {
+    clearNarrationFutureCache();
+    if (future == null || oracleSteps == null) return;
+    int count = Math.min(future.length(), oracleSteps.length());
+    try {
+      for (int i = 0; i < count; i++) {
+        JSONObject payload = future.optJSONObject(i);
+        JSONObject step = oracleSteps.optJSONObject(i);
+        if (payload == null || step == null || payload.optString("reply", "").trim().isEmpty()) break;
+        JSONObject clean = new JSONObject(payload.toString());
+        clean.remove("future");
+        narrationFutureCache.put(new JSONObject()
+            .put("action", step.optString("action", ""))
+            .put("authorityHash", step.optString("authorityHash", ""))
+            .put("worldKind", step.optString("worldKind", ""))
+            .put("payload", clean));
+      }
+    } catch (Exception error) {
+      clearNarrationFutureCache();
+    }
   }
 
   private void prefetchChoices(String choicesJson) {
@@ -764,23 +826,42 @@ public class MainActivity extends Activity {
           JSONObject safeEvidence = SafePresentationView.evidence(state, narrationEvidence);
           String presentationBaseHash = GameCoreFacade.presentationBaseHash(state);
           final JSONObject narrationState = state;
+          JSONObject cachedGenerated = pollNarrationFuture(action, narrationState);
+          if (cachedGenerated != null
+              && !NarrationGuard.validate(cachedGenerated, narrationState, safeEvidence).isEmpty()) {
+            clearNarrationFutureCache();
+            cachedGenerated = null;
+          }
+          final JSONObject cachedForProvider = cachedGenerated;
+          final JSONObject[] freshGenerated = {null};
+          final JSONArray[] freshFuture = {null};
+          final JSONArray[] freshOracleSteps = {null};
           int[] providerCalls = {0, 0};
           long[] promptMs = {0L, 0L};
           int[] promptChars = {0, 0};
           long[] providerMs = {0L, 0L};
           long[] validationMs = {0L};
           JSONObject generated = NarrationProviderPolicy.present(safeEvents, rejection -> {
+            if (cachedForProvider != null) return cachedForProvider;
+
             int timingIndex = rejection.isEmpty() ? 0 : 1;
             long promptStart = SystemClock.elapsedRealtime();
-            String prompt = narrationPrompt(narrationState, action, turnId);
-            if (!rejection.isEmpty()) prompt += "\nVALIDATION REJECTED: " + rejection
-                + "\nChỉ kể đúng evidence của lượt đã commit; không thêm hoặc sửa world state.";
+            JSONObject oracle = new JSONObject(gameCore.oracleWindow(narrationState.toString()));
+            String prompt = narrationPrompt(narrationState, action, turnId,
+                oracle.optString("context", "CORE ORACLE WINDOW: unavailable."));
             promptChars[timingIndex] = prompt.length();
             promptMs[timingIndex] += SystemClock.elapsedRealtime() - promptStart;
             long providerRequestStart = SystemClock.elapsedRealtime();
             try {
-              return parseModelJson(generateNarrationText(prompt, providerCalls,
+              JSONObject parsed = parseModelJson(generateNarrationText(prompt, providerCalls,
                   !rejection.isEmpty()));
+              JSONArray future = parsed.optJSONArray("future");
+              if (future != null) freshFuture[0] = new JSONArray(future.toString());
+              JSONArray steps = oracle.optJSONArray("steps");
+              if (steps != null) freshOracleSteps[0] = new JSONArray(steps.toString());
+              parsed.remove("future");
+              freshGenerated[0] = parsed;
+              return parsed;
             } finally {
               providerMs[timingIndex] += SystemClock.elapsedRealtime() - providerRequestStart;
             }
@@ -792,6 +873,12 @@ public class MainActivity extends Activity {
               validationMs[0] += SystemClock.elapsedRealtime() - validationStart;
             }
           });
+          if (cachedForProvider != null && generated != cachedForProvider) {
+            clearNarrationFutureCache();
+          }
+          if (freshGenerated[0] != null && generated == freshGenerated[0]) {
+            captureNarrationFuture(freshFuture[0], freshOracleSteps[0]);
+          }
           String reply = generated.optString("reply", "");
           Log.d(TAG, "PRESENTATION CONTENT ATTEMPTS: turnId=" + turnId
               + " initial=" + providerCalls[0] + " retry=" + providerCalls[1]

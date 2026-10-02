@@ -34,6 +34,10 @@ Hard checks cover authoritative JSON fields, locked canon names/revelations, unc
 
 After validation, `GmChoiceContract.gmEntry` shapes presentation; `commitPresentation` checks turn/version/base hash and appends once. Narrator output does not change inventory, party, relationships, mechanics or save authority.
 
+### Rolling oracle narration cache
+
+A successful writer response may carry six compact future presentation capsules aligned to the six deterministic `oracleWindow` steps. The cache is process-local and presentation-only: it is never written into Core state or save data. Before reuse, runtime requires the exact Core-routed action and `oracleAuthorityHash` of the newly committed state to match the forecast, then runs the normal `NarrationGuard` against current committed evidence. Any free-form divergence, stale hash, malformed capsule or guard rejection discards the cache. Character encounter steps deliberately force a fresh writer call so newly committed character voice/context is available; Core-owned Entity lifecycle presentation still bypasses the writer. This keeps the normal path light while allowing several default world advances to share one content request.
+
 ## Verification and measurements
 
 `SceneContextCompilerTest` verifies unrelated state, Level, absent character, mystery/thread, interaction rules, future-node material and bookkeeping exclusion, plus continuity retrieval for a known mentioned character. `MilestoneCoreTest` checks every configured node and the source hash. Guard/provider tests cover creative Explore, fake loot, unfinished combat closure, fake transition and one initial attempt. `PresentationCoreTest` covers actual facade combat closure, duplicate/stale presentation and checkpoint save/load.

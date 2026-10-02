@@ -101,6 +101,21 @@ test('player turn commits Core before bounded presentation and never schedules p
   assert.doesNotMatch(provider, /catch \(|geminiText\(|haikuText\(|haikuTextOnce\(|sleep|attempt/);
 });
 
+test('oracle narration cache reuses only Core-matching future capsules', () => {
+  assert.match(bridge, /private JSONArray narrationFutureCache = new JSONArray\(\)/);
+  assert.match(bridge, /pollNarrationFuture\(String action, JSONObject committedState\)/);
+  assert.match(bridge, /GameCoreFacade\.oracleAuthorityHash\(committedState\)/);
+  assert.match(bridge, /expectedAction\.equals\(actualAction\)/);
+  assert.match(bridge, /expectedHash\.equals\(actualHash\)/);
+  assert.match(bridge, /"CHARACTER"\.equals\(slot\.optString\("worldKind", ""\)\)/);
+  assert.match(bridge, /captureNarrationFuture\(freshFuture\[0\], freshOracleSteps\[0\]\)/);
+  assert.match(bridge, /gameCore\.oracleWindow\(narrationState\.toString\(\)\)/);
+  assert.match(bridge, /BATCH OUTPUT/);
+  assert.match(bridge, /parsed\.remove\("future"\)/);
+  assert.match(bridge, /if \(cachedForProvider != null\) return cachedForProvider;/);
+});
+
+
  test('turn-one current save survives a changed baseline prologue', () => {
   const fragment = html.slice(html.indexOf('ensureCurrentLevel(state);'), html.indexOf('function esc('));
   const saved = {turn: 1, title: 'current', currentLevel: 2, currentLevelKey: '2',

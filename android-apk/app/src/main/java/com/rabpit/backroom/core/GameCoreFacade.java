@@ -761,7 +761,9 @@ public final class GameCoreFacade implements AutoCloseable {
             .put("routeResult", routeResult)
             .put("worldKind", selected.optBoolean("selectedNone", false)
                 ? "QUIET" : selected.optString("kind", "WORLD"))
-            .put("payloadKey", selected.optString("payloadKey", ""));
+            .put("payloadKey", selected.optString("payloadKey", ""))
+            .put("levelKey", prepared.working.optString("currentLevelKey",
+                String.valueOf(prepared.working.optInt("currentLevel", 0))));
 
         out.append("STEP +").append(step).append(": action=").append(defaultAction).append("; ");
         if (!routeResult.isEmpty()) {
