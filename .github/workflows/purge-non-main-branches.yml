@@ -1,0 +1,59 @@
+name: Purge Non-Main Branches
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/purge-non-main-branches.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  purge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+
+      - name: Delete every remote branch except main
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          default_branch="$(git remote show origin | sed -n '/HEAD branch/s/.*: //p')"
+          if [ "$default_branch" != "main" ]; then
+            echo "::error::Expected default branch main, found '$default_branch'."
+            exit 1
+          fi
+
+          git ls-remote --heads origin             | sed 's#^.*refs/heads/##'             | sort -u > /tmp/remote-branches.txt
+
+          total=0
+          deleted=0
+          failed=0
+
+          while IFS= read -r branch; do
+            [ -n "$branch" ] || continue
+            [ "$branch" = "main" ] && continue
+            total=$((total + 1))
+            if git push origin --delete "$branch"; then
+              deleted=$((deleted + 1))
+            else
+              echo "::error::Could not delete branch $branch"
+              failed=$((failed + 1))
+            fi
+          done < /tmp/remote-branches.txt
+
+          {
+            echo "### Non-main branch purge"
+            echo
+            echo "- Matched: $total"
+            echo "- Deleted: $deleted"
+            echo "- Failed deletions: $failed"
+            echo "- Preserved: main"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          test "$failed" -eq 0
