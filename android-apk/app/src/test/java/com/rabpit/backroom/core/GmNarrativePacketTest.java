@@ -95,6 +95,35 @@ public class GmNarrativePacketTest {
     assertFalse(projected.getJSONArray("beliefs").toString().contains("secret"));
   }
 
+  @Test public void runtimePacketCompilesEvidenceIntoSceneFacts() throws Exception {
+    JSONObject state = new JSONObject()
+        .put("currentLevel", 1)
+        .put("currentLevelKey", "1")
+        .put("turn", 4)
+        .put("player", new JSONObject().put("name", "Cao Minh"))
+        .put("party", new org.json.JSONArray());
+    JSONObject evidence = new JSONObject()
+        .put("available", true)
+        .put("turnId", "DO_NOT_SEND_EVENT_ID")
+        .put("commitSeq", 99)
+        .put("stateVersion", 88)
+        .put("claims", new org.json.JSONArray().put(new JSONObject()
+            .put("eventId", "DO_NOT_SEND_EVENT_ID")
+            .put("kind", "LEVEL_ENTERED")
+            .put("subject", "1")
+            .put("value", "1")));
+
+    String packet = GmNarrativePacket.buildScene(
+        "LEVEL_MARKER", "CHARACTER_MARKER", "", "", state, "Đi tiếp",
+        "MILESTONE_MARKER", evidence);
+
+    assertTrue(packet.contains("COMMITTED SCENE FACTS"));
+    assertTrue(packet.contains("Level entered: 1."));
+    assertFalse(packet.contains("DO_NOT_SEND_EVENT_ID"));
+    assertFalse(packet.contains("commitSeq"));
+    assertFalse(packet.contains("stateVersion"));
+  }
+
   @Test public void quietSceneDoesNotPrimeNoEventTemplate() throws Exception {
     JSONObject state = new JSONObject()
         .put("currentLevel", 0)

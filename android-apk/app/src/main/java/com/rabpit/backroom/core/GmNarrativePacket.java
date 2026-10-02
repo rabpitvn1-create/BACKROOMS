@@ -74,6 +74,7 @@ public final class GmNarrativePacket {
       JSONObject committedTurnEvidence) throws Exception {
     JSONObject promptState = projectSceneState(state);
     String recent = clip(recentContext, 1800);
+    String sceneFacts = sceneEvidence(committedTurnEvidence);
 
     String packet = "Bạn là Game Master của một sandbox text game Backrooms.\n"
         + "MỤC TIÊU: biến action và các fact đã commit thành một cảnh sống động, tự nhiên và có không khí. "
@@ -93,8 +94,8 @@ public final class GmNarrativePacket {
             "RELEVANT LONG-TERM CONTINUITY — chỉ fact cũ có dependency với scene hiện tại:\n"
                 + safe(continuityContext) + "\n")
         + situationContext(state) + "\n"
-        + "COMMITTED TURN EVIDENCE — fact thay đổi state của đúng lượt này:\n"
-        + (committedTurnEvidence == null ? "{}" : committedTurnEvidence.toString()) + "\n"
+        + (sceneFacts.isEmpty() ? "" : "COMMITTED SCENE FACTS — chỉ outcome cần được kể:\n"
+            + sceneFacts + "\n")
         + "RECENT CONTEXT — dùng để giữ continuity và tránh lặp cách diễn đạt:\n" + recent + "\n"
         + "SCENE STATUS — compact Core facts only: " + promptState.toString() + "\n"
         + "PLAYER ACTION: " + safe(action) + "\n"
@@ -197,6 +198,41 @@ public final class GmNarrativePacket {
         + "{\"reply\":\"phản hồi Game Master\",\"choices\":[{\"text\":\"Gợi ý 1\"}],\"encounterDialogue\":[],"
         + "\"claims\":[{\"eventId\":\"turn:e1\",\"kind\":\"ITEM_ACQUIRED\",\"subject\":\"Almond Water\"}]}";
     return SafePresentationView.narrativeText(state, packet);
+  }
+
+  private static String sceneEvidence(JSONObject evidence) {
+    JSONArray claims = evidence == null ? null : evidence.optJSONArray("claims");
+    if (claims == null || claims.length() == 0) return "";
+    StringBuilder out = new StringBuilder();
+    int written = 0;
+    for (int i = 0; i < claims.length() && written < 6; i++) {
+      JSONObject claim = claims.optJSONObject(i);
+      if (claim == null) continue;
+      String kind = safe(claim.optString("kind", ""));
+      String subject = safe(claim.optString("subject", ""));
+      String value = safe(claim.optString("value", ""));
+      String line = sceneFact(kind, subject, value);
+      if (line.isEmpty()) continue;
+      if (out.length() > 0) out.append('\n');
+      out.append("- ").append(line);
+      written++;
+    }
+    return out.toString();
+  }
+
+  private static String sceneFact(String kind, String subject, String value) {
+    if ("LEVEL_ENTERED".equals(kind)) return "Level entered: " + subject + ".";
+    if ("ENTITY_ENCOUNTER_STARTED".equals(kind)) return "Entity encounter committed: " + subject + ".";
+    if ("CHEST_DISCOVERED".equals(kind)) return "A chest was discovered in the current scene.";
+    if ("ITEM_ACQUIRED".equals(kind)) return "Item acquired: " + subject + ".";
+    if ("CORE_ACQUIRED".equals(kind)) return "Core reward acquired: " + value + ".";
+    if ("ITEM_ACTION".equals(kind)) return "Item action committed: " + (value.isEmpty() ? subject : value) + ".";
+    if ("CHARACTER_ENCOUNTERED".equals(kind)) return "Character first contact committed: " + subject + ".";
+    if ("CHARACTER_REUNION".equals(kind)) return "Character reunion committed: " + subject + ".";
+    if ("COMBAT_STARTED".equals(kind)) return "Combat started with: " + subject + ".";
+    if ("COMBAT_RESULT".equals(kind)) return "Combat result committed for: " + subject + ".";
+    if ("STAT_UPGRADED".equals(kind)) return "Stat upgrade committed: " + (value.isEmpty() ? subject : value) + ".";
+    return "";
   }
 
   private static String writerGuidance(String milestoneContext, String continuityContext) {
