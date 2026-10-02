@@ -132,7 +132,7 @@ public class GmNarrativePacketTest {
     assertTrue(contract.contains("soft target, not a hard minimum"));
     assertTrue(contract.contains("không tạo thêm event/clue/vật thể"));
     assertTrue(contract.contains("NEGATIVE REPETITION MEMORY"));
-    assertTrue(contract.contains("Không tự thêm việc Cao Minh"));
+    assertTrue(contract.contains("không tự thêm việc Cao Minh"));
   }
 
   @Test public void styleExamplesTeachDistinctExploreShapesAndNegativeMemory() throws Exception {
