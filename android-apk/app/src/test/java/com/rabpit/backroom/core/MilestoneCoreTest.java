@@ -50,7 +50,9 @@ public class MilestoneCoreTest {
   @Test public void v2SourceAndEveryNodeArePinnedWithoutFutureOrSecretDump() throws Exception {
     String raw = readAsset("knowledge/milestone_runtime.json");
     JSONObject runtime = new JSONObject(raw);
-    byte[] source = Files.readAllBytes(Paths.get("docs/milestone-v2.md"));
+    Path sourcePath = Files.isRegularFile(Paths.get("docs/milestone-v2.md"))
+        ? Paths.get("docs/milestone-v2.md") : Paths.get("../docs/milestone-v2.md");
+    byte[] source = Files.readAllBytes(sourcePath);
     byte[] hash = java.security.MessageDigest.getInstance("SHA-256").digest(source);
     StringBuilder hex = new StringBuilder();
     for (byte value : hash) hex.append(String.format("%02x", value & 255));
