@@ -74,6 +74,9 @@ public class LuciaSeparationContractTest {
     String luciaCanon = readCanon("Lucia_Codex.md");
     String lucTramCanon = readCanon("Lục_Trầm_Codex.md");
     assertTrue(luciaCanon.contains("Lucia Lục / Hứa Thuý Mai và Lục Trầm là hai nhân vật khác nhau"));
+    assertTrue(luciaCanon.contains("Lucia đến từ một thế giới khác với Cao Minh/Lục Trầm"));
+    assertTrue(luciaCanon.contains("tương lai xa hơn về công nghệ và xã hội"));
+    assertTrue(luciaCanon.contains("không viết cô như radio chiến thuật hoặc commando caricature"));
     assertTrue(lucTramCanon.contains("Lucia Lục / Hứa Thuý Mai là nhân vật riêng"));
     assertFalse(lucTramCanon.contains(
         "Lucia Lục / Hứa Thuý Mai và loadout quân nhân cũ là LEGACY / RETIRED"));

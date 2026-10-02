@@ -48,28 +48,28 @@
       "path": "Backrooms_Linh_Khi.md",
       "contentPath": "phenomena/backrooms-linh-khi.md",
       "type": "ENVIRONMENT",
-      "authority": "UNCLASSIFIED",
-      "status": "CANDIDATE",
+      "authority": "PROJECT_OVERRIDE",
+      "status": "CURRENT",
       "version": "",
       "owner": "",
       "dependencies": [],
       "mandatoryFor": [],
       "supersedes": [],
-      "note": "Environmental spiritual-energy source; UNKNOWN origin hard lock must be preserved."
+      "note": "Milestone world canon: abundant spiritual energy, UNKNOWN origin, mortal toxicity and long-horizon mystery locks."
     },
     {
       "id": "backrooms-linh-khi-anh-huong-tu-si",
       "path": "Backrooms_Linh_Khi_Anh_Huong_Tu_Si.md",
       "contentPath": "phenomena/backrooms-linh-khi-anh-huong-tu-si.md",
       "type": "ENVIRONMENT",
-      "authority": "UNCLASSIFIED",
-      "status": "CANDIDATE",
+      "authority": "PROJECT_OVERRIDE",
+      "status": "CURRENT",
       "version": "",
       "owner": "",
       "dependencies": [],
       "mandatoryFor": [],
       "supersedes": [],
-      "note": "Environment effects with cross-character references; character owners remain authoritative."
+      "note": "Milestone current environment effects for cultivators; character owners remain authoritative."
     },
     {
       "id": "cao-minh",

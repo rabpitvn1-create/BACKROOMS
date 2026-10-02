@@ -11,6 +11,9 @@
 - **Lucia Lục / Hứa Thuý Mai và Lục Trầm là hai nhân vật khác nhau.**
 - Runtime id của Lucia là `lucia`; runtime id của Lục Trầm là `luc_tram`. Không alias, rename, migrate hoặc merge hai id này.
 - Lucia là **con người bình thường được huấn luyện tốt**, thuộc nhánh chiến đấu hiện đại/tactical riflewoman đã có trong runtime cũ; cô **không phải** Chính Đạo Kiếm Tu, không thuộc Thiên Kiếm Môn và không sở hữu Tịch Quang hay Thiên Cơ Bạch Kim Kiếm Khải.
+- **Nguồn gốc Milestone:** Lucia đến từ một thế giới khác với Cao Minh/Lục Trầm, ở tương lai xa hơn về công nghệ và xã hội, và là quân nhân được huấn luyện bài bản.
+- Lucia không mặc định biết linh khí, thần thức, pháp bảo hay kinh mạch. Cô phải học các khái niệm này từ quan sát, giải thích và continuity; ngược lại Cao Minh/Lục Trầm không tự hiểu công nghệ tương lai chỉ vì họ mạnh.
+- Ngoài tình huống tác chiến khẩn cấp, Lucia nói bằng câu hoàn chỉnh, giải thích dữ kiện/rủi ro/độ bất định và có cảm xúc tự nhiên; không viết cô như radio chiến thuật hoặc commando caricature.
 - Quan hệ, lịch sử và xưng hô giữa Lucia với Cao Minh hiện `OPEN` cho tới khi continuity/save xác lập. Không nhập quan hệ Cao Minh ↔ Lục Trầm sang Lucia.
 - CharacterEncounterCore sở hữu việc xuất hiện và gia nhập Party. Gemini/narration không được tự spawn Lucia hoặc tự sửa Party.
 

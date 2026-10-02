@@ -74,6 +74,19 @@ public class CanonRegistryTest {
     String text = new String(Files.readAllBytes(structured), StandardCharsets.UTF_8);
     assertTrue(text.contains("LINH KHÍ TRONG BACKROOMS"));
     assertTrue(text.contains("Nguồn gốc của lượng linh khí này là **UNKNOWN**"));
+    assertTrue(text.contains("WRITER-SECRET — ảnh hưởng lên phàm nhân"));
+    assertTrue(text.contains("phàm nhân không có Đạo Cơ"));
+    assertTrue(text.contains("Không gọi chúng là thuốc giải độc linh khí"));
+
+    Path registryPath = Paths.get("src/main/assets/canon/canon-registry.json");
+    if (!Files.isRegularFile(registryPath)) {
+      registryPath = Paths.get("app/src/main/assets/canon/canon-registry.json");
+    }
+    JSONObject registry = new JSONObject(
+        new String(Files.readAllBytes(registryPath), StandardCharsets.UTF_8));
+    JSONObject aura = CanonRegistry.byId(registry).get("backrooms-linh-khi");
+    assertEquals("PROJECT_OVERRIDE", aura.getString("authority"));
+    assertEquals("CURRENT", aura.getString("status"));
   }
 
   @Test public void cultivatorAuraEffectsAreMigratedToStructuredContentOnly() throws Exception {
