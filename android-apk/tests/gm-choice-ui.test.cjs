@@ -26,3 +26,13 @@ test('composer is locked only by active gameplay constraints',()=>{
   assert.match(body,/deathLocked/);
   assert.doesNotMatch(body,/story|cutaway|pendingStory/i);
 });
+
+test('combat snapshot follows the active party actor on dice-state updates',()=>{
+  assert.match(ui,/function syncCombatSnapshotActor\(combat\)/);
+  assert.match(ui,/var actorIndex=Number\(combat\.actorIndex\)/);
+  assert.match(ui,/window\.backroomSetCombatVisualActor\(actorIndex,entityKey\)/);
+  const dice=ui.slice(ui.indexOf('window.backroomCombatDiceState=function'),ui.indexOf('var previousRender',ui.indexOf('window.backroomCombatDiceState=function')));
+  assert.match(dice,/syncCombatSnapshotActor\(state\.combat\|\|\{\}\)/);
+  const finish=ui.slice(ui.indexOf('function finishCombatAnimation'),ui.indexOf('window.backroomCombatTurn = function'));
+  assert.match(finish,/syncCombatSnapshotActor\(state && state\.combat \? state\.combat : \{\}\)/);
+});

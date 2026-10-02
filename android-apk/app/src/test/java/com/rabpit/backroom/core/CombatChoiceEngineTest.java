@@ -907,6 +907,34 @@ public class CombatChoiceEngineTest {
         .put("resEvasionPercent", 0);
   }
 
+  @Test public void luciaJoinedPartyGetsOwnCombatTurnAfterCaoMinh() throws Exception {
+    JSONObject state = combatState(new JSONArray().put(member("lucia", "Lucia Lục")));
+    CombatChoiceEngine.start(state, "hound", 0);
+
+    JSONObject combat = state.getJSONObject("combat");
+    JSONArray participants = combat.getJSONArray("participants");
+    assertEquals(2, participants.length());
+    assertEquals("cao_minh", participants.getJSONObject(0).getString("id"));
+    assertEquals("lucia", participants.getJSONObject(1).getString("id"));
+
+    combat.getJSONObject("entity").put("hp", 9999).put("maxHp", 9999).put("attack", 1);
+    finalizeAs(state, 1, 2, 3, 4, 6);
+    CombatChoiceEngine.resolveFinalized(state);
+
+    assertEquals(0, combat.getInt("resolvedActorIndex"));
+    assertEquals(1, combat.getInt("actorIndex"));
+    assertEquals("Lucia Lục", combat.getString("currentActor"));
+
+    finalizeAs(state, 1, 2, 3, 4, 6);
+    CombatChoiceEngine.resolveFinalized(state);
+
+    assertEquals(1, combat.getInt("resolvedActorIndex"));
+    assertEquals("Lucia Lục", combat.getString("resolvedActorName"));
+    assertEquals("Cao Minh", combat.getString("currentActor"));
+    assertTrue(state.getJSONArray("log").getJSONObject(0)
+        .getJSONArray("battleLog").toString().contains("Lucia Lục"));
+  }
+
   private static void finalizeAs(JSONObject state, int... values) throws Exception {
     JSONObject dice = state.getJSONObject("combat").getJSONObject("diceState");
     JSONArray array = new JSONArray();

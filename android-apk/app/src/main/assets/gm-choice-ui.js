@@ -606,6 +606,19 @@
   diceRoll.addEventListener('click',sendCombatRoll);
   diceFinish.addEventListener('click',sendCombatFinish);
 
+  function syncCombatSnapshotActor(combat){
+    if(!combat||combat.active!==true){
+      if(typeof window.backroomClearCombatVisualActor==='function')window.backroomClearCombatVisualActor();
+      return;
+    }
+    var actorIndex=Number(combat.actorIndex);
+    if(!Number.isInteger(actorIndex))actorIndex=0;
+    var entityKey=combat.entity&&combat.entity.key?combat.entity.key:'';
+    if(typeof window.backroomSetCombatVisualActor==='function'){
+      window.backroomSetCombatVisualActor(actorIndex,entityKey);
+    }
+  }
+
   window.backroomCombatDiceState=function(json){
     try{
       var nextState=JSON.parse(json);
@@ -613,6 +626,7 @@
         diceRollAnimating=false;
         state=nextState;
         if(typeof CURRENT_CHARACTER_CANON!=='undefined')state.characterCanon=CURRENT_CHARACTER_CANON;
+        syncCombatSnapshotActor(state.combat||{});
         window.__combatBusy=false;
         if(typeof busy!=='undefined')busy=false;
         if(typeof window.render==='function')window.render();
@@ -696,7 +710,7 @@
     window.__combatFeedbackBusy = false;
     window.__combatBusy = false;
     if (typeof busy !== 'undefined') busy = false;
-    if (typeof window.backroomClearCombatVisualActor === 'function') window.backroomClearCombatVisualActor();
+    syncCombatSnapshotActor(state && state.combat ? state.combat : {});
     if (typeof window.render === 'function') window.render();
     scrollForCurrentMode();
     if (status) {
