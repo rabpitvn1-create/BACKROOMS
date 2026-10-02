@@ -12,19 +12,20 @@ public final class NarrationProviderPolicy {
 
   public static JSONObject present(JSONArray safeEvents, Provider provider, Validator validator)
       throws Exception {
-    if (OfflinePresenter.isOffline(safeEvents)) {
-      return OfflinePresenter.present(safeEvents,
-          () -> { throw new IllegalStateException("Offline presentation cannot dispatch provider"); });
-    }
     try {
       JSONObject generated = provider.generate("");
       String rejection = validator.validate(generated);
       if (rejection.isEmpty()) return generated;
+      if (!rejection.startsWith("AUTHORITY:")) return fallback(safeEvents);
       generated = provider.generate(rejection);
       if (validator.validate(generated).isEmpty()) return generated;
     } catch (Exception error) {
       // The provider owns bounded transport failover; this layer never starts an extra content attempt on failure.
     }
-    return OfflinePresenter.fallback(safeEvents);
+    return fallback(safeEvents);
+  }
+
+  private static JSONObject fallback(JSONArray safeEvents) throws Exception {
+    return OfflinePresenter.present(safeEvents, () -> OfflinePresenter.fallback(safeEvents));
   }
 }

@@ -62,7 +62,7 @@ public class SafePresentationViewTest {
     state.put("party", new JSONArray());
     generated.put("reply", "Cao Minh quan sát.").put("choices",
         new JSONArray().put(new JSONObject().put("text", "Cầm M4A1 lên")));
-    assertEquals("Managed knowledge term in choice.", NarrationGuard.validate(generated, state, evidence));
+    assertTrue(NarrationGuard.validate(generated, state, evidence).startsWith("AUTHORITY:"));
     generated.put("choices", new JSONArray());
     generated.put("reply", "Một M4A1 nằm trước mặt.");
     assertFalse(NarrationGuard.validate(generated, state, evidence).isEmpty());

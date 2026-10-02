@@ -46,6 +46,55 @@ public class NarrationGuardTest {
     assertFalse(NarrationGuard.validate(generated, state).isEmpty());
   }
 
+  @Test public void creativeExploreDoesNotNeedClaimsOrTemplateMirroring() throws Exception {
+    JSONObject generated = new JSONObject().put("reply", "Ánh đèn rải một vệt mảnh như laser lên mép thảm; tiếng ù đổi sắc khi Cao Minh nghiêng đầu. Nhịp thở chậm đã tiêu diệt nỗi sợ thoáng qua.")
+        .put("choices", new JSONArray().put(new JSONObject().put("text", "Đi tiếp"))
+            .put(new JSONObject().put("text", "Quan sát"))
+            .put(new JSONObject().put("text", "Dừng lại"))
+            .put(new JSONObject().put("text", "Lắng nghe")))
+        .put("claims", new JSONArray().put(new JSONObject().put("eventId", "irrelevant bookkeeping")));
+    assertTrue(NarrationGuard.validate(generated, GameCoreFacade.newGameState(new JSONObject()),
+        new JSONObject().put("available", true).put("claims", new JSONArray())).isEmpty());
+  }
+
+  @Test public void fakeLevelTransitionIsHardAuthorityViolation() throws Exception {
+    JSONObject state = GameCoreFacade.newGameState(new JSONObject());
+    String violation = NarrationGuard.validate(new JSONObject().put("reply", "Cao Minh bước vào Level 1."),
+        state, new JSONObject().put("available", true).put("claims", new JSONArray()));
+    assertTrue(violation.startsWith("AUTHORITY:"));
+  }
+
+  @Test public void ongoingCombatResultCannotAuthorizeClosure() throws Exception {
+    JSONObject evidence = new JSONObject().put("available", true).put("claims", new JSONArray()
+        .put(new JSONObject().put("kind", "COMBAT_RESULT").put("subject", "opponent").put("value", "ongoing")));
+    assertFalse(NarrationGuard.validate(new JSONObject().put("reply", "Trận chiến kết thúc."),
+        new JSONObject(), evidence).isEmpty());
+  }
+
+  @Test public void presentCharacterMaySpeakWithoutPendingIntroOrDialogueQuota() throws Exception {
+    JSONObject state = GameCoreFacade.newGameState(new JSONObject()).put("party", new JSONArray()
+        .put(new JSONObject().put("id", "luc_tram").put("name", "Lục Trầm").put("present", true)));
+    JSONObject generated = new JSONObject().put("reply", "Lục Trầm nhìn về hành lang.")
+        .put("encounterDialogue", new JSONArray().put("Ta chưa biết âm thanh từ đâu tới."));
+    assertTrue(NarrationGuard.validate(generated, state,
+        new JSONObject().put("available", true).put("claims", new JSONArray())).isEmpty());
+  }
+
+  @Test public void fakePartyInjuryStatAndLockedSecretAreHardViolations() throws Exception {
+    JSONObject state = GameCoreFacade.newGameState(new JSONObject());
+    JSONObject evidence = new JSONObject().put("available", true).put("claims", new JSONArray());
+    for (String prose : new String[] {"Lục Trầm xuất hiện cạnh Cao Minh.", "Cao Minh vừa bị thương mới.",
+        "Cao Minh mất 10 HP.", "Linh khí đang đầu độc phàm nhân.", "Lục Trầm trở thành người yêu của Cao Minh."}) {
+      assertTrue(prose, NarrationGuard.validate(new JSONObject().put("reply", prose), state, evidence).startsWith("AUTHORITY:"));
+    }
+  }
+
+  @Test public void alreadyCommittedTerminalStateDoesNotNeedModelToProveItAgain() throws Exception {
+    JSONObject state = new JSONObject().put("combat", new JSONObject().put("active", false).put("outcome", "victory"));
+    assertTrue(NarrationGuard.validate(new JSONObject().put("reply", "Trận chiến kết thúc."), state,
+        new JSONObject().put("available", true).put("claims", new JSONArray())).isEmpty());
+  }
+
   @Test public void committedTurnEvidenceDoesNotTreatOldInventoryAsNewLoot() throws Exception {
     EmergentTurnEngine engine = new EmergentTurnEngine();
     JSONObject state = GameCoreFacade.newGameState(new JSONObject());
@@ -103,7 +152,7 @@ public class NarrationGuardTest {
     assertTrue(NarrationGuard.validate(generated, state, evidence).isEmpty());
   }
 
-  @Test public void rejectsEvidenceClaimThatDoesNotExistInCommittedTurn() throws Exception {
+  @Test public void unusedClaimBookkeepingDoesNotRejectValidProse() throws Exception {
     JSONObject evidence = new JSONObject().put("available", true)
         .put("claims", new JSONArray().put(new JSONObject()
             .put("eventId", "turn:e0").put("kind", "LEVEL_ENTERED")
@@ -115,7 +164,7 @@ public class NarrationGuardTest {
         .put("claims", new JSONArray().put(new JSONObject()
             .put("eventId", "fake:e9").put("kind", "LEVEL_ENTERED").put("subject", "1")));
 
-    assertFalse(NarrationGuard.validate(generated, new JSONObject(), evidence).isEmpty());
+    assertTrue(NarrationGuard.validate(generated, new JSONObject(), evidence).isEmpty());
   }
 
   @Test public void pendingIntroAcknowledgementUsesCommittedCharacterEvidence() throws Exception {

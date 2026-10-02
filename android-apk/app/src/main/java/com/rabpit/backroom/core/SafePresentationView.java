@@ -105,7 +105,24 @@ public final class SafePresentationView {
   }
 
   static boolean leaks(JSONObject state, String prose) {
-    return !narrativeText(state, prose).equals(prose == null ? "" : prose);
+    String text = prose == null ? "" : prose;
+    // Vocabulary and imagery are not proof of authority violation. Only locked names and actual secrets are hard gates.
+    for (String[] row : SUBJECTS) {
+      if ("firearm".equals(row[0]) || "laser".equals(row[0]) || "cultivation".equals(row[0])) continue;
+      if (CharacterKnowledge.knows(state, "cao_minh", row[0], "knownName")) continue;
+      for (int i = 3; i < row.length; i++) {
+        if (Pattern.compile("(?iu)(?<![\\p{L}\\p{N}])" + Pattern.quote(row[i])
+            + "(?![\\p{L}\\p{N}])").matcher(text).find()) return true;
+      }
+    }
+    for (String sentence : text.toLowerCase(java.util.Locale.ROOT).split("(?<=[.!?;])\\s+|\\n+")) {
+      if (sentence.contains("chưa biết") || sentence.contains("có thể") || sentence.contains("giả thuyết")
+          || sentence.contains("không phải") || sentence.contains("không biết")) continue;
+      if (sentence.matches("(?s).*linh khí.{0,30}(?:đầu độc|gây ra (?:điên|ảo giác|mất trí)|có nguồn gốc từ|bắt nguồn từ).*")) return true;
+      if (sentence.matches("(?s).*humanoid.{0,30}(?:vốn là người|từng là người|đều là người).*")) return true;
+      if (sentence.matches("(?s).*thuốc giải.{0,20}linh khí.*")) return true;
+    }
+    return false;
   }
 
   static Object value(JSONObject state, String actor, Object raw) throws Exception {
