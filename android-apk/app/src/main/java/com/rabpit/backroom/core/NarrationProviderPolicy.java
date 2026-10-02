@@ -3,7 +3,7 @@ package com.rabpit.backroom.core;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-/** At most one writer content attempt per scene; any rejection falls back locally. */
+/** At most one validation-guided repair after the initial writer content attempt. */
 public final class NarrationProviderPolicy {
   @FunctionalInterface public interface Provider { JSONObject generate(String rejection) throws Exception; }
   @FunctionalInterface public interface Validator { String validate(JSONObject generated); }
@@ -16,11 +16,22 @@ public final class NarrationProviderPolicy {
       return OfflinePresenter.present(safeEvents,
           () -> { throw new IllegalStateException("Core-owned Entity lifecycle must not call writer"); });
     }
+
+    String rejection;
     try {
       JSONObject generated = provider.generate("");
-      if (validator.validate(generated).isEmpty()) return generated;
+      rejection = validator.validate(generated);
+      if (rejection.isEmpty()) return generated;
     } catch (Exception error) {
-      // The provider owns bounded transport failover; this layer never starts another content attempt.
+      // The provider already owns bounded transport failover. Do not add another content call here.
+      return fallback(safeEvents);
+    }
+
+    try {
+      JSONObject repaired = provider.generate(rejection);
+      if (validator.validate(repaired).isEmpty()) return repaired;
+    } catch (Exception error) {
+      // One repair is the hard ceiling; any failure falls back locally.
     }
     return fallback(safeEvents);
   }

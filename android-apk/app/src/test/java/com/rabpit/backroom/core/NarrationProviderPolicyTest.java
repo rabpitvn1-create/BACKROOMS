@@ -20,7 +20,7 @@ public class NarrationProviderPolicyTest {
     }
   }
 
-  @Test public void nonEntitySpecialScenesStillUseWriterOnceAndKeepLocalTemplatesForFailure() throws Exception {
+  @Test public void nonEntitySpecialScenesUseWriterAndKeepLocalTemplatesForTransportFailure() throws Exception {
     for (String type : new String[] {"CHEST_SPAWNED", "CHEST_OPENED",
         "CHARACTER_ENCOUNTERED", "CHARACTER_REUNION"}) {
       JSONArray views = new JSONArray().put(SafePresentationView.event(new JSONObject(), "cao_minh",
@@ -32,13 +32,18 @@ public class NarrationProviderPolicyTest {
       }, generated -> "");
       assertEquals(1, calls[0]);
       assertEquals("Writer presentation", result.getString("reply"));
+
+      calls[0] = 0;
       result = NarrationProviderPolicy.present(views, rejection -> {
+        calls[0]++;
         throw new java.io.IOException("Provider unavailable");
       }, generated -> "");
+      assertEquals(1, calls[0]);
       assertFalse(result.getString("reply").isEmpty());
     }
   }
-  @Test public void creativeExploreUsesRealGuardAndOneProviderAttempt() throws Exception {
+
+  @Test public void creativeExploreUsesRealGuardAndOneProviderAttemptWhenValid() throws Exception {
     JSONObject state = GameCoreFacade.newGameState(new JSONObject());
     JSONObject evidence = new JSONObject().put("available", true).put("claims", new JSONArray());
     int[] calls = {0};
@@ -49,18 +54,24 @@ public class NarrationProviderPolicyTest {
     assertEquals(1, calls[0]);
   }
 
-  @Test public void formatErrorDoesNotTriggerAuthorityRepair() throws Exception {
+  @Test public void formatErrorGetsOneBoundedRepair() throws Exception {
     JSONObject state = new JSONObject();
     JSONObject evidence = new JSONObject().put("available", true).put("claims", new JSONArray());
-    int[] calls = {0};
-    NarrationProviderPolicy.present(new JSONArray(), rejection -> {
-      calls[0]++;
-      return new JSONObject().put("reply", "");
+    int[] calls = {0, 0};
+    String[] repairReason = {""};
+    JSONObject result = NarrationProviderPolicy.present(new JSONArray(), rejection -> {
+      calls[rejection.isEmpty() ? 0 : 1]++;
+      if (rejection.isEmpty()) return new JSONObject().put("reply", "");
+      repairReason[0] = rejection;
+      return new JSONObject().put("reply", "Cao Minh dừng lại nghe tiếng đèn rung nhẹ.");
     }, generated -> NarrationGuard.validate(generated, state, evidence));
     assertEquals(1, calls[0]);
+    assertEquals(1, calls[1]);
+    assertTrue(repairReason[0].startsWith("FORMAT:"));
+    assertEquals("Cao Minh dừng lại nghe tiếng đèn rung nhẹ.", result.getString("reply"));
   }
 
-  @Test public void normalExploreHasOneInitialCallAndNoRetry() throws Exception {
+  @Test public void normalExploreHasOneInitialCallAndNoRepair() throws Exception {
     int[] calls = {0, 0};
     JSONObject result = NarrationProviderPolicy.present(new JSONArray(), rejection -> {
       calls[rejection.isEmpty() ? 0 : 1]++;
@@ -72,33 +83,37 @@ public class NarrationProviderPolicyTest {
     assertEquals("Cao Minh đi tiếp.", result.getString("reply"));
   }
 
-  @Test public void authorityLeakFallsBackWithoutSecondContentCallOrKnowledgeMutation() throws Exception {
+  @Test public void authorityLeakCanRecoverWithOneRepairWithoutKnowledgeMutation() throws Exception {
     JSONObject state = new JSONObject();
     JSONObject evidence = new JSONObject().put("available", true).put("claims", new JSONArray());
     int[] calls = {0, 0};
     JSONObject result = NarrationProviderPolicy.present(new JSONArray(), rejection -> {
       calls[rejection.isEmpty() ? 0 : 1]++;
-      return new JSONObject().put("reply", "Lucia dùng M4A1 có laser.").put("claims", new JSONArray());
+      if (rejection.isEmpty()) {
+        return new JSONObject().put("reply", "Lucia dùng M4A1 có laser.").put("claims", new JSONArray());
+      }
+      assertTrue(rejection.startsWith("AUTHORITY:"));
+      return new JSONObject().put("reply", "Hành lang vẫn im, chỉ còn tiếng điện rè.");
     }, generated -> NarrationGuard.validate(generated, state, evidence));
     assertEquals(1, calls[0]);
-    assertEquals(0, calls[1]);
-    assertEquals(1, calls[0] + calls[1]);
+    assertEquals(1, calls[1]);
     assertFalse(result.toString().contains("M4A1"));
     assertEquals("{}", state.toString());
   }
 
-  @Test public void hardValidationRejectionUsesLocalFallbackInsteadOfRepairCall() throws Exception {
+  @Test public void secondValidationRejectionFallsBackAfterSingleRepair() throws Exception {
     int[] calls = {0, 0};
     JSONObject result = NarrationProviderPolicy.present(new JSONArray(), rejection -> {
       calls[rejection.isEmpty() ? 0 : 1]++;
       return new JSONObject().put("reply", "invalid");
     }, generated -> "AUTHORITY: hard rejection");
     assertEquals(1, calls[0]);
-    assertEquals(0, calls[1]);
-    assertEquals(1, calls[0] + calls[1]);
+    assertEquals(1, calls[1]);
+    assertEquals(2, calls[0] + calls[1]);
     assertFalse("invalid".equals(result.getString("reply")));
   }
-  @Test public void transportErrorDoesNotStartAnUnboundedRetryOrProviderFallback() throws Exception {
+
+  @Test public void transportErrorDoesNotStartContentRepairOrUnboundedRetry() throws Exception {
     int[] calls = {0, 0};
     JSONObject result = NarrationProviderPolicy.present(new JSONArray(), rejection -> {
       calls[rejection.isEmpty() ? 0 : 1]++;

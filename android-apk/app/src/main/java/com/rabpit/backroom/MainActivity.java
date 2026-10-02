@@ -907,6 +907,12 @@ public class MainActivity extends Activity {
             JSONObject oracle = new JSONObject(gameCore.oracleWindow(narrationState.toString()));
             String prompt = narrationPrompt(narrationState, action, turnId,
                 oracle.optString("context", "CORE ORACLE WINDOW: unavailable."));
+            if (!rejection.isEmpty()) {
+              prompt += "\nREPAIR REQUEST: the previous writer payload was rejected by the deterministic guard: "
+                  + rejection
+                  + " Generate one fresh complete JSON payload for the same committed scene. "
+                  + "Correct the rejected condition, keep Core authority unchanged, and do not mention this diagnostic.";
+            }
             promptChars[timingIndex] = prompt.length();
             promptMs[timingIndex] += SystemClock.elapsedRealtime() - promptStart;
             long providerRequestStart = SystemClock.elapsedRealtime();
