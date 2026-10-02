@@ -37,6 +37,14 @@ public final class GmNarrativePacket {
       String levelContext, String entityContext, String itemContext, String characterContext,
       String recentContext, JSONObject state, String action, String gmStyleExamples,
       String canonText, JSONObject committedTurnEvidence) throws Exception {
+    return build(levelContext, entityContext, itemContext, characterContext,
+        recentContext, state, action, gmStyleExamples, canonText, "", committedTurnEvidence);
+  }
+
+  public static String build(
+      String levelContext, String entityContext, String itemContext, String characterContext,
+      String recentContext, JSONObject state, String action, String gmStyleExamples,
+      String canonText, String milestoneContext, JSONObject committedTurnEvidence) throws Exception {
     JSONObject promptState = projectState(state);
     String recent = clip(recentContext, MAX_RECENT_CONTEXT_CHARS);
     String style = clip(gmStyleExamples, 1800);
@@ -47,7 +55,8 @@ public final class GmNarrativePacket {
         + GmNarratorContract.caoMinhNarrativeCard() + "\n"
         + "VAI TRÒ GM: thế giới và kết quả cơ học của lượt này ĐÃ ĐƯỢC JAVA CORE COMMIT. "
         + "Bạn chỉ kể lại đúng kết quả đã commit và viết thoại/mô tả tự nhiên; không được quyết thêm sự kiện, outcome, spawn, loot, Party, Level hay vị trí authoritative. "
-        + "Không có cốt truyện, chương hay diễn biến định sẵn cần bám theo. Không ép người chơi quay về một tuyến cố định.\n"
+        + "Nếu MILESTONE STORY BIBLE được cung cấp, dùng nó làm ràng buộc tone, voice, mystery và hướng phát triển dài hạn; "
+        + "story beat không phải bằng chứng rằng sự kiện đã xảy ra. Không ép hành động, scene, quan hệ hay hậu quả chưa được Core/continuity commit.\n"
         + "NGÔN NGỮ HIỂN THỊ: reply, choices và encounterDialogue phải là tiếng Việt tự nhiên. "
         + "Chỉ giữ tiếng Anh cho tên riêng/tên chính thức cần thiết. Mỗi choices[].text phải viết hoàn toàn bằng tiếng Việt; "
         + "không trộn động từ, chỉ hướng hoặc mô tả môi trường tiếng Anh vào câu lựa chọn.\n"
@@ -73,6 +82,8 @@ public final class GmNarrativePacket {
         + safe(entityContext) + "\n"
         + safe(itemContext) + "\n"
         + safe(characterContext) + "\n"
+        + "MILESTONE STORY BIBLE (writer guidance; not actor knowledge; never overrides Core or committed evidence):\n"
+        + safe(milestoneContext) + "\n"
         + "MARKDOWN CANON (read-only; apply only to committed scene, never override Core state):\n"
         + safe(canonText) + "\n"
         + situationContext(state) + "\n"

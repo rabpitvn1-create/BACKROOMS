@@ -40,7 +40,7 @@ public final class MilestoneCore {
     return new MilestoneCore(new JSONObject(root.toString()));
   }
 
-  String promptContext(JSONObject state) throws Exception {
+  public String promptContext(JSONObject state) throws Exception {
     String levelKey = state == null ? "0"
         : state.optString(LevelCore.LEVEL_KEY, String.valueOf(state.optInt("currentLevel", 0))).trim();
     JSONObject level = root.getJSONObject("levels").optJSONObject(levelKey);

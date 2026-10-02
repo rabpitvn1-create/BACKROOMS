@@ -26,6 +26,7 @@ import com.rabpit.backroom.core.SafePresentationView;
 import com.rabpit.backroom.core.CanonRetriever;
 import com.rabpit.backroom.core.GmNarratorContract;
 import com.rabpit.backroom.core.NarrationGuard;
+import com.rabpit.backroom.core.MilestoneCore;
 import com.rabpit.backroom.core.ProviderRetryPolicy;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -50,6 +51,7 @@ public class MainActivity extends Activity {
   private final ExecutorService io = Executors.newSingleThreadExecutor();
   private GameCoreFacade gameCore;
   private CanonRetriever canonRetriever;
+  private MilestoneCore milestoneCore;
   private static final String GEMINI_MODEL = "gemini-3.8-flash";
   private static final String HAIKU_DEFAULT_BASE_URL = "https://api.anthropic.com/v1/messages";
   private static final String HAIKU_DEFAULT_MODEL = "claude-haiku-4-5-20251001";
@@ -67,6 +69,11 @@ public class MainActivity extends Activity {
       canonRetriever = CanonRetriever.fromAssets(getApplicationContext());
     } catch (Exception error) {
       Log.e(TAG, "Canon assets failed validation", error);
+    }
+    try {
+      milestoneCore = MilestoneCore.fromAssets(getApplicationContext());
+    } catch (Exception error) {
+      Log.e(TAG, "Milestone assets failed validation", error);
     }
     webView = new WebView(this);
     WebSettings settings = webView.getSettings();
@@ -733,8 +740,13 @@ public class MainActivity extends Activity {
       throw new IllegalStateException(
           "Committed turn evidence unavailable: " + evidence.optString("reason", "unknown"));
     }
+    if (milestoneCore == null) {
+      throw new IllegalStateException("Milestone runtime không khả dụng; không gọi AI narration.");
+    }
+    String milestoneContext = milestoneCore.promptContext(state);
     return GmNarrativePacket.build(levelContext, entityContext, itemContext, characterContext,
-        recentContext(state), state, action, gmStyleExamplesContext(), canon.promptText(), evidence);
+        recentContext(state), state, action, gmStyleExamplesContext(), canon.promptText(),
+        milestoneContext, evidence);
   }
 
   private void prefetchChoices(String choicesJson) {

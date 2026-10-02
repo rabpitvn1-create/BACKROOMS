@@ -180,11 +180,39 @@ public class GmNarrativePacketTest {
         "");
 
     assertTrue(packet.contains("ĐÃ ĐƯỢC JAVA CORE COMMIT"));
-    assertTrue(packet.contains("Không có cốt truyện, chương hay diễn biến định sẵn"));
+    assertFalse(packet.contains("Không có cốt truyện, chương hay diễn biến định sẵn"));
+    assertTrue(packet.contains("story beat không phải bằng chứng rằng sự kiện đã xảy ra"));
     assertTrue(packet.contains("Java Core sở hữu toàn bộ world outcome"));
     assertTrue(packet.contains("COMMITTED-EVIDENCE RULE"));
     assertTrue(packet.contains("BACKGROUND CANON ≠ TURN EVIDENCE"));
     assertTrue(packet.contains("PLAYER AGENCY"));
     assertTrue(packet.contains("EXPLORER CHOICES"));
+  }
+
+  @Test public void milestoneContextIsWriterGuidanceWithoutStateAuthority() throws Exception {
+    JSONObject state = new JSONObject()
+        .put("currentLevel", 5)
+        .put("currentLevelKey", "5.2")
+        .put("turn", 10)
+        .put("party", new org.json.JSONArray());
+
+    String packet = GmNarrativePacket.build(
+        "LEVEL CORE: current Level 5.2.",
+        "ENTITY CORE: none.",
+        "ITEM CORE: none.",
+        "CHARACTER ENCOUNTER CORE: none.",
+        "(recent context)",
+        state,
+        "Quan sát phía trước",
+        "",
+        "CANON_MARKER",
+        "MILESTONE_MARKER\nWRITER SECRET: do not reveal as actor knowledge.",
+        new JSONObject());
+
+    assertTrue(packet.contains("MILESTONE STORY BIBLE"));
+    assertTrue(packet.contains("MILESTONE_MARKER"));
+    assertTrue(packet.contains("not actor knowledge"));
+    assertTrue(packet.contains("never overrides Core or committed evidence"));
+    assertTrue(packet.contains("CANON_MARKER"));
   }
 }
