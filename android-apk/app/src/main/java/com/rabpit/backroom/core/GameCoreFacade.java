@@ -783,6 +783,8 @@ public final class GameCoreFacade implements AutoCloseable {
         out.append('\n');
 
         JSONObject next = finishWorkingTurn(forecast, prepared, new JSONObject());
+        projectBeforePersist(next);
+        emergentTurnEngine.catchUpProjections(next);
         stepInfo.put("authorityHash", oracleAuthorityHash(next));
         steps.put(stepInfo);
 
