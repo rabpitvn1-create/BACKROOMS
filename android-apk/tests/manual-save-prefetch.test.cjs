@@ -65,6 +65,11 @@ test('Explorer prefetch does not dispatch speculative provider requests', () => 
   assert.doesNotMatch(prefetch, /geminiBranchBatch\(|generateText\(|postJson\(|prefetchIo\.execute|previewTurn\(/);
 });
 
+test('bridge contains no retired shadow-planner orchestration', () => {
+  assert.doesNotMatch(bridge, /GmShadowPlanner|shadowPlannerIo|shadowPlannerCache/);
+  assert.doesNotMatch(bridge, /shadowPlannerPrompt\(|authoritativeGmProposal\(|scheduleShadowPlanner\(/);
+});
+
 test('player turn commits Core before bounded presentation and never schedules planner calls', () => {
   const turn = bridge.slice(bridge.indexOf('public void submitTurn('), bridge.indexOf('public void combatRoll('));
   assert.match(turn, /completePreparedTurn\(turnId, "\{\}"\)/);

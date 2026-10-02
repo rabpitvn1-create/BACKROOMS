@@ -23,7 +23,6 @@ import com.rabpit.backroom.core.GmNarrativePacket;
 import com.rabpit.backroom.core.OfflinePresenter;
 import com.rabpit.backroom.core.NarrationProviderPolicy;
 import com.rabpit.backroom.core.SafePresentationView;
-import com.rabpit.backroom.core.GmShadowPlanner;
 import com.rabpit.backroom.core.CanonRetriever;
 import com.rabpit.backroom.core.GmNarratorContract;
 import com.rabpit.backroom.core.NarrationGuard;
@@ -39,7 +38,6 @@ import java.net.URL;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class MainActivity extends Activity {
@@ -53,10 +51,8 @@ public class MainActivity extends Activity {
   private WebView webView;
   private final ExecutorService io = Executors.newSingleThreadExecutor();
   private final ExecutorService prefetchIo = Executors.newSingleThreadExecutor();
-  private final ExecutorService shadowPlannerIo = Executors.newSingleThreadExecutor();
   private final AtomicLong prefetchGeneration = new AtomicLong();
   private volatile PrefetchCache prefetchCache;
-  private final Map<String, JSONObject> shadowPlannerCache = new LinkedHashMap<>();
   private GameCoreFacade gameCore;
   private CanonRetriever canonRetriever;
   private static final String GEMINI_MODEL = "gemini-3.8-flash";
@@ -748,144 +744,6 @@ public class MainActivity extends Activity {
     }
     return GmNarrativePacket.build(levelContext, entityContext, itemContext, characterContext,
         recentContext(state), state, action, gmStyleExamplesContext(), canon.promptText(), evidence);
-  }
-
-  private String shadowPlannerPrompt(JSONObject plannerContext) throws Exception {
-    if (plannerContext == null || !plannerContext.optBoolean("available", false)) {
-      throw new IllegalStateException("Shadow planner context unavailable.");
-    }
-    JSONObject state = plannerContext.getJSONObject("executionBaseState");
-    String action = plannerContext.getString("action");
-    String coreJson = state.toString();
-    String levelContext = gameCore.levelPromptContext(coreJson, action);
-    String entityContext = gameCore.entityPromptContext(coreJson);
-    String itemContext = gameCore.itemPromptContext(coreJson);
-    String characterContext = gameCore.characterPromptContext(coreJson);
-    String levelName = levelContext.startsWith("CURRENT LEVEL NODE: ")
-        ? levelContext.substring("CURRENT LEVEL NODE: ".length()).split("\\n", 2)[0] : "";
-    CanonRetriever.CanonPacket canon = canonRetriever == null ? null
-        : canonRetriever.retrieve(state, action, CanonRetriever.DEFAULT_BUDGET, true, levelName);
-    if (canon == null || canon.budgetExceeded || !canon.requiredComplete || !canon.missingMandatoryRefs.isEmpty()) {
-      throw new IllegalStateException("Shadow planner canon unavailable or incomplete.");
-    }
-    JSONObject knowledgeView = GmNarrativePacket.projectState(state);
-    return GmShadowPlanner.buildPrompt(
-        plannerContext, knowledgeView, levelContext, entityContext, itemContext,
-        characterContext, gameCore.shadowCommandRegistry(), canon.promptText());
-  }
-
-  private JSONObject cachedShadowProposal(String plannerKey) throws Exception {
-    synchronized (shadowPlannerCache) {
-      JSONObject cached = shadowPlannerCache.get(plannerKey);
-      return cached == null ? null : new JSONObject(cached.toString());
-    }
-  }
-
-  private void cacheShadowProposal(String plannerKey, JSONObject proposal) throws Exception {
-    synchronized (shadowPlannerCache) {
-      if (!shadowPlannerCache.containsKey(plannerKey) && shadowPlannerCache.size() >= 16) {
-        String oldest = shadowPlannerCache.keySet().iterator().next();
-        shadowPlannerCache.remove(oldest);
-      }
-      shadowPlannerCache.put(plannerKey, new JSONObject(proposal.toString()));
-    }
-  }
-
-  private JSONObject authoritativeGmProposal(
-      JSONObject plannerContext, String prompt, String validationFeedback) throws Exception {
-    if (plannerContext == null || prompt == null) {
-      throw new IllegalStateException("GM planner context unavailable.");
-    }
-    String plannerKey = GmShadowPlanner.plannerKey(plannerContext, prompt);
-    boolean retry = validationFeedback != null && !validationFeedback.trim().isEmpty();
-    JSONObject proposal = retry ? null : cachedShadowProposal(plannerKey);
-
-    if (proposal == null) {
-      String effectivePrompt = prompt;
-      if (retry) {
-        effectivePrompt += "\nVALIDATION REJECTED: " + validationFeedback
-            + "\nRepair only the rejected transaction. Keep the same turnId, baseStateHash and Core-selected candidate.";
-      }
-      JSONObject raw = parseModelJson(generateText(effectivePrompt));
-      JSONObject validation = GmShadowPlanner.validateProposal(
-          raw, plannerContext.getString("turnId"), plannerContext.getString("baseStateHash"));
-      if (!validation.optBoolean("valid", false)) {
-        throw new IllegalStateException(
-            "GM proposal validation failed: " + validation.optString("reason", "invalid_proposal"));
-      }
-      proposal = validation.getJSONObject("proposal");
-      if (!retry) cacheShadowProposal(plannerKey, proposal);
-    } else {
-      JSONObject validation = GmShadowPlanner.validateProposal(
-          proposal, plannerContext.getString("turnId"), plannerContext.getString("baseStateHash"));
-      if (!validation.optBoolean("valid", false)) {
-        throw new IllegalStateException(
-            "Cached GM proposal invalid: " + validation.optString("reason", "invalid_proposal"));
-      }
-    }
-    return proposal;
-  }
-
-  private void scheduleShadowPlanner(
-      JSONObject plannerContext, String prompt, JSONObject v2CommittedState, JSONObject selectedCandidate)
-      throws Exception {
-    if (!BuildConfig.DEBUG || plannerContext == null || prompt == null || v2CommittedState == null) return;
-    final JSONObject contextCopy = new JSONObject(plannerContext.toString());
-    final JSONObject afterCopy = new JSONObject(v2CommittedState.toString());
-    final JSONObject selectedCopy = selectedCandidate == null
-        ? new JSONObject() : new JSONObject(selectedCandidate.toString());
-    final String promptCopy = prompt;
-
-    shadowPlannerIo.execute(() -> {
-      try {
-        String plannerKey = GmShadowPlanner.plannerKey(contextCopy, promptCopy);
-        JSONObject proposal = cachedShadowProposal(plannerKey);
-        boolean cacheHit = proposal != null;
-        String proposalFingerprint;
-
-        if (proposal == null) {
-          JSONObject raw = parseModelJson(generateText(promptCopy));
-          JSONObject validation = GmShadowPlanner.validateProposal(
-              raw, contextCopy.getString("turnId"), contextCopy.getString("baseStateHash"));
-          if (!validation.optBoolean("valid", false)) {
-            Log.w(TAG, "GM SHADOW REJECTED (fail-closed): "
-                + validation.optString("reason", "invalid proposal"));
-            return;
-          }
-          proposal = validation.getJSONObject("proposal");
-          proposalFingerprint = validation.getString("proposalFingerprint");
-          cacheShadowProposal(plannerKey, proposal);
-        } else {
-          proposalFingerprint = GmShadowPlanner.validateProposal(
-              proposal, contextCopy.getString("turnId"), contextCopy.getString("baseStateHash"))
-              .optString("proposalFingerprint", "");
-        }
-
-        JSONObject authority = new JSONObject(
-            gameCore.validateShadowTransaction(contextCopy.toString(), proposal.toString()));
-        JSONObject commitGate = new JSONObject(
-            gameCore.plannerCommitGate(contextCopy.toString(), proposal.toString()));
-        JSONObject resolved = authority.optJSONObject("resolvedTurn");
-        JSONArray evidence = resolved == null ? null : resolved.optJSONArray("committedEvents");
-        int evidenceCount = evidence == null ? 0 : evidence.length();
-        JSONObject comparison = GmShadowPlanner.compareToV2(
-            proposal, contextCopy.getJSONObject("executionBaseState"), afterCopy, selectedCopy);
-        Log.d(TAG, "GM SHADOW TELEMETRY: key=" + plannerKey.substring(0, 12)
-            + " proposal=" + (proposalFingerprint.length() >= 12
-                ? proposalFingerprint.substring(0, 12) : proposalFingerprint)
-            + " cache=" + cacheHit
-            + " authorityValid=" + authority.optBoolean("valid", false)
-            + " commitGateAllowed=" + commitGate.optBoolean("allowed", false)
-            + " commitGateReason=" + commitGate.optString("reason", "")
-            + " acceptedGroups=" + authority.optInt("acceptedGroups", 0)
-            + " rejectedGroups=" + authority.optInt("rejectedGroups", 0)
-            + " evidence=" + evidenceCount
-            + " compare=" + comparison);
-      } catch (Exception error) {
-        Log.w(TAG, "GM shadow planner unavailable; V2 authoritative turn is unaffected: "
-            + providerErrorSummary(error));
-      }
-    });
   }
 
   private static final class PrefetchBranch {
