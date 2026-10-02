@@ -112,6 +112,7 @@ public class GmNarrativePacketTest {
                 .put("present", false)))
         .put("gameTime", new JSONObject()
             .put("elapsedSubjectiveMinutes", 45).put("internalClockSeed", "DROP_TIME_DETAIL"));
+    CharacterKnowledge.mark(state, "cao_minh", "lucia", "knownName", "core:test");
 
     JSONObject scene = GmNarrativePacket.projectSceneState(state);
     String serialized = scene.toString();
