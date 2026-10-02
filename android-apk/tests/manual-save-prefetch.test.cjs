@@ -71,6 +71,10 @@ test('bridge contains no retired shadow-planner orchestration', () => {
   assert.doesNotMatch(bridge, /shadowPlannerPrompt\(|authoritativeGmProposal\(|scheduleShadowPlanner\(/);
 });
 
+test('Core facade exposes no retired shadow-planner adapter surface', () => {
+  assert.doesNotMatch(core, /shadowPlannerContext\(|plannerCommitGate\(|validateShadowTransaction\(|shadowCommandRegistry\(/);
+});
+
 test('player turn commits Core before bounded presentation and never schedules planner calls', () => {
   const turn = bridge.slice(bridge.indexOf('public void submitTurn('), bridge.indexOf('public void combatRoll('));
   assert.match(turn, /completePreparedTurn\(turnId, "\{\}"\)/);
