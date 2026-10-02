@@ -18,3 +18,4 @@ jobs:
           python-version: '3.12'
       - run: bash -n tools/ponytail.sh
       - run: python3 -c "import tomllib; c=tomllib.load(open('tools/ponytail-config.toml','rb')); assert c['model_reasoning_effort']=='medium'"
+      - run: python3 tools/ponytail-tools-test.py
