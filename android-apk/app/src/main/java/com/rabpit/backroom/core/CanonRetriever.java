@@ -527,8 +527,7 @@ public final class CanonRetriever {
       String file = s.fileTerms;
       String expectedLevelHeading = normalize(levelDisplayName);
       boolean belongs = "level".equals(parts[0])
-          ? (file.contains("world") && (heading.startsWith("tang " + key + " ")
-              || heading.startsWith("level " + key + " ")
+          ? (file.contains("world") && (matchesLevelKeyPrefix(heading, key)
               || (!expectedLevelHeading.isEmpty() && heading.equals(expectedLevelHeading))))
           : "entity".equals(parts[0]) ? heading.equals(key) || file.equals(key)
           : file.startsWith(key) && (file.contains("codex") || heading.equals(key));
@@ -563,8 +562,7 @@ public final class CanonRetriever {
       if (!sourcePath.equals(s.sourceFile)) continue;
       String heading = normalize(s.heading);
       boolean belongs = "level".equals(type)
-          ? (heading.startsWith("tang " + key + " ")
-              || heading.startsWith("level " + key + " ")
+          ? (matchesLevelKeyPrefix(heading, key)
               || (!expectedLevelHeading.isEmpty() && heading.equals(expectedLevelHeading)))
           : "entity".equals(type) ? heading.equals(key) || s.fileTerms.equals(key)
           : true;
@@ -586,12 +584,22 @@ public final class CanonRetriever {
     return candidates.get(0);
   }
 
+  private static boolean matchesLevelKeyPrefix(String heading, String normalizedKey) {
+    for (String label : new String[] {"tang ", "level "}) {
+      String prefix = label + normalizedKey;
+      if (heading.equals(prefix)) return true;
+      if (!heading.startsWith(prefix + " ")) continue;
+      String suffix = heading.substring(prefix.length() + 1);
+      if (suffix.isEmpty() || !Character.isDigit(suffix.charAt(0))) return true;
+    }
+    return false;
+  }
+
   private static boolean conflictsWithLevel(Section section, String key, String displayName) {
     if (displayName == null || displayName.isEmpty() || !section.fileTerms.contains("world")) return false;
     String heading = normalize(section.heading);
     String normalizedKey = normalize(key);
-    if (!heading.startsWith("tang " + normalizedKey + " ")
-        && !heading.startsWith("level " + normalizedKey + " ")) return false;
+    if (!matchesLevelKeyPrefix(heading, normalizedKey)) return false;
     String expected = normalize(displayName).replaceFirst("^(level|tang) " + normalizedKey + " ", "");
     return !expected.isEmpty() && !heading.contains(expected);
   }
