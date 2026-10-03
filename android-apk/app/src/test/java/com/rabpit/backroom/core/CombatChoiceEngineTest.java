@@ -433,7 +433,7 @@ public class CombatChoiceEngineTest {
     assertTrue(foundUltimate);
   }
 
-  @Test public void everyCombatEntityHasThreeValidAutoProcSkills() throws Exception {
+  @Test public void everyCombatEntityHasExpectedValidAutoProcSkills() throws Exception {
     Field entitiesField = CombatChoiceEngine.class.getDeclaredField("ENTITIES");
     entitiesField.setAccessible(true);
     Field skillsField = CombatChoiceEngine.class.getDeclaredField("ENTITY_SKILLS");
@@ -444,7 +444,8 @@ public class CombatChoiceEngineTest {
     assertEquals(entities.keySet(), pools.keySet());
     for (Object key : entities.keySet()) {
       List<?> skills = (List<?>) pools.get(key);
-      assertEquals("Skill count for " + key, 3, skills.size());
+      boolean bacterial = String.valueOf(key).startsWith("the_lifeform_bacteria_");
+      assertEquals("Skill count for " + key, bacterial ? 4 : 3, skills.size());
       for (Object skill : skills) {
         Field damage = skill.getClass().getDeclaredField("damagePercent");
         Field proc = skill.getClass().getDeclaredField("procPercent");
@@ -456,6 +457,69 @@ public class CombatChoiceEngineTest {
         assertTrue("Proc for " + key, proc.getInt(skill) <= maxProc);
       }
     }
+  }
+
+  @Test public void bacterialVariantsAreFifteenPercentAboveHoundAndShareThreeProcs()
+      throws Exception {
+    String[] keys = {
+        "the_lifeform_bacteria_01",
+        "the_lifeform_bacteria_02",
+        "the_lifeform_bacteria_03"
+    };
+
+    Field skillsField = CombatChoiceEngine.class.getDeclaredField("ENTITY_SKILLS");
+    skillsField.setAccessible(true);
+    Map<?, ?> pools = (Map<?, ?>) skillsField.get(null);
+
+    String shared = null;
+    int[][] expectedUniqueMechanics = {
+        {2, 0, 0},
+        {1, 60, 0},
+        {1, 0, 50}
+    };
+
+    for (int k = 0; k < keys.length; k++) {
+      String key = keys[k];
+      assertTrue(CombatChoiceEngine.isKnownEntity(key));
+      JSONObject state = combatState(new JSONArray());
+      state.getJSONObject("flags").put("entityEncounterKey", key);
+      CombatChoiceEngine.start(state, key, 0);
+      JSONObject entity = state.getJSONObject("combat").getJSONObject("entity");
+      assertEquals(173, entity.getInt("baseHp"));
+      assertEquals(17, entity.getInt("baseDamage"));
+      assertEquals(4, CombatChoiceEngine.entitySkillCount(key));
+
+      List<?> pool = (List<?>) pools.get(key);
+      StringBuilder signature = new StringBuilder();
+      for (int i = 0; i < 3; i++) {
+        Object skill = pool.get(i);
+        Field name = skill.getClass().getDeclaredField("name");
+        Field damage = skill.getClass().getDeclaredField("damagePercent");
+        Field proc = skill.getClass().getDeclaredField("procPercent");
+        name.setAccessible(true);
+        damage.setAccessible(true);
+        proc.setAccessible(true);
+        signature.append(name.get(skill)).append(':')
+            .append(damage.getInt(skill)).append(':')
+            .append(proc.getInt(skill)).append('|');
+      }
+      if (shared == null) shared = signature.toString();
+      else assertEquals(shared, signature.toString());
+
+      Object unique = pool.get(3);
+      Field hits = unique.getClass().getDeclaredField("hitCount");
+      Field pierce = unique.getClass().getDeclaredField("defensePiercePercent");
+      Field heal = unique.getClass().getDeclaredField("healPercentOfDamage");
+      hits.setAccessible(true);
+      pierce.setAccessible(true);
+      heal.setAccessible(true);
+      assertEquals(expectedUniqueMechanics[k][0], hits.getInt(unique));
+      assertEquals(expectedUniqueMechanics[k][1], pierce.getInt(unique));
+      assertEquals(expectedUniqueMechanics[k][2], heal.getInt(unique));
+    }
+
+    assertEquals(15, CombatChoiceEngine.piercedIncomingDamage(20, 10, 100));
+    assertEquals(5, CombatChoiceEngine.drainHealAmount(10, 50));
   }
 
   @Test public void tamMaUsesDoubleHoundStatsAndTreasureProcRates() throws Exception {

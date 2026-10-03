@@ -82,11 +82,27 @@ public final class CombatChoiceEngine {
   }
 
   private static final class EntitySkill {
-  final String name; final int damagePercent; final int procPercent;
-  EntitySkill(String name, int damagePercent, int procPercent) {
-    this.name=name; this.damagePercent=damagePercent; this.procPercent=procPercent;
+    final String name;
+    final int damagePercent;
+    final int procPercent;
+    final int hitCount;
+    final int defensePiercePercent;
+    final int healPercentOfDamage;
+
+    EntitySkill(String name, int damagePercent, int procPercent) {
+      this(name, damagePercent, procPercent, 1, 0, 0);
+    }
+
+    EntitySkill(String name, int damagePercent, int procPercent, int hitCount,
+                int defensePiercePercent, int healPercentOfDamage) {
+      this.name = name;
+      this.damagePercent = damagePercent;
+      this.procPercent = procPercent;
+      this.hitCount = Math.max(1, hitCount);
+      this.defensePiercePercent = Math.max(0, Math.min(100, defensePiercePercent));
+      this.healPercentOfDamage = Math.max(0, Math.min(100, healPercentOfDamage));
+    }
   }
-}
 
   private static final class CharacterProc {
     final String name;
@@ -133,6 +149,9 @@ public final class CombatChoiceEngine {
 
   static {
     entity("hound", "Hound", 150, 15);
+    entity("the_lifeform_bacteria_01", "Bacterial Stalker", 173, 17);
+    entity("the_lifeform_bacteria_02", "Bacterial Strider", 173, 17);
+    entity("the_lifeform_bacteria_03", "Bacterial Weaver", 173, 17);
     entity("clump", "Clump", 190, 17);
     entity("duller", "Duller", 160, 14);
     entity("deathmoth", "Deathmoth", 120, 13);
@@ -159,6 +178,21 @@ public final class CombatChoiceEngine {
         entitySkill("Dead Bite", 120, 35),
         entitySkill("Rending Pounce", 115, 32),
         entitySkill("Pack Maul", 110, 34));
+    entitySkills("the_lifeform_bacteria_01",
+        entitySkill("Filament Lash", 110, 34),
+        entitySkill("Hollow Rush", 115, 30),
+        entitySkill("Tendril Rake", 120, 24),
+        multiHitEntitySkill("Rib-Cage Clamp", 95, 20, 2));
+    entitySkills("the_lifeform_bacteria_02",
+        entitySkill("Filament Lash", 110, 34),
+        entitySkill("Hollow Rush", 115, 30),
+        entitySkill("Tendril Rake", 120, 24),
+        piercingEntitySkill("Longstep Skewer", 125, 20, 60));
+    entitySkills("the_lifeform_bacteria_03",
+        entitySkill("Filament Lash", 110, 34),
+        entitySkill("Hollow Rush", 115, 30),
+        entitySkill("Tendril Rake", 120, 24),
+        drainingEntitySkill("Black-Mesh Feeding", 120, 20, 50));
     entitySkills("clump",
         entitySkill("Grasping Crush", 120, 34),
         entitySkill("Limb Barrage", 115, 35),
@@ -328,9 +362,25 @@ public final class CombatChoiceEngine {
     SKILLS.put(id, list);
   }
 
-  private static EntitySkill entitySkill(String name,int damagePercent,int procPercent) {
-  return new EntitySkill(name,damagePercent,procPercent);
-}
+  private static EntitySkill entitySkill(String name, int damagePercent, int procPercent) {
+    return new EntitySkill(name, damagePercent, procPercent);
+  }
+
+  private static EntitySkill multiHitEntitySkill(
+      String name, int damagePercent, int procPercent, int hitCount) {
+    return new EntitySkill(name, damagePercent, procPercent, hitCount, 0, 0);
+  }
+
+  private static EntitySkill piercingEntitySkill(
+      String name, int damagePercent, int procPercent, int defensePiercePercent) {
+    return new EntitySkill(name, damagePercent, procPercent, 1, defensePiercePercent, 0);
+  }
+
+  private static EntitySkill drainingEntitySkill(
+      String name, int damagePercent, int procPercent, int healPercentOfDamage) {
+    return new EntitySkill(name, damagePercent, procPercent, 1, 0, healPercentOfDamage);
+  }
+
 private static void entitySkills(String id,EntitySkill... definitions) {
   List<EntitySkill> list=new ArrayList<>(); for(EntitySkill d:definitions) list.add(d); ENTITY_SKILLS.put(id,list);
 }
@@ -483,6 +533,19 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
     long numerator = (long)Math.max(1, rawDamage) * 100L;
     return (int)Math.min(Integer.MAX_VALUE,
         Math.max(1L, (numerator + defPercent / 2L) / defPercent));
+  }
+
+  static int piercedIncomingDamage(int rawDamage, int def, int piercePercent) {
+    int incoming = Math.max(1, rawDamage);
+    int defended = defendedIncomingDamage(incoming, def);
+    int pierce = Math.max(0, Math.min(100, piercePercent));
+    int prevented = Math.max(0, incoming - defended);
+    return Math.max(1, defended + (int)(((long)prevented * pierce + 50L) / 100L));
+  }
+
+  static int drainHealAmount(int dealtDamage, int healPercent) {
+    if (dealtDamage <= 0 || healPercent <= 0) return 0;
+    return Math.max(1, (int)(((long)dealtDamage * Math.min(100, healPercent) + 50L) / 100L));
   }
 
   static int criticalDamage(int damage) {
@@ -1060,11 +1123,27 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
             : entitySkillProcRoll(seed, round, actorIndex, i);
         if (procRoll >= skill.procPercent) continue;
         triggeredSkills.add(skill.name);
-        int incoming = entitySkillDamage(rawDamage, skill.damagePercent);
-        if (critical) incoming = criticalDamage(incoming);
-        int damage = defendedIncomingDamage(incoming, def);
-        actor.put("hp", Math.max(0, actor.optInt("hp", 0) - damage));
-        addFeedback(combat, "entity", "actor", "damage", "-" + damage + " HP", true);
+        int skillDamageDealt = 0;
+        for (int hit = 0; hit < skill.hitCount && actor.optInt("hp", 0) > 0; hit++) {
+          int incoming = entitySkillDamage(rawDamage, skill.damagePercent);
+          if (critical) incoming = criticalDamage(incoming);
+          int damage = piercedIncomingDamage(incoming, def, skill.defensePiercePercent);
+          int hpBeforeHit = Math.max(0, actor.optInt("hp", 0));
+          actor.put("hp", Math.max(0, hpBeforeHit - damage));
+          int actualDamage = Math.max(0, hpBeforeHit - actor.optInt("hp", 0));
+          skillDamageDealt += actualDamage;
+          addFeedback(combat, "entity", "actor", "damage", "-" + actualDamage + " HP", true);
+        }
+        if (skill.healPercentOfDamage > 0 && skillDamageDealt > 0) {
+          int heal = drainHealAmount(skillDamageDealt, skill.healPercentOfDamage);
+          int hpBeforeHeal = Math.max(0, entity.optInt("hp", 0));
+          int maxEntityHp = Math.max(1, entity.optInt("maxHp", 1));
+          entity.put("hp", Math.min(maxEntityHp, hpBeforeHeal + heal));
+          int actualHeal = Math.max(0, entity.optInt("hp", 0) - hpBeforeHeal);
+          if (actualHeal > 0) {
+            addFeedback(combat, "entity", "entity", "heal", "+" + actualHeal + " HP", true);
+          }
+        }
       }
     }
 

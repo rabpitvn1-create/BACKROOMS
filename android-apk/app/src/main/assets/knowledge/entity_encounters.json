@@ -4,7 +4,7 @@
   "source": "01_WORLD/entity.md — BACKROOMS-ENTITY-R4 CURRENT / PROJECT CANON",
   "rules": {
     "minimumRatePercent": 3,
-    "maximumRatePercent": 3.5,
+    "maximumRatePercent": 5,
     "sharedPool": false,
     "maxActiveEncounters": 1,
     "legacyOverlayOnlyKeys": [
@@ -36,9 +36,25 @@
     "entitySkillProcPolicy": "Each skill rolls independently once per valid Entity response; if none proc, use the normal basic attack.",
     "treasureMaximumRatePercent": 4,
     "treasurePriorityBeforeStandardPool": true,
-    "standardAutoSpawnEnabled": false,
-    "onlyAutoSpawnKey": "tam_ma_cao_minh",
-    "dormantLegacyRecordsPreserved": true
+    "standardAutoSpawnEnabled": true,
+    "dormantLegacyRecordsPreserved": true,
+    "activeAutoSpawnKeys": [
+      "tam_ma_cao_minh",
+      "the_lifeform_bacteria_01",
+      "the_lifeform_bacteria_02",
+      "the_lifeform_bacteria_03"
+    ],
+    "exactLevelKeyEligibility": true,
+    "bacterialRatePolicy": "Each Bacterial variant is configured at 5% and receives the existing 3x runtime multiplier, yielding 15% effective chance per eligible world-advancing turn.",
+    "bacterialEligibleLevelKeys": [
+      "0",
+      "0.1",
+      "0.2",
+      "the_torment",
+      "red_rooms",
+      "4",
+      "6"
+    ]
   },
   "entities": [
     {
@@ -75,6 +91,168 @@
           "name": "Ma Hổ Phệ",
           "damagePercent": 110,
           "procPercent": 45
+        }
+      ]
+    },
+    {
+      "key": "the_lifeform_bacteria_01",
+      "name": "Bacterial Stalker",
+      "spawnClass": "standard",
+      "ratePercent": 5,
+      "levels": [
+        0,
+        4,
+        6
+      ],
+      "levelKeys": [
+        "0",
+        "0.1",
+        "0.2",
+        "the_torment",
+        "red_rooms",
+        "4",
+        "6"
+      ],
+      "canon": "Project Bacterial Lifeform variant derived from the committed visual reference. It is a tall, featureless filament-bodied predator that stalks or rushes isolated targets. Its anatomy is an unresolved mesh of black organic strands rather than a normal human skeleton; do not invent eyes, clothing, speech or a conventional face. This variant may auto-spawn only at the exact LevelKeys listed in this record, selected because current project lore and registry do not define a characteristic resident hostile Entity there.",
+      "presentation": {
+        "appearance": "một hình người cực cao và gầy được kết lại từ vô số sợi mô đen ướt, không có da và gần như không có khuôn mặt",
+        "approachStyle": "stalk",
+        "details": [
+          "Cổ kéo dài bất thường nâng một khối đầu trơn bị những sợi đen quấn kín; không thấy mắt, mũi hay miệng, chỉ có các rãnh tối sâu như phần mặt đã bị khâu mất.",
+          "Lồng ngực không phải xương hoàn chỉnh mà là một cái lồng rỗng bằng những bó sợi đen đan ngang, để lộ các khoảng trống xuyên qua thân như cơ thể đã bị rút hết nội tạng.",
+          "Hai cánh tay dài quá đầu gối, cẳng tay tưa thành dây và các ngón tách thành móc mảnh; mỗi chuyển động làm những sợi thừa rung và quét nhẹ như rễ cây sống.",
+          "Bàn chân bè ra thành nhiều nhánh giống rễ cháy đen, khiến dáng đứng của nó vừa giống người vừa giống một vật thể đã mọc xuyên qua sàn."
+        ]
+      },
+      "autoProcSkills": [
+        {
+          "name": "Filament Lash",
+          "damagePercent": 110,
+          "procPercent": 34
+        },
+        {
+          "name": "Hollow Rush",
+          "damagePercent": 115,
+          "procPercent": 30
+        },
+        {
+          "name": "Tendril Rake",
+          "damagePercent": 120,
+          "procPercent": 24
+        },
+        {
+          "name": "Rib-Cage Clamp",
+          "damagePercent": 95,
+          "procPercent": 20,
+          "hitCount": 2
+        }
+      ]
+    },
+    {
+      "key": "the_lifeform_bacteria_02",
+      "name": "Bacterial Strider",
+      "spawnClass": "standard",
+      "ratePercent": 5,
+      "levels": [
+        0,
+        4,
+        6
+      ],
+      "levelKeys": [
+        "0",
+        "0.1",
+        "0.2",
+        "the_torment",
+        "red_rooms",
+        "4",
+        "6"
+      ],
+      "canon": "Project Bacterial Lifeform variant derived from the committed visual reference. It is a tall, featureless filament-bodied predator that stalks or rushes isolated targets. Its anatomy is an unresolved mesh of black organic strands rather than a normal human skeleton; do not invent eyes, clothing, speech or a conventional face. This variant may auto-spawn only at the exact LevelKeys listed in this record, selected because current project lore and registry do not define a characteristic resident hostile Entity there.",
+      "presentation": {
+        "appearance": "một sinh vật hình người cao khẳng khiu với cơ thể là những bó sợi đen căng như gân cáp, đầu nhỏ trơn và cổ chúi về phía trước",
+        "approachStyle": "pursue",
+        "details": [
+          "Nhìn nghiêng, phần đầu giống một hộp sọ chưa thành hình bị bọc kín bởi lớp sợi đen bóng; mặt chỉ là một đường cong vô cảm không có điểm để nhìn lại.",
+          "Thân trên hẹp và rỗng, vai kéo ra sau trong khi cổ và đầu chồm tới, tạo cảm giác toàn bộ cơ thể luôn ở nửa nhịp trước một cú lao.",
+          "Cánh tay dài và mảnh nhưng bàn tay phình thành các móc nhiều đốt; những ngón quá dài cong xuống như dụng cụ dùng để ghim con mồi hơn là để cầm nắm.",
+          "Đôi chân dài bất thường với bàn chân kéo thành mũi nhọn; khi bước, hình thể giống một bộ khung dây sống đang cố bắt chước dáng đi của con người."
+        ]
+      },
+      "autoProcSkills": [
+        {
+          "name": "Filament Lash",
+          "damagePercent": 110,
+          "procPercent": 34
+        },
+        {
+          "name": "Hollow Rush",
+          "damagePercent": 115,
+          "procPercent": 30
+        },
+        {
+          "name": "Tendril Rake",
+          "damagePercent": 120,
+          "procPercent": 24
+        },
+        {
+          "name": "Longstep Skewer",
+          "damagePercent": 125,
+          "procPercent": 20,
+          "defensePiercePercent": 60
+        }
+      ]
+    },
+    {
+      "key": "the_lifeform_bacteria_03",
+      "name": "Bacterial Weaver",
+      "spawnClass": "standard",
+      "ratePercent": 5,
+      "levels": [
+        0,
+        4,
+        6
+      ],
+      "levelKeys": [
+        "0",
+        "0.1",
+        "0.2",
+        "the_torment",
+        "red_rooms",
+        "4",
+        "6"
+      ],
+      "canon": "Project Bacterial Lifeform variant derived from the committed visual reference. It is a tall, featureless filament-bodied predator that stalks or rushes isolated targets. Its anatomy is an unresolved mesh of black organic strands rather than a normal human skeleton; do not invent eyes, clothing, speech or a conventional face. This variant may auto-spawn only at the exact LevelKeys listed in this record, selected because current project lore and registry do not define a characteristic resident hostile Entity there.",
+      "presentation": {
+        "appearance": "một hình người cao gầy bị phủ kín bởi mạng sợi đen dày, phần vai và lưng kết thành những mảng rối như cơ bắp mục đang tự bện lại",
+        "approachStyle": "emerge",
+        "details": [
+          "Đầu cúi lệch trên chiếc cổ dài, toàn bộ sọ bị phủ bởi những đường sợi chồng chéo đến mức không còn cấu trúc khuôn mặt; các khe đỏ tối giữa lớp sợi chỉ hiện ra khi ánh sáng lướt qua.",
+          "Vai, sống lưng và lồng ngực dày hơn hai biến thể còn lại nhưng đầy lỗ rỗng; các bó sợi nối qua khoảng trống như một mạng nhện làm bằng gân cháy.",
+          "Hai bàn tay mở rộng thành các vòng móc không đều, nhiều ngón hợp lại rồi tách ra giữa chừng; quanh hông và đùi có những dải sợi thừa buông xuống như phần cơ thể chưa hoàn tất.",
+          "Chân dài kết thúc bằng các bàn chân dạng rễ bám rộng; dáng khom và khối sợi dày khiến nó trông như đang liên tục thu gom vật chất để tự vá lấy chính mình."
+        ]
+      },
+      "autoProcSkills": [
+        {
+          "name": "Filament Lash",
+          "damagePercent": 110,
+          "procPercent": 34
+        },
+        {
+          "name": "Hollow Rush",
+          "damagePercent": 115,
+          "procPercent": 30
+        },
+        {
+          "name": "Tendril Rake",
+          "damagePercent": 120,
+          "procPercent": 24
+        },
+        {
+          "name": "Black-Mesh Feeding",
+          "damagePercent": 120,
+          "procPercent": 20,
+          "healPercentOfDamage": 50
         }
       ]
     }
