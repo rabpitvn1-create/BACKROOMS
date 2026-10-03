@@ -28,13 +28,13 @@ test('entity keeps its own lane and aspect ratio',()=>{
   assert.ok(r.width<=360*.46+1e-7);near(r.width/r.height,m.width/m.height);near(r.baseline,230);
  }
 });
-test('Tâm Ma boss policy expands beyond the normal Entity lane while keeping a grounded baseline',()=>{
- const m=assetMetric('file:///android_asset/entity/tam_ma_cao_minh.webp');
- const normal=layout(m,360,250,'left','entity',family);
- const boss=layout(m,360,250,'left','entity',family,{heightRatio:.94,laneWidth:.68,ground:.95,safeEdge:.01});
- assert.ok(boss.bodyHeight>normal.bodyHeight*1.15);
- near(boss.baseline,237.5);
- assert.ok(boss.top+m.paint.top*boss.scale>=250*.01-1e-7);
+test('new humanoid Entity policy normalizes body height without changing character policy',()=>{
+ const mod=require('../app/src/main/assets/snapshot-ui.js');
+ const keys=['tam_ma_cao_minh','async_member_rifle_aim_right_01','the_lifeform_bacteria_01','the_lifeform_bacteria_02','the_lifeform_bacteria_03'];
+ const results=keys.map(key=>{const m=assetMetric('file:///android_asset/entity/'+key+'.webp');const r=layout(m,360,250,'left','entity',family,mod.entityPolicy(key));near(r.baseline,235);return r.bodyHeight;});
+ results.forEach(h=>near(h,results[0]));
+ const cao=layout(assetMetric('file:///android_asset/cao_minh_entity_overlay.png'),360,250,'right','character',envelope(mod.characterMetrics()));
+ assert.ok(results[0]>cao.bodyHeight);
 });
 
 test('CopX overlay has measured bounds for its refreshed Drive sprite',()=>{

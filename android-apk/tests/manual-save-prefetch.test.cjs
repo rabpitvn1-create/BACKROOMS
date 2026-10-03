@@ -84,6 +84,18 @@ test('Explorer prefetch warms narration only and never previews or commits Core 
   assert.doesNotMatch(refill, /previewTurn\(|processRule\(|completePreparedTurn\(|commitPresentation\(/);
 });
 
+test('combat time reuses the matched pre-encounter oracle to warm post-combat narration', () => {
+  assert.match(bridge, /private JSONArray narrationFutureForecastSteps = new JSONArray\(\)/);
+  assert.match(bridge, /private String narrationFutureForecastPrompt = ""/);
+  assert.match(bridge, /private int combatForecastStartIndex\(/);
+  assert.match(bridge, /GameCoreFacade\.oracleCacheOutcomeMatches\(currentState, step\)/);
+  assert.match(bridge, /private void scheduleCombatNarrationFutureRefill\(/);
+  assert.match(bridge, /if \(CombatChoiceEngine\.isActive\(baseState\)\) \{[\s\S]*scheduleCombatNarrationFutureRefill\(baseState\)/);
+  assert.match(bridge, /scheduleNarrationFutureRefill\(runtime\);[\s\S]*backroomCombatDiceState/);
+  assert.match(bridge, /OfflinePresenter\.isCoreOwnedEntityLifecycle\(safeEvents\)/);
+  assert.match(bridge, /coreOwnedEntityLifecycle \|\| cachedSlot == null/);
+});
+
 test('bridge contains no retired shadow-planner orchestration', () => {
   assert.doesNotMatch(bridge, /GmShadowPlanner|shadowPlannerIo|shadowPlannerCache/);
   assert.doesNotMatch(bridge, /shadowPlannerPrompt\(|authoritativeGmProposal\(|scheduleShadowPlanner\(/);

@@ -69,6 +69,12 @@ test('battle log uses semantic font for Cao Minh title and compact hand tokens',
 });
 
 
+test('combat actor handoff delegates to snapshot transition without clearing the active Entity first', () => {
+  assert.match(source, /backroomSetCombatVisualActor\(actorIndex,entityKey\)/);
+  const sync=source.slice(source.indexOf('function syncCombatSnapshotActor'),source.indexOf('window.backroomCombatDiceState=function'));
+  assert.doesNotMatch(sync, /backroomClearCombatVisualActor\(\);[\s\S]{0,100}backroomSetCombatVisualActor/);
+});
+
 test('combat completion scrolls to the start of the next GM narration', () => {
   const start = source.indexOf('function finishCombatAnimation');
   const end = source.indexOf('window.backroomCombatTurn', start);

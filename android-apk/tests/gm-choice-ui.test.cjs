@@ -25,6 +25,7 @@ test('GM choices expose one scene-driven default while keeping Core-routed mecha
   assert.match(ui,/prefix \? prefix \+ '\. ' : '• '/);
   assert.doesNotMatch(ui,/state\.story|resolveStoryDecision|prepareStoryDecision|returnJourney|attackStoryEntity/);
 });
+test('terminal Entity victory shatters the sprite before normal combat cleanup',()=>{const block=ui.slice(ui.indexOf('window.backroomCombatTurn = function'),ui.indexOf('var previousError'));assert.match(block,/combat\.active!==true&&combat\.outcome==='victory'/);assert.match(block,/window\.backroomShatterEntity\(function\(\)\{finishCombatAnimation\(token\);\}\)/);});
 test('composer is locked only by active gameplay constraints',()=>{
   const body=ui.split('function syncComposer()')[1].split('var dicePanel=')[0];
   assert.match(body,/combat/);

@@ -90,7 +90,16 @@ var SnapshotOverlayLayout = (function(){
       left:side==='right'?width-margin-p.right*scale:margin-p.left*scale,
       baseline:ground,bodyHeight:target};
   }
-  return {bounds:bounds,envelope:envelope,layout:layout,assetMetric:assetMetric,canvasMetric:canvasMetric,characterMetrics:characterMetrics};
+  var STANDARD_HUMANOID_ENTITY_KEYS=[
+    'tam_ma_cao_minh','async_member_rifle_aim_right_01',
+    'the_lifeform_bacteria_01','the_lifeform_bacteria_02','the_lifeform_bacteria_03'
+  ];
+  function entityPolicy(key){
+    return STANDARD_HUMANOID_ENTITY_KEYS.indexOf(String(key||''))>=0
+      ?{heightRatio:.90,laneWidth:.62,ground:.94,safeEdge:.01}:null;
+  }
+  return {bounds:bounds,envelope:envelope,layout:layout,assetMetric:assetMetric,canvasMetric:canvasMetric,
+    characterMetrics:characterMetrics,entityPolicy:entityPolicy};
 })();
 if(typeof module!=='undefined'&&module.exports)module.exports=SnapshotOverlayLayout;
 (function(){
@@ -98,7 +107,7 @@ if(typeof module!=='undefined'&&module.exports)module.exports=SnapshotOverlayLay
   if(window.__backroomEnhancements)return;
   window.__backroomEnhancements=true;
   var st=document.createElement('style');
-  st.textContent='button{transition:transform 80ms ease,background 120ms ease,border-color 120ms ease;touch-action:manipulation;-webkit-tap-highlight-color:rgba(255,255,255,.12)}button:active:not(:disabled){transform:scale(.965);background:#303840;border-color:#77828c}button:disabled{opacity:.48;cursor:not-allowed}.snapshot-placeholder{display:grid;place-items:center;gap:7px;text-align:center;color:#69737c}.snapshot-placeholder b{font-size:12px;letter-spacing:.16em}.snapshot-placeholder small{color:#56616a}.message.pending{opacity:.72}.message.pending .text{color:#aeb7be}.snapshot{position:relative;overflow:hidden;isolation:isolate}.snapshot>img.snapshot-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}.snapshot>img.snapshot-map{object-fit:contain;background:#050607}.snapshot>img.snapshot-grounded{position:absolute;left:auto;right:2.5%;top:8%;width:auto;height:84%;max-width:95%;max-height:none;object-fit:contain;pointer-events:none;transform:none}.snapshot>img.snapshot-character{z-index:4;filter:drop-shadow(0 0 10px rgba(0,0,0,.45))}.snapshot>img.snapshot-entity{left:2.5%;right:auto;max-width:46%;z-index:3;filter:drop-shadow(0 0 10px rgba(0,0,0,.55))}.snapshot-character-placeholder{position:absolute;right:2.5%;bottom:8%;width:38%;height:84%;z-index:4;pointer-events:none;opacity:.46;filter:drop-shadow(0 0 10px rgba(0,0,0,.5));animation:combat-overlay-enter .18s ease-out}.snapshot-character-placeholder:before{content:"";position:absolute;left:50%;top:2%;width:27%;aspect-ratio:1;border-radius:50%;transform:translateX(-50%);background:#fff}.snapshot-character-placeholder:after{content:"";position:absolute;left:13%;right:13%;bottom:0;height:78%;background:#fff;clip-path:polygon(38% 0,62% 0,72% 10%,82% 25%,88% 51%,76% 100%,24% 100%,12% 51%,18% 25%,28% 10%);border-radius:18% 18% 9% 9%}.snapshot-combat-character{animation:combat-overlay-enter .18s ease-out}.combat-hit-flash{animation:combat-hit-flash .14s ease-out!important}.combat-float{position:absolute;z-index:8;pointer-events:none;transform:translate(-50%,0);font-family:Play,"Pretendard Std",system-ui,sans-serif;font-weight:700;font-size:19px;color:#fff;white-space:nowrap;text-shadow:0 2px 3px #000,0 0 6px #000;animation:combat-float-up 1.6s ease-out forwards}@keyframes combat-hit-flash{0%,100%{opacity:1}50%{filter:brightness(0) invert(1) drop-shadow(0 0 8px #fff);opacity:1}}@keyframes combat-float-up{0%{opacity:0;transform:translate(-50%,8px) scale(.96)}12%{opacity:1}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-34px) scale(1.04)}}@keyframes combat-overlay-enter{from{opacity:0}to{opacity:1}}.snapshot>img.snapshot-chest{position:absolute;left:50%;bottom:-5%;transform:translateX(-50%);width:auto;max-width:58%;height:92%;object-fit:contain;object-position:center bottom;z-index:3;pointer-events:none;filter:drop-shadow(0 10px 16px rgba(0,0,0,.65))}';
+  st.textContent='button{transition:transform 80ms ease,background 120ms ease,border-color 120ms ease;touch-action:manipulation;-webkit-tap-highlight-color:rgba(255,255,255,.12)}button:active:not(:disabled){transform:scale(.965);background:#303840;border-color:#77828c}button:disabled{opacity:.48;cursor:not-allowed}.snapshot-placeholder{display:grid;place-items:center;gap:7px;text-align:center;color:#69737c}.snapshot-placeholder b{font-size:12px;letter-spacing:.16em}.snapshot-placeholder small{color:#56616a}.message.pending{opacity:.72}.message.pending .text{color:#aeb7be}.snapshot{position:relative;overflow:hidden;isolation:isolate}.snapshot>img.snapshot-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}.snapshot>img.snapshot-map{object-fit:contain;background:#050607}.snapshot>img.snapshot-grounded{position:absolute;left:auto;right:2.5%;top:8%;width:auto;height:84%;max-width:95%;max-height:none;object-fit:contain;pointer-events:none;transform:none}.snapshot>img.snapshot-character{z-index:4;filter:drop-shadow(0 0 10px rgba(0,0,0,.45))}.snapshot>img.snapshot-entity{left:2.5%;right:auto;max-width:46%;z-index:3;filter:drop-shadow(0 0 10px rgba(0,0,0,.55))}.snapshot-character-placeholder{position:absolute;right:2.5%;bottom:8%;width:38%;height:84%;z-index:4;pointer-events:none;opacity:.46;filter:drop-shadow(0 0 10px rgba(0,0,0,.5))}.snapshot-character-placeholder:before{content:"";position:absolute;left:50%;top:2%;width:27%;aspect-ratio:1;border-radius:50%;transform:translateX(-50%);background:#fff}.snapshot-character-placeholder:after{content:"";position:absolute;left:13%;right:13%;bottom:0;height:78%;background:#fff;clip-path:polygon(38% 0,62% 0,72% 10%,82% 25%,88% 51%,76% 100%,24% 100%,12% 51%,18% 25%,28% 10%);border-radius:18% 18% 9% 9%}.snapshot-combat-character{transform-origin:50% 62%;backface-visibility:hidden}.snapshot-combat-enter{animation:combat-overlay-enter .18s ease-out}.combat-turn-out{animation:combat-turn-out .24s ease-in forwards;transform-origin:50% 62%;backface-visibility:hidden}.combat-turn-in{animation:combat-turn-in .24s ease-out both;transform-origin:50% 62%;backface-visibility:hidden}.combat-shatter-layer{position:absolute;z-index:7;pointer-events:none;overflow:visible}.combat-shard{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none;animation:combat-shard-break .72s cubic-bezier(.18,.68,.2,1) forwards;animation-delay:var(--delay,0ms)}.combat-hit-flash{animation:combat-hit-flash .14s ease-out!important}.combat-float{position:absolute;z-index:8;pointer-events:none;transform:translate(-50%,0);font-family:Play,"Pretendard Std",system-ui,sans-serif;font-weight:700;font-size:19px;color:#fff;white-space:nowrap;text-shadow:0 2px 3px #000,0 0 6px #000;animation:combat-float-up 1.6s ease-out forwards}@keyframes combat-hit-flash{0%,100%{opacity:1}50%{filter:brightness(0) invert(1) drop-shadow(0 0 8px #fff);opacity:1}}@keyframes combat-float-up{0%{opacity:0;transform:translate(-50%,8px) scale(.96)}12%{opacity:1}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-34px) scale(1.04)}}@keyframes combat-overlay-enter{from{opacity:0}to{opacity:1}}@keyframes combat-turn-out{0%{opacity:1;transform:perspective(900px) rotateY(0deg) translateX(0)}100%{opacity:0;transform:perspective(900px) rotateY(-78deg) translateX(34px)}}@keyframes combat-turn-in{0%{opacity:0;transform:perspective(900px) rotateY(78deg) translateX(-34px)}100%{opacity:1;transform:perspective(900px) rotateY(0deg) translateX(0)}}@keyframes combat-shard-break{0%{opacity:1;transform:translate(0,0) rotate(0deg) scale(1);filter:brightness(1)}24%{filter:brightness(1.8)}100%{opacity:0;transform:translate(var(--tx),var(--ty)) rotate(var(--rot)) scale(.86);filter:brightness(.7)}}.snapshot>img.snapshot-chest{position:absolute;left:50%;bottom:-5%;transform:translateX(-50%);width:auto;max-width:58%;height:92%;object-fit:contain;object-position:center bottom;z-index:3;pointer-events:none;filter:drop-shadow(0 10px 16px rgba(0,0,0,.65))}';
   document.head.appendChild(st);
   var __overlayBoundsCache={};
   // Synchronous metadata avoids coupling any sprite to other images' load events.
@@ -128,8 +137,7 @@ if(typeof module!=='undefined'&&module.exports)module.exports=SnapshotOverlayLay
       var box=img.parentElement;
       if(!box||!img.complete||!img.naturalWidth||!__characterFamily)return;
       var metric=spriteMetric(img);
-      var policy=category==='entity'&&img.dataset.entityKey==='tam_ma_cao_minh'
-        ?{heightRatio:.94,laneWidth:.68,ground:.95,safeEdge:.01}:null;
+      var policy=category==='entity'?SnapshotOverlayLayout.entityPolicy(img.dataset.entityKey):null;
       var result=SnapshotOverlayLayout.layout(metric,box.clientWidth,box.clientHeight,side,category,__characterFamily,policy);
       if(!result)return;
       img.style.maxWidth='none';img.style.right='auto';
@@ -170,17 +178,18 @@ if(typeof module!=='undefined'&&module.exports)module.exports=SnapshotOverlayLay
     var img=document.createElement('img');img.className='snapshot-character snapshot-grounded';img.src='file:///android_asset/cao_minh_snapshot_overlay.png';img.alt='Cao Minh';box.appendChild(img);alignOverlayToGround(img,'right','character');return img;
   }
 
-  function appendCombatCharacter(box,participant){
+  function appendCombatCharacter(box,participant,motionClass){
     var actor=participant||{id:'cao_minh',name:'Cao Minh'},id=normalizeActorId(actor.id||actor.name),src=__combatCharacterOverlays[id]||'';
+    var motion=motionClass?' '+motionClass:'';
     if(src){
-      var img=document.createElement('img');img.className='snapshot-character snapshot-grounded snapshot-combat-character';img.src=src;img.alt=actor.name||actor.id||'Nhân vật';img.dataset.combatActor=id;box.appendChild(img);alignOverlayToGround(img,'right','character');return img;
+      var img=document.createElement('img');img.className='snapshot-character snapshot-grounded snapshot-combat-character'+motion;img.src=src;img.alt=actor.name||actor.id||'Nhân vật';img.dataset.combatActor=id;box.appendChild(img);alignOverlayToGround(img,'right','character');return img;
     }
-    var placeholder=document.createElement('div');placeholder.className='snapshot-character-placeholder snapshot-combat-character';placeholder.setAttribute('role','img');placeholder.setAttribute('aria-label',actor.name||actor.id||'Nhân vật');box.appendChild(placeholder);alignPlaceholder(placeholder);return placeholder;
+    var placeholder=document.createElement('div');placeholder.className='snapshot-character-placeholder snapshot-combat-character'+motion;placeholder.setAttribute('role','img');placeholder.setAttribute('aria-label',actor.name||actor.id||'Nhân vật');box.appendChild(placeholder);alignPlaceholder(placeholder);return placeholder;
   }
   function appendSnapshotOverlay(box){
     var key=activeEntityKey(),img;
     if(key){
-      appendCombatCharacter(box,combatVisualParticipant());
+      appendCombatCharacter(box,combatVisualParticipant(),'snapshot-combat-enter');
       img=document.createElement('img');
       img.className='snapshot-entity snapshot-grounded';
       img.dataset.entityKey=key;
@@ -212,14 +221,50 @@ if(typeof module!=='undefined'&&module.exports)module.exports=SnapshotOverlayLay
     }
     return {box:box,el:el,x:x,y:y};
   }
+  function rotateCombatActor(nextIndex,nextEntity){
+    var box=document.getElementById('snapshot');if(!box)return false;
+    var existing=box.querySelectorAll('img.snapshot-combat-character,.snapshot-character-placeholder.snapshot-combat-character');
+    var previous=existing&&existing.length?existing[0]:null;
+    if(!previous)return false;
+    window.__combatVisualActorIndex=nextIndex;window.__combatVisualEntityKey=nextEntity;
+    var next=appendCombatCharacter(box,combatVisualParticipant(),'combat-turn-in');
+    if(!next)return false;
+    previous.className=String(previous.className||'')
+      .replace(/\bsnapshot-combat-character\b/g,'').replace(/\bsnapshot-combat-enter\b/g,'')
+      .replace(/\s+/g,' ').trim()+' combat-turn-out';
+    setTimeout(function(){
+      try{if(previous&&typeof previous.remove==='function')previous.remove();}catch(_){}
+      try{if(next)next.className=String(next.className||'').replace(/\bcombat-turn-in\b/g,'').replace(/\s+/g,' ').trim();}catch(_){}
+    },270);
+    return true;
+  }
   window.backroomSetCombatVisualActor=function(index,entityKey){
     var nextIndex=Number(index),nextEntity=String(entityKey||'');
     if(window.__combatVisualActorIndex===nextIndex&&window.__combatVisualEntityKey===nextEntity)return;
+    var previousIndex=window.__combatVisualActorIndex,previousEntity=window.__combatVisualEntityKey;
+    if(previousIndex!==null&&previousEntity===nextEntity&&previousIndex!==nextIndex
+        &&rotateCombatActor(nextIndex,nextEntity))return;
     window.__combatVisualActorIndex=nextIndex;window.__combatVisualEntityKey=nextEntity;renderSnapshot();
   };
   window.backroomClearCombatVisualActor=function(){
     if(window.__combatVisualActorIndex===null&&!window.__combatVisualEntityKey)return;
     window.__combatVisualActorIndex=null;window.__combatVisualEntityKey='';renderSnapshot();
+  };
+  window.backroomShatterEntity=function(done){
+    try{
+      var box=document.getElementById('snapshot'),list=box?box.querySelectorAll('img.snapshot-entity'):null;
+      var entity=list&&list.length?list[0]:null;
+      if(!box||!entity){if(typeof done==='function')done();return;}
+      var br=box.getBoundingClientRect(),er=entity.getBoundingClientRect();
+      var layer=document.createElement('div');layer.className='combat-shatter-layer';
+      layer.style.left=(er.left-br.left)+'px';layer.style.top=(er.top-br.top)+'px';
+      layer.style.width=er.width+'px';layer.style.height=er.height+'px';
+      var clips=['polygon(0 0,34% 0,18% 34%)','polygon(34% 0,68% 0,50% 35%,18% 34%)','polygon(68% 0,100% 0,100% 27%,50% 35%)','polygon(0 0,18% 34%,0 68%)','polygon(18% 34%,50% 35%,38% 66%,0 68%)','polygon(50% 35%,100% 27%,100% 62%,38% 66%)','polygon(0 68%,38% 66%,25% 100%,0 100%)','polygon(38% 66%,68% 64%,74% 100%,25% 100%)','polygon(68% 64%,100% 62%,100% 100%,74% 100%)','polygon(18% 34%,34% 0,50% 35%)','polygon(38% 66%,50% 35%,68% 64%)','polygon(50% 35%,100% 27%,68% 64%)'];
+      var motion=[[-52,-46,-28],[-18,-62,-12],[42,-50,24],[-64,-6,-38],[-28,18,-18],[58,-8,32],[-48,58,-34],[-4,72,10],[52,62,38],[-34,-34,18],[16,42,-26],[64,22,44]];
+      for(var i=0;i<clips.length;i++){var shard=document.createElement('img');shard.className='combat-shard';shard.src=entity.src;shard.alt='';shard.style.clipPath=clips[i];shard.style.webkitClipPath=clips[i];shard.style.setProperty('--tx',motion[i][0]+'px');shard.style.setProperty('--ty',motion[i][1]+'px');shard.style.setProperty('--rot',motion[i][2]+'deg');shard.style.setProperty('--delay',String((i%4)*16)+'ms');layer.appendChild(shard);}
+      entity.style.opacity='0';box.appendChild(layer);
+      setTimeout(function(){try{if(layer&&typeof layer.remove==='function')layer.remove();}catch(_){}if(typeof done==='function')done();},820);
+    }catch(_){if(typeof done==='function')done();}
   };
   window.backroomPlayCombatFeedback=function(event){
     try{

@@ -61,6 +61,8 @@ public class MainActivity extends Activity {
   private final Object narrationFutureLock = new Object();
   private long narrationFutureEpoch = 0L;
   private boolean narrationFutureRefillRunning = false;
+  private JSONArray narrationFutureForecastSteps = new JSONArray();
+  private String narrationFutureForecastPrompt = "";
   private GameCoreFacade gameCore;
   private MilestoneCore milestoneCore;
   private JSONArray narrationFutureCache = new JSONArray();
@@ -800,6 +802,8 @@ public class MainActivity extends Activity {
   private void clearNarrationFutureCache() {
     synchronized (narrationFutureLock) {
       narrationFutureCache = new JSONArray();
+      narrationFutureForecastSteps = new JSONArray();
+      narrationFutureForecastPrompt = "";
       narrationFutureEpoch++;
     }
   }
@@ -859,11 +863,30 @@ public class MainActivity extends Activity {
     }
   }
 
+  private int combatForecastStartIndex(JSONObject currentState, JSONArray oracleSteps) {
+    try {
+      if (currentState == null || !CombatChoiceEngine.isActive(currentState)) return -1;
+      JSONObject combat = currentState.optJSONObject("combat");
+      JSONObject entity = combat == null ? null : combat.optJSONObject("entity");
+      String entityKey = entity == null ? "" : entity.optString("key", "").trim();
+      if (entityKey.isEmpty()) entityKey = encounterKey(currentState);
+      for (int i = 0; oracleSteps != null && i < oracleSteps.length(); i++) {
+        JSONObject step = oracleSteps.optJSONObject(i);
+        if (step == null || !"ENTITY".equals(step.optString("worldKind", ""))) continue;
+        if (!entityKey.equals(step.optString("payloadKey", "").trim())) continue;
+        if (GameCoreFacade.oracleCacheOutcomeMatches(currentState, step)) return i + 1;
+      }
+    } catch (Exception ignored) {}
+    return -1;
+  }
+
   private int narrationFutureAlignment(
       JSONObject currentState, String baseHash, JSONArray oracleSteps) {
     try {
+      int combatStart = combatForecastStartIndex(currentState, oracleSteps);
+      if (combatStart >= 0) return combatStart;
       String currentHash = GameCoreFacade.oracleAuthorityHash(currentState);
-      if (baseHash.equals(currentHash)) return 0;
+      if (baseHash != null && !baseHash.isEmpty() && baseHash.equals(currentHash)) return 0;
       for (int i = 0; oracleSteps != null && i < oracleSteps.length(); i++) {
         JSONObject step = oracleSteps.optJSONObject(i);
         if (step == null) continue;
@@ -901,11 +924,65 @@ public class MainActivity extends Activity {
         + "OUTPUT chỉ JSON: {\\\"future\\\":[6 capsule]}.";
   }
 
+  private void scheduleCombatNarrationFutureRefill(JSONObject combatState) {
+    try {
+      final JSONArray oracleSteps;
+      final String prompt;
+      final int startIndex;
+      final long expectedEpoch;
+      synchronized (narrationFutureLock) {
+        if (narrationFutureRefillRunning || narrationFutureCache.length() >= 4
+            || narrationFutureForecastSteps.length() == 0
+            || narrationFutureForecastPrompt.trim().isEmpty()) return;
+        oracleSteps = new JSONArray(narrationFutureForecastSteps.toString());
+        prompt = narrationFutureForecastPrompt;
+        startIndex = combatForecastStartIndex(combatState, oracleSteps);
+        if (startIndex < 0 || startIndex >= oracleSteps.length()) return;
+        narrationFutureRefillRunning = true;
+        expectedEpoch = narrationFutureEpoch;
+      }
+
+      narrationFutureIo.execute(() -> {
+        try {
+          JSONObject parsed = parseModelJson(generateText(prompt));
+          JSONArray future = parsed.optJSONArray("future");
+          if (future == null || future.length() == 0) return;
+
+          JSONObject current = new JSONObject(gameCore.currentCoreState());
+          int aligned = narrationFutureAlignment(current, "", oracleSteps);
+          if (aligned < 0) {
+            JSONObject combat = current.optJSONObject("combat");
+            if (combat != null && !combat.optBoolean("active", false)
+                && "victory".equals(combat.optString("outcome", ""))) {
+              aligned = startIndex;
+            }
+          }
+          if (aligned < 0 || aligned >= oracleSteps.length()) return;
+
+          synchronized (narrationFutureLock) {
+            if (narrationFutureEpoch != expectedEpoch) return;
+            replaceNarrationFutureLocked(new JSONArray(future.toString()), oracleSteps, aligned);
+          }
+        } catch (Exception error) {
+          Log.d(TAG, "Combat narration prefetch skipped: " + error.getMessage());
+        } finally {
+          synchronized (narrationFutureLock) { narrationFutureRefillRunning = false; }
+        }
+      });
+    } catch (Exception error) {
+      synchronized (narrationFutureLock) { narrationFutureRefillRunning = false; }
+      Log.d(TAG, "Unable to schedule combat narration prefetch: " + error.getMessage());
+    }
+  }
+
   private void scheduleNarrationFutureRefill(JSONObject baseState) {
     try {
-      if (baseState == null || baseState.length() == 0
-          || CombatChoiceEngine.isActive(baseState)
-          || CombatChoiceEngine.isKnownEntity(encounterKey(baseState))) return;
+      if (baseState == null || baseState.length() == 0) return;
+      if (CombatChoiceEngine.isActive(baseState)) {
+        scheduleCombatNarrationFutureRefill(baseState);
+        return;
+      }
+      if (CombatChoiceEngine.isKnownEntity(encounterKey(baseState))) return;
       final long expectedEpoch;
       synchronized (narrationFutureLock) {
         if (narrationFutureRefillRunning || narrationFutureCache.length() >= 4) return;
@@ -924,6 +1001,10 @@ public class MainActivity extends Activity {
       final JSONArray oracleSteps = new JSONArray(steps.toString());
       final String prompt = narrationFuturePrompt(base,
           oracle.optString("context", "CORE ORACLE WINDOW: unavailable."));
+      synchronized (narrationFutureLock) {
+        narrationFutureForecastSteps = new JSONArray(oracleSteps.toString());
+        narrationFutureForecastPrompt = prompt;
+      }
 
       narrationFutureIo.execute(() -> {
         try {
@@ -1079,9 +1160,11 @@ public class MainActivity extends Activity {
           JSONObject safeEvidence = SafePresentationView.evidence(state, narrationEvidence);
           String presentationBaseHash = GameCoreFacade.presentationBaseHash(state);
           final JSONObject narrationState = state;
+          boolean coreOwnedEntityLifecycle =
+              OfflinePresenter.isCoreOwnedEntityLifecycle(safeEvents);
           JSONObject cachedSlot = pollNarrationFuture(narrationState);
-          JSONObject cachedGenerated =
-              cachedSlot == null ? null : cachedSlot.optJSONObject("payload");
+          JSONObject cachedGenerated = coreOwnedEntityLifecycle || cachedSlot == null
+              ? null : cachedSlot.optJSONObject("payload");
           if (cachedGenerated != null
               && !NarrationGuard.validate(cachedGenerated, narrationState, safeEvidence).isEmpty()) {
             clearNarrationFutureCache();
@@ -1181,6 +1264,7 @@ public class MainActivity extends Activity {
           if (CombatChoiceEngine.isKnownEntity(newEncounter) && !CombatChoiceEngine.isActive(state)) {
             state = new JSONObject(
                 gameCore.startCombatRuntime(newEncounter, lastGmLogIndex(state)));
+            scheduleNarrationFutureRefill(state);
           }
 
           if (BuildConfig.DEBUG) {
@@ -1223,6 +1307,7 @@ public class MainActivity extends Activity {
       io.execute(() -> {
         try {
           JSONObject runtime = new JSONObject(gameCore.combatRollRuntime());
+          scheduleNarrationFutureRefill(runtime);
           emit("backroomCombatDiceState", runtime.toString());
         } catch (Exception e) {
           emit("backroomError", e.getMessage() == null ? "Không thể ROLL." : e.getMessage());
@@ -1234,6 +1319,7 @@ public class MainActivity extends Activity {
       io.execute(() -> {
         try {
           JSONObject runtime = new JSONObject(gameCore.combatHoldRuntime(dieIndex, held));
+          scheduleNarrationFutureRefill(runtime);
           emit("backroomCombatDiceState", runtime.toString());
         } catch (Exception e) {
           emit("backroomError", e.getMessage() == null ? "Không thể HOLD die." : e.getMessage());
@@ -1245,6 +1331,7 @@ public class MainActivity extends Activity {
       io.execute(() -> {
         try {
           JSONObject runtime = new JSONObject(gameCore.combatFinishRuntime());
+          scheduleNarrationFutureRefill(runtime);
           emit("backroomCombatDiceState", runtime.toString());
         } catch (Exception e) {
           emit("backroomError", e.getMessage() == null ? "Không thể FINISH hand." : e.getMessage());

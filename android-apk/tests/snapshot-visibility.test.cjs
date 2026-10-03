@@ -37,17 +37,18 @@ test('same combat actor and Entity keep the existing snapshot DOM across dice up
  assert.notEqual(r.elements.find(e=>e.className.includes('snapshot-combat-character')),firstActor);
 });
 
-test('Tâm Ma uses boss-scale geometry and renders behind the combat character',()=>{
- const m=geometry.assetMetric('file:///android_asset/entity/tam_ma_cao_minh.webp');
+test('new humanoid Entities and Tâm Ma share one visual scale while Cao Minh geometry is untouched',()=>{
  const family=geometry.envelope(geometry.characterMetrics());
- const normal=geometry.layout(m,350,250,'left','entity',family);
- const boss=geometry.layout(m,350,250,'left','entity',family,{heightRatio:.94,laneWidth:.68,ground:.95,safeEdge:.01});
- assert.ok(boss.bodyHeight>normal.bodyHeight*1.15);
- const css=boot().styles.join('');
- assert.match(css,/snapshot>img\.snapshot-character\{z-index:4/);
- assert.match(css,/snapshot>img\.snapshot-entity\{[^}]*z-index:3/);
+ const keys=['tam_ma_cao_minh','async_member_rifle_aim_right_01','the_lifeform_bacteria_01','the_lifeform_bacteria_02','the_lifeform_bacteria_03'];
+ const heights=keys.map(key=>{const m=geometry.assetMetric('file:///android_asset/entity/'+key+'.webp');return geometry.layout(m,350,250,'left','entity',family,geometry.entityPolicy(key)).bodyHeight;});
+ heights.forEach(h=>assert.ok(Math.abs(h-heights[0])<1e-7));
+ const cao=geometry.layout(geometry.assetMetric('file:///android_asset/cao_minh_entity_overlay.png'),350,250,'right','character',family);
+ assert.ok(heights[0]>cao.bodyHeight);
+ const css=boot().styles.join('');assert.match(css,/snapshot>img\.snapshot-character\{z-index:4/);assert.match(css,/snapshot>img\.snapshot-entity\{[^}]*z-index:3/);
 });
 
+test('combat actor changes use rotation transitions instead of snapshot blinking',()=>{assert.match(source,/function rotateCombatActor\(/);assert.match(source,/@keyframes combat-turn-out/);assert.match(source,/@keyframes combat-turn-in/);});
+test('Entity victory exposes deterministic glass-shatter fragments',()=>{assert.match(source,/window\.backroomShatterEntity=function/);assert.match(source,/combat-shard-break/);const b=source.slice(source.indexOf('window.backroomShatterEntity=function'),source.indexOf('window.backroomPlayCombatFeedback=function'));assert.match(b,/var clips=\[/);assert.doesNotMatch(b,/Math\.random/);});
 test('unknown sprite remains visible when canvas throws SecurityError',()=>{
  const r=boot({unknown:true});visible(r.elements.find(e=>e.className.includes('snapshot-character')));assert.equal(r.reads(),1);
 });

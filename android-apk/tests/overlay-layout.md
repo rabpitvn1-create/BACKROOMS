@@ -83,3 +83,12 @@ It fails on the previous renderer (loaded Cao Minh remains hidden after network 
 ## Combat redraw stability
 
 Dice-state updates no longer rebuild the snapshot when the active actor index and Entity key are unchanged. `backroomSetCombatVisualActor()` and the clear path are idempotent, so ROLL/HOLD/FINISH updates keep the existing Cao Minh DOM node and do not replay `combat-overlay-enter`. A real actor/Entity change still triggers a snapshot rebuild and the entry animation.
+
+
+## Unified active-Entity scale
+
+Cao Minh's character geometry remains the reference and is not resized. Tâm Ma Cao Minh, Research Async Member, and the three Bacterial Lifeforms share a dedicated active-Entity policy (90% logical body-height target, 62% lane, 94% ground line). This removes per-asset size jumps while leaving legacy Entity geometry and all character geometry unchanged.
+
+## Turn handoff and victory effect
+
+When the active party actor changes, the snapshot keeps the background and Entity node mounted and rotates the outgoing/incoming character sprites through a short Y-axis handoff instead of rebuilding the whole snapshot. On committed Entity victory, the current Entity sprite is copied into deterministic clipped fragments and plays a glass-shatter animation before normal combat cleanup removes it. The effect is presentation-only and does not mutate Core authority.

@@ -772,7 +772,16 @@
         }, COMBAT_PHASE_MS);
         delay += COMBAT_PHASE_MS;
       }
-      setTimeout(function(){ finishCombatAnimation(token); }, delay);
+      setTimeout(function(){
+        if(token!==window.__combatAnimationToken)return;
+        if(combat.active!==true&&combat.outcome==='victory'
+            &&typeof window.backroomShatterEntity==='function'){
+          if(status)status.textContent='Entity đang vỡ tan…';
+          window.backroomShatterEntity(function(){finishCombatAnimation(token);});
+          return;
+        }
+        finishCombatAnimation(token);
+      }, delay);
     } catch (error) {
       ++window.__combatAnimationToken;
       window.__combatFeedbackBusy = false;
