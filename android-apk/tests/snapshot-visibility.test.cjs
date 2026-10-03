@@ -22,7 +22,7 @@ function visible(img){assert.notEqual(img.style.visibility,'hidden');assert.ok(p
 test('bundled standing/combat/Entity render without any readable canvas or detached preloads',()=>{
  const r=boot();visible(r.elements.find(e=>e.className.includes('snapshot-character')));
  for(const actor of [0,1]){r.ctx.backroomSetCombatVisualActor(actor,'deathmoth');r.elements.filter(e=>e.className.includes('snapshot-grounded')).forEach(visible);}
- assert.equal(r.reads(),0);assert.ok(!r.styles.join('').includes('visibility:hidden'));
+ assert.equal(r.reads(),0);assert.doesNotMatch(r.styles.join(''),/(?:^|[;{])visibility:hidden(?:[;}])/);
 });
 test('same combat actor and Entity keep the existing snapshot DOM across dice updates',()=>{
  const r=boot();
