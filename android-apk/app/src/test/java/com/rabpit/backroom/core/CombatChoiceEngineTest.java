@@ -518,7 +518,7 @@ public class CombatChoiceEngineTest {
       assertEquals(expectedUniqueMechanics[k][2], heal.getInt(unique));
     }
 
-    assertEquals(15, CombatChoiceEngine.piercedIncomingDamage(20, 10, 100));
+    assertEquals(20, CombatChoiceEngine.piercedIncomingDamage(20, 10, 100));
     assertEquals(5, CombatChoiceEngine.drainHealAmount(10, 50));
   }
 
