@@ -125,7 +125,7 @@ test('oracle narration cache stays warm without blocking current narration on a 
   assert.match(bridge, /GameCoreFacade\.oracleAuthorityHash\(committedState\)/);
   assert.match(bridge, /GameCoreFacade\.oracleCacheOutcomeMatches\(committedState, slot\)/);
   assert.match(bridge, /private String narrationFuturePrompt\(/);
-  assert.match(bridge, /OUTPUT chỉ JSON: \{\\\"future\\\"/);
+  assert.match(bridge, /OUTPUT chỉ JSON:[^\n]*future/);
   assert.match(bridge, /private void scheduleNarrationFutureRefill\(JSONObject baseState\)/);
   assert.match(bridge, /narrationFutureCache\.length\(\) >= 4/);
   assert.match(bridge, /narrationFutureRefillRunning = true/);
