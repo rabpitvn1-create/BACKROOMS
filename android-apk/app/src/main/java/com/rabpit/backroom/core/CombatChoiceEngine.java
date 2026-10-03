@@ -904,7 +904,7 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
       boolean critical = actorCriticalTriggers(combat, actor, entity);
       int damage = basicDamage(baseAttack, str, handPercent);
       if (critical) damage = criticalDamage(damage);
-      applyEntityDamage(combat, entity, damage);
+      applyEntityDamage(combat, entity, damage, critical);
       List<String> effects = applyCharacterProcs(combat, actor, entity, baseAttack);
       result.summary = actorBattleSummary(
           hand, actorName, action, false, critical, entity, hpBefore, effects);
@@ -949,12 +949,15 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
     boolean critical = actorCriticalTriggers(combat, actor, entity);
     int damage = skillDamage(baseAttack, selected.optInt("damagePercent", 100), skl, handPercent);
     if (critical) damage = criticalDamage(damage);
-    applyEntityDamage(combat, entity, damage);
+    applyEntityDamage(combat, entity, damage, critical);
 
     List<String> effects = new ArrayList<>();
     String selectedEffect = selected.optString("effect", "");
     applySkillEffect(entity, selected);
-    if (isTrackedStatusEffect(selectedEffect)) effects.add(selectedEffect);
+    if (isTrackedStatusEffect(selectedEffect)) {
+      effects.add(selectedEffect);
+      if (entity.optInt("hp", 0) > 0) annotateLastEntityDamageFeedback(combat, selectedEffect);
+    }
     effects.addAll(applyCharacterProcs(combat, actor, entity, baseAttack));
 
     result.summary = actorBattleSummary(
@@ -1070,13 +1073,37 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
 
   private static void applyEntityDamage(JSONObject combat, JSONObject entity, int damage)
       throws Exception {
+    applyEntityDamage(combat, entity, damage, false);
+  }
+
+  private static void applyEntityDamage(JSONObject combat, JSONObject entity, int damage,
+                                        boolean critical) throws Exception {
     int raw = Math.max(1, damage);
     int armorBreak = entity.optInt("armorBreakTurns", 0) > 0
         ? Math.max(0, entity.optInt("armorBreakPercent", 0)) : 0;
     int resolved = Math.max(1, (int)(((long)raw * (100L + armorBreak) + 50L) / 100L));
     int hp = Math.max(0, entity.optInt("hp", 0) - resolved);
     entity.put("hp", hp);
-    addFeedback(combat, "actor", "entity", "damage", "-" + resolved + " HP", true);
+    addFeedback(combat, "actor", "entity", "damage", "-" + resolved + " HP", true,
+        critical, "");
+  }
+
+  private static void annotateLastEntityDamageFeedback(JSONObject combat, String status)
+      throws Exception {
+    String canonical = canonicalStatusEffect(status);
+    if (canonical.isEmpty()) return;
+    JSONArray events = combat.optJSONArray("feedbackEvents");
+    if (events == null) return;
+    for (int i = events.length() - 1; i >= 0; i--) {
+      JSONObject event = events.optJSONObject(i);
+      if (event == null) continue;
+      if ("actor".equals(event.optString("phase", ""))
+          && "entity".equals(event.optString("target", ""))
+          && "damage".equals(event.optString("kind", ""))) {
+        event.put("status", canonical);
+        return;
+      }
+    }
   }
 
   private static void applySkillEffect(JSONObject entity, JSONObject selected) throws Exception {
@@ -1111,7 +1138,10 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
       applyEntityDamage(combat, entity, bonus);
       if (entity.optInt("hp", 0) <= 0) return effects;
       applyStackingEffect(entity, proc.effect, proc.effectTurns, proc.effectValue);
-      if (isTrackedStatusEffect(proc.effect)) effects.add(proc.effect);
+      if (isTrackedStatusEffect(proc.effect)) {
+        effects.add(proc.effect);
+        annotateLastEntityDamageFeedback(combat, proc.effect);
+      }
     }
     return effects;
   }
@@ -1280,7 +1310,8 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
       int remaining = bleedTurns - 1;
       entity.put("bleedTurns", remaining);
       if (remaining == 0) entity.put("bleedPercent", 0);
-      addFeedback(combat, "actor", "entity", "damage", "-" + damage + " HP", true);
+      addFeedback(combat, "actor", "entity", "damage", "-" + damage + " HP", true,
+          false, "Chảy máu");
     }
 
     if (entity.optInt("hp", 0) > 0) {
@@ -1292,7 +1323,8 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
         int remaining = poisonTurns - 1;
         entity.put("poisonTurns", remaining);
         if (remaining == 0) entity.put("poisonPercent", 0);
-        addFeedback(combat, "actor", "entity", "damage", "-" + damage + " HP", true);
+        addFeedback(combat, "actor", "entity", "damage", "-" + damage + " HP", true,
+            false, "Trúng độc");
       }
     }
 
@@ -2002,6 +2034,12 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
 
   private static void addFeedback(JSONObject combat, String phase, String target, String kind,
                                   String text, boolean flash) throws Exception {
+    addFeedback(combat, phase, target, kind, text, flash, false, "");
+  }
+
+  private static void addFeedback(JSONObject combat, String phase, String target, String kind,
+                                  String text, boolean flash, boolean critical, String status)
+      throws Exception {
     JSONArray events = combat.optJSONArray("feedbackEvents");
     if (events == null) events = new JSONArray();
     JSONObject event = new JSONObject()
@@ -2011,6 +2049,9 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
         .put("text", text == null ? "" : text)
         .put("flash", flash)
         .put("actorIndex", combat.optInt("resolvedActorIndex", combat.optInt("actorIndex", 0)));
+    if (critical) event.put("critical", true);
+    String canonicalStatus = canonicalStatusEffect(status);
+    if (!canonicalStatus.isEmpty()) event.put("status", canonicalStatus);
     int entityIndex = combat.has("feedbackEntityIndex")
         ? combat.optInt("feedbackEntityIndex", combat.optInt("activeEntityIndex", 0))
         : combat.optInt("activeEntityIndex", 0);

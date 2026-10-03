@@ -779,6 +779,17 @@ public class CombatChoiceEngineTest {
     JSONObject entity = combat.getJSONObject("entity");
     assertTrue(entity.getInt("bleedTurns") > 0);
     assertTrue(entity.getInt("bleedPercent") > 0);
+    JSONArray feedback = combat.getJSONArray("feedbackEvents");
+    boolean foundBleedFloater = false;
+    for (int i = 0; i < feedback.length(); i++) {
+      JSONObject event = feedback.getJSONObject(i);
+      if ("entity".equals(event.optString("target", ""))
+          && "damage".equals(event.optString("kind", ""))
+          && "Chảy máu".equals(event.optString("status", ""))) {
+        foundBleedFloater = true;
+      }
+    }
+    assertTrue(foundBleedFloater);
   }
 
   @Test public void normalSkillCanTriggerCharacterProc() throws Exception {
@@ -945,6 +956,10 @@ public class CombatChoiceEngineTest {
     assertEquals(before - 45, entity.getInt("hp"));
     JSONArray battleLog = state.getJSONArray("log").getJSONObject(0).getJSONArray("battleLog");
     assertTrue(battleLog.getJSONObject(0).getString("text").contains("[CRITICAL]"));
+    JSONObject feedback = combat.getJSONArray("feedbackEvents").getJSONObject(0);
+    assertEquals("entity", feedback.getString("target"));
+    assertEquals("damage", feedback.getString("kind"));
+    assertTrue(feedback.getBoolean("critical"));
   }
 
   @Test public void forcedPassiveEvasionSkipsEntityDamage() throws Exception {

@@ -106,6 +106,16 @@ test('combat floating overlay only accepts numeric HP damage',()=>{
  assert.doesNotMatch(source,/floater\.textContent=.*PROC/);
 });
 
+test('combat floating feedback distinguishes critical and runtime status hits',()=>{
+ assert.match(source,/e\.critical===true/);
+ assert.match(source,/combat-float--critical/);
+ assert.match(source,/@keyframes combat-float-crit/);
+ assert.match(source,/combatStatusVisual\(e\.status\)/);
+ for(const token of ['bleed','poison','stun','armor','disorient']){
+  assert.match(source,new RegExp('combat-float-status--'+token));
+ }
+});
+
 
 test('combat floating damage stays readable long enough on mobile',()=>{
  assert.match(source,/animation:combat-float-up 1\.6s ease-out forwards/);
@@ -117,7 +127,7 @@ test('combat floating damage stays readable long enough on mobile',()=>{
 test('simultaneous floating damage uses separate vertical lanes instead of one anchor',()=>{
  assert.match(source,/querySelectorAll\('\.combat-float\[data-target="'\+target\+'"\]'\)\.length/);
  assert.match(source,/floater\.dataset\.target=target/);
- assert.match(source,/floater\.style\.top=\(anchor\.y-lane\*26\)\+'px'/);
+ assert.match(source,/floater\.style\.top=\(anchor\.y-lane\*38\)\+'px'/);
 });
 
 
