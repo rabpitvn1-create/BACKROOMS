@@ -22,11 +22,27 @@ log "NARRATIVE_AUDIT_START $(date -u +%FT%TZ)"
 log "TARGET_ROUNDS=50"
 log "DRIVER=debug WebView bridge on Android Emulator API 29"
 
-timeout 60s adb install -r "$APK" >>"$SUMMARY" 2>&1 || {
+log "Waiting for Android package manager..."
+package_ready=0
+for _ in $(seq 1 60); do
+  if timeout 10s adb shell pm path android >/dev/null 2>&1; then
+    package_ready=1
+    break
+  fi
+  sleep 2
+done
+if [ "$package_ready" -ne 1 ]; then
+  log "FATAL: Android package manager never became ready"
+  exit 0
+fi
+
+log "Installing APK..."
+timeout 300s adb install -r "$APK" >>"$SUMMARY" 2>&1 || {
   log "FATAL: install failed or timed out"
   exit 0
 }
-timeout 10s adb shell pm clear com.rabpit.backroom >/dev/null 2>&1 || true
+log "APK_INSTALL_OK"
+timeout 20s adb shell pm clear com.rabpit.backroom >/dev/null 2>&1 || true
 timeout 10s adb logcat -c >/dev/null 2>&1 || true
 timeout 20s adb shell am start -W -n com.rabpit.backroom/.MainActivity --ez narrative_audit true >>"$SUMMARY" 2>&1 || true
 
