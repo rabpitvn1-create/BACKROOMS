@@ -8,18 +8,175 @@
     "sharedPool": false,
     "maxActiveEncounters": 1,
     "legacyOverlayOnlyKeys": [
+      "diep_minh",
       "jane_the_killer",
       "slenderman",
-      "diep_minh"
+      "hound",
+      "clump",
+      "duller",
+      "deathmoth",
+      "hostile_faceling",
+      "false_puddle",
+      "paintings",
+      "smiler",
+      "skin-stealer",
+      "predatory_window",
+      "biological_pipeline",
+      "wretch",
+      "cable_mimic",
+      "the_beast_of_level_5",
+      "hotel_corpse_lure",
+      "jeff_the_killer",
+      "async_rifleman",
+      "copx"
     ],
-    "roamingAllLevels": true,
-    "canonLevelRestrictionsApplied": false,
-    "levelMetadataMeaning": "reference_only_not_runtime_eligibility",
+    "roamingAllLevels": false,
+    "canonLevelRestrictionsApplied": true,
+    "levelMetadataMeaning": "runtime_eligibility_for_auto_spawn_only; preserved_reference_for_legacy",
     "entitySkillProcPolicy": "Each skill rolls independently once per valid Entity response; if none proc, use the normal basic attack.",
     "treasureMaximumRatePercent": 4,
-    "treasurePriorityBeforeStandardPool": true
+    "treasurePriorityBeforeStandardPool": true,
+    "standardAutoSpawnEnabled": false,
+    "onlyAutoSpawnKey": "tam_ma_cao_minh",
+    "dormantLegacyRecordsPreserved": true
   },
   "entities": [
+    {
+      "key": "tam_ma_cao_minh",
+      "name": "Tâm Ma Cao Minh",
+      "spawnClass": "treasure",
+      "ratePercent": 4,
+      "levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "canon": "A rare hostile mirror-manifestation of Cao Minh. It resembles and echoes Cao Minh but acts as an independent predatory Entity; its exact origin remains unresolved. Treat it as a roaming Treasure Entity, not a resident population.",
+      "presentation": {
+        "appearance": "một hình người có diện mạo giống Cao Minh",
+        "approachStyle": "emerge"
+      },
+      "autoProcSkills": [
+        {
+          "name": "Tâm Ma Trảm",
+          "damagePercent": 120,
+          "procPercent": 35
+        },
+        {
+          "name": "Huyết Ảnh Phản Kích",
+          "damagePercent": 115,
+          "procPercent": 40
+        },
+        {
+          "name": "Ma Hổ Phệ",
+          "damagePercent": 110,
+          "procPercent": 45
+        }
+      ]
+    }
+  ],
+  "legacyEntities": [
+    {
+      "key": "diep_minh",
+      "name": "Diệp Minh",
+      "asset": "entity/diep_minh.webp",
+      "autoSpawn": false,
+      "canonRefs": [
+        "DIEP-MINH-VIS-01",
+        "DIEP-MINH-CAO-REL-01",
+        "DIEP-MINH-BACKROOMS-01"
+      ],
+      "canon": "Diệp Minh là tử địch không đội trời chung của Cao Minh. Hắn từng trực tiếp góp phần vào đại kiếp thảm sát Cao gia, biến cố đã đẩy Cao Minh vào tuyệt vọng và trở thành một nguyên nhân quyết định khiến hắn bước vào ma đạo; Diệp Minh không mặc định là chủ mưu duy nhất. Ngoại hình khóa theo entity/diep_minh.webp: nam tử trẻ tóc đen, pháp giáp đen-vàng; nửa phải còn hình người, nửa trái dị hóa thành ma thể đen-đỏ với hồng quang, tua nhánh và vuốt; tay phải cầm trường kiếm tỏa kim quang, quanh thân có phù vàng chữ đỏ và họa tiết âm dương/bát quái. Diệp Minh nguyên bản đã chết trước các lần xuất hiện trong Backrooms. Thực thể hiện tại nhận ra Cao Minh và giữ ký ức cốt lõi về huyết cừu, nhưng việc nó là tàn hồn, bản sao, tái tạo hay một cơ chế khác của Backrooms vẫn OPEN. Một manifestation có thể bị tiêu diệt nhưng không bị xóa vĩnh viễn; không có thời gian hoặc địa điểm tái xuất cố định.",
+      "presentation": {
+        "appearance": "một nam tử trẻ tóc đen trong bộ giáp đen-vàng",
+        "details": [
+          "Nửa trái cơ thể có màu đen-đỏ, với những tua nhánh và vuốt; tay phải cầm một thanh kiếm tỏa ánh vàng."
+        ],
+        "heldObject": "một thanh kiếm tỏa ánh vàng",
+        "approachStyle": "emerge"
+      },
+      "autoProcSkills": [
+        {
+          "name": "Golden Sword Slash",
+          "damagePercent": 110,
+          "procPercent": 32
+        },
+        {
+          "name": "Demonic Claw",
+          "damagePercent": 115,
+          "procPercent": 32
+        },
+        {
+          "name": "Sword-Claw Assault",
+          "damagePercent": 120,
+          "procPercent": 21
+        }
+      ]
+    },
+    {
+      "key": "jane_the_killer",
+      "name": "Jane",
+      "autoSpawn": false,
+      "autoProcSkills": [
+        {
+          "name": "Stalking Strike",
+          "damagePercent": 110,
+          "procPercent": 33
+        },
+        {
+          "name": "Close-Range Slash",
+          "damagePercent": 115,
+          "procPercent": 27
+        },
+        {
+          "name": "Sudden Lunge",
+          "damagePercent": 120,
+          "procPercent": 25
+        }
+      ],
+      "presentation": {
+        "approachStyle": "emerge",
+        "appearance": "một phụ nữ da trắng nhợt với tóc đen dài",
+        "details": [
+          "Vùng quanh mắt đen đậm, cô mặc trang phục đen ôm sát và cầm một vật có lưỡi sắc."
+        ]
+      },
+      "canon": "Một phụ nữ da trắng nhợt với tóc đen dài. Vùng quanh mắt đen đậm, cô mặc trang phục đen ôm sát và cầm một vật có lưỡi sắc."
+    },
+    {
+      "key": "slenderman",
+      "name": "Slenderman",
+      "autoSpawn": false,
+      "autoProcSkills": [
+        {
+          "name": "Tendril Strike",
+          "damagePercent": 110,
+          "procPercent": 31
+        },
+        {
+          "name": "Tendril Sweep",
+          "damagePercent": 115,
+          "procPercent": 26
+        },
+        {
+          "name": "Looming Grasp",
+          "damagePercent": 120,
+          "procPercent": 21
+        }
+      ],
+      "presentation": {
+        "approachStyle": "emerge",
+        "appearance": "một hình người rất cao mặc âu phục đen với cà vạt đỏ",
+        "details": [
+          "Đầu trắng nhẵn không có khuôn mặt, tay chân dài bất thường; nhiều xúc tu đen mọc sau lưng."
+        ]
+      },
+      "canon": "Một hình người rất cao mặc âu phục đen với cà vạt đỏ. Đầu trắng nhẵn không có khuôn mặt, tay chân dài bất thường; nhiều xúc tu đen mọc sau lưng."
+    },
     {
       "key": "hound",
       "name": "Hound",
@@ -642,142 +799,6 @@
           "procPercent": 20
         }
       ]
-    },
-    {
-      "key": "tam_ma_cao_minh",
-      "name": "Tâm Ma Cao Minh",
-      "spawnClass": "treasure",
-      "ratePercent": 4,
-      "levels": [
-        0,
-        1,
-        2,
-        3,
-        4,
-        5,
-        6
-      ],
-      "canon": "A rare hostile mirror-manifestation of Cao Minh. It resembles and echoes Cao Minh but acts as an independent predatory Entity; its exact origin remains unresolved. Treat it as a roaming Treasure Entity, not a resident population.",
-      "presentation": {
-        "appearance": "một hình người có diện mạo giống Cao Minh",
-        "approachStyle": "emerge"
-      },
-      "autoProcSkills": [
-        {
-          "name": "Tâm Ma Trảm",
-          "damagePercent": 120,
-          "procPercent": 35
-        },
-        {
-          "name": "Huyết Ảnh Phản Kích",
-          "damagePercent": 115,
-          "procPercent": 40
-        },
-        {
-          "name": "Ma Hổ Phệ",
-          "damagePercent": 110,
-          "procPercent": 45
-        }
-      ]
-    }
-  ],
-  "legacyEntities": [
-    {
-      "key": "diep_minh",
-      "name": "Diệp Minh",
-      "asset": "entity/diep_minh.webp",
-      "autoSpawn": false,
-      "canonRefs": [
-        "DIEP-MINH-VIS-01",
-        "DIEP-MINH-CAO-REL-01",
-        "DIEP-MINH-BACKROOMS-01"
-      ],
-      "canon": "Diệp Minh là tử địch không đội trời chung của Cao Minh. Hắn từng trực tiếp góp phần vào đại kiếp thảm sát Cao gia, biến cố đã đẩy Cao Minh vào tuyệt vọng và trở thành một nguyên nhân quyết định khiến hắn bước vào ma đạo; Diệp Minh không mặc định là chủ mưu duy nhất. Ngoại hình khóa theo entity/diep_minh.webp: nam tử trẻ tóc đen, pháp giáp đen-vàng; nửa phải còn hình người, nửa trái dị hóa thành ma thể đen-đỏ với hồng quang, tua nhánh và vuốt; tay phải cầm trường kiếm tỏa kim quang, quanh thân có phù vàng chữ đỏ và họa tiết âm dương/bát quái. Diệp Minh nguyên bản đã chết trước các lần xuất hiện trong Backrooms. Thực thể hiện tại nhận ra Cao Minh và giữ ký ức cốt lõi về huyết cừu, nhưng việc nó là tàn hồn, bản sao, tái tạo hay một cơ chế khác của Backrooms vẫn OPEN. Một manifestation có thể bị tiêu diệt nhưng không bị xóa vĩnh viễn; không có thời gian hoặc địa điểm tái xuất cố định.",
-      "presentation": {
-        "appearance": "một nam tử trẻ tóc đen trong bộ giáp đen-vàng",
-        "details": [
-          "Nửa trái cơ thể có màu đen-đỏ, với những tua nhánh và vuốt; tay phải cầm một thanh kiếm tỏa ánh vàng."
-        ],
-        "heldObject": "một thanh kiếm tỏa ánh vàng",
-        "approachStyle": "emerge"
-      },
-      "autoProcSkills": [
-        {
-          "name": "Golden Sword Slash",
-          "damagePercent": 110,
-          "procPercent": 32
-        },
-        {
-          "name": "Demonic Claw",
-          "damagePercent": 115,
-          "procPercent": 32
-        },
-        {
-          "name": "Sword-Claw Assault",
-          "damagePercent": 120,
-          "procPercent": 21
-        }
-      ]
-    },
-    {
-      "key": "jane_the_killer",
-      "name": "Jane",
-      "autoSpawn": false,
-      "autoProcSkills": [
-        {
-          "name": "Stalking Strike",
-          "damagePercent": 110,
-          "procPercent": 33
-        },
-        {
-          "name": "Close-Range Slash",
-          "damagePercent": 115,
-          "procPercent": 27
-        },
-        {
-          "name": "Sudden Lunge",
-          "damagePercent": 120,
-          "procPercent": 25
-        }
-      ],
-      "presentation": {
-        "approachStyle": "emerge",
-        "appearance": "một phụ nữ da trắng nhợt với tóc đen dài",
-        "details": [
-          "Vùng quanh mắt đen đậm, cô mặc trang phục đen ôm sát và cầm một vật có lưỡi sắc."
-        ]
-      },
-      "canon": "Một phụ nữ da trắng nhợt với tóc đen dài. Vùng quanh mắt đen đậm, cô mặc trang phục đen ôm sát và cầm một vật có lưỡi sắc."
-    },
-    {
-      "key": "slenderman",
-      "name": "Slenderman",
-      "autoSpawn": false,
-      "autoProcSkills": [
-        {
-          "name": "Tendril Strike",
-          "damagePercent": 110,
-          "procPercent": 31
-        },
-        {
-          "name": "Tendril Sweep",
-          "damagePercent": 115,
-          "procPercent": 26
-        },
-        {
-          "name": "Looming Grasp",
-          "damagePercent": 120,
-          "procPercent": 21
-        }
-      ],
-      "presentation": {
-        "approachStyle": "emerge",
-        "appearance": "một hình người rất cao mặc âu phục đen với cà vạt đỏ",
-        "details": [
-          "Đầu trắng nhẵn không có khuôn mặt, tay chân dài bất thường; nhiều xúc tu đen mọc sau lưng."
-        ]
-      },
-      "canon": "Một hình người rất cao mặc âu phục đen với cà vạt đỏ. Đầu trắng nhẵn không có khuôn mặt, tay chân dài bất thường; nhiều xúc tu đen mọc sau lưng."
     }
   ]
 }
