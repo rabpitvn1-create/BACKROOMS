@@ -94,11 +94,15 @@ test('new active Entity sprites resolve through the snapshot allowlist',()=>{
  }
 });
 
-test('snapshot has no combat status icon HUD and uses smaller HP damage text',()=>{
+test('status damage is compact while ordinary damage size stays unchanged',()=>{
  assert.doesNotMatch(source,/combat-status-hud/);
  assert.doesNotMatch(source,/__combatStatusIcons/);
  assert.doesNotMatch(source,/android_asset\/status\/status_/);
  assert.match(source,/\.combat-float\{[^}]*font-size:19px/);
+ assert.match(source,/\.combat-float--status:not\(\.combat-float--critical\) \.combat-float-value\{font-size:9px/);
+ for(const token of ['bleed','poison','stun','armor','disorient']){
+  assert.match(source,new RegExp('combat-float--status-'+token+':not\\\\(\\\\.combat-float--critical\\\\) \\.combat-float-value\\\\{color:'));
+ }
 });
 
 test('combat floating overlay only accepts numeric HP damage',()=>{
@@ -111,6 +115,9 @@ test('combat floating feedback distinguishes critical and runtime status hits',(
  assert.match(source,/combat-float--critical/);
  assert.match(source,/@keyframes combat-float-crit/);
  assert.match(source,/combatStatusVisual\(e\.status\)/);
+ assert.match(source,/floater\.classList\.add\('combat-float--status','combat-float--status-'\+status\.key\)/);
+ assert.match(source,/value\.insertBefore\(badge,value\.firstChild\)/);
+ assert.doesNotMatch(source,/badge\.textContent=status\.label;floater\.appendChild\(badge\)/);
  for(const token of ['bleed','poison','stun','armor','disorient']){
   assert.match(source,new RegExp('combat-float-status--'+token));
  }
