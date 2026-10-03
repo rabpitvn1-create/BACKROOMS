@@ -175,13 +175,19 @@
 
   function submitExplorerChoice(entry, choice) {
     if (!choice || explorerChoiceBusy || window.__combatBusy || (state.combat && state.combat.active)) return;
-    var text = String(choice.action || choice.text || '').trim();
-    if (!text || !form || !action) return;
+    var displayText = String(choice.text || choice.action || '').trim();
+    var coreAction = String(choice.action || displayText).trim();
+    if (!displayText || !coreAction || !form || !action) return;
     explorerChoiceBusy = true;
     if (typeof window.render === 'function') window.render();
-    action.value = text;
-    if (typeof form.requestSubmit === 'function') form.requestSubmit();
-    else form.dispatchEvent(new Event('submit', {bubbles:true,cancelable:true}));
+    action.value = coreAction;
+    try {
+      state.__uiDisplayAction = displayText;
+      if (typeof form.requestSubmit === 'function') form.requestSubmit();
+      else form.dispatchEvent(new Event('submit', {bubbles:true,cancelable:true}));
+    } finally {
+      try { delete state.__uiDisplayAction; } catch (_) { state.__uiDisplayAction = ''; }
+    }
   }
 
   function chestPresent() {

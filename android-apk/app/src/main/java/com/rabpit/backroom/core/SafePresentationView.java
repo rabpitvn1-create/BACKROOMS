@@ -207,6 +207,11 @@ public final class SafePresentationView {
               ? "hold_distance"
               : "hound".equals(subject) ? "charge" : "emerge");
     }
+    if ("PLAYER_ACTION_RESOLVED".equals(type)) {
+      String action = event.optString("factValue", "").trim();
+      if (action.isEmpty() && params != null) action = params.optString("factValue", "").trim();
+      if (!action.isEmpty()) view.put("action", text(state, actor, action));
+    }
     if ("CHARACTER_ENCOUNTERED".equals(type) || "CHARACTER_REUNION".equals(type)) {
       view.put("introDetail", "lucia".equals(subject) ? "Trong tay cô là một vật kim loại dài."
           : "syvial".equals(subject) ? "Cô mang theo một thanh kiếm lớn."

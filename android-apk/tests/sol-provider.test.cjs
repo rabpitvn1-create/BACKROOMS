@@ -87,16 +87,22 @@ test('SOL key uses release secret env and Gradle BuildConfig; both CI commands r
   }
 });
 
-test('Gemini batch keeps one physical request and prefetch dispatches none', () => {
+test('Gemini branch helper stays single-request while Explorer prefetch uses the shared background provider chain', () => {
   const batch = source.slice(source.indexOf('  private JSONObject geminiBranchBatch('),
     source.indexOf('  private boolean haikuConfigured('));
   assert.equal((batch.match(/postJson\(/g) || []).length, 1);
   assert.match(batch, /key = configured;\s*break;/);
   assert.doesNotMatch(batch, /solText\(|generateText\(|haikuText\(|geminiText\(/);
+
   const prefetch = source.slice(source.indexOf('  private void prefetchChoices('),
     source.indexOf('  private String worldProposalPrompt('));
-  assert.match(prefetch, /Intentionally no-op/);
-  assert.doesNotMatch(prefetch, /solText\(|generateText\(|geminiBranchBatch\(|postJson\(/);
+  assert.match(prefetch, /scheduleNarrationFutureRefill\(current\)/);
+  assert.doesNotMatch(prefetch, /postJson\(|geminiBranchBatch\(/);
+
+  const refill = source.slice(source.indexOf('  private void scheduleNarrationFutureRefill('),
+    source.indexOf('  private void prefetchChoices('));
+  assert.match(refill, /narrationFutureIo\.execute/);
+  assert.match(refill, /generateText\(prompt\)/);
 });
 
 test('debug telemetry separates core prompt provider validation repair and total latency', () => {

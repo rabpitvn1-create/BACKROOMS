@@ -71,15 +71,20 @@ var SnapshotOverlayLayout = (function(){
       return e;
     },{width:0,above:1,below:0});
   }
-  function layout(metric,width,height,side,category,family){
+  function layout(metric,width,height,side,category,family,policy){
     if(!metric||!(width>0&&height>0))return null;
+    policy=policy||{};
     var b=metric.body,p=metric.paint,h=b.bottom-b.top;
     var e=category==='character'?family:envelope([metric]);
+    var heightRatio=Number(policy.heightRatio)||CHARACTER_HEIGHT;
+    var laneWidth=Number(policy.laneWidth)||ENTITY_LANE_WIDTH;
+    var groundRatio=Number(policy.ground)||GROUND;
+    var safeEdge=Number.isFinite(Number(policy.safeEdge))?Number(policy.safeEdge):SAFE_EDGE;
     // A whole-snapshot width budget is shared by ALL Character poses. Narrow
     // viewports reduce the family together, never only the pose with a rifle.
-    var target=Math.min(height*CHARACTER_HEIGHT,width*(category==='character'?1-2*SIDE_MARGIN:ENTITY_LANE_WIDTH)/e.width,height*(GROUND-SAFE_EDGE)/e.above);
-    if(e.below>0)target=Math.min(target,height*(1-GROUND-SAFE_EDGE)/e.below);
-    var scale=target/h,ground=height*GROUND,margin=width*SIDE_MARGIN;
+    var target=Math.min(height*heightRatio,width*(category==='character'?1-2*SIDE_MARGIN:laneWidth)/e.width,height*(groundRatio-safeEdge)/e.above);
+    if(e.below>0)target=Math.min(target,height*(1-groundRatio-safeEdge)/e.below);
+    var scale=target/h,ground=height*groundRatio,margin=width*SIDE_MARGIN;
     return {scale:scale,width:metric.width*scale,height:metric.height*scale,
       top:ground-b.bottom*scale,
       left:side==='right'?width-margin-p.right*scale:margin-p.left*scale,
@@ -93,7 +98,7 @@ if(typeof module!=='undefined'&&module.exports)module.exports=SnapshotOverlayLay
   if(window.__backroomEnhancements)return;
   window.__backroomEnhancements=true;
   var st=document.createElement('style');
-  st.textContent='button{transition:transform 80ms ease,background 120ms ease,border-color 120ms ease;touch-action:manipulation;-webkit-tap-highlight-color:rgba(255,255,255,.12)}button:active:not(:disabled){transform:scale(.965);background:#303840;border-color:#77828c}button:disabled{opacity:.48;cursor:not-allowed}.snapshot-placeholder{display:grid;place-items:center;gap:7px;text-align:center;color:#69737c}.snapshot-placeholder b{font-size:12px;letter-spacing:.16em}.snapshot-placeholder small{color:#56616a}.message.pending{opacity:.72}.message.pending .text{color:#aeb7be}.snapshot{position:relative;overflow:hidden;isolation:isolate}.snapshot>img.snapshot-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}.snapshot>img.snapshot-map{object-fit:contain;background:#050607}.snapshot>img.snapshot-grounded{position:absolute;left:auto;right:2.5%;top:8%;width:auto;height:84%;max-width:95%;max-height:none;object-fit:contain;pointer-events:none;transform:none}.snapshot>img.snapshot-character{z-index:2;filter:drop-shadow(0 0 10px rgba(0,0,0,.45))}.snapshot>img.snapshot-entity{left:2.5%;right:auto;max-width:46%;z-index:3;filter:drop-shadow(0 0 10px rgba(0,0,0,.55))}.snapshot-character-placeholder{position:absolute;right:2.5%;bottom:8%;width:38%;height:84%;z-index:2;pointer-events:none;opacity:.46;filter:drop-shadow(0 0 10px rgba(0,0,0,.5));animation:combat-overlay-enter .18s ease-out}.snapshot-character-placeholder:before{content:"";position:absolute;left:50%;top:2%;width:27%;aspect-ratio:1;border-radius:50%;transform:translateX(-50%);background:#fff}.snapshot-character-placeholder:after{content:"";position:absolute;left:13%;right:13%;bottom:0;height:78%;background:#fff;clip-path:polygon(38% 0,62% 0,72% 10%,82% 25%,88% 51%,76% 100%,24% 100%,12% 51%,18% 25%,28% 10%);border-radius:18% 18% 9% 9%}.snapshot-combat-character{animation:combat-overlay-enter .18s ease-out}.combat-hit-flash{animation:combat-hit-flash .14s ease-out!important}.combat-float{position:absolute;z-index:8;pointer-events:none;transform:translate(-50%,0);font-family:Play,"Pretendard Std",system-ui,sans-serif;font-weight:700;font-size:19px;color:#fff;white-space:nowrap;text-shadow:0 2px 3px #000,0 0 6px #000;animation:combat-float-up 1.6s ease-out forwards}@keyframes combat-hit-flash{0%,100%{opacity:1}50%{filter:brightness(0) invert(1) drop-shadow(0 0 8px #fff);opacity:1}}@keyframes combat-float-up{0%{opacity:0;transform:translate(-50%,8px) scale(.96)}12%{opacity:1}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-34px) scale(1.04)}}@keyframes combat-overlay-enter{from{opacity:0}to{opacity:1}}.snapshot>img.snapshot-chest{position:absolute;left:50%;bottom:-5%;transform:translateX(-50%);width:auto;max-width:58%;height:92%;object-fit:contain;object-position:center bottom;z-index:3;pointer-events:none;filter:drop-shadow(0 10px 16px rgba(0,0,0,.65))}';
+  st.textContent='button{transition:transform 80ms ease,background 120ms ease,border-color 120ms ease;touch-action:manipulation;-webkit-tap-highlight-color:rgba(255,255,255,.12)}button:active:not(:disabled){transform:scale(.965);background:#303840;border-color:#77828c}button:disabled{opacity:.48;cursor:not-allowed}.snapshot-placeholder{display:grid;place-items:center;gap:7px;text-align:center;color:#69737c}.snapshot-placeholder b{font-size:12px;letter-spacing:.16em}.snapshot-placeholder small{color:#56616a}.message.pending{opacity:.72}.message.pending .text{color:#aeb7be}.snapshot{position:relative;overflow:hidden;isolation:isolate}.snapshot>img.snapshot-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}.snapshot>img.snapshot-map{object-fit:contain;background:#050607}.snapshot>img.snapshot-grounded{position:absolute;left:auto;right:2.5%;top:8%;width:auto;height:84%;max-width:95%;max-height:none;object-fit:contain;pointer-events:none;transform:none}.snapshot>img.snapshot-character{z-index:4;filter:drop-shadow(0 0 10px rgba(0,0,0,.45))}.snapshot>img.snapshot-entity{left:2.5%;right:auto;max-width:46%;z-index:3;filter:drop-shadow(0 0 10px rgba(0,0,0,.55))}.snapshot-character-placeholder{position:absolute;right:2.5%;bottom:8%;width:38%;height:84%;z-index:4;pointer-events:none;opacity:.46;filter:drop-shadow(0 0 10px rgba(0,0,0,.5));animation:combat-overlay-enter .18s ease-out}.snapshot-character-placeholder:before{content:"";position:absolute;left:50%;top:2%;width:27%;aspect-ratio:1;border-radius:50%;transform:translateX(-50%);background:#fff}.snapshot-character-placeholder:after{content:"";position:absolute;left:13%;right:13%;bottom:0;height:78%;background:#fff;clip-path:polygon(38% 0,62% 0,72% 10%,82% 25%,88% 51%,76% 100%,24% 100%,12% 51%,18% 25%,28% 10%);border-radius:18% 18% 9% 9%}.snapshot-combat-character{animation:combat-overlay-enter .18s ease-out}.combat-hit-flash{animation:combat-hit-flash .14s ease-out!important}.combat-float{position:absolute;z-index:8;pointer-events:none;transform:translate(-50%,0);font-family:Play,"Pretendard Std",system-ui,sans-serif;font-weight:700;font-size:19px;color:#fff;white-space:nowrap;text-shadow:0 2px 3px #000,0 0 6px #000;animation:combat-float-up 1.6s ease-out forwards}@keyframes combat-hit-flash{0%,100%{opacity:1}50%{filter:brightness(0) invert(1) drop-shadow(0 0 8px #fff);opacity:1}}@keyframes combat-float-up{0%{opacity:0;transform:translate(-50%,8px) scale(.96)}12%{opacity:1}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-34px) scale(1.04)}}@keyframes combat-overlay-enter{from{opacity:0}to{opacity:1}}.snapshot>img.snapshot-chest{position:absolute;left:50%;bottom:-5%;transform:translateX(-50%);width:auto;max-width:58%;height:92%;object-fit:contain;object-position:center bottom;z-index:3;pointer-events:none;filter:drop-shadow(0 10px 16px rgba(0,0,0,.65))}';
   document.head.appendChild(st);
   var __overlayBoundsCache={};
   // Synchronous metadata avoids coupling any sprite to other images' load events.
@@ -123,7 +128,9 @@ if(typeof module!=='undefined'&&module.exports)module.exports=SnapshotOverlayLay
       var box=img.parentElement;
       if(!box||!img.complete||!img.naturalWidth||!__characterFamily)return;
       var metric=spriteMetric(img);
-      var result=SnapshotOverlayLayout.layout(metric,box.clientWidth,box.clientHeight,side,category,__characterFamily);
+      var policy=category==='entity'&&img.dataset.entityKey==='tam_ma_cao_minh'
+        ?{heightRatio:.94,laneWidth:.68,ground:.95,safeEdge:.01}:null;
+      var result=SnapshotOverlayLayout.layout(metric,box.clientWidth,box.clientHeight,side,category,__characterFamily,policy);
       if(!result)return;
       img.style.maxWidth='none';img.style.right='auto';
       ['width','height','top','left'].forEach(function(key){img.style[key]=result[key]+'px';});
@@ -176,6 +183,7 @@ if(typeof module!=='undefined'&&module.exports)module.exports=SnapshotOverlayLay
       appendCombatCharacter(box,combatVisualParticipant());
       img=document.createElement('img');
       img.className='snapshot-entity snapshot-grounded';
+      img.dataset.entityKey=key;
       img.src='file:///android_asset/entity/'+key+'.webp';
       img.alt=key;
       box.appendChild(img);
@@ -204,8 +212,15 @@ if(typeof module!=='undefined'&&module.exports)module.exports=SnapshotOverlayLay
     }
     return {box:box,el:el,x:x,y:y};
   }
-  window.backroomSetCombatVisualActor=function(index,entityKey){window.__combatVisualActorIndex=Number(index);window.__combatVisualEntityKey=String(entityKey||'');renderSnapshot();};
-  window.backroomClearCombatVisualActor=function(){window.__combatVisualActorIndex=null;window.__combatVisualEntityKey='';renderSnapshot();};
+  window.backroomSetCombatVisualActor=function(index,entityKey){
+    var nextIndex=Number(index),nextEntity=String(entityKey||'');
+    if(window.__combatVisualActorIndex===nextIndex&&window.__combatVisualEntityKey===nextEntity)return;
+    window.__combatVisualActorIndex=nextIndex;window.__combatVisualEntityKey=nextEntity;renderSnapshot();
+  };
+  window.backroomClearCombatVisualActor=function(){
+    if(window.__combatVisualActorIndex===null&&!window.__combatVisualEntityKey)return;
+    window.__combatVisualActorIndex=null;window.__combatVisualEntityKey='';renderSnapshot();
+  };
   window.backroomPlayCombatFeedback=function(event){
     try{
       var e=event||{},text=String(e.text||'').trim();if(!/^-\d+ HP$/i.test(text))return;
@@ -220,7 +235,7 @@ if(typeof module!=='undefined'&&module.exports)module.exports=SnapshotOverlayLay
     }catch(_){}
   };
   var oldTurn=window.backroomTurn;window.backroomTurn=function(json){if(typeof oldTurn==='function')oldTurn(json);document.querySelectorAll('[data-pending="1"]').forEach(function(n){n.remove();});renderSnapshot();};
-  var f=document.getElementById('form');if(f){f.addEventListener('submit',function(){if(document.body.classList.contains('player-action-open'))return;if(state&&state.combat&&state.combat.active)return;var a=document.getElementById('action');var text=a?a.value.trim():'';if(!text)return;var l=document.getElementById('log');if(!l)return;var player=document.createElement('article');player.className='message player pending';player.setAttribute('data-pending','1');player.innerHTML='<div class="role">BẠN</div><div class="text"></div>';player.querySelector('.text').textContent=text;l.appendChild(player);var gm=document.createElement('article');gm.className='message pending';gm.setAttribute('data-pending','1');gm.innerHTML='<div class="role">GAME MASTER</div><div class="text">Đang xử lý lượt…</div>';l.appendChild(gm);scrollBottom();},true);}
+  var f=document.getElementById('form');if(f){f.addEventListener('submit',function(){if(document.body.classList.contains('player-action-open'))return;if(state&&state.combat&&state.combat.active)return;var a=document.getElementById('action');var text=state&&state.__uiDisplayAction?String(state.__uiDisplayAction).trim():(a?a.value.trim():'');if(!text)return;var l=document.getElementById('log');if(!l)return;var player=document.createElement('article');player.className='message player pending';player.setAttribute('data-pending','1');player.innerHTML='<div class="role">BẠN</div><div class="text"></div>';player.querySelector('.text').textContent=text;l.appendChild(player);var gm=document.createElement('article');gm.className='message pending';gm.setAttribute('data-pending','1');gm.innerHTML='<div class="role">GAME MASTER</div><div class="text">Đang xử lý lượt…</div>';l.appendChild(gm);scrollBottom();},true);}
   var __groundResizeTimer=0;
   window.addEventListener('resize',function(){clearTimeout(__groundResizeTimer);__groundResizeTimer=setTimeout(realignGroundedOverlays,80);});
   if(typeof ResizeObserver!=='undefined'){

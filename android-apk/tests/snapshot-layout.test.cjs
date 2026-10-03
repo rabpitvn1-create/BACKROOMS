@@ -28,6 +28,15 @@ test('entity keeps its own lane and aspect ratio',()=>{
   assert.ok(r.width<=360*.46+1e-7);near(r.width/r.height,m.width/m.height);near(r.baseline,230);
  }
 });
+test('Tâm Ma boss policy expands beyond the normal Entity lane while keeping a grounded baseline',()=>{
+ const m=assetMetric('file:///android_asset/entity/tam_ma_cao_minh.webp');
+ const normal=layout(m,360,250,'left','entity',family);
+ const boss=layout(m,360,250,'left','entity',family,{heightRatio:.94,laneWidth:.68,ground:.95,safeEdge:.01});
+ assert.ok(boss.bodyHeight>normal.bodyHeight*1.15);
+ near(boss.baseline,237.5);
+ assert.ok(boss.top+m.paint.top*boss.scale>=250*.01-1e-7);
+});
+
 test('CopX overlay has measured bounds for its refreshed Drive sprite',()=>{
  const m=assetMetric('file:///android_asset/entity/copx.webp');
  assert.equal(m.width,864);assert.equal(m.height,1536);

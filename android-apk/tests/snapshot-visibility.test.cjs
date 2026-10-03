@@ -24,6 +24,30 @@ test('bundled standing/combat/Entity render without any readable canvas or detac
  for(const actor of [0,1]){r.ctx.backroomSetCombatVisualActor(actor,'deathmoth');r.elements.filter(e=>e.className.includes('snapshot-grounded')).forEach(visible);}
  assert.equal(r.reads(),0);assert.ok(!r.styles.join('').includes('visibility:hidden'));
 });
+test('same combat actor and Entity keep the existing snapshot DOM across dice updates',()=>{
+ const r=boot();
+ r.ctx.backroomSetCombatVisualActor(0,'deathmoth');
+ const firstActor=r.elements.find(e=>e.className.includes('snapshot-combat-character'));
+ const firstEntity=r.elements.find(e=>e.className.includes('snapshot-entity'));
+ assert.ok(firstActor);assert.ok(firstEntity);
+ r.ctx.backroomSetCombatVisualActor(0,'deathmoth');
+ assert.equal(r.elements.find(e=>e.className.includes('snapshot-combat-character')),firstActor);
+ assert.equal(r.elements.find(e=>e.className.includes('snapshot-entity')),firstEntity);
+ r.ctx.backroomSetCombatVisualActor(1,'deathmoth');
+ assert.notEqual(r.elements.find(e=>e.className.includes('snapshot-combat-character')),firstActor);
+});
+
+test('Tâm Ma uses boss-scale geometry and renders behind the combat character',()=>{
+ const m=geometry.assetMetric('file:///android_asset/entity/tam_ma_cao_minh.webp');
+ const family=geometry.envelope(geometry.characterMetrics());
+ const normal=geometry.layout(m,350,250,'left','entity',family);
+ const boss=geometry.layout(m,350,250,'left','entity',family,{heightRatio:.94,laneWidth:.68,ground:.95,safeEdge:.01});
+ assert.ok(boss.bodyHeight>normal.bodyHeight*1.15);
+ const css=boot().styles.join('');
+ assert.match(css,/snapshot>img\.snapshot-character\{z-index:4/);
+ assert.match(css,/snapshot>img\.snapshot-entity\{[^}]*z-index:3/);
+});
+
 test('unknown sprite remains visible when canvas throws SecurityError',()=>{
  const r=boot({unknown:true});visible(r.elements.find(e=>e.className.includes('snapshot-character')));assert.equal(r.reads(),1);
 });

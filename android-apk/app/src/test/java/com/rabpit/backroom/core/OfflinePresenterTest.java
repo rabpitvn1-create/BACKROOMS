@@ -89,6 +89,16 @@ public class OfflinePresenterTest {
     assertEquals("{}", state.toString());
   }
 
+  @Test public void exploreFallbackKeepsTheCommittedExploreActionInsteadOfInventingObservation()
+      throws Exception {
+    JSONArray views = new JSONArray().put(new JSONObject()
+        .put("eventType", "PLAYER_ACTION_RESOLVED")
+        .put("actor", "Cao Minh")
+        .put("action", "Khám phá"));
+    assertEquals("Cao Minh tiếp tục khám phá khu vực hiện tại.",
+        OfflinePresenter.fallback(views).getString("reply"));
+  }
+
   @Test public void normalExploreStillCallsProviderExactlyOnce() throws Exception {
     int[] calls = {0};
     JSONObject result = OfflinePresenter.present(views(new JSONObject(), "PLAYER_ACTION_RESOLVED", "cao_minh"),

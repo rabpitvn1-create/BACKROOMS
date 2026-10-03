@@ -200,7 +200,7 @@ public final class GmChoiceContract {
     return output;
   }
 
-  static String defaultCoreAction(JSONObject state) {
+  public static String defaultCoreAction(JSONObject state) {
     if (state != null) {
       JSONObject flags = state.optJSONObject("flags");
       if (flags != null && flags.optBoolean("chestPresent", false)) {

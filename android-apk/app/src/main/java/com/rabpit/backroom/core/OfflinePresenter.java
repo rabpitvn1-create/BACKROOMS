@@ -44,8 +44,19 @@ public final class OfflinePresenter {
         break;
       }
     }
-    return new JSONObject().put("reply", Character.toUpperCase(actor.charAt(0)) + actor.substring(1)
-        + " quan sát khu vực trước mặt.").put("choices", new JSONArray())
+    String action = "";
+    if (views != null) for (int i = 0; i < views.length(); i++) {
+      JSONObject view = views.optJSONObject(i);
+      if (view != null && !view.optString("action", "").trim().isEmpty()) {
+        action = view.optString("action").trim();
+        break;
+      }
+    }
+    String subject = Character.toUpperCase(actor.charAt(0)) + actor.substring(1);
+    String reply = "Khám phá".equalsIgnoreCase(action)
+        ? subject + " tiếp tục khám phá khu vực hiện tại."
+        : subject + " quan sát khu vực trước mặt.";
+    return new JSONObject().put("reply", reply).put("choices", new JSONArray())
         .put("encounterDialogue", new JSONArray()).put("claims", new JSONArray());
   }
 

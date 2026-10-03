@@ -9,6 +9,11 @@ const ui=fs.readFileSync(path.join(root,'gm-choice-ui.js'),'utf8');
 test('GM choices expose one scene-driven default while keeping Core-routed mechanics',()=>{
   assert.match(ui,/function submitExplorerChoice\(entry, choice\)/);
   assert.match(ui,/form\.requestSubmit\(\)/);
+  assert.match(ui,/var displayText = String\(choice\.text \|\| choice\.action \|\| ''\)\.trim\(\)/);
+  assert.match(ui,/var coreAction = String\(choice\.action \|\| displayText\)\.trim\(\)/);
+  assert.match(ui,/state\.__uiDisplayAction = displayText/);
+  assert.match(ui,/action\.value = coreAction/);
+  assert.match(ui,/delete state\.__uiDisplayAction/);
   assert.match(ui,/function displayedExplorerChoices\(entry\)/);
   assert.match(ui,/Array\.isArray\(entry\.choices\)/);
   assert.match(ui,/generated\.length \? generated\[0\] : fallbackExplorerChoice\(\)/);

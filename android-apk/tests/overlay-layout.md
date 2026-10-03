@@ -29,7 +29,7 @@ Syvial currently has a silhouette placeholder, not a registered sprite asset. Ca
 - All bundled Character sprites share one synchronous metadata envelope: maximum paint width, head extent and shadow extent relative to logical height. No detached preloads or shared load barrier.
 - Target logical height is 84% of snapshot height. Fit the shared envelope inside 2.5% side margins and 2% vertical safe edges. At unusually narrow aspect ratios the entire Character family reduces together. The pose's individual width never shrinks that pose alone.
 - Place logical bottom at 92% of snapshot height: `top = ground - logicalBottom * scale`. Transparent lower padding changes the image element's top, not its feet. Preserve the original aspect ratio. Paint bounds determine side placement and combat feedback anchors.
-- Entity retains its own 46% width lane and 84% maximum height, with no dependency on human proportions.
+- Normal Entity sprites retain their own 46% width lane and 84% maximum height, with no dependency on human proportions. `tam_ma_cao_minh` is an intentional boss-scale exception: it uses a 68% lane, 94% logical-height target and a 95% ground line so its silhouette is larger than Cao Minh on ordinary landscape snapshots. Combat characters render one layer above Entity sprites, allowing Cao Minh to overlap the enlarged Tâm Ma instead of forcing both into separate lanes.
 - ResizeObserver handles container-only resizes; a window resize fallback supports older WebViews. Placeholders share Character height/baseline. Entry animation fades without horizontal movement.
 
 ![Actual Chromium snapshots, 350×250 each](overlay-comparison.png)
@@ -78,3 +78,8 @@ node android-apk/tests/snapshot-file-origin.cjs
 ```
 
 It fails on the previous renderer (loaded Cao Minh remains hidden after network idle) and passes on this fix for standing Cao Minh, combat Cao Minh, Lục Trầm, Deathmoth and Hound, with **zero canvas pixel reads**. It uses file URLs and does not enable `--allow-file-access-from-files`. Physical Android-device testing remains unverified.
+
+
+## Combat redraw stability
+
+Dice-state updates no longer rebuild the snapshot when the active actor index and Entity key are unchanged. `backroomSetCombatVisualActor()` and the clear path are idempotent, so ROLL/HOLD/FINISH updates keep the existing Cao Minh DOM node and do not replay `combat-overlay-enter`. A real actor/Entity change still triggers a snapshot rebuild and the entry animation.

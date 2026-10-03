@@ -70,12 +70,18 @@ test('preview shares turn resolution without persisting or retaining attempts', 
   assert.doesNotMatch(batch, /generateText\(|haikuText\(|for\s*\(int attempt/);
 });
 
-test('Explorer prefetch bridge is a no-op and owns no speculative cache', () => {
+test('Explorer prefetch warms narration only and never previews or commits Core gameplay', () => {
   const prefetch = bridge.slice(bridge.indexOf('private void prefetchChoices('),
     bridge.indexOf('private String worldProposalPrompt(', bridge.indexOf('private void prefetchChoices(')));
-  assert.match(prefetch, /Intentionally no-op/);
-  assert.doesNotMatch(prefetch, /geminiBranchBatch\(|generateText\(|postJson\(|previewTurn\(/);
-  assert.doesNotMatch(bridge, /prefetchIo|prefetchGeneration|prefetchCache|PrefetchBranch|PrefetchCache/);
+  assert.match(prefetch, /scheduleNarrationFutureRefill\(current\)/);
+  assert.doesNotMatch(prefetch, /previewTurn\(|processRule\(|completePreparedTurn\(|commitPresentation\(|persist\(/);
+  const refill = bridge.slice(bridge.indexOf('private void scheduleNarrationFutureRefill('),
+    bridge.indexOf('private void prefetchChoices(', bridge.indexOf('private void scheduleNarrationFutureRefill(')));
+  assert.match(refill, /narrationFutureIo\.execute/);
+  assert.match(refill, /generateText\(prompt\)/);
+  assert.match(refill, /narrationFutureAlignment\(current, baseHash, oracleSteps\)/);
+  assert.match(refill, /narrationFutureRefillRunning/);
+  assert.doesNotMatch(refill, /previewTurn\(|processRule\(|completePreparedTurn\(|commitPresentation\(/);
 });
 
 test('bridge contains no retired shadow-planner orchestration', () => {
@@ -113,31 +119,42 @@ test('player turn commits Core before bounded presentation and never schedules p
   assert.doesNotMatch(provider, /catch \(|geminiText\(|haikuText\(|haikuTextOnce\(|sleep|attempt/);
 });
 
-test('oracle narration cache reuses exact choices and supplies a convergence target for free-form actions', () => {
+test('oracle narration cache stays warm without blocking current narration on a six-step batch', () => {
   assert.match(bridge, /private JSONArray narrationFutureCache = new JSONArray\(\)/);
   assert.match(bridge, /pollNarrationFuture\(JSONObject committedState\)/);
   assert.match(bridge, /GameCoreFacade\.oracleAuthorityHash\(committedState\)/);
-  assert.match(bridge, /expectedHash\.equals\(actualHash\)/);
   assert.match(bridge, /GameCoreFacade\.oracleCacheOutcomeMatches\(committedState, slot\)/);
-  assert.match(bridge, /\.put\("payloadKey", step\.optString\("payloadKey", ""\)\)/);
-  assert.match(bridge, /\.put\("levelKey", step\.optString\("levelKey", ""\)\)/);
-  assert.match(bridge, /\.put\("routeResult", step\.optString\("routeResult", ""\)\)/);
-  assert.match(bridge, /JSONObject cachedSlot = pollNarrationFuture\(narrationState\)/);
-  assert.match(bridge, /expectedAction\.equals\(actualAction\)/);
-  assert.match(bridge, /convergenceTarget = cachedGenerated\.optString\("reply", ""\)\.trim\(\)/);
-  assert.match(bridge, /PLAYER ACTION CONVERGENCE/);
-  assert.match(bridge, /CONVERGENCE TARGET/);
-  assert.match(bridge, /"CHARACTER"\.equals\(slot\.optString\("worldKind", ""\)\)/);
-  assert.match(bridge, /captureNarrationFuture\(freshFuture\[0\], freshOracleSteps\[0\]\)/);
-  assert.match(bridge, /gameCore\.oracleWindow\(narrationState\.toString\(\)\)/);
-  assert.match(bridge, /BATCH OUTPUT/);
-  assert.match(bridge, /parsed\.remove\("future"\)/);
-  assert.match(bridge, /if \(cachedForProvider != null\) return cachedForProvider;/);
-  assert.match(bridge, /private final ExecutorService narrationFutureIo = Executors\.newSingleThreadExecutor\(\)/);
-  assert.match(bridge, /scheduleNarrationFutureRefill\(JSONObject committedState, String action, String turnId\)/);
-  assert.match(bridge, /narrationFutureEpoch\+\+/);
-  assert.match(bridge, /captureNarrationFutureIfEpoch\(new JSONArray\(future\.toString\(\)\), oracleSteps, expectedEpoch\)/);
-  assert.match(bridge, /if \(cachedForProvider != null && generated == cachedForProvider\) \{[\s\S]*scheduleNarrationFutureRefill\(narrationState, action, turnId\);/);
+  assert.match(bridge, /private String narrationFuturePrompt\(/);
+  assert.match(bridge, /OUTPUT chỉ JSON: \{\\\"future\\\"/);
+  assert.match(bridge, /private void scheduleNarrationFutureRefill\(JSONObject baseState\)/);
+  assert.match(bridge, /narrationFutureCache\.length\(\) >= 4/);
+  assert.match(bridge, /narrationFutureRefillRunning = true/);
+  assert.match(bridge, /narrationFutureAlignment\(current, baseHash, oracleSteps\)/);
+  assert.match(bridge, /replaceNarrationFutureLocked\([\s\S]*startIndex\)/);
+  const prompt = bridge.slice(bridge.indexOf('private String narrationPrompt('),
+    bridge.indexOf('private void clearNarrationFutureCache('));
+  assert.doesNotMatch(prompt, /BATCH OUTPUT|future là mảng 6 capsule/);
+  assert.match(prompt, /OUTPUT chỉ cho scene HIỆN TẠI/);
+
+  const turn = bridge.slice(bridge.indexOf('@JavascriptInterface public void submitTurn('),
+    bridge.indexOf('@JavascriptInterface public void combatRoll('));
+  assert.match(turn, /JSONObject cachedSlot = pollNarrationFuture\(narrationState\)/);
+  assert.match(turn, /expectedAction\.equals\(actualAction\)/);
+  assert.match(turn, /convergenceTarget = cachedGenerated\.optString\("reply", ""\)\.trim\(\)/);
+  assert.match(turn, /clearNarrationFutureCache\(\)/);
+  assert.match(turn, /scheduleNarrationFutureRefill\(narrationState\)/);
+  assert.match(turn, /if \(cachedForProvider != null\) return cachedForProvider;/);
+  assert.doesNotMatch(turn, /freshFuture|freshOracleSteps|captureNarrationFuture\(/);
+});
+
+test('Explorer choice keeps Core routing token separate from player-facing log and narration text', () => {
+  const turn = bridge.slice(bridge.indexOf('@JavascriptInterface public void submitTurn('),
+    bridge.indexOf('@JavascriptInterface public void combatRoll('));
+  assert.match(turn, /clientSubmitted\.optString\("__uiDisplayAction"/);
+  assert.match(turn, /clientSubmitted\.remove\("__uiDisplayAction"\)/);
+  assert.match(turn, /narrationPrompt\(narrationState, displayAction, turnId,/);
+  assert.match(turn, /commitPresentation\(turnId,[\s\S]*displayAction, gmEntry\.toString\(\)\)/);
+  assert.match(turn, /String actualAction = action == null \? "" : action\.trim\(\)/);
 });
 
 

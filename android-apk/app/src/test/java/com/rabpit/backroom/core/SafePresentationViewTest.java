@@ -100,6 +100,15 @@ public class SafePresentationViewTest {
     assertEquals(view, SafePresentationView.text(state, "cao_minh", view));
   }
 
+  @Test public void playerActionProjectionCarriesOnlyTheSafeCommittedActionText() throws Exception {
+    JSONObject state = new JSONObject();
+    JSONObject event = new JSONObject()
+        .put("eventType", "PLAYER_ACTION_RESOLVED")
+        .put("params", new JSONObject().put("factValue", "Khám phá"));
+    JSONObject view = SafePresentationView.event(state, "cao_minh", event);
+    assertEquals("Khám phá", view.getString("action"));
+  }
+
   @Test public void eventProjectionIsReadOnlyAndPreservesRangedApproach() throws Exception {
     JSONObject state = new JSONObject().put("currentLevelKey", "1");
     JSONObject event = new JSONObject().put("eventId", "t:e1")
