@@ -259,9 +259,9 @@ public final class CombatChoiceEngine {
         entitySkill("Cover Fire", 115, 32),
         entitySkill("Crossfire Burst", 120, 28));
     entitySkills("async_member_rifle_aim_right_01",
-        entitySkill("Containment Burst", 110, 33),
-        entitySkill("Visor-Line Double Tap", 115, 28),
-        entitySkill("Specimen Suppression", 120, 23));
+        entitySkill("Loạt Bắn Kiểm Soát", 110, 33),
+        entitySkill("Hai Phát Liên Tiếp", 115, 28),
+        entitySkill("Áp Chế Mẫu Vật", 120, 23));
     entitySkills("copx",
         entitySkill("Static Burst", 110, 30),
         entitySkill("Servo Pivot", 115, 25),

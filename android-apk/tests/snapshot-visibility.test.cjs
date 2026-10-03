@@ -42,6 +42,16 @@ test('generated bounds exist for all registered overlays',()=>{
 });
 
 
+test('new active Entity sprites resolve through the snapshot allowlist',()=>{
+ for(const key of ['async_member_rifle_aim_right_01','the_lifeform_bacteria_01','the_lifeform_bacteria_02','the_lifeform_bacteria_03']){
+  const r=boot({stateOverride:{flags:{entityEncounterKey:key},combat:{active:false}}});
+  const img=r.elements.find(e=>e.className.includes('snapshot-entity'));
+  assert.ok(img,key);
+  assert.equal(img.url,'file:///android_asset/entity/'+key+'.webp');
+  visible(img);
+ }
+});
+
 test('snapshot has no combat status icon HUD and uses smaller HP damage text',()=>{
  assert.doesNotMatch(source,/combat-status-hud/);
  assert.doesNotMatch(source,/__combatStatusIcons/);

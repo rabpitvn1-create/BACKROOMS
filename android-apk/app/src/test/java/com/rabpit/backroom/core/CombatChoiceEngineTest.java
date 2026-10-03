@@ -540,7 +540,7 @@ public class CombatChoiceEngineTest {
     skillsField.setAccessible(true);
     Map<?, ?> pools = (Map<?, ?>) skillsField.get(null);
     List<?> skills = (List<?>) pools.get(key);
-    String[] names = {"Containment Burst", "Visor-Line Double Tap", "Specimen Suppression"};
+    String[] names = {"Loạt Bắn Kiểm Soát", "Hai Phát Liên Tiếp", "Áp Chế Mẫu Vật"};
     int[] damage = {110, 115, 120};
     int[] proc = {33, 28, 23};
     for (int i = 0; i < skills.size(); i++) {

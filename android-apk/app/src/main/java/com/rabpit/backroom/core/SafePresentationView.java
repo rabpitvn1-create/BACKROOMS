@@ -64,6 +64,11 @@ public final class SafePresentationView {
     return "hình dạng phía trước";
   }
 
+  private static String canonicalLabel(String subject) {
+    for (String[] row : SUBJECTS) if (row[0].equals(subject)) return row[1];
+    return "Entity";
+  }
+
   /** Redact all channels after composition, including keys/IDs and retrieved or recent text. */
   public static String text(JSONObject state, String actor, String raw) {
     if (raw == null) return "";
@@ -167,7 +172,10 @@ public final class SafePresentationView {
         String appearance = text(state, actor, data.optString("appearance", "")).trim();
         if (!appearance.isEmpty()) {
           view.put("entityAppearance", appearance);
-          if (!CharacterKnowledge.knows(state, actor, subject, "knownName")) view.put("subject", appearance);
+          if ("ENTITY_ENCOUNTER_STARTED".equals(type)
+              && !CharacterKnowledge.knows(state, actor, subject, "knownName")) {
+            view.put("subject", appearance);
+          }
           view.put("heldObject", text(state, actor, data.optString("heldObject", "")));
           view.put("details", value(state, actor, data.optJSONArray("details") == null
               ? new JSONArray() : data.optJSONArray("details")));
@@ -191,10 +199,13 @@ public final class SafePresentationView {
     JSONObject view = new JSONObject().put("eventType", type)
         .put("eventId", event.optString("eventId", ""))
         .put("actor", label(state, actor, actor))
-        .put("subject", label(state, actor, subject));
+        .put("subject", "COMBAT_VICTORY".equals(type)
+            ? canonicalLabel(subject) : label(state, actor, subject));
     if ("ENTITY_ENCOUNTER_STARTED".equals(type)) {
-      view.put("approachStyle", "async_rifleman".equals(subject) ? "hold_distance"
-          : "hound".equals(subject) ? "charge" : "emerge");
+      view.put("approachStyle",
+          ("async_rifleman".equals(subject) || "async_member_rifle_aim_right_01".equals(subject))
+              ? "hold_distance"
+              : "hound".equals(subject) ? "charge" : "emerge");
     }
     if ("CHARACTER_ENCOUNTERED".equals(type) || "CHARACTER_REUNION".equals(type)) {
       view.put("introDetail", "lucia".equals(subject) ? "Trong tay cô là một vật kim loại dài."

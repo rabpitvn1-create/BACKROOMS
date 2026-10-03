@@ -95,7 +95,7 @@ public final class GameCoreFacade implements AutoCloseable {
       }
 
       String coreAction = GmChoiceContract.defaultCoreAction(legacy);
-      String turnId = emergentTurnEngine.nextTurnId(legacy, coreAction);
+      String turnId = emergentTurnEngine.nextWorldTurnId(legacy, coreAction);
       PreparedTurn existing = preparedTurns.get(turnId);
       if (existing != null && existing.baseHash.equals(fingerprint(legacy))) {
         return preparedResponse(legacy, existing);
@@ -112,10 +112,11 @@ public final class GameCoreFacade implements AutoCloseable {
 
   private PreparedTurn prepareExplorerTurnData(JSONObject legacy, String text) throws Exception {
       int preTurnStateVersion = emergentTurnEngine.stateVersion(legacy);
-      String turnId = emergentTurnEngine.nextTurnId(legacy, text);
+      int worldRngVersion = emergentTurnEngine.worldRngVersion(legacy);
+      String turnId = emergentTurnEngine.nextWorldTurnId(legacy, text);
 
       TurnRng turnRng = new TurnRng(
-          turnId, preTurnStateVersion,
+          turnId, worldRngVersion,
           EmergentTurnEngine.CANON_VERSION, EmergentTurnEngine.RNG_SCHEMA_VERSION);
       JSONObject working = deepCopy(legacy);
       JSONArray events = new JSONArray();
@@ -802,8 +803,7 @@ public final class GameCoreFacade implements AutoCloseable {
         steps.put(stepInfo);
 
         if ("ENTITY".equals(selected.optString("kind", ""))) {
-          JSONObject flags = next.optJSONObject("flags");
-          if (flags != null) flags.put("entityEncounterKey", "");
+          next = advanceOraclePastEntityCombat(next, selected, step);
         }
         if ("CHARACTER".equals(selected.optString("kind", ""))) {
           characterEncounterCore.acknowledgePendingIntro(next);
@@ -822,6 +822,68 @@ public final class GameCoreFacade implements AutoCloseable {
             .put("steps", new JSONArray());
       } catch (Exception ignored) {}
       return output.toString();
+    }
+  }
+
+  private JSONObject advanceOraclePastEntityCombat(
+      JSONObject encounterState, JSONObject selected, int oracleStep) throws Exception {
+    JSONObject before = deepCopy(encounterState);
+    JSONObject resolved = deepCopy(encounterState);
+    JSONObject flags = resolved.optJSONObject("flags");
+    if (flags != null) flags.put("entityEncounterKey", "");
+    incrementTurn(resolved);
+
+    String entityKey = selected == null ? "" : selected.optString("payloadKey", "").trim();
+    String turnId = emergentTurnEngine.nextTurnId(
+        before, "oracle:entity-victory:" + entityKey + ":" + oracleStep);
+    JSONArray effects = new JSONArray();
+    if (!entityKey.isEmpty()) {
+      effects.put(emergentTurnEngine.threadEffect(
+          "ENTITY_ENCOUNTER", new JSONArray().put(entityKey), "TERMINATE", "RESOLVED"));
+    }
+    JSONArray events = new JSONArray();
+    events.put(emergentTurnEngine.event(
+        turnId, events, "COMBAT_VICTORY", "LOCAL",
+        entityKey.isEmpty() ? "combat" : entityKey,
+        new JSONObject()
+            .put("factPredicate", "combat_resolution")
+            .put("factValue", "victory")
+            .put("causedBy", "player")
+            .put("observedByPlayer", true),
+        effects));
+
+    emergentTurnEngine.validateBatch(turnId, events);
+    emergentTurnEngine.commitAuthoritative(before, resolved, turnId, events, null);
+    projectBeforePersist(resolved);
+    emergentTurnEngine.catchUpProjections(resolved);
+    return resolved;
+  }
+
+  public static boolean oracleCacheOutcomeMatches(JSONObject committedState, JSONObject slot) {
+    if (committedState == null || slot == null) return false;
+    try {
+      JSONObject root = committedState.optJSONObject(EmergentTurnEngine.ROOT_KEY);
+      JSONObject selection = root == null ? null : root.optJSONObject("lastSelection");
+      if (selection == null) return false;
+
+      String actualKind = selection.optBoolean("selectedNone", false)
+          ? "QUIET" : selection.optString("kind", "WORLD").trim();
+      if (actualKind.isEmpty()) actualKind = "WORLD";
+      if (!slot.optString("worldKind", "").trim().equals(actualKind)) return false;
+
+      String actualPayload = selection.optBoolean("selectedNone", false)
+          ? "" : selection.optString("payloadKey", "").trim();
+      if (!slot.optString("payloadKey", "").trim().equals(actualPayload)) return false;
+
+      String actualLevel = committedState.optString(LevelCore.LEVEL_KEY,
+          String.valueOf(committedState.optInt("currentLevel", 0))).trim();
+      if (!slot.optString("levelKey", "").trim().equals(actualLevel)) return false;
+
+      JSONObject route = committedState.optJSONObject(LevelCore.ROUTE_STATE);
+      String actualRoute = route == null ? "" : route.optString("lastResult", "").trim();
+      return slot.optString("routeResult", "").trim().equals(actualRoute);
+    } catch (Exception ignored) {
+      return false;
     }
   }
 

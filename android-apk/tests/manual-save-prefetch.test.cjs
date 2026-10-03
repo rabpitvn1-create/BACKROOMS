@@ -51,8 +51,10 @@ test('free-form Explorer text shares the default Core trajectory', () => {
   const process = core.slice(core.indexOf('public synchronized String processRule('),
     core.indexOf('private PreparedTurn prepareExplorerTurnData('));
   assert.match(process, /String coreAction = GmChoiceContract\.defaultCoreAction\(legacy\);/);
-  assert.match(process, /nextTurnId\(legacy, coreAction\)/);
+  assert.match(process, /nextWorldTurnId\(legacy, coreAction\)/);
   assert.match(process, /prepareExplorerTurnData\(legacy, coreAction\)/);
+  assert.match(core, /int worldRngVersion = emergentTurnEngine\.worldRngVersion\(legacy\)/);
+  assert.match(core, /new TurnRng\([\s\S]*turnId, worldRngVersion,/);
 });
 
 test('preview shares turn resolution without persisting or retaining attempts', () => {
@@ -116,6 +118,10 @@ test('oracle narration cache reuses exact choices and supplies a convergence tar
   assert.match(bridge, /pollNarrationFuture\(JSONObject committedState\)/);
   assert.match(bridge, /GameCoreFacade\.oracleAuthorityHash\(committedState\)/);
   assert.match(bridge, /expectedHash\.equals\(actualHash\)/);
+  assert.match(bridge, /GameCoreFacade\.oracleCacheOutcomeMatches\(committedState, slot\)/);
+  assert.match(bridge, /\.put\("payloadKey", step\.optString\("payloadKey", ""\)\)/);
+  assert.match(bridge, /\.put\("levelKey", step\.optString\("levelKey", ""\)\)/);
+  assert.match(bridge, /\.put\("routeResult", step\.optString\("routeResult", ""\)\)/);
   assert.match(bridge, /JSONObject cachedSlot = pollNarrationFuture\(narrationState\)/);
   assert.match(bridge, /expectedAction\.equals\(actualAction\)/);
   assert.match(bridge, /convergenceTarget = cachedGenerated\.optString\("reply", ""\)\.trim\(\)/);

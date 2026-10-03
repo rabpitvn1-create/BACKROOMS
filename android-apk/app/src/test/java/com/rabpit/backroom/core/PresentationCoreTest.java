@@ -185,6 +185,77 @@ public class PresentationCoreTest {
   }
 
 
+  @Test public void worldTurnRngIgnoresCombatOnlyStateVersionChanges() throws Exception {
+    JSONObject sample = state();
+    EmergentTurnEngine emergent = new EmergentTurnEngine();
+    emergent.normalizeState(sample);
+    String action = "Cao Minh tiếp tục tiến lên";
+    String first = emergent.nextWorldTurnId(sample, action);
+    int firstRngVersion = emergent.worldRngVersion(sample);
+
+    sample.getJSONObject(EmergentTurnEngine.ROOT_KEY).put("stateVersion", 99);
+    assertEquals(first, emergent.nextWorldTurnId(sample, action));
+    assertEquals(firstRngVersion, emergent.worldRngVersion(sample));
+
+    sample.put("turn", sample.optInt("turn", 1) + 1);
+    assertNotEquals(first, emergent.nextWorldTurnId(sample, action));
+  }
+
+  @Test public void oracleEntityDetourKeepsNextCachedWorldOutcomeAligned() throws Exception {
+    JSONObject seeded = state();
+    EmergentTurnEngine emergent = new EmergentTurnEngine();
+    emergent.normalizeState(seeded);
+
+    GameCoreFacade core = null;
+    JSONObject oracle = null;
+    JSONObject first = null;
+    for (int i = 0; i < 512; i++) {
+      JSONObject candidate = new JSONObject(seeded.toString());
+      candidate.getJSONObject(EmergentTurnEngine.ROOT_KEY).put("saveId", "oracle-research-" + i);
+      GameCoreFacade attempt = core(candidate);
+      JSONObject window = new JSONObject(attempt.oracleWindow(attempt.currentCoreState()));
+      JSONObject step = window.getJSONArray("steps").getJSONObject(0);
+      if ("ENTITY".equals(step.optString("worldKind", ""))
+          && "async_member_rifle_aim_right_01".equals(step.optString("payloadKey", ""))) {
+        core = attempt;
+        oracle = window;
+        first = step;
+        break;
+      }
+    }
+    assertNotNull("Expected a deterministic seed with Research Async Member in the first oracle slot", core);
+    assertNotNull(oracle);
+    assertEquals(6, oracle.getJSONArray("steps").length());
+
+    JSONObject spawned = committed(core, first.getString("action")).getJSONObject("state");
+    String entityKey = spawned.getJSONObject("flags").getString("entityEncounterKey");
+    assertEquals("async_member_rifle_aim_right_01", entityKey);
+
+    core.startCombatRuntime(entityKey, 0);
+    java.lang.reflect.Field live = GameCoreFacade.class.getDeclaredField("liveStateJson");
+    live.setAccessible(true);
+    JSONObject combatState = new JSONObject((String) live.get(core));
+    JSONObject combat = combatState.getJSONObject("combat");
+    combat.getJSONObject("entity").put("hp", 1);
+    combat.getJSONObject("diceState")
+        .put("values", new JSONArray().put(2).put(2).put(2).put(4).put(6))
+        .put("hasRolled", true)
+        .put("finalized", true)
+        .put("resolved", false)
+        .put("hand", CombatChoiceEngine.classify(new int[] {2, 2, 2, 4, 6}));
+    live.set(core, combatState.toString());
+
+    JSONObject victory = new JSONObject(core.processCombatResolution("{}"));
+    assertTrue(victory.toString(), victory.getBoolean("handled"));
+    assertEquals("victory", victory.getJSONObject("state").getJSONObject("combat").getString("outcome"));
+
+    JSONObject second = oracle.getJSONArray("steps").getJSONObject(1);
+    JSONObject actualNext = committed(core, second.getString("action")).getJSONObject("state");
+    assertTrue("Post-combat world outcome must still match the cached oracle slot",
+        GameCoreFacade.oracleCacheOutcomeMatches(actualNext, second));
+  }
+
+
   @Test public void oracleShowsExactCoreChestLootInsteadOfLeavingWriterBlind() throws Exception {
     JSONObject initial = state();
     initial.put("flags", new JSONObject().put("chestPresent", true));

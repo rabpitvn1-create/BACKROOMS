@@ -273,31 +273,31 @@
         5,
         6
       ],
-      "canon": "A hostile Research Async Member encountered as an armed ASYNC field-research operator. The committed visual reference is authoritative for appearance: a sealed yellow hazmat suit, dark gloves and boots, a breathing tank and hose on the back, and a black rifle already shouldered in a disciplined firing stance. Horror comes from the clinical anonymity of the sealed figure: the face is difficult to read behind the dark visor and the weapon remains trained with unnerving calm. Do not invent mutation, infection, supernatural anatomy or a revealed identity unless later canon explicitly establishes it.",
+      "canon": "Một thành viên nghiên cứu ASYNC thù địch hoạt động như nhân sự khảo sát thực địa có vũ trang. Ảnh tham chiếu đã commit là nguồn khóa cho ngoại hình: bộ đồ bảo hộ kín màu vàng, găng và ủng tối màu, bình khí cùng ống thở sau lưng, và một vũ khí trường màu đen luôn được ghì chắc vào vai trong tư thế ngắm bắn có kỷ luật. Yếu tố kinh dị đến từ sự vô danh mang tính lâm sàng: khuôn mặt gần như biến mất sau tấm kính che tối, trong khi đầu nòng vẫn giữ mục tiêu với sự bình tĩnh bất thường. Không tự ý khẳng định đột biến, lây nhiễm, giải phẫu siêu nhiên hoặc danh tính thật nếu canon sau này chưa xác lập.",
       "presentation": {
-        "appearance": "một người mặc bộ đồ hazmat vàng kín từ đầu đến chân, khuôn mặt chìm sau tấm visor tối và một khẩu súng trường đen đã ghì chặt vào vai",
-        "heldObject": "một khẩu súng trường đen",
+        "appearance": "một người mặc bộ đồ bảo hộ kín màu vàng từ đầu đến chân, khuôn mặt chìm sau tấm kính che tối; một vật kim loại dài màu đen đã được ghì chắc vào vai",
+        "heldObject": "một vật kim loại dài màu đen",
         "approachStyle": "hold_distance",
         "details": [
-          "Lớp đồ bảo hộ vàng nhăn bóng phủ kín cơ thể như một lớp da nhân tạo; trên cánh tay vẫn thấy dấu ASYNC, nhưng không có phần da thịt nào lộ ra để xác nhận người bên trong là ai.",
-          "Tấm kính che mặt trong suốt nhưng tối, chỉ để lộ một gương mặt mờ sâu phía sau lớp phản chiếu; từ xa rất khó phân biệt đó là ánh mắt đang theo dõi hay chỉ là bóng tối trong mũ.",
+          "Lớp đồ bảo hộ vàng nhăn bóng phủ kín cơ thể như một lớp da nhân tạo; trên cánh tay vẫn còn dấu ASYNC, nhưng không có phần da thịt nào lộ ra để xác nhận người bên trong là ai.",
+          "Tấm kính che mặt tối chỉ để lộ một gương mặt mờ sâu phía sau lớp phản chiếu; từ xa rất khó phân biệt đó là ánh mắt đang theo dõi hay chỉ là bóng tối trong mũ.",
           "Một bình khí kim loại xám và ống thở dày bám sau lưng, khiến phần thân trên trông nặng nề và khép kín như một hệ thống duy trì sự sống mang theo người.",
-          "Khẩu súng trường đen được giữ sát vai, nòng luôn hướng ngang về phía mục tiêu; tư thế ngắm quá ổn định và có kiểm soát khiến hình người trong bộ đồ bảo hộ trông giống một quy trình săn bắt hơn là một kẻ hoảng loạn."
+          "Vật kim loại dài màu đen được giữ sát vai, đầu nòng luôn hướng ngang về phía mục tiêu; tư thế ngắm quá ổn định và có kiểm soát khiến hình người trong bộ bảo hộ giống một quy trình săn bắt hơn là một kẻ đang hoảng loạn."
         ]
       },
       "autoProcSkills": [
         {
-          "name": "Containment Burst",
+          "name": "Loạt Bắn Kiểm Soát",
           "damagePercent": 110,
           "procPercent": 33
         },
         {
-          "name": "Visor-Line Double Tap",
+          "name": "Hai Phát Liên Tiếp",
           "damagePercent": 115,
           "procPercent": 28
         },
         {
-          "name": "Specimen Suppression",
+          "name": "Áp Chế Mẫu Vật",
           "damagePercent": 120,
           "procPercent": 23
         }

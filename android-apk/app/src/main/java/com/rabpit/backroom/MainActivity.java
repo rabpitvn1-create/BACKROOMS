@@ -799,7 +799,8 @@ public class MainActivity extends Activity {
         }
         String expectedHash = slot.optString("authorityHash", "");
         String actualHash = GameCoreFacade.oracleAuthorityHash(committedState);
-        if (!expectedHash.equals(actualHash)) {
+        if (!expectedHash.equals(actualHash)
+            && !GameCoreFacade.oracleCacheOutcomeMatches(committedState, slot)) {
           narrationFutureCache = new JSONArray();
           return null;
         }
@@ -832,6 +833,9 @@ public class MainActivity extends Activity {
           .put("action", step.optString("action", ""))
           .put("authorityHash", step.optString("authorityHash", ""))
           .put("worldKind", step.optString("worldKind", ""))
+          .put("payloadKey", step.optString("payloadKey", ""))
+          .put("levelKey", step.optString("levelKey", ""))
+          .put("routeResult", step.optString("routeResult", ""))
           .put("payload", clean));
     }
   }

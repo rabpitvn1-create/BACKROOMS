@@ -25,15 +25,16 @@ public class OfflinePresenterTest {
         .getString("reply").contains("áp sát Cao Minh"));
   }
 
-  @Test public void entityDeathNeverCallsProviderAndUsesKnownIdentityOnly() throws Exception {
+  @Test public void entityDeathNeverCallsProviderAndKeepsCanonicalEntityName() throws Exception {
     JSONObject state = new JSONObject();
     String before = state.toString();
-    assertEquals("Bóng người mặc trang bị kín người bị tiêu diệt.",
-        OfflinePresenter.present(views(state, "COMBAT_VICTORY", "async_rifleman"), POISON).getString("reply"));
-    assertEquals(before, state.toString());
-    CharacterKnowledge.mark(state, "cao_minh", "async_rifleman", "knownName", "core:known");
     assertEquals("ASYNC Rifleman bị tiêu diệt.",
         OfflinePresenter.present(views(state, "COMBAT_VICTORY", "async_rifleman"), POISON).getString("reply"));
+    assertEquals("Research Async Member bị tiêu diệt.",
+        OfflinePresenter.present(
+            views(state, "COMBAT_VICTORY", "async_member_rifle_aim_right_01"), POISON)
+            .getString("reply"));
+    assertEquals(before, state.toString());
   }
 
   @Test public void chestDiscoveryAndOpeningAreOfflineAndDoNotGrantLootAgain() throws Exception {

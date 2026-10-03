@@ -83,6 +83,9 @@ All three use base **173 HP / 17 damage**, the integer combat representation of 
 
 `async_member_rifle_aim_right_01.webp` is the authoritative visual reference for **Research Async Member**. The sprite shows a sealed yellow ASYNC hazmat operator with dark visor, black gloves and boots, a rear breathing tank/air hose, and a black rifle already shouldered toward the right. Presentation deliberately leans into clinical horror: identity remains visually obscured behind the visor and the firing posture is controlled and impersonal, but canon does not claim mutation, infection or supernatural anatomy.
 
-Runtime profile: **190 HP / 20 damage** before normal Stage scaling. Its three independent proc skills are **Containment Burst** (110% / 33%), **Visor-Line Double Tap** (115% / 28%), and **Specimen Suppression** (120% / 23%).
+Runtime profile: **190 HP / 20 damage** before normal Stage scaling. Its three independent proc skills are **Loạt Bắn Kiểm Soát** (110% / 33%), **Hai Phát Liên Tiếp** (115% / 28%), and **Áp Chế Mẫu Vật** (120% / 23%).
 
 Spawn policy: configured **3.3333333333333335%**, multiplied by the existing EntityCore 3× policy for an effective **10.00%** independent roll. The registry lists parent Levels 0–6 and intentionally omits exact `levelKeys`, so eligibility propagates to every current Sublevel/special node through its parent Level.
+
+
+Entity lifecycle presentation rule: encounter introductions may stay appearance-first while identity is unknown, but a committed `COMBAT_VICTORY` closure always retains the canonical Entity name (for example, `Research Async Member bị tiêu diệt.`) instead of replacing it with the long visual description.

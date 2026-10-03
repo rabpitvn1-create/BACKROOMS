@@ -84,6 +84,20 @@ final class EmergentTurnEngine {
     return "turn-" + (version + 1) + "-" + shortHash(saveId + "|" + version + "|" + safe(action));
   }
 
+  int worldRngVersion(JSONObject state) throws Exception {
+    normalizeState(state);
+    return Math.max(1, state.optInt("turn", 1));
+  }
+
+  String nextWorldTurnId(JSONObject state, String action) throws Exception {
+    normalizeState(state);
+    JSONObject root = state.getJSONObject(ROOT_KEY);
+    int worldTurn = worldRngVersion(state);
+    String saveId = root.getString("saveId");
+    return "world-" + worldTurn + "-" + shortHash(
+        saveId + "|world|" + worldTurn + "|" + safe(action));
+  }
+
   JSONObject candidate(String kind, String situationKey, String category, double chancePercent,
                        String publicSummary, String payloadKey, boolean proposalRequired) throws Exception {
     if (situationKey == null || situationKey.trim().isEmpty()) {
