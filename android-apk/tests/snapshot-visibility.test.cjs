@@ -80,7 +80,7 @@ test('Entity death exposes deterministic glass-shatter fragments with varied siz
  assert.ok(clips.length>=18);
  assert.equal(motion.length,clips.length);
  const footprints=clips.map(clip=>{
-  const points=[...clip.matchAll(/(\d+)%?\s+(\d+)%/g)].map(match=>[Number(match[1]),Number(match[2])]);
+  const points=[...clip.matchAll(/(\d+)%?\s+(\d+)%?/g)].map(match=>[Number(match[1]),Number(match[2])]);
   assert.ok(points.length>=3,clip);
   const xs=points.map(point=>point[0]),ys=points.map(point=>point[1]);
   return (Math.max(...xs)-Math.min(...xs))*(Math.max(...ys)-Math.min(...ys));
