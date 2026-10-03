@@ -89,6 +89,10 @@ test('combat time reuses the matched pre-encounter oracle to warm post-combat na
   assert.match(bridge, /private String narrationFutureForecastPrompt = ""/);
   assert.match(bridge, /private int combatForecastStartIndex\(/);
   assert.match(bridge, /GameCoreFacade\.oracleCacheOutcomeMatches\(currentState, step\)/);
+  const combatAlign=bridge.slice(bridge.indexOf('private int combatForecastStartIndex('),
+    bridge.indexOf('private int narrationFutureAlignment(',bridge.indexOf('private int combatForecastStartIndex(')));
+  assert.doesNotMatch(combatAlign, /activeEntityIndex|combat\.entity/);
+  assert.match(bridge, /put\("payloadKeys", step\.optJSONArray\("payloadKeys"\)/);
   assert.match(bridge, /private void scheduleCombatNarrationFutureRefill\(/);
   assert.match(bridge, /if \(CombatChoiceEngine\.isActive\(baseState\)\) \{[\s\S]*scheduleCombatNarrationFutureRefill\(baseState\)/);
   assert.match(bridge, /scheduleNarrationFutureRefill\(runtime\);[\s\S]*backroomCombatDiceState/);

@@ -212,27 +212,41 @@ public class PresentationCoreTest {
         new JSONObject()
             .put("selectedNone", false)
             .put("kind", "ENTITY")
-            .put("payloadKey", "async_member_rifle_aim_right_01"));
+            .put("payloadKey", "async_member_rifle_aim_right_01")
+            .put("payloadKeys", new JSONArray()
+                .put("async_member_rifle_aim_right_01")
+                .put("the_lifeform_bacteria_01")));
 
     JSONObject slot = new JSONObject()
         .put("worldKind", "ENTITY")
         .put("payloadKey", "async_member_rifle_aim_right_01")
+        .put("payloadKeys", new JSONArray()
+            .put("async_member_rifle_aim_right_01")
+            .put("the_lifeform_bacteria_01"))
         .put("levelKey", "0")
         .put("routeResult", "NO_ROUTE_ROLL");
 
     assertTrue(GameCoreFacade.oracleCacheOutcomeMatches(state, slot));
 
-    // Combat-only bookkeeping may freely change without invalidating the already committed world outcome.
+    // Combat-only bookkeeping, including active Entity rotation, must not invalidate the
+    // already committed encounter outcome.
     state.getJSONObject(EmergentTurnEngine.ROOT_KEY).put("stateVersion", 99);
+    JSONArray combatEntities = new JSONArray()
+        .put(new JSONObject().put("key", "async_member_rifle_aim_right_01").put("hp", 10))
+        .put(new JSONObject().put("key", "the_lifeform_bacteria_01").put("hp", 10));
     state.put("combat", new JSONObject()
-        .put("active", false)
-        .put("outcome", "victory")
-        .put("coreDropReward", 12)
-        .put("lootResolved", true));
+        .put("active", true)
+        .put("activeEntityIndex", 0)
+        .put("entities", combatEntities)
+        .put("entity", combatEntities.getJSONObject(0)));
+    assertTrue(GameCoreFacade.oracleCacheOutcomeMatches(state, slot));
+    state.getJSONObject("combat").put("activeEntityIndex", 1)
+        .put("entity", combatEntities.getJSONObject(1));
     assertTrue(GameCoreFacade.oracleCacheOutcomeMatches(state, slot));
 
     state.getJSONObject(EmergentTurnEngine.ROOT_KEY).getJSONObject("lastSelection")
-        .put("payloadKey", "hound");
+        .put("payloadKey", "hound")
+        .put("payloadKeys", new JSONArray().put("hound").put("the_lifeform_bacteria_01"));
     assertFalse(GameCoreFacade.oracleCacheOutcomeMatches(state, slot));
   }
 
@@ -277,4 +291,46 @@ public class PresentationCoreTest {
     assertTrue(CharacterKnowledge.knows(restored, "luc_tram", "cao_minh", "knownName"));
     assertFalse(CharacterKnowledge.knows(restored, "syvial", "cultivation", "knownName"));
   }
+
+  @Test public void facadeEmitsVictoryOnlyAfterTheLastEntityDies() throws Exception {
+    JSONObject initial = state();
+    initial.put("location", LevelCore.LEVEL_ZERO_START_LOCATION);
+    initial.put("log", new JSONArray().put(
+        new JSONObject().put("role", "gm").put("text", "Nhiều Entity xuất hiện")));
+    initial.put("flags", new JSONObject()
+        .put("entityEncounterKey", "hound")
+        .put("entityEncounterKeys", new JSONArray().put("hound").put("clump").put("deathmoth")));
+    CombatChoiceEngine.start(initial,
+        new JSONArray().put("hound").put("clump").put("deathmoth"), 0, null, 0);
+    JSONArray entities = initial.getJSONObject("combat").getJSONArray("entities");
+    for (int i = 0; i < entities.length(); i++) {
+      entities.getJSONObject(i).put("hp", 1).put("attack", 1).put("stunTurns", 20)
+          .put("evasionPercent", 0);
+    }
+
+    GameCoreFacade core = core(initial);
+    for (int kill = 0; kill < 3; kill++) {
+      core.combatFinishRuntime();
+      JSONObject result = new JSONObject(core.processCombatResolution(core.currentCoreState()));
+      assertTrue(result.toString(), result.getBoolean("handled"));
+      JSONObject current = result.getJSONObject("state");
+      JSONObject emergent = current.getJSONObject(EmergentTurnEngine.ROOT_KEY);
+      JSONArray commits = emergent.getJSONArray("commitLog");
+      JSONObject commit = commits.getJSONObject(commits.length() - 1);
+      String eventType = commit.getJSONArray("events").getJSONObject(0).getString("eventType");
+
+      if (kill < 2) {
+        assertEquals("COMBAT_HAND_RESOLVED", eventType);
+        assertTrue(current.getJSONObject("combat").getBoolean("active"));
+        assertEquals(3, current.getJSONObject("flags").getJSONArray("entityEncounterKeys").length());
+      } else {
+        assertEquals("COMBAT_VICTORY", eventType);
+        assertFalse(current.getJSONObject("combat").getBoolean("active"));
+        assertEquals("victory", current.getJSONObject("combat").getString("outcome"));
+        assertEquals(0, current.getJSONObject("flags").getJSONArray("entityEncounterKeys").length());
+        assertEquals("", current.getJSONObject("flags").getString("entityEncounterKey"));
+      }
+    }
+  }
+
 }

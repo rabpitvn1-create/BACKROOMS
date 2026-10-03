@@ -635,4 +635,48 @@ public class EmergentTurnEngineTest {
     assertFalse(accepted.getBoolean("fallback"));
   }
 
+
+  @Test public void independentEntitySpawnRollsKeepEveryPassingUniqueEntity() throws Exception {
+    EmergentTurnEngine engine = new EmergentTurnEngine();
+    JSONObject state = new JSONObject().put("turn", 7);
+    engine.normalizeState(state);
+    JSONArray candidates = new JSONArray()
+        .put(engine.candidate("ENTITY", "entity:async_member_rifle_aim_right_01", "DANGER", 100.0d,
+            "Research Async Member tiến vào phạm vi tương tác.",
+            "async_member_rifle_aim_right_01", true)
+            .put("allowedWorldActions", new JSONArray().put("INTERCEPT").put("DIRECT_ATTACK")))
+        .put(engine.candidate("ENTITY", "entity:the_lifeform_bacteria_01", "DANGER", 100.0d,
+            "Bacterial Stalker tiến vào phạm vi tương tác.",
+            "the_lifeform_bacteria_01", true)
+            .put("allowedWorldActions", new JSONArray().put("INTERCEPT").put("DIRECT_ATTACK")))
+        // Duplicate registry records are ignored inside one encounter.
+        .put(engine.candidate("ENTITY", "entity:async_member_rifle_aim_right_01:duplicate", "DANGER", 100.0d,
+            "Duplicate should not create a second copy.",
+            "async_member_rifle_aim_right_01", true)
+            .put("allowedWorldActions", new JSONArray().put("INTERCEPT")));
+
+    JSONObject selected = engine.selectCandidate(
+        state, candidates,
+        new TurnRng("multi-entity-spawn", 0,
+            EmergentTurnEngine.CANON_VERSION, EmergentTurnEngine.RNG_SCHEMA_VERSION), 7);
+
+    assertFalse(selected.getBoolean("selectedNone"));
+    assertEquals("ENTITY", selected.getString("kind"));
+    assertEquals("ENTITY_INDEPENDENT", selected.getString("selectionMode"));
+    JSONArray payloads = selected.getJSONArray("payloadKeys");
+    assertEquals(2, payloads.length());
+    assertEquals("async_member_rifle_aim_right_01", payloads.getString(0));
+    assertEquals("the_lifeform_bacteria_01", payloads.getString(1));
+
+    JSONObject root = state.getJSONObject(EmergentTurnEngine.ROOT_KEY);
+    JSONArray trace = root.getJSONArray("selectionTrace")
+        .getJSONObject(root.getJSONArray("selectionTrace").length() - 1)
+        .getJSONArray("candidates");
+    assertEquals(2, trace.length());
+    assertTrue(trace.getJSONObject(0).getBoolean("passed"));
+    assertTrue(trace.getJSONObject(1).getBoolean("passed"));
+    assertNotEquals(trace.getJSONObject(0).getInt("rngDrawSeq"),
+        trace.getJSONObject(1).getInt("rngDrawSeq"));
+  }
+
 }

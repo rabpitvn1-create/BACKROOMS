@@ -188,4 +188,18 @@ public class GmChoiceContractTest {
     }
     return false;
   }
+
+  @Test public void semanticHighlightsIncludeAllCombatEntities() throws Exception {
+    JSONObject state = new JSONObject().put("combat", new JSONObject()
+        .put("currentActor", "Cao Minh")
+        .put("entities", new JSONArray()
+            .put(new JSONObject().put("name", "Hound"))
+            .put(new JSONObject().put("name", "Clump")))
+        .put("entity", new JSONObject().put("name", "Hound")));
+    JSONArray highlights = GmChoiceContract.semanticHighlights(
+        "Hound lao tới trong khi Clump siết chặt khoảng cách.", state);
+    assertTrue(highlights.toString().contains("Hound"));
+    assertTrue(highlights.toString().contains("Clump"));
+  }
+
 }

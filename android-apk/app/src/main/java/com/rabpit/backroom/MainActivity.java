@@ -857,6 +857,8 @@ public class MainActivity extends Activity {
           .put("authorityHash", step.optString("authorityHash", ""))
           .put("worldKind", step.optString("worldKind", ""))
           .put("payloadKey", step.optString("payloadKey", ""))
+          .put("payloadKeys", step.optJSONArray("payloadKeys") == null
+              ? new JSONArray() : new JSONArray(step.getJSONArray("payloadKeys").toString()))
           .put("levelKey", step.optString("levelKey", ""))
           .put("routeResult", step.optString("routeResult", ""))
           .put("payload", clean));
@@ -866,14 +868,11 @@ public class MainActivity extends Activity {
   private int combatForecastStartIndex(JSONObject currentState, JSONArray oracleSteps) {
     try {
       if (currentState == null || !CombatChoiceEngine.isActive(currentState)) return -1;
-      JSONObject combat = currentState.optJSONObject("combat");
-      JSONObject entity = combat == null ? null : combat.optJSONObject("entity");
-      String entityKey = entity == null ? "" : entity.optString("key", "").trim();
-      if (entityKey.isEmpty()) entityKey = encounterKey(currentState);
       for (int i = 0; oracleSteps != null && i < oracleSteps.length(); i++) {
         JSONObject step = oracleSteps.optJSONObject(i);
         if (step == null || !"ENTITY".equals(step.optString("worldKind", ""))) continue;
-        if (!entityKey.equals(step.optString("payloadKey", "").trim())) continue;
+        // Alignment is based on the committed encounter selection, not on which Entity is
+        // currently foregrounded. Rotating activeEntityIndex must never invalidate future cache.
         if (GameCoreFacade.oracleCacheOutcomeMatches(currentState, step)) return i + 1;
       }
     } catch (Exception ignored) {}
@@ -1299,6 +1298,18 @@ public class MainActivity extends Activity {
           } else {
             emit("backroomError", message);
           }
+        }
+      });
+    }
+
+    @JavascriptInterface public void combatTarget(int entityIndex) {
+      io.execute(() -> {
+        try {
+          JSONObject runtime = new JSONObject(gameCore.combatTargetRuntime(entityIndex));
+          scheduleNarrationFutureRefill(runtime);
+          emit("backroomCombatDiceState", runtime.toString());
+        } catch (Exception e) {
+          emit("backroomError", e.getMessage() == null ? "Không thể đổi mục tiêu." : e.getMessage());
         }
       });
     }

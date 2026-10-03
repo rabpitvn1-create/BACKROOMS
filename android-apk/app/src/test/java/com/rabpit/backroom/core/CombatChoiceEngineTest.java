@@ -1083,4 +1083,142 @@ public class CombatChoiceEngineTest {
     assertEquals(firstCombat.getInt("rngSequence"), secondCombat.getInt("rngSequence"));
   }
 
+
+  @Test public void multiEntityStateKeepsHpStatusIndependentAndTargetsSelectedEntity()
+      throws Exception {
+    JSONObject state = combatState(new JSONArray());
+    CombatChoiceEngine.start(state,
+        new JSONArray().put("hound").put("clump").put("deathmoth"), 0, null, 0);
+
+    JSONObject combat = state.getJSONObject("combat");
+    JSONArray entities = combat.getJSONArray("entities");
+    assertEquals(3, entities.length());
+    assertEquals("hound", entities.getJSONObject(0).getString("key"));
+    assertEquals("clump", entities.getJSONObject(1).getString("key"));
+    assertEquals("deathmoth", entities.getJSONObject(2).getString("key"));
+
+    JSONObject hound = entities.getJSONObject(0);
+    JSONObject clump = entities.getJSONObject(1);
+    JSONObject deathmoth = entities.getJSONObject(2);
+    hound.put("bleedTurns", 2).put("bleedPercent", 5);
+    assertEquals(0, clump.getInt("bleedTurns"));
+    assertEquals(0, deathmoth.getInt("bleedTurns"));
+
+    for (int i = 0; i < entities.length(); i++) {
+      entities.getJSONObject(i).put("hp", 9999).put("maxHp", 9999).put("attack", 1).put("stunTurns", 1);
+    }
+    int houndBefore = hound.getInt("hp");
+    int clumpBefore = clump.getInt("hp");
+    int deathmothBefore = deathmoth.getInt("hp");
+
+    CombatChoiceEngine.setTargetEntity(state, 1);
+    assertEquals(1, combat.getInt("targetEntityIndex"));
+    assertEquals(0, combat.getInt("activeEntityIndex"));
+    assertEquals("hound", combat.getJSONObject("entity").getString("key"));
+
+    finalizeAs(state, 1, 2, 4, 5, 6);
+    CombatChoiceEngine.resolveFinalized(state);
+
+    assertEquals(houndBefore, hound.getInt("hp"));
+    assertTrue(clump.getInt("hp") < clumpBefore);
+    assertEquals(deathmothBefore, deathmoth.getInt("hp"));
+  }
+
+  @Test public void threeLivingEntitiesRespondInOrderAndUseTheirOwnProcPools() throws Exception {
+    JSONObject state = combatState(new JSONArray());
+    CombatChoiceEngine.start(state,
+        new JSONArray().put("hound").put("clump").put("deathmoth"), 0, null, 0);
+
+    JSONObject combat = state.getJSONObject("combat");
+    JSONArray entities = combat.getJSONArray("entities");
+    JSONObject actor = combat.getJSONArray("participants").getJSONObject(0);
+    actor.put("id", "syvial").put("name", "Syvial");
+    resetToBaselineNonCaoStats(actor);
+    for (int i = 0; i < entities.length(); i++) {
+      entities.getJSONObject(i).put("hp", 9999).put("maxHp", 9999).put("attack", 1)
+          .put("evasionPercent", 0);
+    }
+    int seed = 1;
+    while (CombatChoiceEngine.entitySkillProcRoll(seed, 1, 0, 0) >= 31) seed++;
+    combat.put("seed", seed);
+
+    finalizeAs(state, 1, 2, 4, 5, 6);
+    CombatChoiceEngine.resolveFinalized(state);
+
+    JSONArray turns = combat.getJSONArray("resolvedEntityTurns");
+    assertEquals(3, turns.length());
+    assertEquals("hound", turns.getJSONObject(0).getString("entityKey"));
+    assertEquals("clump", turns.getJSONObject(1).getString("entityKey"));
+    assertEquals("deathmoth", turns.getJSONObject(2).getString("entityKey"));
+    assertTrue(turns.getJSONObject(0).getString("summary").contains("Dead Bite"));
+    assertTrue(turns.getJSONObject(1).getString("summary").contains("Grasping Crush"));
+    assertTrue(turns.getJSONObject(2).getString("summary").contains("Ceiling Dive"));
+    assertEquals(0, combat.getInt("activeEntityIndex"));
+  }
+
+  @Test public void middleEntityDeathDoesNotEndEncounterAndOnlyLastDeathWins() throws Exception {
+    JSONObject state = combatState(new JSONArray());
+    CharacterProgressionCore progression = new CharacterProgressionCore();
+    progression.normalizeState(state);
+    CombatChoiceEngine.start(state,
+        new JSONArray().put("hound").put("clump").put("deathmoth"), 0, null, 0);
+
+    JSONObject combat = state.getJSONObject("combat");
+    JSONArray entities = combat.getJSONArray("entities");
+    for (int i = 0; i < entities.length(); i++) {
+      entities.getJSONObject(i).put("hp", 9999).put("maxHp", 9999).put("attack", 1).put("stunTurns", 20);
+    }
+
+    CombatChoiceEngine.setTargetEntity(state, 1);
+    entities.getJSONObject(1).put("hp", 1);
+    finalizeAs(state, 1, 2, 4, 5, 6);
+    CombatChoiceEngine.resolveFinalized(state);
+
+    assertTrue(combat.getBoolean("active"));
+    assertFalse(entities.getJSONObject(1).getBoolean("alive"));
+    assertEquals("dead", entities.getJSONObject(1).getString("status"));
+    assertTrue(entities.getJSONObject(0).getBoolean("alive"));
+    assertTrue(entities.getJSONObject(2).getBoolean("alive"));
+    assertEquals(1, combat.getJSONArray("entityDeaths").length());
+    assertEquals("Clump", combat.getJSONArray("entityDeaths").getJSONObject(0).getString("name"));
+    assertNotEquals(1, combat.getInt("activeEntityIndex"));
+
+    CombatChoiceEngine.setTargetEntity(state, 0);
+    entities.getJSONObject(0).put("hp", 1);
+    finalizeAs(state, 1, 2, 4, 5, 6);
+    CombatChoiceEngine.resolveFinalized(state);
+    assertTrue(combat.getBoolean("active"));
+    assertEquals(2, combat.getJSONArray("entityDeaths").length());
+
+    CombatChoiceEngine.setTargetEntity(state, 2);
+    entities.getJSONObject(2).put("hp", 1);
+    finalizeAs(state, 1, 2, 4, 5, 6);
+    CombatChoiceEngine.resolveFinalized(state);
+
+    assertFalse(combat.getBoolean("active"));
+    assertEquals("victory", combat.getString("outcome"));
+    assertEquals(3, combat.getJSONArray("entityDeaths").length());
+    assertEquals("Deathmoth", combat.getJSONArray("entityDeaths").getJSONObject(2).getString("name"));
+    assertEquals(6, progression.coreCount(state));
+    assertTrue(combat.getBoolean("coreDropResolved"));
+    assertTrue(combat.getBoolean("lootResolved"));
+  }
+
+  @Test public void legacyCombatEntityMigratesToSingleElementEntitiesArray() throws Exception {
+    JSONObject state = combatState(new JSONArray());
+    CombatChoiceEngine.start(state, "hound", 0);
+    JSONObject combat = state.getJSONObject("combat");
+    combat.remove("entities");
+    combat.remove("activeEntityIndex");
+    combat.remove("targetEntityIndex");
+
+    CombatChoiceEngine.normalizeTerminalEncounter(state);
+
+    assertEquals(1, combat.getJSONArray("entities").length());
+    assertEquals("hound", combat.getJSONArray("entities").getJSONObject(0).getString("key"));
+    assertEquals("hound", combat.getJSONObject("entity").getString("key"));
+    assertEquals(0, combat.getInt("activeEntityIndex"));
+    assertEquals(0, combat.getInt("targetEntityIndex"));
+  }
+
 }

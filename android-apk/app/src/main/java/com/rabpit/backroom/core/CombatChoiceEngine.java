@@ -14,7 +14,7 @@ import java.util.Map;
  *
  * The WebView only displays values already produced here. Dice values, holds, reroll count,
  * finalized hand and PRNG sequence are serializable combat state, so reload cannot grant a free
- * reroll. One finalized hand resolves exactly one Character action and at most one Entity response.
+ * reroll. One finalized hand resolves exactly one Character action, then the living Entities respond in encounter order.
  */
 public final class CombatChoiceEngine {
   static final int MAX_COMBAT_PARTICIPANTS = 4;
@@ -600,20 +600,23 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
   }
 
   public static JSONObject start(JSONObject state, String entityKey, int gmLogIndex) throws Exception {
-    return startInternal(state, entityKey, gmLogIndex, null, 0);
+    return startInternal(state, new JSONArray().put(entityKey), gmLogIndex, null, 0);
   }
 
   static JSONObject start(JSONObject state, String entityKey, int gmLogIndex,
                           String rngTurnId, int preTurnStateVersion) throws Exception {
-    return startInternal(state, entityKey, gmLogIndex, rngTurnId, preTurnStateVersion);
+    return startInternal(state, new JSONArray().put(entityKey), gmLogIndex, rngTurnId, preTurnStateVersion);
   }
 
-  private static JSONObject startInternal(JSONObject state, String entityKey, int gmLogIndex,
+  static JSONObject start(JSONObject state, JSONArray entityKeys, int gmLogIndex,
+                          String rngTurnId, int preTurnStateVersion) throws Exception {
+    return startInternal(state, entityKeys, gmLogIndex, rngTurnId, preTurnStateVersion);
+  }
+
+  private static JSONObject startInternal(JSONObject state, JSONArray entityKeys, int gmLogIndex,
                                           String rngTurnId, int preTurnStateVersion) throws Exception {
     if (state == null) throw new IllegalArgumentException("state is required");
-    String normalized = entityKey == null ? "" : entityKey.trim().toLowerCase(Locale.ROOT);
-    EntityProfile profile = ENTITIES.get(normalized);
-    if (profile == null || isActive(state)) return state;
+    if (isActive(state)) return state;
 
     CharacterProgressionCore progression = new CharacterProgressionCore();
     progression.normalizeState(state);
@@ -621,26 +624,18 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
     if (!hasLivingParticipant(participants)) return state;
 
     int stageIndex = LevelCore.stageIndex(state);
-    JSONObject scaled = new EntityStatCore().profile(
-        normalized, profile.maxHp, profile.damage, stageIndex);
-
-    JSONObject combat = new JSONObject()
-        .put("active", true)
-        .put("round", 1)
-        .put("actorIndex", firstLivingIndex(participants))
-        .put("rngSequence", 0)
-        .put("seed", stableSeed(state, normalized, participants))
-        .put("rngTurnId", rngTurnId == null ? "" : rngTurnId)
-        .put("rngPreTurnStateVersion", Math.max(0, preTurnStateVersion))
-        .put("rngCanonVersion", EmergentTurnEngine.CANON_VERSION)
-        .put("rngSchemaVersion", EmergentTurnEngine.RNG_SCHEMA_VERSION)
-        .put("logIndex", Math.max(0, gmLogIndex))
-        .put("deathRestartAnchorLocation", state.optString("location", ""))
-        .put("deathRestartLevelKey", state.optString(
-            LevelCore.LEVEL_KEY, String.valueOf(state.optInt("currentLevel", 0))))
-        .put("participants", participants)
-        .put("stageIndex", stageIndex)
-        .put("entity", new JSONObject()
+    JSONArray entities = new JSONArray();
+    List<String> seen = new ArrayList<>();
+    if (entityKeys != null) {
+      for (int i = 0; i < entityKeys.length(); i++) {
+        String normalized = entityKeys.optString(i, "").trim().toLowerCase(Locale.ROOT);
+        if (normalized.isEmpty() || seen.contains(normalized)) continue;
+        EntityProfile profile = ENTITIES.get(normalized);
+        if (profile == null) continue;
+        seen.add(normalized);
+        JSONObject scaled = new EntityStatCore().profile(
+            normalized, profile.maxHp, profile.damage, stageIndex);
+        entities.put(new JSONObject()
             .put("key", profile.key)
             .put("name", profile.name)
             .put("hp", scaled.getInt("maxHp"))
@@ -648,6 +643,7 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
             .put("attack", scaled.getInt("damage"))
             .put("baseHp", profile.maxHp)
             .put("baseDamage", profile.damage)
+            .put("stageIndex", stageIndex)
             .put("stagePercent", scaled.getInt("stagePercent"))
             .put("criticalChancePercent", ENTITY_BASE_CRITICAL_PERCENT)
             .put("evasionPercent", ENTITY_BASE_EVASION_PERCENT)
@@ -661,8 +657,42 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
             .put("armorBreakPercent", 0)
             .put("accuracyPenaltyTurns", 0)
             .put("accuracyPenalty", 0)
-            .put("stunTurns", 0));
+            .put("stunTurns", 0)
+            .put("alive", true)
+            .put("status", "alive"));
+      }
+    }
+    if (entities.length() == 0) return state;
 
+    String seedKey = entities.length() == 1
+        ? entities.getJSONObject(0).getString("key")
+        : entityKeySignature(entities);
+    JSONObject combat = new JSONObject()
+        .put("active", true)
+        .put("round", 1)
+        .put("actorIndex", firstLivingIndex(participants))
+        .put("activeEntityIndex", 0)
+        .put("targetEntityIndex", 0)
+        .put("rngSequence", 0)
+        .put("seed", stableSeed(state, seedKey, participants))
+        .put("rngTurnId", rngTurnId == null ? "" : rngTurnId)
+        .put("rngPreTurnStateVersion", Math.max(0, preTurnStateVersion))
+        .put("rngCanonVersion", EmergentTurnEngine.CANON_VERSION)
+        .put("rngSchemaVersion", EmergentTurnEngine.RNG_SCHEMA_VERSION)
+        .put("logIndex", Math.max(0, gmLogIndex))
+        .put("deathRestartAnchorLocation", state.optString("location", ""))
+        .put("deathRestartLevelKey", state.optString(
+            LevelCore.LEVEL_KEY, String.valueOf(state.optInt("currentLevel", 0))))
+        .put("participants", participants)
+        .put("stageIndex", stageIndex)
+        .put("entities", entities)
+        .put("entityDeaths", new JSONArray())
+        .put("entityDeathsThisTurn", new JSONArray())
+        .put("coreDropReward", 0)
+        .put("coreDropResolved", false)
+        .put("lootResolved", false);
+
+    syncActiveEntityAlias(combat);
     state.put("combat", combat);
     prepareCurrentTurn(combat);
     return state;
@@ -720,6 +750,7 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
   public static JSONObject resolveFinalized(JSONObject state) throws Exception {
     if (!isActive(state)) return state;
     JSONObject combat = state.getJSONObject("combat");
+    JSONArray entities = normalizeCombatEntities(combat);
     JSONObject dice = diceState(combat);
     if (!dice.optBoolean("finalized", false)) {
       throw new IllegalStateException("Hand chưa được chốt.");
@@ -728,6 +759,8 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
 
     combat.put("feedbackEvents", new JSONArray());
     combat.put("resolvedEntityTurn", false);
+    combat.put("resolvedEntityTurns", new JSONArray());
+    combat.put("entityDeathsThisTurn", new JSONArray());
 
     JSONArray participants = combat.getJSONArray("participants");
     int actorIndex = currentLivingIndex(combat, participants);
@@ -741,26 +774,79 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
     combat.put("resolvedActorName", actor.optString("name", "Nhân vật"));
     combat.put("resolvedRound", Math.max(1, combat.optInt("round", 1)));
 
-    JSONObject entity = combat.getJSONObject("entity");
+    int initiativeIndex = nextLivingEntityIndex(
+        entities, combat.optInt("activeEntityIndex", 0), true);
     if (actorIndex == firstLivingIndex(participants) && combat.optInt("round", 1) > 1) {
-      tickRoundStartEffects(combat, entity);
-      if (entity.optInt("hp", 0) <= 0) {
+      int chosenTarget = combat.optInt("targetEntityIndex", initiativeIndex);
+      for (int i = 0; i < entities.length(); i++) {
+        JSONObject current = entities.optJSONObject(i);
+        if (!entityAlive(current)) continue;
+        combat.put("feedbackEntityIndex", i);
+        tickRoundStartEffects(combat, current);
+        if (current.optInt("hp", 0) <= 0) resolveEntityDeath(state, combat, entities, i);
+      }
+      combat.remove("feedbackEntityIndex");
+      if (!hasLivingEntity(entities)) {
         dice.put("resolved", true);
         syncParticipants(state, participants);
-        finishVictory(state, combat, entity);
+        finishVictory(state, combat);
+        appendDeathLines(state, combat);
         return state;
       }
+      initiativeIndex = nextLivingEntityIndex(entities, initiativeIndex, true);
+      if (initiativeIndex < 0) initiativeIndex = firstLivingEntityIndex(entities);
+      combat.put("activeEntityIndex", initiativeIndex);
+      if (chosenTarget < 0 || chosenTarget >= entities.length()
+          || !entityAlive(entities.optJSONObject(chosenTarget))) {
+        chosenTarget = initiativeIndex;
+      }
+      combat.put("targetEntityIndex", chosenTarget);
+      syncActiveEntityAlias(combat);
     }
+
+    int targetIndex = livingTargetIndex(combat, entities);
+    if (targetIndex < 0) {
+      dice.put("resolved", true);
+      syncParticipants(state, participants);
+      finishVictory(state, combat);
+      appendDeathLines(state, combat);
+      return state;
+    }
+    combat.put("resolvedTargetEntityIndex", targetIndex);
+    combat.put("feedbackEntityIndex", targetIndex);
+    JSONObject entity = entities.getJSONObject(targetIndex);
 
     String hand = dice.optString("hand", "NO HAND");
     ActionResult result = resolveHandAction(combat, actor, entity, hand);
     dice.put("resolved", true);
-
-    String entitySummary = "";
-    if (entity.optInt("hp", 0) > 0) {
-      combat.put("resolvedEntityTurn", true);
-      entitySummary = resolveEntityResponse(combat, actor, entity, result.evadeResponse);
+    if (entity.optInt("hp", 0) <= 0) {
+      resolveEntityDeath(state, combat, entities, targetIndex);
     }
+    combat.remove("feedbackEntityIndex");
+
+    JSONArray entityTurns = new JSONArray();
+    int lastResponded = -1;
+    if (hasLivingEntity(entities) && actor.optInt("hp", 0) > 0) {
+      int responseStart = nextLivingEntityIndex(entities, initiativeIndex, true);
+      if (responseStart >= 0) {
+        for (int step = 0; step < entities.length() && actor.optInt("hp", 0) > 0; step++) {
+          int index = Math.floorMod(responseStart + step, entities.length());
+          JSONObject responder = entities.optJSONObject(index);
+          if (!entityAlive(responder)) continue;
+          combat.put("activeEntityIndex", index);
+          syncActiveEntityAlias(combat);
+          String summary = resolveEntityResponse(combat, actor, responder, result.evadeResponse);
+          entityTurns.put(new JSONObject()
+              .put("entityIndex", index)
+              .put("entityKey", responder.optString("key", ""))
+              .put("entityName", responder.optString("name", "Entity"))
+              .put("summary", summary));
+          lastResponded = index;
+        }
+      }
+    }
+    combat.put("resolvedEntityTurns", entityTurns);
+    combat.put("resolvedEntityTurn", entityTurns.length() > 0);
 
     String passiveSummary = applyDaiDaoMaTonAfterTurn(combat, actor);
     syncParticipants(state, participants);
@@ -768,18 +854,31 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
         state, actor.optString("id", ""), "actor_turn");
     refreshParticipant(state, actor);
 
-    if (entity.optInt("hp", 0) <= 0) {
-      finishVictory(state, combat, entity);
+    if (!hasLivingEntity(entities)) {
+      finishVictory(state, combat);
     } else if (isCaoMinhDown(participants) || !hasLivingParticipant(participants)) {
       finishDefeat(state, combat);
     } else {
+      int nextEntity = nextLivingEntityIndex(
+          entities, lastResponded >= 0 ? lastResponded : initiativeIndex, false);
+      if (nextEntity < 0) nextEntity = firstLivingEntityIndex(entities);
+      combat.put("activeEntityIndex", nextEntity);
+      int target = combat.optInt("targetEntityIndex", nextEntity);
+      if (target < 0 || target >= entities.length() || !entityAlive(entities.optJSONObject(target))) {
+        combat.put("targetEntityIndex", nextEntity);
+      }
+      syncActiveEntityAlias(combat);
       advanceActor(combat);
       combat.put("nextActorIndex", combat.optInt("actorIndex", 0));
       prepareCurrentTurn(combat);
     }
 
     appendBattleLine(state, combat, result.summary);
-    appendBattleLine(state, combat, entitySummary);
+    appendDeathLines(state, combat);
+    for (int i = 0; i < entityTurns.length(); i++) {
+      JSONObject turn = entityTurns.optJSONObject(i);
+      if (turn != null) appendBattleLine(state, combat, turn.optString("summary", ""));
+    }
     appendBattleLine(state, combat, passiveSummary);
     return state;
   }
@@ -1610,34 +1709,156 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
     return value;
   }
 
-  private static void finishVictory(JSONObject state, JSONObject combat, JSONObject entity)
-      throws Exception {
-    String entityKey = entity.optString("key", "entity");
+  static JSONObject setTargetEntity(JSONObject state, int entityIndex) throws Exception {
+    if (!isActive(state)) throw new IllegalStateException("Không có trận chiến đang hoạt động.");
+    JSONObject combat = state.getJSONObject("combat");
+    JSONArray entities = normalizeCombatEntities(combat);
+    if (entityIndex < 0 || entityIndex >= entities.length()) {
+      throw new IllegalArgumentException("Entity target index không hợp lệ.");
+    }
+    JSONObject target = entities.optJSONObject(entityIndex);
+    if (!entityAlive(target)) throw new IllegalStateException("Entity target đã bị tiêu diệt.");
+    combat.put("targetEntityIndex", entityIndex);
+    syncActiveEntityAlias(combat);
+    return state;
+  }
 
-    if (!combat.optBoolean("lootResolved", false)) {
+  private static JSONArray normalizeCombatEntities(JSONObject combat) throws Exception {
+    JSONArray entities = combat.optJSONArray("entities");
+    JSONObject legacy = combat.optJSONObject("entity");
+    if (entities == null || entities.length() == 0) {
+      entities = new JSONArray();
+      if (legacy != null) entities.put(legacy);
+      combat.put("entities", entities);
+    }
+    for (int i = 0; i < entities.length(); i++) {
+      JSONObject entity = entities.optJSONObject(i);
+      if (entity == null) continue;
+      boolean alive = entity.has("alive")
+          ? entity.optBoolean("alive", entity.optInt("hp", 0) > 0)
+          : entity.optInt("hp", 0) > 0;
+      if (entity.optInt("hp", 0) <= 0) alive = false;
+      entity.put("alive", alive).put("status", alive ? "alive" : "dead");
+    }
+    if (!(combat.opt("entityDeaths") instanceof JSONArray)) combat.put("entityDeaths", new JSONArray());
+    if (!(combat.opt("entityDeathsThisTurn") instanceof JSONArray)) {
+      combat.put("entityDeathsThisTurn", new JSONArray());
+    }
+    int active = combat.optInt("activeEntityIndex", 0);
+    if (active < 0 || active >= entities.length()) active = 0;
+    if (combat.optBoolean("active", false) && entities.length() > 0
+        && !entityAlive(entities.optJSONObject(active))) {
+      int living = nextLivingEntityIndex(entities, active, true);
+      if (living >= 0) active = living;
+    }
+    combat.put("activeEntityIndex", active);
+    int target = combat.optInt("targetEntityIndex", active);
+    if (target < 0 || target >= entities.length()
+        || (combat.optBoolean("active", false) && !entityAlive(entities.optJSONObject(target)))) {
+      target = active;
+    }
+    combat.put("targetEntityIndex", target);
+    syncActiveEntityAlias(combat);
+    return entities;
+  }
+
+  private static void syncActiveEntityAlias(JSONObject combat) throws Exception {
+    JSONArray entities = combat.optJSONArray("entities");
+    if (entities == null || entities.length() == 0) return;
+    int index = combat.optInt("activeEntityIndex", 0);
+    if (index < 0 || index >= entities.length()) index = 0;
+    JSONObject entity = entities.optJSONObject(index);
+    if (entity != null) combat.put("entity", entity);
+  }
+
+  private static boolean entityAlive(JSONObject entity) {
+    return entity != null && entity.optBoolean("alive", entity.optInt("hp", 0) > 0)
+        && entity.optInt("hp", 0) > 0;
+  }
+
+  private static boolean hasLivingEntity(JSONArray entities) {
+    return firstLivingEntityIndex(entities) >= 0;
+  }
+
+  private static int firstLivingEntityIndex(JSONArray entities) {
+    if (entities == null) return -1;
+    for (int i = 0; i < entities.length(); i++) {
+      if (entityAlive(entities.optJSONObject(i))) return i;
+    }
+    return -1;
+  }
+
+  private static int nextLivingEntityIndex(JSONArray entities, int from, boolean includeFrom) {
+    if (entities == null || entities.length() == 0) return -1;
+    int start = includeFrom ? 0 : 1;
+    for (int step = start; step < entities.length() + start; step++) {
+      int index = Math.floorMod(from + step, entities.length());
+      if (entityAlive(entities.optJSONObject(index))) return index;
+    }
+    return -1;
+  }
+
+  private static int livingTargetIndex(JSONObject combat, JSONArray entities) throws Exception {
+    int target = combat.optInt("targetEntityIndex", combat.optInt("activeEntityIndex", 0));
+    if (target >= 0 && target < entities.length() && entityAlive(entities.optJSONObject(target))) {
+      return target;
+    }
+    int active = combat.optInt("activeEntityIndex", 0);
+    int next = nextLivingEntityIndex(entities, active, true);
+    if (next >= 0) {
+      combat.put("targetEntityIndex", next).put("activeEntityIndex", next);
+      syncActiveEntityAlias(combat);
+    }
+    return next;
+  }
+
+  private static String entityKeySignature(JSONArray entities) {
+    List<String> keys = new ArrayList<>();
+    if (entities != null) for (int i = 0; i < entities.length(); i++) {
+      JSONObject entity = entities.optJSONObject(i);
+      String key = entity == null ? "" : entity.optString("key", "").trim();
+      if (!key.isEmpty()) keys.add(key);
+    }
+    return String.join("+", keys);
+  }
+
+  private static void resolveEntityDeath(JSONObject state, JSONObject combat, JSONArray entities, int index)
+      throws Exception {
+    JSONObject entity = entities.optJSONObject(index);
+    if (entity == null || entity.optBoolean("deathResolved", false)) return;
+    entity.put("hp", 0).put("alive", false).put("status", "dead");
+
+    String entityKey = entity.optString("key", "entity");
+    String droppedItem = "";
+    if (!entity.optBoolean("lootResolved", false)) {
       int rate = ItemCore.entityDropRatePercent(entityKey);
-      int roll = nextPercent(combat, "loot-drop:" + entityKey);
-      combat.put("entityLootRatePercent", rate).put("entityLootRoll", roll);
+      int roll = nextPercent(combat, "loot-drop:" + entityKey + ":" + index);
+      entity.put("entityLootRatePercent", rate).put("entityLootRoll", roll);
       if (ItemCore.shouldDropEntityLoot(roll, rate)) {
-        String itemName = ItemCore.grantEntityLootItem(
-            state, nextPercent(combat, "loot-item:" + entityKey));
-        combat.put("droppedItem", itemName);
+        droppedItem = ItemCore.grantEntityLootItem(
+            state, nextPercent(combat, "loot-item:" + entityKey + ":" + index));
+        entity.put("droppedItem", droppedItem);
+        JSONArray drops = combat.optJSONArray("droppedItems");
+        if (drops == null) drops = new JSONArray();
+        drops.put(new JSONObject().put("entityKey", entityKey).put("item", droppedItem));
+        combat.put("droppedItems", drops);
+        if (entities.length() == 1) combat.put("droppedItem", droppedItem);
       }
-      combat.put("lootResolved", true);
+      entity.put("lootResolved", true);
     }
 
-    if (!combat.optBoolean("coreDropResolved", false)) {
-      int stageIndex = Math.max(0, combat.optInt("stageIndex", LevelCore.stageIndex(state)));
+    int reward = 0;
+    if (!entity.optBoolean("coreDropResolved", false)) {
+      int stageIndex = Math.max(0, entity.optInt(
+          "stageIndex", combat.optInt("stageIndex", LevelCore.stageIndex(state))));
       CharacterProgressionCore progression = new CharacterProgressionCore();
       TreasureRewardPolicy treasure = TREASURE_REWARDS.get(entityKey);
-      int reward;
       if (treasure == null) {
         int baseReward = "copx".equals(entityKey) ? 5
             : CharacterProgressionCore.ENTITY_VICTORY_BASE_CORE;
-        reward = CharacterProgressionCore.scaledCoreReward(
-            baseReward, stageIndex);
+        reward = CharacterProgressionCore.scaledCoreReward(baseReward, stageIndex);
         progression.grantCore(state, reward);
-        combat.remove("coreDropRewardType");
+        entity.remove("coreDropRewardType");
       } else {
         int firstKillReward = treasure.scaleWithStage
             ? EntityStatCore.scale(treasure.firstKillBaseCore, stageIndex)
@@ -1647,15 +1868,51 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
             : treasure.repeatBaseCore;
         reward = progression.rewardTreasureEntityVictory(
             state, entityKey, stageIndex, firstKillReward, repeatReward);
-        combat.put("coreDropRewardType", "treasure");
+        entity.put("coreDropRewardType", "treasure");
       }
-      combat.remove("coreDropRoll");
-      combat.put("coreDropRatePercent", 100)
+      entity.put("coreDropRatePercent", 100)
           .put("coreDropReward", reward)
           .put("coreDropResolved", true);
+      int total = Math.max(0, combat.optInt("coreDropReward", 0)) + reward;
+      combat.put("coreDropReward", total).put("coreDropRatePercent", 100);
+      if (entities.length() == 1 && treasure != null) combat.put("coreDropRewardType", "treasure");
     }
 
-    combat.put("active", false).put("outcome", "victory");
+    entity.put("deathResolved", true);
+    JSONObject death = new JSONObject()
+        .put("entityIndex", index)
+        .put("key", entityKey)
+        .put("name", entity.optString("name", "Entity"))
+        .put("round", Math.max(1, combat.optInt("round", 1)))
+        .put("coreReward", reward);
+    if (!droppedItem.isEmpty()) death.put("droppedItem", droppedItem);
+    combat.getJSONArray("entityDeaths").put(new JSONObject(death.toString()));
+    combat.getJSONArray("entityDeathsThisTurn").put(death);
+    addFeedback(combat, "actor", "entity", "death",
+        entity.optString("name", "Entity") + " bị tiêu diệt.", false);
+    if (!hasLivingEntity(entities)) {
+      combat.put("lootResolved", true).put("coreDropResolved", true);
+    }
+  }
+
+  private static void appendDeathLines(JSONObject state, JSONObject combat) throws Exception {
+    JSONArray deaths = combat.optJSONArray("entityDeathsThisTurn");
+    if (deaths == null) return;
+    for (int i = 0; i < deaths.length(); i++) {
+      JSONObject death = deaths.optJSONObject(i);
+      if (death == null) continue;
+      appendBattleLine(state, combat, death.optString("name", "Entity") + " bị tiêu diệt.");
+    }
+  }
+
+  private static void finishVictory(JSONObject state, JSONObject combat)
+      throws Exception {
+    JSONArray entities = normalizeCombatEntities(combat);
+    if (hasLivingEntity(entities)) return;
+    combat.put("active", false)
+        .put("outcome", "victory")
+        .put("lootResolved", true)
+        .put("coreDropResolved", true);
     clearEncounterFlag(state);
   }
 
@@ -1692,6 +1949,7 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
     if (state == null) return;
     JSONObject combat = state.optJSONObject("combat");
     if (combat == null) return;
+    normalizeCombatEntities(combat);
     if (combat.optBoolean("active", false)) {
       ensureInitialRoll(combat);
       return;
@@ -1706,7 +1964,10 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
 
   private static void clearEncounterFlag(JSONObject state) throws Exception {
     JSONObject flags = state.optJSONObject("flags");
-    if (flags != null) flags.put("entityEncounterKey", "");
+    if (flags != null) {
+      flags.put("entityEncounterKey", "");
+      flags.put("entityEncounterKeys", new JSONArray());
+    }
   }
 
   private static void syncParticipants(JSONObject state, JSONArray participants) throws Exception {
@@ -1743,13 +2004,24 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
                                   String text, boolean flash) throws Exception {
     JSONArray events = combat.optJSONArray("feedbackEvents");
     if (events == null) events = new JSONArray();
-    events.put(new JSONObject()
+    JSONObject event = new JSONObject()
         .put("phase", phase)
         .put("target", target)
         .put("kind", kind)
         .put("text", text == null ? "" : text)
         .put("flash", flash)
-        .put("actorIndex", combat.optInt("resolvedActorIndex", combat.optInt("actorIndex", 0))));
+        .put("actorIndex", combat.optInt("resolvedActorIndex", combat.optInt("actorIndex", 0)));
+    int entityIndex = combat.has("feedbackEntityIndex")
+        ? combat.optInt("feedbackEntityIndex", combat.optInt("activeEntityIndex", 0))
+        : combat.optInt("activeEntityIndex", 0);
+    JSONArray entities = combat.optJSONArray("entities");
+    JSONObject entity = entities != null && entityIndex >= 0 && entityIndex < entities.length()
+        ? entities.optJSONObject(entityIndex) : combat.optJSONObject("entity");
+    if (entity != null) {
+      event.put("entityIndex", entityIndex)
+          .put("entityKey", entity.optString("key", ""));
+    }
+    events.put(event);
     combat.put("feedbackEvents", events);
   }
 

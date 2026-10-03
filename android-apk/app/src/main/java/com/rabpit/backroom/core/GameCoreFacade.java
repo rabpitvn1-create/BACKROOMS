@@ -409,12 +409,19 @@ public final class GameCoreFacade implements AutoCloseable {
         .put("worldProposal", new JSONObject(proposal.toString()));
 
     if ("ENTITY".equals(kind)) {
-      entityCore.activateEncounterCandidate(working, payload);
-      params.put("factPredicate", "entity_encounter_started").put("factValue", payload);
-      JSONArray effects = new JSONArray().put(emergentTurnEngine.threadEffect(
-          "ENTITY_ENCOUNTER", new JSONArray().put(payload), "SEED_OR_ADVANCE", null));
-      events.put(emergentTurnEngine.event(
-          turnId, events, "ENTITY_ENCOUNTER_STARTED", "LOCAL", payload, params, effects));
+      JSONArray entityKeys = selectedEntityKeys(selected);
+      entityCore.activateEncounterCandidates(working, entityKeys);
+      for (int i = 0; i < entityKeys.length(); i++) {
+        String entityKey = entityKeys.optString(i, "");
+        JSONObject entityParams = new JSONObject(params.toString())
+            .put("factPredicate", "entity_encounter_started")
+            .put("factValue", entityKey)
+            .put("entityKeys", new JSONArray(entityKeys.toString()));
+        JSONArray effects = new JSONArray().put(emergentTurnEngine.threadEffect(
+            "ENTITY_ENCOUNTER", new JSONArray().put(entityKey), "SEED_OR_ADVANCE", null));
+        events.put(emergentTurnEngine.event(
+            turnId, events, "ENTITY_ENCOUNTER_STARTED", "LOCAL", entityKey, entityParams, effects));
+      }
       return;
     }
 
@@ -468,6 +475,60 @@ public final class GameCoreFacade implements AutoCloseable {
             .put("causedBy", "player")
             .put("observedByPlayer", true),
         effects));
+  }
+
+  private static JSONArray selectedEntityKeys(JSONObject selected) throws Exception {
+    JSONArray output = new JSONArray();
+    if (selected == null) return output;
+    JSONArray keys = selected.optJSONArray("payloadKeys");
+    java.util.LinkedHashSet<String> seen = new java.util.LinkedHashSet<>();
+    if (keys != null) {
+      for (int i = 0; i < keys.length(); i++) {
+        String key = keys.optString(i, "").trim();
+        if (!key.isEmpty() && seen.add(key)) output.put(key);
+      }
+    }
+    String legacy = selected.optString("payloadKey", "").trim();
+    if (!legacy.isEmpty() && seen.add(legacy)) output.put(legacy);
+    return output;
+  }
+
+  private static JSONArray combatEntityKeys(JSONObject combat) throws Exception {
+    JSONArray output = new JSONArray();
+    if (combat == null) return output;
+    java.util.LinkedHashSet<String> seen = new java.util.LinkedHashSet<>();
+    JSONArray entities = combat.optJSONArray("entities");
+    if (entities != null) for (int i = 0; i < entities.length(); i++) {
+      JSONObject entity = entities.optJSONObject(i);
+      String key = entity == null ? "" : entity.optString("key", "").trim();
+      if (!key.isEmpty() && seen.add(key)) output.put(key);
+    }
+    JSONObject legacy = combat.optJSONObject("entity");
+    String key = legacy == null ? "" : legacy.optString("key", "").trim();
+    if (!key.isEmpty() && seen.add(key)) output.put(key);
+    return output;
+  }
+
+  private static String activeCombatEntityKey(JSONObject combat) {
+    JSONObject entity = combat == null ? null : combat.optJSONObject("entity");
+    return entity == null ? "" : entity.optString("key", "").trim();
+  }
+
+  private static String stringArraySignature(JSONArray values) {
+    java.util.List<String> parts = new java.util.ArrayList<>();
+    if (values != null) for (int i = 0; i < values.length(); i++) {
+      String value = values.optString(i, "").trim();
+      if (!value.isEmpty()) parts.add(value);
+    }
+    return String.join("+", parts);
+  }
+
+  private static String payloadSignature(JSONObject source) throws Exception {
+    if (source == null || source.optBoolean("selectedNone", false)
+        || "QUIET".equals(source.optString("worldKind", ""))) return "";
+    JSONArray keys = source.optJSONArray("payloadKeys");
+    if (keys != null && keys.length() > 0) return stringArraySignature(keys);
+    return source.optString("payloadKey", "").trim();
   }
 
   private static void appendAll(JSONArray target, JSONArray source) {
@@ -540,13 +601,21 @@ public final class GameCoreFacade implements AutoCloseable {
       normalizeCoreState(persisted);
       emergentTurnEngine.normalizeState(persisted);
       JSONObject working = deepCopy(persisted);
+      JSONArray entityKeys = entityCore.activeEncounterKeys(working);
+      String fallback = entityKey == null ? "" : entityKey.trim().toLowerCase();
+      if (entityKeys.length() == 0 && CombatChoiceEngine.isKnownEntity(fallback)) {
+        entityKeys.put(fallback);
+      }
+      if (entityKeys.length() == 0) throw new IllegalStateException("Không có Entity encounter để bắt đầu combat.");
+
       JSONObject root = working.getJSONObject(EmergentTurnEngine.ROOT_KEY);
       String rngTurnId = root.optString("lastCommittedTurnId", "").trim();
       if (rngTurnId.isEmpty()) {
-        rngTurnId = emergentTurnEngine.nextTurnId(persisted, "combat:start:" + entityKey);
+        rngTurnId = emergentTurnEngine.nextTurnId(
+            persisted, "combat:start:" + stringArraySignature(entityKeys));
       }
       CombatChoiceEngine.start(
-          working, entityKey, gmLogIndex, rngTurnId, emergentTurnEngine.stateVersion(persisted));
+          working, entityKeys, gmLogIndex, rngTurnId, emergentTurnEngine.stateVersion(persisted));
       persist(working);
       return clientSafeState(working).toString();
     } catch (Exception e) {
@@ -564,11 +633,13 @@ public final class GameCoreFacade implements AutoCloseable {
       int preVersion = emergentTurnEngine.stateVersion(persisted);
       JSONObject working = deepCopy(persisted);
       JSONObject beforeCombat = working.optJSONObject("combat");
-      JSONObject beforeEntity = beforeCombat == null ? null : beforeCombat.optJSONObject("entity");
-      String entityKey = beforeEntity == null ? "" : beforeEntity.optString("key", "");
+      JSONArray entityRefs = combatEntityKeys(beforeCombat);
+      String activeEntityKey = activeCombatEntityKey(beforeCombat);
       String turnId = emergentTurnEngine.nextTurnId(
-          persisted, "combat:resolve:" + entityKey + ":" + (beforeCombat == null ? 0 : beforeCombat.optInt("round", 0))
-              + ":" + (beforeCombat == null ? 0 : beforeCombat.optInt("actorIndex", 0)));
+          persisted, "combat:resolve:" + stringArraySignature(entityRefs)
+              + ":" + (beforeCombat == null ? 0 : beforeCombat.optInt("round", 0))
+              + ":" + (beforeCombat == null ? 0 : beforeCombat.optInt("actorIndex", 0))
+              + ":" + (beforeCombat == null ? 0 : beforeCombat.optInt("activeEntityIndex", 0)));
 
       boolean wasActive = CombatChoiceEngine.isActive(working);
       if (!wasActive) return response(true, persisted, null, "duplicate_combat_resolution", null);
@@ -578,18 +649,30 @@ public final class GameCoreFacade implements AutoCloseable {
       JSONObject combat = working.optJSONObject("combat");
       String outcome = combat == null ? "" : combat.optString("outcome", "");
       String resolvedActor = combat == null ? "" : combat.optString("resolvedActorName", "");
+      JSONArray deaths = combat == null || combat.optJSONArray("entityDeathsThisTurn") == null
+          ? new JSONArray() : new JSONArray(combat.getJSONArray("entityDeathsThisTurn").toString());
 
       JSONArray events = new JSONArray();
       JSONArray threadEffects = new JSONArray();
-      JSONArray entityRefs = entityKey.isEmpty() ? new JSONArray() : new JSONArray().put(entityKey);
-      if (wasActive && !active && ("victory".equals(outcome) || "defeat".equals(outcome))) {
-        threadEffects.put(emergentTurnEngine.threadEffect(
-            "ENTITY_ENCOUNTER", entityRefs, "TERMINATE",
-            "victory".equals(outcome) ? "RESOLVED" : "FAILED"));
-      } else if (wasActive && active && !entityKey.isEmpty()) {
-        threadEffects.put(emergentTurnEngine.threadEffect(
-            "ENTITY_ENCOUNTER", entityRefs, "SEED_OR_ADVANCE", null));
+      for (int i = 0; i < entityRefs.length(); i++) {
+        String key = entityRefs.optString(i, "");
+        if (key.isEmpty()) continue;
+        if (wasActive && !active && ("victory".equals(outcome) || "defeat".equals(outcome))) {
+          threadEffects.put(emergentTurnEngine.threadEffect(
+              "ENTITY_ENCOUNTER", new JSONArray().put(key), "TERMINATE",
+              "victory".equals(outcome) ? "RESOLVED" : "FAILED"));
+        } else if (wasActive && active) {
+          threadEffects.put(emergentTurnEngine.threadEffect(
+              "ENTITY_ENCOUNTER", new JSONArray().put(key), "SEED_OR_ADVANCE", null));
+        }
       }
+
+      String eventSubject = activeEntityKey;
+      if (!active && "victory".equals(outcome) && deaths.length() > 0) {
+        JSONObject lastDeath = deaths.optJSONObject(deaths.length() - 1);
+        if (lastDeath != null) eventSubject = lastDeath.optString("key", eventSubject);
+      }
+      if (eventSubject.isEmpty()) eventSubject = entityRefs.optString(0, "combat");
 
       events.put(emergentTurnEngine.event(
           turnId, events,
@@ -597,11 +680,13 @@ public final class GameCoreFacade implements AutoCloseable {
               : !active && "defeat".equals(outcome) ? "COMBAT_DEFEAT"
               : "COMBAT_HAND_RESOLVED",
           "LOCAL",
-          entityKey.isEmpty() ? "combat" : entityKey,
+          eventSubject,
           new JSONObject()
               .put("factPredicate", "combat_resolution")
               .put("factValue", outcome.isEmpty() ? "ongoing" : outcome)
               .put("resolvedActor", resolvedActor)
+              .put("entityRefs", new JSONArray(entityRefs.toString()))
+              .put("entityDeaths", deaths)
               .put("causedBy", "player")
               .put("observedByPlayer", true),
           threadEffects));
@@ -765,6 +850,7 @@ public final class GameCoreFacade implements AutoCloseable {
             .put("worldKind", selected.optBoolean("selectedNone", false)
                 ? "QUIET" : selected.optString("kind", "WORLD"))
             .put("payloadKey", selected.optString("payloadKey", ""))
+            .put("payloadKeys", selectedEntityKeys(selected))
             .put("levelKey", prepared.working.optString("currentLevelKey",
                 String.valueOf(prepared.working.optInt("currentLevel", 0))));
 
@@ -830,16 +916,21 @@ public final class GameCoreFacade implements AutoCloseable {
     JSONObject before = deepCopy(encounterState);
     JSONObject resolved = deepCopy(encounterState);
     JSONObject flags = resolved.optJSONObject("flags");
-    if (flags != null) flags.put("entityEncounterKey", "");
+    if (flags != null) {
+      flags.put("entityEncounterKey", "");
+      flags.put("entityEncounterKeys", new JSONArray());
+    }
     incrementTurn(resolved);
 
-    String entityKey = selected == null ? "" : selected.optString("payloadKey", "").trim();
+    JSONArray entityKeys = selectedEntityKeys(selected);
+    String entityKey = entityKeys.optString(0, "");
     String turnId = emergentTurnEngine.nextTurnId(
-        before, "oracle:entity-victory:" + entityKey + ":" + oracleStep);
+        before, "oracle:entity-victory:" + stringArraySignature(entityKeys) + ":" + oracleStep);
     JSONArray effects = new JSONArray();
-    if (!entityKey.isEmpty()) {
-      effects.put(emergentTurnEngine.threadEffect(
-          "ENTITY_ENCOUNTER", new JSONArray().put(entityKey), "TERMINATE", "RESOLVED"));
+    for (int i = 0; i < entityKeys.length(); i++) {
+      String key = entityKeys.optString(i, "");
+      if (!key.isEmpty()) effects.put(emergentTurnEngine.threadEffect(
+          "ENTITY_ENCOUNTER", new JSONArray().put(key), "TERMINATE", "RESOLVED"));
     }
     JSONArray events = new JSONArray();
     events.put(emergentTurnEngine.event(
@@ -848,6 +939,7 @@ public final class GameCoreFacade implements AutoCloseable {
         new JSONObject()
             .put("factPredicate", "combat_resolution")
             .put("factValue", "victory")
+            .put("entityRefs", new JSONArray(entityKeys.toString()))
             .put("causedBy", "player")
             .put("observedByPlayer", true),
         effects));
@@ -871,9 +963,7 @@ public final class GameCoreFacade implements AutoCloseable {
       if (actualKind.isEmpty()) actualKind = "WORLD";
       if (!slot.optString("worldKind", "").trim().equals(actualKind)) return false;
 
-      String actualPayload = selection.optBoolean("selectedNone", false)
-          ? "" : selection.optString("payloadKey", "").trim();
-      if (!slot.optString("payloadKey", "").trim().equals(actualPayload)) return false;
+      if (!payloadSignature(selection).equals(payloadSignature(slot))) return false;
 
       String actualLevel = committedState.optString(LevelCore.LEVEL_KEY,
           String.valueOf(committedState.optInt("currentLevel", 0))).trim();
@@ -1076,6 +1166,21 @@ public final class GameCoreFacade implements AutoCloseable {
 
   public synchronized String combatFinishRuntime() {
     return mutateCombatRuntime("FINISH", -1, false);
+  }
+
+  public synchronized String combatTargetRuntime(int entityIndex) {
+    JSONObject persisted = parseState(liveStateJson);
+    try {
+      normalizeCoreState(persisted);
+      emergentTurnEngine.normalizeState(persisted);
+      JSONObject working = deepCopy(persisted);
+      CombatChoiceEngine.setTargetEntity(working, entityIndex);
+      persisted.put("combat", new JSONObject(working.getJSONObject("combat").toString()));
+      persist(persisted);
+      return clientSafeState(persisted).toString();
+    } catch (Exception e) {
+      throw new IllegalStateException("Không thể đổi mục tiêu combat.", e);
+    }
   }
 
   private String mutateCombatRuntime(String operation, int dieIndex, boolean held) {

@@ -330,8 +330,16 @@ public final class GmChoiceContract {
     JSONObject combat = state.optJSONObject("combat");
     if (combat != null) {
       addIfPresent(output, source, combat.optString("currentActor", ""), "character", true);
-      JSONObject entity = combat.optJSONObject("entity");
-      if (entity != null) addIfPresent(output, source, entity.optString("name", ""), "entity", true);
+      JSONArray entities = combat.optJSONArray("entities");
+      if (entities != null) {
+        for (int i = 0; i < entities.length(); i++) {
+          JSONObject entity = entities.optJSONObject(i);
+          if (entity != null) addIfPresent(output, source, entity.optString("name", ""), "entity", true);
+        }
+      } else {
+        JSONObject entity = combat.optJSONObject("entity");
+        if (entity != null) addIfPresent(output, source, entity.optString("name", ""), "entity", true);
+      }
       JSONObject skill = combat.optJSONObject("currentSkill");
       if (skill != null) addIfPresent(output, source, skill.optString("name", ""), "skill", true);
     }

@@ -146,6 +146,118 @@ final class EmergentTurnEngine {
     }
 
     JSONObject index = root.getJSONObject("selectionIndex");
+    JSONArray entityTrace = new JSONArray();
+    List<JSONObject> passedEntities = new ArrayList<>();
+    List<String> seenPayloads = new ArrayList<>();
+    int entityDrawStart = rng.drawsUsed(TurnRng.Scope.CANDIDATE_SELECTION);
+    if (rawCandidates != null) {
+      for (int i = 0; i < rawCandidates.length(); i++) {
+        JSONObject source = rawCandidates.optJSONObject(i);
+        if (source == null || !"ENTITY".equals(source.optString("kind", ""))) continue;
+        JSONObject candidate = new JSONObject(source.toString());
+        String key = candidate.optString("situationKey", "").trim();
+        String payload = candidate.optString("payloadKey", "").trim();
+        if (key.isEmpty() || payload.isEmpty() || seenPayloads.contains(payload)) continue;
+        seenPayloads.add(payload);
+
+        String category = candidate.optString("category", "DANGER").trim().toUpperCase(Locale.ROOT);
+        JSONObject prior = index.optJSONObject(key);
+        int lastTurn = prior == null ? Integer.MIN_VALUE / 4
+            : prior.optInt("lastSelectedTurn", Integer.MIN_VALUE / 4);
+        int cooldown = Math.max(0, candidate.optInt("cooldownTurns", cooldownTurns(category)));
+        boolean cooling = selectionTurn <= lastTurn + cooldown;
+        double chance = cooling ? 0.0d : Math.max(0.0d,
+            Math.min(0.99999999d, candidate.optDouble("chancePercent", 0.0d) / 100.0d));
+        int drawSeq = rng.drawsUsed(TurnRng.Scope.CANDIDATE_SELECTION);
+        double draw = rng.nextUnit(TurnRng.Scope.CANDIDATE_SELECTION);
+        boolean passed = chance > 0.0d && draw < chance;
+        entityTrace.put(new JSONObject()
+            .put("situationKey", key)
+            .put("payloadKey", payload)
+            .put("category", category)
+            .put("chancePercent", chance * 100.0d)
+            .put("roll", draw)
+            .put("passed", passed)
+            .put("cooldownBlocked", cooling)
+            .put("rngDrawSeq", drawSeq)
+            .put("eligibilityRuleId", candidate.optString("eligibilityRuleId", "")));
+        if (passed) passedEntities.add(candidate);
+      }
+    }
+
+    if (!passedEntities.isEmpty()) {
+      JSONObject first = passedEntities.get(0);
+      JSONArray payloadKeys = new JSONArray();
+      JSONArray cooldownKeys = new JSONArray();
+      JSONArray tags = new JSONArray().put("DANGER").put("ENTITY");
+      List<String> situationKeys = new ArrayList<>();
+      StringBuilder summaries = new StringBuilder();
+      StringBuilder capabilities = new StringBuilder();
+      JSONArray allowed = first.optJSONArray("allowedWorldActions") == null
+          ? new JSONArray() : new JSONArray(first.getJSONArray("allowedWorldActions").toString());
+
+      for (JSONObject candidate : passedEntities) {
+        String payload = candidate.optString("payloadKey", "").trim();
+        String situationKey = candidate.optString("situationKey", "").trim();
+        payloadKeys.put(payload);
+        cooldownKeys.put(situationKey);
+        situationKeys.add(situationKey);
+        tags.put(payload);
+        String summary = candidate.optString("publicSummary", "").trim();
+        if (!summary.isEmpty()) {
+          if (summaries.length() > 0) summaries.append(' ');
+          summaries.append(summary);
+        }
+        String capability = candidate.optString("capabilityContext", "").trim();
+        if (!capability.isEmpty()) {
+          if (capabilities.length() > 0) capabilities.append("\n");
+          capabilities.append(payload).append(": ").append(capability);
+        }
+        for (int a = allowed.length() - 1; a >= 0; a--) {
+          String action = allowed.optString(a, "").trim().toUpperCase(Locale.ROOT);
+          if (!containsAction(candidate.optJSONArray("allowedWorldActions"), action)) allowed.remove(a);
+        }
+      }
+      if (allowed.length() == 0) allowed.put("INTERCEPT");
+
+      String situationKey = passedEntities.size() == 1
+          ? first.optString("situationKey", "")
+          : "entity-group:" + String.join("+", situationKeys);
+      JSONObject result = new JSONObject(first.toString())
+          .put("candidateId", situationKey)
+          .put("situationKey", situationKey)
+          .put("kind", "ENTITY")
+          .put("category", "DANGER")
+          .put("payloadKey", payloadKeys.optString(0, ""))
+          .put("payloadKeys", payloadKeys)
+          .put("keyRefs", new JSONArray(payloadKeys.toString()))
+          .put("cooldownKeys", cooldownKeys)
+          .put("tags", tags)
+          .put("allowedWorldActions", allowed)
+          .put("fallbackAction", allowed.optString(0, "INTERCEPT"))
+          .put("proposalRequired", true)
+          .put("publicSummary", summaries.toString())
+          .put("capabilityContext", capabilities.toString())
+          .put("selectionMode", "ENTITY_INDEPENDENT")
+          .put("selectedNone", false);
+
+      JSONObject trace = new JSONObject()
+          .put("turn", selectionTurn)
+          .put("candidates", entityTrace)
+          .put("selectedSituationKey", situationKey)
+          .put("selectedNone", false)
+          .put("selectionMode", "ENTITY_INDEPENDENT")
+          .put("rngScope", TurnRng.Scope.CANDIDATE_SELECTION.name())
+          .put("rngDrawSeqStart", entityDrawStart)
+          .put("rngDrawSeqEnd", rng.drawsUsed(TurnRng.Scope.CANDIDATE_SELECTION) - 1);
+      JSONArray traces = root.getJSONArray("selectionTrace");
+      traces.put(trace);
+      while (traces.length() > TRACE_LIMIT) traces.remove(0);
+      root.put("lastSelection", new JSONObject(result.toString()));
+      state.put(ROOT_KEY, root);
+      return result;
+    }
+
     JSONObject director = root.getJSONObject("director");
     JSONObject modifiers = director.optJSONObject("tagWeightModifiers");
     if (modifiers == null) modifiers = new JSONObject();
@@ -155,7 +267,7 @@ final class EmergentTurnEngine {
     if (rawCandidates != null) {
       for (int i = 0; i < rawCandidates.length(); i++) {
         JSONObject source = rawCandidates.optJSONObject(i);
-        if (source == null) continue;
+        if (source == null || "ENTITY".equals(source.optString("kind", ""))) continue;
         JSONObject candidate = new JSONObject(source.toString());
         String key = candidate.optString("situationKey", "").trim();
         if (key.isEmpty()) continue;
@@ -177,8 +289,9 @@ final class EmergentTurnEngine {
     }
 
     double eventOdds = totalHazard <= 0.0d ? 0.0d : Math.expm1(totalHazard);
-    double totalWeight = 1.0d; // NONE always participates through the same selector.
+    double totalWeight = 1.0d;
     JSONArray traceCandidates = new JSONArray();
+    for (int i = 0; i < entityTrace.length(); i++) traceCandidates.put(entityTrace.opt(i));
     for (WeightedCandidate item : weighted) {
       double baseWeight = totalHazard <= 0.0d ? 0.0d : eventOdds * (item.hazard / totalHazard);
       item.finalWeight = baseWeight * item.categoryModifier * item.keyRefModifier;
@@ -461,7 +574,12 @@ final class EmergentTurnEngine {
     }
 
     if (selection != null && !selection.optBoolean("selectedNone", false)) {
+      JSONArray sourceKeys = selection.optJSONArray("cooldownKeys");
+      if (sourceKeys == null || sourceKeys.length() == 0) {
+        sourceKeys = new JSONArray().put(selection.optString("situationKey", ""));
+      }
       commit.put("sourceSituationKey", selection.optString("situationKey", ""))
+          .put("sourceSituationKeys", new JSONArray(sourceKeys.toString()))
           .put("sourceSituationCategory", selection.optString("category", ""))
           .put("sourceSituationTags", selection.optJSONArray("tags") == null
               ? new JSONArray() : new JSONArray(selection.getJSONArray("tags").toString()))
@@ -763,12 +881,18 @@ final class EmergentTurnEngine {
     for (int i = 0; i < commits.length(); i++) {
       JSONObject commit = commits.getJSONObject(i);
       if (commit.optInt("commitSeq", 0) <= watermark) continue;
-      String key = commit.optString("sourceSituationKey", "").trim();
-      if (key.isEmpty() || "NONE".equals(key)) continue;
-      index.put(key, new JSONObject()
-          .put("lastSelectedTurn", commit.optInt("turn", 1))
-          .put("commitSeq", commit.optInt("commitSeq", 0))
-          .put("category", commit.optString("sourceSituationCategory", "")));
+      JSONArray keys = commit.optJSONArray("sourceSituationKeys");
+      if (keys == null || keys.length() == 0) {
+        keys = new JSONArray().put(commit.optString("sourceSituationKey", ""));
+      }
+      for (int k = 0; k < keys.length(); k++) {
+        String key = keys.optString(k, "").trim();
+        if (key.isEmpty() || "NONE".equals(key)) continue;
+        index.put(key, new JSONObject()
+            .put("lastSelectedTurn", commit.optInt("turn", 1))
+            .put("commitSeq", commit.optInt("commitSeq", 0))
+            .put("category", commit.optString("sourceSituationCategory", "")));
+      }
     }
   }
 

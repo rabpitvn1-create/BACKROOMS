@@ -68,17 +68,26 @@ final class EpistemicView {
     copy(combat, visible, "outcome");
     copy(combat, visible, "round");
     copy(combat, visible, "actorIndex");
+    copy(combat, visible, "activeEntityIndex");
+    copy(combat, visible, "targetEntityIndex");
     copy(combat, visible, "resolvedActorName");
     copy(combat, visible, "resolvedRound");
-    JSONObject entity = combat.optJSONObject("entity");
-    if (entity != null) {
-      JSONObject publicEntity = new JSONObject();
-      copy(entity, publicEntity, "key");
-      copy(entity, publicEntity, "name");
-      copy(entity, publicEntity, "hp");
-      copy(entity, publicEntity, "maxHp");
-      visible.put("entity", publicEntity);
+    copy(combat, visible, "resolvedEntityTurns");
+    copy(combat, visible, "entityDeathsThisTurn");
+
+    JSONArray entities = combat.optJSONArray("entities");
+    if (entities != null) {
+      JSONArray publicEntities = new JSONArray();
+      for (int i = 0; i < entities.length(); i++) {
+        JSONObject entity = entities.optJSONObject(i);
+        if (entity == null) continue;
+        publicEntities.put(publicEntity(entity));
+      }
+      visible.put("entities", publicEntities);
     }
+    JSONObject entity = combat.optJSONObject("entity");
+    if (entity != null) visible.put("entity", publicEntity(entity));
+
     JSONArray participants = combat.optJSONArray("participants");
     if (participants != null) {
       JSONArray publicParticipants = new JSONArray();
@@ -94,6 +103,17 @@ final class EpistemicView {
       }
       visible.put("participants", publicParticipants);
     }
+    return visible;
+  }
+
+  private static JSONObject publicEntity(JSONObject entity) throws Exception {
+    JSONObject visible = new JSONObject();
+    copy(entity, visible, "key");
+    copy(entity, visible, "name");
+    copy(entity, visible, "hp");
+    copy(entity, visible, "maxHp");
+    copy(entity, visible, "alive");
+    copy(entity, visible, "status");
     return visible;
   }
 

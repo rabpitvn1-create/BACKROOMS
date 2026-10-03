@@ -305,9 +305,16 @@ public final class CanonRetriever {
       if (member != null && member.optBoolean("present", false)) subjects.add("character:" + member.optString("id"));
     }
     JSONObject flags = safe.optJSONObject("flags");
-    String entity = flags == null ? "" : flags.optString("entityEncounterKey", "");
-    // EntityCore owns this committed flag; absent means no active encounter.
-    if (!entity.trim().isEmpty()) subjects.add("entity:" + entity);
+    // EntityCore owns these committed flags; every present Entity is mandatory canon context.
+    JSONArray entityKeys = flags == null ? null : flags.optJSONArray("entityEncounterKeys");
+    if (entityKeys != null) {
+      for (int i = 0; i < entityKeys.length(); i++) {
+        String entity = entityKeys.optString(i, "").trim();
+        if (!entity.isEmpty()) subjects.add("entity:" + entity);
+      }
+    }
+    String legacyEntity = flags == null ? "" : flags.optString("entityEncounterKey", "").trim();
+    if (!legacyEntity.isEmpty()) subjects.add("entity:" + legacyEntity);
     List<Selected> mandatory = new ArrayList<>(), dependencies = new ArrayList<>(), supplemental = new ArrayList<>();
     List<String> missing = new ArrayList<>(), missingRefs = new ArrayList<>(), trace = new ArrayList<>();
     Set<String> used = new LinkedHashSet<>();

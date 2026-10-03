@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 final class EntityCore {
@@ -20,6 +21,7 @@ final class EntityCore {
 
   private static final String REGISTRY_ASSET = "knowledge/entity_encounters.json";
   private static final String ENCOUNTER_KEY = "entityEncounterKey";
+  private static final String ENCOUNTER_KEYS = "entityEncounterKeys";
   private static final String RESOLVED_KEY = "entityEncounterResolved";
   private static final String SOURCE = "core_independent_roll";
   private static final String TREASURE_SOURCE = "core_treasure_priority_roll";
@@ -47,7 +49,7 @@ final class EntityCore {
   JSONArray situationCandidates(JSONObject state) throws Exception {
     JSONArray output = new JSONArray();
     JSONObject currentFlags = flags(state);
-    if (!currentFlags.optString(ENCOUNTER_KEY, "").trim().isEmpty()) return output;
+    if (activeEncounterKeys(state).length() > 0) return output;
     int level = state.optInt("currentLevel", 0);
     String levelKey = state.optString(LevelCore.LEVEL_KEY, String.valueOf(level)).trim();
     for (EntityDefinition entity : entities.values()) {
@@ -92,41 +94,108 @@ final class EntityCore {
   }
 
   void activateEncounterCandidate(JSONObject state, String key) throws Exception {
-    String normalized = key == null ? "" : key.trim();
-    EntityDefinition entity = entities.get(normalized);
-    if (entity == null) throw new IllegalArgumentException("Unknown Entity candidate: " + normalized);
+    activateEncounterCandidates(state, new JSONArray().put(key));
+  }
+
+  void activateEncounterCandidates(JSONObject state, JSONArray keys) throws Exception {
     JSONObject currentFlags = flags(state);
-    if (!currentFlags.optString(ENCOUNTER_KEY, "").trim().isEmpty()) {
+    if (activeEncounterKeys(state).length() > 0) {
       throw new IllegalStateException("An Entity encounter is already active");
     }
-    activateEncounter(state, currentFlags, entity, state.optInt("currentLevel", 0), "candidate_selector");
+
+    JSONArray normalizedKeys = new JSONArray();
+    JSONObject rates = new JSONObject();
+    List<String> seen = new ArrayList<>();
+    EntityDefinition first = null;
+    if (keys != null) {
+      for (int i = 0; i < keys.length(); i++) {
+        String normalized = keys.optString(i, "").trim().toLowerCase(Locale.ROOT);
+        if (normalized.isEmpty() || seen.contains(normalized)) continue;
+        EntityDefinition entity = entities.get(normalized);
+        if (entity == null) throw new IllegalArgumentException("Unknown Entity candidate: " + normalized);
+        seen.add(normalized);
+        normalizedKeys.put(normalized);
+        rates.put(normalized, effectiveAutoSpawnRatePercent(entity.ratePercent));
+        if (first == null) first = entity;
+      }
+    }
+    if (first == null) throw new IllegalArgumentException("At least one Entity candidate is required");
+
+    int level = state.optInt("currentLevel", 0);
+    currentFlags.remove(RESOLVED_KEY);
+    currentFlags.put(ENCOUNTER_KEYS, normalizedKeys);
+    currentFlags.put(ENCOUNTER_KEY, first.key);
+    currentFlags.put("entityEncounterSource", "candidate_selector");
+    currentFlags.put("entityEncounterRatePercent", effectiveAutoSpawnRatePercent(first.ratePercent));
+    currentFlags.put("entityEncounterRatePercents", rates);
+    currentFlags.put("entityEncounterLevel", level);
+    currentFlags.put("entityEncounterLevelKey",
+        state.optString(LevelCore.LEVEL_KEY, String.valueOf(level)).trim());
+    currentFlags.put("entityEncounterStartedTurn", Math.max(1, state.optInt("turn", 1)));
+    state.put("flags", currentFlags);
+  }
+
+  JSONArray activeEncounterKeys(JSONObject state) {
+    JSONArray output = new JSONArray();
+    JSONObject currentFlags = state == null ? null : state.optJSONObject("flags");
+    if (currentFlags == null) return output;
+    List<String> seen = new ArrayList<>();
+    JSONArray keys = currentFlags.optJSONArray(ENCOUNTER_KEYS);
+    if (keys != null) {
+      for (int i = 0; i < keys.length(); i++) {
+        String key = keys.optString(i, "").trim().toLowerCase(Locale.ROOT);
+        if (key.isEmpty() || seen.contains(key)) continue;
+        seen.add(key);
+        output.put(key);
+      }
+    }
+    String legacy = currentFlags.optString(ENCOUNTER_KEY, "").trim().toLowerCase(Locale.ROOT);
+    if (!legacy.isEmpty() && !seen.contains(legacy)) output.put(legacy);
+    return output;
   }
 
   String promptContext(JSONObject state) {
-    JSONObject flags = state == null ? null : state.optJSONObject("flags");
-    String activeKey = flags == null ? "" : flags.optString(ENCOUNTER_KEY, "").trim();
-    if (activeKey.isEmpty()) {
+    JSONArray activeKeys = activeEncounterKeys(state);
+    if (activeKeys.length() == 0) {
       return "ENTITY CORE: no active Entity encounter this turn. Do not invent, summon or select an Entity. " +
         "Encounter selection is owned exclusively by the deterministic SituationCandidate selector. " +
         "Only registered auto-spawn Entities whose registry Level/LevelKey eligibility includes the current location may roll this turn.";
     }
 
-    EntityDefinition entity = entities.get(activeKey);
-    if (entity == null) {
-      LegacyEntityDefinition legacy = legacyEntities.get(activeKey);
-      if (legacy != null) return legacyPromptContext(activeKey, legacy.name, legacy.canon);
-      return "ENTITY CORE: active legacy/boss encounter key=" + activeKey + ". Preserve the Core-owned encounter identity. " +
-        "Narration must not replace, resolve, spawn, despawn or mutate this Entity.";
+    String activeCombatKey = "";
+    JSONObject combat = state == null ? null : state.optJSONObject("combat");
+    if (combat != null && combat.optBoolean("active", false)) {
+      JSONObject active = combat.optJSONObject("entity");
+      if (active != null) activeCombatKey = active.optString("key", "").trim();
     }
+    if (activeCombatKey.isEmpty()) activeCombatKey = activeKeys.optString(0, "");
 
-    return "ENTITY CORE ACTIVE ENCOUNTER: " + entity.name + " (key=" + entity.key + ").\n" +
-      (entity.treasure
-          ? "TREASURE PRIORITY SPAWN RATE: " + effectiveAutoSpawnRatePercent(entity.ratePercent) + "% per eligible world-advancing turn.\n"
-          : "FIXED INDEPENDENT SPAWN RATE: " + effectiveAutoSpawnRatePercent(entity.ratePercent) + "% per eligible world-advancing turn.\n") +
-      "LEVEL POLICY: this Entity is eligible only on registry " + entity.locationPolicy() + ".\n" +
-      "ENTITY CANON (behavior/capabilities only): " + entity.canon + "\n" +
-      "Do not replace this Entity with another one. Narrate only the committed encounter state and behavioral canon. " +
-      "Narration has no authority to resolve, spawn, despawn or mutate the Entity.";
+    StringBuilder out = new StringBuilder();
+    out.append("ENTITY CORE ACTIVE ENCOUNTER: ").append(activeKeys.length())
+        .append(" Entity record(s) are present. ACTIVE COMBAT ENTITY key=")
+        .append(activeCombatKey).append(".\n");
+    out.append("PRESENT ENTITY KEYS: ").append(activeKeys.toString()).append(".\n");
+    for (int i = 0; i < activeKeys.length(); i++) {
+      String key = activeKeys.optString(i, "");
+      EntityDefinition entity = entities.get(key);
+      if (entity != null) {
+        out.append("ENTITY[").append(i).append("] ")
+            .append(entity.name).append(" (key=").append(entity.key).append("). ")
+            .append("LEVEL POLICY: ").append(entity.locationPolicy()).append(". ")
+            .append("CANON: ").append(entity.canon).append("\n");
+      } else {
+        LegacyEntityDefinition legacy = legacyEntities.get(key);
+        out.append("ENTITY[").append(i).append("] ")
+            .append(legacy == null ? key : legacy.name).append(" (key=").append(key).append("). ")
+            .append(legacy == null ? "Preserve this Core-owned legacy encounter identity."
+                : "CANON: " + legacy.canon)
+            .append("\n");
+      }
+    }
+    out.append("GM COMBAT RULE: know the full present list, but describe combat action only for the ACTIVE COMBAT ENTITY. ")
+        .append("Never transfer appearance, held objects, skills or behavior from one Entity record to another. ")
+        .append("Narration has no authority to resolve, spawn, despawn or mutate any Entity.");
+    return out.toString();
   }
 
   static String legacyPromptContext(String activeKey, String name, String canon) {
@@ -148,15 +217,7 @@ final class EntityCore {
 
   private void activateEncounter(JSONObject state, JSONObject flags, EntityDefinition selected,
                                  int level, String source) throws Exception {
-    flags.remove(RESOLVED_KEY);
-    flags.put(ENCOUNTER_KEY, selected.key);
-    flags.put("entityEncounterSource", source);
-    flags.put("entityEncounterRatePercent", effectiveAutoSpawnRatePercent(selected.ratePercent));
-    flags.put("entityEncounterLevel", level);
-    flags.put("entityEncounterLevelKey",
-        state.optString(LevelCore.LEVEL_KEY, String.valueOf(level)).trim());
-    flags.put("entityEncounterStartedTurn", Math.max(1, state.optInt("turn", 1)));
-    state.put("flags", flags);
+    activateEncounterCandidates(state, new JSONArray().put(selected.key));
   }
 
   private void loadRegistry(Context context) {

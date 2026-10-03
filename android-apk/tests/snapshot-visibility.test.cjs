@@ -5,7 +5,7 @@ const source=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/snapsho
 const geometry=require('../app/src/main/assets/snapshot-ui.js');
 function boot({unknown=false,unloaded=false,canvasContextMissing=false,stateOverride=null}={}){
  const elements=[],styles=[],pending=[],warnings=[];let reads=0;
- const box={clientWidth:350,clientHeight:250,appendChild(el){el.parentElement=this;elements.push(el);},querySelectorAll(selector){return elements.filter(e=>selector.includes('img.')&&e.tagName==='IMG'&&e.className.includes('snapshot-grounded'));}};
+ const box={clientWidth:350,clientHeight:250,appendChild(el){el.parentElement=this;elements.push(el);},querySelectorAll(selector){return elements.filter(e=>{const c=String(e.className||'');if(selector.includes('snapshot-combat-character'))return c.includes('snapshot-combat-character');if(selector.includes('snapshot-entity'))return c.includes('snapshot-entity');if(selector.includes('snapshot-grounded'))return c.includes('snapshot-grounded');return false;});}};
  Object.defineProperty(box,'textContent',{set(){elements.length=0;}});
  const document={readyState:'complete',head:{appendChild(el){styles.push(el.textContent);}},getElementById(id){return id==='snapshot'?box:null;},querySelectorAll(){return [];},createElement(tag){
   if(tag==='canvas')return {getContext(){reads++;if(canvasContextMissing)return null;return {drawImage(){},getImageData(){throw new Error('SecurityError: canvas has been tainted by cross-origin data');}};}};
@@ -48,7 +48,24 @@ test('new humanoid Entities and Tâm Ma share one visual scale while Cao Minh ge
 });
 
 test('combat actor changes use rotation transitions instead of snapshot blinking',()=>{assert.match(source,/function rotateCombatActor\(/);assert.match(source,/@keyframes combat-turn-out/);assert.match(source,/@keyframes combat-turn-in/);});
-test('Entity victory exposes deterministic glass-shatter fragments',()=>{assert.match(source,/window\.backroomShatterEntity=function/);assert.match(source,/combat-shard-break/);const b=source.slice(source.indexOf('window.backroomShatterEntity=function'),source.indexOf('window.backroomPlayCombatFeedback=function'));assert.match(b,/var clips=\[/);assert.doesNotMatch(b,/Math\.random/);});
+test('active Entity rotation preserves the existing player actor and snapshot background',()=>{
+ const r=boot({stateOverride:{flags:{entityEncounterKeys:['hound','clump'],entityEncounterKey:'hound'},combat:{active:true,actorIndex:0,activeEntityIndex:0,participants:[{id:'cao_minh',name:'Cao Minh'}],entities:[{key:'hound',hp:10},{key:'clump',hp:10}],entity:{key:'hound',hp:10}}}});
+ r.ctx.backroomSetCombatVisualActor(0,'hound');
+ const actor=r.elements.find(e=>String(e.className||'').includes('snapshot-combat-character'));
+ const background=r.elements.find(e=>String(e.className||'')==='snapshot-placeholder');
+ const firstEntity=r.elements.find(e=>String(e.className||'').includes('snapshot-entity'));
+ assert.ok(actor);assert.ok(background);assert.ok(firstEntity);
+ r.ctx.backroomSetCombatVisualActor(0,'clump');
+ const actorAfter=r.elements.find(e=>String(e.className||'').includes('snapshot-combat-character'));
+ const backgroundAfter=r.elements.find(e=>String(e.className||'')==='snapshot-placeholder');
+ const activeEntity=r.elements.find(e=>String(e.className||'').includes('snapshot-entity'));
+ assert.equal(actorAfter,actor);
+ assert.equal(backgroundAfter,background);
+ assert.notEqual(activeEntity,firstEntity);
+ assert.equal(activeEntity.dataset.entityKey,'clump');
+});
+
+test('Entity death exposes deterministic glass-shatter fragments for the requested Entity key',()=>{assert.match(source,/window\.backroomShatterEntity=function\(entityKey,done\)/);assert.match(source,/combat-shard-break/);const b=source.slice(source.indexOf('window.backroomShatterEntity=function'),source.indexOf('window.backroomPlayCombatFeedback=function'));assert.match(b,/dataset\.entityKey/);assert.match(b,/requested/);assert.match(b,/var clips=\[/);assert.doesNotMatch(b,/Math\.random/);});
 test('unknown sprite remains visible when canvas throws SecurityError',()=>{
  const r=boot({unknown:true});visible(r.elements.find(e=>e.className.includes('snapshot-character')));assert.equal(r.reads(),1);
 });

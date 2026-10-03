@@ -114,3 +114,20 @@ test('GM effect highlights keep the normal narration font', () => {
   assert.match(source, /\.semantic-damage\{color:#ff5c5c\}/);
   assert.match(source, /\.semantic-buff\{color:#73e6a2\}/);
 });
+
+
+test('multi-Entity combat exposes a compact target queue and Core-owned target mutation', () => {
+  assert.match(source, /id="combatTargets"/);
+  assert.match(source, /function combatEntities\(combat\)/);
+  assert.match(source, /function sendCombatTarget\(index\)/);
+  assert.match(source, /Android\.combatTarget\(Number\(index\)\)/);
+  assert.match(source, /targetEntityIndex/);
+  assert.match(coreFacadeSource, /public synchronized String combatTargetRuntime\(int entityIndex\)/);
+  assert.match(coreFacadeSource, /CombatChoiceEngine\.setTargetEntity\(working, entityIndex\)/);
+});
+
+test('active Entity handoff is separate from player actor handoff', () => {
+  assert.match(source, /resolvedEntityTurns/);
+  assert.match(source, /backroomSetCombatVisualActor\(combat\.resolvedActorIndex,entityKey\)/);
+  assert.match(source, /playCombatPhase\(events,'entity',entityIndex\)/);
+});

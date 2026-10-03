@@ -39,6 +39,7 @@
     ".battle-separator{height:1px;background:#262d33;margin-top:10px}",
     ".combat-dice-panel[hidden]{display:none}.combat-dice-panel{width:100%;box-sizing:border-box;margin-top:12px;background:#0e1114;border:1px solid #46515a;padding:14px;display:grid;gap:12px;touch-action:manipulation;border-radius:10px}",
     ".combat-dice-title{font-family:'Play','Pretendard Std',system-ui,sans-serif;font-size:14px;font-weight:700;letter-spacing:.06em}.combat-dice-meta{font-size:11px;color:#9ba6af}",
+    ".combat-targets{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}.combat-target{flex:0 0 auto;max-width:180px;padding:7px 9px;border:1px solid #39434b;background:#14191d;color:#c9d0d5;border-radius:7px;font-size:11px;text-align:left}.combat-target.active{border-color:#f6c85f;color:#fff}.combat-target:disabled{opacity:.42;text-decoration:line-through}",
     ".combat-dice-row{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;perspective:720px}.combat-die{padding:1px;aspect-ratio:1/1;border:1px solid #343d45;background:#151a1f;display:grid;place-items:center;min-width:0;border-radius:9px;transform-style:preserve-3d;will-change:transform}.combat-die img{width:104%;height:104%;object-fit:contain;pointer-events:none}.combat-die.held{border-color:#f6c85f;background:#211e14;box-shadow:inset 0 0 0 1px #f6c85f55}.combat-die.rolling{border-color:#72808b;box-shadow:0 0 12px #91a1ad33;animation:combat-die-roll .46s cubic-bezier(.25,.7,.35,1) infinite}.combat-die:disabled{opacity:.85}@keyframes combat-die-roll{0%{transform:rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(.94)}25%{transform:rotateX(120deg) rotateY(70deg) rotateZ(45deg) scale(1.04)}50%{transform:rotateX(230deg) rotateY(160deg) rotateZ(120deg) scale(.96)}75%{transform:rotateX(320deg) rotateY(260deg) rotateZ(220deg) scale(1.04)}100%{transform:rotateX(360deg) rotateY(360deg) rotateZ(360deg) scale(.94)}}@media(prefers-reduced-motion:reduce){.combat-die.rolling{animation:none}}",
     ".combat-dice-result{min-height:22px;text-align:center;font-family:'Play','Pretendard Std',system-ui,sans-serif;font-size:16px;font-weight:700;color:#f6c85f}",
     ".combat-dice-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.combat-roll,.combat-finish{width:100%;padding:12px 8px;background:#1b2126;border:1px solid #46515a;color:#f0f3f5;font-family:'Play','Pretendard Std',system-ui,sans-serif;font-weight:700;letter-spacing:.12em;border-radius:8px}.combat-roll:disabled,.combat-finish:disabled{opacity:.45}"
@@ -112,7 +113,8 @@
       if (state && Array.isArray(state.inventory)) state.inventory.forEach(function(x){ addTerm(map, typeof x === 'string' ? x : x && x.name, 'item'); });
       if (state && state.combat) {
         addTerm(map, state.combat.currentActor, 'character');
-        if (state.combat.entity) addTerm(map, state.combat.entity.name, 'entity');
+        if (Array.isArray(state.combat.entities)) state.combat.entities.forEach(function(entity){ if(entity)addTerm(map,entity.name,'entity'); });
+        else if (state.combat.entity) addTerm(map, state.combat.entity.name, 'entity');
         if (state.combat.currentSkill) addTerm(map, state.combat.currentSkill.name, 'skill');
       }
     } catch (_) {}
@@ -459,8 +461,9 @@
   dicePanel.className='combat-dice-panel';
   dicePanel.hidden=true;
   dicePanel.setAttribute('aria-label','Poker Dice Combat');
-  dicePanel.innerHTML='<div class="combat-dice-title" id="combatDiceTitle"></div><div class="combat-dice-meta" id="combatDiceMeta"></div><div class="combat-dice-row" id="combatDiceRow"></div><div class="combat-dice-result" id="combatDiceResult"></div><div class="combat-dice-actions"><button type="button" class="combat-roll" id="combatDiceRoll">ROLL</button><button type="button" class="combat-finish" id="combatDiceFinish">FINISH</button></div>';
+  dicePanel.innerHTML='<div class="combat-dice-title" id="combatDiceTitle"></div><div class="combat-targets" id="combatTargets" aria-label="Entity targets"></div><div class="combat-dice-meta" id="combatDiceMeta"></div><div class="combat-dice-row" id="combatDiceRow"></div><div class="combat-dice-result" id="combatDiceResult"></div><div class="combat-dice-actions"><button type="button" class="combat-roll" id="combatDiceRoll">ROLL</button><button type="button" class="combat-finish" id="combatDiceFinish">FINISH</button></div>';
   var diceTitle=dicePanel.querySelector('#combatDiceTitle');
+  var combatTargets=dicePanel.querySelector('#combatTargets');
   var diceMeta=dicePanel.querySelector('#combatDiceMeta');
   var diceRow=dicePanel.querySelector('#combatDiceRow');
   var diceResult=dicePanel.querySelector('#combatDiceResult');
@@ -497,6 +500,26 @@
     };
     var key=String(hand||'NO HAND');
     return labels[key]||key;
+  }
+
+  function combatEntities(combat){
+    if(!combat)return[];
+    if(Array.isArray(combat.entities)&&combat.entities.length)return combat.entities;
+    return combat.entity?[combat.entity]:[];
+  }
+  function combatEntityAt(combat,index){
+    var entities=combatEntities(combat),i=Number(index);
+    if(!Number.isInteger(i)||i<0||i>=entities.length)i=0;
+    return entities[i]||combat&&combat.entity||null;
+  }
+  function activeCombatEntity(combat){
+    return combatEntityAt(combat,combat&&combat.activeEntityIndex);
+  }
+  function sendCombatTarget(index){
+    if(window.__combatBusy||!window.Android||typeof Android.combatTarget!=='function')return;
+    window.__combatBusy=true;
+    renderCombatPanel();
+    Android.combatTarget(Number(index));
   }
 
   function combatDiceState(){
@@ -569,6 +592,25 @@
     if(!visible)return;
 
     diceTitle.textContent=String(combat.currentActor||'Nhân vật');
+    if(combatTargets){
+      combatTargets.textContent='';
+      var targets=combatEntities(combat);
+      combatTargets.hidden=targets.length<=1;
+      var selectedTarget=Number(combat.targetEntityIndex);
+      if(!Number.isInteger(selectedTarget))selectedTarget=Number(combat.activeEntityIndex)||0;
+      targets.forEach(function(entity,index){
+        if(!entity)return;
+        var button=document.createElement('button');
+        button.type='button';
+        button.className='combat-target'+(index===selectedTarget?' active':'');
+        var alive=entity.alive!==false&&Number(entity.hp)>0;
+        button.disabled=!alive||window.__combatBusy||dice.finalized===true;
+        button.textContent=String(entity.name||entity.key||'Entity')+' · '+String(Math.max(0,Number(entity.hp)||0))+'/'+String(Math.max(1,Number(entity.maxHp)||1))+' HP';
+        button.setAttribute('aria-pressed',index===selectedTarget?'true':'false');
+        button.addEventListener('click',function(){sendCombatTarget(index);});
+        combatTargets.appendChild(button);
+      });
+    }
     var hasRolled=dice.hasRolled===true;
     var rerolls=Math.max(0,Number(dice.rerollsUsed)||0);
     var maxRerolls=Math.max(0,Number(dice.maxRerolls)||3);
@@ -619,7 +661,8 @@
     }
     var actorIndex=Number(combat.actorIndex);
     if(!Number.isInteger(actorIndex))actorIndex=0;
-    var entityKey=combat.entity&&combat.entity.key?combat.entity.key:'';
+    var entity=activeCombatEntity(combat);
+    var entityKey=entity&&entity.key?entity.key:'';
     if(typeof window.backroomSetCombatVisualActor==='function'){
       window.backroomSetCombatVisualActor(actorIndex,entityKey);
     }
@@ -702,8 +745,12 @@
       scrollForCurrentMode();
   };
 
-  function playCombatPhase(events, phase) {
-    var phaseEvents = (Array.isArray(events) ? events : []).filter(function(event){ return event && event.phase === phase; });
+  function playCombatPhase(events, phase, entityIndex) {
+    var phaseEvents = (Array.isArray(events) ? events : []).filter(function(event){
+      if(!event||event.phase!==phase)return false;
+      if(entityIndex===undefined||entityIndex===null)return true;
+      return Number(event.entityIndex)===Number(entityIndex);
+    });
     phaseEvents.forEach(function(event, index){
       setTimeout(function(){
         if (typeof window.backroomPlayCombatFeedback === 'function') window.backroomPlayCombatFeedback(event);
@@ -752,9 +799,14 @@
       window.__combatBusy = true;
       if (typeof busy !== 'undefined') busy = true;
       var token = ++window.__combatAnimationToken;
-      var entityKey = combat.entity && combat.entity.key ? combat.entity.key : '';
+      var actorEvents=events.filter(function(event){return event&&event.phase==='actor';});
+      var actorEntityKey=actorEvents.length&&actorEvents[0].entityKey?String(actorEvents[0].entityKey):'';
+      if(!actorEntityKey){
+        var active=activeCombatEntity(combat);
+        actorEntityKey=active&&active.key?String(active.key):'';
+      }
       if (typeof window.backroomSetCombatVisualActor === 'function') {
-        window.backroomSetCombatVisualActor(combat.resolvedActorIndex, entityKey);
+        window.backroomSetCombatVisualActor(combat.resolvedActorIndex, actorEntityKey);
       }
       if (typeof window.render === 'function') window.render();
       syncComposer();
@@ -764,22 +816,38 @@
 
       playCombatPhase(events, 'actor');
       var delay = COMBAT_PHASE_MS;
-      if (combat.resolvedEntityTurn === true) {
+      var deaths=Array.isArray(combat.entityDeathsThisTurn)?combat.entityDeathsThisTurn:[];
+      deaths.forEach(function(death){
+        var deathKey=death&&death.key?String(death.key):'';
+        var deathIndex=death?Number(death.entityIndex):0;
         setTimeout(function(){
-          if (token !== window.__combatAnimationToken) return;
-          if (status) status.textContent = 'Entity đang phản hồi…';
-          playCombatPhase(events, 'entity');
-        }, COMBAT_PHASE_MS);
-        delay += COMBAT_PHASE_MS;
-      }
+          if(token!==window.__combatAnimationToken)return;
+          if(typeof window.backroomSetCombatVisualActor==='function'){
+            window.backroomSetCombatVisualActor(combat.resolvedActorIndex,deathKey);
+          }
+          if(status)status.textContent=String(death&&death.name||'Entity')+' bị tiêu diệt…';
+          if(typeof window.backroomShatterEntity==='function')window.backroomShatterEntity(deathKey);
+        },delay);
+        delay+=900;
+      });
+
+      var entityTurns=Array.isArray(combat.resolvedEntityTurns)?combat.resolvedEntityTurns:[];
+      entityTurns.forEach(function(turn){
+        var entityIndex=Number(turn&&turn.entityIndex);
+        var entityKey=turn&&turn.entityKey?String(turn.entityKey):'';
+        setTimeout(function(){
+          if(token!==window.__combatAnimationToken)return;
+          if(typeof window.backroomSetCombatVisualActor==='function'){
+            window.backroomSetCombatVisualActor(combat.resolvedActorIndex,entityKey);
+          }
+          if(status)status.textContent=String(turn&&turn.entityName||'Entity')+' đang phản hồi…';
+          playCombatPhase(events,'entity',entityIndex);
+        },delay);
+        delay+=COMBAT_PHASE_MS;
+      });
+
       setTimeout(function(){
         if(token!==window.__combatAnimationToken)return;
-        if(combat.active!==true&&combat.outcome==='victory'
-            &&typeof window.backroomShatterEntity==='function'){
-          if(status)status.textContent='Entity đang vỡ tan…';
-          window.backroomShatterEntity(function(){finishCombatAnimation(token);});
-          return;
-        }
         finishCombatAnimation(token);
       }, delay);
     } catch (error) {

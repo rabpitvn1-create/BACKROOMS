@@ -167,7 +167,7 @@ if(typeof module!=='undefined'&&module.exports)module.exports=SnapshotOverlayLay
   window.__combatVisualActorIndex=null;
   window.__combatVisualEntityKey='';
   function normalizeEntityKey(v){if(v===null||v===undefined)return '';var k=String(v).trim().toLowerCase().replace(/\s+/g,'_');if(k==='skin_stealer')k='skin-stealer';return __entityKeys.indexOf(k)>=0?k:'';}
-  function activeEntityKey(){try{var forced=normalizeEntityKey(window.__combatVisualEntityKey||'');if(forced)return forced;var s=(typeof state!=='undefined'&&state)?state:{};var f=s.flags||{},c=s.combat||{};var combatKey=c.active?((c.entity&&c.entity.key)||c.entityKey||c.enemyKey||c.enemy||''):'';var k=normalizeEntityKey(f.entityEncounterKey||f.currentEntityKey||s.entityEncounterKey||s.currentEntityKey||combatKey);if(k)return k;if(f.jeff&&(f.jeff.present===true||f.jeff.spawned===true))return 'jeff_the_killer';if(f.jane&&(f.jane.present===true||f.jane.spawned===true))return 'jane_the_killer';return '';}catch(e){return '';}}
+  function activeEntityKey(){try{var forced=normalizeEntityKey(window.__combatVisualEntityKey||'');if(forced)return forced;var s=(typeof state!=='undefined'&&state)?state:{};var f=s.flags||{},c=s.combat||{},combatKey='';if(c.active){var es=Array.isArray(c.entities)?c.entities:[],ei=Number(c.activeEntityIndex);if(!Number.isInteger(ei)||ei<0||ei>=es.length)ei=0;combatKey=(es[ei]&&es[ei].key)||((c.entity&&c.entity.key)||c.entityKey||c.enemyKey||c.enemy||'');}var encounterKeys=Array.isArray(f.entityEncounterKeys)?f.entityEncounterKeys:[];var k=normalizeEntityKey(combatKey||encounterKeys[0]||f.entityEncounterKey||f.currentEntityKey||s.entityEncounterKey||s.currentEntityKey);if(k)return k;if(f.jeff&&(f.jeff.present===true||f.jeff.spawned===true))return 'jeff_the_killer';if(f.jane&&(f.jane.present===true||f.jane.spawned===true))return 'jane_the_killer';return '';}catch(e){return '';}}
   function chestPresent(){try{var s=(typeof state!=='undefined'&&state)?state:{};return !!(s.flags&&s.flags.chestPresent===true);}catch(e){return false;}}
   function shouldShowCaoMinhOverlay(){try{var s=(typeof state!=='undefined'&&state)?state:{};return !(s.specialMode||s.debug||activeEntityKey()||chestPresent());}catch(e){return false;}}
   function normalizeActorId(v){var k=String(v||'').trim().toLowerCase();if(k.indexOf('cao_minh')>=0||k.indexOf('cao minh')>=0)return 'cao_minh';if(k.indexOf('lucia')>=0||k.indexOf('hứa thuý mai')>=0||k.indexOf('hứa thúy mai')>=0||k.indexOf('hua thuy mai')>=0)return 'lucia';if(k.indexOf('lục trầm')>=0||k.indexOf('luc tram')>=0||k.indexOf('luc_tram')>=0)return 'luc_tram';if(k.indexOf('syvial')>=0)return 'syvial';return k.replace(/\s+/g,'_');}
@@ -186,17 +186,23 @@ if(typeof module!=='undefined'&&module.exports)module.exports=SnapshotOverlayLay
     }
     var placeholder=document.createElement('div');placeholder.className='snapshot-character-placeholder snapshot-combat-character'+motion;placeholder.setAttribute('role','img');placeholder.setAttribute('aria-label',actor.name||actor.id||'Nhân vật');box.appendChild(placeholder);alignPlaceholder(placeholder);return placeholder;
   }
+  function appendCombatEntity(box,key,motionClass){
+    var normalized=normalizeEntityKey(key),motion=motionClass?' '+motionClass:'';
+    if(!normalized)return null;
+    var img=document.createElement('img');
+    img.className='snapshot-entity snapshot-grounded snapshot-combat-entity'+motion;
+    img.dataset.entityKey=normalized;
+    img.src='file:///android_asset/entity/'+normalized+'.webp';
+    img.alt=normalized;
+    box.appendChild(img);
+    alignOverlayToGround(img,'left','entity');
+    return img;
+  }
   function appendSnapshotOverlay(box){
     var key=activeEntityKey(),img;
     if(key){
       appendCombatCharacter(box,combatVisualParticipant(),'snapshot-combat-enter');
-      img=document.createElement('img');
-      img.className='snapshot-entity snapshot-grounded';
-      img.dataset.entityKey=key;
-      img.src='file:///android_asset/entity/'+key+'.webp';
-      img.alt=key;
-      box.appendChild(img);
-      alignOverlayToGround(img,'left','entity');
+      appendCombatEntity(box,key,'snapshot-combat-enter');
       return;
     }
     if(chestPresent()){
@@ -226,7 +232,6 @@ if(typeof module!=='undefined'&&module.exports)module.exports=SnapshotOverlayLay
     var existing=box.querySelectorAll('img.snapshot-combat-character,.snapshot-character-placeholder.snapshot-combat-character');
     var previous=existing&&existing.length?existing[0]:null;
     if(!previous)return false;
-    window.__combatVisualActorIndex=nextIndex;window.__combatVisualEntityKey=nextEntity;
     var next=appendCombatCharacter(box,combatVisualParticipant(),'combat-turn-in');
     if(!next)return false;
     previous.className=String(previous.className||'')
@@ -238,22 +243,48 @@ if(typeof module!=='undefined'&&module.exports)module.exports=SnapshotOverlayLay
     },270);
     return true;
   }
+  function rotateCombatEntity(nextEntity){
+    var box=document.getElementById('snapshot');if(!box)return false;
+    var existing=box.querySelectorAll('img.snapshot-entity');
+    var previous=existing&&existing.length?existing[0]:null;
+    if(!previous)return false;
+    var next=appendCombatEntity(box,nextEntity,'combat-turn-in');
+    if(!next)return false;
+    previous.className=String(previous.className||'')
+      .replace(/\bsnapshot-entity\b/g,'').replace(/\bsnapshot-combat-entity\b/g,'')
+      .replace(/\bsnapshot-combat-enter\b/g,'').replace(/\s+/g,' ').trim()+' combat-turn-out';
+    setTimeout(function(){
+      try{if(previous&&typeof previous.remove==='function')previous.remove();}catch(_){}
+      try{if(next)next.className=String(next.className||'').replace(/\bcombat-turn-in\b/g,'').replace(/\s+/g,' ').trim();}catch(_){}
+    },270);
+    return true;
+  }
   window.backroomSetCombatVisualActor=function(index,entityKey){
-    var nextIndex=Number(index),nextEntity=String(entityKey||'');
+    var nextIndex=Number(index),nextEntity=normalizeEntityKey(entityKey||'');
+    if(!Number.isInteger(nextIndex))nextIndex=0;
     if(window.__combatVisualActorIndex===nextIndex&&window.__combatVisualEntityKey===nextEntity)return;
     var previousIndex=window.__combatVisualActorIndex,previousEntity=window.__combatVisualEntityKey;
-    if(previousIndex!==null&&previousEntity===nextEntity&&previousIndex!==nextIndex
-        &&rotateCombatActor(nextIndex,nextEntity))return;
-    window.__combatVisualActorIndex=nextIndex;window.__combatVisualEntityKey=nextEntity;renderSnapshot();
+    window.__combatVisualActorIndex=nextIndex;window.__combatVisualEntityKey=nextEntity;
+    if(previousIndex!==null&&previousEntity){
+      var changed=false,failed=false;
+      if(previousIndex!==nextIndex){if(rotateCombatActor(nextIndex,nextEntity))changed=true;else failed=true;}
+      if(previousEntity!==nextEntity){if(rotateCombatEntity(nextEntity))changed=true;else failed=true;}
+      if(changed&&!failed)return;
+    }
+    renderSnapshot();
   };
   window.backroomClearCombatVisualActor=function(){
     if(window.__combatVisualActorIndex===null&&!window.__combatVisualEntityKey)return;
     window.__combatVisualActorIndex=null;window.__combatVisualEntityKey='';renderSnapshot();
   };
-  window.backroomShatterEntity=function(done){
+  window.backroomShatterEntity=function(entityKey,done){
+    if(typeof entityKey==='function'){done=entityKey;entityKey='';}
     try{
-      var box=document.getElementById('snapshot'),list=box?box.querySelectorAll('img.snapshot-entity'):null;
-      var entity=list&&list.length?list[0]:null;
+      var requested=normalizeEntityKey(entityKey||''),box=document.getElementById('snapshot'),list=box?box.querySelectorAll('img.snapshot-entity'):null;
+      var entity=null;
+      if(list&&list.length){
+        for(var n=0;n<list.length;n++){if(!requested||String(list[n].dataset.entityKey||'')===requested){entity=list[n];break;}}
+      }
       if(!box||!entity){if(typeof done==='function')done();return;}
       var br=box.getBoundingClientRect(),er=entity.getBoundingClientRect();
       var layer=document.createElement('div');layer.className='combat-shatter-layer';
