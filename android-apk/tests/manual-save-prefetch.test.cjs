@@ -46,10 +46,20 @@ test('Core persists only explicit checkpoints and restores them on launch', () =
   }
 });
 
+
+test('free-form Explorer text shares the default Core trajectory', () => {
+  const process = core.slice(core.indexOf('public synchronized String processRule('),
+    core.indexOf('private PreparedTurn prepareExplorerTurnData('));
+  assert.match(process, /String coreAction = GmChoiceContract\.defaultCoreAction\(legacy\);/);
+  assert.match(process, /nextTurnId\(legacy, coreAction\)/);
+  assert.match(process, /prepareExplorerTurnData\(legacy, coreAction\)/);
+});
+
 test('preview shares turn resolution without persisting or retaining attempts', () => {
   const preview = core.slice(core.indexOf('public synchronized String previewTurn('),
     core.indexOf('public synchronized String currentStateHash()'));
-  assert.match(preview, /prepareExplorerTurnData\(normalized, text\)/);
+  assert.match(preview, /String coreAction = GmChoiceContract\.defaultCoreAction\(normalized\);/);
+  assert.match(preview, /prepareExplorerTurnData\(normalized, coreAction\)/);
   assert.match(preview, /finishWorkingTurn\(normalized, prepared, new JSONObject\(\)\)/);
   assert.doesNotMatch(preview, /\bpersist\(|preparedTurns\.(?:put|clear)/);
   const batch = bridge.slice(bridge.indexOf('private JSONObject geminiBranchBatch('),
@@ -101,12 +111,16 @@ test('player turn commits Core before bounded presentation and never schedules p
   assert.doesNotMatch(provider, /catch \(|geminiText\(|haikuText\(|haikuTextOnce\(|sleep|attempt/);
 });
 
-test('oracle narration cache reuses only Core-matching future capsules', () => {
+test('oracle narration cache reuses exact choices and supplies a convergence target for free-form actions', () => {
   assert.match(bridge, /private JSONArray narrationFutureCache = new JSONArray\(\)/);
-  assert.match(bridge, /pollNarrationFuture\(String action, JSONObject committedState\)/);
+  assert.match(bridge, /pollNarrationFuture\(JSONObject committedState\)/);
   assert.match(bridge, /GameCoreFacade\.oracleAuthorityHash\(committedState\)/);
-  assert.match(bridge, /expectedAction\.equals\(actualAction\)/);
   assert.match(bridge, /expectedHash\.equals\(actualHash\)/);
+  assert.match(bridge, /JSONObject cachedSlot = pollNarrationFuture\(narrationState\)/);
+  assert.match(bridge, /expectedAction\.equals\(actualAction\)/);
+  assert.match(bridge, /convergenceTarget = cachedGenerated\.optString\("reply", ""\)\.trim\(\)/);
+  assert.match(bridge, /PLAYER ACTION CONVERGENCE/);
+  assert.match(bridge, /CONVERGENCE TARGET/);
   assert.match(bridge, /"CHARACTER"\.equals\(slot\.optString\("worldKind", ""\)\)/);
   assert.match(bridge, /captureNarrationFuture\(freshFuture\[0\], freshOracleSteps\[0\]\)/);
   assert.match(bridge, /gameCore\.oracleWindow\(narrationState\.toString\(\)\)/);

@@ -246,8 +246,8 @@ jobs:
         working-directory: android-apk
         run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
 
-      - name: Run PR #425 emulator gameplay audit
-        if: github.event_name == 'pull_request' && github.event.pull_request.number == 425
+      - name: Run PR #431 emulator narrative audit
+        if: github.event_name == 'pull_request' && github.event.pull_request.number == 431
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 29
@@ -257,11 +257,11 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
           script: bash .github/scripts/emu-audit.sh
 
-      - name: Upload PR #425 emulator audit
-        if: always() && github.event_name == 'pull_request' && github.event.pull_request.number == 425
+      - name: Upload PR #431 emulator narrative audit
+        if: always() && github.event_name == 'pull_request' && github.event.pull_request.number == 431
         uses: actions/upload-artifact@v4
         with:
-          name: pr-425-emulator-audit
+          name: pr-431-emulator-narrative-audit
           path: emu-audit
           if-no-files-found: warn
           retention-days: 7

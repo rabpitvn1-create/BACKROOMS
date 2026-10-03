@@ -32,6 +32,7 @@ import com.rabpit.backroom.core.ProviderRetryPolicy;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.io.BufferedReader;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -77,6 +78,7 @@ public class MainActivity extends Activity {
     } catch (Exception error) {
       Log.e(TAG, "Milestone assets failed validation", error);
     }
+    if (narrativeAuditEnabled()) deleteFile("narrative-audit.jsonl");
     webView = new WebView(this);
     WebSettings settings = webView.getSettings();
     settings.setJavaScriptEnabled(true);
@@ -254,6 +256,20 @@ public class MainActivity extends Activity {
     return text.toString();
   }
 
+  private boolean narrativeAuditEnabled() {
+    return BuildConfig.DEBUG && getIntent() != null
+        && getIntent().getBooleanExtra("narrative_audit", false);
+  }
+
+  private void installNarrativeAudit() {
+    if (!narrativeAuditEnabled()) return;
+    try {
+      webView.evaluateJavascript(readAssetText("narrative-audit.js"), null);
+    } catch (Exception error) {
+      Log.e(TAG, "Unable to install narrative audit driver", error);
+    }
+  }
+
   private void installUiScripts() {
     try {
       String snapshotUi = readAssetText("snapshot-ui.js");
@@ -267,7 +283,8 @@ public class MainActivity extends Activity {
           webView.evaluateJavascript(inventoryUi, ignoredInventory ->
             webView.evaluateJavascript(partyUi, ignoredParty ->
               webView.evaluateJavascript(playerActionUi, ignoredPlayerAction ->
-                webView.evaluateJavascript(managementUi, null))))));
+                webView.evaluateJavascript(managementUi, ignoredManagement ->
+                  installNarrativeAudit()))))));
     } catch (Exception e) {
       Log.e(TAG, "Unable to install WebView UI scripts", e);
     }
@@ -769,7 +786,7 @@ public class MainActivity extends Activity {
     }
   }
 
-  private JSONObject pollNarrationFuture(String action, JSONObject committedState) {
+  private JSONObject pollNarrationFuture(JSONObject committedState) {
     synchronized (narrationFutureLock) {
       // Every submitted turn invalidates any refill still being generated for the previous state.
       narrationFutureEpoch++;
@@ -780,11 +797,9 @@ public class MainActivity extends Activity {
           narrationFutureCache = new JSONArray();
           return null;
         }
-        String expectedAction = slot.optString("action", "");
         String expectedHash = slot.optString("authorityHash", "");
-        String actualAction = action == null ? "" : action.trim();
         String actualHash = GameCoreFacade.oracleAuthorityHash(committedState);
-        if (!expectedAction.equals(actualAction) || !expectedHash.equals(actualHash)) {
+        if (!expectedHash.equals(actualHash)) {
           narrationFutureCache = new JSONArray();
           return null;
         }
@@ -794,7 +809,7 @@ public class MainActivity extends Activity {
           return null;
         }
         JSONObject payload = slot.optJSONObject("payload");
-        return payload == null ? null : new JSONObject(payload.toString());
+        return payload == null ? null : new JSONObject(slot.toString());
       } catch (Exception error) {
         narrationFutureCache = new JSONArray();
         return null;
@@ -896,6 +911,17 @@ public class MainActivity extends Activity {
   }
 
   private class GameBridge {
+    @JavascriptInterface public void narrativeAuditRecord(String json) {
+      if (!narrativeAuditEnabled()) return;
+      try (FileOutputStream output =
+          openFileOutput("narrative-audit.jsonl", MODE_APPEND)) {
+        output.write((json + "\n").getBytes("UTF-8"));
+        output.flush();
+      } catch (Exception error) {
+        Log.e(TAG, "Unable to write narrative audit record", error);
+      }
+    }
+
     @JavascriptInterface public void prefetchChoices(String choicesJson) {
       MainActivity.this.prefetchChoices(choicesJson);
     }
@@ -965,12 +991,25 @@ public class MainActivity extends Activity {
           JSONObject safeEvidence = SafePresentationView.evidence(state, narrationEvidence);
           String presentationBaseHash = GameCoreFacade.presentationBaseHash(state);
           final JSONObject narrationState = state;
-          JSONObject cachedGenerated = pollNarrationFuture(action, narrationState);
+          JSONObject cachedSlot = pollNarrationFuture(narrationState);
+          JSONObject cachedGenerated =
+              cachedSlot == null ? null : cachedSlot.optJSONObject("payload");
           if (cachedGenerated != null
               && !NarrationGuard.validate(cachedGenerated, narrationState, safeEvidence).isEmpty()) {
             clearNarrationFutureCache();
+            cachedSlot = null;
             cachedGenerated = null;
           }
+          String convergenceTarget = "";
+          if (cachedGenerated != null) {
+            String expectedAction = cachedSlot.optString("action", "");
+            String actualAction = action == null ? "" : action.trim();
+            if (!expectedAction.equals(actualAction)) {
+              convergenceTarget = cachedGenerated.optString("reply", "").trim();
+              cachedGenerated = null;
+            }
+          }
+          final String convergenceForProvider = convergenceTarget;
           final JSONObject cachedForProvider = cachedGenerated;
           final JSONObject[] freshGenerated = {null};
           final JSONArray[] freshFuture = {null};
@@ -988,6 +1027,12 @@ public class MainActivity extends Activity {
             JSONObject oracle = new JSONObject(gameCore.oracleWindow(narrationState.toString()));
             String prompt = narrationPrompt(narrationState, action, turnId,
                 oracle.optString("context", "CORE ORACLE WINDOW: unavailable."));
+            if (!convergenceForProvider.isEmpty()) {
+              prompt += "\nPLAYER ACTION CONVERGENCE: thực hiện PLAYER ACTION trước, đúng character/canon, "
+                  + "rồi nối hợp lý vào CONVERGENCE TARGET. Người chơi chưa biết trước target. "
+                  + "Giữ nguyên outcome; không chèn vật phẩm, năng lực hay hành vi không được scene/context hỗ trợ.\n"
+                  + "CONVERGENCE TARGET: " + convergenceForProvider;
+            }
             if (!rejection.isEmpty()) {
               prompt += "\nREPAIR REQUEST: the previous writer payload was rejected by the deterministic guard: "
                   + rejection
