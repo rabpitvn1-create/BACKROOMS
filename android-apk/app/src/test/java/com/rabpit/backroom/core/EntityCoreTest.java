@@ -25,7 +25,7 @@ public class EntityCoreTest {
       "the_lifeform_bacteria_03"
   };
 
-  @Test public void tamMaAndThreeBacterialVariantsAreAutoSpawnWhileOldRosterStaysLegacy()
+  @Test public void activeAutoSpawnIncludesTamMaBacteriaAndResearchAsyncWhileOldRosterStaysLegacy()
       throws Exception {
     JSONObject root = new JSONObject(readRepoAsset("knowledge/entity_encounters.json"));
     JSONArray auto = root.getJSONArray("entities");
@@ -35,8 +35,20 @@ public class EntityCoreTest {
       autoByKey.put(record.getString("key"), record);
     }
 
-    assertEquals(4, autoByKey.size());
+    assertEquals(5, autoByKey.size());
     assertNotNull(autoByKey.get("tam_ma_cao_minh"));
+
+    JSONObject research = autoByKey.get("async_member_rifle_aim_right_01");
+    assertNotNull("Research Async Member must be active", research);
+    assertEquals(10.0d / 3.0d, research.getDouble("ratePercent"), 0.0000001d);
+    assertEquals(3, research.getJSONArray("autoProcSkills").length());
+    assertEquals(new JSONArray().put(0).put(1).put(2).put(3).put(4).put(5).put(6).toString(),
+        research.getJSONArray("levels").toString());
+    for (int level = 0; level <= 6; level++) {
+      assertTrue("Research Async Member must roam Level " + level,
+          EntityCore.locationAllowed(research.getJSONArray("levels"),
+              research.optJSONArray("levelKeys"), level, level + ".999"));
+    }
 
     String sharedThree = null;
     Set<String> fourthSkills = new HashSet<>();
@@ -106,6 +118,12 @@ public class EntityCoreTest {
     assertFalse(EntityCore.validAutoSpawnRatePercent(2.99d));
     assertFalse(EntityCore.validAutoSpawnRatePercent(5.01d));
     assertEquals(15.0d, EntityCore.effectiveAutoSpawnRatePercent(5.0d), 0.0001d);
+  }
+
+  @Test public void researchAsyncConfiguredThirdsBecomesTenPercentAtRuntime() {
+    double configured = 10.0d / 3.0d;
+    assertTrue(EntityCore.validAutoSpawnRatePercent(configured));
+    assertEquals(10.0d, EntityCore.effectiveAutoSpawnRatePercent(configured), 0.0000001d);
   }
 
   @Test public void treasureConfiguredFourPercentStillBecomesTwelvePercent() {

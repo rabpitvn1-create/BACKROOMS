@@ -28,6 +28,7 @@ Runtime overlay dùng canonical Entity key trùng chính xác với tên file b�
 | `hotel_corpse_lure` | `hotel_corpse_lure.webp` |
 | `jeff_the_killer` | `jeff_the_killer.webp` |
 | `async_rifleman` | `async_rifleman.webp` |
+| `async_member_rifle_aim_right_01` | `async_member_rifle_aim_right_01.webp` |
 | `copx` | `copx.webp` |
 | `tam_ma_cao_minh` | `tam_ma_cao_minh.webp` |
 | `jane_the_killer` | `jane_the_killer.webp` |
@@ -40,7 +41,7 @@ Main Game Core owns Entity spawning through `EntityCore` and `app/src/main/asset
 
 - There is no shared spawn-rate pool.
 - The former roaming standard roster remains dormant under `legacyEntities` for possible future authored/reactivated use.
-- Active random auto-spawn consists of `tam_ma_cao_minh` plus the three Bacterial Lifeform variants.
+- Active random auto-spawn consists of `tam_ma_cao_minh`, the three Bacterial Lifeform variants, and `Research Async Member`.
 - Each Bacterial variant is configured at **5.00%** and receives the existing 3× runtime multiplier, so each independently contributes an effective **15.00%** candidate chance on an eligible world-advancing turn.
 - Bacterial eligibility is exact by `levelKeys`: `0`, `0.1`, `0.2`, `the_torment`, `red_rooms`, `4`, and `6`. These are the conservative nodes where current project lore does not define a characteristic resident hostile Entity and the active registry has no ordinary resident pool. Safe/social hubs and nodes with a characteristic/source-reported Entity are excluded.
 - `tam_ma_cao_minh` remains a roaming Treasure Entity: configured **4.00%**, effective **12.00%** after the same multiplier.
@@ -76,3 +77,12 @@ The three Bacterial sprites are committed visual references and map one-to-one t
 - **Bacterial Weaver** (`the_lifeform_bacteria_03`): denser braided shoulder/back mesh with open voids through the torso and looped hands. Its unique fourth proc is **Black-Mesh Feeding**, which restores 50% of the actual damage it deals.
 
 All three use base **173 HP / 17 damage**, the integer combat representation of Hound's 150 HP / 15 damage raised by 15% with normal rounding. They keep the existing global Stage scaling.
+
+
+## Research Async Member
+
+`async_member_rifle_aim_right_01.webp` is the authoritative visual reference for **Research Async Member**. The sprite shows a sealed yellow ASYNC hazmat operator with dark visor, black gloves and boots, a rear breathing tank/air hose, and a black rifle already shouldered toward the right. Presentation deliberately leans into clinical horror: identity remains visually obscured behind the visor and the firing posture is controlled and impersonal, but canon does not claim mutation, infection or supernatural anatomy.
+
+Runtime profile: **190 HP / 20 damage** before normal Stage scaling. Its three independent proc skills are **Containment Burst** (110% / 33%), **Visor-Line Double Tap** (115% / 28%), and **Specimen Suppression** (120% / 23%).
+
+Spawn policy: configured **3.3333333333333335%**, multiplied by the existing EntityCore 3× policy for an effective **10.00%** independent roll. The registry lists parent Levels 0–6 and intentionally omits exact `levelKeys`, so eligibility propagates to every current Sublevel/special node through its parent Level.

@@ -42,7 +42,8 @@
       "tam_ma_cao_minh",
       "the_lifeform_bacteria_01",
       "the_lifeform_bacteria_02",
-      "the_lifeform_bacteria_03"
+      "the_lifeform_bacteria_03",
+      "async_member_rifle_aim_right_01"
     ],
     "exactLevelKeyEligibility": true,
     "bacterialRatePolicy": "Each Bacterial variant is configured at 5% and receives the existing 3x runtime multiplier, yielding 15% effective chance per eligible world-advancing turn.",
@@ -54,7 +55,8 @@
       "red_rooms",
       "4",
       "6"
-    ]
+    ],
+    "researchAsyncMemberRatePolicy": "Research Async Member is configured at 3.3333333333333335% and receives the existing 3x runtime multiplier, yielding 10% effective chance on every parent Level and its Sublevels."
   },
   "entities": [
     {
@@ -253,6 +255,51 @@
           "damagePercent": 120,
           "procPercent": 20,
           "healPercentOfDamage": 50
+        }
+      ]
+    },
+    {
+      "key": "async_member_rifle_aim_right_01",
+      "name": "Research Async Member",
+      "faction": "ASYNC",
+      "spawnClass": "standard",
+      "ratePercent": 3.3333333333333335,
+      "levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "canon": "A hostile Research Async Member encountered as an armed ASYNC field-research operator. The committed visual reference is authoritative for appearance: a sealed yellow hazmat suit, dark gloves and boots, a breathing tank and hose on the back, and a black rifle already shouldered in a disciplined firing stance. Horror comes from the clinical anonymity of the sealed figure: the face is difficult to read behind the dark visor and the weapon remains trained with unnerving calm. Do not invent mutation, infection, supernatural anatomy or a revealed identity unless later canon explicitly establishes it.",
+      "presentation": {
+        "appearance": "một người mặc bộ đồ hazmat vàng kín từ đầu đến chân, khuôn mặt chìm sau tấm visor tối và một khẩu súng trường đen đã ghì chặt vào vai",
+        "heldObject": "một khẩu súng trường đen",
+        "approachStyle": "hold_distance",
+        "details": [
+          "Lớp đồ bảo hộ vàng nhăn bóng phủ kín cơ thể như một lớp da nhân tạo; trên cánh tay vẫn thấy dấu ASYNC, nhưng không có phần da thịt nào lộ ra để xác nhận người bên trong là ai.",
+          "Tấm kính che mặt trong suốt nhưng tối, chỉ để lộ một gương mặt mờ sâu phía sau lớp phản chiếu; từ xa rất khó phân biệt đó là ánh mắt đang theo dõi hay chỉ là bóng tối trong mũ.",
+          "Một bình khí kim loại xám và ống thở dày bám sau lưng, khiến phần thân trên trông nặng nề và khép kín như một hệ thống duy trì sự sống mang theo người.",
+          "Khẩu súng trường đen được giữ sát vai, nòng luôn hướng ngang về phía mục tiêu; tư thế ngắm quá ổn định và có kiểm soát khiến hình người trong bộ đồ bảo hộ trông giống một quy trình săn bắt hơn là một kẻ hoảng loạn."
+        ]
+      },
+      "autoProcSkills": [
+        {
+          "name": "Containment Burst",
+          "damagePercent": 110,
+          "procPercent": 33
+        },
+        {
+          "name": "Visor-Line Double Tap",
+          "damagePercent": 115,
+          "procPercent": 28
+        },
+        {
+          "name": "Specimen Suppression",
+          "damagePercent": 120,
+          "procPercent": 23
         }
       ]
     }

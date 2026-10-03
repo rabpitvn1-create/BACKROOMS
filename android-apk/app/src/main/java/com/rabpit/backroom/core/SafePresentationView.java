@@ -41,6 +41,7 @@ public final class SafePresentationView {
       {"hotel_corpse_lure", "Hotel Corpse Lure", "hình người bất động", "Hotel Corpse Lure"},
       {"jeff_the_killer", "Jeff the Killer", "bóng người cầm dao", "Jeff the Killer"},
       {"async_rifleman", "ASYNC Rifleman", "bóng người mặc trang bị kín người", "ASYNC Rifleman", "ASYNC"},
+      {"async_member_rifle_aim_right_01", "Research Async Member", "bóng người mặc đồ bảo hộ vàng đang ngắm một vật kim loại dài", "Research Async Member", "Research ASYNC Member"},
       {"copx", "CopX", "bóng người", "CopX"},
       {"tam_ma_cao_minh", "Tâm Ma Cao Minh", "bóng người có diện mạo giống Cao Minh", "Tâm Ma Cao Minh"},
       {"diep_minh", "Diệp Minh", "bóng người", "Diệp Minh"},

@@ -522,6 +522,40 @@ public class CombatChoiceEngineTest {
     assertEquals(5, CombatChoiceEngine.drainHealAmount(10, 50));
   }
 
+  @Test public void researchAsyncMemberHasDedicatedProfileAndThreeProcSkills() throws Exception {
+    String key = "async_member_rifle_aim_right_01";
+    assertTrue(CombatChoiceEngine.isKnownEntity(key));
+
+    JSONObject state = combatState(new JSONArray());
+    state.getJSONObject("flags").put("entityEncounterKey", key);
+    CombatChoiceEngine.start(state, key, 0);
+    JSONObject entity = state.getJSONObject("combat").getJSONObject("entity");
+
+    assertEquals("Research Async Member", entity.getString("name"));
+    assertEquals(190, entity.getInt("baseHp"));
+    assertEquals(20, entity.getInt("baseDamage"));
+    assertEquals(3, CombatChoiceEngine.entitySkillCount(key));
+
+    Field skillsField = CombatChoiceEngine.class.getDeclaredField("ENTITY_SKILLS");
+    skillsField.setAccessible(true);
+    Map<?, ?> pools = (Map<?, ?>) skillsField.get(null);
+    List<?> skills = (List<?>) pools.get(key);
+    String[] names = {"Containment Burst", "Visor-Line Double Tap", "Specimen Suppression"};
+    int[] damage = {110, 115, 120};
+    int[] proc = {33, 28, 23};
+    for (int i = 0; i < skills.size(); i++) {
+      Field name = skills.get(i).getClass().getDeclaredField("name");
+      Field damagePercent = skills.get(i).getClass().getDeclaredField("damagePercent");
+      Field procPercent = skills.get(i).getClass().getDeclaredField("procPercent");
+      name.setAccessible(true);
+      damagePercent.setAccessible(true);
+      procPercent.setAccessible(true);
+      assertEquals(names[i], name.get(skills.get(i)));
+      assertEquals(damage[i], damagePercent.getInt(skills.get(i)));
+      assertEquals(proc[i], procPercent.getInt(skills.get(i)));
+    }
+  }
+
   @Test public void tamMaUsesDoubleHoundStatsAndTreasureProcRates() throws Exception {
     assertTrue(CombatChoiceEngine.isKnownEntity("tam_ma_cao_minh"));
 
