@@ -101,7 +101,7 @@ test('status damage is compact while ordinary damage size stays unchanged',()=>{
  assert.match(source,/\.combat-float\{[^}]*font-size:19px/);
  assert.match(source,/\.combat-float--status:not\(\.combat-float--critical\) \.combat-float-value\{font-size:9px/);
  for(const token of ['bleed','poison','stun','armor','disorient']){
-  assert.match(source,new RegExp('combat-float--status-'+token+':not\\\\(\\\\.combat-float--critical\\\\) \\.combat-float-value\\\\{color:'));
+  assert.ok(source.includes('.combat-float--status-'+token+':not(.combat-float--critical) .combat-float-value{color:'));
  }
 });
 
