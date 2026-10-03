@@ -16,6 +16,7 @@ final class EntityCore {
   static final double MIN_AUTO_SPAWN_RATE_PERCENT = 3.0d;
   static final double MAX_AUTO_SPAWN_RATE_PERCENT = 3.5d;
   static final double MAX_TREASURE_AUTO_SPAWN_RATE_PERCENT = 4.0d;
+  static final double AUTO_SPAWN_RATE_MULTIPLIER = 3.0d;
 
   private static final String REGISTRY_ASSET = "knowledge/entity_encounters.json";
   private static final String ENCOUNTER_KEY = "entityEncounterKey";
@@ -49,13 +50,13 @@ final class EntityCore {
     if (!currentFlags.optString(ENCOUNTER_KEY, "").trim().isEmpty()) return output;
     int level = state.optInt("currentLevel", 0);
     for (EntityDefinition entity : entities.values()) {
-      if (!roamingAllowedOn(level)) continue;
+      if (!entity.allowedOn(level)) continue;
       output.put(new JSONObject()
           .put("candidateId", "entity:" + entity.key)
           .put("situationKey", "entity:" + entity.key)
           .put("kind", "ENTITY")
           .put("category", "DANGER")
-          .put("chancePercent", entity.ratePercent)
+          .put("chancePercent", effectiveAutoSpawnRatePercent(entity.ratePercent))
           .put("payloadKey", entity.key)
           .put("source", "CANON")
           .put("publicSummary", entity.name + " đã tiến vào phạm vi tương tác với Cao Minh.")
@@ -106,7 +107,7 @@ final class EntityCore {
     if (activeKey.isEmpty()) {
       return "ENTITY CORE: no active Entity encounter this turn. Do not invent, summon or select an Entity. " +
         "Encounter selection is owned exclusively by the deterministic SituationCandidate selector. " +
-        "All registered auto-spawn Entities are roaming and may roll on every valid Backrooms Level regardless of their original canon habitat.";
+        "Only registered auto-spawn Entities whose registry level list includes the current Level may roll this turn.";
     }
 
     EntityDefinition entity = entities.get(activeKey);
@@ -119,9 +120,9 @@ final class EntityCore {
 
     return "ENTITY CORE ACTIVE ENCOUNTER: " + entity.name + " (key=" + entity.key + ").\n" +
       (entity.treasure
-          ? "TREASURE PRIORITY SPAWN RATE: " + entity.ratePercent + "% per eligible world-advancing turn.\n"
-          : "FIXED INDEPENDENT SPAWN RATE: " + entity.ratePercent + "% per eligible world-advancing turn.\n") +
-      "ROAMING POLICY: this registered Entity is valid on every Backrooms Level. Original canon habitat/location restrictions do not block its presence.\n" +
+          ? "TREASURE PRIORITY SPAWN RATE: " + effectiveAutoSpawnRatePercent(entity.ratePercent) + "% per eligible world-advancing turn.\n"
+          : "FIXED INDEPENDENT SPAWN RATE: " + effectiveAutoSpawnRatePercent(entity.ratePercent) + "% per eligible world-advancing turn.\n") +
+      "LEVEL POLICY: this Entity is eligible only on registry Levels " + entity.levels.toString() + ".\n" +
       "ENTITY CANON (behavior/capabilities only): " + entity.canon + "\n" +
       "Do not replace this Entity with another one. Narrate only the committed encounter state and behavioral canon. " +
       "Narration has no authority to resolve, spawn, despawn or mutate the Entity.";
@@ -149,7 +150,7 @@ final class EntityCore {
     flags.remove(RESOLVED_KEY);
     flags.put(ENCOUNTER_KEY, selected.key);
     flags.put("entityEncounterSource", source);
-    flags.put("entityEncounterRatePercent", selected.ratePercent);
+    flags.put("entityEncounterRatePercent", effectiveAutoSpawnRatePercent(selected.ratePercent));
     flags.put("entityEncounterLevel", level);
     flags.put("entityEncounterStartedTurn", Math.max(1, state.optInt("turn", 1)));
     state.put("flags", flags);
@@ -173,9 +174,10 @@ final class EntityCore {
         boolean validRate = treasure
             ? validTreasureAutoSpawnRatePercent(rate)
             : validAutoSpawnRatePercent(rate);
-        if (key.isEmpty() || !validRate) continue;
+        JSONArray levels = record.optJSONArray("levels");
+        if (key.isEmpty() || !validRate || levels == null || levels.length() == 0) continue;
         entities.put(key, new EntityDefinition(key, name, rate, canon, treasure,
-            record.optJSONObject("presentation")));
+            new JSONArray(levels.toString()), record.optJSONObject("presentation")));
       }
 
       JSONArray legacyRecords = root.optJSONArray("legacyEntities");
@@ -208,6 +210,10 @@ final class EntityCore {
     return level >= 0;
   }
 
+  static double effectiveAutoSpawnRatePercent(double configuredRatePercent) {
+    return configuredRatePercent * AUTO_SPAWN_RATE_MULTIPLIER;
+  }
+
   static boolean validAutoSpawnRatePercent(double ratePercent) {
     return ratePercent >= MIN_AUTO_SPAWN_RATE_PERCENT
         && ratePercent <= MAX_AUTO_SPAWN_RATE_PERCENT;
@@ -237,16 +243,25 @@ final class EntityCore {
     final double ratePercent;
     final String canon;
     final boolean treasure;
+    final JSONArray levels;
     final JSONObject presentation;
 
     EntityDefinition(String key, String name, double ratePercent, String canon, boolean treasure,
-                     JSONObject presentation) {
+                     JSONArray levels, JSONObject presentation) {
       this.key = key;
       this.name = name;
       this.ratePercent = ratePercent;
       this.canon = canon;
       this.treasure = treasure;
+      this.levels = levels == null ? new JSONArray() : levels;
       this.presentation = presentation;
+    }
+
+    boolean allowedOn(int level) {
+      for (int i = 0; i < levels.length(); i++) {
+        if (levels.optInt(i, Integer.MIN_VALUE) == level) return true;
+      }
+      return false;
     }
   }
 }
