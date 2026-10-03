@@ -94,12 +94,13 @@ public final class GameCoreFacade implements AutoCloseable {
         return response(true, result, null, "query_handled", reply);
       }
 
-      String turnId = emergentTurnEngine.nextTurnId(legacy, text);
+      String coreAction = GmChoiceContract.defaultCoreAction(legacy);
+      String turnId = emergentTurnEngine.nextTurnId(legacy, coreAction);
       PreparedTurn existing = preparedTurns.get(turnId);
       if (existing != null && existing.baseHash.equals(fingerprint(legacy))) {
         return preparedResponse(legacy, existing);
       }
-      PreparedTurn prepared = prepareExplorerTurnData(legacy, text);
+      PreparedTurn prepared = prepareExplorerTurnData(legacy, coreAction);
       preparedTurns.clear();
       preparedTurns.put(turnId, prepared);
       return preparedResponse(legacy, prepared);
@@ -212,7 +213,8 @@ public final class GameCoreFacade implements AutoCloseable {
       if (!emergentTurnEngine.selectionProjectionFresh(normalized)) {
         throw new IllegalStateException("SelectionCooldown projection is stale");
       }
-      PreparedTurn prepared = prepareExplorerTurnData(normalized, text);
+      String coreAction = GmChoiceContract.defaultCoreAction(normalized);
+      PreparedTurn prepared = prepareExplorerTurnData(normalized, coreAction);
       JSONObject working = finishWorkingTurn(normalized, prepared, new JSONObject());
       projectBeforePersist(working);
       emergentTurnEngine.catchUpProjections(working);

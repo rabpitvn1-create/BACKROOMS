@@ -148,6 +148,24 @@ public class PresentationCoreTest {
     assertFalse(nextState.toString().contains("pendingBattleNarration"));
   }
 
+
+  @Test public void freeFormExplorerActionConvergesOnDefaultCoreOutcome() throws Exception {
+    GameCoreFacade seed = core(state());
+    JSONObject sharedStart = new JSONObject(seed.currentCoreState());
+    String defaultAction = GmChoiceContract.defaultCoreAction(sharedStart);
+
+    GameCoreFacade choice = core(new JSONObject(sharedStart.toString()));
+    GameCoreFacade freeForm = core(new JSONObject(sharedStart.toString()));
+    JSONObject choiceCommit = committed(choice, defaultAction);
+    JSONObject freeFormCommit = committed(
+        freeForm, "Cao Minh thả thần thức kiểm tra xung quanh");
+
+    assertEquals(choiceCommit.getString("turnId"), freeFormCommit.getString("turnId"));
+    assertEquals(
+        GameCoreFacade.oracleAuthorityHash(choiceCommit.getJSONObject("state")),
+        GameCoreFacade.oracleAuthorityHash(freeFormCommit.getJSONObject("state")));
+  }
+
   @Test public void oracleWindowIsDeterministicReadOnlyAndMatchesNextDefaultCommit() throws Exception {
     GameCoreFacade core = core(state());
     String before = core.currentCoreState();

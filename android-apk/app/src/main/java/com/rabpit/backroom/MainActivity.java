@@ -769,7 +769,7 @@ public class MainActivity extends Activity {
     }
   }
 
-  private JSONObject pollNarrationFuture(String action, JSONObject committedState) {
+  private JSONObject pollNarrationFuture(JSONObject committedState) {
     synchronized (narrationFutureLock) {
       // Every submitted turn invalidates any refill still being generated for the previous state.
       narrationFutureEpoch++;
@@ -780,11 +780,9 @@ public class MainActivity extends Activity {
           narrationFutureCache = new JSONArray();
           return null;
         }
-        String expectedAction = slot.optString("action", "");
         String expectedHash = slot.optString("authorityHash", "");
-        String actualAction = action == null ? "" : action.trim();
         String actualHash = GameCoreFacade.oracleAuthorityHash(committedState);
-        if (!expectedAction.equals(actualAction) || !expectedHash.equals(actualHash)) {
+        if (!expectedHash.equals(actualHash)) {
           narrationFutureCache = new JSONArray();
           return null;
         }
@@ -794,7 +792,7 @@ public class MainActivity extends Activity {
           return null;
         }
         JSONObject payload = slot.optJSONObject("payload");
-        return payload == null ? null : new JSONObject(payload.toString());
+        return payload == null ? null : new JSONObject(slot.toString());
       } catch (Exception error) {
         narrationFutureCache = new JSONArray();
         return null;
@@ -965,12 +963,25 @@ public class MainActivity extends Activity {
           JSONObject safeEvidence = SafePresentationView.evidence(state, narrationEvidence);
           String presentationBaseHash = GameCoreFacade.presentationBaseHash(state);
           final JSONObject narrationState = state;
-          JSONObject cachedGenerated = pollNarrationFuture(action, narrationState);
+          JSONObject cachedSlot = pollNarrationFuture(narrationState);
+          JSONObject cachedGenerated =
+              cachedSlot == null ? null : cachedSlot.optJSONObject("payload");
           if (cachedGenerated != null
               && !NarrationGuard.validate(cachedGenerated, narrationState, safeEvidence).isEmpty()) {
             clearNarrationFutureCache();
+            cachedSlot = null;
             cachedGenerated = null;
           }
+          String convergenceTarget = "";
+          if (cachedGenerated != null) {
+            String expectedAction = cachedSlot.optString("action", "");
+            String actualAction = action == null ? "" : action.trim();
+            if (!expectedAction.equals(actualAction)) {
+              convergenceTarget = cachedGenerated.optString("reply", "").trim();
+              cachedGenerated = null;
+            }
+          }
+          final String convergenceForProvider = convergenceTarget;
           final JSONObject cachedForProvider = cachedGenerated;
           final JSONObject[] freshGenerated = {null};
           final JSONArray[] freshFuture = {null};
@@ -988,6 +999,12 @@ public class MainActivity extends Activity {
             JSONObject oracle = new JSONObject(gameCore.oracleWindow(narrationState.toString()));
             String prompt = narrationPrompt(narrationState, action, turnId,
                 oracle.optString("context", "CORE ORACLE WINDOW: unavailable."));
+            if (!convergenceForProvider.isEmpty()) {
+              prompt += "\nPLAYER ACTION CONVERGENCE: thực hiện PLAYER ACTION trước, đúng character/canon, "
+                  + "rồi nối hợp lý vào CONVERGENCE TARGET. Người chơi chưa biết trước target. "
+                  + "Giữ nguyên outcome; không chèn vật phẩm, năng lực hay hành vi không được scene/context hỗ trợ.\n"
+                  + "CONVERGENCE TARGET: " + convergenceForProvider;
+            }
             if (!rejection.isEmpty()) {
               prompt += "\nREPAIR REQUEST: the previous writer payload was rejected by the deterministic guard: "
                   + rejection
