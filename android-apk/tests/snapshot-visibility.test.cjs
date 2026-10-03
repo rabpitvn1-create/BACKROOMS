@@ -65,7 +65,31 @@ test('active Entity rotation preserves the existing player actor and snapshot ba
  assert.equal(activeEntity.dataset.entityKey,'clump');
 });
 
-test('Entity death exposes deterministic glass-shatter fragments for the requested Entity key',()=>{assert.match(source,/window\.backroomShatterEntity=function\(entityKey,done\)/);assert.match(source,/combat-shard-break/);const b=source.slice(source.indexOf('window.backroomShatterEntity=function'),source.indexOf('window.backroomPlayCombatFeedback=function'));assert.match(b,/dataset\.entityKey/);assert.match(b,/requested/);assert.match(b,/var clips=\[/);assert.doesNotMatch(b,/Math\.random/);});
+test('Entity death exposes deterministic glass-shatter fragments with varied sizes and motion',()=>{
+ assert.match(source,/window\.backroomShatterEntity=function\(entityKey,done\)/);
+ assert.match(source,/combat-shard-break/);
+ const b=source.slice(source.indexOf('window.backroomShatterEntity=function'),source.indexOf('window.backroomPlayCombatFeedback=function'));
+ assert.match(b,/dataset\.entityKey/);
+ assert.match(b,/requested/);
+ assert.doesNotMatch(b,/Math\.random/);
+ const clipMatch=b.match(/var clips=(\[[\s\S]*?\]);/);
+ const motionMatch=b.match(/var motion=(\[[\s\S]*?\]);/);
+ assert.ok(clipMatch&&motionMatch);
+ const clips=vm.runInNewContext(clipMatch[1]);
+ const motion=vm.runInNewContext(motionMatch[1]);
+ assert.ok(clips.length>=18);
+ assert.equal(motion.length,clips.length);
+ const footprints=clips.map(clip=>{
+  const points=[...clip.matchAll(/(\d+)%?\s+(\d+)%/g)].map(match=>[Number(match[1]),Number(match[2])]);
+  assert.ok(points.length>=3,clip);
+  const xs=points.map(point=>point[0]),ys=points.map(point=>point[1]);
+  return (Math.max(...xs)-Math.min(...xs))*(Math.max(...ys)-Math.min(...ys));
+ });
+ assert.ok(Math.max(...footprints)>=Math.min(...footprints)*4);
+ assert.ok(motion.some(v=>Math.abs(v[0])>=90||Math.abs(v[1])>=90));
+ assert.ok(motion.some(v=>Math.abs(v[0])<=20&&Math.abs(v[1])<=40));
+ assert.match(b,/motion\[i\]\[3\]/);
+});
 test('unknown sprite remains visible when canvas throws SecurityError',()=>{
  const r=boot({unknown:true});visible(r.elements.find(e=>e.className.includes('snapshot-character')));assert.equal(r.reads(),1);
 });

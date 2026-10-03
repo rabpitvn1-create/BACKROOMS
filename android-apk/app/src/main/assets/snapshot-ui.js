@@ -290,9 +290,37 @@ if(typeof module!=='undefined'&&module.exports)module.exports=SnapshotOverlayLay
       var layer=document.createElement('div');layer.className='combat-shatter-layer';
       layer.style.left=(er.left-br.left)+'px';layer.style.top=(er.top-br.top)+'px';
       layer.style.width=er.width+'px';layer.style.height=er.height+'px';
-      var clips=['polygon(0 0,34% 0,18% 34%)','polygon(34% 0,68% 0,50% 35%,18% 34%)','polygon(68% 0,100% 0,100% 27%,50% 35%)','polygon(0 0,18% 34%,0 68%)','polygon(18% 34%,50% 35%,38% 66%,0 68%)','polygon(50% 35%,100% 27%,100% 62%,38% 66%)','polygon(0 68%,38% 66%,25% 100%,0 100%)','polygon(38% 66%,68% 64%,74% 100%,25% 100%)','polygon(68% 64%,100% 62%,100% 100%,74% 100%)','polygon(18% 34%,34% 0,50% 35%)','polygon(38% 66%,50% 35%,68% 64%)','polygon(50% 35%,100% 27%,68% 64%)'];
-      var motion=[[-52,-46,-28],[-18,-62,-12],[42,-50,24],[-64,-6,-38],[-28,18,-18],[58,-8,32],[-48,58,-34],[-4,72,10],[52,62,38],[-34,-34,18],[16,42,-26],[64,22,44]];
-      for(var i=0;i<clips.length;i++){var shard=document.createElement('img');shard.className='combat-shard';shard.src=entity.src;shard.alt='';shard.style.clipPath=clips[i];shard.style.webkitClipPath=clips[i];shard.style.setProperty('--tx',motion[i][0]+'px');shard.style.setProperty('--ty',motion[i][1]+'px');shard.style.setProperty('--rot',motion[i][2]+'deg');shard.style.setProperty('--delay',String((i%4)*16)+'ms');layer.appendChild(shard);}
+      // Uneven deterministic tessellation: large plates, medium chunks and narrow splinters
+      // share the same source image, avoiding the old grid-like "four equal pieces" read.
+      var clips=[
+        'polygon(0 0,24% 0,17% 15%,0 31%)',
+        'polygon(24% 0,49% 0,40% 17%,17% 15%)',
+        'polygon(49% 0,72% 0,64% 22%,40% 17%)',
+        'polygon(72% 0,100% 0,100% 15%,86% 28%,64% 22%)',
+        'polygon(0 31%,17% 15%,27% 35%,11% 49%,0 46%)',
+        'polygon(17% 15%,40% 17%,35% 33%,27% 35%)',
+        'polygon(40% 17%,64% 22%,56% 40%,35% 33%)',
+        'polygon(64% 22%,86% 28%,75% 44%,56% 40%)',
+        'polygon(86% 28%,100% 15%,100% 43%,75% 44%)',
+        'polygon(0 46%,11% 49%,21% 68%,0 73%)',
+        'polygon(11% 49%,27% 35%,35% 33%,33% 58%,21% 68%)',
+        'polygon(27% 35%,35% 33%,33% 58%)',
+        'polygon(35% 33%,56% 40%,49% 62%,33% 58%)',
+        'polygon(56% 40%,75% 44%,84% 64%,49% 62%)',
+        'polygon(75% 44%,100% 43%,100% 69%,84% 64%)',
+        'polygon(0 73%,21% 68%,18% 100%,0 100%)',
+        'polygon(21% 68%,33% 58%,49% 62%,43% 83%,18% 100%)',
+        'polygon(49% 62%,84% 64%,72% 85%,43% 83%)',
+        'polygon(84% 64%,100% 69%,100% 100%,72% 85%)',
+        'polygon(33% 58%,49% 62%,43% 83%)'
+      ];
+      var motion=[
+        [-82,-58,-37,0],[-34,-74,-16,24],[18,-88,13,8],[76,-66,31,32],
+        [-92,-18,-48,16],[-46,-36,22,48],[-12,-52,-29,0],[42,-44,38,40],[94,-20,53,16],
+        [-88,34,-31,32],[-42,54,17,8],[-18,22,-62,56],[10,64,27,24],[58,48,-24,0],
+        [98,38,46,40],[-70,82,-42,16],[-28,96,19,48],[36,92,-17,8],[86,78,39,32],[8,38,71,56]
+      ];
+      for(var i=0;i<clips.length;i++){var shard=document.createElement('img');shard.className='combat-shard';shard.src=entity.src;shard.alt='';shard.style.clipPath=clips[i];shard.style.webkitClipPath=clips[i];shard.style.setProperty('--tx',motion[i][0]+'px');shard.style.setProperty('--ty',motion[i][1]+'px');shard.style.setProperty('--rot',motion[i][2]+'deg');shard.style.setProperty('--delay',String(motion[i][3])+'ms');layer.appendChild(shard);}
       entity.style.opacity='0';box.appendChild(layer);
       setTimeout(function(){try{if(layer&&typeof layer.remove==='function')layer.remove();}catch(_){}if(typeof done==='function')done();},820);
     }catch(_){if(typeof done==='function')done();}
