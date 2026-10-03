@@ -1,0 +1,7 @@
+Backroom 1.1.82
+
+- Thêm tag [Đánh thường] cho floating damage thông thường và đồng bộ kích cỡ chữ với damage của Trúng độc/Chảy máu và các hiệu ứng trạng thái.
+- Làm lại hiệu ứng Entity vỡ kính với nhiều mảnh lớn, vừa và nhỏ bất đối xứng; hướng bay, góc xoay và độ trễ giữa các mảnh đa dạng hơn.
+- Thay visual Tâm Ma Cao Minh bằng asset WebP mới và cập nhật overlay metadata tương ứng.
+- Bổ sung/cập nhật regression assertions cho floating combat feedback và glass-shatter presentation.
+- Bump version từ 1.1.81 lên 1.1.82 (versionCode 127), đồng bộ APK artifact, GitHub Release tag và release verification.
