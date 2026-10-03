@@ -606,7 +606,7 @@
       "id": "ITEM.GAMEPLAY_LOOT_LOCK",
       "domain": "ITEM",
       "kind": "hard-lock",
-      "text": "Gameplay loot is Core-owned. Consumable items may enter player Inventory only from a defeated Entity drop (entity-specific rate between 10% and 20%) or a Core-spawned exploration chest. Exploration chest spawn rate is exactly 3%; every spawned chest contains an item 100%. AI narration must never create loose loot or mutate Inventory directly.",
+      "text": "Gameplay loot is Core-owned. Consumable items may enter player Inventory only from a defeated Entity drop (100% item drop rate) or a Core-spawned exploration chest. Exploration chest spawn rate is exactly 5%; every spawned chest contains an item 100%. Entity loot is limited to Almond Water or Bandage. AI narration must never create loose loot or mutate Inventory directly.",
       "source": {
         "document": "GAMEPLAY_RULE",
         "anchor": "Core loot contract 2026-09-18"
