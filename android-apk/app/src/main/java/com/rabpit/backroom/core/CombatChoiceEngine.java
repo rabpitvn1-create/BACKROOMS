@@ -790,7 +790,6 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
         dice.put("resolved", true);
         syncParticipants(state, participants);
         finishVictory(state, combat);
-        appendDeathLines(state, combat);
         return state;
       }
       initiativeIndex = nextLivingEntityIndex(entities, initiativeIndex, true);
@@ -1920,8 +1919,6 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
     if (!droppedItem.isEmpty()) death.put("droppedItem", droppedItem);
     combat.getJSONArray("entityDeaths").put(new JSONObject(death.toString()));
     combat.getJSONArray("entityDeathsThisTurn").put(death);
-    addFeedback(combat, "actor", "entity", "death",
-        entity.optString("name", "Entity") + " bị tiêu diệt.", false);
     if (!hasLivingEntity(entities)) {
       combat.put("lootResolved", true).put("coreDropResolved", true);
     }
