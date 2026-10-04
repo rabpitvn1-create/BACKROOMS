@@ -134,6 +134,7 @@ public class MainActivity extends Activity {
         super.onPageFinished(view, url);
         DiagnosticLog.record("webview.ready", "url", url);
         installUiScripts();
+        emitNarrationFutureStatus();
       }
     });
     webView.setWebChromeClient(new WebChromeClient() {
@@ -863,6 +864,7 @@ public class MainActivity extends Activity {
       narrationFuturePending = true;
       narrationFutureFailures = 0;
     }
+    emitNarrationFutureStatus();
   }
 
   private String committedWorldTurnId(JSONObject state) {
@@ -875,6 +877,7 @@ public class MainActivity extends Activity {
         committedWorldTurnId(committedState),
         slot -> GameCoreFacade.oracleCacheOutcomeMatches(committedState, slot));
     DiagnosticLog.record("cache.poll", "turnId", committedWorldTurnId(committedState), "hit", cached != null, "slot", cached);
+    emitNarrationFutureStatus();
     return cached;
   }
 
@@ -995,6 +998,7 @@ public class MainActivity extends Activity {
       logDiagnostic("Narration future prefetch unavailable: " + error.getClass().getSimpleName());
     } finally {
       if (request != null) narrationBuffer.finish(request);
+      emitNarrationFutureStatus();
       synchronized (narrationFutureLock) {
         narrationFutureRefillRunning = false;
         boolean rerun = narrationFuturePending || narrationBuffer.epoch() != expectedEpoch
@@ -1040,6 +1044,12 @@ public class MainActivity extends Activity {
   private void logDiagnostic(String message) {
     DiagnosticLog.record("app.diagnostic", "message", message);
     Log.d(TAG, message);
+  }
+
+  private void emitNarrationFutureStatus() {
+    if (webView == null) return;
+    emit("backroomNarrationFutureStatus", "{\"ready\":" + narrationBuffer.readyCount()
+        + ",\"target\":" + NarrationFutureBuffer.TARGET + "}");
   }
 
   private void emit(String function, String json) {

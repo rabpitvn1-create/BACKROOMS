@@ -135,6 +135,25 @@ test('player turn commits Core before bounded presentation and never schedules p
   assert.doesNotMatch(provider, /catch \(|geminiText\(|haikuText\(|haikuTextOnce\(|sleep|attempt/);
 });
 
+test('header shows live narration prefetch readiness as xx/10 in Play 10px', () => {
+  assert.match(html, /id="narrationPrefetchStatus"[^>]*>00\/10<\/span>/);
+  assert.match(html, /\.narration-prefetch-status\{[^}]*font:700 10px\/1 'Play'/);
+  assert.match(html, /window\.backroomNarrationFutureStatus=json=>/);
+  const statusEmitter = bridge.slice(bridge.indexOf('private void emitNarrationFutureStatus('),
+    bridge.indexOf('private void emit(String function', bridge.indexOf('private void emitNarrationFutureStatus(')));
+  assert.match(statusEmitter, /narrationBuffer\.readyCount\(\)/);
+  assert.match(statusEmitter, /NarrationFutureBuffer\.TARGET/);
+  const clear = bridge.slice(bridge.indexOf('private void clearNarrationFutureCache('),
+    bridge.indexOf('private String committedWorldTurnId(', bridge.indexOf('private void clearNarrationFutureCache(')));
+  assert.match(clear, /emitNarrationFutureStatus\(\)/);
+  const poll = bridge.slice(bridge.indexOf('private JSONObject pollNarrationFuture('),
+    bridge.indexOf('private int combatForecastStartIndex(', bridge.indexOf('private JSONObject pollNarrationFuture(')));
+  assert.match(poll, /emitNarrationFutureStatus\(\)/);
+  const refill = bridge.slice(bridge.indexOf('private void runNarrationFutureRefill('),
+    bridge.indexOf('private void prefetchChoices(', bridge.indexOf('private void runNarrationFutureRefill(')));
+  assert.match(refill, /narrationBuffer\.finish\(request\);\s*emitNarrationFutureStatus\(\)/);
+});
+
 test('rolling oracle buffer warms only missing capsules without blocking current narration', () => {
   assert.match(bridge, /private final NarrationFutureBuffer narrationBuffer = new NarrationFutureBuffer\(\)/);
   assert.match(bridge, /pollNarrationFuture\(JSONObject committedState\)/);

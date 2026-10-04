@@ -28,6 +28,7 @@
 .topbar .eyebrow,.topbar h1{text-shadow:0 1px 2px #000,0 0 8px #000c}
 .topbar .eyebrow{color:#d6d0aa}
 .topbar .game-menu-trigger{background:rgba(13,16,18,.82);box-shadow:0 0 0 1px #0007,0 3px 12px #0006}
+.narration-prefetch-status{position:relative;z-index:1;align-self:center;margin-left:auto;font:700 10px/1 'Play','Pretendard Std',system-ui,sans-serif;letter-spacing:.06em;color:#d6d0aa;text-shadow:0 1px 2px #000,0 0 8px #000c;white-space:nowrap}
 
 /* BACKROOM_ACTION_ART_V2: IMG_API-generated artwork for PLAYER ACTION. */
 .player-action-bar #playerActionOpen{
@@ -68,7 +69,7 @@
 <body>
 <main class="shell">
 <section class="game">
-<header class="topbar"><div><div class="eyebrow">BACKROOM TEXT GAME</div><h1 id="title"></h1></div><button class="game-menu-trigger" id="gameMenuOpen" type="button" aria-label="Mở menu game" aria-haspopup="dialog" aria-controls="gameMenuModal" aria-expanded="false">☰</button></header>
+<header class="topbar"><div><div class="eyebrow">BACKROOM TEXT GAME</div><h1 id="title"></h1></div><span class="narration-prefetch-status" id="narrationPrefetchStatus" role="status" aria-live="polite" aria-label="Turn đã tải trước: 0/10">00/10</span><button class="game-menu-trigger" id="gameMenuOpen" type="button" aria-label="Mở menu game" aria-haspopup="dialog" aria-controls="gameMenuModal" aria-expanded="false">☰</button></header>
 <div class="snapshot" id="snapshot">LEVEL SNAPSHOT — LOCAL ASSET</div>
 <div class="log" id="log"></div>
 <div class="player-action-bar"><button id="playerActionOpen" type="button">PLAYER ACTION</button></div>
@@ -242,6 +243,16 @@ window.backroomLogExportStatus=message=>{
   byId("exportLog").disabled=false;
   byId("logExportStatus").hidden=false;
   byId("logExportStatus").textContent=message;
+};
+window.backroomNarrationFutureStatus=json=>{
+  let payload={};
+  try{payload=typeof json==="string"?JSON.parse(json):(json||{})}catch(_){}
+  const target=Math.max(1,Math.floor(Number(payload.target)||10));
+  const ready=Math.max(0,Math.min(target,Math.floor(Number(payload.ready)||0)));
+  const el=byId("narrationPrefetchStatus");
+  if(!el)return;
+  el.textContent=String(ready).padStart(2,"0")+"/"+target;
+  el.setAttribute("aria-label","Turn đã tải trước: "+ready+"/"+target);
 };
 window.addEventListener("error",event=>{
   if(window.Android&&Android.diagnosticEvent)Android.diagnosticEvent(JSON.stringify({event:"js.error",message:event.message,file:event.filename,line:event.lineno,column:event.colno,stack:event.error&&event.error.stack||""}));
