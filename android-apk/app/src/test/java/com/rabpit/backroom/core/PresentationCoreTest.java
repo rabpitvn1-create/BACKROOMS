@@ -196,6 +196,37 @@ public class PresentationCoreTest {
     assertFalse(CharacterKnowledge.knows(restored, "syvial", "cultivation", "knownName"));
   }
 
+  @Test public void newerMultiEntityEncounterSurvivesStaleTerminalCombatNormalization()
+      throws Exception {
+    JSONObject initial = state().put("turn", 4);
+    initial.put("flags", new JSONObject()
+        .put("entityEncounterKey", "hound")
+        .put("entityEncounterKeys", new JSONArray().put("hound"))
+        .put("entityEncounterStartedTurn", 4));
+    CombatChoiceEngine.start(initial, "hound", 0);
+    initial.getJSONObject("combat").put("active", false).put("outcome", "victory");
+
+    initial.put("turn", 5);
+    initial.put("flags", new JSONObject()
+        .put("entityEncounterKey", "the_lifeform_bacteria_01")
+        .put("entityEncounterKeys", new JSONArray()
+            .put("the_lifeform_bacteria_01")
+            .put("async_member_rifle_aim_right_01"))
+        .put("entityEncounterStartedTurn", 5));
+
+    GameCoreFacade core = core(initial);
+    JSONObject normalized = new JSONObject(core.currentCoreState());
+    assertEquals(2, normalized.getJSONObject("flags").getJSONArray("entityEncounterKeys").length());
+
+    JSONObject started = new JSONObject(
+        core.startCombatRuntime("the_lifeform_bacteria_01", 0));
+    JSONArray entities = started.getJSONObject("combat").getJSONArray("entities");
+    assertEquals(2, entities.length());
+    assertEquals("the_lifeform_bacteria_01", entities.getJSONObject(0).getString("key"));
+    assertEquals("async_member_rifle_aim_right_01", entities.getJSONObject(1).getString("key"));
+    assertEquals(2, started.getJSONObject("flags").getJSONArray("entityEncounterKeys").length());
+  }
+
   @Test public void facadeEmitsVictoryOnlyAfterTheLastEntityDies() throws Exception {
     JSONObject initial = state();
     initial.put("location", LevelCore.LEVEL_ZERO_START_LOCATION);

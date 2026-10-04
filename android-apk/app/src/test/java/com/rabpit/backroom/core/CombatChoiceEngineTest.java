@@ -120,6 +120,48 @@ public class CombatChoiceEngineTest {
     assertEquals(7, progression.profile(state, "cao_minh").getInt("currentHp"));
   }
 
+  @Test public void terminalNormalizationPreservesNewerEncounterFlags() throws Exception {
+    JSONObject state = combatState(new JSONArray()).put("turn", 7);
+    state.put("flags", new JSONObject()
+        .put("entityEncounterKey", "hound")
+        .put("entityEncounterKeys", new JSONArray().put("hound"))
+        .put("entityEncounterStartedTurn", 7));
+    CombatChoiceEngine.start(state, "hound", 0);
+    JSONObject terminal = state.getJSONObject("combat");
+    assertEquals(7, terminal.getInt("encounterStartedTurn"));
+    terminal.put("active", false).put("outcome", "victory");
+
+    state.put("turn", 8);
+    state.put("flags", new JSONObject()
+        .put("entityEncounterKey", "the_lifeform_bacteria_01")
+        .put("entityEncounterKeys", new JSONArray()
+            .put("the_lifeform_bacteria_01")
+            .put("async_member_rifle_aim_right_01"))
+        .put("entityEncounterStartedTurn", 8));
+
+    CombatChoiceEngine.normalizeTerminalEncounter(state);
+
+    JSONArray keys = state.getJSONObject("flags").getJSONArray("entityEncounterKeys");
+    assertEquals(2, keys.length());
+    assertEquals("the_lifeform_bacteria_01", keys.getString(0));
+    assertEquals("async_member_rifle_aim_right_01", keys.getString(1));
+  }
+
+  @Test public void terminalNormalizationStillClearsFlagsOwnedByThatCombat() throws Exception {
+    JSONObject state = combatState(new JSONArray()).put("turn", 7);
+    state.put("flags", new JSONObject()
+        .put("entityEncounterKey", "hound")
+        .put("entityEncounterKeys", new JSONArray().put("hound"))
+        .put("entityEncounterStartedTurn", 7));
+    CombatChoiceEngine.start(state, "hound", 0);
+    state.getJSONObject("combat").put("active", false).put("outcome", "victory");
+
+    CombatChoiceEngine.normalizeTerminalEncounter(state);
+
+    assertEquals("", state.getJSONObject("flags").getString("entityEncounterKey"));
+    assertEquals(0, state.getJSONObject("flags").getJSONArray("entityEncounterKeys").length());
+  }
+
   @Test public void startProducesInitialFiveD6ValuesAndProjectsHand() throws Exception {
     JSONObject state = combatState(new JSONArray());
     CombatChoiceEngine.start(state, "hound", 0);

@@ -687,6 +687,7 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
         .put("rngCanonVersion", EmergentTurnEngine.CANON_VERSION)
         .put("rngSchemaVersion", EmergentTurnEngine.RNG_SCHEMA_VERSION)
         .put("logIndex", Math.max(0, gmLogIndex))
+        .put("encounterStartedTurn", encounterStartedTurn(state))
         .put("deathRestartAnchorLocation", state.optString("location", ""))
         .put("deathRestartLevelKey", state.optString(
             LevelCore.LEVEL_KEY, String.valueOf(state.optInt("currentLevel", 0))))
@@ -2068,7 +2069,55 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
       finishDefeat(state, combat);
       return;
     }
-    if ("victory".equals(outcome) || "defeat".equals(outcome)) clearEncounterFlag(state);
+    if (("victory".equals(outcome) || "defeat".equals(outcome))
+        && terminalCombatOwnsEncounterFlags(state, combat)) {
+      clearEncounterFlag(state);
+    }
+  }
+
+  private static int encounterStartedTurn(JSONObject state) {
+    JSONObject flags = state == null ? null : state.optJSONObject("flags");
+    int currentTurn = state == null ? 1 : Math.max(1, state.optInt("turn", 1));
+    return flags == null ? currentTurn
+        : Math.max(1, flags.optInt("entityEncounterStartedTurn", currentTurn));
+  }
+
+  private static boolean terminalCombatOwnsEncounterFlags(JSONObject state, JSONObject combat) {
+    JSONObject flags = state == null ? null : state.optJSONObject("flags");
+    if (flags == null) return true;
+
+    List<String> flagKeys = new ArrayList<>();
+    JSONArray currentKeys = flags.optJSONArray("entityEncounterKeys");
+    if (currentKeys != null) {
+      for (int i = 0; i < currentKeys.length(); i++) {
+        String key = currentKeys.optString(i, "").trim().toLowerCase(Locale.ROOT);
+        if (!key.isEmpty() && !flagKeys.contains(key)) flagKeys.add(key);
+      }
+    }
+    String legacy = flags.optString("entityEncounterKey", "").trim().toLowerCase(Locale.ROOT);
+    if (!legacy.isEmpty() && !flagKeys.contains(legacy)) flagKeys.add(legacy);
+    if (flagKeys.isEmpty()) return true;
+
+    int flagTurn = Math.max(0, flags.optInt("entityEncounterStartedTurn", 0));
+    int combatTurn = Math.max(0, combat == null ? 0 : combat.optInt("encounterStartedTurn", 0));
+    if (flagTurn > 0 && combatTurn > 0 && flagTurn > combatTurn) return false;
+
+    List<String> combatKeys = new ArrayList<>();
+    JSONArray entities = combat == null ? null : combat.optJSONArray("entities");
+    if (entities != null) {
+      for (int i = 0; i < entities.length(); i++) {
+        JSONObject entity = entities.optJSONObject(i);
+        String key = entity == null ? "" : entity.optString("key", "").trim().toLowerCase(Locale.ROOT);
+        if (!key.isEmpty() && !combatKeys.contains(key)) combatKeys.add(key);
+      }
+    }
+    if (combatKeys.isEmpty()) {
+      JSONObject entity = combat == null ? null : combat.optJSONObject("entity");
+      String key = entity == null ? "" : entity.optString("key", "").trim().toLowerCase(Locale.ROOT);
+      if (!key.isEmpty()) combatKeys.add(key);
+    }
+    if (combatKeys.isEmpty()) return true;
+    return flagKeys.size() == combatKeys.size() && combatKeys.containsAll(flagKeys);
   }
 
   private static void clearEncounterFlag(JSONObject state) throws Exception {
