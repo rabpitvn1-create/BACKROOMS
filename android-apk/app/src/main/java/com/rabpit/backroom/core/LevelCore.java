@@ -51,7 +51,7 @@ final class LevelCore {
   private static final int ROUTE_ROLL_BOUND = 100;
   static final int MAX_KNOWLEDGE_CONTEXT_CHARS = 3200;
   static final int MAX_SCENE_CONTEXT_CHARS = 2200;
-  private static final int MAX_SCENE_PALETTE_CHARS = 1500;
+  private static final int MAX_SCENE_PALETTE_CHARS = 1200;
 
   private final Map<String, JSONObject> knowledgeByLevelKey = new LinkedHashMap<>();
   private final Map<String, String> legacyCanonByLevelKey = new LinkedHashMap<>();
@@ -327,6 +327,11 @@ final class LevelCore {
     JSONObject bundle = knowledgeByLevelKey.get(normalizeKey(levelKey));
     if (bundle == null) return "";
     StringBuilder out = new StringBuilder();
+    appendLevelEssential(out, bundle, "identity", "IDENTITY");
+    appendLevelEssential(out, bundle, "architecture", "STRUCTURE");
+    appendLevelEssential(out, bundle, "sensory", "SENSORY");
+    appendLevelEssential(out, bundle, "hazards", "PRIMARY HAZARD");
+
     String category = categorizeAction(action);
     JSONArray order = knowledgeSectionOrder.length() == 0
         ? new JSONArray().put("identity").put("architecture").put("zones").put("sensory")
@@ -336,14 +341,47 @@ final class LevelCore {
             .put("variationPool").put("sceneSeeds")
         : knowledgeSectionOrder;
 
-    for (int i = 0; i < order.length() && out.length() < MAX_SCENE_PALETTE_CHARS; i++) {
+    int focusCount = 0;
+    for (int i = 0; i < order.length() && focusCount < 2
+        && out.length() < MAX_SCENE_PALETTE_CHARS; i++) {
       String section = order.optString(i, "").trim();
-      if (!sceneSectionAllowed(section) || !isSectionRelevantForCategory(section, category)) continue;
+      if (isSceneEssentialSection(section)
+          || !sceneSectionAllowed(section)
+          || !isSectionRelevantForCategory(section, category)) continue;
       JSONArray values = bundle.optJSONArray(section);
-      if (values == null || values.length() == 0) continue;
-      appendSceneSection(out, values, section, turn);
+      String value = rotatingSceneValue(values, section, turn);
+      if (value.isEmpty()) continue;
+      String line = "- " + sectionLabel(section) + ": " + value + "\n";
+      String header = focusCount == 0 ? "\nSCENE FOCUS:\n" : "";
+      if (out.length() + header.length() + line.length() > MAX_SCENE_PALETTE_CHARS) break;
+      out.append(header).append(line);
+      focusCount++;
     }
     return out.toString().trim();
+  }
+
+  private static boolean isSceneEssentialSection(String section) {
+    return "identity".equals(section) || "architecture".equals(section)
+        || "sensory".equals(section) || "hazards".equals(section);
+  }
+
+  private static void appendLevelEssential(
+      StringBuilder out, JSONObject bundle, String section, String label) {
+    JSONArray values = bundle.optJSONArray(section);
+    if (values == null || values.length() == 0) return;
+    String value = values.optString(0, "").trim();
+    if (value.isEmpty()) return;
+    String header = out.length() == 0 ? "LEVEL ESSENTIALS:\n" : "";
+    String line = "- " + label + ": " + value + "\n";
+    if (out.length() + header.length() + line.length() > MAX_SCENE_PALETTE_CHARS) return;
+    out.append(header).append(line);
+  }
+
+  private static String rotatingSceneValue(JSONArray values, String section, int turn) {
+    if (values == null || values.length() == 0) return "";
+    int index = values.length() == 1 ? 0
+        : Math.floorMod((Math.max(1, turn) - 1) + section.hashCode(), values.length());
+    return values.optString(index, "").trim();
   }
 
   private static boolean sceneSectionAllowed(String section) {
@@ -354,28 +392,6 @@ final class LevelCore {
         || "navigationPatterns".equals(section) || "quietTurnPatterns".equals(section)
         || "narrativeGrammar".equals(section) || "antiRepetition".equals(section)
         || "variationPool".equals(section) || "sceneSeeds".equals(section);
-  }
-
-  private static void appendSceneSection(
-      StringBuilder out, JSONArray values, String section, int turn) {
-    if (values == null || values.length() == 0 || out.length() >= MAX_SCENE_PALETTE_CHARS) return;
-    int configured = rotatingSectionLimit(section);
-    int count = Math.min(values.length(), configured > 0 ? Math.min(configured, 2) : 1);
-    int start = values.length() > count
-        ? Math.floorMod((Math.max(1, turn) - 1) * count + section.hashCode(), values.length())
-        : 0;
-    StringBuilder block = new StringBuilder();
-    block.append(out.length() == 0 ? "" : "\n").append(sectionLabel(section)).append(":\n");
-    int added = 0;
-    for (int i = 0; i < count; i++) {
-      String value = values.optString((start + i) % values.length(), "").trim();
-      if (value.isEmpty()) continue;
-      String line = "- " + value + "\n";
-      if (out.length() + block.length() + line.length() > MAX_SCENE_PALETTE_CHARS) break;
-      block.append(line);
-      added++;
-    }
-    if (added > 0) out.append(block);
   }
 
   String snapshotDescriptor(JSONObject state) {

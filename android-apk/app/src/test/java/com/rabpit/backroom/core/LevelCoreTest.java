@@ -573,6 +573,42 @@ public class LevelCoreTest {
     assertTrue(scene.length() <= LevelCore.MAX_SCENE_CONTEXT_CHARS);
   }
 
+  @Test public void sceneLevelDescriptionIsCompactOrganizedAndKeepsDefiningTraits()
+      throws Exception {
+    String knowledge = new JSONObject()
+        .put("schemaVersion", 2)
+        .put("sectionOrder", new org.json.JSONArray()
+            .put("identity").put("architecture").put("zones").put("sensory")
+            .put("hazards").put("navigation").put("variationPool"))
+        .put("levels", new JSONObject().put("0", new JSONObject()
+            .put("name", "Level 0")
+            .put("identity", new org.json.JSONArray().put("IDENTITY_PRIMARY").put("IDENTITY_EXTRA"))
+            .put("architecture", new org.json.JSONArray().put("STRUCTURE_PRIMARY").put("STRUCTURE_EXTRA"))
+            .put("sensory", new org.json.JSONArray().put("SENSORY_PRIMARY").put("SENSORY_EXTRA"))
+            .put("hazards", new org.json.JSONArray().put("HAZARD_PRIMARY").put("HAZARD_EXTRA"))
+            .put("zones", new org.json.JSONArray().put("ZONE_ONE").put("ZONE_TWO"))
+            .put("navigation", new org.json.JSONArray().put("NAV_ONE").put("NAV_TWO"))
+            .put("variationPool", new org.json.JSONArray().put("VAR_ONE").put("VAR_TWO"))))
+        .toString();
+    LevelCore core = LevelCore.withKnowledge(knowledge, new SequenceRng(0));
+    JSONObject state = state(1, "Level 0 / Start").put(LevelCore.LEVEL_KEY, "0");
+
+    String scene = core.scenePromptContext(state, "Cao Minh tiếp tục di chuyển");
+
+    assertTrue(scene.contains("LEVEL ESSENTIALS:"));
+    assertTrue(scene.contains("- IDENTITY: IDENTITY_PRIMARY"));
+    assertTrue(scene.contains("- STRUCTURE: STRUCTURE_PRIMARY"));
+    assertTrue(scene.contains("- SENSORY: SENSORY_PRIMARY"));
+    assertTrue(scene.contains("- PRIMARY HAZARD: HAZARD_PRIMARY"));
+    assertTrue(scene.contains("SCENE FOCUS:"));
+    assertTrue(scene.contains("ZONES:"));
+    assertTrue(scene.contains("NAVIGATION:"));
+    assertFalse(scene.contains("IDENTITY_EXTRA"));
+    assertFalse(scene.contains("STRUCTURE_EXTRA"));
+    assertFalse(scene.contains("SENSORY_EXTRA"));
+    assertFalse(scene.contains("HAZARD_EXTRA"));
+  }
+
   @Test public void levelZeroKnowledgeContextBudgetUsesRealAsset() throws Exception {
     LevelCore core = LevelCore.withKnowledge(
         readRepoAsset("knowledge/level_knowledge.json"), new SequenceRng(0));

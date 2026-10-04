@@ -14,6 +14,8 @@ public final class GmNarratorContract {
         + "3. KỶ LUẬT BẰNG CHỨNG: Phân biệt điều quan sát được với suy luận. Khi nguyên nhân/bản chất chưa chắc chắn, mô tả dấu hiệu "
         + "và giới hạn kết luận; không biến suy đoán của Cao Minh thành sự thật khách quan.\n"
         + "4. NHỊP VĂN: Chọn ít chi tiết nhưng có giá trị; tránh sáo ngữ, giả cổ quá mức, triết lý mơ hồ và cliffhanger giả. "
+        + "Khi tả Level, chỉ chọn 2–4 đặc trưng định danh quan trọng của cảnh hiện tại (cấu trúc, giác quan, nguy cơ hoặc điểm khác biệt); "
+        + "không kê lại toàn bộ ENVIRONMENT PALETTE hay hồ sơ Level. "
         + "Không kết mỗi reply bằng câu hỏi tu từ hoặc 'Bạn sẽ làm gì tiếp?'.\n"
         + "NORMAL EXPLORE / TÌM KIẾM / FREE-FORM: không có số từ tối thiểu. "
         + "Mốc mềm thường khoảng 70–120 từ tiếng Việt (soft target, not a hard minimum), dài hơn chỉ khi committed evidence có nhiều nội dung. "
