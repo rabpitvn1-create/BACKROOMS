@@ -99,7 +99,7 @@ test('dice reserve a stable hold-label area and animate only unheld values while
   assert.match(source, /\.combat-dice-row\{[^}]*grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);
   assert.match(source, /\.combat-die\{[^}]*min-width:44px;min-height:76px/);
   assert.match(source, /\.combat-die-skin\{[^}]*width:100%;height:100%/);
-  assert.match(source, /@keyframes combat-die-roll/);
+  assert.match(source, /@keyframes combat-die-3d/);
   assert.match(source, /var DICE_ROLL_ANIMATION_MS=680;/);
   assert.match(source, /diceRollAnimating=true;/);
   assert.match(source, /rolling=diceRollAnimating&&held\[index\]!==true/);

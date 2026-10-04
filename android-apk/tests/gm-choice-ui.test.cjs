@@ -38,7 +38,7 @@ test('Poker Dice uses consistent bevelled SVG assets with localized hold and set
   assert.match(ui,/img\.src=diceAsset\(visualValue\)/);
   assert.doesNotMatch(ui,/function dieRestRotation|combat-die-face|combat-die-hold-ring/);
   assert.match(ui,/seal\.textContent='GIỮ'/);
-  assert.match(ui,/\.combat-die\.rolling \.combat-die-object\{animation:combat-die-roll \.68s/);
+  assert.match(ui,/\.combat-die\.rolling \.combat-die-object\{animation:combat-die-toss \.68s/);
   assert.match(ui,/\.combat-die\.settling \.combat-die-object\{animation:combat-die-settle \.17s/);
   assert.match(ui,/@media\(prefers-reduced-motion:reduce\)/);
 });
