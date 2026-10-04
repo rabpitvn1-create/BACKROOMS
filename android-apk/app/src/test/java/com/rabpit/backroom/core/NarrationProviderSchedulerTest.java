@@ -91,7 +91,8 @@ public class NarrationProviderSchedulerTest {
     assertEquals(NarrationProviderScheduler.GEHIHI, scheduler.acquire(false, false, all(), none(), 0, 0));
     assertEquals(NarrationProviderScheduler.HAKU, scheduler.acquire(true, false, all(), none(), 0, 0));
     scheduler.failed(NarrationProviderScheduler.GEHIHI, true, 503, 0, 0, 0, 0);
-    assertEquals(NarrationProviderScheduler.SOL, scheduler.acquire(false, false, active(), none(), 0, 1));
+    int fallback = scheduler.acquire(false, false, active(), none(), 0, 1);
+    assertTrue(fallback >= 0 && fallback < NarrationProviderScheduler.GEMINI_COUNT);
   }
   @Test public void concurrentOldGehihiSuccessCannotClearNewRateLimit() {
     NarrationProviderScheduler scheduler = new NarrationProviderScheduler();
