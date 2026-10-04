@@ -551,6 +551,24 @@ public class MainActivity extends Activity {
     return output;
   }
 
+  private String gehihiText(String prompt) throws Exception {
+    if (!configured(BuildConfig.GEHIHI_API_KEY)) {
+      throw new Exception("GEHIHI_API_KEY chưa được cấu hình.");
+    }
+    String model = BuildConfig.GEHIHI_MODEL == null ? "" : BuildConfig.GEHIHI_MODEL.trim();
+    String base = BuildConfig.GEHIHI_BASE_URL == null ? "" : BuildConfig.GEHIHI_BASE_URL.trim();
+    base = base.isEmpty() ? "https://api.vilao.ai/v1" : base;
+    if (!base.toLowerCase(java.util.Locale.ROOT).startsWith("https://")) {
+      throw new Exception("GEHIHI_BASE_URL phải dùng HTTPS.");
+    }
+    while (base.endsWith("/")) base = base.substring(0, base.length() - 1);
+    JSONObject body = openAiBody(model.isEmpty() ? "ram/gemini-3.6-flash-high" : model, prompt);
+    String output = openAiResponseText(postJson(base + "/chat/completions",
+        BuildConfig.GEHIHI_API_KEY, "Authorization", body));
+    parseModelJson(output);
+    return output;
+  }
+
   private String solText(String prompt) throws Exception {
     if (BuildConfig.SOL_API_KEY == null || BuildConfig.SOL_API_KEY.trim().isEmpty()) {
       throw new Exception("SOL_API_KEY chưa được cấu hình.");
@@ -654,6 +672,7 @@ public class MainActivity extends Activity {
     String[] keys = geminiKeys();
     boolean[] configured = new boolean[NarrationProviderScheduler.SOURCE_COUNT];
     for (int i = 0; i < keys.length; i++) configured[i] = configured(keys[i]);
+    configured[NarrationProviderScheduler.GEHIHI] = configured(BuildConfig.GEHIHI_API_KEY);
     configured[NarrationProviderScheduler.HAKU] = haikuConfigured();
     configured[NarrationProviderScheduler.LUNA] = BuildConfig.LUNA_ENABLED && configured(BuildConfig.LUNA_API_KEY);
     configured[NarrationProviderScheduler.SOL] = configured(BuildConfig.SOL_API_KEY);
@@ -676,6 +695,7 @@ public class MainActivity extends Activity {
       try {
         String output;
         if (source < NarrationProviderScheduler.GEMINI_COUNT) output = geminiTextOnce(prompt, keys[source]);
+        else if (source == NarrationProviderScheduler.GEHIHI) output = gehihiText(prompt);
         else if (source == NarrationProviderScheduler.LUNA) output = lunaText(prompt);
         else if (source == NarrationProviderScheduler.HAKU) output = haikuTextOnce(prompt);
         else output = solText(prompt);

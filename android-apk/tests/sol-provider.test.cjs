@@ -23,6 +23,7 @@ test('foreground and background use health scheduling with bounded source attemp
   assert.match(flow, /int limit = background \? 4 : 3/);
   assert.match(flow, /geminiTextOnce\(prompt, keys\[source\]\)/);
   assert.match(flow, /haikuTextOnce\(prompt\)/);
+  assert.match(flow, /NarrationProviderScheduler\.GEHIHI\) output = gehihiText\(prompt\)/);
   assert.match(flow, /lunaText\(prompt\)/);
   assert.match(flow, /providerScheduler\.failed/);
   assert.match(flow, /BuildConfig\.LUNA_ENABLED && configured\(BuildConfig\.LUNA_API_KEY\)/);
@@ -144,4 +145,28 @@ test('scene content repair shares the foreground deadline and all providers use 
     assert.match(method(name), /requestDeadline\(\)/);
     assert.doesNotMatch(method(name), /setReadTimeout|readLine|disconnect/);
   }
+});
+
+
+test('Gehihi uses the updated model with its own bearer key and shared deadline transport', () => {
+  const gehihi = method('gehihiText');
+  assert.match(gehihi, /if \(!configured\(BuildConfig\.GEHIHI_API_KEY\)\)/);
+  assert.ok(gehihi.indexOf('configured(BuildConfig.GEHIHI_API_KEY)') < gehihi.indexOf('postJson('));
+  assert.match(gehihi, /model\.isEmpty\(\) \? "ram\/gemini-3\.6-flash-high" : model/);
+  assert.match(gehihi, /base\.isEmpty\(\) \? "https:\/\/api\.vilao\.ai\/v1" : base/);
+  assert.match(gehihi, /startsWith\("https:\/\/"\)/);
+  assert.match(gehihi, /BuildConfig\.GEHIHI_API_KEY, "Authorization", body/);
+  assert.match(gehihi, /parseModelJson\(output\);\s*return output;/);
+  assert.doesNotMatch(gehihi, /reasoning_effort|LUNA_API_KEY|SOL_API_KEY|HAKU_API_KEY/);
+  assert.match(method('generateScheduledText'), /configured\[NarrationProviderScheduler\.GEHIHI\] = configured\(BuildConfig\.GEHIHI_API_KEY\)/);
+});
+
+test('Gehihi release configuration injects its secret and fails fast when it is absent', () => {
+  const release = fs.readFileSync(path.join(root, '.github/workflows/release-version.yml'), 'utf8');
+  const gradle = fs.readFileSync(path.join(root, 'android-apk/app/build.gradle'), 'utf8');
+  for (const name of ['GEHIHI_API_KEY', 'GEHIHI_BASE_URL', 'GEHIHI_MODEL']) {
+    assert.ok(gradle.includes('buildConfigField "String", "' + name + '", "\\\"" + secret("' + name + '") + "\\\""'));
+  }
+  assert.ok(release.includes('GEHIHI_API_KEY: $' + '{{ secrets.GEHIHI_API_KEY }}'));
+  assert.match(release, /for name in [^\n]*GEHIHI_API_KEY; do/);
 });

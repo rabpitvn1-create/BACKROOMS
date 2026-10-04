@@ -39,6 +39,9 @@ jobs:
       GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
       GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
       GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
+      GEHIHI_API_KEY: ${{ secrets.GEHIHI_API_KEY }}
+      GEHIHI_BASE_URL: ${{ secrets.GEHIHI_BASE_URL || vars.GEHIHI_BASE_URL }}
+      GEHIHI_MODEL: ${{ secrets.GEHIHI_MODEL || vars.GEHIHI_MODEL }}
       HAKU_API_KEY: ${{ secrets.HAKU_API_KEY }}
       HAKU_BASE_URL: ${{ secrets.HAKU_BASE_URL || vars.HAKU_BASE_URL }}
       HAKU_MODEL: ${{ secrets.HAKU_MODEL || vars.HAKU_MODEL }}
@@ -158,7 +161,7 @@ jobs:
       - name: Validate Game Master configuration
         run: |
           set -euo pipefail
-          for name in SOL_API_KEY GEMINI_API_KEY_1 GEMINI_API_KEY_2 GEMINI_API_KEY_3 GEMINI_API_KEY_4 GEMINI_API_KEY_5 HAKU_API_KEY; do
+          for name in SOL_API_KEY GEMINI_API_KEY_1 GEMINI_API_KEY_2 GEMINI_API_KEY_3 GEMINI_API_KEY_4 GEMINI_API_KEY_5 HAKU_API_KEY GEHIHI_API_KEY; do
             test -n "${!name:-}" || (echo "Missing GitHub Secret: $name" && exit 1)
           done
           echo "Optional Haku base/model overrides: ${HAKU_BASE_URL:+configured} ${HAKU_MODEL:+configured}"

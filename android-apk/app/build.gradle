@@ -47,6 +47,9 @@ android {
     buildConfigField "String", "HAKU_API_KEY", "\"" + secret("HAKU_API_KEY") + "\""
     buildConfigField "String", "HAKU_BASE_URL", "\"" + secret("HAKU_BASE_URL") + "\""
     buildConfigField "String", "HAKU_MODEL", "\"" + secret("HAKU_MODEL") + "\""
+    buildConfigField "String", "GEHIHI_API_KEY", "\"" + secret("GEHIHI_API_KEY") + "\""
+    buildConfigField "String", "GEHIHI_BASE_URL", "\"" + secret("GEHIHI_BASE_URL") + "\""
+    buildConfigField "String", "GEHIHI_MODEL", "\"" + secret("GEHIHI_MODEL") + "\""
     // Expired LUNA stays disabled until explicitly re-enabled with a renewed key.
     buildConfigField "boolean", "LUNA_ENABLED", String.valueOf(System.getenv("LUNA_ENABLED") == "true")
   }

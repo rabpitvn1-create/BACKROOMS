@@ -9,7 +9,8 @@ public final class NarrationProviderScheduler {
   public static final int HAKU = 5;
   public static final int LUNA = 6;
   public static final int SOL = 7;
-  public static final int SOURCE_COUNT = 8;
+  public static final int GEHIHI = 8;
+  public static final int SOURCE_COUNT = 9;
   private final boolean[] busyBackground = new boolean[SOURCE_COUNT];
   private final boolean[] busyForeground = new boolean[SOURCE_COUNT];
   private final boolean[] disabled = new boolean[SOURCE_COUNT];
@@ -89,8 +90,8 @@ public final class NarrationProviderScheduler {
 
   private boolean available(int source, boolean background, boolean[] configured, boolean[] attempted, long now) {
     boolean busy = (background ? busyBackground : busyForeground)[source];
-    // Haku has one reserved lane per workload; other sources admit one request total.
-    if (source != HAKU) busy = busyBackground[source] || busyForeground[source];
+    // Gehihi has one reserved lane per workload; fallback sources admit one request total.
+    if (source != GEHIHI) busy = busyBackground[source] || busyForeground[source];
     return configured[source] && !attempted[source] && !busy
         && !disabled[source] && now >= retryAt[source];
   }
@@ -99,9 +100,9 @@ public final class NarrationProviderScheduler {
     long measured = latency[source] == 0 ? 2_000L : latency[source];
     long preference;
     if (foregroundPriority) {
-      preference = source == HAKU ? 0L : source == SOL ? 1_000L : source < GEMINI_COUNT ? 2_000L : 4_000L;
+      preference = source == GEHIHI ? 0L : source == HAKU ? 1_000L : source == SOL ? 2_000L : source < GEMINI_COUNT ? 3_000L : 5_000L;
     } else {
-      preference = source == HAKU ? 0L : source < GEMINI_COUNT ? 1_000L : source == SOL ? 3_000L : 4_000L;
+      preference = source == GEHIHI ? 0L : source == HAKU ? 1_000L : source < GEMINI_COUNT ? 2_000L : source == SOL ? 3_000L : 5_000L;
     }
     return measured + preference;
   }
