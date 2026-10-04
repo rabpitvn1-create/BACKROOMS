@@ -143,7 +143,7 @@ test('rendered dice preserve Core values, Vietnamese hold state and index-specif
     addEventListener(event,handler){this.events[event]=handler;}
   }
   const calls=[];
-  const context={document:{createElement(){return new Node()}},window:{},state:{combat:{active:true,currentActor:'Cao Minh',diceState:{values:[1,2,3,4,5],held:[true,false,true,false,false],hasRolled:true,rerollsUsed:1,maxRerolls:3}}},dicePanel:new Node(),diceTitle:new Node(),combatTargets:null,diceMeta:new Node(),diceRow:new Node(),diceResult:new Node(),diceRoll:new Node(),diceFinish:new Node(),diceRollAnimating:false,diceSettleUntil:0,diceSettleMask:[],combatDiceState(){return this.state.combat.diceState},sendCombatHold(index,held){calls.push([index,held])},handLabel(){return ''},allHeld(values){return values.every(Boolean)},scheduleCombatResolve(){},diceAsset(value){return 'file:///android_asset/dice/die-'+value+'.svg'}};
+  const context={document:{createElement(){return new Node()}},window:{},state:{combat:{active:true,currentActor:'Cao Minh',diceState:{values:[1,2,3,4,5],held:[true,false,true,false,false],hasRolled:true,rerollsUsed:1,maxRerolls:3}}},dicePanel:new Node(),diceTitle:new Node(),combatTargets:null,diceMeta:new Node(),diceRow:new Node(),diceResult:new Node(),diceRoll:new Node(),diceFinish:new Node(),diceRollAnimating:false,diceSettleUntil:0,diceSettleMask:[],combatDiceState(){return this.state.combat.diceState},sendCombatHold(index,held){calls.push([index,held])},handLabel(){return ''},allHeld(values){return values.every(Boolean)},scheduleCombatResolve(){},diceAsset(value){return 'file:///android_asset/dice/die-'+value+'.png'}};
   const start=source.indexOf('  function renderCombatPanel(){');
   const end=source.indexOf('  diceRoll.addEventListener',start);
   vm.createContext(context);
@@ -154,7 +154,7 @@ test('rendered dice preserve Core values, Vietnamese hold state and index-specif
   const before=JSON.stringify(context.state);
   const skins=button=>button.children.find(n=>n.className==='combat-die-object').children[0];
   context.diceRow.children.forEach((button,index)=>{
-    assert.equal(skins(button).src,'file:///android_asset/dice/die-'+(index+1)+'.svg');
+    assert.equal(skins(button).src,'file:///android_asset/dice/die-'+(index+1)+'.png');
     assert.match(button.attrs['aria-label'],new RegExp('Xúc xắc '+(index+1)));
     assert.equal(button.attrs['aria-pressed'],index===0||index===2?'true':'false');
     assert.equal(button.children.find(n=>n.className==='combat-die-hold-seal').textContent,'GIỮ');
@@ -168,5 +168,5 @@ test('rendered dice preserve Core values, Vietnamese hold state and index-specif
   vm.runInContext('renderCombatPanel()',context);
   assert.equal(context.diceRow.children.filter(n=>n.className.includes('rolling')).length,3);
   assert.ok(context.diceRow.children.every(n=>n.disabled));
-  assert.equal(skins(context.diceRow.children[0]).src,'file:///android_asset/dice/die-6.svg');
+  assert.equal(skins(context.diceRow.children[0]).src,'file:///android_asset/dice/die-6.png');
 });

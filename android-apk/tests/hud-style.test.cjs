@@ -46,17 +46,20 @@ test('combat dice share an ivory silhouette and keep one clear value per local a
   assert.match(gmChoice,/\.combat-die\.held\{[^}]*border-color:/);
   assert.match(gmChoice,/seal\.textContent='GIỮ'/);
   assert.doesNotMatch(gmChoice,/鎖|combat-die-hold-ring|combat-die-held-float/);
-  let sharedBody;
+  const uniqueAssets=new Set();
   for(let i=1;i<=6;i++){
-    const die=fs.readFileSync(path.join(assets,'dice','die-'+i+'.svg'),'utf8');
-    const pips=die.match(/<g id="value-pips"[^>]*>([\s\S]*?)<\/g>/)[1];
-    assert.equal((pips.match(/<circle\b/g)||[]).length,i);
-    const silhouette=die.split('<defs>')[1].split('<g id="value-pips"')[0];
-    if(sharedBody)assert.equal(silhouette,sharedBody);
-    sharedBody=silhouette;
-    assert.match(die,/<title id="title">Xúc xắc mặt /);
-    assert.doesNotMatch(die,/<image\b|<script\b|href=/);
+    const die=fs.readFileSync(path.join(assets,'dice','die-'+i+'.png'));
+    assert.equal(die.subarray(0,8).toString('hex'),'89504e470d0a1a0a');
+    assert.equal(die.subarray(12,16).toString(),'IHDR');
+    assert.equal(die.readUInt32BE(16),256);
+    assert.equal(die.readUInt32BE(20),256);
+    assert.equal(die[24],8);
+    assert.equal(die[25],6,'dice must preserve RGBA transparency');
+    uniqueAssets.add(die.toString('base64'));
   }
+  assert.equal(uniqueAssets.size,6,'each Core value has a distinct texture');
+  assert.match(gmChoice,/String\(value\)\+'\.png'/);
+  assert.match(gmChoice,/\.combat-die\.held\{[^}]*background:transparent/);
 });
 
 test('normal rectangular UI elements use consistent light rounded corners while GM message frame remains square',()=>{

@@ -40,14 +40,14 @@
     ".combat-dice-panel[hidden]{display:none}.combat-dice-panel{width:100%;box-sizing:border-box;margin-top:12px;position:relative;overflow:hidden;isolation:isolate;background:linear-gradient(145deg,rgba(26,28,24,.98),rgba(10,13,14,.99) 48%,rgba(17,20,18,.98));border:1px solid #6f6748;padding:14px;display:grid;gap:12px;touch-action:manipulation;border-radius:10px;box-shadow:inset 0 0 0 1px rgba(190,177,104,.08),inset 0 -24px 50px rgba(0,0,0,.28),0 10px 24px rgba(0,0,0,.25)}.combat-dice-panel:before{content:\"\";position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.32;background:repeating-linear-gradient(90deg,transparent 0 47px,rgba(204,196,124,.035) 48px,transparent 49px),repeating-linear-gradient(0deg,transparent 0 31px,rgba(124,157,134,.03) 32px,transparent 33px)}.combat-dice-panel>*{position:relative;z-index:1}",
     ".combat-dice-title{font-family:'Play','Pretendard Std',system-ui,sans-serif;font-size:14px;font-weight:700;letter-spacing:.09em;color:#efe8cf;text-shadow:0 1px 0 #000,0 0 10px rgba(194,178,103,.16)}.combat-dice-meta{font-size:11px;color:#9ea99f;letter-spacing:.02em}",
     ".combat-targets{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}.combat-target{flex:0 0 auto;max-width:180px;padding:7px 9px;border:1px solid #46483d;background:linear-gradient(180deg,rgba(27,31,28,.92),rgba(16,19,18,.92));color:#c8cec7;border-radius:7px;font-size:11px;text-align:left;box-shadow:inset 0 0 0 1px rgba(255,255,255,.015)}.combat-target.active{border-color:#b9a85d;color:#fff7d7;box-shadow:inset 0 0 0 1px rgba(185,168,93,.22),0 0 10px rgba(185,168,93,.12)}.combat-target:disabled{opacity:.42;text-decoration:line-through}",
-    ".combat-dice-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;padding:6px 0 0}",
-    ".combat-die{--die-delay:0ms;position:relative;min-width:44px;min-height:76px;padding:4px 1px 23px;border:1px solid transparent;border-radius:12px;background:transparent;display:grid;place-items:center;overflow:visible;box-shadow:none;transition:background .18s,border-color .18s}",
+    ".combat-dice-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;padding:8px 0 0}",
+    ".combat-die{--die-delay:0ms;position:relative;min-width:44px;min-height:76px;padding:4px 0 24px;border:1px solid transparent;border-radius:12px;background:transparent;display:grid;place-items:center;overflow:visible;box-shadow:none;transition:background .18s,border-color .18s}",
     ".combat-die-shadow{position:absolute;left:16%;right:12%;bottom:24px;height:9px;border-radius:50%;background:#0008;filter:blur(4px);pointer-events:none}",
-    ".combat-die-object{position:relative;width:100%;max-width:76px;aspect-ratio:1;display:grid;place-items:center;transform-origin:50% 65%;z-index:1}",
+    ".combat-die-object{position:relative;width:100%;max-width:84px;aspect-ratio:1;display:grid;place-items:center;transform-origin:50% 65%;z-index:1}",
     ".combat-die-skin{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none;filter:drop-shadow(0 3px 2px #0005)}",
     ".combat-die-unknown{width:78%;aspect-ratio:1;display:grid;place-items:center;border:1px solid #645b49;border-radius:10px;background:linear-gradient(145deg,#25261f,#151816);color:#ad9e79;font:700 24px/1 'Play','Pretendard Std',system-ui,sans-serif}",
-    ".combat-die-hold-seal{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);display:block;visibility:hidden;min-width:30px;padding:3px 6px;border:1px solid #53836d;border-radius:5px;background:#172e25;color:#c4ead7;font:700 9px/1 'Pretendard Std',system-ui,sans-serif;letter-spacing:.04em;pointer-events:none}",
-    ".combat-die.held{border-color:#53836d;background:linear-gradient(180deg,#18362955,#12261e22);box-shadow:inset 0 0 0 1px #70b1940c}",
+    ".combat-die-hold-seal{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);display:block;visibility:hidden;min-width:0;padding:3px 0;border:0;border-radius:0;background:transparent;color:#9be1bc;font:700 9px/1 'Pretendard Std',system-ui,sans-serif;letter-spacing:.04em;pointer-events:none}",
+    ".combat-die.held{border-color:transparent;background:transparent;box-shadow:none}.combat-die.held .combat-die-hold-seal:before{content:\"\";display:inline-block;width:4px;height:4px;margin-right:4px;border-radius:50%;background:#82d9a9;vertical-align:middle}",
     ".combat-die.held .combat-die-hold-seal{visibility:visible}",
     ".combat-die:focus-visible{outline:2px solid #e8ca87;outline-offset:2px}",
     ".combat-die:active:not(:disabled) .combat-die-object{transform:translateY(2px)}",
@@ -499,7 +499,7 @@
   var DICE_SETTLE_ANIMATION_MS=170;
 
   function diceAsset(value){
-    return 'file:///android_asset/dice/die-'+String(value)+'.svg';
+    return 'file:///android_asset/dice/die-'+String(value)+'.png';
   }
 
   function allHeld(values){
