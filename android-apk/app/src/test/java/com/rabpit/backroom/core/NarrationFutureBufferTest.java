@@ -6,13 +6,13 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class NarrationFutureBufferTest {
-  private JSONArray steps(int start, int count) {
+  private JSONArray steps(int start, int count) throws Exception {
     JSONArray result = new JSONArray();
     for (int i = start; i < start + count; i++) result.put(new JSONObject()
         .put("turnId", "t" + i).put("authorityHash", "h" + i).put("worldKind", "QUIET"));
     return result;
   }
-  private JSONArray replies(NarrationFutureBuffer.Request request, int count) {
+  private JSONArray replies(NarrationFutureBuffer.Request request, int count) throws Exception {
     JSONArray result = new JSONArray();
     for (int i = 0; i < Math.min(count, request.steps.length()); i++) result.put(new JSONObject()
         .put("stepId", request.steps.getJSONObject(i).getString("turnId"))
