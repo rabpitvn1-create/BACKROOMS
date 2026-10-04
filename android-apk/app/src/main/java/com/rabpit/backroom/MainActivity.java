@@ -28,6 +28,7 @@ import com.rabpit.backroom.core.OfflinePresenter;
 import com.rabpit.backroom.core.NarrationProviderPolicy;
 import com.rabpit.backroom.core.NarrationFutureBuffer;
 import com.rabpit.backroom.core.NarrationProviderScheduler;
+import com.rabpit.backroom.core.NarrationHttpTransport;
 import com.rabpit.backroom.core.SafePresentationView;
 import com.rabpit.backroom.core.NarrationGuard;
 import com.rabpit.backroom.core.MilestoneCore;
@@ -38,9 +39,8 @@ import java.io.BufferedReader;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -66,6 +66,7 @@ public class MainActivity extends Activity {
   private final Object narrationFutureLock = new Object();
   private final NarrationFutureBuffer narrationBuffer = new NarrationFutureBuffer();
   private final NarrationProviderScheduler providerScheduler = new NarrationProviderScheduler();
+  private final ThreadLocal<Long> providerRequestDeadline = new ThreadLocal<>();
   private boolean narrationFutureStopped;
   private boolean narrationFuturePending;
   private int narrationFutureFailures;
@@ -334,34 +335,23 @@ public class MainActivity extends Activity {
   }
 
   private String postJson(String endpoint, String key, String authHeader, JSONObject payload) throws Exception {
-    HttpURLConnection connection = (HttpURLConnection) new URL(endpoint).openConnection();
-    connection.setRequestMethod("POST");
-    connection.setConnectTimeout(20000);
-    connection.setReadTimeout(60000);
-    connection.setDoOutput(true);
-    connection.setRequestProperty("Content-Type", "application/json");
-    connection.setRequestProperty(authHeader, authHeader.equals("Authorization") ? "Bearer " + key : key);
-    try (OutputStream output = connection.getOutputStream()) {
-      output.write(payload.toString().getBytes("UTF-8"));
-    }
+    Map<String, String> headers = new HashMap<>();
+    headers.put(authHeader, authHeader.equals("Authorization") ? "Bearer " + key : key);
+    return providerResponse(NarrationHttpTransport.post(endpoint, headers,
+        payload.toString(), requestDeadline()));
+  }
 
-    int status = connection.getResponseCode();
-    InputStream stream = status >= 200 && status < 300 ? connection.getInputStream() : connection.getErrorStream();
-    StringBuilder body = new StringBuilder();
-    if (stream != null) {
-      try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, "UTF-8"))) {
-        String line;
-        while ((line = reader.readLine()) != null) body.append(line);
-      }
-    }
-    String retryAfter = connection.getHeaderField("Retry-After");
-    connection.disconnect();
+  private long requestDeadline() {
+    Long deadline = providerRequestDeadline.get();
+    return deadline == null ? NarrationHttpTransport.deadlineAfterMillis(20_000L) : deadline;
+  }
 
-    if (status < 200 || status >= 300) {
-      String detail = body.length() > 220 ? body.substring(0, 220) : body.toString();
-      throw new HttpError(status, "Provider HTTP " + status + (detail.isEmpty() ? "" : ": " + detail), body.toString(), retryAfter);
+  private String providerResponse(NarrationHttpTransport.Response response) throws HttpError {
+    if (response.status < 200 || response.status >= 300) {
+      throw new HttpError(response.status, "Provider HTTP " + response.status,
+          response.body, response.retryAfter);
     }
-    return body.toString();
+    return response.body;
   }
 
   private String geminiText(String prompt) throws Exception {
@@ -399,10 +389,10 @@ public class MainActivity extends Activity {
     return output;
   }
 
-  /** Count content requests; key rotation and transport retries stay inside the existing provider chain. */
-  private String generateNarrationText(String prompt, int[] calls, boolean retry) throws Exception {
+  /** Count content requests; the initial writer and repair share one foreground deadline. */
+  private String generateNarrationText(String prompt, int[] calls, boolean retry, long deadlineNanos) throws Exception {
     calls[retry ? 1 : 0]++;
-    return generateScheduledText(prompt, false);
+    return generateScheduledText(prompt, false, deadlineNanos);
   }
 
   private String geminiResponseText(String raw) throws Exception {
@@ -497,39 +487,15 @@ public class MainActivity extends Activity {
   }
 
   private String postJsonHaiku(String endpoint, JSONObject payload, boolean anthropic) throws Exception {
-    HttpURLConnection connection = (HttpURLConnection) new URL(endpoint).openConnection();
-    connection.setRequestMethod("POST");
-    connection.setConnectTimeout(20_000);
-    connection.setReadTimeout(60_000);
-    connection.setDoOutput(true);
-    connection.setRequestProperty("Content-Type", "application/json");
+    Map<String, String> headers = new HashMap<>();
     if (anthropic) {
-      connection.setRequestProperty("x-api-key", BuildConfig.HAKU_API_KEY);
-      connection.setRequestProperty("anthropic-version", "2023-06-01");
+      headers.put("x-api-key", BuildConfig.HAKU_API_KEY);
+      headers.put("anthropic-version", "2023-06-01");
     } else {
-      connection.setRequestProperty("Authorization", "Bearer " + BuildConfig.HAKU_API_KEY);
+      headers.put("Authorization", "Bearer " + BuildConfig.HAKU_API_KEY);
     }
-    try (OutputStream output = connection.getOutputStream()) {
-      output.write(payload.toString().getBytes("UTF-8"));
-    }
-
-    int status = connection.getResponseCode();
-    InputStream stream = status >= 200 && status < 300 ? connection.getInputStream() : connection.getErrorStream();
-    StringBuilder body = new StringBuilder();
-    if (stream != null) {
-      try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, "UTF-8"))) {
-        String line;
-        while ((line = reader.readLine()) != null) body.append(line);
-      }
-    }
-    String retryAfter = connection.getHeaderField("Retry-After");
-    connection.disconnect();
-
-    if (status < 200 || status >= 300) {
-      String detail = body.length() > 220 ? body.substring(0, 220) : body.toString();
-      throw new HttpError(status, "Haiku HTTP " + status + (detail.isEmpty() ? "" : ": " + detail), body.toString(), retryAfter);
-    }
-    return body.toString();
+    return providerResponse(NarrationHttpTransport.post(endpoint, headers,
+        payload.toString(), requestDeadline()));
   }
 
   private String haikuAnthropicText(String prompt) throws Exception {
@@ -681,10 +647,10 @@ public class MainActivity extends Activity {
   private boolean configured(String key) { return key != null && !key.trim().isEmpty(); }
 
   private String generateText(String prompt) throws Exception {
-    return generateScheduledText(prompt, true);
+    return generateScheduledText(prompt, true, NarrationHttpTransport.deadlineAfterMillis(60_000L));
   }
 
-  private String generateScheduledText(String prompt, boolean background) throws Exception {
+  private String generateScheduledText(String prompt, boolean background, long deadlineNanos) throws Exception {
     String[] keys = geminiKeys();
     boolean[] configured = new boolean[NarrationProviderScheduler.SOURCE_COUNT];
     for (int i = 0; i < keys.length; i++) configured[i] = configured(keys[i]);
@@ -696,12 +662,17 @@ public class MainActivity extends Activity {
     int geminiAttempts = 0;
     int limit = background ? 4 : 3;
     for (int attempt = 0; attempt < limit; attempt++) {
+      long remaining = deadlineNanos - System.nanoTime();
+      if (remaining <= 0L || Thread.currentThread().isInterrupted()) break;
       int source = providerScheduler.acquire(background, urgent, configured, attempted,
           geminiAttempts, SystemClock.elapsedRealtime());
       if (source < 0) break;
       attempted[source] = true;
       if (source < NarrationProviderScheduler.GEMINI_COUNT) geminiAttempts++;
       long started = SystemClock.elapsedRealtime();
+      long slice = TimeUnit.MILLISECONDS.toNanos(background ? 20_000L : 10_000L);
+      long requestStartedNanos = System.nanoTime();
+      providerRequestDeadline.set(requestStartedNanos + Math.min(slice, deadlineNanos - requestStartedNanos));
       try {
         String output;
         if (source < NarrationProviderScheduler.GEMINI_COUNT) output = geminiTextOnce(prompt, keys[source]);
@@ -721,6 +692,8 @@ public class MainActivity extends Activity {
                 System.currentTimeMillis()) : 0L, ThreadLocalRandom.current().nextLong(501L));
         if (BuildConfig.DEBUG) Log.d(TAG, "NARRATION PROVIDER unavailable: source=" + source
             + " status=" + status + " background=" + background);
+      } finally {
+        providerRequestDeadline.remove();
       }
     }
     throw new Exception("Các nguồn narration đang bận hoặc tạm không khả dụng.");
@@ -1116,6 +1089,7 @@ public class MainActivity extends Activity {
           int[] promptChars = {0, 0};
           long[] providerMs = {0L, 0L};
           long[] validationMs = {0L};
+          final long narrationDeadline = NarrationHttpTransport.deadlineAfterMillis(30_000L);
           JSONObject generated = NarrationProviderPolicy.present(safeEvents, rejection -> {
             if (cachedForProvider != null) return cachedForProvider;
 
@@ -1141,7 +1115,7 @@ public class MainActivity extends Activity {
             long providerRequestStart = SystemClock.elapsedRealtime();
             try {
               JSONObject parsed = parseModelJson(generateNarrationText(prompt, providerCalls,
-                  !rejection.isEmpty()));
+                  !rejection.isEmpty(), narrationDeadline));
               parsed.remove("future");
               freshGenerated[0] = parsed;
               return parsed;

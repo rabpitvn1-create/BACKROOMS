@@ -16,8 +16,8 @@ test('foreground and background use health scheduling with bounded source attemp
     'android-apk/app/src/main/java/com/rabpit/backroom/core/SceneContextCompiler.java'), 'utf8');
   assert.match(method('narrationPrompt'), /SceneContextCompiler\.compile/);
   assert.match(compiler, /SafePresentationView\.narrativeText/);
-  assert.match(method('generateNarrationText'), /return generateScheduledText\(prompt, false\)/);
-  assert.match(method('generateText'), /return generateScheduledText\(prompt, true\)/);
+  assert.match(method('generateNarrationText'), /return generateScheduledText\(prompt, false, deadlineNanos\)/);
+  assert.match(method('generateText'), /return generateScheduledText\(prompt, true, NarrationHttpTransport\.deadlineAfterMillis\(60_000L\)\)/);
   const flow = method('generateScheduledText');
   assert.match(flow, /providerScheduler\.acquire/);
   assert.match(flow, /int limit = background \? 4 : 3/);
@@ -127,4 +127,21 @@ test('release PR checkout matches its merged workflow baseline', () => {
   const checkout = release.slice(release.indexOf('- uses: actions/checkout@v4'), release.indexOf('- name: Audit canon sources'));
   assert.ok(checkout.includes('ref: $' + '{{ github.sha }}'));
   assert.doesNotMatch(checkout, /pull_request\.head\.sha/);
+});
+
+
+test('scene content repair shares the foreground deadline and all providers use bounded transport', () => {
+  const start = source.indexOf('@JavascriptInterface public void submitTurn(');
+  const turn = source.slice(start, source.indexOf('@JavascriptInterface public void combatRoll(', start));
+  assert.equal((turn.match(/final long narrationDeadline =/g) || []).length, 1);
+  assert.ok(turn.indexOf('final long narrationDeadline =') < turn.indexOf('NarrationProviderPolicy.present('));
+  assert.match(turn, /!rejection\.isEmpty\(\), narrationDeadline/);
+  const scheduled = method('generateScheduledText');
+  assert.match(scheduled, /deadlineNanos - System\.nanoTime\(\)/);
+  assert.match(scheduled, /finally \{\s*providerRequestDeadline\.remove\(\)/);
+  for (const name of ['postJson', 'postJsonHaiku']) {
+    assert.match(method(name), /NarrationHttpTransport\.post/);
+    assert.match(method(name), /requestDeadline\(\)/);
+    assert.doesNotMatch(method(name), /setReadTimeout|readLine|disconnect/);
+  }
 });
