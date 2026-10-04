@@ -189,7 +189,7 @@ if(typeof module!=='undefined'&&module.exports)module.exports=SnapshotOverlayLay
       c.entities.forEach(function(entity){if(entity&&Number(entity.hp)!==0)raw.push(entity.key);});
     }
     if(!raw.length&&Array.isArray(f.entityEncounterKeys))raw=raw.concat(f.entityEncounterKeys);
-    if(!raw.length)raw.push(f.entityEncounterKey||f.currentEntityKey||s.entityEncounterKey||s.currentEntityKey||'');
+    if(!raw.length)raw.push(f.entityEncounterKey||f.currentEntityKey||s.entityEncounterKey||s.currentEntityKey||window.__combatVisualEntityKey||'');
     if(f.jeff&&(f.jeff.present===true||f.jeff.spawned===true))raw.push('jeff_the_killer');
     if(f.jane&&(f.jane.present===true||f.jane.spawned===true))raw.push('jane_the_killer');
     raw.forEach(function(value){var key=normalizeEntityKey(value);if(key&&out.indexOf(key)<0)out.push(key);});
