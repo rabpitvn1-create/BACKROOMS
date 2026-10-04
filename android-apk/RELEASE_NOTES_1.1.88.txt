@@ -1,0 +1,6 @@
+Backroom 1.1.88
+
+- Loại bỏ APK Autoplay thử nghiệm và toàn bộ logic autoplay/export ZIP khỏi bản ứng dụng.
+- Khôi phục runtime Android về một APK chính duy nhất; narrative audit chỉ còn dùng cho luồng debug/CI hiện có.
+- Giữ nguyên các thay đổi gameplay và Poker Dice đã có trên main.
+- Bump version từ 1.1.87 lên 1.1.88 (versionCode 133), đồng bộ APK artifact, GitHub Release tag và release verification.

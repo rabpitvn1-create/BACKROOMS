@@ -4,10 +4,6 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
 const html = fs.readFileSync(path.join(__dirname, '../app/src/main/assets/index.html'), 'utf8');
-const bridge = fs.readFileSync(path.join(__dirname, '../app/src/main/java/com/rabpit/backroom/MainActivity.java'), 'utf8');
-const audit = fs.readFileSync(path.join(__dirname, '../app/src/main/assets/narrative-audit.js'), 'utf8');
-const gradle = fs.readFileSync(path.join(__dirname, '../app/build.gradle'), 'utf8');
-const manifest = fs.readFileSync(path.join(__dirname, '../app/src/main/AndroidManifest.xml'), 'utf8');
 function harness(android) {
   const nodes = new Map();
   const document = {
@@ -53,24 +49,4 @@ test('browser fallback gives actionable feedback instead of pretending export su
   const {context,nodes}=harness();
   vm.runInContext('exportDiagnosticLog()',context);
   assert.match(nodes.get('logExportStatus').textContent,/ứng dụng Android/);
-});
-
-
-test('autoplay APK runs a fresh 50-turn audit and exports ZIP evidence without changing the normal package',()=>{
-  assert.match(gradle, /buildConfigField "boolean", "AUTOPLAY_ENABLED", "false"/);
-  assert.match(gradle, /autoplay \{[\s\S]*applicationIdSuffix '\.autoplay'[\s\S]*buildConfigField "boolean", "AUTOPLAY_ENABLED", "true"/);
-  assert.match(manifest, /android:label="\$\{appLabel\}"/);
-  assert.match(bridge, /BuildConfig\.AUTOPLAY_ENABLED \|\| \(BuildConfig\.DEBUG/);
-  assert.match(bridge, /FLAG_KEEP_SCREEN_ON/);
-  assert.match(bridge, /AUTOPLAY_SCREENSHOT_LIMIT = 24/);
-  assert.match(bridge, /new ZipOutputStream\(/);
-  assert.match(bridge, /"narrative-audit\.jsonl"/);
-  assert.match(bridge, /"diagnostic-log\.jsonl"/);
-  assert.match(bridge, /"screenshots\/" \+ screenshot\.getName\(\)/);
-  assert.match(bridge, /Intent\.ACTION_CREATE_DOCUMENT[\s\S]*"application\/zip"/);
-  assert.match(audit, /var MAX_ROUNDS = 50/);
-  assert.match(audit, /state = freshCoreGame\(\)/);
-  assert.match(audit, /Android\.autoplayFinish\(JSON\.stringify\(summary\)\)/);
-  assert.match(audit, /completed % 10 === 0/);
-  assert.match(audit, /slow_turn/);
 });
