@@ -9,6 +9,8 @@ import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parent
+REPO = ROOT.parent
+PONYTAIL_SKILLS = ('ponytail', 'ponytail-review', 'ponytail-audit', 'ponytail-debt', 'ponytail-gain', 'ponytail-help')
 spec = importlib.util.spec_from_file_location('usage', ROOT / 'ponytail-usage.py')
 usage = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(usage)
@@ -63,6 +65,28 @@ class ToolsTest(unittest.TestCase):
             del events[0]['payload']['info']['last_token_usage']['cache_write_tokens']
             p.write_text(json.dumps(events[0]))
             self.assertIsNone(usage.analyze(p)['cache_write_tokens_percent'])
+
+
+    def test_codex_ponytail_skills_match_vendored_sources(self):
+        for name in PONYTAIL_SKILLS:
+            source = REPO / 'skills' / name / 'SKILL.md'
+            codex = REPO / '.codex' / 'skills' / name / 'SKILL.md'
+            self.assertTrue(codex.is_file(), name)
+            self.assertEqual(codex.read_text(), source.read_text(), name)
+
+    def test_env_check_needs_no_provider_secret(self):
+        env = dict(os.environ)
+        env.pop('VILAO_API_KEY', None)
+        r = subprocess.run(['bash', str(ROOT / 'ponytail.sh'), '--env-check'], cwd=REPO, env=env, capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn('Ponytail skill: configured', r.stdout)
+        self.assertIn('VILAO_API_KEY: unavailable', r.stdout)
+
+    def test_launcher_has_no_codespace_or_system_sdkman_dependency(self):
+        text = (ROOT / 'ponytail.sh').read_text()
+        self.assertNotIn('/usr/local/sdkman', text)
+        self.assertNotIn('Codespaces Secret', text)
+        self.assertNotIn('sudo apt-get', text)
 
 
 if __name__ == '__main__':
