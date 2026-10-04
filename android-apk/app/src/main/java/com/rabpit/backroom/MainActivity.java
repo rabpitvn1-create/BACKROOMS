@@ -373,9 +373,13 @@ public class MainActivity extends Activity {
     runOnUiThread(() -> {
       if (autoplayScreenshotCount >= AUTOPLAY_SCREENSHOT_LIMIT
           || webView.getWidth() <= 0 || webView.getHeight() <= 0) {
-        appendNarrativeAuditRecord(new JSONObject().put("type", "screenshot_skipped")
-            .put("reason", reason == null ? "" : reason)
-            .put("limit", AUTOPLAY_SCREENSHOT_LIMIT).toString());
+        try {
+          appendNarrativeAuditRecord(new JSONObject().put("type", "screenshot_skipped")
+              .put("reason", reason == null ? "" : reason)
+              .put("limit", AUTOPLAY_SCREENSHOT_LIMIT).toString());
+        } catch (Exception error) {
+          DiagnosticLog.record("autoplay.screenshot.error", "reason", reason, "error", error);
+        }
         if (after != null) after.run();
         return;
       }
