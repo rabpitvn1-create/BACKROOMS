@@ -47,6 +47,20 @@ test('new humanoid Entities and Tâm Ma share one visual scale while Cao Minh ge
  const css=boot().styles.join('');assert.match(css,/snapshot>img\.snapshot-character\{z-index:4/);assert.match(css,/snapshot>img\.snapshot-entity\{[^}]*z-index:3/);
 });
 
+test('snapshot route streak HUD is compact, Backrooms-styled and reads the 8-step route state',()=>{
+ const r=boot({stateOverride:{flags:{},combat:{active:false},levelRoute:{streak:3,exitAvailable:false}}});
+ const hud=r.elements.find(e=>String(e.className||'').includes('snapshot-route-streak'));
+ assert.ok(hud);
+ assert.match(hud.innerHTML,/snapshot-route-exit/);
+ assert.match(hud.innerHTML,/>03<small>\/8<\/small>/);
+ assert.match(hud.innerHTML,/snapshot-route-fill" style="width:38%/);
+ const css=r.styles.join('');
+ assert.match(css,/\.snapshot-route-streak\{[^}]*width:118px;[^}]*height:42px/);
+ assert.match(css,/background:linear-gradient\(96deg,rgba\(8,9,7,\.32\)/);
+ assert.match(css,/clip-path:polygon\(0 0,100% 0,93% 100%,0 100%\)/);
+ assert.doesNotMatch(css,/\.snapshot-route-streak\{[^}]*background:#fff/i);
+});
+
 test('combat actor changes use rotation transitions instead of snapshot blinking',()=>{assert.match(source,/function rotateCombatActor\(/);assert.match(source,/@keyframes combat-turn-out/);assert.match(source,/@keyframes combat-turn-in/);});
 test('active Entity rotation preserves the existing player actor and snapshot background',()=>{
  const r=boot({stateOverride:{flags:{entityEncounterKeys:['hound','clump'],entityEncounterKey:'hound'},combat:{active:true,actorIndex:0,activeEntityIndex:0,participants:[{id:'cao_minh',name:'Cao Minh'}],entities:[{key:'hound',hp:10},{key:'clump',hp:10}],entity:{key:'hound',hp:10}}}});

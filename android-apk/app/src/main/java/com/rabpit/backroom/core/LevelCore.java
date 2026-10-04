@@ -386,6 +386,11 @@ final class LevelCore {
       output.put("level", level);
       output.put("levelKey", levelKey);
       output.put("label", displayNameForKey(levelKey));
+      JSONObject route = state == null ? null : state.optJSONObject(ROUTE_STATE);
+      int routeStreak = route == null ? 0 : route.optInt("streak", 0);
+      output.put("routeStreak", Math.max(0, Math.min(ROUTE_REQUIRED_STREAK, routeStreak)));
+      output.put("routeRequiredStreak", ROUTE_REQUIRED_STREAK);
+      output.put("routeExitAvailable", route != null && route.optBoolean("exitAvailable", false));
 
       JSONArray assets;
       String root;

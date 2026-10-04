@@ -21,11 +21,14 @@ test('legacy Tu Tien HUD frame and action plate assets are removed from disk',()
   assert.equal(fs.existsSync(path.join(assets,'hud/action_plate.png')),false);
 });
 
-test('snapshot returns to clean dark frame without decorative/status HUD layers',()=>{
+test('snapshot keeps the clean dark frame while allowing only the compact route streak HUD',()=>{
   assert.doesNotMatch(snapshot,/snapshot_frame\.png/);
   assert.doesNotMatch(snapshot,/\.snapshot-hud-frame/);
   assert.doesNotMatch(snapshot,/\.combat-status-hud/);
   assert.doesNotMatch(snapshot,/__combatStatusIcons/);
+  assert.match(snapshot,/\.snapshot-route-streak\{[^}]*width:118px;[^}]*height:42px/);
+  assert.match(snapshot,/snapshot-route-exit/);
+  assert.match(snapshot,/String\(current\)\.padStart\(2,'0'\)/);
   assert.match(snapshot,/\.combat-float\{[^}]*z-index:8/);
 });
 
