@@ -87,11 +87,8 @@ public final class OfflinePresenter {
                       ? reference + " xuất hiện " + location + ", giữ khoảng cách"
                           + (held.isEmpty() ? " với " : " và hướng " + held + " về phía ") + actor + "."
                       : reference + " hiện ra " + location + ".";
-          JSONArray details = view.optJSONArray("details");
-          if (details != null) for (int j = 0; j < details.length(); j++) {
-            String detail = details.optString(j, "").trim();
-            if (!detail.isEmpty()) sentence += " " + detail;
-          }
+          // Keep deterministic Entity intros compact. Registry details remain available as
+          // presentation/canon data, but the encounter line only needs silhouette + behavior.
         } else {
           // Keep compatibility with legacy projected views that have no registry presentation block.
           sentence = "hold_distance".equals(style)

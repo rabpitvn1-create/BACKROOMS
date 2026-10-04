@@ -25,6 +25,26 @@ public class OfflinePresenterTest {
         .getString("reply").contains("áp sát Cao Minh"));
   }
 
+  @Test public void entitySpawnKeepsRegistryDetailDumpOutOfCompactIntro() throws Exception {
+    JSONObject view = new JSONObject()
+        .put("eventType", "ENTITY_ENCOUNTER_STARTED")
+        .put("actor", "Cao Minh")
+        .put("subject", "một sinh vật hình người cao gầy bằng những sợi đen")
+        .put("entityAppearance", "một sinh vật hình người cao gầy bằng những sợi đen")
+        .put("entityLocation", "ở cuối dãy hành lang vàng")
+        .put("approachStyle", "emerge")
+        .put("details", new JSONArray()
+            .put("Lồng ngực rỗng lộ các bó sợi đen đan ngang.")
+            .put("Các ngón tay tách thành những móc dài."));
+    String reply = OfflinePresenter.present(new JSONArray().put(view), POISON).getString("reply");
+
+    assertEquals(
+        "Một sinh vật hình người cao gầy bằng những sợi đen hiện ra ở cuối dãy hành lang vàng.",
+        reply);
+    assertFalse(reply.contains("Lồng ngực"));
+    assertFalse(reply.contains("ngón tay"));
+  }
+
   @Test public void entityDeathNeverCallsProviderAndKeepsCanonicalEntityName() throws Exception {
     JSONObject state = new JSONObject();
     String before = state.toString();
