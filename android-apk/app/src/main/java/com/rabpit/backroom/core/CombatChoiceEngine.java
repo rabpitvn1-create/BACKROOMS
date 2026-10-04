@@ -20,6 +20,9 @@ public final class CombatChoiceEngine {
   static final int MAX_COMBAT_PARTICIPANTS = 4;
   static final int MAX_REROLLS = 3;
   static final int DICE_COUNT = 5;
+  static final int REROLL_BASE_WEIGHT = 12;
+  static final int HELD_FACE_WEIGHT_BONUS = 6;
+  static final int HELD_SEQUENCE_WEIGHT_BONUS = 18;
 
   private static final int ULTIMATE_BONUS_DAMAGE_PERCENT = 15;
   private static final int HUYET_MA_24_HIT_COUNT = 24;
@@ -590,13 +593,17 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
     return secondaryStatRoll(combat.optInt("seed", 1), round, actorIndex, salt) < chance;
   }
 
-  static int deterministicDie(int seed, int sequence, int slot) {
+  static int deterministicRoll(int seed, int sequence, int slot, int bound) {
     long mixed = (seed & 0xffffffffL) * 1_103_515_245L
         + (long)(sequence + 1) * 12_345L
         + (long)(slot + 1) * 2_654_435_761L;
     mixed ^= mixed >>> 17;
     mixed ^= mixed << 13;
-    return 1 + (int)Math.floorMod(mixed, 6L);
+    return (int)Math.floorMod(mixed, Math.max(1, bound));
+  }
+
+  static int deterministicDie(int seed, int sequence, int slot) {
+    return 1 + deterministicRoll(seed, sequence, slot, 6);
   }
 
   public static JSONObject start(JSONObject state, String entityKey, int gmLogIndex) throws Exception {
@@ -1561,10 +1568,23 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
       throws Exception {
     JSONArray values = dice.getJSONArray("values");
     JSONArray held = dice.getJSONArray("held");
+    boolean weightedReroll = respectHeld && hasAnyHeld(held);
     for (int i = 0; i < DICE_COUNT; i++) {
       if (respectHeld && held.optBoolean(i, false)) continue;
       int value;
-      if (usesScopedCombatRng(combat)) {
+      if (weightedReroll) {
+        int[] weights = rerollWeights(values, held, i);
+        int totalWeight = totalWeight(weights);
+        int roll;
+        if (usesScopedCombatRng(combat)) {
+          roll = nextCombatInt(combat, totalWeight);
+        } else {
+          int sequence = combat.optInt("rngSequence", 0);
+          roll = deterministicRoll(combat.optInt("seed", 1), sequence, i, totalWeight);
+          combat.put("rngSequence", sequence + 1);
+        }
+        value = weightedFace(roll, weights);
+      } else if (usesScopedCombatRng(combat)) {
         value = 1 + nextCombatInt(combat, 6);
       } else {
         int sequence = combat.optInt("rngSequence", 0);
@@ -1573,6 +1593,66 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
       }
       values.put(i, value);
     }
+  }
+
+  private static boolean hasAnyHeld(JSONArray held) {
+    if (held == null) return false;
+    for (int i = 0; i < Math.min(DICE_COUNT, held.length()); i++) {
+      if (held.optBoolean(i, false)) return true;
+    }
+    return false;
+  }
+
+  static int[] rerollWeights(JSONArray values, JSONArray held, int slot) {
+    int[] weights = new int[6];
+    for (int face = 0; face < weights.length; face++) weights[face] = REROLL_BASE_WEIGHT;
+    if (values == null || held == null || slot < 0 || slot >= DICE_COUNT) return weights;
+
+    int heldCount = 0;
+    for (int i = 0; i < DICE_COUNT; i++) {
+      if (!held.optBoolean(i, false)) continue;
+      heldCount++;
+      int heldFace = values.optInt(i, 0);
+      if (heldFace >= 1 && heldFace <= 6) {
+        weights[heldFace - 1] += HELD_FACE_WEIGHT_BONUS;
+      }
+    }
+
+    if (heldCount < 2 || held.optBoolean(slot, false)) return weights;
+
+    int[][] orderedStraights = {
+        {1, 2, 3, 4, 5},
+        {5, 4, 3, 2, 1},
+        {2, 3, 4, 5, 6},
+        {6, 5, 4, 3, 2}
+    };
+    for (int[] target : orderedStraights) {
+      boolean compatible = true;
+      for (int i = 0; i < DICE_COUNT; i++) {
+        if (held.optBoolean(i, false) && values.optInt(i, 0) != target[i]) {
+          compatible = false;
+          break;
+        }
+      }
+      if (compatible) weights[target[slot] - 1] += HELD_SEQUENCE_WEIGHT_BONUS;
+    }
+    return weights;
+  }
+
+  private static int totalWeight(int[] weights) {
+    int total = 0;
+    for (int weight : weights) total += Math.max(0, weight);
+    return Math.max(1, total);
+  }
+
+  static int weightedFace(int roll, int[] weights) {
+    int cursor = Math.max(0, roll);
+    for (int face = 0; face < weights.length; face++) {
+      int weight = Math.max(0, weights[face]);
+      if (cursor < weight) return face + 1;
+      cursor -= weight;
+    }
+    return 6;
   }
 
   private static void updateHand(JSONObject dice) throws Exception {
