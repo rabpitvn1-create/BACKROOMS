@@ -349,7 +349,6 @@ public final class GameCoreFacade implements AutoCloseable {
   }
 
   public synchronized String commitNarration(String stateJson, boolean acknowledgePendingIntro) {
-    DiagnosticLog.record("core.commitNarration", "stateJson", stateJson, "acknowledgePendingIntro", acknowledgePendingIntro);
     JSONObject submitted = parseState(stateJson);
     JSONObject state = parseState(liveStateJson);
     try {
@@ -360,7 +359,6 @@ public final class GameCoreFacade implements AutoCloseable {
       persist(state);
       return clientSafeState(state).toString();
     } catch (Exception e) {
-      DiagnosticLog.record("core.error", "error", e);
       throw new IllegalStateException("Không thể lưu narration.", e);
     }
   }
