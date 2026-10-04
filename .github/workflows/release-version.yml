@@ -249,7 +249,7 @@ jobs:
 
       - name: Run Java tests and build debug APK
         working-directory: android-apk
-        run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
+        run: gradle :app:testDebugUnitTest :app:assembleDebug :app:assembleAutoplay --no-daemon
 
       - name: Run PR #431 emulator narrative audit
         if: github.event_name == 'pull_request' && github.event.pull_request.number == 431
@@ -272,7 +272,23 @@ jobs:
           retention-days: 7
 
       - name: Prepare APK
-        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.1.87.apk
+        run: |
+          cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.1.87.apk
+          cp android-apk/app/build/outputs/apk/autoplay/app-autoplay.apk Backroom-Autoplay-1.1.87.apk
+
+      - name: Verify autoplay APK
+        run: |
+          set -euo pipefail
+          test -s Backroom-Autoplay-1.1.87.apk
+          BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          "$BUILD_TOOLS/apksigner" verify --verbose Backroom-Autoplay-1.1.87.apk
+          BADGING=$("$BUILD_TOOLS/aapt" dump badging Backroom-Autoplay-1.1.87.apk)
+          printf '%s\n' "$BADGING"
+          grep -Fq "package: name='com.rabpit.backroom.autoplay'" <<<"$BADGING"
+          grep -Fq "versionName='1.1.87-autoplay'" <<<"$BADGING"
+          grep -Fq "application-label:'Backroom Autoplay'" <<<"$BADGING"
+          grep -Fq "launchable-activity: name='com.rabpit.backroom.MainActivity'" <<<"$BADGING"
+          unzip -l Backroom-Autoplay-1.1.87.apk | grep -q 'assets/narrative-audit.js'
 
       - name: Verify packaged APK
         run: |
@@ -361,6 +377,14 @@ jobs:
         with:
           name: Backroom-1.1.87-debug-apk
           path: Backroom-1.1.87.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload autoplay APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Backroom-Autoplay-1.1.87-apk
+          path: Backroom-Autoplay-1.1.87.apk
           if-no-files-found: error
           retention-days: 14
 

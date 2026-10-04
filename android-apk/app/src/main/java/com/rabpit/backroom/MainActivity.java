@@ -3,6 +3,8 @@ package com.rabpit.backroom;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.net.Uri;
 import android.webkit.WebChromeClient;
 import android.webkit.ConsoleMessage;
@@ -57,6 +59,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class MainActivity extends Activity {
   private static final String TAG = "BackroomMain";
@@ -70,8 +74,13 @@ public class MainActivity extends Activity {
   private static final float BACKGROUND_MUSIC_VOLUME = 0.18f;
   private WebView webView;
   private static final int EXPORT_LOG_REQUEST = 4107;
+  private static final int EXPORT_AUTOPLAY_ZIP_REQUEST = 4108;
+  private static final int AUTOPLAY_SCREENSHOT_LIMIT = 24;
   private File pendingDiagnosticExport;
   private boolean diagnosticExportPending;
+  private File pendingAutoplayExport;
+  private boolean autoplayExportPending;
+  private int autoplayScreenshotCount;
   private MediaPlayer backgroundMusic;
   private boolean backgroundMusicPrepared;
   private boolean activityResumed;
@@ -97,6 +106,9 @@ public class MainActivity extends Activity {
   @Override public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+    if (BuildConfig.AUTOPLAY_ENABLED) {
+      getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    }
     DiagnosticLog.initialize(getFilesDir(), BuildConfig.GEMINI_API_KEY_1, BuildConfig.GEMINI_API_KEY_2,
         BuildConfig.GEMINI_API_KEY_3, BuildConfig.GEMINI_API_KEY_4, BuildConfig.GEMINI_API_KEY_5,
         BuildConfig.HAKU_API_KEY, BuildConfig.LUNA_API_KEY, BuildConfig.SOL_API_KEY, BuildConfig.GEHIHI_API_KEY);
@@ -110,7 +122,7 @@ public class MainActivity extends Activity {
       DiagnosticLog.record("app.error", "error", error);
       Log.e(TAG, "Milestone assets failed validation", error);
     }
-    if (narrativeAuditEnabled()) deleteFile("narrative-audit.jsonl");
+    if (narrativeAuditEnabled()) resetNarrativeAuditArtifacts();
     if (savedInstanceState != null && savedInstanceState.getBoolean("diagnosticExportPending", false)) {
       File snapshot = new File(getCacheDir(), "backroom-diagnostic-export.jsonl");
       if (snapshot.exists()) { pendingDiagnosticExport = snapshot; diagnosticExportPending = true; }
@@ -313,8 +325,167 @@ public class MainActivity extends Activity {
   }
 
   private boolean narrativeAuditEnabled() {
-    return BuildConfig.DEBUG && getIntent() != null
-        && getIntent().getBooleanExtra("narrative_audit", false);
+    return BuildConfig.AUTOPLAY_ENABLED || (BuildConfig.DEBUG && getIntent() != null
+        && getIntent().getBooleanExtra("narrative_audit", false));
+  }
+
+  private File autoplayScreenshotDirectory() {
+    File directory = new File(getFilesDir(), "autoplay-screenshots");
+    if (!directory.exists() && !directory.mkdirs()) {
+      DiagnosticLog.record("autoplay.screenshot_dir.error", "path", directory.getAbsolutePath());
+    }
+    return directory;
+  }
+
+  private void resetNarrativeAuditArtifacts() {
+    deleteFile("narrative-audit.jsonl");
+    File[] screenshots = autoplayScreenshotDirectory().listFiles();
+    if (screenshots != null) {
+      for (File screenshot : screenshots) if (!screenshot.delete()) {
+        DiagnosticLog.record("autoplay.screenshot_delete.error", "file", screenshot.getName());
+      }
+    }
+    autoplayScreenshotCount = 0;
+  }
+
+  private synchronized void appendNarrativeAuditRecord(String json) {
+    if (!narrativeAuditEnabled()) return;
+    try (FileOutputStream output = openFileOutput("narrative-audit.jsonl", MODE_APPEND)) {
+      output.write((json + "\n").getBytes("UTF-8"));
+      output.flush();
+    } catch (Exception error) {
+      DiagnosticLog.record("app.error", "error", error);
+      Log.e(TAG, "Unable to write narrative audit record", error);
+    }
+  }
+
+  private String safeAutoplayFilePart(String value) {
+    String safe = value == null ? "event" : value.replaceAll("[^A-Za-z0-9._-]+", "-");
+    if (safe.isEmpty()) safe = "event";
+    return safe.length() > 48 ? safe.substring(0, 48) : safe;
+  }
+
+  private void captureAutoplayScreenshot(String reason, String metadataJson, Runnable after) {
+    if (!BuildConfig.AUTOPLAY_ENABLED || webView == null) {
+      if (after != null) after.run();
+      return;
+    }
+    runOnUiThread(() -> {
+      if (autoplayScreenshotCount >= AUTOPLAY_SCREENSHOT_LIMIT
+          || webView.getWidth() <= 0 || webView.getHeight() <= 0) {
+        appendNarrativeAuditRecord(new JSONObject().put("type", "screenshot_skipped")
+            .put("reason", reason == null ? "" : reason)
+            .put("limit", AUTOPLAY_SCREENSHOT_LIMIT).toString());
+        if (after != null) after.run();
+        return;
+      }
+      Bitmap bitmap = null;
+      try {
+        bitmap = Bitmap.createBitmap(webView.getWidth(), webView.getHeight(), Bitmap.Config.ARGB_8888);
+        webView.draw(new Canvas(bitmap));
+        int number = ++autoplayScreenshotCount;
+        String filename = String.format("%02d-%s.png", number, safeAutoplayFilePart(reason));
+        File target = new File(autoplayScreenshotDirectory(), filename);
+        Bitmap captured = bitmap;
+        io.execute(() -> {
+          try (FileOutputStream output = new FileOutputStream(target)) {
+            if (!captured.compress(Bitmap.CompressFormat.PNG, 100, output)) {
+              throw new java.io.IOException("PNG compression failed");
+            }
+            JSONObject record = new JSONObject().put("type", "screenshot")
+                .put("reason", reason == null ? "" : reason).put("file", filename);
+            try {
+              if (metadataJson != null && !metadataJson.trim().isEmpty()) {
+                record.put("metadata", new JSONObject(metadataJson));
+              }
+            } catch (Exception ignored) {
+              record.put("metadataText", metadataJson);
+            }
+            appendNarrativeAuditRecord(record.toString());
+          } catch (Exception error) {
+            DiagnosticLog.record("autoplay.screenshot.error", "reason", reason, "error", error);
+          } finally {
+            captured.recycle();
+            if (after != null) after.run();
+          }
+        });
+      } catch (Exception error) {
+        if (bitmap != null) bitmap.recycle();
+        DiagnosticLog.record("autoplay.screenshot.error", "reason", reason, "error", error);
+        if (after != null) after.run();
+      }
+    });
+  }
+
+  private void addZipFile(ZipOutputStream zip, File source, String entryName) throws Exception {
+    if (source == null || !source.isFile()) return;
+    zip.putNextEntry(new ZipEntry(entryName));
+    try (InputStream input = new FileInputStream(source)) {
+      byte[] buffer = new byte[8192];
+      int count;
+      while ((count = input.read(buffer)) != -1) zip.write(buffer, 0, count);
+    }
+    zip.closeEntry();
+  }
+
+  private void prepareAutoplayZip(String summaryJson) {
+    io.execute(() -> {
+      File zipFile = new File(getCacheDir(), "Backroom-Autoplay-Audit.zip");
+      File diagnostics = new File(getCacheDir(), "autoplay-diagnostic.jsonl");
+      try {
+        JSONObject metadata = new JSONObject().put("versionName", BuildConfig.VERSION_NAME)
+            .put("versionCode", BuildConfig.VERSION_CODE)
+            .put("sourceRevision", BuildConfig.SOURCE_REVISION.isEmpty()
+                ? "unavailable (non-CI build)" : BuildConfig.SOURCE_REVISION)
+            .put("androidApi", Build.VERSION.SDK_INT)
+            .put("device", Build.MANUFACTURER + " " + Build.MODEL)
+            .put("autoplay", true)
+            .put("currentCoreState", new JSONObject(gameCore.currentCoreState()));
+        DiagnosticLog.snapshot(diagnostics, metadata);
+        try (ZipOutputStream zip = new ZipOutputStream(new FileOutputStream(zipFile))) {
+          addZipFile(zip, new File(getFilesDir(), "narrative-audit.jsonl"), "narrative-audit.jsonl");
+          addZipFile(zip, diagnostics, "diagnostic-log.jsonl");
+          File[] screenshots = autoplayScreenshotDirectory().listFiles();
+          if (screenshots != null) {
+            java.util.Arrays.sort(screenshots, (a, b) -> a.getName().compareTo(b.getName()));
+            for (File screenshot : screenshots) {
+              addZipFile(zip, screenshot, "screenshots/" + screenshot.getName());
+            }
+          }
+          zip.putNextEntry(new ZipEntry("summary.json"));
+          zip.write((summaryJson == null || summaryJson.trim().isEmpty() ? "{}" : summaryJson)
+              .getBytes("UTF-8"));
+          zip.closeEntry();
+        }
+        diagnostics.delete();
+        runOnUiThread(() -> {
+          pendingAutoplayExport = zipFile;
+          try {
+            Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT)
+                .addCategory(Intent.CATEGORY_OPENABLE).setType("application/zip")
+                .putExtra(Intent.EXTRA_TITLE,
+                    "Backroom-Autoplay-Audit-" + System.currentTimeMillis() + ".zip");
+            startActivityForResult(intent, EXPORT_AUTOPLAY_ZIP_REQUEST);
+          } catch (Exception error) {
+            pendingAutoplayExport = null;
+            autoplayExportPending = false;
+            zipFile.delete();
+            DiagnosticLog.record("autoplay.export.error", "error", error);
+            Toast.makeText(MainActivity.this, "Không thể mở hộp thoại lưu ZIP.",
+                Toast.LENGTH_LONG).show();
+          }
+        });
+      } catch (Exception error) {
+        diagnostics.delete();
+        zipFile.delete();
+        DiagnosticLog.record("autoplay.export.error", "error", error);
+        runOnUiThread(() -> {
+          autoplayExportPending = false;
+          Toast.makeText(MainActivity.this, "Không thể tạo ZIP autoplay.",
+              Toast.LENGTH_LONG).show();
+        });
+      }
+    });
   }
 
   private void installNarrativeAudit() {
@@ -1067,6 +1238,41 @@ public class MainActivity extends Activity {
 
   @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     super.onActivityResult(requestCode, resultCode, data);
+    if (requestCode == EXPORT_AUTOPLAY_ZIP_REQUEST) {
+      final File report = pendingAutoplayExport;
+      pendingAutoplayExport = null;
+      Uri target = data == null ? null : data.getData();
+      if (resultCode != RESULT_OK || target == null || report == null) {
+        if (report != null) report.delete();
+        autoplayExportPending = false;
+        Toast.makeText(this, "Đã hủy lưu ZIP autoplay.", Toast.LENGTH_LONG).show();
+        return;
+      }
+      io.execute(() -> {
+        String message;
+        try (InputStream input = new FileInputStream(report);
+             OutputStream output = getContentResolver().openOutputStream(target, "w")) {
+          if (output == null) throw new java.io.IOException("Document output unavailable");
+          byte[] buffer = new byte[8192];
+          int count;
+          while ((count = input.read(buffer)) != -1) output.write(buffer, 0, count);
+          output.flush();
+          message = "Đã lưu ZIP autoplay.";
+          DiagnosticLog.record("autoplay.export.saved");
+        } catch (Exception error) {
+          DiagnosticLog.record("autoplay.export.error", "error", error);
+          message = "Không thể lưu ZIP autoplay.";
+        } finally {
+          report.delete();
+        }
+        final String result = message;
+        runOnUiThread(() -> {
+          autoplayExportPending = false;
+          Toast.makeText(MainActivity.this, result, Toast.LENGTH_LONG).show();
+        });
+      });
+      return;
+    }
     if (requestCode != EXPORT_LOG_REQUEST) return;
     final File snapshot = pendingDiagnosticExport;
     pendingDiagnosticExport = null;
@@ -1113,15 +1319,18 @@ public class MainActivity extends Activity {
     }
 
     @JavascriptInterface public void narrativeAuditRecord(String json) {
-      if (!narrativeAuditEnabled()) return;
-      try (FileOutputStream output =
-          openFileOutput("narrative-audit.jsonl", MODE_APPEND)) {
-        output.write((json + "\n").getBytes("UTF-8"));
-        output.flush();
-      } catch (Exception error) {
-        DiagnosticLog.record("app.error", "error", error);
-        Log.e(TAG, "Unable to write narrative audit record", error);
-      }
+      appendNarrativeAuditRecord(json);
+    }
+
+    @JavascriptInterface public void autoplayCapture(String reason, String metadataJson) {
+      if (!BuildConfig.AUTOPLAY_ENABLED) return;
+      captureAutoplayScreenshot(reason, metadataJson, null);
+    }
+
+    @JavascriptInterface public void autoplayFinish(String summaryJson) {
+      if (!BuildConfig.AUTOPLAY_ENABLED || autoplayExportPending) return;
+      autoplayExportPending = true;
+      captureAutoplayScreenshot("final", summaryJson, () -> prepareAutoplayZip(summaryJson));
     }
 
     @JavascriptInterface public void prefetchChoices(String choicesJson) {

@@ -35,6 +35,8 @@ android {
     targetSdk 35
     versionCode 132
     versionName '1.1.87'
+    manifestPlaceholders = [appLabel: "Backroom"]
+    buildConfigField "boolean", "AUTOPLAY_ENABLED", "false"
     buildConfigField "String", "SOURCE_REVISION", "\"" + secret("GITHUB_SHA") + "\""
     buildConfigField "String", "LUNA_API_KEY", "\"" + secret("LUNA_API_KEY") + "\""
     buildConfigField "String", "LUNA_BASE_URL", "\"" + secret("LUNA_BASE_URL") + "\""
@@ -56,6 +58,13 @@ android {
   }
 
   buildTypes {
+    autoplay {
+      initWith debug
+      applicationIdSuffix '.autoplay'
+      versionNameSuffix '-autoplay'
+      manifestPlaceholders = [appLabel: "Backroom Autoplay"]
+      buildConfigField "boolean", "AUTOPLAY_ENABLED", "true"
+    }
     release {
       minifyEnabled false
     }
