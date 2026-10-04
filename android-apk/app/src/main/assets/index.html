@@ -51,6 +51,18 @@
   outline-offset:2px;
 }
 
+/* Menu status: compact amber accents, wrapping values and accessible log export. */
+.status-card{background:linear-gradient(135deg,#191a15,#0e1114 65%);border-color:#625235}
+.status-card h2{color:#e8c477}
+.status-card .row{grid-template-columns:76px minmax(0,1fr);gap:10px;padding:10px 0}
+.status-card .row:last-child{border-bottom:0}
+.status-card .row>span,.mode-controls{min-width:0;overflow-wrap:anywhere;line-height:1.5}
+.mode-controls{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.mode-controls>span{flex:1 1 150px}
+#exportLog{flex:0 0 auto;min-height:36px;padding:6px 10px;font-size:11px;letter-spacing:.04em;color:#ebcc8e;border-color:#71603c;background:#29251a}
+#exportLog:focus-visible{outline:2px solid #ebcc8e;outline-offset:3px}
+#exportLog:disabled{opacity:.55}
+.log-export-status{margin:8px 0 0;color:#acb6bf;font-size:12px;line-height:1.45}
 </style>
 </head>
 <body>
@@ -78,7 +90,8 @@
   <section class="game-menu-sheet" role="dialog" aria-modal="true" aria-labelledby="gameMenuTitle">
     <div class="game-menu-head"><h2 id="gameMenuTitle">GAME MENU</h2><button class="game-menu-close" id="gameMenuClose" type="button" aria-label="Đóng menu">×</button></div>
     <aside class="side" id="managementPanel">
-<div class="card"><h2>Trạng thái</h2><div class="row"><b>Vị trí</b><span id="location"></span></div><div class="row"><b>Chế độ</b><span id="mode"></span></div><div class="row"><b>Nhân vật</b><span id="player"></span></div></div>
+<div class="card status-card"><h2>Trạng thái</h2><div class="row"><b>Vị trí</b><span id="location"></span></div><div class="row"><b>Chế độ</b><div class="mode-controls"><span id="mode"></span><button id="exportLog" type="button" onclick="exportDiagnosticLog()" aria-label="Xuất LOG chẩn đoán chi tiết">Xuất LOG</button></div></div><div class="row"><b>Nhân vật</b><span id="player"></span></div></div>
+<p id="logExportStatus" class="log-export-status" role="status" aria-live="polite" hidden></p>
 <div class="card"><h2>Save / Load</h2><div class="actions"><button onclick="save()">Lưu</button><button onclick="load()">Tải</button><button class="wide" onclick="resetGame()">Bắt đầu lại từ đầu</button><button class="wide danger" onclick="clearSave()">Xóa save trên máy</button></div></div>
 <div class="card"><h2>Party</h2><div class="chips" id="party"></div></div>
 <div class="card"><h2>Inventory</h2><div class="chips" id="inventory"></div></div>
@@ -157,7 +170,7 @@ const initial={
 
 const byId=id=>document.getElementById(id);
 const titleEl=byId("title"),locationEl=byId("location"),modeEl=byId("mode"),playerEl=byId("player"),partyEl=byId("party"),inventoryEl=byId("inventory"),logEl=byId("log"),statusEl=byId("status"),formEl=byId("form"),actionEl=byId("action"),submitEl=byId("submit");
-function normalizeCoreState(value){try{return window.Android&&typeof Android.normalizeState==="function"?JSON.parse(Android.normalizeState(JSON.stringify(value))):value}catch(_){return value}}
+function normalizeCoreState(value){try{return window.Android&&typeof Android.normalizeState==="function"?JSON.parse(Android.normalizeState(JSON.stringify(value))):value}catch(error){if(window.Android&&Android.diagnosticEvent)Android.diagnosticEvent(JSON.stringify({event:"ui.normalize.error",message:String(error),stack:error.stack||""}));return value}}
 let state=normalizeCoreState(initial);
 let busy=false;
 
@@ -202,10 +215,48 @@ if(state.turn===1){
 function esc(s){const d=document.createElement("div");d.textContent=s||"";return d.innerHTML}
 function chips(items){return items&&items.length?items.map(x=>"<span>"+esc(typeof x==="string"?x:x.name||"—")+"</span>").join(""):"<span>Trống.</span>"}
 function levelTitle(){const key=String(state&&state.currentLevelKey||state&&state.currentLevel||0);return LEVEL_NODE_TITLES[key]||("Level "+key)}
+function menuLocation(s){
+  const key=inferLevelKey(s);
+  const title=(LEVEL_NODE_TITLES[key]||("Level "+key)).replace(/\s*:\s*/," - ");
+  const raw=String(s&&s.location||"").trim();
+  const unknown=!raw||/chưa xác định|unknown|unidentified/i.test(raw)||raw===initial.location;
+  const label=unknown?"Chưa xác định vị trí.":raw.replace(/[.。]+$/,"")+".";
+  return title+" • "+label;
+}
+function menuCharacter(s){
+  const p=s&&s.player||{};
+  const name=String(p.name||"Cao Minh");
+  return p.id==="cao_minh"||name==="Cao Minh"?name+" - Vạn Giới Ma Tôn":name;
+}
+function exportDiagnosticLog(){
+  const message=byId("logExportStatus");
+  message.hidden=false;
+  if(!window.Android||typeof Android.exportDiagnosticLog!=="function"){
+    message.textContent="Xuất LOG cần chạy trong ứng dụng Android.";return;
+  }
+  byId("exportLog").disabled=true;
+  message.textContent="Đang chuẩn bị LOG chẩn đoán…";
+  try{Android.exportDiagnosticLog()}catch(error){window.backroomLogExportStatus(String(error.message||error))}
+}
+window.backroomLogExportStatus=message=>{
+  byId("exportLog").disabled=false;
+  byId("logExportStatus").hidden=false;
+  byId("logExportStatus").textContent=message;
+};
+window.addEventListener("error",event=>{
+  if(window.Android&&Android.diagnosticEvent)Android.diagnosticEvent(JSON.stringify({event:"js.error",message:event.message,file:event.filename,line:event.lineno,column:event.colno,stack:event.error&&event.error.stack||""}));
+});
+window.addEventListener("unhandledrejection",event=>{
+  if(window.Android&&Android.diagnosticEvent)Android.diagnosticEvent(JSON.stringify({event:"js.unhandledrejection",message:String(event.reason),stack:event.reason&&event.reason.stack||""}));
+});
+document.addEventListener("click",event=>{
+  const target=event.target&&event.target.closest&&event.target.closest("button");
+  if(target&&window.Android&&Android.diagnosticEvent)Android.diagnosticEvent(JSON.stringify({event:"ui.click",id:target.id,text:target.textContent,disabled:target.disabled}));
+},true);
 function partyDisplayItems(){const result=[];const seen=new Set();const add=x=>{if(!x)return;const name=typeof x==="string"?x:String(x.name||x.id||"").trim();if(!name)return;const key=name.toLocaleLowerCase("vi");if(seen.has(key))return;seen.add(key);result.push(typeof x==="string"?{name}:x)};add(state&&state.player||{name:"Cao Minh"});(Array.isArray(state&&state.party)?state.party:[]).filter(x=>x&&x.joined===true).forEach(add);return result}
-function render(){titleEl.textContent=levelTitle();locationEl.textContent=state.location;modeEl.textContent=state.mode;playerEl.textContent=(state.player&&state.player.name)||"Cao Minh";partyEl.innerHTML=chips(partyDisplayItems());inventoryEl.innerHTML=chips(state.inventory);logEl.innerHTML=(state.log||[]).map(x=>"<article class='message "+(x.role==="player"?"player":"")+"'><div class='role'>"+(x.role==="player"?"BẠN":"GAME MASTER")+"</div><div class='text'>"+esc(x.role==="player"&&x.text==="__loot:open_chest"?"Mở rương":x.text)+"</div></article>").join("")}
-function save(){if(busy||window.__combatBusy)return;try{if(!window.Android||!Android.saveCheckpoint)throw Error("Core chưa sẵn sàng");Android.saveCheckpoint();statusEl.textContent="Đã lưu game."}catch(error){statusEl.textContent=error.message||"Không thể lưu game."}}
-function load(){if(busy||window.__combatBusy)return;try{if(!window.Android||!Android.loadCheckpoint)throw Error("Core chưa sẵn sàng");state=ensureCurrentLevel(JSON.parse(Android.loadCheckpoint()));state.characterCanon=CURRENT_CHARACTER_CANON;render();if(window.backroomPrefetchChoices)window.backroomPrefetchChoices();statusEl.textContent="Đã tải bản lưu."}catch(error){statusEl.textContent=error.message||"Chưa có bản lưu."}}
+function render(){titleEl.textContent=levelTitle();locationEl.textContent=menuLocation(state);modeEl.textContent=state.mode==="ai"?"Artificial Intelligence Mode":String(state.mode||"—");playerEl.textContent=menuCharacter(state);partyEl.innerHTML=chips(partyDisplayItems());inventoryEl.innerHTML=chips(state.inventory);logEl.innerHTML=(state.log||[]).map(x=>"<article class='message "+(x.role==="player"?"player":"")+"'><div class='role'>"+(x.role==="player"?"BẠN":"GAME MASTER")+"</div><div class='text'>"+esc(x.role==="player"&&x.text==="__loot:open_chest"?"Mở rương":x.text)+"</div></article>").join("")}
+function save(){if(busy||window.__combatBusy)return;try{if(!window.Android||!Android.saveCheckpoint)throw Error("Core chưa sẵn sàng");Android.saveCheckpoint();statusEl.textContent="Đã lưu game."}catch(error){if(window.Android&&Android.diagnosticEvent)Android.diagnosticEvent(JSON.stringify({event:"ui.checkpoint.error",message:String(error),stack:error.stack||""}));statusEl.textContent=error.message||"Không thể lưu game."}}
+function load(){if(busy||window.__combatBusy)return;try{if(!window.Android||!Android.loadCheckpoint)throw Error("Core chưa sẵn sàng");state=ensureCurrentLevel(JSON.parse(Android.loadCheckpoint()));state.characterCanon=CURRENT_CHARACTER_CANON;render();if(window.backroomPrefetchChoices)window.backroomPrefetchChoices();statusEl.textContent="Đã tải bản lưu."}catch(error){if(window.Android&&Android.diagnosticEvent)Android.diagnosticEvent(JSON.stringify({event:"ui.checkpoint.error",message:String(error),stack:error.stack||""}));statusEl.textContent=error.message||"Chưa có bản lưu."}}
 function freshCoreGame(){const fresh=JSON.parse(JSON.stringify(initial));return window.Android&&typeof Android.startNewGame==="function"?JSON.parse(Android.startNewGame(JSON.stringify(fresh))):fresh}
 function resetGame(){if(confirm("Bắt đầu lại từ đầu?")){state=freshCoreGame();render();if(window.backroomPrefetchChoices)window.backroomPrefetchChoices()}}
 function clearSave(){if(confirm("Xóa save trên máy?")){if(window.Android&&Android.clearCheckpoint)Android.clearCheckpoint();localStorage.removeItem("backroom-apk-state");state=freshCoreGame();render();if(window.backroomPrefetchChoices)window.backroomPrefetchChoices()}}

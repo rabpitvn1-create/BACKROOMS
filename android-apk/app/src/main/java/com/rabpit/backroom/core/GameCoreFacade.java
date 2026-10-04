@@ -56,6 +56,7 @@ public final class GameCoreFacade implements AutoCloseable {
   }
 
   public synchronized String processRule(String legacyStateJson, String action) {
+    DiagnosticLog.record("core.processRule", "legacyStateJson", legacyStateJson, "action", action);
     JSONObject legacy = parseState(legacyStateJson);
     JSONObject stored = parseState(liveStateJson);
     if (stored.length() > 0) legacy = stored;
@@ -105,6 +106,7 @@ public final class GameCoreFacade implements AutoCloseable {
       preparedTurns.put(turnId, prepared);
       return preparedResponse(legacy, prepared);
     } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
       debug("processRule failed: " + e.getMessage());
       return response(false, legacy, safeMessage(e), "core_error", null);
     }
@@ -199,6 +201,7 @@ public final class GameCoreFacade implements AutoCloseable {
 
   /** Returns a hypothetical post-turn state without writing preferences or retaining a turn attempt. */
   public synchronized String previewTurn(String action, String expectedBaseHash) {
+    DiagnosticLog.record("core.previewTurn", "action", action, "expectedBaseHash", expectedBaseHash);
     JSONObject base = parseState(liveStateJson);
     try {
       String text = action == null ? "" : action.trim();
@@ -224,6 +227,7 @@ public final class GameCoreFacade implements AutoCloseable {
           .put("state", clientSafeState(working)).put("replyHint", prepared.replyHint)
           .put("baseHash", expectedBaseHash).put("outcomeHash", fingerprint(working)).toString();
     } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
       return response(false, base, safeMessage(e), "preview_unavailable", null);
     }
   }
@@ -234,15 +238,18 @@ public final class GameCoreFacade implements AutoCloseable {
 
   /** Only an explicit player action writes the live game to durable storage. */
   public synchronized String saveCheckpoint() {
+    DiagnosticLog.record("core.saveCheckpoint");
     String live = liveStateJson;
     if (parseState(live).length() == 0) throw new IllegalStateException("Chưa có game để lưu.");
     if (!preferences.edit().putString(MANUAL_SAVE_KEY, live).remove(STATE_KEY).commit()) {
       throw new IllegalStateException("Không thể lưu game.");
     }
+    DiagnosticLog.record("checkpoint.saved", "state", live);
     return live;
   }
 
   public synchronized String loadCheckpoint() {
+    DiagnosticLog.record("core.loadCheckpoint");
     String saved = preferences.getString(MANUAL_SAVE_KEY, "");
     if (saved == null || parseState(saved).length() == 0) {
       throw new IllegalStateException("Chưa có bản lưu thủ công.");
@@ -254,11 +261,13 @@ public final class GameCoreFacade implements AutoCloseable {
   }
 
   public synchronized void clearCheckpoint() {
+    DiagnosticLog.record("core.clearCheckpoint");
     preparedTurns.clear();
     preferences.edit().remove(MANUAL_SAVE_KEY).remove(STATE_KEY).commit();
   }
 
   public synchronized String validateWorldProposal(String selectedJson, String proposalJson) {
+    DiagnosticLog.record("core.validateWorldProposal", "selectedJson", selectedJson, "proposalJson", proposalJson);
     JSONObject output = new JSONObject();
     try {
       JSONObject selected = parseState(selectedJson);
@@ -268,6 +277,7 @@ public final class GameCoreFacade implements AutoCloseable {
           .put("reason", reason)
           .put("proposal", emergentTurnEngine.sanitizeWorldProposal(selected, raw));
     } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
       try {
         output.put("valid", false)
             .put("reason", safeMessage(e))
@@ -278,6 +288,7 @@ public final class GameCoreFacade implements AutoCloseable {
   }
 
   public synchronized String completePreparedTurn(String turnId, String proposalJson) {
+    DiagnosticLog.record("core.completePreparedTurn", "turnId", turnId, "proposalJson", proposalJson);
     JSONObject persisted = parseState(liveStateJson);
     try {
       normalizeCoreState(persisted);
@@ -303,6 +314,7 @@ public final class GameCoreFacade implements AutoCloseable {
       preparedTurns.remove(turnId);
       return preparedCommitResponse(working, prepared);
     } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
       preparedTurns.remove(turnId);
       debug("completePreparedTurn failed: " + e.getMessage());
       return response(false, persisted, safeMessage(e), "system_fault_precommit", null);
@@ -337,6 +349,7 @@ public final class GameCoreFacade implements AutoCloseable {
   }
 
   public synchronized String commitNarration(String stateJson, boolean acknowledgePendingIntro) {
+    DiagnosticLog.record("core.commitNarration", "stateJson", stateJson, "acknowledgePendingIntro", acknowledgePendingIntro);
     JSONObject submitted = parseState(stateJson);
     JSONObject state = parseState(liveStateJson);
     try {
@@ -347,6 +360,7 @@ public final class GameCoreFacade implements AutoCloseable {
       persist(state);
       return clientSafeState(state).toString();
     } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
       throw new IllegalStateException("Không thể lưu narration.", e);
     }
   }
@@ -360,6 +374,7 @@ public final class GameCoreFacade implements AutoCloseable {
   /** Validity check and append share the same lock as all authoritative writes. */
   public synchronized String commitPresentation(String turnId, int expectedStateVersion,
       String baseHash, String presentationId, String action, String gmEntryJson) {
+    DiagnosticLog.record("core.commitPresentation", "turnId", turnId, "expectedStateVersion", expectedStateVersion, "baseHash", baseHash, "presentationId", presentationId, "action", action, "gmEntryJson", gmEntryJson);
     JSONObject state = parseState(liveStateJson);
     try {
       JSONArray log = state.optJSONArray("log");
@@ -394,6 +409,7 @@ public final class GameCoreFacade implements AutoCloseable {
       persist(state);
       return response(true, state, null, "presentation_committed", null);
     } catch (Exception error) {
+      DiagnosticLog.record("core.error", "error", error);
       return response(false, parseState(liveStateJson), safeMessage(error), "presentation_rejected", null);
     }
   }
@@ -575,10 +591,12 @@ public final class GameCoreFacade implements AutoCloseable {
 
   /** Core caller only: no JavaScript or model-output route exposes these updates. */
   public synchronized String markNameKnown(String actor, String subject, String sourceEvent) {
+    DiagnosticLog.record("core.markNameKnown", "actor", actor, "subject", subject, "sourceEvent", sourceEvent);
     return markKnowledge(actor, subject, "knownName", sourceEvent);
   }
 
   public synchronized String markEffectKnown(String actor, String subject, String sourceEvent) {
+    DiagnosticLog.record("core.markEffectKnown", "actor", actor, "subject", subject, "sourceEvent", sourceEvent);
     return markKnowledge(actor, subject, "knownEffect", sourceEvent);
   }
 
@@ -591,11 +609,13 @@ public final class GameCoreFacade implements AutoCloseable {
       persist(state);
       return clientSafeState(state).toString();
     } catch (Exception error) {
+      DiagnosticLog.record("core.error", "error", error);
       throw new IllegalArgumentException("Invalid Core knowledge update", error);
     }
   }
 
   public synchronized String startCombatRuntime(String entityKey, int gmLogIndex) {
+    DiagnosticLog.record("core.startCombatRuntime", "entityKey", entityKey, "gmLogIndex", gmLogIndex);
     JSONObject persisted = parseState(liveStateJson);
     try {
       normalizeCoreState(persisted);
@@ -619,11 +639,13 @@ public final class GameCoreFacade implements AutoCloseable {
       persist(working);
       return clientSafeState(working).toString();
     } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
       throw new IllegalStateException("Không thể khởi tạo combat runtime.", e);
     }
   }
 
   public synchronized String processCombatResolution(String stateJson) {
+    DiagnosticLog.record("core.processCombatResolution", "stateJson", stateJson);
     JSONObject persisted = parseState(liveStateJson);
     try {
       normalizeCoreState(persisted);
@@ -718,12 +740,14 @@ public final class GameCoreFacade implements AutoCloseable {
       return response(true, working, null,
           active ? "combat_turn_resolved" : "combat_finished", null);
     } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
       return response(false, persisted, safeMessage(e), "combat_resolve_rejected", null);
     }
   }
 
 
   public synchronized String restartAfterDeath() {
+    DiagnosticLog.record("core.restartAfterDeath");
     JSONObject persisted = parseState(liveStateJson);
     try {
       normalizeCoreState(persisted);
@@ -758,47 +782,56 @@ public final class GameCoreFacade implements AutoCloseable {
       persist(working);
       return response(true, working, null, "death_restart_completed", null);
     } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
       return response(false, persisted, safeMessage(e), "death_restart_rejected", null);
     }
   }
 
 
   public synchronized String levelPromptContext(String stateJson) {
+    DiagnosticLog.record("core.levelPromptContext", "stateJson", stateJson);
     return levelPromptContext(stateJson, "");
   }
 
   public synchronized String levelPromptContext(String stateJson, String action) {
+    DiagnosticLog.record("core.levelPromptContext", "stateJson", stateJson, "action", action);
     JSONObject state = parseState(stateJson);
     try {
       levelCore.normalizeState(state);
       return levelCore.promptContext(state, action);
     } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
       return "CURRENT LEVEL: 0\nLEVEL CANON: unavailable";
     }
   }
 
   public synchronized String levelSceneContext(String stateJson, String action) {
+    DiagnosticLog.record("core.levelSceneContext", "stateJson", stateJson, "action", action);
     JSONObject state = parseState(stateJson);
     try {
       levelCore.normalizeState(state);
       return levelCore.scenePromptContext(state, action);
     } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
       return "LEVEL: current node unavailable.";
     }
   }
 
   public synchronized String characterSceneContext(String stateJson) {
+    DiagnosticLog.record("core.characterSceneContext", "stateJson", stateJson);
     JSONObject state = parseState(stateJson);
     try {
       levelCore.normalizeState(state);
       characterEncounterCore.normalizeState(state);
       return characterEncounterCore.scenePromptContext(state);
     } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
       return "PRESENT: Cao Minh. PENDING INTRO: unknown.";
     }
   }
 
   public synchronized String narrativeSceneContinuityContext(String stateJson, String action) {
+    DiagnosticLog.record("core.narrativeSceneContinuityContext", "stateJson", stateJson, "action", action);
     JSONObject state = parseState(stateJson);
     try {
       emergentTurnEngine.normalizeState(state);
@@ -806,6 +839,7 @@ public final class GameCoreFacade implements AutoCloseable {
       return NarrativeSkeleton.sceneContext(
           state.getJSONObject(EmergentTurnEngine.ROOT_KEY), state, action);
     } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
       return "";
     }
   }
@@ -815,11 +849,13 @@ public final class GameCoreFacade implements AutoCloseable {
    * This never persists, never reaches the client-safe state and never grants authority to narration.
    */
   public synchronized String oracleWindow(String stateJson) {
+    DiagnosticLog.record("core.oracleWindow", "stateJson", stateJson);
     return oracleWindow(stateJson, 6);
   }
 
   /** Bounded background forecast; preserves the six-step foreground API. */
   public synchronized String oracleWindow(String stateJson, int requestedSteps) {
+    DiagnosticLog.record("core.oracleWindow", "stateJson", stateJson, "requestedSteps", requestedSteps);
     int windowSteps = Math.max(1, Math.min(NarrationFutureBuffer.TARGET, requestedSteps));
     JSONObject output = new JSONObject();
     JSONObject submitted = parseState(stateJson);
@@ -911,6 +947,7 @@ public final class GameCoreFacade implements AutoCloseable {
       output.put("context", out.toString()).put("steps", steps);
       return output.toString();
     } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
       try {
         output.put("context", "CORE ORACLE WINDOW: unavailable. Do not invent future outcomes.")
             .put("steps", new JSONArray());
@@ -986,10 +1023,12 @@ public final class GameCoreFacade implements AutoCloseable {
   }
 
   public synchronized String oracleSceneContext(String stateJson) {
+    DiagnosticLog.record("core.oracleSceneContext", "stateJson", stateJson);
     try {
       return new JSONObject(oracleWindow(stateJson)).optString(
           "context", "CORE ORACLE WINDOW: unavailable. Do not invent future outcomes.");
     } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
       return "CORE ORACLE WINDOW: unavailable. Do not invent future outcomes.";
     }
   }
@@ -1000,59 +1039,70 @@ public final class GameCoreFacade implements AutoCloseable {
       authoritative.remove("log");
       return fingerprint(authoritative);
     } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
       throw new IllegalStateException("Cannot fingerprint oracle authority state", e);
     }
   }
 
   public synchronized String narrativeContinuityContext(String stateJson) {
+    DiagnosticLog.record("core.narrativeContinuityContext", "stateJson", stateJson);
     JSONObject state = parseState(stateJson);
     try {
       emergentTurnEngine.normalizeState(state);
       emergentTurnEngine.catchUpProjections(state);
       return NarrativeSkeleton.promptContext(state.getJSONObject(EmergentTurnEngine.ROOT_KEY));
     } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
       return "LONG-HORIZON CONTINUITY MEMORY: unavailable. Do not invent prior continuity.";
     }
   }
 
   public synchronized String characterPromptContext(String stateJson) {
+    DiagnosticLog.record("core.characterPromptContext", "stateJson", stateJson);
     JSONObject state = parseState(stateJson);
     try {
       levelCore.normalizeState(state);
       characterEncounterCore.normalizeState(state);
       return characterEncounterCore.promptContext(state);
     } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
       return "CHARACTER ENCOUNTER CORE: unavailable. Do not spawn characters or mutate Party.";
     }
   }
 
   public synchronized String entityPromptContext(String stateJson) {
+    DiagnosticLog.record("core.entityPromptContext", "stateJson", stateJson);
     JSONObject state = parseState(stateJson);
     try {
       levelCore.normalizeState(state);
       return entityCore.promptContext(state);
     } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
       return "ENTITY CORE: unavailable. Do not invent an Entity.";
     }
   }
 
   public synchronized String itemPromptContext(String stateJson) {
+    DiagnosticLog.record("core.itemPromptContext", "stateJson", stateJson);
     JSONObject state = parseState(stateJson);
     try {
       levelCore.normalizeState(state);
       return itemCore.promptContext(state);
     } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
       return "ITEM CORE: unavailable. Do not invent or grant loot.";
     }
   }
 
   public synchronized String processItemAction(String stateJson, String itemId, String operation,
                                                String targetId, int quantity) {
+    DiagnosticLog.record("core.processItemAction", "stateJson", stateJson, "itemId", itemId, "operation", operation, "targetId", targetId, "quantity", quantity);
     return processItemAction(stateJson, "cao_minh", itemId, operation, targetId, quantity);
   }
 
   public synchronized String processItemAction(String stateJson, String ownerId, String itemId,
                                                String operation, String targetId, int quantity) {
+    DiagnosticLog.record("core.processItemAction", "stateJson", stateJson, "ownerId", ownerId, "itemId", itemId, "operation", operation, "targetId", targetId, "quantity", quantity);
     JSONObject submitted = parseState(stateJson);
     JSONObject persisted = parseState(liveStateJson);
     if (persisted.length() == 0) persisted = submitted;
@@ -1081,11 +1131,13 @@ public final class GameCoreFacade implements AutoCloseable {
       persist(working);
       return response(true, working, null, "item_action_committed", reply);
     } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
       return response(false, persisted, safeMessage(e), "item_action_rejected", null);
     }
   }
 
   public synchronized String processCoreUpgrade(String stateJson, String characterId, String stat) {
+    DiagnosticLog.record("core.processCoreUpgrade", "stateJson", stateJson, "characterId", characterId, "stat", stat);
     JSONObject submitted = parseState(stateJson);
     JSONObject persisted = parseState(liveStateJson);
     if (persisted.length() == 0) persisted = submitted;
@@ -1125,21 +1177,25 @@ public final class GameCoreFacade implements AutoCloseable {
           + " Core.";
       return response(true, working, null, "core_upgrade_committed", reply);
     } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
       return response(false, persisted, safeMessage(e), "core_upgrade_rejected", null);
     }
   }
 
   public synchronized String levelSnapshotDescriptor(String stateJson) {
+    DiagnosticLog.record("core.levelSnapshotDescriptor", "stateJson", stateJson);
     JSONObject state = parseState(stateJson);
     try {
       levelCore.normalizeState(state);
       return levelCore.snapshotDescriptor(state);
     } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
       return "{\"level\":0}";
     }
   }
 
   public synchronized String normalizeState(String stateJson) {
+    DiagnosticLog.record("core.normalizeState", "stateJson", stateJson);
     JSONObject state = parseState(stateJson);
     try {
       JSONObject persisted = parseState(liveStateJson);
@@ -1155,6 +1211,7 @@ public final class GameCoreFacade implements AutoCloseable {
       state.put("saveVersion", CURRENT_SAVE_VERSION);
       persist(state);
     } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
       debug("normalizeState failed: " + e.getMessage());
     }
     return clientSafeState(state).toString();
@@ -1165,18 +1222,22 @@ public final class GameCoreFacade implements AutoCloseable {
   }
 
   public synchronized String combatRollRuntime() {
+    DiagnosticLog.record("core.combatRollRuntime");
     return mutateCombatRuntime("ROLL", -1, false);
   }
 
   public synchronized String combatHoldRuntime(int dieIndex, boolean held) {
+    DiagnosticLog.record("core.combatHoldRuntime", "dieIndex", dieIndex, "held", held);
     return mutateCombatRuntime("HOLD", dieIndex, held);
   }
 
   public synchronized String combatFinishRuntime() {
+    DiagnosticLog.record("core.combatFinishRuntime");
     return mutateCombatRuntime("FINISH", -1, false);
   }
 
   public synchronized String combatTargetRuntime(int entityIndex) {
+    DiagnosticLog.record("core.combatTargetRuntime", "entityIndex", entityIndex);
     JSONObject persisted = parseState(liveStateJson);
     try {
       normalizeCoreState(persisted);
@@ -1187,6 +1248,7 @@ public final class GameCoreFacade implements AutoCloseable {
       persist(persisted);
       return clientSafeState(persisted).toString();
     } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
       throw new IllegalStateException("Không thể đổi mục tiêu combat.", e);
     }
   }
@@ -1214,11 +1276,13 @@ public final class GameCoreFacade implements AutoCloseable {
       persist(persisted);
       return clientSafeState(persisted).toString();
     } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
       throw new IllegalStateException("Không thể cập nhật combat runtime.", e);
     }
   }
 
   public synchronized String startNewGame(String initialJson) {
+    DiagnosticLog.record("core.startNewGame", "initialJson", initialJson);
     preparedTurns.clear();
     liveStateJson = "{}";
     return normalizeState(initialJson);
@@ -1245,6 +1309,7 @@ public final class GameCoreFacade implements AutoCloseable {
   }
 
   public synchronized void clear() {
+    DiagnosticLog.record("core.clear");
     preparedTurns.clear();
     liveStateJson = "{}";
   }
@@ -1283,6 +1348,7 @@ public final class GameCoreFacade implements AutoCloseable {
       if (json == null || json.trim().isEmpty()) return new JSONObject();
       return new JSONObject(json);
     } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
       return new JSONObject();
     }
   }
@@ -1292,6 +1358,7 @@ public final class GameCoreFacade implements AutoCloseable {
       if (json == null || json.trim().isEmpty()) return new JSONArray();
       return new JSONArray(json);
     } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
       return new JSONArray();
     }
   }
@@ -1300,6 +1367,7 @@ public final class GameCoreFacade implements AutoCloseable {
     try {
       return new JSONObject(source == null ? "{}" : source.toString());
     } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
       return new JSONObject();
     }
   }
@@ -1325,6 +1393,7 @@ public final class GameCoreFacade implements AutoCloseable {
       try {
         normalized = new JSONObject(item.toString());
       } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
         normalized = new JSONObject();
       }
       try {
@@ -1447,7 +1516,9 @@ public final class GameCoreFacade implements AutoCloseable {
 
   private void persist(JSONObject state) {
     projectBeforePersist(state);
+    String before = liveStateJson;
     liveStateJson = state == null ? "{}" : state.toString();
+    DiagnosticLog.record("state.commit", "before", before, "after", liveStateJson);
   }
 
   private void projectBeforePersist(JSONObject state) {
@@ -1459,6 +1530,7 @@ public final class GameCoreFacade implements AutoCloseable {
       itemCore.normalizeInventory(state);
       characterDetailCore.projectState(state);
     } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
       debug("Character detail projection failed: " + e.getMessage());
     }
   }
@@ -1471,6 +1543,7 @@ public final class GameCoreFacade implements AutoCloseable {
       for (byte b : digest) hex.append(String.format(Locale.ROOT, "%02x", b & 0xff));
       return hex.toString();
     } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
       throw new IllegalStateException("Cannot fingerprint Core state", e);
     }
   }
@@ -1524,6 +1597,7 @@ public final class GameCoreFacade implements AutoCloseable {
   }
 
   private void debug(String message) {
+    DiagnosticLog.record("core.diagnostic", "message", message);
     if (debugLogging) Log.d(TAG, message);
   }
 }

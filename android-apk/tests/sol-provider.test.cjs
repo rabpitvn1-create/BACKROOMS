@@ -141,10 +141,12 @@ test('scene content repair shares the foreground deadline and all providers use 
   assert.match(scheduled, /deadlineNanos - System\.nanoTime\(\)/);
   assert.match(scheduled, /finally \{\s*providerRequestDeadline\.remove\(\)/);
   for (const name of ['postJson', 'postJsonHaiku']) {
-    assert.match(method(name), /NarrationHttpTransport\.post/);
-    assert.match(method(name), /requestDeadline\(\)/);
+    assert.match(method(name), /return diagnosticProviderPost\(endpoint, headers, payload\)/);
     assert.doesNotMatch(method(name), /setReadTimeout|readLine|disconnect/);
   }
+  assert.match(method('diagnosticProviderPost'), /NarrationHttpTransport\.post/);
+  assert.match(method('diagnosticProviderPost'), /requestDeadline\(\)/);
+  assert.doesNotMatch(method('diagnosticProviderPost'), /setReadTimeout|readLine|disconnect/);
 });
 
 
