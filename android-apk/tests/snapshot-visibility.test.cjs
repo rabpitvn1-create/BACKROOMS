@@ -9,7 +9,7 @@ function boot({unknown=false,unloaded=false,canvasContextMissing=false,stateOver
  Object.defineProperty(box,'textContent',{set(){elements.length=0;}});
  const document={readyState:'complete',head:{appendChild(el){styles.push(el.textContent);}},getElementById(id){return id==='snapshot'?box:null;},querySelectorAll(){return [];},createElement(tag){
   if(tag==='canvas')return {getContext(){reads++;if(canvasContextMissing)return null;return {drawImage(){},getImageData(){throw new Error('SecurityError: canvas has been tainted by cross-origin data');}};}};
-  return {tagName:tag.toUpperCase(),style:{},dataset:{},className:'',complete:!unloaded,naturalWidth:0,naturalHeight:0,setAttribute(){},addEventListener(type,cb){if(type==='load')pending.push({el:this,cb});},set src(url){this.url=url;const m=geometry.assetMetric(url)||geometry.assetMetric('cao_minh_snapshot_overlay.png');this.naturalWidth=m.width;this.naturalHeight=m.height;},get src(){return this.url;}};
+  return {tagName:tag.toUpperCase(),style:{},dataset:{},className:'',complete:!unloaded,naturalWidth:0,naturalHeight:0,setAttribute(){},remove(){const index=elements.indexOf(this);if(index>=0)elements.splice(index,1);this.parentElement=null;},addEventListener(type,cb){if(type==='load')pending.push({el:this,cb});},set src(url){this.url=url;const m=geometry.assetMetric(url)||geometry.assetMetric('cao_minh_snapshot_overlay.png');this.naturalWidth=m.width;this.naturalHeight=m.height;},get src(){return this.url;}};
  }};
  const ctx={document,console:{warn(...args){warnings.push(args);}},localStorage:{removeItem(){}},setTimeout,clearTimeout,Image:function(){throw Error('Detached image preload must not gate overlays');},state:stateOverride||{flags:{},combat:{active:true,participants:[{id:'cao_minh'},{id:'luc_tram'}]}}};
  ctx.window=ctx;ctx.addEventListener=()=>{};
@@ -184,4 +184,25 @@ test('simultaneous floating damage uses separate vertical lanes instead of one a
 
 test('snapshot runtime has no scripted NPC overlay hooks',()=>{
  assert.doesNotMatch(source,/snapshot-npc|storyPrimaryNpc|__backroomStoryVisuals/);
+});
+
+test('oval foot shadows follow sprites and leave with outgoing overlays',async()=>{
+ const r=boot();
+ const shadows=()=>r.elements.filter(e=>e.className==='snapshot-foot-shadow');
+ assert.equal(shadows().length,1);
+ r.ctx.backroomSetCombatVisualActor(0,'tam_ma_cao_minh');
+ assert.equal(shadows().length,2);
+ for(const img of r.elements.filter(e=>e.className.includes('snapshot-grounded'))){
+  const m=geometry.assetMetric(img.src),feet=m.feet||m.body,scale=parseFloat(img.style.width)/m.width;
+  const shadow=img.__footShadow;
+  assert.ok(shadow);
+  const cx=parseFloat(shadow.style.left)+parseFloat(shadow.style.width)/2;
+  const cy=parseFloat(shadow.style.top)+parseFloat(shadow.style.height)/2;
+  assert.ok(Math.abs(cx-(parseFloat(img.style.left)+(feet.left+feet.right)*scale/2))<1e-7);
+  assert.ok(Math.abs(cy-(parseFloat(img.style.top)+feet.bottom*scale))<1e-7);
+ }
+ r.ctx.backroomSetCombatVisualActor(1,'tam_ma_cao_minh');
+ await new Promise(resolve=>setTimeout(resolve,300));
+ assert.equal(shadows().length,2);
+ assert.match(r.styles.join(''),/snapshot-foot-shadow\{[^}]*z-index:2[^}]*radial-gradient/);
 });
