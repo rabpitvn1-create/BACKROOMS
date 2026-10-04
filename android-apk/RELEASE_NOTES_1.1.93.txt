@@ -1,0 +1,5 @@
+Backroom 1.1.93
+
+- Khôi phục hai nút Explorer cố định: Khám phá và Tìm kiếm, không còn phụ thuộc GAME MASTER sinh choices.
+- Giữ các hành động ngữ cảnh do Core sở hữu như Mở Rương và Đi qua ranh giới khi điều kiện tương ứng đang hợp lệ.
+- Bump version từ 1.1.92 lên 1.1.93 (versionCode 138), đồng bộ APK artifact, GitHub Release tag và release verification.
