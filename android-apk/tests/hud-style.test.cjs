@@ -38,6 +38,17 @@ test('PLAYER ACTION and THUC HIEN return to standard dark button style without a
   assert.match(index,/#submit\{min-height:52px/);
 });
 
+test('combat dice visual theme blends liminal Backrooms and restrained cultivation cues without changing layout',()=>{
+  assert.match(gmChoice,/\.combat-dice-panel\{[^}]*radial-gradient\([^}]*linear-gradient\(/);
+  assert.match(gmChoice,/\.combat-dice-panel:after\{[^}]*border-radius:50%/);
+  assert.match(gmChoice,/\.combat-die\.held\{[^}]*#66b894/);
+  assert.match(gmChoice,/\.combat-die\.rolling\{[^}]*#8fa9a6/);
+  assert.match(gmChoice,/\.combat-roll\{[^}]*#4f9479/);
+  assert.match(gmChoice,/\.combat-finish\{[^}]*#8b6047/);
+  assert.match(gmChoice,/\.combat-dice-row\{display:grid;grid-template-columns:repeat\(5,1fr\)/);
+  assert.match(gmChoice,/\.combat-dice-actions\{display:grid;grid-template-columns:1fr 1fr/);
+});
+
 test('normal rectangular UI elements use consistent light rounded corners while GM message frame remains square',()=>{
   // Normal UI boxes have rounded corners
   assert.match(index,/\.game,\.card\{[^}]*border-radius:/);
