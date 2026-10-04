@@ -58,7 +58,7 @@ test('browser fallback gives actionable feedback instead of pretending export su
 
 test('autoplay APK runs a fresh 50-turn audit and exports ZIP evidence without changing the normal package',()=>{
   assert.match(gradle, /buildConfigField "boolean", "AUTOPLAY_ENABLED", "false"/);
-  assert.match(gradle, /autoplay \{[\s\S]*applicationIdSuffix '\\.autoplay'[\s\S]*buildConfigField "boolean", "AUTOPLAY_ENABLED", "true"/);
+  assert.match(gradle, /autoplay \{[\s\S]*applicationIdSuffix '\.autoplay'[\s\S]*buildConfigField "boolean", "AUTOPLAY_ENABLED", "true"/);
   assert.match(manifest, /android:label="\$\{appLabel\}"/);
   assert.match(bridge, /BuildConfig\.AUTOPLAY_ENABLED \|\| \(BuildConfig\.DEBUG/);
   assert.match(bridge, /FLAG_KEEP_SCREEN_ON/);
