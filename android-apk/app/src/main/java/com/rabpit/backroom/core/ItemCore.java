@@ -87,6 +87,7 @@ final class ItemCore {
       item.put("name", definition.getString("name"));
       item.put("kind", "consumable");
       item.put("category", definition.getString("category"));
+      item.put("description", definition.getString("description"));
       item.put("stackable", true);
       item.put("effects", definition.getJSONObject("effects"));
       item.put("quantity", definition.getInt("quantity"));
@@ -345,6 +346,18 @@ final class ItemCore {
     return id == null || id.isEmpty() ? "Vật phẩm" : id;
   }
 
+  private static String itemDescription(String id) {
+    if (ALMOND_WATER_ID.equals(id)) return "Nước uống dị thường giúp giảm đói và khát.";
+    if (BANDAGE_ID.equals(id)) return "Băng gạc y tế dùng để xử lý vết thương nhẹ.";
+    if (FIRST_AID_KIT_ID.equals(id)) return "Bộ sơ cứu giúp hồi phục vết thương hiệu quả hơn băng gạc.";
+    if (LAVIE_WATER_ID.equals(id)) return "Nước uống thông thường giúp giải khát.";
+    if (COCONUT_WATER_ID.equals(id)) return "Nước dừa giúp giải khát và giảm nhẹ cơn đói.";
+    if (BANH_MI_THIT_ID.equals(id)) return "Thức ăn nhanh giúp giảm cơn đói.";
+    if (HOT_SOY_MILK_ID.equals(id)) return "Đồ uống nóng giúp giảm đói và khát.";
+    if (COM_TAM_SUON_BI_CHA_ID.equals(id)) return "Bữa ăn no giúp giảm mạnh cơn đói.";
+    return "Vật phẩm có thể sử dụng trong Inventory.";
+  }
+
   private static String itemCategory(String id) {
     if (BANDAGE_ID.equals(id) || FIRST_AID_KIT_ID.equals(id)) return "HEALING";
     if (LAVIE_WATER_ID.equals(id)) return "DRINK";
@@ -370,6 +383,7 @@ final class ItemCore {
         .put("quantity", Math.max(1, quantity))
         .put("kind", "consumable")
         .put("category", itemCategory(id))
+        .put("description", itemDescription(id))
         .put("stackable", true)
         .put("effects", itemEffects(id));
   }
@@ -385,6 +399,7 @@ final class ItemCore {
       item.put("name", definition.getString("name"));
       item.put("kind", "consumable");
       item.put("category", definition.getString("category"));
+      item.put("description", definition.getString("description"));
       item.put("stackable", true);
       item.put("effects", definition.getJSONObject("effects"));
       item.put("quantity", Math.max(1, item.optInt("quantity", 1)) + Math.max(1, quantity));

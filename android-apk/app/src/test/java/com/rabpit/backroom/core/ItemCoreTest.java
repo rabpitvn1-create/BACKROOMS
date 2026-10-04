@@ -87,6 +87,25 @@ public class ItemCoreTest {
     assertEquals(8, state.getJSONArray("inventory").length());
   }
 
+  @Test public void allEightConsumablesCarrySimplifiedDescriptions() throws Exception {
+    JSONObject state = new JSONObject();
+    String[] expected = {
+      "Nước uống dị thường giúp giảm đói và khát.",
+      "Băng gạc y tế dùng để xử lý vết thương nhẹ.",
+      "Bộ sơ cứu giúp hồi phục vết thương hiệu quả hơn băng gạc.",
+      "Nước uống thông thường giúp giải khát.",
+      "Nước dừa giúp giải khát và giảm nhẹ cơn đói.",
+      "Thức ăn nhanh giúp giảm cơn đói.",
+      "Đồ uống nóng giúp giảm đói và khát.",
+      "Bữa ăn no giúp giảm mạnh cơn đói."
+    };
+    for (int i = 0; i < expected.length; i++) {
+      ItemCore.grantChestLootItem(state, i);
+      JSONObject item = state.getJSONArray("inventory").getJSONObject(i);
+      assertEquals(expected[i], item.getString("description"));
+    }
+  }
+
   @Test public void entityPoolNeverDropsOrdinarySaigonFood() throws Exception {
     JSONObject state = new JSONObject();
     for (int i = 0; i < 20; i++) {

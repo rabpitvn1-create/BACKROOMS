@@ -37,3 +37,13 @@ test('Set Equip filtering changes presentation only, not stored inventory state'
   assert.match(filterBlock, /ownerInventory\(id\)\.filter/);
   assert.doesNotMatch(filterBlock, /state\.inventory\s*=|member\.inventory\s*=|splice\(|\.remove\(/);
 });
+
+test('item sheet shows simplified description before mechanical effects', () => {
+  const start = source.indexOf('function openSheet(item)');
+  const end = source.indexOf('function renderInventory()', start);
+  assert.ok(start >= 0 && end > start);
+  const sheet = source.slice(start, end);
+  assert.match(sheet, /item\.description/);
+  assert.match(sheet, /inventory-description/);
+  assert.ok(sheet.indexOf('inventory-description') < sheet.indexOf('inventory-effect'));
+});

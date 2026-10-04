@@ -12,6 +12,7 @@
     ".inventory-overlay{position:fixed;inset:0;z-index:1000;background:#000a;display:grid;place-items:end center;padding:12px}",
     ".inventory-sheet{width:min(560px,100%);max-height:82vh;overflow:auto;background:#101419;border:1px solid #39424a;box-shadow:0 18px 60px #000c;padding:14px;display:grid;gap:12px;border-radius:12px}",
     ".inventory-sheet h3{margin:0;font-family:'Play','Pretendard Std',system-ui,sans-serif;color:#f6c85f}",
+    ".inventory-description{color:#eef1f3;font-size:13px;line-height:1.45}",
     ".inventory-effect{color:#c4cbd1;font-size:13px}",
     ".inventory-quantity{display:grid;grid-template-columns:1fr 100px;gap:10px;align-items:center}",
     ".inventory-quantity input,.inventory-share select{width:100%;background:#090c0f;color:#fff;border:1px solid #30373e;padding:10px;border-radius:6px}",
@@ -134,6 +135,7 @@
     overlay.addEventListener('click',function(e){if(e.target===overlay)closeSheet()});
 
     var title=document.createElement('h3');title.textContent=(item.name||'Vật phẩm')+' ×'+qty(item);sheet.appendChild(title);
+    if(item.description){var description=document.createElement('div');description.className='inventory-description';description.textContent=String(item.description);sheet.appendChild(description)}
     var effect=document.createElement('div');effect.className='inventory-effect';effect.textContent=effectText(item);sheet.appendChild(effect);
 
     var qrow=document.createElement('div');qrow.className='inventory-quantity';
