@@ -2,9 +2,27 @@ name: Verify Ponytail Tools
 on:
   push:
     branches: [main]
-    paths: ['tools/ponytail*', '.sdkmanrc', 'AGENTS.md', 'tools/REPO_MAP.md', '.github/workflows/ponytail-tools.yml']
+    paths:
+      - 'tools/ponytail*'
+      - '.codex/skills/ponytail*/**'
+      - 'skills/ponytail*/**'
+      - 'skills/PONYTAIL_LICENSE'
+      - '.devcontainer/devcontainer.json'
+      - '.sdkmanrc'
+      - 'AGENTS.md'
+      - 'tools/REPO_MAP.md'
+      - '.github/workflows/ponytail-tools.yml'
   pull_request:
-    paths: ['tools/ponytail*', '.sdkmanrc', 'AGENTS.md', 'tools/REPO_MAP.md', '.github/workflows/ponytail-tools.yml']
+    paths:
+      - 'tools/ponytail*'
+      - '.codex/skills/ponytail*/**'
+      - 'skills/ponytail*/**'
+      - 'skills/PONYTAIL_LICENSE'
+      - '.devcontainer/devcontainer.json'
+      - '.sdkmanrc'
+      - 'AGENTS.md'
+      - 'tools/REPO_MAP.md'
+      - '.github/workflows/ponytail-tools.yml'
   workflow_dispatch:
 permissions:
   contents: read
