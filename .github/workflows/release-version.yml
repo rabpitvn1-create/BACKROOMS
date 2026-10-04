@@ -161,16 +161,16 @@ jobs:
       - name: Validate Game Master configuration
         run: |
           set -euo pipefail
-          for name in SOL_API_KEY GEMINI_API_KEY_1 GEMINI_API_KEY_2 GEMINI_API_KEY_3 GEMINI_API_KEY_4 GEMINI_API_KEY_5 HAKU_API_KEY GEHIHI_API_KEY; do
+          for name in SOL_API_KEY GEMINI_API_KEY_1 GEMINI_API_KEY_2 GEMINI_API_KEY_3 GEMINI_API_KEY_4 GEMINI_API_KEY_5 HAKU_API_KEY GEHIHI_API_KEY GEHIHI_MODEL; do
             test -n "${!name:-}" || (echo "Missing GitHub Secret: $name" && exit 1)
           done
           echo "Optional Haku base/model overrides: ${HAKU_BASE_URL:+configured} ${HAKU_MODEL:+configured}"
 
-      - name: Smoke test Gemini 3.8 Flash
+      - name: Smoke test Gemini 3.6 Flash
         if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
         run: |
           set -euo pipefail
-          grep -Fq 'private static final String GEMINI_MODEL = "gemini-3.8-flash";' android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java
+          grep -Fq 'private static final String GEMINI_MODEL = "gemini-3.6-flash";' android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java
 
           REQUEST_BODY=$(jq -nc '{
             contents: [{
@@ -201,7 +201,7 @@ jobs:
               -H "x-goog-api-key: $key" \
               -X POST \
               -d "$REQUEST_BODY" \
-              "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent" || true)
+              "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent" || true)
 
             if [ "$http_code" = "200" ]; then
               if jq -e '(.candidates[0].content.parts[0].text | fromjson | .ok) == true' "$RESPONSE_FILE" >/dev/null 2>&1; then

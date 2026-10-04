@@ -77,7 +77,7 @@ public class MainActivity extends Activity {
   private String narrationFutureForecastBaseHash = "";
   private GameCoreFacade gameCore;
   private MilestoneCore milestoneCore;
-  private static final String GEMINI_MODEL = "gemini-3.8-flash";
+  private static final String GEMINI_MODEL = "gemini-3.6-flash";
   private static final String HAIKU_DEFAULT_BASE_URL = "https://api.anthropic.com/v1/messages";
   private static final String HAIKU_DEFAULT_MODEL = "claude-haiku-4-5-20251001";
   private static final long HAIKU_RETRY_DELAY_MS = 1_200L;
@@ -556,13 +556,14 @@ public class MainActivity extends Activity {
       throw new Exception("GEHIHI_API_KEY chưa được cấu hình.");
     }
     String model = BuildConfig.GEHIHI_MODEL == null ? "" : BuildConfig.GEHIHI_MODEL.trim();
+    if (model.isEmpty()) throw new Exception("GEHIHI_MODEL chưa được cấu hình.");
     String base = BuildConfig.GEHIHI_BASE_URL == null ? "" : BuildConfig.GEHIHI_BASE_URL.trim();
     base = base.isEmpty() ? "https://api.vilao.ai/v1" : base;
     if (!base.toLowerCase(java.util.Locale.ROOT).startsWith("https://")) {
       throw new Exception("GEHIHI_BASE_URL phải dùng HTTPS.");
     }
     while (base.endsWith("/")) base = base.substring(0, base.length() - 1);
-    JSONObject body = openAiBody(model.isEmpty() ? "ram/gemini-3.6-flash-high" : model, prompt);
+    JSONObject body = openAiBody(model, prompt);
     String output = openAiResponseText(postJson(base + "/chat/completions",
         BuildConfig.GEHIHI_API_KEY, "Authorization", body));
     parseModelJson(output);
@@ -672,7 +673,8 @@ public class MainActivity extends Activity {
     String[] keys = geminiKeys();
     boolean[] configured = new boolean[NarrationProviderScheduler.SOURCE_COUNT];
     for (int i = 0; i < keys.length; i++) configured[i] = configured(keys[i]);
-    configured[NarrationProviderScheduler.GEHIHI] = configured(BuildConfig.GEHIHI_API_KEY);
+    configured[NarrationProviderScheduler.GEHIHI] = configured(BuildConfig.GEHIHI_API_KEY)
+        && configured(BuildConfig.GEHIHI_MODEL);
     configured[NarrationProviderScheduler.HAKU] = haikuConfigured();
     configured[NarrationProviderScheduler.LUNA] = BuildConfig.LUNA_ENABLED && configured(BuildConfig.LUNA_API_KEY);
     configured[NarrationProviderScheduler.SOL] = configured(BuildConfig.SOL_API_KEY);
