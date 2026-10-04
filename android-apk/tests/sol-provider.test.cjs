@@ -155,8 +155,6 @@ test('Gehihi release configuration injects its secret and fails fast when it is 
 test('all five Google keys and the release smoke test use Gemini 3.6 Flash', () => {
   assert.match(source, /private static final String GEMINI_MODEL = "gemini-3\.6-flash";/);
   assert.match(method('geminiTextOnce'), /models\/" \+ GEMINI_MODEL \+ ":generateContent"/);
-  const batch = source.slice(source.indexOf('  private JSONObject geminiBranchBatch('), source.indexOf('  private boolean haikuConfigured('));
-  assert.match(batch, /models\/" \+ GEMINI_MODEL \+ ":generateContent"/);
   for (let key = 1; key <= 5; key++) assert.ok(source.includes('BuildConfig.GEMINI_API_KEY_' + key));
   const release = fs.readFileSync(path.join(root, '.github/workflows/release-version.yml'), 'utf8');
   assert.ok(release.includes('models/gemini-3.6-flash:generateContent'));

@@ -782,6 +782,106 @@ public final class GameCoreFacade implements AutoCloseable {
   }
 
 
+  public synchronized String processItemAction(String stateJson, String itemId, String operation,
+                                               String targetId, int quantity) {
+    DiagnosticLog.record("core.processItemAction", "stateJson", stateJson, "itemId", itemId, "operation", operation, "targetId", targetId, "quantity", quantity);
+    return processItemAction(stateJson, "cao_minh", itemId, operation, targetId, quantity);
+  }
+
+  public synchronized String processItemAction(String stateJson, String ownerId, String itemId,
+                                               String operation, String targetId, int quantity) {
+    DiagnosticLog.record("core.processItemAction", "stateJson", stateJson, "ownerId", ownerId, "itemId", itemId, "operation", operation, "targetId", targetId, "quantity", quantity);
+    JSONObject submitted = parseState(stateJson);
+    JSONObject persisted = parseState(liveStateJson);
+    if (persisted.length() == 0) persisted = submitted;
+    try {
+      normalizeCoreState(persisted);
+      emergentTurnEngine.normalizeState(persisted);
+      JSONObject working = deepCopy(persisted);
+      String turnId = emergentTurnEngine.nextTurnId(
+          persisted, "item:" + ownerId + ":" + itemId + ":" + operation + ":" + targetId + ":" + quantity);
+      String reply = itemCore.applyItemAction(working, ownerId, itemId, operation, targetId, quantity);
+
+      JSONArray events = new JSONArray();
+      events.put(emergentTurnEngine.event(turnId, events, "ITEM_ACTION_RESOLVED", "LOCAL",
+          targetId == null || targetId.trim().isEmpty() ? ownerId : targetId,
+          new JSONObject()
+              .put("factPredicate", "item_action")
+              .put("factValue", itemId + ":" + operation + ":" + Math.max(1, quantity))
+              .put("causedBy", "player")
+              .put("observedByPlayer", true),
+          null));
+      emergentTurnEngine.validateBatch(turnId, events);
+      emergentTurnEngine.commitAuthoritative(persisted, working, turnId, events, null);
+      working.put("saveVersion", CURRENT_SAVE_VERSION);
+      projectBeforePersist(working);
+      emergentTurnEngine.catchUpProjections(working);
+      persist(working);
+      return response(true, working, null, "item_action_committed", reply);
+    } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
+      return response(false, persisted, safeMessage(e), "item_action_rejected", null);
+    }
+  }
+
+  public synchronized String processCoreUpgrade(String stateJson, String characterId, String stat) {
+    DiagnosticLog.record("core.processCoreUpgrade", "stateJson", stateJson, "characterId", characterId, "stat", stat);
+    JSONObject submitted = parseState(stateJson);
+    JSONObject persisted = parseState(liveStateJson);
+    if (persisted.length() == 0) persisted = submitted;
+    try {
+      normalizeCoreState(persisted);
+      emergentTurnEngine.normalizeState(persisted);
+      if (CombatChoiceEngine.isActive(persisted)) {
+        return response(false, persisted,
+            "Battle đang hoạt động. Hãy hoàn tất Poker Dice trước khi nâng chỉ số.",
+            "combat_locked", null);
+      }
+
+      JSONObject working = deepCopy(persisted);
+      String turnId = emergentTurnEngine.nextTurnId(
+          persisted, "upgrade:" + characterId + ":" + stat);
+      JSONObject result = characterProgressionCore.upgradeStat(working, characterId, stat);
+      characterDetailCore.projectState(working);
+
+      JSONArray events = new JSONArray();
+      events.put(emergentTurnEngine.event(turnId, events, "CHARACTER_STAT_UPGRADED", "LOCAL",
+          result.getString("characterId"),
+          new JSONObject()
+              .put("factPredicate", "stat_upgraded")
+              .put("factValue", result.getString("stat") + ":" + result.getInt("value"))
+              .put("causedBy", "player")
+              .put("observedByPlayer", true),
+          null));
+      emergentTurnEngine.validateBatch(turnId, events);
+      emergentTurnEngine.commitAuthoritative(persisted, working, turnId, events, null);
+      working.put("saveVersion", CURRENT_SAVE_VERSION);
+      projectBeforePersist(working);
+      emergentTurnEngine.catchUpProjections(working);
+      persist(working);
+
+      String reply = result.getString("stat") + " của " + result.getString("characterId")
+          + " tăng lên " + result.getInt("value") + ". -" + result.getInt("cost")
+          + " Core.";
+      return response(true, working, null, "core_upgrade_committed", reply);
+    } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
+      return response(false, persisted, safeMessage(e), "core_upgrade_rejected", null);
+    }
+  }
+
+  public synchronized String levelSnapshotDescriptor(String stateJson) {
+    DiagnosticLog.record("core.levelSnapshotDescriptor", "stateJson", stateJson);
+    JSONObject state = parseState(stateJson);
+    try {
+      levelCore.normalizeState(state);
+      return levelCore.snapshotDescriptor(state);
+    } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
+      return "{\"level\":0}";
+    }
+  }
+
   public synchronized String normalizeState(String stateJson) {
     DiagnosticLog.record("core.normalizeState", "stateJson", stateJson);
     JSONObject state = parseState(stateJson);
