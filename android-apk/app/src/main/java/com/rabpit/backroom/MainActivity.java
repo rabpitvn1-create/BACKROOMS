@@ -26,6 +26,7 @@ import com.rabpit.backroom.core.GmNarratorContract;
 import com.rabpit.backroom.core.SceneContextCompiler;
 import com.rabpit.backroom.core.OfflinePresenter;
 import com.rabpit.backroom.core.NarrationProviderPolicy;
+import com.rabpit.backroom.core.NarrationFutureBuffer;
 import com.rabpit.backroom.core.SafePresentationView;
 import com.rabpit.backroom.core.NarrationGuard;
 import com.rabpit.backroom.core.MilestoneCore;
@@ -41,6 +42,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends Activity {
   private static final String TAG = "BackroomMain";
@@ -57,15 +60,19 @@ public class MainActivity extends Activity {
   private boolean backgroundMusicPrepared;
   private boolean activityResumed;
   private final ExecutorService io = Executors.newSingleThreadExecutor();
-  private final ExecutorService narrationFutureIo = Executors.newSingleThreadExecutor();
+  private final ScheduledExecutorService narrationFutureIo = Executors.newSingleThreadScheduledExecutor();
   private final Object narrationFutureLock = new Object();
-  private long narrationFutureEpoch = 0L;
+  private final NarrationFutureBuffer narrationBuffer = new NarrationFutureBuffer();
+  private boolean narrationFutureStopped;
+  private boolean narrationFuturePending;
+  private int narrationFutureFailures;
   private boolean narrationFutureRefillRunning = false;
   private JSONArray narrationFutureForecastSteps = new JSONArray();
-  private String narrationFutureForecastPrompt = "";
+  private JSONObject narrationFutureForecastState = new JSONObject();
+  private String narrationFutureForecastContext = "";
+  private String narrationFutureForecastBaseHash = "";
   private GameCoreFacade gameCore;
   private MilestoneCore milestoneCore;
-  private JSONArray narrationFutureCache = new JSONArray();
   private static final String GEMINI_MODEL = "gemini-3.8-flash";
   private static final String HAIKU_DEFAULT_BASE_URL = "https://api.anthropic.com/v1/messages";
   private static final String HAIKU_DEFAULT_MODEL = "claude-haiku-4-5-20251001";
@@ -179,6 +186,10 @@ public class MainActivity extends Activity {
 
   @Override protected void onDestroy() {
     releaseBackgroundMusic();
+    synchronized (narrationFutureLock) {
+      narrationFutureStopped = true;
+      narrationBuffer.reset();
+    }
     if (gameCore != null) gameCore.close();
     io.shutdownNow();
     narrationFutureIo.shutdownNow();
@@ -801,243 +812,157 @@ public class MainActivity extends Activity {
 
   private void clearNarrationFutureCache() {
     synchronized (narrationFutureLock) {
-      narrationFutureCache = new JSONArray();
+      narrationBuffer.reset();
       narrationFutureForecastSteps = new JSONArray();
-      narrationFutureForecastPrompt = "";
-      narrationFutureEpoch++;
+      narrationFutureForecastState = new JSONObject();
+      narrationFutureForecastContext = "";
+      narrationFutureForecastBaseHash = "";
+      narrationFuturePending = true;
+      narrationFutureFailures = 0;
     }
   }
 
-  private JSONObject pollNarrationFuture(JSONObject committedState) {
-    synchronized (narrationFutureLock) {
-      if (narrationFutureCache == null || narrationFutureCache.length() == 0) return null;
-      try {
-        JSONObject slot = narrationFutureCache.optJSONObject(0);
-        if (slot == null) {
-          narrationFutureCache = new JSONArray();
-          return null;
-        }
-        String expectedHash = slot.optString("authorityHash", "");
-        String actualHash = GameCoreFacade.oracleAuthorityHash(committedState);
-        if (!expectedHash.equals(actualHash)
-            && !GameCoreFacade.oracleCacheOutcomeMatches(committedState, slot)) {
-          narrationFutureCache = new JSONArray();
-          narrationFutureEpoch++;
-          return null;
-        }
-        narrationFutureCache.remove(0);
-        if ("CHARACTER".equals(slot.optString("worldKind", ""))) {
-          narrationFutureCache = new JSONArray();
-          narrationFutureEpoch++;
-          return null;
-        }
-        JSONObject payload = slot.optJSONObject("payload");
-        return payload == null ? null : new JSONObject(slot.toString());
-      } catch (Exception error) {
-        narrationFutureCache = new JSONArray();
-        narrationFutureEpoch++;
-        return null;
-      }
-    }
+  private String committedWorldTurnId(JSONObject state) {
+    JSONObject root = state.optJSONObject("emergent");
+    return root == null ? "" : root.optString("lastCommittedTurnId", "");
   }
 
-  private void replaceNarrationFutureLocked(
-      JSONArray future, JSONArray oracleSteps, int startIndex) throws Exception {
-    narrationFutureCache = new JSONArray();
-    if (future == null || oracleSteps == null) return;
-    int count = Math.min(future.length(), oracleSteps.length());
-    for (int i = Math.max(0, startIndex); i < count; i++) {
-      JSONObject payload = future.optJSONObject(i);
-      JSONObject step = oracleSteps.optJSONObject(i);
-      if (payload == null || step == null || payload.optString("reply", "").trim().isEmpty()) break;
-      JSONObject clean = new JSONObject(payload.toString());
-      clean.remove("future");
-      narrationFutureCache.put(new JSONObject()
-          .put("action", step.optString("action", ""))
-          .put("authorityHash", step.optString("authorityHash", ""))
-          .put("worldKind", step.optString("worldKind", ""))
-          .put("payloadKey", step.optString("payloadKey", ""))
-          .put("payloadKeys", step.optJSONArray("payloadKeys") == null
-              ? new JSONArray() : new JSONArray(step.getJSONArray("payloadKeys").toString()))
-          .put("levelKey", step.optString("levelKey", ""))
-          .put("routeResult", step.optString("routeResult", ""))
-          .put("payload", clean));
-    }
+  private JSONObject pollNarrationFuture(JSONObject committedState) throws Exception {
+    return narrationBuffer.poll(GameCoreFacade.oracleAuthorityHash(committedState),
+        committedWorldTurnId(committedState),
+        slot -> GameCoreFacade.oracleCacheOutcomeMatches(committedState, slot));
   }
 
   private int combatForecastStartIndex(JSONObject currentState, JSONArray oracleSteps) {
-    try {
-      if (currentState == null || !CombatChoiceEngine.isActive(currentState)) return -1;
-      for (int i = 0; oracleSteps != null && i < oracleSteps.length(); i++) {
-        JSONObject step = oracleSteps.optJSONObject(i);
-        if (step == null || !"ENTITY".equals(step.optString("worldKind", ""))) continue;
-        // Alignment is based on the committed encounter selection, not on which Entity is
-        // currently foregrounded. Rotating activeEntityIndex must never invalidate future cache.
-        if (GameCoreFacade.oracleCacheOutcomeMatches(currentState, step)) return i + 1;
-      }
-    } catch (Exception ignored) {}
-    return -1;
+    if (currentState == null || !CombatChoiceEngine.isActive(currentState)) return -1;
+    int aligned = narrationFutureAlignment(currentState, "", oracleSteps);
+    JSONObject encounter = aligned > 0 ? oracleSteps.optJSONObject(aligned - 1) : null;
+    return encounter != null && "ENTITY".equals(encounter.optString("worldKind", ""))
+        ? aligned : -1;
   }
 
   private int narrationFutureAlignment(
       JSONObject currentState, String baseHash, JSONArray oracleSteps) {
-    try {
-      int combatStart = combatForecastStartIndex(currentState, oracleSteps);
-      if (combatStart >= 0) return combatStart;
-      String currentHash = GameCoreFacade.oracleAuthorityHash(currentState);
-      if (baseHash != null && !baseHash.isEmpty() && baseHash.equals(currentHash)) return 0;
-      for (int i = 0; oracleSteps != null && i < oracleSteps.length(); i++) {
-        JSONObject step = oracleSteps.optJSONObject(i);
-        if (step == null) continue;
-        if (currentHash.equals(step.optString("authorityHash", ""))
-            || GameCoreFacade.oracleCacheOutcomeMatches(currentState, step)) {
-          return i + 1;
-        }
-      }
-    } catch (Exception ignored) {}
-    return -1;
+    return NarrationFutureBuffer.alignment(GameCoreFacade.oracleAuthorityHash(currentState),
+        baseHash, committedWorldTurnId(currentState), oracleSteps,
+        step -> GameCoreFacade.oracleCacheOutcomeMatches(currentState, step));
   }
 
-  private String narrationFuturePrompt(JSONObject state, String oracleContext) throws Exception {
+  private String narrationFuturePrompt(JSONObject state, String oracleContext,
+                                       NarrationFutureBuffer.Request request) throws Exception {
     String snapshot = state.toString();
     String level = SafePresentationView.narrativeText(
         state, gameCore.levelSceneContext(snapshot, GmChoiceContract.defaultCoreAction(state)));
-    String characters = SafePresentationView.narrativeText(
-        state, gameCore.characterSceneContext(snapshot));
-    String continuity = SafePresentationView.narrativeText(
-        state, gameCore.narrativeSceneContinuityContext(
-            snapshot, GmChoiceContract.defaultCoreAction(state)));
-    return GmNarratorContract.promptContext() + "\n"
-        + GmNarratorContract.caoMinhNarrativeCard() + "\n"
-        + "LEVEL SCENE:\n" + level + "\n"
-        + "CHARACTER SCENE:\n" + characters + "\n"
-        + "RELEVANT CONTINUITY:\n" + continuity + "\n"
-        + oracleContext + "\n"
-        + "PREFETCH CONTRACT: đây là tác vụ nền, không phải lượt hiện tại. "
-        + "Chỉ viết presentation cho đúng 6 STEP trong CORE ORACLE WINDOW theo thứ tự. "
-        + "Không tiết lộ outcome của step sau trong capsule trước. "
-        + "Mỗi capsule phải là JSON {\\\"reply\\\":\\\"...\\\","
-        + "\\\"choices\\\":[{\\\"text\\\":\\\"...\\\"}],"
-        + "\\\"encounterDialogue\\\":[]}. "
-        + "Không tự quyết định suy nghĩ, lời nói hay hành động tiếp theo của Cao Minh. "
-        + "OUTPUT chỉ JSON: {\\\"future\\\":[6 capsule]}.";
+    String characters = SafePresentationView.narrativeText(state, gameCore.characterSceneContext(snapshot));
+    String continuity = SafePresentationView.narrativeText(state,
+        gameCore.narrativeSceneContinuityContext(snapshot, GmChoiceContract.defaultCoreAction(state)));
+    return GmNarratorContract.promptContext() + "\n" + GmNarratorContract.caoMinhNarrativeCard()
+        + "\nLEVEL SCENE:\n" + level + "\nCHARACTER SCENE:\n" + characters
+        + "\nRELEVANT CONTINUITY:\n" + continuity + "\n" + oracleContext
+        + "\nALREADY READY PRECEDING REPLIES: " + request.precedingReplies
+        + "\nREQUESTED CORE STEPS: " + request.steps
+        + "\nPREFETCH CONTRACT: tác vụ nền, không phải lượt hiện tại. Chỉ viết "
+        + request.steps.length() + " capsule cho REQUESTED CORE STEPS. "
+        + "Mỗi capsule phải mang stepId bằng turnId của đúng step được giao. "
+        + "Không tiết lộ outcome của step sau trong capsule trước; không tự quyết suy nghĩ, "
+        + "lời nói hay hành động tiếp theo của Cao Minh. Giữ mạch kể với preceding replies. "
+        + "OUTPUT chỉ JSON: {\"future\":[{\"stepId\":\"turnId được giao\","
+        + "\"reply\":\"...\",\"choices\":[{\"text\":\"...\"}],\"encounterDialogue\":[]}]}";
   }
 
-  private void scheduleCombatNarrationFutureRefill(JSONObject combatState) {
-    try {
-      final JSONArray oracleSteps;
-      final String prompt;
-      final int startIndex;
-      final long expectedEpoch;
-      synchronized (narrationFutureLock) {
-        if (narrationFutureRefillRunning || narrationFutureCache.length() >= 4
-            || narrationFutureForecastSteps.length() == 0
-            || narrationFutureForecastPrompt.trim().isEmpty()) return;
-        oracleSteps = new JSONArray(narrationFutureForecastSteps.toString());
-        prompt = narrationFutureForecastPrompt;
-        startIndex = combatForecastStartIndex(combatState, oracleSteps);
-        if (startIndex < 0 || startIndex >= oracleSteps.length()) return;
-        narrationFutureRefillRunning = true;
-        expectedEpoch = narrationFutureEpoch;
+  /** Record demand only; forecast construction and network calls never run on the turn thread. */
+  private void scheduleNarrationFutureRefill(JSONObject baseState) {
+    if (baseState == null || baseState.length() == 0) return;
+    synchronized (narrationFutureLock) {
+      if (narrationFutureStopped) return;
+      narrationBuffer.requestRefill();
+      if (narrationFutureRefillRunning) {
+        narrationFuturePending = true;
+        return;
       }
-
-      narrationFutureIo.execute(() -> {
-        try {
-          JSONObject parsed = parseModelJson(generateText(prompt));
-          JSONArray future = parsed.optJSONArray("future");
-          if (future == null || future.length() == 0) return;
-
-          JSONObject current = new JSONObject(gameCore.currentCoreState());
-          int aligned = narrationFutureAlignment(current, "", oracleSteps);
-          if (aligned < 0) {
-            JSONObject combat = current.optJSONObject("combat");
-            if (combat != null && !combat.optBoolean("active", false)
-                && "victory".equals(combat.optString("outcome", ""))) {
-              aligned = startIndex;
-            }
-          }
-          if (aligned < 0 || aligned >= oracleSteps.length()) return;
-
-          synchronized (narrationFutureLock) {
-            if (narrationFutureEpoch != expectedEpoch) return;
-            replaceNarrationFutureLocked(new JSONArray(future.toString()), oracleSteps, aligned);
-          }
-        } catch (Exception error) {
-          Log.d(TAG, "Combat narration prefetch skipped: " + error.getMessage());
-        } finally {
-          synchronized (narrationFutureLock) { narrationFutureRefillRunning = false; }
-        }
-      });
-    } catch (Exception error) {
-      synchronized (narrationFutureLock) { narrationFutureRefillRunning = false; }
-      Log.d(TAG, "Unable to schedule combat narration prefetch: " + error.getMessage());
+      if (!narrationBuffer.needsRefill() && narrationBuffer.readyCount() > NarrationFutureBuffer.LOW_WATER) return;
+      narrationFutureRefillRunning = true;
+      narrationFutureIo.execute(this::runNarrationFutureRefill);
     }
   }
 
-  private void scheduleNarrationFutureRefill(JSONObject baseState) {
+  private JSONArray remainingForecast(JSONArray steps, int start) throws Exception {
+    JSONArray remaining = new JSONArray();
+    for (int i = Math.max(0, start); i < steps.length(); i++) remaining.put(steps.getJSONObject(i));
+    return remaining;
+  }
+
+  private void runNarrationFutureRefill() {
+    long expectedEpoch = narrationBuffer.epoch();
+    NarrationFutureBuffer.Request request = null;
+    int accepted = 0;
     try {
-      if (baseState == null || baseState.length() == 0) return;
-      if (CombatChoiceEngine.isActive(baseState)) {
-        scheduleCombatNarrationFutureRefill(baseState);
-        return;
-      }
-      if (CombatChoiceEngine.isKnownEntity(encounterKey(baseState))) return;
-      final long expectedEpoch;
-      synchronized (narrationFutureLock) {
-        if (narrationFutureRefillRunning || narrationFutureCache.length() >= 4) return;
-        narrationFutureRefillRunning = true;
-        expectedEpoch = narrationFutureEpoch;
-      }
-
-      final JSONObject base = new JSONObject(baseState.toString());
-      final String baseHash = GameCoreFacade.oracleAuthorityHash(base);
-      JSONObject oracle = new JSONObject(gameCore.oracleWindow(base.toString()));
-      JSONArray steps = oracle.optJSONArray("steps");
-      if (steps == null || steps.length() == 0) {
-        synchronized (narrationFutureLock) { narrationFutureRefillRunning = false; }
-        return;
-      }
-      final JSONArray oracleSteps = new JSONArray(steps.toString());
-      final String prompt = narrationFuturePrompt(base,
-          oracle.optString("context", "CORE ORACLE WINDOW: unavailable."));
-      synchronized (narrationFutureLock) {
-        narrationFutureForecastSteps = new JSONArray(oracleSteps.toString());
-        narrationFutureForecastPrompt = prompt;
-      }
-
-      narrationFutureIo.execute(() -> {
-        try {
-          JSONObject parsed = parseModelJson(generateText(prompt));
-          JSONArray future = parsed.optJSONArray("future");
-          if (future == null || future.length() == 0) return;
-
-          JSONObject current = new JSONObject(gameCore.currentCoreState());
-          int startIndex = narrationFutureAlignment(current, baseHash, oracleSteps);
-          if (startIndex < 0 || startIndex >= oracleSteps.length()) return;
-
-          synchronized (narrationFutureLock) {
-            if (narrationFutureEpoch != expectedEpoch) return;
-            replaceNarrationFutureLocked(
-                new JSONArray(future.toString()), oracleSteps, startIndex);
-          }
-        } catch (Exception error) {
-          Log.d(TAG, "Narration future prefetch skipped: " + error.getMessage());
-        } finally {
-          boolean rerun;
-          synchronized (narrationFutureLock) {
-            narrationFutureRefillRunning = false;
-            rerun = narrationFutureEpoch != expectedEpoch && narrationFutureCache.length() < 4;
-          }
-          if (rerun) {
-            try {
-              scheduleNarrationFutureRefill(new JSONObject(gameCore.currentCoreState()));
-            } catch (Exception ignored) {}
-          }
+      JSONObject current = new JSONObject(gameCore.currentCoreState());
+      JSONObject base;
+      JSONArray steps;
+      String context;
+      if (CombatChoiceEngine.isActive(current) || CombatChoiceEngine.isKnownEntity(encounterKey(current))) {
+        synchronized (narrationFutureLock) {
+          steps = new JSONArray(narrationFutureForecastSteps.toString());
+          base = new JSONObject(narrationFutureForecastState.toString());
+          context = narrationFutureForecastContext;
         }
-      });
+        int start = CombatChoiceEngine.isActive(current)
+            ? combatForecastStartIndex(current, steps)
+            : narrationFutureAlignment(current, "", steps);
+        if (start < 0 || start >= steps.length()) return;
+        steps = remainingForecast(steps, start);
+      } else {
+        JSONObject oracle = new JSONObject(gameCore.oracleWindow(current.toString(), NarrationFutureBuffer.TARGET));
+        steps = oracle.optJSONArray("steps");
+        base = oracle.optJSONObject("baseState");
+        context = oracle.optString("context", "");
+        if (steps == null || steps.length() == 0 || base == null) return;
+        synchronized (narrationFutureLock) {
+          if (narrationFutureStopped || narrationBuffer.epoch() != expectedEpoch) return;
+          narrationFutureForecastSteps = new JSONArray(steps.toString());
+          narrationFutureForecastState = new JSONObject(base.toString());
+          narrationFutureForecastContext = context;
+          narrationFutureForecastBaseHash = oracle.optString("baseHash", "");
+        }
+      }
+      if (!narrationBuffer.forecast(expectedEpoch, steps)) return;
+      request = narrationBuffer.reserve();
+      if (request == null) return;
+      String prompt = narrationFuturePrompt(base, context, request);
+      JSONObject parsed = parseModelJson(generateText(prompt));
+      JSONObject latest = new JSONObject(gameCore.currentCoreState());
+      if (CombatChoiceEngine.isActive(latest) || CombatChoiceEngine.isKnownEntity(encounterKey(latest))) {
+        JSONArray original;
+        synchronized (narrationFutureLock) { original = new JSONArray(narrationFutureForecastSteps.toString()); }
+        int start = narrationFutureAlignment(latest, narrationFutureForecastBaseHash, original);
+        if (start < 0) return;
+        if (!narrationBuffer.forecast(expectedEpoch, remainingForecast(original, start))) return;
+      } else {
+        JSONObject oracle = new JSONObject(gameCore.oracleWindow(latest.toString(), NarrationFutureBuffer.TARGET));
+        if (!narrationBuffer.forecast(expectedEpoch, oracle.optJSONArray("steps"))) return;
+      }
+      accepted = narrationBuffer.accept(request, parsed.optJSONArray("future"));
+      if (BuildConfig.DEBUG) Log.d(TAG, "NARRATION PREFETCH: ready=" + narrationBuffer.readyCount()
+          + " requested=" + request.steps.length() + " accepted=" + accepted);
     } catch (Exception error) {
-      synchronized (narrationFutureLock) { narrationFutureRefillRunning = false; }
-      Log.d(TAG, "Unable to schedule narration future prefetch: " + error.getMessage());
+      Log.d(TAG, "Narration future prefetch unavailable: " + error.getClass().getSimpleName());
+    } finally {
+      if (request != null) narrationBuffer.finish(request);
+      synchronized (narrationFutureLock) {
+        narrationFutureRefillRunning = false;
+        boolean rerun = narrationFuturePending || narrationBuffer.epoch() != expectedEpoch
+            || (request != null && narrationBuffer.needsRefill());
+        narrationFuturePending = false;
+        if (accepted > 0) narrationFutureFailures = 0;
+        else if (request != null) narrationFutureFailures = Math.min(5, narrationFutureFailures + 1);
+        if (!narrationFutureStopped && rerun) {
+          // ponytail: one dependent narrative batch at a time; parallelize only independent packets.
+          long delay = accepted > 0 ? 0L : Math.min(30_000L, 1_000L << narrationFutureFailures);
+          narrationFutureRefillRunning = true;
+          narrationFutureIo.schedule(this::runNarrationFutureRefill, delay, TimeUnit.MILLISECONDS);
+        }
+      }
     }
   }
 
@@ -1091,7 +1016,11 @@ public class MainActivity extends Activity {
     }
 
     @JavascriptInterface public String loadCheckpoint() {
-      return gameCore.loadCheckpoint();
+      clearNarrationFutureCache();
+      String restored = gameCore.loadCheckpoint();
+      clearNarrationFutureCache();
+      try { scheduleNarrationFutureRefill(new JSONObject(gameCore.currentCoreState())); } catch (Exception ignored) {}
+      return restored;
     }
 
     @JavascriptInterface public void clearCheckpoint() {
@@ -1357,6 +1286,7 @@ public class MainActivity extends Activity {
           if (!result.optBoolean("handled", false)) {
             throw new Exception(result.optString("error", "Không thể resolve combat hand."));
           }
+          scheduleNarrationFutureRefill(result.getJSONObject("state"));
           emit("backroomCombatTurn", result.getJSONObject("state").toString());
         } catch (Exception e) {
           emit("backroomError", e.getMessage() == null ? "Không thể resolve combat hand." : e.getMessage());
@@ -1367,7 +1297,9 @@ public class MainActivity extends Activity {
     @JavascriptInterface public void restartAfterDeath() {
       io.execute(() -> {
         try {
+          clearNarrationFutureCache();
           JSONObject result = new JSONObject(gameCore.restartAfterDeath());
+          clearNarrationFutureCache();
           if (!result.optBoolean("handled", false)) {
             throw new Exception(result.optString("error", "Không thể bắt đầu lại từ đầu Level."));
           }
@@ -1420,7 +1352,11 @@ public class MainActivity extends Activity {
     }
 
     @JavascriptInterface public String startNewGame(String initialJson) {
-      return gameCore.startNewGame(initialJson);
+      clearNarrationFutureCache();
+      String started = gameCore.startNewGame(initialJson);
+      clearNarrationFutureCache();
+      try { scheduleNarrationFutureRefill(new JSONObject(gameCore.currentCoreState())); } catch (Exception ignored) {}
+      return started;
     }
   }
 

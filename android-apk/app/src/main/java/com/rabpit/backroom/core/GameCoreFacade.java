@@ -815,6 +815,12 @@ public final class GameCoreFacade implements AutoCloseable {
    * This never persists, never reaches the client-safe state and never grants authority to narration.
    */
   public synchronized String oracleWindow(String stateJson) {
+    return oracleWindow(stateJson, 6);
+  }
+
+  /** Bounded background forecast; preserves the six-step foreground API. */
+  public synchronized String oracleWindow(String stateJson, int requestedSteps) {
+    int windowSteps = Math.max(1, Math.min(NarrationFutureBuffer.TARGET, requestedSteps));
     JSONObject output = new JSONObject();
     JSONObject submitted = parseState(stateJson);
     JSONObject persisted = parseState(liveStateJson);
@@ -824,6 +830,7 @@ public final class GameCoreFacade implements AutoCloseable {
       normalizeCoreState(forecast);
       emergentTurnEngine.normalizeState(forecast);
       emergentTurnEngine.catchUpProjections(forecast);
+      output.put("baseHash", oracleAuthorityHash(base)).put("baseState", deepCopy(base));
       JSONArray steps = new JSONArray();
       if (CombatChoiceEngine.isActive(forecast)) {
         output.put("context", "CORE ORACLE WINDOW: paused while combat is active.")
@@ -836,7 +843,7 @@ public final class GameCoreFacade implements AutoCloseable {
           .append("Each slot follows the same single Core-routed default action the UI would expose. ")
           .append("These are deterministic Core forecasts, not player-visible facts and not narration authority.\n");
 
-      for (int step = 1; step <= 6; step++) {
+      for (int step = 1; step <= windowSteps; step++) {
         String defaultAction = GmChoiceContract.defaultCoreAction(forecast);
         PreparedTurn prepared = prepareExplorerTurnData(forecast, defaultAction);
         JSONObject selected = prepared.selected;
@@ -845,6 +852,7 @@ public final class GameCoreFacade implements AutoCloseable {
 
         JSONObject stepInfo = new JSONObject()
             .put("offset", step)
+            .put("turnId", prepared.turnId)
             .put("action", defaultAction)
             .put("routeResult", routeResult)
             .put("worldKind", selected.optBoolean("selectedNone", false)
