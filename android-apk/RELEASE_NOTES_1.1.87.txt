@@ -1,0 +1,9 @@
+Backroom 1.1.87
+
+- Hoàn thiện GAME MENU với thông tin vị trí theo Level, Artificial Intelligence Mode và danh xưng Cao Minh - Vạn Giới Ma Tôn.
+- Thêm nút Xuất LOG chẩn đoán dạng JSONL qua Android document picker, bao phủ Core/bridge, provider request-response, cache, guard, UI/WebView error và exception stack.
+- Diagnostic LOG có session/sequence/trace/source, metadata build hiện tại, retention hai segment 32 MiB và redaction API credential/authorization trước khi xuất.
+- Giữ bản sửa narration encounter mới khi hợp nhất hệ thống diagnostics, tránh phục hồi đường ghép dialogue cũ.
+- Thêm chỉ báo số narration turn đã preload trực tiếp trên header theo dạng XX/10, lấy từ NarrationFutureBuffer thực tế và cập nhật khi refill, consume hoặc reset.
+- Chỉ báo preload dùng font Play 10px, compact cho header mobile.
+- Bump version từ 1.1.86 lên 1.1.87 (versionCode 132), đồng bộ APK artifact, GitHub Release tag và release verification.
