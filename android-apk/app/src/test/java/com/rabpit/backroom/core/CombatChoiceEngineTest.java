@@ -676,6 +676,30 @@ public class CombatChoiceEngineTest {
         CombatChoiceEngine.defendedIncomingDamage(15, CharacterProgressionCore.BASE_STAT));
     assertEquals(1, combat.getJSONArray("feedbackEvents").length());
   }
+  @Test public void entityResolvesOnlyOneSkillWhenMultipleProcRollsSucceed() throws Exception {
+    int seed = 1;
+    while (CombatChoiceEngine.entitySkillProcRoll(seed, 1, 0, 0) >= 35
+        || CombatChoiceEngine.entitySkillProcRoll(seed, 1, 0, 1) >= 32) seed++;
+
+    JSONObject combat = new JSONObject().put("seed", seed).put("round", 1).put("actorIndex", 0);
+    JSONObject actor = new JSONObject().put("name", "Cao Minh").put("hp", 100)
+        .put("maxHp", 100).put("DEF", CharacterProgressionCore.BASE_STAT);
+    JSONObject entity = new JSONObject().put("key", "hound").put("name", "Hound")
+        .put("attack", 15);
+    Method respond = CombatChoiceEngine.class.getDeclaredMethod("resolveEntityResponse",
+        JSONObject.class, JSONObject.class, JSONObject.class, boolean.class);
+    respond.setAccessible(true);
+
+    String summary = (String) respond.invoke(null, combat, actor, entity, false);
+
+    int expectedDamage = CombatChoiceEngine.defendedIncomingDamage(
+        CombatChoiceEngine.entitySkillDamage(15, 120), CharacterProgressionCore.BASE_STAT);
+    assertTrue(summary.contains("dùng Dead Bite"));
+    assertFalse(summary.contains(" + "));
+    assertEquals(100 - expectedDamage, actor.getInt("hp"));
+    assertEquals(1, combat.getJSONArray("feedbackEvents").length());
+  }
+
   @Test public void firstEntityRotationHasExactlyThreeSkillsEach() {
   assertEquals(3, CombatChoiceEngine.entitySkillCount("hound"));
   assertEquals(3, CombatChoiceEngine.entitySkillCount("clump"));
