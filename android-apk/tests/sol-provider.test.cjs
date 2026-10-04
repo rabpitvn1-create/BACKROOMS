@@ -11,21 +11,22 @@ function method(name) {
   return source.slice(start, source.indexOf('\n  private ', start + 1));
 }
 
-test('shared flow tries LUNA before existing Gemini, SOL and Haiku fallbacks', () => {
-  const flow = method('generateText');
+test('foreground and background use health scheduling with bounded source attempts', () => {
   const compiler = fs.readFileSync(path.join(root,
     'android-apk/app/src/main/java/com/rabpit/backroom/core/SceneContextCompiler.java'), 'utf8');
   assert.match(method('narrationPrompt'), /SceneContextCompiler\.compile/);
   assert.match(compiler, /SafePresentationView\.narrativeText/);
-  assert.doesNotMatch(flow, /currentCoreState/);
-  assert.match(flow, /try\s*\{\s*String output = lunaText\(prompt\);[\s\S]*?return output;\s*\} catch \(Exception error\) \{[\s\S]*?\}\s*Exception geminiError;/);
-  assert.ok(flow.indexOf('lunaText(prompt)') < flow.indexOf('geminiText(prompt)'));
-  assert.ok(flow.indexOf('geminiText(prompt)') < flow.indexOf('solText(prompt)'));
-  assert.ok(flow.indexOf('solText(prompt)') < flow.indexOf('haikuText(prompt)'));
-  assert.match(method('geminiText'), /ProviderRetryPolicy\.shouldRotateGeminiKey/);
-  assert.match(method('haikuText'), /ProviderRetryPolicy\.shouldRetrySameProvider/);
-  assert.match(method('generateNarrationText'), /return generateText\(prompt\)/);
-  assert.doesNotMatch(flow, /CompletableFuture|invokeAny|parallelStream/);
+  assert.match(method('generateNarrationText'), /return generateScheduledText\(prompt, false\)/);
+  assert.match(method('generateText'), /return generateScheduledText\(prompt, true\)/);
+  const flow = method('generateScheduledText');
+  assert.match(flow, /providerScheduler\.acquire/);
+  assert.match(flow, /int limit = background \? 4 : 3/);
+  assert.match(flow, /geminiTextOnce\(prompt, keys\[source\]\)/);
+  assert.match(flow, /haikuTextOnce\(prompt\)/);
+  assert.match(flow, /lunaText\(prompt\)/);
+  assert.match(flow, /providerScheduler\.failed/);
+  assert.match(flow, /BuildConfig\.LUNA_ENABLED && configured\(BuildConfig\.LUNA_API_KEY\)/);
+  assert.doesNotMatch(flow, /currentCoreState|sleepBeforeNextGeminiKey|geminiText\(prompt\)|haikuText\(prompt\)/);
 });
 
 test('LUNA skips absent keys and validates JSON using shared OpenAI transport and parser', () => {
@@ -52,6 +53,8 @@ test('LUNA config uses shared secret helper and optional release env', () => {
     assert.ok(release.includes(name + ': $' + '{{ secrets.' + name + ' || vars.' + name + ' }}'));
   }
   assert.doesNotMatch(release, /for name in [^\n]*LUNA/);
+  assert.ok(gradle.includes('String.valueOf(System.getenv("LUNA_ENABLED") == "true")'));
+  assert.ok(release.includes("LUNA_ENABLED: $" + "{{ vars.LUNA_ENABLED || 'false' }}"));
 });
 
 test('SOL uses low reasoning with shared OpenAI payload, bearer transport and parser', () => {

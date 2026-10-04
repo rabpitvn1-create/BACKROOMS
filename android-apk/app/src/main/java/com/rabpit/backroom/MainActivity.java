@@ -27,6 +27,7 @@ import com.rabpit.backroom.core.SceneContextCompiler;
 import com.rabpit.backroom.core.OfflinePresenter;
 import com.rabpit.backroom.core.NarrationProviderPolicy;
 import com.rabpit.backroom.core.NarrationFutureBuffer;
+import com.rabpit.backroom.core.NarrationProviderScheduler;
 import com.rabpit.backroom.core.SafePresentationView;
 import com.rabpit.backroom.core.NarrationGuard;
 import com.rabpit.backroom.core.MilestoneCore;
@@ -44,6 +45,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class MainActivity extends Activity {
   private static final String TAG = "BackroomMain";
@@ -63,6 +65,7 @@ public class MainActivity extends Activity {
   private final ScheduledExecutorService narrationFutureIo = Executors.newSingleThreadScheduledExecutor();
   private final Object narrationFutureLock = new Object();
   private final NarrationFutureBuffer narrationBuffer = new NarrationFutureBuffer();
+  private final NarrationProviderScheduler providerScheduler = new NarrationProviderScheduler();
   private boolean narrationFutureStopped;
   private boolean narrationFuturePending;
   private int narrationFutureFailures;
@@ -351,11 +354,12 @@ public class MainActivity extends Activity {
         while ((line = reader.readLine()) != null) body.append(line);
       }
     }
+    String retryAfter = connection.getHeaderField("Retry-After");
     connection.disconnect();
 
     if (status < 200 || status >= 300) {
       String detail = body.length() > 220 ? body.substring(0, 220) : body.toString();
-      throw new HttpError(status, "Provider HTTP " + status + (detail.isEmpty() ? "" : ": " + detail));
+      throw new HttpError(status, "Provider HTTP " + status + (detail.isEmpty() ? "" : ": " + detail), body.toString(), retryAfter);
     }
     return body.toString();
   }
@@ -398,7 +402,7 @@ public class MainActivity extends Activity {
   /** Count content requests; key rotation and transport retries stay inside the existing provider chain. */
   private String generateNarrationText(String prompt, int[] calls, boolean retry) throws Exception {
     calls[retry ? 1 : 0]++;
-    return generateText(prompt);
+    return generateScheduledText(prompt, false);
   }
 
   private String geminiResponseText(String raw) throws Exception {
@@ -518,11 +522,12 @@ public class MainActivity extends Activity {
         while ((line = reader.readLine()) != null) body.append(line);
       }
     }
+    String retryAfter = connection.getHeaderField("Retry-After");
     connection.disconnect();
 
     if (status < 200 || status >= 300) {
       String detail = body.length() > 220 ? body.substring(0, 220) : body.toString();
-      throw new HttpError(status, "Haiku HTTP " + status + (detail.isEmpty() ? "" : ": " + detail));
+      throw new HttpError(status, "Haiku HTTP " + status + (detail.isEmpty() ? "" : ": " + detail), body.toString(), retryAfter);
     }
     return body.toString();
   }
@@ -673,61 +678,52 @@ public class MainActivity extends Activity {
     return message.length() > 260 ? message.substring(0, 260) : message;
   }
 
+  private boolean configured(String key) { return key != null && !key.trim().isEmpty(); }
+
   private String generateText(String prompt) throws Exception {
-    long providerStart = SystemClock.elapsedRealtime();
-    try {
-      String output = lunaText(prompt);
-      if (BuildConfig.DEBUG) Log.d(TAG, "NARRATION PROVIDER: LUNA success "
-          + (SystemClock.elapsedRealtime() - providerStart) + "ms");
-      return output;
-    } catch (Exception error) {
-      if (BuildConfig.DEBUG) Log.d(TAG, "NARRATION PROVIDER: LUNA unavailable "
-          + (SystemClock.elapsedRealtime() - providerStart) + "ms");
-    }
+    return generateScheduledText(prompt, true);
+  }
 
-    Exception geminiError;
-    providerStart = SystemClock.elapsedRealtime();
-    try {
-      String output = geminiText(prompt);
-      if (BuildConfig.DEBUG) Log.d(TAG, "NARRATION PROVIDER: Gemini success "
-          + (SystemClock.elapsedRealtime() - providerStart) + "ms");
-      return output;
-    } catch (Exception error) {
-      geminiError = error;
-      if (BuildConfig.DEBUG) Log.d(TAG, "NARRATION PROVIDER: Gemini failed "
-          + (SystemClock.elapsedRealtime() - providerStart) + "ms");
-      Log.w(TAG, "All Gemini keys failed; falling back to SOL.");
+  private String generateScheduledText(String prompt, boolean background) throws Exception {
+    String[] keys = geminiKeys();
+    boolean[] configured = new boolean[NarrationProviderScheduler.SOURCE_COUNT];
+    for (int i = 0; i < keys.length; i++) configured[i] = configured(keys[i]);
+    configured[NarrationProviderScheduler.HAKU] = haikuConfigured();
+    configured[NarrationProviderScheduler.LUNA] = BuildConfig.LUNA_ENABLED && configured(BuildConfig.LUNA_API_KEY);
+    configured[NarrationProviderScheduler.SOL] = configured(BuildConfig.SOL_API_KEY);
+    boolean[] attempted = new boolean[configured.length];
+    boolean urgent = background && narrationBuffer.readyCount() <= NarrationFutureBuffer.EMERGENCY;
+    int geminiAttempts = 0;
+    int limit = background ? 4 : 3;
+    for (int attempt = 0; attempt < limit; attempt++) {
+      int source = providerScheduler.acquire(background, urgent, configured, attempted,
+          geminiAttempts, SystemClock.elapsedRealtime());
+      if (source < 0) break;
+      attempted[source] = true;
+      if (source < NarrationProviderScheduler.GEMINI_COUNT) geminiAttempts++;
+      long started = SystemClock.elapsedRealtime();
+      try {
+        String output;
+        if (source < NarrationProviderScheduler.GEMINI_COUNT) output = geminiTextOnce(prompt, keys[source]);
+        else if (source == NarrationProviderScheduler.LUNA) output = lunaText(prompt);
+        else if (source == NarrationProviderScheduler.HAKU) output = haikuTextOnce(prompt);
+        else output = solText(prompt);
+        providerScheduler.succeeded(source, background, SystemClock.elapsedRealtime() - started);
+        if (BuildConfig.DEBUG) Log.d(TAG, "NARRATION PROVIDER: source=" + source
+            + " background=" + background + " elapsed=" + (SystemClock.elapsedRealtime() - started));
+        return output;
+      } catch (Exception error) {
+        HttpError http = error instanceof HttpError ? (HttpError)error : null;
+        int status = http == null ? 0 : http.status;
+        providerScheduler.failed(source, background, status, SystemClock.elapsedRealtime(),
+            http == null ? 0L : http.retryAfterMs,
+            http != null && http.dailyQuota ? NarrationProviderScheduler.nextPacificDailyResetDelay(
+                System.currentTimeMillis()) : 0L, ThreadLocalRandom.current().nextLong(501L));
+        if (BuildConfig.DEBUG) Log.d(TAG, "NARRATION PROVIDER unavailable: source=" + source
+            + " status=" + status + " background=" + background);
+      }
     }
-
-    Exception solError;
-    providerStart = SystemClock.elapsedRealtime();
-    try {
-      String output = solText(prompt);
-      if (BuildConfig.DEBUG) Log.d(TAG, "NARRATION PROVIDER: SOL success "
-          + (SystemClock.elapsedRealtime() - providerStart) + "ms");
-      return output;
-    } catch (Exception error) {
-      solError = error;
-      if (BuildConfig.DEBUG) Log.d(TAG, "NARRATION PROVIDER: SOL failed "
-          + (SystemClock.elapsedRealtime() - providerStart) + "ms");
-      Log.w(TAG, "SOL failed; falling back to Haiku.");
-    }
-
-    providerStart = SystemClock.elapsedRealtime();
-    try {
-      String output = haikuText(prompt);
-      if (BuildConfig.DEBUG) Log.d(TAG, "NARRATION PROVIDER: Haiku success "
-          + (SystemClock.elapsedRealtime() - providerStart) + "ms");
-      return output;
-    } catch (Exception haikuError) {
-      if (BuildConfig.DEBUG) Log.d(TAG, "NARRATION PROVIDER: Haiku failed "
-          + (SystemClock.elapsedRealtime() - providerStart) + "ms");
-      throw new Exception(
-          "Toàn bộ 5 Gemini key, SOL và Haiku fallback đều không khả dụng. Gemini: "
-              + providerErrorSummary(geminiError)
-              + " | SOL: " + providerErrorSummary(solError)
-              + " | Haiku: " + providerErrorSummary(haikuError));
-    }
+    throw new Exception("Các nguồn narration đang bận hoặc tạm không khả dụng.");
   }
 
   private JSONObject parseModelJson(String raw) throws Exception {
@@ -1362,6 +1358,31 @@ public class MainActivity extends Activity {
 
   private static class HttpError extends Exception {
     final int status;
+    long retryAfterMs;
+    boolean dailyQuota;
     HttpError(int status, String message) { super(message); this.status = status; }
+    HttpError(int status, String message, String responseBody, String retryAfter) {
+      this(status, message);
+      try { retryAfterMs = Math.max(0L, Long.parseLong(retryAfter) * 1_000L); } catch (Exception ignored) {}
+      try {
+        JSONObject error = new JSONObject(responseBody).optJSONObject("error");
+        JSONArray details = error == null ? null : error.optJSONArray("details");
+        for (int i = 0; details != null && i < details.length(); i++) {
+          JSONObject detail = details.optJSONObject(i);
+          if (detail == null) continue;
+          String delay = detail.optString("retryDelay", "");
+          if (delay.endsWith("s")) retryAfterMs = Math.max(retryAfterMs,
+              (long)(Double.parseDouble(delay.substring(0, delay.length() - 1)) * 1_000L));
+          JSONArray violations = detail.optJSONArray("violations");
+          for (int j = 0; violations != null && j < violations.length(); j++) {
+            JSONObject violation = violations.optJSONObject(j);
+            if (violation == null) continue;
+            String quota = (violation.optString("quotaId", "") + " "
+                + violation.optString("quotaMetric", "")).toLowerCase(java.util.Locale.ROOT);
+            if (quota.contains("perday") || quota.contains("per_day")) dailyQuota = true;
+          }
+        }
+      } catch (Exception ignored) {}
+    }
   }
 }

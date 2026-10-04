@@ -29,6 +29,7 @@ jobs:
   build-apk:
     runs-on: ubuntu-latest
     env:
+      LUNA_ENABLED: ${{ vars.LUNA_ENABLED || 'false' }}
       LUNA_API_KEY: ${{ secrets.LUNA_API_KEY }}
       LUNA_BASE_URL: ${{ secrets.LUNA_BASE_URL || vars.LUNA_BASE_URL }}
       LUNA_MODEL: ${{ secrets.LUNA_MODEL || vars.LUNA_MODEL }}
