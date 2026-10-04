@@ -84,20 +84,15 @@ test('Explorer prefetch warms narration only and never previews or commits Core 
   assert.doesNotMatch(refill, /previewTurn\(|processRule\(|completePreparedTurn\(|commitPresentation\(/);
 });
 
-test('combat time reuses the matched pre-encounter oracle to warm post-combat narration', () => {
-  assert.match(bridge, /private JSONArray narrationFutureForecastSteps = new JSONArray\(\)/);
-  assert.match(bridge, /private JSONObject narrationFutureForecastState = new JSONObject\(\)/);
-  assert.match(bridge, /private int combatForecastStartIndex\(/);
-  assert.match(bridge, /GameCoreFacade\.oracleCacheOutcomeMatches\(currentState, step\)/);
-  const combatAlign=bridge.slice(bridge.indexOf('private int combatForecastStartIndex('),
-    bridge.indexOf('private int narrationFutureAlignment(',bridge.indexOf('private int combatForecastStartIndex(')));
-  assert.doesNotMatch(combatAlign, /optInt\("activeEntityIndex"|optJSONObject\("entity"/);
-  assert.match(core, /put\("payloadKeys", selectedEntityKeys\(selected\)\)/);
-  assert.match(bridge, /CombatChoiceEngine\.isActive\(current\) \|\| CombatChoiceEngine\.isKnownEntity\(encounterKey\(current\)\)/);
-  assert.match(bridge, /combatForecastStartIndex\(current, steps\)/);
+test('combat preserves prepared future slots instead of rebasing the window', () => {
+  const refill = bridge.slice(bridge.indexOf('private void runNarrationFutureRefill('),
+    bridge.indexOf('private void prefetchChoices(', bridge.indexOf('private void runNarrationFutureRefill(')));
+  assert.doesNotMatch(bridge, /narrationFutureForecastSteps|combatForecastStartIndex|narrationFutureAlignment/);
+  assert.equal((refill.match(/gameCore\.oracleWindow\(/g) || []).length, 1);
+  assert.ok(refill.indexOf('narrationBuffer.reserve()') < refill.indexOf('gameCore.oracleWindow('));
+  assert.doesNotMatch(refill, /remainingForecast|latest\.toString\(\)|narrationFutureForecastBaseHash/);
   assert.match(bridge, /scheduleNarrationFutureRefill\(runtime\);[\s\S]*backroomCombatDiceState/);
   assert.match(bridge, /OfflinePresenter\.isCoreOwnedEntityLifecycle\(safeEvents\)/);
-  assert.match(bridge, /coreOwnedEntityLifecycle \|\| cachedSlot == null/);
 });
 
 test('bridge contains no retired shadow-planner orchestration', () => {
@@ -154,34 +149,36 @@ test('header shows live narration prefetch readiness as xx/10 in Play 10px', () 
   assert.match(refill, /narrationBuffer\.finish\(request\);\s*emitNarrationFutureStatus\(\)/);
 });
 
-test('rolling oracle buffer warms only missing capsules without blocking current narration', () => {
+test('rolling oracle buffer preserves fixed slots and refills only the missing tail', () => {
   assert.match(bridge, /private final NarrationFutureBuffer narrationBuffer = new NarrationFutureBuffer\(\)/);
   assert.match(bridge, /pollNarrationFuture\(JSONObject committedState\)/);
-  assert.match(bridge, /GameCoreFacade\.oracleAuthorityHash\(committedState\)/);
   assert.match(bridge, /GameCoreFacade\.oracleCacheOutcomeMatches\(committedState, slot\)/);
-  assert.match(bridge, /private String narrationFuturePrompt\(/);
-  assert.match(bridge, /OUTPUT chỉ JSON:[^\n]*future/);
-  assert.match(bridge, /private void scheduleNarrationFutureRefill\(JSONObject baseState\)/);
-  assert.match(bridge, /narrationBuffer\.readyCount\(\) > NarrationFutureBuffer\.LOW_WATER/);
-  assert.match(bridge, /narrationFutureRefillRunning = true/);
-  assert.match(bridge, /NarrationFutureBuffer\.alignment\(GameCoreFacade\.oracleAuthorityHash\(currentState\)/);
-  assert.match(bridge, /narrationBuffer\.accept\(request, parsed\.optJSONArray\("future"\)\)/);
-  assert.match(bridge, /narrationFuturePending = true/);
-  assert.match(bridge, /narrationFutureIo\.schedule\(this::runNarrationFutureRefill/);
-  const prompt = bridge.slice(bridge.indexOf('private String narrationPrompt('),
-    bridge.indexOf('private void clearNarrationFutureCache('));
-  assert.doesNotMatch(prompt, /BATCH OUTPUT|future là mảng 6 capsule/);
-  assert.match(prompt, /OUTPUT chỉ cho scene HIỆN TẠI/);
+  assert.match(bridge, /private String narrationFuturePrompt\(NarrationFutureBuffer\.Request request\)/);
+  assert.match(bridge, /SceneContextCompiler\.compile\([\s\S]*gameCore, milestoneCore, stepState/);
+  assert.match(bridge, /scene\.storyBoundary/);
+  assert.match(bridge, /scene\.characterScene/);
+  assert.match(bridge, /scene\.levelScene/);
+  assert.match(bridge, /scene\.relevantContinuity/);
+  assert.match(bridge, /PLAYER ACTION: \[UNDECIDED/);
+  assert.match(core, /\.put\("sceneState", deepCopy\(next\)\)/);
+  assert.doesNotMatch(core, /live Core state wins/);
+
+  const refill = bridge.slice(bridge.indexOf('private void runNarrationFutureRefill('),
+    bridge.indexOf('private void prefetchChoices(', bridge.indexOf('private void runNarrationFutureRefill(')));
+  assert.equal((refill.match(/gameCore\.oracleWindow\(/g) || []).length, 1);
+  assert.ok(refill.indexOf('narrationBuffer.reserve()') < refill.indexOf('gameCore.oracleWindow('));
+  assert.match(refill, /narrationBuffer\.forecast\(expectedEpoch, steps\)/);
+  assert.match(refill, /narrationBuffer\.accept\(request, parsed\.optJSONArray\("future"\)\)/);
+  assert.doesNotMatch(refill, /remainingForecast|narrationFutureAlignment|narrationFutureForecastSteps/);
 
   const turn = bridge.slice(bridge.indexOf('@JavascriptInterface public void submitTurn('),
     bridge.indexOf('@JavascriptInterface public void combatRoll('));
   assert.match(turn, /JSONObject cachedSlot = pollNarrationFuture\(narrationState\)/);
   assert.match(turn, /expectedAction\.equals\(actualAction\)/);
   assert.match(turn, /convergenceTarget = cachedGenerated\.optString\("reply", ""\)\.trim\(\)/);
-  assert.match(turn, /clearNarrationFutureCache\(\)/);
+  assert.doesNotMatch(turn, /clearNarrationFutureCache\(\)/);
   assert.match(turn, /scheduleNarrationFutureRefill\(narrationState\)/);
   assert.match(turn, /if \(cachedForProvider != null\) return cachedForProvider;/);
-  assert.doesNotMatch(turn, /freshFuture|freshOracleSteps|captureNarrationFuture\(/);
 });
 
 test('Explorer choice keeps Core routing token separate from player-facing log and narration text', () => {

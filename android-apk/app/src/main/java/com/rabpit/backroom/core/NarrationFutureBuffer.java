@@ -8,7 +8,6 @@ import org.json.JSONException;
 /** Writer-only rolling window. All network/forecast work happens outside this monitor. */
 public final class NarrationFutureBuffer {
   public static final int TARGET = 10;
-  public static final int LOW_WATER = 6;
   public static final int EMERGENCY = 2;
   private JSONArray slots = new JSONArray();
   private long epoch;
@@ -39,7 +38,7 @@ public final class NarrationFutureBuffer {
   public synchronized long epoch() { return epoch; }
 
   public synchronized void requestRefill() {
-    if (readyCount() <= LOW_WATER) demand = true;
+    if (readyCount() < TARGET) demand = true;
   }
 
   public synchronized boolean needsRefill() {
@@ -56,25 +55,24 @@ public final class NarrationFutureBuffer {
     return ready;
   }
 
-  /** Rebase to live Core predictions, preserving only presentations for the same step. */
+  /** Append only missing tail steps. Existing prepared slots are immutable until consumed or reset. */
   public synchronized boolean forecast(long expectedEpoch, JSONArray steps) throws JSONException {
     if (expectedEpoch != epoch) return false;
-    JSONArray next = new JSONArray();
-    for (int i = 0; steps != null && i < Math.min(TARGET, steps.length()); i++) {
+    for (int i = 0; steps != null && i < steps.length() && slots.length() < TARGET; i++) {
       JSONObject step = steps.optJSONObject(i);
       if (step == null || step.optString("turnId", "").isEmpty()) break;
-      JSONObject slot = copy(step);
-      slot.remove("payload");
+      boolean known = false;
       for (int j = 0; j < slots.length(); j++) {
-        JSONObject old = slots.optJSONObject(j);
-        if (sameStep(old, step) && old.optJSONObject("payload") != null) {
-          slot.put("payload", copy(old.getJSONObject("payload")));
+        if (sameStep(slots.optJSONObject(j), step)) {
+          known = true;
           break;
         }
       }
-      next.put(slot);
+      if (known) continue;
+      JSONObject slot = copy(step);
+      slot.remove("payload");
+      slots.put(slot);
     }
-    slots = next;
     requestRefill();
     return true;
   }
@@ -133,53 +131,29 @@ public final class NarrationFutureBuffer {
     return needsRefill();
   }
 
-  /** Consume only the next committed turn. A mismatch invalidates the predicted context. */
+  /** Consume exactly one prepared slot. A bad current slot never invalidates the prepared tail. */
   public synchronized JSONObject poll(String hash, String turnId, Predicate<JSONObject> outcome) throws JSONException {
     if (slots.length() == 0) return null;
     JSONObject slot = slots.getJSONObject(0);
-    if (!matches(slot, hash, turnId, outcome)) {
-      reset();
-      return null;
-    }
+    boolean matched = matches(slot, hash, turnId, outcome);
     slots.remove(0);
     requestRefill();
-    if ("CHARACTER".equals(slot.optString("worldKind", ""))) {
-      reset();
-      return null;
-    }
-    return slot.optJSONObject("payload") == null ? null : copy(slot);
-  }
-
-  public static int alignment(String hash, String baseHash, String turnId,
-                              JSONArray steps, Predicate<JSONObject> outcome) {
-    if (hash != null && !hash.isEmpty() && hash.equals(baseHash)) return 0;
-    // Search every exact hash before considering combat bookkeeping differences.
-    for (int i = 0; steps != null && i < steps.length(); i++) {
-      JSONObject step = steps.optJSONObject(i);
-      if (step != null && hash != null && !hash.isEmpty()
-          && hash.equals(step.optString("authorityHash", ""))) return i + 1;
-    }
-    for (int i = 0; steps != null && i < steps.length(); i++) {
-      JSONObject step = steps.optJSONObject(i);
-      if (step != null && turnId != null && !turnId.isEmpty()
-          && turnId.equals(step.optString("turnId", "")) && outcome.test(step)) return i + 1;
-    }
-    return -1;
+    if (!matched || slot.optJSONObject("payload") == null) return null;
+    return copy(slot);
   }
 
   private static boolean matches(JSONObject step, String hash, String turnId,
                                  Predicate<JSONObject> outcome) {
-    return (hash != null && !hash.isEmpty() && hash.equals(step.optString("authorityHash", "")))
-        || (turnId != null && !turnId.isEmpty() && turnId.equals(step.optString("turnId", ""))
-            && outcome.test(step));
+    if (turnId != null && !turnId.isEmpty()) {
+      return turnId.equals(step.optString("turnId", "")) && outcome.test(step);
+    }
+    return hash != null && !hash.isEmpty() && hash.equals(step.optString("authorityHash", ""));
   }
 
   private static boolean sameStep(JSONObject left, JSONObject right) {
     if (left == null || right == null) return false;
-    // A combat forecast is provisional; changes in authoritative state require fresh narration.
     return !left.optString("turnId", "").isEmpty()
-        && left.optString("turnId", "").equals(right.optString("turnId", ""))
-        && left.optString("authorityHash", "").equals(right.optString("authorityHash", ""));
+        && left.optString("turnId", "").equals(right.optString("turnId", ""));
   }
 
   private static JSONObject copy(JSONObject object) throws JSONException { return new JSONObject(object.toString()); }

@@ -843,8 +843,8 @@ public final class GameCoreFacade implements AutoCloseable {
   }
 
   /**
-   * Writer-only deterministic forecast for the next default world advances.
-   * This never persists, never reaches the client-safe state and never grants authority to narration.
+   * Writer-only deterministic tail forecast for the next default world advances.
+   * Callers append missing slots only; an existing prepared slot is never replaced by a later forecast.
    */
   public synchronized String oracleWindow(String stateJson) {
     DiagnosticLog.record("core.oracleWindow", "stateJson", stateJson);
@@ -875,7 +875,7 @@ public final class GameCoreFacade implements AutoCloseable {
       StringBuilder out = new StringBuilder();
       out.append("CORE ORACLE WINDOW — HIDDEN WRITER KNOWLEDGE\n")
           .append("Each slot follows the same single Core-routed default action the UI would expose. ")
-          .append("These are deterministic Core forecasts, not player-visible facts and not narration authority.\n");
+          .append("Use this window only to append missing tail slots; slots already prepared by the writer are immutable.\n");
 
       for (int step = 1; step <= windowSteps; step++) {
         String defaultAction = GmChoiceContract.defaultCoreAction(forecast);
@@ -923,7 +923,8 @@ public final class GameCoreFacade implements AutoCloseable {
         JSONArray forecastEvents = forecastEvidence.optBoolean("available", false)
             ? safePresentationEvents(next, forecastEvidence) : new JSONArray();
         stepInfo.put("authorityHash", oracleAuthorityHash(next))
-            .put("presentationEvents", forecastEvents);
+            .put("presentationEvents", forecastEvents)
+            .put("sceneState", deepCopy(next));
         if (forecastEvents.length() > 0) {
           out.append("STEP +").append(step).append(" PRESENTATION EVENTS: ")
               .append(forecastEvents.toString()).append('\n');
@@ -939,9 +940,9 @@ public final class GameCoreFacade implements AutoCloseable {
         forecast = deepCopy(next);
       }
 
-      out.append("ORACLE CONTRACT: use future knowledge only for pacing, continuity and the single next-action wording. ")
+      out.append("ORACLE CONTRACT: use future knowledge only to append missing tail slots and write their fixed outcomes. ")
           .append("Do not reveal, imply or instantiate a future Entity, chest, member meeting, route result or hidden identity ")
-          .append("before that outcome is committed by Core. If live state diverges, live Core state wins.");
+          .append("before its prepared turn. Later live-state changes never rewrite slots already accepted by the rolling buffer.");
       output.put("context", out.toString()).put("steps", steps);
       return output.toString();
     } catch (Exception e) {
