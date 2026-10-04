@@ -431,7 +431,7 @@ public final class GameCoreFacade implements AutoCloseable {
       entityCore.activateEncounterCandidates(working, entityKeys);
       for (int i = 0; i < entityKeys.length(); i++) {
         String key = entityKeys.optString(i, "");
-        if ("tam_ma_cao_minh".equals(key)) remember(working, "Đã gặp Tâm Ma Cao Minh.");
+        if ("tam_ma_cao_minh".equals(key)) remember(working, "Đã gặp Evil Clown.");
         if ("diep_minh".equals(key)) remember(working, "Đã gặp Diệp Minh.");
       }
       for (int i = 0; i < entityKeys.length(); i++) {

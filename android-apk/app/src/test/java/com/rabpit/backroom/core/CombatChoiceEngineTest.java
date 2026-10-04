@@ -623,13 +623,13 @@ public class CombatChoiceEngineTest {
     }
   }
 
-  @Test public void tamMaUsesDoubleHoundStatsAndTreasureProcRates() throws Exception {
+  @Test public void evilClownKeepsDoubleHoundStatsAndTreasureProcRates() throws Exception {
     assertTrue(CombatChoiceEngine.isKnownEntity("tam_ma_cao_minh"));
 
     JSONObject state = combatState(new JSONArray());
     CombatChoiceEngine.start(state, "tam_ma_cao_minh", 0);
     JSONObject entity = state.getJSONObject("combat").getJSONObject("entity");
-    assertEquals("Tâm Ma Cao Minh", entity.getString("name"));
+    assertEquals("Evil Clown", entity.getString("name"));
     assertEquals(300, entity.getInt("baseHp"));
     assertEquals(30, entity.getInt("baseDamage"));
     assertEquals(3, CombatChoiceEngine.entitySkillCount("tam_ma_cao_minh"));
@@ -639,10 +639,18 @@ public class CombatChoiceEngineTest {
     Map<?, ?> pools = (Map<?, ?>) skillsField.get(null);
     List<?> skills = (List<?>) pools.get("tam_ma_cao_minh");
     int[] expected = {35, 40, 45};
+    String[] expectedNames = {"Lưỡi Liềm Hề Ác", "Màn Diễn Phản Kích", "Cú Vồ Điên Loạn"};
+    int[] expectedDamage = {120, 115, 110};
     for (int i = 0; i < expected.length; i++) {
       Field proc = skills.get(i).getClass().getDeclaredField("procPercent");
       proc.setAccessible(true);
       assertEquals(expected[i], proc.getInt(skills.get(i)));
+      Field name = skills.get(i).getClass().getDeclaredField("name");
+      name.setAccessible(true);
+      assertEquals(expectedNames[i], name.get(skills.get(i)));
+      Field damage = skills.get(i).getClass().getDeclaredField("damagePercent");
+      damage.setAccessible(true);
+      assertEquals(expectedDamage[i], damage.getInt(skills.get(i)));
     }
 
     JSONObject nextStage = combatState(new JSONArray());

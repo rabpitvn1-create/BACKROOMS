@@ -173,7 +173,7 @@ public final class CombatChoiceEngine {
     entity("async_rifleman", "ASYNC Rifleman", 180, 20);
     entity("async_member_rifle_aim_right_01", "Research Async Member", 190, 20);
     entity("copx", "CopX", 260, 22);
-    treasureEntity("tam_ma_cao_minh", "Tâm Ma Cao Minh", 300, 30, 100, 10, true);
+    treasureEntity("tam_ma_cao_minh", "Evil Clown", 300, 30, 100, 10, true);
     entity("jane_the_killer", "Jane", 270, 20);
     entity("slenderman", "Slenderman", 360, 23);
     entity("diep_minh", "Diệp Minh", 1200, 42);
@@ -270,9 +270,9 @@ public final class CombatChoiceEngine {
         entitySkill("Servo Pivot", 115, 25),
         entitySkill("Last Directive", 120, 20));
     entitySkills("tam_ma_cao_minh",
-        entitySkill("Tâm Ma Trảm", 120, 35),
-        entitySkill("Huyết Ảnh Phản Kích", 115, 40),
-        entitySkill("Ma Hổ Phệ", 110, 45));
+        entitySkill("Lưỡi Liềm Hề Ác", 120, 35),
+        entitySkill("Màn Diễn Phản Kích", 115, 40),
+        entitySkill("Cú Vồ Điên Loạn", 110, 45));
     entitySkills("jane_the_killer",
         entitySkill("Stalking Strike", 110, 33),
         entitySkill("Close-Range Slash", 115, 27),

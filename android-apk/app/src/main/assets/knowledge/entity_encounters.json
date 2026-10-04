@@ -61,7 +61,7 @@
   "entities": [
     {
       "key": "tam_ma_cao_minh",
-      "name": "Tâm Ma Cao Minh",
+      "name": "Evil Clown",
       "spawnClass": "treasure",
       "ratePercent": 4,
       "levels": [
@@ -73,24 +73,24 @@
         5,
         6
       ],
-      "canon": "A rare hostile mirror-manifestation of Cao Minh. It resembles and echoes Cao Minh but acts as an independent predatory Entity; its exact origin remains unresolved. Treat it as a roaming Treasure Entity, not a resident population.",
+      "canon": "A rare hostile Evil Clown with a white-painted face, red nose, cruel grin, red jester hat, gold ruff, worn red-and-teal costume and curved blade; its exact origin remains unresolved. Treat it as a roaming Treasure Entity, not a resident population.",
       "presentation": {
-        "appearance": "một hình người có diện mạo giống Cao Minh",
+        "appearance": "một gã hề mặt trắng, mũi đỏ, mặc đồ đỏ–xanh và cầm lưỡi liềm cong",
         "approachStyle": "emerge"
       },
       "autoProcSkills": [
         {
-          "name": "Tâm Ma Trảm",
+          "name": "Lưỡi Liềm Hề Ác",
           "damagePercent": 120,
           "procPercent": 35
         },
         {
-          "name": "Huyết Ảnh Phản Kích",
+          "name": "Màn Diễn Phản Kích",
           "damagePercent": 115,
           "procPercent": 40
         },
         {
-          "name": "Ma Hổ Phệ",
+          "name": "Cú Vồ Điên Loạn",
           "damagePercent": 110,
           "procPercent": 45
         }

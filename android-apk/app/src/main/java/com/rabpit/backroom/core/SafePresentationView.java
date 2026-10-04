@@ -43,7 +43,7 @@ public final class SafePresentationView {
       {"async_rifleman", "ASYNC Rifleman", "bóng người mặc trang bị kín người", "ASYNC Rifleman", "ASYNC"},
       {"async_member_rifle_aim_right_01", "Research Async Member", "bóng người mặc đồ bảo hộ vàng đang ngắm một vật kim loại dài", "Research Async Member", "Research ASYNC Member"},
       {"copx", "CopX", "bóng người", "CopX"},
-      {"tam_ma_cao_minh", "Tâm Ma Cao Minh", "bóng người có diện mạo giống Cao Minh", "Tâm Ma Cao Minh"},
+      {"tam_ma_cao_minh", "Evil Clown", "gã hề mặt trắng, mũi đỏ, mặc đồ đỏ–xanh và cầm lưỡi liềm cong", "Evil Clown", "Tâm Ma Cao Minh"},
       {"diep_minh", "Diệp Minh", "bóng người", "Diệp Minh"},
       {"jane_the_killer", "Jane", "bóng người", "Jane the Killer", "Jane"},
       {"slenderman", "Slenderman", "bóng người cao gầy", "Slenderman"}
