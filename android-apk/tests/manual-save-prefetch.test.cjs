@@ -60,12 +60,16 @@ test('GM path consumes one offline SceneFrame and only narrates it', () => {
   assert.ok(turn.indexOf('completePreparedTurn(') < turn.indexOf('gameCore.sceneFrame('));
   assert.ok(turn.indexOf('gameCore.sceneFrame(') < turn.indexOf('generateNarrationText('));
   assert.ok(turn.indexOf('generateNarrationText(') < turn.indexOf('commitPresentation('));
-  assert.match(turn, /OfflinePresenter\.fallback\(sceneFrame\)/);
+  assert.match(turn, /SceneDirector\.fallbackNarration\(sceneFrame\)/);
+  assert.doesNotMatch(turn, /OfflinePresenter\.fallback\(sceneFrame\)/);
   assert.doesNotMatch(turn, /OfflinePresenter\.present\(safeEvents/);
   assert.doesNotMatch(turn, /mergeEncounterDialogue/);
   assert.match(prompt, /SCENE FRAME — authoritative current-turn facts/);
   assert.match(prompt, /PLAYER INTENT/);
   assert.match(prompt, /Không tạo choices hay gợi ý hành động/);
+  assert.match(prompt, /focus=ENTITY/);
+  assert.match(prompt, /pendingIntro không rỗng/);
+  assert.match(prompt, /2-5 câu thoại tự nhiên/);
   assert.doesNotMatch(prompt, /milestoneCore|MEMORABLE EVENTS|CURRENT LOCAL EVENTS/);
   assert.doesNotMatch(bridge, /NarrationFutureBuffer|NarrationGuard|NarrationProviderPolicy|SceneContextCompiler|oracleWindow\(|prefetchChoices\(/);
   assert.doesNotMatch(html, /narrationPrefetchStatus|backroomNarrationFutureStatus|backroomPrefetchChoices/);

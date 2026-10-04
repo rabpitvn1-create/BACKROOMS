@@ -32,7 +32,7 @@ import com.rabpit.backroom.core.CombatChoiceEngine;
 import com.rabpit.backroom.core.CommittedTurnNarrationEvidence;
 import com.rabpit.backroom.core.GameCoreFacade;
 import com.rabpit.backroom.core.GmChoiceContract;
-import com.rabpit.backroom.core.OfflinePresenter;
+import com.rabpit.backroom.core.SceneDirector;
 import com.rabpit.backroom.core.NarrationProviderScheduler;
 import com.rabpit.backroom.core.NarrationHttpTransport;
 import com.rabpit.backroom.core.ProviderRetryPolicy;
@@ -662,7 +662,7 @@ public class MainActivity extends Activity {
     boolean[] attempted = new boolean[configured.length];
     boolean urgent = false;
     int geminiAttempts = 0;
-    int limit = background ? 4 : 3;
+    int limit = 4;
     for (int attempt = 0; attempt < limit; attempt++) {
       long remaining = deadlineNanos - System.nanoTime();
       if (remaining <= 0L || Thread.currentThread().isInterrupted()) break;
@@ -738,16 +738,19 @@ public class MainActivity extends Activity {
   }
 
   private String narrationPrompt(JSONObject sceneFrame) {
-    return "Bạn là GAME MASTER của Backroom The Game. Nhiệm vụ duy nhất của bạn là kể lại SCENE FRAME bằng tiếng Việt tự nhiên, giàu không khí và có nhịp như một câu chuyện. "
+    return "Bạn là GAME MASTER của Backroom The Game. Nhiệm vụ duy nhất của bạn là KỂ LẠI SCENE FRAME bằng tiếng Việt tự nhiên, giàu không khí và có nhịp như một đoạn truyện; không viết như log hay bản tóm tắt. "
         + "Bạn không quyết định gameplay, không tạo sự kiện và không sửa sự thật trong frame.\n"
         + "NGÔI KỂ: luôn kể Cao Minh ở ngôi thứ ba; không gọi Cao Minh là 'bạn'. Dùng 'Cao Minh' hoặc 'hắn'. Từ 'bạn' chỉ được giữ trong lời thoại trực tiếp của nhân vật khác.\n"
+        + "NGÔN NGỮ: mọi danh từ/mô tả môi trường thông thường phải là tiếng Việt tự nhiên; chỉ giữ tiếng Anh nếu đó là tên riêng chính thức như Backrooms, Entity hoặc tên vật phẩm/nhân vật.\n"
         + "SCENE FRAME — authoritative current-turn facts:\n" + (sceneFrame == null ? "{}" : sceneFrame.toString()) + "\n"
         + "PLAYER INTENT trong frame chỉ là điều người chơi MUỐN làm, không phải bằng chứng rằng vật thể/Entity/Character được nhắc tới thực sự tồn tại. "
-        + "Chỉ coi những gì nằm trong worldFacts/environment/presentCharacters của frame là sự thật của cảnh. "
+        + "Chỉ coi worldFacts, environment, presentCharacters và pendingIntro là sự thật của cảnh. "
         + "Nếu intent nhắc tới thứ không tồn tại trong frame, hãy kể đó là một nỗ lực/kiểm tra không xác nhận được thứ đó; tuyệt đối không tự tạo nó. "
-        + "Được phép làm văn phong hay hơn, thêm nhịp điệu, cảm giác và hội thoại tự nhiên của các nhân vật đang PRESENT, nhưng không thêm hoặc xóa Entity, Chest, Item, Character, route outcome hay special event. "
-        + "Không quyết định thêm hành động, lời nói hay suy nghĩ tiếp theo cho Cao Minh ngoài PLAYER INTENT. "
-        + "Không tạo choices hay gợi ý hành động.\n"
+        + "Lượt thường phải thành một đoạn truyện hoàn chỉnh 1-2 đoạn, không được chỉ chép lại một motif hay một câu fact từ frame.\n"
+        + "Nếu focus=ENTITY: bắt buộc dựng trọn cảnh chạm trán TRƯỚC khi combat bắt đầu, ưu tiên 2-3 đoạn ngắn. Dùng ngoại hình, chi tiết và cách tiếp cận có trong entityEvents; không được chỉ lặp một câu nhận diện ngắn. "
+        + "Nếu focus=CHARACTER hoặc pendingIntro không rỗng: bắt buộc dựng khoảnh khắc gặp/tái ngộ trước khi nhân vật được xem là đang đồng hành trong lời kể, và phải có 2-5 câu thoại tự nhiên của nhân vật vừa gặp. Không tự viết lời đáp hay quyết định của Cao Minh.\n"
+        + "Được phép làm văn phong hay hơn, thêm nhịp điệu, cảm giác và hội thoại của các nhân vật đang PRESENT, nhưng không thêm hoặc xóa Entity, Chest, Item, Character, route outcome hay special event. "
+        + "Không quyết định thêm hành động, lời nói hay suy nghĩ tiếp theo cho Cao Minh ngoài PLAYER INTENT. Không tạo choices hay gợi ý hành động.\n"
         + "OUTPUT duy nhất JSON: {\"reply\":\"...\"}";
   }
 
@@ -950,7 +953,7 @@ public class MainActivity extends Activity {
             DiagnosticLog.record("narration.fallback", "turnId", turnId,
                 "error", providerError.getMessage() == null
                     ? providerError.getClass().getSimpleName() : providerError.getMessage());
-            generated = OfflinePresenter.fallback(sceneFrame);
+            generated = new JSONObject().put("reply", SceneDirector.fallbackNarration(sceneFrame));
           }
           long providerMs = SystemClock.elapsedRealtime() - providerStart;
           String reply = generated.optString("reply", "").trim();

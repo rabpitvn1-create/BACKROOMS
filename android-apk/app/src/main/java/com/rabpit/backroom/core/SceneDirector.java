@@ -65,42 +65,133 @@ public final class SceneDirector {
         .put("mayCreateChoices", false)
         .put("playerIntentIsWorldFact", false));
 
-    frame.put("fallbackSummary", fallbackSummary(frame));
+    JSONObject requiredBeat = new JSONObject().put("kind", "NONE");
+    if ("ENTITY".equals(focus)) {
+      requiredBeat.put("kind", "ENTITY_ENCOUNTER")
+          .put("mustNarrateBeforeCombat", true)
+          .put("mustUseAppearanceAndApproach", true)
+          .put("compactOneLineSummaryIsInsufficient", true);
+    } else if ("CHARACTER".equals(focus) || frame.getJSONArray("pendingIntro").length() > 0) {
+      requiredBeat.put("kind", "CHARACTER_ENCOUNTER")
+          .put("mustNarrateMeetingBeforeCompanionContinuity", true)
+          .put("dialogueLinesMin", 2)
+          .put("dialogueLinesMax", 5)
+          .put("caoMinhDialogueAllowed", false);
+    }
+    frame.put("requiredBeat", requiredBeat);
     return frame;
   }
 
-  private static String fallbackSummary(JSONObject frame) {
+  public static String fallbackNarration(JSONObject frame) {
+    if (frame == null) return "Cao Minh quan sát khu vực hiện tại.";
+    String narration = environmentOpening(frame.optJSONObject("environment"));
     JSONArray world = frame.optJSONArray("worldFacts");
     if (world != null) {
       for (int i = 0; i < world.length(); i++) {
         JSONObject event = world.optJSONObject(i);
         if (event == null) continue;
         String type = event.optString("eventType", "");
+        String paragraph = "";
         if ("ENTITY_ENCOUNTER_STARTED".equals(type)) {
-          String subject = event.optString("entityAppearance", event.optString("subject", "một thực thể")).trim();
-          String where = event.optString("entityLocation", "phía trước").trim();
-          return capitalize(subject) + " xuất hiện " + where + ".";
-        }
-        if ("CHEST_SPAWNED".equals(type)) {
-          return event.optString("actor", "Cao Minh") + " phát hiện một chiếc rương "
+          paragraph = entityFallback(event);
+        } else if ("CHARACTER_ENCOUNTERED".equals(type) || "CHARACTER_REUNION".equals(type)) {
+          paragraph = characterFallback(event, "CHARACTER_REUNION".equals(type));
+        } else if ("CHEST_SPAWNED".equals(type)) {
+          paragraph = event.optString("actor", "Cao Minh") + " phát hiện một chiếc rương "
               + event.optString("chestLocation", "trong khu vực hiện tại") + ".";
-        }
-        if ("CHEST_OPENED".equals(type)) {
-          return event.optString("actor", "Cao Minh") + " mở chiếc rương. Bên trong là "
+        } else if ("CHEST_OPENED".equals(type)) {
+          paragraph = event.optString("actor", "Cao Minh") + " mở chiếc rương. Bên trong là "
               + event.optString("loot", "một vật phẩm") + ".";
         }
-        if ("CHARACTER_ENCOUNTERED".equals(type) || "CHARACTER_REUNION".equals(type)) {
-          return capitalize(event.optString("subject", "một người")) + " xuất hiện phía trước "
-              + event.optString("actor", "Cao Minh") + ".";
-        }
+        narration = joinParagraphs(narration, paragraph);
       }
     }
-    JSONObject environment = frame.optJSONObject("environment");
-    String motif = environment == null ? "" : environment.optString("motif", "").trim();
-    if (!motif.isEmpty()) return capitalize(motif);
-    String sensory = environment == null ? "" : environment.optString("sensoryCue", "").trim();
-    if (!sensory.isEmpty()) return capitalize(sensory);
-    return "Cao Minh quan sát khu vực hiện tại.";
+    return narration.isEmpty() ? "Cao Minh quan sát khu vực hiện tại." : narration;
+  }
+
+  private static String environmentOpening(JSONObject environment) {
+    if (environment == null) return "";
+    String motif = GmChoiceContract.normalizePlayerFacingVietnamese(
+        environment.optString("motif", "").trim());
+    String sensory = GmChoiceContract.normalizePlayerFacingVietnamese(
+        environment.optString("sensoryCue", "").trim());
+    if (!motif.isEmpty() && !sensory.isEmpty()) return sentence(motif) + " " + sentence(sensory);
+    if (!motif.isEmpty()) return sentence(motif);
+    if (!sensory.isEmpty()) return sentence(sensory);
+    return "";
+  }
+
+  private static String entityFallback(JSONObject event) {
+    String appearance = GmChoiceContract.normalizePlayerFacingVietnamese(
+        event.optString("entityAppearance", event.optString("subject", "một thực thể")).trim());
+    String where = GmChoiceContract.normalizePlayerFacingVietnamese(
+        event.optString("entityLocation", "phía trước").trim());
+    String actor = event.optString("actor", "Cao Minh").trim();
+    String style = event.optString("approachStyle", "emerge").trim();
+    String held = GmChoiceContract.normalizePlayerFacingVietnamese(
+        event.optString("heldObject", "").trim());
+
+    StringBuilder out = new StringBuilder();
+    if (!appearance.isEmpty()) {
+      out.append(capitalize(appearance)).append(" xuất hiện ").append(where).append(".");
+    }
+    JSONArray details = event.optJSONArray("details");
+    if (details != null) {
+      int used = 0;
+      for (int i = 0; i < details.length() && used < 2; i++) {
+        String detail = GmChoiceContract.normalizePlayerFacingVietnamese(details.optString(i, "").trim());
+        if (detail.isEmpty()) continue;
+        out.append(' ').append(sentence(detail));
+        used++;
+      }
+    }
+    if ("hold_distance".equals(style)) {
+      out.append(" Nó giữ khoảng cách");
+      if (!held.isEmpty()) out.append(" và hướng ").append(held).append(" về phía ").append(actor);
+      else out.append(" với ").append(actor);
+      out.append(".");
+    } else if ("charge".equals(style)) {
+      out.append(" Nó lập tức lao về phía ").append(actor).append(".");
+    } else if ("approach".equals(style) || "pursue".equals(style) || "stalk".equals(style)) {
+      out.append(" Nó bắt đầu thu hẹp khoảng cách với ").append(actor).append(".");
+    } else {
+      out.append(" Sự hiện diện của nó chặn ngay tuyến đường phía trước.");
+    }
+    return out.toString().trim();
+  }
+
+  private static String characterFallback(JSONObject event, boolean reunion) {
+    String subject = event.optString("subject", "một người").trim();
+    String actor = event.optString("actor", "Cao Minh").trim();
+    String detail = GmChoiceContract.normalizePlayerFacingVietnamese(
+        event.optString("introDetail", "Người đó đứng trong khu vực trước mặt.").trim());
+    StringBuilder out = new StringBuilder();
+    out.append(capitalize(subject)).append(" xuất hiện phía trước ").append(actor).append(". ");
+    if (!detail.isEmpty()) out.append(sentence(detail)).append("\n\n");
+    if (reunion) {
+      out.append("“Lại là anh.”\n\n");
+      out.append("“Tôi không ngờ chúng ta lại gặp nhau ở đây.”");
+    } else {
+      out.append("“Đứng yên. Tôi không muốn gây thêm rắc rối.”\n\n");
+      out.append("“Trước tiên, chúng ta nên xác định nơi này là đâu.”");
+    }
+    return out.toString().trim();
+  }
+
+  private static String joinParagraphs(String first, String second) {
+    String a = first == null ? "" : first.trim();
+    String b = second == null ? "" : second.trim();
+    if (a.isEmpty()) return b;
+    if (b.isEmpty()) return a;
+    return a + "\n\n" + b;
+  }
+
+  private static String sentence(String value) {
+    String text = value == null ? "" : value.trim();
+    if (text.isEmpty()) return "";
+    String normalized = capitalize(text);
+    char last = normalized.charAt(normalized.length() - 1);
+    return last == '.' || last == '!' || last == '?' ? normalized : normalized + ".";
   }
 
   private static JSONObject copyObject(JSONObject source, String key) throws Exception {

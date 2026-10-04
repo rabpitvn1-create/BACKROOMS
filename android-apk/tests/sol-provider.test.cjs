@@ -20,7 +20,7 @@ test('foreground narration uses one scheduled provider path fed by SceneFrame', 
   assert.match(method('generateNarrationText'), /return generateScheduledText\(prompt, false, deadlineNanos\)/);
   const flow = method('generateScheduledText');
   assert.match(flow, /providerScheduler\.acquire/);
-  assert.match(flow, /int limit = background \? 4 : 3/);
+  assert.match(flow, /int limit = 4/);
   assert.match(flow, /geminiTextOnce\(prompt, keys\[source\]\)/);
   assert.match(flow, /haikuTextOnce\(prompt\)/);
   assert.match(flow, /NarrationProviderScheduler\.GEHIHI\) output = gehihiText\(prompt\)/);

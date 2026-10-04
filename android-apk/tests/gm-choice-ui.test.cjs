@@ -17,6 +17,8 @@ test('GM choices expose up to three scene-driven actions',()=>{
   assert.match(ui,/function displayedExplorerChoices\(entry\)/);
   assert.match(ui,/Array\.isArray\(entry\.choices\)/);
   assert.match(ui,/generated\.slice\(0, 3\)/);
+  assert.match(ui,/return coreOwned \? \[coreOwned\] : \[\]/);
+  assert.doesNotMatch(ui,/Tiếp tục thăm dò khu vực phía trước/);
   assert.match(ui,/choices\.slice\(0, 3\)/);
   assert.doesNotMatch(ui,/if \(choices\.length !== 1\) return;/);
   assert.doesNotMatch(ui,/function fixedExplorerChoices\(\)/);

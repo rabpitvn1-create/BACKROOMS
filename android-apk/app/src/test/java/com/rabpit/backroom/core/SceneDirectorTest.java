@@ -49,7 +49,65 @@ public class SceneDirectorTest {
     assertEquals("ENTITY", frame.getString("focus"));
     assertEquals(1, frame.getJSONArray("entityEvents").length());
     assertEquals(0, frame.getJSONArray("chestEvents").length());
-    assertTrue(frame.getString("fallbackSummary").contains("sinh vật"));
+    assertEquals("ENTITY_ENCOUNTER", frame.getJSONObject("requiredBeat").getString("kind"));
+    assertFalse(frame.has("fallbackSummary"));
+    String fallback = SceneDirector.fallbackNarration(frame);
+    assertTrue(fallback.contains("giao lộ ba hướng"));
+    assertTrue(fallback.contains("sinh vật hình người cao gầy"));
+  }
+
+  @Test public void entityFallbackUsesCommittedAppearanceDetailsInsteadOfOneLineSummary() throws Exception {
+    JSONObject state = new JSONObject()
+        .put("currentLevelKey", "0").put("currentLevel", 0)
+        .put("party", new JSONArray()).put("flags", new JSONObject());
+    JSONArray views = new JSONArray()
+        .put(new JSONObject().put("eventType", "ENTITY_ENCOUNTER_STARTED")
+            .put("actor", "Cao Minh")
+            .put("subject", "một hình người cực cao và gầy")
+            .put("entityAppearance", "một hình người cực cao và gầy được kết từ các sợi mô đen")
+            .put("entityLocation", "ở cuối dãy hành lang vàng")
+            .put("approachStyle", "stalk")
+            .put("details", new JSONArray()
+                .put("Lồng ngực rỗng được đan từ các bó sợi đen.")
+                .put("Hai cánh tay dài quá đầu gối.")));
+    JSONObject frame = SceneDirector.compose(state,
+        OfflinePresenter.sceneFacts(state, "Tiếp tục thăm dò", views),
+        new JSONObject().put("levelKey", "0")
+            .put("motif", "Một hallway vàng hẹp.")
+            .put("sensoryCue", "Tiếng buzz huỳnh quang kéo dài."));
+    String fallback = SceneDirector.fallbackNarration(frame);
+
+    assertTrue(fallback.contains("hành lang vàng hẹp"));
+    assertTrue(fallback.contains("tiếng ù"));
+    assertTrue(fallback.contains("Lồng ngực rỗng"));
+    assertTrue(fallback.contains("Hai cánh tay dài"));
+    assertTrue(fallback.contains("thu hẹp khoảng cách"));
+  }
+
+  @Test public void characterEncounterRequiresMeetingBeatAndFallbackDialogue() throws Exception {
+    JSONObject state = new JSONObject()
+        .put("currentLevelKey", "0").put("currentLevel", 0)
+        .put("party", new JSONArray().put(new JSONObject()
+            .put("id", "lucia").put("name", "Lucia Lục").put("present", true).put("joined", true)))
+        .put("characterEncounter", new JSONObject()
+            .put("pendingIntro", new JSONArray().put("lucia")))
+        .put("flags", new JSONObject());
+    JSONArray views = new JSONArray()
+        .put(new JSONObject().put("eventType", "CHARACTER_ENCOUNTERED")
+            .put("actor", "Cao Minh")
+            .put("subject", "một cô gái cầm một vật kim loại dài")
+            .put("introDetail", "Trong tay cô là một vật kim loại dài."));
+    JSONObject frame = SceneDirector.compose(state,
+        OfflinePresenter.sceneFacts(state, "Tiếp tục thăm dò", views),
+        new JSONObject().put("levelKey", "0").put("motif", "giao lộ ba hướng"));
+
+    JSONObject beat = frame.getJSONObject("requiredBeat");
+    assertEquals("CHARACTER_ENCOUNTER", beat.getString("kind"));
+    assertEquals(2, beat.getInt("dialogueLinesMin"));
+    String fallback = SceneDirector.fallbackNarration(frame);
+    assertTrue(fallback.contains("xuất hiện phía trước Cao Minh"));
+    assertTrue(fallback.contains("“"));
+    assertTrue(fallback.contains("Trước tiên"));
   }
 
   @Test public void levelDirectorUsesSeparateLocalEnvironmentDraw() throws Exception {

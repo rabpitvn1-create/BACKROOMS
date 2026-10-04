@@ -89,12 +89,14 @@ public class GmChoiceContractTest {
 
   @Test public void vietnameseNormalizerPreservesOfficialNamesAndStats() {
     String normalized = GmChoiceContract.normalizePlayerFacingVietnamese(
-        "Cao Minh ở Level 0, còn Almond Water và Thiên Ma Bộ. corridor phía trước tối.");
+        "Cao Minh ở Level 0, còn Almond Water và Thiên Ma Bộ. corridor phía trước có chemical lạ.");
     assertTrue(normalized.contains("Cao Minh"));
     assertTrue(normalized.contains("Level 0"));
     assertTrue(normalized.contains("Almond Water"));
     assertTrue(normalized.contains("Thiên Ma Bộ"));
     assertTrue(normalized.contains("hành lang"));
+    assertTrue(normalized.contains("hóa chất"));
+    assertFalse(normalized.toLowerCase().contains("chemical"));
   }
 
 

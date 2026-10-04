@@ -78,12 +78,6 @@ public final class OfflinePresenter {
     return facts;
   }
 
-  public static JSONObject fallback(JSONObject sceneFrame) throws Exception {
-    String reply = sceneFrame == null ? "" : sceneFrame.optString("fallbackSummary", "").trim();
-    if (reply.isEmpty()) reply = "Cao Minh quan sát khu vực hiện tại.";
-    return new JSONObject().put("reply", reply);
-  }
-
   public static boolean isCoreOwnedEntityLifecycle(JSONArray views) {
     if (views == null) return false;
     for (int i = 0; i < views.length(); i++) {

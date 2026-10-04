@@ -245,13 +245,14 @@
         return {id:'A',text:'Tiến qua ranh giới vừa được tìm thấy',action:'Đi qua ranh giới'};
       }
     } catch (_) {}
-    return {id:'A',text:'Tiếp tục thăm dò khu vực phía trước',action:'Khám phá'};
+    return null;
   }
 
   function displayedExplorerChoices(entry) {
     var generated = entry && Array.isArray(entry.choices) ? entry.choices : [];
-    if (!generated.length) return [fallbackExplorerChoice()];
-    return generated.slice(0, 3).map(function(choice){ return Object.assign({}, choice); });
+    if (generated.length) return generated.slice(0, 3).map(function(choice){ return Object.assign({}, choice); });
+    var coreOwned = fallbackExplorerChoice();
+    return coreOwned ? [coreOwned] : [];
   }
 
   function submitChestChoice() {
