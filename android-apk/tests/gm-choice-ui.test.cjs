@@ -55,3 +55,16 @@ test('combat snapshot follows the active party actor on dice-state updates',()=>
   const finish=ui.slice(ui.indexOf('function finishCombatAnimation'),ui.indexOf('window.backroomCombatTurn = function'));
   assert.match(finish,/syncCombatSnapshotActor\(state && state\.combat \? state\.combat : \{\}\)/);
 });
+
+test('GM narration uses packaged Google Sans with bold semantic highlights',()=>{
+  assert.match(ui,/\.message\.gm \.gm-main-text\{font-family:'Google Sans','Pretendard Std',system-ui,sans-serif;font-weight:400\}/);
+  assert.match(ui,/\.message\.gm \.gm-main-text \.semantic\{font-family:inherit;font-weight:700\}/);
+  for(const [weight,file] of [[400,'GoogleSans-Regular.woff'],[700,'GoogleSans-Bold.woff']]){
+    assert.ok(ui.includes("font-family:'Google Sans';font-style:normal;font-weight:"+weight+";src:url('file:///android_asset/fonts/"+file+"') format('woff')"));
+    assert.equal(fs.readFileSync(path.join(root,'fonts',file)).toString('ascii',0,4),'wOFF');
+  }
+  assert.ok(fs.readFileSync(path.join(root,'fonts','OFL-GoogleSans.txt'),'utf8').includes('SIL OPEN FONT LICENSE'));
+  for(const [kind,color] of [['character','#67d5ff'],['entity','#ff6b6b'],['item','#f6c85f'],['skill','#c792ea'],['location','#7bd88f']]){
+    assert.ok(ui.includes('.semantic-'+kind+'{color:'+color+'}'));
+  }
+});

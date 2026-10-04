@@ -3,13 +3,17 @@
   if (window.__gmChoiceUiInstalled) return;
   window.__gmChoiceUiInstalled = true;
 
+  // Google Sans v14.000 (googlefonts/googlesans), packaged Latin/Vietnamese subset under OFL.
   var style = document.createElement('style');
   style.textContent = [
+    "@font-face{font-family:'Google Sans';font-style:normal;font-weight:400;src:url('file:///android_asset/fonts/GoogleSans-Regular.woff') format('woff');font-display:swap}",
+    "@font-face{font-family:'Google Sans';font-style:normal;font-weight:700;src:url('file:///android_asset/fonts/GoogleSans-Bold.woff') format('woff');font-display:swap}",
     "@font-face{font-family:'Play';font-style:normal;font-weight:400;src:url('file:///android_asset/fonts/Play-Regular.ttf') format('truetype');font-display:swap}",
     "@font-face{font-family:'Play';font-style:normal;font-weight:700;src:url('file:///android_asset/fonts/Play-Bold.ttf') format('truetype');font-display:swap}",
     ".message.gm .role{font-family:'Play','Pretendard Std',system-ui,sans-serif;font-weight:700}",
-    ".message.gm .gm-main-text{font-family:'Play','Pretendard Std',system-ui,sans-serif}",
+    ".message.gm .gm-main-text{font-family:'Google Sans','Pretendard Std',system-ui,sans-serif;font-weight:400}",
     ".semantic{font-family:'Play','Pretendard Std',system-ui,sans-serif;font-weight:700;text-decoration:none}",
+    ".message.gm .gm-main-text .semantic{font-family:inherit;font-weight:700}",
     ".semantic-character{color:#67d5ff}",
     ".semantic-lucia-name{font-family:'Pretendard Std',system-ui,sans-serif}",
     ".semantic-entity{color:#ff6b6b}",
