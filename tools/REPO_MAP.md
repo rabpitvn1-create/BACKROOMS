@@ -9,7 +9,8 @@ Start from the module involved in the task; expand to callers/dependencies as ne
 - android-apk/app/src/test/: Java unit tests.
 - android-apk/tools/: patchctl, canon_audit and offline tests.
 - .github/workflows/gm-core-verify.yml and release-version.yml: actual game verification/build; do not trigger releases just to test tooling.
-- tools/ponytail.sh and ponytail-config.toml: isolated CLI/provider setup; .sdkmanrc pins Java/Gradle to CI versions.
+- .codex/skills/ponytail*/: Codex-discoverable Ponytail skills mirrored from skills/ponytail*/.
+- tools/ponytail.sh and ponytail-config.toml: portable local Vilao/Codex CLI wrapper; Codespaces are optional. .sdkmanrc documents Java/Gradle versions used by CI.
 - tools/ponytail-run.py: one check, full redacted log in user state directory, bounded summary, original exit code.
 - tools/ponytail-usage.py: numerical rollout metrics; pass a specific rollout path. No inference/API calls.
 
@@ -20,4 +21,4 @@ Examples:
 - python3 tools/ponytail-run.py node --test android-apk/tests/viewport-layout.test.cjs
 - With Android SDK installed: python3 tools/ponytail-run.py gradle -p android-apk :app:testDebugUnitTest :app:assembleDebug --no-daemon
 
-Environment: bash tools/ponytail.sh --env-check. An absent Android SDK means local APK checks are unavailable; use the existing game CI or provision the SDK when a local APK build is actually needed.
+Environment: `bash tools/ponytail.sh --env-check` works without a provider key. `bash tools/ponytail.sh --setup` installs the pinned Codex CLI into user data only; export `VILAO_API_KEY` from a local secret store/session before inference. An absent Android SDK means local APK checks are unavailable; use the existing game CI or provision the SDK when a local APK build is actually needed.
