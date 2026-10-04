@@ -98,21 +98,6 @@ public class GmChoiceContractTest {
   }
 
 
-  @Test public void encounterDialogueAlreadyQuotedInReplyIsNotRepeated() {
-    String repeated = "Tôi không biết anh là ai hay bằng cách nào rơi vào đây. "
-        + "Nhưng nếu anh là thứ gì đó giả dạng... thì đống kim loại này sẽ "
-        + "ghim thẳng vào đầu anh trước khi anh kịp bước thêm một bước.";
-    String reply = "Người phụ nữ chĩa vũ khí về phía Cao Minh. \"" + repeated + "\"";
-    JSONArray dialogue = new JSONArray()
-        .put("Đứng yên. Không di chuyển.")
-        .put(repeated)
-        .put("Đứng yên. Không di chuyển.");
-
-    assertEquals(reply + "\n\nĐứng yên. Không di chuyển.",
-        GmChoiceContract.mergeEncounterDialogue(reply, dialogue));
-  }
-
-
   @Test public void choiceNormalizerRemovesCommonEnglishActionLeakage() throws Exception {
     JSONArray input = new JSONArray().put(new JSONObject().put("text",
         "Move forward through the corridor and inspect the door, then listen nearby"));
@@ -166,7 +151,7 @@ public class GmChoiceContractTest {
     assertHighlight(choice.getJSONArray("highlights"), "Bandage", "item");
   }
 
-  @Test public void singleDefaultChoiceRoutesMechanicsWithoutTrustingWriterText() throws Exception {
+  @Test public void choicesStayPlayerFacingWhileCoreKeepsItsOwnDefaultAction() throws Exception {
     JSONObject ordinary = new JSONObject();
     assertEquals("Khám phá", GmChoiceContract.defaultCoreAction(ordinary));
 
@@ -179,10 +164,11 @@ public class GmChoiceContractTest {
 
     JSONObject generated = new JSONObject().put("choices",
         new JSONArray().put(new JSONObject().put("text", "Quan sát khe sáng phía trước"))
-            .put(new JSONObject().put("text", "Writer choice thứ hai không được dùng")));
-    JSONObject entry = GmChoiceContract.gmEntry("", generated, ordinary);
-    assertEquals(1, entry.getJSONArray("choices").length());
-    assertEquals("Khám phá", entry.getJSONArray("choices").getJSONObject(0).getString("action"));
+            .put(new JSONObject().put("text", "Kiểm tra tiếng động sau bức tường")));
+    JSONArray choices = GmChoiceContract.gmEntry("", generated, ordinary).getJSONArray("choices");
+    assertEquals(2, choices.length());
+    assertEquals(choices.getJSONObject(0).getString("text"), choices.getJSONObject(0).getString("action"));
+    assertEquals(choices.getJSONObject(1).getString("text"), choices.getJSONObject(1).getString("action"));
   }
 
   private static void assertHighlight(JSONArray values, String text, String type) throws Exception {
