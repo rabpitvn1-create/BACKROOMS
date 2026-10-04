@@ -2,6 +2,17 @@ package com.rabpit.backroom;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
+import android.webkit.WebChromeClient;
+import android.webkit.ConsoleMessage;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
+import android.widget.Toast;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.OutputStream;
+import com.rabpit.backroom.core.DiagnosticLog;
 import android.content.res.AssetFileDescriptor;
 import android.media.MediaPlayer;
 import android.os.Build;
@@ -58,6 +69,9 @@ public class MainActivity extends Activity {
   private static final String BACKGROUND_MUSIC_ASSET = "BackroomsBM.mp3";
   private static final float BACKGROUND_MUSIC_VOLUME = 0.18f;
   private WebView webView;
+  private static final int EXPORT_LOG_REQUEST = 4107;
+  private File pendingDiagnosticExport;
+  private boolean diagnosticExportPending;
   private MediaPlayer backgroundMusic;
   private boolean backgroundMusicPrepared;
   private boolean activityResumed;
@@ -87,22 +101,46 @@ public class MainActivity extends Activity {
   @Override public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+    DiagnosticLog.initialize(getFilesDir(), BuildConfig.GEMINI_API_KEY_1, BuildConfig.GEMINI_API_KEY_2,
+        BuildConfig.GEMINI_API_KEY_3, BuildConfig.GEMINI_API_KEY_4, BuildConfig.GEMINI_API_KEY_5,
+        BuildConfig.HAKU_API_KEY, BuildConfig.LUNA_API_KEY, BuildConfig.SOL_API_KEY, BuildConfig.GEHIHI_API_KEY);
+    DiagnosticLog.record("app.start", "versionName", BuildConfig.VERSION_NAME,
+        "versionCode", BuildConfig.VERSION_CODE, "sourceRevision", BuildConfig.SOURCE_REVISION, "androidApi", Build.VERSION.SDK_INT,
+        "device", Build.MANUFACTURER + " " + Build.MODEL);
     gameCore = GameCoreFacade.create(getApplicationContext(), BuildConfig.DEBUG);
     try {
       milestoneCore = MilestoneCore.fromAssets(getApplicationContext());
     } catch (Exception error) {
+      DiagnosticLog.record("app.error", "error", error);
       Log.e(TAG, "Milestone assets failed validation", error);
     }
     if (narrativeAuditEnabled()) deleteFile("narrative-audit.jsonl");
+    if (savedInstanceState != null && savedInstanceState.getBoolean("diagnosticExportPending", false)) {
+      File snapshot = new File(getCacheDir(), "backroom-diagnostic-export.jsonl");
+      if (snapshot.exists()) { pendingDiagnosticExport = snapshot; diagnosticExportPending = true; }
+    }
     webView = new WebView(this);
     WebSettings settings = webView.getSettings();
     settings.setJavaScriptEnabled(true);
     settings.setDomStorageEnabled(true);
     settings.setAllowFileAccess(true);
     webView.setWebViewClient(new WebViewClient() {
+      @Override public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+        DiagnosticLog.record("webview.resource.error", "url", request.getUrl().toString(),
+            "mainFrame", request.isForMainFrame(), "code", error.getErrorCode(), "description", error.getDescription().toString());
+        super.onReceivedError(view, request, error);
+      }
       @Override public void onPageFinished(WebView view, String url) {
         super.onPageFinished(view, url);
+        DiagnosticLog.record("webview.ready", "url", url);
         installUiScripts();
+      }
+    });
+    webView.setWebChromeClient(new WebChromeClient() {
+      @Override public boolean onConsoleMessage(ConsoleMessage message) {
+        DiagnosticLog.record("webview.console", "level", message.messageLevel().toString(),
+            "message", message.message(), "file", message.sourceId(), "line", message.lineNumber());
+        return true;
       }
     });
     webView.addJavascriptInterface(new GameBridge(), "Android");
@@ -222,6 +260,7 @@ public class MainActivity extends Activity {
       backgroundMusic = player;
       player.prepareAsync();
     } catch (Exception error) {
+      DiagnosticLog.record("app.error", "error", error);
       try {
         player.release();
       } catch (Exception ignored) {}
@@ -261,6 +300,7 @@ public class MainActivity extends Activity {
       player.setOnErrorListener(null);
       player.release();
     } catch (Exception error) {
+      DiagnosticLog.record("app.error", "error", error);
       Log.w(TAG, "Unable to release background music", error);
     }
   }
@@ -285,6 +325,7 @@ public class MainActivity extends Activity {
     try {
       webView.evaluateJavascript(readAssetText("narrative-audit.js"), null);
     } catch (Exception error) {
+      DiagnosticLog.record("app.error", "error", error);
       Log.e(TAG, "Unable to install narrative audit driver", error);
     }
   }
@@ -305,6 +346,7 @@ public class MainActivity extends Activity {
                 webView.evaluateJavascript(managementUi, ignoredManagement ->
                   installNarrativeAudit()))))));
     } catch (Exception e) {
+      DiagnosticLog.record("app.error", "error", e);
       Log.e(TAG, "Unable to install WebView UI scripts", e);
     }
   }
@@ -337,8 +379,24 @@ public class MainActivity extends Activity {
   private String postJson(String endpoint, String key, String authHeader, JSONObject payload) throws Exception {
     Map<String, String> headers = new HashMap<>();
     headers.put(authHeader, authHeader.equals("Authorization") ? "Bearer " + key : key);
-    return providerResponse(NarrationHttpTransport.post(endpoint, headers,
-        payload.toString(), requestDeadline()));
+    return diagnosticProviderPost(endpoint, headers, payload);
+  }
+
+  private String diagnosticProviderPost(String endpoint, Map<String, String> headers, JSONObject payload) throws Exception {
+    String requestId = java.util.UUID.randomUUID().toString();
+    long started = SystemClock.elapsedRealtime();
+    DiagnosticLog.record("provider.request", "requestId", requestId, "endpoint", endpoint, "payload", payload);
+    try {
+      NarrationHttpTransport.Response response = NarrationHttpTransport.post(endpoint, headers,
+          payload.toString(), requestDeadline());
+      DiagnosticLog.record("provider.response", "requestId", requestId, "status", response.status,
+          "retryAfter", response.retryAfter, "durationMs", SystemClock.elapsedRealtime() - started, "body", response.body);
+      return providerResponse(response);
+    } catch (Exception error) {
+      DiagnosticLog.record("app.error", "error", error);
+      DiagnosticLog.record("provider.error", "requestId", requestId, "durationMs", SystemClock.elapsedRealtime() - started, "error", error);
+      throw error;
+    }
   }
 
   private long requestDeadline() {
@@ -365,6 +423,7 @@ public class MainActivity extends Activity {
       try {
         return geminiTextOnce(prompt, key);
       } catch (Exception error) {
+        DiagnosticLog.record("app.error", "error", error);
         last = error;
         int status = error instanceof HttpError ? ((HttpError)error).status : 0;
         if (!ProviderRetryPolicy.shouldRotateGeminiKey(status, error.getMessage())) throw error;
@@ -494,8 +553,7 @@ public class MainActivity extends Activity {
     } else {
       headers.put("Authorization", "Bearer " + BuildConfig.HAKU_API_KEY);
     }
-    return providerResponse(NarrationHttpTransport.post(endpoint, headers,
-        payload.toString(), requestDeadline()));
+    return diagnosticProviderPost(endpoint, headers, payload);
   }
 
   private String haikuAnthropicText(String prompt) throws Exception {
@@ -639,6 +697,7 @@ public class MainActivity extends Activity {
       try {
         return haikuTextOnce(prompt);
       } catch (Exception error) {
+        DiagnosticLog.record("app.error", "error", error);
         last = error;
         int status = error instanceof HttpError ? ((HttpError)error).status : 0;
         if (attempt == 0 && ProviderRetryPolicy.shouldRetrySameProvider(status, error.getMessage())) {
@@ -687,6 +746,7 @@ public class MainActivity extends Activity {
       if (remaining <= 0L || Thread.currentThread().isInterrupted()) break;
       int source = providerScheduler.acquire(background, urgent, configured, attempted,
           geminiAttempts, SystemClock.elapsedRealtime());
+      DiagnosticLog.record("provider.selection", "source", source, "attempt", attempt, "background", background, "remainingMs", TimeUnit.NANOSECONDS.toMillis(remaining));
       if (source < 0) break;
       attempted[source] = true;
       if (source < NarrationProviderScheduler.GEMINI_COUNT) geminiAttempts++;
@@ -701,18 +761,20 @@ public class MainActivity extends Activity {
         else if (source == NarrationProviderScheduler.LUNA) output = lunaText(prompt);
         else if (source == NarrationProviderScheduler.HAKU) output = haikuTextOnce(prompt);
         else output = solText(prompt);
+        DiagnosticLog.record("provider.success", "source", source, "background", background, "durationMs", SystemClock.elapsedRealtime() - started);
         providerScheduler.succeeded(source, background, SystemClock.elapsedRealtime() - started);
-        if (BuildConfig.DEBUG) Log.d(TAG, "NARRATION PROVIDER: source=" + source
+        if (BuildConfig.DEBUG) logDiagnostic("NARRATION PROVIDER: source=" + source
             + " background=" + background + " elapsed=" + (SystemClock.elapsedRealtime() - started));
         return output;
       } catch (Exception error) {
+        DiagnosticLog.record("app.error", "error", error);
         HttpError http = error instanceof HttpError ? (HttpError)error : null;
         int status = http == null ? 0 : http.status;
         providerScheduler.failed(source, background, status, SystemClock.elapsedRealtime(),
             http == null ? 0L : http.retryAfterMs,
             http != null && http.dailyQuota ? NarrationProviderScheduler.nextPacificDailyResetDelay(
                 System.currentTimeMillis()) : 0L, ThreadLocalRandom.current().nextLong(501L));
-        if (BuildConfig.DEBUG) Log.d(TAG, "NARRATION PROVIDER unavailable: source=" + source
+        if (BuildConfig.DEBUG) logDiagnostic("NARRATION PROVIDER unavailable: source=" + source
             + " status=" + status + " background=" + background);
       } finally {
         providerRequestDeadline.remove();
@@ -722,6 +784,7 @@ public class MainActivity extends Activity {
   }
 
   private JSONObject parseModelJson(String raw) throws Exception {
+    DiagnosticLog.record("provider.parse", "raw", raw);
     if (raw == null) throw new Exception("AI không trả dữ liệu.");
     String text = raw.trim();
     if (text.startsWith("```")) {
@@ -790,6 +853,7 @@ public class MainActivity extends Activity {
   }
 
   private void clearNarrationFutureCache() {
+    DiagnosticLog.record("cache.reset");
     synchronized (narrationFutureLock) {
       narrationBuffer.reset();
       narrationFutureForecastSteps = new JSONArray();
@@ -807,9 +871,11 @@ public class MainActivity extends Activity {
   }
 
   private JSONObject pollNarrationFuture(JSONObject committedState) throws Exception {
-    return narrationBuffer.poll(GameCoreFacade.oracleAuthorityHash(committedState),
+    JSONObject cached = narrationBuffer.poll(GameCoreFacade.oracleAuthorityHash(committedState),
         committedWorldTurnId(committedState),
         slot -> GameCoreFacade.oracleCacheOutcomeMatches(committedState, slot));
+    DiagnosticLog.record("cache.poll", "turnId", committedWorldTurnId(committedState), "hit", cached != null, "slot", cached);
+    return cached;
   }
 
   private int combatForecastStartIndex(JSONObject currentState, JSONArray oracleSteps) {
@@ -922,10 +988,11 @@ public class MainActivity extends Activity {
         if (!narrationBuffer.forecast(expectedEpoch, oracle.optJSONArray("steps"))) return;
       }
       accepted = narrationBuffer.accept(request, parsed.optJSONArray("future"));
-      if (BuildConfig.DEBUG) Log.d(TAG, "NARRATION PREFETCH: ready=" + narrationBuffer.readyCount()
+      if (BuildConfig.DEBUG) logDiagnostic("NARRATION PREFETCH: ready=" + narrationBuffer.readyCount()
           + " requested=" + request.steps.length() + " accepted=" + accepted);
     } catch (Exception error) {
-      Log.d(TAG, "Narration future prefetch unavailable: " + error.getClass().getSimpleName());
+      DiagnosticLog.record("app.error", "error", error);
+      logDiagnostic("Narration future prefetch unavailable: " + error.getClass().getSimpleName());
     } finally {
       if (request != null) narrationBuffer.finish(request);
       synchronized (narrationFutureLock) {
@@ -950,7 +1017,8 @@ public class MainActivity extends Activity {
       JSONObject current = new JSONObject(gameCore.currentCoreState());
       scheduleNarrationFutureRefill(current);
     } catch (Exception error) {
-      Log.d(TAG, "Explorer narration prefetch skipped: " + error.getMessage());
+      DiagnosticLog.record("app.error", "error", error);
+      logDiagnostic("Explorer narration prefetch skipped: " + error.getMessage());
     }
   }
 
@@ -969,12 +1037,107 @@ public class MainActivity extends Activity {
   }
 
 
+  private void logDiagnostic(String message) {
+    DiagnosticLog.record("app.diagnostic", "message", message);
+    Log.d(TAG, message);
+  }
+
   private void emit(String function, String json) {
+    DiagnosticLog.record("bridge.emit", "callback", function, "payload", json);
     String script = "window." + function + "(" + JSONObject.quote(json) + ")";
     runOnUiThread(() -> webView.evaluateJavascript(script, null));
   }
 
+  @Override protected void onSaveInstanceState(Bundle savedState) {
+    savedState.putBoolean("diagnosticExportPending", diagnosticExportPending);
+    super.onSaveInstanceState(savedState);
+  }
+
+  private void prepareDiagnosticExport() {
+    if (diagnosticExportPending) return;
+    diagnosticExportPending = true;
+    io.execute(() -> {
+      try {
+        File snapshot = new File(getCacheDir(), "backroom-diagnostic-export.jsonl");
+        JSONObject metadata = new JSONObject().put("versionName", BuildConfig.VERSION_NAME)
+            .put("versionCode", BuildConfig.VERSION_CODE)
+            .put("sourceRevision", BuildConfig.SOURCE_REVISION.isEmpty() ? "unavailable (non-CI build)" : BuildConfig.SOURCE_REVISION)
+            .put("providerSources", "0-4=Gemini keys 1-5; 5=Haku; 6=Luna; 7=Sol; 8=Gehihi")
+            .put("androidApi", Build.VERSION.SDK_INT)
+            .put("device", Build.MANUFACTURER + " " + Build.MODEL)
+            .put("currentCoreState", new JSONObject(gameCore.currentCoreState()));
+        DiagnosticLog.record("export.request");
+        DiagnosticLog.snapshot(snapshot, metadata);
+        runOnUiThread(() -> {
+          pendingDiagnosticExport = snapshot;
+          try {
+            Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT)
+                .addCategory(Intent.CATEGORY_OPENABLE).setType("application/octet-stream")
+                .putExtra(Intent.EXTRA_TITLE, "Backroom-LOG-" + System.currentTimeMillis() + ".jsonl");
+            startActivityForResult(intent, EXPORT_LOG_REQUEST);
+          } catch (Exception error) {
+            diagnosticExportPending = false;
+            snapshot.delete();
+            pendingDiagnosticExport = null;
+            DiagnosticLog.record("export.error", "error", error);
+            emit("backroomLogExportStatus", "Không thể mở hộp thoại lưu LOG.");
+          }
+        });
+      } catch (Exception error) {
+        DiagnosticLog.record("export.error", "error", error);
+        runOnUiThread(() -> diagnosticExportPending = false);
+        emit("backroomLogExportStatus", "Không thể chuẩn bị LOG. Vui lòng thử lại.");
+      }
+    });
+  }
+
+  @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    super.onActivityResult(requestCode, resultCode, data);
+    if (requestCode != EXPORT_LOG_REQUEST) return;
+    final File snapshot = pendingDiagnosticExport;
+    pendingDiagnosticExport = null;
+    Uri target = data == null ? null : data.getData();
+    if (resultCode != RESULT_OK || target == null || snapshot == null) {
+      if (snapshot != null) snapshot.delete();
+      diagnosticExportPending = false;
+      emit("backroomLogExportStatus", "Đã hủy xuất LOG.");
+      return;
+    }
+    io.execute(() -> {
+      String message;
+      try (InputStream input = new FileInputStream(snapshot);
+           OutputStream output = getContentResolver().openOutputStream(target, "wt")) {
+        if (output == null) throw new java.io.IOException("Document output unavailable");
+        byte[] buffer = new byte[8192];
+        int count;
+        while ((count = input.read(buffer)) != -1) output.write(buffer, 0, count);
+        output.flush();
+        message = "Đã lưu LOG chẩn đoán (.jsonl).";
+        DiagnosticLog.record("export.saved");
+      } catch (Exception error) {
+        DiagnosticLog.record("export.error", "error", error);
+        message = "Không thể lưu LOG. Vui lòng thử lại.";
+      } finally {
+        snapshot.delete();
+      }
+      final String result = message;
+      runOnUiThread(() -> {
+        diagnosticExportPending = false;
+        Toast.makeText(MainActivity.this, result, Toast.LENGTH_LONG).show();
+        emit("backroomLogExportStatus", result);
+      });
+    });
+  }
+
   private class GameBridge {
+    @JavascriptInterface public void diagnosticEvent(String json) {
+      DiagnosticLog.record("ui.event", "payload", json);
+    }
+
+    @JavascriptInterface public void exportDiagnosticLog() {
+      runOnUiThread(() -> prepareDiagnosticExport());
+    }
+
     @JavascriptInterface public void narrativeAuditRecord(String json) {
       if (!narrativeAuditEnabled()) return;
       try (FileOutputStream output =
@@ -982,19 +1145,23 @@ public class MainActivity extends Activity {
         output.write((json + "\n").getBytes("UTF-8"));
         output.flush();
       } catch (Exception error) {
+        DiagnosticLog.record("app.error", "error", error);
         Log.e(TAG, "Unable to write narrative audit record", error);
       }
     }
 
     @JavascriptInterface public void prefetchChoices(String choicesJson) {
+      DiagnosticLog.record("bridge.prefetchChoices", "choicesJson", choicesJson);
       MainActivity.this.prefetchChoices(choicesJson);
     }
 
     @JavascriptInterface public String saveCheckpoint() {
+      DiagnosticLog.record("bridge.saveCheckpoint");
       return gameCore.saveCheckpoint();
     }
 
     @JavascriptInterface public String loadCheckpoint() {
+      DiagnosticLog.record("bridge.loadCheckpoint");
       clearNarrationFutureCache();
       String restored = gameCore.loadCheckpoint();
       clearNarrationFutureCache();
@@ -1003,11 +1170,15 @@ public class MainActivity extends Activity {
     }
 
     @JavascriptInterface public void clearCheckpoint() {
+      DiagnosticLog.record("bridge.clearCheckpoint");
       gameCore.clearCheckpoint();
     }
 
     @JavascriptInterface public void submitTurn(String stateJson, String action) {
+      DiagnosticLog.record("bridge.submitTurn", "stateJson", stateJson, "action", action);
       io.execute(() -> {
+        DiagnosticLog.beginTrace("turn");
+        DiagnosticLog.record("turn.begin", "action", action, "clientState", stateJson);
         JSONObject committedBeforeNarration = null;
         long tStart = SystemClock.elapsedRealtime();
         try {
@@ -1052,6 +1223,7 @@ public class MainActivity extends Activity {
           if (!committed.optBoolean("handled", false)) {
             throw new Exception(committed.optString("error", "Game State Core từ chối COMMIT."));
           }
+          DiagnosticLog.record("turn.committed", "turnId", turnId, "prepared", prepared, "result", committed);
           long coreMs = SystemClock.elapsedRealtime() - coreStart;
 
           JSONObject state = committed.getJSONObject("state");
@@ -1135,7 +1307,9 @@ public class MainActivity extends Activity {
           }, candidate -> {
             long validationStart = SystemClock.elapsedRealtime();
             try {
-              return NarrationGuard.validate(candidate, narrationState, safeEvidence);
+              String rejection = NarrationGuard.validate(candidate, narrationState, safeEvidence);
+              DiagnosticLog.record("narration.guard", "turnId", turnId, "candidate", candidate, "evidence", safeEvidence, "rejection", rejection);
+              return rejection;
             } finally {
               validationMs[0] += SystemClock.elapsedRealtime() - validationStart;
             }
@@ -1147,7 +1321,7 @@ public class MainActivity extends Activity {
             scheduleNarrationFutureRefill(narrationState);
           }
           String reply = generated.optString("reply", "");
-          Log.d(TAG, "PRESENTATION CONTENT ATTEMPTS: turnId=" + turnId
+          logDiagnostic("PRESENTATION CONTENT ATTEMPTS: turnId=" + turnId
               + " initial=" + providerCalls[0] + " retry=" + providerCalls[1]
               + " total=" + (providerCalls[0] + providerCalls[1]));
 
@@ -1162,9 +1336,10 @@ public class MainActivity extends Activity {
           JSONObject appended = new JSONObject(gameCore.commitPresentation(turnId,
               narrationEvidence.optInt("stateVersion", -1), presentationBaseHash,
               turnId + ":narration", displayAction, gmEntry.toString()));
+          DiagnosticLog.record("presentation.commit", "turnId", turnId, "result", appended);
           state = appended.getJSONObject("state");
           if (!appended.optBoolean("handled", false)) {
-            Log.d(TAG, "PRESENTATION DROP: " + appended.optString("reason", "unknown"));
+            logDiagnostic("PRESENTATION DROP: " + appended.optString("reason", "unknown"));
             emit("backroomTurn", state.toString());
             return;
           }
@@ -1177,7 +1352,7 @@ public class MainActivity extends Activity {
 
           if (BuildConfig.DEBUG) {
             long totalMs = SystemClock.elapsedRealtime() - tStart;
-            Log.d(TAG, "EMERGENT TURN TELEMETRY: total=" + totalMs
+            logDiagnostic("EMERGENT TURN TELEMETRY: total=" + totalMs
                 + "ms core=" + coreMs
                 + "ms prompt=" + (promptMs[0] + promptMs[1])
                 + "ms provider=" + (providerMs[0] + providerMs[1])
@@ -1194,6 +1369,7 @@ public class MainActivity extends Activity {
           }
           emit("backroomTurn", state.toString());
         } catch (Exception e) {
+          DiagnosticLog.record("app.error", "error", e);
           String message = e.getMessage() == null ? "Không thể xử lý lượt." : e.getMessage();
           if (committedBeforeNarration != null) {
             try {
@@ -1207,59 +1383,71 @@ public class MainActivity extends Activity {
           } else {
             emit("backroomError", message);
           }
+        } finally {
+          DiagnosticLog.record("turn.end", "durationMs", SystemClock.elapsedRealtime() - tStart);
+          DiagnosticLog.endTrace();
         }
       });
     }
 
     @JavascriptInterface public void combatTarget(int entityIndex) {
+      DiagnosticLog.record("bridge.combatTarget", "entityIndex", entityIndex);
       io.execute(() -> {
         try {
           JSONObject runtime = new JSONObject(gameCore.combatTargetRuntime(entityIndex));
           scheduleNarrationFutureRefill(runtime);
           emit("backroomCombatDiceState", runtime.toString());
         } catch (Exception e) {
+          DiagnosticLog.record("app.error", "error", e);
           emit("backroomError", e.getMessage() == null ? "Không thể đổi mục tiêu." : e.getMessage());
         }
       });
     }
 
     @JavascriptInterface public void combatRoll(String stateJson) {
+      DiagnosticLog.record("bridge.combatRoll", "stateJson", stateJson);
       io.execute(() -> {
         try {
           JSONObject runtime = new JSONObject(gameCore.combatRollRuntime());
           scheduleNarrationFutureRefill(runtime);
           emit("backroomCombatDiceState", runtime.toString());
         } catch (Exception e) {
+          DiagnosticLog.record("app.error", "error", e);
           emit("backroomError", e.getMessage() == null ? "Không thể ROLL." : e.getMessage());
         }
       });
     }
 
     @JavascriptInterface public void combatHold(String stateJson, int dieIndex, boolean held) {
+      DiagnosticLog.record("bridge.combatHold", "stateJson", stateJson, "dieIndex", dieIndex, "held", held);
       io.execute(() -> {
         try {
           JSONObject runtime = new JSONObject(gameCore.combatHoldRuntime(dieIndex, held));
           scheduleNarrationFutureRefill(runtime);
           emit("backroomCombatDiceState", runtime.toString());
         } catch (Exception e) {
+          DiagnosticLog.record("app.error", "error", e);
           emit("backroomError", e.getMessage() == null ? "Không thể HOLD die." : e.getMessage());
         }
       });
     }
 
     @JavascriptInterface public void combatFinish(String stateJson) {
+      DiagnosticLog.record("bridge.combatFinish", "stateJson", stateJson);
       io.execute(() -> {
         try {
           JSONObject runtime = new JSONObject(gameCore.combatFinishRuntime());
           scheduleNarrationFutureRefill(runtime);
           emit("backroomCombatDiceState", runtime.toString());
         } catch (Exception e) {
+          DiagnosticLog.record("app.error", "error", e);
           emit("backroomError", e.getMessage() == null ? "Không thể FINISH hand." : e.getMessage());
         }
       });
     }
 
     @JavascriptInterface public void combatResolve(String stateJson) {
+      DiagnosticLog.record("bridge.combatResolve", "stateJson", stateJson);
       io.execute(() -> {
         try {
           JSONObject result = new JSONObject(gameCore.processCombatResolution(stateJson));
@@ -1269,12 +1457,14 @@ public class MainActivity extends Activity {
           scheduleNarrationFutureRefill(result.getJSONObject("state"));
           emit("backroomCombatTurn", result.getJSONObject("state").toString());
         } catch (Exception e) {
+          DiagnosticLog.record("app.error", "error", e);
           emit("backroomError", e.getMessage() == null ? "Không thể resolve combat hand." : e.getMessage());
         }
       });
     }
 
     @JavascriptInterface public void restartAfterDeath() {
+      DiagnosticLog.record("bridge.restartAfterDeath");
       io.execute(() -> {
         try {
           clearNarrationFutureCache();
@@ -1285,6 +1475,7 @@ public class MainActivity extends Activity {
           }
           emit("backroomTurn", result.getJSONObject("state").toString());
         } catch (Exception e) {
+          DiagnosticLog.record("app.error", "error", e);
           emit("backroomError",
               e.getMessage() == null ? "Không thể bắt đầu lại từ đầu Level." : e.getMessage());
         }
@@ -1292,12 +1483,14 @@ public class MainActivity extends Activity {
     }
 
     @JavascriptInterface public void coreUpgrade(String stateJson, String characterId, String stat) {
+      DiagnosticLog.record("bridge.coreUpgrade", "stateJson", stateJson, "characterId", characterId, "stat", stat);
       io.execute(() -> emit("backroomCoreUpgrade",
           gameCore.processCoreUpgrade(stateJson, characterId, stat)));
     }
 
     @JavascriptInterface public void itemAction(String stateJson, String ownerId, String itemId,
                                                 String operation, String targetId, int quantity) {
+      DiagnosticLog.record("bridge.itemAction", "stateJson", stateJson, "ownerId", ownerId, "itemId", itemId, "operation", operation, "targetId", targetId, "quantity", quantity);
       io.execute(() -> {
         try {
           JSONObject submitted = new JSONObject(gameCore.currentCoreState());
@@ -1313,6 +1506,7 @@ public class MainActivity extends Activity {
           emit("backroomItemAction",
               gameCore.processItemAction(stateJson, ownerId, itemId, operation, targetId, quantity));
         } catch (Exception e) {
+          DiagnosticLog.record("app.error", "error", e);
           JSONObject rejected = new JSONObject();
           try {
             rejected.put("handled", false).put("state", new JSONObject(stateJson));
@@ -1324,14 +1518,17 @@ public class MainActivity extends Activity {
     }
 
     @JavascriptInterface public String levelSnapshot(String stateJson) {
+      DiagnosticLog.record("bridge.levelSnapshot", "stateJson", stateJson);
       return gameCore.levelSnapshotDescriptor(stateJson);
     }
 
     @JavascriptInterface public String normalizeState(String stateJson) {
+      DiagnosticLog.record("bridge.normalizeState", "stateJson", stateJson);
       return gameCore.normalizeState(stateJson);
     }
 
     @JavascriptInterface public String startNewGame(String initialJson) {
+      DiagnosticLog.record("bridge.startNewGame", "initialJson", initialJson);
       clearNarrationFutureCache();
       String started = gameCore.startNewGame(initialJson);
       clearNarrationFutureCache();
