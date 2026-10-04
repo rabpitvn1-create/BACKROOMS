@@ -95,18 +95,17 @@ test('Core upgrades use live state and are locked only by active combat', () => 
 });
 
 
-test('dice fill their cells and animate visibly while ROLL is resolving', () => {
-  assert.match(source, /\.combat-dice-row\{[^}]*gap:5px;perspective:720px/);
-  assert.match(source, /\.combat-die\{padding:1px;/);
-  assert.match(source, /\.combat-die img\{width:104%;height:104%/);
-  assert.match(source, /@keyframes combat-die-roll/);
-  assert.match(source, /var DICE_ROLL_ANIMATION_MS=650;/);
+test('dice reserve a stable hold-label area and animate only unheld values while ROLL resolves', () => {
+  assert.match(source, /\.combat-dice-row\{[^}]*grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);
+  assert.match(source, /\.combat-die\{[^}]*min-width:44px;min-height:76px/);
+  assert.match(source, /\.combat-die-skin\{[^}]*width:100%;height:100%/);
+  assert.match(source, /@keyframes combat-die-3d/);
+  assert.match(source, /var DICE_ROLL_ANIMATION_MS=680;/);
   assert.match(source, /diceRollAnimating=true;/);
   assert.match(source, /rolling=diceRollAnimating&&held\[index\]!==true/);
-  assert.match(source, /animationDelay=String\(index\*-55\)\+'ms'/);
+  assert.match(source, /setProperty\('--die-delay',String\(index\*-55\)\+'ms'\)/);
   assert.match(source, /DICE_ROLL_ANIMATION_MS-\(Date\.now\(\)-diceRollStartedAt\)/);
 });
-
 
 test('GM effect highlights keep the normal narration font', () => {
   assert.match(source, /\.message\.gm \.semantic-effect,\.message\.gm \.semantic-damage,\.message\.gm \.semantic-buff\{font-family:inherit\}/);
@@ -130,4 +129,44 @@ test('active Entity handoff is separate from player actor handoff', () => {
   assert.match(source, /resolvedEntityTurns/);
   assert.match(source, /backroomSetCombatVisualActor\(combat\.resolvedActorIndex,entityKey\)/);
   assert.match(source, /playCombatPhase\(events,'entity',entityIndex\)/);
+});
+
+
+test('rendered dice preserve Core values, Vietnamese hold state and index-specific tap routing', () => {
+  const vm = require('node:vm');
+  class Node {
+    constructor(){ this.children=[];this.attrs={};this.events={};this.style={setProperty(){}}; }
+    set textContent(value){this.text=String(value);this.children=[];}
+    get textContent(){return this.text||'';}
+    appendChild(child){this.children.push(child);return child;}
+    setAttribute(key,value){this.attrs[key]=value;}
+    addEventListener(event,handler){this.events[event]=handler;}
+  }
+  const calls=[];
+  const context={document:{createElement(){return new Node()}},window:{},state:{combat:{active:true,currentActor:'Cao Minh',diceState:{values:[1,2,3,4,5],held:[true,false,true,false,false],hasRolled:true,rerollsUsed:1,maxRerolls:3}}},dicePanel:new Node(),diceTitle:new Node(),combatTargets:null,diceMeta:new Node(),diceRow:new Node(),diceResult:new Node(),diceRoll:new Node(),diceFinish:new Node(),diceRollAnimating:false,diceSettleUntil:0,diceSettleMask:[],combatDiceState(){return this.state.combat.diceState},sendCombatHold(index,held){calls.push([index,held])},handLabel(){return ''},allHeld(values){return values.every(Boolean)},scheduleCombatResolve(){},diceAsset(value){return 'file:///android_asset/dice/die-'+value+'.png'}};
+  const start=source.indexOf('  function renderCombatPanel(){');
+  const end=source.indexOf('  diceRoll.addEventListener',start);
+  vm.createContext(context);
+  // Core state is consumed without mutation; only click routing emits a hold request.
+  context.combatDiceState=()=>context.state.combat.diceState;
+  vm.runInContext(source.slice(start,end)+';renderCombatPanel();',context);
+  assert.equal(context.diceRow.children.length,5);
+  const before=JSON.stringify(context.state);
+  const skins=button=>button.children.find(n=>n.className==='combat-die-object').children[0];
+  context.diceRow.children.forEach((button,index)=>{
+    assert.equal(skins(button).src,'file:///android_asset/dice/die-'+(index+1)+'.png');
+    assert.match(button.attrs['aria-label'],new RegExp('Xúc xắc '+(index+1)));
+    assert.equal(button.attrs['aria-pressed'],index===0||index===2?'true':'false');
+    assert.equal(button.children.find(n=>n.className==='combat-die-hold-seal').textContent,'GIỮ');
+  });
+  context.diceRow.children[0].events.click();context.diceRow.children[1].events.click();
+  assert.deepEqual(calls,[[0,false],[1,true]]);
+  assert.equal(JSON.stringify(context.state),before);
+  context.state.combat.diceState.values=[6,6,6,6,6];
+  context.diceRollAnimating=true;
+  context.window.__combatBusy=true;
+  vm.runInContext('renderCombatPanel()',context);
+  assert.equal(context.diceRow.children.filter(n=>n.className.includes('rolling')).length,3);
+  assert.ok(context.diceRow.children.every(n=>n.disabled));
+  assert.equal(skins(context.diceRow.children[0]).src,'file:///android_asset/dice/die-6.png');
 });
