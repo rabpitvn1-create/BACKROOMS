@@ -8,7 +8,6 @@ const root = path.join(__dirname, '..', 'app', 'src', 'main');
 const html = fs.readFileSync(path.join(root, 'assets', 'index.html'), 'utf8');
 const core = fs.readFileSync(path.join(root, 'java/com/rabpit/backroom/core/GameCoreFacade.java'), 'utf8');
 const bridge = fs.readFileSync(path.join(root, 'java/com/rabpit/backroom/MainActivity.java'), 'utf8');
-const choices = fs.readFileSync(path.join(root, 'java/com/rabpit/backroom/core/GmChoiceContract.java'), 'utf8');
 const choiceUi = fs.readFileSync(path.join(root, 'assets', 'gm-choice-ui.js'), 'utf8');
 
 test('Save and Load address an explicit Core checkpoint without automatic WebView saves', () => {
@@ -76,10 +75,12 @@ test('GM path consumes one offline SceneFrame and only narrates it', () => {
   assert.doesNotMatch(choiceUi, /backroomPrefetchChoices/);
 });
 
-test('GM suggestions keep up to three distinct player-facing actions', () => {
-  assert.match(choices, /MAX_CHOICES = 3/);
-  assert.match(choices, /\.put\("action", text\)/);
-  assert.match(choiceUi, /generated\.slice\(0, 3\)/);
+test('Explorer suggestions are the two fixed local actions instead of GM-authored choices', () => {
+  assert.match(choiceUi, /function fixedExplorerChoices\(\)/);
+  assert.match(choiceUi, /text:'Khám phá',action:'Khám phá'/);
+  assert.match(choiceUi, /text:'Tìm kiếm',action:'Tìm kiếm'/);
+  assert.doesNotMatch(choiceUi, /Array\.isArray\(entry\.choices\)/);
+  assert.doesNotMatch(choiceUi, /generated\.slice\(0, 3\)/);
 });
 
 test('turn-one current save survives a changed baseline prologue', () => {

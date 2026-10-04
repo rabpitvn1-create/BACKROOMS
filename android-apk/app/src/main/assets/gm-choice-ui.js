@@ -236,23 +236,33 @@
     Android.restartAfterDeath();
   }
 
-  function fallbackExplorerChoice() {
+  function contextualExplorerChoice() {
     if (chestPresent()) {
-      return {id:'A',text:'Mở chiếc rương vừa phát hiện',action:'__loot:open_chest'};
+      return {id:'CTX',text:'Mở chiếc rương vừa phát hiện',action:'__loot:open_chest'};
     }
     try {
       if (state && state.levelRoute && state.levelRoute.exitAvailable === true) {
-        return {id:'A',text:'Tiến qua ranh giới vừa được tìm thấy',action:'Đi qua ranh giới'};
+        return {id:'CTX',text:'Tiến qua ranh giới vừa được tìm thấy',action:'Đi qua ranh giới'};
       }
     } catch (_) {}
     return null;
   }
 
-  function displayedExplorerChoices(entry) {
-    var generated = entry && Array.isArray(entry.choices) ? entry.choices : [];
-    if (generated.length) return generated.slice(0, 3).map(function(choice){ return Object.assign({}, choice); });
-    var coreOwned = fallbackExplorerChoice();
-    return coreOwned ? [coreOwned] : [];
+  function fixedExplorerChoices() {
+    return [
+      {id:'A',text:'Khám phá',action:'Khám phá'},
+      {id:'B',text:'Tìm kiếm',action:'Tìm kiếm'}
+    ];
+  }
+
+  function displayedExplorerChoices() {
+    var choices = [];
+    var contextual = contextualExplorerChoice();
+    if (contextual) choices.push(contextual);
+    fixedExplorerChoices().forEach(function(choice){
+      choices.push(Object.assign({}, choice));
+    });
+    return choices.slice(0, 3);
   }
 
   function submitChestChoice() {

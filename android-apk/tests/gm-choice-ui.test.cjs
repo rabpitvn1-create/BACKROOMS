@@ -6,7 +6,7 @@ const path=require('node:path');
 const root=path.join(__dirname,'..','app','src','main','assets');
 const ui=fs.readFileSync(path.join(root,'gm-choice-ui.js'),'utf8');
 
-test('GM choices expose up to three scene-driven actions',()=>{
+test('Explorer UI restores the two fixed local actions and keeps Core contextual actions',()=>{
   assert.match(ui,/function submitExplorerChoice\(entry, choice\)/);
   assert.match(ui,/form\.requestSubmit\(\)/);
   assert.match(ui,/var displayText = String\(choice\.text \|\| choice\.action \|\| ''\)\.trim\(\)/);
@@ -14,15 +14,16 @@ test('GM choices expose up to three scene-driven actions',()=>{
   assert.match(ui,/state\.__uiDisplayAction = displayText/);
   assert.match(ui,/action\.value = coreAction/);
   assert.match(ui,/delete state\.__uiDisplayAction/);
-  assert.match(ui,/function displayedExplorerChoices\(entry\)/);
-  assert.match(ui,/Array\.isArray\(entry\.choices\)/);
-  assert.match(ui,/generated\.slice\(0, 3\)/);
-  assert.match(ui,/return coreOwned \? \[coreOwned\] : \[\]/);
-  assert.doesNotMatch(ui,/Tiếp tục thăm dò khu vực phía trước/);
+  assert.match(ui,/function fixedExplorerChoices\(\)/);
+  assert.match(ui,/text:'Khám phá',action:'Khám phá'/);
+  assert.match(ui,/text:'Tìm kiếm',action:'Tìm kiếm'/);
+  assert.match(ui,/function contextualExplorerChoice\(\)/);
+  assert.match(ui,/Mở chiếc rương vừa phát hiện/);
+  assert.match(ui,/Tiến qua ranh giới vừa được tìm thấy/);
+  assert.match(ui,/function displayedExplorerChoices\(\)/);
+  assert.doesNotMatch(ui,/Array\.isArray\(entry\.choices\)/);
+  assert.doesNotMatch(ui,/generated\.slice\(0, 3\)/);
   assert.match(ui,/choices\.slice\(0, 3\)/);
-  assert.doesNotMatch(ui,/if \(choices\.length !== 1\) return;/);
-  assert.doesNotMatch(ui,/function fixedExplorerChoices\(\)/);
-  assert.doesNotMatch(ui,/text:'Tìm kiếm'/);
   assert.match(ui,/makeChoiceButton\('', choice\.text \|\| choice\.action \|\| ''/);
   assert.match(ui,/prefix \? prefix \+ '\. ' : '• '/);
   assert.doesNotMatch(ui,/state\.story|resolveStoryDecision|prepareStoryDecision|returnJourney|attackStoryEntity/);
