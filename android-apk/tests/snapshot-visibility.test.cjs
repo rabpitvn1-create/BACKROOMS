@@ -193,13 +193,15 @@ test('oval foot shadows follow sprites and leave with outgoing overlays',async()
  r.ctx.backroomSetCombatVisualActor(0,'tam_ma_cao_minh');
  assert.equal(shadows().length,2);
  for(const img of r.elements.filter(e=>e.className.includes('snapshot-grounded'))){
-  const m=geometry.assetMetric(img.src),feet=m.feet||m.body,scale=parseFloat(img.style.width)/m.width;
+  const m=geometry.assetMetric(img.src),scale=parseFloat(img.style.width)/m.width;
   const shadow=img.__footShadow;
   assert.ok(shadow);
+  assert.equal(parseFloat(shadow.style.width),img.parentElement.clientWidth*.34);
+  assert.equal(parseFloat(shadow.style.height),parseFloat(shadow.style.width)*.16);
   const cx=parseFloat(shadow.style.left)+parseFloat(shadow.style.width)/2;
   const cy=parseFloat(shadow.style.top)+parseFloat(shadow.style.height)/2;
-  assert.ok(Math.abs(cx-(parseFloat(img.style.left)+(feet.left+feet.right)*scale/2))<1e-7);
-  assert.ok(Math.abs(cy-(parseFloat(img.style.top)+feet.bottom*scale))<1e-7);
+  assert.ok(Math.abs(cx-(parseFloat(img.style.left)+(m.paint.left+m.paint.right)*scale/2))<1e-7);
+  assert.ok(Math.abs(cy-(parseFloat(img.style.top)+m.body.bottom*scale))<1e-7);
  }
  r.ctx.backroomSetCombatVisualActor(1,'tam_ma_cao_minh');
  await new Promise(resolve=>setTimeout(resolve,300));

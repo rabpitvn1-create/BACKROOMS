@@ -26,19 +26,6 @@ class GenerateOverlayMetrics {
     return "{\"left\":"+left+",\"top\":"+top+",\"right\":"+right+",\"bottom\":"+bottom+"}";
   }
 
-  static String feet(BufferedImage image) {
-    int top=image.getHeight(), bottom=0;
-    for(int y=0;y<image.getHeight();y++) for(int x=0;x<image.getWidth();x++) {
-      if((image.getRGB(x,y)>>>24)>128){top=Math.min(top,y);bottom=Math.max(bottom,y+1);}
-    }
-    if(bottom<=top) return null;
-    int band=Math.max(1,(int)Math.round((bottom-top)*.06)),left=image.getWidth(),right=0;
-    for(int y=bottom-band;y<bottom;y++) for(int x=0;x<image.getWidth();x++) {
-      if((image.getRGB(x,y)>>>24)>128){left=Math.min(left,x);right=Math.max(right,x+1);}
-    }
-    return "{\"left\":"+left+",\"right\":"+right+",\"bottom\":"+bottom+"}";
-  }
-
   static String sha256(Path file) throws Exception {
     return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(file)));
   }
@@ -129,7 +116,7 @@ class GenerateOverlayMetrics {
       String paint=bounds(image,8),body=bounds(image,128);
       if(paint==null) throw new IllegalStateException("Empty overlay: "+file);
       if(body==null) body=paint;
-      lines.add("    \""+key+"\":{\"width\":"+image.getWidth()+",\"height\":"+image.getHeight()+",\"paint\":"+paint+",\"body\":"+body+",\"sha256\":\""+sha256(file)+"\",\"feet\":"+feet(image)+"}");
+      lines.add("    \""+key+"\":{\"width\":"+image.getWidth()+",\"height\":"+image.getHeight()+",\"paint\":"+paint+",\"body\":"+body+",\"sha256\":\""+sha256(file)+"\"}");
     }
 
     int start=source.indexOf(START),end=source.indexOf(END);
