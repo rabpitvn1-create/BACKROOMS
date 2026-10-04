@@ -405,23 +405,22 @@ final class LevelCore {
 
     if (bundle == null) return output.put("motif", "").put("sensoryCue", "");
 
-    String preferredSection = GameCoreRules.isRouteExplorationAction(action)
-        ? "variationPool" : "quietTurnPatterns";
+    // SceneFrame may contain only concrete player-facing environment facts. quietTurnPatterns
+    // are backstage director guidance, not scene facts, so they never enter GM narration directly.
+    String preferredSection = "variationPool";
     JSONArray pool = bundle.optJSONArray(preferredSection);
-    if (pool == null || pool.length() == 0) {
-      preferredSection = "variationPool";
-      pool = bundle.optJSONArray(preferredSection);
-    }
     if (pool != null && pool.length() > 0) {
+      String motif = pool.optString(sceneRng.nextInt(pool.length()), "").trim();
       output.put("motifSource", preferredSection)
-          .put("motif", pool.optString(sceneRng.nextInt(pool.length()), "").trim());
+          .put("motif", GmChoiceContract.normalizePlayerFacingVietnamese(motif));
     } else {
       output.put("motifSource", "").put("motif", "");
     }
 
     JSONArray sensory = bundle.optJSONArray("sensory");
-    output.put("sensoryCue", sensory == null || sensory.length() == 0
-        ? "" : sensory.optString(sceneRng.nextInt(sensory.length()), "").trim());
+    String sensoryCue = sensory == null || sensory.length() == 0
+        ? "" : sensory.optString(sceneRng.nextInt(sensory.length()), "").trim();
+    output.put("sensoryCue", GmChoiceContract.normalizePlayerFacingVietnamese(sensoryCue));
 
     JSONObject route = state == null ? null : state.optJSONObject(ROUTE_STATE);
     if (route != null) {

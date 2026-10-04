@@ -48,6 +48,12 @@ public final class GmChoiceContract {
   // Backstage technical environment glossary. Serves as a last-resort safety net
   // preventing internal English environment keys from leaking into player UI.
   private static final String[][] VIETNAMESE_ENVIRONMENT_TERMS = {
+      {"blackout hallway", "hành lang chìm trong bóng tối"},
+      {"blackout threshold", "ngưỡng chuyển vào vùng tối"},
+      {"ankle-deep fluid", "chất lỏng sâu đến mắt cá chân"},
+      {"abrasive/soggy carpet", "thảm thô ráp và sũng nước"},
+      {"ankle-deep", "sâu đến mắt cá chân"},
+      {"abrasive/soggy", "thô ráp và sũng nước"},
       {"blackout zones", "các vùng mất sáng"},
       {"blackout zone", "vùng mất sáng"},
       {"pillar rooms", "các phòng cột"},

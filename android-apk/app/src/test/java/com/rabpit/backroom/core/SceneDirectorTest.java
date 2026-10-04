@@ -110,26 +110,30 @@ public class SceneDirectorTest {
     assertTrue(fallback.contains("Trước tiên"));
   }
 
-  @Test public void levelDirectorUsesSeparateLocalEnvironmentDraw() throws Exception {
+  @Test public void levelDirectorUsesOnlyPlayerFacingEnvironmentFacts() throws Exception {
     String knowledge = new JSONObject()
         .put("schemaVersion", 2)
         .put("sectionOrder", new JSONArray().put("variationPool").put("quietTurnPatterns").put("sensory"))
         .put("levels", new JSONObject().put("0", new JSONObject()
             .put("name", "Level 0")
-            .put("variationPool", new JSONArray().put("MOVE_A").put("MOVE_B"))
-            .put("quietTurnPatterns", new JSONArray().put("QUIET_A").put("QUIET_B"))
-            .put("sensory", new JSONArray().put("SENSE_A").put("SENSE_B"))))
+            .put("variationPool", new JSONArray().put("Blackout hallway với ankle-deep fluid."))
+            .put("quietTurnPatterns", new JSONArray().put("Verification turn: backstage only."))
+            .put("sensory", new JSONArray().put("abrasive/soggy carpet."))))
         .toString();
     LevelCore core = LevelCore.withKnowledge(knowledge, bound -> 0);
     JSONObject state = new JSONObject().put("currentLevel", 0).put("currentLevelKey", "0")
         .put("location", "Level 0 / Test");
 
-    assertEquals("variationPool",
-        core.sceneDirectorEnvironment(state, "Cao Minh đi tiếp", bound -> 0)
-            .getString("motifSource"));
-    assertEquals("quietTurnPatterns",
-        core.sceneDirectorEnvironment(state, "Cao Minh đứng quan sát", bound -> 0)
-            .getString("motifSource"));
+    JSONObject moving = core.sceneDirectorEnvironment(state, "Cao Minh đi tiếp", bound -> 0);
+    JSONObject observing = core.sceneDirectorEnvironment(state, "Cao Minh đứng quan sát", bound -> 0);
+    assertEquals("variationPool", moving.getString("motifSource"));
+    assertEquals("variationPool", observing.getString("motifSource"));
+    assertEquals("Hành lang chìm trong bóng tối với chất lỏng sâu đến mắt cá chân.",
+        moving.getString("motif"));
+    assertEquals("thảm thô ráp và sũng nước.", moving.getString("sensoryCue"));
+    assertFalse(observing.toString().contains("Verification turn"));
+    assertFalse(observing.toString().contains("ankle-deep"));
+    assertFalse(observing.toString().contains("abrasive/soggy"));
   }
 
   @Test public void localCoreCandidatesCanCoexistInOneTurn() throws Exception {

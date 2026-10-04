@@ -186,6 +186,25 @@ public class LevelCoreTest {
     assertEquals(6, secondSeedCount);
   }
 
+  @Test public void levelZeroSceneFacingPoolsAreNaturalVietnamese() throws Exception {
+    JSONObject root = new JSONObject(readRepoAsset("knowledge/level_knowledge.json"));
+    JSONObject levelZero = root.getJSONObject("levels").getJSONObject("0");
+    String playerFacing = levelZero.getJSONArray("variationPool").toString() + "\n"
+        + levelZero.getJSONArray("sensory").toString();
+    String lower = playerFacing.toLowerCase(java.util.Locale.ROOT);
+
+    for (String token : new String[] {
+        "ankle-deep", "abrasive/soggy", "hallway", "chemical", "blackout",
+        "pillar ", "staircase", "crawlspace", " chamber", " patch ", " creature",
+        " baseline", " section ", " peripheral shift", " core "
+    }) {
+      assertFalse("Technical token leaked into Level 0 scene pool: " + token,
+          lower.contains(token));
+    }
+    assertTrue(playerFacing.contains("chất lỏng sâu đến mắt cá chân"));
+    assertTrue(playerFacing.contains("Thảm ẩm vừa thô ráp vừa sũng nước"));
+  }
+
   @Test public void structuredKnowledgeRejectsLegacySchemaAsAuthoritativeBundle() throws Exception {
     String legacy = new JSONObject()
         .put("schemaVersion", 1)

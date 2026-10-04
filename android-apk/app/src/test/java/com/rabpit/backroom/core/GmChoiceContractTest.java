@@ -87,6 +87,19 @@ public class GmChoiceContractTest {
     assertTrue(choice.contains("bộ đèn"));
   }
 
+  @Test public void vietnameseNormalizerHandlesSceneDirectorTechnicalPhrases() {
+    String normalized = GmChoiceContract.normalizePlayerFacingVietnamese(
+        "Blackout hallway với ankle-deep fluid. abrasive/soggy carpet.");
+    assertEquals(
+        "Hành lang chìm trong bóng tối với chất lỏng sâu đến mắt cá chân. thảm thô ráp và sũng nước.",
+        normalized);
+    String lower = normalized.toLowerCase(java.util.Locale.ROOT);
+    assertFalse(lower.contains("blackout"));
+    assertFalse(lower.contains("hallway"));
+    assertFalse(lower.contains("ankle-deep"));
+    assertFalse(lower.contains("abrasive/soggy"));
+  }
+
   @Test public void vietnameseNormalizerPreservesOfficialNamesAndStats() {
     String normalized = GmChoiceContract.normalizePlayerFacingVietnamese(
         "Cao Minh ở Level 0, còn Almond Water và Thiên Ma Bộ. corridor phía trước có chemical lạ.");
