@@ -182,6 +182,7 @@ public class CombatChoiceEngineTest {
     CombatChoiceEngine.setHold(state, 3, true);
     int sequenceBefore = combat.getInt("rngSequence");
     int seed = combat.getInt("seed");
+    JSONArray heldBefore = new JSONArray(dice.getJSONArray("held").toString());
 
     CombatChoiceEngine.roll(state);
 
@@ -189,9 +190,8 @@ public class CombatChoiceEngineTest {
     assertEquals(before.getInt(0), after.getInt(0));
     assertEquals(before.getInt(3), after.getInt(3));
     int sequence = sequenceBefore;
-    JSONArray held = dice.getJSONArray("held");
     for (int slot : new int[]{1,2,4}) {
-      int[] weights = CombatChoiceEngine.rerollWeights(before, held, slot);
+      int[] weights = CombatChoiceEngine.rerollWeights(before, heldBefore, slot);
       int totalWeight = 0;
       for (int weight : weights) totalWeight += weight;
       int roll = CombatChoiceEngine.deterministicRoll(seed, sequence, slot, totalWeight);
