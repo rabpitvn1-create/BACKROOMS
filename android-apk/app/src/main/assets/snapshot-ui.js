@@ -204,8 +204,9 @@ if(typeof module!=='undefined'&&module.exports)module.exports=SnapshotOverlayLay
       var required=Number(descriptor&&descriptor.routeRequiredStreak);
       if(!Number.isFinite(required)||required<1)required=8;
       required=Math.max(1,Math.round(required));
-      var current=Number(descriptor&&descriptor.routeStreak);
-      if(!Number.isFinite(current))current=Number(route.streak||0);
+      var current=descriptor&&descriptor.routeStreak!==undefined
+        ?Number(descriptor.routeStreak):Number(route.streak||0);
+      if(!Number.isFinite(current))current=0;
       current=Math.max(0,Math.min(required,Math.round(current||0)));
       var ready=descriptor&&descriptor.routeExitAvailable===true;
       if(!ready&&route&&route.exitAvailable===true)ready=true;
