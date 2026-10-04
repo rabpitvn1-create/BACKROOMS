@@ -1251,7 +1251,7 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
     boolean critical = secondaryChanceTriggers(combat, criticalChance,
         "entity-critical:" + entity.optString("key", "") + ":" + actor.optString("id", ""));
     List<EntitySkill> pool = ENTITY_SKILLS.get(entity.optString("key", ""));
-    List<String> triggeredSkills = new ArrayList<>();
+    EntitySkill triggeredSkill = null;
     if (pool != null) {
       int seed = combat.optInt("seed", 1);
       int round = Math.max(1, combat.optInt("round", 1));
@@ -1261,33 +1261,33 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
         int procRoll = usesScopedCombatRng(combat)
             ? nextCombatInt(combat, 100)
             : entitySkillProcRoll(seed, round, actorIndex, i);
-        if (procRoll >= skill.procPercent) continue;
-        triggeredSkills.add(skill.name);
-        int skillDamageDealt = 0;
-        for (int hit = 0; hit < skill.hitCount && actor.optInt("hp", 0) > 0; hit++) {
-          int incoming = entitySkillDamage(rawDamage, skill.damagePercent);
-          if (critical) incoming = criticalDamage(incoming);
-          int damage = piercedIncomingDamage(incoming, def, skill.defensePiercePercent);
-          int hpBeforeHit = Math.max(0, actor.optInt("hp", 0));
-          actor.put("hp", Math.max(0, hpBeforeHit - damage));
-          int actualDamage = Math.max(0, hpBeforeHit - actor.optInt("hp", 0));
-          skillDamageDealt += actualDamage;
-          addFeedback(combat, "entity", "actor", "damage", "-" + actualDamage + " HP", true);
-        }
-        if (skill.healPercentOfDamage > 0 && skillDamageDealt > 0) {
-          int heal = drainHealAmount(skillDamageDealt, skill.healPercentOfDamage);
-          int hpBeforeHeal = Math.max(0, entity.optInt("hp", 0));
-          int maxEntityHp = Math.max(1, entity.optInt("maxHp", 1));
-          entity.put("hp", Math.min(maxEntityHp, hpBeforeHeal + heal));
-          int actualHeal = Math.max(0, entity.optInt("hp", 0) - hpBeforeHeal);
-          if (actualHeal > 0) {
-            addFeedback(combat, "entity", "entity", "heal", "+" + actualHeal + " HP", true);
-          }
-        }
+        if (triggeredSkill == null && procRoll < skill.procPercent) triggeredSkill = skill;
       }
     }
 
-    if (triggeredSkills.isEmpty()) {
+    if (triggeredSkill != null) {
+      int skillDamageDealt = 0;
+      for (int hit = 0; hit < triggeredSkill.hitCount && actor.optInt("hp", 0) > 0; hit++) {
+        int incoming = entitySkillDamage(rawDamage, triggeredSkill.damagePercent);
+        if (critical) incoming = criticalDamage(incoming);
+        int damage = piercedIncomingDamage(incoming, def, triggeredSkill.defensePiercePercent);
+        int hpBeforeHit = Math.max(0, actor.optInt("hp", 0));
+        actor.put("hp", Math.max(0, hpBeforeHit - damage));
+        int actualDamage = Math.max(0, hpBeforeHit - actor.optInt("hp", 0));
+        skillDamageDealt += actualDamage;
+        addFeedback(combat, "entity", "actor", "damage", "-" + actualDamage + " HP", true);
+      }
+      if (triggeredSkill.healPercentOfDamage > 0 && skillDamageDealt > 0) {
+        int heal = drainHealAmount(skillDamageDealt, triggeredSkill.healPercentOfDamage);
+        int hpBeforeHeal = Math.max(0, entity.optInt("hp", 0));
+        int maxEntityHp = Math.max(1, entity.optInt("maxHp", 1));
+        entity.put("hp", Math.min(maxEntityHp, hpBeforeHeal + heal));
+        int actualHeal = Math.max(0, entity.optInt("hp", 0) - hpBeforeHeal);
+        if (actualHeal > 0) {
+          addFeedback(combat, "entity", "entity", "heal", "+" + actualHeal + " HP", true);
+        }
+      }
+    } else {
       int incoming = critical ? criticalDamage(rawDamage) : rawDamage;
       int damage = defendedIncomingDamage(incoming, def);
       actor.put("hp", Math.max(0, actor.optInt("hp", 0) - damage));
@@ -1297,9 +1297,9 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
     int hp = Math.max(0, actor.optInt("hp", 0));
     int maxHp = Math.max(1, actor.optInt("maxHp", 1));
     int dealt = Math.max(0, before - hp);
-    String action = triggeredSkills.isEmpty()
+    String action = triggeredSkill == null
         ? "tấn công"
-        : "dùng " + String.join(" + ", triggeredSkills);
+        : "dùng " + triggeredSkill.name;
     consumeAccuracyPenaltyTurn(entity);
     return entityName + (critical ? " [CRITICAL] " : " ") + action + ", "
         + actorName + " -" + dealt + " HP [" + hp + "/" + maxHp + " HP].";
