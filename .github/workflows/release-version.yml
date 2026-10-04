@@ -112,9 +112,9 @@ jobs:
       - name: Verify GM-driven baseline
         run: |
           set -euo pipefail
-          grep -Fq 'versionCode 133' android-apk/app/build.gradle
-          grep -Fq "versionName '1.1.88'" android-apk/app/build.gradle
-          test -s android-apk/RELEASE_NOTES_1.1.88.txt
+          grep -Fq 'versionCode 134' android-apk/app/build.gradle
+          grep -Fq "versionName '1.1.89'" android-apk/app/build.gradle
+          test -s android-apk/RELEASE_NOTES_1.1.89.txt
 
           test -s android-apk/app/src/main/assets/fonts/PretendardStd-Regular.woff2
           test -s android-apk/app/src/main/assets/fonts/PretendardStd-Bold.woff2
@@ -276,112 +276,112 @@ jobs:
           retention-days: 7
 
       - name: Prepare APK
-        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.1.88.apk
+        run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.1.89.apk
 
       - name: Verify packaged APK
         run: |
           set -euo pipefail
-          test -s Backroom-1.1.88.apk
+          test -s Backroom-1.1.89.apk
           BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
-          "$BUILD_TOOLS/apksigner" verify --verbose --print-certs Backroom-1.1.88.apk
-          BADGING=$("$BUILD_TOOLS/aapt" dump badging Backroom-1.1.88.apk)
+          "$BUILD_TOOLS/apksigner" verify --verbose --print-certs Backroom-1.1.89.apk
+          BADGING=$("$BUILD_TOOLS/aapt" dump badging Backroom-1.1.89.apk)
           printf '%s\n' "$BADGING"
           grep -Fq "package: name='com.rabpit.backroom'" <<<"$BADGING"
-          grep -Fq "versionCode='133'" <<<"$BADGING"
-          grep -Fq "versionName='1.1.88'" <<<"$BADGING"
+          grep -Fq "versionCode='134'" <<<"$BADGING"
+          grep -Fq "versionName='1.1.89'" <<<"$BADGING"
           grep -Fq "launchable-activity: name='com.rabpit.backroom.MainActivity'" <<<"$BADGING"
-          "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-1.1.88.apk
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/index.html'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/prologue.js'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/snapshot-ui.js'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/gm-choice-ui.js'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/fonts/Play-Regular.ttf'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/inventory-ui.js'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/party-ui.js'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/player-action-ui.js'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/dice/die-1.png'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/dice/die-6.png'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/dice/roll-3d.png'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/dice/level0-wallpaper.svg'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/avatars/cao_minh_avatar.jpg'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/cao_minh_snapshot_overlay.png'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/cao_minh_entity_overlay.png'
-          test "$(unzip -p Backroom-1.1.88.apk assets/avatars/cao_minh_avatar.jpg | sha256sum | awk '{print $1}')" = 'bddf46b160f690dcfe300d7ac603a2663ceb47fe2042424d8fe571b064f9fb67'
-          ! unzip -l Backroom-1.1.88.apk | grep -q 'assets/avatars/kai_avatar.jpg'
-          ! unzip -l Backroom-1.1.88.apk | grep -q 'assets/avatars/kai_avatar.png'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/avatars/luctram_avatar.png'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/avatars/lucia_avatar.png'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/luctram_overlay.png'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/lucia_overlay.png'
-          cmp <(unzip -p Backroom-1.1.88.apk assets/avatars/luctram_avatar.png) android-apk/app/src/main/assets/avatars/luctram_avatar.png
-          cmp <(unzip -p Backroom-1.1.88.apk assets/avatars/lucia_avatar.png) android-apk/app/src/main/assets/avatars/lucia_avatar.png
-          test "$(unzip -p Backroom-1.1.88.apk assets/avatars/lucia_avatar.png | sha256sum | awk '{print $1}')" = '935b40cfc59d77c688f21901328992e2398b7457a50a1ccf6a5b54bc7ca91b4d'
-          cmp <(unzip -p Backroom-1.1.88.apk assets/luctram_overlay.png) android-apk/app/src/main/assets/luctram_overlay.png
-          cmp <(unzip -p Backroom-1.1.88.apk assets/lucia_overlay.png) android-apk/app/src/main/assets/lucia_overlay.png
-          test "$(unzip -p Backroom-1.1.88.apk assets/lucia_overlay.png | sha256sum | awk '{print $1}')" = '66ae60dcd2a08eb644ccc67b953e0b7de62c4c28ddfd24c26cea143db1d3961b'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/chest_overlay.png'
-          ! unzip -l Backroom-1.1.88.apk | grep -q 'assets/status/status_'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/fonts/Play-Bold.ttf'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/fonts/OFL-Play.txt'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/fonts/PretendardStd-Regular.woff2'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/fonts/PretendardStd-Bold.woff2'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/fonts/PretendardStd-ExtraBold.woff2'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/fonts/OFL-Pretendard.txt'
-          cmp <(unzip -p Backroom-1.1.88.apk assets/fonts/PretendardStd-Regular.woff2) android-apk/app/src/main/assets/fonts/PretendardStd-Regular.woff2
-          cmp <(unzip -p Backroom-1.1.88.apk assets/fonts/PretendardStd-Bold.woff2) android-apk/app/src/main/assets/fonts/PretendardStd-Bold.woff2
-          cmp <(unzip -p Backroom-1.1.88.apk assets/fonts/PretendardStd-ExtraBold.woff2) android-apk/app/src/main/assets/fonts/PretendardStd-ExtraBold.woff2
-          cmp <(unzip -p Backroom-1.1.88.apk assets/fonts/OFL-Pretendard.txt) android-apk/app/src/main/assets/fonts/OFL-Pretendard.txt
-          ! unzip -l Backroom-1.1.88.apk | grep -q 'assets/hud/snapshot_frame.png'
-          ! unzip -l Backroom-1.1.88.apk | grep -q 'assets/hud/action_plate.png'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/entity/hound.webp'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/entity/slenderman.webp'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/entity/diep_minh.webp'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/entity/async_rifleman.webp'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/entity/copx.webp'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/entity/tam_ma_cao_minh.webp'
-          ! unzip -l Backroom-1.1.88.apk | grep -E -q 'assets/entity/.*\.png$'
-          ! unzip -l Backroom-1.1.88.apk | grep -q 'assets/entity/async_vanguard.webp'
-          ! unzip -l Backroom-1.1.88.apk | grep -q 'assets/entity/async_tactical.webp'
-          ! unzip -l Backroom-1.1.88.apk | grep -q 'assets/entity/async_decon.webp'
-          ! unzip -l Backroom-1.1.88.apk | grep -q 'assets/entity/Anysc.webp'
-          ! unzip -l Backroom-1.1.88.apk | grep -q 'assets/entity/hazmat_pistol_tactical_03.webp'
-          ! unzip -l Backroom-1.1.88.apk | grep -q 'assets/entity/hazmat_pistol_tank_04.webp'
-          ! unzip -l Backroom-1.1.88.apk | grep -q 'assets/entity/hazmat_rifle_ASNC_02.webp'
-          ! unzip -l Backroom-1.1.88.apk | grep -q 'assets/entity/hazmat_rifle_A_01.webp'
-          ! unzip -l Backroom-1.1.88.apk | grep -q 'assets/kai_snapshot_overlay.png'
-          ! unzip -l Backroom-1.1.88.apk | grep -q 'assets/kai_snapshot_overlay.webp'
-          ! unzip -l Backroom-1.1.88.apk | grep -q 'assets/kai_entity_overlay.png'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/knowledge/knowledge_db.json'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/knowledge/entity_encounters.json'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/level_snapshots/drive/manifest.json'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/level_snapshots/drive/level_0/01.webp'
-          unzip -l Backroom-1.1.88.apk | grep -q 'assets/level_snapshots/drive/level_6/03.webp'
-          test "$(unzip -l Backroom-1.1.88.apk | grep -c 'assets/level_snapshots/drive/level_')" -eq 26
-          ! unzip -l Backroom-1.1.88.apk | grep -q 'assets/level_snapshots/wiki/'
-          ! unzip -l Backroom-1.1.88.apk | grep -E -q 'assets/level_snapshots/level_[0-6]\.webp'
+          "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-1.1.89.apk
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/index.html'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/prologue.js'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/snapshot-ui.js'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/gm-choice-ui.js'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/fonts/Play-Regular.ttf'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/inventory-ui.js'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/party-ui.js'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/player-action-ui.js'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/dice/die-1.png'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/dice/die-6.png'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/dice/roll-3d.png'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/dice/level0-wallpaper.svg'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/avatars/cao_minh_avatar.jpg'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/cao_minh_snapshot_overlay.png'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/cao_minh_entity_overlay.png'
+          test "$(unzip -p Backroom-1.1.89.apk assets/avatars/cao_minh_avatar.jpg | sha256sum | awk '{print $1}')" = 'bddf46b160f690dcfe300d7ac603a2663ceb47fe2042424d8fe571b064f9fb67'
+          ! unzip -l Backroom-1.1.89.apk | grep -q 'assets/avatars/kai_avatar.jpg'
+          ! unzip -l Backroom-1.1.89.apk | grep -q 'assets/avatars/kai_avatar.png'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/avatars/luctram_avatar.png'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/avatars/lucia_avatar.png'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/luctram_overlay.png'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/lucia_overlay.png'
+          cmp <(unzip -p Backroom-1.1.89.apk assets/avatars/luctram_avatar.png) android-apk/app/src/main/assets/avatars/luctram_avatar.png
+          cmp <(unzip -p Backroom-1.1.89.apk assets/avatars/lucia_avatar.png) android-apk/app/src/main/assets/avatars/lucia_avatar.png
+          test "$(unzip -p Backroom-1.1.89.apk assets/avatars/lucia_avatar.png | sha256sum | awk '{print $1}')" = '935b40cfc59d77c688f21901328992e2398b7457a50a1ccf6a5b54bc7ca91b4d'
+          cmp <(unzip -p Backroom-1.1.89.apk assets/luctram_overlay.png) android-apk/app/src/main/assets/luctram_overlay.png
+          cmp <(unzip -p Backroom-1.1.89.apk assets/lucia_overlay.png) android-apk/app/src/main/assets/lucia_overlay.png
+          test "$(unzip -p Backroom-1.1.89.apk assets/lucia_overlay.png | sha256sum | awk '{print $1}')" = '66ae60dcd2a08eb644ccc67b953e0b7de62c4c28ddfd24c26cea143db1d3961b'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/chest_overlay.png'
+          ! unzip -l Backroom-1.1.89.apk | grep -q 'assets/status/status_'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/fonts/Play-Bold.ttf'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/fonts/OFL-Play.txt'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/fonts/PretendardStd-Regular.woff2'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/fonts/PretendardStd-Bold.woff2'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/fonts/PretendardStd-ExtraBold.woff2'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/fonts/OFL-Pretendard.txt'
+          cmp <(unzip -p Backroom-1.1.89.apk assets/fonts/PretendardStd-Regular.woff2) android-apk/app/src/main/assets/fonts/PretendardStd-Regular.woff2
+          cmp <(unzip -p Backroom-1.1.89.apk assets/fonts/PretendardStd-Bold.woff2) android-apk/app/src/main/assets/fonts/PretendardStd-Bold.woff2
+          cmp <(unzip -p Backroom-1.1.89.apk assets/fonts/PretendardStd-ExtraBold.woff2) android-apk/app/src/main/assets/fonts/PretendardStd-ExtraBold.woff2
+          cmp <(unzip -p Backroom-1.1.89.apk assets/fonts/OFL-Pretendard.txt) android-apk/app/src/main/assets/fonts/OFL-Pretendard.txt
+          ! unzip -l Backroom-1.1.89.apk | grep -q 'assets/hud/snapshot_frame.png'
+          ! unzip -l Backroom-1.1.89.apk | grep -q 'assets/hud/action_plate.png'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/entity/hound.webp'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/entity/slenderman.webp'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/entity/diep_minh.webp'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/entity/async_rifleman.webp'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/entity/copx.webp'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/entity/tam_ma_cao_minh.webp'
+          ! unzip -l Backroom-1.1.89.apk | grep -E -q 'assets/entity/.*\.png$'
+          ! unzip -l Backroom-1.1.89.apk | grep -q 'assets/entity/async_vanguard.webp'
+          ! unzip -l Backroom-1.1.89.apk | grep -q 'assets/entity/async_tactical.webp'
+          ! unzip -l Backroom-1.1.89.apk | grep -q 'assets/entity/async_decon.webp'
+          ! unzip -l Backroom-1.1.89.apk | grep -q 'assets/entity/Anysc.webp'
+          ! unzip -l Backroom-1.1.89.apk | grep -q 'assets/entity/hazmat_pistol_tactical_03.webp'
+          ! unzip -l Backroom-1.1.89.apk | grep -q 'assets/entity/hazmat_pistol_tank_04.webp'
+          ! unzip -l Backroom-1.1.89.apk | grep -q 'assets/entity/hazmat_rifle_ASNC_02.webp'
+          ! unzip -l Backroom-1.1.89.apk | grep -q 'assets/entity/hazmat_rifle_A_01.webp'
+          ! unzip -l Backroom-1.1.89.apk | grep -q 'assets/kai_snapshot_overlay.png'
+          ! unzip -l Backroom-1.1.89.apk | grep -q 'assets/kai_snapshot_overlay.webp'
+          ! unzip -l Backroom-1.1.89.apk | grep -q 'assets/kai_entity_overlay.png'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/knowledge/knowledge_db.json'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/knowledge/entity_encounters.json'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/level_snapshots/drive/manifest.json'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/level_snapshots/drive/level_0/01.webp'
+          unzip -l Backroom-1.1.89.apk | grep -q 'assets/level_snapshots/drive/level_6/03.webp'
+          test "$(unzip -l Backroom-1.1.89.apk | grep -c 'assets/level_snapshots/drive/level_')" -eq 26
+          ! unzip -l Backroom-1.1.89.apk | grep -q 'assets/level_snapshots/wiki/'
+          ! unzip -l Backroom-1.1.89.apk | grep -E -q 'assets/level_snapshots/level_[0-6]\.webp'
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Backroom-1.1.88-debug-apk
-          path: Backroom-1.1.88.apk
+          name: Backroom-1.1.89-debug-apk
+          path: Backroom-1.1.89.apk
           if-no-files-found: error
           retention-days: 14
 
-      - name: Publish GitHub Release 1.1.88
+      - name: Publish GitHub Release 1.1.89
         if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          TAG='BR-1.1.88'
-          TITLE='Backroom 1.1.88'
-          NOTES=$(cat android-apk/RELEASE_NOTES_1.1.88.txt)
+          TAG='BR-1.1.89'
+          TITLE='Backroom 1.1.89'
+          NOTES=$(cat android-apk/RELEASE_NOTES_1.1.89.txt)
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
-            gh release upload "$TAG" Backroom-1.1.88.apk --clobber
+            gh release upload "$TAG" Backroom-1.1.89.apk --clobber
           else
-            gh release create "$TAG" Backroom-1.1.88.apk --target "$GITHUB_SHA" --title "$TITLE" --notes "$NOTES"
+            gh release create "$TAG" Backroom-1.1.89.apk --target "$GITHUB_SHA" --title "$TITLE" --notes "$NOTES"
           fi
 
       - name: Verify published APK
@@ -390,7 +390,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          gh release download BR-1.1.88 --repo "$GITHUB_REPOSITORY" --pattern 'Backroom-1.1.88.apk' --output Backroom-1.1.88-verified.apk
-          test -s Backroom-1.1.88-verified.apk
-          cmp Backroom-1.1.88.apk Backroom-1.1.88-verified.apk
-          sha256sum Backroom-1.1.88-verified.apk
+          gh release download BR-1.1.89 --repo "$GITHUB_REPOSITORY" --pattern 'Backroom-1.1.89.apk' --output Backroom-1.1.89-verified.apk
+          test -s Backroom-1.1.89-verified.apk
+          cmp Backroom-1.1.89.apk Backroom-1.1.89-verified.apk
+          sha256sum Backroom-1.1.89-verified.apk
