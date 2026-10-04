@@ -3,7 +3,7 @@
   "image": "mcr.microsoft.com/devcontainers/universal:2",
   "secrets": {
     "VILAO_API_KEY": {
-      "description": "Vilao API key for Ponytail; supplied by GitHub Codespaces Secrets only."
+      "description": "Vilao API key for Ponytail; configure it as a secret when using this devcontainer."
     }
   },
   "postCreateCommand": "bash tools/ponytail.sh --setup"

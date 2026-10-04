@@ -237,6 +237,26 @@ public class LevelCoreTest {
     assertEquals(first.getString("path"), wrapped.getString("path"));
   }
 
+  @Test public void snapshotDescriptorExposesAuthoritativeRouteStreakForHud() throws Exception {
+    LevelCore core = new LevelCore(null, new SequenceRng(5));
+    JSONObject state = state(1, "Level 0 / Start")
+        .put(LevelCore.ROUTE_STATE, new JSONObject()
+            .put("levelKey", "0")
+            .put("streak", 3)
+            .put("exitAvailable", false));
+
+    JSONObject descriptor = new JSONObject(core.snapshotDescriptor(state));
+
+    assertEquals(3, descriptor.getInt("routeStreak"));
+    assertEquals(LevelCore.ROUTE_REQUIRED_STREAK, descriptor.getInt("routeRequiredStreak"));
+    assertFalse(descriptor.getBoolean("routeExitAvailable"));
+
+    state.getJSONObject(LevelCore.ROUTE_STATE).put("streak", 99).put("exitAvailable", true);
+    JSONObject capped = new JSONObject(core.snapshotDescriptor(state));
+    assertEquals(LevelCore.ROUTE_REQUIRED_STREAK, capped.getInt("routeStreak"));
+    assertTrue(capped.getBoolean("routeExitAvailable"));
+  }
+
   @Test public void mainLevelSnapshotRotationRemainsUnchanged() throws Exception {
     JSONObject manifest = new JSONObject()
         .put("root", "level_snapshots/drive")

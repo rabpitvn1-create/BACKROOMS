@@ -4,6 +4,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -165,6 +166,44 @@ public final class GmChoiceContract {
         generated == null ? null : generated.optJSONArray("choices"), state);
     if (choices.length() > 0) entry.put("choices", choices);
     return entry;
+  }
+
+
+  public static String mergeEncounterDialogue(String reply, JSONArray dialogue) {
+    String base = reply == null ? "" : reply.trim();
+    if (dialogue == null || dialogue.length() == 0) return base;
+
+    StringBuilder output = new StringBuilder(base);
+    LinkedHashSet<String> seen = new LinkedHashSet<>();
+    for (int i = 0; i < dialogue.length(); i++) {
+      String line = dialogue.optString(i, "").trim();
+      String key = dialogueDedupKey(line);
+      if (key.isEmpty() || !seen.add(key) || replyAlreadyContainsDialogue(base, line, key)) continue;
+      if (output.length() > 0) output.append("\n\n");
+      output.append(line);
+    }
+    return output.toString();
+  }
+
+  private static boolean replyAlreadyContainsDialogue(String reply, String line, String key) {
+    if (reply == null || reply.trim().isEmpty()) return false;
+    String lowerReply = reply.toLowerCase(Locale.ROOT);
+    String lowerLine = line.toLowerCase(Locale.ROOT);
+    if (lowerReply.contains("\"" + lowerLine + "\"")
+        || lowerReply.contains("“" + lowerLine + "”")
+        || lowerReply.contains("‘" + lowerLine + "’")
+        || lowerReply.contains(": " + lowerLine)) {
+      return true;
+    }
+    for (String paragraph : reply.split("\\r?\\n+")) {
+      if (key.equals(dialogueDedupKey(paragraph))) return true;
+    }
+    return false;
+  }
+
+  private static String dialogueDedupKey(String value) {
+    return (value == null ? "" : value).toLowerCase(Locale.ROOT)
+        .replaceAll("[^\\p{L}\\p{N}]+", " ").trim().replaceAll("\\s+", " ");
   }
 
   public static JSONArray sanitizeChoices(JSONArray input) throws Exception {

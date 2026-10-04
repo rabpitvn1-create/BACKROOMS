@@ -1,10 +1,11 @@
 # Ponytail
 
 ## Environment and credentials
-- Use Vilao Ponytail in the GitHub Codespace for rabpitvn1-create/BACKROOMS. Reuse the requested branch; fetch and verify remote HEAD before editing. Never discard someone else's work.
+- Ponytail **full** is the default coding policy for this repository. Codex discovers it from `.codex/skills/ponytail/SKILL.md`; invoke it explicitly with `$ponytail` when needed. Codespaces are optional, not required. Reuse the requested branch; fetch and verify remote HEAD before editing. Never discard someone else's work.
+- Vendored Ponytail source lives under `skills/ponytail*`; Codex-discoverable mirrors live under `.codex/skills/ponytail*`. Keep each mirrored `SKILL.md` byte-identical with its vendored source.
 - Setup: bash tools/ponytail.sh --setup. Launch: bash tools/ponytail.sh; tasks: bash tools/ponytail.sh exec ... . Check environment with --env-check and verify the provider with --smoke-test before claiming the connection works.
 - Default model: vgpt/gpt-6.1-sol; reasoning: medium; provider: vilao; endpoint: https://api.vilao.ai/v1. Do not silently change model/provider or raise reasoning effort. This config selects the launched CLI, not the current ChatGPT assistant.
-- Read VILAO_API_KEY only from injected Codespaces Secret. Never commit, print or copy credentials, enable shell tracing, or store a key in TOML/history. Report unavailable Codespaces/Secrets access explicitly; instructions do not grant permissions.
+- Read `VILAO_API_KEY` only from the process environment, preferably injected by an OS/CI secret store or the current shell session. Never commit, print or copy credentials, enable shell tracing, or store a key in TOML/history. If the key is unavailable, report the provider as unavailable; instructions do not grant secret access.
 - Inspect, change a few related files, commit, wait for applicable real CI, then continue. No merge, force-push, history deletion, version bump or unrelated gameplay changes without explicit authorization.
 
 ## Efficient work

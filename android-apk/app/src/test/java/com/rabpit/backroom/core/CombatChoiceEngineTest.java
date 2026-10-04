@@ -182,6 +182,7 @@ public class CombatChoiceEngineTest {
     CombatChoiceEngine.setHold(state, 3, true);
     int sequenceBefore = combat.getInt("rngSequence");
     int seed = combat.getInt("seed");
+    JSONArray heldBefore = new JSONArray(dice.getJSONArray("held").toString());
 
     CombatChoiceEngine.roll(state);
 
@@ -190,7 +191,11 @@ public class CombatChoiceEngineTest {
     assertEquals(before.getInt(3), after.getInt(3));
     int sequence = sequenceBefore;
     for (int slot : new int[]{1,2,4}) {
-      assertEquals(CombatChoiceEngine.deterministicDie(seed, sequence, slot), after.getInt(slot));
+      int[] weights = CombatChoiceEngine.rerollWeights(before, heldBefore, slot);
+      int totalWeight = 0;
+      for (int weight : weights) totalWeight += weight;
+      int roll = CombatChoiceEngine.deterministicRoll(seed, sequence, slot, totalWeight);
+      assertEquals(CombatChoiceEngine.weightedFace(roll, weights), after.getInt(slot));
       sequence++;
     }
     assertEquals(sequenceBefore + 3, combat.getInt("rngSequence"));
@@ -198,6 +203,68 @@ public class CombatChoiceEngineTest {
     assertEquals(CombatChoiceEngine.classify(
         after.getInt(0), after.getInt(1), after.getInt(2), after.getInt(3), after.getInt(4)),
         dice.getString("hand"));
+  }
+
+  @Test public void heldFacesIncreaseMatchingRerollWeightWithoutForcingTheOutcome() {
+    JSONArray values = new JSONArray().put(4).put(4).put(2).put(3).put(6);
+    JSONArray held = new JSONArray().put(true).put(true).put(false).put(false).put(false);
+
+    int[] weights = CombatChoiceEngine.rerollWeights(values, held, 2);
+
+    assertEquals(24, weights[3]);
+    for (int face : new int[]{0,1,2,4,5}) assertEquals(12, weights[face]);
+    assertTrue(weights[3] < java.util.Arrays.stream(weights).sum());
+  }
+
+  @Test public void eachHeldCopyStacksAdditionalSameFaceWeight() {
+    JSONArray values = new JSONArray().put(5).put(5).put(5).put(2).put(3);
+    JSONArray held = new JSONArray().put(true).put(true).put(true).put(false).put(false);
+
+    int[] weights = CombatChoiceEngine.rerollWeights(values, held, 3);
+
+    assertEquals(30, weights[4]);
+    assertEquals(12, weights[0]);
+    assertEquals(12, weights[5]);
+  }
+
+  @Test public void heldOrderedStraightPrefixBiasesTheMissingValueAtItsExactSlot() {
+    JSONArray values = new JSONArray().put(1).put(2).put(6).put(6).put(6);
+    JSONArray held = new JSONArray().put(true).put(true).put(false).put(false).put(false);
+
+    int[] thirdSlot = CombatChoiceEngine.rerollWeights(values, held, 2);
+    int[] fourthSlot = CombatChoiceEngine.rerollWeights(values, held, 3);
+    int[] fifthSlot = CombatChoiceEngine.rerollWeights(values, held, 4);
+
+    assertEquals(30, thirdSlot[2]);
+    assertEquals(30, fourthSlot[3]);
+    assertEquals(30, fifthSlot[4]);
+    assertEquals(18, thirdSlot[0]);
+    assertEquals(18, thirdSlot[1]);
+  }
+
+  @Test public void heldReverseStraightPrefixBiasesTheReverseContinuation() {
+    JSONArray values = new JSONArray().put(6).put(5).put(1).put(1).put(1);
+    JSONArray held = new JSONArray().put(true).put(true).put(false).put(false).put(false);
+
+    int[] thirdSlot = CombatChoiceEngine.rerollWeights(values, held, 2);
+
+    assertEquals(30, thirdSlot[3]);
+    assertEquals(18, thirdSlot[4]);
+    assertEquals(18, thirdSlot[5]);
+  }
+
+  @Test public void unrelatedHeldValuesDoNotCreateStraightBias() {
+    JSONArray values = new JSONArray().put(1).put(4).put(2).put(5).put(6);
+    JSONArray held = new JSONArray().put(true).put(true).put(false).put(false).put(false);
+
+    int[] weights = CombatChoiceEngine.rerollWeights(values, held, 2);
+
+    assertEquals(18, weights[0]);
+    assertEquals(18, weights[3]);
+    assertEquals(12, weights[1]);
+    assertEquals(12, weights[2]);
+    assertEquals(12, weights[4]);
+    assertEquals(12, weights[5]);
   }
 
   @Test public void normalizeActiveLegacyTurnBackfillsInitialRoll() throws Exception {
