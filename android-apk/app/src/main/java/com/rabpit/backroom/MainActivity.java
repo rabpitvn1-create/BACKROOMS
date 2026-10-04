@@ -961,8 +961,7 @@ public class MainActivity extends Activity {
           JSONObject generated;
           try {
             generated = OfflinePresenter.present(safeEvents,
-                () -> parseModelJson(generateNarrationText(
-                    prompt, NarrationHttpTransport.deadlineAfterMillis(30_000L))));
+                () -> parseModelJson(generateNarrationText(prompt, NarrationHttpTransport.deadlineAfterMillis(30_000L))));
           } catch (Exception providerError) {
             DiagnosticLog.record("narration.fallback", "turnId", turnId,
                 "error", providerError.getMessage() == null
