@@ -1,0 +1,8 @@
+Backroom 1.1.83
+
+- Trang trí lại bảng Poker Dice trong combat theo phong cách Backrooms x Tu tiên, giữ nguyên flow và logic chiến đấu hiện tại.
+- Làm mới panel dice với nền tối nhiều lớp, viền brass/olive cũ, grid liminal nhẹ và vòng trận pháp mờ phía sau cụm xúc xắc.
+- Phân biệt trạng thái xúc xắc rõ hơn: HOLD dùng linh quang xanh ngọc, ROLL dùng glow lạnh cyan/trắng.
+- Làm mới màu và hierarchy của kết quả hand, target đang chọn, nút ROLL và FINISH để tăng độ nhận diện mà vẫn giữ khả năng đọc trên mobile.
+- Bổ sung regression assertions để khóa các đặc trưng visual mới và bảo toàn layout 5 dice + 2 action.
+- Bump version từ 1.1.82 lên 1.1.83 (versionCode 128), đồng bộ APK artifact, GitHub Release tag và release verification.
