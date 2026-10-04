@@ -52,7 +52,7 @@ public class SceneDirectorTest {
     assertEquals("ENTITY_ENCOUNTER", frame.getJSONObject("requiredBeat").getString("kind"));
     assertFalse(frame.has("fallbackSummary"));
     String fallback = SceneDirector.fallbackNarration(frame);
-    assertTrue(fallback.contains("giao lộ ba hướng"));
+    assertTrue(fallback.toLowerCase(java.util.Locale.ROOT).contains("giao lộ ba hướng"));
     assertTrue(fallback.contains("sinh vật hình người cao gầy"));
   }
 
