@@ -116,6 +116,12 @@ test('Entity death exposes deterministic glass-shatter fragments with varied siz
  assert.ok(motion.some(v=>Math.abs(v[0])>=90||Math.abs(v[1])>=90));
  assert.ok(motion.some(v=>Math.abs(v[0])<=20&&Math.abs(v[1])<=40));
  assert.match(b,/motion\[i\]\[3\]/);
+ assert.match(source,/animation:combat-shard-break 1\.35s linear forwards/);
+ assert.match(source,/@keyframes combat-shard-break\{0%\{[^}]*animation-timing-function:cubic-bezier\(\.72,0,\.98,\.28\)[^}]*\}42%\{[^}]*var\(--tx-slow\)[^}]*\}72%\{[^}]*var\(--tx-mid\)[^}]*\}88%\{[^}]*var\(--tx-fast\)[^}]*\}100%\{/);
+ assert.match(b,/--tx-slow',Math\.round\(tx\*\.03\)\+'px'/);
+ assert.match(b,/--tx-mid',Math\.round\(tx\*\.18\)\+'px'/);
+ assert.match(b,/--tx-fast',Math\.round\(tx\*\.58\)\+'px'/);
+ assert.match(b,/,1480\);/);
 });
 test('unknown sprite remains visible when canvas throws SecurityError',()=>{
  const r=boot({unknown:true});visible(r.elements.find(e=>e.className.includes('snapshot-character')));assert.equal(r.reads(),1);
