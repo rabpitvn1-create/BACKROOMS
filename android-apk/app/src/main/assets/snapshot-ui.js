@@ -2,7 +2,7 @@
  * paint bounds retain translucent hair, weapons and clothing for safe-area fitting. */
 var SnapshotOverlayLayout = (function(){
   var CHARACTER_HEIGHT=0.84,GROUND=0.92,SIDE_MARGIN=0.025,SAFE_EDGE=0.02;
-  var ENTITY_LANE_WIDTH=0.46;
+  var ENTITY_LANE_WIDTH=1-2*SIDE_MARGIN;
   // BEGIN GENERATED OVERLAY METRICS
   var bundledMetrics={
     "cao_minh_entity_overlay.png":{"width":1122,"height":1402,"paint":{"left":1,"top":0,"right":1122,"bottom":1386},"body":{"left":2,"top":3,"right":1122,"bottom":1376},"sha256":"980aaaf8a8575d41ab66b95d8ab24ca7052b66677a1a15e0eb6433c8b716eb47"},
@@ -96,7 +96,7 @@ var SnapshotOverlayLayout = (function(){
   ];
   function entityPolicy(key){
     return STANDARD_HUMANOID_ENTITY_KEYS.indexOf(String(key||''))>=0
-      ?{heightRatio:.90,laneWidth:.62,ground:.94,safeEdge:.01}:null;
+      ?{heightRatio:CHARACTER_HEIGHT,laneWidth:ENTITY_LANE_WIDTH,ground:GROUND,safeEdge:SAFE_EDGE}:null;
   }
   return {bounds:bounds,envelope:envelope,layout:layout,assetMetric:assetMetric,canvasMetric:canvasMetric,
     characterMetrics:characterMetrics,entityPolicy:entityPolicy};
@@ -145,14 +145,11 @@ if(typeof module!=='undefined'&&module.exports)module.exports=SnapshotOverlayLay
         var groupCount=Math.max(1,Math.round(Number(img.dataset.entityGroupCount)||1));
         var groupIndex=Math.max(0,Math.min(groupCount-1,Math.round(Number(img.dataset.entityGroupIndex)||0)));
         if(groupCount>1){
-          var factor=groupCount===2?.72:groupCount===3?.58:groupCount===4?.48:.42;
-          scale=result.scale*factor;width=metric.width*scale;height=metric.height*scale;
-          top=result.baseline-metric.body.bottom*scale;
-          var laneLeft=box.clientWidth*.015,laneRight=box.clientWidth*.56,laneWidth=laneRight-laneLeft;
-          var cell=laneWidth/groupCount,center=laneLeft+cell*(groupIndex+.5);
+          // Preserve solo scale; groups overlap horizontally on the same ground plane.
+          var center=box.clientWidth*(.16+.34*groupIndex/(groupCount-1));
           left=center-((metric.paint.left+metric.paint.right)*.5*scale);
-          var minLeft=box.clientWidth*.005-metric.paint.left*scale;
-          var maxLeft=laneRight-metric.paint.right*scale;
+          var minLeft=box.clientWidth*.025-metric.paint.left*scale;
+          var maxLeft=box.clientWidth*.975-metric.paint.right*scale;
           left=Math.max(minLeft,Math.min(maxLeft,left));
         }
       }

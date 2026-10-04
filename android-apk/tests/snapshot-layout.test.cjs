@@ -25,16 +25,16 @@ test('standing, aiming and companion share height across aspect ratios',()=>{
 test('entity keeps its own lane and aspect ratio',()=>{
  for(const m of [metric(160,100),metric(110,100)]){
   const r=layout(m,360,250,'left','entity',family);
-  assert.ok(r.width<=360*.46+1e-7);near(r.width/r.height,m.width/m.height);near(r.baseline,230);
+  assert.ok(r.width<=360*.95+1e-7);near(r.width/r.height,m.width/m.height);near(r.baseline,230);
  }
 });
 test('new humanoid Entity policy normalizes body height without changing character policy',()=>{
  const mod=require('../app/src/main/assets/snapshot-ui.js');
  const keys=['tam_ma_cao_minh','async_member_rifle_aim_right_01','the_lifeform_bacteria_01','the_lifeform_bacteria_02','the_lifeform_bacteria_03'];
- const results=keys.map(key=>{const m=assetMetric('file:///android_asset/entity/'+key+'.webp');const r=layout(m,360,250,'left','entity',family,mod.entityPolicy(key));near(r.baseline,235);return r.bodyHeight;});
+ const results=keys.map(key=>{const m=assetMetric('file:///android_asset/entity/'+key+'.webp');const r=layout(m,360,250,'left','entity',family,mod.entityPolicy(key));near(r.baseline,230);return r.bodyHeight;});
  results.forEach(h=>near(h,results[0]));
  const cao=layout(assetMetric('file:///android_asset/cao_minh_entity_overlay.png'),360,250,'right','character',envelope(mod.characterMetrics()));
- assert.ok(results[0]>cao.bodyHeight);
+ near(results[0],cao.bodyHeight);
 });
 
 test('CopX overlay has measured bounds for its refreshed Drive sprite',()=>{

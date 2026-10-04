@@ -43,7 +43,7 @@ test('new humanoid Entities and Tâm Ma share one visual scale while Cao Minh ge
  const heights=keys.map(key=>{const m=geometry.assetMetric('file:///android_asset/entity/'+key+'.webp');return geometry.layout(m,350,250,'left','entity',family,geometry.entityPolicy(key)).bodyHeight;});
  heights.forEach(h=>assert.ok(Math.abs(h-heights[0])<1e-7));
  const cao=geometry.layout(geometry.assetMetric('file:///android_asset/cao_minh_entity_overlay.png'),350,250,'right','character',family);
- assert.ok(heights[0]>cao.bodyHeight);
+ assert.ok(Math.abs(heights[0]-cao.bodyHeight)<1e-7);
  const css=boot().styles.join('');assert.match(css,/snapshot>img\.snapshot-character\{z-index:4/);assert.match(css,/snapshot>img\.snapshot-entity\{[^}]*z-index:3/);
 });
 
@@ -197,4 +197,24 @@ test('simultaneous floating damage uses separate vertical lanes instead of one a
 
 test('snapshot runtime has no scripted NPC overlay hooks',()=>{
  assert.doesNotMatch(source,/snapshot-npc|storyPrimaryNpc|__backroomStoryVisuals/);
+});
+
+test('grouped Entities keep solo size and share the character ground plane',()=>{
+ const keys=['tam_ma_cao_minh','copx','async_member_rifle_aim_right_01','hound'];
+ for(const count of [1,2,3,4]){
+  const selected=keys.slice(0,count);
+  const r=boot({stateOverride:{flags:{entityEncounterKeys:selected},combat:{active:true,actorIndex:0,participants:[{id:'cao_minh'}],entities:selected.map(key=>({key,hp:10}))}}});
+  const sprites=r.elements.filter(e=>String(e.className).includes('snapshot-grounded'));
+  assert.equal(sprites.length,count+1);
+  for(const img of sprites){
+   const m=geometry.assetMetric(img.src),scale=parseFloat(img.style.height)/m.height;
+   assert.ok(Math.abs(parseFloat(img.style.top)+m.body.bottom*scale-r.box.clientHeight*.92)<1e-7,'common ground: '+img.src);
+   if(img.dataset.entityKey){
+    const solo=boot({stateOverride:{flags:{entityEncounterKeys:[img.dataset.entityKey]},combat:{active:false}}}).elements.find(e=>String(e.className).includes('snapshot-entity'));
+    assert.equal(img.style.height,solo.style.height,'solo/group size: '+img.src);
+   }
+   assert.ok(parseFloat(img.style.left)+m.paint.left*scale>=0);
+   assert.ok(parseFloat(img.style.left)+m.paint.right*scale<=r.box.clientWidth+1e-7);
+  }
+ }
 });
