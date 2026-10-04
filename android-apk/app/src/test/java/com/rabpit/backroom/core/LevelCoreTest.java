@@ -330,25 +330,25 @@ public class LevelCoreTest {
     assertEquals("EXIT_AVAILABLE", route.getString("lastResult"));
   }
 
-  @Test public void levelZeroPointOneCannotExitBeforeEightAttemptsAfterTripleBoost() throws Exception {
-    LevelCore core = new LevelCore(null, new SequenceRng(1, 1, 1, 1, 1, 0, 1, 1));
+  @Test public void levelZeroPointOneCannotExitBeforeFiveAttemptsAfterTripleBoost() throws Exception {
+    LevelCore core = new LevelCore(null, new SequenceRng(0, 1, 1, 1, 1));
     JSONObject state = state(1, "Level 0.1 / Zenith Station")
         .put(LevelCore.LEVEL_KEY, "0.1");
 
-    for (int turn = 1; turn <= 7; turn++) {
+    for (int turn = 1; turn <= 4; turn++) {
       state.put("turn", turn);
       core.rollRouteForExplorerAction(state, ROUTE_ACTION);
     }
 
     JSONObject route = state.getJSONObject(LevelCore.ROUTE_STATE);
     assertEquals(LevelCore.ROUTE_REQUIRED_STREAK, route.getInt("streak"));
-    assertEquals(7, route.getInt("attempts"));
+    assertEquals(4, route.getInt("attempts"));
     assertFalse(route.getBoolean("exitAvailable"));
     assertEquals("SUCCESS", route.getString("lastResult"));
 
-    state.put("turn", 8);
+    state.put("turn", 5);
     core.rollRouteForExplorerAction(state, ROUTE_ACTION);
-    assertEquals(8, route.getInt("attempts"));
+    assertEquals(5, route.getInt("attempts"));
     assertTrue(route.getBoolean("exitAvailable"));
     assertEquals("EXIT_AVAILABLE", route.getString("lastResult"));
   }
@@ -372,8 +372,8 @@ public class LevelCoreTest {
     assertTrue(route.getBoolean("exitAvailable"));
   }
 
-  @Test public void oneFailureResetsSevenSuccessesToZero() throws Exception {
-    LevelCore core = new LevelCore(null, new SequenceRng(5,5,5,5,5,5,5,60));
+  @Test public void oneFailureResetsFourSuccessesToZero() throws Exception {
+    LevelCore core = new LevelCore(null, new SequenceRng(5,5,5,5,60));
     JSONObject state = state(1, "Level 0 / Start");
 
     for (int turn = 1; turn <= LevelCore.ROUTE_REQUIRED_STREAK; turn++) {
