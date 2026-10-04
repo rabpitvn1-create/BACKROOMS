@@ -136,15 +136,8 @@ public class PresentationCoreTest {
     assertEquals(closed, core.currentCoreState());
     JSONObject next = committed(core, "Cao Minh quan sát");
     JSONObject nextState = next.getJSONObject("state");
-    assertFalse(GmNarrativePacket.projectState(nextState).has("combat"));
     JSONObject evidence = CommittedTurnNarrationEvidence.fromState(nextState, next.getString("turnId"));
     assertFalse(CommittedTurnNarrationEvidence.hasClaim(evidence, "COMBAT_RESULT", ""));
-    JSONObject generated = new JSONObject().put("reply", "Sinh vật bị tiêu diệt.")
-        .put("choices", new JSONArray()).put("encounterDialogue", new JSONArray()).put("claims", new JSONArray());
-    // Core already owns the terminal outcome; the writer need not re-prove it with a new event claim.
-    String beforeValidation = nextState.toString();
-    assertTrue(NarrationGuard.validate(generated, nextState, evidence).isEmpty());
-    assertEquals(beforeValidation, nextState.toString());
     assertFalse(nextState.toString().contains("pendingBattleNarration"));
   }
 
@@ -162,39 +155,10 @@ public class PresentationCoreTest {
 
     assertEquals(choiceCommit.getString("turnId"), freeFormCommit.getString("turnId"));
     assertEquals(
-        GameCoreFacade.oracleAuthorityHash(choiceCommit.getJSONObject("state")),
-        GameCoreFacade.oracleAuthorityHash(freeFormCommit.getJSONObject("state")));
-  }
-
-  @Test public void oracleWindowIsDeterministicReadOnlyAndMatchesNextDefaultCommit() throws Exception {
-    GameCoreFacade core = core(state());
-    String before = core.currentCoreState();
-
-    JSONObject first = new JSONObject(core.oracleWindow(before));
-    JSONObject second = new JSONObject(core.oracleWindow(before));
-    assertEquals(first.toString(), second.toString());
-    assertEquals(6, first.getJSONArray("steps").length());
-    assertEquals(before, core.currentCoreState());
-
-    JSONObject step = first.getJSONArray("steps").getJSONObject(0);
-    assertFalse(step.getString("action").trim().isEmpty());
-    assertFalse(step.getString("authorityHash").trim().isEmpty());
-
-    JSONObject committed = committed(core, step.getString("action")).getJSONObject("state");
-    assertEquals(step.getString("authorityHash"), GameCoreFacade.oracleAuthorityHash(committed));
-  }
-
-
-  @Test public void backgroundOracleHasTenBoundedStepsAndAtomicBaseIdentity() throws Exception {
-    GameCoreFacade core = core(state());
-    String before = core.currentCoreState();
-    JSONObject window = new JSONObject(core.oracleWindow(before, 100));
-    assertEquals(10, window.getJSONArray("steps").length());
-    assertEquals(GameCoreFacade.oracleAuthorityHash(new JSONObject(before)), window.getString("baseHash"));
-    assertEquals(before, window.getJSONObject("baseState").toString());
-    assertEquals(before, core.currentCoreState());
-    assertFalse(window.getJSONArray("steps").getJSONObject(0).getString("turnId").isEmpty());
-    assertEquals(6, new JSONObject(core.oracleWindow(before)).getJSONArray("steps").length());
+        choiceCommit.getJSONObject("state").getJSONObject(EmergentTurnEngine.ROOT_KEY)
+            .getJSONObject("lastSelection").toString(),
+        freeFormCommit.getJSONObject("state").getJSONObject(EmergentTurnEngine.ROOT_KEY)
+            .getJSONObject("lastSelection").toString());
   }
 
   @Test public void worldTurnRngIgnoresCombatOnlyStateVersionChanges() throws Exception {
@@ -212,80 +176,6 @@ public class PresentationCoreTest {
     sample.put("turn", sample.optInt("turn", 1) + 1);
     assertNotEquals(first, emergent.nextWorldTurnId(sample, action));
   }
-
-  @Test public void oracleCacheOutcomeSignatureIgnoresCombatBookkeepingButNotWorldDivergence()
-      throws Exception {
-    JSONObject state = state();
-    EmergentTurnEngine emergent = new EmergentTurnEngine();
-    emergent.normalizeState(state);
-    state.put("currentLevelKey", "0");
-    state.put(LevelCore.ROUTE_STATE, new JSONObject().put("lastResult", "NO_ROUTE_ROLL"));
-    state.getJSONObject(EmergentTurnEngine.ROOT_KEY).put("lastSelection",
-        new JSONObject()
-            .put("selectedNone", false)
-            .put("kind", "ENTITY")
-            .put("payloadKey", "async_member_rifle_aim_right_01")
-            .put("payloadKeys", new JSONArray()
-                .put("async_member_rifle_aim_right_01")
-                .put("the_lifeform_bacteria_01")));
-
-    JSONObject slot = new JSONObject()
-        .put("worldKind", "ENTITY")
-        .put("payloadKey", "async_member_rifle_aim_right_01")
-        .put("payloadKeys", new JSONArray()
-            .put("async_member_rifle_aim_right_01")
-            .put("the_lifeform_bacteria_01"))
-        .put("levelKey", "0")
-        .put("routeResult", "NO_ROUTE_ROLL");
-
-    assertTrue(GameCoreFacade.oracleCacheOutcomeMatches(state, slot));
-
-    // Combat-only bookkeeping, including active Entity rotation, must not invalidate the
-    // already committed encounter outcome.
-    state.getJSONObject(EmergentTurnEngine.ROOT_KEY).put("stateVersion", 99);
-    JSONArray combatEntities = new JSONArray()
-        .put(new JSONObject().put("key", "async_member_rifle_aim_right_01").put("hp", 10))
-        .put(new JSONObject().put("key", "the_lifeform_bacteria_01").put("hp", 10));
-    state.put("combat", new JSONObject()
-        .put("active", true)
-        .put("activeEntityIndex", 0)
-        .put("entities", combatEntities)
-        .put("entity", combatEntities.getJSONObject(0)));
-    assertTrue(GameCoreFacade.oracleCacheOutcomeMatches(state, slot));
-    state.getJSONObject("combat").put("activeEntityIndex", 1)
-        .put("entity", combatEntities.getJSONObject(1));
-    assertTrue(GameCoreFacade.oracleCacheOutcomeMatches(state, slot));
-
-    state.getJSONObject(EmergentTurnEngine.ROOT_KEY).getJSONObject("lastSelection")
-        .put("payloadKey", "hound")
-        .put("payloadKeys", new JSONArray().put("hound").put("the_lifeform_bacteria_01"));
-    assertFalse(GameCoreFacade.oracleCacheOutcomeMatches(state, slot));
-  }
-
-  @Test public void oracleShowsExactCoreChestLootInsteadOfLeavingWriterBlind() throws Exception {
-    JSONObject initial = state();
-    initial.put("flags", new JSONObject().put("chestPresent", true));
-    GameCoreFacade core = core(initial);
-    String before = core.currentCoreState();
-
-    JSONObject oracle = new JSONObject(core.oracleWindow(before));
-    JSONObject first = oracle.getJSONArray("steps").getJSONObject(0);
-    assertEquals(ItemCore.OPEN_CHEST_ACTION, first.getString("action"));
-    JSONArray events = first.getJSONArray("presentationEvents");
-    boolean sawOpened = false;
-    boolean sawLoot = false;
-    for (int i = 0; i < events.length(); i++) {
-      JSONObject event = events.optJSONObject(i);
-      if (event == null || !"CHEST_OPENED".equals(event.optString("eventType", ""))) continue;
-      sawOpened = true;
-      sawLoot = !event.optString("loot", "").trim().isEmpty();
-    }
-    assertTrue(sawOpened);
-    assertTrue(sawLoot);
-    assertEquals(before, core.currentCoreState());
-    assertTrue(oracle.getString("context").contains("PRESENTATION EVENTS"));
-  }
-
 
   @Test public void explicitCoreUpdatesSurviveActualCheckpointSaveAndLoad() throws Exception {
     GameCoreFacade core = core(state());

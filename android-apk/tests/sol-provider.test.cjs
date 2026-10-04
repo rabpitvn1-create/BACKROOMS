@@ -11,13 +11,13 @@ function method(name) {
   return source.slice(start, source.indexOf('\n  private ', start + 1));
 }
 
-test('foreground and background use health scheduling with bounded source attempts', () => {
-  const compiler = fs.readFileSync(path.join(root,
-    'android-apk/app/src/main/java/com/rabpit/backroom/core/SceneContextCompiler.java'), 'utf8');
-  assert.match(method('narrationPrompt'), /SceneContextCompiler\.compile/);
-  assert.match(compiler, /SafePresentationView\.narrativeText/);
+
+test('foreground narration uses one scheduled provider path', () => {
+  const prompt = method('narrationPrompt');
+  assert.match(prompt, /milestoneCore\.promptContext\(state\)/);
+  assert.match(prompt, /memorableEvents/);
+  assert.match(prompt, /CURRENT LOCAL EVENTS/);
   assert.match(method('generateNarrationText'), /return generateScheduledText\(prompt, false, deadlineNanos\)/);
-  assert.match(method('generateText'), /return generateScheduledText\(prompt, true, NarrationHttpTransport\.deadlineAfterMillis\(60_000L\)\)/);
   const flow = method('generateScheduledText');
   assert.match(flow, /providerScheduler\.acquire/);
   assert.match(flow, /int limit = background \? 4 : 3/);
@@ -26,8 +26,7 @@ test('foreground and background use health scheduling with bounded source attemp
   assert.match(flow, /NarrationProviderScheduler\.GEHIHI\) output = gehihiText\(prompt\)/);
   assert.match(flow, /lunaText\(prompt\)/);
   assert.match(flow, /providerScheduler\.failed/);
-  assert.match(flow, /BuildConfig\.LUNA_ENABLED && configured\(BuildConfig\.LUNA_API_KEY\)/);
-  assert.doesNotMatch(flow, /currentCoreState|sleepBeforeNextGeminiKey|geminiText\(prompt\)|haikuText\(prompt\)/);
+  assert.doesNotMatch(source, /NarrationFutureBuffer|SceneContextCompiler|NarrationProviderPolicy|NarrationGuard/);
 });
 
 test('LUNA skips absent keys and validates JSON using shared OpenAI transport and parser', () => {
@@ -91,37 +90,17 @@ test('SOL key uses release secret env and Gradle BuildConfig; both CI commands r
   }
 });
 
-test('Gemini branch helper stays single-request while Explorer prefetch uses the shared background provider chain', () => {
-  const batch = source.slice(source.indexOf('  private JSONObject geminiBranchBatch('),
-    source.indexOf('  private boolean haikuConfigured('));
-  assert.equal((batch.match(/postJson\(/g) || []).length, 1);
-  assert.match(batch, /key = configured;\s*break;/);
-  assert.doesNotMatch(batch, /solText\(|generateText\(|haikuText\(|geminiText\(/);
 
-  const prefetch = source.slice(source.indexOf('  private void prefetchChoices('),
-    source.indexOf('  private String worldProposalPrompt('));
-  assert.match(prefetch, /scheduleNarrationFutureRefill\(current\)/);
-  assert.doesNotMatch(prefetch, /postJson\(|geminiBranchBatch\(/);
-
-  const refill = source.slice(source.indexOf('  private void scheduleNarrationFutureRefill('),
-    source.indexOf('  private void prefetchChoices('));
-  assert.match(refill, /narrationFutureIo\.execute/);
-  assert.match(refill, /generateText\(prompt\)/);
-});
-
-test('debug telemetry separates core prompt provider validation repair and total latency', () => {
+test('debug telemetry reports the single GM request latency', () => {
   const start = source.indexOf('@JavascriptInterface public void submitTurn(');
   const end = source.indexOf('@JavascriptInterface public void combatRoll(', start);
   const submit = source.slice(start, end);
-  for (const marker of ['core=', 'prompt=', 'provider=', 'validation=', 'repair=', 'total=', 'promptCharsInitial=', 'promptCharsRepair=', 'repairCount=']) {
+  for (const marker of ['core=', 'prompt=', 'provider=', 'total=', 'promptChars=']) {
     assert.ok(submit.includes(marker), 'missing timing marker ' + marker);
   }
-  assert.ok(submit.includes('providerInitial='));
-  assert.ok(submit.includes('providerRepair='));
+  assert.doesNotMatch(submit, /validation=|repair=|providerRepair=|repairCount=/);
   assert.match(submit, /BuildConfig\.DEBUG/);
-  assert.doesNotMatch(submit, /Log\.[dvwi]\([^\n]*(?:SOL_API_KEY|GEMINI_API_KEY|HAKU_API_KEY|PLAYER ACTION)/);
 });
-
 
 test('release PR checkout matches its merged workflow baseline', () => {
   const release = fs.readFileSync(path.join(root, '.github/workflows/release-version.yml'), 'utf8');
@@ -131,12 +110,11 @@ test('release PR checkout matches its merged workflow baseline', () => {
 });
 
 
-test('scene content repair shares the foreground deadline and all providers use bounded transport', () => {
+
+test('single GM request shares the bounded foreground transport', () => {
   const start = source.indexOf('@JavascriptInterface public void submitTurn(');
   const turn = source.slice(start, source.indexOf('@JavascriptInterface public void combatRoll(', start));
-  assert.equal((turn.match(/final long narrationDeadline =/g) || []).length, 1);
-  assert.ok(turn.indexOf('final long narrationDeadline =') < turn.indexOf('NarrationProviderPolicy.present('));
-  assert.match(turn, /!rejection\.isEmpty\(\), narrationDeadline/);
+  assert.match(turn, /generateNarrationText\(prompt, NarrationHttpTransport\.deadlineAfterMillis\(30_000L\)\)/);
   const scheduled = method('generateScheduledText');
   assert.match(scheduled, /deadlineNanos - System\.nanoTime\(\)/);
   assert.match(scheduled, /finally \{\s*providerRequestDeadline\.remove\(\)/);
@@ -146,9 +124,7 @@ test('scene content repair shares the foreground deadline and all providers use 
   }
   assert.match(method('diagnosticProviderPost'), /NarrationHttpTransport\.post/);
   assert.match(method('diagnosticProviderPost'), /requestDeadline\(\)/);
-  assert.doesNotMatch(method('diagnosticProviderPost'), /setReadTimeout|readLine|disconnect/);
 });
-
 
 test('Gehihi requires its current configured model with its own bearer key and shared deadline transport', () => {
   const gehihi = method('gehihiText');

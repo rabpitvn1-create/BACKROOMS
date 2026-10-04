@@ -297,10 +297,14 @@ final class NarrativeSkeleton {
   private static boolean actionMentionsRef(String action, JSONObject state, String ref) {
     String key = safe(ref);
     if (key.isEmpty() || key.matches("-?\\d+(?:\\.\\d+)?")) return false;
-    if ("lucia".equals(key) || "luc_tram".equals(key) || "syvial".equals(key)) {
-      return SceneContextCompiler.sceneCharacterRefs(state, action).contains(key);
+    String name = ("lucia".equals(key) || "luc_tram".equals(key) || "syvial".equals(key))
+        ? CharacterEncounterCore.displayName(key) : displayRef(state, key);
+    String haystack = " " + mentionKey(action) + " ";
+    for (String label : new String[] {key, name}) {
+      String needle = mentionKey(label);
+      if (!needle.isEmpty() && haystack.contains(" " + needle + " ")) return true;
     }
-    return SceneContextCompiler.mentions(action, key, displayRef(state, key));
+    return false;
   }
 
   private static String mentionKey(String value) {

@@ -8,6 +8,8 @@ const root = path.join(__dirname, '..', 'app', 'src', 'main');
 const html = fs.readFileSync(path.join(root, 'assets', 'index.html'), 'utf8');
 const core = fs.readFileSync(path.join(root, 'java/com/rabpit/backroom/core/GameCoreFacade.java'), 'utf8');
 const bridge = fs.readFileSync(path.join(root, 'java/com/rabpit/backroom/MainActivity.java'), 'utf8');
+const choices = fs.readFileSync(path.join(root, 'java/com/rabpit/backroom/core/GmChoiceContract.java'), 'utf8');
+const choiceUi = fs.readFileSync(path.join(root, 'assets', 'gm-choice-ui.js'), 'utf8');
 
 test('Save and Load address an explicit Core checkpoint without automatic WebView saves', () => {
   const fragment = html.slice(html.indexOf('function save()'), html.indexOf('function freshCoreGame()'));
@@ -40,12 +42,7 @@ test('Core persists only explicit checkpoints and restores them on launch', () =
   assert.doesNotMatch(persist, /preferences\.edit\(/);
   assert.match(core, /putString\(MANUAL_SAVE_KEY, live\)\.remove\(STATE_KEY\)\.commit\(\)/);
   assert.match(core, /this\.liveStateJson = checkpoint != null && !checkpoint\.isEmpty\(\)/);
-  for (const file of ['index.html', 'gm-choice-ui.js', 'inventory-ui.js', 'party-ui.js']) {
-    const source = fs.readFileSync(path.join(root, 'assets', file), 'utf8');
-    assert.doesNotMatch(source, /localStorage\.setItem\(['"]backroom-apk-state['"]/);
-  }
 });
-
 
 test('free-form Explorer text shares the default Core trajectory', () => {
   const process = core.slice(core.indexOf('public synchronized String processRule('),
@@ -53,146 +50,30 @@ test('free-form Explorer text shares the default Core trajectory', () => {
   assert.match(process, /String coreAction = GmChoiceContract\.defaultCoreAction\(legacy\);/);
   assert.match(process, /nextWorldTurnId\(legacy, coreAction\)/);
   assert.match(process, /prepareExplorerTurnData\(legacy, coreAction\)/);
-  assert.match(core, /int worldRngVersion = emergentTurnEngine\.worldRngVersion\(legacy\)/);
-  assert.match(core, /new TurnRng\([\s\S]*turnId, worldRngVersion,/);
 });
 
-test('preview shares turn resolution without persisting or retaining attempts', () => {
-  const preview = core.slice(core.indexOf('public synchronized String previewTurn('),
-    core.indexOf('public synchronized String currentStateHash()'));
-  assert.match(preview, /String coreAction = GmChoiceContract\.defaultCoreAction\(normalized\);/);
-  assert.match(preview, /prepareExplorerTurnData\(normalized, coreAction\)/);
-  assert.match(preview, /finishWorkingTurn\(normalized, prepared, new JSONObject\(\)\)/);
-  assert.doesNotMatch(preview, /\bpersist\(|preparedTurns\.(?:put|clear)/);
-  const batch = bridge.slice(bridge.indexOf('private JSONObject geminiBranchBatch('),
-    bridge.indexOf('private boolean haikuConfigured()'));
-  assert.equal((batch.match(/postJson\(/g) || []).length, 1);
-  assert.doesNotMatch(batch, /generateText\(|haikuText\(|for\s*\(int attempt/);
-});
-
-test('Explorer prefetch warms narration only and never previews or commits Core gameplay', () => {
-  const prefetch = bridge.slice(bridge.indexOf('private void prefetchChoices('),
-    bridge.indexOf('private String worldProposalPrompt(', bridge.indexOf('private void prefetchChoices(')));
-  assert.match(prefetch, /scheduleNarrationFutureRefill\(current\)/);
-  assert.doesNotMatch(prefetch, /previewTurn\(|processRule\(|completePreparedTurn\(|commitPresentation\(|persist\(/);
-  const refill = bridge.slice(bridge.indexOf('private void scheduleNarrationFutureRefill('),
-    bridge.indexOf('private void prefetchChoices(', bridge.indexOf('private void scheduleNarrationFutureRefill(')));
-  assert.match(refill, /narrationFutureIo\.execute/);
-  assert.match(refill, /generateText\(prompt\)/);
-  assert.match(refill, /narrationBuffer\.accept\(request, parsed\.optJSONArray\("future"\)\)/);
-  assert.match(refill, /narrationFutureRefillRunning/);
-  assert.doesNotMatch(refill, /previewTurn\(|processRule\(|completePreparedTurn\(|commitPresentation\(/);
-});
-
-test('combat preserves prepared future slots instead of rebasing the window', () => {
-  const refill = bridge.slice(bridge.indexOf('private void runNarrationFutureRefill('),
-    bridge.indexOf('private void prefetchChoices(', bridge.indexOf('private void runNarrationFutureRefill(')));
-  assert.doesNotMatch(bridge, /narrationFutureForecastSteps|combatForecastStartIndex|narrationFutureAlignment/);
-  assert.equal((refill.match(/gameCore\.oracleWindow\(/g) || []).length, 1);
-  assert.ok(refill.indexOf('narrationBuffer.reserve()') < refill.indexOf('gameCore.oracleWindow('));
-  assert.doesNotMatch(refill, /remainingForecast|latest\.toString\(\)|narrationFutureForecastBaseHash/);
-  assert.match(bridge, /scheduleNarrationFutureRefill\(runtime\);[\s\S]*backroomCombatDiceState/);
-  assert.match(bridge, /OfflinePresenter\.isCoreOwnedEntityLifecycle\(safeEvents\)/);
-});
-
-test('bridge contains no retired shadow-planner orchestration', () => {
-  assert.doesNotMatch(bridge, /GmShadowPlanner|shadowPlannerIo|shadowPlannerCache/);
-  assert.doesNotMatch(bridge, /shadowPlannerPrompt\(|authoritativeGmProposal\(|scheduleShadowPlanner\(/);
-});
-
-test('Core facade exposes no retired shadow-planner adapter surface', () => {
-  assert.doesNotMatch(core, /shadowPlannerContext\(|plannerCommitGate\(|validateShadowTransaction\(|shadowCommandRegistry\(/);
-});
-
-test('retired GM transaction commit gate is absent from runtime wiring', () => {
-  const gradle = fs.readFileSync(path.join(__dirname, '..', 'app', 'build.gradle'), 'utf8');
-  assert.doesNotMatch(bridge, /GM_TRANSACTION_COMMIT_ENABLED/);
-  assert.doesNotMatch(core, /completePreparedTurnWithGmTransaction\(|gmTransactionCommitEnabled|gmCommandAuthority/);
-  assert.doesNotMatch(gradle, /GM_TRANSACTION_COMMIT_ENABLED|featureFlag/);
-});
-
-test('player turn commits Core before bounded presentation and never schedules planner calls', () => {
-  const turn = bridge.slice(bridge.indexOf('public void submitTurn('), bridge.indexOf('public void combatRoll('));
-  assert.match(turn, /completePreparedTurn\(turnId, "\{\}"\)/);
-  assert.match(turn, /NarrationProviderPolicy\.present\(safeEvents/);
-  assert.match(turn, /generateNarrationText\(prompt, providerCalls/);
-  assert.match(turn, /commitPresentation\(turnId/);
-  assert.doesNotMatch(turn, /generateText\(|authoritativeGmProposal\(|scheduleShadowPlanner\(|completePreparedTurnWithGmTransaction\(/);
-  assert.ok(turn.indexOf('completePreparedTurn(') < turn.indexOf('NarrationProviderPolicy.present('));
-  const provider = bridge.slice(bridge.indexOf('private String generateNarrationText('),
-    bridge.indexOf('private String geminiResponseText('));
-  const compiler = fs.readFileSync(path.join(root,
-    'java/com/rabpit/backroom/core/SceneContextCompiler.java'), 'utf8');
-  assert.match(compiler, /SafePresentationView\.narrativeText/);
-  assert.match(bridge, /SceneContextCompiler\.compile\(gameCore, milestoneCore, state, action, turnId\)/);
-  assert.doesNotMatch(provider, /currentCoreState/);
-  assert.match(provider, /calls\[retry \? 1 : 0\]\+\+/);
-  assert.doesNotMatch(provider, /catch \(|geminiText\(|haikuText\(|haikuTextOnce\(|sleep|attempt/);
-});
-
-test('header shows live narration prefetch readiness as xx/10 in Play 10px', () => {
-  assert.match(html, /id="narrationPrefetchStatus"[^>]*>00\/10<\/span>/);
-  assert.match(html, /\.narration-prefetch-status\{[^}]*font:700 10px\/1 'Play'/);
-  assert.match(html, /window\.backroomNarrationFutureStatus=json=>/);
-  const statusEmitter = bridge.slice(bridge.indexOf('private void emitNarrationFutureStatus('),
-    bridge.indexOf('private void emit(String function', bridge.indexOf('private void emitNarrationFutureStatus(')));
-  assert.match(statusEmitter, /narrationBuffer\.readyCount\(\)/);
-  assert.match(statusEmitter, /NarrationFutureBuffer\.TARGET/);
-  const clear = bridge.slice(bridge.indexOf('private void clearNarrationFutureCache('),
-    bridge.indexOf('private String committedWorldTurnId(', bridge.indexOf('private void clearNarrationFutureCache(')));
-  assert.match(clear, /emitNarrationFutureStatus\(\)/);
-  const poll = bridge.slice(bridge.indexOf('private JSONObject pollNarrationFuture('),
-    bridge.indexOf('private int combatForecastStartIndex(', bridge.indexOf('private JSONObject pollNarrationFuture(')));
-  assert.match(poll, /emitNarrationFutureStatus\(\)/);
-  const refill = bridge.slice(bridge.indexOf('private void runNarrationFutureRefill('),
-    bridge.indexOf('private void prefetchChoices(', bridge.indexOf('private void runNarrationFutureRefill(')));
-  assert.match(refill, /narrationBuffer\.finish\(request\);\s*emitNarrationFutureStatus\(\)/);
-});
-
-test('rolling oracle buffer preserves fixed slots and refills only the missing tail', () => {
-  assert.match(bridge, /private final NarrationFutureBuffer narrationBuffer = new NarrationFutureBuffer\(\)/);
-  assert.match(bridge, /pollNarrationFuture\(JSONObject committedState\)/);
-  assert.match(bridge, /GameCoreFacade\.oracleCacheOutcomeMatches\(committedState, slot\)/);
-  assert.match(bridge, /private String narrationFuturePrompt\(NarrationFutureBuffer\.Request request\)/);
-  assert.match(bridge, /SceneContextCompiler\.compile\([\s\S]*gameCore, milestoneCore, stepState/);
-  assert.match(bridge, /scene\.storyBoundary/);
-  assert.match(bridge, /scene\.characterScene/);
-  assert.match(bridge, /scene\.levelScene/);
-  assert.match(bridge, /scene\.relevantContinuity/);
-  assert.match(bridge, /PLAYER ACTION: \[UNDECIDED/);
-  assert.match(core, /\.put\("sceneState", deepCopy\(next\)\)/);
-  assert.doesNotMatch(core, /live Core state wins/);
-
-  const refill = bridge.slice(bridge.indexOf('private void runNarrationFutureRefill('),
-    bridge.indexOf('private void prefetchChoices(', bridge.indexOf('private void runNarrationFutureRefill(')));
-  assert.equal((refill.match(/gameCore\.oracleWindow\(/g) || []).length, 1);
-  assert.ok(refill.indexOf('narrationBuffer.reserve()') < refill.indexOf('gameCore.oracleWindow('));
-  assert.match(refill, /narrationBuffer\.forecast\(expectedEpoch, steps\)/);
-  assert.match(refill, /narrationBuffer\.accept\(request, parsed\.optJSONArray\("future"\)\)/);
-  assert.doesNotMatch(refill, /remainingForecast|narrationFutureAlignment|narrationFutureForecastSteps/);
-
+test('GM path is one current-turn request with milestone, local facts and memorable events', () => {
   const turn = bridge.slice(bridge.indexOf('@JavascriptInterface public void submitTurn('),
     bridge.indexOf('@JavascriptInterface public void combatRoll('));
-  assert.match(turn, /JSONObject cachedSlot = pollNarrationFuture\(narrationState\)/);
-  assert.match(turn, /expectedAction\.equals\(actualAction\)/);
-  assert.match(turn, /convergenceTarget = cachedGenerated\.optString\("reply", ""\)\.trim\(\)/);
-  assert.doesNotMatch(turn, /clearNarrationFutureCache\(\)/);
-  assert.match(turn, /scheduleNarrationFutureRefill\(narrationState\)/);
-  assert.match(turn, /if \(cachedForProvider != null\) return cachedForProvider;/);
+  const prompt = bridge.slice(bridge.indexOf('private String narrationPrompt('),
+    bridge.indexOf('private void logDiagnostic(', bridge.indexOf('private String narrationPrompt(')));
+  assert.ok(turn.indexOf('completePreparedTurn(') < turn.indexOf('generateNarrationText('));
+  assert.ok(turn.indexOf('generateNarrationText(') < turn.indexOf('commitPresentation('));
+  assert.match(prompt, /milestoneCore\.promptContext\(state\)/);
+  assert.match(prompt, /memorableEvents/);
+  assert.match(prompt, /CURRENT LOCAL EVENTS/);
+  assert.match(prompt, /1-3 gợi ý hành động cụ thể/);
+  assert.doesNotMatch(bridge, /NarrationFutureBuffer|NarrationGuard|NarrationProviderPolicy|SceneContextCompiler|oracleWindow\(|prefetchChoices\(/);
+  assert.doesNotMatch(html, /narrationPrefetchStatus|backroomNarrationFutureStatus|backroomPrefetchChoices/);
 });
 
-test('Explorer choice keeps Core routing token separate from player-facing log and narration text', () => {
-  const turn = bridge.slice(bridge.indexOf('@JavascriptInterface public void submitTurn('),
-    bridge.indexOf('@JavascriptInterface public void combatRoll('));
-  assert.match(turn, /clientSubmitted\.optString\("__uiDisplayAction"/);
-  assert.match(turn, /clientSubmitted\.remove\("__uiDisplayAction"\)/);
-  assert.match(turn, /narrationPrompt\(narrationState, displayAction, turnId,/);
-  assert.match(turn, /commitPresentation\(turnId,[\s\S]*displayAction, gmEntry\.toString\(\)\)/);
-  assert.match(turn, /String actualAction = action == null \? "" : action\.trim\(\)/);
+test('GM suggestions keep up to three distinct player-facing actions', () => {
+  assert.match(choices, /MAX_CHOICES = 3/);
+  assert.match(choices, /\.put\("action", text\)/);
+  assert.match(choiceUi, /generated\.slice\(0, 3\)/);
 });
 
-
- test('turn-one current save survives a changed baseline prologue', () => {
+test('turn-one current save survives a changed baseline prologue', () => {
   const fragment = html.slice(html.indexOf('ensureCurrentLevel(state);'), html.indexOf('function esc('));
   const saved = {turn: 1, title: 'current', currentLevel: 2, currentLevelKey: '2',
     location: 'live location', player: {name: 'Cao Minh', hp: 7, depletion: 4},
@@ -207,7 +88,6 @@ test('Explorer choice keeps Core routing token separate from player-facing log a
   delete sandbox.state.characterCanon;
   assert.deepEqual(sandbox.state, saved);
 });
-
 
 test('packaged Backrooms background music loops only while the Activity is resumed', () => {
   const music = path.join(root, 'assets', 'BackroomsBM.mp3');

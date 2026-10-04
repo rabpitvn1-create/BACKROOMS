@@ -41,38 +41,28 @@ public final class MilestoneCore {
   }
 
   public String promptContext(JSONObject state) throws Exception {
-    return promptContext(state, "");
-  }
-
-  public String promptContext(JSONObject state, String action) throws Exception {
-    java.util.Set<String> sceneCharacters = SceneContextCompiler.sceneCharacterRefs(state, action);
     String levelKey = state == null ? "0"
         : state.optString(LevelCore.LEVEL_KEY, String.valueOf(state.optInt("currentLevel", 0))).trim();
     JSONObject level = root.getJSONObject("levels").optJSONObject(levelKey);
-
-    StringBuilder out = new StringBuilder();
-    out.append("MILESTONE — CURRENT LEVEL ONLY\n");
-    out.append("Use this only to keep the current Level aligned with the approved long arc. ")
-        .append("It never creates an encounter, event, relationship change or outcome by itself.\n");
-
+    StringBuilder out = new StringBuilder("MILESTONE — CURRENT LEVEL ONLY\n");
     if (level == null) {
       out.append("CURRENT NODE: outside configured milestone scope.\n");
     } else {
       out.append("MILESTONE ID: ").append(level.optString("milestoneId", "")).append('\n');
-      out.append("CURRENT NODE: ").append(levelKey).append(" — ")
-          .append(SceneContextCompiler.hasForeignCharacter(level.getString("act"), sceneCharacters)
-              ? "current story direction" : level.getString("act")).append('\n');
-      appendList(out, "GUIDANCE", level.getJSONArray("guidance"), sceneCharacters);
+      out.append("CURRENT NODE: ").append(levelKey).append(" — ").append(level.getString("act")).append('\n');
+      appendList(out, "GUIDANCE", level.getJSONArray("guidance"));
     }
-
     if ("6".equals(levelKey)) {
       out.append("BOUNDARY: milestone ends at Level 6; Level 6.1 is outside this milestone.\n");
     }
-
     if (out.length() > MAX_CONTEXT_CHARS) {
       throw new IllegalStateException("milestone_context_budget_exceeded:" + out.length());
     }
     return out.toString();
+  }
+
+  public String promptContext(JSONObject state, String ignoredAction) throws Exception {
+    return promptContext(state);
   }
 
   private static void validate(JSONObject root) throws Exception {
@@ -104,11 +94,11 @@ public final class MilestoneCore {
     }
   }
 
-  private static void appendList(StringBuilder out, String title, JSONArray values, java.util.Set<String> sceneCharacters) {
+  private static void appendList(StringBuilder out, String title, JSONArray values) {
     out.append(title).append(":\n");
     for (int i = 0; values != null && i < values.length(); i++) {
       String value = values.optString(i, "").trim();
-      if (!value.isEmpty() && !SceneContextCompiler.hasForeignCharacter(value, sceneCharacters)) out.append("- ").append(value).append('\n');
+      if (!value.isEmpty()) out.append("- ").append(value).append('\n');
     }
   }
 

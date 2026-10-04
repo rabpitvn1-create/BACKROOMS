@@ -13,7 +13,7 @@ public class SafePresentationViewTest {
         .put("combat", new JSONObject().put("entity", new JSONObject()
             .put("key", "async_rifleman").put("name", "ASYNC Rifleman")));
     String before = state.toString();
-    String view = GmNarrativePacket.projectState(state).toString();
+    String view = SafePresentationView.value(state, "cao_minh", state).toString();
     assertFalse(view, view.contains("M4A1"));
     assertFalse(view, view.contains("lucia_m4a1"));
     assertFalse(view, view.contains("ASYNC"));
@@ -47,31 +47,6 @@ public class SafePresentationViewTest {
     assertFalse(CharacterKnowledge.knows(state, "syvial", "cultivation", "knownName"));
   }
 
-  @Test public void finalPacketFiltersEveryComposedChannelAndGuardRejectsLeaks() throws Exception {
-    JSONObject state = new JSONObject().put("party", new JSONArray().put(new JSONObject().put("id", "lucia")));
-    String leak = "M4A1 lucia_m4a1 laser firearm riflewoman gun Đại Đạo Ma Tôn";
-    JSONObject evidence = new JSONObject().put("available", true).put("claims", new JSONArray())
-        .put("events", new JSONArray().put(new JSONObject().put("evidenceText", leak)));
-    String request = GmNarrativePacket.build(leak, leak, leak, leak, leak, state, leak, leak, leak, evidence);
-    for (String term : new String[] {"M4A1", "lucia_m4a1", "laser", "firearm", "riflewoman", "gun", "Đại Đạo Ma Tôn"}) {
-      assertFalse(term + " leaked", request.contains(term));
-    }
-    JSONObject generated = new JSONObject().put("reply", "Lucia gọi hắn là Đại Đạo Ma Tôn.")
-        .put("choices", new JSONArray()).put("encounterDialogue", new JSONArray()).put("claims", new JSONArray());
-    assertFalse(NarrationGuard.validate(generated, state, evidence).isEmpty());
-    state.put("party", new JSONArray());
-    generated.put("reply", "Cao Minh quan sát.").put("choices",
-        new JSONArray().put(new JSONObject().put("text", "Cầm M4A1 lên")));
-    assertTrue(NarrationGuard.validate(generated, state, evidence).startsWith("AUTHORITY:"));
-    generated.put("choices", new JSONArray());
-    generated.put("reply", "Một M4A1 nằm trước mặt.");
-    assertFalse(NarrationGuard.validate(generated, state, evidence).isEmpty());
-    CharacterKnowledge.mark(state, "cao_minh", "lucia_m4a1", "knownName", "core:disclosure");
-    assertEquals("", NarrationGuard.validate(generated, state, evidence));
-    assertTrue(GmNarrativePacket.build("", "", "", "", "M4A1", state, "", "").contains("M4A1"));
-    assertFalse(state.toString().contains("knownEffect"));
-  }
-
   @Test public void incompleteActorViewsRemainSafeAndFallbackUsesTheProjectedActor() throws Exception {
     JSONObject state = new JSONObject().put("party", new JSONArray().put("Lucia"));
     assertFalse(SafePresentationView.narrativeText(state, "Đại Đạo Ma Tôn").contains("Đại Đạo Ma Tôn"));
@@ -84,12 +59,7 @@ public class SafePresentationViewTest {
     for (String term : lore.split(" ")) assertFalse(request.contains(term));
     state.put(CharacterKnowledge.ROOT, new JSONObject().put("cao_minh",
         new JSONObject().put("cao_minh", new JSONObject().put("knownName", false))));
-    JSONArray views = new JSONArray().put(SafePresentationView.event(state, "cao_minh",
-        new JSONObject().put("eventType", "PLAYER_ACTION_RESOLVED")));
-    JSONObject fallback = NarrationProviderPolicy.present(views,
-        rejection -> new JSONObject().put("reply", "invalid"), generated -> "hard rejection");
-    assertTrue(fallback.getString("reply"), fallback.getString("reply").startsWith("Người đàn ông"));
-    assertFalse(fallback.toString().contains("Cao Minh"));
+    assertFalse(SafePresentationView.text(state, "cao_minh", "Cao Minh").contains("Cao Minh"));
   }
 
   @Test public void knownNamesAreStableUnderRepeatedProjection() throws Exception {

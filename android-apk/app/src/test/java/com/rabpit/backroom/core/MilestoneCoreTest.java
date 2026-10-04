@@ -18,7 +18,7 @@ public class MilestoneCoreTest {
     String levelZero = core.promptContext(state("0", 0));
     assertTrue(levelZero.contains("MILESTONE — CURRENT LEVEL ONLY"));
     assertTrue(levelZero.contains("ACT I — NGƯỜI ĐẦU TIÊN"));
-    assertFalse(levelZero.contains("Lucia first contact"));
+    assertTrue(levelZero.contains("Lucia first contact"));
     assertFalse(levelZero.contains("WRITER SECRETS"));
     assertFalse(levelZero.contains("slow-burn"));
     assertFalse(levelZero.contains("FORBIDDEN REVEALS"));

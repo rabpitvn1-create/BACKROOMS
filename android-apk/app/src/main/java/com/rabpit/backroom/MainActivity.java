@@ -32,16 +32,9 @@ import com.rabpit.backroom.core.CombatChoiceEngine;
 import com.rabpit.backroom.core.CommittedTurnNarrationEvidence;
 import com.rabpit.backroom.core.GameCoreFacade;
 import com.rabpit.backroom.core.GmChoiceContract;
-import com.rabpit.backroom.core.GmNarrativePacket;
-import com.rabpit.backroom.core.GmNarratorContract;
-import com.rabpit.backroom.core.SceneContextCompiler;
 import com.rabpit.backroom.core.OfflinePresenter;
-import com.rabpit.backroom.core.NarrationProviderPolicy;
-import com.rabpit.backroom.core.NarrationFutureBuffer;
 import com.rabpit.backroom.core.NarrationProviderScheduler;
 import com.rabpit.backroom.core.NarrationHttpTransport;
-import com.rabpit.backroom.core.SafePresentationView;
-import com.rabpit.backroom.core.NarrationGuard;
 import com.rabpit.backroom.core.MilestoneCore;
 import com.rabpit.backroom.core.ProviderRetryPolicy;
 import org.json.JSONArray;
@@ -54,7 +47,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -76,15 +68,8 @@ public class MainActivity extends Activity {
   private boolean backgroundMusicPrepared;
   private boolean activityResumed;
   private final ExecutorService io = Executors.newSingleThreadExecutor();
-  private final ScheduledExecutorService narrationFutureIo = Executors.newSingleThreadScheduledExecutor();
-  private final Object narrationFutureLock = new Object();
-  private final NarrationFutureBuffer narrationBuffer = new NarrationFutureBuffer();
   private final NarrationProviderScheduler providerScheduler = new NarrationProviderScheduler();
   private final ThreadLocal<Long> providerRequestDeadline = new ThreadLocal<>();
-  private boolean narrationFutureStopped;
-  private boolean narrationFuturePending;
-  private int narrationFutureFailures;
-  private boolean narrationFutureRefillRunning = false;
   private GameCoreFacade gameCore;
   private MilestoneCore milestoneCore;
   private static final String GEMINI_MODEL = "gemini-3.6-flash";
@@ -130,7 +115,6 @@ public class MainActivity extends Activity {
         super.onPageFinished(view, url);
         DiagnosticLog.record("webview.ready", "url", url);
         installUiScripts();
-        emitNarrationFutureStatus();
       }
     });
     webView.setWebChromeClient(new WebChromeClient() {
@@ -225,13 +209,8 @@ public class MainActivity extends Activity {
 
   @Override protected void onDestroy() {
     releaseBackgroundMusic();
-    synchronized (narrationFutureLock) {
-      narrationFutureStopped = true;
-      narrationBuffer.reset();
-    }
     if (gameCore != null) gameCore.close();
     io.shutdownNow();
-    narrationFutureIo.shutdownNow();
     if (webView != null) webView.destroy();
     super.onDestroy();
   }
@@ -445,9 +424,7 @@ public class MainActivity extends Activity {
     return output;
   }
 
-  /** Count content requests; the initial writer and repair share one foreground deadline. */
-  private String generateNarrationText(String prompt, int[] calls, boolean retry, long deadlineNanos) throws Exception {
-    calls[retry ? 1 : 0]++;
+  private String generateNarrationText(String prompt, long deadlineNanos) throws Exception {
     return generateScheduledText(prompt, false, deadlineNanos);
   }
 
@@ -471,46 +448,6 @@ public class MainActivity extends Activity {
     }
     if (text.length() == 0) throw new Exception("Gemini không trả nội dung.");
     return text.toString();
-  }
-
-  private JSONObject branchSchema() throws Exception {
-    JSONObject choice = new JSONObject().put("type", "OBJECT")
-        .put("properties", new JSONObject().put("text", new JSONObject().put("type", "STRING")))
-        .put("required", new JSONArray().put("text"));
-    JSONObject branch = new JSONObject().put("type", "OBJECT")
-        .put("properties", new JSONObject()
-            .put("reply", new JSONObject().put("type", "STRING"))
-            .put("choices", new JSONObject().put("type", "ARRAY").put("items", choice))
-            .put("encounterDialogue", new JSONObject().put("type", "ARRAY")
-                .put("items", new JSONObject().put("type", "STRING"))))
-        .put("required", new JSONArray().put("reply").put("choices").put("encounterDialogue"));
-    JSONObject branches = new JSONObject().put("type", "OBJECT")
-        .put("properties", new JSONObject().put("A", branch).put("B", branch))
-        .put("required", new JSONArray().put("A").put("B"));
-    return new JSONObject().put("type", "OBJECT")
-        .put("properties", new JSONObject().put("branches", branches))
-        .put("required", new JSONArray().put("branches"));
-  }
-
-  /** Exactly one physical Gemini request; failures leave the normal turn path untouched. */
-  private JSONObject geminiBranchBatch(String prompt) throws Exception {
-    prompt = SafePresentationView.narrativeText(new JSONObject(gameCore.currentCoreState()), prompt);
-    String key = "";
-    for (String configured : geminiKeys()) if (configured != null && !configured.trim().isEmpty()) {
-      key = configured;
-      break;
-    }
-    if (key.isEmpty()) throw new Exception("Không có Gemini API key trong APK.");
-    JSONObject config = new JSONObject().put("responseMimeType", "application/json")
-        .put("responseSchema", branchSchema()).put("maxOutputTokens", 8192)
-        .put("thinkingConfig", new JSONObject().put("thinkingLevel", "low"));
-    JSONObject body = new JSONObject().put("contents", new JSONArray().put(
-        new JSONObject().put("role", "user").put("parts", new JSONArray().put(
-            new JSONObject().put("text", prompt)))))
-        .put("generationConfig", config);
-    return parseModelJson(geminiResponseText(postJson(
-        "https://generativelanguage.googleapis.com/v1beta/models/" + GEMINI_MODEL + ":generateContent",
-        key, "x-goog-api-key", body)));
   }
 
   private boolean haikuConfigured() {
@@ -721,10 +658,6 @@ public class MainActivity extends Activity {
 
   private boolean configured(String key) { return key != null && !key.trim().isEmpty(); }
 
-  private String generateText(String prompt) throws Exception {
-    return generateScheduledText(prompt, true, NarrationHttpTransport.deadlineAfterMillis(60_000L));
-  }
-
   private String generateScheduledText(String prompt, boolean background, long deadlineNanos) throws Exception {
     String[] keys = geminiKeys();
     boolean[] configured = new boolean[NarrationProviderScheduler.SOURCE_COUNT];
@@ -735,7 +668,7 @@ public class MainActivity extends Activity {
     configured[NarrationProviderScheduler.LUNA] = BuildConfig.LUNA_ENABLED && configured(BuildConfig.LUNA_API_KEY);
     configured[NarrationProviderScheduler.SOL] = configured(BuildConfig.SOL_API_KEY);
     boolean[] attempted = new boolean[configured.length];
-    boolean urgent = background && narrationBuffer.readyCount() <= NarrationFutureBuffer.EMERGENCY;
+    boolean urgent = false;
     int geminiAttempts = 0;
     int limit = background ? 4 : 3;
     for (int attempt = 0; attempt < limit; attempt++) {
@@ -812,212 +745,34 @@ public class MainActivity extends Activity {
     return Math.max(0, log.length() - 1);
   }
 
-  private String narrationPrompt(
-      JSONObject state, String action, String turnId, String oracleContext) throws Exception {
-    if (milestoneCore == null) {
-      throw new IllegalStateException("Milestone runtime unavailable for narration.");
-    }
-    String prompt = GmNarrativePacket.buildScene(
-        SceneContextCompiler.compile(gameCore, milestoneCore, state, action, turnId));
-    return prompt + "\n" + oracleContext + "\n"
-        + "ORACLE USE: đây là tri thức backstage của Game Master về world-step mặc định kế tiếp. "
-        + "Dùng nó để chuẩn bị nhịp kể và viết đúng MỘT lựa chọn mặc định phong phú cho lượt kế tiếp. "
-        + "Không được tiết lộ, ám chỉ hay cho nhân vật biết trước Entity, Rương, cuộc gặp nhân vật hoặc kết quả Explorer "
-        + "chưa được Core commit trong reply hiện tại. Lựa chọn phải chỉ dựa trên affordance người chơi hiện có thể quan sát; "
-        + "không quyết định suy nghĩ, cảm xúc hay động cơ của Cao Minh. "
-        + "Khi không có combat/khóa gameplay, choices phải có đúng 1 phần tử. "
-        + "OUTPUT chỉ cho scene HIỆN TẠI; không sinh future batch trong request đồng bộ này.";
+  private String narrationPrompt(JSONObject state, String action, JSONArray safeEvents) throws Exception {
+    if (milestoneCore == null) throw new IllegalStateException("Milestone runtime unavailable for narration.");
+    JSONArray memories = state.optJSONArray("memorableEvents");
+    if (memories == null) memories = new JSONArray();
+    String levelKey = state.optString("currentLevelKey", String.valueOf(state.optInt("currentLevel", 0)));
+    String location = state.optString("location", "").trim();
+    return "Bạn là GAME MASTER của Backroom The Game. Kể đúng MỘT lượt bằng tiếng Việt tự nhiên, sáng tạo và có nhịp như một câu chuyện; không viết như báo cáo hệ thống. "
+        + "Core/local đã quyết định gameplay. Bạn chỉ diễn đạt những gì đã xảy ra và nối nó hợp lý với Milestone.\n"
+        + "PLAYER ACTION:\n" + (action == null ? "" : action.trim()) + "\n"
+        + "WHERE:\nLevel " + levelKey + (location.isEmpty() ? "" : " — " + location) + "\n"
+        + "CURRENT LOCAL EVENTS — read-only facts, không tự thêm/bớt outcome, Entity, Item hay Party:\n"
+        + (safeEvents == null ? "[]" : safeEvents.toString()) + "\n"
+        + milestoneCore.promptContext(state) + "\n"
+        + "MEMORABLE EVENTS — chỉ các sự kiện lớn đã lưu, không phải transcript:\n" + memories.toString() + "\n"
+        + "Nếu CURRENT LOCAL EVENTS có mô tả ngoại hình Entity/Character/Item, hãy diễn đạt lại tự nhiên thay vì chép nguyên văn. "
+        + "Milestone là khung truyện; được tự sáng tác hành vi/đối thoại hợp lý bên trong khung đó nhưng không đổi gameplay state. "
+        + "Không quyết định thêm hành động, lời nói hay suy nghĩ tiếp theo cho Cao Minh ngoài PLAYER ACTION. "
+        + "Đưa 1-3 gợi ý hành động cụ thể, khác nhau và bám scene hiện tại; tránh lựa chọn chung chung kiểu chỉ 'Khám phá' hoặc 'Đi tiếp'.\n"
+        + "OUTPUT duy nhất JSON: {\"reply\":\"...\",\"choices\":[{\"text\":\"...\"}]}";
   }
-
-  private String currentOracleContext(JSONObject oracle) {
-    JSONArray steps = oracle == null ? null : oracle.optJSONArray("steps");
-    JSONObject step = steps == null ? null : steps.optJSONObject(0);
-    if (step == null) return "CORE ORACLE NEXT STEP: unavailable. Do not invent future outcomes.";
-    StringBuilder out = new StringBuilder("CORE ORACLE NEXT DEFAULT STEP — HIDDEN WRITER KNOWLEDGE\n");
-    out.append("action=").append(step.optString("action", ""));
-    String route = step.optString("routeResult", "").trim();
-    if (!route.isEmpty()) out.append("; explorer=").append(route);
-    String kind = step.optString("worldKind", "").trim();
-    String payload = step.optString("payloadKey", "").trim();
-    if (!kind.isEmpty()) out.append("; world=").append(kind);
-    if (!payload.isEmpty()) out.append(":").append(payload);
-    JSONArray events = step.optJSONArray("presentationEvents");
-    if (events != null && events.length() > 0) {
-      out.append("; presentationEvents=").append(events.toString());
-    }
-    out.append("\nUse this only to word the single next-action choice. Do not reveal it in the current reply.");
-    return out.toString();
-  }
-
-  private void clearNarrationFutureCache() {
-    DiagnosticLog.record("cache.reset");
-    synchronized (narrationFutureLock) {
-      narrationBuffer.reset();
-      narrationFuturePending = true;
-      narrationFutureFailures = 0;
-    }
-    emitNarrationFutureStatus();
-  }
-
-  private String committedWorldTurnId(JSONObject state) {
-    JSONObject root = state.optJSONObject("emergent");
-    return root == null ? "" : root.optString("lastCommittedTurnId", "");
-  }
-
-  private JSONObject pollNarrationFuture(JSONObject committedState) throws Exception {
-    JSONObject cached = narrationBuffer.poll(GameCoreFacade.oracleAuthorityHash(committedState),
-        committedWorldTurnId(committedState),
-        slot -> GameCoreFacade.oracleCacheOutcomeMatches(committedState, slot));
-    DiagnosticLog.record("cache.poll", "turnId", committedWorldTurnId(committedState), "hit", cached != null, "slot", cached);
-    emitNarrationFutureStatus();
-    return cached;
-  }
-
-  
-
-  
-
-  private String narrationFuturePrompt(NarrationFutureBuffer.Request request) throws Exception {
-    StringBuilder scenes = new StringBuilder();
-    for (int i = 0; i < request.steps.length(); i++) {
-      JSONObject step = request.steps.getJSONObject(i);
-      String turnId = step.optString("turnId", "");
-      JSONObject stepState = step.optJSONObject("sceneState");
-      if (turnId.isEmpty() || stepState == null) {
-        throw new IllegalStateException("Narration future step is missing scene context.");
-      }
-      SceneContextCompiler.SceneContext scene = SceneContextCompiler.compile(
-          gameCore, milestoneCore, stepState, step.optString("action", ""), turnId);
-      scenes.append("\nPREPARED STEP ").append(i + 1).append(" — ").append(turnId).append("\n")
-          .append("CURRENT LEVEL:\n").append(scene.levelScene).append("\n")
-          .append("CURRENT CHARACTERS — present/pending; mentioned-only characters are not present:\n")
-          .append(scene.characterScene).append("\n")
-          .append("CURRENT STORY — milestone current node only:\n").append(scene.storyBoundary).append("\n")
-          .append("RELEVANT CONTINUITY:\n").append(scene.relevantContinuity).append("\n")
-          .append("COMMITTED SCENE FACTS:\n").append(scene.committedSceneFacts).append("\n")
-          .append("RECENT:\n").append(scene.recentContext).append("\n")
-          .append("PLAYER ACTION: [UNDECIDED — Cao Minh chooses at runtime]\n")
-          .append("PREPARED OUTCOME: world=").append(step.optString("worldKind", "QUIET"))
-          .append("; route=").append(step.optString("routeResult", ""))
-          .append("; payload=").append(step.optString("payloadKey", ""))
-          .append("; presentationEvents=").append(step.optJSONArray("presentationEvents")).append("\n");
-    }
-    return GmNarratorContract.promptContext() + "\n" + GmNarratorContract.caoMinhNarrativeCard()
-        + "\nPREPARED SCENES:" + scenes
-        + "\nALREADY READY PRECEDING REPLIES: " + request.precedingReplies
-        + "\nPREFETCH CONTRACT: tác vụ nền, không phải lượt hiện tại. Chỉ viết "
-        + request.steps.length() + " capsule cho PREPARED SCENES. "
-        + "Mỗi capsule phải mang stepId bằng turnId của đúng scene. Sự kiện/kết quả của scene là cố định; "
-        + "PLAYER ACTION chưa được quyết định và tuyệt đối không được tự viết thay Cao Minh. "
-        + "Không tiết lộ outcome của scene sau trong capsule trước. Giữ mạch kể với preceding replies. "
-        + "OUTPUT chỉ JSON: {\"future\":[{\"stepId\":\"turnId được giao\","
-        + "\"reply\":\"...\",\"choices\":[{\"text\":\"...\"}],\"encounterDialogue\":[]}]}";
-  }
-
-  /** Record demand only; forecast construction and network calls never run on the turn thread. */
-  private void scheduleNarrationFutureRefill(JSONObject baseState) {
-    if (baseState == null || baseState.length() == 0) return;
-    synchronized (narrationFutureLock) {
-      if (narrationFutureStopped) return;
-      narrationBuffer.requestRefill();
-      if (narrationFutureRefillRunning) {
-        narrationFuturePending = true;
-        return;
-      }
-      if (!narrationBuffer.needsRefill()) return;
-      narrationFutureRefillRunning = true;
-      narrationFutureIo.execute(this::runNarrationFutureRefill);
-    }
-  }
-
-  
-
-  private void runNarrationFutureRefill() {
-    long expectedEpoch = narrationBuffer.epoch();
-    NarrationFutureBuffer.Request request = null;
-    int accepted = 0;
-    try {
-      request = narrationBuffer.reserve();
-      if (request == null && narrationBuffer.needsRefill()) {
-        JSONObject current = new JSONObject(gameCore.currentCoreState());
-        if (CombatChoiceEngine.isActive(current) || CombatChoiceEngine.isKnownEntity(encounterKey(current))) {
-          return;
-        }
-        JSONObject oracle = new JSONObject(
-            gameCore.oracleWindow(current.toString(), NarrationFutureBuffer.TARGET));
-        JSONArray steps = oracle.optJSONArray("steps");
-        if (steps == null || steps.length() == 0) return;
-        if (!narrationBuffer.forecast(expectedEpoch, steps)) return;
-        request = narrationBuffer.reserve();
-      }
-      if (request == null) return;
-
-      String prompt = narrationFuturePrompt(request);
-      JSONObject parsed = parseModelJson(generateText(prompt));
-      accepted = narrationBuffer.accept(request, parsed.optJSONArray("future"));
-      if (BuildConfig.DEBUG) logDiagnostic("NARRATION PREFETCH: ready=" + narrationBuffer.readyCount()
-          + " requested=" + request.steps.length() + " accepted=" + accepted);
-    } catch (Exception error) {
-      DiagnosticLog.record("app.error", "error", error);
-      logDiagnostic("Narration future prefetch unavailable: " + error.getClass().getSimpleName());
-    } finally {
-      if (request != null) narrationBuffer.finish(request);
-      emitNarrationFutureStatus();
-      synchronized (narrationFutureLock) {
-        narrationFutureRefillRunning = false;
-        boolean rerun = narrationFuturePending || narrationBuffer.epoch() != expectedEpoch
-            || (request != null && narrationBuffer.needsRefill());
-        narrationFuturePending = false;
-        if (accepted > 0) narrationFutureFailures = 0;
-        else if (request != null) narrationFutureFailures = Math.min(5, narrationFutureFailures + 1);
-        if (!narrationFutureStopped && rerun) {
-          // ponytail: one dependent narrative batch at a time; parallelize only independent packets.
-          long delay = accepted > 0 ? 0L : Math.min(30_000L, 1_000L << narrationFutureFailures);
-          narrationFutureRefillRunning = true;
-          narrationFutureIo.schedule(this::runNarrationFutureRefill, delay, TimeUnit.MILLISECONDS);
-        }
-      }
-    }
-  }
-
-  private void prefetchChoices(String choicesJson) {
-    try {
-      JSONObject current = new JSONObject(gameCore.currentCoreState());
-      scheduleNarrationFutureRefill(current);
-    } catch (Exception error) {
-      DiagnosticLog.record("app.error", "error", error);
-      logDiagnostic("Explorer narration prefetch skipped: " + error.getMessage());
-    }
-  }
-
-  private String worldProposalPrompt(JSONObject selected) {
-    String summary = selected == null ? "" : selected.optString("publicSummary", "");
-    String canon = selected == null ? "" : selected.optString("capabilityContext", "");
-    JSONArray allowed = selected == null ? null : selected.optJSONArray("allowedWorldActions");
-    String allowedText = allowed == null ? "INTERCEPT, DIRECT_ATTACK, OBSERVE" : allowed.toString();
-    return "Bạn đang đề xuất CÁCH một world situation đã được Java Core chọn sẽ được thực hiện. "
-        + "Bạn không được đổi Entity/situation, không quyết outcome và không sửa state.\n"
-        + "SITUATION: " + summary + "\n"
-        + "CAPABILITY/CANON: " + canon + "\n"
-        + "actionType chỉ được chọn từ ALLOWED_WORLD_ACTIONS: " + allowedText + ". "
-        + "intentTag chỉ được aggressive, cautious hoặc opportunistic.\n"
-        + "OUTPUT chỉ JSON: {\"actionType\":\"INTERCEPT\",\"intentTag\":\"opportunistic\"}";
-  }
-
 
   private void logDiagnostic(String message) {
     DiagnosticLog.record("app.diagnostic", "message", message);
     Log.d(TAG, message);
   }
 
-  private void emitNarrationFutureStatus() {
-    if (webView == null) return;
-    emit("backroomNarrationFutureStatus", "{\"ready\":" + narrationBuffer.readyCount()
-        + ",\"target\":" + NarrationFutureBuffer.TARGET + "}");
-  }
-
   private void emit(String function, String json) {
-    DiagnosticLog.record("bridge.emit", "callback", function, "payload", json);
+    DiagnosticLog.record("bridge.emit", "callback", function, "payloadChars", json == null ? 0 : json.length());
     String script = "window." + function + "(" + JSONObject.quote(json) + ")";
     runOnUiThread(() -> webView.evaluateJavascript(script, null));
   }
@@ -1124,11 +879,6 @@ public class MainActivity extends Activity {
       }
     }
 
-    @JavascriptInterface public void prefetchChoices(String choicesJson) {
-      DiagnosticLog.record("bridge.prefetchChoices", "choicesJson", choicesJson);
-      MainActivity.this.prefetchChoices(choicesJson);
-    }
-
     @JavascriptInterface public String saveCheckpoint() {
       DiagnosticLog.record("bridge.saveCheckpoint");
       return gameCore.saveCheckpoint();
@@ -1136,11 +886,7 @@ public class MainActivity extends Activity {
 
     @JavascriptInterface public String loadCheckpoint() {
       DiagnosticLog.record("bridge.loadCheckpoint");
-      clearNarrationFutureCache();
-      String restored = gameCore.loadCheckpoint();
-      clearNarrationFutureCache();
-      try { scheduleNarrationFutureRefill(new JSONObject(gameCore.currentCoreState())); } catch (Exception ignored) {}
-      return restored;
+      return gameCore.loadCheckpoint();
     }
 
     @JavascriptInterface public void clearCheckpoint() {
@@ -1149,10 +895,10 @@ public class MainActivity extends Activity {
     }
 
     @JavascriptInterface public void submitTurn(String stateJson, String action) {
-      DiagnosticLog.record("bridge.submitTurn", "stateJson", stateJson, "action", action);
+      DiagnosticLog.record("bridge.submitTurn", "action", action);
       io.execute(() -> {
         DiagnosticLog.beginTrace("turn");
-        DiagnosticLog.record("turn.begin", "action", action, "clientState", stateJson);
+        DiagnosticLog.record("turn.begin", "action", action);
         JSONObject committedBeforeNarration = null;
         long tStart = SystemClock.elapsedRealtime();
         try {
@@ -1195,105 +941,26 @@ public class MainActivity extends Activity {
           if (!committed.optBoolean("handled", false)) {
             throw new Exception(committed.optString("error", "Game State Core từ chối COMMIT."));
           }
-          DiagnosticLog.record("turn.committed", "turnId", turnId, "prepared", prepared, "result", committed);
+          DiagnosticLog.record("turn.committed", "turnId", turnId,
+              "situation", selected == null ? "NONE" : selected.optString("situationKey", "NONE"));
           long coreMs = SystemClock.elapsedRealtime() - coreStart;
 
           JSONObject state = committed.getJSONObject("state");
           committedBeforeNarration = new JSONObject(state.toString());
-          JSONObject narrationEvidence =
-              CommittedTurnNarrationEvidence.fromState(state, turnId);
+          JSONObject narrationEvidence = CommittedTurnNarrationEvidence.fromState(state, turnId);
           if (!narrationEvidence.optBoolean("available", false)) {
-            throw new Exception("Committed turn evidence unavailable after commit: "
-                + narrationEvidence.optString("reason", "unknown"));
+            throw new Exception("Committed turn evidence unavailable after commit: " + narrationEvidence.optString("reason", "unknown"));
           }
-
           JSONArray safeEvents = gameCore.safePresentationEvents(state, narrationEvidence);
-          JSONObject safeEvidence = SafePresentationView.evidence(state, narrationEvidence);
           String presentationBaseHash = GameCoreFacade.presentationBaseHash(state);
-          final JSONObject narrationState = state;
-          boolean coreOwnedEntityLifecycle =
-              OfflinePresenter.isCoreOwnedEntityLifecycle(safeEvents);
-          JSONObject cachedSlot = pollNarrationFuture(narrationState);
-          JSONObject cachedGenerated = coreOwnedEntityLifecycle || cachedSlot == null
-              ? null : cachedSlot.optJSONObject("payload");
-          if (cachedGenerated != null
-              && !NarrationGuard.validate(cachedGenerated, narrationState, safeEvidence).isEmpty()) {
-            cachedSlot = null;
-            cachedGenerated = null;
-          }
-          String convergenceTarget = "";
-          if (cachedGenerated != null) {
-            String expectedAction = cachedSlot.optString("action", "");
-            String actualAction = action == null ? "" : action.trim();
-            if (!expectedAction.equals(actualAction)) {
-              convergenceTarget = cachedGenerated.optString("reply", "").trim();
-              cachedGenerated = null;
-            }
-          }
-          scheduleNarrationFutureRefill(narrationState);
-          final String convergenceForProvider = convergenceTarget;
-          final JSONObject cachedForProvider = cachedGenerated;
-          final JSONObject[] freshGenerated = {null};
-          int[] providerCalls = {0, 0};
-          long[] promptMs = {0L, 0L};
-          int[] promptChars = {0, 0};
-          long[] providerMs = {0L, 0L};
-          long[] validationMs = {0L};
-          final long narrationDeadline = NarrationHttpTransport.deadlineAfterMillis(30_000L);
-          JSONObject generated = NarrationProviderPolicy.present(safeEvents, rejection -> {
-            if (cachedForProvider != null) return cachedForProvider;
-
-            int timingIndex = rejection.isEmpty() ? 0 : 1;
-            long promptStart = SystemClock.elapsedRealtime();
-            JSONObject oracle = new JSONObject(gameCore.oracleWindow(narrationState.toString()));
-            String prompt = narrationPrompt(narrationState, displayAction, turnId,
-                currentOracleContext(oracle));
-            if (!convergenceForProvider.isEmpty()) {
-              prompt += "\nPLAYER ACTION CONVERGENCE: thực hiện PLAYER ACTION trước, đúng character/canon, "
-                  + "rồi nối hợp lý vào CONVERGENCE TARGET. Người chơi chưa biết trước target. "
-                  + "Giữ nguyên outcome; không chèn vật phẩm, năng lực hay hành vi không được scene/context hỗ trợ.\n"
-                  + "CONVERGENCE TARGET: " + convergenceForProvider;
-            }
-            if (!rejection.isEmpty()) {
-              prompt += "\nREPAIR REQUEST: the previous writer payload was rejected by the deterministic guard: "
-                  + rejection
-                  + " Generate one fresh complete JSON payload for the same committed scene. "
-                  + "Correct the rejected condition, keep Core authority unchanged, and do not mention this diagnostic.";
-            }
-            promptChars[timingIndex] = prompt.length();
-            promptMs[timingIndex] += SystemClock.elapsedRealtime() - promptStart;
-            long providerRequestStart = SystemClock.elapsedRealtime();
-            try {
-              JSONObject parsed = parseModelJson(generateNarrationText(prompt, providerCalls,
-                  !rejection.isEmpty(), narrationDeadline));
-              parsed.remove("future");
-              freshGenerated[0] = parsed;
-              return parsed;
-            } finally {
-              providerMs[timingIndex] += SystemClock.elapsedRealtime() - providerRequestStart;
-            }
-          }, candidate -> {
-            long validationStart = SystemClock.elapsedRealtime();
-            try {
-              String rejection = NarrationGuard.validate(candidate, narrationState, safeEvidence);
-              DiagnosticLog.record("narration.guard", "turnId", turnId, "candidate", candidate, "evidence", safeEvidence, "rejection", rejection);
-              return rejection;
-            } finally {
-              validationMs[0] += SystemClock.elapsedRealtime() - validationStart;
-            }
-          });
-          if (freshGenerated[0] != null && generated == freshGenerated[0]) {
-            scheduleNarrationFutureRefill(narrationState);
-          }
-          String reply = generated.optString("reply", "");
-          logDiagnostic("PRESENTATION CONTENT ATTEMPTS: turnId=" + turnId
-              + " initial=" + providerCalls[0] + " retry=" + providerCalls[1]
-              + " total=" + (providerCalls[0] + providerCalls[1]));
-
-          JSONArray encounterDialogue = generated.optJSONArray("encounterDialogue");
-          if (encounterDialogue == null) encounterDialogue = new JSONArray();
-          reply = GmChoiceContract.mergeEncounterDialogue(reply, encounterDialogue);
-
+          long promptStart = SystemClock.elapsedRealtime();
+          String prompt = narrationPrompt(state, displayAction, safeEvents);
+          long promptMs = SystemClock.elapsedRealtime() - promptStart;
+          long providerStart = SystemClock.elapsedRealtime();
+          JSONObject generated = parseModelJson(generateNarrationText(prompt, NarrationHttpTransport.deadlineAfterMillis(30_000L)));
+          long providerMs = SystemClock.elapsedRealtime() - providerStart;
+          String reply = generated.optString("reply", "").trim();
+          if (reply.isEmpty()) throw new Exception("AI trả về phản hồi rỗng.");
           JSONObject gmEntry = GmChoiceContract.gmEntry(reply, generated, state);
           gmEntry.put("sceneLevelKey", state.optString("currentLevelKey", String.valueOf(state.optInt("currentLevel", 0))));
           String newEncounter = encounterKey(state);
@@ -1301,36 +968,20 @@ public class MainActivity extends Activity {
           JSONObject appended = new JSONObject(gameCore.commitPresentation(turnId,
               narrationEvidence.optInt("stateVersion", -1), presentationBaseHash,
               turnId + ":narration", displayAction, gmEntry.toString()));
-          DiagnosticLog.record("presentation.commit", "turnId", turnId, "result", appended);
+          DiagnosticLog.record("presentation.commit", "turnId", turnId,
+              "handled", appended.optBoolean("handled", false), "reason", appended.optString("reason", ""));
           state = appended.getJSONObject("state");
           if (!appended.optBoolean("handled", false)) {
-            logDiagnostic("PRESENTATION DROP: " + appended.optString("reason", "unknown"));
             emit("backroomTurn", state.toString());
             return;
           }
-
           if (CombatChoiceEngine.isKnownEntity(newEncounter) && !CombatChoiceEngine.isActive(state)) {
-            state = new JSONObject(
-                gameCore.startCombatRuntime(newEncounter, lastGmLogIndex(state)));
-            scheduleNarrationFutureRefill(state);
+            state = new JSONObject(gameCore.startCombatRuntime(newEncounter, lastGmLogIndex(state)));
           }
-
           if (BuildConfig.DEBUG) {
-            long totalMs = SystemClock.elapsedRealtime() - tStart;
-            logDiagnostic("EMERGENT TURN TELEMETRY: total=" + totalMs
-                + "ms core=" + coreMs
-                + "ms prompt=" + (promptMs[0] + promptMs[1])
-                + "ms provider=" + (providerMs[0] + providerMs[1])
-                + "ms validation=" + validationMs[0]
-                + "ms repair=" + (promptMs[1] + providerMs[1])
-                + "ms providerInitial=" + providerMs[0]
-                + "ms providerRepair=" + providerMs[1]
-                + "ms promptCharsInitial=" + promptChars[0]
-                + " promptCharsRepair=" + promptChars[1]
-                + " repairCount=" + providerCalls[1]
-                + " turnId=" + turnId
-                + " authority=CORE_V2"
-                + " situation=" + (selected == null ? "NONE" : selected.optString("situationKey", "NONE")));
+            logDiagnostic("GM TURN: total=" + (SystemClock.elapsedRealtime() - tStart)
+                + "ms core=" + coreMs + "ms prompt=" + promptMs + "ms provider=" + providerMs
+                + "ms promptChars=" + prompt.length() + " turnId=" + turnId + " authority=CORE_V2");
           }
           emit("backroomTurn", state.toString());
         } catch (Exception e) {
@@ -1360,7 +1011,6 @@ public class MainActivity extends Activity {
       io.execute(() -> {
         try {
           JSONObject runtime = new JSONObject(gameCore.combatTargetRuntime(entityIndex));
-          scheduleNarrationFutureRefill(runtime);
           emit("backroomCombatDiceState", runtime.toString());
         } catch (Exception e) {
           DiagnosticLog.record("app.error", "error", e);
@@ -1374,7 +1024,6 @@ public class MainActivity extends Activity {
       io.execute(() -> {
         try {
           JSONObject runtime = new JSONObject(gameCore.combatRollRuntime());
-          scheduleNarrationFutureRefill(runtime);
           emit("backroomCombatDiceState", runtime.toString());
         } catch (Exception e) {
           DiagnosticLog.record("app.error", "error", e);
@@ -1388,7 +1037,6 @@ public class MainActivity extends Activity {
       io.execute(() -> {
         try {
           JSONObject runtime = new JSONObject(gameCore.combatHoldRuntime(dieIndex, held));
-          scheduleNarrationFutureRefill(runtime);
           emit("backroomCombatDiceState", runtime.toString());
         } catch (Exception e) {
           DiagnosticLog.record("app.error", "error", e);
@@ -1402,7 +1050,6 @@ public class MainActivity extends Activity {
       io.execute(() -> {
         try {
           JSONObject runtime = new JSONObject(gameCore.combatFinishRuntime());
-          scheduleNarrationFutureRefill(runtime);
           emit("backroomCombatDiceState", runtime.toString());
         } catch (Exception e) {
           DiagnosticLog.record("app.error", "error", e);
@@ -1419,7 +1066,6 @@ public class MainActivity extends Activity {
           if (!result.optBoolean("handled", false)) {
             throw new Exception(result.optString("error", "Không thể resolve combat hand."));
           }
-          scheduleNarrationFutureRefill(result.getJSONObject("state"));
           emit("backroomCombatTurn", result.getJSONObject("state").toString());
         } catch (Exception e) {
           DiagnosticLog.record("app.error", "error", e);
@@ -1432,9 +1078,7 @@ public class MainActivity extends Activity {
       DiagnosticLog.record("bridge.restartAfterDeath");
       io.execute(() -> {
         try {
-          clearNarrationFutureCache();
           JSONObject result = new JSONObject(gameCore.restartAfterDeath());
-          clearNarrationFutureCache();
           if (!result.optBoolean("handled", false)) {
             throw new Exception(result.optString("error", "Không thể bắt đầu lại từ đầu Level."));
           }
@@ -1493,12 +1137,8 @@ public class MainActivity extends Activity {
     }
 
     @JavascriptInterface public String startNewGame(String initialJson) {
-      DiagnosticLog.record("bridge.startNewGame", "initialJson", initialJson);
-      clearNarrationFutureCache();
-      String started = gameCore.startNewGame(initialJson);
-      clearNarrationFutureCache();
-      try { scheduleNarrationFutureRefill(new JSONObject(gameCore.currentCoreState())); } catch (Exception ignored) {}
-      return started;
+      DiagnosticLog.record("bridge.startNewGame", "initialChars", initialJson == null ? 0 : initialJson.length());
+      return gameCore.startNewGame(initialJson);
     }
   }
 

@@ -47,13 +47,5 @@ public class NarrativeArchitectureV1FreezeTest {
     assertEquals(factCount, root.getJSONArray("historicalFacts").length());
     assertEquals(threadCount, root.getJSONArray("threads").length());
     assertEquals("unchanged", state.getJSONObject("flags").getString("freezeSentinel"));
-
-    JSONObject narrationMutation = new JSONObject()
-        .put("reply", "Không thay đổi authority.")
-        .put("choices", new JSONArray())
-        .put("encounterDialogue", new JSONArray())
-        .put(NarrativeSkeleton.ROOT_KEY,
-            new JSONObject().put("nextEvent", "forbidden"));
-    assertFalse(NarrationGuard.validate(narrationMutation, state).isEmpty());
   }
 }

@@ -28,7 +28,6 @@
 .topbar .eyebrow,.topbar h1{text-shadow:0 1px 2px #000,0 0 8px #000c}
 .topbar .eyebrow{color:#d6d0aa}
 .topbar .game-menu-trigger{background:rgba(13,16,18,.82);box-shadow:0 0 0 1px #0007,0 3px 12px #0006}
-.narration-prefetch-status{position:relative;z-index:1;align-self:center;margin-left:auto;font:700 10px/1 'Play','Pretendard Std',system-ui,sans-serif;letter-spacing:.06em;color:#d6d0aa;text-shadow:0 1px 2px #000,0 0 8px #000c;white-space:nowrap}
 
 /* BACKROOM_ACTION_ART_V2: IMG_API-generated artwork for PLAYER ACTION. */
 .player-action-bar #playerActionOpen{
@@ -69,7 +68,7 @@
 <body>
 <main class="shell">
 <section class="game">
-<header class="topbar"><div><div class="eyebrow">BACKROOM TEXT GAME</div><h1 id="title"></h1></div><span class="narration-prefetch-status" id="narrationPrefetchStatus" role="status" aria-live="polite" aria-label="Turn đã tải trước: 0/10">00/10</span><button class="game-menu-trigger" id="gameMenuOpen" type="button" aria-label="Mở menu game" aria-haspopup="dialog" aria-controls="gameMenuModal" aria-expanded="false">☰</button></header>
+<header class="topbar"><div><div class="eyebrow">BACKROOM TEXT GAME</div><h1 id="title"></h1></div><button class="game-menu-trigger" id="gameMenuOpen" type="button" aria-label="Mở menu game" aria-haspopup="dialog" aria-controls="gameMenuModal" aria-expanded="false">☰</button></header>
 <div class="snapshot" id="snapshot">LEVEL SNAPSHOT — LOCAL ASSET</div>
 <div class="log" id="log"></div>
 <div class="player-action-bar"><button id="playerActionOpen" type="button">PLAYER ACTION</button></div>
@@ -244,16 +243,7 @@ window.backroomLogExportStatus=message=>{
   byId("logExportStatus").hidden=false;
   byId("logExportStatus").textContent=message;
 };
-window.backroomNarrationFutureStatus=json=>{
-  let payload={};
-  try{payload=typeof json==="string"?JSON.parse(json):(json||{})}catch(_){}
-  const target=Math.max(1,Math.floor(Number(payload.target)||10));
-  const ready=Math.max(0,Math.min(target,Math.floor(Number(payload.ready)||0)));
-  const el=byId("narrationPrefetchStatus");
-  if(!el)return;
-  el.textContent=String(ready).padStart(2,"0")+"/"+target;
-  el.setAttribute("aria-label","Turn đã tải trước: "+ready+"/"+target);
-};
+
 window.addEventListener("error",event=>{
   if(window.Android&&Android.diagnosticEvent)Android.diagnosticEvent(JSON.stringify({event:"js.error",message:event.message,file:event.filename,line:event.lineno,column:event.colno,stack:event.error&&event.error.stack||""}));
 });
@@ -267,12 +257,12 @@ document.addEventListener("click",event=>{
 function partyDisplayItems(){const result=[];const seen=new Set();const add=x=>{if(!x)return;const name=typeof x==="string"?x:String(x.name||x.id||"").trim();if(!name)return;const key=name.toLocaleLowerCase("vi");if(seen.has(key))return;seen.add(key);result.push(typeof x==="string"?{name}:x)};add(state&&state.player||{name:"Cao Minh"});(Array.isArray(state&&state.party)?state.party:[]).filter(x=>x&&x.joined===true).forEach(add);return result}
 function render(){titleEl.textContent=levelTitle();locationEl.textContent=menuLocation(state);modeEl.textContent=state.mode==="ai"?"Artificial Intelligence Mode":String(state.mode||"—");playerEl.textContent=menuCharacter(state);partyEl.innerHTML=chips(partyDisplayItems());inventoryEl.innerHTML=chips(state.inventory);logEl.innerHTML=(state.log||[]).map(x=>"<article class='message "+(x.role==="player"?"player":"")+"'><div class='role'>"+(x.role==="player"?"BẠN":"GAME MASTER")+"</div><div class='text'>"+esc(x.role==="player"&&x.text==="__loot:open_chest"?"Mở rương":x.text)+"</div></article>").join("")}
 function save(){if(busy||window.__combatBusy)return;try{if(!window.Android||!Android.saveCheckpoint)throw Error("Core chưa sẵn sàng");Android.saveCheckpoint();statusEl.textContent="Đã lưu game."}catch(error){if(window.Android&&Android.diagnosticEvent)Android.diagnosticEvent(JSON.stringify({event:"ui.checkpoint.error",message:String(error),stack:error.stack||""}));statusEl.textContent=error.message||"Không thể lưu game."}}
-function load(){if(busy||window.__combatBusy)return;try{if(!window.Android||!Android.loadCheckpoint)throw Error("Core chưa sẵn sàng");state=ensureCurrentLevel(JSON.parse(Android.loadCheckpoint()));state.characterCanon=CURRENT_CHARACTER_CANON;render();if(window.backroomPrefetchChoices)window.backroomPrefetchChoices();statusEl.textContent="Đã tải bản lưu."}catch(error){if(window.Android&&Android.diagnosticEvent)Android.diagnosticEvent(JSON.stringify({event:"ui.checkpoint.error",message:String(error),stack:error.stack||""}));statusEl.textContent=error.message||"Chưa có bản lưu."}}
+function load(){if(busy||window.__combatBusy)return;try{if(!window.Android||!Android.loadCheckpoint)throw Error("Core chưa sẵn sàng");state=ensureCurrentLevel(JSON.parse(Android.loadCheckpoint()));state.characterCanon=CURRENT_CHARACTER_CANON;render();statusEl.textContent="Đã tải bản lưu."}catch(error){if(window.Android&&Android.diagnosticEvent)Android.diagnosticEvent(JSON.stringify({event:"ui.checkpoint.error",message:String(error),stack:error.stack||""}));statusEl.textContent=error.message||"Chưa có bản lưu."}}
 function freshCoreGame(){const fresh=JSON.parse(JSON.stringify(initial));return window.Android&&typeof Android.startNewGame==="function"?JSON.parse(Android.startNewGame(JSON.stringify(fresh))):fresh}
-function resetGame(){if(confirm("Bắt đầu lại từ đầu?")){state=freshCoreGame();render();if(window.backroomPrefetchChoices)window.backroomPrefetchChoices()}}
-function clearSave(){if(confirm("Xóa save trên máy?")){if(window.Android&&Android.clearCheckpoint)Android.clearCheckpoint();localStorage.removeItem("backroom-apk-state");state=freshCoreGame();render();if(window.backroomPrefetchChoices)window.backroomPrefetchChoices()}}
+function resetGame(){if(confirm("Bắt đầu lại từ đầu?")){state=freshCoreGame();render()}}
+function clearSave(){if(confirm("Xóa save trên máy?")){if(window.Android&&Android.clearCheckpoint)Android.clearCheckpoint();localStorage.removeItem("backroom-apk-state");state=freshCoreGame();render()}}
 formEl.addEventListener("submit",e=>{e.preventDefault();const a=actionEl.value.trim();if(!a||busy)return;if(!window.Android){window.__gmErrorMessage="Đang gặp lỗi. Vui lòng thử lại.";render();return}window.__gmErrorMessage="";busy=true;submitEl.disabled=true;window.Android.submitTurn(JSON.stringify(state),a)});
-window.backroomTurn=json=>{state=ensureCurrentLevel(JSON.parse(json));state.characterCanon=CURRENT_CHARACTER_CANON;actionEl.value="";busy=false;window.__combatBusy=false;window.__gmEnvironmentLoading=false;window.__gmErrorMessage="";submitEl.disabled=false;render();if(window.backroomPrefetchChoices)window.backroomPrefetchChoices()};
+window.backroomTurn=json=>{state=ensureCurrentLevel(JSON.parse(json));state.characterCanon=CURRENT_CHARACTER_CANON;actionEl.value="";busy=false;window.__combatBusy=false;window.__gmEnvironmentLoading=false;window.__gmErrorMessage="";submitEl.disabled=false;render()};
 window.backroomError=message=>{busy=false;window.__combatBusy=false;window.__gmEnvironmentLoading=false;submitEl.disabled=false;window.__gmErrorMessage="Đang gặp lỗi. Vui lòng thử lại.";if(message&&window.console&&typeof console.error==="function")console.error("GAME MASTER:",message);if(typeof render==="function")render()};
 window.backroomCommittedError=json=>{const payload=JSON.parse(json);state=ensureCurrentLevel(payload.state||state);state.characterCanon=CURRENT_CHARACTER_CANON;busy=false;window.__gmEnvironmentLoading=false;submitEl.disabled=false;window.__gmErrorMessage="Đang gặp lỗi. Vui lòng thử lại.";if(payload.message&&window.console&&typeof console.error==="function")console.error("GAME MASTER:",payload.message);render()};
 render();

@@ -137,7 +137,11 @@ jobs:
           ! grep -R -Fq 'state.story' android-apk/app/src/main/assets
           ! grep -R -Fq 'submitEnvironmentAction' android-apk/app/src/main android-apk/app/src/test
 
-          grep -Fq 'GmNarrativePacket.build' android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java
+          grep -Fq 'MEMORABLE EVENTS — chỉ các sự kiện lớn đã lưu' android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java
+          ! grep -Fq 'NarrationFutureBuffer' android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java
+          test ! -e android-apk/app/src/main/java/com/rabpit/backroom/core/NarrationFutureBuffer.java
+          test ! -e android-apk/app/src/main/java/com/rabpit/backroom/core/NarrationGuard.java
+          test ! -e android-apk/app/src/main/java/com/rabpit/backroom/core/SceneContextCompiler.java
           grep -Fq 'Android.submitTurn(JSON.stringify(state), text)' android-apk/app/src/main/assets/player-action-ui.js
           grep -Fq 'function submitExplorerChoice(entry, choice)' android-apk/app/src/main/assets/gm-choice-ui.js
           grep -Fq 'form.requestSubmit()' android-apk/app/src/main/assets/gm-choice-ui.js

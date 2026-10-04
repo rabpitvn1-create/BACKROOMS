@@ -266,27 +266,6 @@ public final class GameCoreFacade implements AutoCloseable {
     preferences.edit().remove(MANUAL_SAVE_KEY).remove(STATE_KEY).commit();
   }
 
-  public synchronized String validateWorldProposal(String selectedJson, String proposalJson) {
-    DiagnosticLog.record("core.validateWorldProposal", "selectedJson", selectedJson, "proposalJson", proposalJson);
-    JSONObject output = new JSONObject();
-    try {
-      JSONObject selected = parseState(selectedJson);
-      JSONObject raw = parseState(proposalJson);
-      String reason = emergentTurnEngine.worldProposalValidationReason(selected, raw);
-      output.put("valid", reason.isEmpty())
-          .put("reason", reason)
-          .put("proposal", emergentTurnEngine.sanitizeWorldProposal(selected, raw));
-    } catch (Exception e) {
-      DiagnosticLog.record("core.error", "error", e);
-      try {
-        output.put("valid", false)
-            .put("reason", safeMessage(e))
-            .put("proposal", new JSONObject());
-      } catch (Exception ignored) {}
-    }
-    return output.toString();
-  }
-
   public synchronized String completePreparedTurn(String turnId, String proposalJson) {
     DiagnosticLog.record("core.completePreparedTurn", "turnId", turnId, "proposalJson", proposalJson);
     JSONObject persisted = parseState(liveStateJson);
@@ -393,8 +372,7 @@ public final class GameCoreFacade implements AutoCloseable {
       }
       JSONObject gmEntry = new JSONObject(gmEntryJson);
       String text = gmEntry.optString("text", "");
-      if (!"gm".equals(gmEntry.optString("role", "")) || text.trim().isEmpty()
-          || SafePresentationView.leaks(state, text)) {
+      if (!"gm".equals(gmEntry.optString("role", "")) || text.trim().isEmpty()) {
         return response(false, state, null, "unsafe_presentation", null);
       }
       gmEntry = (JSONObject) SafePresentationView.value(state, "cao_minh", gmEntry);
@@ -426,6 +404,11 @@ public final class GameCoreFacade implements AutoCloseable {
       JSONArray entityKeys = selectedEntityKeys(selected);
       entityCore.activateEncounterCandidates(working, entityKeys);
       for (int i = 0; i < entityKeys.length(); i++) {
+        String key = entityKeys.optString(i, "");
+        if ("tam_ma_cao_minh".equals(key)) remember(working, "Đã gặp Tâm Ma Cao Minh.");
+        if ("diep_minh".equals(key)) remember(working, "Đã gặp Diệp Minh.");
+      }
+      for (int i = 0; i < entityKeys.length(); i++) {
         String entityKey = entityKeys.optString(i, "");
         JSONObject entityParams = new JSONObject(params.toString())
             .put("factPredicate", "entity_encounter_started")
@@ -452,6 +435,9 @@ public final class GameCoreFacade implements AutoCloseable {
 
     if ("CHARACTER".equals(kind)) {
       characterEncounterCore.activateEncounterCandidate(working, payload);
+      String name = CharacterEncounterCore.displayName(payload);
+      remember(working, "Đã gặp " + name + ".");
+      remember(working, name + " đã tham gia nhóm.");
       boolean reunion = "luc_tram".equals(payload);
       params.put("factPredicate", reunion ? "character_reunion" : "character_encountered")
           .put("factValue", payload);
@@ -489,6 +475,16 @@ public final class GameCoreFacade implements AutoCloseable {
             .put("causedBy", "player")
             .put("observedByPlayer", true),
         effects));
+  }
+
+  private static void remember(JSONObject state, String event) throws Exception {
+    JSONArray memory = state.optJSONArray("memorableEvents");
+    if (memory == null) memory = new JSONArray();
+    for (int i = 0; i < memory.length(); i++) {
+      if (event.equals(memory.optString(i, ""))) return;
+    }
+    memory.put(event);
+    state.put("memorableEvents", memory);
   }
 
   private static JSONArray selectedEntityKeys(JSONObject selected) throws Exception {
@@ -785,413 +781,6 @@ public final class GameCoreFacade implements AutoCloseable {
     }
   }
 
-
-  public synchronized String levelPromptContext(String stateJson) {
-    DiagnosticLog.record("core.levelPromptContext", "stateJson", stateJson);
-    return levelPromptContext(stateJson, "");
-  }
-
-  public synchronized String levelPromptContext(String stateJson, String action) {
-    DiagnosticLog.record("core.levelPromptContext", "stateJson", stateJson, "action", action);
-    JSONObject state = parseState(stateJson);
-    try {
-      levelCore.normalizeState(state);
-      return levelCore.promptContext(state, action);
-    } catch (Exception e) {
-      DiagnosticLog.record("core.error", "error", e);
-      return "CURRENT LEVEL: 0\nLEVEL CANON: unavailable";
-    }
-  }
-
-  public synchronized String levelSceneContext(String stateJson, String action) {
-    DiagnosticLog.record("core.levelSceneContext", "stateJson", stateJson, "action", action);
-    JSONObject state = parseState(stateJson);
-    try {
-      levelCore.normalizeState(state);
-      return levelCore.scenePromptContext(state, action);
-    } catch (Exception e) {
-      DiagnosticLog.record("core.error", "error", e);
-      return "LEVEL: current node unavailable.";
-    }
-  }
-
-  public synchronized String characterSceneContext(String stateJson) {
-    DiagnosticLog.record("core.characterSceneContext", "stateJson", stateJson);
-    JSONObject state = parseState(stateJson);
-    try {
-      levelCore.normalizeState(state);
-      characterEncounterCore.normalizeState(state);
-      return characterEncounterCore.scenePromptContext(state);
-    } catch (Exception e) {
-      DiagnosticLog.record("core.error", "error", e);
-      return "PRESENT: Cao Minh. PENDING INTRO: unknown.";
-    }
-  }
-
-  public synchronized String narrativeSceneContinuityContext(String stateJson, String action) {
-    DiagnosticLog.record("core.narrativeSceneContinuityContext", "stateJson", stateJson, "action", action);
-    JSONObject state = parseState(stateJson);
-    try {
-      emergentTurnEngine.normalizeState(state);
-      emergentTurnEngine.catchUpProjections(state);
-      return NarrativeSkeleton.sceneContext(
-          state.getJSONObject(EmergentTurnEngine.ROOT_KEY), state, action);
-    } catch (Exception e) {
-      DiagnosticLog.record("core.error", "error", e);
-      return "";
-    }
-  }
-
-  /**
-   * Writer-only deterministic tail forecast for the next default world advances.
-   * Callers append missing slots only; an existing prepared slot is never replaced by a later forecast.
-   */
-  public synchronized String oracleWindow(String stateJson) {
-    DiagnosticLog.record("core.oracleWindow", "stateJson", stateJson);
-    return oracleWindow(stateJson, 6);
-  }
-
-  /** Bounded background forecast; preserves the six-step foreground API. */
-  public synchronized String oracleWindow(String stateJson, int requestedSteps) {
-    DiagnosticLog.record("core.oracleWindow", "stateJson", stateJson, "requestedSteps", requestedSteps);
-    int windowSteps = Math.max(1, Math.min(NarrationFutureBuffer.TARGET, requestedSteps));
-    JSONObject output = new JSONObject();
-    JSONObject submitted = parseState(stateJson);
-    JSONObject persisted = parseState(liveStateJson);
-    JSONObject base = persisted.length() > 0 ? persisted : submitted;
-    try {
-      JSONObject forecast = deepCopy(base);
-      normalizeCoreState(forecast);
-      emergentTurnEngine.normalizeState(forecast);
-      emergentTurnEngine.catchUpProjections(forecast);
-      output.put("baseHash", oracleAuthorityHash(base)).put("baseState", deepCopy(base));
-      JSONArray steps = new JSONArray();
-      if (CombatChoiceEngine.isActive(forecast)) {
-        output.put("context", "CORE ORACLE WINDOW: paused while combat is active.")
-            .put("steps", steps);
-        return output.toString();
-      }
-
-      StringBuilder out = new StringBuilder();
-      out.append("CORE ORACLE WINDOW — HIDDEN WRITER KNOWLEDGE\n")
-          .append("Each slot follows the same single Core-routed default action the UI would expose. ")
-          .append("Use this window only to append missing tail slots; slots already prepared by the writer are immutable.\n");
-
-      for (int step = 1; step <= windowSteps; step++) {
-        String defaultAction = GmChoiceContract.defaultCoreAction(forecast);
-        PreparedTurn prepared = prepareExplorerTurnData(forecast, defaultAction);
-        JSONObject selected = prepared.selected;
-        JSONObject route = prepared.working.optJSONObject(LevelCore.ROUTE_STATE);
-        String routeResult = route == null ? "" : route.optString("lastResult", "").trim();
-
-        JSONObject stepInfo = new JSONObject()
-            .put("offset", step)
-            .put("turnId", prepared.turnId)
-            .put("action", defaultAction)
-            .put("routeResult", routeResult)
-            .put("worldKind", selected.optBoolean("selectedNone", false)
-                ? "QUIET" : selected.optString("kind", "WORLD"))
-            .put("payloadKey", selected.optString("payloadKey", ""))
-            .put("payloadKeys", selectedEntityKeys(selected))
-            .put("levelKey", prepared.working.optString("currentLevelKey",
-                String.valueOf(prepared.working.optInt("currentLevel", 0))));
-
-        out.append("STEP +").append(step).append(": action=").append(defaultAction).append("; ");
-        if (!routeResult.isEmpty()) {
-          out.append("explorer=").append(routeResult).append("; ");
-        } else {
-          out.append("explorer=NO_ROUTE_ROLL; ");
-        }
-
-        if (selected.optBoolean("selectedNone", false)) {
-          out.append("world=QUIET");
-        } else {
-          String kind = selected.optString("kind", "WORLD").trim();
-          String payload = selected.optString("payloadKey", "").trim();
-          out.append("world=").append(kind.isEmpty() ? "WORLD" : kind);
-          if (!payload.isEmpty()) out.append(":").append(payload);
-          String summary = selected.optString("publicSummary", "").trim();
-          if (!summary.isEmpty()) out.append("; summary=").append(summary.replace('\n', ' '));
-        }
-        out.append('\n');
-
-        JSONObject next = finishWorkingTurn(forecast, prepared, new JSONObject());
-        projectBeforePersist(next);
-        emergentTurnEngine.catchUpProjections(next);
-        JSONObject forecastEvidence =
-            CommittedTurnNarrationEvidence.fromState(next, prepared.turnId);
-        JSONArray forecastEvents = forecastEvidence.optBoolean("available", false)
-            ? safePresentationEvents(next, forecastEvidence) : new JSONArray();
-        stepInfo.put("authorityHash", oracleAuthorityHash(next))
-            .put("presentationEvents", forecastEvents)
-            .put("sceneState", deepCopy(next));
-        if (forecastEvents.length() > 0) {
-          out.append("STEP +").append(step).append(" PRESENTATION EVENTS: ")
-              .append(forecastEvents.toString()).append('\n');
-        }
-        steps.put(stepInfo);
-
-        if ("ENTITY".equals(selected.optString("kind", ""))) {
-          next = advanceOraclePastEntityCombat(next, selected, step);
-        }
-        if ("CHARACTER".equals(selected.optString("kind", ""))) {
-          characterEncounterCore.acknowledgePendingIntro(next);
-        }
-        forecast = deepCopy(next);
-      }
-
-      out.append("ORACLE CONTRACT: use future knowledge only to append missing tail slots and write their fixed outcomes. ")
-          .append("Do not reveal, imply or instantiate a future Entity, chest, member meeting, route result or hidden identity ")
-          .append("before its prepared turn. Later live-state changes never rewrite slots already accepted by the rolling buffer.");
-      output.put("context", out.toString()).put("steps", steps);
-      return output.toString();
-    } catch (Exception e) {
-      DiagnosticLog.record("core.error", "error", e);
-      try {
-        output.put("context", "CORE ORACLE WINDOW: unavailable. Do not invent future outcomes.")
-            .put("steps", new JSONArray());
-      } catch (Exception ignored) {}
-      return output.toString();
-    }
-  }
-
-  private JSONObject advanceOraclePastEntityCombat(
-      JSONObject encounterState, JSONObject selected, int oracleStep) throws Exception {
-    JSONObject before = deepCopy(encounterState);
-    JSONObject resolved = deepCopy(encounterState);
-    JSONObject flags = resolved.optJSONObject("flags");
-    if (flags != null) {
-      flags.put("entityEncounterKey", "");
-      flags.put("entityEncounterKeys", new JSONArray());
-    }
-    incrementTurn(resolved);
-
-    JSONArray entityKeys = selectedEntityKeys(selected);
-    String entityKey = entityKeys.optString(0, "");
-    String turnId = emergentTurnEngine.nextTurnId(
-        before, "oracle:entity-victory:" + stringArraySignature(entityKeys) + ":" + oracleStep);
-    JSONArray effects = new JSONArray();
-    for (int i = 0; i < entityKeys.length(); i++) {
-      String key = entityKeys.optString(i, "");
-      if (!key.isEmpty()) effects.put(emergentTurnEngine.threadEffect(
-          "ENTITY_ENCOUNTER", new JSONArray().put(key), "TERMINATE", "RESOLVED"));
-    }
-    JSONArray events = new JSONArray();
-    events.put(emergentTurnEngine.event(
-        turnId, events, "COMBAT_VICTORY", "LOCAL",
-        entityKey.isEmpty() ? "combat" : entityKey,
-        new JSONObject()
-            .put("factPredicate", "combat_resolution")
-            .put("factValue", "victory")
-            .put("entityRefs", new JSONArray(entityKeys.toString()))
-            .put("causedBy", "player")
-            .put("observedByPlayer", true),
-        effects));
-
-    emergentTurnEngine.validateBatch(turnId, events);
-    emergentTurnEngine.commitAuthoritative(before, resolved, turnId, events, null);
-    projectBeforePersist(resolved);
-    emergentTurnEngine.catchUpProjections(resolved);
-    return resolved;
-  }
-
-  public static boolean oracleCacheOutcomeMatches(JSONObject committedState, JSONObject slot) {
-    if (committedState == null || slot == null) return false;
-    try {
-      JSONObject root = committedState.optJSONObject(EmergentTurnEngine.ROOT_KEY);
-      JSONObject selection = root == null ? null : root.optJSONObject("lastSelection");
-      if (selection == null) return false;
-
-      String actualKind = selection.optBoolean("selectedNone", false)
-          ? "QUIET" : selection.optString("kind", "WORLD").trim();
-      if (actualKind.isEmpty()) actualKind = "WORLD";
-      if (!slot.optString("worldKind", "").trim().equals(actualKind)) return false;
-
-      if (!payloadSignature(selection).equals(payloadSignature(slot))) return false;
-
-      String actualLevel = committedState.optString(LevelCore.LEVEL_KEY,
-          String.valueOf(committedState.optInt("currentLevel", 0))).trim();
-      if (!slot.optString("levelKey", "").trim().equals(actualLevel)) return false;
-
-      JSONObject route = committedState.optJSONObject(LevelCore.ROUTE_STATE);
-      String actualRoute = route == null ? "" : route.optString("lastResult", "").trim();
-      return slot.optString("routeResult", "").trim().equals(actualRoute);
-    } catch (Exception ignored) {
-      return false;
-    }
-  }
-
-  public synchronized String oracleSceneContext(String stateJson) {
-    DiagnosticLog.record("core.oracleSceneContext", "stateJson", stateJson);
-    try {
-      return new JSONObject(oracleWindow(stateJson)).optString(
-          "context", "CORE ORACLE WINDOW: unavailable. Do not invent future outcomes.");
-    } catch (Exception e) {
-      DiagnosticLog.record("core.error", "error", e);
-      return "CORE ORACLE WINDOW: unavailable. Do not invent future outcomes.";
-    }
-  }
-
-  public static String oracleAuthorityHash(JSONObject snapshot) {
-    try {
-      JSONObject authoritative = new JSONObject(snapshot == null ? "{}" : snapshot.toString());
-      authoritative.remove("log");
-      return fingerprint(authoritative);
-    } catch (Exception e) {
-      DiagnosticLog.record("core.error", "error", e);
-      throw new IllegalStateException("Cannot fingerprint oracle authority state", e);
-    }
-  }
-
-  public synchronized String narrativeContinuityContext(String stateJson) {
-    DiagnosticLog.record("core.narrativeContinuityContext", "stateJson", stateJson);
-    JSONObject state = parseState(stateJson);
-    try {
-      emergentTurnEngine.normalizeState(state);
-      emergentTurnEngine.catchUpProjections(state);
-      return NarrativeSkeleton.promptContext(state.getJSONObject(EmergentTurnEngine.ROOT_KEY));
-    } catch (Exception e) {
-      DiagnosticLog.record("core.error", "error", e);
-      return "LONG-HORIZON CONTINUITY MEMORY: unavailable. Do not invent prior continuity.";
-    }
-  }
-
-  public synchronized String characterPromptContext(String stateJson) {
-    DiagnosticLog.record("core.characterPromptContext", "stateJson", stateJson);
-    JSONObject state = parseState(stateJson);
-    try {
-      levelCore.normalizeState(state);
-      characterEncounterCore.normalizeState(state);
-      return characterEncounterCore.promptContext(state);
-    } catch (Exception e) {
-      DiagnosticLog.record("core.error", "error", e);
-      return "CHARACTER ENCOUNTER CORE: unavailable. Do not spawn characters or mutate Party.";
-    }
-  }
-
-  public synchronized String entityPromptContext(String stateJson) {
-    DiagnosticLog.record("core.entityPromptContext", "stateJson", stateJson);
-    JSONObject state = parseState(stateJson);
-    try {
-      levelCore.normalizeState(state);
-      return entityCore.promptContext(state);
-    } catch (Exception e) {
-      DiagnosticLog.record("core.error", "error", e);
-      return "ENTITY CORE: unavailable. Do not invent an Entity.";
-    }
-  }
-
-  public synchronized String itemPromptContext(String stateJson) {
-    DiagnosticLog.record("core.itemPromptContext", "stateJson", stateJson);
-    JSONObject state = parseState(stateJson);
-    try {
-      levelCore.normalizeState(state);
-      return itemCore.promptContext(state);
-    } catch (Exception e) {
-      DiagnosticLog.record("core.error", "error", e);
-      return "ITEM CORE: unavailable. Do not invent or grant loot.";
-    }
-  }
-
-  public synchronized String processItemAction(String stateJson, String itemId, String operation,
-                                               String targetId, int quantity) {
-    DiagnosticLog.record("core.processItemAction", "stateJson", stateJson, "itemId", itemId, "operation", operation, "targetId", targetId, "quantity", quantity);
-    return processItemAction(stateJson, "cao_minh", itemId, operation, targetId, quantity);
-  }
-
-  public synchronized String processItemAction(String stateJson, String ownerId, String itemId,
-                                               String operation, String targetId, int quantity) {
-    DiagnosticLog.record("core.processItemAction", "stateJson", stateJson, "ownerId", ownerId, "itemId", itemId, "operation", operation, "targetId", targetId, "quantity", quantity);
-    JSONObject submitted = parseState(stateJson);
-    JSONObject persisted = parseState(liveStateJson);
-    if (persisted.length() == 0) persisted = submitted;
-    try {
-      normalizeCoreState(persisted);
-      emergentTurnEngine.normalizeState(persisted);
-      JSONObject working = deepCopy(persisted);
-      String turnId = emergentTurnEngine.nextTurnId(
-          persisted, "item:" + ownerId + ":" + itemId + ":" + operation + ":" + targetId + ":" + quantity);
-      String reply = itemCore.applyItemAction(working, ownerId, itemId, operation, targetId, quantity);
-
-      JSONArray events = new JSONArray();
-      events.put(emergentTurnEngine.event(turnId, events, "ITEM_ACTION_RESOLVED", "LOCAL",
-          targetId == null || targetId.trim().isEmpty() ? ownerId : targetId,
-          new JSONObject()
-              .put("factPredicate", "item_action")
-              .put("factValue", itemId + ":" + operation + ":" + Math.max(1, quantity))
-              .put("causedBy", "player")
-              .put("observedByPlayer", true),
-          null));
-      emergentTurnEngine.validateBatch(turnId, events);
-      emergentTurnEngine.commitAuthoritative(persisted, working, turnId, events, null);
-      working.put("saveVersion", CURRENT_SAVE_VERSION);
-      projectBeforePersist(working);
-      emergentTurnEngine.catchUpProjections(working);
-      persist(working);
-      return response(true, working, null, "item_action_committed", reply);
-    } catch (Exception e) {
-      DiagnosticLog.record("core.error", "error", e);
-      return response(false, persisted, safeMessage(e), "item_action_rejected", null);
-    }
-  }
-
-  public synchronized String processCoreUpgrade(String stateJson, String characterId, String stat) {
-    DiagnosticLog.record("core.processCoreUpgrade", "stateJson", stateJson, "characterId", characterId, "stat", stat);
-    JSONObject submitted = parseState(stateJson);
-    JSONObject persisted = parseState(liveStateJson);
-    if (persisted.length() == 0) persisted = submitted;
-    try {
-      normalizeCoreState(persisted);
-      emergentTurnEngine.normalizeState(persisted);
-      if (CombatChoiceEngine.isActive(persisted)) {
-        return response(false, persisted,
-            "Battle đang hoạt động. Hãy hoàn tất Poker Dice trước khi nâng chỉ số.",
-            "combat_locked", null);
-      }
-
-      JSONObject working = deepCopy(persisted);
-      String turnId = emergentTurnEngine.nextTurnId(
-          persisted, "upgrade:" + characterId + ":" + stat);
-      JSONObject result = characterProgressionCore.upgradeStat(working, characterId, stat);
-      characterDetailCore.projectState(working);
-
-      JSONArray events = new JSONArray();
-      events.put(emergentTurnEngine.event(turnId, events, "CHARACTER_STAT_UPGRADED", "LOCAL",
-          result.getString("characterId"),
-          new JSONObject()
-              .put("factPredicate", "stat_upgraded")
-              .put("factValue", result.getString("stat") + ":" + result.getInt("value"))
-              .put("causedBy", "player")
-              .put("observedByPlayer", true),
-          null));
-      emergentTurnEngine.validateBatch(turnId, events);
-      emergentTurnEngine.commitAuthoritative(persisted, working, turnId, events, null);
-      working.put("saveVersion", CURRENT_SAVE_VERSION);
-      projectBeforePersist(working);
-      emergentTurnEngine.catchUpProjections(working);
-      persist(working);
-
-      String reply = result.getString("stat") + " của " + result.getString("characterId")
-          + " tăng lên " + result.getInt("value") + ". -" + result.getInt("cost")
-          + " Core.";
-      return response(true, working, null, "core_upgrade_committed", reply);
-    } catch (Exception e) {
-      DiagnosticLog.record("core.error", "error", e);
-      return response(false, persisted, safeMessage(e), "core_upgrade_rejected", null);
-    }
-  }
-
-  public synchronized String levelSnapshotDescriptor(String stateJson) {
-    DiagnosticLog.record("core.levelSnapshotDescriptor", "stateJson", stateJson);
-    JSONObject state = parseState(stateJson);
-    try {
-      levelCore.normalizeState(state);
-      return levelCore.snapshotDescriptor(state);
-    } catch (Exception e) {
-      DiagnosticLog.record("core.error", "error", e);
-      return "{\"level\":0}";
-    }
-  }
 
   public synchronized String normalizeState(String stateJson) {
     DiagnosticLog.record("core.normalizeState", "stateJson", stateJson);
@@ -1515,9 +1104,12 @@ public final class GameCoreFacade implements AutoCloseable {
 
   private void persist(JSONObject state) {
     projectBeforePersist(state);
-    String before = liveStateJson;
     liveStateJson = state == null ? "{}" : state.toString();
-    DiagnosticLog.record("state.commit", "before", before, "after", liveStateJson);
+    JSONObject root = state == null ? null : state.optJSONObject(EmergentTurnEngine.ROOT_KEY);
+    DiagnosticLog.record("state.commit",
+        "turn", state == null ? -1 : state.optInt("turn", -1),
+        "levelKey", state == null ? "" : state.optString(LevelCore.LEVEL_KEY, ""),
+        "stateVersion", root == null ? -1 : root.optInt("stateVersion", -1));
   }
 
   private void projectBeforePersist(JSONObject state) {

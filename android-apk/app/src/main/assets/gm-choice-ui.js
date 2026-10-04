@@ -250,8 +250,8 @@
 
   function displayedExplorerChoices(entry) {
     var generated = entry && Array.isArray(entry.choices) ? entry.choices : [];
-    var choice = generated.length ? generated[0] : fallbackExplorerChoice();
-    return choice ? [Object.assign({}, choice)] : [];
+    if (!generated.length) return [fallbackExplorerChoice()];
+    return generated.slice(0, 3).map(function(choice){ return Object.assign({}, choice); });
   }
 
   function submitChestChoice() {
@@ -327,7 +327,7 @@
     var box = document.createElement('div');
     box.className = 'gm-choices explorer-choices';
 
-    choices.slice(0, 1).forEach(function(choice){
+    choices.slice(0, 3).forEach(function(choice){
       var disabled = !actionable || !!choice.disabled || !!choice.selected;
       box.appendChild(makeChoiceButton('', choice.text || choice.action || '', entry,
         choice.highlights || [], disabled, !!choice.selected,
@@ -917,21 +917,7 @@
     scrollGmSystemMessage();
   };
 
-  window.backroomPrefetchChoices = function(){
-    if (!window.Android || typeof Android.prefetchChoices !== 'function' || !state
-        || (state.combat && state.combat.active)
-        || (state.flags && state.flags.entityEncounterKey)) return;
-    var index = lastGmIndex();
-    var entry = index < 0 ? null : state.log[index];
-    if (!entry || index !== state.log.length - 1) return;
-    var choices = displayedExplorerChoices(entry);
-    if (choices.length !== 1) return;
-    var actions = choices.map(function(choice, i){
-      return {id:String.fromCharCode(65 + i),action:String(choice.action || choice.text || '').trim()};
-    });
-    if (actions.some(function(choice){return !choice.action;})) return;
-    Android.prefetchChoices(JSON.stringify(actions));
-  };
+
 
   window.render();
   scrollForCurrentMode();
