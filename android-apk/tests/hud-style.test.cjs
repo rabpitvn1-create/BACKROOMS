@@ -41,18 +41,21 @@ test('PLAYER ACTION and THUC HIEN return to standard dark button style without a
   assert.match(index,/#submit\{min-height:52px/);
 });
 
-test('combat dice use true six-face ivory cubes with animated hold seals',()=>{
-  assert.match(gmChoice,/\.combat-die-cube\{[^}]*transform-style:preserve-3d/);
-  assert.match(gmChoice,/\.combat-die-face\.front\{transform:translateZ\(var\(--cube-half\)\)\}/);
-  assert.match(gmChoice,/\.combat-die-face\.back\{transform:rotateY\(180deg\) translateZ\(var\(--cube-half\)\)\}/);
-  assert.match(gmChoice,/\.combat-die\.rolling \.combat-die-cube\{animation:combat-die-cube-tumble \.68s/);
-  assert.match(gmChoice,/\.combat-die\.held \.combat-die-hold-ring\{[^}]*repeating-conic-gradient/);
-  assert.match(gmChoice,/\.combat-die\.held \.combat-die-hold-seal\{[^}]*animation:combat-die-hold-seal 1\.8s/);
-  assert.match(gmChoice,/\.combat-die\.settling \.combat-die-object\{animation:combat-die-settle \.17s/);
+test('combat dice share an ivory silhouette and keep one clear value per local asset',()=>{
+  assert.match(gmChoice,/\.combat-die-skin\{[^}]*object-fit:contain/);
+  assert.match(gmChoice,/\.combat-die\.held\{[^}]*border-color:/);
+  assert.match(gmChoice,/seal\.textContent='GIỮ'/);
+  assert.doesNotMatch(gmChoice,/鎖|combat-die-hold-ring|combat-die-held-float/);
+  let sharedBody;
   for(let i=1;i<=6;i++){
     const die=fs.readFileSync(path.join(assets,'dice','die-'+i+'.svg'),'utf8');
-    assert.doesNotMatch(die,/<rect\b/);
-    assert.match(die,/<circle\b/);
+    const pips=die.match(/<g id="value-pips"[^>]*>([\s\S]*?)<\/g>/)[1];
+    assert.equal((pips.match(/<circle\b/g)||[]).length,i);
+    const silhouette=die.split('<defs>')[1].split('<g id="value-pips"')[0];
+    if(sharedBody)assert.equal(silhouette,sharedBody);
+    sharedBody=silhouette;
+    assert.match(die,/<title id="title">Xúc xắc mặt /);
+    assert.doesNotMatch(die,/<image\b|<script\b|href=/);
   }
 });
 
