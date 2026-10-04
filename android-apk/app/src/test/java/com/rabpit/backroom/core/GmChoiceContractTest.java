@@ -98,6 +98,21 @@ public class GmChoiceContractTest {
   }
 
 
+  @Test public void encounterDialogueAlreadyQuotedInReplyIsNotRepeated() {
+    String repeated = "Tôi không biết anh là ai hay bằng cách nào rơi vào đây. "
+        + "Nhưng nếu anh là thứ gì đó giả dạng... thì đống kim loại này sẽ "
+        + "ghim thẳng vào đầu anh trước khi anh kịp bước thêm một bước.";
+    String reply = "Người phụ nữ chĩa vũ khí về phía Cao Minh. \"" + repeated + "\"";
+    JSONArray dialogue = new JSONArray()
+        .put("Đứng yên. Không di chuyển.")
+        .put(repeated)
+        .put("Đứng yên. Không di chuyển.");
+
+    assertEquals(reply + "\n\nĐứng yên. Không di chuyển.",
+        GmChoiceContract.mergeEncounterDialogue(reply, dialogue));
+  }
+
+
   @Test public void choiceNormalizerRemovesCommonEnglishActionLeakage() throws Exception {
     JSONArray input = new JSONArray().put(new JSONObject().put("text",
         "Move forward through the corridor and inspect the door, then listen nearby"));

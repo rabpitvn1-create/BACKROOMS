@@ -28,6 +28,8 @@ public final class GmNarrativePacket {
         + "RECENT:\n" + scene.recentContext + "\n"
         + "PLAYER ACTION: " + scene.playerAction + "\n"
         + "OUTPUT chỉ JSON: {\"reply\":\"...\",\"choices\":[{\"text\":\"...\"}],\"encounterDialogue\":[]}. "
+        + "encounterDialogue chỉ chứa lời thoại tách riêng chưa xuất hiện trong reply; "
+        + "không lặp lại nguyên câu hoặc đoạn thoại đã có trong reply. "
         + "choices có 0-3 gợi ý hành động, không phải outcome; thoại theo nhân vật Core xác nhận.";
   }
 
@@ -123,6 +125,8 @@ public final class GmNarrativePacket {
         + "PLAYER ACTION: " + safe(action) + "\n"
         + "OUTPUT chỉ JSON: {\"reply\":\"...\",\"choices\":[{\"text\":\"...\"}],"
         + "\"encounterDialogue\":[]}. "
+        + "encounterDialogue chỉ chứa lời thoại tách riêng chưa xuất hiện trong reply; "
+        + "không lặp lại nguyên câu hoặc đoạn thoại đã có trong reply. "
         + "choices có 0-3 gợi ý ngắn; encounterDialogue chỉ dùng khi Character Core có pending intro.";
     return SafePresentationView.narrativeText(state, packet);
   }

@@ -208,6 +208,7 @@ public class GmNarrativePacketTest {
     assertTrue(packet.contains("RECENT_MARKER"));
     assertTrue(packet.contains("MILESTONE_NODE_MARKER"));
     assertTrue(packet.contains("CONTINUITY_MARKER"));
+    assertTrue(packet.contains("không lặp lại nguyên câu hoặc đoạn thoại đã có trong reply"));
     assertFalse(packet.contains("MARKDOWN CANON"));
     assertFalse(packet.contains("LONG-HORIZON CONTINUITY MEMORY"));
     assertFalse(packet.contains("ENTITY CORE:"));

@@ -737,18 +737,6 @@ public class MainActivity extends Activity {
     return new JSONObject(text.substring(start, end + 1));
   }
 
-  private String appendEncounterDialogue(String reply, JSONArray dialogue) {
-    if (dialogue == null || dialogue.length() == 0) return reply;
-    StringBuilder output = new StringBuilder(reply == null ? "" : reply.trim());
-    for (int i = 0; i < dialogue.length(); i++) {
-      String line = dialogue.optString(i, "").trim();
-      if (line.isEmpty()) continue;
-      if (output.length() > 0) output.append("\n\n");
-      output.append(line);
-    }
-    return output.toString();
-  }
-
   private String encounterKey(JSONObject state) {
     JSONObject flags = state == null ? null : state.optJSONObject("flags");
     return flags == null ? "" : flags.optString("entityEncounterKey", "").trim().toLowerCase();
@@ -1165,7 +1153,7 @@ public class MainActivity extends Activity {
 
           JSONArray encounterDialogue = generated.optJSONArray("encounterDialogue");
           if (encounterDialogue == null) encounterDialogue = new JSONArray();
-          reply = appendEncounterDialogue(reply, encounterDialogue);
+          reply = GmChoiceContract.mergeEncounterDialogue(reply, encounterDialogue);
 
           JSONObject gmEntry = GmChoiceContract.gmEntry(reply, generated, state);
           gmEntry.put("sceneLevelKey", state.optString("currentLevelKey", String.valueOf(state.optInt("currentLevel", 0))));
