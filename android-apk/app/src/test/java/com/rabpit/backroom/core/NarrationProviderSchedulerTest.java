@@ -40,6 +40,26 @@ public class NarrationProviderSchedulerTest {
     assertEquals(NarrationProviderScheduler.HAKU, scheduler.acquire(true, true, active(), none(), 0, 0));
     assertEquals(NarrationProviderScheduler.SOL, scheduler.acquire(false, false, active(), none(), 1, 0));
   }
+  @Test public void foregroundFallbackReachesGeminiBeforeSolAfterPrimaryFailures() {
+    NarrationProviderScheduler scheduler = new NarrationProviderScheduler();
+    boolean[] tried = none();
+    boolean[] configured = active();
+
+    int gehihi = scheduler.acquire(false, false, configured, tried, 0, 0);
+    assertEquals(NarrationProviderScheduler.GEHIHI, gehihi);
+    tried[gehihi] = true;
+    scheduler.failed(gehihi, false, 0, 0, 0, 0, 0);
+
+    int haku = scheduler.acquire(false, false, configured, tried, 0, 1);
+    assertEquals(NarrationProviderScheduler.HAKU, haku);
+    tried[haku] = true;
+    scheduler.failed(haku, false, 0, 1, 0, 0, 0);
+
+    int fallback = scheduler.acquire(false, false, configured, tried, 0, 2);
+    assertTrue(fallback >= 0 && fallback < NarrationProviderScheduler.GEMINI_COUNT);
+    assertNotEquals(NarrationProviderScheduler.SOL, fallback);
+  }
+
   @Test public void twoGeminiFailuresReachHakuAndOverloadRestsWholeModel() {
     NarrationProviderScheduler scheduler = new NarrationProviderScheduler();
     boolean[] tried = none();

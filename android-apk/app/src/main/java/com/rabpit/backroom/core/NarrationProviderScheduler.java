@@ -100,7 +100,9 @@ public final class NarrationProviderScheduler {
     long measured = latency[source] == 0 ? 2_000L : latency[source];
     long preference;
     if (foregroundPriority) {
-      preference = source == GEHIHI ? 0L : source == HAKU ? 1_000L : source == SOL ? 2_000L : source < GEMINI_COUNT ? 3_000L : 5_000L;
+      // Foreground only gets a small bounded attempt budget. Keep one Gemini project
+      // ahead of SOL so a healthy JSON-native provider is not starved when Gehihi/Haku fail.
+      preference = source == GEHIHI ? 0L : source == HAKU ? 1_000L : source < GEMINI_COUNT ? 2_000L : source == SOL ? 3_000L : 5_000L;
     } else {
       preference = source == GEHIHI ? 0L : source == HAKU ? 1_000L : source < GEMINI_COUNT ? 2_000L : source == SOL ? 3_000L : 5_000L;
     }
