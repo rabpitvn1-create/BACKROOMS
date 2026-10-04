@@ -47,7 +47,7 @@ Main Game Core owns Entity spawning through `EntityCore` and `app/src/main/asset
 - `tam_ma_cao_minh` remains a roaming Treasure Entity: configured **4.00%**, effective **12.00%** after the same multiplier.
 - Entity canon still governs behavior, capabilities and encounter portrayal after the Core has spawned it.
 - If an Entity encounter is already active, Core does not roll a replacement Entity.
-- If multiple independent rolls succeed on the same turn, Core selects one of those successful rolls because runtime supports one active encounter overlay at a time.
+- If multiple independent rolls succeed on the same turn, every successful Entity becomes part of the same active encounter. Combat keeps all living Entities in `combat.entities`, Scene Director narrates all committed encounter events, and Snapshot renders every living Entity while highlighting the currently active combat Entity.
 - Gemini does not choose the spawned Entity and cannot replace `flags.entityEncounterKey`.
 - `jane_the_killer`, `slenderman`, `diep_minh`, and the former roaming standard roster are legacy/local-only records. Their canon/presentation data is retained, and the former standard records also retain their old level/rate/skill metadata, but none of them are eligible for random spawning. `diep_minh` keeps its dedicated legacy/boss canon payload plus `android-apk/DIEP_MINH_CANON.md`.
 

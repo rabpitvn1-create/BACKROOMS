@@ -62,21 +62,34 @@ test('snapshot route streak HUD is compact, transparent and reads the 5-step rou
 });
 
 test('combat actor changes use rotation transitions instead of snapshot blinking',()=>{assert.match(source,/function rotateCombatActor\(/);assert.match(source,/@keyframes combat-turn-out/);assert.match(source,/@keyframes combat-turn-in/);});
-test('active Entity rotation preserves the existing player actor and snapshot background',()=>{
+test('multi-Entity combat keeps every living Entity visible and only changes the active highlight',()=>{
  const r=boot({stateOverride:{flags:{entityEncounterKeys:['hound','clump'],entityEncounterKey:'hound'},combat:{active:true,actorIndex:0,activeEntityIndex:0,participants:[{id:'cao_minh',name:'Cao Minh'}],entities:[{key:'hound',hp:10},{key:'clump',hp:10}],entity:{key:'hound',hp:10}}}});
  r.ctx.backroomSetCombatVisualActor(0,'hound');
  const actor=r.elements.find(e=>String(e.className||'').includes('snapshot-combat-character'));
  const background=r.elements.find(e=>String(e.className||'')==='snapshot-placeholder');
- const firstEntity=r.elements.find(e=>String(e.className||'').includes('snapshot-entity'));
- assert.ok(actor);assert.ok(background);assert.ok(firstEntity);
+ const before=r.elements.filter(e=>String(e.className||'').includes('snapshot-entity'));
+ assert.ok(actor);assert.ok(background);assert.equal(before.length,2);
+ assert.deepEqual(before.map(e=>e.dataset.entityKey).sort(),['clump','hound']);
+ assert.ok(before.find(e=>e.dataset.entityKey==='hound').className.includes('snapshot-entity-active'));
  r.ctx.backroomSetCombatVisualActor(0,'clump');
  const actorAfter=r.elements.find(e=>String(e.className||'').includes('snapshot-combat-character'));
  const backgroundAfter=r.elements.find(e=>String(e.className||'')==='snapshot-placeholder');
- const activeEntity=r.elements.find(e=>String(e.className||'').includes('snapshot-entity'));
+ const after=r.elements.filter(e=>String(e.className||'').includes('snapshot-entity'));
  assert.equal(actorAfter,actor);
  assert.equal(backgroundAfter,background);
- assert.notEqual(activeEntity,firstEntity);
- assert.equal(activeEntity.dataset.entityKey,'clump');
+ assert.equal(after.length,2);
+ assert.ok(after.find(e=>e.dataset.entityKey==='clump').className.includes('snapshot-entity-active'));
+ assert.ok(!after.find(e=>e.dataset.entityKey==='hound').className.includes('snapshot-entity-active'));
+});
+
+test('pre-combat encounter renders every committed Entity and living combat filters defeated sprites',()=>{
+ const pre=boot({stateOverride:{flags:{entityEncounterKeys:['the_lifeform_bacteria_01','async_member_rifle_aim_right_01'],entityEncounterKey:'the_lifeform_bacteria_01'},combat:{active:false}}});
+ const preKeys=pre.elements.filter(e=>String(e.className||'').includes('snapshot-entity')).map(e=>e.dataset.entityKey).sort();
+ assert.deepEqual(preKeys,['async_member_rifle_aim_right_01','the_lifeform_bacteria_01']);
+ const live=boot({stateOverride:{flags:{entityEncounterKeys:['hound','clump'],entityEncounterKey:'hound'},combat:{active:true,activeEntityIndex:1,participants:[{id:'cao_minh'}],entities:[{key:'hound',hp:0},{key:'clump',hp:9}],entity:{key:'clump',hp:9}}}});
+ const liveEntities=live.elements.filter(e=>String(e.className||'').includes('snapshot-entity'));
+ assert.equal(liveEntities.length,1);
+ assert.equal(liveEntities[0].dataset.entityKey,'clump');
 });
 
 test('Entity death exposes deterministic glass-shatter fragments with varied sizes and motion',()=>{

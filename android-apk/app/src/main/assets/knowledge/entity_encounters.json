@@ -6,7 +6,7 @@
     "minimumRatePercent": 3,
     "maximumRatePercent": 5,
     "sharedPool": false,
-    "maxActiveEncounters": 1,
+    "simultaneousEncounterPolicy": "all_successful_rolls_are_active_together",
     "legacyOverlayOnlyKeys": [
       "diep_minh",
       "jane_the_killer",
