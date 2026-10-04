@@ -95,13 +95,12 @@ public final class GameCoreFacade implements AutoCloseable {
         return response(true, result, null, "query_handled", reply);
       }
 
-      String coreAction = GmChoiceContract.defaultCoreAction(legacy);
-      String turnId = emergentTurnEngine.nextWorldTurnId(legacy, coreAction);
+      String turnId = emergentTurnEngine.nextWorldTurnId(legacy, text);
       PreparedTurn existing = preparedTurns.get(turnId);
       if (existing != null && existing.baseHash.equals(fingerprint(legacy))) {
         return preparedResponse(legacy, existing);
       }
-      PreparedTurn prepared = prepareExplorerTurnData(legacy, coreAction);
+      PreparedTurn prepared = prepareExplorerTurnData(legacy, text);
       preparedTurns.clear();
       preparedTurns.put(turnId, prepared);
       return preparedResponse(legacy, prepared);
@@ -192,7 +191,7 @@ public final class GameCoreFacade implements AutoCloseable {
       }
       appendAll(candidates, characterEncounterCore.situationCandidates(working));
 
-      JSONObject selected = emergentTurnEngine.selectCandidate(
+      JSONObject selected = emergentTurnEngine.selectLocalSituations(
           working, candidates, turnRng, Math.max(1, working.optInt("turn", 1)));
       PreparedTurn prepared = new PreparedTurn(
           turnId, preTurnStateVersion, fingerprint(legacy), text, working, events, selected, turnRng, replyHint);
@@ -304,14 +303,24 @@ public final class GameCoreFacade implements AutoCloseable {
       throws Exception {
       JSONObject working = prepared.working;
       JSONObject selected = prepared.selected;
-      JSONObject proposal = emergentTurnEngine.sanitizeWorldProposal(selected, rawProposal);
-      selected.put("worldProposal", proposal);
-      working.getJSONObject(EmergentTurnEngine.ROOT_KEY)
-          .put("lastSelection", new JSONObject(selected.toString()));
 
       if (!selected.optBoolean("selectedNone", false)) {
-        applySelectedSituation(working, prepared.events, prepared.turnId, selected, proposal);
+        JSONArray situations = selected.optJSONArray("situations");
+        if (situations != null) {
+          for (int i = 0; i < situations.length(); i++) {
+            JSONObject situation = situations.getJSONObject(i);
+            JSONObject proposal = emergentTurnEngine.sanitizeWorldProposal(situation, rawProposal);
+            situation.put("worldProposal", proposal);
+            applySelectedSituation(working, prepared.events, prepared.turnId, situation, proposal);
+          }
+        } else {
+          JSONObject proposal = emergentTurnEngine.sanitizeWorldProposal(selected, rawProposal);
+          selected.put("worldProposal", proposal);
+          applySelectedSituation(working, prepared.events, prepared.turnId, selected, proposal);
+        }
       }
+      working.getJSONObject(EmergentTurnEngine.ROOT_KEY)
+          .put("lastSelection", new JSONObject(selected.toString()));
 
       emergentTurnEngine.appendThreadResolutionEvents(
           working, prepared.events, prepared.turnId, Math.max(1, working.optInt("turn", 1)));
@@ -346,6 +355,23 @@ public final class GameCoreFacade implements AutoCloseable {
 
   public JSONArray safePresentationEvents(JSONObject snapshot, JSONObject evidence) throws Exception {
     return SafePresentationView.events(snapshot, "cao_minh", evidence, entityCore);
+  }
+
+  /** Builds the local authoritative scene frame after Core commit and before GM narration. */
+  public String sceneFrame(JSONObject snapshot, JSONObject evidence, String playerIntent) throws Exception {
+    JSONObject state = deepCopy(snapshot);
+    JSONArray safeEvents = SafePresentationView.events(state, "cao_minh", evidence, entityCore);
+    JSONObject facts = OfflinePresenter.sceneFacts(state, playerIntent, safeEvents);
+    String turnId = evidence == null ? "" : evidence.optString("turnId", "").trim();
+    if (turnId.isEmpty()) {
+      turnId = emergentTurnEngine.nextWorldTurnId(state, playerIntent == null ? "" : playerIntent);
+    }
+    int stateVersion = evidence == null ? 0 : Math.max(0, evidence.optInt("stateVersion", 0));
+    TurnRng sceneRng = new TurnRng(
+        turnId, stateVersion, EmergentTurnEngine.CANON_VERSION, EmergentTurnEngine.RNG_SCHEMA_VERSION);
+    JSONObject environment = levelCore.sceneDirectorEnvironment(
+        state, playerIntent, bound -> sceneRng.nextInt(TurnRng.Scope.WORLD_REACTION, bound));
+    return SceneDirector.compose(state, facts, environment).toString();
   }
 
   /** Validity check and append share the same lock as all authoritative writes. */

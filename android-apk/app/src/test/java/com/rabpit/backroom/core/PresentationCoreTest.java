@@ -142,23 +142,25 @@ public class PresentationCoreTest {
   }
 
 
-  @Test public void freeFormExplorerActionConvergesOnDefaultCoreOutcome() throws Exception {
-    GameCoreFacade seed = core(state());
-    JSONObject sharedStart = new JSONObject(seed.currentCoreState());
-    String defaultAction = GmChoiceContract.defaultCoreAction(sharedStart);
+  @Test public void freeFormExplorerActionRemainsTheAuthoritativePlayerIntent() throws Exception {
+    GameCoreFacade first = core(state());
+    GameCoreFacade second = core(new JSONObject(first.currentCoreState()));
+    JSONObject explore = committed(first, "Khám phá");
+    JSONObject inspect = committed(second, "Cao Minh thả thần thức kiểm tra xung quanh");
 
-    GameCoreFacade choice = core(new JSONObject(sharedStart.toString()));
-    GameCoreFacade freeForm = core(new JSONObject(sharedStart.toString()));
-    JSONObject choiceCommit = committed(choice, defaultAction);
-    JSONObject freeFormCommit = committed(
-        freeForm, "Cao Minh thả thần thức kiểm tra xung quanh");
-
-    assertEquals(choiceCommit.getString("turnId"), freeFormCommit.getString("turnId"));
-    assertEquals(
-        choiceCommit.getJSONObject("state").getJSONObject(EmergentTurnEngine.ROOT_KEY)
-            .getJSONObject("lastSelection").toString(),
-        freeFormCommit.getJSONObject("state").getJSONObject(EmergentTurnEngine.ROOT_KEY)
-            .getJSONObject("lastSelection").toString());
+    assertNotEquals(explore.getString("turnId"), inspect.getString("turnId"));
+    JSONObject evidence = CommittedTurnNarrationEvidence.fromState(
+        inspect.getJSONObject("state"), inspect.getString("turnId"));
+    JSONArray events = evidence.getJSONArray("events");
+    boolean found = false;
+    for (int i = 0; i < events.length(); i++) {
+      JSONObject event = events.getJSONObject(i);
+      if ("PLAYER_ACTION_RESOLVED".equals(event.optString("eventType"))
+          && "Cao Minh thả thần thức kiểm tra xung quanh".equals(event.optString("factValue"))) {
+        found = true;
+      }
+    }
+    assertTrue(found);
   }
 
   @Test public void worldTurnRngIgnoresCombatOnlyStateVersionChanges() throws Exception {

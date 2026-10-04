@@ -137,7 +137,9 @@ jobs:
           ! grep -R -Fq 'state.story' android-apk/app/src/main/assets
           ! grep -R -Fq 'submitEnvironmentAction' android-apk/app/src/main android-apk/app/src/test
 
-          grep -Fq 'MEMORABLE EVENTS — chỉ các sự kiện lớn đã lưu' android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java
+          grep -Fq 'SCENE FRAME — authoritative current-turn facts' android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java
+          ! grep -Fq 'milestoneCore' android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java
+          test -s android-apk/app/src/main/java/com/rabpit/backroom/core/SceneDirector.java
           ! grep -Fq 'NarrationFutureBuffer' android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java
           test ! -e android-apk/app/src/main/java/com/rabpit/backroom/core/NarrationFutureBuffer.java
           test ! -e android-apk/app/src/main/java/com/rabpit/backroom/core/NarrationGuard.java

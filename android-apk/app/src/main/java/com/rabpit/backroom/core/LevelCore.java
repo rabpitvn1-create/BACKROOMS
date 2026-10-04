@@ -394,6 +394,44 @@ final class LevelCore {
         || "variationPool".equals(section) || "sceneSeeds".equals(section);
   }
 
+  JSONObject sceneDirectorEnvironment(JSONObject state, String action, IntRng sceneRng) throws Exception {
+    if (sceneRng == null) throw new IllegalArgumentException("scene RNG is required");
+    String levelKey = resolveLevelKey(state);
+    JSONObject bundle = knowledgeByLevelKey.get(normalizeKey(levelKey));
+    JSONObject output = new JSONObject()
+        .put("levelKey", levelKey)
+        .put("levelName", displayNameForKey(levelKey))
+        .put("location", state == null ? "" : state.optString("location", "").trim());
+
+    if (bundle == null) return output.put("motif", "").put("sensoryCue", "");
+
+    String preferredSection = GameCoreRules.isRouteExplorationAction(action)
+        ? "variationPool" : "quietTurnPatterns";
+    JSONArray pool = bundle.optJSONArray(preferredSection);
+    if (pool == null || pool.length() == 0) {
+      preferredSection = "variationPool";
+      pool = bundle.optJSONArray(preferredSection);
+    }
+    if (pool != null && pool.length() > 0) {
+      output.put("motifSource", preferredSection)
+          .put("motif", pool.optString(sceneRng.nextInt(pool.length()), "").trim());
+    } else {
+      output.put("motifSource", "").put("motif", "");
+    }
+
+    JSONArray sensory = bundle.optJSONArray("sensory");
+    output.put("sensoryCue", sensory == null || sensory.length() == 0
+        ? "" : sensory.optString(sceneRng.nextInt(sensory.length()), "").trim());
+
+    JSONObject route = state == null ? null : state.optJSONObject(ROUTE_STATE);
+    if (route != null) {
+      output.put("routeExitAvailable", route.optBoolean("exitAvailable", false));
+      String result = route.optString("lastResult", "").trim();
+      if (!result.isEmpty()) output.put("routeState", result);
+    }
+    return output;
+  }
+
   String snapshotDescriptor(JSONObject state) {
     String levelKey = resolveLevelKey(state);
     int level = parentLevelForKey(levelKey);

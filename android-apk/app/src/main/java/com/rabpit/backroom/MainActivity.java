@@ -35,7 +35,6 @@ import com.rabpit.backroom.core.GmChoiceContract;
 import com.rabpit.backroom.core.OfflinePresenter;
 import com.rabpit.backroom.core.NarrationProviderScheduler;
 import com.rabpit.backroom.core.NarrationHttpTransport;
-import com.rabpit.backroom.core.MilestoneCore;
 import com.rabpit.backroom.core.ProviderRetryPolicy;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -71,7 +70,6 @@ public class MainActivity extends Activity {
   private final NarrationProviderScheduler providerScheduler = new NarrationProviderScheduler();
   private final ThreadLocal<Long> providerRequestDeadline = new ThreadLocal<>();
   private GameCoreFacade gameCore;
-  private MilestoneCore milestoneCore;
   private static final String GEMINI_MODEL = "gemini-3.6-flash";
   private static final String HAIKU_DEFAULT_BASE_URL = "https://api.anthropic.com/v1/messages";
   private static final String HAIKU_DEFAULT_MODEL = "claude-haiku-4-5-20251001";
@@ -89,12 +87,6 @@ public class MainActivity extends Activity {
         "versionCode", BuildConfig.VERSION_CODE, "sourceRevision", BuildConfig.SOURCE_REVISION, "androidApi", Build.VERSION.SDK_INT,
         "device", Build.MANUFACTURER + " " + Build.MODEL);
     gameCore = GameCoreFacade.create(getApplicationContext(), BuildConfig.DEBUG);
-    try {
-      milestoneCore = MilestoneCore.fromAssets(getApplicationContext());
-    } catch (Exception error) {
-      DiagnosticLog.record("app.error", "error", error);
-      Log.e(TAG, "Milestone assets failed validation", error);
-    }
     if (narrativeAuditEnabled()) deleteFile("narrative-audit.jsonl");
     if (savedInstanceState != null && savedInstanceState.getBoolean("diagnosticExportPending", false)) {
       File snapshot = new File(getCacheDir(), "backroom-diagnostic-export.jsonl");
@@ -745,26 +737,18 @@ public class MainActivity extends Activity {
     return Math.max(0, log.length() - 1);
   }
 
-  private String narrationPrompt(JSONObject state, String action, JSONArray safeEvents) throws Exception {
-    if (milestoneCore == null) throw new IllegalStateException("Milestone runtime unavailable for narration.");
-    JSONArray memories = state.optJSONArray("memorableEvents");
-    if (memories == null) memories = new JSONArray();
-    String levelKey = state.optString("currentLevelKey", String.valueOf(state.optInt("currentLevel", 0)));
-    String location = state.optString("location", "").trim();
-    return "Bạn là GAME MASTER của Backroom The Game. Kể đúng MỘT lượt bằng tiếng Việt tự nhiên, sáng tạo và có nhịp như một câu chuyện; không viết như báo cáo hệ thống. "
-        + "Core/local đã quyết định gameplay. Bạn chỉ diễn đạt những gì đã xảy ra và nối nó hợp lý với Milestone.\n"
-        + "NGÔI KỂ: trong phần reply, luôn kể Cao Minh ở ngôi thứ ba; không gọi Cao Minh là 'bạn'. Dùng 'Cao Minh' hoặc 'hắn'. Từ 'bạn' chỉ được giữ trong lời thoại trực tiếp của nhân vật khác.\n"
-        + "PLAYER ACTION:\n" + (action == null ? "" : action.trim()) + "\n"
-        + "WHERE:\nLevel " + levelKey + (location.isEmpty() ? "" : " — " + location) + "\n"
-        + "CURRENT LOCAL EVENTS — read-only facts, không tự thêm/bớt outcome, Entity, Item hay Party:\n"
-        + (safeEvents == null ? "[]" : safeEvents.toString()) + "\n"
-        + milestoneCore.promptContext(state) + "\n"
-        + "MEMORABLE EVENTS — chỉ các sự kiện lớn đã lưu, không phải transcript:\n" + memories.toString() + "\n"
-        + "Nếu CURRENT LOCAL EVENTS có mô tả ngoại hình Entity/Character/Item, hãy diễn đạt lại tự nhiên thay vì chép nguyên văn. "
-        + "Milestone là khung truyện; được tự sáng tác hành vi/đối thoại hợp lý bên trong khung đó nhưng không đổi gameplay state. "
-        + "Không quyết định thêm hành động, lời nói hay suy nghĩ tiếp theo cho Cao Minh ngoài PLAYER ACTION. "
-        + "Đưa 1-3 gợi ý hành động cụ thể, khác nhau và bám scene hiện tại; tránh lựa chọn chung chung kiểu chỉ 'Khám phá' hoặc 'Đi tiếp'.\n"
-        + "OUTPUT duy nhất JSON: {\"reply\":\"...\",\"choices\":[{\"text\":\"...\"}]}";
+  private String narrationPrompt(JSONObject sceneFrame) {
+    return "Bạn là GAME MASTER của Backroom The Game. Nhiệm vụ duy nhất của bạn là kể lại SCENE FRAME bằng tiếng Việt tự nhiên, giàu không khí và có nhịp như một câu chuyện. "
+        + "Bạn không quyết định gameplay, không tạo sự kiện và không sửa sự thật trong frame.\n"
+        + "NGÔI KỂ: luôn kể Cao Minh ở ngôi thứ ba; không gọi Cao Minh là 'bạn'. Dùng 'Cao Minh' hoặc 'hắn'. Từ 'bạn' chỉ được giữ trong lời thoại trực tiếp của nhân vật khác.\n"
+        + "SCENE FRAME — authoritative current-turn facts:\n" + (sceneFrame == null ? "{}" : sceneFrame.toString()) + "\n"
+        + "PLAYER INTENT trong frame chỉ là điều người chơi MUỐN làm, không phải bằng chứng rằng vật thể/Entity/Character được nhắc tới thực sự tồn tại. "
+        + "Chỉ coi những gì nằm trong worldFacts/environment/presentCharacters của frame là sự thật của cảnh. "
+        + "Nếu intent nhắc tới thứ không tồn tại trong frame, hãy kể đó là một nỗ lực/kiểm tra không xác nhận được thứ đó; tuyệt đối không tự tạo nó. "
+        + "Được phép làm văn phong hay hơn, thêm nhịp điệu, cảm giác và hội thoại tự nhiên của các nhân vật đang PRESENT, nhưng không thêm hoặc xóa Entity, Chest, Item, Character, route outcome hay special event. "
+        + "Không quyết định thêm hành động, lời nói hay suy nghĩ tiếp theo cho Cao Minh ngoài PLAYER INTENT. "
+        + "Không tạo choices hay gợi ý hành động.\n"
+        + "OUTPUT duy nhất JSON: {\"reply\":\"...\"}";
   }
 
   private void logDiagnostic(String message) {
@@ -952,27 +936,27 @@ public class MainActivity extends Activity {
           if (!narrationEvidence.optBoolean("available", false)) {
             throw new Exception("Committed turn evidence unavailable after commit: " + narrationEvidence.optString("reason", "unknown"));
           }
-          JSONArray safeEvents = gameCore.safePresentationEvents(state, narrationEvidence);
           String presentationBaseHash = GameCoreFacade.presentationBaseHash(state);
+          JSONObject sceneFrame = new JSONObject(gameCore.sceneFrame(state, narrationEvidence, displayAction));
           long promptStart = SystemClock.elapsedRealtime();
-          String prompt = narrationPrompt(state, displayAction, safeEvents);
+          String prompt = narrationPrompt(sceneFrame);
           long promptMs = SystemClock.elapsedRealtime() - promptStart;
           long providerStart = SystemClock.elapsedRealtime();
           JSONObject generated;
           try {
-            generated = OfflinePresenter.present(safeEvents,
-                () -> parseModelJson(generateNarrationText(prompt, NarrationHttpTransport.deadlineAfterMillis(30_000L))));
+            generated = parseModelJson(
+                generateNarrationText(prompt, NarrationHttpTransport.deadlineAfterMillis(30_000L)));
           } catch (Exception providerError) {
             DiagnosticLog.record("narration.fallback", "turnId", turnId,
                 "error", providerError.getMessage() == null
                     ? providerError.getClass().getSimpleName() : providerError.getMessage());
-            generated = OfflinePresenter.fallback(safeEvents);
+            generated = OfflinePresenter.fallback(sceneFrame);
           }
           long providerMs = SystemClock.elapsedRealtime() - providerStart;
-          String reply = GmChoiceContract.mergeEncounterDialogue(
-              generated.optString("reply", "").trim(), generated.optJSONArray("encounterDialogue"));
+          String reply = generated.optString("reply", "").trim();
           if (reply.isEmpty()) throw new Exception("AI và fallback đều trả về phản hồi rỗng.");
-          JSONObject gmEntry = GmChoiceContract.gmEntry(reply, generated, state);
+          JSONObject narrationOnly = new JSONObject().put("reply", reply);
+          JSONObject gmEntry = GmChoiceContract.gmEntry(reply, narrationOnly, state);
           gmEntry.put("sceneLevelKey", state.optString("currentLevelKey", String.valueOf(state.optInt("currentLevel", 0))));
           String newEncounter = encounterKey(state);
           if (CombatChoiceEngine.isKnownEntity(newEncounter)) gmEntry.remove("choices");
@@ -992,7 +976,7 @@ public class MainActivity extends Activity {
           if (BuildConfig.DEBUG) {
             logDiagnostic("GM TURN: total=" + (SystemClock.elapsedRealtime() - tStart)
                 + "ms core=" + coreMs + "ms prompt=" + promptMs + "ms provider=" + providerMs
-                + "ms promptChars=" + prompt.length() + " turnId=" + turnId + " authority=CORE_V2");
+                + "ms promptChars=" + prompt.length() + " turnId=" + turnId + " authority=SCENE_DIRECTOR_V1");
           }
           emit("backroomTurn", state.toString());
         } catch (Exception e) {

@@ -44,29 +44,29 @@ test('Core persists only explicit checkpoints and restores them on launch', () =
   assert.match(core, /this\.liveStateJson = checkpoint != null && !checkpoint\.isEmpty\(\)/);
 });
 
-test('free-form Explorer text shares the default Core trajectory', () => {
+test('free-form Explorer text remains the Core action instead of being replaced by a default', () => {
   const process = core.slice(core.indexOf('public synchronized String processRule('),
     core.indexOf('private PreparedTurn prepareExplorerTurnData('));
-  assert.match(process, /String coreAction = GmChoiceContract\.defaultCoreAction\(legacy\);/);
-  assert.match(process, /nextWorldTurnId\(legacy, coreAction\)/);
-  assert.match(process, /prepareExplorerTurnData\(legacy, coreAction\)/);
+  assert.doesNotMatch(process, /defaultCoreAction\(legacy\)/);
+  assert.match(process, /nextWorldTurnId\(legacy, text\)/);
+  assert.match(process, /prepareExplorerTurnData\(legacy, text\)/);
 });
 
-test('GM path is one current-turn request with milestone, local facts and memorable events', () => {
+test('GM path consumes one offline SceneFrame and only narrates it', () => {
   const turn = bridge.slice(bridge.indexOf('@JavascriptInterface public void submitTurn('),
     bridge.indexOf('@JavascriptInterface public void combatRoll('));
   const prompt = bridge.slice(bridge.indexOf('private String narrationPrompt('),
     bridge.indexOf('private void logDiagnostic(', bridge.indexOf('private String narrationPrompt(')));
-  assert.ok(turn.indexOf('completePreparedTurn(') < turn.indexOf('generateNarrationText('));
+  assert.ok(turn.indexOf('completePreparedTurn(') < turn.indexOf('gameCore.sceneFrame('));
+  assert.ok(turn.indexOf('gameCore.sceneFrame(') < turn.indexOf('generateNarrationText('));
   assert.ok(turn.indexOf('generateNarrationText(') < turn.indexOf('commitPresentation('));
-  assert.match(turn, /OfflinePresenter\.present\(safeEvents/);
-  assert.match(turn, /OfflinePresenter\.fallback\(safeEvents\)/);
-  assert.match(turn, /mergeEncounterDialogue/);
-  assert.match(prompt, /không gọi Cao Minh là 'bạn'/);
-  assert.match(prompt, /milestoneCore\.promptContext\(state\)/);
-  assert.match(prompt, /memorableEvents/);
-  assert.match(prompt, /CURRENT LOCAL EVENTS/);
-  assert.match(prompt, /1-3 gợi ý hành động cụ thể/);
+  assert.match(turn, /OfflinePresenter\.fallback\(sceneFrame\)/);
+  assert.doesNotMatch(turn, /OfflinePresenter\.present\(safeEvents/);
+  assert.doesNotMatch(turn, /mergeEncounterDialogue/);
+  assert.match(prompt, /SCENE FRAME — authoritative current-turn facts/);
+  assert.match(prompt, /PLAYER INTENT/);
+  assert.match(prompt, /Không tạo choices hay gợi ý hành động/);
+  assert.doesNotMatch(prompt, /milestoneCore|MEMORABLE EVENTS|CURRENT LOCAL EVENTS/);
   assert.doesNotMatch(bridge, /NarrationFutureBuffer|NarrationGuard|NarrationProviderPolicy|SceneContextCompiler|oracleWindow\(|prefetchChoices\(/);
   assert.doesNotMatch(html, /narrationPrefetchStatus|backroomNarrationFutureStatus|backroomPrefetchChoices/);
   assert.doesNotMatch(choiceUi, /backroomPrefetchChoices/);

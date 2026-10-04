@@ -12,11 +12,11 @@ function method(name) {
 }
 
 
-test('foreground narration uses one scheduled provider path', () => {
+test('foreground narration uses one scheduled provider path fed by SceneFrame', () => {
   const prompt = method('narrationPrompt');
-  assert.match(prompt, /milestoneCore\.promptContext\(state\)/);
-  assert.match(prompt, /memorableEvents/);
-  assert.match(prompt, /CURRENT LOCAL EVENTS/);
+  assert.match(prompt, /SCENE FRAME — authoritative current-turn facts/);
+  assert.match(prompt, /PLAYER INTENT/);
+  assert.doesNotMatch(prompt, /milestoneCore|memorableEvents|CURRENT LOCAL EVENTS/);
   assert.match(method('generateNarrationText'), /return generateScheduledText\(prompt, false, deadlineNanos\)/);
   const flow = method('generateScheduledText');
   assert.match(flow, /providerScheduler\.acquire/);

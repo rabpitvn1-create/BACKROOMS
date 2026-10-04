@@ -3,11 +3,86 @@ package com.rabpit.backroom.core;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-/** Presentation only: consumes projected events; it cannot inspect or mutate mechanics. */
+/** Local scene fact adapter plus deterministic emergency rendering. It never owns mechanics. */
 public final class OfflinePresenter {
   @FunctionalInterface public interface Provider { JSONObject generate() throws Exception; }
 
   private OfflinePresenter() {}
+
+  public static JSONObject sceneFacts(JSONObject state, String playerIntent, JSONArray views) throws Exception {
+    JSONObject facts = new JSONObject();
+    facts.put("playerIntent", new JSONObject()
+        .put("text", playerIntent == null ? "" : playerIntent.trim())
+        .put("authority", "INTENT_ONLY"));
+
+    JSONArray present = new JSONArray().put(new JSONObject()
+        .put("id", "cao_minh").put("label", "Cao Minh").put("role", "PLAYER"));
+    JSONArray party = state == null ? null : state.optJSONArray("party");
+    if (party != null) {
+      for (int i = 0; i < party.length(); i++) {
+        JSONObject member = party.optJSONObject(i);
+        if (member == null || !member.optBoolean("present", true)) continue;
+        String id = member.optString("id", "").trim();
+        if (id.isEmpty()) continue;
+        present.put(new JSONObject()
+            .put("id", id)
+            .put("label", SafePresentationView.label(state, "cao_minh", id))
+            .put("role", "PARTY"));
+      }
+    }
+    facts.put("presentCharacters", present);
+
+    JSONArray pendingIntro = new JSONArray();
+    JSONObject encounter = state == null ? null : state.optJSONObject("characterEncounter");
+    JSONArray pending = encounter == null ? null : encounter.optJSONArray("pendingIntro");
+    if (pending != null) for (int i = 0; i < pending.length(); i++) {
+      String id = pending.optString(i, "").trim();
+      if (!id.isEmpty()) pendingIntro.put(id);
+    }
+    facts.put("pendingIntro", pendingIntro);
+
+    JSONArray world = new JSONArray();
+    JSONArray entities = new JSONArray();
+    JSONArray chests = new JSONArray();
+    JSONArray characters = new JSONArray();
+    JSONArray routes = new JSONArray();
+    JSONArray specials = new JSONArray();
+    String coreAction = "";
+
+    if (views != null) for (int i = 0; i < views.length(); i++) {
+      JSONObject view = views.optJSONObject(i);
+      if (view == null) continue;
+      JSONObject copy = new JSONObject(view.toString());
+      String type = copy.optString("eventType", "");
+      if ("PLAYER_ACTION_RESOLVED".equals(type)) {
+        coreAction = copy.optString("action", "").trim();
+        continue;
+      }
+      world.put(copy);
+      if ("ENTITY_ENCOUNTER_STARTED".equals(type) || type.startsWith("COMBAT_")) entities.put(copy);
+      else if (type.startsWith("CHEST_")) chests.put(copy);
+      else if (type.startsWith("CHARACTER_")) characters.put(copy);
+      else if (type.startsWith("ROUTE_") || "LEVEL_TRANSITIONED".equals(type)) routes.put(copy);
+      else specials.put(copy);
+    }
+
+    JSONObject flags = state == null ? null : state.optJSONObject("flags");
+    facts.put("coreAction", coreAction)
+        .put("worldFacts", world)
+        .put("entityEvents", entities)
+        .put("chestEvents", chests)
+        .put("characterEvents", characters)
+        .put("routeEvents", routes)
+        .put("specialEvents", specials)
+        .put("chestPresent", flags != null && flags.optBoolean("chestPresent", false));
+    return facts;
+  }
+
+  public static JSONObject fallback(JSONObject sceneFrame) throws Exception {
+    String reply = sceneFrame == null ? "" : sceneFrame.optString("fallbackSummary", "").trim();
+    if (reply.isEmpty()) reply = "Cao Minh quan sát khu vực hiện tại.";
+    return new JSONObject().put("reply", reply);
+  }
 
   public static boolean isCoreOwnedEntityLifecycle(JSONArray views) {
     if (views == null) return false;
