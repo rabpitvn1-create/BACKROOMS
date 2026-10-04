@@ -33,6 +33,18 @@ test('composer is locked only by active gameplay constraints',()=>{
   assert.doesNotMatch(body,/story|cutaway|pendingStory/i);
 });
 
+test('Poker Dice renders six-face ivory cubes with physical roll, hold seal and settle states',()=>{
+  assert.match(ui,/function dieRestRotation\(value\)/);
+  assert.match(ui,/\.combat-die-cube\{[^}]*transform-style:preserve-3d/);
+  assert.match(ui,/var faceDefs=\[\['front',1\],\['back',6\],\['right',3\],\['left',4\],\['top',2\],\['bottom',5\]\]/);
+  assert.match(ui,/\.combat-die-face\.front\{transform:translateZ\(var\(--cube-half\)\)\}/);
+  assert.match(ui,/\.combat-die\.rolling \.combat-die-cube\{animation:combat-die-cube-tumble \.68s/);
+  assert.match(ui,/\.combat-die\.held \.combat-die-hold-ring\{[^}]*repeating-conic-gradient/);
+  assert.match(ui,/seal\.textContent='鎖'/);
+  assert.match(ui,/\.combat-die\.settling \.combat-die-object\{animation:combat-die-settle \.17s/);
+  assert.match(ui,/@media\(prefers-reduced-motion:reduce\)/);
+});
+
 test('combat snapshot follows the active party actor on dice-state updates',()=>{
   assert.match(ui,/function syncCombatSnapshotActor\(combat\)/);
   assert.match(ui,/var actorIndex=Number\(combat\.actorIndex\)/);

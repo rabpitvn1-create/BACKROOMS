@@ -38,19 +38,19 @@ test('PLAYER ACTION and THUC HIEN return to standard dark button style without a
   assert.match(index,/#submit\{min-height:52px/);
 });
 
-test('combat dice use physical ivory dice with distinct rolling, held, settle and reduced-motion states',()=>{
-  assert.match(gmChoice,/\.combat-dice-row\{display:grid;grid-template-columns:repeat\(5,1fr\)/);
-  assert.match(gmChoice,/\.combat-die-object\{[^}]*transform-style:preserve-3d/);
-  assert.match(gmChoice,/\.combat-die\.rolling \.combat-die-object\{animation:combat-die-tumble \.68s/);
-  assert.match(gmChoice,/@keyframes combat-die-tumble\{[^}]*translate3d\(/);
-  assert.match(gmChoice,/\.combat-die\.held \.combat-die-object\{animation:combat-die-held-float 2\.1s/);
-  assert.match(gmChoice,/\.combat-die\.held \.combat-die-hold-ring\{[^}]*animation:combat-die-hold-ring 4s/);
+test('combat dice use true six-face ivory cubes with animated hold seals',()=>{
+  assert.match(gmChoice,/\.combat-die-cube\{[^}]*transform-style:preserve-3d/);
+  assert.match(gmChoice,/\.combat-die-face\.front\{transform:translateZ\(var\(--cube-half\)\)\}/);
+  assert.match(gmChoice,/\.combat-die-face\.back\{transform:rotateY\(180deg\) translateZ\(var\(--cube-half\)\)\}/);
+  assert.match(gmChoice,/\.combat-die\.rolling \.combat-die-cube\{animation:combat-die-cube-tumble \.68s/);
+  assert.match(gmChoice,/\.combat-die\.held \.combat-die-hold-ring\{[^}]*repeating-conic-gradient/);
+  assert.match(gmChoice,/\.combat-die\.held \.combat-die-hold-seal\{[^}]*animation:combat-die-hold-seal 1\.8s/);
   assert.match(gmChoice,/\.combat-die\.settling \.combat-die-object\{animation:combat-die-settle \.17s/);
-  assert.match(gmChoice,/DICE_ROLL_ANIMATION_MS=680/);
-  assert.match(gmChoice,/DICE_SETTLE_ANIMATION_MS=170/);
-  assert.match(gmChoice,/button\.setAttribute\('aria-pressed',held\[index\]===true\?'true':'false'\)/);
-  assert.match(gmChoice,/@media\(prefers-reduced-motion:reduce\)/);
-  assert.match(gmChoice,/\.combat-dice-actions\{display:grid;grid-template-columns:1fr 1fr/);
+  for(let i=1;i<=6;i++){
+    const die=fs.readFileSync(path.join(assets,'dice','die-'+i+'.svg'),'utf8');
+    assert.doesNotMatch(die,/<rect\b/);
+    assert.match(die,/<circle\b/);
+  }
 });
 
 test('normal rectangular UI elements use consistent light rounded corners while GM message frame remains square',()=>{
