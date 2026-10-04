@@ -185,6 +185,18 @@ public class PresentationCoreTest {
   }
 
 
+  @Test public void backgroundOracleHasTenBoundedStepsAndAtomicBaseIdentity() throws Exception {
+    GameCoreFacade core = core(state());
+    String before = core.currentCoreState();
+    JSONObject window = new JSONObject(core.oracleWindow(before, 100));
+    assertEquals(10, window.getJSONArray("steps").length());
+    assertEquals(GameCoreFacade.oracleAuthorityHash(new JSONObject(before)), window.getString("baseHash"));
+    assertEquals(before, window.getJSONObject("baseState").toString());
+    assertEquals(before, core.currentCoreState());
+    assertFalse(window.getJSONArray("steps").getJSONObject(0).getString("turnId").isEmpty());
+    assertEquals(6, new JSONObject(core.oracleWindow(before)).getJSONArray("steps").length());
+  }
+
   @Test public void worldTurnRngIgnoresCombatOnlyStateVersionChanges() throws Exception {
     JSONObject sample = state();
     EmergentTurnEngine emergent = new EmergentTurnEngine();

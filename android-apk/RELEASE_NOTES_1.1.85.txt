@@ -1,0 +1,10 @@
+Backroom 1.1.85
+
+- Duy trì buffer narration 10 bước, tự bổ sung khi còn 6 capsule sẵn sàng; chỉ tải các bước thiếu theo batch nhỏ.
+- Gắn capsule với turnId và authority hash của Core, giữ nội dung hợp lệ khi cửa sổ tiến lên và loại phản hồi từ ngữ cảnh cũ.
+- Tách forecast và dựng prompt khỏi luồng xử lý lượt hiện tại; ghi nhớ nhu cầu refill trong khi tác vụ nền đang chạy.
+- Ưu tiên Gehihi với API key riêng và model hiện hành từ GEHIHI_MODEL; Haku và SOL dự phòng, LUNA tắt mặc định.
+- Chuyển cả 5 key Google Gemini độc lập sang gemini-3.6-flash; theo dõi độ trễ, cooldown và quota riêng cho từng nguồn.
+- Giới hạn ngân sách gọi narration: 30 giây cho scene và lần sửa nội dung, 60 giây cho batch nền; đóng kết nối và stream khi hoàn tất hoặc lỗi.
+- Giữ Core và NarrationGuard làm nguồn quyết định state và kiểm tra nội dung trước khi hiển thị.
+- Bump bản kế tiếp sau main 1.1.84 lên 1.1.85 (versionCode 130), đồng bộ APK artifact, GitHub Release tag và release verification.
