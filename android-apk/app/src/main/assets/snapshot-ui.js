@@ -202,7 +202,7 @@ if(typeof module!=='undefined'&&module.exports)module.exports=SnapshotOverlayLay
     try{
       var s=(typeof state!=='undefined'&&state)?state:{},route=s.levelRoute||{};
       var required=Number(descriptor&&descriptor.routeRequiredStreak);
-      if(!Number.isFinite(required)||required<1)required=8;
+      if(!Number.isFinite(required)||required<1)required=5;
       required=Math.max(1,Math.round(required));
       var current=descriptor&&descriptor.routeStreak!==undefined
         ?Number(descriptor.routeStreak):Number(route.streak||0);

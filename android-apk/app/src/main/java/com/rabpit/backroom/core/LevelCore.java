@@ -23,7 +23,7 @@ final class LevelCore {
   static final int ROUTE_SUCCESS_PERCENT = 50;
   static final int ROUTE_TRIPLE_SUCCESS_PERCENT = 1;
   static final int ROUTE_TRIPLE_SUCCESS_INCREMENT = 3;
-  static final int ROUTE_REQUIRED_STREAK = 8;
+  static final int ROUTE_REQUIRED_STREAK = 5;
   static final String LEVEL_ZERO_START_LOCATION =
       "Level 0 / The Lobby — khu phòng vàng ban đầu sau khi đi qua cổng không gian";
 

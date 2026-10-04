@@ -47,13 +47,13 @@ test('new humanoid Entities and Tâm Ma share one visual scale while Cao Minh ge
  const css=boot().styles.join('');assert.match(css,/snapshot>img\.snapshot-character\{z-index:4/);assert.match(css,/snapshot>img\.snapshot-entity\{[^}]*z-index:3/);
 });
 
-test('snapshot route streak HUD is compact, transparent and reads the 8-step route state',()=>{
+test('snapshot route streak HUD is compact, transparent and reads the 5-step route state',()=>{
  const r=boot({stateOverride:{flags:{},combat:{active:false},levelRoute:{streak:3,exitAvailable:false}}});
  const hud=r.elements.find(e=>String(e.className||'').includes('snapshot-route-streak'));
  assert.ok(hud);
  assert.match(hud.innerHTML,/snapshot-route-exit/);
- assert.match(hud.innerHTML,/>03<small>\/8<\/small>/);
- assert.match(hud.innerHTML,/snapshot-route-fill" style="width:38%/);
+ assert.match(hud.innerHTML,/>03<small>\/5<\/small>/);
+ assert.match(hud.innerHTML,/snapshot-route-fill" style="width:60%/);
  const css=r.styles.join('');
  assert.match(css,/\.snapshot-route-streak\{[^}]*width:118px;[^}]*height:42px/);
  assert.match(css,/\.snapshot-route-streak\{[^}]*background:transparent;[^}]*border:0;[^}]*clip-path:none/);

@@ -238,6 +238,7 @@ public class LevelCoreTest {
   }
 
   @Test public void snapshotDescriptorExposesAuthoritativeRouteStreakForHud() throws Exception {
+    assertEquals(5, LevelCore.ROUTE_REQUIRED_STREAK);
     LevelCore core = new LevelCore(null, new SequenceRng(5));
     JSONObject state = state(1, "Level 0 / Start")
         .put(LevelCore.ROUTE_STATE, new JSONObject()

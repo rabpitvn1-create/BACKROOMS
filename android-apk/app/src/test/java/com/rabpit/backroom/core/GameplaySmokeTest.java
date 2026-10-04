@@ -37,7 +37,7 @@ public class GameplaySmokeTest {
     emergent.normalizeState(state);
     emergent.catchUpProjections(state);
 
-    // Exploration: eight deterministic successes expose the next Level 0 node.
+    // Exploration: five deterministic successes expose the next Level 0 node.
     for (int turn = 1; turn <= LevelCore.ROUTE_REQUIRED_STREAK; turn++) {
       state.put("turn", turn);
       level.rollRouteForExplorerAction(state, "đi tiếp", bound -> 10);
