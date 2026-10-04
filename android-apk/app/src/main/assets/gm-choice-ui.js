@@ -921,5 +921,4 @@
 
   window.render();
   scrollForCurrentMode();
-  window.backroomPrefetchChoices();
 })();

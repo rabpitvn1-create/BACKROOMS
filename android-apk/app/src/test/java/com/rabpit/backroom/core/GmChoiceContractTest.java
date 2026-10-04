@@ -98,6 +98,28 @@ public class GmChoiceContractTest {
   }
 
 
+  @Test public void gmEntryNormalizesSecondPersonNarrationButPreservesQuotedDialogue() throws Exception {
+    JSONObject entry = GmChoiceContract.gmEntry(
+        "Bạn bước qua lối mở. Ánh đèn trên đầu bạn chớp tắt. “Nếu bạn muốn, tôi sẽ đợi.”",
+        new JSONObject(), new JSONObject());
+    String text = entry.getString("text");
+
+    assertFalse(text.startsWith("Bạn "));
+    assertFalse(text.contains("đầu bạn"));
+    assertTrue(text.contains("Cao Minh"));
+    assertTrue(text.contains("“Nếu bạn muốn, tôi sẽ đợi.”"));
+  }
+
+  @Test public void encounterDialogueMergesOnceIntoLocalPresentation() {
+    JSONArray dialogue = new JSONArray()
+        .put("Đứng yên.")
+        .put("Đứng yên.")
+        .put("Nói rõ anh là ai.");
+    assertEquals(
+        "Cô gái giữ khoảng cách.\n\n“Đứng yên.”\n\n“Nói rõ anh là ai.”",
+        GmChoiceContract.mergeEncounterDialogue("Cô gái giữ khoảng cách.", dialogue));
+  }
+
   @Test public void choiceNormalizerRemovesCommonEnglishActionLeakage() throws Exception {
     JSONArray input = new JSONArray().put(new JSONObject().put("text",
         "Move forward through the corridor and inspect the door, then listen nearby"));

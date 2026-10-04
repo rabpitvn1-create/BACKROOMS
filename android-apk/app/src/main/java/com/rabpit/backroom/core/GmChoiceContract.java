@@ -23,6 +23,8 @@ public final class GmChoiceContract {
       Pattern.compile("(?iu)(?:\\bHP\\s*\\d+\\s*/\\s*\\d+\\b|\\b\\d+\\s*/\\s*\\d+\\s*HP\\b)");
   private static final Pattern SIGNED_STAT_PATTERN =
       Pattern.compile("(?iu)[+-]\\d+(?:\\.\\d+)?%?\\s*(?:HP|DEF)\\b");
+  private static final Pattern SECOND_PERSON_NARRATION_PATTERN =
+      Pattern.compile("(?iu)(?<!người )(?<![\\p{L}\\p{N}_])bạn(?!\\s+(?:bè|đồng hành)\\b)(?![\\p{L}\\p{N}_])");
 
   private static final String[][] FIXED_TERMS = {
       {"Cao Minh", "character"},
@@ -157,7 +159,7 @@ public final class GmChoiceContract {
   }
 
   public static JSONObject gmEntry(String reply, JSONObject generated, JSONObject state) throws Exception {
-    String text = normalizePlayerFacingVietnamese(reply);
+    String text = normalizeNarrationPerspective(normalizePlayerFacingVietnamese(reply));
     JSONObject entry = new JSONObject().put("role", "gm").put("text", text);
     JSONArray highlights = deterministicHighlights(
         text, state, generated == null ? null : generated.optJSONArray("highlights"));
@@ -168,6 +170,100 @@ public final class GmChoiceContract {
     return entry;
   }
 
+
+  public static String mergeEncounterDialogue(String reply, JSONArray dialogue) {
+    String base = reply == null ? "" : reply.trim();
+    if (dialogue == null || dialogue.length() == 0) return base;
+
+    StringBuilder output = new StringBuilder(base);
+    LinkedHashSet<String> seen = new LinkedHashSet<>();
+    for (int i = 0; i < dialogue.length(); i++) {
+      String line = dialogue.optString(i, "").trim();
+      String key = dialogueDedupKey(line);
+      if (key.isEmpty() || !seen.add(key) || replyAlreadyContainsDialogue(base, line, key)) continue;
+      if (output.length() > 0) output.append("\n\n");
+      output.append(quoteDialogueLine(line));
+    }
+    return output.toString();
+  }
+
+  public static String normalizeNarrationPerspective(String input) {
+    String text = input == null ? "" : input.trim();
+    if (text.isEmpty()) return text;
+
+    StringBuilder output = new StringBuilder();
+    StringBuilder plain = new StringBuilder();
+    boolean curlyQuote = false;
+    boolean asciiQuote = false;
+    for (int i = 0; i < text.length(); i++) {
+      char current = text.charAt(i);
+      if (current == '“' && !asciiQuote && !curlyQuote) {
+        output.append(rewriteNarrationSecondPerson(plain.toString()));
+        plain.setLength(0);
+        curlyQuote = true;
+        output.append(current);
+        continue;
+      }
+      if (current == '”' && curlyQuote) {
+        output.append(current);
+        curlyQuote = false;
+        continue;
+      }
+      if (current == '"' && !curlyQuote) {
+        if (asciiQuote) {
+          output.append(current);
+          asciiQuote = false;
+        } else {
+          output.append(rewriteNarrationSecondPerson(plain.toString()));
+          plain.setLength(0);
+          asciiQuote = true;
+          output.append(current);
+        }
+        continue;
+      }
+      if (curlyQuote || asciiQuote) output.append(current);
+      else plain.append(current);
+    }
+    if (plain.length() > 0) output.append(rewriteNarrationSecondPerson(plain.toString()));
+    return output.toString();
+  }
+
+  private static String rewriteNarrationSecondPerson(String value) {
+    Matcher matcher = SECOND_PERSON_NARRATION_PATTERN.matcher(value == null ? "" : value);
+    StringBuffer normalized = new StringBuffer();
+    while (matcher.find()) {
+      matcher.appendReplacement(normalized, Matcher.quoteReplacement("Cao Minh"));
+    }
+    matcher.appendTail(normalized);
+    return normalized.toString();
+  }
+
+  private static boolean replyAlreadyContainsDialogue(String reply, String line, String key) {
+    if (reply == null || reply.trim().isEmpty()) return false;
+    String lowerReply = reply.toLowerCase(Locale.ROOT);
+    String lowerLine = line.toLowerCase(Locale.ROOT);
+    if (lowerReply.contains("\"" + lowerLine + "\"")
+        || lowerReply.contains("“" + lowerLine + "”")
+        || lowerReply.contains("‘" + lowerLine + "’")
+        || lowerReply.contains(": " + lowerLine)) {
+      return true;
+    }
+    for (String paragraph : reply.split("\\r?\\n+")) {
+      if (key.equals(dialogueDedupKey(paragraph))) return true;
+    }
+    return false;
+  }
+
+  private static String quoteDialogueLine(String line) {
+    if ((line.startsWith("“") && line.endsWith("”"))
+        || (line.startsWith("\"") && line.endsWith("\""))) return line;
+    return "“" + line + "”";
+  }
+
+  private static String dialogueDedupKey(String value) {
+    return (value == null ? "" : value).toLowerCase(Locale.ROOT)
+        .replaceAll("[^\\p{L}\\p{N}]+", " ").trim().replaceAll("\\s+", " ");
+  }
 
   public static JSONArray sanitizeChoices(JSONArray input) throws Exception {
     return sanitizeChoices(input, null);

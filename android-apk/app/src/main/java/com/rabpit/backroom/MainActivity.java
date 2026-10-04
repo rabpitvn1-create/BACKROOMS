@@ -753,6 +753,7 @@ public class MainActivity extends Activity {
     String location = state.optString("location", "").trim();
     return "Bạn là GAME MASTER của Backroom The Game. Kể đúng MỘT lượt bằng tiếng Việt tự nhiên, sáng tạo và có nhịp như một câu chuyện; không viết như báo cáo hệ thống. "
         + "Core/local đã quyết định gameplay. Bạn chỉ diễn đạt những gì đã xảy ra và nối nó hợp lý với Milestone.\n"
+        + "NGÔI KỂ: trong phần reply, luôn kể Cao Minh ở ngôi thứ ba; không gọi Cao Minh là 'bạn'. Dùng 'Cao Minh' hoặc 'hắn'. Từ 'bạn' chỉ được giữ trong lời thoại trực tiếp của nhân vật khác.\n"
         + "PLAYER ACTION:\n" + (action == null ? "" : action.trim()) + "\n"
         + "WHERE:\nLevel " + levelKey + (location.isEmpty() ? "" : " — " + location) + "\n"
         + "CURRENT LOCAL EVENTS — read-only facts, không tự thêm/bớt outcome, Entity, Item hay Party:\n"
@@ -957,10 +958,21 @@ public class MainActivity extends Activity {
           String prompt = narrationPrompt(state, displayAction, safeEvents);
           long promptMs = SystemClock.elapsedRealtime() - promptStart;
           long providerStart = SystemClock.elapsedRealtime();
-          JSONObject generated = parseModelJson(generateNarrationText(prompt, NarrationHttpTransport.deadlineAfterMillis(30_000L)));
+          JSONObject generated;
+          try {
+            generated = OfflinePresenter.present(safeEvents,
+                () -> parseModelJson(generateNarrationText(
+                    prompt, NarrationHttpTransport.deadlineAfterMillis(30_000L))));
+          } catch (Exception providerError) {
+            DiagnosticLog.record("narration.fallback", "turnId", turnId,
+                "error", providerError.getMessage() == null
+                    ? providerError.getClass().getSimpleName() : providerError.getMessage());
+            generated = OfflinePresenter.fallback(safeEvents);
+          }
           long providerMs = SystemClock.elapsedRealtime() - providerStart;
-          String reply = generated.optString("reply", "").trim();
-          if (reply.isEmpty()) throw new Exception("AI trả về phản hồi rỗng.");
+          String reply = GmChoiceContract.mergeEncounterDialogue(
+              generated.optString("reply", "").trim(), generated.optJSONArray("encounterDialogue"));
+          if (reply.isEmpty()) throw new Exception("AI và fallback đều trả về phản hồi rỗng.");
           JSONObject gmEntry = GmChoiceContract.gmEntry(reply, generated, state);
           gmEntry.put("sceneLevelKey", state.optString("currentLevelKey", String.valueOf(state.optInt("currentLevel", 0))));
           String newEncounter = encounterKey(state);

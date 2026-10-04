@@ -59,12 +59,17 @@ test('GM path is one current-turn request with milestone, local facts and memora
     bridge.indexOf('private void logDiagnostic(', bridge.indexOf('private String narrationPrompt(')));
   assert.ok(turn.indexOf('completePreparedTurn(') < turn.indexOf('generateNarrationText('));
   assert.ok(turn.indexOf('generateNarrationText(') < turn.indexOf('commitPresentation('));
+  assert.match(turn, /OfflinePresenter\.present\(safeEvents/);
+  assert.match(turn, /OfflinePresenter\.fallback\(safeEvents\)/);
+  assert.match(turn, /mergeEncounterDialogue/);
+  assert.match(prompt, /không gọi Cao Minh là 'bạn'/);
   assert.match(prompt, /milestoneCore\.promptContext\(state\)/);
   assert.match(prompt, /memorableEvents/);
   assert.match(prompt, /CURRENT LOCAL EVENTS/);
   assert.match(prompt, /1-3 gợi ý hành động cụ thể/);
   assert.doesNotMatch(bridge, /NarrationFutureBuffer|NarrationGuard|NarrationProviderPolicy|SceneContextCompiler|oracleWindow\(|prefetchChoices\(/);
   assert.doesNotMatch(html, /narrationPrefetchStatus|backroomNarrationFutureStatus|backroomPrefetchChoices/);
+  assert.doesNotMatch(choiceUi, /backroomPrefetchChoices/);
 });
 
 test('GM suggestions keep up to three distinct player-facing actions', () => {
