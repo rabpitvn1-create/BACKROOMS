@@ -38,14 +38,18 @@ test('PLAYER ACTION and THUC HIEN return to standard dark button style without a
   assert.match(index,/#submit\{min-height:52px/);
 });
 
-test('combat dice visual theme blends liminal Backrooms and restrained cultivation cues without changing layout',()=>{
-  assert.match(gmChoice,/\.combat-dice-panel\{[^}]*radial-gradient\([^}]*linear-gradient\(/);
-  assert.match(gmChoice,/\.combat-dice-panel:after\{[^}]*border-radius:50%/);
-  assert.match(gmChoice,/\.combat-die\.held\{[^}]*#66b894/);
-  assert.match(gmChoice,/\.combat-die\.rolling\{[^}]*#8fa9a6/);
-  assert.match(gmChoice,/\.combat-roll\{[^}]*#4f9479/);
-  assert.match(gmChoice,/\.combat-finish\{[^}]*#8b6047/);
+test('combat dice use physical ivory dice with distinct rolling, held, settle and reduced-motion states',()=>{
   assert.match(gmChoice,/\.combat-dice-row\{display:grid;grid-template-columns:repeat\(5,1fr\)/);
+  assert.match(gmChoice,/\.combat-die-object\{[^}]*transform-style:preserve-3d/);
+  assert.match(gmChoice,/\.combat-die\.rolling \.combat-die-object\{animation:combat-die-tumble \.68s/);
+  assert.match(gmChoice,/@keyframes combat-die-tumble\{[^}]*translate3d\(/);
+  assert.match(gmChoice,/\.combat-die\.held \.combat-die-object\{animation:combat-die-held-float 2\.1s/);
+  assert.match(gmChoice,/\.combat-die\.held \.combat-die-hold-ring\{[^}]*animation:combat-die-hold-ring 4s/);
+  assert.match(gmChoice,/\.combat-die\.settling \.combat-die-object\{animation:combat-die-settle \.17s/);
+  assert.match(gmChoice,/DICE_ROLL_ANIMATION_MS=680/);
+  assert.match(gmChoice,/DICE_SETTLE_ANIMATION_MS=170/);
+  assert.match(gmChoice,/button\.setAttribute\('aria-pressed',held\[index\]===true\?'true':'false'\)/);
+  assert.match(gmChoice,/@media\(prefers-reduced-motion:reduce\)/);
   assert.match(gmChoice,/\.combat-dice-actions\{display:grid;grid-template-columns:1fr 1fr/);
 });
 
