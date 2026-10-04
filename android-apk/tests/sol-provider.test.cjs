@@ -120,3 +120,11 @@ test('debug telemetry separates core prompt provider validation repair and total
   assert.match(submit, /BuildConfig\.DEBUG/);
   assert.doesNotMatch(submit, /Log\.[dvwi]\([^\n]*(?:SOL_API_KEY|GEMINI_API_KEY|HAKU_API_KEY|PLAYER ACTION)/);
 });
+
+
+test('release PR checkout matches its merged workflow baseline', () => {
+  const release = fs.readFileSync(path.join(root, '.github/workflows/release-version.yml'), 'utf8');
+  const checkout = release.slice(release.indexOf('- uses: actions/checkout@v4'), release.indexOf('- name: Audit canon sources'));
+  assert.ok(checkout.includes('ref: $' + '{{ github.sha }}'));
+  assert.doesNotMatch(checkout, /pull_request\.head\.sha/);
+});

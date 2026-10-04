@@ -46,7 +46,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          # PR workflows use the merge commit, matching the baseline in this workflow.
+          ref: ${{ github.sha }}
 
       - name: Audit canon sources
         run: |
