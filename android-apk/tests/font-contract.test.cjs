@@ -18,7 +18,8 @@ test('Pretendard Std is the packaged default game font',()=>{
   assert.match(index,/player-action-modal\{[^}]*font-family:'Pretendard Std'/);
   assert.match(index,/game-menu-modal\{[^}]*font-family:'Pretendard Std'/);
   assert.match(gm,/\.message\.gm \.role\{font-family:'Play','Pretendard Std'/);
-  assert.match(gm,/\.message\.gm \.gm-main-text\{font-family:'Play','Pretendard Std'/);
+  assert.match(gm,/\.message\.gm \.gm-main-text\{font-family:'Google Sans','Pretendard Std'[^}]*font-weight:400/);
+  assert.match(gm,/\.message\.gm \.gm-main-text \.semantic\{font-family:inherit;font-weight:700/);
   assert.doesNotMatch(gm,/\.message\.player \.gm-main-text\{font-family:'Play'/);
 });
 
