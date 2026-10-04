@@ -33,7 +33,7 @@
     "roamingAllLevels": false,
     "canonLevelRestrictionsApplied": true,
     "levelMetadataMeaning": "runtime_eligibility_for_auto_spawn_only; preserved_reference_for_legacy",
-    "entitySkillProcPolicy": "Each skill rolls independently once per valid Entity response; if none proc, use the normal basic attack.",
+    "entitySkillProcPolicy": "Each Entity response resolves exactly one offensive action: roll configured skills independently in order, resolve only the first successful proc, and use the normal basic attack if none proc.",
     "treasureMaximumRatePercent": 4,
     "treasurePriorityBeforeStandardPool": true,
     "standardAutoSpawnEnabled": true,
