@@ -79,22 +79,22 @@ test('Explorer prefetch warms narration only and never previews or commits Core 
     bridge.indexOf('private void prefetchChoices(', bridge.indexOf('private void scheduleNarrationFutureRefill(')));
   assert.match(refill, /narrationFutureIo\.execute/);
   assert.match(refill, /generateText\(prompt\)/);
-  assert.match(refill, /narrationFutureAlignment\(current, baseHash, oracleSteps\)/);
+  assert.match(refill, /narrationBuffer\.accept\(request, parsed\.optJSONArray\("future"\)\)/);
   assert.match(refill, /narrationFutureRefillRunning/);
   assert.doesNotMatch(refill, /previewTurn\(|processRule\(|completePreparedTurn\(|commitPresentation\(/);
 });
 
 test('combat time reuses the matched pre-encounter oracle to warm post-combat narration', () => {
   assert.match(bridge, /private JSONArray narrationFutureForecastSteps = new JSONArray\(\)/);
-  assert.match(bridge, /private String narrationFutureForecastPrompt = ""/);
+  assert.match(bridge, /private JSONObject narrationFutureForecastState = new JSONObject\(\)/);
   assert.match(bridge, /private int combatForecastStartIndex\(/);
   assert.match(bridge, /GameCoreFacade\.oracleCacheOutcomeMatches\(currentState, step\)/);
   const combatAlign=bridge.slice(bridge.indexOf('private int combatForecastStartIndex('),
     bridge.indexOf('private int narrationFutureAlignment(',bridge.indexOf('private int combatForecastStartIndex(')));
   assert.doesNotMatch(combatAlign, /optInt\("activeEntityIndex"|optJSONObject\("entity"/);
-  assert.match(bridge, /put\("payloadKeys", step\.optJSONArray\("payloadKeys"\)/);
-  assert.match(bridge, /private void scheduleCombatNarrationFutureRefill\(/);
-  assert.match(bridge, /if \(CombatChoiceEngine\.isActive\(baseState\)\) \{[\s\S]*scheduleCombatNarrationFutureRefill\(baseState\)/);
+  assert.match(core, /put\("payloadKeys", selectedEntityKeys\(selected\)\)/);
+  assert.match(bridge, /CombatChoiceEngine\.isActive\(current\) \|\| CombatChoiceEngine\.isKnownEntity\(encounterKey\(current\)\)/);
+  assert.match(bridge, /combatForecastStartIndex\(current, steps\)/);
   assert.match(bridge, /scheduleNarrationFutureRefill\(runtime\);[\s\S]*backroomCombatDiceState/);
   assert.match(bridge, /OfflinePresenter\.isCoreOwnedEntityLifecycle\(safeEvents\)/);
   assert.match(bridge, /coreOwnedEntityLifecycle \|\| cachedSlot == null/);
@@ -135,18 +135,20 @@ test('player turn commits Core before bounded presentation and never schedules p
   assert.doesNotMatch(provider, /catch \(|geminiText\(|haikuText\(|haikuTextOnce\(|sleep|attempt/);
 });
 
-test('oracle narration cache stays warm without blocking current narration on a six-step batch', () => {
-  assert.match(bridge, /private JSONArray narrationFutureCache = new JSONArray\(\)/);
+test('rolling oracle buffer warms only missing capsules without blocking current narration', () => {
+  assert.match(bridge, /private final NarrationFutureBuffer narrationBuffer = new NarrationFutureBuffer\(\)/);
   assert.match(bridge, /pollNarrationFuture\(JSONObject committedState\)/);
   assert.match(bridge, /GameCoreFacade\.oracleAuthorityHash\(committedState\)/);
   assert.match(bridge, /GameCoreFacade\.oracleCacheOutcomeMatches\(committedState, slot\)/);
   assert.match(bridge, /private String narrationFuturePrompt\(/);
   assert.match(bridge, /OUTPUT chỉ JSON:[^\n]*future/);
   assert.match(bridge, /private void scheduleNarrationFutureRefill\(JSONObject baseState\)/);
-  assert.match(bridge, /narrationFutureCache\.length\(\) >= 4/);
+  assert.match(bridge, /narrationBuffer\.readyCount\(\) > NarrationFutureBuffer\.LOW_WATER/);
   assert.match(bridge, /narrationFutureRefillRunning = true/);
-  assert.match(bridge, /narrationFutureAlignment\(current, baseHash, oracleSteps\)/);
-  assert.match(bridge, /replaceNarrationFutureLocked\([\s\S]*startIndex\)/);
+  assert.match(bridge, /NarrationFutureBuffer\.alignment\(GameCoreFacade\.oracleAuthorityHash\(currentState\)/);
+  assert.match(bridge, /narrationBuffer\.accept\(request, parsed\.optJSONArray\("future"\)\)/);
+  assert.match(bridge, /narrationFuturePending = true/);
+  assert.match(bridge, /narrationFutureIo\.schedule\(this::runNarrationFutureRefill/);
   const prompt = bridge.slice(bridge.indexOf('private String narrationPrompt('),
     bridge.indexOf('private void clearNarrationFutureCache('));
   assert.doesNotMatch(prompt, /BATCH OUTPUT|future là mảng 6 capsule/);
