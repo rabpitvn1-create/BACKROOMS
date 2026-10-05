@@ -11,6 +11,8 @@
   var form = document.getElementById('form');
   var action = document.getElementById('action');
   var submit = document.getElementById('submit');
+  var imeInsetCss = 0;
+  var modalBaselineHeight = 0;
   if (!modal || !openButton || !form || !action) return;
 
   function combatActive(){
@@ -34,16 +36,28 @@
     return combatActive() || deathRestartPending() || processing();
   }
 
+  function layoutViewportHeight(){
+    return Math.max(1, window.innerHeight || document.documentElement.clientHeight || 1);
+  }
+
   function fitVisualViewport(){
     if (modal.hidden) return;
     var vv = window.visualViewport;
-    if (!vv) {
-      modal.style.top = '0px';
-      modal.style.height = '100%';
-      return;
+    var layoutHeight = layoutViewportHeight();
+    var visualHeight = Math.max(1, vv && vv.height ? vv.height : layoutHeight);
+    var visualTop = Math.max(0, vv && vv.offsetTop ? vv.offsetTop : 0);
+
+    if (imeInsetCss <= 0) {
+      modalBaselineHeight = Math.max(modalBaselineHeight, layoutHeight, visualHeight);
     }
-    modal.style.top = Math.max(0, vv.offsetTop || 0) + 'px';
-    modal.style.height = Math.max(1, vv.height || window.innerHeight) + 'px';
+    var baselineHeight = Math.max(modalBaselineHeight, layoutHeight, visualHeight);
+    var usableHeight = visualHeight;
+    if (imeInsetCss > 0) {
+      usableHeight = Math.min(visualHeight, Math.max(1, baselineHeight - imeInsetCss));
+    }
+
+    modal.style.top = visualTop + 'px';
+    modal.style.height = Math.max(1, usableHeight) + 'px';
   }
 
   function resetViewport(){
@@ -120,6 +134,13 @@
   }
   window.addEventListener('resize', fitVisualViewport);
 
+  window.backroomSetImeInset = function(physicalPixels){
+    var pixels = Math.max(0, Number(physicalPixels) || 0);
+    var ratio = Math.max(1, Number(window.devicePixelRatio) || 1);
+    imeInsetCss = pixels / ratio;
+    if (imeInsetCss <= 0) modalBaselineHeight = 0;
+    fitVisualViewport();
+  };
   window.backroomOpenPlayerAction = openPlayerAction;
   window.backroomClosePlayerAction = closePlayerAction;
   window.backroomSyncPlayerAction = syncPlayerAction;

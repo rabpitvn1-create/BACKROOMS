@@ -118,6 +118,7 @@ public class MainActivity extends Activity {
     });
     webView.addJavascriptInterface(new GameBridge(), "Android");
     setContentView(webView);
+    installImeInsetBridge();
     initializeBackgroundMusic();
     safeApplyImmersiveFullscreen("onCreate");
     webView.loadUrl("file:///android_asset/index.html");
@@ -197,6 +198,29 @@ public class MainActivity extends Activity {
             | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
             | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
             | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+  }
+
+  private void installImeInsetBridge() {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R || webView == null) return;
+    webView.setOnApplyWindowInsetsListener((view, insets) -> {
+      int bottom = 0;
+      try {
+        if (insets.isVisible(WindowInsets.Type.ime())) {
+          bottom = Math.max(0, insets.getInsets(WindowInsets.Type.ime()).bottom);
+        }
+      } catch (Throwable error) {
+        Log.w(TAG, "Unable to read IME insets; visualViewport fallback remains active.", error);
+      }
+      final int imeBottomPx = bottom;
+      view.post(() -> {
+        if (webView == null) return;
+        webView.evaluateJavascript(
+            "if(window.backroomSetImeInset){window.backroomSetImeInset(" + imeBottomPx + ");}",
+            null);
+      });
+      return insets;
+    });
+    webView.requestApplyInsets();
   }
 
   @Override protected void onDestroy() {

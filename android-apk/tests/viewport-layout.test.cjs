@@ -8,6 +8,7 @@ const path=require('node:path');
 const assets=path.join(__dirname,'../app/src/main/assets');
 const index=fs.readFileSync(path.join(assets,'index.html'),'utf8');
 const playerAction=fs.readFileSync(path.join(assets,'player-action-ui.js'),'utf8');
+const main=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
 
 test('game shell uses one visual viewport height and keeps page scrolling locked',()=>{
   assert.match(index,/html,body\{height:100%;overflow:hidden;overscroll-behavior:none\}/);
@@ -29,11 +30,17 @@ test('gameplay frame is fixed while only the narrative log consumes leftover hei
   assert.doesNotMatch(index,/\.log\{height:clamp\(320px,48vh,540px\)/);
 });
 
-test('keyboard-sensitive controls use the shared viewport budget',()=>{
+test('keyboard-sensitive controls use visual viewport plus native IME insets',()=>{
   assert.match(index,/textarea\{min-height:150px;max-height:calc\(var\(--app-height,100dvh\) - 150px\);/);
   assert.match(index,/\.game-menu-sheet\{[^}]*max-height:min\(calc\(var\(--app-height,100dvh\) - 12px\),760px\)/);
   assert.match(playerAction,/window\.visualViewport\.addEventListener\('resize', fitVisualViewport\)/);
   assert.match(playerAction,/window\.visualViewport\.addEventListener\('scroll', fitVisualViewport\)/);
+  assert.match(playerAction,/window\.backroomSetImeInset = function\(physicalPixels\)/);
+  assert.match(playerAction,/imeInsetCss = pixels \/ ratio/);
+  assert.match(playerAction,/usableHeight = Math\.min\(visualHeight, Math\.max\(1, baselineHeight - imeInsetCss\)\)/);
+  assert.match(main,/installImeInsetBridge\(\)/);
+  assert.match(main,/WindowInsets\.Type\.ime\(\)/);
+  assert.match(main,/backroomSetImeInset/);
 });
 
 test('header stays compact while horizontal and bottom controls respect curved-screen safe areas',()=>{
