@@ -1079,6 +1079,7 @@ public final class GameCoreFacade implements AutoCloseable {
         state = persisted;
       } else {
         state = newGameState(state);
+        narrativeChapterCore.startNewGame(state);
       }
       normalizeCoreState(state);
       characterProgressionCore.applyExplorerTurnRecovery(state);
