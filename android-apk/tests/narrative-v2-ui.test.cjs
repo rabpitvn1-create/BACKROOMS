@@ -34,3 +34,15 @@ test('Narrative V2 removes free-form action from the active runtime and exposes 
 test('loading edit waits for combat to finish',()=>{
   assert.match(ui,/state&&state\.combat&&state\.combat\.active===true/);
 });
+
+
+test('Act loading exposes real pipeline progress instead of a static technical sentence',()=>{
+  assert.match(ui,/role="progressbar"/);
+  assert.match(ui,/function setLoadingProgress\(percent,stage\)/);
+  assert.match(ui,/window\.backroomNarrativeProgress=function\(json\)/);
+  assert.match(ui,/preloadAssets\(next,function\(done,total\)/);
+  assert.doesNotMatch(ui,/Đang khóa quá khứ, roll Spawn Budget/);
+  for(const percent of [15,35,55,65,80]){
+    assert.ok(main.includes('emitNarrativeProgress('+percent+','));
+  }
+});
