@@ -69,6 +69,12 @@ test('GM path consumes one offline SceneFrame and only narrates it', () => {
   assert.match(prompt, /focus=ENTITY/);
   assert.match(prompt, /pendingIntro không rỗng/);
   assert.match(prompt, /2-5 câu thoại tự nhiên/);
+  assert.match(prompt, /Vạn Giới Ma Tôn/);
+  assert.match(prompt, /Ma Đạo Kiếm Tu/);
+  assert.match(prompt, /tự rà chính tả và ngữ pháp/);
+  assert.match(prompt, /không dùng fragment kỹ thuật/);
+  assert.match(prompt, /không tự cho Cao Minh vận công, phóng thần thức, xuất kiếm/);
+  assert.doesNotMatch(prompt, /CaoMinhVoiceContract/);
   assert.doesNotMatch(prompt, /milestoneCore|MEMORABLE EVENTS|CURRENT LOCAL EVENTS/);
   assert.doesNotMatch(bridge, /NarrationFutureBuffer|NarrationGuard|NarrationProviderPolicy|SceneContextCompiler|oracleWindow\(|prefetchChoices\(/);
   assert.doesNotMatch(html, /narrationPrefetchStatus|backroomNarrationFutureStatus|backroomPrefetchChoices/);

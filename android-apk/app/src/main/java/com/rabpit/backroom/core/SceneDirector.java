@@ -166,7 +166,7 @@ public final class SceneDirector {
     String detail = GmChoiceContract.normalizePlayerFacingVietnamese(
         event.optString("introDetail", "Người đó đứng trong khu vực trước mặt.").trim());
     StringBuilder out = new StringBuilder();
-    out.append(capitalize(subject)).append(" xuất hiện phía trước ").append(actor).append(". ");
+    out.append(capitalize(subject)).append(" xuất hiện trước mặt ").append(actor).append(". ");
     if (!detail.isEmpty()) out.append(sentence(detail)).append("\n\n");
     if (reunion) {
       out.append("“Lại là anh.”\n\n");

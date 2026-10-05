@@ -166,22 +166,22 @@
         "Mọi từ mô tả môi trường bằng tiếng Anh còn tồn tại trong dữ liệu canon chỉ là thuật ngữ nội bộ. Khi kể cho người chơi, phải diễn đạt bằng tiếng Việt tự nhiên; không được trộn các từ tiếng Anh thông thường vào câu tiếng Việt."
       ],
       "variationPool": [
-        "hành lang vàng hẹp với trần thấp và một hàng đèn có độ sáng lệch nhau.",
+        "Hành lang vàng hẹp với trần thấp và một hàng đèn có độ sáng không đều.",
         "Phòng chữ nhật rộng hơn bình thường, không có đồ nội thất; giấy dán tường mang hai sắc vàng khác nhau.",
-        "giao lộ ba hướng với thảm ẩm không đều và một góc tường bong lớp giấy ngoài.",
+        "Giao lộ ba hướng với thảm ẩm không đều và một góc tường bị bong lớp giấy ngoài.",
         "Ngõ cụt dẫn vào một phòng vòm màu vàng nhạt, nơi lớp thảm lún sâu hơn.",
         "Một sảnh cột mở rộng tầm nhìn, các cột xa nhất chìm dần trong màn sáng mờ.",
         "Bãi hố nhỏ với các hố phân bố thưa; vẫn có lối đi rõ nếu Cao Minh quan sát cẩn thận.",
-        "bãi hố dày hơn, hố gần nhau, yêu cầu bước chậm hoặc đổi hướng.",
+        "Bãi hố dày hơn, các hố nằm sát nhau, buộc phải bước chậm hoặc đổi hướng.",
         "Một vùng tương đối ổn định, nơi dấu đánh dấu cũ vẫn còn nguyên khi Cao Minh quay lại.",
         "Một đoạn hành lang nơi tiếng ù giảm dần nhưng đèn vẫn còn sáng.",
         "Một đèn duy nhất nhấp nháy lệch nhịp; hiện tượng này tự nó không chứng minh có lối ra.",
-        "thảm gần như khô trong vài mét rồi trở lại ẩm.",
+        "Thảm gần như khô trong vài mét rồi lại trở nên ẩm.",
         "Một mảng nấm mốc đen bám ở chân tường nhưng không có sinh vật nào hiện diện.",
         "Một tấm trần hơi lệch để lọt luồng khí nhẹ, nhưng không tạo thành lối đi.",
         "Giấy dán tường có một vệt đỏ nâu do chất bẩn; đó chỉ là vết bẩn, không phải dấu hiệu của một khu vực khác.",
         "Một phòng có nhiều ổ điện nhưng không có dấu hiệu thiết bị từng được cắm.",
-        "tiếng cào mơ hồ sau tường di chuyển theo một đoạn rồi biến mất.",
+        "Tiếng cào mơ hồ phía sau bức tường dường như dịch chuyển theo một quãng rồi biến mất.",
         "Một giọng nói nghe quen thuộc vọng từ xa nhưng quá mơ hồ để xác nhận có người thật.",
         "Một đợt nhiễu làm tiếng ù tăng mạnh trong thời gian ngắn rồi trở về mức bình thường.",
         "Dấu giày cũ trên thảm kết thúc vô lý ở giữa phòng; chỉ là bằng chứng chưa xác minh.",
@@ -189,7 +189,7 @@
         "Một đoạn tối ở phía xa vẫn còn ánh sáng phản chiếu, chưa phải khu vực mất sáng hoàn toàn.",
         "Một vùng chuyển tiếp vào bóng tối, nơi tiếng ù và ánh sáng giảm dần qua vài khu vực thay vì tắt đột ngột.",
         "Một hành lang chìm trong bóng tối, tường thô ráp và các chỗ trũng trên sàn đọng chất lỏng sâu đến mắt cá chân.",
-        "phòng vòm nhỏ tương đối ổn định đủ để kiểm tra trang bị hoặc nghỉ ngắn.",
+        "Một phòng vòm nhỏ, tương đối ổn định, đủ để kiểm tra trang bị hoặc nghỉ ngắn.",
         "Lưới cột phía sau bị lệch sau khi Cao Minh quay đầu, cho thấy bố cục đã thay đổi khi khu vực rời tầm nhìn.",
         "Một cầu thang ngắn chỉ nối hai độ cao trong cùng khu vực, không phải lối ra.",
         "Một lối mở trên tường quá thấp, buộc Cao Minh phải cúi người nhưng không kéo dài thành lối bò.",
@@ -475,7 +475,7 @@
       "sensory": [
         "Âm bước chân và tiếng kim loại/ống vang xa trên bê tông.",
         "Nhiệt độ phần lớn ấm hoặc trung tính nhưng có túi sương lạnh.",
-        "Ánh sáng công nghiệp có thể tắt đột ngột trong Flickering."
+        "Hệ thống chiếu sáng công nghiệp có thể tắt đột ngột trong các đợt chớp tắt."
       ],
       "anomalies": [
         "Non-Euclidean halls làm khoảng cách cảm nhận và tuyến nhìn không hoàn toàn đáng tin.",
@@ -515,10 +515,10 @@
       ],
       "variationPool": [
         "Dãy cột bê tông mất hút trong sương lạnh cục bộ.",
-        "Một ramp xuống nhưng quay về cùng cao độ do topology.",
-        "Cửa đôi mở vào corridor nhỏ với phòng phụ trống.",
-        "Ống trần nhỏ giọt tạo puddle không uống được.",
-        "Một cụm đèn tắt tạo pocket darkness trước khi Flickering toàn khu.",
+        "Một đoạn dốc đi xuống nhưng lại quay về cùng cao độ do cấu trúc không gian bất thường.",
+        "Cửa đôi mở vào một hành lang nhỏ nối với căn phòng phụ trống.",
+        "Một ống trên trần nhỏ giọt, tạo thành vũng nước không thể dùng để uống.",
+        "Một cụm đèn tắt tạo thành vùng tối cục bộ trước khi hiện tượng chớp tắt lan ra toàn khu.",
         "Bãi xe hiếm với một thân xe không hoạt động và kính bám bụi."
       ]
     },
@@ -544,9 +544,9 @@
         "Steam/Heat Sections: vùng ống nóng, hơi nước và thay đổi nhiệt mạnh theo project canon."
       ],
       "sensory": [
-        "Tiếng whir, rung, nước/chất lỏng chảy trong ống, fluorescent buzz và tiếng kim loại giãn nhiệt.",
+        "Tiếng máy quay đều, rung nhẹ, chất lỏng chảy trong ống, tiếng ù của đèn huỳnh quang và tiếng kim loại co giãn vì nhiệt chồng lên nhau.",
         "Không khí có thể nóng ẩm hoặc đổi đột ngột sang lạnh.",
-        "Bụi chalky bám tay/quần áo ở corridor sát tường."
+        "Bụi dạng phấn bám vào tay và quần áo ở hành lang sát tường."
       ],
       "anomalies": [
         "Máy và pipes nối với nhau theo cách không có hệ thống chức năng rõ nhưng vẫn có điện/chất truyền bên trong.",
@@ -584,12 +584,12 @@
         "Không làm máy móc 'có ý thức' nếu chưa có evidence."
       ],
       "variationPool": [
-        "Corridor vừa đủ vai người với pipe lớn ép sát một bên.",
+        "Hành lang chỉ vừa đủ cho một người đi qua, với đường ống lớn ép sát một bên.",
         "Dãy đèn trắng/cam lệch màu và một cụm tắt.",
         "Van xả hơi làm mờ tầm nhìn trong vài giây.",
-        "Trolley cũ có scrap không phải loot tự động.",
-        "Door thép khóa với ô kính nhìn vào phòng tối.",
-        "Một đoạn pipe rung mạnh trước khi áp suất giảm."
+        "Xe đẩy cũ chứa vài mảnh phế liệu, nhưng đó không phải chiến lợi phẩm tự động.",
+        "Cửa thép bị khóa, có ô kính nhìn vào căn phòng tối.",
+        "Một đoạn đường ống rung mạnh trước khi áp suất giảm."
       ]
     },
     "3": {
@@ -614,9 +614,9 @@
         "Sanctums/blocked rooms: các phòng/khối kiến trúc khó tiếp cận; không tự cho rằng safe."
       ],
       "sensory": [
-        "Buzz, crackle, whir và rung điện chồng lên nhau; mùi ozone/kim loại nóng có thể xuất hiện khi có arcing.",
-        "Ánh sáng dim, vùng tối xen kẽ và flash từ thiết bị.",
-        "Heat thay đổi gần machinery; lower utility trong project canon có thể lạnh sâu."
+        "Tiếng ù, tiếng lép bép điện, tiếng máy quay và rung điện chồng lên nhau; mùi ôzôn hoặc kim loại nóng có thể xuất hiện khi xảy ra phóng điện.",
+        "Ánh sáng mờ, các vùng tối xen kẽ và những tia chớp từ thiết bị.",
+        "Nhiệt độ thay đổi rõ gần máy móc; các khu kỹ thuật nằm sâu hơn theo canon của dự án có thể lạnh buốt."
       ],
       "anomalies": [
         "Project canon có blackout làm route thay đổi khi điện trở lại.",
@@ -655,12 +655,12 @@
         "Không auto-spawn resource vì Level nổi tiếng giàu tài nguyên."
       ],
       "variationPool": [
-        "Generator room lớn với dây được tháo một phần và đèn emergency.",
-        "Corridor thấp buộc thay đổi tư thế di chuyển.",
-        "Pipe đen rung nhẹ với tiếng chất lỏng bên trong.",
-        "Một bộ contactor đóng cắt gây flash và tiếng nổ khô.",
-        "Bar chắn một phòng sáng phía sau nhưng không có gate.",
-        "Khu office nhỏ xen giữa machinery báo hiệu transition dần."
+        "Một phòng máy phát điện lớn, nhiều đoạn dây đã bị tháo rời và chỉ còn đèn khẩn cấp chiếu sáng.",
+        "Hành lang thấp buộc phải thay đổi tư thế di chuyển.",
+        "Đường ống màu đen rung nhẹ, bên trong vọng ra tiếng chất lỏng chuyển động.",
+        "Một bộ công tắc tơ đóng ngắt, tạo tia chớp và tiếng nổ khô.",
+        "Một thanh chắn ngăn căn phòng sáng phía sau, nhưng không có cổng.",
+        "Một khu văn phòng nhỏ xen giữa máy móc, cho thấy môi trường đang chuyển tiếp dần."
       ]
     },
     "4": {
@@ -685,9 +685,9 @@
         "Quiet Rest Areas: vùng ít anomaly/entity hơn, không bảo đảm an toàn dài hạn."
       ],
       "sensory": [
-        "Fluorescent hum nhẹ hơn các Level công nghiệp; điều hòa hoặc ventilation có thể chạy cục bộ.",
+        "Tiếng ù của đèn huỳnh quang nhẹ hơn so với các Level công nghiệp; điều hòa hoặc hệ thống thông gió có thể hoạt động cục bộ.",
         "Không khí khô hơn và ít mùi ẩm; mùi giấy, bụi và nhựa/vải văn phòng.",
-        "Cửa sổ có thể cho cảm giác mưa liên tục nhưng không cung cấp bằng chứng về outside world."
+        "Cửa sổ có thể tạo cảm giác như bên ngoài đang mưa liên tục, nhưng không cung cấp bằng chứng về một thế giới bên ngoài."
       ],
       "anomalies": [
         "Một số windows là trap/không đáng tin.",
@@ -723,12 +723,12 @@
         "Không biến Level 4 thành safe hub tuyệt đối."
       ],
       "variationPool": [
-        "Cubicle row có vài ghế đổ nhưng mặt bàn gần như sạch.",
-        "Meeting room với bảng trắng cũ và đèn chỉ sáng một nửa.",
-        "Window corridor với kính tối hoàn toàn và mưa chỉ thấy ở một ô xa.",
-        "Vending machine có điện nhưng inventory không xác định.",
-        "Office carpet đổi dần sang pattern khách sạn ở vùng transition.",
-        "Một stairwell yên tĩnh nhưng door signage không khớp tầng."
+        "Một dãy ô làm việc có vài chiếc ghế bị đổ nhưng mặt bàn gần như sạch.",
+        "Phòng họp có bảng trắng cũ và hệ thống đèn chỉ sáng một nửa.",
+        "Hành lang có cửa sổ kính tối hoàn toàn; mưa chỉ xuất hiện ở một ô kính phía xa.",
+        "Máy bán hàng tự động vẫn có điện nhưng không xác định được hàng hóa bên trong.",
+        "Thảm văn phòng dần chuyển sang hoa văn kiểu khách sạn tại vùng chuyển tiếp.",
+        "Một buồng thang yên tĩnh nhưng biển chỉ dẫn trên cửa không khớp với tầng hiện tại."
       ]
     },
     "5": {
@@ -754,9 +754,9 @@
         "Guest Wings: room/corridor có thể furnished hoặc trống, dùng cho exploration và rest risk."
       ],
       "sensory": [
-        "Smooth jazz/vintage audio có thể phát không rõ nguồn và đổi bài bất chợt.",
-        "Party chatter sau tường, whisper, touch sensation hoặc cảm giác tranh đang nhìn đã được báo cáo nhưng không phải mọi thứ đều là Entity.",
-        "Hotel thường sạch, ít bụi; Boiler Room nóng, ồn và ẩm hơn."
+        "Nhạc jazz êm và âm thanh mang phong cách cổ điển có thể phát ra từ nguồn không rõ và đổi bài bất chợt.",
+        "Tiếng trò chuyện như từ một bữa tiệc sau tường, tiếng thì thầm, cảm giác bị chạm hoặc cảm giác những bức tranh đang dõi theo đã được ghi nhận, nhưng không phải mọi hiện tượng đều là Entity.",
+        "Khu khách sạn thường sạch và ít bụi; phòng nồi hơi nóng, ồn và ẩm hơn."
       ],
       "anomalies": [
         "Vết bẩn có thể biến mất sau một thời gian như thể level tự làm sạch.",
@@ -793,12 +793,12 @@
         "Không tự giải thích ai đang duy trì hotel."
       ],
       "variationPool": [
-        "Hall gỗ tối với brass lamp và room placard không tuần tự.",
-        "Một lounge sạch hoàn hảo dù ghế bọc vải đã rất cũ.",
-        "Jazz đổi bài khi không ai ở gần speaker.",
-        "Ballroom có cửa ở vị trí phi lý nhưng tất cả vẫn đóng.",
-        "Boiler corridor với valve rung và condensate.",
-        "Một guest room vừa đủ ở nhưng dấu hiệu cho thấy không nên ngủ quá lâu."
+        "Sảnh gỗ tối với đèn bằng đồng thau và biển số phòng không theo thứ tự.",
+        "Một sảnh nghỉ sạch hoàn hảo dù những chiếc ghế bọc vải đã rất cũ.",
+        "Nhạc jazz đổi bài khi không có ai ở gần loa.",
+        "Phòng khiêu vũ có các cánh cửa ở vị trí phi lý nhưng tất cả vẫn đóng.",
+        "Hành lang nồi hơi có các van rung nhẹ và hơi nước ngưng tụ.",
+        "Một phòng dành cho khách đủ tiện nghi để ở, nhưng có dấu hiệu cho thấy không nên ngủ quá lâu."
       ]
     },
     "6": {
@@ -825,7 +825,7 @@
       "sensory": [
         "Bóng tối tuyệt đối hoặc gần tuyệt đối; im lặng có thể giống phòng cách âm.",
         "Bề mặt lạnh và luồng khí trở thành thông tin định hướng chính.",
-        "Auditory hallucination như breathing, whisper hoặc scuttling có thể xảy ra; không xác nhận nguồn khi chưa có evidence."
+        "Ảo giác thính giác như tiếng thở, tiếng thì thầm hoặc tiếng vật nhỏ bò lạo xạo có thể xảy ra; không được khẳng định nguồn phát khi chưa có bằng chứng."
       ],
       "anomalies": [
         "Light source có thể mất chức năng theo source lore; game không được tự cho night vision phá hoàn toàn tính chất Level nếu thiết bị chưa có canon tương tác.",
@@ -864,7 +864,7 @@
       ],
       "variationPool": [
         "Bức tường lạnh chuyển từ nhẵn sang có khe nối nhưng vẫn không nhìn thấy.",
-        "Luồng khí mỏng gợi một junction phía trước.",
+        "Luồng khí nhẹ gợi ý có một giao lộ ở phía trước.",
         "Một tiếng thở có vẻ gần rồi biến mất khi Cao Minh dừng lại.",
         "Nền thay đổi độ dốc rất nhẹ chỉ nhận ra qua bước chân.",
         "Nước nông được phát hiện bởi tiếng chạm trước khi chân chạm vào.",
@@ -893,9 +893,9 @@
         "Hydroponic Areas: nhà kính hoặc khu trồng cây trong nhiều trạng thái hư hỏng; không mặc định có thức ăn an toàn."
       ],
       "sensory": [
-        "Âm thanh thay đổi giữa tiếng quạt, relay, motor cửa, tiếng máy hoạt động rời rạc và những khoảng im lặng sâu.",
+        "Âm thanh thay đổi giữa tiếng quạt, rơ-le, động cơ cửa, tiếng máy hoạt động rời rạc và những khoảng im lặng sâu.",
         "Ánh sáng trắng sạch ở khu còn điện đối lập mạnh với vùng chập chờn hoặc tối.",
-        "Nhiệt độ có thể khác biệt đáng kể giữa các sector do hệ thống môi trường hỏng."
+        "Nhiệt độ có thể khác biệt đáng kể giữa các khu vực do hệ thống điều hòa môi trường bị hỏng."
       ],
       "anomalies": [
         "Một số automatons vẫn thực hiện tác vụ đơn giản như vệ sinh hoặc nấu nướng dù hệ thống xung quanh đã hư hỏng; không suy diễn chúng có ý thức nếu chưa có bằng chứng.",
@@ -933,11 +933,11 @@
       ],
       "variationPool": [
         "Phòng sinh hoạt sáng lạnh với đồ nội thất cố định nhưng thiết bị hiển thị đã chết.",
-        "Cửa trượt mở chậm rồi dừng nửa chừng vì motor yếu.",
-        "Một hành lang kính nhìn vào cavity nhưng kính nhiều lớp làm méo chiều sâu.",
-        "Khu kỹ thuật có relay còn nhấp nháy trong khi toàn bộ màn hình tắt.",
+        "Cửa trượt mở chậm rồi dừng nửa chừng vì động cơ yếu.",
+        "Một hành lang kính nhìn vào khoang rỗng, nhưng lớp kính nhiều tầng làm méo cảm nhận về chiều sâu.",
+        "Khu kỹ thuật có một rơ-le vẫn nhấp nháy trong khi toàn bộ màn hình đã tắt.",
         "Nhà kính khô héo với ống dẫn và đèn trồng cây còn treo trên khung.",
-        "Một automaton lặp tác vụ vô hại, bỏ qua Cao Minh trừ khi bị cản đường."
+        "Một cỗ máy tự động lặp lại tác vụ vô hại, bỏ qua Cao Minh trừ khi bị cản đường."
       ]
     },
     "0.2": {
@@ -1030,8 +1030,8 @@
       ],
       "sensory": [
         "Mùi quần áo mốc ướt trộn với mùi hóa chất, đôi khi nặng đến mức gây khó chịu đường hô hấp.",
-        "Tiếng nước bị chân khuấy và tiếng giọt vang xa thay cho tiếng buzz đều của Level 0.",
-        "The Hospital có mùi dầu, ẩm, mothball và phân hủy; âm vang thay đổi vì nhiều cửa/phòng kín."
+        "Tiếng nước bị bước chân khuấy động và tiếng nhỏ giọt vang xa thay cho tiếng ù đều của Level 0.",
+        "The Hospital có mùi dầu, ẩm, băng phiến và phân hủy; âm vang thay đổi vì có nhiều cửa và phòng kín."
       ],
       "anomalies": [
         "Sự chuyển đổi từ hành lang ngập sang bệnh viện xảy ra dần theo kiến trúc, không phải teleport.",
@@ -1071,10 +1071,10 @@
       "variationPool": [
         "Nước nâu có váng dầu mỏng và giấy tường cuộn khỏi chân tường.",
         "Một đèn xanh treo thấp hơn các đèn khác, dây điện rung theo chuyển động không khí.",
-        "Trolley kẹt ngang hành lang, bánh xe ngập nửa dưới.",
-        "Vách gỗ mục có lỗ sâu nhưng chưa đủ rộng thành passage.",
+        "Một xe đẩy kẹt ngang hành lang, phần dưới của bánh xe chìm trong nước.",
+        "Vách gỗ mục có một lỗ sâu nhưng chưa đủ rộng để trở thành lối đi.",
         "Phòng bệnh với giường ẩm, rèm rách và trần lệch.",
-        "Một hành lang hospital quay lại ledge dẫn xuống vùng nước, tạo áp lực lựa chọn đường."
+        "Một hành lang bệnh viện quay lại gờ cao dẫn xuống vùng nước, buộc phải cân nhắc lối đi."
       ]
     },
     "0.7": {
@@ -1100,8 +1100,8 @@
       ],
       "sensory": [
         "Âm thanh và ánh sáng thay đổi theo thời kỳ: nến, nguồn điện cũ, tiếng vật liệu khác nhau dưới chân.",
-        "Cảm giác thời gian không đồng nghĩa time travel; đồ vật và cảnh chỉ là manifestation được bảo tồn.",
-        "Các khu bị block có thể nhấp nháy như màn hình nhiễu."
+        "Cảm giác bất thường về thời gian không đồng nghĩa với du hành thời gian; đồ vật và cảnh chỉ là những biểu hiện được bảo tồn.",
+        "Các khu bị phong tỏa có thể nhấp nháy như màn hình nhiễu."
       ],
       "anomalies": [
         "Level bảo tồn các phiên bản lịch sử không còn tồn tại của Level 0.",
@@ -1142,8 +1142,8 @@
         "Một biển hiệu cũ có chữ mờ nhưng không đủ dữ liệu để xác định năm.",
         "Dãy cửa bị phủ nhiễu thị giác như màn hình mất tín hiệu.",
         "Một phòng có đồ nội thất thuộc thập niên cũ nhưng phủ bụi và không có người.",
-        "Một outpost cũ chỉ còn tủ hồ sơ, dây điện và vật liệu tháo dỡ.",
-        "Hai remnant thời kỳ khác nhau gặp nhau ở một góc kiến trúc không liền mạch."
+        "Một trạm tiền tiêu cũ chỉ còn tủ hồ sơ, dây điện và vật liệu đã tháo dỡ.",
+        "Hai tàn tích thuộc những thời kỳ khác nhau gặp nhau ở một góc kiến trúc không liền mạch."
       ]
     },
     "manila_room": {
@@ -1167,9 +1167,9 @@
         "Quiet Extensions: các phòng phụ rất gần về thẩm mỹ dùng để tạo đủ không gian gameplay mà không biến thành hotel/office."
       ],
       "sensory": [
-        "Âm thanh yên hơn Level 0, ít buzz hơn và tiếng bước chân trên sàn khô rõ hơn.",
+        "Không gian yên hơn Level 0, tiếng ù ít hơn và tiếng bước chân trên sàn khô nghe rõ hơn.",
         "Không khí bớt ẩm và ít gây áp lực hơn nhưng vẫn không phải Frontrooms.",
-        "Sự hiện diện của người khác nếu state có companion/NPC là điểm khác biệt lớn nhất."
+        "Không gian rất yên, vì vậy tiếng bước chân và giọng nói ở gần trở nên đặc biệt nổi bật."
       ],
       "anomalies": [
         "Isolation của Level 0 yếu đi hoặc không áp dụng bên trong, cho phép nhiều người cùng hiện diện.",
@@ -1205,12 +1205,12 @@
         "Không cho Level 1 xuất hiện trước The Torment và Red Rooms."
       ],
       "variationPool": [
-        "Bàn trung tâm với dấu sử dụng cũ nhưng không có vật phẩm gameplay tự sinh.",
-        "Một cửa mở sang annex beige nhỏ chứa bảng ghim và giấy cũ.",
+        "Bàn trung tâm có dấu vết sử dụng cũ nhưng không có vật phẩm nào tự nhiên xuất hiện sẵn.",
+        "Một cánh cửa mở sang phòng phụ nhỏ màu be, bên trong có bảng ghim và giấy cũ.",
         "Sàn gỗ kêu rõ dưới bước chân, tương phản với thảm ẩm của Level 0.",
         "Một góc có ghế không đồng bộ kiểu dáng, gợi ý chúng được mang vào từ nhiều nơi.",
         "Tường có dấu bút chì hoặc ghi chú không rõ tác giả.",
-        "Một passage ngắn quay về Central Room, củng cố tính ổn định."
+        "Một lối đi ngắn quay về Central Room, củng cố cảm giác ổn định."
       ]
     },
     "the_torment": {
@@ -1235,7 +1235,7 @@
         "Gray Spread Front: bề mặt bị anomaly làm mất màu, là hazard cần tránh."
       ],
       "sensory": [
-        "Màu gần như biến mất; contrast ánh trăng/sương là tín hiệu thị giác chính.",
+        "Màu sắc gần như biến mất; độ tương phản giữa ánh trăng và sương là tín hiệu thị giác chính.",
         "Sương lạnh làm giảm tầm nhìn và tạo cảm giác rét.",
         "Lá mục có thể phát tiếng rít/chói bất thường khi bị giẫm, phá sự im lặng."
       ],
@@ -1306,7 +1306,7 @@
       ],
       "sensory": [
         "Ánh sáng đỏ làm giảm khả năng phân biệt màu và khoảng cách.",
-        "Buzz của đèn khác Level 0, có thể gắt và khó chịu hơn.",
+        "Tiếng ù của đèn khác với Level 0, có thể gắt và khó chịu hơn.",
         "Bề mặt tường lạnh/ẩm và thảm thô tạo tương phản xúc giác mạnh."
       ],
       "anomalies": [
@@ -1346,10 +1346,10 @@
       "variationPool": [
         "Một góc tường vàng cũ còn sót rồi biến mất sau vài phòng.",
         "Thảm dính kéo nhẹ đế giày và có vùng khô bất thường.",
-        "Nấm nhỏ mọc ở chân tường nhưng không có thuộc tính gameplay.",
+        "Nấm nhỏ mọc ở chân tường nhưng không có dấu hiệu gây nguy hiểm trực tiếp.",
         "Radio từ nhiễu nhẹ chuyển sang tiếng vỡ rồi im hẳn.",
-        "Hành lang đỏ quay về một wallpaper mark quen thuộc dù đã rẽ khác hướng.",
-        "Khi exitAvailable, vật liệu có thể dần chuyển sang concrete lạnh và cột của Level 1."
+        "Hành lang đỏ quay về một dấu quen thuộc trên giấy dán tường dù Cao Minh đã rẽ theo hướng khác.",
+        "Khi lối ra đã thực sự khả dụng, vật liệu có thể dần chuyển sang bê tông lạnh và các cột đặc trưng của Level 1."
       ]
     }
   }

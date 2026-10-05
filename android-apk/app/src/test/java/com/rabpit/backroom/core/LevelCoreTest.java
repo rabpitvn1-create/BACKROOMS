@@ -186,23 +186,53 @@ public class LevelCoreTest {
     assertEquals(6, secondSeedCount);
   }
 
-  @Test public void levelZeroSceneFacingPoolsAreNaturalVietnamese() throws Exception {
+  @Test public void allSceneFacingEnvironmentPoolsUseNaturalVietnamese() throws Exception {
     JSONObject root = new JSONObject(readRepoAsset("knowledge/level_knowledge.json"));
-    JSONObject levelZero = root.getJSONObject("levels").getJSONObject("0");
-    String playerFacing = levelZero.getJSONArray("variationPool").toString() + "\n"
-        + levelZero.getJSONArray("sensory").toString();
-    String lower = playerFacing.toLowerCase(java.util.Locale.ROOT);
-
-    for (String token : new String[] {
+    JSONObject levels = root.getJSONObject("levels");
+    String[] forbidden = {
         "ankle-deep", "abrasive/soggy", "hallway", "chemical", "blackout",
-        "pillar ", "staircase", "crawlspace", " chamber", " patch ", " creature",
-        " baseline", " section ", " peripheral shift", " core "
-    }) {
-      assertFalse("Technical token leaked into Level 0 scene pool: " + token,
-          lower.contains(token));
+        "generator room", " emergency", " office ", "machinery", "meeting room",
+        "office carpet", " pattern ", "fluorescent hum", " ventilation", "outside world",
+        "brass lamp", "room placard", " speaker", "boiler corridor", " valve ",
+        "condensate", "guest room", "smooth jazz", "vintage audio", "party chatter",
+        " whisper", "touch sensation", "hotel ", "boiler room", "auditory hallucination",
+        " breathing", "scuttling", " evidence", " passage", " buzz", "wallpaper mark",
+        "exitavailable", " concrete", "arcing", " lower utility", "project canon",
+        "whir", "crackle", " puddle", " corridor", "flickering", " pipe ", "trolley",
+        " scrap", " loot", "door ", "chalky", "contactor", " flash", "bar ", " gate",
+        " dim", "cubicle", "window corridor", "vending machine", "inventory", "stairwell",
+        "signage", " lounge", "ballroom", " junction", " motor", " cavity", " relay",
+        "automaton", " sector", " hospital ", " ledge", "mothball", " outpost",
+        " remnant", "time travel", "manifestation", " block", "gameplay", " annex",
+        " companion", " npc", " contrast"
+    };
+
+    java.util.Iterator<String> keys = levels.keys();
+    while (keys.hasNext()) {
+      String levelKey = keys.next();
+      JSONObject level = levels.getJSONObject(levelKey);
+      for (String section : new String[] {"variationPool", "sensory"}) {
+        org.json.JSONArray values = level.optJSONArray(section);
+        if (values == null) continue;
+        for (int i = 0; i < values.length(); i++) {
+          String text = values.getString(i).trim();
+          assertFalse(levelKey + "/" + section + "[" + i + "] must not be empty", text.isEmpty());
+          assertTrue(levelKey + "/" + section + "[" + i + "] must start as a sentence: " + text,
+              Character.isUpperCase(text.codePointAt(0)));
+          String lower = text.toLowerCase(java.util.Locale.ROOT);
+          for (String token : forbidden) {
+            assertFalse("Technical English leaked into " + levelKey + "/" + section
+                    + "[" + i + "]: " + token + " in " + text,
+                lower.contains(token));
+          }
+        }
+      }
     }
-    assertTrue(playerFacing.contains("chất lỏng sâu đến mắt cá chân"));
-    assertTrue(playerFacing.contains("Thảm ẩm vừa thô ráp vừa sũng nước"));
+
+    String levelZero = levels.getJSONObject("0").getJSONArray("variationPool").toString() + "\n"
+        + levels.getJSONObject("0").getJSONArray("sensory").toString();
+    assertTrue(levelZero.contains("chất lỏng sâu đến mắt cá chân"));
+    assertTrue(levelZero.contains("Thảm ẩm vừa thô ráp vừa sũng nước"));
   }
 
   @Test public void structuredKnowledgeRejectsLegacySchemaAsAuthoritativeBundle() throws Exception {

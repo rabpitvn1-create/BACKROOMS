@@ -16,6 +16,15 @@ test('foreground narration uses one scheduled provider path fed by SceneFrame', 
   const prompt = method('narrationPrompt');
   assert.match(prompt, /SCENE FRAME — authoritative current-turn facts/);
   assert.match(prompt, /PLAYER INTENT/);
+  assert.match(prompt, /Vạn Giới Ma Tôn/);
+  assert.match(prompt, /Ma Đạo Kiếm Tu/);
+  assert.match(prompt, /thần thức/);
+  assert.match(prompt, /ma khí/);
+  assert.match(prompt, /kiếm ý/);
+  assert.match(prompt, /tự rà chính tả và ngữ pháp/);
+  assert.match(prompt, /không dịch từng từ/);
+  assert.match(prompt, /không tự cho Cao Minh vận công, phóng thần thức, xuất kiếm/);
+  assert.doesNotMatch(prompt, /CaoMinhVoiceContract/);
   assert.doesNotMatch(prompt, /milestoneCore|memorableEvents|CURRENT LOCAL EVENTS/);
   assert.match(method('generateNarrationText'), /return generateScheduledText\(prompt, false, deadlineNanos\)/);
   const flow = method('generateScheduledText');

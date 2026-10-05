@@ -105,7 +105,7 @@ public class SceneDirectorTest {
     assertEquals("CHARACTER_ENCOUNTER", beat.getString("kind"));
     assertEquals(2, beat.getInt("dialogueLinesMin"));
     String fallback = SceneDirector.fallbackNarration(frame);
-    assertTrue(fallback.contains("xuất hiện phía trước Cao Minh"));
+    assertTrue(fallback.contains("xuất hiện trước mặt Cao Minh"));
     assertTrue(fallback.contains("“"));
     assertTrue(fallback.contains("Trước tiên"));
   }

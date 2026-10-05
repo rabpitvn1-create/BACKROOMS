@@ -204,15 +204,15 @@ final class CharacterEncounterCore {
 
   static String sceneVoiceCard(String id) {
     if ("lucia".equals(id)) {
-      return "Lucia Lục: trained soldier from a far-future world; practical, technical and evidence-driven. "
-          + "Outside real tactical urgency she speaks in complete natural sentences. She does not automatically know cultivation concepts.";
+      return "Lucia Lục: quân nhân được huấn luyện đến từ một thế giới tương lai xa; thực tế, thiên về kỹ thuật và dựa trên bằng chứng. "
+          + "Ngoài tình huống chiến thuật thật sự khẩn cấp, cô nói bằng những câu đầy đủ, tự nhiên. Cô không tự động hiểu các khái niệm tu tiên.";
     }
     if ("luc_tram".equals(id)) {
-      return "Lục Trầm: Chính Đạo Kiếm Tu from Cao Minh's original xianxia world. She and Cao Minh have a hostile past; "
-          + "she speaks clearly and fully, proper but not archaic, and does not become a cold one-liner machine or instant romance.";
+      return "Lục Trầm: Chính Đạo Kiếm Tu đến từ cùng thế giới tiên hiệp với Cao Minh. Cô và Cao Minh có quá khứ đối địch; "
+          + "cô nói rõ ràng, đầy đủ, giữ lễ nhưng không cổ lỗ, không biến thành người chỉ đáp cụt lủn và không tự chuyển sang quan hệ lãng mạn.";
     }
     if ("syvial".equals(id)) {
-      return "Syvial: independent high-tier supernatural swordswoman; no pre-existing relationship with Cao Minh unless live continuity says otherwise.";
+      return "Syvial: nữ kiếm sĩ siêu nhiên cấp cao hoạt động độc lập; không có quan hệ từ trước với Cao Minh trừ khi mạch truyện hiện tại đã xác nhận.";
     }
     return displayName(id);
   }

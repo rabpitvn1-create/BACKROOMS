@@ -165,8 +165,9 @@ public class CharacterEncounterCoreTest {
     String prompt = core.scenePromptContext(state);
 
     assertTrue(prompt.contains("PRESENT: Cao Minh, Lucia Lục"));
-    assertTrue(prompt.contains("trained soldier from a far-future world"));
-    assertFalse(prompt.contains("Syvial: independent"));
+    assertTrue(prompt.contains("quân nhân được huấn luyện đến từ một thế giới tương lai xa"));
+    assertTrue(prompt.contains("Cô không tự động hiểu các khái niệm tu tiên"));
+    assertFalse(prompt.contains("Syvial: nữ kiếm sĩ siêu nhiên"));
     assertFalse(prompt.contains("Lục Trầm: Chính Đạo"));
     assertFalse(prompt.contains("10%"));
     assertFalse(prompt.contains("0.25%"));
