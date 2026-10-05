@@ -1,0 +1,9 @@
+Backroom 1.1.96
+
+- Triển khai Narrative Architecture V2: mỗi Level trở thành một chapter gồm nhiều Act, có Mission Board, Situation Reader, Act Spawn Budget, Hostile Director, Skeleton FACTS/PLAN, Validator và đúng 3 lựa chọn do Core kiểm soát.
+- Core giữ authority tuyệt đối đối với state, mission progress, Entity/Chest, consequence và ending; GM chỉ kể lại Scene Frame đã được xác nhận.
+- Loading giữa các Act trở thành Narrative Editing Boundary: khóa quá khứ, roll budget cho Act mới, biên tập lại PLAN tương lai và preload asset trước khi bắt đầu hồi tiếp theo.
+- Khi loading Act, preload toàn bộ Entity được cấp trong budget cùng Cao Minh và mọi Party Member đang joined=true, bao gồm avatar/overlay hiện có và custom avatarRef của follower.
+- Narrative V2 loại bỏ free-form Player Action và route-streak khỏi active runtime; người chơi sử dụng đúng 3 lựa chọn hợp lý của scene. Legacy path vẫn được giữ cho save cũ không có narrativeV2.
+- Bổ sung Survivor state, ending GOOD/NEUTRAL/BAD, long-term memo và regression tests cho authority, 3-choice contract, loading/party preload.
+- Bump version từ 1.1.95 lên 1.1.96 (versionCode 142), đồng bộ APK artifact, GitHub Release tag và release verification.
