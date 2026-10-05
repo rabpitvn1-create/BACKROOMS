@@ -366,6 +366,7 @@ final class NarrativeChapterCore {
     JSONObject root = state.getJSONObject(ROOT_KEY);
     JSONObject out = new JSONObject()
         .put("levelKey", levelKey(state))
+        .put("location", state.optString("location", ""))
         .put("actIndex", root.optInt("actIndex", 1))
         .put("player", copy(state.optJSONObject("player")))
         .put("party", copy(state.optJSONArray("party")))
@@ -566,22 +567,51 @@ final class NarrativeChapterCore {
     JSONArray entities = budget == null ? null : budget.optJSONArray("entities");
     int chestCount = budget == null ? 0 : budget.optInt("chestCount", 0);
     String mission = firstNonMainMission(root);
+    JSONObject missionState = missionById(root, mission);
+    String missionTitle = missionState == null
+        ? "mục tiêu đang theo đuổi"
+        : sanitizeText(missionState.optString("title", "mục tiêu đang theo đuổi"), 120);
+    String location = sanitizeText(state.optString("location", ""), 100);
+    if (location.isEmpty()) location = "khu vực hiện tại";
+    String companion = firstJoinedPartyName(state);
+    JSONObject firstEntity = entities == null || entities.length() == 0 ? null : entities.optJSONObject(0);
+    String entitySummary = firstEntity == null ? ""
+        : sanitizeText(firstEntity.optString("summary", ""), 180);
+    if (entitySummary.isEmpty() && firstEntity != null) {
+      entitySummary = "Một thực thể từ Spawn Budget đang gây áp lực lên tuyến di chuyển.";
+    }
 
     JSONArray beats = new JSONArray();
     for (int i = 0; i < 3; i++) {
+      boolean entityBeat = i == 1 && firstEntity != null;
+      boolean chestBeat = i == 2 && chestCount > 0;
+      String summary;
+      if (i == 0) {
+        summary = companion.isEmpty()
+            ? "Cao Minh phải đọc tình thế tại " + location + " trước khi đẩy sâu mục tiêu “" + missionTitle + "”."
+            : "Cao Minh và " + companion + " phải giữ đội hình tại " + location
+                + " trong khi tiếp tục “" + missionTitle + "”.";
+      } else if (entityBeat) {
+        summary = entitySummary;
+      } else if (chestBeat) {
+        summary = "Một chiếc rương nằm trong tuyến di chuyển hiện tại, buộc Cao Minh cân nhắc giữa tài nguyên và nhịp nhiệm vụ.";
+      } else {
+        summary = "Những gì vừa quan sát được tại " + location
+            + " buộc Cao Minh chọn cách tiếp tục “" + missionTitle + "” mà không tự khóa đường lui.";
+      }
+
       JSONObject beat = new JSONObject()
           .put("id", "A" + root.optInt("actIndex", 1) + "B" + (i + 1))
-          .put("summary", i == 0 ? "Thiết lập áp lực của hồi."
-              : i == 1 ? "Đẩy các mục tiêu vào thế xung đột." : "Khép hồi bằng một quyết định có hậu quả.")
-          .put("threatType", i == 1 ? "pressure" : "continuity")
+          .put("summary", summary)
+          .put("threatType", entityBeat ? "entity_pressure" : chestBeat ? "resource_tradeoff" : "continuity")
           .put("choiceShape", i == 2 ? "commitment" : "tradeoff")
           .put("missionLinks", mission.isEmpty() ? new JSONArray() : new JSONArray().put(mission))
           .put("threadLinks", new JSONArray());
 
-      if (i == 1 && entities != null && entities.length() > 0) {
-        beat.put("entityKey", entities.getJSONObject(0).optString("key", ""))
+      if (entityBeat) {
+        beat.put("entityKey", firstEntity.optString("key", ""))
             .put("entityMode", "PRESSURE");
-      } else if (i == 2 && chestCount > 0) {
+      } else if (chestBeat) {
         beat.put("chestSlot", 0);
       }
 
@@ -589,31 +619,87 @@ final class NarrativeChapterCore {
       for (int c = 0; c < 3; c++) {
         JSONArray effects = new JSONArray();
         if (c == 0 && !mission.isEmpty()) {
-          effects.put(new JSONObject().put("type", "MISSION_PROGRESS").put("missionId", mission).put("delta", 1));
+          effects.put(new JSONObject().put("type", "MISSION_PROGRESS")
+              .put("missionId", mission).put("delta", 1));
+        } else if (c == 1 && chestBeat) {
+          effects.put(new JSONObject().put("type", "OPEN_CHEST"));
         } else if (c == 1) {
           effects.put(new JSONObject().put("type", "EVIDENCE_ADD")
               .put("key", "act_" + root.optInt("actIndex", 1) + "_beat_" + (i + 1) + "_evidence"));
+        } else if (entityBeat) {
+          effects.put(new JSONObject().put("type", "ENGAGE_ENTITY")
+              .put("entityKey", firstEntity.optString("key", "")));
         } else {
           effects.put(new JSONObject().put("type", "THREAD_SET")
               .put("id", "act_" + root.optInt("actIndex", 1) + "_pressure").put("status", "OPEN"));
         }
-        if (i == 2 && chestCount > 0 && c == 1) {
-          effects.put(new JSONObject().put("type", "OPEN_CHEST"));
-        }
         choices.put(new JSONObject()
             .put("id", String.valueOf((char)('A' + c)))
-            .put("text", c == 0 ? "Ưu tiên mục tiêu đang có tiến triển rõ nhất."
-                : c == 1 ? "Chấp nhận rủi ro để giữ thêm thông tin hoặc tài nguyên."
-                : "Giữ thế chủ động và bảo toàn khả năng xoay chuyển ở cảnh sau.")
+            .put("text", fallbackChoiceText(
+                i, c, missionTitle, location, companion, entityBeat, chestBeat))
             .put("effects", effects));
       }
       beat.put("choices", choices);
       beats.put(beat);
     }
     return new JSONObject()
-        .put("scenePurpose", "Gây khó công bằng bằng trade-off, không retcon và không auto-fail.")
+        .put("scenePurpose", "Duy trì một chuỗi hành động cụ thể, bám Level, party và tài nguyên đã được Core cấp.")
         .put("beats", beats)
-        .put("climaxTarget", "Đưa Cao Minh tới một quyết định có hậu quả trước loading tiếp theo.");
+        .put("climaxTarget", "Buộc Cao Minh chọn một hành động cụ thể có hậu quả trước loading tiếp theo.");
+  }
+
+  private static String fallbackChoiceText(int beatIndex, int choiceIndex, String missionTitle,
+                                           String location, String companion,
+                                           boolean entityBeat, boolean chestBeat) {
+    if (entityBeat) {
+      if (choiceIndex == 0) {
+        return "Giữ khoảng cách với thực thể, lợi dụng các góc khuất quanh " + location
+            + " để tiếp tục “" + missionTitle + "”.";
+      }
+      if (choiceIndex == 1) {
+        return "Không áp sát; quan sát hướng di chuyển và phản ứng của thực thể để lấy thông tin trước khi quyết định.";
+      }
+      return companion.isEmpty()
+          ? "Chủ động chặn hướng tiến của thực thể để giành một khoảng trống rồi đổi tuyến."
+          : "Đưa " + companion + " ra khỏi trục nguy hiểm rồi chủ động chặn hướng tiến của thực thể.";
+    }
+
+    if (chestBeat) {
+      if (choiceIndex == 0) {
+        return "Bỏ qua chiếc rương lúc này và tiếp tục “" + missionTitle + "” trước khi tình thế thay đổi.";
+      }
+      if (choiceIndex == 1) {
+        return "Kiểm tra nhanh quanh chiếc rương, xác nhận không có dấu hiệu phục kích rồi mở nó.";
+      }
+      return "Đánh dấu vị trí chiếc rương, vòng kiểm tra các lối tiếp cận rồi mới quyết định có quay lại hay không.";
+    }
+
+    if (beatIndex == 0) {
+      if (choiceIndex == 0) {
+        return companion.isEmpty()
+            ? "Men theo rìa " + location + " và tiếp tục “" + missionTitle + "” thay vì đi thẳng vào khoảng trống."
+            : "Ra hiệu cho " + companion + " bám sát, men theo rìa " + location
+                + " để tiếp tục “" + missionTitle + "”.";
+      }
+      if (choiceIndex == 1) {
+        return "Dừng lại kiểm tra các ngã rẽ, dấu vết trên sàn và điểm rút lui quanh "
+            + location + " trước khi đi sâu hơn.";
+      }
+      return companion.isEmpty()
+          ? "Lùi về mốc vừa đi qua, đổi góc tiếp cận và đánh dấu đường rút trước khi tiến lại."
+          : "Đổi đội hình: Cao Minh đi trước dò đường, " + companion
+              + " giữ phía sau nhưng luôn trong tầm nhìn.";
+    }
+
+    if (choiceIndex == 0) {
+      return "Tiếp tục “" + missionTitle + "” theo tuyến vừa xác minh tại " + location + ".";
+    }
+    if (choiceIndex == 1) {
+      return "Quay lại dấu vết vừa phát hiện, kiểm tra xem nó dẫn tới đâu trước khi rời " + location + ".";
+    }
+    return companion.isEmpty()
+        ? "Chọn một điểm rút lui rõ ràng rồi thử hướng khác, không tiếp tục đi mù vào cùng một tuyến."
+        : "Giữ " + companion + " ở vị trí có thể hỗ trợ lẫn nhau rồi thử một hướng khác khỏi tuyến hiện tại.";
   }
 
   private JSONArray sanitizeChoices(JSONObject root, JSONObject beat, JSONArray rawChoices) throws Exception {
@@ -1083,6 +1169,17 @@ final class NarrativeChapterCore {
       }
     }
     threads.put(new JSONObject().put("id", id).put("status", status));
+  }
+
+  private static String firstJoinedPartyName(JSONObject state) {
+    JSONArray party = state == null ? null : state.optJSONArray("party");
+    for (int i = 0; party != null && i < party.length(); i++) {
+      JSONObject member = party.optJSONObject(i);
+      if (member == null || !member.optBoolean("joined", false)) continue;
+      String name = sanitizeText(member.optString("name", member.optString("id", "")), 80);
+      if (!name.isEmpty()) return name;
+    }
+    return "";
   }
 
   private static boolean survivorKnown(JSONObject root, String id) {

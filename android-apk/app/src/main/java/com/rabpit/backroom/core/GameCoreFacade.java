@@ -1229,6 +1229,11 @@ public final class GameCoreFacade implements AutoCloseable {
 
       JSONObject prepared = narrativeChapterCore.prepareLoading(
           persisted, entityCore.situationCandidates(persisted));
+      JSONObject narrativeContext = prepared.getJSONObject("context");
+      String levelKey = persisted.optString(
+          LevelCore.LEVEL_KEY, String.valueOf(persisted.optInt("currentLevel", 0))).trim();
+      narrativeContext.put("levelSceneContext", levelCore.sceneKnowledgeContext(
+          levelKey, Math.max(1, persisted.optInt("turn", 1)), ""));
       persist(persisted);
       return new JSONObject()
           .put("handled", true)

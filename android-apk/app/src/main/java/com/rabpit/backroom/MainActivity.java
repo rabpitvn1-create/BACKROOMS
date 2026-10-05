@@ -802,6 +802,8 @@ public class MainActivity extends Activity {
         + "Chỉ dùng Entity/Chest đã có trong spawnBudget. Không thêm Entity, Chest, item, HP change, death hay mission completion ngoài effect schema. "
         + "Có thể tạo Survivor mới trong beat; Core sẽ validate trước khi biến thành state. "
         + "Tránh lặp recentPatterns. Mỗi beat phải có ĐÚNG 3 lựa chọn hợp lý, khác nhau, không gắn nhãn Good/Neutral/Bad. "
+        + "Mỗi lựa chọn phải là một hành động cụ thể có thể làm ngay trong cảnh: bám levelSceneContext, location, mission, party và Entity/Chest đã được cấp. "
+        + "Không viết lựa chọn kiểu chiến lược trừu tượng như 'ưu tiên mục tiêu', 'chấp nhận rủi ro', 'giữ thế chủ động', 'bảo toàn khả năng' nếu không nói rõ Cao Minh thực sự làm gì. "
         + "entityMode chỉ STALK/HINT/TRACE/AMBUSH/CHASE/PRESSURE/COMBAT/CLIMAX. "
         + "Effects chỉ được dùng: "
         + "MISSION_PROGRESS{missionId}, THREAD_SET{id,status OPEN|RESOLVED|FAILED}, EVIDENCE_ADD{key}, "
