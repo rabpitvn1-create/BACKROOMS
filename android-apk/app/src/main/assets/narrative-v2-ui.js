@@ -124,7 +124,10 @@
     var ids=['cao_minh'];
     (Array.isArray(manifest.partyMemberIds)?manifest.partyMemberIds:[]).forEach(function(id){ids.push(normalizeId(id));});
     (Array.isArray(nextState.party)?nextState.party:[]).forEach(function(member){
-      if(member&&member.joined===true)ids.push(normalizeId(member.id||member.name));
+      if(!member||member.joined!==true)return;
+      ids.push(normalizeId(member.id||member.name));
+      var customAvatar=member.avatar||member.avatarRef;
+      if(customAvatar)add(String(customAvatar));
     });
     ids.forEach(function(id){
       id=normalizeId(id);
