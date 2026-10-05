@@ -3,16 +3,16 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const source=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/snapshot-ui.js'),'utf8');
 const geometry=require('../app/src/main/assets/snapshot-ui.js');
-function boot({unknown=false,unloaded=false,canvasContextMissing=false,stateOverride=null}={}){
+function boot({unknown=false,unloaded=false,canvasContextMissing=false,stateOverride=null,snapshot=null}={}){
  const elements=[],styles=[],pending=[],warnings=[];let reads=0;
- const box={clientWidth:350,clientHeight:250,appendChild(el){el.parentElement=this;elements.push(el);},querySelectorAll(selector){return elements.filter(e=>{const c=String(e.className||'');if(selector.includes('snapshot-combat-character'))return c.includes('snapshot-combat-character');if(selector.includes('snapshot-entity'))return c.includes('snapshot-entity');if(selector.includes('snapshot-grounded'))return c.includes('snapshot-grounded');return false;});}};
+ const box={get children(){return elements;},clientWidth:350,clientHeight:250,appendChild(el){el.parentElement=this;elements.push(el);},querySelectorAll(selector){return elements.filter(e=>{const c=String(e.className||'');if(selector==='img.snapshot-bg')return c.includes('snapshot-bg');if(selector.includes('snapshot-combat-character'))return c.includes('snapshot-combat-character');if(selector.includes('snapshot-entity'))return c.includes('snapshot-entity');if(selector.includes('snapshot-grounded'))return c.includes('snapshot-grounded');return false;});}};
  Object.defineProperty(box,'textContent',{set(){elements.length=0;}});
  const document={readyState:'complete',head:{appendChild(el){styles.push(el.textContent);}},getElementById(id){return id==='snapshot'?box:null;},querySelectorAll(){return [];},createElement(tag){
   if(tag==='canvas')return {getContext(){reads++;if(canvasContextMissing)return null;return {drawImage(){},getImageData(){throw new Error('SecurityError: canvas has been tainted by cross-origin data');}};}};
-  return {tagName:tag.toUpperCase(),style:{},dataset:{},className:'',complete:!unloaded,naturalWidth:0,naturalHeight:0,setAttribute(){},addEventListener(type,cb){if(type==='load')pending.push({el:this,cb});},set src(url){this.url=url;const m=geometry.assetMetric(url)||geometry.assetMetric('cao_minh_snapshot_overlay.png');this.naturalWidth=m.width;this.naturalHeight=m.height;},get src(){return this.url;}};
+  return {tagName:tag.toUpperCase(),style:{},dataset:{},className:'',complete:!unloaded,naturalWidth:0,naturalHeight:0,setAttribute(){},remove(){const i=elements.indexOf(this);if(i>=0)elements.splice(i,1);this.parentElement=null;},addEventListener(type,cb){pending.push({el:this,cb,type});},set src(url){this.url=url;const m=geometry.assetMetric(url)||geometry.assetMetric('cao_minh_snapshot_overlay.png');this.naturalWidth=m.width;this.naturalHeight=m.height;},get src(){return this.url;}};
  }};
  const ctx={document,console:{warn(...args){warnings.push(args);}},localStorage:{removeItem(){}},setTimeout,clearTimeout,Image:function(){throw Error('Detached image preload must not gate overlays');},state:stateOverride||{flags:{},combat:{active:true,participants:[{id:'cao_minh'},{id:'luc_tram'}]}}};
- ctx.window=ctx;ctx.addEventListener=()=>{};
+ if(snapshot)ctx.Android={levelSnapshot(){return JSON.stringify(snapshot.value);}};ctx.window=ctx;ctx.addEventListener=()=>{};
  vm.createContext(ctx);
  let js=source;if(unknown)js=js.replaceAll('file:///android_asset/cao_minh_snapshot_overlay.png','file:///android_asset/unregistered.png');
  vm.runInContext(js,ctx);
@@ -131,7 +131,7 @@ test('unknown sprite remains visible when canvas context is unavailable',()=>{
 });
 test('late image load aligns independently, without waiting for other characters',()=>{
  const r=boot({unloaded:true});assert.ok(r.pending.length>0);
- for(const {el,cb} of r.pending){el.complete=true;cb();visible(el);}
+ for(const {el,cb,type} of r.pending){if(type!=='load')continue;el.complete=true;cb();visible(el);}
  assert.equal(r.reads(),0);
 });
 test('generated bounds exist for all registered overlays',()=>{
@@ -223,4 +223,29 @@ test('grouped Entities keep solo size and share the character ground plane',()=>
    assert.ok(parseFloat(img.style.left)+m.paint.right*scale<=r.box.clientWidth+1e-7);
   }
  }
+});
+
+
+test('scene backgrounds fade only after load, keep the old image, and ignore stale loads',()=>{
+ const snapshot={value:{path:'scene-a.webp',level:0}};
+ const r=boot({snapshot,unloaded:true});
+ const backgrounds=()=>r.elements.filter(e=>e.className.includes('snapshot-bg'));
+ const a=backgrounds()[0];
+ r.ctx.backroomTurn('{}');assert.equal(backgrounds()[0],a);
+ snapshot.value={path:'scene-b.webp',level:1};r.ctx.backroomTurn('{}');
+ const b=backgrounds().find(e=>e.src==='scene-b.webp');
+ assert.ok(backgrounds().includes(a));assert.equal(b.style.opacity,'0');
+ r.ctx.backroomTurn('{}');assert.equal(backgrounds().length,2);
+ snapshot.value={path:'scene-c.webp',level:2};r.ctx.backroomTurn('{}');
+ const c=backgrounds().find(e=>e.src==='scene-c.webp');
+ assert.ok(backgrounds().includes(a));assert.ok(!backgrounds().includes(b));
+ r.pending.find(e=>e.el===b&&e.type==='load').cb();assert.equal(c.style.opacity,'0');
+ r.pending.find(e=>e.el===c&&e.type==='load').cb();
+ assert.match(c.className,/snapshot-bg-fade/);assert.ok(backgrounds().includes(a));
+ r.pending.find(e=>e.el===c&&e.type==='animationend').cb();
+ assert.deepEqual(backgrounds(),[c]);
+ snapshot.value={path:'broken.webp',level:3};r.ctx.backroomTurn('{}');
+ const broken=backgrounds().find(e=>e.src==='broken.webp');
+ r.pending.find(e=>e.el===broken&&e.type==='error').cb();assert.deepEqual(backgrounds(),[c]);
+ assert.match(r.styles.join(''),/snapshot-bg-fade\{animation:snapshot-bg-fade 350ms ease-in-out/);
 });
