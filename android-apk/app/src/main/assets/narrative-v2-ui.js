@@ -7,7 +7,7 @@
   var loadingOverlay=document.createElement('div');
   loadingOverlay.className='narrative-v2-loading';
   loadingOverlay.hidden=true;
-  loadingOverlay.innerHTML='<div class="narrative-v2-loading-card"><div class="narrative-v2-hourglass">⌛</div><b>ĐANG BIÊN TẬP HỒI</b><span id="narrativeV2LoadingText">Đạo Diễn đang sắp xếp phần tương lai…</span></div>';
+  loadingOverlay.innerHTML='<div class="narrative-v2-loading-card"><div class="narrative-v2-hourglass">⌛</div><b>ĐANG BIÊN TẬP HỒI</b><div class="narrative-v2-progress" id="narrativeV2Progress" role="progressbar" aria-label="Tiến độ biên tập hồi" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="narrativeV2ProgressFill"></i></div><div class="narrative-v2-progress-meta"><span id="narrativeV2LoadingText">CHUẨN BỊ</span><strong id="narrativeV2ProgressPercent">0%</strong></div></div>';
   document.body.appendChild(loadingOverlay);
 
   var management=document.getElementById('managementPanel');
@@ -31,7 +31,11 @@
     '.narrative-v2-loading-card{position:relative;z-index:1;width:min(360px,90vw);display:grid;gap:10px;text-align:center;padding:24px;border:1px solid #756d43;background:#0d100d;color:#eee7c7;border-radius:12px;box-shadow:0 16px 60px #000c}',
     '.narrative-v2-hourglass{font-size:30px;animation:narrative-v2-pulse 1.1s ease-in-out infinite}',
     '.narrative-v2-loading-card b{font:700 13px Play,"Pretendard Std",sans-serif;letter-spacing:.14em}',
-    '.narrative-v2-loading-card span{font-size:12px;color:#aaa98f;line-height:1.5}',
+    '.narrative-v2-progress{height:7px;overflow:hidden;border:1px solid #5d593d;border-radius:999px;background:#17180f;box-shadow:inset 0 1px 3px #0009}',
+    '.narrative-v2-progress i{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,#726b38,#d8c875);box-shadow:0 0 10px #c9b95b66;transition:width .22s ease-out}',
+    '.narrative-v2-progress-meta{display:flex;justify-content:space-between;gap:12px;align-items:center;color:#aaa98f;font:700 9px/1.3 Play,"Pretendard Std",sans-serif;letter-spacing:.09em}',
+    '.narrative-v2-progress-meta span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}',
+    '.narrative-v2-progress-meta strong{color:#e8dfbd;font:700 10px/1 Play,"Pretendard Std",sans-serif}',
     '.narrative-v2-missions{border-color:#5e5637;background:linear-gradient(135deg,#171811,#0d1010 70%)}',
     '.narrative-v2-missions h2{color:#e6d391}',
     '.narrative-v2-act{margin-bottom:8px;color:#a9a78e;font:700 10px/1.3 Play,"Pretendard Std",sans-serif;letter-spacing:.08em}',
@@ -138,22 +142,42 @@
     return paths;
   }
 
-  function preloadAssets(nextState){
-    var paths=assetPaths(nextState);
-    if(!paths.length)return Promise.resolve();
+  function preloadAssets(nextState,onProgress){
+    var paths=assetPaths(nextState),loaded=0;
+    if(!paths.length){if(onProgress)onProgress(0,0);return Promise.resolve();}
     return Promise.all(paths.map(function(path){
       return new Promise(function(resolve){
         var img=new Image(),done=false;
-        var finish=function(){if(done)return;done=true;resolve();};
+        var finish=function(){
+          if(done)return;
+          done=true;loaded++;
+          if(onProgress)onProgress(loaded,paths.length);
+          resolve();
+        };
         img.onload=finish;img.onerror=finish;img.src=path;
         setTimeout(finish,8000);
       });
     }));
   }
 
-  function showLoading(root){
+  var loadingPercent=0;
+  function setLoadingProgress(percent,stage){
+    var value=Math.max(0,Math.min(100,Math.round(Number(percent)||0)));
+    if(value<loadingPercent)return;
+    loadingPercent=value;
+    var bar=document.getElementById('narrativeV2Progress');
+    var fill=document.getElementById('narrativeV2ProgressFill');
     var text=document.getElementById('narrativeV2LoadingText');
-    if(text)text.textContent='Đang khóa quá khứ, roll Spawn Budget, lập PLAN và nạp Entity + toàn bộ Party Member của ACT '+String(root&&root.actIndex||1)+'…';
+    var label=document.getElementById('narrativeV2ProgressPercent');
+    if(bar)bar.setAttribute('aria-valuenow',String(value));
+    if(fill)fill.style.width=String(value)+'%';
+    if(text&&stage)text.textContent=String(stage);
+    if(label)label.textContent=String(value)+'%';
+  }
+
+  function showLoading(root){
+    loadingPercent=0;
+    setLoadingProgress(0,'CHUẨN BỊ ACT '+String(root&&root.actIndex||1));
     loadingOverlay.hidden=false;
   }
   function hideLoading(){loadingOverlay.hidden=true;}
@@ -170,10 +194,22 @@
     catch(error){loadingBusy=false;hideLoading();if(window.backroomError)window.backroomError(String(error&&error.message||error));}
   }
 
+  window.backroomNarrativeProgress=function(json){
+    try{
+      var progress=JSON.parse(json);
+      setLoadingProgress(progress.percent,progress.stage);
+    }catch(_){}
+  };
+
   window.backroomNarrativeReady=function(json){
     var next;
     try{next=JSON.parse(json);}catch(error){loadingBusy=false;hideLoading();if(window.backroomError)window.backroomError('Narrative V2 state không hợp lệ.');return;}
-    preloadAssets(next).then(function(){
+    setLoadingProgress(80,'NẠP ASSET');
+    preloadAssets(next,function(done,total){
+      var ratio=total>0?done/total:1;
+      setLoadingProgress(80+Math.round(ratio*20),'NẠP ASSET '+String(done)+'/'+String(total));
+    }).then(function(){
+      setLoadingProgress(100,'SẴN SÀNG');
       state=next;
       try{if(typeof CURRENT_CHARACTER_CANON!=='undefined')state.characterCanon=CURRENT_CHARACTER_CANON;}catch(_){}
       loadingBusy=false;

@@ -830,6 +830,12 @@ public class MainActivity extends Activity {
     runOnUiThread(() -> webView.evaluateJavascript(script, null));
   }
 
+  private void emitNarrativeProgress(int percent, String stage) {
+    emit("backroomNarrativeProgress",
+        "{\"percent\":" + Math.max(0, Math.min(100, percent))
+            + ",\"stage\":" + JSONObject.quote(stage) + "}");
+  }
+
   @Override protected void onSaveInstanceState(Bundle savedState) {
     savedState.putBoolean("diagnosticExportPending", diagnosticExportPending);
     super.onSaveInstanceState(savedState);
@@ -1080,13 +1086,16 @@ public class MainActivity extends Activity {
             throw new Exception(prepared.optString("error", "Không thể chuẩn bị Narrative V2."));
           }
           if (prepared.optBoolean("gameComplete", false)) {
+            emitNarrativeProgress(100, "HOÀN TẤT");
             emit("backroomNarrativeReady", prepared.getJSONObject("state").toString());
             return;
           }
 
+          emitNarrativeProgress(15, "KHÓA TRẠNG THÁI · SPAWN BUDGET");
           JSONObject context = prepared.getJSONObject("context");
           JSONObject missionProposal = new JSONObject();
           if (prepared.optBoolean("needsMissionBoard", false)) {
+            emitNarrativeProgress(15, "MISSION AI");
             try {
               missionProposal = parseModelJson(generateNarrationText(
                   missionBoardPrompt(context), NarrationHttpTransport.deadlineAfterMillis(30_000L)));
@@ -1095,8 +1104,10 @@ public class MainActivity extends Activity {
                   error.getMessage() == null ? error.getClass().getSimpleName() : error.getMessage());
             }
           }
+          emitNarrativeProgress(35, "MISSION BOARD");
 
           JSONObject directorProposal = new JSONObject();
+          emitNarrativeProgress(35, "HOSTILE DIRECTOR");
           try {
             directorProposal = parseModelJson(generateNarrationText(
                 hostileDirectorPrompt(context, missionProposal),
@@ -1105,15 +1116,18 @@ public class MainActivity extends Activity {
             DiagnosticLog.record("narrative.director_fallback", "error",
                 error.getMessage() == null ? error.getClass().getSimpleName() : error.getMessage());
           }
+          emitNarrativeProgress(55, "PLAN ĐÃ NHẬN");
 
           JSONObject committed = new JSONObject(gameCore.commitNarrativeEdit(
               missionProposal.toString(), directorProposal.toString()));
           if (!committed.optBoolean("handled", false)) {
             throw new Exception(committed.optString("error", "Core từ chối Narrative PLAN."));
           }
+          emitNarrativeProgress(65, "CORE VALIDATOR");
           JSONObject state = committed.getJSONObject("state");
           JSONObject frame = new JSONObject(gameCore.narrativeOpeningFrame());
 
+          emitNarrativeProgress(65, "GAME MASTER");
           JSONObject generated;
           try {
             generated = parseModelJson(generateNarrationText(
@@ -1145,6 +1159,7 @@ public class MainActivity extends Activity {
               "levelKey", state.optString("currentLevelKey", ""),
               "actIndex", state.optJSONObject("narrativeV2") == null ? -1
                   : state.getJSONObject("narrativeV2").optInt("actIndex", -1));
+          emitNarrativeProgress(80, "OPENING SCENE");
           emit("backroomNarrativeReady", state.toString());
         } catch (Exception e) {
           DiagnosticLog.record("app.error", "error", e);
