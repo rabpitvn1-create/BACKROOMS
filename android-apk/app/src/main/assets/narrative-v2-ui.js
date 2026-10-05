@@ -158,6 +158,7 @@
   function maybePrepare(){
     var root=rootOf(state);
     if(!root||root.loadingRequired!==true||root.gameComplete===true||loadingBusy)return;
+    if(state&&state.combat&&state.combat.active===true)return;
     if(!window.Android||typeof Android.prepareNarrativeAct!=='function')return;
     loadingBusy=true;
     if(typeof busy!=='undefined')busy=true;
