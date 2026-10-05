@@ -293,7 +293,7 @@ jobs:
           BADGING=$("$BUILD_TOOLS/aapt" dump badging Backroom-1.1.96.apk)
           printf '%s\n' "$BADGING"
           grep -Fq "package: name='com.rabpit.backroom'" <<<"$BADGING"
-          grep -Fq "versionCode='141'" <<<"$BADGING"
+          grep -Fq "versionCode='142'" <<<"$BADGING"
           grep -Fq "versionName='1.1.96'" <<<"$BADGING"
           grep -Fq "launchable-activity: name='com.rabpit.backroom.MainActivity'" <<<"$BADGING"
           "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-1.1.96.apk
