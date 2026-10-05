@@ -1262,3 +1262,21 @@ Mục tiêu cuối cùng:
 - lựa chọn thật sự có hậu quả;
 - Đạo Diễn Cảnh trở thành đối thủ vô hình của Cao Minh;
 - Good Ending chỉ đạt được khi người chơi thật sự vượt qua được những gì Director đặt ra.
+
+---
+
+## 35. Follower / Party Member trong Loading Boundary
+
+Khi Loading / Edit đã roll và khóa tài nguyên của hồi mới, asset preload không chỉ xét Entity/Chest.
+
+Core phải đưa vào loading manifest:
+- toàn bộ Entity đã được cấp trong Act Spawn Budget;
+- Chest asset nếu Act có Chest;
+- Cao Minh;
+- **mọi Party Member hiện đang `joined=true`**, kể cả khi người đó chưa phải actor của combat đầu hồi.
+
+Loading chỉ kết thúc sau khi đã thử preload các asset cần thiết của Entity và toàn bộ Party Member nói trên. Việc preload là presentation concern; nó không tự spawn, join, despawn hay thay đổi Party authority.
+
+Nguyên tắc:
+
+> **Nếu một follower đã ở trong Party khi Act được biên tập, Act mới phải sẵn sàng hiển thị follower đó cùng mọi Entity đã được load.**
