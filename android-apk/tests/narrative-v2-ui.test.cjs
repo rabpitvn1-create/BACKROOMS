@@ -17,8 +17,8 @@ test('Act loading preloads reserved entities and every joined party member',()=>
   assert.match(ui,/cao_minh_entity_overlay\.png/);
   assert.match(ui,/lucia_overlay\.png/);
   assert.match(ui,/luctram_overlay\.png/);
-  assert.match(ui,/preloadAssets\(next\)\.then/);
-  assert.ok(ui.indexOf('preloadAssets(next).then') < ui.indexOf('hideLoading();',ui.indexOf('preloadAssets(next).then')));
+  assert.match(ui,/preloadAssets\(next,function\(done,total\)/);
+  assert.ok(ui.indexOf('preloadAssets(next,function(done,total)') < ui.indexOf('hideLoading();',ui.indexOf('preloadAssets(next,function(done,total)')));
 });
 
 test('Narrative V2 removes free-form action from the active runtime and exposes Core choices',()=>{
