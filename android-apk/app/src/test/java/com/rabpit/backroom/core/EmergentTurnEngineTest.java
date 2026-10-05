@@ -80,6 +80,22 @@ public class EmergentTurnEngineTest {
         rng.drawKey(TurnRng.Scope.CANDIDATE_SELECTION, 0));
   }
 
+  @Test public void narrativeV2DomainEventsAreCanonRegistered() throws Exception {
+    EmergentTurnEngine engine = new EmergentTurnEngine();
+    JSONArray events = new JSONArray();
+    String turnId = "turn-narrative";
+
+    events.put(engine.event(turnId, events, "NARRATIVE_CHOICE_RESOLVED", "LOCAL", "cao_minh",
+        new JSONObject().put("factPredicate", "narrative_choice").put("factValue", "A"), null));
+    events.put(engine.event(turnId, events, "NARRATIVE_ENTITY_STAGED", "LOCAL", "hound",
+        new JSONObject().put("factPredicate", "narrative_entity").put("factValue", "hound:STALK"), null));
+    events.put(engine.event(turnId, events, "SURVIVOR_INTRODUCED", "LOCAL", "survivor_1",
+        new JSONObject().put("factPredicate", "survivor_present").put("factValue", "Survivor"), null));
+
+    engine.validateBatch(turnId, events);
+    assertEquals(3, events.length());
+  }
+
   @Test public void authoritativePatchReplaysCommittedRootsAndExcludesRuntimeNarration() throws Exception {
     JSONObject before = new JSONObject()
         .put("turn", 2)
