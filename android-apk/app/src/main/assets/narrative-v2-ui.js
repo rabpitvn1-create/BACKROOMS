@@ -76,7 +76,7 @@
   }
 
   function renderMissionBoard(){
-    var root=rootOf(window.state);
+    var root=rootOf(state);
     missionCard.hidden=!root;
     missionSummary.hidden=!root;
     if(!root)return;
@@ -101,7 +101,7 @@
   }
 
   function syncLegacyControls(){
-    var active=!!rootOf(window.state);
+    var active=!!rootOf(state);
     var bar=document.querySelector('.player-action-bar');
     var modal=document.getElementById('playerActionModal');
     var route=document.querySelector('.snapshot-route-streak');
@@ -156,13 +156,13 @@
   function hideLoading(){loadingOverlay.hidden=true;}
 
   function maybePrepare(){
-    var root=rootOf(window.state);
+    var root=rootOf(state);
     if(!root||root.loadingRequired!==true||root.gameComplete===true||loadingBusy)return;
     if(!window.Android||typeof Android.prepareNarrativeAct!=='function')return;
     loadingBusy=true;
-    if(typeof window.busy!=='undefined')window.busy=true;
+    if(typeof busy!=='undefined')busy=true;
     showLoading(root);
-    try{Android.prepareNarrativeAct(JSON.stringify(window.state));}
+    try{Android.prepareNarrativeAct(JSON.stringify(state));}
     catch(error){loadingBusy=false;hideLoading();if(window.backroomError)window.backroomError(String(error&&error.message||error));}
   }
 
@@ -170,10 +170,10 @@
     var next;
     try{next=JSON.parse(json);}catch(error){loadingBusy=false;hideLoading();if(window.backroomError)window.backroomError('Narrative V2 state không hợp lệ.');return;}
     preloadAssets(next).then(function(){
-      window.state=next;
-      try{if(typeof CURRENT_CHARACTER_CANON!=='undefined')window.state.characterCanon=CURRENT_CHARACTER_CANON;}catch(_){}
+      state=next;
+      try{if(typeof CURRENT_CHARACTER_CANON!=='undefined')state.characterCanon=CURRENT_CHARACTER_CANON;}catch(_){}
       loadingBusy=false;
-      if(typeof window.busy!=='undefined')window.busy=false;
+      if(typeof busy!=='undefined')busy=false;
       hideLoading();
       if(typeof window.render==='function')window.render();
       renderMissionBoard();syncLegacyControls();maybePrepare();
