@@ -50,6 +50,53 @@ public class NarrativeChapterCoreTest {
         manifest.getJSONArray("entityKeys").length());
   }
 
+  @Test public void fallbackPlanUsesConcreteSceneGroundedChoices() throws Exception {
+    NarrativeChapterCore core = new NarrativeChapterCore();
+    JSONObject state = baseState();
+    core.startNewGame(state);
+    core.prepareLoading(state, new JSONArray());
+
+    JSONObject root = state.getJSONObject(NarrativeChapterCore.ROOT_KEY);
+    root.put("spawnBudget", new JSONObject()
+        .put("actIndex", 1)
+        .put("entityCount", 1)
+        .put("chestCount", 1)
+        .put("locked", true)
+        .put("entities", new JSONArray().put(new JSONObject()
+            .put("key", "hound")
+            .put("summary", "Hound đang rình ở cuối hành lang.")
+            .put("capabilityContext", "A hostile Hound.")
+            .put("used", false)))
+        .put("chests", new JSONArray().put(new JSONObject().put("slot", 0).put("used", false))));
+
+    JSONObject missions = new JSONObject()
+        .put("chapterActTarget", 3)
+        .put("missions", new JSONArray()
+            .put(new JSONObject().put("id", "main_exit").put("type", "MAIN")
+                .put("title", "Thoát Level 0").put("target", 1))
+            .put(new JSONObject().put("id", "protect_party").put("type", "MISSION")
+                .put("title", "Giữ Lucia an toàn trong khi tìm lối ra").put("target", 2)));
+
+    core.commitEdit(state, missions, new JSONObject());
+
+    JSONArray beats = state.getJSONObject(NarrativeChapterCore.ROOT_KEY)
+        .getJSONObject("skeleton").getJSONObject("plan").getJSONArray("beats");
+    assertEquals(3, beats.length());
+
+    String first = beats.getJSONObject(0).getJSONArray("choices").toString();
+    String second = beats.getJSONObject(1).getJSONArray("choices").toString();
+    String third = beats.getJSONObject(2).getJSONArray("choices").toString();
+    String all = first + second + third;
+
+    assertFalse(all.contains("Ưu tiên mục tiêu đang có tiến triển rõ nhất."));
+    assertFalse(all.contains("Chấp nhận rủi ro để giữ thêm thông tin hoặc tài nguyên."));
+    assertFalse(all.contains("Giữ thế chủ động và bảo toàn khả năng xoay chuyển ở cảnh sau."));
+    assertTrue(first, first.contains("Lucia") || first.contains("Level 0 / The Lobby"));
+    assertTrue(beats.getJSONObject(1).getString("summary").contains("Hound"));
+    assertTrue(second, second.toLowerCase().contains("thực thể") || second.contains("Hound"));
+    assertTrue(third, third.toLowerCase().contains("rương"));
+  }
+
   @Test public void validatorPublishesExactlyThreeCoreChoicesAndSeparatesFactsFromPlan() throws Exception {
     NarrativeChapterCore core = new NarrativeChapterCore();
     JSONObject state = baseState();
