@@ -32,6 +32,7 @@ public final class GameCoreFacade implements AutoCloseable {
   private final SurvivalCore survivalCore;
   private final CharacterDetailCore characterDetailCore;
   private final EmergentTurnEngine emergentTurnEngine;
+  private final NarrativeChapterCore narrativeChapterCore;
   private final Map<String, PreparedTurn> preparedTurns = new LinkedHashMap<>();
 
   private GameCoreFacade(Context context, boolean debugLogging) {
@@ -49,6 +50,7 @@ public final class GameCoreFacade implements AutoCloseable {
     this.survivalCore = new SurvivalCore();
     this.characterDetailCore = new CharacterDetailCore();
     this.emergentTurnEngine = new EmergentTurnEngine();
+    this.narrativeChapterCore = new NarrativeChapterCore();
   }
 
   public static GameCoreFacade create(Context context, boolean debugLogging) {
@@ -70,6 +72,23 @@ public final class GameCoreFacade implements AutoCloseable {
 
       String text = action == null ? "" : action.trim();
       if (text.isEmpty()) return response(false, legacy, "Hành động trống.", "validation_rejected", null);
+
+      if (narrativeChapterCore.enabled(legacy)) {
+        if (!text.startsWith(NarrativeChapterCore.CHOICE_PREFIX)) {
+          return response(false, legacy,
+              "Narrative V2 chỉ chấp nhận một trong ba lựa chọn do Core công bố.",
+              "narrative_choice_required", null);
+        }
+        String turnId = emergentTurnEngine.nextWorldTurnId(legacy, text);
+        PreparedTurn existing = preparedTurns.get(turnId);
+        if (existing != null && existing.baseHash.equals(fingerprint(legacy))) {
+          return preparedResponse(legacy, existing);
+        }
+        PreparedTurn prepared = prepareNarrativeChoiceTurnData(legacy, text);
+        preparedTurns.clear();
+        preparedTurns.put(turnId, prepared);
+        return preparedResponse(legacy, prepared);
+      }
 
       if (GameCoreRules.isDirectPlayerPickupAction(text)) {
         JSONObject result = deepCopy(legacy);
@@ -196,6 +215,140 @@ public final class GameCoreFacade implements AutoCloseable {
       PreparedTurn prepared = new PreparedTurn(
           turnId, preTurnStateVersion, fingerprint(legacy), text, working, events, selected, turnRng, replyHint);
       return prepared;
+  }
+
+  private PreparedTurn prepareNarrativeChoiceTurnData(JSONObject legacy, String text) throws Exception {
+      int preTurnStateVersion = emergentTurnEngine.stateVersion(legacy);
+      int worldRngVersion = emergentTurnEngine.worldRngVersion(legacy);
+      String turnId = emergentTurnEngine.nextWorldTurnId(legacy, text);
+      TurnRng turnRng = new TurnRng(
+          turnId, worldRngVersion,
+          EmergentTurnEngine.CANON_VERSION, EmergentTurnEngine.RNG_SCHEMA_VERSION);
+      JSONObject working = deepCopy(legacy);
+      JSONArray events = new JSONArray();
+      JSONObject resolution = narrativeChapterCore.resolveChoice(working, text);
+      String replyHint = "";
+
+      if (resolution.optBoolean("openChest", false)) {
+        JSONObject flags = working.optJSONObject("flags");
+        if (flags != null && flags.optBoolean("chestPresent", false)) {
+          String itemName = itemCore.openChest(
+              working, bound -> turnRng.nextInt(TurnRng.Scope.PLAYER_ACTION, bound));
+          replyHint = "Rương chứa " + itemName + " x1. Đã thêm vào Inventory.";
+          events.put(emergentTurnEngine.event(turnId, events, "CHEST_OPENED", "LOCAL",
+              working.optString(LevelCore.LEVEL_KEY, "0"),
+              new JSONObject()
+                  .put("factPredicate", "chest_opened")
+                  .put("factValue", itemName)
+                  .put("causedBy", "player")
+                  .put("observedByPlayer", true),
+              null));
+        }
+      }
+
+      String engageEntity = resolution.optString("engageEntityKey", "").trim();
+      if (!engageEntity.isEmpty() && entityCore.activeEncounterKeys(working).length() == 0) {
+        entityCore.activateEncounterCandidate(working, engageEntity);
+        events.put(emergentTurnEngine.event(turnId, events, "ENTITY_ENCOUNTER_STARTED", "LOCAL",
+            engageEntity,
+            new JSONObject()
+                .put("factPredicate", "entity_encounter_started")
+                .put("factValue", engageEntity)
+                .put("causedBy", "player")
+                .put("observedByPlayer", true),
+            null));
+      }
+
+      incrementTurn(working);
+      advanceGameTime(working, resolution.optString("text", text));
+      characterProgressionCore.applyExplorerTurnRecovery(working);
+      survivalCore.normalizeState(working);
+      itemCore.normalizeInventory(working);
+      characterEncounterCore.normalizeState(working);
+      working.put("mode", "ai");
+      working.put("saveVersion", CURRENT_SAVE_VERSION);
+
+      events.put(emergentTurnEngine.event(turnId, events, "NARRATIVE_CHOICE_RESOLVED", "LOCAL", "cao_minh",
+          new JSONObject()
+              .put("factPredicate", "narrative_choice")
+              .put("factValue", resolution.optString("choiceId", ""))
+              .put("choiceText", resolution.optString("text", ""))
+              .put("actIndex", resolution.optInt("actIndex", 1))
+              .put("beatId", resolution.optString("beatId", ""))
+              .put("causedBy", "player")
+              .put("observedByPlayer", true),
+          null));
+
+      if (entityCore.activeEncounterKeys(working).length() == 0 && !CombatChoiceEngine.isActive(working)) {
+        applyNarrativeBeatTrigger(working, events, turnId);
+      }
+
+      JSONObject selected = new JSONObject()
+          .put("selectedNone", true)
+          .put("worldKind", "NARRATIVE")
+          .put("situationKey", "narrative:choice:" + resolution.optString("choiceId", ""))
+          .put("proposalRequired", false);
+      return new PreparedTurn(
+          turnId, preTurnStateVersion, fingerprint(legacy), text, working, events, selected, turnRng, replyHint);
+  }
+
+  private void applyNarrativeBeatTrigger(JSONObject working, JSONArray events, String turnId) throws Exception {
+    if (!narrativeChapterCore.enabled(working) || narrativeChapterCore.loadingRequired(working)) return;
+    JSONObject trigger = narrativeChapterCore.currentBeatTrigger(working);
+    if (trigger.length() == 0) return;
+
+    String entityKey = trigger.optString("entityKey", "").trim();
+    String entityMode = trigger.optString("entityMode", "PRESSURE");
+    if (!entityKey.isEmpty() && NarrativeChapterCore.combatEntityMode(entityMode)
+        && entityCore.activeEncounterKeys(working).length() > 0) {
+      return;
+    }
+
+    if (!entityKey.isEmpty() && NarrativeChapterCore.combatEntityMode(entityMode)) {
+      entityCore.activateEncounterCandidate(working, entityKey);
+    }
+
+    int chestSlot = trigger.optInt("chestSlot", -1);
+    JSONObject flags = working.optJSONObject("flags");
+    boolean chestAlreadyPresent = flags != null && flags.optBoolean("chestPresent", false);
+    if (chestSlot >= 0 && !chestAlreadyPresent) itemCore.activateExplorationChest(working);
+
+    narrativeChapterCore.consumeBeatTrigger(working, trigger);
+
+    if (!entityKey.isEmpty()) {
+      events.put(emergentTurnEngine.event(turnId, events,
+          NarrativeChapterCore.combatEntityMode(entityMode)
+              ? "ENTITY_ENCOUNTER_STARTED" : "NARRATIVE_ENTITY_STAGED",
+          "LOCAL", entityKey,
+          new JSONObject()
+              .put("factPredicate", "narrative_entity")
+              .put("factValue", entityKey + ":" + entityMode)
+              .put("entityMode", entityMode)
+              .put("causedBy", "director_plan")
+              .put("observedByPlayer", true),
+          null));
+    }
+    if (chestSlot >= 0 && !chestAlreadyPresent) {
+      events.put(emergentTurnEngine.event(turnId, events, "CHEST_SPAWNED", "LOCAL",
+          working.optString(LevelCore.LEVEL_KEY, "0"),
+          new JSONObject()
+              .put("factPredicate", "chest_spawned")
+              .put("factValue", "act_slot:" + chestSlot)
+              .put("causedBy", "director_plan")
+              .put("observedByPlayer", true),
+          null));
+    }
+    JSONObject survivor = trigger.optJSONObject("survivor");
+    if (survivor != null) {
+      events.put(emergentTurnEngine.event(turnId, events, "SURVIVOR_INTRODUCED", "LOCAL",
+          survivor.optString("id", "survivor"),
+          new JSONObject()
+              .put("factPredicate", "survivor_present")
+              .put("factValue", survivor.optString("name", survivor.optString("id", "survivor")))
+              .put("causedBy", "director_plan")
+              .put("observedByPlayer", true),
+          null));
+    }
   }
 
   /** Returns a hypothetical post-turn state without writing preferences or retaining a turn attempt. */
@@ -371,7 +524,8 @@ public final class GameCoreFacade implements AutoCloseable {
         turnId, stateVersion, EmergentTurnEngine.CANON_VERSION, EmergentTurnEngine.RNG_SCHEMA_VERSION);
     JSONObject environment = levelCore.sceneDirectorEnvironment(
         state, playerIntent, bound -> sceneRng.nextInt(TurnRng.Scope.WORLD_REACTION, bound));
-    return SceneDirector.compose(state, facts, environment).toString();
+    JSONObject frame = SceneDirector.compose(state, facts, environment);
+    return narrativeChapterCore.decorateSceneFrame(state, frame).toString();
   }
 
   /** Validity check and append share the same lock as all authoritative writes. */
@@ -610,6 +764,7 @@ public final class GameCoreFacade implements AutoCloseable {
     itemCore.normalizeInventory(state);
     characterEncounterCore.normalizeState(state);
     CombatChoiceEngine.normalizeTerminalEncounter(state);
+    narrativeChapterCore.normalizeState(state);
   }
 
   /** Core caller only: no JavaScript or model-output route exposes these updates. */
@@ -740,6 +895,10 @@ public final class GameCoreFacade implements AutoCloseable {
         incrementTurn(working);
       }
 
+      if (wasActive && !active) {
+        narrativeChapterCore.noteCombatOutcome(working, entityRefs, outcome);
+        if ("victory".equals(outcome)) applyNarrativeBeatTrigger(working, events, turnId);
+      }
       emergentTurnEngine.validateBatch(turnId, events);
       emergentTurnEngine.commitAuthoritative(persisted, working, turnId, events, null);
       if (emergentTurnEngine.stateVersion(working) != preVersion + 1) {
@@ -1002,7 +1161,20 @@ public final class GameCoreFacade implements AutoCloseable {
     DiagnosticLog.record("core.startNewGame", "initialJson", initialJson);
     preparedTurns.clear();
     liveStateJson = "{}";
-    return normalizeState(initialJson);
+    JSONObject state = new JSONObject();
+    try {
+      state = newGameState(parseState(initialJson));
+      normalizeCoreState(state);
+      narrativeChapterCore.startNewGame(state);
+      emergentTurnEngine.normalizeState(state);
+      emergentTurnEngine.catchUpProjections(state);
+      state.put("saveVersion", CURRENT_SAVE_VERSION);
+      persist(state);
+    } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
+      throw new IllegalStateException("Không thể khởi tạo Narrative V2.", e);
+    }
+    return clientSafeState(state).toString();
   }
 
   static JSONObject newGameState(JSONObject initial) throws Exception {
@@ -1023,6 +1195,136 @@ public final class GameCoreFacade implements AutoCloseable {
     JSONArray log = initial.optJSONArray("log");
     if (log != null) fresh.put("log", new JSONArray(log.toString()));
     return fresh;
+  }
+
+  public synchronized String prepareNarrativeEdit() {
+    JSONObject persisted = parseState(liveStateJson);
+    try {
+      normalizeCoreState(persisted);
+      emergentTurnEngine.normalizeState(persisted);
+      emergentTurnEngine.catchUpProjections(persisted);
+      if (!narrativeChapterCore.enabled(persisted)) {
+        return response(false, persisted, "Narrative V2 không hoạt động.", "narrative_v2_disabled", null);
+      }
+
+      if (narrativeChapterCore.pendingLevelAdvance(persisted)) {
+        String next = levelCore.advanceNarrativeLevel(persisted);
+        if (next.isEmpty()) {
+          JSONObject root = persisted.getJSONObject(NarrativeChapterCore.ROOT_KEY);
+          root.put("pendingLevelAdvance", false)
+              .put("loadingRequired", false)
+              .put("loadingState", "COMPLETE")
+              .put("gameComplete", true);
+          persist(persisted);
+          return new JSONObject()
+              .put("handled", true)
+              .put("gameComplete", true)
+              .put("state", clientSafeState(persisted))
+              .put("context", narrativeChapterCore.situationSnapshot(persisted))
+              .toString();
+        }
+        narrativeChapterCore.beginNextLevel(persisted);
+      }
+
+      JSONObject prepared = narrativeChapterCore.prepareLoading(
+          persisted, entityCore.situationCandidates(persisted));
+      persist(persisted);
+      return new JSONObject()
+          .put("handled", true)
+          .put("state", clientSafeState(persisted))
+          .put("needsMissionBoard", prepared.optBoolean("needsMissionBoard", false))
+          .put("context", prepared.getJSONObject("context"))
+          .toString();
+    } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
+      return response(false, persisted, safeMessage(e), "narrative_edit_prepare_failed", null);
+    }
+  }
+
+  public synchronized String commitNarrativeEdit(String missionJson, String directorJson) {
+    JSONObject persisted = parseState(liveStateJson);
+    try {
+      normalizeCoreState(persisted);
+      emergentTurnEngine.normalizeState(persisted);
+      JSONObject working = deepCopy(persisted);
+      narrativeChapterCore.commitEdit(working, parseState(missionJson), parseState(directorJson));
+
+      String turnId = emergentTurnEngine.nextTurnId(
+          persisted, "narrative:edit:"
+              + working.optString(LevelCore.LEVEL_KEY, "0") + ":"
+              + working.getJSONObject(NarrativeChapterCore.ROOT_KEY).optInt("actIndex", 1));
+      JSONArray events = new JSONArray();
+      applyNarrativeBeatTrigger(working, events, turnId);
+      if (events.length() > 0) {
+        emergentTurnEngine.validateBatch(turnId, events);
+        emergentTurnEngine.commitAuthoritative(persisted, working, turnId, events, null);
+      }
+
+      working.put("saveVersion", CURRENT_SAVE_VERSION);
+      projectBeforePersist(working);
+      emergentTurnEngine.catchUpProjections(working);
+      persist(working);
+      return response(true, working, null, "narrative_edit_committed", null);
+    } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
+      return response(false, persisted, safeMessage(e), "narrative_edit_rejected", null);
+    }
+  }
+
+  public synchronized String narrativeOpeningFrame() {
+    JSONObject state = parseState(liveStateJson);
+    try {
+      normalizeCoreState(state);
+      JSONObject root = state.optJSONObject(EmergentTurnEngine.ROOT_KEY);
+      int version = root == null ? 0 : Math.max(0, root.optInt("stateVersion", 0));
+      JSONObject narrative = state.getJSONObject(NarrativeChapterCore.ROOT_KEY);
+      String turnId = "narrative-opening:"
+          + state.optString(LevelCore.LEVEL_KEY, "0") + ":" + narrative.optInt("actIndex", 1)
+          + ":" + narrative.optInt("editRevision", 0);
+      TurnRng rng = new TurnRng(
+          turnId, version, EmergentTurnEngine.CANON_VERSION, EmergentTurnEngine.RNG_SCHEMA_VERSION);
+      JSONObject environment = levelCore.sceneDirectorEnvironment(
+          state, "Mở đầu hồi", bound -> rng.nextInt(TurnRng.Scope.WORLD_REACTION, bound));
+
+      JSONArray present = new JSONArray();
+      JSONArray party = state.optJSONArray("party");
+      for (int i = 0; party != null && i < party.length(); i++) {
+        JSONObject member = party.optJSONObject(i);
+        if (member == null || !member.optBoolean("joined", false)) continue;
+        present.put(new JSONObject()
+            .put("id", member.optString("id", ""))
+            .put("name", member.optString("name", member.optString("id", ""))));
+      }
+      JSONObject facts = new JSONObject()
+          .put("playerIntent", new JSONObject().put("text", "Mở đầu hồi"))
+          .put("presentCharacters", present);
+      JSONObject frame = SceneDirector.compose(state, facts, environment);
+      return narrativeChapterCore.decorateSceneFrame(state, frame).toString();
+    } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
+      return "{}";
+    }
+  }
+
+  public synchronized String commitNarrativeOpening(String gmEntryJson) {
+    JSONObject state = parseState(liveStateJson);
+    try {
+      normalizeCoreState(state);
+      if (!narrativeChapterCore.enabled(state) || narrativeChapterCore.loadingRequired(state)) {
+        throw new IllegalStateException("Narrative act is not ready for presentation.");
+      }
+      JSONObject entry = new JSONObject(gmEntryJson);
+      entry.put("role", "gm");
+      JSONArray log = state.optJSONArray("log");
+      if (log == null) log = new JSONArray();
+      log.put(entry);
+      state.put("log", log);
+      persist(state);
+      return clientSafeState(state).toString();
+    } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
+      throw new IllegalStateException("Không thể commit mở đầu Narrative V2.", e);
+    }
   }
 
   public synchronized void clear() {
@@ -1249,6 +1551,7 @@ public final class GameCoreFacade implements AutoCloseable {
       survivalCore.normalizeState(state);
       itemCore.normalizeInventory(state);
       characterDetailCore.projectState(state);
+      narrativeChapterCore.normalizeState(state);
     } catch (Exception e) {
       DiagnosticLog.record("core.error", "error", e);
       debug("Character detail projection failed: " + e.getMessage());
