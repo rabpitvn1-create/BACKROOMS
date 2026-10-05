@@ -1617,7 +1617,14 @@ public final class GameCoreFacade implements AutoCloseable {
   }
 
   private JSONObject clientSafeState(JSONObject source) {
-    return deepCopy(source);
+    JSONObject safe = deepCopy(source);
+    try {
+      narrativeChapterCore.redactClient(safe);
+    } catch (Exception e) {
+      DiagnosticLog.record("core.error", "error", e);
+      throw new IllegalStateException("Cannot create client-safe Narrative V2 state.", e);
+    }
+    return safe;
   }
 
   private String safeMessage(Exception e) {

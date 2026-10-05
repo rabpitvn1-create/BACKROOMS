@@ -7,6 +7,7 @@ const assets=path.join(__dirname,'..','app','src','main','assets');
 const ui=fs.readFileSync(path.join(assets,'narrative-v2-ui.js'),'utf8');
 const choices=fs.readFileSync(path.join(assets,'gm-choice-ui.js'),'utf8');
 const main=fs.readFileSync(path.join(__dirname,'..','app','src','main','java','com','rabpit','backroom','MainActivity.java'),'utf8');
+const facade=fs.readFileSync(path.join(__dirname,'..','app','src','main','java','com','rabpit','backroom','core','GameCoreFacade.java'),'utf8');
 
 test('Act loading preloads reserved entities and every joined party member',()=>{
   assert.match(ui,/manifest\.entityKeys/);
@@ -45,4 +46,13 @@ test('Act loading exposes real pipeline progress instead of a static technical s
   for(const percent of [15,35,55,65,80]){
     assert.ok(main.includes('emitNarrativeProgress('+percent+','));
   }
+});
+
+
+test('client state redacts Narrative V2 Director and hidden authority fields',()=>{
+  const start=facade.indexOf('private JSONObject clientSafeState(JSONObject source)');
+  assert.notEqual(start,-1);
+  const body=facade.slice(start,facade.indexOf('private String safeMessage',start));
+  assert.match(body,/narrativeChapterCore\.redactClient\(safe\)/);
+  assert.match(body,/return safe/);
 });
