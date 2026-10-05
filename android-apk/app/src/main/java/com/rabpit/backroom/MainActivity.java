@@ -330,15 +330,13 @@ public class MainActivity extends Activity {
       String partyUi = readAssetText("party-ui.js");
       String playerActionUi = readAssetText("player-action-ui.js");
       String managementUi = readAssetText("management-ui.js");
-      String narrativeV2Ui = readAssetText("narrative-v2-ui.js");
       webView.evaluateJavascript(snapshotUi, ignored ->
         webView.evaluateJavascript(gmChoiceUi, ignoredChoice ->
           webView.evaluateJavascript(inventoryUi, ignoredInventory ->
             webView.evaluateJavascript(partyUi, ignoredParty ->
               webView.evaluateJavascript(playerActionUi, ignoredPlayerAction ->
                 webView.evaluateJavascript(managementUi, ignoredManagement ->
-                  webView.evaluateJavascript(narrativeV2Ui, ignoredNarrative ->
-                    installNarrativeAudit())))))));
+                  installNarrativeAudit()))))));
     } catch (Exception e) {
       DiagnosticLog.record("app.error", "error", e);
       Log.e(TAG, "Unable to install WebView UI scripts", e);
@@ -778,47 +776,7 @@ public class MainActivity extends Activity {
         + "Nếu focus=CHARACTER hoặc pendingIntro không rỗng: bắt buộc dựng khoảnh khắc gặp/tái ngộ trước khi nhân vật được xem là đang đồng hành trong lời kể, và phải có 2-5 câu thoại tự nhiên của nhân vật vừa gặp. Không tự viết lời đáp hay quyết định của Cao Minh.\n"
         + "Được phép làm văn phong hay hơn, thêm nhịp điệu, cảm giác và hội thoại của các nhân vật đang PRESENT, nhưng không thêm hoặc xóa Entity, Chest, Item, Character, route outcome hay special event. "
         + "Không quyết định thêm hành động, lời nói hay suy nghĩ tiếp theo cho Cao Minh ngoài PLAYER INTENT. Không tạo choices hay gợi ý hành động.\n"
-        + "Nếu SCENE FRAME có narrativeV2: currentBeat là PLAN đã được Core/Validator chấp nhận cho cảnh hiện tại; lastChoiceResult là hậu quả lựa chọn vừa được Core commit. "
-        + "Hãy kể đúng nhịp currentBeat và consequence đã commit, nhưng không biến PLAN thành fact ngoài những gì frame cho phép. "
-        + "Không được tiết lộ endingTrajectoryHidden, spawn budget, mission ẩn chưa reveal, dispositionHidden hay cấu trúc Director/Skeleton.\n"
         + "OUTPUT duy nhất JSON: {\"reply\":\"...\"}";
-  }
-
-  private String missionBoardPrompt(JSONObject context) {
-    return "Bạn là MISSION AI của Backroom The Game Narrative Architecture V2. "
-        + "Tạo bảng nhiệm vụ cho đúng Level từ CONTEXT, không sửa fact, HP, inventory, party, Entity hay canon. "
-        + "Phải có đúng 1 MAIN và tổng 2-6 mission; type chỉ MAIN/MISSION/OPTIONAL/HIDDEN. "
-        + "HIDDEN không được tiết lộ nội dung cho player cho đến khi Core reveal. "
-        + "chapterActTarget phải từ 3 đến 5. Không tạo điều kiện bất khả thi từ dữ kiện hiện có.\n"
-        + "OUTPUT duy nhất JSON theo schema: "
-        + "{\"chapterActTarget\":4,\"missions\":[{\"id\":\"main_exit\",\"type\":\"MAIN\","
-        + "\"title\":\"...\",\"target\":1}]}\n"
-        + "CONTEXT:\n" + (context == null ? "{}" : context.toString());
-  }
-
-  private String hostileDirectorPrompt(JSONObject context, JSONObject missionProposal) {
-    return "Bạn là HOSTILE NARRATIVE DIRECTOR của Backroom The Game Narrative Architecture V2. "
-        + "Mục tiêu: gây khó tối đa nhưng công bằng, hợp canon và không retcon. FACTS đã xảy ra là bất biến; chỉ PLAN tương lai được viết. "
-        + "Chỉ dùng Entity/Chest đã có trong spawnBudget. Không thêm Entity, Chest, item, HP change, death hay mission completion ngoài effect schema. "
-        + "Có thể tạo Survivor mới trong beat; Core sẽ validate trước khi biến thành state. "
-        + "Tránh lặp recentPatterns. Mỗi beat phải có ĐÚNG 3 lựa chọn hợp lý, khác nhau, không gắn nhãn Good/Neutral/Bad. "
-        + "Mỗi lựa chọn phải là một hành động cụ thể có thể làm ngay trong cảnh: bám levelSceneContext, location, mission, party và Entity/Chest đã được cấp. "
-        + "Không viết lựa chọn kiểu chiến lược trừu tượng như 'ưu tiên mục tiêu', 'chấp nhận rủi ro', 'giữ thế chủ động', 'bảo toàn khả năng' nếu không nói rõ Cao Minh thực sự làm gì. "
-        + "entityMode chỉ STALK/HINT/TRACE/AMBUSH/CHASE/PRESSURE/COMBAT/CLIMAX. "
-        + "Effects chỉ được dùng: "
-        + "MISSION_PROGRESS{missionId}, THREAD_SET{id,status OPEN|RESOLVED|FAILED}, EVIDENCE_ADD{key}, "
-        + "SURVIVOR_STATUS{id,status SAFE|ESCAPED|BETRAYED}, OPEN_CHEST, ENGAGE_ENTITY. "
-        + "entityKey phải lấy nguyên văn từ spawnBudget.entities[].key; chestSlot phải nằm trong số slot đã cấp.\n"
-        + "OUTPUT duy nhất JSON: {\"plan\":{\"scenePurpose\":\"...\",\"climaxTarget\":\"...\","
-        + "\"beats\":[{\"summary\":\"...\",\"threatType\":\"...\",\"choiceShape\":\"...\","
-        + "\"missionLinks\":[\"...\"],\"threadLinks\":[],\"entityKey\":\"optional\","
-        + "\"entityMode\":\"PRESSURE\",\"chestSlot\":0,"
-        + "\"survivor\":{\"id\":\"optional\",\"name\":\"...\",\"condition\":\"...\","
-        + "\"dispositionHidden\":\"...\",\"relationship\":\"...\",\"resourceNeed\":\"...\",\"knowledge\":\"...\"},"
-        + "\"choices\":[{\"text\":\"...\",\"effects\":[{\"type\":\"MISSION_PROGRESS\",\"missionId\":\"...\"}]},"
-        + "{\"text\":\"...\",\"effects\":[]},{\"text\":\"...\",\"effects\":[]}]}]}}\n"
-        + "MISSION PROPOSAL (nếu Level mới):\n" + (missionProposal == null ? "{}" : missionProposal.toString()) + "\n"
-        + "CONTEXT:\n" + (context == null ? "{}" : context.toString());
   }
 
   private void logDiagnostic(String message) {
@@ -830,12 +788,6 @@ public class MainActivity extends Activity {
     DiagnosticLog.record("bridge.emit", "callback", function, "payloadChars", json == null ? 0 : json.length());
     String script = "window." + function + "(" + JSONObject.quote(json) + ")";
     runOnUiThread(() -> webView.evaluateJavascript(script, null));
-  }
-
-  private void emitNarrativeProgress(int percent, String stage) {
-    emit("backroomNarrativeProgress",
-        "{\"percent\":" + Math.max(0, Math.min(100, percent))
-            + ",\"stage\":" + JSONObject.quote(stage) + "}");
   }
 
   @Override protected void onSaveInstanceState(Bundle savedState) {
@@ -1072,102 +1024,6 @@ public class MainActivity extends Activity {
           }
         } finally {
           DiagnosticLog.record("turn.end", "durationMs", SystemClock.elapsedRealtime() - tStart);
-          DiagnosticLog.endTrace();
-        }
-      });
-    }
-
-    @JavascriptInterface public void prepareNarrativeAct(String stateJson) {
-      DiagnosticLog.record("bridge.prepareNarrativeAct", "stateChars", stateJson == null ? 0 : stateJson.length());
-      io.execute(() -> {
-        DiagnosticLog.beginTrace("narrative-edit");
-        long started = SystemClock.elapsedRealtime();
-        try {
-          JSONObject prepared = new JSONObject(gameCore.prepareNarrativeEdit());
-          if (!prepared.optBoolean("handled", false)) {
-            throw new Exception(prepared.optString("error", "Không thể chuẩn bị Narrative V2."));
-          }
-          if (prepared.optBoolean("gameComplete", false)) {
-            emitNarrativeProgress(100, "HOÀN TẤT");
-            emit("backroomNarrativeReady", prepared.getJSONObject("state").toString());
-            return;
-          }
-
-          emitNarrativeProgress(15, "KHÓA TRẠNG THÁI · SPAWN BUDGET");
-          JSONObject context = prepared.getJSONObject("context");
-          JSONObject missionProposal = new JSONObject();
-          if (prepared.optBoolean("needsMissionBoard", false)) {
-            emitNarrativeProgress(15, "MISSION AI");
-            try {
-              missionProposal = parseModelJson(generateNarrationText(
-                  missionBoardPrompt(context), NarrationHttpTransport.deadlineAfterMillis(30_000L)));
-            } catch (Exception error) {
-              DiagnosticLog.record("narrative.mission_fallback", "error",
-                  error.getMessage() == null ? error.getClass().getSimpleName() : error.getMessage());
-            }
-          }
-          emitNarrativeProgress(35, "MISSION BOARD");
-
-          JSONObject directorProposal = new JSONObject();
-          emitNarrativeProgress(35, "HOSTILE DIRECTOR");
-          try {
-            directorProposal = parseModelJson(generateNarrationText(
-                hostileDirectorPrompt(context, missionProposal),
-                NarrationHttpTransport.deadlineAfterMillis(30_000L)));
-          } catch (Exception error) {
-            DiagnosticLog.record("narrative.director_fallback", "error",
-                error.getMessage() == null ? error.getClass().getSimpleName() : error.getMessage());
-          }
-          emitNarrativeProgress(55, "PLAN ĐÃ NHẬN");
-
-          JSONObject committed = new JSONObject(gameCore.commitNarrativeEdit(
-              missionProposal.toString(), directorProposal.toString()));
-          if (!committed.optBoolean("handled", false)) {
-            throw new Exception(committed.optString("error", "Core từ chối Narrative PLAN."));
-          }
-          emitNarrativeProgress(65, "CORE VALIDATOR");
-          JSONObject state = committed.getJSONObject("state");
-          JSONObject frame = new JSONObject(gameCore.narrativeOpeningFrame());
-
-          emitNarrativeProgress(65, "GAME MASTER");
-          JSONObject generated;
-          try {
-            generated = parseModelJson(generateNarrationText(
-                narrationPrompt(frame), NarrationHttpTransport.deadlineAfterMillis(30_000L)));
-          } catch (Exception error) {
-            DiagnosticLog.record("narrative.opening_fallback", "error",
-                error.getMessage() == null ? error.getClass().getSimpleName() : error.getMessage());
-            String fallback = SceneDirector.fallbackNarration(frame);
-            JSONObject beat = frame.optJSONObject("narrativeV2") == null ? null
-                : frame.getJSONObject("narrativeV2").optJSONObject("currentBeat");
-            String summary = beat == null ? "" : beat.optString("summary", "").trim();
-            if (!summary.isEmpty()) fallback = fallback + "\n\n" + summary;
-            generated = new JSONObject().put("reply", fallback);
-          }
-
-          String reply = generated.optString("reply", "").trim();
-          if (reply.isEmpty()) reply = "Cao Minh quan sát tình thế của hồi mới.";
-          JSONObject gmEntry = GmChoiceContract.gmEntry(reply, new JSONObject(), state);
-          gmEntry.put("sceneLevelKey",
-              state.optString("currentLevelKey", String.valueOf(state.optInt("currentLevel", 0))));
-          state = new JSONObject(gameCore.commitNarrativeOpening(gmEntry.toString()));
-
-          String encounter = encounterKey(state);
-          if (CombatChoiceEngine.isKnownEntity(encounter) && !CombatChoiceEngine.isActive(state)) {
-            state = new JSONObject(gameCore.startCombatRuntime(encounter, lastGmLogIndex(state)));
-          }
-          DiagnosticLog.record("narrative.edit_ready",
-              "durationMs", SystemClock.elapsedRealtime() - started,
-              "levelKey", state.optString("currentLevelKey", ""),
-              "actIndex", state.optJSONObject("narrativeV2") == null ? -1
-                  : state.getJSONObject("narrativeV2").optInt("actIndex", -1));
-          emitNarrativeProgress(80, "OPENING SCENE");
-          emit("backroomNarrativeReady", state.toString());
-        } catch (Exception e) {
-          DiagnosticLog.record("app.error", "error", e);
-          emit("backroomError", e.getMessage() == null
-              ? "Không thể biên tập hồi Narrative V2." : e.getMessage());
-        } finally {
           DiagnosticLog.endTrace();
         }
       });

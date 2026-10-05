@@ -185,21 +185,6 @@ final class LevelCore {
     return true;
   }
 
-  /** Narrative V2 chapter transition: follows the canonical Level graph without route-streak gameplay. */
-  String advanceNarrativeLevel(JSONObject state) throws Exception {
-    normalizeState(state);
-    String fromKey = resolveLevelKey(state);
-    String next = nextForKey(fromKey);
-    if (next == null || next.trim().isEmpty() || !knownKey(next)
-        || !transitionAllowedFor(fromKey, next)) return "";
-    String target = normalizeKey(next);
-    state.put("currentLevel", parentLevelForKey(target));
-    state.put(LEVEL_KEY, target);
-    state.put(ROUTE_STATE, newRouteStateForKey(target));
-    state.put("location", defaultLocationForKey(target));
-    return target;
-  }
-
   private static boolean hasTransitionIntent(String action) {
     String value = action == null ? "" : action.trim().toLowerCase(Locale.ROOT);
     return value.contains("đi qua") || value.contains("bước qua") || value.contains("tiến vào")

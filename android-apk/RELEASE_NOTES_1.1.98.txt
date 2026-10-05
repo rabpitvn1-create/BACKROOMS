@@ -1,5 +1,0 @@
-Backroom 1.1.98
-
-- Bảo vệ Narrative V2 client state bằng cách loại bỏ các trường Director và authority ẩn trước khi state được trả về giao diện.
-- Bổ sung regression test xác nhận client state không còn lộ hidden Narrative V2 state.
-- Bump version từ 1.1.97 lên 1.1.98 (versionCode 144), đồng bộ APK artifact, GitHub Release tag và release verification.

@@ -33,8 +33,8 @@ android {
     applicationId 'com.rabpit.backroom'
     minSdk 24
     targetSdk 35
-    versionCode 144
-    versionName '1.1.98'
+    versionCode 141
+    versionName '1.1.95'
     buildConfigField "String", "SOURCE_REVISION", "\"" + secret("GITHUB_SHA") + "\""
     buildConfigField "String", "LUNA_API_KEY", "\"" + secret("LUNA_API_KEY") + "\""
     buildConfigField "String", "LUNA_BASE_URL", "\"" + secret("LUNA_BASE_URL") + "\""
