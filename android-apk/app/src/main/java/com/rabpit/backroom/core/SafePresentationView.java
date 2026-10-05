@@ -152,6 +152,67 @@ public final class SafePresentationView {
     return raw instanceof String ? text(state, actor, (String) raw) : raw;
   }
 
+  /** Core permits only the present NPC's own managed name, never equipment or foreign lore. */
+  static JSONArray identityDisclosureNames(JSONObject state) throws Exception {
+    JSONArray allowed = new JSONArray();
+    JSONArray party = state == null ? null : state.optJSONArray("party");
+    if (party == null) return allowed;
+    for (int i = 0; i < party.length(); i++) {
+      JSONObject member = party.optJSONObject(i);
+      if (member == null || !member.optBoolean("present", true)) continue;
+      String id = member.optString("id", "");
+      if (id.isEmpty() || "cao_minh".equals(id)) continue;
+      for (String[] row : SUBJECTS) if (id.equals(row[0])) {
+        JSONArray names = new JSONArray();
+        for (int j = 3; j < row.length; j++) names.put(row[j]);
+        allowed.put(new JSONObject().put("speaker", id).put("names", names));
+      }
+    }
+    return allowed;
+  }
+
+  /** Preserve explicit self-disclosure only inside its spoken sentence; project everything else. */
+  static JSONObject presentation(JSONObject state, JSONObject entry, String sourceEvent) throws Exception {
+    JSONObject out = (JSONObject) value(state, "cao_minh", entry);
+    String raw = entry.optString("text", "");
+    java.util.Map<String, String> names = new java.util.LinkedHashMap<>();
+    JSONArray allowed = identityDisclosureNames(state);
+    for (int i = 0; i < allowed.length(); i++) {
+      JSONObject speaker = allowed.getJSONObject(i);
+      JSONArray aliases = speaker.getJSONArray("names");
+      for (int j = 0; j < aliases.length(); j++) {
+        names.put(aliases.getString(j), speaker.getString("speaker"));
+      }
+    }
+    if (names.isEmpty()) return out;
+    StringBuilder alternatives = new StringBuilder();
+    for (String name : names.keySet()) {
+      if (alternatives.length() > 0) alternatives.append('|');
+      alternatives.append(Pattern.quote(name));
+    }
+    // ponytail: finite quoted self-introduction forms over Core-managed aliases, not free prose inference.
+    String sentence = "\\s*(?:Tôi là|Tôi tên là|Tên tôi là)\\s+(" + alternatives + ")[.!]\\s*";
+    java.util.regex.Matcher spoken = Pattern.compile("(?:“" + sentence + "”|\"" + sentence + "\")")
+        .matcher(raw);
+    StringBuilder projected = new StringBuilder();
+    java.util.Set<String> disclosed = new java.util.LinkedHashSet<>();
+    int end = 0;
+    while (spoken.find()) {
+      projected.append(text(state, "cao_minh", raw.substring(end, spoken.start())));
+      projected.append(spoken.group());
+      String name = spoken.group(1) == null ? spoken.group(2) : spoken.group(1);
+      disclosed.add(names.get(name));
+      end = spoken.end();
+    }
+    projected.append(text(state, "cao_minh", raw.substring(end)));
+    out.put("text", projected.toString());
+    // The facade's validity gate and persistence lock make disclosure and log append one commit.
+    for (String subject : disclosed) {
+      CharacterKnowledge.mark(state, "cao_minh", subject, "knownName", sourceEvent);
+    }
+    return out;
+  }
+
   public static JSONArray events(JSONObject state, String actor, JSONObject evidence) throws Exception {
     return events(state, actor, evidence, null);
   }

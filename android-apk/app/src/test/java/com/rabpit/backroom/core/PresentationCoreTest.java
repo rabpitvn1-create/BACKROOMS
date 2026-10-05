@@ -65,7 +65,7 @@ public class PresentationCoreTest {
     incoming.put(new JSONObject().put("role", "gm").put("text", "LATE_RESPONSE"));
     snapshot.put("log", incoming);
     core.markNameKnown("cao_minh", "lucia_m4a1", "core:new-fact-before-append");
-    JSONObject result = new JSONObject(core.commitNarration(snapshot.toString(), commit.getString("turnId")));
+    JSONObject result = append(core, commit, "LATE_RESPONSE").getJSONObject("state");
     assertEquals(originalLog, result.optJSONArray("log") == null ? "[]" : result.getJSONArray("log").toString());
     assertFalse(result.toString().contains("LATE_RESPONSE"));
   }
@@ -266,6 +266,102 @@ public class PresentationCoreTest {
         assertEquals("", current.getJSONObject("flags").getString("entityEncounterKey"));
       }
     }
+  }
+
+  private static JSONObject encounterState(String id) throws Exception {
+    JSONObject initial = state();
+    new CharacterEncounterCore().activateEncounterCandidate(initial, id);
+    EmergentTurnEngine engine = new EmergentTurnEngine();
+    engine.normalizeState(initial);
+    String turnId = engine.nextTurnId(initial, "encounter-test");
+    JSONArray events = new JSONArray();
+    events.put(engine.event(turnId, events, "CHARACTER_ENCOUNTERED", "SOCIAL", id,
+        new JSONObject().put("observedByPlayer", true).put("factValue", id), new JSONArray()));
+    engine.commitAuthoritative(initial, turnId, events, null);
+    engine.catchUpProjections(initial);
+    return initial;
+  }
+
+  private static JSONObject presentationCommit(GameCoreFacade core) throws Exception {
+    JSONObject snapshot = new JSONObject(core.currentCoreState());
+    return new JSONObject().put("state", snapshot).put("turnId",
+        snapshot.getJSONObject(EmergentTurnEngine.ROOT_KEY).getString("lastCommittedTurnId"));
+  }
+
+  private static String lastNarration(JSONObject state) throws Exception {
+    JSONArray log = state.getJSONArray("log");
+    return log.getJSONObject(log.length() - 1).getString("text");
+  }
+
+  @Test public void selfIntroductionSurvivesRealPresentationCommitAndTeachesOnlyTheName() throws Exception {
+    GameCoreFacade core = core(encounterState("lucia"));
+    JSONObject commit = presentationCommit(core);
+    JSONObject before = commit.getJSONObject("state");
+    assertFalse(CharacterKnowledge.knows(before, "cao_minh", "lucia", "knownName"));
+    assertEquals("cô gái cầm một vật kim loại dài", SafePresentationView.text(before, "cao_minh", "Lucia"));
+    JSONObject evidence = CommittedTurnNarrationEvidence.fromState(before, commit.getString("turnId"));
+    JSONObject frame = new JSONObject(core.sceneFrame(before, evidence, "Quan sát"));
+    assertEquals("CHARACTER", frame.getString("focus"));
+    assertTrue(frame.getJSONArray("pendingIntro").toString().contains("lucia"));
+    JSONObject result = append(core, commit, "Lucia xuất hiện. “Tôi là Lucia.” M4A1, Hound.");
+    assertTrue(result.toString(), result.getBoolean("handled"));
+    JSONObject after = result.getJSONObject("state");
+    String text = lastNarration(after);
+    assertTrue(text, text.contains("“Tôi là Lucia.”"));
+    assertFalse(text, text.contains("Lucia xuất hiện"));
+    assertFalse(text, text.contains("Tôi là cô gái"));
+    assertFalse(text, text.contains("M4A1"));
+    assertFalse(text, text.contains("Hound"));
+    assertTrue(CharacterKnowledge.knows(after, "cao_minh", "lucia", "knownName"));
+    assertFalse(CharacterKnowledge.knows(after, "cao_minh", "lucia_m4a1", "knownName"));
+    assertFalse(CharacterKnowledge.knows(after, "lucia", "cultivation", "knownName"));
+    assertFalse(CharacterKnowledge.knows(after, "lucia", "cao_minh_title", "knownName"));
+    assertEquals("Lucia", SafePresentationView.text(after, "cao_minh", "Lucia"));
+    assertEquals(0, after.getJSONObject("characterEncounter").getJSONArray("pendingIntro").length());
+    String saved = core.currentCoreState();
+    assertEquals("duplicate_presentation", append(core, commit, "“Tôi là Syvial.”").getString("reason"));
+    assertEquals(saved, core.currentCoreState());
+    core.saveCheckpoint();
+    assertTrue(CharacterKnowledge.knows(new JSONObject(core.loadCheckpoint()), "cao_minh", "lucia", "knownName"));
+  }
+
+  @Test public void encounterAndNarratorNameMentionsDoNotGrantKnowledge() throws Exception {
+    GameCoreFacade core = core(encounterState("lucia"));
+    JSONObject result = append(core, presentationCommit(core),
+        "Lucia xuất hiện. Tôi là Lucia. “Tôi chưa muốn nói tên.” “Cô ấy là Lucia.” “Tôi là Syvial.”");
+    assertTrue(result.getBoolean("handled"));
+    JSONObject after = result.getJSONObject("state");
+    assertFalse(CharacterKnowledge.knows(after, "cao_minh", "lucia", "knownName"));
+    assertFalse(CharacterKnowledge.knows(after, "cao_minh", "syvial", "knownName"));
+    assertFalse(lastNarration(after).contains("Lucia"));
+    assertFalse(lastNarration(after).contains("Syvial"));
+  }
+
+  @Test public void disclosureIsGenericAndAbsentNpcsCannotIntroduceThemselves() throws Exception {
+    GameCoreFacade core = core(encounterState("syvial"));
+    JSONObject result = append(core, presentationCommit(core), "\"Tôi là Syvial.\"");
+    assertTrue(result.getBoolean("handled"));
+    assertEquals("\"Tôi là Syvial.\"", lastNarration(result.getJSONObject("state")));
+    assertTrue(CharacterKnowledge.knows(result.getJSONObject("state"), "cao_minh", "syvial", "knownName"));
+
+    JSONObject initial = encounterState("lucia");
+    initial.getJSONArray("party").getJSONObject(0).put("present", false);
+    GameCoreFacade absent = core(initial);
+    JSONObject rejectedDisclosure = append(absent, presentationCommit(absent), "“Tôi là Lucia.”");
+    assertTrue(rejectedDisclosure.getBoolean("handled"));
+    assertFalse(CharacterKnowledge.knows(rejectedDisclosure.getJSONObject("state"), "cao_minh", "lucia", "knownName"));
+    assertFalse(lastNarration(rejectedDisclosure.getJSONObject("state")).contains("Lucia"));
+  }
+
+  @Test public void staleDisclosureCannotTeachKnowledge() throws Exception {
+    GameCoreFacade core = core(encounterState("lucia"));
+    JSONObject commit = presentationCommit(core);
+    core.markEffectKnown("cao_minh", "lucia_m4a1", "core:observed-effect");
+    JSONObject result = append(core, commit, "“Tôi là Lucia.”");
+    assertFalse(result.getBoolean("handled"));
+    assertEquals("stale_presentation", result.getString("reason"));
+    assertFalse(CharacterKnowledge.knows(new JSONObject(core.currentCoreState()),
+        "cao_minh", "lucia", "knownName"));
   }
 
 }

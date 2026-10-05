@@ -46,6 +46,7 @@ public final class SceneDirector {
       }
     }
     frame.put("characterVoice", voices);
+    frame.put("identityDisclosure", SafePresentationView.identityDisclosureNames(state));
 
     String focus = "ENVIRONMENT";
     if (frame.getJSONArray("entityEvents").length() > 0) focus = "ENTITY";
@@ -63,7 +64,10 @@ public final class SceneDirector {
         .put("maySpawnCharacter", false)
         .put("mayCreateSpecialEvent", false)
         .put("mayCreateChoices", false)
-        .put("playerIntentIsWorldFact", false));
+        .put("playerIntentIsWorldFact", false)
+        .put("identityDisclosureRule", "Optional: a present NPC may say their own listed name in a quoted sentence, "
+            + "for example “Tôi là <name>.”. This does not reveal equipment or foreign lore. "
+            + "Narrator uses the POV label until the disclosure is committed; never write Cao Minh dialogue."));
 
     JSONObject requiredBeat = new JSONObject().put("kind", "NONE");
     if ("ENTITY".equals(focus)) {
