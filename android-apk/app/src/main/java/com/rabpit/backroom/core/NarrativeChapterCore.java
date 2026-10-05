@@ -330,6 +330,38 @@ final class NarrativeChapterCore {
     return frame;
   }
 
+  void redactClient(JSONObject state) throws Exception {
+    if (!enabled(state)) return;
+    JSONObject root = state.getJSONObject(ROOT_KEY);
+    root.remove("skeleton");
+    root.remove("endingTrajectory");
+    root.remove("facts");
+    root.remove("threads");
+    root.remove("recentPatterns");
+    root.put("missionBoard", publicMissionBoard(root.optJSONArray("missionBoard")));
+    JSONArray survivors = root.optJSONArray("survivors");
+    JSONArray safeSurvivors = new JSONArray();
+    for (int i = 0; survivors != null && i < survivors.length(); i++) {
+      JSONObject survivor = survivors.optJSONObject(i);
+      if (survivor == null) continue;
+      safeSurvivors.put(new JSONObject()
+          .put("id", survivor.optString("id", ""))
+          .put("name", survivor.optString("name", ""))
+          .put("condition", survivor.optString("condition", ""))
+          .put("relationship", survivor.optString("relationship", "UNKNOWN"))
+          .put("status", survivor.optString("status", "ACTIVE")));
+    }
+    root.put("survivors", safeSurvivors);
+    JSONObject budget = root.optJSONObject("spawnBudget");
+    if (budget != null) {
+      root.put("spawnBudget", new JSONObject()
+          .put("actIndex", budget.optInt("actIndex", root.optInt("actIndex", 1)))
+          .put("entityCount", budget.optInt("entityCount", 0))
+          .put("chestCount", budget.optInt("chestCount", 0))
+          .put("locked", true));
+    }
+  }
+
   JSONObject situationSnapshot(JSONObject state) throws Exception {
     JSONObject root = state.getJSONObject(ROOT_KEY);
     JSONObject out = new JSONObject()
