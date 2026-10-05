@@ -202,9 +202,30 @@
     if (!choice || explorerChoiceBusy || window.__combatBusy || (state.combat && state.combat.active)) return;
     var displayText = String(choice.text || choice.action || '').trim();
     var coreAction = String(choice.action || displayText).trim();
-    if (!displayText || !coreAction || !form || !action) return;
+    if (!displayText || !coreAction) return;
     explorerChoiceBusy = true;
     if (typeof window.render === 'function') window.render();
+
+    var narrativeV2 = state && state.narrativeV2 && state.narrativeV2.enabled === true;
+    if (narrativeV2) {
+      if (!window.Android || typeof Android.submitTurn !== 'function') {
+        explorerChoiceBusy = false;
+        if (status) status.textContent = 'Không tìm thấy Android bridge.';
+        return;
+      }
+      try {
+        state.__uiDisplayAction = displayText;
+        Android.submitTurn(JSON.stringify(state), coreAction);
+      } finally {
+        try { delete state.__uiDisplayAction; } catch (_) { state.__uiDisplayAction = ''; }
+      }
+      return;
+    }
+
+    if (!form || !action) {
+      explorerChoiceBusy = false;
+      return;
+    }
     action.value = coreAction;
     try {
       state.__uiDisplayAction = displayText;
@@ -260,6 +281,13 @@
   }
 
   function displayedExplorerChoices() {
+    if (state && state.narrativeV2 && state.narrativeV2.enabled === true) {
+      var narrativeChoices = Array.isArray(state.narrativeV2.currentChoices)
+        ? state.narrativeV2.currentChoices : [];
+      return narrativeChoices.slice(0, 3).map(function(choice){
+        return Object.assign({}, choice);
+      });
+    }
     var choices = [];
     var contextual = contextualExplorerChoice();
     if (contextual) choices.push(contextual);
