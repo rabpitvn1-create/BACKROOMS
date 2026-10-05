@@ -166,7 +166,7 @@ jobs:
           node --check android-apk/app/src/main/assets/snapshot-ui.js
           node --check android-apk/app/src/main/assets/party-ui.js
           node --check android-apk/app/src/main/assets/prologue.js
-          node --test android-apk/tests/poker-dice-ui.test.cjs android-apk/tests/hud-style.test.cjs android-apk/tests/menu-diagnostics.test.cjs android-apk/tests/sol-provider.test.cjs android-apk/tests/font-contract.test.cjs android-apk/tests/gm-choice-ui.test.cjs android-apk/tests/manual-save-prefetch.test.cjs android-apk/tests/ma-ton-ui.test.cjs android-apk/tests/player-action-gm-contract.test.cjs android-apk/tests/prologue-contract.test.cjs android-apk/tests/viewport-layout.test.cjs
+          node --test android-apk/tests/poker-dice-ui.test.cjs android-apk/tests/hud-style.test.cjs android-apk/tests/menu-diagnostics.test.cjs android-apk/tests/sol-provider.test.cjs android-apk/tests/font-contract.test.cjs android-apk/tests/gm-choice-ui.test.cjs android-apk/tests/narrative-v2-ui.test.cjs android-apk/tests/manual-save-prefetch.test.cjs android-apk/tests/ma-ton-ui.test.cjs android-apk/tests/player-action-gm-contract.test.cjs android-apk/tests/prologue-contract.test.cjs android-apk/tests/viewport-layout.test.cjs
 
       - name: Validate Game Master configuration
         run: |
