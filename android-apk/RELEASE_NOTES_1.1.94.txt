@@ -1,0 +1,8 @@
+Backroom 1.1.94
+
+- Khôi phục sắc thái tiên hiệp cho GAME MASTER khi kể về Cao Minh / Vạn Giới Ma Tôn, đồng thời giữ nguyên quyền điều khiển của người chơi và không tự phát sinh năng lực ngoài PLAYER INTENT hoặc SCENE FRAME.
+- Làm sạch toàn bộ variationPool và sensory đi trực tiếp vào SceneFrame, bổ sung kiểm tra chính tả/ngữ pháp và loại bỏ các fragment kỹ thuật, câu Anh-Việt khỏi narration player-facing.
+- Giữ đầy đủ các Entity của encounter mới khi combat cũ vừa kết thúc, sửa trường hợp GM kể nhiều Entity nhưng combat chỉ nhận một.
+- Điều chỉnh hiệu ứng Entity bị đánh bại theo nhịp chậm ở đầu, tăng tốc dần và vỡ tan nhanh ở cuối.
+- Chuẩn hóa font GAME MASTER sang Google Sans; các từ được highlight vẫn dùng Google Sans Bold và giữ màu ngữ nghĩa.
+- Bump version từ 1.1.93a lên 1.1.94 (versionCode 140), đồng bộ APK artifact, GitHub Release tag và release verification.
