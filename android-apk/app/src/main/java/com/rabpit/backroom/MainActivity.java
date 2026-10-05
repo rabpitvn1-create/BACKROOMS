@@ -330,13 +330,15 @@ public class MainActivity extends Activity {
       String partyUi = readAssetText("party-ui.js");
       String playerActionUi = readAssetText("player-action-ui.js");
       String managementUi = readAssetText("management-ui.js");
+      String narrativeV2Ui = readAssetText("narrative-v2-ui.js");
       webView.evaluateJavascript(snapshotUi, ignored ->
         webView.evaluateJavascript(gmChoiceUi, ignoredChoice ->
           webView.evaluateJavascript(inventoryUi, ignoredInventory ->
             webView.evaluateJavascript(partyUi, ignoredParty ->
               webView.evaluateJavascript(playerActionUi, ignoredPlayerAction ->
                 webView.evaluateJavascript(managementUi, ignoredManagement ->
-                  installNarrativeAudit()))))));
+                  webView.evaluateJavascript(narrativeV2Ui, ignoredNarrative ->
+                    installNarrativeAudit())))))));
     } catch (Exception e) {
       DiagnosticLog.record("app.error", "error", e);
       Log.e(TAG, "Unable to install WebView UI scripts", e);
