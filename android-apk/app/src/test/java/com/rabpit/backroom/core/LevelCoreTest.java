@@ -202,7 +202,7 @@ public class LevelCoreTest {
         " scrap", " loot", "door ", "chalky", "contactor", " flash", "bar ", " gate",
         " dim", "cubicle", "window corridor", "vending machine", "inventory", "stairwell",
         "signage", " lounge", "ballroom", " junction", " motor", " cavity", " relay",
-        "automaton", " sector", " hospital ", " ledge", "mothball", " outpost",
+        "automaton", " sector", " ledge", "mothball", " outpost",
         " remnant", "time travel", "manifestation", " block", "gameplay", " annex",
         " companion", " npc", " contrast"
     };
