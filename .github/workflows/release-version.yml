@@ -140,6 +140,9 @@ jobs:
           grep -Fq 'SCENE FRAME — authoritative current-turn facts' android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java
           ! grep -Fq 'milestoneCore' android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java
           test -s android-apk/app/src/main/java/com/rabpit/backroom/core/SceneDirector.java
+          test -s android-apk/app/src/main/java/com/rabpit/backroom/core/NarrativeChapterCore.java
+          test -s android-apk/NARRATIVE_ARCHITECTURE_V2.md
+          test -s android-apk/app/src/main/assets/narrative-v2-ui.js
           ! grep -Fq 'NarrationFutureBuffer' android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java
           test ! -e android-apk/app/src/main/java/com/rabpit/backroom/core/NarrationFutureBuffer.java
           test ! -e android-apk/app/src/main/java/com/rabpit/backroom/core/NarrationGuard.java
@@ -158,6 +161,7 @@ jobs:
           test -s android-apk/app/src/main/java/com/rabpit/backroom/core/SurvivalCore.java
 
           node --check android-apk/app/src/main/assets/gm-choice-ui.js
+          node --check android-apk/app/src/main/assets/narrative-v2-ui.js
           node --check android-apk/app/src/main/assets/player-action-ui.js
           node --check android-apk/app/src/main/assets/snapshot-ui.js
           node --check android-apk/app/src/main/assets/party-ui.js
@@ -297,6 +301,7 @@ jobs:
           unzip -l Backroom-1.1.95.apk | grep -q 'assets/prologue.js'
           unzip -l Backroom-1.1.95.apk | grep -q 'assets/snapshot-ui.js'
           unzip -l Backroom-1.1.95.apk | grep -q 'assets/gm-choice-ui.js'
+          unzip -l Backroom-1.1.95.apk | grep -q 'assets/narrative-v2-ui.js'
           unzip -l Backroom-1.1.95.apk | grep -q 'assets/fonts/Play-Regular.ttf'
           cmp <(unzip -p Backroom-1.1.95.apk assets/fonts/GoogleSans-Regular.woff) android-apk/app/src/main/assets/fonts/GoogleSans-Regular.woff
           cmp <(unzip -p Backroom-1.1.95.apk assets/fonts/GoogleSans-Bold.woff) android-apk/app/src/main/assets/fonts/GoogleSans-Bold.woff
