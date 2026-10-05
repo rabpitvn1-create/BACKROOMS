@@ -26,6 +26,9 @@ final class EventCanonRegistry {
   private static final Map<String, Spec> SPECS = new LinkedHashMap<>();
   static {
     register("PLAYER_ACTION_RESOLVED", "LOCAL", "STATE_CHANGE");
+    register("NARRATIVE_CHOICE_RESOLVED", "LOCAL", "STATE_CHANGE");
+    register("NARRATIVE_ENTITY_STAGED", "LOCAL", "STATE_CHANGE");
+    register("SURVIVOR_INTRODUCED", "LOCAL", "STATE_CHANGE");
     register("ROUTE_SEARCH_PROGRESS", "LOCAL", "STATE_CHANGE");
     register("ROUTE_SEARCH_RESET", "LOCAL", "STATE_CHANGE");
     register("ROUTE_EXIT_AVAILABLE", "LOCAL", "STATE_CHANGE", "PERSISTENT_CONSEQUENCE");
