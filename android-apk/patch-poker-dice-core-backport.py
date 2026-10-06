@@ -955,9 +955,20 @@ class PokerDiceCoreBackportTest {
     var state = PokerDiceCore.prepare(GameState.initial(), "Tấn công", "E1")
     val initial = PokerDiceCore.diceJson(state)!!
     assertEquals(5, initial.getJSONArray("values").length())
-    repeat(3) { state = PokerDiceCore.reroll(state) }
+    repeat(3) {
+      val current = PokerDiceCore.diceJson(state)!!
+      val held = current.getJSONArray("held")
+      for (index in 0 until 5) if (held.optBoolean(index, false)) {
+        state = PokerDiceCore.setHold(state, index, false)
+      }
+      state = PokerDiceCore.reroll(state)
+    }
     val after = PokerDiceCore.diceJson(state)!!
     assertEquals(3, after.getInt("rerollsUsed"))
+    val held = after.getJSONArray("held")
+    for (index in 0 until 5) if (held.optBoolean(index, false)) {
+      state = PokerDiceCore.setHold(state, index, false)
+    }
     try {
       PokerDiceCore.reroll(state)
       fail("fourth reroll must be rejected")
