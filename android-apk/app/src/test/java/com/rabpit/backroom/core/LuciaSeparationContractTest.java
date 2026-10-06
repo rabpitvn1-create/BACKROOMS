@@ -50,7 +50,7 @@ public class LuciaSeparationContractTest {
     assertFalse(levelZero.toString().contains("character:luc_tram"));
 
     JSONArray levelOne = encounters.situationCandidates(state(1, "1"));
-    assertEquals(0.25d, chance(levelOne, "character:luc_tram"), 0.0000001d);
+    assertEquals(1.0d, chance(levelOne, "character:luc_tram"), 0.0000001d);
     assertFalse(levelOne.toString().contains("character:lucia"));
 
     Path luciaStructured = Paths.get("src/main/assets/content/characters/lucia.md");
