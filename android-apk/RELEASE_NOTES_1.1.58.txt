@@ -1,0 +1,10 @@
+Backroom 1.1.58 Debug
+
+- Fixes MadGod Set being acknowledged as equipped while Kai's authoritative equipment state remained unchanged.
+- MadGod equip text is now resolved directly by the authoritative Game State Core instead of relying on GM prose or fallback interpretation.
+- Equipping MadGod Set atomically replaces Kai's White Wraith Magnum and Blackblood Armor.
+- Omnivault Ring is preserved.
+- Synchronizes the committed MadGod equipment state back to the WebView, so Kai's Equipment panel shows MadGod Set rather than the old weapon and armor.
+- Kai's Party/detail avatar switches to the packaged MadGod avatar only after the set is actually equipped.
+- Snapshot uses Kai_MadGod_snapshot_overlay.png only from the authoritative equipped state.
+- Adds regression coverage for the runtime equipment projection as well as the engine-level weapon/armor overwrite.

@@ -1,9 +1,0 @@
-Backroom 1.1.73
-
-- Chuyển Entity xuất hiện/bị tiêu diệt, rương phát hiện/mở và character first-contact/reunion sang presentation offline, không gọi narration API.
-- Giữ outcome, combat, loot, inventory và reward do Core quyết định; ASYNC Rifleman giữ khoảng cách theo profile hiện hành.
-- Thêm safe presentation projection và CharacterKnowledge tối thiểu lưu qua save/load; HUD/prose không tự cấp knowledge. Lọc các managed term/ID đang lỗi trong packet cuối và reject output leak.
-- Drop narration stale/duplicate ngay tại synchronized append; victory có closure local tức thì và không kể lại combat ở Explorer turn sau.
-- Storytelling dùng một initial provider request, tối đa một retry khi hard validation thất bại, rồi safe fallback; bỏ speculative dispatch.
-- Projector dùng tập thuật ngữ hữu hạn; chưa bảo đảm mọi retrieval/synonym đều an toàn và chưa có Vietnamese NLP validator đầy đủ.
-- Bump version từ 1.1.72 lên 1.1.73 (versionCode 117).

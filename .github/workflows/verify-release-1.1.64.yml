@@ -1,0 +1,69 @@
+name: Verify Backroom 1.1.64 Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/verify-release-1.1.64.yml"
+  workflow_run:
+    workflows: ["Release Backroom 1.1.64"]
+    types: [completed]
+
+permissions:
+  contents: write
+
+jobs:
+  verify-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Wait for published v1.1.64
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 20); do
+            if gh release view v1.1.64 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+              exit 0
+            fi
+            echo "Waiting for v1.1.64 release ($attempt/20)..."
+            sleep 15
+          done
+          echo "v1.1.64 was not published within the verification window."
+          exit 1
+
+      - name: Download and verify APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release download v1.1.64 --repo "$GITHUB_REPOSITORY" --pattern 'Backroom-1.1.64.apk' --output Backroom-1.1.64.apk
+          test -s Backroom-1.1.64.apk
+          BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          "$BUILD_TOOLS/apksigner" verify --verbose --print-certs Backroom-1.1.64.apk
+          "$BUILD_TOOLS/aapt" dump badging Backroom-1.1.64.apk | grep -q "package: name='com.rabpit.backroom'"
+          "$BUILD_TOOLS/aapt" dump badging Backroom-1.1.64.apk | grep -q "versionCode='66'"
+          "$BUILD_TOOLS/aapt" dump badging Backroom-1.1.64.apk | grep -q "versionName='1.1.64'"
+          "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-1.1.64.apk
+          SHA256=$(sha256sum Backroom-1.1.64.apk | awk '{print $1}')
+          printf '%s' "$SHA256" > apk.sha256
+
+      - name: Record GREEN release status
+        run: |
+          set -euo pipefail
+          SHA256=$(cat apk.sha256)
+          mkdir -p release-status
+          printf 'status=GREEN\nversion=1.1.64\ntag=v1.1.64\nasset=Backroom-1.1.64.apk\nsha256=%s\nbuild_type=debug\n' "$SHA256" > release-status/v1.1.64.txt
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add release-status/v1.1.64.txt
+          if git diff --cached --quiet; then
+            echo "Release status already recorded."
+            exit 0
+          fi
+          git commit -m 'Record verified Backroom 1.1.64 debug release'
+          git push origin HEAD:main

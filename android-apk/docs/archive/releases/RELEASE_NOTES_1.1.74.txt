@@ -1,7 +1,0 @@
-Backroom 1.1.74
-
-- Cải thiện presentation offline của Entity và rương; điều chỉnh phần hiển thị Entity.
-- Khôi phục fallback provider cho narration Explore; tinh chỉnh văn phong và giảm nội dung lặp.
-- Hỗ trợ cú pháp WebView Android 10.
-- Luồng generateText thử SOL (vgpt/gpt-6.1-sol, reasoning low) trước Gemini và Haiku fallback; SOL_API_KEY lấy từ cấu hình build.
-- Bump version từ 1.1.73 lên 1.1.74 (versionCode 118); đồng bộ tên APK, release tag, ghi chú và kiểm tra metadata APK.

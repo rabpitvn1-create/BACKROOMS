@@ -1,0 +1,9 @@
+Backroom 1.1.46
+
+- Replaces An Nhiên's avatar reference with the packaged PNG and removes the retired JPG asset.
+- Changes An Nhiên's fixed footwear to pink Crocs.
+- Cleans up character Equipment and Inventory labels so internal IDs are hidden and readable names are shown in uppercase.
+- Adds an independent 2% Jeff the Killer encounter roll on eligible physical turns, with validated state authority.
+- Increases normal Entity encounter probability by 8 percentage points per Level: 8.05%, 10%, 11.5%, 11.5%, 8.1%, 12%, 8.05% for Levels 0-6.
+- Keeps exit progression unchanged, including An Nhiên's +2 percentage-point exit bonus and the Level 0 encounter gate.
+- Serializes Android validation so release-related workflows do not compete for the same build/release chain.

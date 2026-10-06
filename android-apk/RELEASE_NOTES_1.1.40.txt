@@ -1,0 +1,10 @@
+Backroom 1.1.40
+
+Runtime UI stability release.
+
+- Fixes the removed global Inventory renderer so it no longer interrupts the opening render cycle.
+- Restores reliable Prologue log and Kai Party card rendering on a fresh game and migrated saves.
+- Keeps Kai signature Equipment separate from the normal character Inventory.
+- Synchronizes Load, New Game, and Delete with the authoritative Android Game State Core so stale state cannot return.
+- Adds packaged runtime checks for Prologue, Party, Inventory, and Game State Core bridge behavior.
+- Corrects the CI guard so the null-safe Inventory renderer is accepted without hiding genuinely unsafe writes.

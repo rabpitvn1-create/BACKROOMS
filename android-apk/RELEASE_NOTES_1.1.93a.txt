@@ -1,6 +1,0 @@
-Backroom 1.1.93a
-
-- Hỗ trợ nhiều Entity hoạt động và hiển thị đồng thời trong cùng encounter; Snapshot giữ toàn bộ Entity còn sống và đánh dấu Entity đang active trong combat.
-- Làm sạch dữ liệu môi trường của Scene Director để tránh câu văn kỹ thuật, khó hiểu và tiếng Anh pha tạp vào narration tiếng Việt.
-- Giữ tỉ lệ overlay Entity ổn định và đồng bộ mặt phẳng đứng giữa Character/Entity trong Snapshot.
-- Bump version từ 1.1.93 lên 1.1.93a (versionCode 139), đồng bộ APK artifact, GitHub Release tag và release verification.

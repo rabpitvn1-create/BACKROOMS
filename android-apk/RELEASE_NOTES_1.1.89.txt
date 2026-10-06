@@ -1,6 +1,0 @@
-Backroom 1.1.89
-
-- Rút gọn mô tả Level và Entity để giảm context thừa nhưng vẫn giữ thông tin gameplay cần thiết.
-- Đơn giản hóa pipeline GM narration theo milestone và memorable events, đồng thời giữ các Core API không thuộc narration.
-- Thêm mô tả ngắn cho 8 vật phẩm tiêu hao và hiển thị mô tả trong Inventory trước thông số hiệu ứng.
-- Bump version từ 1.1.88 lên 1.1.89 (versionCode 134), đồng bộ APK artifact, GitHub Release tag và release verification.

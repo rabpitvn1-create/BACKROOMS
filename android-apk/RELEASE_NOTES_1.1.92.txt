@@ -1,6 +1,0 @@
-Backroom 1.1.92
-
-- Cập nhật xử lý narration cho encounter của Scene Director và bổ sung kiểm tra hồi quy.
-- Giảm chuỗi tìm đường yêu cầu xuống 5 lượt, đồng bộ Core và hiển thị tiến độ.
-- Đổi Tâm Ma Cao Minh thành Evil Clown: cập nhật tên, miêu tả thị giác, tên skill và overlay; giữ nguyên chỉ số, phần thưởng và cơ chế skill.
-- Bump version từ 1.1.91 lên 1.1.92 (versionCode 137), đồng bộ APK artifact, GitHub Release tag và release verification.

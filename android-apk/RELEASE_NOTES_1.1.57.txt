@@ -1,0 +1,8 @@
+Backroom 1.1.57
+
+- MadGod Set now equips as a forced full-set override for Kai.
+- Equipping MadGod Set replaces Kai's current weapon and armor in one action.
+- Omnivault Ring remains equipped.
+- The synthetic set-slot mismatch is removed from the real text-command path.
+- Added regression coverage for "trang bị MadGod Set" from parser through command commit.
+- Keeps local Entity Snapshot overlays, /madgod, three-action UI, and local-only save/runtime contracts.

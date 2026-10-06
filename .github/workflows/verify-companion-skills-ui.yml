@@ -1,0 +1,138 @@
+name: Verify Companion Skills UI
+
+on:
+  push:
+    branches: [feat/companion-skills-ui]
+    paths:
+      - "android-apk/**"
+      - ".github/workflows/verify-companion-skills-ui.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "android-apk/**"
+      - ".github/workflows/verify-companion-skills-ui.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      LUNA_API_KEY: ${{ secrets.LUNA_API_KEY }}
+      LUNA_BASE_URL: https://api.vilao.ai/v1
+      LUNA_MODEL: ${{ secrets.LUNA_MODEL }}
+      GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 || secrets.GEMINI_API_KEY }}
+      GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
+      GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
+      GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
+      GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Apply complete Android runtime patch chain
+        id: patch_chain
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          scripts=(patch-provider-status.py patch-luna-text.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py)
+          for script in "${scripts[@]}"; do
+            echo "==> $script"
+            python3 "android-apk/$script"
+          done
+
+      - name: Verify companion skill and UI contracts
+        id: contracts
+        if: steps.patch_chain.outcome == 'success'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          root = Path('android-apk')
+          core = root / 'app/src/main/java/com/rabpit/backroom/core'
+          catalog = (core / 'CompanionSkillCatalog.kt').read_text(encoding='utf-8')
+          detail = (core / 'CharacterDetailJson.kt').read_text(encoding='utf-8')
+          combat = (core / 'CombatRuntime.kt').read_text(encoding='utf-8')
+          main = (root / 'app/src/main/java/com/rabpit/backroom/MainActivity.java').read_text(encoding='utf-8')
+          html = (root / 'app/src/main/assets/index.html').read_text(encoding='utf-8')
+          an_nhien = (core / 'AnNhienCanon.kt').read_text(encoding='utf-8')
+          tests = (root / 'app/src/test/java/com/rabpit/backroom/core/CompanionSkillCatalogTest.kt').read_text(encoding='utf-8')
+          chain = (root / 'patch-inventory-capacity-final-fix.py').read_text(encoding='utf-8')
+
+          required = (
+              'ARGUS // Thousandfold Execution',
+              'Twosome Time',
+              'Honeycomb Fire',
+              'GodKiller Override // Twenty-Four Severance',
+              'Crimson Guillotine',
+              'Spatial Dominion',
+              'Kế Hoạch Không Có Trong Kế Hoạch',
+              'CompanionSkillCatalog.forCharacter(c.id)',
+              'COMPANION_SKILLS_R01',
+              '24 * 10',
+              'Quăng Đại Cái Gì Đó',
+              'hazardThresholds[level] * 75 / 100',
+              'thresholdRoll("anNhienRead", 10000, 2000',
+              "button.id='characterSkillsButton'",
+              'id="characterSkillsModal"',
+              'function openSkills()',
+              'class CompanionSkillCatalogTest',
+              'runpy.run_path(str(ROOT / "patch-companion-skills-ui-finalize.py"), run_name="__main__")',
+          )
+          combined = catalog + detail + combat + main + html + tests + chain
+          for marker in required:
+              assert marker in combined, marker
+
+          for marker in (
+              'KAI_GUILTY_CROWN_SHOTS * KAI_GUILTY_CROWN_DAMAGE_PER_SHOT',
+              'The Last Requiem tự động kích hoạt',
+              'private const val DIEP_MINH_MAX_HP = 2999',
+              'Devils And Gold kích hoạt',
+              'LUCIA_JOINT_ATTACK',
+              'val luciaEntityEvaded = luciaEvasionRoll < ENTITY_EVASION_PERCENT',
+          ):
+              assert marker in combat, marker
+
+          assert '"nonCombat" to "true"' in an_nhien
+          assert '"canUseWeapons" to "false"' in an_nhien
+          an_start = catalog.index('private val anNhien = listOf(')
+          an_end = catalog.index('private val kai = listOf(', an_start)
+          assert 'Weapon DMG' not in catalog[an_start:an_end]
+
+          assert html.count("button.id='characterSkillsButton'") == 1
+          assert html.count('id="characterSkillsModal"') == 1
+          assert "button.textContent=current.length?'Kỹ năng · '+current.length:'Kỹ năng'" in html
+          PY
+          git diff --check
+
+      - uses: actions/setup-java@v5
+        if: steps.patch_chain.outcome == 'success' && steps.contracts.outcome == 'success'
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+        if: steps.patch_chain.outcome == 'success' && steps.contracts.outcome == 'success'
+        with:
+          gradle-version: "8.10.2"
+
+      - name: Run unit tests and build debug APK
+        id: android_build
+        if: steps.patch_chain.outcome == 'success' && steps.contracts.outcome == 'success'
+        continue-on-error: true
+        working-directory: android-apk
+        run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
+
+      - name: Enforce pre-merge green gate
+        if: always()
+        run: |
+          test "${{ steps.patch_chain.outcome }}" = "success"
+          test "${{ steps.contracts.outcome }}" = "success"
+          test "${{ steps.android_build.outcome }}" = "success"

@@ -1,8 +1,0 @@
-Backroom 1.1.80
-
-- Mở rộng combat để hỗ trợ encounter có nhiều Entity thay vì giả định một mục tiêu duy nhất.
-- Đồng bộ evidence/narration và prefetch cho các trận multi-Entity; bổ sung regression assertions liên quan.
-- Căn lại loot knowledge với ItemCore runtime.
-- Hoàn thiện presentation/warmup của Entity trong combat và giữ hành vi snapshot ổn định.
-- Phân biệt rõ combat damage feedback, đồng thời bảo toàn round-start feedback của luồng cũ.
-- Bump version từ 1.1.79 lên 1.1.80 (versionCode 125), đồng bộ APK artifact, GitHub Release tag và release verification.

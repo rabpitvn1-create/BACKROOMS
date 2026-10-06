@@ -1,0 +1,9 @@
+Backroom 1.1.31
+
+- Khôi phục hoàn toàn font hệ thống gốc để giao diện dễ đọc như trước.
+- Sửa Save: ghi localStorage và đọc lại để xác nhận save thực sự tồn tại/đúng Turn.
+- Sửa Load: xử lý save hỏng an toàn và hiển thị rõ Turn vừa tải.
+- Sửa New Game: không còn phụ thuộc confirm() của WebView; nhấn lần hai trong 5 giây để xác nhận, reset về Turn 1, xóa snapshot cũ và tạo save mới.
+- Sửa Delete Save: không còn phụ thuộc confirm() của WebView; nhấn lần hai trong 5 giây để xác nhận, xóa cả save và snapshot.
+- render() không còn ghi đè thông báo Save/Load/New Game/Delete, nên thao tác có phản hồi rõ ràng.
+- Giữ nguyên toàn bộ AI orchestrator, canon/state authority và gameplay gates của 1.1.30.

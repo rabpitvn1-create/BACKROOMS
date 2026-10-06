@@ -1,0 +1,14 @@
+Backroom 1.1.34
+
+Kai inventory continuity and Omnivault restore fix.
+
+- Fixes the state/narrative mismatch where the Game Master could confirm that Kai picked up and stored an ordinary object while Inventory stayed unchanged.
+- Inventory is treated as a continuity/ownership ledger for Kai, not an encumbrance or artificial survival-scarcity mechanic.
+- Adds deterministic reconciliation for ordinary inanimate objects confirmed by the player action and the GM reply.
+- Omnivault Restore is treated as Kai's own canon ability rather than a loot roll. Example: empty bottle -> Restore into water bottle -> store in Omnivault results in a water bottle record in Inventory.
+- If the writer denies or ignores a valid explicit mundane Omnivault Restore, the turn is repaired before commit instead of silently desynchronizing narrative and state.
+- The Game Master is instructed not to invent ammo, food, water or ordinary-material scarcity merely to balance an overpower Kai. Challenge should come from canon-valid information, protection goals, space, relationships, choices and opponents.
+- True Omnivault canon limits remain: no living targets, Scan/Copy sample rules, per-item Restore cooldown and large assembled-system restrictions.
+- Restricted world loot, weapons, special Backrooms resources, keys, armor and artifacts cannot use the mundane reconciliation path to bypass discovery/canon gates.
+- Existing rejected-operation repair, authoritative state reducer, Save/Load hardening and model-first Gemini 3.6 -> 3.5 -> Flash-Lite -> Luna routing remain intact.
+- Android and server behavior are kept in parity.

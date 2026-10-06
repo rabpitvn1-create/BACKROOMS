@@ -1,0 +1,121 @@
+name: Luna API Two-Command Smoke
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/luna-api-smoke.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: luna-api-two-command-smoke
+  cancel-in-progress: false
+
+jobs:
+  luna-smoke:
+    runs-on: ubuntu-latest
+    env:
+      LUNA_API_KEY: ${{ secrets.LUNA_API_KEY }}
+      LUNA_BASE_URL: https://api.vilao.ai/v1
+      LUNA_MODEL: ${{ secrets.LUNA_MODEL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Capture active run id
+        run: |
+          set -euo pipefail
+          mkdir -p luna-smoke
+          printf 'run_id=%s\nstatus=RUNNING\nsource_sha=%s\n' "$GITHUB_RUN_ID" "$GITHUB_SHA" > luna-smoke/status.txt
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add luna-smoke/status.txt
+          git commit -m "Record Luna smoke run $GITHUB_RUN_ID"
+          git push origin HEAD:main
+
+      - name: Send two Luna commands
+        id: smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${LUNA_API_KEY:-}" || (echo 'Missing LUNA_API_KEY' && exit 1)
+          test -n "${LUNA_MODEL:-}" || (echo 'Missing LUNA_MODEL' && exit 1)
+          python3 - <<'PY'
+          import json, os, urllib.request, urllib.error, pathlib, time
+
+          base = os.environ['LUNA_BASE_URL'].rstrip('/')
+          key = os.environ['LUNA_API_KEY']
+          model = os.environ['LUNA_MODEL']
+          endpoint = base + '/chat/completions'
+
+          tests = [
+              ('command_1', 'Chỉ trả lời đúng chuỗi LUNA_PONG, không thêm ký tự nào.', lambda s: s.strip() == 'LUNA_PONG'),
+              ('command_2', 'Tính 19 + 23. Chỉ trả lời bằng số, không giải thích.', lambda s: s.strip() == '42'),
+          ]
+
+          results = []
+          for name, prompt, check in tests:
+              payload = json.dumps({
+                  'model': model,
+                  'messages': [{'role': 'user', 'content': prompt}],
+                  'temperature': 0,
+                  'max_tokens': 64,
+                  'stream': False,
+              }).encode('utf-8')
+              request = urllib.request.Request(
+                  endpoint,
+                  data=payload,
+                  method='POST',
+                  headers={
+                      'Authorization': 'Bearer ' + key,
+                      'Content-Type': 'application/json',
+                      'Accept': 'application/json',
+                      'User-Agent': 'BACKROOMS-Luna-Smoke/1.0',
+                  },
+              )
+              started = time.monotonic()
+              try:
+                  with urllib.request.urlopen(request, timeout=45) as response:
+                      status = response.status
+                      raw = response.read().decode('utf-8', errors='replace')
+              except urllib.error.HTTPError as error:
+                  detail = error.read().decode('utf-8', errors='replace')[:600]
+                  raise RuntimeError(f'{name}: HTTP {error.code}: {detail}')
+              elapsed_ms = int((time.monotonic() - started) * 1000)
+              data = json.loads(raw)
+              choices = data.get('choices') or []
+              message = (choices[0].get('message') or {}) if choices else {}
+              text = str(message.get('content') or '').strip()
+              if status < 200 or status >= 300:
+                  raise RuntimeError(f'{name}: unexpected HTTP {status}')
+              if not text:
+                  raise RuntimeError(f'{name}: empty response')
+              if not check(text):
+                  raise RuntimeError(f'{name}: unexpected response {text[:200]!r}')
+              results.append((name, status, elapsed_ms, text))
+              print(f'{name}: HTTP {status}, {elapsed_ms} ms, response={text!r}')
+
+          out = pathlib.Path('luna-smoke/results.txt')
+          out.write_text('\n'.join(
+              f'{name}|http={status}|latency_ms={latency}|response={text}'
+              for name, status, latency, text in results
+          ) + '\n', encoding='utf-8')
+          PY
+
+      - name: Record smoke result
+        if: always()
+        env:
+          SMOKE_OUTCOME: ${{ steps.smoke.outcome }}
+        run: |
+          set -euo pipefail
+          if [ "$SMOKE_OUTCOME" = "success" ]; then
+            STATUS=PASS
+          else
+            STATUS=FAIL
+          fi
+          printf 'run_id=%s\nstatus=%s\nsource_sha=%s\n' "$GITHUB_RUN_ID" "$STATUS" "$GITHUB_SHA" > luna-smoke/status.txt
+          git add luna-smoke/status.txt
+          if [ -f luna-smoke/results.txt ]; then git add luna-smoke/results.txt; fi
+          git commit -m "Record Luna smoke result $GITHUB_RUN_ID: $STATUS"
+          git push origin HEAD:main

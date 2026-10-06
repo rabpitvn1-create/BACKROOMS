@@ -1,28 +1,11 @@
 plugins {
   id 'com.android.application'
+  id 'org.jetbrains.kotlin.android'
 }
 
 def secret = { name ->
   def value = System.getenv(name) ?: ""
   return value.replace("\\", "\\\\").replace("\"", "\\\"")
-}
-
-def playBoldFont = file('src/main/assets/fonts/Play-Bold.ttf')
-def playBoldUrl = 'https://raw.githubusercontent.com/google/fonts/e36afc7567e2c4dbe669ca5810e0c77f307295a0/ofl/play/Play-Bold.ttf'
-
-tasks.register('syncPlayBoldFont') {
-  outputs.file(playBoldFont)
-  doLast {
-    if (!playBoldFont.isFile()) {
-      playBoldFont.parentFile.mkdirs()
-      new URL(playBoldUrl).withInputStream { input ->
-        playBoldFont.withOutputStream { output -> output << input }
-      }
-    }
-    if (playBoldFont.length() < 150000L) {
-      throw new GradleException('Play-Bold.ttf download failed validation')
-    }
-  }
 }
 
 android {
@@ -33,26 +16,16 @@ android {
     applicationId 'com.rabpit.backroom'
     minSdk 24
     targetSdk 35
-    versionCode 145
-    versionName '1.1.99'
-    buildConfigField "String", "SOURCE_REVISION", "\"" + secret("GITHUB_SHA") + "\""
+    versionCode 65
+    versionName '1.1.63'
     buildConfigField "String", "LUNA_API_KEY", "\"" + secret("LUNA_API_KEY") + "\""
     buildConfigField "String", "LUNA_BASE_URL", "\"" + secret("LUNA_BASE_URL") + "\""
     buildConfigField "String", "LUNA_MODEL", "\"" + secret("LUNA_MODEL") + "\""
-    buildConfigField "String", "SOL_API_KEY", "\"" + secret("SOL_API_KEY") + "\""
     buildConfigField "String", "GEMINI_API_KEY_1", "\"" + secret("GEMINI_API_KEY_1") + "\""
     buildConfigField "String", "GEMINI_API_KEY_2", "\"" + secret("GEMINI_API_KEY_2") + "\""
     buildConfigField "String", "GEMINI_API_KEY_3", "\"" + secret("GEMINI_API_KEY_3") + "\""
     buildConfigField "String", "GEMINI_API_KEY_4", "\"" + secret("GEMINI_API_KEY_4") + "\""
     buildConfigField "String", "GEMINI_API_KEY_5", "\"" + secret("GEMINI_API_KEY_5") + "\""
-    buildConfigField "String", "HAKU_API_KEY", "\"" + secret("HAKU_API_KEY") + "\""
-    buildConfigField "String", "HAKU_BASE_URL", "\"" + secret("HAKU_BASE_URL") + "\""
-    buildConfigField "String", "HAKU_MODEL", "\"" + secret("HAKU_MODEL") + "\""
-    buildConfigField "String", "GEHIHI_API_KEY", "\"" + secret("GEHIHI_API_KEY") + "\""
-    buildConfigField "String", "GEHIHI_BASE_URL", "\"" + secret("GEHIHI_BASE_URL") + "\""
-    buildConfigField "String", "GEHIHI_MODEL", "\"" + secret("GEHIHI_MODEL") + "\""
-    // Expired LUNA stays disabled until explicitly re-enabled with a renewed key.
-    buildConfigField "boolean", "LUNA_ENABLED", String.valueOf(System.getenv("LUNA_ENABLED") == "true")
   }
 
   buildTypes {
@@ -68,11 +41,11 @@ android {
     targetCompatibility JavaVersion.VERSION_17
   }
 
-  testOptions { unitTests.returnDefaultValues = true }
-}
+  kotlinOptions {
+    jvmTarget = '17'
+  }
 
-tasks.named('preBuild').configure {
-  dependsOn tasks.named('syncPlayBoldFont')
+  testOptions { unitTests.returnDefaultValues = true }
 }
 
 dependencies {

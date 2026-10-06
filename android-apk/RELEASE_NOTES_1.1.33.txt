@@ -1,0 +1,21 @@
+Backroom 1.1.33
+
+AI provider routing
+- Writer fallback is now model-first: Gemini 3.6 Flash -> Gemini 3.5 Flash -> Gemini 3.5 Flash-Lite -> Luna.
+- Each Gemini model can rotate across all five configured independent account keys before downgrading when the failure is key/quota scoped.
+- 401/403 disables the affected credential across the matrix.
+- 429 cools down only the affected model/key lane so the same account can still serve another Gemini model when available.
+- 400/404 circuit-break the affected model immediately instead of wasting all five keys on a model-level failure.
+- Repeated 5xx failures across three distinct accounts temporarily circuit-break the affected model.
+- Repeated transport failures across three accounts temporarily bypass Gemini host attempts and preserve time for Luna fallback.
+- A bounded provider deadline reserves time for Luna instead of allowing Gemini retries to consume the whole turn budget.
+
+Audit policy
+- Gameplay Writer prioritizes quality: 3.6 Flash -> 3.5 Flash -> 3.5 Flash-Lite.
+- Canon/character Auditor prioritizes efficiency: 3.5 Flash-Lite -> 3.5 Flash, with no Luna audit.
+
+Android parity
+- APK uses the same three-model/five-key routing policy as the server.
+- Runtime provider status reports the successful model and key lane, for example `Gemini 3.6 Flash K2`.
+
+Existing gameplay/state-authority, Save/Load/Delete/New Game fixes, original system font, and Snapshot-unconfigured behavior remain unchanged.

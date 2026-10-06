@@ -1,0 +1,8 @@
+Backroom 1.1.56
+
+- Fixes local Entity PNG rendering on Snapshot. Successful Entity encounter rolls now deterministically persist the selected local Entity ID, and the overlay is positioned inside the Snapshot frame.
+- Fixes /madgod by applying the MadGod runtime patch in the actual final release chain after the three-action runtime.
+- Restores MadGod Set as one inventory item. One Equip action binds both MadGod Armor and MadGod Magnum, then permanently locks the set as designed.
+- Restores MadGod Set UI and visuals, including Kai's MadGod avatar, equipment display, and Kai_MadGod_snapshot_overlay.png.
+- Keeps Entity artwork fully local under assets/entity with no Google Drive or remote Entity manifest dependency.
+- Adds hard runtime, unit-test, packaged-APK, and published-release checks so Entity Snapshot rendering and MadGod cannot silently disappear from a future build again.

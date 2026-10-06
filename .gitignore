@@ -5,8 +5,3 @@ node_modules/
 npm-debug.log*
 __pycache__/
 *.pyc
-.gradle/
-build/
-**/build/**
-**/.gradle/**
-*.apk

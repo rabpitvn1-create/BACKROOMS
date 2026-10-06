@@ -1,7 +1,0 @@
-Backroom 1.1.81
-
-- Sửa floating combat feedback của các hiệu ứng trạng thái như Trúng độc, Chảy máu, Choáng, Xuyên giáp và Mất phương hướng.
-- Gộp nhãn trạng thái và sát thương vào cùng một dòng thay vì tách thành badge floating riêng.
-- Thu nhỏ sát thương của status và đồng bộ màu với hiệu ứng tương ứng, trong khi giữ nguyên cách hiển thị Critical và sát thương thông thường.
-- Bổ sung regression assertions cho layout, kích thước và màu của status damage.
-- Bump version từ 1.1.80 lên 1.1.81 (versionCode 126), đồng bộ APK artifact, GitHub Release tag và release verification.

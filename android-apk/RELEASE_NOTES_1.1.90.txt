@@ -1,7 +1,0 @@
-Backroom 1.1.90
-
-- Sửa cảnh gặp nhân vật đã được Core commit để Lucia/Lục Trầm/Syvial luôn có phần xuất hiện và hội thoại phù hợp thay vì chỉ âm thầm vào Party.
-- Khi provider narration tạm lỗi sau khi Core đã commit lượt, dùng local fallback an toàn thay vì làm giao diện rơi vào GAME MASTER error.
-- Khóa lời kể GAME MASTER ở ngôi thứ ba cho Cao Minh và hậu kiểm cách xưng hô để tránh gọi nhân vật người chơi là "bạn" ngoài lời thoại trực tiếp.
-- Xóa lời gọi narration prefetch cũ còn sót trong UI sau khi hệ thống prefetch đã được retire.
-- Bump version từ 1.1.89 lên 1.1.90 (versionCode 135), đồng bộ APK artifact, GitHub Release tag và release verification.

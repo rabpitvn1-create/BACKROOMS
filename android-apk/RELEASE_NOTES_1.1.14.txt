@@ -1,0 +1,6 @@
+Backroom APK 1.1.14
+
+- Snapshot tự động chỉ tạo khi có sự kiện hình ảnh đáng kể: chuyển Level, vùng đặc biệt, Entity được xác nhận, gặp nhân vật/survivor hoặc sự kiện lớn.
+- Không còn tự tạo Snapshot liên tục khi idle hoặc sau mọi turn; ảnh gần nhất được giữ nguyên.
+- Ô nhập đổi thành “Kai sẽ làm gì tiếp theo?”.
+- Header dùng định dạng “Level 0 – The Lobby” và cập nhật theo Level hiện tại.

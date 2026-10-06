@@ -1,7 +1,0 @@
-Backroom 1.1.71
-
-- Bump version từ 1.1.70 lên 1.1.71 (versionCode 115).
-- Giữ cấu hình provider Haku hiện hành: HAKU_API_KEY, HAKU_MODEL và HAKU_BASE_URL.
-- Giữ Explorer choice với đúng hai lựa chọn cố định: Khám phá và Tìm kiếm; prefetch tương ứng chỉ chuẩn bị hai nhánh.
-- Lucia Lục dùng font Pretendard Std bình thường cho tên trong narration và dùng avatar LUCIA_LUC_AVATAR.png từ Google Drive Novel/Characters.
-- Đại Đạo Ma Tôn thay bonus +99 All Stats cũ bằng +10% STR/DEF/SKL/VIT theo stat gốc; Core upgrade cost vẫn dùng stat gốc.

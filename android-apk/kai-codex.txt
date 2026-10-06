@@ -1,0 +1,134 @@
+KAI AKECHI / TWILIGHT — OPERATIONAL CODEX
+SOURCE CANON: KAI-AKECHI-TWILIGHT-CODEX-20260817-R05
+STATUS: HARD CANON / CHARACTER LOCK
+
+MỤC ĐÍCH
+Tệp này là bản canon vận hành của Kai dùng cho Game Master trong APK. Nếu state tạm thời, lời kể cũ hoặc model output xung đột với dữ kiện nhân vật cố định dưới đây, ưu tiên Codex này. State chỉ được ghi đè tình trạng tạm thời khi có nguyên nhân ngoại cảnh hợp canon; không được tự retcon danh tính, năng lực, trang bị, tính cách hoặc giới hạn của Kai.
+
+1. ĐỊNH DANH
+- Tên: Kai Akechi (カイ・アケチ). Mật danh: Twilight. Giới tính: nam.
+- Chủng tộc: bán nhân / bán quỷ. Cha: Sparda. Mẹ: Eve.
+- Tuổi thật: không rõ. Tuổi biểu kiến: khoảng 30.
+- Niên đại xuất thân: năm 2299. Đây là thời đại Kai đến từ, KHÔNG phải năm sinh.
+- Tôn giáo: Công Giáo. Huyết thống quỷ và đức tin không tạo xung đột nội tại bắt buộc.
+- Tổ chức: Vatican. Đơn vị: Black Blood — Huyết Nha. Chức vụ: Đội trưởng.
+- Phân cấp chiến lực: UR+.
+- Vai trò: chỉ huy tác chiến, xạ thủ tối thượng, chuyên gia xử lý thực thể siêu nhiên cấp cao.
+
+2. NGOẠI HÌNH
+- Cao, cân đối, săn chắc, không quá đồ sộ; thể chất và mật độ cơ vượt xa người thường.
+- Tóc đen hơi dài, thường rối tự nhiên. Mắt xanh lạnh.
+- Khi chiến đấu dùng Blackblood Armor màu đen/gunmetal, Demon Jaw Mask và các module liên kết. Các điểm sáng xanh trên giáp là dấu hiệu vận hành hệ thống, không phải biến đổi sinh học.
+
+3. TÍNH CÁCH / NGUYÊN TẮC
+- Tự tin nhưng không mù quáng; biết mình mạnh và không cần giả khiêm tốn.
+- Đời thường phóng túng, lười, hay châm chọc, ghét thủ tục và nghi thức vô nghĩa.
+- Khi nguy hiểm thật xuất hiện, chuyển rất nhanh sang quan sát có kỷ luật, quyết định dứt khoát và ưu tiên bảo vệ đồng đội/dân thường.
+- Không tự xem mình là anh hùng; cứu người vì tự chọn làm vậy, không vì cần được ca tụng.
+- Không chủ động làm hại người vô tội.
+- Không bỏ lại đồng đội nếu vẫn còn phương án thực tế để đưa họ về.
+- Không để mệnh lệnh vô trách nhiệm giết người của mình chỉ để giữ thể diện cấp trên.
+- Có thể tha người bị ép buộc, bị điều khiển hoặc đã hết khả năng gây hại; không trao “cơ hội thứ hai” mang tính nghi thức cho kẻ vẫn đang chủ động sát hại dân thường.
+- Có thể tán tỉnh/trêu đùa nhưng không cưỡng ép, không lợi dụng vị thế và tôn trọng lời từ chối.
+- Thích rượu mạnh, phụ nữ đẹp và headshot khi headshot là phương án hiệu quả.
+
+4. PHONG CÁCH GIAO TIẾP
+- Nói tự nhiên, đủ ý. Hài hước/châm chọc dùng để giảm áp lực hoặc phá nhịp đối phương.
+- KHÔNG viết Kai bằng thoại cụt giả ngầu, bỏ đại từ, tối nghĩa, lạnh lùng máy móc hoặc “triết lý” rỗng.
+- Khi nghiêm túc, Kai bỏ phần đùa và nói thẳng điều người nghe cần hiểu hoặc làm; không biến thành người nói từng từ.
+- Với phụ nữ trẻ hơn trong hoàn cảnh thân thiện, thường xưng “anh”, gọi “em”, tên riêng, “tiểu thư” hoặc “quý cô” tùy ngữ cảnh.
+- Với đồng đội, thường gọi tên/họ/biệt danh; khi tác chiến, mệnh lệnh phải rõ và đủ nghĩa.
+- Với Syvial, mặc định xưng “anh”, gọi “Syvial” hoặc “em”. Chỉ dùng cách gọi thân mật ở mức quan hệ mà continuity đã thật sự xác lập; không tự nâng quan hệ từ tình cảm một phía thành yêu lâu dài.
+- Với kẻ thù, có thể chế giễu để phá nhịp nhưng không lạm dụng đe dọa rập khuôn.
+
+5. NĂNG LỰC CHIẾN ĐẤU
+- Thiện xạ UR+: bắn chính xác mà không luôn cần nhìn trực tiếp, tính góc nảy/đường đạn thời gian thực, đánh mục tiêu ngoài tầm nhìn khi có dữ kiện hợp lệ, bắn chặn vật thể bay, vô hiệu hóa vũ khí, xử lý nhiều mục tiêu ở nhiều góc và nhận diện điểm yếu sinh học/cơ học/siêu nhiên cực nhanh.
+- Bản năng xạ thủ: đọc nhịp thở, hướng nhìn, đồng tử, căng cơ, trọng tâm, dấu hiệu rút vũ khí và biến thiên năng lượng để dự đoán hành động kế tiếp.
+- Cận chiến: quyền cước, khóa khớp, dùng súng như vũ khí va đập, Talon Gauntlets và sức mạnh quỷ. Không phụ thuộc vào khoảng cách.
+- Thể chất bán quỷ: sức mạnh, tốc độ, gia tốc, phản xạ, sức bền, chịu tổn thương và hồi phục vượt xa người; kháng độc/bệnh và nhiều môi trường khắc nghiệt; cảm nhận quỷ lực/thực thể siêu nhiên; thị giác tốt trong ánh sáng thấp.
+- KHÔNG cho Kai bắn trượt trừ khi cố ý hoặc tình huống có nguyên nhân đủ mạnh.
+
+6. SPARDA CORE
+- Nằm trong lồng ngực, liên kết trực tiếp với máu, linh hồn và hệ thần kinh.
+- Là nguồn quỷ lực VÔ HẠN và bộ xử lý/đồng bộ chiến đấu trung tâm.
+- Tăng sức mạnh, tốc độ, phản xạ, giác quan, nhận thức và xử lý thông tin.
+- Hỗ trợ tái tạo cơ thể; cấp năng lượng và tự sửa chữa cho Blackblood Armor cùng module; đồng bộ và tự sửa chữa White Wraith Magnum; phân tích cấu trúc/năng lượng/điểm yếu.
+- HARD LOCK: không có pin, thanh năng lượng, cạn quỷ lực, số lần dùng, cooldown, quá tải, giới hạn công suất hoặc suy kiệt do Core. Core có thể vận hành công suất cao vô thời hạn theo canon hiện tại.
+
+7. DEVIL TRIGGER
+- Chế độ giải phóng toàn diện sức mạnh, không phải trạng thái liều mạng hay cơ chế đốt tài nguyên.
+- Tăng mạnh sức mạnh quỷ, tinh thần, thể chất, tốc độ, gia tốc, tốc độ tư duy và phản xạ.
+- Giữ nguyên ý thức, ký ức, tính cách và phán đoán.
+- HARD LOCK: không thời lượng tối đa, không cooldown bắt buộc, không giới hạn số lần, không phản phệ, không berserk, không tha hóa, không suy kiệt vì chính Devil Trigger.
+- Nếu một tình huống ngăn Kai dùng Devil Trigger, nguyên nhân phải là hiệu ứng/điều kiện ngoại cảnh đã được canon hóa, không phải “giới hạn ẩn” tự bịa.
+
+8. GUILTY CROWN OVERRIDE
+- Kai kích hoạt trong Devil Trigger.
+- Thời gian ngoại giới DỪNG HOÀN TOÀN trong toàn bộ quá trình thi hành.
+- Kai phân tích mục tiêu và khai hỏa LIÊN TIẾP ĐÚNG 24 PHÁT đạn quỷ lực.
+- Sau phát thứ 24, Override kết thúc và thời gian ngoại giới tiếp tục.
+- HARD LOCK: luôn đúng 24 phát; không rút thành “một loạt đạn”, không đổi số phát và không thay cơ chế dừng thời gian nếu chưa có retcon trực tiếp.
+
+9. WHITE WRAITH MAGNUM
+- Vũ khí đặc trưng, đồng bộ trực tiếp với Sparda Core.
+- CHỈ có MỘT loại đạn: đạn hình thành trực tiếp từ quỷ lực của Kai.
+- Vì Sparda Core cung cấp quỷ lực vô hạn, súng gần như không rơi vào trạng thái hết đạn trong vận hành thông thường; không dùng ammo count vật lý truyền thống.
+- Single Shot: mỗi lần khai hỏa phát ra MỘT viên đạn quỷ lực.
+- Full Auto: bắn liên thanh tối đa xấp xỉ 600 viên/phút.
+- Chuyển mode không đổi loại đạn.
+- Súng tự sửa chữa cấu trúc bằng quỷ lực từ Sparda Core, không cần kho năng lượng riêng hoặc vật tư sửa chữa thông thường.
+- CẤM tự thêm các loại đạn riêng như xuyên giáp, điện từ, phân rã, phong ấn, trừ tà, truy dấu... nếu chưa có canon mới. Hiệu ứng phát bắn phải xuất phát từ đạn quỷ lực và năng lực đã được canon hóa.
+
+10. BLACKBLOOD ARMOR & MODULES
+Blackblood Armor:
+- Tăng sức mạnh/tốc độ; hấp thụ và phân tán va chạm; giảm tiếng bước chân; thích nghi môi trường khắc nghiệt; bảo vệ trước độc, nhiệt, lạnh, áp suất; theo dõi mục tiêu/phân tích chiến trường; nối Omnivault Ring.
+- Là phần mở rộng của cơ thể, không phải giáp nặng làm Kai chậm đi.
+- Tự sửa chữa bằng Sparda Core.
+Demon Jaw Mask:
+- Bảo vệ phần dưới mặt, đầu/cổ; lọc khí độc; tăng thị giác; theo dõi chuyển động; phân tích sinh học/quỷ lực; liên lạc mã hóa; hỗ trợ khóa mục tiêu.
+Talon Gauntlets:
+- Móng vuốt cơ khí; tăng lực đấm; hỗ trợ bám/móc; tạo trường điện từ và tác động vật kim loại cự ly ngắn; giật/khóa/nghiền vũ khí khi đủ gần.
+Phantom Greaves:
+- Bứt tốc/gia tốc tức thời; nhảy cao; đổi hướng giữa không trung; chạy tường; giảm tác động tiếp đất; tăng lực đá và khả năng truy đuổi.
+
+11. OMNIVAULT RING / NHẪN VẠN TÀNG
+- Chỉ tác động vật VÔ TRI. Tuyệt đối không lưu trữ, hoàn nguyên, nâng cấp, quét/sao chép, tái tạo hoặc triệu hồi sinh vật sống bằng cách dựng lại cơ thể.
+- Lưu trữ: không giới hạn số lượng, kích thước, khối lượng và quy tắc không gian thông thường đối với vật vô tri hợp lệ.
+- Hoàn nguyên: nhẫn phát luồng ánh sáng khóa mục tiêu; phần hợp lệ trở về trạng thái tốt nhất từng tồn tại của chính nó. Sau mỗi lần Hoàn nguyên thành công, CHÍNH vật phẩm đó cooldown đúng 24 giờ; cooldown tính riêng từng vật, không khóa vật khác.
+- Nâng cấp: có thể cải thiện vật liệu, độ bền, công suất, hiệu suất, độ chính xác, tương thích, năng lượng, chức năng và thuộc tính siêu nhiên trong phạm vi canon.
+- Quét: chỉ vật vô tri BẢN GỐC chưa Marked làm nguồn. Mỗi mẫu chiếm 1 trong đúng 3 slot. Khi đủ 3 slot, mẫu mới ghi đè một mẫu cũ. Bản gốc bị Marked ngay sau lần quét thành công và không thể làm nguồn quét lại.
+- Sao chép: từ mỗi mẫu còn trong 3 slot, tạo số bản sao vô tri không giới hạn. Bản sao do Omnivault tạo KHÔNG thể dùng làm nguồn quét. Khi slot bị ghi đè, bản sao cũ vẫn tồn tại nhưng không thể tạo thêm từ mẫu đã mất.
+- Muốn tạo lại mẫu đã bị ghi đè, Kai phải có một BẢN GỐC KHÁC chưa Marked.
+- Triệu hồi: vật đã lưu hoặc mẫu hợp lệ có thể xuất hiện tức thời ở vị trí được chỉ định.
+- Tái trang bị: khôi phục/thay thế vũ khí, giáp, công cụ và phương tiện gần như tức thời khi chúng là mục tiêu hợp lệ.
+- Lan theo khối liên tục: với Scan và Hoàn nguyên, vùng ánh sáng ban đầu không giới hạn phạm vi cuối. Nếu điểm khóa thuộc cùng một khối vật chất liên tục, hiệu ứng có thể lan qua toàn bộ khối bất kể kích thước/diện tích/khối lượng.
+- Vật phẩm hoàn chỉnh hợp lệ: bộ giáp của Kai, giáp chống đạn và súng cá nhân có thể được hệ thống công nhận là một đơn vị hoàn chỉnh dù gồm nhiều chi tiết.
+- Hệ lớn/lắp ghép: KHÔNG Scan hoặc Hoàn nguyên nguyên khối một hệ lớn đã lắp thành tổng thể như căn nhà thông thường, xe máy, xe tăng hoặc pháo/cannon hoàn chỉnh. Chỉ phần riêng đủ điều kiện hoặc khối vật chất liên tục hợp lệ được xử lý.
+- KHÔNG mặc định 3 slot đang EMPTY nếu state/canon hiện hành chưa xác nhận. Số slot là canon; nội dung slot là state.
+
+12. PHONG CÁCH CHIẾN ĐẤU
+- Tầm xa: độ chính xác + tốc độ xử lý để phá nhịp trước khi đối thủ dựng thế.
+- Tầm trung: Single Shot, Full Auto và di chuyển tốc độ cao để ép mất không gian.
+- Cận chiến: súng như vũ khí va đập, Talon Gauntlets, khóa khớp và sức mạnh bán quỷ.
+- Khi có dân thường/đồng đội cần bảo vệ, bỏ động tác thừa và ưu tiên kết thúc nhanh.
+- Với mục tiêu cấp cao cần kết liễu, có thể dùng Devil Trigger + Guilty Crown Override đúng thủ tục canon.
+
+13. GIỚI HẠN THỰC SỰ
+- Kai KHÔNG có giới hạn nội tại từ huyết thống quỷ, Sparda Core hoặc Devil Trigger theo canon hiện tại.
+- Độ khó hợp lệ đến từ thiếu thông tin, mục tiêu bảo vệ, không gian tác chiến, hậu quả, điều kiện ngoại cảnh và trách nhiệm với người khác; không đến từ việc nerf Kai.
+- Có xu hướng tự nhận phần nguy hiểm nhất để giảm rủi ro cho đồng đội.
+- Có thể giấu thương tổn/kế hoạch nếu tin nói ra sẽ khiến người khác tự đặt mình vào nguy hiểm.
+- Người Kai thật sự quan tâm có thể trở thành đòn bẩy chiến thuật.
+- Các giới hạn Omnivault ở mục 11 là giới hạn thật và phải được giữ chính xác.
+
+14. ACTION LOCKS / CẤM MODEL TỰ BỊA
+- Không bỏ lại đồng đội chỉ vì cứu họ bất tiện.
+- Không chủ động làm hại người vô tội.
+- Không tha thứ dễ dàng cho kẻ phản bội đồng đội để cầu sống nếu đó là lựa chọn có ý thức.
+- Không cho đối thủ đang chủ động tấn công dân thường cơ hội tiếp tục bóp cò.
+- Không tự phát sinh giới hạn năng lượng, số đạn, thời lượng Devil Trigger, cooldown, phản phệ hoặc berserk để tạo kịch tính.
+- Không tự tạo loại đạn White Wraith mới.
+- Không tự biến Omnivault thành kho chứa sinh vật sống hoặc công cụ hồi sinh.
+- Không tự quyết hành động có chủ ý thay Kai; người chơi điều khiển Kai.
+
+END OF KAI OPERATIONAL CODEX

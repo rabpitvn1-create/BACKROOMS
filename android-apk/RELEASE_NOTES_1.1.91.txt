@@ -1,8 +1,0 @@
-Backroom 1.1.91
-
-- Thêm Đạo diễn cảnh offline làm lớp trung gian giữa Core và GAME MASTER: Core quyết định sự thật, Đạo diễn đóng gói SceneFrame, GM chỉ kể lại.
-- Chuyển OfflinePresenter sang cung cấp facts và fallback từ SceneFrame thay vì kể thay GM ở lượt explorer.
-- Giữ nguyên player input làm PLAYER INTENT; nội dung người chơi nhập không còn bị thay bằng hành động mặc định và không tự trở thành world fact.
-- Entity, Chest và Character dùng roll local độc lập; random môi trường dùng scope WORLD_REACTION riêng để không làm lệch RNG gameplay.
-- Loại milestone/memorable-event steering khỏi prompt narration; GM không còn tạo choices hoặc tự thêm Entity, Chest, Character hay special event.
-- Bump version từ 1.1.90 lên 1.1.91 (versionCode 136), đồng bộ APK artifact, GitHub Release tag và release verification.

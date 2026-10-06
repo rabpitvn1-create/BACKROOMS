@@ -1,7 +1,0 @@
-BR 1.0.0.0.10
-
-- Khôi phục đúng Story gate và random Entity encounter trong return journey sau lựa chọn sai hoặc tử trận, đồng thời giữ đường hội tụ về cốt truyện chính.
-- Cho PLAYER ACTION xử lý trực tiếp các Story choice đang active thay vì tách khỏi luồng lựa chọn hiện tại.
-- Bổ sung và mở rộng snapshot Level 0, cùng pipeline/asset overlay cho Story NPC.
-- Dọn dead WebView presentation code, asset và mã repository đã được xác nhận không còn sử dụng mà không thay đổi hành vi quan sát được.
-- Tăng versionCode từ 107 lên 108 để Android nhận đây là bản cập nhật mới.

@@ -1,7 +1,0 @@
-BR 1.0.0.0.11
-
-- Bổ sung cốt truyện authored Level 0.5 (Aquaclaustrophobic Infirmary) gồm 20 chương, arc metadata, Story Catalog wiring và generated runtime assets.
-- Bổ sung regression coverage để xác nhận Level 0.5 được nạp đúng từ Story Catalog và giữ Level 0.7 làm trường hợp chưa có authored story.
-- Đồng bộ current HP khi nâng VIT và bổ sung regression test tương ứng.
-- Củng cố fallback khi Story provider trả kết quả bị từ chối, xử lý lại local death restart và nhãn poker-dice liên quan.
-- Tăng versionCode từ 108 lên 109 để Android nhận đây là bản cập nhật mới.

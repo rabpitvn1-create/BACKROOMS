@@ -1,92 +1,173 @@
 # The BACKROOMS — Drive Source Map for Runtime Knowledge
 
+Status: SOURCE MAP / implementation prerequisite
+
+This file maps runtime facts to their authoritative Google Drive source. It is intentionally independent from `drive-canon.txt`, current prompts, legacy compact canon, and old patches. Those implementation artifacts are audit inputs only.
+
 ## Authority order
 
-1. User instruction trong lượt hiện tại.
-2. Text Game / Game Master hard rules.
-3. Live save/campaign state.
-4. Explicit committed USER_RETCON canon (currently includes `DIEP_MINH_CANON.md` and the Lucia Lục ≠ Lục Trầm separation lock).
-5. Current machine-readable character canon.
-6. On-demand world/level/entity canon.
-7. Legacy logs hoặc mirrors chỉ dùng khi không xung đột với nguồn mới hơn.
+1. Latest explicit user instruction.
+2. Current Text Game rules and current campaign state for runtime facts.
+3. Current Character Codex for immutable character identity, personality core, abilities, equipment, knowledge limits, relationship baseline, address rules, and hard locks.
+4. Current World canon for world/level/entity/item facts.
+5. Current story/continuity for mutable campaign state.
+6. Writing rules for prose/dialogue/POV/knowledge boundaries.
+7. Reference/benchmark material only where its own source says it applies.
 
-## Current machine-readable character canon
+`UNKNOWN`, `OPEN`, `CHƯA KHÓA`, or equivalent remains unknown. The runtime database must not reconcile it by inference.
 
-- `app/src/main/assets/knowledge/characters_current.json`
-- `app/src/main/assets/knowledge/knowledge_db.json`
+## Drive audit notes
 
-Hai file trên đã được đồng bộ sang **Cao Minh R15**, **Lucia Lục scoped restore R01** và **Lục Trầm R05 / Visual R02**. Lucia (`lucia`) và Lục Trầm (`luc_tram`) là hai nhân vật riêng; không được dùng mirror/save cũ để nhập hai id.
+Directly opened from Google Drive before implementation:
 
-## Character Drive audit
+- `00_RULES/00_RULES_BOOT.md`
+- `05_TextGame/RULES/TEXT_GAME_RULES.md`
+- `05_TextGame/RULES/GAME_MASTER_RULES.md`
+- `05_TextGame/STORY/MAIN_STORY.md`
+- `02_CHARACTERS/Kai_Codex.docx`
+- `02_CHARACTERS/Iris_Codex.docx`
+- `02_CHARACTERS/Syvial_Codex.docx`
+- `01_WORLD/world.md`
+- `01_WORLD/level.md`
+- `01_WORLD/entity.md`
+- `01_WORLD/items.md`
+- `00_RULES/worldcodex.md`
+- `00_RULES/CONVERSATION.MD`
+- `00_RULES/WayOfWriting.md`
+- `00_RULES/Vivid_Verbs_Guide.md`
+- `00_RULES/Supernatural_Horror_Craft_Guide.md`
+- `00_RULES/Intimacy_Writing_Guide.md`
+- `00_RULES/Dialogue_Benchmarks.md`
+- `00_RULES/Những điều bắt buộc không được làm khi viết tiểu thuyết.md`
+- `00_RULES/HuongDan.txt`, because the boot/writing router delegates supplemental prose behavior to it.
 
-- `Cao_Minh_Codex.docx` — Drive ID `1TDBphEo1wxrdlRXTI9WUOJPinmWv1PHq` — R15.
-- `Syvial_Codex.docx` — nguồn riêng của Syvial.
-- `Lucia_Codex.docx` — nguồn lịch sử của Lucia; hiện connector không truy cập được. Scoped source hiện hành: `app/src/main/assets/content/characters/lucia.md`.
-- `Lục_Trầm_Codex` — Drive ID `1TCyLifr0usajTt6Gp3f2o_nWsAdrwqtfd4N9t0KeK3s` — nguồn hiện hành của Lục Trầm R05.
+The Drive folder `05_TextGame/SAVE` was opened directly and currently returned no files. Searches for the exact three required save names also returned no Drive result. Therefore no campaign state is imported from a guessed or legacy source. Runtime migration may preserve existing local APK save data, but the database seed treats the Drive save state as absent rather than inventing it.
 
-### Cao Minh source map
+## Record contract
 
-| Domain | Anchor / runtime key | Current lock |
+Every important runtime record must expose:
+
+- `id`: stable, namespaced identifier.
+- `domain`: CHARACTER / RELATIONSHIP / WORLD / LEVEL / ENTITY / ITEM / WRITING / STORY / GAME_RULE.
+- `kind`: runtime-card, identity, ability, equipment, hard-lock, level, entity, item, writing-rule, objective, event, discovery, promise, thread, knowledge-edge, etc.
+- `text`: compact authoritative payload used in a context packet.
+- `source.document`: exact Drive source path/title.
+- `source.anchor`: source section/code when available.
+- `authority`: authority class.
+- `mutability`: IMMUTABLE / BASELINE / RUNTIME_MUTABLE.
+- `priority`: hard-canon ordering for budget selection.
+- `tags`: structured lookup tags.
+- `references`: direct record IDs.
+- `affordances`: scene-driven capability lookup tags.
+
+Runtime traceability is therefore:
+
+`GM context line -> KnowledgeRecord.id -> source.document + source.anchor`.
+
+## Character source map
+
+| Runtime ID | Source | Anchor | Mutability | Notes |
+| --- | --- | --- | --- | --- |
+| `CHAR.KAI.RUNTIME_CORE` | `Kai_Codex.docx` | `KAI-QUICK-01`, `KAI-PER-01`, `KAI-DLG-01`, `KAI-WEAK-01`, `KAI-ACTION-LOCK-01` | IMMUTABLE | Minimal present-character card, not full ability dump. |
+| `CHAR.KAI.IDENTITY` | `Kai_Codex.docx` | `KAI-ID-01` | IMMUTABLE | Kai Akechi / Twilight; origin era 2299 is not birth year; true age unknown. |
+| `CHAR.KAI.SPARDA_CORE` | `Kai_Codex.docx` | `KAI-CORE-SPARDA-01` | IMMUTABLE | Infinite demon power; do not add intrinsic depletion/cooldown. |
+| `CHAR.KAI.DEVIL_TRIGGER` | `Kai_Codex.docx` | `KAI-DT-01` | IMMUTABLE | No invented berserk state, intrinsic duration cap, cooldown, or backlash. |
+| `CHAR.KAI.GUILTY_CROWN_OVERRIDE` | `Kai_Codex.docx` | `KAI-ULT-GCO-01` | IMMUTABLE | Exact 24-shot override while external time is fully stopped, under the codex conditions. |
+| `CHAR.KAI.WHITE_WRAITH` | `Kai_Codex.docx` | `KAI-EQP-WWM-01` | IMMUTABLE | Signature firearm; demonic ammunition comes from Kai. |
+| `CHAR.KAI.ARMOR` | `Kai_Codex.docx` | `KAI-EQP-ARMOR-01` | IMMUTABLE | Blackblood Armor and linked modules. |
+| `CHAR.KAI.OMNIVAULT` | `Kai_Codex.docx` | `KAI-EQP-OMNIVAULT-01`, `KAI-WEAK-01` | IMMUTABLE | Inanimate-only storage; 3 scan/copy slots and codex restore constraints. |
+| `CHAR.IRIS.RUNTIME_CORE` | `Iris_Codex.docx` | `IRIS-QUICK-01`, `IRIS-PER-01`, `IRIS-REL-01`, `IRIS-CANON-GATE-01` | IMMUTABLE | Present-character card. Iris is a ranged combatant/scout, not a remote drone station. |
+| `CHAR.IRIS.ARGUS` | `Iris_Codex.docx` | `IRIS-SCOUT-TERRAIN-01`, `IRIS-SCOUT-GROUND-01`, `IRIS-SCOUT-TARGET-01` | IMMUTABLE | Direct observation + armor sensors + terrain/route/cover/trace analysis. No omniscience, wall vision, remote cameras, or automatic true-form detection. |
+| `CHAR.IRIS.THOUSANDFOLD` | `Iris_Codex.docx` | `IRIS-THOUSANDFOLD-01` | IMMUTABLE | Information processing up to 1:1000; does not accelerate the body 1000x. |
+| `CHAR.IRIS.IVORY_EBONY` | `Iris_Codex.docx` | `IRIS-COMBAT-TWIN-01`, `IRIS-AMMO-DEMONIC-01` | IMMUTABLE | Mechanical twin pistols; ammunition formed from Iris's demon power; infinite source does not imply infinite ROF/durability/damage/accuracy. |
+| `CHAR.IRIS.SUPPORT` | `Iris_Codex.docx` | Field Galley / Field MedNet sections | IMMUTABLE | Field MedNet is not magic healing; Field Galley does not create matter. |
+| `CHAR.IRIS.UNKNOWN` | `Iris_Codex.docx` | `IRIS-UNKNOWN-01` | IMMUTABLE | Preserve current unknown fields, including exact combat tier and Iris↔Syvial address if not otherwise locked. |
+| `CHAR.SYVIAL.RUNTIME_CORE` | `Syvial_Codex.docx` | `SYVIAL-QUICK-01`, `SYVIAL-OVERVIEW-01`, `SYVIAL-YANDERE-01`, `SYVIAL-REL-KAI-01`, `SYVIAL-ACTION-LOCK-01` | IMMUTABLE | UR+, lucid/socially capable, heavy yandere toward Kai without random murder or loss of tactical intelligence. |
+| `CHAR.SYVIAL.LUCIFER_CORE` | `Syvial_Codex.docx` | `SYVIAL-CORE-LUCIFER-01` | IMMUTABLE | Infinite demon power; no invented intrinsic energy meter/cooldown. |
+| `CHAR.SYVIAL.DEVIL_TRIGGER` | `Syvial_Codex.docx` | `SYVIAL-DT-01` | IMMUTABLE | Does not remove control or add an intrinsic duration/cooldown absent from codex. |
+| `CHAR.SYVIAL.GODKILLER` | `Syvial_Codex.docx` | `SYVIAL-EQP-GODKILLER-01` | IMMUTABLE | Purely mechanical greatsword; do not turn into gun/gunblade. |
+| `CHAR.SYVIAL.GODKILLER_OVERRIDE` | `Syvial_Codex.docx` | `SYVIAL-ULT-GKO-01` | IMMUTABLE | Exact 24 cuts in fully stopped external time under codex conditions. |
+| `CHAR.SYVIAL.COMBAT` | `Syvial_Codex.docx` | `SYVIAL-COMBAT-01`, `SYVIAL-STYLE-COMBAT-01`, `SYVIAL-WEAK-01` | IMMUTABLE | High-tier sword combat, assault/control/counter/finish; do not competence-suppress. |
+
+## Relationship and address source map
+
+| Runtime ID | Source | Anchor | Mutability | Canon baseline |
+| --- | --- | --- | --- | --- |
+| `REL.KAI.IRIS.BASELINE` | `Iris_Codex.docx` | `IRIS-REL-KAI-01` | BASELINE | Iris has romantic feelings for Kai; Kai knows but has not reciprocated; official state remains teammate / commander-specialist. |
+| `ADDR.IRIS.KAI` | `Iris_Codex.docx` | `IRIS-REL-KAI-01`, `IRIS-DLG-01` | IMMUTABLE | Iris uses the `anh–em` system with Kai. |
+| `REL.IRIS.SYVIAL.BASELINE` | `Iris_Codex.docx` | `IRIS-REL-SYVIAL-01` | BASELINE | Friends and trusted teammates with romantic rivalry around Kai; not enemies. |
+| `REL.KAI.SYVIAL.BASELINE` | `Syvial_Codex.docx` | `SYVIAL-REL-KAI-01` | BASELINE | Syvial's feelings are immutable; how far Kai reciprocates is continuity-controlled. |
+| `ADDR.SYVIAL.KAI` | `Syvial_Codex.docx` | `SYVIAL-REL-KAI-01` | IMMUTABLE | Syvial -> Kai: `em`, calls `anh` or `Kai`; `Anh Kai` may be emphatic/teasing. Kai -> Syvial: `anh`, calls `Syvial` or `em`. `cục cưng` only if continuity has locked a long-term romantic relationship, not the default. |
+| `REL.CAMPAIGN.*` | runtime continuity | relationship-change events | RUNTIME_MUTABLE | Campaign delta overlays baseline without mutating codex records. |
+
+## World source map
+
+| Runtime ID | Source | Anchor | Mutability |
+| --- | --- | --- | --- |
+| `WORLD.CORE` | `01_WORLD/world.md` | `BACKROOMS-WORLD-CORE-R2` / 0.1–0.5 | IMMUTABLE |
+| `LEVEL.00` … `LEVEL.06` | `01_WORLD/level.md` | corresponding Level section | IMMUTABLE |
+| `ENTITY.GLOBAL_HARD_LOCK` | `01_WORLD/entity.md` | 0.6 | IMMUTABLE |
+| `ENTITY.*` | `01_WORLD/entity.md` | stable entity codes such as `ENT-1A`, `ENT-2C`, `ENT-R01` | IMMUTABLE |
+| `ITEM.GLOBAL_HARD_LOCK` | `01_WORLD/items.md` | 0.7–0.8 | IMMUTABLE |
+| `ITEM.ALMOND_WATER` | `01_WORLD/items.md` | 8.1 | IMMUTABLE |
+| `ITEM.GREEK_FIRE` | `01_WORLD/items.md` | 8.2 | IMMUTABLE |
+| `ITEM.LIQUID_PAIN` | `01_WORLD/items.md` | 8.3 | IMMUTABLE |
+| `ITEM.*` | `01_WORLD/items.md` | stable item/resource section | IMMUTABLE |
+
+Adding future levels/entities is append-only: add records and references/tags; the GM prompt must not require a code branch for each new Level/Entity.
+
+## Game rules and story source map
+
+| Runtime ID | Source | Anchor | Mutability |
+| --- | --- | --- | --- |
+| `GAME.TEXT.CORE` | `05_TextGame/RULES/TEXT_GAME_RULES.md` | 1–12 | IMMUTABLE |
+| `GAME.GM.FAIRNESS` | `05_TextGame/RULES/GAME_MASTER_RULES.md` | 1–15 | IMMUTABLE |
+| `STORY.MAIN.PREMISE` | `05_TextGame/STORY/MAIN_STORY.md` | 2 | IMMUTABLE |
+| `STORY.MAIN.OBJECTIVE` | `05_TextGame/STORY/MAIN_STORY.md` | 3 | BASELINE |
+| `STORY.MAIN.COMMS_INITIAL` | `05_TextGame/STORY/MAIN_STORY.md` | 4 | BASELINE |
+| `STORY.MAIN.IRIS_EXISTENCE` | `05_TextGame/STORY/MAIN_STORY.md` | 5 | BASELINE |
+| `STORY.MAIN.SYVIAL_EXISTENCE` | `05_TextGame/STORY/MAIN_STORY.md` | 5 | BASELINE |
+| `STORY.CONTINUITY.EVENT.*` | runtime reducer | committed gameplay events | RUNTIME_MUTABLE |
+| `STORY.CONTINUITY.OBJECTIVE.*` | runtime continuity | objective state | RUNTIME_MUTABLE |
+| `STORY.CONTINUITY.DISCOVERY.*` | runtime continuity | deterministic discovery event | RUNTIME_MUTABLE |
+| `STORY.CONTINUITY.PROMISE.*` | runtime continuity | explicit validated social event | RUNTIME_MUTABLE |
+| `STORY.CONTINUITY.THREAD.*` | runtime continuity | unresolved-thread state | RUNTIME_MUTABLE |
+| `STORY.CONTINUITY.KNOWLEDGE.*` | runtime continuity | character knowledge ownership edge | RUNTIME_MUTABLE |
+
+The required Drive save files are currently absent from the Drive folder, so there is no source-authorized row that claims a current `ACTIVE_RUN` value or current campaign facts. Local saves are migration input only, not Drive canon.
+
+## Writing source map
+
+| Runtime ID | Source | Anchor/use |
 | --- | --- | --- |
-| Identity | `CAO-QUICK-01` | Cao Minh / Vạn Giới Ma Tôn; Ma Đạo Kiếm Tu thuần tiên hiệp; không có thân phận quân sự/công nghệ hiện đại hoặc tương lai. |
-| Backrooms entry | `CAO-BACKROOMS-01` | Đã đứng ở đỉnh cao thế giới nguyên sinh, rơi vào Level 0 ngoài ý muốn, rồi chủ động khám phá vì Backrooms là một thế giới chưa hiểu. |
-| Vạn Quỷ Ma Tâm | `CAO-CORE-VQM-01` | Ma nguyên gần như vô tận; hồi phục và tự phục hồi trang bị bản mệnh; không tự thêm mana/cooldown/tha hóa. |
-| Vạn Quỷ Ma Thân | `CAO-VQMT-01` | Giải phóng toàn diện, không mất lý trí hoặc quyền kiểm soát. |
-| Huyết Ma Kiếm | `CAO-EQP-HUYET-MA-KIEM-01` | Đại kiếm bản mệnh, kiếm thể + Huyết Sát Ma Khí + ngự kiếm. |
-| Huyết Ma Chiến Khải | `CAO-EQP-HUYET-MA-KHAI-01` | Ma khải từ Ma Kim/ma văn/tinh huyết/ma nguyên, không phải công nghệ. |
-| Vạn Tàng Giới | `CAO-EQP-VAN-TANG-01` | Kho tiểu không gian vật vô tri + Phản Bổn; không copy/create sinh linh hoặc vật mới. |
-| Ultimate | `CAO-ULT-HUYETMA24-01` | Huyết Ma Nhị Thập Tứ Trảm: đúng 24 trảm, ngoại giới dừng hoàn toàn. |
-| Diệp Minh | `DIEP-MINH-CAO-REL-01` | Tử địch huyết hải thâm cừu; Diệp Minh góp phần thảm sát Cao gia, biến cố góp phần quyết định đẩy Cao Minh vào ma đạo. Chủ mưu/động cơ/chi tiết sát hại/kết cục vẫn OPEN. |
+| `WRITING.DIALOGUE` | `00_RULES/CONVERSATION.MD` | `RULES.DIALOGUE`; sole authority for dialogue generation/audit. |
+| `WRITING.ADDRESS` | `00_RULES/CONVERSATION.MD` + character relationship sections | Address is relationship canon, never guessed. |
+| `WRITING.KNOWLEDGE_BOUNDARY` | `00_RULES/worldcodex.md`, forbidden rules, `CONVERSATION.MD` | No backstage/other-character knowledge leak. |
+| `WRITING.COMPETENCE` | forbidden rules + `worldcodex.md` + GM rules | No sudden stupidity or hidden competence. |
+| `WRITING.PROSE_POV` | `WayOfWriting.md` + relevant hard bans | POV/information discipline. |
+| `WRITING.VIVID_VERBS` | `Vivid_Verbs_Guide.md` | prose-level verb selection only, not dialogue generation. |
+| `WRITING.HORROR` | `Supernatural_Horror_Craft_Guide.md` | horror/suspense distribution; never withhold competence. |
+| `WRITING.INTIMACY` | `Intimacy_Writing_Guide.md` | relationship/intimacy reference, cannot override canon/address/consent. |
+| `WRITING.DIALOGUE_BENCHMARK` | `Dialogue_Benchmarks.md` | post-draft reference only, never a generation template. |
+| `WRITING.GUIDE_SUPPLEMENT` | `HuongDan.txt` | supplemental emotion/action around dialogue; delegated dialogue authority remains `CONVERSATION.MD`. |
 
+## Retrieval rules derived from sources
 
-### Lucia Lục source map
+1. Direct stable IDs first.
+2. Explicit relationship edges second.
+3. Current state, party presence, level and structured tags third.
+4. Scene affordance -> relevant present-character capability next.
+5. Semantic retrieval is a last resort only when structured lookup is insufficient.
+6. Present characters always receive a compact runtime core. They do not need to be named by player input.
+7. Scene-driven capability examples:
+   - trace/route/cover/ambush/target-identification problem + Iris present -> `CHAR.IRIS.ARGUS`.
+   - direct combat/threat/control/frontline problem + Syvial present -> `CHAR.SYVIAL.COMBAT` and, only when relevant, weapon/override modules.
+8. Capability retrieval never implies omniscience, invented limits, or automatic action. Followers retain autonomy.
+9. Raw dialogue log is a small recency buffer only. Long-term memory is structured continuity.
+10. Context budget priority: hard canon -> current state/scene -> active story -> present runtime cards -> relationship/address -> relevant ability/knowledge limits -> relevant Level/Entity/Item -> flavor.
 
-| Domain | Anchor / runtime key | Current lock |
-| --- | --- | --- |
-| Identity | `LUCIA-LUC-RUNTIME-RESTORE-R01` / `lucia` | Lucia Lục / Hứa Thuý Mai là nhân vật riêng, không phải Lục Trầm. |
-| Equipment | `01 · TRANG BỊ RUNTIME ĐÃ XÁC NHẬN` | M4A1 cá nhân hóa, dao găm chiến đấu, đồng hồ định vị quân sự. |
-| Gameplay | `02 · GAMEPLAY PROJECTION` | M4A1 Joint Attack 150%; 5 proc súng lịch sử; Too Young To Die đúng 60 phát, current DMG +15% bonus mỗi phát. |
-| Encounter | `03 · ENCOUNTER CONTRACT` | Core-owned; 10% candidate trên Level 0; first contact nếu continuity chưa xác lập khác. |
-| Relationship | `04 · OPEN` | Quan hệ/xưng hô với Cao Minh OPEN; không nhập quan hệ Lục Trầm. |
+## Baseline implementation audit link
 
-### Lục Trầm source map
+The current build-time runtime is patch-generated. `patch-ai-orchestrator.py` extracts broad string sections from `drive-canon.txt` and `kai-codex.txt`; `compactStateForPrompt` copies most legacy state and retains six recent log entries; routing uses keyword helpers such as dialogue/combat/item/entity plus limited presence checks. `patch-conditional-audit.py` already skips the AI critic below a risk threshold, but critic calls duplicate a broad canon/state slice.
 
-| Domain | Anchor / runtime key | Current lock |
-| --- | --- | --- |
-| Identity | `LUC-TRAM-THIEN-KIEM-CODEX-R05` | Chân truyền đệ tử Thiên Kiếm Môn; Chính Đạo Kiếm Tu; cùng thế giới nguyên sinh với Cao Minh. |
-| Power scale | `01 · ĐỊNH DANH VÀ VỊ TRÍ` | Thiên tài hàng đầu thế hệ trẻ nhưng không ngang Cao Minh. |
-| Visual | `04 · NGOẠI HÌNH · VISUAL LOCK R02` | Tóc bạc–trắng cực dài, mắt lam xám, kiếm quan vàng–đen gắn tinh thể lam, Kiếm Khải trắng–bạc–vàng trên nền tối điểm sapphire, chiến bào phân mảnh và đúng một Tịch Quang đại kiếm cực dài trắng–bạc. |
-| Core ability | `07 · THIÊN KIẾM LINH TÂM` | Đọc quỹ đạo/trọng tâm/linh lực/điểm bất ổn; không toàn tri, không tự biết Entity/Level/quy luật. |
-| Weapon | `08 · TỊCH QUANG KIẾM` | Bản mệnh linh kiếm; kiếm niệm triệu hồi; không tự tái sinh vô hạn. |
-| Armor | `09 · THIÊN CƠ BẠCH KIM KIẾM KHẢI` | Pháp bảo tiên hiệp, không phải công nghệ/mecha thuần khoa học. |
-| Relationship | `13-20` | Cao Minh và Lục Trầm từng giao chiến nhiều lần; Backrooms là tái ngộ, không first contact; romance phải phát triển chậm. |
-| Backrooms | `14-15, 21` | Rơi vào Level 0 khác vị trí; runtime encounter chỉ sau Level 0; không có knowledge preload. |
-| Gameplay id | `luc_tram` | Runtime id hiện hành của Lục Trầm. |
-| Ultimate | `12 · THIÊN KIẾM ĐỊNH GIỚI` | Runtime giữ 60-hit Ultimate cũ như gameplay projection, đổi presentation sang Thiên Kiếm Định Giới. |
-
-### Relationship locks
-
-- Cao Minh ↔ Syvial: không có quan hệ có sẵn; first contact nếu gặp.
-- Cao Minh ↔ Lucia Lục: quan hệ/xưng hô OPEN; encounter mặc định first contact nếu live continuity chưa xác lập khác; tuyệt đối không nhập quan hệ Cao Minh ↔ Lục Trầm.
-- Cao Minh ↔ Lục Trầm: đã là tử địch/đối thủ từ thế giới nguyên sinh; trong Backrooms quan hệ phát triển chậm từ đối đầu đến hợp tác, tín nhiệm rồi mới có khả năng nảy sinh tình cảm. Không phải first contact.
-- Cao Minh ↔ Diệp Minh: tử địch không đội trời chung. Diệp Minh trực tiếp góp phần vào đại kiếp thảm sát Cao gia; biến cố là một nguyên nhân quyết định khiến Cao Minh bước vào ma đạo. Không mặc định Diệp Minh là chủ mưu duy nhất; các chi tiết sâu hơn vẫn OPEN. Canon nguồn: `DIEP_MINH_CANON.md`.
-
-## Diệp Minh R01 source map
-
-| Domain | Anchor / runtime key | Current lock |
-| --- | --- | --- |
-| Identity | `DIEP-MINH-ID-01` | Tử địch không đội trời chung của Cao Minh; tông môn/cảnh giới/xuất thân chi tiết vẫn OPEN. |
-| Visual | `DIEP-MINH-VIS-01` | Nam tử tóc đen; pháp giáp đen–vàng ở nửa phải, ma thể đen–đỏ dị hóa ở nửa trái; mắt trái đỏ; trường kiếm kim quang; phù vàng và biểu tượng đạo gia. |
-| Blood feud | `DIEP-MINH-CAO-REL-01` | Góp phần thảm sát Cao gia; biến cố đẩy Cao Minh vào tuyệt vọng và là nguyên nhân quyết định dẫn tới ma đạo. |
-| Backrooms ontology | `DIEP-MINH-BACKROOMS-01` | Bản thể cũ đã chết; manifestation Backrooms giữ ký ức/huyết cừu nhưng bản chất tàn hồn/bản sao/tái tạo vẫn OPEN. |
-| Runtime | `diep_minh` / `DIEP-MINH-RUNTIME-01` | Legacy/boss-only; không auto-spawn, không có ratePercent. |
-
-## Runtime notes
-
-- Internal player id: `cao_minh`.
-- Combat skills: Huyết Ma Tứ Liên, Ma Tâm Trấn Hồn, Huyết Ảnh Ma Độn, Thiên Ma Bộ, Huyết Ma Nhị Thập Tứ Trảm.
-- Default equipment set: Huyết Ma Kiếm, Huyết Ma Chiến Khải, Vạn Tàng Giới.
-- CharacterEncounterCore sở hữu spawn/join character.
-- Gameplay numbers không tự biến thành lore.
-- New-game machine-readable baseline remains `cao-minh-r15`. A valid current Cao Minh checkpoint owns DYNAMIC continuity; baseline/prologue updates do not reset injury, depletion, inventory, location, knowledge, relationships, promises, debts or consequences. Existing explicit retired-protagonist opening compatibility remains.
-- Registry-backed local Markdown is R17, while this external/source-map baseline remains R15. This conflict is recorded as UNRESOLVED; Phase 6 does not infer a superseding authority or rewrite either source.
+Those files are not a canon source for the new database. They are retained only as OLD-system input for benchmark comparison.

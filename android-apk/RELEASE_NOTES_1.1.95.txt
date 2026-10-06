@@ -1,6 +1,0 @@
-Backroom 1.1.95
-
-- Giữ nguyên câu tự giới thiệu tên của NPC đang hiện diện theo mẫu Core cho phép; không còn biến “Tôi là Lucia.” thành descriptor theo POV Cao Minh.
-- Ghi nhận knownName cho Cao Minh cùng lần commit disclosure hợp lệ; gặp NPC hoặc narration nhắc tên không tự cấp knowledge. Giữ knowledge firewall cho Entity, equipment và foreign lore.
-- Giữ ô Player Action trong vùng nhìn thấy khi bàn phím Android mở, kết hợp visualViewport với native IME inset.
-- Bump version từ 1.1.94 lên 1.1.95 (versionCode 141), đồng bộ APK artifact, GitHub Release tag và release verification.

@@ -1,0 +1,15 @@
+Backroom 1.1.41
+
+Game time, survival state, and Party character detail release.
+
+- Adds authoritative subjective game time that advances only when a gameplay turn commits successfully.
+- Persists game time across Save/Load and migrates older saves without inventing missing physiological state.
+- Adds per-character physiology state for food, water, wake time, pain, infection, and thermal condition.
+- Advances known physiology counters with game time while preserving UNKNOWN values and atomic rollback behavior.
+- Lets validated item metadata apply explicit FOOD/WATER physiology effects without guessing from item names.
+- Adds derived survival severity bands for UI use without introducing a Sanity meter.
+- Adds Party character projections for Status, injuries, Equipment, Inventory, effects, and subjective time.
+- Upgrades the existing Party UI to four avatar slots; tapping a member opens that character's Status, Equipment, and Inventory.
+- Keeps legacy saves and the existing Party/Inventory contracts compatible while the new partyDetails projection is additive.
+- Prevents characters without portraits from incorrectly falling back to Kai's avatar.
+- Adds CI coverage for core-to-WebView Character Detail integration, save compatibility, four-slot Party rendering, and packaged APK contracts.
