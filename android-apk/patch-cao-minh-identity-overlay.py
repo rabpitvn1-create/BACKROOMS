@@ -27,6 +27,11 @@ for path in APP.rglob("*"):
     old = path.read_text(encoding="utf-8")
     new = re.sub(r"\bKai(?: Akechi)?\b", "Cao Minh", old)
     new = new.replace('"kai"', '"cao_minh"').replace("'kai'", "'cao_minh'")
+    # Natural-language resolver aliases use display-name spacing, while the canonical
+    # player ID remains cao_minh. Keep both aliases so directional transfer parsing can
+    # resolve "Cao Minh" as actor/target after the ID migration.
+    if '"cao_minh" to KAI_ID' in new and '"cao minh" to KAI_ID' not in new:
+        new = new.replace('"cao_minh" to KAI_ID', '"cao minh" to KAI_ID, "cao_minh" to KAI_ID')
     if new != old:
         path.write_text(new, encoding="utf-8")
 
@@ -49,6 +54,9 @@ if 'data-character="cao_minh"' not in html or "kai.alt='Cao Minh'" not in main:
     raise RuntimeError("Party/overlay identity was not replaced")
 if "Kai Akechi" in main + html + state:
     raise RuntimeError("Legacy player display name remains")
+intent_pipeline = (APP / "main/java/com/rabpit/backroom/core/IntentPipeline.kt").read_text(encoding="utf-8")
+if '"cao minh" to KAI_ID' not in intent_pipeline or '"cao_minh" to KAI_ID' not in intent_pipeline:
+    raise RuntimeError("Cao Minh natural-language actor aliases were not installed")
 
 (APP / "test/java/com/rabpit/backroom/core/CaoMinhIdentityTest.kt").write_text('''package com.rabpit.backroom.core
 
