@@ -499,14 +499,13 @@ combat, count = hit_pattern.subn(
 )
 if count != 1:
     raise RuntimeError(f"Poker Dice attack accuracy anchor expected 1, found {count}")
-defense_old = '''    val defense = when (intent) { Intent.EVADE -> 34; Intent.GUARD -> 30; Intent.MOVE -> 18; Intent.READ -> 12; else -> 0 } +
-      when (c.cover) { Cover.HARD -> 22; Cover.PARTIAL -> 10; Cover.EXPOSED -> 0 } + max(0, c.momentum) * 4
-'''
-defense_new = '''    val defense = when (intent) { Intent.EVADE -> 34; Intent.GUARD -> 30; Intent.MOVE -> 18; Intent.READ -> 12; else -> 0 } +
-      when (c.cover) { Cover.HARD -> 22; Cover.PARTIAL -> 10; Cover.EXPOSED -> 0 } + max(0, c.momentum) * 4 +
-      PokerDiceCore.defenseBonus(state)
-'''
-combat = one(combat, defense_old, defense_new, "Poker Dice defense bonus")
+defense_pattern = re.compile(
+    r'(\s+val defense = when \(intent\) \{ Intent\.EVADE -> 34; Intent\.GUARD -> 30; Intent\.MOVE -> 18; Intent\.READ -> 12; else -> 0 \} \+\n'
+    r'\s+when \(c\.cover\) \{ Cover\.HARD -> 22; Cover\.PARTIAL -> 10; Cover\.EXPOSED -> 0 \} \+ max\(0, c\.momentum\) \* 4)(?!\s*\+\s*PokerDiceCore\.defenseBonus)'
+)
+combat, count = defense_pattern.subn(r'\1 +\n      PokerDiceCore.defenseBonus(state)', combat, count=1)
+if count != 1:
+    raise RuntimeError(f"Poker Dice defense bonus: expected exactly 1 match, found {count}")
 COMBAT.write_text(combat, encoding="utf-8")
 
 
