@@ -39,4 +39,5 @@ jobs:
           gradle :app:testDebugUnitTest --no-daemon
           --tests '*ItemDetailActionsTest' --tests '*Inventory*Test'
           --tests '*ItemContentStateTest' --tests '*HealingItemTest'
+          --tests '*PhysiologyItemEffectTest' --tests '*GameStateCodecTest' --tests '*CharacterDetailJsonTest'
           --tests '*Omnivault*Test' --tests '*CharacterStatusEquipmentSystemTest'

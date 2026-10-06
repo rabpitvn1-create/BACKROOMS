@@ -32,7 +32,7 @@ class CharacterDetailJsonTest {
         quantity = 2,
         condition = "sealed",
         metadata = mapOf("secret" to "do-not-expose", "physiologyEffect" to "WATER"),
-        contentState = ContentState.FULL
+        contentState = ContentState.NONE
       )),
       equipment = mapOf("weapon" to "ivory"),
       statusEffects = listOf(StatusEffect(

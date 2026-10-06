@@ -76,4 +76,24 @@ class ItemDetailActionsTest {
     assertFalse(run(save, request("DROP")).getBoolean("handled"))
     assertEquals(after, save.state)
   }
+  @Test fun executeTextCannotUseTransferOrDropItems() {
+    for (action in listOf("Dùng Băng gạc", "Chuyển Băng gạc cho Iris", "Bỏ xuống Băng gạc", "Uống một nửa chai nước")) {
+      val save = MemorySave(fresh()); val before = save.state
+      val core = facade(save)
+      assertTrue(action, core.blocksTextItemAction(action))
+      val result = JSONObject(core.processRule("""{"turn":1,"log":[]}""", action))
+      assertEquals("item_ui_required", result.getString("error"))
+      assertEquals(1, result.getJSONObject("state").getInt("turn"))
+      assertEquals(before, save.state)
+      val candidate = JSONObject(core.processValidatedCandidate("""{"turn":1}""", "{}", action))
+      assertFalse(candidate.getBoolean("handled"))
+      assertEquals(before, save.state)
+    }
+  }
+  @Test fun executeStillAcceptsOrdinaryExplorationInput() {
+    val core = facade(MemorySave(fresh()))
+    assertFalse(core.blocksTextItemAction("Quan sát hành lang"))
+    assertFalse(core.blocksTextItemAction("Kiểm tra túi đồ"))
+  }
+
 }
