@@ -1,0 +1,7 @@
+Backroom 1.1.99
+
+- Áp dụng thiết kế kiếm xuyên đã duyệt cho Cao Minh và Lục Trầm: kích cỡ đồng đều, 25 góc lao tới từ phía trước thực thể, xuyên hẳn qua cơ thể và bay ra; giữ tốc độ đã duyệt.
+- Thêm impact, giật ngắn tại va chạm và 44 tia máu xanh tại mỗi điểm xuyên; damage hiện đồng bộ lúc kiếm chạm.
+- Lucia chỉ hiển thị hiệu ứng trúng đạn trên thực thể. Damage do độc hoặc chảy máu không tạo hiệu ứng vũ khí.
+- Chờ đủ các đòn liên tiếp trước khi chuyển thực thể, tránh áp hiệu ứng vào sai mục tiêu.
+- Bump phiên bản lên 1.1.99 (versionCode 145), đồng bộ APK artifact, GitHub Release tag và kiểm tra bản phát hành.
