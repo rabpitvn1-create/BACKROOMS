@@ -681,10 +681,8 @@ bridge = r'''
         try {
           emit("backroomCoreUpgrade", requireGameCore().processCoreUpgrade(stateJson, characterId, stat));
         } catch (Exception error) {
-          emit("backroomCoreUpgrade", new JSONObject()
-            .put("handled", false)
-            .put("error", error.getMessage() == null ? "Không thể nâng Core." : error.getMessage())
-            .toString());
+          String message = error.getMessage() == null ? "Không thể nâng Core." : error.getMessage();
+          emit("backroomCoreUpgrade", "{\"handled\":false,\"error\":" + JSONObject.quote(message) + "}");
         }
       });
     }
