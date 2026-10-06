@@ -1,4 +1,4 @@
-name: Verify Combat Action Bar
+name: Verify Direct Poker Combat
 
 on:
   pull_request:
@@ -23,13 +23,13 @@ jobs:
       - name: Apply complete Android runtime patch chain
         run: |
           set -euo pipefail
-          scripts=(patch-provider-status.py patch-provider-key-pool.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py)
+          scripts=(patch-provider-status.py patch-provider-key-pool.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py patch-ui-1.1.99-shell.py patch-poker-dice-core-backport.py)
           for script in "${scripts[@]}"; do
             echo "==> $script"
             python3 "android-apk/$script"
           done
 
-      - name: Verify combat action bar and Party command contracts
+      - name: Verify direct Poker combat and Party runtime contracts
         run: |
           set -euo pipefail
           python3 - <<'PY'
@@ -38,83 +38,48 @@ jobs:
           root = Path('android-apk')
           html = (root / 'app/src/main/assets/index.html').read_text(encoding='utf-8')
           combat = (root / 'app/src/main/java/com/rabpit/backroom/core/CombatRuntime.kt').read_text(encoding='utf-8')
+          facade = (root / 'app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt').read_text(encoding='utf-8')
+          poker = (root / 'app/src/main/java/com/rabpit/backroom/core/PokerDiceCore.kt').read_text(encoding='utf-8')
           main = (root / 'app/src/main/java/com/rabpit/backroom/MainActivity.java').read_text(encoding='utf-8')
-          patch = (root / 'patch-combat-action-bar-finalize.py').read_text(encoding='utf-8')
-          party_patch = (root / 'patch-party-combat-actions-finalize.py').read_text(encoding='utf-8')
-          chain = (root / 'patch-inventory-capacity-final-fix.py').read_text(encoding='utf-8')
-          party_test = (root / 'app/src/test/java/com/rabpit/backroom/core/PartyCombatActionsTest.kt').read_text(encoding='utf-8')
 
-          required_html = (
-              'COMBAT_ACTION_BAR_V2',
-              "label:'TẤN CÔNG'",
-              "label:'NÉ TRÁNH'",
-              "label:'BỎ CHẠY'",
-              "action:'Cả Party cùng tấn công'",
-              "action:'Cả Party cùng né tránh'",
-              "action:'Cả Party cùng bỏ chạy'",
-              "window.Android.submitAction(JSON.stringify(state),'EXECUTE',action)",
-              "document.addEventListener('click',interceptCombatClick,true)",
-              "form.addEventListener('submit'",
-              "actionInput.addEventListener('input'",
-              "row.classList.toggle('combat-actions',active)",
-              "middle.type='button'",
-              "middle.type='submit'",
-              '<svg class="action-icon"',
-          )
-          for marker in required_html:
-              assert marker in html, marker
+          for marker in (
+              'DIRECT_COMBAT_GATE_V1',
+              "row.classList.toggle('combat-direct',active)",
+              'POKER_DICE_CORE_BACKPORT_R01',
+              'id="pokerDiceModal"',
+              'ensureDirectCombatDice',
+              'DIRECT_COMBAT_ACTION',
+              'Android.combatDicePrepare',
+              'Android.combatDiceFinish',
+          ):
+              assert marker in html or marker in poker, marker
 
-          for forbidden in ('PRESSURE_COMBAT_HUD_V1', 'id="pressureCombatStyle"', 'id="combatHud"'):
-              assert forbidden not in html, forbidden
+          for retired in (
+              "label:'TẤN CÔNG'", "label:'NÉ TRÁNH'", "label:'BỎ CHẠY'",
+              "dataset.combatAction", "function submitCombat(action)", "openCombatDiceForAction",
+              'PRESSURE_COMBAT_HUD_V1', 'id="combatHud"',
+          ):
+              assert retired not in html, retired
 
+          assert 'const val DIRECT_COMBAT_ACTION = "Cả Party cùng tấn công"' in poker
+          assert 'PokerDiceCore.isFinalizedFor(current, action, activeCombat.encounterId)' in facade
+          assert 'if (action == PokerDiceCore.DIRECT_COMBAT_ACTION)' in facade
+
+          # Party attack/skill/ultimate runtime stays available behind the direct dice resolve.
           for marker in (
               'PARTY_ACTIONS_V1',
               'PARTY ACTION TẤN CÔNG:',
-              'PARTY ACTION NÉ TRÁNH:',
-              'PARTY ACTION BỎ CHẠY:',
               'PARTY_FOLLOWER_BASE_ATTACKS_V1',
               'val jointOrder = true // PARTY_ACTIONS_V1',
               'Iris thực hiện lệnh TẤN CÔNG',
               'Syvial thực hiện lệnh TẤN CÔNG',
-              'An Nhiên thực hiện lệnh TẤN CÔNG theo vai trò hỗ trợ',
               'PARTY_ATTACK_GCO_GATE_V1',
           ):
               assert marker in combat, marker
 
-          # Offensive actions cannot leak into the two non-attack Party commands.
-          assert 'intent == Intent.ATTACK && !isGuiltyCrownTurn' in combat
-          assert 'intent == Intent.ATTACK && c.eventCounter % IRIS_ULTIMATE_INTERVAL_TURNS == 0' in combat
-          assert 'intent == Intent.ATTACK && syvialDevilTrigger' in combat
-          assert 'intent == Intent.ESCAPE && c.eventCounter % AN_NHIEN_ULTIMATE_INTERVAL_TURNS == 0' in combat
-
-          # All three commands are covered as one-event Party resolutions.
-          for marker in (
-              'attackButtonResolvesEveryActivePartyMemberInOneCombatEvent',
-              'evadeButtonMovesTheWholePartyAndDoesNotFireOffensiveSkills',
-              'fleeButtonWithdrawsTheWholePartyWithoutDroppingFollowersOrFiring',
-          ):
-              assert marker in party_test, marker
-
-          # Existing scene/Entity visual authority remains untouched.
           assert 'file:///android_asset/entity/' in main
           assert 'function activeEntityKey()' in main
           assert 'state.combat' in main
-
-          # Final order is deterministic: compact action UI, then Party action authority.
-          ui_call = 'runpy.run_path(str(ROOT / "patch-combat-action-bar-finalize.py"), run_name="__main__")'
-          party_call = 'runpy.run_path(str(ROOT / "patch-party-combat-actions-finalize.py"), run_name="__main__")'
-          assert ui_call in chain and party_call in chain
-          assert chain.index(ui_call) < chain.index(party_call)
-
-          # No bitmap asset is introduced by either feature patch.
-          combined_patch = (patch + party_patch).lower()
-          assert '.png' not in combined_patch
-          assert '.jpg' not in combined_patch
-          assert '.jpeg' not in combined_patch
-          assert '<svg' in patch
-
-          assert html.count('COMBAT_ACTION_BAR_V2') == 1
-          assert html.count("document.addEventListener('click',interceptCombatClick,true)") == 1
           PY
           git diff --check
 
@@ -131,21 +96,23 @@ jobs:
         working-directory: android-apk
         run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
 
-      - name: Verify packaged WebView UI
+      - name: Verify packaged direct-combat WebView UI
         run: |
           set -euo pipefail
           APK=android-apk/app/build/outputs/apk/debug/app-debug.apk
           test -s "$APK"
           rm -rf combat-apk-check && mkdir combat-apk-check
-          unzip -q "$APK" 'assets/index.html' -d combat-apk-check
+          unzip -q "$APK" 'assets/index.html' 'assets/dice/*' -d combat-apk-check
           html=combat-apk-check/assets/index.html
-          grep -q 'COMBAT_ACTION_BAR_V2' "$html"
-          grep -q 'TẤN CÔNG' "$html"
-          grep -q 'NÉ TRÁNH' "$html"
-          grep -q 'BỎ CHẠY' "$html"
-          grep -q 'Cả Party cùng tấn công' "$html"
-          grep -q 'Cả Party cùng né tránh' "$html"
-          grep -q 'Cả Party cùng bỏ chạy' "$html"
+          grep -q 'DIRECT_COMBAT_GATE_V1' "$html"
+          grep -q 'POKER_DICE_CORE_BACKPORT_R01' "$html"
+          grep -q 'pokerDiceModal' "$html"
+          grep -q 'ensureDirectCombatDice' "$html"
+          ! grep -q "label:'TẤN CÔNG'" "$html"
+          ! grep -q "label:'NÉ TRÁNH'" "$html"
+          ! grep -q "label:'BỎ CHẠY'" "$html"
+          ! grep -q 'openCombatDiceForAction' "$html"
           ! grep -q 'PRESSURE_COMBAT_HUD_V1' "$html"
-          ! grep -q 'id="combatHud"' "$html"
-          grep -q '<svg class="action-icon"' "$html"
+          test -s combat-apk-check/assets/dice/die-1.png
+          test -s combat-apk-check/assets/dice/die-6.png
+          test -s combat-apk-check/assets/dice/roll-3d.png

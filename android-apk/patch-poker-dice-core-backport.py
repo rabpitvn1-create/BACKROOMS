@@ -36,8 +36,8 @@ import kotlin.math.roundToInt
  *
  * Core progression is save-persistent metadata, independent from canon. Equipment remains the
  * current version's authority. Core stats multiply the already-normalized gameplay projection.
- * A Poker Dice session is bound to one encounter + one selected combat action so reload or action
- * switching cannot create free rerolls.
+ * A Poker Dice session is bound to one encounter + one direct combat command so reload cannot
+ * create free rerolls or bypass the active combat round.
  */
 object PokerDiceCore {
   const val DICE_COUNT = 5
@@ -45,6 +45,7 @@ object PokerDiceCore {
   const val BASE_STAT = 5
   const val MAX_STAT = 999
   const val ENTITY_VICTORY_CORE = 2
+  const val DIRECT_COMBAT_ACTION = "Cả Party cùng tấn công"
 
   private const val PREFIX = "poker."
   private const val CORE_COUNT = PREFIX + "core.count"
@@ -647,11 +648,22 @@ if "val combatReply =" not in method:
     else resolution.reply
 '''
     method = one(method, output_anchor, output_new, "combat Core reward reply")
-    method = method.replace("    appendLog(output, action, resolution.reply)\n", "    appendLog(output, action, combatReply)\n", 1)
+    method = method.replace(
+        "    appendLog(output, action, resolution.reply)\n",
+        '''    if (action == PokerDiceCore.DIRECT_COMBAT_ACTION) {
+      val log = output.optJSONArray("log") ?: JSONArray().also { output.put("log", it) }
+      log.put(JSONObject().put("role", "gm").put("text", combatReply))
+    } else {
+      appendLog(output, action, combatReply)
+    }
+''',
+        1
+    )
     method = method.replace(", resolution.reply)\n  }", ", combatReply)\n  }", 1)
 
 for marker in (
     "PokerDiceCore.isFinalizedFor(current, action, activeCombat.encounterId)",
+    "PokerDiceCore.DIRECT_COMBAT_ACTION",
     "PokerDiceCore.ENTITY_VICTORY_CORE",
     "PokerDiceCore.clearDice(next)",
     "val combatReply =",
@@ -749,37 +761,17 @@ MAIN.write_text(main, encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
-# Current 7px UI: Action bar stays unchanged. A combat button opens a Poker Dice
-# bottom sheet; Character Detail receives a compact Core Stats panel.
+# Current 7px UI: Entity combat enters Poker Dice directly. The normal three-button
+# Action bar is hidden for the entire encounter; Character Detail keeps Core Stats.
 # ---------------------------------------------------------------------------
 html = INDEX.read_text(encoding="utf-8")
-submit_start = html.find("  function submitCombat(action){")
-submit_end = html.find("\n  function interceptCombatClick", submit_start)
-if submit_start < 0 or submit_end < 0:
-    raise RuntimeError("final combat action submit method missing")
-submit_method = r'''  function submitCombat(action){
-    if(!combatActive())return false;
-    if(typeof busy!=='undefined'&&busy)return true;
-    if(typeof window.openCombatDiceForAction==='function'){
-      window.openCombatDiceForAction(action);
-      return true;
-    }
-    if(!window.Android||typeof window.Android.submitAction!=='function'){var s=document.getElementById('status');if(s)s.textContent='Không tìm thấy Android action bridge.';return true;}
-    if(typeof busy!=='undefined')busy=true;
-    pending(action);
-    var status=document.getElementById('status');if(status)status.textContent='Đang xử lý hành động chiến đấu…';
-    renderCombatActionBar();
-    window.Android.submitAction(JSON.stringify(state),'EXECUTE',action);
-    return true;
-  }'''
-html = html[:submit_start] + submit_method + html[submit_end:]
 
 ui = r'''
 <style id="pokerCoreUiStyle">
 /* POKER_DICE_CORE_BACKPORT_R01 */
 .poker-dice-modal[hidden]{display:none}.poker-dice-modal{position:fixed;inset:0;z-index:145;display:flex;align-items:flex-end;justify-content:center}.poker-dice-backdrop{position:absolute;inset:0;background:#000c}
 .poker-dice-sheet{position:relative;width:min(100%,680px);max-height:min(calc(var(--app-height,100dvh) - 10px),760px);overflow:auto;background-color:#39341e;background-image:linear-gradient(145deg,rgba(15,17,13,.64),rgba(12,15,13,.82) 55%,rgba(15,17,13,.68)),url('dice/level0-wallpaper.svg');background-size:auto,64px 96px;border:1px solid #8b8052;border-bottom:0;border-radius:7px 7px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -24px 60px #000d}
-.poker-dice-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.poker-dice-kicker{font-size:9px;font-weight:800;letter-spacing:.16em;color:#b9ad77}.poker-dice-head h2{margin:3px 0 0;font-size:15px;letter-spacing:.08em;color:#fff7d7}.poker-dice-close{width:42px;height:42px;padding:0;border-radius:7px!important}
+.poker-dice-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.poker-dice-kicker{font-size:9px;font-weight:800;letter-spacing:.16em;color:#b9ad77}.poker-dice-head h2{margin:3px 0 0;font-size:15px;letter-spacing:.08em;color:#fff7d7}
 .poker-dice-meta{margin-top:8px;color:#c5c3a8;font-size:11px}.poker-dice-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;margin-top:12px}
 .poker-die{position:relative;min-width:0;aspect-ratio:1/1.18;padding:4px;border:1px solid transparent!important;border-radius:7px!important;background:transparent!important;display:grid;place-items:center}.poker-die img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 4px #0008)}.poker-die.held img{filter:drop-shadow(0 0 2px #9be1bc) drop-shadow(0 0 8px #9be1bc99) drop-shadow(0 4px 4px #0008)}.poker-die.held:after{content:"HOLD";position:absolute;bottom:2px;left:50%;transform:translateX(-50%);font-size:8px;font-weight:800;letter-spacing:.08em;color:#9be1bc;text-shadow:0 0 7px #9be1bc88}
 .poker-die.rolling img{visibility:hidden}.poker-die.rolling:before{content:"";position:absolute;inset:5%;background:url('dice/roll-3d.png') 0 0/2400% 100% no-repeat;animation:poker-die-roll .68s steps(23,end) infinite}@keyframes poker-die-roll{to{background-position:100% 0}}@media(prefers-reduced-motion:reduce){.poker-die.rolling:before{display:none}.poker-die.rolling img{visibility:visible}}
@@ -789,7 +781,7 @@ ui = r'''
 <div class="poker-dice-modal" id="pokerDiceModal" hidden aria-hidden="true">
   <div class="poker-dice-backdrop"></div>
   <section class="poker-dice-sheet" role="dialog" aria-modal="true" aria-labelledby="pokerDiceTitle">
-    <div class="poker-dice-head"><div><div class="poker-dice-kicker">COMBAT DICE</div><h2 id="pokerDiceTitle">POKER DICE</h2></div><button type="button" class="poker-dice-close" id="pokerDiceClose" aria-label="Đóng">×</button></div>
+    <div class="poker-dice-head"><div><div class="poker-dice-kicker">COMBAT</div><h2 id="pokerDiceTitle">POKER DICE</h2></div></div>
     <div class="poker-dice-meta" id="pokerDiceMeta"></div>
     <div class="poker-dice-row" id="pokerDiceRow"></div>
     <div class="poker-dice-hand" id="pokerDiceHand"></div>
@@ -801,17 +793,18 @@ ui = r'''
   "use strict";
   if(window.__pokerCoreUiInstalled)return;window.__pokerCoreUiInstalled=true;
   var modal=document.getElementById("pokerDiceModal"),row=document.getElementById("pokerDiceRow"),meta=document.getElementById("pokerDiceMeta"),hand=document.getElementById("pokerDiceHand");
-  var roll=document.getElementById("pokerDiceRoll"),finish=document.getElementById("pokerDiceFinish"),close=document.getElementById("pokerDiceClose");
-  var pendingAction="",submitAfterFinalize=false;window.__combatDiceBusy=false;
+  var roll=document.getElementById("pokerDiceRoll"),finish=document.getElementById("pokerDiceFinish");
+  var DIRECT_COMBAT_ACTION="Cả Party cùng tấn công",submitAfterFinalize=false;
+  window.__combatDiceBusy=false;window.__directCombatPreparing=false;window.__directCombatResolving=false;
 
+  function combatActive(){return !!(typeof state!=="undefined"&&state&&state.combat&&state.combat.active===true)}
   function dice(){return state&&state.combat&&state.combat.diceState?state.combat.diceState:null}
   function show(){modal.hidden=false;modal.setAttribute("aria-hidden","false");document.body.classList.add("poker-dice-open")}
   function hide(){modal.hidden=true;modal.setAttribute("aria-hidden","true");document.body.classList.remove("poker-dice-open")}
   function setBusy(value){window.__combatDiceBusy=!!value;if(typeof busy!=="undefined")busy=!!value||!modal.hidden;if(typeof window.renderCombatActionBar==="function")window.renderCombatActionBar()}
   function renderDice(){
-    var d=dice();if(!d){row.textContent="";hand.textContent="";meta.textContent="";return}
-    pendingAction=String(d.action||pendingAction||"");
-    document.getElementById("pokerDiceTitle").textContent=pendingAction||"POKER DICE";
+    var d=dice();if(!d){row.textContent="";hand.textContent="";meta.textContent="Đang chuẩn bị lượt combat…";return}
+    document.getElementById("pokerDiceTitle").textContent="POKER DICE";
     meta.textContent="ROLL "+String(d.rerollsUsed||0)+"/"+String(d.maxRerolls||3)+" · chạm xúc xắc để HOLD";
     row.textContent="";
     var values=Array.isArray(d.values)?d.values:[],held=Array.isArray(d.held)?d.held:[];
@@ -826,13 +819,37 @@ ui = r'''
     finish.disabled=window.__combatDiceBusy||d.finalized===true;
   }
 
-  window.openCombatDiceForAction=function(action){
-    if(window.__combatDiceBusy)return;
-    if(!window.Android||typeof Android.combatDicePrepare!=="function"){if(statusEl)statusEl.textContent="Không tìm thấy Poker Dice bridge.";return}
-    pendingAction=String(action||"").trim();if(!pendingAction)return;
-    show();setBusy(true);if(statusEl)statusEl.textContent="Đang chuẩn bị Poker Dice…";
-    Android.combatDicePrepare(JSON.stringify(state),pendingAction);
-  };
+  function ensureDirectCombatDice(){
+    if(!combatActive()){
+      window.__directCombatPreparing=false;window.__directCombatResolving=false;hide();
+      if(typeof busy!=="undefined")busy=false;
+      if(typeof window.renderCombatActionBar==="function")window.renderCombatActionBar();
+      return;
+    }
+    show();
+    var d=dice();
+    if(d){
+      window.__directCombatPreparing=false;window.__combatDiceBusy=false;renderDice();
+      if(typeof busy!=="undefined")busy=true;
+      if(d.finalized===true&&!window.__directCombatResolving){
+        window.__directCombatResolving=true;setBusy(true);
+        if(statusEl)statusEl.textContent="Poker Dice đã chốt. Đang tiếp tục combat…";
+        Android.submitAction(JSON.stringify(state),"EXECUTE",DIRECT_COMBAT_ACTION);
+        return;
+      }
+      if(statusEl)statusEl.textContent="Poker Dice · "+String(d.hand||"");
+      return;
+    }
+    if(window.__directCombatPreparing||window.__directCombatResolving)return;
+    if(!window.Android||typeof Android.combatDicePrepare!=="function"){
+      if(statusEl)statusEl.textContent="Không tìm thấy Poker Dice bridge.";
+      return;
+    }
+    window.__directCombatPreparing=true;setBusy(true);renderDice();
+    if(statusEl)statusEl.textContent="Đang vào combat…";
+    Android.combatDicePrepare(JSON.stringify(state),DIRECT_COMBAT_ACTION);
+  }
+  window.ensureDirectCombatDice=ensureDirectCombatDice;
 
   roll.addEventListener("click",function(){
     if(window.__combatDiceBusy||!window.Android||typeof Android.combatDiceRoll!=="function")return;
@@ -842,19 +859,14 @@ ui = r'''
     if(window.__combatDiceBusy||!window.Android||typeof Android.combatDiceFinish!=="function")return;
     submitAfterFinalize=true;setBusy(true);Android.combatDiceFinish(JSON.stringify(state));
   });
-  close.addEventListener("click",function(){
-    if(window.__combatDiceBusy)return;hide();if(typeof busy!=="undefined")busy=false;if(typeof window.renderCombatActionBar==="function")window.renderCombatActionBar();
-  });
-
   window.backroomCombatDiceState=function(json){
     try{
-      state=JSON.parse(json);window.__combatDiceRolling=false;window.__combatDiceBusy=false;show();renderDice();
+      state=JSON.parse(json);window.__directCombatPreparing=false;window.__combatDiceRolling=false;window.__combatDiceBusy=false;show();renderDice();
       var d=dice();
       if(submitAfterFinalize&&d&&d.finalized===true){
-        submitAfterFinalize=false;hide();if(typeof busy!=="undefined")busy=true;
-        if(typeof appendMacroPending==="function")appendMacroPending(pendingAction);
+        submitAfterFinalize=false;window.__directCombatResolving=true;setBusy(true);
         if(statusEl)statusEl.textContent="Poker Dice đã chốt. Đang giải quyết combat…";
-        Android.submitAction(JSON.stringify(state),"EXECUTE",pendingAction);
+        Android.submitAction(JSON.stringify(state),"EXECUTE",DIRECT_COMBAT_ACTION);
         return;
       }
       if(typeof busy!=="undefined")busy=true;
@@ -863,8 +875,10 @@ ui = r'''
     }catch(_){window.backroomCombatDiceError("Poker Dice state không hợp lệ.")}
   };
   window.backroomCombatDiceError=function(message){
-    window.__combatDiceBusy=false;window.__combatDiceRolling=false;submitAfterFinalize=false;
-    if(typeof busy!=="undefined")busy=false;if(statusEl)statusEl.textContent=String(message||"Poker Dice lỗi.");renderDice();if(typeof window.renderCombatActionBar==="function")window.renderCombatActionBar();
+    window.__combatDiceBusy=false;window.__combatDiceRolling=false;window.__directCombatPreparing=false;window.__directCombatResolving=false;submitAfterFinalize=false;
+    if(typeof busy!=="undefined")busy=combatActive();
+    if(statusEl)statusEl.textContent=String(message||"Poker Dice lỗi.");
+    renderDice();if(typeof window.renderCombatActionBar==="function")window.renderCombatActionBar();
   };
 
   function selectedCharacter(){
@@ -901,9 +915,16 @@ ui = r'''
     if(typeof window.render==="function")window.render();else renderCorePanel();
   };
 
-  var previousRender=window.render;if(typeof previousRender==="function")window.render=function(){var result=previousRender.apply(this,arguments);renderCorePanel();return result};
-  var previousTurn=window.backroomTurn;if(typeof previousTurn==="function")window.backroomTurn=function(json){var result=previousTurn.call(this,json);hide();window.__combatDiceBusy=false;window.__combatDiceRolling=false;submitAfterFinalize=false;if(typeof busy!=="undefined")busy=false;renderCorePanel();return result};
-  renderCorePanel();
+  var previousRender=window.render;if(typeof previousRender==="function")window.render=function(){var result=previousRender.apply(this,arguments);renderCorePanel();ensureDirectCombatDice();return result};
+  var previousTurn=window.backroomTurn;if(typeof previousTurn==="function")window.backroomTurn=function(json){
+    var result=previousTurn.call(this,json);
+    window.__combatDiceBusy=false;window.__combatDiceRolling=false;window.__directCombatPreparing=false;window.__directCombatResolving=false;submitAfterFinalize=false;
+    renderCorePanel();
+    if(combatActive()){show();if(typeof busy!=="undefined")busy=true;ensureDirectCombatDice();}
+    else{hide();if(typeof busy!=="undefined")busy=false;if(typeof window.renderCombatActionBar==="function")window.renderCombatActionBar();}
+    return result;
+  };
+  renderCorePanel();ensureDirectCombatDice();
 })();
 </script>
 '''
@@ -914,7 +935,8 @@ if "POKER_DICE_CORE_BACKPORT_R01" not in html:
 
 for marker in (
     "POKER_DICE_CORE_BACKPORT_R01",
-    "openCombatDiceForAction",
+    "ensureDirectCombatDice",
+    "DIRECT_COMBAT_ACTION",
     'id="pokerDiceModal"',
     "dice/roll-3d.png",
     "CORE STATS",
@@ -952,7 +974,7 @@ class PokerDiceCoreBackportTest {
   }
 
   @Test fun diceSessionPersistsHoldsAndCapsRerolls() {
-    var state = PokerDiceCore.prepare(GameState.initial(), "Tấn công", "E1")
+    var state = PokerDiceCore.prepare(GameState.initial(), PokerDiceCore.DIRECT_COMBAT_ACTION, "E1")
     val initial = PokerDiceCore.diceJson(state)!!
     assertEquals(5, initial.getJSONArray("values").length())
     repeat(3) {
@@ -976,7 +998,7 @@ class PokerDiceCoreBackportTest {
   }
 
   @Test fun changingActionCannotResetActiveDiceSession() {
-    val state = PokerDiceCore.prepare(GameState.initial(), "Tấn công", "E1")
+    val state = PokerDiceCore.prepare(GameState.initial(), PokerDiceCore.DIRECT_COMBAT_ACTION, "E1")
     try {
       PokerDiceCore.prepare(state, "Bỏ chạy", "E1")
       fail("action switching must not reset dice")
@@ -984,11 +1006,11 @@ class PokerDiceCoreBackportTest {
   }
 
   @Test fun finalizedHandIsBoundToSelectedActionAndEncounter() {
-    var state = PokerDiceCore.prepare(GameState.initial(), "Tấn công", "E1")
+    var state = PokerDiceCore.prepare(GameState.initial(), PokerDiceCore.DIRECT_COMBAT_ACTION, "E1")
     state = PokerDiceCore.finish(state)
-    assertTrue(PokerDiceCore.isFinalizedFor(state, "Tấn công", "E1"))
+    assertTrue(PokerDiceCore.isFinalizedFor(state, PokerDiceCore.DIRECT_COMBAT_ACTION, "E1"))
     assertFalse(PokerDiceCore.isFinalizedFor(state, "Bỏ chạy", "E1"))
-    assertFalse(PokerDiceCore.isFinalizedFor(state, "Tấn công", "E2"))
+    assertFalse(PokerDiceCore.isFinalizedFor(state, PokerDiceCore.DIRECT_COMBAT_ACTION, "E2"))
   }
 
   @Test fun coreDefaultsDoNotChangeCurrentStatsAndUpgradeUsesSharedResource() {
@@ -1022,7 +1044,7 @@ class PokerDiceCoreBackportTest {
 ''', encoding="utf-8")
 
 for path, markers in {
-    POKER: ["object PokerDiceCore", "MAX_REROLLS = 3", "ENTITY_VICTORY_CORE = 2", "FOUR OF A KIND", "HELD_SEQUENCE_WEIGHT_BONUS"],
+    POKER: ["object PokerDiceCore", "MAX_REROLLS = 3", "ENTITY_VICTORY_CORE = 2", "DIRECT_COMBAT_ACTION", "FOUR OF A KIND", "HELD_SEQUENCE_WEIGHT_BONUS"],
     FACADE: ["fun prepareCombatDice", "fun processCoreUpgrade", "PokerDiceCore.isFinalizedFor"],
     MAIN: ["combatDicePrepare", "coreUpgrade", "backroomCombatDiceState"],
     INDEX: ["POKER_DICE_CORE_BACKPORT_R01", "CORE STATS", "pokerDiceModal"],
