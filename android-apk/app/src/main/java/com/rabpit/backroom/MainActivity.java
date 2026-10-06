@@ -92,7 +92,9 @@ public class MainActivity extends Activity {
     return new String[] {
       BuildConfig.GEMINI_API_KEY_1,
       BuildConfig.GEMINI_API_KEY_2,
-      BuildConfig.GEMINI_API_KEY_3
+      BuildConfig.GEMINI_API_KEY_3,
+      BuildConfig.GEMINI_API_KEY_4,
+      BuildConfig.GEMINI_API_KEY_5
     };
   }
 

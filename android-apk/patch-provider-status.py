@@ -32,7 +32,7 @@ provider_callback = (
     '      "window.requestSnapshot=requestSnapshot;" +\n'
     '      "window.__backroomProvider=\'Gemini\';window.backroomProvider=function(provider){window.__backroomProvider=provider||\'AI\';var s=document.getElementById(\'status\');if(s)s.textContent=window.__backroomProvider+\' đang xử lý lượt…\';var p=document.querySelector(\'[data-pending=\\\\\\"1\\\\\\"]:not(.player) .text\');if(p)p.textContent=window.__backroomProvider+\' đang xử lý lượt…\';};" +\n'
 )
-if "window.__backroomProvider='Gemini'" not in main:
+if "window.__backroomProvider='Gehihi'" not in main:
     main = replace_required(main, '      "window.requestSnapshot=requestSnapshot;" +\n', provider_callback, "provider status callback")
 
 main = replace_if_needed(
@@ -50,7 +50,7 @@ main = replace_if_needed(
 main = replace_if_needed(
     main,
     '<div class=\\\"role\\\">GAME MASTER</div><div class=\\\"text\\\">Đang xử lý lượt…</div>',
-    '<div class=\\\"role\\\">GAME MASTER</div><div class=\\\"text\\\">Gemini đang xử lý lượt…</div>',
+    '<div class=\\\"role\\\">GAME MASTER</div><div class=\\\"text\\\">Gehihi đang xử lý lượt…</div>',
     "pending provider label",
 )
 
@@ -132,4 +132,4 @@ main = main[:gemini_start] + gemini_block + main[network_start:]
 
 MAIN.write_text(main, encoding="utf-8")
 INDEX.write_text(index, encoding="utf-8")
-print(f"Patched Gemini provider labels, socket/DNS handling and packaged Kai snapshot overlay ({len(raw)} bytes).")
+print(f"Patched Gehihi-first provider labels, socket/DNS handling and packaged Kai snapshot overlay ({len(raw)} bytes).")

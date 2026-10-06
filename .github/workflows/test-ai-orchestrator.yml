@@ -17,7 +17,7 @@ jobs:
       - name: Apply exact Android release patch chain
         run: |
           python3 android-apk/patch-provider-status.py
-          python3 android-apk/patch-luna-text.py
+          python3 android-apk/patch-provider-key-pool.py
           python3 android-apk/patch-level-snapshot-backgrounds.py
           python3 android-apk/patch-snapshot-fallback.py
           python3 android-apk/patch-kai-hd-continuous.py

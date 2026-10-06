@@ -1,3 +1,0 @@
-run_id=36718939953
-status=FAIL
-source_sha=adb0dbf5460872e2c78b52493a82f53683397b07

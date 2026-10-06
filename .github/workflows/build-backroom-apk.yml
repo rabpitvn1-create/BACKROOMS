@@ -19,9 +19,9 @@ jobs:
   build-apk:
     runs-on: ubuntu-latest
     env:
-      LUNA_API_KEY: ${{ secrets.LUNA_API_KEY }}
-      LUNA_BASE_URL: https://api.vilao.ai/v1
-      LUNA_MODEL: ${{ secrets.LUNA_MODEL }}
+      GEHIHI_API_KEY: ${{ secrets.GEHIHI_API_KEY }}
+      GEHIHI_BASE_URL: ${{ secrets.GEHIHI_BASE_URL || vars.GEHIHI_BASE_URL }}
+      GEHIHI_MODEL: ${{ secrets.GEHIHI_MODEL || vars.GEHIHI_MODEL }}
       SOL_API_KEY: ${{ secrets.SOL_API_KEY }}
       HAKU_API_KEY: ${{ secrets.HAKU_API_KEY }}
       HAKU_BASE_URL: ${{ secrets.HAKU_BASE_URL || vars.HAKU_BASE_URL }}
@@ -53,16 +53,15 @@ jobs:
       - name: Validate Game Master configuration
         run: |
           set -euo pipefail
-          for name in GEMINI_API_KEY_1 GEMINI_API_KEY_2 GEMINI_API_KEY_3 GEMINI_API_KEY_4 GEMINI_API_KEY_5 SOL_API_KEY HAKU_API_KEY; do
+          for name in GEHIHI_API_KEY GEHIHI_MODEL GEMINI_API_KEY_1 GEMINI_API_KEY_2 GEMINI_API_KEY_3 GEMINI_API_KEY_4 GEMINI_API_KEY_5 HAKU_API_KEY SOL_API_KEY; do
             test -n "${!name:-}" || (echo "Missing GitHub Secret: $name" && exit 1)
           done
-          echo "Optional Luna: ${LUNA_API_KEY:+configured} ${LUNA_MODEL:+configured}"
           echo "Optional Haku base/model overrides: ${HAKU_BASE_URL:+configured} ${HAKU_MODEL:+configured}"
 
       - name: Apply Android runtime patch chain
         run: |
           set -euo pipefail
-          scripts=(patch-provider-status.py patch-luna-text.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py)
+          scripts=(patch-provider-status.py patch-provider-key-pool.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py)
           for script in "${scripts[@]}"; do
             echo "==> $script"
             python3 "android-apk/$script"
@@ -93,8 +92,9 @@ jobs:
 
           required = [
               ("versionCode 65", gradle), ("versionName '1.1.63'", gradle),
+              ('BuildConfig.GEHIHI_API_KEY', java), ('BuildConfig.GEHIHI_MODEL', java),
               ('BuildConfig.SOL_API_KEY', java), ('BuildConfig.HAKU_API_KEY', java),
-              ('emit("backroomProvider", "Luna")', java), ('emit("backroomProvider", "SOL")', java), ('emit("backroomProvider", "Haku")', java),
+              ('emit("backroomProvider", "Gehihi")', java), ('emit("backroomProvider", "Haku")', java), ('emit("backroomProvider", "SOL")', java),
               ('id="searchActionButton"', html), ('id="exploreActionButton"', html), ('STEP2_THREE_ACTIONS', html),
               ('madGodSetEquipped()', html), ('id="equipmentDetailModal"', html), ('window.renderCharacterStatusEquipment=render;', html),
               ('id="characterSkillsModal"', html), ("button.id='characterSkillsButton'", html), ('function openSkills()', html),
@@ -146,6 +146,15 @@ jobs:
           ]
           for marker, source in required:
               assert marker in source, marker
+          provider_start = java.index('  private String generateText(String prompt)')
+          provider_end = java.index('\n  private JSONObject parseModelJson', provider_start)
+          provider_flow = java[provider_start:provider_end]
+          assert provider_flow.index('"Gehihi"') < provider_flow.index('"Gemini') < provider_flow.index('"Haku"') < provider_flow.index('"SOL"')
+          retired_prefix = 'LU' + 'NA_'
+          retired_method = 'lu' + 'naText'
+          assert retired_prefix not in java
+          assert retired_method not in java
+          assert retired_prefix not in gradle
           assert '"nonCombat" to "true"' in an_nhien
           assert '"canUseWeapons" to "false"' in an_nhien
           an_start = skill_catalog.index('private val anNhien = listOf(')
