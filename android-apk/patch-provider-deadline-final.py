@@ -37,7 +37,7 @@ gemini_block = gemini_block.replace(
 text = text[:gemini_start] + gemini_block + text[gemini_end:]
 
 # Provider order is intentionally kept compatible with the approved fast path:
-# LUNA first, then the five-key Gemini matrix, SOL, and Haku.
+# LUNA first when configured, then the five-key Gemini matrix, SOL, and Haku.
 luna_http = r'''  private String postJsonLunaFast(String endpoint, String key, String authHeader, JSONObject payload) throws Exception {
     HttpURLConnection connection = (HttpURLConnection) new URL(endpoint).openConnection();
     connection.setRequestMethod("POST");
@@ -291,4 +291,4 @@ if '.put("temperature", temperature)' in policy:
     raise RuntimeError("Gemini 3.6 text policy still sends deprecated temperature")
 
 MAIN.write_text(text, encoding="utf-8")
-print("Android provider runtime: LUNA primary -> five-key Gemini matrix -> SOL -> Haku, with credentials injected from CI secrets.")
+print("Android provider runtime: optional LUNA primary -> five-key Gemini matrix -> SOL -> Haku, with credentials injected from CI secrets.")
