@@ -8,3 +8,7 @@ Backroom 1.1.63.0.1 Debug
 - Backport hệ thống giao diện 1.1.99: bố cục fullscreen, menu quản lý dạng bottom sheet và khung Action cố định ở đáy màn hình.
 - Giữ ba nút Tìm kiếm / Thực hiện / Khám phá ngay trong khung Action; ô nhập hành động chỉ mở dạng popup khi nhấn Thực hiện.
 - Chuẩn hóa bo góc các thành phần giao diện xuống 7px, bao gồm Snapshot, nút, card và các sheet chính.
+- Backport hệ thống 5D6 Poker Dice từ 1.1.99 vào combat hiện tại: 5 xúc xắc, HOLD, tối đa 3 lần ROLL, hand được lưu trong Game State để reload không tạo reroll miễn phí.
+- Thêm Shared Core và Core Stats STR / DEF / SKL / VIT. Core stat base 5 giữ nguyên toàn bộ balance hiện tại; nâng Core nhân lên projection stat/equipment của phiên bản 1.1.63.0.1 thay vì thay thế hệ trang bị.
+- Entity bị hạ trong Pressure Combat thưởng 2 Core; Core upgrade không tăng Turn và bị khóa trong combat. Character Detail hiển thị Core balance, multiplier và chi phí nâng kế tiếp.
+- Combat Dice dùng bottom sheet 7px phù hợp giao diện mới. TẤN CÔNG / NÉ TRÁNH / BỎ CHẠY mở Poker Dice trước khi resolve, trong khi Party attack, skill và ultimate hiện tại vẫn được giữ.
