@@ -1,0 +1,7 @@
+Backroom 1.1.63.0.1 Debug
+
+- Bump APK từ 1.1.63 lên 1.1.63.0.1 với versionCode 66.
+- Giữ nguyên gameplay/canon của baseline 1.1.63.
+- Giữ provider runtime theo thứ tự Gehihi -> Gemini K1-K5 -> Haku -> SOL.
+- Sửa Snapshot runtime để không còn ghi đè khung 300px xuống 230px; khung phát hành giữ height 300px, margin 8px 10px 10px và bo góc 10px.
+- Giữ toàn bộ verification contracts, unit tests, APK signature, launcher và 16 KB alignment trước khi phát hành.
