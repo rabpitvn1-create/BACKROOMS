@@ -324,22 +324,35 @@ CATALOG.write_text(catalog, encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
-# 4) Keep labels compact; only the hidden command payload becomes Party-wide.
+# 4) UI compatibility. Older builds expose Attack / Evade / Flee buttons and need
+# Party-wide hidden payloads. Direct Poker Combat intentionally has no selector,
+# so there is nothing to rewrite at this layer.
 # ---------------------------------------------------------------------------
 html = INDEX.read_text(encoding="utf-8")
-html = replace_once(html, "action:'Tấn công'", "action:'Cả Party cùng tấn công'", "Attack Party command payload")
-html = replace_once(html, "action:'Né tránh'", "action:'Cả Party cùng né tránh'", "Evade Party command payload")
-html = replace_once(html, "action:'Bỏ chạy'", "action:'Cả Party cùng bỏ chạy'", "Flee Party command payload")
-for marker in (
-    "label:'TẤN CÔNG'",
-    "label:'NÉ TRÁNH'",
-    "label:'BỎ CHẠY'",
-    "action:'Cả Party cùng tấn công'",
-    "action:'Cả Party cùng né tránh'",
-    "action:'Cả Party cùng bỏ chạy'",
-):
-    if marker not in html:
-        raise RuntimeError("Party combat action-bar contract missing: " + marker)
+if "DIRECT_COMBAT_GATE_V1" in html:
+    for retired in (
+        "label:'TẤN CÔNG'",
+        "label:'NÉ TRÁNH'",
+        "label:'BỎ CHẠY'",
+        "dataset.combatAction",
+        "function submitCombat(action)",
+    ):
+        if retired in html:
+            raise RuntimeError("Retired combat selector survived direct-combat gate: " + retired)
+else:
+    html = replace_once(html, "action:'Tấn công'", "action:'Cả Party cùng tấn công'", "Attack Party command payload")
+    html = replace_once(html, "action:'Né tránh'", "action:'Cả Party cùng né tránh'", "Evade Party command payload")
+    html = replace_once(html, "action:'Bỏ chạy'", "action:'Cả Party cùng bỏ chạy'", "Flee Party command payload")
+    for marker in (
+        "label:'TẤN CÔNG'",
+        "label:'NÉ TRÁNH'",
+        "label:'BỎ CHẠY'",
+        "action:'Cả Party cùng tấn công'",
+        "action:'Cả Party cùng né tránh'",
+        "action:'Cả Party cùng bỏ chạy'",
+    ):
+        if marker not in html:
+            raise RuntimeError("Party combat action-bar contract missing: " + marker)
 INDEX.write_text(html, encoding="utf-8")
 
 
