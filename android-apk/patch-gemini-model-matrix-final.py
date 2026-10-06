@@ -330,4 +330,4 @@ for required in [
         raise RuntimeError(f"Gemini model matrix marker missing: {required}")
 
 MAIN.write_text(text, encoding="utf-8")
-print("Android Gemini matrix enabled: Writer 3.6 -> 3.5 -> Lite across five keys; Auditor Lite -> 3.5; classified circuit breaking before Luna.")
+print("Android Gemini matrix enabled: Writer 3.6 -> 3.5 -> Lite across five keys; Auditor Lite -> 3.5; classified circuit breaking across Gemini lanes.")

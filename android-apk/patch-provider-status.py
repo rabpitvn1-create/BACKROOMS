@@ -30,7 +30,7 @@ index = INDEX.read_text(encoding="utf-8")
 
 provider_callback = (
     '      "window.requestSnapshot=requestSnapshot;" +\n'
-    '      "window.__backroomProvider=\'Gemini\';window.backroomProvider=function(provider){window.__backroomProvider=provider||\'AI\';var s=document.getElementById(\'status\');if(s)s.textContent=window.__backroomProvider+\' đang xử lý lượt…\';var p=document.querySelector(\'[data-pending=\\\\\\"1\\\\\\"]:not(.player) .text\');if(p)p.textContent=window.__backroomProvider+\' đang xử lý lượt…\';};" +\n'
+    '      "window.__backroomProvider=\'Gehihi\';window.backroomProvider=function(provider){window.__backroomProvider=provider||\'AI\';var s=document.getElementById(\'status\');if(s)s.textContent=window.__backroomProvider+\' đang xử lý lượt…\';var p=document.querySelector(\'[data-pending=\\\\\\"1\\\\\\"]:not(.player) .text\');if(p)p.textContent=window.__backroomProvider+\' đang xử lý lượt…\';};" +\n'
 )
 if "window.__backroomProvider='Gehihi'" not in main:
     main = replace_required(main, '      "window.requestSnapshot=requestSnapshot;" +\n', provider_callback, "provider status callback")
