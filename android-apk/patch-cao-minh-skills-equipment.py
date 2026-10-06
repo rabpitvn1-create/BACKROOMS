@@ -219,6 +219,8 @@ edit(tests / 'PokerDiceCoreBackportTest.kt', 'assertEquals(154, effective.maxHp)
 edit(tests / 'PokerDiceCoreBackportTest.kt', 'assertEquals(105, result.state.characters.getValue(KAI_ID).vitalState.currentHp)', 'assertEquals(118, result.state.characters.getValue(KAI_ID).vitalState.currentHp)')
 edit(tests / 'InventoryCapacityNewGameTest.kt', 'assertEquals(2, InventoryCapacityPolicy.usedSlots(equip.state, KAI_ID))', 'assertEquals(1, InventoryCapacityPolicy.usedSlots(equip.state, KAI_ID))')
 edit(tests / 'InventoryCapacityNewGameTest.kt', 'assertTrue(InventoryCapacityPolicy.consumesSlot(equip.state, KAI_ID, KAI_BLACKBLOOD_ARMOR_ID))', 'assertFalse(InventoryCapacityPolicy.consumesSlot(equip.state, KAI_ID, KAI_BLACKBLOOD_ARMOR_ID))')
+edit(tests / 'InventoryCapacityNewGameTest.kt', 'assertEquals(6, kai.equipment.values.toSet().size)', 'assertEquals(3, kai.equipment.values.toSet().size)')
+edit(tests / 'InventoryCapacityNewGameTest.kt', 'assertTrue(kai.inventoryDetails.count { it.equipped } >= 6)', 'assertEquals(3, kai.inventoryDetails.count { it.equipped })')
 path = tests / 'CombatRuntimeTest.kt'
 text = path.read_text(encoding='utf-8').replace('assertEquals(140, expectedMaxHp)', 'assertEquals(175, expectedMaxHp)').replace('24/24 phát trúng liên tiếp', '24/24 trảm trúng liên tiếp').replace('mỗi phát -10 HP', 'mỗi trảm -36 HP').replace('tổng -240 HP', 'tổng -864 HP')
 path.write_text(text, encoding='utf-8')
