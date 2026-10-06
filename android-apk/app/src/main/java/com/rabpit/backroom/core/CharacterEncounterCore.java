@@ -14,7 +14,7 @@ final class CharacterEncounterCore {
   static final int MAX_COMPANIONS = 3;
   static final int RARE_ENCOUNTER_BOUND = 4000;
   static final double LUCIA_LEVEL_ZERO_PERCENT = 10.0d;
-  static final double LUC_TRAM_REUNION_PERCENT = 0.25d;
+  static final double LUC_TRAM_REUNION_PERCENT = 1.0d;
 
   private static final String ENCOUNTER_STATE = "characterEncounter";
   private static final String PENDING_INTRO = "pendingIntro";
@@ -242,7 +242,7 @@ final class CharacterEncounterCore {
       return "CHARACTER ENCOUNTER CORE:\n" +
           "Joined: " + listText(joined) + ".\n" +
           "Lucia Lục eligibility: 10% first-contact candidate on Level 0 only; Lucia Lục is NOT Lục Trầm.\n" +
-          "Lục Trầm eligibility: 0.25% reunion candidate only after Level 0; Core owns the roll.\n" +
+          "Lục Trầm eligibility: 1% reunion candidate only after Level 0; Core owns the roll.\n" +
           "Encounter pool not met: " + listText(randomNotMet) + ".\n" +
           "Just encountered: " + (recent.isEmpty() ? "none" : recent) + ".\n" +
           "Pending intro/reunion: " + (pendingNames.isEmpty() ? "none" : pendingNames) + ".\n" +

@@ -40,7 +40,7 @@ public class CharacterEncounterCoreTest {
 
     JSONObject levelOne = state(1, 1).put(LevelCore.LEVEL_KEY, "1");
     JSONArray one = core.situationCandidates(levelOne);
-    assertCandidateRate(one, "character:luc_tram", 0.25d);
+    assertCandidateRate(one, "character:luc_tram", 1.0d);
     JSONObject luc = findCandidate(one, "character:luc_tram");
     assertEquals("canon:luc_tram:after_level_0", luc.getString("eligibilityRuleId"));
     assertTrue(luc.getJSONArray("tags").toString().contains("REUNION"));
@@ -170,7 +170,7 @@ public class CharacterEncounterCoreTest {
     assertFalse(prompt.contains("Syvial: nữ kiếm sĩ siêu nhiên"));
     assertFalse(prompt.contains("Lục Trầm: Chính Đạo"));
     assertFalse(prompt.contains("10%"));
-    assertFalse(prompt.contains("0.25%"));
+    assertFalse(prompt.contains("1%"));
     assertFalse(prompt.contains("Encounter pool"));
   }
 

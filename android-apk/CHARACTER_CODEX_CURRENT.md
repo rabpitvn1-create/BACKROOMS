@@ -143,7 +143,7 @@ Các chi tiết giống cơ khí trên Kiếm Khải chỉ là hình thức củ
 
 ### Backrooms và encounter
 
-Lục Trầm rơi vào Level 0 ở vị trí khác Cao Minh và không gặp hắn ngay tại đây. Runtime giữ **0.25% encounter roll** nhưng chỉ cho phép tái ngộ sau khi đã rời Level 0; Gemini không được tự spawn hoặc mutate Party.
+Lục Trầm rơi vào Level 0 ở vị trí khác Cao Minh và không gặp hắn ngay tại đây. Runtime giữ **1% encounter roll** nhưng chỉ cho phép tái ngộ sau khi đã rời Level 0; Gemini không được tự spawn hoặc mutate Party.
 
 Khi tái ngộ, hai người phải nhận ra nhau từ thế giới cũ và bắt đầu trong trạng thái cảnh giác/thù địch. Không cho Lục Trầm tự biết Entity, Level, Almond Water hoặc quy luật Backrooms nếu chưa quan sát, được cung cấp thông tin hoặc suy luận có căn cứ.
 
