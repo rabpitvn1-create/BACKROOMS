@@ -1319,6 +1319,8 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
       if (remaining == 0) entity.put("bleedPercent", 0);
       addFeedback(combat, "actor", "entity", "damage", "-" + damage + " HP", true,
           false, "Chảy máu");
+      JSONArray statusFeedback = combat.getJSONArray("feedbackEvents");
+      statusFeedback.getJSONObject(statusFeedback.length() - 1).put("damageSource", "status");
     }
 
     if (entity.optInt("hp", 0) > 0) {
@@ -1332,6 +1334,8 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
         if (remaining == 0) entity.put("poisonPercent", 0);
         addFeedback(combat, "actor", "entity", "damage", "-" + damage + " HP", true,
             false, "Trúng độc");
+        JSONArray statusFeedback = combat.getJSONArray("feedbackEvents");
+        statusFeedback.getJSONObject(statusFeedback.length() - 1).put("damageSource", "status");
       }
     }
 

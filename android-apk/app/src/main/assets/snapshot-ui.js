@@ -108,6 +108,7 @@ if(typeof module!=='undefined'&&module.exports)module.exports=SnapshotOverlayLay
   window.__backroomEnhancements=true;
   var st=document.createElement('style');
   st.textContent='button{transition:transform 80ms ease,background 120ms ease,border-color 120ms ease;touch-action:manipulation;-webkit-tap-highlight-color:rgba(255,255,255,.12)}button:active:not(:disabled){transform:scale(.965);background:#303840;border-color:#77828c}button:disabled{opacity:.48;cursor:not-allowed}.snapshot-placeholder{display:grid;place-items:center;gap:7px;text-align:center;color:#69737c}.snapshot-placeholder b{font-size:12px;letter-spacing:.16em}.snapshot-placeholder small{color:#56616a}.message.pending{opacity:.72}.message.pending .text{color:#aeb7be}.snapshot{position:relative;overflow:hidden;isolation:isolate}.snapshot>img.snapshot-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}.snapshot>img.snapshot-bg-fade{animation:snapshot-bg-fade 350ms ease-in-out both}@keyframes snapshot-bg-fade{from{opacity:0}to{opacity:1}}@media(prefers-reduced-motion:reduce){.snapshot>img.snapshot-bg-fade{animation-duration:1ms}}.snapshot>img.snapshot-map{object-fit:contain;background:#050607}.snapshot-route-streak{position:absolute;left:10px;top:10px;z-index:6;width:118px;height:42px;box-sizing:border-box;display:grid;grid-template-columns:27px minmax(0,1fr);grid-template-rows:13px 19px 3px;column-gap:7px;align-items:center;padding:5px 9px 5px 7px;pointer-events:none;color:#e8dfbd;background:transparent;border:0;clip-path:none;text-shadow:0 1px 2px #000,0 0 5px rgba(0,0,0,.85);isolation:isolate}.snapshot-route-streak.is-ready{filter:drop-shadow(0 0 4px rgba(189,169,72,.22))}.snapshot-route-exit{grid-column:1;grid-row:1/4;width:25px;height:30px;align-self:center;color:#cfc592;opacity:.92;filter:drop-shadow(0 1px 1px #000)}.snapshot-route-exit svg{display:block;width:100%;height:100%;overflow:visible}.snapshot-route-label{grid-column:2;grid-row:1;font:700 7px/1 Play,"Pretendard Std",system-ui,sans-serif;letter-spacing:.18em;color:#bcb48d;text-transform:uppercase;white-space:nowrap}.snapshot-route-value{grid-column:2;grid-row:2;font:700 17px/.95 Play,"Pretendard Std",system-ui,sans-serif;letter-spacing:.02em;color:#eee6c6;white-space:nowrap}.snapshot-route-value small{font-size:10px;color:#aaa382;letter-spacing:.01em}.snapshot-route-track{grid-column:2;grid-row:3;align-self:end;height:1px;background:rgba(150,145,111,.26);overflow:hidden}.snapshot-route-fill{display:block;height:100%;background:linear-gradient(90deg,#8e874f,#d6c86f);box-shadow:0 0 4px rgba(214,200,111,.28)}@media(max-width:320px){.snapshot-route-streak{left:8px;top:8px;width:108px;height:39px;grid-template-columns:24px minmax(0,1fr);padding:4px 8px 4px 6px}.snapshot-route-exit{width:22px;height:27px}.snapshot-route-value{font-size:16px}}.snapshot>img.snapshot-grounded{position:absolute;left:auto;right:2.5%;top:8%;width:auto;height:84%;max-width:95%;max-height:none;object-fit:contain;pointer-events:none;transform:none}.snapshot>img.snapshot-character{z-index:4;filter:drop-shadow(0 0 10px rgba(0,0,0,.45))}.snapshot>img.snapshot-entity{left:2.5%;right:auto;max-width:46%;z-index:3;filter:drop-shadow(0 0 10px rgba(0,0,0,.55));transition:filter 120ms ease,opacity 120ms ease}.snapshot>img.snapshot-entity-active{filter:drop-shadow(0 0 14px rgba(238,222,154,.68)) brightness(1.06)}.snapshot-character-placeholder{position:absolute;right:2.5%;bottom:8%;width:38%;height:84%;z-index:4;pointer-events:none;opacity:.46;filter:drop-shadow(0 0 10px rgba(0,0,0,.5))}.snapshot-character-placeholder:before{content:"";position:absolute;left:50%;top:2%;width:27%;aspect-ratio:1;border-radius:50%;transform:translateX(-50%);background:#fff}.snapshot-character-placeholder:after{content:"";position:absolute;left:13%;right:13%;bottom:0;height:78%;background:#fff;clip-path:polygon(38% 0,62% 0,72% 10%,82% 25%,88% 51%,76% 100%,24% 100%,12% 51%,18% 25%,28% 10%);border-radius:18% 18% 9% 9%}.snapshot-combat-character{transform-origin:50% 62%;backface-visibility:hidden}.snapshot-combat-enter{animation:combat-overlay-enter .18s ease-out}.combat-turn-out{animation:combat-turn-out .22s ease-in forwards;transform-origin:50% 62%;backface-visibility:hidden}.combat-turn-in{animation:combat-turn-in .22s ease-out .22s both;transform-origin:50% 62%;backface-visibility:hidden}.combat-shatter-layer{position:absolute;z-index:7;pointer-events:none;overflow:visible}.combat-shard{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none;animation:combat-shard-break 1.35s linear forwards;animation-delay:var(--delay,0ms)}.combat-hit-flash{animation:combat-hit-flash .14s ease-out!important}.combat-float{position:absolute;z-index:8;pointer-events:none;transform:translate(-50%,0);display:flex;flex-direction:column;align-items:center;gap:2px;font-family:Play,"Pretendard Std",system-ui,sans-serif;font-weight:700;font-size:19px;color:#f4f7fa;white-space:nowrap;text-shadow:0 2px 3px #000,0 0 6px #000;animation:combat-float-up 1.6s ease-out forwards}.combat-float-value{display:inline-flex;align-items:center;gap:5px;padding:1px 4px;border-radius:5px}.combat-float--critical{font-size:24px;font-weight:800;color:#ffd166;text-shadow:0 2px 3px #000,0 0 9px rgba(255,176,48,.72);animation:combat-float-crit 1.6s cubic-bezier(.16,.82,.24,1) forwards}.combat-float--critical .combat-float-value:before{content:"CRIT";font-size:9px;line-height:1;letter-spacing:.12em;color:#ffe7a3;background:#7b2d18;border:1px solid #ff9f43;padding:3px 4px;border-radius:4px;text-shadow:none}.combat-float-status{font:800 9px/1 Play,"Pretendard Std",system-ui,sans-serif;letter-spacing:.08em;padding:3px 6px;border-radius:999px;border:1px solid currentColor;background:rgba(8,10,12,.88);box-shadow:0 2px 7px rgba(0,0,0,.55);text-shadow:none}.combat-float--normal:not(.combat-float--critical) .combat-float-value{font-size:9px;line-height:1;font-weight:800}.combat-float-status--normal{color:#f4f7fa}.combat-float--status:not(.combat-float--critical) .combat-float-value{font-size:9px;line-height:1;font-weight:800}.combat-float--status-bleed:not(.combat-float--critical) .combat-float-value{color:#ff7777}.combat-float--status-poison:not(.combat-float--critical) .combat-float-value{color:#c38cff}.combat-float--status-stun:not(.combat-float--critical) .combat-float-value{color:#ffe066}.combat-float--status-armor:not(.combat-float--critical) .combat-float-value{color:#72c7ff}.combat-float--status-disorient:not(.combat-float--critical) .combat-float-value{color:#8fe3d1}.combat-float-status--bleed{color:#ff7777}.combat-float-status--poison{color:#c38cff}.combat-float-status--stun{color:#ffe066}.combat-float-status--armor{color:#72c7ff}.combat-float-status--disorient{color:#8fe3d1}@keyframes combat-hit-flash{0%,100%{opacity:1}50%{filter:brightness(0) invert(1) drop-shadow(0 0 8px #fff);opacity:1}}@keyframes combat-float-up{0%{opacity:0;transform:translate(-50%,8px) scale(.96)}12%{opacity:1}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-34px) scale(1.04)}}@keyframes combat-float-crit{0%{opacity:0;transform:translate(-50%,10px) scale(.72)}9%{opacity:1;transform:translate(-50%,1px) scale(1.18)}20%{transform:translate(-50%,-3px) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-42px) scale(1.05)}}@keyframes combat-overlay-enter{from{opacity:0}to{opacity:1}}@keyframes combat-turn-out{0%{opacity:1;transform:perspective(900px) rotateY(0deg) translateX(0)}100%{opacity:0;transform:perspective(900px) rotateY(-90deg) translateX(20px)}}@keyframes combat-turn-in{0%{opacity:0;transform:perspective(900px) rotateY(90deg) translateX(-20px)}100%{opacity:1;transform:perspective(900px) rotateY(0deg) translateX(0)}}@media(prefers-reduced-motion:reduce){.combat-turn-out,.combat-turn-in{animation-duration:1ms;animation-delay:0ms}}@keyframes combat-shard-break{0%{opacity:1;transform:translate(0,0) rotate(0deg) scale(1);filter:brightness(1);animation-timing-function:cubic-bezier(.72,0,.98,.28)}42%{opacity:1;transform:translate(var(--tx-slow),var(--ty-slow)) rotate(var(--rot-slow)) scale(.995);filter:brightness(1.08);animation-timing-function:cubic-bezier(.62,.02,.94,.34)}72%{opacity:1;transform:translate(var(--tx-mid),var(--ty-mid)) rotate(var(--rot-mid)) scale(.97);filter:brightness(1.3);animation-timing-function:cubic-bezier(.38,.18,.78,.55)}88%{opacity:.94;transform:translate(var(--tx-fast),var(--ty-fast)) rotate(var(--rot-fast)) scale(.91);filter:brightness(1.75);animation-timing-function:cubic-bezier(.12,.72,.18,1)}100%{opacity:0;transform:translate(var(--tx),var(--ty)) rotate(var(--rot)) scale(.82);filter:brightness(.65)}}.snapshot>img.snapshot-chest{position:absolute;left:50%;bottom:-5%;transform:translateX(-50%);width:auto;max-width:58%;height:92%;object-fit:contain;object-position:center bottom;z-index:3;pointer-events:none;filter:drop-shadow(0 10px 16px rgba(0,0,0,.65))}';
+  st.textContent+=' .combat-piercing-sword{position:absolute;left:0;top:0;z-index:2;pointer-events:none;transform-origin:0 0;filter:drop-shadow(0 0 3px rgba(255,255,255,.25))}.combat-impact-slash{position:absolute;z-index:9;width:112px;height:76px;pointer-events:none;animation:combat-impact-fade .24s ease-out forwards;filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}.combat-impact-slash svg{display:block;width:100%;height:100%;overflow:visible}.combat-green-blood,.combat-bullet-impact{position:absolute;z-index:8;pointer-events:none}.combat-green-blood{width:9px;height:14px;border-radius:65% 35% 55% 45%;background:#65e51b;box-shadow:inset 1px 0 #c0ff66;animation:combat-blood-spray .55s ease-out forwards}@keyframes combat-blood-spray{from{opacity:1;transform:translate(-50%,-50%) rotate(var(--turn))}to{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) rotate(var(--turn)) scale(.35)}}.combat-contact-burst{position:absolute;z-index:10;width:76px;height:76px;pointer-events:none;animation:combat-contact-pop .16s ease-out forwards}.combat-contact-burst svg{width:100%;height:100%}@keyframes combat-contact-pop{0%{opacity:1;scale:.5}30%{opacity:.95;scale:1}100%{opacity:0;scale:1.15}}.combat-bullet-impact{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle,#fff 0 12%,#ffc557 15% 26%,transparent 32%);box-shadow:0 0 6px #ffb84e;transform:translate(-50%,-50%);animation:combat-impact-fade .25s ease-out forwards}@keyframes combat-impact-fade{0%{opacity:1}100%{opacity:0}}';
   document.head.appendChild(st);
   var __overlayBoundsCache={};
   // Synchronous metadata avoids coupling any sprite to other images' load events.
@@ -314,11 +315,12 @@ if(typeof module!=='undefined'&&module.exports)module.exports=SnapshotOverlayLay
   }
 
   function combatTargetElement(target){var box=document.getElementById('snapshot');if(!box)return null;return target==='entity'?box.querySelector('.snapshot-entity'):box.querySelector('.snapshot-combat-character');}
-  function targetAnchor(target){
+  function targetAnchor(target,entityKey){
     var box=document.getElementById('snapshot'),el=null;
     if(target==='entity'&&box){
-      var requested=normalizeEntityKey(window.__combatVisualEntityKey||activeEntityKey()),entities=box.querySelectorAll('img.snapshot-entity');
+      var requested=normalizeEntityKey(entityKey||window.__combatVisualEntityKey||activeEntityKey()),entities=box.querySelectorAll('img.snapshot-entity');
       for(var i=0;entities&&i<entities.length;i++){if(String(entities[i].dataset.entityKey||'')===requested){el=entities[i];break;}}
+      if(!el&&entityKey)return null;
       if(!el&&entities&&entities.length)el=entities[0];
     }else el=combatTargetElement(target);
     if(!box||!el)return null;
@@ -417,16 +419,16 @@ if(typeof module!=='undefined'&&module.exports)module.exports=SnapshotOverlayLay
     if(value==='Mất phương hướng')return {label:'MẤT PHƯƠNG HƯỚNG',key:'disorient'};
     return null;
   }
-  window.backroomPlayCombatFeedback=function(event){
+  function showCombatImpact(event,anchor){
     try{
       var e=event||{},text=String(e.text||'').trim();if(!/^-\d+ HP$/i.test(text))return;
-      var target=e.target==='entity'?'entity':'actor',anchor=targetAnchor(target);if(!anchor)return;
+      var target=e.target==='entity'?'entity':'actor';if(!anchor)return;
       if(e.flash){
         anchor.el.classList.remove('combat-hit-flash');void anchor.el.offsetWidth;anchor.el.classList.add('combat-hit-flash');
         setTimeout(function(){anchor.el&&anchor.el.classList.remove('combat-hit-flash');},170);
       }
       var lane=anchor.box.querySelectorAll('.combat-float[data-target="'+target+'"]').length;
-      var floater=document.createElement('div');floater.className='combat-float';floater.dataset.target=target;
+      var floater=document.createElement('div');floater.className='combat-float';floater.dataset.target=target;floater.dataset.fxBorn=Date.now();
       if(e.critical===true)floater.classList.add('combat-float--critical');
       var value=document.createElement('span');value.className='combat-float-value';value.textContent=text;floater.appendChild(value);
       var status=combatStatusVisual(e.status);
@@ -440,7 +442,119 @@ if(typeof module!=='undefined'&&module.exports)module.exports=SnapshotOverlayLay
       floater.style.left=anchor.x+'px';floater.style.top=(anchor.y-lane*38)+'px';anchor.box.appendChild(floater);
       floater.addEventListener('animationend',function(){floater.remove();},{once:true});setTimeout(function(){floater.remove();},1800);
     }catch(_){}
+  }
+
+  var combatHitSerial=0,combatAlphaCache={};
+  var combatSwordAssets={cao_minh:['CAO_MINH_SWORD.webp',363,1513,1,1507],luc_tram:['LUC_TRAM_SWORD_VERTICAL.webp',427,1280,3,1245]};
+  function combatSilhouette(anchor){
+    var el=anchor.el,br=anchor.box.getBoundingClientRect(),er=el.getBoundingClientRect();
+    var alpha=combatAlphaCache[el.src];
+    if(!alpha&&el.complete&&el.naturalWidth){
+      try{var c=document.createElement('canvas');c.width=128;c.height=Math.round(128*el.naturalHeight/el.naturalWidth);
+        var ctx=c.getContext('2d');ctx.drawImage(el,0,0,c.width,c.height);
+        alpha={w:c.width,h:c.height,data:ctx.getImageData(0,0,c.width,c.height).data};combatAlphaCache[el.src]=alpha;
+      }catch(_){} // ponytail: tainted canvases use measured paint bounds; alpha layering still occludes the sword.
+    }
+    var left=er.left-br.left,top=er.top-br.top;
+    function solid(x,y){
+      if(alpha){var px=Math.floor((x-left)/er.width*alpha.w),py=Math.floor((y-top)/er.height*alpha.h);
+        return px>=0&&px<alpha.w&&py>=0&&py<alpha.h&&alpha.data[(py*alpha.w+px)*4+3]>128;}
+      return x>=left+Number(el.dataset.visibleLeftPx||0)&&x<=left+Number(el.dataset.visibleRightPx||er.width)&&
+        y>=top+Number(el.dataset.visibleTopPx||0)&&y<=top+Number(el.dataset.visibleBottomPx||er.height);
+    }
+    // Choose real opaque flesh near the visual center, rather than transparent sprite padding.
+    var x=anchor.x,y=top+Number(el.dataset.visibleTopPx||0)+(Number(el.dataset.visibleBottomPx||er.height)-Number(el.dataset.visibleTopPx||0))*.52;
+    if(!solid(x,y)&&alpha){var best=Infinity;
+      for(var py=0;py<alpha.h;py++)for(var px=0;px<alpha.w;px++)if(alpha.data[(py*alpha.w+px)*4+3]>128){
+        var sx=left+(px+.5)/alpha.w*er.width,sy=top+(py+.5)/alpha.h*er.height,d=(sx-x)*(sx-x)+(sy-y)*(sy-y);
+        if(d<best){best=d;anchor.x=sx;anchor.y=sy;}}
+      x=anchor.x;y=anchor.y;
+    }
+    anchor.x=x;anchor.y=y;
+    return {solid:solid,extent:Math.ceil(Math.hypot(er.width,er.height))};
+  }
+  function combatPiercingPath(anchor,serial){
+    // Approach from the facing side only, varying 25 angles across a 160-degree fan.
+    var mask=combatSilhouette(anchor),angle=Math.PI+(((serial*11+12)%25)-12)*Math.PI/27,d=[Math.cos(angle),Math.sin(angle)],first=0,last=0;
+    for(var t=-mask.extent;t<=mask.extent;t++)if(mask.solid(anchor.x+d[0]*t,anchor.y+d[1]*t)){first=Math.min(first,t);last=Math.max(last,t);}
+    return {dx:d[0],dy:d[1],entry:{x:anchor.x+d[0]*first,y:anchor.y+d[1]*first},
+      exit:{x:anchor.x+d[0]*last,y:anchor.y+d[1]*last},length:anchor.box.clientHeight*.84,angle:Math.atan2(d[1],d[0])*180/Math.PI-90};
+  }
+  function combatContactFx(anchor,path,sword){
+    var point=sword?path.entry:{x:anchor.x,y:anchor.y},box=anchor.box;
+    var hit=document.createElement('i');hit.className=sword?'combat-impact-slash':'combat-bullet-impact';
+    hit.dataset.fxBorn=Date.now();hit.style.left=point.x+'px';hit.style.top=point.y+'px';
+    if(sword){
+      hit.style.transform='translate(-50%,-50%) rotate('+(path.angle-45)+'deg)';
+      hit.innerHTML='<svg viewBox="-60 -40 120 80" aria-hidden="true"><path d="M-56 30 Q-17-32 55-26 Q-8-14-56 30Z" fill="#aeb8b9" opacity=".22"/><path d="M-54 27 Q-10-47 55-21 Q-12-23-54 27Z" fill="#f5f1df"/><path d="M-50 24 Q-9-43 49-21 Q-8-30-50 24Z" fill="#fff"/><path d="M-39 20 Q-2-14 34-16" fill="none" stroke="#e6e3d4" stroke-width=".65" opacity=".48"/></svg>';
+    }
+    box.appendChild(hit);setTimeout(function(){hit.remove();},450);
+    if(sword){
+      var direction=(path.angle+90)*Math.PI/180,dx=Math.cos(direction),dy=Math.sin(direction);
+      if(anchor.el._combatRecoil)anchor.el._combatRecoil.cancel();
+      anchor.el.dataset.fxBorn=Date.now();
+      anchor.el._combatRecoil=anchor.el.animate([
+        {translate:'0px 0px'},{translate:(dx*7)+'px '+(dy*7)+'px',offset:.16},
+        {translate:(-dx*2)+'px '+(-dy*2)+'px',offset:.55},{translate:'0px 0px'}
+      ],{duration:170,easing:'ease-out'});
+      var burst=document.createElement('i');burst.className='combat-contact-burst';burst.dataset.fxBorn=Date.now();
+      burst.style.left=point.x+'px';burst.style.top=point.y+'px';
+      burst.style.transform='translate(-50%,-50%) rotate('+direction+'rad)';
+      burst.innerHTML='<svg viewBox="-50 -50 100 100" aria-hidden="true"><path d="M-32-3 -9-7 -17-25 0-12 12-33 10-10 39-17 17 0 42 8 12 9 17 29 1 13 -15 33 -10 9 -38 16 -20 2Z" fill="#dfffa6" opacity=".8"/><path d="M-17-2 -3-5 1-17 5-4 22 0 6 5 1 17 -4 5Z" fill="#fff"/></svg>';
+      box.appendChild(burst);setTimeout(function(){burst.remove();},180);
+    }
+    if(sword)for(var i=0;i<44;i++){
+      var blood=document.createElement('i');blood.className='combat-green-blood';blood.dataset.fxBorn=Date.now();blood.style.left=point.x+'px';blood.style.top=point.y+'px';
+      var angle=direction+(i%11-5)*.18+(i<33?0:Math.PI),distance=50+(i*23%110);
+      var bx=Math.cos(angle)*distance,by=Math.sin(angle)*distance+24;
+      blood.style.width=(i%4===0?8:3+i%4)+'px';blood.style.height=(i%4===0?13:17+i%9)+'px';
+      blood.style.setProperty('--turn',Math.atan2(by,bx)*180/Math.PI-90+'deg');
+      blood.style.setProperty('--dx',Math.round(bx)+'px');blood.style.setProperty('--dy',Math.round(by)+'px');
+      box.appendChild(blood);(function(b){setTimeout(function(){b.remove();},600);})(blood);
+    }
+  }
+  window.backroomPlayCombatFeedback=function(event){
+    var e=event||{};if(!/^-\d+ HP$/i.test(String(e.text||'').trim()))return;
+    var anchor=targetAnchor(e.target==='entity'?'entity':'actor',e.entityKey);if(!anchor)return;
+    var c=state&&state.combat,a=c&&c.participants&&c.participants[Number(e.actorIndex)],id=normalizeActorId(a&&(a.id||a.name));
+    var attack=e.phase==='actor'&&e.target==='entity'&&e.kind==='damage'&&e.damageSource!=='status';
+    if(!attack){showCombatImpact(e,anchor);return;}
+    var asset=combatSwordAssets[id];
+    if(!asset){
+      if(id==='lucia'){combatSilhouette(anchor);combatContactFx(anchor,null,false);}
+      showCombatImpact(e,anchor);return;
+    }
+    var path=combatPiercingPath(anchor,combatHitSerial++),box=anchor.box,token=window.__combatAnimationToken;
+    var img=document.createElement('img');img.className='combat-piercing-sword';img.alt='';
+    var imageHeight=path.length*asset[2]/(asset[4]-asset[3]);
+    img.style.height=imageHeight+'px';img.style.width=(imageHeight*asset[1]/asset[2])+'px';img.dataset.visibleLength=path.length;
+    function pose(point){return 'translate('+point.x+'px,'+point.y+'px) rotate('+path.angle+'deg) translate(-50%,-'+(asset[4]/asset[2]*100)+'%)';}
+    var start={x:path.entry.x-path.dx*150,y:path.entry.y-path.dy*150};
+    var finish={x:path.exit.x+path.dx*(path.length+50),y:path.exit.y+path.dy*(path.length+50)};
+    img.style.transform=pose(start);img.style.opacity='0';box.appendChild(img);
+    var fired=false;
+    function launch(){
+      if(fired)return;fired=true;
+      if(!img.parentElement||token!==window.__combatAnimationToken){img.remove();return;}
+      var travel=150+Math.hypot(finish.x-path.entry.x,finish.y-path.entry.y);
+      var chord=Math.hypot(path.exit.x-path.entry.x,path.exit.y-path.entry.y);
+      var duration=Math.round(270*travel/(150+chord+34)),contact=Math.round(duration*150/travel);
+      img.style.opacity='1';
+      var animation=img.animate([{transform:pose(start)},{transform:pose(finish)}],{duration:duration,easing:'linear',fill:'forwards'});
+      img.dataset.entryX=path.entry.x;img.dataset.entryY=path.entry.y;img.dataset.exitX=path.exit.x;img.dataset.exitY=path.exit.y;
+      img.dataset.angle=path.angle;img.dataset.contactMs=contact;img.dataset.flightMs=duration;img.dataset.finishX=finish.x;img.dataset.finishY=finish.y;img.dataset.fxBorn=Date.now();
+      setTimeout(function(){if(img.parentElement&&token===window.__combatAnimationToken){combatContactFx(anchor,path,true);showCombatImpact(e,anchor);}},contact);
+      var exitContact=Math.round(duration*(150+chord)/travel);
+      setTimeout(function(){if(img.parentElement&&token===window.__combatAnimationToken)combatContactFx(anchor,{entry:path.exit,angle:path.angle},true);},exitContact);
+      setTimeout(function(){animation.cancel();img.remove();},duration+20);
+    }
+    img.addEventListener('load',launch,{once:true});
+    img.addEventListener('error',function(){if(fired)return;fired=true;img.remove();if(token===window.__combatAnimationToken)showCombatImpact(e,anchor);},{once:true});
+    img.src='file:///android_asset/'+asset[0];if(img.complete&&img.naturalWidth)launch();
+    // Preserve turn timing for unusually slow loads; preload assets at startup below.
+    setTimeout(function(){if(!fired){fired=true;img.remove();if(token===window.__combatAnimationToken)showCombatImpact(e,anchor);}},150);
   };
+  Object.keys(combatSwordAssets).forEach(function(key){try{var img=new Image();img.src='file:///android_asset/'+combatSwordAssets[key][0];}catch(_){}});
   var oldTurn=window.backroomTurn;window.backroomTurn=function(json){if(typeof oldTurn==='function')oldTurn(json);document.querySelectorAll('[data-pending="1"]').forEach(function(n){n.remove();});renderSnapshot();};
   var f=document.getElementById('form');if(f){f.addEventListener('submit',function(){if(document.body.classList.contains('player-action-open'))return;if(state&&state.combat&&state.combat.active)return;var a=document.getElementById('action');var text=state&&state.__uiDisplayAction?String(state.__uiDisplayAction).trim():(a?a.value.trim():'');if(!text)return;var l=document.getElementById('log');if(!l)return;var player=document.createElement('article');player.className='message player pending';player.setAttribute('data-pending','1');player.innerHTML='<div class="role">BẠN</div><div class="text"></div>';player.querySelector('.text').textContent=text;l.appendChild(player);var gm=document.createElement('article');gm.className='message pending';gm.setAttribute('data-pending','1');gm.innerHTML='<div class="role">GAME MASTER</div><div class="text">Đang xử lý lượt…</div>';l.appendChild(gm);scrollBottom();},true);}
   var __groundResizeTimer=0;

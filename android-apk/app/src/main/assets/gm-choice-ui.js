@@ -809,16 +809,29 @@
       return event&&event.phase===phase&&(entityIndex===undefined||entityIndex===null||Number(event.entityIndex)===Number(entityIndex));
     });
   }
+  function combatPhaseSchedule(events,phase,entityIndex){
+    var previous='',at=COMBAT_SWAP_MS;
+    return combatPhaseEvents(events,phase,entityIndex).map(function(event,index){
+      var key=String(event.entityKey||''),swap=phase==='actor'&&index>0&&key&&key!==previous;
+      if(index>0)at+=swap?COMBAT_PHASE_MS+COMBAT_SWAP_MS:COMBAT_EVENT_GAP_MS;
+      previous=key;return {event:event,at:at,swap:swap};
+    });
+  }
   function combatPhaseDuration(events,phase,entityIndex){
-    return COMBAT_SWAP_MS+COMBAT_PHASE_MS+Math.max(0,combatPhaseEvents(events,phase,entityIndex).length-1)*COMBAT_EVENT_GAP_MS;
+    var schedule=combatPhaseSchedule(events,phase,entityIndex);
+    return (schedule.length?schedule[schedule.length-1].at:COMBAT_SWAP_MS)+COMBAT_PHASE_MS;
   }
   function playCombatPhase(events,phase,entityIndex){
     var token=window.__combatAnimationToken;
-    combatPhaseEvents(events,phase,entityIndex).forEach(function(event,index){
+    combatPhaseSchedule(events,phase,entityIndex).forEach(function(item){
+      if(item.swap)setTimeout(function(){
+        if(token===window.__combatAnimationToken&&typeof window.backroomSetCombatVisualActor==='function')
+          window.backroomSetCombatVisualActor(item.event.actorIndex,item.event.entityKey);
+      },item.at-COMBAT_SWAP_MS);
       setTimeout(function(){
         if(token!==window.__combatAnimationToken)return;
-        if(typeof window.backroomPlayCombatFeedback==='function')window.backroomPlayCombatFeedback(event);
-      },COMBAT_SWAP_MS+index*COMBAT_EVENT_GAP_MS);
+        if(typeof window.backroomPlayCombatFeedback==='function')window.backroomPlayCombatFeedback(item.event);
+      },item.at);
     });
   }
 

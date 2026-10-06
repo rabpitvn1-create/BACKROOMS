@@ -835,6 +835,7 @@ public class CombatChoiceEngineTest {
     assertTrue(combat.getJSONObject("diceState").getBoolean("resolved"));
     assertFalse(combat.getBoolean("resolvedEntityTurn"));
     assertEquals(1, combat.getJSONArray("feedbackEvents").length());
+    assertEquals("status", combat.getJSONArray("feedbackEvents").getJSONObject(0).getString("damageSource"));
     assertFalse(state.getJSONArray("log").getJSONObject(0).has("battleLog"));
   }
 
@@ -858,6 +859,7 @@ public class CombatChoiceEngineTest {
     assertTrue(combat.getJSONObject("diceState").getBoolean("resolved"));
     assertFalse(combat.getBoolean("resolvedEntityTurn"));
     assertEquals(1, combat.getJSONArray("feedbackEvents").length());
+    assertEquals("status", combat.getJSONArray("feedbackEvents").getJSONObject(0).getString("damageSource"));
     assertFalse(state.getJSONArray("log").getJSONObject(0).has("battleLog"));
   }
 
