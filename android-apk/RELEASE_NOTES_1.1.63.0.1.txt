@@ -13,3 +13,5 @@ Backroom 1.1.63.0.1 Debug
 - Entity bị hạ trong Pressure Combat thưởng 2 Core; Core upgrade không tăng Turn và bị khóa trong combat. Character Detail hiển thị Core balance, multiplier và chi phí nâng kế tiếp.
 - Combat đi thẳng vào Poker Dice khi Entity encounter bắt đầu; bỏ hoàn toàn lớp chọn TẤN CÔNG / NÉ TRÁNH / BỎ CHẠY. Action bar thường được ẩn trong combat và tự trở lại sau khi encounter kết thúc.
 - FINISH trực tiếp resolve lượt combat theo hand hiện tại; Party attack, skill, ultimate và Core reward vẫn đi qua CombatRuntime hiện hành, không tạo thêm lựa chọn trung gian.
+- Port toàn bộ chất lượng animation/Dice UI 1.1.99 vào direct combat: 3D sprite 680ms, tung xúc xắc, bóng co giãn, stagger -55ms, settle 170ms, HOLD glow/seal, focus/press feedback và button glow; toàn bộ bo góc vẫn 7px theo giao diện mới.
+- FINISH giữ hand cuối trên màn hình 2 giây trước khi Core resolve, giữ reduced-motion fallback và dùng nguyên asset Dice của 1.1.99.

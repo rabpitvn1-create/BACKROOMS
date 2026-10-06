@@ -23,7 +23,7 @@ jobs:
       - name: Apply complete Android runtime patch chain
         run: |
           set -euo pipefail
-          scripts=(patch-provider-status.py patch-provider-key-pool.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py patch-ui-1.1.99-shell.py patch-poker-dice-core-backport.py)
+          scripts=(patch-provider-status.py patch-provider-key-pool.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py patch-ui-1.1.99-shell.py patch-poker-dice-core-backport.py patch-poker-dice-ui-119-polish.py)
           for script in "${scripts[@]}"; do
             echo "==> $script"
             python3 "android-apk/$script"
@@ -49,6 +49,18 @@ jobs:
               'id="pokerDiceModal"',
               'ensureDirectCombatDice',
               'DIRECT_COMBAT_ACTION',
+              'POKER_DICE_119_POLISH_R01',
+              'poker-die-shadow',
+              'poker-die-object',
+              'poker-die-hold-seal',
+              '@keyframes poker-die-3d',
+              '@keyframes poker-die-toss',
+              '@keyframes poker-die-shadow-roll',
+              '@keyframes poker-die-settle',
+              'DICE_ROLL_ANIMATION_MS=680',
+              'DICE_SETTLE_ANIMATION_MS=170',
+              'FINALIZE_PREVIEW_MS=2000',
+              'setProperty("--die-delay",String(index*-55)+"ms")',
               'Android.combatDicePrepare',
               'Android.combatDiceFinish',
           ):
@@ -108,6 +120,12 @@ jobs:
           grep -q 'POKER_DICE_CORE_BACKPORT_R01' "$html"
           grep -q 'pokerDiceModal' "$html"
           grep -q 'ensureDirectCombatDice' "$html"
+          grep -q 'POKER_DICE_119_POLISH_R01' "$html"
+          grep -q 'poker-die-shadow' "$html"
+          grep -q 'poker-die-hold-seal' "$html"
+          grep -q 'DICE_ROLL_ANIMATION_MS=680' "$html"
+          grep -q 'DICE_SETTLE_ANIMATION_MS=170' "$html"
+          grep -q 'FINALIZE_PREVIEW_MS=2000' "$html"
           ! grep -q "label:'TẤN CÔNG'" "$html"
           ! grep -q "label:'NÉ TRÁNH'" "$html"
           ! grep -q "label:'BỎ CHẠY'" "$html"

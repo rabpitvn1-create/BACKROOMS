@@ -61,7 +61,7 @@ jobs:
       - name: Apply Android runtime patch chain
         run: |
           set -euo pipefail
-          scripts=(patch-provider-status.py patch-provider-key-pool.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py patch-ui-1.1.99-shell.py patch-poker-dice-core-backport.py patch-cao-minh-identity-overlay.py)
+          scripts=(patch-provider-status.py patch-provider-key-pool.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py patch-ui-1.1.99-shell.py patch-poker-dice-core-backport.py patch-poker-dice-ui-119-polish.py patch-cao-minh-identity-overlay.py)
           for script in "${scripts[@]}"; do
             echo "==> $script"
             python3 "android-apk/$script"
@@ -101,6 +101,11 @@ jobs:
               ('border-radius:7px', html), ('hud/player_action_backrooms.png', html),
               ('POKER_DICE_CORE_BACKPORT_R01', html), ('id="pokerDiceModal"', html), ('CORE STATS', html),
               ('DIRECT_COMBAT_GATE_V1', html), ('ensureDirectCombatDice', html),
+              ('POKER_DICE_119_POLISH_R01', html), ('poker-die-shadow', html), ('poker-die-object', html),
+              ('poker-die-hold-seal', html), ('@keyframes poker-die-3d', html), ('@keyframes poker-die-toss', html),
+              ('@keyframes poker-die-shadow-roll', html), ('@keyframes poker-die-settle', html),
+              ('DICE_ROLL_ANIMATION_MS=680', html), ('DICE_SETTLE_ANIMATION_MS=170', html),
+              ('FINALIZE_PREVIEW_MS=2000', html), ('setProperty("--die-delay",String(index*-55)+"ms")', html),
               ('Android.combatDicePrepare', html), ('Android.coreUpgrade', html),
               ('object PokerDiceCore', poker), ('MAX_REROLLS = 3', poker), ('ENTITY_VICTORY_CORE = 2', poker),
               ('FOUR OF A KIND', poker), ('HELD_SEQUENCE_WEIGHT_BONUS', poker),
@@ -246,6 +251,12 @@ jobs:
           grep -q 'CORE STATS' apk-check/assets/index.html
           grep -q 'DIRECT_COMBAT_GATE_V1' apk-check/assets/index.html
           grep -q 'ensureDirectCombatDice' apk-check/assets/index.html
+          grep -q 'POKER_DICE_119_POLISH_R01' apk-check/assets/index.html
+          grep -q 'poker-die-shadow' apk-check/assets/index.html
+          grep -q 'poker-die-hold-seal' apk-check/assets/index.html
+          grep -q 'DICE_ROLL_ANIMATION_MS=680' apk-check/assets/index.html
+          grep -q 'DICE_SETTLE_ANIMATION_MS=170' apk-check/assets/index.html
+          grep -q 'FINALIZE_PREVIEW_MS=2000' apk-check/assets/index.html
           ! grep -q "label:'TẤN CÔNG'" apk-check/assets/index.html
           ! grep -q "label:'NÉ TRÁNH'" apk-check/assets/index.html
           ! grep -q "label:'BỎ CHẠY'" apk-check/assets/index.html
@@ -317,6 +328,10 @@ jobs:
           unzip -p Backroom-1.1.63.0.1-verified.apk assets/index.html | grep -q 'pokerDiceModal'
           unzip -p Backroom-1.1.63.0.1-verified.apk assets/index.html | grep -q 'DIRECT_COMBAT_GATE_V1'
           unzip -p Backroom-1.1.63.0.1-verified.apk assets/index.html | grep -q 'ensureDirectCombatDice'
+          unzip -p Backroom-1.1.63.0.1-verified.apk assets/index.html | grep -q 'POKER_DICE_119_POLISH_R01'
+          unzip -p Backroom-1.1.63.0.1-verified.apk assets/index.html | grep -q 'poker-die-shadow'
+          unzip -p Backroom-1.1.63.0.1-verified.apk assets/index.html | grep -q 'DICE_ROLL_ANIMATION_MS=680'
+          unzip -p Backroom-1.1.63.0.1-verified.apk assets/index.html | grep -q 'FINALIZE_PREVIEW_MS=2000'
           ! unzip -p Backroom-1.1.63.0.1-verified.apk assets/index.html | grep -q "label:'TẤN CÔNG'"
           ! unzip -p Backroom-1.1.63.0.1-verified.apk assets/index.html | grep -q "label:'NÉ TRÁNH'"
           ! unzip -p Backroom-1.1.63.0.1-verified.apk assets/index.html | grep -q "label:'BỎ CHẠY'"
