@@ -22,6 +22,10 @@ jobs:
       LUNA_API_KEY: ${{ secrets.LUNA_API_KEY }}
       LUNA_BASE_URL: https://api.vilao.ai/v1
       LUNA_MODEL: ${{ secrets.LUNA_MODEL }}
+      SOL_API_KEY: ${{ secrets.SOL_API_KEY }}
+      HAKU_API_KEY: ${{ secrets.HAKU_API_KEY }}
+      HAKU_BASE_URL: ${{ secrets.HAKU_BASE_URL || vars.HAKU_BASE_URL }}
+      HAKU_MODEL: ${{ secrets.HAKU_MODEL || vars.HAKU_MODEL }}
       GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 || secrets.GEMINI_API_KEY }}
       GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
       GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
@@ -49,9 +53,10 @@ jobs:
       - name: Validate Game Master configuration
         run: |
           set -euo pipefail
-          for name in GEMINI_API_KEY_1 GEMINI_API_KEY_2 GEMINI_API_KEY_3 GEMINI_API_KEY_4 GEMINI_API_KEY_5 LUNA_API_KEY LUNA_MODEL; do
+          for name in LUNA_API_KEY LUNA_MODEL GEMINI_API_KEY_1 GEMINI_API_KEY_2 GEMINI_API_KEY_3 GEMINI_API_KEY_4 GEMINI_API_KEY_5 SOL_API_KEY HAKU_API_KEY; do
             test -n "${!name:-}" || (echo "Missing GitHub Secret: $name" && exit 1)
           done
+          echo "Optional Haku base/model overrides: ${HAKU_BASE_URL:+configured} ${HAKU_MODEL:+configured}"
 
       - name: Apply Android runtime patch chain
         run: |
@@ -87,6 +92,8 @@ jobs:
 
           required = [
               ("versionCode 65", gradle), ("versionName '1.1.63'", gradle),
+              ('BuildConfig.SOL_API_KEY', java), ('BuildConfig.HAKU_API_KEY', java),
+              ('emit("backroomProvider", "Luna")', java), ('emit("backroomProvider", "SOL")', java), ('emit("backroomProvider", "Haku")', java),
               ('id="searchActionButton"', html), ('id="exploreActionButton"', html), ('STEP2_THREE_ACTIONS', html),
               ('madGodSetEquipped()', html), ('id="equipmentDetailModal"', html), ('window.renderCharacterStatusEquipment=render;', html),
               ('id="characterSkillsModal"', html), ("button.id='characterSkillsButton'", html), ('function openSkills()', html),
