@@ -78,7 +78,9 @@
   window.__combatBusy = false;
   var explorerChoiceBusy = false;
   window.__combatAnimationToken = 0;
-  var COMBAT_PHASE_MS = 1000;
+  var COMBAT_PHASE_MS = 1600;
+  var COMBAT_SWAP_MS = 480;
+  var COMBAT_EVENT_GAP_MS = 450;
 
   var semanticPriority = {generic:0,location:1,item:2,effect:3,skill:4,character:5,entity:6};
   var knownSkills = [
@@ -802,34 +804,42 @@
       scrollForCurrentMode();
   };
 
-  function playCombatPhase(events, phase, entityIndex) {
-    var phaseEvents = (Array.isArray(events) ? events : []).filter(function(event){
-      if(!event||event.phase!==phase)return false;
-      if(entityIndex===undefined||entityIndex===null)return true;
-      return Number(event.entityIndex)===Number(entityIndex);
+  function combatPhaseEvents(events,phase,entityIndex){
+    return (Array.isArray(events)?events:[]).filter(function(event){
+      return event&&event.phase===phase&&(entityIndex===undefined||entityIndex===null||Number(event.entityIndex)===Number(entityIndex));
     });
-    phaseEvents.forEach(function(event, index){
+  }
+  function combatPhaseDuration(events,phase,entityIndex){
+    return COMBAT_SWAP_MS+COMBAT_PHASE_MS+Math.max(0,combatPhaseEvents(events,phase,entityIndex).length-1)*COMBAT_EVENT_GAP_MS;
+  }
+  function playCombatPhase(events,phase,entityIndex){
+    var token=window.__combatAnimationToken;
+    combatPhaseEvents(events,phase,entityIndex).forEach(function(event,index){
       setTimeout(function(){
-        if (typeof window.backroomPlayCombatFeedback === 'function') window.backroomPlayCombatFeedback(event);
-      }, Math.min(index * 150, 450));
+        if(token!==window.__combatAnimationToken)return;
+        if(typeof window.backroomPlayCombatFeedback==='function')window.backroomPlayCombatFeedback(event);
+      },COMBAT_SWAP_MS+index*COMBAT_EVENT_GAP_MS);
     });
   }
 
   function finishCombatAnimation(token) {
     if (token !== window.__combatAnimationToken) return;
-    window.__combatFeedbackBusy = false;
-    window.__combatBusy = false;
-    if (typeof busy !== 'undefined') busy = false;
     syncCombatSnapshotActor(state && state.combat ? state.combat : {});
-    if (typeof window.render === 'function') window.render();
-    scrollForCurrentMode();
-    if (status) {
-      status.textContent = state.combat && state.combat.active
-        ? 'Lượt chiến đấu ' + state.combat.round + ' · ' + state.combat.currentActor
-        : (state.combat && state.combat.outcome === 'victory'
-            ? 'Entity bị tiêu diệt. Bắt đầu Turn ' + state.turn + '.'
-            : 'Chiến đấu kết thúc. Turn ' + state.turn + '.');
-    }
+    setTimeout(function(){
+      if(token!==window.__combatAnimationToken)return;
+      window.__combatFeedbackBusy = false;
+      window.__combatBusy = false;
+      if (typeof busy !== 'undefined') busy = false;
+      if (typeof window.render === 'function') window.render();
+      scrollForCurrentMode();
+      if (status) {
+        status.textContent = state.combat && state.combat.active
+          ? 'Lượt chiến đấu ' + state.combat.round + ' · ' + state.combat.currentActor
+          : (state.combat && state.combat.outcome === 'victory'
+              ? 'Entity bị tiêu diệt. Bắt đầu Turn ' + state.turn + '.'
+              : 'Chiến đấu kết thúc. Turn ' + state.turn + '.');
+      }
+    },COMBAT_SWAP_MS);
   }
 
   window.backroomCombatTurn = function(json){
@@ -872,7 +882,7 @@
       if (status) status.textContent = 'Đang xử lý lượt của ' + (combat.resolvedActorName || 'nhân vật') + '…';
 
       playCombatPhase(events, 'actor');
-      var delay = COMBAT_PHASE_MS;
+      var delay = combatPhaseDuration(events,'actor');
       var deaths=Array.isArray(combat.entityDeathsThisTurn)?combat.entityDeathsThisTurn:[];
       deaths.forEach(function(death){
         var deathKey=death&&death.key?String(death.key):'';
@@ -883,9 +893,9 @@
             window.backroomSetCombatVisualActor(combat.resolvedActorIndex,deathKey);
           }
           if(status)status.textContent=String(death&&death.name||'Entity')+' bị tiêu diệt…';
-          if(typeof window.backroomShatterEntity==='function')window.backroomShatterEntity(deathKey);
+          setTimeout(function(){if(token===window.__combatAnimationToken&&typeof window.backroomShatterEntity==='function')window.backroomShatterEntity(deathKey);},COMBAT_SWAP_MS);
         },delay);
-        delay+=900;
+        delay+=COMBAT_SWAP_MS+1600;
       });
 
       var entityTurns=Array.isArray(combat.resolvedEntityTurns)?combat.resolvedEntityTurns:[];
@@ -900,7 +910,7 @@
           if(status)status.textContent=String(turn&&turn.entityName||'Entity')+' đang phản hồi…';
           playCombatPhase(events,'entity',entityIndex);
         },delay);
-        delay+=COMBAT_PHASE_MS;
+        delay+=combatPhaseDuration(events,'entity',entityIndex);
       });
 
       setTimeout(function(){

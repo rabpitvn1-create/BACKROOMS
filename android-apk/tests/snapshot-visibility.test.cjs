@@ -62,14 +62,14 @@ test('snapshot route streak HUD is compact, transparent and reads the 5-step rou
 });
 
 test('combat actor changes use rotation transitions instead of snapshot blinking',()=>{assert.match(source,/function rotateCombatActor\(/);assert.match(source,/@keyframes combat-turn-out/);assert.match(source,/@keyframes combat-turn-in/);});
-test('multi-Entity combat keeps every living Entity visible and only changes the active highlight',()=>{
+test('battle rotates the active Entity while preserving actor and background',()=>{
  const r=boot({stateOverride:{flags:{entityEncounterKeys:['hound','clump'],entityEncounterKey:'hound'},combat:{active:true,actorIndex:0,activeEntityIndex:0,participants:[{id:'cao_minh',name:'Cao Minh'}],entities:[{key:'hound',hp:10},{key:'clump',hp:10}],entity:{key:'hound',hp:10}}}});
  r.ctx.backroomSetCombatVisualActor(0,'hound');
  const actor=r.elements.find(e=>String(e.className||'').includes('snapshot-combat-character'));
  const background=r.elements.find(e=>String(e.className||'')==='snapshot-placeholder');
  const before=r.elements.filter(e=>String(e.className||'').includes('snapshot-entity'));
- assert.ok(actor);assert.ok(background);assert.equal(before.length,2);
- assert.deepEqual(before.map(e=>e.dataset.entityKey).sort(),['clump','hound']);
+ assert.ok(actor);assert.ok(background);assert.equal(before.length,1);
+ assert.deepEqual(before.map(e=>e.dataset.entityKey),['hound']);
  assert.ok(before.find(e=>e.dataset.entityKey==='hound').className.includes('snapshot-entity-active'));
  r.ctx.backroomSetCombatVisualActor(0,'clump');
  const actorAfter=r.elements.find(e=>String(e.className||'').includes('snapshot-combat-character'));
@@ -79,7 +79,7 @@ test('multi-Entity combat keeps every living Entity visible and only changes the
  assert.equal(backgroundAfter,background);
  assert.equal(after.length,2);
  assert.ok(after.find(e=>e.dataset.entityKey==='clump').className.includes('snapshot-entity-active'));
- assert.ok(!after.find(e=>e.dataset.entityKey==='hound').className.includes('snapshot-entity-active'));
+ assert.match(after.find(e=>e.dataset.entityKey==='hound').className,/combat-turn-out/);assert.match(after.find(e=>e.dataset.entityKey==='clump').className,/combat-turn-in/);
 });
 
 test('pre-combat encounter renders every committed Entity and living combat filters defeated sprites',()=>{
@@ -205,13 +205,13 @@ test('snapshot runtime has no scripted NPC overlay hooks',()=>{
  assert.doesNotMatch(source,/snapshot-npc|storyPrimaryNpc|__backroomStoryVisuals/);
 });
 
-test('grouped Entities keep solo size and share the character ground plane',()=>{
+test('rotating battle Entity keeps solo size and the shared ground plane',()=>{
  const keys=['tam_ma_cao_minh','copx','async_member_rifle_aim_right_01','hound'];
  for(const count of [1,2,3,4]){
   const selected=keys.slice(0,count);
   const r=boot({stateOverride:{flags:{entityEncounterKeys:selected},combat:{active:true,actorIndex:0,participants:[{id:'cao_minh'}],entities:selected.map(key=>({key,hp:10}))}}});
   const sprites=r.elements.filter(e=>String(e.className).includes('snapshot-grounded'));
-  assert.equal(sprites.length,count+1);
+  assert.equal(sprites.length,2);
   for(const img of sprites){
    const m=geometry.assetMetric(img.src),scale=parseFloat(img.style.height)/m.height;
    assert.ok(Math.abs(parseFloat(img.style.top)+m.body.bottom*scale-r.box.clientHeight*.92)<1e-7,'common ground: '+img.src);
@@ -248,4 +248,11 @@ test('scene backgrounds fade only after load, keep the old image, and ignore sta
  const broken=backgrounds().find(e=>e.src==='broken.webp');
  r.pending.find(e=>e.el===broken&&e.type==='error').cb();assert.deepEqual(backgrounds(),[c]);
  assert.match(r.styles.join(''),/snapshot-bg-fade\{animation:snapshot-bg-fade 350ms ease-in-out/);
+});
+
+test('first actor handoff compares the displayed sprite, even without a previous visual index',()=>{
+ const r=boot({stateOverride:{flags:{entityEncounterKey:'hound'},combat:{active:true,participants:[{id:'cao_minh'},{id:'luc_tram'}],entity:{key:'hound',hp:10}}}});const before=r.elements.find(e=>e.dataset.combatActor==='cao_minh');
+ r.ctx.backroomSetCombatVisualActor(1,'hound');
+ assert.match(before.className,/combat-turn-out/);
+ assert.ok(r.elements.some(e=>e.dataset.combatActor==='luc_tram'&&e.className.includes('combat-turn-in')));
 });

@@ -170,3 +170,22 @@ test('rendered dice preserve Core values, Vietnamese hold state and index-specif
   assert.ok(context.diceRow.children.every(n=>n.disabled));
   assert.equal(skins(context.diceRow.children[0]).src,'file:///android_asset/dice/die-6.png');
 });
+
+test('battle drains all feedback before rotating to Entity turns and the next actor',()=>{
+ const vm=require('node:vm');let now=0;const timers=[],seen=[],swaps=[];
+ const ctx={window:{__combatAnimationToken:0,backroomPlayCombatFeedback:e=>seen.push([now,e.id]),backroomSetCombatVisualActor:(i,k)=>swaps.push([now,i,k]),render(){}},COMBAT_PHASE_MS:1600,COMBAT_SWAP_MS:480,COMBAT_EVENT_GAP_MS:450,state:{},action:null,status:{},busy:false,setTimeout(fn,ms){timers.push({fn,at:now+ms});},syncComposer(){},renderCombatPanel(){},scrollCombatToBottom(){},scrollForCurrentMode(){},activeCombatEntity:c=>c.entity,syncCombatSnapshotActor(c){ctx.window.backroomSetCombatVisualActor(c.actorIndex,c.entity.key);}};
+ vm.createContext(ctx);
+ const start=source.indexOf('  function combatPhaseEvents(');
+ vm.runInContext(source.slice(start>=0?start:source.indexOf('  function playCombatPhase('),source.indexOf('  var previousError =')),ctx);
+ const actor=Array.from({length:8},(_,i)=>({phase:'actor',entityKey:'hound',id:'skill-'+i}));
+ const entity=[{phase:'entity',entityIndex:0,id:'e0'},{phase:'entity',entityIndex:1,id:'e1'}];
+ ctx.window.backroomCombatTurn(JSON.stringify({combat:{active:true,resolvedActorIndex:0,actorIndex:1,round:2,currentActor:'Lục Trầm',entity:{key:'hound'},feedbackEvents:[...actor,...entity],resolvedEntityTurns:[{entityIndex:0,entityKey:'hound'},{entityIndex:1,entityKey:'clump'}]}}));
+ while(timers.length){timers.sort((a,b)=>a.at-b.at);const t=timers.shift();now=t.at;t.fn();}
+ assert.equal(seen.length,10);assert.equal(seen[7][1],'skill-7');
+ assert.ok(swaps[1][0]>=seen[7][0]+1600,'Entity turn must wait for the last skill feedback');
+ assert.ok(swaps.at(-1)[0]>=seen.at(-1)[0]+1600,'next actor must wait for the last Entity feedback');
+ assert.equal(ctx.window.__combatBusy,false);
+ // Late callbacks from an invalidated animation cannot play damage in the next turn.
+ seen.length=0;ctx.playCombatPhase(actor,'actor');ctx.window.__combatAnimationToken++;
+ while(timers.length)timers.shift().fn();assert.equal(seen.length,0);
+});
