@@ -92,6 +92,7 @@ jobs:
 
           required = [
               ("versionCode 65", gradle), ("versionName '1.1.63'", gradle),
+              ('.snapshot{height:300px;margin:8px 10px 10px;', html),
               ('BuildConfig.GEHIHI_API_KEY', java), ('BuildConfig.GEHIHI_MODEL', java),
               ('BuildConfig.SOL_API_KEY', java), ('BuildConfig.HAKU_API_KEY', java),
               ('emit("backroomProvider", "Gehihi")', java), ('emit("backroomProvider", "Haku")', java), ('emit("backroomProvider", "SOL")', java),
@@ -155,6 +156,7 @@ jobs:
           assert retired_prefix not in java
           assert retired_method not in java
           assert retired_prefix not in gradle
+          assert 'height:230px' not in java
           assert '"nonCombat" to "true"' in an_nhien
           assert '"canUseWeapons" to "false"' in an_nhien
           an_start = skill_catalog.index('private val anNhien = listOf(')
