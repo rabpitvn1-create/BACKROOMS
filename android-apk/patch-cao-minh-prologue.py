@@ -1,5 +1,6 @@
 """Install the final Cao Minh prologue after identity and kit migration patches."""
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parent
 HTML = ROOT / "app/src/main/assets/index.html"
@@ -1378,7 +1379,10 @@ html = HTML.read_text(encoding="utf-8")
 
 start_token = "const prologue=`"
 start = html.index(start_token)
-end = html.index("`;\\n\\nconst initial=", start)
+end_match = re.search(r"`;\\s*const initial=", html[start:])
+if not end_match:
+    raise RuntimeError("Missing prologue closing anchor")
+end = start + end_match.start()
 html = html[:start] + "const prologue=`" + PROLOGUE + "`;" + html[end + 2:]
 
 old_turn = '{role:"gm",text:"LƯỢT 1\\n\\nKhông có liên lạc với Iris, Syvial hay Black Blood. Bạn điều khiển Cao Minh từ đây."}'
