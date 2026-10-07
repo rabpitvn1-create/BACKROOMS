@@ -55,7 +55,7 @@
     }else{
       floater.classList.add('combat-float--normal');
       var normalBadge=document.createElement('span');normalBadge.className='combat-float-status combat-float-status--normal';
-      normalBadge.textContent='[Đánh thường]';value.insertBefore(normalBadge,value.firstChild);
+      normalBadge.textContent='Đánh thường';value.insertBefore(normalBadge,value.firstChild);
     }
     floater.style.left=anchor.x+'px';floater.style.top=(anchor.y-lane*38)+'px';anchor.box.appendChild(floater);
     floater.addEventListener('animationend',function(){floater.remove()},{once:true});

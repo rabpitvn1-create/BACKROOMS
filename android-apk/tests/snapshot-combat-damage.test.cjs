@@ -21,7 +21,7 @@ function boot(){
 }
 test('normal hits keep the original dedicated badge and numeric value',()=>{
  const r=boot();r.event({target:'entity',text:'-36 HP'});
- const n=r.box.children[0];assert.match(n.className,/combat-float--normal/);assert.equal(n.children[0].textContent,'-36 HP');assert.equal(n.children[0].children[0].textContent,'[Đánh thường]');
+ const n=r.box.children[0];assert.match(n.className,/combat-float--normal/);assert.equal(n.children[0].textContent,'-36 HP');assert.equal(n.children[0].children[0].textContent,'Đánh thường');
 });
 test('critical hits and all five status badges keep their independent classifications',()=>{
  for(const [status,key,label] of [['Chảy máu','bleed','CHẢY MÁU'],['Trúng độc','poison','TRÚNG ĐỘC'],['Choáng','stun','CHOÁNG'],['Xuyên giáp','armor','XUYÊN GIÁP'],['Mất phương hướng','disorient','MẤT PHƯƠNG HƯỚNG']]){
