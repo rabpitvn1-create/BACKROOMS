@@ -26,7 +26,7 @@
   function unit(value,side,index){
     var n=el('div','combat93-unit '+side);n.dataset.index=index;
     var picture=el('img','combat93-sprite');picture.alt='';
-    picture.src=side==='entity'?'entity/'+value.key+'.webp':value.id==='kai'||value.id==='cao_minh'?'CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png':value.id==='lucia'?'lucia_overlay.png':'';
+    picture.src=side==='entity'?'entity/'+value.key+'.webp':value.id==='kai'||value.id==='cao_minh'?'CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png':value.id==='lucia'?'lucia_overlay.png':value.id==='syvial'?'syvial_overlay.png':'';
     var fallback=el('div','combat93-silhouette',value.name||'Nhân vật');fallback.hidden=true;
     picture.onerror=function(){picture.hidden=true;fallback.hidden=false;};
     if(!picture.getAttribute('src')){picture.hidden=true;fallback.hidden=false;}
