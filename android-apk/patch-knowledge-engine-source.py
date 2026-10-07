@@ -117,7 +117,13 @@ new = '''  data class SourceRef(val document: String, val anchor: String)
     val tokensBefore: Int = -1,
     val recordTokens: Int = -1,
     val ceiling: Int = -1,
-    val band: String = ""
+    val band: String = "",
+    val field: String = "",
+    val startChar: Int = -1,
+    val endChar: Int = -1,
+    val budgetEstimatedTokens: Int = -1,
+    val serializedCharsBeforeClip: Int = -1,
+    val serializedCharsAfterClip: Int = -1
   )
 
   data class TestBuildResult(
@@ -316,6 +322,9 @@ new = '''    private fun budgetedRecords(): List<Record> {
           ))
         }
       }
+      trace?.add(KnowledgeTraceEvent(
+        type = "budget_summary", budgetEstimatedTokens = tokens
+      ))
       return kept
     }
 '''
@@ -354,6 +363,115 @@ new = '''    private fun add(id: String, reason: String) {
 '''
 if old not in text:
     raise RuntimeError("P0 candidate trace anchor not found")
+text = text.replace(old, new, 1)
+
+
+old = '''      val records = budgetedRecords()
+      val packet = StringBuilder()
+      packet.append("[KNOWLEDGE_PACKET v1]\n")
+      packet.append("Budget target=").append(TARGET_CONTEXT_BUDGET)
+        .append(" soft=").append(SOFT_CONTEXT_CEILING)
+        .append(" hard=").append(HARD_CONTEXT_CEILING).append('\n')
+      packet.append("Present actors: ").append(presentActors.joinToString(", ")).append('\n')
+      packet.append("Current state:\n").append(compactState()).append('\n')
+      packet.append("Recent dialogue buffer:\n").append(recentDialogue()).append('\n')
+      packet.append("Retrieved records:\n")
+      records.forEach { record ->
+        packet.append("<").append(record.id).append("> ")
+          .append(record.text.replace('\n', ' ')).append('\n')
+        packet.append("  source=").append(record.source.document)
+          .append("#").append(record.source.anchor)
+          .append("; authority=").append(record.authority)
+          .append("; mutability=").append(record.mutability)
+          .append("; why=").append(reasons[record.id].orEmpty()).append('\n')
+      }
+      packet.append("[END_KNOWLEDGE_PACKET]")
+      return hardClip(packet.toString(), HARD_CONTEXT_CEILING)
+'''
+new = '''      val records = budgetedRecords()
+      val packet = StringBuilder()
+      packet.append("[KNOWLEDGE_PACKET v1]\n")
+      packet.append("Budget target=").append(TARGET_CONTEXT_BUDGET)
+        .append(" soft=").append(SOFT_CONTEXT_CEILING)
+        .append(" hard=").append(HARD_CONTEXT_CEILING).append('\n')
+      packet.append("Present actors: ").append(presentActors.joinToString(", ")).append('\n')
+      packet.append("Current state:\n").append(compactState()).append('\n')
+      packet.append("Recent dialogue buffer:\n").append(recentDialogue()).append('\n')
+      packet.append("Retrieved records:\n")
+      records.forEach { record ->
+        val headerStart = packet.length
+        packet.append("<").append(record.id).append("> ")
+        val headerEnd = packet.length
+        val textStart = packet.length
+        packet.append(record.text.replace('\n', ' ')).append('\n')
+        val textEnd = packet.length
+        val metadataStart = packet.length
+        packet.append("  source=").append(record.source.document)
+          .append("#").append(record.source.anchor)
+          .append("; authority=").append(record.authority)
+          .append("; mutability=").append(record.mutability)
+          .append("; why=").append(reasons[record.id].orEmpty()).append('\n')
+        val metadataEnd = packet.length
+        trace?.add(KnowledgeTraceEvent(
+          type = "packet_span", recordId = record.id, field = "record_header",
+          startChar = headerStart, endChar = headerEnd
+        ))
+        trace?.add(KnowledgeTraceEvent(
+          type = "packet_span", recordId = record.id, field = "record_text",
+          startChar = textStart, endChar = textEnd
+        ))
+        trace?.add(KnowledgeTraceEvent(
+          type = "packet_span", recordId = record.id, field = "record_metadata",
+          startChar = metadataStart, endChar = metadataEnd
+        ))
+      }
+      packet.append("[END_KNOWLEDGE_PACKET]")
+      val serialized = packet.toString()
+      return hardClip(serialized, HARD_CONTEXT_CEILING, trace)
+'''
+if old not in text:
+    raise RuntimeError("P0 packet span anchor not found")
+text = text.replace(old, new, 1)
+
+old = '''  private fun hardClip(text: String, hardTokens: Int): String {
+    val maxChars = hardTokens * 4
+    if (text.length <= maxChars) return text
+    val suffix = "\n[PACKET_CLIPPED_AT_HARD_CEILING]"
+    return text.take((maxChars - suffix.length).coerceAtLeast(0)) + suffix
+  }
+'''
+new = '''  private fun hardClip(
+    text: String,
+    hardTokens: Int,
+    trace: MutableList<KnowledgeTraceEvent>? = null
+  ): String {
+    val maxChars = hardTokens * 4
+    if (text.length <= maxChars) {
+      trace?.add(KnowledgeTraceEvent(
+        type = "hard_clip", decision = "not_clipped",
+        serializedCharsBeforeClip = text.length,
+        serializedCharsAfterClip = text.length
+      ))
+      return text
+    }
+    val suffix = "\n[PACKET_CLIPPED_AT_HARD_CEILING]"
+    val cutOffset = (maxChars - suffix.length).coerceAtLeast(0)
+    val clipped = text.take(cutOffset) + suffix
+    val cutSpan = trace?.lastOrNull {
+      it.type == "packet_span" && cutOffset >= it.startChar && cutOffset < it.endChar
+    }
+    trace?.add(KnowledgeTraceEvent(
+      type = "hard_clip", recordId = cutSpan?.recordId.orEmpty(),
+      decision = "clipped", rule = "hard_ceiling_chars",
+      field = cutSpan?.field.orEmpty(), startChar = cutOffset,
+      serializedCharsBeforeClip = text.length,
+      serializedCharsAfterClip = clipped.length
+    ))
+    return clipped
+  }
+'''
+if old not in text:
+    raise RuntimeError("P0 hard clip trace anchor not found")
 text = text.replace(old, new, 1)
 
 ENGINE.write_text(text, encoding="utf-8")
@@ -424,6 +542,27 @@ class KnowledgeContextEngineP0Test {
     assertEquals("priority_gate_55", skipped!!.rule)
     assertEquals("skipped", skipped.decision)
     assertEquals(58, skipped.targetPriority)
+  }
+
+  @Test fun traceReportsSerializationAndHardClipMetricsWithoutChangingPacket() {
+    val traced = KnowledgeContextEngine.buildForTestWithTrace(
+      dbJson, stateJson(2), "Kiểm tra dấu vết và mối đe dọa smiler.", "{}"
+    )
+    val budget = traced.events.lastOrNull { it.type == "budget_summary" }
+    assertNotNull("Expected budget summary", budget)
+    assertTrue("Expected positive budget token estimate", budget!!.budgetEstimatedTokens > 0)
+
+    val spans = traced.events.filter { it.type == "packet_span" }
+    assertTrue("Expected serialized record spans", spans.isNotEmpty())
+    assertTrue(spans.all { it.startChar >= 0 && it.endChar > it.startChar })
+
+    val clip = traced.events.lastOrNull { it.type == "hard_clip" }
+    assertNotNull("Expected hard-clip observation event", clip)
+    assertTrue(clip!!.serializedCharsBeforeClip >= clip.serializedCharsAfterClip)
+    assertEquals(traced.packet.length, clip.serializedCharsAfterClip)
+    if (clip.decision == "clipped") {
+      assertTrue("Clipped packet must expose cut offset", clip.startChar >= 0)
+    }
   }
 
   private fun stateJson(level: Int): String = JSONObject()
