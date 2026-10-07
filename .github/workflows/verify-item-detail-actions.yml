@@ -1,0 +1,43 @@
+name: Verify Item Detail Actions
+on:
+  push:
+    branches: [feat/item-detail-actions]
+    paths: ['android-apk/**', '.github/workflows/verify-item-detail-actions.yml', '.github/workflows/build-backroom-apk.yml']
+  pull_request:
+    branches: [main]
+    paths: ['android-apk/**', '.github/workflows/verify-item-detail-actions.yml', '.github/workflows/build-backroom-apk.yml']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply release runtime patch chain
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, subprocess
+          workflow = Path('.github/workflows/build-backroom-apk.yml').read_text()
+          scripts = re.search(r'scripts=\(([^)]+)\)', workflow).group(1).split()
+          for script in scripts:
+              subprocess.run(['python3', 'android-apk/' + script], check=True)
+          PY
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Test item actions and inventory
+        working-directory: android-apk
+        run: >-
+          gradle :app:testDebugUnitTest --no-daemon
+          --tests '*ItemDetailActionsTest' --tests '*Inventory*Test'
+          --tests '*ItemContentStateTest' --tests '*HealingItemTest'
+          --tests '*PhysiologyItemEffectTest' --tests '*GameStateCodecTest' --tests '*CharacterDetailJsonTest'
+          --tests '*Omnivault*Test' --tests '*CharacterStatusEquipmentSystemTest'

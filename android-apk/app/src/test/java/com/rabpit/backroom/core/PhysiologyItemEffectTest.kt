@@ -63,7 +63,7 @@ class PhysiologyItemEffectTest {
       mapOf("physiologyEffect" to "WATER")
     )
 
-    val result = use(granted, "use-water", "water-bottle:full")
+    val result = use(granted, "use-water", "water")
 
     assertTrue(result.applied)
     val physiology = result.state.characters.getValue(KAI_ID).physiology
@@ -81,7 +81,7 @@ class PhysiologyItemEffectTest {
       mapOf("physiologyEffect" to "FOOD")
     )
 
-    val result = use(granted, "use-food", "food-container:full")
+    val result = use(granted, "use-food", "food")
 
     assertTrue(result.applied)
     val physiology = result.state.characters.getValue(KAI_ID).physiology
@@ -149,10 +149,10 @@ class PhysiologyItemEffectTest {
       mapOf("physiologyEffect" to "WATER")
     )
 
-    val result = use(granted, "use-empty-water", "water-bottle:empty")
+    val result = use(granted, "use-empty-water", "missing-water")
 
     assertFalse(result.applied)
-    assertEquals("item_content_empty", result.validation.reason)
+    assertEquals("item_not_owned", result.validation.reason)
     assertEquals(granted, result.state)
   }
 
@@ -169,8 +169,8 @@ class PhysiologyItemEffectTest {
       actorId = KAI_ID,
       source = CommandSource.RULE,
       operation = ItemCommand.Operation.USE,
-      itemId = "water-bottle:full",
-      itemName = "water-bottle:full"
+      itemId = "water",
+      itemName = "water"
     )
 
     val first = StateReducer.execute(granted, command)
