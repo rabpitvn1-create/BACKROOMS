@@ -381,7 +381,7 @@ class KnowledgeContextEngineP0Test {
     )
     val path = candidates.firstOrNull { Files.isRegularFile(it) }
       ?: error("knowledge_db.json not found from ${System.getProperty("user.dir")}")
-    Files.readString(path)
+    path.toFile().readText(Charsets.UTF_8)
   }
 
   @Test fun traceDoesNotChangePacketForFirstThreeFixtures() {
