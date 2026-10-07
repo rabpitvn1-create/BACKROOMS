@@ -202,6 +202,11 @@ jobs:
           for name in required_assets:
               p = entity_dir / name
               assert p.is_file() and p.stat().st_size > 0, name
+              raw = p.read_bytes()
+              assert len(raw) >= 12 and raw[:4] == b'RIFF' and raw[8:12] == b'WEBP', name
+              assert int.from_bytes(raw[4:8], 'little') + 8 == len(raw), name
+              assert not p.with_suffix('.png').exists(), name
+          assert '.put("url", "file:///android_asset/entity/" + entityKey + ".webp")' in java
           for p in [root / 'app/src/main/assets/Kai_MadGod_snapshot_overlay.png', root / 'app/src/main/assets/avatars/MadGod.jpg', root / 'app/src/main/assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png', root / 'app/src/main/assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png']:
               assert p.is_file() and p.stat().st_size > 0, str(p)
           for name in ['die-1.png','die-2.png','die-3.png','die-4.png','die-5.png','die-6.png','roll-3d.png','level0-wallpaper.svg']:

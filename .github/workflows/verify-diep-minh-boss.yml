@@ -47,6 +47,11 @@ jobs:
             echo "==> $script"
             python3 "android-apk/$script"
           done
+          # PR merge refs may include item-action tests added by main after this branch.
+          if test -f android-apk/app/src/test/java/com/rabpit/backroom/core/ItemDetailActionsTest.kt; then
+            python3 android-apk/patch-item-detail-actions.py
+            python3 android-apk/patch-item-whole-unit.py
+          fi
 
       - name: Verify Diệp Minh contracts and final diff
         id: contracts
@@ -110,13 +115,25 @@ jobs:
         working-directory: android-apk
         run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
 
-      - name: Verify boss WebP is packaged as a raw asset
+      - name: Verify all Entity WebPs are packaged as raw assets
         id: packaged_asset
         if: steps.android_build.outcome == 'success'
         continue-on-error: true
         run: |
           set -euo pipefail
-          unzip -l android-apk/app/build/outputs/apk/debug/app-debug.apk | grep -q 'assets/entity/diep_minh.webp'
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+
+          assets = Path('android-apk/app/src/main/assets/entity')
+          expected = {p.name for p in assets.glob('*.webp')}
+          assert len(expected) == 19, expected
+          with ZipFile('android-apk/app/build/outputs/apk/debug/app-debug.apk') as apk:
+              packaged = {name.removeprefix('assets/entity/') for name in apk.namelist() if name.startswith('assets/entity/') and not name.endswith('/')}
+              assert packaged == expected, (packaged - expected, expected - packaged)
+              for name in expected:
+                  assert apk.read('assets/entity/' + name) == (assets / name).read_bytes(), name
+          PY
 
       - name: Enforce pre-merge green gate
         if: always()
