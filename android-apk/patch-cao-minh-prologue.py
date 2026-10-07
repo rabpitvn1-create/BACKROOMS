@@ -1379,7 +1379,7 @@ html = HTML.read_text(encoding="utf-8")
 
 start_token = "const prologue=`"
 start = html.index(start_token)
-end_match = re.search(r"`;\\s*const initial=", html[start:])
+end_match = re.search(r"`;\s*const initial=", html[start:])
 if not end_match:
     raise RuntimeError("Missing prologue closing anchor")
 end = start + end_match.start()
