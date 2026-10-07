@@ -2,7 +2,7 @@ name: Verify Cao Minh Skills and Equipment
 
 on:
   push:
-    branches: [feat/cao-minh-skills-equipment]
+    branches: [feat/cao-minh-skills-equipment, feat/cao-minh-prologue]
     paths:
       - 'android-apk/**'
       - '.github/workflows/verify-cao-minh-kit.yml'
