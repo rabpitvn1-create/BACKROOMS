@@ -42,6 +42,47 @@ new = '''      if (hasAny(actionText, "devil trigger")) {
             if (r.domain == "ENTITY" || r.domain == "ITEM") add(id, "explicit structured tag: $tag")
           }
         }
+
+      // P1.2 shadow only: rebuild an independent alias index from the same reviewed
+      // Entity/Item tag seeds and compare candidate sets. Never add alias candidates.
+      trace?.let { sink ->
+        val tagCandidates = linkedSetOf<String>()
+        db.tagIndex.entries.asSequence()
+          .filter { (tag, _) -> tag.length >= 3 && actionText.contains(tag) }
+          .forEach { (_, ids) ->
+            ids.forEach { id ->
+              val r = db.records[id] ?: return@forEach
+              if (r.domain == "ENTITY" || r.domain == "ITEM") tagCandidates += id
+            }
+          }
+
+        val aliasIndex = linkedMapOf<String, MutableSet<String>>()
+        db.records.values.asSequence()
+          .filter { it.domain == "ENTITY" || it.domain == "ITEM" }
+          .forEach { record ->
+            record.tags.filter { it.length >= 3 }.forEach { alias ->
+              aliasIndex.getOrPut(alias) { linkedSetOf() }.add(record.id)
+            }
+          }
+        val aliasCandidates = linkedSetOf<String>()
+        aliasIndex.entries.asSequence()
+          .filter { (alias, _) -> actionText.contains(alias) }
+          .forEach { (_, ids) -> aliasCandidates.addAll(ids) }
+
+        (tagCandidates + aliasCandidates).toSortedSet().forEach { id ->
+          val decision = when {
+            id in tagCandidates && id in aliasCandidates -> "parity"
+            id in aliasCandidates -> "alias_only"
+            else -> "tag_only"
+          }
+          sink.add(KnowledgeTraceEvent(
+            type = "alias_shadow",
+            recordId = id,
+            decision = decision,
+            rule = "runtime_tags_seed"
+          ))
+        }
+      }
 '''
 if old not in text:
     raise RuntimeError("Structured registry lookup anchor not found")
@@ -1033,6 +1074,92 @@ class KnowledgeContextEngineP0Test {
 
   private fun assertPacketLacks(packet: String, id: String) =
     assertFalse("Expected packet to omit $id", packet.contains("<$id>"))
+
+
+  @Test fun aliasShadowMatchesCurrentEntityItemTagLookupAcrossReviewedTagCorpus() {
+    val root = JSONObject(dbJson)
+    val records = root.getJSONArray("records")
+    val runtimeTags = linkedSetOf<String>()
+    var accentedSeedCount = 0
+    for (i in 0 until records.length()) {
+      val record = records.getJSONObject(i)
+      val domain = record.getString("domain")
+      if (domain != "ENTITY" && domain != "ITEM") continue
+      val tags = record.optJSONArray("tags") ?: JSONArray()
+      for (j in 0 until tags.length()) {
+        val tag = tags.getString(j).trim().lowercase()
+        if (tag.length < 3) continue
+        runtimeTags += tag
+        if (tag.any { it.code > 127 }) accentedSeedCount++
+      }
+    }
+    assertTrue("Expected Entity/Item runtime tag seeds", runtimeTags.isNotEmpty())
+
+    val cases = mutableListOf<JSONObject>()
+    var parityCases = 0
+    var tagOnlyCases = 0
+    var aliasOnlyCases = 0
+
+    runtimeTags.sorted().forEach { tag ->
+      listOf(tag, tag.uppercase()).forEach { action ->
+        val state = stateJson(1)
+        val plain = KnowledgeContextEngine.buildForTest(dbJson, state, action, "{}")
+        val traced = KnowledgeContextEngine.buildForTestWithTrace(dbJson, state, action, "{}")
+        assertEquals("Alias shadow changed packet for action=$action", plain, traced.packet)
+
+        val aliasEvents = traced.events.filter { it.type == "alias_shadow" }
+        val tagHits = traced.events
+          .filter {
+            it.type == "candidate_reason_appended" &&
+              it.reason.startsWith("explicit structured tag:")
+          }
+          .map { it.recordId }
+          .toSortedSet()
+        val aliasHits = aliasEvents
+          .filter { it.decision == "parity" || it.decision == "alias_only" }
+          .map { it.recordId }
+          .toSortedSet()
+
+        val tagOnly = tagHits - aliasHits
+        val aliasOnly = aliasHits - tagHits
+        if (tagOnly.isEmpty() && aliasOnly.isEmpty()) parityCases++ else {
+          if (tagOnly.isNotEmpty()) tagOnlyCases++
+          if (aliasOnly.isNotEmpty()) aliasOnlyCases++
+        }
+
+        cases += JSONObject()
+          .put("seedTag", tag)
+          .put("action", action)
+          .put("tagHits", JSONArray(tagHits.toList()))
+          .put("aliasHits", JSONArray(aliasHits.toList()))
+          .put("tagOnly", JSONArray(tagOnly.toList()))
+          .put("aliasOnly", JSONArray(aliasOnly.toList()))
+      }
+    }
+
+    assertEquals("Current tag-seeded alias shadow must not miss runtime tag hits", 0, tagOnlyCases)
+    assertEquals("Current tag-seeded alias shadow must not add candidates yet", 0, aliasOnlyCases)
+    assertEquals(cases.size, parityCases)
+
+    val report = JSONObject()
+      .put("schemaVersion", 1)
+      .put("mode", "shadow_only")
+      .put("scope", "ENTITY_ITEM_RUNTIME_TAG_LOOKUP")
+      .put("seedSource", "runtime_tags_only")
+      .put("seedTagCount", runtimeTags.size)
+      .put("accentedSeedCount", accentedSeedCount)
+      .put("caseCount", cases.size)
+      .put("parityCases", parityCases)
+      .put("tagOnlyCases", tagOnlyCases)
+      .put("aliasOnlyCases", aliasOnlyCases)
+      .put("cases", JSONArray(cases))
+
+    val reportDir = Path.of("build", "reports", "canon-p1").toFile()
+    assertTrue("Could not create Canon P1 report directory", reportDir.mkdirs() || reportDir.isDirectory)
+    val reportFile = reportDir.resolve("alias-shadow.json")
+    reportFile.writeText(report.toString(2) + "\n", Charsets.UTF_8)
+    assertTrue(reportFile.isFile)
+  }
 
   private fun stateJson(level: Int, partyIds: Array<String> = emptyArray()): String {
     val party = JSONArray()
