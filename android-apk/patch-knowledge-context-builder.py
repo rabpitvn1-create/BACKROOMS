@@ -11,8 +11,7 @@ def replace_method(source: str, signature: str, next_signature: str, replacement
     return source[:start] + replacement.rstrip() + "\n\n" + source[end:]
 
 
-# The OLD compactDriveCanon/compactKaiCanon helpers remain in the patched Java only as
-# benchmark/audit-compatible dead code. Runtime writer/auditor no longer calls them.
+# Runtime writer and auditor use the budgeted KnowledgeContextEngine packet.
 text = replace_method(
     text,
     "  private String auditScopeCanon(JSONObject before, String action, JSONObject rolls, String scope) {",
