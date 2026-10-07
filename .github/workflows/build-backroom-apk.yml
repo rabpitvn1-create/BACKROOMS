@@ -144,7 +144,7 @@ jobs:
               ('rolls.put("roamingEntityKey"', java), ('file:///android_asset/entity/', java),
               ('"hotel_corpse_lure","jeff_the_killer","jane_the_killer","slenderman"', java),
               ('String entityKey = rolls.optString("roamingEntityKey", "").trim();', java),
-              ('requireGameCore().startCombatState(candidateState.toString(), canonicalKey);', java),
+              ('state = new JSONObject(requireGameCore().startCombatState(state.toString(), encounterKey));', java),
               ("function activeEntityKey(){var c=state&&state.combat;if(!c||c.active!==true)return '';return normalizeEntityKey(c.entityKey);}", java),
               ('private JSONObject resolveEntityOverlay(', java), ('window.backroomEntityOverlay=function(payload)', java),
               ('private void forceEntityEncounterFlag(JSONObject candidateState, JSONObject rolls)', java),
