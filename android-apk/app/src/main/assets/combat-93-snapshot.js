@@ -34,7 +34,7 @@
     n.appendChild(el('div','combat93-name',value.name));
     n.appendChild(el('div','combat93-hp',Math.max(0,Number(value.hp)||0)+' / '+value.maxHp+' HP'));
     n.appendChild(el('div','combat93-status',statuses(value)));
-    if(side==='entity'){
+    if(side==='entity'&&combat.active===true){
       n.classList.toggle('selected',index===combat.targetEntityIndex);
       var target=el('button','combat93-target','Chọn mục tiêu');target.type='button';
       target.disabled=window.__combatFeedbackBusy||combat.active!==true||value.hp<=0||!!(combat.diceState&&combat.diceState.finalized);
@@ -63,18 +63,21 @@
   function showPhase(phase){
     var scene=document.querySelector('.combat93-scene');if(!scene)return;
     scene.querySelectorAll('.responding').forEach(function(n){n.classList.remove('responding');});
+    scene.querySelectorAll('.combat93-float-stack').forEach(function(n){n.remove();});
     if(phase.phase==='entity'){
       var responder=scene.querySelector('.entity[data-index="'+phase.entityIndex+'"]');if(responder)responder.classList.add('responding');
     }
-    phase.events.forEach(function(event,i){
+    phase.events.forEach(function(event){
       var anchor=event.target==='actor'?scene.querySelector('.actor'):scene.querySelector('.entity[data-index="'+event.entityIndex+'"]');
       if(!anchor)return;
       var text=event.kind==='miss'?'MISS':String(event.text||event.status||'');if(!text)return;
-      var node=el('span','combat93-float '+(event.critical?'critical ':'')+event.kind,text);node.style.top=(10+i*22)+'px';
-      if(event.critical)node.textContent='CRIT '+text;
-      if(event.status)node.textContent+=' · '+event.status;
-      anchor.appendChild(node);if(event.flash)anchor.classList.add('hit');
-      setTimeout(function(){node.remove();anchor.classList.remove('hit');},duration);
+      var stack=anchor.querySelector('.combat93-float-stack');
+      if(!stack){stack=el('div','combat93-float-stack');anchor.appendChild(stack);}
+      var parts=[];if(event.critical)parts.push('CRIT');parts.push(text);
+      if(event.status&&text.indexOf(String(event.status))<0)parts.push(String(event.status));
+      var node=el('span','combat93-float '+(event.critical?'critical ':'')+event.kind,parts.join(' · '));
+      stack.appendChild(node);if(event.flash)anchor.classList.add('hit');
+      setTimeout(function(){node.remove();if(!stack.querySelector('.combat93-float'))stack.remove();anchor.classList.remove('hit');},duration);
     });
   }
   function play(c){

@@ -64,6 +64,11 @@ async function run(){
     await page.waitForTimeout(50);
     assert.equal(await page.evaluate(()=>window.__combatFeedbackBusy),true);
     assert((await page.locator('.combat93-float').allTextContents()).some(s=>s.includes('Chảy máu')));
+    const overlappingFloats=await page.locator('.combat93-float-stack').evaluateAll(stacks=>stacks.some(stack=>{
+      const nodes=[...stack.querySelectorAll('.combat93-float')],boxes=nodes.map(n=>n.getBoundingClientRect());
+      return boxes.some((a,i)=>boxes.slice(i+1).some(b=>a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top));
+    }));
+    assert.equal(overlappingFloats,false);
     await page.screenshot({path:path.join(output,'combat93-actor.png')});
     await page.waitForTimeout(850);
     assert.equal(await page.locator('.responding').getAttribute('data-index'),'0');
@@ -80,6 +85,7 @@ async function run(){
     await send(fixture('victory'));
     assert.equal(await page.evaluate(()=>window.__combatFeedbackBusy),true);
     assert(await page.locator('.combat93-float').count()>0);
+    assert.equal(await page.locator('.combat93-unit.entity button').count(),0);
     await page.screenshot({path:path.join(output,'combat93-victory.png')});
     await page.waitForFunction(()=>window.__combatFeedbackBusy===false);
     assert.equal(await page.locator('.combat93-scene').count(),0);

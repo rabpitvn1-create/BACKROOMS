@@ -31,9 +31,10 @@ if 'COMBAT_93_SNAPSHOT_V1' not in html:
     .combat93-silhouette{height:160px;display:flex;align-items:center;justify-content:center;background:linear-gradient(150deg,#33445c,#101722);border-radius:50% 50% 15% 15%;font-size:14px}
     .combat93-silhouette[hidden]{display:none}.combat93-name{font-weight:bold;font-size:13px}.combat93-hp{font-size:12px;color:#a7efce}.combat93-status{font-size:10px;color:#ffc069;min-height:14px}
     .combat93-target{font-size:10px;padding:4px 6px}.combat93-unit.selected{border-color:#e8c96c}.combat93-unit.responding{outline:2px solid #ef7777}.combat93-unit.hit{filter:brightness(1.9)}
-    .combat93-float{position:absolute;left:10%;right:10%;z-index:10;font-weight:bold;color:#ff8c87;text-shadow:0 2px 3px #000;animation:combat93-rise .85s ease-out forwards;pointer-events:none}
-    .combat93-float.critical{color:#ffdf5e;font-size:18px}.combat93-float.heal{color:#83edb6}.combat93-float.miss{color:#ddd}
-    @keyframes combat93-rise{from{transform:translateY(35px);opacity:1}to{transform:translateY(-25px);opacity:0}}
+    .combat93-float-stack{position:absolute;z-index:12;top:8px;left:6px;right:6px;display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:none}
+    .combat93-float{position:relative;max-width:100%;padding:3px 7px;border-radius:999px;background:#080d14e6;font-weight:800;font-size:12px;line-height:1.15;text-align:center;color:#ff9a95;text-shadow:0 1px 2px #000;box-shadow:0 2px 8px #0008;animation:combat93-rise .85s ease-out forwards;pointer-events:none}
+    .combat93-float.critical{color:#ffdf5e;font-size:13px}.combat93-float.heal{color:#83edb6}.combat93-float.miss{color:#ddd}
+    @keyframes combat93-rise{from{transform:translateY(10px);opacity:1}to{transform:translateY(-4px);opacity:0}}
     </style>'''
     script = '<script>\n'+(root/'app/src/main/assets/combat-93-snapshot.js').read_text()+'\n</script>'
     html = html.replace('</body>', css+'\n'+script+'\n</body>', 1)
