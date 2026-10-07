@@ -14,12 +14,53 @@ object Combat93Runtime {
   fun revision(state: GameState): Long = state.metadata[REVISION]?.toLongOrNull() ?: 0L
   fun active(state: GameState): Boolean = read(state)?.let(CombatChoiceEngine::isActive) == true
 
+  fun stageIndex(state: GameState): Int = JSONObject(state.world["levelJson"] ?: "{}")
+    .optInt("number", 0).coerceAtLeast(0)
+
+  fun recoverCompanions(state: GameState, explorationTurn: Int): GameState {
+    if (active(state)) return state
+    var next = state
+    state.party.memberIds.filter { it != KAI_ID }.forEach { id ->
+      val character = next.characters[id] ?: return@forEach
+      val due = character.metadata["combat93.reviveAtTurn"]?.toIntOrNull() ?: return@forEach
+      if (character.presence != CharacterPresence.ACTIVE || character.vitalState.currentHp > 0 || explorationTurn < due)
+        return@forEach
+      next = CharacterStatEngine.setCurrentHp(next, id, 1)
+      val revived = next.characters.getValue(id)
+      next = next.copy(characters = next.characters + (id to revived.copy(metadata = revived.metadata - "combat93.reviveAtTurn")))
+    }
+    return next
+  }
+
+  /** One-time migration of an in-progress pressure encounter; never refills HP or rerolls. */
+  fun migrate(state: GameState, explorationTurn: Int): GameState {
+    if (state.metadata[SAVE] != null) return state
+    val old = CombatRuntime.active(state) ?: return state
+    var next = start(state, listOf(old.entityKey), explorationTurn, stageIndex(state))
+    val boundary = read(next) ?: return state
+    val combat = boundary.getJSONObject("combat")
+    val entity = combat.getJSONArray("entities").getJSONObject(0)
+    entity.put("hp", old.entityHp).put("maxHp", old.entityMaxHp)
+    combat.put("entity", entity).put("encounterId", old.encounterId)
+    PokerDiceCore.diceJson(state)?.let { saved ->
+      val dice = combat.getJSONObject("diceState")
+      dice.put("values", saved.getJSONArray("values")).put("held", saved.getJSONArray("held"))
+        .put("rerollsUsed", saved.getInt("rerollsUsed")).put("hasRolled", true)
+        .put("finalized", saved.getBoolean("finalized")).put("hand", saved.getString("hand")).put("resolved", false)
+    }
+    next = PokerDiceCore.clearDice(next.copy(metadata = next.metadata.filterKeys { !it.startsWith("combat.") }))
+    return persist(next, boundary)
+  }
+
   fun start(state: GameState, entityKeys: List<String>, explorationTurn: Int, stageIndex: Int): GameState {
     if (active(state)) return state
     val boundary = boundary(state, explorationTurn, stageIndex)
     CombatChoiceEngine.start(boundary, JSONArray(entityKeys), 0,
       "${state.turn.currentTurnId}:${revision(state)}", 0)
     if (!CombatChoiceEngine.isActive(boundary)) return state
+    val entities = boundary.getJSONObject("combat").getJSONArray("entities")
+    val keys = JSONArray((0 until entities.length()).map { entities.getJSONObject(it).getString("key") })
+    boundary.getJSONObject("flags").put("entityEncounterKeys", keys).put("entityEncounterKey", keys.getString(0))
     boundary.getJSONObject("combat").put("encounterId",
       "${state.turn.currentTurnId}:${revision(state)}:${entityKeys.joinToString(",")}")
     return persist(state, boundary)
@@ -61,6 +102,12 @@ object Combat93Runtime {
     val boundary = read(state) ?: return null
     val combat = boundary.getJSONObject("combat")
     combat.put("revision", revision(state)).put("explorationTurn", boundary.getInt("turn"))
+    combat.optJSONObject("entity")?.let { entity ->
+      combat.put("entityKey", entity.optString("key")).put("entityName", entity.optString("name"))
+        .put("entityHp", entity.optInt("hp")).put("entityMaxHp", entity.optInt("maxHp"))
+    }
+    combat.put("playerHp", state.characters[KAI_ID]?.vitalState?.currentHp ?: 0)
+      .put("playerMaxHp", CharacterStatEngine.effective(state, KAI_ID).maxHp)
     combat.optJSONObject("diceState")?.put("maxRerolls", CombatChoiceEngine.MAX_REROLLS)
     return combat
   }
@@ -93,6 +140,9 @@ object Combat93Runtime {
           .put("criticalChancePercent", effective.criticalChancePercent)
           .put("evasionPercent", effective.evasionPercent)
           .put("resCriticalPercent", effective.resCriticalPercent).put("resEvasionPercent", effective.resEvasionPercent)))
+      character.metadata["combat93.reviveAtTurn"]?.toIntOrNull()?.let { due ->
+        if (character.vitalState.currentHp <= 0) profiles.getJSONObject(id).put("reviveAtTurn", due)
+      }
       // Main's restored stat authority exposes raw weapon damage; the engine applies hand/stats.
       val attack = CharacterStatEngine.weaponDamage(state, id)
       val source = JSONObject().put("id", id).put("name", character.name)
@@ -118,6 +168,14 @@ object Combat93Runtime {
     profiles.keys().forEach { id ->
       check(id in next.characters) { "combat_character_unknown" }
       next = CharacterStatEngine.setCurrentHp(next, id, profiles.getJSONObject(id).getInt("currentHp"))
+      if (id != KAI_ID) {
+        val character = next.characters.getValue(id)
+        val due = profiles.getJSONObject(id).optInt("reviveAtTurn", -1)
+        val metadata = if (character.vitalState.currentHp == 0 && due > 0)
+          character.metadata + ("combat93.reviveAtTurn" to due.toString())
+        else character.metadata - "combat93.reviveAtTurn"
+        next = next.copy(characters = next.characters + (id to character.copy(metadata = metadata)))
+      }
     }
     val resource = progression.getJSONObject("coreResource")
     next = next.copy(metadata = next.metadata + mapOf(
