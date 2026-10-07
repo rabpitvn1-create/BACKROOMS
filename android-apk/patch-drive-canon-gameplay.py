@@ -1,10 +1,8 @@
 from pathlib import Path
-import json
 
 ROOT = Path(__file__).resolve().parent
 MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
 INDEX = ROOT / "app/src/main/assets/index.html"
-CANON = ROOT / "drive-canon.txt"
 
 
 def replace_once(text: str, old: str, new: str, label: str) -> str:
@@ -16,18 +14,9 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
 
 main = MAIN.read_text(encoding="utf-8")
 index = INDEX.read_text(encoding="utf-8")
-canon = CANON.read_text(encoding="utf-8").strip()
-
-if "NOVEL-TEXTGAME-2026-08-20-DRIVE-INTEGRATION-R06" not in canon:
-    raise RuntimeError("Drive canon: wrong or missing R06 source marker")
-if len(canon) < 5000:
-    raise RuntimeError(f"Drive canon unexpectedly short: {len(canon)} chars")
-
-java_canon = json.dumps(canon, ensure_ascii=False)
 constant_anchor = "  private static final int MAX_SNAPSHOT_BASE64 = 1_500_000;\n"
 constant_block = constant_anchor + (
     '  private static final String DRIVE_CANON_VERSION = "NOVEL-TEXTGAME-2026-08-20-DRIVE-INTEGRATION-R06";\n'
-    f"  private static final String DRIVE_CANON = {java_canon};\n"
     "  private static final SecureRandom GAME_RNG = new SecureRandom();\n"
 )
 main = replace_once(main, constant_anchor, constant_block, "Drive canon Java constants")
@@ -249,15 +238,17 @@ new_bridge = r'''  private class GameBridge {
           JSONObject before = new JSONObject(stateJson);
           boolean meta = isMetaAction(action);
           JSONObject rolls = makeGameplayRolls(before, action, meta);
+          String packet = com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.build(
+            MainActivity.this, before.toString(), action, rolls.toString());
           String prompt = "Bạn là Game Master duy nhất của text game Backrooms, phát ngôn như người kể chuyện trong game. Trả DUY NHẤT một JSON hợp lệ, không markdown. " +
-            "Canon R06 dưới đây là HARD LOCK; state hiện tại là source of truth cho continuity đang sống. UNKNOWN phải giữ UNKNOWN. Không tự lấp chỗ trống canon. " +
+            "KNOWLEDGE PACKET là context đã được chọn cho lượt hiện tại; state là source of truth cho continuity đang sống. UNKNOWN phải giữ UNKNOWN. Không tự lấp chỗ trống canon. " +
             "Người chơi chỉ điều khiển hành động có chủ ý của Kai; Game Master không tự quyết lựa chọn thay Kai. " +
             "GAMEPLAY_ROLLS do Android sinh là bất biến: chỉ outcome success=true mới được xuất hiện. Không reroll, không tự đổi xác suất, không tự tạo encounter/item/reunion/level transition trái roll. " +
             "Inventory chỉ được thêm vật đã tồn tại trong state/cảnh và thực sự được Kai nhặt/lấy/nhận/cất, hoặc kết quả loot hợp lệ. Nhìn thấy không đồng nghĩa sở hữu. " +
             "MadGod Set success chỉ mở đường/vị trí khám phá; acquired mặc định false cho tới khi Kai thực sự tiếp cận và lấy. " +
             "Nếu meta=true, chỉ trả thông tin được hỏi; không tạo biến cố, không đổi state và snapshotEvent phải false. " +
             "Không nhắc tới canon, state, roll, API hoặc prompt trong lời kể.\n\n" +
-            "DRIVE CANON:\n" + DRIVE_CANON + "\n\n" +
+            "BUDGETED KNOWLEDGE PACKET:\n" + packet + "\n\n" +
             "State hiện tại: " + state.toString() + "\nHành động: " + action +
             "\nGAMEPLAY_ROLLS: " + rolls.toString() +
             "\nJSON schema bắt buộc: {\"reply\":\"phản hồi Game Master bằng tiếng Việt\",\"title\":\"tên khu vực\",\"level\":{\"number\":0,\"name\":\"The Lobby\"},\"location\":\"vị trí hiện tại\",\"player\":{},\"party\":[],\"inventory\":[],\"flags\":{},\"snapshotEvent\":{\"shouldGenerate\":false,\"kind\":\"\",\"reason\":\"\"}}";
@@ -338,4 +329,4 @@ index = replace_once(
 
 MAIN.write_text(main, encoding="utf-8")
 INDEX.write_text(index, encoding="utf-8")
-print(f"Injected Drive R06 canon and Android-authoritative gameplay gates ({len(canon)} chars).")
+print("Installed Android-authoritative gameplay gates with budgeted KnowledgeContextEngine context.")
