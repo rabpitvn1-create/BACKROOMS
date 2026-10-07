@@ -443,6 +443,19 @@ CODEC.write_text(codec, encoding="utf-8")
 # ---------------------------------------------------------------------------
 system = SYSTEM.read_text(encoding="utf-8")
 system = re.sub(r'bonuses\s*=\s*EquipmentBonuses\([^)]*\)', 'bonuses = EquipmentBonuses()', system)
+system = replace_re(
+    system,
+    r'''data class EquipmentBonuses\(.*?\n\}\n\ndata class WeaponGameplayStats''',
+    r'''class EquipmentBonuses {
+  fun any() = false
+  override fun equals(other: Any?): Boolean = other is EquipmentBonuses
+  override fun hashCode(): Int = 0
+  override fun toString(): String = "EquipmentBonuses()"
+}
+
+data class WeaponGameplayStats''',
+    "remove equipment stat schema"
+)
 stat_engine = r'''object CharacterStatEngine {
   fun effective(state: GameState, characterId: String): EffectiveCharacterStats =
     CharacterStatCore.effective(state, characterId)
@@ -644,7 +657,6 @@ data class ItemDetailProjection(
   val equippedSlots: List<String> = emptyList(),
   val statItem: Boolean = false,
   val classification: String? = null,
-  val bonuses: EquipmentBonuses = EquipmentBonuses(),
   val weapon: WeaponGameplayStats? = null,
   val abilities: List<EquipmentAbility> = emptyList(),
   val restrictions: List<String> = emptyList(),
@@ -1334,9 +1346,15 @@ for marker in (
     if marker not in PROGRESSION.read_text(encoding="utf-8"):
         raise RuntimeError("1.1.93a authority marker missing: " + marker)
 
-for runtime_path in (STATS, DETAIL, DETAIL_JSON):
+for runtime_path in (STATS, DETAIL, DETAIL_JSON, SYSTEM):
     runtime_text = runtime_path.read_text(encoding="utf-8")
-    for forbidden in ('val df:', 'val agi:', 'val crit:', 'put("DF"', 'put("AGI"', 'put("CRIT"'):
+    for forbidden in (
+        'val df:', 'val agi:', 'val crit:',
+        'put("DF"', 'put("AGI"', 'put("CRIT"',
+        '.bonuses.hp', '.bonuses.str', '.bonuses.df', '.bonuses.agi', '.bonuses.crit',
+        'EquipmentBonuses(hp =', 'EquipmentBonuses(str =', 'EquipmentBonuses(df =',
+        'EquipmentBonuses(agi =', 'EquipmentBonuses(crit ='
+    ):
         if forbidden in runtime_text:
             raise RuntimeError(f"legacy stat surface remains in {runtime_path.name}: {forbidden}")
 
