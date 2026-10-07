@@ -2,75 +2,16 @@ from __future__ import annotations
 
 import json
 import math
-import statistics
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 DB_PATH = ROOT / "app/src/main/assets/knowledge/knowledge_db.json"
-DRIVE_CANON = (ROOT / "drive-canon.txt").read_text(encoding="utf-8")
-KAI_CANON = (ROOT / "kai-codex.txt").read_text(encoding="utf-8")
 DB = json.loads(DB_PATH.read_text(encoding="utf-8"))
 RECORDS = {r["id"]: r for r in DB["records"]}
 
 
 def toks(text: str) -> int:
     return max(1, math.ceil(len(text) / 4))
-
-
-def section(text: str, start: str, end: str) -> str:
-    a = text.find(start)
-    if a < 0:
-        return ""
-    b = text.find(end, a + len(start))
-    if b < 0:
-        b = len(text)
-    return text[a:b].strip()
-
-
-def level_line(level: int) -> str:
-    prefix = f"- Level {level} /"
-    for line in DRIVE_CANON.splitlines():
-        if line.startswith(prefix):
-            return line
-    return ""
-
-
-def old_drive_packet(case: dict) -> str:
-    out = [
-        section(DRIVE_CANON, "PHẠM VI", "VĂN PHONG VÀ KINH DỊ"),
-        section(DRIVE_CANON, "VĂN PHONG VÀ KINH DỊ", "THẾ GIỚI"),
-        section(DRIVE_CANON, "THẾ GIỚI", "LEVEL 0–6"),
-        level_line(case["level"]),
-        section(DRIVE_CANON, "GAMEPLAY HARD LOCK", "END DRIVE CANON R06"),
-    ]
-    action = case["action"].lower()
-    if any(k in action for k in ["entity", "hound", "smiler", "jeff", "almond", "item", "loot", "inventory", "omnivault", "water", "nước", "thuốc"]):
-        out.append(section(DRIVE_CANON, "ENTITY VÀ TÀI NGUYÊN", "IRIS / SYVIAL"))
-    if case.get("present") or any(k in action for k in ["iris", "syvial", "nói", "hỏi", "dialogue", "trò chuyện"]):
-        out.append(section(DRIVE_CANON, "IRIS / SYVIAL", "GAMEPLAY HARD LOCK"))
-    return "\n\n".join(x for x in out if x)
-
-
-def old_kai_packet(case: dict) -> str:
-    out = [
-        section(KAI_CANON, "1. ĐỊNH DANH", "2. NGOẠI HÌNH"),
-        section(KAI_CANON, "3. TÍNH CÁCH / NGUYÊN TẮC", "4. PHONG CÁCH GIAO TIẾP"),
-        section(KAI_CANON, "4. PHONG CÁCH GIAO TIẾP", "5. NĂNG LỰC CHIẾN ĐẤU"),
-        section(KAI_CANON, "5. NĂNG LỰC CHIẾN ĐẤU", "6. SPARDA CORE"),
-        section(KAI_CANON, "6. SPARDA CORE", "7. DEVIL TRIGGER"),
-        section(KAI_CANON, "10. BLACKBLOOD ARMOR & MODULES", "11. OMNIVAULT RING / NHẪN VẠN TÀNG"),
-        section(KAI_CANON, "13. GIỚI HẠN THỰC SỰ", "14. ACTION LOCKS / CẤM MODEL TỰ BỊA"),
-        section(KAI_CANON, "14. ACTION LOCKS / CẤM MODEL TỰ BỊA", "END OF KAI OPERATIONAL CODEX"),
-    ]
-    action = case["action"].lower()
-    if any(k in action for k in ["bắn", "đánh", "combat", "tấn công", "entity", "hound", "smiler", "threat", "đe dọa"]):
-        out.extend([
-            section(KAI_CANON, "7. DEVIL TRIGGER", "10. BLACKBLOOD ARMOR & MODULES"),
-            section(KAI_CANON, "12. PHONG CÁCH CHIẾN ĐẤU", "13. GIỚI HẠN THỰC SỰ"),
-        ])
-    if any(k in action for k in ["omnivault", "item", "inventory", "scan", "hoàn nguyên", "restore"]):
-        out.append(section(KAI_CANON, "11. OMNIVAULT RING / NHẪN VẠN TÀNG", "12. PHONG CÁCH CHIẾN ĐẤU"))
-    return "\n\n".join(x for x in out if x)
 
 
 MANDATORY = {
@@ -149,44 +90,6 @@ def new_packet_tokens(case: dict, selected: set[str]) -> int:
     return min(3400, base + record_cost)
 
 
-def old_packet_tokens(case: dict) -> int:
-    state = {
-        "turn": case.get("turn", 1), "level": {"number": case["level"]},
-        "location": case.get("location", "A local scene with a few relevant observations."),
-        "party": case.get("present", []), "flags": case.get("legacy_flags", {}),
-        "log": case.get("log", [])[-6:],
-    }
-    text = old_drive_packet(case) + "\n\n" + old_kai_packet(case) + "\n\n" + json.dumps(state, ensure_ascii=False) + "\n\n" + case["action"]
-    return toks(text)
-
-
-def old_supports(case: dict, rid: str) -> bool:
-    packet = (old_drive_packet(case) + "\n" + old_kai_packet(case)).lower()
-    probes = {
-        "CHAR.IRIS.RUNTIME_CORE": ["iris / argus"],
-        "CHAR.IRIS.ARGUS": ["argus terrain read"],
-        "CHAR.IRIS.THOUSANDFOLD": ["thousandfold cognition"],
-        "CHAR.IRIS.IVORY_EBONY": ["ivory & ebony"],
-        "CHAR.IRIS.SUPPORT": ["field mednet", "field galley"],
-        "ADDR.IRIS.KAI": ["xưng “em”, gọi kai “anh”", "xưng \"em\", gọi kai \"anh\""],
-        "REL.IRIS.SYVIAL.BASELINE": ["bạn bè", "trusted teammates"],
-        "CHAR.SYVIAL.RUNTIME_CORE": ["syvial: con gái lucifer"],
-        "CHAR.SYVIAL.COMBAT": ["kiếm sĩ siêu nhiên"],
-        "ADDR.SYVIAL.KAI": ["xưng “em”, gọi “anh” hoặc “kai”", "xưng \"em\", gọi \"anh\" hoặc \"kai\""],
-        "CHAR.KAI.OMNIVAULT": ["omnivault ring / nhẫn vạn tàng"],
-        "CHAR.KAI.GUILTY_CROWN_OVERRIDE": ["guilty crown override"],
-        "STORY.MAIN.OBJECTIVE": ["mục tiêu dài hạn"],
-        "STORY.MAIN.SEPARATION": ["black_blood_link", "location unknown to kai"],
-        "ENTITY.HOUND": ["hound"],
-        "ENTITY.BEAST_LEVEL_5": ["the beast"],
-        "ITEM.ALMOND_WATER": ["almond water"],
-    }
-    candidates = probes.get(rid)
-    if not candidates:
-        return True
-    return any(p in packet for p in candidates)
-
-
 long_log = [
     {"role": "player" if i % 2 == 0 else "gm", "text": ("Đoạn hội thoại gần đây chứa chi tiết không cần mang dài hạn. " * 8) + str(i)}
     for i in range(8)
@@ -252,87 +155,56 @@ def percentile(values: list[int], p: float) -> int:
     return ordered[idx]
 
 
-old_sizes = []
-new_sizes = []
-old_missing = 0
-new_missing = 0
-old_irrelevant = 0
-new_irrelevant = 0
-quality_names = ["canon_errors", "story_continuity_errors", "character_errors", "address_errors", "knowledge_leaks", "ability_overreach", "competence_suppression"]
-old_quality = {name: 0 for name in quality_names}
-new_quality = {name: 0 for name in quality_names}
+context_sizes = []
+missing_required = 0
+quality_names = [
+    "canon_errors", "story_continuity_errors", "character_errors", "address_errors",
+    "knowledge_leaks", "ability_overreach", "competence_suppression"
+]
+quality = {name: 0 for name in quality_names}
 case_rows = []
 
 for case in CORPUS:
     selected = select_new(case)
-    old_size = old_packet_tokens(case)
-    new_size = new_packet_tokens(case, selected)
-    old_sizes.append(old_size)
-    new_sizes.append(new_size)
+    context_size = new_packet_tokens(case, selected)
+    context_sizes.append(context_size)
     required = set(case["required"])
-    old_missing_ids = {rid for rid in required if not old_supports(case, rid)}
-    new_missing_ids = required - selected
-    old_missing += len(old_missing_ids)
-    new_missing += len(new_missing_ids)
-    # OLD compact packets are broad prose blobs. Count sections outside direct required needs as coarse irrelevant units.
-    old_units = 8 + (2 if any(k in case["action"].lower() for k in ["entity", "hound", "item", "omnivault", "water", "nước"]) else 0) + (1 if case.get("present") else 0)
-    old_irrelevant += max(0, old_units - len(required))
-    supportive = required | MANDATORY | {f"LEVEL.{case['level']:02d}", "ENTITY.GLOBAL_HARD_LOCK", "ITEM.GLOBAL_HARD_LOCK", "REL.KAI.IRIS.BASELINE", "REL.KAI.SYVIAL.BASELINE"}
-    new_irrelevant += len(selected - supportive)
-    for quality, ids in case.get("quality", {}).items():
-        if any(not old_supports(case, rid) for rid in ids):
-            old_quality[quality] += 1
+    missing_ids = required - selected
+    missing_required += len(missing_ids)
+    for metric, ids in case.get("quality", {}).items():
         if any(rid not in selected for rid in ids):
-            new_quality[quality] += 1
+            quality[metric] += 1
     case_rows.append({
-        "case": case["name"], "old_tokens": old_size, "new_tokens": new_size,
-        "old_missing": sorted(old_missing_ids), "new_missing": sorted(new_missing_ids),
-        "selected": sorted(selected)
+        "case": case["name"],
+        "context_tokens": context_size,
+        "missing_required": sorted(missing_ids),
+        "selected": sorted(selected),
     })
 
 report = {
-    "benchmark": "offline context-contract OLD vs NEW",
+    "verification": "offline current knowledge-context contract",
     "corpus_cases": len(CORPUS),
-    "token_estimator": "ceil(chars/4), same estimator for OLD and NEW",
-    "old": {
-        "average_context_tokens": round(statistics.mean(old_sizes), 2),
-        "p50_context_tokens": percentile(old_sizes, 0.50),
-        "p95_context_tokens": percentile(old_sizes, 0.95),
-        "missing_required_context": old_missing,
-        "irrelevant_retrieved_context_units": old_irrelevant,
-        **old_quality,
-        "critic_invocation_rate": "unchanged conditional policy; provider-run metric not fabricated offline",
-        "repair_rate": "provider-run metric not fabricated offline"
-    },
-    "new": {
-        "average_context_tokens": round(statistics.mean(new_sizes), 2),
-        "p50_context_tokens": percentile(new_sizes, 0.50),
-        "p95_context_tokens": percentile(new_sizes, 0.95),
-        "missing_required_context": new_missing,
-        "irrelevant_retrieved_context_units": new_irrelevant,
-        **new_quality,
-        "critic_invocation_rate": "same validated-risk threshold; deterministic validator runs every generated non-meta turn",
-        "repair_rate": "single repair remains; deterministic validator can trigger it without forcing semantic critic"
+    "token_estimator": "ceil(chars/4), matching the runtime budget estimator",
+    "current": {
+        "p50_context_tokens": percentile(context_sizes, 0.50),
+        "p95_context_tokens": percentile(context_sizes, 0.95),
+        "max_context_tokens": max(context_sizes) if context_sizes else 0,
+        "missing_required_context": missing_required,
+        **quality,
     },
     "cases": case_rows,
     "limitations": [
-        "This benchmark measures packaged context size and deterministic required-record coverage on the same corpus.",
-        "It does not invent model-output error rates, critic invocation rates, or repair rates without actually running providers.",
-        "A live-provider regression can be layered on later, but CI acceptance remains deterministic and reproducible."
-    ]
+        "This verifier checks deterministic required-record coverage and the packaged context budget on a fixed corpus.",
+        "It does not fabricate provider-output quality metrics or compare against the retired compact-canon implementation.",
+    ],
 }
 
 out_path = ROOT / "knowledge-benchmark-report.json"
 out_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-
 print(json.dumps(report, ensure_ascii=False, indent=2))
 
-# Acceptance gates requested for the architecture itself.
-assert report["new"]["average_context_tokens"] <= report["old"]["average_context_tokens"], "AVG_CONTEXT_NEW > AVG_CONTEXT_OLD"
-assert report["new"]["p95_context_tokens"] <= 3400, "NEW p95 exceeds hard ceiling"
-assert report["new"]["missing_required_context"] == 0, "NEW misses required context on corpus"
-assert report["new"]["missing_required_context"] < report["old"]["missing_required_context"], "NEW required-context coverage did not improve"
-assert report["new"]["irrelevant_retrieved_context_units"] < report["old"]["irrelevant_retrieved_context_units"], "NEW irrelevant retrieval did not improve"
-for metric in ["canon_errors", "story_continuity_errors", "character_errors", "address_errors", "ability_overreach", "competence_suppression"]:
-    assert report["new"][metric] <= report["old"][metric], f"NEW regressed {metric}"
-assert any(report["new"][m] < report["old"][m] for m in ["story_continuity_errors", "character_errors", "ability_overreach", "competence_suppression"]), "NEW consistency did not improve on any measured contract"
+assert report["current"]["p95_context_tokens"] <= 3400, "Current p95 exceeds hard ceiling"
+assert report["current"]["max_context_tokens"] <= 3400, "Current context exceeds hard ceiling"
+assert report["current"]["missing_required_context"] == 0, "Current selector misses required context on corpus"
+for metric in quality_names:
+    assert report["current"][metric] == 0, f"Current selector misses {metric} coverage"
