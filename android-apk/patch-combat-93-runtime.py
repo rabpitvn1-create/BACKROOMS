@@ -100,8 +100,19 @@ if "COMBAT_93_BRIDGE_V1" not in facade:
   }''')
     facade = facade.replace("CombatRuntime.active(state) != null", "Combat93Runtime.active(state)")
     facade = facade.replace("CombatRuntime.active(current) != null", "Combat93Runtime.active(current)")
-    facade = replace_once(facade, "    val normalized = normalizeVisualPresence(loaded)",
-        "    val migrated = Combat93Runtime.migrate(loaded, legacy.optInt(\"turn\", 1))\n    val recovered = Combat93Runtime.recoverCompanions(migrated, legacy.optInt(\"turn\", 1))\n    val normalized = normalizeVisualPresence(recovered)")
+    combat_load_prefix = "    val migrated = Combat93Runtime.migrate(loaded, legacy.optInt(\"turn\", 1))\n    val recovered = Combat93Runtime.recoverCompanions(migrated, legacy.optInt(\"turn\", 1))\n"
+    if "    val normalized = quarantineRetiredItemSources(normalizeVisualPresence(loaded))" in facade:
+        facade = replace_once(
+            facade,
+            "    val normalized = quarantineRetiredItemSources(normalizeVisualPresence(loaded))",
+            combat_load_prefix + "    val normalized = quarantineRetiredItemSources(normalizeVisualPresence(recovered))",
+        )
+    else:
+        facade = replace_once(
+            facade,
+            "    val normalized = normalizeVisualPresence(loaded)",
+            combat_load_prefix + "    val normalized = normalizeVisualPresence(recovered)",
+        )
     facade = replace_once(facade, '''    CombatRuntime.toJson(state)?.let { combat ->
       PokerDiceCore.diceJson(state)?.let { combat.put("diceState", it) }
       output.put("combat", combat)
