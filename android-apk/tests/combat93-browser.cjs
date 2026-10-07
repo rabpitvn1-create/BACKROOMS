@@ -14,7 +14,7 @@ async function run(){
   const server=http.createServer((req,res)=>{
     const file=path.join(assets,decodeURIComponent(req.url.split('?')[0]));
     if(!file.startsWith(assets+path.sep)){res.writeHead(403);res.end();return;}
-    try{const types={'.html':'text/html','.js':'application/javascript','.png':'image/png','.webp':'image/webp'};res.setHeader('Content-Type',types[path.extname(file)]||'application/octet-stream');res.end(fs.readFileSync(file));}catch(_){res.writeHead(404);res.end();}
+    try{const types={'.html':'text/html','.js':'application/javascript','.png':'image/png','.webp':'image/webp'};res.setHeader('Content-Type',types[path.extname(file)]||'application/octet-stream');res.end(path.extname(file)==='.html'?fs.readFileSync(file,'utf8').replaceAll('file:///android_asset/','/'):fs.readFileSync(file));}catch(_){res.writeHead(404);res.end();}
   });
   await new Promise(r=>server.listen(0,'127.0.0.1',r));
   const url='http://127.0.0.1:'+server.address().port;
