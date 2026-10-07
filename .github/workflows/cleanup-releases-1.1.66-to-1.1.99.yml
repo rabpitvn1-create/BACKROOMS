@@ -1,0 +1,126 @@
+name: Cleanup releases 1.1.66 to 1.1.99
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type DELETE_RELEASES_1.1.66_TO_1.1.99 to confirm permanent deletion"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cleanup-releases-1.1.66-to-1.1.99
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Require exact confirmation
+        env:
+          CONFIRM: ${{ inputs.confirm }}
+        run: |
+          set -euo pipefail
+          if [ "$CONFIRM" != "DELETE_RELEASES_1.1.66_TO_1.1.99" ]; then
+            echo "::error::Confirmation text does not match. Nothing was deleted."
+            exit 1
+          fi
+
+      - name: Find matching releases
+        id: targets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          gh release list             --repo "$REPO"             --limit 1000             --json tagName             --jq '.[].tagName' > all-release-tags.txt
+
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+
+          pattern = re.compile(r'^(?:v|BR-)?1\.1\.(\d+)$')
+          tags = []
+
+          for raw in Path("all-release-tags.txt").read_text(encoding="utf-8").splitlines():
+              tag = raw.strip()
+              match = pattern.fullmatch(tag)
+              if not match:
+                  continue
+              patch = int(match.group(1))
+              if 66 <= patch <= 99:
+                  tags.append((patch, tag))
+
+          tags.sort(key=lambda item: (item[0], item[1]))
+          Path("targets.txt").write_text(
+              "".join(f"{tag}\n" for _, tag in tags),
+              encoding="utf-8",
+          )
+
+          print(f"Matched {len(tags)} release(s).")
+          for _, tag in tags:
+              print(f"  - {tag}")
+          PY
+
+          {
+            echo "### Releases scheduled for permanent deletion"
+            if [ -s targets.txt ]; then
+              sed 's/^/- `/; s/$/`/' targets.txt
+            else
+              echo "- None"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Delete releases and associated tags
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          if [ ! -s targets.txt ]; then
+            echo "No matching releases found; nothing to delete."
+            exit 0
+          fi
+
+          while IFS= read -r tag; do
+            [ -n "$tag" ] || continue
+            echo "Deleting release and tag: $tag"
+            gh release delete "$tag"               --repo "$REPO"               --cleanup-tag               --yes
+          done < targets.txt
+
+      - name: Verify cleanup
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          gh release list             --repo "$REPO"             --limit 1000             --json tagName             --jq '.[].tagName' > remaining-release-tags.txt
+
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+
+          pattern = re.compile(r'^(?:v|BR-)?1\.1\.(\d+)$')
+          remaining = []
+
+          for raw in Path("remaining-release-tags.txt").read_text(encoding="utf-8").splitlines():
+              tag = raw.strip()
+              match = pattern.fullmatch(tag)
+              if match and 66 <= int(match.group(1)) <= 99:
+                  remaining.append(tag)
+
+          if remaining:
+              raise SystemExit(
+                  "Cleanup incomplete; matching releases still exist: "
+                  + ", ".join(sorted(remaining))
+              )
+
+          print("Verified: no releases from 1.1.66 through 1.1.99 remain.")
+          PY
