@@ -97,7 +97,7 @@ jobs:
 
           for marker in (
               'KAI_GUILTY_CROWN_SHOTS * damagePerSlash',
-              'The Last Requiem tự động kích hoạt',
+              'Huyết Ma Tứ Liên tự động kích hoạt',
               'private const val DIEP_MINH_MAX_HP = 2999',
               'Devils And Gold kích hoạt',
               'LUCIA_JOINT_ATTACK',
