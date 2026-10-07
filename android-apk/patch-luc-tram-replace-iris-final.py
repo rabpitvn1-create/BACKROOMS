@@ -469,7 +469,7 @@ engine = engine.replace('if (id.startsWith("CHAR.IRIS.") && "iris" !in presentAc
 engine = engine.replace('if (id.contains("iris")) presentActors += "iris"', 'if (id.contains("luc_tram") || id.contains("lục trầm") || id.contains("luc tram")) presentActors += "luc_tram"')
 engine = engine.replace('"communication", "exploration", "iris", "syvial", "reunionPath",',
                         '"communication", "exploration", "luc_tram", "syvial", "reunionPath",')
-KNOWLEDGE_ENGINE.write_text(engine, encoding="utf-8")
+engine = "\n".join(line.rstrip() for line in engine.splitlines()) + "\n"\nKNOWLEDGE_ENGINE.write_text(engine, encoding="utf-8")
 
 validator = KNOWLEDGE_VALIDATOR.read_text(encoding="utf-8")
 validator = re.sub(
