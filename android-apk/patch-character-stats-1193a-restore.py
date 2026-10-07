@@ -530,7 +530,10 @@ equipment_system = r'''object CharacterEquipmentSystem {
   fun seedFresh(state: GameState): GameState = normalizeInternal(state, true)
   fun normalize(state: GameState): GameState = normalizeInternal(state, state.metadata["characterEquipmentSchemaVersion"] != SCHEMA_VERSION)
 
-  private fun normalizeInternal(input: GameState, seedStarting: Boolean): GameState {
+  private fun normalizeInternal(source: GameState, seedStarting: Boolean): GameState {
+    // Preserve the follower compatibility installed earlier in the patch chain.
+    // Lucia exists in Core state without being forced into Party.
+    val input = LuciaCanon.ensure(source)
     val inventories = input.inventories.toMutableMap()
     val equipment = input.equipment.toMutableMap()
     input.characters.keys.forEach { characterId ->
@@ -569,7 +572,9 @@ equipment_system = r'''object CharacterEquipmentSystem {
       )
     }
     next = next.copy(characters = chars)
-    return next
+    // Fresh/load normalization must expose the canonical 1.1.93a stat schema too,
+    // otherwise follower constructors can temporarily leak their retired HP/stat baseline.
+    return CharacterProgressionCore.normalize(next)
   }
 }
 '''
@@ -731,7 +736,14 @@ object CharacterDetailProjector {
       id = c.id, name = c.name, avatarRef = c.avatarRef, presence = c.presence,
       isLeader = normalized.party.leaderId == c.id, healthState = c.healthState,
       currentHp = c.vitalState.currentHp.coerceIn(0, effective.maxHp), maxHp = effective.maxHp,
-      role = base.combatRole, condition = c.vitalState.condition,
+      role = base.combatRole,
+      energyDisplay = when (base.energy.mode) {
+        EnergyMode.INFINITE -> "∞"
+        EnergyMode.FINITE -> (base.energy.max ?: 0).toString()
+        EnergyMode.NOT_APPLICABLE -> "N/A"
+      },
+      regenPerCompletedTurn = effective.regenPerCompletedTurn,
+      condition = c.vitalState.condition,
       str = StatLineProjection(base.str, 0, effective.str),
       def = StatLineProjection(base.def, 0, effective.def),
       skl = StatLineProjection(base.skl, 0, effective.skl),
@@ -768,7 +780,8 @@ object CharacterDetailJson {
   fun encodeCharacter(c: CharacterDetailProjection): JSONObject = JSONObject().apply {
     put("id", c.id); put("name", c.name); c.avatarRef?.let { put("avatar", it) }
     put("presence", c.presence.name); put("isLeader", c.isLeader); c.healthState?.let { put("healthState", it) }
-    put("currentHp", c.currentHp); put("maxHp", c.maxHp); put("role", c.role); put("condition", c.condition.name)
+    put("currentHp", c.currentHp); put("maxHp", c.maxHp); put("role", c.role)
+    put("energy", c.energyDisplay); put("hpRegen", c.regenPerCompletedTurn); put("condition", c.condition.name)
     put("stats", JSONObject().apply {
       put("STR", stat(c.str)); put("DEF", stat(c.def)); put("SKL", stat(c.skl)); put("VIT", stat(c.vit))
     })
@@ -1251,6 +1264,45 @@ if lucia_test.exists():
     assertEquals(50, CharacterStatEngine.effective(state, LUCIA_ID).maxHp)
   }''', "Lucia stat regression")
     lucia_test.write_text(text, encoding="utf-8")
+
+# Final combat regression compatibility: retain current combat sequencing, but
+# update expectations for canonical 1.1.93a HP, SKL skill projection and Đại Đạo heal.
+combat_test = TESTS / "CombatRuntimeTest.kt"
+if combat_test.exists():
+    text = combat_test.read_text(encoding="utf-8")
+    text = text.replace(
+      '''    val expectedMaxHp = CharacterStatEngine.effective(GameState.initial(), KAI_ID).maxHp
+    assertEquals(175, expectedMaxHp)
+    assertEquals(expectedMaxHp, combat.playerMaxHp)
+    assertEquals(expectedMaxHp, combat.playerHp)
+''',
+      '''    val initial = GameState.initial()
+    val expectedMaxHp = CharacterStatEngine.effective(initial, KAI_ID).maxHp
+    val expectedHp = initial.characters.getValue(KAI_ID).vitalState.currentHp
+    assertEquals(55, expectedMaxHp)
+    assertEquals(50, expectedHp)
+    assertEquals(expectedMaxHp, combat.playerMaxHp)
+    assertEquals(expectedHp, combat.playerHp)
+'''
+    )
+    # Huyết Ma Nhị Thập Tứ Trảm is a skill: SKL=6 raises its 32-DMG weapon base
+    # before the existing 115% per-slash multiplier. No RNG/turn ordering changes.
+    text = text.replace('mỗi trảm -36 HP', 'mỗi trảm -40 HP')
+    text = text.replace('tổng -864 HP', 'tổng -960 HP')
+
+    old_diep = '''    assertTrue(result.reply.contains("Devils And Gold"))
+    assertEquals(kaiBefore - maxOf(1, (kaiMax * 5 + 99) / 100), result.state.characters.getValue(KAI_ID).vitalState.currentHp)
+    assertEquals(irisBefore - maxOf(1, (irisMax * 5 + 99) / 100), result.state.characters.getValue("iris").vitalState.currentHp)
+'''
+    new_diep = '''    assertTrue(result.reply.contains("Devils And Gold"))
+    val kaiDamage = maxOf(1, (kaiMax * 5 + 99) / 100)
+    val daiDaoHeal = maxOf(1, (kaiMax * CaoMinhCombatPassive.HEAL_PERCENT + 50) / 100)
+    assertEquals(minOf(kaiMax, kaiBefore - kaiDamage + daiDaoHeal), result.state.characters.getValue(KAI_ID).vitalState.currentHp)
+    assertEquals(irisBefore - maxOf(1, (irisMax * 5 + 99) / 100), result.state.characters.getValue("iris").vitalState.currentHp)
+'''
+    if old_diep in text:
+        text = text.replace(old_diep, new_diep, 1)
+    combat_test.write_text(text, encoding="utf-8")
 
 # Final static guards. The forbidden names may survive as compatibility getters or
 # dead equipment fields, but no serialized/progression path may expose them.
