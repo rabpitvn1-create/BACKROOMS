@@ -66,9 +66,6 @@ data class CharacterStatProfile(
   val statSource: StatSource = StatSource.GAMEPLAY_NORMALIZED,
   val schema: String = CharacterProgressionCore.SCHEMA
 ) {
-  @Deprecated("Use DEF") val df: Int get() = def
-  @Deprecated("Use VIT") val agi: Int get() = vit
-  @Deprecated("Use SKL") val crit: Int get() = skl
 }
 
 data class CharacterVitalState(
@@ -91,11 +88,6 @@ data class EffectiveCharacterStats(
   val energy: EnergyProfile = EnergyProfile.notApplicable(),
   val regenPerCompletedTurn: Int = 0
 ) {
-  // Read-only source-compatibility aliases. They are not a second stat schema.
-  @Deprecated("Use DEF") val df: Int get() = def
-  @Deprecated("Use VIT") val agi: Int get() = vit
-  @Deprecated("Use SKL") val crit: Int get() = skl
-  val equipmentHp: Int get() = 0
 }
 
 object CharacterStatProfiles {
@@ -289,10 +281,10 @@ object CharacterStatCore {
 
   fun effective(state: GameState, characterId: String): EffectiveCharacterStats {
     val p = state.characters[characterId]?.statProfile ?: CharacterStatProfiles.forId(characterId)
-    val str = p.str.coerceIn(5, 999) + passiveBonus(p.str, characterId)
-    val def = p.def.coerceIn(5, 999) + passiveBonus(p.def, characterId)
-    val skl = p.skl.coerceIn(5, 999) + passiveBonus(p.skl, characterId)
-    val vit = p.vit.coerceIn(5, 999) + passiveBonus(p.vit, characterId)
+    val str = (p.str.coerceIn(5, 999) + passiveBonus(p.str, characterId)).coerceAtMost(CharacterProgressionCore.MAX_STAT)
+    val def = (p.def.coerceIn(5, 999) + passiveBonus(p.def, characterId)).coerceAtMost(CharacterProgressionCore.MAX_STAT)
+    val skl = (p.skl.coerceIn(5, 999) + passiveBonus(p.skl, characterId)).coerceAtMost(CharacterProgressionCore.MAX_STAT)
+    val vit = (p.vit.coerceIn(5, 999) + passiveBonus(p.vit, characterId)).coerceAtMost(CharacterProgressionCore.MAX_STAT)
     val maxHp = scaleByPercent(CharacterProgressionCore.BASE_MAX_HP, CharacterProgressionCore.statPercent(vit))
     return EffectiveCharacterStats(
       maxHp = maxHp,
@@ -451,6 +443,19 @@ CODEC.write_text(codec, encoding="utf-8")
 # ---------------------------------------------------------------------------
 system = SYSTEM.read_text(encoding="utf-8")
 system = re.sub(r'bonuses\s*=\s*EquipmentBonuses\([^)]*\)', 'bonuses = EquipmentBonuses()', system)
+system = replace_re(
+    system,
+    r'''data class EquipmentBonuses\(.*?\n\}\n\ndata class WeaponGameplayStats''',
+    r'''class EquipmentBonuses {
+  fun any() = false
+  override fun equals(other: Any?): Boolean = other is EquipmentBonuses
+  override fun hashCode(): Int = 0
+  override fun toString(): String = "EquipmentBonuses()"
+}
+
+data class WeaponGameplayStats''',
+    "remove equipment stat schema"
+)
 stat_engine = r'''object CharacterStatEngine {
   fun effective(state: GameState, characterId: String): EffectiveCharacterStats =
     CharacterStatCore.effective(state, characterId)
@@ -510,11 +515,15 @@ stat_engine = r'''object CharacterStatEngine {
     return EquipmentCatalog.definition(weaponId)?.weapon?.dmg ?: 18
   }
 
-  fun skillBaseDamage(state: GameState, characterId: String): Int =
-    CharacterStatCore.scaleByPercent(
+  fun skillBaseDamage(state: GameState, characterId: String): Int {
+    val sklScaled = CharacterStatCore.scaleByPercent(
       weaponDamage(state, characterId),
       CharacterProgressionCore.statPercent(effective(state, characterId).skl)
     )
+    return if (CharacterStatCore.isCaoMinh(characterId)) {
+      CharacterStatCore.scaleByPercent(sklScaled, CaoMinhCombatPassive.attackPercent(state))
+    } else sklScaled
+  }
 }
 
 object CombatStatMath {
@@ -652,7 +661,6 @@ data class ItemDetailProjection(
   val equippedSlots: List<String> = emptyList(),
   val statItem: Boolean = false,
   val classification: String? = null,
-  val bonuses: EquipmentBonuses = EquipmentBonuses(),
   val weapon: WeaponGameplayStats? = null,
   val abilities: List<EquipmentAbility> = emptyList(),
   val restrictions: List<String> = emptyList(),
@@ -691,9 +699,6 @@ data class CharacterDetailProjection(
   val equipmentDetails: List<ItemDetailProjection> = emptyList(),
   val statusEffects: List<StatusEffect>
 ) {
-  @Deprecated("Use DEF") val df: StatLineProjection get() = def
-  @Deprecated("Use VIT") val agi: StatLineProjection get() = vit
-  @Deprecated("Use SKL") val crit: StatLineProjection get() = skl
 }
 
 data class PartyDetailProjection(
@@ -884,9 +889,22 @@ combat = incoming_pattern.sub(
 # Skills use SKL projection while weaponDamage itself remains the raw weapon property.
 combat = combat.replace('CharacterStatEngine.weaponDamage(resolvedState, IRIS_ID)', 'CharacterStatEngine.skillBaseDamage(resolvedState, IRIS_ID)')
 combat = combat.replace('CharacterStatEngine.weaponDamage(resolvedState, SYVIAL_ID)', 'CharacterStatEngine.skillBaseDamage(resolvedState, SYVIAL_ID)')
+combat = combat.replace(
+'''    val isGuiltyCrownTurn = c.eventCounter % KAI_GUILTY_CROWN_INTERVAL_TURNS == 0
+    if (!isGuiltyCrownTurn && c.entityHp > 0) {
+      val weaponDamage = CharacterStatEngine.weaponDamage(resolvedState, KAI_ID)
+''',
+'''    val isGuiltyCrownTurn = c.eventCounter % KAI_GUILTY_CROWN_INTERVAL_TURNS == 0
+    if (!isGuiltyCrownTurn && c.entityHp > 0) {
+      val weaponDamage = CharacterStatEngine.skillBaseDamage(resolvedState, KAI_ID)
+''')
 # Cao skill/proc call sites (direct/basic ATTACK still uses raw weaponDamage above).
 combat = combat.replace('val damagePerSlash = CharacterStatEngine.weaponDamage(resolvedState, KAI_ID)', 'val damagePerSlash = CharacterStatEngine.skillBaseDamage(resolvedState, KAI_ID)')
 combat = combat.replace('val weaponDamage = CharacterStatEngine.weaponDamage(resolvedState, KAI_ID)\n        val proc', 'val weaponDamage = CharacterStatEngine.skillBaseDamage(resolvedState, KAI_ID)\n        val proc')
+combat = combat.replace(
+'val damage = CharacterStatEngine.weaponDamage(resolvedState, KAI_ID) * spec[2].toInt() / 100',
+'val damage = CharacterStatCore.scaleByPercent(CharacterStatEngine.weaponDamage(resolvedState, KAI_ID), CaoMinhCombatPassive.attackPercent(resolvedState)) * spec[2].toInt() / 100'
+)
 
 # Apply Dai Dao heal/stack after a successfully resolved Cao combat turn. Encode writes
 # combat HP first; passive then updates authoritative CharacterVitalState/stack.
@@ -935,6 +953,15 @@ if FACADE.exists():
 ''', 1)
     FACADE.write_text(facade, encoding="utf-8")
 
+# Remove stale prompt references to the retired Lucia HP/stat schema.
+if MAIN.exists():
+    main = MAIN.read_text(encoding="utf-8")
+    main = main.replace(
+      'HP nền 100; STR 7, DF 7, AGI 8, CRIT 7.',
+      'Character Stats theo 1.1.93a: Base STR/DEF/SKL/VIT đều bắt đầu 5; baseMaxHp 50 và Max HP derive từ VIT.'
+    )
+    MAIN.write_text(main, encoding="utf-8")
+
 # Minimal UI replacement: canonical labels only; no equipment numeric-stat comparison.
 if INDEX.exists():
     html = INDEX.read_text(encoding="utf-8")
@@ -981,6 +1008,11 @@ class CharacterStats1193aRegressionTest {
     assertEquals(2, effective.resCriticalPercent)
     assertEquals(2, effective.resEvasionPercent)
     assertEquals(150, effective.criticalDamagePercent)
+    val capped = state.copy(characters = state.characters + (KAI_ID to state.characters.getValue(KAI_ID).copy(
+      statProfile = base.copy(str=999, def=999, skl=999, vit=999)
+    )))
+    val cappedEffective = CharacterStatCore.effective(capped, KAI_ID)
+    assertEquals(listOf(999,999,999,999), listOf(cappedEffective.str,cappedEffective.def,cappedEffective.skl,cappedEffective.vit))
   }
 
   @Test fun legacySchemaResetsInsteadOfMappingAndPreservesHpSafely() {
@@ -1067,9 +1099,11 @@ class CharacterStats1193aRegressionTest {
   @Test fun daiDaoCombatStackIsSeparateAndResetsWithCombatMetadata() {
     var state = CharacterStatEngine.setCurrentHp(GameState.initial(), KAI_ID, 30)
     val baseCrit = CharacterStatEngine.effective(state, KAI_ID).criticalChancePercent
+    val skillBefore = CharacterStatEngine.skillBaseDamage(state, KAI_ID)
     state = CaoMinhCombatPassive.afterCaoMinhTurn(state)
     assertEquals(1, CaoMinhCombatPassive.stacks(state))
     assertEquals(120, CaoMinhCombatPassive.attackPercent(state))
+    assertTrue(CharacterStatEngine.skillBaseDamage(state, KAI_ID) > skillBefore)
     assertEquals((baseCrit + 20).coerceAtMost(100), CaoMinhCombatPassive.criticalChance(state, baseCrit))
     assertEquals(55, CaoMinhCombatPassive.allyCriticalChance(5))
     assertEquals(36, state.characters.getValue(KAI_ID).vitalState.currentHp)
@@ -1330,6 +1364,24 @@ for marker in (
 ):
     if marker not in PROGRESSION.read_text(encoding="utf-8"):
         raise RuntimeError("1.1.93a authority marker missing: " + marker)
+
+for runtime_path in (STATS, DETAIL, DETAIL_JSON, SYSTEM):
+    runtime_text = runtime_path.read_text(encoding="utf-8")
+    for forbidden in (
+        'val df:', 'val agi:', 'val crit:',
+        'put("DF"', 'put("AGI"', 'put("CRIT"',
+        '.bonuses.hp', '.bonuses.str', '.bonuses.df', '.bonuses.agi', '.bonuses.crit',
+        'EquipmentBonuses(hp =', 'EquipmentBonuses(str =', 'EquipmentBonuses(df =',
+        'EquipmentBonuses(agi =', 'EquipmentBonuses(crit ='
+    ):
+        if forbidden in runtime_text:
+            raise RuntimeError(f"legacy stat surface remains in {runtime_path.name}: {forbidden}")
+
+if MAIN.exists():
+    main_final = MAIN.read_text(encoding="utf-8")
+    for forbidden in ('HP nền 100; STR 7, DF 7, AGI 8, CRIT 7.',):
+        if forbidden in main_final:
+            raise RuntimeError("stale legacy character-stat prompt remains: " + forbidden)
 
 codec_final = CODEC.read_text(encoding="utf-8")
 for forbidden in ('put("df"', 'put("agi"', 'put("crit"', 'put("level"', 'put("exp"', 'put("baseStats"'):
