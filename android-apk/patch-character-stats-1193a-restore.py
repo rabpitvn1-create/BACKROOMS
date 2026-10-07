@@ -515,11 +515,15 @@ stat_engine = r'''object CharacterStatEngine {
     return EquipmentCatalog.definition(weaponId)?.weapon?.dmg ?: 18
   }
 
-  fun skillBaseDamage(state: GameState, characterId: String): Int =
-    CharacterStatCore.scaleByPercent(
+  fun skillBaseDamage(state: GameState, characterId: String): Int {
+    val sklScaled = CharacterStatCore.scaleByPercent(
       weaponDamage(state, characterId),
       CharacterProgressionCore.statPercent(effective(state, characterId).skl)
     )
+    return if (CharacterStatCore.isCaoMinh(characterId)) {
+      CharacterStatCore.scaleByPercent(sklScaled, CaoMinhCombatPassive.attackPercent(state))
+    } else sklScaled
+  }
 }
 
 object CombatStatMath {
@@ -885,9 +889,22 @@ combat = incoming_pattern.sub(
 # Skills use SKL projection while weaponDamage itself remains the raw weapon property.
 combat = combat.replace('CharacterStatEngine.weaponDamage(resolvedState, IRIS_ID)', 'CharacterStatEngine.skillBaseDamage(resolvedState, IRIS_ID)')
 combat = combat.replace('CharacterStatEngine.weaponDamage(resolvedState, SYVIAL_ID)', 'CharacterStatEngine.skillBaseDamage(resolvedState, SYVIAL_ID)')
+combat = combat.replace(
+'''    val isGuiltyCrownTurn = c.eventCounter % KAI_GUILTY_CROWN_INTERVAL_TURNS == 0
+    if (!isGuiltyCrownTurn && c.entityHp > 0) {
+      val weaponDamage = CharacterStatEngine.weaponDamage(resolvedState, KAI_ID)
+''',
+'''    val isGuiltyCrownTurn = c.eventCounter % KAI_GUILTY_CROWN_INTERVAL_TURNS == 0
+    if (!isGuiltyCrownTurn && c.entityHp > 0) {
+      val weaponDamage = CharacterStatEngine.skillBaseDamage(resolvedState, KAI_ID)
+''')
 # Cao skill/proc call sites (direct/basic ATTACK still uses raw weaponDamage above).
 combat = combat.replace('val damagePerSlash = CharacterStatEngine.weaponDamage(resolvedState, KAI_ID)', 'val damagePerSlash = CharacterStatEngine.skillBaseDamage(resolvedState, KAI_ID)')
 combat = combat.replace('val weaponDamage = CharacterStatEngine.weaponDamage(resolvedState, KAI_ID)\n        val proc', 'val weaponDamage = CharacterStatEngine.skillBaseDamage(resolvedState, KAI_ID)\n        val proc')
+combat = combat.replace(
+'val damage = CharacterStatEngine.weaponDamage(resolvedState, KAI_ID) * spec[2].toInt() / 100',
+'val damage = CharacterStatCore.scaleByPercent(CharacterStatEngine.weaponDamage(resolvedState, KAI_ID), CaoMinhCombatPassive.attackPercent(resolvedState)) * spec[2].toInt() / 100'
+)
 
 # Apply Dai Dao heal/stack after a successfully resolved Cao combat turn. Encode writes
 # combat HP first; passive then updates authoritative CharacterVitalState/stack.
@@ -1082,9 +1099,11 @@ class CharacterStats1193aRegressionTest {
   @Test fun daiDaoCombatStackIsSeparateAndResetsWithCombatMetadata() {
     var state = CharacterStatEngine.setCurrentHp(GameState.initial(), KAI_ID, 30)
     val baseCrit = CharacterStatEngine.effective(state, KAI_ID).criticalChancePercent
+    val skillBefore = CharacterStatEngine.skillBaseDamage(state, KAI_ID)
     state = CaoMinhCombatPassive.afterCaoMinhTurn(state)
     assertEquals(1, CaoMinhCombatPassive.stacks(state))
     assertEquals(120, CaoMinhCombatPassive.attackPercent(state))
+    assertTrue(CharacterStatEngine.skillBaseDamage(state, KAI_ID) > skillBefore)
     assertEquals((baseCrit + 20).coerceAtMost(100), CaoMinhCombatPassive.criticalChance(state, baseCrit))
     assertEquals(55, CaoMinhCombatPassive.allyCriticalChance(5))
     assertEquals(36, state.characters.getValue(KAI_ID).vitalState.currentHp)
