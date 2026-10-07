@@ -95,7 +95,7 @@ jobs:
 
           required = [
               ("versionCode 66", gradle), ("versionName '1.1.63.0.1'", gradle),
-              ('const prologue=`Ngày cuối cùng của Lôi Thiên Vực', html),
+              ('const prologue=`Lôi Thiên Vực chưa từng có một ngày yên tĩnh như thế.', html),
               ('Cao Minh tỉnh lại một mình tại Level 0. Không có dấu vết của Lục Trầm.', html),
               ('.snapshot{height:300px;margin:8px 10px 10px;', html),
               ('UI_119_BACKPORT_R01', html), ('id="playerActionBar"', html), ('id="playerActionModal"', html),
