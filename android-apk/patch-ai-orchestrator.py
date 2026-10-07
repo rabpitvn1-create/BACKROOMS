@@ -14,97 +14,12 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
 
 main = MAIN.read_text(encoding="utf-8")
 
-helpers = r'''  private String canonSection(String source, String start, String end) {
-    if (source == null || start == null) return "";
-    int from = source.indexOf(start);
-    if (from < 0) return "";
-    int to = end == null ? -1 : source.indexOf(end, from + start.length());
-    return source.substring(from, to >= 0 ? to : source.length()).trim();
-  }
-
-  private String canonLineStarting(String source, String prefix) {
-    if (source == null || prefix == null) return "";
-    String[] lines = source.split("\\n");
-    for (String line : lines) if (line.trim().startsWith(prefix)) return line.trim();
-    return "";
-  }
-
-  private boolean actionDialogue(String action) {
-    return containsAny(action, "hỏi", "nói", "trả lời", "gọi", "bảo", "thuyết phục", "xin lỗi", "cảm ơn", "talk", "ask", "tell");
-  }
-
-  private boolean actionCombat(String action) {
-    return containsAny(action, "bắn", "đánh", "đấm", "đá", "tấn công", "phản công", "né", "chiến đấu", "devil trigger", "guilty crown", "white wraith", "magnum", "talon", "phantom", "shoot", "attack", "fight");
-  }
-
-  private boolean actionOmnivault(String action) {
-    return containsAny(action, "omnivault", "nhẫn vạn tàng", "scan", "copy", "restore", "upgrade", "hoàn nguyên", "nâng cấp", "sao chép", "quét");
-  }
-
-  private boolean actionItem(String action) {
-    return actionOmnivault(action) || containsAny(action, "nhặt", "lấy", "cầm", "thu hồi", "nhận", "cất", "inventory", "đồ", "vật phẩm", "chai", "nước", "almond", "loot", "crate", "liquid pain", "greek fire", "madgod");
-  }
-
-  private boolean actionEntity(String action) {
-    return containsAny(action, "entity", "hound", "clump", "duller", "deathmoth", "faceling", "smiler", "skin-stealer", "skin stealer", "beast", "wretch", "cable mimic", "jeff", "quái", "thực thể", "sinh vật", "kẻ săn");
-  }
-
-  private boolean presentCharacter(JSONObject state, String key) {
+helpers = r'''  private boolean presentCharacter(JSONObject state, String key) {
     if (partyHas(state, key)) return true;
     JSONObject flags = state.optJSONObject("flags");
     JSONObject record = flags != null ? flags.optJSONObject(key) : null;
     String continuity = record != null ? lower(record.optString("continuity", "")) : "";
     return containsAny(continuity, "reunited", "with kai", "together", "present");
-  }
-
-  private String compactDriveCanon(JSONObject state, String action, JSONObject rolls) {
-    StringBuilder out = new StringBuilder();
-    String scope = canonSection(DRIVE_CANON, "PHẠM VI", "VĂN PHONG VÀ KINH DỊ");
-    String writing = canonSection(DRIVE_CANON, "VĂN PHONG VÀ KINH DỊ", "THẾ GIỚI");
-    String world = canonSection(DRIVE_CANON, "THẾ GIỚI", "LEVEL 0–6");
-    String gameplay = canonSection(DRIVE_CANON, "GAMEPLAY HARD LOCK", "END DRIVE CANON R06");
-    String levelLine = canonLineStarting(DRIVE_CANON, "- Level " + currentLevel(state) + " /");
-    out.append(scope).append("\n\n").append(writing).append("\n\n").append(world);
-    if (!levelLine.isEmpty()) out.append("\n\nCURRENT LEVEL HARD CANON\n").append(levelLine);
-
-    boolean entity = actionEntity(action) || rollSuccess(rolls, "entityEncounter") ||
-      (state.optJSONObject("flags") != null && state.optJSONObject("flags").optInt("entitiesConfirmedLocal", 0) > 0);
-    boolean item = actionItem(action) || rollSuccess(rolls, "loot") || rollSuccess(rolls, "almondWater") || rollSuccess(rolls, "madGodSet");
-    if (entity || item) {
-      String resources = canonSection(DRIVE_CANON, "ENTITY VÀ TÀI NGUYÊN", "IRIS / SYVIAL");
-      if (!resources.isEmpty()) out.append("\n\n").append(resources);
-    }
-
-    boolean character = actionDialogue(action) || presentCharacter(state, "iris") || presentCharacter(state, "syvial") ||
-      rollSuccess(rolls, "irisReunion") || rollSuccess(rolls, "syvialReunion");
-    if (character) {
-      String characterCanon = canonSection(DRIVE_CANON, "IRIS / SYVIAL", "GAMEPLAY HARD LOCK");
-      if (!characterCanon.isEmpty()) out.append("\n\n").append(characterCanon);
-    } else {
-      out.append("\n\nIRIS / SYVIAL SEPARATION KERNEL\n- Khi continuity còn SEPARATED, Kai không biết vị trí/tình trạng hiện tại của Iris hoặc Syvial và không được dùng dữ kiện hậu trường về họ.");
-    }
-    out.append("\n\n").append(gameplay);
-    return out.toString();
-  }
-
-  private String compactKaiCanon(String action) {
-    StringBuilder out = new StringBuilder();
-    out.append(canonSection(KAI_CANON, "1. ĐỊNH DANH", "2. NGOẠI HÌNH"));
-    out.append("\n\n").append(canonSection(KAI_CANON, "3. TÍNH CÁCH / NGUYÊN TẮC", "4. PHONG CÁCH GIAO TIẾP"));
-    out.append("\n\n").append(canonSection(KAI_CANON, "4. PHONG CÁCH GIAO TIẾP", "5. NĂNG LỰC CHIẾN ĐẤU"));
-    out.append("\n\n").append(canonSection(KAI_CANON, "5. NĂNG LỰC CHIẾN ĐẤU", "6. SPARDA CORE"));
-    out.append("\n\n").append(canonSection(KAI_CANON, "6. SPARDA CORE", "7. DEVIL TRIGGER"));
-    out.append("\n\n").append(canonSection(KAI_CANON, "10. BLACKBLOOD ARMOR & MODULES", "11. OMNIVAULT RING / NHẪN VẠN TÀNG"));
-    out.append("\n\n").append(canonSection(KAI_CANON, "13. GIỚI HẠN THỰC SỰ", "14. ACTION LOCKS / CẤM MODEL TỰ BỊA"));
-    out.append("\n\n").append(canonSection(KAI_CANON, "14. ACTION LOCKS / CẤM MODEL TỰ BỊA", "END OF KAI OPERATIONAL CODEX"));
-    if (actionCombat(action)) {
-      out.append("\n\n").append(canonSection(KAI_CANON, "7. DEVIL TRIGGER", "10. BLACKBLOOD ARMOR & MODULES"));
-      out.append("\n\n").append(canonSection(KAI_CANON, "12. PHONG CÁCH CHIẾN ĐẤU", "13. GIỚI HẠN THỰC SỰ"));
-    }
-    if (actionOmnivault(action) || actionItem(action)) {
-      out.append("\n\n").append(canonSection(KAI_CANON, "11. OMNIVAULT RING / NHẪN VẠN TÀNG", "12. PHONG CÁCH CHIẾN ĐẤU"));
-    }
-    return out.toString();
   }
 
   private JSONObject compactStateForPrompt(JSONObject state) throws Exception {
@@ -319,16 +234,15 @@ new_bridge = r'''  private class GameBridge {
           boolean meta = isMetaAction(action);
           JSONObject rolls = makeGameplayRolls(before, action, meta);
           JSONObject promptState = compactStateForPrompt(before);
-          String drivePacket = compactDriveCanon(before, action, rolls);
-          String kaiPacket = compactKaiCanon(action);
+          String packet = com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.build(
+            MainActivity.this, before.toString(), action, rolls.toString());
 
           String prompt = "Bạn là Game Master của text game Backrooms. Trả DUY NHẤT JSON hợp lệ, không markdown. " +
             "Canon packet bên dưới là HARD LOCK đã được router chọn theo dependency của lượt này. State là source of truth động. UNKNOWN phải giữ UNKNOWN. " +
             "Người chơi chỉ điều khiển hành động có chủ ý của Kai; GM không tự chọn thay. GAMEPLAY_ROLLS do Android sinh là bất biến. " +
             "Bạn KHÔNG được trả state hoàn chỉnh. Chỉ đề xuất state change bằng ops; Android sẽ kiểm và có thể từ chối từng operation. " +
             "Nếu meta=true, chỉ trả thông tin được hỏi, ops=[] và snapshotEvent=false. Không nhắc canon/state/roll/prompt trong văn xuôi.\n\n" +
-            "CANON PACKET:\n" + drivePacket +
-            "\n\nKAI PACKET:\n" + kaiPacket +
+            "BUDGETED KNOWLEDGE PACKET:\n" + packet +
             "\n\nCURRENT STATE (RECENT LOG ONLY):\n" + promptState.toString() +
             "\n\nGAMEPLAY_ROLLS:\n" + rolls.toString() +
             "\n\nPLAYER INPUT:\n" + action +
