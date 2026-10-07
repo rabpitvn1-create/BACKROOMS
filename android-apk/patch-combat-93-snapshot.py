@@ -7,8 +7,10 @@ path = root / 'app/src/main/assets/index.html'
 html = path.read_text()
 if 'COMBAT_93_SNAPSHOT_V1' not in html:
     html, count = re.subn(r'<script>\s*/\* SNAPSHOT_COMBAT_DAMAGE_RUNTIME_R01 \*/.*?</script>', '', html, flags=re.S)
-    if count != 1:
-        raise RuntimeError('Expected one retired HP-delta feedback script')
+    if count not in (0, 1):
+        raise RuntimeError('Unexpected retired HP-delta feedback script count: ' + str(count))
+    if count == 0 and 'combat-feedback-1193a.js' not in html:
+        raise RuntimeError('Expected retired HP-delta feedback or 1.1.93a feedback bridge')
     html = html.replace('function ensureDirectCombatDice(){', 'function ensureDirectCombatDice(){\n    if(window.__combatFeedbackBusy){show();renderDice();return;}', 1)
     html = html.replace('button.disabled=d.finalized===true||window.__combatDiceBusy;', 'button.disabled=d.finalized===true||window.__combatDiceBusy||window.__combatFeedbackBusy;')
     html = html.replace('window.__combatDiceBusy||', 'window.__combatDiceBusy||window.__combatFeedbackBusy||')

@@ -97,6 +97,8 @@ jobs:
           assert 'state.combat' in main
           assert 'POKER_DICE_SNAPSHOT_CLEAR_R01' in html
           assert '.poker-dice-backdrop{position:absolute;inset:0;background:transparent}' in html
+          assert 'combat-feedback-1193a.js' in html
+          assert 'combat-feedback-1193a.css' in html
           assert 'COMBAT_93_SNAPSHOT_V1' in html
           assert 'feedbackEvents' in html
           assert 'resolvedEntityTurns' in html
@@ -106,6 +108,7 @@ jobs:
           assert 'ctx.getImageData(0,0,pw,ph)' in main
           assert "img.onload=function(){normalizeEntityVisual(img)" in main
           PY
+          node --test android-apk/tests/snapshot-combat-damage.test.cjs
           git diff --check
 
       - uses: actions/setup-java@v5
@@ -127,7 +130,7 @@ jobs:
           APK=android-apk/app/build/outputs/apk/debug/app-debug.apk
           test -s "$APK"
           rm -rf combat-apk-check && mkdir combat-apk-check
-          unzip -q "$APK" 'assets/index.html' 'assets/dice/*' -d combat-apk-check
+          unzip -q "$APK" 'assets/index.html' 'assets/dice/*' 'assets/combat-feedback-1193a.*' 'assets/fonts/*' -d combat-apk-check
           html=combat-apk-check/assets/index.html
           grep -q 'DIRECT_COMBAT_GATE_V1' "$html"
           grep -q 'POKER_DICE_CORE_BACKPORT_R01' "$html"
@@ -141,6 +144,10 @@ jobs:
           grep -q 'FINALIZE_PREVIEW_MS=2000' "$html"
           grep -q 'POKER_DICE_SNAPSHOT_CLEAR_R01' "$html"
           grep -q 'background:transparent' "$html"
+          grep -q 'combat-feedback-1193a.js' "$html"
+          grep -q 'COMBAT_FEEDBACK_1193A' combat-apk-check/assets/combat-feedback-1193a.js
+          test -s combat-apk-check/assets/combat-feedback-1193a.css
+          test -s combat-apk-check/assets/fonts/Play-Bold.ttf
           grep -q 'COMBAT_93_SNAPSHOT_V1' "$html"
           grep -q 'combat93-float' "$html"
           ! grep -q "label:'TẤN CÔNG'" "$html"
