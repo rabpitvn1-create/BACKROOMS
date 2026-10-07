@@ -4,6 +4,9 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class ItemContentStateTest {
+  @Test fun contentStateOnlySupportsWholeUnits() {
+    assertArrayEquals(arrayOf(ContentState.NONE), ContentState.values())
+  }
   private fun grant(name: String, quantity: Int = 1) = ItemCommand(
     "grant-water", "TURN_1", KAI_ID, source = CommandSource.SYSTEM,
     operation = ItemCommand.Operation.PICKUP, itemId = "water", itemName = name, quantity = quantity
