@@ -10,6 +10,7 @@ if 'COMBAT_93_SNAPSHOT_V1' not in html:
     if count != 1:
         raise RuntimeError('Expected one retired HP-delta feedback script')
     html = html.replace('function ensureDirectCombatDice(){', 'function ensureDirectCombatDice(){\n    if(window.__combatFeedbackBusy){show();renderDice();return;}', 1)
+    html = html.replace('button.disabled=d.finalized===true||window.__combatDiceBusy;', 'button.disabled=d.finalized===true||window.__combatDiceBusy||window.__combatFeedbackBusy;')
     html = html.replace('window.__combatDiceBusy||', 'window.__combatDiceBusy||window.__combatFeedbackBusy||')
     html = html.replace('var actor=state&&state.combat&&state.combat.currentActor;', 'var actor=state&&state.combat&&(window.__combatFeedbackBusy?state.combat.resolvedActorName:state.combat.currentActor);\n    var c=state&&state.combat||{};')
     anchor = 'meta.textContent="Lượt Quay "+String(rerolls)+"/"+String(maxRerolls)+" - Chạm Vào Xúc Xắc Để Giữ";'
