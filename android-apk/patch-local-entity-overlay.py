@@ -52,10 +52,10 @@ helpers = r'''  private String normalizedEntityKey(String raw) throws Exception 
     return new JSONObject()
       .put("entityKey", entityKey)
       .put("name", name)
-      .put("revision", 1)
+      .put("revision", 2)
       .put("anchor", "left-bottom")
       .put("maxHeight", 0.97)
-      .put("url", "file:///android_asset/entity/" + entityKey + ".png");
+      .put("url", "file:///android_asset/entity/" + entityKey + ".webp");
   }
 
 '''
@@ -88,9 +88,9 @@ if writer_start < 0 or writer_end < 0:
     raise RuntimeError("writerPrompt boundary not found for local Entity contract")
 writer = text[writer_start:writer_end]
 writer_marker = '      "Inventory chỉ đổi khi Kai thật sự lấy/nhận/copy/trao/mất/tiêu thụ vật; nhìn thấy không đồng nghĩa sở hữu. MadGod roll success chỉ mở discovery route, không tự đưa set vào inventory. " +\n'
-overlay_rule = '      "ENTITY OVERLAY HARD LOCK: với Entity đang trực tiếp xuất hiện hoặc đối đầu trong cảnh hiện tại, dùng flag_patch root=entityEncounterKey value=canonical Entity key đúng tên asset bỏ .png, ví dụ hound, smiler, skin-stealer, slenderman. Nếu Entity bị tiêu diệt, Kai chạy trốn hoặc thoát khỏi Entity, Entity rời cảnh, biến mất, hoặc không còn trực tiếp hiện diện/đối đầu, bắt buộc đặt entityEncounterKey thành chuỗi rỗng ngay trong lượt đó. entityEncounterKey chỉ là trạng thái hiện diện trực quan hiện tại, không phải lịch sử encounter. Không dùng mã Entity legacy hoặc alias theo Level. " +\n'
+overlay_rule = '      "ENTITY OVERLAY HARD LOCK: với Entity đang trực tiếp xuất hiện hoặc đối đầu trong cảnh hiện tại, dùng flag_patch root=entityEncounterKey value=canonical Entity key đúng tên asset bỏ .webp, ví dụ hound, smiler, skin-stealer, slenderman. Nếu Entity bị tiêu diệt, Kai chạy trốn hoặc thoát khỏi Entity, Entity rời cảnh, biến mất, hoặc không còn trực tiếp hiện diện/đối đầu, bắt buộc đặt entityEncounterKey thành chuỗi rỗng ngay trong lượt đó. entityEncounterKey chỉ là trạng thái hiện diện trực quan hiện tại, không phải lịch sử encounter. Không dùng mã Entity legacy hoặc alias theo Level. " +\n'
 roaming_rule = '      "ENTITY ROAMING HARD LOCK: mọi Entity trong LOCAL ROAMING POOL đều có thể lang thang/incursion qua bất kỳ Level 0-6. Khi rolls.entityEncounter.success=true và rolls.roamingEntityKey có giá trị, encounter thường bắt buộc dùng đúng canonical key đó. LOCAL ROAMING POOL: hound, clump, duller, deathmoth, hostile_faceling, false_puddle, paintings, smiler, skin-stealer, predatory_window, biological_pipeline, wretch, cable_mimic, the_beast_of_level_5, hotel_corpse_lure, slenderman. Jeff the Killer và Jane the Killer tạm giữ roll độc lập riêng ở bước hiện tại nhưng dùng key jeff_the_killer và jane_the_killer. " +\n'
-local_rule = '      "ENTITY ASSET LOCAL HARD LOCK: hình Entity chỉ lấy từ APK assets/entity qua file:///android_asset/entity/<canonical-key>.png; cấm mã Entity legacy, alias theo Level, manifest từ xa hoặc ảnh Entity từ mạng. " +\n'
+local_rule = '      "ENTITY ASSET LOCAL HARD LOCK: hình Entity chỉ lấy từ APK assets/entity qua file:///android_asset/entity/<canonical-key>.webp; cấm mã Entity legacy, alias theo Level, manifest từ xa hoặc ảnh Entity từ mạng. " +\n'
 if 'ENTITY ROAMING HARD LOCK:' not in writer:
     if writer_marker not in writer:
         raise RuntimeError("writerPrompt local Entity insertion marker not found")
@@ -142,9 +142,9 @@ if '@JavascriptInterface public void requestEntityOverlay(String entityKey)' not
     text = replace_once(text, bridge_marker, bridge_new, "local Entity Android bridge")
 
 required_assets = [
-    "hound.png","clump.png","duller.png","deathmoth.png","hostile_faceling.png","false_puddle.png","paintings.png",
-    "smiler.png","skin-stealer.png","predatory_window.png","biological_pipeline.png","wretch.png","cable_mimic.png",
-    "the_beast_of_level_5.png","hotel_corpse_lure.png","jeff_the_killer.png","jane_the_killer.png","slenderman.png"
+    "hound.webp","clump.webp","duller.webp","deathmoth.webp","hostile_faceling.webp","false_puddle.webp","paintings.webp",
+    "smiler.webp","skin-stealer.webp","predatory_window.webp","biological_pipeline.webp","wretch.webp","cable_mimic.webp",
+    "the_beast_of_level_5.webp","hotel_corpse_lure.webp","jeff_the_killer.webp","jane_the_killer.webp","slenderman.webp"
 ]
 asset_dir = ROOT / "app/src/main/assets/entity"
 missing = [name for name in required_assets if not (asset_dir / name).is_file()]

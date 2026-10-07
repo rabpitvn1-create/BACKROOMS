@@ -32,6 +32,6 @@ Runtime chỉ dùng canonical Entity key trùng chính xác với tên file bỏ
 
 Snapshot đọc trực tiếp bằng đường dẫn:
 
-`file:///android_asset/entity/<canonical-key>.png`
+`file:///android_asset/entity/<canonical-key>.webp`
 
 Gameplay runtime không được suy ra Entity từ Level hoặc từ registry lịch sử. Một Entity hiện tại chỉ được nhận diện bằng canonical key đang hoạt động trong state.
