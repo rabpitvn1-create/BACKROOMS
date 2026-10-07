@@ -26,11 +26,13 @@ if new_scene_key not in main:
     main = replace_once(main, old_scene_key, new_scene_key, "area-aware Snapshot scene key")
 
 # Level fallback art must prefer the structured Level selected by the gameplay reducer. Text parsing
-# remains only as an old-save fallback when state.level is missing.
-old_level_picker = "var refs={0:'file:///android_asset/level_snapshots/level_0.webp',1:'file:///android_asset/level_snapshots/level_1.webp',2:'file:///android_asset/level_snapshots/level_2.webp',3:'file:///android_asset/level_snapshots/level_3.webp',4:'file:///android_asset/level_snapshots/level_4.webp',5:'file:///android_asset/level_snapshots/level_5.webp',6:'file:///android_asset/level_snapshots/level_6.webp'};var where=String(state&&state.location||'')+' '+String(state&&state.title||'');var lm=where.match(/Level[^0-9]*([0-6])/i);var lv=lm?Number(lm[1]):0;"
-new_level_picker = "var refs={0:'file:///android_asset/level_snapshots/level_0.webp',1:'file:///android_asset/level_snapshots/level_1.webp',2:'file:///android_asset/level_snapshots/level_2.webp',3:'file:///android_asset/level_snapshots/level_3.webp',4:'file:///android_asset/level_snapshots/level_4.webp',5:'file:///android_asset/level_snapshots/level_5.webp',6:'file:///android_asset/level_snapshots/level_6.webp'};var structuredLevel=state&&state.level&&state.level.number;var where=String(state&&state.location||'')+' '+String(state&&state.title||'');var lm=where.match(/Level[^0-9]*([0-6])/i);var lv=(structuredLevel!==undefined&&structuredLevel!==null&&Number(structuredLevel)>=0&&Number(structuredLevel)<=6)?Number(structuredLevel):(lm?Number(lm[1]):0);"
-if new_level_picker not in main:
-    main = replace_once(main, old_level_picker, new_level_picker, "authoritative Snapshot Level picker")
+# remains only as an old-save fallback when state.level is missing. The Level snapshot source may be
+# either a single legacy file or a local multi-frame pool, so keep this transform independent of refs.
+structured_level_marker = "var structuredLevel=state&&state.level&&state.level.number;"
+legacy_level_picker = "var where=String(state&&state.location||'')+' '+String(state&&state.title||'');var lm=where.match(/Level[^0-9]*([0-6])/i);var lv=lm?Number(lm[1]):0;"
+authoritative_level_picker = structured_level_marker + "var where=String(state&&state.location||'')+' '+String(state&&state.title||'');var lm=where.match(/Level[^0-9]*([0-6])/i);var lv=(structuredLevel!==undefined&&structuredLevel!==null&&Number(structuredLevel)>=0&&Number(structuredLevel)<=6)?Number(structuredLevel):(lm?Number(lm[1]):0);"
+if structured_level_marker not in main:
+    main = replace_once(main, legacy_level_picker, authoritative_level_picker, "authoritative Snapshot Level picker")
 
 # CombatRuntime is the sole visual-presence authority for Entity pixels. entityEncounterKey remains
 # a compatibility/state field, but it must never resurrect an Entity when no combat session is active.
