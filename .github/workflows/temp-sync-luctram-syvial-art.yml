@@ -1,0 +1,151 @@
+name: TEMP Sync Luctram Syvial art from Drive
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/temp-sync-luctram-syvial-art.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: temp-sync-luctram-syvial-art
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download exact Drive assets
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/drive-assets"
+
+          curl -fL --retry 3 --retry-all-errors --connect-timeout 20             "https://drive.usercontent.google.com/download?id=1M876xffPaGaYY8k2waX5h1ff5JcmxJVp&export=download&confirm=t"             -o "$RUNNER_TEMP/drive-assets/luctram_overlay.png"
+
+          curl -fL --retry 3 --retry-all-errors --connect-timeout 20             "https://drive.usercontent.google.com/download?id=1JJK9FilclU25446m2ABjOKb5zEJzBE-X&export=download&confirm=t"             -o "$RUNNER_TEMP/drive-assets/syvial_overlay.png"
+
+          curl -fL --retry 3 --retry-all-errors --connect-timeout 20             "https://drive.usercontent.google.com/download?id=1qauFB8EC6jDhVPOxVdrlXU_PLUFa_GHk&export=download&confirm=t"             -o "$RUNNER_TEMP/drive-assets/luctram_avatar.png"
+
+          test "$(stat -c%s "$RUNNER_TEMP/drive-assets/luctram_overlay.png")" = "1971181"
+          test "$(stat -c%s "$RUNNER_TEMP/drive-assets/syvial_overlay.png")" = "2138768"
+          test "$(stat -c%s "$RUNNER_TEMP/drive-assets/luctram_avatar.png")" = "2592039"
+
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          root = Path(os.environ["RUNNER_TEMP"]) / "drive-assets"
+          files = [
+              root / "luctram_overlay.png",
+              root / "syvial_overlay.png",
+              root / "luctram_avatar.png",
+          ]
+          for file_path in files:
+              raw = file_path.read_bytes()
+              if raw[:8] != b"\x89PNG\r\n\x1a\n":
+                  raise SystemExit(f"Not a PNG: {file_path}")
+              print(file_path.name, len(raw))
+          PY
+
+          sha256sum             "$RUNNER_TEMP/drive-assets/luctram_overlay.png"             "$RUNNER_TEMP/drive-assets/syvial_overlay.png"             "$RUNNER_TEMP/drive-assets/luctram_avatar.png"             | tee "$RUNNER_TEMP/drive-assets/SHA256SUMS"
+
+      - name: Commit assets to main without runtime wiring
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git reset --hard origin/main
+
+            mkdir -p android-apk/app/src/main/assets/avatars
+            install -m 0644 "$RUNNER_TEMP/drive-assets/luctram_overlay.png"               android-apk/app/src/main/assets/luctram_overlay.png
+            install -m 0644 "$RUNNER_TEMP/drive-assets/syvial_overlay.png"               android-apk/app/src/main/assets/syvial_overlay.png
+            install -m 0644 "$RUNNER_TEMP/drive-assets/luctram_avatar.png"               android-apk/app/src/main/assets/avatars/luctram_avatar.png
+
+            test "$(stat -c%s android-apk/app/src/main/assets/luctram_overlay.png)" = "1971181"
+            test "$(stat -c%s android-apk/app/src/main/assets/syvial_overlay.png)" = "2138768"
+            test "$(stat -c%s android-apk/app/src/main/assets/avatars/luctram_avatar.png)" = "2592039"
+
+            git add               android-apk/app/src/main/assets/luctram_overlay.png               android-apk/app/src/main/assets/syvial_overlay.png               android-apk/app/src/main/assets/avatars/luctram_avatar.png
+
+            if git diff --cached --quiet; then
+              echo "Assets already match main."
+              break
+            fi
+
+            git commit -m "Sync Luctram and Syvial art from Drive"
+            if git push origin HEAD:main; then
+              break
+            fi
+
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error::Failed to push Drive assets after 3 attempts."
+              exit 1
+            fi
+            sleep $((attempt * 2))
+          done
+
+      - name: Verify exact bytes on GitHub main
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            git fetch origin main
+
+            git show origin/main:android-apk/app/src/main/assets/luctram_overlay.png > "$RUNNER_TEMP/verify-luctram-overlay.png" || true
+            git show origin/main:android-apk/app/src/main/assets/syvial_overlay.png > "$RUNNER_TEMP/verify-syvial-overlay.png" || true
+            git show origin/main:android-apk/app/src/main/assets/avatars/luctram_avatar.png > "$RUNNER_TEMP/verify-luctram-avatar.png" || true
+
+            if cmp -s "$RUNNER_TEMP/drive-assets/luctram_overlay.png" "$RUNNER_TEMP/verify-luctram-overlay.png"               && cmp -s "$RUNNER_TEMP/drive-assets/syvial_overlay.png" "$RUNNER_TEMP/verify-syvial-overlay.png"               && cmp -s "$RUNNER_TEMP/drive-assets/luctram_avatar.png" "$RUNNER_TEMP/verify-luctram-avatar.png"; then
+              echo "Verified: GitHub main contains byte-identical Drive assets."
+              exit 0
+            fi
+
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error::GitHub main does not contain byte-identical Drive assets."
+              exit 1
+            fi
+            sleep $((attempt * 2))
+          done
+
+      - name: Confirm no display wiring was added
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          refs=$(git grep -n -E 'luctram_overlay\.png|syvial_overlay\.png|luctram_avatar\.png' origin/main --             'android-apk/app/src/main/java/**'             'android-apk/app/src/main/assets/*.js'             'android-apk/app/src/main/assets/*.html'             'android-apk/*.py' || true)
+          if [ -n "$refs" ]; then
+            echo "$refs"
+            echo "::error::Display/runtime wiring exists; asset-only request violated."
+            exit 1
+          fi
+          echo "Verified: asset-only import; no runtime/display references."
+
+      - name: Remove temporary workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          WORKFLOW_PATH: .github/workflows/temp-sync-luctram-syvial-art.yml
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            sha=$(gh api "repos/$REPO/contents/$WORKFLOW_PATH?ref=main" --jq '.sha' 2>/dev/null || true)
+            if [ -z "$sha" ]; then
+              echo "Temporary workflow already removed."
+              exit 0
+            fi
+            if gh api --method DELETE "repos/$REPO/contents/$WORKFLOW_PATH"               -f message='Remove temporary Luctram Syvial art sync workflow'               -f sha="$sha"               -f branch=main >/dev/null; then
+              echo "Temporary workflow removed."
+              exit 0
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error::Asset sync succeeded but temporary workflow cleanup failed."
+              exit 1
+            fi
+            sleep $((attempt * 2))
+          done
