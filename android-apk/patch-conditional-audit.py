@@ -57,8 +57,8 @@ helpers = r'''  private int proposedTurnRisk(JSONObject before, JSONObject gener
   }
 
   private String auditScopeCanon(JSONObject before, String action, JSONObject rolls, String scope) {
-    if ("character".equals(scope)) return compactKaiCanon(action) + "\n\n" + compactDriveCanon(before, action, rolls);
-    return compactDriveCanon(before, action, rolls) + "\n\n" + compactKaiCanon(action);
+    return com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.build(
+      MainActivity.this, before.toString(), action, rolls.toString());
   }
 
   private JSONObject runAudit(JSONObject before, String action, JSONObject rolls, JSONObject generated, String scope, int excludedWorker) throws Exception {
@@ -114,8 +114,7 @@ helpers = r'''  private int proposedTurnRisk(JSONObject before, JSONObject gener
 
   private String writerPrompt(JSONObject before, String action, JSONObject rolls, JSONArray auditFeedback) throws Exception {
     JSONObject promptState = compactStateForPrompt(before);
-    String drivePacket = compactDriveCanon(before, action, rolls);
-    String kaiPacket = compactKaiCanon(action);
+    String packet = auditScopeCanon(before, action, rolls, "writer");
     String feedback = auditFeedback != null && auditFeedback.length() > 0
       ? "\n\nAUDIT FEEDBACK HARD — sửa đúng các lỗi này, không thay đổi dữ kiện khác:\n" + auditFeedback.toString()
       : "";
@@ -124,8 +123,7 @@ helpers = r'''  private int proposedTurnRisk(JSONObject before, JSONObject gener
       "Người chơi chỉ điều khiển hành động có chủ ý của Kai; GM không tự chọn thay. GAMEPLAY_ROLLS do Android sinh là bất biến. " +
       "Bạn KHÔNG được trả state hoàn chỉnh. Chỉ đề xuất state change bằng ops; Android sẽ kiểm và có thể từ chối từng operation. " +
       "Nếu meta=true, chỉ trả thông tin được hỏi, ops=[] và snapshotEvent=false. Không nhắc canon/state/roll/prompt trong văn xuôi.\n\n" +
-      "CANON PACKET:\n" + drivePacket +
-      "\n\nKAI PACKET:\n" + kaiPacket +
+      "BUDGETED KNOWLEDGE PACKET:\n" + packet +
       "\n\nCURRENT STATE (RECENT LOG ONLY):\n" + promptState.toString() +
       "\n\nGAMEPLAY_ROLLS:\n" + rolls.toString() +
       "\n\nPLAYER INPUT:\n" + action +
