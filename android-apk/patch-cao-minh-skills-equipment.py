@@ -226,10 +226,28 @@ path.write_text(text, encoding='utf-8')
 
 main = ROOT / 'app/src/main/java/com/rabpit/backroom/MainActivity.java'
 source = main.read_text(encoding='utf-8')
-source, count = re.subn(r'  private String compactKaiCanon\(String action\) \{.*?\n  \}\n', '', source, count=1, flags=re.S)
-if count != 1:
-    raise RuntimeError('Retired compactKaiCanon helper missing')
-source = re.sub(r'^  private static final String KAI_CANON = .*;\n', '', source, flags=re.M)
+legacy_prompt_methods = (
+    r'  private String canonSection\(String source, String start, String end\) \{.*?\n  \}\n',
+    r'  private String canonLineStarting\(String source, String prefix\) \{.*?\n  \}\n',
+    r'  private boolean actionDialogue\(String action\) \{.*?\n  \}\n',
+    r'  private boolean actionCombat\(String action\) \{.*?\n  \}\n',
+    r'  private boolean actionOmnivault\(String action\) \{.*?\n  \}\n',
+    r'  private boolean actionItem\(String action\) \{.*?\n  \}\n',
+    r'  private boolean actionEntity\(String action\) \{.*?\n  \}\n',
+    r'  private String compactDriveCanon\(JSONObject state, String action, JSONObject rolls\) \{.*?\n  \}\n',
+    r'  private String compactKaiCanon\(String action\) \{.*?\n  \}\n',
+)
+for pattern in legacy_prompt_methods:
+    source, count = re.subn(pattern, '', source, count=1, flags=re.S)
+    if count != 1:
+        raise RuntimeError('Retired legacy prompt helper missing: ' + pattern)
+source, kai_count = re.subn(r'^  private static final String KAI_CANON = .*;\n', '', source, count=1, flags=re.M)
+source, drive_count = re.subn(r'^  private static final String DRIVE_CANON = .*;\n', '', source, count=1, flags=re.M)
+if kai_count != 1 or drive_count != 1:
+    raise RuntimeError(f'Retired canon constants missing: KAI={kai_count} DRIVE={drive_count}')
+for retired in ('compactDriveCanon(', 'compactKaiCanon(', 'KAI_CANON', 'DRIVE_CANON ='):
+    if retired in source:
+        raise RuntimeError('Retired canon runtime remains: ' + retired)
 main.write_text(source, encoding='utf-8')
 
 (tests / 'CaoMinhSkillsEquipmentTest.kt').write_text('''package com.rabpit.backroom.core
