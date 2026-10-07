@@ -489,7 +489,12 @@ import java.nio.file.Path
 import java.security.MessageDigest
 
 class KnowledgeContextEngineP0Test {
-  private data class Fixture(val name: String, val level: Int, val action: String)
+  private data class Scenario(
+    val name: String,
+    val stateJson: String,
+    val action: String,
+    val rollsJson: String = "{}"
+  )
 
   private val dbJson: String by lazy {
     val candidates = listOf(
@@ -502,38 +507,152 @@ class KnowledgeContextEngineP0Test {
     path.toFile().readText(Charsets.UTF_8)
   }
 
-  @Test fun traceDoesNotChangePacketForFirstThreeFixtures() {
-    val fixtures = listOf(
-      Fixture("quiet_exploration_L0", 0, "Quan sát hành lang yên tĩnh."),
-      Fixture("direct_entity_lookup_smiler", 2, "Kiểm tra dấu hiệu của smiler."),
-      Fixture("reference_above_gate", 1, "Kiểm tra lối đi phía trước.")
+  private val p03Scenarios: List<Scenario> by lazy {
+    listOf(
+      Scenario("quiet_exploration_L0", stateJson(0), "Quan sát hành lang yên tĩnh."),
+      Scenario("iris_present_dialogue", stateJson(1, partyIds = arrayOf("iris")), "Tôi hỏi Iris về lối đi."),
+      Scenario("syvial_present", stateJson(1, partyIds = arrayOf("syvial")), "Tiếp tục tiến về phía trước."),
+      Scenario("iris_and_syvial_present", stateJson(1, partyIds = arrayOf("iris", "syvial")), "Cả nhóm dừng lại quan sát."),
+      Scenario("absent_iris_argus", stateJson(1), "Iris dùng ARGUS để đọc địa hình."),
+      Scenario("direct_item_almond_water", stateJson(1), "Kiểm tra almond water trong túi."),
+      Scenario("dialogue_without_presence", stateJson(1), "Tôi hỏi về tình hình hiện tại."),
+      Scenario("medical_affordance_with_iris", stateJson(1, partyIds = arrayOf("iris")), "Iris sơ cứu vết thương."),
+      Scenario("food_affordance_without_iris", stateJson(1), "Nấu thức ăn trước khi đi tiếp."),
+      Scenario(
+        "runtime_entity_encounter",
+        stateJson(1),
+        "Tiếp tục đi.",
+        JSONObject().put("entityEncounter", JSONObject().put("success", true)).toString()
+      ),
+      Scenario("cao_minh_uses_stable_kai_namespace", caoMinhStateJson(1), "Cao Minh kích hoạt Sparda Core."),
+      Scenario("vietnamese_omnivault_lookup", caoMinhStateJson(1), "Cao Minh kiểm tra nhẫn vạn tàng.")
     )
+  }
 
-    fixtures.forEach { fixture ->
-      val state = stateJson(fixture.level)
-      val plain = KnowledgeContextEngine.buildForTest(dbJson, state, fixture.action, "{}")
-      val traced = KnowledgeContextEngine.buildForTestWithTrace(dbJson, state, fixture.action, "{}")
-      assertEquals("${fixture.name} packet changed when trace enabled", sha256(plain), sha256(traced.packet))
-      assertEquals("${fixture.name} packet bytes changed when trace enabled", plain, traced.packet)
+  @Test fun traceDoesNotChangePacketAcrossP03Corpus() {
+    assertEquals("P0.3 corpus size changed unexpectedly", 12, p03Scenarios.size)
+    p03Scenarios.forEach { scenario ->
+      val plain = KnowledgeContextEngine.buildForTest(
+        dbJson, scenario.stateJson, scenario.action, scenario.rollsJson
+      )
+      val traced = KnowledgeContextEngine.buildForTestWithTrace(
+        dbJson, scenario.stateJson, scenario.action, scenario.rollsJson
+      )
+      assertEquals("${scenario.name} packet changed when trace enabled", sha256(plain), sha256(traced.packet))
+      assertEquals("${scenario.name} packet bytes changed when trace enabled", plain, traced.packet)
     }
   }
 
+  @Test fun presentActorsAddOnlyTheirRuntimeCardsAndRelationshipEdges() {
+    val iris = traced("iris_present_dialogue")
+    assertPacketHas(iris.packet, "CHAR.IRIS.RUNTIME_CORE")
+    assertPacketHas(iris.packet, "REL.KAI.IRIS.BASELINE")
+    assertPacketHas(iris.packet, "ADDR.IRIS.KAI")
+    assertPacketLacks(iris.packet, "CHAR.SYVIAL.RUNTIME_CORE")
+
+    val syvial = traced("syvial_present")
+    assertPacketHas(syvial.packet, "CHAR.SYVIAL.RUNTIME_CORE")
+    assertPacketHas(syvial.packet, "REL.KAI.SYVIAL.BASELINE")
+    assertPacketHas(syvial.packet, "ADDR.SYVIAL.KAI")
+    assertPacketLacks(syvial.packet, "CHAR.IRIS.RUNTIME_CORE")
+
+    val both = traced("iris_and_syvial_present")
+    assertPacketHas(both.packet, "CHAR.IRIS.RUNTIME_CORE")
+    assertPacketHas(both.packet, "CHAR.SYVIAL.RUNTIME_CORE")
+    assertPacketHas(both.packet, "REL.IRIS.SYVIAL.BASELINE")
+  }
+
+  @Test fun absentCharacterDirectLookupDoesNotInventPresence() {
+    val result = traced("absent_iris_argus")
+    assertTrue(
+      "ARGUS should still be proposed by direct lookup when Iris is absent",
+      proposed(result, "CHAR.IRIS.ARGUS", "direct structured lookup")
+    )
+    assertFalse(
+      "Absent Iris must not gain runtime core",
+      proposed(result, "CHAR.IRIS.RUNTIME_CORE")
+    )
+    assertFalse(
+      "Absent Iris must not gain baseline relationship edge",
+      proposed(result, "REL.KAI.IRIS.BASELINE")
+    )
+    assertFalse(
+      "Absent Iris must not gain address lock",
+      proposed(result, "ADDR.IRIS.KAI")
+    )
+  }
+
+  @Test fun relationshipAddressAndDialogueRemainObservableAsSeparateCauses() {
+    val result = traced("iris_present_dialogue")
+    assertTrue(proposed(result, "REL.KAI.IRIS.BASELINE", "present relationship edge"))
+    assertTrue(proposed(result, "ADDR.IRIS.KAI", "present address lock"))
+
+    val dialogueReasons = reasons(result, "WRITING.DIALOGUE")
+    assertTrue(
+      "Dialogue should be proposed directly from speech intent: $dialogueReasons",
+      dialogueReasons.any { it == "direct structured lookup" }
+    )
+    assertTrue(
+      "Dialogue should also be reachable from the address reference: $dialogueReasons",
+      dialogueReasons.any { it.contains("direct reference from ADDR.IRIS.KAI") }
+    )
+  }
+
+  @Test fun registryDrivenItemLookupAndItemHardLockAreBothVisible() {
+    val result = traced("direct_item_almond_water")
+    assertTrue(proposed(result, "ITEM.ALMOND_WATER", "explicit structured tag: almond water"))
+    assertTrue(proposed(result, "ITEM.GLOBAL_HARD_LOCK", "item/resource state or action"))
+  }
+
+  @Test fun sceneAffordanceRespectsActorPresence() {
+    val medical = traced("medical_affordance_with_iris")
+    assertTrue(
+      "Present Iris should expose Field MedNet support from medical affordance",
+      proposed(medical, "CHAR.IRIS.SUPPORT", "scene affordance: field_medical")
+    )
+
+    val foodWithoutIris = traced("food_affordance_without_iris")
+    assertFalse(
+      "Absent Iris support must be gated even when field_food fires",
+      proposed(foodWithoutIris, "CHAR.IRIS.SUPPORT")
+    )
+  }
+
+  @Test fun runtimeEncounterRollAddsEntityRulesWithoutEntityNameInAction() {
+    val result = traced("runtime_entity_encounter")
+    assertTrue(
+      proposed(result, "ENTITY.GLOBAL_HARD_LOCK", "entity state/scene requires entity rules")
+    )
+    assertFalse("Fixture must not name an Entity", scenario("runtime_entity_encounter").action.contains("entity", ignoreCase = true))
+  }
+
+  @Test fun caoMinhRuntimeIdentityStillProjectsStableKaiKnowledgeIds() {
+    val sparda = traced("cao_minh_uses_stable_kai_namespace")
+    assertTrue(
+      "Cao Minh action should project stable CHAR.KAI namespace for Sparda Core",
+      proposed(sparda, "CHAR.KAI.SPARDA_CORE", "direct structured lookup")
+    )
+
+    val omnivault = traced("vietnamese_omnivault_lookup")
+    assertTrue(
+      "Vietnamese Omnivault phrase should project stable CHAR.KAI namespace",
+      proposed(omnivault, "CHAR.KAI.OMNIVAULT", "direct structured lookup")
+    )
+  }
+
   @Test fun tracePreservesMultipleCandidateReasons() {
-    val traced = KnowledgeContextEngine.buildForTestWithTrace(
+    val result = KnowledgeContextEngine.buildForTestWithTrace(
       dbJson, stateJson(2), "Kiểm tra dấu hiệu của smiler.", "{}"
     )
-    val reasons = traced.events
-      .filter { it.type == "candidate_reason_appended" && it.recordId == "ENTITY.SMILER" }
-      .map { it.reason }
-      .toSet()
-    assertTrue("Expected tag and affordance reasons for ENTITY.SMILER, got $reasons", reasons.size >= 2)
+    val candidateReasons = reasons(result, "ENTITY.SMILER")
+    assertTrue("Expected multiple reasons for ENTITY.SMILER, got $candidateReasons", candidateReasons.size >= 2)
   }
 
   @Test fun traceRecordsReferenceSkippedAboveLegacyPriorityGate() {
-    val traced = KnowledgeContextEngine.buildForTestWithTrace(
+    val result = KnowledgeContextEngine.buildForTestWithTrace(
       dbJson, stateJson(1), "Kiểm tra lối đi phía trước.", "{}"
     )
-    val skipped = traced.events.firstOrNull {
+    val skipped = result.events.firstOrNull {
       it.type == "reference_skipped" &&
         it.fromId == "LEVEL.01" &&
         it.targetId == "ENTITY.HOUND"
@@ -545,31 +664,73 @@ class KnowledgeContextEngineP0Test {
   }
 
   @Test fun traceReportsSerializationAndHardClipMetricsWithoutChangingPacket() {
-    val traced = KnowledgeContextEngine.buildForTestWithTrace(
+    val result = KnowledgeContextEngine.buildForTestWithTrace(
       dbJson, stateJson(2), "Kiểm tra dấu vết và mối đe dọa smiler.", "{}"
     )
-    val budget = traced.events.lastOrNull { it.type == "budget_summary" }
+    val budget = result.events.lastOrNull { it.type == "budget_summary" }
     assertNotNull("Expected budget summary", budget)
     assertTrue("Expected positive budget token estimate", budget!!.budgetEstimatedTokens > 0)
 
-    val spans = traced.events.filter { it.type == "packet_span" }
+    val spans = result.events.filter { it.type == "packet_span" }
     assertTrue("Expected serialized record spans", spans.isNotEmpty())
     assertTrue(spans.all { it.startChar >= 0 && it.endChar > it.startChar })
 
-    val clip = traced.events.lastOrNull { it.type == "hard_clip" }
+    val clip = result.events.lastOrNull { it.type == "hard_clip" }
     assertNotNull("Expected hard-clip observation event", clip)
     assertTrue(clip!!.serializedCharsBeforeClip >= clip.serializedCharsAfterClip)
-    assertEquals(traced.packet.length, clip.serializedCharsAfterClip)
+    assertEquals(result.packet.length, clip.serializedCharsAfterClip)
     if (clip.decision == "clipped") {
       assertTrue("Clipped packet must expose cut offset", clip.startChar >= 0)
     }
   }
 
-  private fun stateJson(level: Int): String = JSONObject()
-    .put("turn", 10)
-    .put("level", JSONObject().put("number", level))
-    .put("party", JSONArray())
-    .put("flags", JSONObject())
+  private fun scenario(name: String): Scenario =
+    p03Scenarios.first { it.name == name }
+
+  private fun traced(name: String): KnowledgeContextEngine.TestBuildResult {
+    val scenario = scenario(name)
+    return KnowledgeContextEngine.buildForTestWithTrace(
+      dbJson, scenario.stateJson, scenario.action, scenario.rollsJson
+    )
+  }
+
+  private fun proposed(
+    result: KnowledgeContextEngine.TestBuildResult,
+    id: String,
+    reason: String? = null
+  ): Boolean = result.events.any {
+    it.type == "candidate_reason_appended" &&
+      it.recordId == id &&
+      (reason == null || it.reason == reason)
+  }
+
+  private fun reasons(
+    result: KnowledgeContextEngine.TestBuildResult,
+    id: String
+  ): Set<String> = result.events
+    .filter { it.type == "candidate_reason_appended" && it.recordId == id }
+    .map { it.reason }
+    .toSet()
+
+  private fun assertPacketHas(packet: String, id: String) =
+    assertTrue("Expected packet to contain $id", packet.contains("<$id>"))
+
+  private fun assertPacketLacks(packet: String, id: String) =
+    assertFalse("Expected packet to omit $id", packet.contains("<$id>"))
+
+  private fun stateJson(level: Int, partyIds: Array<String> = emptyArray()): String {
+    val party = JSONArray()
+    partyIds.forEach { party.put(it) }
+    return JSONObject()
+      .put("turn", 10)
+      .put("level", JSONObject().put("number", level))
+      .put("party", party)
+      .put("flags", JSONObject())
+      .toString()
+  }
+
+  private fun caoMinhStateJson(level: Int): String = JSONObject(stateJson(level))
+    .put("player", JSONObject().put("id", "cao_minh").put("hp", 100))
     .toString()
 
   private fun sha256(value: String): String {
