@@ -570,6 +570,26 @@ class KnowledgeContextEngineP0Test {
     )
   }
 
+
+  private val p05Scenarios: List<Scenario> by lazy {
+    listOf(
+      Scenario("separation_true", separationStateJson(true), "Tiếp tục tiến về phía trước."),
+      Scenario("separation_false_early_turn", separationStateJson(false, turn = 1), "Tiếp tục tiến về phía trước."),
+      Scenario("devil_trigger_without_syvial", stateJson(1), "Kích hoạt Devil Trigger."),
+      Scenario("devil_trigger_with_syvial", stateJson(1, partyIds = arrayOf("syvial")), "Kích hoạt Devil Trigger."),
+      Scenario("reference_followed_below_gate", stateJson(1), "Kích hoạt Guilty Crown Override."),
+      Scenario("current_level_from_flags_fallback", currentLevelFlagsStateJson(5), "Quan sát khu vực."),
+      Scenario("party_details_presence", partyDetailsStateJson("iris"), "Tiếp tục tiến về phía trước."),
+      Scenario("case_insensitive_entity_tag", stateJson(2), "Kiểm tra SMILER ở phía trước."),
+      Scenario("android_smoke_quiet", androidSmokeQuietStateJson(), "Observe the quiet hallway."),
+      Scenario("android_smoke_hard_clip", androidSmokeHardClipStateJson(), "The group waits.")
+    )
+  }
+
+  private val allP0Scenarios: List<Scenario> by lazy {
+    p03Scenarios + p04Scenarios + p05Scenarios
+  }
+
   @Test fun traceDoesNotChangePacketAcrossP03Corpus() {
     assertEquals("P0.3 corpus size changed unexpectedly", 12, p03Scenarios.size)
     p03Scenarios.forEach { scenario ->
@@ -673,6 +693,122 @@ class KnowledgeContextEngineP0Test {
     )
     assertTrue("Hard clip must report a concrete cut offset", clip.startChar >= 0)
     assertTrue(result.packet.endsWith("[PACKET_CLIPPED_AT_HARD_CEILING]"))
+  }
+
+
+  @Test fun traceDoesNotChangePacketAcrossCompleteP0Corpus() {
+    assertEquals("P0 corpus size changed unexpectedly", 25, allP0Scenarios.size)
+    assertEquals("P0 scenario names must stay unique", 25, allP0Scenarios.map { it.name }.toSet().size)
+    allP0Scenarios.forEach { scenario ->
+      val plain = KnowledgeContextEngine.buildForTest(
+        dbJson, scenario.stateJson, scenario.action, scenario.rollsJson
+      )
+      val traced = KnowledgeContextEngine.buildForTestWithTrace(
+        dbJson, scenario.stateJson, scenario.action, scenario.rollsJson
+      )
+      assertEquals("${scenario.name} packet changed when trace enabled", plain, traced.packet)
+    }
+  }
+
+  @Test fun separationAndEarlyTurnHeuristicMatchFinalGeneratedRuntime() {
+    val separated = tracedP05("separation_true")
+    assertTrue(proposed(separated, "STORY.MAIN.OBJECTIVE", "active main-campaign objective"))
+    assertTrue(proposed(separated, "STORY.MAIN.SEPARATION", "active separation continuity"))
+
+    val early = tracedP05("separation_false_early_turn")
+    assertFalse(
+      "Final runtime must not reintroduce the removed first-three-turn separation heuristic",
+      proposed(early, "STORY.MAIN.SEPARATION")
+    )
+  }
+
+  @Test fun devilTriggerPresenceGateAndLegacyReferencesStayObservable() {
+    val solo = tracedP05("devil_trigger_without_syvial")
+    assertTrue(proposed(solo, "CHAR.KAI.DEVIL_TRIGGER", "direct structured lookup"))
+    assertFalse(proposed(solo, "CHAR.SYVIAL.DEVIL_TRIGGER"))
+
+    val withSyvial = tracedP05("devil_trigger_with_syvial")
+    assertTrue(proposed(withSyvial, "CHAR.KAI.DEVIL_TRIGGER", "direct structured lookup"))
+    assertTrue(proposed(withSyvial, "CHAR.SYVIAL.DEVIL_TRIGGER", "direct structured lookup"))
+
+    val references = tracedP05("reference_followed_below_gate")
+    assertTrue(
+      references.events.any {
+        it.type == "reference_followed" &&
+          it.fromId == "CHAR.KAI.GUILTY_CROWN_OVERRIDE" &&
+          it.targetId == "CHAR.KAI.DEVIL_TRIGGER" &&
+          it.targetPriority == 48
+      }
+    )
+    assertTrue(
+      references.events.any {
+        it.type == "reference_followed" &&
+          it.fromId == "CHAR.KAI.GUILTY_CROWN_OVERRIDE" &&
+          it.targetId == "CHAR.KAI.WHITE_WRAITH" &&
+          it.targetPriority == 50
+      }
+    )
+  }
+
+  @Test fun finalRuntimeReadsLevelFallbackPartyDetailsAndNormalizedTags() {
+    val levelFallback = tracedP05("current_level_from_flags_fallback")
+    assertTrue(proposed(levelFallback, "LEVEL.05", "current level direct id"))
+
+    val partyDetails = tracedP05("party_details_presence")
+    assertTrue(proposed(partyDetails, "CHAR.IRIS.RUNTIME_CORE", "present actor runtime core"))
+    assertTrue(proposed(partyDetails, "REL.KAI.IRIS.BASELINE", "present relationship edge"))
+
+    val upperTag = tracedP05("case_insensitive_entity_tag")
+    assertTrue(proposed(upperTag, "ENTITY.SMILER", "explicit structured tag: smiler"))
+  }
+
+  @Test fun writesDeterministicP0SnapshotReportAndFullPackets() {
+    val reportRoot = Path.of("build", "reports", "canon-p0").toFile()
+    val packetDir = reportRoot.resolve("packets")
+    assertTrue("Could not create Canon P0 report directory", packetDir.mkdirs() || packetDir.isDirectory)
+
+    val scenariosJson = JSONArray()
+    allP0Scenarios.forEach { scenario ->
+      val result = KnowledgeContextEngine.buildForTestWithTrace(
+        dbJson, scenario.stateJson, scenario.action, scenario.rollsJson
+      )
+      val keptIds = result.events
+        .filter { it.type == "budget_decision" && it.decision == "kept" }
+        .map { it.recordId }
+      val budget = result.events.last { it.type == "budget_summary" }
+      val clip = result.events.last { it.type == "hard_clip" }
+      val packetFile = packetDir.resolve("${scenario.name}.txt")
+      packetFile.writeText(result.packet, Charsets.UTF_8)
+
+      scenariosJson.put(
+        JSONObject()
+          .put("name", scenario.name)
+          .put("packetSha256", sha256(result.packet))
+          .put("budgetKeptRecordIds", JSONArray(keptIds))
+          .put("budgetEstimatedTokens", budget.budgetEstimatedTokens)
+          .put("serializedCharsBeforeClip", clip.serializedCharsBeforeClip)
+          .put("serializedCharsAfterClip", clip.serializedCharsAfterClip)
+          .put("hardClipDecision", clip.decision)
+          .put("hardClipRecordId", clip.recordId)
+          .put("hardClipField", clip.field)
+          .put("hardClipCutOffset", clip.startChar)
+          .put("packetFile", "packets/${scenario.name}.txt")
+      )
+    }
+
+    val report = JSONObject()
+      .put("schemaVersion", 1)
+      .put("scenarioCount", allP0Scenarios.size)
+      .put("targetBudget", KnowledgeContextEngine.TARGET_CONTEXT_BUDGET)
+      .put("softCeiling", KnowledgeContextEngine.SOFT_CONTEXT_CEILING)
+      .put("hardCeiling", KnowledgeContextEngine.HARD_CONTEXT_CEILING)
+      .put("scenarios", scenariosJson)
+
+    val reportFile = reportRoot.resolve("snapshot-report.json")
+    reportFile.writeText(report.toString(2) + "\n", Charsets.UTF_8)
+    assertTrue("Canon P0 snapshot report must exist", reportFile.isFile)
+    assertEquals(25, report.getInt("scenarioCount"))
+    assertTrue("Snapshot report must contain smoke baseline", reportFile.readText().contains("android_smoke_quiet"))
   }
 
   @Test fun presentActorsAddOnlyTheirRuntimeCardsAndRelationshipEdges() {
@@ -828,6 +964,16 @@ class KnowledgeContextEngineP0Test {
   private fun scenarioP04(name: String): Scenario =
     p04Scenarios.first { it.name == name }
 
+  private fun scenarioP05(name: String): Scenario =
+    p05Scenarios.first { it.name == name }
+
+  private fun tracedP05(name: String): KnowledgeContextEngine.TestBuildResult {
+    val scenario = scenarioP05(name)
+    return KnowledgeContextEngine.buildForTestWithTrace(
+      dbJson, scenario.stateJson, scenario.action, scenario.rollsJson
+    )
+  }
+
   private fun tracedP04(name: String): KnowledgeContextEngine.TestBuildResult {
     val scenario = scenarioP04(name)
     return KnowledgeContextEngine.buildForTestWithTrace(
@@ -907,11 +1053,150 @@ class KnowledgeContextEngineP0Test {
     return state.toString()
   }
 
+
+  private fun separationStateJson(separated: Boolean, turn: Int = 10): String {
+    val state = JSONObject(stateJson(1))
+    state.put("turn", turn)
+    val flags = JSONObject()
+    if (separated) flags.put("iris", JSONObject().put("continuity", "separated"))
+    state.put("flags", flags)
+    return state.toString()
+  }
+
+  private fun currentLevelFlagsStateJson(level: Int): String = JSONObject()
+    .put("turn", 10)
+    .put("party", JSONArray())
+    .put("flags", JSONObject().put("currentLevel", JSONObject().put("number", level)))
+    .toString()
+
+  private fun partyDetailsStateJson(id: String): String = JSONObject(stateJson(1))
+    .put(
+      "partyDetails",
+      JSONObject().put(
+        "members",
+        JSONArray().put(JSONObject().put("id", id).put("name", id))
+      )
+    )
+    .toString()
+
+  private fun androidSmokeQuietStateJson(): String =
+    """{"turn":10,"level":{"number":0},"party":[],"flags":{}}"""
+
+  private fun androidSmokeHardClipStateJson(): String {
+    val condition = "C".repeat(7000)
+    val log = (0 until 4).joinToString(",") { index ->
+      val role = if (index % 2 == 0) "player" else "gm"
+      """{"role":"${role}","text":"${index}:${"D".repeat(1200)}"}"""
+    }
+    return """{"turn":10,"level":{"number":1},"party":["iris","syvial"],"flags":{},"player":{"id":"cao_minh","hp":100,"condition":"${condition}"},"log":[${log}]}"""
+  }
+
   private fun sha256(value: String): String {
     val bytes = MessageDigest.getInstance("SHA-256").digest(value.toByteArray(Charsets.UTF_8))
     return bytes.joinToString("") { "%02x".format(it) }
   }
 }
 ''', encoding="utf-8")
+
+
+ANDROID_TEST = Path(__file__).resolve().parent / "app/src/androidTest/java/com/rabpit/backroom/core/knowledge/KnowledgeContextAndroidSmokeTest.java"
+ANDROID_TEST.parent.mkdir(parents=True, exist_ok=True)
+ANDROID_TEST.write_text(r'''package com.rabpit.backroom.core.knowledge;
+
+import android.content.Context;
+import android.test.InstrumentationTestCase;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+
+public final class KnowledgeContextAndroidSmokeTest extends InstrumentationTestCase {
+  public void testAndroidRuntimeSerializationMatchesJvmSnapshot() throws Exception {
+    Context context = getInstrumentation().getTargetContext();
+    String dbJson = readAsset(context, "knowledge/knowledge_db.json");
+
+    assertScenario(
+      context,
+      dbJson,
+      "android_smoke_quiet",
+      "{\"turn\":10,\"level\":{\"number\":0},\"party\":[],\"flags\":{}}",
+      "Observe the quiet hallway.",
+      getInstrumentation().getArguments().getString("p0QuietSha")
+    );
+
+    String condition = repeat("C", 7000);
+    StringBuilder log = new StringBuilder();
+    for (int i = 0; i < 4; i++) {
+      if (i > 0) log.append(',');
+      String role = (i % 2 == 0) ? "player" : "gm";
+      log.append("{\"role\":\"").append(role).append("\",\"text\":\"")
+        .append(i).append(':').append(repeat("D", 1200)).append("\"}");
+    }
+    String hardClipState =
+      "{\"turn\":10,\"level\":{\"number\":1},\"party\":[\"iris\",\"syvial\"],\"flags\":{},\"player\":{\"id\":\"cao_minh\",\"hp\":100,\"condition\":\""
+      + condition + "\"},\"log\":[" + log + "]}";
+
+    assertScenario(
+      context,
+      dbJson,
+      "android_smoke_hard_clip",
+      hardClipState,
+      "The group waits.",
+      getInstrumentation().getArguments().getString("p0HardClipSha")
+    );
+  }
+
+  private void assertScenario(
+    Context context,
+    String dbJson,
+    String name,
+    String stateJson,
+    String action,
+    String expectedSha
+  ) throws Exception {
+    assertNotNull("Missing JVM snapshot hash for " + name, expectedSha);
+    String production = KnowledgeContextEngine.build(context, stateJson, action, "{}");
+    String seam = KnowledgeContextEngine.buildForTest(dbJson, stateJson, action, "{}");
+    assertEquals(name + " production asset path differs from test seam on Android", production, seam);
+    assertEquals(name + " Android packet differs from JVM snapshot", expectedSha, sha256(production));
+  }
+
+  private static String readAsset(Context context, String path) throws Exception {
+    BufferedReader reader = new BufferedReader(
+      new InputStreamReader(context.getAssets().open(path), StandardCharsets.UTF_8)
+    );
+    StringBuilder out = new StringBuilder();
+    String line;
+    while ((line = reader.readLine()) != null) {
+      out.append(line).append('\n');
+    }
+    reader.close();
+    return out.toString();
+  }
+
+  private static String repeat(String value, int count) {
+    StringBuilder out = new StringBuilder(value.length() * count);
+    for (int i = 0; i < count; i++) out.append(value);
+    return out.toString();
+  }
+
+  private static String sha256(String value) throws Exception {
+    byte[] bytes = MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8));
+    StringBuilder out = new StringBuilder();
+    for (byte b : bytes) out.append(String.format("%02x", b & 0xff));
+    return out.toString();
+  }
+}
+''', encoding="utf-8")
+
+GRADLE = Path(__file__).resolve().parent / "app/build.gradle"
+gradle = GRADLE.read_text(encoding="utf-8")
+runner_anchor = "    versionName '1.1.63.0.1'\n"
+runner_line = '    testInstrumentationRunner "android.test.InstrumentationTestRunner"\n'
+if runner_line not in gradle:
+    if runner_anchor not in gradle:
+        raise RuntimeError("P0 Android smoke runner anchor not found")
+    gradle = gradle.replace(runner_anchor, runner_anchor + runner_line, 1)
+    GRADLE.write_text(gradle, encoding="utf-8")
 
 print("Knowledge P0 observability installed: final-runtime test seam, passive candidate/reference/budget trace, and three characterization fixtures.")
