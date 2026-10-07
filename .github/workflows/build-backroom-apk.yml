@@ -319,7 +319,17 @@ jobs:
         run: |
           set -euo pipefail
           rm -f Backroom-1.1.63.0.1-verified.apk
-          gh release download v1.1.63.0.1 --repo "$GITHUB_REPOSITORY" --pattern 'Backroom-1.1.63.0.1.apk' --output Backroom-1.1.63.0.1-verified.apk
+          for attempt in 1 2 3; do
+            rm -f Backroom-1.1.63.0.1-verified.apk
+            if gh release download v1.1.63.0.1 --repo "$GITHUB_REPOSITORY" --pattern 'Backroom-1.1.63.0.1.apk' --output Backroom-1.1.63.0.1-verified.apk; then
+              break
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "Release APK download failed after 3 attempts" >&2
+              exit 1
+            fi
+            sleep $((attempt * 3))
+          done
           test -s Backroom-1.1.63.0.1-verified.apk
           unzip -l Backroom-1.1.63.0.1-verified.apk | grep -q 'assets/index.html'
           unzip -l Backroom-1.1.63.0.1-verified.apk | grep -q 'assets/entity/hound.webp'
