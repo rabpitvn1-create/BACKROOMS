@@ -1,7 +1,7 @@
 /* COMBAT_93_SNAPSHOT_V1: presentation only; Core owns all combat mutations. */
 (function(){
   'use strict';
-  var seen=new Set(), generation=0, visualActor=null, combat=null;
+  var seen=new Set(), generation=0, visualActor=null, combat=null, currentPhase=null;
   var duration=850;
   function phases(c){
     var events=Array.isArray(c.feedbackEvents)?c.feedbackEvents:[];
@@ -58,6 +58,7 @@
     var foes=el('div','combat93-entities');
     (combat.entities||[]).forEach(function(e,i){if(e.hp>0||window.__combatFeedbackBusy)foes.appendChild(unit(e,'entity',i));});
     scene.appendChild(foes);box.appendChild(scene);
+    if(window.__combatFeedbackBusy&&currentPhase)showPhase(currentPhase);
   }
   function showPhase(phase){
     var scene=document.querySelector('.combat93-scene');if(!scene)return;
@@ -80,8 +81,8 @@
     var run=++generation, queue=phases(c), index=0;
     function next(){
       if(run!==generation)return;
-      if(index<queue.length){render();showPhase(queue[index++]);setTimeout(next,duration);return;}
-      visualActor=null;window.__combatFeedbackBusy=false;render();
+      if(index<queue.length){render();currentPhase=queue[index++];showPhase(currentPhase);setTimeout(next,duration);return;}
+      currentPhase=null;visualActor=null;window.__combatFeedbackBusy=false;render();
       if(typeof window.render==='function')window.render();
       if(typeof window.ensureDirectCombatDice==='function')window.ensureDirectCombatDice();
     }
@@ -92,7 +93,7 @@
     var incoming;try{incoming=JSON.parse(json);}catch(_){return previousTurn.apply(this,arguments);}
     var c=incoming.combat, fresh=eligible(c);
     if(fresh){seen.add(token(c));visualActor=c.resolvedActorIndex;window.__combatFeedbackBusy=true;}
-    var result=previousTurn.apply(this,arguments);render();if(fresh)play(c);return result;
+    var result=previousTurn.apply(this,arguments);render();if(fresh)requestAnimationFrame(function(){play(c);});return result;
   };
   var previousRender=window.render;
   if(typeof previousRender==='function')window.render=function(){var result=previousRender.apply(this,arguments);render();return result;};
