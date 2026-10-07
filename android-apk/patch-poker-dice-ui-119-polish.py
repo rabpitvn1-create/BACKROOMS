@@ -57,9 +57,10 @@ style = r'''
 @media(prefers-reduced-motion:reduce){.poker-die,.poker-die-object,.poker-dice-roll,.poker-dice-finish{transition:none!important}.poker-die.rolling .poker-die-object,.poker-die.rolling .poker-die-shadow,.poker-die.settling .poker-die-object{animation:none!important}.poker-die.rolling .poker-die-object:before{display:none!important;animation:none!important}.poker-die.rolling .poker-die-skin{visibility:visible!important}}
 
 /* SNAPSHOT_COMBAT_DAMAGE_R01 */
-.snapshot-combat-dmg{position:absolute;z-index:8;top:34%;min-width:72px;text-align:center;font-weight:900;font-size:clamp(24px,5vw,38px);line-height:1;color:#ff766b;text-shadow:0 2px 3px #000,0 0 12px rgba(255,70,58,.58);pointer-events:none;white-space:nowrap;animation:snapshot-combat-dmg-float .9s ease-out forwards}
+.snapshot-combat-dmg{position:absolute;z-index:8;top:34%;display:inline-flex;align-items:center;gap:5px;padding:1px 4px;font-family:Play,"Pretendard Std",system-ui,sans-serif;font-size:9px;line-height:1;font-weight:800;color:#f4f7fa;text-shadow:0 2px 3px #000,0 0 6px #000;pointer-events:none;white-space:nowrap;animation:snapshot-combat-dmg-float 1.6s ease-out forwards}
+.snapshot-combat-dmg-tag{font:800 9px/1 Play,"Pretendard Std",system-ui,sans-serif;letter-spacing:.08em;padding:3px 6px;border-radius:999px;border:1px solid currentColor;background:rgba(8,10,12,.88);box-shadow:0 2px 7px rgba(0,0,0,.55);text-shadow:none}
 .snapshot-combat-dmg.entity{left:18%}.snapshot-combat-dmg.player{right:18%}
-@keyframes snapshot-combat-dmg-float{0%{opacity:0;transform:translateY(10px) scale(.82)}20%{opacity:1;transform:translateY(0) scale(1.08)}100%{opacity:0;transform:translateY(-44px) scale(1)}}
+@keyframes snapshot-combat-dmg-float{0%{opacity:0;transform:translate(-50%,8px) scale(.96)}12%{opacity:1}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-34px) scale(1.04)}}
 </style>
 '''
 if "</head>" not in html:
@@ -271,9 +272,17 @@ damage_script = r'''<script>
     box.style.position='relative';
     var node=document.createElement('span');
     node.className='snapshot-combat-dmg '+side;
-    node.textContent='-'+String(amount)+' DMG';
+    var tag=document.createElement('span');
+    tag.className='snapshot-combat-dmg-tag';
+    tag.textContent='DMG';
+    var value=document.createElement('span');
+    value.className='snapshot-combat-dmg-value';
+    value.textContent='-'+String(amount)+' HP';
+    node.appendChild(tag);
+    node.appendChild(value);
     box.appendChild(node);
-    setTimeout(function(){if(node.parentNode)node.parentNode.removeChild(node)},950);
+    node.addEventListener('animationend',function(){if(node.parentNode)node.parentNode.removeChild(node)},{once:true});
+    setTimeout(function(){if(node.parentNode)node.parentNode.removeChild(node)},1800);
   }
   var previousTurn=window.backroomTurn;
   if(typeof previousTurn==='function'){
