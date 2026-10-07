@@ -1,5 +1,6 @@
 from pathlib import Path
 import re
+import runpy
 
 ROOT = Path(__file__).resolve().parent
 CORE = ROOT / "app/src/main/java/com/rabpit/backroom/core"
@@ -1411,4 +1412,6 @@ for forbidden in ('put("df"', 'put("agi"', 'put("crit"', 'put("level"', 'put("ex
     if forbidden in codec_final:
         raise RuntimeError("legacy stat serialization remains: " + forbidden)
 
-print("Character Stats restored to 1.1.93a authority: STR/DEF/SKL/VIT, canonical Core progression, derived combat stats, Dai Dao Ma Ton and migration guards.")
+runpy.run_path(str(ROOT / "patch-luc-tram-replace-iris-final.py"), run_name="__main__")
+
+print("Character Stats restored to 1.1.93a authority; Lục Trầm final replacement layer applied.")

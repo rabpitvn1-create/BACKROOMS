@@ -72,9 +72,9 @@ jobs:
           chain = (root / 'patch-inventory-capacity-final-fix.py').read_text(encoding='utf-8')
 
           required = (
-              'ARGUS // Thousandfold Execution',
-              'Twosome Time',
-              'Honeycomb Fire',
+              'Tịch Quang Hợp Kích',
+              'Thiên Kiếm Định Giới',
+              'Nhất Tuyến Phá Vọng',
               'GodKiller Override // Twenty-Four Severance',
               'Crimson Guillotine',
               'Spatial Dominion',

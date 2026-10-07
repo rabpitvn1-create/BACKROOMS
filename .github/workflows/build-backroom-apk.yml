@@ -85,6 +85,7 @@ jobs:
           save_repo = (core / 'SaveRepository.kt').read_text(encoding='utf-8')
           combat = (core / 'CombatRuntime.kt').read_text(encoding='utf-8')
           skill_catalog = (core / 'CompanionSkillCatalog.kt').read_text(encoding='utf-8')
+          special_followers = (core / 'SpecialFollowersCanon.kt').read_text(encoding='utf-8')
           detail_json = (core / 'CharacterDetailJson.kt').read_text(encoding='utf-8')
           an_nhien = (core / 'AnNhienCanon.kt').read_text(encoding='utf-8')
           skill_tests = (root / 'app/src/test/java/com/rabpit/backroom/core/CompanionSkillCatalogTest.kt').read_text(encoding='utf-8')
@@ -160,11 +161,13 @@ jobs:
               ('next = next.copy(world = next.world + ("flagsJson" to flags.toString()))', facade),
               ('thresholdRoll("diepMinhEncounter", 10000, 300,', java),
               ('entityKey = "diep_minh";', java),
-              ('ARGUS // Thousandfold Execution', skill_catalog), ('Twosome Time', skill_catalog), ('Honeycomb Fire', skill_catalog),
+              ('Tịch Quang Hợp Kích', skill_catalog), ('Thiên Kiếm Định Giới', skill_catalog), ('Nhất Tuyến Phá Vọng', skill_catalog),
               ('GodKiller Override // Twenty-Four Severance', skill_catalog), ('Crimson Guillotine', skill_catalog), ('Spatial Dominion', skill_catalog),
               ('Kế Hoạch Không Có Trong Kế Hoạch', skill_catalog), ('Quăng Đại Cái Gì Đó', skill_catalog),
               ('CompanionSkillCatalog.forCharacter(c.id)', detail_json), ('COMPANION_SKILLS_R01', combat), ('24 * 10', combat),
               ('hazardThresholds[level] * 75 / 100', java), ('thresholdRoll("anNhienRead", 10000, 2000', java),
+              ('const val LUC_TRAM_ID = "luc_tram"', special_followers), ('name = "Lục Trầm"', special_followers),
+              ('LUC_TRAM_LUCIA_SNAPSHOT_OVERLAYS_R01', java), ('luctram_overlay.png', java), ('lucia_overlay.png', java),
               ('class CompanionSkillCatalogTest', skill_tests),
               ('runpy.run_path(str(ROOT / "patch-companion-skills-ui-finalize.py"), run_name="__main__")', chain),
           ]
@@ -213,8 +216,10 @@ jobs:
               assert int.from_bytes(raw[4:8], 'little') + 8 == len(raw), name
               assert not p.with_suffix('.png').exists(), name
           assert '.put("url", "file:///android_asset/entity/" + entityKey + ".webp")' in java
-          for p in [root / 'app/src/main/assets/Kai_MadGod_snapshot_overlay.png', root / 'app/src/main/assets/avatars/MadGod.jpg', root / 'app/src/main/assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png', root / 'app/src/main/assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png']:
+          for p in [root / 'app/src/main/assets/Kai_MadGod_snapshot_overlay.png', root / 'app/src/main/assets/avatars/MadGod.jpg', root / 'app/src/main/assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png', root / 'app/src/main/assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png', root / 'app/src/main/assets/avatars/luctram_avatar.png', root / 'app/src/main/assets/luctram_overlay.png', root / 'app/src/main/assets/lucia_overlay.png']:
               assert p.is_file() and p.stat().st_size > 0, str(p)
+          for p in [root / 'app/src/main/assets/avatars/luctram_avatar.png', root / 'app/src/main/assets/luctram_overlay.png', root / 'app/src/main/assets/lucia_overlay.png']:
+              assert p.read_bytes()[:8] == b'\\x89PNG\\r\\n\\x1a\\n', str(p)
           for name in ['die-1.png','die-2.png','die-3.png','die-4.png','die-5.png','die-6.png','roll-3d.png','level0-wallpaper.svg']:
               p = dice_dir / name
               assert p.is_file() and p.stat().st_size > 0, name

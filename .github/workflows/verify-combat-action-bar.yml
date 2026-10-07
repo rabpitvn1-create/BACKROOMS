@@ -87,7 +87,7 @@ jobs:
               'PARTY ACTION TẤN CÔNG:',
               'PARTY_FOLLOWER_BASE_ATTACKS_V1',
               'val jointOrder = true // PARTY_ACTIONS_V1',
-              'Iris thực hiện lệnh TẤN CÔNG',
+              'Lục Trầm thực hiện lệnh TẤN CÔNG',
               'Syvial thực hiện lệnh TẤN CÔNG',
               'PARTY_ATTACK_GCO_GATE_V1',
           ):
