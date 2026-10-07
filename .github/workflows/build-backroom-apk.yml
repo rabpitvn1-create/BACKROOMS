@@ -302,7 +302,18 @@ jobs:
           profile: pixel_2
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
-          script: gradle -p android-apk :app:connectedDebugAndroidTest --no-daemon -Pandroid.testInstrumentationRunnerArguments.class=com.rabpit.backroom.core.knowledge.KnowledgeContextAndroidSmokeTest -Pandroid.testInstrumentationRunnerArguments.p0QuietSha="$CANON_P0_QUIET_SHA" -Pandroid.testInstrumentationRunnerArguments.p0HardClipSha="$CANON_P0_HARD_CLIP_SHA"
+          script: >-
+            gradle -p android-apk :app:assembleDebug :app:assembleDebugAndroidTest --no-daemon &&
+            APP_APK="$(find android-apk/app/build/outputs/apk/debug -name '*debug.apk' -print -quit)" &&
+            TEST_APK="$(find android-apk/app/build/outputs/apk/androidTest/debug -name '*.apk' -print -quit)" &&
+            test -n "$APP_APK" && test -n "$TEST_APK" &&
+            adb install -r "$APP_APK" &&
+            adb install -r "$TEST_APK" &&
+            COMPONENT="$(adb shell pm list instrumentation | tr -d '\r' | sed -n '/KnowledgeContextSmokeInstrumentation/{s/^instrumentation://;s/ (target=.*//;p;q}')" &&
+            test -n "$COMPONENT" &&
+            OUTPUT="$(adb shell am instrument -w -e p0QuietSha "$CANON_P0_QUIET_SHA" -e p0HardClipSha "$CANON_P0_HARD_CLIP_SHA" "$COMPONENT")" &&
+            printf '%s\n' "$OUTPUT" &&
+            printf '%s\n' "$OUTPUT" | grep -q 'INSTRUMENTATION_CODE: -1'
 
       - name: Prepare APK
         run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.1.63.0.1.apk
