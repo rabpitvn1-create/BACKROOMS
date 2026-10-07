@@ -9,6 +9,11 @@ MAIN = APP / "main/java/com/rabpit/backroom/MainActivity.java"
 ASSETS = APP / "main/assets"
 EXPLORER = "CAO_MINH_OVERLAY_EXPLORER_IDLE.png"
 COMBAT = "CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png"
+AVATAR = "avatars/cao_minh_avatar.jpg"
+
+avatar_raw = (ASSETS / AVATAR).read_bytes()
+if len(avatar_raw) < 4 or avatar_raw[:2] != b"\xff\xd8" or avatar_raw[-2:] != b"\xff\xd9":
+    raise RuntimeError("Invalid Cao Minh avatar JPEG")
 
 for name in (EXPLORER, COMBAT):
     raw = (ASSETS / name).read_bytes()
@@ -27,6 +32,7 @@ for path in APP.rglob("*"):
     old = path.read_text(encoding="utf-8")
     new = re.sub(r"\bKai(?: Akechi)?\b", "Cao Minh", old)
     new = new.replace('"kai"', '"cao_minh"').replace("'kai'", "'cao_minh'")
+    new = new.replace("avatars/kai_avatar.png", AVATAR).replace("avatars/kai_avatar.jpg", AVATAR)
     # Natural-language resolver aliases use display-name spacing, while the canonical
     # player ID remains cao_minh. Keep both aliases so directional transfer parsing can
     # resolve "Cao Minh" as actor/target after the ID migration.
@@ -52,6 +58,8 @@ if 'const val KAI_ID = "cao_minh"' not in state:
     raise RuntimeError("Authoritative player ID was not replaced")
 if 'data-character="cao_minh"' not in html or "kai.alt='Cao Minh'" not in main:
     raise RuntimeError("Party/overlay identity was not replaced")
+if AVATAR not in state or AVATAR not in html:
+    raise RuntimeError("Cao Minh avatar was not wired into final runtime")
 if "Kai Akechi" in main + html + state:
     raise RuntimeError("Legacy player display name remains")
 intent_pipeline = (APP / "main/java/com/rabpit/backroom/core/IntentPipeline.kt").read_text(encoding="utf-8")
