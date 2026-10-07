@@ -41,7 +41,7 @@ jobs:
 
           root = Path('android-apk')
           html = (root / 'app/src/main/assets/index.html').read_text(encoding='utf-8')
-          combat = (root / 'app/src/main/java/com/rabpit/backroom/core/CombatRuntime.kt').read_text(encoding='utf-8')
+          combat = (root / 'app/src/main/java/com/rabpit/backroom/core/CombatChoiceEngine.java').read_text(encoding='utf-8')
           facade = (root / 'app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt').read_text(encoding='utf-8')
           poker = (root / 'app/src/main/java/com/rabpit/backroom/core/PokerDiceCore.kt').read_text(encoding='utf-8')
           main = (root / 'app/src/main/java/com/rabpit/backroom/MainActivity.java').read_text(encoding='utf-8')
@@ -78,18 +78,17 @@ jobs:
               assert retired not in html, retired
 
           assert 'const val DIRECT_COMBAT_ACTION = "Cả Party cùng tấn công"' in poker
-          assert 'PokerDiceCore.isFinalizedFor(current, action, activeCombat.encounterId)' in facade
-          assert 'if (action == PokerDiceCore.DIRECT_COMBAT_ACTION)' in facade
+          assert 'Combat93Runtime.resolve(current, expectedCombatRevision(legacy))' in facade
+          assert 'COMBAT_93_BRIDGE_V1' in facade
+          assert 'CombatRuntime.resolve(' not in facade
 
-          # Party attack/skill/ultimate runtime stays available behind the direct dice resolve.
+          # One finalized actor hand, followed by each surviving Entity's response.
           for marker in (
-              'PARTY_ACTIONS_V1',
-              'PARTY ACTION TẤN CÔNG:',
-              'PARTY_FOLLOWER_BASE_ATTACKS_V1',
-              'val jointOrder = true // PARTY_ACTIONS_V1',
-              'Iris thực hiện lệnh TẤN CÔNG',
-              'Syvial thực hiện lệnh TẤN CÔNG',
-              'PARTY_ATTACK_GCO_GATE_V1',
+              'resolvedActorIndex',
+              'resolvedEntityTurns',
+              'advanceActor(combat)',
+              'feedbackEvents',
+              'dice.optBoolean("resolved", false)',
           ):
               assert marker in combat, marker
 
