@@ -416,16 +416,33 @@ codec = replace_re(
     "canonical stat codec helpers"
 )
 # Normalize every decoded state after follower/equipment migration.
-codec = codec.replace(
-    'return CharacterEquipmentSystem.normalize(',
-    'return CharacterProgressionCore.normalize(CharacterEquipmentSystem.normalize(',
-    1
+# Match the complete decode() return so nested calls cannot confuse parenthesis balancing.
+decode_wrap = re.compile(
+    r'''    return CharacterEquipmentSystem\.normalize\(when \{
+      version >= CURRENT_SAVE_VERSION -> decodeCurrent\(root\)
+      version == 2 && root\.has\("inventories"\) -> migrateV2Core\(root\)
+      else -> LegacySaveMigration\.migrate\(root\)
+    \}\)'''
 )
-# Close the extra normalize wrapper at the matching simple return if the dynamic wrapper exists.
-if 'return CharacterProgressionCore.normalize(CharacterEquipmentSystem.normalize(' in codec:
-    target = re.search(r'return CharacterProgressionCore\.normalize\(CharacterEquipmentSystem\.normalize\((.*?)\)\n', codec, re.S)
-    if target and not target.group(0).rstrip().endswith('))'):
-        codec = codec[:target.end()-1] + ')' + codec[target.end()-1:]
+codec, decode_wrap_count = decode_wrap.subn(
+    '''    return CharacterProgressionCore.normalize(CharacterEquipmentSystem.normalize(when {
+      version >= CURRENT_SAVE_VERSION -> decodeCurrent(root)
+      version == 2 && root.has("inventories") -> migrateV2Core(root)
+      else -> LegacySaveMigration.migrate(root)
+    }))''',
+    codec,
+    count=1,
+)
+if decode_wrap_count == 0:
+    # Some earlier follower patches materialize a decoded value first. Wrap that final return instead.
+    codec, decoded_return_count = re.subn(
+        r'    return CharacterEquipmentSystem\.normalize\(([^\n]+)\)',
+        r'    return CharacterProgressionCore.normalize(CharacterEquipmentSystem.normalize(\1))',
+        codec,
+        count=1,
+    )
+    if decoded_return_count != 1:
+        raise RuntimeError("GameState decode normalization anchor missing")
 CODEC.write_text(codec, encoding="utf-8")
 
 # ---------------------------------------------------------------------------
