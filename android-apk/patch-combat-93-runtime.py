@@ -55,6 +55,9 @@ if "COMBAT_93_BRIDGE_V1" not in facade:
         return response(true, syncLegacy(legacy, current, false), "combat_revision_mismatch", "combat_stale_request")
       return response(false, syncLegacy(legacy, current, false), null, "combat_inactive")
     }
+    if (legacy.optJSONObject("combat")?.has("revision") != true) {
+      legacy.put("combat", JSONObject().put("revision", Combat93Runtime.revision(current)))
+    }
     val resolution = Combat93Runtime.resolve(current, expectedCombatRevision(legacy))
     if (!resolution.handled) return response(true, syncLegacy(legacy, current, false),
       "combat_dice_required", "combat_dice_required", "Hãy hoàn tất hand hiện tại trước khi giải quyết combat.")
