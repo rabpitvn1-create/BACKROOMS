@@ -311,10 +311,11 @@ for marker in (
         raise RuntimeError("Diệp Minh regression contract missing: " + marker)
 TEST.write_text(test, encoding="utf-8")
 
-asset = ROOT / "app/src/main/assets/entity/diep_minh.png"
+asset = ROOT / "app/src/main/assets/entity/diep_minh.webp"
 if not asset.is_file() or asset.stat().st_size <= 0:
-    raise RuntimeError("Original Diệp Minh PNG is missing from assets/entity/diep_minh.png")
-if asset.read_bytes()[:8] != b"\x89PNG\r\n\x1a\n":
-    raise RuntimeError("Diệp Minh asset is not a PNG")
+    raise RuntimeError("Original Diệp Minh WebP is missing from assets/entity/diep_minh.webp")
+raw = asset.read_bytes()
+if len(raw) < 12 or raw[:4] != b"RIFF" or raw[8:12] != b"WEBP":
+    raise RuntimeError("Diệp Minh asset is not a WebP")
 
 print("Diệp Minh boss installed: 2999 HP, 10% Max-HP attack, +30 HP/turn, Devils And Gold every 5 turns for 5% party Max HP, independent 3% encounter roll.")

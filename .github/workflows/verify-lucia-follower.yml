@@ -45,6 +45,11 @@ jobs:
             echo "==> $script"
             python3 "android-apk/$script"
           done
+          # PR merge refs may include item-action tests added by main after this branch.
+          if test -f android-apk/app/src/test/java/com/rabpit/backroom/core/ItemDetailActionsTest.kt; then
+            python3 android-apk/patch-item-detail-actions.py
+            python3 android-apk/patch-item-whole-unit.py
+          fi
 
       - name: Verify Lucia contracts and final diff
         id: contracts
