@@ -38,13 +38,38 @@ jobs:
       - name: Capture active run id
         run: |
           set -euo pipefail
-          mkdir -p release-status
-          printf 'status=RUNNING\nversion=1.1.63.0.1\nsource_sha=%s\nrun_id=%s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" > release-status/v1.1.63.0.1-running.txt
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add release-status/v1.1.63.0.1-running.txt
-          git commit -m "Record active Backroom 1.1.63.0.1 run $GITHUB_RUN_ID"
-          git push origin HEAD:main
+          STATUS_DIR="$RUNNER_TEMP/release-status-$GITHUB_RUN_ID"
+          rm -rf "$STATUS_DIR"
+          git fetch origin main
+          git worktree add --detach "$STATUS_DIR" origin/main
+          cleanup_status_worktree() {
+            git worktree remove --force "$STATUS_DIR" >/dev/null 2>&1 || true
+          }
+          trap cleanup_status_worktree EXIT
+          (
+            cd "$STATUS_DIR"
+            git config user.name github-actions[bot]
+            git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+            for attempt in 1 2 3; do
+              git fetch origin main
+              git reset --hard origin/main
+              mkdir -p release-status
+              printf 'status=RUNNING\nversion=1.1.63.0.1\nsource_sha=%s\nrun_id=%s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" > release-status/v1.1.63.0.1-running.txt
+              git add release-status/v1.1.63.0.1-running.txt
+              if git diff --cached --quiet; then
+                exit 0
+              fi
+              git commit -m "Record active Backroom 1.1.63.0.1 run $GITHUB_RUN_ID"
+              if git push origin HEAD:main; then
+                exit 0
+              fi
+              if [ "$attempt" -eq 3 ]; then
+                echo "Failed to record active run after 3 attempts" >&2
+                exit 1
+              fi
+              sleep $((attempt * 2))
+            done
+          )
 
       - uses: actions/setup-python@v5
         with:
