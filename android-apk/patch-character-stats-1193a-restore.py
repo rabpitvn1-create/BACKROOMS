@@ -1412,3 +1412,8 @@ for forbidden in ('put("df"', 'put("agi"', 'put("crit"', 'put("level"', 'put("ex
         raise RuntimeError("legacy stat serialization remains: " + forbidden)
 
 print("Character Stats restored to 1.1.93a authority: STR/DEF/SKL/VIT, canonical Core progression, derived combat stats, Dai Dao Ma Ton and migration guards.")
+
+
+# Final character authority: replace retired Iris runtime with Lục Trầm R05 and bind companion overlays.
+import runpy
+runpy.run_path(str(ROOT / "patch-luc-tram-replace-iris-final.py"), run_name="__main__")
