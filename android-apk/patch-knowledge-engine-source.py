@@ -366,7 +366,7 @@ if old not in text:
 text = text.replace(old, new, 1)
 
 
-old = '''      val records = budgetedRecords()
+old = r'''      val records = budgetedRecords()
       val packet = StringBuilder()
       packet.append("[KNOWLEDGE_PACKET v1]\n")
       packet.append("Budget target=").append(TARGET_CONTEXT_BUDGET)
@@ -388,7 +388,7 @@ old = '''      val records = budgetedRecords()
       packet.append("[END_KNOWLEDGE_PACKET]")
       return hardClip(packet.toString(), HARD_CONTEXT_CEILING)
 '''
-new = '''      val records = budgetedRecords()
+new = r'''      val records = budgetedRecords()
       val packet = StringBuilder()
       packet.append("[KNOWLEDGE_PACKET v1]\n")
       packet.append("Budget target=").append(TARGET_CONTEXT_BUDGET)
@@ -433,14 +433,14 @@ if old not in text:
     raise RuntimeError("P0 packet span anchor not found")
 text = text.replace(old, new, 1)
 
-old = '''  private fun hardClip(text: String, hardTokens: Int): String {
+old = r'''  private fun hardClip(text: String, hardTokens: Int): String {
     val maxChars = hardTokens * 4
     if (text.length <= maxChars) return text
     val suffix = "\n[PACKET_CLIPPED_AT_HARD_CEILING]"
     return text.take((maxChars - suffix.length).coerceAtLeast(0)) + suffix
   }
 '''
-new = '''  private fun hardClip(
+new = r'''  private fun hardClip(
     text: String,
     hardTokens: Int,
     trace: MutableList<KnowledgeTraceEvent>? = null
