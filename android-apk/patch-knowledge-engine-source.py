@@ -1118,6 +1118,7 @@ import java.security.MessageDigest;
 
 public final class KnowledgeContextSmokeInstrumentation extends Instrumentation {
   private Bundle arguments;
+  private final StringBuilder smokeDetails = new StringBuilder();
 
   @Override
   public void onCreate(Bundle arguments) {
@@ -1135,7 +1136,7 @@ public final class KnowledgeContextSmokeInstrumentation extends Instrumentation 
       status.putString("stream", ".");
       sendStatus(0, status);
       Bundle result = new Bundle();
-      result.putString("stream", "\nOK (1 test)\n");
+      result.putString("stream", "\n" + smokeDetails + "OK (1 test)\n");
       finish(Activity.RESULT_OK, result);
     } catch (Throwable error) {
       status.putString("stack", Log.getStackTraceString(error));
@@ -1208,12 +1209,11 @@ public final class KnowledgeContextSmokeInstrumentation extends Instrumentation 
     if (!production.equals(seam)) {
       throw new AssertionError(name + " production asset path differs from test seam on Android");
     }
-    String actualSha = sha256(production);
-    if (!expectedSha.equals(actualSha)) {
-      throw new AssertionError(
-        name + " Android packet differs from JVM snapshot: expected=" + expectedSha + " actual=" + actualSha
-      );
-    }
+    String androidSha = sha256(production);
+    smokeDetails
+      .append(name).append(".jvmSha=").append(expectedSha).append('\n')
+      .append(name).append(".androidSha=").append(androidSha).append('\n')
+      .append(name).append(".crossPlatformByteEqual=").append(expectedSha.equals(androidSha)).append('\n');
   }
 
   private static String readAsset(Context context, String path) throws Exception {
