@@ -804,6 +804,15 @@ object CharacterDetailJson {
     put("inventoryCapacity", JSONObject().put("used", c.inventoryCapacityUsed).put("max", c.inventoryCapacityMax))
     put("equipment", JSONObject(c.equipment))
     put("equipmentItems", JSONArray().apply { c.equipmentDetails.forEach { put(item(it)) } })
+    put("skills", JSONArray().apply {
+      CompanionSkillCatalog.forCharacter(c.id).forEach { skill -> put(JSONObject().apply {
+        put("name", skill.name)
+        put("kind", skill.kind)
+        put("trigger", skill.trigger)
+        put("effect", skill.effect)
+        skill.note?.let { put("note", it) }
+      }) }
+    })
     put("statuses", JSONArray().apply { c.statusEffects.forEach { e -> put(JSONObject().put("id", e.id).put("type", e.type).put("persistent", e.persistent)) } })
   }
 
