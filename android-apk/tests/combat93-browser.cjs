@@ -36,6 +36,9 @@ async function run(){
     await page.evaluate(enhancements.replaceAll('file:///android_asset/',url+'/'));
     const fixture=name=>JSON.parse(fs.readFileSync(path.join(output,name+'.json'),'utf8'));
     const send=async c=>page.evaluate(combat=>{const incoming=JSON.parse(JSON.stringify(state));incoming.combat=combat;incoming.turn=7;window.backroomTurn(JSON.stringify(incoming));},c);
+    const lucia=fixture('before');lucia.revision=Number(lucia.revision||0)+100000;lucia.actorIndex=0;lucia.participants[0]={...lucia.participants[0],id:'lucia',name:'Lucia Lục'};
+    await send(lucia);
+    assert.match(await page.locator('.combat93-unit.actor .combat93-sprite').getAttribute('src'),/lucia_overlay\.png$/);
     await send(fixture('before'));
     await page.locator('.combat93-unit.entity').nth(1).locator('button').click();
     assert.deepEqual(await page.evaluate(()=>window.__targetCalls),[1]);
