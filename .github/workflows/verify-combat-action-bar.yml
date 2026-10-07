@@ -105,6 +105,7 @@ jobs:
           assert 'ctx.getImageData(0,0,pw,ph)' in main
           assert "img.onload=function(){normalizeEntityVisual(img)" in main
           PY
+          node --test android-apk/tests/snapshot-combat-damage.test.cjs
           git diff --check
 
       - uses: actions/setup-java@v5
