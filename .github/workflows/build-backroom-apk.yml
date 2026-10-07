@@ -61,7 +61,7 @@ jobs:
       - name: Apply Android runtime patch chain
         run: |
           set -euo pipefail
-          scripts=(patch-provider-status.py patch-provider-key-pool.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py patch-ui-1.1.99-shell.py patch-poker-dice-core-backport.py patch-poker-dice-ui-119-polish.py patch-cao-minh-identity-overlay.py patch-item-detail-actions.py patch-item-whole-unit.py)
+          scripts=(patch-provider-status.py patch-provider-key-pool.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py patch-ui-1.1.99-shell.py patch-poker-dice-core-backport.py patch-poker-dice-ui-119-polish.py patch-cao-minh-identity-overlay.py patch-item-detail-actions.py patch-item-whole-unit.py patch-cao-minh-skills-equipment.py patch-cao-minh-prologue.py)
           for script in "${scripts[@]}"; do
             echo "==> $script"
             python3 "android-apk/$script"
@@ -95,6 +95,8 @@ jobs:
 
           required = [
               ("versionCode 66", gradle), ("versionName '1.1.63.0.1'", gradle),
+              ('const prologue=`Lôi Thiên Vực chưa từng có một ngày yên tĩnh như thế.', html),
+              ('Cao Minh tỉnh lại một mình tại Level 0. Không có dấu vết của Lục Trầm.', html),
               ('.snapshot{height:300px;margin:8px 10px 10px;', html),
               ('UI_119_BACKPORT_R01', html), ('id="playerActionBar"', html), ('id="playerActionModal"', html),
               ('id="playerActionConfirm"', html), ('id="gameMenuModal"', html), ('id="gameMenuOpen"', html),
@@ -122,8 +124,8 @@ jobs:
               ('"madgod_equipped"', facade), ('output.put("equipment",MadGodCanon.legacy(state))', facade),
               ('ItemCommand.Operation.EQUIP -> EquipmentEngine.equip(state, command)', engines),
               ('ItemCommand.Operation.UNEQUIP -> EquipmentEngine.unequip(state, command)', engines),
-              ('occupiesSlots = setOf(EquipmentSlot.WEAPON, EquipmentSlot.ARMOR)', equipment_system),
-              ('bonuses = EquipmentBonuses(hp = 50, str = 15, df = 30, agi = 12, crit = 12)', equipment_system),
+              ('occupiesSlots = setOf(EquipmentSlot.WEAPON)', equipment_system),
+              ('Ma Tôn Vạn Giới', equipment_system),
               ('CharacterStatEngine.preserveMissingHp', equipment_system),
               ('fun applyCompletedTurnRegen', equipment_system),
               ('madGodIsNotCanonicalStartingLoadoutAndCountsOnceAcrossTwoSlots', status_tests),
