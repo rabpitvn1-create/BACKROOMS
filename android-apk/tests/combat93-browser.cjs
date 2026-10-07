@@ -39,6 +39,9 @@ async function run(){
     const lucia=fixture('before');lucia.revision=Number(lucia.revision||0)+100000;lucia.actorIndex=0;lucia.participants[0]={...lucia.participants[0],id:'lucia',name:'Lucia Lục'};
     await send(lucia);
     assert.match(await page.locator('.combat93-unit.actor .combat93-sprite').getAttribute('src'),/lucia_overlay\.png$/);
+    const syvial=fixture('before');syvial.revision=Number(syvial.revision||0)+200000;syvial.actorIndex=0;syvial.participants[0]={...syvial.participants[0],id:'syvial',name:'Syvial'};
+    await send(syvial);
+    assert.match(await page.locator('.combat93-unit.actor .combat93-sprite').getAttribute('src'),/syvial_overlay\.png$/);
     await send(fixture('before'));
     await page.locator('.combat93-unit.entity').nth(1).locator('button').click();
     assert.deepEqual(await page.evaluate(()=>window.__targetCalls),[1]);
