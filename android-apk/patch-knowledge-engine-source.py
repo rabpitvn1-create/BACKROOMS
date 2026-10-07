@@ -540,8 +540,8 @@ class KnowledgeContextEngineP0Test {
       Scenario(
         "soft_ceiling_candidate_pressure",
         pressureStateJson(
-          partyIds = arrayOf("iris", "syvial"),
-          playerConditionChars = 1600,
+          partyIds = arrayOf("iris"),
+          playerConditionChars = 3400,
           logEntries = 1,
           logTextChars = 600
         ),
