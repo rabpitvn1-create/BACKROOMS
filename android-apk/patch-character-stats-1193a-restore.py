@@ -680,6 +680,8 @@ data class CharacterDetailProjection(
   val physiology: DerivedPhysiologyStatus,
   val inventory: List<ItemStack>,
   val inventoryDetails: List<ItemDetailProjection> = emptyList(),
+  val inventoryCapacityUsed: Int = 0,
+  val inventoryCapacityMax: Int = 9,
   val equipment: Map<String, String>,
   val equipmentDetails: List<ItemDetailProjection> = emptyList(),
   val statusEffects: List<StatusEffect>
@@ -741,6 +743,8 @@ object CharacterDetailProjector {
       evasionResistancePercent = effective.resEvasionPercent,
       injuries = c.injuries.toList(), physiology = PhysiologyStatusPolicy.derive(c.physiology),
       inventory = inventory.toList(), inventoryDetails = details,
+      inventoryCapacityUsed = InventoryCapacityPolicy.usedSlots(normalized, c.id),
+      inventoryCapacityMax = InventoryCapacityPolicy.maxSlots(normalized, c.id),
       equipment = equipment, equipmentDetails = details.filter { it.equipped },
       statusEffects = c.statusIds.mapNotNull(normalized.statuses::get)
     )
@@ -784,6 +788,7 @@ object CharacterDetailJson {
       ItemDetailProjection(raw.itemId, raw.name, raw.quantity)
     }
     put("inventory", JSONArray().apply { details.forEach { put(item(it)) } })
+    put("inventoryCapacity", JSONObject().put("used", c.inventoryCapacityUsed).put("max", c.inventoryCapacityMax))
     put("equipment", JSONObject(c.equipment))
     put("equipmentItems", JSONArray().apply { c.equipmentDetails.forEach { put(item(it)) } })
     put("statuses", JSONArray().apply { c.statusEffects.forEach { e -> put(JSONObject().put("id", e.id).put("type", e.type).put("persistent", e.persistent)) } })
@@ -800,6 +805,7 @@ object CharacterDetailJson {
     put("id", x.id); put("name", x.name); put("quantity", x.quantity)
     x.type?.let { put("type", it) }; x.slot?.let { put("slot", it) }; x.rarity?.let { put("rarity", it) }
     put("equipped", x.equipped); put("equippedSlots", JSONArray(x.equippedSlots)); put("statItem", x.weapon != null)
+    put("consumesInventorySlot", !x.equipped)
     x.classification?.let { put("classification", it) }; x.weapon?.let { put("weapon", weapon(it)) }
     put("abilities", JSONArray().apply { x.abilities.forEach { a -> put(JSONObject().put("name", a.name).put("description", a.description).also { o -> a.importantLimit?.let { o.put("limit", it) } }) } })
     put("restrictions", JSONArray(x.restrictions))
@@ -957,7 +963,7 @@ class CharacterStats1193aRegressionTest {
     assertEquals(listOf(5,5,5,5), listOf(p.str,p.def,p.skl,p.vit))
     assertEquals(31, migrated.characters.getValue(KAI_ID).vitalState.currentHp)
     val out = JSONObject(GameStateCodec.encode(migrated)).getJSONObject("characters").getJSONObject(KAI_ID).getJSONObject("statProfile")
-    assertEquals(setOf("schema","baseMaxHp","STR","DEF","SKL","VIT"), out.keySet())
+    assertEquals(setOf("schema","baseMaxHp","STR","DEF","SKL","VIT"), out.keys().asSequence().toSet())
   }
 
   @Test fun costSharedCoreAndPerCharacterProgressionAreCanonical() {
