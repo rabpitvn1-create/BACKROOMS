@@ -2,7 +2,7 @@
 
 Status: SOURCE MAP / implementation prerequisite
 
-This file maps runtime facts to their authoritative Google Drive source. It is intentionally independent from `drive-canon.txt`, current prompts, legacy compact canon, and old patches. Those implementation artifacts are audit inputs only.
+This file maps runtime facts to their authoritative Google Drive source. Runtime knowledge is packaged in `app/src/main/assets/knowledge/knowledge_db.json` and selected per turn by `KnowledgeContextEngine`.
 
 ## Authority order
 
@@ -166,8 +166,6 @@ The required Drive save files are currently absent from the Drive folder, so the
 9. Raw dialogue log is a small recency buffer only. Long-term memory is structured continuity.
 10. Context budget priority: hard canon -> current state/scene -> active story -> present runtime cards -> relationship/address -> relevant ability/knowledge limits -> relevant Level/Entity/Item -> flavor.
 
-## Baseline implementation audit link
+## Runtime implementation link
 
-The current build-time runtime is patch-generated. `patch-ai-orchestrator.py` extracts broad string sections from `drive-canon.txt` and `kai-codex.txt`; `compactStateForPrompt` copies most legacy state and retains six recent log entries; routing uses keyword helpers such as dialogue/combat/item/entity plus limited presence checks. `patch-conditional-audit.py` already skips the AI critic below a risk threshold, but critic calls duplicate a broad canon/state slice.
-
-Those files are not a canon source for the new database. They are retained only as OLD-system input for benchmark comparison.
+The build-time runtime remains patch-generated, but writer and auditor context is sourced through `KnowledgeContextEngine` from `knowledge_db.json`. `benchmark-knowledge-context.py` verifies the current selector's deterministic required-record coverage and context ceiling; it no longer depends on retired compact-canon snapshots.
