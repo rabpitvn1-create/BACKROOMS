@@ -1099,20 +1099,66 @@ class KnowledgeContextEngineP0Test {
 ''', encoding="utf-8")
 
 
-ANDROID_TEST = Path(__file__).resolve().parent / "app/src/androidTest/java/com/rabpit/backroom/core/knowledge/KnowledgeContextAndroidSmokeTest.java"
+ANDROID_TEST = Path(__file__).resolve().parent / "app/src/androidTest/java/com/rabpit/backroom/core/knowledge/KnowledgeContextSmokeInstrumentation.java"
 ANDROID_TEST.parent.mkdir(parents=True, exist_ok=True)
+legacy_android_test = ANDROID_TEST.with_name("KnowledgeContextAndroidSmokeTest.java")
+if legacy_android_test.exists():
+    legacy_android_test.unlink()
 ANDROID_TEST.write_text(r'''package com.rabpit.backroom.core.knowledge;
 
+import android.app.Activity;
+import android.app.Instrumentation;
 import android.content.Context;
-import android.test.InstrumentationTestCase;
+import android.os.Bundle;
+import android.util.Log;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 
-public final class KnowledgeContextAndroidSmokeTest extends InstrumentationTestCase {
-  public void testAndroidRuntimeSerializationMatchesJvmSnapshot() throws Exception {
-    Context context = getInstrumentation().getTargetContext();
+public final class KnowledgeContextSmokeInstrumentation extends Instrumentation {
+  private Bundle arguments;
+
+  @Override
+  public void onCreate(Bundle arguments) {
+    super.onCreate(arguments);
+    this.arguments = arguments == null ? new Bundle() : new Bundle(arguments);
+    start();
+  }
+
+  @Override
+  public void onStart() {
+    Bundle status = statusBundle();
+    sendStatus(1, status);
+    try {
+      verifyAndroidRuntimeSerialization();
+      status.putString("stream", ".");
+      sendStatus(0, status);
+      Bundle result = new Bundle();
+      result.putString("stream", "\nOK (1 test)\n");
+      finish(Activity.RESULT_OK, result);
+    } catch (Throwable error) {
+      status.putString("stack", Log.getStackTraceString(error));
+      status.putString("stream", "F");
+      sendStatus(-2, status);
+      Bundle result = new Bundle();
+      result.putString("stream", "\nFAILURES!!!\n" + Log.getStackTraceString(error));
+      finish(Activity.RESULT_CANCELED, result);
+    }
+  }
+
+  private Bundle statusBundle() {
+    Bundle status = new Bundle();
+    status.putString("id", "InstrumentationTestRunner");
+    status.putInt("numtests", 1);
+    status.putString("class", KnowledgeContextSmokeInstrumentation.class.getName());
+    status.putString("test", "androidRuntimeSerializationMatchesJvmSnapshot");
+    status.putInt("current", 1);
+    return status;
+  }
+
+  private void verifyAndroidRuntimeSerialization() throws Exception {
+    Context context = getTargetContext();
     String dbJson = readAsset(context, "knowledge/knowledge_db.json");
 
     assertScenario(
@@ -1121,7 +1167,7 @@ public final class KnowledgeContextAndroidSmokeTest extends InstrumentationTestC
       "android_smoke_quiet",
       "{\"turn\":10,\"level\":{\"number\":0},\"party\":[],\"flags\":{}}",
       "Observe the quiet hallway.",
-      getInstrumentation().getArguments().getString("p0QuietSha")
+      arguments.getString("p0QuietSha")
     );
 
     String condition = repeat("C", 7000);
@@ -1142,7 +1188,7 @@ public final class KnowledgeContextAndroidSmokeTest extends InstrumentationTestC
       "android_smoke_hard_clip",
       hardClipState,
       "The group waits.",
-      getInstrumentation().getArguments().getString("p0HardClipSha")
+      arguments.getString("p0HardClipSha")
     );
   }
 
@@ -1154,11 +1200,20 @@ public final class KnowledgeContextAndroidSmokeTest extends InstrumentationTestC
     String action,
     String expectedSha
   ) throws Exception {
-    assertNotNull("Missing JVM snapshot hash for " + name, expectedSha);
+    if (expectedSha == null || expectedSha.isEmpty()) {
+      throw new AssertionError("Missing JVM snapshot hash for " + name);
+    }
     String production = KnowledgeContextEngine.build(context, stateJson, action, "{}");
     String seam = KnowledgeContextEngine.buildForTest(dbJson, stateJson, action, "{}");
-    assertEquals(name + " production asset path differs from test seam on Android", production, seam);
-    assertEquals(name + " Android packet differs from JVM snapshot", expectedSha, sha256(production));
+    if (!production.equals(seam)) {
+      throw new AssertionError(name + " production asset path differs from test seam on Android");
+    }
+    String actualSha = sha256(production);
+    if (!expectedSha.equals(actualSha)) {
+      throw new AssertionError(
+        name + " Android packet differs from JVM snapshot: expected=" + expectedSha + " actual=" + actualSha
+      );
+    }
   }
 
   private static String readAsset(Context context, String path) throws Exception {
@@ -1192,7 +1247,7 @@ public final class KnowledgeContextAndroidSmokeTest extends InstrumentationTestC
 GRADLE = Path(__file__).resolve().parent / "app/build.gradle"
 gradle = GRADLE.read_text(encoding="utf-8")
 runner_anchor = "    versionName '1.1.63.0.1'\n"
-runner_line = '    testInstrumentationRunner "android.test.InstrumentationTestRunner"\n'
+runner_line = '    testInstrumentationRunner "com.rabpit.backroom.core.knowledge.KnowledgeContextSmokeInstrumentation"\n'
 if runner_line not in gradle:
     if runner_anchor not in gradle:
         raise RuntimeError("P0 Android smoke runner anchor not found")
