@@ -294,6 +294,36 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      - name: Verify Canon P1 reference shadow report
+        run: |
+          set -euo pipefail
+          REPORT="android-apk/app/build/reports/canon-p1/reference-shadow.json"
+          test -s "$REPORT"
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.loads(Path("android-apk/app/build/reports/canon-p1/reference-shadow.json").read_text(encoding="utf-8"))
+          assert report["schemaVersion"] == 1
+          assert report["mode"] == "shadow_only"
+          assert report["legacyReferencePriorityGate"] == 55
+          assert report["edgeCount"] == len(report["edges"])
+          counts = report["counts"]
+          assert report["edgeCount"] == counts["legacyFollowed"] + counts["related"] + counts["missing"]
+
+          edges = {(edge["from"], edge["to"]): edge for edge in report["edges"]}
+          assert edges[("CHAR.KAI.GUILTY_CROWN_OVERRIDE", "CHAR.KAI.DEVIL_TRIGGER")]["shadowClass"] == "LEGACY_FOLLOWED"
+          assert edges[("LEVEL.01", "ENTITY.HOUND")]["shadowClass"] == "RELATED"
+          PY
+
+      - name: Upload Canon P1 reference shadow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Canon-P1-reference-shadow-${{ github.run_id }}
+          path: android-apk/app/build/reports/canon-p1/reference-shadow.json
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Verify Canon P0 Android serialization smoke
         uses: reactivecircus/android-emulator-runner@v2
         with:
