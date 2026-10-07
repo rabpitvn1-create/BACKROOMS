@@ -47,3 +47,20 @@ jobs:
       - name: Test save, HP, actor turns, and reward boundaries
         working-directory: android-apk
         run: gradle :app:testDebugUnitTest --tests 'com.rabpit.backroom.core.Combat93*' --no-daemon
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chromium presentation test runtime
+        run: |
+          npm install --prefix /tmp/combat93-browser playwright@1.58.2
+          /tmp/combat93-browser/node_modules/.bin/playwright install --with-deps chromium
+      - name: Verify actual WebView HTML in Chromium
+        env:
+          NODE_PATH: /tmp/combat93-browser/node_modules
+        run: node android-apk/tests/combat93-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: combat93-chromium-preview
+          path: android-apk/app/build/combat93-preview/*.png
+          if-no-files-found: ignore

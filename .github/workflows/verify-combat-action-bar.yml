@@ -97,9 +97,11 @@ jobs:
           assert 'state.combat' in main
           assert 'POKER_DICE_SNAPSHOT_CLEAR_R01' in html
           assert '.poker-dice-backdrop{position:absolute;inset:0;background:transparent}' in html
-          assert 'SNAPSHOT_COMBAT_DAMAGE_RUNTIME_R01' in html
-          assert 'before.entityHp-after.entityHp' in html
-          assert 'snapshot-combat-dmg' in html
+          assert 'COMBAT_93_SNAPSHOT_V1' in html
+          assert 'feedbackEvents' in html
+          assert 'resolvedEntityTurns' in html
+          assert 'before.entityHp-after.entityHp' not in html
+          assert 'combat93-float' in html
           assert 'function normalizeEntityVisual(img)' in main
           assert 'ctx.getImageData(0,0,pw,ph)' in main
           assert "img.onload=function(){normalizeEntityVisual(img)" in main
@@ -139,8 +141,8 @@ jobs:
           grep -q 'FINALIZE_PREVIEW_MS=2000' "$html"
           grep -q 'POKER_DICE_SNAPSHOT_CLEAR_R01' "$html"
           grep -q 'background:transparent' "$html"
-          grep -q 'SNAPSHOT_COMBAT_DAMAGE_RUNTIME_R01' "$html"
-          grep -q 'snapshot-combat-dmg' "$html"
+          grep -q 'COMBAT_93_SNAPSHOT_V1' "$html"
+          grep -q 'combat93-float' "$html"
           ! grep -q "label:'TẤN CÔNG'" "$html"
           ! grep -q "label:'NÉ TRÁNH'" "$html"
           ! grep -q "label:'BỎ CHẠY'" "$html"
