@@ -592,9 +592,15 @@ class KnowledgeContextEngineP0Test {
       "Dialogue should be proposed directly from speech intent: $dialogueReasons",
       dialogueReasons.any { it == "direct structured lookup" }
     )
-    assertTrue(
-      "Dialogue should also be reachable from the address reference: $dialogueReasons",
-      dialogueReasons.any { it.contains("direct reference from ADDR.IRIS.KAI") }
+    val alreadySelectedReference = result.events.firstOrNull {
+      it.type == "reference_skipped" &&
+        it.fromId == "ADDR.IRIS.KAI" &&
+        it.targetId == "WRITING.DIALOGUE" &&
+        it.rule == "already_visited"
+    }
+    assertNotNull(
+      "Address -> dialogue reference should remain observable even when dialogue was already selected directly",
+      alreadySelectedReference
     )
   }
 
