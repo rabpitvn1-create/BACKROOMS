@@ -71,15 +71,15 @@ object HealingItems {
 
 # Canonicalize model/story variants such as "bandage" or unaccented Vietnamese
 # into the two authoritative item IDs before stacking or use effects are read.
+# Whole-unit ItemContent is now authoritative in checked-in source, so inject
+# the healing hook without depending on the removed ContentProfile legacy model.
 item_content = ITEM_CONTENT.read_text(encoding="utf-8")
-normalize_anchor = '''  fun normalize(item: ItemStack): ItemStack {
-    val profile = profileFor(item.name, item.archetypeId)
-'''
-normalize_replacement = '''  fun normalize(item: ItemStack): ItemStack {
-    HealingItems.normalize(item)?.let { return it }
-    val profile = profileFor(item.name, item.archetypeId)
-'''
-item_content = replace_once(item_content, normalize_anchor, normalize_replacement, "Healing item normalization")
+healing_hook = '    HealingItems.normalize(item)?.let { return it }\n'
+if healing_hook not in item_content:
+    normalize_anchor = '  fun normalize(item: ItemStack): ItemStack {\n'
+    if item_content.count(normalize_anchor) != 1:
+        raise RuntimeError("Healing item normalization anchor missing or ambiguous")
+    item_content = item_content.replace(normalize_anchor, normalize_anchor + healing_hook, 1)
 ITEM_CONTENT.write_text(item_content, encoding="utf-8")
 
 
