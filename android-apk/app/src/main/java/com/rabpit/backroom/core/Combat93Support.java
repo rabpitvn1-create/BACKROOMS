@@ -129,16 +129,30 @@ final class Combat93Support {
       JSONObject values = profile.getJSONObject("stats"), stats = new JSONObject();
       for (String key : new String[]{"STR", "DEF", "SKL", "VIT"}) {
         int value = values.optInt(key, 5);
+        if ("cao_minh".equals(Progression.normalizeCharacterId(id)))
+          value += Math.max(0, Math.round(Math.max(1, value) * 0.1f));
+        JSONArray effects = profile.optJSONArray("statusEffects");
+        if (effects != null) for (int i = 0; i < effects.length(); i++) {
+          JSONObject effect = effects.optJSONObject(i);
+          JSONObject modifiers = effect == null ? null : effect.optJSONObject("modifiers");
+          if (effect != null && effect.optInt("remainingTurns") > 0 && modifiers != null)
+            value += modifiers.optInt(key);
+        }
+        value = Math.max(1, Math.min(999, value));
         stats.put(key, new JSONObject().put("effective", value));
       }
-      int skl = values.optInt("SKL", 5), def = values.optInt("DEF", 5), vit = values.optInt("VIT", 5);
+      int skl = stats.getJSONObject("SKL").getInt("effective");
+      int def = stats.getJSONObject("DEF").getInt("effective");
+      int vit = stats.getJSONObject("VIT").getInt("effective");
+      JSONObject combatStatus = profile.optJSONObject("combatStatus");
+      if (combatStatus == null) combatStatus = new JSONObject()
+          .put("criticalChancePercent", Math.max(0, Math.min(50, 5 + (skl - 5) * 2)))
+          .put("evasionPercent", Math.max(0, Math.min(35, (vit - 5) * 2)))
+          .put("resCriticalPercent", Math.max(0, Math.min(50, (def - 5) * 2)))
+          .put("resEvasionPercent", Math.max(0, Math.min(50, (skl - 5) * 2)));
       return new JSONObject().put("currentHp", profile.getInt("currentHp"))
           .put("maxHp", profile.getInt("maxHp")).put("stats", stats)
-          .put("combatStatus", new JSONObject()
-              .put("criticalChancePercent", Math.max(0, Math.min(50, 5 + (skl - 5) * 2)))
-              .put("evasionPercent", Math.max(0, Math.min(35, (vit - 5) * 2)))
-              .put("resCriticalPercent", Math.max(0, Math.min(50, (def - 5) * 2)))
-              .put("resEvasionPercent", Math.max(0, Math.min(50, (skl - 5) * 2))));
+          .put("combatStatus", combatStatus);
     }
   }
 }
