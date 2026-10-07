@@ -55,6 +55,11 @@ style = r'''
 .poker-dice-roll:disabled,.poker-dice-finish:disabled{opacity:.45}
 @media(max-width:390px){.poker-die{min-width:0!important}.poker-dice-sheet{padding-left:10px!important;padding-right:10px!important}}
 @media(prefers-reduced-motion:reduce){.poker-die,.poker-die-object,.poker-dice-roll,.poker-dice-finish{transition:none!important}.poker-die.rolling .poker-die-object,.poker-die.rolling .poker-die-shadow,.poker-die.settling .poker-die-object{animation:none!important}.poker-die.rolling .poker-die-object:before{display:none!important;animation:none!important}.poker-die.rolling .poker-die-skin{visibility:visible!important}}
+
+/* SNAPSHOT_COMBAT_DAMAGE_R01 */
+.snapshot-combat-dmg{position:absolute;z-index:8;top:34%;min-width:72px;text-align:center;font-weight:900;font-size:clamp(24px,5vw,38px);line-height:1;color:#ff766b;text-shadow:0 2px 3px #000,0 0 12px rgba(255,70,58,.58);pointer-events:none;white-space:nowrap;animation:snapshot-combat-dmg-float .9s ease-out forwards}
+.snapshot-combat-dmg.entity{left:18%}.snapshot-combat-dmg.player{right:18%}
+@keyframes snapshot-combat-dmg-float{0%{opacity:0;transform:translateY(10px) scale(.82)}20%{opacity:1;transform:translateY(0) scale(1.08)}100%{opacity:0;transform:translateY(-44px) scale(1)}}
 </style>
 '''
 if "</head>" not in html:
@@ -243,6 +248,62 @@ if old_turn_reset not in html:
     raise RuntimeError("Poker Dice 1.1.99 polish: turn reset anchor missing")
 html = html.replace(old_turn_reset, new_turn_reset, 1)
 
+
+# Snapshot damage feedback is a pure projection of authoritative CombatRuntime HP.
+# It never parses GM prose and cannot change combat resolution.
+damage_script = r'''<script>
+/* SNAPSHOT_COMBAT_DAMAGE_RUNTIME_R01 */
+(function(){
+  function combatHp(value){
+    var c=value&&value.combat;
+    if(!c||c.active!==true)return null;
+    return {
+      key:String(c.entityKey||c.encounterId||''),
+      entityHp:Math.max(0,Number(c.entityHp)||0),
+      playerHp:Math.max(0,Number(c.playerHp)||0)
+    };
+  }
+  function floatDamage(side,amount){
+    amount=Math.round(Number(amount)||0);
+    if(amount<=0)return;
+    var box=document.getElementById('snapshot');
+    if(!box)return;
+    box.style.position='relative';
+    var node=document.createElement('span');
+    node.className='snapshot-combat-dmg '+side;
+    node.textContent='-'+String(amount)+' DMG';
+    box.appendChild(node);
+    setTimeout(function(){if(node.parentNode)node.parentNode.removeChild(node)},950);
+  }
+  var previousTurn=window.backroomTurn;
+  if(typeof previousTurn==='function'){
+    window.backroomTurn=function(json){
+      var before=combatHp(typeof state!=='undefined'?state:null);
+      var directAttack=window.__directCombatResolving===true;
+      var value=previousTurn.call(this,json);
+      var after=combatHp(typeof state!=='undefined'?state:null);
+      var entityDamage=0,playerDamage=0;
+      if(before&&after&&(!before.key||!after.key||before.key===after.key)){
+        entityDamage=Math.max(0,before.entityHp-after.entityHp);
+        playerDamage=Math.max(0,before.playerHp-after.playerHp);
+      }else if(before&&!after&&directAttack){
+        entityDamage=before.entityHp;
+      }
+      if(entityDamage>0||playerDamage>0){
+        requestAnimationFrame(function(){
+          floatDamage('entity',entityDamage);
+          floatDamage('player',playerDamage);
+        });
+      }
+      return value;
+    };
+  }
+})();
+</script>'''
+if "</body>" not in html:
+    raise RuntimeError("Poker Dice 1.1.99 polish: closing body missing for Snapshot damage feedback")
+html = html.replace("</body>", damage_script + "\n</body>", 1)
+
 for marker in (
     MARKER,
     "poker-die-shadow",
@@ -259,6 +320,10 @@ for marker in (
     'meta.textContent="Lượt Quay "',
     'seal.textContent="GIỮ"',
     "scheduleDirectResolve",
+    "SNAPSHOT_COMBAT_DAMAGE_R01",
+    "SNAPSHOT_COMBAT_DAMAGE_RUNTIME_R01",
+    "snapshot-combat-dmg",
+    "before.entityHp-after.entityHp",
 ):
     if marker not in html:
         raise RuntimeError("Poker Dice 1.1.99 polish contract missing: " + marker)

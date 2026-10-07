@@ -97,6 +97,14 @@ jobs:
           assert 'file:///android_asset/entity/' in main
           assert 'function activeEntityKey()' in main
           assert 'state.combat' in main
+          assert 'POKER_DICE_SNAPSHOT_CLEAR_R01' in html
+          assert '.poker-dice-backdrop{position:absolute;inset:0;background:transparent}' in html
+          assert 'SNAPSHOT_COMBAT_DAMAGE_RUNTIME_R01' in html
+          assert 'before.entityHp-after.entityHp' in html
+          assert 'snapshot-combat-dmg' in html
+          assert 'function normalizeEntityVisual(img)' in main
+          assert 'ctx.getImageData(0,0,pw,ph)' in main
+          assert "img.onload=function(){normalizeEntityVisual(img)" in main
           PY
           git diff --check
 
@@ -131,6 +139,10 @@ jobs:
           grep -q 'DICE_ROLL_ANIMATION_MS=680' "$html"
           grep -q 'DICE_SETTLE_ANIMATION_MS=170' "$html"
           grep -q 'FINALIZE_PREVIEW_MS=2000' "$html"
+          grep -q 'POKER_DICE_SNAPSHOT_CLEAR_R01' "$html"
+          grep -q 'background:transparent' "$html"
+          grep -q 'SNAPSHOT_COMBAT_DAMAGE_RUNTIME_R01' "$html"
+          grep -q 'snapshot-combat-dmg' "$html"
           ! grep -q "label:'TẤN CÔNG'" "$html"
           ! grep -q "label:'NÉ TRÁNH'" "$html"
           ! grep -q "label:'BỎ CHẠY'" "$html"
