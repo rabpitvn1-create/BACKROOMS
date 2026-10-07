@@ -226,6 +226,9 @@ path.write_text(text, encoding='utf-8')
 
 main = ROOT / 'app/src/main/java/com/rabpit/backroom/MainActivity.java'
 source = main.read_text(encoding='utf-8')
+source, count = re.subn(r'  private String compactKaiCanon\(String action\) \{.*?\n  \}\n', '', source, count=1, flags=re.S)
+if count != 1:
+    raise RuntimeError('Retired compactKaiCanon helper missing')
 source = re.sub(r'^  private static final String KAI_CANON = .*;\n', '', source, flags=re.M)
 main.write_text(source, encoding='utf-8')
 
