@@ -22,8 +22,6 @@ jobs:
           python3 android-apk/patch-snapshot-fallback.py
           python3 android-apk/patch-kai-hd-continuous.py
           python3 android-apk/patch-kai-png-preferred.py
-          python3 android-apk/patch-kai-codex.py
-          python3 android-apk/patch-r06-source-marker.py
           python3 android-apk/patch-drive-canon-gameplay.py
           python3 android-apk/patch-inventory-persistence.py
           python3 android-apk/patch-ai-orchestrator.py
