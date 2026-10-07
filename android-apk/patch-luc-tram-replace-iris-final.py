@@ -61,7 +61,7 @@ special = replace_once(
 )
 special = replace_once(
     special,
-    '  val irisEquipmentSlots: Map<String, String> = linkedMapOf(\n    "weapon_primary" to IRIS_IVORY_ID,\n    "weapon_secondary" to IRIS_EBONY_ID,\n    "armor" to IRIS_RECON_FRAME_ID\n  )\n',
+    '  val irisEquipmentSlots: Map<String, String> = linkedMapOf(\n    "weapon" to IRIS_IVORY_EBONY_SET_ID,\n    "armor" to IRIS_RECON_FRAME_ID\n  )\n',
     '  val lucTramEquipmentSlots: Map<String, String> = linkedMapOf(\n    "weapon" to LUC_TRAM_TICH_QUANG_ID,\n    "armor" to LUC_TRAM_KIEM_KHAI_ID\n  )\n  @Deprecated("Legacy generated call sites only.")\n  val irisEquipmentSlots: Map<String, String> get() = lucTramEquipmentSlots\n',
     "Lục Trầm equipment slots",
 )
