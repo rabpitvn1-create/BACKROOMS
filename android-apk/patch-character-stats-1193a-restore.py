@@ -66,9 +66,6 @@ data class CharacterStatProfile(
   val statSource: StatSource = StatSource.GAMEPLAY_NORMALIZED,
   val schema: String = CharacterProgressionCore.SCHEMA
 ) {
-  @Deprecated("Use DEF") val df: Int get() = def
-  @Deprecated("Use VIT") val agi: Int get() = vit
-  @Deprecated("Use SKL") val crit: Int get() = skl
 }
 
 data class CharacterVitalState(
@@ -91,11 +88,6 @@ data class EffectiveCharacterStats(
   val energy: EnergyProfile = EnergyProfile.notApplicable(),
   val regenPerCompletedTurn: Int = 0
 ) {
-  // Read-only source-compatibility aliases. They are not a second stat schema.
-  @Deprecated("Use DEF") val df: Int get() = def
-  @Deprecated("Use VIT") val agi: Int get() = vit
-  @Deprecated("Use SKL") val crit: Int get() = skl
-  val equipmentHp: Int get() = 0
 }
 
 object CharacterStatProfiles {
@@ -289,10 +281,10 @@ object CharacterStatCore {
 
   fun effective(state: GameState, characterId: String): EffectiveCharacterStats {
     val p = state.characters[characterId]?.statProfile ?: CharacterStatProfiles.forId(characterId)
-    val str = p.str.coerceIn(5, 999) + passiveBonus(p.str, characterId)
-    val def = p.def.coerceIn(5, 999) + passiveBonus(p.def, characterId)
-    val skl = p.skl.coerceIn(5, 999) + passiveBonus(p.skl, characterId)
-    val vit = p.vit.coerceIn(5, 999) + passiveBonus(p.vit, characterId)
+    val str = (p.str.coerceIn(5, 999) + passiveBonus(p.str, characterId)).coerceAtMost(CharacterProgressionCore.MAX_STAT)
+    val def = (p.def.coerceIn(5, 999) + passiveBonus(p.def, characterId)).coerceAtMost(CharacterProgressionCore.MAX_STAT)
+    val skl = (p.skl.coerceIn(5, 999) + passiveBonus(p.skl, characterId)).coerceAtMost(CharacterProgressionCore.MAX_STAT)
+    val vit = (p.vit.coerceIn(5, 999) + passiveBonus(p.vit, characterId)).coerceAtMost(CharacterProgressionCore.MAX_STAT)
     val maxHp = scaleByPercent(CharacterProgressionCore.BASE_MAX_HP, CharacterProgressionCore.statPercent(vit))
     return EffectiveCharacterStats(
       maxHp = maxHp,
@@ -691,9 +683,6 @@ data class CharacterDetailProjection(
   val equipmentDetails: List<ItemDetailProjection> = emptyList(),
   val statusEffects: List<StatusEffect>
 ) {
-  @Deprecated("Use DEF") val df: StatLineProjection get() = def
-  @Deprecated("Use VIT") val agi: StatLineProjection get() = vit
-  @Deprecated("Use SKL") val crit: StatLineProjection get() = skl
 }
 
 data class PartyDetailProjection(
@@ -935,6 +924,15 @@ if FACADE.exists():
 ''', 1)
     FACADE.write_text(facade, encoding="utf-8")
 
+# Remove stale prompt references to the retired Lucia HP/stat schema.
+if MAIN.exists():
+    main = MAIN.read_text(encoding="utf-8")
+    main = main.replace(
+      'HP nền 100; STR 7, DF 7, AGI 8, CRIT 7.',
+      'Character Stats theo 1.1.93a: Base STR/DEF/SKL/VIT đều bắt đầu 5; baseMaxHp 50 và Max HP derive từ VIT.'
+    )
+    MAIN.write_text(main, encoding="utf-8")
+
 # Minimal UI replacement: canonical labels only; no equipment numeric-stat comparison.
 if INDEX.exists():
     html = INDEX.read_text(encoding="utf-8")
@@ -981,6 +979,11 @@ class CharacterStats1193aRegressionTest {
     assertEquals(2, effective.resCriticalPercent)
     assertEquals(2, effective.resEvasionPercent)
     assertEquals(150, effective.criticalDamagePercent)
+    val capped = state.copy(characters = state.characters + (KAI_ID to state.characters.getValue(KAI_ID).copy(
+      statProfile = base.copy(str=999, def=999, skl=999, vit=999)
+    )))
+    val cappedEffective = CharacterStatCore.effective(capped, KAI_ID)
+    assertEquals(listOf(999,999,999,999), listOf(cappedEffective.str,cappedEffective.def,cappedEffective.skl,cappedEffective.vit))
   }
 
   @Test fun legacySchemaResetsInsteadOfMappingAndPreservesHpSafely() {
@@ -1330,6 +1333,18 @@ for marker in (
 ):
     if marker not in PROGRESSION.read_text(encoding="utf-8"):
         raise RuntimeError("1.1.93a authority marker missing: " + marker)
+
+for runtime_path in (STATS, DETAIL, DETAIL_JSON):
+    runtime_text = runtime_path.read_text(encoding="utf-8")
+    for forbidden in ('val df:', 'val agi:', 'val crit:', 'put("DF"', 'put("AGI"', 'put("CRIT"'):
+        if forbidden in runtime_text:
+            raise RuntimeError(f"legacy stat surface remains in {runtime_path.name}: {forbidden}")
+
+if MAIN.exists():
+    main_final = MAIN.read_text(encoding="utf-8")
+    for forbidden in ('HP nền 100; STR 7, DF 7, AGI 8, CRIT 7.',):
+        if forbidden in main_final:
+            raise RuntimeError("stale legacy character-stat prompt remains: " + forbidden)
 
 codec_final = CODEC.read_text(encoding="utf-8")
 for forbidden in ('put("df"', 'put("agi"', 'put("crit"', 'put("level"', 'put("exp"', 'put("baseStats"'):
