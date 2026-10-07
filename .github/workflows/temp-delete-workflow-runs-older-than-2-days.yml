@@ -1,0 +1,185 @@
+name: TEMP Delete workflow runs older than 2 days
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/temp-delete-workflow-runs-older-than-2-days.yml"
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type DELETE_WORKFLOW_RUNS_OLDER_THAN_2_DAYS"
+        required: true
+        type: string
+
+permissions:
+  actions: write
+  contents: write
+
+concurrency:
+  group: temp-delete-workflow-runs-older-than-2-days
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Require manual confirmation when dispatched
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          CONFIRM: ${{ inputs.confirm }}
+        run: |
+          set -euo pipefail
+          if [ "$CONFIRM" != "DELETE_WORKFLOW_RUNS_OLDER_THAN_2_DAYS" ]; then
+            echo "::error::Confirmation text does not match. Nothing was deleted."
+            exit 1
+          fi
+
+      - name: Find workflow runs older than 48 hours
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          CUTOFF_EPOCH=$(date -u -d '48 hours ago' +%s)
+          CUTOFF_ISO=$(date -u -d "@$CUTOFF_EPOCH" '+%Y-%m-%dT%H:%M:%SZ')
+          echo "Cutoff: $CUTOFF_ISO"
+
+          gh api --paginate "repos/$REPO/actions/runs?per_page=100"             --jq '.workflow_runs[] | [.id, .created_at, .name, .event, .status, (.conclusion // "")] | @tsv'             > all-workflow-runs.tsv
+
+          CUTOFF_EPOCH="$CUTOFF_EPOCH" python3 - <<'PY'
+          import os
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          cutoff = int(os.environ["CUTOFF_EPOCH"])
+          targets = []
+
+          for raw in Path("all-workflow-runs.tsv").read_text(encoding="utf-8").splitlines():
+              if not raw.strip():
+                  continue
+              parts = raw.split("\t")
+              if len(parts) < 2:
+                  continue
+              run_id = parts[0].strip()
+              created_at = parts[1].strip()
+              created = int(datetime.fromisoformat(created_at.replace("Z", "+00:00")).timestamp())
+              if created < cutoff:
+                  targets.append(raw)
+
+          Path("targets.tsv").write_text(
+              "".join(line + "\n" for line in targets),
+              encoding="utf-8",
+          )
+          Path("target-ids.txt").write_text(
+              "".join(line.split("\t", 1)[0] + "\n" for line in targets),
+              encoding="utf-8",
+          )
+
+          print(f"Matched {len(targets)} workflow run(s) older than 48 hours.")
+          for line in targets[:100]:
+              print("  " + line)
+          if len(targets) > 100:
+              print(f"  ... and {len(targets) - 100} more")
+          PY
+
+          {
+            echo "### Workflow runs older than 48 hours"
+            echo
+            echo "Cutoff: `$CUTOFF_ISO`"
+            echo
+            if [ -s targets.tsv ]; then
+              COUNT=$(wc -l < target-ids.txt | tr -d ' ')
+              echo "Matched **$COUNT** run(s)."
+            else
+              echo "Matched **0** runs."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Delete matched workflow runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if [ ! -s target-ids.txt ]; then
+            echo "No workflow runs older than 48 hours; nothing to delete."
+            exit 0
+          fi
+
+          deleted=0
+          failed=0
+          while IFS= read -r run_id; do
+            [ -n "$run_id" ] || continue
+            echo "Deleting workflow run $run_id"
+            if gh api --method DELETE "repos/$REPO/actions/runs/$run_id" >/dev/null; then
+              deleted=$((deleted + 1))
+            else
+              failed=$((failed + 1))
+              echo "::error::Failed to delete workflow run $run_id"
+            fi
+          done < target-ids.txt
+
+          echo "Deleted: $deleted"
+          echo "Failed: $failed"
+          if [ "$failed" -ne 0 ]; then
+            exit 1
+          fi
+
+      - name: Verify no workflow runs older than 48 hours remain
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          CUTOFF_EPOCH=$(date -u -d '48 hours ago' +%s)
+
+          gh api --paginate "repos/$REPO/actions/runs?per_page=100"             --jq '.workflow_runs[] | [.id, .created_at, .name] | @tsv'             > remaining-workflow-runs.tsv
+
+          CUTOFF_EPOCH="$CUTOFF_EPOCH" python3 - <<'PY'
+          import os
+          from datetime import datetime
+          from pathlib import Path
+
+          cutoff = int(os.environ["CUTOFF_EPOCH"])
+          remaining = []
+
+          for raw in Path("remaining-workflow-runs.tsv").read_text(encoding="utf-8").splitlines():
+              if not raw.strip():
+                  continue
+              parts = raw.split("\t")
+              if len(parts) < 2:
+                  continue
+              created = int(datetime.fromisoformat(parts[1].replace("Z", "+00:00")).timestamp())
+              if created < cutoff:
+                  remaining.append(raw)
+
+          if remaining:
+              print("Workflow runs older than 48 hours still remain:")
+              for line in remaining[:100]:
+                  print("  " + line)
+              raise SystemExit(1)
+
+          print("Verified: no workflow runs older than 48 hours remain.")
+          PY
+
+      - name: Remove this temporary workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          WORKFLOW_PATH: .github/workflows/temp-delete-workflow-runs-older-than-2-days.yml
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            sha=$(gh api "repos/$REPO/contents/$WORKFLOW_PATH?ref=main" --jq '.sha')
+            if gh api --method DELETE "repos/$REPO/contents/$WORKFLOW_PATH"               -f message='Remove temporary workflow-run cleanup action'               -f sha="$sha"               -f branch=main >/dev/null; then
+              echo "Temporary workflow removed from main."
+              exit 0
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error::Cleanup succeeded but self-removal failed after 3 attempts."
+              exit 1
+            fi
+            sleep $((attempt * 2))
+          done
