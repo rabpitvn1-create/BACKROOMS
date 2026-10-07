@@ -979,7 +979,7 @@ if INDEX.exists():
     html = re.sub(r'''function statRows\(item\)\{.*?\n  \}''',
                   '''function statRows(item){const w=item.weapon||{},rows=[];if(w.DMG!=null)rows.push(['DMG',w.DMG]);if(w.ammo!=null)rows.push(['Ammo',w.ammo]);if(w.rpm!=null)rows.push(['Full Auto',w.rpm+' RPM']);return rows\n  }''',
                   html, count=1, flags=re.S)
-    html = re.sub(r'''function comparisonRows\(c\)\{.*?\}''', 'function comparisonRows(c){return[]}', html, count=1)
+    html = re.sub(r'''function comparisonRows\(c\)\{.*?(?=\n  function openItem\(item\)\{)''', 'function comparisonRows(c){return[]}', html, count=1, flags=re.S)
     INDEX.write_text(html, encoding="utf-8")
 
 # ---------------------------------------------------------------------------

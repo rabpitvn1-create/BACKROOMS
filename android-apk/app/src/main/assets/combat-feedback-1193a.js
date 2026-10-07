@@ -64,6 +64,12 @@
   var previousTurn=window.backroomTurn;
   if(typeof previousTurn!=='function')return;
   window.backroomTurn=function(json){
+    var incoming=null;
+    try{incoming=typeof json==='string'?JSON.parse(json):json;}catch(_){}
+    var incomingCombat=incoming&&incoming.combat;
+    if(incomingCombat&&Array.isArray(incomingCombat.feedbackEvents)&&Number.isInteger(incomingCombat.resolvedActorIndex)){
+      return previousTurn.call(this,json);
+    }
     var before=typeof state!=='undefined'&&state&&state.combat;
     var anchors={entity:targetAnchor('entity'),actor:targetAnchor('actor')};
     var result=previousTurn.call(this,json);
