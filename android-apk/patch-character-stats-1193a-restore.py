@@ -438,8 +438,22 @@ stat_engine = r'''object CharacterStatEngine {
   fun effective(state: GameState, characterId: String): EffectiveCharacterStats =
     CharacterStatCore.effective(state, characterId)
 
-  private fun fallback(characterId: String): EffectiveCharacterStats =
-    CharacterStatCore.effective(GameState.initial(), characterId)
+  private fun fallback(characterId: String): EffectiveCharacterStats {
+    val p = CharacterStatProfiles.forId(characterId)
+    val str = p.str.coerceIn(5, 999)
+    val def = p.def.coerceIn(5, 999)
+    val skl = p.skl.coerceIn(5, 999)
+    val vit = p.vit.coerceIn(5, 999)
+    return EffectiveCharacterStats(
+      maxHp = CharacterStatCore.scaleByPercent(CharacterProgressionCore.BASE_MAX_HP, CharacterProgressionCore.statPercent(vit)),
+      str = str, def = def, skl = skl, vit = vit,
+      criticalChancePercent = CharacterStatCore.criticalChance(skl),
+      evasionPercent = CharacterStatCore.evasion(vit),
+      resCriticalPercent = CharacterStatCore.criticalResistance(def),
+      resEvasionPercent = CharacterStatCore.evasionResistance(skl),
+      energy = p.energy
+    )
+  }
 
   fun conditionFor(currentHp: Int, maxHp: Int, old: CharacterCondition? = null, presence: CharacterPresence? = null): CharacterCondition {
     if (presence == CharacterPresence.DEAD || old == CharacterCondition.DEAD) return CharacterCondition.DEAD
@@ -542,7 +556,8 @@ equipment_system = r'''object CharacterEquipmentSystem {
   }
 }
 '''
-system = replace_re(system, r'object CharacterEquipmentSystem \{.*?\n\}', equipment_system.rstrip(), "canonical equipment normalization")
+system_start = system.index("object CharacterEquipmentSystem {")
+system = system[:system_start] + equipment_system.rstrip() + "\n"
 SYSTEM.write_text(system, encoding="utf-8")
 
 # ---------------------------------------------------------------------------
