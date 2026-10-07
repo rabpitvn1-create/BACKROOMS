@@ -1378,9 +1378,7 @@ html = HTML.read_text(encoding="utf-8")
 
 start_token = "const prologue=`"
 start = html.index(start_token)
-end = html.index("`;
-
-const initial=", start)
+end = html.index("`;\\n\\nconst initial=", start)
 html = html[:start] + "const prologue=`" + PROLOGUE + "`;" + html[end + 2:]
 
 old_turn = '{role:"gm",text:"LƯỢT 1\\n\\nKhông có liên lạc với Iris, Syvial hay Black Blood. Bạn điều khiển Cao Minh từ đây."}'
