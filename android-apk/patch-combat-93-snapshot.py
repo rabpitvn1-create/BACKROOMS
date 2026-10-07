@@ -19,6 +19,7 @@ if 'COMBAT_93_SNAPSHOT_V1' not in html:
     html = html.replace('    row.textContent="";\n    var values=', '    if(window.__combatFeedbackBusy)meta.textContent="Đang diễn lượt đánh và phản công…";\n    row.textContent="";\n    var values=', 1)
     # Callback reset still runs while feedback is playing, so each UI guard checks the separate flag.
     css = '''<style>
+    .poker-dice-modal,.poker-dice-backdrop{pointer-events:none}.poker-dice-sheet{pointer-events:auto}
     #snapshot.combat93-active{position:relative;min-height:290px;overflow:hidden}
     #snapshot.combat93-active .snapshot-character,#snapshot.combat93-active .snapshot-entity,#snapshot.combat93-active .snapshot-placeholder{visibility:hidden}
     .combat93-scene{z-index:5;position:absolute;inset:0;display:flex;align-items:end;padding:12px;gap:12px;background:linear-gradient(transparent,#0009);color:#fff}
