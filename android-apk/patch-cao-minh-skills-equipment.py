@@ -224,28 +224,6 @@ path = tests / 'CombatRuntimeTest.kt'
 text = path.read_text(encoding='utf-8').replace('assertEquals(140, expectedMaxHp)', 'assertEquals(175, expectedMaxHp)').replace('24/24 phát trúng liên tiếp', '24/24 trảm trúng liên tiếp').replace('mỗi phát -10 HP', 'mỗi trảm -36 HP').replace('tổng -240 HP', 'tổng -864 HP')
 path.write_text(text, encoding='utf-8')
 
-main = ROOT / 'app/src/main/java/com/rabpit/backroom/MainActivity.java'
-source = main.read_text(encoding='utf-8')
-legacy_prompt_methods = (
-    r'  private String canonSection\(String source, String start, String end\) \{.*?\n  \}\n',
-    r'  private String canonLineStarting\(String source, String prefix\) \{.*?\n  \}\n',
-    r'  private boolean actionDialogue\(String action\) \{.*?\n  \}\n',
-    r'  private boolean actionCombat\(String action\) \{.*?\n  \}\n',
-    r'  private boolean actionOmnivault\(String action\) \{.*?\n  \}\n',
-    r'  private boolean actionItem\(String action\) \{.*?\n  \}\n',
-    r'  private boolean actionEntity\(String action\) \{.*?\n  \}\n',
-    r'  private String compactDriveCanon\(JSONObject state, String action, JSONObject rolls\) \{.*?\n  \}\n',
-    r'  private String compactKaiCanon\(String action\) \{.*?\n  \}\n',
-)
-for pattern in legacy_prompt_methods:
-    source = re.sub(pattern, '', source, count=1, flags=re.S)
-source = re.sub(r'^  private static final String KAI_CANON = .*;\n', '', source, count=1, flags=re.M)
-source = re.sub(r'^  private static final String DRIVE_CANON = .*;\n', '', source, count=1, flags=re.M)
-for retired in ('compactDriveCanon(', 'compactKaiCanon(', 'KAI_CANON', 'DRIVE_CANON ='):
-    if retired in source:
-        raise RuntimeError('Retired canon runtime remains: ' + retired)
-main.write_text(source, encoding='utf-8')
-
 (tests / 'CaoMinhSkillsEquipmentTest.kt').write_text('''package com.rabpit.backroom.core
 import org.junit.Assert.*
 import org.junit.Test
