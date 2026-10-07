@@ -529,6 +529,47 @@ class KnowledgeContextEngineP0Test {
     )
   }
 
+  private val p04Scenarios: List<Scenario> by lazy {
+    val pressureAction = listOf(
+      "nói", "ARGUS", "terrain read", "Sparda Core", "Devil Trigger",
+      "White Wraith", "Guilty Crown", "Omnivault", "Godkiller", "Lucifer Core",
+      "smiler", "hound", "skin-stealer", "almond water", "greek fire", "liquid pain",
+      "dấu vết", "đe dọa", "tấn công", "sơ cứu", "nấu thức ăn"
+    ).joinToString(" ")
+    listOf(
+      Scenario(
+        "soft_ceiling_candidate_pressure",
+        pressureStateJson(
+          partyIds = arrayOf("iris", "syvial"),
+          playerConditionChars = 1600,
+          logEntries = 1,
+          logTextChars = 600
+        ),
+        pressureAction
+      ),
+      Scenario(
+        "mandatory_over_soft_long_context",
+        pressureStateJson(
+          partyIds = emptyArray(),
+          playerConditionChars = 7000,
+          logEntries = 4,
+          logTextChars = 1200
+        ),
+        "Quan sát hành lang yên tĩnh."
+      ),
+      Scenario(
+        "hard_clip_mid_record",
+        pressureStateJson(
+          partyIds = arrayOf("iris", "syvial"),
+          playerConditionChars = 7000,
+          logEntries = 4,
+          logTextChars = 1200
+        ),
+        "Cả nhóm dừng lại quan sát."
+      )
+    )
+  }
+
   @Test fun traceDoesNotChangePacketAcrossP03Corpus() {
     assertEquals("P0.3 corpus size changed unexpectedly", 12, p03Scenarios.size)
     p03Scenarios.forEach { scenario ->
@@ -541,6 +582,97 @@ class KnowledgeContextEngineP0Test {
       assertEquals("${scenario.name} packet changed when trace enabled", sha256(plain), sha256(traced.packet))
       assertEquals("${scenario.name} packet bytes changed when trace enabled", plain, traced.packet)
     }
+  }
+
+
+  @Test fun traceDoesNotChangePacketAcrossP04PressureCorpus() {
+    assertEquals("P0.4 pressure corpus size changed unexpectedly", 3, p04Scenarios.size)
+    p04Scenarios.forEach { scenario ->
+      val plain = KnowledgeContextEngine.buildForTest(
+        dbJson, scenario.stateJson, scenario.action, scenario.rollsJson
+      )
+      val traced = KnowledgeContextEngine.buildForTestWithTrace(
+        dbJson, scenario.stateJson, scenario.action, scenario.rollsJson
+      )
+      assertEquals("${scenario.name} packet changed when trace enabled", plain, traced.packet)
+      assertEquals("${scenario.name} packet digest changed when trace enabled", sha256(plain), sha256(traced.packet))
+    }
+  }
+
+  @Test fun softCeilingPressureKeepsAndDropsOptionalCandidatesDeterministically() {
+    val result = tracedP04("soft_ceiling_candidate_pressure")
+    val summary = result.events.last { it.type == "budget_summary" }
+    assertTrue(
+      "Pressure fixture should enter the soft-budget band: ${summary.budgetEstimatedTokens}",
+      summary.budgetEstimatedTokens > KnowledgeContextEngine.TARGET_CONTEXT_BUDGET
+    )
+    assertTrue(
+      "Budgeted records must remain at or below the soft ceiling: ${summary.budgetEstimatedTokens}",
+      summary.budgetEstimatedTokens <= KnowledgeContextEngine.SOFT_CONTEXT_CEILING
+    )
+
+    val optional = result.events.filter { it.type == "budget_decision" && it.band == "optional" }
+    assertTrue(
+      "Expected at least one optional record kept under the soft ceiling",
+      optional.any {
+        it.decision == "kept" && it.ceiling == KnowledgeContextEngine.SOFT_CONTEXT_CEILING
+      }
+    )
+    assertTrue(
+      "Expected candidate pressure to drop at least one optional record",
+      optional.any {
+        it.decision == "dropped" && it.ceiling == KnowledgeContextEngine.SOFT_CONTEXT_CEILING
+      }
+    )
+
+    val clip = result.events.last { it.type == "hard_clip" }
+    assertEquals("Soft-ceiling fixture should not need hard clipping", "not_clipped", clip.decision)
+  }
+
+  @Test fun longStateAndDialogueCanPushMandatoryContextPastSoftCeilingWithoutChangingPolicy() {
+    val result = tracedP04("mandatory_over_soft_long_context")
+    val summary = result.events.last { it.type == "budget_summary" }
+    assertTrue(
+      "Mandatory context should exceed the soft budget in this characterization fixture",
+      summary.budgetEstimatedTokens > KnowledgeContextEngine.SOFT_CONTEXT_CEILING
+    )
+
+    val currentLevel = result.events.firstOrNull {
+      it.type == "budget_decision" && it.recordId == "LEVEL.01"
+    }
+    assertNotNull("Current Level candidate must still reach budgeting", currentLevel)
+    assertEquals("dropped", currentLevel!!.decision)
+    assertEquals(KnowledgeContextEngine.SOFT_CONTEXT_CEILING, currentLevel.ceiling)
+
+    val clip = result.events.last { it.type == "hard_clip" }
+    assertEquals(
+      "This fixture isolates mandatory-over-soft behavior before hard clipping",
+      "not_clipped",
+      clip.decision
+    )
+  }
+
+  @Test fun hardClipFixtureCutsInsideASerializedRecordAndReportsTheBoundary() {
+    val result = tracedP04("hard_clip_mid_record")
+    val clip = result.events.last { it.type == "hard_clip" }
+
+    assertEquals("Fixture must exercise the legacy hardClip path", "clipped", clip.decision)
+    assertTrue(
+      "Serialized packet must exceed the character hard ceiling before clipping",
+      clip.serializedCharsBeforeClip > KnowledgeContextEngine.HARD_CONTEXT_CEILING * 4
+    )
+    assertTrue(
+      "Clipped packet must respect the character hard ceiling",
+      clip.serializedCharsAfterClip <= KnowledgeContextEngine.HARD_CONTEXT_CEILING * 4
+    )
+    assertEquals(result.packet.length, clip.serializedCharsAfterClip)
+    assertTrue("Hard clip must report a record id when it cuts inside a record", clip.recordId.isNotBlank())
+    assertTrue(
+      "Hard clip must identify record header/text/metadata, got ${clip.field}",
+      clip.field in setOf("record_header", "record_text", "record_metadata")
+    )
+    assertTrue("Hard clip must report a concrete cut offset", clip.startChar >= 0)
+    assertTrue(result.packet.endsWith("[PACKET_CLIPPED_AT_HARD_CEILING]"))
   }
 
   @Test fun presentActorsAddOnlyTheirRuntimeCardsAndRelationshipEdges() {
@@ -693,6 +825,16 @@ class KnowledgeContextEngineP0Test {
   private fun scenario(name: String): Scenario =
     p03Scenarios.first { it.name == name }
 
+  private fun scenarioP04(name: String): Scenario =
+    p04Scenarios.first { it.name == name }
+
+  private fun tracedP04(name: String): KnowledgeContextEngine.TestBuildResult {
+    val scenario = scenarioP04(name)
+    return KnowledgeContextEngine.buildForTestWithTrace(
+      dbJson, scenario.stateJson, scenario.action, scenario.rollsJson
+    )
+  }
+
   private fun traced(name: String): KnowledgeContextEngine.TestBuildResult {
     val scenario = scenario(name)
     return KnowledgeContextEngine.buildForTestWithTrace(
@@ -738,6 +880,32 @@ class KnowledgeContextEngineP0Test {
   private fun caoMinhStateJson(level: Int): String = JSONObject(stateJson(level))
     .put("player", JSONObject().put("id", "cao_minh").put("hp", 100))
     .toString()
+
+  private fun pressureStateJson(
+    partyIds: Array<String>,
+    playerConditionChars: Int,
+    logEntries: Int,
+    logTextChars: Int
+  ): String {
+    val state = JSONObject(stateJson(1, partyIds))
+    state.put(
+      "player",
+      JSONObject()
+        .put("id", "cao_minh")
+        .put("hp", 100)
+        .put("condition", "C".repeat(playerConditionChars))
+    )
+    val log = JSONArray()
+    repeat(logEntries) { index ->
+      log.put(
+        JSONObject()
+          .put("role", if (index % 2 == 0) "player" else "gm")
+          .put("text", "${index}:" + "D".repeat(logTextChars))
+      )
+    }
+    state.put("log", log)
+    return state.toString()
+  }
 
   private fun sha256(value: String): String {
     val bytes = MessageDigest.getInstance("SHA-256").digest(value.toByteArray(Charsets.UTF_8))
