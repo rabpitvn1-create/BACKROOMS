@@ -320,7 +320,7 @@ DRIVE_CANON.write_text(drive, encoding="utf-8")
 main = MAIN.read_text(encoding="utf-8")
 main = re.sub(
     r'  private static final String DRIVE_CANON = .*?;\n',
-    '  private static final String DRIVE_CANON = ' + json.dumps(drive.strip(), ensure_ascii=False) + ';\n',
+    lambda _m: '  private static final String DRIVE_CANON = ' + json.dumps(drive.strip(), ensure_ascii=False) + ';\n',
     main,
     count=1,
 )
