@@ -769,7 +769,7 @@ html = INDEX.read_text(encoding="utf-8")
 ui = r'''
 <style id="pokerCoreUiStyle">
 /* POKER_DICE_CORE_BACKPORT_R01 */
-.poker-dice-modal[hidden]{display:none}.poker-dice-modal{position:fixed;inset:0;z-index:145;display:flex;align-items:flex-end;justify-content:center}.poker-dice-backdrop{position:absolute;inset:0;background:#000c}
+.poker-dice-modal[hidden]{display:none}.poker-dice-modal{position:fixed;inset:0;z-index:145;display:flex;align-items:flex-end;justify-content:center}/* POKER_DICE_SNAPSHOT_CLEAR_R01 */.poker-dice-backdrop{position:absolute;inset:0;background:transparent}
 .poker-dice-sheet{position:relative;width:min(100%,680px);max-height:min(calc(var(--app-height,100dvh) - 10px),760px);overflow:auto;background-color:#39341e;background-image:linear-gradient(145deg,rgba(15,17,13,.64),rgba(12,15,13,.82) 55%,rgba(15,17,13,.68)),url('dice/level0-wallpaper.svg');background-size:auto,64px 96px;border:1px solid #8b8052;border-bottom:0;border-radius:7px 7px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -24px 60px #000d}
 .poker-dice-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.poker-dice-kicker{font-size:9px;font-weight:800;letter-spacing:.16em;color:#b9ad77}.poker-dice-head h2{margin:3px 0 0;font-size:15px;letter-spacing:.08em;color:#fff7d7}
 .poker-dice-meta{margin-top:8px;color:#c5c3a8;font-size:11px}.poker-dice-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;margin-top:12px}
