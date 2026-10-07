@@ -175,13 +175,19 @@ healing_new = '''    HealingItems.normalize(item)?.let { healing ->
 if healing_old in content:
     content = content.replace(healing_old, healing_new, 1)
 
-canonical_old = '    val canonicalId = variantId(profile.archetypeId, state)\n'
-canonical_new = '    val canonicalId = if (ItemIdentity.isOmnivaultCopy(item)) item.itemId else variantId(profile.archetypeId, state)\n'
-content = replace_once(content, canonical_old, canonical_new, "Copy content-state identity")
+whole_unit_content = 'enum class ContentState { NONE }' in content
+if whole_unit_content:
+    for legacy in ('ContentState.FULL', 'ContentState.LOW', 'ContentState.EMPTY', 'ContentProfile(', 'variantId('):
+        if legacy in content:
+            raise RuntimeError("Legacy partial-content model survived before Omnivault finalizer: " + legacy)
+else:
+    canonical_old = '    val canonicalId = variantId(profile.archetypeId, state)\n'
+    canonical_new = '    val canonicalId = if (ItemIdentity.isOmnivaultCopy(item)) item.itemId else variantId(profile.archetypeId, state)\n'
+    content = replace_once(content, canonical_old, canonical_new, "Copy content-state identity")
 
-next_old = '      itemId = variantId(profile.archetypeId, next),\n'
-next_new = '      itemId = if (ItemIdentity.isOmnivaultCopy(normalized)) normalized.itemId else variantId(profile.archetypeId, next),\n'
-content = replace_once(content, next_old, next_new, "Copy next-use identity")
+    next_old = '      itemId = variantId(profile.archetypeId, next),\n'
+    next_new = '      itemId = if (ItemIdentity.isOmnivaultCopy(normalized)) normalized.itemId else variantId(profile.archetypeId, next),\n'
+    content = replace_once(content, next_old, next_new, "Copy next-use identity")
 
 meta_old = '  private fun stackMetadata(metadata: Map<String, String>): Map<String, String> = metadata - setOf("omnivaultCopyCount", "lastUsedAt")\n'
 meta_new = '''  private fun stackMetadata(metadata: Map<String, String>): Map<String, String> = metadata - setOf(
@@ -257,7 +263,10 @@ new_content_use = '''  if (owned.contentState == ContentState.FULL || owned.cont
     if (validation != null) return invalid(state, validation)
     nextInventory = addItem(nextInventory, nextVariant)
 '''
-engines = replace_once(engines, old_content_use, new_content_use, "Content use identity transfer")
+if old_content_use in engines or new_content_use in engines:
+    engines = replace_once(engines, old_content_use, new_content_use, "Content use identity transfer")
+elif any(marker in engines for marker in ("ContentState.FULL", "ContentState.LOW", "ContentState.EMPTY")):
+    raise RuntimeError("Unexpected partial-content USE branch shape before Omnivault finalizer")
 
 item_line_old = '    val item = ItemContentRules.normalize(ItemStack(command.itemId, command.itemName, command.quantity, metadata = command.metadata))\n'
 item_line_new = '''    val normalizedItem = ItemContentRules.normalize(ItemStack(command.itemId, command.itemName, command.quantity, metadata = command.metadata))
