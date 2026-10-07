@@ -66,7 +66,16 @@ if "COMBAT_93_BRIDGE_V1" not in facade:
     if (time.applied) next = time.state
     repository.save(next)
     val output = syncLegacy(legacy, next, false)
-    output.put("turn", Combat93Runtime.toJson(next)!!.getInt("explorationTurn"))
+    val resolvedCombat = Combat93Runtime.toJson(next)!!
+    output.put("turn", resolvedCombat.getInt("explorationTurn"))
+    val feedback = resolvedCombat.optJSONArray("feedbackEvents")
+    if (feedback != null && feedback.length() > 0) {
+      output.put("combatFeedback", JSONObject()
+        .put("id", resolvedCombat.getString("encounterId") + ":" +
+          resolvedCombat.optInt("resolvedRound", resolvedCombat.optInt("round", 1)))
+        .put("encounterId", resolvedCombat.getString("encounterId"))
+        .put("events", JSONArray(feedback.toString())))
+    }
     val log = output.optJSONArray("log") ?: JSONArray().also { output.put("log", it) }
     log.put(JSONObject().put("role", "gm").put("text", resolution.reply))
     return response(true, output, null, "combat_resolved", resolution.reply)
