@@ -81,6 +81,7 @@ jobs:
           engines = (core / 'Engines.kt').read_text(encoding='utf-8')
           equipment_system = (core / 'CharacterEquipmentSystem.kt').read_text(encoding='utf-8')
           status_tests = (root / 'app/src/test/java/com/rabpit/backroom/core/CharacterStatusEquipmentSystemTest.kt').read_text(encoding='utf-8')
+          stats_1193 = (root / 'app/src/test/java/com/rabpit/backroom/core/CharacterStats1193aRegressionTest.kt').read_text(encoding='utf-8')
           save_repo = (core / 'SaveRepository.kt').read_text(encoding='utf-8')
           combat = (core / 'CombatRuntime.kt').read_text(encoding='utf-8')
           skill_catalog = (core / 'CompanionSkillCatalog.kt').read_text(encoding='utf-8')
@@ -111,7 +112,7 @@ jobs:
               ('Android.combatDicePrepare', html), ('Android.coreUpgrade', html),
               ('object PokerDiceCore', poker), ('MAX_REROLLS = 3', poker), ('ENTITY_VICTORY_CORE = 2', poker),
               ('FOUR OF A KIND', poker), ('HELD_SEQUENCE_WEIGHT_BONUS', poker),
-              ('PokerDiceCoreBackportTest', poker_test), ('changingActionCannotResetActiveDiceSession', poker_test),
+              ('PokerDiceCoreBackportTest', poker_test), ('rerollCapAndActionBindingAreUnchanged', poker_test),
               ('BuildConfig.GEHIHI_API_KEY', java), ('BuildConfig.GEHIHI_MODEL', java),
               ('BuildConfig.SOL_API_KEY', java), ('BuildConfig.HAKU_API_KEY', java),
               ('emit("backroomProvider", "Gehihi")', java), ('emit("backroomProvider", "Haku")', java), ('emit("backroomProvider", "SOL")', java),
@@ -125,12 +126,15 @@ jobs:
               ('ItemCommand.Operation.EQUIP -> EquipmentEngine.equip(state, command)', engines),
               ('ItemCommand.Operation.UNEQUIP -> EquipmentEngine.unequip(state, command)', engines),
               ('occupiesSlots = setOf(EquipmentSlot.WEAPON)', equipment_system),
-              ('Ma Tôn Vạn Giới', equipment_system),
+              ('CharacterStatCore.effective(state, characterId)', equipment_system),
               ('CharacterStatEngine.preserveMissingHp', equipment_system),
               ('fun applyCompletedTurnRegen', equipment_system),
-              ('madGodIsNotCanonicalStartingLoadoutAndCountsOnceAcrossTwoSlots', status_tests),
-              ('regenRunsExactlyOnceAndZeroHpCannotBeRescued', status_tests),
-              ('inventoryOwnsSameItemReferencedByEquipment', status_tests),
+              ('equipmentDoesNotAlterCanonicalStats', status_tests),
+              ('weaponDamageIsRawWeaponAttribute', status_tests),
+              ('baselineAndCaoPassiveMatch1193a', stats_1193),
+              ('legacySchemaResetsInsteadOfMappingAndPreservesHpSafely', stats_1193),
+              ('antiForgeRestoresStatsCoreAndHp', stats_1193),
+              ('daiDaoCombatStackIsSeparateAndResetsWithCombatMetadata', stats_1193),
               ('sceneKey:visualSceneKey()', java), ('r.sceneKey===visualSceneKey()', java),
               ('private int mentionedLevel(JSONObject state)', java),
               ('return exitFound && progressionReady(before);', java),
