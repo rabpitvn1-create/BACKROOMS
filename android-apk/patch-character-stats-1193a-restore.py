@@ -929,7 +929,7 @@ if CATALOG.exists():
     text = CATALOG.read_text(encoding="utf-8")
     text = text.replace(
       's("Ma Tôn Vạn Giới", "PASSIVE", "Luôn hoạt động", "+50 Max HP, +15 STR, +30 DF, +12 AGI; kế thừa bonus giáp MadGod theo gameplay hiện hành.", "Không chiếm ô trang bị, không nhân/stack qua save-load hoặc equip."),',
-      's("Đại Đạo Ma Tôn", "PASSIVE", "Luôn hoạt động", "+10% Base STR/DEF/SKL/VIT; không đổi Core cost. Sau mỗi lượt Cao Minh: hồi 10% Max HP, +20% Attack và +20 điểm % Critical; đồng đội +50 điểm % Critical; Critical cap 100%.", "Passive tách khỏi Base Stat và reset combat stack khi combat kết thúc."),'
+      's("Đại Đạo Ma Tôn", "PASSIVE", "Luôn hoạt động", "+10% Base STR/DEF/SKL/VIT; không đổi Core cost. STR tăng sát thương vật lý/đánh thường; DEF tăng giảm sát thương và Critical Resistance; SKL tăng Critical, Evasion Resistance và skill damage; VIT tăng Max HP và Evasion. Sau mỗi lượt Cao Minh: hồi 10% Max HP, +20% Attack và +20 điểm % Critical; đồng đội +50 điểm % Critical; Critical cap 100%.", "Passive tách khỏi Base Stat và reset combat stack khi combat kết thúc."),'
     )
     CATALOG.write_text(text, encoding="utf-8")
 
@@ -953,12 +953,21 @@ if FACADE.exists():
 ''', 1)
     FACADE.write_text(facade, encoding="utf-8")
 
-# Remove stale prompt references to the retired Lucia HP/stat schema.
+# Remove stale prompt references to retired character-stat schemas and keep
+# Cao Minh's compact GM skill canon synchronized with the final 1.1.93a runtime.
 if MAIN.exists():
     main = MAIN.read_text(encoding="utf-8")
     main = main.replace(
       'HP nền 100; STR 7, DF 7, AGI 8, CRIT 7.',
       'Character Stats theo 1.1.93a: Base STR/DEF/SKL/VIT đều bắt đầu 5; baseMaxHp 50 và Max HP derive từ VIT.'
+    )
+    main = main.replace(
+      'Ma Tôn Vạn Giới là passive kế thừa giáp MadGod, không phải trang bị.',
+      'Đại Đạo Ma Tôn là passive nội tại theo Character Stats 1.1.93a, không phải trang bị.'
+    )
+    main = main.replace(
+      'Ma Tôn Vạn Giới: Luôn hoạt động; +50 Max HP, +15 STR, +30 DF, +12 AGI; kế thừa bonus giáp MadGod theo gameplay hiện hành.',
+      'Đại Đạo Ma Tôn: Luôn hoạt động; +10% Base STR/DEF/SKL/VIT; không đổi Core cost. STR tăng sát thương vật lý/đánh thường; DEF tăng giảm sát thương và Critical Resistance; SKL tăng Critical, Evasion Resistance và skill damage; VIT tăng Max HP và Evasion. Sau mỗi lượt Cao Minh: hồi 10% Max HP, +20% Attack và +20 điểm % Critical; đồng đội +50 điểm % Critical; Critical cap 100%.'
     )
     MAIN.write_text(main, encoding="utf-8")
 
@@ -1269,7 +1278,11 @@ class CaoMinhSkillsEquipmentTest {
   @Test fun daiDaoIsIntrinsicAndEquipmentDoesNotChangeBaseStats() {
     val state = GameState.initial()
     val skills = CompanionSkillCatalog.forCharacter(KAI_ID)
-    assertEquals("PASSIVE", skills.single { it.name == "Đại Đạo Ma Tôn" }.kind)
+    val passive = skills.single { it.name == "Đại Đạo Ma Tôn" }
+    assertEquals("PASSIVE", passive.kind)
+    assertTrue(passive.effect.contains("+10% Base STR/DEF/SKL/VIT"))
+    assertFalse(passive.effect.contains("+50 Max HP"))
+    assertFalse(passive.effect.contains("AGI"))
     val base = state.characters.getValue(KAI_ID).statProfile
     assertEquals(listOf(5,5,5,5), listOf(base.str,base.def,base.skl,base.vit))
     val stripped = state.copy(equipment = state.equipment + (KAI_ID to EquipmentState(KAI_ID)))
@@ -1379,9 +1392,19 @@ for runtime_path in (STATS, DETAIL, DETAIL_JSON, SYSTEM):
 
 if MAIN.exists():
     main_final = MAIN.read_text(encoding="utf-8")
-    for forbidden in ('HP nền 100; STR 7, DF 7, AGI 8, CRIT 7.',):
+    for forbidden in (
+        'HP nền 100; STR 7, DF 7, AGI 8, CRIT 7.',
+        'Ma Tôn Vạn Giới: Luôn hoạt động; +50 Max HP, +15 STR, +30 DF, +12 AGI',
+        'Ma Tôn Vạn Giới là passive kế thừa giáp MadGod',
+    ):
         if forbidden in main_final:
             raise RuntimeError("stale legacy character-stat prompt remains: " + forbidden)
+    for required in (
+        'Đại Đạo Ma Tôn là passive nội tại theo Character Stats 1.1.93a',
+        'Đại Đạo Ma Tôn: Luôn hoạt động; +10% Base STR/DEF/SKL/VIT',
+    ):
+        if required not in main_final:
+            raise RuntimeError("Cao Minh canonical passive prompt missing: " + required)
 
 codec_final = CODEC.read_text(encoding="utf-8")
 for forbidden in ('put("df"', 'put("agi"', 'put("crit"', 'put("level"', 'put("exp"', 'put("baseStats"'):
