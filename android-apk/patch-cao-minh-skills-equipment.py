@@ -1,7 +1,6 @@
 """Port Cao Minh's 1.1.99 kit after the legacy runtime patch chain."""
 from pathlib import Path
 import re
-import json
 
 ROOT = Path(__file__).resolve().parent
 CORE = ROOT / 'app/src/main/java/com/rabpit/backroom/core'
@@ -227,15 +226,6 @@ path.write_text(text, encoding='utf-8')
 
 main = ROOT / 'app/src/main/java/com/rabpit/backroom/MainActivity.java'
 source = main.read_text(encoding='utf-8')
-kit = "CAO MINH — KIT 1.1.99\nMa Đạo Kiếm Tu / Vạn Giới Ma Tôn. Equipment: Huyết Ma Kiếm, Huyết Ma Chiến Khải, Nhẫn Vạn Tàng. Ma Tôn Vạn Giới là passive kế thừa giáp MadGod, không phải trang bị. Cao Minh dùng kiếm, thần niệm và ma nguyên; không dùng Magnum, đạn, combat HUD hoặc linked modules. Tên Nhẫn Vạn Tàng thay Omnivault; cơ chế storage/scan/copy hiện hành không thay đổi.\nKỹ năng và kết quả proc chỉ lấy từ authoritative combat state; không tự kích hoạt hoặc bịa damage. Giữ quyền quyết định hành động có chủ ý cho người chơi.\n"
-skill_source = (CORE / 'CompanionSkillCatalog.kt').read_text(encoding='utf-8').split('  private val kai = listOf(', 1)[1].split('\n  private val lucia', 1)[0]
-for match in re.finditer(r's\("([^"]+)", "([^"]+)", "([^"]+)", "([^"]+)"', skill_source):
-    name, kind, trigger, effect = match.groups()
-    kit += f'{name}: {trigger}; {effect}\n'
-kit += 'Các con số chỉ là lớp gameplay; không biến thành lời thoại hay tri thức của nhân vật.'
-source, count = re.subn(r'  private String compactKaiCanon\(String action\) \{.*?\n  \}', lambda _: '  private String compactKaiCanon(String action) {\n    return ' + json.dumps(kit, ensure_ascii=False) + ';\n  }', source, count=1, flags=re.S)
-if count != 1:
-    raise RuntimeError('Cao Minh GM kit selector missing')
 source = re.sub(r'^  private static final String KAI_CANON = .*;\n', '', source, flags=re.M)
 main.write_text(source, encoding='utf-8')
 
