@@ -7,6 +7,7 @@ on:
       - "android-apk/**"
       - "ENTITY_ASSETS.md"
       - ".github/workflows/verify-diep-minh-boss.yml"
+      - ".github/workflows/build-backroom-apk.yml"
   pull_request:
     branches: [main]
     paths:
@@ -42,16 +43,15 @@ jobs:
         continue-on-error: true
         run: |
           set -euo pipefail
-          scripts=(patch-provider-status.py patch-provider-key-pool.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py)
-          for script in "${scripts[@]}"; do
-            echo "==> $script"
-            python3 "android-apk/$script"
-          done
-          # PR merge refs may include item-action tests added by main after this branch.
-          if test -f android-apk/app/src/test/java/com/rabpit/backroom/core/ItemDetailActionsTest.kt; then
-            python3 android-apk/patch-item-detail-actions.py
-            python3 android-apk/patch-item-whole-unit.py
-          fi
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, subprocess
+          workflow = Path('.github/workflows/build-backroom-apk.yml').read_text(encoding='utf-8')
+          scripts = re.search(r'scripts=\(([^)]+)\)', workflow).group(1).split()
+          for script in scripts:
+              print("==>", script)
+              subprocess.run(['python3', 'android-apk/' + script], check=True)
+          PY
 
       - name: Verify Diệp Minh contracts and final diff
         id: contracts
