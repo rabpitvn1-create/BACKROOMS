@@ -47,7 +47,7 @@ html = html.replace(old_turn_migration, new_turn_migration, 1)
 HTML.write_text(html, encoding="utf-8")
 
 final = HTML.read_text(encoding="utf-8")
-if not final.split("const prologue=`", 1)[1].startswith("Ngày cuối cùng của Lôi Thiên Vực"):
+if not final.split("const prologue=`", 1)[1].startswith("Lôi Thiên Vực chưa từng có một ngày yên tĩnh như thế."):
     raise RuntimeError("Cao Minh prologue was not installed")
 if new_turn not in final:
     raise RuntimeError("Cao Minh Turn 1 handoff was not installed")
