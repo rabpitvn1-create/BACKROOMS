@@ -52,6 +52,18 @@ async function run(){
     assert.equal(await page.locator('.combat93-unit.entity button:not(:disabled)').count(),0);
     assert.equal(await page.locator('.poker-die:not(:disabled)').count(),0);
     assert((await page.locator('.combat93-float').allTextContents()).some(s=>s.includes('Chảy máu')));
+    await page.evaluate(()=>window.backroomSnapshot(JSON.stringify({
+      turn:state.turn,
+      model:'Chromium fixture',
+      dataUri:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII='
+    })));
+    await page.waitForTimeout(50);
+    assert.equal(await page.evaluate(()=>window.__combatFeedbackBusy),true);
+    assert((await page.locator('.combat93-float').allTextContents()).some(s=>s.includes('Chảy máu')));
+    await send(fixture('after'));
+    await page.waitForTimeout(50);
+    assert.equal(await page.evaluate(()=>window.__combatFeedbackBusy),true);
+    assert((await page.locator('.combat93-float').allTextContents()).some(s=>s.includes('Chảy máu')));
     await page.screenshot({path:path.join(output,'combat93-actor.png')});
     await page.waitForTimeout(850);
     assert.equal(await page.locator('.responding').getAttribute('data-index'),'0');
