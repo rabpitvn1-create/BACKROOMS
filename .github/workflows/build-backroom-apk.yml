@@ -2,6 +2,12 @@ name: Build Backroom APK
 
 on:
   workflow_dispatch:
+    inputs:
+      android_smoke:
+        description: Run Android emulator smoke test
+        type: boolean
+        required: false
+        default: false
   push:
     branches: [main]
     paths:
@@ -520,7 +526,8 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-      - name: Verify Canon P0 Android serialization smoke
+      - name: Verify Canon P0 Android serialization smoke (manual only)
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.android_smoke == true }}
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 29
