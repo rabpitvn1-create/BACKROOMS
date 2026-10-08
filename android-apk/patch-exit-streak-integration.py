@@ -81,11 +81,17 @@ helpers = r'''  // EXIT_STREAK_V1: Android Core exclusively owns progress and le
   }
 
 '''
-java = replace_span(java,
-    "  // EXIT_AUTHORITY_V1: ExitDiscoveryEngine glue.",
-    "  private boolean reunionEligibleAndroid(JSONObject state, String key) {",
-    helpers,
-    "retire old exit discovery/traverse helpers")
+# Derive the exact injected helper string from the legacy generator itself.
+# Never erase unrelated follower/gameplay helpers that happen to follow this block.
+import ast
+generator_tree = ast.parse((ROOT / "patch-exit-discovery-engine.py").read_text(encoding="utf-8"))
+legacy_glue = next(
+    node.value.value
+    for node in generator_tree.body
+    if isinstance(node, ast.Assign)
+    and any(isinstance(target, ast.Name) and target.id == "new_glue" for target in node.targets)
+)
+java = replace_once(java, legacy_glue, helpers, "retire exact legacy helper block")
 
 # The old conditional level gate was a legacy exit-discovery dependency.
 java = replace_span(java,
