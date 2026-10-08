@@ -188,12 +188,16 @@ main = main.replace(
     'patch_player{patch}; inventory_upsert{item,basis}; inventory_remove{name,basis}; ',
     'patch_player{patch}; inventory_remove{name,basis}; ',
 )
-old_contract = 'Inventory chỉ đổi khi Kai thật sự lấy/nhận/copy/trao/mất/tiêu thụ vật; nhìn thấy không đồng nghĩa sở hữu. MadGod roll success chỉ mở discovery route, không tự đưa set vào inventory. '
+legacy_contract = 'Inventory chỉ đổi khi Kai thật sự lấy/nhận/copy/trao/mất/tiêu thụ vật; nhìn thấy không đồng nghĩa sở hữu. MadGod roll success chỉ mở discovery route, không tự đưa set vào inventory. '
+resource_policy_contract = 'INVENTORY AUTHORITY: Player prose như nhặt/lượm/lấy lên/cầm lên không được tự tạo quyền sở hữu; Inventory chỉ tăng từ story/drop/SYSTEM đã được xác thực hoặc từ Copy/transfer hợp lệ. '
 new_contract = 'GM không được tạo hoặc thêm Item. Item mới chỉ được Game State Core cấp từ Entity drop hoặc Chest contents đã tồn tại trong authoritative state; generic loot/story/world discovery không có quyền tạo Item. Loot success chỉ có thể mở discovery của Chest, không sinh vật phẩm rời. MadGod discovery không tự đưa set vào Inventory. '
-if old_contract in main:
-    main = main.replace(old_contract, new_contract, 1)
-elif new_contract not in main:
-    raise RuntimeError("GM item-source contract anchor missing")
+if new_contract not in main:
+    if resource_policy_contract in main:
+        main = main.replace(resource_policy_contract, new_contract, 1)
+    elif legacy_contract in main:
+        main = main.replace(legacy_contract, new_contract, 1)
+    else:
+        raise RuntimeError("GM item-source contract anchor missing")
 
 # Healing effects stay active, but the old generic-loot spawn rule is retired.
 healing_pattern = re.compile(r'String healingItemDirective = "HEALING ITEM HARD LOCK:.*?";\n', re.DOTALL)
