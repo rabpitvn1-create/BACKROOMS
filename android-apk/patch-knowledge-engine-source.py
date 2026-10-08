@@ -43,6 +43,14 @@ new = '''      if (hasAny(actionText, "devil trigger")) {
           "CHAR.KAI.GUILTY_CROWN_OVERRIDE", "CHAR.KAI.WHITE_WRAITH",
           "CHAR.KAI.ARMOR", "CHAR.KAI.OMNIVAULT"
         ) }
+        // Exact currently-authoritative equipment names. This only proposes
+        // candidates; the original priority/budget decision still applies.
+        if (hasAny(actionText, "huyết ma kiếm", "huyet ma kiem")) {
+          direct += "CHAR.CAO.HUYET_MA_KIEM"
+        }
+        if (hasAny(actionText, "huyết ma chiến khải", "huyet ma chien khai")) {
+          direct += "CHAR.CAO.HUYET_MA_CHIEN_KHAI"
+        }
       }
       direct.forEach { add(it, "direct structured lookup") }
 
@@ -815,7 +823,7 @@ class KnowledgeContextEngineP0Test {
     val result = KnowledgeContextEngine.buildForTestWithTrace(
       dbJson, caoMinhStateJson(0), "Cao Minh quan sát Huyết Ma Chiến Khải.", "{}")
     assertTrue(proposed(result, "CHAR.CAO.HUYET_MA_CHIEN_KHAI",
-      "direct reference from CHAR.KAI.RUNTIME_CORE"))
+      "direct structured lookup"))
     val armorBudget = result.events.singleOrNull {
       it.type == "budget_decision" && it.recordId == "CHAR.CAO.HUYET_MA_CHIEN_KHAI"
     }
@@ -852,7 +860,7 @@ class KnowledgeContextEngineP0Test {
     val result = KnowledgeContextEngine.buildForTestWithTrace(
       dbJson, caoMinhStateJson(0), "Cao Minh điều khiển Huyết Ma Kiếm bay tới phía trước.", "{}")
     assertTrue(proposed(result, "CHAR.CAO.HUYET_MA_KIEM",
-      "direct reference from CHAR.KAI.RUNTIME_CORE"))
+      "direct structured lookup"))
     assertPacketHas(result.packet, "CHAR.CAO.HUYET_MA_KIEM")
     assertFalse("Sword action must not trigger the retired White Wraith gun record",
       proposed(result, "CHAR.KAI.WHITE_WRAITH"))
@@ -1215,6 +1223,42 @@ class KnowledgeContextEngineP0Test {
       .contains("Player controls " + retiredShortName + "'s intentional actions"))
     assertFalse(records.getValue("WRITING.PLAYER_AGENCY").getString("text")
       .contains("Do not choose " + retiredShortName + "'s intentional action"))
+  }
+
+  @Test fun exactCaoMinhEquipmentNamesUseCurrentCandidatesAndUnchangedOptionalBudget() {
+    val states = listOf(
+      caoMinhStateJson(0),
+      JSONObject(stateJson(0)).put("player", JSONObject().put("name", "Cao Minh")).toString(),
+      JSONObject(stateJson(0)).put("title", "MAIN_BACKROOMS - Cao Minh").toString()
+    )
+    val exactEquipment = listOf(
+      "Cao Minh ngự Huyết Ma Kiếm." to "CHAR.CAO.HUYET_MA_KIEM",
+      "Cao Minh triển khai Huyết Ma Chiến Khải." to "CHAR.CAO.HUYET_MA_CHIEN_KHAI"
+    )
+    states.forEach { state ->
+      exactEquipment.forEach { (action, id) ->
+        val result = KnowledgeContextEngine.buildForTestWithTrace(
+          dbJson, state, action, "{}")
+        assertTrue("Expected exact Cao Minh equipment direct lookup for $id",
+          proposed(result, id, "direct structured lookup"))
+        val decision = result.events.singleOrNull {
+          it.type == "budget_decision" && it.recordId == id
+        }
+        assertNotNull("Expected budget check for named optional equipment $id", decision)
+        assertEquals("optional", decision!!.band)
+        assertTrue(decision.decision == "kept" || decision.decision == "dropped")
+        assertEquals(decision.decision == "kept", result.packet.contains("<$id>"))
+        assertFalse(proposed(result, "CHAR.KAI.WHITE_WRAITH"))
+        assertFalse(proposed(result, "CHAR.KAI.ARMOR"))
+      }
+    }
+    val unnamed = KnowledgeContextEngine.buildForTestWithTrace(
+      dbJson, caoMinhStateJson(0), "Cao Minh nhìn thanh kiếm và bộ giáp.", "{}")
+    assertFalse(proposed(unnamed, "CHAR.CAO.HUYET_MA_KIEM", "direct structured lookup"))
+    assertFalse(proposed(unnamed, "CHAR.CAO.HUYET_MA_CHIEN_KHAI", "direct structured lookup"))
+    val unknownPlayer = KnowledgeContextEngine.buildForTestWithTrace(
+      dbJson, stateJson(0), "Quan sát Huyết Ma Kiếm.", "{}")
+    assertFalse(proposed(unknownPlayer, "CHAR.CAO.HUYET_MA_KIEM", "direct structured lookup"))
   }
 
   @Test fun caoMinhCampaignRejectsRetiredKaiLookupsWithoutRenamingSaveKeys() {
