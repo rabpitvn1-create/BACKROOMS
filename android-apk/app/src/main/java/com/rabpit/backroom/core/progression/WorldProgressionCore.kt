@@ -165,6 +165,23 @@ object WorldProgressionCore {
     add(WorldEdge(WorldNodeId("level-10"), WorldNodeId("level-11")))
     add(WorldEdge(WorldNodeId("level-11"), WorldNodeId("level-12")))
     add(WorldEdge(WorldNodeId("level-12"), WorldNodeId("level-13")))
+    // Fifteen explicit author-approved ranked edges for ten featured stops.
+    // Named areas use a separately pinned journey key, never an invented rank.
+    add(WorldEdge(WorldNodeId("level-0"), WorldNodeId("level-0.2")))
+    add(WorldEdge(WorldNodeId("level-0.2"), WorldNodeId("level-1")))
+    add(WorldEdge(WorldNodeId("level-1"), WorldNodeId("level-1.2")))
+    add(WorldEdge(WorldNodeId("level-1.2"), WorldNodeId("level-1.5")))
+    add(WorldEdge(WorldNodeId("level-1.5"), WorldNodeId("level-2")))
+    add(WorldEdge(WorldNodeId("level-5"), WorldNodeId("level-5.1")))
+    add(WorldEdge(WorldNodeId("level-5.1"), WorldNodeId("level-6")))
+    add(WorldEdge(WorldNodeId("level-6"), WorldNodeId("level-6.1")))
+    add(WorldEdge(WorldNodeId("level-6.1"), WorldNodeId("level-7")))
+    add(WorldEdge(WorldNodeId("level-7"), WorldNodeId("level-7.7")))
+    add(WorldEdge(WorldNodeId("level-7.7"), WorldNodeId("level-8")))
+    add(WorldEdge(WorldNodeId("level-10"), WorldNodeId("level-10.1")))
+    add(WorldEdge(WorldNodeId("level-10.1"), WorldNodeId("level-11")))
+    add(WorldEdge(WorldNodeId("level-11"), WorldNodeId("level-11.3")))
+    add(WorldEdge(WorldNodeId("level-11.3"), WorldNodeId("level-12")))
   }
 
   init {

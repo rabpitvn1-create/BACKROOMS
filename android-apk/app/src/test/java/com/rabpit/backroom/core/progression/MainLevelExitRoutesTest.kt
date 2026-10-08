@@ -26,8 +26,13 @@ class MainLevelExitRoutesTest {
   }
 
   @Test fun noSublevelOrNamedAreaReceivesAnExitByImplicitOrdering() {
-    assertTrue(WorldProgressionCore.EDGES.none {
-      it.from.value.contains('.') || it.to.value.contains('.')
+    val approvedSublevels = setOf("level-0.2", "level-1.2", "level-1.5", "level-5.1",
+      "level-6.1", "level-7.7", "level-10.1", "level-11.3")
+    assertTrue(WorldProgressionCore.EDGES.all { edge ->
+      !edge.from.value.contains('.') || edge.from.value in approvedSublevels
+    })
+    assertTrue(WorldProgressionCore.EDGES.all { edge ->
+      !edge.to.value.contains('.') || edge.to.value in approvedSublevels
     })
     assertTrue(WorldProgressionCore.validateTransition(
       WorldNodeId("level-7.6"), WorldNodeId("level-7.7")) is TransitionResult.Rejected)

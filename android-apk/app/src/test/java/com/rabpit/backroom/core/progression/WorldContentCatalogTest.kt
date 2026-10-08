@@ -42,8 +42,15 @@ class WorldContentCatalogTest {
     // Only explicitly approved main-Level routes exist. Catalog-only Sub-levels/areas
     // must never acquire edges as a side effect of adding scene text.
     val main = (0..13).map { WorldNodeId("level-$it") }.toSet()
-    assertEquals(49, WorldProgressionCore.EDGES.size)
-    assertTrue(WorldProgressionCore.EDGES.all { it.from in main && it.to in main })
+    assertEquals(64, WorldProgressionCore.EDGES.size)
+    val selected = setOf("level-0.2", "level-1.2", "level-1.5", "level-5.1",
+      "level-6.1", "level-7.7", "level-10.1", "level-11.3")
+    assertTrue(WorldProgressionCore.EDGES.all { edge ->
+      edge.from in main || edge.from.value in selected
+    })
+    assertTrue(WorldProgressionCore.EDGES.all { edge ->
+      edge.to in main || edge.to.value in selected
+    })
   }
 
   @Test fun openAndReferenceOnlyEntriesAreNotUpgradedToCanon() {

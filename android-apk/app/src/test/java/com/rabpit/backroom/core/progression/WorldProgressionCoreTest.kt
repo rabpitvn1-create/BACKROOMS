@@ -217,7 +217,9 @@ class WorldProgressionCoreTest {
       assertTrue("sublevel must be above parent: ${node.id.value}", node.progressionRank > parentRank)
       assertTrue("sublevel must be below next level: ${node.id.value}",
         node.progressionRank < parentRank + RANK_PER_FULL_LEVEL)
-      assertTrue("sublevel cannot inherit routes: ${node.id.value}",
+      val selected = setOf("level-0.2", "level-1.2", "level-1.5", "level-5.1",
+        "level-6.1", "level-7.7", "level-10.1", "level-11.3")
+      if (node.id.value !in selected) assertTrue("unselected sublevel acquired a route: ${node.id.value}",
         edges.none { it.from == node.id || it.to == node.id })
     }
   }
@@ -240,8 +242,25 @@ class WorldProgressionCoreTest {
     val newForward = (6..12).map { n ->
       WorldEdge(WorldNodeId("level-$n"), WorldNodeId("level-${n + 1}"))
     }.toSet()
-    assertEquals(expected + newForward, WorldProgressionCore.EDGES.toSet())
-    assertEquals(49, WorldProgressionCore.EDGES.size)
+    val featured = setOf(
+      WorldEdge(WorldNodeId("level-0"), WorldNodeId("level-0.2")),
+      WorldEdge(WorldNodeId("level-0.2"), WorldNodeId("level-1")),
+      WorldEdge(WorldNodeId("level-1"), WorldNodeId("level-1.2")),
+      WorldEdge(WorldNodeId("level-1.2"), WorldNodeId("level-1.5")),
+      WorldEdge(WorldNodeId("level-1.5"), WorldNodeId("level-2")),
+      WorldEdge(WorldNodeId("level-5"), WorldNodeId("level-5.1")),
+      WorldEdge(WorldNodeId("level-5.1"), WorldNodeId("level-6")),
+      WorldEdge(WorldNodeId("level-6"), WorldNodeId("level-6.1")),
+      WorldEdge(WorldNodeId("level-6.1"), WorldNodeId("level-7")),
+      WorldEdge(WorldNodeId("level-7"), WorldNodeId("level-7.7")),
+      WorldEdge(WorldNodeId("level-7.7"), WorldNodeId("level-8")),
+      WorldEdge(WorldNodeId("level-10"), WorldNodeId("level-10.1")),
+      WorldEdge(WorldNodeId("level-10.1"), WorldNodeId("level-11")),
+      WorldEdge(WorldNodeId("level-11"), WorldNodeId("level-11.3")),
+      WorldEdge(WorldNodeId("level-11.3"), WorldNodeId("level-12")),
+    )
+    assertEquals(expected + newForward + featured, WorldProgressionCore.EDGES.toSet())
+    assertEquals(64, WorldProgressionCore.EDGES.size)
   }
 
 }

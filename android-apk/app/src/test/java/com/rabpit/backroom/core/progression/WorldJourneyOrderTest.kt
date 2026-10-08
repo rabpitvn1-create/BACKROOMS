@@ -170,6 +170,6 @@ class WorldJourneyOrderTest {
       (WorldProgressionCore.rankOf(WorldNodeId("level-0")) as RankLookup.Known).progressionRank)
     assertEquals(100_000L,
       (WorldProgressionCore.rankOf(WorldNodeId("level-0.1")) as RankLookup.Known).progressionRank)
-    assertEquals(49, WorldProgressionCore.EDGES.size)
+    assertEquals(64, WorldProgressionCore.EDGES.size)
   }
 }
