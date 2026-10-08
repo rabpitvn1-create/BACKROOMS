@@ -1,0 +1,9 @@
+Backroom 1.1.63.0.6 Debug
+
+- Nâng versionName từ 1.1.63.0.5 lên 1.1.63.0.6 và versionCode từ 70 lên 71, phát hành APK/tag độc lập và giữ nguyên bản cũ.
+- Giữ tuyến exit có kiểm chứng cho 14 Level chính, 8 Sub-level được duyệt và hai khu phụ Red Rooms / Base Alpha theo đúng Level mẹ (24 điểm); luật 5 streak thắng liên tiếp, mỗi lượt ngoài combat có tỷ lệ 50/50.
+- Loại khỏi registry, chỉ mục và canon hoạt động 28 Sub-level không được duyệt, cùng ảnh WebP riêng tương ứng; giữ nguyên 8 Sub-level được duyệt và 17 khu phụ trong metadata, chỉ hai khu phụ có exit.
+- Giữ các bản vá lưu tiến trình worldNodeId/journeyStopKey, snapshot và cơ chế đồng bộ combat trong các Sub-level đã mở, cũng như màn hình hành động không bị bàn phím Android che.
+- GitHub Actions kiểm thử Android Core/Kotlin, kiểm tra nội dung canon và snapshot, build debug APK, xác minh chữ ký, zipalign, phát hành GitHub Release và ghi kết quả GREEN khi tất cả cổng thành công.
+
+Lưu ý: Đây là bản APK debug. Kết quả CI không đồng nghĩa đã chơi thử thực tế trên thiết bị.
