@@ -984,8 +984,12 @@ class KnowledgeContextEngineP0Test {
     assertTrue(quiet.contains("Player controls Cao Minh's intentional actions"))
     assertTrue(quiet.contains("Do not choose Cao Minh's intentional action"))
     assertFalse(quiet.contains("Kai Akechi / Twilight"))
-    assertFalse(quiet.contains("Player controls Kai's intentional actions"))
-    assertFalse(quiet.contains("Do not choose Kai's intentional action"))
+    // Scope legacy-name absence to the migrated mandatory records: other
+    // Kai-namespaced ability modules have not been migrated in C1.
+    assertFalse(records.getValue("GAME.TEXT.CORE").getString("text")
+      .contains("Player controls Kai's intentional actions"))
+    assertFalse(records.getValue("WRITING.PLAYER_AGENCY").getString("text")
+      .contains("Do not choose Kai's intentional action"))
   }
 
   @Test fun caoMinhRuntimeIdentityStillProjectsStableKaiKnowledgeIds() {
