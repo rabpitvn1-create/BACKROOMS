@@ -6,6 +6,8 @@ No external dependencies, network access or inferred canonical facts.
 """
 import argparse
 import json
+import re
+from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -24,6 +26,44 @@ AUTHORITIES = {
     "narrative_lore_writer_only": ("WRITER_SECRET", "BASELINE"),
     "gm_writing": ("WRITING_CANON", "BASELINE"),
 }
+
+
+def verify_world_scene_coverage():
+    """All registered journey locations must have a nonempty scene IN the real world asset.
+
+    Derive the expected 50 Level IDs and 17 named areas from the existing Kotlin
+    catalog: never maintain a second level list or runtime canon registry.
+    """
+    kotlin = (ROOT / "app/src/main/java/com/rabpit/backroom/core/progression/WorldContentCatalog.kt").read_text(
+        encoding="utf-8"
+    )
+    levels = set(re.findall(r'WorldContentEntry\(WorldNodeId\("(level-[0-9]+(?:\.[0-9]+)?)"\)', kotlin))
+    named = set(
+        f"area:{parent}:{key}"
+        for parent, key in re.findall(r'WorldNamedSection\(([0-9]+), "([a-z0-9-]+)"', kotlin)
+    )
+    expected = levels | named
+    if len(levels) != 50 or len(named) != 17 or len(expected) != 67:
+        raise AssertionError(f"Unexpected Core world catalog coverage: {len(levels)} + {len(named)}")
+    world = (ASSETS / "novel_asset/BACKROOMS_WORLD.md").read_text(encoding="utf-8")
+    matches = list(re.finditer(r'<!-- scene-key:([a-z0-9:.-]+) -->', world))
+    keys = [match.group(1) for match in matches]
+    repeated = [key for key, count in Counter(keys).items() if count > 1]
+    if repeated or len(keys) != 67 or set(keys) != expected:
+        raise AssertionError(
+            f"World scenes mismatch: duplicates={repeated}, "
+            f"missing={sorted(expected - set(keys))}, unexpected={sorted(set(keys) - expected)}"
+        )
+    for match in matches:
+        # Require at least a real paragraph before the next heading or scene.
+        section = world[match.end():]
+        boundary = re.search(r'(?m)^#{2,3} ', section)
+        scene = section[:boundary.start()] if boundary else section
+        if len(scene.strip()) < 80:
+            raise AssertionError(f"Scene too sparse or empty: {match.group(1)}")
+    if "tundra tối vĩnh viễn" not in world or "Deep Emptiness" not in world or "Claustrophobia" not in world:
+        raise AssertionError("Project world hard locks lost from canonical environment")
+    print(f"World scene coverage verified: {len(keys)} locations (50 ranked + 17 named)")
 
 
 def imported_records(manifest):
@@ -85,6 +125,7 @@ def main():
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
     if manifest.get("schemaVersion") != 2 or manifest.get("excludedDocuments"):
         raise AssertionError("Novel/Asset manifest must explicitly cover all eleven documents")
+    verify_world_scene_coverage()
     db = json.loads(DB.read_text(encoding="utf-8"))
     original = [item for item in db["records"] if not item["id"].startswith(PREFIX)]
     expected = imported_records(manifest)

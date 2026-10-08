@@ -1,17 +1,19 @@
 # Level 0–13 content coverage and completion gates
 
-Status: **registry and reference baseline complete; gameplay rollout incomplete**.
+Status: **67/67 Level/Sublevel/khu phụ có mô tả môi trường dựng cảnh trong BACKROOMS_WORLD.md (bao gồm nguồn cũ và nguồn cộng đồng có nhãn); gameplay rollout vẫn chưa hoàn tất**.
 
 ## Source inventory
 
 - Core registers 14 full Level nodes (0–13) and 36 numeric Sub-level nodes with immutable ranks.
 - `WorldContentCatalog` supplies source-labelled titles for those 50 nodes and 17 additional named sections.
 - `BACKROOMS_WORLD.md` supplies the authoritative Project environment baselines for Level 0–10 (including the Level 6 permanent-dark tundra override) and external *candidate* environment summaries for Level 11–13.
+- **Scene baseline coverage: 67/67** keys resolved against the existing `WorldContentCatalog`: 50 registered Level/Sublevel nodes and 17 unranked named sections. Each has a unique `<!-- scene-key:... -->` marker and a nonempty prose scene in the **same** world canon file. Validated during `build-novel-asset-canon-index.py --check`, not tracked in a parallel canon file.
+- User allows provisional prose from outdated / rewrite Wikidot pages and an unofficial Fandom EX-1 narrative for LS-2. They are explicitly labelled **source candidate/unstable**, never verified gameplay facts. Current count of locations with *no* environmental scene: **0**. This does not certify source completeness, playable routes or assets.
 - Project overrides prevail: Level 0.1 **Deep Emptiness** and Level 0.7 **Claustrophobia**; wiki names are not permitted to silently replace them.
 - Level 4, 12 and 13 have no numbered Sub-level listed by the selected Wikidot source; do not invent one merely to fill the list.
-- An `OPEN`/trimmed/rewrite item is catalogued as a placeholder only. Named areas without fixed ranks do not receive synthetic progression nodes.
+- An `OPEN`/trimmed/rewrite location now **does have scene-setting prose where a short/older/community source is available**, but it remains **OPEN for mechanics and unverified environmental details**. Named areas without fixed ranks do not receive synthetic progression nodes.
 - Canon source: `android-apk/app/src/main/assets/knowledge/novel_asset/BACKROOMS_WORLD.md`.
-- Internet references that have been reviewed are normalized **inside this canonical asset**, with compact author/URL credits in section 2D; packaged `knowledge_db.json` is a deterministic **derived index** of the asset, not a second authority. Obsolete `WorldInternetCanon` staging code and its documentation have been deleted. Metadata-only web links were not promoted into gameplay canon.
+- Internet references are normalized **directly inside this canonical asset** (individual source URLs/credits by section in 2C.1, previous citations in 2D); packaged `knowledge_db.json` is a deterministic derived index, not a second authority. No staging registry was created.
 - External list: https://backrooms-wiki.wikidot.com/normal-levels-i
 
 ## Runtime safety invariant
