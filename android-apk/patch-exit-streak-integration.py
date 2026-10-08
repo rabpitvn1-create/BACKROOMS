@@ -83,7 +83,7 @@ helpers = r'''  // EXIT_STREAK_V1: Android Core exclusively owns progress and le
 '''
 java = replace_span(java,
     "  // EXIT_AUTHORITY_V1: ExitDiscoveryEngine glue.",
-    "  private boolean canTransition(JSONObject before, JSONObject rolls) {",
+    "  private boolean reunionEligibleAndroid(JSONObject state, String key) {",
     helpers,
     "retire old exit discovery/traverse helpers")
 
