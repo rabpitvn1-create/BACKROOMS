@@ -963,6 +963,26 @@ class KnowledgeContextEngineP0Test {
     assertFalse("Fixture must not name an Entity", scenario("runtime_entity_encounter").action.contains("entity", ignoreCase = true))
   }
 
+  @Test fun prologueHandoffIsReferencedFromStableMandatoryCore() {
+    val records = JSONObject(dbJson).getJSONArray("records")
+    val byId = (0 until records.length()).map { records.getJSONObject(it) }
+      .associateBy { it.getString("id") }
+    val core = byId.getValue("CHAR.KAI.RUNTIME_CORE")
+    val handoff = byId.getValue("STORY.CAO.PROLOGUE_HANDOFF")
+    assertEquals("android-apk/cao-minh-prologue.txt",
+      handoff.getJSONObject("source").getString("document"))
+    assertEquals("STORY", handoff.getString("domain"))
+    assertEquals("BASELINE", handoff.getString("mutability"))
+    assertEquals(42, handoff.getInt("priority"))
+    assertEquals("STORY.CAO.PROLOGUE_HANDOFF", core.getJSONArray("references").getString(0))
+    val opening = traced("quiet_exploration_L0")
+    assertTrue(proposed(opening, "STORY.CAO.PROLOGUE_HANDOFF", "direct reference from CHAR.KAI.RUNTIME_CORE"))
+    assertTrue(opening.packet.contains("<STORY.CAO.PROLOGUE_HANDOFF> At the end of the prologue"))
+    assertTrue(opening.packet.contains("without a confirmed revival"))
+    assertFalse("A quiet Cao Minh opening must not auto-activate the retired Iris/Syvial separation",
+      proposed(opening, "STORY.MAIN.SEPARATION"))
+  }
+
   @Test fun currentPrologueUsesCaoMinhInMandatoryKnowledgeWithoutRenamingStableId() {
     val data = JSONObject(dbJson).getJSONArray("records")
     val records = (0 until data.length())
