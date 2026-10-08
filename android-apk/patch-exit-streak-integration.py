@@ -431,7 +431,7 @@ for marker in (
     "EXIT_STREAK_V1", "ExitStreakEngine.advance(", "ExitStreakEngine.hasMinimumInput(action)",
     "FeaturedJourneyRoutes.next(currentFeaturedStop(original))",
     "streakFromStopKey", 'level.put("stopKey", route.getTargetStopKey())',
-    "MainLevelExitRoutes.next(fromLevel)", "MainLevelExitRoutes.titleFor(number)",
+    "FeaturedJourneyRoutes.next(currentFeaturedStop(original))", "MainLevelExitRoutes.titleFor(number)",
     "streakLevelCompleted", 'patchValue.remove("exitStreak")',
     'patchExploration.remove("exitStreak")', 'put("exitStreak"', "combatTurnForStreak",
 ):
