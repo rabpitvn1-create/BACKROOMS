@@ -17,3 +17,7 @@ The first snapshot for each Level keeps the historical APK filename because othe
 Additional Drive frames retain their original names. Level 0 also includes `level_00_liminal_hall.webp`.
 
 `patch-level-snapshot-backgrounds.py` selects a deterministic local frame from the current Level's pool using Level progress, with the global turn as a fallback. AI-generated scene snapshots can still replace the local fallback when a valid cached scene image exists.
+
+Only these eight numbered Sub-levels retain dedicated local snapshot files:
+`level-0.2`, `level-1.2`, `level-1.5`, `level-5.1`, `level-6.1`, `level-7.7`, `level-10.1`, and `level-11.3`.
+The 28 retired numbered Sub-level WebPs were deleted alongside their active canon scenes and registry entries. All 14 main-Level images and 17 named-area images remain. The build verifies every retained image maps to exactly one current catalogue entry; no history was rewritten.

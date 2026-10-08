@@ -11,6 +11,10 @@ class WorldContentCatalogTest {
     assertEquals(ids.size, ids.toSet().size)
     assertEquals(14, WorldContentCatalog.levels.size)
     assertEquals(8, WorldContentCatalog.sublevels.size)
+    val approved = setOf("level-0.2", "level-1.2", "level-1.5", "level-5.1",
+      "level-6.1", "level-7.7", "level-10.1", "level-11.3")
+    assertEquals(approved, WorldContentCatalog.sublevels.map { it.nodeId.value }.toSet())
+    assertEquals(22, WorldProgressionCore.NODES.size)
     assertEquals(WorldProgressionCore.NODES.map { it.id }.toSet(), ids.toSet())
     assertTrue(content.all { it.title.isNotBlank() })
     content.forEach { assertEquals(it, WorldContentCatalog.entry(it.nodeId)) }

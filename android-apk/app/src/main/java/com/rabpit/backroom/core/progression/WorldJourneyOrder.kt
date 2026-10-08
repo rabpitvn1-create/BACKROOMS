@@ -9,9 +9,9 @@ package com.rabpit.backroom.core.progression
  * itinerary by FeaturedJourneyRoutes; WorldProgressionCore.EDGES still validates
  * each transition. Unselected entries remain editorial/context-only.
  *
- * Named areas remain within their original parent Level, interleaved with its
- * numbered Sub-levels in deliberate editorial order. Red Rooms is the final
- * Level 0 stop before Level 1. OPEN entries remain placeholders.
+ * All 14 main Levels and only the eight approved numbered Sub-levels remain
+ * registered. Seventeen named areas retain metadata/scene descriptions, but
+ * only Red Rooms and Base Alpha have playable routes. OPEN entries are placeholders.
  */
 enum class WorldJourneyStopKind { LEVEL, NUMBERED_SUB_LEVEL, NAMED_SECTION }
 
@@ -52,9 +52,9 @@ object WorldJourneyOrder {
    *
    * Named rooms without a source-backed numeric position are placed immediately
    * after their parent Level; their position is a game itinerary choice, NOT a
-   * canon exit/depth statement. The Project's Level-0 source introduces ε
-   * first and Dullness after 0.99; the author locks Red Rooms as the final
-   * stop before Level 1. No ranked Sub-level order is changed.
+   * canon exit/depth statement. With unsupported 0.x Sub-levels removed, the
+   * retained Level 0 itinerary places ε before Level 0.2 and Dullness after it.
+   * Red Rooms remains the last Level 0 stop before Level 1.
    *
    * This list does NOT authorize gameplay exit links or named-area ranks.
    */
