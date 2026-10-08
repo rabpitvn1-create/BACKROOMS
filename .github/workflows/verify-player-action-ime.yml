@@ -1,0 +1,47 @@
+name: Verify Player Action IME Popup
+
+on:
+  push:
+    branches: [fix/player-action-ime-popup]
+  pull_request:
+    paths:
+      - "android-apk/patch-player-action-ime.py"
+      - "android-apk/verify-player-action-ime.mjs"
+      - ".github/workflows/build-backroom-apk.yml"
+      - ".github/workflows/verify-player-action-ime.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  keyboard-popup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Apply exact production Android patch chain
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          import subprocess
+          workflow = Path(".github/workflows/build-backroom-apk.yml").read_text(encoding="utf-8")
+          scripts = re.search(r"scripts=\((.*?)\)", workflow)
+          assert scripts, "Release patch chain not found"
+          for script in scripts.group(1).split():
+              subprocess.run(["python3", "android-apk/" + script], check=True)
+          PY
+      - name: Verify Android IME bridge and simulated visual viewport behavior
+        run: node android-apk/verify-player-action-ime.mjs
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+      - name: Verify final Android Java/Kotlin compilation
+        working-directory: android-apk
+        run: gradle :app:compileDebugJavaWithJavac :app:compileDebugKotlin --no-daemon
