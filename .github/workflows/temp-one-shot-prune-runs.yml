@@ -1,0 +1,132 @@
+name: TEMP One-shot cleanup failed cancelled and empty runs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/temp-one-shot-prune-runs.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: write
+
+concurrency:
+  group: one-shot-prune-bad-and-empty-runs
+  cancel-in-progress: false
+
+jobs:
+  prune:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Remove completed failed cancelled and no-job runs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          THIS_RUN_ID: ${{ github.run_id }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import time
+          import urllib.error
+          import urllib.request
+          from pathlib import Path
+
+          repo = os.environ["REPOSITORY"]
+          current_run = int(os.environ["THIS_RUN_ID"])
+          token = os.environ["GITHUB_TOKEN"]
+          workflow_path = ".github/workflows/temp-one-shot-prune-runs.yml"
+          bad = {"failure", "cancelled", "timed_out", "startup_failure", "action_required", "stale", "skipped"}
+          headers = {
+              "Accept": "application/vnd.github+json",
+              "Authorization": f"Bearer {token}",
+              "X-GitHub-Api-Version": "2022-11-28",
+              "User-Agent": "backrooms-one-shot-run-pruner",
+          }
+
+          def api(method, path, payload=None):
+              data = json.dumps(payload).encode("utf-8") if payload is not None else None
+              url = "https://api.github.com" + path
+              for attempt in range(5):
+                  request = urllib.request.Request(url, data=data, method=method, headers=headers)
+                  try:
+                      with urllib.request.urlopen(request, timeout=45) as response:
+                          body = response.read()
+                          return json.loads(body) if body else None
+                  except urllib.error.HTTPError as error:
+                      detail = error.read().decode("utf-8", errors="replace")[:500]
+                      if error.code in (429, 502, 503, 504) or (
+                          error.code == 403 and "rate limit" in detail.lower()
+                      ):
+                          if attempt < 4:
+                              time.sleep(min(30, 2 ** (attempt + 1)))
+                              continue
+                      raise RuntimeError(f"{method} {path}: HTTP {error.code}: {detail}") from error
+              raise RuntimeError(f"API request exhausted retries: {method} {path}")
+
+          def get_all_runs():
+              output = []
+              page = 1
+              while True:
+                  block = api("GET", f"/repos/{repo}/actions/runs?per_page=100&page={page}")["workflow_runs"]
+                  output.extend(block)
+                  if len(block) < 100:
+                      return output
+                  page += 1
+
+          initial = get_all_runs()
+          targets = []
+          reason_counts = {"bad_conclusion": 0, "empty_jobs": 0}
+          checked = 0
+          for run in initial:
+              run_id = int(run["id"])
+              if run_id == current_run or run["status"] != "completed":
+                  continue
+              conclusion = run.get("conclusion")
+              if conclusion in bad:
+                  targets.append((run_id, "bad_conclusion", conclusion))
+                  reason_counts["bad_conclusion"] += 1
+                  continue
+              checked += 1
+              jobs = api("GET", f"/repos/{repo}/actions/runs/{run_id}/jobs?per_page=1")
+              if jobs["total_count"] == 0:
+                  targets.append((run_id, "empty_jobs", conclusion or ""))
+                  reason_counts["empty_jobs"] += 1
+
+          print(f"Found {len(initial)} runs, inspected jobs of {checked} non-red completed runs.")
+          print(f"Marked for deletion: {len(targets)} = {reason_counts}.")
+          for run_id, reason, conclusion in targets:
+              print(f"Deleting {run_id} ({reason}; conclusion={conclusion})", flush=True)
+              api("DELETE", f"/repos/{repo}/actions/runs/{run_id}")
+
+          remaining_ids = {int(run["id"]) for run in get_all_runs()}
+          undeleted = [run_id for run_id, _, _ in targets if run_id in remaining_ids]
+          if undeleted:
+              raise RuntimeError(f"Deletion verification failed for run IDs: {undeleted[:25]}")
+
+          summary = Path(os.environ["GITHUB_STEP_SUMMARY"])
+          with summary.open("a", encoding="utf-8") as output:
+              output.write("## One-shot workflow run cleanup\n\n")
+              output.write(f"- Existing runs examined: {len(initial)}\n")
+              output.write(f"- Deleted failed/cancelled/skipped/etc.: {reason_counts['bad_conclusion']}\n")
+              output.write(f"- Deleted runs with zero jobs: {reason_counts['empty_jobs']}\n")
+              output.write(f"- Successfully verified deleted: {len(targets)}\n")
+              output.write("- All successful runs with at least one job were preserved.\n")
+              output.write("- Current running job was preserved.\n")
+
+          # Last action: delete this disposable workflow definition, not the others.
+          # The default GITHUB_TOKEN may not have GitHub Workflows:write permission.
+          # Deliberately fail if GitHub forbids self-removal so it can be cleaned up
+          # with an authorized GitHub connector, rather than claim success falsely.
+          encoded = workflow_path.replace("/", "%2F")
+          file = api("GET", f"/repos/{repo}/contents/{encoded}?ref=main")
+          api("DELETE", f"/repos/{repo}/contents/{encoded}", {
+              "message": "chore: self-remove one-shot workflow run cleanup",
+              "sha": file["sha"],
+              "branch": "main",
+          })
+          print("Removed own workflow YAML from main, cleanup complete.")
+          PY
