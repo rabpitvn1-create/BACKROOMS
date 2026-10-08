@@ -195,9 +195,13 @@ dispatch = r'''          // EXIT_STREAK_V1: combat, local commands, and UI meta 
 '''
 java = replace_span(java,
     "          // EXIT_AUTHORITY_V1: TraverseExitCommand is a system command",
-    "          JSONObject promptState = compactStateForPrompt(before);",
+    "            if (!meta) before = applyExitDiscoveryOutcome(before, rolls);\n          }\n",
     dispatch,
     "replace old traverse/discovery dispatch with automatic streak")
+java = replace_once(java,
+    "            if (!meta) before = applyExitDiscoveryOutcome(before, rolls);\n          }\n",
+    "",
+    "remove obsolete discovery tail")
 
 # Preserve the route chosen by Core if AI attempts to forge a different Level.
 java = replace_once(java,
