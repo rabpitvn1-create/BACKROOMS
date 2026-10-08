@@ -243,6 +243,10 @@ source_test = source_test.replace(
     'itemId = "chest-bandage", itemName = "Băng gạc",\n      metadata = mapOf("itemOrigin" to "CHEST", "chestId" to "chest:test:1")',
     'itemId = ItemRegistry.ITEM_BANDAGE_ID, itemName = "Băng gạc",\n      metadata = mapOf("itemOrigin" to "CHEST", "chestId" to "chest:test:1")'
 )
+source_test = source_test.replace(
+    'itemId = "bad-chest", itemName = "Bad Chest Item", metadata = mapOf("itemOrigin" to "CHEST")',
+    'itemId = ItemRegistry.ITEM_BANDAGE_ID, itemName = "Băng gạc", metadata = mapOf("itemOrigin" to "CHEST")'
+)
 SOURCE_TEST.write_text(source_test, encoding="utf-8")
 
 inventory_test = INVENTORY_TEST.read_text(encoding="utf-8")
