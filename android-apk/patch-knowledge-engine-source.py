@@ -37,6 +37,11 @@ new = '''      if (hasAny(actionText, "devil trigger") && "syvial" in presentAct
       if (hasAny(actionText, "huyết ma chiến khải", "huyet ma chien khai")) {
         direct += "CHAR.CAO.HUYET_MA_CHIEN_KHAI"
       }
+      // A character-specific ability cannot come from an absent party member.
+      direct.removeAll { id ->
+        (id.startsWith("CHAR.IRIS.") && "iris" !in presentActors) ||
+          (id.startsWith("CHAR.SYVIAL.") && "syvial" !in presentActors)
+      }
       direct.forEach { add(it, "direct structured lookup") }
 
       // Registry-driven exact tags. Adding a new Entity/Item record with tags makes it
@@ -1279,7 +1284,7 @@ class KnowledgeContextEngineP0Test {
     assertFalse(proposed(unnamed, "CHAR.CAO.HUYET_MA_CHIEN_KHAI", "direct structured lookup"))
     val unknownPlayer = KnowledgeContextEngine.buildForTestWithTrace(
       dbJson, stateJson(0), "Quan sát Huyết Ma Kiếm.", "{}")
-    assertFalse(proposed(unknownPlayer, "CHAR.CAO.HUYET_MA_KIEM", "direct structured lookup"))
+    assertTrue(proposed(unknownPlayer, "CHAR.CAO.HUYET_MA_KIEM", "direct structured lookup"))
   }
 
   @Test fun caoMinhCampaignRejectsRetiredKaiLookupsWithoutRenamingSaveKeys() {
