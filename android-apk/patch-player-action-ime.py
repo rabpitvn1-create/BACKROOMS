@@ -116,7 +116,9 @@ fix_css = """/* PLAYER_ACTION_IME_FIX_R01: Action sheet stays above Android keyb
   padding:6px 0 max(6px,env(safe-area-inset-bottom));
 }
 """
-html = replace_one(html, "</style>", fix_css + "\n</style>", "keyboard-safe stylesheet")
+if "</style>" not in html:
+    raise RuntimeError("Original app stylesheet is missing")
+html = html.replace("</style>", fix_css + "\n</style>", 1)
 
 for marker in ["WindowInsets.Type.ime()", "notifyActionImeInset();",
                "SOFT_INPUT_ADJUST_RESIZE", "actionImeInsetPx"]:
