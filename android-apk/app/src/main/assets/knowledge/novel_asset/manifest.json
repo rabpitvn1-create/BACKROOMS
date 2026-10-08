@@ -86,7 +86,14 @@
         "tầng 3",
         "red rooms",
         "the lobby",
-        "sublevel"
+        "sublevel",
+        "tầng 4",
+        "tầng 5",
+        "tầng 6",
+        "tầng 7",
+        "tầng 8",
+        "tầng 9",
+        "tầng 10"
       ],
       "gate": "contextual"
     },
