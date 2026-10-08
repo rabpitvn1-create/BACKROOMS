@@ -666,12 +666,37 @@ jobs:
           "$BUILD_TOOLS/apksigner" verify --verbose --print-certs Backroom-1.1.63.0.1-verified.apk
           "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-1.1.63.0.1-verified.apk
           SHA256=$(sha256sum Backroom-1.1.63.0.1-verified.apk | awk '{print $1}')
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          # Build patches leave the checked-out runner worktree dirty; never checkout there.
+          # Sync release status from an isolated worktree so unrelated main commits survive.
+          STATUS_DIR="$RUNNER_TEMP/green-release-$GITHUB_RUN_ID"
           git fetch origin main
-          git checkout -B release-status-sync origin/main
-          rm -f release-status/v1.1.63.0.1-running.txt
-          printf 'status=GREEN\nversion=1.1.63.0.1\ntag=v1.1.63.0.1\nasset=Backroom-1.1.63.0.1.apk\nsource_sha=%s\nrun_id=%s\nsha256=%s\nbuild_type=debug\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$SHA256" > release-status/v1.1.63.0.1.txt
-          git add release-status/v1.1.63.0.1.txt release-status/v1.1.63.0.1-running.txt
-          git commit -m 'Record verified Backroom 1.1.63.0.1 debug release'
-          git push origin HEAD:main
+          git worktree add --detach "$STATUS_DIR" origin/main
+          cleanup_status_worktree() {
+            git worktree remove --force "$STATUS_DIR" >/dev/null 2>&1 || true
+          }
+          trap cleanup_status_worktree EXIT
+          (
+            cd "$STATUS_DIR"
+            git config user.name github-actions[bot]
+            git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+            for attempt in 1 2 3; do
+              git fetch origin main
+              git reset --hard origin/main
+              mkdir -p release-status
+              rm -f release-status/v1.1.63.0.1-running.txt
+              printf 'status=GREEN\nversion=1.1.63.0.1\ntag=v1.1.63.0.1\nasset=Backroom-1.1.63.0.1.apk\nsource_sha=%s\nrun_id=%s\nsha256=%s\nbuild_type=debug\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$SHA256" > release-status/v1.1.63.0.1.txt
+              git add -A -- release-status
+              if git diff --cached --quiet; then
+                exit 0
+              fi
+              git commit -m 'Record verified Backroom 1.1.63.0.1 debug release'
+              if git push origin HEAD:main; then
+                exit 0
+              fi
+              if [ "$attempt" -eq 3 ]; then
+                echo "Failed to publish GREEN release status after 3 attempts" >&2
+                exit 1
+              fi
+              sleep $((attempt * 2))
+            done
+          )
