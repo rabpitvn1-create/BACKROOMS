@@ -94,19 +94,34 @@ object WorldProgressionCore {
   )
 
   /**
-   * Canonical traversal graph. EXPLICIT edge list — deliberately NOT derived
-   * from NODES order via zipWithNext: adding a Sub-level to the canonical
-   * order must not silently rewire traversal. Every edge is a gameplay
-   * decision written out in full.
+   * Canonical traversal graph. EXPLICIT — never derived from NODES order, so
+   * adding a Sub-level to canonical order cannot silently rewire traversal.
+   *
+   * TRANSITION SEMANTICS (deliberate, locked): the legacy `set_level` rule is
+   * preserved exactly — any Level 0..6 is reachable from any other Level once
+   * the Core exit gate passes. This is NOT a new adjacent-only restriction;
+   * tightening it (e.g. adjacent-only) is a separate gameplay decision.
+   * The exit gate itself (`canTransition`: confirmedExit or levelExit roll)
+   * stays a gameplay precondition evaluated by the caller BEFORE calling
+   * [validateTransition], which enforces graph authority only.
+   *
+   * Sub-levels get NO automatic edges: each one is added here explicitly when
+   * its gameplay route is designed.
    */
-  val EDGES: List<WorldEdge> = listOf(
-    WorldEdge(WorldNodeId("level-0"), WorldNodeId("level-1")),
-    WorldEdge(WorldNodeId("level-1"), WorldNodeId("level-2")),
-    WorldEdge(WorldNodeId("level-2"), WorldNodeId("level-3")),
-    WorldEdge(WorldNodeId("level-3"), WorldNodeId("level-4")),
-    WorldEdge(WorldNodeId("level-4"), WorldNodeId("level-5")),
-    WorldEdge(WorldNodeId("level-5"), WorldNodeId("level-6")),
-  )
+  val EDGES: List<WorldEdge> = buildList {
+    val levels = NODES.filter { it.kind == WorldNodeKind.LEVEL }.map { it.id }
+    for (from in levels) for (to in levels) {
+      if (from != to) add(WorldEdge(from, to))
+    }
+  }
+
+  init {
+    // Invariant "rank explicit & valid": no committed node may carry a rank
+    // the scaler rejects. Fail fast at registry load, not at combat time.
+    require(NODES.all { it.progressionRank in 0L..EntityScaling.MAX_PROGRESSION_RANK }) {
+      "WorldNode rank outside EntityScaling supported domain [0, ${EntityScaling.MAX_PROGRESSION_RANK}]"
+    }
+  }
 
   private val byId: Map<WorldNodeId, WorldNode> = NODES.associateBy { it.id }
   private val edgeSet: Set<WorldEdge> = EDGES.toSet()

@@ -11,12 +11,23 @@ import org.json.JSONObject
  *   `flags`, `player`, `party`, `log`, `characterProgression`,
  * - `combat`: `stageIndex` (level-number semantics), `entities[]` (each with
  *   `key/name/hp/maxHp/attack/baseHp/baseDamage/stageIndex/stagePercent/...`),
- *   `diceState`, `encounterId`, ...
+ *   `entity` (compatibility alias, see below), `diceState`, `encounterId`, ...
  *
  * v2: ONE version field at the boundary root (`progressionSchemaVersion`),
  * plus `worldNodeId` + `progressionRank` snapshot metadata at root, on
  * `combat`, and on every entity. `stageIndex` is NEVER reused with a new
  * meaning; old fields stay frozen as history.
+ *
+ * Version handling is EXACT (fail closed):
+ * - v1 (or missing version) -> migrate,
+ * - v2 -> validate (unknown node or missing id rejects; rank snapshot
+ *   mismatch is corrected to the authoritative rank and flagged),
+ * - any other / future version -> explicit reject, never bypass.
+ *
+ * `combat.entity` alias: projection-only. The runtime rebuilds it from
+ * `entities[activeEntityIndex]` before every read (`syncActiveEntityAlias`);
+ * migration re-syncs the persisted copy the same way and never treats it
+ * as an independent record.
  *
  * Rules (locked):
  * - Old saves resolve through [WorldProgressionCore]; unknown nodes fail
@@ -40,6 +51,22 @@ sealed interface MigrationResult {
 
   /** Fail closed: surface to the user, do not guess. */
   data class Failed(val reason: String) : MigrationResult
+}
+
+sealed interface BoundaryLoadOutcome {
+  /** v1 -> v2 migration applied. */
+  data class Migrated(val boundary: JSONObject) : BoundaryLoadOutcome
+
+  /**
+   * v2 boundary accepted. [snapshotCorrected] is true when a persisted rank
+   * snapshot disagreed with the authoritative rank and was corrected
+   * (audit-worthy, not fatal: snapshots are metadata, not authority).
+   */
+  data class Valid(val boundary: JSONObject, val authoritativeRank: Long, val snapshotCorrected: Boolean) :
+    BoundaryLoadOutcome
+
+  /** Fail closed: unknown node, missing id, malformed v2, or future version. */
+  data class Rejected(val reason: String) : BoundaryLoadOutcome
 }
 
 /**
@@ -82,41 +109,92 @@ object ProgressionMigration {
   }
 
   /**
-   * v1 `combat93.state` boundary -> v2. Idempotent.
-   * Version lives in exactly one place: the boundary root.
-   * The whole `combat.entities[]` array is migrated; every materialized
-   * field (hp/maxHp/attack/status/dice/...) is preserved verbatim.
+   * THE entry point for loading a persisted `combat93.state` boundary.
+   * Exact version dispatch: v1 -> migrate, v2 -> validate,
+   * missing/future/malformed -> reject. Never bypasses.
    */
-  fun migrateCombatBoundaryV1ToV2(boundary: JSONObject): JSONObject {
-    if (boundary.optInt("progressionSchemaVersion", PROGRESSION_SCHEMA_VERSION_1) >= PROGRESSION_SCHEMA_VERSION_2) {
-      return boundary
-    }
-    val copy = JSONObject(boundary.toString())
-    val stageIndex = copy.optInt("combatStageIndex", Int.MIN_VALUE)
-    return when (val result = migrateLegacyLevelNumber(stageIndex)) {
-      is MigrationResult.Migrated -> {
-        copy.put("progressionSchemaVersion", PROGRESSION_SCHEMA_VERSION_2)
-        copy.put("worldNodeId", result.nodeId.value)
-        copy.put("progressionRank", result.progressionRank)
-        val combat = copy.optJSONObject("combat")
-        if (combat != null) {
-          combat.put("worldNodeId", result.nodeId.value)
-          combat.put("progressionRank", result.progressionRank)
-          val entities = combat.optJSONArray("entities") ?: JSONArray()
-          for (i in 0 until entities.length()) {
-            val entity = entities.optJSONObject(i) ?: continue
-            migrateCombatEntityV1ToV2(entity, result.nodeId, result.progressionRank)
-          }
+  fun loadCombatBoundary(boundary: JSONObject): BoundaryLoadOutcome {
+    return when (boundary.optInt("progressionSchemaVersion", PROGRESSION_SCHEMA_VERSION_1)) {
+      PROGRESSION_SCHEMA_VERSION_1 -> when (val result = migrateV1Boundary(boundary)) {
+        is MigrationResult.Migrated -> {
+          val migrated = applyV1Snapshot(boundary, result.nodeId, result.progressionRank)
+          BoundaryLoadOutcome.Migrated(migrated)
         }
-        copy
+        is MigrationResult.Failed -> BoundaryLoadOutcome.Rejected(result.reason)
       }
-      is MigrationResult.Failed ->
-        copy.put("progressionMigrationError", result.reason)
+      PROGRESSION_SCHEMA_VERSION_2 -> validateV2Boundary(boundary)
+      else -> BoundaryLoadOutcome.Rejected(
+        "unsupported progressionSchemaVersion: ${boundary.optInt("progressionSchemaVersion", -1)}",
+      )
     }
   }
 
+  private fun migrateV1Boundary(boundary: JSONObject): MigrationResult {
+    val stageIndex = boundary.optInt("combatStageIndex", Int.MIN_VALUE)
+    return migrateLegacyLevelNumber(stageIndex)
+  }
+
+  private fun applyV1Snapshot(
+    boundary: JSONObject,
+    nodeId: WorldNodeId,
+    progressionRank: Long,
+  ): JSONObject {
+    val copy = JSONObject(boundary.toString())
+    copy.put("progressionSchemaVersion", PROGRESSION_SCHEMA_VERSION_2)
+    copy.put("worldNodeId", nodeId.value)
+    copy.put("progressionRank", progressionRank)
+    val combat = copy.optJSONObject("combat")
+    if (combat != null) {
+      combat.put("worldNodeId", nodeId.value)
+      combat.put("progressionRank", progressionRank)
+      val entities = combat.optJSONArray("entities") ?: JSONArray()
+      for (i in 0 until entities.length()) {
+        val entity = entities.optJSONObject(i) ?: continue
+        migrateCombatEntityV1ToV2(entity, nodeId, progressionRank)
+      }
+      resyncEntityAlias(combat)
+    }
+    return copy
+  }
+
+  private fun validateV2Boundary(boundary: JSONObject): BoundaryLoadOutcome {
+    val nodeIdRaw = boundary.optString("worldNodeId", "")
+    if (nodeIdRaw.isBlank()) {
+      return BoundaryLoadOutcome.Rejected("v2 boundary missing worldNodeId")
+    }
+    val nodeId = WorldNodeId(nodeIdRaw)
+    val authoritative = when (val lookup = WorldProgressionCore.rankOf(nodeId)) {
+      is RankLookup.Known -> lookup.progressionRank
+      RankLookup.Unknown ->
+        return BoundaryLoadOutcome.Rejected("v2 boundary references unknown node: $nodeIdRaw")
+    }
+    var corrected = false
+    val copy = JSONObject(boundary.toString())
+    if (copy.optLong("progressionRank", Long.MIN_VALUE) != authoritative) {
+      copy.put("progressionRank", authoritative)
+      corrected = true
+    }
+    val combat = copy.optJSONObject("combat")
+    if (combat != null) {
+      if (combat.optLong("progressionRank", Long.MIN_VALUE) != authoritative) {
+        combat.put("progressionRank", authoritative)
+        corrected = true
+      }
+      val entities = combat.optJSONArray("entities") ?: JSONArray()
+      for (i in 0 until entities.length()) {
+        val entity = entities.optJSONObject(i) ?: continue
+        if (entity.optLong("progressionRank", Long.MIN_VALUE) != authoritative) {
+          entity.put("progressionRank", authoritative)
+          corrected = true
+        }
+      }
+      resyncEntityAlias(combat)
+    }
+    return BoundaryLoadOutcome.Valid(copy, authoritative, corrected)
+  }
+
   /**
-   * Per-entity v1 -> v2 step, used by [migrateCombatBoundaryV1ToV2].
+   * Per-entity v1 -> v2 step, used by boundary migration.
    * Takes the already-resolved node/rank; only ADDS snapshot metadata.
    * Every materialized stat stays verbatim — no rescale, ever.
    */
@@ -128,6 +206,21 @@ object ProgressionMigration {
     entity.put("worldNodeId", nodeId.value)
     entity.put("progressionRank", progressionRank)
     return entity
+  }
+
+  /**
+   * `combat.entity` is projection-only: rebuild it from
+   * `entities[activeEntityIndex]`, mirroring the runtime's
+   * `syncActiveEntityAlias`. Never an independent record.
+   */
+  fun resyncEntityAlias(combat: JSONObject) {
+    val entities = combat.optJSONArray("entities")
+    if (entities == null || entities.length() == 0) {
+      combat.remove("entity")
+      return
+    }
+    val index = combat.optInt("activeEntityIndex", 0).coerceIn(0, entities.length() - 1)
+    entities.optJSONObject(index)?.let { combat.put("entity", it) }
   }
 
   /**
