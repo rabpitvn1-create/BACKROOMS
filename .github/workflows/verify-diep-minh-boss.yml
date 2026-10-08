@@ -96,6 +96,7 @@ jobs:
           assert b'data:image' not in asset.read_bytes()[:1024]
           assert finalizer.index('patch-kai-guilty-crown-override.py') < finalizer.index('patch-diep-minh-boss.py')
           PY
+          python3 android-apk/verify-four-1193a-entities.py
           git diff --check
 
       - uses: actions/setup-java@v5
@@ -128,7 +129,7 @@ jobs:
 
           assets = Path('android-apk/app/src/main/assets/entity')
           expected = {p.name for p in assets.glob('*.webp')}
-          assert len(expected) == 20, expected
+          assert len(expected) == 24, expected
           assert "luc_tram_hac_hoa.webp" in expected, expected
           with ZipFile('android-apk/app/build/outputs/apk/debug/app-debug.apk') as apk:
               packaged = {name.removeprefix('assets/entity/') for name in apk.namelist() if name.startswith('assets/entity/') and not name.endswith('/')}
