@@ -1018,7 +1018,7 @@ new_glue = '''  // EXIT_AUTHORITY_V1: ExitDiscoveryEngine glue. The engine (core
     return ExitRecord.Companion.fromMap(map);
   }
 
-  private JSONObject exitRecordToJson(ExitRecord record) {
+  private JSONObject exitRecordToJson(ExitRecord record) throws Exception {
     JSONObject json = new JSONObject();
     for (java.util.Map.Entry<String, Object> e : record.toMap().entrySet()) {
       json.put(e.getKey(), e.getValue());
@@ -1054,7 +1054,7 @@ new_glue = '''  // EXIT_AUTHORITY_V1: ExitDiscoveryEngine glue. The engine (core
       new LinearWorldRouteResolver());
   }
 
-  private JSONObject evaluateExitDiscovery(JSONObject state, String actionKindNormalized, int bonusThreshold) {
+  private JSONObject evaluateExitDiscovery(JSONObject state, String actionKindNormalized, int bonusThreshold) throws Exception {
     ExitDiscoveryInput input = buildDiscoveryInput(state, actionKindNormalized, bonusThreshold);
     IntRoller roller = bound -> GAME_RNG.nextInt(bound);
     // Temporary v1 content resolver (linear chain). The real WorldRouteResolver replaces it.
