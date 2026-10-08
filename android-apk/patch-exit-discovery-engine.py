@@ -1039,7 +1039,7 @@ new_glue = '''  // EXIT_AUTHORITY_V1: ExitDiscoveryEngine glue. The engine (core
       actionKindNormalized == null ? "" : actionKindNormalized,
       existing != null ? existing.getStatus() : ExitStatus.NONE,
       exploration != null ? Math.max(0, exploration.optInt("levelTurns", 0)) : 0,
-      isCombatActive(state),
+      com.rabpit.backroom.core.CombatChoiceEngine.isActive(state),
       state.optString("location", "").trim(),
       state.optString("worldRevision", "default"),
       sourceNodeId,
@@ -1165,7 +1165,7 @@ new_glue = '''  // EXIT_AUTHORITY_V1: ExitDiscoveryEngine glue. The engine (core
       "level-" + currentLevel(before),
       before.optString("location", "").trim(),
       before.optString("worldRevision", "default"),
-      isCombatActive(before));
+      com.rabpit.backroom.core.CombatChoiceEngine.isActive(before));
     TraverseValidation validation = ExitDiscoveryEngine.INSTANCE.validateTraverse(input);
     if (validation instanceof TraverseValidation.Rejected) {
       throw new Exception("Không thể đi qua lối thoát (" +
