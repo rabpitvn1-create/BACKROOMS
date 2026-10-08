@@ -22,14 +22,16 @@ class WorldInternetCanonTest {
     assertNull(WorldInternetCanon.record("level-14"))
   }
 
-  @Test fun nineDirectWebPagesHaveAttributionAndLinksWithoutInventedSourcePages() {
+  @Test fun twentyTwoDirectWebPagesHaveAttributionAndLinksWithoutInventedSourcePages() {
     val reviewed = WorldInternetCanon.directlyReviewed()
-    assertEquals(9, reviewed.size)
-    assertEquals(setOf(
+    assertEquals(22, reviewed.size)
+    val levelZeroPages = setOf(
       "level-0", "level-0.1", "level-0.2", "level-0.3",
       "level-0.5", "level-0.7", "area:0:manila-room",
       "area:0:red-rooms", "area:0:the-torment",
-    ), reviewed.map { it.stopKey }.toSet())
+    )
+    val otherFullLevels = (1..13).map { "level-$it" }.toSet()
+    assertEquals(levelZeroPages + otherFullLevels, reviewed.map { it.stopKey }.toSet())
     reviewed.forEach {
       assertTrue(it.source.wikiPageUrl!!.startsWith("https://backrooms-wiki.wikidot.com/"))
       assertNotNull(it.source.creditedAuthors)
@@ -54,6 +56,32 @@ class WorldInternetCanonTest {
     assertEquals("Lights Out", WorldInternetCanon.record("level-6")?.projectTitle)
   }
 
+  @Test fun allMainLevelsHaveSourceAndRewriteGatesWhileKeepingProjectCanon() {
+    for (n in 0..13) {
+      val record = WorldInternetCanon.record("level-$n")!!
+      assertNotNull("Missing verified URL for level-$n", record.source.wikiPageUrl)
+      assertNotNull(record.source.creditedAuthors)
+      assertEquals(n, record.parentLevel)
+    }
+    assertEquals(CanonWebReview.SOURCE_TRIMMED,
+      WorldInternetCanon.record("level-4")?.source?.review)
+    assertEquals(CanonWebReview.PROJECT_OVERRIDE,
+      WorldInternetCanon.record("level-6")?.source?.review)
+    assertTrue(WorldInternetCanon.record("level-6")!!.source.environmentSignals.isEmpty())
+    assertTrue(WorldContentCatalog.entry(WorldNodeId("level-6"))!!.environmentBaseline!!.contains("tundra"))
+    assertEquals(CanonWebReview.SOURCE_TRIMMED,
+      WorldInternetCanon.record("level-7")?.source?.review)
+    assertEquals(CanonWebReview.PAGE_REVIEWED,
+      WorldInternetCanon.record("level-11")?.source?.review)
+    assertEquals(CanonWebReview.PAGE_REVIEWED,
+      WorldInternetCanon.record("level-12")?.source?.review)
+    assertEquals(CanonWebReview.PAGE_REVIEWED,
+      WorldInternetCanon.record("level-13")?.source?.review)
+    assertTrue(WorldInternetCanon.record("level-12")!!.source.environmentSignals
+      .any { it.contains("hình ảnh") })
+    assertEquals(42, WorldProgressionCore.EDGES.size)
+  }
+
   @Test fun trimmedAndOpenArticlesCannotBePromotedIntoGameplayByIngestion() {
     val icy = WorldInternetCanon.record("level-0.3")!!
     assertEquals(CanonWebReview.SOURCE_TRIMMED, icy.source.review)
@@ -65,7 +93,7 @@ class WorldInternetCanonTest {
     assertEquals(CanonWebReview.OPEN_PENDING,
       WorldInternetCanon.record("level-6.2")?.source?.review)
     assertEquals(CanonWebReview.INDEX_PENDING,
-      WorldInternetCanon.record("level-11")?.source?.review)
+      WorldInternetCanon.record("level-11.3")?.source?.review)
     assertEquals(CanonWebReview.PROJECT_ONLY,
       WorldInternetCanon.record("level-0.22")?.source?.review)
   }
