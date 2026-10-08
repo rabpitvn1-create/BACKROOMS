@@ -398,7 +398,7 @@ new = '''    private fun budgetedRecords(): List<Record> {
       }
       optional.forEach { r ->
         val before = tokens
-        val ceiling = if (tokens < TARGET_CONTEXT_BUDGET) TARGET_CONTEXT_BUDGET else SOFT_CONTEXT_CEILING
+        val ceiling = if (r.domain == "NOVEL_ASSET") SOFT_CONTEXT_CEILING else if (tokens < TARGET_CONTEXT_BUDGET) TARGET_CONTEXT_BUDGET else SOFT_CONTEXT_CEILING
         if (tokens + r.estimatedTokens <= ceiling) {
           kept += r
           tokens += r.estimatedTokens
