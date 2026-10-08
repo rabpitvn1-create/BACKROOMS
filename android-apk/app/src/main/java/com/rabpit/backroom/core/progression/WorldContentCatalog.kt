@@ -52,32 +52,16 @@ object WorldContentCatalog {
     WorldContentEntry(WorldNodeId("level-13"), "The Boiling Frogs", WorldContentAuthority.EXTERNAL_REFERENCE, WorldContentSource.WIKIDOT, "Large apartment complex with repetitive residences and insidious complacency."),
   )
 
-  // 24 retained numeric Sub-levels in the first cleanup cohort. Only featured routes are playable.
+  // Eight author-approved numbered Sub-levels. All other numeric Sub-level metadata is retired.
   // Level 4, 12 and 13 currently have no numbered sublevels in the selected sources.
   val sublevels: List<WorldContentEntry> = listOf(
     WorldContentEntry(WorldNodeId("level-0.2"), "Remodeled Mess", WorldContentAuthority.EXTERNAL_REFERENCE, WorldContentSource.WIKIDOT, null),
-    WorldContentEntry(WorldNodeId("level-1.1"), "Corrupted Corridor", WorldContentAuthority.OPEN, WorldContentSource.WIKIDOT, null),
     WorldContentEntry(WorldNodeId("level-1.2"), "Concrete Garden", WorldContentAuthority.EXTERNAL_REFERENCE, WorldContentSource.WIKIDOT, null),
-    WorldContentEntry(WorldNodeId("level-1.3"), "Malignance", WorldContentAuthority.EXTERNAL_REFERENCE, WorldContentSource.WIKIDOT, null),
     WorldContentEntry(WorldNodeId("level-1.5"), "Inverted", WorldContentAuthority.EXTERNAL_REFERENCE, WorldContentSource.WIKIDOT, null),
-    WorldContentEntry(WorldNodeId("level-2.1"), "Locked", WorldContentAuthority.EXTERNAL_REFERENCE, WorldContentSource.WIKIDOT, null),
-    WorldContentEntry(WorldNodeId("level-3.5"), "Electropolis", WorldContentAuthority.EXTERNAL_REFERENCE, WorldContentSource.WIKIDOT, null),
     WorldContentEntry(WorldNodeId("level-5.1"), "Terror Hotel Casino", WorldContentAuthority.EXTERNAL_REFERENCE, WorldContentSource.WIKIDOT, null),
-    WorldContentEntry(WorldNodeId("level-5.2"), "Scenic Views", WorldContentAuthority.EXTERNAL_REFERENCE, WorldContentSource.WIKIDOT, null),
-    WorldContentEntry(WorldNodeId("level-5.3"), "Promethei Bibliotheca", WorldContentAuthority.EXTERNAL_REFERENCE, WorldContentSource.WIKIDOT, null),
     WorldContentEntry(WorldNodeId("level-6.1"), "The Snackrooms", WorldContentAuthority.EXTERNAL_REFERENCE, WorldContentSource.WIKIDOT, null),
-    WorldContentEntry(WorldNodeId("level-6.2"), "The Neon Maze", WorldContentAuthority.OPEN, WorldContentSource.WIKIDOT, null),
-    WorldContentEntry(WorldNodeId("level-6.3"), "Vantablack", WorldContentAuthority.OPEN, WorldContentSource.WIKIDOT, null),
-    WorldContentEntry(WorldNodeId("level-6.31"), "Pierce the Veil", WorldContentAuthority.EXTERNAL_REFERENCE, WorldContentSource.WIKIDOT, null),
-    WorldContentEntry(WorldNodeId("level-7.6"), "Evacuation", WorldContentAuthority.EXTERNAL_REFERENCE, WorldContentSource.WIKIDOT, null),
     WorldContentEntry(WorldNodeId("level-7.7"), "The Forsaken Debris", WorldContentAuthority.EXTERNAL_REFERENCE, WorldContentSource.WIKIDOT, null),
-    WorldContentEntry(WorldNodeId("level-7.8"), "Impaled Ocean", WorldContentAuthority.EXTERNAL_REFERENCE, WorldContentSource.WIKIDOT, null),
-    WorldContentEntry(WorldNodeId("level-8.1"), "The Dead Caverns", WorldContentAuthority.OPEN, WorldContentSource.WIKIDOT, null),
-    WorldContentEntry(WorldNodeId("level-9.2"), "Black Market", WorldContentAuthority.EXTERNAL_REFERENCE, WorldContentSource.WIKIDOT, null),
-    WorldContentEntry(WorldNodeId("level-9.3"), "The Overcast Manifold", WorldContentAuthority.EXTERNAL_REFERENCE, WorldContentSource.WIKIDOT, null),
-    WorldContentEntry(WorldNodeId("level-9.5"), "Rochester Blues", WorldContentAuthority.EXTERNAL_REFERENCE, WorldContentSource.WIKIDOT, null),
     WorldContentEntry(WorldNodeId("level-10.1"), "Corpse Lake", WorldContentAuthority.EXTERNAL_REFERENCE, WorldContentSource.WIKIDOT, null),
-    WorldContentEntry(WorldNodeId("level-10.2"), "Hay Bale Heaven", WorldContentAuthority.EXTERNAL_REFERENCE, WorldContentSource.WIKIDOT, null),
     WorldContentEntry(WorldNodeId("level-11.3"), "The Red Light District", WorldContentAuthority.EXTERNAL_REFERENCE, WorldContentSource.WIKIDOT, null),
   )
 

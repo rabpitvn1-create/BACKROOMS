@@ -10,7 +10,7 @@ class WorldContentCatalogTest {
     val ids = content.map { it.nodeId }
     assertEquals(ids.size, ids.toSet().size)
     assertEquals(14, WorldContentCatalog.levels.size)
-    assertEquals(24, WorldContentCatalog.sublevels.size)
+    assertEquals(8, WorldContentCatalog.sublevels.size)
     assertEquals(WorldProgressionCore.NODES.map { it.id }.toSet(), ids.toSet())
     assertTrue(content.all { it.title.isNotBlank() })
     content.forEach { assertEquals(it, WorldContentCatalog.entry(it.nodeId)) }
@@ -56,8 +56,9 @@ class WorldContentCatalogTest {
   @Test fun openAndReferenceOnlyEntriesAreNotUpgradedToCanon() {
     assertNull(WorldContentCatalog.entry(WorldNodeId("level-0.23")))
     assertNull(WorldContentCatalog.entry(WorldNodeId("level-0.3")))
+    assertNull(WorldContentCatalog.entry(WorldNodeId("level-10.2")))
     assertEquals(WorldContentAuthority.EXTERNAL_REFERENCE,
-      WorldContentCatalog.entry(WorldNodeId("level-10.2"))?.authority)
+      WorldContentCatalog.entry(WorldNodeId("level-10.1"))?.authority)
     assertEquals(WorldContentAuthority.OPEN,
       WorldContentCatalog.namedSections.first { it.key == "ls-2" }.authority)
   }

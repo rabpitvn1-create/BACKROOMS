@@ -196,20 +196,20 @@ Một biến thể đỏ thẫm của Tầng 0. Tường, thảm, trần và án
 
 ## 2C. SUBLEVEL TẦNG 1–13 — DANH MỤC THAM KHẢO
 
-Đây là danh mục cấu trúc, không phải mô tả gameplay hoàn chỉnh. Các tên sau lấy theo [Backrooms Wiki — Normal Levels](https://backrooms-wiki.wikidot.com/normal-levels-i). Mục bên ngoài Project chỉ mang trạng thái **REFERENCE / CANDIDATE**, mục trimmed/rewrite mang trạng thái **OPEN**. Đừng suy diễn từ tên gọi để tự gán môi trường, đường di chuyển, tỉ lệ Entity, vật phẩm hay phần thưởng.
+Chỉ giữ tám Sub-level được duyệt sau khi đối chiếu nguồn [Backrooms Wiki — Normal Levels](https://backrooms-wiki.wikidot.com/normal-levels-i). Các khu phụ chưa được chọn vẫn là metadata tham khảo, không có exit gameplay. Không suy diễn môi trường, Entity, vật phẩm hay lối thoát từ tên Wiki.
 
-- **Tầng 1:** Level 1.1 — Corrupted Corridor (OPEN); 1.2 — Concrete Garden; 1.3 — Malignance; 1.5 — Inverted. Khu phụ: Base Alpha; Traders Vault (OPEN).
-- **Tầng 2:** Level 2.1 — Locked. Khu phụ: Office Space EL3A (OPEN).
-- **Tầng 3:** Level 3.5 — Electropolis.
-- **Tầng 4:** Chưa có sublevel đánh số trong danh mục nguồn đang chọn. Khu phụ: The Office Market.
-- **Tầng 5:** Level 5.1 — Terror Hotel Casino; 5.2 — Scenic Views; 5.3 — Promethei Bibliotheca.
-- **Tầng 6:** Level 6.1 — The Snackrooms; 6.2 — The Neon Maze (OPEN); 6.3 — Vantablack (OPEN); 6.31 — Pierce the Veil. Không để tên của các sublevel Wiki viết đè hard lock tundra tối vĩnh viễn của Tầng 6.
-- **Tầng 7:** Level 7.6 — Evacuation; 7.7 — The Forsaken Debris; 7.8 — Impaled Ocean. Khu phụ: The Hadal Zone.
-- **Tầng 8:** Level 8.1 — The Dead Caverns (OPEN). Khu phụ: The Sanctum Subterraneous.
-- **Tầng 9:** Level 9.2 — Black Market; 9.3 — The Overcast Manifold; 9.5 — Rochester Blues.
-- **Tầng 10:** Level 10.1 — Corpse Lake; 10.2 — Hay Bale Heaven.
-- **Tầng 11:** Level 11.3 — The Red Light District. Các mục có tên hoặc loại riêng: Asset 11.1 — Private Enterprise; Scene-01.2 — The Refuge; AFTER HOURS; The Headquarters (OPEN); Radio Backrooms' Studio (OPEN). Không tự đổi Asset 11.1 và Scene-01.2 thành sublevel đánh số.
-- **Tầng 12 và Tầng 13:** Chưa có sublevel đánh số trong danh mục nguồn được kiểm tra. Không tự tạo thêm để làm đủ chỉ tiêu.
+- **Tầng 1:** Chỉ giữ Level 1.2 — Concrete Garden và Level 1.5 — Inverted. Khu phụ: Base Alpha; Traders Vault (metadata tham khảo).
+- **Tầng 2:** Không giữ Sub-level đánh số. Khu phụ: Office Space EL3A (metadata tham khảo).
+- **Tầng 3:** Không giữ Sub-level đánh số.
+- **Tầng 4:** Không giữ Sub-level đánh số. Khu phụ: The Office Market (metadata tham khảo).
+- **Tầng 5:** Chỉ giữ Level 5.1 — Terror Hotel Casino.
+- **Tầng 6:** Chỉ giữ Level 6.1 — The Snackrooms. Hard lock tundra tối vĩnh viễn của Level 6 chính không đổi.
+- **Tầng 7:** Chỉ giữ Level 7.7 — The Forsaken Debris. Khu phụ: The Hadal Zone (metadata tham khảo).
+- **Tầng 8:** Không giữ Sub-level đánh số. Khu phụ: The Sanctum Subterraneous (metadata tham khảo).
+- **Tầng 9:** Không giữ Sub-level đánh số.
+- **Tầng 10:** Chỉ giữ Level 10.1 — Corpse Lake.
+- **Tầng 11:** Chỉ giữ Level 11.3 — The Red Light District. Khu phụ Asset 11.1, Scene-01.2, AFTER HOURS, The Headquarters và Radio Backrooms' Studio vẫn ở danh mục metadata.
+- **Tầng 12 và 13:** Không có Sub-level đánh số trong phạm vi được duyệt.
 
 Đối với **Tầng 0**, registry giữ **Level 0.2 — Remodeled Mess**; các Sub-level 0.x còn lại đã bị loại khỏi registry, canon cảnh và snapshot. Các khu phụ có tên vẫn là metadata tham khảo, Red Rooms là tuyến chơi đã duyệt.
 
@@ -220,13 +220,6 @@ Một biến thể đỏ thẫm của Tầng 0. Tường, thảm, trần và án
 ## 2C.1. HỒ SƠ CẢNH QUAN ĐÃ CHUẨN HÓA — SUBLEVEL / KHU PHỤ TẦNG 1–13
 
 Mỗi hồ sơ sau là **mô tả cảnh quan đọc được trực tiếp bởi hệ thống tri thức của game**. Mô tả ngắn hoặc từ bài đang viết lại cũng được giữ theo yêu cầu tác giả nhưng có nhãn nguồn. Không biến lời kể, giả thuyết, hiện tượng hoặc trang Wiki thành exit, encounter, inventory, tác dụng hồi phục, trạng thái bất lợi, hay tri thức nhân vật mặc định. Những khu phụ có tên vẫn không có progressionRank riêng. Canon Level 6 chính **luôn là tundra tối vĩnh viễn**.
-
-### Level 1.1 — Corrupted Corridor
-<!-- scene-key:level-1.1 -->
-
-**Nguồn cũ/lỗi thời.** Một hành lang thẳng rất dài, hai bên là tường block sơn trắng, nền gạch men xanh và đèn huỳnh quang kêu rè. Càng đi xa, sàn nghiêng dốc, ống thông gió và đường ống lộ ra, sắc tường đổi lệch; những đoạn sau tối đen và nền có thể biến dạng dữ dội. Các Sector là mô tả nguồn cũ, không phải cơ chế dịch chuyển hoặc sinh quái tự động.
-
-**Đối chiếu nguồn:** [Backrooms Wiki](https://backrooms-wiki.wikidot.com/level-1-1), kvn7; 08/10/2026. Nội dung đã diễn đạt lại theo nhu cầu dựng cảnh, nguồn cũ/đang viết lại được ghi chú; thông tin thế giới riêng của Project luôn ưu tiên.
 
 ### Base Alpha — khu phụ Level 1
 <!-- scene-key:area:1:base-alpha -->
@@ -249,13 +242,6 @@ Giữa cấu trúc bê tông của Level 1 mở ra khu hành lang và phòng m�
 
 **Đối chiếu nguồn:** [Backrooms Wiki](https://backrooms-wiki.wikidot.com/level-1-2), Praetor3005; 08/10/2026. Nội dung đã diễn đạt lại theo nhu cầu dựng cảnh, nguồn cũ/đang viết lại được ghi chú; thông tin thế giới riêng của Project luôn ưu tiên.
 
-### Level 1.3 — Malignance
-<!-- scene-key:level-1.3 -->
-
-Một không gian trắng sáng chói mắt gồm hành lang dài và nhiều nhánh rẽ trái, phải. Sàn lát vật liệu trắng nhẵn gần như không bám bẩn, phòng và tường sạch đến mức khác thường so với Level 1. Nguồn miêu tả bề mặt hư hỏng có thể phục hồi; đây là hiện tượng cảnh quan, không tự biến thành cơ chế hồi phục.
-
-**Đối chiếu nguồn:** [Backrooms Wiki](https://backrooms-wiki.wikidot.com/level-1-3), DivineAtlas; 08/10/2026. Nội dung đã diễn đạt lại theo nhu cầu dựng cảnh, nguồn cũ/đang viết lại được ghi chú; thông tin thế giới riêng của Project luôn ưu tiên.
-
 ### Level 1.5 — Inverted
 <!-- scene-key:level-1.5 -->
 
@@ -269,20 +255,6 @@ Một phiên bản hành lang có thực tại bị đảo lộn: vùng tối v�
 **Nguồn cũ/lỗi thời.** Cụm văn phòng lắp ghép nối nhà kho trong mạng đường hầm Level 2: sàn tường bê tông cũ, lộ cốt thép, ống dẫn và miệng thông gió chạy sát trần. Ánh sáng ổn hơn các hành lang chung nhưng hệ thống thông khí chập chờn, không khí đôi khi nóng bức, có vệt chất lỏng đen ở ống kỹ thuật. Đây là địa điểm trong nguồn, không tự kích hoạt cơ chế thương mại/căn cứ.
 
 **Đối chiếu nguồn:** [Backrooms Wiki](https://backrooms-wiki.wikidot.com/office-space-el3a), Noctilucian; 08/10/2026. Nội dung đã diễn đạt lại theo nhu cầu dựng cảnh, nguồn cũ/đang viết lại được ghi chú; thông tin thế giới riêng của Project luôn ưu tiên.
-
-### Level 2.1 — Locked
-<!-- scene-key:level-2.1 -->
-
-Một mê cung hành lang bê tông có cấu trúc tương đối vuông vức nhưng các chỗ giao nhau bất quy tắc; không gian mang nét nhà kho và khu bảo trì mới hơn Level 2. Có các phòng tường trắng, tủ sắt, thùng đồ đặt lộn xộn, cửa vào nhà vệ sinh, nền lát ô và vật tư vệ sinh. Tên 'Locked' và các lối thoát được nguồn báo cáo không tự cấp quyền khóa/mở cửa hoặc route.
-
-**Đối chiếu nguồn:** [Backrooms Wiki](https://backrooms-wiki.wikidot.com/level-2-1), penutbuteraples; 08/10/2026. Nội dung đã diễn đạt lại theo nhu cầu dựng cảnh, nguồn cũ/đang viết lại được ghi chú; thông tin thế giới riêng của Project luôn ưu tiên.
-
-### Level 3.5 — Electropolis
-<!-- scene-key:level-3.5 -->
-
-Một đô thị công nghiệp đơn sắc, kiến trúc bê tông brutalist, khối nhà lớn chen trên mặt phẳng tưởng như không có giới hạn. Các tháp kỹ thuật và dàn đèn phập phồng giữa những cơn giông, tạo cảm giác trời bị che kín; dòng phóng điện và tiếng sấm bao phủ các con đường. Nguồn mô tả nguy hiểm điện tĩnh; game chỉ dùng làm bối cảnh trước khi Core có hazard cụ thể.
-
-**Đối chiếu nguồn:** [Backrooms Wiki](https://backrooms-wiki.wikidot.com/level-3-5), exotichive; 08/10/2026. Nội dung đã diễn đạt lại theo nhu cầu dựng cảnh, nguồn cũ/đang viết lại được ghi chú; thông tin thế giới riêng của Project luôn ưu tiên.
 
 ### The Office Market — khu phụ Level 4
 <!-- scene-key:area:4:the-office-market -->
@@ -298,47 +270,12 @@ Một sòng bạc nối với Terror Hotel: trần và đèn mờ nhấp nháy, 
 
 **Đối chiếu nguồn:** [Backrooms Wiki](https://backrooms-wiki.wikidot.com/level-5-1), Natedagreat563; 08/10/2026. Nội dung đã diễn đạt lại theo nhu cầu dựng cảnh, nguồn cũ/đang viết lại được ghi chú; thông tin thế giới riêng của Project luôn ưu tiên.
 
-### Level 5.2 — Scenic Views
-<!-- scene-key:level-5.2 -->
-
-Một công trình khách sạn đồ sộ với hai mặt ngoài gắn những lối đi và ban công dài chồng tầng. Các cửa phòng hotel mở từ hành lang dọc mặt đứng; cầu thang nối các tầng xuất hiện thưa thớt. Từ những lối đi cao có thể nhìn ra khoảng không sâu và kết cấu kéo dài vô hạn, tạo cảm giác công trình vừa rộng vừa rất mỏng.
-
-**Đối chiếu nguồn:** [Backrooms Wiki](https://backrooms-wiki.wikidot.com/level-5-2), jan Jejasa; 08/10/2026. Nội dung đã diễn đạt lại theo nhu cầu dựng cảnh, nguồn cũ/đang viết lại được ghi chú; thông tin thế giới riêng của Project luôn ưu tiên.
-
-### Level 5.3 — Promethei Bibliotheca
-<!-- scene-key:level-5.3 -->
-
-Một thư viện khổng lồ ẩn trong khu vực khách sạn, những dãy giá sách chất đầy tài liệu cũ chạy sâu vào các khoảng phòng liên tiếp. Gỗ kệ, bìa sách, bụi và hành lang ít người tạo cảm giác thư viện lâu năm hơn là phòng đọc bình thường. Nguồn nói thư viện có một ý chí riêng có thể trao tri thức đổi ký ức; không biến lời kể thành quyền cấp lore hay trừ ký ức nhân vật.
-
-**Đối chiếu nguồn:** [Backrooms Wiki](https://backrooms-wiki.wikidot.com/level-5-3), Praetor3005; 08/10/2026. Nội dung đã diễn đạt lại theo nhu cầu dựng cảnh, nguồn cũ/đang viết lại được ghi chú; thông tin thế giới riêng của Project luôn ưu tiên.
-
 ### Level 6.1 — The Snackrooms
 <!-- scene-key:level-6.1 -->
 
 Một khu ẩm thực dạng trung tâm thương mại kéo dài, với bàn ghế xanh đậm, máy bán hàng và vô số quầy ăn xen kẽ. Dãy cửa hàng mang phong cách các thời đại khác nhau; hành lang và biển hiệu gợi khu food court thập niên 1980. **Đây là sublevel riêng trong nguồn**, không thay thế Level 6 chính vốn là tundra tối vĩnh viễn của Project.
 
 **Đối chiếu nguồn:** [Backrooms Wiki](https://backrooms-wiki.wikidot.com/level-6-1), Stretchsterz; 08/10/2026. Nội dung đã diễn đạt lại theo nhu cầu dựng cảnh, nguồn cũ/đang viết lại được ghi chú; thông tin thế giới riêng của Project luôn ưu tiên.
-
-### Level 6.2 — The Neon Maze
-<!-- scene-key:level-6.2 -->
-
-**Nguồn cũ/lỗi thời.** Một vùng tối có những vệt neon màu xuất hiện rải rác trên tường, sàn hoặc trần, làm nổi bật từng khúc đường và để phần còn lại chìm trong bóng đen. Bài nguồn kể rằng người đi theo ánh neon nghe tiếng nói phụ nữ dẫn dụ. Mẫu hành lang tối này chỉ là cảnh quan **bên trong sublevel 6.2**, tuyệt đối không sửa baseline tundra của Level 6 chính.
-
-**Đối chiếu nguồn:** [Backrooms Wiki](https://backrooms-wiki.wikidot.com/level-6-2), VivamusLudio; 08/10/2026. Nội dung đã diễn đạt lại theo nhu cầu dựng cảnh, nguồn cũ/đang viết lại được ghi chú; thông tin thế giới riêng của Project luôn ưu tiên.
-
-### Level 6.3 — Vantablack
-<!-- scene-key:level-6.3 -->
-
-**Nguồn cũ/lỗi thời.** Một mạng đường hẹp gần như nuốt hết ánh sáng: bề mặt tường, nền và trần phủ vật liệu đen rất sâu, các mép góc khó quan sát ngay cả khi có nguồn sáng. Bản nguồn đặt nó trong cấu trúc phòng/hành lang và nhắc đến sự phân rã bề mặt. Chỉ áp dụng mỹ thuật này cho **sublevel 6.3**, không đổi Level 6 chính từ tundra thành mê cung.
-
-**Đối chiếu nguồn:** [Backrooms Wiki](https://backrooms-wiki.wikidot.com/level-6-3), Eurasian_; 08/10/2026. Nội dung đã diễn đạt lại theo nhu cầu dựng cảnh, nguồn cũ/đang viết lại được ghi chú; thông tin thế giới riêng của Project luôn ưu tiên.
-
-### Level 6.31 — Pierce the Veil
-<!-- scene-key:level-6.31 -->
-
-Bối cảnh được ghi bằng lời kể cảm giác: khoảng không tối đặc, âm thanh nước chảy tăng dần thành tiếng thác, bề mặt sàn trơn ẩm và một hố rơi xuống lớp vật liệu giống vải dày căng võng. Ánh sáng chỉ ló ra qua vết rách nhỏ trên 'màn'. Không coi chuỗi hành động trong nhật ký là công thức mở lối thoát hoặc vật phẩm bắt buộc.
-
-**Đối chiếu nguồn:** [Backrooms Wiki](https://backrooms-wiki.wikidot.com/level-6-31), r a t i f; 08/10/2026. Nội dung đã diễn đạt lại theo nhu cầu dựng cảnh, nguồn cũ/đang viết lại được ghi chú; thông tin thế giới riêng của Project luôn ưu tiên.
 
 ### The Hadal Zone — khu phụ Level 7
 <!-- scene-key:area:7:the-hadal-zone -->
@@ -347,26 +284,12 @@ Vùng sâu tối đen trong đại dương Level 7, không có đáy được x�
 
 **Đối chiếu nguồn:** [Backrooms Wiki](https://backrooms-wiki.wikidot.com/the-hadal-zone), Sky3; 08/10/2026. Nội dung đã diễn đạt lại theo nhu cầu dựng cảnh, nguồn cũ/đang viết lại được ghi chú; thông tin thế giới riêng của Project luôn ưu tiên.
 
-### Level 7.6 — Evacuation
-<!-- scene-key:level-7.6 -->
-
-Một xác du thuyền lớn nằm giữa môi trường nước Level 7, lòng tàu bị biến thành mê cung kệ sách, đồ đạc và các sàn kê ở độ cao khác nhau. Những bệ thép nâng một số khu lên trên mặt nước; phía trên có khoảng mở rộng thay cho boong, thân tàu xuất hiện các vết nứt lớn dẫn thẳng tới nước biển. Nguy cơ ngập và độ cao là bối cảnh, không tự trừ HP.
-
-**Đối chiếu nguồn:** [Backrooms Wiki](https://backrooms-wiki.wikidot.com/level-7-6), ForestIsWatching; 08/10/2026. Nội dung đã diễn đạt lại theo nhu cầu dựng cảnh, nguồn cũ/đang viết lại được ghi chú; thông tin thế giới riêng của Project luôn ưu tiên.
-
 ### Level 7.7 — The Forsaken Debris
 <!-- scene-key:level-7.7 -->
 
 Một mặt biển rộng và lặng với khối đá tự nhiên khổng lồ nổi lên đơn độc. Trên đỉnh đá, giữa bầu trời trống trải, có công trình cũ giống hải đăng bỏ hoang; không gian xung quanh vắng bóng sự sống theo báo cáo nguồn. Bề mặt đá ẩm, gió và sương biển làm khu vực mang cảm giác cô lập hoàn toàn.
 
 **Đối chiếu nguồn:** [Backrooms Wiki](https://backrooms-wiki.wikidot.com/level-7-7), Ericote; 08/10/2026. Nội dung đã diễn đạt lại theo nhu cầu dựng cảnh, nguồn cũ/đang viết lại được ghi chú; thông tin thế giới riêng của Project luôn ưu tiên.
-
-### Level 7.8 — Impaled Ocean
-<!-- scene-key:level-7.8 -->
-
-Một vùng biển mặn mênh mông, tương đối lặng, bị chia cắt bởi các ngôi nhà gỗ dựng trên cọc nổi lên mặt nước. Một số cụm nhà đứng sát nhau, một số tách xa trong sương, tạo mạng 'phố' giữa nước mà không có nền đất liên tục. Kiến trúc nhà sàn thay đổi và nhiều lối đi phải phụ thuộc khoảng nước ngăn giữa các nhà.
-
-**Đối chiếu nguồn:** [Backrooms Wiki](https://backrooms-wiki.wikidot.com/level-7-8), Light_Nate; 08/10/2026. Nội dung đã diễn đạt lại theo nhu cầu dựng cảnh, nguồn cũ/đang viết lại được ghi chú; thông tin thế giới riêng của Project luôn ưu tiên.
 
 ### The Sanctum Subterraneous — khu phụ Level 8
 <!-- scene-key:area:8:the-sanctum-subterraneous -->
@@ -375,47 +298,12 @@ Một thành trì cổ ẩn sâu trong các hang đá tối của Level 8, với
 
 **Đối chiếu nguồn:** [Backrooms Wiki](https://backrooms-wiki.wikidot.com/the-sanctum), Kai4C; 08/10/2026. Nội dung đã diễn đạt lại theo nhu cầu dựng cảnh, nguồn cũ/đang viết lại được ghi chú; thông tin thế giới riêng của Project luôn ưu tiên.
 
-### Level 8.1 — The Dead Caverns
-<!-- scene-key:level-8.1 -->
-
-**Tài liệu nguồn cũ/biến động.** Một mạng hang động siết hẹp với vách đá sát người, các hành lang đá nối rối và những vùng có thể thay đổi cấu trúc theo thời điểm. Không gian tối, thiếu mốc định hướng và mang vẻ khô cằn, hoang phế. Liên hệ của các lối hang với Level 8 được nguồn thuật lại nhưng chưa tạo lối đi trong Core.
-
-**Đối chiếu nguồn:** [Backrooms Wiki](https://backrooms-wiki.wikidot.com/level-8-1), RiemannHypothesis; 08/10/2026. Nội dung đã diễn đạt lại theo nhu cầu dựng cảnh, nguồn cũ/đang viết lại được ghi chú; thông tin thế giới riêng của Project luôn ưu tiên.
-
-### Level 9.2 — Black Market
-<!-- scene-key:level-9.2 -->
-
-Một khu thương mại ngoại ô chìm trong đêm dài và sương lạnh. Có cửa hàng, chung cư thấp, cao ốc văn phòng, bãi đậu xe, đường nhựa phẳng và những công viên đất ẩm; nhiều cửa vẫn tối dù hạ tầng điện có vẻ còn hoạt động. Nguồn mô tả mạng người buôn bán chợ đen nhưng không tự đưa NPC, vật tư hay giao dịch vào game.
-
-**Đối chiếu nguồn:** [Backrooms Wiki](https://backrooms-wiki.wikidot.com/level-9-2), Noctilucian; 08/10/2026. Nội dung đã diễn đạt lại theo nhu cầu dựng cảnh, nguồn cũ/đang viết lại được ghi chú; thông tin thế giới riêng của Project luôn ưu tiên.
-
-### Level 9.3 — The Overcast Manifold
-<!-- scene-key:level-9.3 -->
-
-Đồng cỏ rộng và những đường quê vắng chạy giữa đồi cây rừng dưới bầu trời âm u. Cỏ và thân lúa mọc rất cao có thể che khuất lối; các căn nhà rải rác trông ẩm mốc, đôi khi chứa đồ gỗ cũ và dầm mục. Đường xe im vắng nhưng nguồn kể vẫn nghe vọng tiếng động cơ, tạo cảm giác cảnh vật đứng yên sai nhịp.
-
-**Đối chiếu nguồn:** [Backrooms Wiki](https://backrooms-wiki.wikidot.com/level-9-3), ForestIsWatching; 08/10/2026. Nội dung đã diễn đạt lại theo nhu cầu dựng cảnh, nguồn cũ/đang viết lại được ghi chú; thông tin thế giới riêng của Project luôn ưu tiên.
-
-### Level 9.5 — Rochester Blues
-<!-- scene-key:level-9.5 -->
-
-Một phiên bản ngoại ô đêm phủ tuyết, nơi nhà riêng, sân sau và con đường nối nhau dưới ánh tối xám. Tuyết bay lất phất, ngoài trời lạnh tê buốt; một số căn nhà có đèn và nhiệt độ ấm hơn nhưng nội thất thưa thớt. Đừng mặc định mọi ngôi nhà đều là điểm an toàn hoặc có nguồn tiếp tế.
-
-**Đối chiếu nguồn:** [Backrooms Wiki](https://backrooms-wiki.wikidot.com/level-9-5), RoseMonsignor; 08/10/2026. Nội dung đã diễn đạt lại theo nhu cầu dựng cảnh, nguồn cũ/đang viết lại được ghi chú; thông tin thế giới riêng của Project luôn ưu tiên.
-
 ### Level 10.1 — Corpse Lake
 <!-- scene-key:level-10.1 -->
 
 Một hồ nhân tạo bất thường nằm giữa đất nông nghiệp Level 10, mặt nước chiếm gần toàn bộ tiểu khu được ghi nhận. Bờ có thể vẫn mọc cỏ và tảo, nhưng tài liệu nguồn mô tả chất lỏng trong hồ cực kỳ độc hại, có tính ăn mòn và hiện tượng nguy hiểm giống như đang săn sinh vật. Đây là cảnh báo nguồn; sát thương/phóng xạ không được kích hoạt nếu Core chưa thiết kế.
 
 **Đối chiếu nguồn:** [Backrooms Wiki](https://backrooms-wiki.wikidot.com/level-10-1), Kitty Rika; 08/10/2026. Nội dung đã diễn đạt lại theo nhu cầu dựng cảnh, nguồn cũ/đang viết lại được ghi chú; thông tin thế giới riêng của Project luôn ưu tiên.
-
-### Level 10.2 — Hay Bale Heaven
-<!-- scene-key:level-10.2 -->
-
-Các đồng lúa mì, cỏ xanh và kiện rơm vàng kéo dài giữa những hàng rào kim loại tưởng như vô tận. Bầu trời thường trong nhưng đôi lúc tối sầm bất thường ngay giữa ban ngày; rải rác có cây sồi, bụi và hoa dại. Nguồn kể có mùi hoa ảnh hưởng giác quan, chỉ để dùng khi dựng cảnh hoặc thiết kế sau này.
-
-**Đối chiếu nguồn:** [Backrooms Wiki](https://backrooms-wiki.wikidot.com/level-10-2), TheLiminalJester283; 08/10/2026. Nội dung đã diễn đạt lại theo nhu cầu dựng cảnh, nguồn cũ/đang viết lại được ghi chú; thông tin thế giới riêng của Project luôn ưu tiên.
 
 ### Asset 11.1 — Private Enterprise (khu phụ Level 11)
 <!-- scene-key:area:11:asset-11-1 -->
@@ -483,7 +371,7 @@ Các mô tả môi trường ở phần 2A–2C là dữ liệu canon/baseline *
 
 **Giấy phép:** Văn bản của Backrooms Wikidot theo [hướng dẫn bản quyền](https://backrooms-wiki.wikidot.com/licensing-guide) được công bố dưới CC BY-SA 3.0. Phát hành game phái sinh phải tuân thủ ghi công và điều kiện chia sẻ tương thích; hình ảnh có thể có giấy phép riêng. Giữ nguồn/tác giả để tuân thủ giấy phép, không sao chép nguyên bài vào game.
 
-**Nguồn tham khảo chưa chuẩn hóa:** Các sublevel/khu phụ trong danh mục 2C chỉ có tên hoặc metadata vẫn là `REFERENCE / CANDIDATE` hay `OPEN`, chưa được nhập thành mô tả môi trường, exit hoặc Entity. Không tự tạo dữ liệu để lấp chỗ trống.
+**Nguồn tham khảo chưa thành gameplay:** Các khu phụ ngoài Red Rooms và Base Alpha vẫn chỉ là metadata/scene reference, không có exit hoặc Entity được cấp tự động. Các Sub-level đã bị loại không còn hồ sơ môi trường trong canon hoạt động.
 
 ## 3. THỰC THỂ
 

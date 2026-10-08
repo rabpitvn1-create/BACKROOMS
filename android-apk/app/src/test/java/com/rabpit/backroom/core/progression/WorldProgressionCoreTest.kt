@@ -166,28 +166,12 @@ class WorldProgressionCoreTest {
   @Test fun allSourcedNumericSublevelsHavePinnedRanks() {
     val expected = listOf(
       "level-0.2" to 200_000L,
-      "level-1.1" to 1_100_000L,
       "level-1.2" to 1_200_000L,
-      "level-1.3" to 1_300_000L,
       "level-1.5" to 1_500_000L,
-      "level-2.1" to 2_100_000L,
-      "level-3.5" to 3_500_000L,
       "level-5.1" to 5_100_000L,
-      "level-5.2" to 5_200_000L,
-      "level-5.3" to 5_300_000L,
       "level-6.1" to 6_100_000L,
-      "level-6.2" to 6_200_000L,
-      "level-6.3" to 6_300_000L,
-      "level-6.31" to 6_310_000L,
-      "level-7.6" to 7_600_000L,
       "level-7.7" to 7_700_000L,
-      "level-7.8" to 7_800_000L,
-      "level-8.1" to 8_100_000L,
-      "level-9.2" to 9_200_000L,
-      "level-9.3" to 9_300_000L,
-      "level-9.5" to 9_500_000L,
       "level-10.1" to 10_100_000L,
-      "level-10.2" to 10_200_000L,
       "level-11.3" to 11_300_000L,
     )
     val actual = WorldProgressionCore.NODES.filter { it.kind == WorldNodeKind.SUB_LEVEL }
@@ -199,7 +183,7 @@ class WorldProgressionCoreTest {
     val nodes = WorldProgressionCore.NODES
     val edges = WorldProgressionCore.EDGES
     assertEquals(14, nodes.count { it.kind == WorldNodeKind.LEVEL })
-    assertEquals(24, nodes.count { it.kind == WorldNodeKind.SUB_LEVEL })
+    assertEquals(8, nodes.count { it.kind == WorldNodeKind.SUB_LEVEL })
     nodes.filter { it.kind == WorldNodeKind.SUB_LEVEL }.forEach { node ->
       val parentRank = node.levelNumber.toLong() * RANK_PER_FULL_LEVEL
       assertTrue("sublevel must be above parent: ${node.id.value}", node.progressionRank > parentRank)

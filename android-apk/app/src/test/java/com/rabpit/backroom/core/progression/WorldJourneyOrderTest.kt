@@ -18,41 +18,25 @@ class WorldJourneyOrderTest {
       "level-1",
       "area:1:base-alpha",
       "area:1:traders-vault",
-      "level-1.1",
       "level-1.2",
-      "level-1.3",
       "level-1.5",
       "level-2",
       "area:2:office-space-el3a",
-      "level-2.1",
       "level-3",
-      "level-3.5",
       "level-4",
       "area:4:the-office-market",
       "level-5",
       "level-5.1",
-      "level-5.2",
-      "level-5.3",
       "level-6",
       "level-6.1",
-      "level-6.2",
-      "level-6.3",
-      "level-6.31",
       "level-7",
       "area:7:the-hadal-zone",
-      "level-7.6",
       "level-7.7",
-      "level-7.8",
       "level-8",
       "area:8:the-sanctum-subterraneous",
-      "level-8.1",
       "level-9",
-      "level-9.2",
-      "level-9.3",
-      "level-9.5",
       "level-10",
       "level-10.1",
-      "level-10.2",
       "level-11",
       "area:11:asset-11-1",
       "area:11:scene-01-2",
@@ -63,7 +47,7 @@ class WorldJourneyOrderTest {
       "level-12",
       "level-13",
     )
-    assertEquals(55, expected.size)
+    assertEquals(39, expected.size)
     assertEquals(expected, WorldJourneyOrder.STOPS.map { it.key })
   }
 
@@ -120,7 +104,7 @@ class WorldJourneyOrderTest {
 
   @Test fun allStopsHaveUniqueStableKeysAndSuccessors() {
     val stops = WorldJourneyOrder.STOPS
-    assertEquals(55, stops.size)
+    assertEquals(39, stops.size)
     assertEquals(stops.size, stops.map { it.key }.toSet().size)
     for (i in stops.indices) {
       assertEquals(stops[i], WorldJourneyOrder.stop(stops[i].key))
@@ -135,7 +119,7 @@ class WorldJourneyOrderTest {
 
   @Test fun entireRegistryAndNamedAreaCatalogIsCoveredWithoutInventingRanks() {
     val stops = WorldJourneyOrder.STOPS
-    assertEquals(38, stops.count { it.worldNodeId != null })
+    assertEquals(22, stops.count { it.worldNodeId != null })
     assertEquals(17, stops.count { it.worldNodeId == null })
     assertEquals(WorldProgressionCore.NODES.map { it.id }.toSet(),
       stops.mapNotNull { it.worldNodeId }.toSet())
