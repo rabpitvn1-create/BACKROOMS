@@ -15,18 +15,20 @@ def verify(apk):
         manifest = json.loads(archive.read(PREFIX + "manifest.json"))
         db = json.loads(archive.read(INDEX))
         documents = manifest["documents"]
-        assert len(documents) == 10, "Expected 10 explicitly approved source documents"
-        assert "TRAC_LAM_CODEX.md" in manifest["excludedDocuments"]
-        assert PREFIX + "TRAC_LAM_CODEX.md" not in names
+        assert len(documents) == 11, "Expected all 11 Novel/Asset source documents"
+        assert not manifest["excludedDocuments"], "Current user-approved source must not be excluded"
+        assert any(doc["name"] == "TRAC_LAM_CODEX.md" for doc in documents)
         excerpts = [record for record in db["records"]
                     if record["id"].startswith("NOVEL_ASSET.")]
-        assert len(excerpts) == 259, f"Expected 259 source chunks, got {len(excerpts)}"
+        assert excerpts, "No source chunks present"
         seen = set()
+        expected_chunks = 0
         for document in documents:
             name = document["name"]
             entry = "assets/" + document["path"]
             assert entry in names, f"Missing packaged source document: {name}"
             full_text = archive.read(entry).decode("utf-8")
+            expected_chunks += (len(full_text) + 879) // 880
             owned = [chunk for chunk in excerpts
                      if chunk["source"]["document"] == "Novel/Asset/" + name]
             assert owned, f"No indexed excerpts for {name}"
@@ -35,13 +37,17 @@ def verify(apk):
             reconstructed = "".join(chunk["text"] for chunk in owned)
             assert reconstructed == full_text, f"Packaged index not byte-faithful to {name}"
             assert all(chunk["priority"] == 55 for chunk in owned)
+            aliases = {"novel_topic:" + topic for topic in document["topics"]}
+            assert all(aliases.issubset(set(chunk["tags"])) for chunk in owned)
+            if document.get("gate") == "after_first_contact":
+                assert all("novel_gate:after_first_contact" in chunk["tags"] for chunk in owned)
             if document["policy"] == "narrative_lore_writer_only":
                 assert all(chunk["authority"] == "WRITER_SECRET" for chunk in owned)
             if name == "CAO_MINH_CODEX.md":
                 assert "Ngay trước biến cố, Cao Minh ở trên Ma Sơn" not in full_text
             if name == "LUC_TRAM_CODEX.md":
                 assert "Lục Trầm không rơi cùng Cao Minh." not in full_text
-        assert len(seen) == len(excerpts), "Index contains unattributed source excerpts"
+        assert len(seen) == len(excerpts) == expected_chunks, "Index chunk count or attribution mismatch"
         html = archive.read("assets/index.html").decode("utf-8")
         assert "Lôi Thiên Vực chưa từng có một ngày yên tĩnh như thế." in html, (
             "Active prologue unexpectedly replaced"

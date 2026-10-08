@@ -31,7 +31,7 @@ def imported_records(manifest):
     for document in manifest["documents"]:
         name = document["name"]
         policy = document["policy"]
-        if name in manifest["excludedDocuments"] or name == "TRAC_LAM_CODEX.md":
+        if name in manifest["excludedDocuments"]:
             raise AssertionError(f"Excluded source in manifest: {name}")
         if policy not in AUTHORITIES:
             raise AssertionError(f"Unknown source authority policy: {policy}")
@@ -43,6 +43,16 @@ def imported_records(manifest):
             raise AssertionError("Retired drinking-on-Ma-Son arrival leaked into active codex")
         if name == "LUC_TRAM_CODEX.md" and "Lục Trầm không rơi cùng Cao Minh." in content:
             raise AssertionError("Retired independent Level 0 arrival leaked into active codex")
+        topics = document.get("topics", [])
+        gate = document.get("gate", "contextual")
+        if not topics or any(not isinstance(topic, str) or not topic.strip() or topic != topic.strip().lower() for topic in topics):
+            raise AssertionError(f"Missing/invalid curated topic aliases: {name}")
+        if len(topics) != len(set(topics)):
+            raise AssertionError(f"Repeated topic alias: {name}")
+        if gate not in ("contextual", "after_first_contact"):
+            raise AssertionError(f"Unknown knowledge disclosure gate: {name}")
+        if name == "TRAC_LAM_CODEX.md" and gate != "after_first_contact":
+            raise AssertionError("Trac Lam must not be disclosed before first contact")
         stem = Path(name).stem.upper()
         fragments = [content[i:i + CHUNK_CHARS] for i in range(0, len(content), CHUNK_CHARS)]
         authority, mutability = AUTHORITIES[policy]
@@ -59,7 +69,7 @@ def imported_records(manifest):
                 "authority": authority,
                 "mutability": mutability,
                 "priority": 55,
-                "tags": [f"{stem.lower()}:{index:04d}"],
+                "tags": [f"{stem.lower()}:{index:04d}"] + [f"novel_topic:{topic}" for topic in topics] + (["novel_gate:after_first_contact"] if gate == "after_first_contact" else []),
                 "references": [],
                 "affordances": [],
             })
@@ -73,6 +83,8 @@ def main():
     opts.add_argument("--check", action="store_true")
     args = parser.parse_args()
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    if manifest.get("schemaVersion") != 2 or manifest.get("excludedDocuments"):
+        raise AssertionError("Novel/Asset manifest must explicitly cover all eleven documents")
     db = json.loads(DB.read_text(encoding="utf-8"))
     original = [item for item in db["records"] if not item["id"].startswith(PREFIX)]
     expected = imported_records(manifest)
@@ -85,7 +97,7 @@ def main():
             raise AssertionError(
                 f"Novel/Asset index stale or incomplete: {len(indexed)} present, {len(expected)} expected"
             )
-        if len(indexed) == 0 or len(manifest["documents"]) != 10:
+        if len(indexed) == 0 or len(manifest["documents"]) != 11:
             raise AssertionError("Novel/Asset manifest incomplete")
     else:
         db["records"] = original + expected
