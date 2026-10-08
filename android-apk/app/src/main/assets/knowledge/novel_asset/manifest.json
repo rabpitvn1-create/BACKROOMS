@@ -1,6 +1,6 @@
 {
-  "schemaVersion": 1,
-  "description": "Sanctioned copies of the 2026-09-28 Novel/Asset text corpus for the active Cao Minh campaign. Content is not automatically player knowledge.",
+  "schemaVersion": 2,
+  "description": "Reviewed Novel/Asset text canon for the active Cao Minh campaign. Sources are contextual authority, never automatic player knowledge; retired continuity is superseded by current campaign.",
   "sourceFolder": "https://drive.google.com/drive/folders/1tVcjppBYNI90VSfQ3JFq870xkJ8laqSo",
   "authorityOrder": [
     "latest explicit user retcon",
@@ -9,9 +9,7 @@
     "current world/entity/mechanic Codex",
     "historical narrative and visual references"
   ],
-  "excludedDocuments": [
-    "TRAC_LAM_CODEX.md"
-  ],
+  "excludedDocuments": [],
   "retiredContinuity": [
     "Cao Minh drinking wine on Ma Sơn and falling directly into Backrooms",
     "Lục Trầm separately entering Level 0 and an asserted reunion"
@@ -22,70 +20,187 @@
       "driveId": "1Jd1qjQg4n-Vw6A51S2SoXH1xu3QKKDK9",
       "sha": "b5466ee2dc00ea5a1c24f879e3a0345f81981600",
       "path": "knowledge/novel_asset/CAO_MINH_CODEX.md",
-      "policy": "character_baseline"
+      "policy": "character_baseline",
+      "topics": [
+        "vạn quỷ ma tâm",
+        "vạn quỷ ma thân",
+        "huyết ma kiếm",
+        "huyết ma chiến khải",
+        "huyết sát ma khí",
+        "vạn tàng giới",
+        "huyết ma nhị thập tứ",
+        "ma tôn vạn giới"
+      ],
+      "gate": "contextual"
     },
     {
       "name": "LUC_TRAM_CODEX.md",
       "driveId": "1_ivAnDOeKrUPzJRmlGFC-HQmeffcnPpF",
       "sha": "a6a05e31135f304a83afba13b70f2c700b013e92",
       "path": "knowledge/novel_asset/LUC_TRAM_CODEX.md",
-      "policy": "character_baseline"
+      "policy": "character_baseline",
+      "topics": [
+        "lục trầm",
+        "tịch quang",
+        "thiên kiếm",
+        "kiếm khải",
+        "bạch hồng kiếm nữ"
+      ],
+      "gate": "contextual"
+    },
+    {
+      "name": "TRAC_LAM_CODEX.md",
+      "driveId": "1lxfCped3eGNrJq_V69xVxj00hslTCwyu",
+      "sha": "9fafeffb39bd813ba285e612b88737c754e663fc",
+      "path": "knowledge/novel_asset/TRAC_LAM_CODEX.md",
+      "policy": "character_baseline",
+      "topics": [
+        "trác lâm",
+        "trac lam",
+        "sru-03",
+        "echo-17"
+      ],
+      "gate": "after_first_contact"
     },
     {
       "name": "BACKROOMS_WORLD.md",
       "driveId": "11LjYu7-KphPqKyLLeb4SVFEXEz23J7H0",
       "sha": "7c0c9a005c70a23c74d593b775f84bce88b5be1e",
       "path": "knowledge/novel_asset/BACKROOMS_WORLD.md",
-      "policy": "world"
+      "policy": "world",
+      "topics": [
+        "level 0",
+        "level 1",
+        "level 2",
+        "level 3",
+        "level 4",
+        "level 5",
+        "level 6",
+        "level 7",
+        "level 8",
+        "level 9",
+        "level 10",
+        "tầng 0",
+        "tầng 1",
+        "tầng 2",
+        "tầng 3",
+        "red rooms",
+        "the lobby",
+        "sublevel",
+        "tầng 4",
+        "tầng 5",
+        "tầng 6",
+        "tầng 7",
+        "tầng 8",
+        "tầng 9",
+        "tầng 10"
+      ],
+      "gate": "contextual"
     },
     {
       "name": "Entity.md",
       "driveId": "1XkkV7v1T4-dkODVUEmZ64QtRRe3e6e0B",
       "sha": "3665f75de9d60a5befd3025dadb19b5131ba1741",
       "path": "knowledge/novel_asset/Entity.md",
-      "policy": "visual_reference_not_entity_behavior"
+      "policy": "visual_reference_not_entity_behavior",
+      "topics": [
+        "hound",
+        "smiler",
+        "duller",
+        "clump",
+        "deathmoth",
+        "faceling",
+        "wretch",
+        "skin-stealer",
+        "predatory window",
+        "cable mimic",
+        "jeff the killer",
+        "jane the killer",
+        "slenderman"
+      ],
+      "gate": "contextual"
     },
     {
       "name": "ASYNC_BackroomsV2.md",
       "driveId": "1cyE25sosTQCbDEJoSbIj9p6MBwn4of6K",
       "sha": "3e7d7437fee545e93f4e5c99d484d71173c7f910",
       "path": "knowledge/novel_asset/ASYNC_BackroomsV2.md",
-      "policy": "world_organization"
+      "policy": "world_organization",
+      "topics": [
+        "async",
+        "kv31",
+        "the complex"
+      ],
+      "gate": "contextual"
     },
     {
       "name": "Backrooms_Linh_Khi.md",
       "driveId": "1qDmgI7Ak9JyM5gqsjIpL5AfZ6BpvdIz_",
       "sha": "9e06919ea809d6954db653be68a30a5844ba5a39",
       "path": "knowledge/novel_asset/Backrooms_Linh_Khi.md",
-      "policy": "world_mechanic"
+      "policy": "world_mechanic",
+      "topics": [
+        "linh khí",
+        "linh lực"
+      ],
+      "gate": "contextual"
     },
     {
       "name": "Backrooms_Linh_Khi_Anh_Huong_Tu_Si.md",
       "driveId": "1kuR1gi_cJQgSglSLkO7q9wkb-kVss_hR",
       "sha": "fe0e3304771bca10d68954eb2a21094f40e346b2",
       "path": "knowledge/novel_asset/Backrooms_Linh_Khi_Anh_Huong_Tu_Si.md",
-      "policy": "world_mechanic"
+      "policy": "world_mechanic",
+      "topics": [
+        "tu sĩ",
+        "tu luyện",
+        "hồi phục linh lực"
+      ],
+      "gate": "contextual"
     },
     {
       "name": "Tang_Kiem_Coc_Huyet_Ma_Kiem_Tich_Quang.md",
       "driveId": "1rXgg0MZtgyJXCjWpmE6jZYwY75GwgmS4",
       "sha": "20afe2b6eb1f65bed76715edb32edfd27238aa29",
       "path": "knowledge/novel_asset/Tang_Kiem_Coc_Huyet_Ma_Kiem_Tich_Quang.md",
-      "policy": "narrative_lore_writer_only"
+      "policy": "narrative_lore_writer_only",
+      "topics": [
+        "táng kiếm cốc",
+        "tang kiem coc"
+      ],
+      "gate": "contextual"
     },
     {
       "name": "Huyet_Tay_Cao_Gia.md",
       "driveId": "1tWhTfmXc0W5iSD4ebkth5ERDtzfxVT0Z",
       "sha": "4d3ecba3836c879d3fdec89166ed36fdef1288fd",
       "path": "knowledge/novel_asset/Huyet_Tay_Cao_Gia.md",
-      "policy": "narrative_lore_writer_only"
+      "policy": "narrative_lore_writer_only",
+      "topics": [
+        "huyết tẩy cao gia",
+        "huyet tay cao gia",
+        "cao gia",
+        "diệp minh"
+      ],
+      "gate": "contextual"
     },
     {
       "name": "AI_NOVEL_GENERATION_INSTRUCTION.md",
       "driveId": "1QyQA2ViiPHZFTdszsyEBLTLtbFUPjH13",
       "sha": "83c8cb22b56bc36d4430fba9cd2dd879ac64d5cc",
       "path": "knowledge/novel_asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
-      "policy": "gm_writing"
+      "policy": "gm_writing",
+      "topics": [
+        "văn xuôi",
+        "hội thoại",
+        "lời thoại",
+        "giọng thoại",
+        "xưng hô"
+      ],
+      "gate": "contextual"
     }
+  ],
+  "previousExclusionOverridden": [
+    "TRAC_LAM_CODEX.md"
   ]
 }

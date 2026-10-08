@@ -1,0 +1,47 @@
+name: Verify Novel Asset Canon
+
+on:
+  push:
+    branches: [feat/novel-asset-canon-full-registry]
+  pull_request:
+    paths:
+      - 'android-apk/**'
+      - '.github/workflows/verify-novel-asset-canon.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify-canon-index:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify all 11 source documents
+        run: python3 android-apk/build-novel-asset-canon-index.py --check
+      - name: Apply release runtime patches before compilation
+        run: |
+          set -euo pipefail
+          scripts=(patch-provider-status.py patch-provider-key-pool.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py patch-ui-1.1.99-shell.py patch-poker-dice-core-backport.py patch-poker-dice-ui-119-polish.py patch-cao-minh-identity-overlay.py patch-item-detail-actions.py patch-item-whole-unit.py patch-cao-minh-skills-equipment.py patch-cao-minh-prologue.py patch-character-stats-1193a-restore.py patch-combat-feedback-1193a.py patch-combat-93-runtime.py patch-combat-93-snapshot.py patch-item-source-authority-final.py patch-item-registry-core.py patch-exit-discovery-engine.py patch-luc-tram-port.py)
+          for script in "${scripts[@]}"; do
+            python3 "android-apk/$script"
+          done
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Verify complete JVM suite and assemble debug APK
+        run: gradle -p android-apk :app:testDebugUnitTest :app:assembleDebug --no-daemon
+      - name: Verify all 11 canon sources packaged into APK
+        run: python3 android-apk/verify-novel-asset-apk.py android-apk/app/build/outputs/apk/debug/app-debug.apk
+      - name: Show failed test detail
+        if: failure()
+        run: |
+          for report in android-apk/app/build/test-results/testDebugUnitTest/TEST-*.xml; do
+            if [ -f "$report" ]; then cat "$report"; fi
+          done

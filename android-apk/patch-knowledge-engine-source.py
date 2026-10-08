@@ -398,7 +398,7 @@ new = '''    private fun budgetedRecords(): List<Record> {
       }
       optional.forEach { r ->
         val before = tokens
-        val ceiling = if (tokens < TARGET_CONTEXT_BUDGET) TARGET_CONTEXT_BUDGET else SOFT_CONTEXT_CEILING
+        val ceiling = if (r.domain == "NOVEL_ASSET") SOFT_CONTEXT_CEILING else if (tokens < TARGET_CONTEXT_BUDGET) TARGET_CONTEXT_BUDGET else SOFT_CONTEXT_CEILING
         if (tokens + r.estimatedTokens <= ceiling) {
           kept += r
           tokens += r.estimatedTokens
@@ -586,65 +586,46 @@ text = text.replace(old, new, 1)
 old = '''    private fun addSceneAffordances() {
 '''
 new = r'''    private fun addNovelAssetExcerpts() {
-      // Archive chunks are immutable, fully source-backed records, not automatic
-      // character knowledge. The player's explicit topic selects at most three.
-      val routes = linkedMapOf(
-        "CAO_MINH_CODEX" to listOf(
-          "vạn quỷ ma tâm", "vạn quỷ ma thân", "huyết ma kiếm",
-          "huyết ma chiến khải", "huyết sát ma khí", "vạn tàng giới",
-          "huyết ma nhị thập tứ", "ma tôn vạn giới"
-        ),
-        "LUC_TRAM_CODEX" to listOf(
-          "lục trầm", "tịch quang", "thiên kiếm", "kiếm khải", "bạch hồng kiếm nữ"
-        ),
-        "BACKROOMS_WORLD" to ((0..10).flatMap { listOf("level $it", "tầng $it") } +
-          listOf("sublevel", "red rooms", "the lobby", "backrooms world")),
-        "ENTITY" to listOf(
-          "hound", "smiler", "duller", "clump", "deathmoth",
-          "faceling", "wretch", "skin-stealer", "predatory window",
-          "cable mimic", "jeff the killer", "jane the killer", "slenderman"
-        ),
-        "ASYNC_BACKROOMSV2" to listOf("async", "kv31", "the complex"),
-        "BACKROOMS_LINH_KHI" to listOf("linh khí", "linh lực"),
-        "BACKROOMS_LINH_KHI_ANH_HUONG_TU_SI" to listOf(
-          "linh khí", "tu sĩ", "tu luyện", "hồi phục linh lực"
-        ),
-        "TANG_KIEM_COC_HUYET_MA_KIEM_TICH_QUANG" to listOf(
-          "táng kiếm cốc", "tang kiem coc"
-        ),
-        "HUYET_TAY_CAO_GIA" to listOf(
-          "huyết tẩy cao gia", "huyet tay cao gia", "cao gia", "diệp minh"
-        ),
-        "AI_NOVEL_GENERATION_INSTRUCTION" to listOf(
-          "văn xuôi", "hội thoại", "lời thoại", "giọng thoại", "xưng hô"
-        )
+      // Topic and disclosure metadata come from the approved Novel/Asset manifest,
+      // via knowledge_db.json. No hardcoded list of the ten former documents.
+      val party = normalize(
+        state.optJSONArray("party")?.toString().orEmpty() + " " +
+          state.optJSONObject("partyDetails")?.optJSONArray("members")?.toString().orEmpty()
       )
-      val ignored = setOf(
-        "cao", "minh", "lục", "trầm", "backrooms", "level", "trong",
-        "đang", "trước", "phía", "hành", "lang", "những", "người", "nhìn"
-      )
+      val presentTrac = listOf("trac_lam", "trac lam", "trác lâm").any { party.contains(it) }
+      val contactEstablished = presentTrac ||
+        (state.optJSONObject("flags")?.optBoolean("tracLamContacted", false) ?: false)
+      if (presentTrac) add("NOVEL_ASSET.TRAC_LAM_CODEX.C0001", "confirmed present Trac Lam")
+
+      val matches = linkedMapOf<String, MutableMap<String, Record>>()
+      val strengths = linkedMapOf<String, Int>()
+      for ((tag, ids) in db.tagIndex) {
+        if (!tag.startsWith("novel_topic:")) continue
+        val alias = tag.removePrefix("novel_topic:")
+        if (alias.length < 3 || !actionText.contains(alias)) continue
+        for (id in ids) {
+          val record = db.records[id] ?: continue
+          if (record.domain != "NOVEL_ASSET") continue
+          if ("novel_gate:after_first_contact" in record.tags && !contactEstablished) continue
+          val doc = record.source.document
+          matches.getOrPut(doc) { linkedMapOf() }[record.id] = record
+          strengths[doc] = maxOf(strengths[doc] ?: 0, alias.length)
+        }
+      }
+      val ignored = setOf("cao", "minh", "lục", "trầm", "backrooms", "level",
+        "trong", "đang", "trước", "phía", "những", "người", "nhìn")
       val words = Regex("[\\p{L}\\p{N}]{3,}").findAll(actionText)
         .map { it.value }.filterNot { it in ignored }.toSet()
-      var count = 0
-      for ((document, triggers) in routes) {
-        if (count >= 3) break
-        val matched = triggers.filter { it in actionText }
-        if (matched.isEmpty()) continue
-        val phrase = matched.maxByOrNull { it.length } ?: continue
-        val prefix = "NOVEL_ASSET.$document."
-        val winner = db.records.values.asSequence()
-          .filter { it.id.startsWith(prefix) }
-          .map { record ->
-            val excerpt = normalize(record.text)
-            val score = (if (phrase in excerpt) 20 else 0) +
-              words.count { it in excerpt }
-            record to score
-          }
-          .sortedWith(compareByDescending<Pair<Record, Int>> { it.second }
-            .thenBy { it.first.id })
-          .firstOrNull()?.first ?: continue
-        add(winner.id, "explicit Novel Asset excerpt")
-        count++
+      for ((doc, records) in matches.entries.sortedWith(
+        compareByDescending<Map.Entry<String, MutableMap<String, Record>>> {
+          strengths[it.key] ?: 0
+        }.thenBy { it.key }
+      ).take(3)) {
+        val best = records.values.sortedWith(compareByDescending<Record> {
+          val excerpt = normalize(it.text)
+          words.count { word -> word in excerpt }
+        }.thenBy { it.id }).firstOrNull() ?: continue
+        add(best.id, "explicit Novel Asset excerpt")
       }
     }
 
@@ -894,9 +875,9 @@ class KnowledgeContextEngineP0Test {
     val entries = JSONObject(dbJson).getJSONArray("records")
     val indexed = (0 until entries.length()).map { entries.getJSONObject(it) }
       .filter { it.getString("id").startsWith("NOVEL_ASSET.") }
-    assertEquals("Every approved Novel/Asset document must be indexed", 259, indexed.size)
+    assertEquals("All 11 approved Novel/Asset documents must be indexed", 277, indexed.size)
     assertTrue(indexed.all { it.getInt("priority") == 55 })
-    assertFalse(indexed.any { it.getString("id").contains("TRAC_LAM") })
+    assertTrue(indexed.any { it.getString("id").contains("TRAC_LAM_CODEX") })
     assertFalse(indexed.any {
       it.getString("text").contains("Ngay trước biến cố, Cao Minh ở trên Ma Sơn")
     })
