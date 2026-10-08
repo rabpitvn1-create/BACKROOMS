@@ -65,7 +65,7 @@
     {
       "name": "BACKROOMS_WORLD.md",
       "driveId": "11LjYu7-KphPqKyLLeb4SVFEXEz23J7H0",
-      "sha": "716dd1510316f4e55c091e56b3895b57753835d7",
+      "sha": "689dd5cefc1b9dd486dac0d6193a399f0b5ae26f",
       "path": "knowledge/novel_asset/BACKROOMS_WORLD.md",
       "policy": "world",
       "topics": [
@@ -102,7 +102,14 @@
         "tầng 13",
         "matrix",
         "the boiling frogs",
-        "the city that never sleeps"
+        "the city that never sleeps",
+        "manila room",
+        "the torment",
+        "level 0.2",
+        "level 0.7",
+        "level ε",
+        "claustrophobia",
+        "deep emptiness"
       ],
       "gate": "contextual"
     },
