@@ -1080,8 +1080,8 @@ class KnowledgeContextEngineP0Test {
 
   @Test fun absentCharacterDirectLookupDoesNotInventPresence() {
     val result = traced("absent_iris_argus")
-    assertTrue(
-      "ARGUS should still be proposed by direct lookup when Iris is absent",
+    assertFalse(
+      "Absent Iris must not supply ARGUS lore",
       proposed(result, "CHAR.IRIS.ARGUS", "direct structured lookup")
     )
     assertFalse(
@@ -1248,7 +1248,7 @@ class KnowledgeContextEngineP0Test {
     }
     val unidentified = KnowledgeContextEngine.buildForTestWithTrace(
       dbJson, stateJson(1), "ARGUS", "{}")
-    assertTrue(proposed(unidentified, "CHAR.IRIS.ARGUS", "direct structured lookup"))
+    assertFalse(proposed(unidentified, "CHAR.IRIS.ARGUS", "direct structured lookup"))
   }
 
   @Test fun exactCaoMinhEquipmentNamesUseCurrentCandidatesAndUnchangedOptionalBudget() {
