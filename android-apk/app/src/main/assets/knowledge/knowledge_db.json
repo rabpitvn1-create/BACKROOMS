@@ -81,7 +81,7 @@
       "text": "Cao Minh / Vạn Giới Ma Tôn is a demonic sword cultivator who stood at the pinnacle of his unnamed home world before reaching Backrooms. His natal heart is Vạn Quỷ Ma Tâm; his bonded greatsword is Huyết Ma Kiếm and his armor is Huyết Ma Chiến Khải. His true age, home-world name and detailed cultivation ranks remain OPEN; secret lineage is not public character knowledge. He is relaxed, wry and fond of wine, yet decisive under real threat and fully in control of himself. He has no automatic knowledge of Backrooms levels or entities. The player chooses his intentional actions.",
       "source": {"document": "Novel/Asset/CAO_MINH_CODEX.md", "anchor": "CAO-QUICK-01; CAO-ID-01; CAO-PER-01; CAO-ACTION-LOCK-01; CAO-BACKROOMS-01"},
       "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 20,
-      "tags": ["cao minh", "vạn giới ma tôn", "present core", "voice"], "references": ["STORY.CAO.PROLOGUE_HANDOFF", "CHAR.CAO.BACKROOMS_KNOWLEDGE_LOCK", "CHAR.CAO.HUYET_MA_KIEM"], "affordances": []
+      "tags": ["cao minh", "vạn giới ma tôn", "present core", "voice"], "references": ["STORY.CAO.PROLOGUE_HANDOFF", "CHAR.CAO.BACKROOMS_KNOWLEDGE_LOCK", "CHAR.CAO.HUYET_MA_KIEM", "CHAR.CAO.HUYET_MA_CHIEN_KHAI"], "affordances": []
     },
     {
       "id": "CHAR.KAI.SPARDA_CORE",
@@ -464,6 +464,13 @@
       "source": {"document": "Novel/Asset/CAO_MINH_CODEX.md", "anchor": "CAO-EQP-HUYET-MA-KIEM-01 / 11; 11.1; 11.2; 11.3"},
       "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 50,
       "tags": ["huyết ma kiếm","huyet ma kiem","huyết sát ma khí","ngự kiếm"], "references": [], "affordances": []
+    },
+    {
+      "id": "CHAR.CAO.HUYET_MA_CHIEN_KHAI", "domain": "CHARACTER", "kind": "equipment",
+      "text": "Huyết Ma Chiến Khải is Cao Minh's bonded black-and-red Ma Kim armor, not Blackblood Armor or its gun-era modules. It can remain concealed within his body outside battle; when summoned, ma markings and Ma Kim segments form around him from Vạn Quỷ Ma Tâm. It amplifies and protects his body while allowing swordsmanship and movement instead of making him heavy or slow. Damage to the existing bonded armor can gradually reconstitute through ma nguyên while its foundation remains intact. Restoration repairs that same armor; it does not duplicate equipment, automatically heal all bodily injuries, or create a stronger new artifact. The current save and scene determine whether the armor is deployed or damaged.",
+      "source": {"document": "Novel/Asset/CAO_MINH_CODEX.md", "anchor": "CAO-EQP-HUYET-MA-KHAI-01 / 12.1; 12.4"},
+      "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 51,
+      "tags": ["huyết ma chiến khải","huyet ma chien khai","ma khải"], "references": [], "affordances": []
     }
   ]
 }

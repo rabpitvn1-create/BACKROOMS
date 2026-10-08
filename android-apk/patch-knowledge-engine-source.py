@@ -780,6 +780,34 @@ class KnowledgeContextEngineP0Test {
     }
   }
 
+  @Test fun caoMinhArmorCanonIsNotLegacyBlackbloodEquipment() {
+    val entries = JSONObject(dbJson).getJSONArray("records")
+    val records = (0 until entries.length()).map { entries.getJSONObject(it) }
+      .associateBy { it.getString("id") }
+    val core = records.getValue("CHAR.KAI.RUNTIME_CORE")
+    val armor = records.getValue("CHAR.CAO.HUYET_MA_CHIEN_KHAI")
+    assertEquals("Novel/Asset/CAO_MINH_CODEX.md",
+      armor.getJSONObject("source").getString("document"))
+    assertTrue(armor.getJSONObject("source").getString("anchor")
+      .contains("CAO-EQP-HUYET-MA-KHAI-01"))
+    assertEquals("CHARACTER_CANON", armor.getString("authority"))
+    assertEquals("IMMUTABLE", armor.getString("mutability"))
+    assertEquals(51, armor.getInt("priority"))
+    assertEquals("CHAR.CAO.HUYET_MA_CHIEN_KHAI",
+      core.getJSONArray("references").getString(3))
+    assertTrue(armor.getString("text").contains("not Blackblood Armor"))
+    assertTrue(armor.getString("text").contains("does not duplicate equipment"))
+    assertTrue(armor.getString("text").contains("current save and scene"))
+    val result = KnowledgeContextEngine.buildForTestWithTrace(
+      dbJson, caoMinhStateJson(0), "Cao Minh quan sát Huyết Ma Chiến Khải.", "{}")
+    assertTrue(proposed(result, "CHAR.CAO.HUYET_MA_CHIEN_KHAI",
+      "direct reference from CHAR.KAI.RUNTIME_CORE"))
+    assertPacketHas(result.packet, "CHAR.CAO.HUYET_MA_CHIEN_KHAI")
+    assertFalse("Cao Minh armor action must not retrieve Kai's old Blackblood modules",
+      proposed(result, "CHAR.KAI.ARMOR"))
+    assertPacketLacks(result.packet, "CHAR.KAI.ARMOR")
+  }
+
   @Test fun caoMinhSwordKnowledgeUsesCurrentCodexWithoutLegacyGunLookup() {
     val entries = JSONObject(dbJson).getJSONArray("records")
     val records = (0 until entries.length()).map { entries.getJSONObject(it) }
