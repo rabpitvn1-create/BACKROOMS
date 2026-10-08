@@ -92,6 +92,9 @@ public final class CombatChoiceEngine {
     final int hitCount;
     final int defensePiercePercent;
     final int healPercentOfDamage;
+    String effect = "";
+    int effectTurns;
+    int effectValue;
 
     EntitySkill(String name, int damagePercent, int procPercent) {
       this(name, damagePercent, procPercent, 1, 0, 0);
@@ -178,6 +181,7 @@ public final class CombatChoiceEngine {
     entity("jane_the_killer", "Jane", 270, 20);
     entity("slenderman", "Slenderman", 360, 23);
     entity("diep_minh", "Diệp Minh", 1200, 42);
+    entity("luc_tram_hac_hoa", "Lục Trầm Hắc Hoá", 50, 24);
 
     entitySkills("hound",
         entitySkill("Dead Bite", 120, 35),
@@ -287,6 +291,17 @@ public final class CombatChoiceEngine {
         entitySkill("Demonic Claw", 115, 32),
         entitySkill("Sword-Claw Assault", 120, 21));
 
+    // Entity adaptation uses the existing first-success proc selection (no Poker Dice).
+    // Ultimate is a rare 1% proc; normal Hợp Kích is 35%. V2 proc rates/effects stay intact.
+    entitySkills("luc_tram_hac_hoa",
+        multiHitEntitySkill("Thiên Kiếm Định Giới", 115, 1, 60),
+        entitySkill("Tịch Quang Hợp Kích", 150, 35),
+        statusEntitySkill("Tịch Quang Phản Kiếm", 125, 52, "Trúng độc", 2, 3),
+        statusEntitySkill("Nhất Tuyến Phá Vọng", 120, 55, "Xuyên giáp", 2, 10),
+        statusEntitySkill("Thiên Kiếm Chấn", 115, 46, "Choáng", 1, 0),
+        statusEntitySkill("Bạch Hồng Quán Nhật", 120, 49, "Chảy máu", 2, 3),
+        statusEntitySkill("Vạn Kiếm Quy Tâm", 120, 51, "Trúng độc", 2, 4));
+
     // Only offensive canonical skills participate in Poker Dice Skill hands. Passive/evasion
     // skills do not silently replace or modify dice outcomes.
     skills("cao_minh",
@@ -373,6 +388,15 @@ public final class CombatChoiceEngine {
 
   private static EntitySkill entitySkill(String name, int damagePercent, int procPercent) {
     return new EntitySkill(name, damagePercent, procPercent);
+  }
+
+  private static EntitySkill statusEntitySkill(String name, int damagePercent, int procPercent,
+                                                String effect, int turns, int value) {
+    EntitySkill skill = entitySkill(name, damagePercent, procPercent);
+    skill.effect = effect;
+    skill.effectTurns = turns;
+    skill.effectValue = value;
+    return skill;
   }
 
   private static EntitySkill multiHitEntitySkill(
@@ -824,7 +848,18 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
     JSONObject entity = entities.getJSONObject(targetIndex);
 
     String hand = dice.optString("hand", "NO HAND");
-    ActionResult result = resolveHandAction(combat, actor, entity, hand);
+    // Entity-applied effects belong to the affected actor's completed action clock.
+    int actorFeedbackStart = combat.getJSONArray("feedbackEvents").length();
+    tickRoundStartEffects(combat, actor);
+    JSONArray feedback = combat.getJSONArray("feedbackEvents");
+    for (int i = actorFeedbackStart; i < feedback.length(); i++)
+      feedback.getJSONObject(i).put("target", "actor");
+    ActionResult result;
+    if (actor.optInt("hp", 0) <= 0 || actor.optInt("stunTurns", 0) > 0) {
+      result = new ActionResult();
+      result.summary = actor.optString("name", "Nhân vật") + " không thể hành động.";
+      actor.put("stunTurns", Math.max(0, actor.optInt("stunTurns", 0) - 1));
+    } else result = resolveHandAction(combat, actor, entity, hand);
     dice.put("resolved", true);
     if (entity.optInt("hp", 0) <= 0) {
       resolveEntityDeath(state, combat, entities, targetIndex);
@@ -1247,6 +1282,8 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
     int before = Math.max(0, actor.optInt("hp", 0));
     int rawDamage = Math.max(1, entity.optInt("attack", 1));
     int def = actor.optInt("DEF", Combat93Support.Progression.BASE_STAT);
+    if (actor.optInt("armorBreakTurns", 0) > 0)
+      def = Math.max(0, def * (100 - actor.optInt("armorBreakPercent", 0)) / 100);
     int criticalChance = effectiveChance(
         entity.optInt("criticalChancePercent", 0), actor.optInt("resCriticalPercent", 0));
     boolean critical = secondaryChanceTriggers(combat, criticalChance,
@@ -1277,6 +1314,11 @@ static int entitySkillProcRoll(int seed,int round,int actorIndex,int skillIndex)
         int actualDamage = Math.max(0, hpBeforeHit - actor.optInt("hp", 0));
         skillDamageDealt += actualDamage;
         addFeedback(combat, "entity", "actor", "damage", "-" + actualDamage + " HP", true);
+      }
+      if (actor.optInt("hp", 0) > 0 && !triggeredSkill.effect.isEmpty()) {
+        applyStackingEffect(actor, triggeredSkill.effect, triggeredSkill.effectTurns, triggeredSkill.effectValue);
+        addFeedback(combat, "entity", "actor", "status", triggeredSkill.effect, false,
+            false, triggeredSkill.effect);
       }
       if (triggeredSkill.healPercentOfDamage > 0 && skillDamageDealt > 0) {
         int heal = drainHealAmount(skillDamageDealt, triggeredSkill.healPercentOfDamage);
