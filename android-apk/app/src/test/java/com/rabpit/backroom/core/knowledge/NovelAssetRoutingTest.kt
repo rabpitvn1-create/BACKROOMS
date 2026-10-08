@@ -31,8 +31,8 @@ class NovelAssetRoutingTest {
   }
 
   @Test fun relevantCharacterAndWorldSourcesAreSelectable() {
-    assertTrue(packet("Tôi hỏi Lục Trầm về Tịch Quang.")
-      .contains("<NOVEL_ASSET.LUC_TRAM_CODEX."))
+    val luc = packet("Tôi hỏi Lục Trầm về Tịch Quang.")
+    assertTrue("LUC packet: " + luc, luc.contains("<NOVEL_ASSET.LUC_TRAM_CODEX."))
     assertTrue(packet("Kiểm tra Huyết Ma Chiến Khải.")
       .contains("<NOVEL_ASSET.CAO_MINH_CODEX."))
     assertTrue(packet("Tìm hiểu linh khí.")
@@ -42,8 +42,8 @@ class NovelAssetRoutingTest {
   @Test fun tracLamKnowledgeIsContactGated() {
     assertFalse(packet("Tìm hồ sơ Trác Lâm của SRU-03.")
       .contains("<NOVEL_ASSET.TRAC_LAM_CODEX."))
-    assertTrue(packet("Tôi hỏi Trác Lâm.", known = true)
-      .contains("<NOVEL_ASSET.TRAC_LAM_CODEX."))
+    val trac = packet("Tôi hỏi Trác Lâm.", known = true)
+    assertTrue("TRAC packet: " + trac, trac.contains("<NOVEL_ASSET.TRAC_LAM_CODEX."))
     assertTrue(packet("Quan sát hành lang.", present = true)
       .contains("<NOVEL_ASSET.TRAC_LAM_CODEX.C0001>"))
   }
