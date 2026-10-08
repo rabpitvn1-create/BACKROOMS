@@ -92,7 +92,7 @@ class WorldJourneyOrderTest {
     assertEquals("area:8:the-sanctum-subterraneous", WorldJourneyOrder.nextAfter("level-8")?.key)
     assertEquals("area:11:asset-11-1", WorldJourneyOrder.nextAfter("level-11")?.key)
     assertEquals("level-11.3", WorldJourneyOrder.nextAfter("area:11:radio-backrooms-studio")?.key)
-    assertEquals("area:0:dullness", WorldJourneyOrder.nextAfter("level-0.99")?.key)
+    assertEquals("area:0:dullness", WorldJourneyOrder.nextAfter("level-0.2")?.key)
     assertEquals("area:0:red-rooms", WorldJourneyOrder.nextAfter("area:0:dullness")?.key)
   }
 
