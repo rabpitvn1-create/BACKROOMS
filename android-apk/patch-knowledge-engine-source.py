@@ -780,6 +780,34 @@ class KnowledgeContextEngineP0Test {
     }
   }
 
+  @Test fun caoMinhSwordKnowledgeUsesCurrentCodexWithoutLegacyGunLookup() {
+    val entries = JSONObject(dbJson).getJSONArray("records")
+    val records = (0 until entries.length()).map { entries.getJSONObject(it) }
+      .associateBy { it.getString("id") }
+    val core = records.getValue("CHAR.KAI.RUNTIME_CORE")
+    val sword = records.getValue("CHAR.CAO.HUYET_MA_KIEM")
+    assertEquals("Novel/Asset/CAO_MINH_CODEX.md",
+      sword.getJSONObject("source").getString("document"))
+    assertTrue(sword.getJSONObject("source").getString("anchor")
+      .contains("CAO-EQP-HUYET-MA-KIEM-01"))
+    assertEquals("CHARACTER_CANON", sword.getString("authority"))
+    assertEquals("IMMUTABLE", sword.getString("mutability"))
+    assertEquals(50, sword.getInt("priority"))
+    assertEquals("CHAR.CAO.HUYET_MA_KIEM",
+      core.getJSONArray("references").getString(2))
+    assertTrue(sword.getString("text").contains("not a pistol"))
+    assertTrue(sword.getString("text").contains("valid trajectory"))
+    assertTrue(sword.getString("text").contains("does not create extra copies"))
+    val result = KnowledgeContextEngine.buildForTestWithTrace(
+      dbJson, caoMinhStateJson(0), "Cao Minh điều khiển Huyết Ma Kiếm bay tới phía trước.", "{}")
+    assertTrue(proposed(result, "CHAR.CAO.HUYET_MA_KIEM",
+      "direct reference from CHAR.KAI.RUNTIME_CORE"))
+    assertPacketHas(result.packet, "CHAR.CAO.HUYET_MA_KIEM")
+    assertFalse("Sword action must not trigger the retired White Wraith gun record",
+      proposed(result, "CHAR.KAI.WHITE_WRAITH"))
+    assertPacketLacks(result.packet, "CHAR.KAI.WHITE_WRAITH")
+  }
+
   @Test fun lucTramKnowledgeLockUsesCurrentCodexWithoutInferringPresence() {
     val entries = JSONObject(dbJson).getJSONArray("records")
     val records = (0 until entries.length()).map { entries.getJSONObject(it) }

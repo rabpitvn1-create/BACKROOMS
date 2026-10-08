@@ -81,7 +81,7 @@
       "text": "Cao Minh / Vạn Giới Ma Tôn is a demonic sword cultivator who stood at the pinnacle of his unnamed home world before reaching Backrooms. His natal heart is Vạn Quỷ Ma Tâm; his bonded greatsword is Huyết Ma Kiếm and his armor is Huyết Ma Chiến Khải. His true age, home-world name and detailed cultivation ranks remain OPEN; secret lineage is not public character knowledge. He is relaxed, wry and fond of wine, yet decisive under real threat and fully in control of himself. He has no automatic knowledge of Backrooms levels or entities. The player chooses his intentional actions.",
       "source": {"document": "Novel/Asset/CAO_MINH_CODEX.md", "anchor": "CAO-QUICK-01; CAO-ID-01; CAO-PER-01; CAO-ACTION-LOCK-01; CAO-BACKROOMS-01"},
       "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 20,
-      "tags": ["cao minh", "vạn giới ma tôn", "present core", "voice"], "references": ["STORY.CAO.PROLOGUE_HANDOFF", "CHAR.CAO.BACKROOMS_KNOWLEDGE_LOCK"], "affordances": []
+      "tags": ["cao minh", "vạn giới ma tôn", "present core", "voice"], "references": ["STORY.CAO.PROLOGUE_HANDOFF", "CHAR.CAO.BACKROOMS_KNOWLEDGE_LOCK", "CHAR.CAO.HUYET_MA_KIEM"], "affordances": []
     },
     {
       "id": "CHAR.KAI.SPARDA_CORE",
@@ -457,6 +457,13 @@
       "source": {"document": "Novel/Asset/LUC_TRAM_CODEX.md", "anchor": "LUC-READ-FIRST-R04 / G BACKROOMS INTERACTION FIREWALL; 21 BACKROOMS KNOWLEDGE LOCK; LUC-BACKROOMS-R03"},
       "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 47,
       "tags": ["lục trầm knowledge","thiên kiếm linh tâm knowledge","backrooms knowledge lock"], "references": [], "affordances": []
+    },
+    {
+      "id": "CHAR.CAO.HUYET_MA_KIEM", "domain": "CHARACTER", "kind": "equipment",
+      "text": "Huyết Ma Kiếm is Cao Minh's real bonded demonic greatsword, not a pistol or a summoned duplicate. It has a broad straight dark blade, red blood sigils, and a Ma Luân with a blood crystal at the guard. Cao Minh can wield it directly to cut, thrust, parry or bind weapons; guide the same sword remotely by thần niệm when a target trace and valid trajectory exist; and reinforce or project sword pressure through Huyết Sát Ma Khí powered by Vạn Quỷ Ma Tâm. Damage and reach depend on position, obstacles, target and local laws, not a guaranteed hit. If damaged, the bonded sword can gradually regenerate as that same sword; this does not create extra copies or arbitrary weapon upgrades.",
+      "source": {"document": "Novel/Asset/CAO_MINH_CODEX.md", "anchor": "CAO-EQP-HUYET-MA-KIEM-01 / 11; 11.1; 11.2; 11.3"},
+      "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 50,
+      "tags": ["huyết ma kiếm","huyet ma kiem","huyết sát ma khí","ngự kiếm"], "references": [], "affordances": []
     }
   ]
 }
