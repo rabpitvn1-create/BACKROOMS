@@ -60,10 +60,10 @@ for asset in sorted(ASSET_DIR.glob("*.webp")):
     raise RuntimeError(f"Unrecognized Level Snapshot filename: {name}")
 
 catalog = CATALOG.read_text(encoding="utf-8")
-canon_nodes = set(re.findall(r'WorldContentEntry\\(WorldNodeId\\("(level-[0-9]+(?:\\.[0-9]+)?)"\\)', catalog))
+canon_nodes = set(re.findall(r'WorldContentEntry\(WorldNodeId\("(level-[0-9]+(?:\.[0-9]+)?)"\)', catalog))
 canon_areas = {
     f"area:{parent}:{slug}"
-    for parent, slug in re.findall(r'WorldNamedSection\\((\\d+), "([a-z0-9-]+)"', catalog)
+    for parent, slug in re.findall(r'WorldNamedSection\((\d+), "([a-z0-9-]+)"', catalog)
 }
 mapped_nodes = {f"level-{lv}" for lv in LEVEL_SNAPSHOTS} | set(SUBLEVEL_SNAPSHOTS)
 if mapped_nodes != canon_nodes or set(AREA_SNAPSHOTS) != canon_areas:
