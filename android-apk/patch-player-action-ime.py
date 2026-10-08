@@ -28,12 +28,12 @@ java = replace_one(java,
     "  private WebView webView;\n  private int actionImeInsetPx = 0; // PLAYER_ACTION_IME_FIX_R01\n",
     "IME state")
 java = replace_one(java,
-    "        installUiEnhancements();\n",
-    "        installUiEnhancements();\n        notifyActionImeInset();\n",
+    "            installUiEnhancements();\n",
+    "            installUiEnhancements();\n            notifyActionImeInset();\n",
     "WebView ready callback")
 java = replace_one(java,
-    "    setContentView(webView);\n    webView.loadUrl",
-    """    setContentView(webView);
+    "      setContentView(webView);\n      webView.loadUrl",
+    """      setContentView(webView);
     // Fullscreen edge-to-edge layouts do not reliably shrink with the IME.
     // Receive physical keyboard insets and forward them to the HTML popup.
     getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
