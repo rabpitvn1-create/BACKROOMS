@@ -10,6 +10,7 @@ OMNIVAULT = CORE / "OmnivaultEngine.kt"
 REGISTRY = CORE / "ItemRegistry.kt"
 SOURCE_TEST = ROOT / "app/src/test/java/com/rabpit/backroom/core/ItemSourceAuthorityFinalTest.kt"
 INVENTORY_TEST = ROOT / "app/src/test/java/com/rabpit/backroom/core/InventoryAuthorityRegressionTest.kt"
+OMNIVAULT_TEST = ROOT / "app/src/test/java/com/rabpit/backroom/core/OmnivaultInstanceAuthorityTest.kt"
 
 
 def replace_once(text: str, old: str, new: str, label: str) -> str:
@@ -96,7 +97,10 @@ old_engine = '''  fun execute(state: GameState, command: ItemCommand): Execution
     if (command.quantity <= 0) return invalid(state, "quantity_must_be_positive")
     if (ItemContentRules.hasForbiddenPreciseAmount(command.itemName)) return invalid(state, "precise_content_amount_forbidden")
     val source = state.inventories[command.actorId] ?: InventoryState(command.actorId)
-    val item = ItemContentRules.normalize(ItemStack(command.itemId, command.itemName, command.quantity, metadata = command.metadata))
+    val normalizedItem = ItemContentRules.normalize(ItemStack(command.itemId, command.itemName, command.quantity, metadata = command.metadata))
+    val item = if (command.operation == ItemCommand.Operation.PICKUP)
+      ItemIdentity.ensureOriginalInstances(normalizedItem, command.metadata["worldInstanceId"] ?: command.commandId)
+    else normalizedItem
     return when (command.operation) {
 '''
 new_engine = '''  fun execute(state: GameState, command: ItemCommand): ExecutionResult {
@@ -108,12 +112,15 @@ new_engine = '''  fun execute(state: GameState, command: ItemCommand): Execution
       if (acquisitionOrigin == "CHEST" && command.metadata["chestId"].isNullOrBlank()) return invalid(state, "chest_source_missing")
     }
     val source = state.inventories[command.actorId] ?: InventoryState(command.actorId)
-    val item = if (command.operation == ItemCommand.Operation.PICKUP && acquisitionOrigin in setOf("ENTITY", "CHEST")) {
+    val normalizedItem = if (command.operation == ItemCommand.Operation.PICKUP && acquisitionOrigin in setOf("ENTITY", "CHEST")) {
       ItemRegistry.stack(command.itemId, command.quantity, command.metadata)
     } else {
       ItemContentRules.normalize(ItemStack(command.itemId, command.itemName, command.quantity, metadata = command.metadata))
     }
-    if (ItemContentRules.hasForbiddenPreciseAmount(item.name)) return invalid(state, "precise_content_amount_forbidden")
+    if (ItemContentRules.hasForbiddenPreciseAmount(normalizedItem.name)) return invalid(state, "precise_content_amount_forbidden")
+    val item = if (command.operation == ItemCommand.Operation.PICKUP)
+      ItemIdentity.ensureOriginalInstances(normalizedItem, command.metadata["worldInstanceId"] ?: command.commandId)
+    else normalizedItem
     return when (command.operation) {
 '''
 engines = replace_once(engines, old_engine, new_engine, "InventoryEngine registry gate")
@@ -247,9 +254,75 @@ inventory_test = inventory_test.replace(
 )
 INVENTORY_TEST.write_text(inventory_test, encoding="utf-8")
 
+omnivault_test = OMNIVAULT_TEST.read_text(encoding="utf-8")
+old_world_test = '''  @Test fun worldObjectCanBeScannedWithoutBeingPickedUp() {
+    val worldItem = JSONObject()
+      .put("id", "medical:bandage")
+      .put("name", "Băng gạc")
+      .put("quantity", 1)
+      .put("instanceId", "world:bandage:alpha")
+      .put("available", true)
+    val flags = JSONObject().put("worldItems", JSONArray().put(worldItem))
+    val state = fresh().copy(world = fresh().world + ("flagsJson" to flags.toString()))
+    val result = scan(state, "medical:bandage", "Băng gạc", "scan:world-bandage")
+    assertTrue(result.validation.reason ?: "world scan failed", result.applied)
+    assertFalse(result.state.inventories.getValue(KAI_ID).items.containsKey(BANDAGE_ID))
+    assertTrue("world:bandage:alpha" in result.state.omnivault.markedSourceIds)
+    assertEquals("world:bandage:alpha", result.state.omnivault.scanSlots.single().templateItem.metadata["omnivaultSourceInstanceId"])
+  }
+'''
+new_world_test = '''  @Test fun authoritativeChestObjectCanBeScannedWithoutBeingPickedUp() {
+    val worldItem = JSONObject()
+      .put("id", ItemRegistry.ITEM_BANDAGE_ID)
+      .put("name", "ignored display name")
+      .put("quantity", 1)
+      .put("instanceId", "chest:medical:alpha:item:0")
+      .put("available", true)
+      .put("metadata", JSONObject().put("itemOrigin", "CHEST").put("chestId", "chest:medical:alpha"))
+    val flags = JSONObject().put("worldItems", JSONArray().put(worldItem))
+    val state = fresh().copy(world = fresh().world + ("flagsJson" to flags.toString()))
+    val result = scan(state, ItemRegistry.ITEM_BANDAGE_ID, "Băng gạc", "scan:chest-bandage")
+    assertTrue(result.validation.reason ?: "chest scan failed", result.applied)
+    assertFalse(result.state.inventories.getValue(KAI_ID).items.containsKey(BANDAGE_ID))
+    assertTrue("chest:medical:alpha:item:0" in result.state.omnivault.markedSourceIds)
+    assertEquals("chest:medical:alpha:item:0", result.state.omnivault.scanSlots.single().templateItem.metadata["omnivaultSourceInstanceId"])
+  }
+'''
+omnivault_test = replace_once(omnivault_test, old_world_test, new_world_test, "Omnivault Chest scan regression")
+
+old_flag_test = '''    fun stateWith(flag: String): GameState {
+      val item = JSONObject().put("id", "target").put("name", "Target").put("instanceId", "world:target").put("available", true).put(flag, true)
+      val flags = JSONObject().put("worldItems", JSONArray().put(item))
+      val base = fresh()
+      return base.copy(world = base.world + ("flagsJson" to flags.toString()))
+    }
+    val living = scan(stateWith("isLiving"), "target", "Target", "scan:living")
+'''
+new_flag_test = '''    fun stateWith(flag: String): GameState {
+      val item = JSONObject()
+        .put("id", ItemRegistry.ITEM_BANDAGE_ID)
+        .put("name", "ignored display name")
+        .put("instanceId", "chest:test:flags:item:0")
+        .put("available", true)
+        .put("metadata", JSONObject().put("itemOrigin", "CHEST").put("chestId", "chest:test:flags"))
+        .put(flag, true)
+      val flags = JSONObject().put("worldItems", JSONArray().put(item))
+      val base = fresh()
+      return base.copy(world = base.world + ("flagsJson" to flags.toString()))
+    }
+    val living = scan(stateWith("isLiving"), ItemRegistry.ITEM_BANDAGE_ID, "Băng gạc", "scan:living")
+'''
+omnivault_test = replace_once(omnivault_test, old_flag_test, new_flag_test, "Omnivault flagged Chest source")
+omnivault_test = omnivault_test.replace(
+    'val large = scan(stateWith("isLargeAssembly"), "target", "Target", "scan:large")',
+    'val large = scan(stateWith("isLargeAssembly"), ItemRegistry.ITEM_BANDAGE_ID, "Băng gạc", "scan:large")',
+    1,
+)
+OMNIVAULT_TEST.write_text(omnivault_test, encoding="utf-8")
+
 
 combined = "\n".join(path.read_text(encoding="utf-8") for path in (
-    REGISTRY, FACADE, REDUCER, ENGINES, COMBAT, OMNIVAULT, SOURCE_TEST, INVENTORY_TEST
+    REGISTRY, FACADE, REDUCER, ENGINES, COMBAT, OMNIVAULT, SOURCE_TEST, INVENTORY_TEST, OMNIVAULT_TEST
 ))
 for marker in (
     "object ItemRegistry",
@@ -261,6 +334,7 @@ for marker in (
     'origin == "ENTITY"',
     '.put("metadata", JSONObject(item.metadata))',
     "bandageEntityPickupDoesNotRunContentUseValidation",
+    "authoritativeChestObjectCanBeScannedWithoutBeingPickedUp",
 ):
     if marker not in combined:
         raise RuntimeError("Final Item registry contract missing: " + marker)
