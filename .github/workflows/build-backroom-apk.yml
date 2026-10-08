@@ -259,6 +259,10 @@ jobs:
         with:
           gradle-version: "8.10.2"
 
+
+      - name: Generate Canon P1 compiler shadow candidate
+        run: python3 android-apk/compiler-knowledge-db-shadow.py
+
       - name: Run Kotlin tests and build debug APK
         working-directory: android-apk
         run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
@@ -321,6 +325,51 @@ jobs:
         with:
           name: Canon-P1-schema-lint-${{ github.run_id }}
           path: android-apk/app/build/reports/canon-p1/schema-lint.json
+          if-no-files-found: error
+          retention-days: 14
+
+
+      - name: Verify Canon P1 compiler round-trip parity
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("android-apk/app/build/reports/canon-p1")
+          data = json.loads((root / "compiler-data-parity.json").read_text(encoding="utf-8"))
+          runtime = json.loads((root / "compiler-runtime-parity.json").read_text(encoding="utf-8"))
+          p0 = json.loads(Path("android-apk/app/build/reports/canon-p0/snapshot-report.json").read_text(encoding="utf-8"))
+          authoring = json.loads((root / "compiler-authoring-shadow.json").read_text(encoding="utf-8"))
+          candidate = json.loads((root / "compiler-candidate.json").read_text(encoding="utf-8"))
+          assert data["passed"] and data["shippingAssetUnchanged"] and not data["failures"]
+          assert data["mode"] == runtime["mode"] == "shadow_only"
+          assert data["sameOrderedRecordIds"] and data["sameRecordCount"]
+          assert data["baselineRecordCount"] == data["candidateRecordCount"] == len(candidate["records"])
+          assert all(n == len(candidate["records"]) for n in data["fieldMatchCounts"].values())
+          assert len(authoring["records"]) == len(candidate["records"])
+          assert "authoring" not in candidate["records"][0]
+          assert "rev" not in candidate["records"][0] and "status" not in candidate["records"][0]
+          assert runtime["builder"] == "KnowledgeContextEngine.buildForTest"
+          assert runtime["scenarioCount"] == runtime["packetParityCount"] == p0["scenarioCount"] == 25
+          baseline = {case["name"]: case for case in p0["scenarios"]}
+          cases = {case["name"]: case for case in runtime["scenarios"]}
+          assert len(baseline) == len(cases) == 25 and baseline.keys() == cases.keys()
+          for name, case in cases.items():
+              old = baseline[name]
+              assert case["candidatePacketSha256"] == case["baselinePacketSha256"] == old["packetSha256"], name
+              assert case["budgetKeptRecordIds"] == old["budgetKeptRecordIds"], name
+              for key in ("hardClipDecision", "hardClipRecordId", "hardClipCutOffset",
+                          "serializedCharsBeforeClip", "serializedCharsAfterClip"):
+                  assert case[key] == old[key], (name, key)
+          print("Canon P1.5 candidate: data fields/order and 25/25 JVM packet parity")
+          PY
+
+      - name: Upload Canon P1 compiler round-trip artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Canon-P1-compiler-round-trip-${{ github.run_id }}
+          path: android-apk/app/build/reports/canon-p1/compiler-*.json
           if-no-files-found: error
           retention-days: 14
 

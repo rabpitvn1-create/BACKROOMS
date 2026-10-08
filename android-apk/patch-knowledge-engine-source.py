@@ -1270,6 +1270,71 @@ class KnowledgeContextEngineP0Test {
     assertTrue("Canon P1 tier shadow report must exist", reportFile.isFile)
   }
 
+
+  @Test fun compilerCandidateUsesProductionBuilderWithCompleteP0PacketParity() {
+    val path = Path.of("build", "reports", "canon-p1", "compiler-candidate.json")
+    assertTrue("P1.5 candidate must be produced by compiler before unit tests", Files.isRegularFile(path))
+    val candidateDb = path.toFile().readText(Charsets.UTF_8)
+    val cases = JSONArray()
+    assertEquals(25, allP0Scenarios.size)
+    allP0Scenarios.forEach { scenario ->
+      val baseline = KnowledgeContextEngine.buildForTest(
+        dbJson, scenario.stateJson, scenario.action, scenario.rollsJson)
+      val compiled = KnowledgeContextEngine.buildForTest(
+        candidateDb, scenario.stateJson, scenario.action, scenario.rollsJson)
+      assertEquals("Candidate changed JVM packet bytes: " + scenario.name, baseline, compiled)
+
+      val before = KnowledgeContextEngine.buildForTestWithTrace(
+        dbJson, scenario.stateJson, scenario.action, scenario.rollsJson)
+      val after = KnowledgeContextEngine.buildForTestWithTrace(
+        candidateDb, scenario.stateJson, scenario.action, scenario.rollsJson)
+      assertEquals("Baseline tracing differs: " + scenario.name, baseline, before.packet)
+      assertEquals("Candidate tracing differs: " + scenario.name, compiled, after.packet)
+
+      val selectedBefore = before.events.filter { it.type == "candidate_added" }.map { it.recordId }
+      val selectedAfter = after.events.filter { it.type == "candidate_added" }.map { it.recordId }
+      assertEquals("Selected IDs/order changed: " + scenario.name, selectedBefore, selectedAfter)
+      val keptBefore = before.events.filter { it.type == "budget_decision" && it.decision == "kept" }.map { it.recordId }
+      val keptAfter = after.events.filter { it.type == "budget_decision" && it.decision == "kept" }.map { it.recordId }
+      assertEquals("Budget selection/order changed: " + scenario.name, keptBefore, keptAfter)
+
+      val clipBefore = before.events.last { it.type == "hard_clip" }
+      val clipAfter = after.events.last { it.type == "hard_clip" }
+      assertEquals("HardClip decision changed: " + scenario.name, clipBefore.decision, clipAfter.decision)
+      assertEquals("HardClip boundary changed: " + scenario.name, clipBefore.startChar, clipAfter.startChar)
+      assertEquals("HardClip record changed: " + scenario.name, clipBefore.recordId, clipAfter.recordId)
+      assertEquals("HardClip field changed: " + scenario.name, clipBefore.field, clipAfter.field)
+      assertEquals("Serialized length changed: " + scenario.name,
+        clipBefore.serializedCharsBeforeClip, clipAfter.serializedCharsBeforeClip)
+      assertEquals("Clipped length changed: " + scenario.name,
+        clipBefore.serializedCharsAfterClip, clipAfter.serializedCharsAfterClip)
+
+      cases.put(JSONObject()
+        .put("name", scenario.name)
+        .put("baselinePacketSha256", sha256(baseline))
+        .put("candidatePacketSha256", sha256(compiled))
+        .put("selectedIds", JSONArray(selectedAfter))
+        .put("budgetKeptRecordIds", JSONArray(keptAfter))
+        .put("hardClipDecision", clipAfter.decision)
+        .put("hardClipRecordId", clipAfter.recordId)
+        .put("hardClipField", clipAfter.field)
+        .put("hardClipCutOffset", clipAfter.startChar)
+        .put("serializedCharsBeforeClip", clipAfter.serializedCharsBeforeClip)
+        .put("serializedCharsAfterClip", clipAfter.serializedCharsAfterClip)
+      )
+    }
+    val report = JSONObject()
+      .put("schemaVersion", 1)
+      .put("mode", "shadow_only")
+      .put("builder", "KnowledgeContextEngine.buildForTest")
+      .put("scenarioCount", cases.length())
+      .put("packetParityCount", cases.length())
+      .put("scenarios", cases)
+    val dir = Path.of("build", "reports", "canon-p1").toFile()
+    assertTrue(dir.mkdirs() || dir.isDirectory)
+    dir.resolve("compiler-runtime-parity.json").writeText(report.toString(2) + "\n", Charsets.UTF_8)
+  }
+
   private fun stateJson(level: Int, partyIds: Array<String> = emptyArray()): String {
     val party = JSONArray()
     partyIds.forEach { party.put(it) }
