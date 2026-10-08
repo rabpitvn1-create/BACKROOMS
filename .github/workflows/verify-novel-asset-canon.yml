@@ -35,8 +35,10 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.10.2'
-      - name: Verify bounded GM source retrieval and disclosure locks
-        run: gradle -p android-apk :app:testDebugUnitTest --tests com.rabpit.backroom.core.knowledge.NovelAssetRoutingTest --no-daemon --info
+      - name: Verify complete JVM suite and assemble debug APK
+        run: gradle -p android-apk :app:testDebugUnitTest :app:assembleDebug --no-daemon
+      - name: Verify all 11 canon sources packaged into APK
+        run: python3 android-apk/verify-novel-asset-apk.py android-apk/app/build/outputs/apk/debug/app-debug.apk
       - name: Show failed test detail
         if: failure()
         run: |
