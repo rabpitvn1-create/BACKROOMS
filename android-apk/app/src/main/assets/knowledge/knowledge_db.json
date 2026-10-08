@@ -5,8 +5,8 @@
       "id": "GAME.TEXT.CORE",
       "domain": "GAME_RULE",
       "kind": "hard-lock",
-      "text": "Text Game authority: user instruction, Text Game rules, GM rules, live save/campaign state, then on-demand canon. Player controls Kai's intentional actions; GM controls world, Entity, survivor/NPC and consequences. Do not nerf canon abilities, invent facts, reset consequences, cheat dice, or fill UNKNOWN. Gameplay normally retrieves only needed canon rather than scanning the whole corpus.",
-      "source": {"document": "05_TextGame/RULES/TEXT_GAME_RULES.md", "anchor": "1-12"},
+      "text": "Text Game authority: user instruction, Text Game rules, GM rules, live save/campaign state, then on-demand canon. Player controls Cao Minh's intentional actions; GM controls world, Entity, survivor/NPC and consequences. Do not nerf canon abilities, invent facts, reset consequences, cheat dice, or fill UNKNOWN. Gameplay normally retrieves only needed canon rather than scanning the whole corpus.",
+      "source": {"document": "05_TextGame/RULES/TEXT_GAME_RULES.md + android-apk/cao-minh-prologue.txt", "anchor": "1-12; LƯỢT 1"},
       "authority": "TEXT_GAME_HARD_LOCK", "mutability": "IMMUTABLE", "priority": 10,
       "tags": ["gameplay", "authority", "player agency", "unknown"], "references": [], "affordances": []
     },
@@ -21,8 +21,8 @@
     {
       "id": "WRITING.PLAYER_AGENCY",
       "domain": "WRITING", "kind": "hard-lock",
-      "text": "Do not choose Kai's intentional action for the player. Resolve what Kai can perceive from the chosen action before asking for the next choice. Menus are suggestions, not rails; free-form methods are valid, but the player cannot declare an unconfirmed result as already true.",
-      "source": {"document": "05_TextGame/RULES/TEXT_GAME_RULES.md + 05_TextGame/RULES/GAME_MASTER_RULES.md", "anchor": "TEXT_GAME_RULES 4; GM_RULES 2"},
+      "text": "Do not choose Cao Minh's intentional action for the player. Resolve what Cao Minh can perceive from the chosen action before asking for the next choice. Menus are suggestions, not rails; free-form methods are valid, but the player cannot declare an unconfirmed result as already true.",
+      "source": {"document": "05_TextGame/RULES/TEXT_GAME_RULES.md + 05_TextGame/RULES/GAME_MASTER_RULES.md + android-apk/cao-minh-prologue.txt", "anchor": "TEXT_GAME_RULES 4; GM_RULES 2; LƯỢT 1"},
       "authority": "TEXT_GAME_HARD_LOCK", "mutability": "IMMUTABLE", "priority": 12,
       "tags": ["player agency", "choice"], "references": [], "affordances": []
     },
@@ -78,10 +78,10 @@
     {
       "id": "CHAR.KAI.RUNTIME_CORE",
       "domain": "CHARACTER", "kind": "runtime-card",
-      "text": "Kai Akechi / Twilight: Black Blood captain under Vatican, UR+, half-human/half-demon, son of Sparda and Eve. Origin era 2299 is not a birth year; true age is unknown. Outside danger he can be relaxed, lazy, teasing and irreverent; in real danger he becomes disciplined and decisive, prioritizing teammates/civilians. He retains full control of himself and demon power. Do not make him a reckless idiot, a moralizing hero-mouthpiece, or a puppet whose intentional actions GM chooses for the player.",
-      "source": {"document": "02_CHARACTERS/Kai_Codex.docx", "anchor": "KAI-QUICK-01; KAI-PER-01; KAI-ACTION-LOCK-01"},
+      "text": "Cao Minh / Vạn Giới Ma Tôn is a demonic sword cultivator who stood at the pinnacle of his unnamed home world before reaching Backrooms. His natal heart is Vạn Quỷ Ma Tâm; his bonded greatsword is Huyết Ma Kiếm and his armor is Huyết Ma Chiến Khải. His true age, home-world name and detailed cultivation ranks remain OPEN; secret lineage is not public character knowledge. He is relaxed, wry and fond of wine, yet decisive under real threat and fully in control of himself. He has no automatic knowledge of Backrooms levels or entities. The player chooses his intentional actions.",
+      "source": {"document": "Novel/Asset/CAO_MINH_CODEX.md", "anchor": "CAO-QUICK-01; CAO-ID-01; CAO-PER-01; CAO-ACTION-LOCK-01; CAO-BACKROOMS-01"},
       "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 20,
-      "tags": ["kai", "twilight", "present core", "voice"], "references": [], "affordances": []
+      "tags": ["cao minh", "vạn giới ma tôn", "present core", "voice"], "references": [], "affordances": []
     },
     {
       "id": "CHAR.KAI.SPARDA_CORE",

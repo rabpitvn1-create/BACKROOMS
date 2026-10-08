@@ -963,6 +963,31 @@ class KnowledgeContextEngineP0Test {
     assertFalse("Fixture must not name an Entity", scenario("runtime_entity_encounter").action.contains("entity", ignoreCase = true))
   }
 
+  @Test fun currentPrologueUsesCaoMinhInMandatoryKnowledgeWithoutRenamingStableId() {
+    val data = JSONObject(dbJson).getJSONArray("records")
+    val records = (0 until data.length())
+      .map { data.getJSONObject(it) }
+      .associateBy { it.getString("id") }
+    val identity = records.getValue("CHAR.KAI.RUNTIME_CORE")
+    assertEquals("Novel/Asset/CAO_MINH_CODEX.md",
+      identity.getJSONObject("source").getString("document"))
+    assertTrue(identity.getString("text").startsWith("Cao Minh / Vạn Giới Ma Tôn"))
+    assertFalse(identity.getString("text").contains("Kai Akechi / Twilight"))
+    assertTrue(records.getValue("GAME.TEXT.CORE").getString("text")
+      .contains("Player controls Cao Minh's intentional actions"))
+    assertTrue(records.getValue("WRITING.PLAYER_AGENCY").getString("text")
+      .contains("Do not choose Cao Minh's intentional action"))
+
+    val quiet = KnowledgeContextEngine.buildForTest(dbJson,
+      stateJson(0), "Quan sát hành lang.", "{}")
+    assertTrue(quiet.contains("<CHAR.KAI.RUNTIME_CORE> Cao Minh / Vạn Giới Ma Tôn"))
+    assertTrue(quiet.contains("Player controls Cao Minh's intentional actions"))
+    assertTrue(quiet.contains("Do not choose Cao Minh's intentional action"))
+    assertFalse(quiet.contains("Kai Akechi / Twilight"))
+    assertFalse(quiet.contains("Player controls Kai's intentional actions"))
+    assertFalse(quiet.contains("Do not choose Kai's intentional action"))
+  }
+
   @Test fun caoMinhRuntimeIdentityStillProjectsStableKaiKnowledgeIds() {
     val sparda = traced("cao_minh_uses_stable_kai_namespace")
     assertTrue(
