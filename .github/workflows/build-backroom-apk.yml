@@ -86,7 +86,7 @@ jobs:
       - name: Apply Android runtime patch chain
         run: |
           set -euo pipefail
-          scripts=(patch-provider-status.py patch-provider-key-pool.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py patch-ui-1.1.99-shell.py patch-poker-dice-core-backport.py patch-poker-dice-ui-119-polish.py patch-cao-minh-identity-overlay.py patch-item-detail-actions.py patch-item-whole-unit.py patch-cao-minh-skills-equipment.py patch-cao-minh-prologue.py patch-character-stats-1193a-restore.py patch-combat-feedback-1193a.py patch-combat-93-runtime.py patch-combat-93-snapshot.py)
+          scripts=(patch-provider-status.py patch-provider-key-pool.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py patch-ui-1.1.99-shell.py patch-poker-dice-core-backport.py patch-poker-dice-ui-119-polish.py patch-cao-minh-identity-overlay.py patch-item-detail-actions.py patch-item-whole-unit.py patch-cao-minh-skills-equipment.py patch-cao-minh-prologue.py patch-character-stats-1193a-restore.py patch-combat-feedback-1193a.py patch-combat-93-runtime.py patch-combat-93-snapshot.py patch-item-source-authority-final.py patch-item-registry-core.py)
           for script in "${scripts[@]}"; do
             echo "==> $script"
             python3 "android-apk/$script"
@@ -294,6 +294,67 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      - name: Verify Canon P1 reference shadow report
+        run: |
+          set -euo pipefail
+          REPORT="android-apk/app/build/reports/canon-p1/reference-shadow.json"
+          test -s "$REPORT"
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.loads(Path("android-apk/app/build/reports/canon-p1/reference-shadow.json").read_text(encoding="utf-8"))
+          assert report["schemaVersion"] == 1
+          assert report["mode"] == "shadow_only"
+          assert report["legacyReferencePriorityGate"] == 55
+          assert report["edgeCount"] == len(report["edges"])
+          counts = report["counts"]
+          assert report["edgeCount"] == counts["legacyFollowed"] + counts["related"] + counts["missing"]
+
+          edges = {(edge["from"], edge["to"]): edge for edge in report["edges"]}
+          assert edges[("CHAR.KAI.GUILTY_CROWN_OVERRIDE", "CHAR.KAI.DEVIL_TRIGGER")]["shadowClass"] == "LEGACY_FOLLOWED"
+          assert edges[("LEVEL.01", "ENTITY.HOUND")]["shadowClass"] == "RELATED"
+          PY
+
+      - name: Upload Canon P1 reference shadow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Canon-P1-reference-shadow-${{ github.run_id }}
+          path: android-apk/app/build/reports/canon-p1/reference-shadow.json
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Verify Canon P1 alias shadow report
+        run: |
+          set -euo pipefail
+          REPORT="android-apk/app/build/reports/canon-p1/alias-shadow.json"
+          test -s "$REPORT"
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.loads(Path("android-apk/app/build/reports/canon-p1/alias-shadow.json").read_text(encoding="utf-8"))
+          assert report["schemaVersion"] == 1
+          assert report["mode"] == "shadow_only"
+          assert report["scope"] == "ENTITY_ITEM_RUNTIME_TAG_LOOKUP"
+          assert report["seedSource"] == "runtime_tags_only"
+          assert report["seedTagCount"] > 0
+          assert report["accentedSeedCount"] >= 0
+          assert report["caseCount"] == len(report["cases"])
+          assert report["caseCount"] > 0
+          assert report["tagOnlyCases"] == 0
+          assert report["aliasOnlyCases"] == 0
+          assert report["parityCases"] == report["caseCount"]
+          PY
+
+      - name: Upload Canon P1 alias shadow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Canon-P1-alias-shadow-${{ github.run_id }}
+          path: android-apk/app/build/reports/canon-p1/alias-shadow.json
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Verify Canon P0 Android serialization smoke
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -313,7 +374,9 @@ jobs:
             test -n "$COMPONENT" &&
             OUTPUT="$(adb shell am instrument -w -e p0QuietSha "$CANON_P0_QUIET_SHA" -e p0HardClipSha "$CANON_P0_HARD_CLIP_SHA" "$COMPONENT")" &&
             printf '%s\n' "$OUTPUT" &&
-            printf '%s\n' "$OUTPUT" | grep -q 'INSTRUMENTATION_CODE: -1'
+            printf '%s\n' "$OUTPUT" | grep -q 'android_smoke_quiet.androidSha=' &&
+            printf '%s\n' "$OUTPUT" | grep -q 'android_smoke_hard_clip.androidSha=' &&
+            printf '%s\n' "$OUTPUT" | grep -q 'OK (1 test)'
 
       - name: Prepare APK
         run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.1.63.0.1.apk
