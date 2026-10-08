@@ -5305,7 +5305,7 @@
       "text": "# BACKROOMS — THIẾT KẾ THẾ GIỚI\n\n## 1. NỀN THẾ GIỚI\n\nThế giới sử dụng **Backrooms trên mạng làm nền trực tiếp**.\n\nCác Tầng, môi trường, hiện tượng, vật phẩm, tổ chức, lối vào, lối ra, cộng đồng, thực thể và những quy luật đã tồn tại của Backrooms đều được giữ theo nguồn hiện hành, trừ những điểm được quy định khác trong tài liệu của tác phẩm.\n\nKhông xây dựng lại Backrooms thành một thế giới mới nếu không cần thiết.\n\nKhi câu chuyện cần một dữ kiện cụ thể, tra cứu nguồn Backrooms hiện hành rồi sử dụng làm nền.\n\n---\n\n## 2. PHẠM VI CÁC TẦNG\n\nBackrooms không kết thúc ở Tầng 10.\n\nTác phẩm đã có baseline môi trường từ **Tầng 0 đến Tầng 13**; các chi tiết gameplay chưa xác nhận vẫn phải bổ sung dần. Tầng 11–13 hiện dùng nguồn tham khảo Backrooms Wiki, chưa tự động trở thành route, loot hoặc Entity spawn trong game.\n\nPhạm vi hiện tại:\n\n- **Tầng 0 — Threshold**\n- **Tầng 1 — Hab",
       "source": {
         "document": "Novel/Asset/BACKROOMS_WORLD.md",
-        "anchor": "full-text excerpt 1/24"
+        "anchor": "full-text excerpt 1/30"
       },
       "authority": "WORLD_CANON",
       "mutability": "BASELINE",
@@ -5345,7 +5345,14 @@
         "novel_topic:tầng 13",
         "novel_topic:matrix",
         "novel_topic:the boiling frogs",
-        "novel_topic:the city that never sleeps"
+        "novel_topic:the city that never sleeps",
+        "novel_topic:manila room",
+        "novel_topic:the torment",
+        "novel_topic:level 0.2",
+        "novel_topic:level 0.7",
+        "novel_topic:level ε",
+        "novel_topic:claustrophobia",
+        "novel_topic:deep emptiness"
       ],
       "references": [],
       "affordances": []
@@ -5357,7 +5364,7 @@
       "text": "itable Zone**\n- **Tầng 2 — Abandoned Utility Halls**\n- **Tầng 3 — Electrical Station**\n- **Tầng 4 — Abandoned Office**\n- **Tầng 5 — Terror Hotel**\n- **Tầng 6 — Lights Out**\n- **Tầng 7 — Thalassophobia**\n- **Tầng 8 — Cave Systems**\n- **Tầng 9 — The Suburbs**\n- **Tầng 10 — Bumper Crop**\n- **Tầng 11 — The City That Never Sleeps**\n- **Tầng 12 — Matrix**\n- **Tầng 13 — The Boiling Frogs**\n\nMỗi Tầng giữ nguyên đặc điểm môi trường, hiện tượng, tài nguyên, lối vào và lối ra vốn có của Backrooms.\n\nKhông tự sửa độ nguy hiểm chỉ để cân bằng câu chuyện.\n\nKhông có quy luật rằng số Tầng càng lớn thì càng nguy hiểm.\n\n---\n\n## 2A. MÔI TRƯỜNG CỤ THỂ — TẦNG 0 ĐẾN TẦNG 13\n\nPhần này bổ sung baseline môi trường để dùng khi dựng cảnh. Nó không thay thế tài liệu Level chuyên biệt nếu tài liệu đó đã khóa chi tiết khác.\n\n### Tầng 0 — Threshold / The Lobby\n\nMột mạng phòng vàng phi Euclid với giấ",
       "source": {
         "document": "Novel/Asset/BACKROOMS_WORLD.md",
-        "anchor": "full-text excerpt 2/24"
+        "anchor": "full-text excerpt 2/30"
       },
       "authority": "WORLD_CANON",
       "mutability": "BASELINE",
@@ -5397,7 +5404,14 @@
         "novel_topic:tầng 13",
         "novel_topic:matrix",
         "novel_topic:the boiling frogs",
-        "novel_topic:the city that never sleeps"
+        "novel_topic:the city that never sleeps",
+        "novel_topic:manila room",
+        "novel_topic:the torment",
+        "novel_topic:level 0.2",
+        "novel_topic:level 0.7",
+        "novel_topic:level ε",
+        "novel_topic:claustrophobia",
+        "novel_topic:deep emptiness"
       ],
       "references": [],
       "affordances": []
@@ -5409,7 +5423,7 @@
       "text": "y dán tường cũ, thảm ẩm, đèn huỳnh quang và tiếng ù liên tục. Các phòng giống nhau nhưng không hoàn toàn trùng lặp; đi thẳng không bảo đảm giữ phương hướng hoặc quay lại đúng nơi cũ.\n\nKhoảng trống trên trần giả, dây điện, ống kỹ thuật và các góc chết có thể tồn tại nhưng không tạo thành một tuyến di chuyển ổn định. Chất lỏng trong thảm không được mặc định là nước uống. Cảm giác khoảng cách, vị trí và thời gian dễ sai lệch khi ở lâu.\n\n### Tầng 1 — Habitable Zone\n\nKhông gian bê tông rộng giống gara, bãi đỗ xe và khu dịch vụ công nghiệp. Cột chịu lực, đường dốc, cửa cuốn, phòng kho và những khoảng trống lớn tạo tầm nhìn dài nhưng nhiều góc khuất.\n\nBlackout có thể khiến cùng một khu vực trở nên gần như không nhận ra. Nhiệt độ, độ ẩm và tiếng máy thay đổi giữa các khu vực. Âm thanh bước chân, kim loại hoặc vật rơi có thể vọng rất xa.\n\n### Tầng 2 — Abandoned Utility Halls /",
       "source": {
         "document": "Novel/Asset/BACKROOMS_WORLD.md",
-        "anchor": "full-text excerpt 3/24"
+        "anchor": "full-text excerpt 3/30"
       },
       "authority": "WORLD_CANON",
       "mutability": "BASELINE",
@@ -5449,7 +5463,14 @@
         "novel_topic:tầng 13",
         "novel_topic:matrix",
         "novel_topic:the boiling frogs",
-        "novel_topic:the city that never sleeps"
+        "novel_topic:the city that never sleeps",
+        "novel_topic:manila room",
+        "novel_topic:the torment",
+        "novel_topic:level 0.2",
+        "novel_topic:level 0.7",
+        "novel_topic:level ε",
+        "novel_topic:claustrophobia",
+        "novel_topic:deep emptiness"
       ],
       "references": [],
       "affordances": []
@@ -5461,7 +5482,7 @@
       "text": " Pipe Dreams\n\nMột mạng hành lang kỹ thuật nóng ẩm với đường ống, van, shaft, crawlspace, hơi nước và nước rò. Nhiều đoạn hẹp tới mức buộc người đi nghiêng hoặc bò.\n\nNhiệt độ không đồng nhất. Một khu có thể nóng đến mức gây bỏng hoặc mất nước nhanh, trong khi khu khác lạnh bất thường. Tiếng máy và dòng chất lỏng trong ống thường khó xác định nguồn.\n\n### Tầng 3 — Electrical Station\n\nMôi trường công nghiệp dày đặc gồm máy biến áp, bảng điện, quạt lớn, cuộn dây, conductor, cáp cao áp và hệ thống máy móc không rõ nguồn cấp.\n\nKhu chính thường nóng, khô và có mùi ozone. Các utility tunnel phía dưới có thể lạnh sâu, ngập nước hoặc mất điện. Khi blackout xảy ra, việc mất tiếng máy quen thuộc cũng làm khả năng định hướng suy giảm.\n\n### Tầng 4 — Abandoned Office\n\nMột cao ốc văn phòng bỏ hoang với cubicle, phòng họp, hành lang, cửa kính, máy tính cũ và nội thất rời rạc. Hình học ",
       "source": {
         "document": "Novel/Asset/BACKROOMS_WORLD.md",
-        "anchor": "full-text excerpt 4/24"
+        "anchor": "full-text excerpt 4/30"
       },
       "authority": "WORLD_CANON",
       "mutability": "BASELINE",
@@ -5501,7 +5522,14 @@
         "novel_topic:tầng 13",
         "novel_topic:matrix",
         "novel_topic:the boiling frogs",
-        "novel_topic:the city that never sleeps"
+        "novel_topic:the city that never sleeps",
+        "novel_topic:manila room",
+        "novel_topic:the torment",
+        "novel_topic:level 0.2",
+        "novel_topic:level 0.7",
+        "novel_topic:level ε",
+        "novel_topic:claustrophobia",
+        "novel_topic:deep emptiness"
       ],
       "references": [],
       "affordances": []
@@ -5513,7 +5541,7 @@
       "text": "dễ đọc hơn nhiều Tầng trước nhưng vẫn không được xem là hoàn toàn tuyến tính.\n\nCửa sổ có thể nhìn ra bầu trời xám và mưa kéo dài. Tiếng mưa đôi khi nghe được sâu trong tòa nhà dù không có nguồn nước tương ứng. Đây là vùng tương đối dễ nghỉ chân hơn, không phải khu vực an toàn tuyệt đối.\n\n### Tầng 5 — Terror Hotel\n\nMột khách sạn rộng lớn mang thẩm mỹ cổ điển, với gỗ tối, thảm dày, đồng thau, đèn vàng, hành lang dài và các khu chức năng như phòng ngủ, ballroom, nhà hàng, hồ bơi, boiler room và khu bảo trì.\n\nCác wing không nhất thiết thuộc cùng một thời kỳ kiến trúc và không cần khớp thành một sơ đồ khách sạn hợp lý. Không khí thường có mùi bụi, gỗ cũ, vải lâu ngày và kim loại nóng gần khu kỹ thuật.\n\n### Tầng 6 — Lights Out\n\n**HARD LOCK của Project:** Tầng 6 là tundra tối vĩnh viễn, không phải mê cung hành lang tối của continuity cũ.\n\nĐịa hình gồm đất lạnh, tuyết rải rác",
       "source": {
         "document": "Novel/Asset/BACKROOMS_WORLD.md",
-        "anchor": "full-text excerpt 5/24"
+        "anchor": "full-text excerpt 5/30"
       },
       "authority": "WORLD_CANON",
       "mutability": "BASELINE",
@@ -5553,7 +5581,14 @@
         "novel_topic:tầng 13",
         "novel_topic:matrix",
         "novel_topic:the boiling frogs",
-        "novel_topic:the city that never sleeps"
+        "novel_topic:the city that never sleeps",
+        "novel_topic:manila room",
+        "novel_topic:the torment",
+        "novel_topic:level 0.2",
+        "novel_topic:level 0.7",
+        "novel_topic:level ε",
+        "novel_topic:claustrophobia",
+        "novel_topic:deep emptiness"
       ],
       "references": [],
       "affordances": []
@@ -5565,7 +5600,7 @@
       "text": ", cây bụi héo, thân cây chết, hồ tối và những cấu trúc cô lập như obelisk. Không có nguồn sáng tự nhiên đáng tin cậy. Ánh sáng nhân tạo chỉ mở ra một vùng nhìn ngắn trước khi bóng tối che mất đường chân trời.\n\nNguy cơ môi trường chính gồm lạnh, mất phương hướng, thiếu ngủ, microsleep và suy giảm nhận thức trong bóng tối kéo dài.\n\n### Tầng 7 — Thalassophobia\n\nMột đại dương gần như vô tận bao quanh khu cấu trúc kim loại hoặc bunker rỉ sét. Nước lạnh, bầu trời xám và sương dày khiến chân trời khó xác định.\n\nBên trong công trình có thể ngập nước, ẩm lạnh và chứa đồ đạc mục nát. Độ sâu ngoài biển thay đổi mạnh; khu nước tương đối nông có thể chuyển rất nhanh sang vùng sâu không xác định. Sương và nước không được mặc định vô hại chỉ vì trông giống môi trường tự nhiên.\n\n### Tầng 8 — Cave Systems\n\nMột hệ hang ngầm khổng lồ với khoang đá cao, vực sâu, tunnel hẹp, nước tù và cá",
       "source": {
         "document": "Novel/Asset/BACKROOMS_WORLD.md",
-        "anchor": "full-text excerpt 6/24"
+        "anchor": "full-text excerpt 6/30"
       },
       "authority": "WORLD_CANON",
       "mutability": "BASELINE",
@@ -5605,7 +5640,14 @@
         "novel_topic:tầng 13",
         "novel_topic:matrix",
         "novel_topic:the boiling frogs",
-        "novel_topic:the city that never sleeps"
+        "novel_topic:the city that never sleeps",
+        "novel_topic:manila room",
+        "novel_topic:the torment",
+        "novel_topic:level 0.2",
+        "novel_topic:level 0.7",
+        "novel_topic:level ε",
+        "novel_topic:claustrophobia",
+        "novel_topic:deep emptiness"
       ],
       "references": [],
       "affordances": []
@@ -5617,7 +5659,7 @@
       "text": "c đoạn phải bò hoặc ép người qua khe đá.\n\nÂm thanh phản xạ mạnh, dễ khiến người nghe sai khoảng cách và phương hướng. Một số tuyến có thể thay đổi khi mất khỏi tầm nhìn. Các cầu gỗ, nơi trú hoặc dấu vết cư trú cũ không tự chứng minh nguồn gốc hay mức an toàn.\n\n### Tầng 9 — The Suburbs\n\nMột vùng ngoại ô kéo dài trong ban đêm vĩnh viễn với đường nhựa, vỉa hè, nhà thấp tầng, bãi cỏ, cây cối và sương lạnh.\n\nĐèn đường chỉ tạo những vùng sáng nhỏ. Nhà cửa có thể lặp lại về kiểu dáng nhưng nội thất không giống nhau. Đi sâu khỏi khu dân cư có thể gặp các công trình méo mó, cũ hơn hoặc không còn giống kiến trúc nhà ở thông thường.\n\n### Tầng 10 — Bumper Crop\n\nĐồng cỏ và ruộng canh tác kéo dài tới đường chân trời, xen kẽ hàng cây, bụi rậm, barn, chuồng và các công trình nông nghiệp nhỏ.\n\nBầu trời thường xám và trạng thái ban ngày ít thay đổi, khiến cảm giác thời gian trở nên khô",
       "source": {
         "document": "Novel/Asset/BACKROOMS_WORLD.md",
-        "anchor": "full-text excerpt 7/24"
+        "anchor": "full-text excerpt 7/30"
       },
       "authority": "WORLD_CANON",
       "mutability": "BASELINE",
@@ -5657,7 +5699,14 @@
         "novel_topic:tầng 13",
         "novel_topic:matrix",
         "novel_topic:the boiling frogs",
-        "novel_topic:the city that never sleeps"
+        "novel_topic:the city that never sleeps",
+        "novel_topic:manila room",
+        "novel_topic:the torment",
+        "novel_topic:level 0.2",
+        "novel_topic:level 0.7",
+        "novel_topic:level ε",
+        "novel_topic:claustrophobia",
+        "novel_topic:deep emptiness"
       ],
       "references": [],
       "affordances": []
@@ -5669,7 +5718,7 @@
       "text": "ng đáng tin. Hồ, vũng nước và địa hình thấp xuất hiện rải rác. Các công trình nông nghiệp phần lớn trống và không được xem là nơi trú an toàn mặc định.\n\n### Tầng 11 — The City That Never Sleeps\n\n**REFERENCE / CANDIDATE BASELINE:** [Level 11 — The City That Never Sleeps](https://backrooms-wiki.wikidot.com/level-11). Một đô thị trải rộng với các khu nhà cao tầng, nhà thấp tầng, đường phố, cửa hàng, công viên, kênh đào và hệ thống giao thông. Một số công trình có thể sử dụng được, số khác chỉ mang dáng vẻ một tòa nhà với cửa không vào được. Môi trường không bảo đảm người chơi có nơi ở hoặc tài nguyên chỉ vì trông giống một thành phố.\n\n### Tầng 12 — Matrix\n\n**REFERENCE / CANDIDATE BASELINE:** [Level 12 — Matrix](https://backrooms-wiki.wikidot.com/level-12). Một phòng sáng trắng gần như trống, thường được mô tả với bàn, ghế và cửa bị khóa, cùng không gian trắng rộng hơn ở ",
       "source": {
         "document": "Novel/Asset/BACKROOMS_WORLD.md",
-        "anchor": "full-text excerpt 8/24"
+        "anchor": "full-text excerpt 8/30"
       },
       "authority": "WORLD_CANON",
       "mutability": "BASELINE",
@@ -5709,7 +5758,14 @@
         "novel_topic:tầng 13",
         "novel_topic:matrix",
         "novel_topic:the boiling frogs",
-        "novel_topic:the city that never sleeps"
+        "novel_topic:the city that never sleeps",
+        "novel_topic:manila room",
+        "novel_topic:the torment",
+        "novel_topic:level 0.2",
+        "novel_topic:level 0.7",
+        "novel_topic:level ε",
+        "novel_topic:claustrophobia",
+        "novel_topic:deep emptiness"
       ],
       "references": [],
       "affordances": []
@@ -5721,7 +5777,7 @@
       "text": "ngoài cấu trúc ban đầu. Ảnh và bản ghi có thể bị nhiễu hoặc bị che nội dung. Những hướng dẫn rời khỏi tầng này trong báo cáo nguồn chỉ là tham khảo, không tự cấp route cho gameplay.\n\n### Tầng 13 — The Boiling Frogs\n\n**REFERENCE / CANDIDATE BASELINE:** [Level 13 — The Boiling Frogs](https://backrooms-wiki.wikidot.com/level-13). Khu chung cư có các hành lang dài, căn hộ lặp lại, cầu thang và thang máy vận hành không ổn định. Nguồn mô tả sức ì tâm lý và việc người sống lâu trở nên gắn bó quá mức với sinh hoạt thường ngày; đó là mô tả bối cảnh, không phải status effect tự động khi Core chưa triển khai.\n\n---\n\n## 2B. SUBLEVEL CỦA TẦNG 0\n\nCác sublevel dưới đây dùng làm **REFERENCE / CANDIDATE BASELINE** cho tác phẩm. Chúng tồn tại trong nền Backrooms được tham chiếu, nhưng chi tiết có thể được mở rộng hoặc khóa lại bằng tài liệu Level chuyên biệt sau này.\n\nKhông tự giả định ",
       "source": {
         "document": "Novel/Asset/BACKROOMS_WORLD.md",
-        "anchor": "full-text excerpt 9/24"
+        "anchor": "full-text excerpt 9/30"
       },
       "authority": "WORLD_CANON",
       "mutability": "BASELINE",
@@ -5761,7 +5817,14 @@
         "novel_topic:tầng 13",
         "novel_topic:matrix",
         "novel_topic:the boiling frogs",
-        "novel_topic:the city that never sleeps"
+        "novel_topic:the city that never sleeps",
+        "novel_topic:manila room",
+        "novel_topic:the torment",
+        "novel_topic:level 0.2",
+        "novel_topic:level 0.7",
+        "novel_topic:level ε",
+        "novel_topic:claustrophobia",
+        "novel_topic:deep emptiness"
       ],
       "references": [],
       "affordances": []
@@ -5773,7 +5836,7 @@
       "text": "mọi lối vào, lối ra hoặc tần suất gặp sublevel là bảo đảm.\n\n### Level ε — Incessant Hum-Buzz\n\nGiữ thẩm mỹ vàng, thảm beige và đèn huỳnh quang của Tầng 0 nhưng mở rộng thành những không gian cao và lớn hơn, có platform, tunnel, cầu thang và cấu trúc nhiều tầng dẫn tới những vị trí phi lý.\n\n### Level 0.01 — The Exit?\n\nNhững hành lang vàng rất dài, nóng và ẩm. Càng đi sâu, sương càng dày, nhiệt càng tăng, đèn hỏng nhiều hơn và kiến trúc xuống cấp. Các dấu hiệu giống lối thoát không được xem là lối ra thật nếu chưa kiểm chứng.\n\n### Level 0.1 — Deep Emptiness\n\nMột hành lang kéo dài với nhiều cửa mở vào các phòng gần giống Tầng 0. Một số khu có kệ, thùng hoặc dấu hiệu từng được sử dụng, nhưng không xác định được ai đã để chúng lại.\n\n### Level 0.11 — Water Damage\n\nMạng phòng bê tông xuống cấp với nước bẩn ngập nhiều khu vực, rỉ sét, mùi mục và hệ thống ống rung. Đèn chập chờ",
       "source": {
         "document": "Novel/Asset/BACKROOMS_WORLD.md",
-        "anchor": "full-text excerpt 10/24"
+        "anchor": "full-text excerpt 10/30"
       },
       "authority": "WORLD_CANON",
       "mutability": "BASELINE",
@@ -5813,7 +5876,14 @@
         "novel_topic:tầng 13",
         "novel_topic:matrix",
         "novel_topic:the boiling frogs",
-        "novel_topic:the city that never sleeps"
+        "novel_topic:the city that never sleeps",
+        "novel_topic:manila room",
+        "novel_topic:the torment",
+        "novel_topic:level 0.2",
+        "novel_topic:level 0.7",
+        "novel_topic:level ε",
+        "novel_topic:claustrophobia",
+        "novel_topic:deep emptiness"
       ],
       "references": [],
       "affordances": []
@@ -5822,10 +5892,10 @@
       "id": "NOVEL_ASSET.BACKROOMS_WORLD.C0011",
       "domain": "NOVEL_ASSET",
       "kind": "world",
-      "text": "n; flash flood hoặc thay đổi mực nước có thể xảy ra. Các vùng khô giống Tầng 0 chỉ xuất hiện rải rác.\n\n### Level 0.2 — Remodeled Mess\n\n**REFERENCE / CANDIDATE BASELINE:** Backrooms Wiki hiện liệt kê Level 0.2 — Remodeled Mess. Đừng đồng nhất nó với Level 0.22 — Fully Remodeled của Project. Cơ chế, tuyến đi và Entity chưa khóa.\n\n### Level 0.22 — Fully Remodeled\n\nMột biến thể Tầng 0 có vẻ đã được cải tạo: tường vàng-lục, thảm xám hoa văn, cửa văn phòng, vent, heater và dụng cụ xây dựng. Hình học phi Euclid vẫn còn; không được tự kết luận ai hoặc thứ gì thực hiện việc cải tạo.\n\n### Level 0.23 — Half Finished\n\nKhông gian office/factory đang xây dở với khung tường, bề mặt chưa hoàn thiện và những cửa sổ có thể nhìn ra cảnh quan không đáng tin. Sập trần, mất điện và thiếu thông gió là nguy cơ chính.\n\n**STATUS:** REFERENCE / UNSTABLE SOURCE. Không khóa các chi tiết sâu nếu n",
+      "text": "n; flash flood hoặc thay đổi mực nước có thể xảy ra. Các vùng khô giống Tầng 0 chỉ xuất hiện rải rác.\n\n### Level 0.2 — Remodeled Mess\n\n**REFERENCE / CANDIDATE BASELINE:** [Level 0.2 — Remodeled Mess](https://backrooms-wiki.wikidot.com/level-0-2) mô tả vùng được cải tạo với tường trắng, thảm đỏ khô và thiết bị điện; sự xuống cấp hoặc sụp đổ cấu trúc được thuật lại như một rủi ro môi trường. Đừng đồng nhất nó với Level 0.22 — Fully Remodeled của Project. Cơ chế damage, tuyến đi và Entity chưa khóa.\n\n### Level 0.22 — Fully Remodeled\n\nMột biến thể Tầng 0 có vẻ đã được cải tạo: tường vàng-lục, thảm xám hoa văn, cửa văn phòng, vent, heater và dụng cụ xây dựng. Hình học phi Euclid vẫn còn; không được tự kết luận ai hoặc thứ gì thực hiện việc cải tạo.\n\n### Level 0.23 — Half Finished\n\nKhông gian office/factory đang xây dở với khung tường, bề mặt chưa hoàn thiện và những cửa sổ",
       "source": {
         "document": "Novel/Asset/BACKROOMS_WORLD.md",
-        "anchor": "full-text excerpt 11/24"
+        "anchor": "full-text excerpt 11/30"
       },
       "authority": "WORLD_CANON",
       "mutability": "BASELINE",
@@ -5865,7 +5935,14 @@
         "novel_topic:tầng 13",
         "novel_topic:matrix",
         "novel_topic:the boiling frogs",
-        "novel_topic:the city that never sleeps"
+        "novel_topic:the city that never sleeps",
+        "novel_topic:manila room",
+        "novel_topic:the torment",
+        "novel_topic:level 0.2",
+        "novel_topic:level 0.7",
+        "novel_topic:level ε",
+        "novel_topic:claustrophobia",
+        "novel_topic:deep emptiness"
       ],
       "references": [],
       "affordances": []
@@ -5874,10 +5951,10 @@
       "id": "NOVEL_ASSET.BACKROOMS_WORLD.C0012",
       "domain": "NOVEL_ASSET",
       "kind": "world",
-      "text": "guồn tham khảo hiện hành đang trong quá trình rewrite.\n\n### Level 0.3 — The Icy Rooms\n\n**REFERENCE / OPEN:** Mục này trong danh sách Wikidot đang bị trimmed và mở cho viết lại. Không dùng một phiên bản cũ như canon gameplay hoặc gán hazard tự động.\n\n### Level 0.41 — Disease\n\nMột phiên bản Tầng 0 trong trạng thái phân hủy: tường vàng-lục mục nát, thảm xám mốc, trần vỡ, ánh sáng bất thường và những vết rách lớn trong cấu trúc.\n\nKhông gian mang cảm giác bị bỏ mặc giữa quá trình mục rữa. Không được mặc định tên “Disease” đồng nghĩa tồn tại một bệnh sinh học cụ thể nếu chưa có dữ kiện xác nhận.\n\n### Level 0.5 — Aquaclaustrophobic Infirmary\n\n**Nguồn tham khảo:** [Level 0.5 — Aquaclaustrophobic Infirmary](https://backrooms-wiki.wikidot.com/level-0-5), Moose0, The Backrooms Wiki, CC BY-SA 3.0; bản trang cập nhật 07/09/2026. Nội dung về trải nghiệm, lối ra và The Drowned trong",
+      "text": " có thể nhìn ra cảnh quan không đáng tin. Sập trần, mất điện và thiếu thông gió là nguy cơ chính.\n\n**STATUS:** REFERENCE / UNSTABLE SOURCE. Không khóa các chi tiết sâu nếu nguồn tham khảo hiện hành đang trong quá trình rewrite.\n\n### Level 0.3 — The Icy Rooms\n\n**REFERENCE / OPEN:** Mục này trong danh sách Wikidot đang bị trimmed và mở cho viết lại. Không dùng một phiên bản cũ như canon gameplay hoặc gán hazard tự động.\n\n### Level 0.41 — Disease\n\nMột phiên bản Tầng 0 trong trạng thái phân hủy: tường vàng-lục mục nát, thảm xám mốc, trần vỡ, ánh sáng bất thường và những vết rách lớn trong cấu trúc.\n\nKhông gian mang cảm giác bị bỏ mặc giữa quá trình mục rữa. Không được mặc định tên “Disease” đồng nghĩa tồn tại một bệnh sinh học cụ thể nếu chưa có dữ kiện xác nhận.\n\n### Level 0.5 — Aquaclaustrophobic Infirmary\n\n**Nguồn tham khảo:** [Level 0.5 — Aquaclaustrophobic Infirmary]",
       "source": {
         "document": "Novel/Asset/BACKROOMS_WORLD.md",
-        "anchor": "full-text excerpt 12/24"
+        "anchor": "full-text excerpt 12/30"
       },
       "authority": "WORLD_CANON",
       "mutability": "BASELINE",
@@ -5917,7 +5994,14 @@
         "novel_topic:tầng 13",
         "novel_topic:matrix",
         "novel_topic:the boiling frogs",
-        "novel_topic:the city that never sleeps"
+        "novel_topic:the city that never sleeps",
+        "novel_topic:manila room",
+        "novel_topic:the torment",
+        "novel_topic:level 0.2",
+        "novel_topic:level 0.7",
+        "novel_topic:level ε",
+        "novel_topic:claustrophobia",
+        "novel_topic:deep emptiness"
       ],
       "references": [],
       "affordances": []
@@ -5926,10 +6010,10 @@
       "id": "NOVEL_ASSET.BACKROOMS_WORLD.C0013",
       "domain": "NOVEL_ASSET",
       "kind": "world",
-      "text": " nguồn chủ yếu là lời kể của người sống sót hoặc báo cáo M.E.G.; không nâng suy đoán thành sự thật đã xác minh.\n\nWaterlogged Passages là các hành lang hẹp ngập nước lạnh, bẩn, thường ngang gối và đục đến mức không thấy đáy. Giấy tường màu kem nhợt bong ở mép nước; đèn hình chữ nhật xanh treo bằng dây sờn có thể phát tia lửa. Tiếng nước bị khuấy và tiếng giọt vọng thay cho tiếng buzz đều của Level 0. Thiếu vị trí khô để nghỉ; ngâm nước lâu, kiệt sức, nước ô nhiễm và nguy cơ điện là các hiểm họa môi trường. Không tự xác định tác nhân gây bệnh cụ thể chỉ từ triệu chứng.\n\nĐi sâu hơn, giấy tường chuyển dần sang vách gỗ mục, trần thả và trolley trước khi mở sang The Hospital. Khu bệnh viện có sàn bẩn dầu, gạch trần lệch, vật cản, phòng bệnh và giường ẩm; khô hơn không đồng nghĩa an toàn. Nguồn Wiki kể về The Drowned đeo bám con mồi trong khu này, nhưng sự hiện diện hoặc gia",
+      "text": "(https://backrooms-wiki.wikidot.com/level-0-5), Moose0, The Backrooms Wiki, CC BY-SA 3.0; bản trang cập nhật 07/09/2026. Nội dung về trải nghiệm, lối ra và The Drowned trong nguồn chủ yếu là lời kể của người sống sót hoặc báo cáo M.E.G.; không nâng suy đoán thành sự thật đã xác minh.\n\nWaterlogged Passages là các hành lang hẹp ngập nước lạnh, bẩn, thường ngang gối và đục đến mức không thấy đáy. Giấy tường màu kem nhợt bong ở mép nước; đèn hình chữ nhật xanh treo bằng dây sờn có thể phát tia lửa. Tiếng nước bị khuấy và tiếng giọt vọng thay cho tiếng buzz đều của Level 0. Thiếu vị trí khô để nghỉ; ngâm nước lâu, kiệt sức, nước ô nhiễm và nguy cơ điện là các hiểm họa môi trường. Không tự xác định tác nhân gây bệnh cụ thể chỉ từ triệu chứng.\n\nĐi sâu hơn, giấy tường chuyển dần sang vách gỗ mục, trần thả và trolley trước khi mở sang The Hospital. Khu bệnh viện có sàn bẩn dầu",
       "source": {
         "document": "Novel/Asset/BACKROOMS_WORLD.md",
-        "anchor": "full-text excerpt 13/24"
+        "anchor": "full-text excerpt 13/30"
       },
       "authority": "WORLD_CANON",
       "mutability": "BASELINE",
@@ -5969,7 +6053,14 @@
         "novel_topic:tầng 13",
         "novel_topic:matrix",
         "novel_topic:the boiling frogs",
-        "novel_topic:the city that never sleeps"
+        "novel_topic:the city that never sleeps",
+        "novel_topic:manila room",
+        "novel_topic:the torment",
+        "novel_topic:level 0.2",
+        "novel_topic:level 0.7",
+        "novel_topic:level ε",
+        "novel_topic:claustrophobia",
+        "novel_topic:deep emptiness"
       ],
       "references": [],
       "affordances": []
@@ -5978,10 +6069,10 @@
       "id": "NOVEL_ASSET.BACKROOMS_WORLD.C0014",
       "domain": "NOVEL_ASSET",
       "kind": "world",
-      "text": "o chiến trong game chỉ xảy ra khi EntityCore/state xác nhận.\n\nNguồn Wiki ghi nhận những lối ra khác, gồm Level 1, Level 37 và Level 109. Trong BACKROOMsV2, Core quyết định tuyến hiện hành: vào từ Level 0.2 và chỉ chuyển tiếp tới Level 0.7. Mô tả từ Wiki không mở thêm route, cấp vật phẩm, gây damage hay spawn Entity.\n\n### Level 0.66 — The Lobby Went COLD\n\nKiến trúc gần giống Tầng 0 nhưng bị bao phủ bởi lạnh cực độ, màu sắc chuyển xanh và các bề mặt có thể đóng băng.\n\nĐây là environmental deadzone đối với người không có khả năng chống lạnh thích hợp. Không dùng nhiệt độ cực thấp như lý do tự động vô hiệu mọi Entity hoặc mọi năng lực khác.\n\n### Level 0.7 — Claustrophobia\n\nMột “Dark Lobby” với hành lang hẹp, tường cao, ánh sáng thiếu ổn định, nhiều bóng tối, nấm mốc và bụi bẩn. Các phòng lớn hiếm đóng vai trò nút nối giữa nhiều hành lang.\n\nKhông gian gây áp lực tâm lý mạn",
+      "text": ", gạch trần lệch, vật cản, phòng bệnh và giường ẩm; khô hơn không đồng nghĩa an toàn. Nguồn Wiki kể về The Drowned đeo bám con mồi trong khu này, nhưng sự hiện diện hoặc giao chiến trong game chỉ xảy ra khi EntityCore/state xác nhận.\n\nNguồn Wiki ghi nhận những lối ra khác, gồm Level 1, Level 37 và Level 109. Trong BACKROOMsV2, Core quyết định tuyến hiện hành: vào từ Level 0.2 và chỉ chuyển tiếp tới Level 0.7. Mô tả từ Wiki không mở thêm route, cấp vật phẩm, gây damage hay spawn Entity.\n\n### Level 0.66 — The Lobby Went COLD\n\nKiến trúc gần giống Tầng 0 nhưng bị bao phủ bởi lạnh cực độ, màu sắc chuyển xanh và các bề mặt có thể đóng băng.\n\nĐây là environmental deadzone đối với người không có khả năng chống lạnh thích hợp. Không dùng nhiệt độ cực thấp như lý do tự động vô hiệu mọi Entity hoặc mọi năng lực khác.\n\n### Level 0.7 — Claustrophobia\n\nMột “Dark Lobby” với hành lan",
       "source": {
         "document": "Novel/Asset/BACKROOMS_WORLD.md",
-        "anchor": "full-text excerpt 14/24"
+        "anchor": "full-text excerpt 14/30"
       },
       "authority": "WORLD_CANON",
       "mutability": "BASELINE",
@@ -6021,7 +6112,14 @@
         "novel_topic:tầng 13",
         "novel_topic:matrix",
         "novel_topic:the boiling frogs",
-        "novel_topic:the city that never sleeps"
+        "novel_topic:the city that never sleeps",
+        "novel_topic:manila room",
+        "novel_topic:the torment",
+        "novel_topic:level 0.2",
+        "novel_topic:level 0.7",
+        "novel_topic:level ε",
+        "novel_topic:claustrophobia",
+        "novel_topic:deep emptiness"
       ],
       "references": [],
       "affordances": []
@@ -6030,10 +6128,10 @@
       "id": "NOVEL_ASSET.BACKROOMS_WORLD.C0015",
       "domain": "NOVEL_ASSET",
       "kind": "world",
-      "text": "h bởi cảm giác bị ép chặt và thiếu đường nhìn dài.\n\n### Level 0.8 — Inundation\n\nMột biến thể Tầng 0 bị ngập với độ sâu thay đổi mạnh: từ phòng khô, nước nông tới khu chìm hoàn toàn. Nhiều trần bị mất hoặc chìm trong bóng tối; mốc lan trên tường và các mặt tiếp xúc.\n\nNước, không khí và nhiệt độ không được mặc định đồng nhất giữa các khu vực.\n\n### Level 0.99 — Deeper Regions\n\nMột vùng Tầng 0 bị lỗi hình học rõ rệt: sàn, trần và tường lệch tầng, các khối kiến trúc chồng sai vị trí, hố sâu và những vùng không thể tiếp cận bằng đường thông thường.\n\nCàng đi sâu, môi trường càng giống một cấu trúc ba chiều bị ghép sai hơn là một tòa nhà có thể lập sơ đồ.\n\n### Dullness\n\nMột mê cung gồm các phòng có kích thước biến đổi cực mạnh. Hình khối có thể hòa vào nhau hoặc thay đổi quan hệ không gian, khiến bản đồ nhanh chóng mất giá trị.\n\n### Red Rooms\n\nMột biến thể đỏ thẫm của Tầng 0.",
+      "text": "g hẹp, tường cao, ánh sáng thiếu ổn định, nhiều bóng tối, nấm mốc và bụi bẩn. Các phòng lớn hiếm đóng vai trò nút nối giữa nhiều hành lang.\n\nKhông gian gây áp lực tâm lý mạnh bởi cảm giác bị ép chặt và thiếu đường nhìn dài.\n\n### Level 0.8 — Inundation\n\nMột biến thể Tầng 0 bị ngập với độ sâu thay đổi mạnh: từ phòng khô, nước nông tới khu chìm hoàn toàn. Nhiều trần bị mất hoặc chìm trong bóng tối; mốc lan trên tường và các mặt tiếp xúc.\n\nNước, không khí và nhiệt độ không được mặc định đồng nhất giữa các khu vực.\n\n### Level 0.99 — Deeper Regions\n\nMột vùng Tầng 0 bị lỗi hình học rõ rệt: sàn, trần và tường lệch tầng, các khối kiến trúc chồng sai vị trí, hố sâu và những vùng không thể tiếp cận bằng đường thông thường.\n\nCàng đi sâu, môi trường càng giống một cấu trúc ba chiều bị ghép sai hơn là một tòa nhà có thể lập sơ đồ.\n\n### Manila Room — khu phụ của Tầng 0\n\n**REFERENCE ",
       "source": {
         "document": "Novel/Asset/BACKROOMS_WORLD.md",
-        "anchor": "full-text excerpt 15/24"
+        "anchor": "full-text excerpt 15/30"
       },
       "authority": "WORLD_CANON",
       "mutability": "BASELINE",
@@ -6073,7 +6171,14 @@
         "novel_topic:tầng 13",
         "novel_topic:matrix",
         "novel_topic:the boiling frogs",
-        "novel_topic:the city that never sleeps"
+        "novel_topic:the city that never sleeps",
+        "novel_topic:manila room",
+        "novel_topic:the torment",
+        "novel_topic:level 0.2",
+        "novel_topic:level 0.7",
+        "novel_topic:level ε",
+        "novel_topic:claustrophobia",
+        "novel_topic:deep emptiness"
       ],
       "references": [],
       "affordances": []
@@ -6082,10 +6187,10 @@
       "id": "NOVEL_ASSET.BACKROOMS_WORLD.C0016",
       "domain": "NOVEL_ASSET",
       "kind": "world",
-      "text": " Tường, thảm, trần và ánh sáng đều chuyển sang sắc đỏ; vật liệu có thể khô, ráp hoặc dính hơn baseline Tầng 0. Nấm và mốc xuất hiện ở nhiều khu vực.\n\n### LS-2\n\n**STATUS: OPEN.**\n\nSublevel này có thể tồn tại trong danh mục tham khảo, nhưng Project chưa khóa môi trường, hiện tượng hoặc cơ chế của nó.\n\nKhông tự sáng tạo chi tiết chỉ để hoàn thiện danh sách.\n\n### SUBLEVEL HARD LOCK\n\n- Sublevel không phải “phòng phụ” cố định nằm cạnh Tầng 0 theo địa lý thông thường.\n- Không có lối vào hoặc lối ra nào được bảo đảm nếu continuity chưa xác nhận.\n- Tên sublevel không tự cung cấp tri thức cho nhân vật.\n- Việc một survivor từng đi vào một sublevel không chứng minh cùng phương pháp sẽ hoạt động lần sau.\n- Nếu nguồn tham khảo bên ngoài thay đổi hoặc rewrite, canon Project đã khóa trong tài liệu riêng vẫn được ưu tiên.\n\n---\n\n## 2C. SUBLEVEL TẦNG 1–13 — DANH MỤC THAM KHẢO\n\nĐây là da",
+      "text": "/ CANDIDATE:** [The Manila Room](https://backrooms-wiki.wikidot.com/manila-room) được thuật lại như một căn phòng nhỏ có tường màu manila, sàn gỗ và bàn tám cạnh cùng hai ghế. Mô tả từ Wiki về khả năng gặp người khác, tài liệu hoặc lối sang Level 1 chỉ dùng làm bối cảnh; không tự cấp vật phẩm, tri thức cho Cao Minh hay một exit đang hoạt động trong Core.\n\n### The Torment — khu phụ của Tầng 0\n\n**REFERENCE / CANDIDATE:** [The Torment](https://backrooms-wiki.wikidot.com/the-torment) có các lời kể về không gian xám u ám, vòng mộ và tượng đá. Không xác lập lối đi thường trực vào đây, thực thể hay sự kiện chỉ dựa trên báo cáo nguồn.\n\n### Dullness\n\nMột mê cung gồm các phòng có kích thước biến đổi cực mạnh. Hình khối có thể hòa vào nhau hoặc thay đổi quan hệ không gian, khiến bản đồ nhanh chóng mất giá trị.\n\n### Red Rooms\n\nMột biến thể đỏ thẫm của Tầng 0. Tường, thảm, trần và",
       "source": {
         "document": "Novel/Asset/BACKROOMS_WORLD.md",
-        "anchor": "full-text excerpt 16/24"
+        "anchor": "full-text excerpt 16/30"
       },
       "authority": "WORLD_CANON",
       "mutability": "BASELINE",
@@ -6125,7 +6230,14 @@
         "novel_topic:tầng 13",
         "novel_topic:matrix",
         "novel_topic:the boiling frogs",
-        "novel_topic:the city that never sleeps"
+        "novel_topic:the city that never sleeps",
+        "novel_topic:manila room",
+        "novel_topic:the torment",
+        "novel_topic:level 0.2",
+        "novel_topic:level 0.7",
+        "novel_topic:level ε",
+        "novel_topic:claustrophobia",
+        "novel_topic:deep emptiness"
       ],
       "references": [],
       "affordances": []
@@ -6134,10 +6246,10 @@
       "id": "NOVEL_ASSET.BACKROOMS_WORLD.C0017",
       "domain": "NOVEL_ASSET",
       "kind": "world",
-      "text": "nh mục cấu trúc, không phải mô tả gameplay hoàn chỉnh. Các tên sau lấy theo [Backrooms Wiki — Normal Levels](https://backrooms-wiki.wikidot.com/normal-levels-i). Mục bên ngoài Project chỉ mang trạng thái **REFERENCE / CANDIDATE**, mục trimmed/rewrite mang trạng thái **OPEN**. Đừng suy diễn từ tên gọi để tự gán môi trường, đường di chuyển, tỉ lệ Entity, vật phẩm hay phần thưởng.\n\n- **Tầng 1:** Level 1.1 — Corrupted Corridor (OPEN); 1.2 — Concrete Garden; 1.3 — Malignance; 1.5 — Inverted. Khu phụ: Base Alpha; Traders Vault (OPEN).\n- **Tầng 2:** Level 2.1 — Locked. Khu phụ: Office Space EL3A (OPEN).\n- **Tầng 3:** Level 3.5 — Electropolis.\n- **Tầng 4:** Chưa có sublevel đánh số trong danh mục nguồn đang chọn. Khu phụ: The Office Market.\n- **Tầng 5:** Level 5.1 — Terror Hotel Casino; 5.2 — Scenic Views; 5.3 — Promethei Bibliotheca.\n- **Tầng 6:** Level 6.1 — The Snackrooms;",
+      "text": " ánh sáng đều chuyển sang sắc đỏ; vật liệu có thể khô, ráp hoặc dính hơn baseline Tầng 0. Nấm và mốc xuất hiện ở nhiều khu vực. Wiki thuật lại nơi này như vùng ngõ cụt khó thoát; việc Project xếp **Red Rooms ngay trước Level 1 trong hành trình** là quyết định thứ tự, **không đồng nghĩa đã có lối thoát Red Rooms → Level 1 trong Core**.\n\n### LS-2\n\n**STATUS: OPEN.**\n\nSublevel này có thể tồn tại trong danh mục tham khảo, nhưng Project chưa khóa môi trường, hiện tượng hoặc cơ chế của nó.\n\nKhông tự sáng tạo chi tiết chỉ để hoàn thiện danh sách.\n\n### SUBLEVEL HARD LOCK\n\n- Sublevel không phải “phòng phụ” cố định nằm cạnh Tầng 0 theo địa lý thông thường.\n- Không có lối vào hoặc lối ra nào được bảo đảm nếu continuity chưa xác nhận.\n- Tên sublevel không tự cung cấp tri thức cho nhân vật.\n- Việc một survivor từng đi vào một sublevel không chứng minh cùng phương pháp sẽ hoạt động ",
       "source": {
         "document": "Novel/Asset/BACKROOMS_WORLD.md",
-        "anchor": "full-text excerpt 17/24"
+        "anchor": "full-text excerpt 17/30"
       },
       "authority": "WORLD_CANON",
       "mutability": "BASELINE",
@@ -6177,7 +6289,14 @@
         "novel_topic:tầng 13",
         "novel_topic:matrix",
         "novel_topic:the boiling frogs",
-        "novel_topic:the city that never sleeps"
+        "novel_topic:the city that never sleeps",
+        "novel_topic:manila room",
+        "novel_topic:the torment",
+        "novel_topic:level 0.2",
+        "novel_topic:level 0.7",
+        "novel_topic:level ε",
+        "novel_topic:claustrophobia",
+        "novel_topic:deep emptiness"
       ],
       "references": [],
       "affordances": []
@@ -6186,10 +6305,10 @@
       "id": "NOVEL_ASSET.BACKROOMS_WORLD.C0018",
       "domain": "NOVEL_ASSET",
       "kind": "world",
-      "text": " 6.2 — The Neon Maze (OPEN); 6.3 — Vantablack (OPEN); 6.31 — Pierce the Veil. Không để tên của các sublevel Wiki viết đè hard lock tundra tối vĩnh viễn của Tầng 6.\n- **Tầng 7:** Level 7.6 — Evacuation; 7.7 — The Forsaken Debris; 7.8 — Impaled Ocean. Khu phụ: The Hadal Zone.\n- **Tầng 8:** Level 8.1 — The Dead Caverns (OPEN). Khu phụ: The Sanctum Subterraneous.\n- **Tầng 9:** Level 9.2 — Black Market; 9.3 — The Overcast Manifold; 9.5 — Rochester Blues.\n- **Tầng 10:** Level 10.1 — Corpse Lake; 10.2 — Hay Bale Heaven.\n- **Tầng 11:** Level 11.3 — The Red Light District. Các mục có tên hoặc loại riêng: Asset 11.1 — Private Enterprise; Scene-01.2 — The Refuge; AFTER HOURS; The Headquarters (OPEN); Radio Backrooms' Studio (OPEN). Không tự đổi Asset 11.1 và Scene-01.2 thành sublevel đánh số.\n- **Tầng 12 và Tầng 13:** Chưa có sublevel đánh số trong danh mục nguồn được kiểm tra. ",
+      "text": "lần sau.\n- Nếu nguồn tham khảo bên ngoài thay đổi hoặc rewrite, canon Project đã khóa trong tài liệu riêng vẫn được ưu tiên.\n\n---\n\n## 2C. SUBLEVEL TẦNG 1–13 — DANH MỤC THAM KHẢO\n\nĐây là danh mục cấu trúc, không phải mô tả gameplay hoàn chỉnh. Các tên sau lấy theo [Backrooms Wiki — Normal Levels](https://backrooms-wiki.wikidot.com/normal-levels-i). Mục bên ngoài Project chỉ mang trạng thái **REFERENCE / CANDIDATE**, mục trimmed/rewrite mang trạng thái **OPEN**. Đừng suy diễn từ tên gọi để tự gán môi trường, đường di chuyển, tỉ lệ Entity, vật phẩm hay phần thưởng.\n\n- **Tầng 1:** Level 1.1 — Corrupted Corridor (OPEN); 1.2 — Concrete Garden; 1.3 — Malignance; 1.5 — Inverted. Khu phụ: Base Alpha; Traders Vault (OPEN).\n- **Tầng 2:** Level 2.1 — Locked. Khu phụ: Office Space EL3A (OPEN).\n- **Tầng 3:** Level 3.5 — Electropolis.\n- **Tầng 4:** Chưa có sublevel đánh số trong dan",
       "source": {
         "document": "Novel/Asset/BACKROOMS_WORLD.md",
-        "anchor": "full-text excerpt 18/24"
+        "anchor": "full-text excerpt 18/30"
       },
       "authority": "WORLD_CANON",
       "mutability": "BASELINE",
@@ -6229,7 +6348,14 @@
         "novel_topic:tầng 13",
         "novel_topic:matrix",
         "novel_topic:the boiling frogs",
-        "novel_topic:the city that never sleeps"
+        "novel_topic:the city that never sleeps",
+        "novel_topic:manila room",
+        "novel_topic:the torment",
+        "novel_topic:level 0.2",
+        "novel_topic:level 0.7",
+        "novel_topic:level ε",
+        "novel_topic:claustrophobia",
+        "novel_topic:deep emptiness"
       ],
       "references": [],
       "affordances": []
@@ -6238,10 +6364,10 @@
       "id": "NOVEL_ASSET.BACKROOMS_WORLD.C0019",
       "domain": "NOVEL_ASSET",
       "kind": "world",
-      "text": "Không tự tạo thêm để làm đủ chỉ tiêu.\n\nĐối với **Tầng 0**, danh mục Core còn có 0.01, 0.1, 0.11, 0.2, 0.22, 0.23, 0.3, 0.41, 0.5, 0.66, 0.7, 0.8 và 0.99. Project giữ ưu tiên cho Level 0.1 — Deep Emptiness và Level 0.7 — Claustrophobia, kể cả khi Wiki hiện hành dùng tên khác. Các khu phụ có tên nhưng chưa có rank xác lập gồm Level ε, Dullness, Red Rooms, LS-2, Manila Room và The Torment.\n\n**IMPLEMENTATION LOCK:** Đăng ký node/sublevel chỉ giúp định danh và tra cứu. Chỉ Core gameplay và route resolver được phép chuyển tầng. EntityCore quyết định xuất hiện thực thể. Không sinh exit/spawn/loot từ bất kỳ dòng tham khảo nào của mục này.\n\n---\n\n## 3. THỰC THỂ\n\nĐây là khác biệt quan trọng nhất của thế giới này.\n\n### THỰC THỂ KHÔNG THUỘC CỐ ĐỊNH MỘT TẦNG\n\nKhông có khái niệm một loài thực thể chỉ được phép tồn tại tại một Tầng nhất định.\n\nDanh sách thực thể của từng Tầng trong c",
+      "text": "h mục nguồn đang chọn. Khu phụ: The Office Market.\n- **Tầng 5:** Level 5.1 — Terror Hotel Casino; 5.2 — Scenic Views; 5.3 — Promethei Bibliotheca.\n- **Tầng 6:** Level 6.1 — The Snackrooms; 6.2 — The Neon Maze (OPEN); 6.3 — Vantablack (OPEN); 6.31 — Pierce the Veil. Không để tên của các sublevel Wiki viết đè hard lock tundra tối vĩnh viễn của Tầng 6.\n- **Tầng 7:** Level 7.6 — Evacuation; 7.7 — The Forsaken Debris; 7.8 — Impaled Ocean. Khu phụ: The Hadal Zone.\n- **Tầng 8:** Level 8.1 — The Dead Caverns (OPEN). Khu phụ: The Sanctum Subterraneous.\n- **Tầng 9:** Level 9.2 — Black Market; 9.3 — The Overcast Manifold; 9.5 — Rochester Blues.\n- **Tầng 10:** Level 10.1 — Corpse Lake; 10.2 — Hay Bale Heaven.\n- **Tầng 11:** Level 11.3 — The Red Light District. Các mục có tên hoặc loại riêng: Asset 11.1 — Private Enterprise; Scene-01.2 — The Refuge; AFTER HOURS; The Headquarters (",
       "source": {
         "document": "Novel/Asset/BACKROOMS_WORLD.md",
-        "anchor": "full-text excerpt 19/24"
+        "anchor": "full-text excerpt 19/30"
       },
       "authority": "WORLD_CANON",
       "mutability": "BASELINE",
@@ -6281,7 +6407,14 @@
         "novel_topic:tầng 13",
         "novel_topic:matrix",
         "novel_topic:the boiling frogs",
-        "novel_topic:the city that never sleeps"
+        "novel_topic:the city that never sleeps",
+        "novel_topic:manila room",
+        "novel_topic:the torment",
+        "novel_topic:level 0.2",
+        "novel_topic:level 0.7",
+        "novel_topic:level ε",
+        "novel_topic:claustrophobia",
+        "novel_topic:deep emptiness"
       ],
       "references": [],
       "affordances": []
@@ -6290,10 +6423,10 @@
       "id": "NOVEL_ASSET.BACKROOMS_WORLD.C0020",
       "domain": "NOVEL_ASSET",
       "kind": "world",
-      "text": "ác tài liệu Backrooms chỉ phản ánh **những nơi chúng thường được ghi nhận**, không phải ranh giới mà chúng không thể vượt qua.\n\nThực thể có thể:\n\n- rời khỏi Tầng nơi chúng thường xuất hiện;\n- đi qua các lối chuyển vùng;\n- lang thang sang những Tầng khác;\n- đuổi theo con mồi qua nhiều Tầng;\n- di cư vì thức ăn, môi trường hoặc những nguyên nhân chưa rõ;\n- xuất hiện tại nơi trước đó chưa từng có ghi nhận về chúng.\n\nMột Hound được nhìn thấy tại Tầng 1 không có nghĩa nó là “thực thể của Tầng 1”.\n\nNó chỉ là **một Hound đang ở Tầng 1**.\n\nVì vậy, không Tầng nào được bảo đảm an toàn chỉ vì tài liệu về Tầng đó không ghi nhận thực thể.\n\n### MÔI TRƯỜNG VẪN ẢNH HƯỞNG THỰC THỂ\n\nKhả năng đi khắp Backrooms không có nghĩa mọi thực thể xuất hiện ở mọi nơi với tần suất giống nhau.\n\nMôi trường vẫn ảnh hưởng đến:\n\n- khả năng tồn tại;\n- nguồn thức ăn;\n- cách săn mồi;\n- khả năng di chuyển;\n",
+      "text": "OPEN); Radio Backrooms' Studio (OPEN). Không tự đổi Asset 11.1 và Scene-01.2 thành sublevel đánh số.\n- **Tầng 12 và Tầng 13:** Chưa có sublevel đánh số trong danh mục nguồn được kiểm tra. Không tự tạo thêm để làm đủ chỉ tiêu.\n\nĐối với **Tầng 0**, danh mục Core còn có 0.01, 0.1, 0.11, 0.2, 0.22, 0.23, 0.3, 0.41, 0.5, 0.66, 0.7, 0.8 và 0.99. Project giữ ưu tiên cho Level 0.1 — Deep Emptiness và Level 0.7 — Claustrophobia, kể cả khi Wiki hiện hành dùng tên khác. Các khu phụ có tên nhưng chưa có rank xác lập gồm Level ε, Dullness, Red Rooms, LS-2, Manila Room và The Torment.\n\n**IMPLEMENTATION LOCK:** Đăng ký node/sublevel chỉ giúp định danh và tra cứu. Chỉ Core gameplay và route resolver được phép chuyển tầng. EntityCore quyết định xuất hiện thực thể. Không sinh exit/spawn/loot từ bất kỳ dòng tham khảo nào của mục này. Các trang Wiki chỉ mới được kiểm tra URL/tác giả khôn",
       "source": {
         "document": "Novel/Asset/BACKROOMS_WORLD.md",
-        "anchor": "full-text excerpt 20/24"
+        "anchor": "full-text excerpt 20/30"
       },
       "authority": "WORLD_CANON",
       "mutability": "BASELINE",
@@ -6333,7 +6466,14 @@
         "novel_topic:tầng 13",
         "novel_topic:matrix",
         "novel_topic:the boiling frogs",
-        "novel_topic:the city that never sleeps"
+        "novel_topic:the city that never sleeps",
+        "novel_topic:manila room",
+        "novel_topic:the torment",
+        "novel_topic:level 0.2",
+        "novel_topic:level 0.7",
+        "novel_topic:level ε",
+        "novel_topic:claustrophobia",
+        "novel_topic:deep emptiness"
       ],
       "references": [],
       "affordances": []
@@ -6342,10 +6482,10 @@
       "id": "NOVEL_ASSET.BACKROOMS_WORLD.C0021",
       "domain": "NOVEL_ASSET",
       "kind": "world",
-      "text": "- khả năng ẩn nấp;\n- khả năng sinh sản;\n- lý do ở lại;\n- lý do rời đi.\n\nMột thực thể có thể cực kỳ hiếm tại một Tầng vì môi trường không phù hợp.\n\nNhưng không có một quy luật vô hình ngăn nó bước vào đó.\n\n---\n\n## 4. BACKROOMS KHÔNG XOAY QUANH CON NGƯỜI\n\nBackrooms tồn tại độc lập với con người.\n\nCác Tầng không sinh ra để thử thách Cao Minh hay Lục Trầm.\n\nVật phẩm không xuất hiện đúng lúc để cứu họ.\n\nThực thể không yếu đi vì gặp nhân vật chính.\n\nLối thoát không mở ra chỉ vì câu chuyện cần tiếp tục.\n\nMôi trường không tự nương tay.\n\nNếu một người sống sót, đó phải là kết quả của năng lực, kinh nghiệm, lựa chọn, sự chuẩn bị và những gì họ thật sự có trong tay.\n\n---\n\n## 5. CAO MINH VÀ LỤC TRẦM\n\nPhần lớn những người rơi vào Backrooms phải học cách tồn tại trong một thế giới vốn không quan tâm họ sống hay chết.\n\nCao Minh và Lục Trầm cũng bước vào cùng thế giới đó.\n\nHọ không đ",
+      "text": "g được coi là đã duyệt nội dung; mục OPEN hoặc trimmed/rewrite tiếp tục chưa có gameplay canon.\n\n---\n\n## 2D. GHI CÔNG NGUỒN MÔ TẢ ĐÃ CHUẨN HÓA (TÍCH HỢP VÀO GAME)\n\nCác mô tả môi trường ở phần 2A–2C là dữ liệu canon/baseline **được lưu trực tiếp trong file này**. Không có một bản đăng ký `WorldInternetCanon` song song. Phần ghi công dưới đây chỉ phục vụ nguồn gốc và nghĩa vụ giấy phép, **không phải thêm một lớp dữ liệu gameplay**.\n\n- `level-1`: [Wikidot](https://backrooms-wiki.wikidot.com/level-1), ghi công: Praetor3005 and DivineAtlas; đối chiếu 08/10/2026.\n- `level-2`: [Wikidot](https://backrooms-wiki.wikidot.com/level-2), ghi công: Greggita Mahayfaio; đối chiếu 08/10/2026.\n- `level-3`: [Wikidot](https://backrooms-wiki.wikidot.com/level-3), ghi công: Natedagreat563; đối chiếu 08/10/2026.\n- `level-4`: [Wikidot](https://backrooms-wiki.wikidot.com/level-4), ghi công: u/",
       "source": {
         "document": "Novel/Asset/BACKROOMS_WORLD.md",
-        "anchor": "full-text excerpt 21/24"
+        "anchor": "full-text excerpt 21/30"
       },
       "authority": "WORLD_CANON",
       "mutability": "BASELINE",
@@ -6385,7 +6525,14 @@
         "novel_topic:tầng 13",
         "novel_topic:matrix",
         "novel_topic:the boiling frogs",
-        "novel_topic:the city that never sleeps"
+        "novel_topic:the city that never sleeps",
+        "novel_topic:manila room",
+        "novel_topic:the torment",
+        "novel_topic:level 0.2",
+        "novel_topic:level 0.7",
+        "novel_topic:level ε",
+        "novel_topic:claustrophobia",
+        "novel_topic:deep emptiness"
       ],
       "references": [],
       "affordances": []
@@ -6394,10 +6541,10 @@
       "id": "NOVEL_ASSET.BACKROOMS_WORLD.C0022",
       "domain": "NOVEL_ASSET",
       "kind": "world",
-      "text": "ược Backrooms ưu ái.\n\nKhông được miễn khỏi quy luật.\n\nKhông được bảo vệ khỏi thực thể.\n\nKhông được thế giới trao sức mạnh chỉ vì họ là nhân vật chính.\n\nNhưng Backrooms đã phạm một sai lầm khi để hai người này lọt vào.\n\nKhông phải vì Backrooms được xác nhận có ý thức.\n\nKhông phải vì nó cố tình lựa chọn họ rồi lựa chọn sai.\n\n“Sai lầm” ở đây chỉ được xác định bằng **hậu quả**.\n\nTrước khi họ xuất hiện, con người chủ yếu là con mồi, kẻ trốn chạy hoặc những sinh vật nhỏ bé cố dựng nơi trú giữa một thế giới lớn hơn mình rất nhiều.\n\nCao Minh và Lục Trầm không thay đổi quy luật đó ngay khi vừa bước vào.\n\nHọ phải tự sống sót trước.\n\nTự hiểu nơi này.\n\nTự học những gì có thể giết mình.\n\nTự tìm cách chống lại nó.\n\nNhưng càng tồn tại lâu, cán cân càng có khả năng thay đổi.\n\nNhững thứ vốn quen săn người có thể bắt đầu trở thành kẻ bị săn.\n\nNhững nơi từng chỉ nuốt chửng người sống có",
+      "text": "M654zy on Reddit; đối chiếu 08/10/2026. Nguồn trimmed/đang viết lại, không nâng thành sự kiện game.\n- `level-5`: [Wikidot](https://backrooms-wiki.wikidot.com/level-5), ghi công: Stretchsterz; đối chiếu 08/10/2026.\n- `level-6`: [Wikidot](https://backrooms-wiki.wikidot.com/level-6), ghi công: Bart0nius; đối chiếu 08/10/2026. Nội dung mâu thuẫn phải theo canon Project.\n- `level-7`: [Wikidot](https://backrooms-wiki.wikidot.com/level-7), ghi công: Bart0nius; đối chiếu 08/10/2026. Nguồn trimmed/đang viết lại, không nâng thành sự kiện game.\n- `level-8`: [Wikidot](https://backrooms-wiki.wikidot.com/level-8), ghi công: C-Graph and kai4C; đối chiếu 08/10/2026.\n- `level-9`: [Wikidot](https://backrooms-wiki.wikidot.com/level-9), ghi công: Stretchsterz; đối chiếu 08/10/2026.\n- `level-10`: [Wikidot](https://backrooms-wiki.wikidot.com/level-10), ghi công: scutoid studios & egglord; ",
       "source": {
         "document": "Novel/Asset/BACKROOMS_WORLD.md",
-        "anchor": "full-text excerpt 22/24"
+        "anchor": "full-text excerpt 22/30"
       },
       "authority": "WORLD_CANON",
       "mutability": "BASELINE",
@@ -6437,7 +6584,14 @@
         "novel_topic:tầng 13",
         "novel_topic:matrix",
         "novel_topic:the boiling frogs",
-        "novel_topic:the city that never sleeps"
+        "novel_topic:the city that never sleeps",
+        "novel_topic:manila room",
+        "novel_topic:the torment",
+        "novel_topic:level 0.2",
+        "novel_topic:level 0.7",
+        "novel_topic:level ε",
+        "novel_topic:claustrophobia",
+        "novel_topic:deep emptiness"
       ],
       "references": [],
       "affordances": []
@@ -6446,10 +6600,10 @@
       "id": "NOVEL_ASSET.BACKROOMS_WORLD.C0023",
       "domain": "NOVEL_ASSET",
       "kind": "world",
-      "text": " thể bắt đầu chịu hậu quả từ sự hiện diện của họ.\n\nNhững thực thể từng không cần quan tâm một con người tên gì có thể phải học tên của hai người này.\n\nĐó mới là ý nghĩa của câu:\n\n> **Backrooms đã sai lầm khi để Cao Minh và Lục Trầm lọt vào.**\n\nKhông phải lời tiên tri.\n\nKhông phải đặc quyền.\n\nKhông phải định mệnh.\n\nChỉ là một sai lầm mà Backrooms không thể thu hồi.\n\n---\n\n## 6. QUY TẮC THẾ GIỚI\n\n### Quy tắc 1 — Nguồn nền\n\nBackrooms trên mạng là nguồn nền của thế giới.\n\nNhững gì tác phẩm chưa quy định riêng thì dùng theo nguồn Backrooms hiện hành.\n\n### Quy tắc 2 — Thực thể tự do di chuyển\n\nThực thể không bị khóa theo từng Tầng.\n\nChúng có thể di chuyển, săn mồi và xuất hiện ngoài khu vực thường được ghi nhận.\n\n### Quy tắc 3 — Môi trường vẫn có giá trị\n\nMột thực thể có thể đi tới một nơi không có nghĩa nơi đó thích hợp để nó sinh sống.\n\nTần suất xuất hiện phải phù hợp với ",
+      "text": "đối chiếu 08/10/2026.\n- `level-11`: [Wikidot](https://backrooms-wiki.wikidot.com/level-11), ghi công: Greggita Mahayfaio; đối chiếu 08/10/2026.\n- `level-12`: [Wikidot](https://backrooms-wiki.wikidot.com/level-12), ghi công: Stretchsterz and Liryn; đối chiếu 08/10/2026.\n- `level-13`: [Wikidot](https://backrooms-wiki.wikidot.com/level-13), ghi công: Greggita Mahayfaio; đối chiếu 08/10/2026.\n- `level-0`: [Wikidot](https://backrooms-wiki.wikidot.com/level-0), ghi công: DivineAtlas, DrAkimoto, RobertGoerman; đối chiếu 08/10/2026.\n- `level-0.1`: [Wikidot](https://backrooms-wiki.wikidot.com/level-0-1), ghi công: CutTheBirch; đối chiếu 08/10/2026. Nội dung mâu thuẫn phải theo canon Project.\n- `level-0.2`: [Wikidot](https://backrooms-wiki.wikidot.com/level-0-2), ghi công: RowanLater; đối chiếu 08/10/2026.\n- `level-0.3`: [Wikidot](https://backrooms-wiki.wikidot.com/level-0-3), ",
       "source": {
         "document": "Novel/Asset/BACKROOMS_WORLD.md",
-        "anchor": "full-text excerpt 23/24"
+        "anchor": "full-text excerpt 23/30"
       },
       "authority": "WORLD_CANON",
       "mutability": "BASELINE",
@@ -6489,7 +6643,14 @@
         "novel_topic:tầng 13",
         "novel_topic:matrix",
         "novel_topic:the boiling frogs",
-        "novel_topic:the city that never sleeps"
+        "novel_topic:the city that never sleeps",
+        "novel_topic:manila room",
+        "novel_topic:the torment",
+        "novel_topic:level 0.2",
+        "novel_topic:level 0.7",
+        "novel_topic:level ε",
+        "novel_topic:claustrophobia",
+        "novel_topic:deep emptiness"
       ],
       "references": [],
       "affordances": []
@@ -6498,10 +6659,10 @@
       "id": "NOVEL_ASSET.BACKROOMS_WORLD.C0024",
       "domain": "NOVEL_ASSET",
       "kind": "world",
-      "text": "môi trường và bản chất của thực thể.\n\n### Quy tắc 4 — Không ưu ái nhân vật chính\n\nCao Minh và Lục Trầm phải chịu cùng quy luật của Backrooms như những người khác.\n\nMọi chiến thắng phải đến từ những gì họ thực sự có thể làm.\n\n### Quy tắc 5 — Sai lầm của Backrooms\n\nSự xuất hiện của Cao Minh và Lục Trầm là một biến số có khả năng phá vỡ trạng thái cân bằng vốn có của Backrooms.\n\nMức độ phá vỡ phải được chứng minh qua diễn biến câu chuyện, không được tự tuyên bố mà không có sự kiện tương ứng.\n\n### Quy tắc 6 — Phạm vi hiện tại\n\nHiện tại chỉ xây dựng chi tiết đến Tầng 10.\n\nTầng 11 trở lên vẫn tồn tại nhưng chưa cần viết thành dữ liệu cố định.\n\n### Quy tắc 7 — Ưu tiên thiết lập của tác phẩm\n\nNếu nguồn Backrooms trên mạng mâu thuẫn với một quy định đã được tác phẩm cố ý thay đổi, quy định của tác phẩm được ưu tiên.\n",
+      "text": "ghi công: CursedSliver; đối chiếu 08/10/2026. Nguồn trimmed/đang viết lại, không nâng thành sự kiện game.\n- `level-0.5`: [Wikidot](https://backrooms-wiki.wikidot.com/level-0-5), ghi công: FuneralBouncer (Moose0); đối chiếu 08/10/2026. Nội dung mâu thuẫn phải theo canon Project.\n- `level-0.7`: [Wikidot](https://backrooms-wiki.wikidot.com/level-0-7), ghi công: T-Dragon; đối chiếu 08/10/2026. Nội dung mâu thuẫn phải theo canon Project.\n- `area:0:manila-room`: [Wikidot](https://backrooms-wiki.wikidot.com/manila-room), ghi công: Br Miller & Neptunium; đối chiếu 08/10/2026.\n- `area:0:red-rooms`: [Wikidot](https://backrooms-wiki.wikidot.com/red-rooms), ghi công: scutoid studios; đối chiếu 08/10/2026. Nội dung mâu thuẫn phải theo canon Project.\n- `area:0:the-torment`: [Wikidot](https://backrooms-wiki.wikidot.com/the-torment), ghi công: Sky3; đối chiếu 08/10/2026.\n\n**Giấy phép",
       "source": {
         "document": "Novel/Asset/BACKROOMS_WORLD.md",
-        "anchor": "full-text excerpt 24/24"
+        "anchor": "full-text excerpt 24/30"
       },
       "authority": "WORLD_CANON",
       "mutability": "BASELINE",
@@ -6541,7 +6702,368 @@
         "novel_topic:tầng 13",
         "novel_topic:matrix",
         "novel_topic:the boiling frogs",
-        "novel_topic:the city that never sleeps"
+        "novel_topic:the city that never sleeps",
+        "novel_topic:manila room",
+        "novel_topic:the torment",
+        "novel_topic:level 0.2",
+        "novel_topic:level 0.7",
+        "novel_topic:level ε",
+        "novel_topic:claustrophobia",
+        "novel_topic:deep emptiness"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "NOVEL_ASSET.BACKROOMS_WORLD.C0025",
+      "domain": "NOVEL_ASSET",
+      "kind": "world",
+      "text": ":** Văn bản của Backrooms Wikidot theo [hướng dẫn bản quyền](https://backrooms-wiki.wikidot.com/licensing-guide) được công bố dưới CC BY-SA 3.0. Phát hành game phái sinh phải tuân thủ ghi công và điều kiện chia sẻ tương thích; hình ảnh có thể có giấy phép riêng. Giữ nguồn/tác giả để tuân thủ giấy phép, không sao chép nguyên bài vào game.\n\n**Nguồn tham khảo chưa chuẩn hóa:** Các sublevel/khu phụ trong danh mục 2C chỉ có tên hoặc metadata vẫn là `REFERENCE / CANDIDATE` hay `OPEN`, chưa được nhập thành mô tả môi trường, exit hoặc Entity. Không tự tạo dữ liệu để lấp chỗ trống.\n\n## 3. THỰC THỂ\n\nĐây là khác biệt quan trọng nhất của thế giới này.\n\n### THỰC THỂ KHÔNG THUỘC CỐ ĐỊNH MỘT TẦNG\n\nKhông có khái niệm một loài thực thể chỉ được phép tồn tại tại một Tầng nhất định.\n\nDanh sách thực thể của từng Tầng trong các tài liệu Backrooms chỉ phản ánh **những nơi chúng thường được",
+      "source": {
+        "document": "Novel/Asset/BACKROOMS_WORLD.md",
+        "anchor": "full-text excerpt 25/30"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "BASELINE",
+      "priority": 55,
+      "tags": [
+        "backrooms_world:0025",
+        "novel_topic:level 0",
+        "novel_topic:level 1",
+        "novel_topic:level 2",
+        "novel_topic:level 3",
+        "novel_topic:level 4",
+        "novel_topic:level 5",
+        "novel_topic:level 6",
+        "novel_topic:level 7",
+        "novel_topic:level 8",
+        "novel_topic:level 9",
+        "novel_topic:level 10",
+        "novel_topic:tầng 0",
+        "novel_topic:tầng 1",
+        "novel_topic:tầng 2",
+        "novel_topic:tầng 3",
+        "novel_topic:red rooms",
+        "novel_topic:the lobby",
+        "novel_topic:sublevel",
+        "novel_topic:tầng 4",
+        "novel_topic:tầng 5",
+        "novel_topic:tầng 6",
+        "novel_topic:tầng 7",
+        "novel_topic:tầng 8",
+        "novel_topic:tầng 9",
+        "novel_topic:tầng 10",
+        "novel_topic:level 11",
+        "novel_topic:level 12",
+        "novel_topic:level 13",
+        "novel_topic:tầng 11",
+        "novel_topic:tầng 12",
+        "novel_topic:tầng 13",
+        "novel_topic:matrix",
+        "novel_topic:the boiling frogs",
+        "novel_topic:the city that never sleeps",
+        "novel_topic:manila room",
+        "novel_topic:the torment",
+        "novel_topic:level 0.2",
+        "novel_topic:level 0.7",
+        "novel_topic:level ε",
+        "novel_topic:claustrophobia",
+        "novel_topic:deep emptiness"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "NOVEL_ASSET.BACKROOMS_WORLD.C0026",
+      "domain": "NOVEL_ASSET",
+      "kind": "world",
+      "text": " ghi nhận**, không phải ranh giới mà chúng không thể vượt qua.\n\nThực thể có thể:\n\n- rời khỏi Tầng nơi chúng thường xuất hiện;\n- đi qua các lối chuyển vùng;\n- lang thang sang những Tầng khác;\n- đuổi theo con mồi qua nhiều Tầng;\n- di cư vì thức ăn, môi trường hoặc những nguyên nhân chưa rõ;\n- xuất hiện tại nơi trước đó chưa từng có ghi nhận về chúng.\n\nMột Hound được nhìn thấy tại Tầng 1 không có nghĩa nó là “thực thể của Tầng 1”.\n\nNó chỉ là **một Hound đang ở Tầng 1**.\n\nVì vậy, không Tầng nào được bảo đảm an toàn chỉ vì tài liệu về Tầng đó không ghi nhận thực thể.\n\n### MÔI TRƯỜNG VẪN ẢNH HƯỞNG THỰC THỂ\n\nKhả năng đi khắp Backrooms không có nghĩa mọi thực thể xuất hiện ở mọi nơi với tần suất giống nhau.\n\nMôi trường vẫn ảnh hưởng đến:\n\n- khả năng tồn tại;\n- nguồn thức ăn;\n- cách săn mồi;\n- khả năng di chuyển;\n- khả năng ẩn nấp;\n- khả năng sinh sản;\n- lý do ở lại;\n- lý do r",
+      "source": {
+        "document": "Novel/Asset/BACKROOMS_WORLD.md",
+        "anchor": "full-text excerpt 26/30"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "BASELINE",
+      "priority": 55,
+      "tags": [
+        "backrooms_world:0026",
+        "novel_topic:level 0",
+        "novel_topic:level 1",
+        "novel_topic:level 2",
+        "novel_topic:level 3",
+        "novel_topic:level 4",
+        "novel_topic:level 5",
+        "novel_topic:level 6",
+        "novel_topic:level 7",
+        "novel_topic:level 8",
+        "novel_topic:level 9",
+        "novel_topic:level 10",
+        "novel_topic:tầng 0",
+        "novel_topic:tầng 1",
+        "novel_topic:tầng 2",
+        "novel_topic:tầng 3",
+        "novel_topic:red rooms",
+        "novel_topic:the lobby",
+        "novel_topic:sublevel",
+        "novel_topic:tầng 4",
+        "novel_topic:tầng 5",
+        "novel_topic:tầng 6",
+        "novel_topic:tầng 7",
+        "novel_topic:tầng 8",
+        "novel_topic:tầng 9",
+        "novel_topic:tầng 10",
+        "novel_topic:level 11",
+        "novel_topic:level 12",
+        "novel_topic:level 13",
+        "novel_topic:tầng 11",
+        "novel_topic:tầng 12",
+        "novel_topic:tầng 13",
+        "novel_topic:matrix",
+        "novel_topic:the boiling frogs",
+        "novel_topic:the city that never sleeps",
+        "novel_topic:manila room",
+        "novel_topic:the torment",
+        "novel_topic:level 0.2",
+        "novel_topic:level 0.7",
+        "novel_topic:level ε",
+        "novel_topic:claustrophobia",
+        "novel_topic:deep emptiness"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "NOVEL_ASSET.BACKROOMS_WORLD.C0027",
+      "domain": "NOVEL_ASSET",
+      "kind": "world",
+      "text": "ời đi.\n\nMột thực thể có thể cực kỳ hiếm tại một Tầng vì môi trường không phù hợp.\n\nNhưng không có một quy luật vô hình ngăn nó bước vào đó.\n\n---\n\n## 4. BACKROOMS KHÔNG XOAY QUANH CON NGƯỜI\n\nBackrooms tồn tại độc lập với con người.\n\nCác Tầng không sinh ra để thử thách Cao Minh hay Lục Trầm.\n\nVật phẩm không xuất hiện đúng lúc để cứu họ.\n\nThực thể không yếu đi vì gặp nhân vật chính.\n\nLối thoát không mở ra chỉ vì câu chuyện cần tiếp tục.\n\nMôi trường không tự nương tay.\n\nNếu một người sống sót, đó phải là kết quả của năng lực, kinh nghiệm, lựa chọn, sự chuẩn bị và những gì họ thật sự có trong tay.\n\n---\n\n## 5. CAO MINH VÀ LỤC TRẦM\n\nPhần lớn những người rơi vào Backrooms phải học cách tồn tại trong một thế giới vốn không quan tâm họ sống hay chết.\n\nCao Minh và Lục Trầm cũng bước vào cùng thế giới đó.\n\nHọ không được Backrooms ưu ái.\n\nKhông được miễn khỏi quy luật.\n\nKhông được",
+      "source": {
+        "document": "Novel/Asset/BACKROOMS_WORLD.md",
+        "anchor": "full-text excerpt 27/30"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "BASELINE",
+      "priority": 55,
+      "tags": [
+        "backrooms_world:0027",
+        "novel_topic:level 0",
+        "novel_topic:level 1",
+        "novel_topic:level 2",
+        "novel_topic:level 3",
+        "novel_topic:level 4",
+        "novel_topic:level 5",
+        "novel_topic:level 6",
+        "novel_topic:level 7",
+        "novel_topic:level 8",
+        "novel_topic:level 9",
+        "novel_topic:level 10",
+        "novel_topic:tầng 0",
+        "novel_topic:tầng 1",
+        "novel_topic:tầng 2",
+        "novel_topic:tầng 3",
+        "novel_topic:red rooms",
+        "novel_topic:the lobby",
+        "novel_topic:sublevel",
+        "novel_topic:tầng 4",
+        "novel_topic:tầng 5",
+        "novel_topic:tầng 6",
+        "novel_topic:tầng 7",
+        "novel_topic:tầng 8",
+        "novel_topic:tầng 9",
+        "novel_topic:tầng 10",
+        "novel_topic:level 11",
+        "novel_topic:level 12",
+        "novel_topic:level 13",
+        "novel_topic:tầng 11",
+        "novel_topic:tầng 12",
+        "novel_topic:tầng 13",
+        "novel_topic:matrix",
+        "novel_topic:the boiling frogs",
+        "novel_topic:the city that never sleeps",
+        "novel_topic:manila room",
+        "novel_topic:the torment",
+        "novel_topic:level 0.2",
+        "novel_topic:level 0.7",
+        "novel_topic:level ε",
+        "novel_topic:claustrophobia",
+        "novel_topic:deep emptiness"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "NOVEL_ASSET.BACKROOMS_WORLD.C0028",
+      "domain": "NOVEL_ASSET",
+      "kind": "world",
+      "text": " bảo vệ khỏi thực thể.\n\nKhông được thế giới trao sức mạnh chỉ vì họ là nhân vật chính.\n\nNhưng Backrooms đã phạm một sai lầm khi để hai người này lọt vào.\n\nKhông phải vì Backrooms được xác nhận có ý thức.\n\nKhông phải vì nó cố tình lựa chọn họ rồi lựa chọn sai.\n\n“Sai lầm” ở đây chỉ được xác định bằng **hậu quả**.\n\nTrước khi họ xuất hiện, con người chủ yếu là con mồi, kẻ trốn chạy hoặc những sinh vật nhỏ bé cố dựng nơi trú giữa một thế giới lớn hơn mình rất nhiều.\n\nCao Minh và Lục Trầm không thay đổi quy luật đó ngay khi vừa bước vào.\n\nHọ phải tự sống sót trước.\n\nTự hiểu nơi này.\n\nTự học những gì có thể giết mình.\n\nTự tìm cách chống lại nó.\n\nNhưng càng tồn tại lâu, cán cân càng có khả năng thay đổi.\n\nNhững thứ vốn quen săn người có thể bắt đầu trở thành kẻ bị săn.\n\nNhững nơi từng chỉ nuốt chửng người sống có thể bắt đầu chịu hậu quả từ sự hiện diện của họ.\n\nNhững thực th",
+      "source": {
+        "document": "Novel/Asset/BACKROOMS_WORLD.md",
+        "anchor": "full-text excerpt 28/30"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "BASELINE",
+      "priority": 55,
+      "tags": [
+        "backrooms_world:0028",
+        "novel_topic:level 0",
+        "novel_topic:level 1",
+        "novel_topic:level 2",
+        "novel_topic:level 3",
+        "novel_topic:level 4",
+        "novel_topic:level 5",
+        "novel_topic:level 6",
+        "novel_topic:level 7",
+        "novel_topic:level 8",
+        "novel_topic:level 9",
+        "novel_topic:level 10",
+        "novel_topic:tầng 0",
+        "novel_topic:tầng 1",
+        "novel_topic:tầng 2",
+        "novel_topic:tầng 3",
+        "novel_topic:red rooms",
+        "novel_topic:the lobby",
+        "novel_topic:sublevel",
+        "novel_topic:tầng 4",
+        "novel_topic:tầng 5",
+        "novel_topic:tầng 6",
+        "novel_topic:tầng 7",
+        "novel_topic:tầng 8",
+        "novel_topic:tầng 9",
+        "novel_topic:tầng 10",
+        "novel_topic:level 11",
+        "novel_topic:level 12",
+        "novel_topic:level 13",
+        "novel_topic:tầng 11",
+        "novel_topic:tầng 12",
+        "novel_topic:tầng 13",
+        "novel_topic:matrix",
+        "novel_topic:the boiling frogs",
+        "novel_topic:the city that never sleeps",
+        "novel_topic:manila room",
+        "novel_topic:the torment",
+        "novel_topic:level 0.2",
+        "novel_topic:level 0.7",
+        "novel_topic:level ε",
+        "novel_topic:claustrophobia",
+        "novel_topic:deep emptiness"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "NOVEL_ASSET.BACKROOMS_WORLD.C0029",
+      "domain": "NOVEL_ASSET",
+      "kind": "world",
+      "text": "ể từng không cần quan tâm một con người tên gì có thể phải học tên của hai người này.\n\nĐó mới là ý nghĩa của câu:\n\n> **Backrooms đã sai lầm khi để Cao Minh và Lục Trầm lọt vào.**\n\nKhông phải lời tiên tri.\n\nKhông phải đặc quyền.\n\nKhông phải định mệnh.\n\nChỉ là một sai lầm mà Backrooms không thể thu hồi.\n\n---\n\n## 6. QUY TẮC THẾ GIỚI\n\n### Quy tắc 1 — Nguồn nền\n\nBackrooms trên mạng là nguồn nền của thế giới.\n\nNhững gì tác phẩm chưa quy định riêng thì dùng theo nguồn Backrooms hiện hành.\n\n### Quy tắc 2 — Thực thể tự do di chuyển\n\nThực thể không bị khóa theo từng Tầng.\n\nChúng có thể di chuyển, săn mồi và xuất hiện ngoài khu vực thường được ghi nhận.\n\n### Quy tắc 3 — Môi trường vẫn có giá trị\n\nMột thực thể có thể đi tới một nơi không có nghĩa nơi đó thích hợp để nó sinh sống.\n\nTần suất xuất hiện phải phù hợp với môi trường và bản chất của thực thể.\n\n### Quy tắc 4 — Không ưu á",
+      "source": {
+        "document": "Novel/Asset/BACKROOMS_WORLD.md",
+        "anchor": "full-text excerpt 29/30"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "BASELINE",
+      "priority": 55,
+      "tags": [
+        "backrooms_world:0029",
+        "novel_topic:level 0",
+        "novel_topic:level 1",
+        "novel_topic:level 2",
+        "novel_topic:level 3",
+        "novel_topic:level 4",
+        "novel_topic:level 5",
+        "novel_topic:level 6",
+        "novel_topic:level 7",
+        "novel_topic:level 8",
+        "novel_topic:level 9",
+        "novel_topic:level 10",
+        "novel_topic:tầng 0",
+        "novel_topic:tầng 1",
+        "novel_topic:tầng 2",
+        "novel_topic:tầng 3",
+        "novel_topic:red rooms",
+        "novel_topic:the lobby",
+        "novel_topic:sublevel",
+        "novel_topic:tầng 4",
+        "novel_topic:tầng 5",
+        "novel_topic:tầng 6",
+        "novel_topic:tầng 7",
+        "novel_topic:tầng 8",
+        "novel_topic:tầng 9",
+        "novel_topic:tầng 10",
+        "novel_topic:level 11",
+        "novel_topic:level 12",
+        "novel_topic:level 13",
+        "novel_topic:tầng 11",
+        "novel_topic:tầng 12",
+        "novel_topic:tầng 13",
+        "novel_topic:matrix",
+        "novel_topic:the boiling frogs",
+        "novel_topic:the city that never sleeps",
+        "novel_topic:manila room",
+        "novel_topic:the torment",
+        "novel_topic:level 0.2",
+        "novel_topic:level 0.7",
+        "novel_topic:level ε",
+        "novel_topic:claustrophobia",
+        "novel_topic:deep emptiness"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "NOVEL_ASSET.BACKROOMS_WORLD.C0030",
+      "domain": "NOVEL_ASSET",
+      "kind": "world",
+      "text": "i nhân vật chính\n\nCao Minh và Lục Trầm phải chịu cùng quy luật của Backrooms như những người khác.\n\nMọi chiến thắng phải đến từ những gì họ thực sự có thể làm.\n\n### Quy tắc 5 — Sai lầm của Backrooms\n\nSự xuất hiện của Cao Minh và Lục Trầm là một biến số có khả năng phá vỡ trạng thái cân bằng vốn có của Backrooms.\n\nMức độ phá vỡ phải được chứng minh qua diễn biến câu chuyện, không được tự tuyên bố mà không có sự kiện tương ứng.\n\n### Quy tắc 6 — Phạm vi hiện tại\n\nHiện tại chỉ xây dựng chi tiết đến Tầng 10.\n\nTầng 11 trở lên vẫn tồn tại nhưng chưa cần viết thành dữ liệu cố định.\n\n### Quy tắc 7 — Ưu tiên thiết lập của tác phẩm\n\nNếu nguồn Backrooms trên mạng mâu thuẫn với một quy định đã được tác phẩm cố ý thay đổi, quy định của tác phẩm được ưu tiên.\n",
+      "source": {
+        "document": "Novel/Asset/BACKROOMS_WORLD.md",
+        "anchor": "full-text excerpt 30/30"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "BASELINE",
+      "priority": 55,
+      "tags": [
+        "backrooms_world:0030",
+        "novel_topic:level 0",
+        "novel_topic:level 1",
+        "novel_topic:level 2",
+        "novel_topic:level 3",
+        "novel_topic:level 4",
+        "novel_topic:level 5",
+        "novel_topic:level 6",
+        "novel_topic:level 7",
+        "novel_topic:level 8",
+        "novel_topic:level 9",
+        "novel_topic:level 10",
+        "novel_topic:tầng 0",
+        "novel_topic:tầng 1",
+        "novel_topic:tầng 2",
+        "novel_topic:tầng 3",
+        "novel_topic:red rooms",
+        "novel_topic:the lobby",
+        "novel_topic:sublevel",
+        "novel_topic:tầng 4",
+        "novel_topic:tầng 5",
+        "novel_topic:tầng 6",
+        "novel_topic:tầng 7",
+        "novel_topic:tầng 8",
+        "novel_topic:tầng 9",
+        "novel_topic:tầng 10",
+        "novel_topic:level 11",
+        "novel_topic:level 12",
+        "novel_topic:level 13",
+        "novel_topic:tầng 11",
+        "novel_topic:tầng 12",
+        "novel_topic:tầng 13",
+        "novel_topic:matrix",
+        "novel_topic:the boiling frogs",
+        "novel_topic:the city that never sleeps",
+        "novel_topic:manila room",
+        "novel_topic:the torment",
+        "novel_topic:level 0.2",
+        "novel_topic:level 0.7",
+        "novel_topic:level ε",
+        "novel_topic:claustrophobia",
+        "novel_topic:deep emptiness"
       ],
       "references": [],
       "affordances": []
