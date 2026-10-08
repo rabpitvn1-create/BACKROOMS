@@ -21,3 +21,12 @@ jobs:
           python-version: '3.12'
       - name: Verify all 11 source documents
         run: python3 android-apk/build-novel-asset-canon-index.py --check
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Verify bounded GM source retrieval and disclosure locks
+        run: gradle -p android-apk :app:testDebugUnitTest --tests com.rabpit.backroom.core.knowledge.NovelAssetRoutingTest --no-daemon
