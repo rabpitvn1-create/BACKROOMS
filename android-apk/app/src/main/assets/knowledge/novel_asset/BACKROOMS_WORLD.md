@@ -16,7 +16,7 @@ Khi câu chuyện cần một dữ kiện cụ thể, tra cứu nguồn Backroom
 
 Backrooms không kết thúc ở Tầng 10.
 
-Tác phẩm hiện chỉ xây dựng chi tiết từ **Tầng 0 đến Tầng 10**. Những Tầng cao hơn vẫn tồn tại và sẽ được bổ sung khi câu chuyện tiến tới.
+Tác phẩm đã có baseline môi trường từ **Tầng 0 đến Tầng 13**; các chi tiết gameplay chưa xác nhận vẫn phải bổ sung dần. Tầng 11–13 hiện dùng nguồn tham khảo Backrooms Wiki, chưa tự động trở thành route, loot hoặc Entity spawn trong game.
 
 Phạm vi hiện tại:
 
@@ -31,6 +31,9 @@ Phạm vi hiện tại:
 - **Tầng 8 — Cave Systems**
 - **Tầng 9 — The Suburbs**
 - **Tầng 10 — Bumper Crop**
+- **Tầng 11 — The City That Never Sleeps**
+- **Tầng 12 — Matrix**
+- **Tầng 13 — The Boiling Frogs**
 
 Mỗi Tầng giữ nguyên đặc điểm môi trường, hiện tượng, tài nguyên, lối vào và lối ra vốn có của Backrooms.
 
@@ -40,7 +43,7 @@ Không có quy luật rằng số Tầng càng lớn thì càng nguy hiểm.
 
 ---
 
-## 2A. MÔI TRƯỜNG CỤ THỂ — TẦNG 0 ĐẾN TẦNG 10
+## 2A. MÔI TRƯỜNG CỤ THỂ — TẦNG 0 ĐẾN TẦNG 13
 
 Phần này bổ sung baseline môi trường để dùng khi dựng cảnh. Nó không thay thế tài liệu Level chuyên biệt nếu tài liệu đó đã khóa chi tiết khác.
 
@@ -112,6 +115,18 @@ Một vùng ngoại ô kéo dài trong ban đêm vĩnh viễn với đường nh
 
 Bầu trời thường xám và trạng thái ban ngày ít thay đổi, khiến cảm giác thời gian trở nên không đáng tin. Hồ, vũng nước và địa hình thấp xuất hiện rải rác. Các công trình nông nghiệp phần lớn trống và không được xem là nơi trú an toàn mặc định.
 
+### Tầng 11 — The City That Never Sleeps
+
+**REFERENCE / CANDIDATE BASELINE:** [Level 11 — The City That Never Sleeps](https://backrooms-wiki.wikidot.com/level-11). Một đô thị trải rộng với các khu nhà cao tầng, nhà thấp tầng, đường phố, cửa hàng, công viên, kênh đào và hệ thống giao thông. Một số công trình có thể sử dụng được, số khác chỉ mang dáng vẻ một tòa nhà với cửa không vào được. Môi trường không bảo đảm người chơi có nơi ở hoặc tài nguyên chỉ vì trông giống một thành phố.
+
+### Tầng 12 — Matrix
+
+**REFERENCE / CANDIDATE BASELINE:** [Level 12 — Matrix](https://backrooms-wiki.wikidot.com/level-12). Một phòng sáng trắng gần như trống, thường được mô tả với bàn, ghế và cửa bị khóa, cùng không gian trắng rộng hơn ở ngoài cấu trúc ban đầu. Ảnh và bản ghi có thể bị nhiễu hoặc bị che nội dung. Những hướng dẫn rời khỏi tầng này trong báo cáo nguồn chỉ là tham khảo, không tự cấp route cho gameplay.
+
+### Tầng 13 — The Boiling Frogs
+
+**REFERENCE / CANDIDATE BASELINE:** [Level 13 — The Boiling Frogs](https://backrooms-wiki.wikidot.com/level-13). Khu chung cư có các hành lang dài, căn hộ lặp lại, cầu thang và thang máy vận hành không ổn định. Nguồn mô tả sức ì tâm lý và việc người sống lâu trở nên gắn bó quá mức với sinh hoạt thường ngày; đó là mô tả bối cảnh, không phải status effect tự động khi Core chưa triển khai.
+
 ---
 
 ## 2B. SUBLEVEL CỦA TẦNG 0
@@ -136,6 +151,10 @@ Một hành lang kéo dài với nhiều cửa mở vào các phòng gần giố
 
 Mạng phòng bê tông xuống cấp với nước bẩn ngập nhiều khu vực, rỉ sét, mùi mục và hệ thống ống rung. Đèn chập chờn; flash flood hoặc thay đổi mực nước có thể xảy ra. Các vùng khô giống Tầng 0 chỉ xuất hiện rải rác.
 
+### Level 0.2 — Remodeled Mess
+
+**REFERENCE / CANDIDATE BASELINE:** Backrooms Wiki hiện liệt kê Level 0.2 — Remodeled Mess. Đừng đồng nhất nó với Level 0.22 — Fully Remodeled của Project. Cơ chế, tuyến đi và Entity chưa khóa.
+
 ### Level 0.22 — Fully Remodeled
 
 Một biến thể Tầng 0 có vẻ đã được cải tạo: tường vàng-lục, thảm xám hoa văn, cửa văn phòng, vent, heater và dụng cụ xây dựng. Hình học phi Euclid vẫn còn; không được tự kết luận ai hoặc thứ gì thực hiện việc cải tạo.
@@ -145,6 +164,10 @@ Một biến thể Tầng 0 có vẻ đã được cải tạo: tường vàng-l
 Không gian office/factory đang xây dở với khung tường, bề mặt chưa hoàn thiện và những cửa sổ có thể nhìn ra cảnh quan không đáng tin. Sập trần, mất điện và thiếu thông gió là nguy cơ chính.
 
 **STATUS:** REFERENCE / UNSTABLE SOURCE. Không khóa các chi tiết sâu nếu nguồn tham khảo hiện hành đang trong quá trình rewrite.
+
+### Level 0.3 — The Icy Rooms
+
+**REFERENCE / OPEN:** Mục này trong danh sách Wikidot đang bị trimmed và mở cho viết lại. Không dùng một phiên bản cũ như canon gameplay hoặc gán hazard tự động.
 
 ### Level 0.41 — Disease
 
@@ -209,6 +232,29 @@ Không tự sáng tạo chi tiết chỉ để hoàn thiện danh sách.
 - Tên sublevel không tự cung cấp tri thức cho nhân vật.
 - Việc một survivor từng đi vào một sublevel không chứng minh cùng phương pháp sẽ hoạt động lần sau.
 - Nếu nguồn tham khảo bên ngoài thay đổi hoặc rewrite, canon Project đã khóa trong tài liệu riêng vẫn được ưu tiên.
+
+---
+
+## 2C. SUBLEVEL TẦNG 1–13 — DANH MỤC THAM KHẢO
+
+Đây là danh mục cấu trúc, không phải mô tả gameplay hoàn chỉnh. Các tên sau lấy theo [Backrooms Wiki — Normal Levels](https://backrooms-wiki.wikidot.com/normal-levels-i). Mục bên ngoài Project chỉ mang trạng thái **REFERENCE / CANDIDATE**, mục trimmed/rewrite mang trạng thái **OPEN**. Đừng suy diễn từ tên gọi để tự gán môi trường, đường di chuyển, tỉ lệ Entity, vật phẩm hay phần thưởng.
+
+- **Tầng 1:** Level 1.1 — Corrupted Corridor (OPEN); 1.2 — Concrete Garden; 1.3 — Malignance; 1.5 — Inverted. Khu phụ: Base Alpha; Traders Vault (OPEN).
+- **Tầng 2:** Level 2.1 — Locked. Khu phụ: Office Space EL3A (OPEN).
+- **Tầng 3:** Level 3.5 — Electropolis.
+- **Tầng 4:** Chưa có sublevel đánh số trong danh mục nguồn đang chọn. Khu phụ: The Office Market.
+- **Tầng 5:** Level 5.1 — Terror Hotel Casino; 5.2 — Scenic Views; 5.3 — Promethei Bibliotheca.
+- **Tầng 6:** Level 6.1 — The Snackrooms; 6.2 — The Neon Maze (OPEN); 6.3 — Vantablack (OPEN); 6.31 — Pierce the Veil. Không để tên của các sublevel Wiki viết đè hard lock tundra tối vĩnh viễn của Tầng 6.
+- **Tầng 7:** Level 7.6 — Evacuation; 7.7 — The Forsaken Debris; 7.8 — Impaled Ocean. Khu phụ: The Hadal Zone.
+- **Tầng 8:** Level 8.1 — The Dead Caverns (OPEN). Khu phụ: The Sanctum Subterraneous.
+- **Tầng 9:** Level 9.2 — Black Market; 9.3 — The Overcast Manifold; 9.5 — Rochester Blues.
+- **Tầng 10:** Level 10.1 — Corpse Lake; 10.2 — Hay Bale Heaven.
+- **Tầng 11:** Level 11.3 — The Red Light District. Các mục có tên hoặc loại riêng: Asset 11.1 — Private Enterprise; Scene-01.2 — The Refuge; AFTER HOURS; The Headquarters (OPEN); Radio Backrooms' Studio (OPEN). Không tự đổi Asset 11.1 và Scene-01.2 thành sublevel đánh số.
+- **Tầng 12 và Tầng 13:** Chưa có sublevel đánh số trong danh mục nguồn được kiểm tra. Không tự tạo thêm để làm đủ chỉ tiêu.
+
+Đối với **Tầng 0**, danh mục Core còn có 0.01, 0.1, 0.11, 0.2, 0.22, 0.23, 0.3, 0.41, 0.5, 0.66, 0.7, 0.8 và 0.99. Project giữ ưu tiên cho Level 0.1 — Deep Emptiness và Level 0.7 — Claustrophobia, kể cả khi Wiki hiện hành dùng tên khác. Các khu phụ có tên nhưng chưa có rank xác lập gồm Level ε, Dullness, Red Rooms, LS-2, Manila Room và The Torment.
+
+**IMPLEMENTATION LOCK:** Đăng ký node/sublevel chỉ giúp định danh và tra cứu. Chỉ Core gameplay và route resolver được phép chuyển tầng. EntityCore quyết định xuất hiện thực thể. Không sinh exit/spawn/loot từ bất kỳ dòng tham khảo nào của mục này.
 
 ---
 
