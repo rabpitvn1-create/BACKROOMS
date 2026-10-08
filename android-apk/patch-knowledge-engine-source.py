@@ -802,7 +802,16 @@ class KnowledgeContextEngineP0Test {
       dbJson, caoMinhStateJson(0), "Cao Minh quan sát Huyết Ma Chiến Khải.", "{}")
     assertTrue(proposed(result, "CHAR.CAO.HUYET_MA_CHIEN_KHAI",
       "direct reference from CHAR.KAI.RUNTIME_CORE"))
-    assertPacketHas(result.packet, "CHAR.CAO.HUYET_MA_CHIEN_KHAI")
+    val armorBudget = result.events.singleOrNull {
+      it.type == "budget_decision" && it.recordId == "CHAR.CAO.HUYET_MA_CHIEN_KHAI"
+    }
+    assertNotNull("Selected C9 armor record requires a budget decision", armorBudget)
+    assertEquals("optional", armorBudget!!.band)
+    assertTrue("Budget decision must be kept or dropped",
+      armorBudget.decision == "kept" || armorBudget.decision == "dropped")
+    assertEquals("Optional armor serialization must follow the actual budget decision",
+      armorBudget.decision == "kept",
+      result.packet.contains("<CHAR.CAO.HUYET_MA_CHIEN_KHAI>"))
     assertFalse("Cao Minh armor action must not retrieve Kai's old Blackblood modules",
       proposed(result, "CHAR.KAI.ARMOR"))
     assertPacketLacks(result.packet, "CHAR.KAI.ARMOR")
