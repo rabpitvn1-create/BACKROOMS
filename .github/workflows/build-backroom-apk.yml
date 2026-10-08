@@ -98,6 +98,9 @@ jobs:
             python3 "android-apk/$script"
           done
 
+      - name: Verify complete Novel Asset Canon index
+        run: python3 android-apk/build-novel-asset-canon-index.py --check
+
       - name: Verify final runtime contracts
         run: |
           python3 - <<'PY'
