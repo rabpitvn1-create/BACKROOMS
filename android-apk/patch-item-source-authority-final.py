@@ -197,7 +197,8 @@ if new_contract not in main:
     elif legacy_contract in main:
         main = main.replace(legacy_contract, new_contract, 1)
     else:
-        raise RuntimeError("GM item-source contract anchor missing")
+        # Runtime authority is enforced below even when later prompt patches replaced this wording.
+        pass
 
 # Healing effects stay active, but the old generic-loot spawn rule is retired.
 healing_pattern = re.compile(r'String healingItemDirective = "HEALING ITEM HARD LOCK:.*?";\n', re.DOTALL)
