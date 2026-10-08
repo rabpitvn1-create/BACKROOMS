@@ -1,5 +1,7 @@
 package com.rabpit.backroom.core.progression
 
+import java.math.BigInteger
+
 /**
  * Pure, deterministic reward scaling.
  *
@@ -41,11 +43,11 @@ object RewardScaling {
    */
   fun scaledCoreReward(base: Int, progressionRank: Long): Int {
     val level = discreteLevelOf(progressionRank)
-    require(level <= MAX_REWARD_LEVEL) { "reward level out of supported domain: $level" }
-    var num = maxOf(0, base).toLong() // base * 3^level
-    var den = 1L // 2^level
-    repeat(level) { num *= 3L; den *= 2L }
-    return ((2L * num + den) / (2L * den)).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+    val numerator = BigInteger.valueOf(maxOf(0, base).toLong())
+      .multiply(BigInteger.valueOf(3L).pow(level))
+    val denominator = BigInteger.ONE.shiftLeft(level)
+    val rounded = numerator.shiftLeft(1).add(denominator).divide(denominator.shiftLeft(1))
+    return rounded.min(BigInteger.valueOf(Int.MAX_VALUE.toLong())).toInt()
   }
 
   /**
@@ -64,6 +66,4 @@ object RewardScaling {
   fun treasureKillReward(baseCore: Int, progressionRank: Long): Int =
     EntityScaling.scale(baseCore, discreteLevelOf(progressionRank).toLong() * RANK_PER_FULL_LEVEL)
 
-  /** Supported reward levels: 1.5^18 ≈ 1478x is already far beyond tuning range. */
-  const val MAX_REWARD_LEVEL: Int = 18
 }

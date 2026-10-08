@@ -83,4 +83,21 @@ class RewardScalingTest {
       // expected
     }
   }
+  @Test fun rewardsAcceptWholeSharedRankDomainAndSaturate() {
+    assertEquals(2_217, RewardScaling.scaledCoreReward(1, 19_000_000L))
+    assertEquals(Int.MAX_VALUE, RewardScaling.scaledCoreReward(Int.MAX_VALUE, 1_000_000L))
+    assertEquals(Int.MAX_VALUE, RewardScaling.scaledCoreReward(1, EntityScaling.MAX_PROGRESSION_RANK))
+    assertEquals(0, RewardScaling.scaledCoreReward(0, EntityScaling.MAX_PROGRESSION_RANK))
+    assertEquals(0, RewardScaling.scaledCoreReward(-1, EntityScaling.MAX_PROGRESSION_RANK))
+    var previous = 0
+    for (level in 0..1000) {
+      val rank = level * RANK_PER_FULL_LEVEL
+      val reward = RewardScaling.scaledCoreReward(1, rank)
+      assertTrue(reward >= previous)
+      assertEquals(level.toString(), RewardScaling.treasureBucketKey(rank))
+      assertTrue(RewardScaling.treasureKillReward(10, rank) >= 10)
+      previous = reward
+    }
+  }
+
 }

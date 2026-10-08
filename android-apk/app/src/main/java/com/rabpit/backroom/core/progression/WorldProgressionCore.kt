@@ -105,11 +105,12 @@ object WorldProgressionCore {
    * stays a gameplay precondition evaluated by the caller BEFORE calling
    * [validateTransition], which enforces graph authority only.
    *
-   * Sub-levels get NO automatic edges: each one is added here explicitly when
+   * New full Levels and Sub-levels get NO automatic edges: each one is added here explicitly when
    * its gameplay route is designed.
    */
   val EDGES: List<WorldEdge> = buildList {
-    val levels = NODES.filter { it.kind == WorldNodeKind.LEVEL }.map { it.id }
+    // Pin legacy connectivity. New full Levels require deliberate edge declarations too.
+    val levels = (0..6).map { WorldNodeId("level-$it") }
     for (from in levels) for (to in levels) {
       if (from != to) add(WorldEdge(from, to))
     }

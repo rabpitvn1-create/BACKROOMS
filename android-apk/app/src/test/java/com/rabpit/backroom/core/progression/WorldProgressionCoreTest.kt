@@ -141,4 +141,12 @@ class WorldProgressionCoreTest {
     before.forEach { (id, rank) -> assertEquals("rank changed for $id", rank, after[id]) }
     assertEquals(1_500_000L, after["level-1.sub-a"])
   }
+  @Test fun legacyEdgeSetIsPinnedIndependentlyOfFutureRegistryNodes() {
+    val expected = (0..6).flatMap { from -> (0..6).filter { it != from }.map { to ->
+      WorldEdge(WorldNodeId("level-$from"), WorldNodeId("level-$to"))
+    } }.toSet()
+    assertEquals(expected, WorldProgressionCore.EDGES.toSet())
+    assertEquals(42, WorldProgressionCore.EDGES.size)
+  }
+
 }

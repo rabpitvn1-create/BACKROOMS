@@ -20,8 +20,8 @@ import org.json.JSONObject
  *
  * Version handling is EXACT (fail closed):
  * - v1 (or missing version) -> migrate,
- * - v2 -> validate (unknown node or missing id rejects; rank snapshot
- *   mismatch is corrected to the authoritative rank and flagged),
+ * - v2 -> validate against a trusted Core world node (unknown or missing
+ *   snapshot IDs reject; known ID/rank mismatches are corrected and flagged),
  * - any other / future version -> explicit reject, never bypass.
  *
  * `combat.entity` alias: projection-only. The runtime rebuilds it from
@@ -58,7 +58,7 @@ sealed interface BoundaryLoadOutcome {
   data class Migrated(val boundary: JSONObject) : BoundaryLoadOutcome
 
   /**
-   * v2 boundary accepted. [snapshotCorrected] is true when a persisted rank
+   * v2 boundary accepted. [snapshotCorrected] is true when a persisted node/rank
    * snapshot disagreed with the authoritative rank and was corrected
    * (audit-worthy, not fatal: snapshots are metadata, not authority).
    */
@@ -92,46 +92,58 @@ object ProgressionMigration {
     return MigrationResult.Migrated(nodeId, rank)
   }
 
-  /**
-   * v1 world map -> v2 world map.
-   * On failure the error is recorded and NO `worldNodeId` is written, so a
-   * half-migrated state can never be mistaken for a valid one.
-   */
-  fun migrateWorldStateV1ToV2(world: Map<String, String>): Map<String, String> {
-    val levelJson = world["levelJson"] ?: return world
-    val number = JSONObject(levelJson).optInt("number", Int.MIN_VALUE)
-    return when (val result = migrateLegacyLevelNumber(number)) {
-      is MigrationResult.Migrated ->
-        world + ("worldNodeId" to result.nodeId.value)
-      is MigrationResult.Failed ->
-        world + ("progressionMigrationError" to result.reason)
-    }
-  }
+  /** Pure world migration; failure never produces a usable world. */
+  fun migrateWorldStateV1ToV2(world: Map<String, String>): WorldMigrationOutcome =
+    WorldSaveMigration.migrateV3World(world)
 
   /**
-   * THE entry point for loading a persisted `combat93.state` boundary.
-   * Exact version dispatch: v1 -> migrate, v2 -> validate,
-   * missing/future/malformed -> reject. Never bypasses.
+   * The caller supplies the trusted GameState.world node, never a boundary field.
+   * Known snapshot mismatches are corrected and flagged; missing/unknown IDs,
+   * malformed structures and unsupported versions fail closed.
    */
-  fun loadCombatBoundary(boundary: JSONObject): BoundaryLoadOutcome {
-    return when (boundary.optInt("progressionSchemaVersion", PROGRESSION_SCHEMA_VERSION_1)) {
-      PROGRESSION_SCHEMA_VERSION_1 -> when (val result = migrateV1Boundary(boundary)) {
-        is MigrationResult.Migrated -> {
-          val migrated = applyV1Snapshot(boundary, result.nodeId, result.progressionRank)
-          BoundaryLoadOutcome.Migrated(migrated)
-        }
-        is MigrationResult.Failed -> BoundaryLoadOutcome.Rejected(result.reason)
+  fun loadCombatBoundary(
+    boundary: JSONObject,
+    authoritativeNodeId: WorldNodeId,
+  ): BoundaryLoadOutcome {
+    val rank = (WorldProgressionCore.rankOf(authoritativeNodeId) as? RankLookup.Known)
+      ?.progressionRank ?: return BoundaryLoadOutcome.Rejected("unknown authoritative world node")
+    val version = if (!boundary.has("progressionSchemaVersion")) PROGRESSION_SCHEMA_VERSION_1
+      else strictInteger(boundary.opt("progressionSchemaVersion"))?.toInt()
+        ?: return BoundaryLoadOutcome.Rejected("malformed progressionSchemaVersion")
+    if (version != PROGRESSION_SCHEMA_VERSION_1 && version != PROGRESSION_SCHEMA_VERSION_2) {
+      return BoundaryLoadOutcome.Rejected("unsupported progressionSchemaVersion: $version")
+    }
+    val combat = boundary.optJSONObject("combat")
+      ?: return BoundaryLoadOutcome.Rejected("boundary missing combat object")
+    val entities = combat.optJSONArray("entities")
+      ?: return BoundaryLoadOutcome.Rejected("combat missing entities array")
+    for (i in 0 until entities.length()) {
+      if (entities.optJSONObject(i) == null) {
+        return BoundaryLoadOutcome.Rejected("malformed entity at index $i")
       }
-      PROGRESSION_SCHEMA_VERSION_2 -> validateV2Boundary(boundary)
-      else -> BoundaryLoadOutcome.Rejected(
-        "unsupported progressionSchemaVersion: ${boundary.optInt("progressionSchemaVersion", -1)}",
-      )
     }
+    if (combat.optBoolean("active") && entities.length() == 0) {
+      return BoundaryLoadOutcome.Rejected("active combat has no entities")
+    }
+    if (version == PROGRESSION_SCHEMA_VERSION_1) {
+      val level = strictInteger(boundary.opt("combatStageIndex"))
+        ?: return BoundaryLoadOutcome.Rejected("missing or malformed combatStageIndex")
+      val legacy = migrateLegacyLevelNumber(level.toInt())
+      if (legacy is MigrationResult.Failed) return BoundaryLoadOutcome.Rejected(legacy.reason)
+      val snapshot = legacy as MigrationResult.Migrated
+      if (snapshot.nodeId != authoritativeNodeId) {
+        return BoundaryLoadOutcome.Rejected("legacy combat node disagrees with authoritative world")
+      }
+      return BoundaryLoadOutcome.Migrated(applyV1Snapshot(boundary, authoritativeNodeId, rank))
+    }
+    return validateV2Boundary(boundary, authoritativeNodeId, rank)
   }
 
-  private fun migrateV1Boundary(boundary: JSONObject): MigrationResult {
-    val stageIndex = boundary.optInt("combatStageIndex", Int.MIN_VALUE)
-    return migrateLegacyLevelNumber(stageIndex)
+  /** JSON integer values only: no truncation, string coercion or default rank. */
+  internal fun strictInteger(value: Any?): Long? = when (value) {
+    is Int -> value.toLong()
+    is Long -> value.takeIf { it in Int.MIN_VALUE.toLong()..Int.MAX_VALUE.toLong() }
+    else -> null
   }
 
   private fun applyV1Snapshot(
@@ -157,40 +169,31 @@ object ProgressionMigration {
     return copy
   }
 
-  private fun validateV2Boundary(boundary: JSONObject): BoundaryLoadOutcome {
-    val nodeIdRaw = boundary.optString("worldNodeId", "")
-    if (nodeIdRaw.isBlank()) {
-      return BoundaryLoadOutcome.Rejected("v2 boundary missing worldNodeId")
-    }
-    val nodeId = WorldNodeId(nodeIdRaw)
-    val authoritative = when (val lookup = WorldProgressionCore.rankOf(nodeId)) {
-      is RankLookup.Known -> lookup.progressionRank
-      RankLookup.Unknown ->
-        return BoundaryLoadOutcome.Rejected("v2 boundary references unknown node: $nodeIdRaw")
-    }
-    var corrected = false
+  private fun validateV2Boundary(
+    boundary: JSONObject,
+    authoritativeNodeId: WorldNodeId,
+    authoritativeRank: Long,
+  ): BoundaryLoadOutcome {
     val copy = JSONObject(boundary.toString())
-    if (copy.optLong("progressionRank", Long.MIN_VALUE) != authoritative) {
-      copy.put("progressionRank", authoritative)
-      corrected = true
-    }
-    val combat = copy.optJSONObject("combat")
-    if (combat != null) {
-      if (combat.optLong("progressionRank", Long.MIN_VALUE) != authoritative) {
-        combat.put("progressionRank", authoritative)
+    val combat = copy.getJSONObject("combat")
+    val records = mutableListOf(copy, combat)
+    val entities = combat.getJSONArray("entities")
+    for (i in 0 until entities.length()) records.add(entities.getJSONObject(i))
+    var corrected = false
+    for (record in records) {
+      val id = record.opt("worldNodeId") as? String
+        ?: return BoundaryLoadOutcome.Rejected("v2 record missing worldNodeId")
+      if (WorldProgressionCore.rankOf(WorldNodeId(id)) == RankLookup.Unknown) {
+        return BoundaryLoadOutcome.Rejected("v2 record references unknown node: $id")
+      }
+      if (id != authoritativeNodeId.value || strictInteger(record.opt("progressionRank")) != authoritativeRank) {
+        record.put("worldNodeId", authoritativeNodeId.value)
+        record.put("progressionRank", authoritativeRank)
         corrected = true
       }
-      val entities = combat.optJSONArray("entities") ?: JSONArray()
-      for (i in 0 until entities.length()) {
-        val entity = entities.optJSONObject(i) ?: continue
-        if (entity.optLong("progressionRank", Long.MIN_VALUE) != authoritative) {
-          entity.put("progressionRank", authoritative)
-          corrected = true
-        }
-      }
-      resyncEntityAlias(combat)
     }
-    return BoundaryLoadOutcome.Valid(copy, authoritative, corrected)
+    resyncEntityAlias(combat)
+    return BoundaryLoadOutcome.Valid(copy, authoritativeRank, corrected)
   }
 
   /**
