@@ -153,7 +153,7 @@ Mạng phòng bê tông xuống cấp với nước bẩn ngập nhiều khu v�
 
 ### Level 0.2 — Remodeled Mess
 
-**REFERENCE / CANDIDATE BASELINE:** Backrooms Wiki hiện liệt kê Level 0.2 — Remodeled Mess. Đừng đồng nhất nó với Level 0.22 — Fully Remodeled của Project. Cơ chế, tuyến đi và Entity chưa khóa.
+**REFERENCE / CANDIDATE BASELINE:** [Level 0.2 — Remodeled Mess](https://backrooms-wiki.wikidot.com/level-0-2) mô tả vùng được cải tạo với tường trắng, thảm đỏ khô và thiết bị điện; sự xuống cấp hoặc sụp đổ cấu trúc được thuật lại như một rủi ro môi trường. Đừng đồng nhất nó với Level 0.22 — Fully Remodeled của Project. Cơ chế damage, tuyến đi và Entity chưa khóa.
 
 ### Level 0.22 — Fully Remodeled
 
@@ -209,13 +209,21 @@ Một vùng Tầng 0 bị lỗi hình học rõ rệt: sàn, trần và tường
 
 Càng đi sâu, môi trường càng giống một cấu trúc ba chiều bị ghép sai hơn là một tòa nhà có thể lập sơ đồ.
 
+### Manila Room — khu phụ của Tầng 0
+
+**REFERENCE / CANDIDATE:** [The Manila Room](https://backrooms-wiki.wikidot.com/manila-room) được thuật lại như một căn phòng nhỏ có tường màu manila, sàn gỗ và bàn tám cạnh cùng hai ghế. Mô tả từ Wiki về khả năng gặp người khác, tài liệu hoặc lối sang Level 1 chỉ dùng làm bối cảnh; không tự cấp vật phẩm, tri thức cho Cao Minh hay một exit đang hoạt động trong Core.
+
+### The Torment — khu phụ của Tầng 0
+
+**REFERENCE / CANDIDATE:** [The Torment](https://backrooms-wiki.wikidot.com/the-torment) có các lời kể về không gian xám u ám, vòng mộ và tượng đá. Không xác lập lối đi thường trực vào đây, thực thể hay sự kiện chỉ dựa trên báo cáo nguồn.
+
 ### Dullness
 
 Một mê cung gồm các phòng có kích thước biến đổi cực mạnh. Hình khối có thể hòa vào nhau hoặc thay đổi quan hệ không gian, khiến bản đồ nhanh chóng mất giá trị.
 
 ### Red Rooms
 
-Một biến thể đỏ thẫm của Tầng 0. Tường, thảm, trần và ánh sáng đều chuyển sang sắc đỏ; vật liệu có thể khô, ráp hoặc dính hơn baseline Tầng 0. Nấm và mốc xuất hiện ở nhiều khu vực.
+Một biến thể đỏ thẫm của Tầng 0. Tường, thảm, trần và ánh sáng đều chuyển sang sắc đỏ; vật liệu có thể khô, ráp hoặc dính hơn baseline Tầng 0. Nấm và mốc xuất hiện ở nhiều khu vực. Wiki thuật lại nơi này như vùng ngõ cụt khó thoát; việc Project xếp **Red Rooms ngay trước Level 1 trong hành trình** là quyết định thứ tự, **không đồng nghĩa đã có lối thoát Red Rooms → Level 1 trong Core**.
 
 ### LS-2
 
@@ -254,9 +262,40 @@ Không tự sáng tạo chi tiết chỉ để hoàn thiện danh sách.
 
 Đối với **Tầng 0**, danh mục Core còn có 0.01, 0.1, 0.11, 0.2, 0.22, 0.23, 0.3, 0.41, 0.5, 0.66, 0.7, 0.8 và 0.99. Project giữ ưu tiên cho Level 0.1 — Deep Emptiness và Level 0.7 — Claustrophobia, kể cả khi Wiki hiện hành dùng tên khác. Các khu phụ có tên nhưng chưa có rank xác lập gồm Level ε, Dullness, Red Rooms, LS-2, Manila Room và The Torment.
 
-**IMPLEMENTATION LOCK:** Đăng ký node/sublevel chỉ giúp định danh và tra cứu. Chỉ Core gameplay và route resolver được phép chuyển tầng. EntityCore quyết định xuất hiện thực thể. Không sinh exit/spawn/loot từ bất kỳ dòng tham khảo nào của mục này.
+**IMPLEMENTATION LOCK:** Đăng ký node/sublevel chỉ giúp định danh và tra cứu. Chỉ Core gameplay và route resolver được phép chuyển tầng. EntityCore quyết định xuất hiện thực thể. Không sinh exit/spawn/loot từ bất kỳ dòng tham khảo nào của mục này. Các trang Wiki chỉ mới được kiểm tra URL/tác giả không được coi là đã duyệt nội dung; mục OPEN hoặc trimmed/rewrite tiếp tục chưa có gameplay canon.
 
 ---
+
+## 2D. GHI CÔNG NGUỒN MÔ TẢ ĐÃ CHUẨN HÓA (TÍCH HỢP VÀO GAME)
+
+Các mô tả môi trường ở phần 2A–2C là dữ liệu canon/baseline **được lưu trực tiếp trong file này**. Không có một bản đăng ký `WorldInternetCanon` song song. Phần ghi công dưới đây chỉ phục vụ nguồn gốc và nghĩa vụ giấy phép, **không phải thêm một lớp dữ liệu gameplay**.
+
+- `level-1`: [Wikidot](https://backrooms-wiki.wikidot.com/level-1), ghi công: Praetor3005 and DivineAtlas; đối chiếu 08/10/2026.
+- `level-2`: [Wikidot](https://backrooms-wiki.wikidot.com/level-2), ghi công: Greggita Mahayfaio; đối chiếu 08/10/2026.
+- `level-3`: [Wikidot](https://backrooms-wiki.wikidot.com/level-3), ghi công: Natedagreat563; đối chiếu 08/10/2026.
+- `level-4`: [Wikidot](https://backrooms-wiki.wikidot.com/level-4), ghi công: u/M654zy on Reddit; đối chiếu 08/10/2026. Nguồn trimmed/đang viết lại, không nâng thành sự kiện game.
+- `level-5`: [Wikidot](https://backrooms-wiki.wikidot.com/level-5), ghi công: Stretchsterz; đối chiếu 08/10/2026.
+- `level-6`: [Wikidot](https://backrooms-wiki.wikidot.com/level-6), ghi công: Bart0nius; đối chiếu 08/10/2026. Nội dung mâu thuẫn phải theo canon Project.
+- `level-7`: [Wikidot](https://backrooms-wiki.wikidot.com/level-7), ghi công: Bart0nius; đối chiếu 08/10/2026. Nguồn trimmed/đang viết lại, không nâng thành sự kiện game.
+- `level-8`: [Wikidot](https://backrooms-wiki.wikidot.com/level-8), ghi công: C-Graph and kai4C; đối chiếu 08/10/2026.
+- `level-9`: [Wikidot](https://backrooms-wiki.wikidot.com/level-9), ghi công: Stretchsterz; đối chiếu 08/10/2026.
+- `level-10`: [Wikidot](https://backrooms-wiki.wikidot.com/level-10), ghi công: scutoid studios & egglord; đối chiếu 08/10/2026.
+- `level-11`: [Wikidot](https://backrooms-wiki.wikidot.com/level-11), ghi công: Greggita Mahayfaio; đối chiếu 08/10/2026.
+- `level-12`: [Wikidot](https://backrooms-wiki.wikidot.com/level-12), ghi công: Stretchsterz and Liryn; đối chiếu 08/10/2026.
+- `level-13`: [Wikidot](https://backrooms-wiki.wikidot.com/level-13), ghi công: Greggita Mahayfaio; đối chiếu 08/10/2026.
+- `level-0`: [Wikidot](https://backrooms-wiki.wikidot.com/level-0), ghi công: DivineAtlas, DrAkimoto, RobertGoerman; đối chiếu 08/10/2026.
+- `level-0.1`: [Wikidot](https://backrooms-wiki.wikidot.com/level-0-1), ghi công: CutTheBirch; đối chiếu 08/10/2026. Nội dung mâu thuẫn phải theo canon Project.
+- `level-0.2`: [Wikidot](https://backrooms-wiki.wikidot.com/level-0-2), ghi công: RowanLater; đối chiếu 08/10/2026.
+- `level-0.3`: [Wikidot](https://backrooms-wiki.wikidot.com/level-0-3), ghi công: CursedSliver; đối chiếu 08/10/2026. Nguồn trimmed/đang viết lại, không nâng thành sự kiện game.
+- `level-0.5`: [Wikidot](https://backrooms-wiki.wikidot.com/level-0-5), ghi công: FuneralBouncer (Moose0); đối chiếu 08/10/2026. Nội dung mâu thuẫn phải theo canon Project.
+- `level-0.7`: [Wikidot](https://backrooms-wiki.wikidot.com/level-0-7), ghi công: T-Dragon; đối chiếu 08/10/2026. Nội dung mâu thuẫn phải theo canon Project.
+- `area:0:manila-room`: [Wikidot](https://backrooms-wiki.wikidot.com/manila-room), ghi công: Br Miller & Neptunium; đối chiếu 08/10/2026.
+- `area:0:red-rooms`: [Wikidot](https://backrooms-wiki.wikidot.com/red-rooms), ghi công: scutoid studios; đối chiếu 08/10/2026. Nội dung mâu thuẫn phải theo canon Project.
+- `area:0:the-torment`: [Wikidot](https://backrooms-wiki.wikidot.com/the-torment), ghi công: Sky3; đối chiếu 08/10/2026.
+
+**Giấy phép:** Văn bản của Backrooms Wikidot theo [hướng dẫn bản quyền](https://backrooms-wiki.wikidot.com/licensing-guide) được công bố dưới CC BY-SA 3.0. Phát hành game phái sinh phải tuân thủ ghi công và điều kiện chia sẻ tương thích; hình ảnh có thể có giấy phép riêng. Giữ nguồn/tác giả để tuân thủ giấy phép, không sao chép nguyên bài vào game.
+
+**Nguồn tham khảo chưa chuẩn hóa:** Các sublevel/khu phụ trong danh mục 2C chỉ có tên hoặc metadata vẫn là `REFERENCE / CANDIDATE` hay `OPEN`, chưa được nhập thành mô tả môi trường, exit hoặc Entity. Không tự tạo dữ liệu để lấp chỗ trống.
 
 ## 3. THỰC THỂ
 
