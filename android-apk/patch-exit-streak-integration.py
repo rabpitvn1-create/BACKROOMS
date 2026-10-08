@@ -253,6 +253,16 @@ for marker in (
 ):
     if marker not in java:
         raise RuntimeError("Missing streak integration marker: " + marker)
+# Some older patches leave descriptive comments mentioning the retired engine.
+# Remove stale comments, but NEVER mask executable references to it.
+for line in java.splitlines():
+    if "ExitDiscoveryEngine" not in line:
+        continue
+    if line.lstrip().startswith(("//", "*")):
+        java = java.replace(line, line.replace("ExitDiscoveryEngine", "retired-exit-system"))
+    else:
+        raise RuntimeError("Executable legacy engine reference: " + line.strip()[:240])
+
 for banned in (
     "ExitDiscoveryEngine", "TraverseExitCommand", "migrateLegacyExitTurnState",
     "applyExitDiscoveryOutcome", "isTraverseExitCommand(", "private int exitThresholdAndroid",
