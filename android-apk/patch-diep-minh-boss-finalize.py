@@ -49,9 +49,9 @@ if prompt_lines:
     text = "".join(line for line in text.splitlines(keepends=True) if 'DIỆP MINH BOSS HARD LOCK:' not in line)
 
 # This finalizer must not invent the boss contract. The earlier boss patch remains responsible for
-# the independent 3% roll, canonical local asset key, display name, local asset, and combat rules.
+# the independent 1% roll, canonical local asset key, display name, local asset, and combat rules.
 for marker in (
-    'thresholdRoll("diepMinhEncounter", 10000, 300, entityEncounterAction && entityAllowed',
+    'thresholdRoll("diepMinhEncounter", 10000, 100, entityEncounterAction && entityAllowed',
     'rolls.put("diepMinhEncounter", diepMinhRoll)',
     'case "diep_minh":',
     'case "diep_minh": name = "Diệp Minh"; break;',

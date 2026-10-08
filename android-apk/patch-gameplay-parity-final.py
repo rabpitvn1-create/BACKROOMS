@@ -53,7 +53,7 @@ replacement = r'''  private JSONObject thresholdRoll(String label, int max, int 
 
     int level = Math.max(0, Math.min(6, currentLevel(state)));
     int[] hazardThresholds = {400, 700, 1000, 1200, 300, 1000, 1200};
-    int[] entityThresholds = {5, 200, 350, 350, 10, 400, 5};
+    int[] entityThresholds = {100, 100, 100, 100, 100, 100, 100};
     int[] lootThresholds = {35, 120, 100, 150, 180, 100, 45};
     int[] waterThresholds = {20, 70, 35, 20, 120, 60, 35};
 
@@ -93,7 +93,7 @@ text = text[:start] + replacement + text[end:]
 for marker in [
     'thresholdRoll("survivor", 10000, 200',
     'thresholdRoll("irisReunion", 1000000, 25',
-    'int[] entityThresholds = {5, 200, 350, 350, 10, 400, 5}',
+    'int[] entityThresholds = {100, 100, 100, 100, 100, 100, 100}',
     'int[] lootThresholds = {35, 120, 100, 150, 180, 100, 45}',
     'rolls.put("hazard"',
     'rolls.put("exitProbe", exitProbe)',

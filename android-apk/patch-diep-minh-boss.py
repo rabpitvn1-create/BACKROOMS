@@ -168,16 +168,16 @@ COMBAT.write_text(combat, encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
-# Android encounter/overlay: independent 3% boss roll, deliberately excluded
+# Android encounter/overlay: independent 1% boss roll, deliberately excluded
 # from the shared roaming pool. If both rolls succeed, the boss roll wins so
 # only one authoritative CombatRuntime encounter starts in that turn.
 # ---------------------------------------------------------------------------
 main = MAIN.read_text(encoding="utf-8")
 
 normal_roll = '    JSONObject normalEntityRoll = thresholdRoll("entityEncounter", 10000, entityThresholds[level], entityEncounterAction && entityAllowed, entitySuffix);\n'
-boss_roll = '    JSONObject diepMinhRoll = thresholdRoll("diepMinhEncounter", 10000, 300, entityEncounterAction && entityAllowed, " unique boss 3%");\n    rolls.put("diepMinhEncounter", diepMinhRoll);\n'
+boss_roll = '    JSONObject diepMinhRoll = thresholdRoll("diepMinhEncounter", 10000, 100, entityEncounterAction && entityAllowed, " unique boss 1%");\n    rolls.put("diepMinhEncounter", diepMinhRoll);\n'
 if 'rolls.put("diepMinhEncounter", diepMinhRoll);' not in main:
-    main = replace_once(main, normal_roll, boss_roll + normal_roll, "Diệp Minh independent 3% roll")
+    main = replace_once(main, normal_roll, boss_roll + normal_roll, "Diệp Minh independent 1% roll")
 
 normalized_old = '      case "jeff_the_killer": case "jane_the_killer": case "slenderman":\n        return key;\n'
 normalized_new = '      case "jeff_the_killer": case "jane_the_killer": case "slenderman": case "diep_minh":\n        return key;\n'
@@ -224,7 +224,7 @@ if 'DIỆP MINH BOSS HARD LOCK:' not in main:
     line_start = main.rfind('\n', 0, main.find(prompt_anchor)) + 1
     if line_start <= 0:
         raise RuntimeError("Entity roaming prompt insertion anchor missing")
-    boss_prompt = '      "DIỆP MINH BOSS HARD LOCK: Diệp Minh dùng roll độc lập diepMinhEncounter đúng 3% trên mỗi action gameplay hợp lệ. Boss không nằm trong roamingEntityKey pool chung. Khi boss roll success, encounter Diệp Minh ưu tiên và chỉ một CombatRuntime encounter được khởi tạo. " +\n'
+    boss_prompt = '      "DIỆP MINH BOSS HARD LOCK: Diệp Minh dùng roll độc lập diepMinhEncounter đúng 1% trên mỗi action gameplay hợp lệ. Boss không nằm trong roamingEntityKey pool chung. Khi boss roll success, encounter Diệp Minh ưu tiên và chỉ một CombatRuntime encounter được khởi tạo. " +\n'
     main = main[:line_start] + boss_prompt + main[line_start:]
 
 pool_lines = [line for line in main.splitlines() if 'String[] roamingPool =' in line]
@@ -234,7 +234,7 @@ if 'diep_minh' in pool_lines[0]:
     raise RuntimeError("Diệp Minh must remain outside the shared roaming pool")
 
 for marker in (
-    'thresholdRoll("diepMinhEncounter", 10000, 300, entityEncounterAction && entityAllowed',
+    'thresholdRoll("diepMinhEncounter", 10000, 100, entityEncounterAction && entityAllowed',
     'rolls.put("diepMinhEncounter", diepMinhRoll)',
     'case "diep_minh":',
     'case "diep_minh": name = "Diệp Minh"; break;',
@@ -318,4 +318,4 @@ raw = asset.read_bytes()
 if len(raw) < 12 or raw[:4] != b"RIFF" or raw[8:12] != b"WEBP":
     raise RuntimeError("Diệp Minh asset is not a WebP")
 
-print("Diệp Minh boss installed: 2999 HP, 10% Max-HP attack, +30 HP/turn, Devils And Gold every 5 turns for 5% party Max HP, independent 3% encounter roll.")
+print("Diệp Minh boss installed: 2999 HP, 10% Max-HP attack, +30 HP/turn, Devils And Gold every 5 turns for 5% party Max HP, independent 1% encounter roll.")
