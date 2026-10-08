@@ -92,7 +92,7 @@ jobs:
       - name: Apply Android runtime patch chain
         run: |
           set -euo pipefail
-          scripts=(patch-provider-status.py patch-provider-key-pool.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py patch-ui-1.1.99-shell.py patch-poker-dice-core-backport.py patch-poker-dice-ui-119-polish.py patch-cao-minh-identity-overlay.py patch-item-detail-actions.py patch-item-whole-unit.py patch-cao-minh-skills-equipment.py patch-cao-minh-prologue.py patch-character-stats-1193a-restore.py patch-combat-feedback-1193a.py patch-combat-93-runtime.py patch-combat-93-snapshot.py patch-item-source-authority-final.py patch-item-registry-core.py)
+          scripts=(patch-provider-status.py patch-provider-key-pool.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py patch-ui-1.1.99-shell.py patch-poker-dice-core-backport.py patch-poker-dice-ui-119-polish.py patch-cao-minh-identity-overlay.py patch-item-detail-actions.py patch-item-whole-unit.py patch-cao-minh-skills-equipment.py patch-cao-minh-prologue.py patch-character-stats-1193a-restore.py patch-combat-feedback-1193a.py patch-combat-93-runtime.py patch-combat-93-snapshot.py patch-item-source-authority-final.py patch-item-registry-core.py patch-exit-discovery-engine.py)
           for script in "${scripts[@]}"; do
             echo "==> $script"
             python3 "android-apk/$script"
@@ -168,7 +168,25 @@ jobs:
               ('daiDaoCombatStackIsSeparateAndResetsWithCombatMetadata', stats_1193),
               ('sceneKey:visualSceneKey()', java), ('r.sceneKey===visualSceneKey()', java),
               ('private int mentionedLevel(JSONObject state)', java),
-              ('return exitFound && progressionReady(before);', java),
+              ('EXIT_AUTHORITY_V1', java),
+              ('private boolean isTraverseExitCommand', java),
+              ('boolean traverseTurn = isTraverseExitCommand(actionKind, action);', java),
+              ('before every other interception', java),
+              ('traverseTurn || !levelChanged || canTransition(before, rolls)', java),
+              ('patchValue.remove("levelExit")', java),
+              ('patch.remove("exitChanceThreshold")', java),
+              ('patchValue.remove("levelTurns")', java),
+              ('patchValue.remove("confirmedExitMigrated")', java),
+              ('patchExploration.remove("levelTurns")', java),
+              ('patchExploration.remove("confirmedExitMigrated")', java),
+              ('migrateLegacyExitTurnState(normalizeExitRecordTurnState(before))', java),
+              ('rolls.put("exitDiscovery", evaluateExitDiscovery(state, actionKindNormalized, exitBonus));', java),
+              ('private DiscoveryEligibility checkExitDiscoveryEligibility', java),
+              ('anNhienReadEligible', java),
+              ('SEARCH-only', java),
+              ('private JSONObject applyTraverseExitTurn', java),
+              ('private JSONObject normalizeExitRecordTurnState', java),
+              ('confirmedExitMigrated', java),
               ('exploration.put("minimumTurns", 6)', java),
               ('recordLevelProgress(state, oldLevel, newLevel)', java),
               ('partyDetails&&state.partyDetails.members', java),
@@ -221,6 +239,9 @@ jobs:
           assert html.count('id="characterSkillsModal"') == 1
           assert 'rolls.put("roamingEntityId"' not in java
           assert 'makeGameplayRolls(before, action, meta)' not in java
+          assert 'exitIntent && (physical || search)' not in java
+          assert 'return exitFound && progressionReady(before);' not in java
+          assert 'private int exitThresholdAndroid' not in java
           assert 'slot != "set" || MadGodCanon.slot(command.itemId' not in engines
           assert 'appendEquipmentBadge(box)' not in java
           assert 'const val MULTIPLIER = 50' not in madgod
