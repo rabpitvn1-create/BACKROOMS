@@ -36,18 +36,41 @@ class WorldProgressionCoreTest {
     }
   }
 
-  @Test fun traversalGraphIsExplicit() {
-    // EDGES must be a written-out list, never derived from NODES order:
-    // adding a Sub-level to canonical order must not silently rewire traversal.
-    val expected = listOf(
-      WorldEdge(WorldNodeId("level-0"), WorldNodeId("level-1")),
-      WorldEdge(WorldNodeId("level-1"), WorldNodeId("level-2")),
-      WorldEdge(WorldNodeId("level-2"), WorldNodeId("level-3")),
-      WorldEdge(WorldNodeId("level-3"), WorldNodeId("level-4")),
-      WorldEdge(WorldNodeId("level-4"), WorldNodeId("level-5")),
-      WorldEdge(WorldNodeId("level-5"), WorldNodeId("level-6")),
-    )
-    assertEquals(expected, WorldProgressionCore.EDGES)
+  @Test fun allNodeRanksWithinScalerDomain() {
+    // Point 5: the registry itself enforces the scaler's domain, so no
+    // committed node can carry a rank EntityScaling would reject.
+    WorldProgressionCore.NODES.forEach { node ->
+      assertTrue(
+        "rank out of scaler domain for ${node.id.value}",
+        node.progressionRank in 0L..EntityScaling.MAX_PROGRESSION_RANK,
+      )
+    }
+  }
+
+  @Test fun legacyLevelsAreFullyConnected() {
+    // Transition semantics (deliberate): the legacy set_level rule is
+    // preserved — any Level 0..6 is reachable from any other once the Core
+    // exit gate passes. NOT a new adjacent-only restriction.
+    val levels = (0..6).map { WorldNodeId("level-$it") }
+    val edges = WorldProgressionCore.EDGES.toSet()
+    for (from in levels) for (to in levels) {
+      if (from == to) continue
+      assertTrue("missing edge ${from.value} -> ${to.value}", WorldEdge(from, to) in edges)
+    }
+  }
+
+  @Test fun subLevelsGetNoAutomaticEdges() {
+    // Adding a Sub-level to canonical order must not silently rewire
+    // traversal: its edges are added explicitly, never derived.
+    val sub = WorldNodeId("level-1.sub-a")
+    assertTrue(WorldProgressionCore.EDGES.none { it.from == sub || it.to == sub })
+  }
+
+  @Test fun selfTransitionIsIdempotent() {
+    // Matches the legacy set_level no-op when target == current level.
+    val result = WorldProgressionCore.validateTransition(WorldNodeId("level-2"), WorldNodeId("level-2"))
+    assertTrue(result is TransitionResult.Committed)
+    assertEquals(2 * RANK_PER_FULL_LEVEL, (result as TransitionResult.Committed).progressionRank)
   }
 
   @Test fun legacyLevelsZeroToSixArePinned() {
@@ -74,11 +97,12 @@ class WorldProgressionCoreTest {
     assertEquals(current, rejected.authoritativeNodeId)
   }
 
-  @Test fun transitionWithNoEdgeIsRejected() {
-    // Explicit graph: level-0 -> level-2 has no edge.
-    val result = WorldProgressionCore.validateTransition(WorldNodeId("level-0"), WorldNodeId("level-2"))
-    assertTrue(result is TransitionResult.Rejected)
-    assertEquals(TransitionRejection.NO_EDGE, (result as TransitionResult.Rejected).reason)
+  @Test fun distantTransitionIsAllowedPreservingLegacyRule() {
+    // Legacy set_level allowed any target 0..6 after the exit gate passed;
+    // the explicit graph preserves exactly that (no new adjacent-only rule).
+    val result = WorldProgressionCore.validateTransition(WorldNodeId("level-0"), WorldNodeId("level-5"))
+    assertTrue(result is TransitionResult.Committed)
+    assertEquals(5 * RANK_PER_FULL_LEVEL, (result as TransitionResult.Committed).progressionRank)
   }
 
   @Test fun validTransitionCommitsWithRank() {

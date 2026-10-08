@@ -8,9 +8,11 @@ import org.junit.Test
 /**
  * Locks the v1 -> v2 save migration from issue #453 against the REAL
  * persisted `combat93.state` boundary shape:
+ * - exact version dispatch: v1 -> migrate, v2 -> validate, future -> reject,
  * - version lives in exactly one place (boundary root),
  * - the whole `combat.entities[]` array migrates,
  * - materialized combat stats are preserved verbatim (no mid-fight rescale),
+ * - `combat.entity` is a projection-only alias, re-synced from entities[],
  * - v2 load never trusts a persisted rank as authority,
  * - unknown nodes fail closed.
  */
@@ -57,6 +59,12 @@ class ProgressionMigrationTest {
       .put("combat", combat)
   }
 
+  private fun migratedBoundary(stageIndex: Int = 2): JSONObject {
+    val outcome = ProgressionMigration.loadCombatBoundary(v1Boundary(stageIndex))
+    assertTrue(outcome is BoundaryLoadOutcome.Migrated)
+    return (outcome as BoundaryLoadOutcome.Migrated).boundary
+  }
+
   @Test fun legacyLevelNumberMigratesToExpectedNodeAndRank() {
     val result = ProgressionMigration.migrateLegacyLevelNumber(2)
     assertTrue(result is MigrationResult.Migrated)
@@ -72,8 +80,8 @@ class ProgressionMigrationTest {
     }
   }
 
-  @Test fun boundaryMigrationVersionsRootOnceAndMigratesAllEntities() {
-    val migrated = ProgressionMigration.migrateCombatBoundaryV1ToV2(v1Boundary())
+  @Test fun v1BoundaryMigratesWithSingleRootVersion() {
+    val migrated = migratedBoundary()
     // Version in exactly one place: the boundary root.
     assertEquals(PROGRESSION_SCHEMA_VERSION_2, migrated.getInt("progressionSchemaVersion"))
     assertEquals("level-2", migrated.getString("worldNodeId"))
@@ -106,26 +114,75 @@ class ProgressionMigrationTest {
     assertEquals(5, dice.getJSONArray("values").length())
   }
 
+  @Test fun entityAliasIsResyncedProjectionOnly() {
+    val migrated = migratedBoundary()
+    val combat = migrated.getJSONObject("combat")
+    // The alias exists and mirrors entities[activeEntityIndex], like the
+    // runtime's syncActiveEntityAlias.
+    assertTrue(combat.has("entity"))
+    val alias = combat.getJSONObject("entity")
+    val first = combat.getJSONArray("entities").getJSONObject(0)
+    assertEquals(first.getString("key"), alias.getString("key"))
+    assertEquals(first.getInt("hp"), alias.getInt("hp"))
+    assertEquals("level-2", alias.getString("worldNodeId"))
+  }
+
   @Test fun boundaryMigrationIsIdempotent() {
-    val once = ProgressionMigration.migrateCombatBoundaryV1ToV2(v1Boundary())
-    val twice = ProgressionMigration.migrateCombatBoundaryV1ToV2(once)
-    assertEquals(once.toString(), twice.toString())
+    val once = migratedBoundary()
+    val outcome = ProgressionMigration.loadCombatBoundary(once)
+    assertTrue(outcome is BoundaryLoadOutcome.Valid)
+    val valid = outcome as BoundaryLoadOutcome.Valid
+    assertEquals(2_000_000L, valid.authoritativeRank)
+    assertFalse(valid.snapshotCorrected)
+    assertEquals(once.toString(), valid.boundary.toString())
   }
 
   @Test fun boundaryWithUnknownStageFailsClosed() {
-    val migrated = ProgressionMigration.migrateCombatBoundaryV1ToV2(v1Boundary(stageIndex = 99))
-    assertTrue(migrated.has("progressionMigrationError"))
-    assertFalse(migrated.has("worldNodeId"))
-    assertFalse(migrated.has("progressionSchemaVersion"))
-    // Nothing was rescaled or guessed, even on failure.
-    val entity = migrated.getJSONObject("combat").getJSONArray("entities").getJSONObject(0)
-    assertEquals(37, entity.getInt("hp"))
-    assertFalse(entity.has("progressionRank"))
+    val outcome = ProgressionMigration.loadCombatBoundary(v1Boundary(stageIndex = 99))
+    assertTrue(outcome is BoundaryLoadOutcome.Rejected)
+    assertTrue((outcome as BoundaryLoadOutcome.Rejected).reason.contains("99"))
+  }
+
+  @Test fun futureVersionIsRejectedNotBypassed() {
+    val boundary = migratedBoundary()
+    boundary.put("progressionSchemaVersion", 99)
+    val outcome = ProgressionMigration.loadCombatBoundary(boundary)
+    assertTrue("future versions must fail closed, never bypass", outcome is BoundaryLoadOutcome.Rejected)
+  }
+
+  @Test fun v2WithUnknownNodeIsRejected() {
+    val boundary = migratedBoundary()
+    boundary.put("worldNodeId", "level-99")
+    val outcome = ProgressionMigration.loadCombatBoundary(boundary)
+    assertTrue(outcome is BoundaryLoadOutcome.Rejected)
+  }
+
+  @Test fun v2WithMissingNodeIdIsRejected() {
+    val boundary = migratedBoundary()
+    boundary.remove("worldNodeId")
+    val outcome = ProgressionMigration.loadCombatBoundary(boundary)
+    assertTrue(outcome is BoundaryLoadOutcome.Rejected)
+  }
+
+  @Test fun v2RankMismatchIsCorrectedToAuthoritative() {
+    val boundary = migratedBoundary()
+    // Tampered snapshot: entity claims a different rank than the authority.
+    boundary.getJSONObject("combat").getJSONArray("entities").getJSONObject(0)
+      .put("progressionRank", 9_000_000L)
+    val outcome = ProgressionMigration.loadCombatBoundary(boundary)
+    assertTrue(outcome is BoundaryLoadOutcome.Valid)
+    val valid = outcome as BoundaryLoadOutcome.Valid
+    assertEquals(2_000_000L, valid.authoritativeRank) // authority wins
+    assertTrue(valid.snapshotCorrected)
+    assertEquals(
+      2_000_000L,
+      valid.boundary.getJSONObject("combat").getJSONArray("entities").getJSONObject(0)
+        .getLong("progressionRank"),
+    )
   }
 
   @Test fun v2LoadNeverTrustsPersistedRank() {
-    // Tampered snapshot: entity claims a different rank than the authority.
-    val boundary = ProgressionMigration.migrateCombatBoundaryV1ToV2(v1Boundary())
+    val boundary = migratedBoundary()
     val entity = boundary.getJSONObject("combat").getJSONArray("entities").getJSONObject(0)
     entity.put("progressionRank", 9_000_000L)
 
@@ -134,13 +191,6 @@ class ProgressionMigrationTest {
     assertEquals(2_000_000L, resolution!!.authoritativeRank) // authority wins
     assertEquals(9_000_000L, resolution.persistedSnapshotRank)
     assertFalse(resolution.snapshotMatches)
-
-    // Matching snapshot is fine and reported as such.
-    val honest = ProgressionMigration.migrateCombatBoundaryV1ToV2(v1Boundary())
-      .getJSONObject("combat").getJSONArray("entities").getJSONObject(0)
-    val honestResolution = ProgressionMigration.resolveEncounterRank(honest, WorldNodeId("level-2"))
-    assertTrue(honestResolution!!.snapshotMatches)
-    assertEquals(2_000_000L, honestResolution.authoritativeRank)
   }
 
   @Test fun resolveEncounterRankFailsClosedForUnknownNode() {
