@@ -268,6 +268,20 @@ java = replace_once(java,
     '    // EXIT_STREAK_V1: no minimum-turn exit gate.',
     "remove six-turn gate")
 
+# Level 7–13 do not have packaged local level snapshots. Never silently
+# substitute a Level 0 image for a different Level. Gemini snapshots, when
+# available, remain authoritative for the current scene.
+for previous, replacement in (
+    ("var pool=refs[lv]||refs[0];", "var pool=refs[lv]||[];"),
+    ("var fallback=pool[frame%pool.length]||refs[0][0];",
+     "var fallback=pool.length?pool[frame%pool.length]:'';"),
+    ("var bg=document.createElement('img');bg.className='snapshot-bg';bg.src=r?r.dataUri:fallback;",
+     "var bg=document.createElement('img');bg.className='snapshot-bg';if(r||fallback)bg.src=r?r.dataUri:fallback;else bg.style.display='none';"),
+    ("if(!r)bg.onerror=function(){this.onerror=null;this.src=refs[lv]?refs[lv][0]:refs[0][0];};",
+     "if(!r)bg.onerror=function(){this.onerror=null;this.style.display='none';};"),
+):
+    java = replace_once(java, previous, replacement, "no fake local snapshot for Level 7-13")
+
 # Keep meta labels, but make short-input errors explicit rather than "Gemini errors".
 html = html.replace('statusEl.textContent="Lỗi Gemini: "+message',
                     'statusEl.textContent=String(message).startsWith("Hành động không hợp lệ:")?message:"Lỗi Gemini: "+message')

@@ -20,16 +20,16 @@ Status: **67/67 Level/Sublevel/khu phụ có mô tả môi trường dựng cả
 
 A known title/node is **not** a playable/connected Level by itself.
 
-- The legacy exit graph still has only 42 routes for full Level 0–6, and this is intentional.
-- `LinearWorldRouteResolver` still configures a Level 0–6 exit boundary. Adding names must not bypass the route gate.
+- The Core graph preserves all 42 legacy Level 0–6 edges and adds exactly 7 reviewed forward main-Level edges (6→7→8→9→10→11→12→13), for 49 edges. Numbered Sub-levels and named sections receive no automatic routes.
+- The retired `LinearWorldRouteResolver` is no longer runtime exit authority. `MainLevelExitRoutes` validates every main-Level move against `WorldProgressionCore` after the five-win, 50/50 non-combat streak gate. A catalog title cannot bypass the route validator.
 - The AI/narrative layer may read canon but must never authoritative-write progression rank, exit route, Entity stats, encounter, drops or player location.
 - Do not add auto-connect logic based on Level numbers, sublevel suffixes, catalog order or a description.
 - Existing save data and active combat must not be silently remapped or rescaled.
-- The local snapshot asset pool currently covers Level 0–6 only; no Level 7–13 image should be claimed as available.
+- The local snapshot asset pool currently covers Level 0–6 only; no Level 7–13 image should be claimed as available. Missing local backgrounds stay blank rather than showing a false Level 0 image; an actual turn-specific generated snapshot can still be displayed.
 
 ## Follow-on requirements before marking Level 7–13 playable
 
-1. Review and explicitly approve Core edges and exit discovery resolution for each target Level/Sub-level using Project canon; check entry and exit conditions and preserve legacy routes.
+1. **Main Levels 0–13: completed for sequential forward routes only.** All 42 legacy routes remain, with 7 explicit additions. Numbered Sub-level and named-section routes still require separate review; no editorial route promotion.
 2. Wire authoritative world-node transitions to state persistence/migration and encounter scaling; test unknown-node failures, combat-in-progress preservation and no Gemini write-through.
 3. Add Level-specific hazard/loot/Entity tables only from approved canon and preserve EntityCore encounter authority.
 4. Produce and verify appropriate local WebP snapshots and UI fallbacks. Do not disguise Level 0 visuals as a new Level.

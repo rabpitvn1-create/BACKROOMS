@@ -1,6 +1,6 @@
 # Thứ tự hành trình Level 0–13 (khu phụ nằm trong Level gốc)
 
-**Trạng thái:** 67 điểm được sắp xếp trong code; **chưa mở các route gameplay mới**.
+**Trạng thái (2026-10-09):** 67 điểm đã được sắp xếp trong code; **14 Level chính 0–13 đã có tuyến thoát liên tiếp bằng 5 streak**. 36 Sub-level và 17 khu phụ vẫn là điểm hành trình/nội dung, chưa được tự động cấp route gameplay.
 
 ## Quy tắc sắp xếp
 
@@ -41,8 +41,9 @@ Level 0 → Level ε → LS-2 → Manila Room → The Torment → Level 0.01 →
 
 - `WorldJourneyOrder.kt` dùng `GROUPS.orderedChildKeys` để ghi chính xác các sublevel và named areas **đan xen**. `STOPS`, `nextAfter`, `previousBefore`, `groupStops` chỉ dùng tra cứu. Hai view `numberedSublevelIds` và `namedSectionKeys` còn được giữ để tra cứu theo loại.
 - `WorldContentCatalog.kt` là nơi xác lập Level mẹ, tên và `PROJECT_CANON` / `EXTERNAL_REFERENCE` / `OPEN`. Không tự nâng tên Wiki lên canon Project.
-- `WorldProgressionCore.kt` vẫn khóa **50 node, các rank hiện có, và 42 legacy edges**. Không cấp WorldNodeId/rank giả cho các khu phụ có tên.
-- Runtime vẫn dựa vào exit resolver hiện hành. Đây là **thiết kế thứ tự**, không phải hành trình đã chạy được trong APK. Mở route mới cần PR riêng để thẩm định exit gate, save, state, combat và các trường hợp skip/backtrack.
+- `WorldProgressionCore.kt` vẫn khóa **50 node, rank không đổi, và 42 legacy edges**; thêm đúng **7 cạnh chính** (6→7 đến 12→13), tổng cộng 49 cạnh. Không cấp WorldNodeId/rank giả cho các khu phụ có tên.
+- Runtime của **14 Level chính** nay dùng 5 streak thắng liên tiếp (RNG 50/50) ngoài combat, đủ streak chuyển sang Level chính kế tiếp; Level 13 là chặng cuối, không tự sinh Level 14. Core kiểm tra route, save ghi worldNodeId và tên Level mới. Đây **không** phải bằng chứng 67 điểm có thể đi qua trong gameplay: thứ tự biên tập của Sub-level và khu phụ chưa tạo route, chưa có quyền skip/backtrack.
+- Level 7–13 vẫn cần hoàn thiện balance Entity/hazard/loot và ảnh nền chuyên biệt; chưa tuyên bố đã đạt đủ tiêu chí playable theo `CONTENT_0_13_STATUS.md`.
 
 ## Kiểm chứng
 
