@@ -84,7 +84,9 @@ jobs:
               '24 * 10',
               'Quăng Đại Cái Gì Đó',
               'hazardThresholds[level] * 75 / 100',
-              'thresholdRoll("anNhienRead", 10000, 2000',
+              'ExitStreakEngine.advance(',
+              'ExitStreakEngine.hasMinimumInput(action)',
+              'processValidatedCandidateWithStreak(',
               "button.id='characterSkillsButton'",
               'id="characterSkillsModal"',
               'function openSkills()',
@@ -104,6 +106,13 @@ jobs:
               'val luciaEntityEvaded = luciaEvasionRoll < ENTITY_EVASION_PERCENT',
           ):
               assert marker in combat, marker
+
+          # ExitStreak is authoritative: the old An Nhiên Exit roll and
+          # exitProbe must not silently reappear after the final patch chain.
+          assert 'EXIT_STREAK_V1' in main
+          assert 'thresholdRoll("anNhienRead",' not in main
+          assert 'rolls.put("anNhienRead",' not in main
+          assert 'thresholdRoll("exitProbe",' not in main
 
           assert '"nonCombat" to "true"' in an_nhien
           assert '"canUseWeapons" to "false"' in an_nhien
