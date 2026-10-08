@@ -30,8 +30,9 @@ object LucTramFollower {
   }
 }
 ''')
-replace(CORE / "CharacterEquipmentSystem.kt", "val input = LuciaCanon.ensure(source)",
-        "val input = LucTramFollower.ensure(LuciaCanon.ensure(source))")
+replace(CORE / "CharacterEquipmentSystem.kt",
+        "private fun normalizeInternal(source: GameState, seedStarting: Boolean): GameState {",
+        "private fun normalizeInternal(rawSource: GameState, seedStarting: Boolean): GameState {\n    val source = LucTramFollower.ensure(rawSource)")
 replace(CORE / "CharacterEquipmentSystem.kt",
         "val weaponId = state.equipment[equipmentId]?.slots?.get(EquipmentSlot.WEAPON.key) ?: return 18",
         "val weaponId = state.equipment[equipmentId]?.slots?.get(EquipmentSlot.WEAPON.key) ?: return if (characterId == LucTramFollower.ID) 24 else 18")
