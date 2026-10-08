@@ -1,6 +1,6 @@
 # Chuẩn hóa Internet canon → Backrooms game (giai đoạn đầu)
 
-**Ngày đối chiếu:** 2026-10-08. **Phạm vi:** 67 điểm trong `WorldJourneyOrder` được đăng ký, **22 trang Wikidot đã được mở và đọc trực tiếp** (9 điểm thuộc nhóm Level 0, 13 Level chính từ 1–13). 45 mục còn lại chưa được kiểm chứng từng trang.
+**Ngày đối chiếu:** 2026-10-08. **Phạm vi:** 67 điểm trong `WorldJourneyOrder` được đăng ký, **22 trang Wikidot đã được chuẩn hóa nội dung cơ bản** (9 điểm Level 0, 13 Level chính từ 1–13); thêm **34 trang đã xác minh URL và tác giả, nhưng mới ở mức metadata**, chưa trích xuất canon chi tiết. Còn **11 điểm Project-only/OPEN chưa có URL nguồn Wikidot xác minh**.
 
 ## Nguồn và ưu tiên
 
@@ -25,7 +25,7 @@
 | `area:0:red-rooms` — Red Rooms | [Red Rooms](https://backrooms-wiki.wikidot.com/red-rooms), scutoid studios | PROJECT_OVERRIDE cho lộ trình: nguồn nói ngõ cụt/nguy hiểm, tác giả đặt điểm này ngay trước Level 1. **Không được tự biến thành exit hợp lệ**. |
 | `area:0:the-torment` — The Torment | [The Torment](https://backrooms-wiki.wikidot.com/the-torment), Sky3 | PAGE_REVIEWED; mô tả dị thường xám, vòng mộ, tượng đá dưới dạng báo cáo. **Không** cho rằng có thể tiếp cận bằng đường thông thường. |
 
-11 điểm Level 0 còn lại chỉ dùng canon Project đã tồn tại hoặc OPEN, **không giả định có URL bài Wiki tương ứng**. Sau giai đoạn 2, **45 điểm là sublevel/khu phụ còn chờ**, thuộc các nhóm `INDEX_PENDING`, `PROJECT_ONLY`, hoặc `OPEN_PENDING`.
+11 điểm Level 0 còn lại chỉ dùng canon Project đã tồn tại hoặc OPEN, **không giả định có URL bài Wiki tương ứng**. Sau giai đoạn 3, **34 trong 45 điểm chờ đã có URL và tác giả trang Wiki**, nhưng vẫn ở trạng thái `PAGE_METADATA_ONLY`; **11 điểm còn lại chưa có URL Wiki xác minh**, giữ canon Project hoặc `OPEN_PENDING`.
 
 ## Giai đoạn 2: trang trực tiếp cho đủ 14 Level chính
 
@@ -49,16 +49,32 @@
 
 **Cảnh báo:** `PAGE_REVIEWED` chỉ chứng minh trang đã được xem và các câu đã được chuẩn hóa với nguồn, không đồng nghĩa Wiki được quyền ghi đè Project hoặc có thể nhập gameplay ngay. `SOURCE_TRIMMED` giữ URL/ghi công nhưng không chuyển bản cũ thành hành vi gameplay.
 
+## Giai đoạn 3: liên kết nguồn cho 34 sublevel/khu phụ
+
+Đã mở trang trực tiếp và đối chiếu người viết ở phần giấy phép/citation của Wikidot. **Đây là lớp provenance, chưa phải trích xuất toàn bộ nội dung.** Tất cả 34 hồ sơ dùng `PAGE_METADATA_ONLY`, chỉ chứa URL, tác giả, ngày kiểm tra và cờ xung đột được phát hiện; **không tự điền** environment, hazard, entity, loot hay exit.
+
+Những nguồn đã gắn bao gồm Level 1.1, 1.2, 1.3, 1.5, Base Alpha, Traders Vault, 2.1, Office Space EL3A, 3.5, The Office Market, 5.1–5.3, 6.1–6.3, 6.31, 7.6–7.8, The Hadal Zone, 8.1, The Sanctum Subterraneous, 9.2, 9.3, 9.5, 10.1, 10.2, Asset 11.1, Scene-01.2, 11.3, AFTER HOURS, The Headquarters và Radio Backrooms' Studio. URL/tác giả cụ thể nằm trong `WorldInternetCanon.kt`.
+
+Phải đặc biệt phân biệt danh tính Project và trang Wiki:
+
+- [The Sanctum Subterraneous](https://backrooms-wiki.wikidot.com/the-sanctum) dùng slug `the-sanctum`, không phải `the-sanctum-subterraneous`.
+- [Asset 11.1 — Private Enterprise](https://backrooms-wiki.wikidot.com/level-11-1) có URL Level 11.1 trên Wiki, nhưng game giữ **named section** không rank.
+- [Scene-01.2 — The Refuge](https://backrooms-wiki.wikidot.com/level-11-2) có URL Level 11.2, nhưng game vẫn giữ **named section** không rank.
+- [Level 5.1](https://backrooms-wiki.wikidot.com/level-5-1) dùng tiêu đề Wiki dài hơn tên Project; tuyệt đối không tự thay tên Project.
+- Các trang Wiki `trimmed`, `outdated`, `under rewrite` như Level 1.1, 6.2, 6.3, 8.1, Traders Vault, Office Space EL3A, The Headquarters, Radio Backrooms' Studio **không được nâng hạng thành dữ kiện gameplay chỉ vì đã có URL**.
+
+Trạng thái mới: **67 điểm** đã có hồ sơ ở game, **56 điểm có link tới trang Wiki được xác minh**, **22 điểm có mô tả ngắn đã duyệt trực tiếp**, **34 điểm metadata-only**, và **11 điểm chưa có link ngoài xác minh**.
+
 ## Schema của game và phạm vi quyền hạn
 
 `WorldInternetCanon.kt` là sổ chuẩn hóa đọc-only, đối chiếu theo **chính xác** `WorldJourneyOrder.STOPS.key`:
 
 - `GameCanonRecord`: `stopKey`, `parentLevel`, `projectTitle`, `projectAuthority`, `worldNodeId` (null với khu phụ chưa có rank), `source`.
 - `InternetCanonSource`: `wikiPageUrl`, `wikiTitle`, `creditedAuthors`, `review`, `observedDate`, `environmentSignals`, `riskReports`, `exitReports`, `conflicts`, `wikiTextLicense`.
-- `CanonWebReview`: `PAGE_REVIEWED`, `PROJECT_OVERRIDE`, `SOURCE_TRIMMED`, `PROJECT_ONLY`, `INDEX_PENDING`, `OPEN_PENDING`.
-- API thuần `record(key)`, `recordsForLevel(level)`, `directlyReviewed()`. Chỉ `WorldProgressionCore`, `EntityCore`, exit resolver và state máy chơi mới có thể quyết định hiện thực hóa đường đi, vật phẩm hay sự kiện.
+- `CanonWebReview`: `PAGE_REVIEWED`, `PROJECT_OVERRIDE`, `SOURCE_TRIMMED`, **`PAGE_METADATA_ONLY`**, `PROJECT_ONLY`, `INDEX_PENDING`, `OPEN_PENDING`.
+- API thuần `record(key)`, `recordsForLevel(level)`, `directlyReviewed()`, `sourceLinked()`. Chỉ `WorldProgressionCore`, `EntityCore`, exit resolver và state máy chơi mới có thể quyết định hiện thực hóa đường đi, vật phẩm hay sự kiện.
 - Lớp này **không tự cập nhật khi Wiki sửa**. Mỗi lần ingest phải đọc trang, xác minh tác giả/license, kiểm tra xung đột, mở PR có review, chạy full CI.
-- Đã có các unit test khóa 67 stop, 22 trang web thật, hard locks, dữ liệu OPEN, sự tách biệt của exit và rank; không tuyên bố runtime đã tiêu thụ nguồn mới.
+- Đã có các unit test khóa 67 stop, 22 bài có nội dung được duyệt và 34 nguồn metadata, hard locks, dữ liệu OPEN, sự tách biệt của exit và rank; không tuyên bố runtime đã tiêu thụ nguồn mới.
 
 ## Pháp lý và nguồn ảnh: gate bắt buộc trước khi phát hành phái sinh
 
@@ -68,6 +84,6 @@ Mỗi trang đã duyệt lưu tên người viết và URL để hỗ trợ ghi 
 
 ## Bước tiếp theo
 
-1. Duyệt trực tiếp các trang **sublevel và named area còn chờ**; mỗi phần phải có trạng thái và ghi công riêng. 14 Level chính đã được đối chiếu URL trang.
+1. Đọc và chuẩn hóa **nội dung 34 trang sublevel/area mới có provenance** theo từng nhóm Level, xác nhận trạng thái rewrite và ghi rõ nguồn từng mô tả; 11 điểm chưa có nguồn Wiki phải giữ riêng Project-only/OPEN.
 2. Đối chiếu `PROJECT_OVERRIDE` và xác nhận tình trạng rewrite; đặc biệt Level 6 tundra tối vĩnh viễn không bị wiki cũ ghi đè.
 3. Chỉ sau khi chuẩn hóa xong và được review mới cân nhắc dùng nội dung đã kiểm chứng cho cảnh, truyện, encounter design. **Không** biến source exit thành Core edge chỉ vì nó tồn tại trong văn bản.
