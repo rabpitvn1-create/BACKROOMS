@@ -780,6 +780,28 @@ class KnowledgeContextEngineP0Test {
     }
   }
 
+  @Test fun currentCaoMinhObjectiveComesFromCodexAndPrologueWithoutGuaranteedReunion() {
+    val entries = JSONObject(dbJson).getJSONArray("records")
+    val records = (0 until entries.length()).map { entries.getJSONObject(it) }
+      .associateBy { it.getString("id") }
+    val handoff = records.getValue("STORY.CAO.PROLOGUE_HANDOFF")
+    val objective = records.getValue("STORY.CAO.OBJECTIVE")
+    assertEquals("STORY_CANON", objective.getString("authority"))
+    assertEquals(46, objective.getInt("priority"))
+    assertEquals("CHAR.LUC_TRAM.IDENTITY", handoff.getJSONArray("references").getString(0))
+    assertEquals("STORY.CAO.OBJECTIVE", handoff.getJSONArray("references").getString(1))
+    assertTrue(objective.getJSONObject("source").getString("document")
+      .contains("CAO_MINH_CODEX.md"))
+    assertTrue(objective.getString("text").contains("secondary goal"))
+    assertTrue(objective.getString("text").contains("no confirmed evidence"))
+    assertTrue(objective.getString("text").contains("the player directs"))
+    val quiet = traced("quiet_exploration_L0")
+    assertTrue(proposed(quiet, "STORY.CAO.OBJECTIVE",
+      "direct reference from STORY.CAO.PROLOGUE_HANDOFF"))
+    assertTrue(quiet.packet.contains("<STORY.CAO.OBJECTIVE> At the prologue handoff"))
+    assertFalse(quiet.packet.contains("<STORY.MAIN.OBJECTIVE>"))
+  }
+
   @Test fun caoMinhCampaignDoesNotActivateLegacySeparationEvenWithStaleFlags() {
     val legacy = separationStateJson(true)
     val original = KnowledgeContextEngine.buildForTestWithTrace(
