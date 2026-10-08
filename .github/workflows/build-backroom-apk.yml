@@ -324,6 +324,37 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      - name: Verify Canon P1 alias shadow report
+        run: |
+          set -euo pipefail
+          REPORT="android-apk/app/build/reports/canon-p1/alias-shadow.json"
+          test -s "$REPORT"
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.loads(Path("android-apk/app/build/reports/canon-p1/alias-shadow.json").read_text(encoding="utf-8"))
+          assert report["schemaVersion"] == 1
+          assert report["mode"] == "shadow_only"
+          assert report["scope"] == "ENTITY_ITEM_RUNTIME_TAG_LOOKUP"
+          assert report["seedSource"] == "runtime_tags_only"
+          assert report["seedTagCount"] > 0
+          assert report["accentedSeedCount"] >= 0
+          assert report["caseCount"] == len(report["cases"])
+          assert report["caseCount"] > 0
+          assert report["tagOnlyCases"] == 0
+          assert report["aliasOnlyCases"] == 0
+          assert report["parityCases"] == report["caseCount"]
+          PY
+
+      - name: Upload Canon P1 alias shadow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Canon-P1-alias-shadow-${{ github.run_id }}
+          path: android-apk/app/build/reports/canon-p1/alias-shadow.json
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Verify Canon P0 Android serialization smoke
         uses: reactivecircus/android-emulator-runner@v2
         with:
