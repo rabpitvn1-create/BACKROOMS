@@ -355,6 +355,61 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+
+      - name: Verify Canon P1 derived tier shadow report
+        run: |
+          set -euo pipefail
+          test -s android-apk/app/build/reports/canon-p1/tier-shadow.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          p0 = json.loads(Path("android-apk/app/build/reports/canon-p0/snapshot-report.json").read_text(encoding="utf-8"))
+          p1 = json.loads(Path("android-apk/app/build/reports/canon-p1/tier-shadow.json").read_text(encoding="utf-8"))
+          assert p1["schemaVersion"] == 1 and p1["mode"] == "shadow_only"
+          assert p1["derivedFrom"] == "final_generated_KnowledgeContextEngine"
+          assert p1["mandatoryBudgetPriorityMax"] == 30
+          assert p1["legacyReferencePriorityGate"] == 55
+          assert p1["scenarioCount"] == p0["scenarioCount"] == 25
+          before = {case["name"]: case for case in p0["scenarios"]}
+          after = {case["name"]: case for case in p1["scenarios"]}
+          assert len(before) == len(after) == 25 and before.keys() == after.keys()
+          for name, case in after.items():
+              baseline = before[name]
+              assert case["packetSha256"] == case["shadowPacketSha256"] == baseline["packetSha256"], name
+              assert case["budgetKeptRecordIds"] == baseline["budgetKeptRecordIds"], name
+              for key in ("budgetEstimatedTokens", "serializedCharsBeforeClip",
+                          "serializedCharsAfterClip", "hardClipDecision",
+                          "hardClipRecordId", "hardClipCutOffset"):
+                  assert case[key] == baseline[key], (name, key)
+              assert case["recordCount"] == p1["recordCount"] == len(case["records"]), name
+              records = {r["id"]: r for r in case["records"]}
+              assert len(records) == p1["recordCount"], name
+              assert set(case["selectedIds"]) == {r["id"] for r in case["records"] if r["selected"]}, name
+              for record in case["records"]:
+                  mandatory = record["priority"] <= 30
+                  assert record["derivedBudgetTier"] == ("MANDATORY" if mandatory else "OPTIONAL"), name
+                  assert record["selected"] == (record["budgetDecision"] != "not_selected"), name
+                  if record["selected"]:
+                      assert record["budgetBand"] == ("mandatory" if mandatory else "optional"), name
+                      if mandatory:
+                          assert record["budgetDecision"] == "kept", name
+                  else:
+                      assert record["budgetBand"] is None and record["budgetCeiling"] is None, name
+                  expected_ref = ("NOT_REFERENCE_TARGET" if not record["referencedFrom"]
+                                  else "ELIGIBLE" if record["priority"] <= 55 else "INELIGIBLE")
+                  assert record["referenceEligibility"] == expected_ref, name
+          print("Canon P1.3 tier shadow: 25/25 packet, budget order and hardClip parity")
+          PY
+
+      - name: Upload Canon P1 derived tier shadow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Canon-P1-tier-shadow-${{ github.run_id }}
+          path: android-apk/app/build/reports/canon-p1/tier-shadow.json
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Verify Canon P0 Android serialization smoke
         uses: reactivecircus/android-emulator-runner@v2
         with:

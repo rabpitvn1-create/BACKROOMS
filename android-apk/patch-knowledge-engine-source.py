@@ -1161,6 +1161,115 @@ class KnowledgeContextEngineP0Test {
     assertTrue(reportFile.isFile)
   }
 
+
+  @Test fun derivedBudgetTierShadowPreservesCompleteP0PacketCorpus() {
+    val rawRecords = JSONObject(dbJson).getJSONArray("records")
+    val priorities = linkedMapOf<String, Int>()
+    val incoming = linkedMapOf<String, MutableList<String>>()
+    for (i in 0 until rawRecords.length()) {
+      val record = rawRecords.getJSONObject(i)
+      val id = record.getString("id")
+      assertFalse("Budget tier must be derived, not authored: " + id,
+        record.has("tier") || record.has("budgetTier") || record.has("derivedBudgetTier"))
+      priorities[id] = record.optInt("priority", 80)
+      val refs = record.optJSONArray("references") ?: JSONArray()
+      for (j in 0 until refs.length()) {
+        incoming.getOrPut(refs.getString(j)) { mutableListOf() }.add(id)
+      }
+    }
+    assertEquals("Registry IDs must be unique", rawRecords.length(), priorities.size)
+    assertEquals("P0 corpus must stay fixed", 25, allP0Scenarios.size)
+
+    val cases = JSONArray()
+    allP0Scenarios.forEach { scenario ->
+      val plain = KnowledgeContextEngine.buildForTest(
+        dbJson, scenario.stateJson, scenario.action, scenario.rollsJson)
+      val traced = KnowledgeContextEngine.buildForTestWithTrace(
+        dbJson, scenario.stateJson, scenario.action, scenario.rollsJson)
+      assertEquals("Shadow changed packet bytes: " + scenario.name, plain, traced.packet)
+
+      val selectedIds = traced.events.filter { it.type == "candidate_added" }.map { it.recordId }
+      val budgetEvents = traced.events.filter { it.type == "budget_decision" }
+      val budgetById = budgetEvents.associateBy { it.recordId }
+      assertEquals("Selected records must each have a budget decision: " + scenario.name,
+        selectedIds.toSet(), budgetById.keys)
+      assertEquals("Duplicate selection event: " + scenario.name, selectedIds.size, selectedIds.toSet().size)
+      val keptIds = budgetEvents.filter { it.decision == "kept" }.map { it.recordId }
+      val referenceEvents = traced.events
+        .filter { it.type == "reference_followed" || it.type == "reference_skipped" }
+        .groupBy { it.targetId }
+
+      val rows = JSONArray()
+      for ((id, priority) in priorities) {
+        val derived = if (priority <= 30) "MANDATORY" else "OPTIONAL"
+        val budgetEvent = budgetById[id]
+        if (budgetEvent != null) {
+          assertEquals("Derived tier disagrees with runtime budget band: " + id,
+            derived.lowercase(), budgetEvent.band)
+          if (derived == "MANDATORY") {
+            assertEquals("Legacy mandatory record must be kept: " + id, "kept", budgetEvent.decision)
+          }
+        }
+        val referencedFrom = incoming[id].orEmpty()
+        val eligibility = when {
+          referencedFrom.isEmpty() -> "NOT_REFERENCE_TARGET"
+          priority <= KnowledgeContextEngine.LEGACY_REFERENCE_PRIORITY_GATE -> "ELIGIBLE"
+          else -> "INELIGIBLE"
+        }
+        val referenceObservations = JSONArray()
+        referenceEvents[id].orEmpty().forEach { event ->
+          referenceObservations.put(JSONObject()
+            .put("fromId", event.fromId)
+            .put("decision", event.decision)
+            .put("rule", event.rule)
+            .put("shadowClass", event.shadowClass))
+        }
+        rows.put(JSONObject()
+          .put("id", id)
+          .put("priority", priority)
+          .put("derivedBudgetTier", derived)
+          .put("selected", id in budgetById)
+          .put("budgetDecision", budgetEvent?.decision ?: "not_selected")
+          .put("budgetBand", budgetEvent?.band ?: JSONObject.NULL)
+          .put("budgetCeiling", budgetEvent?.ceiling?.takeIf { it >= 0 } ?: JSONObject.NULL)
+          .put("referenceEligibility", eligibility)
+          .put("referencedFrom", JSONArray(referencedFrom))
+          .put("referenceObservations", referenceObservations))
+      }
+      val clip = traced.events.last { it.type == "hard_clip" }
+      cases.put(JSONObject()
+        .put("name", scenario.name)
+        .put("recordCount", rows.length())
+        .put("selectedIds", JSONArray(selectedIds))
+        .put("budgetKeptRecordIds", JSONArray(keptIds))
+        .put("packetSha256", sha256(plain))
+        .put("shadowPacketSha256", sha256(traced.packet))
+        .put("budgetEstimatedTokens",
+          traced.events.last { it.type == "budget_summary" }.budgetEstimatedTokens)
+        .put("serializedCharsBeforeClip", clip.serializedCharsBeforeClip)
+        .put("serializedCharsAfterClip", clip.serializedCharsAfterClip)
+        .put("hardClipDecision", clip.decision)
+        .put("hardClipRecordId", clip.recordId)
+        .put("hardClipCutOffset", clip.startChar)
+        .put("records", rows))
+    }
+
+    val report = JSONObject()
+      .put("schemaVersion", 1)
+      .put("mode", "shadow_only")
+      .put("derivedFrom", "final_generated_KnowledgeContextEngine")
+      .put("mandatoryBudgetPriorityMax", 30)
+      .put("legacyReferencePriorityGate", KnowledgeContextEngine.LEGACY_REFERENCE_PRIORITY_GATE)
+      .put("recordCount", rawRecords.length())
+      .put("scenarioCount", cases.length())
+      .put("scenarios", cases)
+    val reportDir = Path.of("build", "reports", "canon-p1").toFile()
+    assertTrue(reportDir.mkdirs() || reportDir.isDirectory)
+    val reportFile = reportDir.resolve("tier-shadow.json")
+    reportFile.writeText(report.toString(2) + "\n", Charsets.UTF_8)
+    assertTrue("Canon P1 tier shadow report must exist", reportFile.isFile)
+  }
+
   private fun stateJson(level: Int, partyIds: Array<String> = emptyArray()): String {
     val party = JSONArray()
     partyIds.forEach { party.put(it) }
