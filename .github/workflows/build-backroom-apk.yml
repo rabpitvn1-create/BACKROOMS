@@ -625,6 +625,9 @@ jobs:
           test -s apk-check/assets/dice/roll-3d.png
           test -s apk-check/assets/dice/level0-wallpaper.svg
 
+      - name: Verify packaged Novel Asset full-text canon
+        run: python3 android-apk/verify-novel-asset-apk.py Backroom-1.1.63.0.1.apk
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
