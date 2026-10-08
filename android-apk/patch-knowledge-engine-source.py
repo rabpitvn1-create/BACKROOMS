@@ -570,6 +570,90 @@ if old not in text:
     raise RuntimeError("P0 hard clip trace anchor not found")
 text = text.replace(old, new, 1)
 
+# Novel/Asset text corpus: explicit topic routing only. Never grant player
+# knowledge solely because source or writer-secret material exists.
+old = '''      addDirectStructuredLookups()
+      addSceneAffordances()
+'''
+new = '''      addDirectStructuredLookups()
+      addNovelAssetExcerpts()
+      addSceneAffordances()
+'''
+if old not in text:
+    raise RuntimeError("Novel Asset source selector insertion anchor changed")
+text = text.replace(old, new, 1)
+
+old = '''    private fun addSceneAffordances() {
+'''
+new = r'''    private fun addNovelAssetExcerpts() {
+      // Archive chunks are immutable, fully source-backed records, not automatic
+      // character knowledge. The player's explicit topic selects at most three.
+      val routes = linkedMapOf(
+        "CAO_MINH_CODEX" to listOf(
+          "vạn quỷ ma tâm", "vạn quỷ ma thân", "huyết ma kiếm",
+          "huyết ma chiến khải", "huyết sát ma khí", "vạn tàng giới",
+          "huyết ma nhị thập tứ", "ma tôn vạn giới"
+        ),
+        "LUC_TRAM_CODEX" to listOf(
+          "lục trầm", "tịch quang", "thiên kiếm", "kiếm khải", "bạch hồng kiếm nữ"
+        ),
+        "BACKROOMS_WORLD" to ((0..10).flatMap { listOf("level $it", "tầng $it") } +
+          listOf("sublevel", "red rooms", "the lobby", "backrooms world")),
+        "ENTITY" to listOf(
+          "hound", "smiler", "duller", "clump", "deathmoth",
+          "faceling", "wretch", "skin-stealer", "predatory window",
+          "cable mimic", "jeff the killer", "jane the killer", "slenderman"
+        ),
+        "ASYNC_BACKROOMSV2" to listOf("async", "kv31", "the complex"),
+        "BACKROOMS_LINH_KHI" to listOf("linh khí", "linh lực"),
+        "BACKROOMS_LINH_KHI_ANH_HUONG_TU_SI" to listOf(
+          "linh khí", "tu sĩ", "tu luyện", "hồi phục linh lực"
+        ),
+        "TANG_KIEM_COC_HUYET_MA_KIEM_TICH_QUANG" to listOf(
+          "táng kiếm cốc", "tang kiem coc"
+        ),
+        "HUYET_TAY_CAO_GIA" to listOf(
+          "huyết tẩy cao gia", "huyet tay cao gia", "cao gia", "diệp minh"
+        ),
+        "AI_NOVEL_GENERATION_INSTRUCTION" to listOf(
+          "văn xuôi", "hội thoại", "lời thoại", "giọng thoại", "xưng hô"
+        )
+      )
+      val ignored = setOf(
+        "cao", "minh", "lục", "trầm", "backrooms", "level", "trong",
+        "đang", "trước", "phía", "hành", "lang", "những", "người", "nhìn"
+      )
+      val words = Regex("[\\p{L}\\p{N}]{3,}").findAll(actionText)
+        .map { it.value }.filterNot { it in ignored }.toSet()
+      var count = 0
+      for ((document, triggers) in routes) {
+        if (count >= 3) break
+        val matched = triggers.filter { it in actionText }
+        if (matched.isEmpty()) continue
+        val phrase = matched.maxByOrNull { it.length } ?: continue
+        val prefix = "NOVEL_ASSET.$document."
+        val winner = db.records.values.asSequence()
+          .filter { it.id.startsWith(prefix) }
+          .map { record ->
+            val excerpt = normalize(record.text)
+            val score = (if (phrase in excerpt) 20 else 0) +
+              words.count { it in excerpt }
+            record to score
+          }
+          .sortedWith(compareByDescending<Pair<Record, Int>> { it.second }
+            .thenBy { it.first.id })
+          .firstOrNull()?.first ?: continue
+        add(winner.id, "explicit Novel Asset excerpt")
+        count++
+      }
+    }
+
+    private fun addSceneAffordances() {
+'''
+if old not in text:
+    raise RuntimeError("Novel Asset source lookup method anchor changed")
+text = text.replace(old, new, 1)
+
 ENGINE.write_text(text, encoding="utf-8")
 
 TEST = Path(__file__).resolve().parent / "app/src/test/java/com/rabpit/backroom/core/knowledge/KnowledgeContextEngineP0Test.kt"
@@ -804,6 +888,60 @@ class KnowledgeContextEngineP0Test {
       )
       assertEquals("${scenario.name} packet changed when trace enabled", plain, traced.packet)
     }
+  }
+
+  @Test fun novelAssetCorpusIsIndexedAndRetrievedOnlyForExplicitTopics() {
+    val entries = JSONObject(dbJson).getJSONArray("records")
+    val indexed = (0 until entries.length()).map { entries.getJSONObject(it) }
+      .filter { it.getString("id").startsWith("NOVEL_ASSET.") }
+    assertEquals("Every approved Novel/Asset document must be indexed", 259, indexed.size)
+    assertTrue(indexed.all { it.getInt("priority") == 55 })
+    assertFalse(indexed.any { it.getString("id").contains("TRAC_LAM") })
+    assertFalse(indexed.any {
+      it.getString("text").contains("Ngay trước biến cố, Cao Minh ở trên Ma Sơn")
+    })
+    assertFalse(indexed.any {
+      it.getString("text").contains("Lục Trầm không rơi cùng Cao Minh.")
+    })
+    val topics = listOf(
+      "Vạn Quỷ Ma Tâm" to "CAO_MINH_CODEX",
+      "Tịch Quang" to "LUC_TRAM_CODEX",
+      "Tầng 7" to "BACKROOMS_WORLD",
+      "Smiler" to "ENTITY",
+      "ASYNC Project KV31" to "ASYNC_BACKROOMSV2",
+      "Linh khí" to "BACKROOMS_LINH_KHI",
+      "Tu sĩ tu luyện" to "BACKROOMS_LINH_KHI_ANH_HUONG_TU_SI",
+      "Táng Kiếm Cốc" to "TANG_KIEM_COC_HUYET_MA_KIEM_TICH_QUANG",
+      "Huyết Tẩy Cao Gia" to "HUYET_TAY_CAO_GIA",
+      "Hội thoại" to "AI_NOVEL_GENERATION_INSTRUCTION"
+    )
+    topics.forEach { (action, document) ->
+      val result = KnowledgeContextEngine.buildForTestWithTrace(
+        dbJson, caoMinhStateJson(1), action, "{}")
+      val candidates = result.events.filter {
+        it.type == "candidate_reason_appended" &&
+          it.recordId.startsWith("NOVEL_ASSET.$document.") &&
+          it.reason == "explicit Novel Asset excerpt"
+      }
+      assertTrue("Missing relevant excerpt for $document ($action)", candidates.isNotEmpty())
+      candidates.forEach { candidate ->
+        val decision = result.events.firstOrNull {
+          it.type == "budget_decision" && it.recordId == candidate.recordId
+        }
+        assertNotNull("Excerpt must enter existing budget decision", decision)
+        assertEquals("optional", decision!!.band)
+      }
+    }
+    val quiet = traced("quiet_exploration_L0")
+    assertFalse(quiet.events.any {
+      it.type == "candidate_reason_appended" && it.recordId.startsWith("NOVEL_ASSET.")
+    })
+    val swordAction = KnowledgeContextEngine.buildForTestWithTrace(
+      dbJson, caoMinhStateJson(1), "Huyết Ma Kiếm", "{}")
+    assertFalse(swordAction.events.any {
+      it.type == "candidate_reason_appended" &&
+        it.recordId.startsWith("NOVEL_ASSET.TANG_KIEM_COC.")
+    })
   }
 
   @Test fun caoMinhArmorCanonIsNotLegacyBlackbloodEquipment() {
