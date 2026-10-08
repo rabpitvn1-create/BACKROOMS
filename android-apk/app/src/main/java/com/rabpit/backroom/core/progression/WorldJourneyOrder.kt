@@ -58,20 +58,20 @@ object WorldJourneyOrder {
    * This list does NOT authorize gameplay exit links or named-area ranks.
    */
   val GROUPS: List<WorldJourneyGroup> = listOf(
-    WorldJourneyGroup($n, listOf("area:0:epsilon", "area:0:ls-2", "area:0:manila-room", "area:0:the-torment", "level-0.01", "level-0.1", "level-0.11", "level-0.2", "level-0.22", "level-0.23", "level-0.3", "level-0.41", "level-0.5", "level-0.66", "level-0.7", "level-0.8", "level-0.99", "area:0:dullness", "area:0:red-rooms")),
-    WorldJourneyGroup($n, listOf("area:1:base-alpha", "area:1:traders-vault", "level-1.1", "level-1.2", "level-1.3", "level-1.5")),
-    WorldJourneyGroup($n, listOf("area:2:office-space-el3a", "level-2.1")),
-    WorldJourneyGroup($n, listOf("level-3.5")),
-    WorldJourneyGroup($n, listOf("area:4:the-office-market")),
-    WorldJourneyGroup($n, listOf("level-5.1", "level-5.2", "level-5.3")),
-    WorldJourneyGroup($n, listOf("level-6.1", "level-6.2", "level-6.3", "level-6.31")),
-    WorldJourneyGroup($n, listOf("area:7:the-hadal-zone", "level-7.6", "level-7.7", "level-7.8")),
-    WorldJourneyGroup($n, listOf("area:8:the-sanctum-subterraneous", "level-8.1")),
-    WorldJourneyGroup($n, listOf("level-9.2", "level-9.3", "level-9.5")),
-    WorldJourneyGroup($n, listOf("level-10.1", "level-10.2")),
-    WorldJourneyGroup($n, listOf("area:11:asset-11-1", "area:11:scene-01-2", "area:11:after-hours", "area:11:the-headquarters", "area:11:radio-backrooms-studio", "level-11.3")),
-    WorldJourneyGroup($n, emptyList()),
-    WorldJourneyGroup($n, emptyList()),
+    WorldJourneyGroup(0, listOf("area:0:epsilon", "area:0:ls-2", "area:0:manila-room", "area:0:the-torment", "level-0.01", "level-0.1", "level-0.11", "level-0.2", "level-0.22", "level-0.23", "level-0.3", "level-0.41", "level-0.5", "level-0.66", "level-0.7", "level-0.8", "level-0.99", "area:0:dullness", "area:0:red-rooms")),
+    WorldJourneyGroup(1, listOf("area:1:base-alpha", "area:1:traders-vault", "level-1.1", "level-1.2", "level-1.3", "level-1.5")),
+    WorldJourneyGroup(2, listOf("area:2:office-space-el3a", "level-2.1")),
+    WorldJourneyGroup(3, listOf("level-3.5")),
+    WorldJourneyGroup(4, listOf("area:4:the-office-market")),
+    WorldJourneyGroup(5, listOf("level-5.1", "level-5.2", "level-5.3")),
+    WorldJourneyGroup(6, listOf("level-6.1", "level-6.2", "level-6.3", "level-6.31")),
+    WorldJourneyGroup(7, listOf("area:7:the-hadal-zone", "level-7.6", "level-7.7", "level-7.8")),
+    WorldJourneyGroup(8, listOf("area:8:the-sanctum-subterraneous", "level-8.1")),
+    WorldJourneyGroup(9, listOf("level-9.2", "level-9.3", "level-9.5")),
+    WorldJourneyGroup(10, listOf("level-10.1", "level-10.2")),
+    WorldJourneyGroup(11, listOf("area:11:asset-11-1", "area:11:scene-01-2", "area:11:after-hours", "area:11:the-headquarters", "area:11:radio-backrooms-studio", "level-11.3")),
+    WorldJourneyGroup(12, emptyList()),
+    WorldJourneyGroup(13, emptyList()),
   )
 
   val STOPS: List<WorldJourneyStop> = buildList {
