@@ -963,6 +963,25 @@ class KnowledgeContextEngineP0Test {
     assertFalse("Fixture must not name an Entity", scenario("runtime_entity_encounter").action.contains("entity", ignoreCase = true))
   }
 
+  @Test fun lucTramIdentityFromCurrentCodexDoesNotInferPresence() {
+    val entries = JSONObject(dbJson).getJSONArray("records")
+    val records = (0 until entries.length()).map { entries.getJSONObject(it) }
+      .associateBy { it.getString("id") }
+    val identity = records.getValue("CHAR.LUC_TRAM.IDENTITY")
+    assertEquals("Novel/Asset/LUC_TRAM_CODEX.md",
+      identity.getJSONObject("source").getString("document"))
+    assertEquals("IMMUTABLE", identity.getString("mutability"))
+    assertTrue(identity.getString("text").contains("Tịch Quang"))
+    assertTrue(identity.getString("text").contains("does not establish survival"))
+    val handoff = records.getValue("STORY.CAO.PROLOGUE_HANDOFF")
+    assertEquals("CHAR.LUC_TRAM.IDENTITY", handoff.getJSONArray("references").getString(0))
+    val quiet = traced("quiet_exploration_L0")
+    assertTrue(proposed(quiet, "CHAR.LUC_TRAM.IDENTITY",
+      "direct reference from STORY.CAO.PROLOGUE_HANDOFF"))
+    assertTrue(quiet.packet.contains("<CHAR.LUC_TRAM.IDENTITY> Lục Trầm is"))
+    assertFalse(quiet.packet.contains("Present actors: lục trầm"))
+  }
+
   @Test fun prologueHandoffIsReferencedFromStableMandatoryCore() {
     val records = JSONObject(dbJson).getJSONArray("records")
     val byId = (0 until records.length()).map { records.getJSONObject(it) }

@@ -428,7 +428,14 @@
       "text": "At the end of the prologue at Lôi Thiên Vực, Lục Trầm had no detectable pulse, Thiên Kiếm Linh Tâm or spirit. Cao Minh reversed Vạn Quỷ Ma Tâm and spent his accumulated đạo hạnh attempting to restore her, without a confirmed revival. He then awoke alone in a yellow, fluorescent-lit corridor with damp carpet. Huyết Ma Kiếm remained; his đạo hạnh was lost and his ma nguyên greatly weakened. He found no trace of Lục Trầm and chose to search for her. Her whereabouts and fate after the transition are not confirmed by Cao Minh's observations. This is opening continuity, not a permanent objective or a license to invent a reunion, resurrection or final death.",
       "source": {"document": "android-apk/cao-minh-prologue.txt", "anchor": "Cao Minh tỉnh lại; Vạn Quỷ Ma Tâm nghịch chuyển; thức tỉnh tại hành lang vàng; LƯỢT 1"},
       "authority": "STORY_CANON", "mutability": "BASELINE", "priority": 42,
-      "tags": ["cao minh", "lục trầm", "prologue", "opening continuity", "search"], "references": [], "affordances": []
+      "tags": ["cao minh", "lục trầm", "prologue", "opening continuity", "search"], "references": ["CHAR.LUC_TRAM.IDENTITY"], "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.IDENTITY", "domain": "CHARACTER", "kind": "identity",
+      "text": "Lục Trầm is a human orthodox sword cultivator and direct disciple of Thiên Kiếm Môn. Her bonded sword is Tịch Quang, her armor is Thiên Cơ Bạch Kim Kiếm Khải, and her cultivation foundation is Thiên Kiếm Linh Tâm. She is an accomplished autonomous swordswoman, not equal to Cao Minh in total power and not an incompetent dependent. The old Lucia Lục identity and its modern military equipment are retired. Her age and exact cultivation realm remain OPEN. This profile does not establish survival after the prologue, present-party membership, reunion, relationship stage or current form of address; those require valid continuity.",
+      "source": {"document": "Novel/Asset/LUC_TRAM_CODEX.md", "anchor": "LUC-READ-FIRST-R04; 00 Quick Profile; 01 Identity; 24 Legacy Override; LUC-CANON-R03"},
+      "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 44,
+      "tags": ["lục trầm","tịch quang","thiên kiếm môn"], "references": [], "affordances": []
     }
   ]
 }
