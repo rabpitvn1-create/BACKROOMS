@@ -56,6 +56,13 @@ object KnowledgeContextEngine {
   }
 
   @JvmStatic
+  fun buildForTest(dbJson: String, stateJson: String, action: String, rollsJson: String): String {
+    val state = runCatching { JSONObject(stateJson) }.getOrElse { JSONObject() }
+    val rolls = runCatching { JSONObject(rollsJson) }.getOrElse { JSONObject() }
+    return Builder(parseDatabase(dbJson), state, action, rolls).build()
+  }
+
+  @JvmStatic
   fun traceRecord(context: Context, id: String): String {
     val record = database(context.applicationContext).records[id] ?: return ""
     return JSONObject()
@@ -79,6 +86,10 @@ object KnowledgeContextEngine {
 
   private fun load(context: Context): Database {
     val raw = context.assets.open(ASSET).bufferedReader(Charsets.UTF_8).use { it.readText() }
+    return parseDatabase(raw)
+  }
+
+  private fun parseDatabase(raw: String): Database {
     val root = JSONObject(raw)
     val array = root.getJSONArray("records")
     val records = linkedMapOf<String, Record>()
