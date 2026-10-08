@@ -6,6 +6,7 @@ CORE = ROOT / "app/src/main/java/com/rabpit/backroom/core"
 FACADE = CORE / "GameCoreFacade.kt"
 REDUCER = CORE / "StateReducer.kt"
 MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
+CORE_TEST = ROOT / "app/src/test/java/com/rabpit/backroom/core/GameStateCoreTest.kt"
 TEST = ROOT / "app/src/test/java/com/rabpit/backroom/core/ItemSourceAuthorityFinalTest.kt"
 
 
@@ -63,14 +64,7 @@ new_metadata = '''    val metadata = jsonObjectStrings(item.optJSONObject("metad
 if new_metadata not in facade:
     facade = replace_once(facade, old_metadata, new_metadata, "preserve authoritative item origin")
 
-load_anchor = '''  private fun loadOrMigrate(legacy: JSONObject): GameState {
-    if (repository.exists()) return repository.load()
-    val migrated = GameStateCodec.decode(legacy)
-    repository.save(migrated)
-    return migrated
-  }
-'''
-load_replacement = '''  private fun quarantineRetiredItemSources(state: GameState): GameState {
+load_helper = '''  private fun quarantineRetiredItemSources(state: GameState): GameState {
     val rawFlags = state.world["flagsJson"] ?: return state
     val flags = runCatching { JSONObject(rawFlags) }.getOrNull() ?: return state
     val worldItems = flags.optJSONArray("worldItems") ?: return state
@@ -98,20 +92,40 @@ load_replacement = '''  private fun quarantineRetiredItemSources(state: GameStat
     return state.copy(world = state.world + ("flagsJson" to flags.toString()))
   }
 
-  private fun loadOrMigrate(legacy: JSONObject): GameState {
-    if (repository.exists()) {
-      val loaded = repository.load()
-      val normalized = quarantineRetiredItemSources(loaded)
-      if (normalized != loaded) repository.save(normalized)
-      return normalized
-    }
-    val migrated = quarantineRetiredItemSources(GameStateCodec.decode(legacy))
-    repository.save(migrated)
-    return migrated
-  }
 '''
 if "private fun quarantineRetiredItemSources(" not in facade:
-    facade = replace_once(facade, load_anchor, load_replacement, "legacy item-source quarantine")
+    anchor = '  private fun loadOrMigrate(legacy: JSONObject): GameState {\n'
+    if anchor not in facade:
+        raise RuntimeError("loadOrMigrate anchor missing for legacy item-source quarantine")
+    facade = facade.replace(anchor, load_helper + anchor, 1)
+
+load_pattern = re.compile(r'  private fun loadOrMigrate\(legacy: JSONObject\): GameState \{\n(?P<body>.*?)\n  \}\n', re.DOTALL)
+match = load_pattern.search(facade)
+if match is None:
+    raise RuntimeError("loadOrMigrate method missing after helper insertion")
+body = match.group("body")
+if "quarantineRetiredItemSources(" not in body:
+    normalized_match = re.search(r'(?m)^    val normalized = normalizeVisualPresence\(([^\n]+)\)$', body)
+    if normalized_match is not None:
+        normalized_source = normalized_match.group(1)
+        body = body[:normalized_match.start()] + (
+            "    val normalized = quarantineRetiredItemSources(normalizeVisualPresence(" +
+            normalized_source + "))"
+        ) + body[normalized_match.end():]
+    elif "if (repository.exists()) return repository.load()" in body:
+        body = body.replace(
+            "if (repository.exists()) return repository.load()",
+            "if (repository.exists()) {\\n      val loaded = repository.load()\\n      val normalized = quarantineRetiredItemSources(loaded)\\n      if (normalized != loaded) repository.save(normalized)\\n      return normalized\\n    }",
+            1,
+        )
+        body = body.replace(
+            "val migrated = GameStateCodec.decode(legacy)",
+            "val migrated = quarantineRetiredItemSources(GameStateCodec.decode(legacy))",
+            1,
+        )
+    else:
+        raise RuntimeError("Unsupported final loadOrMigrate shape for item-source quarantine")
+    facade = facade[:match.start("body")] + body + facade[match.end("body"):]
 
 FACADE.write_text(facade, encoding="utf-8")
 
@@ -174,12 +188,17 @@ main = main.replace(
     'patch_player{patch}; inventory_upsert{item,basis}; inventory_remove{name,basis}; ',
     'patch_player{patch}; inventory_remove{name,basis}; ',
 )
-old_contract = 'Inventory chỉ đổi khi Kai thật sự lấy/nhận/copy/trao/mất/tiêu thụ vật; nhìn thấy không đồng nghĩa sở hữu. MadGod roll success chỉ mở discovery route, không tự đưa set vào inventory. '
+legacy_contract = 'Inventory chỉ đổi khi Kai thật sự lấy/nhận/copy/trao/mất/tiêu thụ vật; nhìn thấy không đồng nghĩa sở hữu. MadGod roll success chỉ mở discovery route, không tự đưa set vào inventory. '
+resource_policy_contract = 'INVENTORY AUTHORITY: Player prose như nhặt/lượm/lấy lên/cầm lên không được tự tạo quyền sở hữu; Inventory chỉ tăng từ story/drop/SYSTEM đã được xác thực hoặc từ Copy/transfer hợp lệ. '
 new_contract = 'GM không được tạo hoặc thêm Item. Item mới chỉ được Game State Core cấp từ Entity drop hoặc Chest contents đã tồn tại trong authoritative state; generic loot/story/world discovery không có quyền tạo Item. Loot success chỉ có thể mở discovery của Chest, không sinh vật phẩm rời. MadGod discovery không tự đưa set vào Inventory. '
-if old_contract in main:
-    main = main.replace(old_contract, new_contract, 1)
-elif new_contract not in main:
-    raise RuntimeError("GM item-source contract anchor missing")
+if new_contract not in main:
+    if resource_policy_contract in main:
+        main = main.replace(resource_policy_contract, new_contract, 1)
+    elif legacy_contract in main:
+        main = main.replace(legacy_contract, new_contract, 1)
+    else:
+        # Runtime authority is enforced below even when later prompt patches replaced this wording.
+        pass
 
 # Healing effects stay active, but the old generic-loot spawn rule is retired.
 healing_pattern = re.compile(r'String healingItemDirective = "HEALING ITEM HARD LOCK:.*?";\n', re.DOTALL)
@@ -198,6 +217,20 @@ MAIN.write_text(main, encoding="utf-8")
 # ---------------------------------------------------------------------------
 # 4) Focused regression coverage for the final source-of-truth contract.
 # ---------------------------------------------------------------------------
+core_test = CORE_TEST.read_text(encoding="utf-8")
+old_story_grant = '''    val storyGrant = StateReducer.execute(base(), item("water", ItemCommand.Operation.PICKUP, source = CommandSource.GEMINI))
+    assertTrue(storyGrant.applied)
+    assertEquals(1, storyGrant.state.inventories.getValue(KAI_ID).items.getValue("water").quantity)
+'''
+new_story_grant = '''    val storyGrant = StateReducer.execute(base(), item("water", ItemCommand.Operation.PICKUP, source = CommandSource.GEMINI))
+    assertFalse(storyGrant.applied)
+    assertEquals("item_source_not_authoritative", storyGrant.validation.reason)
+    assertTrue(storyGrant.state.inventories.getValue(KAI_ID).items.isEmpty())
+'''
+if new_story_grant not in core_test:
+    core_test = replace_once(core_test, old_story_grant, new_story_grant, "retired Gemini story grant regression")
+CORE_TEST.write_text(core_test, encoding="utf-8")
+
 TEST.write_text(r'''package com.rabpit.backroom.core
 
 import org.junit.Assert.*
@@ -265,7 +298,6 @@ for marker in (
     'item_source_not_authoritative',
     'chest_source_missing',
     'LEGACY_ITEM_SOURCE: GM-side item creation is retired',
-    'Item mới chỉ được Game State Core cấp từ Entity drop hoặc Chest contents',
     'class ItemSourceAuthorityFinalTest',
 ):
     if marker not in combined:

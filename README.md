@@ -7,6 +7,7 @@ Game chạy độc lập trong APK Android. Giao diện WebView, canon, ảnh Le
 - `android-apk/app/src/main/assets/index.html`: giao diện text game.
 - `android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java`: Android/WebView bridge và AI orchestration.
 - `android-apk/app/src/main/java/com/rabpit/backroom/core/`: Game State Core, inventory, party, continuity và save migration.
+- `ITEM_REGISTRY.md`: **bắt buộc đọc trước khi tạo hoặc thêm Item mới**; quy định ID, provenance và đường đi qua Game State Core.
 - `android-apk/app/src/main/assets/knowledge/knowledge_db.json`: knowledge database có provenance từ nguồn Drive.
 - `.github/workflows/build-backroom-apk.yml`: test, build, emulator launch smoke test và phát hành APK.
 

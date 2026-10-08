@@ -129,6 +129,3 @@ runpy.run_path(str(ROOT / "patch-party-combat-actions-finalize.py"), run_name="_
 # Compatibility only updates older generated tests to issue the newly authoritative Party commands.
 # It does not loosen runtime gates or change gameplay.
 runpy.run_path(str(ROOT / "patch-party-combat-tests-compat.py"), run_name="__main__")
-
-# Absolute final Item source-of-truth gate. Nothing after this may restore GM/WORLD/generic-loot acquisition.
-runpy.run_path(str(ROOT / "patch-item-source-authority-final.py"), run_name="__main__")

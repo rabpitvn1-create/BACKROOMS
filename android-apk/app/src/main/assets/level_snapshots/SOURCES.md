@@ -1,15 +1,19 @@
 # Level Snapshot image sources
 
-The APK packages these images locally so the Snapshot frame works offline and
-does not request an external image at runtime. The files were retrieved from
-the Escape the Backrooms Wiki CDN on 2026-08-20.
+The APK packages these images locally so Snapshot works offline and never depends on Google Drive at runtime.
 
-| Local asset | Wiki page | Original CDN asset |
-| --- | --- | --- |
-| `level_0.webp` | https://escapethebackrooms.fandom.com/wiki/Level_0 | https://static.wikia.nocookie.net/escapethebackrooms/images/3/33/Lobby.png/revision/latest |
-| `level_1.webp` | https://escapethebackrooms.fandom.com/wiki/Level_1 | https://static.wikia.nocookie.net/escapethebackrooms/images/6/69/Level_1.png/revision/latest |
-| `level_2.webp` | https://escapethebackrooms.fandom.com/wiki/Level_2 | https://static.wikia.nocookie.net/escapethebackrooms/images/c/cb/Level_2.jpg/revision/latest |
-| `level_3.webp` | https://escapethebackrooms.fandom.com/wiki/Level_3 | https://static.wikia.nocookie.net/escapethebackrooms/images/e/ed/Level_3.png/revision/latest |
-| `level_4.webp` | https://escapethebackrooms.fandom.com/wiki/Level_4 | https://static.wikia.nocookie.net/escapethebackrooms/images/2/29/Level_4.png/revision/latest |
-| `level_5.webp` | https://escapethebackrooms.fandom.com/wiki/Level_5 | https://static.wikia.nocookie.net/escapethebackrooms/images/5/52/Level_5.png/revision/latest |
-| `level_6.webp` | https://escapethebackrooms.fandom.com/wiki/Level_6 | https://static.wikia.nocookie.net/escapethebackrooms/images/8/88/Level_6.jpg/revision/latest |
+Source: project Google Drive folder `Novel / Backrooms Level`, imported byte-for-byte on 2026-10-08.
+
+The first snapshot for each Level keeps the historical APK filename because other UI code already references it:
+
+- `level_0.webp` <- `level_00_snapshot_001.webp`
+- `level_1.webp` <- `level_01_snapshot_001.webp`
+- `level_2.webp` <- `level_02_snapshot_001.webp`
+- `level_3.webp` <- `level_03_snapshot_001.webp`
+- `level_4.webp` <- `level_04_snapshot_001.webp`
+- `level_5.webp` <- `level_05_snapshot_001.webp`
+- `level_6.webp` <- `level_06_snapshot_001.webp`
+
+Additional Drive frames retain their original names. Level 0 also includes `level_00_liminal_hall.webp`.
+
+`patch-level-snapshot-backgrounds.py` selects a deterministic local frame from the current Level's pool using Level progress, with the global turn as a fallback. AI-generated scene snapshots can still replace the local fallback when a valid cached scene image exists.

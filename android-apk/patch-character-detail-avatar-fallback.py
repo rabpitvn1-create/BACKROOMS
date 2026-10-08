@@ -30,7 +30,7 @@ runpy.run_path(str(ROOT / "patch-annhien-cheat-code.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-an-nhien-crocs.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-friendly-item-display.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-jeff-encounter-2pct.py"), run_name="__main__")
-runpy.run_path(str(ROOT / "patch-entity-encounter-plus-8pct.py"), run_name="__main__")
+# Roaming encounter rate is owned by patch-gameplay-parity-final.py (1%).
 runpy.run_path(str(ROOT / "patch-immersive-fullscreen.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-knowledge-engine-source.py"), run_name="__main__")
 runpy.run_path(str(ROOT / "patch-knowledge-context-builder.py"), run_name="__main__")
