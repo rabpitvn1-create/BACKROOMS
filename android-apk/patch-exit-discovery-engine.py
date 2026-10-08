@@ -497,8 +497,7 @@ object ExitDiscoveryEngine {
       roll = 0,
     )
   }
-}
-'''
+}'''
 
 ENGINE_TEST_SOURCE = r'''package com.rabpit.backroom.core
 
@@ -997,4 +996,421 @@ new_glue = '''  // EXIT_AUTHORITY_V1: ExitDiscoveryEngine glue. The engine (core
   // engine's canonical input and applies the engine's decisions. Legacy narrative keys
   // (exitProgress/exitChanceThreshold/confirmedExit/exitCandidate) confer zero authority.
   private boolean isTraverseExitCommand(String actionKind, String action) {
-    return ExitDiscoveryEngine.INSTANCE.isTraverseCommand(actionKind, action);
+    return ExitDiscoveryEngine.INSTANCE.isTraverseCommand(actionKind, action);  }
+
+  private JSONObject readExitRecordJson(JSONObject state) {
+    JSONObject exploration = state.optJSONObject("flags") != null
+      ? state.optJSONObject("flags").optJSONObject("exploration") : null;
+    if (exploration == null) return null;
+    return exploration.optJSONObject("levelExit");
+  }
+
+  /** Strict: a record that fails deserialization is treated as absent (fail closed). */
+  private ExitRecord readExitRecord(JSONObject state) {
+    JSONObject recordJson = readExitRecordJson(state);
+    if (recordJson == null) return null;
+    java.util.Map<String, Object> map = new java.util.HashMap<>();
+    java.util.Iterator<String> keys = recordJson.keys();
+    while (keys.hasNext()) {
+      String k = keys.next();
+      map.put(k, recordJson.opt(k));
+    }
+    return ExitRecord.Companion.fromMap(map);
+  }
+
+  private JSONObject exitRecordToJson(ExitRecord record) {
+    JSONObject json = new JSONObject();
+    for (java.util.Map.Entry<String, Object> e : record.toMap().entrySet()) {
+      json.put(e.getKey(), e.getValue());
+    }
+    return json;
+  }
+
+  /** Builds the canonical engine input from authoritative state. No text parsing. */
+  private ExitDiscoveryInput buildDiscoveryInput(JSONObject state, String actionKindNormalized, int bonusThreshold) {
+    JSONObject flags = state.optJSONObject("flags");
+    JSONObject exploration = flags != null ? flags.optJSONObject("exploration") : null;
+    int levelNumber = currentLevel(state);
+    // Node identity v1: "level-N". The numeric level survives only as a compatibility /
+    // display field; the engine reasons about node ids and knows no level count.
+    String sourceNodeId = "level-" + levelNumber;
+    ExitRecord existing = readExitRecord(state);
+    return new ExitDiscoveryInput(
+      actionKindNormalized == null ? "" : actionKindNormalized,
+      existing != null ? existing.getStatus() : ExitStatus.NONE,
+      exploration != null ? Math.max(0, exploration.optInt("levelTurns", 0)) : 0,
+      isCombatActive(state),
+      state.optString("location", "").trim(),
+      state.optString("worldRevision", "default"),
+      sourceNodeId,
+      levelNumber,
+      bonusThreshold);
+  }
+
+  /** RNG-free precondition check, so dependent rolls can gate on real eligibility. */
+  private DiscoveryEligibility checkExitDiscoveryEligibility(JSONObject state, String actionKindNormalized) {
+    return ExitDiscoveryEngine.INSTANCE.checkEligibility(
+      buildDiscoveryInput(state, actionKindNormalized, 0),
+      new LinearWorldRouteResolver());
+  }
+
+  private JSONObject evaluateExitDiscovery(JSONObject state, String actionKindNormalized, int bonusThreshold) {
+    ExitDiscoveryInput input = buildDiscoveryInput(state, actionKindNormalized, bonusThreshold);
+    IntRoller roller = bound -> GAME_RNG.nextInt(bound);
+    // Temporary v1 content resolver (linear chain). The real WorldRouteResolver replaces it.
+    WorldRouteResolver resolver = new LinearWorldRouteResolver();
+    int turn = state.optInt("turn", 1);
+    ExitDiscoveryOutcome outcome = ExitDiscoveryEngine.INSTANCE.evaluate(input, roller, resolver);
+    JSONObject json = new JSONObject()
+      .put("evaluated", outcome.getEvaluated())
+      .put("eligible", outcome.getEligible())
+      .put("success", outcome.getSuccess())
+      .put("threshold", outcome.getThreshold())
+      .put("roll", outcome.getRoll() == null ? JSONObject.NULL : outcome.getRoll())
+      .put("reason", outcome.getReason())
+      .put("dice", "d" + ExitDiscoveryEngine.ROLL_MAX);
+    if (outcome.getSuccess()) {
+      ExitRecord record = ExitDiscoveryEngine.INSTANCE.buildRecord(input, outcome, turn);
+      if (record != null) json.put("record", exitRecordToJson(record));
+    }
+    return json;
+  }
+
+  private JSONObject applyExitDiscoveryOutcome(JSONObject state, JSONObject rolls) throws Exception {
+    JSONObject discovery = rolls.optJSONObject("exitDiscovery");
+    if (discovery == null || !discovery.optBoolean("success", false)) return state;
+    JSONObject recordJson = discovery.optJSONObject("record");
+    if (recordJson == null) return state;
+    JSONObject next = new JSONObject(state.toString());
+    JSONObject flags = next.optJSONObject("flags");
+    if (flags == null) { flags = new JSONObject(); next.put("flags", flags); }
+    JSONObject exploration = flags.optJSONObject("exploration");
+    if (exploration == null) { exploration = new JSONObject(); flags.put("exploration", exploration); }
+    if (exploration.has("levelExit")) return state; // first discovery wins; never overwrite
+    exploration.put("levelExit", recordJson);
+    return next;
+  }
+
+  /**
+   * One-way migration of the legacy AI-narrative exit flag. Runs at most once: after a
+   * successful migration the confirmedExitMigrated marker is set, so a later consume
+   * (or any other levelExit removal) can never resurrect the legacy exit. The legacy
+   * string itself is preserved for projection/history; it confers no authority.
+   */
+  private JSONObject migrateLegacyExitTurnState(JSONObject state) throws Exception {
+    JSONObject flags = state.optJSONObject("flags");
+    JSONObject exploration = flags != null ? flags.optJSONObject("exploration") : null;
+    if (exploration == null) return state;
+    if (exploration.has("levelExit") || exploration.optBoolean("confirmedExitMigrated", false)) return state;
+    String confirmed = exploration.optString("confirmedExit", "").trim();
+    if (confirmed.isEmpty()) return state;
+    int levelNumber = currentLevel(state);
+    ExitRecord record = ExitDiscoveryEngine.INSTANCE.migrateLegacy(
+      confirmed,
+      "level-" + levelNumber,
+      levelNumber,
+      state.optString("location", "").trim(),
+      state.optString("worldRevision", "default"),
+      state.optInt("turn", 1),
+      new LinearWorldRouteResolver());
+    if (record == null) {
+      // One-way even on bind failure: a nonempty legacy value considered once can never
+      // confer authority later. Tombstone it so it is not re-read next turn.
+      JSONObject dropped = new JSONObject(state.toString());
+      dropped.optJSONObject("flags").optJSONObject("exploration").put("confirmedExitMigrated", true);
+      return dropped;
+    }
+    JSONObject next = new JSONObject(state.toString());
+    JSONObject nextExploration = next.optJSONObject("flags").optJSONObject("exploration");
+    nextExploration.put("levelExit", exitRecordToJson(record));
+    nextExploration.put("confirmedExitMigrated", true);
+    return next;
+  }
+
+  /**
+   * Per-turn normalization: a levelExit record that is corrupt (fails strict
+   * deserialization), bound to another node, or from another world revision is
+   * discarded so it can neither block fresh discovery nor be traversed. Discards are
+   * audited in exploration.lastExitDiscard.
+   */
+  private JSONObject normalizeExitRecordTurnState(JSONObject state) throws Exception {
+    JSONObject exploration = state.optJSONObject("flags") != null
+      ? state.optJSONObject("flags").optJSONObject("exploration") : null;
+    if (exploration == null || !exploration.has("levelExit")) return state;
+    // A present-but-non-object levelExit is corrupt: optJSONObject would return null
+    // and silently skip, while has() would block discovery forever. Discard + audit.
+    JSONObject recordJson = exploration.optJSONObject("levelExit");
+    String reason;
+    if (recordJson == null) {
+      reason = "corrupt_record";
+    } else {
+      ExitRecord record = readExitRecord(state);
+      String currentNodeId = "level-" + currentLevel(state);
+      String revision = state.optString("worldRevision", "default");
+      if (record == null) reason = "corrupt_record";
+      else if (!record.getSourceNodeId().equals(currentNodeId)) reason = "stale_node";
+      else if (!record.getWorldRevision().equals(revision)) reason = "stale_revision";
+      else return state;
+    }
+    JSONObject next = new JSONObject(state.toString());
+    JSONObject nextExploration = next.optJSONObject("flags").optJSONObject("exploration");
+    nextExploration.remove("levelExit");
+    nextExploration.put("lastExitDiscard", reason + "@turn-" + state.optInt("turn", 1));
+    return next;
+  }
+
+  private JSONObject applyTraverseExitTurn(JSONObject before) throws Exception {
+    TraverseInput input = new TraverseInput(
+      readExitRecord(before),
+      "level-" + currentLevel(before),
+      before.optString("location", "").trim(),
+      before.optString("worldRevision", "default"),
+      isCombatActive(before));
+    TraverseValidation validation = ExitDiscoveryEngine.INSTANCE.validateTraverse(input);
+    if (validation instanceof TraverseValidation.Rejected) {
+      throw new Exception("Không thể đi qua lối thoát (" +
+        ((TraverseValidation.Rejected) validation).getReason() + ").");
+    }
+    TraverseValidation.Ok ok = (TraverseValidation.Ok) validation;
+    // Compat layer: the JSON state model is still numeric. A null targetLevelNumber means
+    // the route points at a non-numeric node the v1 state model cannot represent yet.
+    Integer targetLevelNumber = ok.getTargetLevelNumber();
+    if (targetLevelNumber == null) {
+      throw new Exception("Không thể đi qua lối thoát (route không tương thích).");
+    }
+    int targetLevel = targetLevelNumber;
+    JSONObject state = new JSONObject(before.toString());
+    state.put("location", "");
+    JSONObject level = state.optJSONObject("level");
+    if (level == null) { level = new JSONObject(); state.put("level", level); }
+    level.put("number", targetLevel);
+    level.put("name", "Level " + targetLevel + " - " + levelName(targetLevel));
+    JSONObject flags = state.optJSONObject("flags");
+    if (flags == null) { flags = new JSONObject(); state.put("flags", flags); }
+    JSONObject exploration = flags.optJSONObject("exploration");
+    if (exploration == null) { exploration = new JSONObject(); flags.put("exploration", exploration); }
+    // Atomic consume: the exit is gone and progression resets in the same commit, so a
+    // crash or double-submit can never double-transition: validate-then-consume is atomic,
+    // so a repeated command finds no record (no_exit). commandId is audit-only, not checked.
+    exploration.remove("levelExit");
+    exploration.put("levelTurns", 0);
+    exploration.put("transitionReady", false);
+    exploration.put("exitReady", false);
+    exploration.put("commandId", "traverse-exit-t" + before.optInt("turn", 1));
+    JSONObject lastRolls = flags.optJSONObject("lastRolls");
+    if (lastRolls == null) { lastRolls = new JSONObject(); flags.put("lastRolls", lastRolls); }
+    lastRolls.put("traverseExit", new JSONObject()
+      .put("fromLevel", currentLevel(before))
+      .put("toLevel", targetLevel)
+      .put("targetNodeId", ok.getTargetNodeId())
+      .put("turn", before.optInt("turn", 1)));
+    return state;
+  }
+
+'''
+main = replace_once(main, old_threshold_fn, new_glue, "engine glue installation")
+
+# ---------------------------------------------------------------------------
+# 4. canTransition: AI-proposed level changes are never accepted on this path.
+# ---------------------------------------------------------------------------
+old_transition = '''  private boolean canTransition(JSONObject before, JSONObject rolls) {
+    JSONObject exploration = before.optJSONObject("flags") != null ? before.optJSONObject("flags").optJSONObject("exploration") : null;
+    String confirmedExit = exploration != null ? exploration.optString("confirmedExit", "") : "";
+    boolean exitFound = (confirmedExit != null && !confirmedExit.trim().isEmpty()) || rollSuccess(rolls, "levelExit");
+    return exitFound && progressionReady(before);
+  }
+'''
+new_transition = '''  private boolean canTransition(JSONObject before, JSONObject rolls) {
+    // EXIT_AUTHORITY_V1: level transitions are exclusively owned by TraverseExitCommand
+    // (ExitDiscoveryEngine). AI-proposed level changes are never accepted on this path.
+    // Legacy authorities (confirmedExit text, exitProbe/levelExit rolls, progressionReady
+    // flags) no longer confer transition authority.
+    return false;
+  }
+'''
+main = replace_once(main, old_transition, new_transition, "transition authority gate")
+
+# ---------------------------------------------------------------------------
+# 5. Imports for the engine glue (top-level Kotlin types; the engine object itself
+#    is referenced as ExitDiscoveryEngine.INSTANCE).
+# ---------------------------------------------------------------------------
+old_imports = '''import com.rabpit.backroom.core.GameCoreFacade;
+'''
+new_imports = '''import com.rabpit.backroom.core.GameCoreFacade;
+import com.rabpit.backroom.core.DiscoveryEligibility;
+import com.rabpit.backroom.core.ExitDiscoveryEngine;
+import com.rabpit.backroom.core.ExitDiscoveryInput;
+import com.rabpit.backroom.core.ExitDiscoveryOutcome;
+import com.rabpit.backroom.core.ExitRecord;
+import com.rabpit.backroom.core.ExitStatus;
+import com.rabpit.backroom.core.IntRoller;
+import com.rabpit.backroom.core.LinearWorldRouteResolver;
+import com.rabpit.backroom.core.TraverseInput;
+import com.rabpit.backroom.core.TraverseValidation;
+import com.rabpit.backroom.core.WorldRouteResolver;
+'''
+main = replace_once(main, old_imports, new_imports, "engine imports")
+
+# ---------------------------------------------------------------------------
+# 6. Flag authority gate (ops path): strip engine-owned exit keys unconditionally.
+# ---------------------------------------------------------------------------
+old_gate = '''        if (root.equals("exploration") && value instanceof JSONObject) {
+          JSONObject patchValue = new JSONObject(value.toString());
+          JSONObject beforeExploration = before.optJSONObject("flags") != null ? before.optJSONObject("flags").optJSONObject("exploration") : null;
+          String beforeProgress = beforeExploration != null ? beforeExploration.optString("exitProgress", "") : "";
+          String afterProgress = patchValue.optString("exitProgress", beforeProgress);
+          boolean exitMutation = !afterProgress.equals(beforeProgress) || patchValue.has("exitCandidate");
+          if (exitMutation && !rollSuccess(rolls, "levelExit")) continue;
+          if (containsAny(afterProgress, "READY", "GUARANTEED", "CONDITION MET", "TRANSITION AVAILABLE") &&
+              !containsAny(beforeProgress, "NEAR", "ALMOST", "VERY STRONG")) continue;
+          value = patchValue;
+        }
+'''
+new_gate = '''        if (root.equals("exploration")) {
+          if (!(value instanceof JSONObject)) {
+            // EXIT_AUTHORITY_V1: a non-object exploration would replace the whole root,
+            // wiping the engine-owned record, progression, tombstone, and audit keys.
+            // Reject the patch entry outright.
+            continue;
+          }
+          JSONObject patchValue = new JSONObject(value.toString());
+          // EXIT_AUTHORITY_V1: the authoritative exit record is engine-owned. The model may
+          // never create, mutate, or escalate it. Legacy exit keys are read-only, and the
+          // engine-owned progression counter (levelTurns), migration tombstone
+          // (confirmedExitMigrated), discard audit (lastExitDiscard), and traverse audit
+          // (commandId) are never AI-writable: strip them from every AI-proposed patch.
+          patchValue.remove("levelExit");
+          patchValue.remove("exitProgress");
+          patchValue.remove("exitCandidate");
+          patchValue.remove("confirmedExit");
+          patchValue.remove("levelTurns");
+          patchValue.remove("confirmedExitMigrated");
+          patchValue.remove("lastExitDiscard");
+          patchValue.remove("commandId");
+          value = patchValue;
+        }
+'''
+main = replace_once(main, old_gate, new_gate, "exploration flag gate")
+
+# ---------------------------------------------------------------------------
+# 7. sanitizedFlags (candidate-merge path): never merge engine-owned exit keys.
+# ---------------------------------------------------------------------------
+old_sanitized = '''    JSONObject patch = new JSONObject(proposed.toString());
+    patch.remove("lastRolls");
+    if (!transitionAccepted) patch.remove("currentLevel");
+'''
+new_sanitized = '''    JSONObject patch = new JSONObject(proposed.toString());
+    patch.remove("lastRolls");
+    patch.remove("exitChanceThreshold");
+    if (!transitionAccepted) patch.remove("currentLevel");
+    // EXIT_AUTHORITY_V1: a non-object exploration would replace the whole root.
+    // Drop it rather than merging.
+    if (patch.has("exploration") && patch.optJSONObject("exploration") == null) {
+      patch.remove("exploration");
+    }
+    JSONObject patchExploration = patch.optJSONObject("exploration");
+    if (patchExploration != null) {
+      // EXIT_AUTHORITY_V1: engine-owned exit keys are never merged from AI candidates.
+      // This includes the progression counter, migration tombstone, and audit keys —
+      // the model may not forge, clear, or escalate any of them.
+      patchExploration.remove("levelExit");
+      patchExploration.remove("exitProgress");
+      patchExploration.remove("exitCandidate");
+      patchExploration.remove("confirmedExit");
+      patchExploration.remove("levelTurns");
+      patchExploration.remove("confirmedExitMigrated");
+      patchExploration.remove("lastExitDiscard");
+      patchExploration.remove("commandId");
+    }
+'''
+main = replace_once(main, old_sanitized, new_sanitized, "sanitizedFlags exit strip")
+
+# ---------------------------------------------------------------------------
+# 8. Post-commit: a traverse turn already committed its transition; the AI phase
+#    only narrates the arrival. AI-proposed level/title changes are discarded and
+#    progression resets via traverseFromLevel.
+# ---------------------------------------------------------------------------
+old_postcommit = '''          int oldLevel = currentLevel(before);
+          int newLevel = currentLevel(state);
+          int mentioned = mentionedLevel(state);
+          if (mentioned >= 0 && mentioned != oldLevel && canTransition(before, rolls)) {
+            newLevel = mentioned;
+            state.put("level", new JSONObject().put("number", newLevel).put("name", levelName(newLevel)));
+            state.put("title", "Level " + newLevel + " – " + levelName(newLevel));
+          }
+          boolean levelChanged = oldLevel != newLevel;
+          boolean transitionAccepted = !levelChanged || canTransition(before, rolls);
+'''
+new_postcommit = '''          int oldLevel = currentLevel(before);
+          int newLevel = currentLevel(state);
+          int mentioned = mentionedLevel(state);
+          if (traverseTurn) {
+            // EXIT_AUTHORITY_V1: the traverse transition is already committed and validated.
+            // The AI phase only narrates the arrival; any AI-proposed level/title change in
+            // a traverse turn is discarded here.
+            JSONObject traversedLevel = before.optJSONObject("level");
+            if (traversedLevel != null) state.put("level", new JSONObject(traversedLevel.toString()));
+            state.put("title", before.optString("title", state.optString("title", "")));
+            newLevel = currentLevel(state);
+          } else if (mentioned >= 0 && mentioned != oldLevel && canTransition(before, rolls)) {
+            newLevel = mentioned;
+            state.put("level", new JSONObject().put("number", newLevel).put("name", levelName(newLevel)));
+            state.put("title", "Level " + newLevel + " – " + levelName(newLevel));
+          }
+          boolean levelChanged = oldLevel != newLevel;
+          boolean transitionAccepted = traverseTurn || !levelChanged || canTransition(before, rolls);
+'''
+main = replace_once(main, old_postcommit, new_postcommit, "traverse post-commit handling")
+
+old_progress = '''            recordLevelProgress(state, oldLevel, newLevel);
+'''
+new_progress = '''            recordLevelProgress(state, traverseTurn && traverseFromLevel >= 0 ? traverseFromLevel : oldLevel, newLevel);
+'''
+main = replace_once(main, old_progress, new_progress, "traverse progression reset")
+
+# ---------------------------------------------------------------------------
+# 9. Contract markers: the new authority must exist; the old one must be gone.
+# ---------------------------------------------------------------------------
+for marker in (
+    "EXIT_AUTHORITY_V1",
+    "private boolean isTraverseExitCommand",
+    "boolean traverseTurn = isTraverseExitCommand(actionKind, action);",
+    "before every other interception",
+    "traverseTurn || !levelChanged || canTransition(before, rolls)",
+    "patchValue.remove(\"levelExit\")",
+    "patch.remove(\"exitChanceThreshold\")",
+    "patchValue.remove(\"levelTurns\")",
+    "patchValue.remove(\"confirmedExitMigrated\")",
+    "patchExploration.remove(\"levelTurns\")",
+    "patchExploration.remove(\"confirmedExitMigrated\")",
+    "!(value instanceof JSONObject)",
+    "patch.remove(\"exploration\");",
+    "migrateLegacyExitTurnState(normalizeExitRecordTurnState(before))",
+    "rolls.put(\"exitDiscovery\", evaluateExitDiscovery(state, actionKindNormalized, exitBonus));",
+    "private DiscoveryEligibility checkExitDiscoveryEligibility",
+    "anNhienReadEligible",
+    "SEARCH-only",
+    "private JSONObject applyTraverseExitTurn",
+    "private JSONObject normalizeExitRecordTurnState",
+    "confirmedExitMigrated",
+):
+    if marker not in main:
+        raise RuntimeError(f"Exit discovery contract missing: {marker}")
+if "object ExitDiscoveryEngine" not in ENGINE_KT_SOURCE:
+    raise RuntimeError("Exit discovery contract missing: engine source")
+if "class ExitDiscoveryEngineTest" not in ENGINE_TEST_SOURCE:
+    raise RuntimeError("Exit discovery contract missing: engine tests")
+
+for forbidden in (
+    'exitIntent && (physical || search)',
+    'private int exitThresholdAndroid',
+    'boolean exitIntent = containsAny(a, "exit"',
+    'return exitFound && progressionReady(before);',
+    'if (exitMutation && !rollSuccess(rolls, "levelExit")) continue;',
+    'rolls.put("levelExit", new JSONObject(exitProbe.toString())',
+):
+    if forbidden in main:
+        raise RuntimeError(f"Legacy exit authority survived: {forbidden}")
+
+MAIN.write_text(main, encoding="utf-8")
+print("Exit discovery v6 installed: kind authority, route-graph traversal, atomic traverse.")
