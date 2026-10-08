@@ -1389,6 +1389,30 @@
       "affordances": []
     },
     {
+      "id": "ENTITY.RESEARCH_ASYNC_MEMBER",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Research ASYNC Member (research_async_member_knife_01): a human ASYNC research field operative wearing a dirty yellow hazmat suit, black full-face visor, gas-filtration pack, gloves and protective equipment. Carries a combat knife, NOT a firearm. In a hostile combat encounter all attacks are close-range knife slashes, with no shots, bullets, rifle aiming or suppression fire. Canonical skills are Chém Ngang Áp Sát (110% damage; 33% proc), Liên Trảm Cận Chiến (115%; 28%), and Đoạt Mệnh Trảm (120%; 23%). This is not the separate ASYNC Rifleman (async_rifleman), whose firearm skills remain unchanged. The active sprite key is research_async_member_knife_01 and has no retired rifle-key compatibility alias.",
+      "source": {
+        "document": "ENTITY_ASSETS.md",
+        "anchor": "Research ASYNC Member — tác chiến bằng dao"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "BASELINE",
+      "priority": 34,
+      "tags": [
+        "research async member",
+        "async member",
+        "async researcher",
+        "research_async_member_knife_01",
+        "dao chiến đấu"
+      ],
+      "references": [],
+      "affordances": [
+        "direct_threat"
+      ]
+    },
+    {
       "id": "NOVEL_ASSET.CAO_MINH_CODEX.C0001",
       "domain": "NOVEL_ASSET",
       "kind": "character_baseline",

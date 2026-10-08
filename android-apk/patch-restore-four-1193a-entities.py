@@ -17,7 +17,7 @@ java = MAIN.read_text(encoding="utf-8")
 roll_anchor = '    rolls.put("lucTramEntityEncounter", lucTramEntityRoll);'
 roll_block = """
     String[] restoredEntityKeys = {"the_lifeform_bacteria_01", "the_lifeform_bacteria_02",
-      "the_lifeform_bacteria_03", "async_member_rifle_aim_right_01"};
+      "the_lifeform_bacteria_03", "research_async_member_knife_01"};
     String[] restoredRollLabels = {"bacterialStalkerEncounter", "bacterialStriderEncounter",
       "bacterialWeaverEncounter", "researchAsyncMemberEncounter"};
     for (int i = 0; i < restoredEntityKeys.length; i++) {
@@ -49,20 +49,20 @@ java = replace_one(java,
     'case "slenderman": case "diep_minh": case "luc_tram_hac_hoa":',
     'case "slenderman": case "diep_minh": case "luc_tram_hac_hoa":\n'
     '      case "the_lifeform_bacteria_01": case "the_lifeform_bacteria_02":\n'
-    '      case "the_lifeform_bacteria_03": case "async_member_rifle_aim_right_01":')
+    '      case "the_lifeform_bacteria_03": case "research_async_member_knife_01":')
 java = replace_one(java, '      case "hound": name = "Hound"; break;',
     '      case "the_lifeform_bacteria_01": name = "Bacterial Stalker"; break;\n'
     '      case "the_lifeform_bacteria_02": name = "Bacterial Strider"; break;\n'
     '      case "the_lifeform_bacteria_03": name = "Bacterial Weaver"; break;\n'
-    '      case "async_member_rifle_aim_right_01": name = "Research Async Member"; break;\n'
+    '      case "research_async_member_knife_01": name = "Research Async Member"; break;\n'
     '      case "hound": name = "Hound"; break;')
 
 # The Snapshot's JS allowlist and the GM's canonical keys must agree with Java.
 java = replace_one(java, "'slenderman','diep_minh'];",
     "'slenderman','diep_minh','the_lifeform_bacteria_01','the_lifeform_bacteria_02',"
-    "'the_lifeform_bacteria_03','async_member_rifle_aim_right_01'];")
+    "'the_lifeform_bacteria_03','research_async_member_knife_01'];")
 java = replace_one(java, 'LOCAL ROAMING POOL: hound, clump,',
     'LOCAL ROAMING POOL: hound, the_lifeform_bacteria_01, the_lifeform_bacteria_02, '
-    'the_lifeform_bacteria_03, async_member_rifle_aim_right_01, clump,')
+    'the_lifeform_bacteria_03, research_async_member_knife_01, clump,')
 MAIN.write_text(java, encoding="utf-8")
 print("Restored four 1.1.93a Entity encounter keys: 2% each, original Combat93 skills unchanged.")

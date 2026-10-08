@@ -175,7 +175,7 @@ public final class CombatChoiceEngine {
     entity("hotel_corpse_lure", "Hotel Corpse Lure", 190, 18);
     entity("jeff_the_killer", "Jeff", 240, 20);
     entity("async_rifleman", "ASYNC Rifleman", 180, 20);
-    entity("async_member_rifle_aim_right_01", "Research Async Member", 190, 20);
+    entity("research_async_member_knife_01", "Research Async Member", 190, 20);
     entity("copx", "CopX", 260, 22);
     treasureEntity("tam_ma_cao_minh", "Evil Clown", 300, 30, 100, 10, true);
     entity("jane_the_killer", "Jane", 270, 20);
@@ -266,10 +266,10 @@ public final class CombatChoiceEngine {
         entitySkill("Controlled Burst", 110, 32),
         entitySkill("Cover Fire", 115, 32),
         entitySkill("Crossfire Burst", 120, 28));
-    entitySkills("async_member_rifle_aim_right_01",
-        entitySkill("Loạt Bắn Kiểm Soát", 110, 33),
-        entitySkill("Hai Phát Liên Tiếp", 115, 28),
-        entitySkill("Áp Chế Mẫu Vật", 120, 23));
+    entitySkills("research_async_member_knife_01",
+        entitySkill("Chém Ngang Áp Sát", 110, 33),
+        entitySkill("Liên Trảm Cận Chiến", 115, 28),
+        entitySkill("Đoạt Mệnh Trảm", 120, 23));
     entitySkills("copx",
         entitySkill("Static Burst", 110, 30),
         entitySkill("Servo Pivot", 115, 25),
