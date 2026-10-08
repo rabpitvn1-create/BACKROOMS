@@ -56,3 +56,19 @@ dependencies {
   testImplementation 'junit:junit:4.13.2'
   testImplementation 'org.json:json:20240303'
 }
+
+// Every unit-test workflow needs the same final-production compiler candidate.
+def compileKnowledgeShadow = tasks.register('compileKnowledgeShadow', Exec) {
+  def compiler = rootProject.file('compiler-knowledge-db-shadow.py')
+  def database = file('src/main/assets/knowledge/knowledge_db.json')
+  inputs.files(compiler, database)
+  outputs.files(
+    file('build/reports/canon-p1/compiler-authoring-shadow.json'),
+    file('build/reports/canon-p1/compiler-candidate.json'),
+    file('build/reports/canon-p1/compiler-data-parity.json')
+  )
+  commandLine 'python3', compiler.absolutePath
+}
+tasks.withType(Test).configureEach {
+  dependsOn compileKnowledgeShadow
+}
