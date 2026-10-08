@@ -8,18 +8,31 @@ package com.rabpit.backroom.core.progression
  * `WorldProgressionCore.EDGES` and the active exit resolver remain authoritative
  * until an independently reviewed gameplay migration activates approved routes.
  *
- * The Project author specifically requires named Red Rooms to appear at the end
- * of Level 0, immediately before Level 1. OPEN entries remain placeholders.
+ * Named areas remain within their original parent Level, interleaved with its
+ * numbered Sub-levels in deliberate editorial order. Red Rooms is the final
+ * Level 0 stop before Level 1. OPEN entries remain placeholders.
  */
 enum class WorldJourneyStopKind { LEVEL, NUMBERED_SUB_LEVEL, NAMED_SECTION }
 
 data class WorldJourneyGroup(
   val levelNumber: Int,
-  /** Exact stable WorldNode IDs in editorial sequence, never inferred from rank. */
-  val numberedSublevelIds: List<String>,
-  /** Keys from WorldContentCatalog.namedSections, in editorial sequence. */
-  val namedSectionKeys: List<String>,
-)
+  /**
+   * Ordered child itinerary keys. `level-N.X` is an existing ranked Sub-level;
+   * `area:N:key` is a named, unranked section of the SAME parent Level.
+   * They can be interleaved without inventing a WorldNodeId or rank.
+   */
+  val orderedChildKeys: List<String>,
+) {
+  /** Backwards-compatible filtered views for callers needing one kind only. */
+  val numberedSublevelIds: List<String>
+    get() = orderedChildKeys.filter { it.startsWith("level-") }
+
+  val namedSectionKeys: List<String>
+    get() = orderedChildKeys.mapNotNull {
+      val prefix = "area:$levelNumber:"
+      if (it.startsWith(prefix)) it.removePrefix(prefix) else null
+    }
+}
 
 data class WorldJourneyStop(
   /** Unique itinerary key. Node keys use WorldNodeId.value; named areas use `area:N:key`. */
@@ -34,25 +47,31 @@ data class WorldJourneyStop(
 
 object WorldJourneyOrder {
   /**
-   * Explicit, stable group ordering. Numbered Sub-levels come before special
-   * named sections. Do NOT automatically insert source material into this list.
-   * A new node/section must be placed and tested deliberately.
+   * Explicit editorial order within each parent Level.
+   *
+   * Named rooms without a source-backed numeric position are placed immediately
+   * after their parent Level; their position is a game itinerary choice, NOT a
+   * canon exit/depth statement. The Project's Level-0 source introduces ε
+   * first and Dullness after 0.99; the author locks Red Rooms as the final
+   * stop before Level 1. No ranked Sub-level order is changed.
+   *
+   * This list does NOT authorize gameplay exit links or named-area ranks.
    */
   val GROUPS: List<WorldJourneyGroup> = listOf(
-    WorldJourneyGroup(0, listOf("level-0.01", "level-0.1", "level-0.11", "level-0.2", "level-0.22", "level-0.23", "level-0.3", "level-0.41", "level-0.5", "level-0.66", "level-0.7", "level-0.8", "level-0.99"), listOf("epsilon", "dullness", "ls-2", "manila-room", "the-torment", "red-rooms")),
-    WorldJourneyGroup(1, listOf("level-1.1", "level-1.2", "level-1.3", "level-1.5"), listOf("base-alpha", "traders-vault")),
-    WorldJourneyGroup(2, listOf("level-2.1"), listOf("office-space-el3a")),
-    WorldJourneyGroup(3, listOf("level-3.5"), emptyList()),
-    WorldJourneyGroup(4, emptyList(), listOf("the-office-market")),
-    WorldJourneyGroup(5, listOf("level-5.1", "level-5.2", "level-5.3"), emptyList()),
-    WorldJourneyGroup(6, listOf("level-6.1", "level-6.2", "level-6.3", "level-6.31"), emptyList()),
-    WorldJourneyGroup(7, listOf("level-7.6", "level-7.7", "level-7.8"), listOf("the-hadal-zone")),
-    WorldJourneyGroup(8, listOf("level-8.1"), listOf("the-sanctum-subterraneous")),
-    WorldJourneyGroup(9, listOf("level-9.2", "level-9.3", "level-9.5"), emptyList()),
-    WorldJourneyGroup(10, listOf("level-10.1", "level-10.2"), emptyList()),
-    WorldJourneyGroup(11, listOf("level-11.3"), listOf("asset-11-1", "scene-01-2", "after-hours", "the-headquarters", "radio-backrooms-studio")),
-    WorldJourneyGroup(12, emptyList(), emptyList()),
-    WorldJourneyGroup(13, emptyList(), emptyList()),
+    WorldJourneyGroup(0, listOf("area:0:epsilon", "area:0:ls-2", "area:0:manila-room", "area:0:the-torment", "level-0.01", "level-0.1", "level-0.11", "level-0.2", "level-0.22", "level-0.23", "level-0.3", "level-0.41", "level-0.5", "level-0.66", "level-0.7", "level-0.8", "level-0.99", "area:0:dullness", "area:0:red-rooms")),
+    WorldJourneyGroup(1, listOf("area:1:base-alpha", "area:1:traders-vault", "level-1.1", "level-1.2", "level-1.3", "level-1.5")),
+    WorldJourneyGroup(2, listOf("area:2:office-space-el3a", "level-2.1")),
+    WorldJourneyGroup(3, listOf("level-3.5")),
+    WorldJourneyGroup(4, listOf("area:4:the-office-market")),
+    WorldJourneyGroup(5, listOf("level-5.1", "level-5.2", "level-5.3")),
+    WorldJourneyGroup(6, listOf("level-6.1", "level-6.2", "level-6.3", "level-6.31")),
+    WorldJourneyGroup(7, listOf("area:7:the-hadal-zone", "level-7.6", "level-7.7", "level-7.8")),
+    WorldJourneyGroup(8, listOf("area:8:the-sanctum-subterraneous", "level-8.1")),
+    WorldJourneyGroup(9, listOf("level-9.2", "level-9.3", "level-9.5")),
+    WorldJourneyGroup(10, listOf("level-10.1", "level-10.2")),
+    WorldJourneyGroup(11, listOf("area:11:asset-11-1", "area:11:scene-01-2", "area:11:after-hours", "area:11:the-headquarters", "area:11:radio-backrooms-studio", "level-11.3")),
+    WorldJourneyGroup(12, emptyList()),
+    WorldJourneyGroup(13, emptyList()),
   )
 
   val STOPS: List<WorldJourneyStop> = buildList {
@@ -65,24 +84,29 @@ object WorldJourneyOrder {
       add(WorldJourneyStop(fullId, WorldJourneyStopKind.LEVEL, group.levelNumber,
         full.title, full.authority, full.nodeId))
 
-      for (id in group.numberedSublevelIds) {
-        val node = nodes[id] ?: error("Missing numbered Sub-level node: $id")
-        check(node.kind == WorldNodeKind.SUB_LEVEL && node.levelNumber == group.levelNumber) {
-          "Wrong Sub-level parent: $id"
+      val areaPrefix = "area:${group.levelNumber}:"
+      for (key in group.orderedChildKeys) {
+        when {
+          key.startsWith("level-") -> {
+            val node = nodes[key] ?: error("Missing numbered Sub-level node: $key")
+            check(node.kind == WorldNodeKind.SUB_LEVEL && node.levelNumber == group.levelNumber) {
+              "Wrong Sub-level parent: $key"
+            }
+            val content = WorldContentCatalog.entry(node.id)
+              ?: error("Missing numbered Sub-level content: $key")
+            add(WorldJourneyStop(key, WorldJourneyStopKind.NUMBERED_SUB_LEVEL, group.levelNumber,
+              content.title, content.authority, node.id))
+          }
+          key.startsWith(areaPrefix) -> {
+            val sectionKey = key.removePrefix(areaPrefix)
+            val section = WorldContentCatalog.namedSections.singleOrNull {
+              it.parentLevel == group.levelNumber && it.key == sectionKey
+            } ?: error("Missing named section: ${group.levelNumber}/$sectionKey")
+            add(WorldJourneyStop(key, WorldJourneyStopKind.NAMED_SECTION, group.levelNumber,
+              section.title, section.authority, null))
+          }
+          else -> error("Journey key '$key' does not belong to Level ${group.levelNumber}")
         }
-        val content = WorldContentCatalog.entry(node.id)
-          ?: error("Missing numbered Sub-level content: $id")
-        add(WorldJourneyStop(id, WorldJourneyStopKind.NUMBERED_SUB_LEVEL, group.levelNumber,
-          content.title, content.authority, node.id))
-      }
-
-      for (key in group.namedSectionKeys) {
-        val section = WorldContentCatalog.namedSections.singleOrNull {
-          it.parentLevel == group.levelNumber && it.key == key
-        } ?: error("Missing named section: ${group.levelNumber}/$key")
-        add(WorldJourneyStop("area:${group.levelNumber}:$key",
-          WorldJourneyStopKind.NAMED_SECTION, group.levelNumber,
-          section.title, section.authority, null))
       }
     }
   }
