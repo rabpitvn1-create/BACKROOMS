@@ -137,6 +137,7 @@ object KnowledgeContextEngine {
       addPresentRuntimeCards()
       addRelationships()
       addDirectStructuredLookups()
+      addNovelAssetExcerpts()
       addSceneAffordances()
       addStateDrivenRecords()
       expandReferences()
@@ -223,6 +224,44 @@ object KnowledgeContextEngine {
           val r = db.records[id] ?: return@forEach
           if (r.domain == "ENTITY" || r.domain == "ITEM") add(id, "explicit structured tag: $tag")
         }
+      }
+    }
+
+    private fun addNovelAssetExcerpts() {
+      val party = normalize(state.optJSONArray("party")?.toString().orEmpty() +
+        state.optJSONObject("partyDetails")?.optJSONArray("members")?.toString().orEmpty())
+      val tracPresent = listOf("trac_lam", "trac lam", "trác lâm").any { party.contains(it) }
+      val tracKnown = tracPresent ||
+        (state.optJSONObject("flags")?.optBoolean("tracLamContacted", false) ?: false)
+      if (tracPresent) add("NOVEL_ASSET.TRAC_LAM_CODEX.C0001", "present character baseline")
+
+      val matches = linkedMapOf<String, MutableMap<String, Record>>()
+      val strengths = linkedMapOf<String, Int>()
+      for ((tag, ids) in db.tagIndex) {
+        if (!tag.startsWith("novel_topic:")) continue
+        val alias = tag.removePrefix("novel_topic:")
+        if (alias.length < 3 || !actionText.contains(alias)) continue
+        for (id in ids) {
+          val record = db.records[id] ?: continue
+          if (record.domain != "NOVEL_ASSET") continue
+          if ("novel_gate:after_first_contact" in record.tags && !tracKnown) continue
+          val doc = record.source.document
+          matches.getOrPut(doc) { linkedMapOf() }[record.id] = record
+          strengths[doc] = maxOf(strengths[doc] ?: 0, alias.length)
+        }
+      }
+      val words = Regex("[\\p{L}\\p{N}]{3,}").findAll(actionText)
+        .map { it.value }.toSet()
+      for ((doc, records) in matches.entries.sortedWith(
+        compareByDescending<Map.Entry<String, MutableMap<String, Record>>> {
+          strengths[it.key] ?: 0
+        }.thenBy { it.key }
+      ).take(3)) {
+        val record = records.values.sortedWith(compareByDescending<Record> {
+          val excerpt = normalize(it.text)
+          words.count { word -> word in excerpt }
+        }.thenBy { it.id }).firstOrNull() ?: continue
+        add(record.id, "explicit Novel Asset topic: $doc")
       }
     }
 
