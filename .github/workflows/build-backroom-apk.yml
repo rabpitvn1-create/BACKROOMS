@@ -294,6 +294,35 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+
+      - name: Generate Canon P1 schema lint shadow
+        run: python3 android-apk/lint-knowledge-db-shadow.py
+
+      - name: Verify Canon P1 schema lint shadow
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("android-apk/app/build/reports/canon-p1/schema-lint.json").read_text(encoding="utf-8"))
+          p0 = json.loads(Path("android-apk/app/build/reports/canon-p0/snapshot-report.json").read_text(encoding="utf-8"))
+          assert report["schemaVersion"] == 1 and report["mode"] == "shadow_only"
+          assert report["recordCount"] == 54
+          assert report["counts"]["ERROR"] + report["counts"]["WARNING"] == len(report["findings"])
+          assert p0["scenarioCount"] == 25
+          assert len({x["name"] for x in p0["scenarios"]}) == 25
+          assert report["counts"]["ERROR"] == 0, report["findings"]
+          PY
+
+      - name: Upload Canon P1 schema lint shadow artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Canon-P1-schema-lint-${{ github.run_id }}
+          path: android-apk/app/build/reports/canon-p1/schema-lint.json
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Verify Canon P1 reference shadow report
         run: |
           set -euo pipefail
