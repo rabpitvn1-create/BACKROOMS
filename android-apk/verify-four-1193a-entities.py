@@ -10,7 +10,7 @@ ids = {
     "the_lifeform_bacteria_01": ("Bacterial Stalker", "521831fafa3a4d581580d48ae202039057d79a03"),
     "the_lifeform_bacteria_02": ("Bacterial Strider", "f74724c20338a13953c688e1a4c419806f0148ad"),
     "the_lifeform_bacteria_03": ("Bacterial Weaver", "f8bdaf08d0ae9d02b31601e11bc0a5fcab5be463"),
-    "async_member_rifle_aim_right_01": ("Research Async Member", "1064e3e8b3333ddcf27861d36b2dfcdde03b6cc5"),
+    "async_member_rifle_aim_right_01": ("Research Async Member", "c6f4ded0598c5466b3b0034579bf281b1c2013b2"),
 }
 
 for key, (name, historical_blob_sha) in ids.items():
