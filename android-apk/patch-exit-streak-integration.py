@@ -244,8 +244,8 @@ java = replace_once(java,
 
 # Pass native Core-owned streak completion into the atomic validated-state commit.
 java = replace_once(java,
-    "gameCore.processValidatedCandidate(before.toString(), candidateState.toString(), action)",
-    "gameCore.processValidatedCandidateWithStreak(before.toString(), candidateState.toString(), action, streakFromLevel, streakLevelCompleted)",
+    "requireGameCore().processValidatedCandidate(before.toString(), candidateState.toString(), action)",
+    "requireGameCore().processValidatedCandidateWithStreak(before.toString(), candidateState.toString(), action, streakFromLevel, streakLevelCompleted)",
     "native streak completion to Core commit")
 
 # Never accept streak or streak-node changes from AI ops or candidate-state merges.
