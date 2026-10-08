@@ -197,7 +197,7 @@ jobs:
               ('private void forceEntityEncounterFlag(JSONObject candidateState, JSONObject rolls)', java),
               ('forceEntityEncounterFlag(candidateState, rolls);', java),
               ('boolean exploreAction = "EXPLORE".equals(actionKindNormalized);', java),
-              ('makeGameplayRolls(before, actionKind, action, meta)', java),
+              ('makeGameplayRolls(before, actionKind, action, false)', java),
               ("box.style.position='relative';box.style.overflow='hidden'", java),
               ('CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png', java), ('CAO_MINH_OVERLAY_EXPLORER_IDLE.png', java),
               ('class SharedPreferencesSaveRepository', save_repo),
