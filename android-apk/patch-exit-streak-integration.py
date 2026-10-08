@@ -343,9 +343,9 @@ new_save = """    val protectedState = CharacterProgressionCore.protectFromCandi
     }
     val trustedNode = pending.state.world["worldNodeId"].orEmpty()
     val requiredSourceNode = routes.nodeIdAt(storedStopKey).orEmpty()
-    val registeredNode = com.rabpit.backroom.core.progression.WorldProgressionCore
-      .rankOf(com.rabpit.backroom.core.progression.WorldNodeId(trustedNode))
-      is com.rabpit.backroom.core.progression.RankLookup.Known
+    val registeredNode = (com.rabpit.backroom.core.progression.WorldProgressionCore.rankOf(
+      com.rabpit.backroom.core.progression.WorldNodeId(trustedNode)
+    ) is com.rabpit.backroom.core.progression.RankLookup.Known)
     // Older main-Level saves may contain a stale registered full-Level worldNodeId.
     // Never apply this exception to an already entered Sub-level or named area.
     val legacyReconciled = trustedNode != requiredSourceNode &&
