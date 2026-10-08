@@ -3,10 +3,11 @@ package com.rabpit.backroom.core.progression
 /**
  * Explicit editorial order of Levels, numbered Sub-levels, and named sections.
  *
- * Order is a future itinerary/UI rule, NOT an executable exit graph, character
- * discovery, a save migration, an Entity spawn, or a source of combat difficulty.
- * `WorldProgressionCore.EDGES` and the active exit resolver remain authoritative
- * until an independently reviewed gameplay migration activates approved routes.
+ * Editorial order alone is NOT an executable exit graph, character discovery,
+ * save migration, Entity spawn or source of combat difficulty.
+ * Only the ten explicitly reviewed featured stops are promoted to the runtime
+ * itinerary by FeaturedJourneyRoutes; WorldProgressionCore.EDGES still validates
+ * each transition. Unselected entries remain editorial/context-only.
  *
  * Named areas remain within their original parent Level, interleaved with its
  * numbered Sub-levels in deliberate editorial order. Red Rooms is the final
