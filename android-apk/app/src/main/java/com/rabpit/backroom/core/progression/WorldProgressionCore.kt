@@ -147,8 +147,9 @@ object WorldProgressionCore {
    * stays a gameplay precondition evaluated by the caller BEFORE calling
    * [validateTransition], which enforces graph authority only.
    *
-   * New full Levels and Sub-levels get NO automatic edges: each one is added here explicitly when
-   * its gameplay route is designed.
+   * Approved 5-streak forward journey also connects the main Level 6 -> 7 -> ... -> 13.
+   * All 42 legacy Level 0-6 edges remain untouched. Numbered Sub-levels and named
+   * areas never get implicit edges from their catalog or editorial ordering.
    */
   val EDGES: List<WorldEdge> = buildList {
     // Pin legacy connectivity. New full Levels require deliberate edge declarations too.
@@ -156,6 +157,14 @@ object WorldProgressionCore {
     for (from in levels) for (to in levels) {
       if (from != to) add(WorldEdge(from, to))
     }
+    // Explicitly approved forward main-Level journey for the 5-streak exit rule.
+    add(WorldEdge(WorldNodeId("level-6"), WorldNodeId("level-7")))
+    add(WorldEdge(WorldNodeId("level-7"), WorldNodeId("level-8")))
+    add(WorldEdge(WorldNodeId("level-8"), WorldNodeId("level-9")))
+    add(WorldEdge(WorldNodeId("level-9"), WorldNodeId("level-10")))
+    add(WorldEdge(WorldNodeId("level-10"), WorldNodeId("level-11")))
+    add(WorldEdge(WorldNodeId("level-11"), WorldNodeId("level-12")))
+    add(WorldEdge(WorldNodeId("level-12"), WorldNodeId("level-13")))
   }
 
   init {
@@ -191,9 +200,9 @@ object WorldProgressionCore {
   }
 
   /**
-   * Legacy save migration helper: v1 `levelJson.number` -> stable node id.
+   * Save migration helper: integer main Level 0–13 -> registered stable node id.
    * Returns null for unknown numbers (fail closed; caller raises migration error).
    */
   fun nodeIdForLegacyLevelNumber(levelNumber: Int): WorldNodeId? =
-    if (levelNumber in 0..6) byId.keys.firstOrNull { it.value == "level-$levelNumber" } else null
+    if (levelNumber in 0..13) byId.keys.firstOrNull { it.value == "level-$levelNumber" } else null
 }

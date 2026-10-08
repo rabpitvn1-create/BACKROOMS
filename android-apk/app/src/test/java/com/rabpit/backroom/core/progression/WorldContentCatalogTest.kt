@@ -39,10 +39,11 @@ class WorldContentCatalogTest {
       assertTrue(section.title.isNotBlank())
       assertNull(WorldContentCatalog.entry(WorldNodeId("level-${section.parentLevel}.${section.key}")))
     }
-    // Catalog entries alone never add edges to any new Level or Sub-level.
-    val legacy = (0..6).map { WorldNodeId("level-$it") }.toSet()
-    assertEquals(42, WorldProgressionCore.EDGES.size)
-    assertTrue(WorldProgressionCore.EDGES.all { it.from in legacy && it.to in legacy })
+    // Only explicitly approved main-Level routes exist. Catalog-only Sub-levels/areas
+    // must never acquire edges as a side effect of adding scene text.
+    val main = (0..13).map { WorldNodeId("level-$it") }.toSet()
+    assertEquals(49, WorldProgressionCore.EDGES.size)
+    assertTrue(WorldProgressionCore.EDGES.all { it.from in main && it.to in main })
   }
 
   @Test fun openAndReferenceOnlyEntriesAreNotUpgradedToCanon() {

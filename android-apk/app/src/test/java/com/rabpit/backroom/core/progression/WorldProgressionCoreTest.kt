@@ -138,24 +138,29 @@ class WorldProgressionCoreTest {
     assertEquals(expected, actual)
   }
 
-  @Test fun newFullLevelsAreRegisteredButHaveNoImplicitRoutes() {
-    val edges = WorldProgressionCore.EDGES.toSet()
-    for (n in 7..13) {
-      val id = WorldNodeId("level-$n")
-      assertEquals(n.toLong() * RANK_PER_FULL_LEVEL,
-        (WorldProgressionCore.rankOf(id) as RankLookup.Known).progressionRank)
-      assertTrue("new level-$n must not introduce an unreviewed route",
-        edges.none { it.from == id || it.to == id })
-      assertTrue(
-        WorldProgressionCore.validateTransition(WorldNodeId("level-6"), id)
-          is TransitionResult.Rejected
-      )
+  @Test fun everyMainLevelHasItsApprovedSuccessorUntilThirteen() {
+    for (n in 6..12) {
+      val from = WorldNodeId("level-$n")
+      val to = WorldNodeId("level-${n + 1}")
+      assertTrue(WorldEdge(from, to) in WorldProgressionCore.EDGES)
+      val result = WorldProgressionCore.validateTransition(from, to)
+      assertTrue(result is TransitionResult.Committed)
+      assertEquals((n + 1).toLong() * RANK_PER_FULL_LEVEL,
+        (result as TransitionResult.Committed).progressionRank)
+      if (n >= 7) {
+        assertTrue(WorldProgressionCore.validateTransition(to, from) is TransitionResult.Rejected)
+      }
     }
+    assertTrue(WorldProgressionCore.EDGES.none { it.from == WorldNodeId("level-13") })
+    assertTrue(WorldProgressionCore.validateTransition(
+      WorldNodeId("level-7"), WorldNodeId("level-10")) is TransitionResult.Rejected)
   }
 
-  @Test fun oldSaveMigrationRejectsUnknownModernLevels() {
-    assertNull(WorldProgressionCore.nodeIdForLegacyLevelNumber(7))
-    assertNull(WorldProgressionCore.nodeIdForLegacyLevelNumber(13))
+  @Test fun mainLevelSaveMigrationSupportsZeroThroughThirteenOnly() {
+    for (n in 0..13) assertEquals(WorldNodeId("level-$n"),
+      WorldProgressionCore.nodeIdForLegacyLevelNumber(n))
+    assertNull(WorldProgressionCore.nodeIdForLegacyLevelNumber(-1))
+    assertNull(WorldProgressionCore.nodeIdForLegacyLevelNumber(14))
   }
 
   @Test fun allSourcedNumericSublevelsHavePinnedRanks() {
@@ -232,8 +237,11 @@ class WorldProgressionCoreTest {
     val expected = (0..6).flatMap { from -> (0..6).filter { it != from }.map { to ->
       WorldEdge(WorldNodeId("level-$from"), WorldNodeId("level-$to"))
     } }.toSet()
-    assertEquals(expected, WorldProgressionCore.EDGES.toSet())
-    assertEquals(42, WorldProgressionCore.EDGES.size)
+    val newForward = (6..12).map { n ->
+      WorldEdge(WorldNodeId("level-$n"), WorldNodeId("level-${n + 1}"))
+    }.toSet()
+    assertEquals(expected + newForward, WorldProgressionCore.EDGES.toSet())
+    assertEquals(49, WorldProgressionCore.EDGES.size)
   }
 
 }
