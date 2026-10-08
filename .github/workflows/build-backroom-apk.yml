@@ -489,6 +489,36 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+
+      - name: Generate Canon P1 CandidateProvider decision report
+        run: python3 android-apk/report-candidate-provider-decision.py
+
+      - name: Verify Canon P1 CandidateProvider decision gate
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("android-apk/app/build/reports/canon-p1/candidate-provider-decision.json").read_text(encoding="utf-8"))
+          assert report["schemaVersion"] == 1 and report["mode"] == "decision_only"
+          assert report["decision"] in {"NOT_NEEDED_NOW", "JUSTIFIED_FOR_LATER"}
+          assert report["decision"] == "NOT_NEEDED_NOW"
+          assert report["selectionStages"]["orderedPassCount"] == 8
+          assert report["selectionStages"]["independentlyPluggableProviderCount"] == 0
+          assert report["shadowEvidence"]["p0ScenarioCount"] == 25
+          assert report["shadowEvidence"]["compilerDataParityPassed"]
+          assert report["shadowEvidence"]["compilerRuntimeParityScenarios"] == 25
+          assert not report["interfaceImplemented"] and not report["runtimeCutover"]
+          PY
+
+      - name: Upload Canon P1 CandidateProvider decision artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Canon-P1-candidate-provider-decision-${{ github.run_id }}
+          path: android-apk/app/build/reports/canon-p1/candidate-provider-decision.json
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Verify Canon P0 Android serialization smoke
         uses: reactivecircus/android-emulator-runner@v2
         with:
