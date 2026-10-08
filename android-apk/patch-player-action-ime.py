@@ -69,6 +69,28 @@ java = replace_one(java,
 """,
     "native to HTML IME notification")
 
+# The authoritative input-length gate runs before any non-combat interception.
+# In-combat actions intentionally bypass this check and never affect exit progress.
+java = replace_one(java,
+    '          if (!traverseTurn) {\n            if (requireGameCore().blocksTextItemAction(action)) {',
+    '''          if (!traverseTurn) {
+            JSONObject inputStateForLength = new JSONObject(stateJson);
+            boolean combatTurnForLength = com.rabpit.backroom.core.CombatChoiceEngine.isActive(inputStateForLength);
+            if (!combatTurnForLength && !isMetaAction(action)
+                && !com.rabpit.backroom.core.ExitStreakEngine.hasMinimumInput(action)) {
+              emit("backroomError", "Hành động không hợp lệ: Nội dung phải có ít nhất 15 ký tự.");
+              return;
+            }
+            if (requireGameCore().blocksTextItemAction(action)) {''',
+    "ordinary action minimum length / combat exclusion")
+
+# SEARCH and EXPLORE are buttons, not typed input: submit canonical full-length
+# descriptions so the same 15-code-point gate applies consistently.
+html = replace_one(html,
+    'window.Android.submitAction(JSON.stringify(state),kind,label);',
+    'window.Android.submitAction(JSON.stringify(state),kind,kind==="SEARCH"?"Tôi tìm kiếm trong khu vực hiện tại.":"Tôi khám phá khu vực xung quanh.");',
+    "typed macro actions satisfy minimum length")
+
 # The modal must be bounded to *visible* space, not full app height.
 old_fit = """  function fitActionModal(){
     if(!actionModal||actionModal.hidden)return;
@@ -120,7 +142,8 @@ if "</style>" not in html:
     raise RuntimeError("Original app stylesheet is missing")
 html = html.replace("</style>", fix_css + "\n</style>", 1)
 
-for marker in ["WindowInsets.Type.ime()", "notifyActionImeInset();",
+for marker in ["ExitStreakEngine.hasMinimumInput(action)", "combatTurnForLength",
+               "WindowInsets.Type.ime()", "notifyActionImeInset();",
                "SOFT_INPUT_ADJUST_RESIZE", "actionImeInsetPx"]:
     if marker not in java:
         raise RuntimeError(f"Missing native IME contract: {marker}")
