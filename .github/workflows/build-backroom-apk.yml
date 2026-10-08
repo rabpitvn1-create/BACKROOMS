@@ -187,7 +187,6 @@ jobs:
               ('normalizedStreakState', java),
               ('put("exitStreak"', java),
               ('recordLevelProgress(state, streakLevelCompleted ? streakFromLevel : oldLevel, newLevel)', java),
-              ('recordLevelProgress(state, traverseTurn && traverseFromLevel >= 0 ? traverseFromLevel : oldLevel, newLevel)', java),
               ('partyDetails&&state.partyDetails.members', java),
               ('rolls.put("roamingEntityKey"', java), ('file:///android_asset/entity/', java),
               ('"hotel_corpse_lure","jeff_the_killer","jane_the_killer","slenderman"', java),
