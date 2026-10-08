@@ -307,7 +307,8 @@ jobs:
           report = json.loads(Path("android-apk/app/build/reports/canon-p1/schema-lint.json").read_text(encoding="utf-8"))
           p0 = json.loads(Path("android-apk/app/build/reports/canon-p0/snapshot-report.json").read_text(encoding="utf-8"))
           assert report["schemaVersion"] == 1 and report["mode"] == "shadow_only"
-          assert report["recordCount"] == 54
+          final_db = json.loads(Path("android-apk/app/src/main/assets/knowledge/knowledge_db.json").read_text(encoding="utf-8"))
+          assert report["recordCount"] == len(final_db["records"])
           assert report["counts"]["ERROR"] + report["counts"]["WARNING"] == len(report["findings"])
           assert p0["scenarioCount"] == 25
           assert len({x["name"] for x in p0["scenarios"]}) == 25
