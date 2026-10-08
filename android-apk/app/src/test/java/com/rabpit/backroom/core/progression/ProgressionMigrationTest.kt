@@ -74,7 +74,7 @@ class ProgressionMigrationTest {
   }
 
   @Test fun unknownLegacyLevelFailsClosed() {
-    for (n in listOf(Int.MIN_VALUE, -1, 7, 99)) {
+    for (n in listOf(Int.MIN_VALUE, -1, 14, 99)) {
       val result = ProgressionMigration.migrateLegacyLevelNumber(n)
       assertTrue("level $n must fail closed, not guess", result is MigrationResult.Failed)
     }
