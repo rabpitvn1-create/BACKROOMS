@@ -5,9 +5,13 @@ import org.junit.Test
 
 class WorldJourneyOrderTest {
 
-  @Test fun exactUserApprovedLevelAndSectionOrderIsPinned() {
+  @Test fun exactParentInterleavedLevelAndSectionOrderIsPinned() {
     val expected = listOf(
       "level-0",
+      "area:0:epsilon",
+      "area:0:ls-2",
+      "area:0:manila-room",
+      "area:0:the-torment",
       "level-0.01",
       "level-0.1",
       "level-0.11",
@@ -21,22 +25,18 @@ class WorldJourneyOrderTest {
       "level-0.7",
       "level-0.8",
       "level-0.99",
-      "area:0:epsilon",
       "area:0:dullness",
-      "area:0:ls-2",
-      "area:0:manila-room",
-      "area:0:the-torment",
       "area:0:red-rooms",
       "level-1",
+      "area:1:base-alpha",
+      "area:1:traders-vault",
       "level-1.1",
       "level-1.2",
       "level-1.3",
       "level-1.5",
-      "area:1:base-alpha",
-      "area:1:traders-vault",
       "level-2",
-      "level-2.1",
       "area:2:office-space-el3a",
+      "level-2.1",
       "level-3",
       "level-3.5",
       "level-4",
@@ -51,13 +51,13 @@ class WorldJourneyOrderTest {
       "level-6.3",
       "level-6.31",
       "level-7",
+      "area:7:the-hadal-zone",
       "level-7.6",
       "level-7.7",
       "level-7.8",
-      "area:7:the-hadal-zone",
       "level-8",
-      "level-8.1",
       "area:8:the-sanctum-subterraneous",
+      "level-8.1",
       "level-9",
       "level-9.2",
       "level-9.3",
@@ -66,12 +66,12 @@ class WorldJourneyOrderTest {
       "level-10.1",
       "level-10.2",
       "level-11",
-      "level-11.3",
       "area:11:asset-11-1",
       "area:11:scene-01-2",
       "area:11:after-hours",
       "area:11:the-headquarters",
       "area:11:radio-backrooms-studio",
+      "level-11.3",
       "level-12",
       "level-13",
     )
@@ -79,12 +79,14 @@ class WorldJourneyOrderTest {
     assertEquals(expected, WorldJourneyOrder.STOPS.map { it.key })
   }
 
-  @Test fun eachGroupKeepsMainLevelFirstNamedAreasLast() {
+  @Test fun eachGroupInterleavesItsOwnAreasAndSublevelsWithoutChangingTheirParents() {
     assertEquals((0..13).toList(), WorldJourneyOrder.GROUPS.map { it.levelNumber })
     WorldJourneyOrder.GROUPS.forEach { group ->
       val stages = WorldJourneyOrder.groupStops(group.levelNumber)
-      assertEquals("level-${group.levelNumber}", stages.first().key)
+      assertEquals(listOf("level-${group.levelNumber}") + group.orderedChildKeys,
+        stages.map { it.key })
       assertEquals(WorldJourneyStopKind.LEVEL, stages.first().kind)
+      assertTrue(stages.all { it.parentLevel == group.levelNumber })
       assertEquals(group.numberedSublevelIds,
         stages.filter { it.kind == WorldJourneyStopKind.NUMBERED_SUB_LEVEL }.map { it.key })
       assertEquals(group.namedSectionKeys,
@@ -93,12 +95,38 @@ class WorldJourneyOrderTest {
     }
   }
 
+  @Test fun namedAreasAreIntegratedNextToTheirParentInsteadOfAppendedByDefault() {
+    assertEquals("area:0:epsilon", WorldJourneyOrder.nextAfter("level-0")?.key)
+    assertEquals("area:1:base-alpha", WorldJourneyOrder.nextAfter("level-1")?.key)
+    assertEquals("area:2:office-space-el3a", WorldJourneyOrder.nextAfter("level-2")?.key)
+    assertEquals("area:4:the-office-market", WorldJourneyOrder.nextAfter("level-4")?.key)
+    assertEquals("area:7:the-hadal-zone", WorldJourneyOrder.nextAfter("level-7")?.key)
+    assertEquals("area:8:the-sanctum-subterraneous", WorldJourneyOrder.nextAfter("level-8")?.key)
+    assertEquals("area:11:asset-11-1", WorldJourneyOrder.nextAfter("level-11")?.key)
+    assertEquals("level-11.3", WorldJourneyOrder.nextAfter("area:11:radio-backrooms-studio")?.key)
+    assertEquals("area:0:dullness", WorldJourneyOrder.nextAfter("level-0.99")?.key)
+    assertEquals("area:0:red-rooms", WorldJourneyOrder.nextAfter("area:0:dullness")?.key)
+  }
+
+  @Test fun numberedSublevelsStillRiseInRankWithinEachParent() {
+    WorldJourneyOrder.GROUPS.forEach { group ->
+      val ranks = WorldJourneyOrder.groupStops(group.levelNumber)
+        .mapNotNull { stop ->
+          if (stop.kind != WorldJourneyStopKind.NUMBERED_SUB_LEVEL) null
+          else (WorldProgressionCore.rankOf(stop.worldNodeId!!) as RankLookup.Known).progressionRank
+        }
+      assertTrue("Sub-level rank regression in Level ${group.levelNumber}",
+        ranks.zipWithNext().all { (a, b) -> b > a })
+    }
+  }
+
   @Test fun redRoomsIsLastBeforeLevelOneAndNeverSkipped() {
     val zero = WorldJourneyOrder.groupStops(0)
     assertEquals("area:0:red-rooms", zero.last().key)
     assertEquals("level-1", WorldJourneyOrder.nextAfter(zero.last().key)?.key)
     assertEquals("area:0:red-rooms", WorldJourneyOrder.previousBefore("level-1")?.key)
-    assertEquals("level-0.01", WorldJourneyOrder.nextAfter("level-0")?.key)
+    assertEquals("area:0:epsilon", WorldJourneyOrder.nextAfter("level-0")?.key)
+    assertEquals("level-0.01", WorldJourneyOrder.nextAfter("area:0:the-torment")?.key)
     assertEquals("level-0.2", WorldJourneyOrder.nextAfter("level-0.11")?.key)
     assertEquals("level-0.22", WorldJourneyOrder.nextAfter("level-0.2")?.key)
   }
