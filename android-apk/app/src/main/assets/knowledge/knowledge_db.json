@@ -435,7 +435,7 @@
       "text": "Lục Trầm is a human orthodox sword cultivator and direct disciple of Thiên Kiếm Môn. Her bonded sword is Tịch Quang, her armor is Thiên Cơ Bạch Kim Kiếm Khải, and her cultivation foundation is Thiên Kiếm Linh Tâm. She is an accomplished autonomous swordswoman, not equal to Cao Minh in total power and not an incompetent dependent. The old Lucia Lục identity and its modern military equipment are retired. Her age and exact cultivation realm remain OPEN. This profile does not establish survival after the prologue, present-party membership, reunion, relationship stage or current form of address; those require valid continuity.",
       "source": {"document": "Novel/Asset/LUC_TRAM_CODEX.md", "anchor": "LUC-READ-FIRST-R04; 00 Quick Profile; 01 Identity; 24 Legacy Override; LUC-CANON-R03"},
       "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 44,
-      "tags": ["lục trầm","tịch quang","thiên kiếm môn"], "references": [], "affordances": []
+      "tags": ["lục trầm","tịch quang","thiên kiếm môn"], "references": ["CHAR.LUC_TRAM.BACKROOMS_KNOWLEDGE_LOCK"], "affordances": []
     },
     {
       "id": "STORY.CAO.OBJECTIVE", "domain": "STORY", "kind": "baseline-objective",
@@ -450,6 +450,13 @@
       "source": {"document": "Novel/Asset/CAO_MINH_CODEX.md", "anchor": "CAO-BACKROOMS-01 / 19.4 BACKROOMS KNOWLEDGE LOCK; CAO-ACTION-LOCK-01"},
       "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 45,
       "tags": ["cao minh knowledge","backrooms epistemic lock","thần thức"], "references": [], "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.BACKROOMS_KNOWLEDGE_LOCK", "domain": "CHARACTER", "kind": "knowledge-lock",
+      "text": "Lục Trầm does not know Backrooms Level names, Entity identities, object properties or local rules merely because the author knows them. Thần thức is not omniscient; Thiên Kiếm Linh Tâm cannot identify Almond Water, read minds, determine good or evil, or prove a survivor is genuine. Kiếm ý and sensing killing intent do not guarantee detection of a disguised Entity. Lack of familiar linh lực does not prove safety. Even an opponent she could defeat directly may be dangerous through environment, memory, deception or unfamiliar rules. Her conclusions must follow witnessed events, credible information or grounded inference and remain uncertain when unverified. Do not arbitrarily weaken Tịch Quang or her cultivation, or let them override every Backrooms rule. Her survival, presence and current injuries remain governed by continuity.",
+      "source": {"document": "Novel/Asset/LUC_TRAM_CODEX.md", "anchor": "LUC-READ-FIRST-R04 / G BACKROOMS INTERACTION FIREWALL; 21 BACKROOMS KNOWLEDGE LOCK; LUC-BACKROOMS-R03"},
+      "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 47,
+      "tags": ["lục trầm knowledge","thiên kiếm linh tâm knowledge","backrooms knowledge lock"], "references": [], "affordances": []
     }
   ]
 }

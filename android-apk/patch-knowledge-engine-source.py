@@ -780,6 +780,31 @@ class KnowledgeContextEngineP0Test {
     }
   }
 
+  @Test fun lucTramKnowledgeLockUsesCurrentCodexWithoutInferringPresence() {
+    val entries = JSONObject(dbJson).getJSONArray("records")
+    val records = (0 until entries.length()).map { entries.getJSONObject(it) }
+      .associateBy { it.getString("id") }
+    val identity = records.getValue("CHAR.LUC_TRAM.IDENTITY")
+    val lock = records.getValue("CHAR.LUC_TRAM.BACKROOMS_KNOWLEDGE_LOCK")
+    assertEquals("Novel/Asset/LUC_TRAM_CODEX.md",
+      lock.getJSONObject("source").getString("document"))
+    assertTrue(lock.getJSONObject("source").getString("anchor").contains("LUC-BACKROOMS-R03"))
+    assertEquals("CHARACTER_CANON", lock.getString("authority"))
+    assertEquals("IMMUTABLE", lock.getString("mutability"))
+    assertEquals(47, lock.getInt("priority"))
+    assertEquals("CHAR.LUC_TRAM.BACKROOMS_KNOWLEDGE_LOCK",
+      identity.getJSONArray("references").getString(0))
+    assertTrue(lock.getString("text").contains("not omniscient"))
+    assertTrue(lock.getString("text").contains("cannot identify Almond Water"))
+    assertTrue(lock.getString("text").contains("remain uncertain when unverified"))
+    val quiet = traced("quiet_exploration_L0")
+    assertTrue(proposed(quiet, "CHAR.LUC_TRAM.BACKROOMS_KNOWLEDGE_LOCK",
+      "direct reference from CHAR.LUC_TRAM.IDENTITY"))
+    assertPacketHas(quiet.packet, "CHAR.LUC_TRAM.BACKROOMS_KNOWLEDGE_LOCK")
+    assertFalse(quiet.packet.contains("Present actors: lục trầm"))
+    assertPacketHas(quiet.packet, "STORY.CAO.PROLOGUE_HANDOFF")
+  }
+
   @Test fun caoMinhKnowledgeLockIsDerivedFromCurrentCodexAndSelectedByReference() {
     val entries = JSONObject(dbJson).getJSONArray("records")
     val records = (0 until entries.length()).map { entries.getJSONObject(it) }
