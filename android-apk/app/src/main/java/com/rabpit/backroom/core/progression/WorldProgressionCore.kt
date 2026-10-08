@@ -89,6 +89,14 @@ object WorldProgressionCore {
     WorldNode(WorldNodeId("level-4"), WorldNodeKind.LEVEL, 4L * RANK_PER_FULL_LEVEL, 4),
     WorldNode(WorldNodeId("level-5"), WorldNodeKind.LEVEL, 5L * RANK_PER_FULL_LEVEL, 5),
     WorldNode(WorldNodeId("level-6"), WorldNodeKind.LEVEL, 6L * RANK_PER_FULL_LEVEL, 6),
+    // Explicit balance pins; registering these nodes does not create exit routes.
+    WorldNode(WorldNodeId("level-7"), WorldNodeKind.LEVEL, 7_000_000L, 7),
+    WorldNode(WorldNodeId("level-8"), WorldNodeKind.LEVEL, 8_000_000L, 8),
+    WorldNode(WorldNodeId("level-9"), WorldNodeKind.LEVEL, 9_000_000L, 9),
+    WorldNode(WorldNodeId("level-10"), WorldNodeKind.LEVEL, 10_000_000L, 10),
+    WorldNode(WorldNodeId("level-11"), WorldNodeKind.LEVEL, 11_000_000L, 11),
+    WorldNode(WorldNodeId("level-12"), WorldNodeKind.LEVEL, 12_000_000L, 12),
+    WorldNode(WorldNodeId("level-13"), WorldNodeKind.LEVEL, 13_000_000L, 13),
     // Sub-levels are added here with an EXPLICIT rank between neighbours, e.g.:
     // WorldNode(WorldNodeId("level-1.sub-a"), WorldNodeKind.SUB_LEVEL, 1_500_000L, 1),
   )
@@ -153,5 +161,5 @@ object WorldProgressionCore {
    * Returns null for unknown numbers (fail closed; caller raises migration error).
    */
   fun nodeIdForLegacyLevelNumber(levelNumber: Int): WorldNodeId? =
-    byId.keys.firstOrNull { it.value == "level-$levelNumber" }
+    if (levelNumber in 0..6) byId.keys.firstOrNull { it.value == "level-$levelNumber" } else null
 }

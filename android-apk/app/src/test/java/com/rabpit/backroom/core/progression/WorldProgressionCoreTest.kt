@@ -125,9 +125,36 @@ class WorldProgressionCoreTest {
       "level-4" to 4_000_000L,
       "level-5" to 5_000_000L,
       "level-6" to 6_000_000L,
+      "level-7" to 7_000_000L,
+      "level-8" to 8_000_000L,
+      "level-9" to 9_000_000L,
+      "level-10" to 10_000_000L,
+      "level-11" to 11_000_000L,
+      "level-12" to 12_000_000L,
+      "level-13" to 13_000_000L,
     )
     val actual = WorldProgressionCore.NODES.map { it.id.value to it.progressionRank }
     assertEquals(expected, actual)
+  }
+
+  @Test fun newFullLevelsAreRegisteredButHaveNoImplicitRoutes() {
+    val edges = WorldProgressionCore.EDGES.toSet()
+    for (n in 7..13) {
+      val id = WorldNodeId("level-$n")
+      assertEquals(n.toLong() * RANK_PER_FULL_LEVEL,
+        (WorldProgressionCore.rankOf(id) as RankLookup.Known).progressionRank)
+      assertTrue("new level-$n must not introduce an unreviewed route",
+        edges.none { it.from == id || it.to == id })
+      assertTrue(
+        WorldProgressionCore.validateTransition(WorldNodeId("level-6"), id)
+          is TransitionResult.Rejected
+      )
+    }
+  }
+
+  @Test fun oldSaveMigrationRejectsUnknownModernLevels() {
+    assertNull(WorldProgressionCore.nodeIdForLegacyLevelNumber(7))
+    assertNull(WorldProgressionCore.nodeIdForLegacyLevelNumber(13))
   }
 
   @Test fun addingSubLevelDoesNotChangeExistingRanks() {
