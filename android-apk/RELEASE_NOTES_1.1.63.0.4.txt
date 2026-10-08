@@ -1,0 +1,11 @@
+Backroom 1.1.63.0.4 Debug
+
+- Tăng versionName từ 1.1.63.0.1 lên 1.1.63.0.4; versionCode từ 66 lên 69. Các bản phát hành 1.1.63.0.2 (67) và 1.1.63.0.3 (68) đã tồn tại, nên không sử dụng lại mã cập nhật.
+- Phát hành các thay đổi canon đã tích hợp trên main từ PR #458: nhập đủ 11/11 tài liệu Drive/Novel/Asset, gồm TRAC_LAM_CODEX.md.
+- Lập chỉ mục quyết định 277 đoạn canon với ID, nguồn gốc, authority, topic aliases và khóa Trác Lâm theo sự kiện first contact.
+- Game Master lấy đúng canon cần thiết theo hành động và giới hạn context hiện hành; không tự biến bí mật hậu trường thành tri thức nhân vật.
+- Giữ các sửa đổi continuity đã duyệt cho Cao Minh và Lục Trầm; không khôi phục nhầm các tình tiết xuất hiện cũ chỉ vì bản Drive gốc còn lưu.
+- Phân tách rõ CHARACTER_CANON, WORLD_CANON, VISUAL_REFERENCE, WRITER_SECRET và WRITING_CANON; công bố quy tắc tại android-apk/NOVEL_ASSET_CANON_REGISTRY.md.
+- Không điều chỉnh riêng hệ số combat, spawn rate, UI hay kinh tế vật phẩm trong lần bump này.
+- Giữ chuỗi kiểm chứng APK: Kotlin/Android unit tests, authority/runtime contracts, canon full-text trong APK, chữ ký APK, 16 KB alignment và checksum SHA-256 sau khi upload GitHub Release.
+- Gói phát hành Android debug (không phải signed production release).
