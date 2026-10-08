@@ -81,7 +81,7 @@
       "text": "Cao Minh / Vạn Giới Ma Tôn is a demonic sword cultivator who stood at the pinnacle of his unnamed home world before reaching Backrooms. His natal heart is Vạn Quỷ Ma Tâm; his bonded greatsword is Huyết Ma Kiếm and his armor is Huyết Ma Chiến Khải. His true age, home-world name and detailed cultivation ranks remain OPEN; secret lineage is not public character knowledge. He is relaxed, wry and fond of wine, yet decisive under real threat and fully in control of himself. He has no automatic knowledge of Backrooms levels or entities. The player chooses his intentional actions.",
       "source": {"document": "Novel/Asset/CAO_MINH_CODEX.md", "anchor": "CAO-QUICK-01; CAO-ID-01; CAO-PER-01; CAO-ACTION-LOCK-01; CAO-BACKROOMS-01"},
       "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 20,
-      "tags": ["cao minh", "vạn giới ma tôn", "present core", "voice"], "references": ["STORY.CAO.PROLOGUE_HANDOFF"], "affordances": []
+      "tags": ["cao minh", "vạn giới ma tôn", "present core", "voice"], "references": ["STORY.CAO.PROLOGUE_HANDOFF", "CHAR.CAO.BACKROOMS_KNOWLEDGE_LOCK"], "affordances": []
     },
     {
       "id": "CHAR.KAI.SPARDA_CORE",
@@ -443,6 +443,13 @@
       "source": {"document": "Novel/Asset/CAO_MINH_CODEX.md + android-apk/cao-minh-prologue.txt", "anchor": "CAO-BACKROOMS-01 / 19.2–19.4; final prologue / LƯỢT 1"},
       "authority": "STORY_CANON", "mutability": "BASELINE", "priority": 46,
       "tags": ["cao minh","lục trầm","backrooms exploration","prologue objective"], "references": [], "affordances": []
+    },
+    {
+      "id": "CHAR.CAO.BACKROOMS_KNOWLEDGE_LOCK", "domain": "CHARACTER", "kind": "knowledge-lock",
+      "text": "Cao Minh has no automatic knowledge of Backrooms Level names, numbers, local geometry, Entity identities, weaknesses or operating rules. Information must come from direct observation, credible testimony, validated ability evidence or reasoned inference; an inference stays uncertain until confirmed. His superior power and cultivation do not reveal unfamiliar phenomena by themselves. He may use thần thức, ma ấn, sword energy, movement or spatial markers to investigate, but a strong perception does not guarantee a stable map or accurate interpretation. A weak opponent may still use an unknown rule or environment against him. His inclination to study before destroying something is a characterization, not permission for the GM to choose the player's next action.",
+      "source": {"document": "Novel/Asset/CAO_MINH_CODEX.md", "anchor": "CAO-BACKROOMS-01 / 19.4 BACKROOMS KNOWLEDGE LOCK; CAO-ACTION-LOCK-01"},
+      "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 45,
+      "tags": ["cao minh knowledge","backrooms epistemic lock","thần thức"], "references": [], "affordances": []
     }
   ]
 }

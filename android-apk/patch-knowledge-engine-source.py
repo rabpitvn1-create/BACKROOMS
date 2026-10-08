@@ -780,6 +780,30 @@ class KnowledgeContextEngineP0Test {
     }
   }
 
+  @Test fun caoMinhKnowledgeLockIsDerivedFromCurrentCodexAndSelectedByReference() {
+    val entries = JSONObject(dbJson).getJSONArray("records")
+    val records = (0 until entries.length()).map { entries.getJSONObject(it) }
+      .associateBy { it.getString("id") }
+    val core = records.getValue("CHAR.KAI.RUNTIME_CORE")
+    val lock = records.getValue("CHAR.CAO.BACKROOMS_KNOWLEDGE_LOCK")
+    assertEquals("Novel/Asset/CAO_MINH_CODEX.md",
+      lock.getJSONObject("source").getString("document"))
+    assertTrue(lock.getJSONObject("source").getString("anchor").contains("CAO-BACKROOMS-01"))
+    assertEquals("CHARACTER_CANON", lock.getString("authority"))
+    assertEquals("IMMUTABLE", lock.getString("mutability"))
+    assertEquals(45, lock.getInt("priority"))
+    assertEquals("STORY.CAO.PROLOGUE_HANDOFF", core.getJSONArray("references").getString(0))
+    assertEquals("CHAR.CAO.BACKROOMS_KNOWLEDGE_LOCK", core.getJSONArray("references").getString(1))
+    assertTrue(lock.getString("text").contains("no automatic knowledge"))
+    assertTrue(lock.getString("text").contains("inference stays uncertain"))
+    assertTrue(lock.getString("text").contains("not permission for the GM"))
+    val quiet = traced("quiet_exploration_L0")
+    assertTrue(proposed(quiet, "CHAR.CAO.BACKROOMS_KNOWLEDGE_LOCK",
+      "direct reference from CHAR.KAI.RUNTIME_CORE"))
+    assertPacketHas(quiet.packet, "CHAR.CAO.BACKROOMS_KNOWLEDGE_LOCK")
+    assertPacketHas(quiet.packet, "STORY.CAO.PROLOGUE_HANDOFF")
+  }
+
   @Test fun currentCaoMinhObjectiveComesFromCodexAndPrologueWithoutGuaranteedReunion() {
     val entries = JSONObject(dbJson).getJSONArray("records")
     val records = (0 until entries.length()).map { entries.getJSONObject(it) }
