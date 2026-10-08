@@ -1,0 +1,263 @@
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent
+MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
+INDEX = ROOT / "app/src/main/assets/index.html"
+CORE = ROOT / "app/src/main/java/com/rabpit/backroom/core"
+OLD_ENGINE = CORE / "ExitDiscoveryEngine.kt"
+OLD_TEST = ROOT / "app/src/test/java/com/rabpit/backroom/core/ExitDiscoveryEngineTest.kt"
+
+java = MAIN.read_text(encoding="utf-8")
+html = INDEX.read_text(encoding="utf-8")
+
+def replace_once(source, old, new, description):
+    count = source.count(old)
+    if count != 1:
+        raise RuntimeError(f"{description}: expected one anchor, found {count}")
+    return source.replace(old, new, 1)
+
+def replace_span(source, start, end, replacement, label):
+    if source.count(start) != 1:
+        raise RuntimeError(f"{label}: expected one start marker, found {source.count(start)}")
+    i = source.index(start)
+    if end not in source[i:]:
+        raise RuntimeError(f"{label}: missing end marker")
+    j = source.index(end, i)
+    return source[:i] + replacement + source[j:]
+
+# Retain the known playable v1 route topology: 0->1 through 5->6.
+# Unregistered higher routes remain closed. No AI text can mint a route.
+helpers = r'''  // EXIT_STREAK_V1: Android Core exclusively owns progress and level transitions.
+  private JSONObject normalizedStreakState(JSONObject original) throws Exception {
+    JSONObject state = new JSONObject(original.toString());
+    JSONObject flags = state.optJSONObject("flags");
+    if (flags == null) { flags = new JSONObject(); state.put("flags", flags); }
+    // Retire ALL prior exit flags (including old discovered exits) in old saves.
+    for (String key : new String[] {"exitProgress", "exitCandidate", "confirmedExit", "exitChanceThreshold"}) {
+      flags.remove(key);
+    }
+    JSONObject exploration = flags.optJSONObject("exploration");
+    if (exploration == null) { exploration = new JSONObject(); flags.put("exploration", exploration); }
+    for (String key : new String[] {"levelExit", "exitProgress", "exitCandidate", "confirmedExit",
+        "confirmedExitMigrated", "exitReady", "transitionReady", "lastExitDiscard",
+        "commandId", "minimumTurns"}) {
+      exploration.remove(key);
+    }
+    String node = "level-" + currentLevel(state);
+    int streak = exploration.optInt("exitStreak", 0);
+    if (!node.equals(exploration.optString("exitStreakNode", "")) || streak < 0 || streak >= 5) streak = 0;
+    exploration.put("exitStreakNode", node);
+    exploration.put("exitStreak", streak);
+    return state;
+  }
+
+  private JSONObject withExitStreak(JSONObject original, int streak) throws Exception {
+    JSONObject state = new JSONObject(original.toString());
+    JSONObject flags = state.optJSONObject("flags");
+    if (flags == null) { flags = new JSONObject(); state.put("flags", flags); }
+    JSONObject exploration = flags.optJSONObject("exploration");
+    if (exploration == null) { exploration = new JSONObject(); flags.put("exploration", exploration); }
+    exploration.put("exitStreakNode", "level-" + currentLevel(state));
+    exploration.put("exitStreak", streak);
+    return state;
+  }
+
+  /** Returns null when the existing content graph has no outbound route. */
+  private JSONObject applyStreakTransition(JSONObject original) throws Exception {
+    int fromLevel = currentLevel(original);
+    // The retired resolver exposed exactly these forward edges; do not invent
+    // connectivity for 6+ just because higher Level canon exists.
+    if (fromLevel < 0 || fromLevel >= 6) return null;
+    int toLevel = fromLevel + 1;
+    JSONObject state = new JSONObject(original.toString());
+    JSONObject level = state.optJSONObject("level");
+    if (level == null) { level = new JSONObject(); state.put("level", level); }
+    level.put("number", toLevel);
+    level.put("name", "Level " + toLevel + " - " + levelName(toLevel));
+    state.put("title", "Level " + toLevel + " – " + levelName(toLevel));
+    state.put("location", "");
+    state = withExitStreak(state, 0);
+    return state;
+  }
+
+'''
+java = replace_span(java,
+    "  // EXIT_AUTHORITY_V1: ExitDiscoveryEngine glue.",
+    "  private boolean canTransition(JSONObject before, JSONObject rolls) {",
+    helpers,
+    "retire old exit discovery/traverse helpers")
+
+# The old conditional level gate was a legacy exit-discovery dependency.
+java = replace_span(java,
+    "  private boolean canTransition(JSONObject before, JSONObject rolls) {",
+    "\n  private ",
+    """  private boolean canTransition(JSONObject before, JSONObject rolls) {
+    // The AI cannot authorize a level transition, regardless of its text or ops.
+    return false;
+  }
+""",
+    "remove old exit gate implementation")
+
+# The original generator created eleven imports solely for the retired exit engine.
+for obsolete in (
+    "DiscoveryEligibility", "ExitDiscoveryEngine", "ExitDiscoveryInput",
+    "ExitDiscoveryOutcome", "ExitRecord", "ExitStatus", "IntRoller",
+    "LinearWorldRouteResolver", "TraverseInput", "TraverseValidation",
+    "WorldRouteResolver",
+):
+    java = java.replace("import com.rabpit.backroom.core." + obsolete + ";\n", "")
+java = replace_once(java,
+    "import com.rabpit.backroom.core.GameCoreFacade;\n",
+    "import com.rabpit.backroom.core.GameCoreFacade;\n"
+    "import com.rabpit.backroom.core.ExitStreakEngine;\n"
+    "import com.rabpit.backroom.core.ExitStreakOutcome;\n",
+    "streak imports")
+
+# Old per-action exit rolls and follower exit bonuses are removed, not blended with 50/50.
+java = replace_span(java,
+    "    // EXIT_AUTHORITY_V1: exit discovery is owned by ExitDiscoveryEngine",
+    "    return rolls;\n",
+    "    // EXIT_STREAK_V1: a single independent fair coin is rolled only in submitAction.\n",
+    "retire old exit probe and companion bonus")
+
+# All local/game-rule and combat intercepts still run first. A combat turn returns
+# before the streak engine. Its text length is not restricted by ordinary-turn rules.
+dispatch = r'''          // EXIT_STREAK_V1: combat, local commands, and UI meta are NOT streak turns.
+          JSONObject originalInput = new JSONObject(stateJson);
+          boolean combatTurnForStreak = com.rabpit.backroom.core.CombatChoiceEngine.isActive(originalInput);
+          if (!combatTurnForStreak && !isMetaAction(action)
+              && !ExitStreakEngine.hasMinimumInput(action)) {
+            emit("backroomError", "Hành động không hợp lệ: Nội dung phải có ít nhất 15 ký tự.");
+            return;
+          }
+          if (requireGameCore().blocksTextItemAction(action)) {
+            JSONObject blocked = new JSONObject(requireGameCore().processRule(stateJson, action));
+            emit("backroomTurn", blocked.getJSONObject("state").toString());
+            return;
+          }
+          JSONObject combatResult = new JSONObject(requireGameCore().processCombat(stateJson, actionKind, action));
+          if (combatResult.optBoolean("handled", false)) {
+            emit("backroomTurn", combatResult.getJSONObject("state").toString());
+            return;
+          }
+          if (combatTurnForStreak) throw new Exception("Combat chưa kết thúc: không xử lý lượt khám phá.");
+          JSONObject actionStart = new JSONObject(requireGameCore().beginAction(stateJson, actionKind, action));
+          if (!actionStart.optBoolean("handled", false)) {
+            throw new Exception("Action Runtime từ chối hành động: " + actionStart.optString("error", "action_start_failed"));
+          }
+          JSONObject localResult = new JSONObject(requireGameCore().processRule(stateJson, action));
+          if (localResult.optBoolean("handled", false)) {
+            emit("backroomTurn", localResult.getJSONObject("state").toString());
+            return;
+          }
+
+          JSONObject before = new JSONObject(stateJson);
+          boolean meta = isMetaAction(action);
+          int streakFromLevel = currentLevel(before);
+          boolean streakLevelCompleted = false;
+          JSONObject rolls;
+          if (meta) {
+            rolls = makeGameplayRolls(before, actionKind, action, true);
+          } else {
+            before = normalizedStreakState(before);
+            int previousStreak = before.getJSONObject("flags").getJSONObject("exploration").optInt("exitStreak", 0);
+            ExitStreakOutcome progress = ExitStreakEngine.advance(
+              previousStreak, action, false, bound -> GAME_RNG.nextInt(bound));
+            if (!progress.getAccepted() || !progress.getEvaluated()) {
+              throw new Exception("Không thể xử lý streak cho lượt hợp lệ.");
+            }
+            JSONObject newState = withExitStreak(before, progress.getStreak());
+            if (progress.getCompleted()) {
+              JSONObject transitioned = applyStreakTransition(newState);
+              if (transitioned != null) {
+                newState = transitioned;
+                streakLevelCompleted = true;
+              } else {
+                // No authorized outbound route: do not persist an impossible 5/5 state.
+                newState = withExitStreak(newState, 0);
+              }
+            }
+            before = newState;
+            rolls = streakLevelCompleted
+              ? new JSONObject().put("turn", before.optInt("turn", 1)).put("meta", false)
+              : makeGameplayRolls(before, actionKind, action, false);
+            rolls.put("exitStreak", new JSONObject()
+              .put("evaluated", true)
+              .put("success", Boolean.TRUE.equals(progress.getSuccess()))
+              .put("streak", before.getJSONObject("flags").getJSONObject("exploration").optInt("exitStreak", 0))
+              .put("target", ExitStreakEngine.REQUIRED_WINS)
+              .put("completed", streakLevelCompleted)
+              .put("fromLevel", streakFromLevel)
+              .put("toLevel", currentLevel(before))
+              .put("chance", "50/50")
+              .put("reason", progress.getCompleted() && !streakLevelCompleted ? "no_route" : "ok"));
+          }
+'''
+java = replace_span(java,
+    "          // EXIT_AUTHORITY_V1: TraverseExitCommand is a system command",
+    "          JSONObject promptState = compactStateForPrompt(before);",
+    dispatch,
+    "replace old traverse/discovery dispatch with automatic streak")
+
+# Preserve the route chosen by Core if AI attempts to forge a different Level.
+java = replace_once(java,
+    "          if (traverseTurn) {\n            // EXIT_AUTHORITY_V1: the traverse transition is already committed and validated.",
+    "          if (streakLevelCompleted) {\n            // EXIT_STREAK_V1: the transition is already committed by Android Core.",
+    "post-commit authoritative transition")
+java = replace_once(java,
+    "          boolean transitionAccepted = traverseTurn || !levelChanged || canTransition(before, rolls);",
+    "          boolean transitionAccepted = streakLevelCompleted || !levelChanged || canTransition(before, rolls);",
+    "AI transition guard")
+java = replace_once(java,
+    "recordLevelProgress(state, traverseTurn && traverseFromLevel >= 0 ? traverseFromLevel : oldLevel, newLevel)",
+    "recordLevelProgress(state, streakLevelCompleted ? streakFromLevel : oldLevel, newLevel)",
+    "level-progress reset on streak completion")
+
+# Never accept streak or streak-node changes from AI ops or candidate-state merges.
+java = replace_once(java,
+    '          patchValue.remove("levelExit");',
+    '          patchValue.remove("levelExit");\n'
+    '          patchValue.remove("exitStreak");\n'
+    '          patchValue.remove("exitStreakNode");',
+    "ops anti-forgery")
+java = replace_once(java,
+    '      patchExploration.remove("levelExit");',
+    '      patchExploration.remove("levelExit");\n'
+    '      patchExploration.remove("exitStreak");\n'
+    '      patchExploration.remove("exitStreakNode");',
+    "candidate anti-forgery")
+
+# No obsolete six-turn gate should be written back to the state.
+java = replace_once(java,
+    '    exploration.put("minimumTurns", 6);',
+    '    // EXIT_STREAK_V1: no minimum-turn exit gate.',
+    "remove six-turn gate")
+
+# Keep meta labels, but make short-input errors explicit rather than "Gemini errors".
+html = html.replace('statusEl.textContent="Lỗi Gemini: "+message',
+                    'statusEl.textContent=String(message).startsWith("Hành động không hợp lệ:")?message:"Lỗi Gemini: "+message')
+
+# The original patch script may continue to exist in Git history, but its runtime
+# outputs must not survive in the shipped APK or compiled test source.
+OLD_ENGINE.unlink(missing_ok=True)
+OLD_TEST.unlink(missing_ok=True)
+
+for marker in (
+    "EXIT_STREAK_V1", "ExitStreakEngine.advance(", "ExitStreakEngine.hasMinimumInput(action)",
+    "streakLevelCompleted", 'patchValue.remove("exitStreak")',
+    'patchExploration.remove("exitStreak")', 'put("exitStreak"', "combatTurnForStreak",
+):
+    if marker not in java:
+        raise RuntimeError("Missing streak integration marker: " + marker)
+for banned in (
+    "ExitDiscoveryEngine", "TraverseExitCommand", "migrateLegacyExitTurnState",
+    "applyExitDiscoveryOutcome", "isTraverseExitCommand(", "private int exitThresholdAndroid",
+    'rolls.put("exitDiscovery"', '"traverse_exit"',
+):
+    if banned in java:
+        raise RuntimeError("Legacy exit runtime survives: " + banned)
+if OLD_ENGINE.exists() or OLD_TEST.exists():
+    raise RuntimeError("Legacy exit engine/test files were not retired")
+MAIN.write_text(java, encoding="utf-8")
+INDEX.write_text(html, encoding="utf-8")
+print("EXIT_STREAK_V1 active: every accepted non-combat turn rolls one 50/50 streak, five wins transition automatically.")

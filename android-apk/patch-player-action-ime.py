@@ -155,3 +155,7 @@ for marker in ["PLAYER_ACTION_IME_FIX_R01", "--action-visible-height",
 MAIN.write_text(java, encoding="utf-8")
 INDEX.write_text(html, encoding="utf-8")
 print("Player Action modal now uses Android IME insets and visible-height-safe sizing.")
+
+# Must run LAST: retire legacy exit runtime after every prior Android patch.
+import runpy
+runpy.run_path(str(ROOT / "patch-exit-streak-integration.py"), run_name="__main__")

@@ -177,26 +177,16 @@ jobs:
               ('daiDaoCombatStackIsSeparateAndResetsWithCombatMetadata', stats_1193),
               ('sceneKey:visualSceneKey()', java), ('r.sceneKey===visualSceneKey()', java),
               ('private int mentionedLevel(JSONObject state)', java),
-              ('EXIT_AUTHORITY_V1', java),
-              ('private boolean isTraverseExitCommand', java),
-              ('boolean traverseTurn = isTraverseExitCommand(actionKind, action);', java),
-              ('before every other interception', java),
-              ('traverseTurn || !levelChanged || canTransition(before, rolls)', java),
-              ('patchValue.remove("levelExit")', java),
-              ('patch.remove("exitChanceThreshold")', java),
-              ('patchValue.remove("levelTurns")', java),
-              ('patchValue.remove("confirmedExitMigrated")', java),
-              ('patchExploration.remove("levelTurns")', java),
-              ('patchExploration.remove("confirmedExitMigrated")', java),
-              ('migrateLegacyExitTurnState(normalizeExitRecordTurnState(before))', java),
-              ('rolls.put("exitDiscovery", evaluateExitDiscovery(state, actionKindNormalized, exitBonus));', java),
-              ('private DiscoveryEligibility checkExitDiscoveryEligibility', java),
-              ('anNhienReadEligible', java),
-              ('SEARCH-only', java),
-              ('private JSONObject applyTraverseExitTurn', java),
-              ('private JSONObject normalizeExitRecordTurnState', java),
-              ('confirmedExitMigrated', java),
-              ('exploration.put("minimumTurns", 6)', java),
+              ('EXIT_STREAK_V1', java),
+              ('ExitStreakEngine.advance(', java),
+              ('ExitStreakEngine.hasMinimumInput(action)', java),
+              ('combatTurnForStreak', java),
+              ('streakLevelCompleted', java),
+              ('patchValue.remove("exitStreak")', java),
+              ('patchExploration.remove("exitStreak")', java),
+              ('normalizedStreakState', java),
+              ('put("exitStreak"', java),
+              ('recordLevelProgress(state, streakLevelCompleted ? streakFromLevel : oldLevel, newLevel)', java),
               ('recordLevelProgress(state, traverseTurn && traverseFromLevel >= 0 ? traverseFromLevel : oldLevel, newLevel)', java),
               ('partyDetails&&state.partyDetails.members', java),
               ('rolls.put("roamingEntityKey"', java), ('file:///android_asset/entity/', java),
@@ -223,7 +213,7 @@ jobs:
               ('GodKiller Override // Twenty-Four Severance', skill_catalog), ('Crimson Guillotine', skill_catalog), ('Spatial Dominion', skill_catalog),
               ('Kế Hoạch Không Có Trong Kế Hoạch', skill_catalog), ('Quăng Đại Cái Gì Đó', skill_catalog),
               ('CompanionSkillCatalog.forCharacter(c.id)', detail_json), ('COMPANION_SKILLS_R01', combat), ('24 * 10', combat),
-              ('hazardThresholds[level] * 75 / 100', java), ('thresholdRoll("anNhienRead", 10000, 2000', java),
+              ('hazardThresholds[level] * 75 / 100', java),
               ('class CompanionSkillCatalogTest', skill_tests),
               ('runpy.run_path(str(ROOT / "patch-companion-skills-ui-finalize.py"), run_name="__main__")', chain),
           ]
@@ -251,6 +241,12 @@ jobs:
           assert 'exitIntent && (physical || search)' not in java
           assert 'return exitFound && progressionReady(before);' not in java
           assert 'private int exitThresholdAndroid' not in java
+          assert 'ExitDiscoveryEngine' not in java
+          assert 'TraverseExitCommand' not in java
+          assert not (core / 'ExitDiscoveryEngine.kt').exists()
+          assert not (root / 'app/src/test/java/com/rabpit/backroom/core/ExitDiscoveryEngineTest.kt').exists()
+          assert (core / 'ExitStreakEngine.kt').exists()
+
           assert 'slot != "set" || MadGodCanon.slot(command.itemId' not in engines
           assert 'appendEquipmentBadge(box)' not in java
           assert 'const val MULTIPLIER = 50' not in madgod
