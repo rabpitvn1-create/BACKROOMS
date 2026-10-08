@@ -1,0 +1,23 @@
+name: Verify Novel Asset Canon
+
+on:
+  push:
+    branches: [feat/novel-asset-canon-full-registry]
+  pull_request:
+    paths:
+      - 'android-apk/**'
+      - '.github/workflows/verify-novel-asset-canon.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify-canon-index:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify all 11 source documents
+        run: python3 android-apk/build-novel-asset-canon-index.py --check
