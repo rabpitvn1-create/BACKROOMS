@@ -20,8 +20,8 @@ jobs:
           curl -fsSL https://repo.maven.apache.org/maven2/org/json/json/20240303/json-20240303.jar -o /tmp/combat93-jars/json.jar
           curl -fsSL https://repo.maven.apache.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar -o /tmp/combat93-jars/junit.jar
           curl -fsSL https://repo.maven.apache.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar -o /tmp/combat93-jars/hamcrest.jar
-          javac -cp '/tmp/combat93-jars/*' -d /tmp/combat93-classes android-apk/app/src/main/java/com/rabpit/backroom/core/{CombatChoiceEngine,Combat93Support,EntityStatCore,TurnRng}.java android-apk/app/src/test/java/com/rabpit/backroom/core/Combat93EngineTest.java
-          java -cp '/tmp/combat93-classes:/tmp/combat93-jars/*' org.junit.runner.JUnitCore com.rabpit.backroom.core.Combat93EngineTest
+          javac -cp '/tmp/combat93-jars/*' -d /tmp/combat93-classes android-apk/app/src/main/java/com/rabpit/backroom/core/{CombatChoiceEngine,Combat93Support,EntityStatCore,TurnRng}.java android-apk/app/src/test/java/com/rabpit/backroom/core/{Combat93EngineTest,LucTramEntityTest}.java
+          java -cp '/tmp/combat93-classes:/tmp/combat93-jars/*' org.junit.runner.JUnitCore com.rabpit.backroom.core.Combat93EngineTest com.rabpit.backroom.core.LucTramEntityTest
   core-boundary:
     runs-on: ubuntu-latest
     steps:
@@ -46,7 +46,7 @@ jobs:
           PY
       - name: Test save, HP, actor turns, and reward boundaries
         working-directory: android-apk
-        run: gradle :app:testDebugUnitTest --tests 'com.rabpit.backroom.core.Combat93*' --no-daemon
+        run: gradle :app:testDebugUnitTest --tests 'com.rabpit.backroom.core.Combat93*' --tests 'com.rabpit.backroom.core.LucTram*' --no-daemon
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
