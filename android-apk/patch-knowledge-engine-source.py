@@ -23,40 +23,19 @@ old = '''      if (hasAny(actionText, "devil trigger")) {
         }
       }
 '''
-new = '''      if (hasAny(actionText, "devil trigger")) {
-        direct += "CHAR.KAI.DEVIL_TRIGGER"
-        if ("syvial" in presentActors) direct += "CHAR.SYVIAL.DEVIL_TRIGGER"
+new = '''      if (hasAny(actionText, "devil trigger") && "syvial" in presentActors) {
+        direct += "CHAR.SYVIAL.DEVIL_TRIGGER"
       }
       if (hasAny(actionText, "nói", "hỏi", "trả lời", "trò chuyện", "nói chuyện", "dialogue", "talk", "tell")) {
         direct += "WRITING.DIALOGUE"
       }
-      // KAI record ids remain for old saves; do not retrieve their lore for Cao Minh.
-      val player = state.optJSONObject("player")
-      val playerId = normalize(player?.optString("id", "").orEmpty())
-      val playerName = normalize(player?.optString("name", "").orEmpty())
-      val campaignTitle = normalize(state.optString("title", ""))
-      val isCaoMinhCampaign = playerId == "cao_minh" ||
-        playerName == "cao minh" || "cao minh" in campaignTitle
-      if (isCaoMinhCampaign) {
-        direct.removeAll { it in setOf(
-          "CHAR.KAI.SPARDA_CORE", "CHAR.KAI.DEVIL_TRIGGER",
-          "CHAR.KAI.GUILTY_CROWN_OVERRIDE", "CHAR.KAI.WHITE_WRAITH",
-          "CHAR.KAI.ARMOR", "CHAR.KAI.OMNIVAULT"
-        ) }
-        // Keep saved companions functional when actually present, but never
-        // summon their legacy abilities/equipment by keyword while absent.
-        direct.removeAll { id ->
-          (id.startsWith("CHAR.IRIS.") && "iris" !in presentActors) ||
-            (id.startsWith("CHAR.SYVIAL.") && "syvial" !in presentActors)
-        }
-        // Exact currently-authoritative equipment names. This only proposes
-        // candidates; the original priority/budget decision still applies.
-        if (hasAny(actionText, "huyết ma kiếm", "huyet ma kiem")) {
-          direct += "CHAR.CAO.HUYET_MA_KIEM"
-        }
-        if (hasAny(actionText, "huyết ma chiến khải", "huyet ma chien khai")) {
-          direct += "CHAR.CAO.HUYET_MA_CHIEN_KHAI"
-        }
+      // The current game has Cao Minh as protagonist. Do not depend on
+      // the presence of legacy player identifiers to retrieve his equipment.
+      if (hasAny(actionText, "huyết ma kiếm", "huyet ma kiem")) {
+        direct += "CHAR.CAO.HUYET_MA_KIEM"
+      }
+      if (hasAny(actionText, "huyết ma chiến khải", "huyet ma chien khai")) {
+        direct += "CHAR.CAO.HUYET_MA_CHIEN_KHAI"
       }
       direct.forEach { add(it, "direct structured lookup") }
 
@@ -115,6 +94,17 @@ new = '''      if (hasAny(actionText, "devil trigger")) {
 if old not in text:
     raise RuntimeError("Structured registry lookup anchor not found")
 text = text.replace(old, new, 1)
+
+# No old-save route: retire direct Kai-only equipment/ability triggers even
+# when no player identifier is serialized in the current state.
+retired_direct = '''      if (hasAny(actionText, "sparda core")) direct += "CHAR.KAI.SPARDA_CORE"
+      if (hasAny(actionText, "guilty crown", "override")) direct += "CHAR.KAI.GUILTY_CROWN_OVERRIDE"
+      if (hasAny(actionText, "white wraith", "magnum")) direct += "CHAR.KAI.WHITE_WRAITH"
+      if (hasAny(actionText, "omnivault", "nhẫn vạn tàng", "scan", "hoàn nguyên", "restore")) direct += "CHAR.KAI.OMNIVAULT"
+'''
+if retired_direct not in text:
+    raise RuntimeError("Retired Kai direct-lookup anchor not found")
+text = text.replace(retired_direct, "", 1)
 
 # Deliberately do not retrieve Entity knowledge from historical entityRegistry state.
 # Current Entity presence is resolved by the current encounter key only.
@@ -437,6 +427,9 @@ old = '''    private fun add(id: String, reason: String) {
     }
 '''
 new = '''    private fun add(id: String, reason: String) {
+      // Stable runtime-core ID is still used for Cao Minh; all other Kai lore
+      // belongs to the retired character, regardless of lookup source.
+      if (id.startsWith("CHAR.KAI.") && id != "CHAR.KAI.RUNTIME_CORE") return
       trace?.add(KnowledgeTraceEvent(
         type = "candidate_reason_appended", recordId = id, reason = reason
       ))
@@ -982,32 +975,22 @@ class KnowledgeContextEngineP0Test {
     )
   }
 
-  @Test fun devilTriggerPresenceGateAndLegacyReferencesStayObservable() {
+  @Test fun retiredKaiAbilitiesCannotBeSelectedByDirectLookupOrReferences() {
     val solo = tracedP05("devil_trigger_without_syvial")
-    assertTrue(proposed(solo, "CHAR.KAI.DEVIL_TRIGGER", "direct structured lookup"))
-    assertFalse(proposed(solo, "CHAR.SYVIAL.DEVIL_TRIGGER"))
-
+    assertFalse(proposed(solo, "CHAR.KAI.DEVIL_TRIGGER"))
     val withSyvial = tracedP05("devil_trigger_with_syvial")
-    assertTrue(proposed(withSyvial, "CHAR.KAI.DEVIL_TRIGGER", "direct structured lookup"))
+    assertFalse(proposed(withSyvial, "CHAR.KAI.DEVIL_TRIGGER"))
     assertTrue(proposed(withSyvial, "CHAR.SYVIAL.DEVIL_TRIGGER", "direct structured lookup"))
-
-    val references = tracedP05("reference_followed_below_gate")
-    assertTrue(
-      references.events.any {
-        it.type == "reference_followed" &&
-          it.fromId == "CHAR.KAI.GUILTY_CROWN_OVERRIDE" &&
-          it.targetId == "CHAR.KAI.DEVIL_TRIGGER" &&
-          it.targetPriority == 48
-      }
-    )
-    assertTrue(
-      references.events.any {
-        it.type == "reference_followed" &&
-          it.fromId == "CHAR.KAI.GUILTY_CROWN_OVERRIDE" &&
-          it.targetId == "CHAR.KAI.WHITE_WRAITH" &&
-          it.targetPriority == 50
-      }
-    )
+    val override = tracedP05("reference_followed_below_gate")
+    assertFalse(proposed(override, "CHAR.KAI.GUILTY_CROWN_OVERRIDE"))
+    assertFalse(override.events.any {
+      it.type == "reference_followed" && it.fromId == "CHAR.KAI.GUILTY_CROWN_OVERRIDE"
+    })
+    assertTrue(override.events.any {
+      it.type == "reference_followed" &&
+        it.fromId == "STORY.CAO.PROLOGUE_HANDOFF" &&
+        it.targetId == "CHAR.LUC_TRAM.IDENTITY"
+    })
   }
 
   @Test fun finalRuntimeReadsLevelFallbackPartyDetailsAndNormalizedTags() {
@@ -1335,31 +1318,39 @@ class KnowledgeContextEngineP0Test {
     assertFalse(proposed(ring, "CHAR.KAI.OMNIVAULT"))
   }
 
-  @Test fun unidentifiedAndLegacyPlayerStatesRetainLegacyLookupsAndReferences() {
-    val legacyStates = listOf(
+  @Test fun retiredKaiLoreCannotLeakWithoutPlayerIdentityOrThroughSceneAffordances() {
+    val states = listOf(
       stateJson(1),
+      caoMinhStateJson(1),
       JSONObject(stateJson(1)).put("player", JSONObject().put("id", "k" + "ai")).toString()
     )
-    legacyStates.forEach { state ->
-      val direct = KnowledgeContextEngine.buildForTestWithTrace(
-        dbJson, state, "Sparda Core Devil Trigger White Wraith Omnivault", "{}")
-      listOf(
-        "CHAR.KAI.SPARDA_CORE", "CHAR.KAI.DEVIL_TRIGGER",
-        "CHAR.KAI.WHITE_WRAITH", "CHAR.KAI.OMNIVAULT"
-      ).forEach { id ->
-        assertTrue("Legacy lookup must remain for $id in $state",
-          proposed(direct, id, "direct structured lookup"))
+    val retired = listOf(
+      "CHAR.KAI.SPARDA_CORE", "CHAR.KAI.DEVIL_TRIGGER",
+      "CHAR.KAI.GUILTY_CROWN_OVERRIDE", "CHAR.KAI.WHITE_WRAITH",
+      "CHAR.KAI.ARMOR", "CHAR.KAI.OMNIVAULT"
+    )
+    val actions = listOf(
+      "Sparda Core Devil Trigger White Wraith Magnum Omnivault Guilty Crown Override",
+      "Có giao chiến và một mối đe dọa đang tấn công.", // direct_threat affordance
+      "Quan sát dấu vết và vật cản.", // trace_analysis affordance
+      "Cao Minh kiểm tra Huyết Ma Kiếm và Huyết Ma Chiến Khải."
+    )
+    states.forEach { state ->
+      actions.forEach { action ->
+        val result = KnowledgeContextEngine.buildForTestWithTrace(dbJson, state, action, "{}")
+        retired.forEach { id ->
+          assertFalse("Retired lore proposed via $action: $id", proposed(result, id))
+          assertPacketLacks(result.packet, id)
+        }
+        assertPacketHas(result.packet, "CHAR.KAI.RUNTIME_CORE")
       }
-      val override = KnowledgeContextEngine.buildForTestWithTrace(
-        dbJson, state, "Guilty Crown Override", "{}")
-      assertTrue(proposed(override, "CHAR.KAI.GUILTY_CROWN_OVERRIDE",
-        "direct structured lookup"))
-      assertTrue(override.events.any {
-        it.type == "reference_followed" &&
-          it.fromId == "CHAR.KAI.GUILTY_CROWN_OVERRIDE" &&
-          it.targetId == "CHAR.KAI.WHITE_WRAITH"
-      })
     }
+    val sword = KnowledgeContextEngine.buildForTestWithTrace(
+      dbJson, stateJson(0), "Điều khiển Huyết Ma Kiếm.", "{}")
+    assertTrue(proposed(sword, "CHAR.CAO.HUYET_MA_KIEM", "direct structured lookup"))
+    val armor = KnowledgeContextEngine.buildForTestWithTrace(
+      dbJson, stateJson(0), "Triệu hồi Huyết Ma Chiến Khải.", "{}")
+    assertTrue(proposed(armor, "CHAR.CAO.HUYET_MA_CHIEN_KHAI", "direct structured lookup"))
   }
 
   @Test fun tracePreservesMultipleCandidateReasons() {
@@ -1831,34 +1822,25 @@ class KnowledgeContextEngineP1ShadowTest {
     path.toFile().readText(Charsets.UTF_8)
   }
 
-  @Test fun shadowClassificationDoesNotChangePacketAndLabelsBothLegacyClasses() {
-    val legacyState = stateJson(1)
-    val legacyAction = "Kích hoạt Guilty Crown Override."
-    val legacyPlain = KnowledgeContextEngine.buildForTest(dbJson, legacyState, legacyAction, "{}")
-    val legacyTrace = KnowledgeContextEngine.buildForTestWithTrace(dbJson, legacyState, legacyAction, "{}")
-    assertEquals(legacyPlain, legacyTrace.packet)
-    assertTrue(
-      legacyTrace.events.any {
-        it.type == "reference_followed" &&
-          it.fromId == "CHAR.KAI.GUILTY_CROWN_OVERRIDE" &&
-          it.targetId == "CHAR.KAI.DEVIL_TRIGGER" &&
-          it.shadowClass == "LEGACY_FOLLOWED"
-      }
-    )
-
-    val relatedState = stateJson(1)
-    val relatedPlain = KnowledgeContextEngine.buildForTest(dbJson, relatedState, "Quan sát lối đi.", "{}")
-    val relatedTrace = KnowledgeContextEngine.buildForTestWithTrace(dbJson, relatedState, "Quan sát lối đi.", "{}")
-    assertEquals(relatedPlain, relatedTrace.packet)
-    assertTrue(
-      relatedTrace.events.any {
-        it.type == "reference_skipped" &&
-          it.fromId == "LEVEL.01" &&
-          it.targetId == "ENTITY.HOUND" &&
-          it.shadowClass == "RELATED" &&
-          it.targetPriority > KnowledgeContextEngine.LEGACY_REFERENCE_PRIORITY_GATE
-      }
-    )
+  @Test fun shadowClassificationDoesNotChangePacketAndLabelsCurrentReferenceClasses() {
+    val currentState = stateJson(1)
+    val action = "Quan sát hành lang."
+    val plain = KnowledgeContextEngine.buildForTest(dbJson, currentState, action, "{}")
+    val traced = KnowledgeContextEngine.buildForTestWithTrace(dbJson, currentState, action, "{}")
+    assertEquals(plain, traced.packet)
+    assertTrue(traced.events.any {
+      it.type == "reference_followed" &&
+        it.fromId == "STORY.CAO.PROLOGUE_HANDOFF" &&
+        it.targetId == "CHAR.LUC_TRAM.IDENTITY" &&
+        it.shadowClass == "LEGACY_FOLLOWED"
+    })
+    assertTrue(traced.events.any {
+      it.type == "reference_skipped" &&
+        it.fromId == "LEVEL.01" &&
+        it.targetId == "ENTITY.HOUND" &&
+        it.shadowClass == "RELATED" &&
+        it.targetPriority > KnowledgeContextEngine.LEGACY_REFERENCE_PRIORITY_GATE
+    })
   }
 
   @Test fun alreadyVisitedReferenceKeepsItsShadowClass() {
