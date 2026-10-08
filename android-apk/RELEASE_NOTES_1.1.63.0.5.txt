@@ -1,0 +1,9 @@
+Backroom 1.1.63.0.5 Debug
+
+- Sửa lỗi khi nhấn THỰC HIỆN: popup nhập hành động bị bàn phím Android che khuất trên giao diện fullscreen.
+- Nối Android WindowInsets.Type.ime() với window.backroomSetImeInset trong WebView để xác định phần màn hình thực sự còn trống khi bàn phím mở hoặc đóng.
+- Giới hạn chiều cao popup và textarea theo vùng nhìn thấy; thanh nút HỦY / THỰC HIỆN có thể sử dụng ngay cả khi bàn phím đang hiển thị.
+- Giữ cơ chế visualViewport cho thiết bị/WebView cũ; không làm thay đổi ActionRuntime, chiến đấu, spawn rate hay nội dung 11 tài liệu canon.
+- Bổ sung kiểm thử giả lập hai trường hợp: bàn phím phủ lên viewport fullscreen và WebView tự thay đổi kích thước; kiểm tra Java/Kotlin compile.
+- Tăng versionName từ 1.1.63.0.4 lên 1.1.63.0.5 và versionCode từ 69 lên 70; tạo GitHub Release mới thay vì ghi đè APK .0.4.
+- Dùng quy trình build debug và xác minh APK/chữ ký, full-text canon, checksum SHA-256 như các release trước.
