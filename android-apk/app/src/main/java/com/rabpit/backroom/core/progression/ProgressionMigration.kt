@@ -132,7 +132,16 @@ object ProgressionMigration {
       if (legacy is MigrationResult.Failed) return BoundaryLoadOutcome.Rejected(legacy.reason)
       val snapshot = legacy as MigrationResult.Migrated
       if (snapshot.nodeId != authoritativeNodeId) {
-        return BoundaryLoadOutcome.Rejected("legacy combat node disagrees with authoritative world")
+        // Legacy combatStageIndex records only the parent main-Level number.
+        // Permit it for explicitly playable numbered Sub-levels of that parent,
+        // but never for unrelated nodes or unapproved catalogue entries.
+        val trusted = WorldProgressionCore.NODES.firstOrNull { it.id == authoritativeNodeId }
+        val approvedSublevel = trusted?.kind == WorldNodeKind.SUB_LEVEL &&
+          trusted.levelNumber == level.toInt() &&
+          FeaturedJourneyRoutes.contains(authoritativeNodeId.value)
+        if (!approvedSublevel) {
+          return BoundaryLoadOutcome.Rejected("legacy combat node disagrees with authoritative world")
+        }
       }
       return BoundaryLoadOutcome.Migrated(applyV1Snapshot(boundary, authoritativeNodeId, rank))
     }

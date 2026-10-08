@@ -275,6 +275,31 @@ class ProgressionMigrationTest {
     assertTrue(ProgressionMigration.loadCombatBoundary(v1Boundary(), WorldNodeId("level-99"))
       is BoundaryLoadOutcome.Rejected)
   }
+  @Test fun selectedSublevelsKeepParentCombatStageAndTrustedSublevelRank() {
+    for ((parent, selected, rank) in listOf(
+      Triple(0, "level-0.2", 200_000L),
+      Triple(1, "level-1.2", 1_200_000L),
+      Triple(5, "level-5.1", 5_100_000L),
+      Triple(7, "level-7.7", 7_700_000L),
+      Triple(11, "level-11.3", 11_300_000L),
+    )) {
+      val before = v1Boundary(parent)
+      val raw = before.toString()
+      val out = ProgressionMigration.loadCombatBoundary(before, WorldNodeId(selected))
+      assertTrue("selected Sub-level $selected must accept parent combat stage", out is BoundaryLoadOutcome.Migrated)
+      val upgraded = (out as BoundaryLoadOutcome.Migrated).boundary
+      assertEquals(parent, upgraded.getInt("combatStageIndex"))
+      assertEquals(selected, upgraded.getString("worldNodeId"))
+      assertEquals(rank, upgraded.getLong("progressionRank"))
+      assertEquals(selected, upgraded.getJSONObject("combat").getString("worldNodeId"))
+      assertEquals(raw, before.toString())
+    }
+    assertTrue(ProgressionMigration.loadCombatBoundary(
+      v1Boundary(0), WorldNodeId("level-0.1")) is BoundaryLoadOutcome.Rejected)
+    assertTrue(ProgressionMigration.loadCombatBoundary(
+      v1Boundary(2), WorldNodeId("level-5.1")) is BoundaryLoadOutcome.Rejected)
+  }
+
   @Test fun allLegacyLevelsPreserveEveryMaterializedEntityField() {
     for (level in 0..6) {
       val boundary = v1Boundary(level)
