@@ -36,4 +36,10 @@ jobs:
         with:
           gradle-version: '8.10.2'
       - name: Verify bounded GM source retrieval and disclosure locks
-        run: gradle -p android-apk :app:testDebugUnitTest --tests com.rabpit.backroom.core.knowledge.NovelAssetRoutingTest --no-daemon
+        run: gradle -p android-apk :app:testDebugUnitTest --tests com.rabpit.backroom.core.knowledge.NovelAssetRoutingTest --no-daemon --info
+      - name: Show failed test detail
+        if: failure()
+        run: |
+          for report in android-apk/app/build/test-results/testDebugUnitTest/TEST-*.xml; do
+            if [ -f "$report" ]; then cat "$report"; fi
+          done
