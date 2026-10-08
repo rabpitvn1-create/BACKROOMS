@@ -105,7 +105,15 @@ if match is None:
     raise RuntimeError("loadOrMigrate method missing after helper insertion")
 body = match.group("body")
 if "quarantineRetiredItemSources(" not in body:
-    normalized_match = re.search(r'(?m)^    val normalized = normalizeVisualPresence\\(([^\\n]+)\\)        body = body.replace(
+    normalized_match = re.search(r'(?m)^    val normalized = normalizeVisualPresence\(([^\n]+)\)$', body)
+    if normalized_match is not None:
+        normalized_source = normalized_match.group(1)
+        body = body[:normalized_match.start()] + (
+            "    val normalized = quarantineRetiredItemSources(normalizeVisualPresence(" +
+            normalized_source + "))"
+        ) + body[normalized_match.end():]
+    elif "if (repository.exists()) return repository.load()" in body:
+        body = body.replace(
             "if (repository.exists()) return repository.load()",
             "if (repository.exists()) {\\n      val loaded = repository.load()\\n      val normalized = quarantineRetiredItemSources(loaded)\\n      if (normalized != loaded) repository.save(normalized)\\n      return normalized\\n    }",
             1,
