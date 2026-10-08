@@ -11,6 +11,7 @@ Status: **registry and reference baseline complete; gameplay rollout incomplete*
 - Level 4, 12 and 13 have no numbered Sub-level listed by the selected Wikidot source; do not invent one merely to fill the list.
 - An `OPEN`/trimmed/rewrite item is catalogued as a placeholder only. Named areas without fixed ranks do not receive synthetic progression nodes.
 - Canon source: `android-apk/app/src/main/assets/knowledge/novel_asset/BACKROOMS_WORLD.md`.
+- Internet references that have been reviewed are normalized **inside this canonical asset**, with compact author/URL credits in section 2D; packaged `knowledge_db.json` is a deterministic **derived index** of the asset, not a second authority. Obsolete `WorldInternetCanon` staging code and its documentation have been deleted. Metadata-only web links were not promoted into gameplay canon.
 - External list: https://backrooms-wiki.wikidot.com/normal-levels-i
 
 ## Runtime safety invariant
