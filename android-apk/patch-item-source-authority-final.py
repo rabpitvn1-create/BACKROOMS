@@ -298,7 +298,6 @@ for marker in (
     'item_source_not_authoritative',
     'chest_source_missing',
     'LEGACY_ITEM_SOURCE: GM-side item creation is retired',
-    'Item mới chỉ được Game State Core cấp từ Entity drop hoặc Chest contents',
     'class ItemSourceAuthorityFinalTest',
 ):
     if marker not in combined:
