@@ -6,6 +6,9 @@ import org.junit.Test
 /**
  * Locks the linear Entity scaling semantics from issue #453:
  * +10 percentage points over base per full Level. NOT compounding.
+ * [EntityScaling.scale] keeps full fixed-point precision; the truncated
+ * integer [EntityScaling.percentOfBase] is debug/UI only and is NOT
+ * authoritative for computation.
  */
 class EntityScalingTest {
 
@@ -17,6 +20,15 @@ class EntityScalingTest {
     assertEquals(120, EntityScaling.percentOfBase(2_000_000L))
   }
 
+  @Test fun scaleKeepsFractionalPrecision() {
+    // rank 1_050_000 = true 110.5% of base. The integer percent truncates to
+    // 110, but scale() must NOT go through it: 100 * 110.5% = 110.5 -> 111.
+    assertEquals(110, EntityScaling.percentOfBase(1_050_000L))
+    assertEquals(111, EntityScaling.scale(100, 1_050_000L))
+    assertEquals(110, EntityScaling.scale(100, 1_000_000L))
+    assertEquals(105, EntityScaling.scale(100, 500_000L))
+  }
+
   @Test fun legacyLevelsMigrateBitIdentical() {
     // Reference: previous EntityStatCore formula with stageIndex semantics.
     // Kept inline (the legacy class is package-private in `core`).
@@ -25,7 +37,7 @@ class EntityScalingTest {
       val scaled = maxOf(0, baseValue).toLong() * pct
       return maxOf(0, ((scaled + 50L) / 100L).toInt())
     }
-    val bases = listOf(1, 7, 42, 100, 999, 10_000)
+    val bases = listOf(0, 1, 7, 42, 100, 999, 10_000, 1_000_000)
     for (n in 0..6) {
       assertEquals(100 + 10 * n, EntityScaling.percentOfBase(n * RANK_PER_FULL_LEVEL))
       for (base in bases) {
@@ -46,19 +58,15 @@ class EntityScalingTest {
     assertTrue(atLevel1 <= EntityScaling.scale(base, 2_000_000L))
   }
 
-  @Test fun percentOfBaseRejectsNegativeRank() {
-    try {
-      EntityScaling.percentOfBase(-1L)
-      fail("expected IllegalArgumentException: negative rank must fail closed, never clamp")
-    } catch (e: IllegalArgumentException) {
-      // expected
+  @Test fun invalidRankFailsClosed() {
+    for (bad in listOf(-1L, -1_000_000L, EntityScaling.MAX_PROGRESSION_RANK + 1)) {
+      try {
+        EntityScaling.scale(100, bad)
+        fail("rank $bad must fail closed, never clamp or wrap")
+      } catch (e: IllegalArgumentException) {
+        // expected
+      }
     }
-  }
-
-  @Test fun subLevelFractionalStepExample() {
-    // A sub-level at an explicit fractional rank scales proportionally.
-    assertEquals(105, EntityScaling.scale(100, 500_000L))
-    assertEquals(110, EntityScaling.scale(100, 1_000_000L))
   }
 
   @Test fun scaleDerivesOnlyFromBaseAndRank() {

@@ -9,6 +9,12 @@ import org.junit.Test
  */
 class WorldProgressionCoreTest {
 
+  @Test fun rankPerFullLevelConstantIsPinned() {
+    // The constant itself is balance data: changing it rebalances every node,
+    // so the literal value is pinned, not just its uses.
+    assertEquals(1_000_000L, RANK_PER_FULL_LEVEL)
+  }
+
   @Test fun nodeIdsAreUnique() {
     val ids = WorldProgressionCore.NODES.map { it.id.value }
     assertEquals(ids.size, ids.toSet().size)
@@ -28,6 +34,20 @@ class WorldProgressionCoreTest {
       assertTrue("edge from unknown node: ${edge.from.value}", edge.from in ids)
       assertTrue("edge to unknown node: ${edge.to.value}", edge.to in ids)
     }
+  }
+
+  @Test fun traversalGraphIsExplicit() {
+    // EDGES must be a written-out list, never derived from NODES order:
+    // adding a Sub-level to canonical order must not silently rewire traversal.
+    val expected = listOf(
+      WorldEdge(WorldNodeId("level-0"), WorldNodeId("level-1")),
+      WorldEdge(WorldNodeId("level-1"), WorldNodeId("level-2")),
+      WorldEdge(WorldNodeId("level-2"), WorldNodeId("level-3")),
+      WorldEdge(WorldNodeId("level-3"), WorldNodeId("level-4")),
+      WorldEdge(WorldNodeId("level-4"), WorldNodeId("level-5")),
+      WorldEdge(WorldNodeId("level-5"), WorldNodeId("level-6")),
+    )
+    assertEquals(expected, WorldProgressionCore.EDGES)
   }
 
   @Test fun legacyLevelsZeroToSixArePinned() {
@@ -55,7 +75,7 @@ class WorldProgressionCoreTest {
   }
 
   @Test fun transitionWithNoEdgeIsRejected() {
-    // Linear graph: level-0 -> level-2 has no direct edge.
+    // Explicit graph: level-0 -> level-2 has no edge.
     val result = WorldProgressionCore.validateTransition(WorldNodeId("level-0"), WorldNodeId("level-2"))
     assertTrue(result is TransitionResult.Rejected)
     assertEquals(TransitionRejection.NO_EDGE, (result as TransitionResult.Rejected).reason)
@@ -69,10 +89,19 @@ class WorldProgressionCoreTest {
     assertEquals(2 * RANK_PER_FULL_LEVEL, committed.progressionRank)
   }
 
-  @Test fun goldenRegistrySnapshot() {
-    // Pinned ranks: changing any entry is a deliberate balance decision
-    // and must update this test explicitly in the same commit.
-    val expected = (0..6).map { n -> "level-$n" to n * RANK_PER_FULL_LEVEL }
+  @Test fun goldenRegistrySnapshotUsesLiteralRanks() {
+    // Pinned ranks as LITERALS — deliberately not computed from
+    // RANK_PER_FULL_LEVEL, so changing the constant cannot silently
+    // rebalance every level while keeping this test green.
+    val expected = listOf(
+      "level-0" to 0L,
+      "level-1" to 1_000_000L,
+      "level-2" to 2_000_000L,
+      "level-3" to 3_000_000L,
+      "level-4" to 4_000_000L,
+      "level-5" to 5_000_000L,
+      "level-6" to 6_000_000L,
+    )
     val actual = WorldProgressionCore.NODES.map { it.id.value to it.progressionRank }
     assertEquals(expected, actual)
   }

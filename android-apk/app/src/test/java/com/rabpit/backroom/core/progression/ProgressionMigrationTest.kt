@@ -1,16 +1,61 @@
 package com.rabpit.backroom.core.progression
 
+import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.*
 import org.junit.Test
 
 /**
- * Locks the v1 -> v2 save migration from issue #453:
- * - `stageIndex` is never reused with a new meaning,
+ * Locks the v1 -> v2 save migration from issue #453 against the REAL
+ * persisted `combat93.state` boundary shape:
+ * - version lives in exactly one place (boundary root),
+ * - the whole `combat.entities[]` array migrates,
  * - materialized combat stats are preserved verbatim (no mid-fight rescale),
+ * - v2 load never trusts a persisted rank as authority,
  * - unknown nodes fail closed.
  */
 class ProgressionMigrationTest {
+
+  /** Mirrors the real v1 boundary: root combatStageIndex + combat.stageIndex + entities[]. */
+  private fun v1Boundary(stageIndex: Int = 2): JSONObject {
+    val entity = JSONObject()
+      .put("key", "smiler")
+      .put("name", "Smiler")
+      .put("hp", 37)
+      .put("maxHp", 110)
+      .put("attack", 12)
+      .put("baseHp", 100)
+      .put("baseDamage", 11)
+      .put("stageIndex", stageIndex)
+      .put("stagePercent", 100 + 10 * stageIndex)
+      .put("criticalChancePercent", 5)
+      .put("evasionPercent", 5)
+      .put("bleedTurns", 0)
+      .put("alive", true)
+      .put("status", "alive")
+    val diceState = JSONObject()
+      .put("values", JSONArray().put(1).put(2).put(3).put(4).put(5))
+      .put("held", JSONArray().put(false).put(false).put(false).put(false).put(false))
+      .put("rerollsUsed", 1)
+      .put("hasRolled", true)
+      .put("finalized", false)
+    val combat = JSONObject()
+      .put("active", true)
+      .put("round", 3)
+      .put("stageIndex", stageIndex)
+      .put("entities", JSONArray().put(entity))
+      .put("diceState", diceState)
+      .put("encounterId", "turn-9:0:smiler")
+      .put("logIndex", 4)
+    return JSONObject()
+      .put("turn", 7)
+      .put("combatStageIndex", stageIndex)
+      .put("location", "Level 2")
+      .put("flags", JSONObject())
+      .put("log", JSONArray())
+      .put("characterProgression", JSONObject().put("characters", JSONObject()))
+      .put("combat", combat)
+  }
 
   @Test fun legacyLevelNumberMigratesToExpectedNodeAndRank() {
     val result = ProgressionMigration.migrateLegacyLevelNumber(2)
@@ -27,42 +72,80 @@ class ProgressionMigrationTest {
     }
   }
 
-  private fun v1Entity(): JSONObject = JSONObject()
-    .put("key", "test-entity")
-    .put("hp", 37)
-    .put("maxHp", 110)
-    .put("attack", 12)
-    .put("baseHp", 100)
-    .put("baseDamage", 11)
-    .put("stageIndex", 2)
-    .put("stagePercent", 120)
-
-  @Test fun combatEntityV1ToV2PreservesMaterializedStats() {
-    val migrated = ProgressionMigration.migrateCombatEntityV1ToV2(v1Entity())
-    assertEquals(COMBAT_SCHEMA_VERSION_2, migrated.getInt("combatSchemaVersion"))
+  @Test fun boundaryMigrationVersionsRootOnceAndMigratesAllEntities() {
+    val migrated = ProgressionMigration.migrateCombatBoundaryV1ToV2(v1Boundary())
+    // Version in exactly one place: the boundary root.
+    assertEquals(PROGRESSION_SCHEMA_VERSION_2, migrated.getInt("progressionSchemaVersion"))
     assertEquals("level-2", migrated.getString("worldNodeId"))
     assertEquals(2_000_000L, migrated.getLong("progressionRank"))
+
+    val combat = migrated.getJSONObject("combat")
+    assertEquals("level-2", combat.getString("worldNodeId"))
+    // Legacy fields stay frozen as history; never reused with a new meaning.
+    assertEquals(2, combat.getInt("stageIndex"))
+    assertEquals(2, migrated.getInt("combatStageIndex"))
+
+    val entities = combat.getJSONArray("entities")
+    assertEquals(1, entities.length())
+    val entity = entities.getJSONObject(0)
+    assertEquals("level-2", entity.getString("worldNodeId"))
+    assertEquals(2_000_000L, entity.getLong("progressionRank"))
     // No rescale mid-fight: materialized stats are verbatim.
-    assertEquals(37, migrated.getInt("hp"))
-    assertEquals(110, migrated.getInt("maxHp"))
-    assertEquals(12, migrated.getInt("attack"))
-    assertEquals(100, migrated.getInt("baseHp"))
-    assertEquals(11, migrated.getInt("baseDamage"))
+    assertEquals(37, entity.getInt("hp"))
+    assertEquals(110, entity.getInt("maxHp"))
+    assertEquals(12, entity.getInt("attack"))
+    assertEquals(100, entity.getInt("baseHp"))
+    assertEquals(11, entity.getInt("baseDamage"))
+    assertEquals("alive", entity.getString("status"))
+    // Dice and encounter metadata untouched.
+    assertEquals("turn-9:0:smiler", combat.getString("encounterId"))
+    assertEquals(3, combat.getInt("round"))
+    assertEquals(4, combat.getInt("logIndex"))
+    val dice = combat.getJSONObject("diceState")
+    assertEquals(1, dice.getInt("rerollsUsed"))
+    assertEquals(5, dice.getJSONArray("values").length())
   }
 
-  @Test fun combatEntityMigrationIsIdempotent() {
-    val once = ProgressionMigration.migrateCombatEntityV1ToV2(v1Entity())
-    val twice = ProgressionMigration.migrateCombatEntityV1ToV2(once)
+  @Test fun boundaryMigrationIsIdempotent() {
+    val once = ProgressionMigration.migrateCombatBoundaryV1ToV2(v1Boundary())
+    val twice = ProgressionMigration.migrateCombatBoundaryV1ToV2(once)
     assertEquals(once.toString(), twice.toString())
   }
 
-  @Test fun combatEntityWithUnknownStageFailsClosed() {
-    val migrated = ProgressionMigration.migrateCombatEntityV1ToV2(v1Entity().put("stageIndex", 99))
+  @Test fun boundaryWithUnknownStageFailsClosed() {
+    val migrated = ProgressionMigration.migrateCombatBoundaryV1ToV2(v1Boundary(stageIndex = 99))
     assertTrue(migrated.has("progressionMigrationError"))
-    // Materialized stats still preserved; nothing is rescaled or guessed.
-    assertEquals(37, migrated.getInt("hp"))
-    assertEquals(110, migrated.getInt("maxHp"))
     assertFalse(migrated.has("worldNodeId"))
+    assertFalse(migrated.has("progressionSchemaVersion"))
+    // Nothing was rescaled or guessed, even on failure.
+    val entity = migrated.getJSONObject("combat").getJSONArray("entities").getJSONObject(0)
+    assertEquals(37, entity.getInt("hp"))
+    assertFalse(entity.has("progressionRank"))
+  }
+
+  @Test fun v2LoadNeverTrustsPersistedRank() {
+    // Tampered snapshot: entity claims a different rank than the authority.
+    val boundary = ProgressionMigration.migrateCombatBoundaryV1ToV2(v1Boundary())
+    val entity = boundary.getJSONObject("combat").getJSONArray("entities").getJSONObject(0)
+    entity.put("progressionRank", 9_000_000L)
+
+    val resolution = ProgressionMigration.resolveEncounterRank(entity, WorldNodeId("level-2"))
+    assertNotNull(resolution)
+    assertEquals(2_000_000L, resolution!!.authoritativeRank) // authority wins
+    assertEquals(9_000_000L, resolution.persistedSnapshotRank)
+    assertFalse(resolution.snapshotMatches)
+
+    // Matching snapshot is fine and reported as such.
+    val honest = ProgressionMigration.migrateCombatBoundaryV1ToV2(v1Boundary())
+      .getJSONObject("combat").getJSONArray("entities").getJSONObject(0)
+    val honestResolution = ProgressionMigration.resolveEncounterRank(honest, WorldNodeId("level-2"))
+    assertTrue(honestResolution!!.snapshotMatches)
+    assertEquals(2_000_000L, honestResolution.authoritativeRank)
+  }
+
+  @Test fun resolveEncounterRankFailsClosedForUnknownNode() {
+    val entity = v1Boundary().getJSONObject("combat").getJSONArray("entities").getJSONObject(0)
+    assertNull(ProgressionMigration.resolveEncounterRank(entity, WorldNodeId("level-99")))
   }
 
   @Test fun worldStateV1ToV2StoresOnlyNodeId() {

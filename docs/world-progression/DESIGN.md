@@ -35,18 +35,18 @@ New package `com.rabpit.backroom.core.progression` (all new, all additive):
 
 | File | Contents |
 |---|---|
-| `WorldProgressionCore.kt` | `RANK_PER_FULL_LEVEL`, `WorldNodeId`, `WorldNodeKind`, `WorldNode`, `WorldEdge`, `TransitionResult`, `RankLookup`, `WorldProgressionCore` (registry, `rankOf`, `validateTransition`, legacy id helper) |
-| `EntityScaling.kt` | `EntityScaling.percentOfBase(rank)`, `EntityScaling.scale(base, rank)` — pure, deterministic |
-| `ProgressionMigration.kt` | `COMBAT_SCHEMA_VERSION_1/2`, `MigrationResult`, `ProgressionMigration` (level-number, world-state and combat-entity v1→v2) |
+| `WorldProgressionCore.kt` | `RANK_PER_FULL_LEVEL`, `WorldNodeId`, `WorldNodeKind`, `WorldNode`, `WorldEdge`, `TransitionResult`, `RankLookup`, `WorldProgressionCore` (registry, explicit `EDGES`, `rankOf`, `validateTransition`, legacy id helper) |
+| `EntityScaling.kt` | `EntityScaling.percentOfBase(rank)` (debug/UI only, truncated), `EntityScaling.scale(base, rank)` — pure, deterministic, full fixed-point precision |
+| `ProgressionMigration.kt` | `PROGRESSION_SCHEMA_VERSION_1/2`, `MigrationResult`, `EncounterRankResolution`, `ProgressionMigration` (boundary-level v1→v2, per-entity step, world-state step, `resolveEncounterRank` — v2 load never trusts persisted rank) |
 | `ProgressionConflict.kt` | `ProgressionConflict`, `ProgressionConflictPolicy.detect/normalizeClaim` — detection shape only |
 
 Tests in `app/src/test/.../core/progression/`:
 
 | File | Locks |
 |---|---|
-| `WorldProgressionCoreTest.kt` | unique ids, strictly increasing ranks, valid edges, Levels 0–6 pinned, fail-closed lookup & transitions, golden registry snapshot, sub-level insertion property |
-| `EntityScalingTest.kt` | percent table from the contract, bit-identical legacy scaling, determinism/monotonicity, negative-rank rejection, base+rank-only derivation |
-| `ProgressionMigrationTest.kt` | level-number migration, fail-closed unknowns, verbatim materialized stats, idempotency, world state stores only the node id |
+| `WorldProgressionCoreTest.kt` | constant pinned to literal, unique ids, strictly increasing ranks, valid edges, explicit traversal graph, Levels 0–6 pinned, fail-closed lookup & transitions, literal golden registry snapshot, sub-level insertion property |
+| `EntityScalingTest.kt` | percent table from the contract, fractional-precision proof (scale bypasses truncated percent), bit-identical legacy scaling, determinism/monotonicity, invalid-rank rejection, base+rank-only derivation |
+| `ProgressionMigrationTest.kt` | real `combat93.state` boundary fixture, single root version, whole `entities[]` migration, verbatim materialized stats, idempotency, v2-load rank distrust, fail-closed unknowns, world state stores only the node id |
 | `ProgressionConflictTest.kt` | claim normalization, mismatch detection without mutating progression |
 
 Deliberately untouched in this phase: `EntityStatCore.java` (legacy),
@@ -59,9 +59,11 @@ Deliberately untouched in this phase: `EntityStatCore.java` (legacy),
 WorldNode(id = "level-1.sub-a", kind = SUB_LEVEL, progressionRank = 1_500_000L, levelNumber = 1)
 ```
 
-- `NODES` is the canonical order (traversal / UI / routing). `EDGES` is the
-  traversal graph; today it is the linear chain 0→1→…→6 and can grow explicit
-  edges later.
+- `NODES` is the canonical order (traversal / UI / routing). `EDGES` is an
+  EXPLICIT edge list — deliberately not derived from `NODES` order, so adding
+  a Sub-level to canonical order can never silently rewire traversal.
+  Today it is the linear chain 0→1→…→6, written out edge by edge; new
+  gameplay edges are added explicitly.
 - Level N is pinned to `N * RANK_PER_FULL_LEVEL` forever. Inserting any number
   of Sub-levels cannot move a Level — by construction, not by discipline.
 - A Sub-level takes an explicit rank strictly between its neighbours
@@ -77,56 +79,87 @@ Why not scale from the ordinal: an ordinal fuses "position in the list" with
 
 ## 4. Scaling math
 
+True percent (rational): `100 + rank * 10 / RANK_PER_FULL_LEVEL`.
+
+`scale(base, rank)` computes with the FULL fixed-point rational and never
+truncates through an integer percent:
+
 ```
-percentOfBase(rank) = 100 + rank * 10 / RANK_PER_FULL_LEVEL
-scale(base, rank)   = max(0, ((max(0, base) * percentOfBase(rank) + 50) / 100))
+scale = base * (100 + rank * 10 / R) / 100
+      = base + roundHalfUp(base * rank / (10 * R))      [R = RANK_PER_FULL_LEVEL]
 ```
 
-Contract table:
+implemented as `base + (2 * base * rank + 10_000_000) / 20_000_000`
+(Long-safe inside the supported domain `rank in 0..1_000_000_000`;
+invalid ranks fail closed via `require`, never clamp).
+
+`percentOfBase(rank)` returns the TRUNCATED integer percent and is
+debug/UI display only — it is not authoritative for computation, and
+`scale()` does not call it. The `scaleKeepsFractionalPrecision` test proves
+the separation: rank 1_050_000 → integer percent 110, but `scale(100, …)`
+→ 111 (true 110.5%).
+
+Contract table (true percents):
 
 | rank | percent |
 |---|---|
 | 0 | 100% |
 | 500,000 | 105% |
 | 1,000,000 | 110% |
+| 1,050,000 | 110.5% |
 | 1,500,000 | 115% |
 | 2,000,000 | 120% |
 
-Note: the formula is deliberately **not** the literal `100 + rank/100` — it
-normalizes by `RANK_PER_FULL_LEVEL` so Sub-level fractional ranks keep full
-precision. For legacy Levels (`rank = N * 1_000_000`) it reduces to exactly
-`100 + 10*N` with identical rounding to the old `EntityStatCore`, which the
-`legacyLevelsMigrateBitIdentical` test proves across sample bases.
+For legacy Levels (`rank = N * RANK_PER_FULL_LEVEL`) the formula reduces to
+exactly `(base * (100 + 10*N) + 50) / 100` with identical rounding to the old
+`EntityStatCore`, which `legacyLevelsMigrateBitIdentical` proves across
+sample bases. The golden test also pins `RANK_PER_FULL_LEVEL == 1_000_000L`
+as a literal and the registry snapshot uses literal ranks, so changing the
+constant cannot silently rebalance every level while keeping tests green.
 
 ## 5. Migration v1 → v2
 
 v1 semantics: `stageIndex` = level number, stored in world `levelJson.number`
-and in combat entity JSON. v2 semantics: `worldNodeId` + `progressionRank`;
-`stageIndex` is never reused with a new meaning.
+and in the `combat93.state` boundary (`combatStageIndex` at root,
+`combat.stageIndex`, `combat.entities[].stageIndex/stagePercent`).
+v2 semantics: `worldNodeId` + `progressionRank` snapshot metadata;
+`stageIndex` is never reused with a new meaning (old fields stay frozen).
 
 ```
 legacy Level N  →  node id "level-N"  →  rank N * RANK_PER_FULL_LEVEL
 ```
 
-- World state: `migrateWorldStateV1ToV2` writes **only** `worldNodeId`. Rank is
-  always derived via `rankOf`, never persisted as an override. Unknown level
-  → `progressionMigrationError`, no `worldNodeId` written.
-- Combat entity JSON: `migrateCombatEntityV1ToV2` is idempotent. It **adds**
-  `combatSchemaVersion: 2`, `worldNodeId`, `progressionRank` and preserves
-  `hp / maxHp / damage / baseHp / baseDamage` verbatim — no mid-fight rescale.
-  The new rank applies to new encounters only. Unknown `stageIndex` records
-  the error and keeps materialized stats untouched.
+- **Boundary level** (`migrateCombatBoundaryV1ToV2`): the version lives in
+  exactly ONE place — the boundary root (`progressionSchemaVersion: 2`).
+  Root `combatStageIndex` resolves once to `(nodeId, rank)`; the snapshot is
+  written at root, on `combat`, and on every entry of `combat.entities[]`.
+  Every materialized field (hp/maxHp/attack/status/dice/encounterId/…)
+  stays verbatim — no mid-fight rescale. Unknown `combatStageIndex`
+  records `progressionMigrationError` and writes nothing else.
+- **World state**: `migrateWorldStateV1ToV2` writes **only** `worldNodeId`.
+  Rank is always derived via `rankOf`, never persisted as an override.
+- **v2 load rule** (`resolveEncounterRank`): NEVER trust a persisted
+  `progressionRank` as authority. The authoritative rank always derives from
+  the world's authoritative `worldNodeId` via `rankOf`; the persisted value
+  is snapshot metadata, a mismatch is audit info, and the authoritative
+  rank wins. Unknown authoritative node → null → fail closed.
 
-Example:
+Example (root + one entity; dice/participants abbreviated):
 
 ```jsonc
-// v1
-{ "key": "smiler", "hp": 37, "maxHp": 110, "attack": 12,
-  "baseHp": 100, "baseDamage": 11, "stageIndex": 2, "stagePercent": 120 }
-// v2 (after migration)
-{ "key": "smiler", "hp": 37, "maxHp": 110, "attack": 12,
-  "baseHp": 100, "baseDamage": 11, "stageIndex": 2, "stagePercent": 120,
-  "combatSchemaVersion": 2, "worldNodeId": "level-2", "progressionRank": 2000000 }
+// v1 boundary (real shape)
+{ "turn": 7, "combatStageIndex": 2, "location": "Level 2",
+  "combat": { "active": true, "round": 3, "stageIndex": 2,
+    "entities": [{ "key": "smiler", "hp": 37, "maxHp": 110, "attack": 12,
+                    "baseHp": 100, "baseDamage": 11,
+                    "stageIndex": 2, "stagePercent": 120, "status": "alive" }],
+    "diceState": { "values": [1,2,3,4,5], "rerollsUsed": 1 },
+    "encounterId": "turn-9:0:smiler" } }
+// v2: same JSON + at root:
+{ "progressionSchemaVersion": 2, "worldNodeId": "level-2", "progressionRank": 2000000 }
+// ...and on "combat" and on every entity:
+{ "worldNodeId": "level-2", "progressionRank": 2000000 }
+// legacy stageIndex/stagePercent/combatStageIndex fields untouched.
 ```
 
 ## 6. Trust-boundary changes (implementation phase)
@@ -168,22 +201,48 @@ Required changes (not in this branch — listed for the implementation PR):
 - Verified: no patch script generates or references `EntityStatCore`; it is
   committed source. The same applies to the new files in this branch.
 
+### Patch-chain map for the implementation phase
+
+Implementation will edit exactly the files the patch chain also mutates.
+Before implementation starts, each touching patch needs a disposition:
+**leave** (orthogonal — touches other methods), **update anchor** (textual
+anchor sits on a signature being changed), or **retire** (purpose superseded).
+The map below is generated from the current tree (`grep` over `patch-*.py`):
+
+| Implementation target | Touching patches | Risk notes |
+|---|---|---|
+| `GameCoreFacade.kt` — trust boundary #1 (`candidate.level` → narrative claim) | 27 scripts, incl. `patch-game-state-core-bridge.py`, `patch-combat-93-runtime.py`, `patch-final-authority-hardening.py`, `patch-inventory-authority-finalize.py`, `patch-item-source-authority-final.py` | `patch-game-state-core-bridge.py` only wires facade construction (low risk). `patch-inventory-authority-finalize.py` also rewrites `ValidatedLegacyStateCommand`/`GameCommand` — anchor-risk where the trust-boundary change lands. Each of the 27 needs the leave/update/retire triage before the implementation PR. |
+| `CombatChoiceEngine.java` / `Combat93Runtime.kt` — trust boundary #3 (`stageIndex` → `rankOf`) | `patch-combat-93-runtime.py` | **Known break:** line 46 anchors on `Combat93Runtime.stageIndex(current)`. Renaming/replacing that API *will* break the patch → disposition **update anchor** in the same implementation PR. |
+| `StateReducer.kt` — authoritative `worldNodeId` commit path | `patch-item-source-authority-final.py`, `patch-kai-resource-policy-final.py`, `patch-omnivault-instance-authority-finalize.py`, `patch-rest-physiology-state-finalize.py`, `patch-search-action-false-warning.py` | Triage per patch; the new Core-internal transition command must not collide with existing command anchors. |
+| `GameStateCodec.kt` — save versioning | 18 scripts (incl. `patch-character-stat-schema.py`, `patch-combat-hp-metadata-cleanup.py`, `patch-poker-dice-core-backport.py`) | The v1→v2 save changes must be reconciled with `patch-character-stat-schema.py` and `patch-combat-hp-metadata-cleanup.py` anchors specifically. |
+| `EntityStatCore.java` — untouched | none | No patch references it; safe. |
+
+Rule for the implementation PR: after the source edits, run the **full**
+patch chain plus `:app:testDebugUnitTest` in CI on the branch before asking
+for review. A source edit that a patch silently overwrites, or a patch whose
+anchor no longer matches, must fail loudly there — not in a release build.
+
+(Note: the GitHub App cannot edit `.github/workflows/*`; any workflow change
+this plan needs, e.g. a CI grep guard, must be applied manually.)
+
 ## 8. Test plan → invariant mapping
 
 | Invariant (issue #453 §8) | Covered by |
 |---|---|
 | WorldNode ID unique | `nodeIdsAreUnique` |
-| Canonical order / traversal valid | `canonicalOrderHasStrictlyIncreasingRanks`, `everyEdgeReferencesExistingNodes` |
+| Canonical order / traversal valid | `canonicalOrderHasStrictlyIncreasingRanks`, `everyEdgeReferencesExistingNodes`, `traversalGraphIsExplicit` |
 | Every edge → existing node | `everyEdgeReferencesExistingNodes` |
-| Rank explicit & valid | `goldenRegistrySnapshot`, strict-increase test |
-| Existing Levels pin rank | `legacyLevelsZeroToSixArePinned`, `goldenRegistrySnapshot` |
+| Rank explicit & valid; constant pinned as literal | `rankPerFullLevelIsPinned`, `goldenRegistrySnapshotUsesLiteralRanks`, strict-increase test |
+| Existing Levels pin rank | `legacyLevelsZeroToSixArePinned`, `goldenRegistrySnapshotUsesLiteralRanks` |
 | Adding Sub-level doesn't change old ranks | `addingSubLevelDoesNotChangeExistingRanks` |
 | New node doesn't change existing encounter stats | `addingSubLevelDoesNotChangeExistingRanks` + `legacyLevelsMigrateBitIdentical` |
-| Unknown node fail closed | `unknownNodeRankLookupFailsClosed`, rejection tests, migration failure tests |
+| Unknown node fail closed | `unknownNodeRankLookupFailsClosed`, rejection tests, migration failure tests, `invalidRankFailsClosed`, `resolveEncounterRankFailsClosedForUnknownNode` |
 | AI/Gemini cannot authoritative-write progression | Architectural: §6 + recommended CI grep guard (not unit-testable; enforced by code review) |
 | Legacy 0–6 v1→v2 bit-identical | `legacyLevelsMigrateBitIdentical`, `legacyLevelNumberMigratesToExpectedNodeAndRank` |
-| Old active combat keeps HP | `combatEntityV1ToV2PreservesMaterializedStats`, idempotency test |
+| Old active combat keeps HP | `boundaryMigrationVersionsRootOnceAndMigratesAllEntities` (real boundary fixture), idempotency test |
 | Effective stats derive only from base + Core rank | `scaleDerivesOnlyFromBaseAndRank`, API shape (no other inputs exist) |
+| Fractional ranks keep full precision | `scaleKeepsFractionalPrecision` (scale bypasses truncated int percent) |
+| v2 load never trusts persisted rank | `v2LoadNeverTrustsPersistedRank` (tampered snapshot → authority wins) |
 
 ## 9. Non-goals (explicitly out of scope)
 
@@ -196,8 +255,17 @@ Required changes (not in this branch — listed for the implementation PR):
 ## 10. Review checklist
 
 - [ ] Rank semantics honest and linear as specified (no compounding).
-- [ ] `RANK_PER_FULL_LEVEL = 1_000_000L` granularity is sufficient.
-- [ ] Fail-closed behavior acceptable in both cases (transition-time, load-time).
-- [ ] v1→v2 migration shape covers all save shapes you care about.
+- [ ] `RANK_PER_FULL_LEVEL = 1_000_000L` granularity is sufficient; the
+      literal is pinned by test.
+- [ ] Fractional-rank precision: `scale()` uses the full rational, integer
+      percent is debug-only.
+- [ ] Fail-closed behavior acceptable in both cases (transition-time, load-time),
+      including out-of-domain ranks.
+- [ ] v1→v2 migration shape covers the real `combat93.state` boundary
+      (root + `combat` + all `entities[]`); version lives in one place.
+- [ ] v2 load never trusts persisted `progressionRank` (authority always
+      re-derived from the authoritative node).
+- [ ] Traversal graph explicit, not derived from canonical order.
+- [ ] Patch-chain map (§7) is complete enough to start implementation triage.
 - [ ] Trust-boundary change list (§6) is complete before implementation starts.
 - [ ] Nothing in this branch changes runtime behavior (additive only).

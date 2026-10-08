@@ -93,8 +93,20 @@ object WorldProgressionCore {
     // WorldNode(WorldNodeId("level-1.sub-a"), WorldNodeKind.SUB_LEVEL, 1_500_000L, 1),
   )
 
-  /** Canonical traversal graph. Transitions are only valid along these edges. */
-  val EDGES: List<WorldEdge> = NODES.zipWithNext { a, b -> WorldEdge(a.id, b.id) }
+  /**
+   * Canonical traversal graph. EXPLICIT edge list — deliberately NOT derived
+   * from NODES order via zipWithNext: adding a Sub-level to the canonical
+   * order must not silently rewire traversal. Every edge is a gameplay
+   * decision written out in full.
+   */
+  val EDGES: List<WorldEdge> = listOf(
+    WorldEdge(WorldNodeId("level-0"), WorldNodeId("level-1")),
+    WorldEdge(WorldNodeId("level-1"), WorldNodeId("level-2")),
+    WorldEdge(WorldNodeId("level-2"), WorldNodeId("level-3")),
+    WorldEdge(WorldNodeId("level-3"), WorldNodeId("level-4")),
+    WorldEdge(WorldNodeId("level-4"), WorldNodeId("level-5")),
+    WorldEdge(WorldNodeId("level-5"), WorldNodeId("level-6")),
+  )
 
   private val byId: Map<WorldNodeId, WorldNode> = NODES.associateBy { it.id }
   private val edgeSet: Set<WorldEdge> = EDGES.toSet()
