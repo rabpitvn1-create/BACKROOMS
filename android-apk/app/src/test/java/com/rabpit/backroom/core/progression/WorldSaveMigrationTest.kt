@@ -20,6 +20,15 @@ class WorldSaveMigrationTest {
     assertFalse(migrated.containsKey("progressionRank"))
   }
 
+  @Test fun newlyConnectedMainLevelsSevenThroughThirteenMigrateWithoutFallback() {
+    for (n in 7..13) {
+      val migrated = WorldSaveMigration.migrateV3World(v3World(n))
+      assertTrue("Level $n must be a registered main Level", migrated is WorldMigrationOutcome.Migrated)
+      assertEquals("level-$n", (migrated as WorldMigrationOutcome.Migrated).world["worldNodeId"])
+    }
+    assertTrue(WorldSaveMigration.migrateV3World(v3World(14)) is WorldMigrationOutcome.Rejected)
+  }
+
   @Test fun alreadyMigratedWorldPassesThrough() {
     val world = v3World() + ("worldNodeId" to "level-3")
     assertFalse(WorldSaveMigration.needsMigration(world))

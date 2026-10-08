@@ -242,6 +242,12 @@ java = replace_once(java,
     "recordLevelProgress(state, streakLevelCompleted ? streakFromLevel : oldLevel, newLevel)",
     "level-progress reset on streak completion")
 
+# Pass native Core-owned streak completion into the atomic validated-state commit.
+java = replace_once(java,
+    "gameCore.processValidatedCandidate(before.toString(), candidateState.toString(), action)",
+    "gameCore.processValidatedCandidateWithStreak(before.toString(), candidateState.toString(), action, streakFromLevel, streakLevelCompleted)",
+    "native streak completion to Core commit")
+
 # Never accept streak or streak-node changes from AI ops or candidate-state merges.
 java = replace_once(java,
     '          patchValue.remove("levelExit");',
@@ -265,6 +271,79 @@ java = replace_once(java,
 # Keep meta labels, but make short-input errors explicit rather than "Gemini errors".
 html = html.replace('statusEl.textContent="Lỗi Gemini: "+message',
                     'statusEl.textContent=String(message).startsWith("Hành động không hợp lệ:")?message:"Lỗi Gemini: "+message')
+
+# Update Core persistence in the SAME candidate commit, not as a second save.
+# Validated state remains protected against candidate-forged stats.
+facade_path = CORE / "GameCoreFacade.kt"
+facade = facade_path.read_text(encoding="utf-8")
+facade = replace_once(facade,
+    "  fun processValidatedCandidate(beforeJson: String, candidateJson: String, action: String): String {",
+    """  fun processValidatedCandidate(beforeJson: String, candidateJson: String, action: String): String =
+    processValidatedCandidateInternal(beforeJson, candidateJson, action, -1, false)
+
+  fun processValidatedCandidateWithStreak(
+    beforeJson: String, candidateJson: String, action: String,
+    streakFromLevel: Int, streakLevelCompleted: Boolean
+  ): String = processValidatedCandidateInternal(
+    beforeJson, candidateJson, action, streakFromLevel, streakLevelCompleted
+  )
+
+  private fun processValidatedCandidateInternal(
+    beforeJson: String, candidateJson: String, action: String,
+    streakFromLevel: Int, streakLevelCompleted: Boolean
+  ): String {""",
+    "expose native-only streak-gated candidate commit")
+
+old_save = """    val protectedState = CharacterProgressionCore.protectFromCandidate(pending.state, committed.state)
+    repository.save(protectedState)
+    val synchronized = syncLegacy(candidate, protectedState, incrementTurn = false)"""
+new_save = """    val protectedState = CharacterProgressionCore.protectFromCandidate(pending.state, committed.state)
+    // This route was earned in the native Android RNG path, never from Gemini output.
+    // Check persisted source and the candidate's forced target before saving.
+    val committedWorld = if (streakLevelCompleted) {
+      val route = com.rabpit.backroom.core.progression.MainLevelExitRoutes.next(streakFromLevel)
+        ?: return response(false, before, "streak_no_authorized_route", "streak_transition_rejected")
+      val storedLevelJson = pending.state.world["levelJson"]
+        ?: return response(false, before, "streak_missing_saved_source_level", "streak_transition_rejected")
+      val storedLevel = try { JSONObject(storedLevelJson).optInt("number", -1) } catch (_: Exception) { -1 }
+      val expectedSourceId = "level-$streakFromLevel"
+      if (storedLevel != streakFromLevel ||
+          before.optJSONObject("level")?.optInt("number", -1) != route.targetLevelNumber ||
+          candidate.optJSONObject("level")?.optInt("number", -1) != route.targetLevelNumber) {
+        return response(false, before, "streak_level_state_mismatch", "streak_transition_rejected")
+      }
+      val trustedNode = pending.state.world["worldNodeId"].orEmpty()
+      val trustedNumber = trustedNode.removePrefix("level-").toIntOrNull()
+      val trustedRegistered = trustedNumber != null &&
+        com.rabpit.backroom.core.progression.WorldProgressionCore
+          .nodeIdForLegacyLevelNumber(trustedNumber)?.value == trustedNode
+      if (!trustedRegistered) {
+        return response(false, before, "streak_unknown_core_world_node", "streak_transition_rejected")
+      }
+      // Older APKs updated levelJson but not worldNodeId. Reconcile only a
+      // registered main-Level source, and audit the correction.
+      val legacyReconciled = trustedNode != expectedSourceId
+      val newLevelJson = JSONObject()
+        .put("number", route.targetLevelNumber)
+        .put("nodeId", route.targetNodeId)
+        .put("name", "Level " + route.targetLevelNumber + " - " + route.targetTitle)
+      val authoritativeWorld = protectedState.world + mapOf(
+        "worldNodeId" to route.targetNodeId,
+        "levelJson" to newLevelJson.toString(),
+        "title" to ("Level " + route.targetLevelNumber + " – " + route.targetTitle)
+      )
+      val auditMetadata = if (legacyReconciled) protectedState.metadata +
+        ("progression.legacyNodeReconciled" to (trustedNode + "->" + expectedSourceId)) else protectedState.metadata
+      protectedState.copy(world = authoritativeWorld, metadata = auditMetadata)
+    } else protectedState
+    repository.save(committedWorld)
+    val synchronized = syncLegacy(candidate, committedWorld, incrementTurn = false)"""
+facade = replace_once(facade, old_save, new_save, "atomic Core worldNodeId persistence")
+for required in ("processValidatedCandidateWithStreak", "MainLevelExitRoutes.next",
+                 '"worldNodeId" to route.targetNodeId', "repository.save(committedWorld)"):
+    if required not in facade:
+        raise RuntimeError("Core streak authority missing: " + required)
+facade_path.write_text(facade, encoding="utf-8")
 
 # The original patch script may continue to exist in Git history, but its runtime
 # outputs must not survive in the shipped APK or compiled test source.
