@@ -90,12 +90,67 @@ class WorldInternetCanonTest {
     val ls2 = WorldInternetCanon.record("area:0:ls-2")!!
     assertEquals(CanonWebReview.OPEN_PENDING, ls2.source.review)
     assertNull(ls2.source.wikiPageUrl)
-    assertEquals(CanonWebReview.OPEN_PENDING,
+    assertEquals(CanonWebReview.PAGE_METADATA_ONLY,
       WorldInternetCanon.record("level-6.2")?.source?.review)
-    assertEquals(CanonWebReview.INDEX_PENDING,
+    assertEquals(CanonWebReview.PAGE_METADATA_ONLY,
       WorldInternetCanon.record("level-11.3")?.source?.review)
     assertEquals(CanonWebReview.PROJECT_ONLY,
       WorldInternetCanon.record("level-0.22")?.source?.review)
+  }
+
+  @Test fun remaining34WikidotSublevelsAndNamedAreasAreMetadataOnly() {
+    val linked = WorldInternetCanon.sourceLinked()
+    val reviewed = WorldInternetCanon.directlyReviewed()
+    val metadata = WorldInternetCanon.RECORDS.filter {
+      it.source.review == CanonWebReview.PAGE_METADATA_ONLY
+    }
+    assertEquals(67, WorldInternetCanon.RECORDS.size)
+    assertEquals(56, linked.size)
+    assertEquals(22, reviewed.size)
+    assertEquals(34, metadata.size)
+    assertEquals(11, WorldInternetCanon.RECORDS.count { it.source.wikiPageUrl == null })
+    metadata.forEach {
+      assertNotNull(it.source.wikiPageUrl)
+      assertEquals("CC BY-SA 3.0", it.source.wikiTextLicense)
+      assertNotNull(it.source.creditedAuthors)
+      assertEquals("2026-10-08", it.source.observedDate)
+      assertNull(it.source.wikiTitle)
+      assertTrue(it.source.environmentSignals.isEmpty())
+      assertTrue(it.source.riskReports.isEmpty())
+      assertTrue(it.source.exitReports.isEmpty())
+    }
+  }
+
+  @Test fun wikiNumberedSlugNeverReclassifiesUnrankedProjectNamedSections() {
+    val asset = WorldInternetCanon.record("area:11:asset-11-1")!!
+    val scene = WorldInternetCanon.record("area:11:scene-01-2")!!
+    assertNull(asset.worldNodeId)
+    assertNull(scene.worldNodeId)
+    assertEquals("https://backrooms-wiki.wikidot.com/level-11-1",
+      asset.source.wikiPageUrl)
+    assertEquals("https://backrooms-wiki.wikidot.com/level-11-2",
+      scene.source.wikiPageUrl)
+    assertEquals("https://backrooms-wiki.wikidot.com/the-sanctum",
+      WorldInternetCanon.record("area:8:the-sanctum-subterraneous")!!.source.wikiPageUrl)
+    assertEquals("ForestIsWatching",
+      WorldInternetCanon.record("level-9.3")!!.source.creditedAuthors)
+    assertEquals("Natedagreat563",
+      WorldInternetCanon.record("level-5.1")!!.source.creditedAuthors)
+    assertEquals(42, WorldProgressionCore.EDGES.size)
+  }
+
+  @Test fun wikiOutdatedMetadataDoesNotPromoteOpenSublevelToCanon() {
+    val truncated = WorldInternetCanon.record("level-6.2")!!
+    assertEquals(WorldContentAuthority.OPEN, truncated.projectAuthority)
+    assertEquals(CanonWebReview.PAGE_METADATA_ONLY, truncated.source.review)
+    assertTrue(truncated.source.conflicts.any { it.contains("trimmed") })
+    val retired = WorldInternetCanon.record("level-1.1")!!
+    assertEquals(WorldContentAuthority.OPEN, retired.projectAuthority)
+    assertEquals(CanonWebReview.PAGE_METADATA_ONLY, retired.source.review)
+    assertTrue(retired.source.conflicts.any { it.contains("outdated") })
+    assertNull(WorldInternetCanon.record("area:0:ls-2")!!.source.wikiPageUrl)
+    assertEquals(CanonWebReview.OPEN_PENDING,
+      WorldInternetCanon.record("area:0:ls-2")!!.source.review)
   }
 
   @Test fun publishedExitReportsAreOnlyClaimsNotApprovedRoutes() {

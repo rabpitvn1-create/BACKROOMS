@@ -3,15 +3,17 @@ package com.rabpit.backroom.core.progression
 /**
  * Reviewed internet provenance and game-safe factual context for world narrative.
  *
- * Scope phases 1-2: source pages directly examined for nine Level-0 stops and all thirteen remaining full Levels;
- * all 67 stops are represented with a deliberately explicit pending/unreviewed
- * status. No live scraping, user save writes, exit edges, Entity/loot grants,
+ * Scope phases 1-3: detailed summaries for nine Level-0 stops and thirteen full Levels;
+ * linked metadata for 34 more stops; remaining Project-only sources are clearly identified.
+ * No live scraping, user save writes, exit edges, Entity/loot grants,
  * hazard rolls, or Google/Gemini authority are implemented by this registry.
  *
  * Wikidot prose is mutable, in-universe reports are not proof of mechanics,
  * and the user's project-specific locks override the external reference.
  */
 enum class CanonWebReview {
+  /** Direct source article URL and writing credit verified; its narrative NOT extracted yet. */
+  PAGE_METADATA_ONLY,
   /** A page was directly read and adapted as contextual evidence. */
   PAGE_REVIEWED,
   /** Read, but conflicting with Project hard locks: Project prevails. */
@@ -69,6 +71,258 @@ object WorldInternetCanon {
    * difficulty, spawn, resource or exit assertions not committed by game Core.
    */
   private val reviewed: Map<String, InternetCanonSource> = mapOf(
+    "level-1.1" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/level-1-1",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "kvn7",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+      conflicts = listOf("trimmed/outdated; OPEN trong catalog Project"),
+    ),
+    "level-1.2" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/level-1-2",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "Praetor3005",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+    ),
+    "level-1.3" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/level-1-3",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "DivineAtlas",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+    ),
+    "level-1.5" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/level-1-5",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "Stretchsterz",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+    ),
+    "area:1:base-alpha" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/base-alpha",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "Praetor3005",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+    ),
+    "area:1:traders-vault" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/traders-vault",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "Stretchsterz",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+      conflicts = listOf("Trang mục đang được viết lại; OPEN trong catalog Project"),
+    ),
+    "level-2.1" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/level-2-1",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "penutbuteraples",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+    ),
+    "area:2:office-space-el3a" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/office-space-el3a",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "Noctilucian",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+      conflicts = listOf("Nguồn trimmed; OPEN trong catalog Project"),
+    ),
+    "level-3.5" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/level-3-5",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "exotichive",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+    ),
+    "area:4:the-office-market" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/the-office-market",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "Praetor3005",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+    ),
+    "level-5.1" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/level-5-1",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "Natedagreat563",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+      conflicts = listOf("Bài Wiki dùng tên dài GRAND OPENING..., title Project giữ nguyên"),
+    ),
+    "level-5.2" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/level-5-2",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "jan Jejasa",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+    ),
+    "level-5.3" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/level-5-3",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "Praetor3005",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+    ),
+    "level-6.1" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/level-6-1",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "Stretchsterz",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+      conflicts = listOf("Project Level 6 là tundra tối vĩnh viễn; không mang cơ chế wiki Level 6 thay bối cảnh"),
+    ),
+    "level-6.2" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/level-6-2",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "VivamusLudio",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+      conflicts = listOf("Nguồn trimmed; OPEN trong catalog Project; Level 6 tundra hard lock"),
+    ),
+    "level-6.3" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/level-6-3",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "Eurasian_",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+      conflicts = listOf("Nguồn trimmed; OPEN trong catalog Project; Level 6 tundra hard lock"),
+    ),
+    "level-6.31" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/level-6-31",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "r a t i f",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+      conflicts = listOf("Nguồn liên quan đến sublevel 6.3; Project vẫn giữ mã 6.31 với parentLevel 6"),
+    ),
+    "level-7.6" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/level-7-6",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "ForestIsWatching",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+    ),
+    "level-7.7" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/level-7-7",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "Ericote",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+    ),
+    "level-7.8" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/level-7-8",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "Light_Nate",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+    ),
+    "area:7:the-hadal-zone" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/the-hadal-zone",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "Sky3",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+    ),
+    "level-8.1" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/level-8-1",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "RiemannHypothesis",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+      conflicts = listOf("Nguồn trimmed/open; giữ OPEN"),
+    ),
+    "area:8:the-sanctum-subterraneous" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/the-sanctum",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "Kai4C",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+      conflicts = listOf("Đường dẫn thật /the-sanctum, không suy đoán theo slug tên Project"),
+    ),
+    "level-9.2" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/level-9-2",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "Noctilucian",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+    ),
+    "level-9.3" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/level-9-3",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "ForestIsWatching",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+    ),
+    "level-9.5" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/level-9-5",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "RoseMonsignor",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+    ),
+    "level-10.1" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/level-10-1",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "Kitty Rika",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+    ),
+    "level-10.2" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/level-10-2",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "TheLiminalJester283",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+    ),
+    "area:11:asset-11-1" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/level-11-1",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "Dr Bierre",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+      conflicts = listOf("Wiki định danh Level 11.1; game giữ Asset 11.1 như khu phụ KHÔNG có WorldNodeId/rank"),
+    ),
+    "area:11:scene-01-2" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/level-11-2",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "Univ - Wise Explorer",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+      conflicts = listOf("Wiki định danh Level 11.2; game giữ Scene-01.2 như khu phụ KHÔNG có WorldNodeId/rank"),
+    ),
+    "level-11.3" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/level-11-3",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "Noctilucian and VivamusLudio",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+    ),
+    "area:11:after-hours" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/after-hours",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "Sky3",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+    ),
+    "area:11:the-headquarters" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/the-headquarters",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "VivamusLudio",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+      conflicts = listOf("Nguồn trimmed; OPEN trong catalog Project"),
+    ),
+    "area:11:radio-backrooms-studio" to InternetCanonSource(
+      wikiPageUrl = "https://backrooms-wiki.wikidot.com/radio-backrooms-studio",
+      wikiTitle = null, // Detailed page prose has not passed normalization review
+      creditedAuthors = "VivamusLudio",
+      review = CanonWebReview.PAGE_METADATA_ONLY,
+      observedDate = "2026-10-08",
+      conflicts = listOf("Nguồn under rewrite; OPEN trong catalog Project"),
+    ),
     "level-1" to InternetCanonSource(
       wikiPageUrl = "https://backrooms-wiki.wikidot.com/level-1",
       wikiTitle = "Level 1 - Habitable Zone",
@@ -352,7 +606,14 @@ object WorldInternetCanon {
   fun recordsForLevel(parentLevel: Int): List<GameCanonRecord> =
     RECORDS.filter { it.parentLevel == parentLevel }
 
-  /** Only reviewed source entries; do not count index-only placeholders as read. */
+  /** Reviewed content ONLY; a URL/author alone is not a reviewed environment. */
   fun directlyReviewed(): List<GameCanonRecord> =
+    RECORDS.filter {
+      it.source.review in setOf(CanonWebReview.PAGE_REVIEWED,
+        CanonWebReview.PROJECT_OVERRIDE, CanonWebReview.SOURCE_TRIMMED)
+    }
+
+  /** Verified on-wiki source URL (including metadata-only records). */
+  fun sourceLinked(): List<GameCanonRecord> =
     RECORDS.filter { it.source.wikiPageUrl != null }
 }
