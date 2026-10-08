@@ -3,6 +3,7 @@ package com.rabpit.backroom.core
 /**
  * Core-owned Item type registry.
  *
+ * BEFORE ADDING OR CREATING ANY ITEM: read /ITEM_REGISTRY.md.
  * Runtime acquisition never derives identity from display text. ENTITY and CHEST
  * sources must reference one of these IDs (or an EquipmentCatalog ID) exactly.
  */

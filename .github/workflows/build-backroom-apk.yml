@@ -259,6 +259,10 @@ jobs:
         with:
           gradle-version: "8.10.2"
 
+
+      - name: Generate Canon P1 compiler shadow candidate
+        run: python3 android-apk/compiler-knowledge-db-shadow.py
+
       - name: Run Kotlin tests and build debug APK
         working-directory: android-apk
         run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
@@ -291,6 +295,81 @@ jobs:
         with:
           name: Canon-P0-characterization-${{ github.run_id }}
           path: android-apk/app/build/reports/canon-p0
+          if-no-files-found: error
+          retention-days: 14
+
+
+      - name: Generate Canon P1 schema lint shadow
+        run: python3 android-apk/lint-knowledge-db-shadow.py
+
+      - name: Verify Canon P1 schema lint shadow
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("android-apk/app/build/reports/canon-p1/schema-lint.json").read_text(encoding="utf-8"))
+          p0 = json.loads(Path("android-apk/app/build/reports/canon-p0/snapshot-report.json").read_text(encoding="utf-8"))
+          assert report["schemaVersion"] == 1 and report["mode"] == "shadow_only"
+          final_db = json.loads(Path("android-apk/app/src/main/assets/knowledge/knowledge_db.json").read_text(encoding="utf-8"))
+          assert report["recordCount"] == len(final_db["records"])
+          assert report["counts"]["ERROR"] + report["counts"]["WARNING"] == len(report["findings"])
+          assert p0["scenarioCount"] == 25
+          assert len({x["name"] for x in p0["scenarios"]}) == 25
+          assert report["counts"]["ERROR"] == 0, report["findings"]
+          PY
+
+      - name: Upload Canon P1 schema lint shadow artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Canon-P1-schema-lint-${{ github.run_id }}
+          path: android-apk/app/build/reports/canon-p1/schema-lint.json
+          if-no-files-found: error
+          retention-days: 14
+
+
+      - name: Verify Canon P1 compiler round-trip parity
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("android-apk/app/build/reports/canon-p1")
+          data = json.loads((root / "compiler-data-parity.json").read_text(encoding="utf-8"))
+          runtime = json.loads((root / "compiler-runtime-parity.json").read_text(encoding="utf-8"))
+          p0 = json.loads(Path("android-apk/app/build/reports/canon-p0/snapshot-report.json").read_text(encoding="utf-8"))
+          authoring = json.loads((root / "compiler-authoring-shadow.json").read_text(encoding="utf-8"))
+          candidate = json.loads((root / "compiler-candidate.json").read_text(encoding="utf-8"))
+          assert data["passed"] and data["shippingAssetUnchanged"] and not data["failures"]
+          assert data["mode"] == runtime["mode"] == "shadow_only"
+          assert data["sameOrderedRecordIds"] and data["sameRecordCount"]
+          assert data["baselineRecordCount"] == data["candidateRecordCount"] == len(candidate["records"])
+          assert all(n == len(candidate["records"]) for n in data["fieldMatchCounts"].values())
+          assert len(authoring["records"]) == len(candidate["records"])
+          assert "authoring" not in candidate["records"][0]
+          assert "rev" not in candidate["records"][0] and "status" not in candidate["records"][0]
+          assert runtime["builder"] == "KnowledgeContextEngine.buildForTest"
+          assert runtime["scenarioCount"] == runtime["packetParityCount"] == p0["scenarioCount"] == 25
+          baseline = {case["name"]: case for case in p0["scenarios"]}
+          cases = {case["name"]: case for case in runtime["scenarios"]}
+          assert len(baseline) == len(cases) == 25 and baseline.keys() == cases.keys()
+          for name, case in cases.items():
+              old = baseline[name]
+              assert case["candidatePacketSha256"] == case["baselinePacketSha256"] == old["packetSha256"], name
+              assert case["budgetKeptRecordIds"] == old["budgetKeptRecordIds"], name
+              for key in ("hardClipDecision", "hardClipRecordId", "hardClipCutOffset",
+                          "serializedCharsBeforeClip", "serializedCharsAfterClip"):
+                  assert case[key] == old[key], (name, key)
+          print("Canon P1.5 candidate: data fields/order and 25/25 JVM packet parity")
+          PY
+
+      - name: Upload Canon P1 compiler round-trip artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Canon-P1-compiler-round-trip-${{ github.run_id }}
+          path: android-apk/app/build/reports/canon-p1/compiler-*.json
           if-no-files-found: error
           retention-days: 14
 
@@ -352,6 +431,91 @@ jobs:
         with:
           name: Canon-P1-alias-shadow-${{ github.run_id }}
           path: android-apk/app/build/reports/canon-p1/alias-shadow.json
+          if-no-files-found: error
+          retention-days: 14
+
+
+      - name: Verify Canon P1 derived tier shadow report
+        run: |
+          set -euo pipefail
+          test -s android-apk/app/build/reports/canon-p1/tier-shadow.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          p0 = json.loads(Path("android-apk/app/build/reports/canon-p0/snapshot-report.json").read_text(encoding="utf-8"))
+          p1 = json.loads(Path("android-apk/app/build/reports/canon-p1/tier-shadow.json").read_text(encoding="utf-8"))
+          assert p1["schemaVersion"] == 1 and p1["mode"] == "shadow_only"
+          assert p1["derivedFrom"] == "final_generated_KnowledgeContextEngine"
+          assert p1["mandatoryBudgetPriorityMax"] == 30
+          assert p1["legacyReferencePriorityGate"] == 55
+          assert p1["scenarioCount"] == p0["scenarioCount"] == 25
+          before = {case["name"]: case for case in p0["scenarios"]}
+          after = {case["name"]: case for case in p1["scenarios"]}
+          assert len(before) == len(after) == 25 and before.keys() == after.keys()
+          for name, case in after.items():
+              baseline = before[name]
+              assert case["packetSha256"] == case["shadowPacketSha256"] == baseline["packetSha256"], name
+              assert case["budgetKeptRecordIds"] == baseline["budgetKeptRecordIds"], name
+              for key in ("budgetEstimatedTokens", "serializedCharsBeforeClip",
+                          "serializedCharsAfterClip", "hardClipDecision",
+                          "hardClipRecordId", "hardClipCutOffset"):
+                  assert case[key] == baseline[key], (name, key)
+              assert case["recordCount"] == p1["recordCount"] == len(case["records"]), name
+              records = {r["id"]: r for r in case["records"]}
+              assert len(records) == p1["recordCount"], name
+              assert set(case["selectedIds"]) == {r["id"] for r in case["records"] if r["selected"]}, name
+              for record in case["records"]:
+                  mandatory = record["priority"] <= 30
+                  assert record["derivedBudgetTier"] == ("MANDATORY" if mandatory else "OPTIONAL"), name
+                  assert record["selected"] == (record["budgetDecision"] != "not_selected"), name
+                  if record["selected"]:
+                      assert record["budgetBand"] == ("mandatory" if mandatory else "optional"), name
+                      if mandatory:
+                          assert record["budgetDecision"] == "kept", name
+                  else:
+                      assert record["budgetBand"] is None and record["budgetCeiling"] is None, name
+                  expected_ref = ("NOT_REFERENCE_TARGET" if not record["referencedFrom"]
+                                  else "ELIGIBLE" if record["priority"] <= 55 else "INELIGIBLE")
+                  assert record["referenceEligibility"] == expected_ref, name
+          print("Canon P1.3 tier shadow: 25/25 packet, budget order and hardClip parity")
+          PY
+
+      - name: Upload Canon P1 derived tier shadow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Canon-P1-tier-shadow-${{ github.run_id }}
+          path: android-apk/app/build/reports/canon-p1/tier-shadow.json
+          if-no-files-found: error
+          retention-days: 14
+
+
+      - name: Generate Canon P1 CandidateProvider decision report
+        run: python3 android-apk/report-candidate-provider-decision.py
+
+      - name: Verify Canon P1 CandidateProvider decision gate
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("android-apk/app/build/reports/canon-p1/candidate-provider-decision.json").read_text(encoding="utf-8"))
+          assert report["schemaVersion"] == 1 and report["mode"] == "decision_only"
+          assert report["decision"] in {"NOT_NEEDED_NOW", "JUSTIFIED_FOR_LATER"}
+          assert report["decision"] == "NOT_NEEDED_NOW"
+          assert report["selectionStages"]["orderedPassCount"] == 8
+          assert report["selectionStages"]["independentlyPluggableProviderCount"] == 0
+          assert report["shadowEvidence"]["p0ScenarioCount"] == 25
+          assert report["shadowEvidence"]["compilerDataParityPassed"]
+          assert report["shadowEvidence"]["compilerRuntimeParityScenarios"] == 25
+          assert not report["interfaceImplemented"] and not report["runtimeCutover"]
+          PY
+
+      - name: Upload Canon P1 CandidateProvider decision artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Canon-P1-candidate-provider-decision-${{ github.run_id }}
+          path: android-apk/app/build/reports/canon-p1/candidate-provider-decision.json
           if-no-files-found: error
           retention-days: 14
 
