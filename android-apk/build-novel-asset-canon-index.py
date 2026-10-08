@@ -37,10 +37,10 @@ def verify_world_scene_coverage():
     kotlin = (ROOT / "app/src/main/java/com/rabpit/backroom/core/progression/WorldContentCatalog.kt").read_text(
         encoding="utf-8"
     )
-    levels = set(re.findall(r'WorldContentEntry\\(WorldNodeId\\("(level-[0-9]+(?:\\.[0-9]+)?)"\\)', kotlin))
+    levels = set(re.findall(r'WorldContentEntry\(WorldNodeId\("(level-[0-9]+(?:\.[0-9]+)?)"\)', kotlin))
     named = set(
         f"area:{parent}:{key}"
-        for parent, key in re.findall(r'WorldNamedSection\\(([0-9]+), "([a-z0-9-]+)"', kotlin)
+        for parent, key in re.findall(r'WorldNamedSection\(([0-9]+), "([a-z0-9-]+)"', kotlin)
     )
     expected = levels | named
     if len(levels) != 50 or len(named) != 17 or len(expected) != 67:
