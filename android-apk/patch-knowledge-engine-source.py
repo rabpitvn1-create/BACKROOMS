@@ -43,6 +43,12 @@ new = '''      if (hasAny(actionText, "devil trigger")) {
           "CHAR.KAI.GUILTY_CROWN_OVERRIDE", "CHAR.KAI.WHITE_WRAITH",
           "CHAR.KAI.ARMOR", "CHAR.KAI.OMNIVAULT"
         ) }
+        // Keep saved companions functional when actually present, but never
+        // summon their legacy abilities/equipment by keyword while absent.
+        direct.removeAll { id ->
+          (id.startsWith("CHAR.IRIS.") && "iris" !in presentActors) ||
+            (id.startsWith("CHAR.SYVIAL.") && "syvial" !in presentActors)
+        }
         // Exact currently-authoritative equipment names. This only proposes
         // candidates; the original priority/budget decision still applies.
         if (hasAny(actionText, "huyết ma kiếm", "huyet ma kiem")) {
@@ -1223,6 +1229,38 @@ class KnowledgeContextEngineP0Test {
       .contains("Player controls " + retiredShortName + "'s intentional actions"))
     assertFalse(records.getValue("WRITING.PLAYER_AGENCY").getString("text")
       .contains("Do not choose " + retiredShortName + "'s intentional action"))
+  }
+
+  @Test fun absentLegacyCompanionsCannotInjectAbilitiesIntoCaoMinhPacket() {
+    val current = caoMinhStateJson(1)
+    val directNames = listOf(
+      "ARGUS" to "CHAR.IRIS.ARGUS",
+      "Thousandfold" to "CHAR.IRIS.THOUSANDFOLD",
+      "Ivory Ebony" to "CHAR.IRIS.IVORY_EBONY",
+      "Field MedNet" to "CHAR.IRIS.SUPPORT",
+      "Godkiller" to "CHAR.SYVIAL.GODKILLER",
+      "Godkiller Override" to "CHAR.SYVIAL.GODKILLER_OVERRIDE",
+      "Lucifer Core" to "CHAR.SYVIAL.LUCIFER_CORE"
+    )
+    directNames.forEach { (action, id) ->
+      val result = KnowledgeContextEngine.buildForTestWithTrace(
+        dbJson, current, action, "{}")
+      assertFalse("Absent companion must not supply $id",
+        proposed(result, id, "direct structured lookup"))
+      assertPacketLacks(result.packet, id)
+    }
+    val bothPresent = JSONObject(caoMinhStateJson(1))
+      .put("party", JSONArray().put("iris").put("syvial"))
+      .toString()
+    directNames.forEach { (action, id) ->
+      val result = KnowledgeContextEngine.buildForTestWithTrace(
+        dbJson, bothPresent, action, "{}")
+      assertTrue("Saved present companion should keep $id",
+        proposed(result, id, "direct structured lookup"))
+    }
+    val unidentified = KnowledgeContextEngine.buildForTestWithTrace(
+      dbJson, stateJson(1), "ARGUS", "{}")
+    assertTrue(proposed(unidentified, "CHAR.IRIS.ARGUS", "direct structured lookup"))
   }
 
   @Test fun exactCaoMinhEquipmentNamesUseCurrentCandidatesAndUnchangedOptionalBudget() {
