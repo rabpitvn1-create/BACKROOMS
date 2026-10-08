@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "description": "Sanctioned copies of the 2026-09-28 Novel/Asset text corpus for the active Cao Minh campaign. Content is not automatically player knowledge.",
+  "sourceFolder": "https://drive.google.com/drive/folders/1tVcjppBYNI90VSfQ3JFq870xkJ8laqSo",
+  "authorityOrder": [
+    "latest explicit user retcon",
+    "active game continuity and android-apk/cao-minh-prologue.txt",
+    "subject-owned current character Codex",
+    "current world/entity/mechanic Codex",
+    "historical narrative and visual references"
+  ],
+  "excludedDocuments": [
+    "TRAC_LAM_CODEX.md"
+  ],
+  "retiredContinuity": [
+    "Cao Minh drinking wine on Ma Sơn and falling directly into Backrooms",
+    "Lục Trầm separately entering Level 0 and an asserted reunion"
+  ],
+  "documents": [
+    {
+      "name": "CAO_MINH_CODEX.md",
+      "driveId": "1Jd1qjQg4n-Vw6A51S2SoXH1xu3QKKDK9",
+      "sha": "b5466ee2dc00ea5a1c24f879e3a0345f81981600",
+      "path": "knowledge/novel_asset/CAO_MINH_CODEX.md",
+      "policy": "character_baseline"
+    },
+    {
+      "name": "LUC_TRAM_CODEX.md",
+      "driveId": "1_ivAnDOeKrUPzJRmlGFC-HQmeffcnPpF",
+      "sha": "a6a05e31135f304a83afba13b70f2c700b013e92",
+      "path": "knowledge/novel_asset/LUC_TRAM_CODEX.md",
+      "policy": "character_baseline"
+    },
+    {
+      "name": "BACKROOMS_WORLD.md",
+      "driveId": "11LjYu7-KphPqKyLLeb4SVFEXEz23J7H0",
+      "sha": "7c0c9a005c70a23c74d593b775f84bce88b5be1e",
+      "path": "knowledge/novel_asset/BACKROOMS_WORLD.md",
+      "policy": "world"
+    },
+    {
+      "name": "Entity.md",
+      "driveId": "1XkkV7v1T4-dkODVUEmZ64QtRRe3e6e0B",
+      "sha": "3665f75de9d60a5befd3025dadb19b5131ba1741",
+      "path": "knowledge/novel_asset/Entity.md",
+      "policy": "visual_reference_not_entity_behavior"
+    },
+    {
+      "name": "ASYNC_BackroomsV2.md",
+      "driveId": "1cyE25sosTQCbDEJoSbIj9p6MBwn4of6K",
+      "sha": "3e7d7437fee545e93f4e5c99d484d71173c7f910",
+      "path": "knowledge/novel_asset/ASYNC_BackroomsV2.md",
+      "policy": "world_organization"
+    },
+    {
+      "name": "Backrooms_Linh_Khi.md",
+      "driveId": "1qDmgI7Ak9JyM5gqsjIpL5AfZ6BpvdIz_",
+      "sha": "9e06919ea809d6954db653be68a30a5844ba5a39",
+      "path": "knowledge/novel_asset/Backrooms_Linh_Khi.md",
+      "policy": "world_mechanic"
+    },
+    {
+      "name": "Backrooms_Linh_Khi_Anh_Huong_Tu_Si.md",
+      "driveId": "1kuR1gi_cJQgSglSLkO7q9wkb-kVss_hR",
+      "sha": "fe0e3304771bca10d68954eb2a21094f40e346b2",
+      "path": "knowledge/novel_asset/Backrooms_Linh_Khi_Anh_Huong_Tu_Si.md",
+      "policy": "world_mechanic"
+    },
+    {
+      "name": "Tang_Kiem_Coc_Huyet_Ma_Kiem_Tich_Quang.md",
+      "driveId": "1rXgg0MZtgyJXCjWpmE6jZYwY75GwgmS4",
+      "sha": "20afe2b6eb1f65bed76715edb32edfd27238aa29",
+      "path": "knowledge/novel_asset/Tang_Kiem_Coc_Huyet_Ma_Kiem_Tich_Quang.md",
+      "policy": "narrative_lore_writer_only"
+    },
+    {
+      "name": "Huyet_Tay_Cao_Gia.md",
+      "driveId": "1tWhTfmXc0W5iSD4ebkth5ERDtzfxVT0Z",
+      "sha": "4d3ecba3836c879d3fdec89166ed36fdef1288fd",
+      "path": "knowledge/novel_asset/Huyet_Tay_Cao_Gia.md",
+      "policy": "narrative_lore_writer_only"
+    },
+    {
+      "name": "AI_NOVEL_GENERATION_INSTRUCTION.md",
+      "driveId": "1QyQA2ViiPHZFTdszsyEBLTLtbFUPjH13",
+      "sha": "83c8cb22b56bc36d4430fba9cd2dd879ac64d5cc",
+      "path": "knowledge/novel_asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+      "policy": "gm_writing"
+    }
+  ]
+}
