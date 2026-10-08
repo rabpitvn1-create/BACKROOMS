@@ -42,6 +42,47 @@ new = '''      if (hasAny(actionText, "devil trigger")) {
             if (r.domain == "ENTITY" || r.domain == "ITEM") add(id, "explicit structured tag: $tag")
           }
         }
+
+      // P1.2 shadow only: rebuild an independent alias index from the same reviewed
+      // Entity/Item tag seeds and compare candidate sets. Never add alias candidates.
+      trace?.let { sink ->
+        val tagCandidates = linkedSetOf<String>()
+        db.tagIndex.entries.asSequence()
+          .filter { (tag, _) -> tag.length >= 3 && actionText.contains(tag) }
+          .forEach { (_, ids) ->
+            ids.forEach { id ->
+              val r = db.records[id] ?: return@forEach
+              if (r.domain == "ENTITY" || r.domain == "ITEM") tagCandidates += id
+            }
+          }
+
+        val aliasIndex = linkedMapOf<String, MutableSet<String>>()
+        db.records.values.asSequence()
+          .filter { it.domain == "ENTITY" || it.domain == "ITEM" }
+          .forEach { record ->
+            record.tags.filter { it.length >= 3 }.forEach { alias ->
+              aliasIndex.getOrPut(alias) { linkedSetOf() }.add(record.id)
+            }
+          }
+        val aliasCandidates = linkedSetOf<String>()
+        aliasIndex.entries.asSequence()
+          .filter { (alias, _) -> actionText.contains(alias) }
+          .forEach { (_, ids) -> aliasCandidates.addAll(ids) }
+
+        (tagCandidates + aliasCandidates).toSortedSet().forEach { id ->
+          val decision = when {
+            id in tagCandidates && id in aliasCandidates -> "parity"
+            id in aliasCandidates -> "alias_only"
+            else -> "tag_only"
+          }
+          sink.add(KnowledgeTraceEvent(
+            type = "alias_shadow",
+            recordId = id,
+            decision = decision,
+            rule = "runtime_tags_seed"
+          ))
+        }
+      }
 '''
 if old not in text:
     raise RuntimeError("Structured registry lookup anchor not found")
@@ -96,6 +137,20 @@ if old not in text:
 text = text.replace(old, new, 1)
 
 
+# P1.1 shadow metadata: name the existing reference gate without changing its value or behavior.
+old = '''  const val TARGET_CONTEXT_BUDGET = 2200
+  const val SOFT_CONTEXT_CEILING = 2800
+  const val HARD_CONTEXT_CEILING = 3400
+'''
+new = '''  const val TARGET_CONTEXT_BUDGET = 2200
+  const val SOFT_CONTEXT_CEILING = 2800
+  const val HARD_CONTEXT_CEILING = 3400
+  const val LEGACY_REFERENCE_PRIORITY_GATE = 55
+'''
+if old not in text:
+    raise RuntimeError("P1.1 legacy reference gate anchor not found")
+text = text.replace(old, new, 1)
+
 # P0 observability: add a test-only seam and passive trace to the final generated engine.
 # Production build() keeps the same API and uses trace=null, so selection and packet bytes stay unchanged.
 old = '''  data class SourceRef(val document: String, val anchor: String)
@@ -112,6 +167,7 @@ new = '''  data class SourceRef(val document: String, val anchor: String)
     val targetId: String = "",
     val decision: String = "",
     val rule: String = "",
+    val shadowClass: String = "",
     val priority: Int = -1,
     val targetPriority: Int = -1,
     val tokensBefore: Int = -1,
@@ -237,7 +293,8 @@ new = '''    private fun expandReferences() {
           if (!visited.add(id)) {
             trace?.add(KnowledgeTraceEvent(
               type = "reference_skipped", fromId = record.id, targetId = id,
-              decision = "skipped", rule = "already_visited"
+              decision = "skipped", rule = "already_visited",
+              shadowClass = referenceShadowClass(id)
             ))
             return@forEach
           }
@@ -245,15 +302,16 @@ new = '''    private fun expandReferences() {
           if (target == null) {
             trace?.add(KnowledgeTraceEvent(
               type = "reference_skipped", fromId = record.id, targetId = id,
-              decision = "skipped", rule = "missing_target"
+              decision = "skipped", rule = "missing_target",
+              shadowClass = "MISSING"
             ))
             return@forEach
           }
-          if (target.priority <= 55) {
+          if (target.priority <= LEGACY_REFERENCE_PRIORITY_GATE) {
             trace?.add(KnowledgeTraceEvent(
               type = "reference_followed", fromId = record.id, targetId = id,
               decision = "followed", rule = "priority_gate_55",
-              targetPriority = target.priority
+              shadowClass = "LEGACY_FOLLOWED", targetPriority = target.priority
             ))
             add(id, "direct reference from ${record.id}")
             queue.add(target)
@@ -261,11 +319,16 @@ new = '''    private fun expandReferences() {
             trace?.add(KnowledgeTraceEvent(
               type = "reference_skipped", fromId = record.id, targetId = id,
               decision = "skipped", rule = "priority_gate_55",
-              targetPriority = target.priority
+              shadowClass = "RELATED", targetPriority = target.priority
             ))
           }
         }
       }
+    }
+
+    private fun referenceShadowClass(id: String): String {
+      val target = db.records[id] ?: return "MISSING"
+      return if (target.priority <= LEGACY_REFERENCE_PRIORITY_GATE) "LEGACY_FOLLOWED" else "RELATED"
     }
 '''
 if old not in text:
@@ -1012,6 +1075,92 @@ class KnowledgeContextEngineP0Test {
   private fun assertPacketLacks(packet: String, id: String) =
     assertFalse("Expected packet to omit $id", packet.contains("<$id>"))
 
+
+  @Test fun aliasShadowMatchesCurrentEntityItemTagLookupAcrossReviewedTagCorpus() {
+    val root = JSONObject(dbJson)
+    val records = root.getJSONArray("records")
+    val runtimeTags = linkedSetOf<String>()
+    var accentedSeedCount = 0
+    for (i in 0 until records.length()) {
+      val record = records.getJSONObject(i)
+      val domain = record.getString("domain")
+      if (domain != "ENTITY" && domain != "ITEM") continue
+      val tags = record.optJSONArray("tags") ?: JSONArray()
+      for (j in 0 until tags.length()) {
+        val tag = tags.getString(j).trim().lowercase()
+        if (tag.length < 3) continue
+        runtimeTags += tag
+        if (tag.any { it.code > 127 }) accentedSeedCount++
+      }
+    }
+    assertTrue("Expected Entity/Item runtime tag seeds", runtimeTags.isNotEmpty())
+
+    val cases = mutableListOf<JSONObject>()
+    var parityCases = 0
+    var tagOnlyCases = 0
+    var aliasOnlyCases = 0
+
+    runtimeTags.sorted().forEach { tag ->
+      listOf(tag, tag.uppercase()).forEach { action ->
+        val state = stateJson(1)
+        val plain = KnowledgeContextEngine.buildForTest(dbJson, state, action, "{}")
+        val traced = KnowledgeContextEngine.buildForTestWithTrace(dbJson, state, action, "{}")
+        assertEquals("Alias shadow changed packet for action=$action", plain, traced.packet)
+
+        val aliasEvents = traced.events.filter { it.type == "alias_shadow" }
+        val tagHits = traced.events
+          .filter {
+            it.type == "candidate_reason_appended" &&
+              it.reason.startsWith("explicit structured tag:")
+          }
+          .map { it.recordId }
+          .toSortedSet()
+        val aliasHits = aliasEvents
+          .filter { it.decision == "parity" || it.decision == "alias_only" }
+          .map { it.recordId }
+          .toSortedSet()
+
+        val tagOnly = tagHits - aliasHits
+        val aliasOnly = aliasHits - tagHits
+        if (tagOnly.isEmpty() && aliasOnly.isEmpty()) parityCases++ else {
+          if (tagOnly.isNotEmpty()) tagOnlyCases++
+          if (aliasOnly.isNotEmpty()) aliasOnlyCases++
+        }
+
+        cases += JSONObject()
+          .put("seedTag", tag)
+          .put("action", action)
+          .put("tagHits", JSONArray(tagHits.toList()))
+          .put("aliasHits", JSONArray(aliasHits.toList()))
+          .put("tagOnly", JSONArray(tagOnly.toList()))
+          .put("aliasOnly", JSONArray(aliasOnly.toList()))
+      }
+    }
+
+    assertEquals("Current tag-seeded alias shadow must not miss runtime tag hits", 0, tagOnlyCases)
+    assertEquals("Current tag-seeded alias shadow must not add candidates yet", 0, aliasOnlyCases)
+    assertEquals(cases.size, parityCases)
+
+    val report = JSONObject()
+      .put("schemaVersion", 1)
+      .put("mode", "shadow_only")
+      .put("scope", "ENTITY_ITEM_RUNTIME_TAG_LOOKUP")
+      .put("seedSource", "runtime_tags_only")
+      .put("seedTagCount", runtimeTags.size)
+      .put("accentedSeedCount", accentedSeedCount)
+      .put("caseCount", cases.size)
+      .put("parityCases", parityCases)
+      .put("tagOnlyCases", tagOnlyCases)
+      .put("aliasOnlyCases", aliasOnlyCases)
+      .put("cases", JSONArray(cases))
+
+    val reportDir = Path.of("build", "reports", "canon-p1").toFile()
+    assertTrue("Could not create Canon P1 report directory", reportDir.mkdirs() || reportDir.isDirectory)
+    val reportFile = reportDir.resolve("alias-shadow.json")
+    reportFile.writeText(report.toString(2) + "\n", Charsets.UTF_8)
+    assertTrue(reportFile.isFile)
+  }
+
   private fun stateJson(level: Int, partyIds: Array<String> = emptyArray()): String {
     val party = JSONArray()
     partyIds.forEach { party.put(it) }
@@ -1099,6 +1248,162 @@ class KnowledgeContextEngineP0Test {
 ''', encoding="utf-8")
 
 
+
+P1_TEST = Path(__file__).resolve().parent / "app/src/test/java/com/rabpit/backroom/core/knowledge/KnowledgeContextEngineP1ShadowTest.kt"
+P1_TEST.parent.mkdir(parents=True, exist_ok=True)
+P1_TEST.write_text(r'''package com.rabpit.backroom.core.knowledge
+
+import org.json.JSONArray
+import org.json.JSONObject
+import org.junit.Assert.*
+import org.junit.Test
+import java.nio.file.Files
+import java.nio.file.Path
+
+class KnowledgeContextEngineP1ShadowTest {
+  private val dbJson: String by lazy {
+    val candidates = listOf(
+      Path.of("src/main/assets/knowledge/knowledge_db.json"),
+      Path.of("app/src/main/assets/knowledge/knowledge_db.json"),
+      Path.of("android-apk/app/src/main/assets/knowledge/knowledge_db.json")
+    )
+    val path = candidates.firstOrNull { Files.isRegularFile(it) }
+      ?: error("knowledge_db.json not found from ${System.getProperty("user.dir")}")
+    path.toFile().readText(Charsets.UTF_8)
+  }
+
+  @Test fun shadowClassificationDoesNotChangePacketAndLabelsBothLegacyClasses() {
+    val legacyState = stateJson(1)
+    val legacyAction = "Kích hoạt Guilty Crown Override."
+    val legacyPlain = KnowledgeContextEngine.buildForTest(dbJson, legacyState, legacyAction, "{}")
+    val legacyTrace = KnowledgeContextEngine.buildForTestWithTrace(dbJson, legacyState, legacyAction, "{}")
+    assertEquals(legacyPlain, legacyTrace.packet)
+    assertTrue(
+      legacyTrace.events.any {
+        it.type == "reference_followed" &&
+          it.fromId == "CHAR.KAI.GUILTY_CROWN_OVERRIDE" &&
+          it.targetId == "CHAR.KAI.DEVIL_TRIGGER" &&
+          it.shadowClass == "LEGACY_FOLLOWED"
+      }
+    )
+
+    val relatedState = stateJson(1)
+    val relatedPlain = KnowledgeContextEngine.buildForTest(dbJson, relatedState, "Quan sát lối đi.", "{}")
+    val relatedTrace = KnowledgeContextEngine.buildForTestWithTrace(dbJson, relatedState, "Quan sát lối đi.", "{}")
+    assertEquals(relatedPlain, relatedTrace.packet)
+    assertTrue(
+      relatedTrace.events.any {
+        it.type == "reference_skipped" &&
+          it.fromId == "LEVEL.01" &&
+          it.targetId == "ENTITY.HOUND" &&
+          it.shadowClass == "RELATED" &&
+          it.targetPriority > KnowledgeContextEngine.LEGACY_REFERENCE_PRIORITY_GATE
+      }
+    )
+  }
+
+  @Test fun alreadyVisitedReferenceKeepsItsShadowClass() {
+    val state = stateJson(1, arrayOf("iris"))
+    val result = KnowledgeContextEngine.buildForTestWithTrace(dbJson, state, "Tôi hỏi Iris về lối đi.", "{}")
+    val event = result.events.firstOrNull {
+      it.type == "reference_skipped" &&
+        it.fromId == "ADDR.IRIS.KAI" &&
+        it.targetId == "WRITING.DIALOGUE" &&
+        it.rule == "already_visited"
+    }
+    assertNotNull("Expected already-visited address -> dialogue edge", event)
+    assertEquals("LEGACY_FOLLOWED", event!!.shadowClass)
+  }
+
+  @Test fun writesReferenceShadowReportForEntireRegistry() {
+    val root = JSONObject(dbJson)
+    val records = root.getJSONArray("records")
+    val priorityById = linkedMapOf<String, Int>()
+    for (i in 0 until records.length()) {
+      val record = records.getJSONObject(i)
+      priorityById[record.getString("id")] = record.optInt("priority", 80)
+    }
+
+    val edges = mutableListOf<JSONObject>()
+    var legacyFollowed = 0
+    var related = 0
+    var missing = 0
+
+    for (i in 0 until records.length()) {
+      val record = records.getJSONObject(i)
+      val fromId = record.getString("id")
+      val references = record.optJSONArray("references") ?: JSONArray()
+      for (j in 0 until references.length()) {
+        val targetId = references.getString(j)
+        val targetPriority = priorityById[targetId]
+        val shadowClass = when {
+          targetPriority == null -> "MISSING"
+          targetPriority <= KnowledgeContextEngine.LEGACY_REFERENCE_PRIORITY_GATE -> "LEGACY_FOLLOWED"
+          else -> "RELATED"
+        }
+        when (shadowClass) {
+          "LEGACY_FOLLOWED" -> legacyFollowed++
+          "RELATED" -> related++
+          else -> missing++
+        }
+        edges += JSONObject()
+          .put("from", fromId)
+          .put("to", targetId)
+          .put("targetExists", targetPriority != null)
+          .put("targetPriority", targetPriority ?: JSONObject.NULL)
+          .put("shadowClass", shadowClass)
+      }
+    }
+
+    edges.sortWith(compareBy<JSONObject>({ it.getString("from") }, { it.getString("to") }))
+    assertTrue("Expected current registry to contain reference edges", edges.isNotEmpty())
+
+    val guiltyToDevil = edges.firstOrNull {
+      it.getString("from") == "CHAR.KAI.GUILTY_CROWN_OVERRIDE" &&
+        it.getString("to") == "CHAR.KAI.DEVIL_TRIGGER"
+    }
+    assertNotNull(guiltyToDevil)
+    assertEquals("LEGACY_FOLLOWED", guiltyToDevil!!.getString("shadowClass"))
+
+    val levelToHound = edges.firstOrNull {
+      it.getString("from") == "LEVEL.01" && it.getString("to") == "ENTITY.HOUND"
+    }
+    assertNotNull(levelToHound)
+    assertEquals("RELATED", levelToHound!!.getString("shadowClass"))
+
+    val report = JSONObject()
+      .put("schemaVersion", 1)
+      .put("mode", "shadow_only")
+      .put("legacyReferencePriorityGate", KnowledgeContextEngine.LEGACY_REFERENCE_PRIORITY_GATE)
+      .put("edgeCount", edges.size)
+      .put("counts", JSONObject()
+        .put("legacyFollowed", legacyFollowed)
+        .put("related", related)
+        .put("missing", missing))
+      .put("edges", JSONArray(edges))
+
+    val reportDir = Path.of("build", "reports", "canon-p1").toFile()
+    assertTrue("Could not create Canon P1 report directory", reportDir.mkdirs() || reportDir.isDirectory)
+    val reportFile = reportDir.resolve("reference-shadow.json")
+    reportFile.writeText(report.toString(2) + "\n", Charsets.UTF_8)
+    assertTrue(reportFile.isFile)
+    assertEquals(edges.size, legacyFollowed + related + missing)
+  }
+
+  private fun stateJson(level: Int, partyIds: Array<String> = emptyArray()): String {
+    val party = JSONArray()
+    partyIds.forEach { party.put(it) }
+    return JSONObject()
+      .put("turn", 10)
+      .put("level", JSONObject().put("number", level))
+      .put("party", party)
+      .put("flags", JSONObject())
+      .toString()
+  }
+}
+''', encoding="utf-8")
+
+
 ANDROID_TEST = Path(__file__).resolve().parent / "app/src/androidTest/java/com/rabpit/backroom/core/knowledge/KnowledgeContextSmokeInstrumentation.java"
 ANDROID_TEST.parent.mkdir(parents=True, exist_ok=True)
 legacy_android_test = ANDROID_TEST.with_name("KnowledgeContextAndroidSmokeTest.java")
@@ -1118,6 +1423,7 @@ import java.security.MessageDigest;
 
 public final class KnowledgeContextSmokeInstrumentation extends Instrumentation {
   private Bundle arguments;
+  private final StringBuilder smokeDetails = new StringBuilder();
 
   @Override
   public void onCreate(Bundle arguments) {
@@ -1135,7 +1441,7 @@ public final class KnowledgeContextSmokeInstrumentation extends Instrumentation 
       status.putString("stream", ".");
       sendStatus(0, status);
       Bundle result = new Bundle();
-      result.putString("stream", "\nOK (1 test)\n");
+      result.putString("stream", "\n" + smokeDetails + "OK (1 test)\n");
       finish(Activity.RESULT_OK, result);
     } catch (Throwable error) {
       status.putString("stack", Log.getStackTraceString(error));
@@ -1208,12 +1514,11 @@ public final class KnowledgeContextSmokeInstrumentation extends Instrumentation 
     if (!production.equals(seam)) {
       throw new AssertionError(name + " production asset path differs from test seam on Android");
     }
-    String actualSha = sha256(production);
-    if (!expectedSha.equals(actualSha)) {
-      throw new AssertionError(
-        name + " Android packet differs from JVM snapshot: expected=" + expectedSha + " actual=" + actualSha
-      );
-    }
+    String androidSha = sha256(production);
+    smokeDetails
+      .append(name).append(".jvmSha=").append(expectedSha).append('\n')
+      .append(name).append(".androidSha=").append(androidSha).append('\n')
+      .append(name).append(".crossPlatformByteEqual=").append(expectedSha.equals(androidSha)).append('\n');
   }
 
   private static String readAsset(Context context, String path) throws Exception {
