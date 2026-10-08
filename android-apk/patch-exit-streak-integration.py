@@ -25,8 +25,8 @@ def replace_span(source, start, end, replacement, label):
     j = source.index(end, i)
     return source[:i] + replacement + source[j:]
 
-# Retain the known playable v1 route topology: 0->1 through 5->6.
-# Unregistered higher routes remain closed. No AI text can mint a route.
+# The 14 main Levels use an explicit, Core-validated forward itinerary.
+# Named areas and Sub-levels are not silently assigned gameplay edges.
 helpers = r'''  // EXIT_STREAK_V1: Android Core exclusively owns progress and level transitions.
   private JSONObject normalizedStreakState(JSONObject original) throws Exception {
     JSONObject state = new JSONObject(original.toString());
@@ -65,16 +65,18 @@ helpers = r'''  // EXIT_STREAK_V1: Android Core exclusively owns progress and le
   /** Returns null when the existing content graph has no outbound route. */
   private JSONObject applyStreakTransition(JSONObject original) throws Exception {
     int fromLevel = currentLevel(original);
-    // The retired resolver exposed exactly these forward edges; do not invent
-    // connectivity for 6+ just because higher Level canon exists.
-    if (fromLevel < 0 || fromLevel >= 6) return null;
-    int toLevel = fromLevel + 1;
+    com.rabpit.backroom.core.progression.MainLevelExitRoute route =
+      com.rabpit.backroom.core.progression.MainLevelExitRoutes.next(fromLevel);
+    if (route == null) return null;
+    int toLevel = route.getTargetLevelNumber();
     JSONObject state = new JSONObject(original.toString());
     JSONObject level = state.optJSONObject("level");
     if (level == null) { level = new JSONObject(); state.put("level", level); }
     level.put("number", toLevel);
-    level.put("name", "Level " + toLevel + " - " + levelName(toLevel));
-    state.put("title", "Level " + toLevel + " – " + levelName(toLevel));
+    level.put("nodeId", route.getTargetNodeId());
+    level.put("name", "Level " + toLevel + " - " + route.getTargetTitle());
+    state.put("title", "Level " + toLevel + " – " + route.getTargetTitle());
+    state.put("worldNodeId", route.getTargetNodeId());
     state.put("location", "");
     state = withExitStreak(state, 0);
     return state;
@@ -92,6 +94,23 @@ legacy_glue = next(
     and any(isinstance(target, ast.Name) and target.id == "new_glue" for target in node.targets)
 )
 java = replace_once(java, legacy_glue, helpers, "retire exact legacy helper block")
+
+# Old Java name lookup clamps Level 7–13 to Level 6. Keep original Level 0–6
+# labels stable; resolve higher main-Level titles from the Core content catalog.
+java = replace_once(java,
+    '''  private String levelName(int number) {
+    String[] names = {"The Lobby", "Parking Zone", "Pipe Dreams", "The Electrical Station", "The Abandoned Office", "Terror Hotel", "Lights Out"};
+    int safe = Math.max(0, Math.min(6, number));
+    return names[safe];
+  }''',
+    '''  private String levelName(int number) {
+    String[] legacyNames = {"The Lobby", "Parking Zone", "Pipe Dreams", "The Electrical Station", "The Abandoned Office", "Terror Hotel", "Lights Out"};
+    if (number >= 0 && number < legacyNames.length) return legacyNames[number];
+    String title = com.rabpit.backroom.core.progression.MainLevelExitRoutes.titleFor(number);
+    return title != null ? title : "Unknown Level";
+  }''',
+    "Core main-level titles 7–13")
+
 
 # The old conditional level gate was a legacy exit-discovery dependency.
 java = replace_span(java,
@@ -254,6 +273,7 @@ OLD_TEST.unlink(missing_ok=True)
 
 for marker in (
     "EXIT_STREAK_V1", "ExitStreakEngine.advance(", "ExitStreakEngine.hasMinimumInput(action)",
+    "MainLevelExitRoutes.next(fromLevel)", "MainLevelExitRoutes.titleFor(number)",
     "streakLevelCompleted", 'patchValue.remove("exitStreak")',
     'patchExploration.remove("exitStreak")', 'put("exitStreak"', "combatTurnForStreak",
 ):
