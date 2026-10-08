@@ -35,7 +35,7 @@ def imported_records(manifest):
             raise AssertionError(f"Excluded source in manifest: {name}")
         if policy not in AUTHORITIES:
             raise AssertionError(f"Unknown source authority policy: {policy}")
-        path = ASSETS / document["path"]
+        path = ASSETS.parent / document["path"]
         content = path.read_text(encoding="utf-8")
         if not content:
             raise AssertionError(f"Empty canonical asset: {name}")
