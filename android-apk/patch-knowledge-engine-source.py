@@ -30,6 +30,20 @@ new = '''      if (hasAny(actionText, "devil trigger")) {
       if (hasAny(actionText, "nói", "hỏi", "trả lời", "trò chuyện", "nói chuyện", "dialogue", "talk", "tell")) {
         direct += "WRITING.DIALOGUE"
       }
+      // KAI record ids remain for old saves; do not retrieve their lore for Cao Minh.
+      val player = state.optJSONObject("player")
+      val playerId = normalize(player?.optString("id", "").orEmpty())
+      val playerName = normalize(player?.optString("name", "").orEmpty())
+      val campaignTitle = normalize(state.optString("title", ""))
+      val isCaoMinhCampaign = playerId == "cao_minh" ||
+        playerName == "cao minh" || "cao minh" in campaignTitle
+      if (isCaoMinhCampaign) {
+        direct.removeAll { it in setOf(
+          "CHAR.KAI.SPARDA_CORE", "CHAR.KAI.DEVIL_TRIGGER",
+          "CHAR.KAI.GUILTY_CROWN_OVERRIDE", "CHAR.KAI.WHITE_WRAITH",
+          "CHAR.KAI.ARMOR", "CHAR.KAI.OMNIVAULT"
+        ) }
+      }
       direct.forEach { add(it, "direct structured lookup") }
 
       // Registry-driven exact tags. Adding a new Entity/Item record with tags makes it
@@ -1203,18 +1217,67 @@ class KnowledgeContextEngineP0Test {
       .contains("Do not choose " + retiredShortName + "'s intentional action"))
   }
 
-  @Test fun caoMinhRuntimeIdentityStillProjectsStableKaiKnowledgeIds() {
+  @Test fun caoMinhCampaignRejectsRetiredKaiLookupsWithoutRenamingSaveKeys() {
+    val retiredIds = listOf(
+      "CHAR.KAI.SPARDA_CORE", "CHAR.KAI.DEVIL_TRIGGER",
+      "CHAR.KAI.GUILTY_CROWN_OVERRIDE", "CHAR.KAI.WHITE_WRAITH",
+      "CHAR.KAI.ARMOR", "CHAR.KAI.OMNIVAULT"
+    )
+    val actions = listOf(
+      "Cao Minh kích hoạt Sparda Core.",
+      "Kích hoạt Devil Trigger và Guilty Crown Override.",
+      "Cầm White Wraith Magnum.",
+      "Cao Minh kiểm tra nhẫn vạn tàng, scan rồi restore."
+    )
+    val stateVariants = listOf(
+      caoMinhStateJson(1),
+      JSONObject(stateJson(1))
+        .put("player", JSONObject().put("id", "kai").put("name", "Cao Minh"))
+        .toString(),
+      JSONObject(stateJson(1)).put("title", "MAIN_BACKROOMS - Cao Minh").toString()
+    )
+    stateVariants.forEach { state ->
+      actions.forEach { action ->
+        val result = KnowledgeContextEngine.buildForTestWithTrace(dbJson, state, action, "{}")
+        retiredIds.forEach { id ->
+          assertFalse("Cao Minh must not retrieve $id for $action: $state",
+            proposed(result, id))
+          assertPacketLacks(result.packet, id)
+        }
+        assertPacketHas(result.packet, "CHAR.KAI.RUNTIME_CORE")
+      }
+    }
     val sparda = traced("cao_minh_uses_stable_kai_namespace")
-    assertTrue(
-      "Cao Minh action should project stable CHAR.KAI namespace for Sparda Core",
-      proposed(sparda, "CHAR.KAI.SPARDA_CORE", "direct structured lookup")
-    )
+    assertFalse(proposed(sparda, "CHAR.KAI.SPARDA_CORE"))
+    val ring = traced("vietnamese_omnivault_lookup")
+    assertFalse(proposed(ring, "CHAR.KAI.OMNIVAULT"))
+  }
 
-    val omnivault = traced("vietnamese_omnivault_lookup")
-    assertTrue(
-      "Vietnamese Omnivault phrase should project stable CHAR.KAI namespace",
-      proposed(omnivault, "CHAR.KAI.OMNIVAULT", "direct structured lookup")
+  @Test fun unidentifiedAndLegacyPlayerStatesRetainLegacyLookupsAndReferences() {
+    val legacyStates = listOf(
+      stateJson(1),
+      JSONObject(stateJson(1)).put("player", JSONObject().put("id", "kai")).toString()
     )
+    legacyStates.forEach { state ->
+      val direct = KnowledgeContextEngine.buildForTestWithTrace(
+        dbJson, state, "Sparda Core Devil Trigger White Wraith Omnivault", "{}")
+      listOf(
+        "CHAR.KAI.SPARDA_CORE", "CHAR.KAI.DEVIL_TRIGGER",
+        "CHAR.KAI.WHITE_WRAITH", "CHAR.KAI.OMNIVAULT"
+      ).forEach { id ->
+        assertTrue("Legacy lookup must remain for $id in $state",
+          proposed(direct, id, "direct structured lookup"))
+      }
+      val override = KnowledgeContextEngine.buildForTestWithTrace(
+        dbJson, state, "Guilty Crown Override", "{}")
+      assertTrue(proposed(override, "CHAR.KAI.GUILTY_CROWN_OVERRIDE",
+        "direct structured lookup"))
+      assertTrue(override.events.any {
+        it.type == "reference_followed" &&
+          it.fromId == "CHAR.KAI.GUILTY_CROWN_OVERRIDE" &&
+          it.targetId == "CHAR.KAI.WHITE_WRAITH"
+      })
+    }
   }
 
   @Test fun tracePreservesMultipleCandidateReasons() {
