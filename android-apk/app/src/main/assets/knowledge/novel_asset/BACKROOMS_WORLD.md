@@ -145,7 +145,7 @@ Bầu trời thường xám và trạng thái ban ngày ít thay đổi, khiến
 
 ## 2B. SUBLEVEL CỦA TẦNG 0
 
-Các sublevel dưới đây dùng làm **REFERENCE / CANDIDATE BASELINE** cho tác phẩm. Chúng tồn tại trong nền Backrooms được tham chiếu, nhưng chi tiết có thể được mở rộng hoặc khóa lại bằng tài liệu Level chuyên biệt sau này.
+Phạm vi Level 0 chỉ giữ hồ sơ Sub-level đã được duyệt; những Sub-level khác không còn là canon hoặc dữ liệu dựng cảnh hoạt động.
 
 Không tự giả định mọi lối vào, lối ra hoặc tần suất gặp sublevel là bảo đảm.
 
@@ -154,88 +154,10 @@ Không tự giả định mọi lối vào, lối ra hoặc tần suất gặp s
 
 Giữ thẩm mỹ vàng, thảm beige và đèn huỳnh quang của Tầng 0 nhưng mở rộng thành những không gian cao và lớn hơn, có platform, tunnel, cầu thang và cấu trúc nhiều tầng dẫn tới những vị trí phi lý.
 
-### Level 0.01 — The Exit?
-<!-- scene-key:level-0.01 -->
-
-Những hành lang vàng rất dài, nóng và ẩm. Càng đi sâu, sương càng dày, nhiệt càng tăng, đèn hỏng nhiều hơn và kiến trúc xuống cấp. Các dấu hiệu giống lối thoát không được xem là lối ra thật nếu chưa kiểm chứng.
-
-### Level 0.1 — Deep Emptiness
-<!-- scene-key:level-0.1 -->
-
-Một hành lang kéo dài với nhiều cửa mở vào các phòng gần giống Tầng 0. Một số khu có kệ, thùng hoặc dấu hiệu từng được sử dụng, nhưng không xác định được ai đã để chúng lại.
-
-### Level 0.11 — Water Damage
-<!-- scene-key:level-0.11 -->
-
-Mạng phòng bê tông xuống cấp với nước bẩn ngập nhiều khu vực, rỉ sét, mùi mục và hệ thống ống rung. Đèn chập chờn; flash flood hoặc thay đổi mực nước có thể xảy ra. Các vùng khô giống Tầng 0 chỉ xuất hiện rải rác.
-
 ### Level 0.2 — Remodeled Mess
 <!-- scene-key:level-0.2 -->
 
-**REFERENCE / CANDIDATE BASELINE:** [Level 0.2 — Remodeled Mess](https://backrooms-wiki.wikidot.com/level-0-2) mô tả vùng được cải tạo với tường trắng, thảm đỏ khô và thiết bị điện; sự xuống cấp hoặc sụp đổ cấu trúc được thuật lại như một rủi ro môi trường. Đừng đồng nhất nó với Level 0.22 — Fully Remodeled của Project. Cơ chế damage, tuyến đi và Entity chưa khóa.
-
-### Level 0.22 — Fully Remodeled
-<!-- scene-key:level-0.22 -->
-
-Một biến thể Tầng 0 có vẻ đã được cải tạo: tường vàng-lục, thảm xám hoa văn, cửa văn phòng, vent, heater và dụng cụ xây dựng. Hình học phi Euclid vẫn còn; không được tự kết luận ai hoặc thứ gì thực hiện việc cải tạo.
-
-### Level 0.23 — Half Finished
-<!-- scene-key:level-0.23 -->
-
-Không gian office/factory đang xây dở với khung tường, bề mặt chưa hoàn thiện và những cửa sổ có thể nhìn ra cảnh quan không đáng tin. Sập trần, mất điện và thiếu thông gió là nguy cơ chính.
-
-**STATUS:** REFERENCE / UNSTABLE SOURCE. Không khóa các chi tiết sâu nếu nguồn tham khảo hiện hành đang trong quá trình rewrite.
-
-### Level 0.3 — The Icy Rooms
-<!-- scene-key:level-0.3 -->
-
-**NGUỒN CŨ / ĐANG VIẾT LẠI, chỉ dùng dựng cảnh:** [Level 0.3 — The Icy Rooms](https://backrooms-wiki.wikidot.com/level-0-3) cho thấy biến thể của kiến trúc vàng và những phòng lặp Level 0, nhưng bề mặt sàn, chân tường và góc phòng bị băng phủ, không khí lạnh thấu xương. Giữ cảm giác phòng vàng quen thuộc bị biến thành hầm đông; không tự sinh sát thương rét, thực thể hoặc exit từ bài cũ.
-
-### Level 0.41 — Disease
-<!-- scene-key:level-0.41 -->
-
-Một phiên bản Tầng 0 trong trạng thái phân hủy: tường vàng-lục mục nát, thảm xám mốc, trần vỡ, ánh sáng bất thường và những vết rách lớn trong cấu trúc.
-
-Không gian mang cảm giác bị bỏ mặc giữa quá trình mục rữa. Không được mặc định tên “Disease” đồng nghĩa tồn tại một bệnh sinh học cụ thể nếu chưa có dữ kiện xác nhận.
-
-### Level 0.5 — Aquaclaustrophobic Infirmary
-<!-- scene-key:level-0.5 -->
-
-**Nguồn tham khảo:** [Level 0.5 — Aquaclaustrophobic Infirmary](https://backrooms-wiki.wikidot.com/level-0-5), Moose0, The Backrooms Wiki, CC BY-SA 3.0; bản trang cập nhật 07/09/2026. Nội dung về trải nghiệm, lối ra và The Drowned trong nguồn chủ yếu là lời kể của người sống sót hoặc báo cáo M.E.G.; không nâng suy đoán thành sự thật đã xác minh.
-
-Waterlogged Passages là các hành lang hẹp ngập nước lạnh, bẩn, thường ngang gối và đục đến mức không thấy đáy. Giấy tường màu kem nhợt bong ở mép nước; đèn hình chữ nhật xanh treo bằng dây sờn có thể phát tia lửa. Tiếng nước bị khuấy và tiếng giọt vọng thay cho tiếng buzz đều của Level 0. Thiếu vị trí khô để nghỉ; ngâm nước lâu, kiệt sức, nước ô nhiễm và nguy cơ điện là các hiểm họa môi trường. Không tự xác định tác nhân gây bệnh cụ thể chỉ từ triệu chứng.
-
-Đi sâu hơn, giấy tường chuyển dần sang vách gỗ mục, trần thả và trolley trước khi mở sang The Hospital. Khu bệnh viện có sàn bẩn dầu, gạch trần lệch, vật cản, phòng bệnh và giường ẩm; khô hơn không đồng nghĩa an toàn. Nguồn Wiki kể về The Drowned đeo bám con mồi trong khu này, nhưng sự hiện diện hoặc giao chiến trong game chỉ xảy ra khi EntityCore/state xác nhận.
-
-Nguồn Wiki ghi nhận những lối ra khác, gồm Level 1, Level 37 và Level 109. Trong BACKROOMsV2, Core quyết định tuyến hiện hành: vào từ Level 0.2 và chỉ chuyển tiếp tới Level 0.7. Mô tả từ Wiki không mở thêm route, cấp vật phẩm, gây damage hay spawn Entity.
-
-### Level 0.66 — The Lobby Went COLD
-<!-- scene-key:level-0.66 -->
-
-Kiến trúc gần giống Tầng 0 nhưng bị bao phủ bởi lạnh cực độ, màu sắc chuyển xanh và các bề mặt có thể đóng băng.
-
-Đây là environmental deadzone đối với người không có khả năng chống lạnh thích hợp. Không dùng nhiệt độ cực thấp như lý do tự động vô hiệu mọi Entity hoặc mọi năng lực khác.
-
-### Level 0.7 — Claustrophobia
-<!-- scene-key:level-0.7 -->
-
-Một “Dark Lobby” với hành lang hẹp, tường cao, ánh sáng thiếu ổn định, nhiều bóng tối, nấm mốc và bụi bẩn. Các phòng lớn hiếm đóng vai trò nút nối giữa nhiều hành lang.
-
-Không gian gây áp lực tâm lý mạnh bởi cảm giác bị ép chặt và thiếu đường nhìn dài.
-
-### Level 0.8 — Inundation
-<!-- scene-key:level-0.8 -->
-
-Một biến thể Tầng 0 bị ngập với độ sâu thay đổi mạnh: từ phòng khô, nước nông tới khu chìm hoàn toàn. Nhiều trần bị mất hoặc chìm trong bóng tối; mốc lan trên tường và các mặt tiếp xúc.
-
-Nước, không khí và nhiệt độ không được mặc định đồng nhất giữa các khu vực.
-
-### Level 0.99 — Deeper Regions
-<!-- scene-key:level-0.99 -->
-
-Một vùng Tầng 0 bị lỗi hình học rõ rệt: sàn, trần và tường lệch tầng, các khối kiến trúc chồng sai vị trí, hố sâu và những vùng không thể tiếp cận bằng đường thông thường.
-
-Càng đi sâu, môi trường càng giống một cấu trúc ba chiều bị ghép sai hơn là một tòa nhà có thể lập sơ đồ.
+**REFERENCE / CANDIDATE BASELINE:** [Level 0.2 — Remodeled Mess](https://backrooms-wiki.wikidot.com/level-0-2) mô tả vùng được cải tạo với tường trắng, thảm đỏ khô và thiết bị điện; sự xuống cấp hoặc sụp đổ cấu trúc được thuật lại như một rủi ro môi trường. Cơ chế damage, tuyến đi và Entity chưa khóa.
 
 ### Manila Room — khu phụ của Tầng 0
 <!-- scene-key:area:0:manila-room -->
@@ -289,7 +211,7 @@ Một biến thể đỏ thẫm của Tầng 0. Tường, thảm, trần và án
 - **Tầng 11:** Level 11.3 — The Red Light District. Các mục có tên hoặc loại riêng: Asset 11.1 — Private Enterprise; Scene-01.2 — The Refuge; AFTER HOURS; The Headquarters (OPEN); Radio Backrooms' Studio (OPEN). Không tự đổi Asset 11.1 và Scene-01.2 thành sublevel đánh số.
 - **Tầng 12 và Tầng 13:** Chưa có sublevel đánh số trong danh mục nguồn được kiểm tra. Không tự tạo thêm để làm đủ chỉ tiêu.
 
-Đối với **Tầng 0**, danh mục Core còn có 0.01, 0.1, 0.11, 0.2, 0.22, 0.23, 0.3, 0.41, 0.5, 0.66, 0.7, 0.8 và 0.99. Project giữ ưu tiên cho Level 0.1 — Deep Emptiness và Level 0.7 — Claustrophobia, kể cả khi Wiki hiện hành dùng tên khác. Các khu phụ có tên nhưng chưa có rank xác lập gồm Level ε, Dullness, Red Rooms, LS-2, Manila Room và The Torment.
+Đối với **Tầng 0**, registry giữ **Level 0.2 — Remodeled Mess**; các Sub-level 0.x còn lại đã bị loại khỏi registry, canon cảnh và snapshot. Các khu phụ có tên vẫn là metadata tham khảo, Red Rooms là tuyến chơi đã duyệt.
 
 **IMPLEMENTATION LOCK:** Đăng ký node/sublevel chỉ giúp định danh và tra cứu. Chỉ Core gameplay và route resolver được phép chuyển tầng. EntityCore quyết định xuất hiện thực thể. Không sinh exit/spawn/loot từ bất kỳ dòng tham khảo nào của mục này. Các trang Wiki chỉ mới được kiểm tra URL/tác giả không được coi là đã duyệt nội dung; mục OPEN hoặc trimmed/rewrite tiếp tục chưa có gameplay canon.
 
@@ -554,11 +476,7 @@ Các mô tả môi trường ở phần 2A–2C là dữ liệu canon/baseline *
 - `level-12`: [Wikidot](https://backrooms-wiki.wikidot.com/level-12), ghi công: Stretchsterz and Liryn; đối chiếu 08/10/2026.
 - `level-13`: [Wikidot](https://backrooms-wiki.wikidot.com/level-13), ghi công: Greggita Mahayfaio; đối chiếu 08/10/2026.
 - `level-0`: [Wikidot](https://backrooms-wiki.wikidot.com/level-0), ghi công: DivineAtlas, DrAkimoto, RobertGoerman; đối chiếu 08/10/2026.
-- `level-0.1`: [Wikidot](https://backrooms-wiki.wikidot.com/level-0-1), ghi công: CutTheBirch; đối chiếu 08/10/2026. Nội dung mâu thuẫn phải theo canon Project.
 - `level-0.2`: [Wikidot](https://backrooms-wiki.wikidot.com/level-0-2), ghi công: RowanLater; đối chiếu 08/10/2026.
-- `level-0.3`: [Wikidot](https://backrooms-wiki.wikidot.com/level-0-3), ghi công: CursedSliver; đối chiếu 08/10/2026. Nguồn trimmed/đang viết lại, không nâng thành sự kiện game.
-- `level-0.5`: [Wikidot](https://backrooms-wiki.wikidot.com/level-0-5), ghi công: FuneralBouncer (Moose0); đối chiếu 08/10/2026. Nội dung mâu thuẫn phải theo canon Project.
-- `level-0.7`: [Wikidot](https://backrooms-wiki.wikidot.com/level-0-7), ghi công: T-Dragon; đối chiếu 08/10/2026. Nội dung mâu thuẫn phải theo canon Project.
 - `area:0:manila-room`: [Wikidot](https://backrooms-wiki.wikidot.com/manila-room), ghi công: Br Miller & Neptunium; đối chiếu 08/10/2026.
 - `area:0:red-rooms`: [Wikidot](https://backrooms-wiki.wikidot.com/red-rooms), ghi công: scutoid studios; đối chiếu 08/10/2026. Nội dung mâu thuẫn phải theo canon Project.
 - `area:0:the-torment`: [Wikidot](https://backrooms-wiki.wikidot.com/the-torment), ghi công: Sky3; đối chiếu 08/10/2026.

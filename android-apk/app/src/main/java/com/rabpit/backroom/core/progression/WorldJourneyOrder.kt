@@ -59,7 +59,7 @@ object WorldJourneyOrder {
    * This list does NOT authorize gameplay exit links or named-area ranks.
    */
   val GROUPS: List<WorldJourneyGroup> = listOf(
-    WorldJourneyGroup(0, listOf("area:0:epsilon", "area:0:ls-2", "area:0:manila-room", "area:0:the-torment", "level-0.01", "level-0.1", "level-0.11", "level-0.2", "level-0.22", "level-0.23", "level-0.3", "level-0.41", "level-0.5", "level-0.66", "level-0.7", "level-0.8", "level-0.99", "area:0:dullness", "area:0:red-rooms")),
+    WorldJourneyGroup(0, listOf("area:0:epsilon", "area:0:ls-2", "area:0:manila-room", "area:0:the-torment", "level-0.2", "area:0:dullness", "area:0:red-rooms")),
     WorldJourneyGroup(1, listOf("area:1:base-alpha", "area:1:traders-vault", "level-1.1", "level-1.2", "level-1.3", "level-1.5")),
     WorldJourneyGroup(2, listOf("area:2:office-space-el3a", "level-2.1")),
     WorldJourneyGroup(3, listOf("level-3.5")),

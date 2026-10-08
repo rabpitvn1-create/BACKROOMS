@@ -10,7 +10,7 @@ class WorldContentCatalogTest {
     val ids = content.map { it.nodeId }
     assertEquals(ids.size, ids.toSet().size)
     assertEquals(14, WorldContentCatalog.levels.size)
-    assertEquals(36, WorldContentCatalog.sublevels.size)
+    assertEquals(24, WorldContentCatalog.sublevels.size)
     assertEquals(WorldProgressionCore.NODES.map { it.id }.toSet(), ids.toSet())
     assertTrue(content.all { it.title.isNotBlank() })
     content.forEach { assertEquals(it, WorldContentCatalog.entry(it.nodeId)) }
@@ -18,8 +18,8 @@ class WorldContentCatalogTest {
   }
 
   @Test fun projectCanonWinsOverExternalTitlesAndHardLocks() {
-    assertEquals("Claustrophobia", WorldContentCatalog.entry(WorldNodeId("level-0.7"))?.title)
-    assertEquals("Deep Emptiness", WorldContentCatalog.entry(WorldNodeId("level-0.1"))?.title)
+    assertNull(WorldContentCatalog.entry(WorldNodeId("level-0.7")))
+    assertNull(WorldContentCatalog.entry(WorldNodeId("level-0.1")))
     val six = WorldContentCatalog.entry(WorldNodeId("level-6"))
     assertEquals(WorldContentAuthority.PROJECT_CANON, six?.authority)
     assertTrue(six?.environmentBaseline?.contains("tundra") == true)
@@ -54,10 +54,8 @@ class WorldContentCatalogTest {
   }
 
   @Test fun openAndReferenceOnlyEntriesAreNotUpgradedToCanon() {
-    assertEquals(WorldContentAuthority.OPEN,
-      WorldContentCatalog.entry(WorldNodeId("level-0.23"))?.authority)
-    assertEquals(WorldContentAuthority.OPEN,
-      WorldContentCatalog.entry(WorldNodeId("level-0.3"))?.authority)
+    assertNull(WorldContentCatalog.entry(WorldNodeId("level-0.23")))
+    assertNull(WorldContentCatalog.entry(WorldNodeId("level-0.3")))
     assertEquals(WorldContentAuthority.EXTERNAL_REFERENCE,
       WorldContentCatalog.entry(WorldNodeId("level-10.2"))?.authority)
     assertEquals(WorldContentAuthority.OPEN,

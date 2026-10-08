@@ -12,19 +12,7 @@ class WorldJourneyOrderTest {
       "area:0:ls-2",
       "area:0:manila-room",
       "area:0:the-torment",
-      "level-0.01",
-      "level-0.1",
-      "level-0.11",
       "level-0.2",
-      "level-0.22",
-      "level-0.23",
-      "level-0.3",
-      "level-0.41",
-      "level-0.5",
-      "level-0.66",
-      "level-0.7",
-      "level-0.8",
-      "level-0.99",
       "area:0:dullness",
       "area:0:red-rooms",
       "level-1",
@@ -75,7 +63,7 @@ class WorldJourneyOrderTest {
       "level-12",
       "level-13",
     )
-    assertEquals(67, expected.size)
+    assertEquals(55, expected.size)
     assertEquals(expected, WorldJourneyOrder.STOPS.map { it.key })
   }
 
@@ -126,14 +114,13 @@ class WorldJourneyOrderTest {
     assertEquals("level-1", WorldJourneyOrder.nextAfter(zero.last().key)?.key)
     assertEquals("area:0:red-rooms", WorldJourneyOrder.previousBefore("level-1")?.key)
     assertEquals("area:0:epsilon", WorldJourneyOrder.nextAfter("level-0")?.key)
-    assertEquals("level-0.01", WorldJourneyOrder.nextAfter("area:0:the-torment")?.key)
-    assertEquals("level-0.2", WorldJourneyOrder.nextAfter("level-0.11")?.key)
-    assertEquals("level-0.22", WorldJourneyOrder.nextAfter("level-0.2")?.key)
+    assertEquals("level-0.2", WorldJourneyOrder.nextAfter("area:0:the-torment")?.key)
+    assertEquals("area:0:dullness", WorldJourneyOrder.nextAfter("level-0.2")?.key)
   }
 
   @Test fun allStopsHaveUniqueStableKeysAndSuccessors() {
     val stops = WorldJourneyOrder.STOPS
-    assertEquals(67, stops.size)
+    assertEquals(55, stops.size)
     assertEquals(stops.size, stops.map { it.key }.toSet().size)
     for (i in stops.indices) {
       assertEquals(stops[i], WorldJourneyOrder.stop(stops[i].key))
@@ -148,7 +135,7 @@ class WorldJourneyOrderTest {
 
   @Test fun entireRegistryAndNamedAreaCatalogIsCoveredWithoutInventingRanks() {
     val stops = WorldJourneyOrder.STOPS
-    assertEquals(50, stops.count { it.worldNodeId != null })
+    assertEquals(38, stops.count { it.worldNodeId != null })
     assertEquals(17, stops.count { it.worldNodeId == null })
     assertEquals(WorldProgressionCore.NODES.map { it.id }.toSet(),
       stops.mapNotNull { it.worldNodeId }.toSet())
@@ -156,8 +143,7 @@ class WorldJourneyOrderTest {
       .all { it.worldNodeId == null })
     assertEquals(WorldContentAuthority.PROJECT_CANON,
       WorldJourneyOrder.stop("area:0:red-rooms")?.authority)
-    assertEquals(WorldContentAuthority.OPEN,
-      WorldJourneyOrder.stop("level-0.3")?.authority)
+    assertNull(WorldJourneyOrder.stop("level-0.3"))
   }
 
   @Test fun itineraryLookupCannotOpenGameplayExitOrChangeRank() {
@@ -168,8 +154,7 @@ class WorldJourneyOrderTest {
       WorldNodeId("level-0"), WorldNodeId("level-0.01")) is TransitionResult.Rejected)
     assertEquals(0L,
       (WorldProgressionCore.rankOf(WorldNodeId("level-0")) as RankLookup.Known).progressionRank)
-    assertEquals(100_000L,
-      (WorldProgressionCore.rankOf(WorldNodeId("level-0.1")) as RankLookup.Known).progressionRank)
+    assertEquals(RankLookup.Unknown, WorldProgressionCore.rankOf(WorldNodeId("level-0.1")))
     assertEquals(64, WorldProgressionCore.EDGES.size)
   }
 }

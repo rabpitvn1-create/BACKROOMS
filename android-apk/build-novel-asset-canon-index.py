@@ -31,7 +31,7 @@ AUTHORITIES = {
 def verify_world_scene_coverage():
     """All registered journey locations must have a nonempty scene IN the real world asset.
 
-    Derive the expected 50 Level IDs and 17 named areas from the existing Kotlin
+    Derive current registered Level and Sub-level IDs and 17 named areas from Kotlin
     catalog: never maintain a second level list or runtime canon registry.
     """
     kotlin = (ROOT / "app/src/main/java/com/rabpit/backroom/core/progression/WorldContentCatalog.kt").read_text(
@@ -43,13 +43,14 @@ def verify_world_scene_coverage():
         for parent, key in re.findall(r'WorldNamedSection\(([0-9]+), "([a-z0-9-]+)"', kotlin)
     )
     expected = levels | named
-    if len(levels) != 50 or len(named) != 17 or len(expected) != 67:
-        raise AssertionError(f"Unexpected Core world catalog coverage: {len(levels)} + {len(named)}")
+    main_levels = {f"level-{n}" for n in range(14)}
+    if not main_levels.issubset(levels) or len(named) != 17:
+        raise AssertionError(f"Unexpected main-Level or named-area coverage: {len(levels)} + {len(named)}")
     world = (ASSETS / "novel_asset/BACKROOMS_WORLD.md").read_text(encoding="utf-8")
     matches = list(re.finditer(r'<!-- scene-key:([a-z0-9:.-]+) -->', world))
     keys = [match.group(1) for match in matches]
     repeated = [key for key, count in Counter(keys).items() if count > 1]
-    if repeated or len(keys) != 67 or set(keys) != expected:
+    if repeated or len(keys) != len(expected) or set(keys) != expected:
         raise AssertionError(
             f"World scenes mismatch: duplicates={repeated}, "
             f"missing={sorted(expected - set(keys))}, unexpected={sorted(set(keys) - expected)}"
@@ -61,9 +62,9 @@ def verify_world_scene_coverage():
         scene = section[:boundary.start()] if boundary else section
         if len(scene.strip()) < 80:
             raise AssertionError(f"Scene too sparse or empty: {match.group(1)}")
-    if "tundra tối vĩnh viễn" not in world or "Deep Emptiness" not in world or "Claustrophobia" not in world:
+    if "tundra tối vĩnh viễn" not in world:
         raise AssertionError("Project world hard locks lost from canonical environment")
-    print(f"World scene coverage verified: {len(keys)} locations (50 ranked + 17 named)")
+    print(f"World scene coverage verified: {len(keys)} locations ({len(levels)} ranked + {len(named)} named)")
 
 
 def imported_records(manifest):

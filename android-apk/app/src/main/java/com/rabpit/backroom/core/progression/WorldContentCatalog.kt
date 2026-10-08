@@ -52,22 +52,10 @@ object WorldContentCatalog {
     WorldContentEntry(WorldNodeId("level-13"), "The Boiling Frogs", WorldContentAuthority.EXTERNAL_REFERENCE, WorldContentSource.WIKIDOT, "Large apartment complex with repetitive residences and insidious complacency."),
   )
 
-  // 36 numeric sublevels sourced from project canon and the external Wikidot index.
+  // 24 retained numeric Sub-levels in the first cleanup cohort. Only featured routes are playable.
   // Level 4, 12 and 13 currently have no numbered sublevels in the selected sources.
   val sublevels: List<WorldContentEntry> = listOf(
-    WorldContentEntry(WorldNodeId("level-0.01"), "The Exit?", WorldContentAuthority.PROJECT_CANON, WorldContentSource.PROJECT_WORLD, null),
-    WorldContentEntry(WorldNodeId("level-0.1"), "Deep Emptiness", WorldContentAuthority.PROJECT_CANON, WorldContentSource.PROJECT_WORLD, null),
-    WorldContentEntry(WorldNodeId("level-0.11"), "Water Damage", WorldContentAuthority.PROJECT_CANON, WorldContentSource.PROJECT_WORLD, null),
     WorldContentEntry(WorldNodeId("level-0.2"), "Remodeled Mess", WorldContentAuthority.EXTERNAL_REFERENCE, WorldContentSource.WIKIDOT, null),
-    WorldContentEntry(WorldNodeId("level-0.22"), "Fully Remodeled", WorldContentAuthority.PROJECT_CANON, WorldContentSource.PROJECT_WORLD, null),
-    WorldContentEntry(WorldNodeId("level-0.23"), "Half Finished", WorldContentAuthority.OPEN, WorldContentSource.WIKIDOT, null),
-    WorldContentEntry(WorldNodeId("level-0.3"), "The Icy Rooms", WorldContentAuthority.OPEN, WorldContentSource.WIKIDOT, null),
-    WorldContentEntry(WorldNodeId("level-0.41"), "Disease", WorldContentAuthority.PROJECT_CANON, WorldContentSource.PROJECT_WORLD, null),
-    WorldContentEntry(WorldNodeId("level-0.5"), "Aquaclaustrophobic Infirmary", WorldContentAuthority.PROJECT_CANON, WorldContentSource.PROJECT_WORLD, null),
-    WorldContentEntry(WorldNodeId("level-0.66"), "The Lobby Went COLD", WorldContentAuthority.PROJECT_CANON, WorldContentSource.PROJECT_WORLD, null),
-    WorldContentEntry(WorldNodeId("level-0.7"), "Claustrophobia", WorldContentAuthority.PROJECT_CANON, WorldContentSource.PROJECT_WORLD, null),
-    WorldContentEntry(WorldNodeId("level-0.8"), "Inundation", WorldContentAuthority.PROJECT_CANON, WorldContentSource.PROJECT_WORLD, null),
-    WorldContentEntry(WorldNodeId("level-0.99"), "Deeper Regions", WorldContentAuthority.PROJECT_CANON, WorldContentSource.PROJECT_WORLD, null),
     WorldContentEntry(WorldNodeId("level-1.1"), "Corrupted Corridor", WorldContentAuthority.OPEN, WorldContentSource.WIKIDOT, null),
     WorldContentEntry(WorldNodeId("level-1.2"), "Concrete Garden", WorldContentAuthority.EXTERNAL_REFERENCE, WorldContentSource.WIKIDOT, null),
     WorldContentEntry(WorldNodeId("level-1.3"), "Malignance", WorldContentAuthority.EXTERNAL_REFERENCE, WorldContentSource.WIKIDOT, null),
