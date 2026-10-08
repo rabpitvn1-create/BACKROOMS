@@ -5,7 +5,7 @@ package com.rabpit.backroom.core.progression
  *
  * Scope phases 1-3: detailed summaries for nine Level-0 stops and thirteen full Levels;
  * linked metadata for 34 more stops; remaining Project-only sources are clearly identified.
- * status. No live scraping, user save writes, exit edges, Entity/loot grants,
+ * No live scraping, user save writes, exit edges, Entity/loot grants,
  * hazard rolls, or Google/Gemini authority are implemented by this registry.
  *
  * Wikidot prose is mutable, in-universe reports are not proof of mechanics,
