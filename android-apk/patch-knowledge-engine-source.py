@@ -96,7 +96,14 @@ if 'flags?.opt("entityRegistry")' in text or 'current entity registry tag' in te
 old = '''      return iris.contains("separated") || syvial.contains("separated") ||
         (presentActors.size == 1 && state.optInt("turn", 1) <= 3)
 '''
-new = '''      return iris.contains("separated") || syvial.contains("separated")
+new = '''      val player = state.optJSONObject("player")
+      val playerId = normalize(player?.optString("id", "").orEmpty())
+      val playerName = normalize(player?.optString("name", "").orEmpty())
+      val campaignTitle = normalize(state.optString("title", ""))
+      if (playerId == "cao_minh" || playerName == "cao minh" || "cao minh" in campaignTitle) {
+        return false
+      }
+      return iris.contains("separated") || syvial.contains("separated")
 '''
 if old not in text:
     raise RuntimeError("Main campaign separation heuristic anchor not found")
@@ -770,6 +777,32 @@ class KnowledgeContextEngineP0Test {
         dbJson, scenario.stateJson, scenario.action, scenario.rollsJson
       )
       assertEquals("${scenario.name} packet changed when trace enabled", plain, traced.packet)
+    }
+  }
+
+  @Test fun caoMinhCampaignDoesNotActivateLegacySeparationEvenWithStaleFlags() {
+    val legacy = separationStateJson(true)
+    val original = KnowledgeContextEngine.buildForTestWithTrace(
+      dbJson, legacy, "Quan sát hành lang.", "{}")
+    assertTrue(proposed(original, "STORY.MAIN.OBJECTIVE", "active main-campaign objective"))
+    assertTrue(proposed(original, "STORY.MAIN.SEPARATION", "active separation continuity"))
+
+    val explicitCaoStates = listOf(
+      JSONObject(legacy).put("player", JSONObject().put("id", "cao_minh")),
+      JSONObject(legacy).put("player", JSONObject().put("name", "Cao Minh")),
+      JSONObject(legacy).put("title", "MAIN_BACKROOMS - Cao Minh")
+    )
+    explicitCaoStates.forEach { state ->
+      val result = KnowledgeContextEngine.buildForTestWithTrace(
+        dbJson, state.toString(), "Quan sát hành lang.", "{}")
+      assertFalse("Legacy objective activated for Cao Minh state: " + state,
+        proposed(result, "STORY.MAIN.OBJECTIVE"))
+      assertFalse("Legacy separation activated for Cao Minh state: " + state,
+        proposed(result, "STORY.MAIN.SEPARATION"))
+      assertFalse(result.packet.contains("<STORY.MAIN.OBJECTIVE>"))
+      assertFalse(result.packet.contains("<STORY.MAIN.SEPARATION>"))
+      assertTrue(result.packet.contains("<STORY.CAO.PROLOGUE_HANDOFF>"))
+      assertTrue(result.packet.contains("<CHAR.LUC_TRAM.IDENTITY>"))
     }
   }
 
