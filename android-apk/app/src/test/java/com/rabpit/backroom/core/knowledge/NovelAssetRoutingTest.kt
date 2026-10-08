@@ -15,8 +15,8 @@ class NovelAssetRoutingTest {
       Path.of("app/src/main/assets/knowledge/knowledge_db.json"),
       Path.of("android-apk/app/src/main/assets/knowledge/knowledge_db.json")
     )
-    Files.readString(options.firstOrNull { Files.isRegularFile(it) }
-      ?: error("Missing source-backed knowledge database"))
+    String(Files.readAllBytes(options.firstOrNull { Files.isRegularFile(it) }
+      ?: error("Missing source-backed knowledge database")), Charsets.UTF_8)
   }
 
   private fun packet(action: String, known: Boolean = false, present: Boolean = false): String {
