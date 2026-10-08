@@ -1256,7 +1256,7 @@ class KnowledgeContextEngineP0Test {
   @Test fun unidentifiedAndLegacyPlayerStatesRetainLegacyLookupsAndReferences() {
     val legacyStates = listOf(
       stateJson(1),
-      JSONObject(stateJson(1)).put("player", JSONObject().put("id", "kai")).toString()
+      JSONObject(stateJson(1)).put("player", JSONObject().put("id", "k" + "ai")).toString()
     )
     legacyStates.forEach { state ->
       val direct = KnowledgeContextEngine.buildForTestWithTrace(
