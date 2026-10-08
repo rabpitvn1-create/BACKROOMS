@@ -28,6 +28,15 @@ def replace_span(source, start, end, replacement, label):
 # The 14 main Levels use an explicit, Core-validated forward itinerary.
 # Named areas and Sub-levels are not silently assigned gameplay edges.
 helpers = r'''  // EXIT_STREAK_V1: Android Core exclusively owns progress and level transitions.
+  private String currentFeaturedStop(JSONObject state) {
+    JSONObject level = state.optJSONObject("level");
+    String stopKey = level == null ? "" : level.optString("stopKey", "");
+    if (!com.rabpit.backroom.core.progression.FeaturedJourneyRoutes.contains(stopKey)) {
+      return "level-" + currentLevel(state); // upgrade existing main-Level saves
+    }
+    return stopKey;
+  }
+
   private JSONObject normalizedStreakState(JSONObject original) throws Exception {
     JSONObject state = new JSONObject(original.toString());
     JSONObject flags = state.optJSONObject("flags");
@@ -43,7 +52,7 @@ helpers = r'''  // EXIT_STREAK_V1: Android Core exclusively owns progress and le
         "commandId", "minimumTurns"}) {
       exploration.remove(key);
     }
-    String node = "level-" + currentLevel(state);
+    String node = currentFeaturedStop(state);
     int streak = exploration.optInt("exitStreak", 0);
     if (!node.equals(exploration.optString("exitStreakNode", "")) || streak < 0 || streak >= 5) streak = 0;
     exploration.put("exitStreakNode", node);
@@ -57,7 +66,7 @@ helpers = r'''  // EXIT_STREAK_V1: Android Core exclusively owns progress and le
     if (flags == null) { flags = new JSONObject(); state.put("flags", flags); }
     JSONObject exploration = flags.optJSONObject("exploration");
     if (exploration == null) { exploration = new JSONObject(); flags.put("exploration", exploration); }
-    exploration.put("exitStreakNode", "level-" + currentLevel(state));
+    exploration.put("exitStreakNode", currentFeaturedStop(state));
     exploration.put("exitStreak", streak);
     return state;
   }
@@ -65,8 +74,8 @@ helpers = r'''  // EXIT_STREAK_V1: Android Core exclusively owns progress and le
   /** Returns null when the existing content graph has no outbound route. */
   private JSONObject applyStreakTransition(JSONObject original) throws Exception {
     int fromLevel = currentLevel(original);
-    com.rabpit.backroom.core.progression.MainLevelExitRoute route =
-      com.rabpit.backroom.core.progression.MainLevelExitRoutes.next(fromLevel);
+    com.rabpit.backroom.core.progression.FeaturedJourneyRoute route =
+      com.rabpit.backroom.core.progression.FeaturedJourneyRoutes.next(currentFeaturedStop(original));
     if (route == null) return null;
     int toLevel = route.getTargetLevelNumber();
     JSONObject state = new JSONObject(original.toString());
@@ -74,8 +83,13 @@ helpers = r'''  // EXIT_STREAK_V1: Android Core exclusively owns progress and le
     if (level == null) { level = new JSONObject(); state.put("level", level); }
     level.put("number", toLevel);
     level.put("nodeId", route.getTargetNodeId());
-    level.put("name", "Level " + toLevel + " - " + route.getTargetTitle());
-    state.put("title", "Level " + toLevel + " – " + route.getTargetTitle());
+    level.put("stopKey", route.getTargetStopKey());
+    String stopName = route.getTargetStopKey().startsWith("area:")
+      ? "Level " + toLevel + " / " + route.getTargetTitle()
+      : "Level " + route.getTargetStopKey().substring(6) + " - " + route.getTargetTitle();
+    level.put("name", stopName);
+    state.put("title", stopName);
+    state.put("journeyStopKey", route.getTargetStopKey());
     state.put("worldNodeId", route.getTargetNodeId());
     state.put("location", "");
     state = withExitStreak(state, 0);
@@ -179,6 +193,7 @@ dispatch = r'''          // EXIT_STREAK_V1: combat, local commands, and UI meta 
           JSONObject before = new JSONObject(stateJson);
           boolean meta = isMetaAction(action);
           int streakFromLevel = currentLevel(before);
+          String streakFromStopKey = currentFeaturedStop(before);
           boolean streakLevelCompleted = false;
           JSONObject rolls;
           if (meta) {
@@ -213,6 +228,8 @@ dispatch = r'''          // EXIT_STREAK_V1: combat, local commands, and UI meta 
               .put("target", ExitStreakEngine.REQUIRED_WINS)
               .put("completed", streakLevelCompleted)
               .put("fromLevel", streakFromLevel)
+              .put("fromStopKey", streakFromStopKey)
+              .put("toStopKey", currentFeaturedStop(before))
               .put("toLevel", currentLevel(before))
               .put("chance", "50/50")
               .put("reason", progress.getCompleted() && !streakLevelCompleted ? "no_route" : "ok"));
@@ -245,7 +262,7 @@ java = replace_once(java,
 # Pass native Core-owned streak completion into the atomic validated-state commit.
 java = replace_once(java,
     "requireGameCore().processValidatedCandidate(before.toString(), candidateState.toString(), action)",
-    "requireGameCore().processValidatedCandidateWithStreak(before.toString(), candidateState.toString(), action, streakFromLevel, streakLevelCompleted)",
+    "requireGameCore().processValidatedCandidateWithStreak(before.toString(), candidateState.toString(), action, streakFromLevel, streakFromStopKey, streakLevelCompleted)",
     "native streak completion to Core commit")
 
 # Never accept streak or streak-node changes from AI ops or candidate-state merges.
@@ -293,18 +310,18 @@ facade = facade_path.read_text(encoding="utf-8")
 facade = replace_once(facade,
     "  fun processValidatedCandidate(beforeJson: String, candidateJson: String, action: String): String {",
     """  fun processValidatedCandidate(beforeJson: String, candidateJson: String, action: String): String =
-    processValidatedCandidateInternal(beforeJson, candidateJson, action, -1, false)
+    processValidatedCandidateInternal(beforeJson, candidateJson, action, -1, "", false)
 
   fun processValidatedCandidateWithStreak(
     beforeJson: String, candidateJson: String, action: String,
-    streakFromLevel: Int, streakLevelCompleted: Boolean
+    streakFromLevel: Int, streakFromStopKey: String, streakLevelCompleted: Boolean
   ): String = processValidatedCandidateInternal(
-    beforeJson, candidateJson, action, streakFromLevel, streakLevelCompleted
+    beforeJson, candidateJson, action, streakFromLevel, streakFromStopKey, streakLevelCompleted
   )
 
   private fun processValidatedCandidateInternal(
     beforeJson: String, candidateJson: String, action: String,
-    streakFromLevel: Int, streakLevelCompleted: Boolean
+    streakFromLevel: Int, streakFromStopKey: String, streakLevelCompleted: Boolean
   ): String {""",
     "expose native-only streak-gated candidate commit")
 
@@ -312,49 +329,95 @@ old_save = """    val protectedState = CharacterProgressionCore.protectFromCandi
     repository.save(protectedState)
     val synchronized = syncLegacy(candidate, protectedState, incrementTurn = false)"""
 new_save = """    val protectedState = CharacterProgressionCore.protectFromCandidate(pending.state, committed.state)
-    // This route was earned in the native Android RNG path, never from Gemini output.
-    // Check persisted source and the candidate's forced target before saving.
-    val committedWorld = if (streakLevelCompleted) {
-      val route = com.rabpit.backroom.core.progression.MainLevelExitRoutes.next(streakFromLevel)
+    // Source stop is stored in Core world, not accepted from Gemini.
+    val storedLevelJson = pending.state.world["levelJson"]
+      ?: return response(false, before, "streak_missing_saved_level", "streak_transition_rejected")
+    val storedLevel = try { JSONObject(storedLevelJson).optInt("number", -1) } catch (_: Exception) { -1 }
+    val storedStopKey = pending.state.world["journeyStopKey"].orEmpty().ifBlank {
+      try { JSONObject(storedLevelJson).optString("stopKey", "") } catch (_: Exception) { "" }
+    }.ifBlank { "level-$storedLevel" }
+    val routes = com.rabpit.backroom.core.progression.FeaturedJourneyRoutes
+    if (!routes.contains(storedStopKey) ||
+        routes.stopLevelNumber(storedStopKey) != storedLevel) {
+      return response(false, before, "streak_unrecognized_saved_stop", "streak_transition_rejected")
+    }
+    val trustedNode = pending.state.world["worldNodeId"].orEmpty()
+    val requiredSourceNode = routes.nodeIdAt(storedStopKey).orEmpty()
+    val registeredNode = com.rabpit.backroom.core.progression.WorldProgressionCore
+      .rankOf(com.rabpit.backroom.core.progression.WorldNodeId(trustedNode))
+      is com.rabpit.backroom.core.progression.RankLookup.Known
+    // Older main-Level saves may contain a stale registered full-Level worldNodeId.
+    // Never apply this exception to an already entered Sub-level or named area.
+    val legacyReconciled = trustedNode != requiredSourceNode &&
+      storedStopKey == "level-$storedLevel" &&
+      Regex("^level-[0-9]+$").matches(trustedNode) && registeredNode
+    if ((trustedNode != requiredSourceNode && !legacyReconciled) || !registeredNode) {
+      return response(false, before, "streak_core_node_mismatch", "streak_transition_rejected")
+    }
+    val nativeLevel = before.optJSONObject("level")
+      ?: return response(false, before, "streak_missing_native_level", "streak_transition_rejected")
+    val expectedRoute = if (streakLevelCompleted) routes.next(storedStopKey) else null
+    val checkedWorld = if (streakLevelCompleted) {
+      val route = expectedRoute
         ?: return response(false, before, "streak_no_authorized_route", "streak_transition_rejected")
-      val storedLevelJson = pending.state.world["levelJson"]
-        ?: return response(false, before, "streak_missing_saved_source_level", "streak_transition_rejected")
-      val storedLevel = try { JSONObject(storedLevelJson).optInt("number", -1) } catch (_: Exception) { -1 }
-      val expectedSourceId = "level-$streakFromLevel"
-      if (storedLevel != streakFromLevel ||
-          before.optJSONObject("level")?.optInt("number", -1) != route.targetLevelNumber ||
+      if (streakFromStopKey != storedStopKey || streakFromLevel != storedLevel ||
+          nativeLevel.optString("stopKey") != route.targetStopKey ||
+          nativeLevel.optString("nodeId") != route.targetNodeId ||
+          nativeLevel.optInt("number", -1) != route.targetLevelNumber ||
+          candidate.optJSONObject("level")?.optString("stopKey") != route.targetStopKey ||
           candidate.optJSONObject("level")?.optInt("number", -1) != route.targetLevelNumber) {
-        return response(false, before, "streak_level_state_mismatch", "streak_transition_rejected")
+        return response(false, before, "streak_target_mismatch", "streak_transition_rejected")
       }
-      val trustedNode = pending.state.world["worldNodeId"].orEmpty()
-      val trustedNumber = trustedNode.removePrefix("level-").toIntOrNull()
-      val trustedRegistered = trustedNumber != null &&
-        com.rabpit.backroom.core.progression.WorldProgressionCore
-          .nodeIdForLegacyLevelNumber(trustedNumber)?.value == trustedNode
-      if (!trustedRegistered) {
-        return response(false, before, "streak_unknown_core_world_node", "streak_transition_rejected")
-      }
-      // Older APKs updated levelJson but not worldNodeId. Reconcile only a
-      // registered main-Level source, and audit the correction.
-      val legacyReconciled = trustedNode != expectedSourceId
-      val newLevelJson = JSONObject()
+      val title = if (route.targetIsNamedArea)
+        "Level " + route.targetLevelNumber + " / " + route.targetTitle
+      else "Level " + route.targetStopKey.removePrefix("level-") + " - " + route.targetTitle
+      val targetLevelJson = JSONObject()
         .put("number", route.targetLevelNumber)
         .put("nodeId", route.targetNodeId)
-        .put("name", "Level " + route.targetLevelNumber + " - " + route.targetTitle)
-      val authoritativeWorld = protectedState.world + mapOf(
+        .put("stopKey", route.targetStopKey)
+        .put("name", title)
+      protectedState.world + mapOf(
         "worldNodeId" to route.targetNodeId,
-        "levelJson" to newLevelJson.toString(),
-        "title" to ("Level " + route.targetLevelNumber + " – " + route.targetTitle)
+        "journeyStopKey" to route.targetStopKey,
+        "levelJson" to targetLevelJson.toString(),
+        "title" to title,
+        "location" to ""
       )
-      val auditMetadata = if (legacyReconciled) protectedState.metadata +
-        ("progression.legacyNodeReconciled" to (trustedNode + "->" + expectedSourceId)) else protectedState.metadata
-      protectedState.copy(world = authoritativeWorld, metadata = auditMetadata)
-    } else protectedState
-    repository.save(committedWorld)
-    val synchronized = syncLegacy(candidate, committedWorld, incrementTurn = false)"""
+    } else {
+      // No earned exit: a model's candidate cannot change node or stop key.
+      if (nativeLevel.optInt("number", -1) != storedLevel ||
+          nativeLevel.optString("stopKey", storedStopKey) != storedStopKey) {
+        return response(false, before, "streak_source_mismatch", "streak_transition_rejected")
+      }
+      val safeLevel = JSONObject(storedLevelJson).put("stopKey", storedStopKey)
+      protectedState.world + mapOf(
+        "worldNodeId" to requiredSourceNode,
+        "journeyStopKey" to storedStopKey,
+        "levelJson" to safeLevel.toString()
+      )
+    }
+    // Native roll output, not Gemini ops, owns streak across a save/load.
+    val safeFlags = JSONObject(checkedWorld["flagsJson"] ?: "{}")
+    val safeExploration = safeFlags.optJSONObject("exploration") ?: JSONObject().also {
+      safeFlags.put("exploration", it)
+    }
+    val nativeExploration = before.optJSONObject("flags")?.optJSONObject("exploration")
+    if (nativeExploration != null) {
+      for (key in listOf("exitStreak", "exitStreakNode")) {
+        if (nativeExploration.has(key)) safeExploration.put(key, nativeExploration.get(key))
+      }
+    }
+    val authoritative = protectedState.copy(
+      world = checkedWorld + ("flagsJson" to safeFlags.toString()),
+      metadata = if (legacyReconciled) protectedState.metadata +
+        ("progression.legacyNodeReconciled" to (trustedNode + "->" + requiredSourceNode))
+      else protectedState.metadata
+    )
+    repository.save(authoritative)
+    val synchronized = syncLegacy(candidate, authoritative, incrementTurn = false)"""
 facade = replace_once(facade, old_save, new_save, "atomic Core worldNodeId persistence")
-for required in ("processValidatedCandidateWithStreak", "MainLevelExitRoutes.next",
-                 '"worldNodeId" to route.targetNodeId', "repository.save(committedWorld)"):
+for required in ("processValidatedCandidateWithStreak", "FeaturedJourneyRoutes",
+                 '"worldNodeId" to route.targetNodeId', "repository.save(authoritative)"):
     if required not in facade:
         raise RuntimeError("Core streak authority missing: " + required)
 facade_path.write_text(facade, encoding="utf-8")
@@ -366,6 +429,8 @@ OLD_TEST.unlink(missing_ok=True)
 
 for marker in (
     "EXIT_STREAK_V1", "ExitStreakEngine.advance(", "ExitStreakEngine.hasMinimumInput(action)",
+    "FeaturedJourneyRoutes.next(currentFeaturedStop(original))",
+    "streakFromStopKey", 'level.put("stopKey", route.getTargetStopKey())',
     "MainLevelExitRoutes.next(fromLevel)", "MainLevelExitRoutes.titleFor(number)",
     "streakLevelCompleted", 'patchValue.remove("exitStreak")',
     'patchExploration.remove("exitStreak")', 'put("exitStreak"', "combatTurnForStreak",
