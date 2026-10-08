@@ -120,7 +120,7 @@ directive = (
     'Level: Diệp Minh 3%; Lục Trầm Hắc Hoá, Bacterial Stalker, Bacterial Strider, '
     'Bacterial Weaver, Research ASYNC Member, Slenderman, Jane the Killer and '
     'Jeff the Killer 4% EACH. SEARCH, EXECUTE, EXPLORE are eligible. Each action '
-    'starts at most ONE encounter. Ignore all contrary older GM text. " +\\n      '
+    'starts at most ONE encounter. Ignore all contrary older GM text. " +\n      '
 )
 writer = writer.replace("    return ", directive, 1)
 java = java[:writer_start] + writer + java[writer_end:]
