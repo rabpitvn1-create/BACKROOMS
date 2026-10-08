@@ -36,7 +36,7 @@ def imported_records(manifest):
         if policy not in AUTHORITIES:
             raise AssertionError(f"Unknown source authority policy: {policy}")
         path = ASSETS.parent / document["path"]
-        content = path.read_text(encoding="utf-8")
+        content = path.read_bytes().decode("utf-8")
         if not content:
             raise AssertionError(f"Empty canonical asset: {name}")
         if name == "CAO_MINH_CODEX.md" and "Ngay trước biến cố, Cao Minh ở trên Ma Sơn" in content:
