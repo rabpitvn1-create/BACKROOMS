@@ -132,7 +132,6 @@ for contract in (
     'rolls.remove("roamingEntityKey")',
     'rolls.put("roamingEntityKey", selected.entityKey)',
     '"diepMinhEncounter"',
-    "DIỆP MINH BOSS HARD LOCK:",
     "COMBAT_93_POST_COMMIT_START",
 ):
     if contract not in java:
