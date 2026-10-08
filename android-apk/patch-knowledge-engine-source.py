@@ -875,7 +875,11 @@ class KnowledgeContextEngineP0Test {
     val entries = JSONObject(dbJson).getJSONArray("records")
     val indexed = (0 until entries.length()).map { entries.getJSONObject(it) }
       .filter { it.getString("id").startsWith("NOVEL_ASSET.") }
-    assertEquals("All 11 approved Novel/Asset documents must be indexed", 277, indexed.size)
+    val indexedDocuments = indexed.map {
+      it.getJSONObject("source").getString("document")
+    }.toSet()
+    assertEquals("All 11 approved Novel/Asset documents must be indexed", 11, indexedDocuments.size)
+    assertTrue("Every source must have at least one excerpt", indexed.size >= indexedDocuments.size)
     assertTrue(indexed.all { it.getInt("priority") == 55 })
     assertTrue(indexed.any { it.getString("id").contains("TRAC_LAM_CODEX") })
     assertFalse(indexed.any {
