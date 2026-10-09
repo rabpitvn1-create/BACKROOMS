@@ -1,5 +1,7 @@
 package com.rabpit.backroom.core.companion
 
+import com.rabpit.backroom.core.Combat93Runtime
+import com.rabpit.backroom.core.CombatRuntime
 import com.rabpit.backroom.core.GameState
 import com.rabpit.backroom.core.ExitStreakEngine
 import com.rabpit.backroom.core.progression.FeaturedJourneyRoutes
@@ -62,6 +64,14 @@ object CompanionWaitAuthorizer {
     val check = CompanionDecisionBinding.verifyWait(persistedSnapshot, state, turn,
       slotId, requestId, expectedRevision, pinnedPolicy, exactPlayerInput)
     if (!check.accepted) return Gate(error = check.error ?: "wait_binding_rejected")
+    // WAIT is an ordinary exploration turn; never force combatTurn=false for a
+    // persisted encounter. Check both native combat and its migration source.
+    val combatActive = try {
+      Combat93Runtime.active(state) || CombatRuntime.active(state) != null
+    } catch (_: RuntimeException) {
+      return Gate(error = "wait_combat_invalid")
+    }
+    if (combatActive) return Gate(error = "wait_combat_active")
     val source = state.world["journeyStopKey"] ?: return Gate(error = "wait_source_missing")
     val routes = FeaturedJourneyRoutes
     val level = routes.stopLevelNumber(source) ?: return Gate(error = "wait_source_unknown")
@@ -73,7 +83,8 @@ object CompanionWaitAuthorizer {
       return Gate(error = "wait_level_invalid")
     }
     val number = savedLevel.opt("number")
-    if (number !is Number || number.toInt() != level ||
+    if (number !is Number ||
+        number.toString().toBigDecimalOrNull()?.compareTo(level.toBigDecimal()) != 0 ||
         savedLevel.optString("stopKey") != source ||
         savedLevel.optString("nodeId") != node)
       return Gate(error = "wait_saved_source_mismatch")
