@@ -42,6 +42,10 @@ internal object ObservationVerifier {
 
   fun verify(input: BatchInput, stored: List<StoredRow>) {
     require(input.event.publication == Publication.PERCEPTIBLE) { "verifier_private_event" }
+    require(input.scope == input.event.scope) { "verifier_scope_mismatch" }
+    require(stored.map { it.observationId }.toSet().size == stored.size) { "verifier_duplicate_row" }
+    val projection = PublicEventProjection.project(input.eventType, input.nativePayload)
+      ?: throw IllegalArgumentException("verifier_projection_denied")
     // 1. Re-derive facts from the snapshot via the adapter (never trust caller facts).
     val facts = input.actorIds.map { actorId ->
       NativePerceptionAdapter.perceive(input.state, input.scope, actorId)
@@ -50,8 +54,6 @@ internal object ObservationVerifier {
     val eligible = CompanionExposurePolicy.eligible(input.event, facts)
     // 3. Rebuild expected candidates (projection recomputed from the batch payload).
     val expected = eligible.map { e ->
-      val projection = PublicEventProjection.project(input.eventType, input.nativePayload)
-        ?: throw IllegalArgumentException("verifier_projection_denied")
       ObservationCandidate.fromEligible(e, projection)
     }
     // 4. Exact match: every stored row must equal the rebuild, and vice versa.

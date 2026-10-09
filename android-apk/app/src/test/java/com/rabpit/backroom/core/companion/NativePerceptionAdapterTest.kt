@@ -30,14 +30,14 @@ class NativePerceptionAdapterTest {
   private fun actor(id: String, presence: CharacterPresence = CharacterPresence.ACTIVE) =
     CharacterState(id = id, name = id, presence = presence)
 
-  @Test fun activeProtagonistAtSceneGetsAllYes() {
+  @Test fun activePartyMemberDoesNotProvePerception() {
     val s = state(mapOf("cao_minh" to actor("cao_minh")))
     val f = NativePerceptionAdapter.perceive(s, scope(), "cao_minh")
-    assertEquals(Fact.YES, f.sceneMember)
-    assertEquals(Fact.YES, f.inReach)
-    assertEquals(Fact.YES, f.conscious)
-    assertEquals(Fact.YES, f.visible)
-    assertEquals(Fact.YES, f.audible)
+    assertEquals(Fact.UNKNOWN, f.sceneMember)
+    assertEquals(Fact.UNKNOWN, f.inReach)
+    assertEquals(Fact.UNKNOWN, f.conscious)
+    assertEquals(Fact.UNKNOWN, f.visible)
+    assertEquals(Fact.UNKNOWN, f.audible)
   }
 
   @Test fun deadActorDenied() {
@@ -97,9 +97,7 @@ class NativePerceptionAdapterTest {
       NativePerceptionAdapter.perceive(s, sc, "luc_tram"))
     val eligible = CompanionExposurePolicy.eligible(
       Event(sc, Publication.PERCEPTIBLE, setOf(Channel.SEEN, Channel.HEARD)), facts)
-    assertEquals(2, eligible.size)
-    assertTrue(eligible.all { it.actorId == "cao_minh" })
-    assertEquals(setOf(Channel.SEEN, Channel.HEARD), eligible.map { it.channel }.toSet())
+    assertTrue("party membership grants no perception authority", eligible.isEmpty())
   }
 
   @Test fun sceneKeyPrefersWorldNodeId() {
@@ -111,7 +109,9 @@ class NativePerceptionAdapterTest {
   @Test fun observationCandidateIsDeterministicAndImmutable() {
     val s = state(mapOf("cao_minh" to actor("cao_minh")))
     val sc = scope()
-    val facts = listOf(NativePerceptionAdapter.perceive(s, sc, "cao_minh"))
+    // Policy-positive fixture only; not evidence from the incomplete adapter.
+    val facts = listOf(CompanionExposurePolicy.NativeFacts(sc, "cao_minh",
+      Fact.YES, Fact.YES, Fact.YES, Fact.YES, Fact.YES))
     val eligible = CompanionExposurePolicy.eligible(
       Event(sc, Publication.PERCEPTIBLE, setOf(Channel.SEEN)), facts).single()
     val projection = PublicEventProjection.project("WAIT_COMPLETED",
