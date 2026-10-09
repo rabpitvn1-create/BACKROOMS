@@ -46,11 +46,15 @@ public final class CompanionStorageInstrumentation extends Instrumentation {
         });
         throw new AssertionError("atomic process kill returned");
       }
-      if ("during_commit_recover".equals(mode) || "after_commit_recover".equals(mode))
+      if ("benchmark".equals(mode))
+        run("native_backend_benchmark", () -> CompanionWaitStorageFixtures.benchmark(getTargetContext(), directory,
+          Integer.parseInt(arguments.getString("turns","1000")), message -> { Bundle status=new Bundle(); status.putString("stream",message+"\n"); sendStatus(0,status); }));
+      else if ("during_commit_recover".equals(mode) || "after_commit_recover".equals(mode))
         run("atomic_commit_process_recovery", () -> CompanionWaitStorageFixtures.recoverNativeCommitCrash(
           getTargetContext(), directory, "after_commit_recover".equals(mode)));
       else if ("recover".equals(mode)) run("process_kill_rollback_and_recovery", this::recoverProcessCrash);
       else if ("suite".equals(mode)) {
+        run("test_driver_combat_publication", () -> CompanionWaitStorageFixtures.testDriverCombatPublication(directory));
         run("native_atomic_wait_commit", () -> CompanionWaitStorageFixtures.nativeAtomicCommit(directory));
         run("native_ambiguous_commit_readback", () -> CompanionWaitStorageFixtures.nativeAmbiguousCommit(directory));
         run("concurrent_native_wait_commit", () -> CompanionWaitStorageFixtures.concurrentNativeCommit(directory));
@@ -192,6 +196,8 @@ public final class CompanionStorageInstrumentation extends Instrumentation {
     CompanionSlotStore s = fresh(); String id = s.slotId; File file = s.fileForTest(); s.close();
     reject(() -> CompanionSlotStore.openIn(directory, id, "wrong-policy")); check(file.isFile());
     try (SQLiteDatabase db = raw(file)) { db.setVersion(99); }
+    reject(() -> CompanionSlotStore.openIn(directory, id, "p1")); check(file.isFile());
+    try (SQLiteDatabase db = raw(file)) { db.setVersion(1); }
     reject(() -> CompanionSlotStore.openIn(directory, id, "p1")); check(file.isFile());
     try (SQLiteDatabase db = raw(file)) { db.setVersion(CompanionSlotStore.FORMAT_VERSION); }
     s = CompanionSlotStore.openIn(directory, id, "p1"); begin(s); s.close();
