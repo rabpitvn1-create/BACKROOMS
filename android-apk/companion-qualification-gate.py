@@ -18,7 +18,7 @@ KINDS = {"no_op", "dialogue", "event", "retrieval", "retry", "crash"}
 STAGES = {"admission", "context", "provider", "commit", "reload"}
 CRASHES = {"before_commit", "after_commit", "ambiguous_readback", "retry", "cross_slot"}
 OUTCOMES = {
-    "event17_receipt17_no_reroll": {"event_id": 17, "receipt_event_id": 17, "rng_rerolls": 0},
+    "event17_receipt17_no_reroll": {"event_revision": 17, "receipt_revision": 17, "rng_rerolls": 0},
     "actor_private_promise": {"owner_can_read": True, "other_actor_can_read": False, "other_slot_can_read": False},
     "correction_reload": {"superseded_claim_returned": False, "corrected_claim_survives_reload": True},
     "before_commit": {"committed": False, "partial_rows": 0},

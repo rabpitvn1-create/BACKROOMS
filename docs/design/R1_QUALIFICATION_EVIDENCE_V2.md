@@ -161,8 +161,8 @@ while an integrated-runtime requirement is missing. A report explaining
 ## Relationship to #517 backend audit
 
 The #517 `native_backend_audit.v2` format is deliberately different: it measures
-native WAIT storage staging (`admit`, `lock`, `reserve`, `prepare`, `commit`,
-`receipt_retry`), SQLite `total_changes` deltas, inserted table rows, sidecar file
+native WAIT storage staging (`context_decode`, `admit`, `lock`, `reserve`, `prepare`, `commit`,
+`receipt_retry`), SQLite `total_changes` deltas, sidecar file
 sizes, and reopen time. Sidecar bytes are file sizes, not physical I/O traffic.
 SQL statement counts and physical I/O are explicitly `NOT_MEASURED` when no
 instrumentation exists. Its empty actor-observation/memory counts are
