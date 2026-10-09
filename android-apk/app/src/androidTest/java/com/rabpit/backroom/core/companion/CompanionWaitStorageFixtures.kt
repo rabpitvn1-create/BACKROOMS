@@ -139,6 +139,18 @@ object CompanionWaitStorageFixtures {
         val reserved = CompanionWaitCapture.reserve(store, "batch", 0, INPUT) { if (zero) 0 else it - 1 }
         val first = CompanionWaitBatch.prepare(store, "batch", 0, INPUT)
         val second = CompanionWaitBatch.prepare(store, "batch", 0, INPUT)
+        val nativeSource=NativeObservationSource.VerifiedEvent.read(store,"batch",0,INPUT,first.events.first().id)
+        check(nativeSource.scope.slotId == store.slotId && nativeSource.scope.turnId == first.turnId && nativeSource.scope.revision == 1L)
+        check(nativeSource.scope.sceneId == "level-0")
+        check(nativeSource.facts("cao_minh").conscious == CompanionExposurePolicy.Fact.UNKNOWN)
+        check(nativeSource.candidates(listOf("cao_minh","luc_tram")).isEmpty())
+        val originalProjection=nativeSource.publicProjection()!!
+        originalProjection.put("location","forged")
+        check(nativeSource.publicProjection()!!.getString("location") == "present-scene")
+        rejects("observation_event_missing") { NativeObservationSource.VerifiedEvent.read(store,"batch",0,INPUT,"forged") }
+        rejects("input_mismatch") { NativeObservationSource.VerifiedEvent.read(store,"batch",0,INPUT+"!",first.events.first().id) }
+        rejects("revision_mismatch") { NativeObservationSource.VerifiedEvent.read(store,"batch",1,INPUT,first.events.first().id) }
+
         check(first.afterSnapshot == second.afterSnapshot && first.manifest == second.manifest)
         val after = GameStateCodec.decode(first.afterSnapshot)
         check(after.time.elapsedSubjectiveMinutes == 30L && ActionRuntime.activeSession(after) == null)

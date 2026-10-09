@@ -115,7 +115,7 @@ class NativePerceptionAdapterTest {
     val eligible = CompanionExposurePolicy.eligible(
       Event(sc, Publication.PERCEPTIBLE, setOf(Channel.SEEN)), facts).single()
     val projection = PublicEventProjection.project("WAIT_COMPLETED",
-      org.json.JSONObject().put("actor", "cao_minh").put("minutes", 30))!!
+      org.json.JSONObject().put("actor", "cao_minh").put("minutes", 30).put("location","node-7").put("elapsedMinutes",90))!!
     val a = ObservationCandidate.fromEligible(eligible, projection)
     val b = ObservationCandidate.fromEligible(eligible, projection)
     assertEquals(a.observationId, b.observationId)
