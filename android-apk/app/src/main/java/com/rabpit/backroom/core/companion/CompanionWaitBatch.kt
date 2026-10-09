@@ -76,6 +76,7 @@ object CompanionWaitBatch {
       view.turn.decision.digest, view.turn.reservation.digest, before, after, manifest, result, events)
   }
   // Rebuild on fresh native context; hashes/set membership alone cannot authorize a batch.
+  @JvmStatic @JvmName("verifyForCommit")
   internal fun verify(view: CompanionSlotStore.NativeView, requestId: String, revision: Long,
                       input: String, batch: Batch): Batch {
     val native = build(view, requestId, revision, input)

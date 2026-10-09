@@ -30,23 +30,25 @@ if adb('shell', 'getprop', 'ro.build.version.sdk').stdout.strip() != api:
 adb('install', '-r', str(apks[0])); adb('install', '-r', str(tests[0]))
 outputs = {}
 try:
-    for mode in ('suite', 'crash', 'recover'):
+    for mode in ('suite', 'crash', 'recover', 'during_commit_crash', 'during_commit_recover', 'after_commit_crash', 'after_commit_recover'):
         result = adb('shell', 'am', 'instrument', '-w', '-e', 'mode', mode, component, check=False)
         outputs[mode] = result.stdout
         (report / (mode + '.log')).write_text(result.stdout)
         print(result.stdout, flush=True)
-        if mode == 'crash':
-            if 'COMPANION_CRASH_ARMED' not in result.stdout or 'COMPANION_STORAGE_PASS' in result.stdout:
+        if mode.endswith('crash'):
+            marker = 'COMPANION_CRASH_ARMED' if mode == 'crash' else 'COMPANION_ATOMIC_CRASH_ARMED'
+            if marker not in result.stdout or 'COMPANION_STORAGE_PASS' in result.stdout:
                 raise RuntimeError('Intentional process-kill boundary not reached')
             adb('shell', 'am', 'force-stop', package)
         else:
-            count = '16' if mode == 'suite' else '1'
+            count = '20' if mode == 'suite' else '1'
             if result.returncode or f'COMPANION_STORAGE_PASS api={api} cases={count}' not in result.stdout or f'OK ({count} tests)' not in result.stdout:
                 raise RuntimeError(mode + ' Android storage test failed')
     manifest = {
         'api': int(api), 'source_sha': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
         'app_sha256': hashlib.sha256(apks[0].read_bytes()).hexdigest(),
-        'cases': 17, 'suite': 'PASS', 'process_kill_transaction_rollback': 'PASS',
+        'cases': 23, 'suite': 'PASS', 'process_kill_transaction_rollback': 'PASS',
+        'during_final_commit_kill_rollback': 'PASS', 'after_commit_before_callback_kill_replay': 'PASS',
         'power_loss': 'NOT_TESTED', 'real_device_performance': 'NOT_TESTED',
     }
     (report / 'result.json').write_text(json.dumps(manifest, indent=2) + '\n')

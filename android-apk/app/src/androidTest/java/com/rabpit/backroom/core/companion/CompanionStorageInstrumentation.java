@@ -38,8 +38,23 @@ public final class CompanionStorageInstrumentation extends Instrumentation {
       directory = getTargetContext().getDir("companion_storage_smoke", Context.MODE_PRIVATE);
       String mode = arguments == null ? "suite" : arguments.getString("mode", "suite");
       if ("crash".equals(mode)) { armProcessCrash(); throw new AssertionError("process kill returned"); }
-      if ("recover".equals(mode)) run("process_kill_rollback_and_recovery", this::recoverProcessCrash);
+      if ("during_commit_crash".equals(mode) || "after_commit_crash".equals(mode)) {
+        boolean after = "after_commit_crash".equals(mode);
+        CompanionWaitStorageFixtures.armNativeCommitCrash(getTargetContext(), directory, after, () -> {
+          Bundle status = new Bundle(); status.putString("stream", "COMPANION_ATOMIC_CRASH_ARMED " + (after ? "after_durable_commit" : "after_receipt_write") + "\n");
+          sendStatus(0, status);
+        });
+        throw new AssertionError("atomic process kill returned");
+      }
+      if ("during_commit_recover".equals(mode) || "after_commit_recover".equals(mode))
+        run("atomic_commit_process_recovery", () -> CompanionWaitStorageFixtures.recoverNativeCommitCrash(
+          getTargetContext(), directory, "after_commit_recover".equals(mode)));
+      else if ("recover".equals(mode)) run("process_kill_rollback_and_recovery", this::recoverProcessCrash);
       else if ("suite".equals(mode)) {
+        run("native_atomic_wait_commit", () -> CompanionWaitStorageFixtures.nativeAtomicCommit(directory));
+        run("native_ambiguous_commit_readback", () -> CompanionWaitStorageFixtures.nativeAmbiguousCommit(directory));
+        run("concurrent_native_wait_commit", () -> CompanionWaitStorageFixtures.concurrentNativeCommit(directory));
+        run("immutable_ledger_corruption_preserved", () -> CompanionWaitStorageFixtures.ledgerCorruptionPreserved(directory));
         run("native_wait_batch_staging", () -> CompanionWaitStorageFixtures.nativeBatchStaging(directory));
         run("full_native_wait_capture", () -> CompanionWaitStorageFixtures.fullNativeCapture(directory));
         run("concurrent_native_wait_capture", () -> CompanionWaitStorageFixtures.concurrentNativeCapture(directory));
@@ -166,7 +181,7 @@ public final class CompanionStorageInstrumentation extends Instrumentation {
       try (SQLiteDatabase db = raw(s.fileForTest())) {
         db.setForeignKeyConstraintsEnabled(true);
         reject(() -> db.execSQL("INSERT INTO request_alias VALUES ('forged','absent')"));
-        reject(() -> db.execSQL("INSERT INTO turn_control VALUES ('forged',1,0,'PREPARING',X'00')"));
+        reject(() -> db.execSQL("INSERT INTO turn_control(turn_id,active_slot,expected_revision,phase,record) VALUES ('forged',1,0,'PREPARING',X'00')"));
         reject(() -> db.execSQL("UPDATE turn_control SET phase='COMMITTED'"));
       }
       String id = s.slotId; s.close();
@@ -178,7 +193,7 @@ public final class CompanionStorageInstrumentation extends Instrumentation {
     reject(() -> CompanionSlotStore.openIn(directory, id, "wrong-policy")); check(file.isFile());
     try (SQLiteDatabase db = raw(file)) { db.setVersion(99); }
     reject(() -> CompanionSlotStore.openIn(directory, id, "p1")); check(file.isFile());
-    try (SQLiteDatabase db = raw(file)) { db.setVersion(1); }
+    try (SQLiteDatabase db = raw(file)) { db.setVersion(CompanionSlotStore.FORMAT_VERSION); }
     s = CompanionSlotStore.openIn(directory, id, "p1"); begin(s); s.close();
     try (SQLiteDatabase db = raw(file)) { db.execSQL("UPDATE turn_control SET record=X'00'"); }
     reject(() -> CompanionSlotStore.openIn(directory, id, "p1")); check(file.isFile());
