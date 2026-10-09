@@ -179,7 +179,7 @@ object CompanionWaitStorageFixtures {
     try {
       val batch=reserveBatch(store,"commit",0)
       store.admit(CompanionPendingTurn.Request.fromPlayerInput(id,"commit-alias",0,"cao_minh",INPUT))
-      for(point in listOf("after_event_write","after_snapshot_write","after_turn_write","after_alias_write","after_receipt_write","before_commit")) {
+      for(point in listOf("after_event_write","after_snapshot_write","after_turn_write","after_alias_write","after_receipt_write","after_observation_publish","before_commit")) {
         store.faultForTest { if(it==point) throw IllegalStateException("injected:$point") }
         try { store.commitWait("commit",0,INPUT,batch); error("fault missing:$point") } catch(e: IllegalStateException) {
           check(e.message=="injected:$point")
