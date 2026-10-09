@@ -2,7 +2,7 @@ name: Verify Companion WAIT Authorization 485
 
 on:
   pull_request:
-    branches: [feat/companion-core-lock-s1c2, feature/companion-wait-authority-485, fix/companion-wait-preflight-boundary]
+    branches: [feat/companion-core-lock-s1c2, feature/companion-wait-authority-485, fix/companion-wait-preflight-boundary, feat/companion-slot-native-binding]
     paths:
       - ".github/workflows/verify-companion-wait-authority-485.yml"
       - "android-apk/app/src/main/java/com/rabpit/backroom/core/companion/**"
@@ -57,7 +57,8 @@ jobs:
           root=Path("android-apk/app/src/main/java/com/rabpit/backroom")
           paths=[root/"MainActivity.java",root/"core/GameCoreFacade.kt",
             root/"core/ExitStreakEngine.kt",root/"core/companion/CompanionWaitAuthorizer.kt",
-            root/"core/companion/CompanionRollTape.kt",
+            root/"core/companion/CompanionRollTape.kt",root/"core/companion/CompanionWaitCapture.kt",
+            root/"core/companion/CompanionNativeGameplayRolls.java",
             Path("android-apk/app/src/main/assets/index.html")]
           evidence=Path("evidence"); target=evidence/"generated-source";target.mkdir(exist_ok=True)
           hashes={}
@@ -97,6 +98,14 @@ jobs:
           with open("evidence/native-draw-outcome-fixtures.json","w") as f:
             json.dump({"count":len(draw_outcomes),"observed":draw_outcomes},f,indent=2,ensure_ascii=False)
           print("WAIT485_NATIVE_FIXTURE_COUNT",len(draw_outcomes))
+          capture_reports=glob.glob("evidence/junit/*WaitCaptureTest*.xml")
+          if len(capture_reports)!=1:
+            raise SystemExit("Full native WAIT capture report missing")
+          capture_root=ET.parse(capture_reports[0]).getroot()
+          capture_cases=capture_root.findall("testcase")
+          if len(capture_cases)!=6 or any(c.find("failure") is not None or c.find("error") is not None for c in capture_cases):
+            raise SystemExit("Full native WAIT capture suite incomplete or failing")
+          print("WAIT_FULL_CAPTURE_TEST_COUNT",len(capture_cases))
           if len(fixtures)!=12 or any(not item["passed"] for item in fixtures):
             raise SystemExit("WAIT485 regression suite incomplete or failing")
           if len(draw_outcomes)!=11:
@@ -106,7 +115,9 @@ jobs:
         if: always()
         with:
           name: wait-485-exact-head-source-and-fixtures
-          path: evidence/
+          path: |
+            evidence/
+            android-apk/app/build/reports/companion-native-roll-extraction/
           retention-days: 30
           if-no-files-found: warn
 

@@ -76,4 +76,54 @@ object CompanionWaitStorageFixtures {
       check(draws == 2)
     }
   }
+  @JvmStatic fun fullNativeCapture(directory: File) {
+    val store = CompanionSlotStore.createIn(directory, snapshot(), POLICY)
+    val slot = store.slotId
+    var draws = 0
+    try {
+      store.admit(CompanionPendingTurn.Request.fromPlayerInput(slot, "full", 0, "cao_minh", INPUT))
+      store.lockDecision("full", CompanionPendingTurn.DecisionLock("cao_minh", 0, POLICY,
+        "companion_decision.v1|cao_minh|WAIT|0|30|13:present-scene"))
+      store.faultForTest { point -> if (point == "before_commit") throw IllegalStateException("injected") }
+      try { CompanionWaitCapture.reserve(store, "full", 0, INPUT) { draws++; it - 1 }; error("fault missing") }
+      catch (_: IllegalStateException) { }
+      store.faultForTest { }
+      check(draws == 5 && store.request("full").phase == CompanionPendingTurn.Phase.DECISION_LOCKED)
+      val saved = CompanionWaitCapture.reserve(store, "full", 0, INPUT) { draws++; it - 1 }
+      check(draws == 10)
+      val replay = CompanionWaitCapture.readReserved(store, "full", 0, INPUT)
+      check(replay.tape.draws.size == 5 && replay.encoded == saved.reservation.canonicalPayload)
+      store.admit(CompanionPendingTurn.Request.fromPlayerInput(slot, "full-alias", 0, "cao_minh", INPUT))
+      check(CompanionWaitCapture.reserve(store, "full-alias", 0, INPUT) { error("redraw") }
+        .reservation.digest == saved.reservation.digest)
+      rejects("input_mismatch") { CompanionWaitCapture.reserve(store, "full", 0, INPUT + "!") { error("redraw") } }
+      store.close()
+      CompanionSlotStore.openIn(directory, slot, POLICY).use { loaded ->
+        check(CompanionWaitCapture.readReserved(loaded, "full-alias", 0, INPUT).encoded == replay.encoded)
+        check(CompanionWaitCapture.reserve(loaded, "full", 0, INPUT) { error("redraw") }
+          .reservation.digest == saved.reservation.digest)
+      }
+    } finally { store.close() }
+  }
+  @JvmStatic fun concurrentNativeCapture(directory: File) {
+    val first = CompanionSlotStore.createIn(directory, snapshot(), POLICY)
+    val second = CompanionSlotStore.openIn(directory, first.slotId, POLICY)
+    val executor = java.util.concurrent.Executors.newFixedThreadPool(2)
+    val start = java.util.concurrent.CountDownLatch(1)
+    val draws = java.util.concurrent.atomic.AtomicInteger()
+    try {
+      first.admit(CompanionPendingTurn.Request.fromPlayerInput(first.slotId, "left", 0, "cao_minh", INPUT))
+      first.admit(CompanionPendingTurn.Request.fromPlayerInput(first.slotId, "right", 0, "cao_minh", INPUT))
+      first.lockDecision("left", CompanionPendingTurn.DecisionLock("cao_minh", 0, POLICY,
+        "companion_decision.v1|cao_minh|WAIT|0|30|13:present-scene"))
+      val left = executor.submit<CompanionPendingTurn> { start.await(); CompanionWaitCapture.reserve(first, "left", 0, INPUT) { draws.incrementAndGet(); 0 } }
+      val right = executor.submit<CompanionPendingTurn> { start.await(); CompanionWaitCapture.reserve(second, "right", 0, INPUT) { draws.incrementAndGet(); 0 } }
+      start.countDown()
+      val a = left.get(30, java.util.concurrent.TimeUnit.SECONDS)
+      val b = right.get(30, java.util.concurrent.TimeUnit.SECONDS)
+      check(a.reservation.digest == b.reservation.digest && draws.get() == 6)
+      check(CompanionWaitCapture.readReserved(first, "left", 0, INPUT).encoded == a.reservation.canonicalPayload)
+    } finally { executor.shutdownNow(); first.close(); second.close() }
+  }
+
 }
