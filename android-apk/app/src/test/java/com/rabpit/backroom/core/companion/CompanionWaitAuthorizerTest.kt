@@ -46,6 +46,24 @@ class CompanionWaitAuthorizerTest {
     return result.bound ?: throw AssertionError("missing native bound")
   }
 
+  // The workflow exports these actual production replay results from JUnit XML.
+  private fun trace(bound: CompanionWaitAuthorizer.Bound, roll: Int,
+                    result: CompanionWaitAuthorizer.Review) {
+    val native = result.validated ?: throw AssertionError("missing native outcome")
+    println("WAIT485_OBSERVED=" + JSONObject()
+      .put("schema", CompanionWaitAuthorizer.EVIDENCE_VERSION)
+      .put("policy", CompanionWaitAuthorizer.WAIT_POLICY)
+      .put("source", bound.sourceStop)
+      .put("prior", bound.previousStreak)
+      .put("purpose", CompanionRollTape.Purpose.EXIT_STREAK.name)
+      .put("bound", ExitStreakEngine.RNG_BOUND)
+      .put("roll", roll)
+      .put("success", native.success)
+      .put("nextStreak", native.nextStreak)
+      .put("completed", native.completed)
+      .put("target", native.route.targetStop).toString())
+  }
+
   private fun evidence(bound: CompanionWaitAuthorizer.Bound, value: Int,
                        claimCompletion: Boolean? = null,
                        claimStreak: Int? = null,
@@ -98,10 +116,12 @@ class CompanionWaitAuthorizerTest {
       assertNull(win.error)
       assertEquals(prior == 4, win.validated!!.completed)
       assertEquals(if (prior == 4) 0 else prior + 1, win.validated!!.nextStreak)
+      trace(bound, 0, win)
       val loss = CompanionWaitAuthorizer.replay(bound, evidence(bound, 1))
       assertNull(loss.error)
       assertFalse(loss.validated!!.completed)
       assertEquals(0, loss.validated!!.nextStreak)
+      trace(bound, 1, loss)
     }
   }
 
@@ -117,6 +137,7 @@ class CompanionWaitAuthorizerTest {
     assertNull(result.error)
     assertFalse(result.validated!!.completed)
     assertEquals(0, result.validated!!.nextStreak)
+    trace(b, 0, result)
   }
 
   @Test fun wrongSourceChangedPriorAndChangedSnapshotFailClosed() {
@@ -125,6 +146,11 @@ class CompanionWaitAuthorizerTest {
     assertNull(CompanionWaitAuthorizer.replay(bound(snapshot("level-1", 4)), winning).validated)
     assertNull(CompanionWaitAuthorizer.replay(bound(snapshot(prior = 0)), winning).validated)
     assertNull(CompanionWaitAuthorizer.replay(original, winning.copy(snapshotDigest = "0".repeat(64))).validated)
+    val originalLoss = bound(snapshot(prior = 3))
+    val sameOutcomeLoss = evidence(originalLoss, 1)
+    assertNull(CompanionWaitAuthorizer.replay(bound(snapshot(prior = 1)), sameOutcomeLoss).validated)
+    assertEquals("wait_streak_source_mismatch", gate(state = snapshot(prior = 4,
+      streakNode = "level-1")).error)
     assertEquals("snapshot_mismatch", gate(state = snapshot(prior = 4),
       persisted = bytes(snapshot(prior = 0))).error)
   }
@@ -137,6 +163,8 @@ class CompanionWaitAuthorizerTest {
       evidence(b, 0).copy(policy = "unsupported-v999")).validated)
     assertNull(CompanionWaitAuthorizer.replay(b,
       evidence(b, 0).copy(revision = 17L)).validated)
+    assertNull(CompanionWaitAuthorizer.replay(b,
+      evidence(b, 0).copy(decisionDigest = "0".repeat(64))).validated)
     assertEquals("decision_payload_mismatch", gate(turn = CompanionPendingTurn.begin(
       CompanionPendingTurn.Request.fromPlayerInput(slot, requestId, 0, "cao_minh", input),
       "turn-wait", 0).lockDecision(CompanionPendingTurn.DecisionLock(
