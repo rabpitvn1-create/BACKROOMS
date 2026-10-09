@@ -35,7 +35,8 @@ internal object BrainContracts {
   ) {
     enum class Polarity { POSITIVE, NEGATIVE }
     /** Typed proposition identity for duplicate/contradiction detection. */
-    fun propositionKey(): String = "$subjectRef|$predicateId|$objectRef"
+    fun propositionKey(): String = CompanionWaitCapture.canonical(
+      org.json.JSONArray(listOf(subjectRef,predicateId,objectRef)))
   }
 
   /**
@@ -128,7 +129,8 @@ internal object BrainContracts {
   data class MoodState(
     val mood: Mood,
     val cause: String?,
-    val expiryTurn: Long?
+    val expiryTurn: Long?,
+    val triggeredTurn: Long? = null
   ) {
     enum class Mood { UNSET, WORRIED }
   }

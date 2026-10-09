@@ -67,7 +67,7 @@ class P2aFixturesTest {
     val first = BeliefReducer.reduceTold(
       BeliefReducer.ToldInput(brain(), claim(Claim.Polarity.POSITIVE), "obs-1", "cao_minh"))
     val r = BeliefReducer.reduceContradiction(BeliefReducer.ContradictionInput(
-      first.state, claim(Claim.Polarity.NEGATIVE), "obs-2", "cao_minh"))
+      first.state, claim(Claim.Polarity.NEGATIVE).copy(sourceObservationIds=listOf("obs-2")), "obs-2", "cao_minh"))
     assertEquals(Stance.DISPUTED, r.state.beliefs.single().stance)
     assertEquals(2, r.state.beliefs.single().evidenceObservationIds.size)
   }

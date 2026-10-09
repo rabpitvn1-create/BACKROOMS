@@ -48,11 +48,13 @@ internal object BeliefReducer {
 
   /** BR01: valid TOLD observation -> CREATE belief UNKNOWN (idempotent). */
   fun reduceTold(input: ToldInput): Result {
+    require(input.prior.ruleVersion == BrainContracts.RULE_VERSION) { "brain_rule_unsupported" }
     require(input.actorId == input.prior.actorId) { "belief_cross_actor" }
     require(input.observationId.isNotBlank()) { "belief_evidence_missing" }
     require(input.claim.sourceObservationIds.contains(input.observationId)) {
       "belief_evidence_unlinked"
     }
+    require(!input.claim.speakerRef.isNullOrBlank()) { "belief_speaker_missing" }
     val id = beliefId(input.actorId, input.claim)
     val existing = input.prior.beliefs.find { it.beliefId == id }
     if (existing != null) {
@@ -75,23 +77,20 @@ internal object BeliefReducer {
 
   /** BR02: validated contradicting evidence -> DISPUTED, append evidence. */
   fun reduceContradiction(input: ContradictionInput): Result {
+    require(input.prior.ruleVersion == BrainContracts.RULE_VERSION) { "brain_rule_unsupported" }
     require(input.actorId == input.prior.actorId) { "belief_cross_actor" }
     require(input.newObservationId.isNotBlank()) { "belief_evidence_missing" }
-    require(input.newClaim.sourceObservationIds.isNotEmpty()) { "belief_evidence_unlinked" }
-    val target = input.prior.beliefs.find { existing ->
-      BrainContracts.ContradictionComparator.contradicts(existing.claim, input.newClaim)
-    } ?: return Result(input.prior, emptyList())  // no contradicting belief: no delta
-    if (target.evidenceObservationIds.contains(input.newObservationId)) {
-      return Result(input.prior, emptyList())  // already applied: idempotent
+    require(input.newObservationId in input.newClaim.sourceObservationIds) { "belief_evidence_unlinked" }
+    val deltas = arrayListOf<BrainDelta>()
+    val beliefs = input.prior.beliefs.map { target ->
+      if (!BrainContracts.ContradictionComparator.contradicts(target.claim,input.newClaim) ||
+          input.newObservationId in target.evidenceObservationIds) target
+      else {
+        deltas.add(BrainDelta("BR02",BrainContracts.RULE_VERSION,BrainDelta.TargetKind.BELIEF,
+          target.beliefId,listOf(input.newObservationId)))
+        target.copy(stance=Stance.DISPUTED,evidenceObservationIds=target.evidenceObservationIds+input.newObservationId)
+      }
     }
-    val updated = target.copy(
-      stance = Stance.DISPUTED,
-      evidenceObservationIds = target.evidenceObservationIds + input.newObservationId)
-    val beliefs = input.prior.beliefs.map { if (it.beliefId == target.beliefId) updated else it }
-    val delta = BrainDelta(
-      ruleId = "BR02", ruleVersion = BrainContracts.RULE_VERSION,
-      targetKind = BrainDelta.TargetKind.BELIEF, targetId = target.beliefId,
-      evidenceObservationIds = listOf(input.newObservationId))
-    return Result(input.prior.copy(beliefs = beliefs), listOf(delta))
+    return Result(if (deltas.isEmpty()) input.prior else input.prior.copy(beliefs=beliefs),deltas)
   }
 }
