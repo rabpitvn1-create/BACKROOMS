@@ -15,7 +15,8 @@ No production runtime was edited; generation ran in an isolated detached worktre
 | build-novel-asset-canon-index.py --check | PASS | 11 documents, 297 excerpts, 63 retained records; 39 world locations |
 | Two existing Node test files | PASS, 15 tests, zero failures | GM highlighting and snapshot combat feedback |
 | Proposed SQL specimen checks | PASS, 8 cases | Host SQLite only; not Android SaveStats tests |
-| JVM/Kotlin/Android compilation and unit tests | NOT RUN | No Gradle/Kotlin compiler/Android SDK available in this environment |
+| Local JVM/Kotlin/Android compilation and unit tests | NOT RUN | No local Gradle/Kotlin compiler/Android SDK; Gradle distribution probe timed out |
+| Existing main CI Kotlin tests and debug APK build | PASS on run 37862035156 | Source input parity verified against current main; not a new design-head run |
 | APK/emulator/process-kill/power-loss/real-device tests | NOT RUN | No APK build/device run |
 | Live LLM calls/trace parity/production performance | NOT RUN | No provider calls or trace implementation |
 | CI on Markdown-only design head | NOT APPLICABLE to current automatic workflow paths | No empty-check GREEN claim |
@@ -63,7 +64,7 @@ Provider generated-source inspection confirms writer Gemini modelOrder {0,1,2},
 auditor {2,1}, per-model/key attempt tracking and excluded-key-only second phase.
 The 18/10/76 attempt figures in Orion's spec are static upper-bound calculations,
 not observed HTTP counts. Deadline/cooldown/circuit behavior can reduce attempts.
-No live pressure/failure-path measurement or packet trace parity has been performed.
+No live pressure/failure-path measurement or new actor-packet trace parity has been performed in this task.
 
 ## Reproducibility artifacts
 
@@ -89,9 +90,29 @@ array and an output directory. The wrapper traces runpy calls; it is not a gener
 subprocess/network profiler. Retain the workflow ordering; do not manually apply only
 an early exit patch and treat that output as final.
 
+## Existing CI and Canon P0 reconciliation
+
+[Build run 37862035156](https://github.com/rabpitvn1-create/BACKROOMS/actions/runs/37862035156)
+completed successfully for 9aede06092b7e2ac3ebfe12ccbf5fcf166554941. Job 113599788300
+shows successful patch generation, Kotlin tests/debug APK build, Canon P0 snapshot
+verification and packaged APK verification. The Android serialization smoke step was
+SKIPPED, not successful. Logs contain BUILD SUCCESSFUL and the testDebugUnitTest task.
+
+Git comparison to pinned main shows only two release-status files differ; android-apk
+and .github/workflows source inputs are identical. This is evidence for the existing
+runtime baseline's CI, not a claim that companion changes have been built. See
+[g0-v1/baseline-ci.json](g0-v1/baseline-ci.json) for curated source/run/step provenance.
+
+Generated KnowledgeContextEngine already contains parseDatabase, buildForTest,
+buildForTestWithTrace, KnowledgeTraceEvent and separate estimated-token/serialized-char
+metrics. KnowledgeContextEngineP0Test contains trace on/off packet equality fixtures.
+Do not reimplement those as a new Canon P0 subsystem. Inventory remaining spec gaps
+against existing test/report artifacts before extending observability. Full production
+Android build-vs-test packet parity is not established by the skipped smoke step.
+
 ## Required next proof
 
-G0 is not fully GREEN: compile/unit-test the generated tree, inspect complete authority
+G0 is not fully GREEN: retain/revalidate existing CI source parity and inspect complete authority
 and persistence call paths, run behavior fixtures for action/route/retry gates and
 complete Android/device checks at their required phase. Resolve G0-01 in reviewed A2
 contract rather than silently weakening tests or resurrecting a retired subsystem.

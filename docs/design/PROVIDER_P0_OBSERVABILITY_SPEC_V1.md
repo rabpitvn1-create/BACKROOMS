@@ -21,11 +21,19 @@
   effective generated Java/Kotlin before treating the claim as verified runtime behavior.
 - **[LOCKED]** — a design decision locked with Eric; not a claim about current code.
 
+## G0 reconciliation, 2026-10-09 — Ponytail
+
+[Generated-source evidence](G0_EFFECTIVE_CHAIN_VERIFICATION_V1.md) confirms §2 ordering
+and the model/key loop structure supporting §3 static upper bounds. These are
+GENERATED-SOURCE-VERIFIED claims, not observed HTTP counts or provider fault injection.
+No ProviderTrace implementation/live measurements were added by this design PR.
+Existing Canon tracing is a separate already-present primitive; do not duplicate it.
+
 ## 1. Principle: observe only
 
 **[LOCKED]** No change to provider order, retry policy, thresholds, parallelism, attempt caps,
 pressure modes, or fail-closed semantics. No change to audit or validation behavior.
-Instrumentation must not alter the number, order, timing, or outcome of any provider call.
+Instrumentation must preserve provider selection, call order, retry/deadline policy and outcomes. Measure instrumentation overhead; exact wall-clock timing equality is not a feasible acceptance claim.
 
 ## 2. Corrected execution order (replaces earlier draft)
 

@@ -4,7 +4,7 @@
 
 | Field | Value |
 |---|---|
-| Status | **DESIGN ONLY — NOT IMPLEMENTED, NOT EXECUTED** |
+| Status | **REFERENCE DESIGN — existing P0 primitives verified; additional acceptance remains gated** |
 | Version | 1.0.0 |
 | Author | Orion (technical reviewer) |
 | Review thread | BACKROOMS issue #476 |
@@ -26,6 +26,21 @@ Every behavioral claim in this document is tagged:
 Where a claim is marked [SOURCE-TRACED], Gate 0 must still confirm it on the generated chain
 before implementation relies on it.
 
+## G0 reconciliation, 2026-10-09 — Ponytail
+
+[Generated-source and baseline CI evidence](G0_EFFECTIVE_CHAIN_VERIFICATION_V1.md)
+confirms that parseDatabase, buildForTest, buildForTestWithTrace, passive
+KnowledgeTraceEvent instrumentation and split budget metrics already exist in the
+final generated engine. Existing KnowledgeContextEngineP0Test exercises packet parity.
+The baseline CI Kotlin test/build and Canon P0 snapshot steps succeeded; Android
+serialization smoke was skipped. Do not interpret the future-tense extraction/vertical
+slice descriptions below as permission to implement these primitives again.
+
+They remain reference requirements. Before any extension, compare this spec with
+existing production Builder, P0 fixtures/reports and P1 shadow artifacts. Approval of
+this document does not certify all proposed corpus/metrics or production Android
+serialization parity. Production behavior must remain unchanged.
+
 ## Part A — Canon P0 final spec (observe-only characterization)
 
 **Goal [LOCKED]:** a characterization harness for the FINAL GENERATED RUNTIME
@@ -38,8 +53,8 @@ budgeting, packet, prompt, audit, retry, or provider behavior.
 `KnowledgeContextEngine.build()` requires an Android `Context` for assets. Therefore P0 uses a
 **minimal test seam**, not instrumentation tests and not a second selector:
 
-- Extract `load(context)` → `parseDatabase(raw: String): Database` (parsing logic moved verbatim).
-- Add `@JvmStatic fun buildForTest(dbJson: String, stateJson: String, action: String, rollsJson: String): String`
+- Existing seam: `load(context)` uses `parseDatabase(raw: String): Database`; reuse it, do not extract a duplicate parser.
+- Existing `@JvmStatic fun buildForTest(dbJson: String, stateJson: String, action: String, rollsJson: String): String`
   which reuses the **exact production `Builder`** (the same selection path, not a simulation).
 - Production `build()` is not modified by a single line.
 
@@ -49,7 +64,7 @@ shipped `knowledge_db.json` must be byte-identical).
 
 ### A.2 Trace originates from the real selection path
 
-**[LOCKED]** Add `trace: MutableList<KnowledgeTraceEvent>? = null` to `Builder`
+**[LOCKED; EXISTING IN GENERATED SOURCE]** `trace: MutableList<KnowledgeTraceEvent>? = null` is already in `Builder`
 (default null → when null, zero behavior change). Instrument the four existing points:
 `add()`, `expandReferences()`, `budgetedRecords()`, `hardClip()`. No new synchronization
 (`Builder` is a per-call object).
