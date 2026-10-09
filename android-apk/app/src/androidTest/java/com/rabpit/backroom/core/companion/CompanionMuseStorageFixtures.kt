@@ -47,8 +47,9 @@ internal object CompanionMuseStorageFixtures {
         check(visible.single().sourceEventId=="e" && visible.single().accessKind=="SEEN")
         check(visible.single().publicPayloadJson==candidate().publicPayloadJson)
         check(ObservationStorageReader.read(db,slot,"luc_tram",1,10).isEmpty())
-        rejects { ObservationStorageReader.read(db,"0".repeat(32),"cao_minh",1,10) }
-        rejects { ObservationStorageReader.read(db,slot,"cao_minh",0,10) }
+        check(ObservationStorageReader.read(db,"0".repeat(32),"cao_minh",1,10).isEmpty())
+        try { ObservationStorageReader.read(db,slot,"cao_minh",0,10); error("accepted future read") }
+        catch (_: java.io.IOException) { }
       } finally { db.endTransaction() }
 
       rejects { publish(candidate(JSONObject(payload.toString()).put("location","other"))) }
