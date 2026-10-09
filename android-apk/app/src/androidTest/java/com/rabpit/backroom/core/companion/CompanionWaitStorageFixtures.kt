@@ -297,7 +297,7 @@ object CompanionWaitStorageFixtures {
     }
   }
   @JvmStatic fun benchmark(context: android.content.Context, directory: File, turns: Int, status: java.util.function.Consumer<String>) {
-    require(turns in setOf(1000,5000,10000))
+    require(turns in setOf(300,1000,5000,10000))
     val store=CompanionSlotStore.createIn(directory,snapshot(),POLICY)
     val slot=store.slotId; val file=store.fileForTest()
     val latencies=arrayListOf<Long>(); var peakHeap=0L; var peakPss=0L; var draws=0L
@@ -314,7 +314,7 @@ object CompanionWaitStorageFixtures {
           peakPss=maxOf(peakPss,android.os.Debug.getPss())
           status.accept("COMPANION_BENCH_PROGRESS turns="+(index+1))
         }
-        if(index+1 in setOf(1000,5000,10000)) {
+        if(index+1 == turns || index+1 in setOf(1000,5000,10000)) {
           val count=index+1; val ordered=latencies.sorted()
           fun percentile(p: Double)=ordered[(kotlin.math.ceil(count*p).toInt()-1).coerceIn(0,count-1)]/1_000_000.0
           val before=store.currentSnapshot()
