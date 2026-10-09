@@ -83,7 +83,12 @@ object CompanionLedgerVerifier {
       checkpoint.getInt("minutes") == 30)
   }
   @JvmStatic @Throws(IOException::class)
+  fun verifyHeadDigest(snapshot: ByteArray, turn: CompanionPendingTurn) = checked {
+    require(JSONObject(turn.receipt.manifest).getString("afterSnapshotDigest") == CompanionDigests.sha256(snapshot))
+  }
+  @JvmStatic @Throws(IOException::class)
   fun verifyHead(snapshot: ByteArray, turn: CompanionPendingTurn) = checked {
+    verifyHeadDigest(snapshot,turn)
     val decoder = StandardCharsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT).onUnmappableCharacter(CodingErrorAction.REPORT)
     val text = decoder.decode(ByteBuffer.wrap(snapshot)).toString()
     val state = GameStateCodec.decode(text)
