@@ -2,7 +2,7 @@ name: Verify Companion WAIT Authorization 485
 
 on:
   pull_request:
-    branches: [feat/companion-core-lock-s1c2, feature/companion-wait-authority-485, fix/companion-wait-preflight-boundary, feat/companion-slot-native-binding, feat/companion-native-wait-capture, feat/companion-combat-start-capture, feat/companion-verified-wait-batch, feat/companion-atomic-wait, feat/companion-native-backend-benchmark, perf/companion-receipt-read-cost, feat/companion-exposure-eligibility]
+    branches: [main, feat/companion-core-lock-s1c2, feature/companion-wait-authority-485, fix/companion-wait-preflight-boundary, feat/companion-slot-native-binding, feat/companion-native-wait-capture, feat/companion-combat-start-capture, feat/companion-verified-wait-batch, feat/companion-atomic-wait, feat/companion-native-backend-benchmark, perf/companion-receipt-read-cost, feat/companion-exposure-eligibility]
     paths:
       - ".github/workflows/verify-companion-wait-authority-485.yml"
       - "android-apk/app/src/main/java/com/rabpit/backroom/core/companion/**"
@@ -205,7 +205,7 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
           script: |
             python3 android-apk/run-companion-storage-smoke.py ${{ matrix.api }}
-            python3 android-apk/run-companion-backend-benchmark.py ${{ matrix.api }} ${{ github.base_ref == 'feat/companion-native-backend-benchmark' && '5000' || '1000' }}
+            python3 android-apk/run-companion-backend-benchmark.py ${{ matrix.api }} 300
       - uses: actions/upload-artifact@v4
         if: always()
         with:

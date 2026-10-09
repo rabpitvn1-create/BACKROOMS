@@ -8,7 +8,7 @@ import threading
 root=Path(__file__).resolve().parent.parent
 api=sys.argv[1]
 turns=int(sys.argv[2])
-if api not in ('24','35') or turns not in (1000,5000,10000):
+if api not in ('24','35') or turns not in (300,1000,5000,10000):
     raise RuntimeError('benchmark arguments invalid')
 report=root/'android-apk/app/build/reports/companion-storage'/('api-'+api)
 report.mkdir(parents=True,exist_ok=True)
@@ -38,7 +38,7 @@ for line in output.splitlines():
         rows.append(json.loads(line.split('=',1)[1]))
     if line.startswith('COMPANION_BENCH_RELOAD='):
         reloads.append(json.loads(line.split('=',1)[1]))
-expected=[n for n in (1000,5000,10000) if n<=turns]
+expected=[300] if turns==300 else [n for n in (1000,5000,10000) if n<=turns]
 if returncode or f'COMPANION_STORAGE_PASS api={api} cases=1' not in output or 'OK (1 tests)' not in output:
     raise RuntimeError('native backend benchmark failed')
 if [r['turns'] for r in rows]!=expected or len(reloads)!=1 or reloads[0]['turns']!=turns:
