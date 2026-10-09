@@ -50,6 +50,8 @@ internal object CharacterDecisionOrchestrator {
         packet.pins.ruleVersion != input.scope.ruleVersion ||
         packet.pins.policyVersion != CompanionExposurePolicy.VERSION)
       return reject(input,null,"context_binding_mismatch",0,0)
+    if (!CompanionCanonPersonaRegistry.acceptsContext(packet))
+      return reject(input,null,"context_persona_unpinned",0,0)
     val preflight=DecisionPreflight.preflight(input.proposal,input.scope)
     if (preflight is DecisionPreflight.Result.Rejected)
       return reject(input,null,"preflight_"+preflight.reason,0,0)

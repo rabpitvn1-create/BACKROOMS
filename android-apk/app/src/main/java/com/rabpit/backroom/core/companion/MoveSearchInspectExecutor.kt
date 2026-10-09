@@ -22,9 +22,9 @@ import com.rabpit.backroom.core.companion.TalkExecutor.TapeEntry
  * - INSPECT: target present/reachable required; NEVER picks up items (no
  *   inventory mutation — pickup is a separate typed action).
  * - Failed attempts stay their own intent (never rewritten as NONE).
- * - Output bundles (event + observation shell + ordered tape entry) are the
- *   exact input to the atomic Core commit (#517 boundary). World-state mutation
- *   itself (scene change application, findings resolution) lives in Core.
+ * - These isolated bundles are not connected to the atomic Core commit. The
+ *   native adapter must bind the captured roll, scene, and finding evidence;
+ *   caller-supplied facts do not establish native provenance.
  *
  * Pure Kotlin: no Android, no I/O, no provider, no RNG (roll outcomes arrive as
  * native facts computed from the locked RNG upstream).

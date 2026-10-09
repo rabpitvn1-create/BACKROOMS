@@ -21,8 +21,8 @@ import com.rabpit.backroom.core.companion.TalkExecutor.TapeEntry
  *   path and likewise produce no observations and no exit progress.
  * - Failed attempts keep their intent (never rewritten).
  *
- * Output bundles feed the #517 atomic Core commit. No second reducer or
- * mutation pipeline is introduced here.
+ * Output bundles are isolated specimens. Native inventory/combat capture and
+ * the atomic Core commit adapter are still required before runtime use.
  *
  * Pure Kotlin: no Android, no I/O, no provider, no RNG (dice arrive as native
  * facts from the locked RNG).

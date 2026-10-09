@@ -13,8 +13,8 @@ package com.rabpit.backroom.core.companion
  *   becomes proposition truth (that distinction lives in the Claim layer, #505+).
  *
  * Pure Kotlin over caller-supplied rows: no Android, no SQLite, no I/O.
- * The SQL strings below are the exact queries the Android binding runs; they are
- * validated by the M1b.4 sqlite3 harness.
+ * The SQL strings below describe the intended binding. No production Android
+ * retrieval binding exists yet; pure row verification is not SQLite load proof.
  */
 internal object ObservationReader {
   /** Bounded, stable-order observation query. Slot AND owner filter first. */

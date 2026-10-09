@@ -24,8 +24,8 @@ import com.rabpit.backroom.core.companion.DecisionPreflight.Intent
  *   itself passes the canon firewall (no lock refs).
  * - Output is a complete ordered bundle: tape entry + speech event + TOLD
  *   observation. The atomic Core commit (stage/events/observations/brain/receipt
- *   in one transaction) is the #517 boundary; this executor produces the exact
- *   bundle that commit consumes. Repair keeps locked action/target/timing/tape.
+ *   in one transaction) still needs integration. This specimen bundle is not
+ *   consumed by the current WAIT commit. Speech must match the audited decision.
  *
  * Pure Kotlin: no Android, no I/O, no provider.
  */

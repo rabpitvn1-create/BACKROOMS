@@ -48,6 +48,21 @@ internal object CompanionCanonPersonaRegistry {
     )
   )
 
+  fun accepts(persona: Persona): Boolean {
+    val pinned=profiles[persona.actorId] ?: return false
+    return persona.knowledgeNamespace == pinned.knowledgeNamespace && persona.sourcePath == pinned.sourcePath &&
+      persona.sourceRevision == pinned.sourceRevision && persona.sourceSha256 == pinned.sourceSha256 &&
+      persona.traitRefs == pinned.traitRefs && persona.ethicalRefs == pinned.ethicalRefs &&
+      persona.voiceRefs == pinned.voiceRefs && persona.knowledgeLockRefs == pinned.knowledgeLockRefs
+  }
+
+  fun acceptsContext(packet: ActorContextBuilder.Packet): Boolean {
+    val pinned=profiles[packet.actorId] ?: return false
+    return packet.pins.personaRevision == pinned.sourceRevision && packet.pins.personaSha256 == pinned.sourceSha256 &&
+      packet.canonRefs.traitRefs == pinned.traitRefs && packet.canonRefs.ethicalRefs == pinned.ethicalRefs &&
+      packet.canonRefs.voiceStyleRefs == pinned.voiceRefs
+  }
+
   fun load(actorId: String, reader: SourceReader): Persona {
     val persona = profiles[actorId] ?: throw IOException("persona_actor_unsupported")
     val input = reader.read(persona.sourcePath)

@@ -22,10 +22,10 @@ import org.junit.Test
 class CharacterDecisionOrchestratorTest {
   private fun packet() = Packet(
     slotId = "slot-1", actorId = "luc_tram",
-    canonRefs = ActorContextBuilder.CanonRefs(listOf("CAO-PER-01"), listOf("CAO-LIFE-02"), listOf()),
+    canonRefs = ActorContextBuilder.CanonRefs(CompanionPersonaFixture.load("luc_tram").traitRefs, CompanionPersonaFixture.load("luc_tram").ethicalRefs, CompanionPersonaFixture.load("luc_tram").voiceRefs),
     brain = ActorContextBuilder.BrainView(emptyList(), emptyList(), "UNSET"),
     memories = emptyList(), sceneEvidence = emptyList(),
-    pins = ActorContextBuilder.Pins("R17", "deadbeef",
+    pins = ActorContextBuilder.Pins("R05", CompanionPersonaFixture.load("luc_tram").sourceSha256,
       BrainContracts.RULE_VERSION, CompanionExposurePolicy.VERSION),
     truncated = false)
 
@@ -35,12 +35,12 @@ class CharacterDecisionOrchestratorTest {
     capabilities = setOf("cap.talk", "cap.wait"),
     inventoryItemIds = emptySet(),
     legalTargetIds = setOf("cao_minh", "node-8"),
-    canonRevision = "R17", ruleVersion = BrainContracts.RULE_VERSION)
+    canonRevision = "R05", ruleVersion = BrainContracts.RULE_VERSION)
 
   private fun proposal() = Proposal(
     intent = Intent.TALK, targetId = "cao_minh", itemId = null,
     slotId = "slot-1", slotRevision = 42, actorId = "luc_tram",
-    canonRevision = "R17", ruleVersion = BrainContracts.RULE_VERSION)
+    canonRevision = "R05", ruleVersion = BrainContracts.RULE_VERSION)
 
   private class FakeProvider(val script: MutableList<DecisionProvider.CallResult>) : DecisionProvider {
     var calls = 0

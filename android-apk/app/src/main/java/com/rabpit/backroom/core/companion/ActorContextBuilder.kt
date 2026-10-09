@@ -86,6 +86,7 @@ internal object ActorContextBuilder {
     // Firewall 1: ownership before anything else.
     require(input.brain.actorId == input.actorId) { "context_brain_not_owned" }
     require(input.persona.actorId == input.actorId) { "context_persona_not_owned" }
+    require(CompanionCanonPersonaRegistry.accepts(input.persona)) { "context_persona_unpinned" }
     val ownedMemories = input.memories.filter { it.ownerActorId == input.actorId && it.slotId == input.slotId }
     require(ownedMemories.size == input.memories.size) { "context_memory_not_owned" }
     // Firewall 2: no raw GM payloads — projections must be non-null (denied = null).

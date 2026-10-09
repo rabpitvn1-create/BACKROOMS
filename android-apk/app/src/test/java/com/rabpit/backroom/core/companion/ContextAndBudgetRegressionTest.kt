@@ -8,8 +8,7 @@ class ContextAndBudgetRegressionTest {
   private fun memory(slot: String = "s") = MemoryRetrieval.MemoryView("m",slot,"cao_minh","o","t",1,
     "summary","topic",EpisodicMemory.Salience.ORDINARY,null,"scene",emptySet())
   private fun input() = ActorContextBuilder.Input("s","cao_minh",
-    CompanionCanonPersonaRegistry.Persona("cao_minh","CHAR.KAI","source","R17","0".repeat(64),
-      emptyList(),emptyList(),emptyList(),emptyList()),
+    CompanionPersonaFixture.load("cao_minh"),
     BrainContracts.BrainState("cao_minh",slotId="s"),listOf(memory()),emptyList())
   private fun rejects(reason: String, action: () -> Unit) {
     try { action(); fail("expected $reason") } catch (e: IllegalArgumentException) { assertEquals(reason,e.message) }
