@@ -19,7 +19,7 @@ internal object CompanionMuseStorageFixtures {
       db.beginTransaction()
       try {
         // Production fresh-slot creation now installs the observation schema itself.
-        EpisodicMemorySchema.createStatements().forEach { db.execSQL(it) }
+        // Memory schema is installed by the real slot factory, not the specimen.
         db.execSQL("INSERT INTO turn_control(turn_id,active_slot,expected_revision,phase,record,committed_revision) VALUES('t',1,0,'COMMITTED',X'01',1)")
         db.execSQL("INSERT INTO native_event(event_id,turn_id,revision,ordinal,type,record,digest) VALUES('e','t',1,0,'WAIT_COMPLETED','{}','d')")
         db.setTransactionSuccessful()
@@ -63,6 +63,9 @@ internal object CompanionMuseStorageFixtures {
       db.execSQL("INSERT INTO actor_memory VALUES(?, 'm','cao_minh','o','t',1,'topic','summary','NATIVE','ORDINARY','ACTIVE',NULL)",arrayOf(slot))
       rejects { db.execSQL("UPDATE actor_memory SET subjective_summary='edited'") }
       rejects { db.execSQL("DELETE FROM actor_memory") }
+      db.execSQL("INSERT INTO memory_manifest VALUES(?,'t',1,0,'m','cao_minh')",arrayOf(slot))
+      rejects { db.execSQL("UPDATE memory_manifest SET ordinal=1") }
+      rejects { db.execSQL("DELETE FROM memory_manifest") }
       rejects { db.execSQL("INSERT INTO actor_memory VALUES(?, 'foreign','luc_tram','o','t',1,'topic','summary','NATIVE','ORDINARY','ACTIVE',NULL)",arrayOf(slot)) }
       check(count(db,"genesis_pins")==2 && count(db,"initial_brain")==2)
       rejects { db.execSQL("UPDATE genesis_pins SET persona_revision='R18'") }
