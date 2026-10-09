@@ -81,12 +81,24 @@ jobs:
           python3 - <<'PY'
           import glob,json,xml.etree.ElementTree as ET
           fixtures=[]
+          draw_outcomes=[]
           for p in glob.glob("evidence/junit/*WaitAuthorizerTest*.xml"):
             root=ET.parse(p).getroot()
             for c in root.findall("testcase"):
               fixtures.append({"name":c.get("name"),"passed":c.find("failure") is None and c.find("error") is None})
+            for node in root.iter("system-out"):
+              for line in (node.text or "").splitlines():
+                if line.startswith("WAIT485_OBSERVED="):
+                  draw_outcomes.append(json.loads(line.split("=",1)[1]))
           with open("evidence/wait-fixture-report.json","w") as f:
             json.dump({"count":len(fixtures),"fixtures":fixtures},f,indent=2)
+          with open("evidence/native-draw-outcome-fixtures.json","w") as f:
+            json.dump({"count":len(draw_outcomes),"observed":draw_outcomes},f,indent=2,ensure_ascii=False)
+          print("WAIT485_NATIVE_FIXTURE_COUNT",len(draw_outcomes))
+          if len(fixtures)!=9 or any(not item["passed"] for item in fixtures):
+            raise SystemExit("WAIT485 regression suite incomplete or failing")
+          if len(draw_outcomes)!=11:
+            raise SystemExit("WAIT485 native roll/outcome capture incomplete")
           PY
       - uses: actions/upload-artifact@v4
         if: always()
