@@ -71,7 +71,7 @@ CREATE TRIGGER observation_manifest_no_delete BEFORE DELETE ON observation_manif
 """
 
   /** All statements in creation order. Runs inside the slot-creation transaction. */
-  fun createStatements(): List<String> {
+  @JvmStatic fun createStatements(): List<String> {
     val triggers = CREATE_IMMUTABILITY_TRIGGERS.trim().split(Regex("(?<=END;)\\s*"))
       .map { it.trim() }.filter { it.isNotEmpty() }
     return listOf("CREATE UNIQUE INDEX event_observation_binding ON native_event(event_id,turn_id,revision)",
