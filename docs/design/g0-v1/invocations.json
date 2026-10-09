@@ -1,0 +1,626 @@
+[
+  {
+    "path": "android-apk/patch-provider-status.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-provider-key-pool.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-level-snapshot-backgrounds.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-snapshot-fallback.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-kai-hd-continuous.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-kai-png-preferred.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-drive-canon-gameplay.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-inventory-persistence.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-ai-orchestrator.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-state-op-hardening.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-gemini-health-pool.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-conditional-audit.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-audit-validated-risk.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-gameplay-parity-final.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-final-authority-hardening.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-rejected-op-repair-final.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-kai-resource-policy-final.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-provider-deadline-final.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-gemini-model-matrix-final.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-java-compile-hardening.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-save-controls-final.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-hard-mode-label.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-snapshot-unconfigured.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-game-state-core-bridge.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-character-inventory-ui.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-character-detail-avatar-fallback.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-survival-hud-chat-ux.py",
+    "parent": "android-apk/patch-character-detail-avatar-fallback.py",
+    "depth": 1,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-an-nhien-follower-final.py",
+    "parent": "android-apk/patch-character-detail-avatar-fallback.py",
+    "depth": 1,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-search-action-false-warning.py",
+    "parent": "android-apk/patch-character-detail-avatar-fallback.py",
+    "depth": 1,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-annhien-cheat-code.py",
+    "parent": "android-apk/patch-character-detail-avatar-fallback.py",
+    "depth": 1,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-an-nhien-crocs.py",
+    "parent": "android-apk/patch-character-detail-avatar-fallback.py",
+    "depth": 1,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-special-followers-025.py",
+    "parent": "android-apk/patch-an-nhien-crocs.py",
+    "depth": 2,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-special-follower-cheats-avatars.py",
+    "parent": "android-apk/patch-an-nhien-crocs.py",
+    "depth": 2,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-special-follower-inventory-cap.py",
+    "parent": "android-apk/patch-an-nhien-crocs.py",
+    "depth": 2,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-friendly-item-display.py",
+    "parent": "android-apk/patch-character-detail-avatar-fallback.py",
+    "depth": 1,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-jeff-encounter-2pct.py",
+    "parent": "android-apk/patch-character-detail-avatar-fallback.py",
+    "depth": 1,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-immersive-fullscreen.py",
+    "parent": "android-apk/patch-character-detail-avatar-fallback.py",
+    "depth": 1,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-knowledge-engine-source.py",
+    "parent": "android-apk/patch-character-detail-avatar-fallback.py",
+    "depth": 1,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-knowledge-context-builder.py",
+    "parent": "android-apk/patch-character-detail-avatar-fallback.py",
+    "depth": 1,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/benchmark-knowledge-context.py",
+    "parent": "android-apk/patch-character-detail-avatar-fallback.py",
+    "depth": 1,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-startup-survival.py",
+    "parent": "android-apk/patch-character-detail-avatar-fallback.py",
+    "depth": 1,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-local-entity-overlay.py",
+    "parent": "android-apk/patch-character-detail-avatar-fallback.py",
+    "depth": 1,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-jane-killer.py",
+    "parent": "android-apk/patch-character-detail-avatar-fallback.py",
+    "depth": 1,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-three-action-runtime-ui.py",
+    "parent": "android-apk/patch-character-detail-avatar-fallback.py",
+    "depth": 1,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-three-action-core.py",
+    "parent": "android-apk/patch-three-action-runtime-ui.py",
+    "depth": 2,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-three-action-bridge.py",
+    "parent": "android-apk/patch-three-action-runtime-ui.py",
+    "depth": 2,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-three-action-ui-only.py",
+    "parent": "android-apk/patch-three-action-runtime-ui.py",
+    "depth": 2,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-madgod-equipment.py",
+    "parent": "android-apk/patch-character-detail-avatar-fallback.py",
+    "depth": 1,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-madgod-overwrite-hotfix.py",
+    "parent": "android-apk/patch-character-detail-avatar-fallback.py",
+    "depth": 1,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-madgod-runtime-equip.py",
+    "parent": "android-apk/patch-character-detail-avatar-fallback.py",
+    "depth": 1,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-entity-overlay-runtime-hotfix.py",
+    "parent": "android-apk/patch-character-detail-avatar-fallback.py",
+    "depth": 1,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-progression-snapshot-equipment.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-character-stat-schema.py",
+    "parent": "android-apk/patch-progression-snapshot-equipment.py",
+    "depth": 1,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-character-status-equipment-system.py",
+    "parent": "android-apk/patch-progression-snapshot-equipment.py",
+    "depth": 1,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-combat-hp-metadata-cleanup.py",
+    "parent": "android-apk/patch-progression-snapshot-equipment.py",
+    "depth": 1,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-fresh-effective-hp.py",
+    "parent": "android-apk/patch-progression-snapshot-equipment.py",
+    "depth": 1,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-character-detail-live-ui-fix.py",
+    "parent": "android-apk/patch-progression-snapshot-equipment.py",
+    "depth": 1,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-newgame-inventory-capacity.py",
+    "parent": "android-apk/patch-progression-snapshot-equipment.py",
+    "depth": 1,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-inventory-capacity-final-fix.py",
+    "parent": "android-apk/patch-progression-snapshot-equipment.py",
+    "depth": 1,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-visual-state-sync-final.py",
+    "parent": "android-apk/patch-inventory-capacity-final-fix.py",
+    "depth": 2,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-lucia-normalize-compat.py",
+    "parent": "android-apk/patch-inventory-capacity-final-fix.py",
+    "depth": 2,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-lucia-follower.py",
+    "parent": "android-apk/patch-inventory-capacity-final-fix.py",
+    "depth": 2,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-entity-encounter-all-actions.py",
+    "parent": "android-apk/patch-inventory-capacity-final-fix.py",
+    "depth": 2,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-healing-items.py",
+    "parent": "android-apk/patch-inventory-capacity-final-fix.py",
+    "depth": 2,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-healing-items-finalize.py",
+    "parent": "android-apk/patch-inventory-capacity-final-fix.py",
+    "depth": 2,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-entity-combat-durability.py",
+    "parent": "android-apk/patch-healing-items-finalize.py",
+    "depth": 3,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-kai-guilty-crown-override.py",
+    "parent": "android-apk/patch-healing-items-finalize.py",
+    "depth": 3,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-diep-minh-boss.py",
+    "parent": "android-apk/patch-healing-items-finalize.py",
+    "depth": 3,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-kai-gun-skills.py",
+    "parent": "android-apk/patch-healing-items-finalize.py",
+    "depth": 3,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-lucia-combat-scout-finalize.py",
+    "parent": "android-apk/patch-inventory-capacity-final-fix.py",
+    "depth": 2,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-lucia-combat-evasion-compat.py",
+    "parent": "android-apk/patch-inventory-capacity-final-fix.py",
+    "depth": 2,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-companion-skills-ui-finalize.py",
+    "parent": "android-apk/patch-inventory-capacity-final-fix.py",
+    "depth": 2,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-combat-action-bar-finalize.py",
+    "parent": "android-apk/patch-inventory-capacity-final-fix.py",
+    "depth": 2,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-inventory-authority-finalize.py",
+    "parent": "android-apk/patch-combat-action-bar-finalize.py",
+    "depth": 3,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-inventory-authority-compile-fix.py",
+    "parent": "android-apk/patch-combat-action-bar-finalize.py",
+    "depth": 3,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-omnivault-instance-authority-finalize.py",
+    "parent": "android-apk/patch-inventory-authority-compile-fix.py",
+    "depth": 4,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-omnivault-regression-compat.py",
+    "parent": "android-apk/patch-inventory-authority-compile-fix.py",
+    "depth": 4,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-party-combat-actions-finalize.py",
+    "parent": "android-apk/patch-inventory-capacity-final-fix.py",
+    "depth": 2,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-party-combat-tests-compat.py",
+    "parent": "android-apk/patch-inventory-capacity-final-fix.py",
+    "depth": 2,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-kai-immersive-pov-final.py",
+    "parent": "android-apk/patch-party-combat-tests-compat.py",
+    "depth": 3,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-combat-action-bar-state-fix.py",
+    "parent": "android-apk/patch-party-combat-tests-compat.py",
+    "depth": 3,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-rest-physiology-state-finalize.py",
+    "parent": "android-apk/patch-combat-action-bar-state-fix.py",
+    "depth": 4,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-unified-entity-spawn-pool.py",
+    "parent": "android-apk/patch-progression-snapshot-equipment.py",
+    "depth": 1,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-diep-minh-boss-finalize.py",
+    "parent": "android-apk/patch-progression-snapshot-equipment.py",
+    "depth": 1,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-ui-1.1.99-shell.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-poker-dice-core-backport.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-poker-dice-ui-119-polish.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-cao-minh-identity-overlay.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-item-detail-actions.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-item-whole-unit.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-cao-minh-skills-equipment.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-cao-minh-prologue.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-character-stats-1193a-restore.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-combat-feedback-1193a.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-combat-93-runtime.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-combat-93-snapshot.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-item-source-authority-final.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-item-registry-core.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-exit-discovery-engine.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-luc-tram-port.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-restore-four-1193a-entities.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-player-action-ime.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-exit-streak-integration.py",
+    "parent": "android-apk/patch-player-action-ime.py",
+    "depth": 1,
+    "status": "ok"
+  },
+  {
+    "path": "android-apk/patch-level-entity-spawn-policy.py",
+    "parent": null,
+    "depth": 0,
+    "status": "ok"
+  }
+]
