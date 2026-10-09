@@ -40,6 +40,12 @@ object CompanionCoreStage {
     if (detached != state) return Outcome(error = "stage_snapshot_not_stable")
     val pending = TurnCoordinator.createPending(detached, turnId, input)
     if (pending.error != null) return Outcome(error = pending.error)
+    // The legacy coordinator's all-query exception can swallow an invalid query.
+    // Preflight with the real Core validator; do not treat a cleared pending as validation.
+    for (command in detachedCommands) {
+      val validation = CommandValidator.validate(pending.state, command)
+      if (!validation.valid) return Outcome(error = validation.reason ?: "stage_core_validation")
+    }
     val result = TurnCoordinator.commit(pending.state, detachedCommands)
     if (result.error != null) return Outcome(error = result.error)
     if (result.state.turn.pending != null || turnId !in result.state.turn.completedTurnIds)

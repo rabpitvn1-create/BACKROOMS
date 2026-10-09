@@ -38,6 +38,11 @@ class CompanionCoreStageTest {
   @Test fun existingCorePendingCannotBeOverwritten() = rejected(TurnCoordinator.createPending(state(), "other", "input").state, listOf(grant()), "stage_core_pending")
   @Test fun wrongTurnRejectsBeforeCore() = rejected(state(), listOf(grant().copy(turnId = "other")), "command_turn_mismatch")
   @Test fun unknownActorStillUsesCoreValidation() = rejected(state(), listOf(grant().copy(actorId = "unknown")), "actor_unknown")
+  @Test fun invalidQueryCannotHideBehindCoordinatorQueryException() {
+    val query = QueryCommand("query", turn, KAI_ID, source = CommandSource.SYSTEM, type = QueryCommand.Type.INVENTORY)
+    rejected(state(), listOf(query.copy(actorId = "unknown")), "actor_unknown")
+    rejected(state(), listOf(query, query.copy(commandId = "query2", actorId = "unknown")), "actor_unknown")
+  }
   @Test fun playerPickupCannotGainSystemAuthority() = rejected(state(), listOf(grant().copy(source = CommandSource.UI)), "player_pickup_unavailable")
   @Test fun emptyAndOversizedBatchReject() {
     rejected(state(), emptyList(), "stage_command_count")

@@ -16,7 +16,8 @@ The current codec normalizes on decode. Staging therefore requires exact GameSta
 round-trip equality before execution and after success; normalization is an explicit
 error, never an additional unreviewed mutation. Unsupported save versions, live Core
 pending records, completed turns, empty/oversized batches, wrong turn IDs, duplicate
-command IDs and reused IDs reject. Existing Core validators retain actor/source/target
+command IDs and reused IDs reject. Production CommandValidator preflights every command before the coordinator query-only
+exception can skip invalid later queries. Existing Core validators retain actor/source/target
 and gameplay authority. A failure returns no partial candidate and leaves source state
 unchanged. Commands with mutable metadata are copied; candidate outputs are immutable
 strings and defensive unmodifiable ID/event lists. IDs include actual coordinator
@@ -34,11 +35,11 @@ Core Kotlin/Java plus the new staging tests compile locally using Kotlin 2.3.0, 
 API16 compile stubs and the existing JUnit/JSON dependencies. One pre-existing warning
 in generated CombatRuntime remains; no strict whole-tree warning claim.
 
-15 JUnit cases pass against the real generated Core: exact coordinator parity,
+16 JUnit cases pass against the real generated Core: exact coordinator parity,
 gameplay/time atomicity, late batch failure, duplicate/reused commands, completed/pending
 turns, cross-turn/actor confusion, player pickup authority, bounds/version rejection,
 codec normalization rejection, immutable/deterministic output and injected rest commands.
-Four existing TurnCoordinator tests also pass (19 total).
+Four existing TurnCoordinator tests also pass (20 total).
 These are host tests, not Android execution. PR CI must compile/test/build the Android
 APK and rerun the inherited API24/API35 storage/crash matrix before this group is green.
 
