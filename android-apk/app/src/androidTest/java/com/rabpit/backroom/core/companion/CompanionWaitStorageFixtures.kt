@@ -130,4 +130,24 @@ object CompanionWaitStorageFixtures {
     } finally { executor.shutdownNow(); first.close(); second.close() }
   }
 
+  @JvmStatic fun nativeBatchStaging(directory: File) {
+    for (zero in listOf(false, true)) {
+      CompanionSlotStore.createIn(directory, snapshot(), POLICY).use { store ->
+        store.admit(CompanionPendingTurn.Request.fromPlayerInput(store.slotId, "batch", 0, "cao_minh", INPUT))
+        store.lockDecision("batch", CompanionPendingTurn.DecisionLock("cao_minh", 0, POLICY,
+          "companion_decision.v1|cao_minh|WAIT|0|30|13:present-scene"))
+        val reserved = CompanionWaitCapture.reserve(store, "batch", 0, INPUT) { if (zero) 0 else it - 1 }
+        val first = CompanionWaitBatch.prepare(store, "batch", 0, INPUT)
+        val second = CompanionWaitBatch.prepare(store, "batch", 0, INPUT)
+        check(first.afterSnapshot == second.afterSnapshot && first.manifest == second.manifest)
+        val after = GameStateCodec.decode(first.afterSnapshot)
+        check(after.time.elapsedSubjectiveMinutes == 30L && ActionRuntime.activeSession(after) == null)
+        check(Combat93Runtime.active(after) == zero)
+        check(store.genesis().contentEquals(snapshot()))
+        check(store.request("batch").reservation.digest == reserved.reservation.digest)
+        store.inspectNative("batch") { view -> CompanionWaitBatch.verify(view, "batch", 0, INPUT, first) }
+      }
+    }
+  }
+
 }

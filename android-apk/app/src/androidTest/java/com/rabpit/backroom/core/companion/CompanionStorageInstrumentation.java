@@ -40,6 +40,7 @@ public final class CompanionStorageInstrumentation extends Instrumentation {
       if ("crash".equals(mode)) { armProcessCrash(); throw new AssertionError("process kill returned"); }
       if ("recover".equals(mode)) run("process_kill_rollback_and_recovery", this::recoverProcessCrash);
       else if ("suite".equals(mode)) {
+        run("native_wait_batch_staging", () -> CompanionWaitStorageFixtures.nativeBatchStaging(directory));
         run("full_native_wait_capture", () -> CompanionWaitStorageFixtures.fullNativeCapture(directory));
         run("concurrent_native_wait_capture", () -> CompanionWaitStorageFixtures.concurrentNativeCapture(directory));
         run("native_wait_slot_binding", () -> CompanionWaitStorageFixtures.nativeBinding(directory));
