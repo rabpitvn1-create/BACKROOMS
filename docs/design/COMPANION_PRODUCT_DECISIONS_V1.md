@@ -133,3 +133,16 @@ CI results must be reported from actual runs.
 Rollback this documentation change by reverting its commit. A document revert
 does not silently revoke public decisions or change player data; changed policy must
 have a new explicit decision record and linked review.
+
+## Ownership handoff, 2026-10-09
+
+Orion delivered the two observability specs in commits ac47c40 and bdea37c, then
+left the task. The owner instructed Ponytail to take over all remaining work.
+Ponytail now owns completion, artifact review preparation, G0 and QA planning.
+Do not record future independent Orion reviews as completed or promise availability.
+His existing review and authored content remain attributed to him.
+
+The architecture decision's Exit v6 assumption was later disproved by the actual
+recursive chain. See G0_EFFECTIVE_CHAIN_VERIFICATION_V1.md for the retirement to
+EXIT_STREAK_V1. This is a factual design correction, not approval to restore v6 or
+change production gameplay. Runtime readiness remains gated by reconciliation.

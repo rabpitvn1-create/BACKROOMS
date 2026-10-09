@@ -2,7 +2,11 @@
 
 **Backrooms The Game | Technical Design | 2026-10-09**
 
-**Status:** ENGINEERING PROPOSAL. Nothing in this document is claimed to be implemented, compiled, tested or shipped.
+**Status:** APPROVED ARCHITECTURE BASELINE; detailed contracts remain implementation-gated.
+Product/authority approval: [Companion Product Decisions V1](COMPANION_PRODUCT_DECISIONS_V1.md).
+No companion runtime, database or reducer is claimed implemented, compiled or shipped.
+Local generated-source evidence: [G0 Verification V1](G0_EFFECTIVE_CHAIN_VERIFICATION_V1.md).
+The G0 report is partial: patch execution and selected checks are not an APK/unit-test certificate.
 
 **Decision:** Build the new experience **for a NEW GAME**. Compatibility, import and conversion of old save files are **out of scope**. Reuse reliable gameplay rules from the existing Core, **not** the old save architecture. This document supersedes the implementation order in [Living Companion Interaction RFC V1](LIVING_COMPANION_INTERACTION_RFC_V1.md).
 
@@ -72,7 +76,11 @@ Source map:
 
 **Hard gate:** No step 8–10 until steps 1–7 persist/reload and pass actor-knowledge isolation tests. No UI-only mock that pretends the character brain exists.
 
-**Release discipline:** Fresh main before each implementation phase, one small coherent code change group, explicit tests, commit, wait for applicable CI GREEN, then continue. No merge/force-push/delete history without review. Design-only PR does not authorize gameplay deployment.
+**Release discipline:** Fresh main before each implementation phase, one small coherent change group,
+explicit tests, commit, wait for applicable CI GREEN, then continue. Current workflows exclude
+Markdown-only docs changes; report those checks as NOT APPLICABLE, never GREEN by absence.
+Do not manufacture runtime changes to trigger CI. No merge/force-push/delete history without
+review. Design-only PR does not authorize gameplay deployment.
 
 ## 3. SaveStats: design a new storage engine, not a patch to old saves
 
@@ -84,11 +92,16 @@ WebView localStorage is **only UI cache**. Its text cannot update authoritative 
 
 Existing Core's **rules** may be reused and adapted. Do **not** spend this project implementing an importer for legacy save v3.
 
-### 3.2 SQLite schema V1 (proposed, not executed)
+### 3.2 SQLite schema V1 (design specimen; not adopted by production)
+
+The following specimen addresses actor FK isolation, commit provenance and locked
+recovery metadata. Native typed validation, batch completeness and the recovery
+state machine remain mandatory; valid SQL alone does not establish authorization.
+All connection handles enable foreign_keys before transactions. WAL/FULL is a
+candidate target configuration, not a measured durability guarantee.
 
 ~~~sql
 PRAGMA foreign_keys = ON;
-
 CREATE TABLE save_slot (
   slot_id TEXT PRIMARY KEY,
   schema_version INTEGER NOT NULL,
@@ -100,28 +113,37 @@ CREATE TABLE save_slot (
   created_at_ms INTEGER NOT NULL,
   updated_at_ms INTEGER NOT NULL
 );
-
 CREATE TABLE turn_receipt (
   slot_id TEXT NOT NULL,
   request_id TEXT NOT NULL,
   turn_id TEXT NOT NULL,
   input_hash TEXT NOT NULL,
-  expected_revision INTEGER NOT NULL,
+  expected_revision INTEGER NOT NULL CHECK(expected_revision >= 0),
   committed_revision INTEGER,
   status TEXT NOT NULL CHECK(status IN ('PENDING','COMMITTED','REJECTED')),
+  locked_decision_json TEXT,
+  locked_decision_digest TEXT,
   resolved_action_kind TEXT,
+  locked_target_ref TEXT,
   locked_rng_json TEXT,
+  reservation_id TEXT,
+  batch_manifest_json TEXT,
   final_result_json TEXT,
   PRIMARY KEY (slot_id, request_id),
   UNIQUE (slot_id, turn_id),
+  UNIQUE (slot_id, committed_revision),
+  UNIQUE (slot_id, turn_id, committed_revision),
+  CHECK ((status = 'COMMITTED' AND committed_revision IS NOT NULL AND committed_revision = expected_revision + 1
+          AND final_result_json IS NOT NULL AND batch_manifest_json IS NOT NULL)
+      OR (status IN ('PENDING','REJECTED') AND committed_revision IS NULL)),
   FOREIGN KEY (slot_id) REFERENCES save_slot(slot_id)
 );
-
 CREATE TABLE world_event (
   slot_id TEXT NOT NULL,
   event_id TEXT NOT NULL,
   turn_id TEXT NOT NULL,
-  ordinal INTEGER NOT NULL,
+  committed_revision INTEGER NOT NULL,
+  ordinal INTEGER NOT NULL CHECK(ordinal >= 0),
   actor_id TEXT,
   event_type TEXT NOT NULL,
   world_node_id TEXT,
@@ -131,44 +153,70 @@ CREATE TABLE world_event (
   corrects_event_id TEXT,
   PRIMARY KEY (slot_id, event_id),
   UNIQUE (slot_id, turn_id, ordinal),
-  FOREIGN KEY (slot_id) REFERENCES save_slot(slot_id)
+  FOREIGN KEY (slot_id, turn_id, committed_revision)
+    REFERENCES turn_receipt(slot_id, turn_id, committed_revision)
+    DEFERRABLE INITIALLY DEFERRED,
+  FOREIGN KEY (slot_id, corrects_event_id) REFERENCES world_event(slot_id, event_id)
 );
 CREATE INDEX event_by_turn ON world_event(slot_id, turn_id, ordinal);
 CREATE INDEX event_by_actor ON world_event(slot_id, actor_id, turn_id);
-
 CREATE TABLE actor_observation (
   slot_id TEXT NOT NULL,
   observation_id TEXT NOT NULL,
   actor_id TEXT NOT NULL,
   event_id TEXT NOT NULL,
-  access_kind TEXT NOT NULL CHECK (access_kind IN ('SEEN','HEARD','TOLD','INFERRED')),
+  created_turn_id TEXT NOT NULL,
+  committed_revision INTEGER NOT NULL,
+  access_kind TEXT NOT NULL CHECK(access_kind IN ('SEEN','HEARD','TOLD','INFERRED')),
   source_actor_id TEXT,
-  certainty TEXT NOT NULL CHECK (certainty IN ('CERTAIN','PLAUSIBLE','UNCERTAIN')),
+  certainty TEXT NOT NULL CHECK(certainty IN ('CERTAIN','PLAUSIBLE','UNCERTAIN')),
+  CHECK(access_kind != 'INFERRED' OR certainty != 'CERTAIN'),
   PRIMARY KEY (slot_id, observation_id),
+  UNIQUE (slot_id, observation_id, actor_id),
   UNIQUE (slot_id, actor_id, event_id, access_kind),
-  FOREIGN KEY (slot_id, event_id) REFERENCES world_event(slot_id, event_id)
+  FOREIGN KEY (slot_id, event_id) REFERENCES world_event(slot_id, event_id),
+  FOREIGN KEY (slot_id, created_turn_id, committed_revision)
+    REFERENCES turn_receipt(slot_id, turn_id, committed_revision)
+    DEFERRABLE INITIALLY DEFERRED
 );
 CREATE INDEX observation_by_actor ON actor_observation(slot_id, actor_id);
-
 CREATE TABLE actor_memory (
   slot_id TEXT NOT NULL,
   memory_id TEXT NOT NULL,
   actor_id TEXT NOT NULL,
   observation_id TEXT NOT NULL,
+  created_turn_id TEXT NOT NULL,
+  committed_revision INTEGER NOT NULL,
   subjective_summary TEXT NOT NULL,
-  salience TEXT NOT NULL CHECK (salience IN ('ORDINARY','IMPORTANT','PIVOTAL')),
-  topics_json TEXT NOT NULL,
-  status TEXT NOT NULL CHECK (status IN ('ACTIVE','SUPERSEDED')),
+  interpretation_source TEXT NOT NULL CHECK(interpretation_source IN ('NATIVE','MODEL_AUDITED')),
+  salience TEXT NOT NULL CHECK(salience IN ('ORDINARY','IMPORTANT','PIVOTAL')),
+  status TEXT NOT NULL CHECK(status IN ('ACTIVE','SUPERSEDED')),
   corrected_by_memory_id TEXT,
   PRIMARY KEY (slot_id, memory_id),
-  FOREIGN KEY (slot_id, observation_id) REFERENCES actor_observation(slot_id, observation_id)
+  UNIQUE (slot_id, memory_id, actor_id),
+  FOREIGN KEY (slot_id, observation_id, actor_id)
+    REFERENCES actor_observation(slot_id, observation_id, actor_id),
+  FOREIGN KEY (slot_id, created_turn_id, committed_revision)
+    REFERENCES turn_receipt(slot_id, turn_id, committed_revision)
+    DEFERRABLE INITIALLY DEFERRED,
+  FOREIGN KEY (slot_id, corrected_by_memory_id, actor_id)
+    REFERENCES actor_memory(slot_id, memory_id, actor_id)
 );
 CREATE INDEX memory_by_actor ON actor_memory(slot_id, actor_id, salience);
-
+CREATE TABLE memory_topic (
+  slot_id TEXT NOT NULL,
+  memory_id TEXT NOT NULL,
+  actor_id TEXT NOT NULL,
+  topic TEXT NOT NULL,
+  PRIMARY KEY (slot_id, actor_id, topic, memory_id),
+  FOREIGN KEY (slot_id, memory_id, actor_id)
+    REFERENCES actor_memory(slot_id, memory_id, actor_id)
+);
 CREATE TABLE actor_brain (
   slot_id TEXT NOT NULL,
   actor_id TEXT NOT NULL,
   brain_schema_version INTEGER NOT NULL,
+  rule_version TEXT NOT NULL,
   canon_persona_ref TEXT NOT NULL,
   canon_revision TEXT NOT NULL,
   beliefs_json TEXT NOT NULL,
@@ -176,18 +224,36 @@ CREATE TABLE actor_brain (
   mood_json TEXT NOT NULL,
   relationships_json TEXT NOT NULL,
   disposition_json TEXT NOT NULL,
-  committed_revision INTEGER NOT NULL,
+  committed_revision INTEGER NOT NULL CHECK(committed_revision >= 0),
   PRIMARY KEY (slot_id, actor_id),
   FOREIGN KEY (slot_id) REFERENCES save_slot(slot_id)
 );
+CREATE TRIGGER immutable_event_update BEFORE UPDATE ON world_event
+BEGIN SELECT RAISE(ABORT, 'world_event_is_append_only'); END;
+CREATE TRIGGER immutable_event_delete BEFORE DELETE ON world_event
+BEGIN SELECT RAISE(ABORT, 'world_event_is_append_only'); END;
 ~~~
 
-The schema is deliberately **not** an arbitrary transcript dump. Keep stored text bounded per event/memory; allow event rows to grow as gameplay continues. All JSON schemas and length limits must be validated by native code. Foreign keys and uniqueness constraints defend save/actor isolation.
+Specimen deletion lifecycle: each slot has its own database, as in §3.1. Explicit
+Delete Slot closes handles and deletes that slot's DB plus sidecars/cache through
+the native lifecycle; it does not issue row deletion against immutable history.
+Never reuse this trigger policy in a shared-slot DB without designing slot deletion.
+No automatic data deletion or resurrection after failure. Legacy data remains in its
+existing namespace and is not touched by Companion V1 lifecycle operations.
+
+Revision 0 initialization atomically creates the approved fresh Core snapshot and
+initial persona/brain projections; no fabricated gameplay receipt or world event.
+After genesis, native completeness checks compare the current snapshot with its
+COMMITTED receipt/manifest and verify record provenance. Historical records/unchanged
+brains may be older than current_revision; future/uncommitted records reject on load.
+JSON bounds, typed claims, exposure and state-machine transitions are native contracts.
+Queryable memory topics use ordinary indexes rather than requiring FTS. No separate
+claim or event-participant table is mandated before concrete queries require it.
 
 ### 3.3 Transaction rules
 
 1. Verify slot ID, request ID, expected revision and request hash.
-2. Load Core snapshot and all affected brains at exactly revision **N**.
+2. Load Core snapshot at revision **N** and affected committed brain projections valid at N; their last-update revision may be older. Verify provenance and pinned versions.
 3. Run authoritative validation; never accept LLM JSON as a new state.
 4. Persist accepted Core snapshot **N+1**, event rows, per-actor observations, updated brains and COMMITTED receipt in **one** SQLite transaction.
 5. Respond to UI **after** transaction success. If DB commit fails, the world has not moved.
@@ -197,7 +263,18 @@ The schema is deliberately **not** an arbitrary transcript dump. Keep stored tex
 9. Crash after commit but before UI callback replays committed output.
 10. Save slot creation starts a **fresh campaign**. Missing or corrupt DB is an explicit error. Never overwrite it by silently pretending a fresh game loaded.
 
-**One source of truth:** Core/world snapshot, events, memories and brains must agree on revision. The current UI cache and old save format are not mandatory migration dependencies.
+**One source of truth:** snapshot and current receipt agree on revision; historical records
+and unchanged brains carry their own creation/update revisions and must not exceed it.
+Completeness comes from the commit manifest, not max(revision) equality across all tables.
+WebView/legacy storage never overwrites companion truth.
+
+**Pending recovery:** a single active native pending turn/reservation at a slot revision
+binds decision schema/digest, actor, scene/evidence revision, kind/target and dice. Request
+aliases must not allocate a fresh roll. Before reserving RNG, intent can be validated;
+after reservation it is immutable. Recover the same persisted tuple after crash.
+Cancellation/rejection cannot reset entitlement to draw independently at the same pending
+turn. The exact persistence state machine and interaction with existing RNG must be
+reviewed before A1/A2; do not implement a new request-ID-seeded RNG as a shortcut.
 
 ### 3.4 Kotlin API contract (proposed)
 
@@ -212,11 +289,14 @@ interface SaveStatsRepository {
     fun events(slotId: String, query: EventQuery): List<WorldEvent>
     fun memories(slotId: String, actorId: String, query: MemoryQuery): List<ActorMemory>
     fun brain(slotId: String, actorId: String): CharacterBrainState?
-    fun exportNewSlot(slotId: String): VerifiedExport
 }
 ~~~
 
-**ValidatedTurnBatch is native-only.** It must carry accepted Core result, actor decisions, event provenance, observations, derived brain deltas and expected revision. Define it as typed Kotlin structures, not a blind map from the model.
+**ValidatedTurnBatch is native-only.** It carries accepted Core result, locked decision,
+provenance, exposure-approved observations, rule-derived brain deltas, pinned rule version,
+manifest and expected revision. Build all required deltas after outcome validation and
+before DB commit. Do not commit Core and then call a model to patch brain state.
+No new export feature is authorized by this API specimen.
 
 ## 4. Event Ledger: SaveStats remembers what actually happened
 
@@ -250,9 +330,9 @@ The existing StoryContinuityReducer remains a **short derived projection**, not 
 
 ### 5.1 Character observation is not Party membership
 
-- Only actors actually present/perceptually capable can acquire **SEEN/HEARD** observations.
+- Only actors in the native-approved exposure set can acquire **SEEN/HEARD**: scene membership, reach, consciousness and visibility/audibility all matter. Same node alone is insufficient.
 - If another character tells them about an event, they acquire **TOLD** information whose speaker may be wrong.
-- If the character speculates based on facts, it is **INFERRED** with source observation references and uncertainty.
+- Persist **INFERRED** only through a reviewed inference rule with actor-owned source observations and uncertainty; evidence IDs alone do not validate an inference. No CERTAIN inference.
 - Absent, unconscious or out-of-reach actors get no automatic knowledge.
 - Sharing the same LLM provider gives no character a license to read other actors' memory tables.
 - Historical Codex knowledge is separate from **in-campaign** observed memories.
@@ -367,7 +447,13 @@ Relationship:
   supportingEventIds, lastChangedTurn
 ~~~
 
-**Reducer:** `CharacterBrainReducer.apply(prior, approvedObservations, verifiedWorldEvents)` may update these projections only when causally justified. It does not make free-form AI changes authoritative. Failed update = old brain remains unchanged; commit fails if a required update cannot be persisted with Core.
+**Reducer:** deterministic versioned rules, not LLM brain proposals. See
+[Character Brain Rule Table V1](CHARACTER_BRAIN_RULE_TABLE_V1.md) for CREATE/UPDATE/RESOLVE,
+typed claim/promise acceptance, evidence, bounds, conflict policy and exact fixture outputs.
+CanonPersona is outside writable fields. Unknown template emits no delta; a required
+projection write failure aborts the whole batch. Mood decay uses Core turn, never wall
+clock/retry/provider waiting. Rule/canon revision mismatch fails explicitly until a
+separate reviewed conversion policy exists; a CANON_REVISION_CHANGED event is not a bypass.
 
 **Avoid numerical manipulation:** repeated identical player suggestions do not farm trust. New evidence, genuinely fulfilled promises and actual shared danger can matter. Any numeric mechanic used later must be reviewable, bounded and tested; values are *mechanics*, not objectively measured personality.
 
@@ -392,6 +478,9 @@ DECISION_OUTPUT_SCHEMA
 
 The GM may receive additional **writer-only** canon to avoid continuity mistakes, but the Cao Minh-specific decision request may not treat the GM's writer-only reference material as Cao Minh's personal knowledge. Thus **GM-context != actor-context**.
 
+Observability dependencies: [Canon P0](CANON_P0_CHARACTERIZATION_SPEC_V1.md) and
+[Provider P0](PROVIDER_P0_OBSERVABILITY_SPEC_V1.md). Separate actor memory/canon/state
+budgets and decision/writer/audit/repair/fallback roles; never log prompt/Canon text or keys.
 Build packets using reviewed KnowledgeContextEngine mechanisms plus **new actor-scope retrieval**. Check full generated engine after nested Python patches. Existing 2200/2800/3400 context thresholds are current *source markers*, not a guarantee that a new brain packet fits. Allocate and measure separate memory/canon/state budgets before implementation.
 
 ## 8. Autonomous reasoning with the current remote LLM
@@ -425,7 +514,7 @@ Build packets using reviewed KnowledgeContextEngine mechanisms plus **new actor-
  Native resolves and locks action kind/target
    |
    v
- Existing Core rolls / Exit v6 / ActionRuntime validation
+ Existing Core rolls / effective exit progression / ActionRuntime validation
    |
    v
  Existing writer + risk-based canon/character audit
@@ -435,8 +524,8 @@ Build packets using reviewed KnowledgeContextEngine mechanisms plus **new actor-
  Native final check: no changed locked decision or reused stale rolls
    |
    v
- GameCore validates action and commits outcome
- + SaveStats writes Core/events/observations/brains/receipt atomically
+ GameCore validates outcome; native derives events/observations/rule deltas
+ + SaveStats commits Core/events/observations/brains/receipt atomically
    |
    v
  GM speaks only about the committed outcome
@@ -464,14 +553,31 @@ Build packets using reviewed KnowledgeContextEngine mechanisms plus **new actor-
 
 The character may **accept, reject, question, negotiate or defer**. A direct statement by the player such as “rẽ phải ngay” becomes an argument/request; it is not a MOVE command. Every intent is validated against scene and Core rules.
 
-### 8.3 Preserve the real existing authorities
+### 8.3 Preserve effective authorities, not an overwritten intermediate patch
 
-- **Action kind:** Only native ActionKindResolver can map an accepted Cao Minh action to typed SEARCH/EXPLORE/EXECUTE. The UI message INTERACT never grants one.
-- **Discovery:** Exit Discovery v6 gets the resolved trusted kind only. Keep SEARCH-only An Nhiên eligibility and native RNG.
-- **Traverse:** Existing exact system command `traverse_exit` remains distinct, atomic, before generic combat/dice and only for already verified exits.
-- **Audit:** Keep the current risk-based semantic audit, local-knowledge validator, rejected-operation checks, repair and provider fallback chain. Add Character Decision checks **inside** its fail-closed boundaries, not as a replacement.
-- **Progression:** The merged [PR #454](https://github.com/rabpitvn1-create/BACKROOMS/pull/454) is a **design/skeleton**. Do not pretend it has already rewired every runtime transition.
-- **Narration:** Any model-generated prose inconsistent with committed action must be discarded or safely regenerated without a second state mutation.
+**G0 correction:** on the reviewed main, patch-player-action-ime.py calls
+patch-exit-streak-integration.py after patch-exit-discovery-engine.py. It removes the
+v6 engine/test and installs EXIT_STREAK_V1. See the pinned G0 report. SEARCH-only v6
+exit rolls, An Nhiên exit read and traverse_exit dispatch are not active final-output
+contracts. Do not resurrect them merely because an earlier patch generates them.
+
+- **Action kind:** native validates actor/scene/target at expected revision and resolves
+  SEARCH/EXPLORE/EXECUTE from closed intent, never utteranceDraft/player keywords.
+- **Current progression:** final output uses ExitStreakEngine and Core-validated featured
+  routes; existing 15-code-point input eligibility, one 50/50 roll per accepted ordinary
+  non-combat turn and five-consecutive-win progression are the measured source contract.
+  Actor INTERACT envelope alone does not grant a gameplay turn or random draw. The mapping
+  of accepted actor decisions to ordinary-turn eligibility is a required A2 contract.
+- **Migration gate:** the approved baseline's Exit v6 assumption is disproved. Preserve
+  current runtime while reviewers reconcile A2 fixtures to effective streak authority.
+  No restoration, extra exit engine, balance change or stale v6 test removal is a task
+  authorized by this document. This conflict blocks runtime readiness, not doc authoring.
+- **Audit:** risk/content drives applicable semantic audit, local validation, repair and
+  fallback. No exemption merely because a decision contains only dialogue/no action kind.
+- **Failure:** provider/quota failure keeps committed state/brain unchanged; no invented
+  character reaction is persisted.
+- **Narration:** output inconsistent with committed outcome is discarded/regenerated with
+  no second mutation.
 
 ## 9. Player companionship and UI, only after the brain exists
 
@@ -511,17 +617,18 @@ Only after SaveStats, memory, mind and decision engine work should the UI retire
 | **G0** | Reproduce effective nested patch-chain and inspect generated Java/Kotlin/HTML, current audit, exit authority | Exact patch invocations, output artifacts, tests/CI baseline |
 | **S1** | New SQLite SaveStats database for fresh runs and typed repository API | Create/save/load/rollback/slot-isolation/process-crash tests |
 | **S2** | Native immutable event ledger linked to Core accepted outcomes | Unauthorized ops cannot write facts; old event retrieval at 5k turns |
+| **S2.5** | Fresh isolated test DB/slot and command adapter; real Core/SaveStats, existing three buttons only as drivers | Core parity, crash/retry, 1k/5k/10k measurements; no persisted legacy mode/dual write |
 | **M1** | Per-actor observation ledger and provenance | No actor knowledge leak, absent actor cannot witness |
 | **P1** | Reviewed canon-persona registry for Cao Minh then Lục Trầm | Current Codex parity; stable identity/knowledge namespace |
 | **M2** | Durable episodic memory and actor-specific retrieval | Separate minds, subjective beliefs and indexed old memories |
 | **P2** | Goals, beliefs, mood, disposition and relationship reducer | Causal updates, deterministic reload, no unsupported trait changes |
 | **C1** | Actor-specific private Context Builder | No writer secrets or other actor's private memories |
 | **A1** | Character Decision proposal and validator inside audit chain | Accept/refuse/reconsider, Core authority, retry/fail-closed |
-| **A2** | Native ActionKindResolver and Exit v6 binding | No discovery from player words; accepted actions preserve game mechanics |
+| **A2** | Native ActionKindResolver and effective exit progression binding | Resolve G0 v6/streak conflict; preserve current costs/eligibility/RNG; no action authority from text |
 | **UI1** | One [TƯƠNG TÁC] input and role-separated transcript | End-to-end from input through brains/validation/commits, keyboard working |
 | **R1** | Release candidate + real playtest | 1k/5k/10k turns, save stability, long memory, quality and latency reports |
 
-**No old-save migration phase.** A fresh new game is the only activation path for this architecture. Preserve game **rules** that work; do not allow legacy data-format concerns to dictate the new system.
+**No old-save migration phase.** Preserve legacy data, require explicit Companion NEW GAME, and never silently convert/load-reset. A fresh new game is the only activation path for this architecture. Preserve game **rules** that work; do not allow legacy data-format concerns to dictate the new system.
 
 ## 11. Test contract
 
@@ -548,9 +655,9 @@ Only after SaveStats, memory, mind and decision engine work should the UI retire
 | AI03 | New evidence | Cao Minh can reconsider causally; not forced either way |
 | AI04 | Fake evidence reference | Proposal rejected before action commit |
 | AI05 | Wrong actor memory | Retrieval refuses cross-actor/private knowledge |
-| AK01 | Typed discovery | INTERACT alone never calls Exit v6 |
-| AK02 | SEARCH accepted by native | Existing SEARCH-only bonuses, thresholds and actor eligibility intact |
-| AK03 | EXIT traversal | Validated atomic transition; no generic dice reroll |
+| AK01 | Non-authoritative input | INTERACT/player keywords alone never allocate gameplay RNG or exit progress |
+| AK02 | Accepted ordinary action | Native eligibility and kind preserve effective progression/RNG; no resurrection of retired SEARCH-only v6 logic |
+| AK03 | Effective route progression | Core validates streak source/target and commits transition once; A2 mapping must reconcile the retired v6 dispatch |
 | AU01 | Semantic audit fails | No Core change, no fabricated success |
 | AU02 | Repair changes action | Old approved action kind and its dice cannot be reused |
 | CI01 | Full nested patch chain | Effective knowledge and continuity hooks persist; no fragile anchors |
@@ -583,6 +690,12 @@ Goals are **measurements to obtain**, not invented successful benchmarks:
 
 ## 14. Reviewer checklist / approval gates
 
+Approved product policy and authoring ownership are recorded in
+[Product Decisions](COMPANION_PRODUCT_DECISIONS_V1.md). Ponytail now owns remaining
+work following Orion handoff. Independent review is still outstanding where noted;
+do not attribute future review approval to an agent who has left.
+
+
 **Core/storage reviewer:** atomic transaction, native only write, idempotency, correct ownership and reroll prevention.
 
 **Memory reviewer:** exact event provenance, actor exposure and false-belief representation, large-history retrieval.
@@ -591,7 +704,7 @@ Goals are **measurements to obtain**, not invented successful benchmarks:
 
 **AI reviewer:** personalized actor context, candidate schema, semantic audit placement, repair/failure behavior and provider costs.
 
-**Gameplay reviewer:** autonomous actor-to-kind mapping, Exit v6 and traversal semantics, multi-character interactions.
+**Gameplay reviewer:** autonomous actor-to-kind mapping, effective streak/route semantics and the G0 reconciliation gate, multi-character interactions.
 
 **QA/release reviewer:** full nested patch chain, compilation, behavioral fixtures, real-device latency and rollback.
 
