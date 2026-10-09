@@ -2,7 +2,7 @@ name: Verify Companion WAIT Authorization 485
 
 on:
   pull_request:
-    branches: [feat/companion-core-lock-s1c2, feature/companion-wait-authority-485, fix/companion-wait-preflight-boundary, feat/companion-slot-native-binding, feat/companion-native-wait-capture, feat/companion-combat-start-capture, feat/companion-verified-wait-batch, feat/companion-atomic-wait, feat/companion-native-backend-benchmark, perf/companion-receipt-read-cost, feat/companion-exposure-eligibility, feat/companion-canon-persona-pins, muse/r1-qualification-report-518]
+    branches: [feat/companion-core-lock-s1c2, feature/companion-wait-authority-485, fix/companion-wait-preflight-boundary, feat/companion-slot-native-binding, feat/companion-native-wait-capture, feat/companion-combat-start-capture, feat/companion-verified-wait-batch, feat/companion-atomic-wait, feat/companion-native-backend-benchmark, perf/companion-receipt-read-cost, feat/companion-exposure-eligibility, feat/companion-canon-persona-pins, muse/r1-qualification-report-518, fix/companion-muse-review]
     paths:
       - ".github/workflows/verify-companion-wait-authority-485.yml"
       - "android-apk/app/src/main/java/com/rabpit/backroom/core/companion/**"
