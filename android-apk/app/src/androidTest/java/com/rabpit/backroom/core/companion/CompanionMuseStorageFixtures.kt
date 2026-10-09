@@ -60,12 +60,22 @@ internal object CompanionMuseStorageFixtures {
       // Correct event id with wrong receipt must not pass the composite FK.
       rejects { db.execSQL("INSERT INTO actor_observation SELECT slot_id,'other',actor_id,event_id,'wrong',committed_revision,access_kind,source_actor_id,certainty,scene_id,policy_version,public_payload,observation_digest FROM actor_observation") }
       rejects { db.execSQL("INSERT INTO observation_manifest VALUES(?, 't',1,1,'o',?)",arrayOf(slot,"0".repeat(64))) }
-      db.execSQL("INSERT INTO actor_memory VALUES(?, 'm','cao_minh','o','t',1,'topic','summary','NATIVE','ORDINARY','ACTIVE',NULL)",arrayOf(slot))
+      db.execSQL("INSERT INTO actor_memory VALUES(?, 'm','cao_minh','o','t',1,'topic',?,'NATIVE','ORDINARY','ACTIVE',NULL)",arrayOf(slot,EpisodicMemory.summarize(candidate())))
       rejects { db.execSQL("UPDATE actor_memory SET subjective_summary='edited'") }
       rejects { db.execSQL("DELETE FROM actor_memory") }
       db.execSQL("INSERT INTO memory_manifest VALUES(?,'t',1,0,'m','cao_minh')",arrayOf(slot))
       rejects { db.execSQL("UPDATE memory_manifest SET ordinal=1") }
       rejects { db.execSQL("DELETE FROM memory_manifest") }
+      db.beginTransaction()
+      try {
+        val own=MemoryStorageReader.read(db,slot,"cao_minh",1)
+        check(own.size==1 && own.single().observationId=="o")
+        check(own.single().summary==EpisodicMemory.summarize(candidate()))
+        check(MemoryStorageReader.read(db,slot,"luc_tram",1).isEmpty())
+        val selected=MemoryRetrieval.retrieve(own,MemoryRetrieval.Query(slot,"cao_minh",maxChars=200))
+        check(selected.entries.size==1 && !selected.truncated)
+        check(MemoryRetrieval.retrieve(own,MemoryRetrieval.Query(slot,"cao_minh",maxChars=0)).truncated)
+      } finally { db.endTransaction() }
       rejects { db.execSQL("INSERT INTO actor_memory VALUES(?, 'foreign','luc_tram','o','t',1,'topic','summary','NATIVE','ORDINARY','ACTIVE',NULL)",arrayOf(slot)) }
       check(count(db,"genesis_pins")==2 && count(db,"initial_brain")==2)
       rejects { db.execSQL("UPDATE genesis_pins SET persona_revision='R18'") }
