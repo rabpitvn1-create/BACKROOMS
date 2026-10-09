@@ -1,0 +1,164 @@
+name: Verify Companion WAIT Authorization 485
+
+on:
+  pull_request:
+    branches: [feat/companion-core-lock-s1c2]
+    paths:
+      - ".github/workflows/verify-companion-wait-authority-485.yml"
+      - "android-apk/app/src/main/java/com/rabpit/backroom/core/companion/**"
+      - "android-apk/app/src/test/java/com/rabpit/backroom/core/companion/**"
+      - "android-apk/app/src/main/java/com/rabpit/backroom/core/ExitStreakEngine.kt"
+      - "android-apk/app/src/main/java/com/rabpit/backroom/core/progression/FeaturedJourneyRoutes.kt"
+      - "android-apk/patch-*.py"
+      - "android-apk/apply-release-patch-chain.py"
+
+permissions:
+  contents: read
+
+jobs:
+  exact-head-native-wait:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+      - name: Pin exact PR HEAD, not synthetic merge commit
+        env:
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$PR_HEAD"
+          mkdir -p evidence
+          printf 'PR_HEAD=%s\nCHECKED_OUT_SHA=%s\n' "$PR_HEAD" "$(git rev-parse HEAD)" > evidence/provenance.txt
+      - name: Authoritative 46-patch chain
+        run: |
+          set -euo pipefail
+          python3 android-apk/apply-release-patch-chain.py 2>&1 | tee evidence/patch-chain.log
+          grep -F "Applied 46 authoritative top-level patches" evidence/patch-chain.log
+      - name: Export generated source parity and provenance
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,json,shutil
+          root=Path("android-apk/app/src/main/java/com/rabpit/backroom")
+          paths=[root/"MainActivity.java",root/"core/GameCoreFacade.kt",
+            root/"core/ExitStreakEngine.kt",root/"core/companion/CompanionWaitAuthorizer.kt",
+            root/"core/companion/CompanionRollTape.kt",
+            Path("android-apk/app/src/main/assets/index.html")]
+          evidence=Path("evidence"); target=evidence/"generated-source";target.mkdir(exist_ok=True)
+          hashes={}
+          for p in paths:
+            hashes[str(p)]=hashlib.sha256(p.read_bytes()).hexdigest()
+            shutil.copy2(p,target/p.name)
+          baselines={
+            "android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java":"799f035d4613f22623bae0c166f0ab06f70356728d4fcdf8b0dcf01e569ddcf7",
+            "android-apk/app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt":"16dd6e9944d64de5176ce7ae2e00eddfc99882910310a604503ca2a0e916a253",
+            "android-apk/app/src/main/assets/index.html":"65d1c917cc1bb493d761ce58bf15a8a46f90a4abd00ae7d743afacc70bc32240"
+          }
+          mismatch=[p for p,v in baselines.items() if hashes[p]!=v]
+          (evidence/"generated-source-hashes.json").write_text(json.dumps({"hashes":hashes,"g0_mismatches":mismatch},indent=2))
+          if mismatch:raise SystemExit("G0 generated source drift: "+str(mismatch))
+          PY
+      - name: Run full Core unit test suite and debug APK
+        run: gradle -p android-apk :app:testDebugUnitTest :app:assembleDebug --no-daemon
+      - name: Export WAIT fixture report
+        if: always()
+        run: |
+          mkdir -p evidence/junit
+          find android-apk/app/build/test-results/testDebugUnitTest -name '*.xml' -type f -exec cp -t evidence/junit {} + || true
+          python3 - <<'PY'
+          import glob,json,xml.etree.ElementTree as ET
+          fixtures=[]
+          draw_outcomes=[]
+          for p in glob.glob("evidence/junit/*WaitAuthorizerTest*.xml"):
+            root=ET.parse(p).getroot()
+            for c in root.findall("testcase"):
+              fixtures.append({"name":c.get("name"),"passed":c.find("failure") is None and c.find("error") is None})
+            for node in root.iter("system-out"):
+              for line in (node.text or "").splitlines():
+                if line.startswith("WAIT485_OBSERVED="):
+                  draw_outcomes.append(json.loads(line.split("=",1)[1]))
+          with open("evidence/wait-fixture-report.json","w") as f:
+            json.dump({"count":len(fixtures),"fixtures":fixtures},f,indent=2)
+          with open("evidence/native-draw-outcome-fixtures.json","w") as f:
+            json.dump({"count":len(draw_outcomes),"observed":draw_outcomes},f,indent=2,ensure_ascii=False)
+          print("WAIT485_NATIVE_FIXTURE_COUNT",len(draw_outcomes))
+          if len(fixtures)!=9 or any(not item["passed"] for item in fixtures):
+            raise SystemExit("WAIT485 regression suite incomplete or failing")
+          if len(draw_outcomes)!=11:
+            raise SystemExit("WAIT485 native roll/outcome capture incomplete")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: wait-485-exact-head-source-and-fixtures
+          path: evidence/
+          retention-days: 30
+          if-no-files-found: warn
+
+  sqlite-and-crash:
+    needs: exact-head-native-wait
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [24,35]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+      - name: Verify exact SHA and reproduce authoritative chain
+        env:
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$PR_HEAD"
+          python3 android-apk/apply-release-patch-chain.py
+      - name: Build real storage instrumentation APKs
+        run: gradle -p android-apk -PcompanionStorageSmoke :app:assembleDebug :app:assembleDebugAndroidTest --no-daemon
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Real SQLite storage and fresh-process crash recovery
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
+          script: python3 android-apk/run-companion-storage-smoke.py ${{ matrix.api }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: wait-485-sqlite-api-${{ matrix.api }}
+          path: android-apk/app/build/reports/companion-storage/
+          retention-days: 30
+          if-no-files-found: warn

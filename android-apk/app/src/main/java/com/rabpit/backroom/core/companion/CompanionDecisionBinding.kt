@@ -42,6 +42,8 @@ object CompanionDecisionBinding {
          turn.resumePhase == CompanionPendingTurn.Phase.RESERVED))
     if (!active) return deny("decision_phase_invalid")
     if (pinnedPolicy != lock.policyVersion) return deny("policy_mismatch")
+    // Equality is not implementation authority: reject unsupported versions before any RNG.
+    if (pinnedPolicy != CompanionWaitAuthorizer.WAIT_POLICY) return deny("policy_version_unsupported")
     if (lock.actorId != "cao_minh" || lock.sceneRevision != expectedRevision)
       return deny("decision_identity_mismatch")
     if (turn.reservation != null &&
