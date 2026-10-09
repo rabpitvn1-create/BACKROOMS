@@ -254,6 +254,22 @@ public final class CompanionSlotStore implements Closeable {
       return java.util.Collections.unmodifiableList(rows);
     });
   }
+  /**
+   * Query only owner-visible records from this slot's native transaction.
+   * Each returned turn is receipt-verified before any public payload escapes.
+   */
+  public synchronized List<ObservationReader.Row> observations(String actorId, int limit) throws IOException {
+    return transaction(() -> {
+      List<ObservationReader.Row> rows =
+          ObservationStorageReader.read(database,slotId,actorId,revision(),limit);
+      Set<String> checked = new HashSet<>();
+      for (ObservationReader.Row row : rows) {
+        if (checked.add(row.getTurnId())) read(row.getTurnId());
+      }
+      return rows;
+    });
+  }
+
   /** Historical identity is checked before the current snapshot or any gameplay replay. */
   public synchronized CompanionPendingTurn.Receipt committedReceipt(Request request) throws IOException {
     return transaction(() -> receiptWithin(request));
