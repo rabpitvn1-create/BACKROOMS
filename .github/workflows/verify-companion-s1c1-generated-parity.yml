@@ -1,0 +1,247 @@
+name: Verify Companion S1c.1 Generated Source Parity
+
+on:
+  pull_request:
+    branches:
+      - feat/companion-core-stage-s1c1
+    paths:
+      - ".github/workflows/verify-companion-s1c1-generated-parity.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  exact-revision-patch-parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      PINNED_SHA: c0913cc0119151ecf023fb5d785bcb5119a93e3a
+    steps:
+      - name: Checkout exact verified S1c.1 commit (not PR merge ref)
+        uses: actions/checkout@v4
+        with:
+          ref: c0913cc0119151ecf023fb5d785bcb5119a93e3a
+          fetch-depth: 0
+          path: production
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify immutable source ancestry and make separate traced worktree
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(git -C production rev-parse HEAD)"
+          test "$actual" = "$PINNED_SHA"
+          test -z "$(git -C production status --porcelain)"
+          git -C production worktree add --detach "$GITHUB_WORKSPACE/traced" "$PINNED_SHA"
+          test "$(git -C traced rev-parse HEAD)" = "$PINNED_SHA"
+          test -z "$(git -C traced status --porcelain)"
+          mkdir -p "$GITHUB_WORKSPACE/evidence"
+          printf 'exact_source_commit=%s\nworkflow_head=%s\n' "$actual" "$GITHUB_SHA" \
+            > "$GITHUB_WORKSPACE/evidence/provenance.txt"
+
+      - name: Run authoritative workflow-order patch chain in isolated production checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$GITHUB_WORKSPACE/production"
+          python3 android-apk/apply-release-patch-chain.py 2>&1 |
+            tee "$GITHUB_WORKSPACE/evidence/authoritative-patch-chain.log"
+          git diff --name-status > "$GITHUB_WORKSPACE/evidence/generated-file-diff.txt"
+
+      - name: Trace recursive runpy and independently regenerate same commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/trace-companion.py" <<'PY'
+          import hashlib
+          import json
+          import os
+          import re
+          import runpy
+          import sys
+          from pathlib import Path
+
+          root = Path(sys.argv[1]).resolve()
+          out = Path(sys.argv[2]).resolve()
+          out.mkdir(parents=True, exist_ok=True)
+          os.chdir(root)
+          workflow = (root / ".github/workflows/build-backroom-apk.yml").read_text(encoding="utf-8")
+          arrays = re.findall(r"^\s+scripts=\(([^\n]*)\)\s*$", workflow, re.M)
+          if len(arrays) != 1:
+              raise RuntimeError("authoritative_script_array_missing_or_ambiguous")
+          scripts = arrays[0].split()
+          if not scripts or len(scripts) != len(set(scripts)) or any(
+              not re.fullmatch(r"patch-[a-z0-9.-]+\.py", entry) for entry in scripts
+          ):
+              raise RuntimeError("authoritative_script_array_invalid")
+          (out / "scripts.txt").write_text("\n".join(scripts) + "\n", encoding="utf-8")
+          (out / "scripts.json").write_text(json.dumps(scripts, indent=2), encoding="utf-8")
+
+          original = runpy.run_path
+          stack = []
+          calls = []
+          def traced(path, *args, **kwargs):
+              p = Path(path).resolve()
+              relative = str(p.relative_to(root))
+              record = {"path": relative, "parent": stack[-1] if stack else None,
+                        "depth": len(stack)}
+              calls.append(record)
+              stack.append(relative)
+              try:
+                  result = original(str(p), *args, **kwargs)
+                  record["status"] = "ok"
+                  return result
+              except BaseException as exc:
+                  record["status"] = "failed"
+                  record["error"] = str(exc)
+                  raise
+              finally:
+                  stack.pop()
+
+          runpy.run_path = traced
+          try:
+              for entry in scripts:
+                  print("TRACE_TOP", entry, flush=True)
+                  traced(root / "android-apk" / entry, run_name="__main__")
+          finally:
+              (out / "invocations.json").write_text(
+                  json.dumps(calls, indent=2), encoding="utf-8"
+              )
+          suffixes = {".java", ".kt", ".html", ".py", ".gradle"}
+          hashes = {
+              str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest()
+              for p in (root / "android-apk").rglob("*")
+              if p.is_file() and p.suffix in suffixes
+          }
+          (out / "effective-hashes.json").write_text(
+              json.dumps(hashes, sort_keys=True, indent=2), encoding="utf-8"
+          )
+          print("PATCH_CHAIN_COMPLETE", len(scripts), "top-level",
+                len(calls), "runpy invocations", flush=True)
+          PY
+          python3 "$RUNNER_TEMP/trace-companion.py" \
+            "$GITHUB_WORKSPACE/traced" "$GITHUB_WORKSPACE/evidence" 2>&1 |
+            tee "$GITHUB_WORKSPACE/evidence/recursive-patch-trace.log"
+
+      - name: Verify byte-identical generated source and G0 native authority baselines
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          import shutil
+          from pathlib import Path
+
+          workspace = Path(os.environ["GITHUB_WORKSPACE"])
+          evidence = workspace / "evidence"
+          production = workspace / "production"
+          traced = workspace / "traced"
+          scripts = json.loads((evidence / "scripts.json").read_text(encoding="utf-8"))
+          calls = json.loads((evidence / "invocations.json").read_text(encoding="utf-8"))
+          traced_hashes = json.loads((evidence / "effective-hashes.json").read_text(encoding="utf-8"))
+          suffixes = {".java", ".kt", ".html", ".py", ".gradle"}
+          production_hashes = {
+              str(p.relative_to(production)): hashlib.sha256(p.read_bytes()).hexdigest()
+              for p in (production / "android-apk").rglob("*")
+              if p.is_file() and p.suffix in suffixes
+          }
+          errors = []
+          if len(scripts) != 46:
+              errors.append(f"unexpected_script_count:{len(scripts)}")
+          if len(calls) != 104:
+              errors.append(f"unexpected_recursive_invocation_count:{len(calls)}")
+          actual_top = [c["path"].removeprefix("android-apk/")
+                        for c in calls if c["depth"] == 0]
+          if actual_top != scripts:
+              errors.append("workflow_script_order_mismatch")
+          if any(c["status"] != "ok" for c in calls):
+              errors.append("recursive_script_failed")
+          if not any(c["path"] == "android-apk/patch-exit-streak-integration.py"
+                     and c["parent"] == "android-apk/patch-player-action-ime.py"
+                     for c in calls):
+              errors.append("nested_exit_streak_patch_missing")
+          mismatch = sorted(set(production_hashes) ^ set(traced_hashes))
+          mismatch += sorted(p for p in set(production_hashes) & set(traced_hashes)
+                             if production_hashes[p] != traced_hashes[p])
+          if mismatch:
+              errors.append("independent_generated_source_mismatch:" + ",".join(mismatch[:20]))
+
+          # G0 evidence generated from the same baseline source ancestry:
+          # docs/design/g0-v1/hooks-manifest.json at design/living-companion-interaction-rfc-v1.
+          g0_hashes = {
+              "android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java":
+                  "799f035d4613f22623bae0c166f0ab06f70356728d4fcdf8b0dcf01e569ddcf7",
+              "android-apk/app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt":
+                  "16dd6e9944d64de5176ce7ae2e00eddfc99882910310a604503ca2a0e916a253",
+              "android-apk/app/src/main/assets/index.html":
+                  "65d1c917cc1bb493d761ce58bf15a8a46f90a4abd00ae7d743afacc70bc32240"
+          }
+          for path, expected in g0_hashes.items():
+              if production_hashes.get(path) != expected:
+                  errors.append("G0_baseline_hash_mismatch:" + path)
+
+          root = production / "android-apk/app/src/main"
+          main = (root / "java/com/rabpit/backroom/MainActivity.java").read_text(encoding="utf-8")
+          facade = (root / "java/com/rabpit/backroom/core/GameCoreFacade.kt").read_text(encoding="utf-8")
+          exit_path = root / "java/com/rabpit/backroom/core/ExitStreakEngine.kt"
+          exit_source = exit_path.read_text(encoding="utf-8")
+          for marker in ("ExitStreakEngine.advance(", "GAME_RNG.nextInt(bound)",
+                         "makeGameplayRolls(before, actionKind, action, false)",
+                         "processValidatedCandidateWithStreak("):
+              if marker not in main:
+                  errors.append("missing_effective_native_marker:" + marker)
+          if "processValidatedCandidateWithStreak" not in facade:
+              errors.append("missing_native_core_streak_commit")
+          if "nextInt(RNG_BOUND)" not in exit_source:
+              errors.append("missing_native_exit_roll_purpose")
+          if (exit_path.parent / "ExitDiscoveryEngine.kt").exists():
+              errors.append("retired_exit_v6_resurrected")
+
+          callsites = [
+              {"line": i, "source": line.strip()}
+              for i, line in enumerate(main.splitlines(), 1)
+              if "GAME_RNG.nextInt" in line
+          ]
+          snapshots = evidence / "generated-source"
+          snapshots.mkdir(exist_ok=True)
+          for path in g0_hashes:
+              target = snapshots / Path(path).name
+              shutil.copy2(production / path, target)
+          shutil.copy2(exit_path, snapshots / exit_path.name)
+          (evidence / "rng-call-sites.json").write_text(
+              json.dumps(callsites, indent=2, ensure_ascii=False), encoding="utf-8"
+          )
+          report = {
+              "exact_source_sha": os.environ["PINNED_SHA"],
+              "workflow_head_sha": os.environ["GITHUB_SHA"],
+              "scripts_executed": len(scripts),
+              "recursive_runpy_invocations": len(calls),
+              "generated_files_compared": len(production_hashes),
+              "byte_identical_independent_patch_runs": not mismatch,
+              "g0_expected_hashes": g0_hashes,
+              "generated_rng_callsites": callsites,
+              "errors": errors,
+              "qualified": not errors
+          }
+          (evidence / "parity-report.json").write_text(
+              json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8"
+          )
+          print(json.dumps(report, indent=2, ensure_ascii=False), flush=True)
+          if errors:
+              raise SystemExit("FAIL: generated source parity proof rejected")
+          PY
+
+      - name: Upload trace, exact source hashes, snapshots and audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: companion-s1c1-exact-generated-parity
+          path: evidence/
+          if-no-files-found: warn
+          retention-days: 30
