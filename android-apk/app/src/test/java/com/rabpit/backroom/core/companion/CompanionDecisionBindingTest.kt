@@ -9,7 +9,7 @@ class CompanionDecisionBindingTest {
   private val slot = "slot-a"
   private val request = "req-a"
   private val turnId = "turn-a"
-  private val policy = "policy-1"
+  private val policy = CompanionWaitAuthorizer.WAIT_POLICY
   private val input = "Tôi muốn đứng đợi tại chỗ này một lát"
   private fun state(location: String = "level-0") =
     GameStateCodec.decode(GameStateCodec.encode(GameState.initial().copy(world = mapOf("location" to location))))
