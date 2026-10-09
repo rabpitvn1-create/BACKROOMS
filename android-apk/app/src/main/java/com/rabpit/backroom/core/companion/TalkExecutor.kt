@@ -98,11 +98,16 @@ internal object TalkExecutor {
   fun execute(input: TalkInput): TalkResult {
     val decided = input.decided
     if (decided.intent != Intent.TALK) return TalkResult.NotSpoken("intent_not_talk")
+    if (!CompanionLockedProposal.consistent(decided)) return TalkResult.NotSpoken("decision_binding_mismatch")
+    if (!CompanionLockedProposal.turnMatches(decided,input.turnId)) return TalkResult.NotSpoken("turn_mismatch")
+    if (!CompanionLockedProposal.sceneMatches(decided,input.facts.sceneId)) return TalkResult.NotSpoken("scene_mismatch")
     if (decided.binding.actorId != input.facts.speakerId) return TalkResult.NotSpoken("speaker_mismatch")
     if (decided.utterance != input.utterance) return TalkResult.NotSpoken("utterance_not_locked")
     if (decided.targetId != input.facts.listenerId)
       return TalkResult.NotSpoken("listener_mismatch")
     if (input.utterance.isBlank()) return TalkResult.NotSpoken("utterance_empty")
+    if (!Charsets.UTF_8.newEncoder().canEncode(input.utterance) || input.utterance.codePointCount(0,input.utterance.length)>500)
+      return TalkResult.NotSpoken("utterance_invalid")
     // Canon firewall on the utterance itself.
     if (input.utterance.contains("CAO-LOCK") || input.utterance.contains("knowledgeLockRefs"))
       return TalkResult.NotSpoken("utterance_canon_leak")
