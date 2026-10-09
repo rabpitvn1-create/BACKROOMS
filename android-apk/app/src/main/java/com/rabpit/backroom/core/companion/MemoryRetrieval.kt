@@ -54,7 +54,14 @@ internal object MemoryRetrieval {
     // 1. Slot + actor filter first.
     val owned = all.filter { it.slotId == query.slotId && it.ownerActorId == query.actorId }
     // 2. Latest per correction chain.
-    val superseded = owned.mapNotNull { it.supersedesMemoryId }.toSet()
+    val byId=owned.associateBy { it.memoryId }
+    require(byId.size==owned.size) { "memory_duplicate_identity" }
+    val superseded=hashSetOf<String>()
+    for(m in owned) m.supersedesMemoryId?.let { id ->
+      val parent=byId[id] ?: throw IllegalArgumentException("memory_correction_parent_missing")
+      require(m.committedRevision>parent.committedRevision) { "memory_correction_revision" }
+      require(superseded.add(id)) { "memory_correction_branch" }
+    }
     val latest = owned.filter { it.memoryId !in superseded }
     // 3. Deterministic rank.
     val ranked = latest.sortedWith(compareBy(

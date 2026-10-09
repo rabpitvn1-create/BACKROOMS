@@ -27,20 +27,20 @@ class MoveSearchInspectExecutorTest {
     providerCalls = 1)
 
   private fun moveFacts() = MoveNativeFacts(
-    actorId = "luc_tram", fromSceneId = "node-7", toSceneId = "node-8",
+    actorId = "luc_tram", fromSceneId = "level-0", toSceneId = "level-0.2",
     targetAccessible = true, targetReachable = true, actorPresent = true,
-    rollWon = true, streakWins = 4)
+    rollWon = true, streakWins = 4, nativeAction="Tôi kiểm tra đường đi phía trước", combatTurn=false)
 
   // ---- MOVE: EXIT_STREAK_V1 ----
 
   @Test fun move_fifthWin_transitions() {
     val r = MoveSearchInspectExecutor.executeMove(
-      decided(Intent.MOVE, "node-8"), moveFacts(),
+      decided(Intent.MOVE, "level-0.2"), moveFacts(),
       "turn-9", "obs-1", 7L)
     assertTrue(r is MoveResult.Moved)
     val b = (r as MoveResult.Moved).bundle
     assertTrue(b.event.transitioned)
-    assertEquals("node-8", b.event.toSceneId)
+    assertEquals("level-0.2", b.event.toSceneId)
     assertEquals(0, b.event.streakAfter)       // streak resets on transition
     assertEquals(10, b.tape.durationMinutes)   // EXPLORE 10
     assertEquals("EXPLORE", b.tape.actionType)
@@ -48,7 +48,7 @@ class MoveSearchInspectExecutorTest {
 
   @Test fun move_winBelowFive_staysWithStreak() {
     val r = MoveSearchInspectExecutor.executeMove(
-      decided(Intent.MOVE, "node-8"), moveFacts().copy(streakWins = 2),
+      decided(Intent.MOVE, "level-0.2"), moveFacts().copy(streakWins = 2),
       "turn-9", "obs-1", 7L)
     val b = (r as MoveResult.Moved).bundle
     assertFalse(b.event.transitioned)
@@ -58,7 +58,7 @@ class MoveSearchInspectExecutorTest {
 
   @Test fun move_lostRoll_resetsStreak() {
     val r = MoveSearchInspectExecutor.executeMove(
-      decided(Intent.MOVE, "node-8"), moveFacts().copy(rollWon = false, streakWins = 4),
+      decided(Intent.MOVE, "level-0.2"), moveFacts().copy(rollWon = false, streakWins = 4),
       "turn-9", "obs-1", 7L)
     val b = (r as MoveResult.Moved).bundle
     assertFalse(b.event.transitioned)
@@ -67,7 +67,7 @@ class MoveSearchInspectExecutorTest {
 
   @Test fun move_inaccessibleTarget_staysMove() {
     val r = MoveSearchInspectExecutor.executeMove(
-      decided(Intent.MOVE, "node-8"), moveFacts().copy(targetAccessible = false),
+      decided(Intent.MOVE, "level-0.2"), moveFacts().copy(targetAccessible = false),
       "turn-9", "obs-1", 7L)
     assertTrue(r is MoveResult.Stayed)
     assertEquals("target_inaccessible", (r as MoveResult.Stayed).reason)
@@ -83,7 +83,7 @@ class MoveSearchInspectExecutorTest {
   // ---- SEARCH ----
 
   private fun senseFacts() = SenseNativeFacts(
-    actorId = "luc_tram", sceneId = "node-7", targetId = null,
+    actorId = "luc_tram", sceneId = "level-0", targetId = null,
     actorConscious = true, actorPresent = true,
     targetPresent = true, targetReachable = true)
 
@@ -135,9 +135,19 @@ class MoveSearchInspectExecutorTest {
 
   @Test fun tape_orderedAcrossIntents() {
     val m = (MoveSearchInspectExecutor.executeMove(
-      decided(Intent.MOVE, "node-8"), moveFacts(), "turn-9", "obs-1", 7L) as MoveResult.Moved).bundle.tape
+      decided(Intent.MOVE, "level-0.2"), moveFacts(), "turn-9", "obs-1", 7L) as MoveResult.Moved).bundle.tape
     val s = (MoveSearchInspectExecutor.executeSearch(
       decided(Intent.SEARCH, null), senseFacts(), "turn-9", "obs-2", 8L) as SearchResult.Searched).bundle.tape
     assertTrue(s.sequence > m.sequence)
   }
+  @Test fun movementRejectsUnapprovedRouteCombatAndShortInput() {
+    for (f in listOf(moveFacts().copy(toSceneId="level-13"),moveFacts().copy(combatTurn=true),moveFacts().copy(nativeAction="short"),moveFacts().copy(streakWins=Int.MAX_VALUE))) {
+      assertTrue(MoveSearchInspectExecutor.executeMove(decided(Intent.MOVE,f.toSceneId),f,"turn-9","obs-1",7) is MoveResult.Stayed)
+    }
+  }
+  @Test fun sensingRejectsOtherActorsAndTargets() {
+    assertEquals("actor_mismatch",(MoveSearchInspectExecutor.executeSearch(decided(Intent.SEARCH,null),senseFacts().copy(actorId="other"),"t","o",1) as SearchResult.NotSearched).reason)
+    assertEquals("target_mismatch",(MoveSearchInspectExecutor.executeInspect(decided(Intent.INSPECT,"crate"),senseFacts().copy(targetId="other"),"t","o",1) as InspectResult.NotInspected).reason)
+  }
+
 }

@@ -98,6 +98,8 @@ internal object TalkExecutor {
   fun execute(input: TalkInput): TalkResult {
     val decided = input.decided
     if (decided.intent != Intent.TALK) return TalkResult.NotSpoken("intent_not_talk")
+    if (decided.binding.actorId != input.facts.speakerId) return TalkResult.NotSpoken("speaker_mismatch")
+    if (decided.utterance != input.utterance) return TalkResult.NotSpoken("utterance_not_locked")
     if (decided.targetId != input.facts.listenerId)
       return TalkResult.NotSpoken("listener_mismatch")
     if (input.utterance.isBlank()) return TalkResult.NotSpoken("utterance_empty")
@@ -114,7 +116,7 @@ internal object TalkExecutor {
     if (!f.inReach) return TalkResult.NotSpoken("not_in_reach")
     // Actual communication: emit the ordered bundle.
     val utteranceDigest = CompanionDigests.sha256(input.utterance)
-    val eventId = "speech-" + utteranceDigest.take(16)
+    val eventId = "speech-" + CompanionDigests.sha256(CompanionWaitCapture.canonical(org.json.JSONArray(listOf(decided.binding.slotId,input.turnId,f.speakerId,f.listenerId,f.sceneId,utteranceDigest)))).take(16)
     val event = SpeechEvent(
       eventId = eventId, turnId = input.turnId,
       speakerId = f.speakerId, listenerId = f.listenerId, sceneId = f.sceneId,

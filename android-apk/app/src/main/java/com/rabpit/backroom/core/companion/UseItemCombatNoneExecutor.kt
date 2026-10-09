@@ -81,6 +81,9 @@ internal object UseItemCombatNoneExecutor {
     turnId: String, observationId: String, tapeSequence: Long
   ): UseItemResult {
     if (decided.intent != Intent.USE_ITEM) return UseItemResult.NotUsed("intent_not_use_item")
+    if (decided.binding.actorId != facts.actorId) return UseItemResult.NotUsed("actor_mismatch")
+    if (decided.targetId != facts.targetId) return UseItemResult.NotUsed("target_mismatch")
+    if (facts.chargesBefore < 0 || facts.costCharges < 0 || facts.inventoryRevision < 0) return UseItemResult.NotUsed("inventory_invalid")
     if (decided.itemId != facts.itemId) return UseItemResult.NotUsed("item_mismatch")
     if (!facts.owned) return UseItemResult.NotUsed("item_not_owned")
     if (!facts.usable) return UseItemResult.NotUsed("item_unusable")
@@ -147,6 +150,9 @@ internal object UseItemCombatNoneExecutor {
     turnId: String, observationId: String, tapeSequence: Long
   ): CombatResult {
     if (decided.intent != Intent.COMBAT_ACTION) return CombatResult.NotActed("intent_not_combat")
+    if (decided.binding.actorId != facts.actorId) return CombatResult.NotActed("actor_mismatch")
+    if (facts.combatRevision < 0 || facts.rngScope.isBlank()) return CombatResult.NotActed("combat_scope_invalid")
+    if (facts.dice.any { it !in 1..6 }) return CombatResult.NotActed("dice_invalid")
     if (!facts.combatActive) return CombatResult.NotActed("combat_inactive")
     if (facts.combatRevision != facts.expectedCombatRevision)
       return CombatResult.NotActed("combat_revision_mismatch")

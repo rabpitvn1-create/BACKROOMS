@@ -29,7 +29,7 @@ class CompanionSlotLifecycleTest {
 
   private fun input() = BootstrapInput(
     approvedSeed = "native-seed-bytes".toByteArray(),
-    personaRevision = "R17", personaSha256 = "deadbeef",
+    personaRevision = "R17", personaSha256 = "a".repeat(64),
     ruleVersion = BrainContracts.RULE_VERSION,
     policyVersion = CompanionExposurePolicy.VERSION)
 
@@ -156,4 +156,19 @@ class CompanionSlotLifecycleTest {
     session.close()
     assertNull(session.currentSlotId)  // explicit load required to reopen
   }
+  @Test fun wrongSlotAndInvalidDigestAreCorrupt() {
+    val store=FakeStore(); bootstrap(store)
+    val original=store.slots.getValue("slot-1")
+    for (bad in listOf(original.copy(slotId="other"),original.copy(seedDigest="z".repeat(64)),original.copy(policyVersion="unknown"))) {
+      store.slots["slot-1"]=bad
+      assertEquals(LifecycleError.SLOT_CORRUPT,(CompanionSlotLifecycle.loadSlot(store,"slot-1") as LifecycleResult.Failed).error)
+    }
+  }
+  @Test fun failedDeleteIsNotSuccess() {
+    val delegate=FakeStore(); bootstrap(delegate)
+    val store=object: LifecycleStore by delegate { override fun delete(slotId:String)=false }
+    assertEquals(LifecycleError.DELETE_FAILED,(CompanionSlotLifecycle.deleteSlot(store,SlotSession(),"slot-1") as LifecycleResult.Failed).error)
+    assertTrue(delegate.exists("slot-1"))
+  }
+
 }

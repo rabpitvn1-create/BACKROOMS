@@ -44,7 +44,9 @@ internal object MoveSearchInspectExecutor {
     /** Native 50/50 roll outcome for this turn (from locked RNG). */
     val rollWon: Boolean,
     /** Current consecutive wins (native streak state). */
-    val streakWins: Int
+    val streakWins: Int,
+    val nativeAction: String = "",
+    val combatTurn: Boolean = true
   )
 
   data class MoveEvent(
@@ -78,14 +80,21 @@ internal object MoveSearchInspectExecutor {
     turnId: String, observationId: String, tapeSequence: Long
   ): MoveResult {
     if (decided.intent != Intent.MOVE) return MoveResult.Stayed("intent_not_move")
+    if (decided.binding.actorId != facts.actorId) return MoveResult.Stayed("actor_mismatch")
+    if (facts.streakWins !in 0..4) return MoveResult.Stayed("streak_invalid")
     if (decided.targetId != facts.toSceneId) return MoveResult.Stayed("target_mismatch")
     if (!facts.actorPresent) return MoveResult.Stayed("actor_absent")
     if (!facts.targetAccessible) return MoveResult.Stayed("target_inaccessible")
     if (!facts.targetReachable) return MoveResult.Stayed("target_unreachable")
-    // EXIT_STREAK_V1: 50/50 per turn; five-win streak transitions.
-    val streakAfter = if (facts.rollWon) facts.streakWins + 1 else 0
-    val transitioned = facts.rollWon && streakAfter >= 5
-    val finalStreak = if (transitioned) 0 else streakAfter
+    val route = com.rabpit.backroom.core.progression.FeaturedJourneyRoutes.next(facts.fromSceneId)
+      ?: return MoveResult.Stayed("route_unapproved")
+    if (route.targetStopKey != facts.toSceneId) return MoveResult.Stayed("route_unapproved")
+    // Replay the captured native roll through the authoritative rule; no new RNG draw.
+    val outcome = com.rabpit.backroom.core.ExitStreakEngine.advance(
+      facts.streakWins, facts.nativeAction, facts.combatTurn) { if (facts.rollWon) 0 else 1 }
+    if (!outcome.accepted || !outcome.evaluated) return MoveResult.Stayed("exit_ineligible")
+    val transitioned = outcome.completed
+    val finalStreak = if (transitioned) 0 else outcome.streak
     val eventId = "move-" + CompanionDigests.sha256(
       listOf(turnId, facts.actorId, facts.fromSceneId, facts.toSceneId,
         transitioned.toString()).joinToString("|")).take(16)
@@ -133,6 +142,8 @@ internal object MoveSearchInspectExecutor {
     turnId: String, observationId: String, tapeSequence: Long
   ): SearchResult {
     if (decided.intent != Intent.SEARCH) return SearchResult.NotSearched("intent_not_search")
+    if (decided.binding.actorId != facts.actorId) return SearchResult.NotSearched("actor_mismatch")
+    if (decided.targetId != facts.targetId) return SearchResult.NotSearched("target_mismatch")
     if (!facts.actorPresent) return SearchResult.NotSearched("actor_absent")
     if (!facts.actorConscious) return SearchResult.NotSearched("actor_unconscious")
     val eventId = "search-" + CompanionDigests.sha256(
@@ -169,6 +180,8 @@ internal object MoveSearchInspectExecutor {
   ): InspectResult {
     if (decided.intent != Intent.INSPECT) return InspectResult.NotInspected("intent_not_inspect")
     val target = decided.targetId
+    if (decided.binding.actorId != facts.actorId) return InspectResult.NotInspected("actor_mismatch")
+    if (target != facts.targetId) return InspectResult.NotInspected("target_mismatch")
     if (target.isNullOrBlank()) return InspectResult.NotInspected("target_ambiguous")
     if (!facts.actorPresent) return InspectResult.NotInspected("actor_absent")
     if (!facts.actorConscious) return InspectResult.NotInspected("actor_unconscious")
