@@ -119,7 +119,7 @@ internal object CompanionMuseStorageFixtures {
     CompanionSlotStore.open(context,id,"genesis-verified").use { reopened ->
       check(reopened.currentRevision()==0L)
     }
-    val file=File(context.getDir("companion_slots_v4",Context.MODE_PRIVATE),"slot-$id.db")
+    val file=File(context.getDir("companion_slots_v5",Context.MODE_PRIVATE),"slot-$id.db")
     SQLiteDatabase.openDatabase(file.path,null,SQLiteDatabase.OPEN_READWRITE).use { db ->
       db.rawQuery("SELECT actor_id,persona_revision,knowledge_namespace FROM genesis_pins ORDER BY actor_id",null).use { c ->
         check(c.moveToNext() && c.getString(0)=="cao_minh" && c.getString(1)=="R17" && c.getString(2)=="CHAR.KAI")
