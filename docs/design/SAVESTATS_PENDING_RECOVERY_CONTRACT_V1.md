@@ -131,3 +131,66 @@ transition tests prove only S1a semantics, not SQLite durability or Core integra
 
 Rollback: revert an unconnected implementation slice. Once data is adopted, rollback
 must detect unsupported companion versions without overwriting/auto-converting files.
+
+## S1a executable record contract
+
+Draft implementation PR #479 now contains the native transition primitive and V1
+binary record codec. Neither is connected to a database/bridge. The codec reconstructs
+records through the same production transitions; it cannot load a forged combination
+of phase, resume phase, decision, reservation and receipt by assigning fields directly.
+
+Format: big-endian magic CPT1/version 1; length-prefixed strict UTF-8 strings; signed
+64-bit revision; phase/resume names; aliases in native admission order; exact 0/1
+presence flags for decision/reservation/receipt; decision actor/revision/policy/payload;
+reservation ID/decision digest/policy/tape; receipt revision/manifest/result; final
+SHA-256 checksum of the preceding bytes. No trailing bytes or unknown codec version.
+Digest envelopes include their version, actor/revision/policy or reservation identity,
+not just freeform payload. Canonical typed-payload validation still belongs to Core.
+
+Bounds: 128 aliases per pending turn, 128 KiB UTF-8 per payload/encoded field, 1 MiB
+per encoded record, IDs 1..128 ASCII characters from the native identifier grammar,
+lowercase 64-hex SHA-256 digests, expected revision 0..Long.MAX_VALUE-1. Excess aliases
+return ALIAS_LIMIT while existing IDs still replay; no silent eviction/reset. Revision
+exhaustion fails closed. Input encoding rejects unpaired UTF-16 surrogates instead of
+replacement-encoding them into a colliding digest. These are storage safety limits,
+not relationship/mood/balance rules. A final UI result must be a bounded projection;
+the separate Core snapshot is not embedded in this control-record blob.
+
+Codec checksums detect accidental record damage, not authenticity or authorization
+against deliberate local file edits. Future SQLite rows/indices must agree with the
+decoded slot/turn/revision/status/digests; cross-record provenance/manifest completeness
+and version pinning are mandatory native repository checks, not codec guarantees.
+
+## Android storage API review and S1b evidence requirements
+
+The repository's minSdk is 24. Reviewed official platform API/source on 2026-10-09:
+
+- [SQLiteDatabase API](https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase):
+  open existing files with OPEN_READWRITE and no CREATE_IF_NECESSARY; new-slot creation
+  is a separate explicit operation. setForeignKeyConstraintsEnabled is available since
+  API 16, must run on every open and outside a transaction. WAL configuration also runs
+  outside transactions; no attached/memory database workaround.
+- [OpenParams.Builder API](https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase.OpenParams.Builder):
+  setSynchronousMode is API 28. Do not call it unguarded on API 24; do not assume a
+  manufacturer default. S1b must configure/check the actual writer connection on the
+  API 24 path, including pool reopen/reconfiguration. A raw host PRAGMA is not proof.
+- [Platform DefaultDatabaseErrorHandler source](https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/database/DefaultDatabaseErrorHandler.java):
+  the default corruption handler deletes files. Companion requires a custom handler
+  that closes/fails without deletion or silent recreation, preserving recoverable data.
+- [SQLite synchronous documentation](https://www.sqlite.org/pragma.html#pragma_synchronous):
+  WAL/FULL is the selected target; verify journal_mode/synchronous/foreign_keys readback
+  rather than accepting an ignored/misspelled PRAGMA. This does not certify OEM storage
+  durability; power failure is distinct from killing the application process.
+
+S1b must test real Android SQLite on API 24 and a current API: exclusive new-slot
+initialization; load without create; corruption/version errors preserving files; two
+concurrent admissions; rollback at lock/reservation/commit; alias bound/readback;
+foreign-key enforcement after reopen; WAL/sidecar handling and explicit slot deletion.
+Failure after ambiguous commit requires receipt readback. Process-kill tests exercise
+actual reopen/recovery; power-loss qualification needs separately identified device/
+storage fault evidence, not an emulator kill relabeled as power failure. No automatic
+schema migration/destructive downgrade or legacy namespace access.
+
+The concrete S1b DDL/adapter diff and Android test entrypoint must be reviewable before
+production adoption. PR #479 is only S1a, so it cannot satisfy SQLite/Core integration,
+10k-turn real-device performance, ledger or brain qualification gates.
