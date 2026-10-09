@@ -47,7 +47,12 @@ WHERE s.slot_id = ? AND t.turn_id = ? AND t.committed_revision = ? AND t.phase='
     val revision: Long,
     val accessKind: String,
     val digest: String,
-    val slotId: String
+    val slotId: String,
+    val certainty: String = "",
+    val sceneId: String = "",
+    val policyVersion: String = "",
+    val publicPayloadJson: String = "",
+    val sourceActorId: String? = null
   )
 
   /**
