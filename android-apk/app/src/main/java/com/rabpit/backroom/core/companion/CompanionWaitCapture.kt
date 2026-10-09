@@ -6,7 +6,6 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.IOException
 import java.nio.charset.StandardCharsets
-import java.security.MessageDigest
 
 /** Complete ordered native WAIT fixture; no provider, UI, gameplay commit or new RNG. */
 object CompanionWaitCapture {
@@ -109,7 +108,7 @@ object CompanionWaitCapture {
   }
   private fun validateSource(state: GameState, bound: CompanionWaitAuthorizer.Bound) {
     val bytes = GameStateCodec.encode(state).toByteArray(StandardCharsets.UTF_8)
-    val digest = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it.toInt() and 255) }
+    val digest = CompanionDigests.sha256(bytes)
     require(digest == bound.snapshotDigest && GameStateCodec.decode(String(bytes, StandardCharsets.UTF_8)) == state) { "wait_capture_snapshot" }
     require(bound.revision in 0 until Int.MAX_VALUE.toLong()) { "wait_turn_overflow" }
     require(state.turn.pending == null && ActionRuntime.activeSession(state) == null) { "wait_core_busy" }
@@ -123,8 +122,7 @@ object CompanionWaitCapture {
     } })
   private fun decodeState(bytes: ByteArray): GameState = GameStateCodec.decode(String(bytes, StandardCharsets.UTF_8))
 
-  private fun hash(value: String): String = MessageDigest.getInstance("SHA-256")
-    .digest(value.toByteArray(StandardCharsets.UTF_8)).joinToString("") { "%02x".format(it.toInt() and 255) }
+  private fun hash(value: String): String = CompanionDigests.sha256(value)
 
   internal fun canonical(value: Any?): String = when (value) {
     null, JSONObject.NULL -> "null"

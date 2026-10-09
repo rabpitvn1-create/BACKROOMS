@@ -6,7 +6,6 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.IOException
 import java.nio.charset.StandardCharsets
-import java.security.MessageDigest
 import java.util.Collections
 
 /** Native replay/staging only. This immutable batch is not a durable receipt. */
@@ -89,6 +88,5 @@ object CompanionWaitBatch {
         native.events.map { listOf(it.id, it.ordinal, it.type, it.payload, it.record, it.digest) }) { "batch_native_mismatch" }
     return native
   }
-  internal fun hash(value: String): String = MessageDigest.getInstance("SHA-256")
-    .digest(value.toByteArray(StandardCharsets.UTF_8)).joinToString("") { "%02x".format(it.toInt() and 255) }
+  internal fun hash(value: String): String = CompanionDigests.sha256(value)
 }

@@ -6,7 +6,6 @@ import com.rabpit.backroom.core.GameState
 import com.rabpit.backroom.core.ExitStreakEngine
 import com.rabpit.backroom.core.progression.FeaturedJourneyRoutes
 import java.nio.charset.StandardCharsets
-import java.security.MessageDigest
 import org.json.JSONObject
 
 /**
@@ -104,8 +103,7 @@ object CompanionWaitAuthorizer {
       return Gate(error = "wait_prior_streak_invalid")
     // Handover stores a digest of the *exact* stable persisted Core bytes,
     // rather than a string value supplied by the model.
-    val hash = MessageDigest.getInstance("SHA-256").digest(persistedSnapshot)
-      .joinToString("") { "%02x".format(it.toInt() and 0xff) }
+    val hash = CompanionDigests.sha256(persistedSnapshot)
     return Gate(bound = Bound(source, level, raw.toInt(), hash,
       expectedRevision, exactPlayerInput, turn.decision.digest, turn.turnId))
   }

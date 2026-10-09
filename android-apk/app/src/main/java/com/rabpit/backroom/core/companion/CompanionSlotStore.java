@@ -226,7 +226,9 @@ public final class CompanionSlotStore implements Closeable {
 
 
   /** Read copies only after the validated read transaction has completed. */
-  public synchronized byte[] currentSnapshot() throws IOException { return transaction(this::snapshotWithin); }
+  public synchronized byte[] currentSnapshot() throws IOException {
+    return transaction(() -> { verifyHead(true); return snapshotWithin(); });
+  }
   public synchronized long currentRevision() throws IOException { return transaction(this::revision); }
 
   public static final class LedgerEvent {
@@ -325,7 +327,7 @@ public final class CompanionSlotStore implements Closeable {
     }
     CompanionLedgerVerifier.verifyReceipt(slotId, policyVersion, revision(), turn, events);
   }
-  private void verifyHead() throws IOException {
+  private void verifyHead(boolean decodeCore) throws IOException {
     byte[] snapshot=snapshotWithin(); long revision=revision();
     if (revision==0) {
       if (!java.util.Arrays.equals(snapshot,genesis()) || scalar("SELECT COUNT(*) FROM native_event")!=0 ||
@@ -335,7 +337,8 @@ public final class CompanionSlotStore implements Closeable {
     try (Cursor c=database.rawQuery("SELECT turn_id FROM turn_control WHERE committed_revision=?",new String[]{Long.toString(revision)})) {
       if(!c.moveToFirst()) throw new IOException("head_receipt_missing");
       CompanionPendingTurn head=read(c.getString(0));
-      CompanionLedgerVerifier.verifyHead(snapshot,head);
+      if (decodeCore) CompanionLedgerVerifier.verifyHead(snapshot,head);
+      else CompanionLedgerVerifier.verifyHeadDigest(snapshot,head);
     }
   }
   private void verifyChain() throws IOException {
@@ -428,7 +431,7 @@ public final class CompanionSlotStore implements Closeable {
     try (Cursor c = database.rawQuery("PRAGMA foreign_key_check", null)) {
       if (c.moveToFirst()) throw new IOException("database_foreign_key_failed");
     }
-    genesis(); snapshotWithin(); verifyChain();
+    genesis(); snapshotWithin(); verifyChain(); verifyHead(true);
     try (Cursor c = database.rawQuery("SELECT turn_id FROM turn_control", null)) { while (c.moveToNext()) read(c.getString(0)); }
     return null;
     });
@@ -439,7 +442,9 @@ public final class CompanionSlotStore implements Closeable {
       if (!c.moveToFirst() || !slotId.equals(c.getString(0)) || c.getInt(1) != FORMAT_VERSION
           || (c.getLong(2) < 0 || c.getLong(2) > Integer.MAX_VALUE) || !policyVersion.equals(c.getString(3))) throw new IOException("slot_metadata_mismatch");
     }
-    verifyHead();
+    // Identity/receipt/hash completeness under every writer. Decode Core on load,
+    // snapshot publication and gameplay binding/staging, rather than on alias-only reads.
+    verifyHead(false);
   }
   private static SQLiteDatabase openDatabase(File file) throws IOException {
     DatabaseErrorHandler preserve = db -> {
