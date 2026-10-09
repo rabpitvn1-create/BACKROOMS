@@ -70,7 +70,7 @@ class CompanionWaitAuthorizerTest {
     return CompanionWaitAuthorizer.Evidence(CompanionWaitAuthorizer.EVIDENCE_VERSION,
       CompanionWaitAuthorizer.WAIT_POLICY, bound.revision, bound.snapshotDigest,
       bound.previousStreak, route, tape.encode(), result.success == true,
-      claimStreak ?: if (result.completed) 0 else result.streak, completed)
+      claimStreak ?: if (result.completed) 0 else result.streak, completed, bound.decisionDigest)
   }
 
   @Test fun reviewerProbeUnknownPolicyMustRejectBeforeAnyRng() {
