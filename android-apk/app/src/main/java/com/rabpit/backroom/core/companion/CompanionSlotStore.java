@@ -87,6 +87,7 @@ public final class CompanionSlotStore implements Closeable {
       db = openDatabase(file);
       db.beginTransaction();
       try {
+        verifyConfiguration(db);
         db.execSQL("CREATE TABLE slot_meta(singleton INTEGER PRIMARY KEY CHECK(singleton=1),slot_id TEXT NOT NULL UNIQUE,format_version INTEGER NOT NULL CHECK(format_version=1),revision INTEGER NOT NULL CHECK(revision=0),policy_version TEXT NOT NULL,genesis BLOB NOT NULL,genesis_digest TEXT NOT NULL)");
         db.execSQL("CREATE TABLE turn_control(turn_id TEXT PRIMARY KEY,active_slot INTEGER NOT NULL CHECK(active_slot=1),expected_revision INTEGER NOT NULL CHECK(expected_revision=0),phase TEXT NOT NULL CHECK(phase IN ('PREPARING','DECISION_LOCKED','RESERVED','SUSPENDED','REJECTED')),record BLOB NOT NULL CHECK(length(record)<=1048576))");
         db.execSQL("CREATE UNIQUE INDEX one_active_turn ON turn_control(active_slot) WHERE phase != 'REJECTED'");
@@ -179,9 +180,10 @@ public final class CompanionSlotStore implements Closeable {
   public synchronized CompanionPendingTurn request(String id) throws IOException { return transaction(() -> byRequest(id)); }
 
   private <T> T transaction(Work<T> work) throws IOException {
-    requireOpen(); verifyConfiguration();
+    requireOpen();
     database.beginTransaction();
     try {
+      verifyConfiguration(database);
       verifyMetadata();
       T result = work.run(); fault.at("before_commit");
       database.setTransactionSuccessful(); return result;
@@ -269,21 +271,29 @@ public final class CompanionSlotStore implements Closeable {
       throw error;
     };
     SQLiteDatabase db = SQLiteDatabase.openDatabase(file.getPath(), null,
-        SQLiteDatabase.OPEN_READWRITE | SQLiteDatabase.NO_LOCALIZED_COLLATORS, preserve);
+        SQLiteDatabase.OPEN_READWRITE | SQLiteDatabase.NO_LOCALIZED_COLLATORS
+            | SQLiteDatabase.ENABLE_WRITE_AHEAD_LOGGING, preserve);
     try {
-      db.disableWriteAheadLogging(); db.setForeignKeyConstraintsEnabled(true);
-      try (Cursor c = db.rawQuery("PRAGMA journal_mode=DELETE", null)) { if (!c.moveToFirst() || !"delete".equalsIgnoreCase(c.getString(0))) throw new IOException("journal_configuration_failed"); }
-      db.execSQL("PRAGMA synchronous=EXTRA"); return db;
-    } catch (IOException | RuntimeException error) { db.close(); throw error; }
+      db.setForeignKeyConstraintsEnabled(true);
+      db.execSQL("PRAGMA synchronous=FULL"); return db;
+    } catch (RuntimeException error) { db.close(); throw error; }
   }
-  private void verifyConfiguration() throws IOException {
-    try (Cursor c = database.rawQuery("PRAGMA journal_mode", null)) {
-      if (!c.moveToFirst() || !"delete".equalsIgnoreCase(c.getString(0))) throw new IOException("journal_configuration_failed");
+  // Called inside a writer transaction: queries use its primary connection, not a reader pool.
+  private static void verifyConfiguration(SQLiteDatabase db) throws IOException {
+    String journal;
+    try (Cursor c = db.rawQuery("PRAGMA journal_mode", null)) {
+      if (!c.moveToFirst()) throw new IOException("journal_configuration_missing");
+      journal = c.getString(0);
     }
-    if (scalar("PRAGMA synchronous") != 3 || scalar("PRAGMA foreign_keys") != 1) throw new IOException("connection_configuration_failed");
+    long synchronous = scalar(db, "PRAGMA synchronous");
+    long foreignKeys = scalar(db, "PRAGMA foreign_keys");
+    if (!"wal".equalsIgnoreCase(journal) || synchronous != 2 || foreignKeys != 1)
+      throw new IOException("connection_configuration_failed: journal=" + journal
+          + ", synchronous=" + synchronous + ", foreign_keys=" + foreignKeys);
   }
-  private long scalar(String sql) throws IOException {
-    try (Cursor c = database.rawQuery(sql, null)) { if (!c.moveToFirst()) throw new IOException("pragma_missing"); return c.getLong(0); }
+  private long scalar(String sql) throws IOException { return scalar(database, sql); }
+  private static long scalar(SQLiteDatabase db, String sql) throws IOException {
+    try (Cursor c = db.rawQuery(sql, null)) { if (!c.moveToFirst()) throw new IOException("pragma_missing"); return c.getLong(0); }
   }
   private void requireOpen() throws IOException { if (closed) throw new IOException("slot_closed"); }
   private static File slotFile(File directory, String id) throws IOException {
@@ -312,12 +322,17 @@ public final class CompanionSlotStore implements Closeable {
   /** Explicit deletion closes every same-process handle while retaining the cross-process lease. */
   public void deleteSlot() throws IOException {
     ArrayList<CompanionSlotStore> stores;
-    synchronized (this) { requireOpen(); }
-    synchronized (LEASE_LOCK) {
-      if (lease.deleting || lease.openings != lease.stores.size()) throw new IOException("slot_lifecycle_busy");
-      lease.deleting = true; stores = new ArrayList<>(lease.stores);
+    synchronized (this) {
+      requireOpen();
+      synchronized (LEASE_LOCK) {
+        if (LEASES.get(lease.key) != lease || lease.deleting || lease.openings != lease.stores.size()) {
+          throw new IOException("slot_lifecycle_busy");
+        }
+        lease.deleting = true; stores = new ArrayList<>(lease.stores);
+      }
     }
     try {
+      fault.at("after_delete_guard");
       for (CompanionSlotStore store : stores) store.close();
       if (!SQLiteDatabase.deleteDatabase(file)) throw new IOException("slot_delete_failed");
     } finally { synchronized (LEASE_LOCK) { lease.deleting = false; release(lease); } }

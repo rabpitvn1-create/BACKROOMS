@@ -47,15 +47,25 @@ ambiguous commit exception. Fault seams are package-private and used only by and
 
 ## Connection and lifecycle decisions
 
-S1b chooses DELETE journal with synchronous=EXTRA and foreign keys enabled, verified on
-every open/transaction. This replaces the previous candidate WAL/FULL choice for the
-initial control slice: one connection avoids API28-only synchronous configuration and
-reader-pool assumptions on API24. WAL/performance changes need their own measured review.
+S1b chooses WAL with synchronous=FULL and foreign keys enabled. Open uses the API16
+WAL flag and configures FK before synchronous. Each writer transaction, including
+initialization, verifies journal=wal, synchronous=2 and foreign_keys=1 on its primary
+connection before touching slot data. Reads outside a transaction must not be used to
+infer writer durability because Android can select a pooled reader. No API28-only
+OpenParams setter or newer SDK constant is required. Configuration mismatch fails closed.
+
+The initial DELETE/EXTRA attempt failed the real API24 run at configuration verification.
+Android 7.0 ships SQLite 3.9.2; EXTRA was introduced in SQLite 3.11.0, so that choice
+was invalid for the minimum platform. API35 passed the original 10-case suite plus
+process-crash recovery. Those results do not qualify the corrected WAL implementation;
+the revised 11-case suite plus recovery must pass on both APIs before this slice is green.
 No claim that these settings alone qualify OEM power-loss behavior.
 
 References reviewed: [Android SQLiteDatabase API](https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase),
 [OpenParams.Builder API28](https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase.OpenParams.Builder),
-[SQLite synchronous](https://www.sqlite.org/pragma.html#pragma_synchronous), and
+[SQLite synchronous](https://www.sqlite.org/pragma.html#pragma_synchronous),
+[SQLite 3.11.0 EXTRA introduction](https://www.sqlite.org/releaselog/3_11_0.html),
+[Android 7.0 SQLite source](https://android.googlesource.com/platform/external/sqlite/+/android-7.0.0_r1/dist/sqlite3.c), and
 [default corruption handler source](https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/database/DefaultDatabaseErrorHandler.java).
 The corruption handler fails/closes and preserves files; no default destructive handler.
 

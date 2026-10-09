@@ -50,6 +50,7 @@ public final class CompanionStorageInstrumentation extends Instrumentation {
         run("version_policy_and_blob_corruption_preserved", this::invalidStorage);
         run("physical_corruption_preserved", this::physicalCorruption);
         run("delete_closes_handles_and_preserves_other_slot", this::deleteLifecycle);
+        run("delete_excludes_open_and_closed_handle_reuse", this::deleteGuard);
       } else throw new IOException("unknown_test_mode");
       Bundle result = new Bundle();
       result.putString("stream", "\nCOMPANION_STORAGE_PASS api=" + android.os.Build.VERSION.SDK_INT + " cases=" + passed + "\nOK (" + passed + " tests)\n");
@@ -75,7 +76,7 @@ public final class CompanionStorageInstrumentation extends Instrumentation {
   private CompanionPendingTurn reserve(CompanionSlotStore s) throws IOException {
     return s.reserve("r", decision -> new Reservation("roll", decision.digest, "p1", "exit:2:0"));
   }
-  private SQLiteDatabase raw(File file) { return SQLiteDatabase.openDatabase(file.getPath(), null, SQLiteDatabase.OPEN_READWRITE); }
+  private SQLiteDatabase raw(File file) { return SQLiteDatabase.openDatabase(file.getPath(), null, SQLiteDatabase.OPEN_READWRITE | SQLiteDatabase.ENABLE_WRITE_AHEAD_LOGGING); }
 
   private void freshIsolation() throws Exception {
     CompanionSlotStore a = fresh(); CompanionSlotStore b = fresh();
@@ -203,6 +204,21 @@ public final class CompanionStorageInstrumentation extends Instrumentation {
       }
     });
     reserve(s);
+  }
+  private void deleteGuard() throws Exception {
+    CompanionSlotStore a = fresh(); String id = a.slotId; File file = a.fileForTest();
+    CompanionSlotStore b = CompanionSlotStore.openIn(directory, id, "p1");
+    try {
+      a.faultForTest(point -> {
+        if ("after_delete_guard".equals(point)) {
+          try { CompanionSlotStore.openIn(directory, id, "p1"); throw new AssertionError("open during deletion"); }
+          catch (IOException expected) { /* lease excludes the new opener */ }
+          a.close(); // Close/delete interleaving cannot release the guarded lease.
+        }
+      });
+      a.deleteSlot(); check(!file.exists()); reject(b::recover);
+      reject(a::deleteSlot);
+    } finally { a.close(); b.close(); }
   }
   private void recoverProcessCrash() throws Exception {
     String id = getTargetContext().getSharedPreferences("companion_storage_smoke", 0).getString("crash_slot", null);
