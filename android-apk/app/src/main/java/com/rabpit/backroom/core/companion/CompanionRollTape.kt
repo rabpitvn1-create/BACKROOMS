@@ -24,7 +24,7 @@ object CompanionRollTape {
     AN_NHIEN_ENCOUNTER, SURVIVOR, IRIS_REUNION, SYVIAL_REUNION,
     LUCIA_ENCOUNTER, LUC_TRAM_ENCOUNTER, AN_NHIEN_HAZARD_CHECK,
     HAZARD, DIEP_MINH_ENCOUNTER, ENTITY_ENCOUNTER, ROAMING_ENTITY_KEY,
-    LOOT, MAD_GOD_SET, ALMOND_WATER, LEVEL_BOUND_ENTITY
+    LOOT, MAD_GOD_SET, ALMOND_WATER, LEVEL_BOUND_ENTITY, COMBAT_INITIAL
   }
 
   data class Route(
@@ -62,8 +62,16 @@ object CompanionRollTape {
       require(recorded.size < MAX_DRAWS) { "tape_draw_limit" }
       val value = nativeNextInt(bound)
       require(value in 0 until bound) { "native_draw_out_of_range" }
-      recorded.add(Draw(purpose, bound, value))
+      record(purpose, bound, value)
       return value
+    }
+
+    /** Native capture adapter records an outcome from an existing non-GAME_RNG scope. */
+    internal fun record(purpose: Purpose, bound: Int, value: Int) {
+      check(!sealed) { "capture_already_sealed" }
+      require(bound > 0 && value in 0 until bound) { "native_draw_out_of_range" }
+      require(recorded.size < MAX_DRAWS) { "tape_draw_limit" }
+      recorded.add(Draw(purpose, bound, value))
     }
 
     fun seal(route: Route): Tape {

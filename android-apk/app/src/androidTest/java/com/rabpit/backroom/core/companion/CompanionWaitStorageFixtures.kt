@@ -122,7 +122,11 @@ object CompanionWaitStorageFixtures {
       val a = left.get(30, java.util.concurrent.TimeUnit.SECONDS)
       val b = right.get(30, java.util.concurrent.TimeUnit.SECONDS)
       check(a.reservation.digest == b.reservation.digest && draws.get() == 6)
-      check(CompanionWaitCapture.readReserved(first, "left", 0, INPUT).encoded == a.reservation.canonicalPayload)
+      val replay = CompanionWaitCapture.readReserved(first, "left", 0, INPUT)
+      check(replay.encoded == a.reservation.canonicalPayload)
+      check(replay.tape.draws.drop(6).all { it.purpose == CompanionRollTape.Purpose.COMBAT_INITIAL })
+      check(replay.tape.draws.size > 6 && Combat93Runtime.active(GameStateCodec.decode(replay.afterSnapshot)))
+      check(GameStateCodec.decode(replay.afterSnapshot).time.elapsedSubjectiveMinutes == 30L)
     } finally { executor.shutdownNow(); first.close(); second.close() }
   }
 

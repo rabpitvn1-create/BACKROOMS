@@ -33,7 +33,41 @@ def method(name):
         i+=1
     raise RuntimeError('Unclosed native method '+name)
 
+# Wrap the original scoped producer lazily; default gameplay retains the same generator.
+combat=ROOT/'app/src/main/java/com/rabpit/backroom/core/CombatChoiceEngine.java'
+combat_text=combat.read_text()
+old="""    TurnRng rng = new TurnRng(
+        turnId,
+        Math.max(0, combat.optInt("rngPreTurnStateVersion", 0)),
+        combat.optString("rngCanonVersion", "emergent-canon-v1"),
+        combat.optString("rngSchemaVersion", "scoped-rng-v1"));
+    rng.resume(TurnRng.Scope.COMBAT, used);
+    int value = rng.nextInt(TurnRng.Scope.COMBAT, bound);
+    combat.put("rngSequence", rng.drawsUsed(TurnRng.Scope.COMBAT));
+    return value;"""
+new="""    int value = CompanionCombatRngBridge.draw(bound, () -> {
+      TurnRng rng = new TurnRng(
+          turnId,
+          Math.max(0, combat.optInt("rngPreTurnStateVersion", 0)),
+          combat.optString("rngCanonVersion", "emergent-canon-v1"),
+          combat.optString("rngSchemaVersion", "scoped-rng-v1"));
+      rng.resume(TurnRng.Scope.COMBAT, used);
+      return rng.nextInt(TurnRng.Scope.COMBAT, bound);
+    });
+    combat.put("rngSequence", used + 1);
+    return value;"""
+if old in combat_text:
+    if combat_text.count(old)!=1:raise RuntimeError('Scoped combat producer ambiguous')
+    combat.write_text(combat_text.replace(old,new))
+elif new not in combat_text:raise RuntimeError('Scoped combat producer changed; review required')
+
 original='\n\n'.join(method(n) for n in names)
+# Pin all existing Core rule sources, including EntityEncounterPolicy's tables.
+# A method-body hash alone would miss a changed imported policy implementation.
+core=ROOT/'app/src/main/java/com/rabpit/backroom/core'
+dependencies={str(p.relative_to(core)):hashlib.sha256(p.read_bytes()).hexdigest()
+ for p in sorted(core.rglob('*')) if p.suffix in ('.java','.kt') and 'companion' not in p.relative_to(core).parts}
+policy_digest=hashlib.sha256((original+json.dumps(dependencies,sort_keys=True,separators=(',',':'))).encode()).hexdigest()
 if original.count('GAME_RNG.nextInt(')!=3:raise RuntimeError('Native RNG sites changed; review required')
 body=original.replace('GAME_RNG.nextInt(max)','draws.next(purpose(label), max)')
 body=body.replace('GAME_RNG.nextInt(roamingPool.length)','draws.next(Purpose.ROAMING_ENTITY_KEY, roamingPool.length)')
@@ -60,7 +94,7 @@ public final class CompanionNativeGameplayRolls {
   private static Purpose purpose(String label) {
     switch(label) {
 '''
-header=header.replace('  public interface Draws', '  public static final String POLICY_DIGEST = \"'+hashlib.sha256(original.encode()).hexdigest()+'\";\n  public interface Draws')
+header=header.replace('  public interface Draws', '  public static final String POLICY_DIGEST = \"'+policy_digest+'\";\n  public interface Draws')
 header+=''.join('      case "'+k+'": return Purpose.'+v+';\n' for k,v in labels.items())
 header+='      default: throw new IllegalArgumentException("native_purpose_unknown");\n    }\n  }\n'
 p=ROOT/'app/src/main/java/com/rabpit/backroom/core/companion/CompanionNativeGameplayRolls.java'
@@ -80,5 +114,5 @@ p=ROOT/'app/src/test/java/com/rabpit/backroom/core/companion/CompanionNativeRoll
 report=ROOT/'app/build/reports/companion-native-roll-extraction';report.mkdir(parents=True,exist_ok=True)
 (report/'provenance.json').write_text(json.dumps({'main_sha256':hashlib.sha256(source.encode()).hexdigest(),
  'methods':{n:hashlib.sha256(method(n).encode()).hexdigest() for n in names},
- 'rng_sites':3,'policy_class_sha256':hashlib.sha256((header+body+'\n}\n').encode()).hexdigest()},indent=2))
+ 'rng_sites':3,'core_dependencies':dependencies,'policy_digest':policy_digest,'policy_class_sha256':hashlib.sha256((header+body+'\n}\n').encode()).hexdigest()},indent=2))
 print('Extracted final native roll policy: 12 method bodies, 3 original RNG sites; MainActivity unchanged.')

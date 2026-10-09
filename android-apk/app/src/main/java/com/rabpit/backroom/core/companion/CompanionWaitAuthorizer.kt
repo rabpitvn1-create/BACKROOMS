@@ -38,7 +38,7 @@ object CompanionWaitAuthorizer {
   class Bound internal constructor(
     val sourceStop: String, val sourceLevel: Int, val previousStreak: Int,
     val snapshotDigest: String, val revision: Long, val input: String,
-    val decisionDigest: String
+    val decisionDigest: String, val turnId: String
   )
 
   data class Gate(val bound: Bound? = null, val error: String? = null)
@@ -107,7 +107,7 @@ object CompanionWaitAuthorizer {
     val hash = MessageDigest.getInstance("SHA-256").digest(persistedSnapshot)
       .joinToString("") { "%02x".format(it.toInt() and 0xff) }
     return Gate(bound = Bound(source, level, raw.toInt(), hash,
-      expectedRevision, exactPlayerInput, turn.decision.digest))
+      expectedRevision, exactPlayerInput, turn.decision.digest, turn.turnId))
   }
 
   /**
