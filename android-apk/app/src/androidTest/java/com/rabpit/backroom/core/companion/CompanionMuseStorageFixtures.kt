@@ -1,5 +1,6 @@
 package com.rabpit.backroom.core.companion
 
+import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import java.io.File
 import org.json.JSONObject
@@ -87,6 +88,31 @@ internal object CompanionMuseStorageFixtures {
     } catch (_: java.io.IOException) { /* fail closed, never recreate or migrate */ }
     check(corruptFile.exists())
   }
+  /** Uses real packaged R17/R05 canon bytes, not a caller-supplied revision/hash. */
+  @JvmStatic fun verifiedGenesis(context: Context) {
+    val store=CompanionSlotStore.create(context,byteArrayOf(1),"genesis-verified")
+    val id=store.slotId
+    store.close()
+    CompanionSlotStore.open(context,id,"genesis-verified").use { reopened ->
+      check(reopened.currentRevision()==0L)
+    }
+    val file=File(context.getDir("companion_slots_v4",Context.MODE_PRIVATE),"slot-$id.db")
+    SQLiteDatabase.openDatabase(file.path,null,SQLiteDatabase.OPEN_READWRITE).use { db ->
+      db.rawQuery("SELECT actor_id,persona_revision,knowledge_namespace FROM genesis_pins ORDER BY actor_id",null).use { c ->
+        check(c.moveToNext() && c.getString(0)=="cao_minh" && c.getString(1)=="R17" && c.getString(2)=="CHAR.KAI")
+        check(c.moveToNext() && c.getString(0)=="luc_tram" && c.getString(1)=="R05" && c.getString(2)=="CHAR.LUC_TRAM")
+        check(!c.moveToNext())
+      }
+      check(count(db,"initial_brain")==2 && count(db,"actor_observation")==0)
+      rejects { db.execSQL("UPDATE genesis_pins SET persona_revision='R99'") }
+      rejects { db.execSQL("DELETE FROM initial_brain") }
+      db.execSQL("DROP TRIGGER genesis_pins_no_update")
+    }
+    try { CompanionSlotStore.open(context,id,"genesis-verified").close(); error("missing genesis guard accepted") }
+    catch (_: java.io.IOException) { }
+    check(file.exists())
+  }
+
   private fun count(db: SQLiteDatabase, table: String): Int =
     db.rawQuery("SELECT COUNT(*) FROM $table",null).use { check(it.moveToFirst()); it.getInt(0) }
   private fun rejects(operation: () -> Unit) {
