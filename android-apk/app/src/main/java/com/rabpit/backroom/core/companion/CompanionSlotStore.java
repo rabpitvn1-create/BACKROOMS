@@ -283,6 +283,18 @@ public final class CompanionSlotStore implements Closeable {
     });
   }
 
+  /** Full actor-private history; ranking/prompt budget is applied by MemoryRetrieval only. */
+  public synchronized List<MemoryRetrieval.MemoryView> memoryHistory(String actorId) throws IOException {
+    return transaction(() -> {
+      List<MemoryRetrieval.MemoryView> rows =
+          MemoryStorageReader.read(database,slotId,actorId,revision());
+      Set<String> checked = new HashSet<>();
+      for (MemoryRetrieval.MemoryView row : rows)
+        if (checked.add(row.getCreatedTurnId())) read(row.getCreatedTurnId());
+      return rows;
+    });
+  }
+
   /** Historical identity is checked before the current snapshot or any gameplay replay. */
   public synchronized CompanionPendingTurn.Receipt committedReceipt(Request request) throws IOException {
     return transaction(() -> receiptWithin(request));
