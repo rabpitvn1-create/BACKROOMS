@@ -64,6 +64,13 @@ class CompanionCoreStageTest {
     try { (a.commandIds as MutableList<String>).clear(); fail("mutable candidate ids") } catch (_: UnsupportedOperationException) { }
     try { (a.events as MutableList<String>).clear(); fail("mutable candidate events") } catch (_: UnsupportedOperationException) { }
   }
+  @Test fun commandIdsRetainCoreExecutionOrderRatherThanLexicalOrder() {
+    val result = CompanionCoreStage.stage(state(), turn, "đi 10 phút", listOf(time(), grant()))
+    assertNull(result.error)
+    val candidate = result.candidate!!
+    assertEquals(listOf("time", "grant"), candidate.commandIds)
+    assertEquals(listOf("time_advanced", "inventory_pickup"), candidate.events)
+  }
   @Test fun coordinatorGeneratedRestCommandsAreIncluded() {
     val result = CompanionCoreStage.stage(state(), turn, "ngủ 10 phút", listOf(time()))
     assertNull(result.error)

@@ -20,7 +20,7 @@ command IDs and reused IDs reject. Existing Core validators retain actor/source/
 and gameplay authority. A failure returns no partial candidate and leaves source state
 unchanged. Commands with mutable metadata are copied; candidate outputs are immutable
 strings and defensive unmodifiable ID/event lists. IDs include actual coordinator
-injected commands, including deterministic rest commands.
+injected commands, including deterministic rest commands, in Core execution order.
 
 This seam expects a stable, natively loaded Core snapshot. It is not a loader or a
 legacy importer. Codec equality does not replace canonical hashing or final manifest
@@ -34,10 +34,11 @@ Core Kotlin/Java plus the new staging tests compile locally using Kotlin 2.3.0, 
 API16 compile stubs and the existing JUnit/JSON dependencies. One pre-existing warning
 in generated CombatRuntime remains; no strict whole-tree warning claim.
 
-14 JUnit cases pass against the real generated Core: exact coordinator parity,
+15 JUnit cases pass against the real generated Core: exact coordinator parity,
 gameplay/time atomicity, late batch failure, duplicate/reused commands, completed/pending
 turns, cross-turn/actor confusion, player pickup authority, bounds/version rejection,
 codec normalization rejection, immutable/deterministic output and injected rest commands.
+Four existing TurnCoordinator tests also pass (19 total).
 These are host tests, not Android execution. PR CI must compile/test/build the Android
 APK and rerun the inherited API24/API35 storage/crash matrix before this group is green.
 

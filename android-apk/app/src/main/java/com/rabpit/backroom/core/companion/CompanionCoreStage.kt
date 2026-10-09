@@ -48,7 +48,7 @@ object CompanionCoreStage {
     if (GameStateCodec.decode(after) != result.state) return Outcome(error = "stage_result_not_stable")
     // Includes coordinator-generated commands (e.g. rest), not just the caller's list.
     val executed = result.state.turn.executedCommandIds - detached.turn.executedCommandIds
-    return Outcome(candidate = Candidate(before, after, turnId, executed.sorted(), result.execution?.events.orEmpty()))
+    return Outcome(candidate = Candidate(before, after, turnId, executed.toList(), result.execution?.events.orEmpty()))
   }
 
   // Exhaustive sealed-command copy: compiler forces review when Core gains a new command kind.
