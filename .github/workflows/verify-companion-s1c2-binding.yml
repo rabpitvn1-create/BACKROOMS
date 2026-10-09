@@ -79,4 +79,4 @@ jobs:
           profile: Nexus 6
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
-          script: python3 android-apk/run-companion-storage-smoke.py
+          script: python3 android-apk/run-companion-storage-smoke.py ${{ matrix.api }}
