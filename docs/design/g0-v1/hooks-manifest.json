@@ -1,0 +1,61 @@
+{
+  "continuity": {
+    "path": "android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java",
+    "line": 2457,
+    "marker": "StoryContinuityReducer.apply(",
+    "sha256": "799f035d4613f22623bae0c166f0ab06f70356728d4fcdf8b0dcf01e569ddcf7"
+  },
+  "audit_before_local_validation": {
+    "path": "android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java",
+    "line": 2423,
+    "marker": "JSONArray audits = meta ?",
+    "sha256": "799f035d4613f22623bae0c166f0ab06f70356728d4fcdf8b0dcf01e569ddcf7"
+  },
+  "local_knowledge_validation": {
+    "path": "android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java",
+    "line": 2426,
+    "marker": "appendIssues(hardIssues, localKnowledgeIssues(before, generated))",
+    "sha256": "799f035d4613f22623bae0c166f0ab06f70356728d4fcdf8b0dcf01e569ddcf7"
+  },
+  "native_kind": {
+    "path": "android-apk/app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt",
+    "line": 226,
+    "marker": "enumValues<ActionKind>()",
+    "sha256": "16dd6e9944d64de5176ce7ae2e00eddfc99882910310a604503ca2a0e916a253"
+  },
+  "streak_rng": {
+    "path": "android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java",
+    "line": 2380,
+    "marker": "ExitStreakEngine.advance(",
+    "sha256": "799f035d4613f22623bae0c166f0ab06f70356728d4fcdf8b0dcf01e569ddcf7"
+  },
+  "core_streak_commit": {
+    "path": "android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java",
+    "line": 2449,
+    "marker": "processValidatedCandidateWithStreak(",
+    "sha256": "799f035d4613f22623bae0c166f0ab06f70356728d4fcdf8b0dcf01e569ddcf7"
+  },
+  "core_route_guard": {
+    "path": "android-apk/app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt",
+    "line": 564,
+    "marker": "streak_target_mismatch",
+    "sha256": "16dd6e9944d64de5176ce7ae2e00eddfc99882910310a604503ca2a0e916a253"
+  },
+  "knowledge_builder": {
+    "path": "android-apk/app/src/main/java/com/rabpit/backroom/core/knowledge/KnowledgeContextEngine.kt",
+    "line": 163,
+    "marker": "private class Builder",
+    "sha256": "7cecca1c2ced7ef15f68ea00759c83211608b4a11cca818c8d342eaa9fa82147"
+  },
+  "search_ui": {
+    "path": "android-apk/app/src/main/assets/index.html",
+    "line": 148,
+    "marker": "searchActionButton",
+    "sha256": "65d1c917cc1bb493d761ce58bf15a8a46f90a4abd00ae7d743afacc70bc32240"
+  },
+  "retired_v6": {
+    "engine_exists": false,
+    "test_exists": false,
+    "retired_by": "patch-player-action-ime.py -> patch-exit-streak-integration.py"
+  }
+}
