@@ -10,6 +10,8 @@ internal object CompanionMuseStorageFixtures {
     val store = CompanionSlotStore.createIn(directory, byteArrayOf(1), "schema-test")
     val slot = store.slotId
     store.close()
+    // Native reopen must recognize exactly this installed schema, not create it on load.
+    CompanionSlotStore.openIn(directory,slot,"schema-test").use { check(it.currentRevision() == 0L) }
     val file = File(directory, "slot-$slot.db")
     SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.OPEN_READWRITE).use { db ->
       db.setForeignKeyConstraintsEnabled(true)
@@ -58,6 +60,18 @@ internal object CompanionMuseStorageFixtures {
       check(count(db,"actor_observation") == 1 && count(db,"actor_memory") == 1)
       rejects { db.execSQL("DELETE FROM actor_observation") }
     }
+    val corrupt = CompanionSlotStore.createIn(directory, byteArrayOf(1), "schema-test")
+    val corruptSlot = corrupt.slotId
+    corrupt.close()
+    val corruptFile = File(directory, "slot-$corruptSlot.db")
+    SQLiteDatabase.openDatabase(corruptFile.path,null,SQLiteDatabase.OPEN_READWRITE).use { db ->
+      db.execSQL("DROP TRIGGER observation_manifest_no_delete")
+    }
+    try {
+      CompanionSlotStore.openIn(directory,corruptSlot,"schema-test").close()
+      error("missing immutability trigger accepted")
+    } catch (_: java.io.IOException) { /* fail closed, never recreate or migrate */ }
+    check(corruptFile.exists())
   }
   private fun count(db: SQLiteDatabase, table: String): Int =
     db.rawQuery("SELECT COUNT(*) FROM $table",null).use { check(it.moveToFirst()); it.getInt(0) }
