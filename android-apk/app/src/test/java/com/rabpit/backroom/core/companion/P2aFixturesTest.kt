@@ -99,7 +99,7 @@ class P2aFixturesTest {
     val again = GoalReducer.reduceOutcome(
       GoalReducer.OutcomeInput(done.state, "prom-1", outcome))
     assertEquals(BrainContracts.Goal.GoalStatus.DONE, again.state.goals.single().status)
-    assertEquals(done.deltas.size, again.deltas.size)  // no new delta on replay
+    assertTrue(again.deltas.isEmpty())  // no new delta on replay
   }
 
   @Test fun RG04_wrongActorOrUnknownPredicateNoDelta() {
