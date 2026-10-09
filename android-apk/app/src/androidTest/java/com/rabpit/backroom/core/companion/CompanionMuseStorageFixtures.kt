@@ -88,8 +88,28 @@ internal object CompanionMuseStorageFixtures {
     } catch (_: java.io.IOException) { /* fail closed, never recreate or migrate */ }
     check(corruptFile.exists())
   }
+  /** A failed second actor pin must undo the already-inserted first actor pin. */
+  private fun genesisAtomicRollback() {
+    SQLiteDatabase.create(null).use { db ->
+      db.setForeignKeyConstraintsEnabled(true)
+      db.execSQL("CREATE TABLE slot_meta(slot_id TEXT PRIMARY KEY)")
+      BrainGenesisSchema.createStatements().forEach { db.execSQL(it) }
+      val slot="f".repeat(32)
+      db.execSQL("INSERT INTO slot_meta(slot_id) VALUES(?)",arrayOf(slot))
+      val records=GenesisPinsStorage.fixtureRecords()
+      val bad=records[1].copy(pins=records[1].pins.copy(personaSha256="0".repeat(64)))
+      db.beginTransaction()
+      try {
+        try { GenesisPinsStorage.seed(db,slot,listOf(records[0],bad)); error("invalid source pin accepted") }
+        catch (_: java.io.IOException) { /* reject before committing the second actor */ }
+      } finally { db.endTransaction() }
+      check(count(db,"genesis_pins")==0 && count(db,"initial_brain")==0)
+    }
+  }
+
   /** Uses real packaged R17/R05 canon bytes, not a caller-supplied revision/hash. */
   @JvmStatic fun verifiedGenesis(context: Context) {
+    genesisAtomicRollback()
     val store=CompanionSlotStore.create(context,byteArrayOf(1),"genesis-verified")
     val id=store.slotId
     store.close()
