@@ -52,6 +52,12 @@ android {
   testOptions { unitTests.returnDefaultValues = true }
 }
 
+// Release-chain P0 patches install their default runner above; this explicit test-only
+// property overrides it after configuration without changing the default Canon runner.
+if (project.hasProperty('companionStorageSmoke')) {
+  android.defaultConfig.testInstrumentationRunner = 'com.rabpit.backroom.core.companion.CompanionStorageInstrumentation'
+}
+
 dependencies {
   testImplementation 'junit:junit:4.13.2'
   testImplementation 'org.json:json:20240303'
