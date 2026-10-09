@@ -40,13 +40,13 @@ try:
                 raise RuntimeError('Intentional process-kill boundary not reached')
             adb('shell', 'am', 'force-stop', package)
         else:
-            count = '11' if mode == 'suite' else '1'
+            count = '13' if mode == 'suite' else '1'
             if result.returncode or f'COMPANION_STORAGE_PASS api={api} cases={count}' not in result.stdout or f'OK ({count} tests)' not in result.stdout:
                 raise RuntimeError(mode + ' Android storage test failed')
     manifest = {
         'api': int(api), 'source_sha': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
         'app_sha256': hashlib.sha256(apks[0].read_bytes()).hexdigest(),
-        'cases': 12, 'suite': 'PASS', 'process_kill_transaction_rollback': 'PASS',
+        'cases': 14, 'suite': 'PASS', 'process_kill_transaction_rollback': 'PASS',
         'power_loss': 'NOT_TESTED', 'real_device_performance': 'NOT_TESTED',
     }
     (report / 'result.json').write_text(json.dumps(manifest, indent=2) + '\n')

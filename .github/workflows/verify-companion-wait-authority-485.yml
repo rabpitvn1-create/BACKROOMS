@@ -2,10 +2,12 @@ name: Verify Companion WAIT Authorization 485
 
 on:
   pull_request:
-    branches: [feat/companion-core-lock-s1c2, feature/companion-wait-authority-485]
+    branches: [feat/companion-core-lock-s1c2, feature/companion-wait-authority-485, fix/companion-wait-preflight-boundary]
     paths:
       - ".github/workflows/verify-companion-wait-authority-485.yml"
       - "android-apk/app/src/main/java/com/rabpit/backroom/core/companion/**"
+      - "android-apk/app/src/androidTest/java/com/rabpit/backroom/core/companion/**"
+      - "android-apk/run-companion-storage-smoke.py"
       - "android-apk/app/src/test/java/com/rabpit/backroom/core/companion/**"
       - "android-apk/app/src/main/java/com/rabpit/backroom/core/ExitStreakEngine.kt"
       - "android-apk/app/src/main/java/com/rabpit/backroom/core/progression/FeaturedJourneyRoutes.kt"
