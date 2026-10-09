@@ -48,12 +48,10 @@ object CompanionPilotBench {
   fun main(args: Array<String>) {
     val iterations = args.firstOrNull()?.toIntOrNull() ?: 300
     val provider = object : DecisionProvider {
-      override fun propose(packet: Packet, binding: DecisionPreflight.DecisionBinding) =
+      override fun propose(packet: Packet, binding: DecisionPreflight.DecisionBinding, repairHint: String?) =
         DecisionProvider.CallResult("""{"intent":"TALK","targetId":"cao_minh"}""", null)
     }
     val ledgers = mutableListOf<DecisionLedger>()
-    var rngState = 12345L
-    val rng = CharacterDecisionOrchestrator.RngSource { rngState++ }
 
     val tPreflight = LongArray(iterations)
     val tOrchestrate = LongArray(iterations)
@@ -78,7 +76,7 @@ object CompanionPilotBench {
 
       val t1 = System.nanoTime()
       val out = CharacterDecisionOrchestrator.decide(Input(
-        packet(), scope(), proposal(), provider, rng, ledger))
+        packet(), scope(), proposal(), provider, ledger, CharacterDecisionOrchestrator.DecisionAuditor { _,_,_ -> null }))
       tOrchestrate[i] = System.nanoTime() - t1
       check(out is Outcome.DecidedOutcome)
       decided++

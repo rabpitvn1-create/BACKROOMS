@@ -23,7 +23,7 @@ class UseItemCombatNoneExecutorTest {
       slotRevision = 42, intent = intent, targetId = target, itemId = item,
       canonRevision = "R17", ruleVersion = BrainContracts.RULE_VERSION),
     intent = intent, targetId = target, itemId = item,
-    rngValue = 777L, providerCalls = 1)
+    providerCalls = 1)
 
   private fun itemFacts() = ItemNativeFacts(
     actorId = "luc_tram", itemId = "torch", itemCommand = "light",

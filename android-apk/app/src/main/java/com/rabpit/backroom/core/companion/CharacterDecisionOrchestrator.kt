@@ -6,199 +6,130 @@ import com.rabpit.backroom.core.companion.DecisionPreflight.Proposal
 import org.json.JSONObject
 
 /**
- * A1b isolated audited character-decision orchestration (issue #511).
- *
- * Takes a companion actor's private packet (#509) and proposed intent, runs the
- * native preflight (#510), calls the provider pool through a narrow seam, audits
- * the returned proposal, and locks the decision+RNG tuple — all before any
- * outcome-bearing response.
- *
- * Hard rules:
- * - A provider proposal NEVER becomes authoritative state, brain content, or an
- *   utterance directly. It is an audited candidate; only the locked [Decided]
- *   record is consumable downstream.
- * - Native preflight + semantic/canon/local audits are mandatory. Exactly one
- *   repair attempt is allowed, and the repaired proposal is fully re-audited.
- *   Audits are never reduced to hit a call-count target.
- * - RNG is drawn once per binding digest and locked in the [DecisionLedger].
- *   Retry or alias with the same digest returns the locked record — never
- *   rerolls, never calls the provider again.
- * - An outcome-bearing response is produced only AFTER the durable reservation.
- * - Provider errors or unsupported output fail closed: no fabricated reaction,
- *   goal, or event is ever invented.
- * - The [Trace] is privacy-safe: digests, ids, and reason codes only — never
- *   packet contents or proposal text.
- *
- * No UI. No blanket action execution. Pure orchestration over injected seams
- * (provider, RNG, ledger) so tests run without network or Android.
+ * Isolated decision protocol, not production provider/audit/storage integration.
+ * Local schema checks do not replace semantic/canon audits. No RNG is consumed:
+ * native action capture owns the ordered tape after a decision is locked.
  */
 internal object CharacterDecisionOrchestrator {
-
-  /** Narrow provider seam. Implementations wrap the real provider pool. */
   interface DecisionProvider {
     data class CallResult(val proposalJson: String?, val error: String?)
-    fun propose(packet: ActorContextBuilder.Packet, binding: DecisionBinding): CallResult
+    fun propose(packet: ActorContextBuilder.Packet, binding: DecisionBinding,
+      repairHint: String? = null): CallResult
   }
-
-  fun interface RngSource { fun nextLong(): Long }
-
-  /** Durable reservation. First put wins; later puts return false. */
+  fun interface DecisionAuditor {
+    /** Required existing semantic/canon audit adapter; null means approved. */
+    fun audit(packet: ActorContextBuilder.Packet, binding: DecisionBinding, proposalJson: String): String?
+  }
+  /** Production adapter must persist atomically; test fakes are not durability proof. */
   interface DecisionLedger {
     fun get(bindingDigest: String): Decided?
     fun put(decided: Decided): Boolean
   }
-
-  /** Audited, locked decision — the only outcome-bearing artifact. */
   data class Decided(
     val binding: DecisionBinding,
     val intent: DecisionPreflight.Intent,
-    val targetId: String?,
-    val itemId: String?,
-    val rngValue: Long,
-    val providerCalls: Int
-  )
-
-  /** Privacy-safe trace: no packet contents, no proposal text. */
-  data class Trace(
-    val actorId: String,
-    val bindingDigest: String?,
-    val intentName: String?,
+    val targetId: String?, val itemId: String?,
     val providerCalls: Int,
-    val repairs: Int,
-    val outcome: String
+    val utterance: String? = null
   )
-
+  data class Trace(val actorId: String, val bindingDigest: String?, val intentName: String?,
+    val providerCalls: Int, val repairs: Int, val outcome: String)
   sealed class Outcome {
-    data class DecidedOutcome(val decided: Decided, val trace: Trace) : Outcome()
-    data class Rejected(val reason: String, val trace: Trace) : Outcome()
+    data class DecidedOutcome(val decided: Decided, val trace: Trace): Outcome()
+    data class Rejected(val reason: String, val trace: Trace): Outcome()
   }
-
-  data class Input(
-    val packet: ActorContextBuilder.Packet,
-    val scope: NativeScope,
-    val proposal: Proposal,
-    val provider: DecisionProvider,
-    val rng: RngSource,
-    val ledger: DecisionLedger
-  )
+  data class Input(val packet: ActorContextBuilder.Packet, val scope: NativeScope,
+    val proposal: Proposal, val provider: DecisionProvider, val ledger: DecisionLedger,
+    val auditor: DecisionAuditor? = null)
 
   fun decide(input: Input): Outcome {
-    val packet = input.packet
-    // Packet/scope/proposal must agree on actor identity.
-    if (packet.actorId != input.proposal.actorId || packet.actorId != input.scope.actorId) {
-      return reject(input, null, "identity_mismatch", 0, 0)
+    val packet=input.packet
+    if (packet.actorId != input.proposal.actorId || packet.actorId != input.scope.actorId)
+      return reject(input,null,"identity_mismatch",0,0)
+    if (packet.slotId != input.scope.slotId || packet.pins.personaRevision != input.scope.canonRevision ||
+        packet.pins.ruleVersion != input.scope.ruleVersion ||
+        packet.pins.policyVersion != CompanionExposurePolicy.VERSION)
+      return reject(input,null,"context_binding_mismatch",0,0)
+    val preflight=DecisionPreflight.preflight(input.proposal,input.scope)
+    if (preflight is DecisionPreflight.Result.Rejected)
+      return reject(input,null,"preflight_"+preflight.reason,0,0)
+    val binding=(preflight as DecisionPreflight.Result.Approved).binding
+    val auditor=input.auditor ?: return reject(input,binding,"audit_adapter_missing",0,0)
+    val locked=try { input.ledger.get(binding.proposalDigest) } catch (_: Exception) {
+      return reject(input,binding,"ledger_read_failed",0,0)
     }
-    // 1. Native preflight first; rejection means zero provider calls.
-    val preflight = DecisionPreflight.preflight(input.proposal, input.scope)
-    if (preflight is DecisionPreflight.Result.Rejected) {
-      return reject(input, null, "preflight_" + preflight.reason, 0, 0)
+    if (locked != null) return replay(input,binding,locked,0,0,"locked_replay")
+    var hint: String?=null
+    for (attempt in 0..1) {
+      val result=try { input.provider.propose(packet,binding,hint) } catch (_: Exception) {
+        return reject(input,binding,"provider_exception",attempt+1,attempt)
+      }
+      if (result.error != null)
+        return reject(input,binding,safeReason(result.error,"provider_error"),attempt+1,attempt)
+      val raw=result.proposalJson ?: return reject(input,binding,"proposal_missing",attempt+1,attempt)
+      val failure=audit(raw,binding,input.scope)
+      if (failure != null) {
+        if (failure.hard || attempt==1) return reject(input,binding,failure.reason,attempt+1,attempt)
+        hint=failure.reason; continue
+      }
+      val semantic=try { auditor.audit(packet,binding,raw) } catch (_: Exception) {
+        return reject(input,binding,"audit_exception",attempt+1,attempt)
+      }
+      if (semantic != null)
+        return reject(input,binding,safeReason(semantic,"semantic_audit_failed"),attempt+1,attempt)
+      val json=JSONObject(raw)
+      val decided=Decided(binding,binding.intent,binding.targetId,binding.itemId,attempt+1,
+        optionalString(json,"utterance"))
+      val inserted=try { input.ledger.put(decided) } catch (_: Exception) {
+        return reject(input,binding,"ledger_write_failed",attempt+1,attempt)
+      }
+      if (inserted) return replay(input,binding,decided,attempt+1,attempt,"decided")
+      val winner=try { input.ledger.get(binding.proposalDigest) } catch (_: Exception) { null }
+      if (winner==null) return reject(input,binding,"ledger_race_missing",attempt+1,attempt)
+      return replay(input,binding,winner,attempt+1,attempt,"locked_race")
     }
-    val binding = (preflight as DecisionPreflight.Result.Approved).binding
-    // 2. Retry/alias: locked record wins — no reroll, no provider call.
-    input.ledger.get(binding.proposalDigest)?.let { locked ->
-      return Outcome.DecidedOutcome(locked, Trace(
-        packet.actorId, binding.proposalDigest, binding.intent.name,
-        providerCalls = 0, repairs = 0, outcome = "locked_replay"))
-    }
-    // 3. Provider call + audit; exactly one repair with full re-audit.
-    var calls = 0
-    var repairs = 0
-    val attempt: (repairHint: String?) -> DecisionProvider.CallResult = { hint ->
-      calls++
-      input.provider.propose(packet, binding)
-    }
-    val first = attempt(null)
-    val firstAudit = first.proposalJson?.let { audit(it, binding, input.scope) }
-    if (first.error == null && firstAudit == null) {
-      return lock(input, binding, first.proposalJson!!, calls, repairs)
-    }
-    val hardFailure = first.error != null || firstAudit?.hard == true
-    if (hardFailure) {
-      // Provider error or hard audit failure: fail closed, never fabricate.
-      return reject(input, binding, first.error ?: firstAudit!!.reason, calls, repairs)
-    }
-    // 4. One repair, fully re-audited (audits never reduced for call count).
-    repairs++
-    val second = attempt(firstAudit!!.reason)
-    val secondAudit = second.proposalJson?.let { audit(it, binding, input.scope) }
-    if (second.error == null && secondAudit == null) {
-      return lock(input, binding, second.proposalJson!!, calls, repairs)
-    }
-    return reject(input, binding, second.error ?: secondAudit!!.reason, calls, repairs)
+    return reject(input,binding,"repair_exhausted",2,1)
   }
 
-  private data class AuditFailure(val reason: String, val hard: Boolean)
-
-  /**
-   * Semantic/canon/local audit of a provider proposal against the bound scope.
-   * Returns null when clean. Hard failures skip repair (fail closed immediately).
-   */
-  private fun audit(proposalJson: String, binding: DecisionBinding, scope: NativeScope): AuditFailure? {
-    val json = try { JSONObject(proposalJson) } catch (_: Exception) {
-      return AuditFailure("proposal_malformed", hard = true)
-    }
-    // Canon firewall: knowledge-lock refs or whole-codex markers must never appear.
-    val raw = proposalJson
+  private fun replay(input: Input, binding: DecisionBinding, locked: Decided,
+    calls: Int, repairs: Int, code: String): Outcome {
+    if (locked.binding != binding || locked.intent != binding.intent ||
+        locked.targetId != binding.targetId || locked.itemId != binding.itemId)
+      return reject(input,binding,"ledger_binding_mismatch",calls,repairs)
+    return Outcome.DecidedOutcome(locked,Trace(binding.actorId,binding.proposalDigest,binding.intent.name,calls,repairs,code))
+  }
+  private data class AuditFailure(val reason: String,val hard: Boolean)
+  private fun optionalString(json: JSONObject,key: String): String? =
+    json.opt(key).let { if (it==null || it==JSONObject.NULL) null else it as String }
+  private fun audit(raw: String,binding: DecisionBinding,scope: NativeScope): AuditFailure? {
+    if (raw.length>65536) return AuditFailure("proposal_bound",true)
+    val json=try { JSONObject(raw) } catch (_: Exception) { return AuditFailure("proposal_malformed",true) }
     if (raw.contains("CAO-LOCK") || raw.contains("knowledgeLockRefs"))
-      return AuditFailure("canon_lock_leak", hard = true)
-    // Semantic: intent must match the bound intent; no capability invention.
-    val intentName = json.optString("intent", "")
-    if (intentName != binding.intent.name)
-      return AuditFailure("intent_mismatch", hard = false)
-    val claimedCaps = json.optJSONArray("capabilities")?.let { arr ->
-      (0 until arr.length()).map { arr.optString(it) }
-    } ?: emptyList()
-    val forged = claimedCaps.filter { it !in scope.capabilities }
-    if (forged.isNotEmpty()) return AuditFailure("capability_forged", hard = true)
-    // Local: target/item must stay within the bound scope.
-    val target = json.optString("targetId", null)?.ifBlank { null }
-    if (target != binding.targetId) {
-      if (target != null && target !in scope.legalTargetIds)
-        return AuditFailure("target_unbound", hard = false)
-      if (target != binding.targetId && binding.targetId != null)
-        return AuditFailure("target_mismatch", hard = false)
+      return AuditFailure("canon_lock_leak",true)
+    val allowed=setOf("intent","targetId","itemId","capabilities","utterance")
+    if (json.keys().asSequence().any { it !in allowed }) return AuditFailure("proposal_unknown_field",true)
+    for (key in listOf("intent","targetId","itemId","utterance")) {
+      val value=json.opt(key)
+      if (value!=null && value!=JSONObject.NULL && value !is String)
+        return AuditFailure("proposal_field_type",true)
     }
-    val item = json.optString("itemId", null)?.ifBlank { null }
-    if (item != binding.itemId) {
-      if (item != null && item !in scope.inventoryItemIds)
-        return AuditFailure("item_unbound", hard = false)
-      if (binding.intent == DecisionPreflight.Intent.USE_ITEM)
-        return AuditFailure("item_mismatch", hard = false)
+    if (json.opt("intent") != binding.intent.name) return AuditFailure("intent_mismatch",false)
+    if (optionalString(json,"targetId") != binding.targetId) return AuditFailure("target_mismatch",false)
+    if (optionalString(json,"itemId") != binding.itemId) return AuditFailure("item_mismatch",false)
+    val caps=json.opt("capabilities")
+    if (caps!=null && caps !is org.json.JSONArray) return AuditFailure("capability_type",true)
+    if (caps is org.json.JSONArray) for (i in 0 until caps.length()) {
+      val value=caps.opt(i)
+      if (value !is String || value !in scope.capabilities) return AuditFailure("capability_forged",true)
     }
+    val speech=optionalString(json,"utterance")
+    if (speech!=null && (binding.intent!=DecisionPreflight.Intent.TALK || speech.isBlank() || speech.length>500))
+      return AuditFailure("utterance_invalid",true)
     return null
   }
-
-  private fun lock(
-    input: Input, binding: DecisionBinding, proposalJson: String, calls: Int, repairs: Int
-  ): Outcome {
-    val json = JSONObject(proposalJson)
-    val decided = Decided(
-      binding = binding,
-      intent = binding.intent,
-      targetId = json.optString("targetId", null)?.ifBlank { null },
-      itemId = json.optString("itemId", null)?.ifBlank { null },
-      rngValue = input.rng.nextLong(),
-      providerCalls = calls)
-    // Durable reservation BEFORE any outcome-bearing response. First put wins.
-    if (!input.ledger.put(decided)) {
-      val locked = input.ledger.get(binding.proposalDigest)!!
-      return Outcome.DecidedOutcome(locked, Trace(
-        input.packet.actorId, binding.proposalDigest, binding.intent.name,
-        providerCalls = calls, repairs = repairs, outcome = "locked_race"))
-    }
-    return Outcome.DecidedOutcome(decided, Trace(
-      input.packet.actorId, binding.proposalDigest, binding.intent.name,
-      providerCalls = calls, repairs = repairs, outcome = "decided"))
-  }
-
-  private fun reject(
-    input: Input, binding: DecisionBinding?, reason: String, calls: Int, repairs: Int
-  ): Outcome.Rejected {
-    // Never fabricate: rejection carries no proposal, no reaction, no event.
-    return Outcome.Rejected(reason, Trace(
-      actorId = input.packet.actorId,
-      bindingDigest = binding?.proposalDigest,
-      intentName = binding?.intent?.name ?: input.proposal.intent.name,
-      providerCalls = calls, repairs = repairs, outcome = "rejected"))
-  }
+  private fun safeReason(reason: String,fallback: String): String =
+    if (reason.matches(Regex("[a-z][a-z0-9_]{0,63}"))) reason else fallback
+  private fun reject(input: Input,binding: DecisionBinding?,reason: String,calls: Int,repairs: Int)=
+    Outcome.Rejected(reason,Trace(input.packet.actorId,binding?.proposalDigest,
+      binding?.intent?.name ?: input.proposal.intent.name,calls,repairs,"rejected"))
 }
