@@ -13,6 +13,11 @@ on:
         type: boolean
         required: false
         default: false
+      publish_release:
+        description: Explicitly publish/replace GitHub Release APK from main (never on push/PR)
+        type: boolean
+        required: false
+        default: false
   push:
     branches: [main]
     paths:
@@ -47,6 +52,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Capture active run id
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_release == true && github.ref == 'refs/heads/main' }}
         run: |
           set -euo pipefail
           STATUS_DIR="$RUNNER_TEMP/release-status-$GITHUB_RUN_ID"
@@ -643,7 +649,7 @@ jobs:
           retention-days: 14
 
       - name: Publish GitHub Release v1.1.63.0.6
-        if: github.ref == 'refs/heads/main'
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_release == true && github.ref == 'refs/heads/main' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -658,7 +664,7 @@ jobs:
           fi
 
       - name: Verify published APK and record GREEN release
-        if: github.ref == 'refs/heads/main'
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_release == true && github.ref == 'refs/heads/main' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
