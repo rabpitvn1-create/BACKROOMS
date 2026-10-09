@@ -75,8 +75,8 @@ internal object ObservationVerifier {
 
 /** Digest canonicalization shared with the publisher (test-visible seam). */
 internal object ObservationPublisherDigest {
-  fun of(c: ObservationCandidate): String = CompanionDigests.sha256(
-    listOf(c.slotId, c.observationId, c.ownerActorId, c.sourceEventId, c.access.name,
-      c.certainty.name, c.turnId, c.revision.toString(), c.sceneId, c.policyVersion)
-      .joinToString("|"))
+  @JvmStatic fun of(c: ObservationCandidate): String = CompanionDigests.sha256(
+    CompanionWaitCapture.canonical(org.json.JSONArray(listOf(c.slotId, c.observationId,
+      c.ownerActorId, c.sourceEventId, c.access.name, c.certainty.name, c.turnId,
+      c.revision, c.sceneId, c.policyVersion, c.publicPayload))))
 }

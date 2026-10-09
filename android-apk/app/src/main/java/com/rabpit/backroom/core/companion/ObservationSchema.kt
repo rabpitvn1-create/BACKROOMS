@@ -24,13 +24,19 @@ CREATE TABLE actor_observation(
   access_kind TEXT NOT NULL CHECK(access_kind IN ('SEEN','HEARD','TOLD','INFERRED')),
   source_actor_id TEXT,
   certainty TEXT NOT NULL CHECK(certainty IN ('CERTAIN','PLAUSIBLE','UNCERTAIN')),
-  observation_digest TEXT NOT NULL,
+  scene_id TEXT NOT NULL,
+  policy_version TEXT NOT NULL,
+  public_payload TEXT NOT NULL CHECK(length(public_payload) <= 131072),
+  observation_digest TEXT NOT NULL CHECK(length(observation_digest) = 64),
   CHECK(access_kind != 'INFERRED' OR certainty != 'CERTAIN'),
   CHECK((access_kind != 'TOLD') OR (source_actor_id IS NOT NULL)),
   PRIMARY KEY (slot_id, observation_id),
   UNIQUE (slot_id, observation_id, actor_id),
   UNIQUE (slot_id, actor_id, event_id, access_kind),
-  FOREIGN KEY (event_id) REFERENCES native_event(event_id),
+  UNIQUE (slot_id, observation_id, created_turn_id, committed_revision, observation_digest),
+  FOREIGN KEY (slot_id) REFERENCES slot_meta(slot_id),
+  FOREIGN KEY (event_id, created_turn_id, committed_revision)
+    REFERENCES native_event(event_id, turn_id, revision),
   FOREIGN KEY (created_turn_id, committed_revision)
     REFERENCES turn_control(turn_id, committed_revision)
     DEFERRABLE INITIALLY DEFERRED
@@ -46,8 +52,8 @@ CREATE TABLE observation_manifest(
   observation_digest TEXT NOT NULL,
   PRIMARY KEY (slot_id, turn_id, committed_revision, ordinal),
   UNIQUE (slot_id, turn_id, committed_revision, observation_id),
-  FOREIGN KEY (slot_id, observation_id)
-    REFERENCES actor_observation(slot_id, observation_id),
+  FOREIGN KEY (slot_id, observation_id, turn_id, committed_revision, observation_digest)
+    REFERENCES actor_observation(slot_id, observation_id, created_turn_id, committed_revision, observation_digest),
   FOREIGN KEY (turn_id, committed_revision)
     REFERENCES turn_control(turn_id, committed_revision)
     DEFERRABLE INITIALLY DEFERRED
@@ -66,8 +72,9 @@ CREATE TRIGGER observation_manifest_no_delete BEFORE DELETE ON observation_manif
 
   /** All statements in creation order. Runs inside the slot-creation transaction. */
   fun createStatements(): List<String> {
-    val triggers = CREATE_IMMUTABILITY_TRIGGERS.trim().split(";")
-      .map { it.trim() }.filter { it.isNotEmpty() }.map { "$it;" }
-    return listOf(CREATE_ACTOR_OBSERVATION, CREATE_OBSERVATION_MANIFEST) + triggers
+    val triggers = CREATE_IMMUTABILITY_TRIGGERS.trim().split(Regex("(?<=END;)\\s*"))
+      .map { it.trim() }.filter { it.isNotEmpty() }
+    return listOf("CREATE UNIQUE INDEX event_observation_binding ON native_event(event_id,turn_id,revision)",
+      CREATE_ACTOR_OBSERVATION, CREATE_OBSERVATION_MANIFEST) + triggers
   }
 }

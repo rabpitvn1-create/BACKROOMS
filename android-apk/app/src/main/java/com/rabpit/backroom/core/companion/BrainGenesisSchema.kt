@@ -33,8 +33,8 @@ CREATE TRIGGER genesis_pins_no_delete BEFORE DELETE ON genesis_pins
 """
 
   fun createStatements(): List<String> {
-    val triggers = CREATE_IMMUTABILITY_TRIGGERS.trim().split(";")
-      .map { it.trim() }.filter { it.isNotEmpty() }.map { "$it;" }
+    val triggers = CREATE_IMMUTABILITY_TRIGGERS.trim().split(Regex("(?<=END;)\\s*"))
+      .map { it.trim() }.filter { it.isNotEmpty() }
     return listOf(CREATE_GENESIS_PINS) + triggers
   }
 }

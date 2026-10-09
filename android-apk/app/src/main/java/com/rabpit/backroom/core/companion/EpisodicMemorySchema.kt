@@ -19,6 +19,7 @@ CREATE TABLE actor_memory(
   observation_id TEXT NOT NULL,
   created_turn_id TEXT NOT NULL,
   committed_revision INTEGER NOT NULL CHECK(committed_revision > 0),
+  topic TEXT NOT NULL CHECK(length(topic) BETWEEN 1 AND 64),
   subjective_summary TEXT NOT NULL CHECK(length(subjective_summary) <= 280),
   interpretation_source TEXT NOT NULL CHECK(interpretation_source IN ('NATIVE','MODEL_AUDITED')),
   salience TEXT NOT NULL CHECK(salience IN ('ORDINARY','IMPORTANT','PIVOTAL')),
@@ -28,6 +29,10 @@ CREATE TABLE actor_memory(
   UNIQUE (slot_id, memory_id, actor_id),
   FOREIGN KEY (slot_id, observation_id, actor_id)
     REFERENCES actor_observation(slot_id, observation_id, actor_id),
+  UNIQUE (slot_id, actor_id, supersedes_memory_id),
+  CHECK(supersedes_memory_id IS NULL OR supersedes_memory_id != memory_id),
+  FOREIGN KEY (slot_id, supersedes_memory_id, actor_id)
+    REFERENCES actor_memory(slot_id, memory_id, actor_id),
   FOREIGN KEY (created_turn_id, committed_revision)
     REFERENCES turn_control(turn_id, committed_revision)
     DEFERRABLE INITIALLY DEFERRED
@@ -45,8 +50,8 @@ CREATE INDEX memory_by_actor ON actor_memory(slot_id, actor_id, committed_revisi
 """
 
   fun createStatements(): List<String> {
-    val triggers = CREATE_IMMUTABILITY_TRIGGERS.trim().split(";")
-      .map { it.trim() }.filter { it.isNotEmpty() }.map { "$it;" }
+    val triggers = CREATE_IMMUTABILITY_TRIGGERS.trim().split(Regex("(?<=END;)\\s*"))
+      .map { it.trim() }.filter { it.isNotEmpty() }
     return listOf(CREATE_ACTOR_MEMORY) + triggers + listOf(CREATE_INDEX.trim())
   }
 }

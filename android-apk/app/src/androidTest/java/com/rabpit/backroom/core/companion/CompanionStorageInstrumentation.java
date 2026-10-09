@@ -54,6 +54,7 @@ public final class CompanionStorageInstrumentation extends Instrumentation {
           getTargetContext(), directory, "after_commit_recover".equals(mode)));
       else if ("recover".equals(mode)) run("process_kill_rollback_and_recovery", this::recoverProcessCrash);
       else if ("suite".equals(mode)) {
+        run("muse_schema_and_publisher", () -> CompanionMuseStorageFixtures.schemaAndPublication(directory));
         run("test_driver_combat_publication", () -> CompanionWaitStorageFixtures.testDriverCombatPublication(directory));
         run("native_atomic_wait_commit", () -> CompanionWaitStorageFixtures.nativeAtomicCommit(directory));
         run("native_ambiguous_commit_readback", () -> CompanionWaitStorageFixtures.nativeAmbiguousCommit(directory));
