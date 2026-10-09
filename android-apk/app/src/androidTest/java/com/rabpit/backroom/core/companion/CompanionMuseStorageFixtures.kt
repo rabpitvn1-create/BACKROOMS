@@ -15,8 +15,8 @@ internal object CompanionMuseStorageFixtures {
       db.setForeignKeyConstraintsEnabled(true)
       db.beginTransaction()
       try {
-        (ObservationSchema.createStatements() + BrainGenesisSchema.createStatements() +
-          EpisodicMemorySchema.createStatements()).forEach { db.execSQL(it) }
+        // Production fresh-slot creation now installs the observation schema itself.
+        (BrainGenesisSchema.createStatements() + EpisodicMemorySchema.createStatements()).forEach { db.execSQL(it) }
         db.execSQL("INSERT INTO turn_control(turn_id,active_slot,expected_revision,phase,record,committed_revision) VALUES('t',1,0,'COMMITTED',X'01',1)")
         db.execSQL("INSERT INTO native_event(event_id,turn_id,revision,ordinal,type,record,digest) VALUES('e','t',1,0,'WAIT_COMPLETED','{}','d')")
         db.setTransactionSuccessful()
