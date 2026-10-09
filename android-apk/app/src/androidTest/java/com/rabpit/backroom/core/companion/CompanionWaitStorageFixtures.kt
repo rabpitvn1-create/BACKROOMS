@@ -278,4 +278,72 @@ object CompanionWaitStorageFixtures {
       check(GameStateCodec.decode(String(store.currentSnapshot(),StandardCharsets.UTF_8)).time.elapsedSubjectiveMinutes==30L)
     }
   }
+
+  @JvmStatic fun testDriverCombatPublication(directory: File) {
+    CompanionSlotStore.createIn(directory,snapshot(),POLICY).use { store ->
+      var draws=0
+      val receipt=CompanionWaitTestDriver.submit(store,"driver-combat",0,INPUT) { draws++; 0 }
+      check(draws==6 && receipt.committedRevision==1L)
+      val saved=store.currentSnapshot()
+      check(Combat93Runtime.active(GameStateCodec.decode(String(saved,StandardCharsets.UTF_8))))
+      check(store.events(1,100).map { it.type }==listOf("WAIT_COMPLETED","EXIT_STREAK_RESOLVED","COMBAT_STARTED"))
+      check(CompanionWaitTestDriver.submit(store,"driver-combat",0,INPUT) { error("historical redraw") }.finalResult==receipt.finalResult)
+      check(store.currentSnapshot().contentEquals(saved))
+      val id=store.slotId; store.close()
+      CompanionSlotStore.openIn(directory,id,POLICY).use { loaded ->
+        check(loaded.currentSnapshot().contentEquals(saved))
+        check(CompanionWaitTestDriver.submit(loaded,"driver-combat",0,INPUT) { error("reopen redraw") }.manifest==receipt.manifest)
+      }
+    }
+  }
+  @JvmStatic fun benchmark(context: android.content.Context, directory: File, turns: Int, status: java.util.function.Consumer<String>) {
+    require(turns in setOf(1000,5000,10000))
+    val store=CompanionSlotStore.createIn(directory,snapshot(),POLICY)
+    val slot=store.slotId; val file=store.fileForTest()
+    val latencies=arrayListOf<Long>(); var peakHeap=0L; var peakPss=0L; var draws=0L
+    val started=android.os.SystemClock.elapsedRealtime()
+    try {
+      for(index in 0 until turns) {
+        val start=android.os.SystemClock.elapsedRealtimeNanos()
+        val receipt=CompanionWaitTestDriver.submit(store,"bench-"+(index+1),index.toLong(),INPUT) { draws++; it-1 }
+        check(receipt.committedRevision==index+1L)
+        latencies.add(android.os.SystemClock.elapsedRealtimeNanos()-start)
+        if((index+1)%100==0) {
+          val runtime=Runtime.getRuntime()
+          peakHeap=maxOf(peakHeap,runtime.totalMemory()-runtime.freeMemory())
+          peakPss=maxOf(peakPss,android.os.Debug.getPss())
+          status.accept("COMPANION_BENCH_PROGRESS turns="+(index+1))
+        }
+        if(index+1 in setOf(1000,5000,10000)) {
+          val count=index+1; val ordered=latencies.sorted()
+          fun percentile(p: Double)=ordered[(kotlin.math.ceil(count*p).toInt()-1).coerceIn(0,count-1)]/1_000_000.0
+          val before=store.currentSnapshot()
+          check(store.currentRevision()==count.toLong())
+          check(GameStateCodec.decode(String(before,StandardCharsets.UTF_8)).time.elapsedSubjectiveMinutes==count*30L)
+          val old=store.events(17,2)
+          check(old.size==2 && old.all { it.revision==17L } && old[0].type=="WAIT_COMPLETED")
+          val oldReceipt=CompanionWaitTestDriver.submit(store,"bench-17",16,INPUT) { error("benchmark old receipt redraw") }
+          check(oldReceipt.committedRevision==17L && store.currentSnapshot().contentEquals(before) && draws==count*5L)
+          val result=JSONObject().put("version","companion_backend_benchmark.v1").put("turns",count)
+            .put("api",android.os.Build.VERSION.SDK_INT).put("driver","native-WAIT-no-encounter")
+            .put("backend","real-Core-real-Android-SQLite").put("rng","deterministic-test-callback")
+            .put("elapsedMs",android.os.SystemClock.elapsedRealtime()-started).put("p50Ms",percentile(0.50))
+            .put("p95Ms",percentile(0.95)).put("p99Ms",percentile(0.99)).put("snapshotBytes",before.size)
+            .put("dbBytes",file.length()).put("walBytes",File(file.path+"-wal").length())
+            .put("sampledPeakJavaHeapBytes",peakHeap).put("sampledPeakPssKiB",peakPss)
+            .put("oldEvent17","PASS").put("oldReceipt17","PASS").put("physicalDevice",false)
+            .put("providerLatency","NOT_MEASURED").put("powerLoss","NOT_TESTED")
+          status.accept("COMPANION_BENCH_RESULT="+result.toString())
+        }
+      }
+      store.close()
+      val reloadStart=android.os.SystemClock.elapsedRealtime()
+      CompanionSlotStore.openIn(directory,slot,POLICY).use { loaded ->
+        check(loaded.currentRevision()==turns.toLong() && loaded.events(17,2).all { it.revision==17L })
+        check(CompanionWaitTestDriver.submit(loaded,"bench-17",16,INPUT) { error("reload historical redraw") }.committedRevision==17L)
+        status.accept("COMPANION_BENCH_RELOAD="+JSONObject().put("turns",turns)
+          .put("elapsedMs",android.os.SystemClock.elapsedRealtime()-reloadStart).put("verifiedChain",true).toString())
+      }
+    } finally { store.close() }
+  }
 }
