@@ -19,6 +19,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.List;
+import java.nio.charset.StandardCharsets;
 
 import com.rabpit.backroom.core.companion.CompanionPendingTurn.Admission;
 import com.rabpit.backroom.core.companion.CompanionPendingTurn.AdmissionKind;
@@ -28,12 +30,11 @@ import com.rabpit.backroom.core.companion.CompanionPendingTurn.Request;
 import com.rabpit.backroom.core.companion.CompanionPendingTurn.Reservation;
 
 /**
- * S1b fresh-slot/control persistence only. Not connected to the game bridge.
- * There is deliberately no gameplay commit/snapshot replacement API before Core/ledger integration.
+ * Fresh-slot native storage with atomic verified WAIT publication. Not connected to the game bridge.
  * Caller supplies a natively approved genesis snapshot, never model/UI state.
  */
 public final class CompanionSlotStore implements Closeable {
-  static final int FORMAT_VERSION = 1;
+  static final int FORMAT_VERSION = 2;
   static final int APPLICATION_ID = 0x43505331;
   private static final Object LEASE_LOCK = new Object();
   private static final Map<String, Lease> LEASES = new HashMap<>();
@@ -79,10 +80,10 @@ public final class CompanionSlotStore implements Closeable {
   }
 
   public static CompanionSlotStore create(Context context, byte[] approvedGenesis, String policyVersion) throws IOException {
-    return createIn(context.getDir("companion_slots_v1", Context.MODE_PRIVATE), approvedGenesis, policyVersion);
+    return createIn(context.getDir("companion_slots_v2", Context.MODE_PRIVATE), approvedGenesis, policyVersion);
   }
   public static CompanionSlotStore open(Context context, String slotId, String policyVersion) throws IOException {
-    return openIn(context.getDir("companion_slots_v1", Context.MODE_PRIVATE), slotId, policyVersion);
+    return openIn(context.getDir("companion_slots_v2", Context.MODE_PRIVATE), slotId, policyVersion);
   }
 
   static CompanionSlotStore createIn(File directory, byte[] genesis, String policy) throws IOException {
@@ -103,14 +104,22 @@ public final class CompanionSlotStore implements Closeable {
       db.beginTransaction();
       try {
         verifyConfiguration(db);
-        db.execSQL("CREATE TABLE slot_meta(singleton INTEGER PRIMARY KEY CHECK(singleton=1),slot_id TEXT NOT NULL UNIQUE,format_version INTEGER NOT NULL CHECK(format_version=1),revision INTEGER NOT NULL CHECK(revision=0),policy_version TEXT NOT NULL,genesis BLOB NOT NULL,genesis_digest TEXT NOT NULL)");
-        db.execSQL("CREATE TABLE turn_control(turn_id TEXT PRIMARY KEY,active_slot INTEGER NOT NULL CHECK(active_slot=1),expected_revision INTEGER NOT NULL CHECK(expected_revision=0),phase TEXT NOT NULL CHECK(phase IN ('PREPARING','DECISION_LOCKED','RESERVED','SUSPENDED','REJECTED')),record BLOB NOT NULL CHECK(length(record)<=1048576))");
-        db.execSQL("CREATE UNIQUE INDEX one_active_turn ON turn_control(active_slot) WHERE phase != 'REJECTED'");
+        db.execSQL("CREATE TABLE slot_meta(singleton INTEGER PRIMARY KEY CHECK(singleton=1),slot_id TEXT NOT NULL UNIQUE,format_version INTEGER NOT NULL CHECK(format_version=2),revision INTEGER NOT NULL CHECK(revision>=0),policy_version TEXT NOT NULL,genesis BLOB NOT NULL,genesis_digest TEXT NOT NULL,snapshot BLOB NOT NULL CHECK(length(snapshot)<=16777216),snapshot_digest TEXT NOT NULL)");
+        db.execSQL("CREATE TABLE turn_control(turn_id TEXT PRIMARY KEY,active_slot INTEGER NOT NULL CHECK(active_slot=1),expected_revision INTEGER NOT NULL CHECK(expected_revision>=0),phase TEXT NOT NULL CHECK(phase IN ('PREPARING','DECISION_LOCKED','RESERVED','SUSPENDED','REJECTED','COMMITTED')),record BLOB NOT NULL CHECK(length(record)<=1048576),committed_revision INTEGER UNIQUE,UNIQUE(turn_id,committed_revision),CHECK((phase='COMMITTED' AND committed_revision IS NOT NULL AND committed_revision=expected_revision+1) OR (phase!='COMMITTED' AND committed_revision IS NULL)))");
+        db.execSQL("CREATE UNIQUE INDEX one_active_turn ON turn_control(active_slot) WHERE phase NOT IN ('REJECTED','COMMITTED')");
         db.execSQL("CREATE TABLE request_alias(request_id TEXT PRIMARY KEY,turn_id TEXT NOT NULL REFERENCES turn_control(turn_id))");
+        db.execSQL("CREATE TABLE native_event(event_id TEXT PRIMARY KEY,turn_id TEXT NOT NULL,revision INTEGER NOT NULL CHECK(revision>0),ordinal INTEGER NOT NULL CHECK(ordinal>=0),type TEXT NOT NULL,record TEXT NOT NULL CHECK(length(record)<=131072),digest TEXT NOT NULL,UNIQUE(turn_id,ordinal),FOREIGN KEY(turn_id,revision) REFERENCES turn_control(turn_id,committed_revision) DEFERRABLE INITIALLY DEFERRED)");
+        db.execSQL("CREATE INDEX event_by_revision ON native_event(revision,ordinal)");
+        for (String table : new String[]{"native_event", "request_alias"}) {
+          db.execSQL("CREATE TRIGGER " + table + "_no_update BEFORE UPDATE ON " + table + " BEGIN SELECT RAISE(ABORT,'immutable_record'); END");
+          db.execSQL("CREATE TRIGGER " + table + "_no_delete BEFORE DELETE ON " + table + " BEGIN SELECT RAISE(ABORT,'immutable_record'); END");
+        }
+        db.execSQL("CREATE TRIGGER receipt_no_update BEFORE UPDATE ON turn_control WHEN OLD.phase='COMMITTED' BEGIN SELECT RAISE(ABORT,'immutable_receipt'); END");
+        db.execSQL("CREATE TRIGGER receipt_no_delete BEFORE DELETE ON turn_control BEGIN SELECT RAISE(ABORT,'immutable_turn'); END");
         ContentValues meta = new ContentValues();
         meta.put("singleton", 1); meta.put("slot_id", id); meta.put("format_version", FORMAT_VERSION);
         meta.put("revision", 0); meta.put("policy_version", policy); meta.put("genesis", snapshot);
-        meta.put("genesis_digest", hash(snapshot));
+        meta.put("genesis_digest", hash(snapshot)); meta.put("snapshot", snapshot); meta.put("snapshot_digest", hash(snapshot));
         db.insertOrThrow("slot_meta", null, meta);
         db.setVersion(FORMAT_VERSION); db.execSQL("PRAGMA application_id=" + APPLICATION_ID);
         db.setTransactionSuccessful();
@@ -156,15 +165,16 @@ public final class CompanionSlotStore implements Closeable {
   public synchronized Result admit(Request request) throws IOException {
     return transaction(() -> {
       if (!slotId.equals(request.slotId)) return new Result(AdmissionKind.SLOT_MISMATCH, null);
+      long revision = revision();
       CompanionPendingTurn prior = byRequest(request.requestId);
       if (prior == null) prior = active();
       if (prior != null) {
-        Admission admission = prior.admit(request, 0);
+        Admission admission = prior.admit(request, revision);
         if (admission.kind == AdmissionKind.ALIAS) write(admission.turn);
         return new Result(admission.kind, admission.turn);
       }
-      if (request.expectedRevision != 0) return new Result(AdmissionKind.STALE_REVISION, null);
-      CompanionPendingTurn turn = CompanionPendingTurn.begin(request, "turn-" + UUID.randomUUID(), 0);
+      if (request.expectedRevision != revision) return new Result(AdmissionKind.STALE_REVISION, null);
+      CompanionPendingTurn turn = CompanionPendingTurn.begin(request, "turn-" + UUID.randomUUID(), revision);
       write(turn); return new Result(AdmissionKind.CREATED, turn);
     });
   }
@@ -200,9 +210,7 @@ public final class CompanionSlotStore implements Closeable {
     });
   }
   private NativeView nativeView(String requestId) throws IOException {
-    // S1b revision-zero snapshot; replace with committed snapshot only in the
-    // separately qualified atomic publication slice, never caller bytes.
-    return new NativeView(slotId, policyVersion, 0, required(requestId), genesis());
+    return new NativeView(slotId, policyVersion, revision(), required(requestId), snapshotWithin());
   }
   public synchronized CompanionPendingTurn cancel(String requestId) throws IOException {
     return transaction(() -> { CompanionPendingTurn next = required(requestId).cancel(); write(next); return next; });
@@ -216,13 +224,140 @@ public final class CompanionSlotStore implements Closeable {
   public synchronized CompanionPendingTurn recover() throws IOException { return transaction(this::active); }
   public synchronized CompanionPendingTurn request(String id) throws IOException { return transaction(() -> byRequest(id)); }
 
-  private <T> T transaction(Work<T> work) throws IOException {
+
+  /** Read copies only after the validated read transaction has completed. */
+  public synchronized byte[] currentSnapshot() throws IOException { return transaction(this::snapshotWithin); }
+  public synchronized long currentRevision() throws IOException { return transaction(this::revision); }
+
+  public static final class LedgerEvent {
+    public final String id, turnId, type, record, digest;
+    public final long revision;
+    public final int ordinal;
+    LedgerEvent(String id, String turnId, long revision, int ordinal, String type, String record, String digest) {
+      this.id=id; this.turnId=turnId; this.revision=revision; this.ordinal=ordinal;
+      this.type=type; this.record=record; this.digest=digest;
+    }
+  }
+  public synchronized List<LedgerEvent> events(long firstRevision, int limit) throws IOException {
+    if (firstRevision < 1 || limit < 1 || limit > 256) throw new IOException("event_query_invalid");
+    return transaction(() -> {
+      ArrayList<LedgerEvent> rows = new ArrayList<>();
+      try (Cursor c = database.rawQuery("SELECT event_id,turn_id,revision,ordinal,type,record,digest FROM native_event WHERE revision>=? ORDER BY revision,ordinal LIMIT ?",
+          new String[]{Long.toString(firstRevision), Integer.toString(limit)})) {
+        while(c.moveToNext()) {
+          LedgerEvent row = eventRow(c); CompanionLedgerVerifier.verifyEvent(slotId, revision(), row); read(row.turnId); rows.add(row);
+        }
+      }
+      return java.util.Collections.unmodifiableList(rows);
+    });
+  }
+  /** Historical identity is checked before the current snapshot or any gameplay replay. */
+  public synchronized CompanionPendingTurn.Receipt committedReceipt(Request request) throws IOException {
+    return transaction(() -> receiptWithin(request));
+  }
+  private CompanionPendingTurn.Receipt receiptWithin(Request request) throws IOException {
+    if (!slotId.equals(request.slotId)) throw new IOException("slot_mismatch");
+    CompanionPendingTurn turn = byRequest(request.requestId);
+    if (turn == null) return null;
+    Admission admission = turn.admit(request, revision());
+    if (admission.kind == AdmissionKind.REQUEST_CONFLICT || admission.kind == AdmissionKind.STALE_REVISION)
+      throw new IOException("receipt_request_mismatch");
+    return admission.kind == AdmissionKind.COMMITTED_REPLAY ? turn.receipt : null;
+  }
+  /** Batch is rebuilt under the primary writer. No model/UI snapshot can bypass native replay. */
+  public synchronized CompanionPendingTurn.Receipt commitWait(String requestId, long expectedRevision,
+      String exactInput, CompanionWaitBatch.Batch candidate) throws IOException {
+    Request identity = Request.fromPlayerInput(slotId, requestId, expectedRevision, "cao_minh", exactInput);
+    try {
+      CompanionPendingTurn.Receipt receipt = transaction(() -> {
+        CompanionPendingTurn.Receipt prior = receiptWithin(identity);
+        if (prior != null) return prior;
+        NativeView view = nativeView(requestId);
+        CompanionWaitBatch.Batch batch = CompanionWaitBatch.verifyForCommit(view, requestId, expectedRevision, exactInput, candidate);
+        for (CompanionWaitBatch.Event event : batch.getEvents()) {
+          ContentValues row = new ContentValues();
+          row.put("event_id", event.getId()); row.put("turn_id", batch.getTurnId());
+          row.put("revision", expectedRevision + 1); row.put("ordinal", event.getOrdinal());
+          row.put("type", event.getType()); row.put("record", event.getRecord()); row.put("digest", event.getDigest());
+          database.insertOrThrow("native_event", null, row); fault.at("after_event_write");
+        }
+        byte[] snapshot = batch.getAfterSnapshot().getBytes(StandardCharsets.UTF_8);
+        if (snapshot.length == 0 || snapshot.length > 16777216) throw new IOException("snapshot_size_invalid");
+        ContentValues meta = new ContentValues();
+        meta.put("revision", expectedRevision + 1); meta.put("snapshot", snapshot); meta.put("snapshot_digest", hash(snapshot));
+        if (database.update("slot_meta", meta, "singleton=1 AND revision=?", new String[]{Long.toString(expectedRevision)}) != 1)
+          throw new IOException("revision_cas_failed");
+        fault.at("after_snapshot_write");
+        CompanionPendingTurn committed = view.turn.markCommitted(expectedRevision,
+          batch.getDecisionDigest(), batch.getReservationDigest(), batch.getManifest(), batch.getFinalResult());
+        write(committed); fault.at("after_receipt_write"); verifyReceipt(committed);
+        return committed.receipt;
+      });
+      fault.at("after_durable_commit");
+      return receipt;
+    } catch (IOException | RuntimeException error) {
+      // EndTransaction may have committed despite throwing. Read the original identity
+      // before considering a retry. Readback itself never captures/stages or injects faults.
+      try {
+        CompanionPendingTurn.Receipt receipt = transaction(() -> receiptWithin(identity), false);
+        if (receipt != null) return receipt;
+      } catch (IOException | RuntimeException readback) { error.addSuppressed(readback); }
+      throw error;
+    }
+  }
+  private long revision() throws IOException { return scalar("SELECT revision FROM slot_meta WHERE singleton=1"); }
+  private byte[] snapshotWithin() throws IOException {
+    try (Cursor c = database.rawQuery("SELECT snapshot,snapshot_digest FROM slot_meta WHERE singleton=1", null)) {
+      if (!c.moveToFirst()) throw new IOException("snapshot_missing");
+      byte[] bytes=c.getBlob(0);
+      if (bytes.length==0 || bytes.length>16777216 || !hash(bytes).equals(c.getString(1)))
+        throw new IOException("snapshot_digest_mismatch");
+      return bytes;
+    }
+  }
+  private LedgerEvent eventRow(Cursor c) {
+    return new LedgerEvent(c.getString(0),c.getString(1),c.getLong(2),c.getInt(3),c.getString(4),c.getString(5),c.getString(6));
+  }
+  private void verifyReceipt(CompanionPendingTurn turn) throws IOException {
+    ArrayList<LedgerEvent> events = new ArrayList<>();
+    try (Cursor c = database.rawQuery("SELECT event_id,turn_id,revision,ordinal,type,record,digest FROM native_event WHERE turn_id=? ORDER BY ordinal",new String[]{turn.turnId})) {
+      while(c.moveToNext()) events.add(eventRow(c));
+    }
+    CompanionLedgerVerifier.verifyReceipt(slotId, policyVersion, revision(), turn, events);
+  }
+  private void verifyHead() throws IOException {
+    byte[] snapshot=snapshotWithin(); long revision=revision();
+    if (revision==0) {
+      if (!java.util.Arrays.equals(snapshot,genesis()) || scalar("SELECT COUNT(*) FROM native_event")!=0 ||
+          scalar("SELECT COUNT(*) FROM turn_control WHERE phase='COMMITTED'")!=0) throw new IOException("genesis_manifest_mismatch");
+      return;
+    }
+    try (Cursor c=database.rawQuery("SELECT turn_id FROM turn_control WHERE committed_revision=?",new String[]{Long.toString(revision)})) {
+      if(!c.moveToFirst()) throw new IOException("head_receipt_missing");
+      CompanionPendingTurn head=read(c.getString(0));
+      CompanionLedgerVerifier.verifyHead(snapshot,head);
+    }
+  }
+  private void verifyChain() throws IOException {
+    long expected=1; String before=hash(genesis());
+    try (Cursor c=database.rawQuery("SELECT turn_id FROM turn_control WHERE phase='COMMITTED' ORDER BY committed_revision",null)) {
+      while(c.moveToNext()) {
+        CompanionPendingTurn turn=read(c.getString(0));
+        before=CompanionLedgerVerifier.verifyChainLink(expected++, before, turn);
+      }
+    }
+    if(expected!=revision()+1 || !before.equals(hash(snapshotWithin()))) throw new IOException("receipt_chain_mismatch");
+    if(scalar("SELECT COUNT(*) FROM native_event WHERE revision>"+revision())!=0) throw new IOException("future_event");
+  }
+
+  private <T> T transaction(Work<T> work) throws IOException { return transaction(work, true); }
+  private <T> T transaction(Work<T> work, boolean injectFault) throws IOException {
     requireOpen();
     database.beginTransaction();
     try {
       verifyConfiguration(database);
       verifyMetadata();
-      T result = work.run(); fault.at("before_commit");
+      T result = work.run(); if (injectFault) fault.at("before_commit");
       database.setTransactionSuccessful(); return result;
     } finally { database.endTransaction(); }
   }
@@ -237,18 +372,20 @@ public final class CompanionSlotStore implements Closeable {
     }
   }
   private CompanionPendingTurn active() throws IOException {
-    try (Cursor c = database.rawQuery("SELECT turn_id FROM turn_control WHERE phase!='REJECTED'", null)) {
+    try (Cursor c = database.rawQuery("SELECT turn_id FROM turn_control WHERE phase NOT IN ('REJECTED','COMMITTED')", null)) {
       return c.moveToFirst() ? read(c.getString(0)) : null;
     }
   }
   private CompanionPendingTurn read(String id) throws IOException {
     CompanionPendingTurn turn;
-    try (Cursor c = database.rawQuery("SELECT expected_revision,phase,record FROM turn_control WHERE turn_id=?", new String[]{id})) {
+    try (Cursor c = database.rawQuery("SELECT expected_revision,phase,record,committed_revision FROM turn_control WHERE turn_id=?", new String[]{id})) {
       if (!c.moveToFirst()) throw new IOException("turn_missing");
       turn = CompanionPendingTurnCodec.decode(c.getBlob(2));
-      if (!turn.turnId.equals(id) || !turn.slotId.equals(slotId) || turn.expectedRevision != 0
+      if (!turn.turnId.equals(id) || !turn.slotId.equals(slotId) || turn.expectedRevision > revision()
           || c.getLong(0) != turn.expectedRevision || !c.getString(1).equals(turn.phase.name())
-          || turn.phase == Phase.COMMITTED || (turn.decision != null && !policyVersion.equals(turn.decision.policyVersion))) {
+          || (turn.phase == Phase.COMMITTED ? c.isNull(3) || c.getLong(3) != turn.receipt.committedRevision : !c.isNull(3))
+          || (turn.phase != Phase.COMMITTED && turn.phase != Phase.REJECTED && turn.expectedRevision != revision())
+          || (turn.decision != null && !policyVersion.equals(turn.decision.policyVersion))) {
         throw new IOException("turn_metadata_mismatch");
       }
     }
@@ -257,14 +394,16 @@ public final class CompanionSlotStore implements Closeable {
       while (c.moveToNext()) aliases.add(c.getString(0));
     }
     if (!aliases.equals(turn.requestAliases)) throw new IOException("alias_manifest_mismatch");
+    if (turn.phase == Phase.COMMITTED) verifyReceipt(turn);
     return turn;
   }
   private void write(CompanionPendingTurn turn) throws IOException {
-    if (!slotId.equals(turn.slotId) || turn.expectedRevision != 0 || turn.phase == Phase.COMMITTED
+    if (!slotId.equals(turn.slotId) || turn.expectedRevision > revision()
         || (turn.decision != null && !policyVersion.equals(turn.decision.policyVersion))) throw new IOException("turn_binding_invalid");
     ContentValues row = new ContentValues(); row.put("turn_id", turn.turnId); row.put("active_slot", 1);
     row.put("expected_revision", turn.expectedRevision); row.put("phase", turn.phase.name());
     row.put("record", CompanionPendingTurnCodec.encode(turn));
+    if (turn.receipt == null) row.putNull("committed_revision"); else row.put("committed_revision", turn.receipt.committedRevision);
     if (database.update("turn_control", row, "turn_id=?", new String[]{turn.turnId}) == 0) database.insertOrThrow("turn_control", null, row);
     fault.at("after_turn_write");
     for (String alias : turn.requestAliases) {
@@ -289,7 +428,7 @@ public final class CompanionSlotStore implements Closeable {
     try (Cursor c = database.rawQuery("PRAGMA foreign_key_check", null)) {
       if (c.moveToFirst()) throw new IOException("database_foreign_key_failed");
     }
-    genesis();
+    genesis(); snapshotWithin(); verifyChain();
     try (Cursor c = database.rawQuery("SELECT turn_id FROM turn_control", null)) { while (c.moveToNext()) read(c.getString(0)); }
     return null;
     });
@@ -298,8 +437,9 @@ public final class CompanionSlotStore implements Closeable {
     if (database.getVersion() != FORMAT_VERSION || scalar("PRAGMA application_id") != APPLICATION_ID) throw new IOException("storage_version_unsupported");
     try (Cursor c = database.rawQuery("SELECT slot_id,format_version,revision,policy_version FROM slot_meta WHERE singleton=1", null)) {
       if (!c.moveToFirst() || !slotId.equals(c.getString(0)) || c.getInt(1) != FORMAT_VERSION
-          || c.getLong(2) != 0 || !policyVersion.equals(c.getString(3))) throw new IOException("slot_metadata_mismatch");
+          || (c.getLong(2) < 0 || c.getLong(2) > Integer.MAX_VALUE) || !policyVersion.equals(c.getString(3))) throw new IOException("slot_metadata_mismatch");
     }
+    verifyHead();
   }
   private static SQLiteDatabase openDatabase(File file) throws IOException {
     DatabaseErrorHandler preserve = db -> {

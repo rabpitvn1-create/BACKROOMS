@@ -105,4 +105,44 @@ class CompanionWaitBatchTest {
     val changed = CompanionSlotStore.NativeView("slot", CompanionWaitAuthorizer.WAIT_POLICY, 0, preparing, view.snapshot())
     rejects { CompanionWaitBatch.verify(changed, "request", 0, input, batch) }
   }
+
+  private fun ledger(batch: CompanionWaitBatch.Batch) = batch.events.map {
+    CompanionSlotStore.LedgerEvent(it.id,batch.turnId,batch.expectedRevision+1,it.ordinal,it.type,it.record,it.digest)
+  }
+  private fun committed(view: CompanionSlotStore.NativeView, batch: CompanionWaitBatch.Batch,
+      manifest: String = batch.manifest) = view.turn.markCommitted(0,batch.decisionDigest,batch.reservationDigest,manifest,batch.finalResult)
+  private fun ledgerRejects(block: () -> Unit) {
+    try { block() } catch (_: java.io.IOException) { return }; fail("invalid ledger accepted")
+  }
+  @Test fun receiptAndChainValidateCompleteNativeProjection() {
+    val view=fixture(); val batch=build(view); val turn=committed(view,batch)
+    CompanionLedgerVerifier.verifyReceipt("slot",view.policyVersion,1,turn,ledger(batch))
+    CompanionLedgerVerifier.verifyHead(batch.afterSnapshot.toByteArray(StandardCharsets.UTF_8),turn)
+    assertEquals(CompanionWaitBatch.hash(batch.afterSnapshot),
+      CompanionLedgerVerifier.verifyChainLink(1,CompanionWaitBatch.hash(batch.beforeSnapshot),turn))
+  }
+  @Test fun receiptRejectsMissingExtraAndForeignEventRows() {
+    val view=fixture(); val batch=build(view); val turn=committed(view,batch); val rows=ledger(batch)
+    ledgerRejects { CompanionLedgerVerifier.verifyReceipt("slot",view.policyVersion,1,turn,rows.dropLast(1)) }
+    ledgerRejects { CompanionLedgerVerifier.verifyReceipt("slot",view.policyVersion,1,turn,rows+rows.first()) }
+    ledgerRejects { CompanionLedgerVerifier.verifyReceipt("foreign",view.policyVersion,1,turn,rows) }
+    ledgerRejects { CompanionLedgerVerifier.verifyReceipt("slot",view.policyVersion,0,turn,rows) }
+    ledgerRejects { CompanionLedgerVerifier.verifyReceipt("slot",view.policyVersion,1,turn,rows.reversed()) }
+  }
+  @Test fun headAndChainRejectMatchingReceiptWithWrongStateOrPredecessor() {
+    val view=fixture(); val batch=build(view); val turn=committed(view,batch)
+    ledgerRejects { CompanionLedgerVerifier.verifyHead(batch.beforeSnapshot.toByteArray(StandardCharsets.UTF_8),turn) }
+    ledgerRejects { CompanionLedgerVerifier.verifyChainLink(1,"0".repeat(64),turn) }
+    ledgerRejects { CompanionLedgerVerifier.verifyChainLink(2,CompanionWaitBatch.hash(batch.beforeSnapshot),turn) }
+  }
+  @Test fun receiptRejectsUnknownVersionsAndUnmanifestedCollections() {
+    val view=fixture(); val batch=build(view)
+    for (m in listOf(JSONObject(batch.manifest).put("version","unknown"),
+      JSONObject(batch.manifest).put("resultDigest","0".repeat(64)),
+      JSONObject(batch.manifest).put("observations",org.json.JSONArray().put("forged")),
+      JSONObject(batch.manifest).put("extra","forged"))) {
+      ledgerRejects { CompanionLedgerVerifier.verifyReceipt("slot",view.policyVersion,1,
+        committed(view,batch,CompanionWaitCapture.canonical(m)),ledger(batch)) }
+    }
+  }
 }
