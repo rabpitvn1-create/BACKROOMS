@@ -2,7 +2,7 @@ name: Verify Companion WAIT Authorization 485
 
 on:
   pull_request:
-    branches: [feat/companion-core-lock-s1c2]
+    branches: [feat/companion-core-lock-s1c2, feature/companion-wait-authority-485]
     paths:
       - ".github/workflows/verify-companion-wait-authority-485.yml"
       - "android-apk/app/src/main/java/com/rabpit/backroom/core/companion/**"
@@ -95,7 +95,7 @@ jobs:
           with open("evidence/native-draw-outcome-fixtures.json","w") as f:
             json.dump({"count":len(draw_outcomes),"observed":draw_outcomes},f,indent=2,ensure_ascii=False)
           print("WAIT485_NATIVE_FIXTURE_COUNT",len(draw_outcomes))
-          if len(fixtures)!=9 or any(not item["passed"] for item in fixtures):
+          if len(fixtures)!=12 or any(not item["passed"] for item in fixtures):
             raise SystemExit("WAIT485 regression suite incomplete or failing")
           if len(draw_outcomes)!=11:
             raise SystemExit("WAIT485 native roll/outcome capture incomplete")

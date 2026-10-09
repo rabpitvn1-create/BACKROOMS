@@ -192,4 +192,38 @@ class CompanionWaitAuthorizerTest {
     assertNull(bad.bound)
     assertEquals(0, draws)
   }
+  @Test fun fractionalAndOverflowedSavedLevelCannotMatchRoute() {
+    for (number in listOf<Number>(0.5, 4294967296L, java.math.BigDecimal("1e-400"))) {
+      val original = snapshot()
+      val level = JSONObject(original.world.getValue("levelJson")).put("number", number)
+      val state = original.copy(world = original.world + ("levelJson" to level.toString()))
+      val result = gate(state)
+      assertNull("invalid level $number accepted", result.bound)
+      assertEquals("wait_saved_source_mismatch", result.error)
+    }
+  }
+
+  @Test fun malformedPersistedCombatFailsClosed() {
+    val original = snapshot()
+    val state = original.copy(metadata = original.metadata + ("combat93.state" to "{"))
+    val result = gate(state)
+    assertNull(result.bound)
+    assertEquals("wait_combat_invalid", result.error)
+  }
+
+  @Test fun nativeActiveCombatCannotBecomeExplorationWait() {
+    val encounters = listOf(
+      Combat93Runtime.start(snapshot(), listOf("diep_minh"), 7, 0),
+      CombatRuntime.start(snapshot(), "diep_minh")
+    )
+    for (started in encounters) {
+      val state = GameStateCodec.decode(GameStateCodec.encode(started))
+      assertTrue("fixture must enter native or migration combat",
+        Combat93Runtime.active(state) || CombatRuntime.active(state) != null)
+      val result = gate(state)
+      assertNull("combat snapshot authorized an exploration draw", result.bound)
+      assertEquals("wait_combat_active", result.error)
+    }
+  }
+
 }
