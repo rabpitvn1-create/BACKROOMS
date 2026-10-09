@@ -479,6 +479,9 @@ public final class CompanionSlotStore implements Closeable {
         scalar("SELECT COUNT(*) FROM sqlite_master WHERE type='trigger' AND name IN ('actor_observation_no_update','actor_observation_no_delete','observation_manifest_no_update','observation_manifest_no_delete')") != 4 ||
         scalar("SELECT COUNT(*) FROM sqlite_master WHERE type='index' AND name='event_observation_binding'") != 1)
       throw new IOException("observation_schema_incomplete");
+    if (scalar("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name IN ('genesis_pins','initial_brain')") != 2 ||
+        scalar("SELECT COUNT(*) FROM sqlite_master WHERE type='trigger' AND name IN ('genesis_pins_no_update','genesis_pins_no_delete','initial_brain_no_update','initial_brain_no_delete')") != 4)
+      throw new IOException("genesis_schema_incomplete");
     GenesisPinsStorage.verify(database,slotId,GenesisPinsStorage.fixtureRecords());
     genesis(); snapshotWithin(); verifyChain(); verifyHead(true);
     try (Cursor c = database.rawQuery("SELECT turn_id FROM turn_control", null)) { while (c.moveToNext()) read(c.getString(0)); }
