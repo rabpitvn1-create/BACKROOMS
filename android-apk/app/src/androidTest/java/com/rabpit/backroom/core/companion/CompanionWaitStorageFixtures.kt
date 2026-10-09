@@ -195,6 +195,9 @@ object CompanionWaitStorageFixtures {
       val receipt=store.commitWait("commit",0,INPUT,batch)
       check(receipt.manifest==batch.manifest && receipt.finalResult==batch.finalResult && store.currentRevision()==1L)
       check(store.currentSnapshot().contentEquals(batch.afterSnapshot.toByteArray(StandardCharsets.UTF_8)))
+      check(store.observations("cao_minh",10).isEmpty())
+      check(store.observations("luc_tram",10).isEmpty())
+      rejects("observation_read_scope_invalid") { store.observations("cao_minh",0) }
       check(store.recover()==null && store.events(1,100).map { it.record }==batch.events.map { it.record })
       val second=reserveBatch(store,"second",1)
       store.commitWait("second",1,INPUT,second)
@@ -211,6 +214,7 @@ object CompanionWaitStorageFixtures {
       store.close()
       CompanionSlotStore.openIn(directory,id,POLICY).use { loaded ->
         check(loaded.currentRevision()==2L && loaded.events(1,100).size==4)
+        check(loaded.observations("cao_minh",10).isEmpty())
         check(loaded.committedReceipt(CompanionPendingTurn.Request.fromPlayerInput(id,"commit-alias",0,"cao_minh",INPUT)).finalResult==receipt.finalResult)
       }
     } finally { store.close() }
