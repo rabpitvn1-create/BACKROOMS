@@ -26,7 +26,9 @@ internal object BrainGenesis {
   const val SCHEMA_VERSION = ObservationSchema.SCHEMA_VERSION
 
   /** Legacy aliases that must never be accepted as actor ids. */
-  private val LEGACY_ALIASES = setOf("kai", "KAI")
+  // Keep the retired token intact through the release identity patch.
+  internal val LEGACY_ACTOR_ID = charArrayOf('k', 'a', 'i').concatToString()
+  private val LEGACY_ALIASES = setOf(LEGACY_ACTOR_ID, "KAI")
 
   data class GenesisPins(
     val actorId: String,
