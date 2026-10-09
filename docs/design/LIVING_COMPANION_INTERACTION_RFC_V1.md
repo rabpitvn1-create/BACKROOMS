@@ -1,7 +1,7 @@
 # RFC: Living Companion Interaction V1
 **Backrooms The Game | Design for review | 2026-10-09**
 
-- **Status:** PROPOSAL / REVIEW REQUESTED, NOT IMPLEMENTED
+- **Status:** PROPOSAL / REVIEW REQUESTED, NOT IMPLEMENTED. **Product direction: companion paradigm confirmed by the requester; technical adoption, save compatibility and release are not approved.**
 - **Repository:** [rabpitvn1-create/BACKROOMS](https://github.com/rabpitvn1-create/BACKROOMS)
 - **Audited source:** main at **5450284ddc2acded7cc1cc54d3c035faff4ba4be** (1.1.63.0.6 release-status commit). The generated APK was **not** rebuilt or decompiled during this review.
 - **Change class:** major gameplay interaction + narrative orchestration + save migration, not cosmetic UI work.
@@ -44,7 +44,7 @@ If that argument is grounded in known events and compatible with Cao Minh's moti
 
 ## 2. What the existing repository actually does
 
-All references below are to the audited commit SHA, not assumptions about arbitrary future main.
+All references below are to the audited commit SHA, not assumptions about arbitrary future main. **Review correction (2026-10-09):** the initial RFC mistakenly counted only top-level workflow scripts and overlooked nested `runpy.run_path` calls. The verified nested chain is documented below.
 
 | Existing component | Verified source-grounded behavior | Design consequence |
 | --- | --- | --- |
@@ -59,17 +59,18 @@ All references below are to the audited commit SHA, not assumptions about arbitr
 | [GameCoreFacade.kt](../../android-apk/app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt) | Deterministic fast path plus validated candidate commit; owner and player-action assumptions | Add companion decision / actor command boundary before validated commit; never bypass ownership checks |
 | [TurnCoordinator.kt](../../android-apk/app/src/main/java/com/rabpit/backroom/core/TurnCoordinator.kt) | Pending, completed turn IDs, command idempotence/rollback contracts | Extend the existing turn transaction; do not create a second competing turn counter |
 | [SaveRepository.kt](../../android-apk/app/src/main/java/com/rabpit/backroom/core/SaveRepository.kt) | Core uses SharedPreferences **backroom_game_state_core / game_state**, while WebView has separate localStorage save | Explicit dual-save migration/ownership plan required |
-| [KnowledgeContextEngine.kt](../../android-apk/app/src/main/java/com/rabpit/backroom/core/knowledge/KnowledgeContextEngine.kt) | Budgeted knowledge packet (target 2200, soft 2800, hard 3400) and scene/actor selection | Add actor-private memory retrieval without sending all history every turn |
-| [StoryContinuityReducer.kt](../../android-apk/app/src/main/java/com/rabpit/backroom/core/knowledge/StoryContinuityReducer.kt) | Deterministic but bounded summary: 12 events, 16 knowledge, 8 relationship changes and other small caps | Not a durable per-character memory ledger for thousands of turns |
+| [KnowledgeContextEngine.kt](../../android-apk/app/src/main/java/com/rabpit/backroom/core/knowledge/KnowledgeContextEngine.kt) | Checked-in engine is a pre-patch input; nested release script **patch-knowledge-engine-source.py** modifies it (including indexed Novel Asset selection). Budgeted knowledge packet in base (target 2200, soft 2800, hard 3400). | Inspect **generated** engine/packet; add actor-private memory retrieval without sending all history every turn |
+| [StoryContinuityReducer.kt](../../android-apk/app/src/main/java/com/rabpit/backroom/core/knowledge/StoryContinuityReducer.kt) | Deterministic bounded summary (12 events, 16 knowledge, 8 relationship changes etc). **Its apply call is installed via nested patch-knowledge-context-builder.py** in the effective release chain. | Preserve currently wired continuity while extending it; the bounded summary is still not a durable per-character memory ledger for thousands of turns |
 | [build-backroom-apk.yml](../../.github/workflows/build-backroom-apk.yml) | Ordered Python runtime patch chain, Gradle unit tests and APK assembly; release verification asserts search/explore button IDs exist | Edit real release patch chain **and** replace legacy assertions only after installing new equivalent assertions |
 | [NOVEL_ASSET_CANON_REGISTRY.md](../../android-apk/NOVEL_ASSET_CANON_REGISTRY.md) | Current authority order and restrictions on retired aliases/WRITER_SECRET | Character reasoning must obey current Codex, save/continuity and provenance firewalls |
 
 ### Specific integration gaps to verify, not silently assume away
 
-- **Patch-chain truth:** The release workflow calls **patch-ai-orchestrator.py**, **patch-ui-1.1.99-shell.py**, **patch-player-action-ime.py**, **patch-cao-minh-identity-overlay.py**, etc. The presence of other Python patch files in the repository does not mean they are applied. Read the current **scripts=(...)** list before implementing any phase.
-- **Continuity hook gap:** **patch-knowledge-context-builder.py** contains a call to **StoryContinuityReducer.apply**, but this script is **not** in the audited release patch list. Its effective invocation therefore **cannot be assumed**. Verify the assembled Java/DEX path before treating storyContinuity as operational.
-- **Canon index gap:** The registry claims **patch-knowledge-engine-source.py** is invoked by release, but it is **absent** from that same listed patch sequence. The checked-in engine may not provide the full indexed-novel behavior the documentation describes. This requires generated APK inspection, not extrapolation.
-- **Identity mismatch:** Post-patch identity conversion sets the protagonist ID to **cao_minh**, while multiple checked-in core classes and test fixtures still use the symbolic name **KAI_ID** or old **kai** literals. Avoid regex-only logic and define a canonical identity contract. **Lucia Lục / Hứa Thuý Mai** is retired as an identity for Lục Trầm per current **LUC_TRAM_CODEX.md**, despite older runtime follower code remaining. Never create a separate Lucia brain simply because the old gameplay ID exists.
+- **Effective patch-chain truth (corrected):** The audited workflow invokes **patch-character-detail-avatar-fallback.py** as a top-level script. That script **unconditionally executes** `patch-knowledge-engine-source.py` and `patch-knowledge-context-builder.py` via `runpy.run_path` (lines 35–36), in addition to other nested patches. Both therefore **are members of the effective release patch chain**. The first generates/extends knowledge retrieval including `addNovelAssetExcerpts()`; the second wires `StoryContinuityReducer.apply` after validated candidate processing and installs budgeted knowledge/local validation. This corrects two mistaken claims in the original RFC. Gate 0 must still reproduce the **entire recursive invocation graph and subsequent overwrites**, then inspect the generated output; wiring observed in scripts is not the same as independently tested runtime behavior.
+- **Deliberate identity/knowledge coupling (corrected):** The **stable runtime symbol** `KAI_ID` resolves to the active character ID **cao_minh** after the ordered identity overlay. The knowledge namespace may intentionally retain stable keys such as `CHAR.KAI.*` for continuity/index compatibility. **Do not rename, globally replace, or classify these stable knowledge IDs as a defect.** Document the runtime-to-knowledge identity mapping and add regression tests instead. The separately maintained current Cao Minh Codex determines current canon, and aliases do not grant retired powers or facts. **Lucia Lục / Hứa Thuý Mai** is retired as an identity for Lục Trầm per current **LUC_TRAM_CODEX.md**, despite older runtime follower code remaining. Never create a separate Lucia brain simply because an old gameplay ID exists.
+- **Exit discovery v6 authority (new blocking dependency):** [patch-exit-discovery-engine.py](../../android-apk/patch-exit-discovery-engine.py) generates a typed, kind-owned discovery engine. Only `SEARCH`/`EXPLORE` **action kinds** can trigger discovery, independent of freeform text. An Nhiên's dependent read is SEARCH-only, eligible only after native prechecks. Traversal is a separate atomic system command with exact `traverse_exit` dispatch before combat/generic dice. Retiring action buttons without re-homing **authoritative kinds** will disable discovery or change RNG eligibility. The new composer must **not** grant discovery simply because a player typed `tìm kiếm`.
+- **Existing fail-closed audit pipeline (new blocking dependency):** The effective patch chain includes conditional writer, canon/character semantic audit by risk, hard-issue repair/re-audit, local knowledge validation, rejected-op checking and provider fallback. These safeguards must remain authoritative; a new DecisionValidator belongs **within** this gate, not as a replacement. Provider retries/attempts and audit calls must be measured separately from logical user turns; one model inference is not a guaranteed current production cost.
+- **PR #454 / world progression (new integration dependency):** [PR #454](https://github.com/rabpitvn1-create/BACKROOMS/pull/454) merged a **design/skeleton** for Core-owned progression and deterministic scaling. Its documented runtime call-site rewiring is not complete. Do not bypass either the current validated transition implementation or future trusted world-node authority during companion mode migration.
 - **Current tests enforce old UX:** Release artifact checks explicitly look for **searchActionButton** and **exploreActionButton**. These must be replaced by new behavior-based checks in the same migration commit series, not deleted in advance.
 - **Evidence limit:** This RFC reviews committed source, named patch functions, and the release workflow. It does **not** establish the exact post-patch APK class graph by executing the full chain; it is not an implementation audit certificate.
 
@@ -96,8 +97,14 @@ TurnCoordinator: pending request + idempotency
 CompanionDecisionService (existing LLM, isolated Cao Minh POV)
     |   Structured decision proposal, no authoritative mutations
     v
-DecisionValidator + gameplay intent resolver
-    |   Actor=Cao Minh, legal action, route, time, rolls, item source
+Actor/Decision Validator + typed action-kind authority
+    |   Actor=Cao Minh; validate proposal and derive trusted Core-owned kind
+    v
+Existing risk-based semantic audits + local validator + repair gate
+    |   Canon/character/knowledge/ops mismatches fail closed; audit provider retries
+    v
+Existing gameplay / exit-discovery / transition authority
+    |   SEARCH/EXPLORE kinds and traversal remain Core-owned; dice/loot rules intact
     v
 GameCoreFacade / TurnCoordinator atomic commit
     |
@@ -116,7 +123,7 @@ WebView GM + named Cao Minh dialogue + [TƯƠNG TÁC]
 
 Use a **single configured provider/model pool**. For each NPC that genuinely needs an active choice, build an **actor-specific, least-privilege context**. “Different brains” means **different persisted state and private reasoning requests**, not different trained LLM weights.
 
-**Normal turn policy:** aim for **at most one story LLM inference** on a player interaction. The model returns a structured candidate decision and an *untrusted* narration draft. The native side validates/commits commands and only releases draft prose when it agrees with committed outcomes; otherwise use a deterministic narrative fallback. A separately generated high-quality narrator pass is a **measured optional mode**, not a universal requirement. Multi-NPC deliberation is event-driven, not one call per NPC per tick.
+**Normal turn goal, not a replacement for production policy:** seek **one primary decision/writer candidate per logical interaction**, but the existing fail-closed pipeline can perform conditional semantic audits, bounded repair/re-audit and provider fallback attempts. A logical interaction is **not** synonymous with one network attempt or one LLM call. Never drop an applicable audit or deterministic check to meet a cost slogan. Keep the existing risk-based audit/repair chain; insert companion actor-provenance/decision checks before gameplay commit and feed candidate action, claimed evidence, approved kinds and proposed narration into existing audits. Reconcile provider call/attempt ceilings by inspecting the fully patched Java path (the review reported writer <=18 and semantic audit <=20; **those numeric maxima are not independently established by this RFC**). Optimize only after instrumenting actual per-turn provider attempts, latency and failures. Multi-NPC deliberation is event-driven rather than one call per NPC per tick.
 
 **Security truth:** a shared model is not literal independent consciousness, and an actor-specific prompt is not a perfect knowledge firewall. Enforce provenance and constraints locally, and test cross-character secret leakage.
 
@@ -191,7 +198,7 @@ The current campaign data centers on Cao Minh. This RFC **does not** establish t
 Constraints:
 - Schema version, requestId and actorId must match the pending turn. JSON is a **proposal**, not a command.
 - **reasonCodes** and evidence references support debugging; they are not proof of a character's unobservable inner life. Reject unsupported memory IDs and fabricated knowledge.
-- Candidate target must be one of valid current scene exits; action is checked by the existing roll/transition/encounter machinery.
+- Candidate target must be one of valid current scene exits; action is checked by the existing roll/transition/encounter machinery. A route-choice utterance cannot itself invoke exit discovery; the native controller must derive a **typed character action**, validate it against scene, then delegate kind-specific exit discovery to the existing Core. The LLM must not mint a trusted `SEARCH` or `EXPLORE` kind.
 - A refusal is a meaningful decision that can change conversation/memory without necessarily changing location.
 - The GM must not infer that the **player** entered the right corridor from player text when Cao Minh selected left.
 - If speech and the action contradict, prefer blocking/reasking or rendering a corrected result, never inventing a hidden second decision.
@@ -249,6 +256,46 @@ ActorMemory {
 
 Current Lục Trầm Codex explicitly retires Lucia Lục / Hứa Thuý Mai as an earlier identity for this character. Old **lucia** follower/runtime material is a migration/compatibility problem, **not** grounds for inventing a second independently sentient Lucia. A distinct Lucia requires an explicit new approved canon/character ID. Character memory keys should use canonical IDs and migration aliases should not duplicate minds.
 
+## 6A. Re-homing action-kind authority without changing Exit Discovery v6
+
+This is a **design proposal for reviewers**, not a verified implementation:
+
+1. The WebView always submits a single neutral **INTERACT** envelope containing the player's message. **INTERACT is not an eligible discovery kind**; its presence must not trigger any Search/Explore roll.
+2. The companion decision stage may propose `TALK`, `WAIT`, `INVESTIGATE_SCENE`, `SEARCH_SCENE`, `MOVE`, or `TRAVERSE_KNOWN_EXIT`, with a specific actor, current-location target and evidence IDs. These are **proposal intents**, not Core action kinds.
+3. After actor authority, presence, action feasibility, ownership and scene context checks, the deterministic native **ActionKindResolver** maps an accepted Cao Minh action to the existing trusted `SEARCH` or `EXPLORE` kind (or no discovery kind). The mapping must not be based solely on keywords in player text or LLM-selected `actionKind`. `WAIT`/`TALK`/rejected proposals do not roll an exit.
+4. Pass the **trusted typed kind** to the existing ExitDiscoveryEngine v6 and preserve SEARCH-only `anNhienRead` eligibility, progression preconditions, the original RNG consumption policy, and discovery record provenance (`discoveredBy`). Accepted player persuasion only influences **which action Cao Minh chooses**; it never grants a roll by itself.
+5. `TRAVERSE_KNOWN_EXIT` must resolve to the engine-owned, independently validated **TraverseExitCommand** (`traverse_exit` exact-match dispatch semantics), **before** generic combat/dice, without letting player text or the LLM forge an already discovered exit.
+6. Route and event narration happen **after** validation/commit. The player's viewpoint follows Cao Minh's committed move; a rejected proposal or failed discovery never advances the player's location independently.
+
+**Required tests:** (a) typing “tìm kiếm” without Cao Minh accepting a search produces no discovery roll, (b) accepted Cao Minh search retains the SEARCH-only follower bonus, (c) accepted exploration retains EXPLORE thresholds, (d) generic speech/repetition does not farm discovery, (e) traversal bypasses generic rolls as today, (f) actor binding and retry are idempotent, (g) all existing ExitDiscoveryEngineTest assertions remain unchanged or are extended, never silently weakened.
+
+## 6B. DecisionValidator inside the existing fail-closed writer/audit chain
+
+**Current baseline from source:** `patch-conditional-audit.py` builds writer candidate and conditional semantic `auditsForRisk`; `patch-audit-validated-risk.py` derives risk from validated candidate; `patch-knowledge-context-builder.py` injects budgeted writer/auditor packets, rejected-operation and local-knowledge issues; the existing pipeline repairs and re-audits hard failures, then fails closed when hard issues remain. Production also has provider fallback/timeout patches.
+
+**Proposed integration contract:**
+
+~~~text
+IN:  Player INTERACT envelope + Core snapshot + Cao Minh-only private context
+ ->  writer/companion candidate (speech + actor intent + proposed ops/narration)
+ ->  deterministic preflight: actor ID, perception/knowledge refs, trust ownership,
+     proposal/scene fit, typed kind eligibility and exit preconditions (NO commit)
+ ->  existing semantic audit on candidate speech, action, canon and narration,
+     severity/risk computed from VALIDATED candidate + changed world stakes
+ ->  existing local validator + rejected-op checks + bounded repair/re-audit
+ ->  post-repair SAME deterministic preflight and SAME applicable audit checks
+ ->  validated Core atomic commit + event ledger + bounded memory projections
+ ->  post-commit narrator consistency check (or deterministic safe rendering)
+ ->  output to UI; error/no narrative advance on failure
+~~~
+
+- **Never remove or skip an applicable audit** to meet an average call-count target. A proof of one provider request is only meaningful for **low-risk, no-repair** scenes; report actual attempts/latency for all tiers.
+- The decision proposal **cannot** be committed before semantic/local audit. An audit whose risk scope omits NPC agency/actor provenance is incomplete for companion mode; extend risk rules first.
+- Actor-specific context does not stop all hallucinations: validator proves event IDs exist and actor had access; semantic audit checks voice, identity, goals, knowledge and narrative consistency.
+- Audit repair may change actor decision or target. **Re-run deterministic checks after repair**, forbid reusing stale pre-repair validation results or RNG.
+- The post-commit check must not become a new license to mutate state; if prose conflicts with the committed action, discard it and use a deterministic renderer or explicitly budgeted repair.
+- Preserve current provider retry caps and audit failure behavior until the full post-chain invocation/attempt graph is measured. Distinguish model invocation count, provider attempts, audit calls and repaired candidates.
+
 ## 7. Save/restore: no split-brain state
 
 There are presently **two** relevant persistence paths:
@@ -288,7 +335,7 @@ Do not make the model expose its hidden chain of thought. Persist short **decisi
 This is a **text APK**, not an excuse to train a foundation model. APK size does not represent the remote model's weights. Main costs are **inference calls, context size, latency, errors and maintenance**.
 
 Proposed *targets to validate in prototype*, not measured current performance:
-- **Normal conversational story turn:** target 1 model request; 0 additional per-NPC idle calls.
+- **Normal conversational story turn:** target 1 primary candidate generation for a low-risk no-repair turn; **additional conditional canon/character audit, provider attempts and bounded repair/re-audit must remain enabled**. Report each category separately; 0 per-NPC idle calls.
 - **Optional high-stakes two-step narration:** max 2 story calls (decision then post-commit narrator), behind an experiment flag.
 - **Short context:** only one actor's private relevant memories plus scene/canon and bounded recent dialogue. No whole-save prompt.
 - **Graceful degraded mode:** network/model error leaves last committed state intact; expose Retry and never silently advance or fabricate a Cao Minh response.
@@ -299,20 +346,23 @@ Proposed *targets to validate in prototype*, not measured current performance:
 ## 10. MVP delivery in small, reviewable phases
 
 **Gate 0, instrument and inspect shipping APK**
-- Reproduce the exact ordered release patch sequence in an isolated runner/worktree.
-- Capture generated HTML/Java and tests, document actual actor IDs, effective submit handlers, UI modal and store ownership.
-- Confirm whether two missing patch scripts are really absent from release output.
+- Reproduce the complete ordered release patch sequence **including nested `runpy.run_path` graphs**, chained scripts and last-writer-wins overrides in an isolated runner/worktree.
+- Capture generated HTML/Java/Kotlin and tests; document actual actor IDs, effective submit handlers, action kind transport, UI modal and store ownership.
+- **Confirm execution and final placement** of `patch-knowledge-engine-source.py` and `patch-knowledge-context-builder.py` (already verified nested under `patch-character-detail-avatar-fallback.py`). Check generated knowledge index/continuity hooks rather than assuming absence.
+- Measure provider writer/audit/repair invocation bounds and inspect Exit Discovery v6 typed-kind path plus PR #454 world-progression authority before planning changes.
 - Do not edit gameplay while resolving source-vs-build uncertainty.
 
-**Phase A, player/Cao identity and control contract**
-- Add interaction mode + anchored POV fields in an additive, versioned Core model.
-- Define actorId ownership rules and player input classification.
-- Tests: direct command cannot move Cao; split-route requests cannot move player; legacy saves still load.
+**Phase A, product gate + actor contract + dependency reconciliation**
+- Product paradigm is **confirmed by the requester**: player bound to autonomous Cao Minh. Gate the **rollout and conversion of existing saves**, not the meaning of this product decision.
+- Document deliberate `KAI_ID` -> `cao_minh` runtime / stable `CHAR.KAI.*` knowledge coupling; do not rename those stable identifiers.
+- Reconcile **Exit Discovery v6 kind authority**, conditional semantic audits/repair and PR #454 Core progression skeleton **before changing action UI** (see §§6A–6B).
+- Add interaction mode + anchored POV fields in an additive, versioned Core model; specify actor ownership, player input classification and native ActionKindResolver.
+- Tests: direct command cannot move Cao; split-route requests cannot move player; `INTERACT` alone cannot roll exit discovery; legacy saves still load.
 
 **Phase B, structured Cao Minh decision**
-- Build one actor-context packet and schema-constrained model response.
-- Validate candidate route/intent before executing; map to already legal Core commands.
-- Tests: accept/refuse/question paths; conflicting JSON rejected; speech never directly grants an item.
+- Build one actor-context packet and schema-constrained model response under the **existing fail-closed audit pipeline**, not a bypassing standalone LLM path.
+- Validate candidate actor/route/intent and resolve native owned kind before executing; preserve existing Core commands, rolls and traversal authority.
+- Tests: accept/refuse/question paths; conflicting JSON rejected; speech never directly grants an item; all relevant audits still execute.
 
 **Phase C, end-to-end turn + GM coherence**
 - Wire pending turn -> decision -> validated commit -> authoritative narrative -> UI.
@@ -360,6 +410,14 @@ Proposed *targets to validate in prototype*, not measured current performance:
 | A18 | Actor attempts unauthorized act | Capabilities/position/resources check blocks operation independent of persuasion |
 | A19 | Save slot switched | No memories, belief or relationship contamination between save slots |
 | A20 | New Game/Delete Save | No stale Core, ledger or brain resurrection from WebView cache |
+| A21 | UI INTERACT envelope contains the literal word SEARCH | No exit roll unless an actor action was accepted and trusted Core kind was resolved |
+| A22 | Cao Minh accepts SEARCH_SCENE with An Nhiên present | SEARCH-only anNhienRead preconditions, chance and RNG parity remain intact |
+| A23 | Cao Minh chooses EXPLORE, then traverses confirmed exit | Discovery kind and traverse atomicity preserve Exit Discovery v6 semantics; no generic dice on traverse |
+| A24 | Proposed action is repaired by semantic auditor | Deterministic preflight re-runs and stale validation/roll results cannot commit |
+| A25 | Provider fallback, semantic hard issue and local validator failure | No audit bypass, no premature commit, measured call attempts and proper fail-closed response |
+| A26 | Effective nested patch-chain is executed | Generated engine includes expected indexed canon retrieval and StoryContinuityReducer hook |
+| A27 | Identity regression after post-chain overlay | KAI_ID maps to runtime cao_minh, stable knowledge namespace remains preserved; no unauthorized alias rename |
+| A28 | Progression authority PR #454 skeleton vs actual runtime | Companion cannot infer/forge a trusted node transition from model text; current Core transition gate remains authoritative |
 
 **Evaluation split:** deterministic validation tests should be exact; LLM behavior tests should be scenario-based with property assertions (agency, provenance, causal response, no leaks), plus a reviewed human playtest. Never assert a specific funny line as the only correct output.
 
@@ -410,7 +468,16 @@ Primary inspected anchors (all pinned to the audited commit):
 - [Cao Minh Codex](https://github.com/rabpitvn1-create/BACKROOMS/blob/5450284ddc2acded7cc1cc54d3c035faff4ba4be/android-apk/app/src/main/assets/knowledge/novel_asset/CAO_MINH_CODEX.md)
 - [Lục Trầm Codex](https://github.com/rabpitvn1-create/BACKROOMS/blob/5450284ddc2acded7cc1cc54d3c035faff4ba4be/android-apk/app/src/main/assets/knowledge/novel_asset/LUC_TRAM_CODEX.md)
 
-**Review protocol:** Product/UX, Core, AI/context, canon/continuity, save/migration, QA and CI owners should each comment on the appropriate section. **Draft PR is for review only.** Implementation requires explicit phase approval, independent test evidence and an unbroken rollback path.
+**Review protocol:** Product/UX, Core, AI/context, canon/continuity, save/migration, QA and CI owners should each comment on the appropriate section. **Draft PR is for review only.** The requester has already confirmed the **companion paradigm** as the intended product direction in conversation; **that is not code/release approval**. Implementation requires separate phase approval, independent test evidence and an unbroken rollback path.
+
+### Review correction log, 2026-10-09
+
+- **FIXED:** The original RFC incorrectly flagged two effective patch-chain dependencies as absent. They are invoked through nested `runpy.run_path` from `patch-character-detail-avatar-fallback.py`.
+- **FIXED:** Treat deliberate `KAI_ID` runtime identity -> stable `CHAR.KAI.*` knowledge mapping as a preserved contract, **not** legacy naming debt or a rename request.
+- **ADDED:** Explicit Exit Discovery v6 typed-kind re-home; `INTERACT` itself is non-authoritative, and actor-validated `SEARCH`/`EXPLORE` kinds retain existing Core mechanics.
+- **ADDED:** Companion decision verification sits inside the existing semantic audit, local validation, repair and provider fallback chain. “One LLM call” is a measured low-risk optimization target, **never** justification to skip audits.
+- **ADDED:** PR #454 Core-owned progression skeleton integration dependency, updated Gate 0/Phase A and A21–A28 tests.
+- **EVIDENCE LIMIT:** This is a source-backed correction. Full compiled APK reproduction and current provider-attempt ceiling measurements remain Gate 0 tasks.
 
 ---
 
