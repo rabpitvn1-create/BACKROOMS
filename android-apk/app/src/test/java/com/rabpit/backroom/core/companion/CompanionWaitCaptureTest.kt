@@ -53,8 +53,18 @@ class CompanionWaitCaptureTest {
     val state = state(); val bound = bound(state)
     val captured = CompanionWaitCapture.capture(state, bound) { 0 }
     assertEquals(listOf("EXIT_STREAK", "SURVIVOR", "DIEP_MINH_ENCOUNTER", "ENTITY_ENCOUNTER",
-      "ROAMING_ENTITY_KEY", "LEVEL_BOUND_ENTITY"), captured.tape.draws.map { it.purpose.name })
-    assertEquals(listOf(2, 10000, 10000, 10000, 18, 10000), captured.tape.draws.map { it.bound })
+      "ROAMING_ENTITY_KEY", "LEVEL_BOUND_ENTITY"), captured.tape.draws.take(6).map { it.purpose.name })
+    assertEquals(listOf(2, 10000, 10000, 10000, 18, 10000), captured.tape.draws.take(6).map { it.bound })
+    assertTrue(captured.tape.draws.drop(6).isNotEmpty())
+    assertTrue(captured.tape.draws.drop(6).all { it.purpose == CompanionRollTape.Purpose.COMBAT_INITIAL })
+    assertEquals(List(5) { 6 }, captured.tape.draws.takeLast(5).map { it.bound })
+    val legacy = CompanionWaitStage.apply(state, bound, captured.tape.route, captured.rolls, captured.nextStreak)
+    assertEquals(GameStateCodec.encode(legacy), captured.afterSnapshot)
+    val lines = captured.tape.encode().split('\n').toMutableList()
+    lines[1] = (lines[1].toInt() - 1).toString()
+    lines.removeAt(lines.size - 2)
+    val missingCombat = JSONObject(captured.encoded).put("tape", lines.joinToString("\n"))
+    denies { CompanionWaitCapture.replay(state, bound, CompanionWaitCapture.canonical(missingCombat)) }
     assertEquals(captured.encoded, CompanionWaitCapture.replay(state, bound, captured.encoded).encoded)
     val fail = CompanionWaitCapture.capture(state, bound) { it - 1 }
     assertFalse(fail.tape.draws.any { it.purpose == CompanionRollTape.Purpose.ROAMING_ENTITY_KEY })
@@ -88,7 +98,7 @@ class CompanionWaitCaptureTest {
   @Test fun fullReplayRejectsMissingExtraReorderedDrawsAndForgedAssertions() {
     val state = state(); val b = bound(state)
     val captured = CompanionWaitCapture.capture(state, b) { it - 1 }
-    for (field in listOf("snapshotDigest", "decisionDigest", "policyDigest", "version", "rolls")) {
+    for (field in listOf("snapshotDigest", "decisionDigest", "policyDigest", "version", "rolls", "afterSnapshotDigest", "turn")) {
       val changed = JSONObject(captured.encoded).put(field, "forged")
       denies { CompanionWaitCapture.replay(state, b, CompanionWaitCapture.canonical(changed)) }
     }
