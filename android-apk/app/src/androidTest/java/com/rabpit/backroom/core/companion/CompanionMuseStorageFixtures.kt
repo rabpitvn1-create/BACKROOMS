@@ -40,6 +40,17 @@ internal object CompanionMuseStorageFixtures {
       }
       publish(candidate()); publish(candidate())
       check(count(db,"actor_observation") == 1 && count(db,"observation_manifest") == 1)
+      db.beginTransaction()
+      try {
+        val visible = ObservationStorageReader.read(db,slot,"cao_minh",1,10)
+        check(visible.size==1 && visible.single().ownerActorId=="cao_minh")
+        check(visible.single().sourceEventId=="e" && visible.single().accessKind=="SEEN")
+        check(visible.single().publicPayloadJson==candidate().publicPayloadJson)
+        check(ObservationStorageReader.read(db,slot,"luc_tram",1,10).isEmpty())
+        rejects { ObservationStorageReader.read(db,"0".repeat(32),"cao_minh",1,10) }
+        rejects { ObservationStorageReader.read(db,slot,"cao_minh",0,10) }
+      } finally { db.endTransaction() }
+
       rejects { publish(candidate(JSONObject(payload.toString()).put("location","other"))) }
       check(count(db,"actor_observation") == 1)
       rejects { db.execSQL("UPDATE actor_observation SET certainty='CERTAIN'") }
