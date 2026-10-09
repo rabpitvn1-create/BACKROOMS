@@ -47,7 +47,10 @@ class CompanionCanonPersonaRegistryTest {
   }
 
   @Test fun unknownActorAndLegacyIdentityDoNotDefaultToCaoMinh() {
-    for (actor in listOf("kai", "Lucia", "unknown", "", "../cao_minh")) {
+    // The identity overlay rewrites whole quoted legacy ID tokens across app sources.
+    // Construct the legacy input at runtime so generated tests still exercise that ID.
+    val legacyActor = charArrayOf('k', 'a', 'i').concatToString()
+    for (actor in listOf(legacyActor, "Lucia", "unknown", "", "../cao_minh")) {
       rejects("persona_actor_unsupported") {
         CompanionCanonPersonaRegistry.load(actor) { error("unsupported actor must not read") }
       }
