@@ -139,7 +139,8 @@ internal object BrainContracts {
     val goals: List<Goal> = emptyList(),
     val appraisals: List<RelationshipAppraisal> = emptyList(),
     val mood: MoodState = MoodState(MoodState.Mood.UNSET, null, null),
-    val ruleVersion: String = RULE_VERSION
+    val ruleVersion: String = RULE_VERSION,
+    val slotId: String = ""
   )
 
   /** Typed delta emitted by a reducer; persisted with the application identity. */

@@ -50,6 +50,7 @@ internal object MemoryRetrieval {
   data class Packet(val entries: List<MemoryView>, val truncated: Boolean)
 
   fun retrieve(all: List<MemoryView>, query: Query): Packet {
+    require(query.maxChars >= 0) { "memory_budget_invalid" }
     // 1. Slot + actor filter first.
     val owned = all.filter { it.slotId == query.slotId && it.ownerActorId == query.actorId }
     // 2. Latest per correction chain.
@@ -66,11 +67,11 @@ internal object MemoryRetrieval {
     ))
     // 4. Budget the packet; history untouched.
     val entries = ArrayList<MemoryView>()
-    var used = 0
+    var used = 0L
     var truncated = false
     for (m in ranked) {
       val cost = m.summary.length + 64
-      if (used + cost > query.maxChars && entries.isNotEmpty()) { truncated = true; break }
+      if (used + cost > query.maxChars.toLong()) { truncated = true; continue }
       entries.add(m)
       used += cost
     }

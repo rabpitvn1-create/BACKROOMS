@@ -34,7 +34,7 @@ class ActorContextBuilderTest {
     stance = stance, evidenceObservationIds = listOf("obs-1"))
 
   private fun brain(actorId: String = "cao_minh", beliefs: List<Belief> = listOf(belief())) =
-    BrainState(actorId = actorId, beliefs = beliefs,
+    BrainState(actorId = actorId, slotId = "slot-1", beliefs = beliefs,
       mood = MoodState(MoodState.Mood.WORRIED, "event-9", 18))
 
   private fun memory(id: String, owner: String = "cao_minh") = MemoryView(
@@ -44,10 +44,10 @@ class ActorContextBuilderTest {
     supersedesMemoryId = null, sceneId = "node-7", involvedActorIds = setOf("cao_minh"))
 
   private fun input(actorId: String = "cao_minh") = Input(
-    actorId = actorId, persona = persona(actorId), brain = brain(actorId),
+    slotId = "slot-1", actorId = actorId, persona = persona(actorId), brain = brain(actorId),
     memories = listOf(memory("m1"), memory("m2")),
-    sceneEvidence = listOf(ActorContextBuilder.SceneEvidence(
-      "COMBAT_STARTED", JSONObject().put("type", "COMBAT_STARTED"))))
+    sceneEvidence = listOf(ActorContextBuilder.SceneEvidence("slot-1", actorId,
+      "COMBAT_STARTED", JSONObject().put("entities", org.json.JSONArray()))))
 
   @Test fun ownership_wrongBrainRejected() {
     try {
@@ -126,7 +126,7 @@ class ActorContextBuilderTest {
     val packet = ActorContextBuilder.build(input())
     val ev = packet.sceneEvidence.single()
     assertEquals("COMBAT_STARTED", ev.eventType)
-    assertEquals("COMBAT_STARTED", ev.projection.getString("type"))
+    assertEquals(0, ev.projection.getJSONArray("entities").length())
     // Raw GM payload fields (payload_full etc.) never enter SceneEvidence by type.
   }
 }

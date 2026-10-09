@@ -24,7 +24,7 @@ import com.rabpit.backroom.core.companion.DecisionPreflight.Proposal
  */
 object CompanionPilotBench {
   private fun packet() = Packet(
-    actorId = "luc_tram",
+    slotId = "slot-1", actorId = "luc_tram",
     canonRefs = ActorContextBuilder.CanonRefs(listOf("CAO-PER-01"), listOf("CAO-LIFE-02"), listOf()),
     brain = ActorContextBuilder.BrainView(emptyList(), emptyList(), "UNSET"),
     memories = emptyList(), sceneEvidence = emptyList(),

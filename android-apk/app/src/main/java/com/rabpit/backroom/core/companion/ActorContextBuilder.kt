@@ -29,9 +29,14 @@ import org.json.JSONObject
  * Pure Kotlin: no Android, no I/O.
  */
 internal object ActorContextBuilder {
-  data class SceneEvidence(val eventType: String, val projection: JSONObject)
+  class SceneEvidence(val slotId: String, val ownerActorId: String,
+    val eventType: String, projection: JSONObject) {
+    private val json = CompanionWaitCapture.canonical(projection)
+    val projection: JSONObject get() = JSONObject(json)
+  }
 
   data class Packet(
+    val slotId: String,
     val actorId: String,
     val canonRefs: CanonRefs,
     val brain: BrainView,
@@ -65,6 +70,7 @@ internal object ActorContextBuilder {
   )
 
   data class Input(
+    val slotId: String,
     val actorId: String,
     val persona: CompanionCanonPersonaRegistry.Persona,
     val brain: BrainState,
@@ -74,14 +80,26 @@ internal object ActorContextBuilder {
   )
 
   fun build(input: Input): Packet {
+    require(input.slotId.isNotBlank() && input.brain.slotId == input.slotId) { "context_slot_mismatch" }
+    require(input.maxMemories in 0..100) { "context_budget_invalid" }
+    require(input.brain.ruleVersion == BrainContracts.RULE_VERSION) { "context_rule_mismatch" }
     // Firewall 1: ownership before anything else.
     require(input.brain.actorId == input.actorId) { "context_brain_not_owned" }
     require(input.persona.actorId == input.actorId) { "context_persona_not_owned" }
-    val ownedMemories = input.memories.filter { it.ownerActorId == input.actorId }
+    val ownedMemories = input.memories.filter { it.ownerActorId == input.actorId && it.slotId == input.slotId }
     require(ownedMemories.size == input.memories.size) { "context_memory_not_owned" }
     // Firewall 2: no raw GM payloads — projections must be non-null (denied = null).
     // (SceneEvidence carries already-projected JSONObjects; a null projection
     // never reaches this builder by construction.)
+    val publicEvidence = input.sceneEvidence.map { e ->
+      require(e.slotId == input.slotId && e.ownerActorId == input.actorId) { "context_evidence_not_owned" }
+      val sanitized = PublicEventProjection.project(e.eventType, e.projection)
+        ?: throw IllegalArgumentException("context_projection_denied")
+      require(CompanionWaitCapture.canonical(sanitized) == CompanionWaitCapture.canonical(e.projection)) {
+        "context_projection_unclassified"
+      }
+      SceneEvidence(e.slotId, e.ownerActorId, e.eventType, sanitized)
+    }
     // Firewall 3: pins.
     val pins = Pins(
       personaRevision = input.persona.sourceRevision,
@@ -91,7 +109,7 @@ internal object ActorContextBuilder {
 
     val beliefs = input.brain.beliefs.map { b ->
       BeliefView(
-        proposition = "${b.claim.subjectRef}|${b.claim.predicateId}|${b.claim.objectRef}",
+        proposition = "${b.claim.subjectRef}|${b.claim.predicateId}|${b.claim.objectRef}|${b.claim.polarity.name}",
         // Stance + provenance explicit; TOLD stays UNKNOWN, DISPUTED stays DISPUTED.
         stance = b.stance.name,
         speakerRef = b.claim.speakerRef,
@@ -110,11 +128,12 @@ internal object ActorContextBuilder {
 
     val memories = ownedMemories.take(input.maxMemories)
     return Packet(
+      slotId = input.slotId,
       actorId = input.actorId,
       canonRefs = canon,
       brain = brain,
       memories = memories,
-      sceneEvidence = input.sceneEvidence,
+      sceneEvidence = publicEvidence,
       pins = pins,
       truncated = ownedMemories.size > memories.size)
   }

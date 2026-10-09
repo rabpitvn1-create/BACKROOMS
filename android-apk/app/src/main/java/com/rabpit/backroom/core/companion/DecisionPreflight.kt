@@ -90,8 +90,11 @@ internal object DecisionPreflight {
     if (proposal.slotId != scope.slotId) return Result.Rejected("slot_mismatch")
     if (proposal.slotRevision != scope.slotRevision) return Result.Rejected("revision_stale")
     if (proposal.actorId != scope.actorId) return Result.Rejected("actor_mismatch")
-    // 2. The companion pipeline never decides for the protagonist.
-    if (proposal.actorId == "cao_minh") return Result.Rejected("direct_control_forbidden")
+    // Cao Minh makes his own audited decision; receiving a suggestion is valid.
+    if (scope.slotId.isBlank() || scope.sceneId.isBlank() || scope.slotRevision < 0)
+      return Result.Rejected("scope_invalid")
+    if (scope.ruleVersion != BrainContracts.RULE_VERSION)
+      return Result.Rejected("rule_unsupported")
     if (proposal.actorId !in scope.presentActorIds) return Result.Rejected("actor_not_present")
     if (proposal.canonRevision != scope.canonRevision ||
       proposal.ruleVersion != scope.ruleVersion) return Result.Rejected("pins_mismatch")
@@ -120,11 +123,17 @@ internal object DecisionPreflight {
       if (item.isNullOrBlank()) return Result.Rejected("item_ambiguous")
       if (item !in scope.inventoryItemIds) return Result.Rejected("item_missing")
     }
+    if (proposal.intent != Intent.USE_ITEM && proposal.itemId != null)
+      return Result.Rejected("item_unexpected")
     // 6. Bind exact input/identity/scope.
-    val canonical = listOf(
-      proposal.actorId, proposal.slotId, proposal.slotRevision.toString(),
-      proposal.intent.name, proposal.targetId ?: "", proposal.itemId ?: "",
-      proposal.canonRevision, proposal.ruleVersion).joinToString("|")
+    val canonical = CompanionWaitCapture.canonical(org.json.JSONArray(listOf(
+      proposal.actorId, proposal.slotId, proposal.slotRevision,
+      proposal.intent.name, proposal.targetId, proposal.itemId,
+      proposal.canonRevision, proposal.ruleVersion, scope.sceneId,
+      org.json.JSONArray(scope.presentActorIds.sorted()),
+      org.json.JSONArray(scope.capabilities.sorted()),
+      org.json.JSONArray(scope.inventoryItemIds.sorted()),
+      org.json.JSONArray(scope.legalTargetIds.sorted()))))
     val binding = DecisionBinding(
       proposalDigest = CompanionDigests.sha256(canonical),
       actorId = proposal.actorId, slotId = proposal.slotId,
