@@ -47,6 +47,21 @@ public final class CompanionSlotStore implements Closeable {
 
   interface Fault { void at(String point); }
   private interface Work<T> { T run() throws IOException; }
+  interface NativeWork<T> { T apply(NativeView view) throws IOException; }
+  interface NativeValidator { void verify(NativeView view) throws IOException; }
+  interface NativeCapture { Reservation capture(NativeView view) throws IOException; }
+  /** Created only while the primary writer owns the validated slot transaction. */
+  static final class NativeView {
+    final String slotId, policyVersion;
+    final long revision;
+    final CompanionPendingTurn turn;
+    private final byte[] snapshot;
+    NativeView(String slotId, String policyVersion, long revision, CompanionPendingTurn turn, byte[] snapshot) {
+      this.slotId = slotId; this.policyVersion = policyVersion; this.revision = revision;
+      this.turn = turn; this.snapshot = snapshot.clone();
+    }
+    byte[] snapshot() { return snapshot.clone(); }
+  }
   public interface ReservationFactory { Reservation capture(DecisionLock decision) throws IOException; }
 
   public static final class Result {
@@ -166,6 +181,28 @@ public final class CompanionSlotStore implements Closeable {
       CompanionPendingTurn next = turn.reserve(factory.capture(turn.decision));
       write(next); return next;
     });
+  }
+  /** Native-only seam: no caller snapshot, slot, policy or mutable DB handle. */
+  synchronized <T> T inspectNative(String requestId, NativeWork<T> work) throws IOException {
+    return transaction(() -> work.apply(nativeView(requestId)));
+  }
+  /** Validate retries too; only a new capture may call the existing RNG source. */
+  synchronized CompanionPendingTurn reserveVerified(String requestId, NativeValidator validator,
+      NativeCapture capture) throws IOException {
+    return transaction(() -> {
+      NativeView view = nativeView(requestId);
+      if (view.turn.phase != Phase.DECISION_LOCKED && view.turn.phase != Phase.RESERVED)
+        throw new IOException("reservation_phase_invalid");
+      validator.verify(view);
+      if (view.turn.phase == Phase.RESERVED) return view.turn;
+      CompanionPendingTurn next = view.turn.reserve(capture.capture(view));
+      write(next); return next;
+    });
+  }
+  private NativeView nativeView(String requestId) throws IOException {
+    // S1b revision-zero snapshot; replace with committed snapshot only in the
+    // separately qualified atomic publication slice, never caller bytes.
+    return new NativeView(slotId, policyVersion, 0, required(requestId), genesis());
   }
   public synchronized CompanionPendingTurn cancel(String requestId) throws IOException {
     return transaction(() -> { CompanionPendingTurn next = required(requestId).cancel(); write(next); return next; });
