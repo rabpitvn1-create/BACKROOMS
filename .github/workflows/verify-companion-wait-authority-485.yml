@@ -2,7 +2,7 @@ name: Verify Companion WAIT Authorization 485
 
 on:
   pull_request:
-    branches: [feat/companion-core-lock-s1c2, feature/companion-wait-authority-485, fix/companion-wait-preflight-boundary, feat/companion-slot-native-binding, feat/companion-native-wait-capture]
+    branches: [feat/companion-core-lock-s1c2, feature/companion-wait-authority-485, fix/companion-wait-preflight-boundary, feat/companion-slot-native-binding, feat/companion-native-wait-capture, feat/companion-combat-start-capture]
     paths:
       - ".github/workflows/verify-companion-wait-authority-485.yml"
       - "android-apk/app/src/main/java/com/rabpit/backroom/core/companion/**"
@@ -109,6 +109,13 @@ jobs:
           if len(capture_cases)!=6 or any(c.find("failure") is not None or c.find("error") is not None for c in capture_cases):
             raise SystemExit("Full native WAIT capture suite incomplete or failing")
           print("WAIT_FULL_CAPTURE_TEST_COUNT",len(capture_cases))
+          batch_reports=glob.glob("evidence/junit/*WaitBatchTest*.xml")
+          if len(batch_reports)!=1:
+            raise SystemExit("Native WAIT batch report missing")
+          batch_cases=ET.parse(batch_reports[0]).getroot().findall("testcase")
+          if len(batch_cases)!=6 or any(c.find("failure") is not None or c.find("error") is not None for c in batch_cases):
+            raise SystemExit("Native WAIT batch suite incomplete or failing")
+          print("WAIT_NATIVE_BATCH_TEST_COUNT",len(batch_cases))
           bridge_reports=glob.glob("evidence/junit/*CompanionCombatRngBridgeTest*.xml")
           if len(bridge_reports)!=1:
             raise SystemExit("Native combat bridge report missing")
