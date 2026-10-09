@@ -15,10 +15,11 @@ import java.util.Set;
  * No bridge, RNG, provider, legacy storage or Android dependency is connected here.
  */
 public final class CompanionPendingTurn {
+  public static final int MAX_REQUEST_ALIASES = 128;
   public enum Phase { PREPARING, DECISION_LOCKED, RESERVED, SUSPENDED, COMMITTED, REJECTED }
   public enum AdmissionKind {
     PENDING_REPLAY, COMMITTED_REPLAY, REJECTED_REPLAY, ALIAS,
-    REQUEST_CONFLICT, SLOT_MISMATCH, STALE_REVISION, BUSY, CLOSED
+    REQUEST_CONFLICT, SLOT_MISMATCH, STALE_REVISION, BUSY, CLOSED, ALIAS_LIMIT
   }
 
   public static final class Request {
@@ -173,6 +174,7 @@ public final class CompanionPendingTurn {
     }
     if (phase == Phase.COMMITTED || phase == Phase.REJECTED) return admission(AdmissionKind.CLOSED);
     if (!identical) return admission(AdmissionKind.BUSY);
+    if (requestAliases.size() >= MAX_REQUEST_ALIASES) return admission(AdmissionKind.ALIAS_LIMIT);
     Set<String> aliases = new LinkedHashSet<>(requestAliases);
     aliases.add(request.requestId);
     return new Admission(AdmissionKind.ALIAS, new CompanionPendingTurn(slotId, turnId,
