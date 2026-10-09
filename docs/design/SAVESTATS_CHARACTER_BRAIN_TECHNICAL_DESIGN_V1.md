@@ -273,8 +273,10 @@ binds decision schema/digest, actor, scene/evidence revision, kind/target and di
 aliases must not allocate a fresh roll. Before reserving RNG, intent can be validated;
 after reservation it is immutable. Recover the same persisted tuple after crash.
 Cancellation/rejection cannot reset entitlement to draw independently at the same pending
-turn. The exact persistence state machine and interaction with existing RNG must be
-reviewed before A1/A2; do not implement a new request-ID-seeded RNG as a shortcut.
+turn. The concrete state machine is decided in [Pending Recovery V1](SAVESTATS_PENDING_RECOVERY_CONTRACT_V1.md).
+After decision lock, cancellation suspends instead of clearing the turn. Existing
+SecureRandom outcomes are captured durably before exposure; no request-ID-seeded RNG.
+SQLite/Core integration and crash proof remain required before runtime adoption.
 
 ### 3.4 Kotlin API contract (proposed)
 
@@ -534,7 +536,7 @@ Build packets using reviewed KnowledgeContextEngine mechanisms plus **new actor-
 
 **Critical sequencing issue:** Existing action buttons give action kind **before** the writer; companion mode does not know the kind until Cao Minh decides. Therefore a blanket “one inference call per turn” cannot be promised. A scene with dice consequences may require an actor decision request **and** a post-roll writer request, plus current audit/repair and provider retries. **Correctness beats minimizing LLM calls.**
 
-**RNG policy:** After a decision and typed kind are accepted, lock them to the pending request and derive/reserve its dice exactly once. If repair changes action or target, reject/restart the pre-commit phase safely **without new roll farming**, and do not misapply prior dice. A retry with the same request ID never grants another independent roll. The precise RNG reservation implementation is a reviewed implementation choice and a required Gate 8 test.
+**RNG policy:** [Pending Recovery V1](SAVESTATS_PENDING_RECOVERY_CONTRACT_V1.md) locks the accepted decision and captures existing native dice before provider/UI exposure. Repair cannot change action/target; failures suspend the same turn. No post-lock clear/restart permits another roll. Uncommitted, unexposed capture work may be retried after transaction rollback; persisted reservations replay without calling RNG. Core integration and crash tests remain required.
 
 ### 8.2 CharacterDecision proposal (never directly mutates world)
 
@@ -567,9 +569,9 @@ contracts. Do not resurrect them merely because an earlier patch generates them.
   routes; existing 15-code-point input eligibility, one 50/50 roll per accepted ordinary
   non-combat turn and five-consecutive-win progression are the measured source contract.
   Actor INTERACT envelope alone does not grant a gameplay turn or random draw. The mapping
-  of accepted actor decisions to ordinary-turn eligibility is a required A2 contract.
+  of accepted actor decisions is now specified by [Action / Exit V1](COMPANION_ACTION_EXIT_CONTRACT_V1.md); its production adapter still requires A2 tests.
 - **Migration gate:** the approved baseline's Exit v6 assumption is disproved. Preserve
-  current runtime while reviewers reconcile A2 fixtures to effective streak authority.
+  current runtime. [Action / Exit V1](COMPANION_ACTION_EXIT_CONTRACT_V1.md) reconciles the mapping; implementation evidence remains required.
   No restoration, extra exit engine, balance change or stale v6 test removal is a task
   authorized by this document. This conflict blocks runtime readiness, not doc authoring.
 - **Audit:** risk/content drives applicable semantic audit, local validation, repair and

@@ -269,14 +269,14 @@ G0 disproved the earlier v6 assumption: final generated output uses ExitStreakEn
 not ExitDiscoveryEngine. Existing ordinary non-combat eligibility uses a 15-code-point
 floor, one 50/50 roll and five consecutive wins, followed by a Core-validated route.
 Combat/local/meta exclusions and RNG behavior must be preserved and characterized.
-The exact actor-decision-to-ordinary-turn mapping is an A2 gate, not granted by raw
-player input. Do not revive SEARCH-only exit bonuses or retired traverse dispatch.
+The actor-decision mapping is decided in [Action / Exit V1](COMPANION_ACTION_EXIT_CONTRACT_V1.md), including TALK/WAIT and typed local/combat exclusions.
+Production adapter tests remain an A2 gate; raw player input grants no authority. Do not revive SEARCH-only exit bonuses or retired traverse dispatch.
 Player text resembling a system command remains speech in companion mode.
 
 Required fixtures: player keywords/forged command text grant no authority; native
 kind/target validation survives repair; locked decision/reservation survives retry;
 Core validates route source/target; no independent player movement. A2 remains
-blocked until the baseline's historical v6 assumptions are reconciled to current
+gated on production adapter proof after the documented reconciliation to current
 streak behavior. No runtime gameplay is changed by this correction.
 
 ## 6B. DecisionValidator inside the existing fail-closed writer/audit chain
@@ -480,3 +480,9 @@ Primary inspected anchors (all pinned to the audited commit):
 **Player** = bounded in-world conversational companion POV; **Cao Minh** = autonomous route-leading actor; **GM** = narrator of authoritative world changes; **Character Brain** = persistent traits, beliefs, goals, memories; **LLM** = shared external reasoning service; **Core** = authority for rules and committed state; **Event Ledger** = durable provenance-backed events.
 
 **Final rule:** The player's words can change Cao Minh's mind, but cannot directly move his body. The player never takes a separate corridor from the one Cao Minh ultimately commits to.
+## Continuation contracts, 2026-10-09
+
+[Action / Exit V1](COMPANION_ACTION_EXIT_CONTRACT_V1.md) resolves design gate #477.
+[Pending Recovery V1](SAVESTATS_PENDING_RECOVERY_CONTRACT_V1.md) resolves the missing
+state-machine design in #478 and defines S1a/S1b/S1c slices. These decisions do not
+claim SQLite/Core integration, Android crash/device proof or release readiness.
