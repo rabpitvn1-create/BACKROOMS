@@ -139,3 +139,7 @@ for contract in (
 
 MAIN.write_text(java, encoding="utf-8")
 print("Installed level-bound 8%/Entity spawn with 9 global rares (3% Diệp, 4% others), one authoritative roll.")
+
+# S1c.2 consumes the exact final roll producer; no gameplay activation here.
+import runpy
+runpy.run_path(str(ROOT / "patch-companion-native-roll-capture.py"), run_name="__main__")
