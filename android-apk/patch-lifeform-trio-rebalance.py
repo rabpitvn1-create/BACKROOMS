@@ -1,3 +1,4 @@
+# LIFEFORM_R02_FINAL_AUTHORITY: Hound x1.3 base; exactly 3 ATK-only skills per Entity; Bleed/Poison only.
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
