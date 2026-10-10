@@ -85,7 +85,8 @@ internal object CompanionNativeDecisionContext {
       legal.addAll(listeners)
     }
     val usableItems = state.inventories[KAI_ID]?.items?.values.orEmpty().filter { it.quantity > 0 && it.metadata["consumedOnUse"] == "true" }.map { it.itemId }.toSet()
-    if (usableItems.isNotEmpty()) capabilities.add("cap.use_item")
+    // Items remain visible as native-owned inventory evidence, but do not
+    // advertise an action capability until its atomic Core writer is present.
     val scope = DecisionPreflight.NativeScope(
       slotId = store.slotId,
       slotRevision = revision,
