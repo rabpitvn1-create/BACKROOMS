@@ -1,0 +1,8 @@
+Backroom 1.2.0.0.0 Debug
+
+- Phát hành mốc version 1.2.0.0.0 với versionCode 73.
+- Sửa Entity ground plane trên Android WebView bằng alpha bounds xác định sẵn cho toàn bộ Entity canonical hiện tại, gồm Diệp Minh; không thay đổi overlay Cao Minh/Nhân vật.
+- Khôi phục bố cục combat cố định: Snapshot → Poker Dice → Combat Feedback → GM/Narrative Log.
+- Combat Feedback không còn ẩn Poker Dice trong lúc phát damage feedback; Dice chỉ khóa thao tác tạm thời.
+- Giữ Combat Feedback là log tạm thời riêng, không trộn vào GM narrative và tự xóa sau khi combat kết thúc.
+- Giữ Entity Power Scaling tuyến tính theo Level từ base Level 0, không compound.
