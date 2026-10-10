@@ -78,10 +78,11 @@ object CompanionAndroidBridge {
       .put("revision", revision)
       .put("turn", revision + 1)
       .put("actor", "Cao Minh")
-      .put("location", state.world["location"] ?: stop)
+      .put("location", state.world["location"]?.takeIf { it.isNotBlank() } ?: stop)
       .put("stop", stop)
       .put("elapsedMinutes", state.time.elapsedSubjectiveMinutes)
-      .put("combatActive", false)
+      .put("combatActive", com.rabpit.backroom.core.Combat93Runtime.active(state) ||
+        com.rabpit.backroom.core.CombatRuntime.active(state) != null)
     val events = org.json.JSONArray()
     if (revision > 0) {
       // Replay only receipt-verified native public projections. A WebView
