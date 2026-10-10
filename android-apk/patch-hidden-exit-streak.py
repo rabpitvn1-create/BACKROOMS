@@ -79,10 +79,14 @@ if "String hiddenExitDirective =" not in writer:
 '''
     writer = writer.replace(writer_sig, writer_sig + insert, 1)
     writer = writer.replace("rolls.toString()", "visibleRolls.toString()")
-    prefix = '    return actionDirective + "\\n" + '
-    if writer.count(prefix) != 1:
-        raise RuntimeError(f"writerPrompt return prefix expected once, found {writer.count(prefix)}")
-    writer = writer.replace(prefix, '    return actionDirective + "\\n" + hiddenExitDirective + "\\n" + ', 1)
+    directive_pos = writer.find("    String actionDirective = ")
+    if directive_pos < 0:
+        raise RuntimeError("writerPrompt actionDirective anchor missing")
+    directive_end = writer.find(";\n", directive_pos)
+    if directive_end < 0:
+        raise RuntimeError("writerPrompt actionDirective terminator missing")
+    directive_end += 2
+    writer = writer[:directive_end] + '    actionDirective = actionDirective + "\\n" + hiddenExitDirective;\n' + writer[directive_end:]
     text = text[:writer_start] + writer + text[writer_end:]
 
 old_six_turn = "Không hoàn tất cả Level trong 2–3 lượt: cần ít nhất 6 lượt gameplay trong Level và một Exit hợp lệ;"
