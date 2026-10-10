@@ -52,15 +52,28 @@ combat = replace_once(
     "EntityPowerScaling.scale(profile.attack, c.progressionRank)",
     "remove Lifeform ATK-stat multiplier from base attack",
 )
-combat = replace_once(
-    combat,
-    "      val damage = CharacterStatCore.defendedIncomingDamage(rawIncoming, effective.def)\n",
-    '''      val basicDamage = CharacterStatCore.defendedIncomingDamage(rawIncoming, effective.def)
-      val damage = if (lifeformSkill == null) basicDamage
-        else CharacterStatCore.scaleByPercent(basicDamage, lifeformSkill.basicAttackPercent)
-''',
-    "Lifeform damage is percent of Basic Attack",
+raw_pos = combat.find("val rawIncoming =")
+if raw_pos < 0:
+    raise RuntimeError("Lifeform Basic Attack rawIncoming anchor missing")
+damage_pos = combat.find("val damage =", raw_pos)
+if damage_pos < 0 or damage_pos - raw_pos > 800:
+    raise RuntimeError("Lifeform Basic Attack damage line missing after rawIncoming")
+line_start = combat.rfind("\n", 0, damage_pos) + 1
+line_end = combat.find("\n", damage_pos)
+if line_end < 0:
+    raise RuntimeError("Lifeform Basic Attack damage line terminator missing")
+damage_line = combat[line_start:line_end]
+indent = damage_line[: len(damage_line) - len(damage_line.lstrip())]
+prefix = indent + "val damage = "
+if not damage_line.startswith(prefix):
+    raise RuntimeError("Unexpected Lifeform damage assignment: " + damage_line)
+basic_expression = damage_line[len(prefix):]
+replacement = (
+    indent + "val basicDamage = " + basic_expression + "\n" +
+    indent + "val damage = if (lifeformSkill == null) basicDamage\n" +
+    indent + "  else CharacterStatCore.scaleByPercent(basicDamage, lifeformSkill.basicAttackPercent)"
 )
+combat = combat[:line_start] + replacement + combat[line_end:]
 
 combat = replace_once(
     combat,
