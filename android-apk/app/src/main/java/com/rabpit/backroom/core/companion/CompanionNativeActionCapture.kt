@@ -23,18 +23,24 @@ internal object CompanionNativeActionCapture {
   )
 
   fun lockPayload(intent: DecisionPreflight.Intent, target: String?,
-                  revision: Long, stop: String, snapshot: ByteArray): String =
-    CompanionWaitCapture.canonical(JSONObject()
-      .put("version",DECISION_VERSION)
-      .put("actor","cao_minh")
-      .put("intent",intent.name)
+                  revision: Long, stop: String, snapshot: ByteArray,
+                  utterance: String? = null): String {
+    require(if (intent == DecisionPreflight.Intent.TALK)
+      !utterance.isNullOrBlank() &&
+        utterance.toByteArray(StandardCharsets.UTF_8).size <= 240 &&
+        utterance.none { it.isISOControl() }
+    else utterance == null) { "native_action_speech_invalid" }
+    val json = JSONObject().put("version",DECISION_VERSION)
+      .put("actor","cao_minh").put("intent",intent.name)
       .put("target",target ?: JSONObject.NULL)
-      .put("revision",revision)
-      .put("stop",stop)
-      .put("snapshotDigest",CompanionDigests.sha256(snapshot)))
+      .put("revision",revision).put("stop",stop)
+      .put("snapshotDigest",CompanionDigests.sha256(snapshot))
+    if (utterance != null) json.put("utterance",utterance)
+    return CompanionWaitCapture.canonical(json)
+  }
 
   private fun source(view: CompanionSlotStore.NativeView, requestId: String,
-                     revision: Long, input: String): Pair<DecisionPreflight.Intent,String?> {
+                     revision: Long, input: String): Triple<DecisionPreflight.Intent,String?,String?> {
     require(view.slotId == view.turn.slotId && view.revision == revision &&
       view.turn.expectedRevision == revision &&
       view.policyVersion == CompanionWaitAuthorizer.WAIT_POLICY &&
@@ -51,8 +57,9 @@ internal object CompanionNativeActionCapture {
     val state = GameStateCodec.decode(before)
     require(GameStateCodec.encode(state) == before) { "native_action_snapshot_noncanonical" }
     val lock = JSONObject(view.turn.decision.canonicalPayload)
-    require(lock.keys().asSequence().toSet() ==
-      setOf("version","actor","intent","target","revision","stop","snapshotDigest")) {
+    val keys=lock.keys().asSequence().toSet()
+    val baseKeys=setOf("version","actor","intent","target","revision","stop","snapshotDigest")
+    require(keys == baseKeys || keys == baseKeys + "utterance") {
       "native_action_decision_schema_invalid"
     }
     val rawIntent = lock.getString("intent")
@@ -65,14 +72,16 @@ internal object CompanionNativeActionCapture {
       is String -> raw
       else -> error("native_action_target_type")
     }
+    val spoken=lock.opt("utterance") as? String
     val exact = lockPayload(intent,target,revision,
-      state.world["journeyStopKey"] ?: error("native_action_stop_missing"),view.snapshot())
+      state.world["journeyStopKey"] ?: error("native_action_stop_missing"),
+      view.snapshot(),spoken)
     require(lock.getString("version") == DECISION_VERSION &&
       lock.getString("actor") == "cao_minh" &&
       lock.getLong("revision") == revision &&
       lock.getString("snapshotDigest") == CompanionDigests.sha256(view.snapshot()) &&
       view.turn.decision.canonicalPayload == exact) { "native_action_lock_mismatch" }
-    return intent to target
+    return Triple(intent,target,spoken)
   }
 
   @JvmStatic @Throws(IOException::class)
@@ -90,11 +99,11 @@ internal object CompanionNativeActionCapture {
 
   internal fun capture(view: CompanionSlotStore.NativeView, requestId: String,
                        revision: Long, input: String, random: (Int)->Int): Result {
-    val (intent,target) = source(view,requestId,revision,input)
+    val (intent,target,spoken) = source(view,requestId,revision,input)
     val state = GameStateCodec.decode(String(view.snapshot(),StandardCharsets.UTF_8))
     val recorder = CompanionRollTape.Capture(random)
     val staged = CompanionCombatRngBridge.capture({
-      CompanionNativeActionStage.apply(state,view.turn.turnId,revision,intent,target,recorder::next)
+      CompanionNativeActionStage.apply(state,view.turn.turnId,revision,intent,target,recorder::next,spoken)
     }, {bound,value -> recorder.record(CompanionRollTape.Purpose.COMBAT_INITIAL,bound,value)})
     val route = CompanionRollTape.Route(
       FeaturedJourneyRoutes.stopLevelNumber(staged.fromStop)!!,staged.fromStop,
@@ -105,7 +114,7 @@ internal object CompanionNativeActionCapture {
 
   internal fun replay(view: CompanionSlotStore.NativeView, requestId: String,
                       revision: Long,input: String,encoded: String): Result {
-    val (intent,target)=source(view,requestId,revision,input)
+    val (intent,target,spoken)=source(view,requestId,revision,input)
     require(encoded.toByteArray(StandardCharsets.UTF_8).size <= MAX_BYTES) { "native_action_reservation_large" }
     val envelope = JSONObject(encoded)
     require(envelope.getString("version") == VERSION &&
@@ -118,7 +127,7 @@ internal object CompanionNativeActionCapture {
     val playback = tape.replay()
     val state = GameStateCodec.decode(String(view.snapshot(),StandardCharsets.UTF_8))
     val staged = CompanionCombatRngBridge.replay({
-      CompanionNativeActionStage.apply(state,view.turn.turnId,revision,intent,target,playback::next)
+      CompanionNativeActionStage.apply(state,view.turn.turnId,revision,intent,target,playback::next,spoken)
     }, { bound -> playback.next(CompanionRollTape.Purpose.COMBAT_INITIAL,bound) })
     playback.finish()
     val expectedRoute = CompanionRollTape.Route(
