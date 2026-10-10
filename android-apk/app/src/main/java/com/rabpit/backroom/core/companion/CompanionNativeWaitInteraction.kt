@@ -64,7 +64,21 @@ internal class CompanionNativeWaitInteraction(
       ". MOVE phải chọn tuyến kế tiếp hợp lệ; SEARCH có thể không chọn target. " +
       "NONE và các intent không có writer native sẽ không được giả kết quả. " +
       "Trả đúng JSON {\"intent\":\"SEARCH\",\"targetId\":null,\"itemId\":null} hoặc intent khác hợp lệ."
-    val raw = try { model.propose(prompt) } catch (error: Exception) {
+    val lockedDecision = store.request(requestId)?.decision
+    // A retry of a locked or reserved turn must NEVER ask the model to choose
+    // again. Recover its exact persisted actor choice and original RNG tape.
+    val recovered = lockedDecision?.let { lock ->
+      if (lock.canonicalPayload.startsWith("companion_decision.v1|cao_minh|WAIT|"))
+        """{"intent":"WAIT"}"""
+      else {
+        val saved=JSONObject(lock.canonicalPayload)
+        if (saved.optString("version") != CompanionNativeActionCapture.DECISION_VERSION)
+          throw IOException("companion_unknown_lock_version")
+        CompanionWaitCapture.canonical(JSONObject().put("intent",saved.getString("intent"))
+          .put("targetId",saved.opt("target") ?: JSONObject.NULL))
+      }
+    }
+    val raw = recovered ?: try { model.propose(prompt) } catch (error: Exception) {
       throw IOException("actor_provider_failed", error)
     }
     val selected = CompanionActorIntentGateway.select(raw, bound.scope, bound.interaction)
