@@ -89,6 +89,16 @@ elif attack_line.startswith(indent + "val rawIncoming = "):
         damage_indent + "  else CharacterStatCore.scaleByPercent(basicDamage, lifeformSkill.basicAttackPercent)"
     )
     combat = combat[:damage_start] + replacement + combat[damage_end:]
+elif attack_line.strip().startswith("max(1, "):
+    basic_expression = attack_line.strip().replace(scaled_token, base_token, 1)
+    replacement = (
+        indent + "run {\n" +
+        indent + "  val basicDamage = " + basic_expression + "\n" +
+        indent + "  if (lifeformSkill == null) basicDamage\n" +
+        indent + "  else CharacterStatCore.scaleByPercent(basicDamage, lifeformSkill.basicAttackPercent)\n" +
+        indent + "}"
+    )
+    combat = combat[:line_start] + replacement + combat[line_end:]
 else:
     raise RuntimeError("Unexpected Lifeform scaled attack line: " + attack_line)
 
