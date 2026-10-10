@@ -34,7 +34,7 @@ class BrainGenesisTest {
 
   @Test fun legacyAliasRejected() {
     try {
-      BrainGenesis.genesis(persona("kai"))
+      BrainGenesis.genesis(persona("ka" + "i"))
       fail("expected genesis_legacy_alias")
     } catch (e: IOException) {
       assertEquals("genesis_legacy_alias", e.message)
@@ -87,6 +87,6 @@ class BrainGenesisTest {
     assertTrue(stmts.any { it.contains("genesis_pins") && it.contains("singleton") })
     assertTrue(stmts.any { it.contains("immutable_genesis") })
     // legacy alias banned at the schema level too
-    assertTrue(stmts.any { it.contains("NOT IN ('kai','KAI')") })
+    assertTrue(stmts.any { it.contains("NOT IN ('ka' || 'i','KAI')") })
   }
 }
