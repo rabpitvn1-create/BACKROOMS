@@ -71,7 +71,7 @@ data class QueryCommand(
   enum class Type { CHARACTER, INVENTORY, PARTY, STATUS }
 }
 
-data class ValidatedLegacyStateCommand(
+data class ValidatedWorldStateCommand(
   override val commandId: String,
   override val turnId: String?,
   override val actorId: String = KAI_ID,
@@ -80,7 +80,6 @@ data class ValidatedLegacyStateCommand(
   val location: String? = null,
   val title: String? = null,
   val levelJson: String? = null,
-  val playerJson: String? = null,
   val flagsJson: String? = null,
   val validatedByGameEngine: Boolean
 ) : GameCommand

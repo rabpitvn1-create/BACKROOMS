@@ -5,7 +5,7 @@ object CommandValidator {
     if (command.commandId.isBlank()) return ValidationResult(false, "command_id_required")
     if (command.actorId !in state.characters) return ValidationResult(false, "actor_unknown")
     if (command.turnId != null && command.turnId != state.turn.currentTurnId) return ValidationResult(false, "turn_id_mismatch")
-    if (command is ValidatedLegacyStateCommand && !command.validatedByGameEngine) return ValidationResult(false, "engine_validation_required")
+    if (command is ValidatedWorldStateCommand && !command.validatedByGameEngine) return ValidationResult(false, "engine_validation_required")
 
     if (command is ItemCommand && command.source != CommandSource.UI)
       return ValidationResult(false, "item_ui_required")
@@ -33,15 +33,14 @@ object StateReducer {
       is TimeAdvanceCommand -> TimeEngine.execute(state, command)
       is PhysiologyCommand -> PhysiologyEngine.execute(state, command)
       is QueryCommand -> ExecutionResult(state, applied = false)
-      is ValidatedLegacyStateCommand -> {
+      is ValidatedWorldStateCommand -> {
         val worldPatch = mapOfNotNull(
           "location" to command.location,
           "title" to command.title,
           "levelJson" to command.levelJson,
           "flagsJson" to command.flagsJson
         )
-        val metadataPatch = mapOfNotNull("legacyPlayerJson" to command.playerJson)
-        changed(state.copy(world = state.world + worldPatch, metadata = state.metadata + metadataPatch), "validated_world_state")
+        changed(state.copy(world = state.world + worldPatch), "validated_world_state")
       }
     }
     if (!result.applied) return result

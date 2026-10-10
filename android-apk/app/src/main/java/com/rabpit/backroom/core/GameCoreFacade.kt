@@ -385,12 +385,11 @@ class GameCoreFacade private constructor(
         targetPresent = member.optBoolean("present", false) && known?.presence == CharacterPresence.ACTIVE
       )
     }
-    commands += ValidatedLegacyStateCommand(
+    commands += ValidatedWorldStateCommand(
       commandId = "$turnId:GEMINI:VALIDATED_STATE", turnId = turnId, source = CommandSource.GEMINI,
       location = candidate.optString("location").takeIf(String::isNotBlank),
       title = candidate.optString("title").takeIf(String::isNotBlank),
       levelJson = candidate.optJSONObject("level")?.toString(),
-      playerJson = candidate.optJSONObject("player")?.toString(),
       flagsJson = candidate.optJSONObject("flags")?.toString(),
       validatedByGameEngine = true
     )
@@ -568,7 +567,6 @@ class GameCoreFacade private constructor(
     state.world["title"]?.let { output.put("title", it) }
     state.world["levelJson"]?.let { output.put("level", JSONObject(it)) }
     state.world["flagsJson"]?.let { output.put("flags", JSONObject(it)) }
-    state.metadata["legacyPlayerJson"]?.let { output.put("player", JSONObject(it)) }
     CombatRuntime.toJson(state)?.let { combat ->
       PokerDiceCore.diceJson(state)?.let { combat.put("diceState", it) }
       output.put("combat", combat)

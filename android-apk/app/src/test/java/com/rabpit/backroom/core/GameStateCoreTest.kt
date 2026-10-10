@@ -81,12 +81,12 @@ class GameStateCoreTest {
   }
 
   @Test fun geminiWorldDeltaNeedsGameEngineValidation() {
-    val rejected = StateReducer.execute(base(), ValidatedLegacyStateCommand(
+    val rejected = StateReducer.execute(base(), ValidatedWorldStateCommand(
       "world-invalid", "TURN_1", source = CommandSource.GEMINI, location = "Level 1", validatedByGameEngine = false
     ))
     assertEquals("engine_validation_required", rejected.validation.reason)
     assertNull(rejected.state.world["location"])
-    val accepted = StateReducer.execute(base(), ValidatedLegacyStateCommand(
+    val accepted = StateReducer.execute(base(), ValidatedWorldStateCommand(
       "world-valid", "TURN_1", source = CommandSource.GEMINI, location = "Level 1", validatedByGameEngine = true
     ))
     assertEquals("Level 1", accepted.state.world["location"])
