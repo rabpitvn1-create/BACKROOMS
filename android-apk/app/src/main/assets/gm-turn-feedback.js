@@ -38,11 +38,20 @@
     }, 75000));
   }
 
-  var previousProvider = window.backroomProvider;
-  window.backroomProvider = function (provider) {
+  var previousProvider;
+  function providerFeedback(provider) {
     if (typeof previousProvider === 'function') previousProvider.apply(this, arguments);
     beginWaiting();
-  };
+  }
+  function wireProvider() {
+    if (window.backroomProvider === providerFeedback) return;
+    previousProvider = window.backroomProvider;
+    window.backroomProvider = providerFeedback;
+  }
+  // Android installs native WebView enhancements after onPageFinished. That
+  // script replaces backroomProvider, so it explicitly calls this hook again.
+  window.backroomWireGMFeedbackProvider = wireProvider;
+  wireProvider();
 
   var previousTurn = window.backroomTurn;
   window.backroomTurn = function (json) {
