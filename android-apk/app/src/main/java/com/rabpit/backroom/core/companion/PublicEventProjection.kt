@@ -19,8 +19,14 @@ internal object PublicEventProjection {
         val toStop=text(payload,"toStop") ?: return null
         if (intent !in setOf("TALK","MOVE","SEARCH","INSPECT") || scene != location)
           return null
-        JSONObject().put("actor",actor).put("intent",intent).put("minutes",minutes)
+        val public=JSONObject().put("actor",actor).put("intent",intent).put("minutes",minutes)
           .put("location",location).put("scene",scene).put("toStop",toStop)
+        if (payload.has("utterance")) {
+          if (intent != "TALK") return null
+          val quote=text(payload,"utterance") ?: return null
+          public.put("utterance",quote)
+        } else if (intent == "TALK") return null
+        public
       }
       "WAIT_COMPLETED" -> {
         val actor=text(payload,"actor") ?: return null
