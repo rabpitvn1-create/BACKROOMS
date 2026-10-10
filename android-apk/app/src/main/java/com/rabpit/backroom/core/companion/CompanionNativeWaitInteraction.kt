@@ -7,9 +7,9 @@ import java.io.IOException
 import java.nio.charset.StandardCharsets
 
 /**
- * Audited actor-owned WAIT writer using the existing exact native slot,
- * RNG tape, staged Core mutation, SQLite transaction and durable receipt.
- * Other intents are deliberately refused until their native writers exist.
+ * Audited actor-owned native turn gateway. WAIT and ordinary LOOK/SEARCH/MOVE/TALK
+ * use their distinct Core-authoritative stages and durable SQLite receipts.
+ * Intents without a native writer remain explicitly rejected.
  */
 internal class CompanionNativeWaitInteraction(
   private val context: Context,
