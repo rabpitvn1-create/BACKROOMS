@@ -21,8 +21,8 @@ import com.rabpit.backroom.core.companion.TalkExecutor.TapeEntry
  *   path and likewise produce no observations and no exit progress.
  * - Failed attempts keep their intent (never rewritten).
  *
- * Output bundles feed the #517 atomic Core commit. No second reducer or
- * mutation pipeline is introduced here.
+ * Output bundles are isolated specimens. Native inventory/combat capture and
+ * the atomic Core commit adapter are still required before runtime use.
  *
  * Pure Kotlin: no Android, no I/O, no provider, no RNG (dice arrive as native
  * facts from the locked RNG).
@@ -81,6 +81,11 @@ internal object UseItemCombatNoneExecutor {
     turnId: String, observationId: String, tapeSequence: Long
   ): UseItemResult {
     if (decided.intent != Intent.USE_ITEM) return UseItemResult.NotUsed("intent_not_use_item")
+    if (!CompanionLockedProposal.consistent(decided)) return UseItemResult.NotUsed("decision_binding_mismatch")
+    if (!CompanionLockedProposal.turnMatches(decided,turnId)) return UseItemResult.NotUsed("turn_mismatch")
+    if (decided.binding.actorId != facts.actorId) return UseItemResult.NotUsed("actor_mismatch")
+    if (decided.targetId != facts.targetId) return UseItemResult.NotUsed("target_mismatch")
+    if (facts.chargesBefore < 0 || facts.costCharges < 0 || facts.inventoryRevision < 0) return UseItemResult.NotUsed("inventory_invalid")
     if (decided.itemId != facts.itemId) return UseItemResult.NotUsed("item_mismatch")
     if (!facts.owned) return UseItemResult.NotUsed("item_not_owned")
     if (!facts.usable) return UseItemResult.NotUsed("item_unusable")
@@ -147,6 +152,11 @@ internal object UseItemCombatNoneExecutor {
     turnId: String, observationId: String, tapeSequence: Long
   ): CombatResult {
     if (decided.intent != Intent.COMBAT_ACTION) return CombatResult.NotActed("intent_not_combat")
+    if (!CompanionLockedProposal.consistent(decided)) return CombatResult.NotActed("decision_binding_mismatch")
+    if (!CompanionLockedProposal.turnMatches(decided,turnId)) return CombatResult.NotActed("turn_mismatch")
+    if (decided.binding.actorId != facts.actorId) return CombatResult.NotActed("actor_mismatch")
+    if (facts.combatRevision < 0 || facts.rngScope.isBlank()) return CombatResult.NotActed("combat_scope_invalid")
+    if (facts.dice.any { it !in 1..6 }) return CombatResult.NotActed("dice_invalid")
     if (!facts.combatActive) return CombatResult.NotActed("combat_inactive")
     if (facts.combatRevision != facts.expectedCombatRevision)
       return CombatResult.NotActed("combat_revision_mismatch")
@@ -183,6 +193,7 @@ internal object UseItemCombatNoneExecutor {
 
   fun executeNone(decided: Decided, actorId: String, turnId: String): NoneResult {
     if (decided.intent != Intent.NONE) return NoneResult.Rejected("intent_not_none")
+    if (!CompanionLockedProposal.consistent(decided)) return NoneResult.Rejected("decision_binding_mismatch")
     if (decided.binding.actorId != actorId) return NoneResult.Rejected("actor_mismatch")
     return NoneResult.Acknowledged(NoneAcknowledged(actorId, turnId))
   }

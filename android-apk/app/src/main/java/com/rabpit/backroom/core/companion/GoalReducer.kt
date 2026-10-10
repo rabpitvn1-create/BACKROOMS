@@ -53,6 +53,7 @@ internal object GoalReducer {
 
   /** GR01: validated PROMISE_ACCEPTED -> CREATE ACTIVE goal (idempotent). */
   fun reduceAccept(input: AcceptInput): Result {
+    require(input.prior.ruleVersion == BrainContracts.RULE_VERSION) { "brain_rule_unsupported" }
     require(input.prior.actorId == input.promise.promisorActorId) { "goal_actor_not_promisor" }
     require(input.eventId.isNotBlank()) { "goal_acceptance_event_missing" }
     val id = goalId(input.prior.actorId, input.promise.promiseId)
@@ -68,6 +69,9 @@ internal object GoalReducer {
 
   /** GR02/GR03: verified outcome -> DONE / ABANDONED, or no delta. */
   fun reduceOutcome(input: OutcomeInput): Result {
+    require(input.prior.ruleVersion == BrainContracts.RULE_VERSION) { "brain_rule_unsupported" }
+    require(input.outcome.evidenceEventId.isNotBlank()) { "goal_outcome_evidence_missing" }
+    require(!(input.outcome.satisfied && input.outcome.breached)) { "goal_outcome_conflict" }
     BrainContracts.Predicates.requireKnown(input.outcome.predicateId)
     val goal = input.prior.goals.find { it.promise.promiseId == input.promiseId }
       ?: return Result(input.prior, emptyList())
@@ -75,11 +79,18 @@ internal object GoalReducer {
       return Result(input.prior, emptyList())  // already resolved: at most once
     }
     val promise = goal.promise
+    val termsMatch=input.outcome.predicateId == promise.completionPredicateId &&
+      input.outcome.args == promise.predicateArgs
+    val deadlineBreach=promise.deadlineTurn?.let { deadline ->
+      input.outcome.predicateId == BrainContracts.Predicates.TURN_REACHED &&
+        input.outcome.args.keys == setOf("turnNumber") &&
+        (input.outcome.args["turnNumber"]?.toLongOrNull()?.let { it > deadline } == true)
+    } ?: false
     val next = when {
       input.outcome.satisfied &&
         input.outcome.predicateId == promise.completionPredicateId &&
         input.outcome.args == promise.predicateArgs -> Goal.GoalStatus.DONE
-      input.outcome.breached -> Goal.GoalStatus.ABANDONED
+      input.outcome.breached && (termsMatch || deadlineBreach) -> Goal.GoalStatus.ABANDONED
       else -> null  // wrong actor/target, unknown args, mere missing success: no delta
     } ?: return Result(input.prior, emptyList())
     val updated = goal.copy(status = next)
@@ -99,6 +110,9 @@ internal object GoalReducer {
   fun reduceAppraisal(prior: BrainState, promiseId: String, breached: Boolean): Result {
     val goal = prior.goals.find { it.promise.promiseId == promiseId }
       ?: return Result(prior, emptyList())
+    require(prior.ruleVersion == BrainContracts.RULE_VERSION) { "brain_rule_unsupported" }
+    if (goal.status == Goal.GoalStatus.ACTIVE) return Result(prior,emptyList())
+    require(breached == (goal.status == Goal.GoalStatus.ABANDONED)) { "appraisal_outcome_mismatch" }
     val existing = prior.appraisals.find { it.promiseId == promiseId }
     if (existing != null) return Result(prior, emptyList())
     val otherActorId = if (prior.actorId == goal.promise.promisorActorId)
