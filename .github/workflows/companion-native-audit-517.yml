@@ -77,6 +77,8 @@ jobs:
             "android-apk/app/src/main/assets/index.html":"3616bb408880c5bb8adb490b6e8c6ade2fae81f01640413e6bfb097e25ff9d70"
           }
           mismatch=[p for p,v in baselines.items() if hashes[p]!=v]
+          if mismatch:
+            print("G0_COMPANION_GENERATED_HASHES",json.dumps({p:hashes[p] for p in mismatch},sort_keys=True),flush=True)
           (evidence/"generated-source-hashes.json").write_text(json.dumps({"hashes":hashes,"g0_mismatches":mismatch},indent=2))
           if mismatch:raise SystemExit("G0 generated source drift: "+str(mismatch))
           PY
