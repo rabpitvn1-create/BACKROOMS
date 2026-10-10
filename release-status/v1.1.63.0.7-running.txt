@@ -1,4 +1,0 @@
-status=RUNNING
-version=1.1.63.0.7
-source_sha=b0a92a670d39f9247c239412fb4157a501921b80
-run_id=38019267250
