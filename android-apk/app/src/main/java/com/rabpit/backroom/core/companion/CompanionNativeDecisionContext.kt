@@ -66,9 +66,21 @@ internal object CompanionNativeDecisionContext {
       brain = BrainContracts.BrainState(actorId = KAI_ID, slotId = store.slotId),
       memories = history,
       sceneEvidence = emptyList()))
-    val capabilities = linkedSetOf("cap.talk", "cap.search", "cap.wait", "cap.move")
-    val legal = linkedSetOf("player_companion", stop)
-    FeaturedJourneyRoutes.next(stop)?.let { legal.add(it.targetStopKey) }
+    // Capabilities must come from actual native facts, not from provider or
+    // UI assertions. A solitary New Game has nobody it can TALK to.
+    val capabilities = linkedSetOf("cap.search", "cap.wait", "cap.inspect")
+    val legal = linkedSetOf(stop)
+    val reachable = FeaturedJourneyRoutes.next(stop)
+    if (reachable != null) {
+      legal.add(reachable.targetStopKey)
+      capabilities.add("cap.move")
+    }
+    val listeners = state.party.memberIds.filter { it != KAI_ID &&
+      state.characters[it]?.presence == CharacterPresence.ACTIVE }
+    if (listeners.isNotEmpty()) {
+      capabilities.add("cap.talk")
+      legal.addAll(listeners)
+    }
     val scope = DecisionPreflight.NativeScope(
       slotId = store.slotId,
       slotRevision = revision,
