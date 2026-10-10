@@ -14,15 +14,12 @@ class CommandResolver(
   private val itemResolver: ItemResolver = DefaultItemResolver(),
   private val quantityResolver: QuantityResolver = DefaultQuantityResolver()
 ) {
-  private data class CopyTemplateRef(val item: Pair<String, String>, val templateId: String?, val templateSlot: Int?)
-
   fun resolveSequence(candidates: List<IntentCandidate>, turnId: String, context: GameContext): List<GameCommand?> {
     var resolutionContext = context
     return candidates.mapIndexed { index, candidate ->
       val command = resolve(candidate, index, turnId, resolutionContext)
       val itemId = when (command) {
         is ItemCommand -> command.itemId
-        is OmnivaultCommand -> command.itemId
         else -> null
       }
       if (itemId != null) resolutionContext = resolutionContext.copy(lastReferencedItemId = itemId)
@@ -48,24 +45,11 @@ class CommandResolver(
       }
       GameIntent.EQUIP_ITEM -> item?.let { itemCommand(commandId, turnId, actor, target, source, ItemCommand.Operation.EQUIP, it, quantity, resolveEquipmentSlot(candidate.clause, actor, it, context, false)) }
       GameIntent.UNEQUIP_ITEM -> item?.let { itemCommand(commandId, turnId, actor, target, source, ItemCommand.Operation.UNEQUIP, it, quantity, resolveEquipmentSlot(candidate.clause, actor, it, context, true)) }
-      GameIntent.OMNIVAULT_STORE -> item?.let { vaultCommand(commandId, turnId, actor, source, OmnivaultCommand.Operation.STORE, it, quantity) }
-      GameIntent.OMNIVAULT_WITHDRAW -> item?.let { vaultCommand(commandId, turnId, actor, source, OmnivaultCommand.Operation.WITHDRAW, it, quantity) }
-      GameIntent.OMNIVAULT_SCAN -> item?.let { vaultCommand(commandId, turnId, actor, source, OmnivaultCommand.Operation.SCAN, it, quantity) }
-      GameIntent.OMNIVAULT_COPY -> resolveCopyTemplate(candidate.clause, item, context)?.let { ref ->
-        vaultCommand(
-          commandId, turnId, actor, source, OmnivaultCommand.Operation.COPY, ref.item, quantity,
-          templateId = ref.templateId,
-          templateSlot = ref.templateSlot,
-          targetTotal = copyTargetTotal(candidate.clause, quantity)
-        )
-      }
-      GameIntent.OMNIVAULT_RESTORE -> item?.let { vaultCommand(commandId, turnId, actor, source, OmnivaultCommand.Operation.RESTORE, it, quantity) }
       GameIntent.PARTY_JOIN_REQUEST -> target?.let { PartyCommand(commandId, turnId, actor, it, source, PartyCommand.Operation.ADD) }
       GameIntent.PARTY_REMOVE -> target?.let { PartyCommand(commandId, turnId, actor, it, source, PartyCommand.Operation.REMOVE) }
       GameIntent.PARTY_FOLLOW -> target?.let { PartyCommand(commandId, turnId, actor, it, source, PartyCommand.Operation.FOLLOW) }
       GameIntent.PARTY_SEPARATE -> target?.let { PartyCommand(commandId, turnId, actor, it, source, PartyCommand.Operation.SEPARATE) }
       GameIntent.INVENTORY_QUERY -> QueryCommand(commandId, turnId, actor, source = source, type = QueryCommand.Type.INVENTORY)
-      GameIntent.OMNIVAULT_QUERY -> QueryCommand(commandId, turnId, actor, source = source, type = QueryCommand.Type.OMNIVAULT)
       GameIntent.PARTY_QUERY -> QueryCommand(commandId, turnId, actor, source = source, type = QueryCommand.Type.PARTY)
       GameIntent.CHARACTER_QUERY -> QueryCommand(commandId, turnId, actor, target, source, QueryCommand.Type.CHARACTER)
       GameIntent.STATUS_QUERY -> QueryCommand(commandId, turnId, actor, target, source, QueryCommand.Type.STATUS)
@@ -74,30 +58,6 @@ class CommandResolver(
   }
 
   private fun resolvedQuantity(candidate: IntentCandidate, actor: String, item: Pair<String, String>?, rawQuantity: Int, context: GameContext): Int = rawQuantity
-
-  private fun copyTargetTotal(clause: String, rawQuantity: Int): Int? =
-    if (Regex("(?:thành|tổng\\s+cộng|đủ)\\s+(?:\\d+|một|hai|ba|bốn|năm|sáu|bảy|tám|chín|mười|một\\s+trăm)\\b", RegexOption.IGNORE_CASE).containsMatchIn(clause)) rawQuantity else null
-
-  private fun resolveCopyTemplate(clause: String, item: Pair<String, String>?, context: GameContext): CopyTemplateRef? {
-    val explicitSlot = Regex("(?:slot|ô|mẫu)\\s*([1-3])\\b", RegexOption.IGNORE_CASE)
-      .find(clause)?.groupValues?.getOrNull(1)?.toIntOrNull()
-    if (explicitSlot != null) {
-      val slot = context.state.omnivault.scanSlots.firstOrNull { it.slot == explicitSlot } ?: return item?.let { CopyTemplateRef(it, null, explicitSlot) }
-      return CopyTemplateRef(slot.sourceItemId to slot.templateItem.name, ItemIdentity.templateId(slot), slot.slot)
-    }
-    if (item == null) {
-      val only = context.state.omnivault.scanSlots.singleOrNull() ?: return null
-      return CopyTemplateRef(only.sourceItemId to only.templateItem.name, ItemIdentity.templateId(only), only.slot)
-    }
-    val matches = context.state.omnivault.scanSlots.filter { slot ->
-      slot.sourceItemId == item.first || slot.templateItem.itemId == item.first || slot.templateItem.archetypeId == item.first ||
-        slot.templateItem.name.equals(item.second, true)
-    }
-    return if (matches.size == 1) {
-      val slot = matches.single()
-      CopyTemplateRef(slot.sourceItemId to slot.templateItem.name, ItemIdentity.templateId(slot), slot.slot)
-    } else CopyTemplateRef(item, null, null)
-  }
 
   private fun resolveTransferParties(
     clause: String,
@@ -137,7 +97,6 @@ class CommandResolver(
     KaiStartingEquipment.slotFor(item.first, item.second)?.let { return it }
     val lower = clause.lowercase()
     return when {
-      lower.contains("nhẫn") || lower.contains("ring") -> "ring"
       lower.contains("giáp") || lower.contains("armor") || lower.contains("áo") || lower.contains("mặc") -> "armor"
       else -> existing ?: "weapon"
     }
@@ -145,30 +104,6 @@ class CommandResolver(
 
   private fun itemCommand(id: String, turn: String, actor: String, target: String?, source: CommandSource, operation: ItemCommand.Operation, item: Pair<String, String>, quantity: Int, slot: String? = null) =
     ItemCommand(id, turn, actor, target, source, operation, item.first, item.second, quantity, slot)
-
-  private fun vaultCommand(
-    id: String,
-    turn: String,
-    actor: String,
-    source: CommandSource,
-    operation: OmnivaultCommand.Operation,
-    item: Pair<String, String>,
-    quantity: Int,
-    templateId: String? = null,
-    templateSlot: Int? = null,
-    targetTotal: Int? = null
-  ) = OmnivaultCommand(
-    id, turn, actor,
-    source = source,
-    operation = operation,
-    itemId = item.first,
-    itemName = item.second,
-    quantity = quantity,
-    timestampEpochMs = System.currentTimeMillis(),
-    templateId = templateId,
-    templateSlot = templateSlot,
-    targetTotal = targetTotal
-  )
 
   private fun stableCommandId(turnId: String, index: Int, clause: String): String {
     val digest = MessageDigest.getInstance("SHA-256").digest("$turnId|$index|${clause.trim().lowercase()}".toByteArray())

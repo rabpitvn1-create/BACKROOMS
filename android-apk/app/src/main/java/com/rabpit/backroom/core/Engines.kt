@@ -4,22 +4,20 @@ package com.rabpit.backroom.core
 
 private data class ItemTake(val inventory: InventoryState, val taken: ItemStack)
 
-private fun addItem(inventory: InventoryState, rawItem: ItemStack): InventoryState {
-  val item = ItemContentRules.normalize(rawItem)
-  val old = inventory.items[item.itemId]?.let(ItemContentRules::normalize)
-  val merged = if (old == null) item else {
-    if (!ItemContentRules.sameStackState(old, item)) return inventory.copy(items = inventory.items + (item.itemId to item))
-    ItemIdentity.merge(old, item)
-  }
+private fun addItem(inventory: InventoryState, raw: ItemStack): InventoryState {
+  val item = ItemContentRules.normalize(raw)
+  val old = inventory.items[item.itemId]
+  val merged = if (old == null) item else old.copy(quantity = old.quantity + item.quantity)
   return inventory.copy(items = inventory.items + (item.itemId to merged))
 }
 
 private fun takeItem(inventory: InventoryState, itemId: String, quantity: Int): ItemTake? {
-  val old = inventory.items[itemId]?.let(ItemContentRules::normalize) ?: return null
-  val split = ItemIdentity.split(old, quantity, "legacy:${inventory.ownerId}:${old.itemId}") ?: return null
-  val items = if (split.remaining == null) inventory.items - itemId
-    else inventory.items + (itemId to split.remaining)
-  return ItemTake(inventory.copy(items = items), split.taken)
+  val old = inventory.items[itemId] ?: return null
+  if (quantity <= 0 || old.quantity < quantity) return null
+  val remaining = old.quantity - quantity
+  val items = if (remaining == 0) inventory.items - itemId
+    else inventory.items + (itemId to old.copy(quantity = remaining))
+  return ItemTake(inventory.copy(items = items), old.copy(quantity = quantity))
 }
 
 private fun removeItem(inventory: InventoryState, itemId: String, quantity: Int): InventoryState? =
@@ -102,10 +100,7 @@ object InventoryEngine {
     if (command.quantity <= 0) return invalid(state, "quantity_must_be_positive")
     if (ItemContentRules.hasForbiddenPreciseAmount(command.itemName)) return invalid(state, "precise_content_amount_forbidden")
     val source = state.inventories[command.actorId] ?: InventoryState(command.actorId)
-    val normalizedItem = ItemContentRules.normalize(ItemStack(command.itemId, command.itemName, command.quantity, metadata = command.metadata))
-    val item = if (command.operation == ItemCommand.Operation.PICKUP)
-      ItemIdentity.ensureOriginalInstances(normalizedItem, command.metadata["worldInstanceId"] ?: command.commandId)
-    else normalizedItem
+    val item = ItemContentRules.normalize(ItemStack(command.itemId, command.itemName, command.quantity, metadata = command.metadata))
     return when (command.operation) {
       ItemCommand.Operation.PICKUP -> {
         val validation = InventoryPolicy.validateAddition(state, command.actorId, source, item, command.quantity)
@@ -137,7 +132,6 @@ object InventoryEngine {
       }
       ItemCommand.Operation.EQUIP -> EquipmentEngine.equip(state, command)
       ItemCommand.Operation.UNEQUIP -> EquipmentEngine.unequip(state, command)
-      ItemCommand.Operation.STORE, ItemCommand.Operation.WITHDRAW -> invalid(state, "use_omnivault_command")
     }
   }
 }

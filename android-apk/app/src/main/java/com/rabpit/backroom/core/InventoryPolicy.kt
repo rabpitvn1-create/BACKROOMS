@@ -26,7 +26,7 @@ object InventoryPolicy {
     val old = inventory.items[normalized.itemId]
     val resultingQuantity = (old?.quantity ?: 0).toLong() + quantity.toLong()
     if (resultingQuantity > Int.MAX_VALUE) return "inventory_stack_overflow"
-    if (!ItemIdentity.isOmnivaultCopy(normalized) && resultingQuantity > profile.maxPerType.toLong()) return "inventory_stack_limit"
+    if (resultingQuantity > profile.maxPerType.toLong()) return "inventory_stack_limit"
     val carriedTypes = InventoryCapacityPolicy.usedSlots(state, ownerId, inventory)
     if (old == null && carriedTypes >= profile.maxTypes) return "inventory_slot_limit"
     return null

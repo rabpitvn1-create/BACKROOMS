@@ -50,12 +50,5 @@ class ItemContentStateTest {
     assertTrue(result.applied)
     assertEquals(granted.inventories, result.state.inventories)
   }
-  @Test fun restoreRemainsNarrativeOnlyAndCannotManufactureItems() {
-    val granted = StateReducer.execute(GameState.initial(), grant("Chai nước")).state
-    val result = StateReducer.execute(granted, OmnivaultCommand("restore", "TURN_1", KAI_ID, source = CommandSource.UI,
-      operation = OmnivaultCommand.Operation.RESTORE, itemId = "water", itemName = "Chai nước", timestampEpochMs = 1000L))
-    assertFalse(result.applied)
-    assertEquals("restore_narrative_only", result.validation.reason)
-    assertEquals(granted.inventories, result.state.inventories)
-  }
+
 }

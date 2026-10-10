@@ -46,10 +46,6 @@ object KnowledgeLocalValidator {
     if (mentionsAny(reply, "godkiller gunblade", "godkiller là súng", "godkiller biến thành súng")) {
       issue("ability_overreach", "GodKiller as firearm/gunblade", "Syvial Codex locks GodKiller as a purely mechanical greatsword.")
     }
-    if (mentionsAny(reply, "omnivault cất iris", "omnivault cất syvial", "omnivault cất người", "omnivault chứa người", "omnivault scan iris", "omnivault scan syvial")) {
-      issue("ability_overreach", "Omnivault acts on a living being", "Cao Minh Codex locks Omnivault to inanimate objects only.")
-    }
-
     // Project Entity hard lock is code-known and unambiguous.
     if (mentionsAny(reply, "entity thân thiện", "entity trung lập", "thực thể thân thiện", "thực thể trung lập") && !mentionsAny(reply, "không có", "không phải", "không thể")) {
       issue("canon_conflict", "Friendly/neutral Entity", "Project Entity canon explicitly forbids friendly or neutral Entities toward humans.")

@@ -15,7 +15,6 @@ object GameStateCodec {
     put("inventories", JSONObject().apply { state.inventories.forEach { (id, value) -> put(id, inventory(value)) } })
     put("equipment", JSONObject().apply { state.equipment.forEach { (id, value) -> put(id, equipment(value)) } })
     put("statuses", JSONObject().apply { state.statuses.forEach { (id, value) -> put(id, status(value)) } })
-    put("omnivault", omnivault(state.omnivault))
     put("turn", turn(state.turn))
     put("time", gameTime(state.time))
     put("world", stringMap(state.world))
@@ -48,7 +47,6 @@ object GameStateCodec {
       inventories = inventories.ifEmpty { GameState.initial().inventories },
       equipment = equipment.ifEmpty { GameState.initial().equipment },
       statuses = statuses,
-      omnivault = decodeOmnivault(root.optJSONObject("omnivault") ?: JSONObject()),
       turn = decodeTurn(root.optJSONObject("turn") ?: JSONObject()),
       time = decodeGameTime(root.optJSONObject("time")),
       world = root.optJSONObject("world").stringsMap(),
@@ -190,29 +188,6 @@ object GameStateCodec {
     if (json.has("durationTurns") && !json.isNull("durationTurns")) json.optInt("durationTurns") else null,
     json.optBoolean("persistent"), json.optJSONObject("metadata").stringsMap()
   )
-
-  private fun omnivault(value: OmnivaultState) = JSONObject().apply {
-    put("ownerId", value.ownerId)
-    put("storedItems", JSONObject().apply { value.storedItems.values.forEach { stack -> put(ItemContentRules.normalize(stack).itemId, item(stack)) } })
-    put("scanSlots", JSONArray().apply { value.scanSlots.forEach { slot -> put(JSONObject().apply {
-      put("slot", slot.slot); put("sourceItemId", ItemContentRules.normalize(slot.templateItem).itemId); put("templateItem", item(slot.templateItem)); put("scannedAtEpochMs", slot.scannedAtEpochMs)
-    }) } })
-    put("markedSourceIds", JSONArray(value.markedSourceIds.toList()))
-    put("restoreCooldownUntilEpochMs", JSONObject().apply { value.restoreCooldownUntilEpochMs.forEach { (id, time) -> put(id, time) } })
-  }
-
-  private fun decodeOmnivault(json: JSONObject): OmnivaultState {
-    val slots = json.optJSONArray("scanSlots").objects().map { slot ->
-      val template = decodeItem(slot.optJSONObject("templateItem") ?: JSONObject())
-      ScanSlot(slot.optInt("slot"), template.itemId, template, slot.optLong("scannedAtEpochMs"))
-    }
-    val cooldowns = mutableMapOf<String, Long>()
-    json.optJSONObject("restoreCooldownUntilEpochMs")?.let { values -> values.keys().forEach { cooldowns[it] = values.optLong(it) } }
-    return OmnivaultState(
-      json.optString("ownerId", KAI_ID), itemMap(json.optJSONObject("storedItems")), slots,
-      json.optJSONArray("markedSourceIds").strings().toSet(), cooldowns
-    )
-  }
 
   private fun turn(value: TurnState) = JSONObject().apply {
     put("currentTurnId", value.currentTurnId); putNullable("pending", value.pending?.let(::pending))

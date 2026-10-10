@@ -41,13 +41,5 @@ class InventoryPolicyTest {
     assertEquals("inventory_slot_limit", InventoryPolicy.validateAddition(state, "bob", state.inventories.getValue("bob"), ItemStack("c", "C"), 1))
   }
 
-  @Test fun equippedKaiSignatureItemCannotBeScanned() {
-    val gun = ItemStack("kai-gun", "Cao Minh Gun", 1)
-    val state = stateWith().copy(
-      inventories = mapOf(KAI_ID to InventoryState(KAI_ID, mapOf(gun.itemId to gun))),
-      equipment = mapOf(KAI_ID to EquipmentState(KAI_ID, mapOf("weapon" to gun.itemId)))
-    )
-    val result = StateReducer.execute(state, OmnivaultCommand("scan", "TURN_1", KAI_ID, source = CommandSource.RULE, operation = OmnivaultCommand.Operation.SCAN, itemId = gun.itemId, itemName = gun.name))
-    assertEquals("signature_equipment_locked", result.validation.reason)
-  }
+
 }

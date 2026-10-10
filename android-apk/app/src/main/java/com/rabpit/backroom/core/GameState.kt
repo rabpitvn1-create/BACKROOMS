@@ -112,16 +112,6 @@ data class CharacterState(
 
 data class PartyState(val leaderId: String = KAI_ID, val memberIds: List<String> = listOf(KAI_ID), val maxMembers: Int = 4)
 
-data class ScanSlot(val slot: Int, val sourceItemId: String, val templateItem: ItemStack, val scannedAtEpochMs: Long)
-
-data class OmnivaultState(
-  val ownerId: String = KAI_ID,
-  val storedItems: Map<String, ItemStack> = emptyMap(),
-  val scanSlots: List<ScanSlot> = emptyList(),
-  val markedSourceIds: Set<String> = emptySet(),
-  val restoreCooldownUntilEpochMs: Map<String, Long> = emptyMap()
-)
-
 data class PendingTurn(
   val turnId: String,
   val input: String,
@@ -149,7 +139,6 @@ data class GameState(
   val inventories: Map<String, InventoryState> = emptyMap(),
   val equipment: Map<String, EquipmentState> = emptyMap(),
   val statuses: Map<String, StatusEffect> = emptyMap(),
-  val omnivault: OmnivaultState = OmnivaultState(),
   val turn: TurnState = TurnState(),
   val time: GameTimeState = GameTimeState(),
   val world: Map<String, String> = emptyMap(),

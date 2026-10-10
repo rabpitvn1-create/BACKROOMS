@@ -21,28 +21,7 @@ data class ItemCommand(
   val slot: String? = null,
   val metadata: Map<String, String> = emptyMap()
 ) : GameCommand {
-  enum class Operation { PICKUP, DROP, USE, TRANSFER, STORE, WITHDRAW, EQUIP, UNEQUIP }
-}
-
-data class OmnivaultCommand(
-  override val commandId: String,
-  override val turnId: String?,
-  override val actorId: String,
-  override val targetId: String? = null,
-  override val source: CommandSource,
-  val operation: Operation,
-  val itemId: String,
-  val itemName: String,
-  val quantity: Int = 1,
-  val isLiving: Boolean = false,
-  val isLargeAssembly: Boolean = false,
-  val isOriginal: Boolean = true,
-  val timestampEpochMs: Long = 0L,
-  val templateId: String? = null,
-  val templateSlot: Int? = null,
-  val targetTotal: Int? = null
-) : GameCommand {
-  enum class Operation { STORE, WITHDRAW, SCAN, COPY, RESTORE, QUERY }
+  enum class Operation { PICKUP, DROP, USE, TRANSFER, EQUIP, UNEQUIP }
 }
 
 data class PartyCommand(
@@ -89,7 +68,7 @@ data class QueryCommand(
   override val source: CommandSource,
   val type: Type
 ) : GameCommand {
-  enum class Type { CHARACTER, INVENTORY, PARTY, STATUS, OMNIVAULT }
+  enum class Type { CHARACTER, INVENTORY, PARTY, STATUS }
 }
 
 data class ValidatedLegacyStateCommand(

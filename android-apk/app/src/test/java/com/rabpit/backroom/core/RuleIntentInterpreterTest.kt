@@ -11,15 +11,13 @@ class RuleIntentInterpreterTest {
 
   @Test fun deterministicCommandsStayLocal() {
     assertEquals(GameIntent.PICKUP_ITEM, parse("Cao Minh nhặt chai nước").candidates.single().intent)
-    assertEquals(GameIntent.OMNIVAULT_STORE, parse("Bỏ khẩu súng vào nhẫn").candidates.single().intent)
-    assertEquals(GameIntent.OMNIVAULT_COPY, parse("Tạo thêm 3 vỏ chai nước rỗng").candidates.single().intent)
     assertEquals(GameIntent.PARTY_JOIN_REQUEST, parse("Iris vào party").candidates.single().intent)
     assertFalse(parse("Cao Minh nhặt chai nước").requiresFallback)
   }
 
   @Test fun splitsMultipleActions() {
-    val result = parse("Cao Minh lấy hai chai nước ra khỏi nhẫn rồi đưa Iris một chai")
-    assertEquals(listOf(GameIntent.OMNIVAULT_WITHDRAW, GameIntent.TRANSFER_ITEM), result.candidates.map { it.intent })
+    val result = parse("Cao Minh nhặt chai nước rồi đưa Iris một chai")
+    assertEquals(listOf(GameIntent.PICKUP_ITEM, GameIntent.TRANSFER_ITEM), result.candidates.map { it.intent })
   }
 
   @Test fun narrativeMemoryNegationAndQuotesDoNotExecute() {

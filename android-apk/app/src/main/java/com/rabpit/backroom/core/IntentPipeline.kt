@@ -5,8 +5,6 @@ enum class IntentConfidence { HIGH, MEDIUM, LOW }
 enum class GameIntent {
   PICKUP_ITEM, DROP_ITEM, USE_ITEM, TRANSFER_ITEM, STORE_ITEM, WITHDRAW_ITEM,
   EQUIP_ITEM, UNEQUIP_ITEM, INVENTORY_QUERY,
-  OMNIVAULT_STORE, OMNIVAULT_WITHDRAW, OMNIVAULT_SCAN, OMNIVAULT_COPY,
-  OMNIVAULT_RESTORE, OMNIVAULT_QUERY,
   PARTY_JOIN_REQUEST, PARTY_REMOVE, PARTY_FOLLOW, PARTY_SEPARATE, PARTY_QUERY,
   CHARACTER_QUERY, STATUS_QUERY, UNKNOWN, NO_ACTION
 }
@@ -62,11 +60,6 @@ class RuleIntentInterpreter : IntentInterpreter {
   private data class Rule(val intent: GameIntent, val regex: Regex)
 
   private val rules = listOf(
-    Rule(GameIntent.OMNIVAULT_WITHDRAW, Regex("(?:lấy|rút|triệu hồi).*(?:khỏi|ra khỏi|từ)\\s+(?:nhẫn|omnivault|kho)", RegexOption.IGNORE_CASE)),
-    Rule(GameIntent.OMNIVAULT_STORE, Regex("(?:cất|bỏ|lưu).*(?:vào|trong)\\s+(?:nhẫn|omnivault|kho)", RegexOption.IGNORE_CASE)),
-    Rule(GameIntent.OMNIVAULT_SCAN, Regex("(?:quét|scan)(?:\\s|$)", RegexOption.IGNORE_CASE)),
-    Rule(GameIntent.OMNIVAULT_COPY, Regex("(?:sao chép|copy|nhân bản|tạo thêm|tạo ra thêm|nhân thêm)(?:\\s|$)", RegexOption.IGNORE_CASE)),
-    Rule(GameIntent.OMNIVAULT_RESTORE, Regex("(?:hoàn nguyên|restore|khôi phục vật)(?:\\s|$)", RegexOption.IGNORE_CASE)),
     Rule(GameIntent.TRANSFER_ITEM, Regex("(?i:đưa|trao|chuyển)(?:.*(?i:cho|sang)\\s+\\p{L}+|\\s+\\p{Lu}\\p{L}+)") ),
     Rule(GameIntent.PICKUP_ITEM, Regex("(?:^|\\s)(?:nhặt|lượm|cầm lên|lấy lên)(?:\\s|$)", RegexOption.IGNORE_CASE)),
     Rule(GameIntent.DROP_ITEM, Regex("(?:^|\\s)(?:vứt|thả|bỏ xuống)(?:\\s|$)", RegexOption.IGNORE_CASE)),
@@ -128,7 +121,7 @@ class DefaultQuantityResolver : QuantityResolver {
 class DefaultItemResolver : ItemResolver {
   private val pronoun = Regex("\\b(?:nó|vật đó|cái đó|món đó|thứ đó)\\b", RegexOption.IGNORE_CASE)
   private val resultTail = Regex("\\s+(?:và\\s+)?(?:nhận được|biến thành|trở thành|thành)\\s+.+$", RegexOption.IGNORE_CASE)
-  private val noise = Regex("\\b(?:kai|iris|syvial|nhặt|được|lượm|cầm|lấy|rút|triệu hồi|bỏ|cất|lưu|đưa|trao|chuyển|cho|sang|dùng|sử dụng|uống|ăn|trang bị|đeo|mặc|tháo|cởi|quét|scan|copy|sao chép|nhân bản|tạo thêm|tạo ra thêm|nhân thêm|hoàn nguyên|restore|khỏi|ra|từ|vào|trong|nhẫn|omnivault|kho|rồi|một|hai|ba|bốn|năm|sáu|bảy|tám|chín|mười|trăm|\\d+)\\b", RegexOption.IGNORE_CASE)
+  private val noise = Regex("\\b(?:kai|iris|syvial|nhặt|được|lượm|cầm|lấy|rút|triệu hồi|bỏ|cất|lưu|đưa|trao|chuyển|cho|sang|dùng|sử dụng|uống|ăn|trang bị|đeo|mặc|tháo|cởi|quét|scan|copy|sao chép|nhân bản|tạo thêm|tạo ra thêm|nhân thêm|hoàn nguyên|restore|khỏi|ra|từ|vào|trong|kho|rồi|một|hai|ba|bốn|năm|sáu|bảy|tám|chín|mười|trăm|\\d+)\\b", RegexOption.IGNORE_CASE)
 
   override fun resolve(clause: String, context: GameContext): Pair<String, String>? {
     if (pronoun.containsMatchIn(clause)) {
@@ -139,11 +132,7 @@ class DefaultItemResolver : ItemResolver {
     context.itemAliases.entries.firstOrNull { sourceClause.contains(it.key, true) }?.let { return it.value to it.key }
 
     val normalizedClause = normalize(sourceClause)
-    val knownItems = (
-      context.state.inventories.values.flatMap { it.items.values } +
-      context.state.omnivault.storedItems.values +
-      context.state.omnivault.scanSlots.map { it.templateItem }
-    ).distinctBy { it.itemId }
+    val knownItems = context.state.inventories.values.flatMap { it.items.values }.distinctBy { it.itemId }
     val clauseTokens = normalizedClause.split(' ').filter(String::isNotBlank)
     val fuzzy = knownItems.mapNotNull { stack ->
       val normalizedName = normalize(stack.name)
@@ -167,8 +156,6 @@ class DefaultItemResolver : ItemResolver {
 
   private fun knownPair(id: String, context: GameContext): Pair<String, String> {
     val known = context.state.inventories.values.asSequence().mapNotNull { it.items[id] }.firstOrNull()
-      ?: context.state.omnivault.storedItems[id]
-      ?: context.state.omnivault.scanSlots.firstOrNull { it.templateItem.itemId == id }?.templateItem
     return id to (known?.name ?: id)
   }
 
@@ -181,7 +168,6 @@ class DefaultItemResolver : ItemResolver {
 
 class DefaultContainerResolver : ContainerResolver {
   override fun resolve(clause: String): String? = when {
-    Regex("(?:nhẫn|omnivault)", RegexOption.IGNORE_CASE).containsMatchIn(clause) -> "omnivault"
     Regex("(?:inventory|túi đồ|kho đồ)", RegexOption.IGNORE_CASE).containsMatchIn(clause) -> "inventory"
     else -> null
   }

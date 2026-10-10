@@ -23,11 +23,7 @@ object ItemContentRules {
 
   fun sameStackState(left: ItemStack, right: ItemStack): Boolean {
     val a = normalize(left); val b = normalize(right)
-    return a.itemId == b.itemId && a.archetypeId == b.archetypeId && a.condition == b.condition && stackMetadata(a.metadata) == stackMetadata(b.metadata)
+    return a.itemId == b.itemId && a.archetypeId == b.archetypeId && a.condition == b.condition && a.metadata == b.metadata
   }
 
-  private fun stackMetadata(metadata: Map<String, String>): Map<String, String> = metadata - setOf(
-    "omnivaultCopyCount", "lastUsedAt", "physicalInstanceIds", "identitySeed", "worldInstanceId",
-    "omnivaultOriginal", "omnivaultSourceInstanceId", "omnivaultTemplateId"
-  )
 }

@@ -15,7 +15,7 @@ class InventoryAuthorityRegressionTest {
       itemId = BANDAGE_ID,
       itemName = "Băng gạc",
       quantity = 1,
-      metadata = mapOf("worldInstanceId" to "world:bandage:1", "itemOrigin" to "WORLD", "omnivaultOriginal" to "true")
+      metadata = mapOf("itemOrigin" to "ENTITY_DROP")
     ))
     assertTrue(result.validation.reason ?: "pickup failed", result.applied)
     assertTrue(result.events.contains("inventory_pickup"))

@@ -14,14 +14,8 @@ object CommandValidator {
       return ValidationResult(false, "player_pickup_unavailable")
     }
 
-    // Restore remains a narrative capability. It must never mutate authoritative gameplay state.
-    if (command is OmnivaultCommand && command.operation == OmnivaultCommand.Operation.RESTORE) {
-      return ValidationResult(false, "restore_narrative_only")
-    }
-
     val itemName = when (command) {
       is ItemCommand -> command.itemName
-      is OmnivaultCommand -> command.itemName
       else -> null
     }
     if (itemName != null && ItemContentRules.hasForbiddenPreciseAmount(itemName)) return ValidationResult(false, "precise_content_amount_forbidden")
@@ -38,7 +32,6 @@ object StateReducer {
     if (!validation.valid) return ExecutionResult(state, false, validation = validation)
     val result = when (command) {
       is ItemCommand -> InventoryEngine.execute(state, command)
-      is OmnivaultCommand -> OmnivaultEngine.execute(state, command)
       is PartyCommand -> PartyEngine.execute(state, command)
       is StatusCommand -> StatusEngine.execute(state, command)
       is TimeAdvanceCommand -> TimeEngine.execute(state, command)
@@ -58,7 +51,6 @@ object StateReducer {
     if (!result.applied) return result
     val rememberedItemId = when (command) {
       is ItemCommand -> rememberedItemAfter(state, result.state, command)
-      is OmnivaultCommand -> command.itemId
       else -> null
     }
     val nextMetadata = if (rememberedItemId != null) result.state.metadata + ("lastReferencedItemId" to rememberedItemId) else result.state.metadata

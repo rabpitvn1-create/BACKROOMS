@@ -73,12 +73,6 @@ class GameCoreFacade private constructor(
       return response(true, result, "player_pickup_unavailable", "validation_rejected", reply)
     }
 
-    // Restore is lore/narrative-only. Route prose to the GM, but authoritative state mutation is
-    // explicitly suppressed again in processValidatedCandidate().
-    if (interpreted.candidates.any { it.intent == GameIntent.OMNIVAULT_RESTORE }) {
-      return response(false, legacy, null, "fallback_required")
-    }
-
     if (interpreted.candidates.any { isAuthoritativeItemIntent(it.intent) && it.confidence != IntentConfidence.HIGH }) {
       val result = syncLegacy(legacy, state, incrementTurn = false)
       val reply = validationReply("item_action_resolution_required")
@@ -577,7 +571,7 @@ class GameCoreFacade private constructor(
 
   private fun contextFor(state: GameState): GameContext {
     val actors = state.characters.values.associate { it.name.lowercase() to it.id } + mapOf("cao minh" to KAI_ID, "cao_minh" to KAI_ID, "iris" to "iris", "syvial" to "syvial", "an nhiên" to AN_NHIEN_ID, "an nhien" to AN_NHIEN_ID)
-    val items = (state.inventories.values.flatMap { it.items.values } + state.omnivault.storedItems.values).associate { it.name.lowercase() to it.itemId }
+    val items = state.inventories.values.flatMap { it.items.values }.associate { it.name.lowercase() to it.itemId }
     return GameContext(state, actors, items)
   }
 
@@ -595,17 +589,10 @@ class GameCoreFacade private constructor(
     GameIntent.TRANSFER_ITEM,
     GameIntent.EQUIP_ITEM,
     GameIntent.UNEQUIP_ITEM,
-    GameIntent.OMNIVAULT_STORE,
-    GameIntent.OMNIVAULT_WITHDRAW,
-    GameIntent.OMNIVAULT_SCAN,
-    GameIntent.OMNIVAULT_COPY,
-    GameIntent.OMNIVAULT_RESTORE
   )
 
   private fun isDirectPlayerPickupAction(action: String): Boolean {
     val text = action.trim()
-    val omnivaultWithdrawal = Regex("(?:lấy|rút|triệu hồi).*(?:ra khỏi|khỏi|từ).*(?:omnivault|nhẫn|kho)", RegexOption.IGNORE_CASE).containsMatchIn(text)
-    if (omnivaultWithdrawal) return false
     val directVerb = Regex("(?:^|\\s)(?:nhặt|lượm|cầm\\s+lên|lấy(?:\\s+lên)?|thu\\s+hồi|tịch\\s+thu|nhận(?:\\s+lấy)?|pick\\s+up|take|receive)(?:\\s|$)", RegexOption.IGNORE_CASE)
     val inventoryAssertion = Regex("(?:thêm|đưa).{0,80}(?:vào|trong)\\s+(?:inventory|kho đồ|túi đồ)", RegexOption.IGNORE_CASE)
     return directVerb.containsMatchIn(text) || inventoryAssertion.containsMatchIn(text)
@@ -688,26 +675,19 @@ class GameCoreFacade private constructor(
     "inventory_transfer" -> "Vật phẩm đã được chuyển giao."
     "item_equipped" -> "Vật phẩm đã được trang bị."
     "item_unequipped" -> "Vật phẩm đã được tháo khỏi trang bị."
-    "omnivault_stored" -> "Vật phẩm đã được cất vào Omnivault."
-    "omnivault_withdrawn" -> "Vật phẩm đã được lấy ra khỏi Omnivault."
-    "omnivault_scanned" -> "Omnivault đã ghi mẫu vào scan slot và đánh dấu bản gốc."
-    "omnivault_copied" -> "Omnivault đã tạo bản sao từ mẫu còn hiệu lực."
     else -> "Hành động đã được Game State Core xác nhận."
   }
 
   private fun validationReply(reason: String): String {
     val message = when (reason) {
-      "player_pickup_unavailable", "restore_narrative_only", "precise_content_amount_forbidden", "item_content_empty" -> "Vật phẩm này hiện không có nội dung khả dụng."
+      "player_pickup_unavailable", "precise_content_amount_forbidden", "item_content_empty" -> "Vật phẩm này hiện không có nội dung khả dụng."
       "madgod_equipment_permanent" -> "MadGod đã khóa vĩnh viễn sau khi trang bị; không thể tháo hoặc đổi."
-      "madgod_omnivault_copy_forbidden" -> "Omnivault không thể quét hoặc sao chép MadGod Set."
       "madgod_equipment_slot_mismatch" -> "MadGod Set chỉ có thể trang bị cho Cao Minh; chỉ chiếm slot vũ khí; giáp MadGod đã chuyển thành passive Ma Tôn Vạn Giới."
-      "scan_source_missing", "scan_template_missing" -> "There is no object available for scanning or multiplying."
       "insufficient_item_quantity", "item_not_owned" -> "Cao Minh không có đủ vật phẩm cần thiết cho hành động này."
       "player_pickup_unavailable" -> "Không thể tự thêm vật phẩm vào Inventory; hãy tìm kiếm hoặc tương tác với môi trường để game xác định kết quả."
       "item_action_resolution_required" -> "Không thể xác thực hành động vật phẩm này từ state hiện tại; Inventory không thay đổi."
       "party_full" -> "Party đã đủ tối đa bốn thành viên."
       "join_not_confirmed" -> "Yêu cầu gia nhập chưa đủ điều kiện hoặc chưa được NPC xác nhận."
-      "living_target_forbidden" -> "Omnivault không thể tác động lên sinh vật sống."
       else -> "Hành động này không khả dụng trong trạng thái hiện tại."
     }
     return "[Warning] $message"

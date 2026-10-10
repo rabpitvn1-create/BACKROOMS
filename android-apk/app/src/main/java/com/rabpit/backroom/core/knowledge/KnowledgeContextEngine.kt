@@ -210,7 +210,6 @@ object KnowledgeContextEngine {
       if (hasAny(actionText, "sparda core")) direct += "CHAR.KAI.SPARDA_CORE"
       if (hasAny(actionText, "guilty crown", "override")) direct += "CHAR.KAI.GUILTY_CROWN_OVERRIDE"
       if (hasAny(actionText, "white wraith", "magnum")) direct += "CHAR.KAI.WHITE_WRAITH"
-      if (hasAny(actionText, "omnivault", "nhẫn vạn tàng", "scan", "hoàn nguyên", "restore")) direct += "CHAR.KAI.OMNIVAULT"
       if (hasAny(actionText, "devil trigger")) {
         direct += "CHAR.KAI.DEVIL_TRIGGER"
         if ("syvial" in presentActors) direct += "CHAR.SYVIAL.DEVIL_TRIGGER"
