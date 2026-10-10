@@ -50,12 +50,14 @@ internal object CompanionNativeActionBatch {
         .put("type",type).put("payload",payload))
       events.add(Event(id,ordinal,type,record,CompanionDigests.sha256(record)))
     }
-    event("ACTOR_ACTION_COMPLETED",JSONObject()
-      .put("actor","cao_minh").put("intent",staged.intent.name)
+    val actionEvent=JSONObject().put("actor","cao_minh")
+      .put("intent",staged.intent.name)
       .put("scene",staged.fromStop).put("minutes",staged.minutes)
       .put("location",staged.fromStop)
       .put("toStop",staged.toStop)
-      .put("elapsedMinutes",state.time.elapsedSubjectiveMinutes))
+      .put("elapsedMinutes",state.time.elapsedSubjectiveMinutes)
+    staged.utterance?.let { actionEvent.put("utterance",it) }
+    event("ACTOR_ACTION_COMPLETED",actionEvent)
     event("EXIT_STREAK_RESOLVED",JSONObject()
       .put("success",staged.exitWon).put("streak",staged.streak)
       .put("source",staged.fromStop).put("target",staged.toStop)
