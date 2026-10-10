@@ -118,6 +118,9 @@ jobs:
       - name: Verify New Game GM callback feedback
         run: node --test android-apk/tests/gm-turn-feedback.test.cjs
 
+      - name: Verify Companion native INTERACT projection
+        run: node --test android-apk/tests/companion-interact.test.cjs
+
       - name: Verify complete Novel Asset Canon index
         run: python3 android-apk/build-novel-asset-canon-index.py --check
 
