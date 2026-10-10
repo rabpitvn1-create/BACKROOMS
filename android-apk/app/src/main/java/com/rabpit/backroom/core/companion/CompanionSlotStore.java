@@ -570,6 +570,10 @@ public final class CompanionSlotStore implements Closeable {
 
   void faultForTest(Fault fault) { this.fault = fault; }
   File fileForTest() { return file; }
+  // SQLite logical row changes on the primary writer connection; not physical I/O.
+  synchronized long totalChangesForTest() throws IOException {
+    return transaction(() -> scalar("SELECT total_changes()"), false);
+  }
   @Override public void close() {
     synchronized (this) {
       if (closed) return;
@@ -625,3 +629,4 @@ public final class CompanionSlotStore implements Closeable {
     }
   }
 }
+
