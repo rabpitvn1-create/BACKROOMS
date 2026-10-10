@@ -113,8 +113,10 @@
         var verbs = {SEARCH: "tìm kiếm", MOVE: "thăm dò lối đi", INSPECT: "kiểm tra kỹ",
           TALK: "trao đổi với người đang hiện diện"};
         if (p.actor === "cao_minh" && Object.prototype.hasOwnProperty.call(verbs, p.intent))
-          result = "Cao Minh đã tự chọn " + verbs[p.intent] + " tại " +
-            p.location + " (" + p.minutes + " phút).";
+          result = p.intent === "TALK" && typeof p.utterance === "string"
+            ? "Cao Minh nói: “" + p.utterance + "” (" + p.minutes + " phút)."
+            : "Cao Minh đã tự chọn " + verbs[p.intent] + " tại " +
+              p.location + " (" + p.minutes + " phút).";
       } else if (event.type === "WAIT_COMPLETED")
         result = "Cao Minh đã chờ và quan sát " + p.minutes + " phút tại " + p.location + ".";
       else if (event.type === "EXIT_STREAK_RESOLVED")
