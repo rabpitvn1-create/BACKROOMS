@@ -4,23 +4,13 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class InventoryAuthorityRegressionTest {
-  @Test fun bandagePickupDoesNotRunContentUseValidation() {
+  @Test fun offlineEntityDropUsesCanonicalMedicalItem() {
     val state = CharacterEquipmentSystem.seedFresh(GameState.initial())
-    val result = InventoryEngine.execute(state, ItemCommand(
-      commandId = "world-bandage-pickup",
-      turnId = state.turn.currentTurnId,
-      actorId = KAI_ID,
-      source = CommandSource.SYSTEM,
-      operation = ItemCommand.Operation.PICKUP,
-      itemId = BANDAGE_ID,
-      itemName = "Băng gạc",
-      quantity = 1,
-      metadata = mapOf("itemOrigin" to "ENTITY_DROP")
-    ))
-    assertTrue(result.validation.reason ?: "pickup failed", result.applied)
-    assertTrue(result.events.contains("inventory_pickup"))
-    val bandage = result.state.inventories.getValue(KAI_ID).items.getValue(BANDAGE_ID)
+    val result = InventoryEngine.grantDrop(state, BANDAGE_ID)
+    assertNotNull(result)
+    val bandage = result!!.inventories.getValue(KAI_ID).items.getValue(BANDAGE_ID)
     assertEquals("true", bandage.metadata["consumable"])
+    assertEquals("ENTITY_DROP", bandage.metadata["itemOrigin"])
   }
 
   @Test fun transferFailureLeavesBothInventoriesUntouched() {
