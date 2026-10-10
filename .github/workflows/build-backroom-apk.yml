@@ -44,6 +44,8 @@ jobs:
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add release-status/v1.2.0.0.0-running.txt
           git commit -m "Record active Backroom 1.2.0.0.0 run $GITHUB_RUN_ID"
+          git fetch origin "$GITHUB_REF_NAME"
+          git rebase "origin/$GITHUB_REF_NAME"
           git push origin "HEAD:${GITHUB_REF_NAME}"
 
       - uses: actions/setup-python@v5
