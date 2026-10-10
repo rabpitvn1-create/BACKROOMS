@@ -10,7 +10,6 @@ object AnNhienCanon {
   const val SPECIES = "human"
   const val HOME_LEVEL = 0
   const val SURVIVAL_MULTIPLIER = 0.70
-  const val LOOT_BONUS_POINTS = 1000
   const val EXIT_BONUS_POINTS = 200
   const val AVATAR_REF = "avatars/an_nhien_avatar.png"
   const val OUTFIT_NAME = "Bộ quần áo hoa văn màu hồng"
@@ -48,7 +47,6 @@ object AnNhienCanon {
         "canUseWeapons" to "false",
         "followsPlayer" to "true",
         "survivalMultiplier" to SURVIVAL_MULTIPLIER.toString(),
-        "lootBonusPoints" to LOOT_BONUS_POINTS.toString(),
         "exitBonusPoints" to EXIT_BONUS_POINTS.toString(),
         "inventoryProfile" to "an_nhien_food_only"
       )
