@@ -50,14 +50,28 @@ internal object MemoryRetrieval {
   data class Packet(val entries: List<MemoryView>, val truncated: Boolean)
 
   fun retrieve(all: List<MemoryView>, query: Query): Packet {
+    require(query.maxChars >= 0) { "memory_packet_budget_invalid" }
     // 1. Slot + actor filter first.
     val owned = all.filter { it.slotId == query.slotId && it.ownerActorId == query.actorId }
     // 2. Latest per correction chain.
+    val byId = owned.associateBy { it.memoryId }
     val superseded = owned.mapNotNull { it.supersedesMemoryId }.toSet()
     val latest = owned.filter { it.memoryId !in superseded }
+
+    // Explicit refs to an older version must resolve to its latest correction.
+    fun isRequested(memory: MemoryView): Boolean {
+      var current = memory
+      val seen = HashSet<String>()
+      while (seen.add(current.memoryId)) {
+        if (current.memoryId in query.episodeRefs) return true
+        current = byId[current.supersedesMemoryId] ?: break
+      }
+      return false
+    }
+
     // 3. Deterministic rank.
     val ranked = latest.sortedWith(compareBy(
-      { if (it.memoryId in query.episodeRefs) 0 else 1 },
+      { if (isRequested(it)) 0 else 1 },
       { rankSceneActors(it, query) },
       { if (it.topic in query.pendingTopics) 0 else 1 },
       { if (it.salience == EpisodicMemory.Salience.PIVOTAL) 0 else 1 },
@@ -70,7 +84,7 @@ internal object MemoryRetrieval {
     var truncated = false
     for (m in ranked) {
       val cost = m.summary.length + 64
-      if (used + cost > query.maxChars && entries.isNotEmpty()) { truncated = true; break }
+      if (cost > query.maxChars - used) { truncated = true; break }
       entries.add(m)
       used += cost
     }
