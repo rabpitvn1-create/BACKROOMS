@@ -73,6 +73,7 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import subprocess
           root = Path('android-apk')
           workflow_text = Path('.github/workflows/build-backroom-apk.yml').read_text(encoding='utf-8')
           core = root / 'app/src/main/java/com/rabpit/backroom/core'
@@ -97,13 +98,14 @@ jobs:
           poker_test = (root / 'app/src/test/java/com/rabpit/backroom/core/PokerDiceCoreBackportTest.kt').read_text(encoding='utf-8')
           dice_dir = root / 'app/src/main/assets/dice'
           play_bold = root / 'app/src/main/assets/fonts/Play-Bold.ttf'
+          semantic_patch = (root / 'patch-gm-semantic-play-bold.py').read_text(encoding='utf-8')
 
           required = [
               ("versionCode 73", gradle), ("versionName '1.2.0.0.0'", gradle),
               ('const prologue=`Lôi Thiên Vực chưa từng có một ngày yên tĩnh như thế.', html),
               ('Cao Minh tỉnh lại một mình tại Level 0. Không có dấu vết của Lục Trầm.', html),
               ('.snapshot{height:300px;margin:8px 10px 10px;', html),
-              ('GM_SEMANTIC_PLAY_BOLD_R03', html), ("font-family:'Play';font-style:normal;font-weight:700", html),
+              ('GM_SEMANTIC_PLAY_BOLD_R04', html), ("font-family:'Play';font-style:normal;font-weight:700", html),
               ('gm-semantic', html),
               ('UI_119_BACKPORT_R01', html), ('id="playerActionBar"', html), ('id="playerActionModal"', html),
               ('id="playerActionConfirm"', html), ('id="gameMenuModal"', html), ('id="gameMenuOpen"', html),
@@ -200,39 +202,84 @@ jobs:
           assert 'return exitFound && progressionReady(before);' not in java
           assert 'recordLevelProgress(state, oldLevel, newLevel);' not in java
           assert 'cần ít nhất 6 lượt gameplay trong Level' not in java
-          semantic_start = html.index('/* GM_SEMANTIC_PLAY_BOLD_R03 */')
+          semantic_start = html.index('/* GM_SEMANTIC_PLAY_BOLD_R04 */')
           semantic_end = html.index('</style>', semantic_start)
           semantic_css = html[semantic_start:semantic_end]
           assert 'color:' not in semantic_css
-          for semantic_key in ('"character":[', '"entity":[', '"item":[', '"skill":['):
-              assert semantic_key in html, semantic_key
           for forbidden_semantic in ('gm-semantic-location', 'gm-semantic-status', 'gm-semantic-effect', r'\p{L}', r'\p{N}'):
               assert forbidden_semantic not in html, forbidden_semantic
+          for marker in (
+              'SEMANTIC_COMPATIBILITY_TERMS=',
+              'function semanticPrepareNextState(before,json)',
+              'function renderSemanticText(entry)',
+              'state=semanticPrepareNextState(state,json)',
+              '"+renderSemanticText(x)+"',
+              'entry.semanticSpans',
+              'semanticVersion=2',
+          ):
+              assert marker in html, marker
+          for retired in (
+              'gmSemanticPlayBoldRuntime',
+              '__gmSemanticPlayBoldInstalled',
+              'collectTerms(extraSemantic)',
+              'document.querySelectorAll(".message.gm .text")',
+              'termsVersion(terms)',
+          ):
+              assert retired not in html, retired
+          assert 'SEMANTIC AUTO LABEL CONTRACT:' not in java
+          assert 'sanitizeSemanticLabels' not in java
+          assert 'generated.optJSONObject("semantic")' not in java
+          assert 'SEMANTIC AUTO LABEL CONTRACT:' not in semantic_patch
+          assert 'sanitizeSemanticLabels' not in semantic_patch
+          assert '("Lục Trầm",' not in semantic_patch
+          assert 'semanticCollectState' in semantic_patch
+          assert 'semanticContextCandidates' in semantic_patch
           assert 'Băng gạc' in html
           assert 'Thuốc sát trùng' in html
           for world_item in ('almond water', 'greek fire', 'liquid pain'):
               assert world_item in html.lower(), world_item
-          assert '.message.gm .text' in html
-          assert 'span.textContent=source.slice(hit.at,end)' in html
-          assert 'span.innerHTML=source.slice(hit.at,end)' not in html
-          assert 'dataset.gmSemanticPlay==="1"' not in html
-          assert '.message:not(.player) .text' not in html
-          assert 'member.equipmentItems' in html
-          assert 's.flags.worldItems' in html
-          assert 'characterData:true' in html
-          assert 'termsVersion(terms)' in html
-          assert '"Lục Trầm"' in html
-          assert 'entry&&entry.semantic' in html
-          assert 'addSemanticLabels(map,extraSemantic)' in html
-          assert 'SEMANTIC AUTO LABEL CONTRACT:' in java
-          assert 'private JSONObject sanitizeSemanticLabels(' in java
-          assert '.put("semantic", sanitizeSemanticLabels(generated, reply))' in java
           for final_character in ('Cao Minh', 'Iris', 'Syvial', 'An Nhiên', r'Lucia \"Lục\"'):
               assert final_character in html, final_character
           for final_item in ('Huyết Ma Kiếm', 'Huyết Ma Chiến Khải', 'Nhẫn Vạn Tàng'):
               assert final_item in html, final_item
           for final_skill in ('Huyết Ma Tứ Liên', 'Huyết Ma Nhị Thập Tứ Trảm'):
               assert final_skill in html, final_skill
+
+          # Behavior regression: names absent from every checked-in catalog must resolve from
+          # accepted state locally, while player text and current location remain untouched.
+          for synthetic in ('Tử Lam', 'Hắc Nguyệt', 'Quỳnh Sa'):
+              assert synthetic not in html, synthetic
+          runtime_start = html.index('const SEMANTIC_COMPATIBILITY_TERMS=')
+          runtime_end = html.index('function levelHeader(s){', runtime_start)
+          runtime_js = html[runtime_start:runtime_end]
+          probe = runtime_js + r'''
+const before={location:"Lôi Thiên Vực",log:[]};
+const next={
+  location:"Lôi Thiên Vực",
+  party:[{name:"Tử Lam"}],
+  inventory:[{name:"Hắc Nguyệt"}],
+  log:[
+    {role:"gm",text:"Tử Lam cầm Hắc Nguyệt."},
+    {role:"player",text:"Tử Lam"}
+  ]
+};
+const prepared=semanticPrepareNextState(before,JSON.stringify(next));
+const gmText=prepared.log[0].text;
+const spans=prepared.log[0].semanticSpans||[];
+if(!spans.some(s=>s.kind==="character"&&gmText.slice(s.start,s.end)==="Tử Lam"))process.exit(21);
+if(!spans.some(s=>s.kind==="item"&&gmText.slice(s.start,s.end)==="Hắc Nguyệt"))process.exit(22);
+if(prepared.log[1].semanticSpans)process.exit(23);
+const locationHits=semanticResolve("Lôi Thiên Vực đứng yên.",before,next,null);
+if(locationHits.length)process.exit(24);
+const heuristicText="Người sống sót tên Quỳnh Sa đang chờ.";
+const heuristic=semanticResolve(heuristicText,{}, {}, null);
+if(!heuristic.some(s=>s.kind==="character"&&heuristicText.slice(s.start,s.end)==="Quỳnh Sa"))process.exit(25);
+const frozen=JSON.stringify(spans);
+const replay=semanticPrepareNextState(prepared,JSON.stringify(prepared));
+if(JSON.stringify(replay.log[0].semanticSpans)!==frozen)process.exit(26);
+'''
+          subprocess.run(['node', '-e', probe], check=True)
+
           provider_start = java.index('  private String generateText(String prompt)')
           provider_end = java.index('\n  private JSONObject parseModelJson', provider_start)
           provider_flow = java[provider_start:provider_end]
@@ -350,15 +397,16 @@ jobs:
           grep -q 'renderCharacterStatusEquipment' apk-check/assets/index.html
           grep -q 'characterSkillsModal' apk-check/assets/index.html
           grep -q 'characterSkillsButton' apk-check/assets/index.html
-          grep -q 'GM_SEMANTIC_PLAY_BOLD_R03' apk-check/assets/index.html
+          grep -q 'GM_SEMANTIC_PLAY_BOLD_R04' apk-check/assets/index.html
           grep -q 'gm-semantic' apk-check/assets/index.html
-          grep -q 'document.querySelectorAll(".message.gm .text")' apk-check/assets/index.html
-          grep -q 'member.equipmentItems' apk-check/assets/index.html
-          grep -q 's.flags.worldItems' apk-check/assets/index.html
-          grep -q 'characterData:true' apk-check/assets/index.html
-          grep -q '"Lục Trầm"' apk-check/assets/index.html
-          grep -q 'entry&&entry.semantic' apk-check/assets/index.html
-          grep -q 'addSemanticLabels(map,extraSemantic)' apk-check/assets/index.html
+          grep -q 'SEMANTIC_COMPATIBILITY_TERMS=' apk-check/assets/index.html
+          grep -q 'function semanticPrepareNextState(before,json)' apk-check/assets/index.html
+          grep -q 'function renderSemanticText(entry)' apk-check/assets/index.html
+          grep -q 'state=semanticPrepareNextState(state,json)' apk-check/assets/index.html
+          grep -q 'entry.semanticSpans' apk-check/assets/index.html
+          ! grep -q 'gmSemanticPlayBoldRuntime' apk-check/assets/index.html
+          ! grep -q 'document.querySelectorAll(".message.gm .text")' apk-check/assets/index.html
+          ! grep -q 'termsVersion(terms)' apk-check/assets/index.html
           grep -q 'Băng gạc' apk-check/assets/index.html
           grep -q 'Thuốc sát trùng' apk-check/assets/index.html
           grep -qi 'almond water' apk-check/assets/index.html
@@ -433,7 +481,7 @@ jobs:
           unzip -l Backroom-1.2.0.0.0-verified.apk | grep -q 'assets/fonts/Play-Bold.ttf'
           unzip -p Backroom-1.2.0.0.0-verified.apk assets/index.html | grep -q 'characterSkillsModal'
           unzip -p Backroom-1.2.0.0.0-verified.apk assets/index.html | grep -q 'characterSkillsButton'
-          unzip -p Backroom-1.2.0.0.0-verified.apk assets/index.html | grep -q 'GM_SEMANTIC_PLAY_BOLD_R03'
+          unzip -p Backroom-1.2.0.0.0-verified.apk assets/index.html | grep -q 'GM_SEMANTIC_PLAY_BOLD_R04'
           unzip -p Backroom-1.2.0.0.0-verified.apk assets/index.html | grep -q 'UI_119_BACKPORT_R01'
           unzip -p Backroom-1.2.0.0.0-verified.apk assets/index.html | grep -q 'playerActionModal'
           unzip -p Backroom-1.2.0.0.0-verified.apk assets/index.html | grep -q 'POKER_DICE_CORE_BACKPORT_R01'
