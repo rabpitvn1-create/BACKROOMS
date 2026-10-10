@@ -46,34 +46,51 @@ combat = replace_once(
     "remove Lifeform ATK-stat modifier",
 )
 
-combat = replace_once(
-    combat,
-    "EntityPowerScaling.scale(lifeformAttack(profile.attack, lifeformSkill), c.progressionRank)",
-    "EntityPowerScaling.scale(profile.attack, c.progressionRank)",
-    "remove Lifeform ATK-stat multiplier from base attack",
-)
-raw_pos = combat.find("val rawIncoming =")
-if raw_pos < 0:
-    raise RuntimeError("Lifeform Basic Attack rawIncoming anchor missing")
-damage_pos = combat.find("val damage =", raw_pos)
-if damage_pos < 0 or damage_pos - raw_pos > 800:
-    raise RuntimeError("Lifeform Basic Attack damage line missing after rawIncoming")
-line_start = combat.rfind("\n", 0, damage_pos) + 1
-line_end = combat.find("\n", damage_pos)
+scaled_token = "EntityPowerScaling.scale(lifeformAttack(profile.attack, lifeformSkill), c.progressionRank)"
+base_token = "EntityPowerScaling.scale(profile.attack, c.progressionRank)"
+if combat.count(scaled_token) != 1:
+    raise RuntimeError("Lifeform scaled attack token count changed: " + str(combat.count(scaled_token)))
+token_pos = combat.index(scaled_token)
+line_start = combat.rfind("\n", 0, token_pos) + 1
+line_end = combat.find("\n", token_pos)
 if line_end < 0:
-    raise RuntimeError("Lifeform Basic Attack damage line terminator missing")
-damage_line = combat[line_start:line_end]
-indent = damage_line[: len(damage_line) - len(damage_line.lstrip())]
-prefix = indent + "val damage = "
-if not damage_line.startswith(prefix):
-    raise RuntimeError("Unexpected Lifeform damage assignment: " + damage_line)
-basic_expression = damage_line[len(prefix):]
-replacement = (
-    indent + "val basicDamage = " + basic_expression + "\n" +
-    indent + "val damage = if (lifeformSkill == null) basicDamage\n" +
-    indent + "  else CharacterStatCore.scaleByPercent(basicDamage, lifeformSkill.basicAttackPercent)"
-)
-combat = combat[:line_start] + replacement + combat[line_end:]
+    raise RuntimeError("Lifeform attack line terminator missing")
+attack_line = combat[line_start:line_end]
+indent = attack_line[: len(attack_line) - len(attack_line.lstrip())]
+
+if attack_line.startswith(indent + "val damage = "):
+    reverted_line = attack_line.replace(scaled_token, base_token, 1)
+    prefix = indent + "val damage = "
+    basic_expression = reverted_line[len(prefix):]
+    replacement = (
+        indent + "val basicDamage = " + basic_expression + "\n" +
+        indent + "val damage = if (lifeformSkill == null) basicDamage\n" +
+        indent + "  else CharacterStatCore.scaleByPercent(basicDamage, lifeformSkill.basicAttackPercent)"
+    )
+    combat = combat[:line_start] + replacement + combat[line_end:]
+elif attack_line.startswith(indent + "val rawIncoming = "):
+    combat = combat[:line_start] + attack_line.replace(scaled_token, base_token, 1) + combat[line_end:]
+    damage_pos = combat.find("val damage =", line_end)
+    if damage_pos < 0 or damage_pos - line_end > 800:
+        raise RuntimeError("Lifeform defended damage line missing after rawIncoming")
+    damage_start = combat.rfind("\n", 0, damage_pos) + 1
+    damage_end = combat.find("\n", damage_pos)
+    if damage_end < 0:
+        raise RuntimeError("Lifeform defended damage line terminator missing")
+    damage_line = combat[damage_start:damage_end]
+    damage_indent = damage_line[: len(damage_line) - len(damage_line.lstrip())]
+    prefix = damage_indent + "val damage = "
+    if not damage_line.startswith(prefix):
+        raise RuntimeError("Unexpected defended Lifeform damage assignment: " + damage_line)
+    basic_expression = damage_line[len(prefix):]
+    replacement = (
+        damage_indent + "val basicDamage = " + basic_expression + "\n" +
+        damage_indent + "val damage = if (lifeformSkill == null) basicDamage\n" +
+        damage_indent + "  else CharacterStatCore.scaleByPercent(basicDamage, lifeformSkill.basicAttackPercent)"
+    )
+    combat = combat[:damage_start] + replacement + combat[damage_end:]
+else:
+    raise RuntimeError("Unexpected Lifeform scaled attack line: " + attack_line)
 
 combat = replace_once(
     combat,
