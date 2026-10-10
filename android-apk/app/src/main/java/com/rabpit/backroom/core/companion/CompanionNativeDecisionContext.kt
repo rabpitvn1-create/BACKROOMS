@@ -75,8 +75,11 @@ internal object CompanionNativeDecisionContext {
       legal.add(reachable.targetStopKey)
       capabilities.add("cap.move")
     }
-    val listeners = state.party.memberIds.filter { it != KAI_ID &&
-      state.characters[it]?.presence == CharacterPresence.ACTIVE }
+    val player = CompanionNewGameBootstrap.PLAYER_COMPANION_ID
+    val listeners = (state.party.memberIds.filter { it != KAI_ID } +
+      listOfNotNull(player.takeIf { state.characters[it]?.presence == CharacterPresence.ACTIVE &&
+        state.characters[it]?.metadata?.get("interactionRole") == "human_companion" }))
+      .distinct().filter { state.characters[it]?.presence == CharacterPresence.ACTIVE }
     if (listeners.isNotEmpty()) {
       capabilities.add("cap.talk")
       legal.addAll(listeners)
