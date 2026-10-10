@@ -77,6 +77,6 @@ public final class ObservationPublisher {
       c.getSlotId(), c.getObservationId(), c.getOwnerActorId(), c.getSourceEventId(),
       c.getAccess().name(), c.getCertainty().name(),
       c.getTurnId(), Long.toString(c.getRevision()), c.getSceneId(), c.getPolicyVersion());
-    return CompanionDigests.sha256(canonical);
+    return CompanionDigests.INSTANCE.sha256(canonical);
   }
 }
