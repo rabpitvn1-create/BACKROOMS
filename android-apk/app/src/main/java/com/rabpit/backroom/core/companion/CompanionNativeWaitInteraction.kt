@@ -63,7 +63,7 @@ internal class CompanionNativeWaitInteraction(
       "Legal targetIds: " + bound.scope.legalTargetIds.sorted() +
       ". MOVE phải chọn tuyến kế tiếp hợp lệ; SEARCH có thể không chọn target. " +
       "NONE và các intent không có writer native sẽ không được giả kết quả. " +
-      "Trả đúng JSON {\\\"intent\\\":\\\"SEARCH\\\",\\\"targetId\\\":null,\\\"itemId\\\":null} hoặc intent khác hợp lệ."
+      "Trả đúng JSON {\"intent\":\"SEARCH\",\"targetId\":null,\"itemId\":null} hoặc intent khác hợp lệ."
     val raw = try { model.propose(prompt) } catch (error: Exception) {
       throw IOException("actor_provider_failed", error)
     }
