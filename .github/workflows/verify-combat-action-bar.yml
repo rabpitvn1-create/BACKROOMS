@@ -101,6 +101,7 @@ jobs:
           assert '.poker-dice-backdrop{display:none}' in html
           assert 'function mountNearSnapshot()' in html
           assert 'snapshot.insertAdjacentElement("afterend",modal)' in html
+          assert 'function ensureDirectCombatDice(){\n    mountNearSnapshot();' in html
           assert '.poker-dice-modal{position:fixed' not in html
           feedback_js = (root / 'app/src/main/assets/combat-feedback-1193a.js').read_text(encoding='utf-8')
           feedback_css = (root / 'app/src/main/assets/combat-feedback-1193a.css').read_text(encoding='utf-8')
@@ -113,9 +114,11 @@ jobs:
           assert 'state.log' not in feedback_js
           assert 'localStorage' not in feedback_js
           assert '.combat-feedback-panel' in feedback_css
-          assert 'ENTITY_SHARED_GROUND_PLANE_R01' in main
+          assert 'ENTITY_SHARED_GROUND_PLANE_R02' in main
+          assert 'ENTITY_PRECOMPUTED_ALPHA_BOUNDS_R02' in main
+          assert "__entityVisualBounds" in main
           assert "rect=img.getBoundingClientRect()" in main
-          assert "x=-left*ew*scale,y=(1-bottom)*eh*scale" in main
+          assert "x=-Number(b.left||0)*ew*scale,y=(1-Number(b.bottom||1))*eh*scale" in main
           assert 'combat-feedback-1193a.js' in html
           assert 'combat-feedback-1193a.css' in html
           assert 'output.put("combatFeedback"' in facade
@@ -124,8 +127,10 @@ jobs:
           assert 'log.put(JSONObject().put("role", "gm").put("text", combatReply))' not in facade
           assert 'feedback = feedback.toList()' in combat
           assert 'function normalizeEntityVisual(img)' in main
-          assert 'ctx.getImageData(0,0,pw,ph)' in main
+          assert 'ctx.getImageData(0,0,pw,ph)' not in main
+          assert "document.createElement('canvas')" not in main
           assert "img.onload=function(){normalizeEntityVisual(img)" in main
+          assert "modal.hidden=true" not in feedback_js
           PY
           node --test android-apk/tests/snapshot-combat-damage.test.cjs
           git diff --check
@@ -155,6 +160,7 @@ jobs:
           grep -q 'POKER_DICE_CORE_BACKPORT_R01' "$html"
           grep -q 'pokerDiceModal' "$html"
           grep -q 'ensureDirectCombatDice' "$html"
+          grep -q 'mountNearSnapshot();' "$html"
           grep -q 'POKER_DICE_119_POLISH_R01' "$html"
           grep -q 'poker-die-shadow' "$html"
           grep -q 'poker-die-hold-seal' "$html"
@@ -164,8 +170,8 @@ jobs:
           grep -q 'POKER_DICE_SNAPSHOT_CLEAR_R01' "$html"
           grep -q 'POKER_DICE_NEAR_SNAPSHOT_R01' "$html"
           grep -q 'poker-dice-backdrop{display:none}' "$html"
-          grep -q 'mountNearSnapshot' "$html"
           grep -q 'snapshot.insertAdjacentElement("afterend",modal)' "$html"
+          ! grep -q 'if(window.__combatFeedbackBusy){hide();return;}' "$html"
           ! grep -q '.poker-dice-modal{position:fixed' "$html"
           grep -q 'combat-feedback-1193a.js' "$html"
           grep -q 'COMBAT_FEEDBACK_1193A' combat-apk-check/assets/combat-feedback-1193a.js
@@ -174,6 +180,7 @@ jobs:
           grep -q "combatPanel.id='combatFeedbackPanel'" combat-apk-check/assets/combat-feedback-1193a.js
           grep -q "var dice=document.getElementById('pokerDiceModal')" combat-apk-check/assets/combat-feedback-1193a.js
           grep -q "anchor.insertAdjacentElement('afterend',combatPanel)" combat-apk-check/assets/combat-feedback-1193a.js
+          ! grep -q "modal.hidden=true" combat-apk-check/assets/combat-feedback-1193a.js
           ! grep -q 'state.log' combat-apk-check/assets/combat-feedback-1193a.js
           ! grep -q 'localStorage' combat-apk-check/assets/combat-feedback-1193a.js
           grep -q '.combat-feedback-panel' combat-apk-check/assets/combat-feedback-1193a.css

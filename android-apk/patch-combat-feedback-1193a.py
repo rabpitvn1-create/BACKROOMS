@@ -128,8 +128,11 @@ s, n = re.subn(r'<script>\s*/\* SNAPSHOT_COMBAT_DAMAGE_RUNTIME_R01 \*/.*?</scrip
 if n != 1:
     raise RuntimeError('Old aggregate-damage hook missing')
 s = re.sub(r'/\* SNAPSHOT_COMBAT_DAMAGE_R01 \*/.*?(?=</style>)', '', s, count=1, flags=re.S)
-s = replace(s, '  function show(){modal.hidden=false;', '  function show(){if(window.__combatFeedbackBusy)return;modal.hidden=false;')
-s = replace(s, '  function ensureDirectCombatDice(){\n', '  function ensureDirectCombatDice(){\n    if(window.__combatFeedbackBusy){hide();return;}\n')
+# Combat feedback may disable dice interaction, but must never hide or relocate the Dice panel.
+if 'if(window.__combatFeedbackBusy){hide();return;}' in s:
+    raise RuntimeError('Combat feedback must not hide Poker Dice')
+if 'function mountNearSnapshot()' not in s or 'mountNearSnapshot();' not in s:
+    raise RuntimeError('Poker Dice near-Snapshot mount contract missing')
 s = replace(s, '</head>', '<link rel="stylesheet" href="combat-feedback-1193a.css">\n</head>')
 s = replace(s, '</body>', '<script src="combat-feedback-1193a.js"></script>\n</body>')
 p.write_text(s)

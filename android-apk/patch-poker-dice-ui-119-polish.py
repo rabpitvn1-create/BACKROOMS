@@ -105,7 +105,7 @@ render = r'''  function diceAsset(value){return "file:///android_asset/dice/die-
       var settling=!rolling&&held[index]!==true&&diceSettleUntil>Date.now()&&diceSettleMask[index]===true;
       button.className="poker-die"+(held[index]===true?" held":"")+(rolling?" rolling":"")+(settling?" settling":"");
       button.style.setProperty("--die-delay",String(index*-55)+"ms");
-      button.disabled=d.finalized===true||window.__combatDiceBusy;
+      button.disabled=d.finalized===true||window.__combatDiceBusy||window.__combatFeedbackBusy;
       button.setAttribute("aria-pressed",held[index]===true?"true":"false");
       var shadow=document.createElement("span");shadow.className="poker-die-shadow";shadow.setAttribute("aria-hidden","true");button.appendChild(shadow);
       var seal=document.createElement("span");seal.className="poker-die-hold-seal";seal.textContent="GIỮ";seal.setAttribute("aria-hidden","true");button.appendChild(seal);
@@ -118,15 +118,15 @@ render = r'''  function diceAsset(value){return "file:///android_asset/dice/die-
         var blank=document.createElement("span");blank.className="poker-die-unknown";blank.textContent="?";object.appendChild(blank);
       }
       button.addEventListener("click",function(){
-        if(window.__combatDiceBusy||d.finalized===true||!window.Android||typeof Android.combatDiceHold!=="function")return;
+        if(window.__combatDiceBusy||window.__combatFeedbackBusy||d.finalized===true||!window.Android||typeof Android.combatDiceHold!=="function")return;
         setBusy(true);renderDice();Android.combatDiceHold(JSON.stringify(state),index,held[index]!==true);
       });
       row.appendChild(button);
     })(i)}
     hand.textContent=handLabel(d.hand);
     roll.textContent="ROLL";finish.textContent="FINISH";
-    roll.disabled=window.__combatDiceBusy||d.finalized===true||rerolls>=maxRerolls||allHeld(held);
-    finish.disabled=window.__combatDiceBusy||d.finalized===true;
+    roll.disabled=window.__combatDiceBusy||window.__combatFeedbackBusy||d.finalized===true||rerolls>=maxRerolls||allHeld(held);
+    finish.disabled=window.__combatDiceBusy||window.__combatFeedbackBusy||d.finalized===true;
   }
 '''
 html = html[:render_start] + render + html[render_end:]
@@ -157,6 +157,7 @@ ensure = r'''  function clearDiceTimers(){
     },FINALIZE_PREVIEW_MS);
   }
   function ensureDirectCombatDice(){
+    mountNearSnapshot();
     if(!combatActive()){
       window.__directCombatPreparing=false;window.__directCombatResolving=false;clearDiceTimers();hide();
       if(typeof busy!=="undefined")busy=false;
@@ -189,7 +190,7 @@ old_roll = '''  roll.addEventListener("click",function(){
   });
 '''
 new_roll = '''  roll.addEventListener("click",function(){
-    if(window.__combatDiceBusy||!window.Android||typeof Android.combatDiceRoll!=="function")return;
+    if(window.__combatDiceBusy||window.__combatFeedbackBusy||!window.Android||typeof Android.combatDiceRoll!=="function")return;
     window.__combatDiceRolling=true;diceRollAnimating=true;diceRollStartedAt=Date.now();++diceRollToken;
     setBusy(true);renderDice();Android.combatDiceRoll(JSON.stringify(state));
   });
@@ -197,6 +198,20 @@ new_roll = '''  roll.addEventListener("click",function(){
 if old_roll not in html:
     raise RuntimeError("Poker Dice 1.1.99 polish: ROLL handler anchor missing")
 html = html.replace(old_roll, new_roll, 1)
+
+old_finish = '''  finish.addEventListener("click",function(){
+    if(window.__combatDiceBusy||!window.Android||typeof Android.combatDiceFinish!=="function")return;
+    submitAfterFinalize=true;setBusy(true);Android.combatDiceFinish(JSON.stringify(state));
+  });
+'''
+new_finish = '''  finish.addEventListener("click",function(){
+    if(window.__combatDiceBusy||window.__combatFeedbackBusy||!window.Android||typeof Android.combatDiceFinish!=="function")return;
+    submitAfterFinalize=true;setBusy(true);Android.combatDiceFinish(JSON.stringify(state));
+  });
+'''
+if old_finish not in html:
+    raise RuntimeError("Poker Dice 1.1.99 polish: FINISH handler anchor missing")
+html = html.replace(old_finish, new_finish, 1)
 
 state_start = html.find("  window.backroomCombatDiceState=function(json){")
 state_end = html.find("\n  function selectedCharacter(){", state_start)
