@@ -42,14 +42,21 @@ object CompanionAndroidBridge {
         { size -> nativeDraw.nextInt(size) })
       val committed = try { host.submit(exactInput, requestId) }
       catch (error: Exception) {
-        // A rejected, unexposed PREPARING decision has no RNG/receipt and may
-        // be cancelled. Locked or reserved decisions remain recoverable under
-        // their *same* request ID; cancel() cannot roll them back.
+        // Rejecting an unexposed PREPARING request permanently retires that
+        // alias. Tell the UI to allocate a NEW alias while keeping the draft.
+        // A locked/reserved request must instead reuse the SAME alias on retry
+        // to preserve its recorded decision and RNG tape.
+        var freshAliasNeeded = false
         try {
           val pending = store.request(requestId)
-          if (pending != null && pending.phase == CompanionPendingTurn.Phase.PREPARING)
-            store.cancel(requestId)
+          if (pending != null && pending.phase == CompanionPendingTurn.Phase.PREPARING) {
+            val cancelled = store.cancel(requestId)
+            freshAliasNeeded = cancelled.phase == CompanionPendingTurn.Phase.REJECTED
+          }
         } catch (suppressed: Exception) { error.addSuppressed(suppressed) }
+        if (freshAliasNeeded)
+          throw IOException("companion_retry_new_alias: " +
+            (error.message ?: "decision_unavailable"), error)
         throw if (error is IOException) error else IOException("companion_native_turn_failed", error)
       }
       val current = snapshotProjection(store, requestId)
