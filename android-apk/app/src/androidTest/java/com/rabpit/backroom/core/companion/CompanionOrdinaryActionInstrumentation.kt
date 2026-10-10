@@ -74,4 +74,35 @@ internal object CompanionOrdinaryActionInstrumentation {
       publicEvents.getJSONObject(it).getString("type")=="ACTOR_ACTION_COMPLETED"
     }==2) { "native_action_public_projection" }
   }
+  /** A human is a Core-known co-present listener, not a combat-party NPC. */
+  fun talkToHumanCompanion(context: Context) {
+    CompanionNewGameBootstrap.create(context).use { store ->
+      val before=GameStateCodec.decode(String(store.currentSnapshot(),StandardCharsets.UTF_8))
+      val human=CompanionNewGameBootstrap.PLAYER_COMPANION_ID
+      require(human in before.characters && human !in before.party.memberIds) {
+        "human_companion_not_native_or_mistakenly_controlled"
+      }
+      val quote="Tôi sẽ quyết định bước tiếp theo, nhưng muốn nghe ý kiến của bạn."
+      val host=CompanionNativeWaitInteraction(context,store,
+        {JSONObject().put("intent","TALK").put("targetId",human)
+          .put("itemId",JSONObject.NULL).put("utterance",quote).toString()},
+        {"""{"verdict":"PASS"}"""},
+        {bound -> require(bound>0); bound-1})
+      val result=host.submit(INPUT,"native-talk-01")
+      require(JSONObject(result.receipt).getString("action")=="TALK") { "talk_receipt_missing" }
+      val after=GameStateCodec.decode(result.coreSnapshot)
+      require(after.party.memberIds==before.party.memberIds) { "talk_changed_party" }
+      require(after.time.elapsedSubjectiveMinutes==before.time.elapsedSubjectiveMinutes+1L) {
+        "talk_time_invalid"
+      }
+      val event=store.events(1,10).single { it.type=="ACTOR_ACTION_COMPLETED" }
+      val recorded=JSONObject(event.record).getJSONObject("payload")
+      require(recorded.getString("utterance")==quote) { "talk_words_not_committed" }
+      require(store.memoryHistory("cao_minh").single().summary.contains("quyết định bước tiếp theo")) {
+        "talk_words_not_remembered"
+      }
+      require(store.currentRevision()==1L) { "talk_core_not_committed" }
+    }
+  }
+
 }
