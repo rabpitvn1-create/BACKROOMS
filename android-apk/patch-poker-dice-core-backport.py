@@ -650,10 +650,7 @@ if "val combatReply =" not in method:
     method = one(method, output_anchor, output_new, "combat Core reward reply")
     method = method.replace(
         "    appendLog(output, action, resolution.reply)\n",
-        '''    if (action == PokerDiceCore.DIRECT_COMBAT_ACTION) {
-      val log = output.optJSONArray("log") ?: JSONArray().also { output.put("log", it) }
-      log.put(JSONObject().put("role", "gm").put("text", combatReply))
-    } else {
+        '''    if (action != PokerDiceCore.DIRECT_COMBAT_ACTION) {
       appendLog(output, action, combatReply)
     }
 ''',

@@ -106,7 +106,7 @@ jobs:
               ('UI_119_BACKPORT_R01', html), ('id="playerActionBar"', html), ('id="playerActionModal"', html),
               ('id="playerActionConfirm"', html), ('id="gameMenuModal"', html), ('id="gameMenuOpen"', html),
               ('border-radius:7px', html), ('hud/player_action_backrooms.png', html),
-              ('POKER_DICE_CORE_BACKPORT_R01', html), ('id="pokerDiceModal"', html), ('CORE STATS', html),
+              ('POKER_DICE_CORE_BACKPORT_R01', html), ('id="pokerDiceModal"', html), ('combat-feedback-1193a.js', html), ('CORE STATS', html),
               ('DIRECT_COMBAT_GATE_V1', html), ('ensureDirectCombatDice', html),
               ('POKER_DICE_119_POLISH_R01', html), ('poker-die-shadow', html), ('poker-die-object', html),
               ('poker-die-hold-seal', html), ('@keyframes poker-die-3d', html), ('@keyframes poker-die-toss', html),
@@ -159,6 +159,7 @@ jobs:
               ("box.style.position='relative';box.style.overflow='hidden'", java),
               ('CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png', java), ('CAO_MINH_OVERLAY_EXPLORER_IDLE.png', java),
               ('class SharedPreferencesSaveRepository', save_repo),
+              ('put("summary", combatReply)', facade), ('if (action != PokerDiceCore.DIRECT_COMBAT_ACTION)', facade),
               ('private fun normalizeVisualPresence(state: GameState): GameState', facade),
               ('val resolvedEntityKey = CombatRuntime.active(current)?.entityKey.orEmpty()', facade),
               ('flags.put("entityEncounterKey", "")', facade),
@@ -284,7 +285,7 @@ jobs:
           "$BUILD_TOOLS/aapt" dump badging Backroom-1.1.63.0.3.apk | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
           "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-1.1.63.0.3.apk
           rm -rf apk-check && mkdir apk-check
-          unzip -q Backroom-1.1.63.0.3.apk 'assets/index.html' 'assets/entity/*' 'assets/Kai_MadGod_snapshot_overlay.png' 'assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png' 'assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png' 'assets/avatars/MadGod.jpg' 'assets/hud/player_action_backrooms.png' 'assets/dice/*' 'assets/fonts/Play-Bold.ttf' -d apk-check
+          unzip -q Backroom-1.1.63.0.3.apk 'assets/index.html' 'assets/combat-feedback-1193a.*' 'assets/entity/*' 'assets/Kai_MadGod_snapshot_overlay.png' 'assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png' 'assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png' 'assets/avatars/MadGod.jpg' 'assets/hud/player_action_backrooms.png' 'assets/dice/*' 'assets/fonts/Play-Bold.ttf' -d apk-check
           grep -q 'searchActionButton' apk-check/assets/index.html
           grep -q 'exploreActionButton' apk-check/assets/index.html
           grep -q 'UI_119_BACKPORT_R01' apk-check/assets/index.html
@@ -293,6 +294,11 @@ jobs:
           grep -q 'playerActionConfirm' apk-check/assets/index.html
           grep -q 'POKER_DICE_CORE_BACKPORT_R01' apk-check/assets/index.html
           grep -q 'pokerDiceModal' apk-check/assets/index.html
+          grep -q 'COMBAT_TRANSIENT_LOG_R01' apk-check/assets/combat-feedback-1193a.js
+          grep -q 'packet&&packet.summary' apk-check/assets/combat-feedback-1193a.js
+          grep -q '.combat-feedback-panel' apk-check/assets/combat-feedback-1193a.css
+          ! grep -q 'state.log' apk-check/assets/combat-feedback-1193a.js
+          ! grep -q 'localStorage' apk-check/assets/combat-feedback-1193a.js
           grep -q 'CORE STATS' apk-check/assets/index.html
           grep -q 'DIRECT_COMBAT_GATE_V1' apk-check/assets/index.html
           grep -q 'ensureDirectCombatDice' apk-check/assets/index.html
@@ -385,6 +391,11 @@ jobs:
           unzip -p Backroom-1.1.63.0.3-verified.apk assets/index.html | grep -q 'playerActionModal'
           unzip -p Backroom-1.1.63.0.3-verified.apk assets/index.html | grep -q 'POKER_DICE_CORE_BACKPORT_R01'
           unzip -p Backroom-1.1.63.0.3-verified.apk assets/index.html | grep -q 'pokerDiceModal'
+          unzip -p Backroom-1.1.63.0.3-verified.apk assets/combat-feedback-1193a.js | grep -q 'COMBAT_TRANSIENT_LOG_R01'
+          unzip -p Backroom-1.1.63.0.3-verified.apk assets/combat-feedback-1193a.js | grep -q 'packet&&packet.summary'
+          unzip -p Backroom-1.1.63.0.3-verified.apk assets/combat-feedback-1193a.css | grep -q '.combat-feedback-panel'
+          ! unzip -p Backroom-1.1.63.0.3-verified.apk assets/combat-feedback-1193a.js | grep -q 'state.log'
+          ! unzip -p Backroom-1.1.63.0.3-verified.apk assets/combat-feedback-1193a.js | grep -q 'localStorage'
           unzip -p Backroom-1.1.63.0.3-verified.apk assets/index.html | grep -q 'DIRECT_COMBAT_GATE_V1'
           unzip -p Backroom-1.1.63.0.3-verified.apk assets/index.html | grep -q 'ensureDirectCombatDice'
           unzip -p Backroom-1.1.63.0.3-verified.apk assets/index.html | grep -q 'POKER_DICE_119_POLISH_R01'
