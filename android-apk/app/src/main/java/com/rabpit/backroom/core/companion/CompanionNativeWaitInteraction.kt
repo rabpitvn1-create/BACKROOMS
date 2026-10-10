@@ -70,9 +70,13 @@ internal class CompanionNativeWaitInteraction(
     if (selected.selected.proposal.intent != DecisionPreflight.Intent.WAIT)
       throw IOException("actor_intent_not_yet_atomically_supported")
 
-    val scene = bound.scope.sceneId
+    // WAIT authorization binds the exact native Core location (not the route
+    // stop key). The route is still independently verified in the bound scope.
+    val location = GameStateCodec.decode(
+      String(bound.snapshot, StandardCharsets.UTF_8)).world["location"]
+        ?.takeIf { it.isNotBlank() } ?: throw IOException("companion_location_missing")
     val payload = "companion_decision.v1|cao_minh|WAIT|" + bound.revision +
-      "|30|" + scene.toByteArray(StandardCharsets.UTF_8).size + ":" + scene
+      "|30|" + location.toByteArray(StandardCharsets.UTF_8).size + ":" + location
     val ledger = object: CharacterDecisionOrchestrator.DecisionLedger {
       override fun get(bindingDigest: String): CharacterDecisionOrchestrator.Decided? {
         val turn = store.request(requestId) ?: return null
