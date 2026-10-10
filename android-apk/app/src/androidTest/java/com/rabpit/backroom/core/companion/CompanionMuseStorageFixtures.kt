@@ -77,6 +77,11 @@ internal object CompanionMuseStorageFixtures {
         check(MemoryRetrieval.retrieve(own,MemoryRetrieval.Query(slot,"cao_minh",maxChars=0)).truncated)
       } finally { db.endTransaction() }
       rejects { db.execSQL("INSERT INTO actor_memory VALUES(?, 'foreign','luc_tram','o','t',1,'topic','summary','NATIVE','ORDINARY','ACTIVE',NULL)",arrayOf(slot)) }
+      db.execSQL("INSERT INTO actor_brain_delta VALUES(?,'app','cao_minh','t',1,'rule_table.v1','BR01','e','o','BELIEF','belief','{}',?)",arrayOf(slot,"0".repeat(64)))
+      db.execSQL("INSERT INTO brain_manifest VALUES(?,'t',1,0,'app',?)",arrayOf(slot,"0".repeat(64)))
+      rejects { db.execSQL("UPDATE actor_brain_delta SET target_id='forged'") }
+      rejects { db.execSQL("DELETE FROM brain_manifest") }
+      rejects { db.execSQL("INSERT INTO actor_brain_delta VALUES(?,'foreign','luc_tram','t',1,'rule_table.v1','BR01','e','o','BELIEF','belief','{}',?)",arrayOf(slot,"0".repeat(64))) }
       check(count(db,"genesis_pins")==2 && count(db,"initial_brain")==2)
       rejects { db.execSQL("UPDATE genesis_pins SET persona_revision='R18'") }
       rejects { db.execSQL("DELETE FROM genesis_pins") }
@@ -129,7 +134,7 @@ internal object CompanionMuseStorageFixtures {
     CompanionSlotStore.open(context,id,"genesis-verified").use { reopened ->
       check(reopened.currentRevision()==0L)
     }
-    val file=File(context.getDir("companion_slots_v5",Context.MODE_PRIVATE),"slot-$id.db")
+    val file=File(context.getDir("companion_slots_v6",Context.MODE_PRIVATE),"slot-$id.db")
     SQLiteDatabase.openDatabase(file.path,null,SQLiteDatabase.OPEN_READWRITE).use { db ->
       db.rawQuery("SELECT actor_id,persona_revision,knowledge_namespace FROM genesis_pins ORDER BY actor_id",null).use { c ->
         check(c.moveToNext() && c.getString(0)=="cao_minh" && c.getString(1)=="R17" && c.getString(2)=="CHAR.KAI")
