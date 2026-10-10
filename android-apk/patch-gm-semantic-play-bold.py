@@ -105,9 +105,9 @@ if not item_names:
 # The finalized writer labels semantic names in the same JSON response as narration.
 # A new name can therefore be highlighted on first appearance without adding it here.
 main = MAIN.read_text(encoding="utf-8")
-writer_sig = "  private String writerPrompt(JSONObject before, String action, JSONObject rolls, JSONArray auditFeedback) throws Exception {\\n"
+writer_sig = "  private String writerPrompt(JSONObject before, String action, JSONObject rolls, JSONArray auditFeedback) throws Exception {\n"
 writer_start = main.find(writer_sig)
-writer_end = main.find("\\n  private ", writer_start + len(writer_sig))
+writer_end = main.find("\n  private ", writer_start + len(writer_sig))
 if writer_start < 0 or writer_end < 0:
     raise RuntimeError("Final writerPrompt boundary missing for semantic auto-label contract")
 writer = main[writer_start:writer_end]
@@ -118,8 +118,8 @@ if "SEMANTIC AUTO LABEL CONTRACT:" not in writer:
         raise RuntimeError("Final writerPrompt JSON contract anchor missing")
     semantic_line = (
         '      "SEMANTIC AUTO LABEL CONTRACT: Tự nhận diện mọi tên xuất hiện trong reply thuộc đúng 4 loại character/entity/item/skill, '
-        'kể cả tên mới xuất hiện lần đầu. Bắt buộc thêm field top-level semantic={\\\\\"character\\\\\":[],\\\\\"entity\\\\\":[],\\\\\"item\\\\\":[],\\\\\"skill\\\\\":[]}; '
-        'mỗi mảng chứa chuỗi đúng nguyên văn như trong reply, không location, không trạng thái, không hiệu ứng DMG; không được bỏ sót tên thuộc 4 loại này. " +\\n'
+        'kể cả tên mới xuất hiện lần đầu. Bắt buộc thêm field top-level semantic gồm đúng bốn mảng character, entity, item, skill; '
+        'mỗi mảng chứa chuỗi đúng nguyên văn như trong reply, không location, không trạng thái, không hiệu ứng DMG; không được bỏ sót tên thuộc 4 loại này. " +\n'
     )
     writer = writer[:json_pos] + semantic_line + writer[json_pos:]
     main = main[:writer_start] + writer + main[writer_end:]
