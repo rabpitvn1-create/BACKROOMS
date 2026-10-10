@@ -79,7 +79,7 @@ jobs:
 
           assert 'const val DIRECT_COMBAT_ACTION = "Cả Party cùng tấn công"' in poker
           assert 'PokerDiceCore.isFinalizedFor(current, action, activeCombat.encounterId)' in facade
-          assert 'if (action == PokerDiceCore.DIRECT_COMBAT_ACTION)' in facade
+          assert 'if (action != PokerDiceCore.DIRECT_COMBAT_ACTION)' in facade
 
           # Party attack/skill/ultimate runtime stays available behind the direct dice resolve.
           for marker in (
