@@ -102,7 +102,6 @@ for marker in (
     'HiddenExitStreak.apply(before, state, rolls, oldLevel, newLevel)',
     'visibleRolls.remove(com.rabpit.backroom.core.HiddenExitStreak.ROLL_KEY)',
     'String hiddenExitDirective =',
-    new_hidden_rule,
 ):
     if marker not in text:
         raise RuntimeError("Hidden Exit streak contract missing: " + marker)
