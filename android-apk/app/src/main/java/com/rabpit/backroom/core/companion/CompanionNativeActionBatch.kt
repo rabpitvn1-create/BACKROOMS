@@ -76,10 +76,8 @@ internal object CompanionNativeActionBatch {
     val access = CompanionExposurePolicy.eligible(
       CompanionExposurePolicy.Event(scope,CompanionExposurePolicy.Publication.PERCEPTIBLE,
         setOf(CompanionExposurePolicy.Channel.SEEN)),
-      listOf(CompanionExposurePolicy.NativeFacts(scope,"cao_minh",
-        CompanionExposurePolicy.Fact.YES,CompanionExposurePolicy.Fact.YES,
-        CompanionExposurePolicy.Fact.YES,CompanionExposurePolicy.Fact.YES,
-        CompanionExposurePolicy.Fact.UNKNOWN))).single()
+      listOf(NativePerceptionAdapter.perceiveOwnCompletedAction(
+        GameStateCodec.decode(before),state,scope,"cao_minh"))).single()
     val public=PublicEventProjection.project("ACTOR_ACTION_COMPLETED",
       JSONObject(events[0].record).getJSONObject("payload"))
       ?: error("ordinary_public_projection_denied")
