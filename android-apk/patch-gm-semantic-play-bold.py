@@ -10,9 +10,10 @@ import re
 ROOT = Path(__file__).resolve().parent
 CORE = ROOT / "app/src/main/java/com/rabpit/backroom/core"
 INDEX = ROOT / "app/src/main/assets/index.html"
+MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
 PLAY_BOLD = ROOT / "app/src/main/assets/fonts/Play-Bold.ttf"
 COMBAT_FEEDBACK_CSS = ROOT / "app/src/main/assets/combat-feedback-1193a.css"
-MARKER = "GM_SEMANTIC_PLAY_BOLD_R02"
+MARKER = "GM_SEMANTIC_PLAY_BOLD_R03"
 
 if not PLAY_BOLD.is_file() or PLAY_BOLD.stat().st_size <= 0:
     raise RuntimeError("Play-Bold.ttf is missing or empty")
@@ -55,6 +56,17 @@ skills = skill_path.read_text(encoding="utf-8") if skill_path.is_file() else ""
 skill_names = clean(re.findall(r'\bs\("([^"]+)"\s*,', skills))
 
 character_names = set()
+if knowledge_path.is_file():
+    for record in knowledge.get("records", []):
+        if record.get("domain") != "CHARACTER" or record.get("kind") != "runtime-card":
+            continue
+        text = str(record.get("text") or "").strip()
+        display = text.split(":", 1)[0].strip()
+        if display:
+            for alias in display.split("/"):
+                alias = alias.strip()
+                if alias:
+                    character_names.add(alias)
 player_match = re.search(r'player:\{name:"([^"]+)"', html)
 if player_match:
     character_names.add(player_match.group(1))
@@ -90,6 +102,75 @@ if not skill_names:
 if not item_names:
     raise RuntimeError("No canonical equipment/item names found in final CharacterEquipmentSystem.kt")
 
+# The finalized writer labels semantic names in the same JSON response as narration.
+# A new name can therefore be highlighted on first appearance without adding it here.
+main = MAIN.read_text(encoding="utf-8")
+writer_sig = "  private String writerPrompt(JSONObject before, String action, JSONObject rolls, JSONArray auditFeedback) throws Exception {\\n"
+writer_start = main.find(writer_sig)
+writer_end = main.find("\\n  private ", writer_start + len(writer_sig))
+if writer_start < 0 or writer_end < 0:
+    raise RuntimeError("Final writerPrompt boundary missing for semantic auto-label contract")
+writer = main[writer_start:writer_end]
+if "SEMANTIC AUTO LABEL CONTRACT:" not in writer:
+    json_prompt = '      "JSON bắt buộc: '
+    json_pos = writer.find(json_prompt)
+    if json_pos < 0:
+        raise RuntimeError("Final writerPrompt JSON contract anchor missing")
+    semantic_line = (
+        '      "SEMANTIC AUTO LABEL CONTRACT: Tự nhận diện mọi tên xuất hiện trong reply thuộc đúng 4 loại character/entity/item/skill, '
+        'kể cả tên mới xuất hiện lần đầu. Bắt buộc thêm field top-level semantic={\\\\\"character\\\\\":[],\\\\\"entity\\\\\":[],\\\\\"item\\\\\":[],\\\\\"skill\\\\\":[]}; '
+        'mỗi mảng chứa chuỗi đúng nguyên văn như trong reply, không location, không trạng thái, không hiệu ứng DMG; không được bỏ sót tên thuộc 4 loại này. " +\\n'
+    )
+    writer = writer[:json_pos] + semantic_line + writer[json_pos:]
+    main = main[:writer_start] + writer + main[writer_end:]
+
+helper_anchor = writer_sig
+helper = r'''  private JSONObject sanitizeSemanticLabels(JSONObject generated, String reply) throws Exception {
+    JSONObject source = generated.optJSONObject("semantic");
+    JSONObject result = new JSONObject();
+    String[] kinds = new String[] {"character", "entity", "item", "skill"};
+    for (String kind : kinds) {
+      JSONArray output = new JSONArray();
+      JSONArray input = source != null ? source.optJSONArray(kind) : null;
+      if (input != null) {
+        for (int i = 0; i < input.length() && output.length() < 64; i++) {
+          String value = input.optString(i, "").trim();
+          if (value.length() < 2 || value.length() > 160 || !reply.contains(value)) continue;
+          boolean duplicate = false;
+          for (int j = 0; j < output.length(); j++) {
+            if (value.equals(output.optString(j))) { duplicate = true; break; }
+          }
+          if (!duplicate) output.put(value);
+        }
+      }
+      result.put(kind, output);
+    }
+    return result;
+  }
+
+'''
+if "private JSONObject sanitizeSemanticLabels(" not in main:
+    helper_pos = main.find(helper_anchor)
+    if helper_pos < 0:
+        raise RuntimeError("Final writerPrompt helper anchor missing")
+    main = main[:helper_pos] + helper + main[helper_pos:]
+
+gm_log_old = '          log.put(new JSONObject().put("role", "gm").put("text", reply));'
+gm_log_new = '          log.put(new JSONObject().put("role", "gm").put("text", reply).put("semantic", sanitizeSemanticLabels(generated, reply)));'
+if gm_log_new not in main:
+    if main.count(gm_log_old) != 1:
+        raise RuntimeError(f"GM log append anchor expected once, found {main.count(gm_log_old)}")
+    main = main.replace(gm_log_old, gm_log_new, 1)
+
+for required in (
+    "SEMANTIC AUTO LABEL CONTRACT:",
+    "private JSONObject sanitizeSemanticLabels(",
+    '.put("semantic", sanitizeSemanticLabels(generated, reply))',
+):
+    if required not in main:
+        raise RuntimeError("MainActivity semantic auto-label contract missing: " + required)
+MAIN.write_text(main, encoding="utf-8")
+
 # Preserve the existing combat-feedback palette as the only semantic color system.
 feedback_css = COMBAT_FEEDBACK_CSS.read_text(encoding="utf-8")
 required_effect_colors = {
@@ -114,7 +195,7 @@ if set(static_terms) != {"character", "entity", "item", "skill"}:
     raise RuntimeError("GM semantic scope must remain character/entity/item/skill only")
 
 style = r'''<style id="gmSemanticPlayBoldStyle">
-/* GM_SEMANTIC_PLAY_BOLD_R02 */
+/* GM_SEMANTIC_PLAY_BOLD_R03 */
 @font-face{font-family:'Play';font-style:normal;font-weight:700;src:url('fonts/Play-Bold.ttf') format('truetype');font-display:swap}
 .gm-semantic{font-family:'Play',"Pretendard Std",system-ui,sans-serif;font-weight:700}
 </style>'''
@@ -155,7 +236,15 @@ script = r'''<script id="gmSemanticPlayBoldRuntime">
     items.forEach(function(item){if(!item||item.available===false)return;addItem(map,item)});
   }
 
-  function collectTerms(){
+  function addSemanticLabels(map,semantic){
+    if(!semantic||typeof semantic!=="object")return;
+    ["character","entity","item","skill"].forEach(function(kind){
+      const values=semantic[kind];
+      if(Array.isArray(values))values.forEach(function(value){addTerm(map,value,kind)});
+    });
+  }
+
+  function collectTerms(extraSemantic){
     const map=new Map();
     Object.keys(STATIC_TERMS).forEach(function(kind){
       (STATIC_TERMS[kind]||[]).forEach(function(term){addTerm(map,term,kind)});
@@ -176,6 +265,7 @@ script = r'''<script id="gmSemanticPlayBoldRuntime">
       if(s.flags)addWorldItems(map,s.flags.worldItems);
       if(s.combat)addTerm(map,s.combat.entityName||s.combat.name||s.combat.displayName,"entity");
     }
+    addSemanticLabels(map,extraSemantic);
     return Array.from(map.values()).sort(function(a,b){return b.text.length-a.text.length||a.text.localeCompare(b.text,"vi")});
   }
 
@@ -243,10 +333,17 @@ script = r'''<script id="gmSemanticPlayBoldRuntime">
   }
 
   function applySemanticPlay(){
-    const terms=collectTerms();
-    if(!terms.length)return;
-    const version=termsVersion(terms);
-    document.querySelectorAll(".message.gm .text").forEach(function(node){decorate(node,terms,version)});
+    const nodes=Array.from(document.querySelectorAll(".message.gm .text"));
+    if(!nodes.length)return;
+    const entries=typeof state!=="undefined"&&state&&Array.isArray(state.log)
+      ? state.log.filter(function(entry){return entry&&entry.role!=="player"})
+      : [];
+    nodes.forEach(function(node,index){
+      const entry=entries[index]||null;
+      const terms=collectTerms(entry&&entry.semantic);
+      if(!terms.length)return;
+      decorate(node,terms,termsVersion(terms));
+    });
   }
 
   const previousRender=window.render;
@@ -294,6 +391,10 @@ for required in (
     's.flags.worldItems',
     'characterData:true',
     'termsVersion(terms)',
+    'addSemanticLabels(map,extraSemantic)',
+    'entry&&entry.semantic',
+    'SEMANTIC AUTO LABEL CONTRACT:',
+    'sanitizeSemanticLabels(generated, reply)',
     '"Lục Trầm"',
 ):
     if required not in html:
@@ -311,7 +412,7 @@ for forbidden in (
         raise RuntimeError("GM semantic typography leaked forbidden scope/compat syntax: " + forbidden)
 
 # Semantic categories inherit narration color. Combat feedback remains the only colored effect layer.
-semantic_css = style.split("/* GM_SEMANTIC_PLAY_BOLD_R02 */", 1)[1]
+semantic_css = style.split("/* GM_SEMANTIC_PLAY_BOLD_R03 */", 1)[1]
 if "color:" in semantic_css:
     raise RuntimeError("GM semantic typography must not introduce semantic colors")
 

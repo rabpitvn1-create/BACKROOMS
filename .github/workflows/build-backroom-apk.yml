@@ -103,7 +103,7 @@ jobs:
               ('const prologue=`Lôi Thiên Vực chưa từng có một ngày yên tĩnh như thế.', html),
               ('Cao Minh tỉnh lại một mình tại Level 0. Không có dấu vết của Lục Trầm.', html),
               ('.snapshot{height:300px;margin:8px 10px 10px;', html),
-              ('GM_SEMANTIC_PLAY_BOLD_R02', html), ("font-family:'Play';font-style:normal;font-weight:700", html),
+              ('GM_SEMANTIC_PLAY_BOLD_R03', html), ("font-family:'Play';font-style:normal;font-weight:700", html),
               ('gm-semantic', html),
               ('UI_119_BACKPORT_R01', html), ('id="playerActionBar"', html), ('id="playerActionModal"', html),
               ('id="playerActionConfirm"', html), ('id="gameMenuModal"', html), ('id="gameMenuOpen"', html),
@@ -196,7 +196,7 @@ jobs:
           assert 'return exitFound && progressionReady(before);' not in java
           assert 'recordLevelProgress(state, oldLevel, newLevel);' not in java
           assert 'cần ít nhất 6 lượt gameplay trong Level' not in java
-          semantic_start = html.index('/* GM_SEMANTIC_PLAY_BOLD_R02 */')
+          semantic_start = html.index('/* GM_SEMANTIC_PLAY_BOLD_R03 */')
           semantic_end = html.index('</style>', semantic_start)
           semantic_css = html[semantic_start:semantic_end]
           assert 'color:' not in semantic_css
@@ -218,6 +218,11 @@ jobs:
           assert 'characterData:true' in html
           assert 'termsVersion(terms)' in html
           assert '"Lục Trầm"' in html
+          assert 'entry&&entry.semantic' in html
+          assert 'addSemanticLabels(map,extraSemantic)' in html
+          assert 'SEMANTIC AUTO LABEL CONTRACT:' in java
+          assert 'private JSONObject sanitizeSemanticLabels(' in java
+          assert '.put("semantic", sanitizeSemanticLabels(generated, reply))' in java
           for final_character in ('Cao Minh', 'Iris', 'Syvial', 'An Nhiên', r'Lucia \"Lục\"'):
               assert final_character in html, final_character
           for final_item in ('Huyết Ma Kiếm', 'Huyết Ma Chiến Khải', 'Nhẫn Vạn Tàng'):
@@ -339,13 +344,15 @@ jobs:
           grep -q 'renderCharacterStatusEquipment' apk-check/assets/index.html
           grep -q 'characterSkillsModal' apk-check/assets/index.html
           grep -q 'characterSkillsButton' apk-check/assets/index.html
-          grep -q 'GM_SEMANTIC_PLAY_BOLD_R02' apk-check/assets/index.html
+          grep -q 'GM_SEMANTIC_PLAY_BOLD_R03' apk-check/assets/index.html
           grep -q 'gm-semantic' apk-check/assets/index.html
           grep -q 'document.querySelectorAll(".message.gm .text")' apk-check/assets/index.html
           grep -q 'member.equipmentItems' apk-check/assets/index.html
           grep -q 's.flags.worldItems' apk-check/assets/index.html
           grep -q 'characterData:true' apk-check/assets/index.html
           grep -q '"Lục Trầm"' apk-check/assets/index.html
+          grep -q 'entry&&entry.semantic' apk-check/assets/index.html
+          grep -q 'addSemanticLabels(map,extraSemantic)' apk-check/assets/index.html
           grep -q 'Băng gạc' apk-check/assets/index.html
           grep -q 'Thuốc sát trùng' apk-check/assets/index.html
           grep -qi 'almond water' apk-check/assets/index.html
@@ -420,7 +427,7 @@ jobs:
           unzip -l Backroom-1.2.0.0.0-verified.apk | grep -q 'assets/fonts/Play-Bold.ttf'
           unzip -p Backroom-1.2.0.0.0-verified.apk assets/index.html | grep -q 'characterSkillsModal'
           unzip -p Backroom-1.2.0.0.0-verified.apk assets/index.html | grep -q 'characterSkillsButton'
-          unzip -p Backroom-1.2.0.0.0-verified.apk assets/index.html | grep -q 'GM_SEMANTIC_PLAY_BOLD_R02'
+          unzip -p Backroom-1.2.0.0.0-verified.apk assets/index.html | grep -q 'GM_SEMANTIC_PLAY_BOLD_R03'
           unzip -p Backroom-1.2.0.0.0-verified.apk assets/index.html | grep -q 'UI_119_BACKPORT_R01'
           unzip -p Backroom-1.2.0.0.0-verified.apk assets/index.html | grep -q 'playerActionModal'
           unzip -p Backroom-1.2.0.0.0-verified.apk assets/index.html | grep -q 'POKER_DICE_CORE_BACKPORT_R01'
