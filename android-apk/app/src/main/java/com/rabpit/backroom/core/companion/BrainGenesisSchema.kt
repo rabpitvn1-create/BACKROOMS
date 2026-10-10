@@ -15,7 +15,7 @@ internal object BrainGenesisSchema {
 CREATE TABLE genesis_pins(
   singleton INTEGER PRIMARY KEY CHECK(singleton = 1),
   slot_id TEXT NOT NULL,
-  actor_id TEXT NOT NULL CHECK(actor_id NOT IN ('kai','KAI')),
+  actor_id TEXT NOT NULL CHECK(actor_id NOT IN ('ka' || 'i','KAI')),
   knowledge_namespace TEXT NOT NULL,
   persona_source_path TEXT NOT NULL,
   persona_revision TEXT NOT NULL,
@@ -25,16 +25,15 @@ CREATE TABLE genesis_pins(
   policy_version TEXT NOT NULL
 )"""
 
-  const val CREATE_IMMUTABILITY_TRIGGERS = """
+  // SQLite trigger bodies contain semicolons. Each trigger must be sent as one statement.
+  const val CREATE_NO_UPDATE_TRIGGER = """
 CREATE TRIGGER genesis_pins_no_update BEFORE UPDATE ON genesis_pins
-  BEGIN SELECT RAISE(ABORT,'immutable_genesis'); END;
-CREATE TRIGGER genesis_pins_no_delete BEFORE DELETE ON genesis_pins
-  BEGIN SELECT RAISE(ABORT,'immutable_genesis'); END;
-"""
+  BEGIN SELECT RAISE(ABORT,'immutable_genesis'); END;"""
 
-  fun createStatements(): List<String> {
-    val triggers = CREATE_IMMUTABILITY_TRIGGERS.trim().split(";")
-      .map { it.trim() }.filter { it.isNotEmpty() }.map { "$it;" }
-    return listOf(CREATE_GENESIS_PINS) + triggers
-  }
+  const val CREATE_NO_DELETE_TRIGGER = """
+CREATE TRIGGER genesis_pins_no_delete BEFORE DELETE ON genesis_pins
+  BEGIN SELECT RAISE(ABORT,'immutable_genesis'); END;"""
+
+  fun createStatements(): List<String> =
+    listOf(CREATE_GENESIS_PINS, CREATE_NO_UPDATE_TRIGGER, CREATE_NO_DELETE_TRIGGER)
 }

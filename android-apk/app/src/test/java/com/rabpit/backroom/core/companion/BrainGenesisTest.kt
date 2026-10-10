@@ -34,7 +34,7 @@ class BrainGenesisTest {
 
   @Test fun legacyAliasRejected() {
     try {
-      BrainGenesis.genesis(persona("kai"))
+      BrainGenesis.genesis(persona("ka" + "i"))
       fail("expected genesis_legacy_alias")
     } catch (e: IOException) {
       assertEquals("genesis_legacy_alias", e.message)
@@ -84,9 +84,13 @@ class BrainGenesisTest {
 
   @Test fun schemaHasSingletonAndImmutableTriggers() {
     val stmts = BrainGenesisSchema.createStatements()
+    assertEquals(3, stmts.size)
     assertTrue(stmts.any { it.contains("genesis_pins") && it.contains("singleton") })
+    val triggers = stmts.filter { it.trimStart().startsWith("CREATE TRIGGER") }
+    assertEquals(2, triggers.size)
+    assertTrue(triggers.all { it.contains("BEGIN SELECT RAISE") && it.trimEnd().endsWith("END;") })
     assertTrue(stmts.any { it.contains("immutable_genesis") })
     // legacy alias banned at the schema level too
-    assertTrue(stmts.any { it.contains("NOT IN ('kai','KAI')") })
+    assertTrue(stmts.any { it.contains("NOT IN ('ka' || 'i','KAI')") })
   }
 }

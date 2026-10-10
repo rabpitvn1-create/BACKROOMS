@@ -109,7 +109,7 @@ internal object EpisodicMemory {
       p.has("target") && p.optBoolean("completed", false) ->
         "[$access] moved ${p.optString("source")} -> ${p.optString("target")}"
       p.has("entities") -> "[$access] combat started (${p.optJSONArray("entities")?.length() ?: 0} entities)"
-      else -> "[$access] observed ${candidate.sourceEventId}"
+      else -> "[$access] observation recorded"
     }
     return base.take(SUMMARY_MAX_CHARS)
   }
