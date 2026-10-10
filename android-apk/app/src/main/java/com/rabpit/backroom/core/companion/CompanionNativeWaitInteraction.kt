@@ -88,7 +88,7 @@ internal class CompanionNativeWaitInteraction(
     val target = selected.selected.proposal.targetId
     if (intent !in setOf(DecisionPreflight.Intent.WAIT,
         DecisionPreflight.Intent.SEARCH,DecisionPreflight.Intent.MOVE,
-        DecisionPreflight.Intent.INSPECT))
+        DecisionPreflight.Intent.INSPECT,DecisionPreflight.Intent.TALK))
       throw IOException("actor_intent_not_yet_atomically_supported")
 
     // WAIT authorization binds the exact native Core location (not the route
