@@ -106,7 +106,7 @@ jobs:
               ('UI_119_BACKPORT_R01', html), ('id="playerActionBar"', html), ('id="playerActionModal"', html),
               ('id="playerActionConfirm"', html), ('id="gameMenuModal"', html), ('id="gameMenuOpen"', html),
               ('border-radius:7px', html), ('hud/player_action_backrooms.png', html),
-              ('POKER_DICE_CORE_BACKPORT_R01', html), ('id="pokerDiceModal"', html), ('combatFeedbackPanel', html), ('CORE STATS', html),
+              ('POKER_DICE_CORE_BACKPORT_R01', html), ('id="pokerDiceModal"', html), ('combat-feedback-1193a.js', html), ('CORE STATS', html),
               ('DIRECT_COMBAT_GATE_V1', html), ('ensureDirectCombatDice', html),
               ('POKER_DICE_119_POLISH_R01', html), ('poker-die-shadow', html), ('poker-die-object', html),
               ('poker-die-hold-seal', html), ('@keyframes poker-die-3d', html), ('@keyframes poker-die-toss', html),
@@ -294,7 +294,6 @@ jobs:
           grep -q 'playerActionConfirm' apk-check/assets/index.html
           grep -q 'POKER_DICE_CORE_BACKPORT_R01' apk-check/assets/index.html
           grep -q 'pokerDiceModal' apk-check/assets/index.html
-          grep -q 'combatFeedbackPanel' apk-check/assets/index.html
           grep -q 'COMBAT_TRANSIENT_LOG_R01' apk-check/assets/combat-feedback-1193a.js
           grep -q 'packet&&packet.summary' apk-check/assets/combat-feedback-1193a.js
           grep -q '.combat-feedback-panel' apk-check/assets/combat-feedback-1193a.css
@@ -392,7 +391,6 @@ jobs:
           unzip -p Backroom-1.1.63.0.3-verified.apk assets/index.html | grep -q 'playerActionModal'
           unzip -p Backroom-1.1.63.0.3-verified.apk assets/index.html | grep -q 'POKER_DICE_CORE_BACKPORT_R01'
           unzip -p Backroom-1.1.63.0.3-verified.apk assets/index.html | grep -q 'pokerDiceModal'
-          unzip -p Backroom-1.1.63.0.3-verified.apk assets/index.html | grep -q 'combatFeedbackPanel'
           unzip -p Backroom-1.1.63.0.3-verified.apk assets/combat-feedback-1193a.js | grep -q 'COMBAT_TRANSIENT_LOG_R01'
           unzip -p Backroom-1.1.63.0.3-verified.apk assets/combat-feedback-1193a.js | grep -q 'packet&&packet.summary'
           unzip -p Backroom-1.1.63.0.3-verified.apk assets/combat-feedback-1193a.css | grep -q '.combat-feedback-panel'
