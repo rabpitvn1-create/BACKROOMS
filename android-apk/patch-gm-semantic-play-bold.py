@@ -12,7 +12,7 @@ CORE = ROOT / "app/src/main/java/com/rabpit/backroom/core"
 INDEX = ROOT / "app/src/main/assets/index.html"
 PLAY_BOLD = ROOT / "app/src/main/assets/fonts/Play-Bold.ttf"
 COMBAT_FEEDBACK_CSS = ROOT / "app/src/main/assets/combat-feedback-1193a.css"
-MARKER = "GM_SEMANTIC_PLAY_BOLD_R01"
+MARKER = "GM_SEMANTIC_PLAY_BOLD_R02"
 
 if not PLAY_BOLD.is_file() or PLAY_BOLD.stat().st_size <= 0:
     raise RuntimeError("Play-Bold.ttf is missing or empty")
@@ -114,7 +114,7 @@ if set(static_terms) != {"character", "entity", "item", "skill"}:
     raise RuntimeError("GM semantic scope must remain character/entity/item/skill only")
 
 style = r'''<style id="gmSemanticPlayBoldStyle">
-/* GM_SEMANTIC_PLAY_BOLD_R01 */
+/* GM_SEMANTIC_PLAY_BOLD_R02 */
 @font-face{font-family:'Play';font-style:normal;font-weight:700;src:url('fonts/Play-Bold.ttf') format('truetype');font-display:swap}
 .gm-semantic{font-family:'Play',"Pretendard Std",system-ui,sans-serif;font-weight:700}
 </style>'''
@@ -311,7 +311,7 @@ for forbidden in (
         raise RuntimeError("GM semantic typography leaked forbidden scope/compat syntax: " + forbidden)
 
 # Semantic categories inherit narration color. Combat feedback remains the only colored effect layer.
-semantic_css = style.split("/* GM_SEMANTIC_PLAY_BOLD_R01 */", 1)[1]
+semantic_css = style.split("/* GM_SEMANTIC_PLAY_BOLD_R02 */", 1)[1]
 if "color:" in semantic_css:
     raise RuntimeError("GM semantic typography must not introduce semantic colors")
 

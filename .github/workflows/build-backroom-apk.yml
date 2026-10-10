@@ -103,7 +103,7 @@ jobs:
               ('const prologue=`Lôi Thiên Vực chưa từng có một ngày yên tĩnh như thế.', html),
               ('Cao Minh tỉnh lại một mình tại Level 0. Không có dấu vết của Lục Trầm.', html),
               ('.snapshot{height:300px;margin:8px 10px 10px;', html),
-              ('GM_SEMANTIC_PLAY_BOLD_R01', html), ("font-family:'Play';font-style:normal;font-weight:700", html),
+              ('GM_SEMANTIC_PLAY_BOLD_R02', html), ("font-family:'Play';font-style:normal;font-weight:700", html),
               ('gm-semantic', html),
               ('UI_119_BACKPORT_R01', html), ('id="playerActionBar"', html), ('id="playerActionModal"', html),
               ('id="playerActionConfirm"', html), ('id="gameMenuModal"', html), ('id="gameMenuOpen"', html),
@@ -196,7 +196,7 @@ jobs:
           assert 'return exitFound && progressionReady(before);' not in java
           assert 'recordLevelProgress(state, oldLevel, newLevel);' not in java
           assert 'cần ít nhất 6 lượt gameplay trong Level' not in java
-          semantic_start = html.index('/* GM_SEMANTIC_PLAY_BOLD_R01 */')
+          semantic_start = html.index('/* GM_SEMANTIC_PLAY_BOLD_R02 */')
           semantic_end = html.index('</style>', semantic_start)
           semantic_css = html[semantic_start:semantic_end]
           assert 'color:' not in semantic_css
@@ -339,7 +339,7 @@ jobs:
           grep -q 'renderCharacterStatusEquipment' apk-check/assets/index.html
           grep -q 'characterSkillsModal' apk-check/assets/index.html
           grep -q 'characterSkillsButton' apk-check/assets/index.html
-          grep -q 'GM_SEMANTIC_PLAY_BOLD_R01' apk-check/assets/index.html
+          grep -q 'GM_SEMANTIC_PLAY_BOLD_R02' apk-check/assets/index.html
           grep -q 'gm-semantic' apk-check/assets/index.html
           grep -q 'document.querySelectorAll(".message.gm .text")' apk-check/assets/index.html
           grep -q 'member.equipmentItems' apk-check/assets/index.html
@@ -420,7 +420,7 @@ jobs:
           unzip -l Backroom-1.2.0.0.0-verified.apk | grep -q 'assets/fonts/Play-Bold.ttf'
           unzip -p Backroom-1.2.0.0.0-verified.apk assets/index.html | grep -q 'characterSkillsModal'
           unzip -p Backroom-1.2.0.0.0-verified.apk assets/index.html | grep -q 'characterSkillsButton'
-          unzip -p Backroom-1.2.0.0.0-verified.apk assets/index.html | grep -q 'GM_SEMANTIC_PLAY_BOLD_R01'
+          unzip -p Backroom-1.2.0.0.0-verified.apk assets/index.html | grep -q 'GM_SEMANTIC_PLAY_BOLD_R02'
           unzip -p Backroom-1.2.0.0.0-verified.apk assets/index.html | grep -q 'UI_119_BACKPORT_R01'
           unzip -p Backroom-1.2.0.0.0-verified.apk assets/index.html | grep -q 'playerActionModal'
           unzip -p Backroom-1.2.0.0.0-verified.apk assets/index.html | grep -q 'POKER_DICE_CORE_BACKPORT_R01'
