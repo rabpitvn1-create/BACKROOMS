@@ -63,7 +63,7 @@ jobs:
       - name: Apply Android runtime patch chain
         run: |
           set -euo pipefail
-          scripts=(patch-provider-status.py patch-provider-key-pool.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py patch-ui-1.1.99-shell.py patch-poker-dice-core-backport.py patch-poker-dice-ui-119-polish.py patch-cao-minh-identity-overlay.py patch-item-detail-actions.py patch-item-whole-unit.py patch-cao-minh-skills-equipment.py patch-cao-minh-prologue.py patch-character-stats-1193a-restore.py patch-entity-power-scaling.py patch-combat-feedback-1193a.py patch-hidden-exit-streak.py patch-gm-semantic-play-bold.py)
+          scripts=(patch-provider-status.py patch-provider-key-pool.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py patch-ui-1.1.99-shell.py patch-poker-dice-core-backport.py patch-poker-dice-ui-119-polish.py patch-cao-minh-identity-overlay.py patch-lucia-combat-overlay.py patch-item-detail-actions.py patch-item-whole-unit.py patch-cao-minh-skills-equipment.py patch-cao-minh-prologue.py patch-character-stats-1193a-restore.py patch-entity-power-scaling.py patch-combat-feedback-1193a.py patch-hidden-exit-streak.py patch-gm-semantic-play-bold.py)
           for script in "${scripts[@]}"; do
             echo "==> $script"
             python3 "android-apk/$script"
@@ -160,6 +160,7 @@ jobs:
               ('makeGameplayRolls(before, actionKind, action, meta)', java),
               ("box.style.position='relative';box.style.overflow='hidden'", java),
               ('CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png', java), ('CAO_MINH_OVERLAY_EXPLORER_IDLE.png', java),
+              ('LUCIA_COMBAT_OVERLAY_R01', java), ('LUCIA_LUC_OVERLAY.png', java), ("img.className='snapshot-lucia'", java),
               ('class SharedPreferencesSaveRepository', save_repo),
               ('put("summary", combatReply)', facade), ('if (action != PokerDiceCore.DIRECT_COMBAT_ACTION)', facade),
               ('private fun normalizeVisualPresence(state: GameState): GameState', facade),
@@ -256,7 +257,7 @@ jobs:
               assert int.from_bytes(raw[4:8], 'little') + 8 == len(raw), name
               assert not p.with_suffix('.png').exists(), name
           assert '.put("url", "file:///android_asset/entity/" + entityKey + ".webp")' in java
-          for p in [root / 'app/src/main/assets/Kai_MadGod_snapshot_overlay.png', root / 'app/src/main/assets/avatars/MadGod.jpg', root / 'app/src/main/assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png', root / 'app/src/main/assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png']:
+          for p in [root / 'app/src/main/assets/Kai_MadGod_snapshot_overlay.png', root / 'app/src/main/assets/avatars/MadGod.jpg', root / 'app/src/main/assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png', root / 'app/src/main/assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png', root / 'app/src/main/assets/LUCIA_LUC_OVERLAY.png']:
               assert p.is_file() and p.stat().st_size > 0, str(p)
           for name in ['die-1.png','die-2.png','die-3.png','die-4.png','die-5.png','die-6.png','roll-3d.png','level0-wallpaper.svg']:
               p = dice_dir / name
@@ -293,7 +294,7 @@ jobs:
           "$BUILD_TOOLS/aapt" dump badging Backroom-1.2.0.0.0.apk | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
           "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-1.2.0.0.0.apk
           rm -rf apk-check && mkdir apk-check
-          unzip -q Backroom-1.2.0.0.0.apk 'assets/index.html' 'assets/combat-feedback-1193a.*' 'assets/entity/*' 'assets/Kai_MadGod_snapshot_overlay.png' 'assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png' 'assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png' 'assets/avatars/MadGod.jpg' 'assets/hud/player_action_backrooms.png' 'assets/dice/*' 'assets/fonts/Play-Bold.ttf' -d apk-check
+          unzip -q Backroom-1.2.0.0.0.apk 'assets/index.html' 'assets/combat-feedback-1193a.*' 'assets/entity/*' 'assets/Kai_MadGod_snapshot_overlay.png' 'assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png' 'assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png' 'assets/LUCIA_LUC_OVERLAY.png' 'assets/avatars/MadGod.jpg' 'assets/hud/player_action_backrooms.png' 'assets/dice/*' 'assets/fonts/Play-Bold.ttf' -d apk-check
           grep -q 'searchActionButton' apk-check/assets/index.html
           grep -q 'exploreActionButton' apk-check/assets/index.html
           grep -q 'UI_119_BACKPORT_R01' apk-check/assets/index.html
@@ -345,6 +346,7 @@ jobs:
           test -s apk-check/assets/Kai_MadGod_snapshot_overlay.png
           test -s apk-check/assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png
           test -s apk-check/assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png
+          test -s apk-check/assets/LUCIA_LUC_OVERLAY.png
           test -s apk-check/assets/avatars/MadGod.jpg
           test -s apk-check/assets/hud/player_action_backrooms.png
           test -s apk-check/assets/dice/die-1.png
@@ -389,6 +391,7 @@ jobs:
           unzip -l Backroom-1.2.0.0.0-verified.apk | grep -q 'assets/entity/slenderman.webp'
           unzip -l Backroom-1.2.0.0.0-verified.apk | grep -q 'assets/entity/diep_minh.webp'
           unzip -l Backroom-1.2.0.0.0-verified.apk | grep -q 'assets/Kai_MadGod_snapshot_overlay.png'
+          unzip -l Backroom-1.2.0.0.0-verified.apk | grep -q 'assets/LUCIA_LUC_OVERLAY.png'
           unzip -l Backroom-1.2.0.0.0-verified.apk | grep -q 'assets/avatars/MadGod.jpg'
           unzip -l Backroom-1.2.0.0.0-verified.apk | grep -q 'assets/hud/player_action_backrooms.png'
           unzip -l Backroom-1.2.0.0.0-verified.apk | grep -q 'assets/dice/die-1.png'
