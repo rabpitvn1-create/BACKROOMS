@@ -7,7 +7,7 @@ const vm = require('node:vm');
 const root = path.resolve(__dirname, '..');
 const ui = fs.readFileSync(path.join(root, 'app/src/main/assets/companion-interact.js'), 'utf8');
 
-function fixture(debug = true) {
+function fixture(debug = true, suggest = false) {
   const elements = Object.create(null), slots = new Map(), calls = [];
   class Element {
     constructor(tag) {
@@ -39,6 +39,7 @@ function fixture(debug = true) {
     },
     confirm: () => true
   };
+  if (suggest) window.Android.companionSuggest = slot => calls.push(['suggest', slot]);
   const document = {
     head, body,
     getElementById: id => elements[id] || null,
@@ -113,6 +114,26 @@ test('a terminal native rejection retries with a new alias and keeps the text', 
   assert.equal(f.slots.get('backroom-companion-native-pending'), undefined);
   f.elements.companionSend.click();
   assert.notEqual(f.calls.at(-1)[3], oldAlias);
+});
+
+test('Cao Minh offers a proactive intention only as an uncommitted proposal', () => {
+  const f=fixture(true,true);
+  f.elements.companionStart.click();
+  f.window.backroomCompanionTurn(projection);
+  assert.deepEqual(f.calls.at(-1), ['suggest',slotId]);
+  const before=f.elements.turn.textContent;
+  f.window.backroomCompanionSuggestion(JSON.stringify({
+    version:'companion_suggestion.v1', slotId, revision:0,
+    actor:'cao_minh', intent:'SEARCH', targetId:null, committed:false
+  }));
+  assert.equal(f.elements.turn.textContent,before,'proposal cannot advance turn');
+  assert.match(f.elements.companionNativeLog.children.at(-1).children[0].textContent, /CHƯA THỰC HIỆN/);
+  const size=f.elements.companionNativeLog.children.length;
+  f.window.backroomCompanionSuggestion(JSON.stringify({
+    version:'companion_suggestion.v1', slotId, revision:99,
+    actor:'cao_minh', intent:'MOVE', targetId:null, committed:false
+  }));
+  assert.equal(f.elements.companionNativeLog.children.length,size,'stale suggestion denied');
 });
 
 test('generated Android loads bridge only after release patch and gates production', () => {
