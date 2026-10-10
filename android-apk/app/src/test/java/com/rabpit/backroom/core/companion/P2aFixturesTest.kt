@@ -11,10 +11,9 @@ import org.junit.Test
  * P2a expected fixtures (issue #505), written BEFORE reducer code.
  *
  * Status labels:
- * - RED: asserts Rule Table behavior; fails with NotImplementedError until the
- *   owning reducer issue lands (#506 belief, #507 goal, #508 mood).
- * - GREEN: contract-level check, passes now.
- * - SPEC: documented expectation needing the commit path; executed in #508.
+ * - GREEN: current pure reducer/contract behavior is executed in the JVM suite.
+ * - NOT QUALIFIED: a pure helper test does not prove native event authority,
+ *   durable delta publication, or game runtime integration.
  */
 class P2aFixturesTest {
   private fun claim(polarity: Claim.Polarity = Claim.Polarity.POSITIVE) = Claim(
@@ -67,7 +66,7 @@ class P2aFixturesTest {
     val first = BeliefReducer.reduceTold(
       BeliefReducer.ToldInput(brain(), claim(Claim.Polarity.POSITIVE), "obs-1", "cao_minh"))
     val r = BeliefReducer.reduceContradiction(BeliefReducer.ContradictionInput(
-      first.state, claim(Claim.Polarity.NEGATIVE), "obs-2", "cao_minh"))
+      first.state, claim(Claim.Polarity.NEGATIVE).copy(sourceObservationIds=listOf("obs-2")), "obs-2", "cao_minh"))
     assertEquals(Stance.DISPUTED, r.state.beliefs.single().stance)
     assertEquals(2, r.state.beliefs.single().evidenceObservationIds.size)
   }

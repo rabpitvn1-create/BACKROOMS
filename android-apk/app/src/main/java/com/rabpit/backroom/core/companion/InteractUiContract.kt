@@ -45,18 +45,14 @@ internal object InteractUiContract {
     val slotId: String,
     val actorId: String,
     val text: String,
-    val requestAlias: String,
-    /** Structural marker: suggestions are never commands. */
-    val isSuggestion: Boolean = true
-  )
+    val requestAlias: String
+  ) { val isSuggestion: Boolean get() = true }
 
   /** UI-side validation of the single input. */
   fun validateInput(input: InteractInput): InputValidation {
     if (input.slotId.isBlank()) return InputValidation.Invalid("slot_blank")
     if (input.actorId.isBlank()) return InputValidation.Invalid("actor_blank")
-    // The player suggests TO a companion actor; direct addressing of the
-    // protagonist as a puppet is not a valid INTERACT target.
-    if (input.actorId == "cao_minh") return InputValidation.Invalid("direct_control")
+    // Addressing Cao Minh is a suggestion, not direct control.
     val text = input.text.trim()
     if (text.isEmpty()) return InputValidation.Invalid("text_blank")
     if (text.length > MAX_INPUT_CHARS) return InputValidation.Invalid("text_too_long")
@@ -103,7 +99,7 @@ internal object InteractUiContract {
     val pending = if (input.pendingAlias != null && input.pendingState != null)
       PendingView(input.pendingAlias, input.pendingState) else null
     return UiProjection(
-      publicEvents = input.publicEvents,
+      publicEvents = if (receipt != null) input.publicEvents.toList() else emptyList(),
       receipt = receipt,
       pending = pending)
   }

@@ -42,9 +42,10 @@ class InteractUiContractTest {
     assertEquals("text_too_long", (r as InputValidation.Invalid).reason)
   }
 
-  @Test fun input_directControl_rejected() {
+  @Test fun input_suggestionToCaoMinhAccepted() {
     val r = InteractUiContract.validateInput(input().copy(actorId = "cao_minh"))
-    assertEquals("direct_control", (r as InputValidation.Invalid).reason)
+    assertTrue(r is InputValidation.Valid)
+    assertTrue((r as InputValidation.Valid).suggestion.isSuggestion)
   }
 
   @Test fun input_blankAlias_rejected() {
@@ -62,7 +63,7 @@ class InteractUiContractTest {
   @Test fun receipt_notDurable_neverRendered() {
     val p = InteractUiContract.project(projectionInput().copy(receiptDurable = false))
     assertNull(p.receipt)  // no optimistic authoritative mutation
-    assertEquals(1, p.publicEvents.size)  // public projection still renders
+    assertTrue(p.publicEvents.isEmpty()) // no uncommitted outcome leaks
   }
 
   @Test fun receipt_incomplete_notRendered() {

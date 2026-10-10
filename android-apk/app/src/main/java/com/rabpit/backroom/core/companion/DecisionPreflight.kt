@@ -38,6 +38,23 @@ internal object DecisionPreflight {
     // NONE needs no capability.
   )
 
+  /** Native adapter attests these values; constructing hashes alone is not native authority.
+   * Input digest preserves exact original UTF-8 bytes. Java trim/codepoint count
+   * is used only for minimum-input eligibility, never to collapse distinct requests.
+   */
+  data class InteractionIdentity(
+    val turnId: String,
+    val inputDigest: String,
+    val contextDigest: String,
+    val sourceSnapshotDigest: String
+  ) {
+    fun valid(): Boolean = identifier(turnId) &&
+      listOf(inputDigest, contextDigest, sourceSnapshotDigest).all { it.matches(Regex("[0-9a-f]{64}")) }
+  }
+
+  private fun identifier(value: String): Boolean =
+    value.matches(Regex("[A-Za-z0-9][A-Za-z0-9._:-]{0,127}"))
+
   /** Native state the proposal is checked against. */
   data class NativeScope(
     val slotId: String,
@@ -77,7 +94,9 @@ internal object DecisionPreflight {
     val targetId: String?,
     val itemId: String?,
     val canonRevision: String,
-    val ruleVersion: String
+    val ruleVersion: String,
+    val interaction: InteractionIdentity? = null,
+    val sceneId: String? = null
   )
 
   sealed class Result {
@@ -85,13 +104,25 @@ internal object DecisionPreflight {
     data class Rejected(val reason: String) : Result()
   }
 
-  fun preflight(proposal: Proposal, scope: NativeScope): Result {
+  fun preflight(proposal: Proposal, scope: NativeScope,
+                interaction: InteractionIdentity? = null): Result {
+    if (interaction != null && !interaction.valid()) return Result.Rejected("interaction_invalid")
+    val ids = listOf(scope.slotId, scope.actorId, scope.sceneId, proposal.slotId, proposal.actorId,
+      scope.canonRevision, proposal.canonRevision, scope.ruleVersion, proposal.ruleVersion)
+    val sets = listOf(scope.presentActorIds, scope.capabilities, scope.inventoryItemIds, scope.legalTargetIds)
+    if (ids.any { !identifier(it) } || sets.any { it.size > 256 || it.any { id -> !identifier(id) } } ||
+        proposal.targetId?.let { !it.isBlank() && !identifier(it) } == true ||
+        proposal.itemId?.let { !it.isBlank() && !identifier(it) } == true || scope.slotRevision == Long.MAX_VALUE)
+      return Result.Rejected("scope_bound_invalid")
     // 1. Identity / freshness / pins — before any semantic check.
     if (proposal.slotId != scope.slotId) return Result.Rejected("slot_mismatch")
     if (proposal.slotRevision != scope.slotRevision) return Result.Rejected("revision_stale")
     if (proposal.actorId != scope.actorId) return Result.Rejected("actor_mismatch")
-    // 2. The companion pipeline never decides for the protagonist.
-    if (proposal.actorId == "cao_minh") return Result.Rejected("direct_control_forbidden")
+    // Cao Minh makes his own audited decision; receiving a suggestion is valid.
+    if (scope.slotId.isBlank() || scope.sceneId.isBlank() || scope.slotRevision < 0)
+      return Result.Rejected("scope_invalid")
+    if (scope.ruleVersion != BrainContracts.RULE_VERSION)
+      return Result.Rejected("rule_unsupported")
     if (proposal.actorId !in scope.presentActorIds) return Result.Rejected("actor_not_present")
     if (proposal.canonRevision != scope.canonRevision ||
       proposal.ruleVersion != scope.ruleVersion) return Result.Rejected("pins_mismatch")
@@ -120,17 +151,26 @@ internal object DecisionPreflight {
       if (item.isNullOrBlank()) return Result.Rejected("item_ambiguous")
       if (item !in scope.inventoryItemIds) return Result.Rejected("item_missing")
     }
+    if (proposal.intent != Intent.USE_ITEM && proposal.itemId != null)
+      return Result.Rejected("item_unexpected")
     // 6. Bind exact input/identity/scope.
-    val canonical = listOf(
-      proposal.actorId, proposal.slotId, proposal.slotRevision.toString(),
-      proposal.intent.name, proposal.targetId ?: "", proposal.itemId ?: "",
-      proposal.canonRevision, proposal.ruleVersion).joinToString("|")
+    val fields = mutableListOf<Any?>( 
+      proposal.actorId, proposal.slotId, proposal.slotRevision,
+      proposal.intent.name, proposal.targetId, proposal.itemId,
+      proposal.canonRevision, proposal.ruleVersion, scope.sceneId,
+      org.json.JSONArray(scope.presentActorIds.sorted()),
+      org.json.JSONArray(scope.capabilities.sorted()),
+      org.json.JSONArray(scope.inventoryItemIds.sorted()),
+      org.json.JSONArray(scope.legalTargetIds.sorted()))
+    if (interaction != null) fields.add(org.json.JSONArray(listOf(interaction.turnId,
+      interaction.inputDigest, interaction.contextDigest, interaction.sourceSnapshotDigest)))
+    val canonical = CompanionWaitCapture.canonical(org.json.JSONArray(fields))
     val binding = DecisionBinding(
       proposalDigest = CompanionDigests.sha256(canonical),
       actorId = proposal.actorId, slotId = proposal.slotId,
       slotRevision = proposal.slotRevision, intent = proposal.intent,
       targetId = proposal.targetId, itemId = proposal.itemId,
-      canonRevision = proposal.canonRevision, ruleVersion = proposal.ruleVersion)
+      canonRevision = proposal.canonRevision, ruleVersion = proposal.ruleVersion, interaction = interaction, sceneId = scope.sceneId)
     return Result.Approved(binding)
   }
 }
