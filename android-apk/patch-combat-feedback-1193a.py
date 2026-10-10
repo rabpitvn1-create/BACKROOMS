@@ -120,17 +120,6 @@ s = replace(s, combat_reply_block, combat_reply_block + '''    output.put("comba
       put("events", JSONArray().apply { resolution.feedback.forEach { put(it.toJson()) } })
     })
 ''')
-direct_log = '''    if (action == PokerDiceCore.DIRECT_COMBAT_ACTION) {
-      val log = output.optJSONArray("log") ?: JSONArray().also { output.put("log", it) }
-      log.put(JSONObject().put("role", "gm").put("text", combatReply))
-    } else {
-      appendLog(output, action, combatReply)
-    }
-'''
-s = replace(s, direct_log, '''    if (action != PokerDiceCore.DIRECT_COMBAT_ACTION) {
-      appendLog(output, action, combatReply)
-    }
-''')
 p.write_text(s)
 
 p = ASSETS / 'index.html'
