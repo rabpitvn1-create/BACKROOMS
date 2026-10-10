@@ -24,7 +24,7 @@ class TalkExecutorTest {
         slotRevision = 42, intent = intent, targetId = target, itemId = null,
         canonRevision = "R17", ruleVersion = BrainContracts.RULE_VERSION),
       intent = intent, targetId = target, itemId = null,
-      rngValue = 777L, providerCalls = 1)
+      providerCalls = 1)
 
   private fun facts() = TalkNativeFacts(
     speakerId = "luc_tram", listenerId = "cao_minh", sceneId = "node-7",
@@ -33,7 +33,7 @@ class TalkExecutorTest {
     sameScene = true, inReach = true)
 
   private fun input(f: TalkNativeFacts = facts(), utterance: String = "Đi theo tôi, an toàn.") =
-    TalkInput(decided(), utterance, f, turnId = "turn-9",
+    TalkInput(decided().copy(utterance=utterance), utterance, f, turnId = "turn-9",
       observationId = "obs-42", tapeSequence = 7L)
 
   @Test fun happyPath_spokenBundle() {
@@ -103,4 +103,14 @@ class TalkExecutorTest {
     val b = (TalkExecutor.execute(input().copy(tapeSequence = 8L)) as TalkResult.Spoken).bundle.tape
     assertTrue(b.sequence > a.sequence)
   }
+  @Test fun rejectsChangedSpeechAndWrongSpeaker() {
+    assertEquals("utterance_not_locked",(TalkExecutor.execute(input().copy(utterance="changed")) as TalkResult.NotSpoken).reason)
+    assertEquals("speaker_mismatch",(TalkExecutor.execute(input(facts().copy(speakerId="other"))) as TalkResult.NotSpoken).reason)
+  }
+  @Test fun repeatedSpeechInDifferentTurnsHasDistinctIdentity() {
+    val a=(TalkExecutor.execute(input()) as TalkResult.Spoken).bundle.event
+    val b=(TalkExecutor.execute(input().copy(turnId="next")) as TalkResult.Spoken).bundle.event
+    assertNotEquals(a.eventId,b.eventId)
+  }
+
 }

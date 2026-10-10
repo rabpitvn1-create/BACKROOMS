@@ -21,11 +21,11 @@ import org.junit.Test
  */
 class CharacterDecisionOrchestratorTest {
   private fun packet() = Packet(
-    actorId = "luc_tram",
-    canonRefs = ActorContextBuilder.CanonRefs(listOf("CAO-PER-01"), listOf("CAO-LIFE-02"), listOf()),
+    slotId = "slot-1", actorId = "luc_tram",
+    canonRefs = ActorContextBuilder.CanonRefs(CompanionPersonaFixture.load("luc_tram").traitRefs, CompanionPersonaFixture.load("luc_tram").ethicalRefs, CompanionPersonaFixture.load("luc_tram").voiceRefs),
     brain = ActorContextBuilder.BrainView(emptyList(), emptyList(), "UNSET"),
     memories = emptyList(), sceneEvidence = emptyList(),
-    pins = ActorContextBuilder.Pins("R17", "deadbeef",
+    pins = ActorContextBuilder.Pins("R05", CompanionPersonaFixture.load("luc_tram").sourceSha256,
       BrainContracts.RULE_VERSION, CompanionExposurePolicy.VERSION),
     truncated = false)
 
@@ -35,17 +35,20 @@ class CharacterDecisionOrchestratorTest {
     capabilities = setOf("cap.talk", "cap.wait"),
     inventoryItemIds = emptySet(),
     legalTargetIds = setOf("cao_minh", "node-8"),
-    canonRevision = "R17", ruleVersion = BrainContracts.RULE_VERSION)
+    canonRevision = "R05", ruleVersion = BrainContracts.RULE_VERSION)
 
   private fun proposal() = Proposal(
     intent = Intent.TALK, targetId = "cao_minh", itemId = null,
     slotId = "slot-1", slotRevision = 42, actorId = "luc_tram",
-    canonRevision = "R17", ruleVersion = BrainContracts.RULE_VERSION)
+    canonRevision = "R05", ruleVersion = BrainContracts.RULE_VERSION)
 
   private class FakeProvider(val script: MutableList<DecisionProvider.CallResult>) : DecisionProvider {
     var calls = 0
-    override fun propose(packet: Packet, binding: DecisionPreflight.DecisionBinding) =
-      script[minOf(calls++, script.size - 1)]
+    val hints = mutableListOf<String?>()
+    override fun propose(packet: Packet, binding: DecisionPreflight.DecisionBinding, repairHint: String?): DecisionProvider.CallResult {
+      hints.add(repairHint)
+      return script[minOf(calls++, script.size - 1)]
+    }
   }
 
   private fun goodJson(target: String = "cao_minh") =
@@ -63,10 +66,9 @@ class CharacterDecisionOrchestratorTest {
   }
 
   private fun input(provider: DecisionProvider, ledger: DecisionLedger = MemLedger(),
-                    rngValues: MutableList<Long> = mutableListOf(777L, 888L)) = Input(
+                    auditor: CharacterDecisionOrchestrator.DecisionAuditor? = CharacterDecisionOrchestrator.DecisionAuditor { _,_,_ -> null }) = Input(
     packet = packet(), scope = scope(), proposal = proposal(),
-    provider = provider, rng = CharacterDecisionOrchestrator.RngSource { rngValues.removeAt(0) },
-    ledger = ledger)
+    provider = provider, ledger = ledger, auditor = auditor)
 
   @Test fun happyPath_decidedAndLocked() {
     val ledger = MemLedger()
@@ -75,7 +77,6 @@ class CharacterDecisionOrchestratorTest {
     val out = CharacterDecisionOrchestrator.decide(input(provider, ledger))
     assertTrue(out is Outcome.DecidedOutcome)
     val decided = (out as Outcome.DecidedOutcome).decided
-    assertEquals(777L, decided.rngValue)
     assertEquals(1, decided.providerCalls)
     assertEquals(1, ledger.size())
     assertEquals(1, out.trace.providerCalls)
@@ -102,6 +103,7 @@ class CharacterDecisionOrchestratorTest {
     val out = CharacterDecisionOrchestrator.decide(input(provider, ledger))
     assertTrue("got $out", out is Outcome.DecidedOutcome)
     val trace = (out as Outcome.DecidedOutcome).trace
+    assertEquals(listOf(null,"target_mismatch"), provider.hints)
     assertEquals(2, trace.providerCalls)
     assertEquals(1, trace.repairs)
     assertEquals("cao_minh", out.decided.targetId)
@@ -135,8 +137,7 @@ class CharacterDecisionOrchestratorTest {
     val inp = input(provider, ledger)
     val first = CharacterDecisionOrchestrator.decide(inp) as Outcome.DecidedOutcome
     val second = CharacterDecisionOrchestrator.decide(inp) as Outcome.DecidedOutcome
-    assertEquals(first.decided.rngValue, second.decided.rngValue)  // 777, not 888
-    assertEquals(777L, second.decided.rngValue)
+    assertEquals(first.decided, second.decided)
     assertEquals(1, provider.calls)  // replay never re-calls
     assertEquals("locked_replay", second.trace.outcome)
     assertEquals(0, second.trace.providerCalls)
@@ -163,4 +164,53 @@ class CharacterDecisionOrchestratorTest {
     assertEquals("identity_mismatch", (out as Outcome.Rejected).reason)
     assertEquals(0, provider.calls)
   }
+  @Test fun missingOutputFailsClosedInsteadOfNullAssertion() {
+    val provider=FakeProvider(mutableListOf(DecisionProvider.CallResult(null,null)))
+    val out=CharacterDecisionOrchestrator.decide(input(provider)) as Outcome.Rejected
+    assertEquals("proposal_missing",out.reason)
+  }
+
+  @Test fun mandatorySemanticAuditCannotBeSkipped() {
+    val provider=FakeProvider(mutableListOf(DecisionProvider.CallResult(goodJson(),null)))
+    val out=CharacterDecisionOrchestrator.decide(input(provider,auditor=null)) as Outcome.Rejected
+    assertEquals("audit_adapter_missing",out.reason); assertEquals(0,provider.calls)
+  }
+
+  @Test fun semanticAuditRunsOnRepairAndRejectsBeforeLock() {
+    val provider=FakeProvider(mutableListOf(DecisionProvider.CallResult(goodJson("node-8"),null),
+      DecisionProvider.CallResult(goodJson(),null)))
+    val ledger=MemLedger(); var audits=0
+    val out=CharacterDecisionOrchestrator.decide(input(provider,ledger,
+      CharacterDecisionOrchestrator.DecisionAuditor { _,_,_ -> audits++; "semantic_denied" })) as Outcome.Rejected
+    assertEquals("semantic_denied",out.reason); assertEquals(1,audits); assertEquals(0,ledger.size())
+  }
+
+  @Test fun ledgerRaceWithoutWinnerRejects() {
+    val ledger=object: DecisionLedger {
+      override fun get(bindingDigest: String): Decided?=null
+      override fun put(decided: Decided)=false
+    }
+    val out=CharacterDecisionOrchestrator.decide(input(FakeProvider(mutableListOf(
+      DecisionProvider.CallResult(goodJson(),null))),ledger)) as Outcome.Rejected
+    assertEquals("ledger_race_missing",out.reason)
+  }
+
+  @Test fun crossSlotRecoveredLockCannotReplay() {
+    val good=CharacterDecisionOrchestrator.decide(input(FakeProvider(mutableListOf(
+      DecisionProvider.CallResult(goodJson(),null))))) as Outcome.DecidedOutcome
+    val ledger=object: DecisionLedger {
+      override fun get(bindingDigest: String)=good.decided.copy(binding=good.decided.binding.copy(slotId="other"))
+      override fun put(decided: Decided)=false
+    }
+    val provider=FakeProvider(mutableListOf(DecisionProvider.CallResult(goodJson(),null)))
+    val out=CharacterDecisionOrchestrator.decide(input(provider,ledger)) as Outcome.Rejected
+    assertEquals("ledger_binding_mismatch",out.reason); assertEquals(0,provider.calls)
+  }
+
+  @Test fun providerErrorTextIsNotCopiedIntoPrivacyTrace() {
+    val out=CharacterDecisionOrchestrator.decide(input(FakeProvider(mutableListOf(
+      DecisionProvider.CallResult(null,"private packet secret: abc"))))) as Outcome.Rejected
+    assertEquals("provider_error",out.reason); assertFalse(out.toString().contains("abc"))
+  }
+
 }

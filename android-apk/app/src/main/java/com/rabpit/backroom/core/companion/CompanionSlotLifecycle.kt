@@ -24,7 +24,7 @@ package com.rabpit.backroom.core.companion
  */
 internal object CompanionSlotLifecycle {
   /** Lifecycle metadata format version. */
-  const val SLOT_FORMAT_VERSION = 1
+  const val SLOT_FORMAT_VERSION = CompanionSlotStore.FORMAT_VERSION
 
   data class SlotMetadata(
     val slotId: String,
@@ -37,9 +37,9 @@ internal object CompanionSlotLifecycle {
   ) {
     /** Structural validation: corrupt rows fail here, never silently. */
     fun validate(): Boolean =
-      slotId.isNotBlank() && seedDigest.length == 64 &&
-        personaRevision.isNotBlank() && personaSha256.isNotBlank() &&
-        ruleVersion.isNotBlank() && policyVersion.isNotBlank()
+      slotId.isNotBlank() && seedDigest.matches(Regex("[0-9a-f]{64}")) &&
+        personaRevision.isNotBlank() && personaSha256.matches(Regex("[0-9a-f]{64}")) &&
+        ruleVersion == BrainContracts.RULE_VERSION && policyVersion == CompanionExposurePolicy.VERSION
   }
 
   data class BootstrapInput(
@@ -63,7 +63,7 @@ internal object CompanionSlotLifecycle {
 
   enum class LifecycleError {
     SEED_UNAPPROVED, PINS_MISSING, ALREADY_EXISTS,
-    SLOT_MISSING, SLOT_CORRUPT, VERSION_INCOMPATIBLE
+    SLOT_MISSING, SLOT_CORRUPT, VERSION_INCOMPATIBLE, DELETE_FAILED
   }
 
   sealed class LifecycleResult {
@@ -77,8 +77,8 @@ internal object CompanionSlotLifecycle {
     store: LifecycleStore, slotId: String, input: BootstrapInput
   ): LifecycleResult {
     if (input.approvedSeed.isEmpty()) return LifecycleResult.Failed(LifecycleError.SEED_UNAPPROVED)
-    if (input.personaRevision.isBlank() || input.personaSha256.isBlank() ||
-      input.ruleVersion.isBlank() || input.policyVersion.isBlank())
+    if (slotId.isBlank() || input.personaRevision.isBlank() || !input.personaSha256.matches(Regex("[0-9a-f]{64}")) ||
+      input.ruleVersion != BrainContracts.RULE_VERSION || input.policyVersion != CompanionExposurePolicy.VERSION)
       return LifecycleResult.Failed(LifecycleError.PINS_MISSING)
     if (store.exists(slotId)) return LifecycleResult.Failed(LifecycleError.ALREADY_EXISTS)
     val metadata = SlotMetadata(
@@ -96,7 +96,7 @@ internal object CompanionSlotLifecycle {
       ?: return LifecycleResult.Failed(LifecycleError.SLOT_MISSING)
     if (metadata.formatVersion != SLOT_FORMAT_VERSION)
       return LifecycleResult.Failed(LifecycleError.VERSION_INCOMPATIBLE)
-    if (!metadata.validate()) return LifecycleResult.Failed(LifecycleError.SLOT_CORRUPT)
+    if (metadata.slotId != slotId || !metadata.validate()) return LifecycleResult.Failed(LifecycleError.SLOT_CORRUPT)
     return LifecycleResult.Ready(metadata)
   }
 
@@ -114,7 +114,7 @@ internal object CompanionSlotLifecycle {
     if (!store.exists(slotId)) return LifecycleResult.Failed(LifecycleError.SLOT_MISSING)
     store.closeScope(slotId)
     if (session.currentSlotId == slotId) session.close()
-    store.delete(slotId)
+    if (!store.delete(slotId)) return LifecycleResult.Failed(LifecycleError.DELETE_FAILED)
     return LifecycleResult.Deleted(slotId)
   }
 
