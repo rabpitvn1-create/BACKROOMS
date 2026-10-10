@@ -48,6 +48,10 @@ internal object CompanionCanonPersonaRegistry {
     )
   )
 
+  /** Registry descriptor only; does NOT verify packaged bytes. Native create/open must call load(). */
+  fun descriptor(actorId: String): Persona =
+    profiles[actorId] ?: throw IOException("persona_actor_unsupported")
+
   fun accepts(persona: Persona): Boolean {
     val pinned=profiles[persona.actorId] ?: return false
     return persona.knowledgeNamespace == pinned.knowledgeNamespace && persona.sourcePath == pinned.sourcePath &&
