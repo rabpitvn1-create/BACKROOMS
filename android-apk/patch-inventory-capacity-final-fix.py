@@ -130,5 +130,3 @@ runpy.run_path(str(ROOT / "patch-party-combat-actions-finalize.py"), run_name="_
 # It does not loosen runtime gates or change gameplay.
 runpy.run_path(str(ROOT / "patch-party-combat-tests-compat.py"), run_name="__main__")
 
-# Typography is last: it decorates finalized GM text without changing gameplay/state contracts.
-runpy.run_path(str(ROOT / "patch-gm-semantic-play-bold.py"), run_name="__main__")
