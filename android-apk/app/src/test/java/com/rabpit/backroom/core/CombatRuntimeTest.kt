@@ -75,4 +75,32 @@ class CombatRuntimeTest {
     assertTrue(after.momentum >= 0)
     assertFalse(after.telegraph.isBlank())
   }
+  @Test fun everyDefeatedEntityAwardsExactlyOneOfflineItem() {
+    val initial = GameState.initial()
+    val before = initial.inventories.getValue(KAI_ID).items.values.sumOf { it.quantity }
+    val awarded = OfflineEntityLoot.award(initial, "encounter:one", 91L)
+    assertNotNull(awarded.itemId)
+    assertFalse(awarded.queued)
+    assertEquals(before + 1, awarded.state.inventories.getValue(KAI_ID).items.values.sumOf { it.quantity })
+    val duplicate = OfflineEntityLoot.award(awarded.state, "encounter:one", 42L)
+    assertEquals(awarded.state, duplicate.state)
+  }
+
+  @Test fun entityDropSurvivesFullInventoryUntilSlotOpens() {
+    val initial = GameState.initial()
+    val fullItems = (1..InventoryPolicy.KAI.maxTypes).associate { n ->
+      val itemId = "filler:$n"
+      itemId to ItemStack(itemId, "Filler $n", 1)
+    }
+    val full = initial.copy(inventories = initial.inventories +
+      (KAI_ID to InventoryState(KAI_ID, fullItems)))
+    val award = OfflineEntityLoot.award(full, "encounter:full", 51L)
+    assertTrue(award.queued)
+    val freed = award.state.copy(inventories = award.state.inventories +
+      (KAI_ID to InventoryState(KAI_ID, fullItems - "filler:1")))
+    val collected = OfflineEntityLoot.collectPending(freed)
+    assertTrue(collected.metadata["loot.pendingEntityDrops"].isNullOrBlank())
+    assertTrue(collected.inventories.getValue(KAI_ID).items.containsKey(award.itemId!!))
+  }
+
 }
