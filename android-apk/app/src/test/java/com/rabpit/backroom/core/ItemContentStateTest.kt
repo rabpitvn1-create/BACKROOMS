@@ -26,7 +26,6 @@ class ItemContentStateTest {
     val items = result.state.inventories.getValue(KAI_ID).items
     assertEquals(granted.inventories.getValue(KAI_ID).items.keys, items.keys)
     assertEquals(1, items.getValue("water").quantity)
-    assertEquals(ContentState.NONE, items.getValue("water").contentState)
   }
   @Test fun fractionalAmountsRemainRejected() {
     for (name in listOf("Chai nước 200ml", "Chai nước một nửa")) {
@@ -35,13 +34,10 @@ class ItemContentStateTest {
       assertEquals("precise_content_amount_forbidden", result.validation.reason)
     }
   }
-  @Test fun normalizationKeepsStableIdAndStripsContentBookkeeping() {
-    val item = ItemContentRules.normalize(ItemStack("bottle", "Chai nước", metadata = mapOf("contentState" to "LOW", "remainingContent" to "một ít", "contentPercent" to "50")))
+  @Test fun itemsOnlyHaveOneStackPerTypeId() {
+    val item = ItemContentRules.normalize(ItemStack("bottle", "Chai nước", 3))
     assertEquals("bottle", item.itemId)
-    assertEquals(ContentState.NONE, item.contentState)
-    assertFalse(item.metadata.containsKey("contentState"))
-    assertFalse(item.metadata.containsKey("remainingContent"))
-    assertFalse(item.metadata.containsKey("contentPercent"))
+    assertEquals(3, item.quantity)
     assertNull(ItemContentRules.nextAfterUse(item))
   }
   @Test fun reusableToolDoesNotLoseQuantityOrProduceContainerVariant() {

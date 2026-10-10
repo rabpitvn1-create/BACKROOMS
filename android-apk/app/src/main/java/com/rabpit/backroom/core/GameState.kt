@@ -1,6 +1,6 @@
 package com.rabpit.backroom.core
 
-const val CURRENT_SAVE_VERSION = 4
+const val CURRENT_SAVE_VERSION = 5
 const val KAI_ID = "cao_minh"
 const val KAI_WHITE_WRAITH_ID = "cao_minh:huyet-ma-kiem"
 const val KAI_BLACKBLOOD_ARMOR_ID = "cao_minh:huyet-ma-chien-khai"
@@ -54,10 +54,7 @@ data class ItemStack(
   val itemId: String,
   val name: String,
   val quantity: Int = 1,
-  val condition: String? = null,
-  val metadata: Map<String, String> = emptyMap(),
-  val archetypeId: String = itemId,
-  val contentState: ContentState = ContentState.NONE
+  val metadata: Map<String, String> = emptyMap()
 )
 
 data class InventoryState(val ownerId: String, val items: Map<String, ItemStack> = emptyMap())

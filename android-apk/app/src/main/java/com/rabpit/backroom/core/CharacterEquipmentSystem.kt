@@ -224,13 +224,13 @@ object EquipmentCatalog {
       "statItem" to (def.bonuses.any() || def.weapon != null).toString()
     )
     def.rarity?.let { metadata["rarity"] = it }
-    return ItemStack(def.id, def.name, 1, "READY", metadata)
+    return ItemStack(def.id, def.name, 1, metadata = metadata)
   }
 
   fun mergeDefinitionMetadata(stack: ItemStack): ItemStack {
     val def = definition(stack.itemId) ?: return stack
     val canonical = stackFor(def.id)
-    return stack.copy(name = def.name, metadata = canonical.metadata + stack.metadata, archetypeId = def.id)
+    return stack.copy(name = def.name, metadata = canonical.metadata + stack.metadata)
   }
 }
 

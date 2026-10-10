@@ -1,7 +1,5 @@
 package com.rabpit.backroom.core
 
-enum class ContentState { NONE }
-
 object ItemContentRules {
   private val forbiddenAmount = Regex("(?:\\b\\d+(?:[.,]\\d+)?\\s*(?:ml|l|lit|lít|g|gram|kg|%)\\b|một nửa|nửa chai|nửa hộp|phần trăm)", RegexOption.IGNORE_CASE)
   fun hasForbiddenPreciseAmount(text: String): Boolean = forbiddenAmount.containsMatchIn(text)
@@ -12,8 +10,7 @@ object ItemContentRules {
     val consumable = name.contains("chai nước") || name.contains("hộp thức ăn") || name.contains("hộp đồ ăn") ||
       name.contains("bình nhiên liệu") || name.contains("can nhiên liệu") || name.contains("viên đạn") ||
       item.metadata["physiologyEffect"]?.split(',', ';', '|')?.any { it.trim().uppercase() in setOf("WATER", "FOOD") } == true
-    val metadata = item.metadata - setOf("contentState", "remainingContent", "contentAmount", "contentPercent", "containerPersistent")
-    return item.copy(contentState = ContentState.NONE, metadata = if (consumable) metadata + ("consumedOnUse" to "true") else metadata)
+    return if (consumable) item.copy(metadata = item.metadata + ("consumedOnUse" to "true")) else item
   }
 
   fun nextAfterUse(item: ItemStack): ItemStack? {
@@ -23,7 +20,7 @@ object ItemContentRules {
 
   fun sameStackState(left: ItemStack, right: ItemStack): Boolean {
     val a = normalize(left); val b = normalize(right)
-    return a.itemId == b.itemId && a.archetypeId == b.archetypeId && a.condition == b.condition && a.metadata == b.metadata
+    return a.itemId == b.itemId && a.metadata == b.metadata
   }
 
 }

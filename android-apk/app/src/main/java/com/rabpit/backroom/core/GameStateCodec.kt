@@ -144,18 +144,14 @@ object GameStateCodec {
   private fun item(value: ItemStack) = JSONObject().apply {
     val normalized = ItemContentRules.normalize(value)
     put("itemId", normalized.itemId); put("name", normalized.name); put("quantity", normalized.quantity)
-    putNullable("condition", normalized.condition); put("metadata", stringMap(normalized.metadata))
-    put("archetypeId", normalized.archetypeId); put("contentState", normalized.contentState.name)
+    put("metadata", stringMap(normalized.metadata))
   }
 
   private fun decodeItem(json: JSONObject): ItemStack = ItemContentRules.normalize(ItemStack(
     itemId = json.optString("itemId"),
     name = json.optString("name"),
     quantity = json.optInt("quantity", 1).coerceAtLeast(1),
-    condition = json.nullableString("condition"),
-    metadata = json.optJSONObject("metadata").stringsMap(),
-    archetypeId = json.optString("archetypeId", json.optString("itemId")),
-    contentState = enumOr(ContentState.NONE, json.optString("contentState"))
+    metadata = json.optJSONObject("metadata").stringsMap()
   ))
 
   private fun itemMap(json: JSONObject?): Map<String, ItemStack> {

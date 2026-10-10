@@ -365,46 +365,6 @@ class GameCoreFacade private constructor(
     val pending = TurnCoordinator.createPending(core, turnId, action)
     if (pending.error != null) return response(false, before, pending.error, "pending_rejected")
     val commands = mutableListOf<GameCommand>()
-    val current = pending.state.inventories[KAI_ID]?.items.orEmpty()
-    val actionIntents = rules.interpretSync(action, contextFor(pending.state)).candidates.map { it.intent }.toSet()
-    val inventoryLocked = true // INVENTORY_AUTHORITY: candidate snapshots are read-only
-
-    val desiredById = mutableMapOf<String, ItemStack>()
-    if (inventoryLocked) {
-      desiredById.putAll(current)
-    } else {
-      val desiredInventory = candidate.optJSONArray("inventory") ?: JSONArray()
-      for (index in 0 until desiredInventory.length()) {
-        val json = desiredInventory.optJSONObject(index) ?: continue
-        val name = json.optString("name").trim(); if (name.isEmpty()) continue
-        val id = json.optString("id").ifBlank { stableItemId(name) }
-        val currentStack = current[id]
-        val metadata = currentStack?.metadata.orEmpty() + jsonObjectStrings(json.optJSONObject("metadata"))
-        desiredById[id] = ItemStack(
-          id,
-          name,
-          json.optInt("quantity", 1).coerceAtLeast(1),
-          json.optString("state").takeIf(String::isNotBlank) ?: currentStack?.condition,
-          metadata,
-          currentStack?.archetypeId ?: id,
-          currentStack?.contentState ?: ContentState.NONE
-        )
-      }
-    }
-
-    current.filterKeys { EquipmentCatalog.definition(it) != null }.forEach { (id, stack) -> desiredById[id] = stack }
-
-    (current.keys + desiredById.keys).sorted().forEachIndexed { index, id ->
-      val old = current[id]?.quantity ?: 0; val desired = desiredById[id]?.quantity ?: 0
-      if (desired == old) return@forEachIndexed
-      val stack = desiredById[id] ?: current.getValue(id)
-      commands += ItemCommand(
-        "$turnId:GEMINI:INV:$index", turnId, KAI_ID, source = CommandSource.GEMINI,
-        operation = if (desired > old) ItemCommand.Operation.PICKUP else ItemCommand.Operation.DROP,
-        itemId = id, itemName = stack.name, quantity = kotlin.math.abs(desired - old), metadata = stack.metadata
-      )
-    }
-
     val desiredParty = mutableMapOf<String, JSONObject>()
     val partyJson = candidate.optJSONArray("party") ?: JSONArray()
     for (index in 0 until partyJson.length()) {
@@ -596,7 +556,7 @@ class GameCoreFacade private constructor(
     val kaiInventory = state.inventories[KAI_ID]?.items?.values.orEmpty()
     output.put("inventory", JSONArray().apply { kaiInventory.forEach { stack -> put(JSONObject().apply {
       put("id", stack.itemId); put("name", stack.name); put("quantity", stack.quantity)
-      stack.condition?.let { put("state", it) }; put("metadata", JSONObject(stack.metadata))
+      put("metadata", JSONObject(stack.metadata))
     }) } })
     output.put("party", JSONArray().apply { state.party.memberIds.filter { it != KAI_ID }.forEach { id ->
       state.characters[id]?.let { character -> put(JSONObject().apply {

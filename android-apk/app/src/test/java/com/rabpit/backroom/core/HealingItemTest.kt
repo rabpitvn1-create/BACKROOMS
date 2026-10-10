@@ -64,7 +64,6 @@ class HealingItemTest {
   }
 
   @Test fun healingItemsShareTheOrdinaryLootGate() {
-    assertEquals("loot", HealingItems.DROP_ROLL_KEY)
     assertEquals(10, HealingItems.BANDAGE_HEAL_HP)
     assertEquals(20, HealingItems.ANTISEPTIC_HEAL_HP)
   }

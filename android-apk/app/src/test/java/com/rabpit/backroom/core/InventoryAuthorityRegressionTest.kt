@@ -20,7 +20,6 @@ class InventoryAuthorityRegressionTest {
     assertTrue(result.validation.reason ?: "pickup failed", result.applied)
     assertTrue(result.events.contains("inventory_pickup"))
     val bandage = result.state.inventories.getValue(KAI_ID).items.getValue(BANDAGE_ID)
-    assertEquals(ContentState.NONE, bandage.contentState)
     assertEquals("true", bandage.metadata["consumable"])
   }
 

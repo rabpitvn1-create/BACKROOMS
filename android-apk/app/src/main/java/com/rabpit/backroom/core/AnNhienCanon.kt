@@ -95,7 +95,7 @@ object AnNhienCanon {
     if (metadata["food"] == "true") return true
     val physiology = metadata["physiologyeffect"].orEmpty().uppercase()
     if (physiology.split(',', ';', '|').map { it.trim() }.contains("FOOD")) return true
-    val key = (item.name + " " + item.archetypeId).lowercase()
+    val key = (item.name + " " + item.itemId).lowercase()
     return listOf("thức ăn", "đồ ăn", "food", "ration", "lương khô", "bánh", "kẹo", "thịt", "cơm", "mì").any(key::contains)
   }
 }

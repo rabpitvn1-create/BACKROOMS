@@ -86,7 +86,7 @@ private fun useItem(state: GameState, source: InventoryState, command: ItemComma
     }
   }
   val consumedOnUse = owned.metadata["consumedOnUse"].equals("true", true) ||
-    (owned.metadata["consumable"].equals("true", true) && !owned.metadata["containerPersistent"].equals("true", true))
+    owned.metadata["consumable"].equals("true", true)
   if (consumedOnUse) {
     val next = removeItem(source, command.itemId, command.quantity) ?: return invalid(state, "insufficient_item_quantity")
     val inventoryResult = changed(state.copy(inventories = state.inventories + (command.actorId to next)), "item_consumed")
