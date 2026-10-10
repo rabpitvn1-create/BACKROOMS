@@ -93,12 +93,15 @@ jobs:
           poker = (core / 'PokerDiceCore.kt').read_text(encoding='utf-8')
           poker_test = (root / 'app/src/test/java/com/rabpit/backroom/core/PokerDiceCoreBackportTest.kt').read_text(encoding='utf-8')
           dice_dir = root / 'app/src/main/assets/dice'
+          play_bold = root / 'app/src/main/assets/fonts/Play-Bold.ttf'
 
           required = [
               ("versionCode 68", gradle), ("versionName '1.1.63.0.3'", gradle),
               ('const prologue=`Lôi Thiên Vực chưa từng có một ngày yên tĩnh như thế.', html),
               ('Cao Minh tỉnh lại một mình tại Level 0. Không có dấu vết của Lục Trầm.', html),
               ('.snapshot{height:300px;margin:8px 10px 10px;', html),
+              ('GM_SEMANTIC_PLAY_BOLD_R01', html), ("font-family:'Play';font-style:normal;font-weight:700", html),
+              ('gm-semantic', html), ('patch-gm-semantic-play-bold.py', chain),
               ('UI_119_BACKPORT_R01', html), ('id="playerActionBar"', html), ('id="playerActionModal"', html),
               ('id="playerActionConfirm"', html), ('id="gameMenuModal"', html), ('id="gameMenuOpen"', html),
               ('border-radius:7px', html), ('hud/player_action_backrooms.png', html),
@@ -170,6 +173,7 @@ jobs:
           ]
           for marker, source in required:
               assert marker in source, marker
+          assert play_bold.is_file() and play_bold.stat().st_size > 0
           provider_start = java.index('  private String generateText(String prompt)')
           provider_end = java.index('\n  private JSONObject parseModelJson', provider_start)
           provider_flow = java[provider_start:provider_end]
@@ -250,7 +254,7 @@ jobs:
           "$BUILD_TOOLS/aapt" dump badging Backroom-1.1.63.0.3.apk | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
           "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-1.1.63.0.3.apk
           rm -rf apk-check && mkdir apk-check
-          unzip -q Backroom-1.1.63.0.3.apk 'assets/index.html' 'assets/entity/*' 'assets/Kai_MadGod_snapshot_overlay.png' 'assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png' 'assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png' 'assets/avatars/MadGod.jpg' 'assets/hud/player_action_backrooms.png' 'assets/dice/*' -d apk-check
+          unzip -q Backroom-1.1.63.0.3.apk 'assets/index.html' 'assets/entity/*' 'assets/Kai_MadGod_snapshot_overlay.png' 'assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png' 'assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png' 'assets/avatars/MadGod.jpg' 'assets/hud/player_action_backrooms.png' 'assets/dice/*' 'assets/fonts/Play-Bold.ttf' -d apk-check
           grep -q 'searchActionButton' apk-check/assets/index.html
           grep -q 'exploreActionButton' apk-check/assets/index.html
           grep -q 'UI_119_BACKPORT_R01' apk-check/assets/index.html
@@ -276,6 +280,10 @@ jobs:
           grep -q 'renderCharacterStatusEquipment' apk-check/assets/index.html
           grep -q 'characterSkillsModal' apk-check/assets/index.html
           grep -q 'characterSkillsButton' apk-check/assets/index.html
+          grep -q 'GM_SEMANTIC_PLAY_BOLD_R01' apk-check/assets/index.html
+          grep -q 'gm-semantic' apk-check/assets/index.html
+          test -s apk-check/assets/fonts/Play-Bold.ttf
+          cmp apk-check/assets/fonts/Play-Bold.ttf android-apk/app/src/main/assets/fonts/Play-Bold.ttf
           test -s apk-check/assets/entity/hound.webp
           test -s apk-check/assets/entity/slenderman.webp
           test -s apk-check/assets/entity/diep_minh.webp
@@ -331,8 +339,10 @@ jobs:
           unzip -l Backroom-1.1.63.0.3-verified.apk | grep -q 'assets/dice/die-1.png'
           unzip -l Backroom-1.1.63.0.3-verified.apk | grep -q 'assets/dice/die-6.png'
           unzip -l Backroom-1.1.63.0.3-verified.apk | grep -q 'assets/dice/roll-3d.png'
+          unzip -l Backroom-1.1.63.0.3-verified.apk | grep -q 'assets/fonts/Play-Bold.ttf'
           unzip -p Backroom-1.1.63.0.3-verified.apk assets/index.html | grep -q 'characterSkillsModal'
           unzip -p Backroom-1.1.63.0.3-verified.apk assets/index.html | grep -q 'characterSkillsButton'
+          unzip -p Backroom-1.1.63.0.3-verified.apk assets/index.html | grep -q 'GM_SEMANTIC_PLAY_BOLD_R01'
           unzip -p Backroom-1.1.63.0.3-verified.apk assets/index.html | grep -q 'UI_119_BACKPORT_R01'
           unzip -p Backroom-1.1.63.0.3-verified.apk assets/index.html | grep -q 'playerActionModal'
           unzip -p Backroom-1.1.63.0.3-verified.apk assets/index.html | grep -q 'POKER_DICE_CORE_BACKPORT_R01'
