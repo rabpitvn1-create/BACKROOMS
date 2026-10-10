@@ -117,6 +117,8 @@ internal object EpisodicMemory {
     val p = candidate.publicPayload
     val access = candidate.access.name
     val base = when {
+      p.has("intent") && p.has("actor") && p.has("location") ->
+        "[$access] ${p.optString("actor")} ${p.optString("intent")} at ${p.optString("location")}"
       p.has("location") -> "[$access] ${p.optString("actor")} at ${p.optString("location")}"
       p.has("target") && p.optBoolean("completed", false) ->
         "[$access] moved ${p.optString("source")} -> ${p.optString("target")}"
