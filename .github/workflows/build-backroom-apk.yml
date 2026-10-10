@@ -115,6 +115,9 @@ jobs:
       - name: Verify Player Action popup stays above Android keyboard
         run: node android-apk/verify-player-action-ime.mjs
 
+      - name: Verify New Game GM callback feedback
+        run: node --test android-apk/tests/gm-turn-feedback.test.cjs
+
       - name: Verify complete Novel Asset Canon index
         run: python3 android-apk/build-novel-asset-canon-index.py --check
 
