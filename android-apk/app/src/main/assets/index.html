@@ -1570,40 +1570,51 @@ let destructiveUntil=0;
 
 function freshInitial(){return JSON.parse(JSON.stringify(initial))}
 function clearAuthoritativeCore(){
-  try{if(window.Android&&typeof Android.clearCoreState==="function")Android.clearCoreState();return true}
-  catch(e){statusEl.textContent="Không thể đồng bộ Game State Core: "+(e&&e.message?e.message:"bridge error");return false}
-}
-function savedState(){
-  let raw=null;
-  try{raw=localStorage.getItem(SAVE_KEY)}catch(e){statusEl.textContent="Không thể đọc bộ nhớ save: "+(e&&e.message?e.message:"storage error");return null}
-  if(!raw)return null;
   try{
-    const parsed=JSON.parse(raw);
-    if(!parsed||typeof parsed!=="object"||Array.isArray(parsed))throw new Error("state không phải object");
-    return parsed;
-  }catch(e){statusEl.textContent="Save trên máy bị lỗi và không được nạp. Bạn có thể xóa save hoặc tạo New Game.";return null}
+    if(!window.Android||typeof Android.clearCoreState!=="function"||Android.clearCoreState()!==true)
+      throw new Error("Core không xác nhận xóa dữ liệu");
+    return true;
+  }catch(e){statusEl.textContent="Không thể xóa Game Core: "+(e&&e.message?e.message:"bridge error");return false}
+}
+// Turn updates only refresh the active presentation. They never overwrite the manual checkpoint.
+function persistPresentation(){
+  try{
+    const projected=syncClientFromCore(state);
+    const payload=JSON.stringify(projected);
+    localStorage.setItem(SAVE_KEY,payload);
+    const checked=JSON.parse(localStorage.getItem(SAVE_KEY)||"null");
+    if(!checked||checked.turn!==projected.turn)throw new Error("không xác minh được bản ghi giao diện");
+    state=projected;
+    return true;
+  }catch(e){statusEl.textContent="Không lưu được giao diện hiện tại: "+(e&&e.message?e.message:"storage error");return false}
+}
+function checkpointBridge(name,arg){
+  if(!window.Android||typeof Android[name]!=="function")throw new Error("Thiếu kết nối Save/Load Core");
+  const raw=arg===undefined?Android[name]():Android[name](arg);
+  const answer=JSON.parse(raw||"null");
+  if(!answer||answer.ok!==true||!answer.state)throw new Error(answer&&answer.error||"checkpoint_failed");
+  return answer.state;
 }
 function save(){
+  if(busy||coreUnavailable){statusEl.textContent="Đang xử lý lượt hoặc Core chưa sẵn sàng; không thể lưu.";return false}
   try{
-    state=syncClientFromCore(state);
-    const payload=JSON.stringify(state);
-    localStorage.setItem(SAVE_KEY,payload);
-    const verify=localStorage.getItem(SAVE_KEY);
-    if(!verify)throw new Error("không đọc lại được save vừa ghi");
-    const checked=JSON.parse(verify);
-    if(Number(checked.turn)!==Number(state.turn))throw new Error("Turn sau khi ghi không khớp");
-    statusEl.textContent="Đã lưu Turn "+(state.turn||1)+" trên máy.";
+    const saved=checkpointBridge("saveGameCheckpoint",JSON.stringify(state));
+    state=saved;
+    if(!persistPresentation()){statusEl.textContent="Đã lưu bản gameplay trong Core; không thể cập nhật bộ đệm giao diện.";return true}
+    statusEl.textContent="Đã lưu đầy đủ gameplay và nhật ký tại Turn "+state.turn+".";
     return true;
-  }catch(e){statusEl.textContent="Lưu thất bại: "+(e&&e.message?e.message:"storage error");return false}
+  }catch(e){statusEl.textContent="Lưu thất bại: "+(e&&e.message?e.message:"checkpoint error");return false}
 }
 function load(){
-  const loaded=savedState();
-  if(!loaded){if(!statusEl.textContent||!statusEl.textContent.includes("bị lỗi"))statusEl.textContent="Không có save trên máy để tải.";return false}
-  try{state=syncClientFromCore(loaded)}
-  catch(e){statusEl.textContent="Không đồng bộ được dữ liệu Core; chưa tải giao diện.";return false}
-  render();
-  statusEl.textContent="Đã tải giao diện/nhật ký; dữ liệu gameplay được lấy từ Core ở Turn "+(state.turn||1)+".";
-  return true;
+  if(busy||coreUnavailable){statusEl.textContent="Đang xử lý lượt hoặc Core chưa sẵn sàng; không thể tải.";return false}
+  try{
+    const restored=checkpointBridge("loadGameCheckpoint");
+    state=restored;
+    if(!persistPresentation()){render();statusEl.textContent="Đã khôi phục gameplay nhưng không ghi được bộ đệm giao diện.";return true}
+    render();
+    statusEl.textContent="Đã khôi phục gameplay và nhật ký tại Turn "+state.turn+".";
+    return true;
+  }catch(e){statusEl.textContent="Tải thất bại, lượt hiện tại được giữ nguyên: "+(e&&e.message?e.message:"checkpoint error");return false}
 }
 function armDestructive(kind,label,perform){
   const now=Date.now();
@@ -1613,28 +1624,27 @@ function armDestructive(kind,label,perform){
 }
 function resetGame(){
   armDestructive("new-game","Bắt đầu lại từ đầu",()=>{
-    try{localStorage.removeItem(SNAPSHOT_KEY)}catch(ignore){}
-    state=freshInitial();
+    const fresh=freshInitial();
     try{
-      if(window.Android&&typeof Android.resetNewGameCore==='function'){
-        const response=JSON.parse(Android.resetNewGameCore()||'{}');
-        if(response&&response.ok===true&&response.data){state.partyDetails=response.data}
-        else throw new Error((response&&response.message)||'Core reset failed');
-      }else{
-        clearAuthoritativeCore();
-      }
+      if(!window.Android||typeof Android.resetNewGameCore!=="function")throw new Error("Thiếu kết nối New Game Core");
+      const response=JSON.parse(Android.resetNewGameCore()||'{}');
+      if(response&&response.ok===true&&response.data)fresh.partyDetails=response.data;
+      else throw new Error((response&&response.message)||'Core reset failed');
+      state=fresh;
+      localStorage.removeItem(SNAPSHOT_KEY);
     }catch(e){statusEl.textContent="NEW GAME Core lỗi: "+(e&&e.message?e.message:"bridge error");return}
     render();
-    if(save())statusEl.textContent="NEW GAME đã tạo và lưu ở Turn 1 với Character Core mới.";
+    if(persistPresentation())statusEl.textContent="NEW GAME đã tạo ở Turn 1. Nhấn Lưu để tạo điểm lưu thủ công.";
   });
 }
 function clearSave(){
   armDestructive("delete-save","Xóa save trên máy",()=>{
-    try{localStorage.removeItem(SAVE_KEY);localStorage.removeItem(SNAPSHOT_KEY)}catch(e){statusEl.textContent="Xóa save thất bại: "+(e&&e.message?e.message:"storage error");return}
-    clearAuthoritativeCore();
+    if(!clearAuthoritativeCore())return;
     state=freshInitial();
+    try{localStorage.removeItem(SAVE_KEY);localStorage.removeItem(SNAPSHOT_KEY)}
+    catch(e){statusEl.textContent="Core đã xóa; xóa bộ đệm giao diện thất bại: "+(e&&e.message?e.message:"storage error");render();return}
     render();
-    statusEl.textContent="Đã xóa save, Game State Core và snapshot trên máy. Trạng thái Turn 1 hiện chỉ ở bộ nhớ tạm.";
+    statusEl.textContent="Đã xóa điểm lưu thủ công, Game Core và bộ đệm giao diện.";
   });
 }
 formEl.addEventListener("submit",e=>{e.preventDefault();const a=actionEl.value.trim();if(!a||busy)return;if(!window.Android){statusEl.textContent="Không tìm thấy Android bridge.";return}busy=true;syncPrimaryActions();statusEl.textContent="Gemini đang xử lý lượt…";window.Android.submitAction(JSON.stringify(state),"EXECUTE",a)});
@@ -1673,7 +1683,7 @@ if(exploreActionButton)exploreActionButton.addEventListener("click",()=>submitMa
 if(actionEl)actionEl.addEventListener("input",syncPrimaryActions);
 syncPrimaryActions();
 
-window.backroomTurn=json=>{state=semanticPrepareNextState(state,json);actionEl.value="";busy=false;syncPrimaryActions();save();statusEl.textContent="Turn "+state.turn+" đã lưu trên máy.";render();focusLatestGmStart()};
+window.backroomTurn=json=>{state=semanticPrepareNextState(state,json);actionEl.value="";busy=false;syncPrimaryActions();if(persistPresentation())statusEl.textContent="Turn "+state.turn+" đã cập nhật.";render();focusLatestGmStart()};
 window.backroomError=message=>{busy=false;syncPrimaryActions();statusEl.textContent="Lỗi Gemini: "+message};
 render();
 </script>

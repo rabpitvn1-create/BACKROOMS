@@ -2063,9 +2063,29 @@ public class MainActivity extends Activity {
       }
     }
 
-    @JavascriptInterface public void clearCoreState() {
-      GameCoreFacade core = gameCoreOrNull();
-      if (core != null) core.clear();
+    @JavascriptInterface public String saveGameCheckpoint(String presentationJson) {
+      try {
+        return requireGameCore().saveManualCheckpoint(presentationJson);
+      } catch (Exception error) {
+        return "{\"ok\":false,\"error\":\"checkpoint_save_failed\"}";
+      }
+    }
+
+    @JavascriptInterface public String loadGameCheckpoint() {
+      try {
+        return requireGameCore().loadManualCheckpoint();
+      } catch (Exception error) {
+        return "{\"ok\":false,\"error\":\"checkpoint_load_failed\"}";
+      }
+    }
+
+    @JavascriptInterface public boolean clearCoreState() {
+      try {
+        requireGameCore().clear();
+        return true;
+      } catch (Exception error) {
+        return false;
+      }
     }
 
     @JavascriptInterface public void submitTurn(String stateJson, String action) {

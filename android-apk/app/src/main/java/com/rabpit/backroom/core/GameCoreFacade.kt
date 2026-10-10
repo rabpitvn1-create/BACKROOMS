@@ -341,6 +341,32 @@ class GameCoreFacade private constructor(
   }
 
   fun currentCoreState(): String = GameStateCodec.encode(repository.load())
+
+  /** A manual save is distinct from turn-by-turn Core persistence. */
+  @Synchronized fun saveManualCheckpoint(clientStateJson: String): String {
+    val current = loadCurrentState()
+    if (current.metadata.containsKey("loadError")) return checkpointError("core_load_failed")
+    if (current.turn.pending != null || ActionRuntime.activeSession(current) != null) return checkpointError("turn_in_progress")
+    val client = JSONObject(clientStateJson)
+    if (client.optInt("turn", -1) != CoreClientProjection.turnIndex(current)) return checkpointError("stale_client_state")
+    val view = CoreClientProjection.project(client, current)
+    repository.saveCheckpoint(current, view)
+    return JSONObject().put("ok", true).put("state", view).toString()
+  }
+
+  /** Decode and validate the complete slot before changing the current Core state. */
+  @Synchronized fun loadManualCheckpoint(): String {
+    val current = loadCurrentState()
+    if (current.turn.pending != null || ActionRuntime.activeSession(current) != null) return checkpointError("turn_in_progress")
+    val saved = repository.loadCheckpoint() ?: return checkpointError("checkpoint_missing")
+    repository.save(saved.core)
+    val restored = CoreClientProjection.project(saved.presentation, saved.core)
+    return JSONObject().put("ok", true).put("state", restored).toString()
+  }
+
+  private fun checkpointError(reason: String): String =
+    JSONObject().put("ok", false).put("error", reason).toString()
+
   fun clear() = repository.clear()
   override fun close() = Unit
 
