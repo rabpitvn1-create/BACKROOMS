@@ -434,8 +434,6 @@ jobs:
             git add -A android-apk/app
             if ! git diff --cached --quiet; then
               git commit -m "Materialize tested gameplay runtime [skip ci]"
-              git fetch origin main
-              git rebase origin/main
               git push origin HEAD:main
             fi
           fi
