@@ -28,25 +28,27 @@ CREATE TABLE actor_memory(
   UNIQUE (slot_id, memory_id, actor_id),
   FOREIGN KEY (slot_id, observation_id, actor_id)
     REFERENCES actor_observation(slot_id, observation_id, actor_id),
+  FOREIGN KEY (slot_id, supersedes_memory_id, actor_id)
+    REFERENCES actor_memory(slot_id, memory_id, actor_id)
+    DEFERRABLE INITIALLY DEFERRED,
   FOREIGN KEY (created_turn_id, committed_revision)
     REFERENCES turn_control(turn_id, committed_revision)
     DEFERRABLE INITIALLY DEFERRED
 )"""
 
-  const val CREATE_IMMUTABILITY_TRIGGERS = """
+  // Keep each CREATE TRIGGER intact: semicolons inside BEGIN/END are SQL syntax.
+  const val CREATE_NO_UPDATE_TRIGGER = """
 CREATE TRIGGER actor_memory_no_update BEFORE UPDATE ON actor_memory
-  BEGIN SELECT RAISE(ABORT,'immutable_memory'); END;
+  BEGIN SELECT RAISE(ABORT,'immutable_memory'); END;"""
+
+  const val CREATE_NO_DELETE_TRIGGER = """
 CREATE TRIGGER actor_memory_no_delete BEFORE DELETE ON actor_memory
-  BEGIN SELECT RAISE(ABORT,'immutable_memory'); END;
-"""
+  BEGIN SELECT RAISE(ABORT,'immutable_memory'); END;"""
 
   const val CREATE_INDEX = """
 CREATE INDEX memory_by_actor ON actor_memory(slot_id, actor_id, committed_revision);
 """
 
-  fun createStatements(): List<String> {
-    val triggers = CREATE_IMMUTABILITY_TRIGGERS.trim().split(";")
-      .map { it.trim() }.filter { it.isNotEmpty() }.map { "$it;" }
-    return listOf(CREATE_ACTOR_MEMORY) + triggers + listOf(CREATE_INDEX.trim())
-  }
+  fun createStatements(): List<String> =
+    listOf(CREATE_ACTOR_MEMORY, CREATE_NO_UPDATE_TRIGGER, CREATE_NO_DELETE_TRIGGER, CREATE_INDEX.trim())
 }
