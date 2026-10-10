@@ -1,4 +1,4 @@
-/* COMPANION_INTERACT_PREVIEW_R01: projection-only UI, no game-state writes. */
+/* Native Cao Minh game host. Core/SQLite owns all turns; UI renders receipts only. */
 (function () {
   "use strict";
   if (window.__companionInteractPreviewInstalled) return;
@@ -44,7 +44,7 @@
 
   var start = document.createElement("button");
   start.type = "button"; start.id = "companionStart";
-  text(start, "NEW GAME: CAO MINH [BẢN THỬ]");
+  text(start, "NEW GAME");
   var parent = el("playerActionBar") || document.querySelector("main") || document.body;
   parent.parentNode.insertBefore(start, parent);
   var narrative = document.createElement("section");
@@ -61,7 +61,7 @@
   var input = document.createElement("textarea");
   input.id = "companionInput";
   input.setAttribute("aria-label", "Lời nói hoặc gợi ý cho Cao Minh");
-  input.placeholder = "Nói chuyện, đưa bằng chứng hoặc góp ý. Cao Minh tự quyết định.";
+  input.placeholder = "Nói chuyện hoặc góp ý. Để trống để Cao Minh tự quyết định.";
   var button = document.createElement("button");
   button.type = "button"; button.id = "companionSend";
   text(button, "TƯƠNG TÁC");
@@ -74,8 +74,8 @@
   function statusText(message) { text(status, message); }
   function activate() {
     document.body.classList.add("companion-mode");
-    text(start, "TẠO NEW GAME CAO MINH MỚI");
-    statusText("Chế độ thử nghiệm: dữ liệu do SQLite native quản lý. Các hành động ngoài WAIT chưa được kích hoạt.");
+    text(start, "NEW GAME");
+    statusText("Cao Minh tự quyết định; hành động chỉ có hiệu lực khi Core lưu thành công.");
     var log = el("log");
     if (log && log.parentNode && narrative.parentNode !== log.parentNode)
       log.parentNode.appendChild(narrative);
@@ -126,7 +126,7 @@
     });
     if (committed && lastRequest && lastRequest.slotId === currentSlot) {
       // Project the user's suggestion only AFTER the Core receipt has been read.
-      appendLine("BẠN", lastRequest.text);
+      if (!lastRequest.autonomous) appendLine("BẠN", lastRequest.text);
       input.value = "";
       lastRequest = null;
       safeRemove(PENDING_KEY);
@@ -198,7 +198,10 @@
   });
   button.addEventListener("click", function () {
     if (busy || !currentSlot) return;
-    var value = input.value;
+    var autonomous = input.value.trim().length === 0;
+    var value = autonomous
+      ? "Tôi để Cao Minh tự đánh giá tình hình và chủ động lựa chọn hành động tiếp theo."
+      : input.value;
     if ([...value.trim()].length < 15 || value.length > 500) {
       statusText("Lời tương tác phải dài ít nhất 15 ký tự, tối đa 500."); return;
     }
@@ -207,7 +210,7 @@
     var alias = previous && previous.slotId === currentSlot && previous.text === value
       ? previous.alias
       : "req-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 12);
-    lastRequest = { slotId: currentSlot, text: value, alias: alias };
+    lastRequest = { slotId: currentSlot, text: value, alias: alias, autonomous: autonomous };
     if (!safeWrite(PENDING_KEY, JSON.stringify(lastRequest))) {
       statusText("Không lưu được request alias để phục hồi; lượt chưa gửi.");return;
     }
@@ -215,6 +218,9 @@
     statusText("Đang chờ AI Cao Minh tự quyết định. Chưa có receipt.");
     window.Android.companionSubmit(currentSlot, value, alias);
   });
+  // Native Companion is the normal gameplay path, not a hidden preview mode.
+  // Existing legacy saves are not altered; fresh native campaign slots use SQLite.
+  activate();
   var previousSlot = safeRead(SLOT_KEY);
   if (/^[0-9a-f]{32}$/.test(previousSlot)) {
     busy = true; start.disabled = true; button.disabled = true;
@@ -223,7 +229,15 @@
     var pending = null;
     try { pending = JSON.parse(safeRead(PENDING_KEY) || "null"); } catch (_) {}
     if (pending && pending.slotId === previousSlot && typeof pending.text === "string") {
-      input.value = pending.text; lastRequest = pending;
+      input.value = pending.autonomous ? "" : pending.text;
+      lastRequest = pending;
     }
+  } else {
+    // Immediately initialize Level 0 with the verified native Cao Minh slot.
+    // No extra preview button, duplicate GM turn or WebView-invented state.
+    busy = true; awaitingNewGame = true;
+    start.disabled = true; button.disabled = true;
+    statusText("Đang khởi tạo Level 0 và ý chí Cao Minh...");
+    window.Android.companionNewGame();
   }
 })();
