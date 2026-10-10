@@ -63,7 +63,7 @@ jobs:
       - name: Apply Android runtime patch chain
         run: |
           set -euo pipefail
-          scripts=(patch-provider-status.py patch-provider-key-pool.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py patch-ui-1.1.99-shell.py patch-poker-dice-core-backport.py patch-poker-dice-ui-119-polish.py patch-cao-minh-identity-overlay.py patch-item-detail-actions.py patch-item-whole-unit.py patch-cao-minh-skills-equipment.py patch-cao-minh-prologue.py patch-character-stats-1193a-restore.py patch-entity-power-scaling.py patch-combat-feedback-1193a.py patch-hidden-exit-streak.py patch-lifeform-trio.py patch-gm-semantic-play-bold.py)
+          scripts=(patch-provider-status.py patch-provider-key-pool.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py patch-ui-1.1.99-shell.py patch-poker-dice-core-backport.py patch-poker-dice-ui-119-polish.py patch-cao-minh-identity-overlay.py patch-item-detail-actions.py patch-item-whole-unit.py patch-cao-minh-skills-equipment.py patch-cao-minh-prologue.py patch-character-stats-1193a-restore.py patch-entity-power-scaling.py patch-combat-feedback-1193a.py patch-hidden-exit-streak.py patch-lifeform-trio.py patch-lifeform-trio-rebalance.py patch-gm-semantic-play-bold.py)
           for script in "${scripts[@]}"; do
             echo "==> $script"
             python3 "android-apk/$script"
@@ -168,8 +168,12 @@ jobs:
               ('next = next.copy(world = next.world + ("flagsJson" to flags.toString()))', facade),
               ('thresholdRoll("diepMinhEncounter", 10000, 300,', java),
               ('entityKey = "diep_minh";', java),
-              ('LIFEFORM_TRIO_R01', combat), ('LIFEFORM_BASE_MAX_HP = 24', combat),
-              ('Rootbind proc:', combat), ('Longstep Rupture proc:', combat), ('Reknit proc:', combat),
+              ('LIFEFORM_TRIO_R02', combat), ('LIFEFORM_BASE_MAX_HP = 104', combat),
+              ('LIFEFORM_BASE_ATTACK = 20', combat), ('LIFEFORM_BASE_ARMOR = 3', combat), ('LIFEFORM_BASE_AGGRESSION = 10', combat),
+              ('Thorned Hemorrhage', combat), ('Blight Sap', combat), ('Crimson Mycotoxin', combat),
+              ('Tendon Ripper', combat), ('Septic Thread', combat), ('Venomous Flay', combat),
+              ('Hollow Laceration', combat), ('Carrion Toxin', combat), ('Necrotic Clutch', combat),
+              ('FeedbackStatus.BLEED', combat), ('FeedbackStatus.POISON', combat),
               ('thresholdRoll("lifeformEncounter", 10000, 200,', java),
               ('rolls.put("lifeformEntityKey"', java), ('LIFEFORM TRIO HARD LOCK:', java),
               ('ARGUS // Thousandfold Execution', skill_catalog), ('Twosome Time', skill_catalog), ('Honeycomb Fire', skill_catalog),
@@ -177,7 +181,7 @@ jobs:
               ('Kế Hoạch Không Có Trong Kế Hoạch', skill_catalog), ('Quăng Đại Cái Gì Đó', skill_catalog),
               ('CompanionSkillCatalog.forCharacter(c.id)', detail_json), ('COMPANION_SKILLS_R01', combat), ('24 * 10', combat),
               ('ENTITY_POWER_SCALING_R01', combat), ('EntityPowerScaling.scale(unscaledEntityMaxHp, progressionRank)', combat),
-              ('EntityPowerScaling.scale(profile.attack, c.progressionRank)', combat),
+              ('EntityPowerScaling.scale(lifeformAttack(profile.attack, lifeformSkill), c.progressionRank)', combat),
               ('ENTITY_SHARED_GROUND_PLANE_R02', java), ('ENTITY_PRECOMPUTED_ALPHA_BOUNDS_R02', java), ('__entityVisualBounds', java),
               ('hazardThresholds[level] * 75 / 100', java), ('thresholdRoll("anNhienRead", 10000, 2000', java),
               ('class CompanionSkillCatalogTest', skill_tests),
@@ -191,7 +195,7 @@ jobs:
           feedback_js = (root / 'app/src/main/assets/combat-feedback-1193a.js').read_text(encoding='utf-8')
           assert 'modal.hidden=true' not in feedback_js
           assert play_bold.is_file() and play_bold.stat().st_size > 0
-          assert 'patch-combat-feedback-1193a.py patch-hidden-exit-streak.py patch-lifeform-trio.py patch-gm-semantic-play-bold.py)' in workflow_text
+          assert 'patch-combat-feedback-1193a.py patch-hidden-exit-streak.py patch-lifeform-trio.py patch-lifeform-trio-rebalance.py patch-gm-semantic-play-bold.py)' in workflow_text
           assert 'patch-gm-semantic-play-bold.py' not in chain
           assert 'return exitFound && progressionReady(before);' not in java
           assert 'recordLevelProgress(state, oldLevel, newLevel);' not in java
@@ -253,6 +257,8 @@ jobs:
           assert 'const val MULTIPLIER = 50' not in madgod
           assert 'jeffEncounter' not in java
           assert 'janeEncounter' not in java
+          for retired_lifeform in ('Rootbind proc:', 'Longstep Rupture proc:', 'Reknit proc:', 'LIFEFORM_BASE_MAX_HP = 24'):
+              assert retired_lifeform not in combat, retired_lifeform
           for retired_combat_ui in (
               "label:'TẤN CÔNG'", "label:'NÉ TRÁNH'", "label:'BỎ CHẠY'",
               "dataset.combatAction", "function submitCombat(action)", "openCombatDiceForAction",
