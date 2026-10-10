@@ -920,6 +920,14 @@ combat = combat.replace(
 '      val persisted = encode(resolvedState, c.copy(phase = Phase.RESOLVED))\n      val cleared = clearCombatOnly(persisted)\n',
 '      val persisted = CaoMinhCombatPassive.afterCaoMinhTurn(encode(resolvedState, c.copy(phase = Phase.RESOLVED)))\n      val cleared = clearCombatOnly(persisted)\n'
 )
+# The Game Core is the sole source of Entity victory rewards.
+# Inject after all historic combat transformations, not into GM prose.
+old_victory = 'return Resolution(cleared, true, log.joinToString(" ") + " ${c.entityName} đã bị tiêu diệt.", entityDestroyed = true)'
+new_victory = 'return OfflineEntityLoot.award(cleared, c.encounterId, c.seed).let { loot -> Resolution(loot.state, true, log.joinToString(" ") + " ${c.entityName} đã bị tiêu diệt. " + loot.text, entityDestroyed = true) }'
+if old_victory not in combat:
+    raise RuntimeError("Missing Entity victory reward anchor")
+combat = combat.replace(old_victory, new_victory)
+
 COMBAT.write_text(combat, encoding="utf-8")
 
 # ---------------------------------------------------------------------------
