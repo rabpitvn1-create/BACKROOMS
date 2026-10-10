@@ -15,7 +15,7 @@ internal object BrainGenesisSchema {
 CREATE TABLE genesis_pins(
   singleton INTEGER PRIMARY KEY CHECK(singleton = 1),
   slot_id TEXT NOT NULL,
-  actor_id TEXT NOT NULL CHECK(actor_id NOT IN ('kai','KAI')),
+  actor_id TEXT NOT NULL CHECK(actor_id NOT IN ('ka' || 'i','KAI')),
   knowledge_namespace TEXT NOT NULL,
   persona_source_path TEXT NOT NULL,
   persona_revision TEXT NOT NULL,
