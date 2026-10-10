@@ -6,3 +6,7 @@ Backroom 1.2.0.0.0 Debug
 - Combat Feedback không còn ẩn Poker Dice trong lúc phát damage feedback; Dice chỉ khóa thao tác tạm thời.
 - Giữ Combat Feedback là log tạm thời riêng, không trộn vào GM narrative và tự xóa sau khi combat kết thúc.
 - Giữ Entity Power Scaling tuyến tính theo Level từ base Level 0, không compound.
+- Thêm bộ ba Lifeform: Blackroot Sentinel, Sinew Strider và Hollow Grasper, dùng một roll độc lập 2% cho cả nhóm rồi chọn một biến thể.
+- Base stat của cả ba bằng Hound ×0.3, làm tròn thành 24 HP / 5 ATK / 1 Armor / 2 Aggression trước shared durability và Level scaling.
+- Thêm proc riêng: Rootbind 30%, Longstep Rupture 25%, Reknit 20%.
+- Đóng gói ba WebP overlay đã chọn từ Google Drive thành asset local canonical, không tải ảnh mạng khi runtime.

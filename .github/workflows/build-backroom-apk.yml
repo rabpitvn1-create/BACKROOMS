@@ -63,7 +63,7 @@ jobs:
       - name: Apply Android runtime patch chain
         run: |
           set -euo pipefail
-          scripts=(patch-provider-status.py patch-provider-key-pool.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py patch-ui-1.1.99-shell.py patch-poker-dice-core-backport.py patch-poker-dice-ui-119-polish.py patch-cao-minh-identity-overlay.py patch-item-detail-actions.py patch-item-whole-unit.py patch-cao-minh-skills-equipment.py patch-cao-minh-prologue.py patch-character-stats-1193a-restore.py patch-entity-power-scaling.py patch-combat-feedback-1193a.py patch-hidden-exit-streak.py patch-gm-semantic-play-bold.py)
+          scripts=(patch-provider-status.py patch-provider-key-pool.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py patch-ui-1.1.99-shell.py patch-poker-dice-core-backport.py patch-poker-dice-ui-119-polish.py patch-cao-minh-identity-overlay.py patch-item-detail-actions.py patch-item-whole-unit.py patch-cao-minh-skills-equipment.py patch-cao-minh-prologue.py patch-character-stats-1193a-restore.py patch-entity-power-scaling.py patch-combat-feedback-1193a.py patch-hidden-exit-streak.py patch-lifeform-trio.py patch-gm-semantic-play-bold.py)
           for script in "${scripts[@]}"; do
             echo "==> $script"
             python3 "android-apk/$script"
@@ -168,6 +168,10 @@ jobs:
               ('next = next.copy(world = next.world + ("flagsJson" to flags.toString()))', facade),
               ('thresholdRoll("diepMinhEncounter", 10000, 300,', java),
               ('entityKey = "diep_minh";', java),
+              ('LIFEFORM_TRIO_R01', combat), ('LIFEFORM_BASE_MAX_HP = 24', combat),
+              ('Rootbind proc:', combat), ('Longstep Rupture proc:', combat), ('Reknit proc:', combat),
+              ('thresholdRoll("lifeformEncounter", 10000, 200,', java),
+              ('rolls.put("lifeformEntityKey"', java), ('LIFEFORM TRIO HARD LOCK:', java),
               ('ARGUS // Thousandfold Execution', skill_catalog), ('Twosome Time', skill_catalog), ('Honeycomb Fire', skill_catalog),
               ('GodKiller Override // Twenty-Four Severance', skill_catalog), ('Crimson Guillotine', skill_catalog), ('Spatial Dominion', skill_catalog),
               ('Kế Hoạch Không Có Trong Kế Hoạch', skill_catalog), ('Quăng Đại Cái Gì Đó', skill_catalog),
@@ -187,7 +191,7 @@ jobs:
           feedback_js = (root / 'app/src/main/assets/combat-feedback-1193a.js').read_text(encoding='utf-8')
           assert 'modal.hidden=true' not in feedback_js
           assert play_bold.is_file() and play_bold.stat().st_size > 0
-          assert 'patch-combat-feedback-1193a.py patch-hidden-exit-streak.py patch-gm-semantic-play-bold.py)' in workflow_text
+          assert 'patch-combat-feedback-1193a.py patch-hidden-exit-streak.py patch-lifeform-trio.py patch-gm-semantic-play-bold.py)' in workflow_text
           assert 'patch-gm-semantic-play-bold.py' not in chain
           assert 'return exitFound && progressionReady(before);' not in java
           assert 'recordLevelProgress(state, oldLevel, newLevel);' not in java
@@ -246,7 +250,8 @@ jobs:
           required_assets = [
               'hound.webp','clump.webp','duller.webp','deathmoth.webp','hostile_faceling.webp','false_puddle.webp','paintings.webp',
               'smiler.webp','skin-stealer.webp','predatory_window.webp','biological_pipeline.webp','wretch.webp','cable_mimic.webp',
-              'the_beast_of_level_5.webp','hotel_corpse_lure.webp','jeff_the_killer.webp','jane_the_killer.webp','slenderman.webp','diep_minh.webp'
+              'the_beast_of_level_5.webp','hotel_corpse_lure.webp','jeff_the_killer.webp','jane_the_killer.webp','slenderman.webp','diep_minh.webp',
+              'blackroot_sentinel.webp','sinew_strider.webp','hollow_grasper.webp'
           ]
           for name in required_assets:
               p = entity_dir / name
@@ -342,6 +347,9 @@ jobs:
           test -s apk-check/assets/entity/hound.webp
           test -s apk-check/assets/entity/slenderman.webp
           test -s apk-check/assets/entity/diep_minh.webp
+          test -s apk-check/assets/entity/blackroot_sentinel.webp
+          test -s apk-check/assets/entity/sinew_strider.webp
+          test -s apk-check/assets/entity/hollow_grasper.webp
           test -s apk-check/assets/Kai_MadGod_snapshot_overlay.png
           test -s apk-check/assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png
           test -s apk-check/assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png
@@ -388,6 +396,9 @@ jobs:
           unzip -l Backroom-1.2.0.0.0-verified.apk | grep -q 'assets/entity/hound.webp'
           unzip -l Backroom-1.2.0.0.0-verified.apk | grep -q 'assets/entity/slenderman.webp'
           unzip -l Backroom-1.2.0.0.0-verified.apk | grep -q 'assets/entity/diep_minh.webp'
+          unzip -l Backroom-1.2.0.0.0-verified.apk | grep -q 'assets/entity/blackroot_sentinel.webp'
+          unzip -l Backroom-1.2.0.0.0-verified.apk | grep -q 'assets/entity/sinew_strider.webp'
+          unzip -l Backroom-1.2.0.0.0-verified.apk | grep -q 'assets/entity/hollow_grasper.webp'
           unzip -l Backroom-1.2.0.0.0-verified.apk | grep -q 'assets/Kai_MadGod_snapshot_overlay.png'
           unzip -l Backroom-1.2.0.0.0-verified.apk | grep -q 'assets/avatars/MadGod.jpg'
           unzip -l Backroom-1.2.0.0.0-verified.apk | grep -q 'assets/hud/player_action_backrooms.png'
