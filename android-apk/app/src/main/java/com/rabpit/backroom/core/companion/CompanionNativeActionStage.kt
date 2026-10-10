@@ -71,7 +71,9 @@ internal object CompanionNativeActionStage {
       DecisionPreflight.Intent.SEARCH -> require(target == null || target == stop) { "ordinary_search_target_invalid" }
       DecisionPreflight.Intent.INSPECT -> require(target == stop) { "ordinary_inspect_target_invalid" }
       DecisionPreflight.Intent.TALK -> require(target != null && target != KAI_ID &&
-        target in original.party.memberIds &&
+        (target in original.party.memberIds ||
+          (target == CompanionNewGameBootstrap.PLAYER_COMPANION_ID &&
+            original.characters[target]?.metadata?.get("interactionRole") == "human_companion")) &&
         original.characters[target]?.presence == CharacterPresence.ACTIVE) { "ordinary_talk_target_absent" }
       else -> error("ordinary_intent_invalid")
     }
