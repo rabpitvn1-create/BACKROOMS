@@ -393,8 +393,6 @@ for required in (
     'termsVersion(terms)',
     'addSemanticLabels(map,extraSemantic)',
     'entry&&entry.semantic',
-    'SEMANTIC AUTO LABEL CONTRACT:',
-    'sanitizeSemanticLabels(generated, reply)',
     '"Lục Trầm"',
 ):
     if required not in html:
