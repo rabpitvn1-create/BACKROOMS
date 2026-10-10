@@ -1,0 +1,8 @@
+status=GREEN
+version=1.1.63.0.6
+tag=v1.1.63.0.6
+asset=Backroom-1.1.63.0.6.apk
+source_sha=13a05c3f7f461e051f3218a81e52474694a0a595
+run_id=38049845789
+sha256=103728e2b761198c7776f901b1a17bdd0f891f66e1224f8d9c3317d2279de211
+build_type=debug
