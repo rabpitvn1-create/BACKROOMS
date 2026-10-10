@@ -80,6 +80,9 @@ internal object MoveSearchInspectExecutor {
     turnId: String, observationId: String, tapeSequence: Long
   ): MoveResult {
     if (decided.intent != Intent.MOVE) return MoveResult.Stayed("intent_not_move")
+    if (!CompanionLockedProposal.consistent(decided)) return MoveResult.Stayed("decision_binding_mismatch")
+    if (!CompanionLockedProposal.turnMatches(decided,turnId)) return MoveResult.Stayed("turn_mismatch")
+    if (!CompanionLockedProposal.sceneMatches(decided,facts.fromSceneId)) return MoveResult.Stayed("scene_mismatch")
     if (decided.binding.actorId != facts.actorId) return MoveResult.Stayed("actor_mismatch")
     if (facts.streakWins !in 0..4) return MoveResult.Stayed("streak_invalid")
     if (decided.targetId != facts.toSceneId) return MoveResult.Stayed("target_mismatch")
@@ -142,10 +145,15 @@ internal object MoveSearchInspectExecutor {
     turnId: String, observationId: String, tapeSequence: Long
   ): SearchResult {
     if (decided.intent != Intent.SEARCH) return SearchResult.NotSearched("intent_not_search")
+    if (!CompanionLockedProposal.consistent(decided)) return SearchResult.NotSearched("decision_binding_mismatch")
+    if (!CompanionLockedProposal.turnMatches(decided,turnId)) return SearchResult.NotSearched("turn_mismatch")
+    if (!CompanionLockedProposal.sceneMatches(decided,facts.sceneId)) return SearchResult.NotSearched("scene_mismatch")
     if (decided.binding.actorId != facts.actorId) return SearchResult.NotSearched("actor_mismatch")
     if (decided.targetId != facts.targetId) return SearchResult.NotSearched("target_mismatch")
     if (!facts.actorPresent) return SearchResult.NotSearched("actor_absent")
     if (!facts.actorConscious) return SearchResult.NotSearched("actor_unconscious")
+    if (facts.targetId != null && !facts.targetPresent) return SearchResult.NotSearched("target_absent")
+    if (facts.targetId != null && !facts.targetReachable) return SearchResult.NotSearched("target_unreachable")
     val eventId = "search-" + CompanionDigests.sha256(
       listOf(turnId, facts.actorId, facts.sceneId, "NORMAL").joinToString("|")).take(16)
     val event = SearchEvent(eventId, turnId, facts.actorId, facts.sceneId, mode = "NORMAL")
@@ -179,6 +187,9 @@ internal object MoveSearchInspectExecutor {
     turnId: String, observationId: String, tapeSequence: Long
   ): InspectResult {
     if (decided.intent != Intent.INSPECT) return InspectResult.NotInspected("intent_not_inspect")
+    if (!CompanionLockedProposal.consistent(decided)) return InspectResult.NotInspected("decision_binding_mismatch")
+    if (!CompanionLockedProposal.turnMatches(decided,turnId)) return InspectResult.NotInspected("turn_mismatch")
+    if (!CompanionLockedProposal.sceneMatches(decided,facts.sceneId)) return InspectResult.NotInspected("scene_mismatch")
     val target = decided.targetId
     if (decided.binding.actorId != facts.actorId) return InspectResult.NotInspected("actor_mismatch")
     if (target != facts.targetId) return InspectResult.NotInspected("target_mismatch")
