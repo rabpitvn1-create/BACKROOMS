@@ -24,8 +24,8 @@ function boot(initialState){
   n.classList={add(...xs){n.className+=' '+xs.join(' ')},remove(x){n.className=n.className.split(' ').filter(c=>c!==x).join(' ')}};
   return n;
  }
- const root=element('root'),box=element(),entity=element(),actor=element();
- box.id='snapshot';root.appendChild(box);
+ const root=element('root'),box=element(),dice=element(),entity=element(),actor=element();
+ box.id='snapshot';dice.id='pokerDiceModal';root.appendChild(box);root.appendChild(dice);
  box.querySelector=s=>s==='.snapshot-entity'?entity:actor;
  box.querySelectorAll=s=>box.children.filter(n=>n.className.includes('combat-float')&&(!s.includes('data-target')||s.includes('"'+n.dataset.target+'"')));
  function find(node,id){if(node.id===id)return node;for(const child of node.children){const hit=find(child,id);if(hit)return hit}return null}
@@ -40,7 +40,7 @@ function boot(initialState){
  scope.backroomTurn=json=>{scope.state=JSON.parse(json)};
  vm.runInNewContext(script,scope);
  return {
-  root,box,timers,scope,
+  root,box,dice,timers,scope,
   panel(){return scope.document.getElementById('combatFeedbackPanel')},
   entries(){return scope.document.getElementById('combatFeedbackEntries')},
   event(e){scope.backroomPlayCombatFeedback(e)},
@@ -99,7 +99,7 @@ test('overflow queues instead of clipping and restores Poker Dice after the last
 test('combat panel is transient UI and never writes GM narrative state',()=>{
  const narrative=[{role:'gm',text:'GM narrative remains untouched'}];
  const r=boot({combat:{active:true,encounterId:'enc',entityKey:'diep_minh',round:1},log:narrative});
- assert.ok(r.panel());assert.equal(r.panel().hidden,false);assert.equal(r.root.children[1],r.panel());
+ assert.ok(r.panel());assert.equal(r.panel().hidden,false);assert.equal(r.root.children[1],r.dice);assert.equal(r.root.children[2],r.panel());
  const before=JSON.stringify(r.scope.state.log);
  r.turn([{target:'entity',text:'-36 HP',phase:'actor',critical:true,status:'Chảy máu'}],'enc:1','enc',{active:true,encounterId:'enc',entityKey:'diep_minh',round:2},{log:narrative});
  assert.equal(JSON.stringify(r.scope.state.log),before);
