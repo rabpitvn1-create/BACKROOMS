@@ -100,6 +100,21 @@ test('only verified new game projects; a submitted interaction never optimistica
   assert.equal(f.slots.get('backroom-companion-native-pending'), undefined);
 });
 
+test('a terminal native rejection retries with a new alias and keeps the text', () => {
+  const f = fixture();
+  f.elements.companionStart.click();
+  f.window.backroomCompanionTurn(projection);
+  const input = f.elements.companionInput;
+  input.value = 'Tôi khuyên anh chờ tại phòng vàng để quan sát.';
+  f.elements.companionSend.click();
+  const oldAlias = f.calls.at(-1)[3];
+  f.window.backroomCompanionError('companion_retry_new_alias: actor_audit_failed');
+  assert.equal(input.value, 'Tôi khuyên anh chờ tại phòng vàng để quan sát.');
+  assert.equal(f.slots.get('backroom-companion-native-pending'), undefined);
+  f.elements.companionSend.click();
+  assert.notEqual(f.calls.at(-1)[3], oldAlias);
+});
+
 test('generated Android loads bridge only after release patch and gates production', () => {
   const java = fs.readFileSync(path.join(root, 'app/src/main/java/com/rabpit/backroom/MainActivity.java'), 'utf8');
   const html = fs.readFileSync(path.join(root, 'app/src/main/assets/index.html'), 'utf8');
