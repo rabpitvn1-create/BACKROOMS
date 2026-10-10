@@ -36,15 +36,8 @@ class CommandResolver(
     val quantity = resolvedQuantity(candidate, actor, item, rawQuantity, context)
     val source = candidate.source
     return when (candidate.intent) {
-      GameIntent.PICKUP_ITEM -> item?.let { itemCommand(commandId, turnId, actor, target, source, ItemCommand.Operation.PICKUP, it, quantity) }
-      GameIntent.DROP_ITEM -> item?.let { itemCommand(commandId, turnId, actor, target, source, ItemCommand.Operation.DROP, it, quantity) }
-      GameIntent.USE_ITEM -> item?.let { itemCommand(commandId, turnId, actor, target, source, ItemCommand.Operation.USE, it, quantity) }
-      GameIntent.TRANSFER_ITEM -> item?.let {
-        val parties = resolveTransferParties(candidate.clause, context, actor, target)
-        itemCommand(commandId, turnId, parties.first, parties.second, source, ItemCommand.Operation.TRANSFER, it, quantity)
-      }
-      GameIntent.EQUIP_ITEM -> item?.let { itemCommand(commandId, turnId, actor, target, source, ItemCommand.Operation.EQUIP, it, quantity, resolveEquipmentSlot(candidate.clause, actor, it, context, false)) }
-      GameIntent.UNEQUIP_ITEM -> item?.let { itemCommand(commandId, turnId, actor, target, source, ItemCommand.Operation.UNEQUIP, it, quantity, resolveEquipmentSlot(candidate.clause, actor, it, context, true)) }
+      GameIntent.PICKUP_ITEM, GameIntent.DROP_ITEM, GameIntent.USE_ITEM,
+      GameIntent.TRANSFER_ITEM, GameIntent.EQUIP_ITEM, GameIntent.UNEQUIP_ITEM -> null
       GameIntent.PARTY_JOIN_REQUEST -> target?.let { PartyCommand(commandId, turnId, actor, it, source, PartyCommand.Operation.ADD) }
       GameIntent.PARTY_REMOVE -> target?.let { PartyCommand(commandId, turnId, actor, it, source, PartyCommand.Operation.REMOVE) }
       GameIntent.PARTY_FOLLOW -> target?.let { PartyCommand(commandId, turnId, actor, it, source, PartyCommand.Operation.FOLLOW) }
@@ -58,52 +51,6 @@ class CommandResolver(
   }
 
   private fun resolvedQuantity(candidate: IntentCandidate, actor: String, item: Pair<String, String>?, rawQuantity: Int, context: GameContext): Int = rawQuantity
-
-  private fun resolveTransferParties(
-    clause: String,
-    context: GameContext,
-    defaultActor: String,
-    defaultTarget: String?
-  ): Pair<String, String?> {
-    val verb = Regex("(?:đưa|trao|chuyển)", RegexOption.IGNORE_CASE).find(clause) ?: return defaultActor to defaultTarget
-    val mentions = context.actorAliases.entries.mapNotNull { (alias, id) ->
-      Regex("\\b${Regex.escape(alias)}\\b", RegexOption.IGNORE_CASE).find(clause)?.let { Triple(it.range.first, it.range.last, id) }
-    }.sortedBy { it.first }
-    val actor = mentions.lastOrNull { it.second < verb.range.first }?.third ?: defaultActor
-    val explicitTargetStart = Regex("(?:cho|sang)\\s+", RegexOption.IGNORE_CASE).find(clause, verb.range.last + 1)?.range?.last
-    val target = if (explicitTargetStart != null) {
-      mentions.firstOrNull { it.first > explicitTargetStart && it.third != actor }?.third
-        ?: mentions.firstOrNull { it.first > explicitTargetStart }?.third
-    } else {
-      mentions.firstOrNull { it.first > verb.range.last && it.third != actor }?.third
-        ?: mentions.firstOrNull { it.first > verb.range.last }?.third
-    }
-    return actor to (target ?: defaultTarget)
-  }
-
-  private fun resolveEquipmentSlot(
-    clause: String,
-    actor: String,
-    item: Pair<String, String>,
-    context: GameContext,
-    unequip: Boolean
-  ): String {
-    val existing = context.state.equipment[actor]?.slots?.entries?.firstOrNull { it.value == item.first }?.key
-    if (unequip && existing != null) return existing
-    val owned = context.state.inventories[actor]?.items?.get(item.first)
-    owned?.metadata?.get("equipmentSlot")?.trim()?.takeIf(String::isNotEmpty)?.let { return it }
-    MadGodCanon.slot(item.first, item.second)?.let { return it }
-    owned?.metadata?.get("slot")?.trim()?.takeIf(String::isNotEmpty)?.let { return it }
-    KaiStartingEquipment.slotFor(item.first, item.second)?.let { return it }
-    val lower = clause.lowercase()
-    return when {
-      lower.contains("giáp") || lower.contains("armor") || lower.contains("áo") || lower.contains("mặc") -> "armor"
-      else -> existing ?: "weapon"
-    }
-  }
-
-  private fun itemCommand(id: String, turn: String, actor: String, target: String?, source: CommandSource, operation: ItemCommand.Operation, item: Pair<String, String>, quantity: Int, slot: String? = null) =
-    ItemCommand(id, turn, actor, target, source, operation, item.first, item.second, quantity, slot)
 
   private fun stableCommandId(turnId: String, index: Int, clause: String): String {
     val digest = MessageDigest.getInstance("SHA-256").digest("$turnId|$index|${clause.trim().lowercase()}".toByteArray())

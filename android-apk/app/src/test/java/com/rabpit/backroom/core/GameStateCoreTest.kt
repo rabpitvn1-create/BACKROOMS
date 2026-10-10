@@ -19,33 +19,31 @@ class GameStateCoreTest {
     quantity: Int = 1,
     target: String? = null,
     slot: String? = null,
-    source: CommandSource = CommandSource.SYSTEM
+    source: CommandSource = CommandSource.UI
   ) = ItemCommand("cmd-$id-$op-$quantity-${target.orEmpty()}-$source", "TURN_1", KAI_ID, target, source, op, id, id, quantity, slot)
 
-  @Test fun authoritativeGrantDropAndDuplicateAreDeterministic() {
-    val picked = StateReducer.execute(base(), item("water", ItemCommand.Operation.PICKUP))
-    assertEquals(1, picked.state.inventories.getValue(KAI_ID).items.getValue("water").quantity)
-    val duplicate = StateReducer.execute(picked.state, item("water", ItemCommand.Operation.PICKUP))
-    assertTrue(duplicate.duplicate)
-    assertEquals(1, duplicate.state.inventories.getValue(KAI_ID).items.getValue("water").quantity)
-    val dropped = StateReducer.execute(picked.state, item("water", ItemCommand.Operation.DROP))
-    assertFalse(dropped.state.inventories.getValue(KAI_ID).items.containsKey("water"))
+  @Test fun inventoryDropCannotExecuteTwice() {
+    val owned = TestInventoryFixtures.place(base(), "water", "Water")
+    val drop = item("water", ItemCommand.Operation.DROP)
+    val first = StateReducer.execute(owned, drop)
+    assertTrue(first.applied)
+    assertFalse(first.state.inventories.getValue(KAI_ID).items.containsKey("water"))
+    val again = StateReducer.execute(first.state, drop)
+    assertTrue(again.duplicate)
   }
 
-  @Test fun playerPickupIsRejectedButStoryGrantIsAllowed() {
-    val playerPickup = StateReducer.execute(base(), item("water", ItemCommand.Operation.PICKUP, source = CommandSource.RULE))
-    assertFalse(playerPickup.applied)
-    assertEquals("player_pickup_unavailable", playerPickup.validation.reason)
-    assertTrue(playerPickup.state.inventories.getValue(KAI_ID).items.isEmpty())
-
-    val storyGrant = StateReducer.execute(base(), item("water", ItemCommand.Operation.PICKUP, source = CommandSource.GEMINI))
-    assertTrue(storyGrant.applied)
-    assertEquals(1, storyGrant.state.inventories.getValue(KAI_ID).items.getValue("water").quantity)
+  @Test fun naturalLanguagePickupCannotCreateItems() {
+    val source = base()
+    val intent = IntentCandidate("Cao Minh nhặt nước", GameIntent.PICKUP_ITEM,
+      IntentConfidence.HIGH, 0.99f, CommandSource.RULE)
+    val resolved = CommandResolver().resolve(intent, 0, source.turn.currentTurnId, GameContext(source))
+    assertNull(resolved)
+    assertTrue(source.inventories.getValue(KAI_ID).items.isEmpty())
   }
 
   @Test fun transferRequiresOwnershipAndKnownTarget() {
     val iris = CharacterState("iris", "Iris")
-    val picked = StateReducer.execute(base(iris), item("water", ItemCommand.Operation.PICKUP, 2)).state
+    val picked = TestInventoryFixtures.place(base(iris), "water", "Water", 2)
     val moved = StateReducer.execute(picked, item("water", ItemCommand.Operation.TRANSFER, 1, "iris"))
     assertTrue(moved.applied)
     assertEquals(1, moved.state.inventories.getValue(KAI_ID).items.getValue("water").quantity)
@@ -53,7 +51,7 @@ class GameStateCoreTest {
   }
 
   @Test fun equipAndUnequipUseOwnedItem() {
-    val picked = StateReducer.execute(base(), item("gun", ItemCommand.Operation.PICKUP)).state
+    val picked = TestInventoryFixtures.place(base(), "gun", "Gun")
     val equipped = StateReducer.execute(picked, item("gun", ItemCommand.Operation.EQUIP, slot = "weapon"))
     assertFalse(equipped.applied)
     assertEquals("equipment_bound_forever", equipped.validation.reason)

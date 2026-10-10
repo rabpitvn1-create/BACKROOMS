@@ -7,18 +7,7 @@ class HealingItemTest {
   private fun fresh(): GameState = CharacterEquipmentSystem.seedFresh(GameState.initial())
 
   private fun add(state: GameState, id: String, name: String, quantity: Int = 1): GameState {
-    val result = InventoryEngine.execute(state, ItemCommand(
-      commandId = "add:$id:$quantity",
-      turnId = null,
-      actorId = KAI_ID,
-      source = CommandSource.SYSTEM,
-      operation = ItemCommand.Operation.PICKUP,
-      itemId = id,
-      itemName = name,
-      quantity = quantity
-    ))
-    assertTrue(result.validation.reason ?: "pickup failed", result.applied)
-    return result.state
+    return TestInventoryFixtures.place(state, id, name, quantity)
   }
 
   private fun use(state: GameState, id: String, name: String, quantity: Int = 1): ExecutionResult =
@@ -26,7 +15,7 @@ class HealingItemTest {
       commandId = "use:$id:$quantity",
       turnId = null,
       actorId = KAI_ID,
-      source = CommandSource.RULE,
+      source = CommandSource.UI,
       operation = ItemCommand.Operation.USE,
       itemId = id,
       itemName = name,

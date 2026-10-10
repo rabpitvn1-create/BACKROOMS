@@ -5,20 +5,16 @@ import org.junit.Test
 
 class CommandResolverTest {
   private val resolver = CommandResolver()
-  private val context = GameContext(
-    GameState.initial().copy(characters = GameState.initial().characters + ("iris" to CharacterState("iris", "Iris"))),
-    actorAliases = mapOf("cao minh" to KAI_ID, "cao_minh" to KAI_ID, "iris" to "iris"),
-    itemAliases = mapOf("chai nước" to "almond-water")
-  )
-
-  @Test fun resolvesActorItemQuantityAndTargetDeterministically() {
-    val candidate = IntentCandidate("Cao Minh đưa Iris hai chai nước", GameIntent.TRANSFER_ITEM, IntentConfidence.HIGH, .99f, CommandSource.RULE)
-    val command = resolver.resolve(candidate, 0, "TURN_184", context) as ItemCommand
-    assertEquals(KAI_ID, command.actorId)
-    assertEquals("iris", command.targetId)
-    assertEquals("almond-water", command.itemId)
-    assertEquals(2, command.quantity)
-    assertTrue(command.commandId.startsWith("TURN_184:"))
-    assertEquals(command.commandId, (resolver.resolve(candidate, 0, "TURN_184", context) as ItemCommand).commandId)
+  private val context = GameContext(GameState.initial())
+  
+  @Test fun playerTextCannotDispatchInventoryOrEquipmentMutations() {
+    for (intent in listOf(
+      GameIntent.PICKUP_ITEM, GameIntent.DROP_ITEM, GameIntent.USE_ITEM,
+      GameIntent.TRANSFER_ITEM, GameIntent.EQUIP_ITEM, GameIntent.UNEQUIP_ITEM
+    )) {
+      val candidate = IntentCandidate("Cao Minh lấy vật phẩm", intent,
+        IntentConfidence.HIGH, 0.99f, CommandSource.RULE)
+      assertNull(resolver.resolve(candidate, 0, "TURN_1", context))
+    }
   }
 }

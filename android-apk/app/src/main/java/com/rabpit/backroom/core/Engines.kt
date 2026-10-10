@@ -96,17 +96,23 @@ private fun useItem(state: GameState, source: InventoryState, command: ItemComma
 }
 
 object InventoryEngine {
+  internal fun grantDrop(state: GameState, itemId: String): GameState? {
+    val definition = OfflineItemRegistry.get(itemId) ?: return null
+    val inventory = state.inventories[KAI_ID] ?: InventoryState(KAI_ID)
+    val item = ItemContentRules.normalize(ItemStack(
+      definition.id, definition.name, 1,
+      metadata = definition.metadata + ("itemOrigin" to "ENTITY_DROP")
+    ))
+    if (InventoryPolicy.validateAddition(state, KAI_ID, inventory, item, 1) != null) return null
+    return state.copy(inventories = state.inventories + (KAI_ID to addItem(inventory, item)))
+  }
+
   fun execute(state: GameState, command: ItemCommand): ExecutionResult {
+    if (command.source != CommandSource.UI) return invalid(state, "item_ui_required")
     if (command.quantity <= 0) return invalid(state, "quantity_must_be_positive")
     if (ItemContentRules.hasForbiddenPreciseAmount(command.itemName)) return invalid(state, "precise_content_amount_forbidden")
     val source = state.inventories[command.actorId] ?: InventoryState(command.actorId)
-    val item = ItemContentRules.normalize(ItemStack(command.itemId, command.itemName, command.quantity, metadata = command.metadata))
     return when (command.operation) {
-      ItemCommand.Operation.PICKUP -> {
-        val validation = InventoryPolicy.validateAddition(state, command.actorId, source, item, command.quantity)
-        if (validation != null) return invalid(state, validation)
-        changed(state.copy(inventories = state.inventories + (command.actorId to addItem(source, item))), "inventory_pickup")
-      }
       ItemCommand.Operation.DROP -> {
         if (EquipmentEngine.isEquipped(state, command.actorId, command.itemId)) return invalid(state, "item_equipped_locked")
         if (MadGodCanon.isId(command.itemId) && state.equipment[command.actorId]?.slots?.values?.contains(command.itemId)==true) return invalid(state, "madgod_equipment_permanent")

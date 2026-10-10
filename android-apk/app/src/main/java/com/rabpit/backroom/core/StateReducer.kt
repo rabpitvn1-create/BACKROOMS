@@ -7,12 +7,8 @@ object CommandValidator {
     if (command.turnId != null && command.turnId != state.turn.currentTurnId) return ValidationResult(false, "turn_id_mismatch")
     if (command is ValidatedLegacyStateCommand && !command.validatedByGameEngine) return ValidationResult(false, "engine_validation_required")
 
-    // Player-facing pickup commands never create ownership. Inventory acquisition is authoritative
-    // only when emitted by validated story/drop progression (GEMINI) or deterministic SYSTEM code.
-    if (command is ItemCommand && command.operation == ItemCommand.Operation.PICKUP &&
-      command.source !in setOf(CommandSource.GEMINI, CommandSource.SYSTEM)) {
-      return ValidationResult(false, "player_pickup_unavailable")
-    }
+    if (command is ItemCommand && command.source != CommandSource.UI)
+      return ValidationResult(false, "item_ui_required")
 
     val itemName = when (command) {
       is ItemCommand -> command.itemName
@@ -61,9 +57,6 @@ object StateReducer {
   }
 
   private fun rememberedItemAfter(before: GameState, after: GameState, command: ItemCommand): String {
-    if (command.operation == ItemCommand.Operation.PICKUP) {
-      return ItemContentRules.normalize(ItemStack(command.itemId, command.itemName, command.quantity, metadata = command.metadata)).itemId
-    }
     if (command.operation == ItemCommand.Operation.USE) {
       val old = before.inventories[command.actorId]?.items?.get(command.itemId)
       if (old != null) {

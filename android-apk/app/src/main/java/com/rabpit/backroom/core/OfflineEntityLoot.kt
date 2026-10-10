@@ -22,7 +22,7 @@ object OfflineEntityLoot {
 
     val type = OfflineItemRegistry.random(seed)
     val recorded = state.copy(metadata = state.metadata + (marker to type.id))
-    val claimed = pickup(recorded, type, "loot:$encounterId")
+    val claimed = pickup(recorded, type)
     if (claimed != null) return Reward(claimed, type.id, "Nhận được ${type.name}.", false)
 
     val queue = recorded.metadata[QUEUE_KEY].orEmpty().split('|').filter { it.isNotBlank() } + type.id
@@ -44,7 +44,7 @@ object OfflineEntityLoot {
       if (type == null) {
         remaining += id
       } else {
-        val accepted = pickup(next, type, "loot:pending:$index")
+        val accepted = pickup(next, type)
         if (accepted == null) remaining += id else next = accepted
       }
     }
@@ -52,28 +52,6 @@ object OfflineEntityLoot {
       else next.metadata + (QUEUE_KEY to remaining.joinToString("|")))
   }
 
-  private fun pickup(
-    state: GameState,
-    type: OfflineItemRegistry.Definition,
-    commandId: String
-  ): GameState? {
-    val current = state.inventories[KAI_ID] ?: InventoryState(KAI_ID)
-    // Keep existing stack metadata to avoid replacing a saved stack on merge.
-    val metadata = current.items[type.id]?.metadata ?: type.metadata
-    val stack = ItemStack(type.id, type.name, 1, metadata = metadata)
-    if (InventoryPolicy.validateAddition(state, KAI_ID, current, stack, 1) != null) return null
-
-    val result = InventoryEngine.execute(state, ItemCommand(
-      commandId = commandId,
-      turnId = state.turn.currentTurnId,
-      actorId = KAI_ID,
-      source = CommandSource.SYSTEM,
-      operation = ItemCommand.Operation.PICKUP,
-      itemId = type.id,
-      itemName = type.name,
-      quantity = 1,
-      metadata = metadata
-    ))
-    return result.state.takeIf { result.applied }
-  }
+  private fun pickup(state: GameState, type: OfflineItemRegistry.Definition): GameState? =
+    InventoryEngine.grantDrop(state, type.id)
 }

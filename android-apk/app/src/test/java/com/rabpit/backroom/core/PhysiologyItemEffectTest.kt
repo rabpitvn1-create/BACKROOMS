@@ -25,21 +25,7 @@ class PhysiologyItemEffectTest {
     name: String,
     metadata: Map<String, String>
   ): GameState {
-    val result = StateReducer.execute(
-      state,
-      ItemCommand(
-        commandId = "grant-$id",
-        turnId = "TURN_1",
-        actorId = KAI_ID,
-        source = CommandSource.SYSTEM,
-        operation = ItemCommand.Operation.PICKUP,
-        itemId = id,
-        itemName = name,
-        metadata = metadata
-      )
-    )
-    assertTrue(result.applied)
-    return result.state
+    return TestInventoryFixtures.place(state, id, name, metadata = metadata)
   }
 
   private fun use(state: GameState, commandId: String, itemId: String): ExecutionResult = StateReducer.execute(
@@ -48,7 +34,7 @@ class PhysiologyItemEffectTest {
       commandId = commandId,
       turnId = "TURN_1",
       actorId = KAI_ID,
-      source = CommandSource.RULE,
+      source = CommandSource.UI,
       operation = ItemCommand.Operation.USE,
       itemId = itemId,
       itemName = itemId
@@ -167,7 +153,7 @@ class PhysiologyItemEffectTest {
       commandId = "same-use",
       turnId = "TURN_1",
       actorId = KAI_ID,
-      source = CommandSource.RULE,
+      source = CommandSource.UI,
       operation = ItemCommand.Operation.USE,
       itemId = "water",
       itemName = "water"
