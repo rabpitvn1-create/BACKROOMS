@@ -68,10 +68,34 @@ const receipt = JSON.stringify({
     {type: 'EXIT_STREAK_RESOLVED', payload: {completed: false, source: 'level-0'}}]
 });
 
-test('release build never mounts unfinished actor UI', () => {
+test('explicit developer opt-out retains legacy UI without native slot creation', () => {
   const f = fixture(false);
   assert.equal(f.elements.companionDock, undefined);
   assert.equal(f.window.backroomCompanionTurn, undefined);
+});
+
+test('New Game initializes native Cao Minh automatically and an empty INTERACT lets him decide', () => {
+  const f=fixture();
+  assert.deepEqual(f.calls,['newGame'],'native bootstrap must run without preview selection');
+  assert.equal(f.elements.companionSend.disabled,true,'no optimistic interaction before slot creation');
+  f.window.backroomCompanionTurn(projection);
+  f.elements.companionSend.click();
+  assert.equal(f.calls.at(-1)[0],'submit');
+  assert.equal(f.calls.at(-1)[1],slotId);
+  assert.match(f.calls.at(-1)[2],/Cao Minh tự đánh giá tình hình/);
+  assert.equal(f.elements.companionInput.value,'');
+});
+
+test('only a native-committed TALK event may display Cao Minh spoken words', () => {
+  const f=fixture();
+  f.window.backroomCompanionTurn(JSON.stringify({
+    slotId,revision:1,turn:2,location:'Level 0',stop:'level-0',
+    publicEvents:[{type:'ACTOR_ACTION_COMPLETED',
+      payload:{actor:'cao_minh',intent:'TALK',location:'level-0',scene:'level-0',
+        toStop:'level-0',minutes:1,utterance:'Tôi sẽ kiểm tra con đường này.'}}]
+  }));
+  assert.match(f.elements.companionNativeLog.children.at(-1).children[1].textContent,
+    /Cao Minh nói: “Tôi sẽ kiểm tra con đường này.”/);
 });
 
 test('only verified new game projects; a submitted interaction never optimistically commits', () => {
