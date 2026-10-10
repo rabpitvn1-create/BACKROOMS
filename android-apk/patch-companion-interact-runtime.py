@@ -78,9 +78,15 @@ bridge = r'''  // COMPANION_NATIVE_INTERACT_PREVIEW_R01: native slot/decision on
               // A separately bounded native decision gate authorizes any proposed intent.
               try {
                 JSONObject envelope = parseModelJson(generateText(prompt +
-                "\nTrả đúng JSON {\"reply\":\"quyết định được đề xuất\"," +
-                "\"ops\":[],\"actorDecision\":{\"intent\":\"WAIT\",\"targetId\":null,\"itemId\":null}}." +
-                " Các intent khác được phép đề xuất nhưng sẽ thất bại an toàn nếu chưa có bộ ghi native."));
+                "\nChọn intent độc lập theo context, không mặc định WAIT. " +
+                "Các lựa chọn native có thể commit: SEARCH, MOVE, INSPECT, WAIT. " +
+                "TALK chỉ khi có người nghe thật; tự kiểm tra legalTargetIds trong private context. " +
+                "Trả một JSON object có reply không rỗng, ops là [], " +
+                "actorDecision là object gồm intent, targetId, itemId (null nếu không sử dụng). " +
+                "Ví dụ về CẤU TRÚC, không phải quyết định: " +
+                "{\"reply\":\"Tôi đã cân nhắc điều kiện hiện tại.\",\"ops\":[]," +
+                "\"actorDecision\":{\"intent\":\"SEARCH\",\"targetId\":null,\"itemId\":null}}." +
+                " Tuyệt đối không sáng tác mục tiêu hoặc vật phẩm."));
               JSONObject decision = envelope.optJSONObject("actorDecision");
               if (decision == null) throw new Exception("AI không trả quyết định Cao Minh.");
                 return decision.toString();
