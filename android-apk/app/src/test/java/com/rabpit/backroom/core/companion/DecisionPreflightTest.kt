@@ -54,11 +54,10 @@ class DecisionPreflightTest {
       rejectedReason(proposal().copy(slotId = "slot-2")))
   }
 
-  @Test fun directControl_caoMinh_rejected() {
+  @Test fun caoMinhAutonomousCandidateIsValidated() {
     val s = scope().copy(actorId = "cao_minh",
       presentActorIds = setOf("luc_tram", "cao_minh"))
-    assertEquals("direct_control_forbidden",
-      rejectedReason(proposal().copy(actorId = "cao_minh"), s))
+    assertTrue(DecisionPreflight.preflight(proposal().copy(actorId = "cao_minh"), s) is Result.Approved)
   }
 
   @Test fun proseForgedCapability_rejected() {
