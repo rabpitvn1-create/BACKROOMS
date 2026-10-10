@@ -77,8 +77,10 @@ if "String hiddenExitDirective =" not in writer:
     visibleRolls.remove(com.rabpit.backroom.core.HiddenExitStreak.ROLL_KEY);
     String hiddenExitDirective = com.rabpit.backroom.core.HiddenExitStreak.gmDirective(before, rolls);
 '''
-    writer = writer.replace(writer_sig, writer_sig + insert, 1)
+    # Rewrite the existing prompt serialization first. If this happened after
+    # inserting visibleRolls, the initializer would reference itself and Java would fail.
     writer = writer.replace("rolls.toString()", "visibleRolls.toString()")
+    writer = writer.replace(writer_sig, writer_sig + insert, 1)
     directive_pos = writer.find("    String actionDirective = ")
     if directive_pos < 0:
         raise RuntimeError("writerPrompt actionDirective anchor missing")
