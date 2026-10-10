@@ -923,7 +923,8 @@ combat = combat.replace(
 # The Game Core is the sole source of Entity victory rewards.
 # Inject after all historic combat transformations, not into GM prose.
 old_victory = 'return Resolution(cleared, true, log.joinToString(" ") + " ${c.entityName} đã bị tiêu diệt.", entityDestroyed = true)'
-new_victory = 'return OfflineEntityLoot.award(cleared, c.encounterId, c.seed).let { loot -> Resolution(loot.state, true, log.joinToString(" ") + " ${c.entityName} đã bị tiêu diệt. " + loot.text, entityDestroyed = true) }'
+new_victory = '''val loot = OfflineEntityLoot.award(cleared, c.encounterId, c.seed)
+      return Resolution(loot.state, true, log.joinToString(" ") + " ${c.entityName} đã bị tiêu diệt. " + loot.text, entityDestroyed = true)'''
 if old_victory not in combat:
     raise RuntimeError("Missing Entity victory reward anchor")
 combat = combat.replace(old_victory, new_victory)
