@@ -1,5 +1,24 @@
 package com.rabpit.backroom.core
 
+data class StatLineProjection(val base: Int, val equipment: Int = 0, val effective: Int = base, val passive: Int = effective - base)
+
+data class ItemDetailProjection(
+  val id: String,
+  val name: String,
+  val quantity: Int,
+  val type: String? = null,
+  val slot: String? = null,
+  val rarity: String? = null,
+  val equipped: Boolean = false,
+  val equippedSlots: List<String> = emptyList(),
+  val statItem: Boolean = false,
+  val classification: String? = null,
+  val weapon: WeaponGameplayStats? = null,
+  val abilities: List<EquipmentAbility> = emptyList(),
+  val restrictions: List<String> = emptyList(),
+  val components: List<EquipmentComponent> = emptyList()
+)
+
 data class CharacterDetailProjection(
   val id: String,
   val name: String,
@@ -9,12 +28,30 @@ data class CharacterDetailProjection(
   val healthState: String?,
   val currentHp: Int,
   val maxHp: Int,
+  val role: String = "UNSPECIFIED",
+  val energyDisplay: String = "N/A",
+  val regenPerCompletedTurn: Int = 0,
+  val condition: CharacterCondition = CharacterCondition.HEALTHY,
+  val str: StatLineProjection = StatLineProjection(5),
+  val def: StatLineProjection = StatLineProjection(5),
+  val skl: StatLineProjection = StatLineProjection(5),
+  val vit: StatLineProjection = StatLineProjection(5),
+  val criticalChancePercent: Int = 5,
+  val criticalDamagePercent: Int = 150,
+  val evasionPercent: Int = 0,
+  val criticalResistancePercent: Int = 0,
+  val evasionResistancePercent: Int = 0,
   val injuries: List<String>,
   val physiology: DerivedPhysiologyStatus,
   val inventory: List<ItemStack>,
+  val inventoryDetails: List<ItemDetailProjection> = emptyList(),
+  val inventoryCapacityUsed: Int = 0,
+  val inventoryCapacityMax: Int = 9,
   val equipment: Map<String, String>,
+  val equipmentDetails: List<ItemDetailProjection> = emptyList(),
   val statusEffects: List<StatusEffect>
-)
+) {
+}
 
 data class PartyDetailProjection(
   val leaderId: String,
@@ -23,60 +60,62 @@ data class PartyDetailProjection(
   val members: List<CharacterDetailProjection>
 )
 
-/** Read-only projection for party/character UI. It never mutates or persists derived values. */
 object CharacterDetailProjector {
   fun projectParty(state: GameState): PartyDetailProjection {
-    val members = state.party.memberIds.mapNotNull { id ->
-      state.characters[id]?.let { projectCharacter(state, it) }
-    }
+    val normalized = CharacterProgressionCore.normalize(CharacterEquipmentSystem.normalize(state))
     return PartyDetailProjection(
-      leaderId = state.party.leaderId,
-      maxMembers = state.party.maxMembers,
-      elapsedSubjectiveMinutes = state.time.elapsedSubjectiveMinutes,
-      members = members
+      normalized.party.leaderId, normalized.party.maxMembers, normalized.time.elapsedSubjectiveMinutes,
+      normalized.party.memberIds.mapNotNull { projectCharacter(normalized, it) }
     )
   }
 
-  fun projectCharacter(state: GameState, characterId: String): CharacterDetailProjection? =
-    state.characters[characterId]?.let { projectCharacter(state, it) }
-
-  private fun projectCharacter(state: GameState, character: CharacterState): CharacterDetailProjection {
-    val inventory = state.inventories[character.inventoryId]?.items?.values.orEmpty()
-      .sortedWith(compareBy<ItemStack> { it.name.lowercase() }.thenBy { it.itemId })
-    val equipment = state.equipment[character.equipmentId]?.slots.orEmpty().toSortedMap()
-    val effects = character.statusIds.mapNotNull(state.statuses::get)
-      .sortedWith(compareBy<StatusEffect> { it.type }.thenBy { it.id })
-    val health = healthFor(state, character)
-
+  fun projectCharacter(state: GameState, characterId: String): CharacterDetailProjection? {
+    val normalized = CharacterProgressionCore.normalize(CharacterEquipmentSystem.normalize(state))
+    val c = normalized.characters[characterId] ?: return null
+    val effective = CharacterStatCore.effective(normalized, characterId)
+    val base = c.statProfile
+    val inventory = normalized.inventories[c.inventoryId]?.items?.values.orEmpty().sortedBy { it.itemId }
+    val equipment = normalized.equipment[c.equipmentId]?.slots.orEmpty().toSortedMap()
+    fun itemDetail(item: ItemStack): ItemDetailProjection {
+      val def = EquipmentCatalog.definition(item.itemId)
+      val slots = equipment.filterValues { it == item.itemId }.keys.sorted()
+      return ItemDetailProjection(
+        id = item.itemId, name = def?.name ?: item.name, quantity = item.quantity,
+        type = def?.type, slot = def?.primarySlot?.key ?: item.metadata["slot"], rarity = def?.rarity,
+        equipped = slots.isNotEmpty(), equippedSlots = slots,
+        statItem = def?.weapon != null, classification = def?.classification?.name,
+        weapon = def?.weapon, abilities = def?.abilities.orEmpty(), restrictions = def?.restrictions.orEmpty(),
+        components = def?.components.orEmpty()
+      )
+    }
+    val details = inventory.map(::itemDetail)
     return CharacterDetailProjection(
-      id = character.id,
-      name = character.name,
-      avatarRef = character.avatarRef,
-      presence = character.presence,
-      isLeader = character.id == state.party.leaderId,
-      healthState = character.healthState,
-      currentHp = health.first,
-      maxHp = health.second,
-      injuries = character.injuries.toList(),
-      physiology = PhysiologyStatusPolicy.derive(character.physiology),
-      inventory = inventory,
-      equipment = equipment,
-      statusEffects = effects
+      id = c.id, name = c.name, avatarRef = c.avatarRef, presence = c.presence,
+      isLeader = normalized.party.leaderId == c.id, healthState = c.healthState,
+      currentHp = c.vitalState.currentHp.coerceIn(0, effective.maxHp), maxHp = effective.maxHp,
+      role = base.combatRole,
+      energyDisplay = when (base.energy.mode) {
+        EnergyMode.INFINITE -> "∞"
+        EnergyMode.FINITE -> (base.energy.max ?: 0).toString()
+        EnergyMode.NOT_APPLICABLE -> "N/A"
+      },
+      regenPerCompletedTurn = effective.regenPerCompletedTurn,
+      condition = c.vitalState.condition,
+      str = StatLineProjection(base.str, 0, effective.str),
+      def = StatLineProjection(base.def, 0, effective.def),
+      skl = StatLineProjection(base.skl, 0, effective.skl),
+      vit = StatLineProjection(base.vit, 0, effective.vit),
+      criticalChancePercent = effective.criticalChancePercent,
+      criticalDamagePercent = effective.criticalDamagePercent,
+      evasionPercent = effective.evasionPercent,
+      criticalResistancePercent = effective.resCriticalPercent,
+      evasionResistancePercent = effective.resEvasionPercent,
+      injuries = c.injuries.toList(), physiology = PhysiologyStatusPolicy.derive(c.physiology),
+      inventory = inventory.toList(), inventoryDetails = details,
+      inventoryCapacityUsed = InventoryCapacityPolicy.usedSlots(normalized, c.id),
+      inventoryCapacityMax = InventoryCapacityPolicy.maxSlots(normalized, c.id),
+      equipment = equipment, equipmentDetails = details.filter { it.equipped },
+      statusEffects = c.statusIds.mapNotNull(normalized.statuses::get)
     )
-  }
-
-  private fun healthFor(state: GameState, character: CharacterState): Pair<Int, Int> {
-    val metadata = if (character.id == KAI_ID) state.metadata else character.metadata
-    val maxHp = (
-      metadata[if (character.id == KAI_ID) "combat.playerMaxHp" else "maxHp"]?.toIntOrNull()
-        ?: metadata["healthMax"]?.toIntOrNull()
-        ?: 100
-      ).coerceIn(1, 999)
-    val currentHp = (
-      metadata[if (character.id == KAI_ID) "combat.playerHp" else "hp"]?.toIntOrNull()
-        ?: metadata["healthCurrent"]?.toIntOrNull()
-        ?: maxHp
-      ).coerceIn(0, maxHp)
-    return currentHp to maxHp
   }
 }

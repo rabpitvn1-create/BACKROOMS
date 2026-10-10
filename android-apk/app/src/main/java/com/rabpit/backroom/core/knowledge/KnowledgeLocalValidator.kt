@@ -28,14 +28,14 @@ object KnowledgeLocalValidator {
     }
 
     // Code-known immutable capability contradictions.
-    if (mentionsAny(reply, "sparda core cạn", "sparda core hết", "hết quỷ lực", "cạn quỷ lực") && mentionsAny(reply, "kai", "twilight")) {
-      issue("competence_suppression", "Kai hết/cạn quỷ lực", "Kai Codex locks Sparda Core as an infinite power source without intrinsic depletion.")
+    if (mentionsAny(reply, "sparda core cạn", "sparda core hết", "hết quỷ lực", "cạn quỷ lực") && mentionsAny(reply, "cao_minh", "twilight")) {
+      issue("competence_suppression", "Cao Minh hết/cạn quỷ lực", "Cao Minh Codex locks Sparda Core as an infinite power source without intrinsic depletion.")
     }
     if (mentionsAny(reply, "lucifer core cạn", "lucifer core hết", "syvial hết quỷ lực", "syvial cạn quỷ lực")) {
       issue("competence_suppression", "Syvial hết/cạn quỷ lực", "Syvial Codex locks Lucifer Core as an infinite power source without intrinsic depletion.")
     }
     if (mentionsAny(reply, "devil trigger hết thời gian", "devil trigger cooldown", "devil trigger hồi chiêu", "devil trigger phản phệ")) {
-      issue("ability_overreach", "Invented Devil Trigger limit", "Current Kai/Syvial codices do not permit an invented intrinsic duration cap/cooldown/backlash.")
+      issue("ability_overreach", "Invented Devil Trigger limit", "Current Cao Minh/Syvial codices do not permit an invented intrinsic duration cap/cooldown/backlash.")
     }
     if (mentionsAny(reply, "argus nhìn xuyên tường", "argus xuyên tường", "argus drone", "drone của iris", "iris nhìn xuyên tường")) {
       issue("ability_overreach", "ARGUS remote/omniscient sensing", "Iris Codex explicitly denies wall vision, remote cameras/drone mesh and omniscience for ARGUS Terrain Read.")
@@ -47,7 +47,7 @@ object KnowledgeLocalValidator {
       issue("ability_overreach", "GodKiller as firearm/gunblade", "Syvial Codex locks GodKiller as a purely mechanical greatsword.")
     }
     if (mentionsAny(reply, "omnivault cất iris", "omnivault cất syvial", "omnivault cất người", "omnivault chứa người", "omnivault scan iris", "omnivault scan syvial")) {
-      issue("ability_overreach", "Omnivault acts on a living being", "Kai Codex locks Omnivault to inanimate objects only.")
+      issue("ability_overreach", "Omnivault acts on a living being", "Cao Minh Codex locks Omnivault to inanimate objects only.")
     }
 
     // Project Entity hard lock is code-known and unambiguous.

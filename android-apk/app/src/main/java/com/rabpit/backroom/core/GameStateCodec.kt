@@ -27,7 +27,8 @@ object GameStateCodec {
   fun decode(root: JSONObject): GameState {
     val version = root.optInt("saveVersion", 0)
     require(version == CURRENT_SAVE_VERSION) { "Unsupported save schema: $version" }
-    return decodeCurrent(root)
+    val decoded = decodeCurrent(root)
+    return CharacterProgressionCore.normalize(CharacterEquipmentSystem.normalize(SpecialFollowersCanon.ensure(AnNhienCanon.ensure(decoded))))
   }
 
   private fun decodeCurrent(root: JSONObject): GameState {
@@ -58,13 +59,20 @@ object GameStateCodec {
 
   private fun character(value: CharacterState) = JSONObject().apply {
     put("id", value.id); put("name", value.name); putNullable("avatarRef", value.avatarRef)
-    putNullable("healthState", value.healthState); put("injuries", JSONArray(value.injuries))
+    putNullable("healthState", value.healthState)
+    put("statProfile", characterStatProfile(value.statProfile))
+    put("vitalState", characterVitalState(value.vitalState))
+    put("injuries", JSONArray(value.injuries))
     put("presence", value.presence.name); put("inventoryId", value.inventoryId); put("equipmentId", value.equipmentId)
     put("statusIds", JSONArray(value.statusIds.toList())); put("physiology", physiology(value.physiology)); put("metadata", stringMap(value.metadata))
   }
 
-  private fun decodeCharacter(json: JSONObject) = CharacterState(
-    id = json.optString("id"), name = json.optString("name"),
+  private fun decodeCharacter(json: JSONObject): CharacterState {
+    val id = json.optString("id")
+    val profile = decodeCharacterStatProfile(json.optJSONObject("statProfile"), id)
+    val vital = decodeCharacterVitalState(json.optJSONObject("vitalState"), profile)
+    return CharacterState(
+    id = id, name = json.optString("name"),
     avatarRef = json.nullableString("avatarRef"), healthState = json.nullableString("healthState"),
     injuries = json.optJSONArray("injuries").strings(),
     presence = enumOr(CharacterPresence.ACTIVE, json.optString("presence")),
@@ -72,8 +80,45 @@ object GameStateCodec {
     equipmentId = json.optString("equipmentId", json.optString("id")),
     statusIds = json.optJSONArray("statusIds").strings().toSet(),
     physiology = decodePhysiology(json.optJSONObject("physiology")),
-    metadata = json.optJSONObject("metadata").stringsMap()
+    metadata = json.optJSONObject("metadata").stringsMap(),
+    statProfile = profile,
+    vitalState = vital
   )
+  }
+
+  private fun characterStatProfile(value: CharacterStatProfile) = JSONObject().apply {
+    put("schema", CharacterProgressionCore.SCHEMA)
+    put("baseMaxHp", CharacterProgressionCore.BASE_MAX_HP)
+    put("STR", value.str)
+    put("DEF", value.def)
+    put("SKL", value.skl)
+    put("VIT", value.vit)
+  }
+
+  private fun decodeCharacterStatProfile(json: JSONObject?, characterId: String): CharacterStatProfile {
+    val fallback = CharacterStatProfiles.forId(characterId)
+    if (json == null || json.optString("schema") != CharacterProgressionCore.SCHEMA) return fallback
+    return fallback.copy(
+      baseMaxHp = CharacterProgressionCore.BASE_MAX_HP,
+      str = json.optInt("STR", CharacterProgressionCore.BASE_STAT).coerceIn(5, 999),
+      def = json.optInt("DEF", CharacterProgressionCore.BASE_STAT).coerceIn(5, 999),
+      skl = json.optInt("SKL", CharacterProgressionCore.BASE_STAT).coerceIn(5, 999),
+      vit = json.optInt("VIT", CharacterProgressionCore.BASE_STAT).coerceIn(5, 999),
+      schema = CharacterProgressionCore.SCHEMA
+    )
+  }
+
+  private fun characterVitalState(value: CharacterVitalState) = JSONObject().apply {
+    put("currentHp", value.currentHp)
+    put("condition", value.condition.name)
+  }
+
+  private fun decodeCharacterVitalState(json: JSONObject?, profile: CharacterStatProfile): CharacterVitalState =
+    CharacterVitalState(
+      currentHp = json?.optInt("currentHp", CharacterProgressionCore.BASE_MAX_HP)?.coerceAtLeast(0)
+        ?: CharacterProgressionCore.BASE_MAX_HP,
+      condition = enumOr(CharacterCondition.HEALTHY, json?.optString("condition").orEmpty())
+    )
 
   private fun physiology(value: PhysiologyState) = JSONObject().apply {
     putNullable("minutesSinceFood", value.minutesSinceFood)

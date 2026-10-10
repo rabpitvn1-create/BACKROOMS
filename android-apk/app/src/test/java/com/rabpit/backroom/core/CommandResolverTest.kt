@@ -7,12 +7,12 @@ class CommandResolverTest {
   private val resolver = CommandResolver()
   private val context = GameContext(
     GameState.initial().copy(characters = GameState.initial().characters + ("iris" to CharacterState("iris", "Iris"))),
-    actorAliases = mapOf("kai" to KAI_ID, "iris" to "iris"),
+    actorAliases = mapOf("cao minh" to KAI_ID, "cao_minh" to KAI_ID, "iris" to "iris"),
     itemAliases = mapOf("chai nước" to "almond-water")
   )
 
   @Test fun resolvesActorItemQuantityAndTargetDeterministically() {
-    val candidate = IntentCandidate("Kai đưa Iris hai chai nước", GameIntent.TRANSFER_ITEM, IntentConfidence.HIGH, .99f, CommandSource.RULE)
+    val candidate = IntentCandidate("Cao Minh đưa Iris hai chai nước", GameIntent.TRANSFER_ITEM, IntentConfidence.HIGH, .99f, CommandSource.RULE)
     val command = resolver.resolve(candidate, 0, "TURN_184", context) as ItemCommand
     assertEquals(KAI_ID, command.actorId)
     assertEquals("iris", command.targetId)

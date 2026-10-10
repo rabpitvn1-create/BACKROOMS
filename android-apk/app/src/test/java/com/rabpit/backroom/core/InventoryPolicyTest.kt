@@ -5,7 +5,7 @@ import org.junit.Test
 
 class InventoryPolicyTest {
   private fun stateWith(vararg characters: CharacterState): GameState {
-    val all = listOf(CharacterState(KAI_ID, "Kai Akechi")) + characters
+    val all = listOf(CharacterState(KAI_ID, "Cao Minh")) + characters
     return GameState.initial().copy(
       characters = all.associateBy { it.id },
       inventories = all.associate { it.id to InventoryState(it.id) },
@@ -42,7 +42,7 @@ class InventoryPolicyTest {
   }
 
   @Test fun equippedKaiSignatureItemCannotBeScanned() {
-    val gun = ItemStack("kai-gun", "Kai Gun", 1)
+    val gun = ItemStack("kai-gun", "Cao Minh Gun", 1)
     val state = stateWith().copy(
       inventories = mapOf(KAI_ID to InventoryState(KAI_ID, mapOf(gun.itemId to gun))),
       equipment = mapOf(KAI_ID to EquipmentState(KAI_ID, mapOf("weapon" to gun.itemId)))

@@ -5,7 +5,7 @@ import org.junit.Test
 
 class CharacterDetailProjectionTest {
   @Test fun partyProjectionKeepsPartyOrderLeaderAndSubjectiveTime() {
-    val kai = CharacterState(KAI_ID, "Kai Akechi", avatarRef = "avatars/kai.png")
+    val kai = CharacterState(KAI_ID, "Cao Minh", avatarRef = "avatars/kai.png")
     val iris = CharacterState("iris", "Iris", avatarRef = "avatars/iris.png")
     val state = GameState.initial().copy(
       characters = linkedMapOf(KAI_ID to kai, "iris" to iris),
@@ -46,7 +46,7 @@ class CharacterDetailProjectionTest {
       characters = mapOf(KAI_ID to GameState.initial().characters.getValue(KAI_ID), "iris" to iris),
       party = PartyState(memberIds = listOf(KAI_ID, "iris")),
       inventories = mapOf(
-        KAI_ID to InventoryState(KAI_ID, mapOf("kai-item" to ItemStack("kai-item", "Kai Item"))),
+        KAI_ID to InventoryState(KAI_ID, mapOf("kai-item" to ItemStack("kai-item", "Cao Minh Item"))),
         "iris-pack" to InventoryState("iris-pack", mapOf(
           "b" to ItemStack("b", "Zeta"),
           "a" to ItemStack("a", "Alpha")

@@ -13,7 +13,7 @@ enum class GameIntent {
 
 data class GameContext(
   val state: GameState,
-  val actorAliases: Map<String, String> = mapOf("kai" to KAI_ID),
+  val actorAliases: Map<String, String> = mapOf("cao minh" to KAI_ID, "cao_minh" to KAI_ID),
   val itemAliases: Map<String, String> = emptyMap(),
   val lastReferencedItemId: String? = state.metadata["lastReferencedItemId"]
 )
@@ -128,7 +128,7 @@ class DefaultQuantityResolver : QuantityResolver {
 class DefaultItemResolver : ItemResolver {
   private val pronoun = Regex("\\b(?:nó|vật đó|cái đó|món đó|thứ đó)\\b", RegexOption.IGNORE_CASE)
   private val resultTail = Regex("\\s+(?:và\\s+)?(?:nhận được|biến thành|trở thành|thành)\\s+.+$", RegexOption.IGNORE_CASE)
-  private val noise = Regex("\\b(?:kai|iris|syvial|nhặt|lượm|cầm|lấy|rút|triệu hồi|bỏ|cất|lưu|đưa|trao|chuyển|cho|sang|dùng|sử dụng|uống|ăn|trang bị|đeo|mặc|tháo|cởi|quét|scan|copy|sao chép|nhân bản|tạo thêm|tạo ra thêm|nhân thêm|hoàn nguyên|restore|khỏi|ra|từ|vào|trong|nhẫn|omnivault|kho|rồi|một|hai|ba|bốn|năm|sáu|bảy|tám|chín|mười|trăm|\\d+)\\b", RegexOption.IGNORE_CASE)
+  private val noise = Regex("\\b(?:kai|iris|syvial|nhặt|được|lượm|cầm|lấy|rút|triệu hồi|bỏ|cất|lưu|đưa|trao|chuyển|cho|sang|dùng|sử dụng|uống|ăn|trang bị|đeo|mặc|tháo|cởi|quét|scan|copy|sao chép|nhân bản|tạo thêm|tạo ra thêm|nhân thêm|hoàn nguyên|restore|khỏi|ra|từ|vào|trong|nhẫn|omnivault|kho|rồi|một|hai|ba|bốn|năm|sáu|bảy|tám|chín|mười|trăm|\\d+)\\b", RegexOption.IGNORE_CASE)
 
   override fun resolve(clause: String, context: GameContext): Pair<String, String>? {
     if (pronoun.containsMatchIn(clause)) {
@@ -160,7 +160,7 @@ class DefaultItemResolver : ItemResolver {
     if (fuzzy != null) return fuzzy.second to fuzzy.third
 
     val name = sourceClause.replace(noise, " ").replace(Regex("[^\\p{L}\\p{N}_ -]+"), " ").replace(Regex("\\s+"), " ").trim()
-    if (name.isBlank()) return null
+    if (name.isBlank()) return context.lastReferencedItemId?.let { knownPair(it, context) }
     val id = canonicalId(name)
     return id to name
   }

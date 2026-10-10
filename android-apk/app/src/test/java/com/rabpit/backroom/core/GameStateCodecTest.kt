@@ -19,12 +19,12 @@ class GameStateCodecTest {
     val state = GameState.initial().copy(
       inventories = mapOf(KAI_ID to InventoryState(KAI_ID, mapOf("water" to ItemStack("water", "Almond Water", 2)))),
       statuses = mapOf(effect.id to effect),
-      characters = mapOf(KAI_ID to CharacterState(KAI_ID, "Kai Akechi", statusIds = setOf(effect.id), physiology = physiology)),
+      characters = mapOf(KAI_ID to CharacterState(KAI_ID, "Cao Minh", statusIds = setOf(effect.id), physiology = physiology)),
       omnivault = OmnivaultState(scanSlots = listOf(ScanSlot(1, "water", ItemStack("water", "Almond Water"), 10)), markedSourceIds = setOf("water")),
-      turn = TurnState("TURN_9", PendingTurn("TURN_9", "Kai nhặt nước", PendingTurnStatus.INTERPRETING)),
+      turn = TurnState("TURN_9", PendingTurn("TURN_9", "Cao Minh nhặt nước", PendingTurnStatus.INTERPRETING)),
       time = GameTimeState(elapsedSubjectiveMinutes = 485L, lastAdvanceMinutes = 15, lastAdvanceReason = "travel")
     )
-    val canonicalState = SpecialFollowersCanon.ensure(AnNhienCanon.ensure(state))
+    val canonicalState = CharacterProgressionCore.normalize(CharacterEquipmentSystem.normalize(SpecialFollowersCanon.ensure(AnNhienCanon.ensure(state))))
     val decoded = GameStateCodec.decode(GameStateCodec.encode(state))
     assertEquals(canonicalState, decoded)
     assertEquals(physiology, decoded.characters.getValue(KAI_ID).physiology)
@@ -51,9 +51,10 @@ class GameStateCodecTest {
     assertEquals(PhysiologyState(), decoded.characters.getValue(KAI_ID).physiology)
   }
 
-  @Test fun freshStateKeepsSignatureGearOnlyInEquipment() {
+  @Test fun freshStateInventoryOwnsSignatureGearReferencedByEquipment() {
     val state = GameState.initial()
-    assertTrue(state.inventories.getValue(KAI_ID).items.isEmpty())
+    val owned = state.inventories.getValue(KAI_ID).items
+    state.equipment.getValue(KAI_ID).slots.values.distinct().forEach { assertTrue(it in owned) }
     assertEquals(KAI_WHITE_WRAITH_ID, state.equipment.getValue(KAI_ID).slots["weapon"])
     assertEquals(KAI_BLACKBLOOD_ARMOR_ID, state.equipment.getValue(KAI_ID).slots["armor"])
     assertEquals(KAI_OMNIVAULT_RING_ID, state.equipment.getValue(KAI_ID).slots["ring"])

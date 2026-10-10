@@ -5,217 +5,2343 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Backroom</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#080a0c;color:#eef1f3;font:15px system-ui,sans-serif}.shell{min-height:100vh;padding:10px;background:radial-gradient(circle at top,#161b20,#07090b 75%)}.game,.card{border:1px solid #2b3137;background:#0e1114;box-shadow:0 20px 60px #0007}.topbar{display:flex;justify-content:space-between;gap:12px;padding:16px;border-bottom:1px solid #2b3137}.eyebrow,.role{color:#8f9aa4;font-size:10px;font-weight:800;letter-spacing:.16em}h1{margin:4px 0 0;font-size:23px}.turn{color:#9aa4ad;font-size:12px;letter-spacing:.1em}.turn strong{font-size:21px;color:white}.snapshot{height:300px;margin:8px 10px 10px;border:1px solid #252b31;display:grid;place-items:center;background:#0b0d0f;color:#69737c;border-radius:10px;overflow:hidden}.snapshot img{width:100%;height:100%;object-fit:cover}.log{height:42vh;overflow:auto;padding:10px;display:grid;gap:10px}.message{border-left:3px solid #454e56;padding:11px;background:#111519}.message.player{border-left-color:#8b949e;background:#15191d}.role{margin-bottom:6px}.text{white-space:pre-wrap;line-height:1.55}.composer{display:grid;gap:8px;padding:10px}textarea,button{font:inherit}textarea{min-height:80px;background:#090c0f;color:white;border:1px solid #30373e;padding:10px}button{border:1px solid #3a4249;background:#1a2025;color:#eff2f4;padding:12px;font-weight:700}.status{border-top:1px solid #252b31;padding:10px;color:#9aa4ad;font-size:12px}.side{display:grid;gap:10px;margin-top:10px}.card{padding:14px}.card h2{font-size:13px;letter-spacing:.1em;margin:0 0 10px}.row{display:grid;grid-template-columns:90px 1fr;padding:6px 0;border-bottom:1px solid #22282d;color:#dce2e5}.row b{color:#78838c;font-weight:400}.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.actions .wide{grid-column:1/-1}.danger{background:#241616;color:#e6b1b1;border-color:#663b3b}.chips{display:flex;flex-wrap:wrap;gap:6px}.chips span{border:1px solid #313940;padding:5px 7px;font-size:12px}
+*{box-sizing:border-box}body{margin:0;background:#080a0c;color:#eef1f3;font:15px system-ui,sans-serif}.shell{min-height:100vh;padding:10px;background:radial-gradient(circle at top,#161b20,#07090b 75%)}.game,.card{border:1px solid #2b3137;background:#0e1114;box-shadow:0 20px 60px #0007}.topbar{display:flex;justify-content:space-between;gap:12px;padding:16px;border-bottom:1px solid #2b3137}.eyebrow,.role{color:#8f9aa4;font-size:10px;font-weight:800;letter-spacing:.16em}h1{margin:4px 0 0;font-size:23px}.turn{color:#9aa4ad;font-size:12px;letter-spacing:.1em}.turn strong{font-size:21px;color:white}.snapshot{height:300px;margin:8px 10px 10px;border:1px solid #252b31;display:grid;place-items:center;background:#0b0d0f;color:#69737c;border-radius:10px;overflow:hidden}.snapshot img{width:100%;height:100%;object-fit:cover}.log{height:42vh;overflow:auto;padding:10px;display:grid;gap:10px}.message{border-left:3px solid #454e56;padding:11px;background:#111519}.message.player{border-left-color:#8b949e;background:#15191d}.role{margin-bottom:6px}.text{white-space:pre-wrap;line-height:1.55}.composer{display:grid;gap:8px;padding:10px}textarea,button{font:inherit}textarea{min-height:80px;background:#090c0f;color:white;border:1px solid #30373e;padding:10px}button{border:1px solid #3a4249;background:#1a2025;color:#eff2f4;padding:12px;font-weight:700}.status{border-top:1px solid #252b31;padding:10px;color:#9aa4ad;font-size:12px}.side{display:grid;gap:10px;margin-top:10px}.card{padding:14px}.card h2{font-size:13px;letter-spacing:.1em;margin:0 0 10px}.row{display:grid;grid-template-columns:90px 1fr;padding:6px 0;border-bottom:1px solid #22282d;color:#dce2e5}.row b{color:#78838c;font-weight:400}.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.actions .wide{grid-column:1/-1}.danger{background:#241616;color:#e6b1b1;border-color:#663b3b}.chips{display:flex;flex-wrap:wrap;gap:6px}.chips span{border:1px solid #313940;padding:5px 7px;font-size:12px}.party-time{min-height:16px;margin:-2px 0 9px;color:#78838c;font-size:11px}.party-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.party-member{border:1px solid #313940;background:#111519;padding:7px;display:grid;gap:6px;text-align:center;cursor:pointer;min-width:0}.party-member img,.party-avatar-placeholder{width:100%;aspect-ratio:1/1;object-fit:cover;border:1px solid #333b42;background:#0b0e11}.party-avatar-placeholder{display:grid;place-items:center;color:#78838c;font-size:18px;font-weight:800}.party-member strong{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.party-member .party-state{color:#84909a;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.party-member.empty{cursor:default;opacity:.45}.party-member.empty .party-avatar-placeholder{font-size:11px}.character-inventory-view{position:fixed;inset:0;z-index:50;background:#080a0c;padding:14px;overflow:auto}.character-inventory-head{display:flex;align-items:center;gap:12px;border-bottom:1px solid #2b3137;padding-bottom:12px}.character-inventory-head button{width:auto}.character-inventory-head h2{margin:3px 0 0}.character-profile{display:grid;grid-template-columns:110px 1fr;gap:14px;align-items:center;padding:16px 0}.character-profile img{width:110px;height:110px;object-fit:cover;border:1px solid #3b444c}.character-hp{margin:0 0 14px;max-width:520px}.character-hp-track{position:relative;height:22px;border:2px solid #30383d;background:#090c0d;box-shadow:0 0 0 2px rgba(0,0,0,.45),0 0 8px rgba(80,210,145,.16);overflow:hidden}.character-hp-fill{position:absolute;inset:0 auto 0 0;width:100%;background:linear-gradient(90deg,#a8e4c7 0%,#68c997 35%,#20b978 68%,#008f58 100%);transition:width .2s ease}.character-hp-segments{position:absolute;inset:0;display:grid;grid-template-columns:repeat(5,1fr);pointer-events:none}.character-hp-segments i{border-right:2px solid rgba(8,22,16,.23)}.character-hp-segments i:last-child{border-right:0}.character-hp-value{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:18px;line-height:1}.character-hp-heart{color:#e6394f;font-size:28px;text-shadow:0 1px 2px #000}.character-hp-value strong{font-weight:900;letter-spacing:.02em;color:#dce4e7}.inventory-capacity{font-size:18px;font-weight:800}.inventory-limit{margin-top:5px;color:#8f9aa4;font-size:12px}.character-section{border:1px solid #2b3137;background:#0e1114;padding:14px;margin-top:10px}.character-section h3{margin:0 0 10px;font-size:12px;letter-spacing:.12em;text-transform:uppercase}.equipment-list,.character-status-list{display:grid;gap:7px}.equipment-list span,.character-status-row{border:1px solid #313940;padding:9px;color:#dce2e5}.character-status-row{display:grid;grid-template-columns:minmax(90px,35%) 1fr;gap:8px}.character-status-row b{color:#78838c;font-weight:400}.status-normal{color:#9aa4ad}.status-warning{color:#d6c28a}.status-danger{color:#df9a9a}.message.gm{border-left-color:#71808a;background:#1a2025}.survival-hud{display:grid;gap:10px;margin:0 0 13px}.survival-meter{border:1px solid #34444d;background:#0b1014;padding:8px 10px;clip-path:polygon(0 12%,4% 0,92% 0,100% 28%,100% 72%,96% 100%,4% 100%,0 88%)}.survival-meter-head{display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:9px;align-items:center;margin-bottom:6px}.survival-icon{display:grid;place-items:center;min-width:36px;height:30px;border:1px solid #4a626d;background:#111a1f;font-weight:900}.survival-label{font-size:11px;font-weight:800;letter-spacing:.08em}.survival-value{font-size:13px;font-weight:900}.survival-track{height:14px;border:1px solid #4b6570;background:#070a0c;padding:2px}.survival-fill{display:block;height:100%;background:linear-gradient(90deg,#5f8290,#b9e8f0);box-shadow:0 0 8px #8ddbe855;transition:width .2s ease}.survival-state{margin-top:5px;color:#87939b;font-size:10px;text-align:right}.survival-meter.unknown .survival-value,.survival-meter.unknown .survival-state{color:#78838c}.survival-meter.unknown .survival-fill{width:0!important}#characterEquipmentList span,#characterInventoryItems span{text-transform:uppercase;letter-spacing:.035em}@media(max-width:520px){.party-grid{grid-template-columns:repeat(4,1fr)}.party-member{padding:4px}.party-member strong{font-size:9px}.party-member .party-state{font-size:8px}}.message.warning{border-left-color:#d99a2b;background:#231a0b}.message.warning .role{color:#e3a83a}.message.warning .text{color:#ffd27a;font-weight:650}
+
+/* STEP2_THREE_ACTIONS */
+.primary-action-row{display:grid;grid-template-columns:1fr 1.12fr 1fr;gap:7px;width:100%}
+.primary-action{min-width:0;min-height:46px;border-radius:9px;display:flex;align-items:center;justify-content:center;gap:7px;padding:10px 8px;white-space:nowrap}
+.primary-action.execute-action{font-weight:800;border-color:#56616a;background:#20272d}
+.primary-action .action-icon{width:19px;height:19px;flex:0 0 19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.primary-action .footprint-icon ellipse,.primary-action .footprint-icon circle{fill:currentColor;stroke:none}
+.primary-action .ai-action-icon{width:22px;flex-basis:22px}
+.primary-action .ai-action-icon text{font:700 6.5px system-ui,sans-serif;fill:currentColor;stroke:none;letter-spacing:.2px}
+.primary-action .ai-action-icon .spark{stroke-width:1.4}
+@media(max-width:390px){.primary-action-row{gap:5px}.primary-action{font-size:12px;padding:9px 5px;gap:5px}.primary-action .action-icon{width:17px;height:17px;flex-basis:17px}.primary-action .ai-action-icon{width:20px;flex-basis:20px}}
+
+
+.character-role{margin-top:4px;color:#93a0a8;font-size:11px;letter-spacing:.04em}.character-core-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:10px 0}.character-core-stat{border:1px solid #30383d;background:#0a0d0f;padding:9px}.character-core-stat b{display:block;color:#7e8992;font-size:10px;letter-spacing:.12em}.character-core-stat strong{display:block;margin-top:4px;font-size:17px}.equipment-card,.inventory-item-card{display:grid;grid-template-columns:38px 1fr auto;gap:9px;align-items:center;border:1px solid #313940;background:#0b0f12;padding:8px;cursor:pointer}.equipment-card:hover,.inventory-item-card:hover{border-color:#52606a}.equipment-card-icon{width:38px;height:38px;display:grid;place-items:center;border:1px solid #39434a;background:#11171b;font-weight:900;font-size:11px}.equipment-card-main{min-width:0}.equipment-card-main strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.equipment-card-main small{display:block;color:#7f8b93;margin-top:3px}.equipment-badges{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}.equipment-badge{border:1px solid #45515a;padding:3px 5px;font-size:8px;letter-spacing:.08em}.equipment-badge.equipped{border-color:#3c8466;color:#8ed3b1}.equipment-badge.cheat{border-color:#8c7042;color:#e4c07e}.equipment-detail-modal{position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.72);display:flex;align-items:flex-end;justify-content:center}.equipment-detail-modal[hidden]{display:none}.equipment-detail-sheet{position:relative;width:min(720px,100%);max-height:88vh;overflow:auto;background:#0b0e11;border:1px solid #3a444b;border-bottom:0;padding:18px}.equipment-detail-close{position:absolute;right:10px;top:10px;width:38px;height:38px}.equipment-detail-header{display:grid;grid-template-columns:58px 1fr;gap:12px;align-items:center;padding-right:42px}.equipment-detail-icon{width:58px;height:58px;border:1px solid #46525a;display:grid;place-items:center;font-weight:900}.equipment-detail-header h2{margin:3px 0}.equipment-detail-meta{color:#89949c;font-size:11px}.equipment-detail-sheet section{border-top:1px solid #2c3338;margin-top:15px;padding-top:13px}.equipment-detail-sheet section h3{font-size:11px;letter-spacing:.14em;margin:0 0 9px}.equipment-detail-row,.ability-row,.restriction-row{border:1px solid #2e373d;padding:8px;margin-top:6px}.equipment-detail-row{display:flex;justify-content:space-between;gap:12px}.ability-row strong{display:block}.ability-row p{margin:5px 0 0;color:#c0c8cd;font-size:12px}.ability-row em{display:block;margin-top:5px;color:#d0af77;font-style:normal;font-size:11px}.restriction-row{color:#c7b38b;font-size:12px}.stat-delta-positive{color:#8fd2ad}.stat-delta-negative{color:#dc9b9b}@media(max-width:520px){.character-core-stats{grid-template-columns:1fr 1fr}.equipment-detail-sheet{padding:14px}.equipment-card,.inventory-item-card{grid-template-columns:34px 1fr}.equipment-badges{grid-column:2;justify-content:flex-start}}
+
+/* UI_119_BACKPORT_R01 */
+html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+body{margin:0;background:#080a0c;color:#eef1f3}
+.shell{height:var(--app-height,100dvh);min-height:0;overflow:hidden;padding:0;background:radial-gradient(circle at top,#161b20,#07090b 75%)}
+.game{height:100%;min-height:0;display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;overflow:hidden;border:0!important;border-radius:0!important;box-shadow:none!important}
+.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:10px max(14px,env(safe-area-inset-right)) 8px max(14px,env(safe-area-inset-left));border-bottom:1px solid #2b3137;position:relative;isolation:isolate;overflow:hidden;background-color:#0e1114;background-image:linear-gradient(90deg,rgba(5,7,8,.92) 0%,rgba(6,8,9,.72) 52%,rgba(5,6,7,.88) 100%),url('level_snapshots/level_0.webp');background-size:cover;background-position:center 46%;background-repeat:no-repeat}
+.topbar>div,.topbar>.game-menu-trigger{position:relative;z-index:1}
+.topbar .eyebrow,.topbar h1{text-shadow:0 1px 2px #000,0 0 8px #000c}
+.topbar .eyebrow{color:#d6d0aa;font-size:9px}
+.topbar h1{margin:2px 0 0;font-size:18px;line-height:1.15}
+.turn-runtime{display:none}
+.game-menu-trigger{width:40px;height:40px;flex:0 0 40px;padding:0;display:grid;place-items:center;border:1px solid #3a4249;background:rgba(13,16,18,.82);color:#eef1f3;font-size:19px;line-height:1;touch-action:manipulation;box-shadow:0 0 0 1px #0007,0 3px 12px #0006}
+.game-menu-trigger:active{transform:scale(.96);background:#252c32}
+.game-menu-trigger[aria-expanded="true"]{border-color:#707b84;background:#20272d}
+.snapshot{border-radius:7px!important}
+.log{height:auto!important;min-height:0;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:10px;display:grid;gap:10px;align-content:start}
+.message,.message.player,.message.gm{border-radius:0!important}
+.player-action-bar{padding:8px calc(10px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left));border-top:1px solid #252b31;background-color:#171812;background-image:linear-gradient(90deg,rgba(8,9,7,.90) 0%,rgba(12,12,8,.62) 50%,rgba(8,9,7,.88) 100%),url('hud/player_action_backrooms.png');background-size:cover;background-position:center 52%;background-repeat:no-repeat;box-shadow:inset 0 0 22px rgba(162,145,62,.08)}
+.player-action-bar .primary-action-row{grid-template-columns:1fr 1.12fr 1fr;gap:7px}
+.player-action-bar .primary-action{min-height:52px;background:rgba(20,23,20,.88);border-color:#5d593f;color:#f2efd8;text-shadow:0 1px 2px #000}
+.player-action-bar .primary-action.execute-action{background:rgba(32,39,45,.9);border-color:#766e49;color:#fff7cf}
+.player-action-modal[hidden],.game-menu-modal[hidden]{display:none}
+.player-action-modal,.game-menu-modal{position:fixed;inset:0;display:flex;align-items:flex-end;justify-content:center}
+.game-menu-modal{z-index:110}.player-action-modal{z-index:120}
+.player-action-backdrop,.game-menu-backdrop{position:absolute;inset:0;background:#000b}
+.player-action-sheet,.game-menu-sheet{position:relative;width:min(100%,680px);max-height:min(calc(var(--app-height,100dvh) - 12px),760px);overflow:auto;overscroll-behavior:contain;background:#0e1114;border:1px solid #3a4249;border-bottom:0;padding:14px 14px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -24px 60px #000b}
+.player-action-sheet,.game-menu-sheet{border-radius:7px 7px 0 0!important}
+.player-action-head,.game-menu-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.player-action-head{margin-bottom:12px}
+.player-action-head h2,.game-menu-head h2{margin:0;font-size:13px;font-weight:800;letter-spacing:.1em}
+.game-menu-head{position:sticky;top:-14px;z-index:2;margin:-14px -14px 10px;padding:14px;background:#0e1114;border-bottom:1px solid #252b31}
+.player-action-close{width:auto;min-width:42px;padding:8px 10px}
+.game-menu-close{width:44px;height:44px;min-width:44px;padding:0;font-size:22px;line-height:1}
+.player-action-sheet .composer{display:grid;gap:10px;padding:0}
+.player-action-sheet .composer label{font-weight:700;font-size:13px}
+.player-action-sheet textarea{min-height:150px;max-height:calc(var(--app-height,100dvh) - 180px);resize:vertical;background:#090c0f;color:#fff;border:1px solid #30373e;padding:12px;line-height:1.45}
+.composer-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.status{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.game-menu-sheet .side{display:grid;gap:10px;margin-top:0}
+.game-menu-sheet .card{box-shadow:none}
+body.player-action-open,body.game-menu-open{overflow:hidden}
+.card,.game-menu-trigger,.player-action-close,.game-menu-close,.primary-action,textarea,button,.chips span,.gm-choice,.combat-dice-panel,.combat-target,.combat-die,.combat-die-unknown{border-radius:7px!important}
+
+</style>
+
+<style id="pokerDice119PolishStyle">
+/* POKER_DICE_119_POLISH_R01 */
+.poker-dice-sheet{isolation:isolate;background-color:#39341e!important;background-image:linear-gradient(145deg,rgba(15,17,13,.55),rgba(12,15,13,.74) 55%,rgba(15,17,13,.60)),url('file:///android_asset/dice/level0-wallpaper.svg')!important;background-size:auto,64px 96px!important;border-color:#8b8052!important;box-shadow:inset 0 0 0 1px #c5b87818,inset 0 -24px 50px #0004,0 -18px 52px #000b!important}
+.poker-dice-sheet:before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.14;background:repeating-linear-gradient(0deg,transparent 0 2px,#e8dca21a 3px,transparent 4px)}
+.poker-dice-sheet>*{position:relative;z-index:1}
+.poker-dice-kicker{font-size:9px;font-weight:800;letter-spacing:.16em;color:#b9ad77;text-shadow:0 1px 2px #000}
+.poker-dice-head h2{font-size:14px!important;font-weight:700!important;letter-spacing:.09em!important;color:#efe8cf!important;text-shadow:0 1px 0 #000,0 0 10px rgba(194,178,103,.16)}
+.poker-dice-meta{margin-top:7px!important;color:#c5c3a8!important;font-size:11px!important;letter-spacing:.02em;text-shadow:0 1px 2px #000}
+.poker-dice-row{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:3px!important;padding:8px 0 0!important;margin-top:4px!important}
+.poker-die{--die-delay:0ms;position:relative!important;min-width:44px!important;min-height:76px!important;aspect-ratio:auto!important;padding:4px 0 24px!important;border:1px solid transparent!important;border-radius:7px!important;background:transparent!important;display:grid!important;place-items:center!important;overflow:visible!important;box-shadow:none!important;transition:background .18s,border-color .18s!important}
+.poker-die-shadow{position:absolute;left:16%;right:12%;bottom:24px;height:9px;border-radius:50%;background:#0008;filter:blur(4px);pointer-events:none}
+.poker-die-object{position:relative;width:100%;max-width:84px;aspect-ratio:1;display:grid;place-items:center;transform-origin:50% 65%;z-index:1}
+.poker-die-skin{display:block!important;width:100%!important;height:100%!important;object-fit:contain!important;pointer-events:none;filter:drop-shadow(0 3px 2px #0005)!important}
+.poker-die-unknown{width:78%;aspect-ratio:1;display:grid;place-items:center;border:1px solid #645b49;border-radius:7px;background:linear-gradient(145deg,#25261f,#151816);color:#ad9e79;font:700 24px/1 system-ui,sans-serif}
+.poker-die-hold-seal{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);display:block;visibility:hidden;min-width:0;padding:3px 0;border:0;background:transparent;color:#9be1bc;font:700 9px/1 system-ui,sans-serif;letter-spacing:.04em;pointer-events:none;white-space:nowrap}
+.poker-die.held{--held-glow:#9be1bc;border-color:transparent!important;background:transparent!important;box-shadow:none!important}
+.poker-die.held:after{content:none!important}
+.poker-die.held .poker-die-hold-seal{visibility:visible;color:var(--held-glow);text-shadow:0 0 7px #9be1bc88}
+.poker-die.held .poker-die-hold-seal:before{content:"";display:inline-block;width:4px;height:4px;margin-right:4px;border-radius:50%;background:var(--held-glow);box-shadow:0 0 5px #9be1bcaa;vertical-align:middle}
+.poker-die.held .poker-die-skin{filter:drop-shadow(0 0 2px var(--held-glow)) drop-shadow(0 0 6px #9be1bc99) drop-shadow(0 0 11px #9be1bc55) drop-shadow(0 3px 2px #0005)!important}
+.poker-die:focus-visible{outline:2px solid #e8ca87;outline-offset:2px}
+.poker-die:active:not(:disabled) .poker-die-object{transform:translateY(2px)}
+.poker-die:disabled{opacity:.84}
+.poker-die.rolling:before{display:none!important}
+.poker-die.rolling .poker-die-skin{visibility:hidden}
+.poker-die.rolling .poker-die-shadow{animation:poker-die-shadow-roll .68s ease-in-out infinite;animation-delay:var(--die-delay)}
+.poker-die.rolling .poker-die-object:before{content:"";position:absolute;inset:0;background-image:url('file:///android_asset/dice/roll-3d.png');background-size:2400% 100%;background-repeat:no-repeat;animation:poker-die-3d .68s steps(23,end) infinite;animation-delay:var(--die-delay)}
+.poker-die.rolling .poker-die-object{animation:poker-die-toss .68s ease-in-out infinite;animation-delay:var(--die-delay)}
+.poker-die.settling .poker-die-object{animation:poker-die-settle .17s ease-out both}
+@keyframes poker-die-3d{from{background-position:0% 0}to{background-position:100% 0}}
+@keyframes poker-die-toss{0%,100%{transform:translateY(0)}35%{transform:translateY(-7px)}70%{transform:translateY(-3px)}}
+@keyframes poker-die-shadow-roll{0%,100%{transform:scaleX(1);opacity:.8}22%,74%{transform:scaleX(.65);opacity:.35}48%{transform:scaleX(.8);opacity:.55}}
+@keyframes poker-die-settle{0%{transform:translateY(-4px) scale(1.02)}60%{transform:translateY(1px) scale(.98)}100%{transform:translateY(0) scale(1)}}
+.poker-dice-hand{min-height:22px!important;margin-top:8px!important;text-align:center;font-size:16px!important;font-weight:700!important;letter-spacing:.055em!important;color:#d8c477!important;text-shadow:0 1px 0 #000,0 0 11px rgba(216,196,119,.2)!important}
+.poker-dice-actions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;margin-top:10px!important}
+.poker-dice-roll,.poker-dice-finish{width:100%;min-height:48px;padding:12px 8px!important;color:#f2f4ef;font-weight:700!important;letter-spacing:.12em!important;border-radius:7px!important;transition:filter .1s,box-shadow .1s,transform .1s}
+.poker-dice-roll{background:linear-gradient(180deg,#1b3029,#13221e)!important;border:1px solid #4f9479!important;box-shadow:inset 0 0 0 1px rgba(103,190,153,.09),0 4px 12px rgba(0,0,0,.16)!important;color:#dff7ec!important}
+.poker-dice-finish{background:linear-gradient(180deg,#30231d,#231815)!important;border:1px solid #8b6047!important;box-shadow:inset 0 0 0 1px rgba(180,122,84,.08),0 4px 12px rgba(0,0,0,.16)!important;color:#f2ddd0!important}
+.poker-dice-roll:active:not(:disabled){transform:translateY(-2px);filter:brightness(1.3);box-shadow:inset 0 0 0 1px #a0ffd655,0 0 10px #69d8a888,0 0 22px #69d8a844!important}
+.poker-dice-finish:active:not(:disabled){transform:translateY(-2px);filter:brightness(1.3);box-shadow:inset 0 0 0 1px #ffc39855,0 0 10px #cb926988,0 0 22px #cb926944!important}
+.poker-dice-roll:disabled,.poker-dice-finish:disabled{opacity:.45}
+@media(max-width:390px){.poker-die{min-width:0!important}.poker-dice-sheet{padding-left:10px!important;padding-right:10px!important}}
+@media(prefers-reduced-motion:reduce){.poker-die,.poker-die-object,.poker-dice-roll,.poker-dice-finish{transition:none!important}.poker-die.rolling .poker-die-object,.poker-die.rolling .poker-die-shadow,.poker-die.settling .poker-die-object{animation:none!important}.poker-die.rolling .poker-die-object:before{display:none!important;animation:none!important}.poker-die.rolling .poker-die-skin{visibility:visible!important}}
+
+</style>
+
+<link rel="stylesheet" href="combat-feedback-1193a.css">
+<style id="gmSemanticPlayBoldStyle">
+/* GM_SEMANTIC_PLAY_BOLD_R04 */
+@font-face{font-family:'Play';font-style:normal;font-weight:700;src:url('fonts/Play-Bold.ttf') format('truetype');font-display:swap}
+.gm-semantic{font-family:'Play',"Pretendard Std",system-ui,sans-serif;font-weight:700}
 </style>
 </head>
 <body>
 <main class="shell">
 <section class="game">
-<header class="topbar"><div><div class="eyebrow">BACKROOM TEXT GAME</div><h1 id="title"></h1></div><div class="turn">TURN <strong id="turn"></strong></div></header>
+<header class="topbar"><div><div class="eyebrow">BACKROOM TEXT GAME</div><h1 id="title"></h1><span class="turn-runtime">TURN <strong id="turn"></strong></span></div><button class="game-menu-trigger" id="gameMenuOpen" type="button" aria-label="Mở menu game" aria-haspopup="dialog" aria-controls="gameMenuModal" aria-expanded="false">☰</button></header>
 <div class="snapshot" id="snapshot">SNAPSHOT — Android bản đầu chưa tạo ảnh tự động</div>
 <div class="log" id="log"></div>
-<form class="composer" id="form"><textarea id="action" placeholder="Kai làm gì trong Turn hiện tại?" rows="3"></textarea><button id="submit">THỰC HIỆN</button></form>
+<div class="player-action-bar" id="playerActionBar" aria-label="Action">
+<div class="primary-action-row" id="primaryActionRow">
+<button type="button" class="primary-action" id="searchActionButton" aria-label="Tìm kiếm">
+<svg class="action-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="5.5"></circle><path d="M14.7 14.7 20 20"></path></svg><span>Tìm kiếm</span>
+</button>
+<button type="button" class="primary-action execute-action" id="submit" aria-label="Thực hiện">
+<svg class="action-icon ai-action-icon" viewBox="0 0 28 24" aria-hidden="true"><path d="M3.5 5.5A2.5 2.5 0 0 1 6 3h11a2.5 2.5 0 0 1 2.5 2.5v7A2.5 2.5 0 0 1 17 15H6a2.5 2.5 0 0 1-2.5-2.5z"></path><text x="7" y="11.8">AI</text><path class="spark" d="M22 2v5m-2.5-2.5h5M23.5 9v3m-1.5-1.5h3"></path></svg><span>Thực hiện</span>
+</button>
+<button type="button" class="primary-action" id="exploreActionButton" aria-label="Khám phá">
+<svg class="action-icon footprint-icon" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="8" cy="8" rx="3" ry="4.2" transform="rotate(-20 8 8)"></ellipse><ellipse cx="15.8" cy="15.5" rx="3" ry="4.2" transform="rotate(18 15.8 15.5)"></ellipse><circle cx="5.2" cy="3.4" r="1"></circle><circle cx="18.5" cy="10.3" r="1"></circle></svg><span>Khám phá</span>
+</button>
+</div>
+</div>
+<div class="player-action-modal" id="playerActionModal" hidden aria-hidden="true">
+  <div class="player-action-backdrop" id="playerActionBackdrop"></div>
+  <section class="player-action-sheet" role="dialog" aria-modal="true" aria-labelledby="playerActionTitle">
+    <div class="player-action-head"><h2 id="playerActionTitle">PLAYER ACTION</h2><button class="player-action-close" id="playerActionClose" type="button" aria-label="Đóng">×</button></div>
+    <form class="composer" id="form">
+      <label for="action">Cao Minh sẽ làm gì?</label>
+      <textarea id="action" placeholder="Cao Minh sẽ làm gì tiếp theo?" rows="3"></textarea>
+      <div class="composer-actions"><button id="playerActionCancel" type="button">HỦY</button><button id="playerActionConfirm" type="submit">THỰC HIỆN</button></div>
+    </form>
+  </section>
+</div>
 <div class="status" id="status"></div>
 </section>
-<aside class="side">
+<div class="game-menu-modal" id="gameMenuModal" hidden aria-hidden="true">
+  <div class="game-menu-backdrop" id="gameMenuBackdrop"></div>
+  <section class="game-menu-sheet" role="dialog" aria-modal="true" aria-labelledby="gameMenuTitle">
+    <div class="game-menu-head"><h2 id="gameMenuTitle">GAME MENU</h2><button class="game-menu-close" id="gameMenuClose" type="button" aria-label="Đóng">×</button></div>
+    <aside class="side">
 <div class="card"><h2>Trạng thái</h2><div class="row"><b>Vị trí</b><span id="location"></span></div><div class="row"><b>Chế độ</b><span id="mode"></span></div><div class="row"><b>Nhân vật</b><span id="player"></span></div></div>
-<div class="card"><h2>Save / Load</h2><div class="actions"><button onclick="save()">Lưu</button><button onclick="load()">Tải</button><button class="wide" onclick="resetGame()">Bắt đầu lại từ đầu</button><button class="wide danger" onclick="clearSave()">Xóa save trên máy</button></div></div>
-<div class="card"><h2>Party</h2><div class="chips" id="party"></div></div>
-<div class="card"><h2>Inventory</h2><div class="chips" id="inventory"></div></div>
+<div class="card"><h2>Save / Load</h2><div class="actions"><button type="button" id="saveButton" onclick="save()">Lưu</button><button type="button" id="loadButton" onclick="load()">Tải</button><button type="button" id="newGameButton" class="wide" onclick="resetGame()">Bắt đầu lại từ đầu</button><button type="button" id="deleteSaveButton" class="wide danger" onclick="clearSave()">Xóa save trên máy</button></div></div>
+<div class="card"><h2>Party</h2><div class="party-time" id="partyTime"></div><div id="party" class="party-grid"><div class="party-member" data-character="cao_minh"><img src="avatars/kai_avatar.png" alt="Cao Minh"><strong>Cao Minh</strong></div></div></div>
+<div id="characterInventoryView" class="character-inventory-view" hidden>
+  <div class="character-inventory-head"><button type="button" id="characterInventoryBack">← Trở lại</button><div><div class="eyebrow">CHARACTER DETAIL</div><h2 id="characterInventoryName">Cao Minh</h2></div></div>
+  <div class="character-profile">
+    <img id="characterInventoryAvatar" src="avatars/kai_avatar.png" alt="Cao Minh">
+    <div>
+      <div class="character-hp" aria-label="Health">
+        <div class="character-hp-track"><div class="character-hp-fill" id="characterHpFill"></div><div class="character-hp-segments" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div></div>
+        <div class="character-hp-value"><span class="character-hp-heart">♥</span><strong id="characterHpValue">100/100</strong></div>
+      </div>
+      <div class="inventory-capacity" id="characterInventoryCapacity">0 / 9 loại vật phẩm</div><div class="inventory-limit">Inventory của nhân vật đang chọn</div>
+    </div>
+  </div>
+  <div class="character-section"><h3>Status</h3><div class="survival-hud" id="characterSurvivalHud"></div><div class="character-status-list" id="characterStatusList"></div></div>
+  <div class="character-section"><h3>Equipment</h3><div class="equipment-list" id="characterEquipmentList"><span>Huyết Ma Kiếm</span><span>Huyết Ma Chiến Khải</span><span>Nhẫn Vạn Tàng</span></div></div>
+  <div class="character-section"><h3>Inventory</h3><div class="chips" id="characterInventoryItems"></div></div>
+</div>
 </aside>
+  </section>
+</div>
 </main>
 <script>
-const prologue=`Bữa tối bắt đầu như bao lần khác.
+const prologue=`Lôi Thiên Vực chưa từng có một ngày yên tĩnh như thế.
 
-Nhà hàng nằm trên một tầng cao của khu thương mại, đủ yên để người ta nghe rõ tiếng dao chạm vào đĩa nhưng không đến mức phải giữ giọng. Qua lớp kính lớn sát tường, thành phố trải xuống bên dưới bằng những dải đèn trắng, vàng và đỏ. Nhân viên phục vụ đi lại nhẹ đến mức chỉ khi một chiếc ly được đặt xuống, Kai mới để ý có người vừa tới gần bàn.
+Gió vẫn thổi qua những dãy núi bị chiến hỏa chém cụt, lôi vân vẫn cuộn trên tầng trời, nhưng bên dưới lớp mây đen ấy, hàng nghìn tiên chu cùng vô số chiến kỳ đã khóa kín bốn phương. Đại trận nối tiếp đại trận phủ lên trời đất, linh quang từ những pháp bảo hộ vực đan thành một tấm lưới sáng đến mức ngay cả lôi đình cũng chỉ còn là những vệt tím mờ phía sau. Đại quân Chính Đạo trải dài ngoài tầm mắt, còn những người vẫn lựa chọn đứng ở Lôi Thiên Vực thì đã lùi đến tuyến phòng thủ cuối cùng.
 
-Hắn đang cắt nốt phần thịt trong đĩa thì nhận ra Syvial lại nhìn sang.
+Lục Trầm đứng cạnh Cao Minh trên đỉnh thành đã sứt quá nửa.
 
-Kai vẫn cúi đầu.
+Thiên Cơ Bạch Kim Kiếm Khải của nàng vẫn còn vết kiếm từ trận đánh hôm trước. Tịch Quang dựng cạnh người, mũi kiếm chạm nhẹ xuống mặt đá, kiếm ý chưa phát nhưng đã khiến bụi quanh chân tản ra. Nàng nhìn đại quân trước mắt hồi lâu rồi nói: “Ngươi vẫn còn rượu sao?”
 
-“Em nhìn tiếp cũng vô ích. Miếng cuối này không tự chạy sang đĩa em đâu.”
+Cao Minh đang cầm một bầu rượu. Nghe hỏi, hắn cúi xuống nhìn nó như thể chính mình cũng vừa nhớ ra trong tay có thứ ấy. “Còn nửa bầu. Lục tiên tử đổi ý rồi?”
 
-Syvial nhướng mày. “Ai bảo em nhìn miếng thịt?”
+“Ta chỉ thấy ngươi sắp phải đánh một trận sống chết mà vẫn còn tâm trạng uống.”
 
-“Vậy chắc anh hiểu lầm.”
+“Vậy càng nên uống. Nếu lát nữa bầu rượu vỡ thì chẳng phải phí sao?”
 
-“Đúng. Em chỉ đang thắc mắc tại sao một người ăn chậm như anh lại nhất quyết giữ phần cuối đến tận bây giờ.”
+Lục Trầm không đáp. Cao Minh uống thêm một ngụm rồi đưa bầu rượu sang. Nàng nhìn hắn, cuối cùng vẫn lắc đầu. “Ngươi giữ lấy. Nếu còn sống trở về, ta sẽ tính với ngươi chuyện mấy vò rượu ngươi giấu.”
 
-Kai đưa nĩa lên, ăn luôn miếng thịt trước khi cô kịp nói thêm. “Hết thắc mắc chưa?”
+Cao Minh nhìn nàng một lát rồi cười. “Nàng tìm thấy rồi?”
 
-Syvial nhìn chiếc đĩa trống, rồi nhìn hắn. “Anh làm thế chỉ để chọc em đúng không?”
+“Ngươi giấu đồ rất tệ.”
 
-Iris đặt ly nước xuống. Khóe miệng cô hơi động. “Muốn ăn thì gọi thêm đi. Đừng nhìn đĩa của anh ấy mãi.”
+“Ta nhớ ta giấu khá kỹ.”
 
-“Có nhìn mãi đâu.”
+“Đó là bởi không ai rảnh đi tìm rượu của ngươi.”
 
-“Đủ lâu để người ngồi đối diện cũng nhận ra.”
+Cao Minh còn định nói gì đó, nhưng tiếng chuông từ phía đại quân đối diện đã vang lên. Âm thanh ấy đi qua mấy trăm dặm chiến trường, nặng nề như từng lớp núi đè xuống lòng người. Hắn cất bầu rượu đi, nụ cười cũng nhạt dần.
 
-Syvial quay sang. “Đếm à?”
+Trong hàng ngũ Chính Đạo có người đã nhận ra Lục Trầm. Tiếng gọi “Lục sư tỷ” truyền tới từ phía Thiên Kiếm Môn, ban đầu chỉ một người, sau đó là vài người khác. Có người van nàng trở về, có người mắng nàng phản tông, cũng có trưởng lão lạnh giọng tuyên bố một kẻ đứng cạnh Vạn Giới Ma Tôn từ lâu đã không còn tư cách xưng mình là đệ tử Chính Đạo. Lục Trầm nghe hết, nhưng chỉ nhìn về phía chiến kỳ quen thuộc rất lâu rồi mới nói: “Ta chưa đổi kiếm, chưa đổi đạo, càng chưa từng nhập Ma Đạo. Hôm nay các vị muốn gọi ta là gì thì tùy. Nếu còn ngày sau, ta sẽ tự trở về Thiên Kiếm Môn nói cho rõ.”
 
-“Không cần.”
+Một trưởng lão quát: “Ngươi cho rằng sau hôm nay còn có thể trở về sao?”
 
-Kai dựa lưng vào ghế, để mặc hai người nhìn nhau qua mặt bàn. “Anh đề nghị đổi chủ đề trước khi bữa tối biến thành một cuộc điều tra về quyền sở hữu thức ăn.”
+Lục Trầm bình tĩnh đáp: “Đó là việc của sau hôm nay.”
 
-Syvial chống cằm. “Muộn rồi. Em sẽ nhớ chuyện này.”
+Cao Minh nghiêng đầu nhìn nàng. “Lục tiên tử vẫn định quay về chịu phạt thật?”
 
-“Danh sách của em còn chỗ à?”
+“Ta làm việc gì thì tự chịu hậu quả việc ấy. Ngươi đừng tưởng đứng cạnh ngươi vài năm là ta cũng học được thói trốn nợ.”
 
-“Anh cứ tiếp tục thử xem.”
+“Ta chưa từng trốn nợ.”
 
-Kai bật cười khẽ. Iris lắc đầu, nhưng vẻ mặt cũng đã bớt nghiêm hơn lúc mới ngồi xuống.
+“Ngươi chỉ thường xuyên giả vờ quên.”
 
-Đèn trên trần chớp một lần.
+“Khác nhau rất nhiều.”
 
-Không ai ở những bàn xung quanh phản ứng. Một nhân viên vẫn nghiêng chai rượu, dòng chất lỏng đỏ sẫm chảy đều vào ly. Bản nhạc trong nhà hàng tiếp tục trôi qua, chỉ có một nốt trầm vừa rồi nghe hơi lệch.
+Lục Trầm còn chưa kịp phản bác, ánh mắt Cao Minh đã vượt qua nàng, nhìn về một người đứng ngay bên phải Vô Lượng Đại Tôn Giả.
 
-Kai ngẩng lên.
+Diệp Minh.
 
-Đèn chớp lần thứ hai.
+Không ai bên cạnh cần hỏi cái tên ấy có ý nghĩa gì. Những người đã theo Cao Minh đủ lâu đều biết, Lục Trầm càng biết rõ. Nàng chỉ thấy khóe môi Cao Minh đang hơi cong bỗng trở lại thành một đường thẳng. Sát ý không bùng lên, ma khí cũng không tăng, nhưng Huyết Ma Kiếm lơ lửng phía sau vai hắn đã tự dịch chuyển.
 
-Lần này Iris cũng dừng tay. Cô không nhìn lên trần mà quay sang phía cửa kính, như thể đang cố xác định một âm thanh vừa lọt khỏi chỗ của nó.
+Ma Luân quanh huyết tinh chậm rãi xoay. Huyết văn trên thân đại kiếm lần lượt sáng lên, mũi kiếm đổi khỏi Vô Lượng rồi khóa thẳng vào Diệp Minh.
 
-“Anh Kai.”
+Cao Minh không quay đầu. “Chưa phải lúc.”
 
-“Anh nghe rồi.”
+Huyết Ma Kiếm phát ra một tiếng rung thấp.
 
-Syvial thôi cười. Sự thay đổi trên gương mặt cô diễn ra rất nhanh; vẻ thư thả còn đó một giây trước đã biến mất khi cô nhìn quanh căn phòng.
+“Ta biết.”
 
-Kai không nghe thấy tiếng động lạ nào rõ ràng. Điều khiến hắn chú ý là những âm thanh vốn phải có đang mất dần phần vang của chúng. Tiếng trò chuyện ở bàn gần nhất trở nên phẳng một cách khó chịu. Nhạc vẫn phát, nhưng các nốt thấp kéo dài như bị bóp méo. Ngay cả tiếng dao nĩa cũng nghe gần hơn khoảng cách thực tế.
+Nó vẫn không chuyển hướng.
 
-Một người đàn ông cách họ vài bàn đang nói chuyện thì khựng lại. Chiếc ly trong tay ông trượt khỏi những ngón tay.
+Cao Minh nhìn Diệp Minh thêm một nhịp rồi mới nói: “Món nợ đó ta chưa quên. Ngươi cũng không cần nhắc.”
 
-Kai nhìn theo phản xạ.
+Thanh kiếm cuối cùng mới lùi về bên cạnh hắn.
 
-Chiếc ly rơi xuống được nửa quãng rồi biến mất.
+Lục Trầm không hỏi thêm.
 
-Không vỡ. Không bị hất sang bên. Không có ánh sáng hay khói che khuất. Trong một khoảnh khắc nó vẫn còn ở đó, khoảnh khắc tiếp theo chỉ còn khoảng không.
+Ở phía đối diện, Vô Lượng Đại Tôn Giả đã bước ra khỏi quân trận. Đạo bào rộng theo gió trải phía sau, thiên quang từ đại trận soi xuống khiến thân ảnh hắn gần như đứng giữa một vầng sáng. Giọng nói truyền khắp Lôi Thiên Vực, vẫn là thứ giọng đường hoàng mà thiên hạ đã nghe không biết bao nhiêu lần trong những năm chiến tranh: “Cao Minh, ngươi lấy Ma Đạo làm loạn, khiến Vạn Giới sinh linh đồ thán. Hôm nay chư tông hội tụ nơi này, chính là để—”
 
-Kai đứng dậy ngay.
+“Vô Lượng.”
 
-“Đứng lên. Ra khỏi đây.”
+Cao Minh cắt ngang.
 
-Iris đã rời ghế trước khi hắn nói hết câu. Syvial đẩy ghế lùi lại, mắt vẫn quét quanh sàn và các lối ra.
+Vô Lượng nhìn hắn.
 
-Họ không kịp đi bước nào.
+Cao Minh đưa mắt qua vô số chiến kỳ đang phủ kín chân trời. “Ngươi dẫn từng này người đến đây, ta còn tưởng cuối cùng cũng chịu đánh một trận cho xong. Nếu vẫn phải đọc lại những thứ các ngươi đã treo trên Tru Ma Lệnh suốt mấy năm thì thôi đi. Ta nghe đến thuộc rồi.”
 
-Mặt sàn dưới chân Kai không nứt, không sập và cũng không hề rung. Nó chỉ đột ngột thôi cản cơ thể hắn lại.
+Trong hàng Chính Đạo lập tức có tiếng quát mắng. Cao Minh chẳng buồn nhìn.
 
-Chân hắn xuyên qua lớp gỗ như xuyên qua một hình ảnh không có khối lượng.
+Vô Lượng chậm rãi rút thiên kiếm. “Ngươi vẫn cuồng vọng như cũ.”
 
-Kai giật tay về phía mép bàn. Những ngón tay chỉ kịp quệt qua cạnh bàn trước khi cả người rơi xuống. Phía trên, Iris lao tới theo phản xạ. Syvial cũng xoay người chụp lấy hắn, nhưng đúng lúc đó phần sàn dưới chân hai người họ cũng mất độ rắn.
+“Ngươi vẫn nhiều lời như cũ.”
 
-Khoảnh khắc cuối cùng Kai còn nhìn thấy nhà hàng là một mớ hình ảnh nghiêng lệch: chiếc bàn trượt khỏi tầm mắt, bàn tay Iris đưa ra nhưng không chạm tới, mái tóc Syvial quét qua vai khi cô rơi, những thực khách phía xa vẫn chưa hiểu chuyện gì đang xảy ra.
+Lục Trầm thở dài. “Hai người các ngươi có thể đánh trước khi ta phải nghe thêm không?”
 
-Rồi ánh sáng biến mất.
+Cao Minh bật cười. “Nàng xem, vẫn là Lục tiên tử hiểu chuyện.”
 
-Không có cảm giác rơi tự do. Không có gió quất vào người, không có lực kéo tăng dần, cũng không còn khái niệm rõ ràng về trên hay dưới. Cơ thể Kai vẫn ở đó, nhưng khoảng cách xung quanh hắn dường như không còn được đo theo cách quen thuộc.
+Thiên kiếm của Vô Lượng giáng xuống ngay lúc ấy.
 
-Cảm giác ấy kéo dài chưa tới một nhịp tim.
+Lôi Thiên Vực nổ tung.
 
-Trọng lực trở lại đột ngột.
+Trận chiến kéo dài đến mức không còn ai dưới chiến trường nhớ nổi mình đã chém bao nhiêu kiếm. Những người của Cao Minh không phải quân cờ đứng sau chờ hắn phân thắng bại. Họ giữ từng cửa trận, từng con đường vào nội vực, từng đoạn tường đã vỡ. Có người đánh đến pháp bảo nứt rồi cầm thẳng mảnh pháp bảo gãy lao vào đối thủ; có người linh lực gần cạn vẫn ở lại phía sau che cho đồng đội rút. Lục Trầm ở giữa bọn họ, Tịch Quang khi thì nằm trong tay, khi thì theo kiếm niệm rời khỏi người, đường kiếm sáng bạc liên tục cắt đứt những mũi công kích ép vào trận tuyến.
 
-Kai chạm xuống một bề mặt mềm hơn sàn nhà hàng. Hắn chống một chân, hạ thấp trọng tâm và giữ được thăng bằng gần như ngay lập tức.
+Một đệ tử Thiên Kiếm Môn từng được nàng chỉ kiếm pháp chặn trước mặt. Người kia cắn răng hỏi: “Lục sư tỷ, người thật sự muốn vì Cao Minh mà chém đồng môn sao?”
 
-Mùi ẩm mốc xộc vào trước tiên.
+Tịch Quang vừa đè lưỡi kiếm của hắn xuống. Lục Trầm nhìn hắn, giọng vẫn bình tĩnh dù hơi thở đã nặng: “Nếu ta muốn chém ngươi, kiếm vừa rồi đã không dừng ở chuôi kiếm. Lùi xuống. Ta không muốn hôm nay phải nhặt xác người của Thiên Kiếm Môn.”
 
-Sau đó là mùi giấy cũ, bụi, keo dán và thứ hóa chất tẩy rửa nhạt đến mức chỉ còn bám lại trong không khí. Trên đầu, hàng đèn huỳnh quang tỏa ánh sáng trắng nhợt. Tiếng ù đều đều của chúng lấp kín căn phòng.
+“Nhưng người đang đứng bên Ma Đạo!”
 
-Kai đứng thẳng lên.
+“Ta đang đứng ở nơi ta cho rằng mình nên đứng. Hai chuyện đó không giống nhau.”
 
-Nhà hàng đã biến mất.
+Một luồng pháp lực khác đánh tới từ phía sau. Lục Trầm chưa cần quay đầu, một đường Huyết Sát Ma Khí đã từ trên cao quét xuống, đánh lệch pháp bảo kia trước khi nó chạm tới nàng. Huyết Ma Kiếm chỉ lướt qua đúng một lần rồi lập tức trở lại tầng chiến đấu phía trên.
 
-Quanh hắn là những bức tường phủ giấy màu vàng nhạt với hoa văn lặp lại đến phát ngấy. Tấm thảm dưới chân ẩm lạnh dù không thấy nước chảy từ đâu. Trần nhà ghép bằng những tấm vuông giống hệt nhau, kéo dài qua các ô cửa mở sang những căn phòng kế tiếp.
+Lục Trầm ngẩng lên theo bản năng.
 
-Không có cửa sổ. Không có bàn ghế. Không có dấu vết của thành phố.
+Cao Minh và Vô Lượng đã đánh đến nơi mà phần lớn tu sĩ chỉ có thể nhìn thấy hai quầng sáng liên tục va chạm. Ba nghìn hiệp trôi qua giữa tiếng thiên kiếm và huyết quang xé trời. Không ai trong số họ giữ được nguyên vẹn. Huyết Ma Chiến Khải trên người Cao Minh đã vỡ một mảng lớn nơi sườn, máu theo mép Ma Kim nhỏ xuống. Vô Lượng cũng mất vẻ ung dung ban đầu, đạo bào bị kiếm khí cắt rách, một đường thương từ vai kéo xuống cánh tay vẫn chưa kịp khép.
 
-Và không có Iris hay Syvial.
+Đến hiệp thứ ba nghìn, hai người cùng tách ra.
 
-Kai quay một vòng, nhìn kỹ từng lối mở trước khi gọi.
+Vô Lượng siết thiên kiếm, khí tức vẫn dày nhưng hơi thở đã loạn. Cao Minh đứng đối diện, im lặng nhìn chín tầng quang ảnh như mặt gương bao quanh thân đối phương.
 
-“Iris?”
+Cửu Giới Huyền Giám.
 
-Chỉ có tiếng đèn.
+Pháp bảo hộ mệnh mà Vô Lượng chưa từng phải dùng đến mức này trong suốt ba nghìn hiệp.
 
-“Syvial?”
+Cao Minh bỗng thôi cười.
 
-Giọng hắn đi qua hai căn phòng, dội lại rất yếu rồi chìm mất trong một khoảng không không cho thấy điểm cuối.
+Ở dưới, Lục Trầm vừa đẩy lui một người thì cảm nhận được ma khí trên toàn chiến trường thay đổi.
 
-Kai không gọi lần thứ ba. Hắn chuyển sang liên lạc.
+Không phải bùng lên.
 
-Kênh trực tiếp của đội không trả lời. Kênh nội bộ Black Blood im lặng. Kênh chỉ huy, kênh khẩn cấp và các đường truyền dự phòng mã hóa cũng không nhận được bất kỳ tín hiệu hồi đáp nào.
+Ngược lại.
 
-Hắn kiểm tra lại từng kênh một lần nữa, lần này tách riêng lỗi thiết bị khỏi lỗi đường truyền.
+Nó đang rút về.
 
-Kết quả không thay đổi.
+Tất cả.
 
-Đây không giống tín hiệu yếu. Cũng không giống một vùng nhiễu thông thường. Không có tín hiệu méo, không có gói dữ liệu hỏng, không có dấu hiệu cho thấy đầu bên kia đã nhận được lời gọi rồi thất bại khi trả lời.
+Từng luồng Huyết Sát Ma Khí đang tản giữa trời, từng dòng ma nguyên còn vương trong những vết kiếm, tất cả bị kéo trở lại một điểm duy nhất.
 
-Chỉ có im lặng.
+Cao Minh.
 
-Chưa đầy một phút trước, Iris và Syvial còn ngồi trong tầm tay hắn. Kai đã thấy cả hai cùng rơi khi mặt sàn mất đi dưới chân họ. Đó là điều duy nhất hắn có thể chắc chắn.
+Huyết Ma Kiếm lập tức bỏ đối thủ trước mặt.
 
-Hắn không biết họ đã rơi tới đâu.
+Nó bay về bên hắn nhanh đến mức để lại một vệt đỏ dài trên tầng không.
 
-Không biết họ có ở cùng nơi này hay không.
+Lục Trầm ngẩng lên.
 
-Không biết Black Blood còn có thể tìm thấy dấu vết của ba người từ phía bên kia hay không.
+Nàng biết hắn sắp làm gì.
 
-Không có tọa độ để đối chiếu. Không có tín hiệu định vị. Không có dữ liệu trạng thái từ hai người còn lại. Và trước mắt, không có bất kỳ lời giải thích nào cho căn phòng vàng vô tận đang mở ra quanh hắn.
+Vô Lượng cũng biết.
 
-Kai đứng yên thêm vài giây để nghe.
+Vạn Quỷ Ma Thân được giải phóng.
 
-Tiếng đèn vẫn ù trên đầu. Thảm vẫn ẩm dưới đế giày. Ở phía trước, một hành lang rẽ sang trái sau lớp tường vàng; bên phải là một ô cửa khác dẫn vào căn phòng gần như giống hệt nơi hắn đang đứng.
+Và thời gian dừng lại.
 
-Không có tiếng gọi đáp lại.
+Không ai trong Lôi Thiên Vực cảm nhận được khoảng khắc ấy.
 
-Kai chỉ còn những gì mình đang mang theo, những gì chính mắt hắn có thể kiểm chứng, và một việc phải làm trước tiên: xác định mình đang ở đâu, rồi tìm Iris và Syvial.`;
+Đối với Lục Trầm, nàng chỉ vừa nhìn thấy Huyết Ma Kiếm trở về bên Cao Minh.
 
-const initial={
-  title:"MAIN_BACKROOMS — Kai Akechi",
-  turn:1,
-  mode:"local APK",
+Sau đó mọi thứ đã khác.
+
+Nhưng đối với Cao Minh, thế giới trước mặt hoàn toàn đứng yên.
+
+Gió dừng giữa tầng không. Một giọt máu vừa rời khỏi đầu ngón tay Vô Lượng treo bất động. Ánh chớp trên lôi vân giữ nguyên hình dạng. Phía dưới, hàng vạn người bị khóa trong tư thế của chính khoảnh khắc đó.
+
+Cửu Giới Huyền Giám không kích hoạt.
+
+Nó đã được kích hoạt từ trước.
+
+Chín tầng giới bích vẫn bao quanh Vô Lượng, chồng lên nhau giữa một thế giới không còn thời gian.
+
+Huyết Ma Kiếm lơ lửng cạnh Cao Minh.
+
+Không đưa chuôi.
+
+Cao Minh cũng không chạm vào nó.
+
+Sau ba nghìn hiệp, hắn đã nhìn đủ.
+
+Những điểm Vô Lượng quen dùng để chuyển lực. Những nơi thiên kiếm che chắn trước tiên. Vị trí từng lớp giới bích của Cửu Giới Huyền Giám chồng lên nhục thân và nguyên thần.
+
+Hai mươi bốn quỹ đạo kiếm lần lượt thành hình trong thần niệm hắn, không nhiều hơn, không ít hơn.
+
+Huyết Ma Kiếm rung khẽ.
+
+Ý niệm của Cao Minh truyền tới.
+
+Kết thúc.
+
+Thanh ma kiếm biến mất.
+
+Trảm thứ nhất đánh vào điểm giao giữa hai tầng giới bích. Trảm thứ hai nối ngay nơi khe hở vừa sinh. Những đường kế tiếp không hề lặp lại, có trảm dùng kiếm thể, có trảm kéo dài thành Huyết Sát Ma Khí, có quỹ đạo được Huyết Ma Kiếm tự điều chỉnh trong khoảnh khắc để chọn góc phá thế tốt hơn. Chín tầng giới bích bị bóc ra từng lớp trong một thế giới không có khả năng phản ứng. Đến khi lớp cuối cùng của Cửu Giới Huyền Giám bị xuyên thủng, những trảm còn lại mới thật sự đi vào Vô Lượng.
+
+Pháp thể.
+
+Hộ thể.
+
+Tuyến vận kiếm.
+
+Nguyên thần.
+
+Trảm thứ hai mươi ba khép lại.
+
+Huyết Ma Kiếm dừng trước Vô Lượng đúng một khoảnh khắc không thuộc về ngoại giới.
+
+Trảm thứ hai mươi bốn rơi xuống.
+
+Thời gian trở lại.
+
+Cả Lôi Thiên Vực nghe thấy một tiếng vỡ.
+
+Không ai biết nó bắt đầu từ đâu.
+
+Chín tầng Cửu Giới Huyền Giám đồng thời hiện ra vô số vết kiếm rồi nổ tung. Những mảnh kính sáng phủ kín khoảng không quanh Vô Lượng chưa kịp rơi đã hóa thành bụi.
+
+Sau đó máu mới xuất hiện.
+
+Một đường kiếm xé ngang vai hắn. Ba vết khác đồng thời mở trên ngực và sườn. Hộ thể quanh nguyên thần vỡ thành một tầng quang mang hỗn loạn. Thiên kiếm trong tay Vô Lượng xuất hiện một vết nứt kéo dài gần nửa thân.
+
+Hắn bị đánh rơi khỏi tầng không.
+
+Cả chiến trường im đi.
+
+Không ai biết Cao Minh vừa làm gì.
+
+Ngay cả Lục Trầm chỉ nhìn thấy kết quả.
+
+Vô Lượng chống kiếm xuống một mỏm núi đã vỡ, quỳ một gối rồi phun ra một ngụm máu.
+
+Cao Minh vẫn đứng trên cao.
+
+Huyết Ma Kiếm trở lại lơ lửng bên vai.
+
+Ma khí trên người hắn cũng yếu đi rõ rệt sau trận chiến kéo dài, nhưng hắn vẫn còn đứng.
+
+Vô Lượng nhìn những mảnh Cửu Giới Huyền Giám đang tan khỏi người.
+
+Nếu không có nó, hắn đã chết.
+
+Không cần ai nói điều đó.
+
+Tất cả những người đủ cảnh giới để nhìn hiểu đều biết.
+
+Vô Lượng từ từ đứng lên.
+
+Lần này hắn không gọi Cao Minh tiếp tục đánh.
+
+Hắn giơ tay về phía sau.
+
+Những tầng kết giới trong đại quân mở ra.
+
+Lục Trầm cảm thấy sống lưng mình lạnh đi.
+
+Những người đầu tiên bị đưa ra là phàm nhân.
+
+Không có chiến giáp. Không pháp bảo. Có người còn mặc quần áo phủ tro từ những thành trì vừa bị chiến hỏa quét qua. Trẻ nhỏ bị ép đi giữa người lớn, vài đứa khóc đến khản tiếng nhưng không dám kêu lớn. Người già không theo kịp bị kéo lê trên mặt đất.
+
+Sau đó mới tới những người Lục Trầm quen.
+
+Người của Cao Minh.
+
+Những kẻ đã mất tích trong những trận chiến trước, những người bị bắt khi các chiến tuyến bên ngoài Lôi Thiên Vực lần lượt vỡ. Có người cụt tay. Có kẻ xích xuyên qua vai. Có người đã bị phong kinh mạch đến mức đứng không vững, nhưng khi nhìn thấy Cao Minh trên cao vẫn cố ngẩng đầu.
+
+Cao Minh không nói gì.
+
+Một người bị ép quỳ gần hàng đầu bỗng bật cười.
+
+Máu trong miệng hắn chảy xuống cằm.
+
+“Đại nhân.”
+
+Cao Minh nhìn xuống.
+
+Người kia dùng hết sức đứng lên.
+
+Kẻ giữ phía sau lập tức đá vào đầu gối khiến hắn lại khuỵu xuống, nhưng tiếng nói đã lớn hơn.
+
+“Đừng có làm chuyện ngu xuẩn.”
+
+Vài người khác lập tức hiểu.
+
+“Ma Tôn đại nhân!”
+
+“Đánh tiếp!”
+
+Một tiếng khác vang lên từ cuối hàng.
+
+“Bọn ta đi theo ngài đến hôm nay không phải để ngài lấy mạng mình đổi cho bọn ta!”
+
+Người của Chính Đạo bắt đầu quát họ im.
+
+Không ai im.
+
+Một kẻ bị đánh gãy mấy chiếc răng vẫn cười.
+
+“Vạn Giới Ma Tôn!”
+
+Tiếng gọi ấy được người bên cạnh tiếp lấy.
+
+“Vạn Giới Ma Tôn!”
+
+Rồi thêm một người nữa.
+
+Chỉ vài nhịp, hàng người bị trói đã vang đầy danh hiệu mà thiên hạ dùng để nguyền rủa Cao Minh suốt bao nhiêu năm.
+
+“Vạn Giới Ma Tôn!”
+
+“Đừng đầu hàng!”
+
+“Cao Minh, ngươi mà cúi đầu hôm nay thì ngày mai đừng xuống dưới gặp bọn ta!”
+
+Có người bị đánh đến ngã xuống vẫn cố cười.
+
+Lục Trầm nhìn Cao Minh.
+
+Hắn đứng rất yên.
+
+Quá yên.
+
+Vô Lượng chờ cho tiếng gọi lan đủ xa rồi mới lên tiếng.
+
+“Phong Vạn Quỷ Ma Tâm. Khóa thần niệm. Bỏ chống cự.”
+
+Cao Minh nhìn xuống những người đang gọi mình.
+
+“Còn họ?”
+
+“Khi ngươi chịu trói, bản tôn sẽ thả.”
+
+Huyết Ma Kiếm biến mất.
+
+Không một lời báo trước.
+
+Nó không lao về phía Vô Lượng.
+
+Cũng không lao vào Diệp Minh.
+
+Nó xuất hiện giữa hàng giữ con tin.
+
+Một kiếm tu vừa đặt lưỡi kiếm lên cổ một đứa trẻ chỉ thấy huyết quang lóe qua. Cánh tay cầm kiếm rơi xuống trước khi hắn kịp kêu.
+
+Huyết Ma Kiếm đã sang người thứ hai.
+
+Không phải mọi đòn đều giết.
+
+Có kẻ bị chém cổ tay, có người bị phá pháp bảo, một tên vừa kéo một đứa trẻ làm lá chắn bị thân kiếm đánh văng khỏi chỗ đứng rồi mới bị kiếm khí cắt vào chân.
+
+Nó biết mục tiêu.
+
+Không phải giết hết.
+
+Là kéo lưỡi kiếm khỏi cổ con tin.
+
+Lục Trầm chỉ mất một nhịp để hiểu.
+
+Nàng lao xuống.
+
+Tịch Quang chém ngang một thanh kiếm đang hạ xuống người phụ nữ gần nhất. Hai pháp bảo va nhau, người cầm kiếm nhận ra nàng thì sững lại.
+
+“Lục Trầm!”
+
+“Tránh ra.”
+
+“Ngươi muốn bảo vệ người của Ma Đạo?”
+
+“Đứa trẻ sau lưng ngươi cũng là Ma Đạo sao?”
+
+Người kia khựng lại.
+
+Lục Trầm không chờ.
+
+Tịch Quang ép kiếm hắn lệch sang một bên, nàng xoay người kéo hai người phía sau khỏi vùng hành quyết.
+
+Vô Lượng nhìn thấy.
+
+Hắn không ra lệnh chặn Huyết Ma Kiếm.
+
+Chỉ hạ tay.
+
+Ở một nơi khác trên chiến trường, mười mấy thanh kiếm đồng thời rơi xuống.
+
+Tiếng hét vang lên.
+
+Cao Minh quay đầu.
+
+Một cụm con tin ngã xuống.
+
+Huyết Ma Kiếm đang ở quá xa.
+
+Nó khựng giữa đường.
+
+Vô Lượng hạ tay lần thứ hai.
+
+Một nhóm khác bị chém.
+
+Lần này có trẻ nhỏ.
+
+Tiếng kiếm minh của Huyết Ma Kiếm xé toạc chiến trường.
+
+Nó lao đi.
+
+Nhanh hơn trước.
+
+Một cụm được cứu.
+
+Ở nơi khác lại có người chết.
+
+Lục Trầm vừa chắn được ba kiếm, kéo một người ra khỏi vòng vây, thì phía sau đã có tiếng khóc thét.
+
+Nàng quay lại.
+
+Không kịp.
+
+Máu chảy thành một đường trên mặt đất.
+
+“Đại Tôn Giả!”
+
+Lần đầu tiên trong ngày, Lục Trầm gọi Vô Lượng bằng giọng gần như không còn giữ được bình tĩnh.
+
+“Dừng lại!”
+
+Vô Lượng không nhìn nàng.
+
+Hắn chỉ nhìn Cao Minh.
+
+“Bản tôn không nói lần thứ ba.”
+
+Huyết Ma Kiếm vẫn đang cứu người.
+
+Diệp Minh động.
+
+Sinh Mệnh Đạo tràn xuống đất. Rễ cây phá đá mọc lên thành từng tầng, không đủ để khóa Huyết Ma Kiếm nhưng đủ để ép nó vòng thêm một đoạn mỗi lần đổi mục tiêu.
+
+Thanh kiếm chém đứt một tầng.
+
+Tầng khác lại dựng lên.
+
+Nó bẻ hướng.
+
+Một nhóm con tin ở phía xa lại chết.
+
+Huyết Ma Kiếm đột ngột xoay mũi về phía Diệp Minh.
+
+Toàn bộ huyết văn sáng rực.
+
+Trong một thoáng, sát ý dày đến mức ngay cả những người quanh Diệp Minh cũng lùi lại.
+
+Nhưng ở nơi khác, một thanh kiếm đang được nâng lên trên đầu một đứa trẻ.
+
+Huyết Ma Kiếm dừng.
+
+Rồi quay đi cứu đứa trẻ.
+
+Diệp Minh không đuổi.
+
+Hắn chỉ tiếp tục dựng vật cản.
+
+Lục Trầm nhìn cảnh đó mà cổ họng nghẹn lại.
+
+Nàng chưa bao giờ thấy một thanh kiếm bị ép phải lựa chọn.
+
+Nhưng hôm nay, Huyết Ma Kiếm phải chọn người nào được sống trước.
+
+Cao Minh cũng nhìn thấy.
+
+Hắn biết tuyệt kỹ vừa rồi có thể giết hai mươi bốn mục tiêu trong một miền thời gian đình chỉ.
+
+Ở đây có nhiều hơn hai mươi bốn điểm hành quyết.
+
+Rất nhiều.
+
+Một lần dừng thời gian không thể đưa hắn tới tất cả.
+
+Huyết Ma Kiếm cũng không thể có mặt ở tất cả.
+
+Vô Lượng đã nhìn thấy Huyết Ma Nhị Thập Tứ Trảm.
+
+Và hắn đã chuẩn bị bài toán này cho chính nó.
+
+“Cao Minh!”
+
+Một người bị trói gào lên.
+
+“Đừng gọi kiếm về!”
+
+Kẻ bên cạnh tiếp lời: “Mặc kệ bọn ta!”
+
+Một lưỡi kiếm chém xuống.
+
+Tiếng nói mất đi.
+
+Người khác lập tức gào lớn hơn.
+
+“Vạn Giới Ma Tôn!”
+
+“Ngài mà đầu hàng thì bọn ta chết vô ích!”
+
+“Đánh tiếp!”
+
+Cao Minh nhìn họ.
+
+Huyết Ma Kiếm vừa cứu được thêm một nhóm.
+
+Vô Lượng hạ tay.
+
+Một nhóm khác chết.
+
+Cao Minh nhắm mắt trong một nhịp.
+
+Rồi mở ra.
+
+“Quay lại.”
+
+Huyết Ma Kiếm không nghe.
+
+Nó lao về phía nhóm tiếp theo.
+
+“Quay lại.”
+
+Kiếm thể rung dữ dội giữa không trung.
+
+Cao Minh nhìn những người đang chết ở phía xa.
+
+“Ngươi cứu tiếp, hắn sẽ tiếp tục giết ở chỗ khác.”
+
+Huyết Ma Kiếm vẫn không quay đầu.
+
+“Ta biết ngươi không muốn.”
+
+Giọng Cao Minh thấp xuống.
+
+“Ta cũng không muốn.”
+
+Thanh kiếm cuối cùng dừng lại.
+
+Nó lơ lửng giữa hai nhóm người, mũi kiếm lúc hướng trái, lúc hướng phải. Cả hai phía đều có người đang bị giữ.
+
+Không có lựa chọn đúng.
+
+Cao Minh gọi lần nữa.
+
+“Trở về.”
+
+Huyết Ma Kiếm quay lại rất chậm.
+
+Đằng sau nó, những người bị trói vẫn gào.
+
+“Đừng!”
+
+“Ma Tôn đại nhân, đừng có nghe hắn!”
+
+“Vạn Giới Ma Tôn!”
+
+Huyết Ma Kiếm về tới bên Cao Minh.
+
+Nó không đứng yên như thường ngày.
+
+Toàn thân kiếm rung mạnh.
+
+Cao Minh nhìn nó rồi nhìn xuống những người phía dưới.
+
+Một người già trong số những tu sĩ đi theo hắn đã khóc.
+
+Không phải vì sợ chết.
+
+“Cao Minh, bọn ta không cần ngươi cứu theo cách này.”
+
+Cao Minh nghe rất rõ.
+
+Hắn mất một lúc mới trả lời.
+
+“Ta biết.”
+
+Người kia lắc đầu.
+
+“Vậy thì đừng làm.”
+
+Cao Minh nhìn ông.
+
+“Các ngươi đã theo ta lâu như vậy mà vẫn chưa hiểu sao?”
+
+Giọng hắn không lớn, nhưng người gần đó đều nghe được.
+
+“Ta nghe các ngươi. Không có nghĩa là lần nào ta cũng làm theo.”
+
+Người già cứng người.
+
+Cao Minh quay sang Vô Lượng.
+
+“Thả trẻ con trước.”
+
+Vô Lượng im lặng.
+
+Cao Minh nhíu mày.
+
+“Ta đã nhượng một bước. Ngươi cũng nên có chút thành ý.”
+
+Sau một khoảng ngắn, Vô Lượng ra hiệu.
+
+Nhóm trẻ nhỏ cùng một số phàm nhân lớn tuổi được đưa khỏi hàng.
+
+Không phải tất cả.
+
+Nhưng ít nhất thanh kiếm đã rời khỏi cổ đứa trẻ kia.
+
+Cao Minh nhìn người mẹ ôm con chạy về phía sau. Đến khi hai mẹ con khuất hẳn khỏi tầm mắt, hắn mới nói:
+
+“Làm đi.”
+
+Huyết Ma Kiếm phát ra một tiếng kiếm minh gay gắt.
+
+Cao Minh quay đầu.
+
+Thanh kiếm đã bay tới trước hắn.
+
+“Ta nghe thấy rồi.”
+
+Nó không lùi.
+
+“Ta chưa chết.”
+
+Huyết Ma Kiếm vẫn bất động.
+
+Cao Minh nhìn nó, giọng nhỏ hơn.
+
+“Nếu ngươi thật sự muốn giúp ta thì đừng khiến họ có lý do giết người.”
+
+Huyết văn trên thân kiếm chớp tắt vài lần.
+
+Cuối cùng nó mới chậm chạp lùi sang bên.
+
+Phong ấn thứ nhất giáng xuống.
+
+Cao Minh cảm thấy linh lực quanh kinh mạch bị ép ngừng lưu chuyển. Đến tầng thứ ba, Vạn Quỷ Ma Tâm bắt đầu chịu áp chế; một lực lạnh lẽo siết quanh Đạo Cơ, khiến ma nguyên vốn vận hành theo bản năng cũng trở nên nặng nề.
+
+Đến tầng thứ sáu, chân hắn trượt nửa bước.
+
+Huyết Ma Kiếm lập tức lao tới.
+
+“Không.”
+
+Nó dừng.
+
+Phong ấn tiếp tục.
+
+Đến tầng thứ chín, một bên đầu gối Cao Minh chạm đất trong khoảnh khắc trước khi hắn chống người đứng dậy trở lại.
+
+Vô Lượng nhìn hắn.
+
+“Quỳ xuống.”
+
+Cao Minh ngẩng đầu, thở hơi nặng.
+
+“Đừng được một tấc lại muốn một thước.”
+
+Vô Lượng không nói.
+
+Hắn chỉ nhìn người phía sau.
+
+Những con tin vẫn chưa được thả.
+
+Cao Minh thấy vậy, gương mặt chậm rãi lạnh xuống.
+
+“Vô Lượng.”
+
+Đối phương đã gọi thiên kiếm trở lại tay.
+
+“Ngươi hứa thả người.”
+
+“Bản tôn sẽ thả sau khi mọi chuyện kết thúc.”
+
+Cao Minh nhìn hắn.
+
+Không nói gì nữa.
+
+Chính sự im lặng ấy khiến vài người phía sau Vô Lượng vô thức lui lại.
+
+Lục Trầm đứng ở mép chiến trường, từ đầu tới cuối đều nhìn thấy.
+
+Nàng đã biết Vô Lượng không đáng tin từ khi hắn dùng phàm nhân làm con tin. Nhưng vẫn có một phần trong nàng mong hắn ít nhất còn giữ giới hạn cuối cùng.
+
+Phần đó chết khi nàng nhìn thấy hướng thiên kiếm.
+
+Vô Lượng không định bắt Cao Minh.
+
+Hắn định xóa hắn.
+
+Kiếm ý không khóa nhục thân. Nó xuyên qua những tầng hộ thể còn lại, thẳng tới nguyên thần.
+
+Lục Trầm lập tức tính khoảng cách.
+
+Quá xa để Tịch Quang tới trước.
+
+Nếu dùng Bạch Hồng Quán Nhật, nàng có thể rút ngắn phần lớn quãng đường, nhưng ba tầng cấm chế còn lại trên người sẽ kéo chậm ít nhất một nhịp.
+
+Một nhịp đủ để kiếm rơi xuống.
+
+Cao Minh có thể phá phong ấn.
+
+Nàng biết hắn có thể thử.
+
+Nàng cũng biết cái giá của lần cưỡng phá ấy sẽ rơi xuống đâu.
+
+Phía sau Vô Lượng, kiếm vẫn đặt trên cổ những người bị giữ.
+
+Lục Trầm siết chặt tay.
+
+Nàng muốn tìm một phương án khác.
+
+Thật sự muốn.
+
+Nàng đã quen với việc trước khi chấp nhận một cái giá, phải biết còn đường nào chưa thử. Vì vậy nàng lại tính thêm một lần, rồi một lần nữa, nhanh đến mức những khả năng hiện ra và biến mất gần như cùng lúc.
+
+Không có.
+
+Thiên kiếm bắt đầu hạ xuống.
+
+Lục Trầm bỗng nhận ra mình đang sợ đến mức các ngón tay lạnh ngắt.
+
+Nàng từng nghĩ nếu một ngày thật sự phải đối diện cái chết, có lẽ mình sẽ bình tĩnh hơn. Ít nhất sẽ giống những tiền bối trong các câu chuyện mà nàng từng đọc, hiểu rõ điều cần làm rồi làm nó.
+
+Hóa ra không phải.
+
+Nàng không muốn chết.
+
+Ý nghĩ ấy chen vào giữa tất cả tính toán một cách thô bạo.
+
+Nàng còn rất nhiều chuyện chưa làm xong. Có những nơi chưa từng đi. Có những kiếm pháp mới chỉ hiểu được một nửa. Có một vò rượu Cao Minh giấu mà hắn chắc chắn vẫn tưởng nàng không biết. Có vài lần nàng đã định nói với hắn một chuyện rồi lại thôi, bởi chưa tìm được lúc nào thích hợp.
+
+Nếu chết bây giờ, sẽ chẳng còn lúc nào thích hợp nữa.
+
+Tịch Quang rung cạnh nàng.
+
+Lục Trầm nhìn thanh kiếm của mình.
+
+Thiên kiếm phía trước lại hạ thêm.
+
+Nàng biết không còn thời gian.
+
+“Ở đây.”
+
+Tịch Quang không nhúc nhích.
+
+Lục Trầm gần như muốn mắng nó.
+
+Nhưng rồi nàng lại thôi.
+
+Nàng hiểu cảm giác ấy.
+
+Nếu đổi lại, nàng cũng sẽ không chịu đứng nhìn.
+
+Lục Trầm đốt Thiên Kiếm Linh Tâm.
+
+Đau đến sớm hơn nàng tưởng.
+
+Không phải một cơn đau nằm ở một chỗ cụ thể, mà như thể toàn bộ những gì nàng đã tu luyện suốt nhiều năm cùng lúc bị kéo căng tới giới hạn. Cấm chế trên người vỡ tung. Lục Trầm lao đi, bước đầu tiên còn giữ được thân pháp, bước thứ hai đã nghe mùi máu trong miệng.
+
+Đến bước thứ ba, nàng nhìn thấy Cao Minh quay đầu.
+
+Gương mặt hắn ban đầu chỉ có ngạc nhiên.
+
+Sau đó thiên kiếm xuyên qua người nàng.
+
+Lục Trầm không nghe rõ âm thanh.
+
+Cảm giác đầu tiên thậm chí không phải đau.
+
+Chỉ là lạnh.
+
+Rồi sức lực trong chân biến mất.
+
+Nàng đổ về phía trước, được Cao Minh bắt lấy trước khi chạm đất.
+
+Hắn nhìn xuống vết thương.
+
+Ánh mắt dừng ở đó rất lâu.
+
+“Lục Trầm?”
+
+Nàng muốn trả lời ngay nhưng hơi thở không ra được. Phải đến lần thứ hai mới miễn cưỡng hít được một ít không khí.
+
+Cao Minh đưa tay về phía mũi kiếm xuyên khỏi ngực nàng.
+
+“Đừng rút.”
+
+Hắn dừng lại.
+
+Lục Trầm nhắm mắt trong một thoáng vì cơn đau vừa dội tới. Khi mở ra, bàn tay hắn vẫn còn ở đó.
+
+“Rút bây giờ không giúp gì được.” Nàng cố nói hết câu. “Chỉ làm ta mất máu nhanh hơn.”
+
+Cao Minh nhìn nàng như thể muốn nói gì đó, cuối cùng lại không nói.
+
+Lục Trầm cúi xuống mới thấy tay hắn đang giữ vai mình quá chặt.
+
+“Cao Minh, ngươi đang làm ta đau thêm.”
+
+Hắn lập tức nới lực.
+
+“Xin lỗi.”
+
+Lục Trầm ngẩng lên.
+
+Câu xin lỗi ấy làm nàng khó chịu hơn cả bàn tay vừa rồi.
+
+Cao Minh rất ít khi xin lỗi nhanh như vậy.
+
+Nàng nhìn kỹ hắn, rồi mới nhận ra sắc mặt hắn đã trắng hơn bình thường.
+
+“Ta phá phong ấn.”
+
+“Không được.”
+
+“Ta không thể đứng đây nhìn nàng chết.”
+
+Giọng Cao Minh thấp và rất bình thường, nhưng chính vì quá bình thường nên Lục Trầm nghe ra phần hắn đang cố giữ lại.
+
+Nàng thở chậm hơn.
+
+“Ta biết.”
+
+“Vậy thì đừng cản ta.”
+
+“Những người phía sau sẽ chết.”
+
+“Ta sẽ cứu nàng trước.”
+
+Lục Trầm nhắm mắt một lát.
+
+Nàng đã biết câu trả lời này từ trước.
+
+Vẫn đau khi nghe.
+
+“Ta không muốn ngươi cứu ta bằng cách đó.”
+
+Cao Minh nhìn nàng.
+
+“Ta không quan tâm.”
+
+“Nhưng ta có.”
+
+Hắn im.
+
+Lục Trầm không còn đủ hơi để tranh luận dài. Nàng cũng không muốn biến những giây cuối cùng thành một cuộc tranh biện về đúng sai.
+
+Nàng chỉ nói điều cần nói.
+
+“Ta sợ chết.”
+
+Cao Minh chớp mắt.
+
+“Ta biết.”
+
+“Không, ngươi chưa biết.”
+
+Giọng nàng run đi dù đã cố giữ.
+
+“Ta thật sự rất sợ. Ta còn muốn sống.”
+
+Cao Minh nhìn nàng lâu đến mức Lục Trầm gần như không chịu nổi.
+
+“Vậy thì ở lại.”
+
+Nàng bật cười rất khẽ, rồi lập tức phải dừng vì vết thương đau nhói.
+
+“Ngươi nói cứ như ta chỉ cần đồng ý là được.”
+
+“Ít nhất đừng tự làm mình chết nhanh hơn.”
+
+Tịch Quang lúc ấy mới đuổi tới.
+
+Thanh kiếm dừng bên cạnh Lục Trầm, rung mạnh đến mức kiếm quang liên tục tán ra.
+
+Nàng nhìn nó.
+
+Một lúc rất lâu.
+
+“Ta xin lỗi.”
+
+Tịch Quang tiến sát hơn.
+
+Cao Minh nhìn thanh kiếm, rồi nhìn tay nàng bắt đầu kết ấn.
+
+Hắn hiểu.
+
+“Không.”
+
+Lục Trầm tiếp tục.
+
+“Đừng làm việc này.”
+
+“Ta không còn cách khác.”
+
+“Ta sẽ tìm.”
+
+“Không kịp nữa.”
+
+“Lục Trầm.”
+
+Nàng vẫn không nhìn hắn.
+
+Nếu nhìn, nàng biết mình sẽ dao động.
+
+Thiên Kiếm Linh Tâm bắt đầu nứt.
+
+Cơn đau lần này khiến hai bàn tay nàng run mạnh. Một ấn quyết làm sai, phải dừng lại bắt đầu từ đầu. Máu trào lên cổ họng, nàng nuốt xuống nhưng vẫn còn một ít chảy khỏi khóe môi.
+
+Cao Minh thấy hết.
+
+“Dừng lại một chút.”
+
+Giọng hắn đã khàn.
+
+“Chỉ một chút thôi. Để ta nghĩ.”
+
+Lục Trầm suýt dừng thật.
+
+Chính điều đó làm nàng không dám nghe thêm.
+
+“Cao Minh, nếu ngươi còn nói nữa, ta sẽ không làm được.”
+
+Hắn im bặt.
+
+Nàng nhắm mắt.
+
+Trong sự im lặng ấy, từng phần căn cơ của nàng bị tháo ra khỏi chính mình. Linh căn bị ép tan vào trận ấn. Huyết mạch trở thành đường dẫn. Đến khi nhục thân bắt đầu bị kéo vào cấu trúc trận pháp, Lục Trầm mới cảm thấy thứ đáng sợ nhất không còn là đau.
+
+Mà là cảm giác mình đang biến mất.
+
+Không gian phía sau Cao Minh méo đi.
+
+Một khe nứt mở ra.
+
+Không có tọa độ.
+
+Không ai biết bên kia là đâu.
+
+Nhưng có đường.
+
+Chỉ thế đã đủ.
+
+Huyết Ma Kiếm phát ra tiếng kiếm minh dữ dội.
+
+Nó tự lao về phía Vô Lượng.
+
+Lần này Cao Minh không gọi nó về.
+
+Ba tầng hộ trận bị xé rách. Diệp Minh vừa bước lên, Huyết Ma Kiếm lập tức đổi hướng, kiếm quang đỏ quét ngang khiến hắn phải dừng lại.
+
+Cao Minh không nhìn.
+
+Hắn nắm lấy cổ tay Lục Trầm.
+
+Nàng giật mình.
+
+“Buông ra.”
+
+“Ta đưa nàng đi cùng.”
+
+“Không được. Thân thể ta đang giữ trận.”
+
+“Ta biết.”
+
+“Vậy ngươi phải hiểu kéo ta khỏi đây sẽ làm đường dẫn sụp.”
+
+“Ta hiểu.”
+
+Lục Trầm nhìn hắn, gần như tức đến bật khóc.
+
+“Vậy tại sao ngươi vẫn làm?”
+
+Cao Minh không trả lời ngay.
+
+Bàn tay hắn không hề nới ra.
+
+Cuối cùng hắn nói:
+
+“Bởi vì ta không muốn đi một mình.”
+
+Không phải lời giải thích hợp lý.
+
+Cũng chẳng giống Cao Minh.
+
+Chính vì vậy Lục Trầm không biết phải nói gì.
+
+Nước mắt nàng rơi xuống trước khi kịp quay mặt đi.
+
+“Ngươi đúng là…”
+
+Nàng không tìm ra từ.
+
+Cao Minh cười rất nhạt.
+
+“Để sau hãy mắng.”
+
+“Có thể không còn sau nữa.”
+
+Câu vừa ra khỏi miệng, Lục Trầm đã hối hận.
+
+Nụ cười trên mặt Cao Minh mất đi.
+
+Nàng muốn sửa lại, nhưng không tìm được cách nào vừa thật vừa đỡ tàn nhẫn hơn.
+
+Cuối cùng chỉ còn biết siết tay hắn.
+
+“Ta không muốn bỏ ngươi lại.”
+
+Cao Minh cúi nhìn bàn tay hai người.
+
+“Vậy đừng.”
+
+“Ta đã nói là ta không điều khiển được chuyện đó.”
+
+“Ta cũng đã nói ta sẽ tìm cách.”
+
+Nàng định cãi.
+
+Không còn kịp.
+
+Đại trận sụp.
+
+Ánh sáng nuốt lấy cả hai.
+
+Huyết Ma Kiếm ở ngoài trận lập tức bỏ Diệp Minh, xuyên qua tầng kiếm khí cuối cùng rồi lao theo liên kết bản mệnh.
+
+Tịch Quang cũng bị cuốn vào.
+
+Lôi Thiên Vực biến mất.
+
+Khi Cao Minh tỉnh lại, hắn vẫn đang ôm Lục Trầm.
+
+Trong vài nhịp đầu, hắn không nhớ nổi chuyện gì đã xảy ra sau khi đại trận vỡ. Chỉ cảm thấy người trong tay quá nhẹ.
+
+Rồi nhận ra quá lạnh.
+
+Cao Minh đặt tay lên cổ nàng.
+
+Không có mạch.
+
+Hắn vẫn giữ nguyên tay ở đó thêm một lúc, như thể chỉ là mình đặt sai vị trí. Sau đó chuyển sang cổ tay.
+
+Vẫn không.
+
+Thần niệm tràn vào cơ thể.
+
+Lần đầu hắn tìm Thiên Kiếm Linh Tâm.
+
+Không thấy.
+
+Lần thứ hai tìm thần hồn.
+
+Không thấy.
+
+Cao Minh chậm lại.
+
+Hắn kiểm tra từng nơi một, cẩn thận hơn mức cần thiết. Hắn biết thần niệm của mình không có lý do gì bỏ sót một thứ như vậy, nhưng vẫn quay lại những vị trí vừa xem qua.
+
+Cuối cùng hắn dừng ở nơi đáng lẽ phải có nguyên thần.
+
+Trống không.
+
+Cao Minh ngồi rất lâu.
+
+Huyết Ma Kiếm bay tới từ phía sau rồi dừng bên cạnh. Lần này nó không kêu.
+
+Cao Minh cúi đầu nhìn Lục Trầm.
+
+Một ít máu đã khô ở khóe môi nàng.
+
+Hắn dùng ngón tay lau đi.
+
+“Nàng nói muốn sống.”
+
+Không ai trả lời.
+
+Cao Minh chờ thêm một lúc rồi khẽ nói:
+
+“Ta nghe rất rõ.”
+
+Vẫn im lặng.
+
+Hắn không biết mình đang mong đợi điều gì.
+
+Có thể là một cái cau mày. Một câu bảo hắn nói nhỏ thôi. Hoặc đơn giản chỉ là một hơi thở đủ nhẹ để hắn có thể tự mắng mình vừa rồi kiểm tra quá vội.
+
+Không có.
+
+Cao Minh cúi xuống, trán chạm vào tóc nàng.
+
+Hắn không khóc.
+
+Ít nhất ban đầu không.
+
+Chỉ ngồi như vậy, hai tay vẫn giữ nguyên, đến khi một giọt nóng rơi xuống mu bàn tay Lục Trầm hắn mới nhận ra mắt mình đã ướt.
+
+Cao Minh nhìn giọt nước ấy một lúc.
+
+Sau đó bật cười.
+
+Tiếng cười nhỏ và đứt.
+
+“Phiền thật.”
+
+Huyết Ma Kiếm khẽ rung.
+
+“Ta còn chưa hỏi nàng một chuyện.”
+
+Hắn nói như thể Lục Trầm chỉ đang ngủ.
+
+“Câu nàng định nói trước khi mở trận.”
+
+Không có câu trả lời.
+
+Cao Minh đợi.
+
+Rồi lại dùng thần niệm kiểm tra nàng thêm một lần nữa.
+
+Vẫn không có gì.
+
+Lần này hắn không kiểm tra lại.
+
+Bàn tay đặt lên ngực mình.
+
+Vạn Quỷ Ma Tâm bắt đầu nghịch chuyển.
+
+Huyết Ma Kiếm lập tức phát ra một tiếng rung mạnh.
+
+“Ta biết.”
+
+Thanh kiếm bay tới chắn trước mặt.
+
+Cao Minh ngẩng lên.
+
+“Ta biết mình đang làm gì.”
+
+Nó không tránh.
+
+Ma văn trên kiếm chớp tắt liên tục.
+
+Cao Minh nhìn nó rất lâu, sau đó đưa tay đặt lên mặt kiếm. Hắn không nắm chuôi. Chỉ áp lòng bàn tay lên lớp Ma Kim lạnh.
+
+Lần này Huyết Ma Kiếm không lùi khỏi tay hắn.
+
+“Cho ta thử.”
+
+Thanh kiếm rung nhẹ.
+
+“Ta không bảo ngươi đồng ý.”
+
+Huyết văn chậm dần.
+
+Cao Minh thu tay lại.
+
+Vạn Quỷ Ma Tâm tiếp tục nghịch chuyển.
+
+Đạo hạnh tích lũy qua vô số năm bị hắn kéo khỏi căn cơ rồi đưa vào cơ thể Lục Trầm. Ban đầu chỉ là vài trăm năm, sau đó con số chẳng còn ý nghĩa. Ma nguyên đi qua kinh mạch nàng, tìm một thứ để giữ lại nhưng không tìm thấy nơi nào có thể đáp lại.
+
+Hắn vẫn tiếp tục.
+
+Căn cơ bắt đầu đau.
+
+Đến khi máu chảy ra khỏi khóe mắt, Cao Minh mới nhận ra mình đã đi xa đến mức nào.
+
+Huyết Ma Kiếm lại rung.
+
+“Đừng.”
+
+Cao Minh vẫn nhìn Lục Trầm.
+
+“Lần này đừng ngăn ta.”
+
+Hắn biết Vạn Quỷ Ma Tâm có thể chữa thần hồn bị thương khi bản nguyên còn tồn tại.
+
+Nàng không còn bản nguyên để chữa.
+
+Cao Minh hiểu.
+
+Hiểu quá rõ.
+
+Nhưng hiểu một việc không khiến hắn chấp nhận nó dễ hơn.
+
+Hắn đã từng nghĩ nếu mình đủ mạnh thì rất nhiều chuyện trên đời sẽ trở nên đơn giản. Sau đó hắn thật sự bước lên nơi cao nhất, nhìn xuống những đối thủ từng khiến người khác sợ hãi, và nhận ra phần lớn thứ từng khó quả thật đã trở nên đơn giản.
+
+Chỉ có một số chuyện không hỏi hắn mạnh đến đâu.
+
+Chúng xảy ra.
+
+Rồi lấy người đi.
+
+Cao Minh không muốn chấp nhận thêm một lần nữa.
+
+Nếu hồn nàng đã tán, hắn muốn tự mình tìm cho tới mảnh cuối cùng.
+
+Nếu không còn gì, hắn muốn chính mình là người xác nhận.
+
+Không phải thiên đạo nói.
+
+Không phải Vô Lượng nói.
+
+Cũng không phải bất kỳ quy luật nào trên đời thay hắn kết luận.
+
+Đạo hạnh tiếp tục cháy.
+
+Bàn tay Lục Trầm vẫn lạnh.
+
+Cao Minh nắm lấy.
+
+“Nàng nói mạng nàng là của nàng.”
+
+Hắn dừng một lúc để thở.
+
+“Ta nhớ.”
+
+Khóe môi hắn cong lên rất nhẹ.
+
+“Nhưng mạng ta cũng là của ta. Chuyện ta dùng nó vào đâu, lần này nàng không được quản.”
+
+Huyết Ma Kiếm phát ra một tiếng rung thấp.
+
+Cao Minh không quay lại.
+
+“Nếu tỉnh dậy, nàng cứ mắng.”
+
+Ma nguyên trong Vạn Quỷ Ma Tâm bắt đầu rơi khỏi trạng thái ổn định.
+
+“Muốn đánh nhau cũng được.”
+
+Ý thức của hắn mờ dần.
+
+“Chỉ cần tự nàng làm.”
+
+Hắn còn định nói tiếp.
+
+Nhưng câu cuối cùng chỉ còn nằm trong đầu.
+
+Đừng để ta lại một mình.
+
+Rồi Cao Minh không còn biết gì nữa.
+
+Khi ý thức trở lại, thứ đầu tiên hắn nghe thấy là một tiếng ù kéo dài.
+
+Cao Minh mở mắt.
+
+Trần nhà thấp hơn hắn tưởng. Trên đó là những ống sáng trắng lạnh, nối nhau thành một hàng dài, phát ra thứ âm thanh liên tục khiến người nghe khó chịu dù không lớn.
+
+Dưới lưng hắn là thảm.
+
+Ẩm.
+
+Có mùi mốc.
+
+Cao Minh nằm yên đúng một nhịp rồi lập tức quay sang bên cạnh.
+
+Không có ai.
+
+Hắn ngồi bật dậy.
+
+“Lục Trầm?”
+
+Tiếng gọi chạy qua những căn phòng màu vàng rồi vọng lại từ một góc nào đó.
+
+Không trả lời.
+
+Cao Minh đứng lên quá nhanh, cơ thể lập tức mất thăng bằng. Hắn phải chống tay lên tường mới đứng vững.
+
+Đạo hạnh đã mất không phải ảo giác.
+
+Vạn Quỷ Ma Tâm vẫn còn, nhưng suy yếu đến mức chính hắn cũng phải mất vài nhịp mới cảm nhận được dòng ma nguyên.
+
+Cao Minh bỏ qua.
+
+Hắn mở thần thức.
+
+Rồi khựng lại.
+
+Không gian nơi này không đúng.
+
+Căn phòng trước mắt rõ ràng nối sang một hành lang ở bên trái, nhưng thần thức của hắn lại nhận được một khoảng cách không thể khớp với hình dạng đang thấy. Những góc tường đáng lẽ nằm sau lưng lại xuất hiện ở hướng khác. Hành lang nhìn chỉ dài vài chục trượng nhưng cảm nhận không tìm được một điểm cuối ổn định.
+
+Bình thường, một nơi như vậy đủ khiến Cao Minh dừng lại nghiên cứu rất lâu.
+
+Hôm nay hắn chỉ tìm một thứ.
+
+Khí tức của Lục Trầm.
+
+Tịch Quang.
+
+Một dấu kiếm.
+
+Bất cứ gì.
+
+Không có.
+
+Linh khí ở đây dày đến bất thường, nhiều hơn phần lớn những thánh địa hắn từng bước vào. Vạn Quỷ Ma Tâm vừa vận hành đã tự động kéo nguồn linh khí ấy vào cơ thể.
+
+Cao Minh cũng không quan tâm.
+
+Một tiếng kiếm minh vang lên phía sau.
+
+Huyết Ma Kiếm vẫn còn.
+
+Thanh kiếm lơ lửng giữa căn phòng, huyết văn mờ đi rất nhiều nhưng vẫn sáng. Nó không bay tới cạnh Cao Minh ngay như thường lệ mà dừng cách hắn vài bước.
+
+Hai bên nhìn nhau.
+
+Cao Minh không biết một thanh kiếm có thể buồn hay không.
+
+Hắn cũng không muốn nghĩ về câu hỏi ấy.
+
+Huyết Ma Kiếm chậm rãi xoay mũi về một hành lang.
+
+Cao Minh nhìn theo.
+
+“Ngươi cảm thấy gì?”
+
+Thanh kiếm rung nhẹ.
+
+Không phải câu trả lời mà hắn hiểu được.
+
+Cao Minh hít vào, chờ cơn choáng qua bớt rồi mới rời tay khỏi tường.
+
+“Vậy đi xem.”
+
+Huyết Ma Kiếm bay trước một đoạn.
+
+Cao Minh bước theo.
+
+Không có lời thề.
+
+Không có câu nói rằng hắn sẽ lật tung trời đất hay phá nát luân hồi.
+
+Sau tất cả những gì vừa xảy ra, những lời ấy nghe quá dễ dàng.
+
+Lục Trầm đã nói với hắn rằng nàng muốn sống.
+
+Cao Minh nhớ từng chữ.
+
+Chừng nào hắn còn chưa tận mắt tìm thấy câu trả lời khác, hắn sẽ coi nàng vẫn còn đâu đó.
+
+Và hắn sẽ đi tìm.`;
+
+const initial={canonVersion:"NOVEL-TEXTGAME-2026-08-20-DRIVE-INTEGRATION-R06",title:"Level 0 – The Lobby",level:{number:0,name:"The Lobby"},turn:1,
+  mode:"Single Player: Hard Mode",
   location:"Level 0 / The Lobby — khu phòng vàng ban đầu sau no-clip",
-  player:{name:"Kai Akechi",condition:"Ổn định"},
+  player:{name:"Cao Minh",condition:"Ổn định"},
   party:[],
-  inventory:[
-    {name:"White Wraith Magnum"},
-    {name:"Blackblood Armor & linked modules"},
-    {name:"Omnivault Ring / Nhẫn Vạn Tàng"}
-  ],
-  flags:{communication:{blackBlood:"OFFLINE",iris:"OFFLINE",syvial:"OFFLINE"}},
+  inventory:[],
+  flags:{communication:{blackBlood:"OFFLINE",iris:"OFFLINE",syvial:"OFFLINE"},iris:{exists:true,continuity:"SEPARATED",reunionEligible:true},syvial:{exists:true,continuity:"SEPARATED",reunionEligible:true},madGod:{spawned:false,acquired:false}},
   log:[
     {role:"gm",text:"MỞ ĐẦU\n\n"+prologue},
-    {role:"gm",text:"LƯỢT 1\n\nKhông có liên lạc với Iris, Syvial hay Black Blood. Bạn điều khiển Kai từ đây."}
+    {role:"gm",text:"LƯỢT 1\n\nCao Minh tỉnh lại một mình tại Level 0. Không có dấu vết của Lục Trầm. Bạn điều khiển Cao Minh từ đây."}
   ]
 };
 
 const byId=id=>document.getElementById(id);
 const titleEl=byId("title"),turnEl=byId("turn"),locationEl=byId("location"),modeEl=byId("mode"),playerEl=byId("player"),partyEl=byId("party"),inventoryEl=byId("inventory"),logEl=byId("log"),statusEl=byId("status"),formEl=byId("form"),actionEl=byId("action"),submitEl=byId("submit");
-let state=JSON.parse(localStorage.getItem("backroom-apk-state")||"null")||initial;
+let state=(()=>{try{const raw=localStorage.getItem("backroom-apk-state");if(!raw)return JSON.parse(JSON.stringify(initial));const parsed=JSON.parse(raw);return parsed&&typeof parsed==="object"&&!Array.isArray(parsed)?parsed:JSON.parse(JSON.stringify(initial));}catch(e){try{localStorage.removeItem("backroom-apk-state");}catch(ignore){}return JSON.parse(JSON.stringify(initial));}})();state.mode="Single Player: Hard Mode";state.canonVersion="NOVEL-TEXTGAME-2026-08-20-DRIVE-INTEGRATION-R06";state.flags=state.flags||{};state.flags.iris=state.flags.iris||{exists:true,continuity:"SEPARATED",reunionEligible:true};state.flags.syvial=state.flags.syvial||{exists:true,continuity:"SEPARATED",reunionEligible:true};state.flags.madGod=state.flags.madGod||{spawned:false,acquired:false};
 let busy=false;
+function focusLatestGmStart(){requestAnimationFrame(()=>requestAnimationFrame(()=>{const gmRows=logEl.querySelectorAll('.message.gm');const latest=gmRows[gmRows.length-1];if(!latest)return;const top=latest.getBoundingClientRect().top-logEl.getBoundingClientRect().top+logEl.scrollTop;logEl.scrollTop=Math.max(0,top)}))}
 
 const oldPrologueSignature="Không beacon. Không telemetry.";
+const legacyCaoPrologueSignature="Bữa tối bắt đầu như bao lần khác.";
 if(state.turn===1&&Array.isArray(state.log)&&state.log[0]){
   const currentOpening=String(state.log[0].text||"");
-  if(currentOpening.length<1000||currentOpening.includes(oldPrologueSignature)){
+  if(currentOpening.length<1000||currentOpening.includes(oldPrologueSignature)||currentOpening.includes(legacyCaoPrologueSignature)){
     state.log[0]=initial.log[0];
-    if(state.log[1]&&String(state.log[1].text||"").startsWith("TURN 1")) state.log[1]=initial.log[1];
+    if(state.log[1]&&(String(state.log[1].text||"").startsWith("TURN 1")||String(state.log[1].text||"").startsWith("LƯỢT 1"))) state.log[1]=initial.log[1];
     localStorage.setItem("backroom-apk-state",JSON.stringify(state));
   }
 }
 
 function esc(s){const d=document.createElement("div");d.textContent=s||"";return d.innerHTML}
-function chips(items){return items&&items.length?items.map(x=>"<span>"+esc(typeof x==="string"?x:x.name||"—")+"</span>").join(""):"<span>Trống.</span>"}
-function render(){titleEl.textContent=state.title;turnEl.textContent=state.turn;locationEl.textContent=state.location;modeEl.textContent=state.mode;playerEl.textContent=state.player?.name||"Kai Akechi";partyEl.innerHTML=chips(state.party);inventoryEl.innerHTML=chips(state.inventory);logEl.innerHTML=(state.log||[]).map(x=>"<article class='message "+(x.role==="player"?"player":"")+"'><div class='role'>"+(x.role==="player"?"BẠN":"GAME MASTER")+"</div><div class='text'>"+esc(x.text)+"</div></article>").join("");logEl.scrollTop=logEl.scrollHeight;statusEl.textContent="Save được lưu riêng trên thiết bị này."}
-function save(){localStorage.setItem("backroom-apk-state",JSON.stringify(state));statusEl.textContent="Đã lưu save trên máy."}
-function load(){state=JSON.parse(localStorage.getItem("backroom-apk-state")||"null")||initial;render()}
-function resetGame(){if(confirm("Bắt đầu lại từ Turn 1?")){state=JSON.parse(JSON.stringify(initial));save();render()}}
-function clearSave(){if(confirm("Xóa save trên máy?")){localStorage.removeItem("backroom-apk-state");state=JSON.parse(JSON.stringify(initial));render()}}
-formEl.addEventListener("submit",e=>{e.preventDefault();const a=actionEl.value.trim();if(!a||busy)return;if(!window.Android){statusEl.textContent="Không tìm thấy Android bridge.";return}busy=true;submitEl.disabled=true;statusEl.textContent="Gemini đang xử lý lượt…";window.Android.submitTurn(JSON.stringify(state),a)});
-window.backroomTurn=json=>{state=JSON.parse(json);actionEl.value="";busy=false;submitEl.disabled=false;save();statusEl.textContent="Turn "+state.turn+" đã lưu trên máy.";render()};
-window.backroomError=message=>{busy=false;submitEl.disabled=false;statusEl.textContent="Lỗi Gemini: "+message};
+function itemDisplayName(x){let n=String((x&&x.name)||"—").replace(/^\s*được\s+/i,"").trim();if(n)n=n.charAt(0).toLocaleUpperCase("vi-VN")+n.slice(1);return n} function chips(items){return items&&items.length?items.map(x=>{if(typeof x==="string")return "<span>"+esc(x)+"</span>";const q=Math.max(1,Number(x.quantity)||1);return "<span>"+esc(itemDisplayName(x))+" ×"+q+"</span>"}).join(""):"<span>Trống.</span>"}
+const SEMANTIC_COMPATIBILITY_TERMS={"character":["Thiên Kiếm Môn","Lucia \"Lục\"","Diệp Minh","An Nhiên","Cao Minh","Kiếm Môn","Lục Trầm","Twilight","Vô Lượng","Syvial","Iris"],"entity":["The Beast of Level 5","Biological Pipeline","Blackroot Sentinel","Hotel Corpse Lure","Hostile Faceling","Predatory Window","Jane the Killer","Jeff the Killer","Hollow Grasper","Sinew Strider","False Puddle","Skin-Stealer","Cable Mimic","Slenderman","Deathmoth","Paintings","Duller","Smiler","Wretch","Clump","Hound"],"item":["Blackblood Recon Frame R03","Đồng hồ định vị quân sự","Huyết Ma Kiếm · Ma Tôn","Huyết Ma Chiến Khải","Dao găm chiến đấu","M4A1 cá nhân hóa","Thuốc sát trùng","Huyết Ma Kiếm","Ivory & Ebony","Lucifer Armor","Nhẫn Vạn Tàng","almond water","liquid pain","greek fire","GodKiller","Băng gạc"],"skill":["GodKiller Override // Twenty-Four Severance","Không Phải Tôi Nhát, Tôi Có Chiến Thuật","Kế Hoạch Không Có Trong Kế Hoạch","ARGUS // Thousandfold Execution","Đừng Đụng Vào, Nhìn Là Biết Độc","Huyết Ma Nhị Thập Tứ Trảm","Khoan, Để Tôi Đọc Cái Này","Thousandfold Cognition","Trinh sát chiến trường","Killing Intent Read","Quăng Đại Cái Gì Đó","ARGUS Terrain Read","Crimson Guillotine","Huyết Sát Kiếm Ấn","M4A1 Joint Attack","Có Gì Đó Sai Sai","GodKiller Recall","Huyết Liệt Ma Ấn","Huyết Ma Tứ Liên","Huyết Độc Ma Khí","Huyết Ảnh Ma Độn","Nhặt Có Chọn Lọc","Phá Giáp Ma Kiếm","Spatial Dominion","Lucifer Breaker","Ma Tâm Trấn Hồn","Thôi Để Tôi Làm","Honeycomb Fire","Đại Đạo Ma Tôn","Devil Trigger","Charged Shot","Counterphase","Lucifer Core","Twosome Time","Ma Tâm Chấn","Thiên Ma Bộ","Dead Angle","Rain Storm","Rift Sever"]};
+const SEMANTIC_KINDS=["character","entity","item","skill"];
+function semanticKind(value){return SEMANTIC_KINDS.includes(value)?value:""}
+function semanticFold(value){return String(value==null?"":value).toLocaleLowerCase("vi-VN")}
+function semanticWordChar(ch){if(!ch)return false;if(/[0-9_]/.test(ch))return true;return ch.toLocaleLowerCase("vi-VN")!==ch.toLocaleUpperCase("vi-VN")}
+function semanticBoundary(source,start,end){if(semanticWordChar(source[start])&&semanticWordChar(source[start-1]))return false;if(semanticWordChar(source[end-1])&&semanticWordChar(source[end]))return false;return true}
+function semanticAddTerm(map,value,kind,priority){const text=String(value==null?"":value).trim();if(!semanticKind(kind)||text.length<2||text.length>160)return;const key=kind+"\u0000"+semanticFold(text),old=map.get(key);if(!old||priority>old.priority)map.set(key,{text,key:semanticFold(text),kind,priority})}
+function semanticAddNamed(map,value,kind,priority){if(typeof value==="string"){semanticAddTerm(map,value,kind,priority);return}if(!value||typeof value!=="object")return;semanticAddTerm(map,value.name||value.displayName||value.label,kind,priority)}
+function semanticCollectContainer(map,value,kind,priority){if(Array.isArray(value)){value.forEach(v=>semanticCollectContainer(map,v,kind,priority));return}if(!value||typeof value!=="object"){semanticAddNamed(map,value,kind,priority);return}if(value.name||value.displayName||value.label){semanticAddNamed(map,value,kind,priority);return}Object.keys(value).forEach(key=>semanticCollectContainer(map,value[key],kind,priority))}
+function semanticCollectMember(map,member,priority){if(!member||typeof member!=="object")return;semanticAddNamed(map,member,"character",priority);semanticCollectContainer(map,member.inventory,"item",priority);semanticCollectContainer(map,member.equipmentItems,"item",priority);semanticCollectContainer(map,member.skills,"skill",priority)}
+function semanticCollectState(map,s,priority){if(!s||typeof s!=="object")return;semanticAddNamed(map,s.player,"character",priority);if(Array.isArray(s.party))s.party.forEach(member=>typeof member==="object"?semanticCollectMember(map,member,priority):semanticAddNamed(map,member,"character",priority));if(s.partyDetails&&Array.isArray(s.partyDetails.members))s.partyDetails.members.forEach(member=>semanticCollectMember(map,member,priority));semanticCollectContainer(map,s.inventory,"item",priority);semanticCollectContainer(map,s.equipmentItems,"item",priority);semanticCollectContainer(map,s.worldItems,"item",priority);if(s.flags){semanticCollectContainer(map,s.flags.worldItems,"item",priority);semanticCollectContainer(map,s.flags.survivorRegistry,"character",priority);semanticCollectContainer(map,s.flags.survivorsConfirmed,"character",priority);semanticCollectContainer(map,s.flags.entityRegistry,"entity",priority);semanticCollectContainer(map,s.flags.entitiesConfirmedLocal,"entity",priority)}if(s.combat)semanticAddTerm(map,s.combat.entityName||s.combat.name||s.combat.displayName,"entity",priority)}
+function semanticNegative(before,after){const set=new Set(["backrooms","game master","black blood","level"]);[before,after].forEach(s=>{if(!s||typeof s!=="object")return;[s.location,s.title,s.level&&s.level.name,s.flags&&s.flags.currentLevel&&s.flags.currentLevel.name].forEach(v=>{const x=semanticFold(v).trim();if(x)set.add(x)})});return set}
+function semanticTerms(before,after,legacy){const map=new Map();Object.keys(SEMANTIC_COMPATIBILITY_TERMS).forEach(kind=>(SEMANTIC_COMPATIBILITY_TERMS[kind]||[]).forEach(text=>semanticAddTerm(map,text,kind,200)));semanticCollectState(map,before,250);semanticCollectState(map,after,300);if(legacy&&typeof legacy==="object")SEMANTIC_KINDS.forEach(kind=>{if(Array.isArray(legacy[kind]))legacy[kind].forEach(text=>semanticAddTerm(map,text,kind,240))});return Array.from(map.values())}
+function semanticExactCandidates(source,terms){const lower=semanticFold(source),hits=[];terms.forEach(term=>{let at=0;while((at=lower.indexOf(term.key,at))!==-1){const end=at+term.text.length;if(semanticBoundary(source,at,end))hits.push({start:at,end,kind:term.kind,priority:term.priority,source:"authority"});at+=Math.max(1,term.key.length)}});return hits}
+function semanticUpperWord(word){if(!word)return false;const first=word.charAt(0);return first.toLocaleUpperCase("vi-VN")===first&&first.toLocaleLowerCase("vi-VN")!==first}
+function semanticContextKind(left,right){if(/(?:kỹ năng|chiêu|skill|thi triển|kích hoạt)\s*$/.test(left))return "skill";if(/(?:vật phẩm|trang bị|thanh kiếm|vũ khí|súng|áo giáp|nhẫn|nhặt|cầm|rút)\s*$/.test(left))return "item";if(/(?:entity|thực thể|sinh vật|quái)\s*$/.test(left))return "entity";if(/(?:người sống sót|nhân vật|đồng đội|cô gái|người đàn ông|người phụ nữ|tên)\s*$/.test(left))return "character";if(/^(?:đứng|nhìn|nói|hỏi|đáp|cười|quát|bước|siết|gật|lắc|thở|động|chờ|uống|ngẩng|cúi|lao|xoay|giơ|bật)\b/.test(right.trim()))return "character";return ""}
+function semanticContextCandidates(source,negative){const hits=[],tokens=[],rx=/[A-Za-zÀ-ỹĐđ][A-Za-zÀ-ỹĐđ'’"-]*/g;let m;while((m=rx.exec(source)))tokens.push({text:m[0],start:m.index,end:m.index+m[0].length});for(let i=0;i<tokens.length;i++){if(!semanticUpperWord(tokens[i].text))continue;let j=i;while(j+1<tokens.length&&j-i<3&&source.slice(tokens[j].end,tokens[j+1].start).trim()===""&&semanticUpperWord(tokens[j+1].text))j++;for(let k=j;k>=i;k--){const start=tokens[i].start,end=tokens[k].end,value=source.slice(start,end),key=semanticFold(value);if(negative.has(key)||Array.from(negative).some(value=>value.includes(key)||key.includes(value)))continue;const left=semanticFold(source.slice(Math.max(0,start-72),start)),right=semanticFold(source.slice(end,Math.min(source.length,end+48))),kind=semanticContextKind(left,right);if(kind){hits.push({start,end,kind,priority:80,source:"context"});break}}}return hits}
+function semanticSelect(source,hits){hits.sort((a,b)=>a.start-b.start||(b.end-b.start)-(a.end-a.start)||b.priority-a.priority);const spans=[];let cursor=0;hits.forEach(hit=>{if(hit.start<cursor||hit.start<0||hit.end<=hit.start||hit.end>source.length)return;spans.push({start:hit.start,end:hit.end,kind:hit.kind,source:hit.source});cursor=hit.end});return spans}
+function semanticResolve(source,before,after,legacy){const text=String(source||"");const terms=semanticTerms(before,after,legacy),hits=semanticExactCandidates(text,terms).concat(semanticContextCandidates(text,semanticNegative(before,after)));return semanticSelect(text,hits)}
+function semanticPrepareNextState(before,json){const next=JSON.parse(json),oldLength=before&&Array.isArray(before.log)?before.log.length:0;if(Array.isArray(next.log))next.log.forEach((entry,index)=>{if(!entry||entry.role==="player"||Array.isArray(entry.semanticSpans))return;if(index<oldLength)entry.semanticSpans=semanticResolve(entry.text,null,null,entry.semantic);else entry.semanticSpans=semanticResolve(entry.text,before,next,entry.semantic);entry.semanticVersion=2});return next}
+function normalizedSemanticSpans(entry){if(!entry||entry.role==="player")return [];if(!Array.isArray(entry.semanticSpans)){entry.semanticSpans=semanticResolve(entry.text,null,null,entry.semantic);entry.semanticVersion=2}const source=String(entry.text||""),spans=[];let cursor=0;entry.semanticSpans.forEach(raw=>{const start=Number(raw&&raw.start),end=Number(raw&&raw.end),kind=semanticKind(raw&&raw.kind);if(!kind||!Number.isInteger(start)||!Number.isInteger(end)||start<cursor||end<=start||end>source.length)return;spans.push({start,end,kind});cursor=end});return spans}
+function renderSemanticText(entry){const source=String(entry&&entry.text||"");if(!entry||entry.role==="player")return esc(source);const spans=normalizedSemanticSpans(entry);if(!spans.length)return esc(source);let out="",cursor=0;spans.forEach(span=>{if(span.start>cursor)out+=esc(source.slice(cursor,span.start));out+="<span class='gm-semantic gm-semantic-"+span.kind+"' data-semantic-kind='"+span.kind+"'>"+esc(source.slice(span.start,span.end))+"</span>";cursor=span.end});if(cursor<source.length)out+=esc(source.slice(cursor));return out}
+
+function levelHeader(s){if(s&&s.level&&s.level.number!=null&&s.level.name)return "Level "+s.level.number+" – "+s.level.name;const where=String(s&&s.location||"")+" "+String(s&&s.title||"");const m=where.match(/Level\s*([^\s\/—–-]+)\s*(?:\/|—|–|-)\s*([^—–\n]+?)(?:\s+[—–]\s+|$)/i);if(m)return "Level "+m[1]+" – "+m[2].trim();return s&&s.title||"Backrooms"}function render(){titleEl.textContent=levelHeader(state);turnEl.textContent=state.turn;locationEl.textContent=state.location;modeEl.textContent=state.mode;playerEl.textContent=state.player?.name||"Cao Minh";partyEl.innerHTML=chips(state.party);if(inventoryEl)inventoryEl.innerHTML=chips(state.inventory);logEl.innerHTML=(state.log||[]).map(x=>{const w=x.role!=="player"&&String(x.text||"").trim().startsWith("[Warning]");return "<article class='message "+(x.role==="player"?"player":"gm")+(w?" warning":"")+"'><div class='role'>"+(x.role==="player"?"BẠN":"GAME MASTER")+"</div><div class='text'>"+renderSemanticText(x)+"</div></article>"}).join("");logEl.scrollTop=logEl.scrollHeight}
+const SAVE_KEY="backroom-apk-state";
+const SNAPSHOT_KEY="backroom-apk-snapshot";
+let destructiveAction="";
+let destructiveUntil=0;
+
+function freshInitial(){return JSON.parse(JSON.stringify(initial))}
+function clearAuthoritativeCore(){
+  try{if(window.Android&&typeof Android.clearCoreState==="function")Android.clearCoreState();return true}
+  catch(e){statusEl.textContent="Không thể đồng bộ Game State Core: "+(e&&e.message?e.message:"bridge error");return false}
+}
+function savedState(){
+  let raw=null;
+  try{raw=localStorage.getItem(SAVE_KEY)}catch(e){statusEl.textContent="Không thể đọc bộ nhớ save: "+(e&&e.message?e.message:"storage error");return null}
+  if(!raw)return null;
+  try{
+    const parsed=JSON.parse(raw);
+    if(!parsed||typeof parsed!=="object"||Array.isArray(parsed))throw new Error("state không phải object");
+    return parsed;
+  }catch(e){statusEl.textContent="Save trên máy bị lỗi và không được nạp. Bạn có thể xóa save hoặc tạo New Game.";return null}
+}
+function save(){
+  try{
+    const payload=JSON.stringify(state);
+    localStorage.setItem(SAVE_KEY,payload);
+    const verify=localStorage.getItem(SAVE_KEY);
+    if(!verify)throw new Error("không đọc lại được save vừa ghi");
+    const checked=JSON.parse(verify);
+    if(Number(checked.turn)!==Number(state.turn))throw new Error("Turn sau khi ghi không khớp");
+    statusEl.textContent="Đã lưu Turn "+(state.turn||1)+" trên máy.";
+    return true;
+  }catch(e){statusEl.textContent="Lưu thất bại: "+(e&&e.message?e.message:"storage error");return false}
+}
+function load(){
+  const loaded=savedState();
+  if(!loaded){if(!statusEl.textContent||!statusEl.textContent.includes("bị lỗi"))statusEl.textContent="Không có save trên máy để tải.";return false}
+  state=loaded;
+  clearAuthoritativeCore();
+  render();
+  statusEl.textContent="Đã tải save Turn "+(state.turn||1)+" từ máy.";
+  return true;
+}
+function armDestructive(kind,label,perform){
+  const now=Date.now();
+  if(destructiveAction===kind&&now<destructiveUntil){destructiveAction="";destructiveUntil=0;perform();return}
+  destructiveAction=kind;destructiveUntil=now+5000;
+  statusEl.textContent='Nhấn "'+label+'" lần nữa trong 5 giây để xác nhận.';
+}
+function resetGame(){
+  armDestructive("new-game","Bắt đầu lại từ đầu",()=>{
+    try{localStorage.removeItem(SNAPSHOT_KEY)}catch(ignore){}
+    state=freshInitial();
+    try{
+      if(window.Android&&typeof Android.resetNewGameCore==='function'){
+        const response=JSON.parse(Android.resetNewGameCore()||'{}');
+        if(response&&response.ok===true&&response.data){state.partyDetails=response.data}
+        else throw new Error((response&&response.message)||'Core reset failed');
+      }else{
+        clearAuthoritativeCore();
+      }
+    }catch(e){statusEl.textContent="NEW GAME Core lỗi: "+(e&&e.message?e.message:"bridge error");return}
+    render();
+    if(save())statusEl.textContent="NEW GAME đã tạo và lưu ở Turn 1 với Character Core mới.";
+  });
+}
+function clearSave(){
+  armDestructive("delete-save","Xóa save trên máy",()=>{
+    try{localStorage.removeItem(SAVE_KEY);localStorage.removeItem(SNAPSHOT_KEY)}catch(e){statusEl.textContent="Xóa save thất bại: "+(e&&e.message?e.message:"storage error");return}
+    clearAuthoritativeCore();
+    state=freshInitial();
+    render();
+    statusEl.textContent="Đã xóa save, Game State Core và snapshot trên máy. Trạng thái Turn 1 hiện chỉ ở bộ nhớ tạm.";
+  });
+}
+formEl.addEventListener("submit",e=>{e.preventDefault();const a=actionEl.value.trim();if(!a||busy)return;if(!window.Android){statusEl.textContent="Không tìm thấy Android bridge.";return}busy=true;syncPrimaryActions();statusEl.textContent="Gemini đang xử lý lượt…";window.Android.submitAction(JSON.stringify(state),"EXECUTE",a)});
+
+// STEP2_TYPED_ACTIONS
+const searchActionButton=byId("searchActionButton"),exploreActionButton=byId("exploreActionButton");
+function syncPrimaryActions(){
+  const hasText=!!(actionEl&&actionEl.value.trim());
+  if(submitEl)submitEl.disabled=busy||!hasText;
+  if(searchActionButton)searchActionButton.disabled=busy;
+  if(exploreActionButton)exploreActionButton.disabled=busy;
+}
+function appendMacroPending(label){
+  if(!logEl)return;
+  const player=document.createElement("article");
+  player.className="message player pending";player.setAttribute("data-pending","1");
+  player.innerHTML="<div class='role'>BẠN</div><div class='text'></div>";
+  player.querySelector(".text").textContent=label;logEl.appendChild(player);
+  const gm=document.createElement("article");
+  gm.className="message pending";gm.setAttribute("data-pending","1");
+  gm.innerHTML="<div class='role'>GAME MASTER</div><div class='text'>Đang xử lý lượt…</div>";
+  logEl.appendChild(gm);logEl.scrollTop=logEl.scrollHeight;
+}
+function submitMacroAction(kind,label){
+  if(busy)return;
+  if(!window.Android||typeof window.Android.submitAction!=="function"){
+    statusEl.textContent="Không tìm thấy Android action bridge.";return;
+  }
+  busy=true;syncPrimaryActions();
+  statusEl.textContent=kind==="SEARCH"?"Đang tìm kiếm khu vực hiện tại…":"Đang khám phá khu vực chưa khảo sát…";
+  appendMacroPending(label);
+  window.Android.submitAction(JSON.stringify(state),kind,label);
+}
+if(searchActionButton)searchActionButton.addEventListener("click",()=>submitMacroAction("SEARCH","Tìm kiếm"));
+if(exploreActionButton)exploreActionButton.addEventListener("click",()=>submitMacroAction("EXPLORE","Khám phá"));
+if(actionEl)actionEl.addEventListener("input",syncPrimaryActions);
+syncPrimaryActions();
+
+window.backroomTurn=json=>{state=semanticPrepareNextState(state,json);actionEl.value="";busy=false;syncPrimaryActions();save();statusEl.textContent="Turn "+state.turn+" đã lưu trên máy.";render();focusLatestGmStart()};
+window.backroomError=message=>{busy=false;syncPrimaryActions();statusEl.textContent="Lỗi Gemini: "+message};
 render();
 </script>
+
+<script>
+(function(){
+  const party=document.getElementById('party');
+  const partyTime=document.getElementById('partyTime');
+  const view=document.getElementById('characterInventoryView');
+  const items=document.getElementById('characterInventoryItems');
+  const capacity=document.getElementById('characterInventoryCapacity');
+  const back=document.getElementById('characterInventoryBack');
+  const detailName=document.getElementById('characterInventoryName');
+  const detailAvatar=document.getElementById('characterInventoryAvatar');
+  const hpFill=document.getElementById('characterHpFill');
+  const hpValue=document.getElementById('characterHpValue');
+  const equipment=document.getElementById('characterEquipmentList');
+  const statusList=document.getElementById('characterStatusList');
+  const survivalHud=document.getElementById('characterSurvivalHud');
+  const signatureNames=['w.w magnum','white wraith magnum','blackblood armor','omnivault ring','nhẫn vạn tàng','nhẫn omnivault'];
+  const signatureEquipment={weapon:'Huyết Ma Kiếm',armor:'Huyết Ma Chiến Khải',ring:'Nhẫn Vạn Tàng'};
+  const bandLabels={UNKNOWN:'Chưa xác định',NORMAL:'Bình thường',MILD:'Nhẹ',MODERATE:'Vừa',SEVERE:'Nặng',CRITICAL:'Nguy kịch'};
+  let selectedCharacterId='cao_minh';
+
+  function isSignatureItem(x){const n=String((x&&x.name)||x||'').toLocaleLowerCase('vi-VN');return signatureNames.some(k=>n.includes(k))}
+  function repairState(){
+    let changed=false;
+    if(state&&Array.isArray(state.inventory)){
+      const normal=state.inventory.filter(x=>!isSignatureItem(x));
+      if(normal.length!==state.inventory.length){state.inventory=normal;changed=true}
+    }
+    const turn=Number(state&&state.turn)||1;
+    if(turn<=2&&(!Array.isArray(state&&state.log)||state.log.length===0)&&Array.isArray(initial&&initial.log)&&initial.log.length){
+      state.log=JSON.parse(JSON.stringify(initial.log));changed=true
+    }
+    if(changed){try{localStorage.setItem('backroom-apk-state',JSON.stringify(state))}catch(ignore){}}
+  }
+  function kaiItems(){repairState();return Array.isArray(state&&state.inventory)?state.inventory.filter(x=>!isSignatureItem(x)):[]}
+  function formatMinutes(raw){const m=Math.max(0,Number(raw)||0),h=Math.floor(m/60),min=m%60;return h>0?h+' giờ '+min+' phút':min+' phút'}
+  function bandLabel(value){return bandLabels[String(value||'UNKNOWN').toUpperCase()]||String(value||'Chưa xác định')}
+  function bandClass(value){const v=String(value||'UNKNOWN').toUpperCase();return v==='SEVERE'||v==='CRITICAL'?'status-danger':v==='MILD'||v==='MODERATE'?'status-warning':'status-normal'}
+  function madGodSetEquipped(){return false;}
+  function legacyMadGodSetEquipped(){try{const e=state&&state.equipment||{};if(e.set&&String(e.set.id||e.set)==='madgod:set')return true;if(['weapon','armor'].some(k=>String((e[k]&&e[k].id)||e[k]||'').toLowerCase().includes('madgod')))return true;const members=state&&state.partyDetails&&state.partyDetails.members;const kai=Array.isArray(members)&&members.find(m=>String(m&&m.id)==='cao_minh');return !!(kai&&kai.equipment&&['weapon','armor'].some(k=>String((kai.equipment[k]&&kai.equipment[k].id)||kai.equipment[k]||'').toLowerCase().includes('madgod')))}catch(ignore){return false}}
+  function refreshCharacterDetailsFromCore(){
+    try{
+      if(window.Android&&typeof Android.getPartyDetails==='function'){
+        const raw=Android.getPartyDetails(JSON.stringify(state||{}));
+        const response=JSON.parse(raw||'{}');
+        const details=response&&response.ok===true?response.data:null;
+        if(details&&Array.isArray(details.members)&&details.members.length){
+          state.partyDetails=details;
+          return details.members;
+        }
+      }
+    }catch(ignore){}
+    return null;
+  }
+  function detailMembers(){
+    const liveMembers=refreshCharacterDetailsFromCore();
+    if(liveMembers&&liveMembers.length)return liveMembers;
+    const members=state&&state.partyDetails&&Array.isArray(state.partyDetails.members)?state.partyDetails.members:null;
+    if(members&&members.length)return members.map(m=>String(m.id)==='cao_minh'&&madGodSetEquipped()?Object.assign({},m,{avatar:'avatars/MadGod.jpg',avatarRef:'avatars/MadGod.jpg'}):m);
+    const fallback=[{id:'cao_minh',name:'Cao Minh',avatar:madGodSetEquipped()?'avatars/MadGod.jpg':'avatars/kai_avatar.png',presence:'ACTIVE',isLeader:true,physiology:{hunger:'NORMAL',thirst:'NORMAL',sleepDeprivation:'NORMAL',foodPercent:100,waterPercent:100,restPercent:100},inventory:kaiItems(),equipment:signatureEquipment,statuses:[],injuries:[]}];
+    if(Array.isArray(state&&state.party))state.party.forEach(x=>{if(x&&x.id&&x.id!=='cao_minh')fallback.push({id:x.id,name:x.name||x.id,avatar:x.avatar,presence:x.presence||'ACTIVE',isLeader:false,physiology:{hunger:'UNKNOWN',thirst:'UNKNOWN',sleepDeprivation:'UNKNOWN'},inventory:[],equipment:{},statuses:[],injuries:[]})});
+    return fallback;
+  }
+  function memberById(id){return detailMembers().find(x=>String(x.id)===String(id))||detailMembers()[0]}
+  function statusRows(member){
+    const p=member&&member.physiology||{};
+    const rows=[];
+    rows.push(['Hiện diện',member&&member.presence||'ACTIVE','status-normal']);
+    if(member&&member.healthState)rows.push(['Thể trạng',member.healthState,'status-normal']);
+    if(Array.isArray(member&&member.injuries)&&member.injuries.length)rows.push(['Thương tích',member.injuries.join(', '),'status-danger']);
+    if(p.pain)rows.push(['Đau',p.pain,'status-warning']);
+    if(p.infection)rows.push(['Nhiễm trùng',p.infection,'status-danger']);
+    if(p.thermal)rows.push(['Nhiệt trạng',p.thermal,'status-warning']);
+    if(Array.isArray(member&&member.statuses)&&member.statuses.length)rows.push(['Hiệu ứng',member.statuses.map(x=>x.type||x.id).join(', '),'status-warning']);
+    return rows;
+  }
+  function meterValue(raw){if(raw==null||raw==='')return null;const n=Number(raw);return Number.isFinite(n)?Math.max(0,Math.min(100,Math.round(n))):null}
+  function survivalMeter(icon,label,percent,band){
+    const value=meterValue(percent),shown=value==null?'--':value+'%',width=value==null?0:value,stateLabel=bandLabel(band);
+    return '<div class="survival-meter '+(value==null?'unknown':'')+'"><div class="survival-meter-head"><div class="survival-icon">'+esc(icon)+'</div><div class="survival-label">'+esc(label)+'</div><div class="survival-value">'+esc(shown)+'</div></div><div class="survival-track"><span class="survival-fill" style="width:'+width+'%"></span></div><div class="survival-state">'+esc(stateLabel)+'</div></div>';
+  }
+  function renderSurvivalHud(member){
+    if(!survivalHud)return;
+    const p=member&&member.physiology||{};
+    survivalHud.innerHTML=[survivalMeter('🥩','THỨC ĂN',p.foodPercent,p.hunger),survivalMeter('💧','NƯỚC',p.waterPercent,p.thirst),survivalMeter('Zzz','NGỦ',p.restPercent,p.sleepDeprivation)].join('');
+  }
+  function displayItemName(raw){
+    const source=raw&&typeof raw==='object'?(raw.name||raw.displayName||raw.label||raw.itemId||raw.id||raw.archetypeId||''):raw;
+    let text=String(source==null?'':source).trim();
+    if(text.includes(':'))text=text.split(':').pop();
+    text=text.replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim();
+    return (text||'—').toLocaleUpperCase('vi-VN');
+  }
+  function displaySlotName(raw){
+    return String(raw==null?'':raw).replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim().toLocaleUpperCase('vi-VN')||'ITEM';
+  }
+  function renderInventoryItems(inv){
+    if(!Array.isArray(inv)||!inv.length)return '<span>Trống.</span>';
+    return inv.map(x=>{
+      const qty=x&&typeof x==='object'&&Number(x.quantity)>1?' ×'+Number(x.quantity):'';
+      return '<span>'+esc(displayItemName(x)+qty)+'</span>';
+    }).join('');
+  }
+  function equipmentRows(member){
+    if(member&&member.id==='cao_minh'&&madGodSetEquipped())return ['MadGod Set','Nhẫn Vạn Tàng'];
+    const eq=member&&member.equipment||{};
+    const keys=Object.keys(eq);
+    if(!keys.length&&member&&member.id==='cao_minh')return Object.keys(signatureEquipment).map(k=>displaySlotName(k)+' : '+displayItemName(signatureEquipment[k]));
+    return keys.map(k=>displaySlotName(k)+' : '+displayItemName(eq[k]));
+  }
+  function renderMemberDetail(member){
+    if(!member)return;
+    selectedCharacterId=member.id||'cao_minh';
+    if(view)view.dataset.characterId=selectedCharacterId;
+    detailName.textContent=member.name||member.id||'—';
+    const detailAvatarSrc=member.avatar||member.avatarRef||(member.id==='cao_minh'?'avatars/kai_avatar.png':'');
+    detailAvatar.hidden=!detailAvatarSrc;
+    if(detailAvatarSrc)detailAvatar.src=detailAvatarSrc;else detailAvatar.removeAttribute('src');
+    detailAvatar.alt=member.name||member.id||'Nhân vật';
+    const rawMaxHp=Number(member.maxHp),rawCurrentHp=Number(member.currentHp);
+    const maxHp=Number.isFinite(rawMaxHp)&&rawMaxHp>0?rawMaxHp:100;
+    const currentHp=Number.isFinite(rawCurrentHp)?Math.max(0,Math.min(maxHp,rawCurrentHp)):maxHp;
+    const hpPercent=Math.max(0,Math.min(100,currentHp*100/maxHp));
+    if(hpFill)hpFill.style.width=hpPercent+'%';
+    if(hpValue)hpValue.textContent=Math.round(currentHp)+'/'+Math.round(maxHp);
+    renderSurvivalHud(member);
+    const inv=Array.isArray(member.inventory)?member.inventory:(member.id==='cao_minh'?kaiItems():[]);
+    capacity.textContent=member&&member.id==='an-nhien'?inv.length+' / 2 slot thực phẩm':inv.length+' / 9 loại vật phẩm';
+    items.innerHTML=renderInventoryItems(inv);
+    const eqRows=equipmentRows(member);
+    equipment.innerHTML=eqRows.length?eqRows.map(x=>'<span>'+esc(x)+'</span>').join(''):'<span>Không có trang bị được ghi nhận.</span>';
+    statusList.innerHTML=statusRows(member).map(row=>'<div class="character-status-row '+row[2]+'"><b>'+esc(row[0])+'</b><span>'+esc(row[1])+'</span></div>').join('');
+    if(typeof window.renderCharacterStatusEquipment==='function')window.renderCharacterStatusEquipment(member);
+  }
+  function openMember(id){const member=memberById(id);renderMemberDetail(member);view.hidden=false;if(typeof window.renderCharacterStatusEquipment==='function')window.renderCharacterStatusEquipment(member)}
+  function renderPartyCards(){
+    if(!party)return;
+    const members=detailMembers();
+    const max=Math.max(1,Math.min(4,Number(state&&state.partyDetails&&state.partyDetails.maxMembers)||4));
+    const cards=[];
+    for(let i=0;i<max;i++){
+      const member=members[i];
+      if(!member){cards.push('<div class="party-member empty"><div class="party-avatar-placeholder">Trống</div><strong>Trống</strong></div>');continue}
+      const avatar=member.avatar||member.avatarRef;
+      const visual=avatar?'<img src="'+esc(avatar)+'" alt="'+esc(member.name||member.id)+'">':'<div class="party-avatar-placeholder">'+esc(String(member.name||member.id||'?').slice(0,1).toUpperCase())+'</div>';
+      cards.push('<div class="party-member" data-character="'+esc(member.id)+'">'+visual+'<strong>'+esc(member.name||member.id)+'</strong><div class="party-state">'+esc(member.presence||'ACTIVE')+'</div></div>');
+    }
+    party.innerHTML=cards.join('');
+    party.querySelectorAll('.party-member[data-character]').forEach(card=>card.addEventListener('click',()=>openMember(card.getAttribute('data-character'))));
+    if(partyTime){const t=state&&state.gameTime&&state.gameTime.elapsedSubjectiveMinutes!=null?state.gameTime.elapsedSubjectiveMinutes:state&&state.partyDetails&&state.partyDetails.elapsedSubjectiveMinutes;partyTime.textContent=t==null?'':'Thời gian chủ quan: '+formatMinutes(t)}
+  }
+  if(back)back.addEventListener('click',()=>{view.hidden=true});
+  const priorRender=window.render;
+  if(typeof priorRender==='function')window.render=function(){
+    repairState();
+    priorRender();
+    renderPartyCards();
+    if(view&&!view.hidden)renderMemberDetail(memberById(selectedCharacterId));
+  };
+  repairState();
+  if(typeof window.render==='function')window.render();else renderPartyCards();
+})();
+</script>
+<div id="equipmentDetailModal" class="equipment-detail-modal" hidden>
+  <div class="equipment-detail-sheet" role="dialog" aria-modal="true" aria-labelledby="equipmentDetailName">
+    <button type="button" class="equipment-detail-close" id="equipmentDetailClose">×</button>
+    <div class="equipment-detail-header"><div class="equipment-detail-icon" id="equipmentDetailIcon">EQ</div><div><div class="eyebrow" id="equipmentDetailClass"></div><h2 id="equipmentDetailName">Equipment</h2><div class="equipment-detail-meta" id="equipmentDetailMeta"></div></div></div>
+    <section><h3>STATS</h3><div id="equipmentDetailStats"></div></section>
+    <section id="equipmentDetailComparisonSection" hidden><h3>EFFECT / COMPARISON</h3><div id="equipmentDetailComparison"></div></section>
+    <section><h3>SPECIAL ABILITIES</h3><div id="equipmentDetailAbilities"></div></section>
+    <section><h3>CANON / RESTRICTIONS</h3><div id="equipmentDetailRestrictions"></div></section>
+  </div>
+</div>
+
+<script>
+(function(){
+  const view=document.getElementById('characterInventoryView');
+  const status=document.getElementById('characterStatusList');
+  const equipment=document.getElementById('characterEquipmentList');
+  const inventory=document.getElementById('characterInventoryItems');
+  const nameEl=document.getElementById('characterInventoryName');
+  const modal=document.getElementById('equipmentDetailModal');
+  const close=document.getElementById('equipmentDetailClose');
+  const q=id=>document.getElementById(id);
+  const e=s=>typeof esc==='function'?esc(s):String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  function members(){
+    try{
+      if(window.Android&&typeof Android.getPartyDetails==='function'){
+        const raw=Android.getPartyDetails(JSON.stringify(state||{}));
+        const response=JSON.parse(raw||'{}');
+        const details=response&&response.ok===true?response.data:null;
+        if(details&&Array.isArray(details.members)&&details.members.length){state.partyDetails=details;return details.members}
+      }
+    }catch(ignore){}
+    return state&&state.partyDetails&&Array.isArray(state.partyDetails.members)?state.partyDetails.members:[]
+  }
+function selected(){const id=view&&view.dataset.characterId||'cao_minh';return members().find(x=>String(x.id)===String(id))||members()[0]}
+  function statText(s){if(!s)return '—';const b=Number(s.equipment)||0;return String(s.effective)+(b?(' ('+(b>0?'+':'')+b+')'):'')}
+  function iconFor(item){return String((item&&item.type)||'EQ').split(/[ /_-]+/).filter(Boolean).map(x=>x[0]).join('').slice(0,3).toUpperCase()||'EQ'}
+  function itemById(member,id){return (member&&member.inventory||[]).find(x=>String(x.id)===String(id))||(member&&member.equipmentItems||[]).find(x=>String(x.id)===String(id))}
+  function card(item,slot){
+    const badges=[];if(item.equipped)badges.push('<span class="equipment-badge equipped">EQUIPPED</span>');if(item.statItem)badges.push('<span class="equipment-badge">STAT ITEM</span>');if(item.classification==='SPECIAL_CHEAT')badges.push('<span class="equipment-badge cheat">SPECIAL / CHEAT</span>');
+    return '<div class="'+(slot?'equipment-card':'inventory-item-card')+'" data-item-id="'+e(item.id)+'"><div class="equipment-card-icon">'+e(iconFor(item))+'</div><div class="equipment-card-main"><strong>'+e(item.name||item.id)+'</strong><small>'+e(slot?String(slot).toUpperCase():(item.rarity||('×'+(item.quantity||1))))+'</small></div><div class="equipment-badges">'+badges.join('')+'</div></div>';
+  }
+  function render(member){
+    if(!member)return;
+    if(nameEl){let role=document.getElementById('characterRole');if(!role){role=document.createElement('div');role.id='characterRole';role.className='character-role';nameEl.insertAdjacentElement('afterend',role)}role.textContent=member.role||'UNSPECIFIED'}
+    const rows=[
+      ['ENE',member.energy||'N/A'],['HP REGEN',(Number(member.hpRegen)||0)>0?('+'+member.hpRegen+' / completed turn'):'0'],['CONDITION',member.condition||'HEALTHY'],
+      ['STR',statText(member.stats&&member.stats.STR)],['DEF',statText(member.stats&&member.stats.DEF)],['SKL',statText(member.stats&&member.stats.SKL)],['VIT',statText(member.stats&&member.stats.VIT)]
+    ];
+    if(status)status.innerHTML='<div class="character-core-stats">'+rows.map(r=>'<div class="character-core-stat"><b>'+e(r[0])+'</b><strong>'+e(r[1])+'</strong></div>').join('')+'</div>'+
+      ((member.statuses&&member.statuses.length)?'<div class="character-status-row"><b>Status Effects</b><span>'+e(member.statuses.map(x=>x.type||x.id).join(', '))+'</span></div>':'');
+    const eq=member.equipment||{},details=member.equipmentItems||[];
+    if(equipment){const grouped=new Map();Object.keys(eq).sort().forEach(slot=>{const id=String(eq[slot]||'');if(!id)return;const slots=grouped.get(id)||[];slots.push(slot);grouped.set(id,slots)});const rendered=[];grouped.forEach((slots,id)=>{const item=details.find(x=>String(x.id)===id)||itemById(member,id);if(item)rendered.push(card(item,slots.join(' / ')))});equipment.innerHTML=rendered.length?rendered.join(''):'<span>Không có trang bị được ghi nhận.</span>'}
+    const visibleInventory=(member.inventory||[]).filter(x=>x&&x.equipped!==true);if(inventory){inventory.innerHTML=visibleInventory.map(x=>card(x,null)).join('')||'<span>Trống.</span>'}
+    const capEl=document.getElementById('characterInventoryCapacity'),cap=member.inventoryCapacity||{};if(capEl){const used=Number.isFinite(Number(cap.used))?Number(cap.used):(member.inventory||[]).filter(x=>x&&x.consumesInventorySlot!==false).length;const max=Number.isFinite(Number(cap.max))?Number(cap.max):9;capEl.textContent=used+' / '+max+' loại vật phẩm'}
+  }
+  function statRows(item){const w=item.weapon||{},rows=[];if(w.DMG!=null)rows.push(['DMG',w.DMG]);if(w.ammo!=null)rows.push(['Ammo',w.ammo]);if(w.rpm!=null)rows.push(['Full Auto',w.rpm+' RPM']);return rows
+  }
+  function comparisonRows(c){return[]}).filter(Boolean)}
+  function openItem(item){if(!item||!modal)return;q('equipmentDetailName').textContent=item.name||item.id;q('equipmentDetailIcon').textContent=iconFor(item);q('equipmentDetailClass').textContent=item.classification==='SPECIAL_CHEAT'?'SPECIAL / CHEAT':(item.type||'ITEM');q('equipmentDetailMeta').textContent=[item.type,item.slot,item.rarity,item.equipped?'EQUIPPED':'UNEQUIPPED'].filter(Boolean).join(' · ');
+    const sr=statRows(item);q('equipmentDetailStats').innerHTML=sr.length?sr.map(r=>'<div class="equipment-detail-row"><span>'+e(r[0])+'</span><strong>'+e(r[1])+'</strong></div>').join(''):'<div class="equipment-detail-row"><span>Combat bonus</span><strong>0</strong></div>';
+    const compare=item.comparison||((item.classification==='SPECIAL_CHEAT')?item.baseItemEffect:null),cr=comparisonRows(compare);const cs=q('equipmentDetailComparisonSection');cs.hidden=!cr.length;q('equipmentDetailComparison').innerHTML=cr.map(r=>'<div class="equipment-detail-row"><span>'+e(r[0])+'</span><strong class="'+(r[2]>=0?'stat-delta-positive':'stat-delta-negative')+'">'+e(r[1])+'</strong></div>').join('');
+    const abs=item.abilities||[];q('equipmentDetailAbilities').innerHTML=abs.length?abs.map(a=>'<div class="ability-row"><strong>'+e(a.name)+'</strong><p>'+e(a.description)+'</p>'+(a.limit?'<em>'+e(a.limit)+'</em>':'')+'</div>').join(''):'<div class="ability-row"><p>Không có Special Ability được ghi nhận.</p></div>';
+    const rr=item.restrictions||[];q('equipmentDetailRestrictions').innerHTML=rr.length?rr.map(x=>'<div class="restriction-row">'+e(x)+'</div>').join(''):'<div class="restriction-row">Không có restriction bổ sung.</div>';modal.hidden=false}
+  if(view)view.addEventListener('click',ev=>{const card=ev.target.closest('[data-item-id]');if(!card)return;const member=selected();openItem(itemById(member,card.getAttribute('data-item-id')))});
+  if(close)close.addEventListener('click',()=>modal.hidden=true);if(modal)modal.addEventListener('click',ev=>{if(ev.target===modal)modal.hidden=true});
+  window.renderCharacterStatusEquipment=render;
+  const oldRender=window.render;if(typeof oldRender==='function')window.render=function(){oldRender();render(selected())};
+  setTimeout(()=>render(selected()),0);
+})();
+</script>
+
+<style>
+.character-skills-button{width:100%;margin:10px 0;border:1px solid #39434a;background:#12171b;color:#dce4e7;padding:10px 12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.character-skills-modal{position:fixed;inset:0;z-index:140;background:rgba(3,5,6,.92);padding:14px;overflow:auto}.character-skills-modal[hidden]{display:none}.character-skills-sheet{max-width:720px;margin:0 auto;border:1px solid #343d44;background:#0b0f12;padding:14px}.character-skills-head{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #2b3137;padding-bottom:12px}.character-skills-head h2{margin:3px 0 0}.character-skills-head button{width:auto}.character-skills-list{display:grid;gap:9px;margin-top:12px}.character-skill-card{border:1px solid #2d363d;background:#101519;padding:11px}.character-skill-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.character-skill-name{font-weight:900}.character-skill-kind{border:1px solid #3a454d;padding:2px 6px;color:#9eabb4;font-size:9px;letter-spacing:.08em}.character-skill-trigger{margin-top:5px;color:#8e9aa3;font-size:11px}.character-skill-effect{margin-top:7px;line-height:1.45}.character-skill-note{margin-top:7px;color:#c5ad7b;font-size:11px;line-height:1.4}
+</style>
+<div id="characterSkillsModal" class="character-skills-modal" hidden>
+  <div class="character-skills-sheet" role="dialog" aria-modal="true" aria-labelledby="characterSkillsTitle">
+    <div class="character-skills-head"><div><div class="eyebrow">SKILL SET</div><h2 id="characterSkillsTitle">Kỹ năng</h2></div><button type="button" id="characterSkillsClose">Đóng</button></div>
+    <div id="characterSkillsList" class="character-skills-list"></div>
+  </div>
+</div>
+<script>
+(function(){
+  const view=document.getElementById('characterInventoryView');
+  const modal=document.getElementById('characterSkillsModal');
+  const close=document.getElementById('characterSkillsClose');
+  const title=document.getElementById('characterSkillsTitle');
+  const list=document.getElementById('characterSkillsList');
+  if(!view||!modal||!close||!title||!list)return;
+  const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  function members(){return typeof state!=='undefined'&&state&&state.partyDetails&&Array.isArray(state.partyDetails.members)?state.partyDetails.members:[]}
+  function selected(){const id=view.dataset.characterId||'cao_minh';return members().find(member=>String(member.id)===String(id))||members()[0]||null}
+  function skills(){const member=selected();return member&&Array.isArray(member.skills)?member.skills:[]}
+  function ensureButton(){
+    let button=document.getElementById('characterSkillsButton');
+    if(!button){
+      const status=document.getElementById('characterStatusList');
+      const section=status&&status.closest?status.closest('.character-section'):null;
+      button=document.createElement('button');button.type='button';button.id='characterSkillsButton';button.className='character-skills-button';
+      if(section&&section.parentNode)section.parentNode.insertBefore(button,section);else view.appendChild(button);
+      button.addEventListener('click',openSkills);
+    }
+    const current=skills();button.hidden=current.length===0;button.textContent=current.length?'Kỹ năng · '+current.length:'Kỹ năng';
+  }
+  function openSkills(){
+    const member=selected();const current=skills();
+    title.textContent=(member&&member.name?member.name+' · ':'')+'Kỹ năng';
+    list.innerHTML=current.length?current.map(skill=>'<div class="character-skill-card"><div class="character-skill-top"><div class="character-skill-name">'+escapeHtml(skill.name||'Kỹ năng')+'</div><span class="character-skill-kind">'+escapeHtml(skill.kind||'SKILL')+'</span></div><div class="character-skill-trigger">'+escapeHtml(skill.trigger||'')+'</div><div class="character-skill-effect">'+escapeHtml(skill.effect||'')+'</div>'+(skill.note?'<div class="character-skill-note">'+escapeHtml(skill.note)+'</div>':'')+'</div>').join(''):'<div class="character-skill-card">Chưa có kỹ năng được ghi nhận.</div>';
+    modal.hidden=false;
+  }
+  close.addEventListener('click',()=>{modal.hidden=true});
+  modal.addEventListener('click',event=>{if(event.target===modal)modal.hidden=true});
+  new MutationObserver(ensureButton).observe(view,{attributes:true,attributeFilter:['data-character-id']});
+  ensureButton();
+})();
+</script>
+
+<style id="combatActionBarStyle">
+/* DIRECT_COMBAT_GATE_V1 */
+.primary-action-row.combat-direct{display:none!important}
+</style>
+<script>
+(function(){
+  const normalButtons={
+    search:{label:'Tìm kiếm',aria:'Tìm kiếm',icon:'<svg class="action-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="5.5"></circle><path d="M14.7 14.7 20 20"></path></svg>'},
+    execute:{label:'Thực hiện',aria:'Thực hiện',icon:'<svg class="action-icon ai-action-icon" viewBox="0 0 28 24" aria-hidden="true"><path d="M3.5 5.5A2.5 2.5 0 0 1 6 3h11a2.5 2.5 0 0 1 2.5 2.5v7A2.5 2.5 0 0 1 17 15H6a2.5 2.5 0 0 1-2.5-2.5z"></path><text x="7" y="11.8">AI</text><path class="spark" d="M22 2v5m-2.5-2.5h5M23.5 9v3m-1.5-1.5h3"></path></svg>'},
+    explore:{label:'Khám phá',aria:'Khám phá',icon:'<svg class="action-icon footprint-icon" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="8" cy="8" rx="3" ry="4.2" transform="rotate(-20 8 8)"></ellipse><ellipse cx="15.8" cy="15.5" rx="3" ry="4.2" transform="rotate(18 15.8 15.5)"></ellipse><circle cx="5.2" cy="3.4" r="1"></circle><circle cx="18.5" cy="10.3" r="1"></circle></svg>'}
+  };
+
+  function combatActive(){return !!(typeof state!=='undefined'&&state&&state.combat&&state.combat.active===true);}
+  function byCombatId(id){return document.getElementById(id);}
+  function setButton(el,spec){if(!el)return;el.setAttribute('aria-label',spec.aria);el.innerHTML=spec.icon+'<span>'+spec.label+'</span>';}
+  function renderCombatActionBar(){
+    var row=byCombatId('primaryActionRow'),left=byCombatId('searchActionButton'),middle=byCombatId('submit'),right=byCombatId('exploreActionButton');
+    if(!row||!left||!middle||!right)return;
+    var active=combatActive();
+    row.classList.toggle('combat-direct',active);
+    row.hidden=active;
+    if(active){
+      left.disabled=true;middle.disabled=true;right.disabled=true;
+      return;
+    }
+    setButton(left,normalButtons.search);setButton(middle,normalButtons.execute);setButton(right,normalButtons.explore);
+    middle.type='submit';
+    if(typeof syncPrimaryActions==='function')syncPrimaryActions();
+  }
+
+  // Free-form and macro actions cannot bypass direct Poker Dice while an Entity combat is active.
+  var form=byCombatId('form');
+  if(form)form.addEventListener('submit',function(ev){if(combatActive()){ev.preventDefault();ev.stopImmediatePropagation();}},true);
+  var actionInput=byCombatId('action');
+  if(actionInput)actionInput.addEventListener('input',function(){if(combatActive())renderCombatActionBar();});
+
+  var previousRender=window.render;
+  if(typeof previousRender==='function')window.render=function(){var value=previousRender.apply(this,arguments);renderCombatActionBar();return value;};
+  var previousTurn=window.backroomTurn;
+  if(typeof previousTurn==='function')window.backroomTurn=function(json){var value=previousTurn.call(this,json);renderCombatActionBar();return value;};
+
+  window.renderCombatActionBar=renderCombatActionBar;
+  renderCombatActionBar();
+})();
+</script>
+
+
+<script>
+(function(){
+  "use strict";
+  if(window.__ui119BackportInstalled)return;
+  window.__ui119BackportInstalled=true;
+
+  var actionModal=document.getElementById("playerActionModal");
+  var actionBackdrop=document.getElementById("playerActionBackdrop");
+  var actionClose=document.getElementById("playerActionClose");
+  var actionCancel=document.getElementById("playerActionCancel");
+  var actionConfirm=document.getElementById("playerActionConfirm");
+  var execute=document.getElementById("submit");
+  var form=document.getElementById("form");
+  var action=document.getElementById("action");
+  var menu=document.getElementById("gameMenuModal");
+  var menuOpen=document.getElementById("gameMenuOpen");
+  var menuClose=document.getElementById("gameMenuClose");
+  var menuBackdrop=document.getElementById("gameMenuBackdrop");
+  var imeInsetCss=0,modalBaselineHeight=0;
+
+  function combatActive(){try{return !!(state&&state.combat&&state.combat.active===true)}catch(_){return false}}
+  function processing(){return !!window.__combatBusy||(typeof busy!=="undefined"&&!!busy)}
+  function layoutHeight(){return Math.max(1,window.innerHeight||document.documentElement.clientHeight||1)}
+  function fitActionModal(){
+    if(!actionModal||actionModal.hidden)return;
+    var vv=window.visualViewport,layout=layoutHeight(),visual=Math.max(1,vv&&vv.height?vv.height:layout),top=Math.max(0,vv&&vv.offsetTop?vv.offsetTop:0);
+    if(imeInsetCss<=0)modalBaselineHeight=Math.max(modalBaselineHeight,layout,visual);
+    var baseline=Math.max(modalBaselineHeight,layout,visual),usable=imeInsetCss>0?Math.min(visual,Math.max(1,baseline-imeInsetCss)):visual;
+    actionModal.style.top=top+"px";actionModal.style.height=Math.max(1,usable)+"px";
+  }
+  function syncActionConfirm(){
+    if(actionConfirm)actionConfirm.disabled=processing()||!String(action&&action.value||"").trim();
+  }
+  function closeAction(keepDraft){
+    if(!actionModal||actionModal.hidden)return;
+    actionModal.hidden=true;actionModal.setAttribute("aria-hidden","true");document.body.classList.remove("player-action-open");
+    actionModal.style.removeProperty("top");actionModal.style.removeProperty("height");
+    try{action&&action.blur()}catch(_){}
+    if(!keepDraft&&action)action.value="";
+    syncActionConfirm();
+  }
+  function openAction(){
+    if(!actionModal||processing()||combatActive())return;
+    actionModal.hidden=false;actionModal.setAttribute("aria-hidden","false");document.body.classList.add("player-action-open");
+    fitActionModal();syncActionConfirm();
+    setTimeout(function(){try{action.focus({preventScroll:true});var n=action.value.length;action.setSelectionRange(n,n)}catch(_){try{action.focus()}catch(__){}}},40);
+  }
+  function openMenu(){
+    if(!menu||!menu.hidden)return;
+    menu.hidden=false;menu.setAttribute("aria-hidden","false");if(menuOpen)menuOpen.setAttribute("aria-expanded","true");document.body.classList.add("game-menu-open");
+  }
+  function closeMenu(){
+    if(!menu||menu.hidden)return;
+    menu.hidden=true;menu.setAttribute("aria-hidden","true");if(menuOpen)menuOpen.setAttribute("aria-expanded","false");document.body.classList.remove("game-menu-open");
+  }
+
+  if(typeof syncPrimaryActions==="function"){
+    syncPrimaryActions=function(){
+      if(execute)execute.disabled=processing();
+      var s=document.getElementById("searchActionButton"),e=document.getElementById("exploreActionButton");
+      if(s)s.disabled=processing();if(e)e.disabled=processing();syncActionConfirm();
+    };
+  }
+
+  if(execute)execute.addEventListener("click",function(event){
+    if(combatActive())return;
+    event.preventDefault();event.stopPropagation();openAction();
+  });
+  if(action)action.addEventListener("input",syncActionConfirm);
+  if(form)form.addEventListener("submit",function(){
+    if(combatActive())return;
+    if(String(action&&action.value||"").trim())closeAction(true);
+  });
+  if(actionClose)actionClose.addEventListener("click",function(){if(!processing())closeAction(true)});
+  if(actionCancel)actionCancel.addEventListener("click",function(){if(!processing())closeAction(true)});
+  if(actionBackdrop)actionBackdrop.addEventListener("click",function(){if(!processing())closeAction(true)});
+  if(menuOpen)menuOpen.addEventListener("click",openMenu);
+  if(menuClose)menuClose.addEventListener("click",closeMenu);
+  if(menuBackdrop)menuBackdrop.addEventListener("click",closeMenu);
+  document.addEventListener("keydown",function(event){
+    if(event.key!=="Escape")return;
+    if(actionModal&&!actionModal.hidden&&!processing()){event.preventDefault();closeAction(true);return}
+    if(menu&&!menu.hidden){event.preventDefault();closeMenu()}
+  });
+  if(window.visualViewport){
+    window.visualViewport.addEventListener("resize",fitActionModal);
+    window.visualViewport.addEventListener("scroll",fitActionModal);
+  }
+  window.addEventListener("resize",fitActionModal);
+  window.backroomSetImeInset=function(physicalPixels){
+    var pixels=Math.max(0,Number(physicalPixels)||0),ratio=Math.max(1,Number(window.devicePixelRatio)||1);
+    imeInsetCss=pixels/ratio;if(imeInsetCss<=0)modalBaselineHeight=0;fitActionModal();
+  };
+
+  var previousTurn=window.backroomTurn;
+  window.backroomTurn=function(json){
+    var result=typeof previousTurn==="function"?previousTurn(json):undefined;
+    closeAction(false);syncActionConfirm();return result;
+  };
+  var previousError=window.backroomError;
+  window.backroomError=function(message){
+    var result=typeof previousError==="function"?previousError(message):undefined;
+    syncActionConfirm();return result;
+  };
+
+  if(execute)execute.type="button";
+  syncActionConfirm();
+  if(typeof syncPrimaryActions==="function")syncPrimaryActions();
+})();
+</script>
+
+
+<style id="pokerCoreUiStyle">
+/* POKER_DICE_CORE_BACKPORT_R01 */
+.poker-dice-modal[hidden]{display:none}.poker-dice-modal{position:relative;inset:auto;z-index:20;display:block;width:100%;margin:0 0 10px;padding:0 10px}/* POKER_DICE_SNAPSHOT_CLEAR_R01 *//* POKER_DICE_NEAR_SNAPSHOT_R01 */.poker-dice-backdrop{display:none}
+.poker-dice-sheet{position:relative;width:min(100%,680px);margin:0 auto;max-height:min(calc(var(--app-height,100dvh) - 10px),760px);overflow:auto;background-color:#39341e;background-image:linear-gradient(145deg,rgba(15,17,13,.64),rgba(12,15,13,.82) 55%,rgba(15,17,13,.68)),url('dice/level0-wallpaper.svg');background-size:auto,64px 96px;border:1px solid #8b8052;border-radius:7px;padding:14px 14px calc(14px + env(safe-area-inset-bottom));box-shadow:0 12px 32px #0009}
+.poker-dice-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.poker-dice-kicker{font-size:9px;font-weight:800;letter-spacing:.16em;color:#b9ad77}.poker-dice-head h2{margin:3px 0 0;font-size:15px;letter-spacing:.08em;color:#fff7d7}
+.poker-dice-meta{margin-top:8px;color:#c5c3a8;font-size:11px}.poker-dice-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;margin-top:12px}
+.poker-die{position:relative;min-width:0;aspect-ratio:1/1.18;padding:4px;border:1px solid transparent!important;border-radius:7px!important;background:transparent!important;display:grid;place-items:center}.poker-die img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 4px #0008)}.poker-die.held img{filter:drop-shadow(0 0 2px #9be1bc) drop-shadow(0 0 8px #9be1bc99) drop-shadow(0 4px 4px #0008)}.poker-die.held:after{content:"HOLD";position:absolute;bottom:2px;left:50%;transform:translateX(-50%);font-size:8px;font-weight:800;letter-spacing:.08em;color:#9be1bc;text-shadow:0 0 7px #9be1bc88}
+.poker-die.rolling img{visibility:hidden}.poker-die.rolling:before{content:"";position:absolute;inset:5%;background:url('dice/roll-3d.png') 0 0/2400% 100% no-repeat;animation:poker-die-roll .68s steps(23,end) infinite}@keyframes poker-die-roll{to{background-position:100% 0}}@media(prefers-reduced-motion:reduce){.poker-die.rolling:before{display:none}.poker-die.rolling img{visibility:visible}}
+.poker-dice-hand{min-height:26px;margin-top:10px;text-align:center;font-size:17px;font-weight:800;letter-spacing:.06em;color:#e6cf77;text-shadow:0 1px 2px #000}.poker-dice-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.poker-dice-roll,.poker-dice-finish{min-height:48px;border-radius:7px!important;font-weight:800;letter-spacing:.1em}.poker-dice-roll{border-color:#4f9479!important;background:#14251f!important;color:#dff7ec}.poker-dice-finish{border-color:#8b6047!important;background:#281c18!important;color:#f2ddd0}
+.core-progression-panel{margin-top:10px;border:1px solid #3b3524;background:linear-gradient(145deg,#171813,#0b0e10);padding:10px;border-radius:7px}.core-progression-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}.core-progression-head b{font-size:10px;letter-spacing:.12em;color:#d5c67d}.core-balance{font-size:12px;font-weight:800;color:#f6c85f}.core-progression-row{display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:7px;align-items:center;padding:6px 0;border-top:1px solid #25291f}.core-progression-row:first-of-type{border-top:0}.core-progression-stat{font-weight:900;color:#eef1f3}.core-progression-value{min-width:0;color:#aeb8bf;font-size:11px}.core-progression-upgrade{min-width:72px;padding:7px 8px!important;border-radius:7px!important;font-size:10px}
+</style>
+<div class="poker-dice-modal" id="pokerDiceModal" hidden aria-hidden="true">
+  <div class="poker-dice-backdrop"></div>
+  <section class="poker-dice-sheet" role="dialog" aria-modal="true" aria-labelledby="pokerDiceTitle">
+    <div class="poker-dice-head"><div><div class="poker-dice-kicker">COMBAT</div><h2 id="pokerDiceTitle">POKER DICE</h2></div></div>
+    <div class="poker-dice-meta" id="pokerDiceMeta"></div>
+    <div class="poker-dice-row" id="pokerDiceRow"></div>
+    <div class="poker-dice-hand" id="pokerDiceHand"></div>
+    <div class="poker-dice-actions"><button type="button" class="poker-dice-roll" id="pokerDiceRoll">ROLL</button><button type="button" class="poker-dice-finish" id="pokerDiceFinish">FINISH</button></div>
+  </section>
+</div>
+<script>
+(function(){
+  "use strict";
+  if(window.__pokerCoreUiInstalled)return;window.__pokerCoreUiInstalled=true;
+  var modal=document.getElementById("pokerDiceModal"),row=document.getElementById("pokerDiceRow"),meta=document.getElementById("pokerDiceMeta"),hand=document.getElementById("pokerDiceHand");
+  var roll=document.getElementById("pokerDiceRoll"),finish=document.getElementById("pokerDiceFinish");
+  var DIRECT_COMBAT_ACTION="Cả Party cùng tấn công",submitAfterFinalize=false;
+  var diceRollAnimating=false,diceRollStartedAt=0,diceRollToken=0,diceSettleTimer=0,diceSettleUntil=0;
+  var diceSettleMask=[false,false,false,false,false],finalizeTimer=0,finalizeKey="";
+  var DICE_ROLL_ANIMATION_MS=680,DICE_SETTLE_ANIMATION_MS=170,FINALIZE_PREVIEW_MS=2000;
+  window.__combatDiceBusy=false;window.__combatDiceRolling=false;window.__directCombatPreparing=false;window.__directCombatResolving=false;
+
+  function combatActive(){return !!(typeof state!=="undefined"&&state&&state.combat&&state.combat.active===true)}
+  function dice(){return state&&state.combat&&state.combat.diceState?state.combat.diceState:null}
+  function mountNearSnapshot(){var snapshot=document.getElementById("snapshot");if(snapshot&&snapshot.nextElementSibling!==modal)snapshot.insertAdjacentElement("afterend",modal)}
+  function show(){modal.hidden=false;modal.setAttribute("aria-hidden","false");document.body.classList.add("poker-dice-open")}
+  function hide(){modal.hidden=true;modal.setAttribute("aria-hidden","true");document.body.classList.remove("poker-dice-open")}
+  function setBusy(value){window.__combatDiceBusy=!!value;if(typeof busy!=="undefined")busy=!!value||!modal.hidden;if(typeof window.renderCombatActionBar==="function")window.renderCombatActionBar()}
+  function diceAsset(value){return "file:///android_asset/dice/die-"+String(value)+".png"}
+  function allHeld(values){return Array.isArray(values)&&values.length===5&&values.every(function(x){return x===true})}
+  function handLabel(value){
+    var labels={"NO HAND":"No Hand","ONE PAIR":"One Pair","TWO PAIR":"Two Pair","THREE OF A KIND":"Three of a Kind","STRAIGHT":"Straight","FULL HOUSE":"Full House","FOUR OF A KIND":"Four of a Kind","SSF":"SSF","FSF":"FSF"};
+    var key=String(value||"NO HAND");return labels[key]||key;
+  }
+  function renderDice(){
+    var d=dice();
+    if(!d){row.textContent="";hand.textContent="";meta.textContent="Đang chuẩn bị lượt combat…";return}
+    var actor=state&&state.combat&&state.combat.currentActor;
+    document.getElementById("pokerDiceTitle").textContent=String(actor||"POKER DICE");
+    var rerolls=Math.max(0,Number(d.rerollsUsed)||0),maxRerolls=Math.max(0,Number(d.maxRerolls)||3);
+    meta.textContent="Lượt Quay "+String(rerolls)+"/"+String(maxRerolls)+" - Chạm Vào Xúc Xắc Để Giữ";
+    row.textContent="";
+    var values=Array.isArray(d.values)?d.values:[0,0,0,0,0],held=Array.isArray(d.held)?d.held:[false,false,false,false,false];
+    for(var i=0;i<5;i++){(function(index){
+      var button=document.createElement("button");button.type="button";
+      var rolling=diceRollAnimating&&held[index]!==true;
+      var settling=!rolling&&held[index]!==true&&diceSettleUntil>Date.now()&&diceSettleMask[index]===true;
+      button.className="poker-die"+(held[index]===true?" held":"")+(rolling?" rolling":"")+(settling?" settling":"");
+      button.style.setProperty("--die-delay",String(index*-55)+"ms");
+      button.disabled=d.finalized===true||window.__combatDiceBusy||window.__combatFeedbackBusy;
+      button.setAttribute("aria-pressed",held[index]===true?"true":"false");
+      var shadow=document.createElement("span");shadow.className="poker-die-shadow";shadow.setAttribute("aria-hidden","true");button.appendChild(shadow);
+      var seal=document.createElement("span");seal.className="poker-die-hold-seal";seal.textContent="GIỮ";seal.setAttribute("aria-hidden","true");button.appendChild(seal);
+      var object=document.createElement("span");object.className="poker-die-object";button.appendChild(object);
+      var value=Number(values[index])||0,visualValue=value>=1&&value<=6?value:(rolling?(index%6)+1:0);
+      button.setAttribute("aria-label","Xúc xắc "+String(index+1)+(value>=1&&value<=6?" · "+String(value):"")+(held[index]===true?" · Đang giữ":""));
+      if(visualValue>=1&&visualValue<=6){
+        var img=document.createElement("img");img.className="poker-die-skin";img.src=diceAsset(visualValue);img.alt="";img.setAttribute("aria-hidden","true");object.appendChild(img);
+      }else{
+        var blank=document.createElement("span");blank.className="poker-die-unknown";blank.textContent="?";object.appendChild(blank);
+      }
+      button.addEventListener("click",function(){
+        if(window.__combatDiceBusy||window.__combatFeedbackBusy||d.finalized===true||!window.Android||typeof Android.combatDiceHold!=="function")return;
+        setBusy(true);renderDice();Android.combatDiceHold(JSON.stringify(state),index,held[index]!==true);
+      });
+      row.appendChild(button);
+    })(i)}
+    hand.textContent=handLabel(d.hand);
+    roll.textContent="ROLL";finish.textContent="FINISH";
+    roll.disabled=window.__combatDiceBusy||window.__combatFeedbackBusy||d.finalized===true||rerolls>=maxRerolls||allHeld(held);
+    finish.disabled=window.__combatDiceBusy||window.__combatFeedbackBusy||d.finalized===true;
+  }
+
+  function clearDiceTimers(){
+    if(diceSettleTimer){clearTimeout(diceSettleTimer);diceSettleTimer=0}
+    if(finalizeTimer){clearTimeout(finalizeTimer);finalizeTimer=0}
+    diceSettleUntil=0;diceSettleMask=[false,false,false,false,false];
+  }
+  function scheduleDirectResolve(d){
+    if(!d||d.finalized!==true||window.__directCombatResolving)return;
+    var key=String(d.hand||"")+":"+String(d.rerollsUsed||0)+":"+String(state&&state.combat&&state.combat.encounterId||"");
+    if(finalizeKey===key&&finalizeTimer)return;
+    if(finalizeTimer)clearTimeout(finalizeTimer);
+    finalizeKey=key;
+    if(statusEl)statusEl.textContent="Đã chốt "+handLabel(d.hand)+".";
+    finalizeTimer=setTimeout(function(){
+      finalizeTimer=0;
+      if(!combatActive()||window.__directCombatResolving)return;
+      var current=dice();if(!current||current.finalized!==true)return;
+      window.__directCombatResolving=true;setBusy(true);
+      if(statusEl)statusEl.textContent="Đang giải quyết combat…";
+      Android.submitAction(JSON.stringify(state),"EXECUTE",DIRECT_COMBAT_ACTION);
+    },FINALIZE_PREVIEW_MS);
+  }
+  function ensureDirectCombatDice(){
+    mountNearSnapshot();
+    if(!combatActive()){
+      window.__directCombatPreparing=false;window.__directCombatResolving=false;clearDiceTimers();hide();
+      if(typeof busy!=="undefined")busy=false;
+      if(typeof window.renderCombatActionBar==="function")window.renderCombatActionBar();
+      return;
+    }
+    show();
+    var d=dice();
+    if(d){
+      window.__directCombatPreparing=false;window.__combatDiceBusy=false;renderDice();
+      if(typeof busy!=="undefined")busy=true;
+      if(d.finalized===true){scheduleDirectResolve(d);return}
+      if(statusEl)statusEl.textContent="Poker Dice · "+handLabel(d.hand);
+      return;
+    }
+    if(window.__directCombatPreparing||window.__directCombatResolving)return;
+    if(!window.Android||typeof Android.combatDicePrepare!=="function"){
+      if(statusEl)statusEl.textContent="Không tìm thấy Poker Dice bridge.";
+      return;
+    }
+    window.__directCombatPreparing=true;setBusy(true);renderDice();
+    if(statusEl)statusEl.textContent="Đang vào combat…";
+    Android.combatDicePrepare(JSON.stringify(state),DIRECT_COMBAT_ACTION);
+  }
+  window.ensureDirectCombatDice=ensureDirectCombatDice;
+
+  roll.addEventListener("click",function(){
+    if(window.__combatDiceBusy||window.__combatFeedbackBusy||!window.Android||typeof Android.combatDiceRoll!=="function")return;
+    window.__combatDiceRolling=true;diceRollAnimating=true;diceRollStartedAt=Date.now();++diceRollToken;
+    setBusy(true);renderDice();Android.combatDiceRoll(JSON.stringify(state));
+  });
+  finish.addEventListener("click",function(){
+    if(window.__combatDiceBusy||window.__combatFeedbackBusy||!window.Android||typeof Android.combatDiceFinish!=="function")return;
+    submitAfterFinalize=true;setBusy(true);Android.combatDiceFinish(JSON.stringify(state));
+  });
+  window.backroomCombatDiceState=function(json){
+    try{
+      var nextState=JSON.parse(json);
+      var applyDiceState=function(){
+        var wasRolling=diceRollAnimating;
+        if(wasRolling){
+          var before=dice(),beforeHeld=before&&Array.isArray(before.held)?before.held:[false,false,false,false,false];
+          diceSettleMask=beforeHeld.map(function(v){return v!==true});
+          diceSettleUntil=Date.now()+DICE_SETTLE_ANIMATION_MS;
+          if(diceSettleTimer)clearTimeout(diceSettleTimer);
+          diceSettleTimer=setTimeout(function(){diceSettleTimer=0;diceSettleUntil=0;renderDice()},DICE_SETTLE_ANIMATION_MS+24);
+        }
+        diceRollAnimating=false;window.__combatDiceRolling=false;window.__directCombatPreparing=false;window.__combatDiceBusy=false;
+        state=nextState;show();renderDice();
+        var d=dice();
+        if(submitAfterFinalize&&d&&d.finalized===true){submitAfterFinalize=false;scheduleDirectResolve(d);return}
+        if(d&&d.finalized===true){scheduleDirectResolve(d);return}
+        if(typeof busy!=="undefined")busy=true;
+        if(statusEl)statusEl.textContent="Poker Dice · "+handLabel(d&&d.hand);
+        if(typeof window.renderCombatActionBar==="function")window.renderCombatActionBar();
+      };
+      if(diceRollAnimating){
+        var token=diceRollToken,wait=Math.max(0,DICE_ROLL_ANIMATION_MS-(Date.now()-diceRollStartedAt));
+        if(wait>0){setTimeout(function(){if(token===diceRollToken)applyDiceState()},wait);return}
+      }
+      applyDiceState();
+    }catch(_){window.backroomCombatDiceError("Poker Dice state không hợp lệ.")}
+  };
+  window.backroomCombatDiceError=function(message){
+    diceRollAnimating=false;window.__combatDiceBusy=false;window.__combatDiceRolling=false;window.__directCombatPreparing=false;window.__directCombatResolving=false;submitAfterFinalize=false;++diceRollToken;clearDiceTimers();
+    if(typeof busy!=="undefined")busy=combatActive();
+    if(statusEl)statusEl.textContent=String(message||"Poker Dice lỗi.");
+    renderDice();if(typeof window.renderCombatActionBar==="function")window.renderCombatActionBar();
+  };
+
+  function selectedCharacter(){
+    var view=document.getElementById("characterInventoryView"),id=view&&view.dataset.characterId||"cao_minh";
+    var members=state&&state.partyDetails&&Array.isArray(state.partyDetails.members)?state.partyDetails.members:[];
+    return members.find(function(m){return String(m&&m.id||"")===String(id)})||members[0]||{id:id};
+  }
+  function readCoreStats(id){
+    try{return window.Android&&typeof Android.coreStats==="function"?JSON.parse(Android.coreStats(JSON.stringify(state),id)):null}catch(_){return null}
+  }
+  function renderCorePanel(){
+    var host=document.getElementById("characterStatusList");if(!host)return;
+    var member=selectedCharacter(),id=String(member&&member.id||"cao_minh"),data=readCoreStats(id);if(!data||!data.stats)return;
+    var panel=document.getElementById("coreProgressionPanel");if(!panel){panel=document.createElement("section");panel.id="coreProgressionPanel";panel.className="core-progression-panel";host.appendChild(panel)}
+    panel.textContent="";
+    var head=document.createElement("div");head.className="core-progression-head";head.innerHTML="<b>CORE STATS</b><span class='core-balance'>Core "+Number(data.sharedCore||0)+"</span>";panel.appendChild(head);
+    ["STR","DEF","SKL","VIT"].forEach(function(key){
+      var s=data.stats[key]||{},line=document.createElement("div");line.className="core-progression-row";
+      var name=document.createElement("span");name.className="core-progression-stat";name.textContent=key;
+      var value=document.createElement("span");value.className="core-progression-value";value.textContent=String(s.value||5)+" · ×"+((Number(s.multiplierPercent||100)/100).toFixed(1))+" · next "+(s.nextCoreCost==null?"MAX":s.nextCoreCost+" Core");
+      var button=document.createElement("button");button.type="button";button.className="core-progression-upgrade";button.textContent="+1 ("+(s.nextCoreCost==null?"—":s.nextCoreCost)+")";
+      button.disabled=!!window.__coreUpgradeBusy||!!window.__combatBusy||(typeof busy!=="undefined"&&!!busy)||s.nextCoreCost==null||Number(data.sharedCore||0)<Number(s.nextCoreCost||0);
+      button.addEventListener("click",function(){
+        if(button.disabled||!window.Android||typeof Android.coreUpgrade!=="function")return;
+        window.__coreUpgradeBusy=true;renderCorePanel();Android.coreUpgrade(JSON.stringify(state),id,key);
+      });
+      line.appendChild(name);line.appendChild(value);line.appendChild(button);panel.appendChild(line);
+    });
+  }
+  window.backroomCoreUpgrade=function(payload){
+    window.__coreUpgradeBusy=false;
+    try{var result=JSON.parse(payload);if(result&&result.state)state=result.state;if(statusEl)statusEl.textContent=result&&result.handled?String(result.reply||"Đã nâng Core."):String(result&&result.error||"Không thể nâng Core.");}
+    catch(_){if(statusEl)statusEl.textContent="Core upgrade trả dữ liệu không hợp lệ."}
+    if(typeof window.render==="function")window.render();else renderCorePanel();
+  };
+
+  var previousRender=window.render;if(typeof previousRender==="function")window.render=function(){var result=previousRender.apply(this,arguments);renderCorePanel();ensureDirectCombatDice();return result};
+  var previousTurn=window.backroomTurn;if(typeof previousTurn==="function")window.backroomTurn=function(json){
+    var result=previousTurn.call(this,json);
+    diceRollAnimating=false;window.__combatDiceBusy=false;window.__combatDiceRolling=false;window.__directCombatPreparing=false;window.__directCombatResolving=false;submitAfterFinalize=false;++diceRollToken;clearDiceTimers();
+    renderCorePanel();
+    if(combatActive()){show();if(typeof busy!=="undefined")busy=true;ensureDirectCombatDice();}
+    else{hide();if(typeof busy!=="undefined")busy=false;if(typeof window.renderCombatActionBar==="function")window.renderCombatActionBar();}
+    return result;
+  };
+  renderCorePanel();ensureDirectCombatDice();
+})();
+</script>
+
+
+<script src="item-detail-actions.js"></script>
+<script src="combat-feedback-1193a.js"></script>
 </body>
 </html>

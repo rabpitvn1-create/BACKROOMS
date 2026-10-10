@@ -5,7 +5,7 @@ import org.junit.Test
 
 class GameStateCoreTest {
   private fun base(vararg characters: CharacterState): GameState {
-    val all = listOf(CharacterState(KAI_ID, "Kai Akechi")) + characters
+    val all = listOf(CharacterState(KAI_ID, "Cao Minh")) + characters
     return GameState.initial().copy(
       characters = all.associateBy { it.id },
       inventories = all.associate { it.id to InventoryState(it.id) },
@@ -103,8 +103,11 @@ class GameStateCoreTest {
     assertTrue("original-1" in state.omnivault.markedSourceIds)
 
     val copied = StateReducer.execute(state, OmnivaultCommand("copy", "TURN_1", KAI_ID, source = CommandSource.RULE, operation = OmnivaultCommand.Operation.COPY, itemId = "original-4", itemName = "Item 4", quantity = 2))
-    assertEquals(3, copied.state.inventories.getValue(KAI_ID).items.getValue("original-4").quantity)
-    assertEquals("2", copied.state.inventories.getValue(KAI_ID).items.getValue("original-4").metadata["omnivaultCopyCount"])
+    assertEquals(1, copied.state.inventories.getValue(KAI_ID).items.getValue("original-4").quantity)
+    val copyStack = copied.state.inventories.getValue(KAI_ID).items.values.single { ItemIdentity.isOmnivaultCopy(it) }
+    assertEquals(2, copyStack.quantity)
+    assertEquals("2", copyStack.metadata["omnivaultCopyCount"])
+    assertFalse(copyStack.itemId == "original-4")
   }
 
   @Test fun restoreIsNarrativeOnlyAndCannotMutateInventoryState() {

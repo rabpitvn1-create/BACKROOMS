@@ -94,7 +94,7 @@ object KnowledgeContextEngine {
         mutability = json.getString("mutability"),
         priority = json.optInt("priority", 80),
         tags = strings(json.optJSONArray("tags")),
-        references = strings(json.optJSONArray("references")),
+        references = rawStrings(json.optJSONArray("references")),
         affordances = strings(json.optJSONArray("affordances")),
         source = SourceRef(source.getString("document"), source.optString("anchor"))
       )
@@ -119,7 +119,7 @@ object KnowledgeContextEngine {
   ) {
     private val selected = linkedMapOf<String, Record>()
     private val reasons = linkedMapOf<String, String>()
-    private val presentActors = linkedSetOf("kai")
+    private val presentActors = linkedSetOf("cao_minh")
     private val actionText = normalize(action)
     private val sceneText = normalize(
       listOf(
@@ -215,15 +215,21 @@ object KnowledgeContextEngine {
         direct += "CHAR.KAI.DEVIL_TRIGGER"
         if ("syvial" in presentActors) direct += "CHAR.SYVIAL.DEVIL_TRIGGER"
       }
+      if (hasAny(actionText, "nói", "hỏi", "trả lời", "trò chuyện", "nói chuyện", "dialogue", "talk", "tell")) {
+        direct += "WRITING.DIALOGUE"
+      }
       direct.forEach { add(it, "direct structured lookup") }
 
-      // Exact entity/item terms use tag indexes, not semantic retrieval.
-      tokenizeTags(actionText).forEach { tag ->
-        db.tagIndex[tag].orEmpty().forEach { id ->
-          val r = db.records[id] ?: return@forEach
-          if (r.domain == "ENTITY" || r.domain == "ITEM") add(id, "explicit structured tag: $tag")
+      // Registry-driven exact tags. Adding a new Entity/Item record with tags makes it
+      // discoverable without adding a new prompt branch or hardcoded name here.
+      db.tagIndex.entries.asSequence()
+        .filter { (tag, _) -> tag.length >= 3 && actionText.contains(tag) }
+        .forEach { (tag, ids) ->
+          ids.forEach { id ->
+            val r = db.records[id] ?: return@forEach
+            if (r.domain == "ENTITY" || r.domain == "ITEM") add(id, "explicit structured tag: $tag")
+          }
         }
-      }
     }
 
     private fun addSceneAffordances() {
@@ -380,8 +386,7 @@ object KnowledgeContextEngine {
       if (flags == null) return false
       val iris = normalize(flags.optJSONObject("iris")?.optString("continuity", "").orEmpty())
       val syvial = normalize(flags.optJSONObject("syvial")?.optString("continuity", "").orEmpty())
-      return iris.contains("separated") || syvial.contains("separated") ||
-        (presentActors.size == 1 && state.optInt("turn", 1) <= 3)
+      return iris.contains("separated") || syvial.contains("separated")
     }
   }
 
@@ -395,6 +400,16 @@ object KnowledgeContextEngine {
   private fun compactArray(array: JSONArray, limit: Int): JSONArray {
     val out = JSONArray()
     for (i in 0 until minOf(array.length(), limit)) out.put(array.opt(i))
+    return out
+  }
+
+  private fun rawStrings(array: JSONArray?): Set<String> {
+    if (array == null) return emptySet()
+    val out = linkedSetOf<String>()
+    for (i in 0 until array.length()) {
+      val value = array.optString(i, "").trim()
+      if (value.isNotEmpty()) out += value
+    }
     return out
   }
 

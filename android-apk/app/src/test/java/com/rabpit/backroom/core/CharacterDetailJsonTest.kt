@@ -70,8 +70,8 @@ class CharacterDetailJsonTest {
 
   @Test fun uiJsonDoesNotExposeInventoryOrStatusInternalMetadata() {
     val member = CharacterDetailProjection(
-      id = "kai",
-      name = "Kai",
+      id = "cao_minh",
+      name = "Cao Minh",
       avatarRef = null,
       presence = CharacterPresence.ACTIVE,
       isLeader = true,
