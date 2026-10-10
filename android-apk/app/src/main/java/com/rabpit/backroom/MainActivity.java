@@ -1374,32 +1374,9 @@ public class MainActivity extends Activity {
     return item == null ? "" : String.valueOf(item);
   }
 
-  private boolean arrayHasName(JSONArray array, String name) {
-    if (array == null || name == null) return false;
-    String target = lower(name).trim();
-    for (int i = 0; i < array.length(); i++) if (lower(itemName(array.opt(i))).trim().equals(target)) return true;
-    return false;
-  }
-
   private JSONArray sanitizedInventory(JSONArray current, JSONArray proposed, JSONObject rolls, String action) throws Exception {
     // The GM is not an inventory authority. Only the Core handles earned loot and UI actions.
     return current == null ? new JSONArray() : new JSONArray(current.toString());
-  }
-
-  private JSONArray sanitizedParty(JSONArray current, JSONArray proposed, JSONObject rolls) throws Exception {
-    if (proposed == null) return current == null ? new JSONArray() : new JSONArray(current.toString());
-    JSONArray safe = current == null ? new JSONArray() : new JSONArray(current.toString());
-    for (int i = 0; i < proposed.length(); i++) {
-      Object member = proposed.opt(i);
-      String name = itemName(member);
-      if (arrayHasName(safe, name)) continue;
-      String lowered = lower(name);
-      boolean allowed = (lowered.contains("iris") && rollSuccess(rolls, "irisReunion")) ||
-        (lowered.contains("syvial") && rollSuccess(rolls, "syvialReunion")) ||
-        (!lowered.contains("iris") && !lowered.contains("syvial") && rollSuccess(rolls, "survivor"));
-      if (allowed) safe.put(member);
-    }
-    return safe;
   }
 
   private void mergeObjectDeep(JSONObject target, JSONObject patch) throws Exception {
