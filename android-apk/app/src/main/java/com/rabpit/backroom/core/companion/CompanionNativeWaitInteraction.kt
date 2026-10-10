@@ -63,7 +63,9 @@ internal class CompanionNativeWaitInteraction(
       "Legal targetIds: " + bound.scope.legalTargetIds.sorted() +
       ". MOVE phải chọn tuyến kế tiếp hợp lệ; SEARCH có thể không chọn target. " +
       "NONE và các intent không có writer native sẽ không được giả kết quả. " +
-      "Trả đúng JSON {\"intent\":\"SEARCH\",\"targetId\":null,\"itemId\":null} hoặc intent khác hợp lệ."
+      "Trả đúng JSON {\"intent\":\"SEARCH\",\"targetId\":null,\"itemId\":null} hoặc intent khác hợp lệ. " +
+      "Nếu TALK, bắt buộc chọn targetId của người đang hiện diện và viết utterance " +
+      "là câu Cao Minh THỰC SỰ nói (tối đa 240 byte UTF-8), không kể sự kiện chưa xảy ra."
     val lockedDecision = store.request(requestId)?.decision
     // A retry of a locked or reserved turn must NEVER ask the model to choose
     // again. Recover its exact persisted actor choice and original RNG tape.
@@ -74,8 +76,10 @@ internal class CompanionNativeWaitInteraction(
         val saved=JSONObject(lock.canonicalPayload)
         if (saved.optString("version") != CompanionNativeActionCapture.DECISION_VERSION)
           throw IOException("companion_unknown_lock_version")
-        CompanionWaitCapture.canonical(JSONObject().put("intent",saved.getString("intent"))
-          .put("targetId",saved.opt("target") ?: JSONObject.NULL))
+        val original=JSONObject().put("intent",saved.getString("intent"))
+          .put("targetId",saved.opt("target") ?: JSONObject.NULL)
+        if (saved.has("utterance")) original.put("utterance",saved.getString("utterance"))
+        CompanionWaitCapture.canonical(original)
       }
     }
     val raw = recovered ?: try { model.propose(prompt) } catch (error: Exception) {
@@ -86,6 +90,14 @@ internal class CompanionNativeWaitInteraction(
       throw IOException((selected as CompanionActorIntentGateway.Result.Rejected).reason)
     val intent = selected.selected.proposal.intent
     val target = selected.selected.proposal.targetId
+    // Speech is model-authored, canon-audited and then frozen in the native
+    // decision lock; no GM narration or WebView string becomes an actor quote.
+    val spoken = if (intent == DecisionPreflight.Intent.TALK)
+      JSONObject(raw).optString("utterance").takeIf {
+        it.isNotBlank() && it.toByteArray(StandardCharsets.UTF_8).size <= 240 &&
+          it.none { c -> c.isISOControl() }
+      } ?: throw IOException("actor_talk_utterance_missing")
+    else null
     if (intent !in setOf(DecisionPreflight.Intent.WAIT,
         DecisionPreflight.Intent.SEARCH,DecisionPreflight.Intent.MOVE,
         DecisionPreflight.Intent.INSPECT,DecisionPreflight.Intent.TALK))
@@ -100,7 +112,7 @@ internal class CompanionNativeWaitInteraction(
       "companion_decision.v1|cao_minh|WAIT|" + bound.revision +
         "|30|" + location.toByteArray(StandardCharsets.UTF_8).size + ":" + location
     else CompanionNativeActionCapture.lockPayload(
-      intent,target,bound.revision,bound.scope.sceneId,bound.snapshot)
+      intent,target,bound.revision,bound.scope.sceneId,bound.snapshot,spoken)
     val ledger = object: CharacterDecisionOrchestrator.DecisionLedger {
       override fun get(bindingDigest: String): CharacterDecisionOrchestrator.Decided? {
         val turn = store.request(requestId) ?: return null
