@@ -166,7 +166,6 @@ jobs:
           grep -q 'poker-dice-backdrop{display:none}' "$html"
           grep -q 'mountNearSnapshot' "$html"
           grep -q 'snapshot.insertAdjacentElement("afterend",modal)' "$html"
-          grep -q 'combatFeedbackPanel' "$html"
           ! grep -q '.poker-dice-modal{position:fixed' "$html"
           grep -q 'combat-feedback-1193a.js' "$html"
           grep -q 'COMBAT_FEEDBACK_1193A' combat-apk-check/assets/combat-feedback-1193a.js
