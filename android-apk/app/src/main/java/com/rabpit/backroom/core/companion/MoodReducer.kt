@@ -36,6 +36,8 @@ internal object MoodReducer {
 
   /** MR01: eligible immediate danger -> WORRIED, expiry = turn+1. */
   fun reduceDanger(input: DangerInput): Result {
+    require(input.prior.ruleVersion == BrainContracts.RULE_VERSION) { "brain_rule_unsupported" }
+    require(input.coreTurn >= 0 && input.coreTurn < Long.MAX_VALUE) { "mood_turn_invalid" }
     require(input.actorId == input.prior.actorId) { "mood_cross_actor" }
     require(input.eventId.isNotBlank()) { "mood_event_missing" }
     val salience = BrainContracts.SalienceMap.salienceOf(input.eventType)
@@ -43,8 +45,10 @@ internal object MoodReducer {
       return Result(input.prior, emptyList())  // ORDINARY emits no mood change
     }
     val current = input.prior.mood
+    if (current.cause == input.eventId) return Result(input.prior,emptyList())
+    require(current.triggeredTurn == null || input.coreTurn >= current.triggeredTurn) { "mood_stale_trigger" }
     val next = MoodState(MoodState.Mood.WORRIED, cause = input.eventId,
-      expiryTurn = input.coreTurn + 1)
+      expiryTurn = input.coreTurn + 1, triggeredTurn = input.coreTurn)
     if (current == next) return Result(input.prior, emptyList())  // idempotent
     val delta = BrainDelta(
       ruleId = "MR01", ruleVersion = BrainContracts.RULE_VERSION,
@@ -55,6 +59,8 @@ internal object MoodReducer {
 
   /** MR02: turn reaches expiry with no newer trigger -> UNSET, cause retained. */
   fun reduceExpire(prior: BrainState, coreTurn: Long): Result {
+    require(prior.ruleVersion == BrainContracts.RULE_VERSION) { "brain_rule_unsupported" }
+    require(coreTurn >= 0) { "mood_turn_invalid" }
     val current = prior.mood
     if (current.mood != MoodState.Mood.WORRIED) return Result(prior, emptyList())
     val expiry = current.expiryTurn ?: return Result(prior, emptyList())

@@ -1,0 +1,218 @@
+name: Companion Native Audit 517
+
+on:
+  pull_request:
+    branches: [fix/companion-belief-ledger-506]
+    paths:
+      - ".github/workflows/companion-native-audit-517.yml"
+      - "android-apk/run-companion-native-audit.py"
+      - "android-apk/companion-qualification-gate.py"
+      - "android-apk/app/src/main/java/com/rabpit/backroom/core/companion/**"
+      - "android-apk/app/src/androidTest/java/com/rabpit/backroom/core/companion/**"
+      - "android-apk/run-companion-storage-smoke.py"
+      - "android-apk/run-companion-backend-benchmark.py"
+      - "android-apk/app/src/test/java/com/rabpit/backroom/core/companion/**"
+      - "android-apk/app/src/main/java/com/rabpit/backroom/core/CompanionCombatRngBridge.java"
+      - "android-apk/app/src/test/java/com/rabpit/backroom/core/CompanionCombatRngBridgeTest.java"
+      - "android-apk/app/src/main/java/com/rabpit/backroom/core/ExitStreakEngine.kt"
+      - "android-apk/app/src/main/java/com/rabpit/backroom/core/progression/FeaturedJourneyRoutes.kt"
+      - "android-apk/patch-*.py"
+      - "android-apk/apply-release-patch-chain.py"
+
+permissions:
+  contents: read
+
+jobs:
+  exact-head-native-wait:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+      - name: Pin exact PR HEAD, not synthetic merge commit
+        env:
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$PR_HEAD"
+          mkdir -p evidence
+          printf 'PR_HEAD=%s\nCHECKED_OUT_SHA=%s\n' "$PR_HEAD" "$(git rev-parse HEAD)" > evidence/provenance.txt
+      - name: Authoritative 46-patch chain
+        run: |
+          set -euo pipefail
+          python3 android-apk/apply-release-patch-chain.py 2>&1 | tee evidence/patch-chain.log
+          grep -F "Applied 46 authoritative top-level patches" evidence/patch-chain.log
+      - name: Export generated source parity and provenance
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,json,shutil
+          root=Path("android-apk/app/src/main/java/com/rabpit/backroom")
+          paths=[root/"MainActivity.java",root/"core/GameCoreFacade.kt",
+            root/"core/ExitStreakEngine.kt",root/"core/companion/CompanionWaitAuthorizer.kt",
+            root/"core/companion/CompanionRollTape.kt",root/"core/companion/CompanionWaitCapture.kt",
+            root/"core/companion/CompanionNativeGameplayRolls.java",root/"core/companion/CompanionWaitStage.kt",
+            root/"core/CompanionCombatRngBridge.java",root/"core/CombatChoiceEngine.java",
+            Path("android-apk/app/src/main/assets/index.html")]
+          evidence=Path("evidence"); target=evidence/"generated-source";target.mkdir(exist_ok=True)
+          hashes={}
+          for p in paths:
+            hashes[str(p)]=hashlib.sha256(p.read_bytes()).hexdigest()
+            shutil.copy2(p,target/p.name)
+          baselines={
+            "android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java":"799f035d4613f22623bae0c166f0ab06f70356728d4fcdf8b0dcf01e569ddcf7",
+            "android-apk/app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt":"16dd6e9944d64de5176ce7ae2e00eddfc99882910310a604503ca2a0e916a253",
+            "android-apk/app/src/main/assets/index.html":"65d1c917cc1bb493d761ce58bf15a8a46f90a4abd00ae7d743afacc70bc32240"
+          }
+          mismatch=[p for p,v in baselines.items() if hashes[p]!=v]
+          (evidence/"generated-source-hashes.json").write_text(json.dumps({"hashes":hashes,"g0_mismatches":mismatch},indent=2))
+          if mismatch:raise SystemExit("G0 generated source drift: "+str(mismatch))
+          PY
+      - name: Run full Core unit test suite and debug APK
+        run: gradle -p android-apk :app:testDebugUnitTest :app:assembleDebug --no-daemon
+      - name: Export WAIT fixture report
+        if: always()
+        run: |
+          mkdir -p evidence/junit
+          find android-apk/app/build/test-results/testDebugUnitTest -name '*.xml' -type f -exec cp -t evidence/junit {} + || true
+          python3 - <<'PY'
+          import glob,json,xml.etree.ElementTree as ET
+          fixtures=[]
+          draw_outcomes=[]
+          for p in glob.glob("evidence/junit/*WaitAuthorizerTest*.xml"):
+            root=ET.parse(p).getroot()
+            for c in root.findall("testcase"):
+              fixtures.append({"name":c.get("name"),"passed":c.find("failure") is None and c.find("error") is None})
+            for node in root.iter("system-out"):
+              for line in (node.text or "").splitlines():
+                if line.startswith("WAIT485_OBSERVED="):
+                  draw_outcomes.append(json.loads(line.split("=",1)[1]))
+          with open("evidence/wait-fixture-report.json","w") as f:
+            json.dump({"count":len(fixtures),"fixtures":fixtures},f,indent=2)
+          with open("evidence/native-draw-outcome-fixtures.json","w") as f:
+            json.dump({"count":len(draw_outcomes),"observed":draw_outcomes},f,indent=2,ensure_ascii=False)
+          print("WAIT485_NATIVE_FIXTURE_COUNT",len(draw_outcomes))
+          capture_reports=glob.glob("evidence/junit/*WaitCaptureTest*.xml")
+          if len(capture_reports)!=1:
+            raise SystemExit("Full native WAIT capture report missing")
+          capture_root=ET.parse(capture_reports[0]).getroot()
+          capture_cases=capture_root.findall("testcase")
+          if len(capture_cases)!=6 or any(c.find("failure") is not None or c.find("error") is not None for c in capture_cases):
+            raise SystemExit("Full native WAIT capture suite incomplete or failing")
+          print("WAIT_FULL_CAPTURE_TEST_COUNT",len(capture_cases))
+          batch_reports=glob.glob("evidence/junit/*WaitBatchTest*.xml")
+          if len(batch_reports)!=1:
+            raise SystemExit("Native WAIT batch report missing")
+          batch_cases=ET.parse(batch_reports[0]).getroot().findall("testcase")
+          if len(batch_cases)!=10 or any(c.find("failure") is not None or c.find("error") is not None for c in batch_cases):
+            raise SystemExit("Native WAIT batch suite incomplete or failing")
+          print("WAIT_NATIVE_BATCH_TEST_COUNT",len(batch_cases))
+          persona_reports=glob.glob("evidence/junit/*CompanionCanonPersonaRegistryTest*.xml")
+          if len(persona_reports)!=1:raise SystemExit("missing canon persona regression report")
+          persona_cases=ET.parse(persona_reports[0]).getroot().findall("testcase")
+          if len(persona_cases)!=8 or any(c.find("failure") is not None or c.find("error") is not None for c in persona_cases):
+            raise SystemExit("canon persona regression incomplete")
+          print("COMPANION_CANON_PERSONA_TEST_COUNT",len(persona_cases))
+          exposure_reports=glob.glob("evidence/junit/*CompanionExposurePolicyTest*.xml")
+          if len(exposure_reports)!=1:raise SystemExit("missing exposure policy regression report")
+          exposure_cases=ET.parse(exposure_reports[0]).getroot().findall("testcase")
+          if len(exposure_cases)!=10 or any(c.find("failure") is not None or c.find("error") is not None for c in exposure_cases):
+            raise SystemExit("exposure policy regression incomplete")
+          print("COMPANION_EXPOSURE_POLICY_TEST_COUNT",len(exposure_cases))
+          digest_reports=glob.glob("evidence/junit/*CompanionDigestsTest*.xml")
+          if len(digest_reports)!=1:raise SystemExit("missing digest regression report")
+          digest_cases=ET.parse(digest_reports[0]).getroot().findall("testcase")
+          if len(digest_cases)!=3 or any(c.find("failure") is not None or c.find("error") is not None for c in digest_cases):
+            raise SystemExit("digest regression incomplete")
+          print("COMPANION_DIGEST_TEST_COUNT",len(digest_cases))
+          bridge_reports=glob.glob("evidence/junit/*CompanionCombatRngBridgeTest*.xml")
+          if len(bridge_reports)!=1:
+            raise SystemExit("Native combat bridge report missing")
+          bridge_cases=ET.parse(bridge_reports[0]).getroot().findall("testcase")
+          if len(bridge_cases)!=3 or any(c.find("failure") is not None or c.find("error") is not None for c in bridge_cases):
+            raise SystemExit("Native combat bridge suite incomplete or failing")
+          print("COMBAT_NATIVE_CAPTURE_TEST_COUNT",len(bridge_cases))
+          if len(fixtures)!=12 or any(not item["passed"] for item in fixtures):
+            raise SystemExit("WAIT485 regression suite incomplete or failing")
+          if len(draw_outcomes)!=11:
+            raise SystemExit("WAIT485 native roll/outcome capture incomplete")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-audit-517-exact-head-source-and-fixtures
+          path: |
+            evidence/
+            android-apk/app/build/reports/companion-native-roll-extraction/
+          retention-days: 30
+          if-no-files-found: warn
+
+  sqlite-and-crash:
+    needs: exact-head-native-wait
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [24,35]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+      - name: Verify exact SHA and reproduce authoritative chain
+        env:
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$PR_HEAD"
+          python3 android-apk/apply-release-patch-chain.py
+      - name: Build real storage instrumentation APKs
+        run: gradle -p android-apk -PcompanionStorageSmoke :app:assembleDebug :app:assembleDebugAndroidTest --no-daemon
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Real SQLite storage and fresh-process crash recovery
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
+          script: |
+            python3 android-apk/run-companion-storage-smoke.py ${{ matrix.api }}
+            python3 android-apk/run-companion-native-audit.py --api ${{ matrix.api }} --apk android-apk/app/build/outputs/apk/debug/app-debug.apk --test-apk android-apk/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk --output android-apk/app/build/reports/companion-storage/native-audit-api-${{ matrix.api }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-audit-517-sqlite-api-${{ matrix.api }}
+          path: android-apk/app/build/reports/companion-storage/
+          retention-days: 30
+          if-no-files-found: warn
+
