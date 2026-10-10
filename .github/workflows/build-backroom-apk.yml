@@ -426,6 +426,20 @@ jobs:
           test -s apk-check/assets/dice/roll-3d.png
           test -s apk-check/assets/dice/level0-wallpaper.svg
 
+      - name: Materialize tested runtime source once
+        if: github.ref == 'refs/heads/main'
+        run: |
+          set -euo pipefail
+          if test -f android-apk/.materialize-runtime-once; then
+            git add -A android-apk/app
+            if ! git diff --cached --quiet; then
+              git commit -m "Materialize tested gameplay runtime [skip ci]"
+              git fetch origin main
+              git rebase origin/main
+              git push origin HEAD:main
+            fi
+          fi
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
