@@ -431,7 +431,7 @@ jobs:
         run: |
           set -euo pipefail
           if test -f android-apk/.materialize-runtime-once; then
-            git add -A android-apk/app
+            git add -A android-apk/app/src android-apk/app/build.gradle
             if ! git diff --cached --quiet; then
               git commit -m "Materialize tested gameplay runtime [skip ci]"
               git push origin HEAD:main
