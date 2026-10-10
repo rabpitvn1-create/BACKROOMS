@@ -16,7 +16,7 @@ import org.json.JSONObject
  * sensory proof. Certainty answers "how well was this perceived", never "is the
  * proposition true" (claim stance lives on the Claim, Rule Table V1 §2).
  */
-internal class ObservationCandidate(
+internal data class ObservationCandidate(
   val observationId: String,
   val ownerActorId: String,
   val sourceEventId: String,
@@ -27,12 +27,8 @@ internal class ObservationCandidate(
   val revision: Long,
   val sceneId: String,
   val policyVersion: String,
-  publicPayload: JSONObject
+  val publicPayload: JSONObject
 ) {
-  val publicPayloadJson = CompanionWaitCapture.canonical(publicPayload)
-  /** Defensive copy: callers cannot change the committed candidate's payload. */
-  val publicPayload: JSONObject get() = JSONObject(publicPayloadJson)
-
   enum class AccessKind { SEEN, HEARD }
   /** Observation certainty per Technical Design V1 SQL specimen; never UNKNOWN. */
   enum class Certainty { CERTAIN, PLAUSIBLE, UNCERTAIN }

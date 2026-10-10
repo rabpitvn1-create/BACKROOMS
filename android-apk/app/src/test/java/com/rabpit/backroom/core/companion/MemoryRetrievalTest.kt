@@ -22,7 +22,7 @@ class MemoryRetrievalTest {
   }
 
   @Test fun correctionChainResolvesToLatest() {
-    val all = listOf(view("m1"), view("m2", rev=2,supersedes = "m1"))
+    val all = listOf(view("m1"), view("m2", supersedes = "m1"))
     val p = MemoryRetrieval.retrieve(all, Query("s", "cao_minh"))
     assertEquals(listOf("m2"), p.entries.map { it.memoryId })
   }
@@ -76,6 +76,46 @@ class MemoryRetrievalTest {
     val full = MemoryRetrieval.retrieve(all, Query("s", "cao_minh", maxChars = 100000))
     assertEquals(10, full.entries.size)
     assertFalse(full.truncated)
+  }
+
+  @Test fun zeroAndUndersizedBudgetsReturnNoEntry() {
+    val all = listOf(view("m1"))
+    for (limit in listOf(0, 1, 72)) {
+      val p = MemoryRetrieval.retrieve(all, Query("s", "cao_minh", maxChars = limit))
+      assertTrue(p.entries.isEmpty())
+      assertTrue(p.truncated)
+    }
+    val fits = MemoryRetrieval.retrieve(all, Query("s", "cao_minh", maxChars = 74))
+    assertEquals(1, fits.entries.size)
+    assertFalse(fits.truncated)
+    assertEquals(1, all.size)
+  }
+
+  @Test fun negativeBudgetRejected() {
+    try {
+      MemoryRetrieval.retrieve(listOf(view("m1")), Query("s", "cao_minh", maxChars = -1))
+      fail("expected memory_packet_budget_invalid")
+    } catch (e: IllegalArgumentException) {
+      assertEquals("memory_packet_budget_invalid", e.message)
+    }
+  }
+
+  @Test fun oldEpisodeRefRanksLatestCorrection() {
+    val all = listOf(view("m1", rev = 1), view("m2", rev = 2, supersedes = "m1"),
+      view("m3", rev = 3), view("m4", rev = 4, supersedes = "m2"))
+    val p = MemoryRetrieval.retrieve(all, Query("s", "cao_minh", episodeRefs = setOf("m1")))
+    assertEquals(listOf("m4", "m3"), p.entries.map { it.memoryId })
+    assertEquals("m2", p.entries.first().supersedesMemoryId)
+  }
+
+  @Test fun earlyEventSurvives300MemoryPacketAndReload() {
+    val all = (1..300).map { view("m$it", rev = it.toLong()) }
+    val q = Query("s", "cao_minh", episodeRefs = setOf("m1"), maxChars = 150)
+    val first = MemoryRetrieval.retrieve(all, q)
+    assertEquals("m1", first.entries.first().memoryId)
+    assertTrue(first.truncated)
+    val reloaded = MemoryRetrieval.retrieve(all.reversed(), q)
+    assertEquals(first, reloaded)
   }
 
   @Test fun provenancePreserved() {
