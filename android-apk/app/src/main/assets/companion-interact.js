@@ -22,7 +22,9 @@
   css.textContent =
     "body.companion-mode #playerActionBar,body.companion-mode #playerActionModal," +
     "body.companion-mode #primaryActionRow,body.companion-mode #searchActionButton," +
-    "body.companion-mode #exploreActionButton,body.companion-mode #submit{" +
+    "body.companion-mode #exploreActionButton,body.companion-mode #submit," +
+    "body.companion-mode #form,body.companion-mode #snapshot," +
+    "body.companion-mode .side,body.companion-mode #status{" +
     "display:none!important}" +
     "#companionDock{position:fixed;left:0;right:0;bottom:0;z-index:170;" +
     "background:#0c1219;border-top:1px solid #5c6d80;padding:10px 12px " +
@@ -140,6 +142,7 @@
     button.disabled = false;
     start.disabled = false;
     if (el("turn")) text(el("turn"), data.turn);
+    if (el("title")) text(el("title"), data.location || data.stop);
     if (el("location")) text(el("location"), data.location);
     statusText("Revision native " + data.revision +
       (committed ? " | Lượt đã commit vào SQLite." : " | Chưa có lượt mới."));
