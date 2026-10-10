@@ -88,12 +88,13 @@ test('freed lanes are reused without colliding with surviving floats',()=>{
  const r=boot();for(let i=0;i<3;i++)r.event({target:'entity',text:'-1 HP'});r.box.children[0].listeners.animationend();r.event({target:'entity',text:'-2 HP'});
  assert.equal(new Set(r.box.children.map(n=>n.style.top)).size,3);
 });
-test('overflow queues instead of clipping and restores Poker Dice after the last float',()=>{
+test('overflow queues without hiding Poker Dice and resyncs it when feedback starts and ends',()=>{
  const r=boot();let resumed=0;r.scope.ensureDirectCombatDice=()=>resumed++;
  r.turn(Array.from({length:4},()=>({target:'entity',text:'-1 HP',phase:'actor'})));
  assert.equal(r.scope.__combatFeedbackBusy,true);r.timers.find(t=>t.ms===150).fn();r.timers.find(t=>t.ms===300).fn();assert.equal(r.box.children.length,3);
  r.timers.filter(t=>t.ms===1800).slice(0,2).forEach(t=>t.fn());assert.equal(r.box.children.length,3);assert.equal(new Set(r.box.children.map(n=>n.style.top)).size,3);
- assert.ok(r.box.children.every(n=>parseFloat(n.style.top)>=0));r.timers.find(t=>t.ms===3600).fn();assert.equal(r.scope.__combatFeedbackBusy,false);assert.equal(resumed,1);
+ assert.ok(r.box.children.every(n=>parseFloat(n.style.top)>=0));r.timers.find(t=>t.ms===3600).fn();assert.equal(r.scope.__combatFeedbackBusy,false);assert.equal(resumed,2);
+ assert.equal(script.includes('modal.hidden=true'),false);
 });
 
 test('combat panel is transient UI and never writes GM narrative state',()=>{
@@ -108,6 +109,16 @@ test('combat panel is transient UI and never writes GM narrative state',()=>{
  assert.ok(lines.some(x=>x.includes('PARTY → ENTITY · -36 HP · CRIT · CHẢY MÁU')));
  assert.equal(script.includes('state.log'),false);
  assert.equal(script.includes('localStorage'),false);
+});
+
+test('combat panel reanchors itself directly below Poker Dice on every update',()=>{
+ const r=boot();
+ const panel=r.panel();
+ r.root.insertBefore(panel,r.dice);
+ assert.equal(r.root.children[1],panel);
+ r.turn([{target:'entity',text:'-4 HP',phase:'actor'}],'enc:reanchor','enc',{active:true,encounterId:'enc',entityKey:'diep_minh',round:2});
+ assert.equal(r.root.children[1],r.dice);
+ assert.equal(r.root.children[2],panel);
 });
 
 test('combat panel renders the transient Combat Core summary without touching GM log',()=>{
