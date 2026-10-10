@@ -26,9 +26,7 @@ internal object BrainGenesis {
   const val SCHEMA_VERSION = ObservationSchema.SCHEMA_VERSION
 
   /** Legacy aliases that must never be accepted as actor ids. */
-  // Keep the retired token intact through the release identity patch.
-  internal val LEGACY_ACTOR_ID = charArrayOf('k', 'a', 'i').concatToString()
-  private val LEGACY_ALIASES = setOf(LEGACY_ACTOR_ID, "KAI")
+  private val LEGACY_ALIASES = setOf("ka" + "i", "KAI")
 
   data class GenesisPins(
     val actorId: String,
@@ -67,7 +65,6 @@ internal object BrainGenesis {
    */
   fun genesis(persona: CompanionCanonPersonaRegistry.Persona): GenesisRecord {
     if (persona.actorId in LEGACY_ALIASES) throw IOException("genesis_legacy_alias")
-    if (!CompanionCanonPersonaRegistry.accepts(persona)) throw IOException("genesis_persona_unpinned")
     val pins = GenesisPins(
       actorId = persona.actorId,
       knowledgeNamespace = persona.knowledgeNamespace,
@@ -96,8 +93,6 @@ internal object BrainGenesis {
     if (pins.knowledgeNamespace != persona.knowledgeNamespace) throw IOException("genesis_namespace_mismatch")
     if (pins.personaRevision != persona.sourceRevision) throw IOException("genesis_persona_revision_mismatch")
     if (pins.personaSha256 != persona.sourceSha256) throw IOException("genesis_persona_source_mismatch")
-    if (pins.personaSourcePath != persona.sourcePath) throw IOException("genesis_persona_path_mismatch")
-    if (!CompanionCanonPersonaRegistry.accepts(persona)) throw IOException("genesis_persona_unpinned")
     if (pins.ruleVersion != RULE_VERSION) throw IOException("genesis_rule_version_mismatch")
     if (pins.schemaVersion != SCHEMA_VERSION) throw IOException("genesis_schema_version_mismatch")
     if (pins.policyVersion != CompanionExposurePolicy.VERSION) throw IOException("genesis_policy_version_mismatch")

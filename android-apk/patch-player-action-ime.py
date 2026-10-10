@@ -159,3 +159,134 @@ print("Player Action modal now uses Android IME insets and visible-height-safe s
 # Must run LAST: retire legacy exit runtime after every prior Android patch.
 import runpy
 runpy.run_path(str(ROOT / "patch-exit-streak-integration.py"), run_name="__main__")
+
+
+# Keep the GM transport contract in the effective generated Android code.
+# This patch runs last, after provider matrix, authority checks and exit-streak bridge.
+GM_MARKER = "GM_TURN_FEEDBACK_R01"
+java = MAIN.read_text(encoding="utf-8")
+html = INDEX.read_text(encoding="utf-8")
+if GM_MARKER in java or 'src="gm-turn-feedback.js"' in html:
+    raise RuntimeError("GM turn feedback patch already applied")
+
+gm_schema_helper = """  // GM_TURN_FEEDBACK_R01: a 2xx provider response is not an accepted GM turn.
+  private String checkedGmResponse(String raw) throws Exception {
+    JSONObject response = parseModelJson(raw);
+    if (response.optString("reply", "").trim().isEmpty())
+      throw new Exception("Provider trả JSON nhưng không có lời kể GM.");
+    if (response.optJSONArray("ops") == null)
+      throw new Exception("Provider trả JSON thiếu mảng ops.");
+    return raw;
+  }
+
+"""
+java = replace_one(java,
+    "  private String generateText(String prompt) throws Exception {\n",
+    gm_schema_helper + "  private String generateText(String prompt) throws Exception {\n",
+    "GM response schema helper")
+java = replace_one(java,
+    "try { return gehihiText(prompt); } catch (Exception error) { gehihiFailure = error; }",
+    "try { return checkedGmResponse(gehihiText(prompt)); } catch (Exception error) { gehihiFailure = error; }",
+    "Gehihi response validation")
+java = replace_one(java,
+    "      String geminiResult = geminiText(prompt);",
+    "      String geminiResult = checkedGmResponse(geminiText(prompt));",
+    "Gemini response validation")
+java = replace_one(java,
+    "try { return hakuText(prompt); } catch (Exception error) { hakuFailure = error; }",
+    "try { return checkedGmResponse(hakuText(prompt)); } catch (Exception error) { hakuFailure = error; }",
+    "Haku response validation")
+java = replace_one(java,
+    "try { return solText(prompt); } catch (Exception solFailure) {",
+    "try { return checkedGmResponse(solText(prompt)); } catch (Exception solFailure) {",
+    "SOL response validation")
+
+# Provider failover must not hold the gameplay thread for several minutes
+# because the generic postJson() uses image-compatible 20s/60s timeouts.
+# The image path continues using postJson(); only textual GM providers are bounded.
+java = replace_one(java,
+    'openAiProviderText(postJson(base + "/chat/completions", BuildConfig.GEHIHI_API_KEY, "Authorization", openAiProviderBody(model, prompt)))',
+    'openAiProviderText(postJsonFast(base + "/chat/completions", BuildConfig.GEHIHI_API_KEY, "Authorization", openAiProviderBody(model, prompt)))',
+    "bounded Gehihi text transport")
+java = replace_one(java,
+    'openAiProviderText(postJson("https://api.vilao.ai/v1/chat/completions", BuildConfig.SOL_API_KEY, "Authorization", body))',
+    'openAiProviderText(postJsonFast("https://api.vilao.ai/v1/chat/completions", BuildConfig.SOL_API_KEY, "Authorization", body))',
+    "bounded SOL text transport")
+java = replace_one(java,
+    '    connection.setConnectTimeout(12000);\n    connection.setReadTimeout(30000);',
+    '    connection.setConnectTimeout(8000);\n    connection.setReadTimeout(20000);',
+    "bounded Haku transport")
+java = replace_one(java,
+    'geminiModelMatrixPolicy(prompt, new int[] {0, 1, 2}, -1, 1800, true, 120_000L)',
+    'geminiModelMatrixPolicy(prompt, new int[] {0, 1, 2}, -1, 1800, true, 75_000L)',
+    "bounded Gemini writer matrix")
+# This runs after the native injection defines/replaces backroomProvider.
+enhancement_start = java.index("  private void installUiEnhancements()")
+enhancement_end = java.index("\n  private boolean retryable(", enhancement_start)
+enhancement = java[enhancement_start:enhancement_end]
+enhancement = replace_one(enhancement,
+    '      "})();";',
+    '      "if(window.backroomWireGMFeedbackProvider)window.backroomWireGMFeedbackProvider();" +\n      "})();";',
+    "rewire feedback after Android enhancements")
+java = java[:enhancement_start] + enhancement + java[enhancement_end:]
+
+html = replace_one(html, "</body>",
+    '<script src="gm-turn-feedback.js"></script>\n</body>',
+    "GM feedback asset")
+for needle in (GM_MARKER, "checkedGmResponse(gehihiText(prompt))",
+               "checkedGmResponse(geminiText(prompt))",
+               "checkedGmResponse(hakuText(prompt))",
+               "checkedGmResponse(solText(prompt))",
+               "window.backroomWireGMFeedbackProvider"):
+    if needle not in java:
+        raise RuntimeError("Generated GM feedback marker missing: " + needle)
+if 'src="gm-turn-feedback.js"' not in html:
+    raise RuntimeError("Generated GM feedback script tag missing")
+MAIN.write_text(java, encoding="utf-8")
+INDEX.write_text(html, encoding="utf-8")
+print("GM feedback: provider response validation and bounded failover installed without touching save/Core.")
+
+
+# NEW GAME R01: the bundled Turn-1 HTML has the Level 0 scene, but the
+# legacy->Core migration previously discarded all level/progression fields.
+# Streak commits subsequently failed with "streak_missing_saved_level".
+# Only a true Turn-1 Level-0 opener may be bootstrapped; later/unknown levels
+# are not inferred from an untrusted UI claim.
+codec_path = ROOT / "app/src/main/java/com/rabpit/backroom/core/GameStateCodec.kt"
+codec = codec_path.read_text(encoding="utf-8")
+codec = replace_one(codec,
+    '      world = mapOf("title" to root.optString("title"), "location" to root.optString("location")),',
+    '      world = freshLevelZeroWorld(root, turnNumber),',
+    "New Game world genesis")
+codec = replace_one(codec,
+    'object LegacySaveMigration {\n  fun migrate(root: JSONObject): GameState {',
+    '''object LegacySaveMigration {
+  // Bootstrap only the packaged Level-0 New Game. Never synthesize a world
+  // route from arbitrary legacy levels or from a model-provided destination.
+  private fun freshLevelZeroWorld(root: JSONObject, turnNumber: Int): Map<String, String> {
+    val base = mapOf("title" to root.optString("title"), "location" to root.optString("location"))
+    if (turnNumber != 1 || root.optJSONObject("level")?.optInt("number", -1) != 0)
+      return base
+    val stop = "level-0"
+    val node = com.rabpit.backroom.core.progression.FeaturedJourneyRoutes.nodeIdAt(stop)
+      ?: return base
+    val level = JSONObject().put("number", 0).put("name", "The Lobby")
+      .put("stopKey", stop).put("nodeId", node)
+    val flags = JSONObject(root.optJSONObject("flags")?.toString() ?: "{}")
+    // No input or narrative roll may preload streak progress on New Game.
+    flags.put("exploration", JSONObject()
+      .put("exitStreakNode", stop).put("exitStreak", 0))
+    return base + mapOf(
+      "levelJson" to level.toString(),
+      "worldNodeId" to node,
+      "journeyStopKey" to stop,
+      "flagsJson" to flags.toString()
+    )
+  }
+
+  fun migrate(root: JSONObject): GameState {''',
+    "Level 0 Core-owned genesis helper")
+if "freshLevelZeroWorld(root, turnNumber)" not in codec:
+    raise RuntimeError("New Game Core genesis did not install")
+codec_path.write_text(codec, encoding="utf-8")
+print("New Game Turn-1 bootstrap now persists canonical Level 0 route and clean streak.")

@@ -34,7 +34,7 @@ import com.rabpit.backroom.core.companion.CompanionPendingTurn.Reservation;
  * Caller supplies a natively approved genesis snapshot, never model/UI state.
  */
 public final class CompanionSlotStore implements Closeable {
-  static final int FORMAT_VERSION = 6;
+  static final int FORMAT_VERSION = 2;
   static final int APPLICATION_ID = 0x43505331;
   private static final Object LEASE_LOCK = new Object();
   private static final Map<String, Lease> LEASES = new HashMap<>();
@@ -80,23 +80,13 @@ public final class CompanionSlotStore implements Closeable {
   }
 
   public static CompanionSlotStore create(Context context, byte[] approvedGenesis, String policyVersion) throws IOException {
-    return createIn(context.getDir("companion_slots_v6", Context.MODE_PRIVATE), approvedGenesis, policyVersion,
-        GenesisPinsStorage.verifiedRecords(context));
+    return createIn(context.getDir("companion_slots_v2", Context.MODE_PRIVATE), approvedGenesis, policyVersion);
   }
   public static CompanionSlotStore open(Context context, String slotId, String policyVersion) throws IOException {
-    List<BrainGenesis.GenesisRecord> pins = GenesisPinsStorage.verifiedRecords(context);
-    CompanionSlotStore store = openIn(context.getDir("companion_slots_v6", Context.MODE_PRIVATE), slotId, policyVersion);
-    try { store.transaction(() -> { GenesisPinsStorage.verify(store.database, store.slotId, pins); return null; });
-      return store;
-    } catch (IOException | RuntimeException error) { store.close(); throw error; }
+    return openIn(context.getDir("companion_slots_v2", Context.MODE_PRIVATE), slotId, policyVersion);
   }
 
-  /** Package-private fixture factory; production create(Context) always checks packaged canon bytes. */
   static CompanionSlotStore createIn(File directory, byte[] genesis, String policy) throws IOException {
-    return createIn(directory, genesis, policy, GenesisPinsStorage.fixtureRecords());
-  }
-  private static CompanionSlotStore createIn(File directory, byte[] genesis, String policy,
-      List<BrainGenesis.GenesisRecord> pins) throws IOException {
     if (genesis == null || genesis.length == 0 || genesis.length > 1048576) throw new IOException("genesis_size_invalid");
     if (policy == null || !policy.matches("[A-Za-z0-9][A-Za-z0-9._:-]{0,127}")) throw new IOException("policy_invalid");
     byte[] snapshot = genesis.clone();
@@ -114,16 +104,12 @@ public final class CompanionSlotStore implements Closeable {
       db.beginTransaction();
       try {
         verifyConfiguration(db);
-        db.execSQL("CREATE TABLE slot_meta(singleton INTEGER PRIMARY KEY CHECK(singleton=1),slot_id TEXT NOT NULL UNIQUE,format_version INTEGER NOT NULL CHECK(format_version=6),revision INTEGER NOT NULL CHECK(revision>=0),policy_version TEXT NOT NULL,genesis BLOB NOT NULL,genesis_digest TEXT NOT NULL,snapshot BLOB NOT NULL CHECK(length(snapshot)<=16777216),snapshot_digest TEXT NOT NULL)");
+        db.execSQL("CREATE TABLE slot_meta(singleton INTEGER PRIMARY KEY CHECK(singleton=1),slot_id TEXT NOT NULL UNIQUE,format_version INTEGER NOT NULL CHECK(format_version=2),revision INTEGER NOT NULL CHECK(revision>=0),policy_version TEXT NOT NULL,genesis BLOB NOT NULL,genesis_digest TEXT NOT NULL,snapshot BLOB NOT NULL CHECK(length(snapshot)<=16777216),snapshot_digest TEXT NOT NULL)");
         db.execSQL("CREATE TABLE turn_control(turn_id TEXT PRIMARY KEY,active_slot INTEGER NOT NULL CHECK(active_slot=1),expected_revision INTEGER NOT NULL CHECK(expected_revision>=0),phase TEXT NOT NULL CHECK(phase IN ('PREPARING','DECISION_LOCKED','RESERVED','SUSPENDED','REJECTED','COMMITTED')),record BLOB NOT NULL CHECK(length(record)<=1048576),committed_revision INTEGER UNIQUE,UNIQUE(turn_id,committed_revision),CHECK((phase='COMMITTED' AND committed_revision IS NOT NULL AND committed_revision=expected_revision+1) OR (phase!='COMMITTED' AND committed_revision IS NULL)))");
         db.execSQL("CREATE UNIQUE INDEX one_active_turn ON turn_control(active_slot) WHERE phase NOT IN ('REJECTED','COMMITTED')");
         db.execSQL("CREATE TABLE request_alias(request_id TEXT PRIMARY KEY,turn_id TEXT NOT NULL REFERENCES turn_control(turn_id))");
         db.execSQL("CREATE TABLE native_event(event_id TEXT PRIMARY KEY,turn_id TEXT NOT NULL,revision INTEGER NOT NULL CHECK(revision>0),ordinal INTEGER NOT NULL CHECK(ordinal>=0),type TEXT NOT NULL,record TEXT NOT NULL CHECK(length(record)<=131072),digest TEXT NOT NULL,UNIQUE(turn_id,ordinal),FOREIGN KEY(turn_id,revision) REFERENCES turn_control(turn_id,committed_revision) DEFERRABLE INITIALLY DEFERRED)");
         db.execSQL("CREATE INDEX event_by_revision ON native_event(revision,ordinal)");
-        for (String ddl : ObservationSchema.createStatements()) db.execSQL(ddl);
-        for (String ddl : BrainGenesisSchema.createStatements()) db.execSQL(ddl);
-        for (String ddl : EpisodicMemorySchema.createStatements()) db.execSQL(ddl);
-        for (String ddl : BrainDeltaSchema.createStatements()) db.execSQL(ddl);
         for (String table : new String[]{"native_event", "request_alias"}) {
           db.execSQL("CREATE TRIGGER " + table + "_no_update BEFORE UPDATE ON " + table + " BEGIN SELECT RAISE(ABORT,'immutable_record'); END");
           db.execSQL("CREATE TRIGGER " + table + "_no_delete BEFORE DELETE ON " + table + " BEGIN SELECT RAISE(ABORT,'immutable_record'); END");
@@ -135,7 +121,6 @@ public final class CompanionSlotStore implements Closeable {
         meta.put("revision", 0); meta.put("policy_version", policy); meta.put("genesis", snapshot);
         meta.put("genesis_digest", hash(snapshot)); meta.put("snapshot", snapshot); meta.put("snapshot_digest", hash(snapshot));
         db.insertOrThrow("slot_meta", null, meta);
-        GenesisPinsStorage.seed(db,id,pins);
         db.setVersion(FORMAT_VERSION); db.execSQL("PRAGMA application_id=" + APPLICATION_ID);
         db.setTransactionSuccessful();
       } finally { db.endTransaction(); }
@@ -268,34 +253,6 @@ public final class CompanionSlotStore implements Closeable {
       return java.util.Collections.unmodifiableList(rows);
     });
   }
-  /**
-   * Query only owner-visible records from this slot's native transaction.
-   * Each returned turn is receipt-verified before any public payload escapes.
-   */
-  public synchronized List<ObservationReader.Row> observations(String actorId, int limit) throws IOException {
-    return transaction(() -> {
-      List<ObservationReader.Row> rows =
-          ObservationStorageReader.read(database,slotId,actorId,revision(),limit);
-      Set<String> checked = new HashSet<>();
-      for (ObservationReader.Row row : rows) {
-        if (checked.add(row.getTurnId())) read(row.getTurnId());
-      }
-      return rows;
-    });
-  }
-
-  /** Full actor-private history; ranking/prompt budget is applied by MemoryRetrieval only. */
-  public synchronized List<MemoryRetrieval.MemoryView> memoryHistory(String actorId) throws IOException {
-    return transaction(() -> {
-      List<MemoryRetrieval.MemoryView> rows =
-          MemoryStorageReader.read(database,slotId,actorId,revision());
-      Set<String> checked = new HashSet<>();
-      for (MemoryRetrieval.MemoryView row : rows)
-        if (checked.add(row.getCreatedTurnId())) read(row.getCreatedTurnId());
-      return rows;
-    });
-  }
-
   /** Historical identity is checked before the current snapshot or any gameplay replay. */
   public synchronized CompanionPendingTurn.Receipt committedReceipt(Request request) throws IOException {
     return transaction(() -> receiptWithin(request));
@@ -335,16 +292,7 @@ public final class CompanionSlotStore implements Closeable {
         fault.at("after_snapshot_write");
         CompanionPendingTurn committed = view.turn.markCommitted(expectedRevision,
           batch.getDecisionDigest(), batch.getReservationDigest(), batch.getManifest(), batch.getFinalResult());
-        write(committed); fault.at("after_receipt_write");
-        // Without native sensory proof, the receipt must declare zero observations.
-        // The publisher shares the same Core/event/receipt writer transaction.
-        ObservationPublisher.publish(database, slotId, batch.getTurnId(), expectedRevision + 1,
-            java.util.Collections.emptyList(), point -> fault.at(point));
-        fault.at("after_observation_publish");
-        // No native-approved observations yet: no memories can be derived.
-        fault.at("after_memory_publish");
-        // No approved typed brain event source yet; ledger publication is empty.
-        fault.at("after_brain_publish"); verifyReceipt(committed);
+        write(committed); fault.at("after_receipt_write"); verifyReceipt(committed);
         return committed.receipt;
       });
       fault.at("after_durable_commit");
@@ -378,15 +326,6 @@ public final class CompanionSlotStore implements Closeable {
       while(c.moveToNext()) events.add(eventRow(c));
     }
     CompanionLedgerVerifier.verifyReceipt(slotId, policyVersion, revision(), turn, events);
-    // Reject any rows not backed by this WAIT receipt (currently an empty manifest).
-    String[] binding = new String[]{turn.turnId, Long.toString(turn.receipt.committedRevision)};
-    for (String table : new String[]{"actor_observation", "observation_manifest", "actor_memory", "memory_manifest", "actor_brain_delta", "brain_manifest"}) {
-      try (Cursor c = database.rawQuery("SELECT COUNT(*) FROM " + table +
-          " WHERE " + (table.equals("actor_observation") || table.equals("actor_memory") || table.equals("actor_brain_delta") ? "created_turn_id" : "turn_id") +
-          "=? AND committed_revision=?", binding)) {
-        if (!c.moveToFirst() || c.getLong(0) != 0) throw new IOException("observation_receipt_incomplete");
-      }
-    }
   }
   private void verifyHead(boolean decodeCore) throws IOException {
     byte[] snapshot=snapshotWithin(); long revision=revision();
@@ -492,21 +431,6 @@ public final class CompanionSlotStore implements Closeable {
     try (Cursor c = database.rawQuery("PRAGMA foreign_key_check", null)) {
       if (c.moveToFirst()) throw new IOException("database_foreign_key_failed");
     }
-    // No in-place migration. Refuse slots with missing schema or immutable provenance guards.
-    if (scalar("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name IN ('actor_observation','observation_manifest')") != 2 ||
-        scalar("SELECT COUNT(*) FROM sqlite_master WHERE type='trigger' AND name IN ('actor_observation_no_update','actor_observation_no_delete','observation_manifest_no_update','observation_manifest_no_delete')") != 4 ||
-        scalar("SELECT COUNT(*) FROM sqlite_master WHERE type='index' AND name='event_observation_binding'") != 1)
-      throw new IOException("observation_schema_incomplete");
-    if (scalar("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name IN ('genesis_pins','initial_brain')") != 2 ||
-        scalar("SELECT COUNT(*) FROM sqlite_master WHERE type='trigger' AND name IN ('genesis_pins_no_update','genesis_pins_no_delete','initial_brain_no_update','initial_brain_no_delete')") != 4)
-      throw new IOException("genesis_schema_incomplete");
-    GenesisPinsStorage.verify(database,slotId,GenesisPinsStorage.fixtureRecords());
-    if (scalar("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name IN ('actor_memory','memory_manifest')") != 2 ||
-        scalar("SELECT COUNT(*) FROM sqlite_master WHERE type='trigger' AND name IN ('actor_memory_no_update','actor_memory_no_delete','memory_manifest_no_update','memory_manifest_no_delete')") != 4)
-      throw new IOException("memory_schema_incomplete");
-    if (scalar("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name IN ('actor_brain_delta','brain_manifest')") != 2 ||
-        scalar("SELECT COUNT(*) FROM sqlite_master WHERE type='trigger' AND name IN ('actor_brain_delta_no_update','actor_brain_delta_no_delete','brain_manifest_no_update','brain_manifest_no_delete')") != 4)
-      throw new IOException("brain_delta_schema_incomplete");
     genesis(); snapshotWithin(); verifyChain(); verifyHead(true);
     try (Cursor c = database.rawQuery("SELECT turn_id FROM turn_control", null)) { while (c.moveToNext()) read(c.getString(0)); }
     return null;
@@ -570,10 +494,6 @@ public final class CompanionSlotStore implements Closeable {
 
   void faultForTest(Fault fault) { this.fault = fault; }
   File fileForTest() { return file; }
-  // SQLite logical row changes on the primary writer connection; not physical I/O.
-  synchronized long totalChangesForTest() throws IOException {
-    return transaction(() -> scalar("SELECT total_changes()"), false);
-  }
   @Override public void close() {
     synchronized (this) {
       if (closed) return;
@@ -629,4 +549,3 @@ public final class CompanionSlotStore implements Closeable {
     }
   }
 }
-

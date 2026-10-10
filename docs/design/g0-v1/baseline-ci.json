@@ -1,0 +1,153 @@
+{
+  "run_id": 37862035156,
+  "url": "https://github.com/rabpitvn1-create/BACKROOMS/actions/runs/37862035156",
+  "input_sha": "9aede06092b7e2ac3ebfe12ccbf5fcf166554941",
+  "inspected_main": "5450284ddc2acded7cc1cc54d3c035faff4ba4be",
+  "input_diff": [
+    "release-status/v1.1.63.0.6-running.txt",
+    "release-status/v1.1.63.0.6.txt"
+  ],
+  "runtime_workflow_input_parity": true,
+  "jobs": [
+    {
+      "id": 113599788300,
+      "name": "build-apk",
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Apply Android runtime patch chain",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Generate Canon P1 compiler shadow candidate",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13
+        },
+        {
+          "name": "Run Kotlin tests and build debug APK",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14
+        },
+        {
+          "name": "Verify Canon P0 snapshot report",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15
+        },
+        {
+          "name": "Upload Canon P0 characterization artifact",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 16
+        },
+        {
+          "name": "Generate Canon P1 schema lint shadow",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17
+        },
+        {
+          "name": "Verify Canon P1 schema lint shadow",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 18
+        },
+        {
+          "name": "Upload Canon P1 schema lint shadow artifact",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19
+        },
+        {
+          "name": "Verify Canon P1 compiler round-trip parity",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 20
+        },
+        {
+          "name": "Upload Canon P1 compiler round-trip artifact",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 21
+        },
+        {
+          "name": "Verify Canon P1 reference shadow report",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 22
+        },
+        {
+          "name": "Upload Canon P1 reference shadow artifact",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 23
+        },
+        {
+          "name": "Verify Canon P1 alias shadow report",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 24
+        },
+        {
+          "name": "Upload Canon P1 alias shadow artifact",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 25
+        },
+        {
+          "name": "Verify Canon P1 derived tier shadow report",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 26
+        },
+        {
+          "name": "Upload Canon P1 derived tier shadow artifact",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 27
+        },
+        {
+          "name": "Generate Canon P1 CandidateProvider decision report",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 28
+        },
+        {
+          "name": "Verify Canon P1 CandidateProvider decision gate",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 29
+        },
+        {
+          "name": "Upload Canon P1 CandidateProvider decision artifact",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 30
+        },
+        {
+          "name": "Verify Canon P0 Android serialization smoke (manual only)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 31
+        },
+        {
+          "name": "Verify packaged APK contracts",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 33
+        },
+        {
+          "name": "Verify packaged Novel Asset full-text canon",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 34
+        }
+      ]
+    }
+  ]
+}

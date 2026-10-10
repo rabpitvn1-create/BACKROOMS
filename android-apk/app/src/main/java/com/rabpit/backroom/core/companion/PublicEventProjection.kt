@@ -2,61 +2,51 @@ package com.rabpit.backroom.core.companion
 
 import org.json.JSONArray
 import org.json.JSONObject
-import java.nio.charset.StandardCharsets
 
-/** Strict field projection, never an event or observer authorization. */
+/**
+ * M1b.2 public event projection (issue #499; contract #498 §2b).
+ *
+ * Pure function: (native WAIT event type, native payload) -> character-visible
+ * JSONObject, or null to deny exposure. Implements the per-event/field whitelist:
+ * exposable fields pass through; GM-private / system / unclassified content is
+ * redacted or denied. Unsupported event types -> null (deny).
+ *
+ * This is the "native verified projection": eligibility (who may perceive) still
+ * comes from CompanionExposurePolicy; this decides WHAT may be perceived.
+ */
 internal object PublicEventProjection {
-  fun project(eventType: String, payload: JSONObject): JSONObject? {
-    if (CompanionWaitCapture.canonical(payload).toByteArray(StandardCharsets.UTF_8).size>131072) return null
-    return when(eventType) {
-      "WAIT_COMPLETED" -> {
-        val actor=text(payload,"actor") ?: return null
-        val minutes=integer(payload,"minutes")?.takeIf { it>0 } ?: return null
-        val location=text(payload,"location") ?: return null
-        val elapsed=integer(payload,"elapsedMinutes")?.takeIf { it>=0 } ?: return null
-        JSONObject().put("actor",actor).put("minutes",minutes).put("location",location).put("elapsedMinutes",elapsed)
-      }
-      "EXIT_STREAK_RESOLVED" -> {
-        val completed=payload.opt("completed") as? Boolean ?: return null
-        val source=text(payload,"source") ?: return null
-        val out=JSONObject().put("completed",completed).put("source",source)
-        if(completed) out.put("target",text(payload,"target") ?: return null)
-        out
-      }
-      "WORLD_TRANSITION" -> {
-        val source=text(payload,"source") ?: return null
-        val target=text(payload,"target") ?: return null
-        JSONObject().put("source",source).put("target",target)
-      }
-      "COMBAT_STARTED" -> {
-        val entities=payload.opt("entities") as? JSONArray ?: return null
-        // Entity presence/names are not public merely because they are in combat.
-        // No native per-entity visibility producer exists yet: deny enumeration.
-        if(entities.length()!=0) return null
-        JSONObject().put("entities",JSONArray())
-      }
-      else -> null
+  fun project(eventType: String, payload: JSONObject): JSONObject? = when (eventType) {
+    "WAIT_COMPLETED" -> JSONObject()
+      .put("actor", payload.optString("actor"))
+      .put("minutes", payload.optInt("minutes"))
+      .put("location", payload.optString("location"))
+      .put("elapsedMinutes", payload.optLong("elapsedMinutes"))
+    "EXIT_STREAK_RESOLVED" -> {
+      // success/streak counters are system mechanics: never character knowledge.
+      // target is only knowable after arrival; before completion it stays redacted.
+      val out = JSONObject().put("completed", payload.optBoolean("completed"))
+        .put("source", payload.optString("source"))
+      if (payload.optBoolean("completed")) out.put("target", payload.optString("target"))
+      out
     }
-  }
-  private fun text(json: JSONObject,key:String):String? = (json.opt(key) as? String)?.takeIf {
-    it.isNotBlank() && it.toByteArray(StandardCharsets.UTF_8).size<=256 && it.none { c -> c.isISOControl() } &&
-      wellFormed(it)
-  }
-  private fun integer(json:JSONObject,key:String):Long? = when(val v=json.opt(key)) {
-    is Int -> v.toLong()
-    is Long -> v
-    is Short -> v.toLong()
-    is Byte -> v.toLong()
+    "WORLD_TRANSITION" -> JSONObject()
+      .put("source", payload.optString("source"))
+      .put("target", payload.optString("target"))
+    // redacted: node (system identifier)
+    "COMBAT_STARTED" -> {
+      // redact: encounterId (system id); full entity metadata (GM-private).
+      // expose per-entity id/name/presence only.
+      val entities = payload.optJSONArray("entities") ?: JSONArray()
+      val visible = JSONArray()
+      for (i in 0 until entities.length()) {
+        val e = entities.optJSONObject(i) ?: continue
+        visible.put(JSONObject()
+          .put("id", e.optString("id"))
+          .put("name", e.optString("name"))
+          .put("presence", e.optString("presence")))
+      }
+      JSONObject().put("entities", visible)
+    }
     else -> null
-  }
-  private fun wellFormed(text:String):Boolean {
-    var i=0
-    while(i<text.length) {
-      val c=text[i++]
-      if(Character.isHighSurrogate(c)) {
-        if(i==text.length || !Character.isLowSurrogate(text[i++])) return false
-      } else if(Character.isLowSurrogate(c)) return false
-    }
-    return true
   }
 }

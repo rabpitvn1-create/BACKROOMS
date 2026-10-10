@@ -1,0 +1,8 @@
+Backroom 1.1.63.0.7 Debug
+
+- Nâng versionName từ 1.1.63.0.6 lên 1.1.63.0.7 và versionCode từ 71 lên 72.
+- Chuẩn bị bản dựng Android từ nhánh main, bao gồm các thay đổi đã được commit kể từ bản 1.1.63.0.6.
+- Đồng bộ kiểm tra version, tên APK, tên tag, release status và các bước xác minh trong GitHub Actions; không ghi đè release trước.
+- Không thay đổi gameplay chỉ để tăng số phiên bản.
+
+Lưu ý: Chỉ công bố APK khi workflow publish_release chạy thành công và xác minh artifact; việc bump version không xác nhận toàn bộ tính năng hoặc kiểm thử thiết bị.

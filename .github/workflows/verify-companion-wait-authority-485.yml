@@ -2,7 +2,7 @@ name: Verify Companion WAIT Authorization 485
 
 on:
   pull_request:
-    branches: [feat/companion-core-lock-s1c2, feature/companion-wait-authority-485, fix/companion-wait-preflight-boundary, feat/companion-slot-native-binding, feat/companion-native-wait-capture, feat/companion-combat-start-capture, feat/companion-verified-wait-batch, feat/companion-atomic-wait, feat/companion-native-backend-benchmark, perf/companion-receipt-read-cost, feat/companion-exposure-eligibility, feat/companion-canon-persona-pins, muse/r1-qualification-report-518, fix/companion-muse-review, fix/companion-observation-store-500, fix/companion-observation-read-501, fix/companion-genesis-pins-502, fix/companion-memory-store-503, fix/companion-memory-retrieval-504, fix/companion-brain-contracts-505]
+    branches: [main, test/companion-routine-benchmark-300, feat/companion-canon-persona-pins, feat/companion-core-lock-s1c2, feature/companion-wait-authority-485, fix/companion-wait-preflight-boundary, feat/companion-slot-native-binding, feat/companion-native-wait-capture, feat/companion-combat-start-capture, feat/companion-verified-wait-batch, feat/companion-atomic-wait, feat/companion-native-backend-benchmark, perf/companion-receipt-read-cost, feat/companion-exposure-eligibility]
     paths:
       - ".github/workflows/verify-companion-wait-authority-485.yml"
       - "android-apk/app/src/main/java/com/rabpit/backroom/core/companion/**"
@@ -69,12 +69,16 @@ jobs:
           for p in paths:
             hashes[str(p)]=hashlib.sha256(p.read_bytes()).hexdigest()
             shutil.copy2(p,target/p.name)
+          # PR #552 accepted generated deltas: GM provider validation/error feedback only;
+          # Core facade hash remains pinned and unchanged.
           baselines={
-            "android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java":"799f035d4613f22623bae0c166f0ab06f70356728d4fcdf8b0dcf01e569ddcf7",
+            "android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java":"be621be46d871c31ebe67b8a168c35a0acbd06458098c2702bf1d4c8c28c341b",
             "android-apk/app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt":"16dd6e9944d64de5176ce7ae2e00eddfc99882910310a604503ca2a0e916a253",
-            "android-apk/app/src/main/assets/index.html":"65d1c917cc1bb493d761ce58bf15a8a46f90a4abd00ae7d743afacc70bc32240"
+            "android-apk/app/src/main/assets/index.html":"3616bb408880c5bb8adb490b6e8c6ade2fae81f01640413e6bfb097e25ff9d70"
           }
           mismatch=[p for p,v in baselines.items() if hashes[p]!=v]
+          # Keep the pinned G0 gate strict; expose changed hashes for explicit review.
+          if mismatch: print("G0_NEW_GENERATED_HASHES",json.dumps({p:hashes[p] for p in mismatch},sort_keys=True),flush=True)
           (evidence/"generated-source-hashes.json").write_text(json.dumps({"hashes":hashes,"g0_mismatches":mismatch},indent=2))
           if mismatch:raise SystemExit("G0 generated source drift: "+str(mismatch))
           PY

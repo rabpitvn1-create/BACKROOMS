@@ -16,9 +16,6 @@ internal object BrainContracts {
   const val RULE_VERSION = "rule_table.v1"
   const val CONTRACT_VERSION = "brain_contracts.v1"
 
-  private fun id(value: String): Boolean =
-    value.matches(Regex("[A-Za-z0-9_.:-]{1,160}"))
-
   /** Epistemic stance of a claim. UNKNOWN is a stance, never an observation certainty. */
   enum class Stance { UNKNOWN, SUSPECTED, BELIEVED, DISPUTED, KNOWN }
 
@@ -36,16 +33,9 @@ internal object BrainContracts {
     val speakerRef: String?,
     val sourceObservationIds: List<String>
   ) {
-    init {
-      require(id(claimId) && id(subjectRef) && id(objectRef) &&
-        predicateId.length in 1..128 && sourceObservationIds.size<=64 &&
-        sourceObservationIds.all(::id) && sourceObservationIds.distinct().size==sourceObservationIds.size &&
-        (speakerRef==null || id(speakerRef))) { "claim_contract_invalid" }
-    }
     enum class Polarity { POSITIVE, NEGATIVE }
     /** Typed proposition identity for duplicate/contradiction detection. */
-    fun propositionKey(): String = CompanionWaitCapture.canonical(
-      org.json.JSONArray(listOf(subjectRef,predicateId,objectRef)))
+    fun propositionKey(): String = "$subjectRef|$predicateId|$objectRef"
   }
 
   /**
@@ -82,11 +72,6 @@ internal object BrainContracts {
   ) {
     init {
       Predicates.requireKnown(completionPredicateId)
-      require(id(promiseId) && id(promisorActorId) && id(beneficiaryActorId) &&
-        scope.length in 1..128 && id(targetRef) &&
-        predicateArgs.size in 1..8 && predicateArgs.all { (k,v) -> id(k) && id(v) } &&
-        termsDigest.matches(Regex("[0-9a-f]{64}")) &&
-        (deadlineTurn==null || deadlineTurn>=0)) { "promise_contract_invalid" }
       require(promisorActorId != beneficiaryActorId) { "promise_self_beneficiary" }
     }
   }
@@ -112,8 +97,7 @@ internal object BrainContracts {
    */
   object ContradictionComparator {
     fun contradicts(a: Claim, b: Claim): Boolean =
-      a.sourceObservationIds.isNotEmpty() && b.sourceObservationIds.isNotEmpty() &&
-        a.propositionKey() == b.propositionKey() && a.polarity != b.polarity
+      a.propositionKey() == b.propositionKey() && a.polarity != b.polarity
   }
 
   // ---- Working brain state (reducers #506–#508 own the transitions) ----
@@ -144,8 +128,7 @@ internal object BrainContracts {
   data class MoodState(
     val mood: Mood,
     val cause: String?,
-    val expiryTurn: Long?,
-    val triggeredTurn: Long? = null
+    val expiryTurn: Long?
   ) {
     enum class Mood { UNSET, WORRIED }
   }
@@ -156,8 +139,7 @@ internal object BrainContracts {
     val goals: List<Goal> = emptyList(),
     val appraisals: List<RelationshipAppraisal> = emptyList(),
     val mood: MoodState = MoodState(MoodState.Mood.UNSET, null, null),
-    val ruleVersion: String = RULE_VERSION,
-    val slotId: String = ""
+    val ruleVersion: String = RULE_VERSION
   )
 
   /** Typed delta emitted by a reducer; persisted with the application identity. */

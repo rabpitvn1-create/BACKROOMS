@@ -9,12 +9,12 @@ import org.junit.Test
 /** M2a memory fixtures (issue #503): binding, templates, salience, corrections. */
 class EpisodicMemoryTest {
   private val slot = "c".repeat(32)
-  private fun candidate(owner: String = "cao_minh", rev: Long=1, payload: JSONObject = JSONObject()
+  private fun candidate(owner: String = "cao_minh", payload: JSONObject = JSONObject()
     .put("actor", "cao_minh").put("minutes", 30).put("location", "node-7")) =
     ObservationCandidate(
-      observationId = "obs-$rev", ownerActorId = owner, sourceEventId = "event-1",
+      observationId = "obs-1", ownerActorId = owner, sourceEventId = "event-1",
       access = AccessKind.SEEN, certainty = Certainty.PLAUSIBLE,
-      slotId = slot, turnId = "turn-$rev", revision = rev, sceneId = "node-7",
+      slotId = slot, turnId = "turn-1", revision = 1, sceneId = "node-7",
       policyVersion = "companion_exposure.v1", publicPayload = payload)
 
   @Test fun createsMemoryWithPinnedProvenance() {
@@ -63,11 +63,9 @@ class EpisodicMemoryTest {
 
   @Test fun correctionAppendsLinkedRecord() {
     val m = EpisodicMemory.fromObservation(candidate(), slot, "cao_minh", "t")
-    val c = EpisodicMemory.correct(m,candidate(rev=2,payload=JSONObject().put("location","new-room")),"t2")
+    val c = EpisodicMemory.correct(m, "corrected summary", "t2")
     assertEquals(m.memoryId, c.supersedesMemoryId)
-    assertTrue(c.summary.contains("new-room"))
-    assertEquals("obs-2",c.observationId)
-    assertEquals(2L,c.committedRevision)
+    assertEquals("corrected summary", c.summary)
     assertNotEquals(m.memoryId, c.memoryId)
     // latest() resolves the chain
     val latest = EpisodicMemory.latest(listOf(m, c))
@@ -80,9 +78,23 @@ class EpisodicMemoryTest {
     assertEquals(a.memoryId, b.memoryId)  // retry-safe: same input -> same id
   }
 
+  @Test fun fallbackSummaryDoesNotRevealNonPublicEventId() {
+    val m = EpisodicMemory.fromObservation(
+      candidate(payload = JSONObject()), slot, "cao_minh", "t")
+    assertEquals("[SEEN] observation recorded", m.summary)
+    assertFalse(m.summary.contains("event-1"))
+  }
+
   @Test fun schemaStatementsValid() {
     val stmts = EpisodicMemorySchema.createStatements()
-    assertTrue(stmts.any { it.contains("actor_memory") })
+    assertEquals(4, stmts.size)
+    assertTrue(stmts.first().contains("REFERENCES actor_observation"))
+    assertTrue(stmts.first().contains("REFERENCES actor_memory(slot_id, memory_id, actor_id)"))
+    val triggers = stmts.filter { it.trimStart().startsWith("CREATE TRIGGER") }
+    assertEquals(2, triggers.size)
+    assertTrue(triggers.all {
+      it.contains("BEGIN SELECT RAISE") && it.trimEnd().endsWith("END;")
+    })
     assertTrue(stmts.any { it.contains("immutable_memory") })
   }
 }

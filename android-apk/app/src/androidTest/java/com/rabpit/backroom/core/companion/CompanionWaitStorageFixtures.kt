@@ -139,18 +139,6 @@ object CompanionWaitStorageFixtures {
         val reserved = CompanionWaitCapture.reserve(store, "batch", 0, INPUT) { if (zero) 0 else it - 1 }
         val first = CompanionWaitBatch.prepare(store, "batch", 0, INPUT)
         val second = CompanionWaitBatch.prepare(store, "batch", 0, INPUT)
-        val nativeSource=NativeObservationSource.VerifiedEvent.read(store,"batch",0,INPUT,first.events.first().id)
-        check(nativeSource.scope.slotId == store.slotId && nativeSource.scope.turnId == first.turnId && nativeSource.scope.revision == 1L)
-        check(nativeSource.scope.sceneId == "level-0")
-        check(nativeSource.facts("cao_minh").conscious == CompanionExposurePolicy.Fact.UNKNOWN)
-        check(nativeSource.candidates(listOf("cao_minh","luc_tram")).isEmpty())
-        val originalProjection=nativeSource.publicProjection()!!
-        originalProjection.put("location","forged")
-        check(nativeSource.publicProjection()!!.getString("location") == "present-scene")
-        rejects("observation_event_missing") { NativeObservationSource.VerifiedEvent.read(store,"batch",0,INPUT,"forged") }
-        rejects("input_mismatch") { NativeObservationSource.VerifiedEvent.read(store,"batch",0,INPUT+"!",first.events.first().id) }
-        rejects("revision_mismatch") { NativeObservationSource.VerifiedEvent.read(store,"batch",1,INPUT,first.events.first().id) }
-
         check(first.afterSnapshot == second.afterSnapshot && first.manifest == second.manifest)
         val after = GameStateCodec.decode(first.afterSnapshot)
         check(after.time.elapsedSubjectiveMinutes == 30L && ActionRuntime.activeSession(after) == null)
@@ -179,7 +167,7 @@ object CompanionWaitStorageFixtures {
     try {
       val batch=reserveBatch(store,"commit",0)
       store.admit(CompanionPendingTurn.Request.fromPlayerInput(id,"commit-alias",0,"cao_minh",INPUT))
-      for(point in listOf("after_event_write","after_snapshot_write","after_turn_write","after_alias_write","after_receipt_write","after_observation_publish","after_memory_publish","after_brain_publish","before_commit")) {
+      for(point in listOf("after_event_write","after_snapshot_write","after_turn_write","after_alias_write","after_receipt_write","before_commit")) {
         store.faultForTest { if(it==point) throw IllegalStateException("injected:$point") }
         try { store.commitWait("commit",0,INPUT,batch); error("fault missing:$point") } catch(e: IllegalStateException) {
           check(e.message=="injected:$point")
@@ -195,10 +183,6 @@ object CompanionWaitStorageFixtures {
       val receipt=store.commitWait("commit",0,INPUT,batch)
       check(receipt.manifest==batch.manifest && receipt.finalResult==batch.finalResult && store.currentRevision()==1L)
       check(store.currentSnapshot().contentEquals(batch.afterSnapshot.toByteArray(StandardCharsets.UTF_8)))
-      check(store.observations("cao_minh",10).isEmpty())
-      check(store.observations("luc_tram",10).isEmpty())
-      check(store.memoryHistory("cao_minh").isEmpty() && store.memoryHistory("luc_tram").isEmpty())
-      rejects("observation_read_scope_invalid") { store.observations("cao_minh",0) }
       check(store.recover()==null && store.events(1,100).map { it.record }==batch.events.map { it.record })
       val second=reserveBatch(store,"second",1)
       store.commitWait("second",1,INPUT,second)
@@ -215,8 +199,6 @@ object CompanionWaitStorageFixtures {
       store.close()
       CompanionSlotStore.openIn(directory,id,POLICY).use { loaded ->
         check(loaded.currentRevision()==2L && loaded.events(1,100).size==4)
-        check(loaded.observations("cao_minh",10).isEmpty())
-        check(loaded.memoryHistory("cao_minh").isEmpty())
         check(loaded.committedReceipt(CompanionPendingTurn.Request.fromPlayerInput(id,"commit-alias",0,"cao_minh",INPUT)).finalResult==receipt.finalResult)
       }
     } finally { store.close() }

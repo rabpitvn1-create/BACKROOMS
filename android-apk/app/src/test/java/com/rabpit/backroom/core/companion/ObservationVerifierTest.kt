@@ -50,35 +50,39 @@ class ObservationVerifierTest {
     ObservationVerifier.verify(inp, storedRows(inp))  // no throw
   }
 
-  private fun forgedRow() = StoredRow("forged", "cao_minh", "event-3-0", "SEEN",
-    "PLAUSIBLE", "turn-3", 3, "node-7", "0".repeat(64))
-
-  @Test fun callerPerceptionAndDigestCannotAuthorizeObservation() {
+  @Test fun tamperedDigestRejected() {
     val inp = input(actor("cao_minh"))
+    val tampered = storedRows(inp).map { it.copy(digest = "0".repeat(64)) }
     try {
-      ObservationVerifier.verify(inp, listOf(forgedRow()))
+      ObservationVerifier.verify(inp, tampered)
+      fail("expected verifier_digest_mismatch")
+    } catch (e: IllegalArgumentException) {
+      assertEquals("verifier_digest_mismatch", e.message)
+    }
+  }
+
+  @Test fun extraCallerRowRejected() {
+    val inp = input(actor("cao_minh"))
+    val rows = storedRows(inp) + storedRows(inp).first().copy(observationId = "forged")
+    try {
+      ObservationVerifier.verify(inp, rows)
       fail("expected verifier_identity_mismatch")
     } catch (e: IllegalArgumentException) {
       assertEquals("verifier_identity_mismatch", e.message)
     }
   }
 
-  @Test fun duplicateStoredRowRejectedBeforeSetComparison() {
+  @Test fun callerEligibilityNotTrusted() {
+    // Batch claims luc_tram participates, but she is SEPARATED: adapter denies.
+    val inp = input(actor("cao_minh"), actor("luc_tram", CharacterPresence.SEPARATED))
+    // A dishonest caller stores a row for luc_tram anyway.
+    val honest = storedRows(inp)
+    val forged = honest.first().copy(observationId = "forged-lt", ownerActorId = "luc_tram")
     try {
-      ObservationVerifier.verify(input(actor("cao_minh")), listOf(forgedRow(), forgedRow()))
-      fail("expected verifier_duplicate_row")
+      ObservationVerifier.verify(inp, honest + forged)
+      fail("expected verifier_identity_mismatch")
     } catch (e: IllegalArgumentException) {
-      assertEquals("verifier_duplicate_row", e.message)
-    }
-  }
-
-  @Test fun wrongEventScopeRejectedEvenWithNoRows() {
-    val inp = input(actor("cao_minh"))
-    try {
-      ObservationVerifier.verify(inp.copy(scope = inp.scope.copy(eventId = "other-event")), emptyList())
-      fail("expected verifier_scope_mismatch")
-    } catch (e: IllegalArgumentException) {
-      assertEquals("verifier_scope_mismatch", e.message)
+      assertEquals("verifier_identity_mismatch", e.message)
     }
   }
 
