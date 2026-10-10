@@ -103,6 +103,9 @@ jobs:
           assert 'snapshot.insertAdjacentElement("afterend",modal)' in html
           assert 'function ensureDirectCombatDice(){\n    mountNearSnapshot();' in html
           assert '.poker-dice-modal{position:fixed' not in html
+          assert 'COMBAT_STACK_FLOW_R01' in html
+          assert 'body.poker-dice-open .game{display:block;overflow-y:auto;overscroll-behavior-y:contain}' in html
+          assert 'body.poker-dice-open .game>.log{height:auto!important;min-height:120px;max-height:42vh}' in html
           feedback_js = (root / 'app/src/main/assets/combat-feedback-1193a.js').read_text(encoding='utf-8')
           feedback_css = (root / 'app/src/main/assets/combat-feedback-1193a.css').read_text(encoding='utf-8')
           assert 'COMBAT_TRANSIENT_LOG_R01' in feedback_js
