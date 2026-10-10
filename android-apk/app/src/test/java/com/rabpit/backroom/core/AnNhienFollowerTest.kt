@@ -93,7 +93,7 @@ class AnNhienFollowerTest {
       commandId = "equip-an",
       turnId = state.turn.currentTurnId,
       actorId = AN_NHIEN_ID,
-      source = CommandSource.SYSTEM,
+      source = CommandSource.UI,
       operation = ItemCommand.Operation.EQUIP,
       itemId = "fake-weapon",
       itemName = "Vũ khí thử",
