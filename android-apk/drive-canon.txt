@@ -44,7 +44,8 @@ GAMEPLAY HARD LOCK
 - Chỉ lượt gameplay mới tăng turn và tung xúc xắc. Lệnh meta/status/inventory/party/rules/help/save và cheat meta không tăng turn và không phát sinh encounter, loot, exit hoặc snapshot sự kiện.
 - Xúc xắc do lớp Android tạo là kết quả cuối. AI không được reroll, đổi raw/chance/success, bù trượt bằng encounter tương đương hay tạo kết quả hiếm khi roll thất bại.
 - Survivor: 2% mỗi lượt hợp lệ. Iris reunion: 0,0025% khi đủ điều kiện. Syvial reunion: 0,0025% khi đủ điều kiện. MadGod discovery tự nhiên: 0,01% chỉ khi tìm kiếm hợp lệ và chưa spawned; `/madgod` là đường cheat meta riêng, không dùng roll và vẫn giữ giới hạn duy nhất một set/campaign.
-- Hazard / Entity / Loot / Almond Water theo profile Level. Level 0/4/6 chỉ cho Entity dạng roaming/incursion theo roll. Chuyển Level chỉ khi exitProbe success hoặc state đã khóa transitionReady/exitReady.
+- Hazard / Entity / Loot / Almond Water theo profile Level. Level 0/4/6 chỉ cho Entity dạng roaming/incursion theo roll.
+- Thoát Level dùng hidden route streak riêng và tuyệt đối không hiển thị bộ đếm cho người chơi. Chỉ hành động EXPLORE đủ điều kiện mới roll 50/50. Success tăng streak đúng +1; cần đủ 5 success liên tiếp mới mở Exit thật. Một fail reset streak về 0, xóa Exit/transition readiness hiện có nhưng giữ nguyên location trước lượt, tuyệt đối không đưa người chơi về đầu Level. SEARCH/EXECUTE không tăng, không giảm và không reset streak. Khi streak đã đủ 5, Exit giữ trạng thái available cho tới khi người chơi chủ động đi qua hoặc Level thực sự đổi.
 - Một success tạo cơ hội hợp lý để người chơi nhận biết/tương tác; không tự đặt vật vào inventory, không teleport nhân vật và không tự quyết hành động của Kai. Ngoại lệ duy nhất cho việc thêm MadGod trực tiếp vào Inventory là người chơi chủ động nhập đúng mã cheat `/madgod`.
 
 END DRIVE CANON R06

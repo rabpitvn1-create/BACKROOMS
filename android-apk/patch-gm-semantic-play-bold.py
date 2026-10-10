@@ -30,11 +30,25 @@ entity_names = clean(re.findall(r'Profile\(\s*"[^"]+"\s*,\s*"([^"]+)"', combat))
 
 equipment_path = CORE / "CharacterEquipmentSystem.kt"
 equipment = equipment_path.read_text(encoding="utf-8") if equipment_path.is_file() else ""
-item_names = clean(re.findall(
+item_name_set = set(re.findall(
     r'EquipmentDefinition\(\s*id\s*=\s*[^,\n]+,\s*name\s*=\s*"([^"]+)"',
     equipment,
     flags=re.MULTILINE,
 ))
+healing_path = CORE / "HealingItems.kt"
+if healing_path.is_file():
+    healing = healing_path.read_text(encoding="utf-8")
+    item_name_set.update(re.findall(r'const val [A-Z0-9_]+_NAME\s*=\s*"([^"]+)"', healing))
+
+knowledge_path = ROOT / "app/src/main/assets/knowledge/knowledge_db.json"
+if knowledge_path.is_file():
+    knowledge = json.loads(knowledge_path.read_text(encoding="utf-8"))
+    for record in knowledge.get("records", []):
+        if record.get("domain") == "ITEM" and record.get("kind") == "item":
+            tags = record.get("tags") or []
+            if tags:
+                item_name_set.add(str(tags[0]))
+item_names = clean(item_name_set)
 
 skill_path = CORE / "CompanionSkillCatalog.kt"
 skills = skill_path.read_text(encoding="utf-8") if skill_path.is_file() else ""
@@ -50,8 +64,18 @@ for path in CORE.glob("*.kt"):
         name = re.search(r'\bname\s*=\s*"([^"]+)"', match.group(1))
         if name:
             character_names.add(name.group(1))
+    # Some canonical runtime characters intentionally route their display name
+    # through a NAME constant (for example An Nhiên and Lucia "Lục").
+    if "CharacterState" in source:
+        for raw_name in re.findall(r'const val NAME\s*=\s*"((?:\\.|[^"\\])*)"', source):
+            try:
+                character_names.add(json.loads('"' + raw_name + '"'))
+            except json.JSONDecodeError:
+                raise RuntimeError(f"Invalid character NAME literal in {path.name}: {raw_name}")
 character_names = clean(character_names)
 
+if not character_names:
+    raise RuntimeError("No canonical character display names found in final runtime")
 if not entity_names:
     raise RuntimeError("No canonical Entity display names found in final CombatRuntime.kt")
 if not skill_names:
@@ -79,6 +103,8 @@ static_terms = {
     "item": item_names,
     "skill": skill_names,
 }
+if set(static_terms) != {"character", "entity", "item", "skill"}:
+    raise RuntimeError("GM semantic scope must remain character/entity/item/skill only")
 
 style = r'''<style id="gmSemanticPlayBoldStyle">
 /* GM_SEMANTIC_PLAY_BOLD_R01 */
@@ -103,7 +129,7 @@ script = r'''<script id="gmSemanticPlayBoldRuntime">
 
   function addItem(map,item){
     if(typeof item==="string")addTerm(map,item,"item");
-    else if(item&&typeof item==="object")addTerm(map,item.name,"item");
+    else if(item&&typeof item==="object")addTerm(map,item.name||item.displayName||item.label,"item");
   }
 
   function addMember(map,member){
@@ -123,7 +149,10 @@ script = r'''<script id="gmSemanticPlayBoldRuntime">
     });
     const s=typeof state!=="undefined"&&state?state:null;
     if(s){
-      if(s.player)addTerm(map,s.player.name,"character");
+      if(s.player){
+        if(typeof s.player==="string")addTerm(map,s.player,"character");
+        else addTerm(map,s.player.name||s.player.displayName||s.player.label,"character");
+      }
       if(Array.isArray(s.party))s.party.forEach(function(member){
         if(typeof member==="string")addTerm(map,member,"character");else addMember(map,member);
       });
@@ -135,7 +164,9 @@ script = r'''<script id="gmSemanticPlayBoldRuntime">
   }
 
   function wordChar(ch){
-    return !!ch&&/[\p{L}\p{N}_]/u.test(ch);
+    if(!ch)return false;
+    if(/[0-9_]/.test(ch))return true;
+    return ch.toLocaleLowerCase("vi-VN")!==ch.toLocaleUpperCase("vi-VN");
   }
 
   function boundaryOk(source,start,end){
@@ -224,9 +255,24 @@ for required in (
     ".gm-semantic{",
     'document.querySelectorAll(".message:not(.player) .text")',
     "dataset.semanticKind",
+    'const STATIC_TERMS={"character":',
+    '"entity":',
+    '"item":',
+    '"skill":',
+    'span.textContent=source.slice(hit.at,end)',
+    'fragment.appendChild(document.createTextNode',
 ):
     if required not in html:
         raise RuntimeError("GM semantic typography contract missing: " + required)
+
+for forbidden in (
+    "gm-semantic-location", "gm-semantic-status", "gm-semantic-effect",
+    r"\\p{L}", r"\\p{N}",
+    'innerHTML=source.slice(hit.at,end)',
+    'span.innerHTML=source.slice(hit.at,end)',
+):
+    if forbidden in html:
+        raise RuntimeError("GM semantic typography leaked forbidden scope/compat syntax: " + forbidden)
 
 # Semantic categories inherit narration color. Combat feedback remains the only colored effect layer.
 semantic_css = style.split("/* GM_SEMANTIC_PLAY_BOLD_R01 */", 1)[1]
