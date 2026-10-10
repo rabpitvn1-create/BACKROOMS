@@ -27,6 +27,40 @@ internal object NativePerceptionAdapter {
       ?: state.world["journeyStopKey"]?.takeIf { it.isNotBlank() }
       ?: state.world["location"]?.takeIf { it.isNotBlank() }
 
+  /**
+   * Narrow native witness: Cao Minh knows he completed HIS OWN action.
+   * This NEVER confers visibility of an item, enemy, other actor, exit or
+   * previously UNKNOWN fact. External scene perception still uses perceive()
+   * and remains UNKNOWN without a qualified sensor.
+   *
+   * Must be called only with a deterministic Core stage that is replayed
+   * under the writer transaction; generated actor prose is not evidence.
+   */
+  fun perceiveOwnCompletedAction(
+    before: GameState, after: GameState, scope: Scope, actorId: String
+  ): NativeFacts {
+    val unknown = NativeFacts(scope,actorId,Fact.UNKNOWN,Fact.UNKNOWN,
+      Fact.UNKNOWN,Fact.UNKNOWN,Fact.UNKNOWN)
+    val actor = before.characters[actorId] ?: return unknown
+    val later = after.characters[actorId] ?: return unknown
+    if (actorId != PROTAGONIST_ID ||
+        actor.presence != CharacterPresence.ACTIVE ||
+        later.presence != CharacterPresence.ACTIVE ||
+        actorId !in before.party.memberIds ||
+        actorId !in after.party.memberIds ||
+        scope.turnId !in after.turn.completedTurnIds ||
+        scope.revision <= 0L ||
+        after.metadata["lastAction.turnId"] != scope.turnId ||
+        after.metadata["lastAction.actorId"] != actorId ||
+        after.metadata["lastAction.phase"] != "COMPLETED" ||
+        after.metadata["lastAction.elapsedMinutes"]?.toIntOrNull()?.let { it>0 } != true ||
+        before.world["journeyStopKey"] != scope.sceneId)
+      return unknown
+    // The event is the actor's OWN completed action, not any sensory claim
+    // about the environment. SEEN here denotes first-person witnessed action.
+    return NativeFacts(scope,actorId,Fact.YES,Fact.YES,Fact.YES,Fact.YES,Fact.UNKNOWN)
+  }
+
   fun perceive(state: GameState, scope: Scope, actorId: String): NativeFacts {
     val actor = state.characters[actorId] ?: return NativeFacts(
       scope, actorId, Fact.UNKNOWN, Fact.UNKNOWN, Fact.UNKNOWN, Fact.UNKNOWN, Fact.UNKNOWN)
