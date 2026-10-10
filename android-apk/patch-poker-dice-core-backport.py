@@ -769,8 +769,8 @@ html = INDEX.read_text(encoding="utf-8")
 ui = r'''
 <style id="pokerCoreUiStyle">
 /* POKER_DICE_CORE_BACKPORT_R01 */
-.poker-dice-modal[hidden]{display:none}.poker-dice-modal{position:fixed;inset:0;z-index:145;display:flex;align-items:flex-end;justify-content:center}/* POKER_DICE_SNAPSHOT_CLEAR_R01 */.poker-dice-backdrop{position:absolute;inset:0;background:transparent}
-.poker-dice-sheet{position:relative;width:min(100%,680px);max-height:min(calc(var(--app-height,100dvh) - 10px),760px);overflow:auto;background-color:#39341e;background-image:linear-gradient(145deg,rgba(15,17,13,.64),rgba(12,15,13,.82) 55%,rgba(15,17,13,.68)),url('dice/level0-wallpaper.svg');background-size:auto,64px 96px;border:1px solid #8b8052;border-bottom:0;border-radius:7px 7px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -24px 60px #000d}
+.poker-dice-modal[hidden]{display:none}.poker-dice-modal{position:relative;inset:auto;z-index:20;display:block;width:100%;margin:0 0 10px;padding:0 10px}/* POKER_DICE_SNAPSHOT_CLEAR_R01 *//* POKER_DICE_NEAR_SNAPSHOT_R01 */.poker-dice-backdrop{display:none}
+.poker-dice-sheet{position:relative;width:min(100%,680px);margin:0 auto;max-height:min(calc(var(--app-height,100dvh) - 10px),760px);overflow:auto;background-color:#39341e;background-image:linear-gradient(145deg,rgba(15,17,13,.64),rgba(12,15,13,.82) 55%,rgba(15,17,13,.68)),url('dice/level0-wallpaper.svg');background-size:auto,64px 96px;border:1px solid #8b8052;border-radius:7px;padding:14px 14px calc(14px + env(safe-area-inset-bottom));box-shadow:0 12px 32px #0009}
 .poker-dice-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.poker-dice-kicker{font-size:9px;font-weight:800;letter-spacing:.16em;color:#b9ad77}.poker-dice-head h2{margin:3px 0 0;font-size:15px;letter-spacing:.08em;color:#fff7d7}
 .poker-dice-meta{margin-top:8px;color:#c5c3a8;font-size:11px}.poker-dice-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;margin-top:12px}
 .poker-die{position:relative;min-width:0;aspect-ratio:1/1.18;padding:4px;border:1px solid transparent!important;border-radius:7px!important;background:transparent!important;display:grid;place-items:center}.poker-die img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 4px #0008)}.poker-die.held img{filter:drop-shadow(0 0 2px #9be1bc) drop-shadow(0 0 8px #9be1bc99) drop-shadow(0 4px 4px #0008)}.poker-die.held:after{content:"HOLD";position:absolute;bottom:2px;left:50%;transform:translateX(-50%);font-size:8px;font-weight:800;letter-spacing:.08em;color:#9be1bc;text-shadow:0 0 7px #9be1bc88}
@@ -799,6 +799,7 @@ ui = r'''
 
   function combatActive(){return !!(typeof state!=="undefined"&&state&&state.combat&&state.combat.active===true)}
   function dice(){return state&&state.combat&&state.combat.diceState?state.combat.diceState:null}
+  function mountNearSnapshot(){var snapshot=document.getElementById("snapshot");if(snapshot&&snapshot.nextElementSibling!==modal)snapshot.insertAdjacentElement("afterend",modal)}
   function show(){modal.hidden=false;modal.setAttribute("aria-hidden","false");document.body.classList.add("poker-dice-open")}
   function hide(){modal.hidden=true;modal.setAttribute("aria-hidden","true");document.body.classList.remove("poker-dice-open")}
   function setBusy(value){window.__combatDiceBusy=!!value;if(typeof busy!=="undefined")busy=!!value||!modal.hidden;if(typeof window.renderCombatActionBar==="function")window.renderCombatActionBar()}
@@ -820,6 +821,7 @@ ui = r'''
   }
 
   function ensureDirectCombatDice(){
+    mountNearSnapshot();
     if(!combatActive()){
       window.__directCombatPreparing=false;window.__directCombatResolving=false;hide();
       if(typeof busy!=="undefined")busy=false;
