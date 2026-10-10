@@ -5,6 +5,14 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class CharacterStats1193aRegressionTest {
+  @Test fun deprecatedResourceKeyDoesNotGrantCurrentCore() {
+    val stale = GameState.initial().copy(metadata = mapOf("poker.core.count" to "999"))
+    assertEquals(0, CharacterProgressionCore.coreCount(stale))
+    val normalized = CharacterProgressionCore.normalize(stale)
+    assertEquals(0, CharacterProgressionCore.coreCount(normalized))
+    assertFalse("poker.core.count" in normalized.metadata)
+  }
+
   @Test fun baselineAndCaoPassiveMatch1193a() {
     val state = CharacterProgressionCore.normalize(GameState.initial())
     val base = state.characters.getValue(KAI_ID).statProfile

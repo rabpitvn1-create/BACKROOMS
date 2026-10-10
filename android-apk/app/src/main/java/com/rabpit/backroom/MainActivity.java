@@ -1374,8 +1374,6 @@ public class MainActivity extends Activity {
     JSONObject exitProbe = thresholdRoll("exitProbe", 10000, exitThreshold, exitIntent && (physical || search),
       anNhienRead.optBoolean("success", false) ? " discovery clue +2% An Nhiên +20% đọc dấu Exit" : (anNhienFollowing ? " discovery clue +2% An Nhiên" : " discovery clue"));
     rolls.put("exitProbe", exitProbe);
-    // Compatibility alias for the older Android reducer. Both keys point to the exact same locked result; no reroll occurs.
-    rolls.put("levelExit", new JSONObject(exitProbe.toString()).put("label", "levelExit"));
     JSONObject hiddenExitRoll = thresholdRoll("_hiddenExitStreak", 100,
       com.rabpit.backroom.core.HiddenExitStreak.SUCCESS_PERCENT,
       exploreAction && !com.rabpit.backroom.core.HiddenExitStreak.ready(state), "");

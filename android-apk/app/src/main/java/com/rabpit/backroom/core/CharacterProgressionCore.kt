@@ -10,7 +10,6 @@ object CharacterProgressionCore {
   const val MAX_STAT = 999
   const val BASE_MAX_HP = 50
   const val CORE_KEY = "characterProgression.coreResource"
-  private const val LEGACY_CORE_KEY = "poker.core.count"
   private val STAT_KEYS = setOf("STR", "DEF", "SKL", "VIT")
 
   data class Upgrade(
@@ -23,8 +22,7 @@ object CharacterProgressionCore {
   )
 
   fun coreCount(state: GameState): Int =
-    (state.metadata[CORE_KEY] ?: state.metadata[LEGACY_CORE_KEY])
-      ?.toIntOrNull()?.coerceAtLeast(0) ?: 0
+    state.metadata[CORE_KEY]?.toIntOrNull()?.coerceAtLeast(0) ?: 0
 
   fun baseStat(state: GameState, characterId: String, rawStat: String): Int {
     val p = state.characters[characterId]?.statProfile ?: CharacterStatProfiles.forId(characterId)
@@ -83,8 +81,8 @@ object CharacterProgressionCore {
   }
 
   fun normalize(input: GameState): GameState {
-    val migratedCore = coreCount(input)
-    var state = input.copy(metadata = sanitizeMetadata(input.metadata) + (CORE_KEY to migratedCore.toString()))
+    val currentCore = coreCount(input)
+    var state = input.copy(metadata = sanitizeMetadata(input.metadata) + (CORE_KEY to currentCore.toString()))
     val chars = state.characters.toMutableMap()
     state.characters.forEach { (id, c) ->
       val raw = c.statProfile

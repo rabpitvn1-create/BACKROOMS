@@ -14,7 +14,7 @@ object EntityPowerScaling {
   const val MAX_PROGRESSION_RANK: Long = 1_000_000_000L
   private const val DENOMINATOR: Long = 10L * RANK_PER_FULL_LEVEL
 
-  private val legacyLevelRanks = longArrayOf(
+  private val levelRanks = longArrayOf(
     0L,
     1_000_000L,
     2_000_000L,
@@ -25,13 +25,13 @@ object EntityPowerScaling {
   )
 
   fun rankForLevel(level: Int): Long {
-    require(level in legacyLevelRanks.indices) { "unknown_level:$level" }
-    return legacyLevelRanks[level]
+    require(level in levelRanks.indices) { "unknown_level:$level" }
+    return levelRanks[level]
   }
 
   /**
-   * Current main still persists the committed Level as legacy levelJson.
-   * Missing data is Level 0 for old/fresh saves; malformed/unknown explicit data fails closed.
+   * The current Game Core persists the committed Level in world.levelJson.
+   * Missing Level is treated as Level 0 in the current schema; malformed explicit data fails closed.
    */
   fun rankFor(state: GameState): Long {
     val raw = state.world["levelJson"]?.takeIf { it.isNotBlank() } ?: return 0L
