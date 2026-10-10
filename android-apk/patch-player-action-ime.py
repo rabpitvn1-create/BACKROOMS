@@ -290,3 +290,8 @@ if "freshLevelZeroWorld(root, turnNumber)" not in codec:
     raise RuntimeError("New Game Core genesis did not install")
 codec_path.write_text(codec, encoding="utf-8")
 print("New Game Turn-1 bootstrap now persists canonical Level 0 route and clean streak.")
+
+# Keep companion native bridge in the effective APK (never the unpatched template).
+# The bridge is DEBUG-only until the full actor-intent atomic suite is qualified.
+import runpy as _companion_runpy
+_companion_runpy.run_path(str(ROOT / "patch-companion-interact-runtime.py"), run_name="__main__")
