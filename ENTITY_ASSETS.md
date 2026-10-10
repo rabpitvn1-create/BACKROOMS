@@ -37,7 +37,7 @@ Ba Lifeform dùng **một roll độc lập 2% cho cả nhóm**. Khi roll thành
 
 Base profile của cả ba bằng **Hound × 1.3**, làm tròn về stat nguyên: **104 HP / 20 ATK / 3 Armor / 10 Aggression** trước shared Entity durability và Level scaling. Ở Level 0, shared +30 HP khiến Max HP thực tế là **134**.
 
-Mỗi Entity có đúng 3 skill. Skill chỉ tăng %ATK và chỉ dùng hai hiệu ứng trạng thái **Bleed** và **Poison**. Ba proc dùng chung một roll độc quyền: **25% / 20% / 10%**, tương ứng **+15% / +25% / +40% ATK**; skill 1 gây Bleed, skill 2 gây Poison, skill 3 gây cả Bleed + Poison. Bleed kéo dài 3 turn, gây 3% Max HP/turn; Poison kéo dài 3 turn, gây 2% Max HP/turn; tái kích hoạt làm mới thời lượng, không cộng stack song song.
+Mỗi Entity có đúng 3 skill. Skill chỉ tăng %ATK và chỉ dùng hai hiệu ứng trạng thái **Bleed** và **Poison**. Ba proc dùng chung một roll độc quyền: **25% / 20% / 10%**, tương ứng **115% / 125% / 140% Basic Attack**. Đây là hệ số damage của đòn đánh thường sau phòng thủ, **không phải buff stat ATK**; skill 1 gây Bleed, skill 2 gây Poison, skill 3 gây cả Bleed + Poison. Bleed kéo dài 3 turn, gây 3% Max HP/turn; Poison kéo dài 3 turn, gây 2% Max HP/turn; tái kích hoạt làm mới thời lượng, không cộng stack song song.
 
 - **Blackroot Sentinel**: Thorned Hemorrhage; Blight Sap; Crimson Mycotoxin.
 - **Sinew Strider**: Tendon Ripper; Septic Thread; Venomous Flay.
