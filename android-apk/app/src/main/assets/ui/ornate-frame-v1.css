@@ -1,0 +1,19 @@
+/* ImageGen assets archived in Drive / Novel / ui before integration.
+   Nine-slice keeps ornaments fixed while the live narrative scrolls inside. */
+.game{background:linear-gradient(160deg,#302a17,#11130f 65%)}
+.topbar{border-bottom:0;background-color:#242014}
+.topbar>div{min-width:0;flex:1}
+.topbar .eyebrow{color:#c3b57d}
+.topbar h1{display:flex;align-items:center;justify-content:center;min-height:48px;width:fit-content;max-width:100%;padding:10px 38px;margin:2px 0;color:#e0d1a1;font:500 17px/1.35 Georgia,'Times New Roman',serif;text-align:center;overflow-wrap:anywhere;background:url('backrooms-level-nameplate-v1.png') center/100% 270% no-repeat}
+.snapshot{height:clamp(120px,28vh,300px);margin:0 0 4px;border:0;border-radius:0!important}
+.narrative-frame{position:relative;isolation:isolate;min-height:0;min-width:0;margin:0 7px 7px;padding:25px 22px;background:linear-gradient(145deg,#141b1d,#0b1012);border-radius:18px}
+.narrative-frame::after{content:'';position:absolute;inset:0;z-index:1;border:40px solid transparent;border-image:url('backrooms-narrative-frame-v1.png') 32% / 40px / 0 stretch;pointer-events:none}
+.narrative-frame>.log{height:100%!important;min-height:0;padding:7px 6px;gap:20px;scrollbar-width:thin;scrollbar-color:#b5a16a #101619}
+.narrative-frame .message{padding:0 0 14px;border:0;background:transparent;color:#cbd0d1}
+.narrative-frame .message+.message{border-top:1px solid #b5a16a26;padding-top:14px}
+.narrative-frame .message .role{color:#b6a878;font-size:9px;letter-spacing:.14em}
+.narrative-frame .text{font-size:16px;line-height:1.75;overflow-wrap:anywhere}
+.narrative-frame .message.player{color:#e0d1a1}
+.narrative-frame .message.warning{padding:12px;border-left:3px solid #d99a2b;background:#231a0b}
+@media(max-width:360px){.topbar h1{font-size:15px;padding-inline:30px}.narrative-frame{padding:23px 18px}.narrative-frame .text{font-size:15px}}
+@media(max-height:500px){.snapshot{height:80px}.topbar{padding-block:4px}.topbar h1{min-height:38px;font-size:15px}.topbar .eyebrow{display:none}.narrative-frame{padding-block:18px;margin-bottom:4px}}
