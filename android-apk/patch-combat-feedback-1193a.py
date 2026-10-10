@@ -109,13 +109,17 @@ p = CORE / 'GameCoreFacade.kt'
 s = p.read_text()
 s = replace(s, '    val output = JSONObject(legacy.toString())\n',
             '    val output = JSONObject(legacy.toString())\n    output.remove("combatFeedback") // Transient events must never be echoed from a legacy/client state.\n')
-s = replace(s, '    val output = syncLegacy(legacy, next, incrementTurn = true)\n    val combatReply', '''    val output = syncLegacy(legacy, next, incrementTurn = true)
-    output.put("combatFeedback", JSONObject().apply {
+combat_reply_block = '''    val combatReply = if (coreReward > 0)
+      resolution.reply + " +" + coreReward + " Core."
+    else resolution.reply
+'''
+s = replace(s, combat_reply_block, combat_reply_block + '''    output.put("combatFeedback", JSONObject().apply {
       put("id", "${activeCombat.encounterId}:${activeCombat.eventCounter + 1}")
       put("encounterId", activeCombat.encounterId)
+      put("summary", combatReply)
       put("events", JSONArray().apply { resolution.feedback.forEach { put(it.toJson()) } })
     })
-    val combatReply''')
+''')
 p.write_text(s)
 
 p = ASSETS / 'index.html'
