@@ -3,21 +3,9 @@ import re
 import runpy
 
 ROOT = Path(__file__).resolve().parent
-FACADE = ROOT / "app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt"
 COMMAND = ROOT / "app/src/main/java/com/rabpit/backroom/core/CommandPipeline.kt"
 HEALING = ROOT / "app/src/main/java/com/rabpit/backroom/core/HealingItems.kt"
 ITEM_CONTENT = ROOT / "app/src/main/java/com/rabpit/backroom/core/ItemContent.kt"
-
-text = FACADE.read_text(encoding="utf-8")
-old = r'Regex("\s+")'
-new = r'Regex("\\s+")'
-count = text.count(old)
-if count != 1:
-    raise RuntimeError(f"Inventory authority compile fix expected exactly 1 invalid regex escape, found {count}")
-text = text.replace(old, new, 1)
-if old in text:
-    raise RuntimeError("Invalid Kotlin regex escape survived inventory authority compile fix")
-FACADE.write_text(text, encoding="utf-8")
 
 # MadGod's earlier resolver layer replaces the baseline literal slot with equipmentSlot(it).
 # The Omnivault finalizer deliberately owns the final slot resolver, so normalize only those
