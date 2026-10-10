@@ -18,7 +18,9 @@ android {
     targetSdk 35
     versionCode 72
     versionName '1.1.63.0.7'
-    buildConfigField "boolean", "COMPANION_NATIVE_ENABLED", project.hasProperty("companionNativePreview") ? "true" : "false"
+    // Native Companion is the default gameplay host on both debug and release.
+    // A developer can explicitly opt out for legacy compatibility investigations.
+    buildConfigField "boolean", "COMPANION_NATIVE_ENABLED", project.hasProperty("disableNativeCompanion") ? "false" : "true"
     buildConfigField "String", "GEHIHI_API_KEY", "\"" + secret("GEHIHI_API_KEY") + "\""
     buildConfigField "String", "GEHIHI_BASE_URL", "\"" + secret("GEHIHI_BASE_URL") + "\""
     buildConfigField "String", "GEHIHI_MODEL", "\"" + secret("GEHIHI_MODEL") + "\""
