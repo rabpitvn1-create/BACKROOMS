@@ -650,10 +650,7 @@ if "val combatReply =" not in method:
     method = one(method, output_anchor, output_new, "combat Core reward reply")
     method = method.replace(
         "    appendLog(output, action, resolution.reply)\n",
-        '''    if (action == PokerDiceCore.DIRECT_COMBAT_ACTION) {
-      val log = output.optJSONArray("log") ?: JSONArray().also { output.put("log", it) }
-      log.put(JSONObject().put("role", "gm").put("text", combatReply))
-    } else {
+        '''    if (action != PokerDiceCore.DIRECT_COMBAT_ACTION) {
       appendLog(output, action, combatReply)
     }
 ''',
@@ -799,7 +796,7 @@ ui = r'''
 
   function combatActive(){return !!(typeof state!=="undefined"&&state&&state.combat&&state.combat.active===true)}
   function dice(){return state&&state.combat&&state.combat.diceState?state.combat.diceState:null}
-  function mountNearSnapshot(){var snapshot=document.getElementById("snapshot");if(snapshot&&snapshot.nextElementSibling!==modal)snapshot.insertAdjacentElement("afterend",modal)}
+  function mountNearSnapshot(){var snapshot=document.getElementById("snapshot");if(!snapshot)return;var feedback=document.getElementById("combatFeedbackPanel");var anchor=feedback&&feedback.hidden!==true?feedback:snapshot;if(anchor.nextElementSibling!==modal)anchor.insertAdjacentElement("afterend",modal)}
   function show(){modal.hidden=false;modal.setAttribute("aria-hidden","false");document.body.classList.add("poker-dice-open")}
   function hide(){modal.hidden=true;modal.setAttribute("aria-hidden","true");document.body.classList.remove("poker-dice-open")}
   function setBusy(value){window.__combatDiceBusy=!!value;if(typeof busy!=="undefined")busy=!!value||!modal.hidden;if(typeof window.renderCombatActionBar==="function")window.renderCombatActionBar()}
