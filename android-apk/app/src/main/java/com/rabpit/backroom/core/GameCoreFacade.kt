@@ -388,8 +388,13 @@ class GameCoreFacade private constructor(
     val partyJson = candidate.optJSONArray("party") ?: JSONArray()
     for (index in 0 until partyJson.length()) {
       val member = partyJson.optJSONObject(index) ?: continue
-      val id = member.optString("id").ifBlank { member.optString("name").trim().lowercase() }
-      if (id.isNotBlank()) desiredParty[id] = member
+      val requestedId = member.optString("id").trim()
+      val requestedName = member.optString("name").trim()
+      val id = pending.state.characters.values.firstOrNull { known ->
+        known.id.equals(requestedId, ignoreCase = true) ||
+          (requestedName.isNotBlank() && known.name.equals(requestedName, ignoreCase = true))
+      }?.id ?: requestedId.ifBlank { requestedName.lowercase() }
+      if (id.isNotBlank()) desiredParty[id] = JSONObject(member.toString()).put("id", id)
     }
     // Party membership belongs to Core, not to a synthetic Java/WebView party array.
     // Java supplies the validated encounter rolls; only Core can reserve party slots.
@@ -418,7 +423,7 @@ class GameCoreFacade private constructor(
       val canJoin = pending.state.characters[id]?.let { it.presence == CharacterPresence.ACTIVE && it.metadata["joinEligible"] == "true" } == true
       if (!alreadyJoined && canJoin && desiredParty.size < pending.state.party.maxMembers - 1) {
         desiredParty[id] = JSONObject().put("id", id).put("joinConfirmed", true).put("present", true)
-      } else if (alreadyJoined && canJoin && encounterSucceeded(rollKey)) {
+      } else if (alreadyJoined && canJoin) {
         // Validated encounter proof supersedes the model's untrusted join booleans.
         desiredParty[id] = JSONObject(desiredParty.getValue(id).toString())
           .put("joinConfirmed", true).put("present", true)

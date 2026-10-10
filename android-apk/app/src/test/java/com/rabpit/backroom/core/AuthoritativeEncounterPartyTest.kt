@@ -47,6 +47,16 @@ class AuthoritativeEncounterPartyTest {
     assertFalse(JSONObject(repo.state.world.getValue("flagsJson")).getJSONObject("iris").getBoolean("joinPending"))
   }
 
+  @Test fun nameOnlyNpcCandidateIsResolvedToCanonicalCoreId() {
+    val repo = MemorySave()
+    val (before, generated) = candidate(repo.state, "luciaEncounter")
+    val json = JSONObject(generated)
+      .put("party", JSONArray().put(JSONObject().put("name", "Lucia \"Lục\"")))
+    val committed = JSONObject(facade(repo).processValidatedCandidate(before, json.toString(), "Gặp Lucia"))
+    assertTrue(committed.toString(), committed.getBoolean("handled"))
+    assertEquals(listOf(KAI_ID, LUCIA_ID), repo.state.party.memberIds)
+  }
+
   @Test fun partyCapacityDefersEncounterThenAutoJoinsAfterSlotOpens() {
     val initial = CoreClientProjection.initialize(GameState.initial())
     val repo = MemorySave(initial.copy(party = initial.party.copy(

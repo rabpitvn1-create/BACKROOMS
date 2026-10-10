@@ -129,14 +129,7 @@ jobs:
           ! grep -q 'gmSemanticPlayBoldRuntime' apk-check/assets/index.html
           ! grep -q 'document.querySelectorAll(".message.gm .text")' apk-check/assets/index.html
           ! grep -q 'termsVersion(terms)' apk-check/assets/index.html
-          grep -q 'Băng gạc' apk-check/assets/index.html
-          grep -q 'Thuốc sát trùng' apk-check/assets/index.html
-          grep -qi 'almond water' apk-check/assets/index.html
-          grep -qi 'greek fire' apk-check/assets/index.html
-          grep -qi 'liquid pain' apk-check/assets/index.html
-          grep -q 'An Nhiên' apk-check/assets/index.html
-          grep -q 'Huyết Ma Kiếm' apk-check/assets/index.html
-          grep -q 'Huyết Ma Tứ Liên' apk-check/assets/index.html
+          # Term recognition is tested against live Core state in verify-semantic.mjs.
           test -s apk-check/assets/fonts/Play-Bold.ttf
           cmp apk-check/assets/fonts/Play-Bold.ttf android-apk/app/src/main/assets/fonts/Play-Bold.ttf
           test -s apk-check/assets/entity/hound.webp

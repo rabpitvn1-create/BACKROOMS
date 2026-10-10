@@ -1740,8 +1740,7 @@ public class MainActivity extends Activity {
         .put("spawned", true)
         .put("reunionEligible", false)
         .put("continuity", "REUNITED")
-        .put("levelEncountered", currentLevel(before))
-;
+        .put("levelEncountered", currentLevel(before));
       flags.put("iris", iris);
     }
 
@@ -1754,8 +1753,7 @@ public class MainActivity extends Activity {
         .put("spawned", true)
         .put("reunionEligible", false)
         .put("continuity", "REUNITED")
-        .put("levelEncountered", currentLevel(before))
-;
+        .put("levelEncountered", currentLevel(before));
       flags.put("syvial", syvial);
     }
 
@@ -1768,8 +1766,7 @@ public class MainActivity extends Activity {
         .put("spawned", true)
         .put("reunionEligible", false)
         .put("continuity", "RECRUITED_LEVEL_0")
-        .put("levelEncountered", 0)
-;
+        .put("levelEncountered", 0);
       flags.put("lucia", lucia);
     }
 
