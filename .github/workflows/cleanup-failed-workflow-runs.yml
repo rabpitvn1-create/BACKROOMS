@@ -1,0 +1,131 @@
+name: Cleanup failed workflow runs
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Preview failed runs without deleting anything"
+        type: boolean
+        required: true
+        default: true
+      confirm:
+        description: "For deletion, type DELETE_ALL_FAILED_RUNS"
+        type: string
+        required: false
+
+permissions:
+  actions: write
+
+concurrency:
+  group: cleanup-failed-workflow-runs
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Preview or delete completed failed runs
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          THIS_RUN_ID: ${{ github.run_id }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          CONFIRM: ${{ inputs.confirm }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$DRY_RUN" != "true" && "$DRY_RUN" != "false" ]]; then
+            echo "::error::Invalid dry_run value."
+            exit 1
+          fi
+          if [[ "$DRY_RUN" == "false" && "$CONFIRM" != "DELETE_ALL_FAILED_RUNS" ]]; then
+            echo "::error::Type DELETE_ALL_FAILED_RUNS to authorize permanent deletion."
+            exit 1
+          fi
+
+          targets="$(mktemp)"
+          remaining="$(mktemp)"
+          trap 'rm -f "$targets" "$remaining"' EXIT
+
+          # List all pages WITHOUT a status filter. GitHub caps filtered searches
+          # at 1,000 results, which would miss older failed runs in large repos.
+          gh api --paginate "repos/$GH_REPO/actions/runs?per_page=100" \
+            --jq '.workflow_runs[] | select(.status == "completed" and .conclusion == "failure") | .id' \
+            | sort -nu > "$targets"
+
+          total="$(wc -l < "$targets" | tr -d ' ')"
+          echo "Found $total completed failed workflow run(s)."
+          {
+            echo "## Failed workflow run cleanup"
+            echo
+            echo "- Mode: $([[ "$DRY_RUN" == "true" ]] && echo 'preview only' || echo 'permanent deletion')"
+            echo "- Failed runs in initial snapshot: $total"
+            echo "- Other conclusions and in-progress runs are not targets."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ "$DRY_RUN" == "true" ]]; then
+            echo "Preview run IDs:"
+            cat "$targets"
+            echo "- No runs deleted (dry run)." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          deleted=0
+          skipped=0
+          errors=0
+          while IFS= read -r run_id; do
+            [[ "$run_id" =~ ^[0-9]+$ ]] || { echo "::error::Invalid run ID"; exit 1; }
+            if [[ "$run_id" == "$THIS_RUN_ID" ]]; then
+              skipped=$((skipped + 1))
+              continue
+            fi
+
+            # A previously failed run might have been re-run since the snapshot.
+            if ! state="$(gh api "repos/$GH_REPO/actions/runs/$run_id" --jq '[.status, .conclusion] | @tsv')"; then
+              echo "::error::Cannot verify state of run $run_id; not deleting."
+              errors=$((errors + 1))
+              continue
+            fi
+            if [[ "$state" != $'completed\tfailure' ]]; then
+              echo "Skipping run $run_id: its state changed to $state."
+              skipped=$((skipped + 1))
+              continue
+            fi
+
+            if gh api --method DELETE "repos/$GH_REPO/actions/runs/$run_id" >/dev/null; then
+              echo "Deleted failed workflow run $run_id"
+              deleted=$((deleted + 1))
+            else
+              echo "::error::Deletion failed for run $run_id"
+              errors=$((errors + 1))
+            fi
+          done < "$targets"
+
+          # Verify only snapshot targets. Runs failing during cleanup are new data.
+          gh api --paginate "repos/$GH_REPO/actions/runs?per_page=100" \
+            --jq '.workflow_runs[] | select(.status == "completed" and .conclusion == "failure") | .id' \
+            | sort -nu > "$remaining"
+
+          still_failed=0
+          while IFS= read -r run_id; do
+            if grep -Fxq "$run_id" "$remaining"; then
+              echo "::error::Snapshot run $run_id is still failed and present."
+              still_failed=$((still_failed + 1))
+            fi
+          done < "$targets"
+
+          {
+            echo "- Deleted: $deleted"
+            echo "- Skipped after state change: $skipped"
+            echo "- API errors: $errors"
+            echo "- Initially failed runs still present: $still_failed"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if (( errors > 0 || still_failed > 0 )); then
+            echo "::error::Cleanup incomplete; see summary."
+            exit 1
+          fi
+          echo "Cleanup complete."
