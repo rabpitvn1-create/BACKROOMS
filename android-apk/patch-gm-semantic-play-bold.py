@@ -72,6 +72,13 @@ for path in CORE.glob("*.kt"):
                 character_names.add(json.loads('"' + raw_name + '"'))
             except json.JSONDecodeError:
                 raise RuntimeError(f"Invalid character NAME literal in {path.name}: {raw_name}")
+prologue_path = ROOT / "cao-minh-prologue.txt"
+if prologue_path.is_file():
+    prologue = prologue_path.read_text(encoding="utf-8")
+    for story_name in ("Lục Trầm", "Vô Lượng Đại Tôn Giả", "Vô Lượng"):
+        if story_name in prologue:
+            character_names.add(story_name)
+
 character_names = clean(character_names)
 
 if not character_names:
@@ -134,12 +141,18 @@ script = r'''<script id="gmSemanticPlayBoldRuntime">
 
   function addMember(map,member){
     if(!member||typeof member!=="object")return;
-    addTerm(map,member.name,"character");
+    addTerm(map,member.name||member.displayName||member.label,"character");
     if(Array.isArray(member.inventory))member.inventory.forEach(function(item){addItem(map,item)});
+    if(Array.isArray(member.equipmentItems))member.equipmentItems.forEach(function(item){addItem(map,item)});
     if(Array.isArray(member.skills))member.skills.forEach(function(skill){
       if(typeof skill==="string")addTerm(map,skill,"skill");
-      else if(skill&&typeof skill==="object")addTerm(map,skill.name,"skill");
+      else if(skill&&typeof skill==="object")addTerm(map,skill.name||skill.displayName||skill.label,"skill");
     });
+  }
+
+  function addWorldItems(map,items){
+    if(!Array.isArray(items))return;
+    items.forEach(function(item){if(!item||item.available===false)return;addItem(map,item)});
   }
 
   function collectTerms(){
@@ -158,7 +171,10 @@ script = r'''<script id="gmSemanticPlayBoldRuntime">
       });
       if(s.partyDetails&&Array.isArray(s.partyDetails.members))s.partyDetails.members.forEach(function(member){addMember(map,member)});
       if(Array.isArray(s.inventory))s.inventory.forEach(function(item){addItem(map,item)});
-      if(s.combat)addTerm(map,s.combat.entityName,"entity");
+      if(Array.isArray(s.equipmentItems))s.equipmentItems.forEach(function(item){addItem(map,item)});
+      addWorldItems(map,s.worldItems);
+      if(s.flags)addWorldItems(map,s.flags.worldItems);
+      if(s.combat)addTerm(map,s.combat.entityName||s.combat.name||s.combat.displayName,"entity");
     }
     return Array.from(map.values()).sort(function(a,b){return b.text.length-a.text.length||a.text.localeCompare(b.text,"vi")});
   }
@@ -187,10 +203,22 @@ script = r'''<script id="gmSemanticPlayBoldRuntime">
     return best;
   }
 
-  function decorate(node,terms){
-    if(!node||node.dataset.gmSemanticPlay==="1")return;
+  function stableHash(value){
+    let hash=2166136261;
+    for(let i=0;i<value.length;i++){hash^=value.charCodeAt(i);hash=Math.imul(hash,16777619)}
+    return (hash>>>0).toString(36);
+  }
+
+  function termsVersion(terms){
+    return stableHash(terms.map(function(term){return term.kind+"\u0000"+term.key}).join("\u0001"));
+  }
+
+  function decorate(node,terms,version){
+    if(!node)return;
     const source=node.textContent||"";
-    if(!source){node.dataset.gmSemanticPlay="1";return}
+    const signature=stableHash(source+"\u0002"+version);
+    if(node.dataset.gmSemanticPlay===signature)return;
+    if(!source){node.dataset.gmSemanticPlay=signature;return}
     const lower=source.toLocaleLowerCase("vi-VN");
     let cursor=0,matched=false;
     const fragment=document.createDocumentFragment();
@@ -207,17 +235,18 @@ script = r'''<script id="gmSemanticPlayBoldRuntime">
       cursor=end;
       matched=true;
     }
-    if(!matched){node.dataset.gmSemanticPlay="1";return}
+    if(!matched){node.dataset.gmSemanticPlay=signature;return}
     if(cursor<source.length)fragment.appendChild(document.createTextNode(source.slice(cursor)));
     node.textContent="";
     node.appendChild(fragment);
-    node.dataset.gmSemanticPlay="1";
+    node.dataset.gmSemanticPlay=signature;
   }
 
   function applySemanticPlay(){
     const terms=collectTerms();
     if(!terms.length)return;
-    document.querySelectorAll(".message:not(.player) .text").forEach(function(node){decorate(node,terms)});
+    const version=termsVersion(terms);
+    document.querySelectorAll(".message.gm .text").forEach(function(node){decorate(node,terms,version)});
   }
 
   const previousRender=window.render;
@@ -236,7 +265,7 @@ script = r'''<script id="gmSemanticPlayBoldRuntime">
       if(scheduled)return;
       scheduled=true;
       requestAnimationFrame(function(){scheduled=false;applySemanticPlay()});
-    }).observe(log,{childList:true,subtree:true});
+    }).observe(log,{childList:true,subtree:true,characterData:true});
   }
 
   applySemanticPlay();
@@ -253,7 +282,7 @@ for required in (
     MARKER,
     "fonts/Play-Bold.ttf",
     ".gm-semantic{",
-    'document.querySelectorAll(".message:not(.player) .text")',
+    'document.querySelectorAll(".message.gm .text")',
     "dataset.semanticKind",
     'const STATIC_TERMS={"character":',
     '"entity":',
@@ -261,6 +290,11 @@ for required in (
     '"skill":',
     'span.textContent=source.slice(hit.at,end)',
     'fragment.appendChild(document.createTextNode',
+    'member.equipmentItems',
+    's.flags.worldItems',
+    'characterData:true',
+    'termsVersion(terms)',
+    '"Lục Trầm"',
 ):
     if required not in html:
         raise RuntimeError("GM semantic typography contract missing: " + required)
@@ -270,6 +304,8 @@ for forbidden in (
     r"\\p{L}", r"\\p{N}",
     'innerHTML=source.slice(hit.at,end)',
     'span.innerHTML=source.slice(hit.at,end)',
+    'dataset.gmSemanticPlay==="1"',
+    '.message:not(.player) .text',
 ):
     if forbidden in html:
         raise RuntimeError("GM semantic typography leaked forbidden scope/compat syntax: " + forbidden)

@@ -208,9 +208,16 @@ jobs:
           assert 'Thuốc sát trùng' in html
           for world_item in ('almond water', 'greek fire', 'liquid pain'):
               assert world_item in html.lower(), world_item
-          assert '.message:not(.player) .text' in html
+          assert '.message.gm .text' in html
           assert 'span.textContent=source.slice(hit.at,end)' in html
           assert 'span.innerHTML=source.slice(hit.at,end)' not in html
+          assert 'dataset.gmSemanticPlay==="1"' not in html
+          assert '.message:not(.player) .text' not in html
+          assert 'member.equipmentItems' in html
+          assert 's.flags.worldItems' in html
+          assert 'characterData:true' in html
+          assert 'termsVersion(terms)' in html
+          assert '"Lục Trầm"' in html
           for final_character in ('Cao Minh', 'Iris', 'Syvial', 'An Nhiên', r'Lucia \"Lục\"'):
               assert final_character in html, final_character
           for final_item in ('Huyết Ma Kiếm', 'Huyết Ma Chiến Khải', 'Nhẫn Vạn Tàng'):
@@ -334,6 +341,11 @@ jobs:
           grep -q 'characterSkillsButton' apk-check/assets/index.html
           grep -q 'GM_SEMANTIC_PLAY_BOLD_R01' apk-check/assets/index.html
           grep -q 'gm-semantic' apk-check/assets/index.html
+          grep -q 'document.querySelectorAll(".message.gm .text")' apk-check/assets/index.html
+          grep -q 'member.equipmentItems' apk-check/assets/index.html
+          grep -q 's.flags.worldItems' apk-check/assets/index.html
+          grep -q 'characterData:true' apk-check/assets/index.html
+          grep -q '"Lục Trầm"' apk-check/assets/index.html
           grep -q 'Băng gạc' apk-check/assets/index.html
           grep -q 'Thuốc sát trùng' apk-check/assets/index.html
           grep -qi 'almond water' apk-check/assets/index.html
