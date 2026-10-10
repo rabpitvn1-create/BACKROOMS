@@ -52,13 +52,13 @@ internal object CompanionNewGameBootstrap {
   @JvmStatic
   @Throws(IOException::class)
   fun create(context: Context): CompanionSlotStore =
-    CompanionSlotStore.create(context.applicationContext, seed(), CompanionExposurePolicy.VERSION)
+    CompanionSlotStore.create(context.applicationContext, seed(), CompanionWaitAuthorizer.WAIT_POLICY)
 
   /** Opens only an explicitly named fresh slot, re-verifying the packaged pins. */
   @JvmStatic
   @Throws(IOException::class)
   fun open(context: Context, slotId: String): CompanionSlotStore {
     if (!slotId.matches(Regex("[0-9a-f]{32}"))) throw IOException("slot_identity_invalid")
-    return CompanionSlotStore.open(context.applicationContext, slotId, CompanionExposurePolicy.VERSION)
+    return CompanionSlotStore.open(context.applicationContext, slotId, CompanionWaitAuthorizer.WAIT_POLICY)
   }
 }
