@@ -80,9 +80,10 @@ class BrainGenesisTest {
     }
   }
 
-  @Test fun schemaHasSingletonAndImmutableTriggers() {
+  @Test fun schemaHasActorScopedPinsAndImmutableBrainTriggers() {
     val stmts = BrainGenesisSchema.createStatements()
-    assertTrue(stmts.any { it.contains("genesis_pins") && it.contains("singleton") })
+    assertTrue(stmts.any { it.contains("genesis_pins") && it.contains("PRIMARY KEY(slot_id,actor_id)") })
+    assertTrue(stmts.any { it.contains("initial_brain") && it.contains("state_digest") })
     assertTrue(stmts.any { it.contains("immutable_genesis") })
     // legacy alias banned at the schema level too
     assertTrue(stmts.any { it.contains("NOT IN (char(107,97,105),'KAI')") })

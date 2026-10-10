@@ -179,7 +179,7 @@ object CompanionWaitStorageFixtures {
     try {
       val batch=reserveBatch(store,"commit",0)
       store.admit(CompanionPendingTurn.Request.fromPlayerInput(id,"commit-alias",0,"cao_minh",INPUT))
-      for(point in listOf("after_event_write","after_snapshot_write","after_turn_write","after_alias_write","after_receipt_write","after_observation_publish","before_commit")) {
+      for(point in listOf("after_event_write","after_snapshot_write","after_turn_write","after_alias_write","after_receipt_write","after_observation_publish","after_memory_publish","after_brain_publish","before_commit")) {
         store.faultForTest { if(it==point) throw IllegalStateException("injected:$point") }
         try { store.commitWait("commit",0,INPUT,batch); error("fault missing:$point") } catch(e: IllegalStateException) {
           check(e.message=="injected:$point")
@@ -195,6 +195,10 @@ object CompanionWaitStorageFixtures {
       val receipt=store.commitWait("commit",0,INPUT,batch)
       check(receipt.manifest==batch.manifest && receipt.finalResult==batch.finalResult && store.currentRevision()==1L)
       check(store.currentSnapshot().contentEquals(batch.afterSnapshot.toByteArray(StandardCharsets.UTF_8)))
+      check(store.observations("cao_minh",10).isEmpty())
+      check(store.observations("luc_tram",10).isEmpty())
+      check(store.memoryHistory("cao_minh").isEmpty() && store.memoryHistory("luc_tram").isEmpty())
+      rejects("observation_read_scope_invalid") { store.observations("cao_minh",0) }
       check(store.recover()==null && store.events(1,100).map { it.record }==batch.events.map { it.record })
       val second=reserveBatch(store,"second",1)
       store.commitWait("second",1,INPUT,second)
@@ -211,6 +215,8 @@ object CompanionWaitStorageFixtures {
       store.close()
       CompanionSlotStore.openIn(directory,id,POLICY).use { loaded ->
         check(loaded.currentRevision()==2L && loaded.events(1,100).size==4)
+        check(loaded.observations("cao_minh",10).isEmpty())
+        check(loaded.memoryHistory("cao_minh").isEmpty())
         check(loaded.committedReceipt(CompanionPendingTurn.Request.fromPlayerInput(id,"commit-alias",0,"cao_minh",INPUT)).finalResult==receipt.finalResult)
       }
     } finally { store.close() }
