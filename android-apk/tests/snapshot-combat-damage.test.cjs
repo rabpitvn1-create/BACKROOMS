@@ -44,9 +44,9 @@ function boot(initialState){
   panel(){return scope.document.getElementById('combatFeedbackPanel')},
   entries(){return scope.document.getElementById('combatFeedbackEntries')},
   event(e){scope.backroomPlayCombatFeedback(e)},
-  turn(events,id='enc:1',encounterId='enc',combat={active:true,encounterId:'enc',entityKey:'diep_minh',round:1},extra={}){
+  turn(events,id='enc:1',encounterId='enc',combat={active:true,encounterId:'enc',entityKey:'diep_minh',round:1},extra={},packetExtra={}){
    const payload=Object.assign({},extra,{combat});
-   if(events!==undefined)payload.combatFeedback={id,encounterId,events};
+   if(events!==undefined)payload.combatFeedback=Object.assign({id,encounterId,events},packetExtra);
    scope.backroomTurn(JSON.stringify(payload));
   }
  };
@@ -108,6 +108,14 @@ test('combat panel is transient UI and never writes GM narrative state',()=>{
  assert.ok(lines.some(x=>x.includes('PARTY → ENTITY · -36 HP · CRIT · CHẢY MÁU')));
  assert.equal(script.includes('state.log'),false);
  assert.equal(script.includes('localStorage'),false);
+});
+
+test('combat panel renders the transient Combat Core summary without touching GM log',()=>{
+ const narrative=[{role:'gm',text:'Narrative only'}];
+ const r=boot({combat:{active:true,encounterId:'enc',entityKey:'hound',round:1},log:narrative});
+ r.turn([{target:'entity',text:'-9 HP',phase:'actor'}],'enc:2','enc',{active:true,encounterId:'enc',entityKey:'hound',round:1},{log:narrative},{summary:'Cao Minh dùng kỹ năng thử nghiệm. Hound phản công.'});
+ assert.ok(r.entries().children.some(n=>n.className.includes('combat-feedback-entry--summary')&&n.textContent.includes('Hound phản công')));
+ assert.deepEqual(r.scope.state.log,narrative);
 });
 
 test('combat panel deduplicates packets and resets when a new encounter begins',()=>{
