@@ -196,6 +196,12 @@ jobs:
           assert '.message:not(.player) .text' in html
           assert 'span.textContent=source.slice(hit.at,end)' in html
           assert 'span.innerHTML=source.slice(hit.at,end)' not in html
+          for final_character in ('Cao Minh', 'Iris', 'Syvial', 'An Nhiên', r'Lucia \"Lục\"'):
+              assert final_character in html, final_character
+          for final_item in ('Huyết Ma Kiếm', 'Huyết Ma Chiến Khải', 'Nhẫn Vạn Tàng'):
+              assert final_item in html, final_item
+          for final_skill in ('Huyết Ma Tứ Liên', 'Huyết Ma Nhị Thập Tứ Trảm'):
+              assert final_skill in html, final_skill
           provider_start = java.index('  private String generateText(String prompt)')
           provider_end = java.index('\n  private JSONObject parseModelJson', provider_start)
           provider_flow = java[provider_start:provider_end]
@@ -309,6 +315,9 @@ jobs:
           grep -qi 'almond water' apk-check/assets/index.html
           grep -qi 'greek fire' apk-check/assets/index.html
           grep -qi 'liquid pain' apk-check/assets/index.html
+          grep -q 'An Nhiên' apk-check/assets/index.html
+          grep -q 'Huyết Ma Kiếm' apk-check/assets/index.html
+          grep -q 'Huyết Ma Tứ Liên' apk-check/assets/index.html
           test -s apk-check/assets/fonts/Play-Bold.ttf
           cmp apk-check/assets/fonts/Play-Bold.ttf android-apk/app/src/main/assets/fonts/Play-Bold.ttf
           test -s apk-check/assets/entity/hound.webp

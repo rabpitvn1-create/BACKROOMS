@@ -64,6 +64,14 @@ for path in CORE.glob("*.kt"):
         name = re.search(r'\bname\s*=\s*"([^"]+)"', match.group(1))
         if name:
             character_names.add(name.group(1))
+    # Some canonical runtime characters intentionally route their display name
+    # through a NAME constant (for example An Nhiên and Lucia "Lục").
+    if "CharacterState" in source:
+        for raw_name in re.findall(r'const val NAME\s*=\s*"((?:\\\\.|[^"\\\\])*)"', source):
+            try:
+                character_names.add(json.loads('"' + raw_name + '"'))
+            except json.JSONDecodeError:
+                raise RuntimeError(f"Invalid character NAME literal in {path.name}: {raw_name}")
 character_names = clean(character_names)
 
 if not character_names:
