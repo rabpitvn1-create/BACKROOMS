@@ -70,6 +70,7 @@ jobs:
           main = (root / 'app/src/main/java/com/rabpit/backroom/MainActivity.java').read_text(encoding='utf-8')
           test = (root / 'app/src/test/java/com/rabpit/backroom/core/LuciaFollowerTest.kt').read_text(encoding='utf-8')
           avatar = root / 'app/src/main/assets/avatars/lucia_avatar.jpg'
+          combat_overlay = root / 'app/src/main/assets/LUCIA_LUC_OVERLAY.png'
 
           for marker in (
               'const val LUCIA_ID = "lucia"',
@@ -124,6 +125,18 @@ jobs:
           assert 'thresholdRoll("luciaEncounter", 10000, 5000, entityAllowed' not in main
 
           for marker in (
+              'LUCIA_COMBAT_OVERLAY_R01',
+              'function luciaCombatVisible()',
+              "img.className='snapshot-lucia'",
+              "img.src='file:///android_asset/LUCIA_LUC_OVERLAY.png'",
+              "renderSnapshot=function(){__luciaBaseRenderSnapshot();appendLuciaCombatOverlay();};",
+              "if(!c||c.active!==true)return false;",
+          ):
+              assert marker in main, marker
+          assert 'CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png' in main
+          assert "img.className='snapshot-character'" not in main or 'snapshot-character' in main
+
+          for marker in (
               'luciaUsesCanonical1193aBaseStats',
               'assertEquals(50, lucia.statProfile.baseMaxHp)',
               'assertEquals(listOf(5,5,5,5)',
@@ -134,6 +147,9 @@ jobs:
               assert marker in test, marker
 
           assert avatar.is_file() and avatar.stat().st_size > 0, avatar
+          assert combat_overlay.is_file() and combat_overlay.stat().st_size > 0, combat_overlay
+          raw = combat_overlay.read_bytes()
+          assert raw[:8] == b'\x89PNG\r\n\x1a\n', 'Lucia combat overlay PNG signature'
           PY
           git diff --check
 
@@ -168,8 +184,9 @@ jobs:
           "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -q "package: name='com.rabpit.backroom'"
           "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 "$APK"
           rm -rf lucia-apk-check && mkdir lucia-apk-check
-          unzip -q "$APK" 'assets/avatars/lucia_avatar.jpg' -d lucia-apk-check
+          unzip -q "$APK" 'assets/avatars/lucia_avatar.jpg' 'assets/LUCIA_LUC_OVERLAY.png' -d lucia-apk-check
           test -s lucia-apk-check/assets/avatars/lucia_avatar.jpg
+          test -s lucia-apk-check/assets/LUCIA_LUC_OVERLAY.png
 
       - name: Upload verification APK
         if: steps.apk_check.outcome == 'success'
