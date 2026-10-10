@@ -105,7 +105,7 @@ render = r'''  function diceAsset(value){return "file:///android_asset/dice/die-
       var settling=!rolling&&held[index]!==true&&diceSettleUntil>Date.now()&&diceSettleMask[index]===true;
       button.className="poker-die"+(held[index]===true?" held":"")+(rolling?" rolling":"")+(settling?" settling":"");
       button.style.setProperty("--die-delay",String(index*-55)+"ms");
-      button.disabled=d.finalized===true||window.__combatDiceBusy;
+      button.disabled=d.finalized===true||window.__combatDiceBusy||window.__combatFeedbackBusy;
       button.setAttribute("aria-pressed",held[index]===true?"true":"false");
       var shadow=document.createElement("span");shadow.className="poker-die-shadow";shadow.setAttribute("aria-hidden","true");button.appendChild(shadow);
       var seal=document.createElement("span");seal.className="poker-die-hold-seal";seal.textContent="GIỮ";seal.setAttribute("aria-hidden","true");button.appendChild(seal);
@@ -118,15 +118,15 @@ render = r'''  function diceAsset(value){return "file:///android_asset/dice/die-
         var blank=document.createElement("span");blank.className="poker-die-unknown";blank.textContent="?";object.appendChild(blank);
       }
       button.addEventListener("click",function(){
-        if(window.__combatDiceBusy||d.finalized===true||!window.Android||typeof Android.combatDiceHold!=="function")return;
+        if(window.__combatDiceBusy||window.__combatFeedbackBusy||d.finalized===true||!window.Android||typeof Android.combatDiceHold!=="function")return;
         setBusy(true);renderDice();Android.combatDiceHold(JSON.stringify(state),index,held[index]!==true);
       });
       row.appendChild(button);
     })(i)}
     hand.textContent=handLabel(d.hand);
     roll.textContent="ROLL";finish.textContent="FINISH";
-    roll.disabled=window.__combatDiceBusy||d.finalized===true||rerolls>=maxRerolls||allHeld(held);
-    finish.disabled=window.__combatDiceBusy||d.finalized===true;
+    roll.disabled=window.__combatDiceBusy||window.__combatFeedbackBusy||d.finalized===true||rerolls>=maxRerolls||allHeld(held);
+    finish.disabled=window.__combatDiceBusy||window.__combatFeedbackBusy||d.finalized===true;
   }
 '''
 html = html[:render_start] + render + html[render_end:]
@@ -157,6 +157,7 @@ ensure = r'''  function clearDiceTimers(){
     },FINALIZE_PREVIEW_MS);
   }
   function ensureDirectCombatDice(){
+    mountNearSnapshot();
     if(!combatActive()){
       window.__directCombatPreparing=false;window.__directCombatResolving=false;clearDiceTimers();hide();
       if(typeof busy!=="undefined")busy=false;
@@ -184,7 +185,7 @@ ensure = r'''  function clearDiceTimers(){
 html = html[:ensure_start] + ensure + html[ensure_end:]
 
 old_roll = '''  roll.addEventListener("click",function(){
-    if(window.__combatDiceBusy||!window.Android||typeof Android.combatDiceRoll!=="function")return;
+    if(window.__combatDiceBusy||window.__combatFeedbackBusy||!window.Android||typeof Android.combatDiceRoll!=="function")return;
     window.__combatDiceRolling=true;setBusy(true);renderDice();Android.combatDiceRoll(JSON.stringify(state));
   });
 '''
