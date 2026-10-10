@@ -12,7 +12,9 @@ import java.nio.charset.StandardCharsets
 internal object CompanionLiveWaitFixtures {
   fun verifiedNewGameAndWait(context: Context) {
     val input = "Tôi đề nghị anh quan sát kỹ căn phòng vàng trước khi đi tiếp."
+    var nativeSlotId = ""
     CompanionNewGameBootstrap.create(context).use { slot ->
+      nativeSlotId = slot.slotId
       val nativeBefore = slot.currentSnapshot()
       val writer = CompanionNativeWaitInteraction.Model { """{"intent":"WAIT"}""" }
       val audit = CompanionNativeWaitInteraction.Auditor { """{"verdict":"PASS"}""" }
@@ -39,8 +41,10 @@ internal object CompanionLiveWaitFixtures {
         error("wait_live_alias_conflict_accepted")
       } catch (_: java.io.IOException) { }
       require(slot.currentRevision() == 1L) { "wait_live_alias_changed_state" }
-      val public = CompanionAndroidBridge.open(context, slot.slotId)
-      require(org.json.JSONObject(public).getInt("revision") == 1) { "wait_live_readback" }
     }
+    // The slot uses an exclusive native lease. Verify reopen only AFTER
+    // closing the original handle, as production WebView does on each request.
+    val public = CompanionAndroidBridge.open(context, nativeSlotId)
+    require(org.json.JSONObject(public).getInt("revision") == 1) { "wait_live_readback" }
   }
 }
