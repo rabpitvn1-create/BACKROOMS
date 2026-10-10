@@ -1,0 +1,9 @@
+Backroom 1.1.63.0.6 Debug
+
+- Tăng versionName lên 1.1.63.0.6 và versionCode lên 71 để phát hành APK mới từ main hiện tại.
+- Thêm Entity Power Scaling tuyến tính theo Level trên base Level 0: Level 0/1/2/3 tương ứng 100/110/120/130%; không compound. RANK_PER_FULL_LEVEL = 1,000,000 và giữ fixed-point cho progression rank.
+- Scale Entity Max HP và base attack/damage theo progression rank; Level 0 giữ nguyên balance hiện tại. Rank được snapshot khi encounter bắt đầu nên đổi Level không rescale giữa trận.
+- Thêm Combat Feedback Panel tạm thời riêng: Snapshot → Poker Dice → Combat Feedback → GM/Narrative Log.
+- Direct combat summary/events không còn ghi vào state.log / GAME MASTER log; panel không dùng localStorage, save metadata hay persistent GameState, và tự xóa sau khi combat kết thúc.
+- Giữ nguyên overlay Cao Minh/Nhân vật; Poker Dice vẫn nằm trực tiếp dưới Snapshot.
+- Full patch chain, Kotlin unit tests, debug APK build và các verifier Combat/Healing/Lucia/Diệp Minh/Companion/Kai/Item đã được kiểm tra trước khi phát hành.
