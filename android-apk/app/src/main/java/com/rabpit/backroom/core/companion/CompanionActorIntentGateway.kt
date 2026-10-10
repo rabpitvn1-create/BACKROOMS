@@ -21,7 +21,7 @@ internal object CompanionActorIntentGateway {
   }
 
   private fun reject(reason: String) = Result.Rejected(reason)
-  private val allowedKeys = setOf("intent", "targetId", "itemId")
+  private val allowedKeys = setOf("intent", "targetId", "itemId", "utterance")
 
   /** The provider cannot select actor identity, scene, capabilities, revision or pins. */
   fun select(
@@ -45,6 +45,12 @@ internal object CompanionActorIntentGateway {
           !value.matches(Regex("[A-Za-z0-9][A-Za-z0-9._:-]{0,127}"))) return ""
       return value
     }
+    val utterance = json.opt("utterance")
+    if (utterance != null && utterance != JSONObject.NULL &&
+        (utterance !is String || intent != DecisionPreflight.Intent.TALK ||
+          utterance.isBlank() || utterance.length > 500 ||
+          utterance.any { it.isISOControl() && it != '\n' && it != '\t' }))
+      return reject("utterance_invalid")
     val target = optionalId("targetId")
     val item = optionalId("itemId")
     if (target == "" || item == "") return reject("target_or_item_invalid")
