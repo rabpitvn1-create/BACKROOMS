@@ -86,17 +86,17 @@ test('only verified new game projects; a submitted interaction never optimistica
   assert.equal(f.calls[1][0], 'submit');
   assert.equal(f.calls[1][1], slotId);
   assert.equal(f.calls[1][2], input.value);
-  assert.equal(f.elements.turn.textContent, 1);
+  assert.equal(f.elements.turn.textContent, '1');
   assert.match(f.elements.companionStatus.textContent, /Chưa có receipt/);
   f.window.backroomCompanionError('audit_failed');
   assert.equal(input.value, 'Tôi khuyên anh quan sát căn phòng kỹ hơn.');
-  assert.equal(f.elements.turn.textContent, 1);
+  assert.equal(f.elements.turn.textContent, '1');
   assert.ok(f.slots.get('backroom-companion-native-pending'));
   f.elements.companionSend.click();
   assert.equal(f.calls[1][3], f.calls[2][3], 'retry preserves request alias');
   f.window.backroomCompanionTurn(receipt);
   assert.equal(input.value, '');
-  assert.equal(f.elements.turn.textContent, 2);
+  assert.equal(f.elements.turn.textContent, '2');
   assert.equal(f.slots.get('backroom-companion-native-pending'), undefined);
 });
 
