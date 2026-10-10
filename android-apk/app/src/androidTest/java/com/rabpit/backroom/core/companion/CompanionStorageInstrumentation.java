@@ -46,7 +46,13 @@ public final class CompanionStorageInstrumentation extends Instrumentation {
         });
         throw new AssertionError("atomic process kill returned");
       }
-      if ("benchmark".equals(mode))
+      if ("native_audit".equals(mode))
+        run("native_backend_audit", () -> CompanionNativeAuditFixtures.audit(getTargetContext(),
+          arguments.getString("candidate_sha", ""), arguments.getString("trial_id", ""),
+          Integer.parseInt(arguments.getString("turns", "1000")), message -> {
+            Bundle status = new Bundle(); status.putString("stream", message + "\n"); sendStatus(0, status);
+          }));
+      else if ("benchmark".equals(mode))
         run("native_backend_benchmark", () -> CompanionWaitStorageFixtures.benchmark(getTargetContext(), directory,
           Integer.parseInt(arguments.getString("turns","1000")), message -> { Bundle status=new Bundle(); status.putString("stream",message+"\n"); sendStatus(0,status); }));
       else if ("during_commit_recover".equals(mode) || "after_commit_recover".equals(mode))
