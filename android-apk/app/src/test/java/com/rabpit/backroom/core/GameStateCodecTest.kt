@@ -57,7 +57,6 @@ class GameStateCodecTest {
     state.equipment.getValue(KAI_ID).slots.values.distinct().forEach { assertTrue(it in owned) }
     assertEquals(KAI_WHITE_WRAITH_ID, state.equipment.getValue(KAI_ID).slots["weapon"])
     assertEquals(KAI_BLACKBLOOD_ARMOR_ID, state.equipment.getValue(KAI_ID).slots["armor"])
-    assertEquals(KAI_OMNIVAULT_RING_ID, state.equipment.getValue(KAI_ID).slots["ring"])
   }
 
   @Test fun olderSaveSchemasAreRejected() {

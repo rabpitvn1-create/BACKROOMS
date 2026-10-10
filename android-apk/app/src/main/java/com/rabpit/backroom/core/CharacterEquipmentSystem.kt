@@ -91,11 +91,6 @@ object EquipmentCatalog {
       canonRef = "CAO-EQP-HUYET-MA-KHAI-01"
     ),
     EquipmentDefinition(
-      id = KAI_OMNIVAULT_RING_ID, name = "Nhẫn Vạn Tàng", type = "NHẪN KHÔNG GIAN", primarySlot = EquipmentSlot.RING,
-      abilities = listOf(ability("Tiểu không gian", "Lưu trữ vật phẩm theo authority của hệ thống hiện hành."), ability("Scan / Copy", "Giữ cơ chế Scan / Copy hiện hành theo yêu cầu đổi tên.")),
-      canonRef = "CAO-EQP-VANTANG-01"
-    ),
-    EquipmentDefinition(
       id = IRIS_RECON_FRAME_ID, name = "Blackblood Recon Frame R03", type = "RECON ARMOR", primarySlot = EquipmentSlot.ARMOR,
       bonuses = EquipmentBonuses(),
       abilities = listOf(
@@ -206,7 +201,6 @@ object EquipmentCatalog {
     KAI_ID -> linkedMapOf(
       EquipmentSlot.WEAPON to KAI_WHITE_WRAITH_ID,
       EquipmentSlot.ARMOR to KAI_BLACKBLOOD_ARMOR_ID,
-      EquipmentSlot.RING to KAI_OMNIVAULT_RING_ID
     )
     IRIS_ID -> linkedMapOf(EquipmentSlot.WEAPON to IRIS_IVORY_EBONY_SET_ID, EquipmentSlot.ARMOR to IRIS_RECON_FRAME_ID)
     SYVIAL_ID -> linkedMapOf(EquipmentSlot.WEAPON to SYVIAL_GODKILLER_ID, EquipmentSlot.ARMOR to SYVIAL_LUCIFER_ARMOR_ID)

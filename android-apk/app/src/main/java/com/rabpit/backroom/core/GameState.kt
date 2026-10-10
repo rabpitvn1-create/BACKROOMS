@@ -4,12 +4,10 @@ const val CURRENT_SAVE_VERSION = 4
 const val KAI_ID = "cao_minh"
 const val KAI_WHITE_WRAITH_ID = "cao_minh:huyet-ma-kiem"
 const val KAI_BLACKBLOOD_ARMOR_ID = "cao_minh:huyet-ma-chien-khai"
-const val KAI_OMNIVAULT_RING_ID = "cao_minh:nhan-van-tang"
 
 object KaiStartingEquipment {
   const val WEAPON_NAME = "Huyết Ma Kiếm"
   const val ARMOR_NAME = "Huyết Ma Chiến Khải"
-  const val RING_NAME = "Nhẫn Vạn Tàng"
   const val WW_MAGNUM_DMG = 500
   const val BLACKBLOOD_DF = 500
   const val BLACKBLOOD_STR = 100
@@ -21,7 +19,6 @@ object KaiStartingEquipment {
   val slots: Map<String, String> = linkedMapOf(
     "weapon" to KAI_WHITE_WRAITH_ID,
     "armor" to KAI_BLACKBLOOD_ARMOR_ID,
-    "ring" to KAI_OMNIVAULT_RING_ID
   )
 
   fun displayName(itemId: String): String? = when (itemId) {
@@ -30,7 +27,6 @@ object KaiStartingEquipment {
     KAI_DEMON_JAW_MASK_ID -> "Demon Jaw Mask"
     KAI_TALON_GAUNTLETS_ID -> "Talon Gauntlets"
     KAI_PHANTOM_GREAVES_ID -> "Phantom Greaves"
-    KAI_OMNIVAULT_RING_ID -> RING_NAME
     else -> null
   }
 
@@ -42,7 +38,6 @@ object KaiStartingEquipment {
       key.contains("demon jaw") -> "head"
       key.contains("talon gauntlet") -> "gauntlets"
       key.contains("phantom greave") -> "greaves"
-      key.contains("omnivault ring") || key.contains("nhẫn omnivault") || key.contains("nhẫn vạn tàng") || key.contains("van tang") -> "ring"
       else -> null
     }
   }

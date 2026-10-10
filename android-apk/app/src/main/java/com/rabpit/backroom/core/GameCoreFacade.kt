@@ -55,7 +55,7 @@ class GameCoreFacade private constructor(
       }
       repository.save(committed.state)
       val result = syncLegacy(legacy, committed.state, incrementTurn = true)
-      val reply = "Vũ khí MadGod đã trang bị; Ma Tôn Vạn Giới là passive và không chiếm ô giáp. Huyết Ma Chiến Khải và Nhẫn Vạn Tàng được giữ nguyên."
+      val reply = "Vũ khí MadGod đã trang bị; Ma Tôn Vạn Giới là passive và không chiếm ô giáp. Huyết Ma Chiến Khải được giữ nguyên."
       appendLog(result, action, reply)
       return response(true, result, null, "madgod_equipped", reply)
     }

@@ -172,7 +172,7 @@ body.player-action-open,body.game-menu-open{overflow:hidden}
     </div>
   </div>
   <div class="character-section"><h3>Status</h3><div class="survival-hud" id="characterSurvivalHud"></div><div class="character-status-list" id="characterStatusList"></div></div>
-  <div class="character-section"><h3>Equipment</h3><div class="equipment-list" id="characterEquipmentList"><span>Huyết Ma Kiếm</span><span>Huyết Ma Chiến Khải</span><span>Nhẫn Vạn Tàng</span></div></div>
+  <div class="character-section"><h3>Equipment</h3><div class="equipment-list" id="characterEquipmentList"><span>Huyết Ma Kiếm</span><span>Huyết Ma Chiến Khải</span></div></div>
   <div class="character-section"><h3>Inventory</h3><div class="chips" id="characterInventoryItems"></div></div>
 </div>
 </aside>
@@ -1693,8 +1693,8 @@ render();
   const equipment=document.getElementById('characterEquipmentList');
   const statusList=document.getElementById('characterStatusList');
   const survivalHud=document.getElementById('characterSurvivalHud');
-  const signatureNames=['w.w magnum','white wraith magnum','blackblood armor','omnivault ring','nhẫn vạn tàng','nhẫn omnivault'];
-  const signatureEquipment={weapon:'Huyết Ma Kiếm',armor:'Huyết Ma Chiến Khải',ring:'Nhẫn Vạn Tàng'};
+  const signatureNames=['w.w magnum','white wraith magnum','blackblood armor'];
+  const signatureEquipment={weapon:'Huyết Ma Kiếm',armor:'Huyết Ma Chiến Khải'};
   const bandLabels={UNKNOWN:'Chưa xác định',NORMAL:'Bình thường',MILD:'Nhẹ',MODERATE:'Vừa',SEVERE:'Nặng',CRITICAL:'Nguy kịch'};
   let selectedCharacterId='cao_minh';
 
@@ -1781,7 +1781,7 @@ render();
     }).join('');
   }
   function equipmentRows(member){
-    if(member&&member.id==='cao_minh'&&madGodSetEquipped())return ['MadGod Set','Nhẫn Vạn Tàng'];
+    if(member&&member.id==='cao_minh'&&madGodSetEquipped())return ['MadGod Set'];
     const eq=member&&member.equipment||{};
     const keys=Object.keys(eq);
     if(!keys.length&&member&&member.id==='cao_minh')return Object.keys(signatureEquipment).map(k=>displaySlotName(k)+' : '+displayItemName(signatureEquipment[k]));

@@ -333,31 +333,6 @@
       ]
     },
     {
-      "id": "CHAR.KAI.OMNIVAULT",
-      "domain": "CHARACTER",
-      "kind": "equipment",
-      "text": "Omnivault Ring is an absolute storage space for inanimate objects and never acts on living beings. Physical storage is not limited by ordinary count/size/mass, but scan-copy memory has exactly 3 slots. Copies cannot themselves be scanned; each original can serve as a scan source once before being Marked. Restore/Hoàn nguyên has per-item 24-hour cooldown after a successful restore. Scan/restore uses a light beam and can propagate across one continuous material block, but does not treat whole assembled systems such as buildings, motorcycles, tanks or complete cannons as one eligible object; personal armor and guns remain eligible complete items.",
-      "source": {
-        "document": "02_CHARACTERS/Kai_Codex.docx",
-        "anchor": "KAI-EQP-OMNIVAULT-01; KAI-WEAK-01"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 46,
-      "tags": [
-        "cao_minh",
-        "omnivault",
-        "nhẫn vạn tàng",
-        "scan",
-        "restore",
-        "hoàn nguyên"
-      ],
-      "references": [],
-      "affordances": [
-        "item_manipulation"
-      ]
-    },
-    {
       "id": "CHAR.IRIS.RUNTIME_CORE",
       "domain": "CHARACTER",
       "kind": "runtime-card",

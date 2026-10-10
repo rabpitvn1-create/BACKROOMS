@@ -37,6 +37,6 @@ object InventoryPolicy {
     val equippedIds = state.equipment[KAI_ID]?.slots?.values.orEmpty().toSet()
     if (item.itemId in equippedIds) return true
     val key = (item.itemId + " " + item.name).lowercase()
-    return key.contains("omnivault ring") || key.contains("nhẫn omnivault") || key.contains("nhẫn vạn tàng")
+    return false
   }
 }
