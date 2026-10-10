@@ -36,7 +36,9 @@
       combatPanelMeta=document.getElementById('combatFeedbackMeta');
       combatPanelList=document.getElementById('combatFeedbackEntries');
     }
-    if(snapshot.nextElementSibling!==combatPanel)snapshot.insertAdjacentElement('afterend',combatPanel);
+    var dice=document.getElementById('pokerDiceModal');
+    var anchor=dice&&dice.isConnected!==false?dice:snapshot;
+    if(anchor.nextElementSibling!==combatPanel)anchor.insertAdjacentElement('afterend',combatPanel);
     return combatPanel;
   }
   function renderCombatMeta(combat){
