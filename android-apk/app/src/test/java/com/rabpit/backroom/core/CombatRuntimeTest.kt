@@ -27,6 +27,16 @@ class CombatRuntimeTest {
     assertEquals("hound", CombatRuntime.active(duplicate)!!.entityKey)
   }
 
+
+  @Test fun successiveEncountersInSameTurnCannotReuseRewardIdentity() {
+    val first = CombatRuntime.start(GameState.initial(), "hound")
+    val firstId = CombatRuntime.active(first)!!.encounterId
+    val second = CombatRuntime.start(CombatRuntime.clear(first), "hound")
+    val secondId = CombatRuntime.active(second)!!.encounterId
+    assertFalse(firstId == secondId)
+    assertEquals("2", second.metadata["loot.encounterSerial"])
+  }
+
   @Test fun repeatedAuthoritativeAttacksEventuallyDestroyAndClearEntity() {
     var state = CombatRuntime.start(GameState.initial(), "hound")
     var destroyed = false

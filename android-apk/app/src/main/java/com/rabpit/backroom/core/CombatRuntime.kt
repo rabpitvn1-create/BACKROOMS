@@ -168,12 +168,14 @@ object CombatRuntime {
     val effective = CharacterStatEngine.effective(state, KAI_ID)
     val playerMax = effective.maxHp
     val playerHp = state.characters[KAI_ID]?.vitalState?.currentHp?.coerceIn(0, playerMax) ?: playerMax
-    val seed = stableSeed(entityKey, state.turn.currentTurnId, state.time.elapsedSubjectiveMinutes)
+    // Every encounter gets a persistent local serial; equal turns/time cannot duplicate rewards.
+    val serial = (state.metadata["loot.encounterSerial"]?.toLongOrNull() ?: 0L) + 1L
+    val seed = stableSeed(entityKey, state.turn.currentTurnId, state.time.elapsedSubjectiveMinutes xor serial)
     val progressionRank = EntityPowerScaling.rankFor(state)
     val unscaledEntityMaxHp = if (profile.key == DIEP_MINH_KEY) DIEP_MINH_MAX_HP else profile.maxHp + ENTITY_HP_BONUS
     val enhancedEntityMaxHp = EntityPowerScaling.scale(unscaledEntityMaxHp, progressionRank)
     val snapshot = Snapshot(
-      encounterId = "${state.turn.currentTurnId}:${entityKey}:${abs(seed)}",
+      encounterId = "$serial:${state.turn.currentTurnId}:$entityKey",
       entityKey = entityKey,
       entityName = profile.displayName,
       progressionRank = progressionRank,
@@ -194,7 +196,7 @@ object CombatRuntime {
       eventCounter = 0,
       seed = seed
     )
-    return encode(state, snapshot)
+    return encode(state.copy(metadata = state.metadata + ("loot.encounterSerial" to serial.toString())), snapshot)
   }
 
   fun resolve(state: GameState, actionKind: String, action: String): Resolution {
