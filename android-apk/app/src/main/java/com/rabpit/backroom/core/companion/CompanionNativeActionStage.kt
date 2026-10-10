@@ -15,7 +15,8 @@ internal object CompanionNativeActionStage {
   data class Result(
     val after: String, val intent: DecisionPreflight.Intent, val minutes: Int,
     val fromStop: String, val toStop: String, val streak: Int,
-    val completed: Boolean, val exitWon: Boolean, val rolls: String, val commandId: String)
+    val completed: Boolean, val exitWon: Boolean, val rolls: String, val commandId: String,
+    val utterance: String? = null)
 
   fun minutes(intent: DecisionPreflight.Intent) = when (intent) {
     DecisionPreflight.Intent.TALK -> 1
@@ -39,8 +40,13 @@ internal object CompanionNativeActionStage {
 
   fun apply(original: GameState, turnId: String, revision: Long,
             intent: DecisionPreflight.Intent, target: String?,
-            draw: (CompanionRollTape.Purpose, Int) -> Int): Result {
+            draw: (CompanionRollTape.Purpose, Int) -> Int,
+            utterance: String? = null): Result {
     require(intent in ordinary && revision in 0 until Int.MAX_VALUE.toLong()) { "ordinary_intent_invalid" }
+    require(if (intent == DecisionPreflight.Intent.TALK) {
+      utterance != null && utterance.isNotBlank() && utterance.toByteArray(Charsets.UTF_8).size <= 240 &&
+        utterance.none { it.isISOControl() }
+    } else utterance == null) { "ordinary_actor_speech_invalid" }
     require(original.turn.pending == null && ActionRuntime.activeSession(original) == null &&
       !Combat93Runtime.active(original) && CombatRuntime.active(original) == null) { "ordinary_core_busy" }
     require(original.party.leaderId == KAI_ID && KAI_ID in original.party.memberIds &&
@@ -147,6 +153,6 @@ internal object CompanionNativeActionStage {
     val encoded=GameStateCodec.encode(state)
     check(GameStateCodec.decode(encoded)==state) { "ordinary_stage_roundtrip" }
     return Result(encoded,intent,minutes,stop,destination,streak,completed,
-      exit.success == true,CompanionWaitCapture.canonical(rolls),commandId)
+      exit.success == true,CompanionWaitCapture.canonical(rolls),commandId,utterance)
   }
 }
