@@ -1,5 +1,6 @@
 package com.rabpit.backroom.core
 
+import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.*
 import org.junit.Test
@@ -64,11 +65,19 @@ class CombatFeedback1193aTest {
     val ctor = GameCoreFacade::class.java.getDeclaredConstructor(SaveRepository::class.java, GamePipelineLogger::class.java)
     ctor.isAccessible = true
     val facade = ctor.newInstance(saved, NoOpGamePipelineLogger)
-    val legacy = JSONObject().put("turn", 1).put("combatFeedback", JSONObject().put("id", "forged"))
+    val narrative = JSONArray().put(JSONObject().put("role", "gm").put("text", "GM narrative remains separate"))
+    val legacy = JSONObject()
+      .put("turn", 1)
+      .put("log", narrative)
+      .put("combatFeedback", JSONObject().put("id", "forged"))
     val output = JSONObject(facade.processCombat(legacy.toString(), "EXECUTE", action)).getJSONObject("state")
     val packet = output.getJSONObject("combatFeedback")
     assertEquals("${active.encounterId}:1", packet.getString("id"))
+    assertTrue(packet.getString("summary").isNotBlank())
     assertTrue(packet.getJSONArray("events").length() > 0)
+    val log = output.getJSONArray("log")
+    assertEquals(1, log.length())
+    assertEquals("GM narrative remains separate", log.getJSONObject(0).getString("text"))
     val refreshed = JSONObject(facade.startCombatState(output.toString(), "hound"))
     assertFalse(refreshed.has("combatFeedback"))
   }
