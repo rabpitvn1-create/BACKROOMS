@@ -184,6 +184,11 @@ jobs:
               assert forbidden_semantic not in html, forbidden_semantic
           assert 'Băng gạc' in html
           assert 'Thuốc sát trùng' in html
+          for world_item in ('almond water', 'greek fire', 'liquid pain'):
+              assert world_item in html.lower(), world_item
+          assert '.message:not(.player) .text' in html
+          assert 'span.textContent=source.slice(hit.at,end)' in html
+          assert 'span.innerHTML=source.slice(hit.at,end)' not in html
           provider_start = java.index('  private String generateText(String prompt)')
           provider_end = java.index('\n  private JSONObject parseModelJson', provider_start)
           provider_flow = java[provider_start:provider_end]
@@ -294,6 +299,9 @@ jobs:
           grep -q 'gm-semantic' apk-check/assets/index.html
           grep -q 'Băng gạc' apk-check/assets/index.html
           grep -q 'Thuốc sát trùng' apk-check/assets/index.html
+          grep -qi 'almond water' apk-check/assets/index.html
+          grep -qi 'greek fire' apk-check/assets/index.html
+          grep -qi 'liquid pain' apk-check/assets/index.html
           test -s apk-check/assets/fonts/Play-Bold.ttf
           cmp apk-check/assets/fonts/Play-Bold.ttf android-apk/app/src/main/assets/fonts/Play-Bold.ttf
           test -s apk-check/assets/entity/hound.webp

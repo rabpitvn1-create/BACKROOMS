@@ -39,6 +39,15 @@ healing_path = CORE / "HealingItems.kt"
 if healing_path.is_file():
     healing = healing_path.read_text(encoding="utf-8")
     item_name_set.update(re.findall(r'const val [A-Z0-9_]+_NAME\s*=\s*"([^"]+)"', healing))
+
+knowledge_path = ROOT / "app/src/main/assets/knowledge/knowledge_db.json"
+if knowledge_path.is_file():
+    knowledge = json.loads(knowledge_path.read_text(encoding="utf-8"))
+    for record in knowledge.get("records", []):
+        if record.get("domain") == "ITEM" and record.get("kind") == "item":
+            tags = record.get("tags") or []
+            if tags:
+                item_name_set.add(str(tags[0]))
 item_names = clean(item_name_set)
 
 skill_path = CORE / "CompanionSkillCatalog.kt"
@@ -112,7 +121,7 @@ script = r'''<script id="gmSemanticPlayBoldRuntime">
 
   function addItem(map,item){
     if(typeof item==="string")addTerm(map,item,"item");
-    else if(item&&typeof item==="object")addTerm(map,item.name,"item");
+    else if(item&&typeof item==="object")addTerm(map,item.name||item.displayName||item.label,"item");
   }
 
   function addMember(map,member){
@@ -132,7 +141,10 @@ script = r'''<script id="gmSemanticPlayBoldRuntime">
     });
     const s=typeof state!=="undefined"&&state?state:null;
     if(s){
-      if(s.player)addTerm(map,s.player.name,"character");
+      if(s.player){
+        if(typeof s.player==="string")addTerm(map,s.player,"character");
+        else addTerm(map,s.player.name||s.player.displayName||s.player.label,"character");
+      }
       if(Array.isArray(s.party))s.party.forEach(function(member){
         if(typeof member==="string")addTerm(map,member,"character");else addMember(map,member);
       });
@@ -239,11 +251,18 @@ for required in (
     '"entity":',
     '"item":',
     '"skill":',
+    'span.textContent=source.slice(hit.at,end)',
+    'fragment.appendChild(document.createTextNode',
 ):
     if required not in html:
         raise RuntimeError("GM semantic typography contract missing: " + required)
 
-for forbidden in ("gm-semantic-location", "gm-semantic-status", "gm-semantic-effect", r"\\p{L}", r"\\p{N}"):
+for forbidden in (
+    "gm-semantic-location", "gm-semantic-status", "gm-semantic-effect",
+    r"\\p{L}", r"\\p{N}",
+    'innerHTML=source.slice(hit.at,end)',
+    'span.innerHTML=source.slice(hit.at,end)',
+):
     if forbidden in html:
         raise RuntimeError("GM semantic typography leaked forbidden scope/compat syntax: " + forbidden)
 
