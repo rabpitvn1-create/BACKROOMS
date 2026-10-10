@@ -27,6 +27,16 @@ internal class CompanionNativeWaitInteraction(
   fun submit(exactInput: String, requestId: String): Committed {
     if (!requestId.matches(Regex("[A-Za-z0-9][A-Za-z0-9._:-]{0,95}")))
       throw IOException("companion_request_invalid")
+    // Historical aliases are resolved BEFORE reading current revision. A retry
+    // after commit must return its durable receipt, never decide another turn.
+    val historical = store.request(requestId)
+    if (historical != null && historical.phase == CompanionPendingTurn.Phase.COMMITTED) {
+      val oldRequest = CompanionPendingTurn.Request.fromPlayerInput(store.slotId,
+        requestId, historical.expectedRevision, "cao_minh", exactInput)
+      val receipt = store.committedReceipt(oldRequest) ?: throw IOException("receipt_replay_mismatch")
+      return Committed(receipt.committedRevision, receipt.finalResult,
+        String(store.currentSnapshot(), StandardCharsets.UTF_8))
+    }
     val bound = CompanionNativeDecisionContext.bind(context, store, requestId, exactInput)
     val request = CompanionPendingTurn.Request.fromPlayerInput(
       store.slotId, requestId, bound.revision, "cao_minh", exactInput)
