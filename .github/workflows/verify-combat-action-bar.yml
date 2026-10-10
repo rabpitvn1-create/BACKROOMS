@@ -100,14 +100,26 @@ jobs:
           assert 'POKER_DICE_NEAR_SNAPSHOT_R01' in html
           assert '.poker-dice-backdrop{display:none}' in html
           assert 'function mountNearSnapshot()' in html
-          assert 'snapshot.insertAdjacentElement("afterend",modal)' in html
+          assert 'document.getElementById("combatFeedbackPanel")' in html
+          assert 'anchor.insertAdjacentElement("afterend",modal)' in html
           assert '.poker-dice-modal{position:fixed' not in html
+          feedback_js = (root / 'app/src/main/assets/combat-feedback-1193a.js').read_text(encoding='utf-8')
+          feedback_css = (root / 'app/src/main/assets/combat-feedback-1193a.css').read_text(encoding='utf-8')
+          assert 'COMBAT_TRANSIENT_LOG_R01' in feedback_js
+          assert "combatPanel.id='combatFeedbackPanel'" in feedback_js
+          assert "resetCombatPanel()" in feedback_js
+          assert 'state.log' not in feedback_js
+          assert 'localStorage' not in feedback_js
+          assert '.combat-feedback-panel' in feedback_css
           assert 'ENTITY_SHARED_GROUND_PLANE_R01' in main
           assert "rect=img.getBoundingClientRect()" in main
           assert "x=-left*ew*scale,y=(1-bottom)*eh*scale" in main
           assert 'combat-feedback-1193a.js' in html
           assert 'combat-feedback-1193a.css' in html
           assert 'output.put("combatFeedback"' in facade
+          assert 'put("summary", combatReply)' in facade
+          assert 'if (action != PokerDiceCore.DIRECT_COMBAT_ACTION)' in facade
+          assert 'log.put(JSONObject().put("role", "gm").put("text", combatReply))' not in facade
           assert 'feedback = feedback.toList()' in combat
           assert 'function normalizeEntityVisual(img)' in main
           assert 'ctx.getImageData(0,0,pw,ph)' in main
@@ -151,9 +163,16 @@ jobs:
           grep -q 'POKER_DICE_NEAR_SNAPSHOT_R01' "$html"
           grep -q 'poker-dice-backdrop{display:none}' "$html"
           grep -q 'mountNearSnapshot' "$html"
+          grep -q 'combatFeedbackPanel' "$html"
           ! grep -q '.poker-dice-modal{position:fixed' "$html"
           grep -q 'combat-feedback-1193a.js' "$html"
           grep -q 'COMBAT_FEEDBACK_1193A' combat-apk-check/assets/combat-feedback-1193a.js
+          grep -q 'COMBAT_TRANSIENT_LOG_R01' combat-apk-check/assets/combat-feedback-1193a.js
+          grep -q "packet&&packet.summary" combat-apk-check/assets/combat-feedback-1193a.js
+          grep -q "combatPanel.id='combatFeedbackPanel'" combat-apk-check/assets/combat-feedback-1193a.js
+          ! grep -q 'state.log' combat-apk-check/assets/combat-feedback-1193a.js
+          ! grep -q 'localStorage' combat-apk-check/assets/combat-feedback-1193a.js
+          grep -q '.combat-feedback-panel' combat-apk-check/assets/combat-feedback-1193a.css
           test -s combat-apk-check/assets/combat-feedback-1193a.css
           test -s combat-apk-check/assets/fonts/Play-Bold.ttf
           ! grep -q "label:'TẤN CÔNG'" "$html"
