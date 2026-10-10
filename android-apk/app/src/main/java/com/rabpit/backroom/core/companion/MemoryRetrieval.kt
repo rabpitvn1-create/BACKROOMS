@@ -50,10 +50,18 @@ internal object MemoryRetrieval {
   data class Packet(val entries: List<MemoryView>, val truncated: Boolean)
 
   fun retrieve(all: List<MemoryView>, query: Query): Packet {
+    require(query.maxChars >= 0) { "memory_budget_invalid" }
     // 1. Slot + actor filter first.
     val owned = all.filter { it.slotId == query.slotId && it.ownerActorId == query.actorId }
     // 2. Latest per correction chain.
-    val superseded = owned.mapNotNull { it.supersedesMemoryId }.toSet()
+    val byId=owned.associateBy { it.memoryId }
+    require(byId.size==owned.size) { "memory_duplicate_identity" }
+    val superseded=hashSetOf<String>()
+    for(m in owned) m.supersedesMemoryId?.let { id ->
+      val parent=byId[id] ?: throw IllegalArgumentException("memory_correction_parent_missing")
+      require(m.committedRevision>parent.committedRevision) { "memory_correction_revision" }
+      require(superseded.add(id)) { "memory_correction_branch" }
+    }
     val latest = owned.filter { it.memoryId !in superseded }
     // 3. Deterministic rank.
     val ranked = latest.sortedWith(compareBy(
@@ -66,11 +74,11 @@ internal object MemoryRetrieval {
     ))
     // 4. Budget the packet; history untouched.
     val entries = ArrayList<MemoryView>()
-    var used = 0
+    var used = 0L
     var truncated = false
     for (m in ranked) {
       val cost = m.summary.length + 64
-      if (used + cost > query.maxChars && entries.isNotEmpty()) { truncated = true; break }
+      if (used + cost > query.maxChars.toLong()) { truncated = true; continue }
       entries.add(m)
       used += cost
     }

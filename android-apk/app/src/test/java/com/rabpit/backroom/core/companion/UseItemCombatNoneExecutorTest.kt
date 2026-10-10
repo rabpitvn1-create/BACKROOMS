@@ -23,7 +23,7 @@ class UseItemCombatNoneExecutorTest {
       slotRevision = 42, intent = intent, targetId = target, itemId = item,
       canonRevision = "R17", ruleVersion = BrainContracts.RULE_VERSION),
     intent = intent, targetId = target, itemId = item,
-    rngValue = 777L, providerCalls = 1)
+    providerCalls = 1)
 
   private fun itemFacts() = ItemNativeFacts(
     actorId = "luc_tram", itemId = "torch", itemCommand = "light",
@@ -158,4 +158,13 @@ class UseItemCombatNoneExecutorTest {
       decided(Intent.WAIT), "luc_tram", "turn-9")
     assertEquals("intent_not_none", (r as NoneResult.Rejected).reason)
   }
+  @Test fun rejectsNegativeCostsWrongActorsAndForgedDice() {
+    for (f in listOf(itemFacts().copy(costCharges=-1),itemFacts().copy(actorId="other"),itemFacts().copy(targetId="other"))) {
+      assertTrue(UseItemCombatNoneExecutor.executeUseItem(decided(Intent.USE_ITEM,item="torch"),f,"t","o",1) is UseItemResult.NotUsed)
+    }
+    for (f in listOf(combatFacts().copy(actorId="other"),combatFacts().copy(dice=listOf(7)),combatFacts().copy(rngScope=""))) {
+      assertTrue(UseItemCombatNoneExecutor.executeCombat(decided(Intent.COMBAT_ACTION,target="husk"),f,"t","o",1) is CombatResult.NotActed)
+    }
+  }
+
 }
