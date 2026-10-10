@@ -1677,47 +1677,6 @@ public class MainActivity extends Activity {
         continue;
       }
 
-      if (type.equals("patch_player")) {
-        JSONObject patch = op.optJSONObject("patch");
-        if (patch == null) continue;
-        JSONObject current = state.optJSONObject("player");
-        if (current == null) current = new JSONObject();
-        boolean worldConsequence = rollSuccess(rolls, "hazard") || rollSuccess(rolls, "entityEncounter");
-        boolean recoveryIntent = containsAny(action, "ăn", "uống", "nghỉ", "ngủ", "băng bó", "chữa", "hồi phục", "eat", "drink", "rest", "sleep", "heal");
-        boolean gearIntent = containsAny(action, "rút", "cất", "trang bị", "mặc", "cởi", "tháo", "đeo", "draw", "equip", "unequip", "wear");
-        if (patch.has("hp") && current.has("hp") && !current.isNull("hp")) {
-          double beforeHp = current.optDouble("hp", Double.NaN);
-          double afterHp = patch.optDouble("hp", Double.NaN);
-          if (!Double.isNaN(beforeHp) && !Double.isNaN(afterHp) && afterHp >= 0 &&
-              ((afterHp < beforeHp && worldConsequence) || (afterHp >= beforeHp && recoveryIntent))) current.put("hp", afterHp);
-        }
-        if (patch.has("condition") && (worldConsequence || recoveryIntent)) current.put("condition", patch.optString("condition", current.optString("condition", "")));
-        if (patch.optJSONObject("needs") != null && recoveryIntent) {
-          JSONObject needs = current.optJSONObject("needs");
-          if (needs == null) needs = new JSONObject();
-          for (String needKey : new String[] {"thirst", "hunger", "fatigue", "sleepDeprivation"}) {
-            if (patch.optJSONObject("needs").has(needKey)) needs.put(needKey, patch.optJSONObject("needs").get(needKey));
-          }
-          current.put("needs", needs);
-        }
-        JSONArray ownedGear = state.optJSONArray("inventory");
-        for (String key : new String[] {"weapon", "armor"}) {
-          if (!patch.has(key) || !gearIntent) continue;
-          String proposedGear = patch.optString(key, "").trim();
-          boolean owned = false;
-          if (ownedGear != null) for (int gearIndex = 0; gearIndex < ownedGear.length(); gearIndex++) {
-            String ownedName = itemName(ownedGear.opt(gearIndex));
-            if (!ownedName.isEmpty() && lower(proposedGear).contains(lower(ownedName))) { owned = true; break; }
-          }
-          if (owned) current.put(key, proposedGear);
-        }
-        JSONObject oldPlayer = before.optJSONObject("player");
-        current.put("name", oldPlayer != null ? oldPlayer.optString("name", "Cao Minh") : "Cao Minh");
-        if (oldPlayer != null && oldPlayer.has("codename")) current.put("codename", oldPlayer.get("codename"));
-        state.put("player", current);
-        continue;
-      }
-
       if (type.equals("party_upsert")) {
         JSONObject member = op.optJSONObject("member");
         if (member == null) continue;
@@ -2035,7 +1994,7 @@ public class MainActivity extends Activity {
       "\n\nGAMEPLAY_ROLLS:\n" + visibleRolls.toString() +
       "\n\nPLAYER INPUT:\n" + action +
       feedback +
-      "\n\nOPERATION TYPES: set_location{value}; set_level{level}; patch_player{patch}; " +
+      "\n\nOPERATION TYPES: set_location{value}; set_level{level}; " +
       "party_upsert{member}; party_remove{name}; flag_patch{root,value}. " +
       "Chỉ dùng flag root: exploration, communication, iris, syvial, jeff, jane, survivorRegistry, survivorsConfirmed, entitiesConfirmedLocal, visualAreaKey, visualEventKey, entityEncounterKey, reunionPath. " +
       "Inventory chỉ thay đổi do Core khi tiêu diệt Entity hoặc nút Inventory UI; GM không có quyền thay đổi. " +

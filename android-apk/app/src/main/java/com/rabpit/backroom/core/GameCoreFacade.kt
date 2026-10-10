@@ -566,11 +566,11 @@ class GameCoreFacade private constructor(
 
   private fun validationReply(reason: String): String {
     val message = when (reason) {
-      "player_pickup_unavailable", "precise_content_amount_forbidden", "item_content_empty" -> "Vật phẩm này hiện không có nội dung khả dụng."
+      "player_pickup_unavailable" -> "Item chỉ được phát từ chiến lợi phẩm Entity do Game Core xác nhận, không thể tự nhặt bằng văn bản."
+      "precise_content_amount_forbidden", "item_content_empty" -> "Vật phẩm này hiện không có nội dung khả dụng."
       "madgod_equipment_permanent" -> "MadGod đã khóa vĩnh viễn sau khi trang bị; không thể tháo hoặc đổi."
       "madgod_equipment_slot_mismatch" -> "MadGod Set chỉ có thể trang bị cho Cao Minh; chỉ chiếm slot vũ khí; giáp MadGod đã chuyển thành passive Ma Tôn Vạn Giới."
       "insufficient_item_quantity", "item_not_owned" -> "Cao Minh không có đủ vật phẩm cần thiết cho hành động này."
-      "player_pickup_unavailable" -> "Không thể tự thêm vật phẩm vào Inventory; hãy tìm kiếm hoặc tương tác với môi trường để game xác định kết quả."
       "item_action_resolution_required" -> "Không thể xác thực hành động vật phẩm này từ state hiện tại; Inventory không thay đổi."
       "party_full" -> "Party đã đủ tối đa bốn thành viên."
       "join_not_confirmed" -> "Yêu cầu gia nhập chưa đủ điều kiện hoặc chưa được NPC xác nhận."
