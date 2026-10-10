@@ -48,12 +48,17 @@ combat = replace_once(
 
 combat = replace_once(
     combat,
-    '''      val rawIncoming = max(1, EntityPowerScaling.scale(lifeformAttack(profile.attack, lifeformSkill), c.progressionRank) + roll(c.copy(eventCounter = c.eventCounter + 47), 7) - when (c.cover) { Cover.HARD -> 8; Cover.PARTIAL -> 4; Cover.EXPOSED -> 0 })
-      val damage = CharacterStatCore.defendedIncomingDamage(rawIncoming, effective.def)''',
-    '''      val rawIncoming = max(1, EntityPowerScaling.scale(profile.attack, c.progressionRank) + roll(c.copy(eventCounter = c.eventCounter + 47), 7) - when (c.cover) { Cover.HARD -> 8; Cover.PARTIAL -> 4; Cover.EXPOSED -> 0 })
-      val basicDamage = CharacterStatCore.defendedIncomingDamage(rawIncoming, effective.def)
+    "EntityPowerScaling.scale(lifeformAttack(profile.attack, lifeformSkill), c.progressionRank)",
+    "EntityPowerScaling.scale(profile.attack, c.progressionRank)",
+    "remove Lifeform ATK-stat multiplier from base attack",
+)
+combat = replace_once(
+    combat,
+    "      val damage = CharacterStatCore.defendedIncomingDamage(rawIncoming, effective.def)\n",
+    '''      val basicDamage = CharacterStatCore.defendedIncomingDamage(rawIncoming, effective.def)
       val damage = if (lifeformSkill == null) basicDamage
-        else CharacterStatCore.scaleByPercent(basicDamage, lifeformSkill.basicAttackPercent)''',
+        else CharacterStatCore.scaleByPercent(basicDamage, lifeformSkill.basicAttackPercent)
+''',
     "Lifeform damage is percent of Basic Attack",
 )
 
