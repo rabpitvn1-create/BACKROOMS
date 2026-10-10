@@ -1527,17 +1527,6 @@ let state=(()=>{try{const raw=localStorage.getItem("backroom-apk-state");if(!raw
 let busy=false;
 function focusLatestGmStart(){requestAnimationFrame(()=>requestAnimationFrame(()=>{const gmRows=logEl.querySelectorAll('.message.gm');const latest=gmRows[gmRows.length-1];if(!latest)return;const top=latest.getBoundingClientRect().top-logEl.getBoundingClientRect().top+logEl.scrollTop;logEl.scrollTop=Math.max(0,top)}))}
 
-const oldPrologueSignature="Không beacon. Không telemetry.";
-const legacyCaoPrologueSignature="Bữa tối bắt đầu như bao lần khác.";
-if(state.turn===1&&Array.isArray(state.log)&&state.log[0]){
-  const currentOpening=String(state.log[0].text||"");
-  if(currentOpening.length<1000||currentOpening.includes(oldPrologueSignature)||currentOpening.includes(legacyCaoPrologueSignature)){
-    state.log[0]=initial.log[0];
-    if(state.log[1]&&(String(state.log[1].text||"").startsWith("TURN 1")||String(state.log[1].text||"").startsWith("LƯỢT 1"))) state.log[1]=initial.log[1];
-    localStorage.setItem("backroom-apk-state",JSON.stringify(state));
-  }
-}
-
 function esc(s){const d=document.createElement("div");d.textContent=s||"";return d.innerHTML}
 function itemDisplayName(x){let n=String((x&&x.name)||"—").replace(/^\s*được\s+/i,"").trim();if(n)n=n.charAt(0).toLocaleUpperCase("vi-VN")+n.slice(1);return n} function chips(items){return items&&items.length?items.map(x=>{if(typeof x==="string")return "<span>"+esc(x)+"</span>";const q=Math.max(1,Number(x.quantity)||1);return "<span>"+esc(itemDisplayName(x))+" ×"+q+"</span>"}).join(""):"<span>Trống.</span>"}
 const SEMANTIC_COMPATIBILITY_TERMS={"character":["Thiên Kiếm Môn","Lucia \"Lục\"","Diệp Minh","An Nhiên","Cao Minh","Kiếm Môn","Lục Trầm","Twilight","Vô Lượng","Syvial","Iris"],"entity":["The Beast of Level 5","Biological Pipeline","Blackroot Sentinel","Hotel Corpse Lure","Hostile Faceling","Predatory Window","Jane the Killer","Jeff the Killer","Hollow Grasper","Sinew Strider","False Puddle","Skin-Stealer","Cable Mimic","Slenderman","Deathmoth","Paintings","Duller","Smiler","Wretch","Clump","Hound"],"item":["Blackblood Recon Frame R03","Đồng hồ định vị quân sự","Huyết Ma Kiếm · Ma Tôn","Huyết Ma Chiến Khải","Dao găm chiến đấu","M4A1 cá nhân hóa","Thuốc sát trùng","Huyết Ma Kiếm","Ivory & Ebony","Lucifer Armor","almond water","liquid pain","greek fire","GodKiller","Băng gạc"],"skill":["GodKiller Override // Twenty-Four Severance","Không Phải Tôi Nhát, Tôi Có Chiến Thuật","Kế Hoạch Không Có Trong Kế Hoạch","ARGUS // Thousandfold Execution","Đừng Đụng Vào, Nhìn Là Biết Độc","Huyết Ma Nhị Thập Tứ Trảm","Khoan, Để Tôi Đọc Cái Này","Thousandfold Cognition","Trinh sát chiến trường","Killing Intent Read","Quăng Đại Cái Gì Đó","ARGUS Terrain Read","Crimson Guillotine","Huyết Sát Kiếm Ấn","M4A1 Joint Attack","Có Gì Đó Sai Sai","GodKiller Recall","Huyết Liệt Ma Ấn","Huyết Ma Tứ Liên","Huyết Độc Ma Khí","Huyết Ảnh Ma Độn","Nhặt Có Chọn Lọc","Phá Giáp Ma Kiếm","Spatial Dominion","Lucifer Breaker","Ma Tâm Trấn Hồn","Thôi Để Tôi Làm","Honeycomb Fire","Đại Đạo Ma Tôn","Devil Trigger","Charged Shot","Counterphase","Lucifer Core","Twosome Time","Ma Tâm Chấn","Thiên Ma Bộ","Dead Angle","Rain Storm","Rift Sever"]};
@@ -1716,7 +1705,6 @@ render();
   function bandLabel(value){return bandLabels[String(value||'UNKNOWN').toUpperCase()]||String(value||'Chưa xác định')}
   function bandClass(value){const v=String(value||'UNKNOWN').toUpperCase();return v==='SEVERE'||v==='CRITICAL'?'status-danger':v==='MILD'||v==='MODERATE'?'status-warning':'status-normal'}
   function madGodSetEquipped(){return false;}
-  function legacyMadGodSetEquipped(){try{const e=state&&state.equipment||{};if(e.set&&String(e.set.id||e.set)==='madgod:set')return true;if(['weapon','armor'].some(k=>String((e[k]&&e[k].id)||e[k]||'').toLowerCase().includes('madgod')))return true;const members=state&&state.partyDetails&&state.partyDetails.members;const kai=Array.isArray(members)&&members.find(m=>String(m&&m.id)==='cao_minh');return !!(kai&&kai.equipment&&['weapon','armor'].some(k=>String((kai.equipment[k]&&kai.equipment[k].id)||kai.equipment[k]||'').toLowerCase().includes('madgod')))}catch(ignore){return false}}
   function refreshCharacterDetailsFromCore(){
     try{
       if(window.Android&&typeof Android.getPartyDetails==='function'){
@@ -1764,7 +1752,7 @@ render();
     survivalHud.innerHTML=[survivalMeter('🥩','THỨC ĂN',p.foodPercent,p.hunger),survivalMeter('💧','NƯỚC',p.waterPercent,p.thirst),survivalMeter('Zzz','NGỦ',p.restPercent,p.sleepDeprivation)].join('');
   }
   function displayItemName(raw){
-    const source=raw&&typeof raw==='object'?(raw.name||raw.displayName||raw.label||raw.itemId||raw.id||raw.archetypeId||''):raw;
+    const source=raw&&typeof raw==='object'?(raw.name||raw.displayName||raw.label||raw.itemId||raw.id||''):raw;
     let text=String(source==null?'':source).trim();
     if(text.includes(':'))text=text.split(':').pop();
     text=text.replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim();

@@ -1339,8 +1339,6 @@ public class MainActivity extends Activity {
     JSONObject flags = state.optJSONObject("flags");
     boolean survivorAllowed = flags == null || flags.optBoolean("survivorEncountersAllowed", true);
     boolean entityAllowed = flags == null || flags.optBoolean("entityEncountersAllowed", true);
-    JSONObject madGod = flags != null ? flags.optJSONObject("madGod") : null;
-    boolean madGodEligible = search && (madGod == null || !madGod.optBoolean("spawned", false)) && (flags == null || flags.optBoolean("madGodDiscoveryAllowed", true));
 
     rolls.put("anNhienEncounter", thresholdRoll("anNhienEncounter", 10000, 25, physical && !anNhienEncountered, " follower encounter"));
     rolls.put("survivor", thresholdRoll("survivor", 10000, 200, survivorAllowed, ""));
@@ -1463,13 +1461,8 @@ public class MainActivity extends Activity {
     patch.remove("lastRolls");
     if (!transitionAccepted) patch.remove("currentLevel");
 
-    if (patch.optJSONObject("madGod") != null) {
-      JSONObject oldMadGod = safe.optJSONObject("madGod");
-      JSONObject newMadGod = patch.optJSONObject("madGod");
-      if ((oldMadGod == null || !oldMadGod.optBoolean("spawned", false)) && newMadGod.optBoolean("spawned", false) && !rollSuccess(rolls, "madGodSet")) {
-        patch.remove("madGod");
-      }
-    }
+    // Character-bound gear is modified by Core only; never accept GM flag patches.
+    patch.remove("madGod");
     if (patch.optJSONObject("iris") != null) {
       JSONObject oldIris = safe.optJSONObject("iris");
       JSONObject newIris = patch.optJSONObject("iris");
@@ -1503,7 +1496,6 @@ public class MainActivity extends Activity {
     if (kind.equals("level_transition")) allowed = transitionAccepted && levelChanged;
     else if (kind.equals("entity_encounter")) allowed = rollSuccess(rolls, "entityEncounter") || rollSuccess(rolls, "diepMinhEncounter") || rollSuccess(rolls, "lifeformEncounter");
     else if (kind.equals("character_encounter")) allowed = rollSuccess(rolls, "anNhienEncounter") || rollSuccess(rolls, "survivor") || rollSuccess(rolls, "irisReunion") || rollSuccess(rolls, "syvialReunion");
-    else if (kind.equals("major_event")) allowed = rollSuccess(rolls, "madGodSet");
     else if (kind.equals("special_area")) allowed = true;
     if (!allowed) return safe;
     return new JSONObject().put("shouldGenerate", true).put("kind", kind).put("reason", event.optString("reason", ""));
@@ -1659,11 +1651,6 @@ public class MainActivity extends Activity {
       JSONObject flags = before.optJSONObject("flags");
       return rollSuccess(rolls, "survivor") || (flags != null && flags.optInt("survivorsConfirmed", 0) > 0);
     }
-    if (root.equals("madGod")) {
-      JSONObject flags = before.optJSONObject("flags");
-      JSONObject madGod = flags != null ? flags.optJSONObject("madGod") : null;
-      return rollSuccess(rolls, "madGodSet") || (madGod != null && madGod.optBoolean("spawned", false));
-    }
     return false;
   }
 
@@ -1805,13 +1792,7 @@ public class MainActivity extends Activity {
 
     JSONObject flags = state.optJSONObject("flags");
     if (flags == null) flags = new JSONObject();
-    JSONObject oldFlags = before.optJSONObject("flags");
-    JSONObject oldMadGod = oldFlags != null ? oldFlags.optJSONObject("madGod") : null;
-    JSONObject madGod = flags.optJSONObject("madGod");
-    if (madGod == null) madGod = oldMadGod == null ? new JSONObject() : new JSONObject(oldMadGod.toString());
-    if (oldMadGod != null && oldMadGod.optBoolean("spawned", false)) madGod.put("spawned", true);
-    else if (rollSuccess(rolls, "madGodSet")) madGod.put("spawned", true).put("discoveryRouteRevealed", true).put("acquired", false);
-    flags.put("madGod", madGod).put("lastRolls", rolls);
+    flags.put("lastRolls", rolls);
 
     boolean anNhienNow = anNhienEncountered(before) || rollSuccess(rolls, "anNhienEncounter");
     if (anNhienNow) {
@@ -1822,7 +1803,6 @@ public class MainActivity extends Activity {
         .put("follower", true)
         .put("nonCombat", true)
         .put("levelEncountered", currentLevel(before))
-        .put("lootBonusPercent", 10)
         .put("exitBonusPercent", 2);
       flags.put("anNhien", anNhien);
 
@@ -2059,7 +2039,7 @@ public class MainActivity extends Activity {
       feedback +
       "\n\nOPERATION TYPES: set_location{value}; set_level{level}; patch_player{patch}; " +
       "party_upsert{member}; party_remove{name}; flag_patch{root,value}. " +
-      "Chỉ dùng flag root: exploration, communication, iris, syvial, jeff, jane, madGod, survivorRegistry, survivorsConfirmed, entitiesConfirmedLocal, visualAreaKey, visualEventKey, entityEncounterKey, reunionPath. " +
+      "Chỉ dùng flag root: exploration, communication, iris, syvial, jeff, jane, survivorRegistry, survivorsConfirmed, entitiesConfirmedLocal, visualAreaKey, visualEventKey, entityEncounterKey, reunionPath. " +
       "Inventory chỉ thay đổi do Core khi tiêu diệt Entity hoặc nút Inventory UI; GM không có quyền thay đổi. " +
       "ENTITY OVERLAY HARD LOCK: với Entity đang trực tiếp xuất hiện hoặc đối đầu trong cảnh hiện tại, dùng flag_patch root=entityEncounterKey value=canonical Entity key đúng tên asset bỏ .webp, ví dụ hound, smiler, skin-stealer, slenderman, jeff_the_killer, jane_the_killer. Nếu Entity bị tiêu diệt, Cao Minh chạy trốn hoặc thoát khỏi Entity, Entity rời cảnh, biến mất, hoặc không còn trực tiếp hiện diện/đối đầu, bắt buộc đặt entityEncounterKey thành chuỗi rỗng ngay trong lượt đó. entityEncounterKey chỉ là trạng thái hiện diện trực quan hiện tại, không phải lịch sử encounter. Không dùng mã cũ hoặc alias theo Level. " +
       "ROAMING KILLER HARD LOCK: Jeff the Killer và Jane the Killer dùng cùng entityEncounter và cùng roamingEntityKey với mọi Entity khác. Mỗi entityEncounter thành công chỉ chọn đúng một canonical Entity key; không có roll Jeff/Jane độc lập và không được tạo encounter thứ hai trong cùng lượt. " +

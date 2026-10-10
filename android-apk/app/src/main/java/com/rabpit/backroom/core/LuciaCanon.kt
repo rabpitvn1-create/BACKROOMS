@@ -11,7 +11,6 @@ object LuciaCanon {
   const val HOME_LEVEL = 0
   const val ENCOUNTER_CHANCE = "50%"
   const val AVATAR_REF = "avatars/lucia_avatar.jpg"
-  const val BATTLEFIELD_RECON_LOOT_BONUS_PERCENT = 5
 
   val equipmentSlots: Map<String, String> = linkedMapOf(
     "weapon" to LUCIA_M4A1_ID,
@@ -61,7 +60,6 @@ object LuciaCanon {
         "level0EntityKnowledge" to "Tiếng động giờ thứ 4 chỉ bị Lucia nghi là Hound; Level 0 không xác nhận Hound cư trú",
         "goal" to "Tìm lối sang Level 1",
         "passiveSkill" to "Trinh sát chiến trường",
-        "lootChanceBonusPercent" to BATTLEFIELD_RECON_LOOT_BONUS_PERCENT.toString(),
         "avatarBuild" to "EXIF_STRIPPED_JPEG_R02"
       )
     )
