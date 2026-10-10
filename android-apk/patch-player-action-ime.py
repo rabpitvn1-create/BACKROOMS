@@ -245,3 +245,48 @@ if 'src="gm-turn-feedback.js"' not in html:
 MAIN.write_text(java, encoding="utf-8")
 INDEX.write_text(html, encoding="utf-8")
 print("GM feedback: provider response validation and bounded failover installed without touching save/Core.")
+
+
+# NEW GAME R01: the bundled Turn-1 HTML has the Level 0 scene, but the
+# legacy->Core migration previously discarded all level/progression fields.
+# Streak commits subsequently failed with "streak_missing_saved_level".
+# Only a true Turn-1 Level-0 opener may be bootstrapped; later/unknown levels
+# are not inferred from an untrusted UI claim.
+codec_path = ROOT / "app/src/main/java/com/rabpit/backroom/core/GameStateCodec.kt"
+codec = codec_path.read_text(encoding="utf-8")
+codec = replace_one(codec,
+    '      world = mapOf("title" to root.optString("title"), "location" to root.optString("location")),',
+    '      world = freshLevelZeroWorld(root, turnNumber),',
+    "New Game world genesis")
+codec = replace_one(codec,
+    'object LegacySaveMigration {\n  fun migrate(root: JSONObject): GameState {',
+    '''object LegacySaveMigration {
+  // Bootstrap only the packaged Level-0 New Game. Never synthesize a world
+  // route from arbitrary legacy levels or from a model-provided destination.
+  private fun freshLevelZeroWorld(root: JSONObject, turnNumber: Int): Map<String, String> {
+    val base = mapOf("title" to root.optString("title"), "location" to root.optString("location"))
+    if (turnNumber != 1 || root.optJSONObject("level")?.optInt("number", -1) != 0)
+      return base
+    val stop = "level-0"
+    val node = com.rabpit.backroom.core.progression.FeaturedJourneyRoutes.nodeIdAt(stop)
+      ?: return base
+    val level = JSONObject().put("number", 0).put("name", "The Lobby")
+      .put("stopKey", stop).put("nodeId", node)
+    val flags = JSONObject(root.optJSONObject("flags")?.toString() ?: "{}")
+    // No input or narrative roll may preload streak progress on New Game.
+    flags.put("exploration", JSONObject()
+      .put("exitStreakNode", stop).put("exitStreak", 0))
+    return base + mapOf(
+      "levelJson" to level.toString(),
+      "worldNodeId" to node,
+      "journeyStopKey" to stop,
+      "flagsJson" to flags.toString()
+    )
+  }
+
+  fun migrate(root: JSONObject): GameState {''',
+    "Level 0 Core-owned genesis helper")
+if "freshLevelZeroWorld(root, turnNumber)" not in codec:
+    raise RuntimeError("New Game Core genesis did not install")
+codec_path.write_text(codec, encoding="utf-8")
+print("New Game Turn-1 bootstrap now persists canonical Level 0 route and clean streak.")
