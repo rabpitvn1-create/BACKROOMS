@@ -29,11 +29,11 @@ if marker in java or 'src="companion-interact.js"' in html:
 bridge = r'''  // COMPANION_NATIVE_INTERACT_PREVIEW_R01: native slot/decision only.
     @JavascriptInterface public boolean companionPreviewAvailable() {
       // Non-WAIT actor intents are not qualified for production publication.
-      return BuildConfig.DEBUG;
+      return BuildConfig.COMPANION_NATIVE_ENABLED;
     }
 
     @JavascriptInterface public void companionNewGame() {
-      if (!BuildConfig.DEBUG) {
+      if (!BuildConfig.COMPANION_NATIVE_ENABLED) {
         emit("backroomCompanionError", "Chưa đủ điều kiện kích hoạt Companion.");
         return;
       }
@@ -48,7 +48,7 @@ bridge = r'''  // COMPANION_NATIVE_INTERACT_PREVIEW_R01: native slot/decision on
     }
 
     @JavascriptInterface public void companionOpen(String slotId) {
-      if (!BuildConfig.DEBUG) return;
+      if (!BuildConfig.COMPANION_NATIVE_ENABLED) return;
       io.execute(() -> {
         try {
           String publicProjection = com.rabpit.backroom.core.companion.CompanionAndroidBridge.open(MainActivity.this, slotId);
@@ -60,7 +60,7 @@ bridge = r'''  // COMPANION_NATIVE_INTERACT_PREVIEW_R01: native slot/decision on
     }
 
     @JavascriptInterface public void companionSubmit(String slotId, String exactPlayerInput, String requestAlias) {
-      if (!BuildConfig.DEBUG) {
+      if (!BuildConfig.COMPANION_NATIVE_ENABLED) {
         emit("backroomCompanionError", "Companion chưa được kích hoạt ở bản phát hành.");
         return;
       }
@@ -122,7 +122,7 @@ html = replace_one(html, "</body>",
 for token in (
     marker, "companionNewGame()", "companionSubmit(String slotId",
     "CompanionAndroidBridge.submit(", "geminiAuditText(", "GAME_RNG.nextInt(bound)",
-    "return BuildConfig.DEBUG;"):
+    "return BuildConfig.COMPANION_NATIVE_ENABLED;"):
     if token not in java:
         raise RuntimeError("native interaction contract missing: " + token)
 MAIN.write_text(java, encoding="utf-8")
