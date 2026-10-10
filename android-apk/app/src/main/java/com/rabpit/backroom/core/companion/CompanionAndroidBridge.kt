@@ -75,6 +75,19 @@ object CompanionAndroidBridge {
       .put("stop", stop)
       .put("elapsedMinutes", state.time.elapsedSubjectiveMinutes)
       .put("combatActive", false)
+    val events = org.json.JSONArray()
+    if (revision > 0) {
+      // Replay only receipt-verified native public projections. A WebView
+      // reload never converts localStorage logs into world or actor memories.
+      for (event in store.events((revision - 255).coerceAtLeast(1), 256)) {
+        val raw = JSONObject(event.record)
+        val public = PublicEventProjection.project(event.type, raw.getJSONObject("payload"))
+          ?: continue
+        events.put(JSONObject().put("type", event.type).put("revision", event.revision)
+          .put("payload", public))
+      }
+    }
+    response.put("publicEvents", events)
     if (requestId != null) {
       val turn = store.request(requestId) ?: throw IOException("companion_receipt_missing")
       val receipt = turn.receipt ?: throw IOException("companion_receipt_not_committed")
