@@ -12,6 +12,7 @@
   var busy = false;
   var awaitingNewGame = false;
   var lastRequest = null;
+  var shownRevision = -1, suggestedRevision = -1;
   function el(id) { return document.getElementById(id); }
   function safeRead(key) { try { return localStorage.getItem(key) || ""; } catch (_) { return ""; } }
   function safeWrite(key, value) { try { localStorage.setItem(key, value); return true; } catch (_) { return false; } }
@@ -98,6 +99,7 @@
     if (committed && !(Number(data.committedRevision) > 0))
       throw new Error("Native receipt revision invalid");
     currentSlot = data.slotId;
+    shownRevision = Number(data.revision);
     if (!safeWrite(SLOT_KEY, currentSlot)) throw new Error("Local slot pointer cannot be saved");
     activate();
     narrative.textContent = "";
@@ -137,7 +139,31 @@
     if (el("location")) text(el("location"), data.location);
     statusText("Revision native " + data.revision +
       (committed ? " | Lượt đã commit vào SQLite." : " | Chưa có lượt mới."));
+    // Cao Minh may form an independent intention after each verified scene
+    // projection; it is NEVER displayed as an already-committed action.
+    if (suggestedRevision !== shownRevision &&
+        typeof window.Android.companionSuggest === "function" && !data.combatActive) {
+      suggestedRevision = shownRevision;
+      window.Android.companionSuggest(currentSlot);
+    }
   }
+  window.backroomCompanionSuggestion = function (raw) {
+    try {
+      var item=JSON.parse(raw);
+      if (item.version !== "companion_suggestion.v1" || item.slotId !== currentSlot ||
+          item.actor !== "cao_minh" || item.committed !== false ||
+          Number(item.revision) !== shownRevision) return;
+      var intents={SEARCH:"tìm kiếm manh mối",MOVE:"thăm dò đường đi",
+        INSPECT:"kiểm tra vật thể hoặc khu vực",WAIT:"dừng lại quan sát",
+        TALK:"trao đổi với người đang hiện diện",NONE:"chưa chọn hành động"};
+      if (!Object.prototype.hasOwnProperty.call(intents,item.intent)) return;
+      appendLine("Ý CHÍ CAO MINH (CHƯA THỰC HIỆN)",
+        "Cao Minh đang cân nhắc: " + intents[item.intent] + ".");
+    } catch (_) {}
+  };
+  window.backroomCompanionSuggestionError = function () {
+    // Suggestion failure is not a gameplay failure; keep the composer usable.
+  };
 
   window.backroomCompanionTurn = function (raw) {
     try { project(raw); }
