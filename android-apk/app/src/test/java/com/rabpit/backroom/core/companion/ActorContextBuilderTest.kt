@@ -19,13 +19,7 @@ import org.junit.Test
  * No provider calls.
  */
 class ActorContextBuilderTest {
-  private fun persona(actorId: String = "cao_minh") =
-    CompanionCanonPersonaRegistry.Persona(
-      actorId = actorId, knowledgeNamespace = "CHAR.TEST",
-      sourcePath = "knowledge/test/CODEX.md", sourceRevision = "R17",
-      sourceSha256 = "deadbeef",
-      traitRefs = listOf("CAO-PER-01"), ethicalRefs = listOf("CAO-LIFE-02"),
-      voiceRefs = listOf("CAO-VOICE-01"), knowledgeLockRefs = listOf("CAO-LOCK-01"))
+  private fun persona(actorId: String = "cao_minh") = CompanionPersonaFixture.load(actorId)
 
   private fun belief(stance: Stance = Stance.UNKNOWN) = Belief(
     beliefId = "b1",
@@ -34,7 +28,7 @@ class ActorContextBuilderTest {
     stance = stance, evidenceObservationIds = listOf("obs-1"))
 
   private fun brain(actorId: String = "cao_minh", beliefs: List<Belief> = listOf(belief())) =
-    BrainState(actorId = actorId, beliefs = beliefs,
+    BrainState(actorId = actorId, slotId = "slot-1", beliefs = beliefs,
       mood = MoodState(MoodState.Mood.WORRIED, "event-9", 18))
 
   private fun memory(id: String, owner: String = "cao_minh") = MemoryView(
@@ -44,10 +38,10 @@ class ActorContextBuilderTest {
     supersedesMemoryId = null, sceneId = "node-7", involvedActorIds = setOf("cao_minh"))
 
   private fun input(actorId: String = "cao_minh") = Input(
-    actorId = actorId, persona = persona(actorId), brain = brain(actorId),
+    slotId = "slot-1", actorId = actorId, persona = persona(actorId), brain = brain(actorId),
     memories = listOf(memory("m1"), memory("m2")),
-    sceneEvidence = listOf(ActorContextBuilder.SceneEvidence(
-      "COMBAT_STARTED", JSONObject().put("type", "COMBAT_STARTED"))))
+    sceneEvidence = listOf(ActorContextBuilder.SceneEvidence("slot-1", actorId,
+      "COMBAT_STARTED", JSONObject().put("entities", org.json.JSONArray()))))
 
   @Test fun ownership_wrongBrainRejected() {
     try {
@@ -80,10 +74,10 @@ class ActorContextBuilderTest {
   @Test fun canon_refsOnly_noSecrets() {
     val packet = ActorContextBuilder.build(input())
     // Only whitelisted ref IDs cross the firewall — never whole Codex text.
-    assertEquals(listOf("CAO-PER-01"), packet.canonRefs.traitRefs)
+    assertEquals(persona().traitRefs, packet.canonRefs.traitRefs)
     assertEquals(listOf("CAO-LIFE-02"), packet.canonRefs.ethicalRefs)
     // Voice refs are style-only labels, never history entries.
-    assertEquals(listOf("CAO-VOICE-01"), packet.canonRefs.voiceStyleRefs)
+    assertEquals(persona().voiceRefs, packet.canonRefs.voiceStyleRefs)
     assertTrue(packet.memories.none { it.summary.contains("CAO-VOICE-01") })
     // Knowledge locks have no field in the packet at all — they cannot leak.
   }
@@ -101,7 +95,7 @@ class ActorContextBuilderTest {
   @Test fun pins_embedded() {
     val packet = ActorContextBuilder.build(input())
     assertEquals("R17", packet.pins.personaRevision)
-    assertEquals("deadbeef", packet.pins.personaSha256)
+    assertEquals(persona().sourceSha256, packet.pins.personaSha256)
     assertEquals(BrainContracts.RULE_VERSION, packet.pins.ruleVersion)
     assertEquals(CompanionExposurePolicy.VERSION, packet.pins.policyVersion)
   }
@@ -126,7 +120,7 @@ class ActorContextBuilderTest {
     val packet = ActorContextBuilder.build(input())
     val ev = packet.sceneEvidence.single()
     assertEquals("COMBAT_STARTED", ev.eventType)
-    assertEquals("COMBAT_STARTED", ev.projection.getString("type"))
+    assertEquals(0, ev.projection.getJSONArray("entities").length())
     // Raw GM payload fields (payload_full etc.) never enter SceneEvidence by type.
   }
 }
