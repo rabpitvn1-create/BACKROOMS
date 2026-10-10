@@ -3,6 +3,8 @@ package com.rabpit.backroom.core.companion
 import android.content.Context
 import com.rabpit.backroom.core.GameState
 import com.rabpit.backroom.core.GameStateCodec
+import com.rabpit.backroom.core.CharacterState
+import com.rabpit.backroom.core.CharacterPresence
 import com.rabpit.backroom.core.KAI_ID
 import com.rabpit.backroom.core.progression.FeaturedJourneyRoutes
 import org.json.JSONObject
@@ -19,6 +21,7 @@ import java.nio.charset.StandardCharsets
  */
 internal object CompanionNewGameBootstrap {
   private const val STOP = "level-0"
+  const val PLAYER_COMPANION_ID = "player_companion"
 
   @JvmStatic
   fun seed(): ByteArray {
@@ -30,7 +33,15 @@ internal object CompanionNewGameBootstrap {
       .put("stopKey", STOP).put("nodeId", node)
     val flags = JSONObject().put("exploration", JSONObject()
       .put("exitStreakNode", STOP).put("exitStreak", 0))
-    val state = GameState.initial().copy(
+    val native = GameState.initial()
+    val state = native.copy(
+      // The human is physically co-present but not an NPC under Cao Minh\u0027s
+      // command and not a combat-turn participant. Native presence is seeded,
+      // never asserted by a WebView message or a model.
+      characters = native.characters + (PLAYER_COMPANION_ID to CharacterState(
+        id = PLAYER_COMPANION_ID, name = "Người đồng hành",
+        presence = CharacterPresence.ACTIVE,
+        metadata = mapOf("interactionRole" to "human_companion"))),
       world = mapOf(
         "title" to "Level 0 – The Lobby",
         "location" to "Level 0 / The Lobby",
