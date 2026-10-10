@@ -76,20 +76,28 @@ bridge = r'''  // COMPANION_NATIVE_INTERACT_PREVIEW_R01: native slot/decision on
             prompt -> {
               // Reuse the shipped provider pool. No provider result becomes a Core command.
               // A separately bounded native decision gate authorizes any proposed intent.
-              JSONObject envelope = parseModelJson(generateText(prompt +
+              try {
+                JSONObject envelope = parseModelJson(generateText(prompt +
                 "\nTrả đúng JSON {\"reply\":\"quyết định được đề xuất\"," +
                 "\"ops\":[],\"actorDecision\":{\"intent\":\"WAIT\",\"targetId\":null,\"itemId\":null}}." +
                 " Các intent khác được phép đề xuất nhưng sẽ thất bại an toàn nếu chưa có bộ ghi native."));
               JSONObject decision = envelope.optJSONObject("actorDecision");
               if (decision == null) throw new Exception("AI không trả quyết định Cao Minh.");
-              return decision.toString();
+                return decision.toString();
+              } catch (Exception error) {
+                throw new IllegalStateException("companion_actor_provider_failed", error);
+              }
             },
             prompt -> {
               // Semantic/canon audit MUST be an independent provider response.
               // A missing/invalid verdict fails closed; it is not a local PASS flag.
-              JSONObject verdict = parseModelJson(geminiAuditText(prompt +
+              try {
+                JSONObject verdict = parseModelJson(geminiAuditText(prompt +
                 "\nTrả đúng JSON {\"verdict\":\"PASS\"} hoặc {\"verdict\":\"HARD\"}.", -1));
-              return verdict.toString();
+                return verdict.toString();
+              } catch (Exception error) {
+                throw new IllegalStateException("companion_audit_provider_failed", error);
+              }
             },
             bound -> GAME_RNG.nextInt(bound)
           );
