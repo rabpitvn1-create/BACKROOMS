@@ -1,0 +1,186 @@
+name: One-time purge non-release workflows
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/one-time-purge-nonrelease-workflows.yml
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: purge-nonrelease-workflows
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    if: github.repository == 'rabpitvn1-create/BACKROOMS' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      KEEP_PATH: .github/workflows/build-backroom-apk.yml
+      KEEP_TAG: v1.1.63.0.5
+      KEEP_SHA: 93c50b413e1e551c5e8ecc7f5e2624f858d0a023
+      KEEP_WORKFLOW_BLOB: c71da3311d7c55a4278e75e3dbc3319880074f97
+
+    steps:
+      - name: Checkout exact triggering commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Guard retained release and expected parent
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(gh api "repos/$REPO/branches/main" --jq '.commit.sha')" = "$GITHUB_SHA"
+          test "$(gh api "repos/$REPO/commits/$GITHUB_SHA" --jq '.parents[0].sha')" = "$KEEP_SHA"
+          test "$(gh api "repos/$REPO/git/ref/tags/$KEEP_TAG" --jq '.object.sha')" = "$KEEP_SHA"
+          test "$(gh api "repos/$REPO/contents/$KEEP_PATH?ref=main" --jq '.sha')" = "$KEEP_WORKFLOW_BLOB"
+          test -n "$(gh api "repos/$REPO/releases/tags/$KEEP_TAG" --jq '.assets[] | select(.name == "Backroom-1.1.63.0.5.apk") | .id')"
+          echo "Canonical release, APK, and unchanged release workflow verified."
+
+      - name: Remove all non-release workflow definitions from main
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -d '' -t workflow_files < <(git ls-files -z -- .github/workflows/)
+          test "${#workflow_files[@]}" -ge 2
+          for path in "${workflow_files[@]}"; do
+            if [[ "$path" == "$KEEP_PATH" ]]; then
+              continue
+            fi
+            echo "Deleting workflow definition: $path"
+            git rm -- "$path"
+          done
+          test "$(git ls-files -- .github/workflows/)" = "$KEEP_PATH"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m "Remove obsolete workflows, retain APK release pipeline"
+          git push origin HEAD:main
+          test "$(gh api "repos/$REPO/contents/$KEEP_PATH?ref=main" --jq '.sha')" = "$KEEP_WORKFLOW_BLOB"
+
+      - name: Delete historical runs from non-release workflows
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          import sys
+          import time
+          import urllib.error
+          import urllib.request
+
+          repo = os.environ["REPO"]
+          token = os.environ["GH_TOKEN"]
+          own_run_id = int(os.environ["GITHUB_RUN_ID"])
+          base = f"https://api.github.com/repos/{repo}/"
+          headers = {
+              "Authorization": f"Bearer {token}",
+              "Accept": "application/vnd.github+json",
+              "X-GitHub-Api-Version": "2022-11-28",
+              "User-Agent": "one-time-release-workflow-prune",
+          }
+
+          def call(method, path, missing_ok=False):
+              for attempt in range(9):
+                  req = urllib.request.Request(base + path, method=method, headers=headers)
+                  try:
+                      with urllib.request.urlopen(req, timeout=75) as resp:
+                          data = resp.read()
+                          return json.loads(data) if data else None
+                  except urllib.error.HTTPError as exc:
+                      raw = exc.read().decode("utf-8", errors="replace")[:1500]
+                      if exc.code == 404 and missing_ok:
+                          return None
+                      limited = (
+                          exc.code in (429, 502, 503, 504)
+                          or (exc.code == 403 and "rate limit" in raw.lower())
+                      )
+                      if limited and attempt < 8:
+                          after = exc.headers.get("Retry-After")
+                          wait = max(5, int(after)) if after and after.isdigit() else min(120, 5 * 2 ** attempt)
+                          print(f"API throttled: {exc.code}, waiting {wait}s", flush=True)
+                          time.sleep(wait)
+                          continue
+                      raise RuntimeError(f"{method} {path}: HTTP {exc.code}: {raw}") from exc
+
+          kept = call("GET", "actions/workflows/build-backroom-apk.yml")
+          keep_id = kept["id"]
+          page, snapshot = 1, []
+          while True:
+              batch = call("GET", f"actions/runs?per_page=100&page={page}")["workflow_runs"]
+              if not batch:
+                  break
+              snapshot.extend(batch)
+              page += 1
+          unwanted = [
+              run for run in snapshot
+              if run["workflow_id"] != keep_id and run["id"] != own_run_id
+          ]
+          print(f"Total run snapshot: {len(snapshot)}; release workflow ID: {keep_id}; delete candidates: {len(unwanted)}", flush=True)
+          deleted, errors = 0, []
+          for run in unwanted:
+              rid = run["id"]
+              if run.get("status") != "completed":
+                  try:
+                      call("POST", f"actions/runs/{rid}/cancel", missing_ok=True)
+                  except Exception as exc:
+                      print(f"Warning: cancel {rid}: {exc}", flush=True)
+                  time.sleep(1)
+              for attempt in range(6):
+                  try:
+                      call("DELETE", f"actions/runs/{rid}", missing_ok=True)
+                      deleted += 1
+                      break
+                  except Exception as exc:
+                      if attempt == 5:
+                          errors.append((rid, str(exc)))
+                      else:
+                          time.sleep(min(30, 2 ** attempt + 2))
+              if deleted % 100 == 0 and deleted:
+                  print(f"Deleted {deleted}/{len(unwanted)} non-release workflow runs", flush=True)
+              time.sleep(0.35)
+
+          # Verify the remaining run inventory, but exclude the current running cleanup job.
+          page, remaining = 1, []
+          while True:
+              batch = call("GET", f"actions/runs?per_page=100&page={page}")["workflow_runs"]
+              if not batch:
+                  break
+              remaining.extend(batch)
+              page += 1
+          leftovers = [r["id"] for r in remaining if r["workflow_id"] != keep_id and r["id"] != own_run_id]
+          summary = os.environ.get("GITHUB_STEP_SUMMARY")
+          report = (
+              f"### Cleanup history\n"
+              f"- Deleted historical non-release runs: {deleted}\n"
+              f"- Remaining unrelated runs (excluding this active cleanup): {len(leftovers)}\n"
+              f"- Release workflow history retained: {sum(r['workflow_id'] == keep_id for r in remaining)} runs\n"
+              f"- Current cleanup run: {own_run_id} (cannot delete while running)\n"
+          )
+          print(report, flush=True)
+          if summary:
+              with open(summary, "a", encoding="utf-8") as f:
+                  f.write(report)
+          if errors or leftovers:
+              print(f"Failed deletions: {errors[:15]}; remaining run IDs: {leftovers[:30]}", file=sys.stderr)
+              sys.exit(1)
+          PY
+
+      - name: Verify only release workflow definition and release are present
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/$REPO/contents/.github/workflows?ref=main" --jq '.[].path' > "$RUNNER_TEMP/final-workflows.txt"
+          test "$(cat "$RUNNER_TEMP/final-workflows.txt")" = "$KEEP_PATH"
+          test "$(gh api "repos/$REPO/git/ref/tags/$KEEP_TAG" --jq '.object.sha')" = "$KEEP_SHA"
+          test "$(gh api "repos/$REPO/branches/main" --jq '.commit.parents[0].sha')" = "$GITHUB_SHA"
+          test "$(gh api --paginate "repos/$REPO/releases?per_page=100" --jq '.[].tag_name')" = "$KEEP_TAG"
+          echo "Only $KEEP_PATH remains in the workflow source tree."
