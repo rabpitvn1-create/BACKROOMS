@@ -69,12 +69,13 @@ jobs:
           for p in paths:
             hashes[str(p)]=hashlib.sha256(p.read_bytes()).hexdigest()
             shutil.copy2(p,target/p.name)
-          # PR #552 accepted generated deltas: GM provider validation/error feedback only;
+          # PR #552 accepted generated deltas: GM provider validation/error feedback plus explicitly gated native actor interaction;
+          # actual values captured from exact-head full 46-script generation;
           # Core facade hash remains pinned and unchanged.
           baselines={
-            "android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java":"be621be46d871c31ebe67b8a168c35a0acbd06458098c2702bf1d4c8c28c341b",
+            "android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java":"6c7f6da85f2110ab4b3bb4fb9037af16cb5f405539701bf65c5e164e0a60c137",
             "android-apk/app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt":"16dd6e9944d64de5176ce7ae2e00eddfc99882910310a604503ca2a0e916a253",
-            "android-apk/app/src/main/assets/index.html":"3616bb408880c5bb8adb490b6e8c6ade2fae81f01640413e6bfb097e25ff9d70"
+            "android-apk/app/src/main/assets/index.html":"ea9812ed5936cca7ad6f1137ef22ed49b19d5b9cd6ea7283f13b955350d7fdc9"
           }
           mismatch=[p for p,v in baselines.items() if hashes[p]!=v]
           # Keep the pinned G0 gate strict; expose changed hashes for explicit review.
