@@ -2220,7 +2220,7 @@ public final class KnowledgeContextSmokeInstrumentation extends Instrumentation 
 
 GRADLE = Path(__file__).resolve().parent / "app/build.gradle"
 gradle = GRADLE.read_text(encoding="utf-8")
-runner_anchor = "    versionName '1.1.63.0.6'\n"
+runner_anchor = "    versionName '1.1.63.0.7'\n"
 runner_line = '    testInstrumentationRunner "com.rabpit.backroom.core.knowledge.KnowledgeContextSmokeInstrumentation"\n'
 if runner_line not in gradle:
     if runner_anchor not in gradle:
