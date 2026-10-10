@@ -26,49 +26,8 @@ object GameStateCodec {
 
   fun decode(root: JSONObject): GameState {
     val version = root.optInt("saveVersion", 0)
-    return when {
-      version >= CURRENT_SAVE_VERSION -> decodeCurrent(root)
-      version == 2 && root.has("inventories") -> migrateV2Core(root)
-      else -> LegacySaveMigration.migrate(root)
-    }
-  }
-
-  private fun migrateV2Core(root: JSONObject): GameState {
-    val characters = root.optJSONObject("characters").objectMap(::decodeCharacter)
-    val inventories = root.optJSONObject("inventories").objectMap(::decodeInventory).toMutableMap()
-    val equipment = root.optJSONObject("equipment").objectMap(::decodeEquipment).toMutableMap()
-    val statuses = root.optJSONObject("statuses").objectMap(::decodeStatus)
-    val partyJson = root.optJSONObject("party") ?: JSONObject()
-    val party = PartyState(
-      leaderId = partyJson.optString("leaderId", KAI_ID),
-      memberIds = partyJson.optJSONArray("memberIds").strings().ifEmpty { listOf(KAI_ID) },
-      maxMembers = partyJson.optInt("maxMembers", 4).coerceAtLeast(1)
-    )
-
-    val kaiInventory = inventories[KAI_ID] ?: InventoryState(KAI_ID)
-    val cleanedItems = linkedMapOf<String, ItemStack>()
-    val migratedSlots = LinkedHashMap(KaiStartingEquipment.slots)
-    kaiInventory.items.values.forEach { item ->
-      val slot = KaiStartingEquipment.slotFor(item.itemId, item.name)
-      if (slot != null) migratedSlots[slot] = KaiStartingEquipment.itemIdForSlot(slot) ?: item.itemId
-      else cleanedItems[item.itemId] = item
-    }
-    inventories[KAI_ID] = kaiInventory.copy(items = cleanedItems)
-    equipment[KAI_ID] = EquipmentState(KAI_ID, migratedSlots)
-
-    return GameState(
-      characters = characters.ifEmpty { GameState.initial().characters },
-      party = party,
-      inventories = inventories.ifEmpty { GameState.initial().inventories },
-      equipment = equipment.ifEmpty { GameState.initial().equipment },
-      statuses = statuses,
-      omnivault = decodeOmnivault(root.optJSONObject("omnivault") ?: JSONObject()),
-      turn = decodeTurn(root.optJSONObject("turn") ?: JSONObject()),
-      time = decodeGameTime(root.optJSONObject("time")),
-      world = root.optJSONObject("world").stringsMap(),
-      saveVersion = CURRENT_SAVE_VERSION,
-      metadata = root.optJSONObject("metadata").stringsMap() + mapOf("migratedFromVersion" to "2", "equipmentSeparated" to "true")
-    )
+    require(version == CURRENT_SAVE_VERSION) { "Unsupported save schema: $version" }
+    return decodeCurrent(root)
   }
 
   private fun decodeCurrent(root: JSONObject): GameState {
@@ -242,48 +201,6 @@ object GameStateCodec {
   }
 
   private fun stringMap(values: Map<String, String>) = JSONObject().apply { values.forEach { (key, value) -> put(key, value) } }
-}
-
-object LegacySaveMigration {
-  fun migrate(root: JSONObject): GameState {
-    val initial = GameState.initial()
-    val turnNumber = root.optInt("turn", 1).coerceAtLeast(1)
-    val migrated = linkedMapOf<String, ItemStack>()
-    val equipmentSlots = LinkedHashMap(KaiStartingEquipment.slots)
-    root.optJSONArray("inventory").objects().mapIndexedNotNull { index, json ->
-      val name = json.optString("name").trim()
-      if (name.isEmpty()) null else {
-        val id = json.optString("id").ifBlank { name.lowercase().replace(Regex("[^\\p{L}\\p{N}]+"), "-").trim('-').ifBlank { "legacy-item-$index" } }
-        ItemContentRules.normalize(ItemStack(id, name, json.optInt("quantity", 1).coerceAtLeast(1), json.nullableString("state"), mapOf("migrated" to "legacy-v0")))
-      }
-    }.forEach { item ->
-      val slot = KaiStartingEquipment.slotFor(item.itemId, item.name)
-      if (slot != null) {
-        equipmentSlots[slot] = KaiStartingEquipment.itemIdForSlot(slot) ?: item.itemId
-      } else {
-        val old = migrated[item.itemId]
-        migrated[item.itemId] = if (old != null && ItemContentRules.sameStackState(old, item)) old.copy(quantity = old.quantity + item.quantity) else item
-      }
-    }
-    val partyCharacters = root.optJSONArray("party").objects().mapIndexedNotNull { index, json ->
-      val name = json.optString("name").trim()
-      if (name.isEmpty()) null else {
-        val id = json.optString("id").ifBlank { "legacy-party-$index" }
-        id to CharacterState(id, name, avatarRef = json.nullableString("avatar"))
-      }
-    }.toMap()
-    val characters = initial.characters + partyCharacters
-    val partyIds = (listOf(KAI_ID) + partyCharacters.keys).distinct().take(4)
-    return initial.copy(
-      characters = characters,
-      party = PartyState(memberIds = partyIds),
-      inventories = initial.inventories + (KAI_ID to InventoryState(KAI_ID, migrated)) + partyCharacters.keys.associateWith { InventoryState(it) },
-      equipment = initial.equipment + (KAI_ID to EquipmentState(KAI_ID, equipmentSlots)) + partyCharacters.keys.associateWith { EquipmentState(it) },
-      turn = TurnState(currentTurnId = "TURN_$turnNumber"),
-      world = mapOf("title" to root.optString("title"), "location" to root.optString("location")),
-      metadata = mapOf("migratedFromVersion" to root.optInt("saveVersion", 0).toString(), "equipmentSeparated" to "true")
-    )
-  }
 }
 
 private fun JSONObject.putNullable(key: String, value: Any?) { put(key, value ?: JSONObject.NULL) }

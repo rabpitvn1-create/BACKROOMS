@@ -115,9 +115,9 @@ MAIN.write_text(main, encoding="utf-8")
 facade = FACADE.read_text(encoding="utf-8")
 old_load = '''  private fun loadOrMigrate(legacy: JSONObject): GameState {
     if (repository.exists()) return repository.load()
-    val migrated = GameStateCodec.decode(legacy)
-    repository.save(migrated)
-    return migrated
+    val fresh = GameState.initial()
+    repository.save(fresh)
+    return fresh
   }
 '''
 new_load = '''  private fun normalizeVisualPresence(state: GameState): GameState {
@@ -131,7 +131,7 @@ new_load = '''  private fun normalizeVisualPresence(state: GameState): GameState
 
   private fun loadOrMigrate(legacy: JSONObject): GameState {
     val existed = repository.exists()
-    val loaded = if (existed) repository.load() else GameStateCodec.decode(legacy)
+    val loaded = if (existed) repository.load() else GameState.initial()
     val normalized = normalizeVisualPresence(loaded)
     if (!existed || normalized != loaded) repository.save(normalized)
     return normalized

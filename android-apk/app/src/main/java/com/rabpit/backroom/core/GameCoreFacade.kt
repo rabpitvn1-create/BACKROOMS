@@ -162,9 +162,9 @@ class GameCoreFacade private constructor(
 
   private fun loadOrMigrate(legacy: JSONObject): GameState {
     if (repository.exists()) return repository.load()
-    val migrated = GameStateCodec.decode(legacy)
-    repository.save(migrated)
-    return migrated
+    val fresh = GameState.initial()
+    repository.save(fresh)
+    return fresh
   }
 
   private fun contextFor(state: GameState): GameContext {

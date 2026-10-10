@@ -409,32 +409,14 @@ codec = replace_re(
 )
 # Normalize every decoded state after follower/equipment migration.
 # Match the complete decode() return so nested calls cannot confuse parenthesis balancing.
-decode_wrap = re.compile(
-    r'''    return CharacterEquipmentSystem\.normalize\(when \{
-      version >= CURRENT_SAVE_VERSION -> decodeCurrent\(root\)
-      version == 2 && root\.has\("inventories"\) -> migrateV2Core\(root\)
-      else -> LegacySaveMigration\.migrate\(root\)
-    \}\)'''
-)
-codec, decode_wrap_count = decode_wrap.subn(
-    '''    return CharacterProgressionCore.normalize(CharacterEquipmentSystem.normalize(when {
-      version >= CURRENT_SAVE_VERSION -> decodeCurrent(root)
-      version == 2 && root.has("inventories") -> migrateV2Core(root)
-      else -> LegacySaveMigration.migrate(root)
-    }))''',
+codec, decoded_return_count = re.subn(
+    r'    return CharacterEquipmentSystem\.normalize\(([^\n]+)\)',
+    r'    return CharacterProgressionCore.normalize(CharacterEquipmentSystem.normalize(\1))',
     codec,
     count=1,
 )
-if decode_wrap_count == 0:
-    # Some earlier follower patches materialize a decoded value first. Wrap that final return instead.
-    codec, decoded_return_count = re.subn(
-        r'    return CharacterEquipmentSystem\.normalize\(([^\n]+)\)',
-        r'    return CharacterProgressionCore.normalize(CharacterEquipmentSystem.normalize(\1))',
-        codec,
-        count=1,
-    )
-    if decoded_return_count != 1:
-        raise RuntimeError("GameState decode normalization anchor missing")
+if decoded_return_count != 1:
+    raise RuntimeError("Current GameState decode normalization anchor missing")
 CODEC.write_text(codec, encoding="utf-8")
 
 # ---------------------------------------------------------------------------

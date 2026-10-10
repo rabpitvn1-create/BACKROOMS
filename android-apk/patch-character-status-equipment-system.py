@@ -635,20 +635,7 @@ for candidate in (
         codec = codec.replace(candidate, candidate.replace('return ', 'return CharacterEquipmentSystem.normalize(').rstrip('\n') + ')\n', 1)
         break
 else:
-    # Generic current decoder: wrap the version switch if prior follower patches did not introduce `decoded`.
-    old = '''    return when {
-      version >= CURRENT_SAVE_VERSION -> decodeCurrent(root)
-      version == 2 && root.has("inventories") -> migrateV2Core(root)
-      else -> LegacySaveMigration.migrate(root)
-    }
-'''
-    new = '''    return CharacterEquipmentSystem.normalize(when {
-      version >= CURRENT_SAVE_VERSION -> decodeCurrent(root)
-      version == 2 && root.has("inventories") -> migrateV2Core(root)
-      else -> LegacySaveMigration.migrate(root)
-    })
-'''
-    codec = one(codec, old, new, "GameState decode normalization")
+    raise RuntimeError("Current save follower normalization anchor missing")
 CODEC.write_text(codec, encoding="utf-8")
 
 # --- Inventory/Equipment mutation uses the shared Item instance --------------

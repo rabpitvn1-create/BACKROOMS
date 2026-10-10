@@ -41,20 +41,9 @@ path.write_text(text, encoding="utf-8")
 # 2) Backfill all loaded saves, including existing v3 saves, with the required follower definition.
 path = CORE / "GameStateCodec.kt"
 text = path.read_text(encoding="utf-8")
-old = '''    return when {
-      version >= CURRENT_SAVE_VERSION -> decodeCurrent(root)
-      version == 2 && root.has("inventories") -> migrateV2Core(root)
-      else -> LegacySaveMigration.migrate(root)
-    }
-'''
-new = '''    val decoded = when {
-      version >= CURRENT_SAVE_VERSION -> decodeCurrent(root)
-      version == 2 && root.has("inventories") -> migrateV2Core(root)
-      else -> LegacySaveMigration.migrate(root)
-    }
-    return AnNhienCanon.ensure(decoded)
-'''
-text = replace_once(text, old, new, "save backfill")
+old = '    return decodeCurrent(root)\n'
+new = '    val decoded = decodeCurrent(root)\n    return AnNhienCanon.ensure(decoded)\n'
+text = replace_once(text, old, new, "current save follower normalization")
 path.write_text(text, encoding="utf-8")
 
 # 3) Reuse InventoryEngine but give An Nhien exactly two FOOD-only slots.
