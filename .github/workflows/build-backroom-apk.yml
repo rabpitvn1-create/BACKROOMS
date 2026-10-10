@@ -252,32 +252,25 @@ jobs:
           runtime_start = html.index('const SEMANTIC_COMPATIBILITY_TERMS=')
           runtime_end = html.index('function levelHeader(s){', runtime_start)
           runtime_js = html[runtime_start:runtime_end]
-          probe = runtime_js + r'''
-const before={location:"Lôi Thiên Vực",log:[]};
-const next={
-  location:"Lôi Thiên Vực",
-  party:[{name:"Tử Lam"}],
-  inventory:[{name:"Hắc Nguyệt"}],
-  log:[
-    {role:"gm",text:"Tử Lam cầm Hắc Nguyệt."},
-    {role:"player",text:"Tử Lam"}
-  ]
-};
-const prepared=semanticPrepareNextState(before,JSON.stringify(next));
-const gmText=prepared.log[0].text;
-const spans=prepared.log[0].semanticSpans||[];
-if(!spans.some(s=>s.kind==="character"&&gmText.slice(s.start,s.end)==="Tử Lam"))process.exit(21);
-if(!spans.some(s=>s.kind==="item"&&gmText.slice(s.start,s.end)==="Hắc Nguyệt"))process.exit(22);
-if(prepared.log[1].semanticSpans)process.exit(23);
-const locationHits=semanticResolve("Lôi Thiên Vực đứng yên.",before,next,null);
-if(locationHits.length)process.exit(24);
-const heuristicText="Người sống sót tên Quỳnh Sa đang chờ.";
-const heuristic=semanticResolve(heuristicText,{}, {}, null);
-if(!heuristic.some(s=>s.kind==="character"&&heuristicText.slice(s.start,s.end)==="Quỳnh Sa"))process.exit(25);
-const frozen=JSON.stringify(spans);
-const replay=semanticPrepareNextState(prepared,JSON.stringify(prepared));
-if(JSON.stringify(replay.log[0].semanticSpans)!==frozen)process.exit(26);
-'''
+          probe_lines = [
+              'const before={location:"Lôi Thiên Vực",log:[]};',
+              'const next={location:"Lôi Thiên Vực",party:[{name:"Tử Lam"}],inventory:[{name:"Hắc Nguyệt"}],log:[{role:"gm",text:"Tử Lam cầm Hắc Nguyệt."},{role:"player",text:"Tử Lam"}]};',
+              'const prepared=semanticPrepareNextState(before,JSON.stringify(next));',
+              'const gmText=prepared.log[0].text;',
+              'const spans=prepared.log[0].semanticSpans||[];',
+              'if(!spans.some(s=>s.kind==="character"&&gmText.slice(s.start,s.end)==="Tử Lam"))process.exit(21);',
+              'if(!spans.some(s=>s.kind==="item"&&gmText.slice(s.start,s.end)==="Hắc Nguyệt"))process.exit(22);',
+              'if(prepared.log[1].semanticSpans)process.exit(23);',
+              'const locationHits=semanticResolve("Lôi Thiên Vực đứng yên.",before,next,null);',
+              'if(locationHits.length)process.exit(24);',
+              'const heuristicText="Người sống sót tên Quỳnh Sa đang chờ.";',
+              'const heuristic=semanticResolve(heuristicText,{}, {}, null);',
+              'if(!heuristic.some(s=>s.kind==="character"&&heuristicText.slice(s.start,s.end)==="Quỳnh Sa"))process.exit(25);',
+              'const frozen=JSON.stringify(spans);',
+              'const replay=semanticPrepareNextState(prepared,JSON.stringify(prepared));',
+              'if(JSON.stringify(replay.log[0].semanticSpans)!==frozen)process.exit(26);',
+          ]
+          probe = runtime_js + '\n' + '\n'.join(probe_lines)
           subprocess.run(['node', '-e', probe], check=True)
 
           provider_start = java.index('  private String generateText(String prompt)')
