@@ -20,7 +20,9 @@
   function text(node, value) { node.textContent = String(value == null ? "" : value); }
   var css = document.createElement("style");
   css.textContent =
-    "body.companion-mode #playerActionBar,body.companion-mode #playerActionModal{" +
+    "body.companion-mode #playerActionBar,body.companion-mode #playerActionModal," +
+    "body.companion-mode #primaryActionRow,body.companion-mode #searchActionButton," +
+    "body.companion-mode #exploreActionButton,body.companion-mode #submit{" +
     "display:none!important}" +
     "#companionDock{position:fixed;left:0;right:0;bottom:0;z-index:170;" +
     "background:#0c1219;border-top:1px solid #5c6d80;padding:10px 12px " +
