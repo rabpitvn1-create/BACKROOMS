@@ -19,3 +19,4 @@
 .combat-feedback-entry--round{border-left-color:#80937d;color:#c8d5c5;font-weight:700}
 .combat-feedback-entry--actor{border-left-color:#6caf8f;color:#d9f0e5}
 .combat-feedback-entry--entity{border-left-color:#a96c5d;color:#f0d9d2}
+.combat-feedback-entry--summary{border-left-color:#c4aa63;color:#f0ead2;white-space:pre-wrap}
