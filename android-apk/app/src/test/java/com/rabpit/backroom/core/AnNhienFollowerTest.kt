@@ -100,7 +100,7 @@ class AnNhienFollowerTest {
       slot = "weapon"
     ))
     assertFalse(result.applied)
-    assertEquals("an_nhien_equipment_locked", result.validation.reason)
+    assertEquals("equipment_bound_forever", result.validation.reason)
   }
 
   @Test fun slashCheatInstantlyAddsAnNhienAndIsIdempotent() {

@@ -53,7 +53,7 @@ class GameStateCodecTest {
   @Test fun freshStateInventoryOwnsSignatureGearReferencedByEquipment() {
     val state = GameState.initial()
     val owned = state.inventories.getValue(KAI_ID).items
-    state.equipment.getValue(KAI_ID).slots.values.distinct().forEach { assertTrue(it in owned) }
+    state.equipment.getValue(KAI_ID).slots.values.distinct().forEach { assertFalse(it in owned) }
     assertEquals(KAI_WHITE_WRAITH_ID, state.equipment.getValue(KAI_ID).slots["weapon"])
     assertEquals(KAI_BLACKBLOOD_ARMOR_ID, state.equipment.getValue(KAI_ID).slots["armor"])
   }

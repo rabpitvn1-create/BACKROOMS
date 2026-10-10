@@ -19,7 +19,7 @@ class LuciaFollowerTest {
     assertEquals(LUCIA_M4A1_ID, slots["weapon"])
     assertEquals(LUCIA_KNIFE_ID, slots["blade"])
     assertEquals(LUCIA_WATCH_ID, slots["wrist"])
-    slots.values.forEach { id -> assertTrue(state.inventories.getValue(LUCIA_ID).items.containsKey(id)) }
+    slots.values.forEach { id -> assertFalse(state.inventories.getValue(LUCIA_ID).items.containsKey(id)) }
     assertEquals(0, InventoryCapacityPolicy.usedSlots(state, LUCIA_ID))
   }
 

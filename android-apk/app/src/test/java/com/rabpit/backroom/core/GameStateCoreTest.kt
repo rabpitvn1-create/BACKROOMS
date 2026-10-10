@@ -55,9 +55,9 @@ class GameStateCoreTest {
   @Test fun equipAndUnequipUseOwnedItem() {
     val picked = StateReducer.execute(base(), item("gun", ItemCommand.Operation.PICKUP)).state
     val equipped = StateReducer.execute(picked, item("gun", ItemCommand.Operation.EQUIP, slot = "weapon"))
-    assertEquals("gun", equipped.state.equipment.getValue(KAI_ID).slots["weapon"])
-    val unequipped = StateReducer.execute(equipped.state, item("gun", ItemCommand.Operation.UNEQUIP, slot = "weapon"))
-    assertNull(unequipped.state.equipment.getValue(KAI_ID).slots["weapon"])
+    assertFalse(equipped.applied)
+    assertEquals("equipment_bound_forever", equipped.validation.reason)
+    assertNull(equipped.state.equipment.getValue(KAI_ID).slots["weapon"])
   }
 
   @Test fun partyNeedsPresenceConsentAndHasFourMemberLimit() {
