@@ -107,7 +107,7 @@ jobs:
               ('id="playerActionConfirm"', html), ('id="gameMenuModal"', html), ('id="gameMenuOpen"', html),
               ('border-radius:7px', html), ('hud/player_action_backrooms.png', html),
               ('POKER_DICE_CORE_BACKPORT_R01', html), ('id="pokerDiceModal"', html), ('combat-feedback-1193a.js', html), ('CORE STATS', html),
-              ('DIRECT_COMBAT_GATE_V1', html), ('ensureDirectCombatDice', html),
+              ('DIRECT_COMBAT_GATE_V1', html), ('ensureDirectCombatDice', html), ('mountNearSnapshot();', html),
               ('POKER_DICE_119_POLISH_R01', html), ('poker-die-shadow', html), ('poker-die-object', html),
               ('poker-die-hold-seal', html), ('@keyframes poker-die-3d', html), ('@keyframes poker-die-toss', html),
               ('@keyframes poker-die-shadow-roll', html), ('@keyframes poker-die-settle', html),
@@ -172,12 +172,18 @@ jobs:
               ('CompanionSkillCatalog.forCharacter(c.id)', detail_json), ('COMPANION_SKILLS_R01', combat), ('24 * 10', combat),
               ('ENTITY_POWER_SCALING_R01', combat), ('EntityPowerScaling.scale(unscaledEntityMaxHp, progressionRank)', combat),
               ('EntityPowerScaling.scale(profile.attack, c.progressionRank)', combat),
+              ('ENTITY_SHARED_GROUND_PLANE_R02', java), ('ENTITY_PRECOMPUTED_ALPHA_BOUNDS_R02', java), ('__entityVisualBounds', java),
               ('hazardThresholds[level] * 75 / 100', java), ('thresholdRoll("anNhienRead", 10000, 2000', java),
               ('class CompanionSkillCatalogTest', skill_tests),
               ('runpy.run_path(str(ROOT / "patch-companion-skills-ui-finalize.py"), run_name="__main__")', chain),
           ]
           for marker, source in required:
               assert marker in source, marker
+          assert 'ctx.getImageData(0,0,pw,ph)' not in java
+          assert "document.createElement('canvas')" not in java
+          assert 'if(window.__combatFeedbackBusy){hide();return;}' not in html
+          feedback_js = (root / 'app/src/main/assets/combat-feedback-1193a.js').read_text(encoding='utf-8')
+          assert 'modal.hidden=true' not in feedback_js
           assert play_bold.is_file() and play_bold.stat().st_size > 0
           assert 'patch-combat-feedback-1193a.py patch-hidden-exit-streak.py patch-gm-semantic-play-bold.py)' in workflow_text
           assert 'patch-gm-semantic-play-bold.py' not in chain
@@ -299,9 +305,12 @@ jobs:
           grep -q '.combat-feedback-panel' apk-check/assets/combat-feedback-1193a.css
           ! grep -q 'state.log' apk-check/assets/combat-feedback-1193a.js
           ! grep -q 'localStorage' apk-check/assets/combat-feedback-1193a.js
+          ! grep -q 'modal.hidden=true' apk-check/assets/combat-feedback-1193a.js
           grep -q 'CORE STATS' apk-check/assets/index.html
           grep -q 'DIRECT_COMBAT_GATE_V1' apk-check/assets/index.html
           grep -q 'ensureDirectCombatDice' apk-check/assets/index.html
+          grep -q 'mountNearSnapshot();' apk-check/assets/index.html
+          ! grep -q 'if(window.__combatFeedbackBusy){hide();return;}' apk-check/assets/index.html
           grep -q 'POKER_DICE_119_POLISH_R01' apk-check/assets/index.html
           grep -q 'poker-die-shadow' apk-check/assets/index.html
           grep -q 'poker-die-hold-seal' apk-check/assets/index.html
@@ -396,8 +405,11 @@ jobs:
           unzip -p Backroom-1.1.63.0.7-verified.apk assets/combat-feedback-1193a.css | grep -q '.combat-feedback-panel'
           ! unzip -p Backroom-1.1.63.0.7-verified.apk assets/combat-feedback-1193a.js | grep -q 'state.log'
           ! unzip -p Backroom-1.1.63.0.7-verified.apk assets/combat-feedback-1193a.js | grep -q 'localStorage'
+          ! unzip -p Backroom-1.1.63.0.7-verified.apk assets/combat-feedback-1193a.js | grep -q 'modal.hidden=true'
           unzip -p Backroom-1.1.63.0.7-verified.apk assets/index.html | grep -q 'DIRECT_COMBAT_GATE_V1'
           unzip -p Backroom-1.1.63.0.7-verified.apk assets/index.html | grep -q 'ensureDirectCombatDice'
+          unzip -p Backroom-1.1.63.0.7-verified.apk assets/index.html | grep -q 'mountNearSnapshot();'
+          ! unzip -p Backroom-1.1.63.0.7-verified.apk assets/index.html | grep -q 'if(window.__combatFeedbackBusy){hide();return;}'
           unzip -p Backroom-1.1.63.0.7-verified.apk assets/index.html | grep -q 'POKER_DICE_119_POLISH_R01'
           unzip -p Backroom-1.1.63.0.7-verified.apk assets/index.html | grep -q 'poker-die-shadow'
           unzip -p Backroom-1.1.63.0.7-verified.apk assets/index.html | grep -q 'DICE_ROLL_ANIMATION_MS=680'
