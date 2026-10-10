@@ -57,9 +57,8 @@ object AnNhienCanon {
 
   fun inventory(existing: InventoryState? = null): InventoryState {
     val all = existing?.items.orEmpty().values
-    val equipmentItems = all.filter { it.itemId == AN_NHIEN_OUTFIT_ID || it.itemId == AN_NHIEN_FOOTWEAR_ID }.associateBy { it.itemId }
     val foodItems = all.filter(::isFoodItem).sortedBy { it.itemId }.take(2).associateBy { it.itemId }
-    return InventoryState(AN_NHIEN_ID, equipmentItems + foodItems)
+    return InventoryState(AN_NHIEN_ID, foodItems)
   }
 
   fun equipment(): EquipmentState = EquipmentState(AN_NHIEN_ID, equipmentSlots)

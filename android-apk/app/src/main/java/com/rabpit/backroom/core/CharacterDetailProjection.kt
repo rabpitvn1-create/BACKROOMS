@@ -89,6 +89,7 @@ object CharacterDetailProjector {
       )
     }
     val details = inventory.map(::itemDetail)
+    val equippedDetails = equipment.values.distinct().map { EquipmentCatalog.stackFor(it) }.map(::itemDetail)
     return CharacterDetailProjection(
       id = c.id, name = c.name, avatarRef = c.avatarRef, presence = c.presence,
       isLeader = normalized.party.leaderId == c.id, healthState = c.healthState,
@@ -114,7 +115,7 @@ object CharacterDetailProjector {
       inventory = inventory.toList(), inventoryDetails = details,
       inventoryCapacityUsed = InventoryCapacityPolicy.usedSlots(normalized, c.id),
       inventoryCapacityMax = InventoryCapacityPolicy.maxSlots(normalized, c.id),
-      equipment = equipment, equipmentDetails = details.filter { it.equipped },
+      equipment = equipment, equipmentDetails = equippedDetails,
       statusEffects = c.statusIds.mapNotNull(normalized.statuses::get)
     )
   }

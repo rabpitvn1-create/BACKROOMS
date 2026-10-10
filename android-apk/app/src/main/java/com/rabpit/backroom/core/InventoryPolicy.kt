@@ -36,7 +36,6 @@ object InventoryPolicy {
     if (item.metadata["kaiSignatureEquipment"].equals("true", true)) return true
     val equippedIds = state.equipment[KAI_ID]?.slots?.values.orEmpty().toSet()
     if (item.itemId in equippedIds) return true
-    val key = (item.itemId + " " + item.name).lowercase()
-    return false
+    return EquipmentCatalog.definition(item.itemId) != null
   }
 }

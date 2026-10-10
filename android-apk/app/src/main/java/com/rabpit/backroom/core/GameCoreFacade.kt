@@ -25,40 +25,6 @@ class GameCoreFacade private constructor(
     logger.log(PipelineLogEvent("INPUT", turnId = turnId, details = mapOf("length" to action.length.toString())))
     val pending = TurnCoordinator.createPending(state, turnId, action)
     if (pending.error != null) return response(false, legacy, pending.error, "pending_rejected")
-    if (isMadGodEquipRequest(action)) {
-      val owned = pending.state.inventories[KAI_ID]?.items?.containsKey(MADGOD_SET_ID) == true
-      if (!owned) {
-        val result = syncLegacy(legacy, pending.state, incrementTurn = false)
-        val reply = validationReply("item_not_owned")
-        appendLog(result, action, reply)
-        return response(true, result, "item_not_owned", "validation_rejected", reply)
-      }
-      val command = ItemCommand(
-        commandId = "$turnId:MADGOD:EQUIP",
-        turnId = turnId,
-        actorId = KAI_ID,
-        source = CommandSource.RULE,
-        operation = ItemCommand.Operation.EQUIP,
-        itemId = MADGOD_SET_ID,
-        itemName = MadGodCanon.SET_NAME,
-        quantity = 1,
-        slot = "weapon"
-      )
-      val committed = commitActionRuntime(pending.state, mutableListOf(command), action, turnId)
-      if (committed.error != null) {
-        val rejected = TurnCoordinator.reject(pending.state, committed.error)
-        repository.save(rejected.state)
-        val result = syncLegacy(legacy, rejected.state, incrementTurn = true)
-        val reply = validationReply(committed.error)
-        appendLog(result, action, reply)
-        return response(true, result, committed.error, "validation_rejected", reply)
-      }
-      repository.save(committed.state)
-      val result = syncLegacy(legacy, committed.state, incrementTurn = true)
-      val reply = "Vũ khí MadGod đã trang bị; Ma Tôn Vạn Giới là passive và không chiếm ô giáp. Huyết Ma Chiến Khải được giữ nguyên."
-      appendLog(result, action, reply)
-      return response(true, result, null, "madgod_equipped", reply)
-    }
     val context = contextFor(pending.state)
     val interpreted = rules.interpretSync(action, context)
     interpreted.candidates.forEach { logger.log(PipelineLogEvent("INTENT", turnId = turnId, source = it.source, intent = it.intent, confidence = it.score)) }
@@ -573,13 +539,6 @@ class GameCoreFacade private constructor(
     val actors = state.characters.values.associate { it.name.lowercase() to it.id } + mapOf("cao minh" to KAI_ID, "cao_minh" to KAI_ID, "iris" to "iris", "syvial" to "syvial", "an nhiên" to AN_NHIEN_ID, "an nhien" to AN_NHIEN_ID)
     val items = state.inventories.values.flatMap { it.items.values }.associate { it.name.lowercase() to it.itemId }
     return GameContext(state, actors, items)
-  }
-
-  private fun isMadGodEquipRequest(action: String): Boolean {
-    val text = action.trim()
-    val equip = Regex("(?:^|\\s)(?:trang\\s+bị|equip|đeo|mặc|cầm\\s+làm\\s+vũ\\s+khí)(?:\\s|$)", RegexOption.IGNORE_CASE)
-    val madGod = Regex("(?:mad\\s*god|madgod)(?:\\s+set)?", RegexOption.IGNORE_CASE)
-    return equip.containsMatchIn(text) && madGod.containsMatchIn(text)
   }
 
   private fun isAuthoritativeItemIntent(intent: GameIntent): Boolean = intent in setOf(

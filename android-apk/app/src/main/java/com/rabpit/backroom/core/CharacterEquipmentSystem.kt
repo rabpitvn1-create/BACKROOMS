@@ -246,7 +246,7 @@ object InventoryCapacityPolicy {
 
   fun carriedItemIds(state: GameState, characterId: String, inventory: InventoryState): Set<String> {
     val owned = inventory.items.filterValues { it.quantity > 0 }.keys
-    return owned - equippedItemIds(state, characterId)
+    return owned
   }
 
   fun usedSlots(state: GameState, characterId: String): Int = carriedItemIds(state, characterId).size
@@ -336,56 +336,19 @@ object EquipmentEngine {
   fun isEquipped(state: GameState, characterId: String, itemId: String): Boolean =
     state.equipment[characterId]?.slots.orEmpty().values.any { it == itemId }
 
-  fun equip(state: GameState, command: ItemCommand): ExecutionResult {
-    if (command.actorId == AN_NHIEN_ID) return invalid(state, "an_nhien_equipment_locked")
-    val inventory = state.inventories[command.actorId] ?: return invalid(state, "item_not_owned")
-    val owned = inventory.items[command.itemId] ?: return invalid(state, "item_not_owned")
-    if (owned.quantity < 1) return invalid(state, "item_not_owned")
-    val def = EquipmentCatalog.definition(command.itemId)
-    if (def?.classification == ItemClassification.SPECIAL_CHEAT && command.actorId != KAI_ID) return invalid(state, "madgod_equipment_slot_mismatch")
-    val requested = EquipmentSlot.fromRaw(command.slot)
-    val targetSlots = if (def != null) def.occupiesSlots.map { it.key }.toSet() else setOfNotNull(requested?.key ?: command.slot?.trim()?.lowercase())
-    if (targetSlots.isEmpty()) return invalid(state, "equipment_slot_required")
-    if (def != null && requested != null && requested !in def.occupiesSlots && requested != def.primarySlot) return invalid(state, "equipment_slot_mismatch")
+  fun equip(state: GameState, command: ItemCommand): ExecutionResult =
+    invalid(state, "equipment_bound_forever")
 
-    val equipment = state.equipment[command.actorId] ?: EquipmentState(command.actorId)
-    val lockedByMadGod = targetSlots.any { slot -> equipment.slots[slot] == MADGOD_SET_ID && command.itemId != MADGOD_SET_ID }
-    if (lockedByMadGod) return invalid(state, "madgod_equipment_permanent")
-    if (command.itemId == MADGOD_SET_ID && equipment.slots.values.count { it == MADGOD_SET_ID } >= 2) return changed(state, "item_equipped")
+  fun unequip(state: GameState, command: ItemCommand): ExecutionResult =
+    invalid(state, "equipment_bound_forever")
 
-    val nextSlots = equipment.slots.toMutableMap()
-    targetSlots.forEach { nextSlots[it] = command.itemId }
-    val raw = state.copy(equipment = state.equipment + (command.actorId to equipment.copy(slots = nextSlots)))
-    val adjusted = CharacterStatEngine.preserveMissingHp(state, raw, command.actorId)
-    return changed(adjusted, "item_equipped")
-  }
-
-  fun unequip(state: GameState, command: ItemCommand): ExecutionResult {
-    if (command.actorId == AN_NHIEN_ID) return invalid(state, "an_nhien_equipment_locked")
-    if (command.itemId == MADGOD_SET_ID) return invalid(state, "madgod_equipment_permanent")
-    val equipment = state.equipment[command.actorId] ?: return invalid(state, "equipment_missing")
-    if (command.itemId !in equipment.slots.values) return invalid(state, "item_not_equipped")
-    val nextSlots = equipment.slots.filterValues { it != command.itemId }
-    val raw = state.copy(equipment = state.equipment + (command.actorId to equipment.copy(slots = nextSlots)))
-    val adjusted = CharacterStatEngine.preserveMissingHp(state, raw, command.actorId)
-    return changed(adjusted, "item_unequipped")
-  }
-
-  fun preview(state: GameState, characterId: String, itemId: String): EffectiveCharacterStats? {
-    val item = state.inventories[characterId]?.items?.get(itemId) ?: return null
-    val def = EquipmentCatalog.definition(item.itemId) ?: return null
-    val equipment = state.equipment[characterId] ?: EquipmentState(characterId)
-    if (itemId in equipment.slots.values) return CharacterStatEngine.effective(state, characterId)
-    if (def.classification == ItemClassification.SPECIAL_CHEAT && characterId != KAI_ID) return null
-    if (def.occupiesSlots.any { equipment.slots[it.key] == MADGOD_SET_ID && itemId != MADGOD_SET_ID }) return null
-    val next = equipment.slots.toMutableMap()
-    def.occupiesSlots.forEach { next[it.key] = itemId }
-    return CharacterStatEngine.effective(state.copy(equipment = state.equipment + (characterId to equipment.copy(slots = next))), characterId)
-  }
+  fun preview(state: GameState, characterId: String, itemId: String): EffectiveCharacterStats? =
+    if (itemId in state.equipment[characterId]?.slots.orEmpty().values) CharacterStatEngine.effective(state, characterId)
+    else null
 }
 
 object CharacterEquipmentSystem {
-  private const val SCHEMA_VERSION = "2-core-stats-1193a"
+  private const val SCHEMA_VERSION = "4-bound-equipment"
 
   fun seedFresh(state: GameState): GameState = normalizeInternal(state, true)
   fun normalize(state: GameState): GameState = normalizeInternal(state, state.metadata["characterEquipmentSchemaVersion"] != SCHEMA_VERSION)
@@ -397,21 +360,16 @@ object CharacterEquipmentSystem {
     val inventories = input.inventories.toMutableMap()
     val equipment = input.equipment.toMutableMap()
     input.characters.keys.forEach { characterId ->
-      var inv = inventories[characterId] ?: InventoryState(characterId)
+      val inv = inventories[characterId] ?: InventoryState(characterId)
       val eq = equipment[characterId] ?: EquipmentState(characterId)
       val slots = eq.slots.toMutableMap()
-      val loadout = EquipmentCatalog.startingLoadout(characterId)
       if (seedStarting) {
-        loadout.forEach { (slot, itemId) ->
-          if (slot.key !in slots) slots[slot.key] = itemId
-          if (itemId !in inv.items) inv = inv.copy(items = inv.items + (itemId to EquipmentCatalog.stackFor(itemId)))
+        EquipmentCatalog.startingLoadout(characterId).forEach { (slot, itemId) ->
+          slots.putIfAbsent(slot.key, itemId)
         }
       }
-      slots.values.distinct().forEach { itemId ->
-        if (itemId !in inv.items) inv = inv.copy(items = inv.items + (itemId to EquipmentCatalog.stackFor(itemId)))
-      }
-      inv = inv.copy(items = inv.items.mapValues { (_, stack) -> EquipmentCatalog.mergeDefinitionMetadata(stack) })
-      inventories[characterId] = inv
+      // Bound Forever gear exists only in EquipmentState, never as inventory stacks.
+      inventories[characterId] = inv.copy(items = inv.items.filterKeys { EquipmentCatalog.definition(it) == null })
       equipment[characterId] = eq.copy(slots = slots)
     }
     var next = input.copy(

@@ -15,7 +15,7 @@ class InventoryCapacityNewGameTest {
       val equippedIds = InventoryCapacityPolicy.equippedItemIds(state, id)
       assertTrue("expected equipped loadout: $id", equippedIds.isNotEmpty())
       equippedIds.forEach { itemId ->
-        assertTrue(state.inventories.getValue(id).items.containsKey(itemId))
+        assertFalse(state.inventories.getValue(id).items.containsKey(itemId))
         assertFalse(InventoryCapacityPolicy.consumesSlot(state, id, itemId))
       }
       assertEquals(0, InventoryCapacityPolicy.usedSlots(state, id))
@@ -23,39 +23,15 @@ class InventoryCapacityNewGameTest {
     }
   }
 
-  @Test fun unequipMakesTheSameOwnedItemConsumeOneSlotAndReequipReleasesIt() {
-    val initial = freshAll()
-    val unequip = EquipmentEngine.unequip(initial, ItemCommand(
+  @Test fun boundEquipmentCannotBeUnequippedOrStoredAsItems() {
+    val state = freshAll()
+    val result = EquipmentEngine.unequip(state, ItemCommand(
       "U", null, KAI_ID, source=CommandSource.UI, operation=ItemCommand.Operation.UNEQUIP,
       itemId=KAI_BLACKBLOOD_ARMOR_ID, itemName="Huyết Ma Chiến Khải", slot="armor"
     ))
-    assertTrue(unequip.applied)
-    assertTrue(unequip.state.inventories.getValue(KAI_ID).items.containsKey(KAI_BLACKBLOOD_ARMOR_ID))
-    assertEquals(1, InventoryCapacityPolicy.usedSlots(unequip.state, KAI_ID))
-    val reEquip = EquipmentEngine.equip(unequip.state, ItemCommand(
-      "E", null, KAI_ID, source=CommandSource.UI, operation=ItemCommand.Operation.EQUIP,
-      itemId=KAI_BLACKBLOOD_ARMOR_ID, itemName="Huyết Ma Chiến Khải", slot="armor"
-    ))
-    assertTrue(reEquip.applied)
-    assertEquals(0, InventoryCapacityPolicy.usedSlots(reEquip.state, KAI_ID))
-  }
-
-  @Test fun madGodWeaponIsOneOwnedZeroCapacityItemAndDoesNotAlterBaseStats() {
-    var state = freshAll()
-    val inv = state.inventories.getValue(KAI_ID)
-    state = state.copy(inventories = state.inventories + (KAI_ID to inv.copy(
-      items = inv.items + (MADGOD_SET_ID to EquipmentCatalog.stackFor(MADGOD_SET_ID))
-    )))
-    val before = state.characters.getValue(KAI_ID).statProfile
-    val equip = EquipmentEngine.equip(state, ItemCommand(
-      "M", null, KAI_ID, source=CommandSource.UI, operation=ItemCommand.Operation.EQUIP,
-      itemId=MADGOD_SET_ID, itemName="Huyết Ma Kiếm · Ma Tôn", slot="weapon"
-    ))
-    assertTrue(equip.applied)
-    assertEquals(1, equip.state.equipment.getValue(KAI_ID).slots.values.count { it == MADGOD_SET_ID })
-    assertTrue(equip.state.inventories.getValue(KAI_ID).items.containsKey(MADGOD_SET_ID))
-    assertFalse(InventoryCapacityPolicy.consumesSlot(equip.state, KAI_ID, MADGOD_SET_ID))
-    assertEquals(before, equip.state.characters.getValue(KAI_ID).statProfile)
+    assertFalse(result.applied)
+    assertEquals("equipment_bound_forever", result.validation.reason)
+    assertFalse(state.inventories.getValue(KAI_ID).items.containsKey(KAI_BLACKBLOOD_ARMOR_ID))
   }
 
   @Test fun saveLoadRecalculatesCapacityFromOwnershipAndEquipmentReferences() {
@@ -77,6 +53,7 @@ class InventoryCapacityNewGameTest {
     assertEquals(0, kai.inventoryCapacityUsed)
     assertEquals(InventoryPolicy.KAI.maxTypes, kai.inventoryCapacityMax)
     assertEquals(2, kai.equipment.values.toSet().size)
-    assertEquals(2, kai.inventoryDetails.count { it.equipped })
+    assertEquals(0, kai.inventoryDetails.count { it.equipped })
+    assertEquals(2, kai.equipmentDetails.size)
   }
 }
