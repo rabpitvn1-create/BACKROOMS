@@ -46,7 +46,13 @@ public final class CompanionStorageInstrumentation extends Instrumentation {
         });
         throw new AssertionError("atomic process kill returned");
       }
-      if ("benchmark".equals(mode))
+      if ("native_audit".equals(mode))
+        run("native_backend_audit", () -> CompanionNativeAuditFixtures.audit(getTargetContext(),
+          arguments.getString("candidate_sha", ""), arguments.getString("trial_id", ""),
+          Integer.parseInt(arguments.getString("turns", "1000")), message -> {
+            Bundle status = new Bundle(); status.putString("stream", message + "\n"); sendStatus(0, status);
+          }));
+      else if ("benchmark".equals(mode))
         run("native_backend_benchmark", () -> CompanionWaitStorageFixtures.benchmark(getTargetContext(), directory,
           Integer.parseInt(arguments.getString("turns","1000")), message -> { Bundle status=new Bundle(); status.putString("stream",message+"\n"); sendStatus(0,status); }));
       else if ("during_commit_recover".equals(mode) || "after_commit_recover".equals(mode))
@@ -54,6 +60,8 @@ public final class CompanionStorageInstrumentation extends Instrumentation {
           getTargetContext(), directory, "after_commit_recover".equals(mode)));
       else if ("recover".equals(mode)) run("process_kill_rollback_and_recovery", this::recoverProcessCrash);
       else if ("suite".equals(mode)) {
+        run("muse_schema_and_publisher", () -> CompanionMuseStorageFixtures.schemaAndPublication(directory));
+        run("verified_genesis_canon_and_brain", () -> CompanionMuseStorageFixtures.verifiedGenesis(getTargetContext()));
         run("test_driver_combat_publication", () -> CompanionWaitStorageFixtures.testDriverCombatPublication(directory));
         run("native_atomic_wait_commit", () -> CompanionWaitStorageFixtures.nativeAtomicCommit(directory));
         run("native_ambiguous_commit_readback", () -> CompanionWaitStorageFixtures.nativeAmbiguousCommit(directory));
