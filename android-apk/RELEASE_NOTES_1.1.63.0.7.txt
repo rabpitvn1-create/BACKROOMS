@@ -1,0 +1,6 @@
+Backroom 1.1.63.0.7 Debug
+
+- Tăng versionName lên 1.1.63.0.7 và versionCode lên 72 để phát hành APK mới bằng một version/tag riêng, không ghi đè release trước.
+- Giữ nguyên Entity Power Scaling tuyến tính theo Level trên base Level 0: Level 0/1/2/3 tương ứng 100/110/120/130%, không compound.
+- Giữ Combat Feedback Panel tạm thời theo thứ tự Snapshot → Poker Dice → Combat Feedback → GM/Narrative Log; direct combat không ghi vào GM log.
+- Giữ nguyên overlay Cao Minh/Nhân vật và toàn bộ gameplay contract hiện có trên main.
