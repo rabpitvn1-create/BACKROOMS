@@ -66,6 +66,7 @@ public final class CompanionStorageInstrumentation extends Instrumentation {
         run("native_atomic_wait_commit", () -> CompanionWaitStorageFixtures.nativeAtomicCommit(directory));
         run("native_companion_live_wait", () -> CompanionLiveWaitFixtures.INSTANCE.verifiedNewGameAndWait(getTargetContext()));
         run("native_companion_actor_actions_memory", () -> CompanionOrdinaryActionInstrumentation.INSTANCE.nativeActionsAndActorMemories(getTargetContext()));
+        run("native_cao_minh_talk_to_human", () -> CompanionOrdinaryActionInstrumentation.INSTANCE.talkToHumanCompanion(getTargetContext()));
         run("native_ambiguous_commit_readback", () -> CompanionWaitStorageFixtures.nativeAmbiguousCommit(directory));
         run("concurrent_native_wait_commit", () -> CompanionWaitStorageFixtures.concurrentNativeCommit(directory));
         run("immutable_ledger_corruption_preserved", () -> CompanionWaitStorageFixtures.ledgerCorruptionPreserved(directory));
