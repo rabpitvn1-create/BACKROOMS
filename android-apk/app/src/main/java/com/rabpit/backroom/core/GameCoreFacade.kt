@@ -404,7 +404,7 @@ class GameCoreFacade private constructor(
     val protectedState = CharacterProgressionCore.protectFromCandidate(pending.state, committed.state)
     repository.save(protectedState)
     val synchronized = syncLegacy(candidate, protectedState, incrementTurn = false)
-    logger.log(PipelineLogEvent("GEMINI_COMMIT", turnId = turnId, source = CommandSource.GEMINI, details = mapOf("commands" to commands.size.toString(), "inventoryLocked" to inventoryLocked.toString())))
+    logger.log(PipelineLogEvent("GEMINI_COMMIT", turnId = turnId, source = CommandSource.GEMINI, details = mapOf("commands" to commands.size.toString())))
     return response(true, synchronized, null, "gemini_delta_committed")
   }
 
