@@ -100,73 +100,9 @@ if resolution_replacement not in facade:
     facade = facade.replace(resolution_anchor, resolution_replacement, 1)
 
 # ---------------------------------------------------------------------------
-# 3) A discovered world item is an authoritative availability record before PICKUP.
-# Existing final runtime stores validated world state in flagsJson, so this patch adds
-# a deliberately small worldItems ledger there rather than introducing a parallel save.
-# Direct pickup consumes one available ledger entry and commits PICKUP + world-ledger
-# update atomically before any success reply is appended.
+# 3) Player text must never create, claim, or move an item from the world.
+# The only acquisition path is the offline Entity-victory reward authority.
 # ---------------------------------------------------------------------------
-world_types_anchor = '''  private fun isAuthoritativeItemIntent(intent: GameIntent): Boolean = intent in setOf(
-'''
-world_types = '''  private data class WorldPickup(
-    val itemId: String,
-    val itemName: String,
-    val quantity: Int,
-    val metadata: Map<String, String>,
-    val flagsJson: String
-  )
-
-  private fun resolveWorldPickup(state: GameState, action: String): WorldPickup? {
-    val rawFlags = state.world["flagsJson"] ?: return null
-    val flags = runCatching { JSONObject(rawFlags) }.getOrNull() ?: return null
-    val items = flags.optJSONArray("worldItems") ?: return null
-    val normalizedAction = action.lowercase()
-    val available = mutableListOf<Pair<Int, JSONObject>>()
-    for (index in 0 until items.length()) {
-      val item = items.optJSONObject(index) ?: continue
-      if (!item.optBoolean("available", true)) continue
-      val name = item.optString("name").trim()
-      val id = item.optString("id").trim()
-      if (name.isBlank() && id.isBlank()) continue
-      available += index to item
-    }
-    if (available.isEmpty()) return null
-    val selected = available.firstOrNull { (_, item) ->
-      val name = item.optString("name").trim().lowercase()
-      val id = item.optString("id").trim().lowercase()
-      (name.isNotBlank() && normalizedAction.contains(name)) ||
-        (id.isNotBlank() && normalizedAction.contains(id)) ||
-        name.split(Regex("\\s+")).filter { it.length >= 4 }.any { normalizedAction.contains(it) }
-    } ?: available.singleOrNull() ?: return null
-    val index = selected.first
-    val item = selected.second
-    val quantity = item.optInt("quantity", 1).coerceAtLeast(1)
-    val take = 1
-    val remaining = quantity - take
-    val instanceId = item.optString("instanceId").ifBlank { "world:${item.optString("id").ifBlank { stableItemId(item.optString("name")) }}:$index" }
-    val metadata = jsonObjectStrings(item.optJSONObject("metadata")) + mapOf(
-      "worldInstanceId" to instanceId,
-      "itemOrigin" to "WORLD",
-      "omnivaultOriginal" to "true"
-    )
-    if (remaining <= 0) item.put("available", false).put("quantity", 0)
-    else item.put("quantity", remaining)
-    flags.put("worldItems", items)
-    return WorldPickup(
-      itemId = item.optString("id").ifBlank { stableItemId(item.optString("name")) },
-      itemName = item.optString("name").ifBlank { item.optString("id") },
-      quantity = take,
-      metadata = metadata,
-      flagsJson = flags.toString()
-    )
-  }
-
-'''
-if 'private data class WorldPickup(' not in facade:
-    if world_types_anchor not in facade:
-        raise RuntimeError("World pickup type anchor missing")
-    facade = facade.replace(world_types_anchor, world_types + world_types_anchor, 1)
-
 pickup_guard_variants = (
 '''    if (isDirectPlayerPickupAction(action) || interpreted.candidates.any { it.intent == GameIntent.PICKUP_ITEM }) {
       val result = syncLegacy(legacy, state, incrementTurn = false)
@@ -185,56 +121,11 @@ pickup_guard_variants = (
     }
 '''
 )
-pickup_replacement = '''    if (isDirectPlayerPickupAction(action)) {
-      val worldPickup = resolveWorldPickup(pending.state, action)
-      if (worldPickup != null) {
-        val commands = listOf<GameCommand>(
-          ItemCommand(
-            commandId = "$turnId:SYSTEM:WORLD_PICKUP",
-            turnId = turnId,
-            actorId = KAI_ID,
-            source = CommandSource.SYSTEM,
-            operation = ItemCommand.Operation.PICKUP,
-            itemId = worldPickup.itemId,
-            itemName = worldPickup.itemName,
-            quantity = worldPickup.quantity,
-            metadata = worldPickup.metadata
-          ),
-          ValidatedLegacyStateCommand(
-            commandId = "$turnId:SYSTEM:WORLD_PICKUP_FLAGS",
-            turnId = turnId,
-            source = CommandSource.SYSTEM,
-            flagsJson = worldPickup.flagsJson,
-            validatedByGameEngine = true
-          ),
-          timeAdvanceCommand(turnId, action)
-        )
-        val committed = TurnCoordinator.commit(pending.state, commands)
-        if (committed.error != null) {
-          val result = syncLegacy(legacy, state, incrementTurn = false)
-          val reply = validationReply(committed.error)
-          appendLog(result, action, reply)
-          return response(true, result, committed.error, "validation_rejected", reply)
-        }
-        repository.save(committed.state)
-        val result = syncLegacy(legacy, committed.state, incrementTurn = true)
-        val reply = eventReply(committed.execution?.events.orEmpty())
-        appendLog(result, action, reply)
-        logger.log(PipelineLogEvent("COMMIT", turnId = turnId, details = mapOf("worldPickup" to worldPickup.itemId)))
-        return response(true, result, null, "world_pickup_committed", reply)
-      }
-      val result = syncLegacy(legacy, state, incrementTurn = false)
-      val reply = validationReply("player_pickup_unavailable")
-      appendLog(result, action, reply)
-      logger.log(PipelineLogEvent("REJECT", turnId = turnId, details = mapOf("reason" to "player_pickup_unavailable")))
-      return response(true, result, "player_pickup_unavailable", "validation_rejected", reply)
-    }
-'''
-if '"world_pickup_committed"' not in facade:
-    found = [block for block in pickup_guard_variants if block in facade]
-    if len(found) != 1:
-        raise RuntimeError(f"World pickup guard anchor mismatch: found {len(found)}")
-    facade = facade.replace(found[0], pickup_replacement, 1)
+
+if pickup_guard_variants[1] in facade:
+    facade = facade.replace(pickup_guard_variants[1], pickup_guard_variants[0], 1)
+elif pickup_guard_variants[0] not in facade:
+    raise RuntimeError("Player pickup rejection guard missing")
 
 # Helpful fail-closed reply for unresolved item commands.
 reply_anchor = '      "player_pickup_unavailable" -> "Không thể tự thêm vật phẩm vào Inventory; hãy tìm kiếm hoặc tương tác với môi trường để game xác định kết quả."\n'
@@ -318,14 +209,11 @@ combined = FACADE.read_text(encoding="utf-8") + "\n" + ENGINES.read_text(encodin
 for marker in (
     'val inventoryLocked = true // INVENTORY_AUTHORITY: candidate snapshots are read-only',
     'private fun isAuthoritativeItemIntent(intent: GameIntent)',
-    'private data class WorldPickup(',
-    '"world_pickup_committed"',
     '"item_action_resolution_required"',
-    'worldInstanceId',
     'class InventoryAuthorityRegressionTest',
     'bandagePickupDoesNotRunContentUseValidation',
 ):
     if marker not in combined:
         raise RuntimeError("Inventory authority final contract missing: " + marker)
 
-print("Inventory authority finalizer applied: GM inventory snapshots are read-only; unresolved item actions fail closed; validated world loot commits before narration.")
+print("Inventory authority finalizer applied: candidate inventory read-only and text pickup forbidden; only combat core can award loot.")
