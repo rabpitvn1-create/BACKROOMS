@@ -59,6 +59,43 @@ bridge = r'''  // COMPANION_NATIVE_INTERACT_PREVIEW_R01: native slot/decision on
       });
     }
 
+    @JavascriptInterface public void companionSuggest(String slotId) {
+      if (!BuildConfig.COMPANION_NATIVE_ENABLED) return;
+      if (slotId == null || !slotId.matches("[0-9a-f]{32}")) {
+        emit("backroomCompanionSuggestionError", "Companion slot không hợp lệ.");
+        return;
+      }
+      io.execute(() -> {
+        try {
+          String suggestion = com.rabpit.backroom.core.companion.CompanionAndroidBridge.suggest(
+            MainActivity.this,slotId,
+            prompt -> {
+              try {
+                JSONObject envelope = parseModelJson(generateText(prompt +
+                  "\nChỉ trả JSON có reply khác rỗng, ops=[] và actorDecision " +
+                  "{\"intent\":\"SEARCH\",\"targetId\":null,\"itemId\":null}; " +
+                  "được phép chọn ý định khác nếu hợp lệ, không bắt buộc SEARCH."));
+                JSONObject choice = envelope.optJSONObject("actorDecision");
+                if (choice == null) throw new Exception("actor_suggestion_missing");
+                return choice.toString();
+              } catch (Exception error) { throw new IllegalStateException("actor_suggestion_failed",error); }
+            },
+            prompt -> {
+              try {
+                JSONObject verdict = parseModelJson(geminiAuditText(prompt +
+                  "\nTrả JSON có verdict PASS hoặc HARD. Không được mặc định PASS.", -1));
+                return new JSONObject().put("verdict",verdict.optString("verdict","HARD")).toString();
+              } catch (Exception error) { throw new IllegalStateException("actor_suggestion_audit_failed",error); }
+            }
+          );
+          emit("backroomCompanionSuggestion", suggestion);
+        } catch (Exception error) {
+          emit("backroomCompanionSuggestionError",
+            error.getMessage() == null ? "Không thể xác thực ý định Cao Minh." : error.getMessage());
+        }
+      });
+    }
+
     @JavascriptInterface public void companionSubmit(String slotId, String exactPlayerInput, String requestAlias) {
       if (!BuildConfig.COMPANION_NATIVE_ENABLED) {
         emit("backroomCompanionError", "Companion chưa được kích hoạt ở bản phát hành.");
