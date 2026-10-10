@@ -78,9 +78,23 @@ class EpisodicMemoryTest {
     assertEquals(a.memoryId, b.memoryId)  // retry-safe: same input -> same id
   }
 
+  @Test fun fallbackSummaryDoesNotRevealNonPublicEventId() {
+    val m = EpisodicMemory.fromObservation(
+      candidate(payload = JSONObject()), slot, "cao_minh", "t")
+    assertEquals("[SEEN] observation recorded", m.summary)
+    assertFalse(m.summary.contains("event-1"))
+  }
+
   @Test fun schemaStatementsValid() {
     val stmts = EpisodicMemorySchema.createStatements()
-    assertTrue(stmts.any { it.contains("actor_memory") })
+    assertEquals(4, stmts.size)
+    assertTrue(stmts.first().contains("REFERENCES actor_observation"))
+    assertTrue(stmts.first().contains("REFERENCES actor_memory(slot_id, memory_id, actor_id)"))
+    val triggers = stmts.filter { it.trimStart().startsWith("CREATE TRIGGER") }
+    assertEquals(2, triggers.size)
+    assertTrue(triggers.all {
+      it.contains("BEGIN SELECT RAISE") && it.trimEnd().endsWith("END;")
+    })
     assertTrue(stmts.any { it.contains("immutable_memory") })
   }
 }
