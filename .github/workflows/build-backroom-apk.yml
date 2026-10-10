@@ -154,6 +154,7 @@ jobs:
               ("box.style.position='relative';box.style.overflow='hidden'", java),
               ('CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png', java), ('CAO_MINH_OVERLAY_EXPLORER_IDLE.png', java),
               ('class SharedPreferencesSaveRepository', save_repo),
+              ('put("summary", combatReply)', facade), ('if (action != PokerDiceCore.DIRECT_COMBAT_ACTION)', facade),
               ('private fun normalizeVisualPresence(state: GameState): GameState', facade),
               ('val resolvedEntityKey = CombatRuntime.active(current)?.entityKey.orEmpty()', facade),
               ('flags.put("entityEncounterKey", "")', facade),
@@ -261,6 +262,7 @@ jobs:
           grep -q 'pokerDiceModal' apk-check/assets/index.html
           grep -q 'combatFeedbackPanel' apk-check/assets/index.html
           grep -q 'COMBAT_TRANSIENT_LOG_R01' apk-check/assets/combat-feedback-1193a.js
+          grep -q 'packet&&packet.summary' apk-check/assets/combat-feedback-1193a.js
           grep -q '.combat-feedback-panel' apk-check/assets/combat-feedback-1193a.css
           ! grep -q 'state.log' apk-check/assets/combat-feedback-1193a.js
           ! grep -q 'localStorage' apk-check/assets/combat-feedback-1193a.js
@@ -344,6 +346,7 @@ jobs:
           unzip -p Backroom-1.1.63.0.3-verified.apk assets/index.html | grep -q 'pokerDiceModal'
           unzip -p Backroom-1.1.63.0.3-verified.apk assets/index.html | grep -q 'combatFeedbackPanel'
           unzip -p Backroom-1.1.63.0.3-verified.apk assets/combat-feedback-1193a.js | grep -q 'COMBAT_TRANSIENT_LOG_R01'
+          unzip -p Backroom-1.1.63.0.3-verified.apk assets/combat-feedback-1193a.js | grep -q 'packet&&packet.summary'
           unzip -p Backroom-1.1.63.0.3-verified.apk assets/combat-feedback-1193a.css | grep -q '.combat-feedback-panel'
           ! unzip -p Backroom-1.1.63.0.3-verified.apk assets/combat-feedback-1193a.js | grep -q 'state.log'
           ! unzip -p Backroom-1.1.63.0.3-verified.apk assets/combat-feedback-1193a.js | grep -q 'localStorage'
