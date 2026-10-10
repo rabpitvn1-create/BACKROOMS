@@ -107,7 +107,13 @@
     events.forEach(function (event) {
       if (!event || !event.payload) return;
       var p = event.payload, result = "";
-      if (event.type === "WAIT_COMPLETED")
+      if (event.type === "ACTOR_ACTION_COMPLETED") {
+        var verbs = {SEARCH: "tìm kiếm", MOVE: "thăm dò lối đi", INSPECT: "kiểm tra kỹ",
+          TALK: "trao đổi với người đang hiện diện"};
+        if (p.actor === "cao_minh" && Object.prototype.hasOwnProperty.call(verbs, p.intent))
+          result = "Cao Minh đã tự chọn " + verbs[p.intent] + " tại " +
+            p.location + " (" + p.minutes + " phút).";
+      } else if (event.type === "WAIT_COMPLETED")
         result = "Cao Minh đã chờ và quan sát " + p.minutes + " phút tại " + p.location + ".";
       else if (event.type === "EXIT_STREAK_RESOLVED")
         result = p.completed ? "Lối đi được Core xác nhận; cả nhóm di chuyển cùng Cao Minh."
