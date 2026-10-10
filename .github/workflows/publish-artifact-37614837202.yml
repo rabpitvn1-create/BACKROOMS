@@ -1,0 +1,60 @@
+name: Publish exact artifact 37614837202
+
+on:
+  push:
+    branches:
+      - ops/publish-artifact-37614837202
+    paths:
+      - ".github/workflows/publish-artifact-37614837202.yml"
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish-exact-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download exact historical artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifact
+          gh run download 37614837202 \
+            --repo "$GITHUB_REPOSITORY" \
+            --name Backroom-1.1.63.0.3-debug-apk \
+            --dir artifact
+          test -s artifact/Backroom-1.1.63.0.3.apk
+
+      - name: Verify historical APK digest
+        run: |
+          set -euo pipefail
+          EXPECTED="2b14e493427462516b5919fd0405d9ecde2293733d372cafe2f20bf7084fe20a"
+          ACTUAL="$(sha256sum artifact/Backroom-1.1.63.0.3.apk | awk '{print $1}')"
+          echo "historical_sha256=$ACTUAL"
+          test "$ACTUAL" = "$EXPECTED"
+
+      - name: Replace release asset with exact historical APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release upload v1.1.63.0.3 \
+            artifact/Backroom-1.1.63.0.3.apk \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber
+
+      - name: Verify published release bytes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          EXPECTED="2b14e493427462516b5919fd0405d9ecde2293733d372cafe2f20bf7084fe20a"
+          gh release download v1.1.63.0.3 \
+            --repo "$GITHUB_REPOSITORY" \
+            --pattern Backroom-1.1.63.0.3.apk \
+            --output released.apk
+          ACTUAL="$(sha256sum released.apk | awk '{print $1}')"
+          echo "published_sha256=$ACTUAL"
+          test "$ACTUAL" = "$EXPECTED"
