@@ -16,6 +16,9 @@ internal object BrainContracts {
   const val RULE_VERSION = "rule_table.v1"
   const val CONTRACT_VERSION = "brain_contracts.v1"
 
+  private fun id(value: String): Boolean =
+    value.matches(Regex("[A-Za-z0-9_.:-]{1,160}"))
+
   /** Epistemic stance of a claim. UNKNOWN is a stance, never an observation certainty. */
   enum class Stance { UNKNOWN, SUSPECTED, BELIEVED, DISPUTED, KNOWN }
 
@@ -33,6 +36,12 @@ internal object BrainContracts {
     val speakerRef: String?,
     val sourceObservationIds: List<String>
   ) {
+    init {
+      require(id(claimId) && id(subjectRef) && id(objectRef) &&
+        predicateId.length in 1..128 && sourceObservationIds.size<=64 &&
+        sourceObservationIds.all(::id) && sourceObservationIds.distinct().size==sourceObservationIds.size &&
+        (speakerRef==null || id(speakerRef))) { "claim_contract_invalid" }
+    }
     enum class Polarity { POSITIVE, NEGATIVE }
     /** Typed proposition identity for duplicate/contradiction detection. */
     fun propositionKey(): String = CompanionWaitCapture.canonical(
@@ -73,6 +82,11 @@ internal object BrainContracts {
   ) {
     init {
       Predicates.requireKnown(completionPredicateId)
+      require(id(promiseId) && id(promisorActorId) && id(beneficiaryActorId) &&
+        scope.length in 1..128 && id(targetRef) &&
+        predicateArgs.size in 1..8 && predicateArgs.all { (k,v) -> id(k) && id(v) } &&
+        termsDigest.matches(Regex("[0-9a-f]{64}")) &&
+        (deadlineTurn==null || deadlineTurn>=0)) { "promise_contract_invalid" }
       require(promisorActorId != beneficiaryActorId) { "promise_self_beneficiary" }
     }
   }
@@ -98,7 +112,8 @@ internal object BrainContracts {
    */
   object ContradictionComparator {
     fun contradicts(a: Claim, b: Claim): Boolean =
-      a.propositionKey() == b.propositionKey() && a.polarity != b.polarity
+      a.sourceObservationIds.isNotEmpty() && b.sourceObservationIds.isNotEmpty() &&
+        a.propositionKey() == b.propositionKey() && a.polarity != b.polarity
   }
 
   // ---- Working brain state (reducers #506–#508 own the transitions) ----

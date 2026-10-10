@@ -60,13 +60,28 @@ internal object CompanionMuseStorageFixtures {
       // Correct event id with wrong receipt must not pass the composite FK.
       rejects { db.execSQL("INSERT INTO actor_observation SELECT slot_id,'other',actor_id,event_id,'wrong',committed_revision,access_kind,source_actor_id,certainty,scene_id,policy_version,public_payload,observation_digest FROM actor_observation") }
       rejects { db.execSQL("INSERT INTO observation_manifest VALUES(?, 't',1,1,'o',?)",arrayOf(slot,"0".repeat(64))) }
-      db.execSQL("INSERT INTO actor_memory VALUES(?, 'm','cao_minh','o','t',1,'topic','summary','NATIVE','ORDINARY','ACTIVE',NULL)",arrayOf(slot))
+      db.execSQL("INSERT INTO actor_memory VALUES(?, 'm','cao_minh','o','t',1,'topic',?,'NATIVE','ORDINARY','ACTIVE',NULL)",arrayOf(slot,EpisodicMemory.summarize(candidate())))
       rejects { db.execSQL("UPDATE actor_memory SET subjective_summary='edited'") }
       rejects { db.execSQL("DELETE FROM actor_memory") }
       db.execSQL("INSERT INTO memory_manifest VALUES(?,'t',1,0,'m','cao_minh')",arrayOf(slot))
       rejects { db.execSQL("UPDATE memory_manifest SET ordinal=1") }
       rejects { db.execSQL("DELETE FROM memory_manifest") }
+      db.beginTransaction()
+      try {
+        val own=MemoryStorageReader.read(db,slot,"cao_minh",1)
+        check(own.size==1 && own.single().observationId=="o")
+        check(own.single().summary==EpisodicMemory.summarize(candidate()))
+        check(MemoryStorageReader.read(db,slot,"luc_tram",1).isEmpty())
+        val selected=MemoryRetrieval.retrieve(own,MemoryRetrieval.Query(slot,"cao_minh",maxChars=200))
+        check(selected.entries.size==1 && !selected.truncated)
+        check(MemoryRetrieval.retrieve(own,MemoryRetrieval.Query(slot,"cao_minh",maxChars=0)).truncated)
+      } finally { db.endTransaction() }
       rejects { db.execSQL("INSERT INTO actor_memory VALUES(?, 'foreign','luc_tram','o','t',1,'topic','summary','NATIVE','ORDINARY','ACTIVE',NULL)",arrayOf(slot)) }
+      db.execSQL("INSERT INTO actor_brain_delta VALUES(?,'app','cao_minh','t',1,'rule_table.v1','BR01','e','o','BELIEF','belief','{}',?)",arrayOf(slot,"0".repeat(64)))
+      db.execSQL("INSERT INTO brain_manifest VALUES(?,'t',1,0,'app',?)",arrayOf(slot,"0".repeat(64)))
+      rejects { db.execSQL("UPDATE actor_brain_delta SET target_id='forged'") }
+      rejects { db.execSQL("DELETE FROM brain_manifest") }
+      rejects { db.execSQL("INSERT INTO actor_brain_delta VALUES(?,'foreign','luc_tram','t',1,'rule_table.v1','BR01','e','o','BELIEF','belief','{}',?)",arrayOf(slot,"0".repeat(64))) }
       check(count(db,"genesis_pins")==2 && count(db,"initial_brain")==2)
       rejects { db.execSQL("UPDATE genesis_pins SET persona_revision='R18'") }
       rejects { db.execSQL("DELETE FROM genesis_pins") }
@@ -119,7 +134,7 @@ internal object CompanionMuseStorageFixtures {
     CompanionSlotStore.open(context,id,"genesis-verified").use { reopened ->
       check(reopened.currentRevision()==0L)
     }
-    val file=File(context.getDir("companion_slots_v5",Context.MODE_PRIVATE),"slot-$id.db")
+    val file=File(context.getDir("companion_slots_v6",Context.MODE_PRIVATE),"slot-$id.db")
     SQLiteDatabase.openDatabase(file.path,null,SQLiteDatabase.OPEN_READWRITE).use { db ->
       db.rawQuery("SELECT actor_id,persona_revision,knowledge_namespace FROM genesis_pins ORDER BY actor_id",null).use { c ->
         check(c.moveToNext() && c.getString(0)=="cao_minh" && c.getString(1)=="R17" && c.getString(2)=="CHAR.KAI")

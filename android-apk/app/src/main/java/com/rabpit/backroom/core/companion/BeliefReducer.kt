@@ -28,14 +28,16 @@ internal object BeliefReducer {
     val claim: Claim,
     /** The validated TOLD observation's id; speaker/listener already verified. */
     val observationId: String,
-    val actorId: String
+    val actorId: String,
+    val slotId: String = prior.slotId
   )
 
   data class ContradictionInput(
     val prior: BrainState,
     val newClaim: Claim,
     val newObservationId: String,
-    val actorId: String
+    val actorId: String,
+    val slotId: String = prior.slotId
   )
 
   data class Result(val state: BrainState, val deltas: List<BrainDelta>)
@@ -50,11 +52,13 @@ internal object BeliefReducer {
   fun reduceTold(input: ToldInput): Result {
     require(input.prior.ruleVersion == BrainContracts.RULE_VERSION) { "brain_rule_unsupported" }
     require(input.actorId == input.prior.actorId) { "belief_cross_actor" }
+    require(input.slotId == input.prior.slotId) { "belief_cross_slot" }
     require(input.observationId.isNotBlank()) { "belief_evidence_missing" }
     require(input.claim.sourceObservationIds.contains(input.observationId)) {
       "belief_evidence_unlinked"
     }
     require(!input.claim.speakerRef.isNullOrBlank()) { "belief_speaker_missing" }
+    require(input.claim.speakerRef != input.actorId) { "belief_self_told_invalid" }
     val id = beliefId(input.actorId, input.claim)
     val existing = input.prior.beliefs.find { it.beliefId == id }
     if (existing != null) {
@@ -79,6 +83,7 @@ internal object BeliefReducer {
   fun reduceContradiction(input: ContradictionInput): Result {
     require(input.prior.ruleVersion == BrainContracts.RULE_VERSION) { "brain_rule_unsupported" }
     require(input.actorId == input.prior.actorId) { "belief_cross_actor" }
+    require(input.slotId == input.prior.slotId) { "belief_cross_slot" }
     require(input.newObservationId.isNotBlank()) { "belief_evidence_missing" }
     require(input.newObservationId in input.newClaim.sourceObservationIds) { "belief_evidence_unlinked" }
     val deltas = arrayListOf<BrainDelta>()
