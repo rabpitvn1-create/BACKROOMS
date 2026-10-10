@@ -12,19 +12,19 @@ class GameCoreFacade private constructor(
   private val resolver = CommandResolver()
 
   /** Fast deterministic pass. Gemini is never called from this method. */
-  fun processRule(legacyStateJson: String, action: String): String {
-    val legacy = JSONObject(legacyStateJson)
-    val state = loadOrMigrate(legacy)
-    if (blocksTextItemAction(action)) return response(true, syncLegacy(legacy, state, false), "item_ui_required", "item_ui_required", "Hãy nhấn vào item và chọn Dùng, Chuyển hoặc Bỏ.")
-    if (MadGodCanon.cheat(action)) return applyMadGodCheat(legacy,state)
-    if (AnNhienCanon.matchesPartyCheatCode(action)) return applyAnNhienPartyCheat(legacy, state)
+  fun processRule(clientStateJson: String, action: String): String {
+    val client = JSONObject(clientStateJson)
+    val state = loadCurrentState()
+    if (blocksTextItemAction(action)) return response(true, clientSnapshot(client, state), "item_ui_required", "item_ui_required", "Hãy nhấn vào item và chọn Dùng, Chuyển hoặc Bỏ.")
+    if (MadGodCanon.cheat(action)) return applyMadGodCheat(client,state)
+    if (AnNhienCanon.matchesPartyCheatCode(action)) return applyAnNhienPartyCheat(client, state)
     SpecialFollowersCanon.matchesPartyCheatCode(action)?.let { targetId ->
-      return applySpecialFollowerPartyCheat(legacy, state, targetId)
+      return applySpecialFollowerPartyCheat(client, state, targetId)
     }
-    val turnId = nextTurnId(legacy, state)
+    val turnId = nextTurnId(state)
     logger.log(PipelineLogEvent("INPUT", turnId = turnId, details = mapOf("length" to action.length.toString())))
     val pending = TurnCoordinator.createPending(state, turnId, action)
-    if (pending.error != null) return response(false, legacy, pending.error, "pending_rejected")
+    if (pending.error != null) return response(false, client, pending.error, "pending_rejected")
     val context = contextFor(pending.state)
     val interpreted = rules.interpretSync(action, context)
     interpreted.candidates.forEach { logger.log(PipelineLogEvent("INTENT", turnId = turnId, source = it.source, intent = it.intent, confidence = it.score)) }
@@ -32,7 +32,7 @@ class GameCoreFacade private constructor(
     // Player text never has authority to manufacture an acquisition event. Reject immediately,
     // do not call Gemini, do not advance the turn, and do not mutate Inventory.
     if (isDirectPlayerPickupAction(action) || interpreted.candidates.any { it.intent == GameIntent.PICKUP_ITEM }) {
-      val result = syncLegacy(legacy, state, incrementTurn = false)
+      val result = clientSnapshot(client, state)
       val reply = validationReply("player_pickup_unavailable")
       appendLog(result, action, reply)
       logger.log(PipelineLogEvent("REJECT", turnId = turnId, details = mapOf("reason" to "player_pickup_unavailable")))
@@ -40,47 +40,49 @@ class GameCoreFacade private constructor(
     }
 
     if (interpreted.candidates.any { isAuthoritativeItemIntent(it.intent) && it.confidence != IntentConfidence.HIGH }) {
-      val result = syncLegacy(legacy, state, incrementTurn = false)
+      val result = clientSnapshot(client, state)
       val reply = validationReply("item_action_resolution_required")
       appendLog(result, action, reply)
       logger.log(PipelineLogEvent("REJECT", turnId = turnId, details = mapOf("reason" to "item_action_resolution_required")))
       return response(true, result, "item_action_resolution_required", "validation_rejected", reply)
     }
     if (interpreted.candidates.any { it.intent == GameIntent.NO_ACTION || it.confidence != IntentConfidence.HIGH }) {
-      return response(false, legacy, null, "fallback_required")
+      return response(false, client, null, "fallback_required")
     }
     val resolvedCommands = resolver.resolveSequence(interpreted.candidates, turnId, context).filterNotNull()
     if (resolvedCommands.size != interpreted.candidates.size || resolvedCommands.isEmpty()) {
       if (interpreted.candidates.any { isAuthoritativeItemIntent(it.intent) }) {
-        val result = syncLegacy(legacy, state, incrementTurn = false)
+        val result = clientSnapshot(client, state)
         val reply = validationReply("item_action_resolution_required")
         appendLog(result, action, reply)
         return response(true, result, "item_action_resolution_required", "validation_rejected", reply)
       }
-      return response(false, legacy, null, "resolution_incomplete")
+      return response(false, client, null, "resolution_incomplete")
     }
     val commands = resolvedCommands.toMutableList()
     commands.forEach { logger.log(PipelineLogEvent("COMMAND", turnId, it.commandId, it.source)) }
     val committed = commitActionRuntime(pending.state, commands, action, turnId)
     if (committed.error != null) {
       val rejected = TurnCoordinator.reject(pending.state, committed.error)
-      repository.save(rejected.state)
-      val result = syncLegacy(legacy, rejected.state, incrementTurn = true)
+      val next = CoreClientProjection.advance(rejected.state)
+      repository.save(next)
+      val result = clientSnapshot(client, next)
       appendLog(result, action, validationReply(committed.error))
       return response(true, result, committed.error, "validation_rejected", validationReply(committed.error))
     }
-    repository.save(committed.state)
-    val result = syncLegacy(legacy, committed.state, incrementTurn = true)
+    val next = CoreClientProjection.advance(committed.state)
+    repository.save(next)
+    val result = clientSnapshot(client, next)
     val reply = eventReply(committed.execution?.events.orEmpty())
     appendLog(result, action, reply)
     logger.log(PipelineLogEvent("COMMIT", turnId = turnId, details = mapOf("commands" to commands.size.toString())))
     return response(true, result, null, "committed", reply)
   }
 
-  private fun applyAnNhienPartyCheat(legacy: JSONObject, state: GameState): String {
+  private fun applyAnNhienPartyCheat(client: JSONObject, state: GameState): String {
     val alreadyFollowing = AnNhienCanon.isFollowing(state)
     val (updated, error) = AnNhienCanon.forceIntoParty(state)
-    val result = syncLegacy(legacy, updated, incrementTurn = false)
+    val result = clientSnapshot(client, updated)
     val reply = when {
       error == "party_full" -> "Party đã đủ tối đa bốn thành viên; không thể thêm An Nhiên nếu chưa có chỗ trống."
       alreadyFollowing -> "An Nhiên đã ở trong Party."
@@ -103,12 +105,12 @@ class GameCoreFacade private constructor(
     )
   }
 
-  private fun applySpecialFollowerPartyCheat(legacy: JSONObject, state: GameState, targetId: String): String {
+  private fun applySpecialFollowerPartyCheat(client: JSONObject, state: GameState, targetId: String): String {
     val ensured = SpecialFollowersCanon.ensure(state)
     val displayName = ensured.characters[targetId]?.name ?: targetId
     val alreadyFollowing = targetId in ensured.party.memberIds
     val (updated, error) = SpecialFollowersCanon.forceIntoParty(ensured, targetId)
-    val result = syncLegacy(legacy, updated, incrementTurn = false)
+    val result = clientSnapshot(client, updated)
     val reply = when {
       error == "party_full" -> "Party đã đủ tối đa bốn thành viên; không thể thêm $displayName nếu chưa có chỗ trống."
       alreadyFollowing -> "$displayName đã ở trong Party."
@@ -134,15 +136,14 @@ class GameCoreFacade private constructor(
     )
   }
 
-  private fun applyMadGodCheat(legacy:JSONObject,state:GameState):String {
-    val x=MadGodCanon.spawn(state); repository.save(x.state); val out=syncLegacy(legacy,x.state,incrementTurn=false);
-    val flags=out.optJSONObject("flags")?:JSONObject().also{out.put("flags",it)}; flags.put("madGod",JSONObject().put("spawned",true).put("spawnSource","cheat").put("scalingMode",MadGodCanon.SCALING_MODE));
-    val msg=if(x.added) "MadGod Set đã xuất hiện trong Inventory. Đây là một set duy nhất: trang bị một lần sẽ kích hoạt vũ khí; phần giáp đã chuyển thành passive Ma Tôn Vạn Giới, rồi khóa vĩnh viễn." else "MadGod Set đã tồn tại; /madgod không tạo bản sao thứ hai."; appendLog(out,MadGodCanon.CHEAT_CODE,msg); return response(true,out,null,"cheat_committed",msg)
+  private fun applyMadGodCheat(client:JSONObject,state:GameState):String {
+    val x=MadGodCanon.spawn(state); repository.save(x.state); val out=clientSnapshot(client,x.state);
+    val msg=if(x.added) "MadGod Set đã kích hoạt dưới dạng trang bị Bound Forever trong Character Core, không chiếm Inventory." else "MadGod Set đã được kích hoạt; /madgod không tạo thêm trang bị."; appendLog(out,MadGodCanon.CHEAT_CODE,msg); return response(true,out,null,"cheat_committed",msg)
   }
 
-  fun beginAction(legacyStateJson: String, kindRaw: String, action: String): String {
-    val legacy = JSONObject(legacyStateJson)
-    val state = loadOrMigrate(legacy)
+  fun beginAction(clientStateJson: String, kindRaw: String, action: String): String {
+    val client = JSONObject(clientStateJson)
+    val state = loadCurrentState()
     if (MadGodCanon.cheat(action)) return actionStartResponse(true,null,null)
     val kind = enumValues<ActionKind>().firstOrNull { it.name == kindRaw.trim().uppercase() }
       ?: return actionStartResponse(false, null, "action_kind_invalid")
@@ -151,7 +152,7 @@ class GameCoreFacade private constructor(
       return if (existing.kind == kind && existing.input == action) actionStartResponse(true, existing, null)
       else actionStartResponse(false, existing, "action_session_already_active")
     }
-    val turnId = nextTurnId(legacy, state)
+    val turnId = nextTurnId(state)
     val sessionId = "$turnId:${kind.name}:${action.hashCode().toUInt()}"
     val started = ActionRuntime.start(
       state = state,
@@ -160,7 +161,7 @@ class GameCoreFacade private constructor(
       actorId = KAI_ID,
       kind = kind,
       input = action,
-      locationKey = state.world["location"] ?: legacy.optString("location").takeIf(String::isNotBlank),
+      locationKey = state.world["location"] ?: client.optString("location").takeIf(String::isNotBlank),
       plannedMinutes = TimeCostPolicy.estimateMinutes(action),
       searchDepth = if (kind == ActionKind.SEARCH) SearchDepth.NORMAL else null
     )
@@ -247,16 +248,8 @@ class GameCoreFacade private constructor(
     return TurnResult(completed.state, committed.execution?.copy(state = completed.state))
   }
 
-  fun currentPartyDetails(legacyStateJson: String? = null): String {
-    val source = if (repository.exists()) {
-      repository.load()
-    } else if (!legacyStateJson.isNullOrBlank()) {
-      runCatching { GameStateCodec.decode(legacyStateJson) }.getOrElse { GameState.initial() }
-    } else {
-      GameState.initial()
-    }
-    val state = CharacterEquipmentSystem.normalize(source)
-    if (!repository.exists()) repository.save(state)
+  fun currentPartyDetails(clientStateJson: String? = null): String {
+    val state = CharacterEquipmentSystem.normalize(loadCurrentState())
     return CharacterDetailJson.encodeParty(CharacterDetailProjector.projectParty(state)).toString()
   }
 
@@ -268,81 +261,81 @@ class GameCoreFacade private constructor(
   }
 
 
-  fun coreStats(legacyStateJson: String, characterId: String): String {
-    val state = loadOrMigrate(JSONObject(legacyStateJson))
+  fun coreStats(clientStateJson: String, characterId: String): String {
+    val state = loadCurrentState()
     return PokerDiceCore.statsJson(state, characterId).toString()
   }
 
-  fun processCoreUpgrade(legacyStateJson: String, characterId: String, stat: String): String {
-    val legacy = JSONObject(legacyStateJson)
-    val current = loadOrMigrate(legacy)
+  fun processCoreUpgrade(clientStateJson: String, characterId: String, stat: String): String {
+    val client = JSONObject(clientStateJson)
+    val current = loadCurrentState()
     if (CombatRuntime.active(current) != null) {
-      return response(false, syncLegacy(legacy, current, incrementTurn = false),
+      return response(false, clientSnapshot(client, current),
         "combat_active", "core_upgrade_locked", "Không thể nâng Core khi combat đang hoạt động.")
     }
     return try {
       val upgraded = PokerDiceCore.upgrade(current, characterId, stat)
       repository.save(upgraded.state)
-      val projected = syncLegacy(legacy, upgraded.state, incrementTurn = false)
+      val projected = clientSnapshot(client, upgraded.state)
       response(true, projected, null, "core_upgrade_committed",
         upgraded.stat + " +" + "1 · -" + upgraded.cost + " Core · còn " + upgraded.coreRemaining + " Core.")
     } catch (error: Exception) {
-      response(false, syncLegacy(legacy, current, incrementTurn = false),
+      response(false, clientSnapshot(client, current),
         error.message ?: "core_upgrade_failed", "core_upgrade_rejected")
     }
   }
 
-  fun prepareCombatDice(legacyStateJson: String, action: String): String {
-    val legacy = JSONObject(legacyStateJson)
-    val current = loadOrMigrate(legacy)
+  fun prepareCombatDice(clientStateJson: String, action: String): String {
+    val client = JSONObject(clientStateJson)
+    val current = loadCurrentState()
     val combat = CombatRuntime.active(current)
-      ?: return response(false, syncLegacy(legacy, current, incrementTurn = false),
+      ?: return response(false, clientSnapshot(client, current),
         "combat_inactive", "combat_dice_inactive")
     return try {
       val next = PokerDiceCore.prepare(current, action, combat.encounterId)
       repository.save(next)
-      response(true, syncLegacy(legacy, next, incrementTurn = false), null, "combat_dice_prepared")
+      response(true, clientSnapshot(client, next), null, "combat_dice_prepared")
     } catch (error: Exception) {
-      response(false, syncLegacy(legacy, current, incrementTurn = false),
+      response(false, clientSnapshot(client, current),
         error.message ?: "combat_dice_prepare_failed", "combat_dice_rejected")
     }
   }
 
-  fun setCombatDiceHold(legacyStateJson: String, dieIndex: Int, held: Boolean): String {
-    val legacy = JSONObject(legacyStateJson)
-    val current = loadOrMigrate(legacy)
+  fun setCombatDiceHold(clientStateJson: String, dieIndex: Int, held: Boolean): String {
+    val client = JSONObject(clientStateJson)
+    val current = loadCurrentState()
     return try {
       val next = PokerDiceCore.setHold(current, dieIndex, held)
       repository.save(next)
-      response(true, syncLegacy(legacy, next, incrementTurn = false), null, "combat_dice_hold")
+      response(true, clientSnapshot(client, next), null, "combat_dice_hold")
     } catch (error: Exception) {
-      response(false, syncLegacy(legacy, current, incrementTurn = false),
+      response(false, clientSnapshot(client, current),
         error.message ?: "combat_dice_hold_failed", "combat_dice_rejected")
     }
   }
 
-  fun rerollCombatDice(legacyStateJson: String): String {
-    val legacy = JSONObject(legacyStateJson)
-    val current = loadOrMigrate(legacy)
+  fun rerollCombatDice(clientStateJson: String): String {
+    val client = JSONObject(clientStateJson)
+    val current = loadCurrentState()
     return try {
       val next = PokerDiceCore.reroll(current)
       repository.save(next)
-      response(true, syncLegacy(legacy, next, incrementTurn = false), null, "combat_dice_rolled")
+      response(true, clientSnapshot(client, next), null, "combat_dice_rolled")
     } catch (error: Exception) {
-      response(false, syncLegacy(legacy, current, incrementTurn = false),
+      response(false, clientSnapshot(client, current),
         error.message ?: "combat_dice_roll_failed", "combat_dice_rejected")
     }
   }
 
-  fun finishCombatDice(legacyStateJson: String): String {
-    val legacy = JSONObject(legacyStateJson)
-    val current = loadOrMigrate(legacy)
+  fun finishCombatDice(clientStateJson: String): String {
+    val client = JSONObject(clientStateJson)
+    val current = loadCurrentState()
     return try {
       val next = PokerDiceCore.finish(current)
       repository.save(next)
-      response(true, syncLegacy(legacy, next, incrementTurn = false), null, "combat_dice_finalized")
+      response(true, clientSnapshot(client, next), null, "combat_dice_finalized")
     } catch (error: Exception) {
-      response(false, syncLegacy(legacy, current, incrementTurn = false),
+      response(false, clientSnapshot(client, current),
         error.message ?: "combat_dice_finish_failed", "combat_dice_rejected")
     }
   }
@@ -352,16 +345,16 @@ class GameCoreFacade private constructor(
   override fun close() = Unit
 
   /**
-   * Commits only the gameplay delta already accepted by the legacy canon/dice validator.
+   * Commits only the gameplay delta already accepted by the client canon/dice validator.
    * Candidate prose/JSON never becomes storage directly: inventory and party are rebuilt
    * from commands and then projected back onto the UI state.
    */
   fun processValidatedCandidate(beforeJson: String, candidateJson: String, action: String): String {
     val before = JSONObject(beforeJson)
     val candidate = JSONObject(candidateJson)
-    val core = loadOrMigrate(before)
-    if (blocksTextItemAction(action)) return response(false, syncLegacy(before, core, false), "item_ui_required", "item_ui_required")
-    val turnId = nextTurnId(before, core)
+    val core = loadCurrentState()
+    if (blocksTextItemAction(action)) return response(false, clientSnapshot(before, core), "item_ui_required", "item_ui_required")
+    val turnId = nextTurnId(core)
     val pending = TurnCoordinator.createPending(core, turnId, action)
     if (pending.error != null) return response(false, before, pending.error, "pending_rejected")
     val commands = mutableListOf<GameCommand>()
@@ -401,35 +394,36 @@ class GameCoreFacade private constructor(
       return response(false, before, committed.error, "gemini_delta_rejected")
     }
     val protectedState = CharacterProgressionCore.protectFromCandidate(pending.state, committed.state)
-    repository.save(protectedState)
-    val synchronized = syncLegacy(candidate, protectedState, incrementTurn = false)
+    val accepted = CoreClientProjection.advance(protectedState)
+    repository.save(accepted)
+    val synchronized = clientSnapshot(candidate, accepted)
     logger.log(PipelineLogEvent("GEMINI_COMMIT", turnId = turnId, source = CommandSource.GEMINI, details = mapOf("commands" to commands.size.toString())))
     return response(true, synchronized, null, "gemini_delta_committed")
   }
 
 
-  fun startCombatState(legacyStateJson: String, entityKey: String): String {
-    val legacy = JSONObject(legacyStateJson)
-    val current = loadOrMigrate(legacy)
+  fun startCombatState(clientStateJson: String, entityKey: String): String {
+    val client = JSONObject(clientStateJson)
+    val current = loadCurrentState()
     val next = CombatRuntime.start(current, entityKey)
     repository.save(next)
-    return syncLegacy(legacy, next, incrementTurn = false).toString()
+    return clientSnapshot(client, next).toString()
   }
 
-  fun processCombat(legacyStateJson: String, actionKind: String, action: String): String {
-    val legacy = JSONObject(legacyStateJson)
-    val current = loadOrMigrate(legacy)
+  fun processCombat(clientStateJson: String, actionKind: String, action: String): String {
+    val client = JSONObject(clientStateJson)
+    val current = loadCurrentState()
     val activeCombat = CombatRuntime.active(current)
-      ?: return response(false, legacy, null, "combat_inactive")
+      ?: return response(false, client, null, "combat_inactive")
     if (!PokerDiceCore.isFinalizedFor(current, action, activeCombat.encounterId)) {
-      return response(true, syncLegacy(legacy, current, incrementTurn = false),
+      return response(true, clientSnapshot(client, current),
         "combat_dice_required", "combat_dice_required",
         "Hãy hoàn tất Poker Dice trước khi giải quyết hành động combat.")
     }
 
     val resolvedEntityKey = CombatRuntime.active(current)?.entityKey.orEmpty()
     var resolution = CombatRuntime.resolve(current, actionKind, action)
-    if (!resolution.handled) return response(false, legacy, null, "combat_inactive")
+    if (!resolution.handled) return response(false, client, null, "combat_inactive")
     var next = resolution.state
     val coreReward = if (resolution.entityDestroyed) PokerDiceCore.ENTITY_VICTORY_CORE else 0
     if (coreReward > 0) next = PokerDiceCore.grantCore(next, coreReward)
@@ -443,10 +437,10 @@ class GameCoreFacade private constructor(
       reason = "combat_action"
     ))
     if (time.applied) next = time.state
-    next = CharacterStatEngine.applyCompletedTurnRegen(next, "COMBAT_TURN_${legacy.optInt("turn", 1)}")
+    next = CharacterStatEngine.applyCompletedTurnRegen(next, "COMBAT_TURN_${CoreClientProjection.turnIndex(current)}")
     if (resolution.entityDestroyed || resolution.escaped) {
       val flags = next.world["flagsJson"]?.let { JSONObject(it) }
-        ?: legacy.optJSONObject("flags")?.let { JSONObject(it.toString()) }
+        ?: client.optJSONObject("flags")?.let { JSONObject(it.toString()) }
         ?: JSONObject()
       flags.put("entityEncounterKey", "")
       when (resolvedEntityKey) {
@@ -455,9 +449,10 @@ class GameCoreFacade private constructor(
       }
       next = next.copy(world = next.world + ("flagsJson" to flags.toString()))
     }
+    next = CoreClientProjection.advance(next)
     repository.save(next)
 
-    val output = syncLegacy(legacy, next, incrementTurn = true)
+    val output = clientSnapshot(client, next)
     val combatReply = if (coreReward > 0)
       resolution.reply + " +" + coreReward + " Core."
     else resolution.reply
@@ -486,13 +481,17 @@ class GameCoreFacade private constructor(
     return state.copy(world = state.world + ("flagsJson" to flags.toString()))
   }
 
-  private fun loadOrMigrate(legacy: JSONObject): GameState {
+  private fun loadCurrentState(): GameState {
     val existed = repository.exists()
     val loaded = if (existed) repository.load() else GameState.initial()
-    val normalized = normalizeVisualPresence(loaded)
+    val normalized = normalizeVisualPresence(CoreClientProjection.initialize(loaded))
     if (!existed || normalized != loaded) repository.save(normalized)
     return normalized
   }
+
+  /** UI state is presentation only; gameplay fields are always reprojected from Core. */
+  fun currentClientState(clientStateJson: String): String =
+    CoreClientProjection.project(JSONObject(clientStateJson), loadCurrentState()).toString()
 
   private fun contextFor(state: GameState): GameContext {
     val actors = state.characters.values.associate { it.name.lowercase() to it.id } + mapOf("cao minh" to KAI_ID, "cao_minh" to KAI_ID, "iris" to "iris", "syvial" to "syvial", "an nhiên" to AN_NHIEN_ID, "an nhien" to AN_NHIEN_ID)
@@ -516,8 +515,8 @@ class GameCoreFacade private constructor(
     return directVerb.containsMatchIn(text) || inventoryAssertion.containsMatchIn(text)
   }
 
-  private fun nextTurnId(legacy: JSONObject, state: GameState): String {
-    val number = legacy.optInt("turn", state.turn.currentTurnId.substringAfterLast('_').toIntOrNull() ?: 1)
+  private fun nextTurnId(state: GameState): String {
+    val number = CoreClientProjection.turnIndex(state)
     return "TURN_${number.coerceAtLeast(1)}"
   }
 
@@ -540,40 +539,9 @@ class GameCoreFacade private constructor(
     return result
   }
 
-  private fun syncLegacy(legacy: JSONObject, state: GameState, incrementTurn: Boolean): JSONObject {
-    val output = JSONObject(legacy.toString())
-    output.remove("combatFeedback") // Transient events must never be echoed from a legacy/client state.
-    if (incrementTurn) output.put("turn", output.optInt("turn", 1) + 1)
-    output.put("saveVersion", CURRENT_SAVE_VERSION)
-    output.put("gameTime", JSONObject().apply {
-      put("elapsedSubjectiveMinutes", state.time.elapsedSubjectiveMinutes)
-      put("lastAdvanceMinutes", state.time.lastAdvanceMinutes)
-      state.time.lastAdvanceReason?.let { put("lastAdvanceReason", it) }
-    })
-    output.put("partyDetails", CharacterDetailJson.encodeParty(CharacterDetailProjector.projectParty(state)))
-    output.put("equipment",MadGodCanon.legacy(state))
-    val kaiInventory = state.inventories[KAI_ID]?.items?.values.orEmpty()
-    output.put("inventory", JSONArray().apply { kaiInventory.forEach { stack -> put(JSONObject().apply {
-      put("id", stack.itemId); put("name", stack.name); put("quantity", stack.quantity)
-      put("metadata", JSONObject(stack.metadata))
-    }) } })
-    output.put("party", JSONArray().apply { state.party.memberIds.filter { it != KAI_ID }.forEach { id ->
-      state.characters[id]?.let { character -> put(JSONObject().apply {
-        put("id", character.id); put("name", character.name); character.avatarRef?.let { put("avatar", it) }
-        put("presence", character.presence.name)
-      }) }
-    } })
-    state.world["location"]?.let { output.put("location", it) }
-    state.world["title"]?.let { output.put("title", it) }
-    state.world["levelJson"]?.let { output.put("level", JSONObject(it)) }
-    state.world["flagsJson"]?.let { output.put("flags", JSONObject(it)) }
-    CombatRuntime.toJson(state)?.let { combat ->
-      PokerDiceCore.diceJson(state)?.let { combat.put("diceState", it) }
-      output.put("combat", combat)
-    } ?: output.remove("combat")
-    output.put("coreSystem", PokerDiceCore.statsJson(state, KAI_ID))
-    return output
-  }
+  private fun clientSnapshot(client: JSONObject, state: GameState): JSONObject =
+    CoreClientProjection.project(client, state)
+
 
   private fun appendLog(state: JSONObject, action: String, reply: String) {
     val log = state.optJSONArray("log") ?: JSONArray().also { state.put("log", it) }
@@ -611,10 +579,10 @@ class GameCoreFacade private constructor(
   }
 
 
-  @Synchronized fun processItemAction(legacyStateJson: String, requestJson: String): String {
-    val legacy = JSONObject(legacyStateJson)
-    val state = loadOrMigrate(legacy)
-    fun reject(reason: String): String = response(false, syncLegacy(legacy, state, false), reason, "item_ui_rejected", validationReply(reason))
+  @Synchronized fun processItemAction(clientStateJson: String, requestJson: String): String {
+    val client = JSONObject(clientStateJson)
+    val state = loadCurrentState()
+    fun reject(reason: String): String = response(false, clientSnapshot(client, state), reason, "item_ui_rejected", validationReply(reason))
     if (CombatRuntime.active(state) != null) return reject("combat_active")
     if (ActionRuntime.activeSession(state) != null || state.turn.pending != null) return reject("another_turn_pending")
     val request = runCatching { JSONObject(requestJson) }.getOrNull() ?: return reject("invalid_item_request")
@@ -637,7 +605,7 @@ class GameCoreFacade private constructor(
     if (operation == ItemCommand.Operation.TRANSFER && (targetId == null || targetId == actorId || !available(targetId))) return reject("target_unavailable")
     val verb = when (operation) { ItemCommand.Operation.USE -> "Dùng"; ItemCommand.Operation.TRANSFER -> "Chuyển"; else -> "Bỏ" }
     val action = "$verb $quantity ${item.name} (${state.characters.getValue(actorId).name})" + (targetId?.let { " cho ${state.characters.getValue(it).name}" } ?: "")
-    val turnId = nextTurnId(legacy, state)
+    val turnId = nextTurnId(state)
     val pending = TurnCoordinator.createPending(state, turnId, action)
     if (pending.error != null) return reject(pending.error)
     val command = ItemCommand(commandId = "$turnId:UI:ITEM", turnId = turnId, actorId = actorId,
@@ -646,8 +614,9 @@ class GameCoreFacade private constructor(
     val committed = TurnCoordinator.commit(pending.state, listOf(command, timeAdvanceCommand(turnId, action)))
     if (committed.error != null) return reject(committed.error)
     val reconciled = OfflineEntityLoot.collectPending(committed.state)
-    repository.save(reconciled)
-    val result = syncLegacy(legacy, reconciled, true)
+    val next = CoreClientProjection.advance(reconciled)
+    repository.save(next)
+    val result = clientSnapshot(client, next)
     val reply = eventReply(committed.execution?.events.orEmpty())
     appendLog(result, action, reply)
     return response(true, result, null, "item_ui_committed", reply)

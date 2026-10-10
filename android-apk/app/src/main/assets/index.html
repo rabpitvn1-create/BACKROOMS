@@ -1524,6 +1524,16 @@ const initial={canonVersion:"NOVEL-TEXTGAME-2026-08-20-DRIVE-INTEGRATION-R06",ti
 const byId=id=>document.getElementById(id);
 const titleEl=byId("title"),turnEl=byId("turn"),locationEl=byId("location"),modeEl=byId("mode"),playerEl=byId("player"),partyEl=byId("party"),inventoryEl=byId("inventory"),logEl=byId("log"),statusEl=byId("status"),formEl=byId("form"),actionEl=byId("action"),submitEl=byId("submit");
 let state=(()=>{try{const raw=localStorage.getItem("backroom-apk-state");if(!raw)return JSON.parse(JSON.stringify(initial));const parsed=JSON.parse(raw);return parsed&&typeof parsed==="object"&&!Array.isArray(parsed)?parsed:JSON.parse(JSON.stringify(initial));}catch(e){try{localStorage.removeItem("backroom-apk-state");}catch(ignore){}return JSON.parse(JSON.stringify(initial));}})();state.mode="Single Player: Hard Mode";state.canonVersion="NOVEL-TEXTGAME-2026-08-20-DRIVE-INTEGRATION-R06";state.flags=state.flags||{};state.flags.iris=state.flags.iris||{exists:true,continuity:"SEPARATED",reunionEligible:true};state.flags.syvial=state.flags.syvial||{exists:true,continuity:"SEPARATED",reunionEligible:true};state.flags.madGod=state.flags.madGod||{spawned:false,acquired:false};
+// Core is the only source of gameplay state; localStorage supplies only UI presentation.
+function syncClientFromCore(presentation) {
+  if(!window.Android||typeof Android.currentClientState!=="function")return presentation;
+  const core=JSON.parse(Android.currentClientState(JSON.stringify(presentation)));
+  if(!core||core.error||!core.partyDetails||!core.coreSystem)throw new Error("Core snapshot unavailable");
+  return core;
+}
+let coreUnavailable=false;
+try { state=syncClientFromCore(state); }
+catch(e) { coreUnavailable=true; statusEl.textContent="Không đồng bộ được Game Core: "+String(e&&e.message||e); }
 let busy=false;
 function focusLatestGmStart(){requestAnimationFrame(()=>requestAnimationFrame(()=>{const gmRows=logEl.querySelectorAll('.message.gm');const latest=gmRows[gmRows.length-1];if(!latest)return;const top=latest.getBoundingClientRect().top-logEl.getBoundingClientRect().top+logEl.scrollTop;logEl.scrollTop=Math.max(0,top)}))}
 
@@ -1575,6 +1585,7 @@ function savedState(){
 }
 function save(){
   try{
+    state=syncClientFromCore(state);
     const payload=JSON.stringify(state);
     localStorage.setItem(SAVE_KEY,payload);
     const verify=localStorage.getItem(SAVE_KEY);
@@ -1588,10 +1599,10 @@ function save(){
 function load(){
   const loaded=savedState();
   if(!loaded){if(!statusEl.textContent||!statusEl.textContent.includes("bị lỗi"))statusEl.textContent="Không có save trên máy để tải.";return false}
-  state=loaded;
-  clearAuthoritativeCore();
+  try{state=syncClientFromCore(loaded)}
+  catch(e){statusEl.textContent="Không đồng bộ được dữ liệu Core; chưa tải giao diện.";return false}
   render();
-  statusEl.textContent="Đã tải save Turn "+(state.turn||1)+" từ máy.";
+  statusEl.textContent="Đã tải giao diện/nhật ký; dữ liệu gameplay được lấy từ Core ở Turn "+(state.turn||1)+".";
   return true;
 }
 function armDestructive(kind,label,perform){

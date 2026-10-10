@@ -2072,6 +2072,14 @@ public class MainActivity extends Activity {
   }
 
   private class GameBridge {
+    @JavascriptInterface public String currentClientState(String stateJson) {
+      try {
+        return requireGameCore().currentClientState(stateJson);
+      } catch (Exception error) {
+        return "{\"error\":\"core_state_unavailable\"}";
+      }
+    }
+
     @JavascriptInterface public String getPartyDetails(String stateJson) {
       try {
         return new JSONObject()
@@ -2112,26 +2120,28 @@ public class MainActivity extends Activity {
     private void submitTurnInternal(String stateJson, String actionKind, String action) {
       io.execute(() -> {
         try {
+          // The WebView sends presentation JSON; refresh gameplay fields from Core before any rolls or validation.
+          final String currentView = requireGameCore().currentClientState(stateJson);
           if (requireGameCore().blocksTextItemAction(action)) {
-            JSONObject blocked = new JSONObject(requireGameCore().processRule(stateJson, action));
+            JSONObject blocked = new JSONObject(requireGameCore().processRule(currentView, action));
             emit("backroomTurn", blocked.getJSONObject("state").toString());
             return;
           }
-          JSONObject combatResult = new JSONObject(requireGameCore().processCombat(stateJson, actionKind, action));
+          JSONObject combatResult = new JSONObject(requireGameCore().processCombat(currentView, actionKind, action));
           if (combatResult.optBoolean("handled", false)) {
             emit("backroomTurn", combatResult.getJSONObject("state").toString());
             return;
           }
-          JSONObject actionStart = new JSONObject(requireGameCore().beginAction(stateJson, actionKind, action));
+          JSONObject actionStart = new JSONObject(requireGameCore().beginAction(currentView, actionKind, action));
           if (!actionStart.optBoolean("handled", false)) {
             throw new Exception("Action Runtime từ chối hành động: " + actionStart.optString("error", "action_start_failed"));
           }
-          JSONObject localResult = new JSONObject(requireGameCore().processRule(stateJson, action));
+          JSONObject localResult = new JSONObject(requireGameCore().processRule(currentView, action));
           if (localResult.optBoolean("handled", false)) {
             emit("backroomTurn", localResult.getJSONObject("state").toString());
             return;
           }
-          JSONObject before = new JSONObject(stateJson);
+          JSONObject before = new JSONObject(currentView);
           boolean meta = isMetaAction(action);
           JSONObject rolls = makeGameplayRolls(before, actionKind, action, meta);
 
@@ -2170,18 +2180,7 @@ public class MainActivity extends Activity {
 
           reconcileVisualWorldState(before, candidateState, rolls);
           forceEntityEncounterFlag(candidateState, rolls);
-          JSONObject coreCommit = new JSONObject(requireGameCore().processValidatedCandidate(before.toString(), candidateState.toString(), action));
-          if (!coreCommit.optBoolean("handled", false)) {
-            throw new Exception("Game State Core từ chối Gemini delta: " + coreCommit.optString("error", "invalid_delta"));
-          }
-          candidateState = coreCommit.getJSONObject("state");
-
           JSONObject state = candidateState;
-          if (!meta) {
-            state = new JSONObject(com.rabpit.backroom.core.knowledge.StoryContinuityReducer.apply(
-              before.toString(), state.toString(), action));
-          }
-
           int oldLevel = currentLevel(before);
           int newLevel = currentLevel(state);
           int mentioned = mentionedLevel(state);
@@ -2216,6 +2215,17 @@ public class MainActivity extends Activity {
           } else {
             state.put("_snapshotEvent", new JSONObject().put("shouldGenerate", false).put("kind", "").put("reason", ""));
           }
+
+          if (!meta) {
+            state = new JSONObject(com.rabpit.backroom.core.knowledge.StoryContinuityReducer.apply(
+              before.toString(), state.toString(), action));
+          }
+
+          JSONObject coreCommit = new JSONObject(requireGameCore().processValidatedCandidate(before.toString(), state.toString(), action));
+          if (!coreCommit.optBoolean("handled", false)) {
+            throw new Exception("Game State Core từ chối Gemini delta: " + coreCommit.optString("error", "invalid_delta"));
+          }
+          state = coreCommit.getJSONObject("state");
 
           state.put("canonVersion", DRIVE_CANON_VERSION);
           JSONArray log = state.optJSONArray("log");

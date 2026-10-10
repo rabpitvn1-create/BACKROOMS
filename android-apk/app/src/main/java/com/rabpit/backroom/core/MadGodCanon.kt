@@ -43,7 +43,7 @@ object MadGodCanon {
     return Spawn(next, true)
   }
 
-  fun legacy(s: GameState) = JSONObject().apply {
+  fun equipmentProjection(s: GameState) = JSONObject().apply {
     s.equipment[KAI_ID]?.slots.orEmpty().forEach { (slot, id) ->
       put(slot, JSONObject().put("id", id)
         .put("name", EquipmentCatalog.definition(id)?.name ?: id)
