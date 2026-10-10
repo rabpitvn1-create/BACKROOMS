@@ -696,9 +696,19 @@ object CombatRuntime {
             else CharacterStatCore.scaleByPercent(basicDamage, lifeformSkill.basicAttackPercent)
           }
         }
-        val hp = max(0, c.playerHp - damage)
-        recordFeedback("actor", c.playerHp, hp, phase = "entity")
-        c = c.copy(playerHp = hp, momentum = max(-3, c.momentum - 1))
+        // Ordinary counterattacks drain the Party pool once. Snapshot.playerHp
+        // remains Cao Minh's canonical HP for targeted/status-specific skills.
+        // Commit pre-attack personal status ticks before sharing this hit.
+        val beforeHit = CharacterStatEngine.setCurrentHp(resolvedState, KAI_ID, c.playerHp)
+        val sharedHit = PartyCombatHealth.applySharedDamage(beforeHit, damage, c.eventCounter)
+        resolvedState = sharedHit.state
+        sharedHit.damageByMember.forEach { (memberId, loss) ->
+          feedback += DamageFeedback("actor", loss, actorId = memberId, phase = "entity")
+        }
+        c = c.copy(
+          playerHp = resolvedState.characters[KAI_ID]?.vitalState?.currentHp ?: c.playerHp,
+          momentum = max(-3, c.momentum - 1)
+        )
         if (lifeformSkill != null) {
           if (c.playerHp > 0 && lifeformSkill.bleed) {
             lifeformBleedTurns = LIFEFORM_BLEED_TURNS
@@ -715,11 +725,13 @@ object CombatRuntime {
           }
           log += lifeformSkill.name + " proc: " + lifeformSkill.basicAttackPercent + "% Basic Attack; " + effects + "."
         }
-        log += if (c.entityKey == DIEP_MINH_KEY) {
-          "Diệp Minh phản công: Cao Minh -$damage HP (${DIEP_MINH_ATTACK_PERCENT}% Max HP; ${c.playerHp}/${c.playerMaxHp})."
-        } else {
-          "${c.entityName} phản công: Cao Minh -$damage HP (${c.playerHp}/${c.playerMaxHp})."
+        val partyHp = PartyCombatHealth.currentHp(resolvedState)
+        val partyMaxHp = PartyCombatHealth.maxHp(resolvedState)
+        val distribution = sharedHit.damageByMember.entries.joinToString("; ") { (id, loss) ->
+          "${resolvedState.characters[id]?.name ?: id} -$loss"
         }
+        log += "${c.entityName} phản công: Party chịu -${sharedHit.appliedDamage} HP " +
+          "($partyHp/$partyMaxHp). $distribution."
       } else {
         log += if (quickStepTurns > 0) {
           "Thiên Ma Bộ khiến ${c.entityName} hụt đòn; +${KAI_QUICK_STEP_EVASION_BONUS_PERCENT}% Evasion đang hoạt động."
@@ -788,7 +800,11 @@ object CombatRuntime {
     put("entityKey", c.entityKey)
     put("entityName", c.entityName)
     put("progressionRank", c.progressionRank)
-    put("playerHp", c.playerHp); put("playerMaxHp", c.playerMaxHp)
+    // The combat HUD displays the Party pool, but the persisted playerHp in
+    // Snapshot remains Cao Minh's HP for legacy targeted combat mechanics.
+    put("playerHp", PartyCombatHealth.currentHp(state))
+    put("playerMaxHp", PartyCombatHealth.maxHp(state))
+    put("partyMemberCount", PartyCombatHealth.actingMembers(state).size)
     put("entityHp", c.entityHp); put("entityMaxHp", c.entityMaxHp)
     put("entityCondition", c.entityCondition.name)
     put("range", c.range.name); put("cover", c.cover.name)
