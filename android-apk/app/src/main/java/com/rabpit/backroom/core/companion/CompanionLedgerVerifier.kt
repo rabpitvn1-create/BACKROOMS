@@ -33,6 +33,10 @@ object CompanionLedgerVerifier {
   @JvmStatic @Throws(IOException::class)
   fun verifyReceipt(slot: String, policy: String, current: Long, turn: CompanionPendingTurn,
                     events: List<CompanionSlotStore.LedgerEvent>) = checked {
+    if (JSONObject(turn.receipt.manifest).optString("version") == "companion_manifest.v2") {
+      verifyOrdinaryReceipt(slot,policy,current,turn,events)
+      return@checked
+    }
     require(turn.phase == CompanionPendingTurn.Phase.COMMITTED && turn.slotId == slot)
     require(turn.receipt.committedRevision == turn.expectedRevision + 1 && turn.receipt.committedRevision <= current)
     val m = JSONObject(turn.receipt.manifest)
@@ -82,6 +86,89 @@ object CompanionLedgerVerifier {
       checkpoint.getString("session") == "wait-" + turn.turnId && checkpoint.getString("checkpoint") == "resolve" &&
       checkpoint.getInt("minutes") == 30)
   }
+  /** v2 ordinary receipt has the same chain envelope but typed action evidence. */
+  private fun verifyOrdinaryReceipt(slot: String,policy: String,current: Long,
+                                     turn: CompanionPendingTurn,
+                                     events: List<CompanionSlotStore.LedgerEvent>) {
+    val manifest = JSONObject(turn.receipt.manifest)
+    val result = JSONObject(turn.receipt.finalResult)
+    require(turn.phase == CompanionPendingTurn.Phase.COMMITTED &&
+      turn.slotId == slot &&
+      turn.receipt.committedRevision == turn.expectedRevision+1 &&
+      turn.receipt.committedRevision <= current)
+    require(CompanionWaitCapture.canonical(manifest) == turn.receipt.manifest)
+    require(CompanionWaitCapture.canonical(result) == turn.receipt.finalResult)
+    val manifestKeys = setOf("version","slot","turn","request","expectedRevision","committedRevision",
+      "inputDigest","decisionDigest","reservationDigest","beforeSnapshotDigest","afterSnapshotDigest",
+      "resultDigest","coreVersion","policy","nativePolicyDigest","coreCommandIds","actionCheckpoint",
+      "events","observations","memories","brains")
+    require(manifest.keys().asSequence().toSet() == manifestKeys &&
+      manifest.getString("version") == "companion_manifest.v2" &&
+      manifest.getString("slot") == slot && manifest.getString("turn") == turn.turnId &&
+      manifest.getString("request") in turn.requestAliases &&
+      manifest.getString("policy") == policy &&
+      turn.decision.policyVersion == policy && turn.reservation.policyVersion == policy &&
+      manifest.getString("nativePolicyDigest") == CompanionNativeGameplayRolls.POLICY_DIGEST)
+    integer(manifest,"expectedRevision",turn.expectedRevision)
+    integer(manifest,"committedRevision",turn.receipt.committedRevision)
+    integer(manifest,"coreVersion",CURRENT_SAVE_VERSION.toLong())
+    require(manifest.getString("inputDigest") == turn.inputDigest &&
+      manifest.getString("decisionDigest") == turn.decision.digest &&
+      manifest.getString("reservationDigest") == turn.reservation.digest &&
+      manifest.getString("resultDigest") == CompanionDigests.sha256(turn.receipt.finalResult))
+    for (key in listOf("beforeSnapshotDigest","afterSnapshotDigest","resultDigest"))
+      require(manifest.getString(key).matches(Regex("[a-f0-9]{64}")))
+    val intent = result.getString("action")
+    val durations = mapOf("TALK" to 1L,"MOVE" to 10L,"SEARCH" to 5L,"INSPECT" to 5L)
+    val minutes=durations[intent] ?: error("receipt_ordinary_action_unknown")
+    require(result.keys().asSequence().toSet() ==
+      setOf("version","slot","turn","revision","action","minutes","streak","stop","combatActive") &&
+      result.getString("version") == "companion_result.v2" &&
+      result.getString("slot") == slot && result.getString("turn") == turn.turnId &&
+      result.getLong("revision") == turn.receipt.committedRevision)
+    integer(result,"minutes",minutes)
+    integer(manifest.getJSONObject("actionCheckpoint"),"minutes",minutes)
+    val check = manifest.getJSONObject("actionCheckpoint")
+    require(check.keys().asSequence().toSet() == setOf("session","checkpoint","minutes") &&
+      check.getString("session") == "actor-" + turn.turnId &&
+      check.getString("checkpoint") == "resolve")
+    val commands = manifest.getJSONArray("coreCommandIds")
+    require(commands.length() == 1 &&
+      commands.getString(0) == turn.turnId + ":NATIVE:" + intent)
+    val rows = manifest.getJSONArray("events")
+    require(events.size in 2..4 && events.size == rows.length())
+    events.forEachIndexed { index,event ->
+      verifyEvent(slot,current,event)
+      require(event.revision == turn.receipt.committedRevision &&
+        event.turnId == turn.turnId && event.ordinal == index)
+      val link=rows.getJSONObject(index)
+      require(link.keys().asSequence().toSet() == setOf("id","ordinal","type","digest") &&
+        link.getString("id") == event.id && link.getString("type") == event.type &&
+        link.getString("digest") == event.digest)
+      integer(link,"ordinal",index.toLong())
+    }
+    require(events[0].type == "ACTOR_ACTION_COMPLETED" &&
+      events[1].type == "EXIT_STREAK_RESOLVED" &&
+      events.drop(2).all { it.type in setOf("WORLD_TRANSITION","COMBAT_STARTED") })
+    val action = JSONObject(events[0].record).getJSONObject("payload")
+    require(action.getString("actor") == "cao_minh" &&
+      action.getString("intent") == intent &&
+      action.getLong("minutes") == minutes)
+    val observations=manifest.getJSONArray("observations")
+    val memories=manifest.getJSONArray("memories")
+    require(observations.length() == 1 && memories.length() == 1 &&
+      manifest.getJSONArray("brains").length() == 0)
+    val obs=observations.getJSONObject(0)
+    val memory=memories.getJSONObject(0)
+    require(obs.keys().asSequence().toSet() == setOf("id","digest") &&
+      memory.keys().asSequence().toSet() == setOf("id","actor","observationId") &&
+      obs.getString("id").matches(Regex("[a-f0-9]{32}")) &&
+      obs.getString("digest").matches(Regex("[a-f0-9]{64}")) &&
+      memory.getString("id").matches(Regex("[a-f0-9]{32}")) &&
+      memory.getString("actor") == "cao_minh" &&
+      memory.getString("observationId") == obs.getString("id"))
+  }
+
   @JvmStatic @Throws(IOException::class)
   fun verifyHeadDigest(snapshot: ByteArray, turn: CompanionPendingTurn) = checked {
     require(JSONObject(turn.receipt.manifest).getString("afterSnapshotDigest") == CompanionDigests.sha256(snapshot))
@@ -94,7 +181,10 @@ object CompanionLedgerVerifier {
     val state = GameStateCodec.decode(text)
     require(GameStateCodec.encode(state) == text && state.turn.pending == null && ActionRuntime.activeSession(state) == null)
     require(JSONObject(turn.receipt.manifest).getString("afterSnapshotDigest") == CompanionWaitBatch.hash(text))
-    require(turn.turnId in state.turn.completedTurnIds && turn.turnId + ":NATIVE:WAIT" in state.turn.executedCommandIds)
+    val action = if (JSONObject(turn.receipt.manifest).optString("version") == "companion_manifest.v2")
+      JSONObject(turn.receipt.finalResult).getString("action") else "WAIT"
+    require(turn.turnId in state.turn.completedTurnIds &&
+      turn.turnId + ":NATIVE:" + action in state.turn.executedCommandIds)
   }
   @JvmStatic @Throws(IOException::class)
   fun verifyChainLink(revision: Long, before: String, turn: CompanionPendingTurn): String {
