@@ -88,7 +88,7 @@ internal object CompanionNativeDecisionContext {
       slotRevision = revision,
       actorId = KAI_ID,
       sceneId = stop,
-      presentActorIds = setOf(KAI_ID),
+      presentActorIds = setOf(KAI_ID) + listeners,
       capabilities = capabilities,
       inventoryItemIds = usableItems,
       legalTargetIds = legal,
