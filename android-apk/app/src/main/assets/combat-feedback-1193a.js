@@ -86,6 +86,8 @@
     return null;
   }
   function appendPacketToCombatLog(packet){
+    var summary=String(packet&&packet.summary||'').trim();
+    if(summary)appendCombatLine('summary',summary);
     var events=packet&&Array.isArray(packet.events)?packet.events:[];
     events.forEach(function(e){
       if(!e||(e.target!=='entity'&&e.target!=='actor'))return;
