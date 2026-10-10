@@ -56,6 +56,7 @@ public final class CompanionStorageInstrumentation extends Instrumentation {
       else if ("suite".equals(mode)) {
         run("test_driver_combat_publication", () -> CompanionWaitStorageFixtures.testDriverCombatPublication(directory));
         run("native_atomic_wait_commit", () -> CompanionWaitStorageFixtures.nativeAtomicCommit(directory));
+        run("native_companion_live_wait", () -> CompanionLiveWaitFixtures.INSTANCE.verifiedNewGameAndWait(getTargetContext()));
         run("native_ambiguous_commit_readback", () -> CompanionWaitStorageFixtures.nativeAmbiguousCommit(directory));
         run("concurrent_native_wait_commit", () -> CompanionWaitStorageFixtures.concurrentNativeCommit(directory));
         run("immutable_ledger_corruption_preserved", () -> CompanionWaitStorageFixtures.ledgerCorruptionPreserved(directory));
