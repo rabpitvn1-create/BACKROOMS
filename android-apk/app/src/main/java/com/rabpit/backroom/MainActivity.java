@@ -1274,38 +1274,6 @@ public class MainActivity extends Activity {
     return record != null && record.optBoolean("encountered", false);
   }
 
-  private boolean ensureSpecialFollowerInLegacyParty(JSONObject state, String id, String name, boolean nonCombat) throws Exception {
-    JSONArray party = state.optJSONArray("party");
-    if (party == null) party = new JSONArray();
-    String targetId = lower(id).trim();
-    String targetName = lower(name).trim();
-    for (int i = 0; i < party.length(); i++) {
-      Object item = party.opt(i);
-      if (!(item instanceof JSONObject)) continue;
-      JSONObject member = (JSONObject)item;
-      if (lower(member.optString("id", "")).trim().equals(targetId) ||
-          lower(member.optString("name", "")).trim().equals(targetName)) {
-        state.put("party", party);
-        return true;
-      }
-    }
-    // Legacy party excludes Cao Minh, so three entries means the authoritative 4-member party is full.
-    if (party.length() >= 3) {
-      state.put("party", party);
-      return false;
-    }
-    party.put(new JSONObject()
-      .put("id", id)
-      .put("name", name)
-      .put("present", true)
-      .put("joinConfirmed", true)
-      .put("presence", "ACTIVE")
-      .put("role", "follower")
-      .put("nonCombat", nonCombat));
-    state.put("party", party);
-    return true;
-  }
-
   private boolean reunionEligibleAndroid(JSONObject state, String key) {
     JSONObject flags = state.optJSONObject("flags");
     JSONObject record = flags != null ? flags.optJSONObject(key) : null;
@@ -1757,60 +1725,51 @@ public class MainActivity extends Activity {
       if (anNhien == null) anNhien = new JSONObject();
       anNhien.put("encountered", true)
         .put("present", true)
-        .put("follower", true)
         .put("nonCombat", true)
         .put("levelEncountered", currentLevel(before))
         .put("exitBonusPercent", 2);
       flags.put("anNhien", anNhien);
 
-      boolean anNhienJoined = ensureSpecialFollowerInLegacyParty(state, "an-nhien", "An Nhiên", true);
-      anNhien.put("joinPending", !anNhienJoined);
     }
     if (rollSuccess(rolls, "irisReunion")) {
       JSONObject iris = flags.optJSONObject("iris");
       if (iris == null) iris = new JSONObject();
-      boolean irisJoined = ensureSpecialFollowerInLegacyParty(state, "iris", "Iris", false);
       iris.put("exists", true)
         .put("encountered", true)
         .put("present", true)
         .put("spawned", true)
-        .put("follower", true)
         .put("reunionEligible", false)
         .put("continuity", "REUNITED")
         .put("levelEncountered", currentLevel(before))
-        .put("joinPending", !irisJoined);
+;
       flags.put("iris", iris);
     }
 
     if (rollSuccess(rolls, "syvialReunion")) {
       JSONObject syvial = flags.optJSONObject("syvial");
       if (syvial == null) syvial = new JSONObject();
-      boolean syvialJoined = ensureSpecialFollowerInLegacyParty(state, "syvial", "Syvial", false);
       syvial.put("exists", true)
         .put("encountered", true)
         .put("present", true)
         .put("spawned", true)
-        .put("follower", true)
         .put("reunionEligible", false)
         .put("continuity", "REUNITED")
         .put("levelEncountered", currentLevel(before))
-        .put("joinPending", !syvialJoined);
+;
       flags.put("syvial", syvial);
     }
 
     if (rollSuccess(rolls, "luciaEncounter")) {
       JSONObject lucia = flags.optJSONObject("lucia");
       if (lucia == null) lucia = new JSONObject();
-      boolean luciaJoined = ensureSpecialFollowerInLegacyParty(state, "lucia", "Lucia \"Lục\"", false);
       lucia.put("exists", true)
         .put("encountered", true)
         .put("present", true)
         .put("spawned", true)
-        .put("follower", true)
         .put("reunionEligible", false)
         .put("continuity", "RECRUITED_LEVEL_0")
         .put("levelEncountered", 0)
-        .put("joinPending", !luciaJoined);
+;
       flags.put("lucia", lucia);
     }
 

@@ -35,6 +35,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Verify active semantic highlighting
+        run: node android-apk/verify-semantic.mjs
+
       - name: Capture active run id
         run: |
           set -euo pipefail
@@ -117,7 +120,8 @@ jobs:
           grep -q 'characterSkillsButton' apk-check/assets/index.html
           grep -q 'GM_SEMANTIC_PLAY_BOLD_R04' apk-check/assets/index.html
           grep -q 'gm-semantic' apk-check/assets/index.html
-          grep -q 'SEMANTIC_COMPATIBILITY_TERMS=' apk-check/assets/index.html
+          ! grep -q 'SEMANTIC_COMPATIBILITY_TERMS=' apk-check/assets/index.html
+          grep -q 'function semanticTerms(before,after)' apk-check/assets/index.html
           grep -q 'function semanticPrepareNextState(before,json)' apk-check/assets/index.html
           grep -q 'function renderSemanticText(entry)' apk-check/assets/index.html
           grep -q 'state=semanticPrepareNextState(state,json)' apk-check/assets/index.html

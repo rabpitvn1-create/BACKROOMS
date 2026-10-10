@@ -391,6 +391,42 @@ class GameCoreFacade private constructor(
       val id = member.optString("id").ifBlank { member.optString("name").trim().lowercase() }
       if (id.isNotBlank()) desiredParty[id] = member
     }
+    // Party membership belongs to Core, not to a synthetic Java/WebView party array.
+    // Java supplies the validated encounter rolls; only Core can reserve party slots.
+    val authoritativeFlags = candidate.optJSONObject("flags") ?: JSONObject().also { candidate.put("flags", it) }
+    val authoritativeRolls = authoritativeFlags.optJSONObject("lastRolls")
+    val savedFlags = pending.state.world["flagsJson"]?.let { runCatching { JSONObject(it) }.getOrNull() } ?: JSONObject()
+    fun encounterSucceeded(key: String): Boolean =
+      authoritativeRolls?.takeIf {
+        !it.optBoolean("meta", false) &&
+          it.optInt("turn", -1) == CoreClientProjection.turnIndex(pending.state)
+      }?.optJSONObject(key)?.let { it.optBoolean("eligible", false) && it.optBoolean("success", false) } == true
+    val automaticFollowers = listOf(
+      Triple(AN_NHIEN_ID, "anNhien", "anNhienEncounter"),
+      Triple(IRIS_ID, "iris", "irisReunion"),
+      Triple(SYVIAL_ID, "syvial", "syvialReunion"),
+      Triple(LUCIA_ID, "lucia", "luciaEncounter")
+    )
+    for ((id, flagKey, rollKey) in automaticFollowers) {
+      val savedRecord = savedFlags.optJSONObject(flagKey)
+      val encounterConfirmed = encounterSucceeded(rollKey) ||
+        savedRecord?.optBoolean("joinPending", false) == true ||
+        (id == AN_NHIEN_ID && savedRecord?.optBoolean("encountered", false) == true)
+      if (!encounterConfirmed) continue
+      val record = authoritativeFlags.optJSONObject(flagKey) ?: JSONObject().also { authoritativeFlags.put(flagKey, it) }
+      val alreadyJoined = id in desiredParty
+      val canJoin = pending.state.characters[id]?.let { it.presence == CharacterPresence.ACTIVE && it.metadata["joinEligible"] == "true" } == true
+      if (!alreadyJoined && canJoin && desiredParty.size < pending.state.party.maxMembers - 1) {
+        desiredParty[id] = JSONObject().put("id", id).put("joinConfirmed", true).put("present", true)
+      } else if (alreadyJoined && canJoin && encounterSucceeded(rollKey)) {
+        // Validated encounter proof supersedes the model's untrusted join booleans.
+        desiredParty[id] = JSONObject(desiredParty.getValue(id).toString())
+          .put("joinConfirmed", true).put("present", true)
+      }
+      val joined = id in desiredParty
+      record.put("joinPending", !joined)
+      record.put("follower", joined)
+    }
     val currentFollowers = pending.state.party.memberIds.filter { it != KAI_ID }.toSet()
     (currentFollowers - desiredParty.keys).sorted().forEachIndexed { index, id ->
       commands += PartyCommand("$turnId:GEMINI:PARTY_REMOVE:$index", turnId, KAI_ID, id, CommandSource.GEMINI, PartyCommand.Operation.REMOVE)
