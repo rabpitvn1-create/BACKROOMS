@@ -11,8 +11,8 @@ import java.nio.charset.StandardCharsets
  * snapshot, actor capabilities, scene, model decision, or success receipt.
  *
  * Each request opens and verifies an existing SQLite slot; all work is
- * serialized by the host's gameplay executor. This is an internal preview
- * seam until non-WAIT atomic executors are qualified.
+ * serialized by the host's gameplay executor. Game-mode actions consume only
+ * validated native decisions and return public results after durable commit.
  */
 object CompanionAndroidBridge {
   fun interface Writer { fun write(prompt: String): String }
