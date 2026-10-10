@@ -485,7 +485,8 @@ class GameCoreFacade private constructor(
     val existed = repository.exists()
     val loaded = if (existed) repository.load() else GameState.initial()
     val normalized = normalizeVisualPresence(CoreClientProjection.initialize(loaded))
-    if (!existed || normalized != loaded) repository.save(normalized)
+    // Existing saves are never rewritten by a read. Persist normalization only with a committed action.
+    if (!existed) repository.save(normalized)
     return normalized
   }
 
@@ -583,6 +584,7 @@ class GameCoreFacade private constructor(
     val client = JSONObject(clientStateJson)
     val state = loadCurrentState()
     fun reject(reason: String): String = response(false, clientSnapshot(client, state), reason, "item_ui_rejected", validationReply(reason))
+    if (client.optInt("turn", -1) != CoreClientProjection.turnIndex(state)) return reject("stale_client_state")
     if (CombatRuntime.active(state) != null) return reject("combat_active")
     if (ActionRuntime.activeSession(state) != null || state.turn.pending != null) return reject("another_turn_pending")
     val request = runCatching { JSONObject(requestJson) }.getOrNull() ?: return reject("invalid_item_request")
