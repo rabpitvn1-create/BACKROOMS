@@ -30,11 +30,16 @@ entity_names = clean(re.findall(r'Profile\(\s*"[^"]+"\s*,\s*"([^"]+)"', combat))
 
 equipment_path = CORE / "CharacterEquipmentSystem.kt"
 equipment = equipment_path.read_text(encoding="utf-8") if equipment_path.is_file() else ""
-item_names = clean(re.findall(
+item_name_set = set(re.findall(
     r'EquipmentDefinition\(\s*id\s*=\s*[^,\n]+,\s*name\s*=\s*"([^"]+)"',
     equipment,
     flags=re.MULTILINE,
 ))
+healing_path = CORE / "HealingItems.kt"
+if healing_path.is_file():
+    healing = healing_path.read_text(encoding="utf-8")
+    item_name_set.update(re.findall(r'const val [A-Z0-9_]+_NAME\s*=\s*"([^"]+)"', healing))
+item_names = clean(item_name_set)
 
 skill_path = CORE / "CompanionSkillCatalog.kt"
 skills = skill_path.read_text(encoding="utf-8") if skill_path.is_file() else ""
@@ -52,6 +57,8 @@ for path in CORE.glob("*.kt"):
             character_names.add(name.group(1))
 character_names = clean(character_names)
 
+if not character_names:
+    raise RuntimeError("No canonical character display names found in final runtime")
 if not entity_names:
     raise RuntimeError("No canonical Entity display names found in final CombatRuntime.kt")
 if not skill_names:
@@ -79,6 +86,8 @@ static_terms = {
     "item": item_names,
     "skill": skill_names,
 }
+if set(static_terms) != {"character", "entity", "item", "skill"}:
+    raise RuntimeError("GM semantic scope must remain character/entity/item/skill only")
 
 style = r'''<style id="gmSemanticPlayBoldStyle">
 /* GM_SEMANTIC_PLAY_BOLD_R01 */
@@ -135,7 +144,9 @@ script = r'''<script id="gmSemanticPlayBoldRuntime">
   }
 
   function wordChar(ch){
-    return !!ch&&/[\p{L}\p{N}_]/u.test(ch);
+    if(!ch)return false;
+    if(/[0-9_]/.test(ch))return true;
+    return ch.toLocaleLowerCase("vi-VN")!==ch.toLocaleUpperCase("vi-VN");
   }
 
   function boundaryOk(source,start,end){
@@ -224,9 +235,17 @@ for required in (
     ".gm-semantic{",
     'document.querySelectorAll(".message:not(.player) .text")',
     "dataset.semanticKind",
+    'const STATIC_TERMS={"character":',
+    '"entity":',
+    '"item":',
+    '"skill":',
 ):
     if required not in html:
         raise RuntimeError("GM semantic typography contract missing: " + required)
+
+for forbidden in ("gm-semantic-location", "gm-semantic-status", "gm-semantic-effect", r"\\p{L}", r"\\p{N}"):
+    if forbidden in html:
+        raise RuntimeError("GM semantic typography leaked forbidden scope/compat syntax: " + forbidden)
 
 # Semantic categories inherit narration color. Combat feedback remains the only colored effect layer.
 semantic_css = style.split("/* GM_SEMANTIC_PLAY_BOLD_R01 */", 1)[1]
