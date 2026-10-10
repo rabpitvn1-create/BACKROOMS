@@ -731,7 +731,7 @@
       "id": "ITEM.GLOBAL_HARD_LOCK",
       "domain": "ITEM",
       "kind": "hard-lock",
-      "text": "Safe food/water and medicine are scarce; guns/ammunition are uncommon for ordinary survivors; resources can reappear unreliably. Frontrooms objects can function normally, then deviate, degrade or be assimilated without a fixed timetable. Do not spawn a resource exactly when convenient just to rescue a character. Reliable information is itself a survival resource. Do not label a map/source absolutely SAFE; retain who observed it, when and with what confidence.",
+      "text": "All collectible Items originate exclusively from Game Core offline rewards upon Entity defeat: one guaranteed randomized drop per defeated Entity. Searching, exploring, survivors and Game Master narration cannot create, discover for pickup, grant, transfer, use, drop, or delete Items. Only Inventory UI executes USE, DROP and TRANSFER. Bound Forever equipment is separate from Items and Inventory. Item units have no partial-content states. Safe food/water and medicine are scarce; guns/ammunition are uncommon for ordinary survivors; Frontrooms objects can function normally, then deviate, degrade or be assimilated without a fixed timetable. Do not spawn a resource exactly when convenient just to rescue a character. Reliable information is itself a survival resource. Do not label a map/source absolutely SAFE; retain who observed it, when and with what confidence.",
       "source": {
         "document": "01_WORLD/items.md",
         "anchor": "0.7-0.8; 8.6"
@@ -753,7 +753,7 @@
       "id": "ITEM.ALMOND_WATER",
       "domain": "ITEM",
       "kind": "item",
-      "text": "Almond Water is a key anomalous drinking-water resource but remains scarce in Project canon. It can rehydrate and support alertness/some mild symptoms; it is not a cure-all and does not negate every Entity effect. It can expire and become poisonous. Open sources must be checked; Level 0 carpet moisture is not drinking water.",
+      "text": "Almond Water is a key anomalous drinking-water resource but remains scarce in Project canon. It can rehydrate and support alertness/some mild symptoms; it is not a cure-all and does not negate every Entity effect. Open sources must be checked; Level 0 carpet moisture is not drinking water.",
       "source": {
         "document": "01_WORLD/items.md",
         "anchor": "8.1 Object 1 — Almond Water"
