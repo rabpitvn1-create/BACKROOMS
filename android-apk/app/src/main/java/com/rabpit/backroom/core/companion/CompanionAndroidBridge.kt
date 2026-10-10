@@ -32,6 +32,17 @@ object CompanionAndroidBridge {
     }
   }
 
+  /** Native-only proactive suggestion. It is not an authoritative action receipt. */
+  @JvmStatic @Throws(IOException::class)
+  fun suggest(context: Context, slotId: String,
+              writer: Writer, auditor: Writer): String {
+    CompanionNewGameBootstrap.open(context,slotId).use { store ->
+      return CompanionNativeSuggestion.propose(context,store,
+        { privatePrompt -> writer.write(privatePrompt) },
+        { privatePrompt -> auditor.write(privatePrompt) })
+    }
+  }
+
   @JvmStatic @Throws(IOException::class)
   fun submit(context: Context, slotId: String, exactInput: String, requestId: String,
              writer: Writer, auditor: Writer, nativeDraw: RandomDraw): String {
