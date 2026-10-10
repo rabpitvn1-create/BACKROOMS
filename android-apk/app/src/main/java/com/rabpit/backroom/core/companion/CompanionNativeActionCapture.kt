@@ -1,6 +1,7 @@
 package com.rabpit.backroom.core.companion
 
 import com.rabpit.backroom.core.GameStateCodec
+import com.rabpit.backroom.core.CompanionCombatRngBridge
 import com.rabpit.backroom.core.progression.FeaturedJourneyRoutes
 import org.json.JSONObject
 import java.io.IOException
