@@ -25,7 +25,7 @@ object HealingItems {
     val id = if (bandage) BANDAGE_ID else ANTISEPTIC_ID
     val name = if (bandage) BANDAGE_NAME else ANTISEPTIC_NAME
     return item.copy(
-      itemId = if (ItemIdentity.isOmnivaultCopy(item)) item.itemId else id,
+      itemId = id,
       name = name,
       archetypeId = id,
       contentState = ContentState.NONE,
