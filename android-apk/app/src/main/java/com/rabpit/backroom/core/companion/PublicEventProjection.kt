@@ -9,6 +9,19 @@ internal object PublicEventProjection {
   fun project(eventType: String, payload: JSONObject): JSONObject? {
     if (CompanionWaitCapture.canonical(payload).toByteArray(StandardCharsets.UTF_8).size>131072) return null
     return when(eventType) {
+      "ACTOR_ACTION_COMPLETED" -> {
+        val actor=text(payload,"actor") ?: return null
+        if (actor != "cao_minh") return null
+        val intent=text(payload,"intent") ?: return null
+        val minutes=integer(payload,"minutes")?.takeIf { it in 1..10 } ?: return null
+        val location=text(payload,"location") ?: return null
+        val scene=text(payload,"scene") ?: return null
+        val toStop=text(payload,"toStop") ?: return null
+        if (intent !in setOf("TALK","MOVE","SEARCH","INSPECT") || scene != location)
+          return null
+        JSONObject().put("actor",actor).put("intent",intent).put("minutes",minutes)
+          .put("location",location).put("scene",scene).put("toStop",toStop)
+      }
       "WAIT_COMPLETED" -> {
         val actor=text(payload,"actor") ?: return null
         val minutes=integer(payload,"minutes")?.takeIf { it>0 } ?: return null
