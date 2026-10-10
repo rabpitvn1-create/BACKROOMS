@@ -16,8 +16,9 @@ center suitable for nine-slice rendering; matching wide empty dark charcoal
 Level plaque with gold outlines and ornamental wings. No baked text, scenes,
 numbers, or watermarks. Live titles and narrative remain DOM text.
 
-`ornate-frame-v1.css` slices the narrative border at 32% with 40px rendered
-corners; the scrollable `#log` stays inside a stationary decorative wrapper.
-The plaque uses the original image's transparent vertical margins via centered
-background sizing. Warning messages retain amber emphasis. No gameplay or save
-contracts are changed.
+`ornate-frame-v1.css` slices the border at 32%, using 26px corners on each
+individual GM message and on dice, character status, equipment and menu cards;
+compact action buttons use 18px corners. `#log` retains its original structure
+and scrolling. Header and snapshot use the original styles. The nameplate is
+archived but not used in the current interface. Warning, HP and dice HOLD
+colours retain their meaning. No gameplay or save contracts are changed.
