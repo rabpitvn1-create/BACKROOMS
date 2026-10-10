@@ -7,10 +7,8 @@ import java.io.IOException
 /** P1b genesis fixtures (issue #502): pins, empty brain, version mismatch, legacy alias. */
 class BrainGenesisTest {
   private fun persona(actor: String = "cao_minh") =
-    CompanionCanonPersonaRegistry.Persona(
-      actor, if (actor == "cao_minh") "CHAR.KAI" else "CHAR.LUC_TRAM",
-      "knowledge/novel_asset/X.md", if (actor == "cao_minh") "R17" else "R05",
-      "0".repeat(64), listOf(), listOf(), listOf(), listOf())
+    if (actor == BrainGenesis.LEGACY_ACTOR_ID) CompanionCanonPersonaRegistry.Persona(actor,"CHAR.KAI","x","R17","0".repeat(64), emptyList(),emptyList(),emptyList(),emptyList())
+    else CompanionPersonaFixture.load(actor)
 
   @Test fun genesisPinsRegistryAndEmptyBrain() {
     val record = BrainGenesis.genesis(persona("cao_minh"))
@@ -34,7 +32,7 @@ class BrainGenesisTest {
 
   @Test fun legacyAliasRejected() {
     try {
-      BrainGenesis.genesis(persona("kai"))
+      BrainGenesis.genesis(persona(BrainGenesis.LEGACY_ACTOR_ID))
       fail("expected genesis_legacy_alias")
     } catch (e: IOException) {
       assertEquals("genesis_legacy_alias", e.message)
@@ -82,11 +80,21 @@ class BrainGenesisTest {
     }
   }
 
-  @Test fun schemaHasSingletonAndImmutableTriggers() {
+  @Test fun schemaHasActorScopedPinsAndImmutableBrainTriggers() {
     val stmts = BrainGenesisSchema.createStatements()
-    assertTrue(stmts.any { it.contains("genesis_pins") && it.contains("singleton") })
+    assertTrue(stmts.any { it.contains("genesis_pins") && it.contains("PRIMARY KEY(slot_id,actor_id)") })
+    assertTrue(stmts.any { it.contains("initial_brain") && it.contains("state_digest") })
     assertTrue(stmts.any { it.contains("immutable_genesis") })
     // legacy alias banned at the schema level too
-    assertTrue(stmts.any { it.contains("NOT IN ('kai','KAI')") })
+    assertTrue(stmts.any { it.contains("NOT IN (char(107,97,105),'KAI')") })
   }
+  @Test fun sourcePathAndUnknownPersonaRejected() {
+    val p=persona(); val record=BrainGenesis.genesis(p)
+    try { BrainGenesis.verifyOnLoad(record.pins.copy(personaSourcePath="other"),p); fail("path accepted") }
+    catch (e: IOException) { assertEquals("genesis_persona_path_mismatch",e.message) }
+    val unknown=CompanionCanonPersonaRegistry.Persona("unknown","x","x","R17","0".repeat(64),emptyList(),emptyList(),emptyList(),emptyList())
+    try { BrainGenesis.genesis(unknown); fail("unknown accepted") }
+    catch (e: IOException) { assertEquals("genesis_persona_unpinned",e.message) }
+  }
+
 }

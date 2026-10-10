@@ -22,7 +22,7 @@ class MemoryRetrievalTest {
   }
 
   @Test fun correctionChainResolvesToLatest() {
-    val all = listOf(view("m1"), view("m2", supersedes = "m1"))
+    val all = listOf(view("m1"), view("m2", rev=2,supersedes = "m1"))
     val p = MemoryRetrieval.retrieve(all, Query("s", "cao_minh"))
     assertEquals(listOf("m2"), p.entries.map { it.memoryId })
   }
