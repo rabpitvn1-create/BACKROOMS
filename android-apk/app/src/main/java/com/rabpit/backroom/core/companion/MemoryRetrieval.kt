@@ -64,7 +64,8 @@ internal object MemoryRetrieval {
       val seen = HashSet<String>()
       while (seen.add(current.memoryId)) {
         if (current.memoryId in query.episodeRefs) return true
-        current = byId[current.supersedesMemoryId] ?: break
+        val previousId = current.supersedesMemoryId ?: break
+        current = byId[previousId] ?: break
       }
       return false
     }
