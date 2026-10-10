@@ -50,29 +50,22 @@ internal object MemoryRetrieval {
   data class Packet(val entries: List<MemoryView>, val truncated: Boolean)
 
   fun retrieve(all: List<MemoryView>, query: Query): Packet {
-    require(query.maxChars >= 0) { "memory_packet_budget_invalid" }
+    require(query.maxChars >= 0) { "memory_budget_invalid" }
     // 1. Slot + actor filter first.
     val owned = all.filter { it.slotId == query.slotId && it.ownerActorId == query.actorId }
     // 2. Latest per correction chain.
-    val byId = owned.associateBy { it.memoryId }
-    val superseded = owned.mapNotNull { it.supersedesMemoryId }.toSet()
-    val latest = owned.filter { it.memoryId !in superseded }
-
-    // Explicit refs to an older version must resolve to its latest correction.
-    fun isRequested(memory: MemoryView): Boolean {
-      var current = memory
-      val seen = HashSet<String>()
-      while (seen.add(current.memoryId)) {
-        if (current.memoryId in query.episodeRefs) return true
-        val previousId = current.supersedesMemoryId ?: break
-        current = byId[previousId] ?: break
-      }
-      return false
+    val byId=owned.associateBy { it.memoryId }
+    require(byId.size==owned.size) { "memory_duplicate_identity" }
+    val superseded=hashSetOf<String>()
+    for(m in owned) m.supersedesMemoryId?.let { id ->
+      val parent=byId[id] ?: throw IllegalArgumentException("memory_correction_parent_missing")
+      require(m.committedRevision>parent.committedRevision) { "memory_correction_revision" }
+      require(superseded.add(id)) { "memory_correction_branch" }
     }
-
+    val latest = owned.filter { it.memoryId !in superseded }
     // 3. Deterministic rank.
     val ranked = latest.sortedWith(compareBy(
-      { if (isRequested(it)) 0 else 1 },
+      { if (it.memoryId in query.episodeRefs) 0 else 1 },
       { rankSceneActors(it, query) },
       { if (it.topic in query.pendingTopics) 0 else 1 },
       { if (it.salience == EpisodicMemory.Salience.PIVOTAL) 0 else 1 },
@@ -81,11 +74,11 @@ internal object MemoryRetrieval {
     ))
     // 4. Budget the packet; history untouched.
     val entries = ArrayList<MemoryView>()
-    var used = 0
+    var used = 0L
     var truncated = false
     for (m in ranked) {
       val cost = m.summary.length + 64
-      if (cost > query.maxChars - used) { truncated = true; break }
+      if (used + cost > query.maxChars.toLong()) { truncated = true; continue }
       entries.add(m)
       used += cost
     }

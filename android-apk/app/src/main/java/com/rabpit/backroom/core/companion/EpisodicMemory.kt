@@ -78,15 +78,19 @@ internal object EpisodicMemory {
    * untouched (storage triggers forbid UPDATE); readers resolve the latest by
    * following supersedesMemoryId. Evidence is never deleted.
    */
-  fun correct(old: MemoryRecord, correctedSummary: String, topic: String): MemoryRecord {
+  fun correct(old: MemoryRecord, evidence: ObservationCandidate, topic: String): MemoryRecord {
     require(old.status == Status.ACTIVE) { "memory_correct_superseded" }
-    require(correctedSummary.isNotBlank()
-      && correctedSummary.length <= SUMMARY_MAX_CHARS) { "memory_summary_bound" }
+    require(evidence.slotId == old.slotId && evidence.ownerActorId == old.ownerActorId) { "memory_correction_owner" }
+    require(evidence.revision > old.committedRevision) { "memory_correction_revision" }
+    val correctedSummary=summarize(evidence)
     require(topic.matches(Regex("[A-Za-z0-9_.:-]{1,64}"))) { "memory_topic_invalid" }
     return old.copy(
       memoryId = CompanionDigests.sha256(
         listOf(old.slotId, old.ownerActorId, old.observationId, "correction",
-          old.memoryId).joinToString("|")).take(32),
+          old.memoryId,evidence.observationId,ObservationPublisherDigest.of(evidence),topic).joinToString("|")).take(32),
+      observationId = evidence.observationId,
+      createdTurnId = evidence.turnId,
+      committedRevision = evidence.revision,
       summary = correctedSummary,
       topic = topic,
       status = Status.ACTIVE,
@@ -96,8 +100,16 @@ internal object EpisodicMemory {
 
   /** Resolves the latest record per memory chain (follow supersedes links). */
   fun latest(records: List<MemoryRecord>): List<MemoryRecord> {
-    val superseded = records.mapNotNull { it.supersedesMemoryId }.toSet()
-    return records.filter { it.memoryId !in superseded }
+    val byId=records.associateBy { Triple(it.slotId,it.ownerActorId,it.memoryId) }
+    require(byId.size == records.size) { "memory_duplicate_identity" }
+    val parents=hashSetOf<Triple<String,String,String>>()
+    for (record in records) record.supersedesMemoryId?.let { id ->
+      val key=Triple(record.slotId,record.ownerActorId,id)
+      val parent=byId[key] ?: throw IllegalArgumentException("memory_correction_parent_missing")
+      require(record.committedRevision > parent.committedRevision) { "memory_correction_revision" }
+      require(parents.add(key)) { "memory_correction_branch" }
+    }
+    return records.filter { Triple(it.slotId,it.ownerActorId,it.memoryId) !in parents }
   }
 
   /** Typed bounded summary templates over public payload fields only. */
@@ -109,7 +121,7 @@ internal object EpisodicMemory {
       p.has("target") && p.optBoolean("completed", false) ->
         "[$access] moved ${p.optString("source")} -> ${p.optString("target")}"
       p.has("entities") -> "[$access] combat started (${p.optJSONArray("entities")?.length() ?: 0} entities)"
-      else -> "[$access] observation recorded"
+      else -> "[$access] observed ${candidate.sourceEventId}"
     }
     return base.take(SUMMARY_MAX_CHARS)
   }
