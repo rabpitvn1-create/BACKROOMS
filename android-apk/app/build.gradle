@@ -18,6 +18,7 @@ android {
     targetSdk 35
     versionCode 72
     versionName '1.1.63.0.7'
+    buildConfigField "boolean", "COMPANION_NATIVE_ENABLED", project.hasProperty("companionNativePreview") ? "true" : "false"
     buildConfigField "String", "GEHIHI_API_KEY", "\"" + secret("GEHIHI_API_KEY") + "\""
     buildConfigField "String", "GEHIHI_BASE_URL", "\"" + secret("GEHIHI_BASE_URL") + "\""
     buildConfigField "String", "GEHIHI_MODEL", "\"" + secret("GEHIHI_MODEL") + "\""
