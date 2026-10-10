@@ -5,3 +5,4 @@ Backroom 1.1.63.0.3 Debug
 - Khôi phục Character Stats theo authority 1.1.93a với STR / DEF / SKL / VIT, migration an toàn, Shared Core và giới hạn MAX_STAT; loại bỏ compatibility surface DF / AGI / CRIT cũ.
 - Giữ projection kỹ năng đồng đội và đồng bộ passive Đại Đạo Ma Tôn của Cao Minh với canonical stats; attack stacking vẫn tách khỏi Poker Dice RNG và combat sequencing.
 - Chuẩn hóa Entity visual scaling từ alpha bounds và giữ nguyên toàn bộ runtime/asset đã có trong bản 1.1.63.0.2.
+- Khôi phục hidden Exit streak: EXPLORE roll đúng 50/50, cần 5 success liên tiếp; fail reset streak và làm mất Exit nhưng giữ nguyên vị trí hiện tại, không quay về đầu Level; toàn bộ streak bị ẩn khỏi UI và lời kể GM.

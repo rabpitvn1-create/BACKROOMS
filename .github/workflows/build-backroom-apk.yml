@@ -61,7 +61,7 @@ jobs:
       - name: Apply Android runtime patch chain
         run: |
           set -euo pipefail
-          scripts=(patch-provider-status.py patch-provider-key-pool.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py patch-ui-1.1.99-shell.py patch-poker-dice-core-backport.py patch-poker-dice-ui-119-polish.py patch-cao-minh-identity-overlay.py patch-item-detail-actions.py patch-item-whole-unit.py patch-cao-minh-skills-equipment.py patch-cao-minh-prologue.py patch-character-stats-1193a-restore.py patch-combat-feedback-1193a.py patch-gm-semantic-play-bold.py)
+          scripts=(patch-provider-status.py patch-provider-key-pool.py patch-level-snapshot-backgrounds.py patch-snapshot-fallback.py patch-kai-hd-continuous.py patch-kai-png-preferred.py patch-kai-codex.py patch-r06-source-marker.py patch-drive-canon-gameplay.py patch-inventory-persistence.py patch-ai-orchestrator.py patch-state-op-hardening.py patch-gemini-health-pool.py patch-conditional-audit.py patch-audit-validated-risk.py patch-gameplay-parity-final.py patch-final-authority-hardening.py patch-rejected-op-repair-final.py patch-kai-resource-policy-final.py patch-provider-deadline-final.py patch-gemini-model-matrix-final.py patch-java-compile-hardening.py patch-save-controls-final.py patch-hard-mode-label.py patch-snapshot-unconfigured.py patch-game-state-core-bridge.py patch-character-inventory-ui.py patch-character-detail-avatar-fallback.py patch-progression-snapshot-equipment.py patch-ui-1.1.99-shell.py patch-poker-dice-core-backport.py patch-poker-dice-ui-119-polish.py patch-cao-minh-identity-overlay.py patch-item-detail-actions.py patch-item-whole-unit.py patch-cao-minh-skills-equipment.py patch-cao-minh-prologue.py patch-character-stats-1193a-restore.py patch-combat-feedback-1193a.py patch-hidden-exit-streak.py patch-gm-semantic-play-bold.py)
           for script in "${scripts[@]}"; do
             echo "==> $script"
             python3 "android-apk/$script"
@@ -141,9 +141,10 @@ jobs:
               ('daiDaoCombatStackIsSeparateAndResetsWithCombatMetadata', stats_1193),
               ('sceneKey:visualSceneKey()', java), ('r.sceneKey===visualSceneKey()', java),
               ('private int mentionedLevel(JSONObject state)', java),
-              ('return exitFound && progressionReady(before);', java),
-              ('exploration.put("minimumTurns", 6)', java),
-              ('recordLevelProgress(state, oldLevel, newLevel)', java),
+              ('HiddenExitStreak.projectedReady(before, rolls)', java),
+              ('thresholdRoll("_hiddenExitStreak", 100,', java),
+              ('HiddenExitStreak.apply(before, state, rolls, oldLevel, newLevel)', java),
+              ('hiddenExitDirective', java), ('visibleRolls.remove', java),
               ('partyDetails&&state.partyDetails.members', java),
               ('rolls.put("roamingEntityKey"', java), ('file:///android_asset/entity/', java),
               ('"hotel_corpse_lure","jeff_the_killer","jane_the_killer","slenderman"', java),
@@ -175,8 +176,11 @@ jobs:
           for marker, source in required:
               assert marker in source, marker
           assert play_bold.is_file() and play_bold.stat().st_size > 0
-          assert 'patch-combat-feedback-1193a.py patch-gm-semantic-play-bold.py)' in workflow_text
+          assert 'patch-combat-feedback-1193a.py patch-hidden-exit-streak.py patch-gm-semantic-play-bold.py)' in workflow_text
           assert 'patch-gm-semantic-play-bold.py' not in chain
+          assert 'return exitFound && progressionReady(before);' not in java
+          assert 'recordLevelProgress(state, oldLevel, newLevel);' not in java
+          assert 'cần ít nhất 6 lượt gameplay trong Level' not in java
           semantic_start = html.index('/* GM_SEMANTIC_PLAY_BOLD_R01 */')
           semantic_end = html.index('</style>', semantic_start)
           semantic_css = html[semantic_start:semantic_end]
