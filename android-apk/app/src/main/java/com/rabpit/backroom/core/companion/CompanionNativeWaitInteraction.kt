@@ -58,16 +58,23 @@ internal class CompanionNativeWaitInteraction(
       "Private context:\n" + ActorContextBuilder.canonical(bound.packet) +
       "\nScene: " + bound.scope.sceneId +
       "\nLời khuyên từ người đồng hành (không phải lệnh):\n" + JSONObject.quote(exactInput) +
-      "\nHãy tự quyết định. Trả JSON có intent trong TALK, SEARCH, MOVE, WAIT, NONE; " +
-      "targetId phải là target đã có native authority, itemId null. " +
-      "Nếu quyết định chưa có native executor, hệ thống sẽ từ chối chứ không tự đổi ý ngươi."
+      "\nHãy tự quyết định dựa trên năng lực và các đích hiện có. " +
+      "Các intent được hỗ trợ: SEARCH, MOVE, INSPECT, WAIT; TALK chỉ khi có người hiện diện. " +
+      "Legal targetIds: " + bound.scope.legalTargetIds.sorted() +
+      ". MOVE phải chọn tuyến kế tiếp hợp lệ; SEARCH có thể không chọn target. " +
+      "NONE và các intent không có writer native sẽ không được giả kết quả. " +
+      "Trả đúng JSON {\\\"intent\\\":\\\"SEARCH\\\",\\\"targetId\\\":null,\\\"itemId\\\":null} hoặc intent khác hợp lệ."
     val raw = try { model.propose(prompt) } catch (error: Exception) {
       throw IOException("actor_provider_failed", error)
     }
     val selected = CompanionActorIntentGateway.select(raw, bound.scope, bound.interaction)
     if (selected !is CompanionActorIntentGateway.Result.Accepted)
       throw IOException((selected as CompanionActorIntentGateway.Result.Rejected).reason)
-    if (selected.selected.proposal.intent != DecisionPreflight.Intent.WAIT)
+    val intent = selected.selected.proposal.intent
+    val target = selected.selected.proposal.targetId
+    if (intent !in setOf(DecisionPreflight.Intent.WAIT,
+        DecisionPreflight.Intent.SEARCH,DecisionPreflight.Intent.MOVE,
+        DecisionPreflight.Intent.INSPECT))
       throw IOException("actor_intent_not_yet_atomically_supported")
 
     // WAIT authorization binds the exact native Core location (not the route
@@ -75,8 +82,11 @@ internal class CompanionNativeWaitInteraction(
     val location = GameStateCodec.decode(
       String(bound.snapshot, StandardCharsets.UTF_8)).world["location"]
         ?.takeIf { it.isNotBlank() } ?: throw IOException("companion_location_missing")
-    val payload = "companion_decision.v1|cao_minh|WAIT|" + bound.revision +
-      "|30|" + location.toByteArray(StandardCharsets.UTF_8).size + ":" + location
+    val payload = if (intent == DecisionPreflight.Intent.WAIT)
+      "companion_decision.v1|cao_minh|WAIT|" + bound.revision +
+        "|30|" + location.toByteArray(StandardCharsets.UTF_8).size + ":" + location
+    else CompanionNativeActionCapture.lockPayload(
+      intent,target,bound.revision,bound.scope.sceneId,bound.snapshot)
     val ledger = object: CharacterDecisionOrchestrator.DecisionLedger {
       override fun get(bindingDigest: String): CharacterDecisionOrchestrator.Decided? {
         val turn = store.request(requestId) ?: return null
@@ -85,11 +95,11 @@ internal class CompanionNativeWaitInteraction(
             existing.policyVersion != CompanionWaitAuthorizer.WAIT_POLICY ||
             existing.sceneRevision != bound.revision) throw IOException("decision_lock_mismatch")
         return CharacterDecisionOrchestrator.Decided(selected.selected.binding,
-          DecisionPreflight.Intent.WAIT, null, null, 0)
+          intent,target,null,0)
       }
       override fun put(decided: CharacterDecisionOrchestrator.Decided): Boolean {
         if (decided.binding != selected.selected.binding ||
-            decided.intent != DecisionPreflight.Intent.WAIT) return false
+            decided.intent != intent || decided.targetId != target) return false
         val turn = store.request(requestId) ?: throw IOException("pending_turn_missing")
         if (turn.decision != null) return false
         store.lockDecision(requestId, CompanionPendingTurn.DecisionLock(
@@ -119,9 +129,14 @@ internal class CompanionNativeWaitInteraction(
     val durable = CharacterDecisionOrchestrator.ReservationGate { choice ->
       if (choice.binding != selected.selected.binding ||
           !CompanionNativeDecisionContext.exactSameSnapshot(store, bound)) return@ReservationGate false
-      CompanionWaitCapture.reserve(store, requestId, bound.revision, exactInput) { size ->
-        rng.nextInt(size)
-      }
+      if (intent == DecisionPreflight.Intent.WAIT)
+        CompanionWaitCapture.reserve(store, requestId, bound.revision, exactInput) { size ->
+          rng.nextInt(size)
+        }
+      else
+        CompanionNativeActionCapture.reserve(store, requestId, bound.revision, exactInput) { size ->
+          rng.nextInt(size)
+        }
       true
     }
     val requestInput = CharacterDecisionOrchestrator.Input(
@@ -144,10 +159,15 @@ internal class CompanionNativeWaitInteraction(
     if (outcome !is CharacterDecisionOrchestrator.Outcome.DecidedOutcome)
       throw IOException("actor_decision_" +
         (outcome as CharacterDecisionOrchestrator.Outcome.Rejected).reason)
-    val batch = CompanionWaitBatch.prepare(store, requestId, bound.revision, exactInput)
-    val receipt = store.commitWait(requestId, bound.revision, exactInput, batch)
+    val (receipt, turnId) = if (intent == DecisionPreflight.Intent.WAIT) {
+      val batch=CompanionWaitBatch.prepare(store,requestId,bound.revision,exactInput)
+      store.commitWait(requestId,bound.revision,exactInput,batch) to batch.turnId
+    } else {
+      val batch=CompanionNativeActionBatch.prepare(store,requestId,bound.revision,exactInput)
+      store.commitNativeAction(requestId,bound.revision,exactInput,batch) to batch.turnId
+    }
     val encoded = String(store.currentSnapshot(), StandardCharsets.UTF_8)
-    if (batch.turnId !in GameStateCodec.decode(encoded).turn.completedTurnIds)
+    if (turnId !in GameStateCodec.decode(encoded).turn.completedTurnIds)
       throw IOException("receipt_core_turn_missing")
     return Committed(receipt.committedRevision, receipt.finalResult, encoded)
   }
