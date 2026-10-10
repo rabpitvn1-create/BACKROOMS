@@ -1,0 +1,25 @@
+name: Dispatch Backroom 1.1.63.0.7 release (one shot)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/dispatch-backroom-1.1.63.0.7.yml"
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch-verified-release:
+    if: ${{ github.repository == 'rabpitvn1-create/BACKROOMS' && github.ref == 'refs/heads/main' && github.event.head_commit.message == 'Dispatch verified Backroom v1.1.63.0.7 release' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm version-bump build passed before publishing
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          result=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/38018538706" --jq '.conclusion')
+          test "$result" = "success"
+          gh workflow run build-backroom-apk.yml --repo "$GITHUB_REPOSITORY" --ref main --field publish_release=true --field android_smoke=false
