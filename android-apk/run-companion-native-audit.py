@@ -102,7 +102,10 @@ def main():
                       '-e', 'candidate_sha', head, '-e', 'trial_id', trial_id,
                       '-e', 'turns', str(turns), COMPONENT)
         (output / (trial_id + '.log')).write_text(log)
-        assert 'COMPANION_STORAGE_PASS api=%d cases=1' % args.api in log and 'OK (1 tests)' in log
+        if 'COMPANION_STORAGE_PASS api=%d cases=1' % args.api not in log or 'OK (1 tests)' not in log:
+            print('NATIVE_AUDIT_INSTRUMENTATION_FAILURE api=%d trial=%s' % (args.api, trial_id), flush=True)
+            print(log[-12000:], flush=True)
+            raise RuntimeError('native audit instrumentation failed for '+trial_id)
         raw = command('adb', 'exec-out', 'run-as', 'com.rabpit.backroom', 'cat',
                       'files/companion_audit/' + trial_id + '.json')
         path = output / (trial_id + '.json')
