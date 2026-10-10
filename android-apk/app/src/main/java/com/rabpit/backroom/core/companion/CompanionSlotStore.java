@@ -359,6 +359,80 @@ public final class CompanionSlotStore implements Closeable {
       throw error;
     }
   }
+  /** Non-WAIT transaction. Rebuilds native state/events/memory under the writer.
+   * A model/JS batch cannot inject private memory, dice or a Core snapshot.
+   * Existing WAIT manifests and their verifier are unchanged.
+   */
+  public synchronized CompanionPendingTurn.Receipt commitNativeAction(
+      String requestId,long expectedRevision,String exactInput,
+      CompanionNativeActionBatch.Batch candidate) throws IOException {
+    Request identity=Request.fromPlayerInput(slotId,requestId,expectedRevision,"cao_minh",exactInput);
+    try {
+      CompanionPendingTurn.Receipt receipt=transaction(() -> {
+        CompanionPendingTurn.Receipt prior=receiptWithin(identity);
+        if(prior!=null)return prior;
+        NativeView view=nativeView(requestId);
+        CompanionNativeActionBatch.Batch batch=CompanionNativeActionBatch.verifyForCommit(
+          view,requestId,expectedRevision,exactInput,candidate);
+        for(CompanionNativeActionBatch.Event event:batch.getEvents()) {
+          ContentValues row=new ContentValues();
+          row.put("event_id",event.getId());row.put("turn_id",batch.getTurnId());
+          row.put("revision",expectedRevision+1);row.put("ordinal",event.getOrdinal());
+          row.put("type",event.getType());row.put("record",event.getRecord());
+          row.put("digest",event.getDigest());
+          database.insertOrThrow("native_event",null,row);
+          fault.at("after_event_write");
+        }
+        byte[] snapshot=batch.getAfter().getBytes(StandardCharsets.UTF_8);
+        if(snapshot.length==0||snapshot.length>16777216)throw new IOException("snapshot_size_invalid");
+        ContentValues meta=new ContentValues();
+        meta.put("revision",expectedRevision+1);meta.put("snapshot",snapshot);
+        meta.put("snapshot_digest",hash(snapshot));
+        if(database.update("slot_meta",meta,"singleton=1 AND revision=?",
+            new String[]{Long.toString(expectedRevision)})!=1)throw new IOException("revision_cas_failed");
+        fault.at("after_snapshot_write");
+        CompanionPendingTurn committed=view.turn.markCommitted(expectedRevision,
+          batch.getDecisionDigest(),batch.getReservationDigest(),
+          batch.getManifest(),batch.getFinalResult());
+        write(committed);fault.at("after_receipt_write");
+
+        ObservationPublisher.publish(database,slotId,batch.getTurnId(),expectedRevision+1,
+          java.util.Collections.singletonList(batch.getObservation()),point->fault.at(point));
+        fault.at("after_observation_publish");
+
+        EpisodicMemory.MemoryRecord memory=batch.getMemory();
+        ContentValues m=new ContentValues();
+        m.put("slot_id",slotId);m.put("memory_id",memory.getMemoryId());
+        m.put("actor_id",memory.getOwnerActorId());m.put("observation_id",memory.getObservationId());
+        m.put("created_turn_id",batch.getTurnId());m.put("committed_revision",expectedRevision+1);
+        m.put("topic",memory.getTopic());m.put("subjective_summary",memory.getSummary());
+        m.put("interpretation_source",memory.getInterpretationSource().name());
+        m.put("salience",memory.getSalience().name());m.put("status",memory.getStatus().name());
+        m.putNull("supersedes_memory_id");
+        database.insertOrThrow("actor_memory",null,m);fault.at("after_memory_write");
+        ContentValues manifest=new ContentValues();
+        manifest.put("slot_id",slotId);manifest.put("turn_id",batch.getTurnId());
+        manifest.put("committed_revision",expectedRevision+1);manifest.put("ordinal",0);
+        manifest.put("memory_id",memory.getMemoryId());manifest.put("actor_id",memory.getOwnerActorId());
+        database.insertOrThrow("memory_manifest",null,manifest);
+        fault.at("after_memory_publish");
+        // Only native-proven typed claim events may produce brain deltas.
+        // An actor's completed search alone proves no external proposition.
+        fault.at("after_brain_publish");
+        verifyReceipt(committed);
+        return committed.receipt;
+      });
+      fault.at("after_durable_commit");
+      return receipt;
+    }catch(IOException|RuntimeException error){
+      try{
+        CompanionPendingTurn.Receipt prior=transaction(()->receiptWithin(identity),false);
+        if(prior!=null)return prior;
+      }catch(IOException|RuntimeException readback){error.addSuppressed(readback);}
+      throw error;
+    }
+  }
+
   private long revision() throws IOException { return scalar("SELECT revision FROM slot_meta WHERE singleton=1"); }
   private byte[] snapshotWithin() throws IOException {
     try (Cursor c = database.rawQuery("SELECT snapshot,snapshot_digest FROM slot_meta WHERE singleton=1", null)) {
@@ -378,13 +452,42 @@ public final class CompanionSlotStore implements Closeable {
       while(c.moveToNext()) events.add(eventRow(c));
     }
     CompanionLedgerVerifier.verifyReceipt(slotId, policyVersion, revision(), turn, events);
-    // Reject any rows not backed by this WAIT receipt (currently an empty manifest).
+    // Every receipt must account for the exact observation/memory/brain cardinality.
+    // WAIT v1 remains empty; native ordinary v2 publishes exactly one actor-owned
+    // observation+memory and never invents a belief or brain delta.
+    org.json.JSONObject manifest;
+    try { manifest = new org.json.JSONObject(turn.receipt.manifest); }
+    catch (org.json.JSONException error) { throw new IOException("receipt_manifest_invalid",error); }
+    boolean ordinary = "companion_manifest.v2".equals(manifest.optString("version"));
     String[] binding = new String[]{turn.turnId, Long.toString(turn.receipt.committedRevision)};
     for (String table : new String[]{"actor_observation", "observation_manifest", "actor_memory", "memory_manifest", "actor_brain_delta", "brain_manifest"}) {
       try (Cursor c = database.rawQuery("SELECT COUNT(*) FROM " + table +
           " WHERE " + (table.equals("actor_observation") || table.equals("actor_memory") || table.equals("actor_brain_delta") ? "created_turn_id" : "turn_id") +
           "=? AND committed_revision=?", binding)) {
-        if (!c.moveToFirst() || c.getLong(0) != 0) throw new IOException("observation_receipt_incomplete");
+        long expected=ordinary && (table.equals("actor_observation") || table.equals("observation_manifest") ||
+            table.equals("actor_memory") || table.equals("memory_manifest")) ? 1 : 0;
+        if (!c.moveToFirst() || c.getLong(0) != expected)
+          throw new IOException("observation_receipt_incomplete");
+      }
+    }
+    if (ordinary) {
+      org.json.JSONObject obs=manifest.optJSONArray("observations").optJSONObject(0);
+      org.json.JSONObject mem=manifest.optJSONArray("memories").optJSONObject(0);
+      if (obs==null||mem==null)throw new IOException("native_memory_manifest_missing");
+      try (Cursor c=database.rawQuery(
+          "SELECT observation_id,observation_digest FROM actor_observation WHERE created_turn_id=? AND committed_revision=?",
+          binding)) {
+        if (!c.moveToFirst() || !obs.optString("id").equals(c.getString(0)) ||
+            !obs.optString("digest").equals(c.getString(1)))
+          throw new IOException("native_observation_receipt_mismatch");
+      }
+      try (Cursor c=database.rawQuery(
+          "SELECT memory_id,actor_id,observation_id FROM actor_memory WHERE created_turn_id=? AND committed_revision=?",
+          binding)) {
+        if (!c.moveToFirst() || !mem.optString("id").equals(c.getString(0)) ||
+            !mem.optString("actor").equals(c.getString(1)) ||
+            !mem.optString("observationId").equals(c.getString(2)))
+          throw new IOException("native_memory_receipt_mismatch");
       }
     }
   }
