@@ -14,9 +14,8 @@
     return raw.replace(/\b\w/g,function(c){return c.toUpperCase();});
   }
   function ensureCombatPanel(){
-    if(combatPanel&&combatPanel.isConnected!==false)return combatPanel;
     var snapshot=document.getElementById('snapshot');if(!snapshot)return null;
-    combatPanel=document.getElementById('combatFeedbackPanel');
+    if(!combatPanel||combatPanel.isConnected===false)combatPanel=document.getElementById('combatFeedbackPanel');
     if(!combatPanel){
       combatPanel=document.createElement('section');
       combatPanel.id='combatFeedbackPanel';
@@ -104,13 +103,8 @@
     });
   }
   function setFeedbackBusy(value){
-    window.__combatFeedbackBusy=value;
-    if(typeof busy!=='undefined')busy=value;
-    if(value){
-      var modal=document.getElementById('pokerDiceModal');
-      if(modal){modal.hidden=true;modal.setAttribute('aria-hidden','true');}
-      if(document.body)document.body.classList.remove('poker-dice-open');
-    }else if(typeof window.ensureDirectCombatDice==='function')window.ensureDirectCombatDice();
+    window.__combatFeedbackBusy=!!value;
+    if(typeof window.ensureDirectCombatDice==='function')window.ensureDirectCombatDice();
   }
   function targetAnchor(target){
     var box=document.getElementById('snapshot');
