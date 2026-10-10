@@ -185,12 +185,12 @@ ensure = r'''  function clearDiceTimers(){
 html = html[:ensure_start] + ensure + html[ensure_end:]
 
 old_roll = '''  roll.addEventListener("click",function(){
-    if(window.__combatDiceBusy||window.__combatFeedbackBusy||!window.Android||typeof Android.combatDiceRoll!=="function")return;
+    if(window.__combatDiceBusy||!window.Android||typeof Android.combatDiceRoll!=="function")return;
     window.__combatDiceRolling=true;setBusy(true);renderDice();Android.combatDiceRoll(JSON.stringify(state));
   });
 '''
 new_roll = '''  roll.addEventListener("click",function(){
-    if(window.__combatDiceBusy||!window.Android||typeof Android.combatDiceRoll!=="function")return;
+    if(window.__combatDiceBusy||window.__combatFeedbackBusy||!window.Android||typeof Android.combatDiceRoll!=="function")return;
     window.__combatDiceRolling=true;diceRollAnimating=true;diceRollStartedAt=Date.now();++diceRollToken;
     setBusy(true);renderDice();Android.combatDiceRoll(JSON.stringify(state));
   });
@@ -198,6 +198,20 @@ new_roll = '''  roll.addEventListener("click",function(){
 if old_roll not in html:
     raise RuntimeError("Poker Dice 1.1.99 polish: ROLL handler anchor missing")
 html = html.replace(old_roll, new_roll, 1)
+
+old_finish = '''  finish.addEventListener("click",function(){
+    if(window.__combatDiceBusy||!window.Android||typeof Android.combatDiceFinish!=="function")return;
+    submitAfterFinalize=true;setBusy(true);Android.combatDiceFinish(JSON.stringify(state));
+  });
+'''
+new_finish = '''  finish.addEventListener("click",function(){
+    if(window.__combatDiceBusy||window.__combatFeedbackBusy||!window.Android||typeof Android.combatDiceFinish!=="function")return;
+    submitAfterFinalize=true;setBusy(true);Android.combatDiceFinish(JSON.stringify(state));
+  });
+'''
+if old_finish not in html:
+    raise RuntimeError("Poker Dice 1.1.99 polish: FINISH handler anchor missing")
+html = html.replace(old_finish, new_finish, 1)
 
 state_start = html.find("  window.backroomCombatDiceState=function(json){")
 state_end = html.find("\n  function selectedCharacter(){", state_start)
