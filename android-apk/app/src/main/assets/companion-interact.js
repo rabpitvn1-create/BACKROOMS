@@ -143,8 +143,18 @@
   window.backroomCompanionError = function (message) {
     busy = false; awaitingNewGame = false;
     button.disabled = false; start.disabled = false;
-    statusText("Chưa commit: " + String(message || "Lỗi native") +
-      ". Nội dung vẫn giữ để có thể thử lại đúng request.");
+    var reason = String(message || "Lỗi native");
+    // SQLite REJECTED is a terminal alias, unlike DECISION_LOCKED/RESERVED.
+    // Retain the player's words but mint a fresh alias for a new decision.
+    if (reason.indexOf("companion_retry_new_alias:") === 0) {
+      safeRemove(PENDING_KEY);
+      lastRequest = null;
+      statusText("Chưa commit: " + reason.slice("companion_retry_new_alias:".length).trim() +
+        ". Lời đã nhập vẫn còn; lần thử tiếp theo dùng request mới.");
+    } else {
+      statusText("Chưa commit: " + reason +
+        ". Giữ request hiện tại để phục hồi cùng lượt.");
+    }
   };
 
   start.addEventListener("click", function () {
