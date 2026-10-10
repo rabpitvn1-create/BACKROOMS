@@ -81,6 +81,8 @@ internal object CompanionNativeDecisionContext {
       capabilities.add("cap.talk")
       legal.addAll(listeners)
     }
+    val usableItems = state.inventories[KAI_ID]?.items?.values.orEmpty().filter { it.quantity > 0 && it.metadata["consumedOnUse"] == "true" }.map { it.itemId }.toSet()
+    if (usableItems.isNotEmpty()) capabilities.add("cap.use_item")
     val scope = DecisionPreflight.NativeScope(
       slotId = store.slotId,
       slotRevision = revision,
@@ -88,7 +90,7 @@ internal object CompanionNativeDecisionContext {
       sceneId = stop,
       presentActorIds = setOf(KAI_ID),
       capabilities = capabilities,
-      inventoryItemIds = state.inventories[KAI_ID]?.items?.keys.orEmpty(),
+      inventoryItemIds = usableItems,
       legalTargetIds = legal,
       canonRevision = persona.sourceRevision,
       ruleVersion = BrainContracts.RULE_VERSION
