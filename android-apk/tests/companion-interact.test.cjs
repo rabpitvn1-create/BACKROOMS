@@ -120,7 +120,7 @@ test('generated Android loads bridge only after release patch and gates producti
   const html = fs.readFileSync(path.join(root, 'app/src/main/assets/index.html'), 'utf8');
   for (const mark of ['COMPANION_NATIVE_INTERACT_PREVIEW_R01',
     'CompanionAndroidBridge.createNewGame', 'CompanionAndroidBridge.open(',
-    'CompanionAndroidBridge.submit(', 'return BuildConfig.DEBUG',
+    'CompanionAndroidBridge.submit(', 'return BuildConfig.COMPANION_NATIVE_ENABLED',
     'geminiAuditText(', 'GAME_RNG.nextInt(bound)'])
     assert.ok(java.includes(mark), mark);
   assert.ok(html.includes('src="companion-interact.js"'));
