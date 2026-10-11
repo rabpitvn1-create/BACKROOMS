@@ -852,7 +852,7 @@ object CombatRuntime {
         when (c.cover) { Cover.HARD -> 22; Cover.PARTIAL -> 10; Cover.EXPOSED -> 0 } + max(0, c.momentum) * 4 +
       PokerDiceCore.defenseBonus(state)
       val quickStepEvasion = if (quickStepTurns > 0) KAI_QUICK_STEP_EVASION_BONUS_PERCENT else 0
-      val enemyChance = (profile.aggression * 8 - defense + max(0, -c.momentum) * 7 - quickStepEvasion - companionEnemyAccuracyPenalty).coerceIn(0, 88)
+      val enemyChance = (profile.aggression * 8 - defense + max(0, -c.momentum) * 7 - companionEnemyAccuracyPenalty).coerceIn(0, 88)
       if (incomingRoll < enemyChance) {
         val lifeformSkill = rollLifeformSkill(c)
         val damage = if (c.entityKey == DIEP_MINH_KEY) {
@@ -868,7 +868,17 @@ object CombatRuntime {
         // remains Cao Minh's canonical HP for targeted/status-specific skills.
         // Commit pre-attack personal status ticks before sharing this hit.
         val beforeHit = CharacterStatEngine.setCurrentHp(resolvedState, KAI_ID, c.playerHp)
-        val sharedHit = PartyCombatHealth.applySharedDamage(beforeHit, damage, c.eventCounter)
+        val sharedHit = if (c.entityKey == DIEP_MINH_KEY) {
+          // Diệp Minh's percentage-based attack is a special ability, not a normal physical hit.
+          PartyCombatHealth.applySharedDamage(beforeHit, damage, c.eventCounter)
+        } else {
+          PartyCombatHealth.applyStatAdjustedDamage(
+            beforeHit, damage, c.eventCounter,
+            dodgeRoll = { index -> roll(c.copy(eventCounter = c.eventCounter + 601 + index * 41), 10000) },
+            criticalRoll = { index -> roll(c.copy(eventCounter = c.eventCounter + 619 + index * 41), 10000) },
+            leaderEvasionBonusPercent = quickStepEvasion
+          )
+        }
         resolvedState = sharedHit.state
         sharedHit.damageByMember.forEach { (memberId, loss) ->
           feedback += DamageFeedback("actor", loss, actorId = memberId, phase = "entity")
@@ -898,8 +908,12 @@ object CombatRuntime {
         val distribution = sharedHit.damageByMember.entries.joinToString("; ") { (id, loss) ->
           "${resolvedState.characters[id]?.name ?: id} -$loss"
         }
+        val dodged = sharedHit.dodgedIds.joinToString(", ") { resolvedState.characters[it]?.name ?: it }
+        val critical = sharedHit.criticalIds.joinToString(", ") { resolvedState.characters[it]?.name ?: it }
         log += "${c.entityName} phản công: Party chịu -${sharedHit.appliedDamage} HP " +
-          "($partyHp/$partyMaxHp). $distribution."
+          "($partyHp/$partyMaxHp). $distribution." +
+          (if (dodged.isNotEmpty()) " Né tránh: $dodged." else "") +
+          (if (critical.isNotEmpty()) " CRIT 400%: $critical." else "")
       } else {
         log += if (quickStepTurns > 0) {
           "Thiên Ma Bộ khiến ${c.entityName} hụt đòn; +${KAI_QUICK_STEP_EVASION_BONUS_PERCENT}% Evasion đang hoạt động."
