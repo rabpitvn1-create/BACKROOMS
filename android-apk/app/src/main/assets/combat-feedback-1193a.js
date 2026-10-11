@@ -48,6 +48,14 @@
         departing.className='combat-turn-exit'+(prior==='entity'?' combat-turn-exit--entity':
           prior==='iris'||prior==='syvial'||prior==='an_nhien'?' combat-turn-exit--portrait':'');
         departing.src=oldSource;departing.alt='';
+        var priorImage=prior==='entity'?snapshot.querySelector('.snapshot-entity'):
+          prior==='cao_minh'?snapshot.querySelector('.snapshot-character'):
+          prior==='lucia'?snapshot.querySelector('.snapshot-lucia'):null;
+        if(priorImage&&priorImage.style){
+          ['left','right','bottom','height','width','maxWidth','objectPosition'].forEach(function(key){
+            if(priorImage.style[key])departing.style[key]=priorImage.style[key];
+          });
+        }
         departing.setAttribute('aria-hidden','true');
         snapshot.appendChild(departing);
         departing.addEventListener('animationend',function(){departing.remove()},{once:true});
