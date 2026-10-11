@@ -1,0 +1,36 @@
+/* Explorer-only: keep outgoing environment underneath stable Character/Entity overlays. */
+.snapshot .snapshot-explore-previous{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  z-index:1;pointer-events:none;opacity:1;transform:scale(1);
+}
+.snapshot[data-explore-phase] .snapshot-character{
+  transform-origin:75% 100%;will-change:transform;
+}
+.snapshot[data-explore-phase="advance"] .snapshot-character,
+.snapshot[data-explore-phase="fade"] .snapshot-character{
+  transform:translate3d(var(--explore-advance-x,-70px),-3px,0) scale(1.055);
+  transition:transform 540ms cubic-bezier(.19,.65,.18,1);
+}
+.snapshot[data-explore-phase="settle"] .snapshot-character{
+  transform:translate3d(0,0,0) scale(1);transition:transform 290ms ease-out;
+}
+.snapshot[data-explore-phase="prepare"] .snapshot-bg,
+.snapshot[data-explore-phase="advance"] .snapshot-bg{opacity:0;transform:scale(1.1)}
+.snapshot[data-explore-phase="fade"] .snapshot-bg{
+  opacity:1;transform:scale(1.045);transition:opacity 460ms ease,transform 750ms ease;
+}
+.snapshot[data-explore-phase="settle"] .snapshot-bg{
+  opacity:1;transform:scale(1);transition:transform 290ms ease-out;
+}
+.snapshot[data-explore-phase="advance"] .snapshot-explore-previous{
+  transform:scale(1.07);transition:transform 830ms ease;
+}
+.snapshot[data-explore-phase="fade"] .snapshot-explore-previous,
+.snapshot[data-explore-phase="settle"] .snapshot-explore-previous{
+  opacity:0;transform:scale(1.1);transition:opacity 460ms ease,transform 830ms ease;
+}
+@media(prefers-reduced-motion:reduce){
+  .snapshot[data-explore-phase] .snapshot-character,
+  .snapshot[data-explore-phase] .snapshot-bg,
+  .snapshot[data-explore-phase] .snapshot-explore-previous{transition:none!important;will-change:auto}
+}
