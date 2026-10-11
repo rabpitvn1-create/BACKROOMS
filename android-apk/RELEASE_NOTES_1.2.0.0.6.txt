@@ -1,0 +1,10 @@
+Backroom 1.2.0.0.6 Debug
+
+- Android versionCode 79; applicationId com.rabpit.backroom.
+- Phiên bản đóng gói mới từ nhánh main đã vượt CI sau đợt dọn Canon legacy; không thêm thay đổi gameplay so với mã nguồn đã kiểm chứng gần nhất.
+- Loại bỏ Canon, định danh và tài nguyên Kai/Seth lỗi thời; giữ Cao Minh là nhân vật độc lập với ID cao_minh, hệ Ma Đạo Kiếm Tu, Huyết Ma Kiếm và Huyết Ma Chiến Khải.
+- Làm sạch các quan hệ và tình tiết cũ gán nhầm sang Cao Minh, cùng trạng thái khởi đầu mang giả định Black Blood không được Canon hiện hành xác nhận.
+- Cập nhật Canon Lục Trầm R06: độc lập với Lucia Lục; sau hồi sinh quên ký ức liên quan Cao Minh; chỉ có cơ hội gặp 0,25% từ Level 4 trở đi nếu hành động và roll hợp lệ, gia nhập Party qua Game Core.
+- Bảo toàn các kỹ năng Lục Trầm, hệ chiến đấu, giao diện, 25 khu vực Level 0–6 và ảnh Snapshot đã tích hợp.
+- Bản Debug APK phát hành trên GitHub; CI xác minh Node/Kotlin, build, chữ ký, zipalign, nội dung APK và tải lại tài sản release.
+- Không cung cấp migration hoặc bảo đảm tương thích với save từ phiên bản cũ.
