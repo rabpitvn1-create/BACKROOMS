@@ -1,0 +1,40 @@
+name: Final one-time Actions history prune
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/temporary-final-actions-prune.yml
+permissions:
+  actions: write
+  contents: write
+jobs:
+  prune:
+    if: github.repository == 'rabpitvn1-create/BACKROOMS' && github.event.pull_request.number == 584
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Remove this temporary workflow first, then wait for CI status stabilization
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          repo="$GITHUB_REPOSITORY"
+          file=".github/workflows/temporary-final-actions-prune.yml"
+          test "$repo" = "rabpitvn1-create/BACKROOMS"
+          test "$GITHUB_HEAD_REF" = "fix/independent-combat-party-entity-slots"
+          sha="$(gh api "repos/$repo/contents/$file?ref=$GITHUB_HEAD_REF" --jq '.sha')"
+          gh api -X DELETE "repos/$repo/contents/$file" -f message="Remove one-time final run pruning workflow" -f sha="$sha" -f branch="$GITHUB_HEAD_REF" >/dev/null
+          echo "Temporary cleanup workflow removed from PR head"
+          sleep 140
+          gh api --paginate "repos/$repo/actions/runs?per_page=100" --jq '.workflow_runs[] | [.id, .status, (.conclusion // "-")] | @tsv' > /tmp/remaining-runs.tsv
+          deleted=0
+          while IFS=$'\t' read -r id status conclusion; do
+            if [[ "$id" == "$GITHUB_RUN_ID" ]]; then continue; fi
+            if [[ "$status" == "completed" && "$conclusion" =~ ^(failure|cancelled|timed_out|startup_failure)$ ]]; then
+              echo "Deleting residual run $id ($conclusion)"
+              gh api -X DELETE "repos/$repo/actions/runs/$id" >/dev/null
+              ((deleted+=1))
+            fi
+          done < /tmp/remaining-runs.tsv
+          echo "Residual unsuccessful run records removed: $deleted"
