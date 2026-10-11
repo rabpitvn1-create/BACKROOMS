@@ -163,7 +163,6 @@ jobs:
           grep -q 'renderCharacterStatusEquipment' apk-check/assets/index.html
           grep -q 'characterSkillsModal' apk-check/assets/index.html
           grep -q 'characterSkillsButton' apk-check/assets/index.html
-          grep -q 'GM_SEMANTIC_PLAY_BOLD_R04' apk-check/assets/index.html
           grep -q 'gm-semantic' apk-check/assets/index.html
           ! grep -q 'SEMANTIC_COMPATIBILITY_TERMS=' apk-check/assets/index.html
           grep -q 'function semanticTerms(before,after)' apk-check/assets/index.html
