@@ -26,8 +26,11 @@ function boot(initialState,options={}){
  }
  const root=element('root'),box=element(),dice=element(),entity=element(),actor=element();
  box.id='snapshot';dice.id='pokerDiceModal';root.appendChild(box);root.appendChild(dice);
- box.querySelector=s=>s==='.snapshot-entity'?entity:actor;
- box.querySelectorAll=s=>box.children.filter(n=>n.className.includes('combat-float')&&(!s.includes('data-target')||s.includes('"'+n.dataset.target+'"')));
+ box.querySelector=s=>s==='.snapshot-entity'?entity:s==='.snapshot-character'?actor:
+  box.children.find(n=>s==='.combat-turn-avatar'&&n.className.includes('combat-turn-avatar'))||null;
+ box.querySelectorAll=s=>s.includes('.combat-turn-exit')?
+  box.children.filter(n=>/combat-turn-(?:exit|avatar)/.test(n.className)):
+  box.children.filter(n=>n.className.includes('combat-float')&&(!s.includes('data-target')||s.includes('"'+n.dataset.target+'"')));
  function find(node,id){if(node.id===id)return node;for(const child of node.children){const hit=find(child,id);if(hit)return hit}return null}
  const starting=initialState||{combat:{active:true,encounterId:'enc',entityKey:'diep_minh',round:1}};
  const scope={
@@ -43,7 +46,7 @@ function boot(initialState,options={}){
  };
  vm.runInNewContext(script,scope);
  return {
-  root,box,dice,timers,scope,
+  root,box,dice,actor,entity,timers,scope,
   panel(){return scope.document.getElementById('combatFeedbackPanel')},
   entries(){return scope.document.getElementById('combatFeedbackEntries')},
   event(e){scope.backroomPlayCombatFeedback(e)},
@@ -216,7 +219,7 @@ test('Core re-projection cannot drop skill names and damage from transient comba
 
 test('combat picture shows only current Party actor then Entity while keeping background',()=>{
  const r=boot();
- assert.equal(r.box.dataset.combatFocus,'cao_minh');
+ assert.equal(r.box.dataset.combatFocus,'none');
  const turns=[
   {kind:'actor',eventIndex:0,actorId:'cao_minh',actorName:'Cao Minh',waveNumber:1,waveCount:1,entityName:'Hound'},
   {kind:'actor',eventIndex:0,actorId:'lucia',actorName:'Lucia',waveNumber:1,waveCount:1,entityName:'Hound'},
@@ -227,7 +230,7 @@ test('combat picture shows only current Party actor then Entity while keeping ba
  const ordered=r.timers.filter(t=>t.ms===1210||t.ms===2420);
  assert.equal(ordered.length,2);
  ordered[0].fn();assert.equal(r.box.dataset.combatFocus,'lucia');
- ordered[1].fn();assert.equal(r.box.dataset.combatFocus,'lucia');
+ ordered[1].fn();assert.equal(r.box.dataset.combatFocus,'entity');
  const last=Math.max(...r.timers.map(t=>t.ms));
  r.timers.find(t=>t.ms===last).fn();
  r.turn(undefined,'enc:stop','enc',null);
@@ -239,6 +242,14 @@ test('snapshot style has distinct active-actor rules and existing local Party as
  assert.match(css,/COMBAT_ACTOR_SINGLE_FOCUS_R01/);
  assert.match(css,/\.snapshot\[data-combat-focus="lucia"\] \.snapshot-lucia/);
  assert.match(css,/\.snapshot\[data-combat-focus\] \.snapshot-character/);
+ assert.match(css,/\.snapshot\[data-combat-focus\] \.snapshot-entity/);
+ assert.match(css,/\.snapshot\[data-combat-focus="entity"\] \.snapshot-entity/);
+ assert.match(css,/@keyframes combat-turn-enter/);
+ assert.match(css,/@keyframes combat-turn-leave/);
+ assert.match(css,/rotateY\(-65deg\)/);
+ assert.match(css,/translate3d\(-75%,0,0\)/);
+ assert.doesNotMatch(css,/combat-switch-ring/);
+
  for(const filename of ['avatars/Iris_avatar.jpg','avatars/Syvial_avatar.jpg','avatars/an_nhien_avatar.png']){
   assert.ok(fs.existsSync(path.join(__dirname,'../app/src/main/assets',filename)),filename);
  }
@@ -265,17 +276,17 @@ test('individual cue skill and DMG details are displayed during that actor turn'
 });
 
 
-test('after animated Party turns return to lead fighter while awaiting next dice round',()=>{
+test('after animated turns hide every portrait while waiting for the next round',()=>{
  const r=boot();
  r.turn([],'enc:recover','enc',{active:true,encounterId:'enc',entityKey:'hound',round:3},{},{
   turns:[{kind:'actor',eventIndex:0,actorId:'lucia',actorName:'Lucia',waveNumber:1,waveCount:1,entityName:'Hound'},
          {kind:'entity',eventIndex:0,waveNumber:1,waveCount:1,entityName:'Hound'}]
  });
  r.timers.find(t=>t.ms===1210).fn();
- assert.equal(r.box.dataset.combatFocus,'lucia');
+ assert.equal(r.box.dataset.combatFocus,'entity');
  const finish=Math.max(...r.timers.map(t=>t.ms));
  r.timers.find(t=>t.ms===finish).fn();
- assert.equal(r.box.dataset.combatFocus,'cao_minh');
+ assert.equal(r.box.dataset.combatFocus,'none');
  assert.equal(r.scope.__combatFeedbackBusy,false);
 });
 
@@ -354,4 +365,41 @@ test('short-screen Combat stays scrollable without reducing Snapshot below Explo
  assert.match(fallback[1],/\.game>#combatFeedbackPanel\{flex:0 0 120px;min-height:120px\}/);
  assert.match(fallback[1],/\.game>\.player-action-bar\{position:sticky;bottom:0/);
  assert.doesNotMatch(fallback[1],/\.game>\.snapshot\{/);
+});
+
+
+test('3D handoff isolates the Entity turn and fades the previous actor out',()=>{
+ const r=boot();
+ r.actor.src='file:///android_asset/CAO_MINH_OVERLAY_EXPLORER_IDLE.png';
+ r.entity.src='file:///android_asset/entity.webp';
+ r.turn([],'enc:handoff','enc',{active:true,encounterId:'enc',entityKey:'hound',round:2},{},{
+  turns:[{kind:'actor',eventIndex:0,actorId:'cao_minh',actorName:'Cao Minh',entityName:'Hound'},
+         {kind:'entity',eventIndex:0,entityName:'Hound'}]
+ });
+ assert.equal(r.box.dataset.combatFocus,'cao_minh');
+ r.timers.find(t=>t.ms===1210).fn();
+ assert.equal(r.box.dataset.combatFocus,'entity');
+ const leaving=r.box.children.find(n=>n.className.includes('combat-turn-exit'));
+ assert.ok(leaving,'previous actor must stay visible only during its exit animation');
+ assert.equal(leaving.src,r.actor.src);
+ leaving.listeners.animationend();
+ assert.equal(r.box.children.some(n=>n.className.includes('combat-turn-exit')),false);
+});
+
+test('turn focus uses projected Party avatar for actors outside the original hardcoded group',()=>{
+ const members=[{id:'luc_tram',avatarRef:'avatars/luctram_avatar.png',presence:'ACTIVE'}];
+ const r=boot({combat:{active:true,encounterId:'enc',entityKey:'hound'},partyDetails:{members}});
+ r.turn([],'enc:luc-tram','enc',{active:true,encounterId:'enc',entityKey:'hound',round:2},
+  {partyDetails:{members}},{
+   turns:[{kind:'actor',eventIndex:0,actorId:'luc_tram',actorName:'Lục Trầm',entityName:'Hound'},
+          {kind:'entity',eventIndex:0,entityName:'Hound'}]
+  });
+ assert.equal(r.box.dataset.combatFocus,'luc_tram');
+ const portrait=r.box.children.find(n=>n.className==='combat-turn-avatar');
+ assert.ok(portrait);assert.equal(portrait.src,'avatars/luctram_avatar.png');
+ r.timers.find(t=>t.ms===1210).fn();
+ assert.equal(r.box.dataset.combatFocus,'entity');
+ assert.equal(r.box.children.some(n=>n.className==='combat-turn-avatar'),false);
+ const exit=r.box.children.find(n=>n.className.includes('combat-turn-exit'));
+ assert.ok(exit);assert.equal(exit.src,'avatars/luctram_avatar.png');
 });
