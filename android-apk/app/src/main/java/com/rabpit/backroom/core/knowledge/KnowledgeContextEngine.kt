@@ -265,6 +265,15 @@ object KnowledgeContextEngine {
     }
 
     private fun addStateDrivenRecords() {
+      // A successful roll is the first legitimate encounter cue even before Party materializes.
+      val lucTramRoll = rolls.optJSONObject("lucTramEncounter")
+      if (lucTramRoll?.optBoolean("success", false) == true &&
+          lucTramRoll.optBoolean("eligible", false)) {
+        add("CHAR.LUC_TRAM.RUNTIME_CORE", "confirmed encounter roll")
+        add("CHAR.LUC_TRAM.REVIVAL_R06", "encounter knowledge firewall")
+        add("CHAR.LUC_TRAM.OPEN_R06", "post-revival uncertainty")
+        add("REL.KAI.LUC_TRAM.HISTORY_R06", "confirmed past, not current memory")
+      }
       val flags = state.optJSONObject("flags")
       val confirmedEntities = flags?.optInt("entitiesConfirmedLocal", 0) ?: 0
       val entityRoll = rolls.optJSONObject("entityEncounter")?.optBoolean("success", false) ?: false

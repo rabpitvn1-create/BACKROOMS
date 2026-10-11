@@ -9,6 +9,8 @@ const canon=fs.readFileSync(path.join(root,'java/com/rabpit/backroom/core/LucTra
 test('level four encounter chance and guard',()=>{
  assert.match(java,/thresholdRoll\("lucTramEncounter", 10000, 25,/);
  assert.match(java,/physical && level >= 4 && !lucTramAlreadyMet/);
+ assert.match(java,/patch.remove\("lucTram"\)/);
+ assert.match(java,/rollSuccess\(rolls, "lucTramEncounter"\)/);
  assert.match(canon,/FIRST_ELIGIBLE_LEVEL = 4/);
  assert.match(canon,/value in 1\.\.25/);
 });
