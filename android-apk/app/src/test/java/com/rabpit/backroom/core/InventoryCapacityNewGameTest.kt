@@ -42,17 +42,17 @@ class InventoryCapacityNewGameTest {
 
   @Test fun freshNewGameProjectionUsesCanonical1193aStatsAndCapacity() {
     val state = freshAll()
-    val kai = CharacterDetailProjector.projectParty(state).members.first { it.id == CAO_MINH_ID }
-    assertEquals(50, kai.currentHp)
-    assertEquals(55, kai.maxHp)
-    assertEquals("∞", kai.energyDisplay)
-    assertEquals(0, kai.regenPerCompletedTurn)
-    assertEquals(listOf(5,5,5,5,5), listOf(kai.str.base, kai.dex.base, kai.agi.base, kai.vit.base, kai.eva.base))
-    assertEquals(listOf(6,6,6,6,6), listOf(kai.str.effective, kai.dex.effective, kai.agi.effective, kai.vit.effective, kai.eva.effective))
-    assertEquals(0, kai.inventoryCapacityUsed)
-    assertEquals(InventoryPolicy.KAI.maxTypes, kai.inventoryCapacityMax)
-    assertEquals(2, kai.equipment.values.toSet().size)
-    assertEquals(0, kai.inventoryDetails.count { it.equipped })
-    assertEquals(2, kai.equipmentDetails.size)
+    val caoMinh = CharacterDetailProjector.projectParty(state).members.first { it.id == CAO_MINH_ID }
+    assertEquals(50, caoMinh.currentHp)
+    assertEquals(55, caoMinh.maxHp)
+    assertEquals("∞", caoMinh.energyDisplay)
+    assertEquals(0, caoMinh.regenPerCompletedTurn)
+    assertEquals(listOf(5,5,5,5,5), listOf(caoMinh.str.base, caoMinh.dex.base, caoMinh.agi.base, caoMinh.vit.base, caoMinh.eva.base))
+    assertEquals(listOf(6,6,6,6,6), listOf(caoMinh.str.effective, caoMinh.dex.effective, caoMinh.agi.effective, caoMinh.vit.effective, caoMinh.eva.effective))
+    assertEquals(0, caoMinh.inventoryCapacityUsed)
+    assertEquals(InventoryPolicy.CAO_MINH.maxTypes, caoMinh.inventoryCapacityMax)
+    assertEquals(2, caoMinh.equipment.values.toSet().size)
+    assertEquals(0, caoMinh.inventoryDetails.count { it.equipped })
+    assertEquals(2, caoMinh.equipmentDetails.size)
   }
 }

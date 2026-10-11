@@ -97,7 +97,7 @@ class CombatRuntimeTest {
 
   @Test fun entityDropSurvivesFullInventoryUntilSlotOpens() {
     val initial = GameState.initial()
-    val fullItems = (1..InventoryPolicy.KAI.maxTypes).associate { n ->
+    val fullItems = (1..InventoryPolicy.CAO_MINH.maxTypes).associate { n ->
       val itemId = "filler:$n"
       itemId to ItemStack(itemId, "Filler $n", 1)
     }

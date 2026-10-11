@@ -34,7 +34,7 @@ class CoreClientProjectionTest {
     assertEquals(core.world["location"], view.getString("location"))
     assertFalse(view.has("combat"))
     assertEquals(1, view.getJSONArray("log").length())
-    assertEquals(KAI_WHITE_WRAITH_ID, view.getJSONObject("equipment").getJSONObject("weapon").getString("id"))
+    assertEquals(CAO_MINH_SWORD_ID, view.getJSONObject("equipment").getJSONObject("weapon").getString("id"))
   }
 
   @Test fun coreTurnAndLootStayAuthoritativeAcrossCurrentSaveRoundTrip() {
@@ -47,7 +47,7 @@ class CoreClientProjectionTest {
     val view = CoreClientProjection.project(forged, loaded)
     assertEquals(2, view.getInt("turn"))
     assertEquals(BANDAGE_ID, view.getJSONArray("inventory").getJSONObject(0).getString("id"))
-    assertEquals(KAI_WHITE_WRAITH_ID, view.getJSONObject("equipment").getJSONObject("weapon").getString("id"))
+    assertEquals(CAO_MINH_SWORD_ID, view.getJSONObject("equipment").getJSONObject("weapon").getString("id"))
     assertEquals(2, CoreClientProjection.turnIndex(loaded))
   }
 }
