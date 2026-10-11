@@ -88,6 +88,9 @@ object GameStateCodec {
     put("schema", CharacterProgressionCore.SCHEMA)
     put("baseMaxHp", CharacterProgressionCore.BASE_MAX_HP)
     put("STR", value.str)
+    put("DEX", value.dex)
+    put("AGI", value.agi)
+    put("EVA", value.eva)
     put("DEF", value.def)
     put("SKL", value.skl)
     put("VIT", value.vit)
@@ -99,6 +102,9 @@ object GameStateCodec {
     return fallback.copy(
       baseMaxHp = CharacterProgressionCore.BASE_MAX_HP,
       str = json.optInt("STR", CharacterProgressionCore.BASE_STAT).coerceIn(5, 999),
+      dex = json.optInt("DEX", CharacterProgressionCore.BASE_STAT).coerceIn(5, 999),
+      agi = json.optInt("AGI", CharacterProgressionCore.BASE_STAT).coerceIn(5, 999),
+      eva = json.optInt("EVA", CharacterProgressionCore.BASE_STAT).coerceIn(5, 999),
       def = json.optInt("DEF", CharacterProgressionCore.BASE_STAT).coerceIn(5, 999),
       skl = json.optInt("SKL", CharacterProgressionCore.BASE_STAT).coerceIn(5, 999),
       vit = json.optInt("VIT", CharacterProgressionCore.BASE_STAT).coerceIn(5, 999),
