@@ -36,7 +36,8 @@
 @media (prefers-reduced-motion:reduce){.combat-turn-indicator--loading .combat-turn-spinner{animation:none;opacity:.8}}
 
 /* COMBAT_ACTOR_SINGLE_FOCUS_R01 / 3D_TURN_COVERFLOW_R01:
-   Only the current Kotlin combat cue is visible. The Level background never moves. */
+   One combat portrait remains visible while awaiting a cue. Individual
+   translate/rotate/scale preserve the Entity's inline ground-plane transform. */
 .snapshot[data-combat-focus]{perspective:900px;--combat-turn-duration:800ms}
 .snapshot[data-combat-focus] .snapshot-character,
 .snapshot[data-combat-focus] .snapshot-lucia,
@@ -88,16 +89,16 @@
  animation:combat-turn-enter var(--combat-turn-duration) cubic-bezier(.22,.62,.19,1) both
 }
 @keyframes combat-turn-enter{
- from{opacity:0;transform:translate3d(75%,0,0) rotateY(-65deg) scale(.78)}
- to{opacity:1;transform:translate3d(0,0,0) rotateY(0) scale(1)}
+ from{opacity:0;translate:75% 0;rotate:y -65deg;scale:.78}
+ to{opacity:1;translate:0 0;rotate:y 0deg;scale:1}
 }
 @keyframes combat-turn-enter-alt{
- from{opacity:0;transform:translate3d(75%,0,0) rotateY(-65deg) scale(.78)}
- to{opacity:1;transform:translate3d(0,0,0) rotateY(0) scale(1)}
+ from{opacity:0;translate:75% 0;rotate:y -65deg;scale:.78}
+ to{opacity:1;translate:0 0;rotate:y 0deg;scale:1}
 }
 @keyframes combat-turn-leave{
- from{opacity:1;transform:translate3d(0,0,0) rotateY(0) scale(1)}
- to{opacity:0;transform:translate3d(-75%,0,0) rotateY(65deg) scale(.78)}
+ from{opacity:1;translate:0 0;rotate:y 0deg;scale:1}
+ to{opacity:0;translate:-75% 0;rotate:y 65deg;scale:.78}
 }
 @media(prefers-reduced-motion:reduce){
  .snapshot[data-combat-focus]{--combat-turn-duration:90ms}
