@@ -39,12 +39,13 @@
    One combat portrait remains visible while awaiting a cue. Individual
    translate/rotate/scale preserve the Entity's inline ground-plane transform. */
 .snapshot[data-combat-focus]{perspective:900px;--combat-turn-duration:800ms}
+/* Entity is the encounter opponent, not a Party carousel card. Keep its
+   overlay mounted/visible on the left during all active combat phases. */
 .snapshot[data-combat-focus] .snapshot-character,
-.snapshot[data-combat-focus] .snapshot-lucia,
-.snapshot[data-combat-focus] .snapshot-entity{display:none!important}
+.snapshot[data-combat-focus] .snapshot-lucia{display:none!important}
+.snapshot[data-combat-focus] .snapshot-entity{display:block!important}
 .snapshot[data-combat-focus="cao_minh"] .snapshot-character,
-.snapshot[data-combat-focus="lucia"] .snapshot-lucia,
-.snapshot[data-combat-focus="entity"] .snapshot-entity{
+.snapshot[data-combat-focus="lucia"] .snapshot-lucia{
  display:block!important;
  animation:combat-turn-enter var(--combat-turn-duration) cubic-bezier(.22,.62,.19,1) both;
  backface-visibility:hidden;transform-origin:center center
@@ -104,7 +105,6 @@
  .snapshot[data-combat-focus]{--combat-turn-duration:90ms}
  .snapshot[data-combat-focus="cao_minh"] .snapshot-character,
  .snapshot[data-combat-focus="lucia"] .snapshot-lucia,
- .snapshot[data-combat-focus="entity"] .snapshot-entity,
  .snapshot[data-combat-focus="iris"]::after,
  .snapshot[data-combat-focus="syvial"]::after,
  .snapshot[data-combat-focus="an_nhien"]::after,
