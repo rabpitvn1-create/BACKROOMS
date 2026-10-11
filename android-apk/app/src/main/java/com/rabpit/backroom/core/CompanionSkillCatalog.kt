@@ -61,6 +61,22 @@ object CompanionSkillCatalog {
     s("Huyết Ma Nhị Thập Tứ Trảm", "ULTIMATE", "Mỗi 3 combat turn khi TẤN CÔNG", "Đúng 24 trảm, mỗi trảm 115% current Weapon DMG; bỏ qua Evasion.")
   )
 
+  // R06 tactical combat effects; no invented canon proc rates.
+  private val lucTram = listOf(
+    s("Thiên Kiếm Linh Tâm", "PASSIVE", "Lục Trầm ACTIVE; Party chọn QUAN SÁT",
+      "Đọc quỹ đạo và tăng thêm 1 opening.", "Không đọc ý nghĩ hoặc tự nhận dạng Entity."),
+    s("Nhất Tuyến Phá Vọng", "AUTO", "Party TẤN CÔNG khi mục tiêu ở CLOSE hoặc có opening",
+      "Chém tập trung và bỏ qua 20% giáp.", "20% là hệ số gameplay, không phải canon."),
+    s("Bạch Hồng Quán Nhật", "AUTO", "Party TẤN CÔNG khi mục tiêu chưa ở CLOSE và chưa có opening",
+      "Đột tiến một range band rồi đánh thường.", "Không vượt cấu trúc Level."),
+    s("Tịch Quang Phản Kiếm", "COUNTER", "Entity hụt phản công, Tịch Quang đã xác nhận trang bị",
+      "Phản kiếm với Accuracy / Evasion độc lập.", "Không tự giả định bản mệnh kiếm còn nguyên."),
+    s("Vạn Kiếm Quy Tâm", "UTILITY", "Party chọn NÉ TRÁNH hoặc PHÒNG THỦ",
+      "Kiếm khí giữ lối rút: cover HARD khi né; thêm opening khi thủ.", "Không miễn mọi đòn."),
+    s("Thiên Kiếm Định Giới", "ULTIMATE", "Có Tịch Quang, opening từ 2 và chưa dùng trong wave",
+      "Dùng lượt của Lục Trầm dựng Kiếm Vực: cover HARD, opening 3.", "Không đổi geometry Backrooms.")
+  )
+
   private val lucia = listOf(
     s("Trinh sát chiến trường", "PASSIVE", "Khi Lucia ở trong Party", "+5 điểm phần trăm vào generic loot roll hiện có."),
     s("M4A1 Joint Attack", "COMMAND", "Khi Party chọn TẤN CÔNG", "Lucia có resolution bắn M4A1 riêng và vẫn chịu Entity Evasion gate.")
@@ -72,6 +88,7 @@ object CompanionSkillCatalog {
     SYVIAL_ID -> syvial
     AN_NHIEN_ID -> anNhien
     LUCIA_ID -> lucia
+    LUC_TRAM_ID -> lucTram
     else -> emptyList()
   }
 }
