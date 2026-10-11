@@ -119,6 +119,24 @@ object CombatRuntime {
     }
   }
 
+  /** Transient presentation cues; indices refer to the separate damage event stream. */
+  data class TurnCue(
+    val kind: String,
+    val eventIndex: Int,
+    val actorId: String = "",
+    val actorName: String = "",
+    val waveNumber: Int,
+    val waveCount: Int,
+    val entityName: String
+  ) {
+    fun toJson(): JSONObject = JSONObject().apply {
+      put("kind", kind); put("eventIndex", eventIndex)
+      put("actorId", actorId); put("actorName", actorName)
+      put("waveNumber", waveNumber); put("waveCount", waveCount)
+      put("entityName", entityName)
+    }
+  }
+
   private fun feedbackStatus(code: String): FeedbackStatus? = when (code) {
     "bleed" -> FeedbackStatus.BLEED
     "poison" -> FeedbackStatus.POISON
@@ -134,7 +152,8 @@ object CombatRuntime {
     val reply: String = "",
     val entityDestroyed: Boolean = false,
     val escaped: Boolean = false,
-    val feedback: List<DamageFeedback> = emptyList()
+    val feedback: List<DamageFeedback> = emptyList(),
+    val turnCues: List<TurnCue> = emptyList()
   )
 
   private val profiles = listOf(
@@ -219,13 +238,20 @@ object CombatRuntime {
     var c = current.copy(eventCounter = current.eventCounter + 1)
     val log = mutableListOf<String>()
     val feedback = mutableListOf<DamageFeedback>()
+    val turnCues = mutableListOf<TurnCue>()
+    var resolvedState = state
+    var currentActingId = KAI_ID
+    fun cue(kind: String, actorId: String = "", actorName: String = "") {
+      val queue = waveKeys(resolvedState, c.entityKey)
+      turnCues += TurnCue(kind, feedback.size, actorId, actorName,
+        waveIndex(resolvedState, queue.size) + 1, queue.size, c.entityName)
+    }
     fun recordFeedback(target: String, before: Int, after: Int,
                        critical: Boolean = false, status: FeedbackStatus? = null,
-                       phase: String = "actor", actorId: String = KAI_ID) {
+                       phase: String = "actor", actorId: String = currentActingId) {
       val amount = (before - after).coerceAtLeast(0)
       if (amount > 0) feedback += DamageFeedback(target, amount, critical, status, actorId = actorId, phase = phase)
     }
-    var resolvedState = state
     var lifeformBleedTurns = state.metadata[LIFEFORM_BLEED_TURNS_KEY]?.toIntOrNull()?.coerceIn(0, LIFEFORM_BLEED_TURNS) ?: 0
     var lifeformPoisonTurns = state.metadata[LIFEFORM_POISON_TURNS_KEY]?.toIntOrNull()?.coerceIn(0, LIFEFORM_POISON_TURNS) ?: 0
     var bleedTurns = state.metadata[KAI_BLEED_TURNS_KEY]?.toIntOrNull()?.coerceIn(0, KAI_LAST_REQUIEM_BLEED_TURNS) ?: 0
@@ -298,6 +324,7 @@ object CombatRuntime {
       c = active(resolvedState) ?: error("Wave handoff must preserve active combat")
       profile = profiles.getValue(c.entityKey)
       log += advanced.reply
+      cue("wave")
       bleedTurns = 0
       syvialBleedTurns = 0
       irisAnalyzedTurns = 0
@@ -333,6 +360,7 @@ object CombatRuntime {
               }
     }
 
+    if (intent != Intent.ATTACK) cue("party", actorName = "Cả Party")
     when (intent) {
       Intent.READ -> {
         c = c.copy(
@@ -401,6 +429,8 @@ object CombatRuntime {
           val rangeBonus = when (c.range) { RangeBand.CLOSE -> 18; RangeBand.NEAR -> 10; RangeBand.FAR -> -5 }
           val hitChance = (58 + rangeBonus + c.opening * 11 + c.momentum * 6 + PokerDiceCore.accuracyBonus(state)).coerceIn(20, 99)
           val actor = resolvedState.characters.getValue(actorId)
+          currentActingId = actorId
+          cue("actor", actorId, actor.name)
           log += "PARTY TURN ${turnIndex + 1}/${partyOrder.size}: ${actor.name}."
           when (actorId) {
             KAI_ID -> {
@@ -724,18 +754,18 @@ object CombatRuntime {
     }
 
     if (c.entityHp <= 0 && !promoteDefeatedWave()) {
-      return settleDefeated(resolvedState, c, log.joinToString(" "), feedback.toList())
+      return settleDefeated(resolvedState, c, log.joinToString(" "), feedback.toList()).copy(turnCues = turnCues.toList())
     }
     if (c.escapeProgress >= 100) {
       val persisted = afterActiveLeaderTurn(encode(resolvedState, c.copy(phase = Phase.RESOLVED)))
       val cleared = clearCombatOnly(persisted)
-      return Resolution(cleared, true, log.joinToString(" ") + " Cao Minh cắt được truy đuổi và thoát khỏi encounter.", escaped = true, feedback = feedback.toList())
+      return Resolution(cleared, true, log.joinToString(" ") + " Cao Minh cắt được truy đuổi và thoát khỏi encounter.", escaped = true, feedback = feedback.toList(), turnCues = turnCues.toList())
     }
 
     if (syvialDisorientTurns > 0) companionEnemyAccuracyPenalty += 25
 
     if (c.entityHp <= 0 && !promoteDefeatedWave()) {
-      return settleDefeated(resolvedState, c, log.joinToString(" "), feedback.toList())
+      return settleDefeated(resolvedState, c, log.joinToString(" "), feedback.toList()).copy(turnCues = turnCues.toList())
     }
 
     if (intent != Intent.ATTACK && c.entityHp > 0) {
@@ -748,6 +778,8 @@ object CombatRuntime {
     }
 
     // A replacement Entity is not allowed to counterattack for free.
+    currentActingId = KAI_ID
+    if (canCounterAttack) cue("entity")
     if (!canCounterAttack) {
       log += "${c.entityName} vừa xuất hiện và chờ lượt giao chiến tiếp theo."
     } else if (entityStunnedThisTurn) {
@@ -836,7 +868,7 @@ object CombatRuntime {
     }
 
     if (c.entityHp <= 0 && !promoteDefeatedWave()) {
-      return settleDefeated(resolvedState, c, log.joinToString(" "), feedback.toList())
+      return settleDefeated(resolvedState, c, log.joinToString(" "), feedback.toList()).copy(turnCues = turnCues.toList())
     }
     if (quickStepTurns > 0) {
       quickStepTurns = max(0, quickStepTurns - 1)
@@ -874,7 +906,7 @@ object CombatRuntime {
       opening = max(0, c.opening - if (intent == Intent.READ) 0 else 1)
     )
     val next = afterActiveLeaderTurn(encode(resolvedState, c))
-    return Resolution(next, true, log.joinToString(" "), feedback = feedback.toList())
+    return Resolution(next, true, log.joinToString(" "), feedback = feedback.toList(), turnCues = turnCues.toList())
   }
 
   fun toJson(state: GameState): JSONObject? = decode(state)?.let { c -> JSONObject().apply {
@@ -892,6 +924,7 @@ object CombatRuntime {
     val queue = waveKeys(state, c.entityKey)
     val wave = waveIndex(state, queue.size)
     put("entityInstanceId", "${c.encounterId}:wave:$wave")
+    put("round", c.eventCounter + 1)
     put("waveNumber", wave + 1)
     put("waveCount", queue.size)
     put("remainingEntityCount", queue.size - wave)

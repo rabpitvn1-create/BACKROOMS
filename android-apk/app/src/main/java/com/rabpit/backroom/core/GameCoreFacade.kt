@@ -528,6 +528,7 @@ class GameCoreFacade private constructor(
       put("encounterId", activeCombat.encounterId)
       put("summary", combatReply)
       put("events", JSONArray().apply { resolution.feedback.forEach { put(it.toJson()) } })
+      put("turns", JSONArray().apply { resolution.turnCues.forEach { put(it.toJson()) } })
     })
     if (resolution.entityDestroyed || resolution.escaped) {
       val flags = output.optJSONObject("flags") ?: JSONObject().also { output.put("flags", it) }
