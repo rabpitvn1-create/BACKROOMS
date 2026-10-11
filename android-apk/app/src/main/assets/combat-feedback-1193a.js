@@ -218,7 +218,7 @@
     var cues=packet.turns.filter(function(c){
       return c&&(c.kind==='actor'||c.kind==='entity'||c.kind==='wave'||c.kind==='party')&&
         Number.isInteger(c.eventIndex)&&c.eventIndex>=0&&c.eventIndex<=events.length;
-    }).slice(0,12);
+    }); // Keep every Party/Entity cue in long encounters; do not silently truncate turns.
     if(!cues.length)return null;
     var reduced=typeof window.matchMedia==='function'&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var spinTime=reduced?90:800,clock=0,endTime=0,covered=0;
@@ -279,6 +279,8 @@
     var after=next&&next.combat,packet=rawPacket||(next&&next.combatFeedback);
 
     if(!after||after.active!==true){
+      // The Dice and Combat Log close together on combat completion.
+      // Never leave the last packet queued behind a hidden panel.
       ++animationToken;resetCombatPanel();setFeedbackBusy(false);
       return result;
     }

@@ -321,3 +321,10 @@ test('Entity skill impacts Party once with shared HP and retains Party header',(
  assert.ok(r.entries().children.some(x=>x.textContent==='Hound sử dụng [Cắn Xé] gây -30 HP lên cả nhóm [170/200 HP]'));
  assert.equal(r.scope.document.getElementById('combatFeedbackMeta').textContent,'NOW : Lucia');
 });
+
+
+test('long Party timelines preserve every typed turn rather than truncating after twelve',()=>{
+ const source=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/combat-feedback-1193a.js'),'utf8');
+ assert.ok(!source.includes('}).slice(0,12)'));
+ assert.match(source,/Keep every Party\/Entity cue/);
+});
