@@ -427,7 +427,11 @@ test('an Entity cue waits for its async Android overlay without hiding the prece
  r.timers.find(t=>t.ms===1210).fn();
  assert.equal(r.box.dataset.combatFocus,'cao_minh','show existing actor while Android is loading Entity');
  r.entity.src='file:///android_asset/entity/hound.webp';
+ r.entity.style.opacity='0'; // bridge inserted img but it has not loaded
  r.setEntityReady(true);
+ r.scope.backroomSyncCombatPortrait();
+ assert.equal(r.box.dataset.combatFocus,'cao_minh','do not reveal an undecoded Entity image');
+ r.entity.style.opacity='1'; // appendEntityOverlay.onload
  r.scope.backroomSyncCombatPortrait();
  assert.equal(r.box.dataset.combatFocus,'entity','reveal Entity when its image is available');
  const end=Math.max(...r.timers.map(t=>t.ms));
@@ -449,6 +453,7 @@ test('Snapshot reconstruction reattaches active dynamic Party portrait without s
  assert.equal(r.box.children.find(n=>n.className==='combat-turn-avatar').src,'avatars/luctram_avatar.png');
  const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
  assert.match(java,/appendLuciaCombatOverlay\(\);if\(typeof window!=='undefined'&&typeof window\.backroomSyncCombatPortrait==='function'\)window\.backroomSyncCombatPortrait\(\)/);
+ assert.match(java,/normalizeEntityVisual\(img\);img\.style\.opacity='1';if\(typeof window!=='undefined'&&typeof window\.backroomSyncCombatPortrait==='function'\)window\.backroomSyncCombatPortrait\(\)/);
 });
 
 test('during async Entity image rerender, the current actor remains visible until image returns',()=>{
