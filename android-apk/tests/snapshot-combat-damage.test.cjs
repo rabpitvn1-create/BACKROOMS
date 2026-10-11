@@ -194,13 +194,19 @@ test('typed no-hit turns still animate, and reduced-motion shortens the wait',()
  assert.equal(r.scope.__combatFeedbackBusy,true);
 });
 
-test('typed final-kill cue survives combat closure then clears transient panel',()=>{
+test('typed final-kill cue plays before combat closure then clears transient panel',()=>{
  const r=boot();
  r.turn([{target:'entity',phase:'actor',text:'-5 HP'}],'enc:final-typed','enc',null,{},{
   turns:[{kind:'actor',eventIndex:0,actorId:'cao_minh',actorName:'Cao Minh',waveNumber:1,waveCount:1,entityName:'Hound'}]
  });
+ assert.equal(r.panel().hidden,false,'keep the final turn visible until animation ends');
+ assert.equal(r.scope.state.combat.active,true);
+ assert.equal(r.scope.__combatFeedbackBusy,true);
+ const end=Math.max(...r.timers.map(t=>t.ms));
+ r.timers.find(t=>t.ms===end).fn();
  assert.equal(r.panel().hidden,true);
  assert.equal(r.scope.__combatFeedbackBusy,false);
+ assert.equal(r.scope.state.combat,null);
 });
 
 
@@ -245,7 +251,8 @@ test('snapshot style has distinct active-actor rules and existing local Party as
  assert.match(css,/\.snapshot\[data-combat-focus="lucia"\] \.snapshot-lucia/);
  assert.match(css,/\.snapshot\[data-combat-focus\] \.snapshot-character/);
  assert.match(css,/\.snapshot\[data-combat-focus\] \.snapshot-entity/);
- assert.match(css,/\.snapshot\[data-combat-focus="entity"\] \.snapshot-entity/);
+ assert.match(css,/\.snapshot\[data-combat-focus\] \.snapshot-entity\{display:block!important\}/);
+ assert.doesNotMatch(css,/\.snapshot\[data-combat-focus\] \.snapshot-entity\{display:none!important\}/);
  assert.match(css,/@keyframes combat-turn-enter/);
  assert.match(css,/@keyframes combat-turn-leave/);
  assert.match(css,/rotate:y -65deg/);
@@ -469,4 +476,40 @@ test('during async Entity image rerender, the current actor remains visible unti
  r.setEntityReady(true);
  r.scope.backroomSyncCombatPortrait();
  assert.equal(r.box.dataset.combatFocus,'entity');
+});
+
+
+test('final combat packet presents Lucia cue before Core victory projection closes the Snapshot',()=>{
+ const r=boot({combat:{active:true,encounterId:'enc',entityKey:'hound',round:2},partyDetails:{
+  members:[{id:'cao_minh',presence:'ACTIVE'},{id:'lucia',presence:'ACTIVE'}]
+ }});
+ const turns=[
+  {kind:'actor',eventIndex:0,actorId:'cao_minh',actorName:'Cao Minh',entityName:'Hound'},
+  {kind:'actor',eventIndex:1,actorId:'lucia',actorName:'Lucia',entityName:'Hound'}
+ ];
+ r.turn([{target:'entity',phase:'actor',text:'-10 HP'}, {target:'entity',phase:'actor',text:'-20 HP'}],
+  'enc:final-party','enc',null,{},{turns});
+ assert.equal(r.scope.state.combat.active,true,'Core victory projection waits for final visual cues');
+ assert.equal(r.box.dataset.combatFocus,'cao_minh');
+ const lucia=r.timers.find(t=>t.ms===1210);
+ assert.ok(lucia,'Core-supplied Lucia cue must be scheduled even if combat is now settled');
+ lucia.fn();assert.equal(r.box.dataset.combatFocus,'lucia');
+ assert.equal(r.panel().hidden,false);
+ const end=Math.max(...r.timers.map(t=>t.ms));
+ r.timers.find(t=>t.ms===end).fn();
+ assert.equal(r.panel().hidden,true);
+ assert.equal(r.scope.state.combat,null);
+});
+
+test('Entity overlay stays visible as an opponent during Cao Minh and Lucia active turns',()=>{
+ const css=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/combat-feedback-1193a.css'),'utf8');
+ assert.match(css,/\.snapshot\[data-combat-focus\] \.snapshot-entity\{display:block!important\}/);
+ assert.doesNotMatch(css,/\.snapshot\[data-combat-focus\] \.snapshot-entity\{display:none!important\}/);
+ const r=boot();
+ const turns=[{kind:'actor',eventIndex:0,actorId:'cao_minh',actorName:'Cao Minh',entityName:'Hound'},
+              {kind:'actor',eventIndex:0,actorId:'lucia',actorName:'Lucia',entityName:'Hound'}];
+ r.turn([],'enc:visible-foe','enc',{active:true,encounterId:'enc',entityKey:'hound',round:2},{},{turns});
+ assert.equal(r.box.dataset.combatFocus,'cao_minh');
+ r.timers.find(t=>t.ms===1210).fn();
+ assert.equal(r.box.dataset.combatFocus,'lucia');
 });
