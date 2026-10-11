@@ -48,7 +48,7 @@ object CompanionSkillCatalog {
   )
 
   private val kai = listOf(
-    s("Đại Đạo Ma Tôn", "PASSIVE", "Luôn hoạt động", "+10% Base STR/DEX/AGI/VIT/EVA; không đổi Core cost. STR tăng Attack và Skill DMG; DEX tăng Critical Resistance; AGI tăng Critical Chance; VIT tăng Max HP và DEF; EVA tăng Evasion và kháng né. Sau mỗi lượt Cao Minh: hồi 10% Max HP, +20% Attack và +20 điểm % Critical; đồng đội +50 điểm % Critical; Critical cap 100%.", "Passive tách khỏi Base Stat và reset combat stack khi combat kết thúc."),
+    s("Đại Đạo Ma Tôn", "PASSIVE", "Luôn hoạt động", "+10% Base STR/DEX/AGI/VIT/EVA; cộng từ nội tại, không dùng tài nguyên nâng điểm. STR tăng Attack và Skill DMG; DEX tăng Critical Resistance; AGI tăng Critical Chance; VIT tăng Max HP và DEF; EVA tăng Evasion và kháng né. Sau mỗi lượt Cao Minh: hồi 10% Max HP, +20% Attack và +20 điểm % Critical; đồng đội +50 điểm % Critical; Critical cap 100%.", "Passive tách khỏi Base Stat và reset combat stack khi combat kết thúc."),
     s("Huyết Ma Tứ Liên", "AUTO", "30% mỗi lượt TẤN CÔNG hợp lệ", "Đúng 4 trảm, 170% Weapon DMG; Chảy máu 3 turn x 5% Max HP."),
     s("Ma Tâm Trấn Hồn", "AUTO", "20% mỗi lượt TẤN CÔNG hợp lệ", "Đúng 4 trảm cùng điểm, 130% Weapon DMG; Choáng phản ứng hiện tại."),
     s("Huyết Ảnh Ma Độn", "AUTO", "20% mỗi lượt TẤN CÔNG hợp lệ", "Dịch chuyển theo Huyết Ma Kiếm, đúng 2 trảm, 147% Weapon DMG."),
