@@ -21,25 +21,7 @@ data class ItemCommand(
   val slot: String? = null,
   val metadata: Map<String, String> = emptyMap()
 ) : GameCommand {
-  enum class Operation { PICKUP, DROP, USE, TRANSFER, STORE, WITHDRAW, EQUIP, UNEQUIP }
-}
-
-data class OmnivaultCommand(
-  override val commandId: String,
-  override val turnId: String?,
-  override val actorId: String,
-  override val targetId: String? = null,
-  override val source: CommandSource,
-  val operation: Operation,
-  val itemId: String,
-  val itemName: String,
-  val quantity: Int = 1,
-  val isLiving: Boolean = false,
-  val isLargeAssembly: Boolean = false,
-  val isOriginal: Boolean = true,
-  val timestampEpochMs: Long = 0L
-) : GameCommand {
-  enum class Operation { STORE, WITHDRAW, SCAN, COPY, RESTORE, QUERY }
+  enum class Operation { DROP, USE, TRANSFER }
 }
 
 data class PartyCommand(
@@ -86,10 +68,10 @@ data class QueryCommand(
   override val source: CommandSource,
   val type: Type
 ) : GameCommand {
-  enum class Type { CHARACTER, INVENTORY, PARTY, STATUS, OMNIVAULT }
+  enum class Type { CHARACTER, INVENTORY, PARTY, STATUS }
 }
 
-data class ValidatedLegacyStateCommand(
+data class ValidatedWorldStateCommand(
   override val commandId: String,
   override val turnId: String?,
   override val actorId: String = KAI_ID,
@@ -98,7 +80,6 @@ data class ValidatedLegacyStateCommand(
   val location: String? = null,
   val title: String? = null,
   val levelJson: String? = null,
-  val playerJson: String? = null,
   val flagsJson: String? = null,
   val validatedByGameEngine: Boolean
 ) : GameCommand

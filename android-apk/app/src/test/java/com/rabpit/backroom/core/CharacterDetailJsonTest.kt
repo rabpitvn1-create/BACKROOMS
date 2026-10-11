@@ -30,9 +30,7 @@ class CharacterDetailJsonTest {
         itemId = "water",
         name = "Almond Water",
         quantity = 2,
-        condition = "sealed",
-        metadata = mapOf("secret" to "do-not-expose", "physiologyEffect" to "WATER"),
-        contentState = ContentState.NONE
+        metadata = mapOf("secret" to "do-not-expose", "physiologyEffect" to "WATER")
       )),
       equipment = mapOf("weapon" to "ivory"),
       statusEffects = listOf(StatusEffect(
@@ -70,8 +68,8 @@ class CharacterDetailJsonTest {
 
   @Test fun uiJsonDoesNotExposeInventoryOrStatusInternalMetadata() {
     val member = CharacterDetailProjection(
-      id = "kai",
-      name = "Kai",
+      id = "cao_minh",
+      name = "Cao Minh",
       avatarRef = null,
       presence = CharacterPresence.ACTIVE,
       isLeader = true,

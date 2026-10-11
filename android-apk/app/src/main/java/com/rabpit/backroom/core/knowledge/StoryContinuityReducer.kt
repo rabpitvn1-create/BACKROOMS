@@ -70,7 +70,7 @@ object StoryContinuityReducer {
     val id = "MAIN.REUNITE.${actor.uppercase(Locale.ROOT)}"
     when {
       partyIds(after).contains(actor) -> upsertById(objectives, JSONObject()
-        .put("id", id).put("status", "resolved").put("fact", "$actor is currently reunited with Kai's party."))
+        .put("id", id).put("status", "resolved").put("fact", "$actor is currently reunited with Cao Minh's party."))
       continuityState.contains("separated") -> upsertById(objectives, JSONObject()
         .put("id", id).put("status", "active").put("fact", "Determine $actor's condition and re-establish a route if possible."))
     }
@@ -182,8 +182,8 @@ object StoryContinuityReducer {
   }
 
   private fun currentWitnesses(state: JSONObject): JSONArray {
-    val out = JSONArray().put("kai")
-    partyIds(state).sorted().filter { it != "kai" }.forEach { out.put(it) }
+    val out = JSONArray().put("cao_minh")
+    partyIds(state).sorted().filter { it != "cao_minh" }.forEach { out.put(it) }
     return out
   }
 

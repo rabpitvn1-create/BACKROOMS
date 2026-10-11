@@ -33,45 +33,50 @@ object PhysiologyStatusPolicy {
   private const val WATER_CRITICAL_MINUTES = 48L * 60L
   private const val REST_CRITICAL_MINUTES = 36L * 60L
 
-  fun derive(state: PhysiologyState): DerivedPhysiologyStatus = DerivedPhysiologyStatus(
-    hunger = hungerBand(state.minutesSinceFood),
-    thirst = thirstBand(state.minutesSinceWater),
-    sleepDeprivation = awakeBand(state.minutesAwake),
+  fun derive(state: PhysiologyState, survivalMultiplier: Double = 1.0): DerivedPhysiologyStatus = DerivedPhysiologyStatus(
+    hunger = hungerBand(state.minutesSinceFood, survivalMultiplier),
+    thirst = thirstBand(state.minutesSinceWater, survivalMultiplier),
+    sleepDeprivation = awakeBand(state.minutesAwake, survivalMultiplier),
     pain = state.painState?.trim()?.takeIf { it.isNotEmpty() },
     infection = state.infectionState?.trim()?.takeIf { it.isNotEmpty() },
     thermal = state.thermalState?.trim()?.takeIf { it.isNotEmpty() },
-    foodPercent = remainingPercent(state.minutesSinceFood, FOOD_CRITICAL_MINUTES),
-    waterPercent = remainingPercent(state.minutesSinceWater, WATER_CRITICAL_MINUTES),
-    restPercent = remainingPercent(state.minutesAwake, REST_CRITICAL_MINUTES)
+    foodPercent = remainingPercent(state.minutesSinceFood, scaled(FOOD_CRITICAL_MINUTES, survivalMultiplier)),
+    waterPercent = remainingPercent(state.minutesSinceWater, scaled(WATER_CRITICAL_MINUTES, survivalMultiplier)),
+    restPercent = remainingPercent(state.minutesAwake, scaled(REST_CRITICAL_MINUTES, survivalMultiplier))
   )
 
-  fun hungerBand(minutesSinceFood: Long?): PhysiologyBand = band(
+  fun hungerBand(minutesSinceFood: Long?, survivalMultiplier: Double = 1.0): PhysiologyBand = band(
     minutesSinceFood,
-    mildAt = 12L * 60L,
-    moderateAt = 24L * 60L,
-    severeAt = 48L * 60L,
-    criticalAt = FOOD_CRITICAL_MINUTES
+    mildAt = scaled(12L * 60L, survivalMultiplier),
+    moderateAt = scaled(24L * 60L, survivalMultiplier),
+    severeAt = scaled(48L * 60L, survivalMultiplier),
+    criticalAt = scaled(FOOD_CRITICAL_MINUTES, survivalMultiplier)
   )
 
-  fun thirstBand(minutesSinceWater: Long?): PhysiologyBand = band(
+  fun thirstBand(minutesSinceWater: Long?, survivalMultiplier: Double = 1.0): PhysiologyBand = band(
     minutesSinceWater,
-    mildAt = 6L * 60L,
-    moderateAt = 12L * 60L,
-    severeAt = 24L * 60L,
-    criticalAt = WATER_CRITICAL_MINUTES
+    mildAt = scaled(6L * 60L, survivalMultiplier),
+    moderateAt = scaled(12L * 60L, survivalMultiplier),
+    severeAt = scaled(24L * 60L, survivalMultiplier),
+    criticalAt = scaled(WATER_CRITICAL_MINUTES, survivalMultiplier)
   )
 
-  fun awakeBand(minutesAwake: Long?): PhysiologyBand = band(
+  fun awakeBand(minutesAwake: Long?, survivalMultiplier: Double = 1.0): PhysiologyBand = band(
     minutesAwake,
-    mildAt = 16L * 60L,
-    moderateAt = 20L * 60L,
-    severeAt = 24L * 60L,
-    criticalAt = REST_CRITICAL_MINUTES
+    mildAt = scaled(16L * 60L, survivalMultiplier),
+    moderateAt = scaled(20L * 60L, survivalMultiplier),
+    severeAt = scaled(24L * 60L, survivalMultiplier),
+    criticalAt = scaled(REST_CRITICAL_MINUTES, survivalMultiplier)
   )
 
-  fun foodPercent(minutesSinceFood: Long?): Int? = remainingPercent(minutesSinceFood, FOOD_CRITICAL_MINUTES)
-  fun waterPercent(minutesSinceWater: Long?): Int? = remainingPercent(minutesSinceWater, WATER_CRITICAL_MINUTES)
-  fun restPercent(minutesAwake: Long?): Int? = remainingPercent(minutesAwake, REST_CRITICAL_MINUTES)
+  fun foodPercent(minutesSinceFood: Long?, survivalMultiplier: Double = 1.0): Int? = remainingPercent(minutesSinceFood, scaled(FOOD_CRITICAL_MINUTES, survivalMultiplier))
+  fun waterPercent(minutesSinceWater: Long?, survivalMultiplier: Double = 1.0): Int? = remainingPercent(minutesSinceWater, scaled(WATER_CRITICAL_MINUTES, survivalMultiplier))
+  fun restPercent(minutesAwake: Long?, survivalMultiplier: Double = 1.0): Int? = remainingPercent(minutesAwake, scaled(REST_CRITICAL_MINUTES, survivalMultiplier))
+
+  private fun scaled(minutes: Long, multiplier: Double): Long {
+    val safe = if (multiplier.isFinite() && multiplier > 0.0) multiplier else 1.0
+    return (minutes.toDouble() * safe).toLong().coerceAtLeast(1L)
+  }
 
   private fun band(
     minutes: Long?,

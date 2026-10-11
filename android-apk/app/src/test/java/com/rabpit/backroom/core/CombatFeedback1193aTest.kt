@@ -53,8 +53,13 @@ class CombatFeedback1193aTest {
   private class MemorySave(var state: GameState) : SaveRepository {
     override fun save(state: GameState) { this.state = state }
     override fun load() = state
+    private var checkpoint: GameCheckpoint? = null
+    override fun saveCheckpoint(state: GameState, presentation: org.json.JSONObject) {
+      checkpoint = GameCheckpoint(state, org.json.JSONObject(presentation.toString()))
+    }
+    override fun loadCheckpoint(): GameCheckpoint? = checkpoint
     override fun exists() = true
-    override fun clear() { state = GameState.initial() }
+    override fun clear() { state = GameState.initial(); checkpoint = null }
   }
 
   @Test fun facadePublishesFreshEventsAndDropsClientEchoes() {

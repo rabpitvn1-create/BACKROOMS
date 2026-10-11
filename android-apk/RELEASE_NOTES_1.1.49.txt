@@ -1,7 +1,0 @@
-Backroom 1.1.49
-
-- Removes unused legacy patch scripts and obsolete version-specific verification workflows.
-- Updates repository documentation to match the Android-only runtime.
-- Builds a debug-signed APK without depending on unavailable release-keystore secrets.
-- Adds an Android emulator smoke test that installs the APK, launches MainActivity and verifies the app process remains alive before publication.
-- Preserves legacy save migration so existing local saves remain readable.

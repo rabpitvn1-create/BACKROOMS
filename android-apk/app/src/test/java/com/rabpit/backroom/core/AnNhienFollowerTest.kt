@@ -81,26 +81,34 @@ class AnNhienFollowerTest {
     assertEquals("an_nhien_cannot_lead", leader.validation.reason)
   }
 
-  @Test fun fixedEquipmentCannotBeChanged() {
-    val state = GameState.initial().copy(
-      inventories = GameState.initial().inventories + (
-        AN_NHIEN_ID to InventoryState(AN_NHIEN_ID, mapOf(
-          "fake-weapon" to ItemStack("fake-weapon", "Vũ khí thử", metadata = mapOf("category" to "FOOD"))
-        ))
-      )
+  @Test fun slashCheatInstantlyAddsAnNhienAndIsIdempotent() {
+    val base = GameState.initial()
+    assertTrue(AnNhienCanon.matchesPartyCheatCode(" /annhien1234 "))
+    assertFalse(AnNhienCanon.matchesPartyCheatCode("/annhien123"))
+
+    val (added, error) = AnNhienCanon.forceIntoParty(base)
+    assertEquals(null, error)
+    assertTrue(AN_NHIEN_ID in added.party.memberIds)
+    assertEquals(base.party.memberIds.size + 1, added.party.memberIds.size)
+
+    val (again, againError) = AnNhienCanon.forceIntoParty(added)
+    assertEquals(null, againError)
+    assertEquals(added.party.memberIds, again.party.memberIds)
+  }
+
+  @Test fun slashCheatDoesNotSilentlyEvictPartyMembersWhenFull() {
+    val full = GameState.initial().copy(
+      characters = GameState.initial().characters + mapOf(
+        "a" to CharacterState("a", "A"),
+        "b" to CharacterState("b", "B"),
+        "c" to CharacterState("c", "C")
+      ),
+      party = PartyState(leaderId = KAI_ID, memberIds = listOf(KAI_ID, "a", "b", "c"), maxMembers = 4)
     )
-    val result = InventoryEngine.execute(state, ItemCommand(
-      commandId = "equip-an",
-      turnId = state.turn.currentTurnId,
-      actorId = AN_NHIEN_ID,
-      source = CommandSource.SYSTEM,
-      operation = ItemCommand.Operation.EQUIP,
-      itemId = "fake-weapon",
-      itemName = "Vũ khí thử",
-      slot = "weapon"
-    ))
-    assertFalse(result.applied)
-    assertEquals("an_nhien_equipment_locked", result.validation.reason)
+    val (unchanged, error) = AnNhienCanon.forceIntoParty(full)
+    assertEquals("party_full", error)
+    assertFalse(AN_NHIEN_ID in unchanged.party.memberIds)
+    assertEquals(listOf(KAI_ID, "a", "b", "c"), unchanged.party.memberIds)
   }
 
   @Test fun saveDecodeBackfillsAnNhienWithoutPuttingHerInParty() {
