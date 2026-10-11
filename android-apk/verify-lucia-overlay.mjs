@@ -5,7 +5,7 @@ const root=new URL('./',import.meta.url);
 const java=fs.readFileSync(new URL('app/src/main/java/com/rabpit/backroom/MainActivity.java',root),'utf8');
 const lines=java.split('\n');
 // Wide Cao Minh artwork must not be width-capped below its intended 97% height.
-assert.match(java,/\.snapshot \.snapshot-character\{[^']*height:97%;width:auto;max-width:75%/);
+assert.match(java,/\.snapshot \.snapshot-character\{[^']*height:97%;width:auto;max-width:100%/);
 assert.match(java,/\.snapshot-lucia/);
 
 const start=lines.findIndex(line=>line.includes('LUCIA_COMBAT_OVERLAY_R01'));
