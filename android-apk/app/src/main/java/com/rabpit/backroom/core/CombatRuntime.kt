@@ -264,8 +264,8 @@ object CombatRuntime {
     fun actorCritical(actorId: String, salt: Int): Boolean {
       val attacker = CharacterStatEngine.effective(resolvedState, actorId)
       val passive = if (CharacterStatCore.isCaoMinh(actorId))
-        CaoMinhCombatPassive.CRITICAL_PER_TURN_PERCENT * CaoMinhCombatPassive.stacks(resolvedState) * 100
-        else 0
+        CaoMinhCombatPassive.CRITICAL_PER_TURN_PERCENT.toLong() * CaoMinhCombatPassive.stacks(resolvedState) * 100L
+        else 0L
       val chance = (attacker.criticalChanceBasisPoints.toLong() + passive).coerceIn(0L, 10000L).toInt()
       return roll(c.copy(eventCounter = c.eventCounter + salt), 10000) < chance
     }
@@ -522,7 +522,8 @@ object CombatRuntime {
             if (intent == Intent.ATTACK && KAI_ID in PartyCombatHealth.actingMembers(resolvedState) && c.entityHp > 0 && !isGuiltyCrownTurn) {
               procSpecs.forEachIndexed { index, spec ->
                 if (c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 401 + index * 17), 100) < spec[1].toInt()) {
-                  val damage = CharacterStatCore.scaleByPercent(CharacterStatEngine.weaponDamage(resolvedState, KAI_ID), CaoMinhCombatPassive.attackPercent(resolvedState)) * spec[2].toInt() / 100
+                  val damage = CharacterStatCore.scaleByPercent(
+                    CharacterStatEngine.skillBaseDamage(resolvedState, KAI_ID), spec[2].toInt())
                   val hp = max(0, c.entityHp - damage)
                   recordFeedback("entity", c.entityHp, hp, status = feedbackStatus(spec[3]), skill = spec[0])
                   c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
@@ -536,7 +537,7 @@ object CombatRuntime {
               val weaponDamage = CharacterStatEngine.weaponDamage(resolvedState, KAI_ID)
         
               if (intent == Intent.ATTACK && !isGuiltyCrownTurn && roll(c.copy(eventCounter = c.eventCounter + 101), 100) < KAI_LAST_REQUIEM_CHANCE_PERCENT) {
-                val damage = weaponSkillDamage(weaponDamage, KAI_LAST_REQUIEM_DAMAGE_PERCENT, profile.armor)
+                val damage = weaponSkillDamage(CharacterStatEngine.skillBaseDamage(resolvedState, KAI_ID), KAI_LAST_REQUIEM_DAMAGE_PERCENT, profile.armor)
                 val hp = max(0, c.entityHp - damage)
                 recordFeedback("entity", c.entityHp, hp, status = FeedbackStatus.BLEED, skill = "Huyết Ma Tứ Liên")
                 c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 22))
@@ -546,7 +547,7 @@ object CombatRuntime {
               }
         
               if (intent == Intent.ATTACK && !isGuiltyCrownTurn && c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 113), 100) < KAI_SILENT_LULLABY_CHANCE_PERCENT) {
-                val damage = weaponSkillDamage(weaponDamage, KAI_SILENT_LULLABY_DAMAGE_PERCENT, profile.armor)
+                val damage = weaponSkillDamage(CharacterStatEngine.skillBaseDamage(resolvedState, KAI_ID), KAI_SILENT_LULLABY_DAMAGE_PERCENT, profile.armor)
                 val hp = max(0, c.entityHp - damage)
                 recordFeedback("entity", c.entityHp, hp, status = FeedbackStatus.STUN, skill = "Ma Tâm Trấn Hồn")
                 c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 18))
@@ -555,7 +556,7 @@ object CombatRuntime {
               }
         
               if (intent == Intent.ATTACK && !isGuiltyCrownTurn && c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 127), 100) < KAI_SALVATION_CHANCE_PERCENT) {
-                val damage = weaponSkillDamage(weaponDamage, KAI_SALVATION_DAMAGE_PERCENT, profile.armor)
+                val damage = weaponSkillDamage(CharacterStatEngine.skillBaseDamage(resolvedState, KAI_ID), KAI_SALVATION_DAMAGE_PERCENT, profile.armor)
                 val hp = max(0, c.entityHp - damage)
                 recordFeedback("entity", c.entityHp, hp, skill = "Huyết Ảnh Ma Độn")
                 c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 16))
