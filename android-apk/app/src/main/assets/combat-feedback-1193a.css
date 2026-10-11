@@ -55,7 +55,8 @@
 /* COMBAT_LOG_FIXED_PANEL_R02: full height of GM slot, one continuous opaque surface. */
 body.poker-dice-open .game{display:flex!important;flex-direction:column;overflow:hidden!important}
 body.poker-dice-open .game>.topbar,body.poker-dice-open .game>.player-action-bar{flex:0 0 auto}
-body.poker-dice-open .game>.snapshot{height:clamp(120px,26dvh,225px);flex:0 1 auto;min-height:100px;margin:5px 10px!important}
+/* Keep the Combat Snapshot identical to Explorer (300px, same margins). The Combat Log yields space instead. */
+body.poker-dice-open .game>.snapshot{height:300px;flex:0 0 300px;min-height:300px;margin:8px 10px 10px!important}
 body.poker-dice-open .game>#pokerDiceModal{flex:0 0 auto;margin:0!important;padding:0 10px!important}
 body.poker-dice-open .game>.log{display:none!important}
 body.poker-dice-open .game>#combatFeedbackPanel{display:flex;flex:1 1 0;min-height:0;overflow:hidden;
@@ -84,9 +85,15 @@ body.poker-dice-open .player-action-bar .primary-action{pointer-events:none;opac
  animation:combat-switch-ring .8s cubic-bezier(.42,0,.2,1) both}
 @keyframes combat-switch-ring{from{transform:rotate(0deg);opacity:0}15%{opacity:1}85%{opacity:1}to{transform:rotate(360deg);opacity:0}}
 @media(prefers-reduced-motion:reduce){.snapshot[data-combat-switching="true"]::before{animation:none;opacity:.9}}
-@media(max-height:680px){body.poker-dice-open .game>.snapshot{height:clamp(100px,21dvh,165px);min-height:80px}
+/* On short viewports, preserve the full-size Snapshot and a usable scrollable Log.
+   Only the game scrolls when the full stack cannot fit; keep actions within reach. */
+@media(max-height:740px){
+ body.poker-dice-open .game{overflow-y:auto!important;overscroll-behavior-y:contain}
+ body.poker-dice-open .game>#combatFeedbackPanel{flex:0 0 120px;min-height:120px}
+ body.poker-dice-open .game>.player-action-bar{position:sticky;bottom:0;z-index:24}
  body.poker-dice-open .poker-dice-sheet{padding-top:8px!important;padding-bottom:8px!important}
- body.poker-dice-open .poker-die{min-height:50px!important;padding-bottom:18px!important}}
+ body.poker-dice-open .poker-die{min-height:50px!important;padding-bottom:18px!important}
+}
 
 /* Fade new Party fighter into the Snapshot while the 800ms circular cue rotates. */
 .snapshot[data-combat-focus="cao_minh"] .snapshot-character,
