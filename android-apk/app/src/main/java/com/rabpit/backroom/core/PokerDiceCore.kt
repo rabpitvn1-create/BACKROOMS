@@ -77,11 +77,12 @@ object PokerDiceCore {
     STAT_KEYS.forEach { stat ->
       val base = coreStat(state, id, stat)
       val eff = when (stat) { "STR" -> effective.str; "DEX" -> effective.dex; "AGI" -> effective.agi; "VIT" -> effective.vit; else -> effective.eva }
-      stats.put(stat, JSONObject()
+      val line = JSONObject()
         .put("base", base)
         .put("effective", eff)
-        .put("multiplierPercent", statPercent(state, id, stat))
-        .put("nextCoreCost", if (base >= MAX_STAT) JSONObject.NULL else upgradeCost(base)))
+        .put("nextCoreCost", if (base >= MAX_STAT) JSONObject.NULL else upgradeCost(base))
+      if (stat == "STR") line.put("multiplierPercent", statPercent(state, id, stat))
+      stats.put(stat, line)
     }
     return JSONObject()
       .put("schema", CharacterProgressionCore.SCHEMA)
