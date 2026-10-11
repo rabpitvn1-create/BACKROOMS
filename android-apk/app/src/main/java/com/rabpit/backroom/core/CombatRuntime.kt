@@ -476,6 +476,9 @@ object CombatRuntime {
         }
       }
       Intent.ATTACK -> {
+        // Shared tactical opening at command start; Cao Minh may spend his own
+        // opening before Lục Trầm acts, but that must not invalidate a planned Kiếm Vực.
+        val openingAtPartyCommandStart = c.opening
         val partyOrder = PartyCombatHealth.actingMembers(resolvedState)
         log += "PARTY ACTION TẤN CÔNG: ${activePartyNames(resolvedState)} cùng khai triển đòn đánh trong một combat turn."
         for ((turnIndex, actorId) in partyOrder.withIndex()) {
@@ -769,7 +772,7 @@ object CombatRuntime {
               if (activePartyCharacter(resolvedState, LUC_TRAM_ID) != null) {
                 val waveId = LucTramCanon.domainKey(c.encounterId,
                   waveIndex(resolvedState, waveKeys(resolvedState, c.entityKey).size))
-                if (LucTramCanon.canEstablishDomain(resolvedState, c.opening, waveId)) {
+                if (LucTramCanon.canEstablishDomain(resolvedState, openingAtPartyCommandStart, waveId)) {
                   // Setup replaces her attack action, with no unearned bonus hit.
                   c = c.copy(opening = 3, cover = Cover.HARD)
                   resolvedState = resolvedState.copy(metadata = resolvedState.metadata +
