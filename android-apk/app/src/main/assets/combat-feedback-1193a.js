@@ -47,12 +47,18 @@
     portrait.setAttribute('aria-hidden','true');
     snapshot.appendChild(portrait);
   }
+  function entityPortraitReady(snapshot){
+    var image=snapshot.querySelector('.snapshot-entity');
+    // Android mounts <img> before its file URL finishes decoding. Keep the
+    // previous participant visible until appendEntityOverlay's onload fires.
+    return !!(image&&(!image.style||image.style.opacity!=='0'));
+  }
   function focusCombatActor(actorId){
     var snapshot=document.getElementById('snapshot');if(!snapshot)return;
     var next=String(actorId||'none'),prior=String(snapshot.dataset.combatFocus||'');
     // Entity images arrive asynchronously from the Android bridge. Keep the
     // previous fighter visible until the current encounter portrait is mounted.
-    if(next==='entity'&&!snapshot.querySelector('.snapshot-entity')){
+    if(next==='entity'&&!entityPortraitReady(snapshot)){
       pendingCombatEntity=true;
       return;
     }
@@ -90,10 +96,10 @@
   window.backroomSyncCombatPortrait=function(){
     var snapshot=document.getElementById('snapshot');
     if(!snapshot||!activeCombat())return;
-    if(pendingCombatEntity&&snapshot.querySelector('.snapshot-entity')){
+    if(pendingCombatEntity&&entityPortraitReady(snapshot)){
       focusCombatActor('entity');return;
     }
-    if(snapshot.dataset.combatFocus==='entity'&&!snapshot.querySelector('.snapshot-entity')){
+    if(snapshot.dataset.combatFocus==='entity'&&!entityPortraitReady(snapshot)){
       focusCombatActor('cao_minh');
       pendingCombatEntity=true;
       return;
