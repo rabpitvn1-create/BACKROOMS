@@ -208,9 +208,10 @@ object CombatRuntime {
     val log = mutableListOf<String>()
     val feedback = mutableListOf<DamageFeedback>()
     fun recordFeedback(target: String, before: Int, after: Int,
-                       critical: Boolean = false, status: FeedbackStatus? = null, phase: String = "actor") {
+                       critical: Boolean = false, status: FeedbackStatus? = null,
+                       phase: String = "actor", actorId: String = KAI_ID) {
       val amount = (before - after).coerceAtLeast(0)
-      if (amount > 0) feedback += DamageFeedback(target, amount, critical, status, phase = phase)
+      if (amount > 0) feedback += DamageFeedback(target, amount, critical, status, actorId = actorId, phase = phase)
     }
     var resolvedState = state
     var lifeformBleedTurns = state.metadata[LIFEFORM_BLEED_TURNS_KEY]?.toIntOrNull()?.coerceIn(0, LIFEFORM_BLEED_TURNS) ?: 0
@@ -313,10 +314,17 @@ object CombatRuntime {
         log += "Cao Minh dồn ưu thế vào đường thoát (${c.escapeProgress}%)."
       }
       Intent.ATTACK -> {
+        val partyOrder = PartyCombatHealth.actingMembers(resolvedState)
         log += "PARTY ACTION TẤN CÔNG: ${activePartyNames(resolvedState)} cùng khai triển đòn đánh trong một combat turn."
-        val roll = roll(c, 100)
         val rangeBonus = when (c.range) { RangeBand.CLOSE -> 18; RangeBand.NEAR -> 10; RangeBand.FAR -> -5 }
         val hitChance = (58 + rangeBonus + c.opening * 11 + c.momentum * 6 + PokerDiceCore.accuracyBonus(state)).coerceIn(20, 99)
+        for ((turnIndex, actorId) in partyOrder.withIndex()) {
+          if (c.entityHp <= 0) break
+          val actor = resolvedState.characters.getValue(actorId)
+          log += "PARTY TURN ${turnIndex + 1}/${partyOrder.size}: ${actor.name}."
+          when (actorId) {
+            KAI_ID -> {
+        val roll = roll(c, 100)
         val evasionRoll = roll(c.copy(eventCounter = c.eventCounter + 13), 100)
         val entityEvaded = evasionRoll < (ENTITY_EVASION_PERCENT - CharacterStatEngine.effective(resolvedState, KAI_ID).resEvasionPercent).coerceAtLeast(0)
         if (roll < hitChance && !entityEvaded) {
@@ -343,10 +351,12 @@ object CombatRuntime {
           c = c.copy(momentum = max(-3, c.momentum - 1), opening = max(0, c.opening - 1), noise = min(100, c.noise + 28))
           log += if (entityEvaded) "${c.entityName} né đòn (25% evasion) và giành lại áp lực." else "Đòn đánh trượt; ${c.entityName} giành lại áp lực."
         }
+            }
+            LUCIA_ID -> {
         // LUCIA_JOINT_ATTACK: process the follower when the player explicitly orders both attackers.
         val jointOrder = true // PARTY_ACTIONS_V1: every ATTACK intent includes every ACTIVE Party member.
         val lucia = resolvedState.characters[LUCIA_ID]
-        val luciaActive = LUCIA_ID in resolvedState.party.memberIds &&
+        val luciaActive = LUCIA_ID in PartyCombatHealth.actingMembers(resolvedState) &&
           lucia?.presence == CharacterPresence.ACTIVE && (lucia.vitalState.currentHp > 0)
         if (jointOrder && luciaActive) {
           val luciaRoll = roll(c.copy(eventCounter = c.eventCounter + 83), 100)
@@ -356,7 +366,7 @@ object CombatRuntime {
             val luciaPotentialDamage = max(1, LUCIA_M4A1_COMBAT_DAMAGE - profile.armor)
             val luciaDamage = min(c.entityHp, luciaPotentialDamage)
             val luciaHp = max(0, c.entityHp - luciaDamage)
-            recordFeedback("entity", c.entityHp, luciaHp)
+            recordFeedback("entity", c.entityHp, luciaHp, actorId = LUCIA_ID)
             c = c.copy(
               entityHp = luciaHp,
               entityCondition = condition(luciaHp, c.entityMaxHp),
@@ -367,6 +377,8 @@ object CombatRuntime {
             log += "Lucia \"Lục\" cũng khai hỏa nhưng phát bắn không trúng mục tiêu."
           }
         }
+            }
+            IRIS_ID -> {
         // PARTY_FOLLOWER_BASE_ATTACKS_V1: all actors resolve inside this one ATTACK event.
         val irisPartyAttack = activePartyCharacter(resolvedState, IRIS_ID)
         if (irisPartyAttack != null) {
@@ -376,7 +388,7 @@ object CombatRuntime {
             val potential = companionSkillDamage(CharacterStatEngine.skillBaseDamage(resolvedState, IRIS_ID), 100, profile.armor)
             val damage = min(c.entityHp, potential)
             val hp = max(0, c.entityHp - damage)
-            recordFeedback("entity", c.entityHp, hp)
+            recordFeedback("entity", c.entityHp, hp, actorId = IRIS_ID)
             c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 10))
             log += "Iris thực hiện lệnh TẤN CÔNG bằng Ivory & Ebony: -$damage HP (${c.entityHp}/${c.entityMaxHp})."
           } else {
@@ -384,6 +396,8 @@ object CombatRuntime {
           }
         }
 
+            }
+            SYVIAL_ID -> {
         val syvialPartyAttack = activePartyCharacter(resolvedState, SYVIAL_ID)
         if (syvialPartyAttack != null) {
           val syvialHitRoll = roll(c.copy(eventCounter = c.eventCounter + 317), 100)
@@ -392,7 +406,7 @@ object CombatRuntime {
             val potential = companionSkillDamage(CharacterStatEngine.skillBaseDamage(resolvedState, SYVIAL_ID), 100, profile.armor)
             val damage = min(c.entityHp, potential)
             val hp = max(0, c.entityHp - damage)
-            recordFeedback("entity", c.entityHp, hp)
+            recordFeedback("entity", c.entityHp, hp, actorId = SYVIAL_ID)
             c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 12))
             log += "Syvial thực hiện lệnh TẤN CÔNG bằng GodKiller: -$damage HP (${c.entityHp}/${c.entityMaxHp})."
           } else {
@@ -400,8 +414,30 @@ object CombatRuntime {
           }
         }
 
+            }
+            AN_NHIEN_ID -> {
         if (activePartyCharacter(resolvedState, AN_NHIEN_ID) != null) {
           log += "An Nhiên thực hiện lệnh TẤN CÔNG theo vai trò hỗ trợ: gây nhiễu/đánh lạc hướng, không dùng vũ khí và không gây damage."
+        }
+            }
+            else -> {
+              if (actor.metadata["nonCombat"] == "true" || actor.metadata["canUseWeapons"] == "false") {
+                log += "${actor.name} hỗ trợ, không dùng vũ khí."
+              } else {
+                val hitRoll = roll(c.copy(eventCounter = c.eventCounter + 409 + turnIndex * 19), 100)
+                if (hitRoll < hitChance) {
+                  val potential = companionSkillDamage(CharacterStatEngine.skillBaseDamage(resolvedState, actorId), 100, profile.armor)
+                  val damage = min(c.entityHp, potential)
+                  val hp = max(0, c.entityHp - damage)
+                  recordFeedback("entity", c.entityHp, hp, actorId = actorId)
+                  c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
+                  log += "${actor.name} tấn công: -$damage HP (${c.entityHp}/${c.entityMaxHp})."
+                } else {
+                  log += "${actor.name} tấn công nhưng trượt."
+                }
+              }
+            }
+          }
         }
       }
       Intent.OTHER -> {
@@ -431,19 +467,19 @@ object CombatRuntime {
     }
 
     if (c.entityHp <= 0) {
-      val persisted = CaoMinhCombatPassive.afterCaoMinhTurn(encode(resolvedState, c.copy(phase = Phase.RESOLVED, entityCondition = EntityCondition.DESTROYED)))
+      val persisted = afterActiveLeaderTurn(encode(resolvedState, c.copy(phase = Phase.RESOLVED, entityCondition = EntityCondition.DESTROYED)))
       val cleared = clearCombatOnly(persisted)
       val loot = OfflineEntityLoot.award(cleared, c.encounterId, c.seed)
       return Resolution(loot.state, true, log.joinToString(" ") + " ${c.entityName} đã bị tiêu diệt. " + loot.text, entityDestroyed = true, feedback = feedback.toList())
     }
     if (c.escapeProgress >= 100) {
-      val persisted = CaoMinhCombatPassive.afterCaoMinhTurn(encode(resolvedState, c.copy(phase = Phase.RESOLVED)))
+      val persisted = afterActiveLeaderTurn(encode(resolvedState, c.copy(phase = Phase.RESOLVED)))
       val cleared = clearCombatOnly(persisted)
       return Resolution(cleared, true, log.joinToString(" ") + " Cao Minh cắt được truy đuổi và thoát khỏi encounter.", escaped = true, feedback = feedback.toList())
     }
 
     // PARTY_ATTACK_GCO_GATE_V1
-    if (intent == Intent.ATTACK) {
+    if (intent == Intent.ATTACK && KAI_ID in PartyCombatHealth.actingMembers(resolvedState)) {
     if (c.eventCounter % KAI_GUILTY_CROWN_INTERVAL_TURNS == 0) {
       val damagePerSlash = CharacterStatEngine.skillBaseDamage(resolvedState, KAI_ID) * 115 / 100
       val totalDamage = KAI_GUILTY_CROWN_SHOTS * damagePerSlash
@@ -463,8 +499,9 @@ object CombatRuntime {
 
     }
 
-    val isGuiltyCrownTurn = intent == Intent.ATTACK && c.eventCounter % KAI_GUILTY_CROWN_INTERVAL_TURNS == 0
-    if (intent == Intent.ATTACK && c.entityHp > 0 && !isGuiltyCrownTurn) {
+    val isGuiltyCrownTurn = intent == Intent.ATTACK && KAI_ID in PartyCombatHealth.actingMembers(resolvedState) &&
+      c.eventCounter % KAI_GUILTY_CROWN_INTERVAL_TURNS == 0
+    if (intent == Intent.ATTACK && KAI_ID in PartyCombatHealth.actingMembers(resolvedState) && c.entityHp > 0 && !isGuiltyCrownTurn) {
       procSpecs.forEachIndexed { index, spec ->
         if (c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 401 + index * 17), 100) < spec[1].toInt()) {
           val damage = CharacterStatCore.scaleByPercent(CharacterStatEngine.weaponDamage(resolvedState, KAI_ID), CaoMinhCombatPassive.attackPercent(resolvedState)) * spec[2].toInt() / 100
@@ -477,7 +514,7 @@ object CombatRuntime {
         }
       }
     }
-    if (c.entityHp > 0) {
+    if (c.entityHp > 0 && KAI_ID in PartyCombatHealth.actingMembers(resolvedState)) {
       val weaponDamage = CharacterStatEngine.weaponDamage(resolvedState, KAI_ID)
 
       if (intent == Intent.ATTACK && !isGuiltyCrownTurn && roll(c.copy(eventCounter = c.eventCounter + 101), 100) < KAI_LAST_REQUIEM_CHANCE_PERCENT) {
@@ -515,7 +552,7 @@ object CombatRuntime {
     }
 
     if (c.entityHp <= 0) {
-      val persisted = CaoMinhCombatPassive.afterCaoMinhTurn(encode(resolvedState, c.copy(phase = Phase.RESOLVED, entityCondition = EntityCondition.DESTROYED)))
+      val persisted = afterActiveLeaderTurn(encode(resolvedState, c.copy(phase = Phase.RESOLVED, entityCondition = EntityCondition.DESTROYED)))
       val cleared = clearCombatOnly(persisted)
       val loot = OfflineEntityLoot.award(cleared, c.encounterId, c.seed)
       return Resolution(loot.state, true, log.joinToString(" ") + " ${c.entityName} đã bị tiêu diệt. " + loot.text, entityDestroyed = true, feedback = feedback.toList())
@@ -663,7 +700,7 @@ object CombatRuntime {
     if (syvialDisorientTurns > 0) companionEnemyAccuracyPenalty += 25
 
     if (c.entityHp <= 0) {
-      val persisted = CaoMinhCombatPassive.afterCaoMinhTurn(encode(resolvedState, c.copy(phase = Phase.RESOLVED, entityCondition = EntityCondition.DESTROYED)))
+      val persisted = afterActiveLeaderTurn(encode(resolvedState, c.copy(phase = Phase.RESOLVED, entityCondition = EntityCondition.DESTROYED)))
       val cleared = clearCombatOnly(persisted)
       val loot = OfflineEntityLoot.award(cleared, c.encounterId, c.seed)
       return Resolution(loot.state, true, log.joinToString(" ") + " ${c.entityName} đã bị tiêu diệt. " + loot.text, entityDestroyed = true, feedback = feedback.toList())
@@ -790,7 +827,7 @@ object CombatRuntime {
       telegraphRevealed = false,
       opening = max(0, c.opening - if (intent == Intent.READ) 0 else 1)
     )
-    val next = CaoMinhCombatPassive.afterCaoMinhTurn(encode(resolvedState, c))
+    val next = afterActiveLeaderTurn(encode(resolvedState, c))
     return Resolution(next, true, log.joinToString(" "), feedback = feedback.toList())
   }
 
@@ -816,6 +853,9 @@ object CombatRuntime {
 
   fun clear(state: GameState): GameState = clearCombatOnly(state)
 
+  private fun afterActiveLeaderTurn(state: GameState): GameState =
+    if (KAI_ID in PartyCombatHealth.actingMembers(state)) CaoMinhCombatPassive.afterCaoMinhTurn(state) else state
+
   private fun withCombatCounter(state: GameState, key: String, value: Int): GameState {
     val metadata = state.metadata.toMutableMap()
     if (value > 0) metadata[key] = value.toString() else metadata.remove(key)
@@ -827,14 +867,12 @@ object CombatRuntime {
 
   // PARTY_ACTIONS_V1: authoritative roster for one simultaneous Party command.
   private fun activePartyNames(state: GameState): String =
-    state.party.memberIds.distinct().mapNotNull { id ->
-      state.characters[id]?.takeIf { character ->
-        character.presence == CharacterPresence.ACTIVE && character.vitalState.currentHp > 0
-      }?.name
+    PartyCombatHealth.actingMembers(state).mapNotNull { id ->
+      state.characters[id]?.name
     }.joinToString(", ")
 
   private fun activePartyCharacter(state: GameState, characterId: String): CharacterState? {
-    if (characterId !in state.party.memberIds) return null
+    if (characterId !in PartyCombatHealth.actingMembers(state)) return null
     val character = state.characters[characterId] ?: return null
     return character.takeIf { it.presence == CharacterPresence.ACTIVE && it.vitalState.currentHp > 0 }
   }
