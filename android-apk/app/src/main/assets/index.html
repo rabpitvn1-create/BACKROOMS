@@ -2327,7 +2327,7 @@ body.poker-dice-open .game>.log{display:none!important}
     ["STR","DEX","AGI","VIT","EVA"].forEach(function(key){
       var s=data.stats[key]||{},line=document.createElement("div");line.className="core-progression-row";
       var name=document.createElement("span");name.className="core-progression-stat";name.textContent=key;
-      var value=document.createElement("span");value.className="core-progression-value";value.textContent=String(s.effective??5)+" · ×"+((Number(s.multiplierPercent||100)/100).toFixed(2))+" · next "+(s.nextCoreCost==null?"MAX":s.nextCoreCost+" Core");
+      var value=document.createElement("span");value.className="core-progression-value";value.textContent=String(s.effective??5)+(key==="STR"?" · ×"+((Number(s.multiplierPercent||100)/100).toFixed(2)):"")+" · next "+(s.nextCoreCost==null?"MAX":s.nextCoreCost+" Core");
       var button=document.createElement("button");button.type="button";button.className="core-progression-upgrade";button.textContent="+1 ("+(s.nextCoreCost==null?"—":s.nextCoreCost)+")";
       button.disabled=!!window.__coreUpgradeBusy||!!window.__combatBusy||(typeof busy!=="undefined"&&!!busy)||s.nextCoreCost==null||Number(data.sharedCore||0)<Number(s.nextCoreCost||0);
       button.addEventListener("click",function(){
