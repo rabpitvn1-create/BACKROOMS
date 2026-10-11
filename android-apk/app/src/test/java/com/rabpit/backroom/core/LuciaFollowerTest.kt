@@ -4,6 +4,47 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class LuciaFollowerTest {
+  @Test fun luciaUltimateUsesOnlyFinalizedSsfAndFsfWithSixtyShots() {
+    val initial = LuciaCanon.ensure(GameState.initial())
+    val ready = CombatRuntime.start(initial.copy(party = PartyState(memberIds = listOf(CAO_MINH_ID, LUCIA_ID))), "diep_minh")
+    val encounter = CombatRuntime.active(ready)!!.encounterId
+    val action = PokerDiceCore.DIRECT_COMBAT_ACTION
+    fun withHand(hand: String): GameState = ready.copy(metadata = ready.metadata + mapOf(
+      "poker.dice.encounter" to encounter,
+      "poker.dice.action" to action,
+      "poker.dice.values" to if (hand == "SSF") "1,2,3,4,5" else "6,6,6,6,6",
+      "poker.dice.held" to "0,0,0,0,0",
+      "poker.dice.finalized" to "true",
+      "poker.dice.hand" to hand
+    ))
+    val ssf = CombatRuntime.resolve(withHand("SSF"), "EXECUTE", action)
+    val fsf = CombatRuntime.resolve(withHand("FSF"), "EXECUTE", action)
+    val normal = CombatRuntime.resolve(ready, "EXECUTE", action)
+    val ssfDamage = ssf.feedback.single { it.actorId == LUCIA_ID && it.skill == "Too Young To Die" }.amount
+    val fsfDamage = fsf.feedback.single { it.actorId == LUCIA_ID && it.skill == "Too Young To Die" }.amount
+    val base = CharacterStatCore.basicDamage(26, CharacterStatEngine.effective(ready, LUCIA_ID).str)
+    val singleShot = ((base.toLong() * 115L + 50L) / 100L).toInt()
+    assertEquals(60 * singleShot, ssfDamage)
+    assertTrue(fsfDamage > ssfDamage)
+    assertTrue(ssf.reply.contains("đúng 60 phát"))
+    assertTrue(fsf.reply.contains("FSF x200%"))
+    assertFalse(ssf.reply.contains("Toxic Burst"))
+    assertTrue(normal.feedback.none { it.skill == "Too Young To Die" })
+  }
+
+  @Test fun luciaBurstsProcIndependentlyOnlyAfterAHit() {
+    val initial = LuciaCanon.ensure(GameState.initial())
+    val ready = CombatRuntime.start(initial.copy(party = PartyState(memberIds = listOf(CAO_MINH_ID, LUCIA_ID))), "diep_minh")
+    val expected = setOf("Toxic Burst", "Armor-Piercing Burst", "Concussive Burst", "Rending Burst", "Corrosive Burst")
+    val triggered = mutableSetOf<String>()
+    for (counter in 1..120) {
+      val state = ready.copy(metadata = ready.metadata + ("combat.eventCounter" to counter.toString()))
+      val result = CombatRuntime.resolve(state, "EXECUTE", PokerDiceCore.DIRECT_COMBAT_ACTION)
+      triggered += result.feedback.filter { it.actorId == LUCIA_ID && it.skill in expected }.map { it.skill }
+    }
+    assertEquals(expected, triggered)
+  }
+
   @Test fun luciaCatalogMatchesFiveIndependentV2BurstsAndUltimate() {
     val skills = CompanionSkillCatalog.forCharacter(LUCIA_ID)
     assertEquals(8, skills.size)

@@ -47,6 +47,8 @@ object CombatRuntime {
   private const val LUCIA_ULTIMATE_SHOTS = 60
   private data class LuciaProc(val name: String, val chance: Int, val damageBonus: Int,
                                val status: FeedbackStatus, val turns: Int, val value: Int)
+  private data class LuciaTick(val key: String, val turns: Int, val percent: Int,
+                               val status: FeedbackStatus)
   private val luciaProcs = listOf(
     LuciaProc("Toxic Burst", 52, 25, FeedbackStatus.POISON, 2, 3),
     LuciaProc("Armor-Piercing Burst", 55, 20, FeedbackStatus.ARMOR, 2, 10),
@@ -326,17 +328,17 @@ object CombatRuntime {
     var luciaArmorPercent = state.metadata[LUCIA_ARMOR_BREAK_PERCENT_KEY]?.toIntOrNull()?.coerceIn(0, 75) ?: 0
     if (luciaArmorTurns > 0) profile = profile.copy(armor = profile.armor * (100 - luciaArmorPercent) / 100)
     // Status damage begins on the following turn; each effect stays on the current Entity only.
-    for ((key, turns, percent, effect) in listOf(
-      listOf(LUCIA_BLEED_TURNS_KEY, luciaBleedTurns, luciaBleedPercent, "bleed"),
-      listOf(LUCIA_POISON_TURNS_KEY, luciaPoisonTurns, luciaPoisonPercent, "poison")
+    for ((key, turns, percent, status) in listOf(
+      LuciaTick(LUCIA_BLEED_TURNS_KEY, luciaBleedTurns, luciaBleedPercent, FeedbackStatus.BLEED),
+      LuciaTick(LUCIA_POISON_TURNS_KEY, luciaPoisonTurns, luciaPoisonPercent, FeedbackStatus.POISON)
     )) {
       if (turns > 0 && percent > 0 && c.entityHp > 0) {
         val damage = max(1, c.entityMaxHp * percent / 100)
         val hp = max(0, c.entityHp - damage)
-        recordFeedback("entity", c.entityHp, hp, status = if (effect == "bleed") FeedbackStatus.BLEED else FeedbackStatus.POISON,
-          actorId = LUCIA_ID, skill = if (effect == "bleed") "Rending Burst" else "Toxic/Corrosive Burst")
+        recordFeedback("entity", c.entityHp, hp, status = status, actorId = LUCIA_ID,
+          skill = if (status == FeedbackStatus.BLEED) "Rending Burst" else "Toxic/Corrosive Burst")
         c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
-        log += "Lucia M4A1 $effect: -${c.entityMaxHp.coerceAtMost(damage)} HP."
+        log += "Lucia M4A1 ${status.label}: -${damage} HP."
       }
       if (turns > 0) resolvedState = withCombatCounter(resolvedState, key, turns - 1)
     }
@@ -672,7 +674,7 @@ object CombatRuntime {
                     luciaProcs.forEachIndexed { index, proc ->
                       if (c.entityHp <= 0) return@forEachIndexed
                       if (roll(c.copy(eventCounter = c.eventCounter + 701 + index * 31), 100) >= proc.chance) return@forEachIndexed
-                      val bonus = max(1, (baseDamage.toLong() * proc.damageBonus + 50L).toInt() / 100)
+                      val bonus = max(1, ((baseDamage.toLong() * proc.damageBonus + 50L) / 100L).coerceAtMost(Int.MAX_VALUE.toLong()).toInt())
                       val after = max(0, c.entityHp - bonus)
                       recordFeedback("entity", c.entityHp, after, status = proc.status, actorId = LUCIA_ID, skill = proc.name)
                       c = c.copy(entityHp = after, entityCondition = condition(after, c.entityMaxHp))
