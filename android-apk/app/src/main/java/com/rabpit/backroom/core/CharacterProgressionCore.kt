@@ -90,6 +90,9 @@ object CharacterProgressionCore {
         raw.copy(
           baseMaxHp = BASE_MAX_HP,
           str = raw.str.coerceIn(BASE_STAT, MAX_STAT),
+          dex = raw.dex.coerceIn(BASE_STAT, MAX_STAT),
+          agi = raw.agi.coerceIn(BASE_STAT, MAX_STAT),
+          eva = raw.eva.coerceIn(BASE_STAT, MAX_STAT),
           def = raw.def.coerceIn(BASE_STAT, MAX_STAT),
           skl = raw.skl.coerceIn(BASE_STAT, MAX_STAT),
           vit = raw.vit.coerceIn(BASE_STAT, MAX_STAT),
