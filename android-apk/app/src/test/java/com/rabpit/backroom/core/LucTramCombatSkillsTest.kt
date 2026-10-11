@@ -70,7 +70,8 @@ class LucTramCombatSkillsTest {
     val first = CombatRuntime.resolve(withSword, "EXECUTE", "Cả Party tấn công")
     assertTrue(first.reply.contains("Thiên Kiếm Định Giới"))
     assertTrue(first.state.metadata.containsKey("combat.lucTramDomainWave"))
-    assertTrue(first.feedback.none { it.actorId == LUC_TRAM_ID && it.target == "entity" })
+    // The domain spends her actor action; an independent response-phase counter remains valid.
+    assertTrue(first.feedback.none { it.actorId == LUC_TRAM_ID && it.target == "entity" && it.phase == "actor" })
     assertEquals(CombatRuntime.Cover.HARD, CombatRuntime.active(first.state)!!.cover)
     val second = CombatRuntime.resolve(first.state, "EXECUTE", "Cả Party tấn công")
     assertFalse(second.reply.contains("Thiên Kiếm Định Giới"))
