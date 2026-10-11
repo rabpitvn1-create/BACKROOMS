@@ -119,6 +119,36 @@ body.player-action-open,body.game-menu-open{overflow:hidden}
 .gm-semantic{font-family:'Play',"Pretendard Std",system-ui,sans-serif;font-weight:700}
 </style>
 <link rel="stylesheet" href="ui/ornate-frame-v1.css">
+
+<style id="characterInfoStatsStyle">
+/* CHARACTER_INFO_STATS_V2: one authoritative Character Detail projection, no Core upgrade widgets. */
+.character-exp{display:grid;gap:6px;margin-top:12px;min-width:0}
+.character-exp-meta{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;letter-spacing:.04em}
+.character-exp-level{font-weight:850;color:#ead9a4}
+.character-exp-value{font-variant-numeric:tabular-nums;color:#bcc6bf}
+.character-exp-track{height:9px;overflow:hidden;border-radius:10px;background:#111d1b;border:1px solid #526258}
+.character-exp-fill{height:100%;width:0;border-radius:10px;background:linear-gradient(90deg,#568c79,#a0d7b5);transition:width .22s ease-out}
+.character-info-stats{display:grid;gap:12px;min-width:0}
+.character-info-block{padding:12px;border:1px solid #655c4299;border-radius:10px;background:linear-gradient(150deg,#1a211f,#101719);min-width:0}
+.character-info-heading{margin:0 0 9px;color:#d5c58f;font-size:11px;letter-spacing:.12em;font-weight:850}
+.character-info-base-list{display:grid;gap:6px}
+.character-info-stat{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;padding:8px 10px;border:1px solid #39423d;border-radius:10px;background:#101718;min-width:0}
+.character-info-stat-name{font-size:13px;font-weight:850;color:#e8e5ce}
+.character-info-stat-note{display:block;margin-top:3px;color:#a4b1ad;font-size:10px;line-height:1.3;overflow-wrap:anywhere}
+.character-info-stat-number{font-size:19px;font-weight:850;color:#f3e3ad;font-variant-numeric:tabular-nums;text-align:right}
+.character-info-stat-source{display:block;color:#a3c8a7;font-size:10px;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.character-info-combat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.character-info-combat-item{display:flex;flex-direction:column;justify-content:space-between;gap:8px;min-width:0;padding:10px;border:1px solid #39423d;border-radius:10px;background:#101718}
+.character-info-combat-label{color:#abb7af;font-size:10px;font-weight:750;letter-spacing:.035em;overflow-wrap:anywhere}
+.character-info-combat-value{color:#eaf1e3;font-size:17px;font-weight:850;letter-spacing:.01em;font-variant-numeric:tabular-nums}
+.character-info-combat-hint{margin:8px 0 0;color:#9daaa4;font-size:10px;line-height:1.4}
+.character-info-state-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.character-info-state-item{display:grid;gap:3px;padding:9px;border:1px solid #38403e;border-radius:10px;background:#101718;min-width:0}
+.character-info-state-item b{color:#b9ac80;font-size:10px;font-weight:750}
+.character-info-state-item span{color:#d8ddda;font-size:12px;overflow-wrap:anywhere}
+@media(max-width:370px){.character-info-block{padding:10px}.character-info-combat-value{font-size:15px}.character-info-stat{padding:8px}}
+@media(prefers-reduced-motion:reduce){.character-exp-fill{transition:none}}
+</style>
 </head>
 <body>
 <main class="shell">
@@ -167,7 +197,11 @@ body.player-action-open,body.game-menu-open{overflow:hidden}
     <div>
       <div class="character-hp" aria-label="Health">
         <div class="character-hp-track"><div class="character-hp-fill" id="characterHpFill"></div><div class="character-hp-segments" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div></div>
-        <div class="character-hp-value"><span class="character-hp-heart">♥</span><strong id="characterHpValue">100/100</strong></div>
+        <div class="character-hp-value"><span class="character-hp-heart">♥</span><strong id="characterHpValue">— / —</strong></div>
+      </div>
+      <div class="character-exp" aria-label="Tiến độ EXP nhân vật">
+        <div class="character-exp-meta"><strong class="character-exp-level" id="characterLevelValue">LV. —</strong><span class="character-exp-value" id="characterExpValue">EXP —</span></div>
+        <div class="character-exp-track" id="characterExpProgress" role="progressbar" aria-label="EXP đến cấp tiếp theo" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="character-exp-fill" id="characterExpFill"></div></div>
       </div>
       <div class="inventory-capacity" id="characterInventoryCapacity">0 / 9 loại vật phẩm</div><div class="inventory-limit">Inventory của nhân vật đang chọn</div>
     </div>
@@ -1806,11 +1840,29 @@ render();
     if(detailAvatarSrc)detailAvatar.src=detailAvatarSrc;else detailAvatar.removeAttribute('src');
     detailAvatar.alt=member.name||member.id||'Nhân vật';
     const rawMaxHp=Number(member.maxHp),rawCurrentHp=Number(member.currentHp);
-    const maxHp=Number.isFinite(rawMaxHp)&&rawMaxHp>0?rawMaxHp:100;
-    const currentHp=Number.isFinite(rawCurrentHp)?Math.max(0,Math.min(maxHp,rawCurrentHp)):maxHp;
-    const hpPercent=Math.max(0,Math.min(100,currentHp*100/maxHp));
+    const maxHp=member.maxHp!=null&&Number.isFinite(rawMaxHp)&&rawMaxHp>0?rawMaxHp:0;
+    const currentHp=member.currentHp!=null&&Number.isFinite(rawCurrentHp)?Math.max(0,Math.min(maxHp,rawCurrentHp)):0;
+    const hpPercent=maxHp>0?Math.max(0,Math.min(100,currentHp*100/maxHp)):0;
     if(hpFill)hpFill.style.width=hpPercent+'%';
-    if(hpValue)hpValue.textContent=Math.round(currentHp)+'/'+Math.round(maxHp);
+    if(hpValue)hpValue.textContent=maxHp>0?Math.round(currentHp)+'/'+Math.round(maxHp):'— / —';
+    const levelEl=document.getElementById('characterLevelValue');
+    const expEl=document.getElementById('characterExpValue');
+    const expFill=document.getElementById('characterExpFill');
+    const expProgress=document.getElementById('characterExpProgress');
+    const hasLevel=member.level!=null&&Number.isInteger(Number(member.level))&&Number(member.level)>=0;
+    const level=hasLevel?Number(member.level):0;
+    const atMax=hasLevel&&member.expToNextLevel===null;
+    const limit=member.expToNextLevel==null?0:Number(member.expToNextLevel);
+    const exp=Number(member.exp);
+    const hasProgress=hasLevel&&member.exp!=null&&Number.isFinite(exp)&&exp>=0&&Number.isFinite(limit)&&limit>0;
+    const progress=atMax?100:hasProgress?Math.max(0,Math.min(100,exp*100/limit)):0;
+    if(levelEl)levelEl.textContent=hasLevel?'LV. '+level:'LV. —';
+    if(expEl)expEl.textContent=atMax?'MAX LEVEL':hasProgress?'EXP '+exp+' / '+limit:'EXP —';
+    if(expFill)expFill.style.width=progress+'%';
+    if(expProgress){
+      expProgress.setAttribute('aria-valuenow',String(Math.round(progress)));
+      expProgress.setAttribute('aria-valuetext',atMax?'MAX LEVEL':hasProgress?'EXP '+exp+' / '+limit:'Không có dữ liệu EXP');
+    }
     renderSurvivalHud(member);
     const inv=Array.isArray(member.inventory)?member.inventory:(member.id==='cao_minh'?kaiItems():[]);
     capacity.textContent=member&&member.id==='an-nhien'?inv.length+' / 2 slot thực phẩm':inv.length+' / 9 loại vật phẩm';
