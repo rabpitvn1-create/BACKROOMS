@@ -17,9 +17,12 @@ object CharacterDetailJson {
     put("currentHp", c.currentHp); put("maxHp", c.maxHp); put("role", c.role)
     put("energy", c.energyDisplay); put("hpRegen", c.regenPerCompletedTurn); put("condition", c.condition.name)
     put("stats", JSONObject().apply {
-      put("STR", stat(c.str)); put("DEF", stat(c.def)); put("SKL", stat(c.skl)); put("VIT", stat(c.vit))
+      put("STR", stat(c.str)); put("DEX", stat(c.dex)); put("AGI", stat(c.agi)); put("VIT", stat(c.vit)); put("EVA", stat(c.eva))
     })
     put("combatStatus", JSONObject()
+      .put("defense", c.defense)
+      .put("attackPercent", c.attackPercent)
+      .put("skillDamagePercent", c.skillDamagePercent)
       .put("criticalChancePercent", c.criticalChancePercent)
       .put("criticalDamagePercent", c.criticalDamagePercent)
       .put("evasionPercent", c.evasionPercent)
