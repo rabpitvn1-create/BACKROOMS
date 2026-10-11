@@ -6,38 +6,44 @@ const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
 const main = fs.readFileSync(path.join(root, 'app/src/main/java/com/rabpit/backroom/MainActivity.java'), 'utf8');
+const pool = fs.readFileSync(path.join(root, 'app/src/main/java/com/rabpit/backroom/EntityEncounterPool.java'), 'utf8');
 const docs = fs.readFileSync(path.resolve(root, '..', 'ENTITY_ASSETS.md'), 'utf8');
 
-function extractPool(name) {
-  const match = main.match(new RegExp('String\\[\\] ' + name + ' = \\{([^}]+)\\}'));
-  assert.ok(match, 'Missing pool: ' + name);
-  return [...match[1].matchAll(/"([^"]+)"/g)].map(item => item[1]);
+function groupKeys(name) {
+  const match = pool.match(new RegExp('private static final String\\[\\] ' + name + ' = \\{([^}]+)\\}'));
+  assert.ok(match, 'Missing weighted Entity group: ' + name);
+  return [...match[1].matchAll(/"([^"]+)"/g)].map(x => x[1]);
 }
 
-test('ordinary roaming encounter chance gains two percentage points at every Level', () => {
-  const match = main.match(/int\[\] entityThresholds = \{([^}]+)\}/);
-  assert.ok(match);
-  const values = match[1].split(',').map(v => Number(v.trim()));
-  assert.deepEqual(values, [1005, 1200, 1350, 1350, 1010, 1400, 1005]);
-  assert.match(main, /thresholdRoll\("entityEncounter", 10000, entityThresholds\[level\], entityEncounterAction && entityAllowed/);
+test('single 45% Entity chance across all Levels and permitted gameplay actions', () => {
+  assert.match(main, /thresholdRoll\("entityEncounter", 10000,\s*EntityEncounterPool.ENCOUNTER_THRESHOLD, entityEncounterAction && entityAllowed,/);
+  assert.match(pool, /ENCOUNTER_THRESHOLD = 4500/);
+  assert.match(main, /EntityEncounterPool\.pickForSuccessfulRoll\(entityRoll\.getInt\("roll"\)\)/);
+  assert.match(main, /if \(candidateState == null \|\| rolls == null \|\| !rollSuccess\(rolls, "entityEncounter"\)\) return/);
+  assert.doesNotMatch(main, /diepMinhEncounter|lifeformEncounter|lifeformEntityKey|roamingEntityKey|entityThresholds/);
+  assert.match(docs, /45%/);
 });
 
-test('boss and Lifeform family get two percentage points without multiplying by member count', () => {
-  assert.match(main, /thresholdRoll\("diepMinhEncounter", 10000, 500, entityEncounterAction && entityAllowed, " unique boss 5%"\)/);
-  assert.match(main, /thresholdRoll\("lifeformEncounter", 10000, 400, entityEncounterAction && entityAllowed, " Lifeform trio 4%"\)/);
-  assert.match(main, /lifeformEncounter là một roll độc lập đúng 4% cho cả họ Lifeform/);
-  assert.match(docs, /roll xuất hiện độc lập 5%/);
-  assert.match(docs, /roll độc lập 4% cho cả nhóm/);
-});
-
-test('every packaged Entity belongs to an updated encounter pool', () => {
-  const roaming = extractPool('roamingPool');
-  const lifeform = extractPool('lifeformPool');
-  assert.equal(roaming.length, 18);
-  assert.equal(lifeform.length, 3);
-  const listed = [...roaming, ...lifeform, 'diep_minh'].sort();
-  assert.equal(new Set(listed).size, listed.length, 'Entity pools must not overlap');
+test('pool covers every packaged Entity exactly once with weights summing to 45%', () => {
+  const specification = {COMMON: [14, 250], LIFEFORM: [3, 200], RARE: [3, 100], KILLERS: [2, 50]};
+  const keys = [];
+  let total = 0;
+  for (const [group, [count, weight]] of Object.entries(specification)) {
+    const names = groupKeys(group);
+    assert.equal(names.length, count);
+    keys.push(...names);
+    total += names.length * weight;
+  }
+  assert.equal(total, 4500);
+  assert.equal(new Set(keys).size, 22);
   const assets = fs.readdirSync(path.join(root, 'app/src/main/assets/entity'))
     .filter(name => name.endsWith('.webp')).map(name => name.slice(0, -5)).sort();
-  assert.deepEqual(listed, assets);
+  assert.deepEqual(keys.sort(), assets);
+});
+
+test('AI may only introduce the Entity selected by the authoritative roll', () => {
+  assert.match(main, /if \(root.equals\("entityEncounterKey"\)\) \{/);
+  assert.match(main, /requested.equals\(rolls\.optString\("selectedEntityKey", ""\)\)/);
+  assert.match(main, /rolls.selectedEntityKey có giá trị/);
+  assert.doesNotMatch(main, /theo tỷ lệ Level|roaming\/incursion cực hiếm|Entity gồm Hound/);
 });

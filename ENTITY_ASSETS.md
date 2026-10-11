@@ -31,9 +31,16 @@ Runtime chỉ dùng canonical Entity key trùng chính xác với tên file bỏ
 | `sinew_strider` | `sinew_strider.webp` |
 | `hollow_grasper` | `hollow_grasper.webp` |
 
-`diep_minh` là boss unique dùng roll xuất hiện độc lập 5%, không nằm trong shared roaming Entity pool.
+Cả **22 Entity** dùng chung một lượt d10000 trên mọi Level 0–6. Trong mỗi lượt SEARCH, EXPLORE hoặc EXECUTE hợp lệ, xác suất gặp một Entity mới là **45%**, 55% không gặp Entity. Một lần roll duy nhất quyết định cả việc gặp lẫn loài được chọn; không có roll riêng cho boss, Lifeform, Jeff hay Jane.
 
-Ba Lifeform dùng **một roll độc lập 4% cho cả nhóm**. Khi roll thành công, runtime chọn đúng một trong ba key `blackroot_sentinel`, `sinew_strider`, `hollow_grasper`; chúng không nằm trong shared roaming pool.
+| Nhóm | Số Entity | Xác suất mỗi Entity trên một lượt hợp lệ |
+|---|---:|---:|
+| Entity thường | 14 | 2,5% |
+| Blackroot Sentinel, Sinew Strider, Hollow Grasper | 3 | 2% |
+| The Beast of Level 5, Slenderman, Diệp Minh | 3 | 1% |
+| Jeff the Killer, Jane the Killer | 2 | 0,5% |
+
+**Tổng: 35% + 6% + 3% + 1% = 45%.** Mọi Entity đều có thể xuất hiện ở mọi Level, không có ràng buộc theo Level; chỉ tối đa một Entity mới từ lượt roll này.
 
 Base profile của cả ba bằng **Hound × 1.3**, làm tròn về stat nguyên: **104 HP / 20 ATK / 3 Armor / 10 Aggression** trước shared Entity durability và Level scaling. Ở Level 0, shared +30 HP khiến Max HP thực tế là **134**.
 
