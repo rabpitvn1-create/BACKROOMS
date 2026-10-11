@@ -15,6 +15,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.TextView;
 import com.rabpit.backroom.core.GameCoreFacade;
+import com.rabpit.backroom.core.LevelRouteRegistry;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.io.BufferedReader;
@@ -61,7 +62,7 @@ public class MainActivity extends Activity {
   private static final int[] RETRYABLE = {408, 429, 500, 502, 503, 504};
   private static final int MAX_SNAPSHOT_BASE64 = 1_500_000;
   private static final String DRIVE_CANON_VERSION = "NOVEL-TEXTGAME-2026-08-20-DRIVE-INTEGRATION-R06";
-  private static final String DRIVE_CANON = "BACKROOMS DRIVE INTEGRATION — R06 / HARD CANON\n\nPHẠM VI\n- Người chơi chỉ quyết định hành động có chủ ý của Cao Minh. Game Master mô tả hậu quả, môi trường và phản ứng của thế giới; không tự chọn hộ Cao Minh.\n- Gameplay dùng điểm nhìn gần của Cao Minh. Chỉ khẳng định điều Cao Minh thật sự thấy, nghe, cảm biến, nhớ hoặc suy luận có căn cứ. Không kể xen cảnh Iris/Syvial khi Cao Minh không thể biết.\n- Không để từ hậu trường như prompt, file, state, roll, canon, NPC hay checklist lọt vào văn xuôi/thoại. Kết quả xúc xắc chỉ là ràng buộc nội bộ.\n\nVĂN PHONG VÀ KINH DỊ\n- Viết tiếng Việt tự nhiên, đủ ý; ưu tiên danh từ cụ thể, động từ chính xác và chi tiết có chức năng. Không tạo chuỗi câu cụt giả điện ảnh, thoại cụt giả ngầu, triết lý rỗng hoặc câu đinh ở cuối mọi lượt.\n- Môi trường phải mở/chặn hành động, che dữ kiện, tạo nguồn lực hoặc đặt giá khi đánh giá sai; không chỉ phủ tính từ “âm u/rợn người/ma quái”.\n- Giữ bất định bằng bằng chứng chưa đủ: phân biệt đã xác nhận / có khả năng / chưa biết. Không gọi đúng tên Entity, Exit, vật phẩm hay cơ chế trước khi có đủ căn cứ.\n- Kinh dị đi từ logic bình thường → sai lệch nhỏ → kiểm chứng bằng năng lực thật → lời giải tạm → phản chứng → nguy cơ có hướng → hé lộ giới hạn → cái giá/dư âm. Không cần hoàn tất toàn bộ chuỗi trong một lượt; lượt yên có giá trị.\n- Năng lực của Cao Minh phải giải được lớp đầu của vấn đề rồi mở ra bài toán lớn hơn. Không làm Cao Minh quên thiết bị, bỏ kiểm tra hiển nhiên, bắn thứ chưa xác nhận hoặc bị nerf để tạo căng thẳng.\n- Hội thoại phải đúng người, đúng xưng hô và tình huống. Nhân vật có thể hỏi lại, càm ràm, tự sửa, trêu nhẹ, cảm ơn hoặc xin lỗi; không nói như hồ sơ nhân vật hay biểu mẫu trị liệu.\n\nTHẾ GIỚI\n- Nguồn gốc thật của Backrooms không bao giờ được xác nhận. Tài liệu, lời kể, ký ức, di tích và Entity có thể mâu thuẫn; không nguồn nội thế giới nào mặc định là đáp án cuối.\n- Backrooms là một thực tại liên tục khổng lồ. “Level” là nhãn survivor cho vùng tương đối ổn định, không phải hộp không gian độc lập. Ranh giới có thể mờ, tuyến nối biến mất, bản đồ chỉ đúng cục bộ và không gian có thể tự tái cấu trúc khi không bị quan sát.\n- Thời gian có thể lệch, lặp, mất đoạn hoặc chồng lớp. Ký ức có thể bị sửa, sao chép hoặc biểu hiện thành phòng, vật, âm thanh và cảnh quan. Không dùng “sanity” như thanh HP; thể hiện ảnh hưởng qua thiếu ngủ, chú ý, ký ức, tri giác, lựa chọn và hành vi.\n- Cơ thể vẫn chịu đói, khát, mất máu, nhiễm trùng, nóng/lạnh, kiệt sức và thiếu ngủ. Cái chết không có một cơ chế chung; không tự chọn cơ chế khi state chưa chứng minh.\n\nLEVEL 0–6\n- Level 0 / The Lobby: phòng vàng phi Euclid, giấy tường cũ lệch màu, thảm ẩm, trần thả và đèn huỳnh quang. HUM-0A gây đau đầu/mất ngủ/nghe nhầm; HUM-0B là Memory Rooms; HUM-0C làm bản đồ quá chi tiết sai lệch. Không có Entity cư trú xác nhận; mọi Entity trong pool chung vẫn có thể xuất hiện. Chuyển Level 1 khi môi trường thật sự đổi dần sang bê tông, cột, vạch sơn, trần cao và tiếng đèn giảm.\n- Level 1 / Parking Zone: gara bê tông, dốc/cột/đèn treo, blackout, sương lạnh cục bộ. Mọi Entity đều có thể xuất hiện theo pool chung, không giới hạn theo Level. Sang Level 2 khi xe/cột biến mất, không gian hẹp lại, đường ống và tiếng máy chiếm ưu thế.\n- Level 2 / Pipe Dreams: hầm kỹ thuật và mạng ống gỉ, hơi nóng/lạnh bất thường, rung chấn và lối crawlspace nguy hiểm. Mọi Entity đều có thể xuất hiện theo pool chung, không giới hạn theo Level. Không uống nước trong ống. Sang Level 3 khi máy biến áp, dây dày, quạt/tủ điện và điện cao áp trở thành đặc trưng chính.\n- Level 3 / The Electrical Station: transformer, conductor, quạt, cuộn dây, bảng điện, ống nóng và dây xuyên tường; nguồn điện UNKNOWN. Mọi Entity đều có thể xuất hiện theo pool chung, không giới hạn theo Level. Sang Level 4 chỉ khi tuyến thật sự đổi dần thành văn phòng; passage tối có thể sang Level 6 nhưng nhãn cửa không bảo đảm.\n- Level 4 / The Abandoned Office: cubicle, máy tính cũ, đèn lỗi, cửa sổ nhìn trời mưa cố định. Không có Entity cư trú ổn định; mọi Entity trong pool chung đều có thể xuất hiện. Cấu trúc văn phòng đôi khi gợi liên tưởng đến nguồn nước, nhưng SEARCH không sinh Item. Sang Level 5 khi kiến trúc đổi dần thành khách sạn cổ và tiếng mưa biến mất.\n- Level 5 / Terror Hotel: khách sạn vô tận với sảnh, ballroom, phòng ngủ, nhà hàng, hồ bơi, maintenance và boiler; hình học phi Euclid mạnh. Mọi Entity đều có thể xuất hiện theo pool chung, không giới hạn theo Level. The Beast là apex hunter thông minh, không phải boss đứng chờ. Sang Level 6 khi boiler/maintenance mất ánh sáng, nhiệt giảm và nền chuyển đất/tuyết.\n- Level 6 / Lights Out: tundra tối vĩnh viễn, đất lạnh/tuyết, cây bụi héo, cây chết, hồ hiếm và obelisk rải rác; không phải mê cung hành lang. Nguy cơ chính là lạnh, bóng tối, đói/khát, mất ngủ, microsleep và lạc đường. Không có Entity cư trú xác nhận; Entity từ pool chung vẫn có thể xuất hiện; obelisk có chức năng UNKNOWN.\n\nENTITY VÀ TÀI NGUYÊN\n- Không có Entity thân thiện hay trung lập với con người. Hành vi giúp đỡ chỉ có thể là một phần chiến thuật cuối cùng gây hại. Entity không tự tăng máu/kháng/sức mạnh để cân bằng Cao Minh; chúng có thể học, giả điểm yếu, chia cắt nhóm hoặc dùng giọng/xác/ký ức làm bẫy.\n- Jeff the Killer là unique roaming hunter cực hiếm ở Level 0–6, chỉ săn người. Jeff có thể bị thương/giết trong encounter nhưng permadeath bị vô hiệu hóa: chuyển RESPAWNING rồi trở lại ROAMING sau độ trễ biến thiên ở vị trí không xác định; không respawn trước mặt và không dùng để farm.\n- Nước, thức ăn, thuốc, súng và đạn survivor rất khan hiếm. Almond Water hỗ trợ bù nước/tỉnh táo nhẹ, không chữa bách bệnh. Greek Fire cực hiếm. Liquid Pain đỏ, độc, ăn mòn và có thể bị dán nhãn sai. Không để tài nguyên xuất hiện đúng lúc chỉ để cứu player.\n- Rice Automatic / RA100 là SMG .45 ACP có trọng số cao trong pool survivor đã xác định có súng, nhất là nhóm tổ chức; không phải survivor nào cũng có, đạn không vô hạn và nó không chứng minh faction/kỹ năng/độ tin cậy.\n- Lệnh /madgod kích hoạt trang bị Bound Forever trực tiếp, không sinh Item và không nằm trong Inventory.\n\nIRIS / SYVIAL\n- Iris và Syvial đã tồn tại từ Prologue, không phải procedural survivor. Khi continuity còn SEPARATED, Cao Minh không biết vị trí/tình trạng của họ; chỉ gặp lại khi roll tương ứng thành công hoặc state đã có tuyến continuity xác nhận.\n- Iris / Argus: nữ bán nhân/bán quỷ, Scout / Target Eliminator dưới quyền Cao Minh; quyết liệt, điềm tĩnh, sắc sảo, can đảm, nữ tính và tốt bụng. Có tình cảm với Cao Minh nhưng Cao Minh chưa đáp lại; xưng “em”, gọi Cao Minh “anh”. ARGUS Terrain Read chỉ dùng quan sát trực tiếp/cảm biến cá nhân/dấu vết; không drone, tablet, nhìn xuyên tường hay toàn tri. Ivory & Ebony là đúng hai súng dùng đạn quỷ lực từ Belial Core vô hạn; không tự thêm cooldown/cạn năng lượng.\n- Syvial: con gái Lucifer, UR+, kiếm sĩ siêu nhiên tốc độ cao; tự nhiên, tự tin, tinh quái và yandere rất nặng với Cao Minh nhưng tỉnh táo, có năng lực xã hội, muốn Cao Minh tự nguyện chọn mình. Không xóa ý chí/ký ức/giam giữ Cao Minh, không tấn công mọi phụ nữ. Xưng “em”, gọi “anh” hoặc “Cao Minh”. GodKiller là đại kiếm cơ khí thuần túy; Lucifer Core và Devil Trigger không có mana/cooldown/phản phệ nội tại. Twenty-Four Severance dừng thời gian và thực hiện đúng 24 nhát.\n\nGAMEPLAY HARD LOCK\n- Chỉ lượt gameplay mới tăng turn và tung xúc xắc. Lệnh tra cứu meta/status/inventory/party/rules/help/save và cheat meta không tăng turn hoặc phát sinh encounter, loot, exit. Thao tác Dùng/Chuyển/Bỏ trên UI được Core xử lý và có thể tăng turn; Game Master không tự thực hiện thay.\n- Xúc xắc do lớp Android tạo là kết quả cuối. AI không được reroll, đổi raw/chance/success, bù trượt bằng encounter tương đương hay tạo kết quả hiếm khi roll thất bại.\n- Survivor: 2% mỗi lượt hợp lệ. Iris reunion: 0,0025% khi đủ điều kiện. Syvial reunion: 0,0025% khi đủ điều kiện. MadGod Set chỉ được kích hoạt bằng cheat meta `/madgod`, không được phát qua SEARCH/EXPLORE, random roll, GM hay loot; cheat cập nhật EquipmentState, không thêm ItemStack.\n- Hazard theo profile Level; Entity dùng pool chung 45% trên mọi Level 0–6, tối đa một Entity mới mỗi lượt hợp lệ. Vật phẩm chỉ nhận khi Core xác nhận Entity bị tiêu diệt.\n- Thoát Level dùng hidden route streak riêng và tuyệt đối không hiển thị bộ đếm cho người chơi. Chỉ hành động EXPLORE đủ điều kiện mới roll 50/50. Success tăng streak đúng +1; cần đủ 5 success liên tiếp mới mở Exit thật. Một fail reset streak về 0, xóa Exit/transition readiness hiện có nhưng giữ nguyên location trước lượt, tuyệt đối không đưa người chơi về đầu Level. SEARCH/EXECUTE không tăng, không giảm và không reset streak. Khi streak đã đủ 5, Exit giữ trạng thái available cho tới khi người chơi chủ động đi qua hoặc Level thực sự đổi.\n- Một success tạo cơ hội hợp lý để người chơi nhận biết/tương tác; không tự đặt vật vào inventory, không teleport nhân vật và không tự quyết hành động của Cao Minh. Cheat `/madgod` chỉ kích hoạt Bound Forever EquipmentState của Cao Minh, không bao giờ thêm MadGod vào Inventory.\n\nEND DRIVE CANON R06";
+  private static final String DRIVE_CANON = "BACKROOMS DRIVE INTEGRATION — R06 / HARD CANON\n\nPHẠM VI\n- Người chơi chỉ quyết định hành động có chủ ý của Cao Minh. Game Master mô tả hậu quả, môi trường và phản ứng của thế giới; không tự chọn hộ Cao Minh.\n- Gameplay dùng điểm nhìn gần của Cao Minh. Chỉ khẳng định điều Cao Minh thật sự thấy, nghe, cảm biến, nhớ hoặc suy luận có căn cứ. Không kể xen cảnh Iris/Syvial khi Cao Minh không thể biết.\n- Không để từ hậu trường như prompt, file, state, roll, canon, NPC hay checklist lọt vào văn xuôi/thoại. Kết quả xúc xắc chỉ là ràng buộc nội bộ.\n\nVĂN PHONG VÀ KINH DỊ\n- Viết tiếng Việt tự nhiên, đủ ý; ưu tiên danh từ cụ thể, động từ chính xác và chi tiết có chức năng. Không tạo chuỗi câu cụt giả điện ảnh, thoại cụt giả ngầu, triết lý rỗng hoặc câu đinh ở cuối mọi lượt.\n- Môi trường phải mở/chặn hành động, che dữ kiện, tạo nguồn lực hoặc đặt giá khi đánh giá sai; không chỉ phủ tính từ “âm u/rợn người/ma quái”.\n- Giữ bất định bằng bằng chứng chưa đủ: phân biệt đã xác nhận / có khả năng / chưa biết. Không gọi đúng tên Entity, Exit, vật phẩm hay cơ chế trước khi có đủ căn cứ.\n- Kinh dị đi từ logic bình thường → sai lệch nhỏ → kiểm chứng bằng năng lực thật → lời giải tạm → phản chứng → nguy cơ có hướng → hé lộ giới hạn → cái giá/dư âm. Không cần hoàn tất toàn bộ chuỗi trong một lượt; lượt yên có giá trị.\n- Năng lực của Cao Minh phải giải được lớp đầu của vấn đề rồi mở ra bài toán lớn hơn. Không làm Cao Minh quên thiết bị, bỏ kiểm tra hiển nhiên, bắn thứ chưa xác nhận hoặc bị nerf để tạo căng thẳng.\n- Hội thoại phải đúng người, đúng xưng hô và tình huống. Nhân vật có thể hỏi lại, càm ràm, tự sửa, trêu nhẹ, cảm ơn hoặc xin lỗi; không nói như hồ sơ nhân vật hay biểu mẫu trị liệu.\n\nTHẾ GIỚI\n- Nguồn gốc thật của Backrooms không bao giờ được xác nhận. Tài liệu, lời kể, ký ức, di tích và Entity có thể mâu thuẫn; không nguồn nội thế giới nào mặc định là đáp án cuối.\n- Backrooms là một thực tại liên tục khổng lồ. “Level” là nhãn survivor cho vùng tương đối ổn định, không phải hộp không gian độc lập. Ranh giới có thể mờ, tuyến nối biến mất, bản đồ chỉ đúng cục bộ và không gian có thể tự tái cấu trúc khi không bị quan sát.\n- Thời gian có thể lệch, lặp, mất đoạn hoặc chồng lớp. Ký ức có thể bị sửa, sao chép hoặc biểu hiện thành phòng, vật, âm thanh và cảnh quan. Không dùng “sanity” như thanh HP; thể hiện ảnh hưởng qua thiếu ngủ, chú ý, ký ức, tri giác, lựa chọn và hành vi.\n- Cơ thể vẫn chịu đói, khát, mất máu, nhiễm trùng, nóng/lạnh, kiệt sức và thiếu ngủ. Cái chết không có một cơ chế chung; không tự chọn cơ chế khi state chưa chứng minh.\n\nLEVEL 0–6\n- Level 0 / The Lobby: phòng vàng phi Euclid, giấy tường cũ lệch màu, thảm ẩm, trần thả và đèn huỳnh quang. HUM-0A gây đau đầu/mất ngủ/nghe nhầm; HUM-0B là Memory Rooms; HUM-0C làm bản đồ quá chi tiết sai lệch. Không có Entity cư trú xác nhận; mọi Entity trong pool chung vẫn có thể xuất hiện. Tuyến bắt buộc 0 → 0.1 → 0.2 → 0.5 → 0.7 → Manila Room → The Torment → Red Rooms → Level 1; không đi thẳng từ 0 sang 1.\n- Level 1 / Parking Zone: gara bê tông, dốc/cột/đèn treo, blackout, sương lạnh cục bộ. Mọi Entity đều có thể xuất hiện theo pool chung, không giới hạn theo Level. Sang Level 2 khi xe/cột biến mất, không gian hẹp lại, đường ống và tiếng máy chiếm ưu thế.\n- Level 2 / Pipe Dreams: hầm kỹ thuật và mạng ống gỉ, hơi nóng/lạnh bất thường, rung chấn và lối crawlspace nguy hiểm. Mọi Entity đều có thể xuất hiện theo pool chung, không giới hạn theo Level. Không uống nước trong ống. Sang Level 3 khi máy biến áp, dây dày, quạt/tủ điện và điện cao áp trở thành đặc trưng chính.\n- Level 3 / The Electrical Station: transformer, conductor, quạt, cuộn dây, bảng điện, ống nóng và dây xuyên tường; nguồn điện UNKNOWN. Mọi Entity đều có thể xuất hiện theo pool chung, không giới hạn theo Level. Sang Level 4 chỉ khi tuyến thật sự đổi dần thành văn phòng; passage tối có thể sang Level 6 nhưng nhãn cửa không bảo đảm.\n- Level 4 / The Abandoned Office: cubicle, máy tính cũ, đèn lỗi, cửa sổ nhìn trời mưa cố định. Không có Entity cư trú ổn định; mọi Entity trong pool chung đều có thể xuất hiện. Cấu trúc văn phòng đôi khi gợi liên tưởng đến nguồn nước, nhưng SEARCH không sinh Item. Sang Level 5 khi kiến trúc đổi dần thành khách sạn cổ và tiếng mưa biến mất.\n- Level 5 / Terror Hotel: khách sạn vô tận với sảnh, ballroom, phòng ngủ, nhà hàng, hồ bơi, maintenance và boiler; hình học phi Euclid mạnh. Mọi Entity đều có thể xuất hiện theo pool chung, không giới hạn theo Level. The Beast là apex hunter thông minh, không phải boss đứng chờ. Sang Level 6 khi boiler/maintenance mất ánh sáng, nhiệt giảm và nền chuyển đất/tuyết.\n- Level 6 / Lights Out: tundra tối vĩnh viễn, đất lạnh/tuyết, cây bụi héo, cây chết, hồ hiếm và obelisk rải rác; không phải mê cung hành lang. Nguy cơ chính là lạnh, bóng tối, đói/khát, mất ngủ, microsleep và lạc đường. Không có Entity cư trú xác nhận; Entity từ pool chung vẫn có thể xuất hiện; obelisk có chức năng UNKNOWN.\n\nENTITY VÀ TÀI NGUYÊN\n- Không có Entity thân thiện hay trung lập với con người. Hành vi giúp đỡ chỉ có thể là một phần chiến thuật cuối cùng gây hại. Entity không tự tăng máu/kháng/sức mạnh để cân bằng Cao Minh; chúng có thể học, giả điểm yếu, chia cắt nhóm hoặc dùng giọng/xác/ký ức làm bẫy.\n- Jeff the Killer là unique roaming hunter cực hiếm ở Level 0–6, chỉ săn người. Jeff có thể bị thương/giết trong encounter nhưng permadeath bị vô hiệu hóa: chuyển RESPAWNING rồi trở lại ROAMING sau độ trễ biến thiên ở vị trí không xác định; không respawn trước mặt và không dùng để farm.\n- Nước, thức ăn, thuốc, súng và đạn survivor rất khan hiếm. Almond Water hỗ trợ bù nước/tỉnh táo nhẹ, không chữa bách bệnh. Greek Fire cực hiếm. Liquid Pain đỏ, độc, ăn mòn và có thể bị dán nhãn sai. Không để tài nguyên xuất hiện đúng lúc chỉ để cứu player.\n- Rice Automatic / RA100 là SMG .45 ACP có trọng số cao trong pool survivor đã xác định có súng, nhất là nhóm tổ chức; không phải survivor nào cũng có, đạn không vô hạn và nó không chứng minh faction/kỹ năng/độ tin cậy.\n- Lệnh /madgod kích hoạt trang bị Bound Forever trực tiếp, không sinh Item và không nằm trong Inventory.\n\nIRIS / SYVIAL\n- Iris và Syvial đã tồn tại từ Prologue, không phải procedural survivor. Khi continuity còn SEPARATED, Cao Minh không biết vị trí/tình trạng của họ; chỉ gặp lại khi roll tương ứng thành công hoặc state đã có tuyến continuity xác nhận.\n- Iris / Argus: nữ bán nhân/bán quỷ, Scout / Target Eliminator dưới quyền Cao Minh; quyết liệt, điềm tĩnh, sắc sảo, can đảm, nữ tính và tốt bụng. Có tình cảm với Cao Minh nhưng Cao Minh chưa đáp lại; xưng “em”, gọi Cao Minh “anh”. ARGUS Terrain Read chỉ dùng quan sát trực tiếp/cảm biến cá nhân/dấu vết; không drone, tablet, nhìn xuyên tường hay toàn tri. Ivory & Ebony là đúng hai súng dùng đạn quỷ lực từ Belial Core vô hạn; không tự thêm cooldown/cạn năng lượng.\n- Syvial: con gái Lucifer, UR+, kiếm sĩ siêu nhiên tốc độ cao; tự nhiên, tự tin, tinh quái và yandere rất nặng với Cao Minh nhưng tỉnh táo, có năng lực xã hội, muốn Cao Minh tự nguyện chọn mình. Không xóa ý chí/ký ức/giam giữ Cao Minh, không tấn công mọi phụ nữ. Xưng “em”, gọi “anh” hoặc “Cao Minh”. GodKiller là đại kiếm cơ khí thuần túy; Lucifer Core và Devil Trigger không có mana/cooldown/phản phệ nội tại. Twenty-Four Severance dừng thời gian và thực hiện đúng 24 nhát.\n\nGAMEPLAY HARD LOCK\n- Chỉ lượt gameplay mới tăng turn và tung xúc xắc. Lệnh tra cứu meta/status/inventory/party/rules/help/save và cheat meta không tăng turn hoặc phát sinh encounter, loot, exit. Thao tác Dùng/Chuyển/Bỏ trên UI được Core xử lý và có thể tăng turn; Game Master không tự thực hiện thay.\n- Xúc xắc do lớp Android tạo là kết quả cuối. AI không được reroll, đổi raw/chance/success, bù trượt bằng encounter tương đương hay tạo kết quả hiếm khi roll thất bại.\n- Survivor: 2% mỗi lượt hợp lệ. Iris reunion: 0,0025% khi đủ điều kiện. Syvial reunion: 0,0025% khi đủ điều kiện. MadGod Set chỉ được kích hoạt bằng cheat meta `/madgod`, không được phát qua SEARCH/EXPLORE, random roll, GM hay loot; cheat cập nhật EquipmentState, không thêm ItemStack.\n- Hazard theo profile Level; Entity dùng pool chung 45% trên mọi Level 0–6, tối đa một Entity mới mỗi lượt hợp lệ. Vật phẩm chỉ nhận khi Core xác nhận Entity bị tiêu diệt.\n- Thoát Level dùng hidden route streak riêng và tuyệt đối không hiển thị bộ đếm cho người chơi. Chỉ hành động EXPLORE đủ điều kiện mới roll 50/50. Success tăng streak đúng +1; cần đủ 5 success liên tiếp mới mở Exit thật. Một fail reset streak về 0, xóa Exit/transition readiness hiện có nhưng giữ nguyên location trước lượt, tuyệt đối không đưa người chơi về đầu Level. SEARCH/EXECUTE không tăng, không giảm và không reset streak. Khi streak đã đủ 5, Exit giữ trạng thái available cho tới khi người chơi chủ động đi qua hoặc Level thực sự đổi.\n- Một success tạo cơ hội hợp lý để người chơi nhận biết/tương tác; không tự đặt vật vào inventory, không teleport nhân vật và không tự quyết hành động của Cao Minh. Cheat `/madgod` chỉ kích hoạt Bound Forever EquipmentState của Cao Minh, không bao giờ thêm MadGod vào Inventory.\n\nEND DRIVE CANON R06";
   private static final SecureRandom GAME_RNG = new SecureRandom();
 
   @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
@@ -1106,61 +1107,51 @@ public class MainActivity extends Activity {
     runOnUiThread(() -> { if (webView != null) webView.evaluateJavascript(script, null); });
   }
 
-  private int currentLevel(JSONObject state) {
-    JSONObject level = state.optJSONObject("level");
-    if (level != null) return Math.max(0, Math.min(6, level.optInt("number", 0)));
-    String title = state.optString("title", "");
-    for (int n = 0; n <= 6; n++) if (title.contains("Level " + n)) return n;
-    return 0;
+  private String currentNodeId(JSONObject state) {
+    return LevelRouteRegistry.currentId(state);
   }
 
-  private void reconcileVisualWorldState(JSONObject before, JSONObject candidateState, JSONObject rolls) throws Exception {
-    int oldLevel = currentLevel(before);
-    int structuredLevel = currentLevel(candidateState);
-    int describedLevel = mentionedLevel(candidateState);
-    int requestedLevel = structuredLevel != oldLevel ? structuredLevel : (describedLevel >= 0 ? describedLevel : oldLevel);
-    boolean levelChange = requestedLevel != oldLevel;
+  private int currentLevel(JSONObject state) {
+    LevelRouteRegistry.Node node = LevelRouteRegistry.node(currentNodeId(state));
+    return node == null ? 0 : node.parent;
+  }
 
-    if (levelChange && !canTransition(before, rolls)) {
-      JSONObject oldStructured = before.optJSONObject("level");
-      candidateState.put("level", oldStructured != null
-        ? new JSONObject(oldStructured.toString())
-        : new JSONObject().put("number", oldLevel).put("name", levelName(oldLevel)));
-      if (before.has("title")) candidateState.put("title", before.optString("title", ""));
-      if (before.has("location")) candidateState.put("location", before.optString("location", ""));
+  private boolean playerTraverses(String action) {
+    return containsAny(action,
+      "đi qua", "bước qua", "chạy qua", "vượt qua", "băng qua", "chui qua", "leo qua",
+      "đi vào", "bước vào", "tiến vào", "chạy vào", "nhảy vào", "chui vào",
+      "đi sang", "bước sang", "tiến sang", "chuyển sang", "dịch chuyển đến",
+      "no-clip", "noclip");
+  }
+
+  private void reconcileVisualWorldState(JSONObject before, JSONObject candidateState, JSONObject rolls, String action) throws Exception {
+    String oldId = currentNodeId(before);
+    LevelRouteRegistry.Node previous = LevelRouteRegistry.node(oldId);
+    LevelRouteRegistry.Node structured = LevelRouteRegistry.requested(candidateState.optJSONObject("level"));
+    LevelRouteRegistry.Node described = LevelRouteRegistry.fromLocation(candidateState.optString("location", ""));
+    LevelRouteRegistry.Node requested = structured != null && !structured.id.equals(oldId)
+      ? structured : (described != null && !described.id.equals(oldId) ? described : previous);
+    if (requested == null) requested = previous;
+    if (requested == null) throw new Exception("Current environment node is invalid.");
+
+    boolean changed = !requested.id.equals(oldId);
+    if (changed && (!canTransition(before, rolls) ||
+        !LevelRouteRegistry.canMove(oldId, requested.id) || !playerTraverses(action))) {
+      LevelRouteRegistry.Node safe = previous;
+      candidateState.put("level", before.optJSONObject("level") == null
+        ? safe.asJson() : new JSONObject(before.optJSONObject("level").toString()));
+      candidateState.put("title", before.optString("title", safe.title()));
+      candidateState.put("location", before.optString("location", safe.location()));
       return;
     }
 
-    if (levelChange) {
-      candidateState.put("level", new JSONObject().put("number", requestedLevel).put("name", levelName(requestedLevel)));
-      candidateState.put("title", "Level " + requestedLevel + " – " + levelName(requestedLevel));
-
-      String candidateLocation = candidateState.optString("location", "").trim();
-      int locationLevel = -1;
-      if (!candidateLocation.isEmpty()) {
-        JSONObject locationProbe = new JSONObject().put("location", candidateLocation);
-        locationLevel = mentionedLevel(locationProbe);
+    candidateState.put("level", requested.asJson());
+    if (changed) {
+      candidateState.put("title", requested.title());
+      if (described == null || !requested.id.equals(described.id)) {
+        candidateState.put("location", requested.location());
       }
-      if (candidateLocation.isEmpty() || (locationLevel >= 0 && locationLevel != requestedLevel)) {
-        candidateState.put("location", "Level " + requestedLevel + " / " + levelName(requestedLevel));
-      }
-    } else {
-      candidateState.put("level", new JSONObject().put("number", oldLevel).put("name", levelName(oldLevel)));
     }
-  }
-
-  private int mentionedLevel(JSONObject state) {
-    String location = state.optString("location", "").toLowerCase(java.util.Locale.ROOT);
-    String title = state.optString("title", "").toLowerCase(java.util.Locale.ROOT);
-    java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("level\\s*([0-6])", java.util.regex.Pattern.CASE_INSENSITIVE);
-    java.util.regex.Matcher explicit = pattern.matcher(location);
-    if (explicit.find()) return Integer.parseInt(explicit.group(1));
-    String[] names = {"the lobby", "parking zone", "pipe dreams", "the electrical station", "the abandoned office", "terror hotel", "lights out"};
-    for (int n = 0; n < names.length; n++) if (location.contains(names[n])) return n;
-    explicit = pattern.matcher(title);
-    if (explicit.find()) return Integer.parseInt(explicit.group(1));
-    for (int n = 0; n < names.length; n++) if (title.contains(names[n])) return n;
-    return -1;
   }
 
   private int levelTurns(JSONObject state) {
@@ -1600,10 +1591,11 @@ public class MainActivity extends Activity {
       if (type.equals("set_level")) {
         JSONObject level = op.optJSONObject("level");
         if (level == null || !canTransition(before, rolls)) continue;
-        int number = Math.max(0, Math.min(6, level.optInt("number", currentLevel(before))));
-        if (number == currentLevel(before)) continue;
-        JSONObject safeLevel = new JSONObject().put("number", number).put("name", levelName(number));
-        state.put("level", safeLevel).put("title", "Level " + number + " – " + levelName(number));
+        LevelRouteRegistry.Node requested = LevelRouteRegistry.requested(level);
+        if (requested == null || requested.id.equals(currentNodeId(before)) ||
+            !LevelRouteRegistry.canMove(currentNodeId(before), requested.id) ||
+            !playerTraverses(action)) continue;
+        state.put("level", requested.asJson()).put("title", requested.title());
         continue;
       }
 
@@ -1754,7 +1746,7 @@ public class MainActivity extends Activity {
 
   private int validatedTurnRisk(JSONObject before, JSONObject candidate, JSONObject generated) {
     int score = 0;
-    if (currentLevel(before) != currentLevel(candidate)) score += 4;
+    if (!currentNodeId(before).equals(currentNodeId(candidate))) score += 4;
     if (jsonChanged(before.optJSONArray("party"), candidate.optJSONArray("party"))) score += 3;
     if (jsonChanged(before.optJSONArray("inventory"), candidate.optJSONArray("inventory"))) score += 1;
     if (jsonChanged(before.optJSONObject("player"), candidate.optJSONObject("player"))) score += 1;
@@ -1781,7 +1773,7 @@ public class MainActivity extends Activity {
         JSONObject op = proposed.optJSONObject(i);
         if (op == null) continue;
         String type = lower(op.optString("type", ""));
-        if (type.equals("set_level") && currentLevel(before) == currentLevel(candidate)) score = Math.max(score, 4);
+        if (type.equals("set_level") && currentNodeId(before).equals(currentNodeId(candidate))) score = Math.max(score, 4);
         if ((type.equals("party_upsert") || type.equals("party_remove")) && !jsonChanged(before.optJSONArray("party"), candidate.optJSONArray("party"))) score = Math.max(score, 4);
         if (type.equals("patch_player") && !jsonChanged(before.optJSONObject("player"), candidate.optJSONObject("player"))) score = Math.max(score, 4);
         if (type.equals("flag_patch")) {
@@ -1862,7 +1854,7 @@ public class MainActivity extends Activity {
       if (op == null) continue;
       String type = lower(op.optString("type", ""));
       boolean rejected = false;
-      if (type.equals("set_level")) rejected = currentLevel(before) == currentLevel(candidate);
+      if (type.equals("set_level")) rejected = currentNodeId(before).equals(currentNodeId(candidate));
       else if (type.equals("set_location")) {
         String requested = op.optString("value", "").trim();
         rejected = !requested.isEmpty() && !requested.equals(candidate.optString("location", ""));
@@ -1902,7 +1894,8 @@ public class MainActivity extends Activity {
       ("SEARCH".equals(actionKindForPrompt) ? "SEARCH HARD LOCK: khảo sát có hệ thống location hiện tại, không tự chuyển sang location mới; SEARCH vẫn roll entityEncounter 45% chung cho mọi Level và có thể khởi tạo roaming Entity mới; vẫn có thể gặp Survivor, tìm clue/hazard/exit evidence và tuyệt đối không cấp hay sinh Item từ SEARCH. " :
        "EXPLORE".equals(actionKindForPrompt) ? "EXPLORE HARD LOCK: chủ động mở rộng known space và có thể đổi location; EXPLORE roll Entity theo cùng cơ chế với SEARCH và EXECUTE; có thể gặp Entity hoặc Survivor, hazard/exit opportunity nhưng không đảm bảo Exit; nếu có lựa chọn định hướng quan trọng thì trả quyền quyết định cho người chơi. " :
        "EXECUTE HARD LOCK: đây là freeform intent của người chơi; phân giải đúng hành động đã nhập, không tự đổi mục tiêu; EXECUTE vẫn roll Entity và có thể khởi tạo roaming encounter mới. ");
-    actionDirective = actionDirective + "\n" + hiddenExitDirective;
+    actionDirective = actionDirective + "\n" + hiddenExitDirective + "\n" +
+      LevelRouteRegistry.gmRoutingContext(currentNodeId(before));
     String packet = com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.build(
       MainActivity.this, before.toString(), action, visibleRolls.toString());
     String feedback = auditFeedback != null && auditFeedback.length() > 0
@@ -1922,7 +1915,7 @@ public class MainActivity extends Activity {
       "\n\nGAMEPLAY_ROLLS:\n" + visibleRolls.toString() +
       "\n\nPLAYER INPUT:\n" + action +
       feedback +
-      "\n\nOPERATION TYPES: set_location{value}; set_level{level}; " +
+      "\n\nOPERATION TYPES: set_location{value}; set_level{level:{id:\\"EXACT_NODE_ID\\"}}; " +
       "party_upsert{member}; party_remove{name}; flag_patch{root,value}. " +
       "Chỉ dùng flag root: exploration, communication, iris, syvial, jeff, jane, survivorRegistry, survivorsConfirmed, entitiesConfirmedLocal, visualAreaKey, visualEventKey, entityEncounterKey, reunionPath. " +
       "Inventory chỉ thay đổi do Core khi tiêu diệt Entity hoặc nút Inventory UI; GM không có quyền thay đổi. " +
@@ -2085,23 +2078,22 @@ public class MainActivity extends Activity {
             throw new Exception("Lượt chơi không vượt qua kiểm tra canon; state không được thay đổi.");
           }
 
-          reconcileVisualWorldState(before, candidateState, rolls);
+          reconcileVisualWorldState(before, candidateState, rolls, action);
           forceEntityEncounterFlag(candidateState, rolls);
           JSONObject state = candidateState;
-          int oldLevel = currentLevel(before);
-          int newLevel = currentLevel(state);
-          int mentioned = mentionedLevel(state);
-          if (mentioned >= 0 && mentioned != oldLevel && canTransition(before, rolls)) {
-            newLevel = mentioned;
-            state.put("level", new JSONObject().put("number", newLevel).put("name", levelName(newLevel)));
-            state.put("title", "Level " + newLevel + " – " + levelName(newLevel));
-          }
-          boolean levelChanged = oldLevel != newLevel;
-          boolean transitionAccepted = !levelChanged || canTransition(before, rolls);
+          String oldNodeId = currentNodeId(before);
+          String newNodeId = currentNodeId(state);
+          boolean levelChanged = !oldNodeId.equals(newNodeId);
+          boolean transitionAccepted = !levelChanged ||
+            (canTransition(before, rolls) && playerTraverses(action) &&
+             LevelRouteRegistry.canMove(oldNodeId, newNodeId));
           if (!transitionAccepted) {
-            if (before.optJSONObject("level") != null) state.put("level", new JSONObject(before.optJSONObject("level").toString()));
-            state.put("title", before.optString("title", "Level " + oldLevel + " – " + levelName(oldLevel)));
-            newLevel = oldLevel;
+            LevelRouteRegistry.Node previous = LevelRouteRegistry.node(oldNodeId);
+            state.put("level", before.optJSONObject("level") == null
+              ? previous.asJson() : new JSONObject(before.optJSONObject("level").toString()));
+            state.put("title", before.optString("title", previous.title()));
+            state.put("location", before.optString("location", previous.location()));
+            newNodeId = oldNodeId;
             levelChanged = false;
           }
 
@@ -2109,9 +2101,9 @@ public class MainActivity extends Activity {
             state.put("turn", before.optInt("turn", 1) + 1).put("mode", "Single Player: Hard Mode");
             JSONObject flags = state.optJSONObject("flags");
             if (flags == null) flags = new JSONObject();
-            flags.put("currentLevel", new JSONObject().put("number", newLevel).put("name", levelName(newLevel)));
+            flags.put("currentLevel", LevelRouteRegistry.node(newNodeId).asJson());
             state.put("flags", flags);
-            com.rabpit.backroom.core.HiddenExitStreak.apply(before, state, rolls, oldLevel, newLevel);
+            com.rabpit.backroom.core.HiddenExitStreak.apply(before, state, rolls, oldNodeId, newNodeId);
             flags = state.optJSONObject("flags");
             flags.put("lastAudit", new JSONObject()
               .put("risk", risk)
