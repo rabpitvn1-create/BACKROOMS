@@ -68,12 +68,30 @@ public final class HiddenExitStreak {
       JSONObject rolls,
       int oldLevel,
       int newLevel) throws Exception {
+    applyInternal(before, state, rolls, oldLevel != newLevel);
+  }
+
+  /** Branch and special-area transitions also clear Exit progress within the same parent Level. */
+  public static void apply(
+      JSONObject before,
+      JSONObject state,
+      JSONObject rolls,
+      String oldNodeId,
+      String newNodeId) throws Exception {
+    applyInternal(before, state, rolls, !java.util.Objects.equals(oldNodeId, newNodeId));
+  }
+
+  private static void applyInternal(
+      JSONObject before,
+      JSONObject state,
+      JSONObject rolls,
+      boolean locationNodeChanged) throws Exception {
     JSONObject flags = state.optJSONObject("flags");
     if (flags == null) flags = new JSONObject();
     JSONObject exploration = flags.optJSONObject("exploration");
     if (exploration == null) exploration = new JSONObject();
 
-    if (oldLevel != newLevel) {
+    if (locationNodeChanged) {
       setState(flags, exploration, 0, false);
     } else if (rollEligible(rolls)) {
       boolean success = rollSucceeded(rolls);
