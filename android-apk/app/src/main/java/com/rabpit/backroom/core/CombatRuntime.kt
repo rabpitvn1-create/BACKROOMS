@@ -358,6 +358,7 @@ object CombatRuntime {
     val syvialCharacter = activePartyCharacter(resolvedState, SYVIAL_ID)
     val syvialActive = syvialCharacter != null
     val anNhienActive = activePartyCharacter(resolvedState, AN_NHIEN_ID) != null
+    val lucTramActive = activePartyCharacter(resolvedState, LUC_TRAM_ID) != null
 
 
     fun promoteDefeatedWave(): Boolean {
@@ -414,6 +415,10 @@ object CombatRuntime {
           momentum = min(3, c.momentum + 1)
         )
         log += "Cao Minh đọc được nhịp tấn công của ${c.entityName}; sơ hở tăng lên."
+        if (lucTramActive) {
+          c = c.copy(opening = min(3, c.opening + 1))
+          log += "Thiên Kiếm Linh Tâm: Lục Trầm nhận biết quỹ đạo, tạo thêm một opening; không suy ra bản chất Entity."
+        }
       }
       Intent.EVADE -> {
         log += "PARTY ACTION NÉ TRÁNH: ${activePartyNames(resolvedState)} cùng thực hiện trong một combat turn."
@@ -426,6 +431,10 @@ object CombatRuntime {
           cover = if (c.cover == Cover.EXPOSED) Cover.PARTIAL else c.cover
         )
         log += if (goodCounter) "Cao Minh né đúng telegraph, cướp thế chủ động." else "Cao Minh đổi góc và giảm áp lực trực diện."
+        if (lucTramActive) {
+          c = c.copy(cover = Cover.HARD)
+          log += "Vạn Kiếm Quy Tâm: Lục Trầm dùng kiếm khí che tuyến rút, Party có HARD cover."
+        }
         if (KAI_ID in PartyCombatHealth.actingMembers(resolvedState) && c.entityHp > 0 &&
             roll(c.copy(eventCounter = c.eventCounter + 139), 100) < KAI_QUICK_STEP_CHANCE_PERCENT) {
           quickStepTurns = KAI_QUICK_STEP_DURATION_TURNS
@@ -450,6 +459,10 @@ object CombatRuntime {
       Intent.GUARD -> {
         c = c.copy(cover = Cover.HARD, momentum = min(3, c.momentum + 1), opening = min(3, c.opening + 1))
         log += "Cao Minh khóa tư thế phòng thủ và ép ${c.entityName} phải lộ hướng tấn công."
+        if (lucTramActive) {
+          c = c.copy(opening = min(3, c.opening + 1))
+          log += "Vạn Kiếm Quy Tâm: Lục Trầm khóa hướng tiến công của đối thủ, thêm opening."
+        }
       }
       Intent.ESCAPE -> {
         log += "PARTY ACTION BỎ CHẠY: ${activePartyNames(resolvedState)} cùng rút khỏi encounter trong một combat turn."
@@ -750,6 +763,48 @@ object CombatRuntime {
               }
             }
             }
+            LUC_TRAM_ID -> {
+              // Sword arts relying only on sword intent can be used without
+              // asserting the OPEN post-revival status of the physical Tịch Quang.
+              if (activePartyCharacter(resolvedState, LUC_TRAM_ID) != null) {
+                val waveId = LucTramCanon.domainKey(c.encounterId,
+                  waveIndex(resolvedState, waveKeys(resolvedState, c.entityKey).size))
+                if (LucTramCanon.canEstablishDomain(resolvedState, c.opening, waveId)) {
+                  // Setup replaces her attack action, with no unearned bonus hit.
+                  c = c.copy(opening = 3, cover = Cover.HARD)
+                  resolvedState = resolvedState.copy(metadata = resolvedState.metadata +
+                    ("combat.lucTramDomainWave" to waveId))
+                  log += "Thiên Kiếm Định Giới: Lục Trầm dùng lượt dựng kiếm ấn, cover HARD và opening 3; Kiếm Vực không khóa hình học Backrooms."
+                } else {
+                  val advance = c.range != RangeBand.CLOSE && c.opening == 0
+                  val technique = if (advance) "Bạch Hồng Quán Nhật" else "Nhất Tuyến Phá Vọng"
+                  if (advance) {
+                    c = c.copy(range = if (c.range == RangeBand.FAR) RangeBand.NEAR else RangeBand.CLOSE)
+                    log += "Bạch Hồng Quán Nhật: Lục Trầm đột tiến một tầm, không vượt xuyên cấu trúc Level."
+                  }
+                  val rangeBonus = when (c.range) {
+                    RangeBand.CLOSE -> 18; RangeBand.NEAR -> 10; RangeBand.FAR -> -5
+                  }
+                  val chance = (58 + rangeBonus + c.opening * 11 + c.momentum * 6 +
+                    PokerDiceCore.accuracyBonus(state)).coerceIn(20, 99)
+                  val hits = roll(c.copy(eventCounter = c.eventCounter + 373), 100) < chance &&
+                    !entityDodges(LUC_TRAM_ID, 379)
+                  if (hits) {
+                    val critical = actorCritical(LUC_TRAM_ID, 383)
+                    val basic = CharacterStatEngine.skillBaseDamage(resolvedState, LUC_TRAM_ID)
+                    val armor = if (advance) profile.armor else armorAfterIgnore(profile.armor, 20)
+                    val damage = min(c.entityHp, companionSkillDamage(
+                      if (critical) CharacterStatCore.criticalDamage(basic) else basic, 100, armor))
+                    val hp = max(0, c.entityHp - damage)
+                    recordFeedback("entity", c.entityHp, hp, critical = critical, actorId = LUC_TRAM_ID, skill = technique)
+                    c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
+                    log += "$technique: Lục Trầm gây -$damage HP (${c.entityHp}/${c.entityMaxHp})."
+                  } else {
+                    log += "$technique: đòn đánh không trúng hoặc bị né, không bỏ qua Accuracy/Evasion."
+                  }
+                }
+              }
+            }
             AN_NHIEN_ID -> {
         if (activePartyCharacter(resolvedState, AN_NHIEN_ID) != null) {
           log += "An Nhiên thực hiện lệnh TẤN CÔNG theo vai trò hỗ trợ: gây nhiễu/đánh lạc hướng, không dùng vũ khí và không gây damage."
@@ -931,6 +986,25 @@ object CombatRuntime {
           recordFeedback("entity", c.entityHp, hp, phase = "entity", actorId = IRIS_ID, skill = "Dead Angle")
           c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
           log += "Dead Angle: Iris phản kích tức thời 120% DMG = -$damage HP."
+        }
+        if (lucTramActive && c.entityHp > 0 && LucTramCanon.hasConfirmedSword(resolvedState)) {
+          // Entity missed its standard response, so counter without spending
+          // a new turn. Reuses standard combat accuracy and Evasion gates.
+          val chance = (58 + c.opening * 11 + c.momentum * 6 +
+            PokerDiceCore.accuracyBonus(state)).coerceIn(20, 99)
+          val hits = roll(c.copy(eventCounter = c.eventCounter + 397), 100) < chance &&
+            !entityDodges(LUC_TRAM_ID, 401)
+          if (hits) {
+            val basic = CharacterStatEngine.skillBaseDamage(resolvedState, LUC_TRAM_ID)
+            val damage = min(c.entityHp, companionSkillDamage(basic, 100, profile.armor))
+            val hp = max(0, c.entityHp - damage)
+            recordFeedback("entity", c.entityHp, hp, phase = "entity", actorId = LUC_TRAM_ID,
+              skill = "Tịch Quang Phản Kiếm")
+            c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
+            log += "Tịch Quang Phản Kiếm: Lục Trầm dẫn lực, phản kiếm -$damage HP."
+          } else {
+            log += "Tịch Quang Phản Kiếm: Lục Trầm đổi trục nhưng phản kiếm không trúng."
+          }
         }
         if (intent == Intent.ATTACK && syvialActive && c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 293), 100) < 30) {
           val damage = companionSkillDamage(CharacterStatEngine.skillBaseDamage(resolvedState, SYVIAL_ID), if (syvialDevilTrigger) 157 else 125, profile.armor)

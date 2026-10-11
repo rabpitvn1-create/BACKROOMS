@@ -17,3 +17,16 @@ Source: [LUC_TRAM_CODEX.md](https://drive.google.com/file/d/1_ivAnDOeKrUPzJRmlGF
 - User-authorized override (2026-10-11): Lục Trầm is registered outside Party. Only physical actions at Level 4+ roll 25/10000 (0.25%); Core adds her to Party after confirmed success, or stores joinPending when full. Lucia stays independent.
 - No encounter before Level 4, no guaranteed meeting, no pre-existing current hostility, no V2 Poker Dice formula. The Level 4+ 0.25% mechanic was explicitly requested after R06. The after-revival equipment status, memories and dialogue remain governed by continuity. Unique skill multipliers are not invented; the combat fallback is an ordinary companion attack.
 - The file contains writer-only details; no automatic retcon of Cao Minh, world or existing continuity. The full document is for canon review, while compact GM retrieval obeys R06 secrecy and epistemic distinctions.
+
+## Combat ability integration (author-approved implementation)
+
+The six entries in `CompanionSkillCatalog.lucTram` are now real authoritative CombatRuntime actions, not narration-only labels. Tactical mapping intentionally reuses existing combat abstractions, not new canon percentages or magic powers:
+
+- `Thiên Kiếm Linh Tâm`: during party READ, add 1 opening beyond the ordinary READ opening.
+- `Nhất Tuyến Phá Vọng`: focused strike at CLOSE or with pre-existing opening; existing Accuracy/Evasion applies, armor ignored by 20% as a **gameplay balance parameter** (not a statement of canon).
+- `Bạch Hồng Quán Nhật`: when outside CLOSE without an opening, move one existing range band and attack normally; no teleport across Level geometry.
+- `Vạn Kiếm Quy Tâm`: party EVADE raises cover to HARD; GUARD builds one more opening. No omnipotent protection.
+- `Tịch Quang Phản Kiếm`: one counter against a missed normal Entity response, only when the sword is explicitly equipped. Uses standard Accuracy/Evasion and damage, no guaranteed hit.
+- `Thiên Kiếm Định Giới`: requires the sword, opening >= 2 and an unused slot per wave. Uses Lục Trầm's attack action to set HARD cover and opening=3 without dealing direct damage. Does not rewrite World/Level geometry.
+
+The physical Tịch Quang and Kiếm Khải are defined in the equipment catalog but **not seeded**, because post-revival possession/condition remains OPEN in R06. Sword-dependent moves are intentionally gated; an authorized equip/continuity update is required for them to fire. All effects require Lục Trầm to be in Party, ACTIVE and conscious. Combat behavior is reproducible from authoritative state and covered by focused Kotlin tests.

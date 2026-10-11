@@ -5,6 +5,8 @@ package com.rabpit.backroom.core
  * The character remains in Core but outside Party until the Level 4+ roll succeeds.
  */
 const val LUC_TRAM_ID = "luc_tram"
+const val LUC_TRAM_TICH_QUANG_ID = "luc-tram:tich-quang"
+const val LUC_TRAM_KIEM_KHAI_ID = "luc-tram:thien-co-bach-kim-kiem-khai"
 
 object LucTramCanon {
   const val NAME = "Lục Trầm"
@@ -56,6 +58,16 @@ object LucTramCanon {
         else state.equipment + (LUC_TRAM_ID to EquipmentState(LUC_TRAM_ID))
     )
   }
+
+  // R06 does not guarantee that the sword survived the revival.
+  fun hasConfirmedSword(state: GameState): Boolean =
+    state.equipment[LUC_TRAM_ID]?.slots?.get(EquipmentSlot.WEAPON.key) == LUC_TRAM_TICH_QUANG_ID
+
+  fun domainKey(encounterId: String, waveIndex: Int) = "$encounterId:wave:$waveIndex"
+
+  fun canEstablishDomain(state: GameState, opening: Int, waveId: String): Boolean =
+    hasConfirmedSword(state) && opening >= 2 &&
+      state.metadata["combat.lucTramDomainWave"] != waveId
 
   fun currentLevel(state: GameState): Int {
     val level = runCatching { org.json.JSONObject(state.world["levelJson"] ?: "{}") }.getOrNull()

@@ -61,15 +61,22 @@ object CompanionSkillCatalog {
     s("Huyết Ma Nhị Thập Tứ Trảm", "ULTIMATE", "Mỗi 3 combat turn khi TẤN CÔNG", "Đúng 24 trảm, mỗi trảm 115% current Weapon DMG; bỏ qua Evasion.")
   )
 
-  // R06 canonical techniques; no invented numeric proc rates or gameplay multipliers.
-  // CombatRuntime's generic companion attack is used until mechanics are explicitly specified.
+  // R06 narrative limits; tactical effects rely on existing Core state, not invented canon proc rates.
   private val lucTram = listOf(
-    s("Thiên Kiếm Linh Tâm", "PASSIVE / CANON", "Quan sát từ thần niệm và kiếm ý", "Đọc chuyển động, trọng tâm và bất ổn trong thế kiếm.", "Không đọc ý nghĩ, không tự biết quy luật Backrooms."),
-    s("Nhất Tuyến Phá Vọng", "CANON", "Đường kiếm tập trung", "Đánh vào điểm mất ổn định của thế phòng ngự.", "Không tự suy ra trận nhãn của mọi không gian."),
-    s("Bạch Hồng Quán Nhật", "CANON", "Đột tiến áp sát", "Đường kiếm tập trung tốc độ cao."),
-    s("Tịch Quang Phản Kiếm", "CANON", "Đối thủ ra đòn", "Dẫn lực, lệch trục và phản kích."),
-    s("Vạn Kiếm Quy Tâm", "CANON", "Kiếm ý và vị trí hợp lệ", "Dựng các tuyến kiếm khí hỗ trợ, che chắn cho đội.", "Không mặc định nghìn kiếm vật lý."),
-    s("Thiên Kiếm Định Giới", "CANON", "Kiếm ấn và điểm neo hợp lệ", "Lập Kiếm Vực cục bộ với Tịch Quang.", "Không áp đặt hình học lên Backrooms.")
+    s("Thiên Kiếm Linh Tâm", "PASSIVE", "Lục Trầm ACTIVE; Party chọn QUAN SÁT",
+      "Đọc quỹ đạo và tăng thêm 1 opening trong combat.", "Không đọc ý nghĩ hoặc tự nhận dạng Entity."),
+    s("Nhất Tuyến Phá Vọng", "AUTO", "Party TẤN CÔNG khi mục tiêu ở CLOSE hoặc đã lộ opening",
+      "Chém tập trung và bỏ qua 20% giáp mục tiêu.", "20% là hệ số gameplay, không phải canon."),
+    s("Bạch Hồng Quán Nhật", "AUTO", "Party TẤN CÔNG khi mục tiêu chưa ở CLOSE, chưa lộ opening",
+      "Đột tiến một range band rồi đánh thường.", "Không vượt chướng ngại hoặc phá cấu trúc Level."),
+    s("Tịch Quang Phản Kiếm", "COUNTER", "Entity hụt phản công, Tịch Quang đã xác nhận trang bị",
+      "Phản kiếm với kiểm tra Accuracy / Evasion độc lập.", "Không tự giả định bản mệnh kiếm còn nguyên sau hồi sinh."),
+    s("Vạn Kiếm Quy Tâm", "UTILITY", "Party chọn NÉ TRÁNH hoặc PHÒNG THỦ",
+      "Kiếm khí bảo vệ lối rút: cover HARD khi né; tạo thêm opening khi thủ.",
+      "Không tạo hàng nghìn kiếm vật lý hoặc miễn toàn bộ sát thương."),
+    s("Thiên Kiếm Định Giới", "ULTIMATE", "Có Tịch Quang, opening từ 2 và chưa dùng trong wave hiện tại",
+      "Dùng lượt của Lục Trầm dựng Kiếm Vực: cover HARD, opening 3.",
+      "Không thay đổi geometry Backrooms; một lần mỗi wave là giới hạn gameplay.")
   )
 
   private val lucia = listOf(
