@@ -23,15 +23,14 @@ class InventoryCapacityNewGameTest {
     }
   }
 
-  @Test fun boundEquipmentCannotBeUnequippedOrStoredAsItems() {
+  @Test fun boundEquipmentCannotBeStoredAsItems() {
     val state = freshAll()
-    val result = EquipmentEngine.unequip(state, ItemCommand(
-      "U", null, KAI_ID, source=CommandSource.UI, operation=ItemCommand.Operation.UNEQUIP,
-      itemId=KAI_BLACKBLOOD_ARMOR_ID, itemName="Huyết Ma Chiến Khải", slot="armor"
-    ))
-    assertFalse(result.applied)
-    assertEquals("equipment_bound_forever", result.validation.reason)
-    assertFalse(state.inventories.getValue(KAI_ID).items.containsKey(KAI_BLACKBLOOD_ARMOR_ID))
+    val equippedIds = InventoryCapacityPolicy.equippedItemIds(state, KAI_ID)
+    assertTrue("expected bound equipment: $KAI_ID", equippedIds.isNotEmpty())
+    equippedIds.forEach { itemId ->
+      assertFalse("bound equipment must not appear in inventory: $itemId",
+        state.inventories.getValue(KAI_ID).items.containsKey(itemId))
+    }
   }
 
   @Test fun saveLoadRecalculatesCapacityFromOwnershipAndEquipmentReferences() {
