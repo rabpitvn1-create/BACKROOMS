@@ -50,7 +50,7 @@
     var next=String(actorId||'cao_minh');
     if(next==='none'||next==='entity')next='cao_minh';
     var prior=String(snapshot.dataset.combatFocus||'cao_minh');
-    if(next===prior){ensureActiveCombatAvatar(snapshot,next);return;}
+    if(next===prior){snapshot.dataset.combatFocus=next;ensureActiveCombatAvatar(snapshot,next);return;}
     var oldSource=combatPortraitSource(prior,snapshot);
     removeCombatPortraits(snapshot);
     var reduced=typeof window.matchMedia==='function'&&
