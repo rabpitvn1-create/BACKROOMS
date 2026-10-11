@@ -184,6 +184,11 @@ object KnowledgeContextEngine {
     private fun addPresentRuntimeCards() {
       if ("iris" in presentActors) add("CHAR.IRIS.RUNTIME_CORE", "present actor runtime core")
       if ("syvial" in presentActors) add("CHAR.SYVIAL.RUNTIME_CORE", "present actor runtime core")
+      if ("luc_tram" in presentActors) {
+        add("CHAR.LUC_TRAM.RUNTIME_CORE", "present actor canon identity")
+        add("CHAR.LUC_TRAM.REVIVAL_R06", "post-revival memory firewall")
+        add("CHAR.LUC_TRAM.OPEN_R06", "unresolved state firewall")
+      }
     }
 
     private fun addRelationships() {
@@ -196,10 +201,18 @@ object KnowledgeContextEngine {
         add("ADDR.SYVIAL.KAI", "present address lock")
       }
       if ("iris" in presentActors && "syvial" in presentActors) add("REL.IRIS.SYVIAL.BASELINE", "present relationship edge")
+      if ("luc_tram" in presentActors) add("REL.KAI.LUC_TRAM.HISTORY_R06", "confirmed history is not current POV")
     }
 
     private fun addDirectStructuredLookups() {
       val direct = linkedSetOf<String>()
+      if (hasAny(actionText, "lục trầm", "luc tram", "luc_tram", "tịch quang", "thiên kiếm linh tâm")) {
+        direct += "CHAR.LUC_TRAM.RUNTIME_CORE"
+        direct += "CHAR.LUC_TRAM.REVIVAL_R06"
+        direct += "CHAR.LUC_TRAM.OPEN_R06"
+        direct += "REL.KAI.LUC_TRAM.HISTORY_R06"
+        direct += "CHAR.LUC_TRAM.POWERS_AND_VISUAL"
+      }
       if (hasAny(actionText, "argus", "terrain read")) direct += "CHAR.IRIS.ARGUS"
       if (hasAny(actionText, "thousandfold")) direct += "CHAR.IRIS.THOUSANDFOLD"
       if (hasAny(actionText, "ivory", "ebony")) direct += "CHAR.IRIS.IVORY_EBONY"
@@ -316,11 +329,13 @@ object KnowledgeContextEngine {
               val id = normalize(value.optString("id", value.optString("name", "")))
               if (id.contains("iris")) presentActors += "iris"
               if (id.contains("syvial")) presentActors += "syvial"
+              if (id == "luc_tram" || id.contains("lục trầm") || id == "luc tram") presentActors += "luc_tram"
             }
             else -> {
               val id = normalize(value?.toString().orEmpty())
               if (id.contains("iris")) presentActors += "iris"
               if (id.contains("syvial")) presentActors += "syvial"
+              if (id == "luc_tram" || id.contains("lục trầm") || id == "luc tram") presentActors += "luc_tram"
             }
           }
         }
@@ -332,6 +347,7 @@ object KnowledgeContextEngine {
           val id = normalize(member.optString("id", member.optString("name", "")))
           if (id.contains("iris")) presentActors += "iris"
           if (id.contains("syvial")) presentActors += "syvial"
+          if (id == "luc_tram" || id.contains("lục trầm") || id == "luc tram") presentActors += "luc_tram"
         }
       }
     }

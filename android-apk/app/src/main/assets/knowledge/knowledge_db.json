@@ -1234,6 +1234,117 @@
         "direct_threat",
         "roaming_incursion"
       ]
+    },
+    {
+      "id": "CHAR.LUC_TRAM.RUNTIME_CORE",
+      "domain": "CHARACTER",
+      "kind": "runtime-card",
+      "text": "Lục Trầm (luc_tram) là nữ nhân tộc, Bạch Hồng Kiếm Nữ, Chính Đạo Kiếm Tu và chân truyền Thiên Kiếm Môn; căn cơ Thiên Kiếm Linh Tâm, kiếm Tịch Quang, giáp Thiên Cơ Bạch Kim Kiếm Khải. Thiên tài trẻ mạnh nhưng không ngang tổng thể Cao Minh. Lục Trầm và Lucia Lục (Hứa Thuý Mai) là hai phiên bản nhân vật độc lập, không trộn danh tính, M4A1, trang bị, kỹ năng hoặc ký ức. Canon không có nghĩa là nhân vật đã xuất hiện hay đang trong Party.",
+      "source": {
+        "document": "canon/LUC_TRAM_CODEX.md",
+        "anchor": "LUC-TRAM-R05 + LUC-PRO-R06; A-20261011"
+      },
+      "authority": "CHARACTER_CANON_R06",
+      "mutability": "IMMUTABLE",
+      "priority": 24,
+      "tags": [
+        "lục trầm",
+        "luc tram",
+        "luc_tram",
+        "tịch quang"
+      ],
+      "references": [
+        "CHAR.LUC_TRAM.REVIVAL_R06",
+        "CHAR.LUC_TRAM.OPEN_R06"
+      ],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.REVIVAL_R06",
+      "domain": "CHARACTER",
+      "kind": "history-firewall",
+      "text": "R06 xác nhận: trước Backrooms Lục Trầm và Cao Minh tuy công khai đối địch nhưng thực tế đã đồng hành, tin cậy và có tình cảm. Ở Lôi Thiên Vực cô hy sinh trong đại trận; Cao Minh truyền tu vi, đạo hạnh và ma khí cứu cô hồi sinh. Sau đó cô BẮT ĐẦU nhập ma (không thành Ma tu toàn phần) và QUÊN TẤT CẢ VỀ CAO MINH (không mất toàn bộ ký ức). Lục Trầm không tự nhớ hắn, mối thù, tình cảm hay cách xưng hô cũ; Cao Minh không mặc định biết cô sống hoặc mất ký ức. Ký ức Cao Minh và lịch sử đã xảy ra không bị xóa khỏi canon; ý thức chủ quan hai phía là khác nhau.",
+      "source": {
+        "document": "canon/LUC_TRAM_CODEX.md",
+        "anchor": "R06; 00A.D; 03; 14-20"
+      },
+      "authority": "CHARACTER_CANON_R06",
+      "mutability": "IMMUTABLE",
+      "priority": 25,
+      "tags": [
+        "lục trầm",
+        "luc tram",
+        "luc_tram",
+        "cao minh",
+        "ký ức"
+      ],
+      "references": [
+        "CHAR.LUC_TRAM.OPEN_R06"
+      ],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.OPEN_R06",
+      "domain": "CHARACTER",
+      "kind": "continuity-firewall",
+      "text": "HẬU HỒI SINH / OPEN: chưa khóa địa điểm cô thức tỉnh, vị trí, thời điểm, hiện trạng Tịch Quang/Kiếm Khải/Thiên Kiếm Linh Tâm, tốc độ nhập ma, khả năng phục hồi ký ức và cuộc tái ngộ Cao Minh. KHÔNG tự spawn, cho gặp tại Level 0, cho nhận ra Cao Minh, tái lập thù hận/tình yêu hoặc cho gia nhập Party. Không biến bản canon thành state; chỉ authority của sự kiện và game state được xác thực mới quyết định. Kiếm Các và Táng Kiếm Cốc là CÙNG một biến cố, không phải hai biến cố; cảnh uống rượu trên núi/đỉnh thành của prologue cũ đã bị tác giả hủy.",
+      "source": {
+        "document": "canon/LUC_TRAM_CODEX.md",
+        "anchor": "R06; A-20261011-CLARIFICATION; 14-17; 23"
+      },
+      "authority": "CHARACTER_CANON_R06",
+      "mutability": "IMMUTABLE",
+      "priority": 26,
+      "tags": [
+        "lục trầm",
+        "luc_tram",
+        "tái ngộ",
+        "táng kiếm cốc"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "REL.KAI.LUC_TRAM.HISTORY_R06",
+      "domain": "RELATIONSHIP",
+      "kind": "relationship-history",
+      "text": "Lịch sử Cao Minh và Lục Trầm: từng truy sát/giao chiến, về sau trở thành đồng minh tin cậy và có tình cảm TRƯỚC Backrooms, dù danh nghĩa vẫn đối địch. Lục Trầm đứng cạnh Cao Minh ở Lôi Thiên Vực nên Chính Đạo xem cô là địch, nhưng không có nghĩa cô phản tông hoặc từ bỏ Chính Đạo. Sau hồi sinh cô KHÔNG NHỚ Cao Minh; tình cảm/mối thù cũ không là cảm xúc đương nhiên khi tái ngộ. Sự tin tưởng, cách gọi, diễn tiến mới phải do continuity quyết định. Kiếm Các=Táng Kiếm Cốc (cùng một biến cố).",
+      "source": {
+        "document": "canon/LUC_TRAM_CODEX.md",
+        "anchor": "R06; 03; 13-20"
+      },
+      "authority": "CHARACTER_CANON_R06",
+      "mutability": "HISTORY",
+      "priority": 28,
+      "tags": [
+        "lục trầm",
+        "luc_tram",
+        "quan hệ",
+        "cao minh"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.POWERS_AND_VISUAL",
+      "domain": "CHARACTER",
+      "kind": "canon-boundary",
+      "text": "Thiên Kiếm Linh Tâm cảm nhận thần niệm, linh lực, quỹ đạo và bất ổn trong thế kiếm nhưng không đọc suy nghĩ, nhận biết thiện ác/Entity/Level hay miễn thao túng ký ức. Thiên Kiếm Thất Thức và Thiên Kiếm Định Giới có giới hạn môi trường hợp lệ, không kiểm soát tuyệt đối hình học Backrooms. Visual Lock R02: tóc bạc-trắng rất dài, mắt lam xám, kiếm quan vàng-đen có tinh thể lam; Kiếm Khải trắng-bạc-vàng nền tối, điểm lam; MỘT đại kiếm Tịch Quang trắng bạc lõi lam. Giáp là pháp bảo tiên hiệp, không AI, reactor, súng hay HUD. Giọng nói R05 rõ ý, tự nhiên, không one-liner giả ngầu.",
+      "source": {
+        "document": "canon/LUC_TRAM_CODEX.md",
+        "anchor": "00A; 04-12; 21; 38"
+      },
+      "authority": "CHARACTER_CANON_R06",
+      "mutability": "IMMUTABLE",
+      "priority": 50,
+      "tags": [
+        "lục trầm",
+        "luc_tram",
+        "thiên kiếm linh tâm",
+        "tịch quang"
+      ],
+      "references": [],
+      "affordances": []
     }
   ]
 }
