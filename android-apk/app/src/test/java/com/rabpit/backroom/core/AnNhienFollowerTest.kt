@@ -81,28 +81,6 @@ class AnNhienFollowerTest {
     assertEquals("an_nhien_cannot_lead", leader.validation.reason)
   }
 
-  @Test fun fixedEquipmentCannotBeChanged() {
-    val state = GameState.initial().copy(
-      inventories = GameState.initial().inventories + (
-        AN_NHIEN_ID to InventoryState(AN_NHIEN_ID, mapOf(
-          "fake-weapon" to ItemStack("fake-weapon", "Vũ khí thử", metadata = mapOf("category" to "FOOD"))
-        ))
-      )
-    )
-    val result = InventoryEngine.execute(state, ItemCommand(
-      commandId = "equip-an",
-      turnId = state.turn.currentTurnId,
-      actorId = AN_NHIEN_ID,
-      source = CommandSource.UI,
-      operation = ItemCommand.Operation.EQUIP,
-      itemId = "fake-weapon",
-      itemName = "Vũ khí thử",
-      slot = "weapon"
-    ))
-    assertFalse(result.applied)
-    assertEquals("equipment_bound_forever", result.validation.reason)
-  }
-
   @Test fun slashCheatInstantlyAddsAnNhienAndIsIdempotent() {
     val base = GameState.initial()
     assertTrue(AnNhienCanon.matchesPartyCheatCode(" /annhien1234 "))

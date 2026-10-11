@@ -26,13 +26,6 @@ object MadGodCanon {
   fun cheat(x: String) = x.trim().equals(CHEAT_CODE, true)
   fun isSetId(x: String?) = x == MADGOD_SET_ID
   fun isId(x: String?) = isSetId(x)
-  fun isItem(x: ItemStack?) = x != null && (isId(x.itemId) || x.metadata["madGod"].equals("true", true))
-  fun slot(id: String, name: String) = if (isId(id) || name.contains(SET_NAME, true) || name.contains("MadGod Armor", true) || name.contains("MadGod Magnum", true)) "set" else null
-
-  fun setItem() = EquipmentCatalog.stackFor(MADGOD_SET_ID).let {
-    it.copy(metadata = it.metadata + mapOf("madGod" to "true", "permanentWhenEquipped" to "true"))
-  }
-
   fun spawn(s: GameState): Spawn {
     val equipped = s.equipment[KAI_ID] ?: EquipmentState(KAI_ID)
     if (equipped.slots["weapon"] == MADGOD_SET_ID) return Spawn(s, false)

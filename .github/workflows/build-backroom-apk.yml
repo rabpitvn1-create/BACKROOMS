@@ -2,6 +2,11 @@ name: Build Backroom APK
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - "android-apk/**"
+      - ".github/workflows/build-backroom-apk.yml"
   push:
     branches: [main, release/1.2.0.0.0]
     paths:
@@ -38,7 +43,11 @@ jobs:
       - name: Verify active semantic highlighting
         run: node android-apk/verify-semantic.mjs
 
+      - name: Verify MadGod UI Core projection
+        run: node android-apk/verify-madgod-ui.mjs
+
       - name: Capture active run id
+        if: github.event_name != 'pull_request'
         run: |
           set -euo pipefail
           mkdir -p release-status
@@ -52,6 +61,7 @@ jobs:
           git push origin "HEAD:${GITHUB_REF_NAME}"
 
       - name: Validate Game Master configuration
+        if: github.event_name != 'pull_request'
         run: |
           set -euo pipefail
           for name in GEHIHI_API_KEY GEHIHI_MODEL GEMINI_API_KEY_1 GEMINI_API_KEY_2 GEMINI_API_KEY_3 GEMINI_API_KEY_4 GEMINI_API_KEY_5 HAKU_API_KEY SOL_API_KEY; do

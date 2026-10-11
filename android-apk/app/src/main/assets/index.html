@@ -1725,7 +1725,7 @@ render();
   function formatMinutes(raw){const m=Math.max(0,Number(raw)||0),h=Math.floor(m/60),min=m%60;return h>0?h+' giờ '+min+' phút':min+' phút'}
   function bandLabel(value){return bandLabels[String(value||'UNKNOWN').toUpperCase()]||String(value||'Chưa xác định')}
   function bandClass(value){const v=String(value||'UNKNOWN').toUpperCase();return v==='SEVERE'||v==='CRITICAL'?'status-danger':v==='MILD'||v==='MODERATE'?'status-warning':'status-normal'}
-  function madGodSetEquipped(){return false;}
+  function madGodSetEquipped(){return String(state?.equipment?.weapon?.id||'')==='madgod:set';}
   function refreshCharacterDetailsFromCore(){
     try{
       if(window.Android&&typeof Android.getPartyDetails==='function'){

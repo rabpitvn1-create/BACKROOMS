@@ -10,7 +10,7 @@ class CommandResolverTest {
   @Test fun playerTextCannotDispatchInventoryOrEquipmentMutations() {
     for (intent in listOf(
       GameIntent.PICKUP_ITEM, GameIntent.DROP_ITEM, GameIntent.USE_ITEM,
-      GameIntent.TRANSFER_ITEM, GameIntent.EQUIP_ITEM, GameIntent.UNEQUIP_ITEM
+      GameIntent.TRANSFER_ITEM
     )) {
       val candidate = IntentCandidate("Cao Minh lấy vật phẩm", intent,
         IntentConfidence.HIGH, 0.99f, CommandSource.RULE)

@@ -136,8 +136,6 @@ object InventoryEngine {
         val to = addItem(targetInventory, transferred)
         changed(state.copy(inventories = state.inventories + (command.actorId to from) + (targetId to to)), "inventory_transfer")
       }
-      ItemCommand.Operation.EQUIP -> EquipmentEngine.equip(state, command)
-      ItemCommand.Operation.UNEQUIP -> EquipmentEngine.unequip(state, command)
     }
   }
 }

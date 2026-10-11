@@ -572,8 +572,6 @@ class GameCoreFacade private constructor(
     GameIntent.DROP_ITEM,
     GameIntent.USE_ITEM,
     GameIntent.TRANSFER_ITEM,
-    GameIntent.EQUIP_ITEM,
-    GameIntent.UNEQUIP_ITEM,
   )
 
   private fun isDirectPlayerPickupAction(action: String): Boolean {
@@ -623,11 +621,8 @@ class GameCoreFacade private constructor(
   }.toString()
 
   private fun eventReply(events: List<String>): String = when (events.lastOrNull { it != "time_advanced" }) {
-    "inventory_pickup" -> "Inventory đã được cập nhật bởi một sự kiện vật phẩm hợp lệ."
     "inventory_remove" -> "Vật phẩm đã được loại khỏi Inventory theo hành động của Cao Minh."
     "inventory_transfer" -> "Vật phẩm đã được chuyển giao."
-    "item_equipped" -> "Vật phẩm đã được trang bị."
-    "item_unequipped" -> "Vật phẩm đã được tháo khỏi trang bị."
     else -> "Hành động đã được Game State Core xác nhận."
   }
 
@@ -636,7 +631,6 @@ class GameCoreFacade private constructor(
       "player_pickup_unavailable" -> "Item chỉ được phát từ chiến lợi phẩm Entity do Game Core xác nhận, không thể tự nhặt bằng văn bản."
       "precise_content_amount_forbidden", "item_content_empty" -> "Vật phẩm này hiện không có nội dung khả dụng."
       "madgod_equipment_permanent" -> "MadGod đã khóa vĩnh viễn sau khi trang bị; không thể tháo hoặc đổi."
-      "madgod_equipment_slot_mismatch" -> "MadGod Set chỉ có thể trang bị cho Cao Minh; chỉ chiếm slot vũ khí; giáp MadGod đã chuyển thành passive Ma Tôn Vạn Giới."
       "insufficient_item_quantity", "item_not_owned" -> "Cao Minh không có đủ vật phẩm cần thiết cho hành động này."
       "item_action_resolution_required" -> "Không thể xác thực hành động vật phẩm này từ state hiện tại; Inventory không thay đổi."
       "party_full" -> "Party đã đủ tối đa bốn thành viên."

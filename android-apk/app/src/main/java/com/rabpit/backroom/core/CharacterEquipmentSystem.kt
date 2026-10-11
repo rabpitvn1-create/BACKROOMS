@@ -336,12 +336,6 @@ object EquipmentEngine {
   fun isEquipped(state: GameState, characterId: String, itemId: String): Boolean =
     state.equipment[characterId]?.slots.orEmpty().values.any { it == itemId }
 
-  fun equip(state: GameState, command: ItemCommand): ExecutionResult =
-    invalid(state, "equipment_bound_forever")
-
-  fun unequip(state: GameState, command: ItemCommand): ExecutionResult =
-    invalid(state, "equipment_bound_forever")
-
   fun preview(state: GameState, characterId: String, itemId: String): EffectiveCharacterStats? =
     if (itemId in state.equipment[characterId]?.slots.orEmpty().values) CharacterStatEngine.effective(state, characterId)
     else null
@@ -354,7 +348,6 @@ object CharacterEquipmentSystem {
   fun normalize(state: GameState): GameState = normalizeInternal(state, state.metadata["characterEquipmentSchemaVersion"] != SCHEMA_VERSION)
 
   private fun normalizeInternal(source: GameState, seedStarting: Boolean): GameState {
-    // Preserve the follower compatibility installed earlier in the patch chain.
     // Lucia exists in Core state without being forced into Party.
     val input = LuciaCanon.ensure(source)
     val inventories = input.inventories.toMutableMap()
