@@ -5,12 +5,12 @@ import kotlin.math.max
 import kotlin.math.min
 
 object CharacterProgressionCore {
-  const val SCHEMA = "core_stats_v1"
+  const val SCHEMA = "core_stats_v2"
   const val BASE_STAT = 5
   const val MAX_STAT = 999
   const val BASE_MAX_HP = 50
   const val CORE_KEY = "characterProgression.coreResource"
-  private val STAT_KEYS = setOf("STR", "DEF", "SKL", "VIT")
+  private val STAT_KEYS = setOf("STR", "DEX", "AGI", "VIT", "EVA")
 
   data class Upgrade(
     val state: GameState,
@@ -28,14 +28,15 @@ object CharacterProgressionCore {
     val p = state.characters[characterId]?.statProfile ?: CharacterStatProfiles.forId(characterId)
     return when (normalizeStat(rawStat)) {
       "STR" -> p.str
-      "DEF" -> p.def
-      "SKL" -> p.skl
+      "DEX" -> p.dex
+      "AGI" -> p.agi
       "VIT" -> p.vit
+      "EVA" -> p.eva
       else -> BASE_STAT
     }.coerceIn(BASE_STAT, MAX_STAT)
   }
 
-  fun statPercent(stat: Int): Int = 100 + 10 * (stat.coerceIn(BASE_STAT, MAX_STAT) - BASE_STAT)
+  fun statPercent(stat: Int): Int = 100 + 4 * (stat.coerceIn(BASE_STAT, MAX_STAT) - BASE_STAT)
   fun statPercent(state: GameState, characterId: String, stat: String): Int =
     statPercent(baseStat(state, characterId, stat))
 
@@ -53,7 +54,7 @@ object CharacterProgressionCore {
     val id = rawCharacterId.trim().lowercase(Locale.ROOT)
     require(id.isNotEmpty() && normalized.characters.containsKey(id)) { "Nhân vật không tồn tại." }
     val stat = normalizeStat(rawStat)
-    require(stat in STAT_KEYS) { "Chỉ có thể nâng STR, DEF, SKL hoặc VIT." }
+    require(stat in STAT_KEYS) { "Chỉ có thể nâng STR, DEX, AGI, VIT hoặc EVA." }
     val character = normalized.characters.getValue(id)
     val current = baseStat(normalized, id, stat)
     check(current < MAX_STAT) { "Chỉ số đã đạt giới hạn." }
@@ -65,9 +66,10 @@ object CharacterProgressionCore {
     val p = character.statProfile
     val nextProfile = when (stat) {
       "STR" -> p.copy(str = current + 1)
-      "DEF" -> p.copy(def = current + 1)
-      "SKL" -> p.copy(skl = current + 1)
-      else -> p.copy(vit = current + 1)
+      "DEX" -> p.copy(dex = current + 1)
+      "AGI" -> p.copy(agi = current + 1)
+      "VIT" -> p.copy(vit = current + 1)
+      else -> p.copy(eva = current + 1)
     }
     var next = normalized.copy(
       characters = normalized.characters + (id to character.copy(statProfile = nextProfile)),
@@ -93,8 +95,6 @@ object CharacterProgressionCore {
           dex = raw.dex.coerceIn(BASE_STAT, MAX_STAT),
           agi = raw.agi.coerceIn(BASE_STAT, MAX_STAT),
           eva = raw.eva.coerceIn(BASE_STAT, MAX_STAT),
-          def = raw.def.coerceIn(BASE_STAT, MAX_STAT),
-          skl = raw.skl.coerceIn(BASE_STAT, MAX_STAT),
           vit = raw.vit.coerceIn(BASE_STAT, MAX_STAT),
           regen = HpRegenRule(),
           schema = SCHEMA
@@ -157,7 +157,8 @@ object CharacterProgressionCore {
 
 object CharacterStatCore {
   const val DAI_DAO_MA_TON_STAT_BONUS_PERCENT = 10
-  const val CRITICAL_DAMAGE_PERCENT = 150
+  const val CRITICAL_DAMAGE_PERCENT = 400
+  const val BASIS_POINTS_PER_PERCENT = 100
 
   fun isCaoMinh(id: String): Boolean = id.equals(KAI_ID, true) || id.equals("cao_minh", true)
 
@@ -167,28 +168,57 @@ object CharacterStatCore {
 
   fun effective(state: GameState, characterId: String): EffectiveCharacterStats {
     val p = state.characters[characterId]?.statProfile ?: CharacterStatProfiles.forId(characterId)
-    val str = (p.str.coerceIn(5, 999) + passiveBonus(p.str, characterId)).coerceAtMost(CharacterProgressionCore.MAX_STAT)
-    val def = (p.def.coerceIn(5, 999) + passiveBonus(p.def, characterId)).coerceAtMost(CharacterProgressionCore.MAX_STAT)
-    val skl = (p.skl.coerceIn(5, 999) + passiveBonus(p.skl, characterId)).coerceAtMost(CharacterProgressionCore.MAX_STAT)
-    val vit = (p.vit.coerceIn(5, 999) + passiveBonus(p.vit, characterId)).coerceAtMost(CharacterProgressionCore.MAX_STAT)
-    val maxHp = scaleByPercent(CharacterProgressionCore.BASE_MAX_HP, CharacterProgressionCore.statPercent(vit))
+    fun value(raw: Int): Int = (raw.coerceIn(5, 999) + passiveBonus(raw, characterId)).coerceAtMost(CharacterProgressionCore.MAX_STAT)
+    val str = value(p.str)
+    val dex = value(p.dex)
+    val agi = value(p.agi)
+    val vit = value(p.vit)
+    val eva = value(p.eva)
+    val def = defense(vit)
+    val critBp = criticalChanceBasisPoints(agi)
+    val dodgeBp = evasionBasisPoints(eva)
+    val critResBp = criticalResistanceBasisPoints(dex)
+    val dodgeResBp = evasionResistanceBasisPoints(eva)
+    val attack = CharacterProgressionCore.statPercent(str)
     return EffectiveCharacterStats(
-      maxHp = maxHp,
-      str = str, def = def, skl = skl, vit = vit,
-      criticalChancePercent = criticalChance(skl),
-      evasionPercent = evasion(vit),
-      resCriticalPercent = criticalResistance(def),
-      resEvasionPercent = evasionResistance(skl),
+      maxHp = maxHp(vit),
+      str = str, dex = dex, agi = agi, vit = vit, eva = eva, def = def,
+      criticalChancePercent = roundPercent(critBp),
+      evasionPercent = roundPercent(dodgeBp),
+      resCriticalPercent = roundPercent(critResBp),
+      resEvasionPercent = roundPercent(dodgeResBp),
+      criticalChanceBasisPoints = critBp,
+      evasionBasisPoints = dodgeBp,
+      resCriticalBasisPoints = critResBp,
+      resEvasionBasisPoints = dodgeResBp,
       criticalDamagePercent = CRITICAL_DAMAGE_PERCENT,
+      attackPercent = attack, skillDamagePercent = attack,
       energy = p.energy,
       regenPerCompletedTurn = 0
     )
   }
 
-  fun criticalChance(skl: Int): Int = (5 + (skl.coerceAtLeast(5) - 5) * 2).coerceAtMost(50)
-  fun evasion(vit: Int): Int = ((vit.coerceAtLeast(5) - 5) * 2).coerceAtMost(35)
-  fun criticalResistance(def: Int): Int = ((def.coerceAtLeast(5) - 5) * 2).coerceAtMost(50)
-  fun evasionResistance(skl: Int): Int = ((skl.coerceAtLeast(5) - 5) * 2).coerceAtMost(50)
+  fun maxHp(vit: Int): Int = CharacterProgressionCore.BASE_MAX_HP +
+    5 * (vit.coerceIn(5, 999) - 5)
+  fun defense(vit: Int): Int = (vit.coerceIn(5, 999) - 5)
+
+  fun criticalChanceBasisPoints(agi: Int): Int =
+    (500 + (agi.coerceIn(5, 999) - 5) * 45).coerceAtMost(3000)
+  fun evasionBasisPoints(eva: Int): Int =
+    (500 + (eva.coerceIn(5, 999) - 5) * 50).coerceAtMost(3500)
+  fun criticalResistanceBasisPoints(dex: Int): Int =
+    ((dex.coerceIn(5, 999) - 5) * 25).coerceAtMost(10000)
+  fun evasionResistanceBasisPoints(eva: Int): Int =
+    ((eva.coerceIn(5, 999) - 5) * 25).coerceAtMost(10000)
+
+  private fun roundPercent(basisPoints: Int): Int = (basisPoints + 50) / BASIS_POINTS_PER_PERCENT
+  fun criticalChance(agi: Int): Int = roundPercent(criticalChanceBasisPoints(agi))
+  fun evasion(eva: Int): Int = roundPercent(evasionBasisPoints(eva))
+  fun criticalResistance(dex: Int): Int = roundPercent(criticalResistanceBasisPoints(dex))
+  fun evasionResistance(eva: Int): Int = roundPercent(evasionResistanceBasisPoints(eva))
+
+  fun effectiveChanceBasisPoints(chance: Int, resistance: Int): Int =
+    (chance - resistance).coerceIn(0, 10000)
 
   fun scaleByPercent(value: Int, percent: Int): Int {
     val scaled = max(0L, value.toLong()) * max(0, percent).toLong()
@@ -201,16 +231,18 @@ object CharacterStatCore {
     return scaleByPercent(out, attackPercent)
   }
 
-  fun skillDamage(baseDamage: Int, skillPercent: Int, skl: Int, handPercent: Int = 100): Int {
+  // Both ATK and Skill DMG come from STR; apply its multiplier exactly once.
+  fun skillDamage(baseDamage: Int, skillPercent: Int, str: Int, handPercent: Int = 100): Int {
     var out = scaleByPercent(baseDamage, skillPercent)
-    out = scaleByPercent(out, CharacterProgressionCore.statPercent(skl))
+    out = scaleByPercent(out, CharacterProgressionCore.statPercent(str))
     return scaleByPercent(out, handPercent)
   }
 
   fun defendedIncomingDamage(rawDamage: Int, def: Int): Int {
     if (rawDamage <= 0) return 0
-    val percent = CharacterProgressionCore.statPercent(def).coerceAtLeast(1)
-    return max(1, ((rawDamage.toLong() * 100L + percent / 2L) / percent).toInt())
+    val safeDef = def.coerceAtLeast(0)
+    return max(1, ((rawDamage.toLong() * 100L + (100L + safeDef) / 2L) /
+      (100L + safeDef)).coerceAtMost(Int.MAX_VALUE.toLong()).toInt())
   }
 
   fun criticalDamage(damage: Int): Int = scaleByPercent(damage, CRITICAL_DAMAGE_PERCENT)
