@@ -56,3 +56,15 @@ test("node ID is authoritative and malicious or invalid identifiers cannot choos
   assert.equal(router.sceneKey(s("1.2","Old Corridor")).startsWith("1.2|"),true);
   assert.notEqual(router.sceneKey(s("1.2","Old Corridor")),router.sceneKey(s("1","Old Corridor")));
 });
+
+test("WebView actually loads the manifest and renders images behind unchanged overlays",()=>{
+  const html=fs.readFileSync(path.resolve(__dirname,"../app/src/main/assets/index.html"),"utf8");
+  const native=fs.readFileSync(path.resolve(__dirname,"../app/src/main/java/com/rabpit/backroom/MainActivity.java"),"utf8");
+  assert.ok(html.includes('<script src="level_snapshots/snapshot-mapping.js"></script>'));
+  assert.ok(html.includes("s.level.id!=null?s.level.id:s.level.number"));
+  assert.ok(native.includes("var scene=a?a.resolve(state):null"));
+  assert.ok(native.includes("bg.src=scene?scene.src:"));
+  assert.ok(native.includes("box.appendChild(kai)"));
+  assert.ok(native.includes("appendEntityOverlay()"));
+  assert.ok(native.includes("appendLuciaCombatOverlay()"));
+});
