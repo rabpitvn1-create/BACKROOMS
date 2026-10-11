@@ -98,4 +98,14 @@ class LucTramCombatSkillsTest {
       "SEARCH", "quan sát kỹ chuyển động")
     assertFalse(result.reply.contains("Thiên Kiếm Linh Tâm"))
   }
+
+  @Test fun caoMinhDamageOverTimeIsNotAttributedToLastPartyMember() {
+    val started = CombatRuntime.start(party(), "diep_minh")
+    val status = started.copy(metadata = started.metadata + ("combat.caoMinhBleedTurns" to "2"))
+    val result = CombatRuntime.resolve(status, "EXECUTE", "Cả Party tấn công")
+    val dot = result.feedback.filter { it.skill == "Huyết Ma Tứ Liên" && it.target == "entity" }
+    assertTrue("Expected bleed tick when Cao Minh DoT is active", dot.isNotEmpty())
+    assertTrue(dot.all { it.actorId == CAO_MINH_ID })
+    assertFalse(dot.any { it.actorId == LUC_TRAM_ID })
+  }
 }

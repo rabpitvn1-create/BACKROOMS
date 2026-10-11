@@ -854,7 +854,7 @@ object CombatRuntime {
       val hp = max(0, c.entityHp - bleedDamage)
       bleedTurns = max(0, bleedTurns - 1)
       resolvedState = withCombatCounter(resolvedState, CAO_MINH_BLEED_TURNS_KEY, bleedTurns)
-      recordFeedback("entity", c.entityHp, hp, status = FeedbackStatus.BLEED, skill = "Huyết Ma Tứ Liên")
+      recordFeedback("entity", c.entityHp, hp, status = FeedbackStatus.BLEED, actorId = CAO_MINH_ID, skill = "Huyết Ma Tứ Liên")
       c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
       log += "Bleeding từ Huyết Ma Tứ Liên gây -$bleedDamage HP (${CAO_MINH_FOUR_SLASH_BLEED_MAX_HP_PERCENT}% Max HP; ${c.entityHp}/${c.entityMaxHp}); còn $bleedTurns turn."
     }
@@ -864,7 +864,7 @@ object CombatRuntime {
       val hp = max(0, c.entityHp - bleedDamage)
       syvialBleedTurns = max(0, syvialBleedTurns - 1)
       resolvedState = withCombatCounter(resolvedState, SYVIAL_BLEED_TURNS_KEY, syvialBleedTurns)
-      recordFeedback("entity", c.entityHp, hp, status = FeedbackStatus.BLEED, skill = "Crimson Guillotine")
+      recordFeedback("entity", c.entityHp, hp, status = FeedbackStatus.BLEED, actorId = SYVIAL_ID, skill = "Crimson Guillotine")
       c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
       log += "Bleeding từ Crimson Guillotine gây -$bleedDamage HP (4% Max HP; ${c.entityHp}/${c.entityMaxHp}); còn $syvialBleedTurns turn."
     }
