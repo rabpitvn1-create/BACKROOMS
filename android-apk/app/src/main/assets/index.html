@@ -1759,26 +1759,20 @@ render();
   const equipment=document.getElementById('characterEquipmentList');
   const statusList=document.getElementById('characterStatusList');
   const survivalHud=document.getElementById('characterSurvivalHud');
-  const signatureNames=['w.w magnum','white wraith magnum','blackblood armor'];
   const signatureEquipment={weapon:'Huyết Ma Kiếm',armor:'Huyết Ma Chiến Khải'};
   const bandLabels={UNKNOWN:'Chưa xác định',NORMAL:'Bình thường',MILD:'Nhẹ',MODERATE:'Vừa',SEVERE:'Nặng',CRITICAL:'Nguy kịch'};
   const presenceLabels={ACTIVE:'Đang trong đội',SEPARATED:'Tách nhóm',MISSING:'Mất tích',DEAD:'Đã chết'};
   let selectedCharacterId='cao_minh';
 
-  function isSignatureItem(x){const n=String((x&&x.name)||x||'').toLocaleLowerCase('vi-VN');return signatureNames.some(k=>n.includes(k))}
   function repairState(){
     let changed=false;
-    if(state&&Array.isArray(state.inventory)){
-      const normal=state.inventory.filter(x=>!isSignatureItem(x));
-      if(normal.length!==state.inventory.length){state.inventory=normal;changed=true}
-    }
     const turn=Number(state&&state.turn)||1;
     if(turn<=2&&(!Array.isArray(state&&state.log)||state.log.length===0)&&Array.isArray(initial&&initial.log)&&initial.log.length){
       state.log=JSON.parse(JSON.stringify(initial.log));changed=true
     }
     if(changed){try{localStorage.setItem('backroom-apk-state',JSON.stringify(state))}catch(ignore){}}
   }
-  function kaiItems(){repairState();return Array.isArray(state&&state.inventory)?state.inventory.filter(x=>!isSignatureItem(x)):[]}
+  function caoMinhItems(){repairState();return Array.isArray(state&&state.inventory)?state.inventory:[]}
   function formatMinutes(raw){const m=Math.max(0,Number(raw)||0),h=Math.floor(m/60),min=m%60;return h>0?h+' giờ '+min+' phút':min+' phút'}
   function bandLabel(value){return bandLabels[String(value||'UNKNOWN').toUpperCase()]||String(value||'Chưa xác định')}
   function bandClass(value){const v=String(value||'UNKNOWN').toUpperCase();return v==='SEVERE'||v==='CRITICAL'?'status-danger':v==='MILD'||v==='MODERATE'?'status-warning':'status-normal'}
@@ -1802,7 +1796,7 @@ render();
     if(liveMembers&&liveMembers.length)return liveMembers;
     const members=state&&state.partyDetails&&Array.isArray(state.partyDetails.members)?state.partyDetails.members:null;
     if(members&&members.length)return members.map(m=>String(m.id)==='cao_minh'&&madGodSetEquipped()?Object.assign({},m,{avatar:'avatars/MadGod.jpg',avatarRef:'avatars/MadGod.jpg'}):m);
-    const fallback=[{id:'cao_minh',name:'Cao Minh',avatar:madGodSetEquipped()?'avatars/MadGod.jpg':'avatars/CAO_MINH_AVATAR.jpg',presence:'ACTIVE',isLeader:true,physiology:{hunger:'NORMAL',thirst:'NORMAL',sleepDeprivation:'NORMAL',foodPercent:100,waterPercent:100,restPercent:100},inventory:kaiItems(),equipment:signatureEquipment,statuses:[],injuries:[]}];
+    const fallback=[{id:'cao_minh',name:'Cao Minh',avatar:madGodSetEquipped()?'avatars/MadGod.jpg':'avatars/CAO_MINH_AVATAR.jpg',presence:'ACTIVE',isLeader:true,physiology:{hunger:'NORMAL',thirst:'NORMAL',sleepDeprivation:'NORMAL',foodPercent:100,waterPercent:100,restPercent:100},inventory:caoMinhItems(),equipment:signatureEquipment,statuses:[],injuries:[]}];
     if(Array.isArray(state&&state.party))state.party.forEach(x=>{if(x&&x.id&&x.id!=='cao_minh')fallback.push({id:x.id,name:x.name||x.id,avatar:x.avatar,presence:x.presence||'ACTIVE',isLeader:false,physiology:{hunger:'UNKNOWN',thirst:'UNKNOWN',sleepDeprivation:'UNKNOWN'},inventory:[],equipment:{},statuses:[],injuries:[]})});
     return fallback;
   }
@@ -1887,7 +1881,7 @@ render();
       expProgress.setAttribute('aria-valuetext',atMax?'MAX LEVEL':hasProgress?'EXP '+exp+' / '+limit:'Không có dữ liệu EXP');
     }
     renderSurvivalHud(member);
-    const inv=Array.isArray(member.inventory)?member.inventory:(member.id==='cao_minh'?kaiItems():[]);
+    const inv=Array.isArray(member.inventory)?member.inventory:(member.id==='cao_minh'?caoMinhItems():[]);
     capacity.textContent=member&&member.id==='an-nhien'?inv.length+' / 2 slot thực phẩm':inv.length+' / 9 loại vật phẩm';
     items.innerHTML=renderInventoryItems(inv);
     const eqRows=equipmentRows(member);

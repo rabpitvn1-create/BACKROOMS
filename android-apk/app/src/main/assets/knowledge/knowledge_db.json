@@ -339,7 +339,7 @@
       "text": "Iris has romantic feelings for Cao Minh. Cao Minh knows, but current codex does not establish that he reciprocates; official/current baseline remains teammates and commander-specialist. Iris's feelings do not grant her the right to manipulate Cao Minh's choices, hide danger or sabotage tactics. Campaign development may change relationship state, but the codex baseline must not be rewritten.",
       "source": {
         "document": "02_CHARACTERS/Iris_Codex.docx",
-        "anchor": "IRIS-REL-KAI-01"
+        "anchor": ""
       },
       "authority": "CHARACTER_CANON",
       "mutability": "BASELINE",
@@ -363,7 +363,7 @@
       "text": "Iris -> Cao Minh uses the Vietnamese anh-em system. This closeness does not prove Cao Minh reciprocates her romantic feelings. Do not switch the address system merely because of anger, danger, jealousy, rescue, banter or a single intimate moment without continuity/retcon support.",
       "source": {
         "document": "02_CHARACTERS/Iris_Codex.docx",
-        "anchor": "IRIS-REL-KAI-01; IRIS-DLG-01; IRIS-CANON-GATE-01"
+        "anchor": "IRIS-DLG-01; IRIS-CANON-GATE-01"
       },
       "authority": "CHARACTER_CANON",
       "mutability": "IMMUTABLE",
@@ -522,7 +522,7 @@
       "text": "Syvial is a high-tier supernatural swordswoman for assault, suppression, counterattack and finishing high-level targets. She controls space with GodKiller, adapts at close range, handles multiple targets by positioning rather than blind spinning, and gathers enough information before escalating against high-tier targets. She is not a weak follower or a drone waiting for Cao Minh commands; Cao Minh and Syvial can hold separate fronts, save each other when needed and disagree tactically from a position of comparable overall power.",
       "source": {
         "document": "02_CHARACTERS/Syvial_Codex.docx",
-        "anchor": "SYVIAL-COMBAT-01; SYVIAL-STYLE-COMBAT-01; SYVIAL-REL-KAI-01"
+        "anchor": "SYVIAL-COMBAT-01; SYVIAL-STYLE-COMBAT-01"
       },
       "authority": "CHARACTER_CANON",
       "mutability": "IMMUTABLE",
@@ -547,7 +547,7 @@
       "text": "Syvial's feelings for Cao Minh are immutable character canon. How far Cao Minh reciprocates must follow campaign continuity; do not convert one-sided feelings into an established long-term romance automatically. They are peers in overall combat tier and neither exists to be constantly rescued or protected like a fragile object. Reliable evidence that Cao Minh is in severe danger can shift Syvial's priorities or risk tolerance, but brief lost contact does not collapse her judgment.",
       "source": {
         "document": "02_CHARACTERS/Syvial_Codex.docx",
-        "anchor": "SYVIAL-REL-KAI-01"
+        "anchor": ""
       },
       "authority": "CHARACTER_CANON",
       "mutability": "BASELINE",
@@ -571,7 +571,7 @@
       "text": "Syvial -> Cao Minh: Syvial says 'em' for self and normally calls him 'anh' or 'Cao Minh'; 'Anh Cao Minh' can be used for teasing/emphasis/clarifying before others. Cao Minh -> Syvial: Cao Minh says 'anh' for self and calls her 'Syvial' or 'em'. 'Cục cưng' is allowed only if campaign continuity has already locked a long-term romantic relationship; it is not the default. A direct first name can carry extra weight when serious, but is not a magic keyword to repeat every line.",
       "source": {
         "document": "02_CHARACTERS/Syvial_Codex.docx",
-        "anchor": "SYVIAL-REL-KAI-01 / Xưng hô và trạng thái gọi tên"
+        "anchor": ""
       },
       "authority": "CHARACTER_CANON",
       "mutability": "IMMUTABLE",

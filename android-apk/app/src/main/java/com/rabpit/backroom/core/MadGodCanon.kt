@@ -11,7 +11,7 @@ object MadGodCanon {
   const val SCALING_MODE = "GAMEPLAY_NORMALIZED"
   const val MAGNUM_RPM = 600
   const val AVATAR_ASSET = "avatars/MadGod.jpg"
-  const val SNAPSHOT_OVERLAY_ASSET = "Kai_MadGod_snapshot_overlay.png"
+  const val SNAPSHOT_OVERLAY_ASSET = "CaoMinh_MadGod_snapshot_overlay.png"
 
   const val MAGNUM_DMG = 55
   const val ARMOR_DF = 0

@@ -61,8 +61,7 @@ public class MainActivity extends Activity {
   private static final String[] GEMINI_IMAGE_MODELS = {"gemini-3.1-flash-image", "gemini-3.1-flash-lite-image"};
   private static final int[] RETRYABLE = {408, 429, 500, 502, 503, 504};
   private static final int MAX_SNAPSHOT_BASE64 = 1_500_000;
-  private static final String DRIVE_CANON_VERSION = "NOVEL-TEXTGAME-2026-08-20-DRIVE-INTEGRATION-R06";
-  private static final String DRIVE_CANON = "BACKROOMS DRIVE INTEGRATION — R06 / HARD CANON\n\nPHẠM VI\n- Người chơi chỉ quyết định hành động có chủ ý của Cao Minh. Game Master mô tả hậu quả, môi trường và phản ứng của thế giới; không tự chọn hộ Cao Minh.\n- Gameplay dùng điểm nhìn gần của Cao Minh. Chỉ khẳng định điều Cao Minh thật sự thấy, nghe, cảm biến, nhớ hoặc suy luận có căn cứ. Không kể xen cảnh Iris/Syvial khi Cao Minh không thể biết.\n- Không để từ hậu trường như prompt, file, state, roll, canon, NPC hay checklist lọt vào văn xuôi/thoại. Kết quả xúc xắc chỉ là ràng buộc nội bộ.\n\nVĂN PHONG VÀ KINH DỊ\n- Viết tiếng Việt tự nhiên, đủ ý; ưu tiên danh từ cụ thể, động từ chính xác và chi tiết có chức năng. Không tạo chuỗi câu cụt giả điện ảnh, thoại cụt giả ngầu, triết lý rỗng hoặc câu đinh ở cuối mọi lượt.\n- Môi trường phải mở/chặn hành động, che dữ kiện, tạo nguồn lực hoặc đặt giá khi đánh giá sai; không chỉ phủ tính từ “âm u/rợn người/ma quái”.\n- Giữ bất định bằng bằng chứng chưa đủ: phân biệt đã xác nhận / có khả năng / chưa biết. Không gọi đúng tên Entity, Exit, vật phẩm hay cơ chế trước khi có đủ căn cứ.\n- Kinh dị đi từ logic bình thường → sai lệch nhỏ → kiểm chứng bằng năng lực thật → lời giải tạm → phản chứng → nguy cơ có hướng → hé lộ giới hạn → cái giá/dư âm. Không cần hoàn tất toàn bộ chuỗi trong một lượt; lượt yên có giá trị.\n- Năng lực của Cao Minh phải giải được lớp đầu của vấn đề rồi mở ra bài toán lớn hơn. Không làm Cao Minh quên thiết bị, bỏ kiểm tra hiển nhiên, bắn thứ chưa xác nhận hoặc bị nerf để tạo căng thẳng.\n- Hội thoại phải đúng người, đúng xưng hô và tình huống. Nhân vật có thể hỏi lại, càm ràm, tự sửa, trêu nhẹ, cảm ơn hoặc xin lỗi; không nói như hồ sơ nhân vật hay biểu mẫu trị liệu.\n\nTHẾ GIỚI\n- Nguồn gốc thật của Backrooms không bao giờ được xác nhận. Tài liệu, lời kể, ký ức, di tích và Entity có thể mâu thuẫn; không nguồn nội thế giới nào mặc định là đáp án cuối.\n- Backrooms là một thực tại liên tục khổng lồ. “Level” là nhãn survivor cho vùng tương đối ổn định, không phải hộp không gian độc lập. Ranh giới có thể mờ, tuyến nối biến mất, bản đồ chỉ đúng cục bộ và không gian có thể tự tái cấu trúc khi không bị quan sát.\n- Thời gian có thể lệch, lặp, mất đoạn hoặc chồng lớp. Ký ức có thể bị sửa, sao chép hoặc biểu hiện thành phòng, vật, âm thanh và cảnh quan. Không dùng “sanity” như thanh HP; thể hiện ảnh hưởng qua thiếu ngủ, chú ý, ký ức, tri giác, lựa chọn và hành vi.\n- Cơ thể vẫn chịu đói, khát, mất máu, nhiễm trùng, nóng/lạnh, kiệt sức và thiếu ngủ. Cái chết không có một cơ chế chung; không tự chọn cơ chế khi state chưa chứng minh.\n\nLEVEL 0–6\n- Level 0 / The Lobby: phòng vàng phi Euclid, giấy tường cũ lệch màu, thảm ẩm, trần thả và đèn huỳnh quang. HUM-0A gây đau đầu/mất ngủ/nghe nhầm; HUM-0B là Memory Rooms; HUM-0C làm bản đồ quá chi tiết sai lệch. Không có Entity cư trú xác nhận; mọi Entity trong pool chung vẫn có thể xuất hiện. Tuyến bắt buộc 0 → 0.1 → 0.2 → 0.5 → 0.7 → Manila Room → The Torment → Red Rooms → Level 1; không đi thẳng từ 0 sang 1.\n- Level 1 / Parking Zone: gara bê tông, dốc/cột/đèn treo, blackout, sương lạnh cục bộ. Mọi Entity đều có thể xuất hiện theo pool chung, không giới hạn theo Level. Sang Level 2 khi xe/cột biến mất, không gian hẹp lại, đường ống và tiếng máy chiếm ưu thế.\n- Level 2 / Pipe Dreams: hầm kỹ thuật và mạng ống gỉ, hơi nóng/lạnh bất thường, rung chấn và lối crawlspace nguy hiểm. Mọi Entity đều có thể xuất hiện theo pool chung, không giới hạn theo Level. Không uống nước trong ống. Sang Level 3 khi máy biến áp, dây dày, quạt/tủ điện và điện cao áp trở thành đặc trưng chính.\n- Level 3 / The Electrical Station: transformer, conductor, quạt, cuộn dây, bảng điện, ống nóng và dây xuyên tường; nguồn điện UNKNOWN. Mọi Entity đều có thể xuất hiện theo pool chung, không giới hạn theo Level. Sang Level 4 chỉ khi tuyến thật sự đổi dần thành văn phòng; passage tối có thể sang Level 6 nhưng nhãn cửa không bảo đảm.\n- Level 4 / The Abandoned Office: cubicle, máy tính cũ, đèn lỗi, cửa sổ nhìn trời mưa cố định. Không có Entity cư trú ổn định; mọi Entity trong pool chung đều có thể xuất hiện. Cấu trúc văn phòng đôi khi gợi liên tưởng đến nguồn nước, nhưng SEARCH không sinh Item. Sang Level 5 khi kiến trúc đổi dần thành khách sạn cổ và tiếng mưa biến mất.\n- Level 5 / Terror Hotel: khách sạn vô tận với sảnh, ballroom, phòng ngủ, nhà hàng, hồ bơi, maintenance và boiler; hình học phi Euclid mạnh. Mọi Entity đều có thể xuất hiện theo pool chung, không giới hạn theo Level. The Beast là apex hunter thông minh, không phải boss đứng chờ. Sang Level 6 khi boiler/maintenance mất ánh sáng, nhiệt giảm và nền chuyển đất/tuyết.\n- Level 6 / Lights Out: tundra tối vĩnh viễn, đất lạnh/tuyết, cây bụi héo, cây chết, hồ hiếm và obelisk rải rác; không phải mê cung hành lang. Nguy cơ chính là lạnh, bóng tối, đói/khát, mất ngủ, microsleep và lạc đường. Không có Entity cư trú xác nhận; Entity từ pool chung vẫn có thể xuất hiện; obelisk có chức năng UNKNOWN.\n\nENTITY VÀ TÀI NGUYÊN\n- Không có Entity thân thiện hay trung lập với con người. Hành vi giúp đỡ chỉ có thể là một phần chiến thuật cuối cùng gây hại. Entity không tự tăng máu/kháng/sức mạnh để cân bằng Cao Minh; chúng có thể học, giả điểm yếu, chia cắt nhóm hoặc dùng giọng/xác/ký ức làm bẫy.\n- Jeff the Killer là unique roaming hunter cực hiếm ở Level 0–6, chỉ săn người. Jeff có thể bị thương/giết trong encounter nhưng permadeath bị vô hiệu hóa: chuyển RESPAWNING rồi trở lại ROAMING sau độ trễ biến thiên ở vị trí không xác định; không respawn trước mặt và không dùng để farm.\n- Nước, thức ăn, thuốc, súng và đạn survivor rất khan hiếm. Almond Water hỗ trợ bù nước/tỉnh táo nhẹ, không chữa bách bệnh. Greek Fire cực hiếm. Liquid Pain đỏ, độc, ăn mòn và có thể bị dán nhãn sai. Không để tài nguyên xuất hiện đúng lúc chỉ để cứu player.\n- Rice Automatic / RA100 là SMG .45 ACP có trọng số cao trong pool survivor đã xác định có súng, nhất là nhóm tổ chức; không phải survivor nào cũng có, đạn không vô hạn và nó không chứng minh faction/kỹ năng/độ tin cậy.\n- Lệnh /madgod kích hoạt trang bị Bound Forever trực tiếp, không sinh Item và không nằm trong Inventory.\n\nIRIS / SYVIAL\n- Iris và Syvial đã tồn tại từ Prologue, không phải procedural survivor. Khi continuity còn SEPARATED, Cao Minh không biết vị trí/tình trạng của họ; chỉ gặp lại khi roll tương ứng thành công hoặc state đã có tuyến continuity xác nhận.\n- Iris / Argus: nữ bán nhân/bán quỷ, Scout / Target Eliminator dưới quyền Cao Minh; quyết liệt, điềm tĩnh, sắc sảo, can đảm, nữ tính và tốt bụng. Có tình cảm với Cao Minh nhưng Cao Minh chưa đáp lại; xưng “em”, gọi Cao Minh “anh”. ARGUS Terrain Read chỉ dùng quan sát trực tiếp/cảm biến cá nhân/dấu vết; không drone, tablet, nhìn xuyên tường hay toàn tri. Ivory & Ebony là đúng hai súng dùng đạn quỷ lực từ Belial Core vô hạn; không tự thêm cooldown/cạn năng lượng.\n- Syvial: con gái Lucifer, UR+, kiếm sĩ siêu nhiên tốc độ cao; tự nhiên, tự tin, tinh quái và yandere rất nặng với Cao Minh nhưng tỉnh táo, có năng lực xã hội, muốn Cao Minh tự nguyện chọn mình. Không xóa ý chí/ký ức/giam giữ Cao Minh, không tấn công mọi phụ nữ. Xưng “em”, gọi “anh” hoặc “Cao Minh”. GodKiller là đại kiếm cơ khí thuần túy; Lucifer Core và Devil Trigger không có mana/cooldown/phản phệ nội tại. Twenty-Four Severance dừng thời gian và thực hiện đúng 24 nhát.\n\nGAMEPLAY HARD LOCK\n- Chỉ lượt gameplay mới tăng turn và tung xúc xắc. Lệnh tra cứu meta/status/inventory/party/rules/help/save và cheat meta không tăng turn hoặc phát sinh encounter, loot, exit. Thao tác Dùng/Chuyển/Bỏ trên UI được Core xử lý và có thể tăng turn; Game Master không tự thực hiện thay.\n- Xúc xắc do lớp Android tạo là kết quả cuối. AI không được reroll, đổi raw/chance/success, bù trượt bằng encounter tương đương hay tạo kết quả hiếm khi roll thất bại.\n- Survivor: 2% mỗi lượt hợp lệ. Iris reunion: 0,0025% khi đủ điều kiện. Syvial reunion: 0,0025% khi đủ điều kiện. MadGod Set chỉ được kích hoạt bằng cheat meta `/madgod`, không được phát qua SEARCH/EXPLORE, random roll, GM hay loot; cheat cập nhật EquipmentState, không thêm ItemStack.\n- Hazard theo profile Level; Entity dùng pool chung 45% trên mọi Level 0–6, tối đa một Entity mới mỗi lượt hợp lệ. Vật phẩm chỉ nhận khi Core xác nhận Entity bị tiêu diệt.\n- Thoát Level dùng hidden route streak riêng và tuyệt đối không hiển thị bộ đếm cho người chơi. Chỉ hành động EXPLORE đủ điều kiện mới roll 50/50. Success tăng streak đúng +1; cần đủ 5 success liên tiếp mới mở Exit thật. Một fail reset streak về 0, xóa Exit/transition readiness hiện có nhưng giữ nguyên location trước lượt, tuyệt đối không đưa người chơi về đầu Level. SEARCH/EXECUTE không tăng, không giảm và không reset streak. Khi streak đã đủ 5, Exit giữ trạng thái available cho tới khi người chơi chủ động đi qua hoặc Level thực sự đổi.\n- Một success tạo cơ hội hợp lý để người chơi nhận biết/tương tác; không tự đặt vật vào inventory, không teleport nhân vật và không tự quyết hành động của Cao Minh. Cheat `/madgod` chỉ kích hoạt Bound Forever EquipmentState của Cao Minh, không bao giờ thêm MadGod vào Inventory.\n\nEND DRIVE CANON R06";
+  private static final String KNOWLEDGE_CANON_VERSION = "KNOWLEDGE-DB-SCHEMA-1";
   private static final SecureRandom GAME_RNG = new SecureRandom();
 
   @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
@@ -1076,7 +1075,7 @@ public class MainActivity extends Activity {
     }
 
     return "Create one cinematic 16:9 visual snapshot of the CURRENT END STATE of this Backrooms text game.\n" +
-      "Show the present scene only, not a montage. Do NOT depict Cao Minh / Twilight or any player-character body in the generated image; the app overlays Cao Minh separately. " +
+      "Show the present scene only, not a montage. Do NOT depict Cao Minh or any player-character body in the generated image; the app overlays Cao Minh separately. " +
       "Compose the environment for a fixed character overlay: keep the right 40% visually open and place key environmental details, threats and exits in the left or center. " +
       "Do not invent NPCs, monsters, exits, loot, injuries, weapons, text, HUD, blood or props that are not explicitly present in the state. " +
       "If party is empty, do not add any other person or humanoid companion. Level 0 uses stale yellow wallpaper, damp carpet, fluorescent ceiling panels and oppressive empty office-like geometry. " +
@@ -1401,7 +1400,7 @@ public class MainActivity extends Activity {
     if (proposed == null) return current == null ? new JSONObject() : new JSONObject(current.toString());
     JSONObject safe = current == null ? new JSONObject() : new JSONObject(current.toString());
     String name = safe.optString("name", "Cao Minh");
-    String codename = safe.optString("codename", "Twilight");
+    String codename = safe.optString("codename", "");
     for (String key : new String[] {"hp", "condition", "needs", "weapon", "armor"}) if (proposed.has(key)) safe.put(key, proposed.get(key));
     safe.put("name", name).put("codename", codename);
     return safe;
@@ -1421,77 +1420,12 @@ public class MainActivity extends Activity {
     return new JSONObject().put("shouldGenerate", true).put("kind", kind).put("reason", event.optString("reason", ""));
   }
 
-  private String canonSection(String source, String start, String end) {
-    if (source == null || start == null) return "";
-    int from = source.indexOf(start);
-    if (from < 0) return "";
-    int to = end == null ? -1 : source.indexOf(end, from + start.length());
-    return source.substring(from, to >= 0 ? to : source.length()).trim();
-  }
-
-  private String canonLineStarting(String source, String prefix) {
-    if (source == null || prefix == null) return "";
-    String[] lines = source.split("\\n");
-    for (String line : lines) if (line.trim().startsWith(prefix)) return line.trim();
-    return "";
-  }
-
-  private boolean actionDialogue(String action) {
-    return containsAny(action, "hỏi", "nói", "trả lời", "gọi", "bảo", "thuyết phục", "xin lỗi", "cảm ơn", "talk", "ask", "tell");
-  }
-
-  private boolean actionCombat(String action) {
-    return containsAny(action, "bắn", "đánh", "đấm", "đá", "tấn công", "phản công", "né", "chiến đấu", "devil trigger", "guilty crown", "white wraith", "magnum", "talon", "phantom", "shoot", "attack", "fight");
-  }
-
-  private boolean actionItem(String action) {
-    return containsAny(action, "nhặt", "lấy", "cầm", "thu hồi", "nhận", "cất", "inventory", "đồ", "vật phẩm", "chai", "nước", "almond", "loot", "crate", "liquid pain", "greek fire", "madgod");
-  }
-
-  private boolean actionEntity(String action) {
-    return containsAny(action, "entity", "hound", "clump", "duller", "deathmoth", "faceling", "smiler", "skin-stealer", "skin stealer", "beast", "wretch", "cable mimic", "jeff", "quái", "thực thể", "sinh vật", "kẻ săn");
-  }
-
   private boolean presentCharacter(JSONObject state, String key) {
     if (partyHas(state, key)) return true;
     JSONObject flags = state.optJSONObject("flags");
     JSONObject record = flags != null ? flags.optJSONObject(key) : null;
     String continuity = record != null ? lower(record.optString("continuity", "")) : "";
-    return containsAny(continuity, "reunited", "with kai", "together", "present");
-  }
-
-  private String compactDriveCanon(JSONObject state, String action, JSONObject rolls) {
-    StringBuilder out = new StringBuilder();
-    String scope = canonSection(DRIVE_CANON, "PHẠM VI", "VĂN PHONG VÀ KINH DỊ");
-    String writing = canonSection(DRIVE_CANON, "VĂN PHONG VÀ KINH DỊ", "THẾ GIỚI");
-    String world = canonSection(DRIVE_CANON, "THẾ GIỚI", "LEVEL 0–6");
-    String gameplay = canonSection(DRIVE_CANON, "GAMEPLAY HARD LOCK", "END DRIVE CANON R06");
-    String levelLine = canonLineStarting(DRIVE_CANON, "- Level " + currentLevel(state) + " /");
-    out.append(scope).append("\n\n").append(writing).append("\n\n").append(world);
-    if (!levelLine.isEmpty()) out.append("\n\nCURRENT LEVEL HARD CANON\n").append(levelLine);
-
-    boolean entity = actionEntity(action) || rollSuccess(rolls, "entityEncounter") ||
-      (state.optJSONObject("flags") != null && state.optJSONObject("flags").optInt("entitiesConfirmedLocal", 0) > 0);
-    boolean item = actionItem(action);
-    if (entity || item) {
-      String resources = canonSection(DRIVE_CANON, "ENTITY VÀ TÀI NGUYÊN", "IRIS / SYVIAL");
-      if (!resources.isEmpty()) out.append("\n\n").append(resources);
-    }
-
-    boolean character = actionDialogue(action) || presentCharacter(state, "iris") || presentCharacter(state, "syvial") ||
-      rollSuccess(rolls, "irisReunion") || rollSuccess(rolls, "syvialReunion");
-    if (character) {
-      String characterCanon = canonSection(DRIVE_CANON, "IRIS / SYVIAL", "GAMEPLAY HARD LOCK");
-      if (!characterCanon.isEmpty()) out.append("\n\n").append(characterCanon);
-    } else {
-      out.append("\n\nIRIS / SYVIAL SEPARATION KERNEL\n- Khi continuity còn SEPARATED, Cao Minh không biết vị trí/tình trạng hiện tại của Iris hoặc Syvial và không được dùng dữ kiện hậu trường về họ.");
-    }
-    out.append("\n\n").append(gameplay);
-    return out.toString();
-  }
-
-  private String compactKaiCanon(String action) {
-    return "CAO MINH — KIT 1.1.99\nMa Đạo Kiếm Tu / Vạn Giới Ma Tôn. Equipment: Huyết Ma Kiếm, Huyết Ma Chiến Khải. Đại Đạo Ma Tôn là passive nội tại theo Character Stats 1.1.93a, không phải trang bị. Cao Minh dùng kiếm, thần niệm và ma nguyên; không dùng Magnum, đạn, combat HUD hoặc linked modules. Trang bị bản mệnh là Bound Forever, tách khỏi Inventory.\nKỹ năng và kết quả proc chỉ lấy từ authoritative combat state; không tự kích hoạt hoặc bịa damage. Giữ quyền quyết định hành động có chủ ý cho người chơi.\nĐại Đạo Ma Tôn: Luôn hoạt động; +10% Base STR/DEF/SKL/VIT; không đổi Core cost. STR tăng sát thương vật lý/đánh thường; DEF tăng giảm sát thương và Critical Resistance; SKL tăng Critical, Evasion Resistance và skill damage; VIT tăng Max HP và Evasion. Sau mỗi lượt Cao Minh: hồi 10% Max HP, +20% Attack và +20 điểm % Critical; đồng đội +50 điểm % Critical; Critical cap 100%.\nHuyết Ma Tứ Liên: 30% mỗi lượt TẤN CÔNG hợp lệ; Đúng 4 trảm, 170% Weapon DMG; Chảy máu 3 turn x 5% Max HP.\nMa Tâm Trấn Hồn: 20% mỗi lượt TẤN CÔNG hợp lệ; Đúng 4 trảm cùng điểm, 130% Weapon DMG; Choáng phản ứng hiện tại.\nHuyết Ảnh Ma Độn: 20% mỗi lượt TẤN CÔNG hợp lệ; Dịch chuyển theo Huyết Ma Kiếm, đúng 2 trảm, 147% Weapon DMG.\nThiên Ma Bộ: 30% khi TẤN CÔNG hoặc NÉ TRÁNH; +50 điểm phần trăm Evasion trong 3 turn; không chặn AoE bắt buộc.\nHuyết Sát Kiếm Ấn: 50% sau đòn đánh thường/kỹ năng; không ở lượt Ultimate; +25% DMG; Chảy máu 2 turn x 3% Max HP.\nPhá Giáp Ma Kiếm: 48% sau đòn đánh thường/kỹ năng; không ở lượt Ultimate; +20% DMG; Xuyên giáp 10% trong 2 turn.\nMa Tâm Chấn: 45% sau đòn đánh thường/kỹ năng; không ở lượt Ultimate; +15% DMG; Choáng phản ứng hiện tại.\nHuyết Độc Ma Khí: 47% sau đòn đánh thường/kỹ năng; không ở lượt Ultimate; +20% DMG; Trúng độc 2 turn x 3% Max HP.\nHuyết Liệt Ma Ấn: 51% sau đòn đánh thường/kỹ năng; không ở lượt Ultimate; +20% DMG; Chảy máu 2 turn x 4% Max HP.\nHuyết Ma Nhị Thập Tứ Trảm: Mỗi 3 combat turn khi TẤN CÔNG; Đúng 24 trảm, mỗi trảm 115% current Weapon DMG; bỏ qua Evasion.\nCác con số chỉ là lớp gameplay; không biến thành lời thoại hay tri thức của nhân vật.";
+    return containsAny(continuity, "reunited", "with cao minh", "together", "present");
   }
 
   private JSONObject compactStateForPrompt(JSONObject state) throws Exception {
@@ -2127,7 +2061,7 @@ public class MainActivity extends Activity {
           }
           state = coreCommit.getJSONObject("state");
 
-          state.put("canonVersion", DRIVE_CANON_VERSION);
+          state.put("canonVersion", KNOWLEDGE_CANON_VERSION);
           JSONArray log = state.optJSONArray("log");
           if (log == null) log = new JSONArray();
           log.put(new JSONObject().put("role", "player").put("text", action));

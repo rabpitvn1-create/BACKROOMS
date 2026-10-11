@@ -1,8 +1,5 @@
 package com.rabpit.backroom.core
 
-const val CAO_MINH_DEMON_JAW_MASK_ID = "kai:demon-jaw-mask"
-const val CAO_MINH_TALON_GAUNTLETS_ID = "kai:talon-gauntlets"
-const val CAO_MINH_PHANTOM_GREAVES_ID = "kai:phantom-greaves"
 const val IRIS_IVORY_EBONY_SET_ID = "iris:ivory-ebony-set"
 
 enum class EquipmentSlot(val key: String) {

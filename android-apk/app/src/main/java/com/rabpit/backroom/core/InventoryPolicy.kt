@@ -33,7 +33,6 @@ object InventoryPolicy {
   }
 
   fun isCaoMinhSignatureEquipment(state: GameState, item: ItemStack): Boolean {
-    if (item.metadata["kaiSignatureEquipment"].equals("true", true)) return true
     val equippedIds = state.equipment[CAO_MINH_ID]?.slots?.values.orEmpty().toSet()
     if (item.itemId in equippedIds) return true
     return EquipmentCatalog.definition(item.itemId) != null

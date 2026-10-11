@@ -115,7 +115,7 @@ jobs:
           "$BUILD_TOOLS/aapt" dump badging Backroom-1.2.0.0.5.apk | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
           "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-1.2.0.0.5.apk
           rm -rf apk-check && mkdir apk-check
-          unzip -q Backroom-1.2.0.0.5.apk 'assets/index.html' 'assets/combat-feedback-1193a.*' 'assets/entity/*' 'assets/Kai_MadGod_snapshot_overlay.png' 'assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png' 'assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png' 'assets/avatars/MadGod.jpg' 'assets/avatars/CAO_MINH_AVATAR.jpg' 'assets/hud/player_action_backrooms.png' 'assets/dice/*' 'assets/fonts/Play-Bold.ttf' 'assets/level_snapshots/*' -d apk-check
+          unzip -q Backroom-1.2.0.0.5.apk 'assets/index.html' 'assets/combat-feedback-1193a.*' 'assets/entity/*' 'assets/CaoMinh_MadGod_snapshot_overlay.png' 'assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png' 'assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png' 'assets/avatars/MadGod.jpg' 'assets/avatars/CAO_MINH_AVATAR.jpg' 'assets/hud/player_action_backrooms.png' 'assets/dice/*' 'assets/fonts/Play-Bold.ttf' 'assets/level_snapshots/*' -d apk-check
           grep -q 'searchActionButton' apk-check/assets/index.html
           grep -q 'exploreActionButton' apk-check/assets/index.html
           grep -q 'UI_119_BACKPORT_R01' apk-check/assets/index.html
@@ -190,7 +190,7 @@ jobs:
           test -s apk-check/assets/entity/blackroot_sentinel.webp
           test -s apk-check/assets/entity/sinew_strider.webp
           test -s apk-check/assets/entity/hollow_grasper.webp
-          test -s apk-check/assets/Kai_MadGod_snapshot_overlay.png
+          test -s apk-check/assets/CaoMinh_MadGod_snapshot_overlay.png
           test -s apk-check/assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png
           test -s apk-check/assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png
           unzip -p Backroom-1.2.0.0.5.apk assets/LUCIA_LUC_OVERLAY.png > apk-check/lucia-overlay.png
@@ -245,7 +245,7 @@ jobs:
           unzip -l Backroom-1.2.0.0.5-verified.apk | grep -q 'assets/entity/blackroot_sentinel.webp'
           unzip -l Backroom-1.2.0.0.5-verified.apk | grep -q 'assets/entity/sinew_strider.webp'
           unzip -l Backroom-1.2.0.0.5-verified.apk | grep -q 'assets/entity/hollow_grasper.webp'
-          unzip -l Backroom-1.2.0.0.5-verified.apk | grep -q 'assets/Kai_MadGod_snapshot_overlay.png'
+          unzip -l Backroom-1.2.0.0.5-verified.apk | grep -q 'assets/CaoMinh_MadGod_snapshot_overlay.png'
           unzip -l Backroom-1.2.0.0.5-verified.apk | grep -q 'assets/avatars/MadGod.jpg'
           unzip -l Backroom-1.2.0.0.5-verified.apk | grep -q 'assets/hud/player_action_backrooms.png'
           unzip -l Backroom-1.2.0.0.5-verified.apk | grep -q 'assets/dice/die-1.png'

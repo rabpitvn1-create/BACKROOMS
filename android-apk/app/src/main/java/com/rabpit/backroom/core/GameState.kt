@@ -9,42 +9,13 @@ const val CAO_MINH_ARMOR_ID = "cao_minh:huyet-ma-chien-khai"
 object CaoMinhStartingEquipment {
   const val WEAPON_NAME = "Huyết Ma Kiếm"
   const val ARMOR_NAME = "Huyết Ma Chiến Khải"
-  const val WW_MAGNUM_DMG = 500
-  const val BLACKBLOOD_DF = 500
-  const val BLACKBLOOD_STR = 100
-  const val BLACKBLOOD_AGI = 100
-  const val BLACKBLOOD_HP = 100
-  const val BLACKBLOOD_ENE = 100
-  const val BLACKBLOOD_CRIT = 100
 
   val slots: Map<String, String> = linkedMapOf(
     "weapon" to CAO_MINH_SWORD_ID,
     "armor" to CAO_MINH_ARMOR_ID,
   )
 
-  fun displayName(itemId: String): String? = when (itemId) {
-    CAO_MINH_SWORD_ID -> WEAPON_NAME
-    CAO_MINH_ARMOR_ID -> ARMOR_NAME
-    CAO_MINH_DEMON_JAW_MASK_ID -> "Demon Jaw Mask"
-    CAO_MINH_TALON_GAUNTLETS_ID -> "Talon Gauntlets"
-    CAO_MINH_PHANTOM_GREAVES_ID -> "Phantom Greaves"
-    else -> null
-  }
 
-  fun slotFor(itemId: String, itemName: String): String? {
-    val key = "$itemId $itemName".lowercase()
-    return when {
-      key.contains("huyết ma kiếm") || key.contains("huyet ma kiem") || key.contains("w.w magnum") || key.contains("white wraith") || key.contains("wraith magnum") -> "weapon"
-      key.contains("huyết ma chiến khải") || key.contains("huyet ma chien khai") || key.contains("blackblood armor") || key.contains("black blood armor") -> "armor"
-      key.contains("demon jaw") -> "head"
-      key.contains("talon gauntlet") -> "gauntlets"
-      key.contains("phantom greave") -> "greaves"
-      else -> null
-    }
-  }
-
-  fun itemIdForSlot(slot: String): String? = slots[slot]
-  fun isSignature(itemId: String, itemName: String): Boolean = slotFor(itemId, itemName) != null || itemId in slots.values
 }
 
 enum class CharacterPresence { ACTIVE, SEPARATED, MISSING, DEAD }
