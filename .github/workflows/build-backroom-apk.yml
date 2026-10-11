@@ -107,6 +107,7 @@ jobs:
       - name: Verify packaged APK contracts
         run: |
           set -euo pipefail
+          trap 'echo "Packaged APK contract failed near line $LINENO: $BASH_COMMAND" >&2' ERR
           BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
           "$BUILD_TOOLS/apksigner" verify --verbose --print-certs Backroom-1.2.0.0.4.apk
           "$BUILD_TOOLS/aapt" dump badging Backroom-1.2.0.0.4.apk | grep -q "package: name='com.rabpit.backroom'"
@@ -135,9 +136,14 @@ jobs:
           ! grep -q 'state.log' apk-check/assets/combat-feedback-1193a.js
           ! grep -q 'localStorage' apk-check/assets/combat-feedback-1193a.js
           ! grep -q 'modal.hidden=true' apk-check/assets/combat-feedback-1193a.js
-          grep -q 'readCharacterProgression' apk-check/assets/index.html
-          grep -q 'LEVEL ' apk-check/assets/index.html
-          grep -q 'EXP ' apk-check/assets/index.html
+          grep -q 'CHARACTER_INFO_STATS_V2' apk-check/assets/index.html
+          grep -q 'characterLevelValue' apk-check/assets/index.html
+          grep -q 'characterExpFill' apk-check/assets/index.html
+          grep -q 'characterBaseStats' apk-check/assets/index.html
+          grep -q 'characterCombatStats' apk-check/assets/index.html
+          grep -q 'characterStatusEffects' apk-check/assets/index.html
+          grep -q 'combatStatus' apk-check/assets/index.html
+          ! grep -q 'renderCorePanel' apk-check/assets/index.html
           ! grep -q 'Android.coreUpgrade' apk-check/assets/index.html
           grep -q 'DIRECT_COMBAT_GATE_V1' apk-check/assets/index.html
           grep -q 'ensureDirectCombatDice' apk-check/assets/index.html
