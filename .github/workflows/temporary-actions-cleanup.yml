@@ -1,0 +1,60 @@
+name: One-time cleanup of unsuccessful Action runs
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/temporary-actions-cleanup.yml
+permissions:
+  actions: write
+  contents: read
+jobs:
+  cleanup:
+    if: github.repository == 'rabpitvn1-create/BACKROOMS' && github.event.pull_request.number == 584
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Cancel emulator and delete failed/cancelled run records
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          repo="$GITHUB_REPOSITORY"
+          mkdir -p run-cleanup-evidence
+          echo "Repository: $repo"
+          echo "Cleanup GitHub run: $GITHUB_RUN_ID"
+          gh api --paginate "repos/$repo/actions/runs?per_page=100" --jq '.workflow_runs[] | [.id, .status, (.conclusion // "-"), .workflow_id] | @tsv' > run-cleanup-evidence/before.tsv
+          total=$(wc -l < run-cleanup-evidence/before.tsv)
+          echo "Enumerated $total workflow runs"
+          while IFS=$'\t' read -r id status conclusion workflow_id; do
+            if [[ "$workflow_id" == "381393334" && "$status" != "completed" && "$id" != "$GITHUB_RUN_ID" ]]; then
+              echo "Cancel emulator run $id ($status)"
+              gh api -X POST "repos/$repo/actions/runs/$id/cancel" >/dev/null
+            fi
+          done < run-cleanup-evidence/before.tsv
+          # Cancellation is asynchronous. Refresh status once, then remove completed
+          # failures/cancellations only. Successful and still-active non-emulator runs stay.
+          sleep 12
+          gh api --paginate "repos/$repo/actions/runs?per_page=100" --jq '.workflow_runs[] | [.id, .status, (.conclusion // "-"), .workflow_id] | @tsv' > run-cleanup-evidence/after-cancel.tsv
+          deleted=0
+          failed=0
+          while IFS=$'\t' read -r id status conclusion workflow_id; do
+            if [[ "$id" == "$GITHUB_RUN_ID" ]]; then continue; fi
+            if [[ "$status" == "completed" && "$conclusion" =~ ^(failure|cancelled|timed_out|startup_failure)$ ]]; then
+              if gh api -X DELETE "repos/$repo/actions/runs/$id" >/dev/null 2>&1; then
+                echo "$id $conclusion" >> run-cleanup-evidence/deleted.txt
+                ((deleted+=1))
+              else
+                echo "$id $conclusion" >> run-cleanup-evidence/deletion-failed.txt
+                ((failed+=1))
+              fi
+            fi
+          done < run-cleanup-evidence/after-cancel.tsv
+          echo "Deleted unsuccessful runs: $deleted; failed to delete: $failed"
+          [[ "$failed" == 0 ]]
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: one-time-run-cleanup-evidence
+          path: run-cleanup-evidence/
+          retention-days: 2
