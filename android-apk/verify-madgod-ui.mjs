@@ -22,6 +22,8 @@ assert.equal(equipped(), false, 'only active weapon slot counts');
 console.log('MadGod UI follows authoritative equipment projection');
 
 const java = readFileSync(fileURLToPath(new URL('./app/src/main/java/com/rabpit/backroom/MainActivity.java', import.meta.url)), 'utf8');
-assert.ok(java.includes('Cheat `/madgod` chỉ kích hoạt Bound Forever EquipmentState'), 'prompt must describe equipment, not inventory');
+const madGodCore = readFileSync(fileURLToPath(new URL('./app/src/main/java/com/rabpit/backroom/core/MadGodCanon.kt', import.meta.url)), 'utf8');
+assert.ok(madGodCore.includes('slots = equipped.slots + ("weapon" to MADGOD_SET_ID)'), 'MadGod must equip the weapon slot in authoritative Core state');
+assert.ok(!madGodCore.includes('inventories ='), 'MadGod must not grant an inventory item');
 assert.ok(!java.includes('thêm MadGod trực tiếp vào Inventory'), 'obsolete inventory cheat promise removed');
 assert.ok(!java.includes('MadGod discovery tự nhiên'), 'search must not unlock MadGod set');
