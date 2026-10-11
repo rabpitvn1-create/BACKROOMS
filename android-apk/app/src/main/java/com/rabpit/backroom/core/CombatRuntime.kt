@@ -214,7 +214,7 @@ object CombatRuntime {
   fun resolve(state: GameState, actionKind: String, action: String): Resolution {
     val current = active(state) ?: return Resolution(state, handled = false)
     val originalProfile = profiles[current.entityKey] ?: return Resolution(clear(state), handled = false)
-    val profile = if ((state.metadata["combat.caoMinhProc1"]?.toIntOrNull() ?: 0) > 0) originalProfile.copy(armor = originalProfile.armor * 90 / 100) else originalProfile
+    var profile = if ((state.metadata["combat.caoMinhProc1"]?.toIntOrNull() ?: 0) > 0) originalProfile.copy(armor = originalProfile.armor * 90 / 100) else originalProfile
     val intent = classify(actionKind, action)
     var c = current.copy(eventCounter = current.eventCounter + 1)
     val log = mutableListOf<String>()
@@ -280,6 +280,38 @@ object CombatRuntime {
       log += "Lifeform Poison: Kai -" + poisonDamage + " HP (" + LIFEFORM_POISON_MAX_HP_PERCENT + "% Max HP); còn " + lifeformPoisonTurns + " turn."
     }
 
+    var canCounterAttack = true
+    var newWaveAwaitingAction = false
+    // COMPANION_SKILLS_R01: Iris, Syvial and An Nhien wrap the finalized combat response.
+    val irisActive = activePartyCharacter(resolvedState, IRIS_ID) != null
+    val syvialCharacter = activePartyCharacter(resolvedState, SYVIAL_ID)
+    val syvialActive = syvialCharacter != null
+    val anNhienActive = activePartyCharacter(resolvedState, AN_NHIEN_ID) != null
+
+
+    fun promoteDefeatedWave(): Boolean {
+      if (c.entityHp > 0) return false
+      val keys = waveKeys(resolvedState, c.entityKey)
+      if (waveIndex(resolvedState, keys.size) + 1 >= keys.size) return false
+      val advanced = settleDefeated(resolvedState, c, "", emptyList(), leaderPassive = false)
+      resolvedState = advanced.state
+      c = active(resolvedState) ?: error("Wave handoff must preserve active combat")
+      profile = profiles.getValue(c.entityKey)
+      log += advanced.reply
+      bleedTurns = 0
+      syvialBleedTurns = 0
+      irisAnalyzedTurns = 0
+      irisArmorBreakTurns = 0
+      irisExposedTurns = 0
+      syvialDisorientTurns = 0
+      companionEnemyAccuracyPenalty = 0
+      entityStunnedThisTurn = false
+      canCounterAttack = false
+      newWaveAwaitingAction = true
+      return true
+    }
+    if (c.entityHp <= 0) promoteDefeatedWave()
+
     when (intent) {
       Intent.READ -> {
         c = c.copy(
@@ -328,10 +360,14 @@ object CombatRuntime {
       Intent.ATTACK -> {
         val partyOrder = PartyCombatHealth.actingMembers(resolvedState)
         log += "PARTY ACTION TẤN CÔNG: ${activePartyNames(resolvedState)} cùng khai triển đòn đánh trong một combat turn."
-        val rangeBonus = when (c.range) { RangeBand.CLOSE -> 18; RangeBand.NEAR -> 10; RangeBand.FAR -> -5 }
-        val hitChance = (58 + rangeBonus + c.opening * 11 + c.momentum * 6 + PokerDiceCore.accuracyBonus(state)).coerceIn(20, 99)
         for ((turnIndex, actorId) in partyOrder.withIndex()) {
           if (c.entityHp <= 0) break
+          if (newWaveAwaitingAction) {
+            canCounterAttack = true
+            newWaveAwaitingAction = false
+          }
+          val rangeBonus = when (c.range) { RangeBand.CLOSE -> 18; RangeBand.NEAR -> 10; RangeBand.FAR -> -5 }
+          val hitChance = (58 + rangeBonus + c.opening * 11 + c.momentum * 6 + PokerDiceCore.accuracyBonus(state)).coerceIn(20, 99)
           val actor = resolvedState.characters.getValue(actorId)
           log += "PARTY TURN ${turnIndex + 1}/${partyOrder.size}: ${actor.name}."
           when (actorId) {
@@ -363,6 +399,72 @@ object CombatRuntime {
           c = c.copy(momentum = max(-3, c.momentum - 1), opening = max(0, c.opening - 1), noise = min(100, c.noise + 28))
           log += if (entityEvaded) "${c.entityName} né đòn (25% evasion) và giành lại áp lực." else "Đòn đánh trượt; ${c.entityName} giành lại áp lực."
         }
+            // PARTY_ATTACK_GCO_GATE_V1
+            if (intent == Intent.ATTACK && KAI_ID in PartyCombatHealth.actingMembers(resolvedState)) {
+            if (c.entityHp > 0 && c.eventCounter % KAI_GUILTY_CROWN_INTERVAL_TURNS == 0) {
+              val damagePerSlash = CharacterStatEngine.skillBaseDamage(resolvedState, KAI_ID) * 115 / 100
+              val totalDamage = KAI_GUILTY_CROWN_SHOTS * damagePerSlash
+              val hp = max(0, c.entityHp - totalDamage)
+              recordFeedback("entity", c.entityHp, hp)
+              c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
+              log += "Huyết Ma Nhị Thập Tứ Trảm tự động kích hoạt ở combat turn ${c.eventCounter}: $KAI_GUILTY_CROWN_SHOTS/" +
+                "$KAI_GUILTY_CROWN_SHOTS trảm trúng liên tiếp, Accuracy $KAI_GUILTY_CROWN_ACCURACY_PERCENT%, bỏ qua toàn bộ hiệu ứng né; " +
+                "mỗi trảm -$damagePerSlash HP, tổng -$totalDamage HP (${c.entityHp}/${c.entityMaxHp})."
+            }
+        
+            }
+        
+            val isGuiltyCrownTurn = intent == Intent.ATTACK && KAI_ID in PartyCombatHealth.actingMembers(resolvedState) &&
+              c.eventCounter % KAI_GUILTY_CROWN_INTERVAL_TURNS == 0
+            if (intent == Intent.ATTACK && KAI_ID in PartyCombatHealth.actingMembers(resolvedState) && c.entityHp > 0 && !isGuiltyCrownTurn) {
+              procSpecs.forEachIndexed { index, spec ->
+                if (c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 401 + index * 17), 100) < spec[1].toInt()) {
+                  val damage = CharacterStatCore.scaleByPercent(CharacterStatEngine.weaponDamage(resolvedState, KAI_ID), CaoMinhCombatPassive.attackPercent(resolvedState)) * spec[2].toInt() / 100
+                  val hp = max(0, c.entityHp - damage)
+                  recordFeedback("entity", c.entityHp, hp, status = feedbackStatus(spec[3]))
+                  c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
+                  if (spec[3] == "stun") entityStunnedThisTurn = true
+                  else resolvedState = withCombatCounter(resolvedState, "combat.caoMinhProc$index", 2)
+                  log += "${spec[0]} kích hoạt: -$damage HP; ${spec[3]}."
+                }
+              }
+            }
+            if (c.entityHp > 0 && KAI_ID in PartyCombatHealth.actingMembers(resolvedState)) {
+              val weaponDamage = CharacterStatEngine.weaponDamage(resolvedState, KAI_ID)
+        
+              if (intent == Intent.ATTACK && !isGuiltyCrownTurn && roll(c.copy(eventCounter = c.eventCounter + 101), 100) < KAI_LAST_REQUIEM_CHANCE_PERCENT) {
+                val damage = weaponSkillDamage(weaponDamage, KAI_LAST_REQUIEM_DAMAGE_PERCENT, profile.armor)
+                val hp = max(0, c.entityHp - damage)
+                recordFeedback("entity", c.entityHp, hp, status = FeedbackStatus.BLEED)
+                c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 22))
+                bleedTurns = KAI_LAST_REQUIEM_BLEED_TURNS
+                resolvedState = withCombatCounter(resolvedState, KAI_BLEED_TURNS_KEY, bleedTurns)
+                log += "Huyết Ma Tứ Liên tự động kích hoạt: 4 trảm vào điểm nối hộ thể, ${KAI_LAST_REQUIEM_DAMAGE_PERCENT}% DMG = -$damage HP; Bleeding ${KAI_LAST_REQUIEM_BLEED_TURNS} turn, ${KAI_LAST_REQUIEM_BLEED_MAX_HP_PERCENT}% Max HP/turn."
+              }
+        
+              if (intent == Intent.ATTACK && !isGuiltyCrownTurn && c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 113), 100) < KAI_SILENT_LULLABY_CHANCE_PERCENT) {
+                val damage = weaponSkillDamage(weaponDamage, KAI_SILENT_LULLABY_DAMAGE_PERCENT, profile.armor)
+                val hp = max(0, c.entityHp - damage)
+                recordFeedback("entity", c.entityHp, hp, status = FeedbackStatus.STUN)
+                c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 18))
+                entityStunnedThisTurn = true
+                log += "Ma Tâm Trấn Hồn tự động kích hoạt: Cao Minh bật lên cao, 4 đường ma kiếm vào cùng điểm trên ngực, ${KAI_SILENT_LULLABY_DAMAGE_PERCENT}% DMG = -$damage HP; Stun 1 turn."
+              }
+        
+              if (intent == Intent.ATTACK && !isGuiltyCrownTurn && c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 127), 100) < KAI_SALVATION_CHANCE_PERCENT) {
+                val damage = weaponSkillDamage(weaponDamage, KAI_SALVATION_DAMAGE_PERCENT, profile.armor)
+                val hp = max(0, c.entityHp - damage)
+                recordFeedback("entity", c.entityHp, hp)
+                c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 16))
+                log += "Huyết Ảnh Ma Độn tự động kích hoạt: Cao Minh ngự Huyết Ma Kiếm qua mục tiêu, dịch chuyển theo kiếm và chém nhanh đúng 2 trảm, ${KAI_SALVATION_DAMAGE_PERCENT}% DMG = -$damage HP."
+              }
+        
+              if ((intent == Intent.ATTACK || intent == Intent.EVADE) && !isGuiltyCrownTurn && c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 139), 100) < KAI_QUICK_STEP_CHANCE_PERCENT) {
+                quickStepTurns = KAI_QUICK_STEP_DURATION_TURNS
+                resolvedState = withCombatCounter(resolvedState, KAI_QUICK_STEP_TURNS_KEY, quickStepTurns)
+                log += "Thiên Ma Bộ tự động kích hoạt: dịch chuyển ngắn liên tục, +${KAI_QUICK_STEP_EVASION_BONUS_PERCENT}% Evasion trong ${KAI_QUICK_STEP_DURATION_TURNS} turn."
+              }
+            }
             }
             LUCIA_ID -> {
         // LUCIA_JOINT_ATTACK: process the follower when the player explicitly orders both attackers.
@@ -408,6 +510,62 @@ object CombatRuntime {
           }
         }
 
+            if (irisActive && c.entityHp > 0) {
+              if (irisAnalyzedTurns <= 0) {
+                irisAnalyzedTurns = 3
+                resolvedState = withCombatCounter(resolvedState, IRIS_ANALYZED_TURNS_KEY, irisAnalyzedTurns)
+                log += "ARGUS Terrain Read: Iris đánh dấu mục tiêu Analyzed trong 3 turn."
+              }
+              val irisWeapon = CharacterStatEngine.skillBaseDamage(resolvedState, IRIS_ID)
+              val irisArmor = when {
+                irisExposedTurns > 0 -> armorAfterIgnore(profile.armor, 20)
+                irisArmorBreakTurns > 0 -> armorAfterIgnore(profile.armor, 20)
+                else -> profile.armor
+              }
+              val irisUltimate = intent == Intent.ATTACK && c.eventCounter % IRIS_ULTIMATE_INTERVAL_TURNS == 0
+              if (irisUltimate) {
+                val damage = companionSkillDamage(irisWeapon, 300, irisArmor)
+                val hp = max(0, c.entityHp - damage)
+                recordFeedback("entity", c.entityHp, hp)
+                c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 30))
+                irisExposedTurns = 2
+                resolvedState = withCombatCounter(resolvedState, IRIS_EXPOSED_TURNS_KEY, irisExposedTurns)
+                log += "ARGUS // Thousandfold Execution: 12 phát luân phiên, 300% DMG = -$damage HP; Fully Exposed 2 turn."
+              } else if (intent == Intent.ATTACK) {
+                if (roll(c.copy(eventCounter = c.eventCounter + 151), 100) < 30 && c.entityHp > 0) {
+                  val percent = if (irisAnalyzedTurns > 0) 170 else 155
+                  val damage = companionSkillDamage(irisWeapon, percent, irisArmor)
+                  val hp = max(0, c.entityHp - damage)
+                  recordFeedback("entity", c.entityHp, hp)
+                  c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 14))
+                  log += "Twosome Time tự động kích hoạt: 2 phát chéo góc, $percent% DMG = -$damage HP."
+                }
+                if (roll(c.copy(eventCounter = c.eventCounter + 163), 100) < 20 && c.entityHp > 0) {
+                  val damage = companionSkillDamage(irisWeapon, 145, irisArmor)
+                  val hp = max(0, c.entityHp - damage)
+                  recordFeedback("entity", c.entityHp, hp)
+                  c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 18))
+                  log += "Rain Storm tự động kích hoạt: 6 phát khi đổi góc trên không, 145% DMG = -$damage HP."
+                }
+                if (roll(c.copy(eventCounter = c.eventCounter + 179), 100) < 20 && c.entityHp > 0) {
+                  val damage = companionSkillDamage(irisWeapon, 185, irisArmor)
+                  val hp = max(0, c.entityHp - damage)
+                  recordFeedback("entity", c.entityHp, hp, status = FeedbackStatus.ARMOR)
+                  c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 24))
+                  irisArmorBreakTurns = 2
+                  resolvedState = withCombatCounter(resolvedState, IRIS_ARMOR_BREAK_TURNS_KEY, irisArmorBreakTurns)
+                  log += "Honeycomb Fire tự động kích hoạt: 8 phát tập trung, 185% DMG = -$damage HP; Armor Break 20% trong 2 turn."
+                }
+                if (roll(c.copy(eventCounter = c.eventCounter + 191), 100) < 25 && c.entityHp > 0) {
+                  val chargedArmor = armorAfterIgnore(profile.armor, 35)
+                  val damage = companionSkillDamage(irisWeapon, 175, chargedArmor)
+                  val hp = max(0, c.entityHp - damage)
+                  recordFeedback("entity", c.entityHp, hp, status = FeedbackStatus.ARMOR)
+                  c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 20))
+                  log += "Charged Shot tự động kích hoạt: 175% DMG = -$damage HP, bỏ qua 35% Armor."
+                }
+              }
+            }
             }
             SYVIAL_ID -> {
         val syvialPartyAttack = activePartyCharacter(resolvedState, SYVIAL_ID)
@@ -426,11 +584,85 @@ object CombatRuntime {
           }
         }
 
+            if (syvialActive && c.entityHp > 0) {
+              val syvialMaxHp = CharacterStatEngine.effective(resolvedState, SYVIAL_ID).maxHp
+              val syvialHp = syvialCharacter!!.vitalState.currentHp
+              if (!syvialDevilTrigger && (syvialHp * 2 <= syvialMaxHp || c.entityKey == DIEP_MINH_KEY)) {
+                syvialDevilTrigger = true
+                val metadata = resolvedState.metadata.toMutableMap()
+                metadata[SYVIAL_DEVIL_TRIGGER_KEY] = "true"
+                resolvedState = resolvedState.copy(metadata = metadata)
+                log += "Syvial kích hoạt Devil Trigger."
+              }
+              val regenPercent = if (syvialDevilTrigger) 4 else 2
+              if (syvialHp > 0 && syvialHp < syvialMaxHp) {
+                val heal = percentDamage(syvialMaxHp, regenPercent)
+                resolvedState = CharacterStatEngine.setCurrentHp(resolvedState, SYVIAL_ID, syvialHp + heal)
+                val after = resolvedState.characters[SYVIAL_ID]?.vitalState?.currentHp ?: syvialHp
+                log += "Lucifer Core hồi Syvial +${after - syvialHp} HP ($after/$syvialMaxHp)."
+              }
+              val syvialWeapon = CharacterStatEngine.skillBaseDamage(resolvedState, SYVIAL_ID)
+              val dtMultiplier = if (syvialDevilTrigger) 125 else 100
+              fun syvialDamage(percent: Int, armor: Int): Int = companionSkillDamage(syvialWeapon, (percent * dtMultiplier + 99) / 100, armor)
+              val syvialUltimate = intent == Intent.ATTACK && syvialDevilTrigger && c.eventCounter % SYVIAL_ULTIMATE_INTERVAL_TURNS == 0
+              if (syvialUltimate) {
+                val damage = min(c.entityHp, 24 * 10)
+                val hp = max(0, c.entityHp - damage)
+                recordFeedback("entity", c.entityHp, hp)
+                c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 28))
+                log += "GodKiller Override // Twenty-Four Severance: thời gian ngoại giới dừng, đúng 24 nhát x 10 HP = -$damage HP; bỏ qua Evasion."
+              } else if (intent == Intent.ATTACK) {
+                if (roll(c.copy(eventCounter = c.eventCounter + 211), 100) < 30 && c.entityHp > 0) {
+                  val damage = syvialDamage(175, armorAfterIgnore(profile.armor, 20))
+                  val hp = max(0, c.entityHp - damage)
+                  recordFeedback("entity", c.entityHp, hp, status = FeedbackStatus.ARMOR)
+                  c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
+                  log += "Rift Sever tự động kích hoạt: Spatial Shift + GodKiller, 175% DMG = -$damage HP."
+                }
+                if (roll(c.copy(eventCounter = c.eventCounter + 223), 100) < 20 && c.entityHp > 0) {
+                  val damage = syvialDamage(190, profile.armor)
+                  val hp = max(0, c.entityHp - damage)
+                  recordFeedback("entity", c.entityHp, hp, status = FeedbackStatus.BLEED)
+                  c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
+                  syvialBleedTurns = 3
+                  resolvedState = withCombatCounter(resolvedState, SYVIAL_BLEED_TURNS_KEY, syvialBleedTurns)
+                  log += "Crimson Guillotine tự động kích hoạt: 190% DMG = -$damage HP; Bleeding 3 turn x 4% Max HP."
+                }
+                if (roll(c.copy(eventCounter = c.eventCounter + 239), 100) < 20 && c.entityHp > 0) {
+                  val damage = syvialDamage(155, profile.armor)
+                  val hp = max(0, c.entityHp - damage)
+                  recordFeedback("entity", c.entityHp, hp, status = FeedbackStatus.STUN)
+                  c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
+                  entityStunnedThisTurn = true
+                  log += "Lucifer Breaker tự động kích hoạt: 155% DMG = -$damage HP; Entity bị Stun trong phản ứng hiện tại."
+                }
+                if (syvialDevilTrigger && roll(c.copy(eventCounter = c.eventCounter + 251), 100) < 20 && c.entityHp > 0) {
+                  val damage = syvialDamage(210, profile.armor)
+                  val hp = max(0, c.entityHp - damage)
+                  recordFeedback("entity", c.entityHp, hp, status = FeedbackStatus.DISORIENT)
+                  c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
+                  syvialDisorientTurns = 2
+                  resolvedState = withCombatCounter(resolvedState, SYVIAL_DISORIENT_TURNS_KEY, syvialDisorientTurns)
+                  log += "Spatial Dominion tự động kích hoạt: 210% DMG = -$damage HP; Disoriented -25% Accuracy trong 2 turn."
+                }
+              }
+            }
             }
             AN_NHIEN_ID -> {
         if (activePartyCharacter(resolvedState, AN_NHIEN_ID) != null) {
           log += "An Nhiên thực hiện lệnh TẤN CÔNG theo vai trò hỗ trợ: gây nhiễu/đánh lạc hướng, không dùng vũ khí và không gây damage."
         }
+            if (anNhienActive && c.entityHp > 0) {
+              if (intent == Intent.ATTACK && roll(c.copy(eventCounter = c.eventCounter + 269), 100) < 25) {
+                companionEnemyAccuracyPenalty += 25
+                log += "An Nhiên dùng Quăng Đại Cái Gì Đó: tiếng động lệch hướng khiến Entity -25 điểm % Accuracy trong phản ứng hiện tại."
+              }
+              if (intent == Intent.ESCAPE && c.eventCounter % AN_NHIEN_ULTIMATE_INTERVAL_TURNS == 0) {
+                companionEnemyAccuracyPenalty += 20
+                c = c.copy(escapeProgress = min(100, c.escapeProgress + 30))
+                log += "Kế Hoạch Không Có Trong Kế Hoạch: +30 Escape Progress và Entity -20 điểm % Accuracy trong phản ứng hiện tại."
+              }
+            }
             }
             else -> {
               if (actor.metadata["nonCombat"] == "true" || actor.metadata["canUseWeapons"] == "false") {
@@ -450,6 +682,7 @@ object CombatRuntime {
               }
             }
           }
+          if (c.entityHp <= 0 && !promoteDefeatedWave()) break
         }
       }
       Intent.OTHER -> {
@@ -478,7 +711,7 @@ object CombatRuntime {
       log += "Bleeding từ Crimson Guillotine gây -$bleedDamage HP (4% Max HP; ${c.entityHp}/${c.entityMaxHp}); còn $syvialBleedTurns turn."
     }
 
-    if (c.entityHp <= 0) {
+    if (c.entityHp <= 0 && !promoteDefeatedWave()) {
       return settleDefeated(resolvedState, c, log.joinToString(" "), feedback.toList())
     }
     if (c.escapeProgress >= 100) {
@@ -487,227 +720,16 @@ object CombatRuntime {
       return Resolution(cleared, true, log.joinToString(" ") + " Cao Minh cắt được truy đuổi và thoát khỏi encounter.", escaped = true, feedback = feedback.toList())
     }
 
-    // PARTY_ATTACK_GCO_GATE_V1
-    if (intent == Intent.ATTACK && KAI_ID in PartyCombatHealth.actingMembers(resolvedState)) {
-    if (c.eventCounter % KAI_GUILTY_CROWN_INTERVAL_TURNS == 0) {
-      val damagePerSlash = CharacterStatEngine.skillBaseDamage(resolvedState, KAI_ID) * 115 / 100
-      val totalDamage = KAI_GUILTY_CROWN_SHOTS * damagePerSlash
-      val hp = max(0, c.entityHp - totalDamage)
-      recordFeedback("entity", c.entityHp, hp)
-      c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
-      log += "Huyết Ma Nhị Thập Tứ Trảm tự động kích hoạt ở combat turn ${c.eventCounter}: $KAI_GUILTY_CROWN_SHOTS/" +
-        "$KAI_GUILTY_CROWN_SHOTS trảm trúng liên tiếp, Accuracy $KAI_GUILTY_CROWN_ACCURACY_PERCENT%, bỏ qua toàn bộ hiệu ứng né; " +
-        "mỗi trảm -$damagePerSlash HP, tổng -$totalDamage HP (${c.entityHp}/${c.entityMaxHp})."
-      if (c.entityHp <= 0) {
-        return settleDefeated(resolvedState, c, log.joinToString(" "), feedback.toList(), leaderPassive = false)
-      }
-    }
-
-    }
-
-    val isGuiltyCrownTurn = intent == Intent.ATTACK && KAI_ID in PartyCombatHealth.actingMembers(resolvedState) &&
-      c.eventCounter % KAI_GUILTY_CROWN_INTERVAL_TURNS == 0
-    if (intent == Intent.ATTACK && KAI_ID in PartyCombatHealth.actingMembers(resolvedState) && c.entityHp > 0 && !isGuiltyCrownTurn) {
-      procSpecs.forEachIndexed { index, spec ->
-        if (c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 401 + index * 17), 100) < spec[1].toInt()) {
-          val damage = CharacterStatCore.scaleByPercent(CharacterStatEngine.weaponDamage(resolvedState, KAI_ID), CaoMinhCombatPassive.attackPercent(resolvedState)) * spec[2].toInt() / 100
-          val hp = max(0, c.entityHp - damage)
-          recordFeedback("entity", c.entityHp, hp, status = feedbackStatus(spec[3]))
-          c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
-          if (spec[3] == "stun") entityStunnedThisTurn = true
-          else resolvedState = withCombatCounter(resolvedState, "combat.caoMinhProc$index", 2)
-          log += "${spec[0]} kích hoạt: -$damage HP; ${spec[3]}."
-        }
-      }
-    }
-    if (c.entityHp > 0 && KAI_ID in PartyCombatHealth.actingMembers(resolvedState)) {
-      val weaponDamage = CharacterStatEngine.weaponDamage(resolvedState, KAI_ID)
-
-      if (intent == Intent.ATTACK && !isGuiltyCrownTurn && roll(c.copy(eventCounter = c.eventCounter + 101), 100) < KAI_LAST_REQUIEM_CHANCE_PERCENT) {
-        val damage = weaponSkillDamage(weaponDamage, KAI_LAST_REQUIEM_DAMAGE_PERCENT, profile.armor)
-        val hp = max(0, c.entityHp - damage)
-        recordFeedback("entity", c.entityHp, hp, status = FeedbackStatus.BLEED)
-        c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 22))
-        bleedTurns = KAI_LAST_REQUIEM_BLEED_TURNS
-        resolvedState = withCombatCounter(resolvedState, KAI_BLEED_TURNS_KEY, bleedTurns)
-        log += "Huyết Ma Tứ Liên tự động kích hoạt: 4 trảm vào điểm nối hộ thể, ${KAI_LAST_REQUIEM_DAMAGE_PERCENT}% DMG = -$damage HP; Bleeding ${KAI_LAST_REQUIEM_BLEED_TURNS} turn, ${KAI_LAST_REQUIEM_BLEED_MAX_HP_PERCENT}% Max HP/turn."
-      }
-
-      if (intent == Intent.ATTACK && !isGuiltyCrownTurn && c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 113), 100) < KAI_SILENT_LULLABY_CHANCE_PERCENT) {
-        val damage = weaponSkillDamage(weaponDamage, KAI_SILENT_LULLABY_DAMAGE_PERCENT, profile.armor)
-        val hp = max(0, c.entityHp - damage)
-        recordFeedback("entity", c.entityHp, hp, status = FeedbackStatus.STUN)
-        c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 18))
-        entityStunnedThisTurn = true
-        log += "Ma Tâm Trấn Hồn tự động kích hoạt: Cao Minh bật lên cao, 4 đường ma kiếm vào cùng điểm trên ngực, ${KAI_SILENT_LULLABY_DAMAGE_PERCENT}% DMG = -$damage HP; Stun 1 turn."
-      }
-
-      if (intent == Intent.ATTACK && !isGuiltyCrownTurn && c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 127), 100) < KAI_SALVATION_CHANCE_PERCENT) {
-        val damage = weaponSkillDamage(weaponDamage, KAI_SALVATION_DAMAGE_PERCENT, profile.armor)
-        val hp = max(0, c.entityHp - damage)
-        recordFeedback("entity", c.entityHp, hp)
-        c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 16))
-        log += "Huyết Ảnh Ma Độn tự động kích hoạt: Cao Minh ngự Huyết Ma Kiếm qua mục tiêu, dịch chuyển theo kiếm và chém nhanh đúng 2 trảm, ${KAI_SALVATION_DAMAGE_PERCENT}% DMG = -$damage HP."
-      }
-
-      if ((intent == Intent.ATTACK || intent == Intent.EVADE) && !isGuiltyCrownTurn && c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 139), 100) < KAI_QUICK_STEP_CHANCE_PERCENT) {
-        quickStepTurns = KAI_QUICK_STEP_DURATION_TURNS
-        resolvedState = withCombatCounter(resolvedState, KAI_QUICK_STEP_TURNS_KEY, quickStepTurns)
-        log += "Thiên Ma Bộ tự động kích hoạt: dịch chuyển ngắn liên tục, +${KAI_QUICK_STEP_EVASION_BONUS_PERCENT}% Evasion trong ${KAI_QUICK_STEP_DURATION_TURNS} turn."
-      }
-    }
-
-    if (c.entityHp <= 0) {
-      return settleDefeated(resolvedState, c, log.joinToString(" "), feedback.toList())
-    }
-
-    // COMPANION_SKILLS_R01: Iris, Syvial and An Nhien wrap the finalized combat response.
-    val irisActive = activePartyCharacter(resolvedState, IRIS_ID) != null
-    val syvialCharacter = activePartyCharacter(resolvedState, SYVIAL_ID)
-    val syvialActive = syvialCharacter != null
-    val anNhienActive = activePartyCharacter(resolvedState, AN_NHIEN_ID) != null
-
-    if (irisActive && c.entityHp > 0) {
-      if (irisAnalyzedTurns <= 0) {
-        irisAnalyzedTurns = 3
-        resolvedState = withCombatCounter(resolvedState, IRIS_ANALYZED_TURNS_KEY, irisAnalyzedTurns)
-        log += "ARGUS Terrain Read: Iris đánh dấu mục tiêu Analyzed trong 3 turn."
-      }
-      val irisWeapon = CharacterStatEngine.skillBaseDamage(resolvedState, IRIS_ID)
-      val irisArmor = when {
-        irisExposedTurns > 0 -> armorAfterIgnore(profile.armor, 20)
-        irisArmorBreakTurns > 0 -> armorAfterIgnore(profile.armor, 20)
-        else -> profile.armor
-      }
-      val irisUltimate = intent == Intent.ATTACK && c.eventCounter % IRIS_ULTIMATE_INTERVAL_TURNS == 0
-      if (irisUltimate) {
-        val damage = companionSkillDamage(irisWeapon, 300, irisArmor)
-        val hp = max(0, c.entityHp - damage)
-        recordFeedback("entity", c.entityHp, hp)
-        c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 30))
-        irisExposedTurns = 2
-        resolvedState = withCombatCounter(resolvedState, IRIS_EXPOSED_TURNS_KEY, irisExposedTurns)
-        log += "ARGUS // Thousandfold Execution: 12 phát luân phiên, 300% DMG = -$damage HP; Fully Exposed 2 turn."
-      } else if (intent == Intent.ATTACK) {
-        if (roll(c.copy(eventCounter = c.eventCounter + 151), 100) < 30 && c.entityHp > 0) {
-          val percent = if (irisAnalyzedTurns > 0) 170 else 155
-          val damage = companionSkillDamage(irisWeapon, percent, irisArmor)
-          val hp = max(0, c.entityHp - damage)
-          recordFeedback("entity", c.entityHp, hp)
-          c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 14))
-          log += "Twosome Time tự động kích hoạt: 2 phát chéo góc, $percent% DMG = -$damage HP."
-        }
-        if (roll(c.copy(eventCounter = c.eventCounter + 163), 100) < 20 && c.entityHp > 0) {
-          val damage = companionSkillDamage(irisWeapon, 145, irisArmor)
-          val hp = max(0, c.entityHp - damage)
-          recordFeedback("entity", c.entityHp, hp)
-          c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 18))
-          log += "Rain Storm tự động kích hoạt: 6 phát khi đổi góc trên không, 145% DMG = -$damage HP."
-        }
-        if (roll(c.copy(eventCounter = c.eventCounter + 179), 100) < 20 && c.entityHp > 0) {
-          val damage = companionSkillDamage(irisWeapon, 185, irisArmor)
-          val hp = max(0, c.entityHp - damage)
-          recordFeedback("entity", c.entityHp, hp, status = FeedbackStatus.ARMOR)
-          c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 24))
-          irisArmorBreakTurns = 2
-          resolvedState = withCombatCounter(resolvedState, IRIS_ARMOR_BREAK_TURNS_KEY, irisArmorBreakTurns)
-          log += "Honeycomb Fire tự động kích hoạt: 8 phát tập trung, 185% DMG = -$damage HP; Armor Break 20% trong 2 turn."
-        }
-        if (roll(c.copy(eventCounter = c.eventCounter + 191), 100) < 25 && c.entityHp > 0) {
-          val chargedArmor = armorAfterIgnore(profile.armor, 35)
-          val damage = companionSkillDamage(irisWeapon, 175, chargedArmor)
-          val hp = max(0, c.entityHp - damage)
-          recordFeedback("entity", c.entityHp, hp, status = FeedbackStatus.ARMOR)
-          c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 20))
-          log += "Charged Shot tự động kích hoạt: 175% DMG = -$damage HP, bỏ qua 35% Armor."
-        }
-      }
-    }
-
-    if (syvialActive && c.entityHp > 0) {
-      val syvialMaxHp = CharacterStatEngine.effective(resolvedState, SYVIAL_ID).maxHp
-      val syvialHp = syvialCharacter!!.vitalState.currentHp
-      if (!syvialDevilTrigger && (syvialHp * 2 <= syvialMaxHp || c.entityKey == DIEP_MINH_KEY)) {
-        syvialDevilTrigger = true
-        val metadata = resolvedState.metadata.toMutableMap()
-        metadata[SYVIAL_DEVIL_TRIGGER_KEY] = "true"
-        resolvedState = resolvedState.copy(metadata = metadata)
-        log += "Syvial kích hoạt Devil Trigger."
-      }
-      val regenPercent = if (syvialDevilTrigger) 4 else 2
-      if (syvialHp > 0 && syvialHp < syvialMaxHp) {
-        val heal = percentDamage(syvialMaxHp, regenPercent)
-        resolvedState = CharacterStatEngine.setCurrentHp(resolvedState, SYVIAL_ID, syvialHp + heal)
-        val after = resolvedState.characters[SYVIAL_ID]?.vitalState?.currentHp ?: syvialHp
-        log += "Lucifer Core hồi Syvial +${after - syvialHp} HP ($after/$syvialMaxHp)."
-      }
-      val syvialWeapon = CharacterStatEngine.skillBaseDamage(resolvedState, SYVIAL_ID)
-      val dtMultiplier = if (syvialDevilTrigger) 125 else 100
-      fun syvialDamage(percent: Int, armor: Int): Int = companionSkillDamage(syvialWeapon, (percent * dtMultiplier + 99) / 100, armor)
-      val syvialUltimate = intent == Intent.ATTACK && syvialDevilTrigger && c.eventCounter % SYVIAL_ULTIMATE_INTERVAL_TURNS == 0
-      if (syvialUltimate) {
-        val damage = min(c.entityHp, 24 * 10)
-        val hp = max(0, c.entityHp - damage)
-        recordFeedback("entity", c.entityHp, hp)
-        c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 28))
-        log += "GodKiller Override // Twenty-Four Severance: thời gian ngoại giới dừng, đúng 24 nhát x 10 HP = -$damage HP; bỏ qua Evasion."
-      } else if (intent == Intent.ATTACK) {
-        if (roll(c.copy(eventCounter = c.eventCounter + 211), 100) < 30 && c.entityHp > 0) {
-          val damage = syvialDamage(175, armorAfterIgnore(profile.armor, 20))
-          val hp = max(0, c.entityHp - damage)
-          recordFeedback("entity", c.entityHp, hp, status = FeedbackStatus.ARMOR)
-          c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
-          log += "Rift Sever tự động kích hoạt: Spatial Shift + GodKiller, 175% DMG = -$damage HP."
-        }
-        if (roll(c.copy(eventCounter = c.eventCounter + 223), 100) < 20 && c.entityHp > 0) {
-          val damage = syvialDamage(190, profile.armor)
-          val hp = max(0, c.entityHp - damage)
-          recordFeedback("entity", c.entityHp, hp, status = FeedbackStatus.BLEED)
-          c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
-          syvialBleedTurns = 3
-          resolvedState = withCombatCounter(resolvedState, SYVIAL_BLEED_TURNS_KEY, syvialBleedTurns)
-          log += "Crimson Guillotine tự động kích hoạt: 190% DMG = -$damage HP; Bleeding 3 turn x 4% Max HP."
-        }
-        if (roll(c.copy(eventCounter = c.eventCounter + 239), 100) < 20 && c.entityHp > 0) {
-          val damage = syvialDamage(155, profile.armor)
-          val hp = max(0, c.entityHp - damage)
-          recordFeedback("entity", c.entityHp, hp, status = FeedbackStatus.STUN)
-          c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
-          entityStunnedThisTurn = true
-          log += "Lucifer Breaker tự động kích hoạt: 155% DMG = -$damage HP; Entity bị Stun trong phản ứng hiện tại."
-        }
-        if (syvialDevilTrigger && roll(c.copy(eventCounter = c.eventCounter + 251), 100) < 20 && c.entityHp > 0) {
-          val damage = syvialDamage(210, profile.armor)
-          val hp = max(0, c.entityHp - damage)
-          recordFeedback("entity", c.entityHp, hp, status = FeedbackStatus.DISORIENT)
-          c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
-          syvialDisorientTurns = 2
-          resolvedState = withCombatCounter(resolvedState, SYVIAL_DISORIENT_TURNS_KEY, syvialDisorientTurns)
-          log += "Spatial Dominion tự động kích hoạt: 210% DMG = -$damage HP; Disoriented -25% Accuracy trong 2 turn."
-        }
-      }
-    }
-
-    if (anNhienActive && c.entityHp > 0) {
-      if (intent == Intent.ATTACK && roll(c.copy(eventCounter = c.eventCounter + 269), 100) < 25) {
-        companionEnemyAccuracyPenalty += 25
-        log += "An Nhiên dùng Quăng Đại Cái Gì Đó: tiếng động lệch hướng khiến Entity -25 điểm % Accuracy trong phản ứng hiện tại."
-      }
-      if (intent == Intent.ESCAPE && c.eventCounter % AN_NHIEN_ULTIMATE_INTERVAL_TURNS == 0) {
-        companionEnemyAccuracyPenalty += 20
-        c = c.copy(escapeProgress = min(100, c.escapeProgress + 30))
-        log += "Kế Hoạch Không Có Trong Kế Hoạch: +30 Escape Progress và Entity -20 điểm % Accuracy trong phản ứng hiện tại."
-      }
-    }
-
     if (syvialDisorientTurns > 0) companionEnemyAccuracyPenalty += 25
 
-    if (c.entityHp <= 0) {
+    if (c.entityHp <= 0 && !promoteDefeatedWave()) {
       return settleDefeated(resolvedState, c, log.joinToString(" "), feedback.toList())
     }
 
-    // Enemy response. Diệp Minh uses percentage damage; all other Entity behavior remains unchanged.
-    if (entityStunnedThisTurn) {
+    // A replacement Entity is not allowed to counterattack for free.
+    if (!canCounterAttack) {
+      log += "${c.entityName} vừa xuất hiện và chờ lượt giao chiến tiếp theo."
+    } else if (entityStunnedThisTurn) {
       log += "Ma Tâm Trấn Hồn: ${c.entityName} bị Stun và mất lượt phản ứng hiện tại."
     } else if (c.entityKey == DIEP_MINH_KEY && c.eventCounter % DIEP_MINH_ULTIMATE_INTERVAL_TURNS == 0) {
       val pulse = damageActivePartyByPercent(resolvedState, DIEP_MINH_ULTIMATE_PERCENT)
@@ -792,6 +814,9 @@ object CombatRuntime {
       }
     }
 
+    if (c.entityHp <= 0 && !promoteDefeatedWave()) {
+      return settleDefeated(resolvedState, c, log.joinToString(" "), feedback.toList())
+    }
     if (quickStepTurns > 0) {
       quickStepTurns = max(0, quickStepTurns - 1)
       resolvedState = withCombatCounter(resolvedState, KAI_QUICK_STEP_TURNS_KEY, quickStepTurns)

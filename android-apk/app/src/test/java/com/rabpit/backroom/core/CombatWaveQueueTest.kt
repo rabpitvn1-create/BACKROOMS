@@ -67,4 +67,45 @@ class CombatWaveQueueTest {
     assertNull(cleared.metadata["combat.waveKeys"])
     assertNull(cleared.metadata["combat.waveIndex"])
   }
+  @Test fun remainingPartyActorsContinueAgainstNextEntityWithinOneRound() {
+    var initial = SpecialFollowersCanon.ensure(GameState.initial())
+    initial = LuciaCanon.ensure(initial)
+    initial = initial.copy(party = PartyState(memberIds = listOf(KAI_ID, LUCIA_ID, IRIS_ID, SYVIAL_ID)))
+    val original = CombatRuntime.startWaves(initial, listOf("hound", "diep_minh"))
+    var verified = false
+    for (counter in 0..100) {
+      val state = original.copy(metadata = original.metadata + mapOf("combat.entityHp" to "1", "combat.eventCounter" to counter.toString()))
+      val result = CombatRuntime.resolve(state, "EXECUTE", "Cả Party cùng tấn công")
+      val text = result.reply
+      val promoted = text.indexOf("Đợt 2/2: Diệp Minh")
+      val lucia = text.indexOf("PARTY TURN 2/4: Lucia")
+      if (promoted < 0 || lucia < 0 || promoted > lucia) continue
+      assertTrue(text.indexOf("PARTY TURN 3/4: Iris") > lucia)
+      assertTrue(text.indexOf("PARTY TURN 4/4: Syvial") > lucia)
+      assertFalse(result.entityDestroyed)
+      assertEquals("diep_minh", CombatRuntime.active(result.state)!!.entityKey)
+      assertEquals(counter + 1, CombatRuntime.active(result.state)!!.eventCounter)
+      verified = true
+      break
+    }
+    assertTrue("Unspent Party actions must reach replacement without another dice round", verified)
+  }
+
+  @Test fun aReplacementAfterLastPartyActorDoesNotCounterattackForFree() {
+    val started = CombatRuntime.startWaves(GameState.initial(), listOf("hound", "diep_minh"))
+    val base = started.copy(metadata = started.metadata + ("combat.entityHp" to "1"))
+    var verified = false
+    for (counter in 0..100) {
+      val candidate = base.copy(metadata = base.metadata + ("combat.eventCounter" to counter.toString()))
+      val result = CombatRuntime.resolve(candidate, "EXECUTE", "Cả Party cùng tấn công")
+      if (!result.reply.contains("Đợt 2/2")) continue
+      assertEquals("diep_minh", CombatRuntime.active(result.state)!!.entityKey)
+      assertTrue(result.reply.contains("chờ lượt giao chiến tiếp theo"))
+      assertFalse(result.reply.contains("Diệp Minh phản công"))
+      verified = true
+      break
+    }
+    assertTrue(verified)
+  }
+
 }
