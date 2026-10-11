@@ -2251,7 +2251,7 @@ body.poker-dice-open .game>.log{display:none!important}
 .poker-die{position:relative;min-width:0;aspect-ratio:1/1.18;padding:4px;border:1px solid transparent!important;border-radius:7px!important;background:transparent!important;display:grid;place-items:center}.poker-die img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 4px #0008)}.poker-die.held img{filter:drop-shadow(0 0 2px #9be1bc) drop-shadow(0 0 8px #9be1bc99) drop-shadow(0 4px 4px #0008)}.poker-die.held:after{content:"HOLD";position:absolute;bottom:2px;left:50%;transform:translateX(-50%);font-size:8px;font-weight:800;letter-spacing:.08em;color:#9be1bc;text-shadow:0 0 7px #9be1bc88}
 .poker-die.rolling img{visibility:hidden}.poker-die.rolling:before{content:"";position:absolute;inset:5%;background:url('dice/roll-3d.png') 0 0/2400% 100% no-repeat;animation:poker-die-roll .68s steps(23,end) infinite}@keyframes poker-die-roll{to{background-position:100% 0}}@media(prefers-reduced-motion:reduce){.poker-die.rolling:before{display:none}.poker-die.rolling img{visibility:visible}}
 .poker-dice-hand{min-height:26px;margin-top:10px;text-align:center;font-size:17px;font-weight:800;letter-spacing:.06em;color:#e6cf77;text-shadow:0 1px 2px #000}.poker-dice-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.poker-dice-roll,.poker-dice-finish{min-height:48px;border-radius:7px!important;font-weight:800;letter-spacing:.1em}.poker-dice-roll{border-color:#4f9479!important;background:#14251f!important;color:#dff7ec}.poker-dice-finish{border-color:#8b6047!important;background:#281c18!important;color:#f2ddd0}
-.core-progression-panel{margin-top:10px;border:1px solid #3b3524;background:linear-gradient(145deg,#171813,#0b0e10);padding:10px;border-radius:7px}.core-progression-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}.core-progression-head b{font-size:10px;letter-spacing:.12em;color:#d5c67d}.core-balance{font-size:12px;font-weight:800;color:#f6c85f}.core-progression-row{display:grid;grid-template-columns:42px minmax(0,1fr);gap:7px;align-items:center;padding:6px 0;border-top:1px solid #25291f}.core-progression-row:first-of-type{border-top:0}.core-progression-stat{font-weight:900;color:#eef1f3}.core-progression-value{min-width:0;color:#aeb8bf;font-size:11px}
+
 </style>
 <div class="poker-dice-modal" id="pokerDiceModal" hidden aria-hidden="true">
   <div class="poker-dice-backdrop"></div>
@@ -2419,50 +2419,15 @@ body.poker-dice-open .game>.log{display:none!important}
     renderDice();if(typeof window.renderCombatActionBar==="function")window.renderCombatActionBar();
   };
 
-  function selectedCharacter(){
-    var view=document.getElementById("characterInventoryView"),id=view&&view.dataset.characterId||"cao_minh";
-    var members=state&&state.partyDetails&&Array.isArray(state.partyDetails.members)?state.partyDetails.members:[];
-    return members.find(function(m){return String(m&&m.id||"")===String(id)})||members[0]||{id:id};
-  }
-  function readCharacterProgression(id){
-    try{
-      return window.Android&&typeof Android.characterProgression==="function"
-        ?JSON.parse(Android.characterProgression(id)):null
-    }catch(_){return null}
-  }
-  function renderCorePanel(){
-    var host=document.getElementById("characterStatusList");if(!host)return;
-    var member=selectedCharacter(),id=String(member&&member.id||"cao_minh"),data=readCharacterProgression(id);
-    var existing=document.getElementById("coreProgressionPanel");
-    if(!data||!data.stats){if(existing)existing.remove();return}
-    var panel=existing;
-    if(!panel){panel=document.createElement("section");panel.id="coreProgressionPanel";panel.className="core-progression-panel";host.appendChild(panel)}
-    panel.textContent="";
-    var head=document.createElement("div");head.className="core-progression-head";
-    var limit=data.expToNextLevel,level=Number(data.level||0),xp=Number(data.exp||0);
-    var label=document.createElement("b");label.textContent="LEVEL "+level;
-    var balance=document.createElement("span");balance.className="core-balance";
-    balance.textContent=limit==null?"MAX LEVEL":"EXP "+xp+" / "+Number(limit);
-    head.appendChild(label);head.appendChild(balance);panel.appendChild(head);
-    ["STR","DEX","AGI","VIT","EVA"].forEach(function(key){
-      var s=data.stats[key]||{},line=document.createElement("div");line.className="core-progression-row";
-      var name=document.createElement("span");name.className="core-progression-stat";name.textContent=key;
-      var value=document.createElement("span");value.className="core-progression-value";
-      value.textContent=String(s.effective??5)+(key==="STR"?" · ×"+((Number(s.multiplierPercent||100)/100).toFixed(2)):"");
-      line.appendChild(name);line.appendChild(value);panel.appendChild(line);
-    });
-  }
-
-  var previousRender=window.render;if(typeof previousRender==="function")window.render=function(){var result=previousRender.apply(this,arguments);renderCorePanel();ensureDirectCombatDice();return result};
+  var previousRender=window.render;if(typeof previousRender==="function")window.render=function(){var result=previousRender.apply(this,arguments);ensureDirectCombatDice();return result};
   var previousTurn=window.backroomTurn;if(typeof previousTurn==="function")window.backroomTurn=function(json){
     var result=previousTurn.call(this,json);
     diceRollAnimating=false;window.__combatDiceBusy=false;window.__combatDiceRolling=false;window.__directCombatPreparing=false;window.__directCombatResolving=false;submitAfterFinalize=false;++diceRollToken;clearDiceTimers();
-    renderCorePanel();
     if(combatActive()){show();if(typeof busy!=="undefined")busy=true;ensureDirectCombatDice();}
     else{hide();if(typeof busy!=="undefined")busy=false;if(typeof window.renderCombatActionBar==="function")window.renderCombatActionBar();}
     return result;
   };
-  renderCorePanel();ensureDirectCombatDice();
+  ensureDirectCombatDice();
 })();
 </script>
 
