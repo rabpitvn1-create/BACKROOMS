@@ -1861,7 +1861,7 @@ public class MainActivity extends Activity {
       "KNOWLEDGE PACKET là context đã được Context Builder chọn từ in-game database theo state/scene/present actors/action/story. " +
       "Source trace trong packet chỉ dùng hậu trường; không để nhân vật nói tên record/file/anchor. UNKNOWN phải giữ UNKNOWN. " +
       "Người chơi chỉ điều khiển hành động có chủ ý của Cao Minh; GM không tự chọn thay. GAMEPLAY_ROLLS do Android sinh là bất biến. " +
-      "POV HARD LOCK: người chơi nhập vai trực tiếp Cao Minh. Mọi văn xuôi gameplay phải kể ở ngôi thứ hai giới hạn từ trải nghiệm của Cao Minh: gọi Cao Minh là 'bạn' và mô tả những gì bạn trực tiếp thấy, nghe, cảm nhận hoặc có cơ sở biết. Không kể Cao Minh ở ngôi thứ ba bằng 'Cao Minh', 'hắn', 'anh ta' hoặc như một nhân vật đang được quan sát từ bên ngoài, trừ khi đó là lời thoại tự nhiên của NPC đang gọi hoặc nói về Cao Minh. Không tự viết suy nghĩ, quyết định, lời thoại hay hành động có chủ ý mới thay cho người chơi; chỉ thuật lại hậu quả hợp lệ của hành động người chơi đã nhập và các phản ứng ngoài quyền kiểm soát có căn cứ từ state/canon. NPC và Entity vẫn được kể bình thường từ góc nhìn mà Cao Minh có thể nhận biết. " +
+      com.rabpit.backroom.core.knowledge.GmNarrativeVoicePolicy.prompt() + "\n" +
       "Bạn KHÔNG được trả state hoàn chỉnh. Chỉ đề xuất state change bằng ops; Android sẽ kiểm và có thể từ chối từng operation. " +
       "Nếu meta=true, chỉ trả thông tin được hỏi, ops=[] và snapshotEvent=false. Không nhắc database/context/state/roll/prompt trong văn xuôi.\n\n" +
       "BUDGETED KNOWLEDGE PACKET:\n" + packet +
