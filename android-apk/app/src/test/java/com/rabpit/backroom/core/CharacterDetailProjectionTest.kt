@@ -15,10 +15,10 @@ class CharacterDetailProjectionTest {
   }
 
   @Test fun partyProjectionKeepsPartyOrderLeaderAndSubjectiveTime() {
-    val kai = CharacterState(CAO_MINH_ID, "Cao Minh", avatarRef = "avatars/kai.png")
+    val caoMinh = CharacterState(CAO_MINH_ID, "Cao Minh", avatarRef = "avatars/caoMinh.png")
     val iris = CharacterState("iris", "Iris", avatarRef = "avatars/iris.png")
     val state = GameState.initial().copy(
-      characters = linkedMapOf(CAO_MINH_ID to kai, "iris" to iris),
+      characters = linkedMapOf(CAO_MINH_ID to caoMinh, "iris" to iris),
       party = PartyState(leaderId = CAO_MINH_ID, memberIds = listOf(CAO_MINH_ID, "iris"), maxMembers = 4),
       time = GameTimeState(elapsedSubjectiveMinutes = 845L)
     )
@@ -35,7 +35,7 @@ class CharacterDetailProjectionTest {
 
   @Test fun characterProjectionUsesCharacterOwnedInventoryEquipmentStatusesAndPhysiology() {
     val injury = StatusEffect("iris-injury", "INJURY", "event", persistent = true)
-    val unrelated = StatusEffect("kai-effect", "BUFF", "event")
+    val unrelated = StatusEffect("caoMinh-effect", "BUFF", "event")
     val iris = CharacterState(
       id = "iris",
       name = "Iris",
@@ -56,7 +56,7 @@ class CharacterDetailProjectionTest {
       characters = mapOf(CAO_MINH_ID to GameState.initial().characters.getValue(CAO_MINH_ID), "iris" to iris),
       party = PartyState(memberIds = listOf(CAO_MINH_ID, "iris")),
       inventories = mapOf(
-        CAO_MINH_ID to InventoryState(CAO_MINH_ID, mapOf("kai-item" to ItemStack("kai-item", "Cao Minh Item"))),
+        CAO_MINH_ID to InventoryState(CAO_MINH_ID, mapOf("caoMinh-item" to ItemStack("caoMinh-item", "Cao Minh Item"))),
         "iris-pack" to InventoryState("iris-pack", mapOf(
           "b" to ItemStack("b", "Zeta"),
           "a" to ItemStack("a", "Alpha")

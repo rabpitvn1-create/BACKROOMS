@@ -6,7 +6,7 @@ import org.junit.Test
 class PhysiologyItemEffectTest {
   private fun stateWithPhysiology(): GameState {
     val base = GameState.initial()
-    val kai = base.characters.getValue(CAO_MINH_ID).copy(
+    val caoMinh = base.characters.getValue(CAO_MINH_ID).copy(
       physiology = PhysiologyState(
         minutesSinceFood = 240L,
         minutesSinceWater = 90L,
@@ -16,7 +16,7 @@ class PhysiologyItemEffectTest {
         thermalState = "normal"
       )
     )
-    return base.copy(characters = base.characters + (CAO_MINH_ID to kai))
+    return base.copy(characters = base.characters + (CAO_MINH_ID to caoMinh))
   }
 
   private fun grant(

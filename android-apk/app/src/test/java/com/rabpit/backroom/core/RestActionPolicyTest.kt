@@ -6,7 +6,7 @@ import org.junit.Test
 class RestActionPolicyTest {
   private fun partyState(): GameState {
     val base = GameState.initial()
-    val tiredKai = base.characters.getValue(CAO_MINH_ID).copy(
+    val tiredCaoMinh = base.characters.getValue(CAO_MINH_ID).copy(
       physiology = PhysiologyState(minutesSinceFood = 1000L, minutesSinceWater = 1000L, minutesAwake = 1900L)
     )
     val lucia = CharacterState(
@@ -15,12 +15,12 @@ class RestActionPolicyTest {
       physiology = PhysiologyState(minutesSinceFood = 1000L, minutesSinceWater = 1000L, minutesAwake = 1900L)
     )
     return base.copy(
-      characters = base.characters + (CAO_MINH_ID to tiredKai) + (lucia.id to lucia),
+      characters = base.characters + (CAO_MINH_ID to tiredCaoMinh) + (lucia.id to lucia),
       party = PartyState(memberIds = listOf(CAO_MINH_ID, lucia.id))
     )
   }
 
-  @Test fun ordinaryKaiRestOnlyTargetsKai() {
+  @Test fun ordinaryCaoMinhRestOnlyTargetsCaoMinh() {
     val state = partyState()
     assertEquals(listOf(CAO_MINH_ID), RestActionPolicy.targets(state, "Tôi chợp mắt một lúc"))
   }
@@ -35,7 +35,7 @@ class RestActionPolicyTest {
     assertTrue(RestActionPolicy.targets(state, "Đứng chờ và quan sát hành lang").isEmpty())
   }
 
-  @Test fun coordinatorCommitsTimeThenKaiSleepRecoveryAtomically() {
+  @Test fun coordinatorCommitsTimeThenCaoMinhSleepRecoveryAtomically() {
     val state = partyState()
     val pending = TurnCoordinator.createPending(state, "TURN_REST", "Tôi ngủ một tiếng").state
     val time = TimeAdvanceCommand(
@@ -50,17 +50,17 @@ class RestActionPolicyTest {
     val result = TurnCoordinator.commit(pending, listOf(time))
 
     assertNull(result.error)
-    val kai = result.state.characters.getValue(CAO_MINH_ID).physiology
+    val caoMinh = result.state.characters.getValue(CAO_MINH_ID).physiology
     val lucia = result.state.characters.getValue("lucia").physiology
-    assertEquals(0L, kai.minutesAwake)
+    assertEquals(0L, caoMinh.minutesAwake)
     assertEquals(1960L, lucia.minutesAwake)
-    assertEquals(1060L, kai.minutesSinceFood)
-    assertEquals(1060L, kai.minutesSinceWater)
-    assertEquals(100, PhysiologyStatusPolicy.restPercent(kai.minutesAwake))
+    assertEquals(1060L, caoMinh.minutesSinceFood)
+    assertEquals(1060L, caoMinh.minutesSinceWater)
+    assertEquals(100, PhysiologyStatusPolicy.restPercent(caoMinh.minutesAwake))
     assertTrue("TURN_REST:SYSTEM:REST:0" in result.state.turn.executedCommandIds)
   }
 
-  @Test fun coordinatorSharedShiftRestRecoversKaiAndLucia() {
+  @Test fun coordinatorSharedShiftRestRecoversCaoMinhAndLucia() {
     val state = partyState()
     val pending = TurnCoordinator.createPending(state, "TURN_SHIFT", "Cả hai chia ca nghỉ ngơi và chợp mắt một tiếng").state
     val time = TimeAdvanceCommand(

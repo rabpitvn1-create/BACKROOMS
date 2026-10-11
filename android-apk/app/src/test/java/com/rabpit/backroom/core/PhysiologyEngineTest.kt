@@ -24,7 +24,7 @@ class PhysiologyEngineTest {
   )
 
   @Test fun recordFoodWaterAndSleepResetOnlyTheirOwnTimers() {
-    val kai = GameState.initial().characters.getValue(CAO_MINH_ID).copy(
+    val caoMinh = GameState.initial().characters.getValue(CAO_MINH_ID).copy(
       physiology = PhysiologyState(
         minutesSinceFood = 300L,
         minutesSinceWater = 120L,
@@ -32,7 +32,7 @@ class PhysiologyEngineTest {
         painState = "mild"
       )
     )
-    val initial = GameState.initial().copy(characters = mapOf(CAO_MINH_ID to kai))
+    val initial = GameState.initial().copy(characters = mapOf(CAO_MINH_ID to caoMinh))
 
     val afterFood = StateReducer.execute(initial, command("p-food", PhysiologyCommand.Operation.RECORD_FOOD))
     assertTrue(afterFood.applied)
@@ -55,14 +55,14 @@ class PhysiologyEngineTest {
   }
 
   @Test fun conditionUpdatePatchesOnlyProvidedFieldsAndTrimsValues() {
-    val kai = GameState.initial().characters.getValue(CAO_MINH_ID).copy(
+    val caoMinh = GameState.initial().characters.getValue(CAO_MINH_ID).copy(
       physiology = PhysiologyState(
         painState = "mild",
         infectionState = "none",
         thermalState = "normal"
       )
     )
-    val state = GameState.initial().copy(characters = mapOf(CAO_MINH_ID to kai))
+    val state = GameState.initial().copy(characters = mapOf(CAO_MINH_ID to caoMinh))
     val result = StateReducer.execute(state, command(
       "p-condition",
       PhysiologyCommand.Operation.UPDATE_CONDITION,

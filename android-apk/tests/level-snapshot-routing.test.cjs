@@ -64,7 +64,7 @@ test("WebView actually loads the manifest and renders images behind unchanged ov
   assert.ok(html.includes("s.level.id!=null?s.level.id:s.level.number"));
   assert.ok(native.includes("var scene=a?a.resolve(state):null"));
   assert.ok(native.includes("bg.src=scene?scene.src:"));
-  assert.ok(native.includes("box.appendChild(kai)"));
+  assert.ok(native.includes("box.appendChild(caoMinh)"));
   assert.ok(native.includes("appendEntityOverlay()"));
   assert.ok(native.includes("appendLuciaCombatOverlay()"));
 });

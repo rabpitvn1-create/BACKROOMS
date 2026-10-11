@@ -56,7 +56,7 @@ class CharacterCombatResolutionTest {
     assertNull(hit.damageByMember[IRIS_ID])
   }
 
-  @Test fun quickStepBuffAddsToKaiEvasionRatherThanEnemyMissChance() {
+  @Test fun quickStepBuffAddsToCaoMinhEvasionRatherThanEnemyMissChance() {
     val state = GameState.initial()
     assertTrue(hit(state, dodgeRoll = 1000).appliedDamage > 0)
     val protected = PartyCombatHealth.applyStatAdjustedDamage(

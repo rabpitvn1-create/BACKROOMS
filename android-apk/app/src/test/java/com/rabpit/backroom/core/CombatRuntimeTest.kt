@@ -205,20 +205,20 @@ class CombatRuntimeTest {
     state = CombatRuntime.start(state, "diep_minh")
     state = state.copy(metadata = state.metadata + ("combat.eventCounter" to "4"))
 
-    val kaiBefore = state.characters.getValue(CAO_MINH_ID).vitalState.currentHp
+    val caoMinhBefore = state.characters.getValue(CAO_MINH_ID).vitalState.currentHp
     val irisBefore = state.characters.getValue("iris").vitalState.currentHp
-    val kaiMax = CharacterStatEngine.effective(state, CAO_MINH_ID).maxHp
+    val caoMinhMax = CharacterStatEngine.effective(state, CAO_MINH_ID).maxHp
     val irisMax = CharacterStatEngine.effective(state, "iris").maxHp
     val result = CombatRuntime.resolve(state, "SEARCH", "giữ đội hình")
 
     assertTrue(result.reply.contains("Devils And Gold"))
-    val kaiDamage = maxOf(1, (kaiMax * 5 + 99) / 100)
-    val daiDaoHeal = maxOf(1, (kaiMax * CaoMinhCombatPassive.HEAL_PERCENT + 50) / 100)
-    assertEquals(minOf(kaiMax, kaiBefore - kaiDamage + daiDaoHeal), result.state.characters.getValue(CAO_MINH_ID).vitalState.currentHp)
+    val caoMinhDamage = maxOf(1, (caoMinhMax * 5 + 99) / 100)
+    val daiDaoHeal = maxOf(1, (caoMinhMax * CaoMinhCombatPassive.HEAL_PERCENT + 50) / 100)
+    assertEquals(minOf(caoMinhMax, caoMinhBefore - caoMinhDamage + daiDaoHeal), result.state.characters.getValue(CAO_MINH_ID).vitalState.currentHp)
     assertEquals(irisBefore - maxOf(1, (irisMax * 5 + 99) / 100), result.state.characters.getValue("iris").vitalState.currentHp)
   }
 
-  @Test fun kaiAutomaticGunSkillsExposeAllFourIndependentProcContracts() {
+  @Test fun caoMinhAutomaticSwordSkillsExposeAllFourIndependentProcContracts() {
     val seen = mutableSetOf<String>()
     for (counter in 0..240) {
       if (seen.size == 4) break

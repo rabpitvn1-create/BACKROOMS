@@ -26,7 +26,7 @@ class TimeEngineTest {
   }
 
   @Test fun knownPhysiologyCountersAdvanceWithSubjectiveTime() {
-    val kai = GameState.initial().characters.getValue(CAO_MINH_ID).copy(
+    val caoMinh = GameState.initial().characters.getValue(CAO_MINH_ID).copy(
       physiology = PhysiologyState(
         minutesSinceFood = 120L,
         minutesSinceWater = 45L,
@@ -36,7 +36,7 @@ class TimeEngineTest {
         thermalState = "cold"
       )
     )
-    val state = GameState.initial().copy(characters = mapOf(CAO_MINH_ID to kai))
+    val state = GameState.initial().copy(characters = mapOf(CAO_MINH_ID to caoMinh))
     val result = TimeEngine.execute(state, TimeAdvanceCommand("t-phys", "TURN_1", CAO_MINH_ID, source = CommandSource.SYSTEM, minutes = 30, reason = "travel"))
 
     assertTrue(result.applied)
@@ -50,8 +50,8 @@ class TimeEngineTest {
   }
 
   @Test fun unknownPhysiologyCountersRemainUnknown() {
-    val unknownKai = GameState.initial().characters.getValue(CAO_MINH_ID).copy(physiology = PhysiologyState())
-    val state = GameState.initial().copy(characters = mapOf(CAO_MINH_ID to unknownKai))
+    val unknownCaoMinh = GameState.initial().characters.getValue(CAO_MINH_ID).copy(physiology = PhysiologyState())
+    val state = GameState.initial().copy(characters = mapOf(CAO_MINH_ID to unknownCaoMinh))
     val result = TimeEngine.execute(state, TimeAdvanceCommand("t-unknown", "TURN_1", CAO_MINH_ID, source = CommandSource.SYSTEM, minutes = 30, reason = "search"))
 
     assertTrue(result.applied)
@@ -73,10 +73,10 @@ class TimeEngineTest {
   }
 
   @Test fun physiologyOverflowRejectsWholeTimeAdvance() {
-    val kai = GameState.initial().characters.getValue(CAO_MINH_ID).copy(
+    val caoMinh = GameState.initial().characters.getValue(CAO_MINH_ID).copy(
       physiology = PhysiologyState(minutesSinceFood = Long.MAX_VALUE - 5L, minutesSinceWater = 10L, minutesAwake = 20L)
     )
-    val state = GameState.initial().copy(characters = mapOf(CAO_MINH_ID to kai), time = GameTimeState(elapsedSubjectiveMinutes = 100L))
+    val state = GameState.initial().copy(characters = mapOf(CAO_MINH_ID to caoMinh), time = GameTimeState(elapsedSubjectiveMinutes = 100L))
     val result = TimeEngine.execute(state, TimeAdvanceCommand("t-overflow", "TURN_1", CAO_MINH_ID, source = CommandSource.SYSTEM, minutes = 10, reason = "wait"))
 
     assertFalse(result.applied)

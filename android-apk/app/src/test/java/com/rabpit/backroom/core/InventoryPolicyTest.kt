@@ -21,7 +21,7 @@ class InventoryPolicyTest {
     assertEquals(InventoryProfile(2, 2), InventoryPolicy.profileFor(state, "bob"))
   }
 
-  @Test fun kaiRejectsTenthTypeAndThousandthItem() {
+  @Test fun caoMinhRejectsTenthTypeAndThousandthItem() {
     val items = (1..9).associate { "i$it" to ItemStack("i$it", "Item $it", 1) }
     val base = stateWith().copy(inventories = mapOf(CAO_MINH_ID to InventoryState(CAO_MINH_ID, items)))
     assertEquals("inventory_slot_limit", InventoryPolicy.validateAddition(base, CAO_MINH_ID, base.inventories.getValue(CAO_MINH_ID), ItemStack("i10", "Item 10"), 1))

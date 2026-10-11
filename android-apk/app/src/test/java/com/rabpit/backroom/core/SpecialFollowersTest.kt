@@ -48,7 +48,7 @@ class SpecialFollowersTest {
     assertFalse(SYVIAL_ID in decoded.party.memberIds)
   }
 
-  @Test fun kaiAndAllThreeSpecialFollowersFitExactlyInParty() {
+  @Test fun caoMinhAndAllThreeSpecialFollowersFitExactlyInParty() {
     var state = GameState.initial()
     for ((index, id) in listOf(AN_NHIEN_ID, IRIS_ID, SYVIAL_ID).withIndex()) {
       val result = PartyEngine.execute(state, PartyCommand(

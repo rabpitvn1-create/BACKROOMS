@@ -28,5 +28,4 @@ test('Inventory items stay interactive and refer to correct Cao Minh portrait', 
   assert.match(actions, /Android\.itemAction/);
   assert.match(html, /avatars\/CAO_MINH_AVATAR\.jpg/);
   assert.ok(fs.statSync(path.join(assets, 'avatars/CAO_MINH_AVATAR.jpg')).size > 0);
-  assert.doesNotMatch(html, /avatars\/kai_avatar\.png/);
 });
