@@ -5,17 +5,15 @@ import org.junit.Test
 
 class CharacterFiveStatCombatMathTest {
   @Test fun fiveStatsDeriveTheirOnlyIntendedCombatAttributes() {
-    val base = CharacterStatProfiles.forId("iris")
     val original = GameState.initial()
-    val id = original.characters.keys.first()
+    val id = KAI_ID
     val actor = original.characters.getValue(id)
     val state = original.copy(characters = original.characters + (id to actor.copy(
-      statProfile = base.copy(str = 6, dex = 6, agi = 6, vit = 6, eva = 6)
+      statProfile = actor.statProfile.copy(str = 6, dex = 6, agi = 6, vit = 6, eva = 6)
     )))
-    // Use a non-Cao-Minh id for testing values without Cao Minh's 10% passive.
     val sampled = CharacterStatCore.effective(state, id)
-    val extraPassive = if (CharacterStatCore.isCaoMinh(id)) 1 else 0
-    val stat = 6 + extraPassive
+    // Cao Minh's canon passive grants +1 to a raw stat of 6.
+    val stat = 7
     assertEquals(50 + 5 * (stat - 5), sampled.maxHp)
     assertEquals(stat - 5, sampled.def)
     assertEquals(100 + 4 * (stat - 5), sampled.attackPercent)
@@ -24,6 +22,32 @@ class CharacterFiveStatCombatMathTest {
     assertEquals(CharacterStatCore.criticalResistanceBasisPoints(stat), sampled.resCriticalBasisPoints)
     assertEquals(CharacterStatCore.evasionBasisPoints(stat), sampled.evasionBasisPoints)
     assertEquals(CharacterStatCore.evasionResistanceBasisPoints(stat), sampled.resEvasionBasisPoints)
+  }
+
+  @Test fun dexAgiEvaKeepTheirDistinctCombatResponsibilities() {
+    val original = GameState.initial()
+    val id = KAI_ID
+    val actor = original.characters.getValue(id)
+    fun withStat(profile: CharacterStatProfile): EffectiveCharacterStats =
+      CharacterStatCore.effective(original.copy(characters = original.characters +
+        (id to actor.copy(statProfile = profile))), id)
+    val base = withStat(actor.statProfile)
+    val withAgi = withStat(actor.statProfile.copy(agi = 25))
+    assertTrue(withAgi.criticalChanceBasisPoints > base.criticalChanceBasisPoints)
+    assertEquals(base.maxHp, withAgi.maxHp)
+    assertEquals(base.evasionBasisPoints, withAgi.evasionBasisPoints)
+    assertEquals(base.resCriticalBasisPoints, withAgi.resCriticalBasisPoints)
+
+    val withDex = withStat(actor.statProfile.copy(dex = 25))
+    assertTrue(withDex.resCriticalBasisPoints > base.resCriticalBasisPoints)
+    assertEquals(base.criticalChanceBasisPoints, withDex.criticalChanceBasisPoints)
+    assertEquals(base.evasionBasisPoints, withDex.evasionBasisPoints)
+
+    val withEva = withStat(actor.statProfile.copy(eva = 25))
+    assertTrue(withEva.evasionBasisPoints > base.evasionBasisPoints)
+    assertTrue(withEva.resEvasionBasisPoints > base.resEvasionBasisPoints)
+    assertEquals(base.criticalChanceBasisPoints, withEva.criticalChanceBasisPoints)
+    assertEquals(base.def, withEva.def)
   }
 
   @Test fun fractionalChancesAndCapsRetainBasisPointPrecision() {
