@@ -130,7 +130,10 @@ jobs:
           grep -q '3D_TURN_COVERFLOW_R01' apk-check/assets/combat-feedback-1193a.css
           grep -q 'rotate:y -65deg' apk-check/assets/combat-feedback-1193a.css
           grep -q 'backroomSyncCombatPortrait' apk-check/assets/combat-feedback-1193a.js
-          grep -q 'entityPortraitReady' apk-check/assets/combat-feedback-1193a.js
+          grep -q 'partyFocusEpoch' apk-check/assets/combat-feedback-1193a.js
+          grep -q 'backroomSwitchCombatEntityWave' android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java
+          ! grep -q 'combat-party-appear' apk-check/assets/combat-feedback-1193a.css
+          grep -q 'animation:none!important' apk-check/assets/combat-feedback-1193a.css
           grep -q 'completing=before&&before.active===true' apk-check/assets/combat-feedback-1193a.js
           grep -Fq '.snapshot[data-combat-focus] .snapshot-entity{display:block!important}' apk-check/assets/combat-feedback-1193a.css
           ! grep -q 'combat-switch-ring' apk-check/assets/combat-feedback-1193a.css
@@ -271,7 +274,8 @@ jobs:
           unzip -p Backroom-1.2.0.0.9-verified.apk assets/combat-feedback-1193a.css | grep -q '3D_TURN_COVERFLOW_R01'
           unzip -p Backroom-1.2.0.0.9-verified.apk assets/combat-feedback-1193a.css | grep -q 'rotate:y -65deg'
           unzip -p Backroom-1.2.0.0.9-verified.apk assets/combat-feedback-1193a.js | grep -q 'backroomSyncCombatPortrait'
-          unzip -p Backroom-1.2.0.0.9-verified.apk assets/combat-feedback-1193a.js | grep -q 'entityPortraitReady'
+          unzip -p Backroom-1.2.0.0.9-verified.apk assets/combat-feedback-1193a.js | grep -q 'partyFocusEpoch'
+          ! unzip -p Backroom-1.2.0.0.9-verified.apk assets/combat-feedback-1193a.css | grep -q 'combat-party-appear'
           unzip -p Backroom-1.2.0.0.9-verified.apk assets/combat-feedback-1193a.js | grep -q 'completing=before&&before.active===true'
           unzip -p Backroom-1.2.0.0.9-verified.apk assets/combat-feedback-1193a.css | grep -Fq '.snapshot[data-combat-focus] .snapshot-entity{display:block!important}'
           ! unzip -p Backroom-1.2.0.0.9-verified.apk assets/combat-feedback-1193a.css | grep -q 'combat-switch-ring'
