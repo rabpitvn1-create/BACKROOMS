@@ -1887,7 +1887,7 @@ render();
     return state&&state.partyDetails&&Array.isArray(state.partyDetails.members)?state.partyDetails.members:[]
   }
 function selected(){const id=view&&view.dataset.characterId||'cao_minh';return members().find(x=>String(x.id)===String(id))||members()[0]}
-  function statText(s){if(!s)return '—';const b=Number(s.equipment)||0;return String(s.effective)+(b?(' ('+(b>0?'+':'')+b+')'):'')}
+  function statText(s){if(!s)return '—';const b=Number(s.equipment)||0,p=Number(s.passive)||0;return String(s.effective)+(b?(' ('+(b>0?'+':'')+b+' equip)'):'')+(p?(' ('+(p>0?'+':'')+p+' passive)'):'')}
   function iconFor(item){return String((item&&item.type)||'EQ').split(/[ /_-]+/).filter(Boolean).map(x=>x[0]).join('').slice(0,3).toUpperCase()||'EQ'}
   function itemById(member,id){return (member&&member.inventory||[]).find(x=>String(x.id)===String(id))||(member&&member.equipmentItems||[]).find(x=>String(x.id)===String(id))}
   function card(item,slot){
@@ -1899,7 +1899,7 @@ function selected(){const id=view&&view.dataset.characterId||'cao_minh';return m
     if(nameEl){let role=document.getElementById('characterRole');if(!role){role=document.createElement('div');role.id='characterRole';role.className='character-role';nameEl.insertAdjacentElement('afterend',role)}role.textContent=member.role||'UNSPECIFIED'}
     const rows=[
       ['ENE',member.energy||'N/A'],['HP REGEN',(Number(member.hpRegen)||0)>0?('+'+member.hpRegen+' / completed turn'):'0'],['CONDITION',member.condition||'HEALTHY'],
-      ['STR',statText(member.stats&&member.stats.STR)],['DEF',statText(member.stats&&member.stats.DEF)],['SKL',statText(member.stats&&member.stats.SKL)],['VIT',statText(member.stats&&member.stats.VIT)]
+      ['STR',statText(member.stats&&member.stats.STR)],['DEX',statText(member.stats&&member.stats.DEX)],['AGI',statText(member.stats&&member.stats.AGI)],['VIT',statText(member.stats&&member.stats.VIT)],['EVA',statText(member.stats&&member.stats.EVA)]
     ];
     if(status)status.innerHTML='<div class="character-core-stats">'+rows.map(r=>'<div class="character-core-stat"><b>'+e(r[0])+'</b><strong>'+e(r[1])+'</strong></div>').join('')+'</div>'+
       ((member.statuses&&member.statuses.length)?'<div class="character-status-row"><b>Status Effects</b><span>'+e(member.statuses.map(x=>x.type||x.id).join(', '))+'</span></div>':'');
@@ -2327,10 +2327,10 @@ body.poker-dice-open .game>.log{display:none!important}
     var panel=document.getElementById("coreProgressionPanel");if(!panel){panel=document.createElement("section");panel.id="coreProgressionPanel";panel.className="core-progression-panel";host.appendChild(panel)}
     panel.textContent="";
     var head=document.createElement("div");head.className="core-progression-head";head.innerHTML="<b>CORE STATS</b><span class='core-balance'>Core "+Number(data.sharedCore||0)+"</span>";panel.appendChild(head);
-    ["STR","DEF","SKL","VIT"].forEach(function(key){
+    ["STR","DEX","AGI","VIT","EVA"].forEach(function(key){
       var s=data.stats[key]||{},line=document.createElement("div");line.className="core-progression-row";
       var name=document.createElement("span");name.className="core-progression-stat";name.textContent=key;
-      var value=document.createElement("span");value.className="core-progression-value";value.textContent=String(s.value||5)+" · ×"+((Number(s.multiplierPercent||100)/100).toFixed(1))+" · next "+(s.nextCoreCost==null?"MAX":s.nextCoreCost+" Core");
+      var value=document.createElement("span");value.className="core-progression-value";value.textContent=String(s.effective??5)+(key==="STR"?" · ×"+((Number(s.multiplierPercent||100)/100).toFixed(2)):"")+" · next "+(s.nextCoreCost==null?"MAX":s.nextCoreCost+" Core");
       var button=document.createElement("button");button.type="button";button.className="core-progression-upgrade";button.textContent="+1 ("+(s.nextCoreCost==null?"—":s.nextCoreCost)+")";
       button.disabled=!!window.__coreUpgradeBusy||!!window.__combatBusy||(typeof busy!=="undefined"&&!!busy)||s.nextCoreCost==null||Number(data.sharedCore||0)<Number(s.nextCoreCost||0);
       button.addEventListener("click",function(){

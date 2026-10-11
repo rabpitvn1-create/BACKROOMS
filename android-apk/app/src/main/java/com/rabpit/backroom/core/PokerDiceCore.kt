@@ -28,7 +28,7 @@ object PokerDiceCore {
   private const val REROLL_BASE_WEIGHT = 12
   private const val HELD_FACE_WEIGHT_BONUS = 6
   private const val HELD_SEQUENCE_WEIGHT_BONUS = 18
-  private val STAT_KEYS = listOf("STR", "DEF", "SKL", "VIT")
+  private val STAT_KEYS = listOf("STR", "DEX", "AGI", "VIT", "EVA")
 
   data class UpgradeResult(
     val state: GameState,
@@ -76,12 +76,13 @@ object PokerDiceCore {
     val stats = JSONObject()
     STAT_KEYS.forEach { stat ->
       val base = coreStat(state, id, stat)
-      val eff = when (stat) { "STR" -> effective.str; "DEF" -> effective.def; "SKL" -> effective.skl; else -> effective.vit }
-      stats.put(stat, JSONObject()
+      val eff = when (stat) { "STR" -> effective.str; "DEX" -> effective.dex; "AGI" -> effective.agi; "VIT" -> effective.vit; else -> effective.eva }
+      val line = JSONObject()
         .put("base", base)
         .put("effective", eff)
-        .put("multiplierPercent", statPercent(state, id, stat))
-        .put("nextCoreCost", if (base >= MAX_STAT) JSONObject.NULL else upgradeCost(base)))
+        .put("nextCoreCost", if (base >= MAX_STAT) JSONObject.NULL else upgradeCost(base))
+      if (stat == "STR") line.put("multiplierPercent", statPercent(state, id, stat))
+      stats.put(stat, line)
     }
     return JSONObject()
       .put("schema", CharacterProgressionCore.SCHEMA)

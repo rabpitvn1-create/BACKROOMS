@@ -25,6 +25,6 @@ class PokerDiceCoreBackportTest {
     val r = PokerDiceCore.upgrade(state, KAI_ID, "STR")
     assertEquals(6, PokerDiceCore.coreStat(r.state, KAI_ID, "STR"))
     assertEquals(3, PokerDiceCore.coreCount(r.state))
-    assertEquals(110, PokerDiceCore.statPercent(r.state, KAI_ID, "STR"))
+    assertEquals(104, PokerDiceCore.statPercent(r.state, KAI_ID, "STR"))
   }
 }

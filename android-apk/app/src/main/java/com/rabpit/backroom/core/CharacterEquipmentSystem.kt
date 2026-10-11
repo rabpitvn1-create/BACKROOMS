@@ -260,23 +260,6 @@ object CharacterStatEngine {
   fun effective(state: GameState, characterId: String): EffectiveCharacterStats =
     CharacterStatCore.effective(state, characterId)
 
-  private fun fallback(characterId: String): EffectiveCharacterStats {
-    val p = CharacterStatProfiles.forId(characterId)
-    val str = p.str.coerceIn(5, 999)
-    val def = p.def.coerceIn(5, 999)
-    val skl = p.skl.coerceIn(5, 999)
-    val vit = p.vit.coerceIn(5, 999)
-    return EffectiveCharacterStats(
-      maxHp = CharacterStatCore.scaleByPercent(CharacterProgressionCore.BASE_MAX_HP, CharacterProgressionCore.statPercent(vit)),
-      str = str, def = def, skl = skl, vit = vit,
-      criticalChancePercent = CharacterStatCore.criticalChance(skl),
-      evasionPercent = CharacterStatCore.evasion(vit),
-      resCriticalPercent = CharacterStatCore.criticalResistance(def),
-      resEvasionPercent = CharacterStatCore.evasionResistance(skl),
-      energy = p.energy
-    )
-  }
-
   fun conditionFor(currentHp: Int, maxHp: Int, old: CharacterCondition? = null, presence: CharacterPresence? = null): CharacterCondition {
     if (presence == CharacterPresence.DEAD || old == CharacterCondition.DEAD) return CharacterCondition.DEAD
     if (currentHp <= 0) return CharacterCondition.DEFEATED
@@ -316,20 +299,19 @@ object CharacterStatEngine {
   }
 
   fun skillBaseDamage(state: GameState, characterId: String): Int {
-    val sklScaled = CharacterStatCore.scaleByPercent(
-      weaponDamage(state, characterId),
-      CharacterProgressionCore.statPercent(effective(state, characterId).skl)
+    val strScaled = CharacterStatCore.basicDamage(
+      weaponDamage(state, characterId), effective(state, characterId).str
     )
     return if (CharacterStatCore.isCaoMinh(characterId)) {
-      CharacterStatCore.scaleByPercent(sklScaled, CaoMinhCombatPassive.attackPercent(state))
-    } else sklScaled
+      CharacterStatCore.scaleByPercent(strScaled, CaoMinhCombatPassive.attackPercent(state))
+    } else strScaled
   }
 }
 
 object CombatStatMath {
-  fun critChancePercent(skl: Int): Int = CharacterStatCore.criticalChance(skl)
-  fun defenseReduction(defRating: Int): Int = 0
-  fun agilityDefense(vitRating: Int): Int = 0
+  fun critChancePercent(agi: Int): Int = CharacterStatCore.criticalChance(agi)
+  fun defenseReduction(defRating: Int): Int = (100L * defRating.coerceAtLeast(0) / (100L + defRating.coerceAtLeast(0))).toInt()
+  fun vitalityDefense(vitRating: Int): Int = CharacterStatCore.defense(vitRating)
 }
 
 object EquipmentEngine {
