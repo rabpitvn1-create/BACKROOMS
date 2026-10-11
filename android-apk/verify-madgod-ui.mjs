@@ -20,3 +20,8 @@ assert.equal(equipped(), true, 'Core equipment projection activates MadGod avata
 scope.state = { equipment: { armor: { id: 'madgod:set' } } };
 assert.equal(equipped(), false, 'only active weapon slot counts');
 console.log('MadGod UI follows authoritative equipment projection');
+
+const java = readFileSync(fileURLToPath(new URL('./app/src/main/java/com/rabpit/backroom/MainActivity.java', import.meta.url)), 'utf8');
+assert.ok(java.includes('Cheat `/madgod` chỉ kích hoạt Bound Forever EquipmentState'), 'prompt must describe equipment, not inventory');
+assert.ok(!java.includes('thêm MadGod trực tiếp vào Inventory'), 'obsolete inventory cheat promise removed');
+assert.ok(!java.includes('MadGod discovery tự nhiên'), 'search must not unlock MadGod set');
