@@ -1915,7 +1915,7 @@ public class MainActivity extends Activity {
       "\n\nGAMEPLAY_ROLLS:\n" + visibleRolls.toString() +
       "\n\nPLAYER INPUT:\n" + action +
       feedback +
-      "\n\nOPERATION TYPES: set_location{value}; set_level{level:{id:\\"EXACT_NODE_ID\\"}}; " +
+      "\n\nOPERATION TYPES: set_location{value}; set_level{level:{id:\"EXACT_NODE_ID\"}}; " +
       "party_upsert{member}; party_remove{name}; flag_patch{root,value}. " +
       "Chỉ dùng flag root: exploration, communication, iris, syvial, jeff, jane, survivorRegistry, survivorsConfirmed, entitiesConfirmedLocal, visualAreaKey, visualEventKey, entityEncounterKey, reunionPath. " +
       "Inventory chỉ thay đổi do Core khi tiêu diệt Entity hoặc nút Inventory UI; GM không có quyền thay đổi. " +
