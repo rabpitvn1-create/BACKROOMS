@@ -90,10 +90,17 @@ object GameStateCodec {
   private fun characterProgression(value: CharacterProgression) = JSONObject()
     .put("level", value.level).put("exp", value.exp)
 
-  private fun decodeCharacterProgression(json: JSONObject?): CharacterProgression =
-    if (json == null) CharacterProgression() else CharacterProgression(
-      level = json.getInt("level"), exp = json.getInt("exp")
-    )
+  private fun decodeCharacterProgression(json: JSONObject?): CharacterProgression {
+    require(json != null) { "character_progression_missing" }
+    val level = json.getInt("level")
+    val exp = json.getInt("exp")
+    require(level in 0..CharacterProgressionCore.MAX_LEVEL) { "character_level_invalid" }
+    require(exp >= 0 && (level == CharacterProgressionCore.MAX_LEVEL && exp == 0 ||
+      level < CharacterProgressionCore.MAX_LEVEL && exp < CharacterProgressionCore.expRequired(level))) {
+      "character_exp_invalid"
+    }
+    return CharacterProgression(level, exp)
+  }
 
   private fun characterStatProfile(value: CharacterStatProfile) = JSONObject().apply {
     put("schema", CharacterProgressionCore.SCHEMA)
