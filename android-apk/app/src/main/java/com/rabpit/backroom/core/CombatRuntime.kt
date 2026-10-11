@@ -152,6 +152,7 @@ object CombatRuntime {
     val waveNumber: Int,
     val waveCount: Int,
     val entityName: String,
+    val entityKey: String,
     val logIndex: Int = 0,
     val details: List<String> = emptyList()
   ) {
@@ -159,7 +160,7 @@ object CombatRuntime {
       put("kind", kind); put("eventIndex", eventIndex)
       put("actorId", actorId); put("actorName", actorName)
       put("waveNumber", waveNumber); put("waveCount", waveCount)
-      put("entityName", entityName)
+      put("entityName", entityName); put("entityKey", entityKey)
       put("details", JSONArray(details))
     }
   }
@@ -296,7 +297,7 @@ object CombatRuntime {
     fun cue(kind: String, actorId: String = "", actorName: String = "") {
       val queue = waveKeys(resolvedState, c.entityKey)
       turnCues += TurnCue(kind, feedback.size, actorId, actorName,
-        waveIndex(resolvedState, queue.size) + 1, queue.size, c.entityName,
+        waveIndex(resolvedState, queue.size) + 1, queue.size, c.entityName, c.entityKey,
         logIndex = log.size)
     }
     fun presentedCues(): List<TurnCue> = turnCues.mapIndexed { index, turn ->
