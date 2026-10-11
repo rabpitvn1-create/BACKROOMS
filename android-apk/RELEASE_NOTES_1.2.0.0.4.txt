@@ -1,0 +1,11 @@
+Backroom 1.2.0.0.4 Debug
+
+- Android versionCode 77; applicationId com.rabpit.backroom.
+- Toàn bộ 22 Entity có thể xuất hiện tại bất cứ Level 0–6 nào. Mỗi lượt SEARCH, EXPLORE hoặc EXECUTE hợp lệ có tổng 45% khả năng xuất hiện đúng một Entity mới; 55% không phát sinh Entity.
+- Android sử dụng duy nhất một roll d10000 để quyết định gặp và chọn loài, không còn roll độc lập cho Diệp Minh hoặc nhóm Lifeform.
+- Phân bố tuyệt đối theo lượt: 14 Entity thông thường 2,5% mỗi loài; ba Lifeform 2% mỗi loài; The Beast of Level 5, Slenderman và Diệp Minh 1% mỗi loài; Jeff/Jane 0,5% mỗi loài. Tổng 45%, không phụ thuộc Level.
+- Game Master không được tạo Entity khác kết quả Android hoặc bù gặp Entity khi roll thất bại.
+- Combat Log: khung nền đặc tối hơn Dice, cách Dice 5px, chiếm phần GM còn lại, system font cỡ GM, cuộn nội dung liên tục và giữ toàn bộ lịch sử trận hiện tại.
+- Header COMBAT LOG | NOW : nhân vật. Diễn biến theo hành động bao gồm kỹ năng, sát thương, HP, đòn trượt và phản công. Tên NOW vẫn là Party actor khi Entity phản công, đặt lại Cao Minh sau vòng.
+- Snapshot chỉ hiển thị Party actor hiện tại, có hiệu ứng chuyển nhân vật dạng vòng khoảng 0,8 giây. Khi combat, GM tạm ẩn và ba nút Tìm kiếm / Thực hiện / Khám phá giữ giao diện nhưng không nhận thao tác.
+- Đây là Debug APK. Build, kiểm thử Kotlin/Node, đóng gói, chữ ký và bản phát hành được kiểm tra trong GitHub Actions.
