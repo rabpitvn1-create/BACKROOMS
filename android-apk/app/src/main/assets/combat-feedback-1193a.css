@@ -51,3 +51,39 @@
 .snapshot[data-combat-focus="iris"]::after{background-image:url('avatars/Iris_avatar.jpg')}
 .snapshot[data-combat-focus="syvial"]::after{background-image:url('avatars/Syvial_avatar.jpg')}
 .snapshot[data-combat-focus="an_nhien"]::after{background-image:url('avatars/an_nhien_avatar.png')}
+
+/* COMBAT_LOG_FIXED_PANEL_R02: full height of GM slot, one continuous opaque surface. */
+body.poker-dice-open .game{display:flex!important;flex-direction:column;overflow:hidden!important}
+body.poker-dice-open .game>.topbar,body.poker-dice-open .game>.player-action-bar{flex:0 0 auto}
+body.poker-dice-open .game>.snapshot{height:clamp(120px,26dvh,225px);flex:0 1 auto;min-height:100px;margin:5px 10px!important}
+body.poker-dice-open .game>#pokerDiceModal{flex:0 0 auto;margin:0!important;padding:0 10px!important}
+body.poker-dice-open .game>.log{display:none!important}
+body.poker-dice-open .game>#combatFeedbackPanel{display:flex;flex:1 1 0;min-height:0;overflow:hidden;
+ width:calc(100% - 20px);max-width:680px;margin:5px auto 0!important;box-sizing:border-box}
+body.poker-dice-open .game>.player-action-bar{margin-top:0}
+body.poker-dice-open .player-action-bar .primary-action-row.combat-direct{display:grid!important}
+body.poker-dice-open .player-action-bar .primary-action{pointer-events:none;opacity:1!important}
+.combat-feedback-panel{background-color:#1b1b14!important;background-image:linear-gradient(145deg,rgba(9,11,9,.84),rgba(13,15,11,.92)),url('dice/level0-wallpaper.svg')!important;
+ background-size:auto,64px 96px!important;flex-direction:column;padding:12px 18px!important;font-family:system-ui,sans-serif!important}
+.combat-feedback-head{align-items:center;flex:0 0 auto;min-height:29px;padding:0 0 8px;border-bottom:1px solid #8b80526a}
+.combat-feedback-head h2{font-size:12px;letter-spacing:.08em;font-weight:800;margin:0;color:#f2e9c8}
+.combat-feedback-meta{max-width:60%;font-size:12px;font-weight:700;color:#e8d4a2;white-space:nowrap}
+.combat-feedback-entries{display:block;flex:1 1 auto;min-height:0;max-height:none;overflow-y:auto;
+ overscroll-behavior:contain;scrollbar-width:thin;-webkit-overflow-scrolling:touch;padding:8px 0}
+.combat-feedback-entry{background:none!important;border:0!important;padding:3px 0;
+ color:#e4e1d8;font-size:15px;line-height:1.55;overflow-wrap:anywhere;font-family:system-ui,sans-serif}
+.combat-feedback-entry--system{color:#e4cf92;font-weight:600}
+.combat-feedback-entry--entity{color:#ead3cd}
+.combat-feedback-entry--actor{color:#e0ede2}
+.combat-turn-indicator{display:none!important}
+.log .message.gm,.log .message.gm .text,.log .message.gm .gm-semantic{font-family:system-ui,sans-serif!important}
+.snapshot[data-combat-switching="true"]::before{content:"";position:absolute;top:50%;left:50%;
+ width:44px;height:44px;margin:-22px;z-index:9;border-radius:50%;
+ border:3px solid #d6ca9655;border-top-color:#f2e3ad;border-right-color:#a9cbb2;
+ box-shadow:0 0 0 8px #090b0cb3,0 0 18px #cbbb7490;pointer-events:none;
+ animation:combat-switch-ring .8s cubic-bezier(.42,0,.2,1) both}
+@keyframes combat-switch-ring{from{transform:rotate(0deg);opacity:0}15%{opacity:1}85%{opacity:1}to{transform:rotate(360deg);opacity:0}}
+@media(prefers-reduced-motion:reduce){.snapshot[data-combat-switching="true"]::before{animation:none;opacity:.9}}
+@media(max-height:680px){body.poker-dice-open .game>.snapshot{height:clamp(100px,21dvh,165px);min-height:80px}
+ body.poker-dice-open .poker-dice-sheet{padding-top:8px!important;padding-bottom:8px!important}
+ body.poker-dice-open .poker-die{min-height:50px!important;padding-bottom:18px!important}}

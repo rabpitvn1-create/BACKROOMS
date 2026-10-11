@@ -1968,7 +1968,7 @@ function selected(){const id=view&&view.dataset.characterId||'cao_minh';return m
 
 <style id="combatActionBarStyle">
 /* DIRECT_COMBAT_GATE_V1 */
-.primary-action-row.combat-direct{display:none!important}
+.primary-action-row.combat-direct{display:grid!important}
 </style>
 <script>
 (function(){
@@ -1986,10 +1986,10 @@ function selected(){const id=view&&view.dataset.characterId||'cao_minh';return m
     if(!row||!left||!middle||!right)return;
     var active=combatActive();
     row.classList.toggle('combat-direct',active);
-    row.hidden=active;
+    row.hidden=false;
     if(active){
-      left.disabled=true;middle.disabled=true;right.disabled=true;
-      return;
+      left.disabled=false;middle.disabled=false;right.disabled=false;
+      middle.type='button';return;
     }
     setButton(left,normalButtons.search);setButton(middle,normalButtons.execute);setButton(right,normalButtons.explore);
     middle.type='submit';
@@ -1999,6 +1999,10 @@ function selected(){const id=view&&view.dataset.characterId||'cao_minh';return m
   // Free-form and macro actions cannot bypass direct Poker Dice while an Entity combat is active.
   var form=byCombatId('form');
   if(form)form.addEventListener('submit',function(ev){if(combatActive()){ev.preventDefault();ev.stopImmediatePropagation();}},true);
+  var combatRow=byCombatId('primaryActionRow');
+  if(combatRow)combatRow.addEventListener('click',function(ev){
+    if(combatActive()){ev.preventDefault();ev.stopImmediatePropagation();}
+  },true);
   var actionInput=byCombatId('action');
   if(actionInput)actionInput.addEventListener('input',function(){if(combatActive())renderCombatActionBar();});
 

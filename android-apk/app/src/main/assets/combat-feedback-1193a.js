@@ -3,8 +3,8 @@
 (function(){
   'use strict';
   var seen=[],animationToken=0;
-  var combatLogEncounter='',combatLogRound=null,combatLogEntries=[],combatPanel=null,combatPanelMeta=null,combatPanelList=null;
-  var pendingPanelClear=false,turnIndicator=null,turnName=null,turnDetail=null;
+  var combatLogEncounter='',combatPanel=null,combatPanelMeta=null,combatPanelList=null;
+  var turnIndicator=null,turnName=null,turnDetail=null,lastPartyActor='Cao Minh';
 
   function activeCombat(){
     return typeof state!=='undefined'&&state&&state.combat&&state.combat.active===true?state.combat:null;
@@ -33,12 +33,9 @@
       combatPanel.hidden=true;
 
       var head=document.createElement('div');head.className='combat-feedback-head';
-      var titles=document.createElement('div');
-      var kicker=document.createElement('div');kicker.className='combat-feedback-kicker';kicker.textContent='COMBAT';
-      var title=document.createElement('h2');title.textContent='NHẬT KÝ CHIẾN ĐẤU';
-      titles.appendChild(kicker);titles.appendChild(title);
+      var title=document.createElement('h2');title.textContent='COMBAT LOG';
       combatPanelMeta=document.createElement('div');combatPanelMeta.id='combatFeedbackMeta';combatPanelMeta.className='combat-feedback-meta';
-      head.appendChild(titles);head.appendChild(combatPanelMeta);
+      head.appendChild(title);head.appendChild(combatPanelMeta);
       combatPanelList=document.createElement('div');combatPanelList.id='combatFeedbackEntries';combatPanelList.className='combat-feedback-entries';
       turnIndicator=document.createElement('div');
       turnIndicator.id='combatTurnIndicator';
@@ -67,49 +64,39 @@
     if(anchor.nextElementSibling!==combatPanel)anchor.insertAdjacentElement('afterend',combatPanel);
     return combatPanel;
   }
-  function renderCombatMeta(combat){
-    if(!combatPanelMeta)return;
-    var round=Math.max(1,Number(combat&&combat.round)||1);
-    var count=Math.max(1,Math.min(4,Number(combat&&combat.waveCount)||1));
-    var wave=Math.max(1,Math.min(count,Number(combat&&combat.waveNumber)||1));
-    combatPanelMeta.textContent='Đợt '+wave+'/'+count+' · Vòng '+round+' · log tạm thời';
+
+  function showNow(name){
+    lastPartyActor=String(name||'Cao Minh');
+    if(combatPanelMeta)combatPanelMeta.textContent='NOW : '+lastPartyActor;
   }
   function appendCombatLine(kind,text){
     text=String(text||'').trim();if(!text)return;
-    var panel=ensureCombatPanel();if(!panel||!combatPanelList)return;
+    if(!ensureCombatPanel()||!combatPanelList)return;
     var entry=document.createElement('div');entry.className='combat-feedback-entry combat-feedback-entry--'+kind;
-    entry.textContent=text;combatPanelList.appendChild(entry);combatLogEntries.push({kind:kind,text:text});
-    if(combatLogEntries.length>80){
-      combatLogEntries.shift();
-      if(combatPanelList.firstElementChild)combatPanelList.firstElementChild.remove();
-    }
+    entry.textContent=text;combatPanelList.appendChild(entry);
     combatPanelList.scrollTop=combatPanelList.scrollHeight;
   }
   function resetCombatPanel(){
-    combatLogEncounter='';combatLogRound=null;combatLogEntries=[];pendingPanelClear=false;
+    combatLogEncounter='';
     if(combatPanelList)combatPanelList.textContent='';
-    if(combatPanelMeta)combatPanelMeta.textContent='';
     if(combatPanel)combatPanel.hidden=true;
     if(turnIndicator)turnIndicator.hidden=true;
-    clearCombatFocus();
+    var snapshot=document.getElementById('snapshot');
+    if(snapshot&&snapshot.dataset)delete snapshot.dataset.combatSwitching;
+    clearCombatFocus();showNow('Cao Minh');
   }
   function beginCombatLog(combat){
     if(!combat||combat.active!==true)return;
     var encounter=String(combat.encounterId||'');if(!encounter)return;
-    var panel=ensureCombatPanel();if(!panel)return;
+    if(!ensureCombatPanel())return;
     if(combatLogEncounter!==encounter){
-      combatLogEncounter=encounter;combatLogRound=null;combatLogEntries=[];pendingPanelClear=false;
+      combatLogEncounter=encounter;seen=[];
       if(combatPanelList)combatPanelList.textContent='';
       if(turnIndicator)turnIndicator.hidden=true;
-      focusCombatActor('cao_minh');
-      appendCombatLine('system','Bắt đầu giao chiến · '+prettyEntity(combat.entityKey));
+      showNow('Cao Minh');focusCombatActor('cao_minh');
+      appendCombatLine('system','Bắt đầu giao chiến với '+prettyEntity(combat.entityName||combat.entityKey)+'.');
     }
-    panel.hidden=false;renderCombatMeta(combat);
-    var round=Math.max(1,Number(combat.round)||1);
-    if(combatLogRound!==round){
-      combatLogRound=round;
-      appendCombatLine('round','Vòng '+round);
-    }
+    combatPanel.hidden=false;
   }
   function combatStatusVisual(status){
     if(status==='Chảy máu')return {label:'CHẢY MÁU',key:'bleed'};
@@ -119,21 +106,23 @@
     if(status==='Mất phương hướng')return {label:'MẤT PHƯƠNG HƯỚNG',key:'disorient'};
     return null;
   }
+
   function appendPacketToCombatLog(packet){
-    var summary=String(packet&&packet.summary||'').trim();
-    if(summary)appendCombatLine('summary',summary);
-    var events=packet&&Array.isArray(packet.events)?packet.events:[];
-    events.forEach(function(e){
-      if(!e||(e.target!=='entity'&&e.target!=='actor'))return;
-      var text=String(e.text||'').trim();if(!text)return;
-      var actorPhase=e.phase==='entity'?'entity':'actor';
-      var source=actorPhase==='entity'?'ENTITY':'PARTY';
-      var target=e.target==='actor'?'PARTY':'ENTITY';
-      var parts=[source+' → '+target,text];
-      if(e.critical===true)parts.push('CRIT');
-      var status=combatStatusVisual(e.status);if(status)parts.push(status.label);
-      appendCombatLine(actorPhase,parts.join(' · '));
-    });
+    // Typed events are revealed per actor, not all at once.
+    if(Array.isArray(packet.turns)&&packet.turns.length)return;
+    (Array.isArray(packet.events)?packet.events:[]).forEach(appendDamageLine);
+  }
+  function appendDamageLine(e){
+    if(!e||e.target!=='entity')return;
+    var match=String(e.text||'').match(/^-([0-9]+) HP$/);
+    var damage=match?Number(match[1]):0;if(!damage)return;
+    var name=String(e.sourceName||lastPartyActor);
+    var skill=String(e.skill||'đánh thường');
+    var target=String(e.entityName||activeCombat()&&activeCombat().entityName||'Entity');
+    var hp=Number(e.remainingHp),max=Number(e.maxHp);
+    var suffix=e.remainingHp!=null&&e.maxHp!=null&&Number.isFinite(hp)&&max>0?' ['+hp+'/'+max+' HP]':'';
+    appendCombatLine('actor',name+' sử dụng '+(skill==='đánh thường'?'đánh thường':'['+skill+']')+
+      ' gây -'+damage+' HP lên '+target+suffix);
   }
   function setFeedbackBusy(value){
     window.__combatFeedbackBusy=!!value;
@@ -184,32 +173,42 @@
 
 
   // COMBAT_TURN_SPINNER_R01: timeline owned by Kotlin, never guessed from damage.
+
   function showTurnCue(cue){
-    if(!ensureCombatPanel()||!turnIndicator||!turnName||!turnDetail)return;
-    var wave=Math.max(1,Number(cue.waveNumber)||1);
-    var count=Math.max(1,Math.min(4,Number(cue.waveCount)||1));
+    if(!ensureCombatPanel()||!turnIndicator)return;
     var kind=cue.kind;
-    turnIndicator.hidden=false;
-    turnIndicator.dataset.kind=kind;
-    if(kind==='actor')focusCombatActor(cue.actorId);
-    else if(kind==='entity'||kind==='wave')focusCombatActor('entity');
-    if(kind==='actor')turnName.textContent=String(cue.actorName||'Đồng đội')+' · hành động';
-    else if(kind==='entity')turnName.textContent=String(cue.entityName||'Entity')+' · phản ứng';
-    else if(kind==='wave')turnName.textContent='ENTITY TIẾP THEO · '+String(cue.entityName||'Entity');
-    else turnName.textContent='Cả Party · hành động';
-    turnDetail.textContent='ĐỢT '+wave+'/'+count+' · '+(kind==='actor'?'PARTY':kind==='wave'?'THAY MỤC TIÊU':kind==='entity'?'ENTITY':'CẢ ĐỘI');
-    turnIndicator.classList.remove('combat-turn-indicator--loading');
-    void turnIndicator.offsetWidth;
-    turnIndicator.classList.add('combat-turn-indicator--loading');
-    if(kind==='wave')appendCombatLine('wave','Đợt '+wave+'/'+count+' · '+String(cue.entityName||'Entity')+' xuất hiện');
-    if(Array.isArray(cue.details)&&(kind==='actor'||kind==='entity'||kind==='party')){
-      var source=kind==='actor'?String(cue.actorName||'Đồng đội'):kind==='entity'?String(cue.entityName||'Entity'):'Party';
-      cue.details.forEach(function(line){
-        var value=String(line||'').trim();
-        if(!value||value.indexOf('PARTY ACTION ')===0)return;
-        var label=value.toLocaleLowerCase().indexOf(source.toLocaleLowerCase())===0?value:source+' · '+value;
-        appendCombatLine(kind==='actor'?'actor':kind==='entity'?'entity':'summary',label);
+    if(kind==='actor'){showNow(cue.actorName||'Cao Minh');focusCombatActor(cue.actorId);}
+    // Keep the last Party fighter in NOW while Entity counterattacks.
+    turnIndicator.hidden=true;turnIndicator.dataset.kind=kind;
+    if(turnName)turnName.textContent=kind==='actor'?String(cue.actorName||'Cao Minh'):String(cue.entityName||'Entity');
+    if(turnDetail)turnDetail.textContent='';
+    if(kind==='wave'){
+      appendCombatLine('system','Bắt đầu giao chiến với '+String(cue.entityName||'Entity')+'.');
+      return;
+    }
+    var details=Array.isArray(cue.details)?cue.details:[];
+    if(kind==='actor'){
+      var hasSupportSkill=details.some(function(v){return /Quăng Đại Cái Gì Đó/.test(String(v));});
+      details.forEach(function(d){
+        var line=String(d||'');
+        if(/(?:trượt|né đòn|không trúng|tránh được)/i.test(line))
+          appendCombatLine('actor',String(cue.actorName||'Đồng đội')+' tấn công Trượt '+String(cue.entityName||'Entity'));
+        else if(/Quăng Đại Cái Gì Đó/.test(line))
+          appendCombatLine('actor','An Nhiên sử dụng [Quăng Đại Cái Gì Đó] hỗ trợ cả nhóm');
+        else if(/An Nhiên thực hiện lệnh TẤN CÔNG theo vai trò hỗ trợ/.test(line)&&!hasSupportSkill)
+          appendCombatLine('actor','An Nhiên hỗ trợ cả nhóm');
       });
+    }else if(kind==='entity'){
+      var attack=details.find(function(v){return /phản công: Party chịu/.test(String(v));});
+      if(attack){
+        var hit=String(attack).match(/Party chịu -(\d+) HP \((\d+)\/(\d+)\)/);
+        var skill=details.find(function(v){return / proc:/.test(String(v));});
+        var action=skill?String(skill).split(' proc:')[0]:'đánh thường';
+        if(hit)appendCombatLine('entity',String(cue.entityName||'Entity')+' sử dụng '+
+          (action==='đánh thường'?'đánh thường':'['+action+']')+' gây -'+hit[1]+
+          ' HP lên cả nhóm ['+hit[2]+'/'+hit[3]+' HP]');
+      }else if(details.some(function(v){return /không xuyên|hụt đòn/.test(String(v));}))
+        appendCombatLine('entity',String(cue.entityName||'Entity')+' tấn công Trượt cả nhóm');
     }
   }
   function playTypedTurnTimeline(packet,token,anchors,slots){
@@ -220,7 +219,7 @@
     }).slice(0,12);
     if(!cues.length)return null;
     var reduced=typeof window.matchMedia==='function'&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var spinTime=reduced?90:600,clock=0,endTime=0,covered=0;
+    var spinTime=reduced?90:800,clock=0,endTime=0,covered=0;
     function damageAt(e,when){
       if(!e||(e.target!=='actor'&&e.target!=='entity'))return;
       var available=slots[e.target],lane=0;
@@ -230,6 +229,7 @@
       endTime=Math.max(endTime,delay+1800);
       setTimeout(function(){
         if(token!==animationToken)return;
+        appendDamageLine(e);
         window.backroomPlayCombatFeedback(e,anchors[e.target]);
       },delay);
     }
@@ -242,9 +242,16 @@
       var end=events.length;
       if(index+1<cues.length)end=Math.max(start,Math.min(events.length,cues[index+1].eventIndex));
       (function(c,at){
-        setTimeout(function(){if(token===animationToken)showTurnCue(c);},at);
         setTimeout(function(){
-          if(token===animationToken&&turnIndicator)turnIndicator.classList.remove('combat-turn-indicator--loading');
+          if(token!==animationToken)return;
+          var snapshot=document.getElementById('snapshot');
+          if(snapshot&&c.kind==='actor'&&snapshot.dataset.combatFocus!==c.actorId)snapshot.dataset.combatSwitching='true';
+          showTurnCue(c);
+        },at);
+        setTimeout(function(){
+          if(token!==animationToken)return;
+          var snapshot=document.getElementById('snapshot');
+          if(snapshot&&snapshot.dataset)delete snapshot.dataset.combatSwitching;
         },at+spinTime);
       })(cue,clock);
       var actionStart=clock+spinTime;
@@ -269,8 +276,11 @@
     var next=typeof state!=='undefined'&&state;
     var after=next&&next.combat,packet=rawPacket||(next&&next.combatFeedback);
 
-    if(after&&after.active===true)beginCombatLog(after);
-    else if(!packet)resetCombatPanel();
+    if(!after||after.active!==true){
+      ++animationToken;resetCombatPanel();setFeedbackBusy(false);
+      return result;
+    }
+    beginCombatLog(after);
 
     if(before&&after&&before.encounterId!==after.encounterId){++animationToken;setFeedbackBusy(false);}
     if(!before&&after&&after.active===true&&!packet){seen=[];++animationToken;setFeedbackBusy(false);}
@@ -281,10 +291,6 @@
     var activeEncounter=String(after&&after.encounterId||before&&before.encounterId||'');
     if(!encounter||encounter!==activeEncounter)return result;
 
-    if(!after&&before&&before.active===true){
-      beginCombatLog(before);
-      pendingPanelClear=true;
-    }
     appendPacketToCombatLog(packet);
 
     var token=++animationToken;
@@ -304,7 +310,7 @@
           if(token!==animationToken)return;
           setFeedbackBusy(false);
           if(activeCombat())focusCombatActor('cao_minh');
-          if(pendingPanelClear&&combatLogEncounter===encounter&&!activeCombat())resetCombatPanel();
+          showNow('Cao Minh');
         },typedMs);
         return;
       }
@@ -321,6 +327,7 @@
           available[slot]=delay+1800;lastDelay=Math.max(lastDelay,delay);
           setTimeout(function(){
             if(token!==animationToken)return;
+            appendDamageLine(e);
             window.backroomPlayCombatFeedback(e,anchors[e.target]);
           },delay);
         });
@@ -329,7 +336,7 @@
         if(token!==animationToken)return;
         setFeedbackBusy(false);
           if(activeCombat())focusCombatActor('cao_minh');
-        if(pendingPanelClear&&combatLogEncounter===encounter&&!activeCombat())resetCombatPanel();
+        showNow('Cao Minh');
       },lastDelay+1800);
     });
     return result;

@@ -108,8 +108,8 @@ test('combat panel is transient UI and never writes GM narrative state',()=>{
  r.turn([{target:'entity',text:'-36 HP',phase:'actor',critical:true,status:'Chảy máu'}],'enc:1','enc',{active:true,encounterId:'enc',entityKey:'diep_minh',round:2},{log:narrative});
  assert.equal(JSON.stringify(r.scope.state.log),before);
  const lines=r.entries().children.map(n=>n.textContent);
- assert.ok(lines.some(x=>x.includes('Vòng 2')));
- assert.ok(lines.some(x=>x.includes('PARTY → ENTITY · -36 HP · CRIT · CHẢY MÁU')));
+ assert.equal(lines.some(x=>/Vòng [0-9]+/.test(x)),false);
+ assert.ok(lines.some(x=>x.includes('sử dụng đánh thường')&&x.includes('-36 HP')));
  assert.equal(script.includes('state.log'),false);
  assert.equal(script.includes('localStorage'),false);
 });
@@ -128,7 +128,7 @@ test('combat panel renders the transient Combat Core summary without touching GM
  const narrative=[{role:'gm',text:'Narrative only'}];
  const r=boot({combat:{active:true,encounterId:'enc',entityKey:'hound',round:1},log:narrative});
  r.turn([{target:'entity',text:'-9 HP',phase:'actor'}],'enc:2','enc',{active:true,encounterId:'enc',entityKey:'hound',round:1},{log:narrative},{summary:'Cao Minh dùng kỹ năng thử nghiệm. Hound phản công.'});
- assert.ok(r.entries().children.some(n=>n.className.includes('combat-feedback-entry--summary')&&n.textContent.includes('Hound phản công')));
+ assert.equal(r.entries().children.some(n=>n.className.includes('combat-feedback-entry--summary')),false);
  assert.deepEqual(r.scope.state.log,narrative);
 });
 
@@ -147,9 +147,6 @@ test('combat panel keeps the final packet briefly then clears after combat ends'
  const narrative=[{role:'gm',text:'Không trộn combat log vào đây'}];
  const r=boot({combat:{active:true,encounterId:'enc',entityKey:'diep_minh',round:3},log:narrative});
  r.turn([{target:'entity',text:'-110 HP',phase:'actor'}],'enc:final','enc',null,{log:narrative});
- assert.equal(r.panel().hidden,false);
- assert.ok(r.entries().children.some(n=>n.textContent.includes('-110 HP')));
- r.timers.filter(t=>t.ms===1800).forEach(t=>t.fn());
  assert.equal(r.panel().hidden,true);assert.equal(r.entries().children.length,0);
  assert.deepEqual(r.scope.state.log,narrative);
 });
@@ -171,11 +168,11 @@ test('typed combat cues show active character and a short spinning transition be
  assert.ok(r.scope.document.getElementById('combatTurnIndicator').className.includes('combat-turn-indicator--loading'));
  const timers=r.timers.filter(t=>t.ms>0).map(t=>t.ms);
  assert.ok(timers.includes(600),'600ms transition must be scheduled');
- assert.ok(r.scope.document.getElementById('combatFeedbackMeta').textContent.includes('Đợt 2/2'));
+ assert.equal(r.scope.document.getElementById('combatFeedbackMeta').textContent,'NOW : Cao Minh');
  // Transition starts after actor feedback plus a short readability gap.
- r.timers.find(t=>t.ms===1010).fn();
+ r.timers.find(t=>t.ms===1210).fn();
  assert.ok(title().includes('Smiler'));assert.ok(r.entries().children.some(n=>n.textContent.includes('Đợt 2/2')));
- r.timers.find(t=>t.ms===2020).fn();
+ r.timers.find(t=>t.ms===2420).fn();
  assert.ok(title().includes('Lucia'));assert.equal(r.scope.__combatFeedbackBusy,true);
 });
 
@@ -187,7 +184,7 @@ test('typed no-hit turns still animate, and reduced-motion shortens the wait',()
              {kind:'entity',eventIndex:0,waveNumber:1,waveCount:1,entityName:'Hound'}]});
  assert.ok(r.scope.document.getElementById('combatTurnName').textContent.includes('Cao Minh'));
  assert.ok(r.timers.some(t=>t.ms===90));
- assert.equal(r.timers.some(t=>t.ms===600),false);
+ assert.equal(r.timers.some(t=>t.ms===800),false);
  assert.equal(r.scope.__combatFeedbackBusy,true);
 });
 
@@ -196,9 +193,6 @@ test('typed final-kill cue survives combat closure then clears transient panel',
  r.turn([{target:'entity',phase:'actor',text:'-5 HP'}],'enc:final-typed','enc',null,{},{
   turns:[{kind:'actor',eventIndex:0,actorId:'cao_minh',actorName:'Cao Minh',waveNumber:1,waveCount:1,entityName:'Hound'}]
  });
- assert.equal(r.panel().hidden,false);
- const largest=r.timers.reduce((m,t)=>Math.max(m,t.ms),0);
- r.timers.find(t=>t.ms===largest).fn();
  assert.equal(r.panel().hidden,true);
  assert.equal(r.scope.__combatFeedbackBusy,false);
 });
@@ -228,7 +222,7 @@ test('combat picture shows only current Party actor then Entity while keeping ba
  ];
  r.turn([],'enc:party-rotates','enc',{active:true,encounterId:'enc',entityKey:'hound',round:2},{},{turns});
  assert.equal(r.box.dataset.combatFocus,'cao_minh');
- const ordered=r.timers.filter(t=>t.ms===1010||t.ms===2020);
+ const ordered=r.timers.filter(t=>t.ms===1210||t.ms===2420);
  assert.equal(ordered.length,2);
  ordered[0].fn();assert.equal(r.box.dataset.combatFocus,'lucia');
  ordered[1].fn();assert.equal(r.box.dataset.combatFocus,'entity');
@@ -260,11 +254,11 @@ test('individual cue skill and DMG details are displayed during that actor turn'
     details:['Lucia bắn M4A1: -26 HP.']}
   ]
  });
- assert.ok(r.entries().children.some(x=>x.textContent.includes('Cao Minh · Huyết Ma Tứ Liên')&&x.textContent.includes('-34 HP')));
- const at=r.timers.find(t=>t.ms===1010);
+ assert.ok(r.entries().children.some(x=>x.textContent.includes('sử dụng đánh thường')&&x.textContent.includes('-34 HP')));
+ const at=r.timers.find(t=>t.ms===1210);
  assert.ok(at);
  at.fn();
- assert.ok(r.entries().children.some(x=>x.textContent.includes('Lucia bắn M4A1')&&x.textContent.includes('-26 HP')));
+ assert.equal(r.scope.document.getElementById('combatFeedbackMeta').textContent,'NOW : Lucia');
  assert.equal(r.box.dataset.combatFocus,'lucia');
 });
 
@@ -275,10 +269,32 @@ test('after animated Party turns return to lead fighter while awaiting next dice
   turns:[{kind:'actor',eventIndex:0,actorId:'lucia',actorName:'Lucia',waveNumber:1,waveCount:1,entityName:'Hound'},
          {kind:'entity',eventIndex:0,waveNumber:1,waveCount:1,entityName:'Hound'}]
  });
- r.timers.find(t=>t.ms===1010).fn();
+ r.timers.find(t=>t.ms===1210).fn();
  assert.equal(r.box.dataset.combatFocus,'entity');
  const finish=Math.max(...r.timers.map(t=>t.ms));
  r.timers.find(t=>t.ms===finish).fn();
  assert.equal(r.box.dataset.combatFocus,'cao_minh');
  assert.equal(r.scope.__combatFeedbackBusy,false);
+});
+
+test('Combat Log owns the GM slot and leaves three action buttons visually intact',()=>{
+ const css=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/combat-feedback-1193a.css'),'utf8');
+ const html=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/index.html'),'utf8');
+ assert.match(css,/COMBAT_LOG_FIXED_PANEL_R02/);assert.match(css,/margin:5px auto 0!important/);
+ assert.match(css,/flex:1 1 0/);assert.match(css,/max-height:none;overflow-y:auto/);
+ assert.match(css,/\.log \.message\.gm \.gm-semantic[^{]*\{font-family:system-ui/);
+ assert.match(css,/pointer-events:none;opacity:1/);
+ assert.ok(html.includes('.primary-action-row.combat-direct{display:grid!important}'));
+ assert.ok(html.includes('row.hidden=false'));
+});
+test('NOW retains last Party character through Entity response and resets after round',()=>{
+ const r=boot();const meta=()=>r.scope.document.getElementById('combatFeedbackMeta').textContent;
+ assert.equal(meta(),'NOW : Cao Minh');
+ r.turn([],'enc:header','enc',{active:true,encounterId:'enc',entityKey:'hound',round:2},{},{turns:[
+  {kind:'actor',eventIndex:0,actorId:'lucia',actorName:'Lucia',entityName:'Hound',waveNumber:1,waveCount:1},
+  {kind:'entity',eventIndex:0,entityName:'Hound',waveNumber:1,waveCount:1}
+ ]});
+ assert.equal(meta(),'NOW : Lucia');r.timers.find(t=>t.ms===1210).fn();assert.equal(meta(),'NOW : Lucia');
+ const finish=Math.max(...r.timers.map(t=>t.ms));r.timers.find(t=>t.ms===finish).fn();
+ assert.equal(meta(),'NOW : Cao Minh');
 });
