@@ -135,7 +135,10 @@ jobs:
           ! grep -q 'state.log' apk-check/assets/combat-feedback-1193a.js
           ! grep -q 'localStorage' apk-check/assets/combat-feedback-1193a.js
           ! grep -q 'modal.hidden=true' apk-check/assets/combat-feedback-1193a.js
-          grep -q 'CORE STATS' apk-check/assets/index.html
+          grep -q 'readCharacterProgression' apk-check/assets/index.html
+          grep -q 'LEVEL ' apk-check/assets/index.html
+          grep -q 'EXP ' apk-check/assets/index.html
+          ! grep -q 'Android.coreUpgrade' apk-check/assets/index.html
           grep -q 'DIRECT_COMBAT_GATE_V1' apk-check/assets/index.html
           grep -q 'ensureDirectCombatDice' apk-check/assets/index.html
           grep -q 'mountNearSnapshot();' apk-check/assets/index.html
