@@ -1,0 +1,10 @@
+Backroom 1.2.0.0.8 Debug
+
+- Android versionCode 81; versionName 1.2.0.0.8; applicationId com.rabpit.backroom.
+- Khắc phục lỗi Snapshot trống khi bắt đầu giao chiến hoặc vừa kết thúc chuỗi turn: Cao Minh được hiển thị khi bắt đầu trận, nhân vật/Entity vừa hành động vẫn xuất hiện cho đến khi có lượt tiếp theo.
+- Chỉ chuyển focus sang Entity khi ảnh overlay do Android cung cấp đã tải và hiển thị được. Trong lúc chờ ảnh, vẫn giữ chân dung nhân vật hiện tại, không để màn hình trống.
+- Đồng bộ lại chân dung Party sau khi Snapshot được dựng lại; bảo toàn căn chỉnh vị trí Entity khi chạy animation 3D Coverflow, trượt ngang và fade.
+- Bổ sung regression tests cho bắt đầu combat thiếu damage packet, Entity tải bất đồng bộ và ảnh chưa giải mã, Snapshot render lại, giữ focus qua các lượt.
+- Giữ chế độ Game Master tiên hiệp, xưng hô theo canon nhân vật và logic Combat Core từ v1.2.0.0.7.
+- Pipeline kiểm tra Node tests, Kotlin tests, build debug APK, chữ ký, zipalign, hợp đồng tài nguyên và bản APK tải về từ GitHub Release.
+- Đây là APK Debug. Không thêm migration hoặc cam kết tương thích save game phiên bản cũ.
