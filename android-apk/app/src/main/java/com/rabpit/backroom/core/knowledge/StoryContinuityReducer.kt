@@ -1,6 +1,7 @@
 package com.rabpit.backroom.core.knowledge
 
 import org.json.JSONArray
+import com.rabpit.backroom.core.LevelRouteRegistry
 import org.json.JSONObject
 import java.util.Locale
 
@@ -77,17 +78,19 @@ object StoryContinuityReducer {
   }
 
   private fun recordLevelChange(before: JSONObject, after: JSONObject, continuity: JSONObject, turn: Int, witnesses: JSONArray) {
-    val oldLevel = currentLevel(before)
-    val newLevel = currentLevel(after)
+    val oldLevel = LevelRouteRegistry.currentId(before)
+    val newLevel = LevelRouteRegistry.currentId(after)
     if (oldLevel == newLevel) return
+    val from = LevelRouteRegistry.node(oldLevel)?.location() ?: "Level $oldLevel"
+    val destination = LevelRouteRegistry.node(newLevel)?.location() ?: "Level $newLevel"
     appendUnique(continuity, "events", JSONObject()
       .put("id", "EVT.$turn.LEVEL.$oldLevel.$newLevel")
       .put("turn", turn).put("type", "level-change")
-      .put("fact", "Moved from Level $oldLevel to Level $newLevel."))
+      .put("fact", "Moved from $from to $destination."))
     val discoveryId = "DISC.LEVEL.$newLevel"
     appendUnique(continuity, "discoveries", JSONObject()
       .put("id", discoveryId).put("turn", turn).put("type", "level")
-      .put("fact", "The party reached Level $newLevel."))
+      .put("fact", "The party reached $destination."))
     recordKnowledge(continuity, discoveryId, turn, witnesses)
   }
 
@@ -239,12 +242,6 @@ object StoryContinuityReducer {
     val start = source.length() - max
     for (i in start until source.length()) out.put(source.opt(i))
     root.put(key, out)
-  }
-
-  private fun currentLevel(state: JSONObject): Int {
-    state.optJSONObject("level")?.let { return it.optInt("number", 0) }
-    state.optJSONObject("flags")?.optJSONObject("currentLevel")?.let { return it.optInt("number", 0) }
-    return 0
   }
 
   private fun changed(a: Any?, b: Any?): Boolean {
