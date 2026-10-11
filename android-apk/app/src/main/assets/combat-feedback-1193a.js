@@ -9,6 +9,16 @@
   function activeCombat(){
     return typeof state!=='undefined'&&state&&state.combat&&state.combat.active===true?state.combat:null;
   }
+  // One visual actor per action; the Entity overlay stays independently visible.
+  function focusCombatActor(actorId){
+    var snapshot=document.getElementById('snapshot');if(!snapshot)return;
+    var valid={cao_minh:true,lucia:true,iris:true,syvial:true,an_nhien:true,entity:true};
+    snapshot.dataset.combatFocus=valid[actorId]?actorId:'cao_minh';
+  }
+  function clearCombatFocus(){
+    var snapshot=document.getElementById('snapshot');
+    if(snapshot&&snapshot.dataset)delete snapshot.dataset.combatFocus;
+  }
   function prettyEntity(value){
     var raw=String(value||'Entity').replace(/_/g,' ').trim();
     return raw.replace(/\b\w/g,function(c){return c.toUpperCase();});
@@ -81,6 +91,7 @@
     if(combatPanelMeta)combatPanelMeta.textContent='';
     if(combatPanel)combatPanel.hidden=true;
     if(turnIndicator)turnIndicator.hidden=true;
+    clearCombatFocus();
   }
   function beginCombatLog(combat){
     if(!combat||combat.active!==true)return;
@@ -90,6 +101,7 @@
       combatLogEncounter=encounter;combatLogRound=null;combatLogEntries=[];pendingPanelClear=false;
       if(combatPanelList)combatPanelList.textContent='';
       if(turnIndicator)turnIndicator.hidden=true;
+      focusCombatActor('cao_minh');
       appendCombatLine('system','Bắt đầu giao chiến · '+prettyEntity(combat.entityKey));
     }
     panel.hidden=false;renderCombatMeta(combat);
@@ -179,6 +191,8 @@
     var kind=cue.kind;
     turnIndicator.hidden=false;
     turnIndicator.dataset.kind=kind;
+    if(kind==='actor')focusCombatActor(cue.actorId);
+    else if(kind==='entity'||kind==='wave')focusCombatActor('entity');
     if(kind==='actor')turnName.textContent=String(cue.actorName||'Đồng đội')+' · hành động';
     else if(kind==='entity')turnName.textContent=String(cue.entityName||'Entity')+' · phản ứng';
     else if(kind==='wave')turnName.textContent='ENTITY TIẾP THEO · '+String(cue.entityName||'Entity');
@@ -238,9 +252,13 @@
   window.backroomTurn=function(json){
     var before=typeof state!=='undefined'&&state&&state.combat;
     var anchors={entity:targetAnchor('entity'),actor:targetAnchor('actor')};
+    // persistPresentation() replaces the in-memory state with a fresh Core projection.
+    // Capture the transient packet before that replacement; never write it into save.
+    var rawPacket=null;
+    try{var incoming=JSON.parse(json);rawPacket=incoming&&incoming.combatFeedback;}catch(_){}
     var result=previousTurn.call(this,json);
     var next=typeof state!=='undefined'&&state;
-    var after=next&&next.combat,packet=next&&next.combatFeedback;
+    var after=next&&next.combat,packet=rawPacket||(next&&next.combatFeedback);
 
     if(after&&after.active===true)beginCombatLog(after);
     else if(!packet)resetCombatPanel();

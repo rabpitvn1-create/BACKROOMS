@@ -34,3 +34,20 @@
 .combat-feedback-entry--wave{border-left-color:#dfc173;color:#f1dfab;font-weight:700}
 @keyframes combat-turn-spin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.combat-turn-indicator--loading .combat-turn-spinner{animation:none;opacity:.8}}
+
+/* COMBAT_ACTOR_SINGLE_FOCUS_R01: keep one Party fighter visible per turn. */
+.snapshot[data-combat-focus] .snapshot-character,
+.snapshot[data-combat-focus] .snapshot-lucia{display:none!important}
+.snapshot[data-combat-focus="cao_minh"] .snapshot-character{display:block!important}
+.snapshot[data-combat-focus="lucia"] .snapshot-lucia{display:block!important;right:0!important;max-width:55%!important;height:97%!important}
+.snapshot[data-combat-focus="iris"]::after,
+.snapshot[data-combat-focus="syvial"]::after,
+.snapshot[data-combat-focus="an_nhien"]::after{
+ content:"";position:absolute;z-index:3;right:5%;bottom:4%;width:38%;height:67%;
+ border:2px solid #b5a16f;border-radius:12px;pointer-events:none;
+ background-size:cover;background-position:center top;background-repeat:no-repeat;
+ box-shadow:0 6px 24px #000b,0 0 15px #b5a16f44
+}
+.snapshot[data-combat-focus="iris"]::after{background-image:url('avatars/Iris_avatar.jpg')}
+.snapshot[data-combat-focus="syvial"]::after{background-image:url('avatars/Syvial_avatar.jpg')}
+.snapshot[data-combat-focus="an_nhien"]::after{background-image:url('avatars/an_nhien_avatar.png')}

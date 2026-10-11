@@ -5,7 +5,7 @@ const path=require('node:path');
 const vm=require('node:vm');
 const script=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/combat-feedback-1193a.js'),'utf8');
 
-function boot(initialState){
+function boot(initialState,options={}){
  const timers=[];
  function element(tag='div'){
   let text='';
@@ -37,7 +37,10 @@ function boot(initialState){
   setTimeout(fn,ms){timers.push({fn,ms});if(ms===0)fn()}
  };
  scope.window=scope;
- scope.backroomTurn=json=>{scope.state=JSON.parse(json)};
+ scope.backroomTurn=json=>{
+  scope.state=JSON.parse(json);
+  if(options.stripTransient)delete scope.state.combatFeedback;
+ };
  vm.runInNewContext(script,scope);
  return {
   root,box,dice,timers,scope,
@@ -198,4 +201,49 @@ test('typed final-kill cue survives combat closure then clears transient panel',
  r.timers.find(t=>t.ms===largest).fn();
  assert.equal(r.panel().hidden,true);
  assert.equal(r.scope.__combatFeedbackBusy,false);
+});
+
+
+test('Core re-projection cannot drop skill names and damage from transient combat packet',()=>{
+ const r=boot(undefined,{stripTransient:true});
+ const summary='Cao Minh dùng Huyết Ma Tứ Liên: 170% DMG = -34 HP. Lucia bắn M4A1: -26 HP.';
+ r.turn([{target:'entity',phase:'actor',actorId:'cao_minh',text:'-34 HP'}],
+  'enc:combat-details','enc',{active:true,encounterId:'enc',entityKey:'hound',round:2},
+  {},{summary,turns:[{kind:'actor',eventIndex:0,actorId:'cao_minh',actorName:'Cao Minh',waveNumber:1,waveCount:1,entityName:'Hound'}]});
+ assert.equal(r.scope.state.combatFeedback,undefined);
+ assert.ok(r.entries().children.some(n=>n.textContent.includes('Huyết Ma Tứ Liên')&&n.textContent.includes('-34 HP')));
+ assert.equal(r.scope.__combatFeedbackBusy,true);
+ const again=r.entries().children.length;
+ r.turn([{target:'entity',text:'-34 HP'}],'enc:combat-details','enc',{active:true,encounterId:'enc',entityKey:'hound',round:2},{},{summary});
+ assert.equal(r.entries().children.length,again);
+});
+
+test('combat picture shows only current Party actor then Entity while keeping background',()=>{
+ const r=boot();
+ assert.equal(r.box.dataset.combatFocus,'cao_minh');
+ const turns=[
+  {kind:'actor',eventIndex:0,actorId:'cao_minh',actorName:'Cao Minh',waveNumber:1,waveCount:1,entityName:'Hound'},
+  {kind:'actor',eventIndex:0,actorId:'lucia',actorName:'Lucia',waveNumber:1,waveCount:1,entityName:'Hound'},
+  {kind:'entity',eventIndex:0,waveNumber:1,waveCount:1,entityName:'Hound'}
+ ];
+ r.turn([],'enc:party-rotates','enc',{active:true,encounterId:'enc',entityKey:'hound',round:2},{},{turns});
+ assert.equal(r.box.dataset.combatFocus,'cao_minh');
+ const ordered=r.timers.filter(t=>t.ms===1010||t.ms===2020);
+ assert.equal(ordered.length,2);
+ ordered[0].fn();assert.equal(r.box.dataset.combatFocus,'lucia');
+ ordered[1].fn();assert.equal(r.box.dataset.combatFocus,'entity');
+ const last=Math.max(...r.timers.map(t=>t.ms));
+ r.timers.find(t=>t.ms===last).fn();
+ r.turn(undefined,'enc:stop','enc',null);
+ assert.equal(r.box.dataset.combatFocus,undefined);
+});
+
+test('snapshot style has distinct active-actor rules and existing local Party assets',()=>{
+ const css=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/combat-feedback-1193a.css'),'utf8');
+ assert.match(css,/COMBAT_ACTOR_SINGLE_FOCUS_R01/);
+ assert.match(css,/\.snapshot\[data-combat-focus="lucia"\] \.snapshot-lucia/);
+ assert.match(css,/\.snapshot\[data-combat-focus\] \.snapshot-character/);
+ for(const filename of ['avatars/Iris_avatar.jpg','avatars/Syvial_avatar.jpg','avatars/an_nhien_avatar.png']){
+  assert.ok(fs.existsSync(path.join(__dirname,'../app/src/main/assets',filename)),filename);
+ }
 });
