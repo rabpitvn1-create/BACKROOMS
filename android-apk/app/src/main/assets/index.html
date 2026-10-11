@@ -113,10 +113,13 @@ body.player-action-open,body.game-menu-open{overflow:hidden}
 </style>
 
 <link rel="stylesheet" href="combat-feedback-1193a.css">
-<style id="gmSemanticPlayBoldStyle">
-/* GM_SEMANTIC_PLAY_BOLD_R04 */
-@font-face{font-family:'Play';font-style:normal;font-weight:700;src:url('fonts/Play-Bold.ttf') format('truetype');font-display:swap}
-.gm-semantic{font-family:'Play',"Pretendard Std",system-ui,sans-serif;font-weight:700}
+<style id="gmSystemFontStyle">
+/* GM_SYSTEM_FONT_R01: keep all narrative text on the device font, including highlighted terms. */
+.log .message.gm,
+.log .message.gm .role,
+.log .message.gm .text,
+.log .message.gm .gm-semantic{font-family:system-ui!important}
+.log .message.gm .gm-semantic{font-weight:700}
 </style>
 <link rel="stylesheet" href="ui/ornate-frame-v1.css">
 
