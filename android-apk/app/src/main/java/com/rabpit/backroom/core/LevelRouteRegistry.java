@@ -36,11 +36,14 @@ public final class LevelRouteRegistry {
     }
 
     public String title() {
+      if (kind.equals("AREA") || kind.equals("SPECIAL") || name.equals("Level " + id)) return name;
       return "Level " + id + " – " + name;
     }
 
     public String location() {
-      return (kind.equals("AREA") || kind.equals("SPECIAL") ? name : "Level " + id + " / " + name);
+      if (kind.equals("AREA") || kind.equals("SPECIAL")) return name;
+      if (name.equals("Level " + id)) return name;
+      return "Level " + id + " / " + name;
     }
   }
 
@@ -180,6 +183,22 @@ public final class LevelRouteRegistry {
       Collections.unmodifiableList(new ArrayList<>(outgoing));
   }
 
+  /** Environmental traits backed by the current project world bible; unspecific photo references
+   * remain explicitly unspecified until a canon document supplies their mechanics. */
+  private static String environmentNotes(String id) {
+    switch (id) {
+      case "0.1": return "Zenith Station is a colossal damaged metal-and-glass structure with worn electronics and risky exposed wiring; its creators remain unknown";
+      case "0.2": return "Remodeled Mess begins with renovated white walls and dry red carpet, then its ceilings, walls and floors can physically collapse";
+      case "0.5": return "Aquaclaustrophobic Infirmary progresses from polluted flooded passages into a decayed hospital, with infection and electric-shock hazards";
+      case "0.7": return "The Reminiscence District has zones resembling different architectural eras; do not confirm actual time travel";
+      case "manila_room": return "Manila Room is a relatively stable, quiet beige room with wooden flooring, a central table and survivor notes, not a busy safe hub";
+      case "the_torment": return "The Torment is an eerie grayscale graveyard of concentric tomb rings, dead trees, fog, a fixed moon and a damaged hooded statue; its origin is unknown";
+      case "red_rooms": return "Red Rooms have dark-red wallpaper, reddish darkroom lighting, sticky carpet, mold and poor communications";
+      default:
+        return "Use documented parent-Level conditions. Exact physical traits, inhabitants and supplies of this extra named node are not yet independently established; do not invent confirmed lore or guaranteed exits";
+    }
+  }
+
   public static String gmRoutingContext(String currentId) {
     Node current = node(currentId);
     if (current == null) return "";
@@ -193,6 +212,7 @@ public final class LevelRouteRegistry {
       if (i > 0) result.append("; ");
       result.append(next.id).append(" (").append(next.name).append(")");
     }
+    result.append(". ENVIRONMENT CANON: ").append(environmentNotes(current.id)).append(". ");
     result.append(". State must use set_level{level:{id:\"EXACT_NODE_ID\"}} on actual movement, ")
       .append("not a freeform change to location alone. Never skip mandatory Level-0 nodes. ")
       .append("An available exit does not move the player: only the player's deliberate traversal does. ")
