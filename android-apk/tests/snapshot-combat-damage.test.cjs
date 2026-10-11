@@ -448,7 +448,7 @@ test('Snapshot reconstruction reattaches active dynamic Party portrait without s
  assert.equal(r.box.children.filter(n=>n.className==='combat-turn-avatar').length,1);
  assert.equal(r.box.children.find(n=>n.className==='combat-turn-avatar').src,'avatars/luctram_avatar.png');
  const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
- assert.match(java,/appendLuciaCombatOverlay\(\);if\(typeof window\.backroomSyncCombatPortrait==='function'\)window\.backroomSyncCombatPortrait\(\)/);
+ assert.match(java,/appendLuciaCombatOverlay\(\);if\(typeof window!=='undefined'&&typeof window\.backroomSyncCombatPortrait==='function'\)window\.backroomSyncCombatPortrait\(\)/);
 });
 
 test('during async Entity image rerender, the current actor remains visible until image returns',()=>{
