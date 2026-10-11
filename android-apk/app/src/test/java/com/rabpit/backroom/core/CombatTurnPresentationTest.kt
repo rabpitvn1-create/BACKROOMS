@@ -13,7 +13,7 @@ class CombatTurnPresentationTest {
     val result = CombatRuntime.resolve(started, "EXECUTE", "Cả Party cùng tấn công")
     val actors = result.turnCues.filter { it.kind == "actor" }
     assertEquals(listOf(IRIS_ID, LUCIA_ID, KAI_ID), actors.map { it.actorId })
-    assertEquals(listOf("Iris", "Lucia", "Cao Minh"), actors.map { it.actorName })
+    assertEquals(listOf(IRIS_ID, LUCIA_ID, KAI_ID).map { started.characters.getValue(it).name }, actors.map { it.actorName })
     assertEquals(1, actors.map { it.waveNumber }.distinct().size)
     assertTrue(actors.zipWithNext().all { it.first.eventIndex <= it.second.eventIndex })
     assertTrue(result.turnCues.all { it.eventIndex in 0..result.feedback.size })
