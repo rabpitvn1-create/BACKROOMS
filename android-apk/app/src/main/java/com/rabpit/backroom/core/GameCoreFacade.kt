@@ -261,29 +261,8 @@ class GameCoreFacade private constructor(
   }
 
 
-  fun coreStats(clientStateJson: String, characterId: String): String {
-    val state = loadCurrentState()
-    return PokerDiceCore.statsJson(state, characterId).toString()
-  }
-
-  fun processCoreUpgrade(clientStateJson: String, characterId: String, stat: String): String {
-    val client = JSONObject(clientStateJson)
-    val current = loadCurrentState()
-    if (CombatRuntime.active(current) != null) {
-      return response(false, clientSnapshot(client, current),
-        "combat_active", "core_upgrade_locked", "Không thể nâng Core khi combat đang hoạt động.")
-    }
-    return try {
-      val upgraded = PokerDiceCore.upgrade(current, characterId, stat)
-      repository.save(upgraded.state)
-      val projected = clientSnapshot(client, upgraded.state)
-      response(true, projected, null, "core_upgrade_committed",
-        upgraded.stat + " +" + "1 · -" + upgraded.cost + " Core · còn " + upgraded.coreRemaining + " Core.")
-    } catch (error: Exception) {
-      response(false, clientSnapshot(client, current),
-        error.message ?: "core_upgrade_failed", "core_upgrade_rejected")
-    }
-  }
+  fun characterProgression(characterId: String): String =
+    PokerDiceCore.statsJson(loadCurrentState(), characterId).toString()
 
   @Synchronized fun prepareCombatDice(clientStateJson: String, action: String): String {
     val client = JSONObject(clientStateJson)
@@ -492,8 +471,7 @@ class GameCoreFacade private constructor(
     var resolution = CombatRuntime.resolve(current, actionKind, action)
     if (!resolution.handled) return response(false, client, null, "combat_inactive")
     var next = resolution.state
-    val coreReward = if (resolution.entityDestroyed) PokerDiceCore.ENTITY_VICTORY_CORE else 0
-    if (coreReward > 0) next = PokerDiceCore.grantCore(next, coreReward)
+    // EXP rewards are awarded after verified Entity defeat by the progression integration (part 4).
     next = PokerDiceCore.clearDice(next)
     val time = TimeEngine.execute(next, TimeAdvanceCommand(
       commandId = "COMBAT:${next.turn.currentTurnId}:${System.nanoTime()}",
@@ -520,9 +498,7 @@ class GameCoreFacade private constructor(
     repository.save(next)
 
     val output = clientSnapshot(client, next)
-    val combatReply = if (coreReward > 0)
-      resolution.reply + " +" + coreReward + " Core."
-    else resolution.reply
+    val combatReply = resolution.reply
     output.put("combatFeedback", JSONObject().apply {
       put("id", "${activeCombat.encounterId}:${activeCombat.eventCounter + 1}")
       put("encounterId", activeCombat.encounterId)

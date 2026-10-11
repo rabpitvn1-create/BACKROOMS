@@ -253,6 +253,26 @@ object CombatRuntime {
     val turnCues = mutableListOf<TurnCue>()
     var resolvedState = state
     var currentActingId = KAI_ID
+
+    fun entityDodges(actorId: String, salt: Int): Boolean {
+      val attacker = CharacterStatEngine.effective(resolvedState, actorId)
+      val chance = CharacterStatCore.effectiveChanceBasisPoints(
+        ENTITY_EVASION_PERCENT * 100, attacker.resEvasionBasisPoints)
+      return roll(c.copy(eventCounter = c.eventCounter + salt), 10000) < chance
+    }
+
+    fun actorCritical(actorId: String, salt: Int): Boolean {
+      val attacker = CharacterStatEngine.effective(resolvedState, actorId)
+      val passive = when {
+        CharacterStatCore.isCaoMinh(actorId) ->
+          CaoMinhCombatPassive.CRITICAL_PER_TURN_PERCENT.toLong() * CaoMinhCombatPassive.stacks(resolvedState) * 100L
+        KAI_ID in PartyCombatHealth.actingMembers(resolvedState) ->
+          CaoMinhCombatPassive.ALLY_CRITICAL_BONUS_PERCENT.toLong() * 100L
+        else -> 0L
+      }
+      val chance = (attacker.criticalChanceBasisPoints.toLong() + passive).coerceIn(0L, 10000L).toInt()
+      return roll(c.copy(eventCounter = c.eventCounter + salt), 10000) < chance
+    }
     fun cue(kind: String, actorId: String = "", actorName: String = "") {
       val queue = waveKeys(resolvedState, c.entityKey)
       turnCues += TurnCue(kind, feedback.size, actorId, actorName,
@@ -460,18 +480,18 @@ object CombatRuntime {
           when (actorId) {
             KAI_ID -> {
         val roll = roll(c, 100)
-        val evasionRoll = roll(c.copy(eventCounter = c.eventCounter + 13), 100)
-        val entityEvaded = evasionRoll < (ENTITY_EVASION_PERCENT - CharacterStatEngine.effective(resolvedState, KAI_ID).resEvasionPercent).coerceAtLeast(0)
+        val entityEvaded = entityDodges(KAI_ID, 13)
         if (roll < hitChance && !entityEvaded) {
           val variance = 2 + roll(c.copy(eventCounter = c.eventCounter + 17), 7)
           val effective = CharacterStatEngine.effective(state, KAI_ID)
           val weaponDamage = CharacterStatEngine.weaponDamage(state, KAI_ID)
-          val critChance = CaoMinhCombatPassive.criticalChance(resolvedState, effective.criticalChancePercent)
-          val critical = roll(c.copy(eventCounter = c.eventCounter + 23), 100) < critChance
+          val critical = actorCritical(KAI_ID, 23)
           val rawBase = weaponDamage + variance + c.opening * 5 + max(0, c.momentum) * 2
           val base = CharacterStatCore.basicDamage(rawBase, effective.str, PokerDiceCore.attackPercent(resolvedState), CaoMinhCombatPassive.attackPercent(resolvedState))
           val normalized = if (critical) CharacterStatCore.criticalDamage(base) else base
-          val damage = min(max(1, normalized - profile.armor), max(1, profile.maxHp * 70 / 100))
+          // The ordinary hit limiter must not silently turn a 400% CRIT into a normal hit.
+          val damage = if (critical) max(1, normalized - profile.armor)
+            else min(max(1, normalized - profile.armor), max(1, profile.maxHp * 70 / 100))
           val hp = max(0, c.entityHp - damage)
           recordFeedback("entity", c.entityHp, hp, critical = critical)
           c = c.copy(
@@ -506,7 +526,8 @@ object CombatRuntime {
             if (intent == Intent.ATTACK && KAI_ID in PartyCombatHealth.actingMembers(resolvedState) && c.entityHp > 0 && !isGuiltyCrownTurn) {
               procSpecs.forEachIndexed { index, spec ->
                 if (c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 401 + index * 17), 100) < spec[1].toInt()) {
-                  val damage = CharacterStatCore.scaleByPercent(CharacterStatEngine.weaponDamage(resolvedState, KAI_ID), CaoMinhCombatPassive.attackPercent(resolvedState)) * spec[2].toInt() / 100
+                  val damage = CharacterStatCore.scaleByPercent(
+                    CharacterStatEngine.skillBaseDamage(resolvedState, KAI_ID), spec[2].toInt())
                   val hp = max(0, c.entityHp - damage)
                   recordFeedback("entity", c.entityHp, hp, status = feedbackStatus(spec[3]), skill = spec[0])
                   c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
@@ -520,7 +541,7 @@ object CombatRuntime {
               val weaponDamage = CharacterStatEngine.weaponDamage(resolvedState, KAI_ID)
         
               if (intent == Intent.ATTACK && !isGuiltyCrownTurn && roll(c.copy(eventCounter = c.eventCounter + 101), 100) < KAI_LAST_REQUIEM_CHANCE_PERCENT) {
-                val damage = weaponSkillDamage(weaponDamage, KAI_LAST_REQUIEM_DAMAGE_PERCENT, profile.armor)
+                val damage = weaponSkillDamage(CharacterStatEngine.skillBaseDamage(resolvedState, KAI_ID), KAI_LAST_REQUIEM_DAMAGE_PERCENT, profile.armor)
                 val hp = max(0, c.entityHp - damage)
                 recordFeedback("entity", c.entityHp, hp, status = FeedbackStatus.BLEED, skill = "Huyết Ma Tứ Liên")
                 c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 22))
@@ -530,7 +551,7 @@ object CombatRuntime {
               }
         
               if (intent == Intent.ATTACK && !isGuiltyCrownTurn && c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 113), 100) < KAI_SILENT_LULLABY_CHANCE_PERCENT) {
-                val damage = weaponSkillDamage(weaponDamage, KAI_SILENT_LULLABY_DAMAGE_PERCENT, profile.armor)
+                val damage = weaponSkillDamage(CharacterStatEngine.skillBaseDamage(resolvedState, KAI_ID), KAI_SILENT_LULLABY_DAMAGE_PERCENT, profile.armor)
                 val hp = max(0, c.entityHp - damage)
                 recordFeedback("entity", c.entityHp, hp, status = FeedbackStatus.STUN, skill = "Ma Tâm Trấn Hồn")
                 c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 18))
@@ -539,7 +560,7 @@ object CombatRuntime {
               }
         
               if (intent == Intent.ATTACK && !isGuiltyCrownTurn && c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 127), 100) < KAI_SALVATION_CHANCE_PERCENT) {
-                val damage = weaponSkillDamage(weaponDamage, KAI_SALVATION_DAMAGE_PERCENT, profile.armor)
+                val damage = weaponSkillDamage(CharacterStatEngine.skillBaseDamage(resolvedState, KAI_ID), KAI_SALVATION_DAMAGE_PERCENT, profile.armor)
                 val hp = max(0, c.entityHp - damage)
                 recordFeedback("entity", c.entityHp, hp, skill = "Huyết Ảnh Ma Độn")
                 c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 16))
@@ -561,13 +582,16 @@ object CombatRuntime {
           lucia?.presence == CharacterPresence.ACTIVE && (lucia.vitalState.currentHp > 0)
         if (jointOrder && luciaActive) {
           val luciaRoll = roll(c.copy(eventCounter = c.eventCounter + 83), 100)
-          val luciaEvasionRoll = roll(c.copy(eventCounter = c.eventCounter + 97), 100)
-          val luciaEntityEvaded = luciaEvasionRoll < ENTITY_EVASION_PERCENT
+          val luciaEntityEvaded = entityDodges(LUCIA_ID, 97)
           if (luciaRoll < hitChance && !luciaEntityEvaded) {
-            val luciaPotentialDamage = max(1, LUCIA_M4A1_COMBAT_DAMAGE - profile.armor)
+            val critical = actorCritical(LUCIA_ID, 101)
+            val scaled = CharacterStatCore.basicDamage(
+              LUCIA_M4A1_COMBAT_DAMAGE, CharacterStatEngine.effective(resolvedState, LUCIA_ID).str)
+            val raw = if (critical) CharacterStatCore.criticalDamage(scaled) else scaled
+            val luciaPotentialDamage = max(1, raw - profile.armor)
             val luciaDamage = min(c.entityHp, luciaPotentialDamage)
             val luciaHp = max(0, c.entityHp - luciaDamage)
-            recordFeedback("entity", c.entityHp, luciaHp, actorId = LUCIA_ID)
+            recordFeedback("entity", c.entityHp, luciaHp, critical = critical, actorId = LUCIA_ID)
             c = c.copy(
               entityHp = luciaHp,
               entityCondition = condition(luciaHp, c.entityMaxHp),
@@ -584,12 +608,15 @@ object CombatRuntime {
         val irisPartyAttack = activePartyCharacter(resolvedState, IRIS_ID)
         if (irisPartyAttack != null) {
           val irisHitRoll = roll(c.copy(eventCounter = c.eventCounter + 307), 100)
-          val irisEvasionRoll = roll(c.copy(eventCounter = c.eventCounter + 311), 100)
-          if (irisHitRoll < hitChance && irisEvasionRoll >= ENTITY_EVASION_PERCENT) {
-            val potential = companionSkillDamage(CharacterStatEngine.skillBaseDamage(resolvedState, IRIS_ID), 100, profile.armor)
+          val irisEntityEvaded = entityDodges(IRIS_ID, 311)
+          if (irisHitRoll < hitChance && !irisEntityEvaded) {
+            val critical = actorCritical(IRIS_ID, 349)
+            val basic = CharacterStatEngine.skillBaseDamage(resolvedState, IRIS_ID)
+            val potential = companionSkillDamage(
+              if (critical) CharacterStatCore.criticalDamage(basic) else basic, 100, profile.armor)
             val damage = min(c.entityHp, potential)
             val hp = max(0, c.entityHp - damage)
-            recordFeedback("entity", c.entityHp, hp, actorId = IRIS_ID)
+            recordFeedback("entity", c.entityHp, hp, critical = critical, actorId = IRIS_ID)
             c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 10))
             log += "Iris thực hiện lệnh TẤN CÔNG bằng Ivory & Ebony: -$damage HP (${c.entityHp}/${c.entityMaxHp})."
           } else {
@@ -658,12 +685,15 @@ object CombatRuntime {
         val syvialPartyAttack = activePartyCharacter(resolvedState, SYVIAL_ID)
         if (syvialPartyAttack != null) {
           val syvialHitRoll = roll(c.copy(eventCounter = c.eventCounter + 317), 100)
-          val syvialEvasionRoll = roll(c.copy(eventCounter = c.eventCounter + 331), 100)
-          if (syvialHitRoll < hitChance && syvialEvasionRoll >= ENTITY_EVASION_PERCENT) {
-            val potential = companionSkillDamage(CharacterStatEngine.skillBaseDamage(resolvedState, SYVIAL_ID), 100, profile.armor)
+          val syvialEntityEvaded = entityDodges(SYVIAL_ID, 331)
+          if (syvialHitRoll < hitChance && !syvialEntityEvaded) {
+            val critical = actorCritical(SYVIAL_ID, 353)
+            val basic = CharacterStatEngine.skillBaseDamage(resolvedState, SYVIAL_ID)
+            val potential = companionSkillDamage(
+              if (critical) CharacterStatCore.criticalDamage(basic) else basic, 100, profile.armor)
             val damage = min(c.entityHp, potential)
             val hp = max(0, c.entityHp - damage)
-            recordFeedback("entity", c.entityHp, hp, actorId = SYVIAL_ID)
+            recordFeedback("entity", c.entityHp, hp, critical = critical, actorId = SYVIAL_ID)
             c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 12))
             log += "Syvial thực hiện lệnh TẤN CÔNG bằng GodKiller: -$damage HP (${c.entityHp}/${c.entityMaxHp})."
           } else {
@@ -736,11 +766,14 @@ object CombatRuntime {
                 log += "${actor.name} hỗ trợ, không dùng vũ khí."
               } else {
                 val hitRoll = roll(c.copy(eventCounter = c.eventCounter + 409 + turnIndex * 19), 100)
-                if (hitRoll < hitChance) {
-                  val potential = companionSkillDamage(CharacterStatEngine.skillBaseDamage(resolvedState, actorId), 100, profile.armor)
+                if (hitRoll < hitChance && !entityDodges(actorId, 467 + turnIndex * 19)) {
+                  val critical = actorCritical(actorId, 491 + turnIndex * 19)
+                  val basic = CharacterStatEngine.skillBaseDamage(resolvedState, actorId)
+                  val potential = companionSkillDamage(
+                    if (critical) CharacterStatCore.criticalDamage(basic) else basic, 100, profile.armor)
                   val damage = min(c.entityHp, potential)
                   val hp = max(0, c.entityHp - damage)
-                  recordFeedback("entity", c.entityHp, hp, actorId = actorId)
+                  recordFeedback("entity", c.entityHp, hp, critical = critical, actorId = actorId)
                   c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
                   log += "${actor.name} tấn công: -$damage HP (${c.entityHp}/${c.entityMaxHp})."
                 } else {
@@ -824,7 +857,7 @@ object CombatRuntime {
         when (c.cover) { Cover.HARD -> 22; Cover.PARTIAL -> 10; Cover.EXPOSED -> 0 } + max(0, c.momentum) * 4 +
       PokerDiceCore.defenseBonus(state)
       val quickStepEvasion = if (quickStepTurns > 0) KAI_QUICK_STEP_EVASION_BONUS_PERCENT else 0
-      val enemyChance = (profile.aggression * 8 - defense + max(0, -c.momentum) * 7 - quickStepEvasion - companionEnemyAccuracyPenalty).coerceIn(0, 88)
+      val enemyChance = (profile.aggression * 8 - defense + max(0, -c.momentum) * 7 - companionEnemyAccuracyPenalty).coerceIn(0, 88)
       if (incomingRoll < enemyChance) {
         val lifeformSkill = rollLifeformSkill(c)
         val damage = if (c.entityKey == DIEP_MINH_KEY) {
@@ -840,7 +873,17 @@ object CombatRuntime {
         // remains Cao Minh's canonical HP for targeted/status-specific skills.
         // Commit pre-attack personal status ticks before sharing this hit.
         val beforeHit = CharacterStatEngine.setCurrentHp(resolvedState, KAI_ID, c.playerHp)
-        val sharedHit = PartyCombatHealth.applySharedDamage(beforeHit, damage, c.eventCounter)
+        val sharedHit = if (c.entityKey == DIEP_MINH_KEY) {
+          // Diệp Minh's percentage-based attack is a special ability, not a normal physical hit.
+          PartyCombatHealth.applySharedDamage(beforeHit, damage, c.eventCounter)
+        } else {
+          PartyCombatHealth.applyStatAdjustedDamage(
+            beforeHit, damage, c.eventCounter,
+            dodgeRoll = { index -> roll(c.copy(eventCounter = c.eventCounter + 601 + index * 41), 10000) },
+            criticalRoll = { index -> roll(c.copy(eventCounter = c.eventCounter + 619 + index * 41), 10000) },
+            leaderEvasionBonusPercent = quickStepEvasion
+          )
+        }
         resolvedState = sharedHit.state
         sharedHit.damageByMember.forEach { (memberId, loss) ->
           feedback += DamageFeedback("actor", loss, actorId = memberId, phase = "entity")
@@ -870,8 +913,12 @@ object CombatRuntime {
         val distribution = sharedHit.damageByMember.entries.joinToString("; ") { (id, loss) ->
           "${resolvedState.characters[id]?.name ?: id} -$loss"
         }
+        val dodged = sharedHit.dodgedIds.joinToString(", ") { resolvedState.characters[it]?.name ?: it }
+        val critical = sharedHit.criticalIds.joinToString(", ") { resolvedState.characters[it]?.name ?: it }
         log += "${c.entityName} phản công: Party chịu -${sharedHit.appliedDamage} HP " +
-          "($partyHp/$partyMaxHp). $distribution."
+          "($partyHp/$partyMaxHp). $distribution." +
+          (if (dodged.isNotEmpty()) " Né tránh: $dodged." else "") +
+          (if (critical.isNotEmpty()) " CRIT 400%: $critical." else "")
       } else {
         log += if (quickStepTurns > 0) {
           "Thiên Ma Bộ khiến ${c.entityName} hụt đòn; +${KAI_QUICK_STEP_EVASION_BONUS_PERCENT}% Evasion đang hoạt động."
@@ -995,8 +1042,9 @@ object CombatRuntime {
     val persisted = encode(state, c.copy(phase = Phase.RESOLVED, entityCondition = EntityCondition.DESTROYED))
     val withPassive = if (leaderPassive) afterActiveLeaderTurn(persisted) else persisted
     val instanceId = if (queue.size == 1) c.encounterId else "${c.encounterId}:wave:$index"
-    val loot = OfflineEntityLoot.award(withPassive, instanceId, c.seed)
-    val resultText = "$log ${c.entityName} đã bị tiêu diệt. ${loot.text}".trim()
+    val exp = EntityExpRewards.award(withPassive, instanceId, c.progressionRank)
+    val loot = OfflineEntityLoot.award(exp.state, instanceId, c.seed)
+    val resultText = "$log ${c.entityName} đã bị tiêu diệt. ${exp.text} ${loot.text}".trim()
     if (index + 1 == queue.size) {
       return Resolution(clearCombatOnly(loot.state), true, resultText, entityDestroyed = true, feedback = feedback)
     }

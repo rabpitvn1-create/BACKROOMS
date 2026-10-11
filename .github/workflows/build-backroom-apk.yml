@@ -107,6 +107,7 @@ jobs:
       - name: Verify packaged APK contracts
         run: |
           set -euo pipefail
+          trap 'echo "Packaged APK contract failed near line $LINENO: $BASH_COMMAND" >&2' ERR
           BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
           "$BUILD_TOOLS/apksigner" verify --verbose --print-certs Backroom-1.2.0.0.4.apk
           "$BUILD_TOOLS/aapt" dump badging Backroom-1.2.0.0.4.apk | grep -q "package: name='com.rabpit.backroom'"
@@ -135,7 +136,15 @@ jobs:
           ! grep -q 'state.log' apk-check/assets/combat-feedback-1193a.js
           ! grep -q 'localStorage' apk-check/assets/combat-feedback-1193a.js
           ! grep -q 'modal.hidden=true' apk-check/assets/combat-feedback-1193a.js
-          grep -q 'CORE STATS' apk-check/assets/index.html
+          grep -q 'CHARACTER_INFO_STATS_V2' apk-check/assets/index.html
+          grep -q 'characterLevelValue' apk-check/assets/index.html
+          grep -q 'characterExpFill' apk-check/assets/index.html
+          grep -q 'characterBaseStats' apk-check/assets/index.html
+          grep -q 'characterCombatStats' apk-check/assets/index.html
+          grep -q 'characterStatusEffects' apk-check/assets/index.html
+          grep -q 'combatStatus' apk-check/assets/index.html
+          ! grep -q 'renderCorePanel' apk-check/assets/index.html
+          ! grep -q 'Android.coreUpgrade' apk-check/assets/index.html
           grep -q 'DIRECT_COMBAT_GATE_V1' apk-check/assets/index.html
           grep -q 'ensureDirectCombatDice' apk-check/assets/index.html
           grep -q 'mountNearSnapshot();' apk-check/assets/index.html
@@ -154,7 +163,7 @@ jobs:
           grep -q 'renderCharacterStatusEquipment' apk-check/assets/index.html
           grep -q 'characterSkillsModal' apk-check/assets/index.html
           grep -q 'characterSkillsButton' apk-check/assets/index.html
-          grep -q 'GM_SEMANTIC_PLAY_BOLD_R04' apk-check/assets/index.html
+          grep -q 'function semanticTerms(before,after)' apk-check/assets/index.html
           grep -q 'gm-semantic' apk-check/assets/index.html
           ! grep -q 'SEMANTIC_COMPATIBILITY_TERMS=' apk-check/assets/index.html
           grep -q 'function semanticTerms(before,after)' apk-check/assets/index.html
@@ -234,7 +243,7 @@ jobs:
           unzip -l Backroom-1.2.0.0.4-verified.apk | grep -q 'assets/fonts/Play-Bold.ttf'
           unzip -p Backroom-1.2.0.0.4-verified.apk assets/index.html | grep -q 'characterSkillsModal'
           unzip -p Backroom-1.2.0.0.4-verified.apk assets/index.html | grep -q 'characterSkillsButton'
-          unzip -p Backroom-1.2.0.0.4-verified.apk assets/index.html | grep -q 'GM_SEMANTIC_PLAY_BOLD_R04'
+          unzip -p Backroom-1.2.0.0.4-verified.apk assets/index.html | grep -q 'function semanticTerms(before,after)'
           unzip -p Backroom-1.2.0.0.4-verified.apk assets/index.html | grep -q 'UI_119_BACKPORT_R01'
           unzip -p Backroom-1.2.0.0.4-verified.apk assets/index.html | grep -q 'playerActionModal'
           unzip -p Backroom-1.2.0.0.4-verified.apk assets/index.html | grep -q 'POKER_DICE_CORE_BACKPORT_R01'

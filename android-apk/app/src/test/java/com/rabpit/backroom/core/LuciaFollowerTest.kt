@@ -8,7 +8,7 @@ class LuciaFollowerTest {
     val state = CharacterProgressionCore.normalize(GameState.initial())
     val lucia = state.characters.getValue(LUCIA_ID)
     assertEquals(50, lucia.statProfile.baseMaxHp)
-    assertEquals(listOf(5,5,5,5), listOf(lucia.statProfile.str,lucia.statProfile.def,lucia.statProfile.skl,lucia.statProfile.vit))
+    assertEquals(listOf(5,5,5,5,5), listOf(lucia.statProfile.str,lucia.statProfile.dex,lucia.statProfile.agi,lucia.statProfile.vit,lucia.statProfile.eva))
     assertEquals(50, CharacterStatEngine.effective(state, LUCIA_ID).maxHp)
   }
 

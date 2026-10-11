@@ -104,7 +104,8 @@ data class CharacterState(
   val metadata: Map<String, String> = emptyMap(),
   // Appended to preserve all existing positional CharacterState constructor call sites.
   val statProfile: CharacterStatProfile = CharacterStatProfiles.forId(id),
-  val vitalState: CharacterVitalState = CharacterStatProfiles.initialVitals(id)
+  val vitalState: CharacterVitalState = CharacterStatProfiles.initialVitals(id),
+  val progression: CharacterProgression = CharacterProgression()
 )
 
 data class PartyState(val leaderId: String = KAI_ID, val memberIds: List<String> = listOf(KAI_ID), val maxMembers: Int = 4)

@@ -59,6 +59,7 @@ object GameStateCodec {
     put("id", value.id); put("name", value.name); putNullable("avatarRef", value.avatarRef)
     putNullable("healthState", value.healthState)
     put("statProfile", characterStatProfile(value.statProfile))
+    put("progression", characterProgression(value.progression))
     put("vitalState", characterVitalState(value.vitalState))
     put("injuries", JSONArray(value.injuries))
     put("presence", value.presence.name); put("inventoryId", value.inventoryId); put("equipmentId", value.equipmentId)
@@ -68,6 +69,7 @@ object GameStateCodec {
   private fun decodeCharacter(json: JSONObject): CharacterState {
     val id = json.optString("id")
     val profile = decodeCharacterStatProfile(json.optJSONObject("statProfile"), id)
+    val progression = decodeCharacterProgression(json.optJSONObject("progression"))
     val vital = decodeCharacterVitalState(json.optJSONObject("vitalState"), profile)
     return CharacterState(
     id = id, name = json.optString("name"),
@@ -80,17 +82,34 @@ object GameStateCodec {
     physiology = decodePhysiology(json.optJSONObject("physiology")),
     metadata = json.optJSONObject("metadata").stringsMap(),
     statProfile = profile,
+    progression = progression,
     vitalState = vital
   )
+  }
+
+  private fun characterProgression(value: CharacterProgression) = JSONObject()
+    .put("level", value.level).put("exp", value.exp)
+
+  private fun decodeCharacterProgression(json: JSONObject?): CharacterProgression {
+    require(json != null) { "character_progression_missing" }
+    val level = json.getInt("level")
+    val exp = json.getInt("exp")
+    require(level in 0..CharacterProgressionCore.MAX_LEVEL) { "character_level_invalid" }
+    require(exp >= 0 && (level == CharacterProgressionCore.MAX_LEVEL && exp == 0 ||
+      level < CharacterProgressionCore.MAX_LEVEL && exp < CharacterProgressionCore.expRequired(level))) {
+      "character_exp_invalid"
+    }
+    return CharacterProgression(level, exp)
   }
 
   private fun characterStatProfile(value: CharacterStatProfile) = JSONObject().apply {
     put("schema", CharacterProgressionCore.SCHEMA)
     put("baseMaxHp", CharacterProgressionCore.BASE_MAX_HP)
     put("STR", value.str)
-    put("DEF", value.def)
-    put("SKL", value.skl)
+    put("DEX", value.dex)
+    put("AGI", value.agi)
     put("VIT", value.vit)
+    put("EVA", value.eva)
   }
 
   private fun decodeCharacterStatProfile(json: JSONObject?, characterId: String): CharacterStatProfile {
@@ -99,9 +118,10 @@ object GameStateCodec {
     return fallback.copy(
       baseMaxHp = CharacterProgressionCore.BASE_MAX_HP,
       str = json.optInt("STR", CharacterProgressionCore.BASE_STAT).coerceIn(5, 999),
-      def = json.optInt("DEF", CharacterProgressionCore.BASE_STAT).coerceIn(5, 999),
-      skl = json.optInt("SKL", CharacterProgressionCore.BASE_STAT).coerceIn(5, 999),
+      dex = json.optInt("DEX", CharacterProgressionCore.BASE_STAT).coerceIn(5, 999),
+      agi = json.optInt("AGI", CharacterProgressionCore.BASE_STAT).coerceIn(5, 999),
       vit = json.optInt("VIT", CharacterProgressionCore.BASE_STAT).coerceIn(5, 999),
+      eva = json.optInt("EVA", CharacterProgressionCore.BASE_STAT).coerceIn(5, 999),
       schema = CharacterProgressionCore.SCHEMA
     )
   }

@@ -5,32 +5,40 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class CharacterStats1193aRegressionTest {
-  @Test fun deprecatedResourceKeyDoesNotGrantCurrentCore() {
-    val stale = GameState.initial().copy(metadata = mapOf("poker.core.count" to "999"))
-    assertEquals(0, CharacterProgressionCore.coreCount(stale))
+  @Test fun obsoleteCoreCurrencyIsRemovedDuringNormalization() {
+    val stale = GameState.initial().copy(metadata = mapOf(
+      "poker.core.count" to "999",
+      "characterProgression.coreResource" to "999"
+    ))
     val normalized = CharacterProgressionCore.normalize(stale)
-    assertEquals(0, CharacterProgressionCore.coreCount(normalized))
     assertFalse("poker.core.count" in normalized.metadata)
+    assertFalse("characterProgression.coreResource" in normalized.metadata)
+    assertEquals(CharacterProgression(), normalized.characters.getValue(KAI_ID).progression)
   }
 
   @Test fun baselineAndCaoPassiveMatch1193a() {
     val state = CharacterProgressionCore.normalize(GameState.initial())
     val base = state.characters.getValue(KAI_ID).statProfile
-    assertEquals(listOf(5,5,5,5), listOf(base.str, base.def, base.skl, base.vit))
+    assertEquals(listOf(5,5,5,5,5), listOf(base.str, base.dex, base.agi, base.vit, base.eva))
     val effective = CharacterStatCore.effective(state, KAI_ID)
-    assertEquals(listOf(6,6,6,6), listOf(effective.str, effective.def, effective.skl, effective.vit))
+    assertEquals(listOf(6,6,6,6,6), listOf(effective.str, effective.dex, effective.agi, effective.vit, effective.eva))
     assertEquals(55, effective.maxHp)
     assertEquals(50, state.characters.getValue(KAI_ID).vitalState.currentHp)
-    assertEquals(7, effective.criticalChancePercent)
-    assertEquals(2, effective.evasionPercent)
-    assertEquals(2, effective.resCriticalPercent)
-    assertEquals(2, effective.resEvasionPercent)
-    assertEquals(150, effective.criticalDamagePercent)
+    assertEquals(5, effective.criticalChancePercent)
+    assertEquals(6, effective.evasionPercent)
+    assertEquals(0, effective.resCriticalPercent)
+    assertEquals(0, effective.resEvasionPercent)
+    assertEquals(545, effective.criticalChanceBasisPoints)
+    assertEquals(550, effective.evasionBasisPoints)
+    assertEquals(25, effective.resCriticalBasisPoints)
+    assertEquals(25, effective.resEvasionBasisPoints)
+    assertEquals(1, effective.def)
+    assertEquals(400, effective.criticalDamagePercent)
     val capped = state.copy(characters = state.characters + (KAI_ID to state.characters.getValue(KAI_ID).copy(
-      statProfile = base.copy(str=999, def=999, skl=999, vit=999)
+      statProfile = base.copy(str=999, dex=999, agi=999, vit=999, eva=999)
     )))
     val cappedEffective = CharacterStatCore.effective(capped, KAI_ID)
-    assertEquals(listOf(999,999,999,999), listOf(cappedEffective.str,cappedEffective.def,cappedEffective.skl,cappedEffective.vit))
+    assertEquals(listOf(999,999,999,999,999), listOf(cappedEffective.str,cappedEffective.dex,cappedEffective.agi,cappedEffective.vit,cappedEffective.eva))
   }
 
   @Test fun legacySchemaResetsInsteadOfMappingAndPreservesHpSafely() {
@@ -43,47 +51,45 @@ class CharacterStats1193aRegressionTest {
     cao.put("vitalState", JSONObject().put("currentHp", 31).put("condition", "HURT"))
     val migrated = GameStateCodec.decode(encoded.toString())
     val p = migrated.characters.getValue(KAI_ID).statProfile
-    assertEquals(listOf(5,5,5,5), listOf(p.str,p.def,p.skl,p.vit))
+    assertEquals(listOf(5,5,5,5,5), listOf(p.str,p.dex,p.agi,p.vit,p.eva))
     assertEquals(31, migrated.characters.getValue(KAI_ID).vitalState.currentHp)
     val out = JSONObject(GameStateCodec.encode(migrated)).getJSONObject("characters").getJSONObject(KAI_ID).getJSONObject("statProfile")
-    assertEquals(setOf("schema","baseMaxHp","STR","DEF","SKL","VIT"), out.keys().asSequence().toSet())
+    assertEquals(setOf("schema","baseMaxHp","STR","DEX","AGI","VIT","EVA"), out.keys().asSequence().toSet())
   }
 
-  @Test fun costSharedCoreAndPerCharacterProgressionAreCanonical() {
-    assertEquals(listOf(1,1,2,2,3,3), (5..10).map(CharacterProgressionCore::upgradeCost))
-    var state = CharacterProgressionCore.grantCore(GameState.initial(), 10)
-    val other = state.characters.keys.firstOrNull { it != KAI_ID }
-    if (other != null) {
-      state = CharacterProgressionCore.upgrade(state, KAI_ID, "STR").state
-      assertEquals(6, CharacterProgressionCore.baseStat(state, KAI_ID, "STR"))
-      assertEquals(5, CharacterProgressionCore.baseStat(state, other, "STR"))
-      assertEquals(9, CharacterProgressionCore.coreCount(state))
+  @Test fun expThresholdsRiseAndLevelProgressionIsPerCharacter() {
+    assertEquals(listOf(10, 18, 26, 34), (0..3).map(CharacterProgressionCore::expRequired))
+    val state = CharacterProgressionCore.grantExp(GameState.initial(), KAI_ID, 10, kotlin.random.Random(3)).state
+    assertEquals(1, state.characters.getValue(KAI_ID).progression.level)
+    assertEquals(0, state.characters.getValue(KAI_ID).progression.exp)
+    state.characters.filterKeys { it != KAI_ID }.values.forEach {
+      assertEquals(0, it.progression.level)
     }
   }
 
-  @Test fun vitUpgradeRaisesMaxAndPreservesMissingHp() {
-    var state = CharacterProgressionCore.grantCore(GameState.initial(), 2)
-    state = CharacterStatEngine.setCurrentHp(state, KAI_ID, 40)
-    val beforeMax = CharacterStatEngine.effective(state, KAI_ID).maxHp
-    val result = CharacterProgressionCore.upgrade(state, KAI_ID, "VIT")
+  @Test fun levelUpRaisesMaxHpButDoesNotEraseMissingHp() {
+    val initial = CharacterStatEngine.setCurrentHp(GameState.initial(), KAI_ID, 40)
+    val beforeMax = CharacterStatEngine.effective(initial, KAI_ID).maxHp
+    val result = CharacterProgressionCore.grantExp(initial, KAI_ID, 10, kotlin.random.Random(5))
     val afterMax = CharacterStatEngine.effective(result.state, KAI_ID).maxHp
     assertTrue(afterMax > beforeMax)
-    assertEquals(40 + (afterMax - beforeMax), result.state.characters.getValue(KAI_ID).vitalState.currentHp)
+    assertEquals(40 + (afterMax - beforeMax),
+      result.state.characters.getValue(KAI_ID).vitalState.currentHp)
   }
 
   @Test fun derivedCapsAndDamageProjectionMatch1193a() {
-    assertEquals(50, CharacterStatCore.criticalChance(999))
+    assertEquals(30, CharacterStatCore.criticalChance(999))
     assertEquals(35, CharacterStatCore.evasion(999))
-    assertEquals(50, CharacterStatCore.criticalResistance(999))
-    assertEquals(50, CharacterStatCore.evasionResistance(999))
+    assertEquals(100, CharacterStatCore.criticalResistance(999))
+    assertEquals(100, CharacterStatCore.evasionResistance(999))
     assertEquals(30, CharacterStatCore.basicDamage(30, 5))
-    assertEquals(33, CharacterStatCore.basicDamage(30, 6))
+    assertEquals(31, CharacterStatCore.basicDamage(30, 6))
     assertEquals(77, CharacterStatCore.skillDamage(30, 170, 5, 150))
-    assertEquals(84, CharacterStatCore.skillDamage(30, 170, 6, 150))
-    assertEquals(20, CharacterStatCore.defendedIncomingDamage(20, 5))
-    assertEquals(18, CharacterStatCore.defendedIncomingDamage(20, 6))
-    assertEquals(10, CharacterStatCore.defendedIncomingDamage(20, 15))
-    assertEquals(150, CharacterStatCore.criticalDamage(100))
+    assertEquals(80, CharacterStatCore.skillDamage(30, 170, 6, 150))
+    assertEquals(20, CharacterStatCore.defendedIncomingDamage(20, 0))
+    assertEquals(16, CharacterStatCore.defendedIncomingDamage(20, 25))
+    assertEquals(10, CharacterStatCore.defendedIncomingDamage(20, 100))
+    assertEquals(400, CharacterStatCore.criticalDamage(100))
   }
 
   @Test fun equipmentCannotCreateSecondStatSchemaAndWeaponDamageStaysWeaponProperty() {
@@ -97,21 +103,19 @@ class CharacterStats1193aRegressionTest {
     assertEquals(EquipmentCatalog.definition(id!!)?.weapon?.dmg ?: 18, weapon)
   }
 
-  @Test fun antiForgeRestoresStatsCoreAndHp() {
-    var authoritative = CharacterProgressionCore.grantCore(GameState.initial(), 7)
+  @Test fun antiForgeRestoresStatsProgressionAndHp() {
+    var authoritative = CharacterProgressionCore.grantExp(GameState.initial(), KAI_ID, 10, kotlin.random.Random(3)).state
     authoritative = CharacterStatEngine.setCurrentHp(authoritative, KAI_ID, 33)
     val c = authoritative.characters.getValue(KAI_ID)
-    val forged = authoritative.copy(
-      characters = authoritative.characters + (KAI_ID to c.copy(
-        statProfile = c.statProfile.copy(str=999,def=999,skl=999,vit=999),
-        vitalState = c.vitalState.copy(currentHp=55)
-      )),
-      metadata = authoritative.metadata + (CharacterProgressionCore.CORE_KEY to "99999")
-    )
+    val forged = authoritative.copy(characters = authoritative.characters + (KAI_ID to c.copy(
+      statProfile = c.statProfile.copy(str = 999, dex = 999, agi = 999, vit = 999, eva = 999),
+      vitalState = c.vitalState.copy(currentHp = 200),
+      progression = CharacterProgression(99, 100)
+    )))
     val protected = CharacterProgressionCore.protectFromCandidate(authoritative, forged)
     assertEquals(c.statProfile, protected.characters.getValue(KAI_ID).statProfile)
+    assertEquals(c.progression, protected.characters.getValue(KAI_ID).progression)
     assertEquals(33, protected.characters.getValue(KAI_ID).vitalState.currentHp)
-    assertEquals(7, CharacterProgressionCore.coreCount(protected))
   }
 
   @Test fun daiDaoCombatStackIsSeparateAndResetsWithCombatMetadata() {

@@ -156,11 +156,12 @@ class CombatRuntimeTest {
     assertTrue(third.reply.contains("24/24 trảm trúng liên tiếp"))
     assertTrue(third.reply.contains("Accuracy 200%"))
     assertTrue(third.reply.contains("bỏ qua toàn bộ hiệu ứng né"))
-    assertTrue(third.reply.contains("mỗi trảm -40 HP"))
-    assertTrue(third.reply.contains("tổng -960 HP"))
+    val slashDamage = CharacterStatEngine.skillBaseDamage(attackState, KAI_ID) * 115 / 100
+    assertTrue(third.reply.contains("mỗi trảm -$slashDamage HP"))
+    assertTrue(third.reply.contains("tổng -${24 * slashDamage} HP"))
   }
 
-  @Test fun guiltyCrownOverrideAppliesExactTwentyFourTimesTenHpBeforeNormalRegen() {
+  @Test fun guiltyCrownOverrideAppliesTwentyFourStrScaledHitsBeforeNormalRegen() {
     var state = CombatRuntime.start(GameState.initial(), "diep_minh")
     state = state.copy(metadata = state.metadata + mapOf(
       "combat.entityHp" to "2000",
@@ -170,7 +171,8 @@ class CombatRuntimeTest {
 
     val third = CombatRuntime.resolve(state, "EXECUTE", "Cả Party cùng tấn công")
     assertTrue(third.handled)
-    assertTrue(third.reply.contains("tổng -960 HP"))
+    val slashDamage = CharacterStatEngine.skillBaseDamage(state, KAI_ID) * 115 / 100
+    assertTrue(third.reply.contains("tổng -${24 * slashDamage} HP"))
     assertTrue(third.reply.contains("Accuracy 200%"))
     assertTrue(third.reply.contains("bỏ qua toàn bộ hiệu ứng né"))
   }
