@@ -46,7 +46,7 @@ class CharacterStats1193aRegressionTest {
     assertEquals(listOf(5,5,5,5), listOf(p.str,p.def,p.skl,p.vit))
     assertEquals(31, migrated.characters.getValue(KAI_ID).vitalState.currentHp)
     val out = JSONObject(GameStateCodec.encode(migrated)).getJSONObject("characters").getJSONObject(KAI_ID).getJSONObject("statProfile")
-    assertEquals(setOf("schema","baseMaxHp","STR","DEF","SKL","VIT"), out.keys().asSequence().toSet())
+    assertEquals(setOf("schema","baseMaxHp","STR","DEX","AGI","VIT","EVA","DEF","SKL"), out.keys().asSequence().toSet())
   }
 
   @Test fun costSharedCoreAndPerCharacterProgressionAreCanonical() {
