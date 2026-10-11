@@ -81,15 +81,20 @@ jobs:
           script: bash .github/scripts/combat-emulator-level0.sh
       - name: Preserve emulator screenshot, progress and crash evidence
         if: always()
+        timeout-minutes: 2
         run: |
+          set +e
           mkdir -p emulator-evidence
           echo "Workflow: $GITHUB_WORKFLOW, run $GITHUB_RUN_ID, SHA $GITHUB_SHA" > emulator-evidence/workflow-context.txt
-          adb devices -l > emulator-evidence/adb-devices.txt 2>&1 || true
-          adb logcat -d -b crash > emulator-evidence/android-crash.txt 2>&1 || true
-          adb logcat -d -t 1500 > emulator-evidence/android-recent-logcat.txt 2>&1 || true
-          df -h > emulator-evidence/disk.txt 2>&1 || true
+          timeout -k 2s 8s adb devices -l > emulator-evidence/adb-devices.txt 2>&1
+          timeout -k 2s 10s adb logcat -d -b crash > emulator-evidence/android-crash.txt 2>&1
+          timeout -k 2s 10s adb logcat -d -t 1500 > emulator-evidence/android-recent-logcat.txt 2>&1
+          timeout -k 2s 5s df -h > emulator-evidence/disk.txt 2>&1
+          echo "evidence collection completed (ADB may have disconnected)"
+
       - uses: actions/upload-artifact@v4
         if: always()
+        timeout-minutes: 3
         with:
           name: android-emulator-combat-level0-evidence
           path: emulator-evidence/
