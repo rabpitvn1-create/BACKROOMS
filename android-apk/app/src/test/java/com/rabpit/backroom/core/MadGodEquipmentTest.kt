@@ -30,6 +30,20 @@ class MadGodEquipmentTest {
     assertEquals(true, weapon.getBoolean("permanent"))
   }
 
+  @Test fun madGodEquipmentAndUiProjectionSurviveCurrentSaveLoad() {
+    val base = CoreClientProjection.initialize(GameState.initial())
+    val (spawned, _) = MadGodCanon.spawn(base)
+    val saved = GameStateCodec.decode(GameStateCodec.encode(spawned))
+    val projected = CoreClientProjection.project(
+      org.json.JSONObject()
+        .put("equipment", org.json.JSONObject().put("weapon", org.json.JSONObject().put("id", "forged")))
+        .put("flags", org.json.JSONObject().put("madGod", org.json.JSONObject().put("spawned", false))),
+      saved)
+    assertEquals(MADGOD_SET_ID, projected.getJSONObject("equipment").getJSONObject("weapon").getString("id"))
+    assertTrue(projected.getJSONObject("flags").getJSONObject("madGod").getBoolean("spawned"))
+    assertFalse(saved.inventories.getValue(KAI_ID).items.containsKey(MADGOD_SET_ID))
+  }
+
   @Test fun spawnIsIdempotent() {
     val base = GameState.initial()
     val (first, added1) = MadGodCanon.spawn(base)
