@@ -1,0 +1,12 @@
+Backroom 1.2.0.0.3 Debug
+
+- Android versionCode 76, giữ nguyên applicationId com.rabpit.backroom để cập nhật bản hiện tại.
+- Combat Log là bảng đặc liền khối, nền tối hơn Poker Dice, cách cạnh dưới Dice đúng 5px.
+- Combat Log chiếm toàn bộ phần GM còn lại phía trên ba nút Tìm kiếm / Thực hiện / Khám phá. GM tạm ẩn; ba nút vẫn hiển thị như cũ nhưng không phản hồi khi combat đang diễn ra.
+- Header nhỏ: COMBAT LOG ở trái, NOW : <tên nhân vật Party> ở phải. NOW giữ nguyên tên Party cuối khi Entity phản công và trở về Cao Minh sau khi cả Party hoàn tất vòng.
+- Nhật ký hiển thị liên tục, không chia ô, không có dòng “Vòng 1/2”; nội dung dùng system font cùng cỡ GM, cuộn dọc bên trong và tự xuống dòng mới nhất. Giữ toàn bộ lịch sử trận hiện tại trong bộ nhớ giao diện.
+- Mỗi hành động ghi tên nhân vật, [tên kỹ năng] hoặc đánh thường, tổng sát thương và HP Entity còn lại. Entity phản công ghi sát thương lên cả nhóm và HP chung sau đòn đánh. Đòn hụt và hành động hỗ trợ có dòng riêng.
+- Khi gặp Entity mới, ghi “Bắt đầu giao chiến với …” và xóa lịch sử trận trước. Combat Log biến mất ngay cùng Poker Dice khi encounter kết thúc, trả GM về vị trí cũ.
+- Hiệu ứng vòng tròn đổi nhân vật trong Snapshot khoảng 0,8 giây, kèm fade nhẹ; tôn trọng giảm chuyển động. Các kỹ năng của một nhân vật hoàn thành trước khi chuyển người.
+- Dữ liệu tên kỹ năng, lượng HP bị trừ và HP còn lại được cung cấp trực tiếp từ Kotlin Combat Core, không suy đoán từ đoạn văn GM; không ghi nhật ký tạm vào save.
+- CI xác minh Node UI tests, Kotlin tests, APK packaging, chữ ký và file tải từ GitHub Release. Đây là Debug APK.
