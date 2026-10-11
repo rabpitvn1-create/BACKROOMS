@@ -121,7 +121,7 @@ test('Android render bridge hooks the final Snapshot and assets are loaded offli
   const html=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/index.html'),'utf8');
   assert.ok(native.includes('cinema.capture(state)'));
   assert.ok(native.includes('cinema.play(previousScene,state)'));
-  assert.ok(native.includes('if(window.backroomExplorationTransition)window.backroomExplorationTransition.cancel()'));
+  assert.ok(native.includes('if(typeof window!=='undefined'&&window.backroomExplorationTransition)window.backroomExplorationTransition.cancel()'));
   assert.ok(html.includes('href="exploration-transition.css"'));
   assert.ok(html.includes('src="exploration-transition.js"'));
 });
