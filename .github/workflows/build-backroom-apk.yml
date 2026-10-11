@@ -115,7 +115,7 @@ jobs:
           "$BUILD_TOOLS/aapt" dump badging Backroom-1.2.0.0.5.apk | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
           "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-1.2.0.0.5.apk
           rm -rf apk-check && mkdir apk-check
-          unzip -q Backroom-1.2.0.0.5.apk 'assets/index.html' 'assets/combat-feedback-1193a.*' 'assets/entity/*' 'assets/Kai_MadGod_snapshot_overlay.png' 'assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png' 'assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png' 'assets/avatars/MadGod.jpg' 'assets/hud/player_action_backrooms.png' 'assets/dice/*' 'assets/fonts/Play-Bold.ttf' 'assets/level_snapshots/*' -d apk-check
+          unzip -q Backroom-1.2.0.0.5.apk 'assets/index.html' 'assets/combat-feedback-1193a.*' 'assets/entity/*' 'assets/Kai_MadGod_snapshot_overlay.png' 'assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png' 'assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png' 'assets/avatars/MadGod.jpg' 'assets/avatars/CAO_MINH_AVATAR.jpg' 'assets/hud/player_action_backrooms.png' 'assets/dice/*' 'assets/fonts/Play-Bold.ttf' 'assets/level_snapshots/*' -d apk-check
           grep -q 'searchActionButton' apk-check/assets/index.html
           grep -q 'exploreActionButton' apk-check/assets/index.html
           grep -q 'UI_119_BACKPORT_R01' apk-check/assets/index.html
@@ -136,6 +136,8 @@ jobs:
           ! grep -q 'state.log' apk-check/assets/combat-feedback-1193a.js
           ! grep -q 'localStorage' apk-check/assets/combat-feedback-1193a.js
           ! grep -q 'modal.hidden=true' apk-check/assets/combat-feedback-1193a.js
+          test -s apk-check/assets/avatars/CAO_MINH_AVATAR.jpg
+          cmp android-apk/app/src/main/assets/avatars/CAO_MINH_AVATAR.jpg apk-check/assets/avatars/CAO_MINH_AVATAR.jpg
           grep -q 'CHARACTER_INFO_STATS_V2' apk-check/assets/index.html
           grep -q 'characterLevelValue' apk-check/assets/index.html
           grep -q 'characterExpFill' apk-check/assets/index.html
