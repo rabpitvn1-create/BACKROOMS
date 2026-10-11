@@ -16,6 +16,7 @@ import android.webkit.WebViewClient;
 import android.widget.TextView;
 import com.rabpit.backroom.core.GameCoreFacade;
 import com.rabpit.backroom.core.LevelRouteRegistry;
+import com.rabpit.backroom.core.ProviderResponseContract;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.io.BufferedReader;
@@ -653,7 +654,7 @@ public class MainActivity extends Activity {
     return body.toString();
   }
 
-  private String geminiMatrixRequest(String prompt, int modelIndex, int keyIndex, int maxOutputTokens, long deadlineMs) throws Exception {
+  private String geminiMatrixRequest(String prompt, int modelIndex, int keyIndex, int maxOutputTokens, long deadlineMs, boolean auditPacket) throws Exception {
     String[] keys = geminiKeys();
     String[] models = geminiModelChain();
     long remaining = deadlineMs - System.currentTimeMillis();
@@ -690,10 +691,15 @@ public class MainActivity extends Activity {
       }
     }
     if (responseText.length() == 0) throw new Exception("Gemini không trả nội dung.");
-    return responseText.toString();
+    String response = responseText.toString();
+    // A valid HTTP response is not a successful lane until the payload can be consumed.
+    JSONObject packet = parseModelJson(response);
+    if (auditPacket) ProviderResponseContract.requireAudit(packet);
+    else ProviderResponseContract.requireWriter(packet);
+    return response;
   }
 
-  private String geminiModelMatrixPolicy(String prompt, int[] modelOrder, int excludedKeyIndex, int maxOutputTokens, boolean rememberWorker, long totalBudgetMs) throws Exception {
+  private String geminiModelMatrixPolicy(String prompt, int[] modelOrder, int excludedKeyIndex, int maxOutputTokens, boolean rememberWorker, long totalBudgetMs, boolean auditPacket) throws Exception {
     String[] keys = geminiKeys();
     Exception last = null;
     long deadlineMs = System.currentTimeMillis() + totalBudgetMs;
@@ -729,7 +735,7 @@ public class MainActivity extends Activity {
           attempted[keyIndex] = true;
           long started = System.currentTimeMillis();
           try {
-            String result = geminiMatrixRequest(prompt, modelIndex, keyIndex, maxOutputTokens, deadlineMs);
+            String result = geminiMatrixRequest(prompt, modelIndex, keyIndex, maxOutputTokens, deadlineMs, auditPacket);
             noteGeminiMatrixSuccess(modelIndex, keyIndex, System.currentTimeMillis() - started);
             if (rememberWorker) { lastGeminiWorker = keyIndex; lastGeminiModel = modelIndex; }
             return result;
@@ -750,11 +756,11 @@ public class MainActivity extends Activity {
   }
 
   private String geminiText(String prompt) throws Exception {
-    return geminiModelMatrixPolicy(prompt, new int[] {0, 1, 2}, -1, 1800, true, 120_000L);
+    return geminiModelMatrixPolicy(prompt, new int[] {0, 1, 2}, -1, 1800, true, 120_000L, false);
   }
 
   private String geminiAuditText(String prompt, int excludedIndex) throws Exception {
-    return geminiModelMatrixPolicy(prompt, new int[] {2, 1}, excludedIndex, 650, false, 60_000L);
+    return geminiModelMatrixPolicy(prompt, new int[] {2, 1}, excludedIndex, 650, false, 60_000L, true);
   }
 
   private String openAiProviderText(String raw) throws Exception {
@@ -893,10 +899,15 @@ public class MainActivity extends Activity {
     return "Lỗi mạng/DNS: không thể kết nối tới máy chủ AI. Kiểm tra Wi-Fi/4G, Private DNS hoặc VPN.";
   }
 
+  private String verifiedWriterReply(String response) throws Exception {
+    ProviderResponseContract.requireWriter(parseModelJson(response));
+    return response;
+  }
+
   private String generateText(String prompt) throws Exception {
     emit("backroomProvider", "Gehihi");
     Exception gehihiFailure;
-    try { return gehihiText(prompt); } catch (Exception error) { gehihiFailure = error; }
+    try { return verifiedWriterReply(gehihiText(prompt)); } catch (Exception error) { gehihiFailure = error; }
 
     emit("backroomProvider", "Gemini 3.6 Flash");
     Exception geminiFailure;
@@ -908,10 +919,10 @@ public class MainActivity extends Activity {
 
     emit("backroomProvider", "Haku");
     Exception hakuFailure;
-    try { return hakuText(prompt); } catch (Exception error) { hakuFailure = error; }
+    try { return verifiedWriterReply(hakuText(prompt)); } catch (Exception error) { hakuFailure = error; }
 
     emit("backroomProvider", "SOL");
-    try { return solText(prompt); } catch (Exception solFailure) {
+    try { return verifiedWriterReply(solText(prompt)); } catch (Exception solFailure) {
       if (networkFailure(gehihiFailure) && networkFailure(geminiFailure) && networkFailure(hakuFailure) && networkFailure(solFailure))
         throw new Exception(networkFailureMessage());
       throw new Exception("Gehihi: " + providerFailureMessage(gehihiFailure)
@@ -1751,9 +1762,8 @@ public class MainActivity extends Activity {
       "Rule hợp lệ: canon_conflict, knowledge_leak, state_narrative_mismatch, unsupported_claim, character_voice, address_error, competence_suppression, ability_overreach. " +
       "JSON: {\"pass\":true,\"issues\":[]} hoặc {\"pass\":false,\"issues\":[{\"rule\":\"knowledge_leak\",\"severity\":\"hard\",\"claim\":\"...\",\"reason\":\"...\"}]}";
     JSONObject result = parseModelJson(geminiAuditText(prompt, excludedWorker));
-    JSONArray issues = result.optJSONArray("issues");
-    if (issues == null) issues = new JSONArray();
-    return new JSONObject().put("scope", scope).put("issues", issues);
+    ProviderResponseContract.requireAudit(result);
+    return new JSONObject().put("scope", scope).put("issues", result.getJSONArray("issues"));
   }
 
   private JSONArray hardAuditIssues(JSONArray audits) throws Exception {
