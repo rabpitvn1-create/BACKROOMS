@@ -67,6 +67,21 @@ class StoryContinuityReducerTest {
     assertTrue(continuity.getJSONArray("knowledge").length() <= 16)
   }
 
+  @Test fun recordsNamedAreaTransitionsInsideOneParentLevel() {
+    val before = JSONObject()
+      .put("turn", 4)
+      .put("level", JSONObject().put("id", "0.7").put("number", 0))
+      .put("party", JSONArray())
+      .put("flags", JSONObject())
+    val after = JSONObject(before.toString())
+      .put("turn", 5)
+      .put("level", JSONObject().put("id", "manila_room").put("number", 0))
+    val result = JSONObject(StoryContinuityReducer.apply(before.toString(), after.toString(), "bước vào phòng"))
+    val continuity = result.getJSONObject("flags").getJSONObject("storyContinuity")
+    assertTrue(allIds(continuity).contains("EVT.5.LEVEL.0.7.manila_room"))
+    assertTrue(allIds(continuity).contains("DISC.LEVEL.manila_room"))
+  }
+
   private fun allIds(continuity: JSONObject): Set<String> {
     val result = linkedSetOf<String>()
     listOf("events", "discoveries", "objectives", "unresolvedThreads", "knowledge", "relationshipChanges").forEach { key ->
