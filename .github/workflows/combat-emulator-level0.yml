@@ -12,12 +12,16 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: emulator-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   emulator-combat-progression:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 28
     env:
-      EMULATOR_MAX_MINUTES: "30"
+      EMULATOR_MAX_MINUTES: "12"
       GEHIHI_API_KEY: ${{ secrets.GEHIHI_API_KEY }}
       GEHIHI_BASE_URL: ${{ secrets.GEHIHI_BASE_URL || vars.GEHIHI_BASE_URL }}
       GEHIHI_MODEL: ${{ secrets.GEHIHI_MODEL || vars.GEHIHI_MODEL }}
@@ -45,6 +49,25 @@ jobs:
       - name: Build emulator debug APK and run targeted JVM tests
         working-directory: android-apk
         run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
+      - name: Enable and diagnose Linux KVM acceleration
+        run: |
+          set -euo pipefail
+          mkdir -p emulator-evidence
+          {
+            echo "Kernel $(uname -r)"
+            ls -l /dev/kvm || true
+            grep -E '(vmx|svm)' /proc/cpuinfo | head -n 1 || true
+          } | tee emulator-evidence/host-virtualization.txt
+          if [[ ! -e /dev/kvm ]]; then
+            echo "::error::This GitHub runner has no /dev/kvm. Android emulator cannot run with reliable hardware acceleration."
+            exit 1
+          fi
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          sudo chmod 666 /dev/kvm
+          test -r /dev/kvm && test -w /dev/kvm
+          echo "KVM permissions ready" | tee -a emulator-evidence/host-virtualization.txt
       - name: Boot Android emulator and exercise genuine game progression
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -53,14 +76,18 @@ jobs:
           arch: x86_64
           profile: pixel_6
           disable-animations: true
-          emulator-boot-timeout: 900
+          emulator-boot-timeout: 360
           emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           script: bash .github/scripts/combat-emulator-level0.sh
       - name: Preserve emulator screenshot, progress and crash evidence
         if: always()
         run: |
           mkdir -p emulator-evidence
-          adb logcat -d -b crash > emulator-evidence/android-crash.txt 2>/dev/null || true
+          echo "Workflow: $GITHUB_WORKFLOW, run $GITHUB_RUN_ID, SHA $GITHUB_SHA" > emulator-evidence/workflow-context.txt
+          adb devices -l > emulator-evidence/adb-devices.txt 2>&1 || true
+          adb logcat -d -b crash > emulator-evidence/android-crash.txt 2>&1 || true
+          adb logcat -d -t 1500 > emulator-evidence/android-recent-logcat.txt 2>&1 || true
+          df -h > emulator-evidence/disk.txt 2>&1 || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
