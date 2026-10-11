@@ -1,9 +1,0 @@
-Backroom 1.1.54
-
-- Integrates the Drive-backed Entity Snapshot overlay into the APK runtime.
-- Loads Entity sprite mappings dynamically from the existing Drive entity_manifest.json without requiring future APK rebuilds for sprite-only manifest updates.
-- Adds current Drive Entity assets for Level 1, Level 2, Level 3, Level 5, Jeff the Killer and Jane the Killer to the runtime overlay mapping.
-- Keeps Entity overlay state tied to the active encounter and clears it after defeat, escape or departure.
-- Wires Jane the Killer into the final Android runtime patch chain alongside the existing Jeff the Killer roaming encounter system.
-- Retains the current party, follower, Game State Core, Luna/Gemini provider configuration and save behavior.
-- Retains unit tests, APK signature checks, launcher verification and 16 KB native-alignment verification before publication.

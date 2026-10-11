@@ -27,8 +27,23 @@ Runtime chỉ dùng canonical Entity key trùng chính xác với tên file bỏ
 | `jane_the_killer` | `jane_the_killer.webp` |
 | `slenderman` | `slenderman.webp` |
 | `diep_minh` | `diep_minh.webp` |
+| `blackroot_sentinel` | `blackroot_sentinel.webp` |
+| `sinew_strider` | `sinew_strider.webp` |
+| `hollow_grasper` | `hollow_grasper.webp` |
 
 `diep_minh` là boss unique dùng roll xuất hiện độc lập 3%, không nằm trong shared roaming Entity pool.
+
+Ba Lifeform dùng **một roll độc lập 2% cho cả nhóm**. Khi roll thành công, runtime chọn đúng một trong ba key `blackroot_sentinel`, `sinew_strider`, `hollow_grasper`; chúng không nằm trong shared roaming pool.
+
+Base profile của cả ba bằng **Hound × 1.3**, làm tròn về stat nguyên: **104 HP / 20 ATK / 3 Armor / 10 Aggression** trước shared Entity durability và Level scaling. Ở Level 0, shared +30 HP khiến Max HP thực tế là **134**.
+
+Mỗi Entity có đúng 3 skill. Skill chỉ tăng %ATK và chỉ dùng hai hiệu ứng trạng thái **Bleed** và **Poison**. Ba proc dùng chung một roll độc quyền: **25% / 20% / 10%**, tương ứng **115% / 125% / 140% Basic Attack**. Đây là hệ số damage của đòn đánh thường sau phòng thủ, **không phải buff stat ATK**; skill 1 gây Bleed, skill 2 gây Poison, skill 3 gây cả Bleed + Poison. Bleed kéo dài 3 turn, gây 3% Max HP/turn; Poison kéo dài 3 turn, gây 2% Max HP/turn; tái kích hoạt làm mới thời lượng, không cộng stack song song.
+
+- **Blackroot Sentinel**: Thorned Hemorrhage; Blight Sap; Crimson Mycotoxin.
+- **Sinew Strider**: Tendon Ripper; Septic Thread; Venomous Flay.
+- **Hollow Grasper**: Hollow Laceration; Carrion Toxin; Necrotic Clutch.
+
+Overlay nguồn vẫn dùng ba asset Drive tương ứng `the_lifeform_bacteria_01.webp`, `the_lifeform_bacteria_02.webp`, `the_lifeform_bacteria_03.webp`.
 
 Snapshot đọc trực tiếp bằng đường dẫn:
 

@@ -1,8 +1,0 @@
-Backroom 1.1.28
-
-- Sửa hệ thống Inventory: mọi vật Kai thực sự nhặt, lấy, nhận, thu hồi hoặc cất vào Omnivault đều được ghi vào Inventory ngay trong lượt đó.
-- Vật cất trong Omnivault không còn biến mất khỏi Inventory; trạng thái sở hữu/lưu trữ được giữ lại.
-- Omnivault Scan/Copy giờ giữ đúng quantity khi Kai giữ bản sao, đồng thời không tính bản sao đã trao ngay cho người khác vào tài sản cuối lượt.
-- Almond Water đã tồn tại trong cảnh/state có thể được nhặt, cất, sao chép, trao hoặc sử dụng mà không bị bộ lọc loot xóa nhầm.
-- Vẫn giữ khóa chống sinh loot miễn phí: khi đang thực sự tìm tài nguyên mới, loot/water mới chỉ xuất hiện khi roll tương ứng cho phép.
-- Đồng bộ quy tắc Inventory giữa Game Master server và bản Android.

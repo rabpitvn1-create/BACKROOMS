@@ -25,7 +25,7 @@ class StoryContinuityReducerTest {
       .put("communication", JSONObject().put("blackBlood", "partial"))
       .put("entityRegistry", JSONObject().put("Hound", JSONObject().put("confirmed", true)))
 
-    val rawAction = "Kai says a very long private line that must not become the long-term memory store."
+    val rawAction = "Cao Minh says a very long private line that must not become the long-term memory store."
     val reduced = JSONObject(StoryContinuityReducer.apply(before.toString(), after.toString(), rawAction))
     val continuity = reduced.getJSONObject("flags").getJSONObject("storyContinuity")
 
@@ -42,7 +42,7 @@ class StoryContinuityReducerTest {
       .mapNotNull { knowledge.optJSONObject(it) }
       .first { it.optString("factId") == "DISC.ENTITY.HOUND" }
     val knownBy = houndKnowledge.getJSONArray("knownBy").toString()
-    assertTrue(knownBy.contains("kai"))
+    assertTrue(knownBy.contains("cao_minh"))
     assertTrue(knownBy.contains("iris"))
   }
 
