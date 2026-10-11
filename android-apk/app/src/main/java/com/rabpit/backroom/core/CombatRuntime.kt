@@ -38,6 +38,22 @@ object CombatRuntime {
   private const val LIFEFORM_BLEED_TURNS_KEY = "combat.lifeformBleedTurns"
   private const val LIFEFORM_POISON_TURNS_KEY = "combat.lifeformPoisonTurns"
   private const val LUCIA_M4A1_COMBAT_DAMAGE = 26
+  private const val LUCIA_BLEED_TURNS_KEY = "combat.luciaBleedTurns"
+  private const val LUCIA_BLEED_PERCENT_KEY = "combat.luciaBleedPercent"
+  private const val LUCIA_POISON_TURNS_KEY = "combat.luciaPoisonTurns"
+  private const val LUCIA_POISON_PERCENT_KEY = "combat.luciaPoisonPercent"
+  private const val LUCIA_ARMOR_BREAK_TURNS_KEY = "combat.luciaArmorBreakTurns"
+  private const val LUCIA_ARMOR_BREAK_PERCENT_KEY = "combat.luciaArmorBreakPercent"
+  private const val LUCIA_ULTIMATE_SHOTS = 60
+  private data class LuciaProc(val name: String, val chance: Int, val damageBonus: Int,
+                               val status: FeedbackStatus, val turns: Int, val value: Int)
+  private val luciaProcs = listOf(
+    LuciaProc("Toxic Burst", 52, 25, FeedbackStatus.POISON, 2, 3),
+    LuciaProc("Armor-Piercing Burst", 55, 20, FeedbackStatus.ARMOR, 2, 10),
+    LuciaProc("Concussive Burst", 46, 15, FeedbackStatus.STUN, 1, 0),
+    LuciaProc("Rending Burst", 49, 20, FeedbackStatus.BLEED, 2, 3),
+    LuciaProc("Corrosive Burst", 51, 20, FeedbackStatus.POISON, 2, 4)
+  )
   private const val CAO_MINH_FOUR_SLASH_CHANCE_PERCENT = 30
   private const val CAO_MINH_FOUR_SLASH_DAMAGE_PERCENT = 170
   private const val CAO_MINH_FOUR_SLASH_BLEED_TURNS = 3
@@ -302,6 +318,32 @@ object CombatRuntime {
     var bleedTurns = state.metadata[CAO_MINH_BLEED_TURNS_KEY]?.toIntOrNull()?.coerceIn(0, CAO_MINH_FOUR_SLASH_BLEED_TURNS) ?: 0
     var quickStepTurns = state.metadata[CAO_MINH_QUICK_STEP_TURNS_KEY]?.toIntOrNull()?.coerceIn(0, CAO_MINH_QUICK_STEP_DURATION_TURNS) ?: 0
     var entityStunnedThisTurn = false
+    var luciaBleedTurns = state.metadata[LUCIA_BLEED_TURNS_KEY]?.toIntOrNull()?.coerceIn(0, 2) ?: 0
+    var luciaBleedPercent = state.metadata[LUCIA_BLEED_PERCENT_KEY]?.toIntOrNull()?.coerceIn(0, 25) ?: 0
+    var luciaPoisonTurns = state.metadata[LUCIA_POISON_TURNS_KEY]?.toIntOrNull()?.coerceIn(0, 2) ?: 0
+    var luciaPoisonPercent = state.metadata[LUCIA_POISON_PERCENT_KEY]?.toIntOrNull()?.coerceIn(0, 25) ?: 0
+    var luciaArmorTurns = state.metadata[LUCIA_ARMOR_BREAK_TURNS_KEY]?.toIntOrNull()?.coerceIn(0, 2) ?: 0
+    var luciaArmorPercent = state.metadata[LUCIA_ARMOR_BREAK_PERCENT_KEY]?.toIntOrNull()?.coerceIn(0, 75) ?: 0
+    if (luciaArmorTurns > 0) profile = profile.copy(armor = profile.armor * (100 - luciaArmorPercent) / 100)
+    // Status damage begins on the following turn; each effect stays on the current Entity only.
+    for ((key, turns, percent, effect) in listOf(
+      listOf(LUCIA_BLEED_TURNS_KEY, luciaBleedTurns, luciaBleedPercent, "bleed"),
+      listOf(LUCIA_POISON_TURNS_KEY, luciaPoisonTurns, luciaPoisonPercent, "poison")
+    )) {
+      if (turns > 0 && percent > 0 && c.entityHp > 0) {
+        val damage = max(1, c.entityMaxHp * percent / 100)
+        val hp = max(0, c.entityHp - damage)
+        recordFeedback("entity", c.entityHp, hp, status = if (effect == "bleed") FeedbackStatus.BLEED else FeedbackStatus.POISON,
+          actorId = LUCIA_ID, skill = if (effect == "bleed") "Rending Burst" else "Toxic/Corrosive Burst")
+        c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
+        log += "Lucia M4A1 $effect: -${c.entityMaxHp.coerceAtMost(damage)} HP."
+      }
+      if (turns > 0) resolvedState = withCombatCounter(resolvedState, key, turns - 1)
+    }
+    luciaBleedTurns = (luciaBleedTurns - 1).coerceAtLeast(0)
+    luciaPoisonTurns = (luciaPoisonTurns - 1).coerceAtLeast(0)
+    if (luciaBleedTurns == 0) resolvedState = withCombatCounter(resolvedState, LUCIA_BLEED_PERCENT_KEY, 0)
+    if (luciaPoisonTurns == 0) resolvedState = withCombatCounter(resolvedState, LUCIA_POISON_PERCENT_KEY, 0)
     val procSpecs = listOf(
       listOf("Huyết Sát Kiếm Ấn", "50", "25", "bleed", "3"),
       listOf("Phá Giáp Ma Kiếm", "48", "20", "armorBreak", "10"),
@@ -379,6 +421,10 @@ object CombatRuntime {
       syvialDisorientTurns = 0
       companionEnemyAccuracyPenalty = 0
       entityStunnedThisTurn = false
+      luciaBleedTurns = 0
+      luciaPoisonTurns = 0
+      luciaArmorTurns = 0
+      luciaArmorPercent = 0
       canCounterAttack = false
       newWaveAwaitingAction = true
       return true
@@ -591,33 +637,74 @@ object CombatRuntime {
             }
             }
             LUCIA_ID -> {
-        // LUCIA_JOINT_ATTACK: process the follower when the player explicitly orders both attackers.
-        val jointOrder = true // PARTY_ACTIONS_V1: every ATTACK intent includes every ACTIVE Party member.
-        val lucia = resolvedState.characters[LUCIA_ID]
-        val luciaActive = LUCIA_ID in PartyCombatHealth.actingMembers(resolvedState) &&
-          lucia?.presence == CharacterPresence.ACTIVE && (lucia.vitalState.currentHp > 0)
-        if (jointOrder && luciaActive) {
-          val luciaRoll = roll(c.copy(eventCounter = c.eventCounter + 83), 100)
-          val luciaEntityEvaded = entityDodges(LUCIA_ID, 97)
-          if (luciaRoll < hitChance && !luciaEntityEvaded) {
-            val critical = actorCritical(LUCIA_ID, 101)
-            val scaled = CharacterStatCore.basicDamage(
-              LUCIA_M4A1_COMBAT_DAMAGE, CharacterStatEngine.effective(resolvedState, LUCIA_ID).str)
-            val raw = if (critical) CharacterStatCore.criticalDamage(scaled) else scaled
-            val luciaPotentialDamage = max(1, raw - profile.armor)
-            val luciaDamage = min(c.entityHp, luciaPotentialDamage)
-            val luciaHp = max(0, c.entityHp - luciaDamage)
-            recordFeedback("entity", c.entityHp, luciaHp, critical = critical, actorId = LUCIA_ID)
-            c = c.copy(
-              entityHp = luciaHp,
-              entityCondition = condition(luciaHp, c.entityMaxHp),
-              noise = min(100, c.noise + 22)
-            )
-            log += "Lucia \"Lục\" bắn hỗ trợ bằng M4A1: -$luciaDamage HP (${c.entityHp}/${c.entityMaxHp})."
-          } else {
-            log += "Lucia \"Lục\" cũng khai hỏa nhưng phát bắn không trúng mục tiêu."
-          }
-        }
+              // The finalized Poker Dice hand is authoritative. SSF/FSF are the
+              // only triggers of Lucia's sixty-shot Ultimate, as in BACKROOMsV2.
+              val lucia = activePartyCharacter(resolvedState, LUCIA_ID)
+              if (lucia != null && c.entityHp > 0) {
+                val baseDamage = CharacterStatCore.basicDamage(
+                  LUCIA_M4A1_COMBAT_DAMAGE, CharacterStatEngine.effective(resolvedState, LUCIA_ID).str)
+                val hand = PokerDiceCore.diceJson(state)?.takeIf { it.optBoolean("finalized", false) }
+                  ?.optString("hand").orEmpty()
+                val ultimate = PokerDiceCore.isFinalizedFor(state, action, c.encounterId) &&
+                  hand in setOf("SSF", "FSF")
+                if (ultimate) {
+                  val perShot = max(1, (baseDamage.toLong() * 115L + 50L) / 100L).toInt()
+                  val total = perShot.toLong() * LUCIA_ULTIMATE_SHOTS * if (hand == "FSF") 2L else 1L
+                  val damage = min(c.entityHp.toLong(), total).toInt()
+                  val hp = c.entityHp - damage
+                  recordFeedback("entity", c.entityHp, hp, actorId = LUCIA_ID, skill = "Too Young To Die")
+                  c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 30))
+                  log += "Too Young To Die [$hand]: Lucia bắn đúng 60 phát M4A1, mỗi phát 100% current DMG + 15% bonus, " +
+                    (if (hand == "FSF") "FSF x200%, " else "") + "-$damage HP; không roll Evasion/Critical lần nữa."
+                } else {
+                  val luciaRoll = roll(c.copy(eventCounter = c.eventCounter + 83), 100)
+                  if (luciaRoll < hitChance && !entityDodges(LUCIA_ID, 97)) {
+                    val critical = actorCritical(LUCIA_ID, 101)
+                    val jointDamage = CharacterStatCore.scaleByPercent(baseDamage, 150)
+                    val raw = if (critical) CharacterStatCore.criticalDamage(jointDamage) else jointDamage
+                    val damage = min(c.entityHp, max(1, raw - profile.armor))
+                    val hp = c.entityHp - damage
+                    recordFeedback("entity", c.entityHp, hp, critical = critical, actorId = LUCIA_ID, skill = "M4A1 Joint Attack")
+                    c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 22))
+                    log += "M4A1 Joint Attack: Lucia bắn hỗ trợ 150% DMG, -$damage HP."
+                    // Each Burst rolls independently after a successful ordinary attack;
+                    // Ultimate never procs Burst. Damage and status match Lucia R01.
+                    luciaProcs.forEachIndexed { index, proc ->
+                      if (c.entityHp <= 0) return@forEachIndexed
+                      if (roll(c.copy(eventCounter = c.eventCounter + 701 + index * 31), 100) >= proc.chance) return@forEachIndexed
+                      val bonus = max(1, (baseDamage.toLong() * proc.damageBonus + 50L).toInt() / 100)
+                      val after = max(0, c.entityHp - bonus)
+                      recordFeedback("entity", c.entityHp, after, status = proc.status, actorId = LUCIA_ID, skill = proc.name)
+                      c = c.copy(entityHp = after, entityCondition = condition(after, c.entityMaxHp))
+                      if (after > 0) when (proc.status) {
+                        FeedbackStatus.BLEED -> {
+                          luciaBleedTurns = if (luciaBleedTurns > 0) luciaBleedTurns else proc.turns
+                          luciaBleedPercent = (luciaBleedPercent + proc.value).coerceAtMost(25)
+                          resolvedState = withCombatCounter(resolvedState, LUCIA_BLEED_TURNS_KEY, luciaBleedTurns)
+                          resolvedState = withCombatCounter(resolvedState, LUCIA_BLEED_PERCENT_KEY, luciaBleedPercent)
+                        }
+                        FeedbackStatus.POISON -> {
+                          luciaPoisonTurns = if (luciaPoisonTurns > 0) luciaPoisonTurns else proc.turns
+                          luciaPoisonPercent = (luciaPoisonPercent + proc.value).coerceAtMost(25)
+                          resolvedState = withCombatCounter(resolvedState, LUCIA_POISON_TURNS_KEY, luciaPoisonTurns)
+                          resolvedState = withCombatCounter(resolvedState, LUCIA_POISON_PERCENT_KEY, luciaPoisonPercent)
+                        }
+                        FeedbackStatus.ARMOR -> {
+                          luciaArmorTurns = if (luciaArmorTurns > 0) luciaArmorTurns else proc.turns
+                          luciaArmorPercent = (luciaArmorPercent + proc.value).coerceAtMost(75)
+                          profile = profile.copy(armor = profile.armor * (100 - proc.value) / 100)
+                          resolvedState = withCombatCounter(resolvedState, LUCIA_ARMOR_BREAK_TURNS_KEY, luciaArmorTurns)
+                          resolvedState = withCombatCounter(resolvedState, LUCIA_ARMOR_BREAK_PERCENT_KEY, luciaArmorPercent)
+                        }
+                        FeedbackStatus.STUN -> entityStunnedThisTurn = true
+                        else -> Unit
+                      }
+                      log += "${proc.name}: +${proc.damageBonus}% DMG (-$bonus HP), " +
+                        "${proc.status.label} ${proc.turns} turn."
+                    }
+                  } else log += "Lucia bắn M4A1 nhưng mục tiêu né/trượt; Burst không kích hoạt."
+                }
+              }
             }
             IRIS_ID -> {
         // PARTY_FOLLOWER_BASE_ATTACKS_V1: all actors resolve inside this one ATTACK event.
@@ -1043,6 +1130,11 @@ object CombatRuntime {
       syvialDisorientTurns = max(0, syvialDisorientTurns - 1)
       resolvedState = withCombatCounter(resolvedState, SYVIAL_DISORIENT_TURNS_KEY, syvialDisorientTurns)
     }
+    if (luciaArmorTurns > 0) {
+      luciaArmorTurns = max(0, luciaArmorTurns - 1)
+      resolvedState = withCombatCounter(resolvedState, LUCIA_ARMOR_BREAK_TURNS_KEY, luciaArmorTurns)
+      if (luciaArmorTurns == 0) resolvedState = withCombatCounter(resolvedState, LUCIA_ARMOR_BREAK_PERCENT_KEY, 0)
+    }
 
     val entityHpBeforeRegen = c.entityHp
     val entityRegen = if (c.entityKey == DIEP_MINH_KEY) DIEP_MINH_REGEN_PER_TURN else ENTITY_REGEN_PER_TURN
@@ -1102,7 +1194,9 @@ object CombatRuntime {
   private fun clearTargetEffects(state: GameState): GameState {
     val targetKeys = setOf(
       CAO_MINH_BLEED_TURNS_KEY, IRIS_ANALYZED_TURNS_KEY, IRIS_ARMOR_BREAK_TURNS_KEY,
-      IRIS_EXPOSED_TURNS_KEY, SYVIAL_BLEED_TURNS_KEY, SYVIAL_DISORIENT_TURNS_KEY
+      IRIS_EXPOSED_TURNS_KEY, SYVIAL_BLEED_TURNS_KEY, SYVIAL_DISORIENT_TURNS_KEY,
+      LUCIA_BLEED_TURNS_KEY, LUCIA_BLEED_PERCENT_KEY, LUCIA_POISON_TURNS_KEY,
+      LUCIA_POISON_PERCENT_KEY, LUCIA_ARMOR_BREAK_TURNS_KEY, LUCIA_ARMOR_BREAK_PERCENT_KEY
     )
     return state.copy(metadata = state.metadata.filterKeys { key ->
       key !in targetKeys && !key.startsWith("combat.caoMinhProc")

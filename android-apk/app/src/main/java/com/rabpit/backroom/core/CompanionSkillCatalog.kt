@@ -79,7 +79,14 @@ object CompanionSkillCatalog {
 
   private val lucia = listOf(
     s("Trinh sát chiến trường", "PASSIVE", "Khi Lucia ở trong Party", "+5 điểm phần trăm vào generic loot roll hiện có."),
-    s("M4A1 Joint Attack", "COMMAND", "Khi Party chọn TẤN CÔNG", "Lucia có resolution bắn M4A1 riêng và vẫn chịu Entity Evasion gate.")
+    s("M4A1 Joint Attack", "COMMAND", "Party TẤN CÔNG, Lucia ACTIVE", "150% current M4A1 DMG, có Accuracy/Evasion gate."),
+    s("Toxic Burst", "AUTO", "52% độc lập sau phát M4A1 trúng; không ở lượt Ultimate", "+25% current DMG; Trúng độc 2 turn, 3% Max HP/turn."),
+    s("Armor-Piercing Burst", "AUTO", "55% độc lập sau phát M4A1 trúng; không ở lượt Ultimate", "+20% current DMG; Xuyên giáp 10% trong 2 turn."),
+    s("Concussive Burst", "AUTO", "46% độc lập sau phát M4A1 trúng; không ở lượt Ultimate", "+15% current DMG; Choáng chặn phản ứng hiện tại."),
+    s("Rending Burst", "AUTO", "49% độc lập sau phát M4A1 trúng; không ở lượt Ultimate", "+20% current DMG; Chảy máu 2 turn, 3% Max HP/turn."),
+    s("Corrosive Burst", "AUTO", "51% độc lập sau phát M4A1 trúng; không ở lượt Ultimate", "+20% current DMG; Trúng độc 2 turn, 4% Max HP/turn."),
+    s("Too Young To Die", "ULTIMATE", "Poker Dice SSF hoặc FSF khi Lucia ACTIVE và Party TẤN CÔNG",
+      "Đúng 60 phát M4A1; mỗi phát 100% current DMG +15% bonus; FSF x200%. Bỏ qua Evasion và Critical phụ.")
   )
 
   fun forCharacter(characterId: String): List<CharacterSkillDefinition> = when (characterId) {

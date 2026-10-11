@@ -4,6 +4,14 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class LuciaFollowerTest {
+  @Test fun luciaCatalogMatchesFiveIndependentV2BurstsAndUltimate() {
+    val skills = CompanionSkillCatalog.forCharacter(LUCIA_ID)
+    assertEquals(8, skills.size)
+    assertEquals(listOf("Toxic Burst", "Armor-Piercing Burst", "Concussive Burst", "Rending Burst",
+      "Corrosive Burst"), skills.filter { it.kind == "AUTO" }.map { it.name })
+    assertEquals("Too Young To Die", skills.single { it.kind == "ULTIMATE" }.name)
+  }
+
   @Test fun luciaUsesCanonical1193aBaseStats() {
     val state = CharacterProgressionCore.normalize(GameState.initial())
     val lucia = state.characters.getValue(LUCIA_ID)
