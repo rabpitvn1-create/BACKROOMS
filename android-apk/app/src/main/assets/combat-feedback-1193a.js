@@ -11,6 +11,7 @@
   }
   // Combat Core owns the sequence. Only its current cue supplies a visible portrait.
   // Never persist focus/animation state into GameState or the GM narrative.
+  var pendingCombatEntity=false;
   var knownPortraits={
     iris:'avatars/Iris_avatar.jpg',
     syvial:'avatars/Syvial_avatar.jpg',
@@ -35,10 +36,34 @@
       if(/(?:^|\s)combat-turn-(?:exit|avatar)(?:\s|$)/.test(String(el.className||'')))el.remove();
     });
   }
+  function ensureActiveCombatAvatar(snapshot,actorId){
+    if(actorId==='none'||actorId==='entity'||actorId==='cao_minh'||actorId==='lucia'||
+       Object.prototype.hasOwnProperty.call(knownPortraits,actorId))return;
+    if(snapshot.querySelector('.combat-turn-avatar'))return;
+    var source=combatPortraitSource(actorId,snapshot);
+    if(!source)return;
+    var portrait=document.createElement('img');
+    portrait.className='combat-turn-avatar';portrait.src=source;portrait.alt='';
+    portrait.setAttribute('aria-hidden','true');
+    snapshot.appendChild(portrait);
+  }
+  function entityPortraitReady(snapshot){
+    var image=snapshot.querySelector('.snapshot-entity');
+    // Android mounts <img> before its file URL finishes decoding. Keep the
+    // previous participant visible until appendEntityOverlay's onload fires.
+    return !!(image&&(!image.style||image.style.opacity!=='0'));
+  }
   function focusCombatActor(actorId){
     var snapshot=document.getElementById('snapshot');if(!snapshot)return;
     var next=String(actorId||'none'),prior=String(snapshot.dataset.combatFocus||'');
-    if(next===prior)return;
+    // Entity images arrive asynchronously from the Android bridge. Keep the
+    // previous fighter visible until the current encounter portrait is mounted.
+    if(next==='entity'&&!entityPortraitReady(snapshot)){
+      pendingCombatEntity=true;
+      return;
+    }
+    pendingCombatEntity=false;
+    if(next===prior){ensureActiveCombatAvatar(snapshot,next);return;}
     removeCombatPortraits(snapshot);
     var reduced=typeof window.matchMedia==='function'&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if(prior&&prior!=='none'){
@@ -52,7 +77,7 @@
           prior==='cao_minh'?snapshot.querySelector('.snapshot-character'):
           prior==='lucia'?snapshot.querySelector('.snapshot-lucia'):null;
         if(priorImage&&priorImage.style){
-          ['left','right','bottom','height','width','maxWidth','objectPosition'].forEach(function(key){
+          ['left','right','bottom','height','width','maxWidth','objectPosition','transform','transformOrigin'].forEach(function(key){
             if(priorImage.style[key])departing.style[key]=priorImage.style[key];
           });
         }
@@ -64,18 +89,25 @@
     }
     snapshot.dataset.combatFocus=next;
     snapshot.dataset.combatCycle=String(1-Number(snapshot.dataset.combatCycle||'0'));
-    if(next!=='none'&&next!=='entity'&&next!=='cao_minh'&&next!=='lucia'&&
-       !Object.prototype.hasOwnProperty.call(knownPortraits,next)){
-      var source=combatPortraitSource(next,snapshot);
-      if(source){
-        var portrait=document.createElement('img');
-        portrait.className='combat-turn-avatar';portrait.src=source;portrait.alt='';
-        portrait.setAttribute('aria-hidden','true');
-        snapshot.appendChild(portrait);
-      }
-    }
+    ensureActiveCombatAvatar(snapshot,next);
   }
+  // The Snapshot renderer replaces its children on every render, including
+  // async Entity overlay delivery. Reattach actor portraits after that render.
+  window.backroomSyncCombatPortrait=function(){
+    var snapshot=document.getElementById('snapshot');
+    if(!snapshot||!activeCombat())return;
+    if(pendingCombatEntity&&entityPortraitReady(snapshot)){
+      focusCombatActor('entity');return;
+    }
+    if(snapshot.dataset.combatFocus==='entity'&&!entityPortraitReady(snapshot)){
+      focusCombatActor('cao_minh');
+      pendingCombatEntity=true;
+      return;
+    }
+    ensureActiveCombatAvatar(snapshot,String(snapshot.dataset.combatFocus||''));
+  };
   function clearCombatFocus(){
+    pendingCombatEntity=false;
     var snapshot=document.getElementById('snapshot');if(!snapshot)return;
     removeCombatPortraits(snapshot);
     if(snapshot.dataset){delete snapshot.dataset.combatFocus;delete snapshot.dataset.combatCycle;}
@@ -154,7 +186,7 @@
       combatLogEncounter=encounter;seen=[];
       if(combatPanelList)combatPanelList.textContent='';
       if(turnIndicator)turnIndicator.hidden=true;
-      showNow('Cao Minh');focusCombatActor('none');
+      showNow('Cao Minh');focusCombatActor('cao_minh');
       appendCombatLine('system','Bắt đầu giao chiến với '+prettyEntity(combat.entityName||combat.entityKey)+'.');
     }
     combatPanel.hidden=false;
@@ -369,7 +401,6 @@
         setTimeout(function(){
           if(token!==animationToken)return;
           setFeedbackBusy(false);
-          if(activeCombat())focusCombatActor('none');
           showNow('Cao Minh');
         },typedMs);
         return;
@@ -395,7 +426,6 @@
       setTimeout(function(){
         if(token!==animationToken)return;
         setFeedbackBusy(false);
-          if(activeCombat())focusCombatActor('none');
         showNow('Cao Minh');
       },lastDelay+1800);
     });
