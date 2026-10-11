@@ -668,7 +668,7 @@ object CombatRuntime {
                     val hp = c.entityHp - damage
                     recordFeedback("entity", c.entityHp, hp, critical = critical, actorId = LUCIA_ID, skill = "M4A1 Joint Attack")
                     c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 22))
-                    log += "M4A1 Joint Attack: Lucia bắn hỗ trợ 150% DMG, -$damage HP."
+                    log += "Lucia \"Lục\" bắn hỗ trợ bằng M4A1 (Joint Attack 150% DMG): -$damage HP."
                     // Each Burst rolls independently after a successful ordinary attack;
                     // Ultimate never procs Burst. Damage and status match Lucia R01.
                     luciaProcs.forEachIndexed { index, proc ->
@@ -704,7 +704,7 @@ object CombatRuntime {
                       log += "${proc.name}: +${proc.damageBonus}% DMG (-$bonus HP), " +
                         "${proc.status.label} ${proc.turns} turn."
                     }
-                  } else log += "Lucia bắn M4A1 nhưng mục tiêu né/trượt; Burst không kích hoạt."
+                  } else log += "Lucia \"Lục\" cũng khai hỏa nhưng phát bắn không trúng mục tiêu; Burst không kích hoạt."
                 }
               }
             }
