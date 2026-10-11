@@ -23,6 +23,14 @@ class EntityCombatExpTest {
     assertTrue(result.reply.contains("+8 EXP"))
   }
 
+  @Test fun fractionalWorldRankDoesNotAdvanceFullLevelExpReward() {
+    assertEquals(4, EntityExpRewards.expForRank(1_500_000L))
+    try {
+      EntityExpRewards.expForRank(-1L)
+      fail("invalid negative progression rank must not award EXP")
+    } catch (_: IllegalArgumentException) {}
+  }
+
   @Test fun rewardsUseEncounterRankNotSubsequentWorldLevel() {
     val started = CombatRuntime.start(levelState(2), "hound")
     val changed = started.copy(world = levelState(6).world)
