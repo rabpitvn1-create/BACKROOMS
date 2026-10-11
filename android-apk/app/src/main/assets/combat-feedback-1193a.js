@@ -362,6 +362,33 @@
     // Capture the transient packet before that replacement; never write it into save.
     var rawPacket=null;
     try{var incoming=JSON.parse(json);rawPacket=incoming&&incoming.combatFeedback;}catch(_){}
+    // Combat Core may settle the last Entity in the first Party action. Keep
+    // the authoritative final turn cues on screen BEFORE projecting inactive
+    // combat, otherwise the renderer removes Entity/Lucia overlays immediately.
+    var incomingCombat;
+    try{incomingCombat=JSON.parse(json).combat;}catch(_){}
+    var completing=before&&before.active===true&&
+      (!incomingCombat||incomingCombat.active!==true)&&
+      rawPacket&&Array.isArray(rawPacket.events)&&Array.isArray(rawPacket.turns)&&
+      rawPacket.turns.some(function(c){return c&&c.kind==='actor';});
+    if(completing){
+      var completionToken=++animationToken,context=this;
+      beginCombatLog(before);
+      setFeedbackBusy(true);
+      requestAnimationFrame(function(){
+        if(completionToken!==animationToken)return;
+        var slots={entity:[0],actor:[0]};
+        var anchors={entity:targetAnchor('entity'),actor:targetAnchor('actor')};
+        var elapsed=playTypedTurnTimeline(rawPacket,completionToken,anchors,slots);
+        setTimeout(function(){
+          if(completionToken!==animationToken)return;
+          previousTurn.call(context,json);
+          resetCombatPanel();
+          setFeedbackBusy(false);
+        },elapsed===null?0:elapsed);
+      });
+      return;
+    }
     var result=previousTurn.call(this,json);
     var next=typeof state!=='undefined'&&state;
     var after=next&&next.combat,packet=rawPacket||(next&&next.combatFeedback);
