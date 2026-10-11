@@ -192,14 +192,6 @@ object KnowledgeContextEngine {
     }
 
     private fun addRelationships() {
-      if ("iris" in presentActors) {
-        add("REL.CAO_MINH.IRIS.BASELINE", "present relationship edge")
-        add("ADDR.IRIS.CAO_MINH", "present address lock")
-      }
-      if ("syvial" in presentActors) {
-        add("REL.CAO_MINH.SYVIAL.BASELINE", "present relationship edge")
-        add("ADDR.SYVIAL.CAO_MINH", "present address lock")
-      }
       if ("iris" in presentActors && "syvial" in presentActors) add("REL.IRIS.SYVIAL.BASELINE", "present relationship edge")
       if ("luc_tram" in presentActors) add("REL.CAO_MINH.LUC_TRAM.HISTORY_R06", "relationship history, not remembered current state")
     }
@@ -277,10 +269,6 @@ object KnowledgeContextEngine {
       }
       if (hasAny(sceneText, "loot", "vật phẩm", "inventory", "almond", "liquid pain", "greek fire", "nước", "thuốc")) {
         add("ITEM.GLOBAL_HARD_LOCK", "item/resource state or action")
-      }
-      if (isMainCampaignSeparated(flags)) {
-        add("STORY.MAIN.OBJECTIVE", "active main-campaign objective")
-        add("STORY.MAIN.SEPARATION", "active separation continuity")
       }
     }
 
@@ -401,12 +389,6 @@ object KnowledgeContextEngine {
       return out.toString()
     }
 
-    private fun isMainCampaignSeparated(flags: JSONObject?): Boolean {
-      if (flags == null) return false
-      val iris = normalize(flags.optJSONObject("iris")?.optString("continuity", "").orEmpty())
-      val syvial = normalize(flags.optJSONObject("syvial")?.optString("continuity", "").orEmpty())
-      return iris.contains("separated") || syvial.contains("separated")
-    }
   }
 
   private fun hardClip(text: String, hardTokens: Int): String {

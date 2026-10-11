@@ -20,13 +20,13 @@ object CoreClientProjection {
 
   fun initialize(state: GameState): GameState {
     val initialWorld = mapOf(
-      "location" to "Level 0 / The Lobby — khu phòng vàng ban đầu sau no-clip",
+      "location" to "Level 0 / The Lobby — khu phòng vàng ban đầu",
       "title" to "Level 0 – The Lobby",
       "levelJson" to JSONObject().put("number", 0).put("name", "The Lobby").toString(),
       "flagsJson" to JSONObject()
-        .put("communication", JSONObject().put("blackBlood", "OFFLINE").put("iris", "OFFLINE").put("syvial", "OFFLINE"))
-        .put("iris", JSONObject().put("exists", true).put("continuity", "SEPARATED").put("reunionEligible", true))
-        .put("syvial", JSONObject().put("exists", true).put("continuity", "SEPARATED").put("reunionEligible", true))
+        .put("communication", JSONObject())
+        .put("iris", JSONObject().put("exists", true).put("continuity", "UNKNOWN").put("reunionEligible", true))
+        .put("syvial", JSONObject().put("exists", true).put("continuity", "UNKNOWN").put("reunionEligible", true))
         .toString()
     )
     val current = state.turn.currentTurnId.removePrefix("TURN_").toIntOrNull() ?: 1

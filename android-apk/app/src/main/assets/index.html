@@ -1565,13 +1565,13 @@ Chừng nào hắn còn chưa tận mắt tìm thấy câu trả lời khác, h�
 
 Và hắn sẽ đi tìm.`;
 
-const initial={canonVersion:"NOVEL-TEXTGAME-2026-08-20-DRIVE-INTEGRATION-R06",title:"Level 0 – The Lobby",level:{number:0,name:"The Lobby"},turn:1,
+const initial={canonVersion:"KNOWLEDGE-DB-SCHEMA-1",title:"Level 0 – The Lobby",level:{number:0,name:"The Lobby"},turn:1,
   mode:"Single Player: Hard Mode",
-  location:"Level 0 / The Lobby — khu phòng vàng ban đầu sau no-clip",
+  location:"Level 0 / The Lobby — khu phòng vàng ban đầu",
   player:{name:"Cao Minh",condition:"Ổn định"},
   party:[],
   inventory:[],
-  flags:{communication:{blackBlood:"OFFLINE",iris:"OFFLINE",syvial:"OFFLINE"},iris:{exists:true,continuity:"SEPARATED",reunionEligible:true},syvial:{exists:true,continuity:"SEPARATED",reunionEligible:true},madGod:{spawned:false,acquired:false}},
+  flags:{communication:{},iris:{exists:true,continuity:"UNKNOWN",reunionEligible:true},syvial:{exists:true,continuity:"UNKNOWN",reunionEligible:true},madGod:{spawned:false,acquired:false}},
   log:[
     {role:"gm",text:"MỞ ĐẦU\n\n"+prologue},
     {role:"gm",text:"LƯỢT 1\n\nCao Minh tỉnh lại một mình tại Level 0. Không có dấu vết của Lục Trầm. Bạn điều khiển Cao Minh từ đây."}
@@ -1580,7 +1580,7 @@ const initial={canonVersion:"NOVEL-TEXTGAME-2026-08-20-DRIVE-INTEGRATION-R06",ti
 
 const byId=id=>document.getElementById(id);
 const titleEl=byId("title"),turnEl=byId("turn"),locationEl=byId("location"),modeEl=byId("mode"),playerEl=byId("player"),partyEl=byId("party"),inventoryEl=byId("inventory"),logEl=byId("log"),statusEl=byId("status"),formEl=byId("form"),actionEl=byId("action"),submitEl=byId("submit");
-let state=(()=>{try{const raw=localStorage.getItem("backroom-apk-state");if(!raw)return JSON.parse(JSON.stringify(initial));const parsed=JSON.parse(raw);return parsed&&typeof parsed==="object"&&!Array.isArray(parsed)?parsed:JSON.parse(JSON.stringify(initial));}catch(e){try{localStorage.removeItem("backroom-apk-state");}catch(ignore){}return JSON.parse(JSON.stringify(initial));}})();state.mode="Single Player: Hard Mode";state.canonVersion="NOVEL-TEXTGAME-2026-08-20-DRIVE-INTEGRATION-R06";state.flags=state.flags||{};state.flags.iris=state.flags.iris||{exists:true,continuity:"SEPARATED",reunionEligible:true};state.flags.syvial=state.flags.syvial||{exists:true,continuity:"SEPARATED",reunionEligible:true};state.flags.madGod=state.flags.madGod||{spawned:false,acquired:false};
+let state=(()=>{try{const raw=localStorage.getItem("backroom-apk-state");if(!raw)return JSON.parse(JSON.stringify(initial));const parsed=JSON.parse(raw);return parsed&&typeof parsed==="object"&&!Array.isArray(parsed)?parsed:JSON.parse(JSON.stringify(initial));}catch(e){try{localStorage.removeItem("backroom-apk-state");}catch(ignore){}return JSON.parse(JSON.stringify(initial));}})();state.mode="Single Player: Hard Mode";state.canonVersion="KNOWLEDGE-DB-SCHEMA-1";state.flags=state.flags||{};state.flags.iris=state.flags.iris||{exists:true,continuity:"UNKNOWN",reunionEligible:true};state.flags.syvial=state.flags.syvial||{exists:true,continuity:"UNKNOWN",reunionEligible:true};state.flags.madGod=state.flags.madGod||{spawned:false,acquired:false};
 // Core is the only source of gameplay state; localStorage supplies only UI presentation.
 function syncClientFromCore(presentation) {
   if(!window.Android||typeof Android.currentClientState!=="function")return presentation;
