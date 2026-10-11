@@ -17,7 +17,6 @@ object CombatRuntime {
   private const val ENTITY_HP_BONUS = 30
   private const val ENTITY_EVASION_PERCENT = 25
   private const val ENTITY_REGEN_PER_TURN = 1
-  private const val CAO_MINH_ULTIMATE_INTERVAL_TURNS = 3
   private const val CAO_MINH_ULTIMATE_SHOTS = 24
   private const val CAO_MINH_ULTIMATE_ACCURACY_PERCENT = 200
   private const val CAO_MINH_ULTIMATE_DAMAGE_PER_SHOT = 10
@@ -75,8 +74,6 @@ object CombatRuntime {
   private const val SYVIAL_BLEED_TURNS_KEY = "combat.syvialBleedTurns"
   private const val SYVIAL_DEVIL_TRIGGER_KEY = "combat.syvialDevilTrigger"
   private const val SYVIAL_DISORIENT_TURNS_KEY = "combat.syvialDisorientTurns"
-  private const val IRIS_ULTIMATE_INTERVAL_TURNS = 4
-  private const val SYVIAL_ULTIMATE_INTERVAL_TURNS = 3
   private const val AN_NHIEN_ULTIMATE_INTERVAL_TURNS = 5
 
   enum class Phase { ACTIVE, RESOLVED }
@@ -265,6 +262,11 @@ object CombatRuntime {
     val originalProfile = profiles[current.entityKey] ?: return Resolution(clear(state), handled = false)
     var profile = if ((state.metadata["combat.caoMinhProc1"]?.toIntOrNull() ?: 0) > 0) originalProfile.copy(armor = originalProfile.armor * 90 / 100) else originalProfile
     val intent = classify(actionKind, action)
+    // One finalized Poker Dice hand authorizes Ultimates for the current Party action only.
+    val ultimateHand = if (intent == Intent.ATTACK &&
+      PokerDiceCore.isFinalizedFor(state, action, current.encounterId))
+      PokerDiceCore.diceJson(state)?.optString("hand").orEmpty() else ""
+    val ultimateReady = ultimateHand == "SSF" || ultimateHand == "FSF"
     var c = current.copy(eventCounter = current.eventCounter + 1)
     val log = mutableListOf<String>()
     val feedback = mutableListOf<DamageFeedback>()
@@ -572,21 +574,20 @@ object CombatRuntime {
         }
             // PARTY_ATTACK_GCO_GATE_V1
             if (intent == Intent.ATTACK && CAO_MINH_ID in PartyCombatHealth.actingMembers(resolvedState)) {
-            if (c.entityHp > 0 && c.eventCounter % CAO_MINH_ULTIMATE_INTERVAL_TURNS == 0) {
+            if (c.entityHp > 0 && ultimateReady) {
               val damagePerSlash = CharacterStatEngine.skillBaseDamage(resolvedState, CAO_MINH_ID) * 115 / 100
               val totalDamage = CAO_MINH_ULTIMATE_SHOTS * damagePerSlash
               val hp = max(0, c.entityHp - totalDamage)
               recordFeedback("entity", c.entityHp, hp, skill = "Huyết Ma Nhị Thập Tứ Trảm")
               c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
-              log += "Huyết Ma Nhị Thập Tứ Trảm tự động kích hoạt ở combat turn ${c.eventCounter}: $CAO_MINH_ULTIMATE_SHOTS/" +
+              log += "Huyết Ma Nhị Thập Tứ Trảm kích hoạt với Poker Dice [$ultimateHand]: $CAO_MINH_ULTIMATE_SHOTS/" +
                 "$CAO_MINH_ULTIMATE_SHOTS trảm trúng liên tiếp, Accuracy $CAO_MINH_ULTIMATE_ACCURACY_PERCENT%, bỏ qua toàn bộ hiệu ứng né; " +
                 "mỗi trảm -$damagePerSlash HP, tổng -$totalDamage HP (${c.entityHp}/${c.entityMaxHp})."
             }
         
             }
         
-            val isCaoMinhUltimateTurn = intent == Intent.ATTACK && CAO_MINH_ID in PartyCombatHealth.actingMembers(resolvedState) &&
-              c.eventCounter % CAO_MINH_ULTIMATE_INTERVAL_TURNS == 0
+            val isCaoMinhUltimateTurn = ultimateReady && CAO_MINH_ID in PartyCombatHealth.actingMembers(resolvedState)
             if (intent == Intent.ATTACK && CAO_MINH_ID in PartyCombatHealth.actingMembers(resolvedState) && c.entityHp > 0 && !isCaoMinhUltimateTurn) {
               procSpecs.forEachIndexed { index, spec ->
                 if (c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 401 + index * 17), 100) < spec[1].toInt()) {
@@ -741,7 +742,7 @@ object CombatRuntime {
                 irisArmorBreakTurns > 0 -> armorAfterIgnore(profile.armor, 20)
                 else -> profile.armor
               }
-              val irisUltimate = intent == Intent.ATTACK && c.eventCounter % IRIS_ULTIMATE_INTERVAL_TURNS == 0
+              val irisUltimate = ultimateReady
               if (irisUltimate) {
                 val damage = companionSkillDamage(irisWeapon, 300, irisArmor)
                 val hp = max(0, c.entityHp - damage)
@@ -811,7 +812,7 @@ object CombatRuntime {
               val syvialWeapon = CharacterStatEngine.skillBaseDamage(resolvedState, SYVIAL_ID)
               val dtMultiplier = if (syvialDevilTrigger) 125 else 100
               fun syvialDamage(percent: Int, armor: Int): Int = companionSkillDamage(syvialWeapon, (percent * dtMultiplier + 99) / 100, armor)
-              val syvialUltimate = intent == Intent.ATTACK && syvialDevilTrigger && c.eventCounter % SYVIAL_ULTIMATE_INTERVAL_TURNS == 0
+              val syvialUltimate = ultimateReady && syvialDevilTrigger
               if (syvialUltimate) {
                 val damage = min(c.entityHp, 24 * 10)
                 val hp = max(0, c.entityHp - damage)
@@ -861,7 +862,7 @@ object CombatRuntime {
               if (activePartyCharacter(resolvedState, LUC_TRAM_ID) != null) {
                 val waveId = LucTramCanon.domainKey(c.encounterId,
                   waveIndex(resolvedState, waveKeys(resolvedState, c.entityKey).size))
-                if (LucTramCanon.canEstablishDomain(resolvedState, openingAtPartyCommandStart, waveId)) {
+                if (ultimateReady && LucTramCanon.canEstablishDomain(resolvedState, openingAtPartyCommandStart, waveId)) {
                   // Setup replaces her attack action, with no unearned bonus hit.
                   c = c.copy(opening = 3, cover = Cover.HARD)
                   resolvedState = resolvedState.copy(metadata = resolvedState.metadata +
