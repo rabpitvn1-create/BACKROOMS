@@ -1664,7 +1664,7 @@ function appendMacroPending(label){
   player.innerHTML="<div class='role'>BẠN</div><div class='text'></div>";
   player.querySelector(".text").textContent=label;logEl.appendChild(player);
   const gm=document.createElement("article");
-  gm.className="message pending";gm.setAttribute("data-pending","1");
+  gm.className="message gm pending";gm.setAttribute("data-pending","1");
   gm.innerHTML="<div class='role'>GAME MASTER</div><div class='text'>Đang xử lý lượt…</div>";
   logEl.appendChild(gm);logEl.scrollTop=logEl.scrollHeight;
 }
