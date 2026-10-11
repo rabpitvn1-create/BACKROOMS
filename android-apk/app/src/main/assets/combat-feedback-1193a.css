@@ -35,22 +35,83 @@
 @keyframes combat-turn-spin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.combat-turn-indicator--loading .combat-turn-spinner{animation:none;opacity:.8}}
 
-/* COMBAT_ACTOR_SINGLE_FOCUS_R01: keep one Party fighter visible per turn. */
+/* COMBAT_ACTOR_SINGLE_FOCUS_R01 / 3D_TURN_COVERFLOW_R01:
+   Only the current Kotlin combat cue is visible. The Level background never moves. */
+.snapshot[data-combat-focus]{perspective:900px;--combat-turn-duration:800ms}
 .snapshot[data-combat-focus] .snapshot-character,
-.snapshot[data-combat-focus] .snapshot-lucia{display:none!important}
-.snapshot[data-combat-focus="cao_minh"] .snapshot-character{display:block!important}
-.snapshot[data-combat-focus="lucia"] .snapshot-lucia{display:block!important;right:0!important;max-width:55%!important;height:97%!important}
+.snapshot[data-combat-focus] .snapshot-lucia,
+.snapshot[data-combat-focus] .snapshot-entity{display:none!important}
+.snapshot[data-combat-focus="cao_minh"] .snapshot-character,
+.snapshot[data-combat-focus="lucia"] .snapshot-lucia,
+.snapshot[data-combat-focus="entity"] .snapshot-entity{
+ display:block!important;
+ animation:combat-turn-enter var(--combat-turn-duration) cubic-bezier(.22,.62,.19,1) both;
+ backface-visibility:hidden;transform-origin:center center
+}
+.snapshot[data-combat-focus="lucia"] .snapshot-lucia{
+ right:28%!important;max-width:40%!important;height:92%!important
+}
 .snapshot[data-combat-focus="iris"]::after,
 .snapshot[data-combat-focus="syvial"]::after,
 .snapshot[data-combat-focus="an_nhien"]::after{
  content:"";position:absolute;z-index:3;right:5%;bottom:4%;width:38%;height:67%;
  border:2px solid #b5a16f;border-radius:12px;pointer-events:none;
  background-size:cover;background-position:center top;background-repeat:no-repeat;
- box-shadow:0 6px 24px #000b,0 0 15px #b5a16f44
+ box-shadow:0 6px 24px #000b,0 0 15px #b5a16f44;
+ backface-visibility:hidden;transform-origin:center center;
+ animation:combat-turn-enter var(--combat-turn-duration) cubic-bezier(.22,.62,.19,1) both
+}
+/* Alternate names restart animation when two portrait-only actors act consecutively. */
+.snapshot[data-combat-cycle="1"][data-combat-focus="iris"]::after,
+.snapshot[data-combat-cycle="1"][data-combat-focus="syvial"]::after,
+.snapshot[data-combat-cycle="1"][data-combat-focus="an_nhien"]::after{
+ animation-name:combat-turn-enter-alt
 }
 .snapshot[data-combat-focus="iris"]::after{background-image:url('avatars/Iris_avatar.jpg')}
 .snapshot[data-combat-focus="syvial"]::after{background-image:url('avatars/Syvial_avatar.jpg')}
 .snapshot[data-combat-focus="an_nhien"]::after{background-image:url('avatars/an_nhien_avatar.png')}
+.snapshot .combat-turn-exit,
+.snapshot .combat-turn-avatar{
+ position:absolute;right:0;bottom:0;height:97%;width:auto;max-width:55%;
+ object-fit:contain;object-position:right bottom;z-index:5;pointer-events:none;
+ backface-visibility:hidden;transform-origin:center center
+}
+.snapshot .combat-turn-exit{
+ animation:combat-turn-leave var(--combat-turn-duration) cubic-bezier(.42,0,.66,.32) both
+}
+.snapshot .combat-turn-exit--entity{left:0;right:auto;object-position:left bottom}
+.snapshot .combat-turn-exit--portrait{
+ right:5%;bottom:4%;height:67%;width:38%;max-width:none;object-fit:cover;
+ border:2px solid #b5a16f;border-radius:12px
+}
+.snapshot .combat-turn-avatar{
+ animation:combat-turn-enter var(--combat-turn-duration) cubic-bezier(.22,.62,.19,1) both
+}
+@keyframes combat-turn-enter{
+ from{opacity:0;transform:translate3d(75%,0,0) rotateY(-65deg) scale(.78)}
+ to{opacity:1;transform:translate3d(0,0,0) rotateY(0) scale(1)}
+}
+@keyframes combat-turn-enter-alt{
+ from{opacity:0;transform:translate3d(75%,0,0) rotateY(-65deg) scale(.78)}
+ to{opacity:1;transform:translate3d(0,0,0) rotateY(0) scale(1)}
+}
+@keyframes combat-turn-leave{
+ from{opacity:1;transform:translate3d(0,0,0) rotateY(0) scale(1)}
+ to{opacity:0;transform:translate3d(-75%,0,0) rotateY(65deg) scale(.78)}
+}
+@media(prefers-reduced-motion:reduce){
+ .snapshot[data-combat-focus]{--combat-turn-duration:90ms}
+ .snapshot[data-combat-focus="cao_minh"] .snapshot-character,
+ .snapshot[data-combat-focus="lucia"] .snapshot-lucia,
+ .snapshot[data-combat-focus="entity"] .snapshot-entity,
+ .snapshot[data-combat-focus="iris"]::after,
+ .snapshot[data-combat-focus="syvial"]::after,
+ .snapshot[data-combat-focus="an_nhien"]::after,
+ .snapshot .combat-turn-avatar{animation:combat-turn-fade-in 90ms ease-out both}
+ .snapshot .combat-turn-exit{animation:combat-turn-fade-out 90ms ease-out both}
+}
+@keyframes combat-turn-fade-in{from{opacity:0}to{opacity:1}}
+@keyframes combat-turn-fade-out{from{opacity:1}to{opacity:0}}
 
 /* COMBAT_LOG_FIXED_PANEL_R02: full height of GM slot, one continuous opaque surface. */
 body.poker-dice-open .game{display:flex!important;flex-direction:column;overflow:hidden!important}
@@ -77,13 +138,6 @@ body.poker-dice-open .player-action-bar .primary-action{pointer-events:none;opac
 .combat-feedback-entry--entity{color:#ead3cd}
 .combat-feedback-entry--actor{color:#e0ede2}
 .combat-turn-indicator{display:none!important}
-.snapshot[data-combat-switching="true"]::before{content:"";position:absolute;top:50%;left:50%;
- width:44px;height:44px;margin:-22px;z-index:9;border-radius:50%;
- border:3px solid #d6ca9655;border-top-color:#f2e3ad;border-right-color:#a9cbb2;
- box-shadow:0 0 0 8px #090b0cb3,0 0 18px #cbbb7490;pointer-events:none;
- animation:combat-switch-ring .8s cubic-bezier(.42,0,.2,1) both}
-@keyframes combat-switch-ring{from{transform:rotate(0deg);opacity:0}15%{opacity:1}85%{opacity:1}to{transform:rotate(360deg);opacity:0}}
-@media(prefers-reduced-motion:reduce){.snapshot[data-combat-switching="true"]::before{animation:none;opacity:.9}}
 /* On short viewports, preserve the full-size Snapshot and a usable scrollable Log.
    Only the game scrolls when the full stack cannot fit; keep actions within reach. */
 @media(max-height:740px){
