@@ -57,23 +57,34 @@ class LucTramCombatSkillsTest {
     assertFalse(breakAttack.reply.contains("Bạch Hồng Quán Nhật"))
   }
 
-  @Test fun localDomainRequiresConfirmedTichQuangAndConsumesOwnAttack() {
+  @Test fun localDomainRequiresFinalizedSsfConfirmedTichQuangAndConsumesOwnAttack() {
+    val action = PokerDiceCore.DIRECT_COMBAT_ACTION
+    fun withSsf(state: GameState): GameState = state.copy(metadata = state.metadata + mapOf(
+      "poker.dice.encounter" to CombatRuntime.active(state)!!.encounterId,
+      "poker.dice.action" to action,
+      "poker.dice.values" to "1,2,3,4,5",
+      "poker.dice.held" to "0,0,0,0,0",
+      "poker.dice.finalized" to "true",
+      "poker.dice.hand" to "SSF"
+    ))
     val without = CombatRuntime.start(party(), "diep_minh").let {
       it.copy(metadata = it.metadata + ("combat.opening" to "2"))
     }
-    val noSword = CombatRuntime.resolve(without, "EXECUTE", "Cả Party tấn công")
+    val noSword = CombatRuntime.resolve(withSsf(without), "EXECUTE", action)
     assertFalse(noSword.reply.contains("Thiên Kiếm Định Giới"))
 
     val withSword = CombatRuntime.start(party(sword = true), "diep_minh").let {
       it.copy(metadata = it.metadata + ("combat.opening" to "2"))
     }
-    val first = CombatRuntime.resolve(withSword, "EXECUTE", "Cả Party tấn công")
+    val noHand = CombatRuntime.resolve(withSword, "EXECUTE", action)
+    assertFalse(noHand.reply.contains("Thiên Kiếm Định Giới"))
+    val first = CombatRuntime.resolve(withSsf(withSword), "EXECUTE", action)
     assertTrue(first.reply.contains("Thiên Kiếm Định Giới"))
     assertTrue(first.state.metadata.containsKey("combat.lucTramDomainWave"))
     // The domain spends her actor action; an independent response-phase counter remains valid.
     assertTrue(first.feedback.none { it.actorId == LUC_TRAM_ID && it.target == "entity" && it.phase == "actor" })
     assertEquals(CombatRuntime.Cover.HARD, CombatRuntime.active(first.state)!!.cover)
-    val second = CombatRuntime.resolve(first.state, "EXECUTE", "Cả Party tấn công")
+    val second = CombatRuntime.resolve(withSsf(first.state), "EXECUTE", action)
     assertFalse(second.reply.contains("Thiên Kiếm Định Giới"))
   }
 

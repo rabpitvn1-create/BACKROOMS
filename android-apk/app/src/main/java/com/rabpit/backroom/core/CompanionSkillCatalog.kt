@@ -20,7 +20,7 @@ object CompanionSkillCatalog {
     s("Honeycomb Fire", "AUTO", "20% mỗi lượt TẤN CÔNG hợp lệ", "8 phát tập trung, 185% Weapon DMG; Armor Break 20% trong 2 turn."),
     s("Charged Shot", "AUTO", "25% mỗi lượt TẤN CÔNG hợp lệ", "175% Weapon DMG, bỏ qua 35% Armor."),
     s("Dead Angle", "COUNTER", "15% sau khi Entity hụt phản công", "Ivory & Ebony phản kích tức thời, 120% Weapon DMG; không chiếm lượt chính."),
-    s("ARGUS // Thousandfold Execution", "ULTIMATE", "Tự động mỗi 4 combat turn", "12 phát luân phiên, 300% Weapon DMG; Fully Exposed 2 turn làm giảm 25% Evasion và 20% Armor.", "Không tự phát hiện mục tiêu/bản thể không có dữ liệu.")
+    s("ARGUS // Thousandfold Execution", "ULTIMATE", "Poker Dice SSF hoặc FSF khi Iris ACTIVE và Party TẤN CÔNG", "12 phát luân phiên, 300% Weapon DMG; Fully Exposed 2 turn làm giảm 25% Evasion và 20% Armor.", "Không tự phát hiện mục tiêu/bản thể không có dữ liệu.")
   )
 
   private val syvial = listOf(
@@ -33,7 +33,7 @@ object CompanionSkillCatalog {
     s("GodKiller Recall", "PASSIVE", "Khi bị Disarm hợp lệ", "Gọi GodKiller trở lại ở đầu lượt kế tiếp nếu không có luật boss khóa triệu hồi."),
     s("Devil Trigger", "STATE", "HP <= 50% hoặc đối đầu Diệp Minh", "+25% outgoing DMG, +20% Evasion, -20% incoming DMG theo vai trò cá nhân; hồi phục Lucifer Core tăng lên 4% Max HP/turn.", "Không cooldown nội tại, không giới hạn thời gian canon."),
     s("Spatial Dominion", "AUTO", "20% khi Devil Trigger và Party chọn TẤN CÔNG", "Chuỗi Spatial Shift + GodKiller, 210% Weapon DMG; Disoriented -25% Accuracy trong 2 turn."),
-    s("GodKiller Override // Twenty-Four Severance", "ULTIMATE", "Mỗi 3 combat turn hợp lệ khi Party chọn TẤN CÔNG hợp lệ khi Party chọn TẤN CÔNG và Devil Trigger", "Dừng thời gian ngoại giới, đúng 24 nhát chém x 10 HP = 240 HP; bỏ qua Evasion.", "Không phải instant-kill tuyệt đối.")
+    s("GodKiller Override // Twenty-Four Severance", "ULTIMATE", "Poker Dice SSF hoặc FSF khi Party TẤN CÔNG và Devil Trigger", "Dừng thời gian ngoại giới, đúng 24 nhát chém x 10 HP = 240 HP; bỏ qua Evasion.", "Không phải instant-kill tuyệt đối.")
   )
 
   private val anNhien = listOf(
@@ -58,7 +58,7 @@ object CompanionSkillCatalog {
     s("Ma Tâm Chấn", "AUTO", "45% sau đòn đánh thường/kỹ năng; không ở lượt Ultimate", "+15% DMG; Choáng phản ứng hiện tại."),
     s("Huyết Độc Ma Khí", "AUTO", "47% sau đòn đánh thường/kỹ năng; không ở lượt Ultimate", "+20% DMG; Trúng độc 2 turn x 3% Max HP."),
     s("Huyết Liệt Ma Ấn", "AUTO", "51% sau đòn đánh thường/kỹ năng; không ở lượt Ultimate", "+20% DMG; Chảy máu 2 turn x 4% Max HP."),
-    s("Huyết Ma Nhị Thập Tứ Trảm", "ULTIMATE", "Mỗi 3 combat turn khi TẤN CÔNG", "Đúng 24 trảm, mỗi trảm 115% current Weapon DMG; bỏ qua Evasion.")
+    s("Huyết Ma Nhị Thập Tứ Trảm", "ULTIMATE", "Poker Dice SSF hoặc FSF khi Party TẤN CÔNG", "Đúng 24 trảm, mỗi trảm 115% current Weapon DMG; bỏ qua Evasion.")
   )
 
   // R06 tactical combat effects; no invented canon proc rates.
@@ -73,7 +73,7 @@ object CompanionSkillCatalog {
       "Phản kiếm với Accuracy / Evasion độc lập.", "Không tự giả định bản mệnh kiếm còn nguyên."),
     s("Vạn Kiếm Quy Tâm", "UTILITY", "Party chọn NÉ TRÁNH hoặc PHÒNG THỦ",
       "Kiếm khí giữ lối rút: cover HARD khi né; thêm opening khi thủ.", "Không miễn mọi đòn."),
-    s("Thiên Kiếm Định Giới", "ULTIMATE", "Có Tịch Quang, opening từ 2 và chưa dùng trong wave",
+    s("Thiên Kiếm Định Giới", "ULTIMATE", "Poker Dice SSF hoặc FSF, có Tịch Quang, opening từ 2 và chưa dùng trong wave",
       "Dùng lượt của Lục Trầm dựng Kiếm Vực: cover HARD, opening 3.", "Không đổi geometry Backrooms.")
   )
 

@@ -8,6 +8,27 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class CombatRuntimeTest {
+
+  /** Match Lucia's encounter/action-bound, finalized Poker Dice contract. */
+  private fun withUltimateHand(
+    state: GameState, hand: String, finalized: Boolean = true,
+    action: String = PokerDiceCore.DIRECT_COMBAT_ACTION
+  ): GameState {
+    val encounterId = CombatRuntime.active(state)!!.encounterId
+    return state.copy(metadata = state.metadata + mapOf(
+      "poker.dice.encounter" to encounterId,
+      "poker.dice.action" to action,
+      "poker.dice.values" to when (hand) {
+        "SSF" -> "1,2,3,4,5"
+        "FSF" -> "6,6,6,6,6"
+        else -> "1,1,2,2,3"
+      },
+      "poker.dice.held" to "0,0,0,0,0",
+      "poker.dice.finalized" to finalized.toString(),
+      "poker.dice.hand" to hand
+    ))
+  }
+
   @Test fun entityTriggerStartsOneAuthoritativeEncounterWithHealth() {
     val started = CombatRuntime.start(GameState.initial(), "hound")
     val combat = CombatRuntime.active(started)
@@ -137,28 +158,70 @@ class CombatRuntimeTest {
     }
   }
 
-  @Test fun guiltyCrownOverrideTriggersAutomaticallyOnEveryThirdCombatTurn() {
-    var evadeState = CombatRuntime.start(GameState.initial(), "diep_minh")
-    evadeState = evadeState.copy(metadata = evadeState.metadata + ("combat.eventCounter" to "2"))
-    val evade = CombatRuntime.resolve(evadeState, "EXECUTE", "Cả Party cùng né tránh")
-    assertTrue(evade.handled)
-    assertFalse("Party EVADE must not secretly fire the attack-only Override", evade.reply.contains("Huyết Ma Nhị Thập Tứ Trảm"))
-
-    var attackState = CombatRuntime.start(GameState.initial(), "diep_minh")
-    attackState = attackState.copy(metadata = attackState.metadata + mapOf(
+  @Test fun caoMinhUltimateRequiresFinalizedSsfOrFsfRatherThanTurnCounter() {
+    val action = PokerDiceCore.DIRECT_COMBAT_ACTION
+    val started = CombatRuntime.start(GameState.initial(), "diep_minh")
+    val state = started.copy(metadata = started.metadata + mapOf(
       "combat.eventCounter" to "2",
       "combat.entityHp" to "2000",
       "combat.entityMaxHp" to "2999"
     ))
-    val third = CombatRuntime.resolve(attackState, "EXECUTE", "Cả Party cùng tấn công")
-    assertTrue(third.handled)
-    assertTrue(third.reply.contains("Huyết Ma Nhị Thập Tứ Trảm"))
-    assertTrue(third.reply.contains("24/24 trảm trúng liên tiếp"))
-    assertTrue(third.reply.contains("Accuracy 200%"))
-    assertTrue(third.reply.contains("bỏ qua toàn bộ hiệu ứng né"))
-    val slashDamage = CharacterStatEngine.skillBaseDamage(attackState, CAO_MINH_ID) * 115 / 100
-    assertTrue(third.reply.contains("mỗi trảm -$slashDamage HP"))
-    assertTrue(third.reply.contains("tổng -${24 * slashDamage} HP"))
+    val noHand = CombatRuntime.resolve(state, "EXECUTE", action)
+    val ordinary = CombatRuntime.resolve(withUltimateHand(state, "TWO PAIR"), "EXECUTE", action)
+    val unfinished = CombatRuntime.resolve(withUltimateHand(state, "SSF", finalized = false), "EXECUTE", action)
+    val mismatched = CombatRuntime.resolve(withUltimateHand(state, "SSF", action = "khác"), "EXECUTE", action)
+    val evade = CombatRuntime.resolve(withUltimateHand(state, "SSF"), "EXECUTE", "Cả Party cùng né tránh")
+    for (result in listOf(noHand, ordinary, unfinished, mismatched, evade)) {
+      assertFalse(result.reply, result.reply.contains("Huyết Ma Nhị Thập Tứ Trảm"))
+    }
+
+    val slashDamage = CharacterStatEngine.skillBaseDamage(state, CAO_MINH_ID) * 115 / 100
+    for (hand in listOf("SSF", "FSF")) {
+      val result = CombatRuntime.resolve(withUltimateHand(state, hand), "EXECUTE", action)
+      assertTrue(result.handled)
+      assertTrue(result.reply, result.reply.contains("Huyết Ma Nhị Thập Tứ Trảm"))
+      assertTrue(result.reply.contains("24/24 trảm trúng liên tiếp"))
+      assertTrue(result.reply.contains("Accuracy 200%"))
+      assertTrue(result.reply.contains("bỏ qua toàn bộ hiệu ứng né"))
+      assertTrue(result.reply.contains("mỗi trảm -$slashDamage HP"))
+      assertTrue(result.reply.contains("tổng -${24 * slashDamage} HP"))
+    }
+  }
+
+  @Test fun irisSyvialAndLucTramUltimatesRequireFinalizedSsfOrFsf() {
+    val action = PokerDiceCore.DIRECT_COMBAT_ACTION
+    val abilities = mapOf(
+      IRIS_ID to "ARGUS // Thousandfold Execution",
+      SYVIAL_ID to "GodKiller Override // Twenty-Four Severance",
+      LUC_TRAM_ID to "Thiên Kiếm Định Giới"
+    )
+    for ((actorId, name) in abilities) {
+      var initial = SpecialFollowersCanon.ensure(GameState.initial())
+        .copy(party = PartyState(memberIds = listOf(CAO_MINH_ID, actorId)))
+      if (actorId == LUC_TRAM_ID) {
+        val equipped = initial.equipment.getValue(LUC_TRAM_ID)
+        initial = initial.copy(equipment = initial.equipment +
+          (LUC_TRAM_ID to equipped.copy(slots = equipped.slots +
+            ("weapon" to LUC_TRAM_TICH_QUANG_ID))))
+      }
+      val started = CombatRuntime.start(initial, "diep_minh")
+      // 12th turn is a former automatic trigger for Iris/Syvial. Lục Trầm
+      // additionally has a confirmed sword and opening 2.
+      val state = started.copy(metadata = started.metadata + mapOf(
+        "combat.eventCounter" to "11", "combat.opening" to "2"
+      ))
+      for (without in listOf(state, withUltimateHand(state, "TWO PAIR"),
+          withUltimateHand(state, "SSF", finalized = false))) {
+        val result = CombatRuntime.resolve(without, "EXECUTE", action)
+        assertFalse("$actorId triggered $name without finalized SSF/FSF: ${result.reply}",
+          result.reply.contains(name))
+      }
+      for (hand in listOf("SSF", "FSF")) {
+        val result = CombatRuntime.resolve(withUltimateHand(state, hand), "EXECUTE", action)
+        assertTrue("$actorId did not trigger $name with $hand: ${result.reply}",
+          result.reply.contains(name))
+      }
+    }
   }
 
   @Test fun guiltyCrownOverrideAppliesTwentyFourStrScaledHitsBeforeNormalRegen() {
@@ -169,7 +232,7 @@ class CombatRuntimeTest {
       "combat.eventCounter" to "2"
     ))
 
-    val third = CombatRuntime.resolve(state, "EXECUTE", "Cả Party cùng tấn công")
+    val third = CombatRuntime.resolve(withUltimateHand(state, "SSF"), "EXECUTE", PokerDiceCore.DIRECT_COMBAT_ACTION)
     assertTrue(third.handled)
     val slashDamage = CharacterStatEngine.skillBaseDamage(state, CAO_MINH_ID) * 115 / 100
     assertTrue(third.reply.contains("tổng -${24 * slashDamage} HP"))
@@ -288,7 +351,7 @@ class CombatRuntimeTest {
   @Test fun guiltyCrownTurnKeepsPriorityOverAutomaticGunSkillRolls() {
     var state = CombatRuntime.start(GameState.initial(), "diep_minh")
     state = state.copy(metadata = state.metadata + ("combat.eventCounter" to "2"))
-    val result = CombatRuntime.resolve(state, "EXECUTE", "Cả Party cùng tấn công")
+    val result = CombatRuntime.resolve(withUltimateHand(state, "SSF"), "EXECUTE", PokerDiceCore.DIRECT_COMBAT_ACTION)
     assertTrue(result.reply.contains("Huyết Ma Nhị Thập Tứ Trảm"))
     assertFalse(result.reply.contains("Huyết Ma Tứ Liên tự động kích hoạt"))
     assertFalse(result.reply.contains("Ma Tâm Trấn Hồn tự động kích hoạt"))
