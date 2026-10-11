@@ -11,6 +11,8 @@ object CombatRuntime {
   // ENTITY_POWER_SCALING_R01
   // Linear on the Level-0 base: full Levels are 100/110/120/130...%, never compounded.
   private const val PREFIX = "combat."
+  private const val WAVE_KEYS = "combat.waveKeys"
+  private const val WAVE_INDEX = "combat.waveIndex"
   private const val ENTITY_HP_BONUS = 30
   private const val ENTITY_EVASION_PERCENT = 25
   private const val ENTITY_REGEN_PER_TURN = 1
@@ -162,9 +164,14 @@ object CombatRuntime {
 
   fun active(state: GameState): Snapshot? = decode(state)?.takeIf { it.phase == Phase.ACTIVE }
 
-  fun start(state: GameState, entityKey: String): GameState {
+  fun start(state: GameState, entityKey: String): GameState = startWaves(state, listOf(entityKey))
+
+  /** Only explicitly composed encounters contain multiple Entities. */
+  fun startWaves(state: GameState, entityKeys: List<String>): GameState {
     if (active(state) != null) return state
-    val profile = profiles[entityKey] ?: return state
+    if (entityKeys.size !in 1..4 || entityKeys.any { it !in profiles }) return state
+    val entityKey = entityKeys.first()
+    val profile = profiles.getValue(entityKey)
     val effective = CharacterStatEngine.effective(state, KAI_ID)
     val playerMax = effective.maxHp
     val playerHp = state.characters[KAI_ID]?.vitalState?.currentHp?.coerceIn(0, playerMax) ?: playerMax
@@ -196,7 +203,12 @@ object CombatRuntime {
       eventCounter = 0,
       seed = seed
     )
-    return encode(state.copy(metadata = state.metadata + ("loot.encounterSerial" to serial.toString())), snapshot)
+    val metadata = state.metadata + mapOf(
+      "loot.encounterSerial" to serial.toString(),
+      WAVE_KEYS to entityKeys.joinToString("|"),
+      WAVE_INDEX to "0"
+    )
+    return encode(state.copy(metadata = metadata), snapshot)
   }
 
   fun resolve(state: GameState, actionKind: String, action: String): Resolution {
@@ -467,10 +479,7 @@ object CombatRuntime {
     }
 
     if (c.entityHp <= 0) {
-      val persisted = afterActiveLeaderTurn(encode(resolvedState, c.copy(phase = Phase.RESOLVED, entityCondition = EntityCondition.DESTROYED)))
-      val cleared = clearCombatOnly(persisted)
-      val loot = OfflineEntityLoot.award(cleared, c.encounterId, c.seed)
-      return Resolution(loot.state, true, log.joinToString(" ") + " ${c.entityName} đã bị tiêu diệt. " + loot.text, entityDestroyed = true, feedback = feedback.toList())
+      return settleDefeated(resolvedState, c, log.joinToString(" "), feedback.toList())
     }
     if (c.escapeProgress >= 100) {
       val persisted = afterActiveLeaderTurn(encode(resolvedState, c.copy(phase = Phase.RESOLVED)))
@@ -490,10 +499,7 @@ object CombatRuntime {
         "$KAI_GUILTY_CROWN_SHOTS trảm trúng liên tiếp, Accuracy $KAI_GUILTY_CROWN_ACCURACY_PERCENT%, bỏ qua toàn bộ hiệu ứng né; " +
         "mỗi trảm -$damagePerSlash HP, tổng -$totalDamage HP (${c.entityHp}/${c.entityMaxHp})."
       if (c.entityHp <= 0) {
-        val persisted = encode(resolvedState, c.copy(phase = Phase.RESOLVED, entityCondition = EntityCondition.DESTROYED))
-        val cleared = clearCombatOnly(persisted)
-        val loot = OfflineEntityLoot.award(cleared, c.encounterId, c.seed)
-      return Resolution(loot.state, true, log.joinToString(" ") + " ${c.entityName} đã bị tiêu diệt. " + loot.text, entityDestroyed = true, feedback = feedback.toList())
+        return settleDefeated(resolvedState, c, log.joinToString(" "), feedback.toList(), leaderPassive = false)
       }
     }
 
@@ -552,10 +558,7 @@ object CombatRuntime {
     }
 
     if (c.entityHp <= 0) {
-      val persisted = afterActiveLeaderTurn(encode(resolvedState, c.copy(phase = Phase.RESOLVED, entityCondition = EntityCondition.DESTROYED)))
-      val cleared = clearCombatOnly(persisted)
-      val loot = OfflineEntityLoot.award(cleared, c.encounterId, c.seed)
-      return Resolution(loot.state, true, log.joinToString(" ") + " ${c.entityName} đã bị tiêu diệt. " + loot.text, entityDestroyed = true, feedback = feedback.toList())
+      return settleDefeated(resolvedState, c, log.joinToString(" "), feedback.toList())
     }
 
     // COMPANION_SKILLS_R01: Iris, Syvial and An Nhien wrap the finalized combat response.
@@ -700,10 +703,7 @@ object CombatRuntime {
     if (syvialDisorientTurns > 0) companionEnemyAccuracyPenalty += 25
 
     if (c.entityHp <= 0) {
-      val persisted = afterActiveLeaderTurn(encode(resolvedState, c.copy(phase = Phase.RESOLVED, entityCondition = EntityCondition.DESTROYED)))
-      val cleared = clearCombatOnly(persisted)
-      val loot = OfflineEntityLoot.award(cleared, c.encounterId, c.seed)
-      return Resolution(loot.state, true, log.joinToString(" ") + " ${c.entityName} đã bị tiêu diệt. " + loot.text, entityDestroyed = true, feedback = feedback.toList())
+      return settleDefeated(resolvedState, c, log.joinToString(" "), feedback.toList())
     }
 
     // Enemy response. Diệp Minh uses percentage damage; all other Entity behavior remains unchanged.
@@ -843,6 +843,12 @@ object CombatRuntime {
     put("playerMaxHp", PartyCombatHealth.maxHp(state))
     put("partyMemberCount", PartyCombatHealth.actingMembers(state).size)
     put("entityHp", c.entityHp); put("entityMaxHp", c.entityMaxHp)
+    val queue = waveKeys(state, c.entityKey)
+    val wave = waveIndex(state, queue.size)
+    put("entityInstanceId", "${c.encounterId}:wave:$wave")
+    put("waveNumber", wave + 1)
+    put("waveCount", queue.size)
+    put("remainingEntityCount", queue.size - wave)
     put("entityCondition", c.entityCondition.name)
     put("range", c.range.name); put("cover", c.cover.name)
     put("momentum", c.momentum); put("opening", c.opening)
@@ -852,6 +858,63 @@ object CombatRuntime {
   } }
 
   fun clear(state: GameState): GameState = clearCombatOnly(state)
+
+  private fun waveKeys(state: GameState, currentKey: String): List<String> =
+    state.metadata[WAVE_KEYS]?.split('|')?.takeIf { keys ->
+      keys.size in 1..4 && keys.all { it in profiles }
+    } ?: listOf(currentKey)
+
+  private fun waveIndex(state: GameState, size: Int): Int =
+    state.metadata[WAVE_INDEX]?.toIntOrNull()?.coerceIn(0, size - 1) ?: 0
+
+  /** Entity-specific debuffs never cross the boundary into a different Entity. */
+  private fun clearTargetEffects(state: GameState): GameState {
+    val targetKeys = setOf(
+      KAI_BLEED_TURNS_KEY, IRIS_ANALYZED_TURNS_KEY, IRIS_ARMOR_BREAK_TURNS_KEY,
+      IRIS_EXPOSED_TURNS_KEY, SYVIAL_BLEED_TURNS_KEY, SYVIAL_DISORIENT_TURNS_KEY
+    )
+    return state.copy(metadata = state.metadata.filterKeys { key ->
+      key !in targetKeys && !key.startsWith("combat.caoMinhProc")
+    })
+  }
+
+  /** Defeat settles one instance. Only the final wave ends the encounter. */
+  private fun settleDefeated(
+    state: GameState, c: Snapshot, log: String,
+    feedback: List<DamageFeedback>, leaderPassive: Boolean = true
+  ): Resolution {
+    val queue = waveKeys(state, c.entityKey)
+    val index = waveIndex(state, queue.size)
+    val persisted = encode(state, c.copy(phase = Phase.RESOLVED, entityCondition = EntityCondition.DESTROYED))
+    val withPassive = if (leaderPassive) afterActiveLeaderTurn(persisted) else persisted
+    val instanceId = if (queue.size == 1) c.encounterId else "${c.encounterId}:wave:$index"
+    val loot = OfflineEntityLoot.award(withPassive, instanceId, c.seed)
+    val resultText = "$log ${c.entityName} đã bị tiêu diệt. ${loot.text}".trim()
+    if (index + 1 == queue.size) {
+      return Resolution(clearCombatOnly(loot.state), true, resultText, entityDestroyed = true, feedback = feedback)
+    }
+
+    val nextIndex = index + 1
+    val nextProfile = profiles.getValue(queue[nextIndex])
+    val baseMax = if (nextProfile.key == DIEP_MINH_KEY) DIEP_MINH_MAX_HP else nextProfile.maxHp + ENTITY_HP_BONUS
+    val maxHp = EntityPowerScaling.scale(baseMax, c.progressionRank)
+    val nextSeed = mix(c.seed, nextIndex)
+    val clean = clearTargetEffects(loot.state)
+    val leaderHp = clean.characters[KAI_ID]?.vitalState?.currentHp ?: c.playerHp
+    val next = c.copy(
+      entityKey = nextProfile.key, entityName = nextProfile.displayName,
+      entityHp = maxHp, entityMaxHp = maxHp, entityCondition = EntityCondition.HEALTHY,
+      playerHp = leaderHp, phase = Phase.ACTIVE, opening = 0, noise = 0,
+      telegraph = telegraphFor(nextProfile, nextSeed, c.eventCounter),
+      telegraphRevealed = false, seed = nextSeed
+    )
+    val resumed = encode(clean.copy(metadata = clean.metadata + (WAVE_INDEX to nextIndex.toString())), next)
+    return Resolution(
+      resumed, true,
+      "$resultText Đợt ${nextIndex + 1}/${queue.size}: ${nextProfile.displayName} xuất hiện.",
+      feedback = feedback
+    )
+  }
 
   private fun afterActiveLeaderTurn(state: GameState): GameState =
     if (KAI_ID in PartyCombatHealth.actingMembers(state)) CaoMinhCombatPassive.afterCaoMinhTurn(state) else state
