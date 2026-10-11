@@ -28,6 +28,9 @@ data class CharacterDetailProjection(
   val healthState: String?,
   val currentHp: Int,
   val maxHp: Int,
+  val level: Int = 0,
+  val exp: Int = 0,
+  val expToNextLevel: Int? = 10,
   val role: String = "UNSPECIFIED",
   val energyDisplay: String = "N/A",
   val regenPerCompletedTurn: Int = 0,
@@ -102,6 +105,9 @@ object CharacterDetailProjector {
       id = c.id, name = c.name, avatarRef = c.avatarRef, presence = c.presence,
       isLeader = normalized.party.leaderId == c.id, healthState = c.healthState,
       currentHp = c.vitalState.currentHp.coerceIn(0, effective.maxHp), maxHp = effective.maxHp,
+      level = c.progression.level, exp = c.progression.exp,
+      expToNextLevel = if (c.progression.level < CharacterProgressionCore.MAX_LEVEL)
+        CharacterProgressionCore.expRequired(c.progression.level) else null,
       role = base.combatRole,
       energyDisplay = when (base.energy.mode) {
         EnergyMode.INFINITE -> "∞"

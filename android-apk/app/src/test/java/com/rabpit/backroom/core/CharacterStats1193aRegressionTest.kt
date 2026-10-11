@@ -5,12 +5,15 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class CharacterStats1193aRegressionTest {
-  @Test fun deprecatedResourceKeyDoesNotGrantCurrentCore() {
-    val stale = GameState.initial().copy(metadata = mapOf("poker.core.count" to "999"))
-    assertEquals(0, CharacterProgressionCore.coreCount(stale))
+  @Test fun obsoleteCoreCurrencyIsRemovedDuringNormalization() {
+    val stale = GameState.initial().copy(metadata = mapOf(
+      "poker.core.count" to "999",
+      "characterProgression.coreResource" to "999"
+    ))
     val normalized = CharacterProgressionCore.normalize(stale)
-    assertEquals(0, CharacterProgressionCore.coreCount(normalized))
     assertFalse("poker.core.count" in normalized.metadata)
+    assertFalse("characterProgression.coreResource" in normalized.metadata)
+    assertEquals(CharacterProgression(), normalized.characters.getValue(KAI_ID).progression)
   }
 
   @Test fun baselineAndCaoPassiveMatch1193a() {
@@ -54,26 +57,24 @@ class CharacterStats1193aRegressionTest {
     assertEquals(setOf("schema","baseMaxHp","STR","DEX","AGI","VIT","EVA"), out.keys().asSequence().toSet())
   }
 
-  @Test fun costSharedCoreAndPerCharacterProgressionAreCanonical() {
-    assertEquals(listOf(1,1,2,2,3,3), (5..10).map(CharacterProgressionCore::upgradeCost))
-    var state = CharacterProgressionCore.grantCore(GameState.initial(), 10)
-    val other = state.characters.keys.firstOrNull { it != KAI_ID }
-    if (other != null) {
-      state = CharacterProgressionCore.upgrade(state, KAI_ID, "STR").state
-      assertEquals(6, CharacterProgressionCore.baseStat(state, KAI_ID, "STR"))
-      assertEquals(5, CharacterProgressionCore.baseStat(state, other, "STR"))
-      assertEquals(9, CharacterProgressionCore.coreCount(state))
+  @Test fun expThresholdsRiseAndLevelProgressionIsPerCharacter() {
+    assertEquals(listOf(10, 18, 26, 34), (0..3).map(CharacterProgressionCore::expRequired))
+    val state = CharacterProgressionCore.grantExp(GameState.initial(), KAI_ID, 10, kotlin.random.Random(3)).state
+    assertEquals(1, state.characters.getValue(KAI_ID).progression.level)
+    assertEquals(0, state.characters.getValue(KAI_ID).progression.exp)
+    state.characters.filterKeys { it != KAI_ID }.values.forEach {
+      assertEquals(0, it.progression.level)
     }
   }
 
-  @Test fun vitUpgradeRaisesMaxAndPreservesMissingHp() {
-    var state = CharacterProgressionCore.grantCore(GameState.initial(), 2)
-    state = CharacterStatEngine.setCurrentHp(state, KAI_ID, 40)
-    val beforeMax = CharacterStatEngine.effective(state, KAI_ID).maxHp
-    val result = CharacterProgressionCore.upgrade(state, KAI_ID, "VIT")
+  @Test fun levelUpRaisesMaxHpButDoesNotEraseMissingHp() {
+    val initial = CharacterStatEngine.setCurrentHp(GameState.initial(), KAI_ID, 40)
+    val beforeMax = CharacterStatEngine.effective(initial, KAI_ID).maxHp
+    val result = CharacterProgressionCore.grantExp(initial, KAI_ID, 10, kotlin.random.Random(5))
     val afterMax = CharacterStatEngine.effective(result.state, KAI_ID).maxHp
     assertTrue(afterMax > beforeMax)
-    assertEquals(40 + (afterMax - beforeMax), result.state.characters.getValue(KAI_ID).vitalState.currentHp)
+    assertEquals(40 + (afterMax - beforeMax),
+      result.state.characters.getValue(KAI_ID).vitalState.currentHp)
   }
 
   @Test fun derivedCapsAndDamageProjectionMatch1193a() {
@@ -102,21 +103,19 @@ class CharacterStats1193aRegressionTest {
     assertEquals(EquipmentCatalog.definition(id!!)?.weapon?.dmg ?: 18, weapon)
   }
 
-  @Test fun antiForgeRestoresStatsCoreAndHp() {
-    var authoritative = CharacterProgressionCore.grantCore(GameState.initial(), 7)
+  @Test fun antiForgeRestoresStatsProgressionAndHp() {
+    var authoritative = CharacterProgressionCore.grantExp(GameState.initial(), KAI_ID, 10, kotlin.random.Random(3)).state
     authoritative = CharacterStatEngine.setCurrentHp(authoritative, KAI_ID, 33)
     val c = authoritative.characters.getValue(KAI_ID)
-    val forged = authoritative.copy(
-      characters = authoritative.characters + (KAI_ID to c.copy(
-        statProfile = c.statProfile.copy(str=999,dex=999,agi=999,vit=999,eva=999),
-        vitalState = c.vitalState.copy(currentHp=55)
-      )),
-      metadata = authoritative.metadata + (CharacterProgressionCore.CORE_KEY to "99999")
-    )
+    val forged = authoritative.copy(characters = authoritative.characters + (KAI_ID to c.copy(
+      statProfile = c.statProfile.copy(str = 999, dex = 999, agi = 999, vit = 999, eva = 999),
+      vitalState = c.vitalState.copy(currentHp = 200),
+      progression = CharacterProgression(99, 100)
+    )))
     val protected = CharacterProgressionCore.protectFromCandidate(authoritative, forged)
     assertEquals(c.statProfile, protected.characters.getValue(KAI_ID).statProfile)
+    assertEquals(c.progression, protected.characters.getValue(KAI_ID).progression)
     assertEquals(33, protected.characters.getValue(KAI_ID).vitalState.currentHp)
-    assertEquals(7, CharacterProgressionCore.coreCount(protected))
   }
 
   @Test fun daiDaoCombatStackIsSeparateAndResetsWithCombatMetadata() {

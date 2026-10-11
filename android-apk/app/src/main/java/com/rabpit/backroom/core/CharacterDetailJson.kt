@@ -15,6 +15,8 @@ object CharacterDetailJson {
     put("id", c.id); put("name", c.name); c.avatarRef?.let { put("avatar", it) }
     put("presence", c.presence.name); put("isLeader", c.isLeader); c.healthState?.let { put("healthState", it) }
     put("currentHp", c.currentHp); put("maxHp", c.maxHp); put("role", c.role)
+    put("level", c.level); put("exp", c.exp)
+    put("expToNextLevel", c.expToNextLevel ?: JSONObject.NULL)
     put("energy", c.energyDisplay); put("hpRegen", c.regenPerCompletedTurn); put("condition", c.condition.name)
     put("stats", JSONObject().apply {
       put("STR", stat(c.str)); put("DEX", stat(c.dex)); put("AGI", stat(c.agi)); put("VIT", stat(c.vit)); put("EVA", stat(c.eva))

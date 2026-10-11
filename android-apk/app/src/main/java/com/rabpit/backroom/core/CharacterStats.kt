@@ -18,6 +18,9 @@ data class HpRegenRule(
   val enabled: Boolean = false
 )
 
+/** Per-character progression; EXP is progress toward the next level, not lifetime EXP. */
+data class CharacterProgression(val level: Int = 0, val exp: Int = 0)
+
 data class CharacterStatProfile(
   val baseMaxHp: Int = CharacterProgressionCore.BASE_MAX_HP,
   val str: Int = CharacterProgressionCore.BASE_STAT,
