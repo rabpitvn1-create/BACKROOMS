@@ -10,3 +10,4 @@ Backroom 1.2.0.0.3 Debug
 - Hiệu ứng vòng tròn đổi nhân vật trong Snapshot khoảng 0,8 giây, kèm fade nhẹ; tôn trọng giảm chuyển động. Các kỹ năng của một nhân vật hoàn thành trước khi chuyển người.
 - Dữ liệu tên kỹ năng, lượng HP bị trừ và HP còn lại được cung cấp trực tiếp từ Kotlin Combat Core, không suy đoán từ đoạn văn GM; không ghi nhật ký tạm vào save.
 - CI xác minh Node UI tests, Kotlin tests, APK packaging, chữ ký và file tải từ GitHub Release. Đây là Debug APK.
+- Tỷ lệ gặp Entity tăng thêm 2 điểm phần trăm cho mỗi nhóm roll: roaming theo Level 10,05–14%, Diệp Minh 5%, Lifeform 4% (chung cho cả ba Lifeform). Danh sách Entity và điều kiện roll giữ nguyên.

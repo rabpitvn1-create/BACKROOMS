@@ -1298,7 +1298,8 @@ public class MainActivity extends Activity {
 
     int level = Math.max(0, Math.min(6, currentLevel(state)));
     int[] hazardThresholds = {400, 700, 1000, 1200, 300, 1000, 1200};
-    int[] entityThresholds = {805, 1000, 1150, 1150, 810, 1200, 805};
+    // Each ordinary roaming encounter rate increases by 200/10000 = 2 percentage points.
+    int[] entityThresholds = {1005, 1200, 1350, 1350, 1010, 1400, 1005};
 
     String a = lower(action);
     boolean physical = containsAny(a, "đi", "bước", "chạy", "leo", "mở", "đóng", "chạm", "lục", "tìm", "kiểm tra", "khảo sát", "quét", "scan", "bắn", "phá", "đẩy", "kéo", "tiến", "lùi", "cúi", "nhìn vào", "bò", "nhảy", "đào", "tháo", "đập", "vượt", "đi qua");
@@ -1324,9 +1325,9 @@ public class MainActivity extends Activity {
     rolls.put("hazard", thresholdRoll("hazard", 10000, anNhienHazardThreshold, physical,
       anNhienFollowing ? " -25% Có Gì Đó Sai Sai" : ""));
     String entitySuffix = level == 0 || level == 4 || level == 6 ? " incursion/roaming only" : "";
-    JSONObject diepMinhRoll = thresholdRoll("diepMinhEncounter", 10000, 300, entityEncounterAction && entityAllowed, " unique boss 3%");
+    JSONObject diepMinhRoll = thresholdRoll("diepMinhEncounter", 10000, 500, entityEncounterAction && entityAllowed, " unique boss 5%");
     rolls.put("diepMinhEncounter", diepMinhRoll);
-    JSONObject lifeformRoll = thresholdRoll("lifeformEncounter", 10000, 200, entityEncounterAction && entityAllowed, " Lifeform trio 2%");
+    JSONObject lifeformRoll = thresholdRoll("lifeformEncounter", 10000, 400, entityEncounterAction && entityAllowed, " Lifeform trio 4%");
     rolls.put("lifeformEncounter", lifeformRoll);
     if (lifeformRoll.optBoolean("success", false)) {
       String[] lifeformPool = {"blackroot_sentinel","sinew_strider","hollow_grasper"};
@@ -1939,7 +1940,7 @@ public class MainActivity extends Activity {
       "ROAMING KILLER HARD LOCK: Jeff the Killer và Jane the Killer dùng cùng entityEncounter và cùng roamingEntityKey với mọi Entity khác. Mỗi entityEncounter thành công chỉ chọn đúng một canonical Entity key; không có roll Jeff/Jane độc lập và không được tạo encounter thứ hai trong cùng lượt. " +
       "ENTITY ROAMING HARD LOCK: mọi Entity trong LOCAL ROAMING POOL đều có thể lang thang/incursion qua bất kỳ Level 0-6. Khi rolls.entityEncounter.success=true và rolls.roamingEntityKey có giá trị, encounter thường bắt buộc dùng đúng canonical key đó. LOCAL ROAMING POOL: hound, clump, duller, deathmoth, hostile_faceling, false_puddle, paintings, smiler, skin-stealer, predatory_window, biological_pipeline, wretch, cable_mimic, the_beast_of_level_5, hotel_corpse_lure, slenderman. Jeff the Killer và Jane the Killer nằm trong cùng LOCAL ROAMING POOL và chỉ xuất hiện khi roamingEntityKey chọn đúng canonical key jeff_the_killer hoặc jane_the_killer. " +
       "ENTITY ASSET LOCAL HARD LOCK: hình Entity chỉ lấy từ APK assets/entity qua file:///android_asset/entity/<canonical-key>.webp; cấm mã Entity legacy, alias theo Level, manifest từ xa hoặc ảnh Entity từ mạng. " +
-      "LIFEFORM TRIO HARD LOCK: lifeformEncounter là một roll độc lập đúng 2% cho cả họ Lifeform, không phải 2% cho từng cá thể. Khi success=true, dùng đúng lifeformEntityKey đã roll. Mỗi Lifeform có đúng 3 skill; damage skill là % của Basic Attack, không buff stat ATK, và chỉ gây Bleed/Poison. Ba proc dùng một roll độc quyền theo thứ tự 25% / 20% / 10%, tương ứng 115% / 125% / 140% Basic Attack; skill 1 gây Bleed, skill 2 gây Poison, skill 3 gây Bleed + Poison. Ba Entity này không nằm trong shared roaming pool. " +
+      "LIFEFORM TRIO HARD LOCK: lifeformEncounter là một roll độc lập đúng 4% cho cả họ Lifeform, không phải 2% cho từng cá thể. Khi success=true, dùng đúng lifeformEntityKey đã roll. Mỗi Lifeform có đúng 3 skill; damage skill là % của Basic Attack, không buff stat ATK, và chỉ gây Bleed/Poison. Ba proc dùng một roll độc quyền theo thứ tự 25% / 20% / 10%, tương ứng 115% / 125% / 140% Basic Attack; skill 1 gây Bleed, skill 2 gây Poison, skill 3 gây Bleed + Poison. Ba Entity này không nằm trong shared roaming pool. " +
       "JSON bắt buộc: {\"reply\":\"phản hồi Game Master bằng tiếng Việt tự nhiên\",\"ops\":[],\"snapshotEvent\":{\"shouldGenerate\":false,\"kind\":\"\",\"reason\":\"\"}}";
   }
 

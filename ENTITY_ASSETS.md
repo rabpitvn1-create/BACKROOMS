@@ -31,9 +31,9 @@ Runtime chỉ dùng canonical Entity key trùng chính xác với tên file bỏ
 | `sinew_strider` | `sinew_strider.webp` |
 | `hollow_grasper` | `hollow_grasper.webp` |
 
-`diep_minh` là boss unique dùng roll xuất hiện độc lập 3%, không nằm trong shared roaming Entity pool.
+`diep_minh` là boss unique dùng roll xuất hiện độc lập 5%, không nằm trong shared roaming Entity pool.
 
-Ba Lifeform dùng **một roll độc lập 2% cho cả nhóm**. Khi roll thành công, runtime chọn đúng một trong ba key `blackroot_sentinel`, `sinew_strider`, `hollow_grasper`; chúng không nằm trong shared roaming pool.
+Ba Lifeform dùng **một roll độc lập 4% cho cả nhóm**. Khi roll thành công, runtime chọn đúng một trong ba key `blackroot_sentinel`, `sinew_strider`, `hollow_grasper`; chúng không nằm trong shared roaming pool.
 
 Base profile của cả ba bằng **Hound × 1.3**, làm tròn về stat nguyên: **104 HP / 20 ATK / 3 Armor / 10 Aggression** trước shared Entity durability và Level scaling. Ở Level 0, shared +30 HP khiến Max HP thực tế là **134**.
 
