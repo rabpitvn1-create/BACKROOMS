@@ -202,6 +202,14 @@
     void turnIndicator.offsetWidth;
     turnIndicator.classList.add('combat-turn-indicator--loading');
     if(kind==='wave')appendCombatLine('wave','Đợt '+wave+'/'+count+' · '+String(cue.entityName||'Entity')+' xuất hiện');
+    if(Array.isArray(cue.details)&&(kind==='actor'||kind==='entity'||kind==='party')){
+      var source=kind==='actor'?String(cue.actorName||'Đồng đội'):kind==='entity'?String(cue.entityName||'Entity'):'Party';
+      cue.details.forEach(function(line){
+        var value=String(line||'').trim();
+        if(!value||value.indexOf('PARTY ACTION ')===0)return;
+        appendCombatLine(kind==='actor'?'actor':kind==='entity'?'entity':'summary',source+' · '+value);
+      });
+    }
   }
   function playTypedTurnTimeline(packet,token,anchors,slots){
     var events=packet.events;

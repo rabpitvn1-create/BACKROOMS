@@ -50,4 +50,21 @@ class CombatTurnPresentationTest {
     assertTrue(result.turnCues.all { it.eventIndex in 0..result.feedback.size })
     assertEquals(1, result.turnCues.first().waveNumber)
   }
+  @Test fun typedCuesCarrySkillAndDamageTextUnderTheCorrectPartyMember() {
+    var state = SpecialFollowersCanon.ensure(GameState.initial())
+    state = LuciaCanon.ensure(state)
+    state = state.copy(party = PartyState(memberIds = listOf(KAI_ID, LUCIA_ID, IRIS_ID)))
+    val started = CombatRuntime.start(state, "diep_minh")
+    val resolved = CombatRuntime.resolve(started, "EXECUTE", "Cả Party cùng tấn công")
+    val actorCues = resolved.turnCues.filter { it.kind == "actor" }
+    assertEquals(listOf(KAI_ID, LUCIA_ID, IRIS_ID), actorCues.map { it.actorId })
+    assertTrue(actorCues.all { it.details.isNotEmpty() })
+    assertTrue(actorCues[0].details.any { it.contains("Đòn đánh") || it.contains("trượt") || it.contains("né đòn") })
+    assertTrue(actorCues[1].details.any { it.contains("Lucia") })
+    assertTrue(actorCues[2].details.any { it.contains("Iris") })
+    assertTrue(actorCues.all { it.toJson().getJSONArray("details").length() > 0 })
+    assertFalse(actorCues[0].details.any { it.contains("Lucia") })
+    assertFalse(actorCues[1].details.any { it.contains("Iris") })
+  }
+
 }

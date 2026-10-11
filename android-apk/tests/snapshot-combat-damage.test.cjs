@@ -247,3 +247,23 @@ test('snapshot style has distinct active-actor rules and existing local Party as
   assert.ok(fs.existsSync(path.join(__dirname,'../app/src/main/assets',filename)),filename);
  }
 });
+
+
+test('individual cue skill and DMG details are displayed during that actor turn',()=>{
+ const r=boot(undefined,{stripTransient:true});
+ r.turn([],'enc:skills','enc',{active:true,encounterId:'enc',entityKey:'hound',round:2},{},{
+  summary:'Cả Party cùng tấn công.',
+  turns:[
+   {kind:'actor',eventIndex:0,actorId:'cao_minh',actorName:'Cao Minh',waveNumber:1,waveCount:1,entityName:'Hound',
+    details:['Huyết Ma Tứ Liên tự động kích hoạt: 170% DMG = -34 HP.']},
+   {kind:'actor',eventIndex:0,actorId:'lucia',actorName:'Lucia',waveNumber:1,waveCount:1,entityName:'Hound',
+    details:['Lucia bắn M4A1: -26 HP.']}
+  ]
+ });
+ assert.ok(r.entries().children.some(x=>x.textContent.includes('Cao Minh · Huyết Ma Tứ Liên')&&x.textContent.includes('-34 HP')));
+ const at=r.timers.find(t=>t.ms===1010);
+ assert.ok(at);
+ at.fn();
+ assert.ok(r.entries().children.some(x=>x.textContent.includes('Lucia · Lucia bắn M4A1')&&x.textContent.includes('-26 HP')));
+ assert.equal(r.box.dataset.combatFocus,'lucia');
+});

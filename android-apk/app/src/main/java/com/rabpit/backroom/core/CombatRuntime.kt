@@ -1,5 +1,6 @@
 package com.rabpit.backroom.core
 
+import org.json.JSONArray
 import org.json.JSONObject
 import kotlin.math.abs
 import kotlin.math.max
@@ -127,13 +128,16 @@ object CombatRuntime {
     val actorName: String = "",
     val waveNumber: Int,
     val waveCount: Int,
-    val entityName: String
+    val entityName: String,
+    val logIndex: Int = 0,
+    val details: List<String> = emptyList()
   ) {
     fun toJson(): JSONObject = JSONObject().apply {
       put("kind", kind); put("eventIndex", eventIndex)
       put("actorId", actorId); put("actorName", actorName)
       put("waveNumber", waveNumber); put("waveCount", waveCount)
       put("entityName", entityName)
+      put("details", JSONArray(details))
     }
   }
 
@@ -244,7 +248,13 @@ object CombatRuntime {
     fun cue(kind: String, actorId: String = "", actorName: String = "") {
       val queue = waveKeys(resolvedState, c.entityKey)
       turnCues += TurnCue(kind, feedback.size, actorId, actorName,
-        waveIndex(resolvedState, queue.size) + 1, queue.size, c.entityName)
+        waveIndex(resolvedState, queue.size) + 1, queue.size, c.entityName,
+        logIndex = log.size)
+    }
+    fun presentedCues(): List<TurnCue> = turnCues.mapIndexed { index, turn ->
+      val from = turn.logIndex.coerceIn(0, log.size)
+      val to = turnCues.getOrNull(index + 1)?.logIndex?.coerceIn(from, log.size) ?: log.size
+      turn.copy(details = log.subList(from, to).filter { it.isNotBlank() && !it.startsWith("PARTY TURN ") })
     }
     fun recordFeedback(target: String, before: Int, after: Int,
                        critical: Boolean = false, status: FeedbackStatus? = null,
@@ -323,8 +333,8 @@ object CombatRuntime {
       resolvedState = advanced.state
       c = active(resolvedState) ?: error("Wave handoff must preserve active combat")
       profile = profiles.getValue(c.entityKey)
-      log += advanced.reply
       cue("wave")
+      log += advanced.reply
       bleedTurns = 0
       syvialBleedTurns = 0
       irisAnalyzedTurns = 0
@@ -754,18 +764,18 @@ object CombatRuntime {
     }
 
     if (c.entityHp <= 0 && !promoteDefeatedWave()) {
-      return settleDefeated(resolvedState, c, log.joinToString(" "), feedback.toList()).copy(turnCues = turnCues.toList())
+      return settleDefeated(resolvedState, c, log.joinToString(" "), feedback.toList()).copy(turnCues = presentedCues())
     }
     if (c.escapeProgress >= 100) {
       val persisted = afterActiveLeaderTurn(encode(resolvedState, c.copy(phase = Phase.RESOLVED)))
       val cleared = clearCombatOnly(persisted)
-      return Resolution(cleared, true, log.joinToString(" ") + " Cao Minh cắt được truy đuổi và thoát khỏi encounter.", escaped = true, feedback = feedback.toList(), turnCues = turnCues.toList())
+      return Resolution(cleared, true, log.joinToString(" ") + " Cao Minh cắt được truy đuổi và thoát khỏi encounter.", escaped = true, feedback = feedback.toList(), turnCues = presentedCues())
     }
 
     if (syvialDisorientTurns > 0) companionEnemyAccuracyPenalty += 25
 
     if (c.entityHp <= 0 && !promoteDefeatedWave()) {
-      return settleDefeated(resolvedState, c, log.joinToString(" "), feedback.toList()).copy(turnCues = turnCues.toList())
+      return settleDefeated(resolvedState, c, log.joinToString(" "), feedback.toList()).copy(turnCues = presentedCues())
     }
 
     if (intent != Intent.ATTACK && c.entityHp > 0) {
@@ -868,7 +878,7 @@ object CombatRuntime {
     }
 
     if (c.entityHp <= 0 && !promoteDefeatedWave()) {
-      return settleDefeated(resolvedState, c, log.joinToString(" "), feedback.toList()).copy(turnCues = turnCues.toList())
+      return settleDefeated(resolvedState, c, log.joinToString(" "), feedback.toList()).copy(turnCues = presentedCues())
     }
     if (quickStepTurns > 0) {
       quickStepTurns = max(0, quickStepTurns - 1)
@@ -906,7 +916,7 @@ object CombatRuntime {
       opening = max(0, c.opening - if (intent == Intent.READ) 0 else 1)
     )
     val next = afterActiveLeaderTurn(encode(resolvedState, c))
-    return Resolution(next, true, log.joinToString(" "), feedback = feedback.toList(), turnCues = turnCues.toList())
+    return Resolution(next, true, log.joinToString(" "), feedback = feedback.toList(), turnCues = presentedCues())
   }
 
   fun toJson(state: GameState): JSONObject? = decode(state)?.let { c -> JSONObject().apply {
