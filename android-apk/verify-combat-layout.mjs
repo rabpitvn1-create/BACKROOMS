@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+const html=fs.readFileSync(new URL('app/src/main/assets/index.html',import.meta.url),'utf8');
+assert(html.includes('body.poker-dice-open .game{display:block;overflow-y:auto;overscroll-behavior-y:contain}'));
+assert(html.includes('body.poker-dice-open .game>.log{display:none!important}'));
+assert(html.includes('snapshot.insertAdjacentElement("afterend",modal)'));
+assert(html.includes('<div class="log" id="log"></div>'));
+const functions=['show','hide'].map(name=>html.match(new RegExp('function '+name+'\\(\\)\\{[^}]*\\}'))?.[0]);
+assert(functions.every(Boolean));
+const classes=new Set(),modal={hidden:true,attrs:{},setAttribute(k,v){this.attrs[k]=v}};
+const context={modal,document:{body:{classList:{add(k){classes.add(k)},remove(k){classes.delete(k)}}}}};
+vm.createContext(context);vm.runInContext(functions.join('\n'),context);
+context.show();assert.equal(modal.hidden,false);assert(classes.has('poker-dice-open'));assert.equal(modal.attrs['aria-hidden'],'false');
+context.hide();assert.equal(modal.hidden,true);assert(!classes.has('poker-dice-open'));assert.equal(modal.attrs['aria-hidden'],'true');
+console.log('Combat layout: stacked flow, retained GM log, Snapshot/Dice order and show/hide state verified.');

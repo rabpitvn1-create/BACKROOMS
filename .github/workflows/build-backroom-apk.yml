@@ -49,6 +49,9 @@ jobs:
       - name: Verify Lucia combat overlay
         run: node android-apk/verify-lucia-overlay.mjs
 
+      - name: Verify combat panel layout
+        run: node android-apk/verify-combat-layout.mjs
+
       - name: Capture active run id
         if: github.event_name != 'pull_request'
         run: |
