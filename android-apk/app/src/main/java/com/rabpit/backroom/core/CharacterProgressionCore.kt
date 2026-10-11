@@ -3,26 +3,19 @@ package com.rabpit.backroom.core
 import java.util.Locale
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.random.Random
 
+/** Authoritative per-character Level and EXP progression, unrelated to Backrooms world Level. */
 object CharacterProgressionCore {
   const val SCHEMA = "core_stats_v2"
   const val BASE_STAT = 5
   const val MAX_STAT = 999
   const val BASE_MAX_HP = 50
-  const val CORE_KEY = "characterProgression.coreResource"
+  // Each new level can add up to 6 to one stat. This bound prevents any roll exceeding MAX_STAT.
+  const val MAX_LEVEL = (MAX_STAT - BASE_STAT) / 6
   private val STAT_KEYS = setOf("STR", "DEX", "AGI", "VIT", "EVA")
 
-  data class Upgrade(
-    val state: GameState,
-    val characterId: String,
-    val stat: String,
-    val value: Int,
-    val cost: Int,
-    val coreRemaining: Int
-  )
-
-  fun coreCount(state: GameState): Int =
-    state.metadata[CORE_KEY]?.toIntOrNull()?.coerceAtLeast(0) ?: 0
+  data class ExpAward(val state: GameState, val characterId: String, val awardedExp: Int, val levelsGained: Int)
 
   fun baseStat(state: GameState, characterId: String, rawStat: String): Int {
     val p = state.characters[characterId]?.statProfile ?: CharacterStatProfiles.forId(characterId)
@@ -40,51 +33,57 @@ object CharacterProgressionCore {
   fun statPercent(state: GameState, characterId: String, stat: String): Int =
     statPercent(baseStat(state, characterId, stat))
 
-  fun upgradeCost(currentStat: Int): Int =
-    1 + (currentStat.coerceIn(BASE_STAT, MAX_STAT) - BASE_STAT) / 2
-
-  fun grantCore(state: GameState, amount: Int): GameState {
-    if (amount <= 0) return normalize(state)
-    val next = min(Int.MAX_VALUE.toLong(), coreCount(state).toLong() + amount.toLong()).toInt()
-    return normalize(state.copy(metadata = sanitizeMetadata(state.metadata) + (CORE_KEY to next.toString())))
+  /** EXP needed for exactly one advancement from `level` to `level + 1`. */
+  fun expRequired(level: Int): Int {
+    require(level in 0 until MAX_LEVEL) { "Character Level đã đạt giới hạn." }
+    return 10 + 8 * level
   }
 
-  fun upgrade(state: GameState, rawCharacterId: String, rawStat: String): Upgrade {
+  /** System-only reward primitive: callers must verify a real event and avoid replay before awarding. */
+  fun grantExp(state: GameState, rawCharacterId: String, amount: Int, random: Random = Random.Default): ExpAward {
+    require(amount >= 0) { "EXP thưởng phải không âm." }
     val normalized = normalize(state)
     val id = rawCharacterId.trim().lowercase(Locale.ROOT)
-    require(id.isNotEmpty() && normalized.characters.containsKey(id)) { "Nhân vật không tồn tại." }
-    val stat = normalizeStat(rawStat)
-    require(stat in STAT_KEYS) { "Chỉ có thể nâng STR, DEX, AGI, VIT hoặc EVA." }
-    val character = normalized.characters.getValue(id)
-    val current = baseStat(normalized, id, stat)
-    check(current < MAX_STAT) { "Chỉ số đã đạt giới hạn." }
-    val cost = upgradeCost(current)
-    val core = coreCount(normalized)
-    check(core >= cost) { "Không đủ Core. Cần $cost Core." }
+    val original = normalized.characters[id] ?: throw IllegalArgumentException("Nhân vật không tồn tại.")
+    if (amount == 0 || original.progression.level == MAX_LEVEL) return ExpAward(normalized, id, 0, 0)
 
-    val oldMax = CharacterStatCore.effective(normalized, id).maxHp
-    val p = character.statProfile
-    val nextProfile = when (stat) {
-      "STR" -> p.copy(str = current + 1)
-      "DEX" -> p.copy(dex = current + 1)
-      "AGI" -> p.copy(agi = current + 1)
-      "VIT" -> p.copy(vit = current + 1)
-      else -> p.copy(eva = current + 1)
+    var character = original
+    var xp = character.progression.exp.toLong() + amount.toLong()
+    var level = character.progression.level
+    var gained = 0
+    while (level < MAX_LEVEL && xp >= expRequired(level).toLong()) {
+      xp -= expRequired(level).toLong()
+      val bonus = IntArray(5) { 1 }
+      repeat(5) { bonus[random.nextInt(5)]++ }
+      val p = character.statProfile
+      val values = intArrayOf(p.str, p.dex, p.agi, p.vit, p.eva)
+      for (i in values.indices) check(values[i] + bonus[i] <= MAX_STAT) {
+        "STAT chạm giới hạn; không thể phân phối đủ 10 điểm."
+      }
+      val before = CharacterStatCore.effective(normalized.copy(characters = normalized.characters + (id to character)), id).maxHp
+      val updatedProfile = p.copy(
+        str = values[0] + bonus[0], dex = values[1] + bonus[1], agi = values[2] + bonus[2],
+        vit = values[3] + bonus[3], eva = values[4] + bonus[4]
+      )
+      val candidate = character.copy(statProfile = updatedProfile)
+      val after = CharacterStatCore.effective(normalized.copy(characters = normalized.characters + (id to candidate)), id).maxHp
+      val hp = if (character.vitalState.currentHp > 0)
+        min(after, character.vitalState.currentHp.toLong().plus((after - before).toLong()).toInt())
+      else character.vitalState.currentHp
+      character = candidate.copy(vitalState = character.vitalState.copy(
+        currentHp = hp, condition = CharacterStatEngine.conditionFor(hp, after, character.vitalState.condition, character.presence)
+      ))
+      level++
+      gained++
     }
-    var next = normalized.copy(
-      characters = normalized.characters + (id to character.copy(statProfile = nextProfile)),
-      metadata = sanitizeMetadata(normalized.metadata) + (CORE_KEY to (core - cost).toString())
-    )
-    if (stat == "VIT" && character.vitalState.currentHp > 0) {
-      val newMax = CharacterStatCore.effective(next, id).maxHp
-      next = setCurrentHp(next, id, character.vitalState.currentHp + max(0, newMax - oldMax))
-    }
-    return Upgrade(next, id, stat, current + 1, cost, core - cost)
+    if (level == MAX_LEVEL) xp = 0L
+    character = character.copy(progression = CharacterProgression(level, xp.toInt()))
+    return ExpAward(normalized.copy(characters = normalized.characters + (id to character)), id, amount, gained)
   }
 
   fun normalize(input: GameState): GameState {
-    val currentCore = coreCount(input)
-    var state = input.copy(metadata = sanitizeMetadata(input.metadata) + (CORE_KEY to currentCore.toString()))
+    // Drop obsolete Core currency; only the five stored primary stats are authoritative.
+    val state = input.copy(metadata = sanitizeMetadata(input.metadata))
     val chars = state.characters.toMutableMap()
     state.characters.forEach { (id, c) ->
       val raw = c.statProfile
@@ -100,11 +99,13 @@ object CharacterProgressionCore {
           schema = SCHEMA
         )
       } else CharacterStatProfiles.forId(id)
+      val level = c.progression.level.coerceIn(0, MAX_LEVEL)
+      val exp = if (level == MAX_LEVEL) 0 else c.progression.exp.coerceIn(0, expRequired(level) - 1)
       val provisional = state.copy(characters = state.characters + (id to c.copy(statProfile = canonical)))
       val maxHp = CharacterStatCore.effective(provisional, id).maxHp
       val hp = c.vitalState.currentHp.coerceIn(0, maxHp)
       chars[id] = c.copy(
-        statProfile = canonical,
+        statProfile = canonical, progression = CharacterProgression(level, exp),
         vitalState = c.vitalState.copy(
           currentHp = hp,
           condition = CharacterStatEngine.conditionFor(hp, maxHp, c.vitalState.condition, c.presence)
@@ -120,17 +121,15 @@ object CharacterProgressionCore {
     val chars = cand.characters.toMutableMap()
     auth.characters.forEach { (id, a) ->
       val c = chars[id] ?: return@forEach
-      chars[id] = c.copy(statProfile = a.statProfile, vitalState = a.vitalState)
+      chars[id] = c.copy(statProfile = a.statProfile, vitalState = a.vitalState, progression = a.progression)
     }
-    return cand.copy(
-      characters = chars,
-      metadata = sanitizeMetadata(cand.metadata) + (CORE_KEY to coreCount(auth).toString())
-    )
+    return cand.copy(characters = chars, metadata = sanitizeMetadata(cand.metadata))
   }
 
   fun sanitizeMetadata(metadata: Map<String, String>): Map<String, String> =
     metadata.filterKeys { key ->
       !key.startsWith("poker.core.") &&
+      !key.startsWith("characterProgression.core") &&
       !key.startsWith("characterRpg") &&
       !key.startsWith("baseStats") &&
       !key.startsWith("explorer") &&
@@ -140,18 +139,6 @@ object CharacterProgressionCore {
   fun normalizeStat(raw: String): String {
     val s = raw.trim().uppercase(Locale.ROOT)
     return if (s in STAT_KEYS) s else ""
-  }
-
-  private fun setCurrentHp(state: GameState, id: String, hp: Int): GameState {
-    val c = state.characters[id] ?: return state
-    val maxHp = CharacterStatCore.effective(state, id).maxHp
-    val value = hp.coerceIn(0, maxHp)
-    return state.copy(characters = state.characters + (id to c.copy(
-      vitalState = c.vitalState.copy(
-        currentHp = value,
-        condition = CharacterStatEngine.conditionFor(value, maxHp, c.vitalState.condition, c.presence)
-      )
-    )))
   }
 }
 
