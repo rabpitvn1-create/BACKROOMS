@@ -155,18 +155,21 @@ data class GameState(
           metadata = mapOf("inventoryProfile" to "cao_minh")
         ),
         AN_NHIEN_ID to AnNhienCanon.character(),
+        LUC_TRAM_ID to LucTramCanon.character(),
         IRIS_ID to SpecialFollowersCanon.irisCharacter(),
         SYVIAL_ID to SpecialFollowersCanon.syvialCharacter()
       ),
       inventories = mapOf(
         KAI_ID to InventoryState(KAI_ID),
         AN_NHIEN_ID to AnNhienCanon.inventory(),
+        LUC_TRAM_ID to InventoryState(LUC_TRAM_ID),
         IRIS_ID to InventoryState(IRIS_ID),
         SYVIAL_ID to InventoryState(SYVIAL_ID)
       ),
       equipment = mapOf(
         KAI_ID to EquipmentState(KAI_ID, KaiStartingEquipment.slots),
         AN_NHIEN_ID to AnNhienCanon.equipment(),
+        LUC_TRAM_ID to EquipmentState(LUC_TRAM_ID),
         IRIS_ID to EquipmentState(IRIS_ID, SpecialFollowersCanon.irisEquipmentSlots),
         SYVIAL_ID to EquipmentState(SYVIAL_ID, SpecialFollowersCanon.syvialEquipmentSlots)
       )

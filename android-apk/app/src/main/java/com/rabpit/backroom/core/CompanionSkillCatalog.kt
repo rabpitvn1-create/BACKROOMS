@@ -61,6 +61,17 @@ object CompanionSkillCatalog {
     s("Huyết Ma Nhị Thập Tứ Trảm", "ULTIMATE", "Mỗi 3 combat turn khi TẤN CÔNG", "Đúng 24 trảm, mỗi trảm 115% current Weapon DMG; bỏ qua Evasion.")
   )
 
+  // R06 canonical techniques; no invented numeric proc rates or gameplay multipliers.
+  // CombatRuntime's generic companion attack is used until mechanics are explicitly specified.
+  private val lucTram = listOf(
+    s("Thiên Kiếm Linh Tâm", "PASSIVE / CANON", "Quan sát từ thần niệm và kiếm ý", "Đọc chuyển động, trọng tâm và bất ổn trong thế kiếm.", "Không đọc ý nghĩ, không tự biết quy luật Backrooms."),
+    s("Nhất Tuyến Phá Vọng", "CANON", "Đường kiếm tập trung", "Đánh vào điểm mất ổn định của thế phòng ngự.", "Không tự suy ra trận nhãn của mọi không gian."),
+    s("Bạch Hồng Quán Nhật", "CANON", "Đột tiến áp sát", "Đường kiếm tập trung tốc độ cao."),
+    s("Tịch Quang Phản Kiếm", "CANON", "Đối thủ ra đòn", "Dẫn lực, lệch trục và phản kích."),
+    s("Vạn Kiếm Quy Tâm", "CANON", "Kiếm ý và vị trí hợp lệ", "Dựng các tuyến kiếm khí hỗ trợ, che chắn cho đội.", "Không mặc định nghìn kiếm vật lý."),
+    s("Thiên Kiếm Định Giới", "CANON", "Kiếm ấn và điểm neo hợp lệ", "Lập Kiếm Vực cục bộ với Tịch Quang.", "Không áp đặt hình học lên Backrooms.")
+  )
+
   private val lucia = listOf(
     s("Trinh sát chiến trường", "PASSIVE", "Khi Lucia ở trong Party", "+5 điểm phần trăm vào generic loot roll hiện có."),
     s("M4A1 Joint Attack", "COMMAND", "Khi Party chọn TẤN CÔNG", "Lucia có resolution bắn M4A1 riêng và vẫn chịu Entity Evasion gate.")
@@ -72,6 +83,7 @@ object CompanionSkillCatalog {
     SYVIAL_ID -> syvial
     AN_NHIEN_ID -> anNhien
     LUCIA_ID -> lucia
+    LUC_TRAM_ID -> lucTram
     else -> emptyList()
   }
 }

@@ -1295,6 +1295,12 @@ public class MainActivity extends Activity {
     rolls.put("irisReunion", thresholdRoll("irisReunion", 10000, 25, physical && reunionEligibleAndroid(state, "iris"), " follower encounter"));
     rolls.put("syvialReunion", thresholdRoll("syvialReunion", 10000, 25, physical && reunionEligibleAndroid(state, "syvial"), " follower encounter"));
     rolls.put("luciaEncounter", thresholdRoll("luciaEncounter", 10000, 5000, exploreAction && level == 0 && !flagSpawned(state, "lucia"), " Level 0 Lucia follower encounter"));
+    JSONObject lucTramState = flags != null ? flags.optJSONObject("lucTram") : null;
+    boolean lucTramAlreadyMet = partyHas(state, "luc_tram") || flagSpawned(state, "lucTram") ||
+      (lucTramState != null && (lucTramState.optBoolean("follower", false) || lucTramState.optBoolean("joinPending", false)));
+    rolls.put("lucTramEncounter", thresholdRoll("lucTramEncounter", 10000, 25,
+      physical && level >= 4 && !lucTramAlreadyMet,
+      " Level 4+ Lục Trầm encounter"));
     int anNhienHazardThreshold = anNhienFollowing ? (hazardThresholds[level] * 75 / 100) : hazardThresholds[level];
     JSONObject anNhienHazardCheck = thresholdRoll("anNhienHazardCheck", 10000, 3000, anNhienFollowing && search && water, " Đừng Đụng Vào, Nhìn Là Biết Độc");
     rolls.put("anNhienHazardCheck", anNhienHazardCheck);

@@ -331,7 +331,7 @@ object CharacterEquipmentSystem {
 
   private fun normalizeInternal(source: GameState, seedStarting: Boolean): GameState {
     // Lucia exists in Core state without being forced into Party.
-    val input = LuciaCanon.ensure(source)
+    val input = LucTramCanon.ensure(LuciaCanon.ensure(source))
     val inventories = input.inventories.toMutableMap()
     val equipment = input.equipment.toMutableMap()
     input.characters.keys.forEach { characterId ->
