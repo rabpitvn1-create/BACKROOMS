@@ -1,0 +1,11 @@
+Backroom 1.2.0.0.11 Debug
+
+- Android versionCode 84; versionName 1.2.0.0.11; applicationId com.rabpit.backroom.
+- Tích hợp bản sửa combat từ PR #584: Cao Minh được giữ làm overlay mặc định ở Party Slot phía phải, kể cả khi Entity phản công hoặc trong khoảng chờ Poker Dice; không chỉ đổi nhãn NOW trong Combat Log.
+- Lucia và các đồng đội dùng cùng vị trí neo bên phải với Cao Minh; ảnh hiển thị đúng tỷ lệ gốc (object-fit: contain), không kéo giãn hoặc dùng khung pseudo-element riêng.
+- Entity luôn ở phía trái trong combat, tách khỏi carousel của Party; không tự xoay khi phản công. Khi Core thông báo đổi wave, ảnh Entity đổi tại chỗ bằng fade nhẹ, phân biệt từng wave kể cả khi trùng loại Entity.
+- Cue combat có entityKey để bộ trình chiếu dùng đúng Entity trong từng wave; không sửa luật sát thương, xúc xắc hay thứ tự lượt do Combat Core xác nhận. Không tạo lượt Lucia giả khi Entity đã bị đánh bại.
+- Chống callback ảnh Entity cũ và phân biệt ảnh tải thành công/thất bại để tránh báo nhầm ảnh sẵn sàng.
+- Gỡ công cụ emulator không còn sử dụng. Không đưa lại workflow emulator hoặc workflow dọn lịch sử Actions tạm thời.
+- Node/Kotlin unit tests, build APK, chữ ký, zipalign, asset contract và so sánh checksum với bản APK tải từ GitHub Release được kiểm tra trong pipeline phát hành.
+- APK Debug ký bằng debug key; chưa có xác minh giao diện trên thiết bị Android thật. Không hỗ trợ migration/tương thích save game từ phiên bản cũ.
