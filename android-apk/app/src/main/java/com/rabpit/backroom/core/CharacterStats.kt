@@ -28,7 +28,11 @@ data class CharacterStatProfile(
   val regen: HpRegenRule = HpRegenRule(),
   val combatRole: String = "UNSPECIFIED",
   val statSource: StatSource = StatSource.GAMEPLAY_NORMALIZED,
-  val schema: String = CharacterProgressionCore.SCHEMA
+  val schema: String = CharacterProgressionCore.SCHEMA,
+  // New five-stat baseline; DEF/SKL remain combat internals until part 2.
+  val dex: Int = CharacterProgressionCore.BASE_STAT,
+  val agi: Int = CharacterProgressionCore.BASE_STAT,
+  val eva: Int = CharacterProgressionCore.BASE_STAT
 ) {
 }
 
