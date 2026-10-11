@@ -145,6 +145,22 @@ object EquipmentCatalog {
       canonRef = "SYVIAL-LUCIFER-CODEX-20260816-R03"
     ),
     EquipmentDefinition(
+      id = LUC_TRAM_TICH_QUANG_ID, name = "Tịch Quang",
+      type = "BẢN MỆNH LINH KIẾM", primarySlot = EquipmentSlot.WEAPON,
+      abilities = listOf(
+        ability("Kiếm niệm triệu hồi", "Triệu hồi khi ở trong phạm vi cảm nhận hợp lệ.", "Không tái sinh vô hạn khi đã bị phá."),
+        ability("Tịch Quang Phản Kiếm", "Dẫn lực và phản chém từ đường đánh hụt của đối thủ."),
+        ability("Thiên Kiếm Định Giới", "Dựng Kiếm Vực cục bộ khi có điểm neo hợp lệ.", "Không kiểm soát hình học Backrooms.")
+      ), canonRef = "LUC-TRAM-THIEN-KIEM-CODEX-R05+LUC-PRO-R06"
+    ),
+    EquipmentDefinition(
+      id = LUC_TRAM_KIEM_KHAI_ID, name = "Thiên Cơ Bạch Kim Kiếm Khải",
+      type = "PHÁP BẢO KIẾM KHẢI", primarySlot = EquipmentSlot.ARMOR,
+      abilities = listOf(ability("Phân tán phản lực", "Ổn định chuyển hướng và chịu va đập.")),
+      restrictions = listOf("Là pháp bảo tiên hiệp; không có AI, reactor hoặc HUD."),
+      canonRef = "LUC-TRAM-THIEN-KIEM-CODEX-R05+LUC-PRO-R06"
+    ),
+    EquipmentDefinition(
       id = LUCIA_M4A1_ID, name = "M4A1 cá nhân hóa", type = "ASSAULT RIFLE", primarySlot = EquipmentSlot.WEAPON,
       weapon = WeaponGameplayStats(26, "60 / 90 reserve", 800, listOf("Semi", "Burst", "Auto")),
       abilities = listOf(
@@ -328,7 +344,7 @@ object CharacterEquipmentSystem {
 
   private fun normalizeInternal(source: GameState, seedStarting: Boolean): GameState {
     // Lucia exists in Core state without being forced into Party.
-    val input = LuciaCanon.ensure(source)
+    val input = LucTramCanon.ensure(LuciaCanon.ensure(source))
     val inventories = input.inventories.toMutableMap()
     val equipment = input.equipment.toMutableMap()
     input.characters.keys.forEach { characterId ->

@@ -389,11 +389,16 @@ class GameCoreFacade private constructor(
       Triple(AN_NHIEN_ID, "anNhien", "anNhienEncounter"),
       Triple(IRIS_ID, "iris", "irisReunion"),
       Triple(SYVIAL_ID, "syvial", "syvialReunion"),
-      Triple(LUCIA_ID, "lucia", "luciaEncounter")
+      Triple(LUCIA_ID, "lucia", "luciaEncounter"),
+      Triple(LUC_TRAM_ID, "lucTram", "lucTramEncounter")
     )
+    val lucTramAuthorized = LucTramCanon.validEncounterRoll(pending.state, authoritativeRolls) ||
+      (LucTramCanon.currentLevel(pending.state) >= LucTramCanon.FIRST_ELIGIBLE_LEVEL &&
+        savedFlags.optJSONObject("lucTram")?.optBoolean("joinPending", false) == true)
+    if (LUC_TRAM_ID !in pending.state.party.memberIds && !lucTramAuthorized) desiredParty.remove(LUC_TRAM_ID)
     for ((id, flagKey, rollKey) in automaticFollowers) {
       val savedRecord = savedFlags.optJSONObject(flagKey)
-      val encounterConfirmed = encounterSucceeded(rollKey) ||
+      val encounterConfirmed = (if (id == LUC_TRAM_ID) lucTramAuthorized else encounterSucceeded(rollKey)) ||
         savedRecord?.optBoolean("joinPending", false) == true ||
         (id == AN_NHIEN_ID && savedRecord?.optBoolean("encountered", false) == true)
       if (!encounterConfirmed) continue
@@ -539,7 +544,7 @@ class GameCoreFacade private constructor(
     CoreClientProjection.project(JSONObject(clientStateJson), loadCurrentState()).toString()
 
   private fun contextFor(state: GameState): GameContext {
-    val actors = state.characters.values.associate { it.name.lowercase() to it.id } + mapOf("cao minh" to CAO_MINH_ID, "cao_minh" to CAO_MINH_ID, "iris" to "iris", "syvial" to "syvial", "an nhiên" to AN_NHIEN_ID, "an nhien" to AN_NHIEN_ID)
+    val actors = state.characters.values.associate { it.name.lowercase() to it.id } + mapOf("cao minh" to CAO_MINH_ID, "cao_minh" to CAO_MINH_ID, "iris" to "iris", "syvial" to "syvial", "an nhiên" to AN_NHIEN_ID, "an nhien" to AN_NHIEN_ID, "lục trầm" to LUC_TRAM_ID, "luc tram" to LUC_TRAM_ID)
     val items = state.inventories.values.flatMap { it.items.values }.associate { it.name.lowercase() to it.itemId }
     return GameContext(state, actors, items)
   }

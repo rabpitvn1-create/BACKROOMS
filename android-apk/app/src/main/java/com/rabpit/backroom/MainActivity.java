@@ -1294,6 +1294,12 @@ public class MainActivity extends Activity {
     rolls.put("irisReunion", thresholdRoll("irisReunion", 10000, 25, physical && reunionEligibleAndroid(state, "iris"), " follower encounter"));
     rolls.put("syvialReunion", thresholdRoll("syvialReunion", 10000, 25, physical && reunionEligibleAndroid(state, "syvial"), " follower encounter"));
     rolls.put("luciaEncounter", thresholdRoll("luciaEncounter", 10000, 5000, exploreAction && level == 0 && !flagSpawned(state, "lucia"), " Level 0 Lucia follower encounter"));
+    JSONObject lucTramState = flags != null ? flags.optJSONObject("lucTram") : null;
+    boolean lucTramAlreadyMet = partyHas(state, "luc_tram") || flagSpawned(state, "lucTram") ||
+      (lucTramState != null && (lucTramState.optBoolean("follower", false) || lucTramState.optBoolean("joinPending", false)));
+    rolls.put("lucTramEncounter", thresholdRoll("lucTramEncounter", 10000, 25,
+      physical && level >= 4 && !lucTramAlreadyMet,
+      " Level 4+ Lục Trầm encounter"));
     int anNhienHazardThreshold = anNhienFollowing ? (hazardThresholds[level] * 75 / 100) : hazardThresholds[level];
     JSONObject anNhienHazardCheck = thresholdRoll("anNhienHazardCheck", 10000, 3000, anNhienFollowing && search && water, " Đừng Đụng Vào, Nhìn Là Biết Độc");
     rolls.put("anNhienHazardCheck", anNhienHazardCheck);
@@ -1382,6 +1388,8 @@ public class MainActivity extends Activity {
 
     // Character-bound gear is modified by Core only; never accept GM flag patches.
     patch.remove("madGod");
+    // Only authoritative Core may set the pending-join flag.
+    patch.remove("lucTram");
     if (patch.optJSONObject("iris") != null) {
       JSONObject oldIris = safe.optJSONObject("iris");
       JSONObject newIris = patch.optJSONObject("iris");
@@ -1414,7 +1422,7 @@ public class MainActivity extends Activity {
     boolean allowed = false;
     if (kind.equals("level_transition")) allowed = transitionAccepted && levelChanged;
     else if (kind.equals("entity_encounter")) allowed = rollSuccess(rolls, "entityEncounter");
-    else if (kind.equals("character_encounter")) allowed = rollSuccess(rolls, "anNhienEncounter") || rollSuccess(rolls, "survivor") || rollSuccess(rolls, "irisReunion") || rollSuccess(rolls, "syvialReunion");
+    else if (kind.equals("character_encounter")) allowed = rollSuccess(rolls, "anNhienEncounter") || rollSuccess(rolls, "survivor") || rollSuccess(rolls, "irisReunion") || rollSuccess(rolls, "syvialReunion") || rollSuccess(rolls, "lucTramEncounter");
     else if (kind.equals("special_area")) allowed = true;
     if (!allowed) return safe;
     return new JSONObject().put("shouldGenerate", true).put("kind", kind).put("reason", event.optString("reason", ""));
