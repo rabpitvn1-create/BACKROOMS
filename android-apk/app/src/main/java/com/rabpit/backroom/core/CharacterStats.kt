@@ -21,20 +21,16 @@ data class HpRegenRule(
 data class CharacterStatProfile(
   val baseMaxHp: Int = CharacterProgressionCore.BASE_MAX_HP,
   val str: Int = CharacterProgressionCore.BASE_STAT,
-  val def: Int = CharacterProgressionCore.BASE_STAT,
-  val skl: Int = CharacterProgressionCore.BASE_STAT,
+  val dex: Int = CharacterProgressionCore.BASE_STAT,
+  val agi: Int = CharacterProgressionCore.BASE_STAT,
   val vit: Int = CharacterProgressionCore.BASE_STAT,
+  val eva: Int = CharacterProgressionCore.BASE_STAT,
   val energy: EnergyProfile = EnergyProfile.notApplicable(),
   val regen: HpRegenRule = HpRegenRule(),
   val combatRole: String = "UNSPECIFIED",
   val statSource: StatSource = StatSource.GAMEPLAY_NORMALIZED,
-  val schema: String = CharacterProgressionCore.SCHEMA,
-  // New five-stat baseline; DEF/SKL remain combat internals until part 2.
-  val dex: Int = CharacterProgressionCore.BASE_STAT,
-  val agi: Int = CharacterProgressionCore.BASE_STAT,
-  val eva: Int = CharacterProgressionCore.BASE_STAT
-) {
-}
+  val schema: String = CharacterProgressionCore.SCHEMA
+)
 
 data class CharacterVitalState(
   val currentHp: Int = CharacterProgressionCore.BASE_MAX_HP,
@@ -45,18 +41,26 @@ data class CharacterVitalState(
 data class EffectiveCharacterStats(
   val maxHp: Int,
   val str: Int,
-  val def: Int,
-  val skl: Int,
+  val dex: Int,
+  val agi: Int,
   val vit: Int,
+  val eva: Int,
+  val def: Int,
   val criticalChancePercent: Int,
   val evasionPercent: Int,
   val resCriticalPercent: Int,
   val resEvasionPercent: Int,
   val criticalDamagePercent: Int = CharacterStatCore.CRITICAL_DAMAGE_PERCENT,
+  // Basis points retain 0.01% precision for fractional per-stat bonuses.
+  val criticalChanceBasisPoints: Int = 0,
+  val evasionBasisPoints: Int = 0,
+  val resCriticalBasisPoints: Int = 0,
+  val resEvasionBasisPoints: Int = 0,
+  val attackPercent: Int = 100,
+  val skillDamagePercent: Int = 100,
   val energy: EnergyProfile = EnergyProfile.notApplicable(),
   val regenPerCompletedTurn: Int = 0
-) {
-}
+)
 
 object CharacterStatProfiles {
   private fun role(id: String): String = when (id.trim().lowercase()) {
