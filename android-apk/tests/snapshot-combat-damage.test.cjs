@@ -328,3 +328,30 @@ test('long Party timelines preserve every typed turn rather than truncating afte
  assert.ok(!source.includes('}).slice(0,12)'));
  assert.match(source,/Keep every Party\/Entity cue/);
 });
+
+test('Combat Snapshot matches Explorer dimensions and only Combat Log gives up height',()=>{
+ const css=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/combat-feedback-1193a.css'),'utf8');
+ const html=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/index.html'),'utf8');
+ const explorer=html.match(/\.snapshot\{height:(\d+)px;margin:([^;]+);border:/);
+ const combat=css.match(/body\.poker-dice-open \.game>\.snapshot\{([^}]+)\}/);
+ assert.ok(explorer,'Explorer Snapshot dimensions are defined');
+ assert.ok(combat,'Combat Snapshot dimensions are defined');
+ assert.equal(explorer[1],'300');
+ assert.match(combat[1],new RegExp('height:'+explorer[1]+'px(?:;|$)'));
+ assert.match(combat[1],new RegExp('flex:0 0 '+explorer[1]+'px(?:;|$)'));
+ assert.match(combat[1],new RegExp('min-height:'+explorer[1]+'px(?:;|$)'));
+ assert.ok(combat[1].includes('margin:'+explorer[2]+'!important'));
+ assert.doesNotMatch(css,/\.game>\.snapshot\{height:clamp\(/);
+ assert.match(css,/\.game>#combatFeedbackPanel\{display:flex;flex:1 1 0;min-height:0;overflow:hidden/);
+ assert.match(css,/margin:5px auto 0!important/);
+});
+
+test('short-screen Combat stays scrollable without reducing Snapshot below Explorer size',()=>{
+ const css=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/combat-feedback-1193a.css'),'utf8');
+ const fallback=css.match(/@media\(max-height:740px\)\{([\s\S]*?)\n\}/);
+ assert.ok(fallback,'Short viewport overflow fallback must exist');
+ assert.match(fallback[1],/body\.poker-dice-open \.game\{overflow-y:auto!important/);
+ assert.match(fallback[1],/\.game>#combatFeedbackPanel\{flex:0 0 120px;min-height:120px\}/);
+ assert.match(fallback[1],/\.game>\.player-action-bar\{position:sticky;bottom:0/);
+ assert.doesNotMatch(fallback[1],/\.game>\.snapshot\{/);
+});
