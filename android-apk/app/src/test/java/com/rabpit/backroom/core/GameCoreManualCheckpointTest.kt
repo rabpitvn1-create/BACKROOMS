@@ -87,4 +87,66 @@ class GameCoreManualCheckpointTest {
     facade.clear()
     assertNull(repo.slot)
   }
+  @Test fun checkpointRestoresActiveMultiWaveEncounterAndFinalizedPokerDice() {
+    val repo = MemorySave()
+    val initial = CombatRuntime.startWaves(repo.state, listOf("hound", "clump", "hound"))
+    val firstDefeat = CombatRuntime.resolve(
+      initial.copy(metadata = initial.metadata + ("combat.entityHp" to "0")), "SEARCH", "quan sát"
+    )
+    assertFalse(firstDefeat.entityDestroyed)
+    val active = CombatRuntime.active(firstDefeat.state)!!
+    val dice = PokerDiceCore.finish(
+      PokerDiceCore.prepare(firstDefeat.state, PokerDiceCore.DIRECT_COMBAT_ACTION, active.encounterId)
+    )
+    repo.state = dice
+    val facade = facade(repo)
+    val turn = CoreClientProjection.turnIndex(repo.state)
+    val response = JSONObject(facade.saveManualCheckpoint(JSONObject().put("turn", turn).toString()))
+    assertTrue(response.toString(), response.getBoolean("ok"))
+
+    val expectedHp = PartyCombatHealth.currentHp(repo.state)
+    val storedIndex = repo.state.metadata["combat.waveIndex"]
+    val originalEncounter = active.encounterId
+    repo.state = PokerDiceCore.clearDice(CombatRuntime.clear(repo.state))
+    assertNull(CombatRuntime.active(repo.state))
+    assertFalse(PokerDiceCore.isFinalizedFor(repo.state, PokerDiceCore.DIRECT_COMBAT_ACTION, originalEncounter))
+
+    val restored = JSONObject(facade.loadManualCheckpoint())
+    assertTrue(restored.toString(), restored.getBoolean("ok"))
+    val combat = CombatRuntime.active(repo.state)!!
+    assertEquals(originalEncounter, combat.encounterId)
+    assertEquals("clump", combat.entityKey)
+    assertEquals(storedIndex, repo.state.metadata["combat.waveIndex"])
+    assertEquals(expectedHp, PartyCombatHealth.currentHp(repo.state))
+    assertTrue(PokerDiceCore.isFinalizedFor(repo.state, PokerDiceCore.DIRECT_COMBAT_ACTION, combat.encounterId))
+    val projected = restored.getJSONObject("state").getJSONObject("combat")
+    assertEquals(2, projected.getInt("waveNumber"))
+    assertEquals(3, projected.getInt("waveCount"))
+    assertEquals(2, projected.getInt("remainingEntityCount"))
+    assertTrue(projected.getJSONObject("diceState").getBoolean("finalized"))
+  }
+
+  @Test fun duplicateCombatSubmissionCannotAdvanceTimeOrAwardLootTwice() {
+    val repo = MemorySave()
+    val started = CombatRuntime.startWaves(repo.state, listOf("hound", "clump"))
+    val marked = started.copy(metadata = started.metadata + ("combat.entityHp" to "0"))
+    val encounterId = CombatRuntime.active(marked)!!.encounterId
+    repo.state = PokerDiceCore.finish(PokerDiceCore.prepare(marked, "quan sát", encounterId))
+    val facade = facade(repo)
+    val request = JSONObject().put("turn", CoreClientProjection.turnIndex(repo.state)).toString()
+
+    val first = JSONObject(facade.processCombat(request, "SEARCH", "quan sát"))
+    assertTrue(first.toString(), first.getBoolean("handled"))
+    assertEquals("clump", CombatRuntime.active(repo.state)!!.entityKey)
+    val afterFirst = GameStateCodec.encode(repo.state)
+    val lootCount = repo.state.metadata.keys.count { it.startsWith("loot.awarded.") }
+    assertEquals(1, lootCount)
+
+    val second = JSONObject(facade.processCombat(request, "SEARCH", "quan sát"))
+    assertTrue(second.toString(), second.getBoolean("handled"))
+    assertEquals("combat_dice_required", second.optString("reason"))
+    assertEquals(afterFirst, GameStateCodec.encode(repo.state))
+    assertEquals(lootCount, repo.state.metadata.keys.count { it.startsWith("loot.awarded.") })
+  }
+
 }

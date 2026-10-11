@@ -285,7 +285,7 @@ class GameCoreFacade private constructor(
     }
   }
 
-  fun prepareCombatDice(clientStateJson: String, action: String): String {
+  @Synchronized fun prepareCombatDice(clientStateJson: String, action: String): String {
     val client = JSONObject(clientStateJson)
     val current = loadCurrentState()
     val combat = CombatRuntime.active(current)
@@ -301,7 +301,7 @@ class GameCoreFacade private constructor(
     }
   }
 
-  fun setCombatDiceHold(clientStateJson: String, dieIndex: Int, held: Boolean): String {
+  @Synchronized fun setCombatDiceHold(clientStateJson: String, dieIndex: Int, held: Boolean): String {
     val client = JSONObject(clientStateJson)
     val current = loadCurrentState()
     return try {
@@ -314,7 +314,7 @@ class GameCoreFacade private constructor(
     }
   }
 
-  fun rerollCombatDice(clientStateJson: String): String {
+  @Synchronized fun rerollCombatDice(clientStateJson: String): String {
     val client = JSONObject(clientStateJson)
     val current = loadCurrentState()
     return try {
@@ -327,7 +327,7 @@ class GameCoreFacade private constructor(
     }
   }
 
-  fun finishCombatDice(clientStateJson: String): String {
+  @Synchronized fun finishCombatDice(clientStateJson: String): String {
     val client = JSONObject(clientStateJson)
     val current = loadCurrentState()
     return try {
@@ -469,7 +469,7 @@ class GameCoreFacade private constructor(
   }
 
 
-  fun startCombatState(clientStateJson: String, entityKey: String): String {
+  @Synchronized fun startCombatState(clientStateJson: String, entityKey: String): String {
     val client = JSONObject(clientStateJson)
     val current = loadCurrentState()
     val next = CombatRuntime.start(current, entityKey)
@@ -477,7 +477,7 @@ class GameCoreFacade private constructor(
     return clientSnapshot(client, next).toString()
   }
 
-  fun processCombat(clientStateJson: String, actionKind: String, action: String): String {
+  @Synchronized fun processCombat(clientStateJson: String, actionKind: String, action: String): String {
     val client = JSONObject(clientStateJson)
     val current = loadCurrentState()
     val activeCombat = CombatRuntime.active(current)
