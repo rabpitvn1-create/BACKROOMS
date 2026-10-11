@@ -1944,7 +1944,6 @@ render();
   const nameEl=document.getElementById('characterInventoryName');
   const modal=document.getElementById('equipmentDetailModal');
   const close=document.getElementById('equipmentDetailClose');
-  const presenceLabels={ACTIVE:'Đang trong đội',SEPARATED:'Tách nhóm',MISSING:'Mất tích',DEAD:'Đã chết'};
   const q=id=>document.getElementById(id);
   const e=s=>typeof esc==='function'?esc(s):String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
@@ -1983,6 +1982,7 @@ function selected(){const id=view&&view.dataset.characterId||'cao_minh';return m
   }
   function render(member){
     if(!member)return;
+    const presenceLabels={ACTIVE:'Đang trong đội',SEPARATED:'Tách nhóm',MISSING:'Mất tích',DEAD:'Đã chết'};
     if(nameEl){let role=document.getElementById('characterRole');if(!role){role=document.createElement('div');role.id='characterRole';role.className='character-role';nameEl.insertAdjacentElement('afterend',role)}role.textContent=member.role&&member.role!=='UNSPECIFIED'?member.role:''}
     const baseStats=[
       ['STR','ATK + sát thương kỹ năng'],
