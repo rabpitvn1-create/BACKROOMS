@@ -1,0 +1,10 @@
+Backroom 1.2.0.0.9 Debug
+
+- Android versionCode 82; versionName 1.2.0.0.9; applicationId com.rabpit.backroom.
+- Khắc phục lỗi overlay Entity không hiển thị trong combat. Entity là đối thủ, luôn được hiển thị trong Snapshot khi combat đang diễn ra, không bị CSS ẩn vì đang tới lượt Cao Minh hoặc Lucia.
+- Overlay Entity được dựng trực tiếp từ asset local đã kiểm soát (22 loại Entity). Không còn phải chờ callback Android chỉ để nhận đường dẫn ảnh; vẫn giữ callback hiện hữu.
+- Nếu Combat Core kết thúc encounter ngay sau hành động/xúc xắc, phát đầy đủ các turn cue cuối mà Core thực sự cung cấp trước khi giao diện combat đóng, giúp thấy rõ lượt Cao Minh, Lucia nếu cô có hành động, và kết quả trận đấu.
+- Không tạo turn Lucia giả khi Entity đã bị tiêu diệt trước lượt cô; không thay đổi cơ chế sát thương, HP, xác suất hay điều kiện thắng/thua do Combat Core quyết định.
+- Giữ hiệu ứng 3D Coverflow/fade của lượt Party và giọng kể GM tiên hiệp theo canon của các nhân vật.
+- Bổ sung kiểm thử hồi quy hiển thị overlay cho toàn bộ Entity hỗ trợ, chuyển lượt Party và trình chiếu turn cuối; kiểm tra Node, Kotlin, APK debug, chữ ký, zipalign và asset từ bản GitHub Release.
+- APK Debug; không hỗ trợ migration/tương thích save từ các phiên bản cũ.
