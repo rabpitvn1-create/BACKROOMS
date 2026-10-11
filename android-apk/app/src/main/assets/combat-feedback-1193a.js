@@ -207,7 +207,8 @@
       cue.details.forEach(function(line){
         var value=String(line||'').trim();
         if(!value||value.indexOf('PARTY ACTION ')===0)return;
-        appendCombatLine(kind==='actor'?'actor':kind==='entity'?'entity':'summary',source+' · '+value);
+        var label=value.toLocaleLowerCase().indexOf(source.toLocaleLowerCase())===0?value:source+' · '+value;
+        appendCombatLine(kind==='actor'?'actor':kind==='entity'?'entity':'summary',label);
       });
     }
   }
@@ -302,6 +303,7 @@
         setTimeout(function(){
           if(token!==animationToken)return;
           setFeedbackBusy(false);
+          if(activeCombat())focusCombatActor('cao_minh');
           if(pendingPanelClear&&combatLogEncounter===encounter&&!activeCombat())resetCombatPanel();
         },typedMs);
         return;
@@ -326,6 +328,7 @@
       setTimeout(function(){
         if(token!==animationToken)return;
         setFeedbackBusy(false);
+          if(activeCombat())focusCombatActor('cao_minh');
         if(pendingPanelClear&&combatLogEncounter===encounter&&!activeCombat())resetCombatPanel();
       },lastDelay+1800);
     });

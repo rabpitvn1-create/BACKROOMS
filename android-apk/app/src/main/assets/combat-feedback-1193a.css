@@ -13,7 +13,7 @@
 .combat-feedback-kicker{font-size:9px;font-weight:800;letter-spacing:.16em;color:#b9ad77}
 .combat-feedback-head h2{margin:3px 0 0;font-size:14px;line-height:1.1;letter-spacing:.08em;color:#efe8cf}
 .combat-feedback-meta{max-width:45%;padding-top:2px;color:#aaa78e;font-size:10px;line-height:1.25;text-align:right}
-.combat-feedback-entries{max-height:156px;overflow:auto;padding-top:7px;display:grid;gap:5px;-webkit-overflow-scrolling:touch}
+.combat-feedback-entries{max-height:min(38dvh,290px);overflow:auto;padding-top:7px;display:grid;gap:5px;-webkit-overflow-scrolling:touch}
 .combat-feedback-entry{padding:6px 8px;border-left:2px solid #817957;background:#171811b8;color:#e3e0cf;font-size:11px;line-height:1.35}
 .combat-feedback-entry--system{border-left-color:#d8c477;color:#f0e5b7;font-weight:700}
 .combat-feedback-entry--round{border-left-color:#80937d;color:#c8d5c5;font-weight:700}

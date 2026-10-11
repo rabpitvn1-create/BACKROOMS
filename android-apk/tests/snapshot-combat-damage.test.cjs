@@ -264,6 +264,21 @@ test('individual cue skill and DMG details are displayed during that actor turn'
  const at=r.timers.find(t=>t.ms===1010);
  assert.ok(at);
  at.fn();
- assert.ok(r.entries().children.some(x=>x.textContent.includes('Lucia · Lucia bắn M4A1')&&x.textContent.includes('-26 HP')));
+ assert.ok(r.entries().children.some(x=>x.textContent.includes('Lucia bắn M4A1')&&x.textContent.includes('-26 HP')));
  assert.equal(r.box.dataset.combatFocus,'lucia');
+});
+
+
+test('after animated Party turns return to lead fighter while awaiting next dice round',()=>{
+ const r=boot();
+ r.turn([],'enc:recover','enc',{active:true,encounterId:'enc',entityKey:'hound',round:3},{},{
+  turns:[{kind:'actor',eventIndex:0,actorId:'lucia',actorName:'Lucia',waveNumber:1,waveCount:1,entityName:'Hound'},
+         {kind:'entity',eventIndex:0,waveNumber:1,waveCount:1,entityName:'Hound'}]
+ });
+ r.timers.find(t=>t.ms===1010).fn();
+ assert.equal(r.box.dataset.combatFocus,'entity');
+ const finish=Math.max(...r.timers.map(t=>t.ms));
+ r.timers.find(t=>t.ms===finish).fn();
+ assert.equal(r.box.dataset.combatFocus,'cao_minh');
+ assert.equal(r.scope.__combatFeedbackBusy,false);
 });
