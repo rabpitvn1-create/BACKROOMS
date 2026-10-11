@@ -1,11 +1,10 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import path from 'node:path';
-import vm from 'node:vm';
-import { fileURLToPath } from 'node:url';
+const test=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const vm=require('node:vm');
 
-const dir=path.dirname(fileURLToPath(import.meta.url));
+const dir=__dirname;
 const java=fs.readFileSync(path.join(dir,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
 const line=java.split('\n').find(row=>row.includes('"function appendEntityOverlay()'));
 assert.ok(line,'Android snapshot Entity renderer must exist');
