@@ -1,0 +1,11 @@
+Backroom 1.2.0.0.1 Debug
+
+- Phát hành phiên bản Android APK 1.2.0.0.1 với versionCode 74, giữ nguyên applicationId com.rabpit.backroom.
+- Combat Party hỗ trợ từ 1 đến 4 nhân vật hợp lệ với hành động theo đúng thứ tự đội hình; nhân vật gục hoặc không tham chiến không nhận lượt.
+- HP giao diện combat là tổng HP thật của Party. Đòn phản công thường được phân bổ giữa các thành viên còn HP; hiệu ứng sát thương riêng theo mục tiêu vẫn dùng HP cá nhân.
+- Poker Dice dùng một hand cho cả vòng Party, không quay lại khi chuyển Entity.
+- Thêm hàng chờ encounter từ 1 đến 4 Entity, lần lượt thay mục tiêu sau khi Entity hiện tại bị tiêu diệt. Nhân vật còn lượt tiếp tục tấn công trong cùng vòng; Entity mới xuất hiện ở cuối vòng không được phản công miễn phí.
+- Có sự kiện chuyển lượt và hoạt ảnh vòng xoay khoảng 0,6 giây, hiển thị người hành động và đợt Entity. Tôn trọng tùy chọn giảm chuyển động.
+- Củng cố Save/Load encounter nhiều đợt và Poker Dice đã chốt, đồng bộ hóa thao tác combat, bổ sung kiểm thử chống xử lý trùng lệnh, mất HP/loot sai và hồi quy kỹ năng.
+- Các encounter roaming thông thường vẫn sinh một Entity theo xác suất hiện tại. Encounter nhiều Entity chỉ được tạo khi có cấu hình tường minh, không tự nhân tỷ lệ spawn.
+- Bản build là Debug APK; quy trình CI kiểm tra Kotlin tests, Node UI tests, chữ ký/zipalign, tài nguyên đóng gói và file APK được tải lại từ GitHub Release.
