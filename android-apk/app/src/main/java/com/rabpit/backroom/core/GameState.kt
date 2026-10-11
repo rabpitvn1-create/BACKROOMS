@@ -2,6 +2,7 @@ package com.rabpit.backroom.core
 
 const val CURRENT_SAVE_VERSION = 5
 const val KAI_ID = "cao_minh"
+const val CAO_MINH_AVATAR_REF = "avatars/CAO_MINH_AVATAR.jpg"
 const val KAI_WHITE_WRAITH_ID = "cao_minh:huyet-ma-kiem"
 const val KAI_BLACKBLOOD_ARMOR_ID = "cao_minh:huyet-ma-chien-khai"
 
@@ -149,7 +150,7 @@ data class GameState(
         KAI_ID to CharacterState(
           KAI_ID,
           "Cao Minh",
-          avatarRef = "avatars/kai_avatar.png",
+          avatarRef = CAO_MINH_AVATAR_REF,
           physiology = PhysiologyState.freshRunBaseline(),
           metadata = mapOf("inventoryProfile" to "cao_minh")
         ),

@@ -4,6 +4,16 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class CharacterDetailProjectionTest {
+  @Test fun caoMinhPortraitFollowsCanonicalCharacterAndEquipment() {
+    val start = GameState.initial()
+    val oldRef = start.characters.getValue(KAI_ID).copy(avatarRef = "avatars/kai_avatar.png")
+    val state = start.copy(characters = start.characters + (KAI_ID to oldRef))
+    assertEquals(CAO_MINH_AVATAR_REF, CharacterDetailProjector.projectCharacter(state, KAI_ID)?.avatarRef)
+    val normalKit = state.equipment.getValue(KAI_ID)
+    val equipped = state.copy(equipment = state.equipment + (KAI_ID to normalKit.copy(slots = normalKit.slots + ("weapon" to MADGOD_SET_ID))))
+    assertEquals(MadGodCanon.AVATAR_ASSET, CharacterDetailProjector.projectCharacter(equipped, KAI_ID)?.avatarRef)
+  }
+
   @Test fun partyProjectionKeepsPartyOrderLeaderAndSubjectiveTime() {
     val kai = CharacterState(KAI_ID, "Cao Minh", avatarRef = "avatars/kai.png")
     val iris = CharacterState("iris", "Iris", avatarRef = "avatars/iris.png")

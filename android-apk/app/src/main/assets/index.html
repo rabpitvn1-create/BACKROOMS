@@ -152,6 +152,25 @@ body.player-action-open,body.game-menu-open{overflow:hidden}
 @media(max-width:370px){.character-info-block{padding:10px}.character-info-combat-value{font-size:15px}.character-info-stat{padding:8px}}
 @media(prefers-reduced-motion:reduce){.character-exp-fill{transition:none}}
 </style>
+<style id="characterDetailPolishStyle">
+.character-inventory-view .character-profile{align-items:start;gap:12px}
+.character-inventory-view .character-hp{margin:0}
+.character-inventory-view .character-hp-value{margin:0 0 7px}
+.character-inventory-view .character-exp{margin-top:12px}
+.character-inventory-view .inventory-capacity{margin:2px 0 0;font-size:14px;color:#e3d4a4}
+.character-inventory-view .inventory-limit{margin:3px 0 11px;font-size:11px}
+.character-inventory-view .survival-hud{gap:7px}
+.character-inventory-view .survival-meter{padding:8px 10px}
+.character-inventory-view .survival-icon{font-size:19px}
+.character-inventory-view .equipment-card,.character-inventory-view .inventory-item-card{width:100%;min-width:0;text-align:left;font-size:13px;font-weight:500;border-radius:10px;touch-action:manipulation}
+.character-inventory-view .equipment-card:focus-visible,.character-inventory-view .inventory-item-card:focus-visible{outline:2px solid #ddc27c;outline-offset:2px}
+.character-inventory-view .equipment-list,.character-inventory-view #characterInventoryItems{display:grid;gap:8px}
+.character-inventory-view .equipment-card-main strong{white-space:normal;overflow-wrap:anywhere;line-height:1.4}
+.character-inventory-view .character-info-block{padding:10px}
+.character-inventory-view .character-info-stats{gap:9px}
+.character-inventory-view .character-section{padding:14px}
+@media(max-width:390px){.character-inventory-view .character-profile{grid-template-columns:88px minmax(0,1fr);gap:10px}.character-inventory-view .character-profile img{width:88px;height:88px}.character-inventory-view .character-hp-value{font-size:16px}}
+</style>
 <script src="level_snapshots/snapshot-mapping.js"></script>
 </head>
 <body>
@@ -193,26 +212,25 @@ body.player-action-open,body.game-menu-open{overflow:hidden}
     <aside class="side">
 <div class="card"><h2>Trạng thái</h2><div class="row"><b>Vị trí</b><span id="location"></span></div><div class="row"><b>Chế độ</b><span id="mode"></span></div><div class="row"><b>Nhân vật</b><span id="player"></span></div></div>
 <div class="card"><h2>Save / Load</h2><div class="actions"><button type="button" id="saveButton" onclick="save()">Lưu</button><button type="button" id="loadButton" onclick="load()">Tải</button><button type="button" id="newGameButton" class="wide" onclick="resetGame()">Bắt đầu lại từ đầu</button><button type="button" id="deleteSaveButton" class="wide danger" onclick="clearSave()">Xóa save trên máy</button></div></div>
-<div class="card"><h2>Party</h2><div class="party-time" id="partyTime"></div><div id="party" class="party-grid"><div class="party-member" data-character="cao_minh"><img src="avatars/kai_avatar.png" alt="Cao Minh"><strong>Cao Minh</strong></div></div></div>
+<div class="card"><h2>Party</h2><div class="party-time" id="partyTime"></div><div id="party" class="party-grid"><div class="party-member" data-character="cao_minh"><img src="avatars/CAO_MINH_AVATAR.jpg" alt="Cao Minh"><strong>Cao Minh</strong></div></div></div>
 <div id="characterInventoryView" class="character-inventory-view" hidden>
-  <div class="character-inventory-head"><button type="button" id="characterInventoryBack">← Trở lại</button><div><div class="eyebrow">CHARACTER DETAIL</div><h2 id="characterInventoryName">Cao Minh</h2></div></div>
+  <div class="character-inventory-head"><button type="button" id="characterInventoryBack">← Trở lại</button><div><div class="eyebrow">THÔNG TIN NHÂN VẬT</div><h2 id="characterInventoryName">Cao Minh</h2></div></div>
   <div class="character-profile">
-    <img id="characterInventoryAvatar" src="avatars/kai_avatar.png" alt="Cao Minh">
+    <img id="characterInventoryAvatar" src="avatars/CAO_MINH_AVATAR.jpg" alt="Cao Minh">
     <div>
       <div class="character-hp" aria-label="Health">
+        <div class="character-hp-value"><span class="character-hp-heart" aria-hidden="true">♥</span><strong id="characterHpValue">— / —</strong></div>
         <div class="character-hp-track"><div class="character-hp-fill" id="characterHpFill"></div><div class="character-hp-segments" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div></div>
-        <div class="character-hp-value"><span class="character-hp-heart">♥</span><strong id="characterHpValue">— / —</strong></div>
       </div>
       <div class="character-exp" aria-label="Tiến độ EXP nhân vật">
         <div class="character-exp-meta"><strong class="character-exp-level" id="characterLevelValue">LV. —</strong><span class="character-exp-value" id="characterExpValue">EXP —</span></div>
         <div class="character-exp-track" id="characterExpProgress" role="progressbar" aria-label="EXP đến cấp tiếp theo" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="character-exp-fill" id="characterExpFill"></div></div>
       </div>
-      <div class="inventory-capacity" id="characterInventoryCapacity">0 / 9 loại vật phẩm</div><div class="inventory-limit">Inventory của nhân vật đang chọn</div>
     </div>
   </div>
-  <div class="character-section"><h3>Status</h3><div class="survival-hud" id="characterSurvivalHud"></div><div class="character-status-list" id="characterStatusList"></div></div>
-  <div class="character-section"><h3>Equipment</h3><div class="equipment-list" id="characterEquipmentList"><span>Huyết Ma Kiếm</span><span>Huyết Ma Chiến Khải</span></div></div>
-  <div class="character-section"><h3>Inventory</h3><div class="chips" id="characterInventoryItems"></div></div>
+  <div class="character-section"><h3>Thể trạng & chỉ số</h3><div class="survival-hud" id="characterSurvivalHud"></div><div class="character-status-list" id="characterStatusList"></div></div>
+  <div class="character-section"><h3>Trang bị</h3><div class="equipment-list" id="characterEquipmentList"><span>Huyết Ma Kiếm</span><span>Huyết Ma Chiến Khải</span></div></div>
+  <div class="character-section"><h3>Kho vật phẩm</h3><div class="inventory-capacity" id="characterInventoryCapacity">0 / 9 loại vật phẩm</div><div class="inventory-limit">Số loại vật phẩm đang mang, không tính trang bị</div><div class="chips" id="characterInventoryItems"></div></div>
 </div>
 </aside>
   </section>
@@ -1744,6 +1762,7 @@ render();
   const signatureNames=['w.w magnum','white wraith magnum','blackblood armor'];
   const signatureEquipment={weapon:'Huyết Ma Kiếm',armor:'Huyết Ma Chiến Khải'};
   const bandLabels={UNKNOWN:'Chưa xác định',NORMAL:'Bình thường',MILD:'Nhẹ',MODERATE:'Vừa',SEVERE:'Nặng',CRITICAL:'Nguy kịch'};
+  const presenceLabels={ACTIVE:'Đang trong đội',SEPARATED:'Tách nhóm',MISSING:'Mất tích',DEAD:'Đã chết'};
   let selectedCharacterId='cao_minh';
 
   function isSignatureItem(x){const n=String((x&&x.name)||x||'').toLocaleLowerCase('vi-VN');return signatureNames.some(k=>n.includes(k))}
@@ -1783,7 +1802,7 @@ render();
     if(liveMembers&&liveMembers.length)return liveMembers;
     const members=state&&state.partyDetails&&Array.isArray(state.partyDetails.members)?state.partyDetails.members:null;
     if(members&&members.length)return members.map(m=>String(m.id)==='cao_minh'&&madGodSetEquipped()?Object.assign({},m,{avatar:'avatars/MadGod.jpg',avatarRef:'avatars/MadGod.jpg'}):m);
-    const fallback=[{id:'cao_minh',name:'Cao Minh',avatar:madGodSetEquipped()?'avatars/MadGod.jpg':'avatars/kai_avatar.png',presence:'ACTIVE',isLeader:true,physiology:{hunger:'NORMAL',thirst:'NORMAL',sleepDeprivation:'NORMAL',foodPercent:100,waterPercent:100,restPercent:100},inventory:kaiItems(),equipment:signatureEquipment,statuses:[],injuries:[]}];
+    const fallback=[{id:'cao_minh',name:'Cao Minh',avatar:madGodSetEquipped()?'avatars/MadGod.jpg':'avatars/CAO_MINH_AVATAR.jpg',presence:'ACTIVE',isLeader:true,physiology:{hunger:'NORMAL',thirst:'NORMAL',sleepDeprivation:'NORMAL',foodPercent:100,waterPercent:100,restPercent:100},inventory:kaiItems(),equipment:signatureEquipment,statuses:[],injuries:[]}];
     if(Array.isArray(state&&state.party))state.party.forEach(x=>{if(x&&x.id&&x.id!=='cao_minh')fallback.push({id:x.id,name:x.name||x.id,avatar:x.avatar,presence:x.presence||'ACTIVE',isLeader:false,physiology:{hunger:'UNKNOWN',thirst:'UNKNOWN',sleepDeprivation:'UNKNOWN'},inventory:[],equipment:{},statuses:[],injuries:[]})});
     return fallback;
   }
@@ -1791,7 +1810,7 @@ render();
   function statusRows(member){
     const p=member&&member.physiology||{};
     const rows=[];
-    rows.push(['Hiện diện',member&&member.presence||'ACTIVE','status-normal']);
+    rows.push(['Hiện diện',presenceLabels[String(member&&member.presence||'ACTIVE')]||String(member&&member.presence||'Không rõ'),'status-normal']);
     if(member&&member.healthState)rows.push(['Thể trạng',member.healthState,'status-normal']);
     if(Array.isArray(member&&member.injuries)&&member.injuries.length)rows.push(['Thương tích',member.injuries.join(', '),'status-danger']);
     if(p.pain)rows.push(['Đau',p.pain,'status-warning']);
@@ -1808,7 +1827,7 @@ render();
   function renderSurvivalHud(member){
     if(!survivalHud)return;
     const p=member&&member.physiology||{};
-    survivalHud.innerHTML=[survivalMeter('🥩','THỨC ĂN',p.foodPercent,p.hunger),survivalMeter('💧','NƯỚC',p.waterPercent,p.thirst),survivalMeter('Zzz','NGỦ',p.restPercent,p.sleepDeprivation)].join('');
+    survivalHud.innerHTML=[survivalMeter('🥩','THỨC ĂN',p.foodPercent,p.hunger),survivalMeter('💧','NƯỚC',p.waterPercent,p.thirst),survivalMeter('🌙','NGỦ',p.restPercent,p.sleepDeprivation)].join('');
   }
   function displayItemName(raw){
     const source=raw&&typeof raw==='object'?(raw.name||raw.displayName||raw.label||raw.itemId||raw.id||''):raw;
@@ -1839,7 +1858,7 @@ render();
     selectedCharacterId=member.id||'cao_minh';
     if(view)view.dataset.characterId=selectedCharacterId;
     detailName.textContent=member.name||member.id||'—';
-    const detailAvatarSrc=member.avatar||member.avatarRef||(member.id==='cao_minh'?'avatars/kai_avatar.png':'');
+    const detailAvatarSrc=member.id==='cao_minh'?(madGodSetEquipped()?'avatars/MadGod.jpg':'avatars/CAO_MINH_AVATAR.jpg'):(member.avatar||member.avatarRef||'');
     detailAvatar.hidden=!detailAvatarSrc;
     if(detailAvatarSrc)detailAvatar.src=detailAvatarSrc;else detailAvatar.removeAttribute('src');
     detailAvatar.alt=member.name||member.id||'Nhân vật';
@@ -1885,7 +1904,7 @@ render();
     for(let i=0;i<max;i++){
       const member=members[i];
       if(!member){cards.push('<div class="party-member empty"><div class="party-avatar-placeholder">Trống</div><strong>Trống</strong></div>');continue}
-      const avatar=member.avatar||member.avatarRef;
+      const avatar=member.id==='cao_minh'?(madGodSetEquipped()?'avatars/MadGod.jpg':'avatars/CAO_MINH_AVATAR.jpg'):(member.avatar||member.avatarRef);
       const visual=avatar?'<img src="'+esc(avatar)+'" alt="'+esc(member.name||member.id)+'">':'<div class="party-avatar-placeholder">'+esc(String(member.name||member.id||'?').slice(0,1).toUpperCase())+'</div>';
       cards.push('<div class="party-member" data-character="'+esc(member.id)+'">'+visual+'<strong>'+esc(member.name||member.id)+'</strong><div class="party-state">'+esc(member.presence||'ACTIVE')+'</div></div>');
     }
@@ -1908,11 +1927,11 @@ render();
 <div id="equipmentDetailModal" class="equipment-detail-modal" hidden>
   <div class="equipment-detail-sheet" role="dialog" aria-modal="true" aria-labelledby="equipmentDetailName">
     <button type="button" class="equipment-detail-close" id="equipmentDetailClose">×</button>
-    <div class="equipment-detail-header"><div class="equipment-detail-icon" id="equipmentDetailIcon">EQ</div><div><div class="eyebrow" id="equipmentDetailClass"></div><h2 id="equipmentDetailName">Equipment</h2><div class="equipment-detail-meta" id="equipmentDetailMeta"></div></div></div>
-    <section><h3>STATS</h3><div id="equipmentDetailStats"></div></section>
-    <section id="equipmentDetailComparisonSection" hidden><h3>EFFECT / COMPARISON</h3><div id="equipmentDetailComparison"></div></section>
-    <section><h3>SPECIAL ABILITIES</h3><div id="equipmentDetailAbilities"></div></section>
-    <section><h3>CANON / RESTRICTIONS</h3><div id="equipmentDetailRestrictions"></div></section>
+    <div class="equipment-detail-header"><div class="equipment-detail-icon" id="equipmentDetailIcon">EQ</div><div><div class="eyebrow" id="equipmentDetailClass"></div><h2 id="equipmentDetailName">Vật phẩm</h2><div class="equipment-detail-meta" id="equipmentDetailMeta"></div></div></div>
+    <section><h3>CHỈ SỐ</h3><div id="equipmentDetailStats"></div></section>
+    <section id="equipmentDetailComparisonSection" hidden><h3>HIỆU ỨNG / SO SÁNH</h3><div id="equipmentDetailComparison"></div></section>
+    <section><h3>NĂNG LỰC ĐẶC BIỆT</h3><div id="equipmentDetailAbilities"></div></section>
+    <section><h3>GIỚI HẠN SỬ DỤNG</h3><div id="equipmentDetailRestrictions"></div></section>
   </div>
 </div>
 
@@ -1957,12 +1976,14 @@ function selected(){const id=view&&view.dataset.characterId||'cao_minh';return m
   function iconFor(item){return String((item&&item.type)||'EQ').split(/[ /_-]+/).filter(Boolean).map(x=>x[0]).join('').slice(0,3).toUpperCase()||'EQ'}
   function itemById(member,id){return (member&&member.inventory||[]).find(x=>String(x.id)===String(id))||(member&&member.equipmentItems||[]).find(x=>String(x.id)===String(id))}
   function card(item,slot){
-    const badges=[];if(item.equipped)badges.push('<span class="equipment-badge equipped">EQUIPPED</span>');if(item.statItem)badges.push('<span class="equipment-badge">STAT ITEM</span>');if(item.classification==='SPECIAL_CHEAT')badges.push('<span class="equipment-badge cheat">SPECIAL / CHEAT</span>');
-    return '<div class="'+(slot?'equipment-card':'inventory-item-card')+'" data-item-id="'+e(item.id)+'"><div class="equipment-card-icon">'+e(iconFor(item))+'</div><div class="equipment-card-main"><strong>'+e(item.name||item.id)+'</strong><small>'+e(slot?String(slot).toUpperCase():(item.rarity||('×'+(item.quantity||1))))+'</small></div><div class="equipment-badges">'+badges.join('')+'</div></div>';
+    const badges=[];if(item.equipped)badges.push('<span class="equipment-badge equipped">Đã trang bị</span>');if(item.statItem)badges.push('<span class="equipment-badge">Chỉ số</span>');if(item.classification==='SPECIAL_CHEAT')badges.push('<span class="equipment-badge cheat">Đặc biệt</span>');
+    const slotLabel=slot?String(slot).replace(/armor/gi,'Giáp').replace(/weapon/gi,'Vũ khí').replace(/\s*\/\s*/g,' / '):'';
+    return '<button type="button" class="'+(slot?'equipment-card':'inventory-item-card')+'" data-item-id="'+e(item.id)+'" aria-label="Xem '+e(item.name||item.id)+'"><span class="equipment-card-icon">'+e(iconFor(item))+'</span><span class="equipment-card-main"><strong>'+e(item.name||item.id)+'</strong><small>'+e(slot?slotLabel:('×'+(item.quantity||1)+(item.rarity?' · '+item.rarity:'')))+'</small></span><span class="equipment-badges">'+badges.join('')+'</span></button>';
   }
   function render(member){
     if(!member)return;
-    if(nameEl){let role=document.getElementById('characterRole');if(!role){role=document.createElement('div');role.id='characterRole';role.className='character-role';nameEl.insertAdjacentElement('afterend',role)}role.textContent=member.role||'UNSPECIFIED'}
+    const presenceLabels={ACTIVE:'Đang trong đội',SEPARATED:'Tách nhóm',MISSING:'Mất tích',DEAD:'Đã chết'};
+    if(nameEl){let role=document.getElementById('characterRole');if(!role){role=document.createElement('div');role.id='characterRole';role.className='character-role';nameEl.insertAdjacentElement('afterend',role)}role.textContent=member.role&&member.role!=='UNSPECIFIED'?member.role:''}
     const baseStats=[
       ['STR','ATK + sát thương kỹ năng'],
       ['DEX','Kháng CRIT'],
@@ -1972,20 +1993,20 @@ function selected(){const id=view&&view.dataset.characterId||'cao_minh';return m
     ];
     const combat=member.combatStatus||{};
     const combatRows=[
-      ['ATK MULTIPLIER',multiplierText(combat.attackPercent)],
-      ['SKILL DMG',multiplierText(combat.skillDamagePercent)],
+      ['Sát thương đòn đánh',multiplierText(combat.attackPercent)],
+      ['Sát thương kỹ năng',multiplierText(combat.skillDamagePercent)],
       ['DEF',numberText(combat.defense)],
-      ['CRIT CHANCE',percentText(combat.criticalChancePercent)],
-      ['CRIT DMG',percentText(combat.criticalDamagePercent)],
-      ['CRIT RES',percentText(combat.criticalResistancePercent)],
-      ['EVASION',percentText(combat.evasionPercent)],
-      ['EVA RES',percentText(combat.evasionResistancePercent)]
+      ['Tỷ lệ chí mạng',percentText(combat.criticalChancePercent)],
+      ['Sát thương chí mạng',percentText(combat.criticalDamagePercent)],
+      ['Kháng chí mạng',percentText(combat.criticalResistancePercent)],
+      ['Né tránh',percentText(combat.evasionPercent)],
+      ['Kháng né tránh',percentText(combat.evasionResistancePercent)]
     ];
     const conditionRows=[
-      ['CONDITION',member.condition||'—'],
-      ['PRESENCE',member.presence||'—'],
-      ['ENE',member.energy||'N/A'],
-      ['HP REGEN',finiteValue(member.hpRegen)==null?'—':(Number(member.hpRegen)>0?'+':'')+member.hpRegen+' / turn']
+      ['Thể trạng',member.condition||'—'],
+      ['Hiện diện',presenceLabels[String(member.presence)]||member.presence||'—'],
+      ['Năng lượng',member.energy||'N/A'],
+      ['Hồi HP',finiteValue(member.hpRegen)==null?'—':(Number(member.hpRegen)>0?'+':'')+member.hpRegen+' / lượt']
     ];
     if(member.healthState)conditionRows.push(['THỂ TRẠNG',member.healthState]);
     if(Array.isArray(member.injuries)&&member.injuries.length)conditionRows.push(['THƯƠNG TÍCH',member.injuries.join(', ')]);
@@ -1994,20 +2015,20 @@ function selected(){const id=view&&view.dataset.characterId||'cao_minh';return m
     if(body.infection)conditionRows.push(['NHIỄM TRÙNG',body.infection]);
     if(body.thermal)conditionRows.push(['NHIỆT TRẠNG',body.thermal]);
     if(Array.isArray(member.statuses)&&member.statuses.length)
-      conditionRows.push(['STATUS EFFECTS',member.statuses.map(x=>x.type||x.id).join(', ')]);
+      conditionRows.push(['Hiệu ứng',member.statuses.map(x=>x.type||x.id).join(', ')]);
     if(status)status.innerHTML=
       '<div class="character-info-stats">'+
         '<section class="character-info-block" id="characterBaseStats" aria-label="Base Stats">'+
-          '<h4 class="character-info-heading">BASE STATS</h4>'+
+          '<h4 class="character-info-heading">CHỈ SỐ CƠ BẢN</h4>'+
           '<div class="character-info-base-list">'+baseStats.map(x=>primaryStat(x[0],x[1],member.stats)).join('')+'</div>'+
         '</section>'+
         '<section class="character-info-block" id="characterCombatStats" aria-label="Combat Stats">'+
-          '<h4 class="character-info-heading">COMBAT STATS</h4>'+
+          '<h4 class="character-info-heading">CHỈ SỐ CHIẾN ĐẤU</h4>'+
           '<div class="character-info-combat-grid">'+combatRows.map(x=>combatStat(x[0],x[1])).join('')+'</div>'+
           '<p class="character-info-combat-hint">ATK và Skill DMG là hệ số nhân; các tỷ lệ đã bao gồm chỉ số hiệu lực và nội tại.</p>'+
         '</section>'+
         '<section class="character-info-block" id="characterStatusEffects" aria-label="Trạng thái nhân vật">'+
-          '<h4 class="character-info-heading">STATUS EFFECTS</h4>'+
+          '<h4 class="character-info-heading">TÌNH TRẠNG</h4>'+
           '<div class="character-info-state-list">'+conditionRows.map(x=>
             '<div class="character-info-state-item"><b>'+e(x[0])+'</b><span>'+e(x[1])+'</span></div>'
           ).join('')+'</div>'+
@@ -2020,9 +2041,9 @@ function selected(){const id=view&&view.dataset.characterId||'cao_minh';return m
   }
   function statRows(item){const w=item.weapon||{},rows=[];if(w.DMG!=null)rows.push(['DMG',w.DMG]);if(w.ammo!=null)rows.push(['Ammo',w.ammo]);if(w.rpm!=null)rows.push(['Full Auto',w.rpm+' RPM']);return rows
   }
-  function comparisonRows(c){return[]}).filter(Boolean)}
-  function openItem(item){if(!item||!modal)return;q('equipmentDetailName').textContent=item.name||item.id;q('equipmentDetailIcon').textContent=iconFor(item);q('equipmentDetailClass').textContent=item.classification==='SPECIAL_CHEAT'?'SPECIAL / CHEAT':(item.type||'ITEM');q('equipmentDetailMeta').textContent=[item.type,item.slot,item.rarity,item.equipped?'EQUIPPED':'UNEQUIPPED'].filter(Boolean).join(' · ');
-    const sr=statRows(item);q('equipmentDetailStats').innerHTML=sr.length?sr.map(r=>'<div class="equipment-detail-row"><span>'+e(r[0])+'</span><strong>'+e(r[1])+'</strong></div>').join(''):'<div class="equipment-detail-row"><span>Combat bonus</span><strong>0</strong></div>';
+  function comparisonRows(c){return []}
+  function openItem(item){if(!item||!modal)return;q('equipmentDetailName').textContent=item.name||item.id;q('equipmentDetailIcon').textContent=iconFor(item);q('equipmentDetailClass').textContent=item.classification==='SPECIAL_CHEAT'?'SPECIAL / CHEAT':(item.type||'ITEM');q('equipmentDetailMeta').textContent=[item.type,item.slot,item.rarity,item.equipped?'Đã trang bị':'Trong kho'].filter(Boolean).join(' · ');
+    const sr=statRows(item);q('equipmentDetailStats').innerHTML=sr.length?sr.map(r=>'<div class="equipment-detail-row"><span>'+e(r[0])+'</span><strong>'+e(r[1])+'</strong></div>').join(''):'<div class="equipment-detail-row"><span>Không có chỉ số chiến đấu.</span></div>';
     const compare=item.comparison||((item.classification==='SPECIAL_CHEAT')?item.baseItemEffect:null),cr=comparisonRows(compare);const cs=q('equipmentDetailComparisonSection');cs.hidden=!cr.length;q('equipmentDetailComparison').innerHTML=cr.map(r=>'<div class="equipment-detail-row"><span>'+e(r[0])+'</span><strong class="'+(r[2]>=0?'stat-delta-positive':'stat-delta-negative')+'">'+e(r[1])+'</strong></div>').join('');
     const abs=item.abilities||[];q('equipmentDetailAbilities').innerHTML=abs.length?abs.map(a=>'<div class="ability-row"><strong>'+e(a.name)+'</strong><p>'+e(a.description)+'</p>'+(a.limit?'<em>'+e(a.limit)+'</em>':'')+'</div>').join(''):'<div class="ability-row"><p>Không có Special Ability được ghi nhận.</p></div>';
     const rr=item.restrictions||[];q('equipmentDetailRestrictions').innerHTML=rr.length?rr.map(x=>'<div class="restriction-row">'+e(x)+'</div>').join(''):'<div class="restriction-row">Không có restriction bổ sung.</div>';modal.hidden=false}
@@ -2064,16 +2085,16 @@ function selected(){const id=view&&view.dataset.characterId||'cao_minh';return m
       if(section&&section.parentNode)section.parentNode.insertBefore(button,section);else view.appendChild(button);
       button.addEventListener('click',openSkills);
     }
-    const current=skills();button.hidden=current.length===0;button.textContent=current.length?'Kỹ năng · '+current.length:'Kỹ năng';
+    const current=skills();button.hidden=current.length===0;button.textContent=current.length?'Kỹ năng · '+current.length+' ▾':'Kỹ năng';button.setAttribute('aria-haspopup','dialog');button.setAttribute('aria-controls','characterSkillsModal');button.setAttribute('aria-expanded',String(!modal.hidden));
   }
   function openSkills(){
     const member=selected();const current=skills();
     title.textContent=(member&&member.name?member.name+' · ':'')+'Kỹ năng';
     list.innerHTML=current.length?current.map(skill=>'<div class="character-skill-card"><div class="character-skill-top"><div class="character-skill-name">'+escapeHtml(skill.name||'Kỹ năng')+'</div><span class="character-skill-kind">'+escapeHtml(skill.kind||'SKILL')+'</span></div><div class="character-skill-trigger">'+escapeHtml(skill.trigger||'')+'</div><div class="character-skill-effect">'+escapeHtml(skill.effect||'')+'</div>'+(skill.note?'<div class="character-skill-note">'+escapeHtml(skill.note)+'</div>':'')+'</div>').join(''):'<div class="character-skill-card">Chưa có kỹ năng được ghi nhận.</div>';
-    modal.hidden=false;
+    modal.hidden=false;ensureButton();
   }
-  close.addEventListener('click',()=>{modal.hidden=true});
-  modal.addEventListener('click',event=>{if(event.target===modal)modal.hidden=true});
+  close.addEventListener('click',()=>{modal.hidden=true;ensureButton()});
+  modal.addEventListener('click',event=>{if(event.target===modal){modal.hidden=true;ensureButton()}});
   new MutationObserver(ensureButton).observe(view,{attributes:true,attributeFilter:['data-character-id']});
   ensureButton();
 })();

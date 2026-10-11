@@ -53,9 +53,9 @@ test('Character Info shows exactly five Base Stats and eight calculated Combat S
   }
   assert.equal((status.innerHTML.match(/class="character-info-stat-name"/g) || []).length, 5);
   assert.equal((status.innerHTML.match(/class="character-info-combat-item"/g) || []).length, 8);
-  assert.match(status.innerHTML, /BASE STATS/);
-  assert.match(status.innerHTML, /COMBAT STATS/);
-  assert.match(status.innerHTML, /ATK MULTIPLIER/);
+  assert.match(status.innerHTML, /CHỈ SỐ CƠ BẢN/);
+  assert.match(status.innerHTML, /CHỈ SỐ CHIẾN ĐẤU/);
+  assert.match(status.innerHTML, /Sát thương đòn đánh/);
   assert.match(status.innerHTML, /×1\.04/);
   assert.match(status.innerHTML, /5\.45%/);
   assert.match(status.innerHTML, /5\.5%/);
