@@ -2315,34 +2315,34 @@ body.poker-dice-open .game>.log{display:none!important}
     var members=state&&state.partyDetails&&Array.isArray(state.partyDetails.members)?state.partyDetails.members:[];
     return members.find(function(m){return String(m&&m.id||"")===String(id)})||members[0]||{id:id};
   }
-  function readCoreStats(id){
-    try{return window.Android&&typeof Android.coreStats==="function"?JSON.parse(Android.coreStats(JSON.stringify(state),id)):null}catch(_){return null}
+  function readCharacterProgression(id){
+    try{
+      return window.Android&&typeof Android.characterProgression==="function"
+        ?JSON.parse(Android.characterProgression(id)):null
+    }catch(_){return null}
   }
   function renderCorePanel(){
     var host=document.getElementById("characterStatusList");if(!host)return;
-    var member=selectedCharacter(),id=String(member&&member.id||"cao_minh"),data=readCoreStats(id);if(!data||!data.stats)return;
-    var panel=document.getElementById("coreProgressionPanel");if(!panel){panel=document.createElement("section");panel.id="coreProgressionPanel";panel.className="core-progression-panel";host.appendChild(panel)}
+    var member=selectedCharacter(),id=String(member&&member.id||"cao_minh"),data=readCharacterProgression(id);
+    var existing=document.getElementById("coreProgressionPanel");
+    if(!data||!data.stats){if(existing)existing.remove();return}
+    var panel=existing;
+    if(!panel){panel=document.createElement("section");panel.id="coreProgressionPanel";panel.className="core-progression-panel";host.appendChild(panel)}
     panel.textContent="";
-    var head=document.createElement("div");head.className="core-progression-head";head.innerHTML="<b>CORE STATS</b><span class='core-balance'>Core "+Number(data.sharedCore||0)+"</span>";panel.appendChild(head);
+    var head=document.createElement("div");head.className="core-progression-head";
+    var limit=data.expToNextLevel,level=Number(data.level||0),xp=Number(data.exp||0);
+    var label=document.createElement("b");label.textContent="LEVEL "+level;
+    var balance=document.createElement("span");balance.className="core-balance";
+    balance.textContent=limit==null?"MAX LEVEL":"EXP "+xp+" / "+Number(limit);
+    head.appendChild(label);head.appendChild(balance);panel.appendChild(head);
     ["STR","DEX","AGI","VIT","EVA"].forEach(function(key){
       var s=data.stats[key]||{},line=document.createElement("div");line.className="core-progression-row";
       var name=document.createElement("span");name.className="core-progression-stat";name.textContent=key;
-      var value=document.createElement("span");value.className="core-progression-value";value.textContent=String(s.effective??5)+(key==="STR"?" · ×"+((Number(s.multiplierPercent||100)/100).toFixed(2)):"")+" · next "+(s.nextCoreCost==null?"MAX":s.nextCoreCost+" Core");
-      var button=document.createElement("button");button.type="button";button.className="core-progression-upgrade";button.textContent="+1 ("+(s.nextCoreCost==null?"—":s.nextCoreCost)+")";
-      button.disabled=!!window.__coreUpgradeBusy||!!window.__combatBusy||(typeof busy!=="undefined"&&!!busy)||s.nextCoreCost==null||Number(data.sharedCore||0)<Number(s.nextCoreCost||0);
-      button.addEventListener("click",function(){
-        if(button.disabled||!window.Android||typeof Android.coreUpgrade!=="function")return;
-        window.__coreUpgradeBusy=true;renderCorePanel();Android.coreUpgrade(JSON.stringify(state),id,key);
-      });
-      line.appendChild(name);line.appendChild(value);line.appendChild(button);panel.appendChild(line);
+      var value=document.createElement("span");value.className="core-progression-value";
+      value.textContent=String(s.effective??5)+(key==="STR"?" · ×"+((Number(s.multiplierPercent||100)/100).toFixed(2)):"");
+      line.appendChild(name);line.appendChild(value);panel.appendChild(line);
     });
   }
-  window.backroomCoreUpgrade=function(payload){
-    window.__coreUpgradeBusy=false;
-    try{var result=JSON.parse(payload);if(result&&result.state)state=result.state;if(statusEl)statusEl.textContent=result&&result.handled?String(result.reply||"Đã nâng Core."):String(result&&result.error||"Không thể nâng Core.");}
-    catch(_){if(statusEl)statusEl.textContent="Core upgrade trả dữ liệu không hợp lệ."}
-    if(typeof window.render==="function")window.render();else renderCorePanel();
-  };
 
   var previousRender=window.render;if(typeof previousRender==="function")window.render=function(){var result=previousRender.apply(this,arguments);renderCorePanel();ensureDirectCombatDice();return result};
   var previousTurn=window.backroomTurn;if(typeof previousTurn==="function")window.backroomTurn=function(json){
