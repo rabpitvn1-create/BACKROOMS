@@ -20,7 +20,6 @@ object PokerDiceCore {
   const val MAX_REROLLS = 3
   const val BASE_STAT = 5
   const val MAX_STAT = 999
-  const val ENTITY_VICTORY_CORE = 2
   const val DIRECT_COMBAT_ACTION = "Cả Party cùng tấn công"
 
   private const val PREFIX = "poker."
@@ -29,15 +28,6 @@ object PokerDiceCore {
   private const val HELD_FACE_WEIGHT_BONUS = 6
   private const val HELD_SEQUENCE_WEIGHT_BONUS = 18
   private val STAT_KEYS = listOf("STR", "DEX", "AGI", "VIT", "EVA")
-
-  data class UpgradeResult(
-    val state: GameState,
-    val characterId: String,
-    val stat: String,
-    val value: Int,
-    val cost: Int,
-    val coreRemaining: Int
-  )
 
   data class DiceSession(
     val encounterId: String,
@@ -51,8 +41,6 @@ object PokerDiceCore {
     val sequence: Int
   )
 
-  fun coreCount(state: GameState): Int = CharacterProgressionCore.coreCount(state)
-
   fun coreStat(state: GameState, characterId: String, stat: String): Int =
     CharacterProgressionCore.baseStat(state, characterId, stat)
 
@@ -61,33 +49,30 @@ object PokerDiceCore {
 
   fun scaleByPercent(value: Int, percent: Int): Int = CharacterStatCore.scaleByPercent(value, percent)
 
-  fun upgradeCost(currentStat: Int): Int = CharacterProgressionCore.upgradeCost(currentStat)
-
-  fun grantCore(state: GameState, amount: Int): GameState = CharacterProgressionCore.grantCore(state, amount)
-
-  fun upgrade(state: GameState, rawCharacterId: String, rawStat: String): UpgradeResult {
-    val result = CharacterProgressionCore.upgrade(state, rawCharacterId, rawStat)
-    return UpgradeResult(result.state, result.characterId, result.stat, result.value, result.cost, result.coreRemaining)
-  }
-
+  /** Read-only projection. A level-up happens only inside the authoritative EXP grant. */
   fun statsJson(state: GameState, characterId: String): JSONObject {
     val id = characterId.trim().lowercase(Locale.ROOT)
+    val character = state.characters[id] ?: throw IllegalArgumentException("Nhân vật không tồn tại.")
     val effective = CharacterStatCore.effective(state, id)
     val stats = JSONObject()
     STAT_KEYS.forEach { stat ->
       val base = coreStat(state, id, stat)
-      val eff = when (stat) { "STR" -> effective.str; "DEX" -> effective.dex; "AGI" -> effective.agi; "VIT" -> effective.vit; else -> effective.eva }
-      val line = JSONObject()
-        .put("base", base)
-        .put("effective", eff)
-        .put("nextCoreCost", if (base >= MAX_STAT) JSONObject.NULL else upgradeCost(base))
+      val eff = when (stat) {
+        "STR" -> effective.str; "DEX" -> effective.dex; "AGI" -> effective.agi
+        "VIT" -> effective.vit; else -> effective.eva
+      }
+      val line = JSONObject().put("base", base).put("effective", eff)
       if (stat == "STR") line.put("multiplierPercent", statPercent(state, id, stat))
       stats.put(stat, line)
     }
+    val level = character.progression.level
     return JSONObject()
       .put("schema", CharacterProgressionCore.SCHEMA)
-      .put("sharedCore", coreCount(state))
       .put("characterId", id)
+      .put("level", level)
+      .put("exp", character.progression.exp)
+      .put("expToNextLevel", if (level < CharacterProgressionCore.MAX_LEVEL)
+        CharacterProgressionCore.expRequired(level) else JSONObject.NULL)
       .put("stats", stats)
   }
 
