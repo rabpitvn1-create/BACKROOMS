@@ -123,6 +123,9 @@ jobs:
           grep -q 'POKER_DICE_CORE_BACKPORT_R01' apk-check/assets/index.html
           grep -q 'pokerDiceModal' apk-check/assets/index.html
           grep -q 'COMBAT_TRANSIENT_LOG_R01' apk-check/assets/combat-feedback-1193a.js
+          grep -q 'COMBAT_TURN_SPINNER_R01' apk-check/assets/combat-feedback-1193a.js
+          grep -q 'playTypedTurnTimeline' apk-check/assets/combat-feedback-1193a.js
+          grep -q 'COMBAT_TURN_SPINNER_R01' apk-check/assets/combat-feedback-1193a.css
           grep -q 'packet&&packet.summary' apk-check/assets/combat-feedback-1193a.js
           grep -q '.combat-feedback-panel' apk-check/assets/combat-feedback-1193a.css
           ! grep -q 'state.log' apk-check/assets/combat-feedback-1193a.js
@@ -233,6 +236,9 @@ jobs:
           unzip -p Backroom-1.2.0.0.0-verified.apk assets/index.html | grep -q 'POKER_DICE_CORE_BACKPORT_R01'
           unzip -p Backroom-1.2.0.0.0-verified.apk assets/index.html | grep -q 'pokerDiceModal'
           unzip -p Backroom-1.2.0.0.0-verified.apk assets/combat-feedback-1193a.js | grep -q 'COMBAT_TRANSIENT_LOG_R01'
+          unzip -p Backroom-1.2.0.0.0-verified.apk assets/combat-feedback-1193a.js | grep -q 'COMBAT_TURN_SPINNER_R01'
+          unzip -p Backroom-1.2.0.0.0-verified.apk assets/combat-feedback-1193a.js | grep -q 'playTypedTurnTimeline'
+          unzip -p Backroom-1.2.0.0.0-verified.apk assets/combat-feedback-1193a.css | grep -q 'COMBAT_TURN_SPINNER_R01'
           unzip -p Backroom-1.2.0.0.0-verified.apk assets/combat-feedback-1193a.js | grep -q 'packet&&packet.summary'
           unzip -p Backroom-1.2.0.0.0-verified.apk assets/combat-feedback-1193a.css | grep -q '.combat-feedback-panel'
           ! unzip -p Backroom-1.2.0.0.0-verified.apk assets/combat-feedback-1193a.js | grep -q 'state.log'
