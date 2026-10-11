@@ -75,8 +75,11 @@ public class MainActivity extends Activity {
     }
     try {
       webView = new WebView(this);
-      // Only debug APKs expose WebView to emulator-driven Chrome DevTools tests.
-      if (BuildConfig.DEBUG) WebView.setWebContentsDebuggingEnabled(true);
+      // Keep DevTools on for CI emulator only, never for distributed debug APKs on phones.
+      if (BuildConfig.DEBUG && (Build.FINGERPRINT.contains("generic") ||
+          Build.FINGERPRINT.contains("sdk_gphone"))) {
+        WebView.setWebContentsDebuggingEnabled(true);
+      }
       WebSettings settings = webView.getSettings();
       settings.setJavaScriptEnabled(true);
       settings.setDomStorageEnabled(true);
