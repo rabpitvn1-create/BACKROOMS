@@ -204,7 +204,8 @@
       if(attack){
         var hit=String(attack).match(/Party chịu -(\d+) HP \((\d+)\/(\d+)\)/);
         var skill=details.find(function(v){return / proc:/.test(String(v));});
-        var action=skill?String(skill).split(' proc:')[0]:'đánh thường';
+        var action=skill?String(skill).split(' proc:')[0]:
+          details.some(function(v){return /Devils And Gold kích hoạt/.test(String(v));})?'Devils And Gold':'đánh thường';
         if(hit)appendCombatLine('entity',String(cue.entityName||'Entity')+' sử dụng '+
           (action==='đánh thường'?'đánh thường':'['+action+']')+' gây -'+hit[1]+
           ' HP lên cả nhóm ['+hit[2]+'/'+hit[3]+' HP]');

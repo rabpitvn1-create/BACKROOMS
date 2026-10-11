@@ -168,7 +168,7 @@ test('typed combat cues show active character and a short spinning transition be
  assert.ok(title().includes('Cao Minh'));assert.ok(r.panel().children.length>=3);
  assert.equal(r.scope.document.getElementById('combatTurnIndicator').hidden,true);
  const timers=r.timers.filter(t=>t.ms>0).map(t=>t.ms);
- assert.ok(timers.includes(600),'600ms transition must be scheduled');
+ assert.ok(timers.includes(600),'800ms transition must be scheduled');
  assert.equal(r.scope.document.getElementById('combatFeedbackMeta').textContent,'NOW : Cao Minh');
  // Transition starts after actor feedback plus a short readability gap.
  r.timers.find(t=>t.ms===1210).fn();

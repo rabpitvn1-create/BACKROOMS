@@ -87,3 +87,23 @@ body.poker-dice-open .player-action-bar .primary-action{pointer-events:none;opac
 @media(max-height:680px){body.poker-dice-open .game>.snapshot{height:clamp(100px,21dvh,165px);min-height:80px}
  body.poker-dice-open .poker-dice-sheet{padding-top:8px!important;padding-bottom:8px!important}
  body.poker-dice-open .poker-die{min-height:50px!important;padding-bottom:18px!important}}
+
+/* Fade new Party fighter into the Snapshot while the 800ms circular cue rotates. */
+.snapshot[data-combat-focus="cao_minh"] .snapshot-character,
+.snapshot[data-combat-focus="lucia"] .snapshot-lucia,
+.snapshot[data-combat-focus="iris"]::after,
+.snapshot[data-combat-focus="syvial"]::after,
+.snapshot[data-combat-focus="an_nhien"]::after{
+ animation:combat-party-appear .46s cubic-bezier(.2,.65,.25,1) both
+}
+@keyframes combat-party-appear{
+ from{opacity:.15;transform:translateY(7px) scale(.97)}
+ to{opacity:1;transform:translateY(0) scale(1)}
+}
+@media(prefers-reduced-motion:reduce){
+ .snapshot[data-combat-focus="cao_minh"] .snapshot-character,
+ .snapshot[data-combat-focus="lucia"] .snapshot-lucia,
+ .snapshot[data-combat-focus="iris"]::after,
+ .snapshot[data-combat-focus="syvial"]::after,
+ .snapshot[data-combat-focus="an_nhien"]::after{animation:none}
+}
