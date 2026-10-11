@@ -9,17 +9,15 @@
   function activeCombat(){
     return typeof state!=='undefined'&&state&&state.combat&&state.combat.active===true?state.combat:null;
   }
-  // Combat Core owns the sequence. Only its current cue supplies a visible portrait.
-  // Never persist focus/animation state into GameState or the GM narrative.
-  var pendingCombatEntity=false;
+  // Party and Entity are independent visual slots; turn authority remains Core.
+  var partyFocusEpoch=0;
   var knownPortraits={
     iris:'avatars/Iris_avatar.jpg',
     syvial:'avatars/Syvial_avatar.jpg',
     an_nhien:'avatars/an_nhien_avatar.png'
   };
   function combatPortraitSource(actorId,snapshot){
-    var selector=actorId==='entity'?'.snapshot-entity':
-      actorId==='cao_minh'?'.snapshot-character':
+    var selector=actorId==='cao_minh'?'.snapshot-character':
       actorId==='lucia'?'.snapshot-lucia':'';
     var image=selector&&snapshot.querySelector(selector);
     if(image&&image.src)return image.src;
@@ -37,8 +35,7 @@
     });
   }
   function ensureActiveCombatAvatar(snapshot,actorId){
-    if(actorId==='none'||actorId==='entity'||actorId==='cao_minh'||actorId==='lucia'||
-       Object.prototype.hasOwnProperty.call(knownPortraits,actorId))return;
+    if(actorId==='none'||actorId==='cao_minh'||actorId==='lucia')return;
     if(snapshot.querySelector('.combat-turn-avatar'))return;
     var source=combatPortraitSource(actorId,snapshot);
     if(!source)return;
@@ -47,70 +44,51 @@
     portrait.setAttribute('aria-hidden','true');
     snapshot.appendChild(portrait);
   }
-  function entityPortraitReady(snapshot){
-    var image=snapshot.querySelector('.snapshot-entity');
-    // Android mounts <img> before its file URL finishes decoding. Keep the
-    // previous participant visible until appendEntityOverlay's onload fires.
-    return !!(image&&(!image.style||image.style.opacity!=='0'));
-  }
   function focusCombatActor(actorId){
     var snapshot=document.getElementById('snapshot');if(!snapshot)return;
-    var next=String(actorId||'none'),prior=String(snapshot.dataset.combatFocus||'');
-    // Entity images arrive asynchronously from the Android bridge. Keep the
-    // previous fighter visible until the current encounter portrait is mounted.
-    if(next==='entity'&&!entityPortraitReady(snapshot)){
-      pendingCombatEntity=true;
-      return;
-    }
-    pendingCombatEntity=false;
-    if(next===prior){ensureActiveCombatAvatar(snapshot,next);return;}
+    // An Entity attack never enters the Party slot or hides Cao Minh.
+    var next=String(actorId||'cao_minh');
+    if(next==='none'||next==='entity')next='cao_minh';
+    var prior=String(snapshot.dataset.combatFocus||'cao_minh');
+    if(next===prior){snapshot.dataset.combatFocus=next;ensureActiveCombatAvatar(snapshot,next);return;}
+    var oldSource=combatPortraitSource(prior,snapshot);
     removeCombatPortraits(snapshot);
-    var reduced=typeof window.matchMedia==='function'&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if(prior&&prior!=='none'){
-      var oldSource=combatPortraitSource(prior,snapshot);
-      if(oldSource){
-        var departing=document.createElement('img');
-        departing.className='combat-turn-exit'+(prior==='entity'?' combat-turn-exit--entity':
-          prior==='iris'||prior==='syvial'||prior==='an_nhien'?' combat-turn-exit--portrait':'');
-        departing.src=oldSource;departing.alt='';
-        var priorImage=prior==='entity'?snapshot.querySelector('.snapshot-entity'):
-          prior==='cao_minh'?snapshot.querySelector('.snapshot-character'):
-          prior==='lucia'?snapshot.querySelector('.snapshot-lucia'):null;
-        if(priorImage&&priorImage.style){
-          ['left','right','bottom','height','width','maxWidth','objectPosition','transform','transformOrigin'].forEach(function(key){
-            if(priorImage.style[key])departing.style[key]=priorImage.style[key];
-          });
-        }
-        departing.setAttribute('aria-hidden','true');
-        snapshot.appendChild(departing);
-        departing.addEventListener('animationend',function(){departing.remove()},{once:true});
-        setTimeout(function(){departing.remove();},reduced?90:800);
-      }
+    var reduced=typeof window.matchMedia==='function'&&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var epoch=++partyFocusEpoch;
+    if(oldSource){
+      var departing=document.createElement('img');
+      departing.className='combat-turn-exit';departing.src=oldSource;departing.alt='';
+      departing.setAttribute('aria-hidden','true');
+      snapshot.appendChild(departing);
+      departing.addEventListener('animationend',function(){departing.remove()},{once:true});
+      setTimeout(function(){departing.remove()},reduced?90:800);
     }
     snapshot.dataset.combatFocus=next;
+    snapshot.dataset.combatAnimating='true';
     snapshot.dataset.combatCycle=String(1-Number(snapshot.dataset.combatCycle||'0'));
     ensureActiveCombatAvatar(snapshot,next);
+    setTimeout(function(){
+      if(epoch===partyFocusEpoch&&snapshot.dataset)delete snapshot.dataset.combatAnimating;
+    },reduced?90:800);
   }
-  // The Snapshot renderer replaces its children on every render, including
-  // async Entity overlay delivery. Reattach actor portraits after that render.
+  // Snapshot renderer replaces child nodes; reattach only the active Party image.
+  // Image load callbacks must never change the Party focus or rotate the Entity.
   window.backroomSyncCombatPortrait=function(){
     var snapshot=document.getElementById('snapshot');
     if(!snapshot||!activeCombat())return;
-    if(pendingCombatEntity&&entityPortraitReady(snapshot)){
-      focusCombatActor('entity');return;
-    }
-    if(snapshot.dataset.combatFocus==='entity'&&!entityPortraitReady(snapshot)){
-      focusCombatActor('cao_minh');
-      pendingCombatEntity=true;
-      return;
-    }
-    ensureActiveCombatAvatar(snapshot,String(snapshot.dataset.combatFocus||''));
+    ensureActiveCombatAvatar(snapshot,String(snapshot.dataset.combatFocus||'cao_minh'));
   };
   function clearCombatFocus(){
-    pendingCombatEntity=false;
+    ++partyFocusEpoch;
     var snapshot=document.getElementById('snapshot');if(!snapshot)return;
     removeCombatPortraits(snapshot);
-    if(snapshot.dataset){delete snapshot.dataset.combatFocus;delete snapshot.dataset.combatCycle;}
+    if(snapshot.dataset){
+      delete snapshot.dataset.combatFocus;
+      delete snapshot.dataset.combatCycle;
+      delete snapshot.dataset.combatAnimating;
+    }
+    window.backroomCombatEntityVisualKey='';
   }
   function prettyEntity(value){
     var raw=String(value||'Entity').replace(/_/g,' ').trim();
@@ -272,7 +250,10 @@
     if(!ensureCombatPanel()||!turnIndicator)return;
     var kind=cue.kind;
     if(kind==='actor'){showNow(cue.actorName||'Cao Minh');focusCombatActor(cue.actorId);}
-    else if(kind==='entity')focusCombatActor('entity');
+    else if(kind==='entity'){showNow('Cao Minh');focusCombatActor('cao_minh');}
+    else if(kind==='wave'&&cue.entityKey&&typeof window.backroomSwitchCombatEntityWave==='function'){
+      window.backroomSwitchCombatEntityWave(cue.entityKey,cue.waveNumber);
+    }
     // Keep the last Party fighter in NOW while Entity counterattacks.
     turnIndicator.hidden=true;turnIndicator.dataset.kind=kind;
     if(turnName)turnName.textContent=kind==='actor'?String(cue.actorName||'Cao Minh'):String(cue.entityName||'Entity');
@@ -367,6 +348,10 @@
     // combat, otherwise the renderer removes Entity/Lucia overlays immediately.
     var incomingCombat;
     try{incomingCombat=JSON.parse(json).combat;}catch(_){}
+    if(before&&before.active===true&&rawPacket&&Array.isArray(rawPacket.turns)&&
+       rawPacket.turns.some(function(c){return c&&c.kind==='wave';})){
+      window.backroomCombatEntityVisualKey=String(before.entityKey||'');
+    }
     var completing=before&&before.active===true&&
       (!incomingCombat||incomingCombat.active!==true)&&
       rawPacket&&Array.isArray(rawPacket.events)&&Array.isArray(rawPacket.turns)&&
@@ -427,8 +412,10 @@
       if(typedMs!==null){
         setTimeout(function(){
           if(token!==animationToken)return;
-          setFeedbackBusy(false);
+          focusCombatActor('cao_minh');
           showNow('Cao Minh');
+          window.backroomCombatEntityVisualKey='';
+          setFeedbackBusy(false);
         },typedMs);
         return;
       }
@@ -452,8 +439,9 @@
       });
       setTimeout(function(){
         if(token!==animationToken)return;
-        setFeedbackBusy(false);
+        focusCombatActor('cao_minh');
         showNow('Cao Minh');
+        setFeedbackBusy(false);
       },lastDelay+1800);
     });
     return result;

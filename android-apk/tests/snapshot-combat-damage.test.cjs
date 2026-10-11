@@ -225,7 +225,7 @@ test('Core re-projection cannot drop skill names and damage from transient comba
  assert.equal(r.entries().children.length,again);
 });
 
-test('combat picture shows only current Party actor then Entity while keeping background',()=>{
+test('combat keeps Entity in left slot while Party takes turns on right',()=>{
  const r=boot();
  assert.equal(r.box.dataset.combatFocus,'cao_minh');
  const turns=[
@@ -238,7 +238,7 @@ test('combat picture shows only current Party actor then Entity while keeping ba
  const ordered=r.timers.filter(t=>t.ms===1210||t.ms===2420);
  assert.equal(ordered.length,2);
  ordered[0].fn();assert.equal(r.box.dataset.combatFocus,'lucia');
- ordered[1].fn();assert.equal(r.box.dataset.combatFocus,'entity');
+ ordered[1].fn();assert.equal(r.box.dataset.combatFocus,'cao_minh');
  const last=Math.max(...r.timers.map(t=>t.ms));
  r.timers.find(t=>t.ms===last).fn();
  r.turn(undefined,'enc:stop','enc',null);
@@ -251,7 +251,8 @@ test('snapshot style has distinct active-actor rules and existing local Party as
  assert.match(css,/\.snapshot\[data-combat-focus="lucia"\] \.snapshot-lucia/);
  assert.match(css,/\.snapshot\[data-combat-focus\] \.snapshot-character/);
  assert.match(css,/\.snapshot\[data-combat-focus\] \.snapshot-entity/);
- assert.match(css,/\.snapshot\[data-combat-focus\] \.snapshot-entity\{display:block!important\}/);
+ assert.match(css,/\.snapshot\[data-combat-focus\] \.snapshot-entity\{/);
+ assert.match(css,/display:block!important;left:0!important;right:auto!important/);
  assert.doesNotMatch(css,/\.snapshot\[data-combat-focus\] \.snapshot-entity\{display:none!important\}/);
  assert.match(css,/@keyframes combat-turn-enter/);
  assert.match(css,/@keyframes combat-turn-leave/);
@@ -260,6 +261,12 @@ test('snapshot style has distinct active-actor rules and existing local Party as
  const keyframes=css.slice(css.indexOf('@keyframes combat-turn-enter'),css.indexOf('@media(prefers-reduced-motion:reduce)',css.indexOf('@keyframes combat-turn-enter')));
  assert.doesNotMatch(keyframes,/transform:/,'3D animation must preserve the Entity ground-plane inline transform');
  assert.doesNotMatch(css,/combat-switch-ring/);
+ assert.doesNotMatch(css,/combat-party-appear/,'only one Party animation definition may own a slot');
+ assert.match(css,/\.snapshot\[data-combat-focus\] \.snapshot-lucia,/);
+ assert.match(css,/right:0!important;left:auto!important/);
+ assert.match(css,/height:97%!important/);
+ assert.match(css,/max-width:100%!important/);
+ assert.match(css,/animation:none!important/,'Entity never rotates for its own cue');
 
  for(const filename of ['avatars/Iris_avatar.jpg','avatars/Syvial_avatar.jpg','avatars/an_nhien_avatar.png']){
   assert.ok(fs.existsSync(path.join(__dirname,'../app/src/main/assets',filename)),filename);
@@ -294,10 +301,10 @@ test('after animated turns keep the last combatant visible while waiting for the
          {kind:'entity',eventIndex:0,waveNumber:1,waveCount:1,entityName:'Hound'}]
  });
  r.timers.find(t=>t.ms===1210).fn();
- assert.equal(r.box.dataset.combatFocus,'entity');
+ assert.equal(r.box.dataset.combatFocus,'cao_minh');
  const finish=Math.max(...r.timers.map(t=>t.ms));
  r.timers.find(t=>t.ms===finish).fn();
- assert.equal(r.box.dataset.combatFocus,'entity');
+ assert.equal(r.box.dataset.combatFocus,'cao_minh');
  assert.equal(r.scope.__combatFeedbackBusy,false);
 });
 
@@ -311,14 +318,14 @@ test('Combat Log owns the GM slot and leaves three action buttons visually intac
  assert.ok(html.includes('.primary-action-row.combat-direct{display:grid!important}'));
  assert.ok(html.includes('row.hidden=false'));
 });
-test('NOW retains last Party character through Entity response and resets after round',()=>{
+test('Party NOW returns to Cao Minh as soon as Entity counterattacks and remains after round',()=>{
  const r=boot();const meta=()=>r.scope.document.getElementById('combatFeedbackMeta').textContent;
  assert.equal(meta(),'NOW : Cao Minh');
  r.turn([],'enc:header','enc',{active:true,encounterId:'enc',entityKey:'hound',round:2},{},{turns:[
   {kind:'actor',eventIndex:0,actorId:'lucia',actorName:'Lucia',entityName:'Hound',waveNumber:1,waveCount:1},
   {kind:'entity',eventIndex:0,entityName:'Hound',waveNumber:1,waveCount:1}
  ]});
- assert.equal(meta(),'NOW : Lucia');r.timers.find(t=>t.ms===1210).fn();assert.equal(meta(),'NOW : Lucia');
+ assert.equal(meta(),'NOW : Lucia');r.timers.find(t=>t.ms===1210).fn();assert.equal(meta(),'NOW : Cao Minh');
  const finish=Math.max(...r.timers.map(t=>t.ms));r.timers.find(t=>t.ms===finish).fn();
  assert.equal(meta(),'NOW : Cao Minh');
 });
@@ -341,7 +348,7 @@ test('Entity skill impacts Party once with shared HP and retains Party header',(
  details:['Cắn Xé proc: 140% Basic Attack; Bleed.','Hound phản công: Party chịu -30 HP (170/200). Cao Minh -15; Lucia -15.']}]});
  r.timers.find(t=>t.ms===1210).fn();
  assert.ok(r.entries().children.some(x=>x.textContent==='Hound sử dụng [Cắn Xé] gây -30 HP lên cả nhóm [170/200 HP]'));
- assert.equal(r.scope.document.getElementById('combatFeedbackMeta').textContent,'NOW : Lucia');
+ assert.equal(r.scope.document.getElementById('combatFeedbackMeta').textContent,'NOW : Cao Minh');
 });
 
 
@@ -379,7 +386,7 @@ test('short-screen Combat stays scrollable without reducing Snapshot below Explo
 });
 
 
-test('3D handoff isolates the Entity turn and fades the previous actor out',()=>{
+test('Entity counterattack keeps Cao Minh and avoids creating a rotating Entity clone',()=>{
  const r=boot();
  r.actor.src='file:///android_asset/CAO_MINH_OVERLAY_EXPLORER_IDLE.png';
  r.entity.src='file:///android_asset/entity.webp';
@@ -389,12 +396,9 @@ test('3D handoff isolates the Entity turn and fades the previous actor out',()=>
  });
  assert.equal(r.box.dataset.combatFocus,'cao_minh');
  r.timers.find(t=>t.ms===1210).fn();
- assert.equal(r.box.dataset.combatFocus,'entity');
+ assert.equal(r.box.dataset.combatFocus,'cao_minh');
  const leaving=r.box.children.find(n=>n.className.includes('combat-turn-exit'));
- assert.ok(leaving,'previous actor must stay visible only during its exit animation');
- assert.equal(leaving.src,r.actor.src);
- leaving.listeners.animationend();
- assert.equal(r.box.children.some(n=>n.className.includes('combat-turn-exit')),false);
+ assert.equal(leaving,undefined,'Entity cue must not clone or rotate the still-present actor');
 });
 
 test('turn focus uses projected Party avatar for actors outside the original hardcoded group',()=>{
@@ -409,7 +413,7 @@ test('turn focus uses projected Party avatar for actors outside the original har
  const portrait=r.box.children.find(n=>n.className==='combat-turn-avatar');
  assert.ok(portrait);assert.equal(portrait.src,'avatars/luctram_avatar.png');
  r.timers.find(t=>t.ms===1210).fn();
- assert.equal(r.box.dataset.combatFocus,'entity');
+ assert.equal(r.box.dataset.combatFocus,'cao_minh');
  assert.equal(r.box.children.some(n=>n.className==='combat-turn-avatar'),false);
  const exit=r.box.children.find(n=>n.className.includes('combat-turn-exit'));
  assert.ok(exit);assert.equal(exit.src,'avatars/luctram_avatar.png');
@@ -424,7 +428,7 @@ test('entering combat without a damage packet keeps Cao Minh in Snapshot instead
  assert.equal(r.panel().hidden,false);
 });
 
-test('an Entity cue waits for its async Android overlay without hiding the preceding actor',()=>{
+test('Entity load callbacks never alter the Party focus',()=>{
  const r=boot(undefined,{entityReady:false});
  const cues=[
   {kind:'actor',eventIndex:0,actorId:'cao_minh',actorName:'Cao Minh',entityName:'Hound'},
@@ -440,10 +444,10 @@ test('an Entity cue waits for its async Android overlay without hiding the prece
  assert.equal(r.box.dataset.combatFocus,'cao_minh','do not reveal an undecoded Entity image');
  r.entity.style.opacity='1'; // appendEntityOverlay.onload
  r.scope.backroomSyncCombatPortrait();
- assert.equal(r.box.dataset.combatFocus,'entity','reveal Entity when its image is available');
+ assert.equal(r.box.dataset.combatFocus,'cao_minh','Entity image load must not change the Party actor');
  const end=Math.max(...r.timers.map(t=>t.ms));
  r.timers.find(t=>t.ms===end).fn();
- assert.equal(r.box.dataset.combatFocus,'entity','do not hide Entity between combat rounds');
+ assert.equal(r.box.dataset.combatFocus,'cao_minh','Cao Minh remains the default between rounds');
 });
 
 test('Snapshot reconstruction reattaches active dynamic Party portrait without switching actor',()=>{
@@ -460,22 +464,22 @@ test('Snapshot reconstruction reattaches active dynamic Party portrait without s
  assert.equal(r.box.children.find(n=>n.className==='combat-turn-avatar').src,'avatars/luctram_avatar.png');
  const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
  assert.match(java,/appendLuciaCombatOverlay\(\);if\(typeof window!=='undefined'&&typeof window\.backroomSyncCombatPortrait==='function'\)window\.backroomSyncCombatPortrait\(\)/);
- assert.match(java,/normalizeEntityVisual\(img\);img\.style\.opacity='1';if\(typeof window!=='undefined'&&typeof window\.backroomSyncCombatPortrait==='function'\)window\.backroomSyncCombatPortrait\(\)/);
+ assert.match(java,/normalizeEntityVisual\(img\);img\.dataset\.entityStatus='ready';img\.style\.opacity='1'/);
 });
 
-test('during async Entity image rerender, the current actor remains visible until image returns',()=>{
+test('Entity rerender does not change Party focus even if its image is missing',()=>{
  const r=boot();
  r.actor.src='file:///android_asset/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png';
  r.entity.src='file:///android_asset/entity/hound.webp';
  r.turn([],'enc:entity-rerender','enc',{active:true,encounterId:'enc',entityKey:'hound',round:2},{},
   {turns:[{kind:'entity',eventIndex:0,entityName:'Hound'}]});
- assert.equal(r.box.dataset.combatFocus,'entity');
+ assert.equal(r.box.dataset.combatFocus,'cao_minh');
  r.setEntityReady(false);
  r.scope.backroomSyncCombatPortrait();
  assert.equal(r.box.dataset.combatFocus,'cao_minh');
  r.setEntityReady(true);
  r.scope.backroomSyncCombatPortrait();
- assert.equal(r.box.dataset.combatFocus,'entity');
+ assert.equal(r.box.dataset.combatFocus,'cao_minh');
 });
 
 
@@ -503,7 +507,8 @@ test('final combat packet presents Lucia cue before Core victory projection clos
 
 test('Entity overlay stays visible as an opponent during Cao Minh and Lucia active turns',()=>{
  const css=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/combat-feedback-1193a.css'),'utf8');
- assert.match(css,/\.snapshot\[data-combat-focus\] \.snapshot-entity\{display:block!important\}/);
+ assert.match(css,/\.snapshot\[data-combat-focus\] \.snapshot-entity\{/);
+ assert.match(css,/display:block!important;left:0!important;right:auto!important/);
  assert.doesNotMatch(css,/\.snapshot\[data-combat-focus\] \.snapshot-entity\{display:none!important\}/);
  const r=boot();
  const turns=[{kind:'actor',eventIndex:0,actorId:'cao_minh',actorName:'Cao Minh',entityName:'Hound'},
@@ -512,4 +517,50 @@ test('Entity overlay stays visible as an opponent during Cao Minh and Lucia acti
  assert.equal(r.box.dataset.combatFocus,'cao_minh');
  r.timers.find(t=>t.ms===1210).fn();
  assert.equal(r.box.dataset.combatFocus,'lucia');
+});
+
+test('after Lucia finishes, Cao Minh returns without another dice round and Entity never rotates',()=>{
+ const r=boot();
+ r.actor.src='file:///android_asset/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png';
+ r.entity.src='file:///android_asset/entity/hound.webp';
+ r.turn([],'enc:default-leader','enc',{active:true,encounterId:'enc',entityKey:'hound',round:2},{},{
+  turns:[{kind:'actor',eventIndex:0,actorId:'cao_minh',actorName:'Cao Minh',entityName:'Hound'},
+         {kind:'actor',eventIndex:0,actorId:'lucia',actorName:'Lucia',entityName:'Hound'},
+         {kind:'entity',eventIndex:0,entityName:'Hound'}]});
+ r.timers.find(t=>t.ms===1210).fn();
+ assert.equal(r.box.dataset.combatFocus,'lucia');
+ r.timers.find(t=>t.ms===2420).fn();
+ assert.equal(r.box.dataset.combatFocus,'cao_minh');
+ assert.equal(r.box.children.some(n=>n.className.includes('combat-turn-exit--entity')),false);
+ const final=Math.max(...r.timers.map(t=>t.ms));
+ r.timers.find(t=>t.ms===final).fn();
+ assert.equal(r.box.dataset.combatFocus,'cao_minh');
+ assert.equal(r.scope.__combatFeedbackBusy,false);
+});
+
+test('Iris and Syvial use real Party portrait elements and common Cao Minh anchor, not pseudo portraits',()=>{
+ const css=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/combat-feedback-1193a.css'),'utf8');
+ const r=boot({combat:{active:true,encounterId:'enc',entityKey:'hound',round:1}});
+ r.turn([],'enc:iris','enc',{active:true,encounterId:'enc',entityKey:'hound',round:2},{},{
+  turns:[{kind:'actor',eventIndex:0,actorId:'iris',actorName:'Iris',entityName:'Hound'}]});
+ assert.equal(r.box.dataset.combatFocus,'iris');
+ const img=r.box.children.find(n=>n.className==='combat-turn-avatar');
+ assert.ok(img);
+ assert.equal(img.src,'avatars/Iris_avatar.jpg');
+ assert.doesNotMatch(css,/\.snapshot\[data-combat-focus="iris"\]::after/);
+ assert.match(css,/\.snapshot\[data-combat-focus\] \.combat-turn-avatar/);
+});
+
+test('each wave cue carries authoritative Entity key, even if adjacent waves share a species',()=>{
+ const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/core/CombatRuntime.kt'),'utf8');
+ assert.match(java,/put\("entityName", entityName\); put\("entityKey", entityKey\)/);
+ let switches=[];
+ const r=boot();
+ r.scope.backroomSwitchCombatEntityWave=(key,wave)=>switches.push(key+':'+wave);
+ r.turn([],'enc:waves','enc',{active:true,encounterId:'enc',entityKey:'hound',round:2},{},{
+  turns:[{kind:'wave',eventIndex:0,entityKey:'hound',waveNumber:2,entityName:'Hound'},
+         {kind:'wave',eventIndex:0,entityKey:'hound',waveNumber:3,entityName:'Hound'}]});
+ assert.deepEqual(switches,['hound:2']);
+ r.timers.find(t=>t.ms===1210).fn();
+ assert.deepEqual(switches,['hound:2','hound:3']);
 });

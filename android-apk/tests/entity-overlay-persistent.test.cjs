@@ -28,7 +28,7 @@ function runtime(key){
   state:{combat:{active:true,entityKey:key}},
   __entityOverlay:{key:'',url:'',revision:0,anchor:'left-bottom',maxHeight:.97,loading:''},
   document:{getElementById(id){return id==='snapshot'?box:null},createElement(){
-   return {style:{},remove(){children=children.filter(c=>c!==this)}}}
+   return {style:{},dataset:{},isConnected:true,remove(){this.isConnected=false;children=children.filter(c=>c!==this)}}}
   },
   activeEntityKey(){return context.state.combat&&context.state.combat.active?context.state.combat.entityKey:''},
   normalizeEntityVisual(img){img.style.transform='translate(5px,6px) scale(1.2)'},
@@ -53,6 +53,7 @@ test('Entity overlay mounts without waiting for asynchronous Android bridge on e
   assert.ok(fs.existsSync(path.join(assets,'entity',key+'.webp')),key+' image asset missing');
   img.onload();
   assert.equal(img.style.opacity,'1');
+  assert.equal(img.dataset.entityStatus,'ready');
   assert.equal(img.style.transform,'translate(5px,6px) scale(1.2)');
   assert.equal(r.syncCalls(),1,'image load should synchronize current turn portrait');
  }
@@ -75,4 +76,26 @@ test('direct Entity overlay URL derives only from validated encounter keys',()=>
  assert.match(java,/function normalizeEntityKey\(v\)/);
  assert.match(renderer,/__entityOverlay\.url='file:\/\/\/android_asset\/entity\/'\+key\+'\.webp'/);
  assert.doesNotMatch(renderer,/requestEntityOverlay\(key\);return/);
+});
+
+test('Entity image decode failure is not reported as ready and shows a visible fallback label',()=>{
+ const r=runtime('hound');
+ r.context.appendEntityOverlay();
+ const img=r.imgs()[0];
+ img.onerror();
+ assert.equal(img.dataset.entityStatus,'error');
+ assert.equal(img.style.opacity,'0');
+ assert.ok(r.imgs().some(n=>n.className==='snapshot-entity-error'));
+ assert.equal(r.syncCalls(),0);
+});
+test('stale Entity image completion cannot modify new wave visual state',()=>{
+ const r=runtime('hound');
+ r.context.appendEntityOverlay();
+ const old=r.imgs()[0];
+ r.context.state.combat.entityKey='smiler';
+ r.context.appendEntityOverlay();
+ old.onload();
+ assert.equal(r.syncCalls(),0);
+ r.imgs()[0].onload();
+ assert.equal(r.syncCalls(),1);
 });
