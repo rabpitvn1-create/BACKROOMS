@@ -91,7 +91,7 @@ class PartyCombatActionsTest {
     val result = CombatRuntime.resolve(state, "EXECUTE", "Cả Party cùng tấn công")
     assertTrue(result.reply, result.reply.contains("PARTY TURN 1/2: Cao Minh"))
     assertTrue(result.reply, result.reply.contains("PARTY TURN 2/2: Iris"))
-    assertFalse(result.reply.contains("Lucia \\"Lục\\" bắn hỗ trợ"))
+    assertFalse(result.reply.contains("Lucia \"Lục\" bắn hỗ trợ"))
     assertFalse(result.reply.contains("Syvial thực hiện lệnh TẤN CÔNG"))
   }
 
