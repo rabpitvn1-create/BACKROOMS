@@ -7,11 +7,11 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class ProviderResponseContractTest {
-  @Test public void writerAcceptsUsableJsonReply() {
+  @Test public void writerAcceptsUsableJsonReply() throws Exception {
     ProviderResponseContract.requireWriter(new JSONObject().put("reply", "Lượt hợp lệ").put("ops", new JSONArray()));
   }
 
-  @Test public void writerRejectsMissingBlankAndNonStringReplies() {
+  @Test public void writerRejectsMissingBlankAndNonStringReplies() throws Exception {
     for (JSONObject payload : new JSONObject[] {
         new JSONObject(),
         new JSONObject().put("reply", "   "),
@@ -22,13 +22,13 @@ public class ProviderResponseContractTest {
     }
   }
 
-  @Test public void auditUsesItsOwnPassAndIssuesContract() {
+  @Test public void auditUsesItsOwnPassAndIssuesContract() throws Exception {
     ProviderResponseContract.requireAudit(new JSONObject().put("pass", true).put("issues", new JSONArray()));
     ProviderResponseContract.requireAudit(new JSONObject().put("pass", false).put("issues",
         new JSONArray().put(new JSONObject().put("rule", "knowledge_leak"))));
   }
 
-  @Test public void auditRejectsPayloadThatWouldSilentlyPassWithoutIssues() {
+  @Test public void auditRejectsPayloadThatWouldSilentlyPassWithoutIssues() throws Exception {
     for (JSONObject payload : new JSONObject[] {
         new JSONObject(),
         new JSONObject().put("pass", true),
