@@ -20,11 +20,14 @@ class PokerDiceCoreBackportTest {
     try { PokerDiceCore.reroll(state); fail("fourth reroll must fail") } catch (_: IllegalStateException) {}
     try { PokerDiceCore.prepare(state, "Bỏ chạy", "E1"); fail("action switch must fail") } catch (_: IllegalStateException) {}
   }
-  @Test fun coreUpgradesCanonicalBaseStat() {
-    var state = PokerDiceCore.grantCore(GameState.initial(), 4)
-    val r = PokerDiceCore.upgrade(state, KAI_ID, "STR")
-    assertEquals(6, PokerDiceCore.coreStat(r.state, KAI_ID, "STR"))
-    assertEquals(3, PokerDiceCore.coreCount(r.state))
-    assertEquals(104, PokerDiceCore.statPercent(r.state, KAI_ID, "STR"))
+  @Test fun coreStatsProjectionIsReadOnlyAndIncludesLevelExp() {
+    val state = GameState.initial()
+    val snapshot = PokerDiceCore.statsJson(state, KAI_ID)
+    assertEquals(0, snapshot.getInt("level"))
+    assertEquals(0, snapshot.getInt("exp"))
+    assertEquals(10, snapshot.getInt("expToNextLevel"))
+    assertFalse(snapshot.has("sharedCore"))
+    assertEquals(5, snapshot.getJSONObject("stats").getJSONObject("STR").getInt("base"))
+    assertFalse(snapshot.getJSONObject("stats").getJSONObject("STR").has("nextCoreCost"))
   }
 }
