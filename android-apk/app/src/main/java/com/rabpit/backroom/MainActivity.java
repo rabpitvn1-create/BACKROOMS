@@ -2071,6 +2071,8 @@ public class MainActivity extends Activity {
           if (!meta) {
             state = new JSONObject(com.rabpit.backroom.core.knowledge.StoryContinuityReducer.apply(
               before.toString(), state.toString(), action));
+            // Persist scene progression with the validated Core delta, never as WebView-only state.
+            com.rabpit.backroom.core.SnapshotSceneProgress.apply(before, state, rolls, actionKind);
           }
 
           JSONObject coreCommit = new JSONObject(requireGameCore().processValidatedCandidate(before.toString(), state.toString(), action));

@@ -111,10 +111,15 @@ function nodeId(state){
   if(level&&level.number!=null&&owns(images,String(level.number).trim()))return String(level.number).trim();
   return "0";
 }
+function snapshotStep(state){
+  const exploration=state&&state.flags&&state.flags.exploration;
+  const step=Number(exploration&&exploration.snapshotStep);
+  return Number.isSafeInteger(step)&&step>=0?step:0;
+}
 function sceneKey(state){
   const location=String(state&&state.location||"").trim().toLocaleLowerCase();
   const area=String(state&&state.flags&&state.flags.visualAreaKey||"").trim().toLocaleLowerCase();
-  return nodeId(state)+"|"+location+"|"+area;
+  return nodeId(state)+"|"+location+"|"+area+"|"+snapshotStep(state);
 }
 function stableHash(value){
   let hash=2166136261;
@@ -126,7 +131,9 @@ function resolve(state){
   const parent=owns(specialParents,id)?specialParents[id]:parseInt(id,10);
   const variants=images[id];
   const dedicated=variants.length>0;
-  const index=dedicated?stableHash(sceneKey(state))%variants.length:-1;
+  // Location and visualAreaKey identify the scene; only Core-confirmed progress rotates its image.
+  // Hashing the full location here can collide even after a successful EXPLORE.
+  const index=dedicated?(stableHash(id)%variants.length+snapshotStep(state)%variants.length)%variants.length:-1;
   const file=dedicated?variants[index]:"level_"+parent+".webp";
   return {nodeId:id,parent:parent,file:file,src:assetPrefix+file,
     hasDedicatedImage:dedicated,fallback:!dedicated,variantIndex:index,variantCount:variants.length};

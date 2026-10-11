@@ -6,7 +6,7 @@ const router=require("../app/src/main/assets/level_snapshots/snapshot-mapping.js
 const assets=path.resolve(__dirname,"../app/src/main/assets/level_snapshots");
 const registry=fs.readFileSync(path.resolve(__dirname,"../app/src/main/java/com/rabpit/backroom/core/LevelRouteRegistry.java"),"utf8");
 const ids=Array.from(registry.matchAll(/^\s*add\("([^"]+)"/gm),match=>match[1]);
-const s=(id,location="")=>({level:{id:id,number:0},location:location,flags:{}});
+const s=(id,location="",step=0)=>({level:{id:id,number:0},location:location,flags:{exploration:{snapshotStep:step}}});
 test("every canonical Level 0–6 node is mapped to its original local WebP",()=>{
   assert.equal(ids.length,25);
   assert.deepEqual(router.knownIds().sort(),ids.sort());
@@ -38,14 +38,30 @@ test("three route nodes without bespoke images explicitly use bundled parent ref
     assert.ok(fs.statSync(path.join(assets,image.file)).size>0);
   }
 });
-test("multi-image level is deterministic for a location and persists across turns",()=>{
+test("Core-confirmed visual steps cycle images without repetition or turn-based drift",()=>{
   const first=router.resolve({...s("0","Level 0 / Phòng phía đông"),turn:1});
   const again=router.resolve({...s("0","Level 0 / Phòng phía đông"),turn:41});
   assert.equal(first.file,again.file);
   assert.equal(first.variantCount,8);
-  const variants=new Set();
-  for(let i=0;i<50;i++)variants.add(router.resolve(s("0","Level 0 / Hall "+i)).file);
-  assert.ok(variants.size>1,"different locations can display different snapshots");
+  const seen=new Set([first.file]);
+  let previous=first;
+  for(let step=1;step<8;step++){
+    const current=router.resolve(s("0","Level 0 / Hall "+step,step));
+    assert.notEqual(current.file,previous.file,"each new step must change the image");
+    seen.add(current.file);
+    previous=current;
+  }
+  assert.equal(seen.size,8,"all variants should be visited before repeating");
+  assert.equal(router.resolve(s("0","Level 0 / Phòng phía đông",8)).file,first.file);
+  assert.equal(router.resolve(s("0","Level 0 / Other Room",0)).file,first.file,
+    "location prose alone must not change the frame without authoritative progress");
+  assert.equal(router.resolve(s("0","Level 0 / Phòng phía đông",-1)).file,first.file);
+  assert.equal(router.resolve(s("0","Level 0 / Phòng phía đông",1.5)).file,first.file);
+  assert.notEqual(router.sceneKey(s("0","Level 0 / Phòng phía đông",0)),
+    router.sceneKey(s("0","Level 0 / Phòng phía đông",1)));
+  assert.notEqual(router.resolve(s("1","Parking",0)).file,router.resolve(s("1","Parking",1)).file);
+  assert.equal(router.resolve(s("manila_room","Manila",0)).file,
+    router.resolve(s("manila_room","Manila",3)).file,"single-image nodes retain their canonical asset");
 });
 test("node ID is authoritative and malicious or invalid identifiers cannot choose arbitrary paths",()=>{
   assert.equal(router.resolve({level:{id:"6.1",number:6}}).nodeId,"6.1");
@@ -67,4 +83,5 @@ test("WebView actually loads the manifest and renders images behind unchanged ov
   assert.ok(native.includes("box.appendChild(caoMinh)"));
   assert.ok(native.includes("appendEntityOverlay()"));
   assert.ok(native.includes("appendLuciaCombatOverlay()"));
+  assert.ok(native.includes("SnapshotSceneProgress.apply(before, state, rolls, actionKind)"));
 });
