@@ -46,6 +46,9 @@ jobs:
       - name: Verify MadGod UI Core projection
         run: node android-apk/verify-madgod-ui.mjs
 
+      - name: Verify Lucia combat overlay
+        run: node android-apk/verify-lucia-overlay.mjs
+
       - name: Capture active run id
         if: github.event_name != 'pull_request'
         run: |
@@ -151,6 +154,8 @@ jobs:
           test -s apk-check/assets/Kai_MadGod_snapshot_overlay.png
           test -s apk-check/assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png
           test -s apk-check/assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png
+          unzip -p Backroom-1.2.0.0.0.apk assets/LUCIA_LUC_OVERLAY.png > apk-check/lucia-overlay.png
+          test -s apk-check/lucia-overlay.png
           test -s apk-check/assets/avatars/MadGod.jpg
           test -s apk-check/assets/hud/player_action_backrooms.png
           test -s apk-check/assets/dice/die-1.png
