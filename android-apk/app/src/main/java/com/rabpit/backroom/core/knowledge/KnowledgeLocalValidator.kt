@@ -27,6 +27,13 @@ object KnowledgeLocalValidator {
         .put("reason", reason))
     }
 
+    // Reject unmistakable second-person GM narration but preserve quoted NPC speech.
+    // The existing bounded writer repair handles this hard issue; do not rewrite replies in-place.
+    if (GmNarrativeVoicePolicy.hasSecondPersonNarration(generated.optString("reply", ""))) {
+      issue("pov_conflict", "GM gọi Cao Minh là bạn",
+        "Viết lại lời TRẦN THUẬT ở ngôi thứ ba giới hạn, dùng Cao Minh hoặc hắn. Không sửa lời thoại hợp canon của NPC, và không tự quyết định thay người chơi.")
+    }
+
     // Code-known immutable capability contradictions.
     if (mentionsAny(reply, "lucifer core cạn", "lucifer core hết", "syvial hết quỷ lực", "syvial cạn quỷ lực")) {
       issue("competence_suppression", "Syvial hết/cạn quỷ lực", "Syvial Codex locks Lucifer Core as an infinite power source without intrinsic depletion.")
