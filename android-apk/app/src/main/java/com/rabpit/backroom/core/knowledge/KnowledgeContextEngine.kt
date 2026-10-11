@@ -201,7 +201,7 @@ object KnowledgeContextEngine {
         add("ADDR.SYVIAL.CAO_MINH", "present address lock")
       }
       if ("iris" in presentActors && "syvial" in presentActors) add("REL.IRIS.SYVIAL.BASELINE", "present relationship edge")
-      if ("luc_tram" in presentActors) add("REL.KAI.LUC_TRAM.HISTORY_R06", "relationship history, not remembered current state")
+      if ("luc_tram" in presentActors) add("REL.CAO_MINH.LUC_TRAM.HISTORY_R06", "relationship history, not remembered current state")
     }
 
     private fun addDirectStructuredLookups() {
@@ -210,7 +210,7 @@ object KnowledgeContextEngine {
         direct += "CHAR.LUC_TRAM.RUNTIME_CORE"
         direct += "CHAR.LUC_TRAM.REVIVAL_R06"
         direct += "CHAR.LUC_TRAM.OPEN_R06"
-        direct += "REL.KAI.LUC_TRAM.HISTORY_R06"
+        direct += "REL.CAO_MINH.LUC_TRAM.HISTORY_R06"
         direct += "CHAR.LUC_TRAM.POWERS_AND_VISUAL"
       }
       if (hasAny(actionText, "argus", "terrain read")) direct += "CHAR.IRIS.ARGUS"
@@ -267,7 +267,7 @@ object KnowledgeContextEngine {
         add("CHAR.LUC_TRAM.RUNTIME_CORE", "confirmed encounter roll")
         add("CHAR.LUC_TRAM.REVIVAL_R06", "post-revival amnesia firewall")
         add("CHAR.LUC_TRAM.OPEN_R06", "unresolved state firewall")
-        add("REL.KAI.LUC_TRAM.HISTORY_R06", "known history, not current knowledge")
+        add("REL.CAO_MINH.LUC_TRAM.HISTORY_R06", "known history, not current knowledge")
       }
       val flags = state.optJSONObject("flags")
       val confirmedEntities = flags?.optInt("entitiesConfirmedLocal", 0) ?: 0
