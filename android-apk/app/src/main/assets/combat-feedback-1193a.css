@@ -74,6 +74,7 @@ body.poker-dice-open .player-action-bar .primary-action{pointer-events:none;opac
 .combat-feedback-entry{background:none!important;border:0!important;padding:3px 0;
  color:#e4e1d8;font-size:15px;line-height:1.55;overflow-wrap:anywhere;font-family:system-ui,sans-serif}
 .combat-feedback-entry--system{color:#e4cf92;font-weight:600}
+.log .message.gm .gm-semantic{font-family:system-ui,sans-serif}
 .combat-feedback-entry--entity{color:#ead3cd}
 .combat-feedback-entry--actor{color:#e0ede2}
 .combat-turn-indicator{display:none!important}
