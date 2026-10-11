@@ -318,14 +318,14 @@ test('Combat Log owns the GM slot and leaves three action buttons visually intac
  assert.ok(html.includes('.primary-action-row.combat-direct{display:grid!important}'));
  assert.ok(html.includes('row.hidden=false'));
 });
-test('NOW retains last Party character through Entity response and resets after round',()=>{
+test('Party NOW returns to Cao Minh as soon as Entity counterattacks and remains after round',()=>{
  const r=boot();const meta=()=>r.scope.document.getElementById('combatFeedbackMeta').textContent;
  assert.equal(meta(),'NOW : Cao Minh');
  r.turn([],'enc:header','enc',{active:true,encounterId:'enc',entityKey:'hound',round:2},{},{turns:[
   {kind:'actor',eventIndex:0,actorId:'lucia',actorName:'Lucia',entityName:'Hound',waveNumber:1,waveCount:1},
   {kind:'entity',eventIndex:0,entityName:'Hound',waveNumber:1,waveCount:1}
  ]});
- assert.equal(meta(),'NOW : Lucia');r.timers.find(t=>t.ms===1210).fn();assert.equal(meta(),'NOW : Lucia');
+ assert.equal(meta(),'NOW : Lucia');r.timers.find(t=>t.ms===1210).fn();assert.equal(meta(),'NOW : Cao Minh');
  const finish=Math.max(...r.timers.map(t=>t.ms));r.timers.find(t=>t.ms===finish).fn();
  assert.equal(meta(),'NOW : Cao Minh');
 });
@@ -348,7 +348,7 @@ test('Entity skill impacts Party once with shared HP and retains Party header',(
  details:['Cắn Xé proc: 140% Basic Attack; Bleed.','Hound phản công: Party chịu -30 HP (170/200). Cao Minh -15; Lucia -15.']}]});
  r.timers.find(t=>t.ms===1210).fn();
  assert.ok(r.entries().children.some(x=>x.textContent==='Hound sử dụng [Cắn Xé] gây -30 HP lên cả nhóm [170/200 HP]'));
- assert.equal(r.scope.document.getElementById('combatFeedbackMeta').textContent,'NOW : Lucia');
+ assert.equal(r.scope.document.getElementById('combatFeedbackMeta').textContent,'NOW : Cao Minh');
 });
 
 
@@ -561,6 +561,6 @@ test('each wave cue carries authoritative Entity key, even if adjacent waves sha
   turns:[{kind:'wave',eventIndex:0,entityKey:'hound',waveNumber:2,entityName:'Hound'},
          {kind:'wave',eventIndex:0,entityKey:'hound',waveNumber:3,entityName:'Hound'}]});
  assert.deepEqual(switches,['hound:2']);
- r.timers.find(t=>t.ms===410).fn();
+ r.timers.find(t=>t.ms===1210).fn();
  assert.deepEqual(switches,['hound:2','hound:3']);
 });
