@@ -2160,23 +2160,12 @@ public class MainActivity extends Activity {
       });
     }
 
-    @JavascriptInterface public String coreStats(String stateJson, String characterId) {
+    @JavascriptInterface public String characterProgression(String characterId) {
       try {
-        return requireGameCore().coreStats(stateJson, characterId);
+        return requireGameCore().characterProgression(characterId);
       } catch (Exception error) {
         return "{}";
       }
-    }
-
-    @JavascriptInterface public void coreUpgrade(String stateJson, String characterId, String stat) {
-      io.execute(() -> {
-        try {
-          emit("backroomCoreUpgrade", requireGameCore().processCoreUpgrade(stateJson, characterId, stat));
-        } catch (Exception error) {
-          String message = error.getMessage() == null ? "Không thể nâng Core." : error.getMessage();
-          emit("backroomCoreUpgrade", "{\"handled\":false,\"error\":" + JSONObject.quote(message) + "}");
-        }
-      });
     }
 
     @JavascriptInterface public void combatDicePrepare(String stateJson, String action) {
