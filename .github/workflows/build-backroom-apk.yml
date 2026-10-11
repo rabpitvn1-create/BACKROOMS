@@ -107,6 +107,7 @@ jobs:
       - name: Verify packaged APK contracts
         run: |
           set -euo pipefail
+          trap 'echo "Packaged APK contract failed near line $LINENO: $BASH_COMMAND" >&2' ERR
           BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
           "$BUILD_TOOLS/apksigner" verify --verbose --print-certs Backroom-1.2.0.0.4.apk
           "$BUILD_TOOLS/aapt" dump badging Backroom-1.2.0.0.4.apk | grep -q "package: name='com.rabpit.backroom'"
