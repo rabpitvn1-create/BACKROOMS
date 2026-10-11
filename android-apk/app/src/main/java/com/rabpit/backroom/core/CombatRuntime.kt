@@ -263,9 +263,13 @@ object CombatRuntime {
 
     fun actorCritical(actorId: String, salt: Int): Boolean {
       val attacker = CharacterStatEngine.effective(resolvedState, actorId)
-      val passive = if (CharacterStatCore.isCaoMinh(actorId))
-        CaoMinhCombatPassive.CRITICAL_PER_TURN_PERCENT.toLong() * CaoMinhCombatPassive.stacks(resolvedState) * 100L
-        else 0L
+      val passive = when {
+        CharacterStatCore.isCaoMinh(actorId) ->
+          CaoMinhCombatPassive.CRITICAL_PER_TURN_PERCENT.toLong() * CaoMinhCombatPassive.stacks(resolvedState) * 100L
+        KAI_ID in PartyCombatHealth.actingMembers(resolvedState) ->
+          CaoMinhCombatPassive.ALLY_CRITICAL_BONUS_PERCENT.toLong() * 100L
+        else -> 0L
+      }
       val chance = (attacker.criticalChanceBasisPoints.toLong() + passive).coerceIn(0L, 10000L).toInt()
       return roll(c.copy(eventCounter = c.eventCounter + salt), 10000) < chance
     }
