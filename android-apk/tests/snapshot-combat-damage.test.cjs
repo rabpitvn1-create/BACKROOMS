@@ -26,7 +26,8 @@ function boot(initialState,options={}){
  }
  const root=element('root'),box=element(),dice=element(),entity=element(),actor=element();
  box.id='snapshot';dice.id='pokerDiceModal';root.appendChild(box);root.appendChild(dice);
- box.querySelector=s=>s==='.snapshot-entity'?entity:s==='.snapshot-character'?actor:
+ let entityReady=options.entityReady!==false;
+ box.querySelector=s=>s==='.snapshot-entity'?(entityReady?entity:null):s==='.snapshot-character'?actor:
   box.children.find(n=>s==='.combat-turn-avatar'&&n.className.includes('combat-turn-avatar'))||null;
  box.querySelectorAll=s=>s.includes('.combat-turn-exit')?
   box.children.filter(n=>/combat-turn-(?:exit|avatar)/.test(n.className)):
@@ -47,6 +48,7 @@ function boot(initialState,options={}){
  vm.runInNewContext(script,scope);
  return {
   root,box,dice,actor,entity,timers,scope,
+  setEntityReady(value){entityReady=!!value},
   panel(){return scope.document.getElementById('combatFeedbackPanel')},
   entries(){return scope.document.getElementById('combatFeedbackEntries')},
   event(e){scope.backroomPlayCombatFeedback(e)},
@@ -219,7 +221,7 @@ test('Core re-projection cannot drop skill names and damage from transient comba
 
 test('combat picture shows only current Party actor then Entity while keeping background',()=>{
  const r=boot();
- assert.equal(r.box.dataset.combatFocus,'none');
+ assert.equal(r.box.dataset.combatFocus,'cao_minh');
  const turns=[
   {kind:'actor',eventIndex:0,actorId:'cao_minh',actorName:'Cao Minh',waveNumber:1,waveCount:1,entityName:'Hound'},
   {kind:'actor',eventIndex:0,actorId:'lucia',actorName:'Lucia',waveNumber:1,waveCount:1,entityName:'Hound'},
@@ -246,8 +248,10 @@ test('snapshot style has distinct active-actor rules and existing local Party as
  assert.match(css,/\.snapshot\[data-combat-focus="entity"\] \.snapshot-entity/);
  assert.match(css,/@keyframes combat-turn-enter/);
  assert.match(css,/@keyframes combat-turn-leave/);
- assert.match(css,/rotateY\(-65deg\)/);
- assert.match(css,/translate3d\(-75%,0,0\)/);
+ assert.match(css,/rotate:y -65deg/);
+ assert.match(css,/translate:-75% 0/);
+ const keyframes=css.slice(css.indexOf('@keyframes combat-turn-enter'),css.indexOf('@media(prefers-reduced-motion:reduce)',css.indexOf('@keyframes combat-turn-enter')));
+ assert.doesNotMatch(keyframes,/transform:/,'3D animation must preserve the Entity ground-plane inline transform');
  assert.doesNotMatch(css,/combat-switch-ring/);
 
  for(const filename of ['avatars/Iris_avatar.jpg','avatars/Syvial_avatar.jpg','avatars/an_nhien_avatar.png']){
@@ -276,7 +280,7 @@ test('individual cue skill and DMG details are displayed during that actor turn'
 });
 
 
-test('after animated turns hide every portrait while waiting for the next round',()=>{
+test('after animated turns keep the last combatant visible while waiting for the next round',()=>{
  const r=boot();
  r.turn([],'enc:recover','enc',{active:true,encounterId:'enc',entityKey:'hound',round:3},{},{
   turns:[{kind:'actor',eventIndex:0,actorId:'lucia',actorName:'Lucia',waveNumber:1,waveCount:1,entityName:'Hound'},
@@ -286,7 +290,7 @@ test('after animated turns hide every portrait while waiting for the next round'
  assert.equal(r.box.dataset.combatFocus,'entity');
  const finish=Math.max(...r.timers.map(t=>t.ms));
  r.timers.find(t=>t.ms===finish).fn();
- assert.equal(r.box.dataset.combatFocus,'none');
+ assert.equal(r.box.dataset.combatFocus,'entity');
  assert.equal(r.scope.__combatFeedbackBusy,false);
 });
 
@@ -402,4 +406,62 @@ test('turn focus uses projected Party avatar for actors outside the original har
  assert.equal(r.box.children.some(n=>n.className==='combat-turn-avatar'),false);
  const exit=r.box.children.find(n=>n.className.includes('combat-turn-exit'));
  assert.ok(exit);assert.equal(exit.src,'avatars/luctram_avatar.png');
+});
+
+
+test('entering combat without a damage packet keeps Cao Minh in Snapshot instead of hiding all portraits',()=>{
+ const r=boot({combat:{active:true,encounterId:'new-enc',entityKey:'hound',round:1}});
+ assert.equal(r.box.dataset.combatFocus,'cao_minh');
+ r.turn(undefined,'unused','new-enc',{active:true,encounterId:'new-enc',entityKey:'hound',round:1});
+ assert.equal(r.box.dataset.combatFocus,'cao_minh');
+ assert.equal(r.panel().hidden,false);
+});
+
+test('an Entity cue waits for its async Android overlay without hiding the preceding actor',()=>{
+ const r=boot(undefined,{entityReady:false});
+ const cues=[
+  {kind:'actor',eventIndex:0,actorId:'cao_minh',actorName:'Cao Minh',entityName:'Hound'},
+  {kind:'entity',eventIndex:0,entityName:'Hound'}
+ ];
+ r.turn([],'enc:async','enc',{active:true,encounterId:'enc',entityKey:'hound',round:2},{},{turns:cues});
+ r.timers.find(t=>t.ms===1210).fn();
+ assert.equal(r.box.dataset.combatFocus,'cao_minh','show existing actor while Android is loading Entity');
+ r.entity.src='file:///android_asset/entity/hound.webp';
+ r.setEntityReady(true);
+ r.scope.backroomSyncCombatPortrait();
+ assert.equal(r.box.dataset.combatFocus,'entity','reveal Entity when its image is available');
+ const end=Math.max(...r.timers.map(t=>t.ms));
+ r.timers.find(t=>t.ms===end).fn();
+ assert.equal(r.box.dataset.combatFocus,'entity','do not hide Entity between combat rounds');
+});
+
+test('Snapshot reconstruction reattaches active dynamic Party portrait without switching actor',()=>{
+ const partyDetails={members:[{id:'luc_tram',avatarRef:'avatars/luctram_avatar.png',presence:'ACTIVE'}]};
+ const r=boot({combat:{active:true,encounterId:'enc',entityKey:'hound',round:1},partyDetails});
+ r.turn([],'enc:render','enc',{active:true,encounterId:'enc',entityKey:'hound',round:2},{partyDetails},
+  {turns:[{kind:'actor',eventIndex:0,actorId:'luc_tram',actorName:'Lục Trầm',entityName:'Hound'}]});
+ assert.equal(r.box.dataset.combatFocus,'luc_tram');
+ assert.equal(r.box.children.filter(n=>n.className==='combat-turn-avatar').length,1);
+ r.box.textContent=''; // native renderSnapshot clears the entire Snapshot DOM
+ r.scope.backroomSyncCombatPortrait();
+ assert.equal(r.box.dataset.combatFocus,'luc_tram');
+ assert.equal(r.box.children.filter(n=>n.className==='combat-turn-avatar').length,1);
+ assert.equal(r.box.children.find(n=>n.className==='combat-turn-avatar').src,'avatars/luctram_avatar.png');
+ const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
+ assert.match(java,/appendLuciaCombatOverlay\(\);if\(typeof window\.backroomSyncCombatPortrait==='function'\)window\.backroomSyncCombatPortrait\(\)/);
+});
+
+test('during async Entity image rerender, the current actor remains visible until image returns',()=>{
+ const r=boot();
+ r.actor.src='file:///android_asset/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png';
+ r.entity.src='file:///android_asset/entity/hound.webp';
+ r.turn([],'enc:entity-rerender','enc',{active:true,encounterId:'enc',entityKey:'hound',round:2},{},
+  {turns:[{kind:'entity',eventIndex:0,entityName:'Hound'}]});
+ assert.equal(r.box.dataset.combatFocus,'entity');
+ r.setEntityReady(false);
+ r.scope.backroomSyncCombatPortrait();
+ assert.equal(r.box.dataset.combatFocus,'cao_minh');
+ r.setEntityReady(true);
+ r.scope.backroomSyncCombatPortrait();
+ assert.equal(r.box.dataset.combatFocus,'entity');
 });
