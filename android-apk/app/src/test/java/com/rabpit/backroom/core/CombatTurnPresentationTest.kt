@@ -67,4 +67,18 @@ class CombatTurnPresentationTest {
     assertFalse(actorCues[1].details.any { it.contains("Iris") })
   }
 
+  @Test fun damagePresentationUsesAuthoritativeSkillAndRemainingEntityHp() {
+    val json = CombatRuntime.DamageFeedback(
+      target = "entity", amount = 120, actorId = KAI_ID,
+      skill = "Huyết Ma Nhị Thập Tứ Trảm", sourceName = "Cao Minh",
+      entityName = "Hound", remainingHp = 80, maxHp = 200
+    ).toJson()
+    assertEquals("Huyết Ma Nhị Thập Tứ Trảm", json.getString("skill"))
+    assertEquals("Cao Minh", json.getString("sourceName"))
+    assertEquals("Hound", json.getString("entityName"))
+    assertEquals("-120 HP", json.getString("text"))
+    assertEquals(80, json.getInt("remainingHp"))
+    assertEquals(200, json.getInt("maxHp"))
+  }
+
 }

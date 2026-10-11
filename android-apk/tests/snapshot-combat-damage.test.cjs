@@ -80,7 +80,8 @@ test('turn packets are authoritative, deduplicated and constrained to the encoun
  const r=boot(),events=[{target:'entity',text:'-3 HP'}];r.turn(events);r.turn(events);assert.equal(r.box.children.length,1);r.turn(events,'other:1','other');assert.equal(r.box.children.length,1);
 });
 test('final kill feedback survives combat removal and does not use net turn HP',()=>{
- const r=boot();r.turn([{target:'entity',text:'-110 HP'},{target:'actor',text:'-8 HP'}],'enc:1','enc',null);r.timers.filter(t=>t.ms===150).forEach(t=>t.fn());assert.equal(r.box.children.length,2);
+ const r=boot();r.turn([{target:'entity',text:'-110 HP'},{target:'actor',text:'-8 HP'}],'enc:1','enc',null);
+ assert.equal(r.panel().hidden,true);assert.equal(r.box.children.length,0);
  const healed=boot();healed.turn([{target:'actor',text:'-8 HP'}],'enc:1','enc',{active:true,encounterId:'enc',entityKey:'diep_minh',round:1,playerHp:100});assert.equal(healed.box.children[0].children[0].textContent,'-8 HP');
 });
 test('actor/enemy phases preserve 150ms hit staggering and 1000ms separation',()=>{
@@ -165,7 +166,7 @@ test('typed combat cues show active character and a short spinning transition be
   {},{turns:cues});
  const title=()=>r.scope.document.getElementById('combatTurnName').textContent;
  assert.ok(title().includes('Cao Minh'));assert.ok(r.panel().children.length>=3);
- assert.ok(r.scope.document.getElementById('combatTurnIndicator').className.includes('combat-turn-indicator--loading'));
+ assert.equal(r.scope.document.getElementById('combatTurnIndicator').hidden,true);
  const timers=r.timers.filter(t=>t.ms>0).map(t=>t.ms);
  assert.ok(timers.includes(600),'600ms transition must be scheduled');
  assert.equal(r.scope.document.getElementById('combatFeedbackMeta').textContent,'NOW : Cao Minh');
@@ -205,7 +206,8 @@ test('Core re-projection cannot drop skill names and damage from transient comba
   'enc:combat-details','enc',{active:true,encounterId:'enc',entityKey:'hound',round:2},
   {},{summary,turns:[{kind:'actor',eventIndex:0,actorId:'cao_minh',actorName:'Cao Minh',waveNumber:1,waveCount:1,entityName:'Hound'}]});
  assert.equal(r.scope.state.combatFeedback,undefined);
- assert.ok(r.entries().children.some(n=>n.textContent.includes('Huyết Ma Tứ Liên')&&n.textContent.includes('-34 HP')));
+ r.timers.filter(t=>t.ms===800).forEach(t=>t.fn());
+ assert.ok(r.entries().children.some(n=>n.textContent.includes('-34 HP')));
  assert.equal(r.scope.__combatFeedbackBusy,true);
  const again=r.entries().children.length;
  r.turn([{target:'entity',text:'-34 HP'}],'enc:combat-details','enc',{active:true,encounterId:'enc',entityKey:'hound',round:2},{},{summary});
@@ -225,7 +227,7 @@ test('combat picture shows only current Party actor then Entity while keeping ba
  const ordered=r.timers.filter(t=>t.ms===1210||t.ms===2420);
  assert.equal(ordered.length,2);
  ordered[0].fn();assert.equal(r.box.dataset.combatFocus,'lucia');
- ordered[1].fn();assert.equal(r.box.dataset.combatFocus,'entity');
+ ordered[1].fn();assert.equal(r.box.dataset.combatFocus,'lucia');
  const last=Math.max(...r.timers.map(t=>t.ms));
  r.timers.find(t=>t.ms===last).fn();
  r.turn(undefined,'enc:stop','enc',null);
@@ -254,7 +256,7 @@ test('individual cue skill and DMG details are displayed during that actor turn'
     details:['Lucia bắn M4A1: -26 HP.']}
   ]
  });
- assert.ok(r.entries().children.some(x=>x.textContent.includes('sử dụng đánh thường')&&x.textContent.includes('-34 HP')));
+ assert.equal(r.entries().children.some(x=>x.textContent.includes('-34 HP')),false);
  const at=r.timers.find(t=>t.ms===1210);
  assert.ok(at);
  at.fn();
@@ -270,7 +272,7 @@ test('after animated Party turns return to lead fighter while awaiting next dice
          {kind:'entity',eventIndex:0,waveNumber:1,waveCount:1,entityName:'Hound'}]
  });
  r.timers.find(t=>t.ms===1210).fn();
- assert.equal(r.box.dataset.combatFocus,'entity');
+ assert.equal(r.box.dataset.combatFocus,'lucia');
  const finish=Math.max(...r.timers.map(t=>t.ms));
  r.timers.find(t=>t.ms===finish).fn();
  assert.equal(r.box.dataset.combatFocus,'cao_minh');
@@ -297,4 +299,25 @@ test('NOW retains last Party character through Entity response and resets after 
  assert.equal(meta(),'NOW : Lucia');r.timers.find(t=>t.ms===1210).fn();assert.equal(meta(),'NOW : Lucia');
  const finish=Math.max(...r.timers.map(t=>t.ms));r.timers.find(t=>t.ms===finish).fn();
  assert.equal(meta(),'NOW : Cao Minh');
+});
+
+test('typed feedback prints one fully specified skill hit and remaining HP',()=>{
+ const r=boot(undefined,{stripTransient:true});
+ r.turn([{target:'entity',text:'-120 HP',phase:'actor',sourceName:'Cao Minh',skill:'Huyết Ma Nhị Thập Tứ Trảm',
+  entityName:'Hound',remainingHp:80,maxHp:200}], 'enc:typed-skill','enc',
+  {active:true,encounterId:'enc',entityName:'Hound',entityKey:'hound',round:2},{},{turns:[
+  {kind:'actor',eventIndex:0,actorId:'cao_minh',actorName:'Cao Minh',entityName:'Hound',waveNumber:1,waveCount:1}]});
+ r.timers.filter(t=>t.ms===800).forEach(t=>t.fn());
+ assert.equal(r.entries().children.filter(x=>x.textContent.includes('Huyết Ma Nhị Thập Tứ Trảm')).length,1);
+ assert.ok(r.entries().children.some(x=>x.textContent==='Cao Minh sử dụng [Huyết Ma Nhị Thập Tứ Trảm] gây -120 HP lên Hound [80/200 HP]'));
+});
+test('Entity skill impacts Party once with shared HP and retains Party header',()=>{
+ const r=boot();
+ r.turn([],'enc:entity-skill','enc',{active:true,encounterId:'enc',entityKey:'hound',round:2},{},{
+ turns:[{kind:'actor',eventIndex:0,actorId:'lucia',actorName:'Lucia',entityName:'Hound',waveNumber:1,waveCount:1},
+ {kind:'entity',eventIndex:0,entityName:'Hound',waveNumber:1,waveCount:1,
+ details:['Cắn Xé proc: 140% Basic Attack; Bleed.','Hound phản công: Party chịu -30 HP (170/200). Cao Minh -15; Lucia -15.']}]});
+ r.timers.find(t=>t.ms===1210).fn();
+ assert.ok(r.entries().children.some(x=>x.textContent==='Hound sử dụng [Cắn Xé] gây -30 HP lên cả nhóm [170/200 HP]'));
+ assert.equal(r.scope.document.getElementById('combatFeedbackMeta').textContent,'NOW : Lucia');
 });

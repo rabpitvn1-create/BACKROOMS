@@ -121,8 +121,9 @@
     var target=String(e.entityName||activeCombat()&&activeCombat().entityName||'Entity');
     var hp=Number(e.remainingHp),max=Number(e.maxHp);
     var suffix=e.remainingHp!=null&&e.maxHp!=null&&Number.isFinite(hp)&&max>0?' ['+hp+'/'+max+' HP]':'';
+    var status=combatStatusVisual(e.status);
     appendCombatLine('actor',name+' sử dụng '+(skill==='đánh thường'?'đánh thường':'['+skill+']')+
-      ' gây -'+damage+' HP lên '+target+suffix);
+      ' gây -'+damage+' HP lên '+target+suffix+(status?' ['+status.label+']':''));
   }
   function setFeedbackBusy(value){
     window.__combatFeedbackBusy=!!value;
