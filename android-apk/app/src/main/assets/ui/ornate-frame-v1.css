@@ -7,7 +7,7 @@
 .game .poker-dice-sheet,.game .combat-dice-panel,.game .combat-feedback-panel{position:relative;isolation:isolate}
 .message.gm::after,.message.player::after,.game-menu-sheet .card::after,.character-section::after,
 .equipment-detail-sheet::after,.game .poker-dice-sheet::after,
-.game .combat-dice-panel::after,.game .combat-feedback-panel::after::after{content:'';position:absolute;inset:0;z-index:3;border:26px solid transparent;border-image:var(--ornate-frame) 32% / 26px / 0 stretch;pointer-events:none}
+.game .combat-dice-panel::after,.game .combat-feedback-panel::after{content:'';position:absolute;inset:0;z-index:3;border:26px solid transparent;border-image:var(--ornate-frame) 32% / 26px / 0 stretch;pointer-events:none}
 
 .log .message.gm,.log .message.player{border:0;padding:20px 22px;background:linear-gradient(145deg,#182022,#0d1316);color:#cbd0d1}
 .log .message.gm .role{color:#b6a878}
