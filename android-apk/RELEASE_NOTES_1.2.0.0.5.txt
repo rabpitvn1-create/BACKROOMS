@@ -1,0 +1,9 @@
+Backroom 1.2.0.0.5 Debug
+
+- Android versionCode 78; applicationId com.rabpit.backroom.
+- Tích hợp 25 môi trường cho Level 0–6: bảy level chính và 18 level phụ/khu vực riêng, bao gồm lộ trình Level 0 qua Manila Room, The Torment và Red Rooms.
+- Thêm 41 ảnh WebP từ Drive/Novel/Backrooms Level trực tiếp vào APK, hiển thị Snapshot theo node ID thực tế thay vì chỉ số Level mẹ. Hỗ trợ nhiều ảnh cho level chính và lựa chọn ổn định theo vị trí.
+- Các node 0.1, 0.5 và 0.7 chưa có ảnh riêng, tạm dùng ảnh tham chiếu Level 0. Các lớp phủ nhân vật và Entity vẫn được giữ.
+- Kiểm tra tuyến di chuyển hợp lệ, trạng thái lượt, nhật ký liên tục và reset chuỗi tìm lối thoát khi đổi node.
+- Giữ các cập nhật mới trên main về chỉ số, EXP, chiến đấu và giao diện nhân vật.
+- Debug APK. Quy trình CI kiểm tra Node/Kotlin, đóng gói, chữ ký, Snapshot trong APK và tải lại bản phát hành để xác minh.
