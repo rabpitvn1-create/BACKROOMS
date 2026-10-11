@@ -36,64 +36,38 @@
 @media (prefers-reduced-motion:reduce){.combat-turn-indicator--loading .combat-turn-spinner{animation:none;opacity:.8}}
 
 /* COMBAT_ACTOR_SINGLE_FOCUS_R01 / 3D_TURN_COVERFLOW_R01:
-   One combat portrait remains visible while awaiting a cue. Individual
-   translate/rotate/scale preserve the Entity's inline ground-plane transform. */
+   Party on the right and Entity on the left are independent slots.
+   All Party portraits share Cao Minh's exact ground anchor. */
 .snapshot[data-combat-focus]{perspective:900px;--combat-turn-duration:800ms}
-/* Entity is the encounter opponent, not a Party carousel card. Keep its
-   overlay mounted/visible on the left during all active combat phases. */
 .snapshot[data-combat-focus] .snapshot-character,
 .snapshot[data-combat-focus] .snapshot-lucia{display:none!important}
-.snapshot[data-combat-focus] .snapshot-entity{display:block!important}
+.snapshot[data-combat-focus] .snapshot-entity{
+ display:block!important;left:0!important;right:auto!important;
+ animation:none!important;rotate:none;translate:none;scale:none
+}
+/* Identical Party geometry for Cao Minh, Lucia, and every dynamic companion.
+   Preserve aspect ratio: images must not be stretched or forced into avatar frames. */
+.snapshot[data-combat-focus] .snapshot-character,
+.snapshot[data-combat-focus] .snapshot-lucia,
+.snapshot[data-combat-focus] .combat-turn-avatar,
+.snapshot[data-combat-focus] .combat-turn-exit{
+ position:absolute!important;right:0!important;left:auto!important;
+ bottom:0!important;top:auto!important;width:auto!important;height:97%!important;
+ max-width:100%!important;max-height:97%!important;object-fit:contain!important;
+ object-position:right bottom!important;pointer-events:none;z-index:3;
+ backface-visibility:hidden;transform-origin:center center
+}
 .snapshot[data-combat-focus="cao_minh"] .snapshot-character,
-.snapshot[data-combat-focus="lucia"] .snapshot-lucia{
- display:block!important;
- animation:combat-turn-enter var(--combat-turn-duration) cubic-bezier(.22,.62,.19,1) both;
- backface-visibility:hidden;transform-origin:center center
-}
-.snapshot[data-combat-focus="lucia"] .snapshot-lucia{
- right:28%!important;max-width:40%!important;height:92%!important
-}
-.snapshot[data-combat-focus="iris"]::after,
-.snapshot[data-combat-focus="syvial"]::after,
-.snapshot[data-combat-focus="an_nhien"]::after{
- content:"";position:absolute;z-index:3;right:5%;bottom:4%;width:38%;height:67%;
- border:2px solid #b5a16f;border-radius:12px;pointer-events:none;
- background-size:cover;background-position:center top;background-repeat:no-repeat;
- box-shadow:0 6px 24px #000b,0 0 15px #b5a16f44;
- backface-visibility:hidden;transform-origin:center center;
+.snapshot[data-combat-focus="lucia"] .snapshot-lucia{display:block!important}
+.snapshot[data-combat-animating="true"][data-combat-focus="cao_minh"] .snapshot-character,
+.snapshot[data-combat-animating="true"][data-combat-focus="lucia"] .snapshot-lucia,
+.snapshot[data-combat-animating="true"] .combat-turn-avatar{
  animation:combat-turn-enter var(--combat-turn-duration) cubic-bezier(.22,.62,.19,1) both
 }
-/* Alternate names restart animation when two portrait-only actors act consecutively. */
-.snapshot[data-combat-cycle="1"][data-combat-focus="iris"]::after,
-.snapshot[data-combat-cycle="1"][data-combat-focus="syvial"]::after,
-.snapshot[data-combat-cycle="1"][data-combat-focus="an_nhien"]::after{
- animation-name:combat-turn-enter-alt
-}
-.snapshot[data-combat-focus="iris"]::after{background-image:url('avatars/Iris_avatar.jpg')}
-.snapshot[data-combat-focus="syvial"]::after{background-image:url('avatars/Syvial_avatar.jpg')}
-.snapshot[data-combat-focus="an_nhien"]::after{background-image:url('avatars/an_nhien_avatar.png')}
-.snapshot .combat-turn-exit,
-.snapshot .combat-turn-avatar{
- position:absolute;right:0;bottom:0;height:97%;width:auto;max-width:55%;
- object-fit:contain;object-position:right bottom;z-index:5;pointer-events:none;
- backface-visibility:hidden;transform-origin:center center
-}
-.snapshot .combat-turn-exit{
- animation:combat-turn-leave var(--combat-turn-duration) cubic-bezier(.42,0,.66,.32) both
-}
-.snapshot .combat-turn-exit--entity{left:0;right:auto;object-position:left bottom}
-.snapshot .combat-turn-exit--portrait{
- right:5%;bottom:4%;height:67%;width:38%;max-width:none;object-fit:cover;
- border:2px solid #b5a16f;border-radius:12px
-}
-.snapshot .combat-turn-avatar{
- animation:combat-turn-enter var(--combat-turn-duration) cubic-bezier(.22,.62,.19,1) both
+.snapshot[data-combat-focus] .combat-turn-exit{
+ z-index:4;animation:combat-turn-leave var(--combat-turn-duration) cubic-bezier(.42,0,.66,.32) both
 }
 @keyframes combat-turn-enter{
- from{opacity:0;translate:75% 0;rotate:y -65deg;scale:.78}
- to{opacity:1;translate:0 0;rotate:y 0deg;scale:1}
-}
-@keyframes combat-turn-enter-alt{
  from{opacity:0;translate:75% 0;rotate:y -65deg;scale:.78}
  to{opacity:1;translate:0 0;rotate:y 0deg;scale:1}
 }
@@ -101,15 +75,18 @@
  from{opacity:1;translate:0 0;rotate:y 0deg;scale:1}
  to{opacity:0;translate:-75% 0;rotate:y 65deg;scale:.78}
 }
+/* A new wave replaces the left Entity with a fade, never a rotating duplicate. */
+.snapshot .snapshot-entity--wave-enter{animation:combat-entity-wave-enter .36s ease-out both}
+@keyframes combat-entity-wave-enter{from{opacity:0}to{opacity:1}}
 @media(prefers-reduced-motion:reduce){
  .snapshot[data-combat-focus]{--combat-turn-duration:90ms}
- .snapshot[data-combat-focus="cao_minh"] .snapshot-character,
- .snapshot[data-combat-focus="lucia"] .snapshot-lucia,
- .snapshot[data-combat-focus="iris"]::after,
- .snapshot[data-combat-focus="syvial"]::after,
- .snapshot[data-combat-focus="an_nhien"]::after,
- .snapshot .combat-turn-avatar{animation:combat-turn-fade-in 90ms ease-out both}
- .snapshot .combat-turn-exit{animation:combat-turn-fade-out 90ms ease-out both}
+ .snapshot[data-combat-animating="true"][data-combat-focus="cao_minh"] .snapshot-character,
+ .snapshot[data-combat-animating="true"][data-combat-focus="lucia"] .snapshot-lucia,
+ .snapshot[data-combat-animating="true"] .combat-turn-avatar{
+  animation:combat-turn-fade-in 90ms ease-out both
+ }
+ .snapshot[data-combat-focus] .combat-turn-exit{animation:combat-turn-fade-out 90ms ease-out both}
+ .snapshot .snapshot-entity--wave-enter{animation:combat-turn-fade-in 90ms ease-out both}
 }
 @keyframes combat-turn-fade-in{from{opacity:0}to{opacity:1}}
 @keyframes combat-turn-fade-out{from{opacity:1}to{opacity:0}}
@@ -149,22 +126,3 @@ body.poker-dice-open .player-action-bar .primary-action{pointer-events:none;opac
  body.poker-dice-open .poker-die{min-height:50px!important;padding-bottom:18px!important}
 }
 
-/* Fade new Party fighter into the Snapshot while the 800ms circular cue rotates. */
-.snapshot[data-combat-focus="cao_minh"] .snapshot-character,
-.snapshot[data-combat-focus="lucia"] .snapshot-lucia,
-.snapshot[data-combat-focus="iris"]::after,
-.snapshot[data-combat-focus="syvial"]::after,
-.snapshot[data-combat-focus="an_nhien"]::after{
- animation:combat-party-appear .46s cubic-bezier(.2,.65,.25,1) both
-}
-@keyframes combat-party-appear{
- from{opacity:.15;transform:translateY(7px) scale(.97)}
- to{opacity:1;transform:translateY(0) scale(1)}
-}
-@media(prefers-reduced-motion:reduce){
- .snapshot[data-combat-focus="cao_minh"] .snapshot-character,
- .snapshot[data-combat-focus="lucia"] .snapshot-lucia,
- .snapshot[data-combat-focus="iris"]::after,
- .snapshot[data-combat-focus="syvial"]::after,
- .snapshot[data-combat-focus="an_nhien"]::after{animation:none}
-}
