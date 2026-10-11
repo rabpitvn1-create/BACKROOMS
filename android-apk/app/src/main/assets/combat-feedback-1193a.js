@@ -4,7 +4,7 @@
   'use strict';
   var seen=[],animationToken=0;
   var combatLogEncounter='',combatLogRound=null,combatLogEntries=[],combatPanel=null,combatPanelMeta=null,combatPanelList=null;
-  var pendingPanelClear=false;
+  var pendingPanelClear=false,turnIndicator=null,turnName=null,turnDetail=null;
 
   function activeCombat(){
     return typeof state!=='undefined'&&state&&state.combat&&state.combat.active===true?state.combat:null;
@@ -30,10 +30,27 @@
       combatPanelMeta=document.createElement('div');combatPanelMeta.id='combatFeedbackMeta';combatPanelMeta.className='combat-feedback-meta';
       head.appendChild(titles);head.appendChild(combatPanelMeta);
       combatPanelList=document.createElement('div');combatPanelList.id='combatFeedbackEntries';combatPanelList.className='combat-feedback-entries';
-      combatPanel.appendChild(head);combatPanel.appendChild(combatPanelList);
+      turnIndicator=document.createElement('div');
+      turnIndicator.id='combatTurnIndicator';
+      turnIndicator.className='combat-turn-indicator';
+      turnIndicator.hidden=true;
+      turnIndicator.setAttribute('role','status');
+      turnIndicator.setAttribute('aria-live','polite');
+      var spinner=document.createElement('span');
+      spinner.className='combat-turn-spinner';
+      spinner.setAttribute('aria-hidden','true');
+      var info=document.createElement('div');info.className='combat-turn-info';
+      turnName=document.createElement('div');turnName.id='combatTurnName';turnName.className='combat-turn-name';
+      turnDetail=document.createElement('div');turnDetail.id='combatTurnDetail';turnDetail.className='combat-turn-detail';
+      info.appendChild(turnName);info.appendChild(turnDetail);
+      turnIndicator.appendChild(spinner);turnIndicator.appendChild(info);
+      combatPanel.appendChild(head);combatPanel.appendChild(turnIndicator);combatPanel.appendChild(combatPanelList);
     }else{
       combatPanelMeta=document.getElementById('combatFeedbackMeta');
       combatPanelList=document.getElementById('combatFeedbackEntries');
+      turnIndicator=document.getElementById('combatTurnIndicator');
+      turnName=document.getElementById('combatTurnName');
+      turnDetail=document.getElementById('combatTurnDetail');
     }
     var dice=document.getElementById('pokerDiceModal');
     var anchor=dice&&dice.isConnected!==false?dice:snapshot;
@@ -43,7 +60,9 @@
   function renderCombatMeta(combat){
     if(!combatPanelMeta)return;
     var round=Math.max(1,Number(combat&&combat.round)||1);
-    combatPanelMeta.textContent='Vòng '+round+' · log tạm thời';
+    var count=Math.max(1,Math.min(4,Number(combat&&combat.waveCount)||1));
+    var wave=Math.max(1,Math.min(count,Number(combat&&combat.waveNumber)||1));
+    combatPanelMeta.textContent='Đợt '+wave+'/'+count+' · Vòng '+round+' · log tạm thời';
   }
   function appendCombatLine(kind,text){
     text=String(text||'').trim();if(!text)return;
@@ -61,6 +80,7 @@
     if(combatPanelList)combatPanelList.textContent='';
     if(combatPanelMeta)combatPanelMeta.textContent='';
     if(combatPanel)combatPanel.hidden=true;
+    if(turnIndicator)turnIndicator.hidden=true;
   }
   function beginCombatLog(combat){
     if(!combat||combat.active!==true)return;
@@ -69,6 +89,7 @@
     if(combatLogEncounter!==encounter){
       combatLogEncounter=encounter;combatLogRound=null;combatLogEntries=[];pendingPanelClear=false;
       if(combatPanelList)combatPanelList.textContent='';
+      if(turnIndicator)turnIndicator.hidden=true;
       appendCombatLine('system','Bắt đầu giao chiến · '+prettyEntity(combat.entityKey));
     }
     panel.hidden=false;renderCombatMeta(combat);
@@ -149,6 +170,69 @@
     setTimeout(function(){floater.remove()},1800);
   };
 
+
+  // COMBAT_TURN_SPINNER_R01: timeline owned by Kotlin, never guessed from damage.
+  function showTurnCue(cue){
+    if(!ensureCombatPanel()||!turnIndicator||!turnName||!turnDetail)return;
+    var wave=Math.max(1,Number(cue.waveNumber)||1);
+    var count=Math.max(1,Math.min(4,Number(cue.waveCount)||1));
+    var kind=cue.kind;
+    turnIndicator.hidden=false;
+    turnIndicator.dataset.kind=kind;
+    if(kind==='actor')turnName.textContent=String(cue.actorName||'Đồng đội')+' · hành động';
+    else if(kind==='entity')turnName.textContent=String(cue.entityName||'Entity')+' · phản ứng';
+    else if(kind==='wave')turnName.textContent='ENTITY TIẾP THEO · '+String(cue.entityName||'Entity');
+    else turnName.textContent='Cả Party · hành động';
+    turnDetail.textContent='ĐỢT '+wave+'/'+count+' · '+(kind==='actor'?'PARTY':kind==='wave'?'THAY MỤC TIÊU':kind==='entity'?'ENTITY':'CẢ ĐỘI');
+    turnIndicator.classList.remove('combat-turn-indicator--loading');
+    void turnIndicator.offsetWidth;
+    turnIndicator.classList.add('combat-turn-indicator--loading');
+    if(kind==='wave')appendCombatLine('wave','Đợt '+wave+'/'+count+' · '+String(cue.entityName||'Entity')+' xuất hiện');
+  }
+  function playTypedTurnTimeline(packet,token,anchors,slots){
+    var events=packet.events;
+    var cues=packet.turns.filter(function(c){
+      return c&&(c.kind==='actor'||c.kind==='entity'||c.kind==='wave'||c.kind==='party')&&
+        Number.isInteger(c.eventIndex)&&c.eventIndex>=0&&c.eventIndex<=events.length;
+    }).slice(0,12);
+    if(!cues.length)return null;
+    var reduced=typeof window.matchMedia==='function'&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var spinTime=reduced?90:600,clock=0,endTime=0,covered=0;
+    function damageAt(e,when){
+      if(!e||(e.target!=='actor'&&e.target!=='entity'))return;
+      var available=slots[e.target],lane=0;
+      for(var i=1;i<available.length;i++)if(available[i]<available[lane])lane=i;
+      var delay=Math.max(when,available[lane]);
+      available[lane]=delay+1800;
+      endTime=Math.max(endTime,delay+1800);
+      setTimeout(function(){
+        if(token!==animationToken)return;
+        window.backroomPlayCombatFeedback(e,anchors[e.target]);
+      },delay);
+    }
+    cues.forEach(function(cue,index){
+      var start=Math.max(covered,cue.eventIndex);
+      if(index===0&&start>0){
+        for(var pre=0;pre<start;pre++)damageAt(events[pre],pre*150);
+        clock=Math.max(clock,Math.min(start*150,450));
+      }
+      var end=events.length;
+      if(index+1<cues.length)end=Math.max(start,Math.min(events.length,cues[index+1].eventIndex));
+      (function(c,at){
+        setTimeout(function(){if(token===animationToken)showTurnCue(c);},at);
+        setTimeout(function(){
+          if(token===animationToken&&turnIndicator)turnIndicator.classList.remove('combat-turn-indicator--loading');
+        },at+spinTime);
+      })(cue,clock);
+      var actionStart=clock+spinTime;
+      for(var j=start;j<end;j++)damageAt(events[j],actionStart+(j-start)*150);
+      covered=end;
+      clock=actionStart+Math.max(260,(end-start)*150)+150;
+    });
+    for(var trailing=covered;trailing<events.length;trailing++)damageAt(events[trailing],clock+(trailing-covered)*150);
+    return Math.max(clock,endTime)+50;
+  }
+
   var previousTurn=window.backroomTurn;
   if(typeof previousTurn!=='function')return;
   window.backroomTurn=function(json){
@@ -161,6 +245,7 @@
     if(after&&after.active===true)beginCombatLog(after);
     else if(!packet)resetCombatPanel();
 
+    if(before&&after&&before.encounterId!==after.encounterId){++animationToken;setFeedbackBusy(false);}
     if(!before&&after&&after.active===true&&!packet){seen=[];++animationToken;setFeedbackBusy(false);}
     if(!after&&!packet){++animationToken;setFeedbackBusy(false);}
     if(!packet||typeof packet.id!=='string'||!Array.isArray(packet.events)||seen.indexOf(packet.id)!==-1)return result;
@@ -185,6 +270,17 @@
         var capacity=anchor?Math.max(1,Math.floor((anchor.y-12)/38)+1):1;
         slots[target]=[];for(var i=0;i<capacity;i++)slots[target].push(0);
       });
+      var typedMs=Array.isArray(packet.turns)&&packet.turns.length?
+        playTypedTurnTimeline(packet,token,anchors,slots):null;
+      if(typedMs!==null){
+        setTimeout(function(){
+          if(token!==animationToken)return;
+          setFeedbackBusy(false);
+          if(pendingPanelClear&&combatLogEncounter===encounter&&!activeCombat())resetCombatPanel();
+        },typedMs);
+        return;
+      }
+      // Legacy hit-only packets keep their existing stagger and phase timing.
       // BR-1.1.93a: actor phase first, enemy phase after 1000ms; hits stagger 150ms, capped at 450ms.
       ['actor','entity'].forEach(function(phase){
         var events=packet.events.filter(function(e){return e&&(e.phase==='entity'?'entity':'actor')===phase});

@@ -150,3 +150,52 @@ test('combat panel keeps the final packet briefly then clears after combat ends'
  assert.equal(r.panel().hidden,true);assert.equal(r.entries().children.length,0);
  assert.deepEqual(r.scope.state.log,narrative);
 });
+
+
+test('typed combat cues show active character and a short spinning transition between turns',()=>{
+ const r=boot({combat:{active:true,encounterId:'enc',entityKey:'hound',round:1,waveNumber:1,waveCount:2}});
+ const cues=[
+  {kind:'actor',eventIndex:0,actorId:'cao_minh',actorName:'Cao Minh',waveNumber:1,waveCount:2,entityName:'Hound'},
+  {kind:'wave',eventIndex:1,waveNumber:2,waveCount:2,entityName:'Smiler'},
+  {kind:'actor',eventIndex:1,actorId:'lucia',actorName:'Lucia',waveNumber:2,waveCount:2,entityName:'Smiler'},
+  {kind:'entity',eventIndex:2,waveNumber:2,waveCount:2,entityName:'Smiler'}
+ ];
+ r.turn([{target:'entity',phase:'actor',text:'-12 HP'},{target:'entity',phase:'actor',text:'-9 HP'},{target:'actor',phase:'entity',text:'-3 HP'}],
+  'enc:typed','enc',{active:true,encounterId:'enc',entityKey:'smiler',round:2,waveNumber:2,waveCount:2},
+  {},{turns:cues});
+ const title=()=>r.scope.document.getElementById('combatTurnName').textContent;
+ assert.ok(title().includes('Cao Minh'));assert.ok(r.panel().children.length>=3);
+ assert.ok(r.scope.document.getElementById('combatTurnIndicator').className.includes('combat-turn-indicator--loading'));
+ const timers=r.timers.filter(t=>t.ms>0).map(t=>t.ms);
+ assert.ok(timers.includes(600),'600ms transition must be scheduled');
+ assert.ok(r.scope.document.getElementById('combatFeedbackMeta').textContent.includes('Đợt 2/2'));
+ // Transition starts after actor feedback plus a short readability gap.
+ r.timers.find(t=>t.ms===1010).fn();
+ assert.ok(title().includes('Smiler'));assert.ok(r.entries().children.some(n=>n.textContent.includes('Đợt 2/2')));
+ r.timers.find(t=>t.ms===2020).fn();
+ assert.ok(title().includes('Lucia'));assert.equal(r.scope.__combatFeedbackBusy,true);
+});
+
+test('typed no-hit turns still animate, and reduced-motion shortens the wait',()=>{
+ const r=boot();
+ r.scope.matchMedia=()=>({matches:true});
+ r.turn([],'enc:quiet','enc',{active:true,encounterId:'enc',entityKey:'hound',round:2,waveNumber:1,waveCount:1},
+  {},{turns:[{kind:'actor',eventIndex:0,actorId:'cao_minh',actorName:'Cao Minh',waveNumber:1,waveCount:1,entityName:'Hound'},
+             {kind:'entity',eventIndex:0,waveNumber:1,waveCount:1,entityName:'Hound'}]});
+ assert.ok(r.scope.document.getElementById('combatTurnName').textContent.includes('Cao Minh'));
+ assert.ok(r.timers.some(t=>t.ms===90));
+ assert.equal(r.timers.some(t=>t.ms===600),false);
+ assert.equal(r.scope.__combatFeedbackBusy,true);
+});
+
+test('typed final-kill cue survives combat closure then clears transient panel',()=>{
+ const r=boot();
+ r.turn([{target:'entity',phase:'actor',text:'-5 HP'}],'enc:final-typed','enc',null,{},{
+  turns:[{kind:'actor',eventIndex:0,actorId:'cao_minh',actorName:'Cao Minh',waveNumber:1,waveCount:1,entityName:'Hound'}]
+ });
+ assert.equal(r.panel().hidden,false);
+ const largest=r.timers.reduce((m,t)=>Math.max(m,t.ms),0);
+ r.timers.find(t=>t.ms===largest).fn();
+ assert.equal(r.panel().hidden,true);
+ assert.equal(r.scope.__combatFeedbackBusy,false);
+});

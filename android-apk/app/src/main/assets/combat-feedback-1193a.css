@@ -20,3 +20,17 @@
 .combat-feedback-entry--actor{border-left-color:#6caf8f;color:#d9f0e5}
 .combat-feedback-entry--entity{border-left-color:#a96c5d;color:#f0d9d2}
 .combat-feedback-entry--summary{border-left-color:#c4aa63;color:#f0ead2;white-space:pre-wrap}
+
+/* COMBAT_TURN_SPINNER_R01: temporary Party/Entity changeover, 600ms visual only. */
+.combat-turn-indicator[hidden]{display:none!important}
+.combat-turn-indicator{display:flex;align-items:center;gap:11px;margin-top:9px;padding:9px 11px;border-radius:10px;border:1px solid #7f956b83;background:linear-gradient(100deg,#23352bd6,#191e19ed 66%,#3b3524c9);min-height:58px}
+.combat-turn-indicator[data-kind="entity"]{border-color:#9b695f99;background:linear-gradient(100deg,#342421e6,#191b19ed)}
+.combat-turn-indicator[data-kind="wave"]{border-color:#c4ab6ba8;background:linear-gradient(100deg,#40321fe0,#1c211de8)}
+.combat-turn-spinner{width:27px;height:27px;flex:0 0 27px;border-radius:50%;border:3px solid #a9bda442;border-top-color:#d0dcb9;border-right-color:#c4aa6a;opacity:.25}
+.combat-turn-indicator--loading .combat-turn-spinner{opacity:1;animation:combat-turn-spin .6s linear infinite;box-shadow:0 0 12px #b8cc9d2e}
+.combat-turn-info{min-width:0}
+.combat-turn-name{font-size:13px;font-weight:800;letter-spacing:.02em;color:#eef1df;overflow-wrap:anywhere}
+.combat-turn-detail{margin-top:3px;font-size:10px;letter-spacing:.1em;color:#baae8a}
+.combat-feedback-entry--wave{border-left-color:#dfc173;color:#f1dfab;font-weight:700}
+@keyframes combat-turn-spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.combat-turn-indicator--loading .combat-turn-spinner{animation:none;opacity:.8}}

@@ -52,6 +52,9 @@ jobs:
       - name: Verify combat panel layout
         run: node android-apk/verify-combat-layout.mjs
 
+      - name: Verify animated combat turn UI
+        run: node --test android-apk/tests/snapshot-combat-damage.test.cjs
+
       - name: Capture active run id
         if: github.event_name != 'pull_request'
         run: |
