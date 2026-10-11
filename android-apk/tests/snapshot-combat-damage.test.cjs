@@ -187,7 +187,7 @@ test('typed no-hit turns still animate, and reduced-motion shortens the wait',()
   {},{turns:[{kind:'actor',eventIndex:0,actorId:'cao_minh',actorName:'Cao Minh',waveNumber:1,waveCount:1,entityName:'Hound'},
              {kind:'entity',eventIndex:0,waveNumber:1,waveCount:1,entityName:'Hound'}]});
  assert.ok(r.scope.document.getElementById('combatTurnName').textContent.includes('Cao Minh'));
- assert.ok(r.timers.some(t=>t.ms===90));
+ assert.ok(r.timers.some(t=>t.ms===500),'reduced motion advances to the next cue at 500ms');
  assert.equal(r.timers.some(t=>t.ms===800),false);
  assert.equal(r.scope.__combatFeedbackBusy,true);
 });
