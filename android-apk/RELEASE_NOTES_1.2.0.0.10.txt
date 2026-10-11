@@ -1,0 +1,10 @@
+Backroom 1.2.0.0.10 Debug
+
+- Android versionCode 83; versionName 1.2.0.0.10; applicationId com.rabpit.backroom.
+- Bản phát hành mới được đóng gói từ main đã xác minh GREEN ở v1.2.0.0.9. Không có commit thay đổi gameplay mới sau v1.2.0.0.9 tính đến thời điểm tạo bản bump này.
+- Giữ các bản sửa của v1.2.0.0.9: overlay Entity xuất hiện trong combat, định vị ảnh bằng asset local, phát đủ lượt cuối do Combat Core cung cấp mà không tạo hành động Party/Entity giả.
+- Tiếp tục giữ cơ chế Ultimate SSF/FSF đã tích hợp, kỹ năng và Canon nhân vật, Snapshot, hiệu ứng 3D Coverflow cùng các thay đổi ổn định của các bản phát hành trước.
+- Không đưa thay đổi của PR #584 đang mở vào bản phát hành này.
+- CI kiểm tra Node/Kotlin, build Android, chữ ký APK, zipalign, tài nguyên đóng gói và so sánh APK tải lại từ GitHub Release.
+- Đây là APK Debug ký bằng debug key, không phải bản Release ký production.
+- Không cung cấp migration/tương thích với save game từ phiên bản cũ.
