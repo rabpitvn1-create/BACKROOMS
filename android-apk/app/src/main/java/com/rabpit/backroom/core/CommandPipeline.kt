@@ -37,7 +37,7 @@ class CommandResolver(
     val source = candidate.source
     return when (candidate.intent) {
       GameIntent.PICKUP_ITEM, GameIntent.DROP_ITEM, GameIntent.USE_ITEM,
-      GameIntent.TRANSFER_ITEM, GameIntent.EQUIP_ITEM, GameIntent.UNEQUIP_ITEM -> null
+      GameIntent.TRANSFER_ITEM -> null
       GameIntent.PARTY_JOIN_REQUEST -> target?.let { PartyCommand(commandId, turnId, actor, it, source, PartyCommand.Operation.ADD) }
       GameIntent.PARTY_REMOVE -> target?.let { PartyCommand(commandId, turnId, actor, it, source, PartyCommand.Operation.REMOVE) }
       GameIntent.PARTY_FOLLOW -> target?.let { PartyCommand(commandId, turnId, actor, it, source, PartyCommand.Operation.FOLLOW) }
