@@ -55,7 +55,7 @@ class CombatWaveQueueTest {
     assertEquals(3, CombatRuntime.active(result.state)!!.eventCounter)
     assertNull(result.state.metadata["combat.irisAnalyzedTurns"])
     assertNull(result.state.metadata["combat.kaiBleedTurns"])
-    assertEquals("2", result.state.metadata["combat.kaiQuickStepTurns"])
+    assertEquals("1", result.state.metadata["combat.kaiQuickStepTurns"])
     assertEquals("1", result.state.metadata["combat.lifeformBleedTurns"])
     assertEquals(115, CombatRuntime.active(result.state)!!.entityMaxHp)
   }
@@ -106,6 +106,27 @@ class CombatWaveQueueTest {
       break
     }
     assertTrue(verified)
+  }
+
+  @Test fun nonAttackCommandsPreserveIrisAndSyvialPassives() {
+    val initial = SpecialFollowersCanon.ensure(GameState.initial())
+    val party = initial.copy(party = PartyState(memberIds = listOf(KAI_ID, IRIS_ID, SYVIAL_ID)))
+    val injured = CharacterStatEngine.setCurrentHp(party, SYVIAL_ID, 10)
+    val state = CombatRuntime.start(injured, "hound")
+    val result = CombatRuntime.resolve(state, "SEARCH", "quan sát")
+    assertTrue(result.reply.contains("ARGUS Terrain Read"))
+    assertTrue(result.reply.contains("Lucifer Core hồi Syvial"))
+    assertTrue(result.reply.contains("Syvial kích hoạt Devil Trigger"))
+  }
+
+  @Test fun anNhienEscapeUltimateStillTriggersOnFifthRound() {
+    val initial = AnNhienCanon.ensure(GameState.initial())
+    val party = initial.copy(party = PartyState(memberIds = listOf(KAI_ID, AN_NHIEN_ID)))
+    val started = CombatRuntime.start(party, "hound")
+    val state = started.copy(metadata = started.metadata + ("combat.eventCounter" to "4"))
+    val result = CombatRuntime.resolve(state, "EXECUTE", "Cả Party cùng bỏ chạy")
+    assertTrue(result.reply.contains("Kế Hoạch Không Có Trong Kế Hoạch"))
+    assertTrue(result.reply.contains("+30 Escape Progress"))
   }
 
 }

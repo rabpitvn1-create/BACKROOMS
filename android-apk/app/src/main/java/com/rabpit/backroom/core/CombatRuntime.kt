@@ -312,6 +312,27 @@ object CombatRuntime {
     }
     if (c.entityHp <= 0) promoteDefeatedWave()
 
+    // Shared passives also run when the Party chooses a non-attack action.
+    fun applySyvialPassive() {
+      if (!syvialActive || c.entityHp <= 0) return
+              val syvialMaxHp = CharacterStatEngine.effective(resolvedState, SYVIAL_ID).maxHp
+              val syvialHp = syvialCharacter!!.vitalState.currentHp
+              if (!syvialDevilTrigger && (syvialHp * 2 <= syvialMaxHp || c.entityKey == DIEP_MINH_KEY)) {
+                syvialDevilTrigger = true
+                val metadata = resolvedState.metadata.toMutableMap()
+                metadata[SYVIAL_DEVIL_TRIGGER_KEY] = "true"
+                resolvedState = resolvedState.copy(metadata = metadata)
+                log += "Syvial kích hoạt Devil Trigger."
+              }
+              val regenPercent = if (syvialDevilTrigger) 4 else 2
+              if (syvialHp > 0 && syvialHp < syvialMaxHp) {
+                val heal = percentDamage(syvialMaxHp, regenPercent)
+                resolvedState = CharacterStatEngine.setCurrentHp(resolvedState, SYVIAL_ID, syvialHp + heal)
+                val after = resolvedState.characters[SYVIAL_ID]?.vitalState?.currentHp ?: syvialHp
+                log += "Lucifer Core hồi Syvial +${after - syvialHp} HP ($after/$syvialMaxHp)."
+              }
+    }
+
     when (intent) {
       Intent.READ -> {
         c = c.copy(
@@ -332,6 +353,12 @@ object CombatRuntime {
           cover = if (c.cover == Cover.EXPOSED) Cover.PARTIAL else c.cover
         )
         log += if (goodCounter) "Cao Minh né đúng telegraph, cướp thế chủ động." else "Cao Minh đổi góc và giảm áp lực trực diện."
+        if (KAI_ID in PartyCombatHealth.actingMembers(resolvedState) && c.entityHp > 0 &&
+            roll(c.copy(eventCounter = c.eventCounter + 139), 100) < KAI_QUICK_STEP_CHANCE_PERCENT) {
+          quickStepTurns = KAI_QUICK_STEP_DURATION_TURNS
+          resolvedState = withCombatCounter(resolvedState, KAI_QUICK_STEP_TURNS_KEY, quickStepTurns)
+          log += "Thiên Ma Bộ tự động kích hoạt: dịch chuyển ngắn liên tục, +${KAI_QUICK_STEP_EVASION_BONUS_PERCENT}% Evasion trong ${KAI_QUICK_STEP_DURATION_TURNS} turn."
+        }
       }
       Intent.MOVE -> {
         val nextRange = when (c.range) {
@@ -356,6 +383,11 @@ object CombatRuntime {
         val gain = 20 + c.momentum.coerceAtLeast(0) * 5 + when (c.cover) { Cover.HARD -> 15; Cover.PARTIAL -> 8; Cover.EXPOSED -> 0 } + PokerDiceCore.escapeBonus(state)
         c = c.copy(escapeProgress = min(100, c.escapeProgress + gain), momentum = min(3, c.momentum + 1))
         log += "Cao Minh dồn ưu thế vào đường thoát (${c.escapeProgress}%)."
+        if (anNhienActive && c.entityHp > 0 && c.eventCounter % AN_NHIEN_ULTIMATE_INTERVAL_TURNS == 0) {
+          companionEnemyAccuracyPenalty += 20
+          c = c.copy(escapeProgress = min(100, c.escapeProgress + 30))
+          log += "Kế Hoạch Không Có Trong Kế Hoạch: +30 Escape Progress và Entity -20 điểm % Accuracy trong phản ứng hiện tại."
+        }
       }
       Intent.ATTACK -> {
         val partyOrder = PartyCombatHealth.actingMembers(resolvedState)
@@ -585,22 +617,7 @@ object CombatRuntime {
         }
 
             if (syvialActive && c.entityHp > 0) {
-              val syvialMaxHp = CharacterStatEngine.effective(resolvedState, SYVIAL_ID).maxHp
-              val syvialHp = syvialCharacter!!.vitalState.currentHp
-              if (!syvialDevilTrigger && (syvialHp * 2 <= syvialMaxHp || c.entityKey == DIEP_MINH_KEY)) {
-                syvialDevilTrigger = true
-                val metadata = resolvedState.metadata.toMutableMap()
-                metadata[SYVIAL_DEVIL_TRIGGER_KEY] = "true"
-                resolvedState = resolvedState.copy(metadata = metadata)
-                log += "Syvial kích hoạt Devil Trigger."
-              }
-              val regenPercent = if (syvialDevilTrigger) 4 else 2
-              if (syvialHp > 0 && syvialHp < syvialMaxHp) {
-                val heal = percentDamage(syvialMaxHp, regenPercent)
-                resolvedState = CharacterStatEngine.setCurrentHp(resolvedState, SYVIAL_ID, syvialHp + heal)
-                val after = resolvedState.characters[SYVIAL_ID]?.vitalState?.currentHp ?: syvialHp
-                log += "Lucifer Core hồi Syvial +${after - syvialHp} HP ($after/$syvialMaxHp)."
-              }
+              applySyvialPassive()
               val syvialWeapon = CharacterStatEngine.skillBaseDamage(resolvedState, SYVIAL_ID)
               val dtMultiplier = if (syvialDevilTrigger) 125 else 100
               fun syvialDamage(percent: Int, armor: Int): Int = companionSkillDamage(syvialWeapon, (percent * dtMultiplier + 99) / 100, armor)
@@ -656,11 +673,6 @@ object CombatRuntime {
               if (intent == Intent.ATTACK && roll(c.copy(eventCounter = c.eventCounter + 269), 100) < 25) {
                 companionEnemyAccuracyPenalty += 25
                 log += "An Nhiên dùng Quăng Đại Cái Gì Đó: tiếng động lệch hướng khiến Entity -25 điểm % Accuracy trong phản ứng hiện tại."
-              }
-              if (intent == Intent.ESCAPE && c.eventCounter % AN_NHIEN_ULTIMATE_INTERVAL_TURNS == 0) {
-                companionEnemyAccuracyPenalty += 20
-                c = c.copy(escapeProgress = min(100, c.escapeProgress + 30))
-                log += "Kế Hoạch Không Có Trong Kế Hoạch: +30 Escape Progress và Entity -20 điểm % Accuracy trong phản ứng hiện tại."
               }
             }
             }
@@ -724,6 +736,15 @@ object CombatRuntime {
 
     if (c.entityHp <= 0 && !promoteDefeatedWave()) {
       return settleDefeated(resolvedState, c, log.joinToString(" "), feedback.toList())
+    }
+
+    if (intent != Intent.ATTACK && c.entityHp > 0) {
+      if (irisActive && irisAnalyzedTurns <= 0) {
+        irisAnalyzedTurns = 3
+        resolvedState = withCombatCounter(resolvedState, IRIS_ANALYZED_TURNS_KEY, irisAnalyzedTurns)
+        log += "ARGUS Terrain Read: Iris đánh dấu mục tiêu Analyzed trong 3 turn."
+      }
+      applySyvialPassive()
     }
 
     // A replacement Entity is not allowed to counterattack for free.
