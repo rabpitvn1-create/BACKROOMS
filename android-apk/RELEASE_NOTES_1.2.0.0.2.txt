@@ -1,0 +1,10 @@
+Backroom 1.2.0.0.2 Debug
+
+- Bản sửa lỗi hiển thị chiến đấu sau v1.2.0.0.1; Android versionCode 75, giữ nguyên applicationId com.rabpit.backroom.
+- Khắc phục Battle Log chỉ hiện “Vòng 1”, “Vòng 2”: giữ combatFeedback transient trực tiếp từ phản hồi combat trước khi đồng bộ lại Game Core; không ghi phản hồi tạm vào save.
+- Hiển thị diễn biến từng nhân vật theo thứ tự lượt Party, gồm đòn đánh thường, kỹ năng kích hoạt, damage theo HP, đánh hụt và phản công của Entity; Battle Log vẫn tách khỏi GM narrative.
+- Snapshot chỉ hiển thị một nhân vật đang hành động tại mỗi thời điểm thay vì chồng Cao Minh và Lucia trong một khung; chuyển ảnh cùng sự kiện xoay lượt.
+- Dùng overlay có sẵn cho Cao Minh/Lucia; Iris, Syvial và An Nhiên dùng ảnh avatar cục bộ trong lượt riêng khi chưa có overlay toàn thân. Entity vẫn ở vị trí đối diện.
+- Sau khi trình diễn xong, khung trở lại nhân vật dẫn đầu trong lúc chờ Poker Dice vòng kế tiếp. Nhật ký có vùng cuộn lớn hơn, hạn chế trùng tên nhân vật.
+- Giữ nguyên cơ chế HP chung, kỹ năng, Poker Dice một lần mỗi vòng, hàng chờ Entity, phần thưởng, Save/Load và xác suất encounter.
+- Build Debug APK. GitHub Actions kiểm tra Kotlin tests, Node UI tests, chữ ký APK, asset và file tải lại từ GitHub Release.
