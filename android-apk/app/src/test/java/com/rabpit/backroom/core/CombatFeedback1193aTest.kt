@@ -27,7 +27,7 @@ class CombatFeedback1193aTest {
       CombatRuntime.resolve(state, "EXECUTE", "Tấn công")
     }.first { it.feedback.any { hit -> hit.critical } }
     assertTrue(result.feedback.first().critical)
-    assertTrue(result.feedback.all { it.amount > 0 })
+    assertTrue(result.feedback.all { if (it.outcome == "miss") it.amount == 0 else it.amount > 0 })
   }
 
   @Test fun lethalFeedbackIsClippedToActualHpAndSurvivesCombatCleanup() {
@@ -44,10 +44,30 @@ class CombatFeedback1193aTest {
     val result = (0..200).asSequence().map { seed ->
       val state = started(seed)
       CombatRuntime.active(state)!!.playerHp to CombatRuntime.resolve(state, "EXECUTE", "Đứng yên")
-    }.first { (_, r) -> r.feedback.any { it.target == "actor" } }
+    }.first { (_, r) -> r.feedback.any { it.target == "actor" && it.amount > 0 } }
     val damage = result.second.feedback.filter { it.target == "actor" }.sumOf { it.amount }
     val finalHp = result.second.state.characters[CAO_MINH_ID]!!.vitalState.currentHp
     assertTrue(damage > result.first - finalHp)
+  }
+
+  @Test fun missedAttackIsTypedAndDoesNotCreateDamageOrFlash() {
+    val result = (0..200).asSequence().map { seed ->
+      CombatRuntime.resolve(started(seed), "EXECUTE", "Tấn công")
+    }.first { it.feedback.any { e -> e.target == "entity" && e.outcome == "miss" } }
+    val miss = result.feedback.first { it.target == "entity" && it.outcome == "miss" }
+    assertEquals(0, miss.amount)
+    assertEquals("MISS", miss.toJson().getString("text"))
+    assertFalse(miss.toJson().getBoolean("flash"))
+    assertEquals(CAO_MINH_ID, miss.actorId)
+    assertFalse(result.state.metadata.keys.any { it.contains("feedback", ignoreCase = true) })
+  }
+
+  @Test fun periodicPoisonDoesNotProduceAnAttackImpact() {
+    val state = started().let { it.copy(metadata = it.metadata + ("combat.caoMinhProc3" to "1")) }
+    val poison = CombatRuntime.resolve(state, "SEARCH", "Quan sát").feedback
+      .single { it.status == CombatRuntime.FeedbackStatus.POISON }
+    assertEquals("tick", poison.outcome)
+    assertFalse(poison.toJson().getBoolean("flash"))
   }
 
   private class MemorySave(var state: GameState) : SaveRepository {
