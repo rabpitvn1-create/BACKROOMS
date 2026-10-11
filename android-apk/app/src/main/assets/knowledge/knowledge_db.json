@@ -194,143 +194,26 @@
       "affordances": []
     },
     {
-      "id": "CHAR.KAI.RUNTIME_CORE",
+      "id": "CHAR.CAO_MINH.RUNTIME_CORE",
       "domain": "CHARACTER",
       "kind": "runtime-card",
-      "text": "Cao Minh / Twilight: Black Blood captain under Vatican, UR+, half-human/half-demon, son of Sparda and Eve. Origin era 2299 is not a birth year; true age is unknown. Outside danger he can be relaxed, lazy, teasing and irreverent; in real danger he becomes disciplined and decisive, prioritizing teammates/civilians. He retains full control of himself and demon power. Do not make him a reckless idiot, a moralizing hero-mouthpiece, or a puppet whose intentional actions GM chooses for the player.",
+      "text": "Cao Minh (id: cao_minh) is the player character. His current combat role is VẠN GIỚI MA TÔN / MA ĐẠO KIẾM TU. In a fresh run his starting equipment is Huyết Ma Kiếm and Huyết Ma Chiến Khải. The player controls Cao Minh's intentional actions; Game Core, live state and dice resolve capabilities, consequences and combat mechanics.",
       "source": {
-        "document": "02_CHARACTERS/Kai_Codex.docx",
-        "anchor": "KAI-QUICK-01; KAI-PER-01; KAI-ACTION-LOCK-01"
+        "document": "GameState.kt + CharacterStats.kt",
+        "anchor": "GameState.initial; CharacterStatProfiles.role"
       },
       "authority": "CHARACTER_CANON",
       "mutability": "IMMUTABLE",
       "priority": 20,
       "tags": [
         "cao_minh",
-        "twilight",
+        "cao minh",
         "present core",
-        "voice"
+        "ma ton",
+        "ma dao kiem tu"
       ],
       "references": [],
       "affordances": []
-    },
-    {
-      "id": "CHAR.KAI.SPARDA_CORE",
-      "domain": "CHARACTER",
-      "kind": "ability",
-      "text": "Sparda Core provides Cao Minh infinite demon power with no intrinsic operating limit in current canon. Do not invent depletion, a mana bar, cooldown, corruption, berserk loss of control, or backlash merely to balance him. Infinite power does not equal omniscience or automatic success at objectives constrained by information, environment or people to protect.",
-      "source": {
-        "document": "02_CHARACTERS/Kai_Codex.docx",
-        "anchor": "KAI-CORE-SPARDA-01; KAI-WEAK-01"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 44,
-      "tags": [
-        "cao_minh",
-        "sparda core",
-        "demon power"
-      ],
-      "references": [],
-      "affordances": [
-        "direct_threat"
-      ]
-    },
-    {
-      "id": "CHAR.KAI.DEVIL_TRIGGER",
-      "domain": "CHARACTER",
-      "kind": "ability",
-      "text": "Cao Minh's Devil Trigger strongly enhances his established physical, mental, speed, reflex and combat capabilities. Current codex does not give it an intrinsic maximum duration, cooldown, backlash, corruption or loss of control. Do not add those limits.",
-      "source": {
-        "document": "02_CHARACTERS/Kai_Codex.docx",
-        "anchor": "KAI-DT-01"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 48,
-      "tags": [
-        "cao_minh",
-        "devil trigger"
-      ],
-      "references": [],
-      "affordances": [
-        "direct_threat"
-      ]
-    },
-    {
-      "id": "CHAR.KAI.GUILTY_CROWN_OVERRIDE",
-      "domain": "CHARACTER",
-      "kind": "ultimate",
-      "text": "Guilty Crown Override is canonically a sequence of exactly 24 consecutive shots while external time is completely stopped when Cao Minh is in Devil Trigger. Do not alter the shot count or invent a lesser time-slow substitute without retcon.",
-      "source": {
-        "document": "02_CHARACTERS/Kai_Codex.docx",
-        "anchor": "KAI-ULT-GCO-01"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 54,
-      "tags": [
-        "cao_minh",
-        "guilty crown override",
-        "override"
-      ],
-      "references": [
-        "CHAR.KAI.DEVIL_TRIGGER",
-        "CHAR.KAI.WHITE_WRAITH"
-      ],
-      "affordances": [
-        "high_tier_target"
-      ]
-    },
-    {
-      "id": "CHAR.KAI.WHITE_WRAITH",
-      "domain": "CHARACTER",
-      "kind": "equipment",
-      "text": "White Wraith Magnum is Cao Minh's signature firearm. It uses demonic ammunition formed directly from Cao Minh's power rather than a carried conventional ammo supply. It supports single-shot and near-600-round-per-minute automatic fire per current codex. Do not invent ammunition scarcity for this weapon merely to create difficulty.",
-      "source": {
-        "document": "02_CHARACTERS/Kai_Codex.docx",
-        "anchor": "KAI-EQP-WWM-01"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 50,
-      "tags": [
-        "cao_minh",
-        "white wraith",
-        "magnum",
-        "gun"
-      ],
-      "references": [
-        "CHAR.KAI.SPARDA_CORE"
-      ],
-      "affordances": [
-        "direct_threat"
-      ]
-    },
-    {
-      "id": "CHAR.KAI.ARMOR",
-      "domain": "CHARACTER",
-      "kind": "equipment",
-      "text": "Blackblood Armor and linked modules self-repair using power from Sparda Core and function as an extension of Cao Minh's body rather than a heavy slowing shell. Demon Jaw Mask supports protection, gas filtration, enhanced vision, motion tracking, biological/demonic analysis, encrypted communications and targeting support. Talon Gauntlets support claws, striking, grip/climb and short-range electromagnetic effects on metal; Phantom Greaves support bursts, jumps, mid-air direction change, wall running, landing mitigation and stronger kicks.",
-      "source": {
-        "document": "02_CHARACTERS/Kai_Codex.docx",
-        "anchor": "KAI-EQP-ARMOR-01"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 54,
-      "tags": [
-        "cao_minh",
-        "blackblood armor",
-        "demon jaw",
-        "talon",
-        "phantom greaves"
-      ],
-      "references": [],
-      "affordances": [
-        "trace_analysis",
-        "direct_threat"
-      ]
     },
     {
       "id": "CHAR.IRIS.RUNTIME_CORE",
@@ -450,7 +333,7 @@
       ]
     },
     {
-      "id": "REL.KAI.IRIS.BASELINE",
+      "id": "REL.CAO_MINH.IRIS.BASELINE",
       "domain": "RELATIONSHIP",
       "kind": "baseline-edge",
       "text": "Iris has romantic feelings for Cao Minh. Cao Minh knows, but current codex does not establish that he reciprocates; official/current baseline remains teammates and commander-specialist. Iris's feelings do not grant her the right to manipulate Cao Minh's choices, hide danger or sabotage tactics. Campaign development may change relationship state, but the codex baseline must not be rewritten.",
@@ -467,14 +350,14 @@
         "relationship"
       ],
       "references": [
-        "ADDR.IRIS.KAI"
+        "ADDR.IRIS.CAO_MINH"
       ],
       "affordances": [
         "dialogue"
       ]
     },
     {
-      "id": "ADDR.IRIS.KAI",
+      "id": "ADDR.IRIS.CAO_MINH",
       "domain": "RELATIONSHIP",
       "kind": "address-lock",
       "text": "Iris -> Cao Minh uses the Vietnamese anh-em system. This closeness does not prove Cao Minh reciprocates her romantic feelings. Do not switch the address system merely because of anger, danger, jealousy, rescue, banter or a single intimate moment without continuity/retcon support.",
@@ -658,7 +541,7 @@
       ]
     },
     {
-      "id": "REL.KAI.SYVIAL.BASELINE",
+      "id": "REL.CAO_MINH.SYVIAL.BASELINE",
       "domain": "RELATIONSHIP",
       "kind": "baseline-edge",
       "text": "Syvial's feelings for Cao Minh are immutable character canon. How far Cao Minh reciprocates must follow campaign continuity; do not convert one-sided feelings into an established long-term romance automatically. They are peers in overall combat tier and neither exists to be constantly rescued or protected like a fragile object. Reliable evidence that Cao Minh is in severe danger can shift Syvial's priorities or risk tolerance, but brief lost contact does not collapse her judgment.",
@@ -675,14 +558,14 @@
         "relationship"
       ],
       "references": [
-        "ADDR.SYVIAL.KAI"
+        "ADDR.SYVIAL.CAO_MINH"
       ],
       "affordances": [
         "dialogue"
       ]
     },
     {
-      "id": "ADDR.SYVIAL.KAI",
+      "id": "ADDR.SYVIAL.CAO_MINH",
       "domain": "RELATIONSHIP",
       "kind": "address-lock",
       "text": "Syvial -> Cao Minh: Syvial says 'em' for self and normally calls him 'anh' or 'Cao Minh'; 'Anh Cao Minh' can be used for teasing/emphasis/clarifying before others. Cao Minh -> Syvial: Cao Minh says 'anh' for self and calls her 'Syvial' or 'em'. 'Cục cưng' is allowed only if campaign continuity has already locked a long-term romantic relationship; it is not the default. A direct first name can carry extra weight when serious, but is not a magic keyword to repeat every line.",

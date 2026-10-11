@@ -172,7 +172,7 @@ object KnowledgeContextEngine {
         "WRITING.KNOWLEDGE_BOUNDARY",
         "WRITING.COMPETENCE",
         "WRITING.PLAYER_AGENCY",
-        "CHAR.KAI.RUNTIME_CORE"
+        "CHAR.CAO_MINH.RUNTIME_CORE"
       ).forEach { add(it, "mandatory hard context") }
     }
 
@@ -188,12 +188,12 @@ object KnowledgeContextEngine {
 
     private fun addRelationships() {
       if ("iris" in presentActors) {
-        add("REL.KAI.IRIS.BASELINE", "present relationship edge")
-        add("ADDR.IRIS.KAI", "present address lock")
+        add("REL.CAO_MINH.IRIS.BASELINE", "present relationship edge")
+        add("ADDR.IRIS.CAO_MINH", "present address lock")
       }
       if ("syvial" in presentActors) {
-        add("REL.KAI.SYVIAL.BASELINE", "present relationship edge")
-        add("ADDR.SYVIAL.KAI", "present address lock")
+        add("REL.CAO_MINH.SYVIAL.BASELINE", "present relationship edge")
+        add("ADDR.SYVIAL.CAO_MINH", "present address lock")
       }
       if ("iris" in presentActors && "syvial" in presentActors) add("REL.IRIS.SYVIAL.BASELINE", "present relationship edge")
     }
@@ -207,12 +207,8 @@ object KnowledgeContextEngine {
       if (hasAny(actionText, "godkiller override", "twenty-four severance")) direct += "CHAR.SYVIAL.GODKILLER_OVERRIDE"
       else if (hasAny(actionText, "godkiller")) direct += "CHAR.SYVIAL.GODKILLER"
       if (hasAny(actionText, "lucifer core")) direct += "CHAR.SYVIAL.LUCIFER_CORE"
-      if (hasAny(actionText, "sparda core")) direct += "CHAR.KAI.SPARDA_CORE"
-      if (hasAny(actionText, "guilty crown", "override")) direct += "CHAR.KAI.GUILTY_CROWN_OVERRIDE"
-      if (hasAny(actionText, "white wraith", "magnum")) direct += "CHAR.KAI.WHITE_WRAITH"
-      if (hasAny(actionText, "devil trigger")) {
-        direct += "CHAR.KAI.DEVIL_TRIGGER"
-        if ("syvial" in presentActors) direct += "CHAR.SYVIAL.DEVIL_TRIGGER"
+      if (hasAny(actionText, "devil trigger") && "syvial" in presentActors) {
+        direct += "CHAR.SYVIAL.DEVIL_TRIGGER"
       }
       if (hasAny(actionText, "nói", "hỏi", "trả lời", "trò chuyện", "nói chuyện", "dialogue", "talk", "tell")) {
         direct += "WRITING.DIALOGUE"
