@@ -22,7 +22,7 @@ class PokerDiceCoreBackportTest {
   }
   @Test fun coreStatsProjectionIsReadOnlyAndIncludesLevelExp() {
     val state = GameState.initial()
-    val snapshot = PokerDiceCore.statsJson(state, KAI_ID)
+    val snapshot = PokerDiceCore.statsJson(state, CAO_MINH_ID)
     assertEquals(0, snapshot.getInt("level"))
     assertEquals(0, snapshot.getInt("exp"))
     assertEquals(10, snapshot.getInt("expToNextLevel"))

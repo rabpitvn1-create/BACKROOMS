@@ -98,13 +98,13 @@ private fun useItem(state: GameState, source: InventoryState, command: ItemComma
 object InventoryEngine {
   internal fun grantDrop(state: GameState, itemId: String): GameState? {
     val definition = OfflineItemRegistry.get(itemId) ?: return null
-    val inventory = state.inventories[KAI_ID] ?: InventoryState(KAI_ID)
+    val inventory = state.inventories[CAO_MINH_ID] ?: InventoryState(CAO_MINH_ID)
     val item = ItemContentRules.normalize(ItemStack(
       definition.id, definition.name, 1,
       metadata = definition.metadata + ("itemOrigin" to "ENTITY_DROP")
     ))
-    if (InventoryPolicy.validateAddition(state, KAI_ID, inventory, item, 1) != null) return null
-    return state.copy(inventories = state.inventories + (KAI_ID to addItem(inventory, item)))
+    if (InventoryPolicy.validateAddition(state, CAO_MINH_ID, inventory, item, 1) != null) return null
+    return state.copy(inventories = state.inventories + (CAO_MINH_ID to addItem(inventory, item)))
   }
 
   fun execute(state: GameState, command: ItemCommand): ExecutionResult {
@@ -126,7 +126,7 @@ object InventoryEngine {
         if (!state.characters.containsKey(targetId)) return invalid(state, "target_unknown")
         val owned = source.items[command.itemId] ?: return invalid(state, "item_not_owned")
         if (owned.quantity < command.quantity) return invalid(state, "insufficient_item_quantity")
-        if (command.actorId == KAI_ID && InventoryPolicy.isKaiSignatureEquipment(state, owned)) return invalid(state, "signature_equipment_locked")
+        if (command.actorId == CAO_MINH_ID && InventoryPolicy.isCaoMinhSignatureEquipment(state, owned)) return invalid(state, "signature_equipment_locked")
         val removal = takeItem(source, command.itemId, command.quantity) ?: return invalid(state, "insufficient_item_quantity")
         val transferred = removal.taken
         val targetInventory = state.inventories[targetId] ?: InventoryState(targetId)

@@ -10,7 +10,7 @@ class InventoryCapacityNewGameTest {
 
   @Test fun equippedItemsConsumeZeroCapacityForAllFourCharacters() {
     val state = freshAll()
-    listOf(KAI_ID, IRIS_ID, SYVIAL_ID, AN_NHIEN_ID).forEach { id ->
+    listOf(CAO_MINH_ID, IRIS_ID, SYVIAL_ID, AN_NHIEN_ID).forEach { id ->
       assertTrue("character must exist: $id", state.characters.containsKey(id))
       val equippedIds = InventoryCapacityPolicy.equippedItemIds(state, id)
       assertTrue("expected equipped loadout: $id", equippedIds.isNotEmpty())
@@ -25,24 +25,24 @@ class InventoryCapacityNewGameTest {
 
   @Test fun boundEquipmentCannotBeStoredAsItems() {
     val state = freshAll()
-    val equippedIds = InventoryCapacityPolicy.equippedItemIds(state, KAI_ID)
-    assertTrue("expected bound equipment: $KAI_ID", equippedIds.isNotEmpty())
+    val equippedIds = InventoryCapacityPolicy.equippedItemIds(state, CAO_MINH_ID)
+    assertTrue("expected bound equipment: $CAO_MINH_ID", equippedIds.isNotEmpty())
     equippedIds.forEach { itemId ->
       assertFalse("bound equipment must not appear in inventory: $itemId",
-        state.inventories.getValue(KAI_ID).items.containsKey(itemId))
+        state.inventories.getValue(CAO_MINH_ID).items.containsKey(itemId))
     }
   }
 
   @Test fun saveLoadRecalculatesCapacityFromOwnershipAndEquipmentReferences() {
     val loaded = GameStateCodec.decode(GameStateCodec.encode(freshAll()))
-    listOf(KAI_ID, IRIS_ID, SYVIAL_ID, AN_NHIEN_ID).forEach { id ->
+    listOf(CAO_MINH_ID, IRIS_ID, SYVIAL_ID, AN_NHIEN_ID).forEach { id ->
       assertEquals(0, InventoryCapacityPolicy.usedSlots(loaded, id))
     }
   }
 
   @Test fun freshNewGameProjectionUsesCanonical1193aStatsAndCapacity() {
     val state = freshAll()
-    val kai = CharacterDetailProjector.projectParty(state).members.first { it.id == KAI_ID }
+    val kai = CharacterDetailProjector.projectParty(state).members.first { it.id == CAO_MINH_ID }
     assertEquals(50, kai.currentHp)
     assertEquals(55, kai.maxHp)
     assertEquals("∞", kai.energyDisplay)

@@ -18,10 +18,10 @@ object RestActionPolicy {
     }
     if (partyRest.containsMatchIn(action)) return activeParty
 
-    val explicitFollowers = activeParty.filter { it != KAI_ID }.filter { id ->
+    val explicitFollowers = activeParty.filter { it != CAO_MINH_ID }.filter { id ->
       val character = state.characters[id] ?: return@filter false
       action.contains(id, ignoreCase = true) || action.contains(character.name, ignoreCase = true)
     }
-    return (listOf(KAI_ID) + explicitFollowers).distinct().filter { it in activeParty }
+    return (listOf(CAO_MINH_ID) + explicitFollowers).distinct().filter { it in activeParty }
   }
 }

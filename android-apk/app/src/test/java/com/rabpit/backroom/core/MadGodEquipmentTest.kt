@@ -13,9 +13,9 @@ class MadGodEquipmentTest {
     val (spawned, added) = MadGodCanon.spawn(base)
     assertTrue(added)
     // EquipmentState updated
-    assertEquals(MADGOD_SET_ID, spawned.equipment.getValue(KAI_ID).slots["weapon"])
+    assertEquals(MADGOD_SET_ID, spawned.equipment.getValue(CAO_MINH_ID).slots["weapon"])
     // No ItemStack created in inventory
-    assertFalse(spawned.inventories.getValue(KAI_ID).items.containsKey(MADGOD_SET_ID))
+    assertFalse(spawned.inventories.getValue(CAO_MINH_ID).items.containsKey(MADGOD_SET_ID))
     // Metadata set for UI flag
     assertEquals("true", spawned.metadata["madGod.spawned"])
   }
@@ -41,7 +41,7 @@ class MadGodEquipmentTest {
       saved)
     assertEquals(MADGOD_SET_ID, projected.getJSONObject("equipment").getJSONObject("weapon").getString("id"))
     assertTrue(projected.getJSONObject("flags").getJSONObject("madGod").getBoolean("spawned"))
-    assertFalse(saved.inventories.getValue(KAI_ID).items.containsKey(MADGOD_SET_ID))
+    assertFalse(saved.inventories.getValue(CAO_MINH_ID).items.containsKey(MADGOD_SET_ID))
   }
 
   @Test fun spawnIsIdempotent() {

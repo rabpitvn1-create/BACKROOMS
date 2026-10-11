@@ -35,7 +35,7 @@ object TurnCoordinator {
         PhysiologyCommand(
           commandId = "${pending.turnId}:SYSTEM:REST:$index",
           turnId = pending.turnId,
-          actorId = KAI_ID,
+          actorId = CAO_MINH_ID,
           targetId = targetId,
           source = CommandSource.SYSTEM,
           operation = PhysiologyCommand.Operation.RECORD_SLEEP

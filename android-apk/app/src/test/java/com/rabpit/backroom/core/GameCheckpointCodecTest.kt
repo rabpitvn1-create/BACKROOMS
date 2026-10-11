@@ -8,7 +8,7 @@ import org.junit.Test
 class GameCheckpointCodecTest {
   @Test fun checkpointRestoresCompleteCurrentCoreAndPresentation() {
     val initial = CoreClientProjection.initialize(GameState.initial())
-    val equipped = CharacterStatEngine.setCurrentHp(initial, KAI_ID, 31)
+    val equipped = CharacterStatEngine.setCurrentHp(initial, CAO_MINH_ID, 31)
     val loot = InventoryEngine.grantDrop(equipped, BANDAGE_ID)!!
     val core = CoreClientProjection.advance(loot.copy(
       world = loot.world + ("location" to "Level 3 / trạm điện")
@@ -21,10 +21,10 @@ class GameCheckpointCodecTest {
       .put("level", JSONObject().put("number", 6))
     val restored = GameCheckpointCodec.decode(GameCheckpointCodec.encode(core, view))
     assertEquals(2, CoreClientProjection.turnIndex(restored.core))
-    assertEquals(31, restored.core.characters.getValue(KAI_ID).vitalState.currentHp)
+    assertEquals(31, restored.core.characters.getValue(CAO_MINH_ID).vitalState.currentHp)
     assertEquals("Level 3 / trạm điện", restored.core.world["location"])
-    assertEquals(1, restored.core.inventories.getValue(KAI_ID).items.getValue(BANDAGE_ID).quantity)
-    assertEquals(core.equipment[KAI_ID]?.slots, restored.core.equipment[KAI_ID]?.slots)
+    assertEquals(1, restored.core.inventories.getValue(CAO_MINH_ID).items.getValue(BANDAGE_ID).quantity)
+    assertEquals(core.equipment[CAO_MINH_ID]?.slots, restored.core.equipment[CAO_MINH_ID]?.slots)
     assertEquals(2, restored.presentation.getInt("turn"))
     assertEquals("Nhật ký đã lưu", restored.presentation.getJSONArray("log").getJSONObject(0).getString("text"))
     assertEquals(BANDAGE_ID, restored.presentation.getJSONArray("inventory").getJSONObject(0).getString("id"))

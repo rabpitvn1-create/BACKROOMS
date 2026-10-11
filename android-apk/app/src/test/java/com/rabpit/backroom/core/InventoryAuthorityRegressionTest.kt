@@ -8,18 +8,18 @@ class InventoryAuthorityRegressionTest {
     val state = CharacterEquipmentSystem.seedFresh(GameState.initial())
     val result = InventoryEngine.grantDrop(state, BANDAGE_ID)
     assertNotNull(result)
-    val bandage = result!!.inventories.getValue(KAI_ID).items.getValue(BANDAGE_ID)
+    val bandage = result!!.inventories.getValue(CAO_MINH_ID).items.getValue(BANDAGE_ID)
     assertEquals("true", bandage.metadata["consumable"])
     assertEquals("ENTITY_DROP", bandage.metadata["itemOrigin"])
   }
 
   @Test fun transferFailureLeavesBothInventoriesUntouched() {
     var state = CharacterEquipmentSystem.seedFresh(GameState.initial())
-    val beforeKai = state.inventories[KAI_ID]
+    val beforeKai = state.inventories[CAO_MINH_ID]
     val result = InventoryEngine.execute(state, ItemCommand(
       commandId = "bad-transfer",
       turnId = state.turn.currentTurnId,
-      actorId = KAI_ID,
+      actorId = CAO_MINH_ID,
       targetId = "missing-character",
       source = CommandSource.UI,
       operation = ItemCommand.Operation.TRANSFER,
@@ -29,7 +29,7 @@ class InventoryAuthorityRegressionTest {
     ))
     assertFalse(result.applied)
     assertEquals(state, result.state)
-    assertEquals(beforeKai, result.state.inventories[KAI_ID])
+    assertEquals(beforeKai, result.state.inventories[CAO_MINH_ID])
   }
 
   @Test fun useRequiresOwnershipBeforeAnySuccessEvent() {
@@ -37,7 +37,7 @@ class InventoryAuthorityRegressionTest {
     val result = InventoryEngine.execute(state, ItemCommand(
       commandId = "use-missing-bandage",
       turnId = state.turn.currentTurnId,
-      actorId = KAI_ID,
+      actorId = CAO_MINH_ID,
       source = CommandSource.UI,
       operation = ItemCommand.Operation.USE,
       itemId = BANDAGE_ID,

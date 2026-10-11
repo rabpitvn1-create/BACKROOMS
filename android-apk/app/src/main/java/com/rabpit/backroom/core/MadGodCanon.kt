@@ -27,17 +27,17 @@ object MadGodCanon {
   fun isSetId(x: String?) = x == MADGOD_SET_ID
   fun isId(x: String?) = isSetId(x)
   fun spawn(s: GameState): Spawn {
-    val equipped = s.equipment[KAI_ID] ?: EquipmentState(KAI_ID)
+    val equipped = s.equipment[CAO_MINH_ID] ?: EquipmentState(CAO_MINH_ID)
     if (equipped.slots["weapon"] == MADGOD_SET_ID) return Spawn(s, false)
     val next = s.copy(
-      equipment = s.equipment + (KAI_ID to equipped.copy(slots = equipped.slots + ("weapon" to MADGOD_SET_ID))),
+      equipment = s.equipment + (CAO_MINH_ID to equipped.copy(slots = equipped.slots + ("weapon" to MADGOD_SET_ID))),
       metadata = s.metadata + mapOf("madGod.spawned" to "true", "madGod.form" to "set", "madGod.multiplierMode" to SCALING_MODE)
     )
     return Spawn(next, true)
   }
 
   fun equipmentProjection(s: GameState) = JSONObject().apply {
-    s.equipment[KAI_ID]?.slots.orEmpty().forEach { (slot, id) ->
+    s.equipment[CAO_MINH_ID]?.slots.orEmpty().forEach { (slot, id) ->
       put(slot, JSONObject().put("id", id)
         .put("name", EquipmentCatalog.definition(id)?.name ?: id)
         .put("permanent", isId(id)).put("scalingMode", SCALING_MODE))

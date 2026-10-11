@@ -42,7 +42,7 @@ class AuthoritativeEncounterPartyTest {
     assertEquals(0, JSONObject(after).getJSONArray("party").length())
     val response = JSONObject(facade(repo).processValidatedCandidate(before, after, "Quan sát hành lang"))
     assertTrue(response.toString(), response.getBoolean("handled"))
-    assertEquals(listOf(KAI_ID, IRIS_ID), repo.state.party.memberIds)
+    assertEquals(listOf(CAO_MINH_ID, IRIS_ID), repo.state.party.memberIds)
     assertEquals(1, response.getJSONObject("state").getJSONArray("party").length())
     assertFalse(JSONObject(repo.state.world.getValue("flagsJson")).getJSONObject("iris").getBoolean("joinPending"))
   }
@@ -54,13 +54,13 @@ class AuthoritativeEncounterPartyTest {
       .put("party", JSONArray().put(JSONObject().put("name", "Lucia \"Lục\"")))
     val committed = JSONObject(facade(repo).processValidatedCandidate(before, json.toString(), "Gặp Lucia"))
     assertTrue(committed.toString(), committed.getBoolean("handled"))
-    assertEquals(listOf(KAI_ID, LUCIA_ID), repo.state.party.memberIds)
+    assertEquals(listOf(CAO_MINH_ID, LUCIA_ID), repo.state.party.memberIds)
   }
 
   @Test fun partyCapacityDefersEncounterThenAutoJoinsAfterSlotOpens() {
     val initial = CoreClientProjection.initialize(GameState.initial())
     val repo = MemorySave(initial.copy(party = initial.party.copy(
-      memberIds = listOf(KAI_ID, IRIS_ID, SYVIAL_ID, LUCIA_ID)
+      memberIds = listOf(CAO_MINH_ID, IRIS_ID, SYVIAL_ID, LUCIA_ID)
     )))
     val facade = facade(repo)
     val (before, fullCandidate) = candidate(repo.state, "anNhienEncounter")
@@ -72,7 +72,7 @@ class AuthoritativeEncounterPartyTest {
 
     // The current slot stays pending until Core has capacity, even without another roll.
     repo.state = repo.state.copy(party = repo.state.party.copy(
-      memberIds = listOf(KAI_ID, IRIS_ID, SYVIAL_ID)
+      memberIds = listOf(CAO_MINH_ID, IRIS_ID, SYVIAL_ID)
     ))
     val (again, retry) = candidate(repo.state)
     assertTrue(JSONObject(facade.processValidatedCandidate(again, retry, "Tiếp tục")).getBoolean("handled"))

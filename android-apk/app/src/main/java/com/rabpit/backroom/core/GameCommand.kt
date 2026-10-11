@@ -74,7 +74,7 @@ data class QueryCommand(
 data class ValidatedWorldStateCommand(
   override val commandId: String,
   override val turnId: String?,
-  override val actorId: String = KAI_ID,
+  override val actorId: String = CAO_MINH_ID,
   override val targetId: String? = null,
   override val source: CommandSource,
   val location: String? = null,

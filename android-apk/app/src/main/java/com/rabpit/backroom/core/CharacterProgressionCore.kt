@@ -147,7 +147,7 @@ object CharacterStatCore {
   const val CRITICAL_DAMAGE_PERCENT = 400
   const val BASIS_POINTS_PER_PERCENT = 100
 
-  fun isCaoMinh(id: String): Boolean = id.equals(KAI_ID, true) || id.equals("cao_minh", true)
+  fun isCaoMinh(id: String): Boolean = id.equals(CAO_MINH_ID, true) || id.equals("cao_minh", true)
 
   private fun passiveBonus(base: Int, id: String): Int =
     if (isCaoMinh(id)) (base.coerceIn(CharacterProgressionCore.BASE_STAT, CharacterProgressionCore.MAX_STAT) *
@@ -251,14 +251,14 @@ object CaoMinhCombatPassive {
   fun allyCriticalChance(base: Int): Int = (base + ALLY_CRITICAL_BONUS_PERCENT).coerceIn(0, MAX_COMBAT_CRITICAL_PERCENT)
 
   fun afterCaoMinhTurn(state: GameState): GameState {
-    val c = state.characters[KAI_ID] ?: return state
+    val c = state.characters[CAO_MINH_ID] ?: return state
     if (c.presence == CharacterPresence.DEAD || c.vitalState.currentHp <= 0) return state
-    val maxHp = CharacterStatCore.effective(state, KAI_ID).maxHp
+    val maxHp = CharacterStatCore.effective(state, CAO_MINH_ID).maxHp
     val heal = max(1, (maxHp * HEAL_PERCENT + 50) / 100)
     val hp = min(maxHp, c.vitalState.currentHp + heal)
     val nextStack = stacks(state) + 1
     return state.copy(
-      characters = state.characters + (KAI_ID to c.copy(
+      characters = state.characters + (CAO_MINH_ID to c.copy(
         vitalState = c.vitalState.copy(currentHp = hp, condition = CharacterStatEngine.conditionFor(hp, maxHp, c.vitalState.condition, c.presence))
       )),
       metadata = state.metadata + (STACK_KEY to nextStack.toString())

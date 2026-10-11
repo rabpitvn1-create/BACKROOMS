@@ -47,7 +47,7 @@ object CompanionSkillCatalog {
     s("Kế Hoạch Không Có Trong Kế Hoạch", "ULTIMATE", "Mỗi 5 combat turn hợp lệ khi Party chọn BỎ CHẠY và An Nhiên ACTIVE", "Tận dụng địa hình: +30 Escape Progress và Entity -20 điểm % Accuracy trong phản ứng hiện tại.", "Không gây damage.")
   )
 
-  private val kai = listOf(
+  private val caoMinh = listOf(
     s("Đại Đạo Ma Tôn", "PASSIVE", "Luôn hoạt động", "+10% Base STR/DEX/AGI/VIT/EVA; cộng từ nội tại, không dùng tài nguyên nâng điểm. STR tăng Attack và Skill DMG; DEX tăng Critical Resistance; AGI tăng Critical Chance; VIT tăng Max HP và DEF; EVA tăng Evasion và kháng né. Sau mỗi lượt Cao Minh: hồi 10% Max HP, +20% Attack và +20 điểm % Critical; đồng đội +50 điểm % Critical; Critical cap 100%.", "Passive tách khỏi Base Stat và reset combat stack khi combat kết thúc."),
     s("Huyết Ma Tứ Liên", "AUTO", "30% mỗi lượt TẤN CÔNG hợp lệ", "Đúng 4 trảm, 170% Weapon DMG; Chảy máu 3 turn x 5% Max HP."),
     s("Ma Tâm Trấn Hồn", "AUTO", "20% mỗi lượt TẤN CÔNG hợp lệ", "Đúng 4 trảm cùng điểm, 130% Weapon DMG; Choáng phản ứng hiện tại."),
@@ -67,7 +67,7 @@ object CompanionSkillCatalog {
   )
 
   fun forCharacter(characterId: String): List<CharacterSkillDefinition> = when (characterId) {
-    KAI_ID -> kai
+    CAO_MINH_ID -> caoMinh
     IRIS_ID -> iris
     SYVIAL_ID -> syvial
     AN_NHIEN_ID -> anNhien

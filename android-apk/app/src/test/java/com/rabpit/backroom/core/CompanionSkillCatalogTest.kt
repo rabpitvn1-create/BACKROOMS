@@ -27,7 +27,7 @@ class CompanionSkillCatalogTest {
     for (counter in 0..360) {
       if (seen.size == 2) break
       var state = SpecialFollowersCanon.ensure(GameState.initial()).copy(
-        party = PartyState(memberIds = listOf(KAI_ID, IRIS_ID, SYVIAL_ID))
+        party = PartyState(memberIds = listOf(CAO_MINH_ID, IRIS_ID, SYVIAL_ID))
       )
       state = CombatRuntime.start(state, "diep_minh")
       state = state.copy(metadata = state.metadata + ("combat.eventCounter" to counter.toString()))
@@ -43,7 +43,7 @@ class CompanionSkillCatalogTest {
     for (counter in 0..360) {
       if (observed) break
       var state = AnNhienCanon.ensure(GameState.initial()).copy(
-        party = PartyState(memberIds = listOf(KAI_ID, AN_NHIEN_ID))
+        party = PartyState(memberIds = listOf(CAO_MINH_ID, AN_NHIEN_ID))
       )
       state = CombatRuntime.start(state, "diep_minh")
       state = state.copy(metadata = state.metadata + ("combat.eventCounter" to counter.toString()))

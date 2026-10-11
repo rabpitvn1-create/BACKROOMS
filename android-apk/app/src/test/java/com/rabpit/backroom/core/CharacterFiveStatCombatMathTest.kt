@@ -6,7 +6,7 @@ import org.junit.Test
 class CharacterFiveStatCombatMathTest {
   @Test fun fiveStatsDeriveTheirOnlyIntendedCombatAttributes() {
     val original = GameState.initial()
-    val id = KAI_ID
+    val id = CAO_MINH_ID
     val actor = original.characters.getValue(id)
     val state = original.copy(characters = original.characters + (id to actor.copy(
       statProfile = actor.statProfile.copy(str = 6, dex = 6, agi = 6, vit = 6, eva = 6)
@@ -26,7 +26,7 @@ class CharacterFiveStatCombatMathTest {
 
   @Test fun dexAgiEvaKeepTheirDistinctCombatResponsibilities() {
     val original = GameState.initial()
-    val id = KAI_ID
+    val id = CAO_MINH_ID
     val actor = original.characters.getValue(id)
     fun withStat(profile: CharacterStatProfile): EffectiveCharacterStats =
       CharacterStatCore.effective(original.copy(characters = original.characters +
@@ -71,7 +71,7 @@ class CharacterFiveStatCombatMathTest {
   }
 
   @Test fun characterDetailExposesFiveStatsAndFractionalCombatRates() {
-    val member = CharacterDetailProjector.projectCharacter(GameState.initial(), KAI_ID)!!
+    val member = CharacterDetailProjector.projectCharacter(GameState.initial(), CAO_MINH_ID)!!
     val json = CharacterDetailJson.encodeCharacter(member)
     val primary = json.getJSONObject("stats")
     assertEquals(setOf("STR", "DEX", "AGI", "VIT", "EVA"), primary.keys().asSequence().toSet())

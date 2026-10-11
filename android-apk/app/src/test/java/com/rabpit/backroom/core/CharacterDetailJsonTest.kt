@@ -42,13 +42,13 @@ class CharacterDetailJsonTest {
       ))
     )
     val json = CharacterDetailJson.encodeParty(PartyDetailProjection(
-      leaderId = KAI_ID,
+      leaderId = CAO_MINH_ID,
       maxMembers = 4,
       elapsedSubjectiveMinutes = 915L,
       members = listOf(member)
     ))
 
-    assertEquals(KAI_ID, json.getString("leaderId"))
+    assertEquals(CAO_MINH_ID, json.getString("leaderId"))
     assertEquals(4, json.getInt("maxMembers"))
     assertEquals(915L, json.getLong("elapsedSubjectiveMinutes"))
     val character = json.getJSONArray("members").getJSONObject(0)

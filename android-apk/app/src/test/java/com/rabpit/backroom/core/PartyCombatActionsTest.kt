@@ -11,7 +11,7 @@ class PartyCombatActionsTest {
     state = LuciaCanon.ensure(state)
     state = AnNhienCanon.ensure(state)
     return state.copy(
-      party = PartyState(memberIds = listOf(KAI_ID, LUCIA_ID, IRIS_ID, SYVIAL_ID))
+      party = PartyState(memberIds = listOf(CAO_MINH_ID, LUCIA_ID, IRIS_ID, SYVIAL_ID))
     )
   }
 
@@ -70,7 +70,7 @@ class PartyCombatActionsTest {
     assertFalse(result.reply.contains("Syvial thực hiện lệnh TẤN CÔNG"))
   }
   @Test fun combatTurnsFollowActualRosterOrderAndDoNotRepeatTheDiceRound() {
-    var state = fullParty().copy(party = PartyState(memberIds = listOf(IRIS_ID, LUCIA_ID, KAI_ID)))
+    var state = fullParty().copy(party = PartyState(memberIds = listOf(IRIS_ID, LUCIA_ID, CAO_MINH_ID)))
     state = CombatRuntime.start(state, "diep_minh")
     val before = CombatRuntime.active(state)!!.eventCounter
     val result = CombatRuntime.resolve(state, "EXECUTE", "Cả Party cùng tấn công")
@@ -85,7 +85,7 @@ class PartyCombatActionsTest {
   }
 
   @Test fun fallenAndOutOfPartyCharactersGetNoAttackSlot() {
-    var state = fullParty().copy(party = PartyState(memberIds = listOf(KAI_ID, LUCIA_ID, IRIS_ID)))
+    var state = fullParty().copy(party = PartyState(memberIds = listOf(CAO_MINH_ID, LUCIA_ID, IRIS_ID)))
     state = CharacterStatEngine.setCurrentHp(state, LUCIA_ID, 0)
     state = CombatRuntime.start(state, "diep_minh")
     val result = CombatRuntime.resolve(state, "EXECUTE", "Cả Party cùng tấn công")
@@ -96,7 +96,7 @@ class PartyCombatActionsTest {
   }
 
   @Test fun anNhienUsesOneSupportSlotAndNeverWeaponDamage() {
-    var state = fullParty().copy(party = PartyState(memberIds = listOf(KAI_ID, LUCIA_ID, AN_NHIEN_ID)))
+    var state = fullParty().copy(party = PartyState(memberIds = listOf(CAO_MINH_ID, LUCIA_ID, AN_NHIEN_ID)))
     state = CombatRuntime.start(state, "diep_minh")
     val result = CombatRuntime.resolve(state, "EXECUTE", "Cả Party cùng tấn công")
     assertTrue(result.reply, result.reply.contains("PARTY TURN 3/3: An Nhiên"))
@@ -105,7 +105,7 @@ class PartyCombatActionsTest {
   }
 
   @Test fun rosterCapPreventsFifthCharacterFromActingOrBuffing() {
-    var state = fullParty().copy(party = PartyState(memberIds = listOf(KAI_ID, LUCIA_ID, IRIS_ID, SYVIAL_ID, AN_NHIEN_ID)))
+    var state = fullParty().copy(party = PartyState(memberIds = listOf(CAO_MINH_ID, LUCIA_ID, IRIS_ID, SYVIAL_ID, AN_NHIEN_ID)))
     state = CombatRuntime.start(state, "diep_minh")
     val result = CombatRuntime.resolve(state, "EXECUTE", "Cả Party cùng tấn công")
     assertFalse(result.reply.contains("PARTY TURN 5/"))

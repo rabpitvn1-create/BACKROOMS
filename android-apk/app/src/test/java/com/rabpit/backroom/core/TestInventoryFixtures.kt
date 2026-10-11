@@ -9,9 +9,9 @@ object TestInventoryFixtures {
     quantity: Int = 1,
     metadata: Map<String, String> = emptyMap()
   ): GameState {
-    val inventory = state.inventories[KAI_ID] ?: InventoryState(KAI_ID)
+    val inventory = state.inventories[CAO_MINH_ID] ?: InventoryState(CAO_MINH_ID)
     val item = ItemContentRules.normalize(ItemStack(itemId, name, quantity, metadata))
     return state.copy(inventories = state.inventories +
-      (KAI_ID to inventory.copy(items = inventory.items + (itemId to item))))
+      (CAO_MINH_ID to inventory.copy(items = inventory.items + (itemId to item))))
   }
 }

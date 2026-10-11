@@ -7,13 +7,13 @@ class CombatTurnPresentationTest {
   @Test fun actorCuesFollowActualPartyOrderIncludingMissesWithoutChangingRoundCounter() {
     var state = SpecialFollowersCanon.ensure(GameState.initial())
     state = LuciaCanon.ensure(state)
-    state = state.copy(party = PartyState(memberIds = listOf(IRIS_ID, LUCIA_ID, KAI_ID)))
+    state = state.copy(party = PartyState(memberIds = listOf(IRIS_ID, LUCIA_ID, CAO_MINH_ID)))
     val started = CombatRuntime.start(state, "diep_minh")
     val before = CombatRuntime.active(started)!!.eventCounter
     val result = CombatRuntime.resolve(started, "EXECUTE", "Cả Party cùng tấn công")
     val actors = result.turnCues.filter { it.kind == "actor" }
-    assertEquals(listOf(IRIS_ID, LUCIA_ID, KAI_ID), actors.map { it.actorId })
-    assertEquals(listOf(IRIS_ID, LUCIA_ID, KAI_ID).map { started.characters.getValue(it).name }, actors.map { it.actorName })
+    assertEquals(listOf(IRIS_ID, LUCIA_ID, CAO_MINH_ID), actors.map { it.actorId })
+    assertEquals(listOf(IRIS_ID, LUCIA_ID, CAO_MINH_ID).map { started.characters.getValue(it).name }, actors.map { it.actorName })
     assertEquals(1, actors.map { it.waveNumber }.distinct().size)
     assertTrue(actors.zipWithNext().all { it.first.eventIndex <= it.second.eventIndex })
     assertTrue(result.turnCues.all { it.eventIndex in 0..result.feedback.size })
@@ -23,11 +23,11 @@ class CombatTurnPresentationTest {
 
   @Test fun anNhienGetsOwnNonWeaponCueAndFallenMemberIsSkipped() {
     var state = AnNhienCanon.ensure(LuciaCanon.ensure(GameState.initial()))
-    state = state.copy(party = PartyState(memberIds = listOf(KAI_ID, LUCIA_ID, AN_NHIEN_ID)))
+    state = state.copy(party = PartyState(memberIds = listOf(CAO_MINH_ID, LUCIA_ID, AN_NHIEN_ID)))
     state = CharacterStatEngine.setCurrentHp(state, LUCIA_ID, 0)
     val result = CombatRuntime.resolve(CombatRuntime.start(state, "diep_minh"),
       "EXECUTE", "Cả Party cùng tấn công")
-    assertEquals(listOf(KAI_ID, AN_NHIEN_ID), result.turnCues.filter { it.kind == "actor" }.map { it.actorId })
+    assertEquals(listOf(CAO_MINH_ID, AN_NHIEN_ID), result.turnCues.filter { it.kind == "actor" }.map { it.actorId })
     assertTrue(result.reply.contains("An Nhiên thực hiện lệnh TẤN CÔNG theo vai trò hỗ trợ"))
   }
 
@@ -53,11 +53,11 @@ class CombatTurnPresentationTest {
   @Test fun typedCuesCarrySkillAndDamageTextUnderTheCorrectPartyMember() {
     var state = SpecialFollowersCanon.ensure(GameState.initial())
     state = LuciaCanon.ensure(state)
-    state = state.copy(party = PartyState(memberIds = listOf(KAI_ID, LUCIA_ID, IRIS_ID)))
+    state = state.copy(party = PartyState(memberIds = listOf(CAO_MINH_ID, LUCIA_ID, IRIS_ID)))
     val started = CombatRuntime.start(state, "diep_minh")
     val resolved = CombatRuntime.resolve(started, "EXECUTE", "Cả Party cùng tấn công")
     val actorCues = resolved.turnCues.filter { it.kind == "actor" }
-    assertEquals(listOf(KAI_ID, LUCIA_ID, IRIS_ID), actorCues.map { it.actorId })
+    assertEquals(listOf(CAO_MINH_ID, LUCIA_ID, IRIS_ID), actorCues.map { it.actorId })
     assertTrue(actorCues.all { it.details.isNotEmpty() })
     assertTrue(actorCues[0].details.any { it.contains("Đòn đánh") || it.contains("trượt") || it.contains("né đòn") })
     assertTrue(actorCues[1].details.any { it.contains("Lucia") })
@@ -69,7 +69,7 @@ class CombatTurnPresentationTest {
 
   @Test fun damagePresentationUsesAuthoritativeSkillAndRemainingEntityHp() {
     val json = CombatRuntime.DamageFeedback(
-      target = "entity", amount = 120, actorId = KAI_ID,
+      target = "entity", amount = 120, actorId = CAO_MINH_ID,
       skill = "Huyết Ma Nhị Thập Tứ Trảm", sourceName = "Cao Minh",
       entityName = "Hound", remainingHp = 80, maxHp = 200
     ).toJson()

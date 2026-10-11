@@ -37,8 +37,8 @@ object GameStateCodec {
     val statuses = root.optJSONObject("statuses").objectMap(::decodeStatus)
     val partyJson = root.optJSONObject("party") ?: JSONObject()
     val party = PartyState(
-      leaderId = partyJson.optString("leaderId", KAI_ID),
-      memberIds = partyJson.optJSONArray("memberIds").strings().ifEmpty { listOf(KAI_ID) },
+      leaderId = partyJson.optString("leaderId", CAO_MINH_ID),
+      memberIds = partyJson.optJSONArray("memberIds").strings().ifEmpty { listOf(CAO_MINH_ID) },
       maxMembers = partyJson.optInt("maxMembers", 4).coerceAtLeast(1)
     )
     return GameState(

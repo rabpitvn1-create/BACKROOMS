@@ -16,8 +16,8 @@ class CombatRuntimeTest {
     assertEquals(110, combat.entityMaxHp)
     assertEquals(110, combat.entityHp)
     val initial = GameState.initial()
-    val expectedMaxHp = CharacterStatEngine.effective(initial, KAI_ID).maxHp
-    val expectedHp = initial.characters.getValue(KAI_ID).vitalState.currentHp
+    val expectedMaxHp = CharacterStatEngine.effective(initial, CAO_MINH_ID).maxHp
+    val expectedHp = initial.characters.getValue(CAO_MINH_ID).vitalState.currentHp
     assertEquals(55, expectedMaxHp)
     assertEquals(50, expectedHp)
     assertEquals(expectedMaxHp, combat.playerMaxHp)
@@ -86,11 +86,11 @@ class CombatRuntimeTest {
   }
   @Test fun everyDefeatedEntityAwardsExactlyOneOfflineItem() {
     val initial = GameState.initial()
-    val before = initial.inventories.getValue(KAI_ID).items.values.sumOf { it.quantity }
+    val before = initial.inventories.getValue(CAO_MINH_ID).items.values.sumOf { it.quantity }
     val awarded = OfflineEntityLoot.award(initial, "encounter:one", 91L)
     assertNotNull(awarded.itemId)
     assertFalse(awarded.queued)
-    assertEquals(before + 1, awarded.state.inventories.getValue(KAI_ID).items.values.sumOf { it.quantity })
+    assertEquals(before + 1, awarded.state.inventories.getValue(CAO_MINH_ID).items.values.sumOf { it.quantity })
     val duplicate = OfflineEntityLoot.award(awarded.state, "encounter:one", 42L)
     assertEquals(awarded.state, duplicate.state)
   }
@@ -102,14 +102,14 @@ class CombatRuntimeTest {
       itemId to ItemStack(itemId, "Filler $n", 1)
     }
     val full = initial.copy(inventories = initial.inventories +
-      (KAI_ID to InventoryState(KAI_ID, fullItems)))
+      (CAO_MINH_ID to InventoryState(CAO_MINH_ID, fullItems)))
     val award = OfflineEntityLoot.award(full, "encounter:full", 51L)
     assertTrue(award.queued)
     val freed = award.state.copy(inventories = award.state.inventories +
-      (KAI_ID to InventoryState(KAI_ID, fullItems - "filler:1")))
+      (CAO_MINH_ID to InventoryState(CAO_MINH_ID, fullItems - "filler:1")))
     val collected = OfflineEntityLoot.collectPending(freed)
     assertTrue(collected.metadata["loot.pendingEntityDrops"].isNullOrBlank())
-    assertTrue(collected.inventories.getValue(KAI_ID).items.containsKey(award.itemId!!))
+    assertTrue(collected.inventories.getValue(CAO_MINH_ID).items.containsKey(award.itemId!!))
   }
 
 
@@ -156,7 +156,7 @@ class CombatRuntimeTest {
     assertTrue(third.reply.contains("24/24 trảm trúng liên tiếp"))
     assertTrue(third.reply.contains("Accuracy 200%"))
     assertTrue(third.reply.contains("bỏ qua toàn bộ hiệu ứng né"))
-    val slashDamage = CharacterStatEngine.skillBaseDamage(attackState, KAI_ID) * 115 / 100
+    val slashDamage = CharacterStatEngine.skillBaseDamage(attackState, CAO_MINH_ID) * 115 / 100
     assertTrue(third.reply.contains("mỗi trảm -$slashDamage HP"))
     assertTrue(third.reply.contains("tổng -${24 * slashDamage} HP"))
   }
@@ -171,7 +171,7 @@ class CombatRuntimeTest {
 
     val third = CombatRuntime.resolve(state, "EXECUTE", "Cả Party cùng tấn công")
     assertTrue(third.handled)
-    val slashDamage = CharacterStatEngine.skillBaseDamage(state, KAI_ID) * 115 / 100
+    val slashDamage = CharacterStatEngine.skillBaseDamage(state, CAO_MINH_ID) * 115 / 100
     assertTrue(third.reply.contains("tổng -${24 * slashDamage} HP"))
     assertTrue(third.reply.contains("Accuracy 200%"))
     assertTrue(third.reply.contains("bỏ qua toàn bộ hiệu ứng né"))
@@ -200,21 +200,21 @@ class CombatRuntimeTest {
     )
     var state = initial.copy(
       characters = initial.characters + ("iris" to iris),
-      party = PartyState(memberIds = listOf(KAI_ID, "iris"))
+      party = PartyState(memberIds = listOf(CAO_MINH_ID, "iris"))
     )
     state = CombatRuntime.start(state, "diep_minh")
     state = state.copy(metadata = state.metadata + ("combat.eventCounter" to "4"))
 
-    val kaiBefore = state.characters.getValue(KAI_ID).vitalState.currentHp
+    val kaiBefore = state.characters.getValue(CAO_MINH_ID).vitalState.currentHp
     val irisBefore = state.characters.getValue("iris").vitalState.currentHp
-    val kaiMax = CharacterStatEngine.effective(state, KAI_ID).maxHp
+    val kaiMax = CharacterStatEngine.effective(state, CAO_MINH_ID).maxHp
     val irisMax = CharacterStatEngine.effective(state, "iris").maxHp
     val result = CombatRuntime.resolve(state, "SEARCH", "giữ đội hình")
 
     assertTrue(result.reply.contains("Devils And Gold"))
     val kaiDamage = maxOf(1, (kaiMax * 5 + 99) / 100)
     val daiDaoHeal = maxOf(1, (kaiMax * CaoMinhCombatPassive.HEAL_PERCENT + 50) / 100)
-    assertEquals(minOf(kaiMax, kaiBefore - kaiDamage + daiDaoHeal), result.state.characters.getValue(KAI_ID).vitalState.currentHp)
+    assertEquals(minOf(kaiMax, kaiBefore - kaiDamage + daiDaoHeal), result.state.characters.getValue(CAO_MINH_ID).vitalState.currentHp)
     assertEquals(irisBefore - maxOf(1, (irisMax * 5 + 99) / 100), result.state.characters.getValue("iris").vitalState.currentHp)
   }
 
@@ -241,13 +241,13 @@ class CombatRuntimeTest {
       state = state.copy(metadata = state.metadata + mapOf(
         "combat.eventCounter" to counter.toString(),
         "combat.entityHp" to "2000",
-        "combat.kaiBleedTurns" to "3"
+        "combat.caoMinhBleedTurns" to "3"
       ))
       val result = CombatRuntime.resolve(state, "SEARCH", "theo dõi mục tiêu")
       if (result.reply.contains("Huyết Ma Tứ Liên tự động kích hoạt")) continue
       val after = CombatRuntime.active(result.state) ?: continue
       assertTrue(result.reply.contains("Bleeding từ Huyết Ma Tứ Liên gây -150 HP"))
-      assertEquals("2", result.state.metadata["combat.kaiBleedTurns"])
+      assertEquals("2", result.state.metadata["combat.caoMinhBleedTurns"])
       assertTrue(after.entityHp <= 1880)
       verified = true
     }
@@ -279,7 +279,7 @@ class CombatRuntimeTest {
       val result = CombatRuntime.resolve(state, "EXECUTE", "Cả Party cùng né tránh")
       if (!result.reply.contains("Thiên Ma Bộ tự động kích hoạt")) continue
       assertTrue(result.reply, result.reply.contains("+50% Evasion trong 3 turn"))
-      assertEquals("2", result.state.metadata["combat.kaiQuickStepTurns"])
+      assertEquals("2", result.state.metadata["combat.caoMinhQuickStepTurns"])
       verified = true
     }
     assertTrue("Expected a Party EVADE turn where Thiên Ma Bộ activates", verified)
@@ -298,7 +298,7 @@ class CombatRuntimeTest {
 
   @Test fun luciaGetsAnIndependentCombatResolutionWhenBothAttack() {
     val initial = LuciaCanon.ensure(GameState.initial())
-    var state = initial.copy(party = PartyState(memberIds = listOf(KAI_ID, LUCIA_ID)))
+    var state = initial.copy(party = PartyState(memberIds = listOf(CAO_MINH_ID, LUCIA_ID)))
     state = CombatRuntime.start(state, "diep_minh")
     state = state.copy(metadata = state.metadata + ("combat.eventCounter" to "0"))
 
@@ -313,7 +313,7 @@ class CombatRuntimeTest {
 
   @Test fun luciaAttackIntentIsPartyWide() {
     val initial = LuciaCanon.ensure(GameState.initial())
-    var state = initial.copy(party = PartyState(memberIds = listOf(KAI_ID, LUCIA_ID)))
+    var state = initial.copy(party = PartyState(memberIds = listOf(CAO_MINH_ID, LUCIA_ID)))
     state = CombatRuntime.start(state, "diep_minh")
 
     val result = CombatRuntime.resolve(state, "EXECUTE", "Cao Minh tấn công")

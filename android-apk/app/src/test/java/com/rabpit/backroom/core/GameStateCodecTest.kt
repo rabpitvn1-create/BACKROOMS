@@ -17,20 +17,20 @@ class GameStateCodecTest {
       metadata = mapOf("source" to "field_observation")
     )
     val state = GameState.initial().copy(
-      inventories = mapOf(KAI_ID to InventoryState(KAI_ID, mapOf("water" to ItemStack("water", "Almond Water", 2)))),
+      inventories = mapOf(CAO_MINH_ID to InventoryState(CAO_MINH_ID, mapOf("water" to ItemStack("water", "Almond Water", 2)))),
       statuses = mapOf(effect.id to effect),
-      characters = mapOf(KAI_ID to CharacterState(KAI_ID, "Cao Minh", statusIds = setOf(effect.id), physiology = physiology)),
+      characters = mapOf(CAO_MINH_ID to CharacterState(CAO_MINH_ID, "Cao Minh", statusIds = setOf(effect.id), physiology = physiology)),
       turn = TurnState("TURN_9", PendingTurn("TURN_9", "Cao Minh nhặt nước", PendingTurnStatus.INTERPRETING)),
       time = GameTimeState(elapsedSubjectiveMinutes = 485L, lastAdvanceMinutes = 15, lastAdvanceReason = "travel")
     )
     val canonicalState = CharacterProgressionCore.normalize(CharacterEquipmentSystem.normalize(SpecialFollowersCanon.ensure(AnNhienCanon.ensure(state))))
     val decoded = GameStateCodec.decode(GameStateCodec.encode(state))
     assertEquals(canonicalState, decoded)
-    assertEquals(physiology, decoded.characters.getValue(KAI_ID).physiology)
+    assertEquals(physiology, decoded.characters.getValue(CAO_MINH_ID).physiology)
   }
 
   @Test fun freshRunStartsWithKnownSatisfiedPhysiologyBaseline() {
-    val physiology = GameState.initial().characters.getValue(KAI_ID).physiology
+    val physiology = GameState.initial().characters.getValue(CAO_MINH_ID).physiology
     assertEquals(0L, physiology.minutesSinceFood)
     assertEquals(0L, physiology.minutesSinceWater)
     assertEquals(0L, physiology.minutesAwake)
@@ -45,17 +45,17 @@ class GameStateCodecTest {
 
   @Test fun currentCharacterWithoutPhysiologyDefaultsToUnknownState() {
     val root = JSONObject(GameStateCodec.encode(GameState.initial()))
-    root.getJSONObject("characters").getJSONObject(KAI_ID).remove("physiology")
+    root.getJSONObject("characters").getJSONObject(CAO_MINH_ID).remove("physiology")
     val decoded = GameStateCodec.decode(root.toString())
-    assertEquals(PhysiologyState(), decoded.characters.getValue(KAI_ID).physiology)
+    assertEquals(PhysiologyState(), decoded.characters.getValue(CAO_MINH_ID).physiology)
   }
 
   @Test fun freshStateInventoryOwnsSignatureGearReferencedByEquipment() {
     val state = GameState.initial()
-    val owned = state.inventories.getValue(KAI_ID).items
-    state.equipment.getValue(KAI_ID).slots.values.distinct().forEach { assertFalse(it in owned) }
-    assertEquals(KAI_WHITE_WRAITH_ID, state.equipment.getValue(KAI_ID).slots["weapon"])
-    assertEquals(KAI_BLACKBLOOD_ARMOR_ID, state.equipment.getValue(KAI_ID).slots["armor"])
+    val owned = state.inventories.getValue(CAO_MINH_ID).items
+    state.equipment.getValue(CAO_MINH_ID).slots.values.distinct().forEach { assertFalse(it in owned) }
+    assertEquals(CAO_MINH_SWORD_ID, state.equipment.getValue(CAO_MINH_ID).slots["weapon"])
+    assertEquals(CAO_MINH_ARMOR_ID, state.equipment.getValue(CAO_MINH_ID).slots["armor"])
   }
 
   @Test fun olderSaveSchemasAreRejected() {

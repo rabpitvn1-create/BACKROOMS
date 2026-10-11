@@ -18,8 +18,8 @@ class ItemDetailActionsTest {
   }
   private fun fresh(): GameState {
     val initial = CharacterEquipmentSystem.seedFresh(GameState.initial())
-    return initial.copy(party = initial.party.copy(memberIds = listOf(KAI_ID, IRIS_ID)),
-      inventories = initial.inventories + (KAI_ID to InventoryState(KAI_ID, initial.inventories.getValue(KAI_ID).items +
+    return initial.copy(party = initial.party.copy(memberIds = listOf(CAO_MINH_ID, IRIS_ID)),
+      inventories = initial.inventories + (CAO_MINH_ID to InventoryState(CAO_MINH_ID, initial.inventories.getValue(CAO_MINH_ID).items +
         (BANDAGE_ID to HealingItems.normalize(ItemStack(BANDAGE_ID, "Băng gạc", 3))!!))))
   }
   private fun facade(save: MemorySave): GameCoreFacade {
@@ -27,7 +27,7 @@ class ItemDetailActionsTest {
     constructor.isAccessible = true
     return constructor.newInstance(save, NoOpGamePipelineLogger)
   }
-  private fun request(operation: String, quantity: Number = 1, actor: String = KAI_ID, target: String? = null, item: String = BANDAGE_ID) =
+  private fun request(operation: String, quantity: Number = 1, actor: String = CAO_MINH_ID, target: String? = null, item: String = BANDAGE_ID) =
     JSONObject().put("operation", operation).put("actorId", actor).put("itemId", item).put("quantity", quantity).also { if (target != null) it.put("targetId", target) }.toString()
   private fun run(save: MemorySave, request: String, turn: Int = 1) = JSONObject(facade(save).processItemAction("""{"turn":$turn,"log":[]}""", request))
 
@@ -35,14 +35,14 @@ class ItemDetailActionsTest {
     val save = MemorySave(fresh())
     val result = run(save, request("USE"))
     assertTrue(result.toString(), result.getBoolean("handled"))
-    assertEquals(2, save.state.inventories.getValue(KAI_ID).items.getValue(BANDAGE_ID).quantity)
+    assertEquals(2, save.state.inventories.getValue(CAO_MINH_ID).items.getValue(BANDAGE_ID).quantity)
     assertEquals(2, result.getJSONObject("state").getInt("turn"))
     assertTrue(save.state.turn.completedTurnIds.contains("TURN_1"))
   }
   @Test fun transferMovesRequestedQuantityToChosenMember() {
     val save = MemorySave(fresh())
     assertTrue(run(save, request("TRANSFER", 2, target = IRIS_ID)).getBoolean("handled"))
-    assertEquals(1, save.state.inventories.getValue(KAI_ID).items.getValue(BANDAGE_ID).quantity)
+    assertEquals(1, save.state.inventories.getValue(CAO_MINH_ID).items.getValue(BANDAGE_ID).quantity)
     assertEquals(2, save.state.inventories.getValue(IRIS_ID).items.getValue(BANDAGE_ID).quantity)
   }
   @Test fun followerCanDropItsOwnItemWithoutAffectingLeader() {
@@ -50,11 +50,11 @@ class ItemDetailActionsTest {
     val save = MemorySave(initial.copy(inventories = initial.inventories + (IRIS_ID to InventoryState(IRIS_ID, mapOf("scrap" to ItemStack("scrap", "Mảnh vụn", 2))))))
     assertTrue(run(save, request("DROP", 1, IRIS_ID, item = "scrap")).getBoolean("handled"))
     assertEquals(1, save.state.inventories.getValue(IRIS_ID).items.getValue("scrap").quantity)
-    assertEquals(initial.inventories[KAI_ID], save.state.inventories[KAI_ID])
+    assertEquals(initial.inventories[CAO_MINH_ID], save.state.inventories[CAO_MINH_ID])
   }
   @Test fun invalidRequestsNeverConsumeItemsOrAdvanceTime() {
     for (request in listOf(request("DROP", 0), request("DROP", -1), request("DROP", 1.5), request("DROP", 4),
-      request("PICKUP"), request("TRANSFER", target = KAI_ID), request("TRANSFER", target = "missing"),
+      request("PICKUP"), request("TRANSFER", target = CAO_MINH_ID), request("TRANSFER", target = "missing"),
       request("DROP", actor = "missing"), request("USE", item = "missing"))) {
       val save = MemorySave(fresh()); val before = save.state
       assertFalse(request, run(save, request).getBoolean("handled"))
@@ -64,7 +64,7 @@ class ItemDetailActionsTest {
   @Test fun equippedDropAndFullRecipientRejectAtomically() {
     val initial = fresh()
     val cases = listOf(
-      initial to request("DROP", item = KAI_WHITE_WRAITH_ID),
+      initial to request("DROP", item = CAO_MINH_SWORD_ID),
       initial.copy(inventories = initial.inventories + (IRIS_ID to InventoryState(IRIS_ID,
         (1..6).associate { "scrap$it" to ItemStack("scrap$it", "Mảnh $it") }))) to request("TRANSFER", target = IRIS_ID)
     )

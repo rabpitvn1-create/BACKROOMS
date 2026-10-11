@@ -8,14 +8,14 @@ import kotlin.random.Random
 class CharacterInfoProjectionTest {
   @Test fun partyDetailsExposeLevelExpAndAllCombatRatesPerCharacter() {
     val initial = GameState.initial().copy(
-      party = PartyState(memberIds = listOf(KAI_ID, IRIS_ID))
+      party = PartyState(memberIds = listOf(CAO_MINH_ID, IRIS_ID))
     )
     val advanced = CharacterProgressionCore.grantExp(initial, IRIS_ID, 13, Random(42)).state
     val details = CharacterDetailJson.encodeParty(CharacterDetailProjector.projectParty(advanced))
       .getJSONArray("members")
     val kai = details.getJSONObject(0)
     val iris = details.getJSONObject(1)
-    assertEquals(KAI_ID, kai.getString("id"))
+    assertEquals(CAO_MINH_ID, kai.getString("id"))
     assertEquals(IRIS_ID, iris.getString("id"))
     assertEquals(0, kai.getInt("level"))
     assertEquals(0, kai.getInt("exp"))
@@ -48,11 +48,11 @@ class CharacterInfoProjectionTest {
 
   @Test fun maxLevelProducesExplicitNullExpRequirement() {
     val initial = GameState.initial()
-    val character = initial.characters.getValue(KAI_ID)
-    val capped = initial.copy(characters = initial.characters + (KAI_ID to
+    val character = initial.characters.getValue(CAO_MINH_ID)
+    val capped = initial.copy(characters = initial.characters + (CAO_MINH_ID to
       character.copy(progression = CharacterProgression(CharacterProgressionCore.MAX_LEVEL, 0))
     ))
-    val detail = CharacterDetailJson.encodeCharacter(CharacterDetailProjector.projectCharacter(capped, KAI_ID)!!)
+    val detail = CharacterDetailJson.encodeCharacter(CharacterDetailProjector.projectCharacter(capped, CAO_MINH_ID)!!)
     assertEquals(CharacterProgressionCore.MAX_LEVEL, detail.getInt("level"))
     assertEquals(0, detail.getInt("exp"))
     assertTrue(detail.isNull("expToNextLevel"))

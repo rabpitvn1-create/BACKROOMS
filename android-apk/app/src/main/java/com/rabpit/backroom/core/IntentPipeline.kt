@@ -11,7 +11,7 @@ enum class GameIntent {
 
 data class GameContext(
   val state: GameState,
-  val actorAliases: Map<String, String> = mapOf("cao minh" to KAI_ID, "cao_minh" to KAI_ID),
+  val actorAliases: Map<String, String> = mapOf("cao minh" to CAO_MINH_ID, "cao_minh" to CAO_MINH_ID),
   val itemAliases: Map<String, String> = emptyMap(),
   val lastReferencedItemId: String? = state.metadata["lastReferencedItemId"]
 )
@@ -99,12 +99,12 @@ interface ReferenceResolver { fun resolve(clause: String, context: GameContext):
 
 class DefaultActorResolver : ActorResolver {
   override fun resolve(clause: String, context: GameContext): String? =
-    context.actorAliases.entries.firstOrNull { clause.contains(it.key, true) }?.value ?: KAI_ID
+    context.actorAliases.entries.firstOrNull { clause.contains(it.key, true) }?.value ?: CAO_MINH_ID
 }
 
 class DefaultTargetResolver : TargetResolver {
   override fun resolve(clause: String, context: GameContext): String? = context.actorAliases.entries
-    .firstOrNull { it.value != KAI_ID && Regex("\\b${Regex.escape(it.key)}\\b", RegexOption.IGNORE_CASE).containsMatchIn(clause) }?.value
+    .firstOrNull { it.value != CAO_MINH_ID && Regex("\\b${Regex.escape(it.key)}\\b", RegexOption.IGNORE_CASE).containsMatchIn(clause) }?.value
 }
 
 class DefaultQuantityResolver : QuantityResolver {
@@ -119,7 +119,7 @@ class DefaultQuantityResolver : QuantityResolver {
 class DefaultItemResolver : ItemResolver {
   private val pronoun = Regex("\\b(?:nó|vật đó|cái đó|món đó|thứ đó)\\b", RegexOption.IGNORE_CASE)
   private val resultTail = Regex("\\s+(?:và\\s+)?(?:nhận được|biến thành|trở thành|thành)\\s+.+$", RegexOption.IGNORE_CASE)
-  private val noise = Regex("\\b(?:kai|iris|syvial|nhặt|được|lượm|cầm|lấy|rút|triệu hồi|bỏ|cất|lưu|đưa|trao|chuyển|cho|sang|dùng|sử dụng|uống|ăn|trang bị|đeo|mặc|tháo|cởi|quét|scan|copy|sao chép|nhân bản|tạo thêm|tạo ra thêm|nhân thêm|hoàn nguyên|restore|khỏi|ra|từ|vào|trong|kho|rồi|một|hai|ba|bốn|năm|sáu|bảy|tám|chín|mười|trăm|\\d+)\\b", RegexOption.IGNORE_CASE)
+  private val noise = Regex("\\b(?:iris|syvial|nhặt|được|lượm|cầm|lấy|rút|triệu hồi|bỏ|cất|lưu|đưa|trao|chuyển|cho|sang|dùng|sử dụng|uống|ăn|trang bị|đeo|mặc|tháo|cởi|quét|scan|copy|sao chép|nhân bản|tạo thêm|tạo ra thêm|nhân thêm|hoàn nguyên|restore|khỏi|ra|từ|vào|trong|kho|rồi|một|hai|ba|bốn|năm|sáu|bảy|tám|chín|mười|trăm|\\d+)\\b", RegexOption.IGNORE_CASE)
 
   override fun resolve(clause: String, context: GameContext): Pair<String, String>? {
     if (pronoun.containsMatchIn(clause)) {

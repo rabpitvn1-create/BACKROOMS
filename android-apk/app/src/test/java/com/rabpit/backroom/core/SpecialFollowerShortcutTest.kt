@@ -43,11 +43,11 @@ class SpecialFollowerShortcutTest {
         "b" to CharacterState("b", "B"),
         "c" to CharacterState("c", "C")
       ),
-      party = PartyState(KAI_ID, listOf(KAI_ID, "a", "b", "c"), 4)
+      party = PartyState(CAO_MINH_ID, listOf(CAO_MINH_ID, "a", "b", "c"), 4)
     )
     val (unchanged, error) = SpecialFollowersCanon.forceIntoParty(full, IRIS_ID)
     assertEquals("party_full", error)
     assertFalse(IRIS_ID in unchanged.party.memberIds)
-    assertEquals(listOf(KAI_ID, "a", "b", "c"), unchanged.party.memberIds)
+    assertEquals(listOf(CAO_MINH_ID, "a", "b", "c"), unchanged.party.memberIds)
   }
 }

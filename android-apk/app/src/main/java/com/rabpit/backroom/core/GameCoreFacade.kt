@@ -158,7 +158,7 @@ class GameCoreFacade private constructor(
       state = state,
       sessionId = sessionId,
       turnId = turnId,
-      actorId = KAI_ID,
+      actorId = CAO_MINH_ID,
       kind = kind,
       input = action,
       locationKey = state.world["location"] ?: client.optString("location").takeIf(String::isNotBlank),
@@ -411,15 +411,15 @@ class GameCoreFacade private constructor(
       record.put("joinPending", !joined)
       record.put("follower", joined)
     }
-    val currentFollowers = pending.state.party.memberIds.filter { it != KAI_ID }.toSet()
+    val currentFollowers = pending.state.party.memberIds.filter { it != CAO_MINH_ID }.toSet()
     (currentFollowers - desiredParty.keys).sorted().forEachIndexed { index, id ->
-      commands += PartyCommand("$turnId:GEMINI:PARTY_REMOVE:$index", turnId, KAI_ID, id, CommandSource.GEMINI, PartyCommand.Operation.REMOVE)
+      commands += PartyCommand("$turnId:GEMINI:PARTY_REMOVE:$index", turnId, CAO_MINH_ID, id, CommandSource.GEMINI, PartyCommand.Operation.REMOVE)
     }
     (desiredParty.keys - currentFollowers).sorted().forEachIndexed { index, id ->
       val member = desiredParty.getValue(id)
       val known = pending.state.characters[id]
       commands += PartyCommand(
-        "$turnId:GEMINI:PARTY_ADD:$index", turnId, KAI_ID, id, CommandSource.GEMINI, PartyCommand.Operation.ADD,
+        "$turnId:GEMINI:PARTY_ADD:$index", turnId, CAO_MINH_ID, id, CommandSource.GEMINI, PartyCommand.Operation.ADD,
         consentConfirmed = member.optBoolean("joinConfirmed", false) && known?.metadata?.get("joinEligible") == "true",
         targetPresent = member.optBoolean("present", false) && known?.presence == CharacterPresence.ACTIVE
       )
@@ -476,7 +476,7 @@ class GameCoreFacade private constructor(
     val time = TimeEngine.execute(next, TimeAdvanceCommand(
       commandId = "COMBAT:${next.turn.currentTurnId}:${System.nanoTime()}",
       turnId = null,
-      actorId = KAI_ID,
+      actorId = CAO_MINH_ID,
       source = CommandSource.SYSTEM,
       minutes = 1,
       reason = "combat_action"
@@ -539,7 +539,7 @@ class GameCoreFacade private constructor(
     CoreClientProjection.project(JSONObject(clientStateJson), loadCurrentState()).toString()
 
   private fun contextFor(state: GameState): GameContext {
-    val actors = state.characters.values.associate { it.name.lowercase() to it.id } + mapOf("cao minh" to KAI_ID, "cao_minh" to KAI_ID, "iris" to "iris", "syvial" to "syvial", "an nhiên" to AN_NHIEN_ID, "an nhien" to AN_NHIEN_ID)
+    val actors = state.characters.values.associate { it.name.lowercase() to it.id } + mapOf("cao minh" to CAO_MINH_ID, "cao_minh" to CAO_MINH_ID, "iris" to "iris", "syvial" to "syvial", "an nhiên" to AN_NHIEN_ID, "an nhien" to AN_NHIEN_ID)
     val items = state.inventories.values.flatMap { it.items.values }.associate { it.name.lowercase() to it.itemId }
     return GameContext(state, actors, items)
   }
@@ -566,7 +566,7 @@ class GameCoreFacade private constructor(
   private fun timeAdvanceCommand(turnId: String, action: String): TimeAdvanceCommand = TimeAdvanceCommand(
     commandId = "$turnId:SYSTEM:TIME",
     turnId = turnId,
-    actorId = KAI_ID,
+    actorId = CAO_MINH_ID,
     source = CommandSource.SYSTEM,
     minutes = TimeCostPolicy.estimateMinutes(action),
     reason = "player_action"

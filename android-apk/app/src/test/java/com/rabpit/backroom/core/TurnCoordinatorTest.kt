@@ -5,7 +5,7 @@ import org.junit.Test
 
 class TurnCoordinatorTest {
   private fun apply(turn: String, id: String) = StatusCommand(
-    "status:$id", turn, KAI_ID, source = CommandSource.SYSTEM,
+    "status:$id", turn, CAO_MINH_ID, source = CommandSource.SYSTEM,
     operation = StatusCommand.Operation.APPLY, effect = StatusEffect(id, "BUFF", "test")
   )
 
@@ -22,7 +22,7 @@ class TurnCoordinatorTest {
 
   @Test fun failedBatchIsAtomic() {
     val created = TurnCoordinator.createPending(GameState.initial(), "TURN_2", "multi")
-    val invalid = ItemCommand("c2", "TURN_2", KAI_ID, source = CommandSource.UI,
+    val invalid = ItemCommand("c2", "TURN_2", CAO_MINH_ID, source = CommandSource.UI,
       operation = ItemCommand.Operation.DROP, itemId = "gun", itemName = "Gun")
     val result = TurnCoordinator.commit(created.state, listOf(apply("TURN_2", "focus"), invalid))
     assertEquals("insufficient_item_quantity", result.error)
@@ -32,7 +32,7 @@ class TurnCoordinatorTest {
 
   @Test fun gameplayAndTimeCommitAtomically() {
     val created = TurnCoordinator.createPending(GameState.initial(), "TURN_7", "đi 30 phút")
-    val time = TimeAdvanceCommand("TURN_7:SYSTEM:TIME", "TURN_7", KAI_ID,
+    val time = TimeAdvanceCommand("TURN_7:SYSTEM:TIME", "TURN_7", CAO_MINH_ID,
       source = CommandSource.SYSTEM, minutes = 30, reason = "player_action")
     val result = TurnCoordinator.commit(created.state, listOf(apply("TURN_7", "focus"), time))
     assertNull(result.error)
@@ -43,9 +43,9 @@ class TurnCoordinatorTest {
 
   @Test fun failedGameplayRollsBackTimeAdvance() {
     val created = TurnCoordinator.createPending(GameState.initial(), "TURN_8", "đi rồi bỏ vật không có")
-    val invalid = ItemCommand("TURN_8:drop", "TURN_8", KAI_ID, source = CommandSource.UI,
+    val invalid = ItemCommand("TURN_8:drop", "TURN_8", CAO_MINH_ID, source = CommandSource.UI,
       operation = ItemCommand.Operation.DROP, itemId = "missing", itemName = "Missing")
-    val time = TimeAdvanceCommand("TURN_8:SYSTEM:TIME", "TURN_8", KAI_ID,
+    val time = TimeAdvanceCommand("TURN_8:SYSTEM:TIME", "TURN_8", CAO_MINH_ID,
       source = CommandSource.SYSTEM, minutes = 10, reason = "player_action")
     val result = TurnCoordinator.commit(created.state, listOf(invalid, time))
     assertEquals("insufficient_item_quantity", result.error)

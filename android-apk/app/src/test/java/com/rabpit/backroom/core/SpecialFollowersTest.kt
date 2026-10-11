@@ -54,7 +54,7 @@ class SpecialFollowersTest {
       val result = PartyEngine.execute(state, PartyCommand(
         commandId = "add-special-$index",
         turnId = state.turn.currentTurnId,
-        actorId = KAI_ID,
+        actorId = CAO_MINH_ID,
         targetId = id,
         source = CommandSource.SYSTEM,
         operation = PartyCommand.Operation.ADD,
@@ -65,6 +65,6 @@ class SpecialFollowersTest {
       state = result.state
     }
     assertEquals(4, state.party.memberIds.size)
-    assertEquals(listOf(KAI_ID, AN_NHIEN_ID, IRIS_ID, SYVIAL_ID), state.party.memberIds)
+    assertEquals(listOf(CAO_MINH_ID, AN_NHIEN_ID, IRIS_ID, SYVIAL_ID), state.party.memberIds)
   }
 }

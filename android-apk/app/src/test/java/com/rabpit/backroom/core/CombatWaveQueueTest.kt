@@ -47,15 +47,15 @@ class CombatWaveQueueTest {
     val initial = CombatRuntime.startWaves(GameState.initial(), listOf("hound", "smiler"))
     val marked = initial.copy(metadata = initial.metadata + mapOf(
       "combat.entityHp" to "0", "combat.eventCounter" to "2",
-      "combat.irisAnalyzedTurns" to "2", "combat.kaiBleedTurns" to "2",
-      "combat.lifeformBleedTurns" to "2", "combat.kaiQuickStepTurns" to "2"
+      "combat.irisAnalyzedTurns" to "2", "combat.caoMinhBleedTurns" to "2",
+      "combat.lifeformBleedTurns" to "2", "combat.caoMinhQuickStepTurns" to "2"
     ))
     val result = CombatRuntime.resolve(marked, "SEARCH", "quan sát")
     assertEquals("smiler", CombatRuntime.active(result.state)!!.entityKey)
     assertEquals(3, CombatRuntime.active(result.state)!!.eventCounter)
     assertNull(result.state.metadata["combat.irisAnalyzedTurns"])
-    assertNull(result.state.metadata["combat.kaiBleedTurns"])
-    assertEquals("1", result.state.metadata["combat.kaiQuickStepTurns"])
+    assertNull(result.state.metadata["combat.caoMinhBleedTurns"])
+    assertEquals("1", result.state.metadata["combat.caoMinhQuickStepTurns"])
     assertEquals("1", result.state.metadata["combat.lifeformBleedTurns"])
     assertEquals(115, CombatRuntime.active(result.state)!!.entityMaxHp)
   }
@@ -70,7 +70,7 @@ class CombatWaveQueueTest {
   @Test fun remainingPartyActorsContinueAgainstNextEntityWithinOneRound() {
     var initial = SpecialFollowersCanon.ensure(GameState.initial())
     initial = LuciaCanon.ensure(initial)
-    initial = initial.copy(party = PartyState(memberIds = listOf(KAI_ID, LUCIA_ID, IRIS_ID, SYVIAL_ID)))
+    initial = initial.copy(party = PartyState(memberIds = listOf(CAO_MINH_ID, LUCIA_ID, IRIS_ID, SYVIAL_ID)))
     val original = CombatRuntime.startWaves(initial, listOf("hound", "diep_minh"))
     var verified = false
     for (counter in 0..100) {
@@ -110,7 +110,7 @@ class CombatWaveQueueTest {
 
   @Test fun nonAttackCommandsPreserveIrisAndSyvialPassives() {
     val initial = SpecialFollowersCanon.ensure(GameState.initial())
-    val party = initial.copy(party = PartyState(memberIds = listOf(KAI_ID, IRIS_ID, SYVIAL_ID)))
+    val party = initial.copy(party = PartyState(memberIds = listOf(CAO_MINH_ID, IRIS_ID, SYVIAL_ID)))
     val injured = CharacterStatEngine.setCurrentHp(party, SYVIAL_ID, 10)
     val state = CombatRuntime.start(injured, "hound")
     val result = CombatRuntime.resolve(state, "SEARCH", "quan sát")
@@ -121,7 +121,7 @@ class CombatWaveQueueTest {
 
   @Test fun anNhienEscapeUltimateStillTriggersOnFifthRound() {
     val initial = AnNhienCanon.ensure(GameState.initial())
-    val party = initial.copy(party = PartyState(memberIds = listOf(KAI_ID, AN_NHIEN_ID)))
+    val party = initial.copy(party = PartyState(memberIds = listOf(CAO_MINH_ID, AN_NHIEN_ID)))
     val started = CombatRuntime.start(party, "hound")
     val state = started.copy(metadata = started.metadata + ("combat.eventCounter" to "4"))
     val result = CombatRuntime.resolve(state, "EXECUTE", "Cả Party cùng bỏ chạy")

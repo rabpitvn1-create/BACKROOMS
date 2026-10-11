@@ -60,7 +60,7 @@ object PartyCombatHealth {
       if (raw == 0) continue
       val effective = CharacterStatEngine.effective(next, id)
       val dodgeChance = (effective.evasionBasisPoints +
-        if (id == KAI_ID) leaderEvasionBonusPercent.coerceAtLeast(0) * 100 else 0).coerceIn(0, 10000)
+        if (id == CAO_MINH_ID) leaderEvasionBonusPercent.coerceAtLeast(0) * 100 else 0).coerceIn(0, 10000)
       if (dodgeRoll(index) < dodgeChance) {
         dodged += id
         continue

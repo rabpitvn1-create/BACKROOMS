@@ -61,27 +61,27 @@ object CoreClientProjection {
     out.put("partyDetails", CharacterDetailJson.encodeParty(CharacterDetailProjector.projectParty(state)))
     out.put("equipment", MadGodCanon.equipmentProjection(state))
     out.put("inventory", JSONArray().apply {
-      state.inventories[KAI_ID]?.items?.values.orEmpty().forEach { item ->
+      state.inventories[CAO_MINH_ID]?.items?.values.orEmpty().forEach { item ->
         put(JSONObject().put("id", item.itemId).put("name", item.name)
           .put("quantity", item.quantity).put("metadata", JSONObject(item.metadata)))
       }
     })
     out.put("party", JSONArray().apply {
-      state.party.memberIds.filter { it != KAI_ID }.forEach { id ->
+      state.party.memberIds.filter { it != CAO_MINH_ID }.forEach { id ->
         state.characters[id]?.let { c ->
           put(JSONObject().put("id", c.id).put("name", c.name)
             .put("presence", c.presence.name).apply { c.avatarRef?.let { put("avatar", it) } })
         }
       }
     })
-    val kai = state.characters.getValue(KAI_ID)
-    out.put("player", JSONObject().put("name", kai.name)
-      .put("hp", kai.vitalState.currentHp).put("condition", kai.vitalState.condition.name))
+    val caoMinh = state.characters.getValue(CAO_MINH_ID)
+    out.put("player", JSONObject().put("name", caoMinh.name)
+      .put("hp", caoMinh.vitalState.currentHp).put("condition", caoMinh.vitalState.condition.name))
     CombatRuntime.toJson(state)?.let { combat ->
       PokerDiceCore.diceJson(state)?.let { combat.put("diceState", it) }
       out.put("combat", combat)
     }
-    out.put("coreSystem", PokerDiceCore.statsJson(state, KAI_ID))
+    out.put("coreSystem", PokerDiceCore.statsJson(state, CAO_MINH_ID))
     return out
   }
 }

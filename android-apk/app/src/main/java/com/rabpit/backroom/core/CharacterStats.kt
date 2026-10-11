@@ -67,7 +67,7 @@ data class EffectiveCharacterStats(
 
 object CharacterStatProfiles {
   private fun role(id: String): String = when (id.trim().lowercase()) {
-    "cao_minh", "kai" -> "VẠN GIỚI MA TÔN / MA ĐẠO KIẾM TU"
+    "cao_minh" -> "VẠN GIỚI MA TÔN / MA ĐẠO KIẾM TU"
     "iris" -> "SCOUT / TARGET ELIMINATOR / DUAL-GUN MARKSMAN"
     "syvial" -> "HIGH-SPEED SWORDSMAN / ASSAULT / COUNTER / EXECUTION"
     "lucia" -> "TACTICAL RIFLEWOMAN / SQUAD LEADER / FOLLOWER"
@@ -76,7 +76,7 @@ object CharacterStatProfiles {
   }
 
   private fun energy(id: String): EnergyProfile = when (id.trim().lowercase()) {
-    "cao_minh", "kai", "iris", "syvial" -> EnergyProfile.infinite()
+    "cao_minh", "iris", "syvial" -> EnergyProfile.infinite()
     else -> EnergyProfile.notApplicable()
   }
 

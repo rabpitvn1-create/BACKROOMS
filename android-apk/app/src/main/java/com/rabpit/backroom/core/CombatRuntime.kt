@@ -17,10 +17,10 @@ object CombatRuntime {
   private const val ENTITY_HP_BONUS = 30
   private const val ENTITY_EVASION_PERCENT = 25
   private const val ENTITY_REGEN_PER_TURN = 1
-  private const val KAI_GUILTY_CROWN_INTERVAL_TURNS = 3
-  private const val KAI_GUILTY_CROWN_SHOTS = 24
-  private const val KAI_GUILTY_CROWN_ACCURACY_PERCENT = 200
-  private const val KAI_GUILTY_CROWN_DAMAGE_PER_SHOT = 10
+  private const val CAO_MINH_ULTIMATE_INTERVAL_TURNS = 3
+  private const val CAO_MINH_ULTIMATE_SHOTS = 24
+  private const val CAO_MINH_ULTIMATE_ACCURACY_PERCENT = 200
+  private const val CAO_MINH_ULTIMATE_DAMAGE_PER_SHOT = 10
   private const val DIEP_MINH_KEY = "diep_minh"
   private const val DIEP_MINH_MAX_HP = 2999
   private const val DIEP_MINH_ATTACK_PERCENT = 10
@@ -38,19 +38,19 @@ object CombatRuntime {
   private const val LIFEFORM_BLEED_TURNS_KEY = "combat.lifeformBleedTurns"
   private const val LIFEFORM_POISON_TURNS_KEY = "combat.lifeformPoisonTurns"
   private const val LUCIA_M4A1_COMBAT_DAMAGE = 26
-  private const val KAI_LAST_REQUIEM_CHANCE_PERCENT = 30
-  private const val KAI_LAST_REQUIEM_DAMAGE_PERCENT = 170
-  private const val KAI_LAST_REQUIEM_BLEED_TURNS = 3
-  private const val KAI_LAST_REQUIEM_BLEED_MAX_HP_PERCENT = 5
-  private const val KAI_SILENT_LULLABY_CHANCE_PERCENT = 20
-  private const val KAI_SILENT_LULLABY_DAMAGE_PERCENT = 130
-  private const val KAI_SALVATION_CHANCE_PERCENT = 20
-  private const val KAI_SALVATION_DAMAGE_PERCENT = 147
-  private const val KAI_QUICK_STEP_CHANCE_PERCENT = 30
-  private const val KAI_QUICK_STEP_EVASION_BONUS_PERCENT = 50
-  private const val KAI_QUICK_STEP_DURATION_TURNS = 3
-  private const val KAI_BLEED_TURNS_KEY = "combat.kaiBleedTurns"
-  private const val KAI_QUICK_STEP_TURNS_KEY = "combat.kaiQuickStepTurns"
+  private const val CAO_MINH_FOUR_SLASH_CHANCE_PERCENT = 30
+  private const val CAO_MINH_FOUR_SLASH_DAMAGE_PERCENT = 170
+  private const val CAO_MINH_FOUR_SLASH_BLEED_TURNS = 3
+  private const val CAO_MINH_FOUR_SLASH_BLEED_MAX_HP_PERCENT = 5
+  private const val CAO_MINH_STUN_SLASH_CHANCE_PERCENT = 20
+  private const val CAO_MINH_STUN_SLASH_DAMAGE_PERCENT = 130
+  private const val CAO_MINH_SWORD_DASH_CHANCE_PERCENT = 20
+  private const val CAO_MINH_SWORD_DASH_DAMAGE_PERCENT = 147
+  private const val CAO_MINH_QUICK_STEP_CHANCE_PERCENT = 30
+  private const val CAO_MINH_QUICK_STEP_EVASION_BONUS_PERCENT = 50
+  private const val CAO_MINH_QUICK_STEP_DURATION_TURNS = 3
+  private const val CAO_MINH_BLEED_TURNS_KEY = "combat.caoMinhBleedTurns"
+  private const val CAO_MINH_QUICK_STEP_TURNS_KEY = "combat.caoMinhQuickStepTurns"
   private const val IRIS_ANALYZED_TURNS_KEY = "combat.irisAnalyzedTurns"
   private const val IRIS_ARMOR_BREAK_TURNS_KEY = "combat.irisArmorBreakTurns"
   private const val IRIS_EXPOSED_TURNS_KEY = "combat.irisExposedTurns"
@@ -110,7 +110,7 @@ object CombatRuntime {
     val amount: Int,
     val critical: Boolean = false,
     val status: FeedbackStatus? = null,
-    val actorId: String = KAI_ID,
+    val actorId: String = CAO_MINH_ID,
     val phase: String = "actor",
     val skill: String = "đánh thường",
     val sourceName: String = "",
@@ -203,9 +203,9 @@ object CombatRuntime {
     if (entityKeys.size !in 1..4 || entityKeys.any { it !in profiles }) return state
     val entityKey = entityKeys.first()
     val profile = profiles.getValue(entityKey)
-    val effective = CharacterStatEngine.effective(state, KAI_ID)
+    val effective = CharacterStatEngine.effective(state, CAO_MINH_ID)
     val playerMax = effective.maxHp
-    val playerHp = state.characters[KAI_ID]?.vitalState?.currentHp?.coerceIn(0, playerMax) ?: playerMax
+    val playerHp = state.characters[CAO_MINH_ID]?.vitalState?.currentHp?.coerceIn(0, playerMax) ?: playerMax
     // Every encounter gets a persistent local serial; equal turns/time cannot duplicate rewards.
     val serial = (state.metadata["loot.encounterSerial"]?.toLongOrNull() ?: 0L) + 1L
     val seed = stableSeed(entityKey, state.turn.currentTurnId, state.time.elapsedSubjectiveMinutes xor serial)
@@ -252,7 +252,7 @@ object CombatRuntime {
     val feedback = mutableListOf<DamageFeedback>()
     val turnCues = mutableListOf<TurnCue>()
     var resolvedState = state
-    var currentActingId = KAI_ID
+    var currentActingId = CAO_MINH_ID
 
     fun entityDodges(actorId: String, salt: Int): Boolean {
       val attacker = CharacterStatEngine.effective(resolvedState, actorId)
@@ -266,7 +266,7 @@ object CombatRuntime {
       val passive = when {
         CharacterStatCore.isCaoMinh(actorId) ->
           CaoMinhCombatPassive.CRITICAL_PER_TURN_PERCENT.toLong() * CaoMinhCombatPassive.stacks(resolvedState) * 100L
-        KAI_ID in PartyCombatHealth.actingMembers(resolvedState) ->
+        CAO_MINH_ID in PartyCombatHealth.actingMembers(resolvedState) ->
           CaoMinhCombatPassive.ALLY_CRITICAL_BONUS_PERCENT.toLong() * 100L
         else -> 0L
       }
@@ -299,8 +299,8 @@ object CombatRuntime {
     }
     var lifeformBleedTurns = state.metadata[LIFEFORM_BLEED_TURNS_KEY]?.toIntOrNull()?.coerceIn(0, LIFEFORM_BLEED_TURNS) ?: 0
     var lifeformPoisonTurns = state.metadata[LIFEFORM_POISON_TURNS_KEY]?.toIntOrNull()?.coerceIn(0, LIFEFORM_POISON_TURNS) ?: 0
-    var bleedTurns = state.metadata[KAI_BLEED_TURNS_KEY]?.toIntOrNull()?.coerceIn(0, KAI_LAST_REQUIEM_BLEED_TURNS) ?: 0
-    var quickStepTurns = state.metadata[KAI_QUICK_STEP_TURNS_KEY]?.toIntOrNull()?.coerceIn(0, KAI_QUICK_STEP_DURATION_TURNS) ?: 0
+    var bleedTurns = state.metadata[CAO_MINH_BLEED_TURNS_KEY]?.toIntOrNull()?.coerceIn(0, CAO_MINH_FOUR_SLASH_BLEED_TURNS) ?: 0
+    var quickStepTurns = state.metadata[CAO_MINH_QUICK_STEP_TURNS_KEY]?.toIntOrNull()?.coerceIn(0, CAO_MINH_QUICK_STEP_DURATION_TURNS) ?: 0
     var entityStunnedThisTurn = false
     val procSpecs = listOf(
       listOf("Huyết Sát Kiếm Ấn", "50", "25", "bleed", "3"),
@@ -339,7 +339,7 @@ object CombatRuntime {
       c = c.copy(playerHp = hp)
       lifeformBleedTurns = max(0, lifeformBleedTurns - 1)
       resolvedState = withLifeformCounter(resolvedState, LIFEFORM_BLEED_TURNS_KEY, lifeformBleedTurns)
-      log += "Lifeform Bleed: Kai -" + bleedDamage + " HP (" + LIFEFORM_BLEED_MAX_HP_PERCENT + "% Max HP); còn " + lifeformBleedTurns + " turn."
+      log += "Lifeform Bleed: Cao Minh -" + bleedDamage + " HP (" + LIFEFORM_BLEED_MAX_HP_PERCENT + "% Max HP); còn " + lifeformBleedTurns + " turn."
     }
     if (c.playerHp > 0 && lifeformPoisonTurns > 0) {
       val poisonDamage = percentDamage(c.playerMaxHp, LIFEFORM_POISON_MAX_HP_PERCENT)
@@ -348,7 +348,7 @@ object CombatRuntime {
       c = c.copy(playerHp = hp)
       lifeformPoisonTurns = max(0, lifeformPoisonTurns - 1)
       resolvedState = withLifeformCounter(resolvedState, LIFEFORM_POISON_TURNS_KEY, lifeformPoisonTurns)
-      log += "Lifeform Poison: Kai -" + poisonDamage + " HP (" + LIFEFORM_POISON_MAX_HP_PERCENT + "% Max HP); còn " + lifeformPoisonTurns + " turn."
+      log += "Lifeform Poison: Cao Minh -" + poisonDamage + " HP (" + LIFEFORM_POISON_MAX_HP_PERCENT + "% Max HP); còn " + lifeformPoisonTurns + " turn."
     }
 
     var canCounterAttack = true
@@ -426,11 +426,11 @@ object CombatRuntime {
           cover = if (c.cover == Cover.EXPOSED) Cover.PARTIAL else c.cover
         )
         log += if (goodCounter) "Cao Minh né đúng telegraph, cướp thế chủ động." else "Cao Minh đổi góc và giảm áp lực trực diện."
-        if (KAI_ID in PartyCombatHealth.actingMembers(resolvedState) && c.entityHp > 0 &&
-            roll(c.copy(eventCounter = c.eventCounter + 139), 100) < KAI_QUICK_STEP_CHANCE_PERCENT) {
-          quickStepTurns = KAI_QUICK_STEP_DURATION_TURNS
-          resolvedState = withCombatCounter(resolvedState, KAI_QUICK_STEP_TURNS_KEY, quickStepTurns)
-          log += "Thiên Ma Bộ tự động kích hoạt: dịch chuyển ngắn liên tục, +${KAI_QUICK_STEP_EVASION_BONUS_PERCENT}% Evasion trong ${KAI_QUICK_STEP_DURATION_TURNS} turn."
+        if (CAO_MINH_ID in PartyCombatHealth.actingMembers(resolvedState) && c.entityHp > 0 &&
+            roll(c.copy(eventCounter = c.eventCounter + 139), 100) < CAO_MINH_QUICK_STEP_CHANCE_PERCENT) {
+          quickStepTurns = CAO_MINH_QUICK_STEP_DURATION_TURNS
+          resolvedState = withCombatCounter(resolvedState, CAO_MINH_QUICK_STEP_TURNS_KEY, quickStepTurns)
+          log += "Thiên Ma Bộ tự động kích hoạt: dịch chuyển ngắn liên tục, +${CAO_MINH_QUICK_STEP_EVASION_BONUS_PERCENT}% Evasion trong ${CAO_MINH_QUICK_STEP_DURATION_TURNS} turn."
         }
       }
       Intent.MOVE -> {
@@ -478,14 +478,14 @@ object CombatRuntime {
           cue("actor", actorId, actor.name)
           log += "PARTY TURN ${turnIndex + 1}/${partyOrder.size}: ${actor.name}."
           when (actorId) {
-            KAI_ID -> {
+            CAO_MINH_ID -> {
         val roll = roll(c, 100)
-        val entityEvaded = entityDodges(KAI_ID, 13)
+        val entityEvaded = entityDodges(CAO_MINH_ID, 13)
         if (roll < hitChance && !entityEvaded) {
           val variance = 2 + roll(c.copy(eventCounter = c.eventCounter + 17), 7)
-          val effective = CharacterStatEngine.effective(state, KAI_ID)
-          val weaponDamage = CharacterStatEngine.weaponDamage(state, KAI_ID)
-          val critical = actorCritical(KAI_ID, 23)
+          val effective = CharacterStatEngine.effective(state, CAO_MINH_ID)
+          val weaponDamage = CharacterStatEngine.weaponDamage(state, CAO_MINH_ID)
+          val critical = actorCritical(CAO_MINH_ID, 23)
           val rawBase = weaponDamage + variance + c.opening * 5 + max(0, c.momentum) * 2
           val base = CharacterStatCore.basicDamage(rawBase, effective.str, PokerDiceCore.attackPercent(resolvedState), CaoMinhCombatPassive.attackPercent(resolvedState))
           val normalized = if (critical) CharacterStatCore.criticalDamage(base) else base
@@ -507,27 +507,27 @@ object CombatRuntime {
           log += if (entityEvaded) "${c.entityName} né đòn (25% evasion) và giành lại áp lực." else "Đòn đánh trượt; ${c.entityName} giành lại áp lực."
         }
             // PARTY_ATTACK_GCO_GATE_V1
-            if (intent == Intent.ATTACK && KAI_ID in PartyCombatHealth.actingMembers(resolvedState)) {
-            if (c.entityHp > 0 && c.eventCounter % KAI_GUILTY_CROWN_INTERVAL_TURNS == 0) {
-              val damagePerSlash = CharacterStatEngine.skillBaseDamage(resolvedState, KAI_ID) * 115 / 100
-              val totalDamage = KAI_GUILTY_CROWN_SHOTS * damagePerSlash
+            if (intent == Intent.ATTACK && CAO_MINH_ID in PartyCombatHealth.actingMembers(resolvedState)) {
+            if (c.entityHp > 0 && c.eventCounter % CAO_MINH_ULTIMATE_INTERVAL_TURNS == 0) {
+              val damagePerSlash = CharacterStatEngine.skillBaseDamage(resolvedState, CAO_MINH_ID) * 115 / 100
+              val totalDamage = CAO_MINH_ULTIMATE_SHOTS * damagePerSlash
               val hp = max(0, c.entityHp - totalDamage)
               recordFeedback("entity", c.entityHp, hp, skill = "Huyết Ma Nhị Thập Tứ Trảm")
               c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
-              log += "Huyết Ma Nhị Thập Tứ Trảm tự động kích hoạt ở combat turn ${c.eventCounter}: $KAI_GUILTY_CROWN_SHOTS/" +
-                "$KAI_GUILTY_CROWN_SHOTS trảm trúng liên tiếp, Accuracy $KAI_GUILTY_CROWN_ACCURACY_PERCENT%, bỏ qua toàn bộ hiệu ứng né; " +
+              log += "Huyết Ma Nhị Thập Tứ Trảm tự động kích hoạt ở combat turn ${c.eventCounter}: $CAO_MINH_ULTIMATE_SHOTS/" +
+                "$CAO_MINH_ULTIMATE_SHOTS trảm trúng liên tiếp, Accuracy $CAO_MINH_ULTIMATE_ACCURACY_PERCENT%, bỏ qua toàn bộ hiệu ứng né; " +
                 "mỗi trảm -$damagePerSlash HP, tổng -$totalDamage HP (${c.entityHp}/${c.entityMaxHp})."
             }
         
             }
         
-            val isGuiltyCrownTurn = intent == Intent.ATTACK && KAI_ID in PartyCombatHealth.actingMembers(resolvedState) &&
-              c.eventCounter % KAI_GUILTY_CROWN_INTERVAL_TURNS == 0
-            if (intent == Intent.ATTACK && KAI_ID in PartyCombatHealth.actingMembers(resolvedState) && c.entityHp > 0 && !isGuiltyCrownTurn) {
+            val isCaoMinhUltimateTurn = intent == Intent.ATTACK && CAO_MINH_ID in PartyCombatHealth.actingMembers(resolvedState) &&
+              c.eventCounter % CAO_MINH_ULTIMATE_INTERVAL_TURNS == 0
+            if (intent == Intent.ATTACK && CAO_MINH_ID in PartyCombatHealth.actingMembers(resolvedState) && c.entityHp > 0 && !isCaoMinhUltimateTurn) {
               procSpecs.forEachIndexed { index, spec ->
                 if (c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 401 + index * 17), 100) < spec[1].toInt()) {
                   val damage = CharacterStatCore.scaleByPercent(
-                    CharacterStatEngine.skillBaseDamage(resolvedState, KAI_ID), spec[2].toInt())
+                    CharacterStatEngine.skillBaseDamage(resolvedState, CAO_MINH_ID), spec[2].toInt())
                   val hp = max(0, c.entityHp - damage)
                   recordFeedback("entity", c.entityHp, hp, status = feedbackStatus(spec[3]), skill = spec[0])
                   c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
@@ -537,40 +537,40 @@ object CombatRuntime {
                 }
               }
             }
-            if (c.entityHp > 0 && KAI_ID in PartyCombatHealth.actingMembers(resolvedState)) {
-              val weaponDamage = CharacterStatEngine.weaponDamage(resolvedState, KAI_ID)
+            if (c.entityHp > 0 && CAO_MINH_ID in PartyCombatHealth.actingMembers(resolvedState)) {
+              val weaponDamage = CharacterStatEngine.weaponDamage(resolvedState, CAO_MINH_ID)
         
-              if (intent == Intent.ATTACK && !isGuiltyCrownTurn && roll(c.copy(eventCounter = c.eventCounter + 101), 100) < KAI_LAST_REQUIEM_CHANCE_PERCENT) {
-                val damage = weaponSkillDamage(CharacterStatEngine.skillBaseDamage(resolvedState, KAI_ID), KAI_LAST_REQUIEM_DAMAGE_PERCENT, profile.armor)
+              if (intent == Intent.ATTACK && !isCaoMinhUltimateTurn && roll(c.copy(eventCounter = c.eventCounter + 101), 100) < CAO_MINH_FOUR_SLASH_CHANCE_PERCENT) {
+                val damage = weaponSkillDamage(CharacterStatEngine.skillBaseDamage(resolvedState, CAO_MINH_ID), CAO_MINH_FOUR_SLASH_DAMAGE_PERCENT, profile.armor)
                 val hp = max(0, c.entityHp - damage)
                 recordFeedback("entity", c.entityHp, hp, status = FeedbackStatus.BLEED, skill = "Huyết Ma Tứ Liên")
                 c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 22))
-                bleedTurns = KAI_LAST_REQUIEM_BLEED_TURNS
-                resolvedState = withCombatCounter(resolvedState, KAI_BLEED_TURNS_KEY, bleedTurns)
-                log += "Huyết Ma Tứ Liên tự động kích hoạt: 4 trảm vào điểm nối hộ thể, ${KAI_LAST_REQUIEM_DAMAGE_PERCENT}% DMG = -$damage HP; Bleeding ${KAI_LAST_REQUIEM_BLEED_TURNS} turn, ${KAI_LAST_REQUIEM_BLEED_MAX_HP_PERCENT}% Max HP/turn."
+                bleedTurns = CAO_MINH_FOUR_SLASH_BLEED_TURNS
+                resolvedState = withCombatCounter(resolvedState, CAO_MINH_BLEED_TURNS_KEY, bleedTurns)
+                log += "Huyết Ma Tứ Liên tự động kích hoạt: 4 trảm vào điểm nối hộ thể, ${CAO_MINH_FOUR_SLASH_DAMAGE_PERCENT}% DMG = -$damage HP; Bleeding ${CAO_MINH_FOUR_SLASH_BLEED_TURNS} turn, ${CAO_MINH_FOUR_SLASH_BLEED_MAX_HP_PERCENT}% Max HP/turn."
               }
         
-              if (intent == Intent.ATTACK && !isGuiltyCrownTurn && c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 113), 100) < KAI_SILENT_LULLABY_CHANCE_PERCENT) {
-                val damage = weaponSkillDamage(CharacterStatEngine.skillBaseDamage(resolvedState, KAI_ID), KAI_SILENT_LULLABY_DAMAGE_PERCENT, profile.armor)
+              if (intent == Intent.ATTACK && !isCaoMinhUltimateTurn && c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 113), 100) < CAO_MINH_STUN_SLASH_CHANCE_PERCENT) {
+                val damage = weaponSkillDamage(CharacterStatEngine.skillBaseDamage(resolvedState, CAO_MINH_ID), CAO_MINH_STUN_SLASH_DAMAGE_PERCENT, profile.armor)
                 val hp = max(0, c.entityHp - damage)
                 recordFeedback("entity", c.entityHp, hp, status = FeedbackStatus.STUN, skill = "Ma Tâm Trấn Hồn")
                 c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 18))
                 entityStunnedThisTurn = true
-                log += "Ma Tâm Trấn Hồn tự động kích hoạt: Cao Minh bật lên cao, 4 đường ma kiếm vào cùng điểm trên ngực, ${KAI_SILENT_LULLABY_DAMAGE_PERCENT}% DMG = -$damage HP; Stun 1 turn."
+                log += "Ma Tâm Trấn Hồn tự động kích hoạt: Cao Minh bật lên cao, 4 đường ma kiếm vào cùng điểm trên ngực, ${CAO_MINH_STUN_SLASH_DAMAGE_PERCENT}% DMG = -$damage HP; Stun 1 turn."
               }
         
-              if (intent == Intent.ATTACK && !isGuiltyCrownTurn && c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 127), 100) < KAI_SALVATION_CHANCE_PERCENT) {
-                val damage = weaponSkillDamage(CharacterStatEngine.skillBaseDamage(resolvedState, KAI_ID), KAI_SALVATION_DAMAGE_PERCENT, profile.armor)
+              if (intent == Intent.ATTACK && !isCaoMinhUltimateTurn && c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 127), 100) < CAO_MINH_SWORD_DASH_CHANCE_PERCENT) {
+                val damage = weaponSkillDamage(CharacterStatEngine.skillBaseDamage(resolvedState, CAO_MINH_ID), CAO_MINH_SWORD_DASH_DAMAGE_PERCENT, profile.armor)
                 val hp = max(0, c.entityHp - damage)
                 recordFeedback("entity", c.entityHp, hp, skill = "Huyết Ảnh Ma Độn")
                 c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 16))
-                log += "Huyết Ảnh Ma Độn tự động kích hoạt: Cao Minh ngự Huyết Ma Kiếm qua mục tiêu, dịch chuyển theo kiếm và chém nhanh đúng 2 trảm, ${KAI_SALVATION_DAMAGE_PERCENT}% DMG = -$damage HP."
+                log += "Huyết Ảnh Ma Độn tự động kích hoạt: Cao Minh ngự Huyết Ma Kiếm qua mục tiêu, dịch chuyển theo kiếm và chém nhanh đúng 2 trảm, ${CAO_MINH_SWORD_DASH_DAMAGE_PERCENT}% DMG = -$damage HP."
               }
         
-              if ((intent == Intent.ATTACK || intent == Intent.EVADE) && !isGuiltyCrownTurn && c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 139), 100) < KAI_QUICK_STEP_CHANCE_PERCENT) {
-                quickStepTurns = KAI_QUICK_STEP_DURATION_TURNS
-                resolvedState = withCombatCounter(resolvedState, KAI_QUICK_STEP_TURNS_KEY, quickStepTurns)
-                log += "Thiên Ma Bộ tự động kích hoạt: dịch chuyển ngắn liên tục, +${KAI_QUICK_STEP_EVASION_BONUS_PERCENT}% Evasion trong ${KAI_QUICK_STEP_DURATION_TURNS} turn."
+              if ((intent == Intent.ATTACK || intent == Intent.EVADE) && !isCaoMinhUltimateTurn && c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 139), 100) < CAO_MINH_QUICK_STEP_CHANCE_PERCENT) {
+                quickStepTurns = CAO_MINH_QUICK_STEP_DURATION_TURNS
+                resolvedState = withCombatCounter(resolvedState, CAO_MINH_QUICK_STEP_TURNS_KEY, quickStepTurns)
+                log += "Thiên Ma Bộ tự động kích hoạt: dịch chuyển ngắn liên tục, +${CAO_MINH_QUICK_STEP_EVASION_BONUS_PERCENT}% Evasion trong ${CAO_MINH_QUICK_STEP_DURATION_TURNS} turn."
               }
             }
             }
@@ -792,13 +792,13 @@ object CombatRuntime {
     }
 
     if (c.entityHp > 0 && bleedTurns > 0) {
-      val bleedDamage = percentDamage(c.entityMaxHp, KAI_LAST_REQUIEM_BLEED_MAX_HP_PERCENT)
+      val bleedDamage = percentDamage(c.entityMaxHp, CAO_MINH_FOUR_SLASH_BLEED_MAX_HP_PERCENT)
       val hp = max(0, c.entityHp - bleedDamage)
       bleedTurns = max(0, bleedTurns - 1)
-      resolvedState = withCombatCounter(resolvedState, KAI_BLEED_TURNS_KEY, bleedTurns)
+      resolvedState = withCombatCounter(resolvedState, CAO_MINH_BLEED_TURNS_KEY, bleedTurns)
       recordFeedback("entity", c.entityHp, hp, status = FeedbackStatus.BLEED, skill = "Huyết Ma Tứ Liên")
       c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
-      log += "Bleeding từ Huyết Ma Tứ Liên gây -$bleedDamage HP (${KAI_LAST_REQUIEM_BLEED_MAX_HP_PERCENT}% Max HP; ${c.entityHp}/${c.entityMaxHp}); còn $bleedTurns turn."
+      log += "Bleeding từ Huyết Ma Tứ Liên gây -$bleedDamage HP (${CAO_MINH_FOUR_SLASH_BLEED_MAX_HP_PERCENT}% Max HP; ${c.entityHp}/${c.entityMaxHp}); còn $bleedTurns turn."
     }
 
     if (c.entityHp > 0 && syvialBleedTurns > 0) {
@@ -836,7 +836,7 @@ object CombatRuntime {
     }
 
     // A replacement Entity is not allowed to counterattack for free.
-    currentActingId = KAI_ID
+    currentActingId = CAO_MINH_ID
     if (canCounterAttack) cue("entity")
     if (!canCounterAttack) {
       log += "${c.entityName} vừa xuất hiện và chờ lượt giao chiến tiếp theo."
@@ -846,8 +846,8 @@ object CombatRuntime {
       val groupHpBefore = PartyCombatHealth.currentHp(resolvedState)
       val pulse = damageActivePartyByPercent(resolvedState, DIEP_MINH_ULTIMATE_PERCENT)
       resolvedState = pulse.state
-      recordFeedback("actor", c.playerHp, pulse.kaiHp, phase = "entity")
-      c = c.copy(playerHp = pulse.kaiHp, momentum = max(-3, c.momentum - 1))
+      recordFeedback("actor", c.playerHp, pulse.caoMinhHp, phase = "entity")
+      c = c.copy(playerHp = pulse.caoMinhHp, momentum = max(-3, c.momentum - 1))
       log += "Devils And Gold kích hoạt ở combat turn ${c.eventCounter}: toàn bộ nhân vật ACTIVE đang ra trận nhận ${DIEP_MINH_ULTIMATE_PERCENT}% Max HP. ${pulse.summary}."
       val groupHpAfter = PartyCombatHealth.currentHp(resolvedState)
       log += "${c.entityName} phản công: Party chịu -${(groupHpBefore - groupHpAfter).coerceAtLeast(0)} HP (${groupHpAfter}/${PartyCombatHealth.maxHp(resolvedState)})."
@@ -856,7 +856,7 @@ object CombatRuntime {
       val defense = when (intent) { Intent.EVADE -> 34; Intent.GUARD -> 30; Intent.MOVE -> 18; Intent.READ -> 12; else -> 0 } +
         when (c.cover) { Cover.HARD -> 22; Cover.PARTIAL -> 10; Cover.EXPOSED -> 0 } + max(0, c.momentum) * 4 +
       PokerDiceCore.defenseBonus(state)
-      val quickStepEvasion = if (quickStepTurns > 0) KAI_QUICK_STEP_EVASION_BONUS_PERCENT else 0
+      val quickStepEvasion = if (quickStepTurns > 0) CAO_MINH_QUICK_STEP_EVASION_BONUS_PERCENT else 0
       val enemyChance = (profile.aggression * 8 - defense + max(0, -c.momentum) * 7 - companionEnemyAccuracyPenalty).coerceIn(0, 88)
       if (incomingRoll < enemyChance) {
         val lifeformSkill = rollLifeformSkill(c)
@@ -872,7 +872,7 @@ object CombatRuntime {
         // Ordinary counterattacks drain the Party pool once. Snapshot.playerHp
         // remains Cao Minh's canonical HP for targeted/status-specific skills.
         // Commit pre-attack personal status ticks before sharing this hit.
-        val beforeHit = CharacterStatEngine.setCurrentHp(resolvedState, KAI_ID, c.playerHp)
+        val beforeHit = CharacterStatEngine.setCurrentHp(resolvedState, CAO_MINH_ID, c.playerHp)
         val sharedHit = if (c.entityKey == DIEP_MINH_KEY) {
           // Diệp Minh's percentage-based attack is a special ability, not a normal physical hit.
           PartyCombatHealth.applySharedDamage(beforeHit, damage, c.eventCounter)
@@ -889,7 +889,7 @@ object CombatRuntime {
           feedback += DamageFeedback("actor", loss, actorId = memberId, phase = "entity")
         }
         c = c.copy(
-          playerHp = resolvedState.characters[KAI_ID]?.vitalState?.currentHp ?: c.playerHp,
+          playerHp = resolvedState.characters[CAO_MINH_ID]?.vitalState?.currentHp ?: c.playerHp,
           momentum = max(-3, c.momentum - 1)
         )
         if (lifeformSkill != null) {
@@ -921,7 +921,7 @@ object CombatRuntime {
           (if (critical.isNotEmpty()) " CRIT 400%: $critical." else "")
       } else {
         log += if (quickStepTurns > 0) {
-          "Thiên Ma Bộ khiến ${c.entityName} hụt đòn; +${KAI_QUICK_STEP_EVASION_BONUS_PERCENT}% Evasion đang hoạt động."
+          "Thiên Ma Bộ khiến ${c.entityName} hụt đòn; +${CAO_MINH_QUICK_STEP_EVASION_BONUS_PERCENT}% Evasion đang hoạt động."
         } else {
           "${c.entityName} không xuyên được thế phòng thủ/di chuyển của Cao Minh."
         }
@@ -947,7 +947,7 @@ object CombatRuntime {
     }
     if (quickStepTurns > 0) {
       quickStepTurns = max(0, quickStepTurns - 1)
-      resolvedState = withCombatCounter(resolvedState, KAI_QUICK_STEP_TURNS_KEY, quickStepTurns)
+      resolvedState = withCombatCounter(resolvedState, CAO_MINH_QUICK_STEP_TURNS_KEY, quickStepTurns)
     }
 
     if (irisAnalyzedTurns > 0) {
@@ -1024,7 +1024,7 @@ object CombatRuntime {
   /** Entity-specific debuffs never cross the boundary into a different Entity. */
   private fun clearTargetEffects(state: GameState): GameState {
     val targetKeys = setOf(
-      KAI_BLEED_TURNS_KEY, IRIS_ANALYZED_TURNS_KEY, IRIS_ARMOR_BREAK_TURNS_KEY,
+      CAO_MINH_BLEED_TURNS_KEY, IRIS_ANALYZED_TURNS_KEY, IRIS_ARMOR_BREAK_TURNS_KEY,
       IRIS_EXPOSED_TURNS_KEY, SYVIAL_BLEED_TURNS_KEY, SYVIAL_DISORIENT_TURNS_KEY
     )
     return state.copy(metadata = state.metadata.filterKeys { key ->
@@ -1055,7 +1055,7 @@ object CombatRuntime {
     val maxHp = EntityPowerScaling.scale(baseMax, c.progressionRank)
     val nextSeed = mix(c.seed, nextIndex)
     val clean = clearTargetEffects(loot.state)
-    val leaderHp = clean.characters[KAI_ID]?.vitalState?.currentHp ?: c.playerHp
+    val leaderHp = clean.characters[CAO_MINH_ID]?.vitalState?.currentHp ?: c.playerHp
     val next = c.copy(
       entityKey = nextProfile.key, entityName = nextProfile.displayName,
       entityHp = maxHp, entityMaxHp = maxHp, entityCondition = EntityCondition.HEALTHY,
@@ -1072,7 +1072,7 @@ object CombatRuntime {
   }
 
   private fun afterActiveLeaderTurn(state: GameState): GameState =
-    if (KAI_ID in PartyCombatHealth.actingMembers(state)) CaoMinhCombatPassive.afterCaoMinhTurn(state) else state
+    if (CAO_MINH_ID in PartyCombatHealth.actingMembers(state)) CaoMinhCombatPassive.afterCaoMinhTurn(state) else state
 
   private fun withCombatCounter(state: GameState, key: String, value: Int): GameState {
     val metadata = state.metadata.toMutableMap()
@@ -1103,7 +1103,7 @@ object CombatRuntime {
 
   private data class PartyPercentDamage(
     val state: GameState,
-    val kaiHp: Int,
+    val caoMinhHp: Int,
     val summary: String
   )
 
@@ -1123,11 +1123,11 @@ object CombatRuntime {
       val after = next.characters[characterId]?.vitalState?.currentHp ?: max(0, before - damage)
       lines += "${character.name} -$damage HP ($after/$maxHp)"
     }
-    val kaiMaxHp = CharacterStatEngine.effective(next, KAI_ID).maxHp
-    val kaiHp = next.characters[KAI_ID]?.vitalState?.currentHp?.coerceIn(0, kaiMaxHp) ?: kaiMaxHp
+    val caoMinhMaxHp = CharacterStatEngine.effective(next, CAO_MINH_ID).maxHp
+    val caoMinhHp = next.characters[CAO_MINH_ID]?.vitalState?.currentHp?.coerceIn(0, caoMinhMaxHp) ?: caoMinhMaxHp
     return PartyPercentDamage(
       state = next,
-      kaiHp = kaiHp,
+      caoMinhHp = caoMinhHp,
       summary = if (lines.isEmpty()) "không có nhân vật ACTIVE hợp lệ để nhận sát thương" else lines.joinToString("; ")
     )
   }
@@ -1198,7 +1198,7 @@ object CombatRuntime {
     metadata["${PREFIX}telegraphRevealed"] = c.telegraphRevealed.toString()
     metadata["${PREFIX}eventCounter"] = c.eventCounter.toString()
     metadata["${PREFIX}seed"] = c.seed.toString()
-    return CharacterStatEngine.setCurrentHp(state.copy(metadata = metadata), KAI_ID, c.playerHp)
+    return CharacterStatEngine.setCurrentHp(state.copy(metadata = metadata), CAO_MINH_ID, c.playerHp)
   }
 
   private fun decode(state: GameState): Snapshot? {
@@ -1212,8 +1212,8 @@ object CombatRuntime {
     val maxHp = max(storedMaxHp, canonicalMaxHp)
     val storedHp = m["${PREFIX}entityHp"]?.toIntOrNull()?.coerceIn(0, storedMaxHp) ?: storedMaxHp
     val hp = if (storedMaxHp < canonicalMaxHp) min(maxHp, storedHp + (canonicalMaxHp - storedMaxHp)) else storedHp.coerceIn(0, maxHp)
-    val playerMax = CharacterStatEngine.effective(state, KAI_ID).maxHp
-    val playerHp = state.characters[KAI_ID]?.vitalState?.currentHp?.coerceIn(0, playerMax) ?: playerMax
+    val playerMax = CharacterStatEngine.effective(state, CAO_MINH_ID).maxHp
+    val playerHp = state.characters[CAO_MINH_ID]?.vitalState?.currentHp?.coerceIn(0, playerMax) ?: playerMax
     return Snapshot(
       encounterId = m["${PREFIX}encounterId"].orEmpty(),
       entityKey = key,

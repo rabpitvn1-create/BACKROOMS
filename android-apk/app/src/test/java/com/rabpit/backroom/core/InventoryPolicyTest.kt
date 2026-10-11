@@ -5,7 +5,7 @@ import org.junit.Test
 
 class InventoryPolicyTest {
   private fun stateWith(vararg characters: CharacterState): GameState {
-    val all = listOf(CharacterState(KAI_ID, "Cao Minh")) + characters
+    val all = listOf(CharacterState(CAO_MINH_ID, "Cao Minh")) + characters
     return GameState.initial().copy(
       characters = all.associateBy { it.id },
       inventories = all.associate { it.id to InventoryState(it.id) },
@@ -15,7 +15,7 @@ class InventoryPolicyTest {
 
   @Test fun profilesMatchCharacterRules() {
     val state = stateWith(CharacterState("iris", "Iris"), CharacterState("syvial", "Syvial"), CharacterState("bob", "Bob"))
-    assertEquals(InventoryProfile(9, 999), InventoryPolicy.profileFor(state, KAI_ID))
+    assertEquals(InventoryProfile(9, 999), InventoryPolicy.profileFor(state, CAO_MINH_ID))
     assertEquals(InventoryProfile(6, 20), InventoryPolicy.profileFor(state, "iris"))
     assertEquals(InventoryProfile(6, 20), InventoryPolicy.profileFor(state, "syvial"))
     assertEquals(InventoryProfile(2, 2), InventoryPolicy.profileFor(state, "bob"))
@@ -23,10 +23,10 @@ class InventoryPolicyTest {
 
   @Test fun kaiRejectsTenthTypeAndThousandthItem() {
     val items = (1..9).associate { "i$it" to ItemStack("i$it", "Item $it", 1) }
-    val base = stateWith().copy(inventories = mapOf(KAI_ID to InventoryState(KAI_ID, items)))
-    assertEquals("inventory_slot_limit", InventoryPolicy.validateAddition(base, KAI_ID, base.inventories.getValue(KAI_ID), ItemStack("i10", "Item 10"), 1))
-    val stacked = base.copy(inventories = mapOf(KAI_ID to InventoryState(KAI_ID, mapOf("water" to ItemStack("water", "Water", 999)))))
-    assertEquals("inventory_stack_limit", InventoryPolicy.validateAddition(stacked, KAI_ID, stacked.inventories.getValue(KAI_ID), ItemStack("water", "Water"), 1))
+    val base = stateWith().copy(inventories = mapOf(CAO_MINH_ID to InventoryState(CAO_MINH_ID, items)))
+    assertEquals("inventory_slot_limit", InventoryPolicy.validateAddition(base, CAO_MINH_ID, base.inventories.getValue(CAO_MINH_ID), ItemStack("i10", "Item 10"), 1))
+    val stacked = base.copy(inventories = mapOf(CAO_MINH_ID to InventoryState(CAO_MINH_ID, mapOf("water" to ItemStack("water", "Water", 999)))))
+    assertEquals("inventory_stack_limit", InventoryPolicy.validateAddition(stacked, CAO_MINH_ID, stacked.inventories.getValue(CAO_MINH_ID), ItemStack("water", "Water"), 1))
   }
 
   @Test fun irisAndNormalFollowerUseSmallerLimits() {

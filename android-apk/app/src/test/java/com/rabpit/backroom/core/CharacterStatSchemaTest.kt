@@ -3,7 +3,7 @@ import org.junit.Assert.*
 import org.junit.Test
 class CharacterStatSchemaTest {
   @Test fun onlyCanonicalBaseStatsAreStored() {
-    val p = CharacterStatProfiles.forId(KAI_ID)
+    val p = CharacterStatProfiles.forId(CAO_MINH_ID)
     assertEquals(50, p.baseMaxHp)
     assertEquals(listOf(5,5,5,5,5), listOf(p.str,p.dex,p.agi,p.vit,p.eva))
   }

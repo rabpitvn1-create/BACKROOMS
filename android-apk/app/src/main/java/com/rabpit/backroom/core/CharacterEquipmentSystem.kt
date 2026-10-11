@@ -1,8 +1,8 @@
 package com.rabpit.backroom.core
 
-const val KAI_DEMON_JAW_MASK_ID = "kai:demon-jaw-mask"
-const val KAI_TALON_GAUNTLETS_ID = "kai:talon-gauntlets"
-const val KAI_PHANTOM_GREAVES_ID = "kai:phantom-greaves"
+const val CAO_MINH_DEMON_JAW_MASK_ID = "kai:demon-jaw-mask"
+const val CAO_MINH_TALON_GAUNTLETS_ID = "kai:talon-gauntlets"
+const val CAO_MINH_PHANTOM_GREAVES_ID = "kai:phantom-greaves"
 const val IRIS_IVORY_EBONY_SET_ID = "iris:ivory-ebony-set"
 
 enum class EquipmentSlot(val key: String) {
@@ -79,13 +79,13 @@ object EquipmentCatalog {
 
   private val all = listOf(
     EquipmentDefinition(
-      id = KAI_WHITE_WRAITH_ID, name = "Huyết Ma Kiếm", type = "MA ĐẠO ĐẠI KIẾM", primarySlot = EquipmentSlot.WEAPON,
+      id = CAO_MINH_SWORD_ID, name = "Huyết Ma Kiếm", type = "MA ĐẠO ĐẠI KIẾM", primarySlot = EquipmentSlot.WEAPON,
       bonuses = EquipmentBonuses(), weapon = WeaponGameplayStats(32),
       abilities = listOf(ability("Ngự kiếm", "Điều khiển kiếm bằng thần niệm."), ability("Huyết Sát Ma Khí", "Gia cường kiếm bằng ma nguyên."), ability("Triệu hồi bản mệnh", "Gọi Huyết Ma Kiếm trở về.")),
       canonRef = "CAO-EQP-HUYET-MA-KIEM-01"
     ),
     EquipmentDefinition(
-      id = KAI_BLACKBLOOD_ARMOR_ID, name = "Huyết Ma Chiến Khải", type = "MA KHẢI", primarySlot = EquipmentSlot.ARMOR,
+      id = CAO_MINH_ARMOR_ID, name = "Huyết Ma Chiến Khải", type = "MA KHẢI", primarySlot = EquipmentSlot.ARMOR,
       bonuses = EquipmentBonuses(),
       abilities = listOf(ability("Ma Kim hộ thể", "Ma khải bảo vệ nhục thân và phân tán lực va chạm."), ability("Ma nguyên tự phục hồi", "Tự phục hồi pháp bảo; không đồng nghĩa hồi HP tức thì.")),
       canonRef = "CAO-EQP-HUYET-MA-KHAI-01"
@@ -198,9 +198,9 @@ object EquipmentCatalog {
   }
 
   fun startingLoadout(characterId: String): Map<EquipmentSlot, String> = when (characterId) {
-    KAI_ID -> linkedMapOf(
-      EquipmentSlot.WEAPON to KAI_WHITE_WRAITH_ID,
-      EquipmentSlot.ARMOR to KAI_BLACKBLOOD_ARMOR_ID,
+    CAO_MINH_ID -> linkedMapOf(
+      EquipmentSlot.WEAPON to CAO_MINH_SWORD_ID,
+      EquipmentSlot.ARMOR to CAO_MINH_ARMOR_ID,
     )
     IRIS_ID -> linkedMapOf(EquipmentSlot.WEAPON to IRIS_IVORY_EBONY_SET_ID, EquipmentSlot.ARMOR to IRIS_RECON_FRAME_ID)
     SYVIAL_ID -> linkedMapOf(EquipmentSlot.WEAPON to SYVIAL_GODKILLER_ID, EquipmentSlot.ARMOR to SYVIAL_LUCIFER_ARMOR_ID)

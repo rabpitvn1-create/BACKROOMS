@@ -6,29 +6,29 @@ import org.junit.Test
 class CharacterDetailProjectionTest {
   @Test fun caoMinhPortraitFollowsCanonicalCharacterAndEquipment() {
     val start = GameState.initial()
-    val oldRef = start.characters.getValue(KAI_ID).copy(avatarRef = "avatars/kai_avatar.png")
-    val state = start.copy(characters = start.characters + (KAI_ID to oldRef))
-    assertEquals(CAO_MINH_AVATAR_REF, CharacterDetailProjector.projectCharacter(state, KAI_ID)?.avatarRef)
-    val normalKit = state.equipment.getValue(KAI_ID)
-    val equipped = state.copy(equipment = state.equipment + (KAI_ID to normalKit.copy(slots = normalKit.slots + ("weapon" to MADGOD_SET_ID))))
-    assertEquals(MadGodCanon.AVATAR_ASSET, CharacterDetailProjector.projectCharacter(equipped, KAI_ID)?.avatarRef)
+    val oldRef = start.characters.getValue(CAO_MINH_ID).copy(avatarRef = "avatars/custom_avatar.png")
+    val state = start.copy(characters = start.characters + (CAO_MINH_ID to oldRef))
+    assertEquals(CAO_MINH_AVATAR_REF, CharacterDetailProjector.projectCharacter(state, CAO_MINH_ID)?.avatarRef)
+    val normalKit = state.equipment.getValue(CAO_MINH_ID)
+    val equipped = state.copy(equipment = state.equipment + (CAO_MINH_ID to normalKit.copy(slots = normalKit.slots + ("weapon" to MADGOD_SET_ID))))
+    assertEquals(MadGodCanon.AVATAR_ASSET, CharacterDetailProjector.projectCharacter(equipped, CAO_MINH_ID)?.avatarRef)
   }
 
   @Test fun partyProjectionKeepsPartyOrderLeaderAndSubjectiveTime() {
-    val kai = CharacterState(KAI_ID, "Cao Minh", avatarRef = "avatars/kai.png")
+    val kai = CharacterState(CAO_MINH_ID, "Cao Minh", avatarRef = "avatars/kai.png")
     val iris = CharacterState("iris", "Iris", avatarRef = "avatars/iris.png")
     val state = GameState.initial().copy(
-      characters = linkedMapOf(KAI_ID to kai, "iris" to iris),
-      party = PartyState(leaderId = KAI_ID, memberIds = listOf(KAI_ID, "iris"), maxMembers = 4),
+      characters = linkedMapOf(CAO_MINH_ID to kai, "iris" to iris),
+      party = PartyState(leaderId = CAO_MINH_ID, memberIds = listOf(CAO_MINH_ID, "iris"), maxMembers = 4),
       time = GameTimeState(elapsedSubjectiveMinutes = 845L)
     )
 
     val projected = CharacterDetailProjector.projectParty(state)
 
-    assertEquals(KAI_ID, projected.leaderId)
+    assertEquals(CAO_MINH_ID, projected.leaderId)
     assertEquals(4, projected.maxMembers)
     assertEquals(845L, projected.elapsedSubjectiveMinutes)
-    assertEquals(listOf(KAI_ID, "iris"), projected.members.map { it.id })
+    assertEquals(listOf(CAO_MINH_ID, "iris"), projected.members.map { it.id })
     assertTrue(projected.members[0].isLeader)
     assertFalse(projected.members[1].isLeader)
   }
@@ -53,17 +53,17 @@ class CharacterDetailProjectionTest {
       )
     )
     val state = GameState.initial().copy(
-      characters = mapOf(KAI_ID to GameState.initial().characters.getValue(KAI_ID), "iris" to iris),
-      party = PartyState(memberIds = listOf(KAI_ID, "iris")),
+      characters = mapOf(CAO_MINH_ID to GameState.initial().characters.getValue(CAO_MINH_ID), "iris" to iris),
+      party = PartyState(memberIds = listOf(CAO_MINH_ID, "iris")),
       inventories = mapOf(
-        KAI_ID to InventoryState(KAI_ID, mapOf("kai-item" to ItemStack("kai-item", "Cao Minh Item"))),
+        CAO_MINH_ID to InventoryState(CAO_MINH_ID, mapOf("kai-item" to ItemStack("kai-item", "Cao Minh Item"))),
         "iris-pack" to InventoryState("iris-pack", mapOf(
           "b" to ItemStack("b", "Zeta"),
           "a" to ItemStack("a", "Alpha")
         ))
       ),
       equipment = mapOf(
-        KAI_ID to GameState.initial().equipment.getValue(KAI_ID),
+        CAO_MINH_ID to GameState.initial().equipment.getValue(CAO_MINH_ID),
         "iris-kit" to EquipmentState("iris-kit", mapOf("weapon" to "ivory", "armor" to "argus"))
       ),
       statuses = mapOf(injury.id to injury, unrelated.id to unrelated)
@@ -86,8 +86,8 @@ class CharacterDetailProjectionTest {
   @Test fun projectionDoesNotInventMissingData() {
     val unknown = CharacterState("survivor", "Survivor")
     val state = GameState.initial().copy(
-      characters = mapOf(KAI_ID to GameState.initial().characters.getValue(KAI_ID), "survivor" to unknown),
-      party = PartyState(memberIds = listOf(KAI_ID, "survivor"))
+      characters = mapOf(CAO_MINH_ID to GameState.initial().characters.getValue(CAO_MINH_ID), "survivor" to unknown),
+      party = PartyState(memberIds = listOf(CAO_MINH_ID, "survivor"))
     )
 
     val projected = CharacterDetailProjector.projectCharacter(state, "survivor")!!

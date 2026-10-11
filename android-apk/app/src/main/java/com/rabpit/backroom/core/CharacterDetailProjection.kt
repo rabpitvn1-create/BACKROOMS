@@ -103,7 +103,7 @@ object CharacterDetailProjector {
     val equippedDetails = equipment.values.distinct().map { EquipmentCatalog.stackFor(it) }.map(::itemDetail)
     return CharacterDetailProjection(
       id = c.id, name = c.name,
-      avatarRef = if (c.id == KAI_ID) {
+      avatarRef = if (c.id == CAO_MINH_ID) {
         if (equipment["weapon"] == MADGOD_SET_ID) MadGodCanon.AVATAR_ASSET else CAO_MINH_AVATAR_REF
       } else c.avatarRef,
       presence = c.presence,

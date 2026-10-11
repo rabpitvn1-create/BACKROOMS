@@ -1,12 +1,12 @@
 package com.rabpit.backroom.core
 
 const val CURRENT_SAVE_VERSION = 5
-const val KAI_ID = "cao_minh"
+const val CAO_MINH_ID = "cao_minh"
 const val CAO_MINH_AVATAR_REF = "avatars/CAO_MINH_AVATAR.jpg"
-const val KAI_WHITE_WRAITH_ID = "cao_minh:huyet-ma-kiem"
-const val KAI_BLACKBLOOD_ARMOR_ID = "cao_minh:huyet-ma-chien-khai"
+const val CAO_MINH_SWORD_ID = "cao_minh:huyet-ma-kiem"
+const val CAO_MINH_ARMOR_ID = "cao_minh:huyet-ma-chien-khai"
 
-object KaiStartingEquipment {
+object CaoMinhStartingEquipment {
   const val WEAPON_NAME = "Huyết Ma Kiếm"
   const val ARMOR_NAME = "Huyết Ma Chiến Khải"
   const val WW_MAGNUM_DMG = 500
@@ -18,16 +18,16 @@ object KaiStartingEquipment {
   const val BLACKBLOOD_CRIT = 100
 
   val slots: Map<String, String> = linkedMapOf(
-    "weapon" to KAI_WHITE_WRAITH_ID,
-    "armor" to KAI_BLACKBLOOD_ARMOR_ID,
+    "weapon" to CAO_MINH_SWORD_ID,
+    "armor" to CAO_MINH_ARMOR_ID,
   )
 
   fun displayName(itemId: String): String? = when (itemId) {
-    KAI_WHITE_WRAITH_ID -> WEAPON_NAME
-    KAI_BLACKBLOOD_ARMOR_ID -> ARMOR_NAME
-    KAI_DEMON_JAW_MASK_ID -> "Demon Jaw Mask"
-    KAI_TALON_GAUNTLETS_ID -> "Talon Gauntlets"
-    KAI_PHANTOM_GREAVES_ID -> "Phantom Greaves"
+    CAO_MINH_SWORD_ID -> WEAPON_NAME
+    CAO_MINH_ARMOR_ID -> ARMOR_NAME
+    CAO_MINH_DEMON_JAW_MASK_ID -> "Demon Jaw Mask"
+    CAO_MINH_TALON_GAUNTLETS_ID -> "Talon Gauntlets"
+    CAO_MINH_PHANTOM_GREAVES_ID -> "Phantom Greaves"
     else -> null
   }
 
@@ -109,7 +109,7 @@ data class CharacterState(
   val progression: CharacterProgression = CharacterProgression()
 )
 
-data class PartyState(val leaderId: String = KAI_ID, val memberIds: List<String> = listOf(KAI_ID), val maxMembers: Int = 4)
+data class PartyState(val leaderId: String = CAO_MINH_ID, val memberIds: List<String> = listOf(CAO_MINH_ID), val maxMembers: Int = 4)
 
 data class PendingTurn(
   val turnId: String,
@@ -147,8 +147,8 @@ data class GameState(
   companion object {
     fun initial(): GameState = CharacterEquipmentSystem.seedFresh(GameState(
       characters = mapOf(
-        KAI_ID to CharacterState(
-          KAI_ID,
+        CAO_MINH_ID to CharacterState(
+          CAO_MINH_ID,
           "Cao Minh",
           avatarRef = CAO_MINH_AVATAR_REF,
           physiology = PhysiologyState.freshRunBaseline(),
@@ -159,13 +159,13 @@ data class GameState(
         SYVIAL_ID to SpecialFollowersCanon.syvialCharacter()
       ),
       inventories = mapOf(
-        KAI_ID to InventoryState(KAI_ID),
+        CAO_MINH_ID to InventoryState(CAO_MINH_ID),
         AN_NHIEN_ID to AnNhienCanon.inventory(),
         IRIS_ID to InventoryState(IRIS_ID),
         SYVIAL_ID to InventoryState(SYVIAL_ID)
       ),
       equipment = mapOf(
-        KAI_ID to EquipmentState(KAI_ID, KaiStartingEquipment.slots),
+        CAO_MINH_ID to EquipmentState(CAO_MINH_ID, CaoMinhStartingEquipment.slots),
         AN_NHIEN_ID to AnNhienCanon.equipment(),
         IRIS_ID to EquipmentState(IRIS_ID, SpecialFollowersCanon.irisEquipmentSlots),
         SYVIAL_ID to EquipmentState(SYVIAL_ID, SpecialFollowersCanon.syvialEquipmentSlots)

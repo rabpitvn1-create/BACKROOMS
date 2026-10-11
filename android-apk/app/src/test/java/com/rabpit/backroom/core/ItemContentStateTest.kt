@@ -8,7 +8,7 @@ class ItemContentStateTest {
     TestInventoryFixtures.place(GameState.initial(), "water", name, quantity)
 
   private fun use(itemName: String = "water", quantity: Int = 1) = ItemCommand(
-    "use-water", "TURN_1", KAI_ID, source = CommandSource.UI,
+    "use-water", "TURN_1", CAO_MINH_ID, source = CommandSource.UI,
     operation = ItemCommand.Operation.USE, itemId = "water", itemName = itemName, quantity = quantity
   )
 
@@ -16,14 +16,14 @@ class ItemContentStateTest {
     val granted = seeded()
     val result = StateReducer.execute(granted, use())
     assertTrue(result.applied)
-    assertFalse(result.state.inventories.getValue(KAI_ID).items.containsKey("water"))
+    assertFalse(result.state.inventories.getValue(CAO_MINH_ID).items.containsKey("water"))
   }
 
   @Test fun partialStackUsePreservesOnlyRemainingUnits() {
     val granted = seeded(quantity = 3)
     val result = StateReducer.execute(granted, use(quantity = 2))
     assertTrue(result.applied)
-    assertEquals(1, result.state.inventories.getValue(KAI_ID).items.getValue("water").quantity)
+    assertEquals(1, result.state.inventories.getValue(CAO_MINH_ID).items.getValue("water").quantity)
   }
 
   @Test fun fractionalContentAmountsAreRejectedAtUiBoundary() {
