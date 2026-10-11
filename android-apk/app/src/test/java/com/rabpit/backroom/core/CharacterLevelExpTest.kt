@@ -60,6 +60,23 @@ class CharacterLevelExpTest {
     assertEquals(26, detail.getInt("expToNextLevel"))
   }
 
+  @Test fun saveRejectsMissingOrImpossibleCurrentProgression() {
+    val missing = JSONObject(GameStateCodec.encode(GameState.initial()))
+    missing.getJSONObject("characters").getJSONObject(KAI_ID).remove("progression")
+    try {
+      GameStateCodec.decode(missing.toString())
+      fail("missing progression should not silently erase EXP")
+    } catch (_: IllegalArgumentException) {}
+
+    val impossible = JSONObject(GameStateCodec.encode(GameState.initial()))
+    impossible.getJSONObject("characters").getJSONObject(KAI_ID)
+      .getJSONObject("progression").put("exp", 10)
+    try {
+      GameStateCodec.decode(impossible.toString())
+      fail("unspent EXP beyond the current threshold must be rejected")
+    } catch (_: IllegalArgumentException) {}
+  }
+
   @Test fun deadCharactersDoNotReviveWhenLeveling() {
     val state = CharacterStatEngine.setCurrentHp(GameState.initial(), KAI_ID, 0)
     val after = CharacterProgressionCore.grantExp(state, KAI_ID, 10, Random(7)).state
