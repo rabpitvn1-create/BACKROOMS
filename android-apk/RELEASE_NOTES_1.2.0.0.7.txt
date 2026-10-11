@@ -1,0 +1,10 @@
+Backroom 1.2.0.0.7 Debug
+
+- Android versionCode 80; versionName 1.2.0.0.7; applicationId com.rabpit.backroom.
+- Combat Snapshot chuyển nhân vật và Entity theo đúng lượt Combat Core bằng hiệu ứng 3D Coverflow trượt ngang, fade in/out. Người không ở trong lượt bị ẩn, nền Level giữ nguyên; chế độ giảm chuyển động vẫn được hỗ trợ.
+- Game Master kể theo phong cách tiên hiệp pha kinh dị Backrooms, ngôi thứ ba giới hạn; gọi nhân vật chính là Cao Minh hoặc hắn, không gọi bằng "bạn" trong lời trần thuật.
+- Khi người chơi yêu cầu Cao Minh lên tiếng, cách xưng hô phản ánh thân phận Vạn Giới Ma Tôn/Ma Đạo Kiếm Tu. Các nhân vật còn lại giữ đại từ và giọng nói phù hợp xuất thân, thời đại và quan hệ được xác thực: Lục Trầm, Lucia Lục, Iris, Syvial, An Nhiên và NPC khác.
+- Giữ ranh giới ký ức Lục Trầm hậu hồi sinh; không tự suy diễn quan hệ, nội tâm, lựa chọn của Cao Minh hay quyền hạn Game Core.
+- Bổ sung 200 tình huống hồi quy xác định ngôi kể (100 trường hợp phải từ chối, 100 trường hợp phải chấp nhận) cùng kiểm thử luồng combat; chỉ coi thành công nếu CI thực tế xanh.
+- Bản Debug APK được đóng gói và kiểm tra chữ ký, zipalign, nội dung tài sản, version và tải lại từ GitHub Release theo pipeline của dự án.
+- Không bảo đảm khả năng nạp save từ phiên bản cũ; không thêm migration save.
