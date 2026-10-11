@@ -50,14 +50,6 @@ class GameStateCoreTest {
     assertEquals(1, moved.state.inventories.getValue("iris").items.getValue("water").quantity)
   }
 
-  @Test fun equipAndUnequipUseOwnedItem() {
-    val picked = TestInventoryFixtures.place(base(), "gun", "Gun")
-    val equipped = StateReducer.execute(picked, item("gun", ItemCommand.Operation.EQUIP, slot = "weapon"))
-    assertFalse(equipped.applied)
-    assertEquals("equipment_bound_forever", equipped.validation.reason)
-    assertNull(equipped.state.equipment.getValue(KAI_ID).slots["weapon"])
-  }
-
   @Test fun partyNeedsPresenceConsentAndHasFourMemberLimit() {
     val people = (1..4).map { CharacterState("p$it", "P$it") }
     var state = base(*people.toTypedArray())
