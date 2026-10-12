@@ -568,8 +568,11 @@ class GameCoreFacade private constructor(
     val state = loadCurrentState()
     val position = StoryCheckpointCore.current(state)
       ?: return JSONObject().put("needed", false).toString()
-    if (position.nextAddress() == null || StoryMilestonePlan.prepared(state) != null)
+    if (StoryMilestonePlan.prepared(state) != null)
       return JSONObject().put("needed", false).toString()
+    val activePlan = StoryMilestonePlan.current(state)?.plan
+      ?: return JSONObject().put("needed", false).toString()
+    val next = StoryMilestonePlan.nextPosition(position, activePlan)
     val encounterId = StoryMilestoneRuntime.bossEncounterId(state)
       ?: return JSONObject().put("needed", false).toString()
     val fight = CombatRuntime.active(state)
@@ -577,13 +580,16 @@ class GameCoreFacade private constructor(
       return JSONObject().put("needed", false).toString()
     val runToken = state.world["story.runToken"]
       ?: return JSONObject().put("needed", false).toString()
-    val next = position.nextAddress()!!
     val level = JSONObject(state.world["levelJson"] ?: "{}")
+    val targetNode = activePlan.levelEnd?.targetNode
+      ?: level.optString("id", level.optInt("number", 0).toString())
     return JSONObject().put("needed", true)
       .put("runToken", runToken).put("checkpointId", position.id)
       .put("nextCheckpointId", next.id).put("bossEncounterId", encounterId)
       .put("startTurn", CoreClientProjection.turnIndex(state))
-      .put("levelNode", level.optString("id", level.optInt("number", 0).toString()))
+      .put("levelNode", targetNode)
+      .put("isFinalCheckpoint", next.isLast)
+      .put("nextLevelNode", LevelRouteRegistry.node((next.level + 1).toString())?.id ?: "")
       .toString()
   }
 
@@ -631,6 +637,8 @@ class GameCoreFacade private constructor(
       .put("checkpointId", position.id)
       .put("startTurn", CoreClientProjection.turnIndex(state))
       .put("levelNode", levelNode)
+      .put("isFinalCheckpoint", position.isLast)
+      .put("nextLevelNode", LevelRouteRegistry.node((position.level + 1).toString())?.id ?: "")
       .toString()
   }
 
