@@ -50,6 +50,10 @@ test('authored character identities stay separate and source traceable', () => {
     assert.match(r.source.document, /^Google Drive \/Novel\/Asset\/01_Character\//);
   }
   assert.notEqual(records.get('CHAR.LUC_TRAM.AUTHORED').text, records.get('CHAR.LUCIA.AUTHORED').text);
+  // Detailed revival/memory continuity belongs to the confirmed-actor firewall,
+  // not the quick card returned merely because a name was mentioned.
+  assert.doesNotMatch(records.get('CHAR.LUC_TRAM.AUTHORED').text, /quên Cao Minh/i);
+  assert.match(records.get('CHAR.LUC_TRAM.REVIVAL_R06').text, /QUÊN TẤT CẢ VỀ CAO MINH/);
 });
 
 test('runtime uses exact level and Core-confirmed encounter identity', () => {
