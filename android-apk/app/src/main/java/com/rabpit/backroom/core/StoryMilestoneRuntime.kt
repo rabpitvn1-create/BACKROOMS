@@ -45,19 +45,22 @@ object StoryMilestoneRuntime {
   }
 
   /** Strictly bind receipts to the Core-authorized event set of this turn. */
-  fun acceptTurn(state: GameState, receiptJson: String): GameState {
+  fun acceptTurn(
+    state: GameState, receiptJson: String, gmFactsJson: String = "[]"
+  ): GameState {
     val required = due(state)
     val receipts = JSONArray(receiptJson)
     val received = (0 until receipts.length()).map { receipts.getString(it) }
     require(received == required.map { it.id }) { "milestone_receipt_mismatch" }
-    if (received.isEmpty()) return state
+    val updatedMemory = StoryFactLedger.recordTurn(state, required, gmFactsJson)
+    if (received.isEmpty()) return updatedMemory
 
     val previously = appliedIds(state)
     val all = JSONArray().apply {
       previously.sorted().forEach { put(it) }
       received.forEach { put(it) }
     }
-    var updated = state.copy(world = state.world + (APPLIED to all.toString()))
+    var updated = updatedMemory.copy(world = updatedMemory.world + (APPLIED to all.toString()))
     val boss = required.lastOrNull { it.kind == StoryMilestonePlan.Kind.FINAL_ENTITY }
     if (boss != null) {
       require(CombatRuntime.active(updated) == null && BOSS !in updated.world) {
