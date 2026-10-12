@@ -1891,7 +1891,7 @@ public class MainActivity extends Activity {
       "ENTITY ENCOUNTER HARD LOCK: mọi Entity đều có thể xuất hiện tại tất cả Level 0–6 theo cùng một pool. rolls.entityEncounter có tổng xác suất 45% mỗi lượt SEARCH/EXPLORE/EXECUTE hợp lệ; 55% không có Entity mới. Khi success=true và rolls.selectedEntityKey có giá trị, dùng đúng duy nhất key đó do Android chọn. Pool có đủ 22 Entity, gồm roaming thông thường, Jeff/Jane, Slenderman, The Beast of Level 5, Diệp Minh và ba Lifeform. Không được tự tạo Entity khi roll thất bại. " +
       "ENTITY ASSET LOCAL HARD LOCK: hình Entity chỉ lấy từ APK assets/entity qua file:///android_asset/entity/<canonical-key>.webp; cấm mã Entity legacy, alias theo Level, manifest từ xa hoặc ảnh Entity từ mạng. " +
       "LIFEFORM TRIO HARD LOCK: Blackroot Sentinel, Sinew Strider và Hollow Grasper đều thuộc pool chung 45%, mỗi cá thể có xác suất 2% mỗi lượt ở mọi Level; không có roll Lifeform độc lập. Mỗi Lifeform có đúng 3 skill; damage skill là % của Basic Attack, không buff stat ATK, và chỉ gây Bleed/Poison. Ba proc dùng một roll độc quyền theo thứ tự 25% / 20% / 10%, tương ứng 115% / 125% / 140% Basic Attack; skill 1 gây Bleed, skill 2 gây Poison, skill 3 gây Bleed + Poison. " +
-      "JSON bắt buộc: {\"reply\":\"phản hồi Game Master bằng tiếng Việt tự nhiên\",\"ops\":[],\"snapshotEvent\":{\"shouldGenerate\":false,\"kind\":\"\",\"reason\":\"\"}}";
+      "JSON bắt buộc: {\"reply\":\"phản hồi Game Master bằng tiếng Việt tự nhiên\",\"ops\":[],\"milestoneEventIds\":[],\"snapshotEvent\":{\"shouldGenerate\":false,\"kind\":\"\",\"reason\":\"\"}}";
   }
 
   private JSONArray localKnowledgeIssues(JSONObject before, JSONObject generated) throws Exception {
