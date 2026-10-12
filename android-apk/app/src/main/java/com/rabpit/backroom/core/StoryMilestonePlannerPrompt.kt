@@ -14,13 +14,25 @@ object StoryMilestonePlannerPrompt {
     levelNode: String,
     canonPacket: String,
     currentSituation: String,
-    narrativeContinuity: String = "{}"
+    narrativeContinuity: String = "{}",
+    isFinalCheckpoint: Boolean = false,
+    nextLevelNode: String = ""
   ): String {
     require(checkpointId.matches(Regex("CP-L[0-9]{2,}-[0-9]{2,}"))) { "checkpoint_id_invalid" }
     require(absoluteStartTurn >= 1) { "checkpoint_start_turn_invalid" }
     require(levelNode.length in 1..64) { "checkpoint_level_node_invalid" }
     require(canonPacket.length <= 4000 && currentSituation.length <= 1600 &&
       narrativeContinuity.length <= 30000) { "milestone_context_too_large" }
+    if (isFinalCheckpoint) {
+      require(nextLevelNode.isNotBlank() && LevelRouteRegistry.node(nextLevelNode) != null) {
+        "milestone_next_level_unsupported"
+      }
+    }
+    val endingPolicy = if (isFinalCheckpoint)
+      "Đây là CP cuối của Level. BẮT BUỘC có levelEnd với targetNode=$nextLevelNode, " +
+        "nextCheckpointTotal do Gemini chọn 1..100, outcome kể cách Level kết thúc. " +
+        "Core chuyển Level sau trận Entity cuối, không yêu cầu xúc xắc Exit."
+    else "Đây không phải CP cuối. KHÔNG có field levelEnd."
     val entityKeys = CombatRuntime.supportedEntityKeys().joinToString(", ")
     return """
       Vai trò: một Gemini biên kịch Checkpoint trong Backrooms The Game.
@@ -39,6 +51,8 @@ object StoryMilestonePlannerPrompt {
       một Entity hợp lệ; HP và EXP nhân 9 do Core thực thi sau.
       Entity hợp lệ: $entityKeys
 
+      $endingPolicy
+
       Schema bắt buộc version 2:
       {"schemaVersion":2,"checkpointId":"$checkpointId","events":[
       {"id":"beat1","turn":1,"kind":"STORY","event":"<tình tiết>","action":"<hành động diễn ra>","outcome":"<kết quả>"},
@@ -53,7 +67,8 @@ object StoryMilestonePlannerPrompt {
       Đây là KẾT QUẢ TRUYỆN đã ấn định. Khi Combat cuối được Core xác nhận
       kết thúc, Core sẽ chuyển Level theo levelEnd; KHÔNG cần roll Exit,
       HiddenExitStreak, tìm cửa hay bất kỳ điều kiện khác do GM tự thêm.
-      Node chuyển Level phải tồn tại trong LevelRouteRegistry hiện tại.
+      targetNode phải là node đích đã được Core cung cấp trong policy trên,
+      không tự thay route ID bằng địa điểm khác hoặc mở Level chưa hỗ trợ.
       Không ép tường thuật kết quả Combat là thắng nếu Core chưa xác nhận.
       Có thể chọn số Turn, các sự kiện và Entity khác mẫu.
       Với Level 0 đã chốt 20 CP, chỉ CP-L00-20 được có levelEnd.
