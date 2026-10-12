@@ -57,7 +57,7 @@ class StoryMilestonePlanTest {
     reject(plan(entries = JSONArray().put(finale(3)).put(story("late", 4))))
     reject(plan(entries = JSONArray().put(finale(2)).put(finale(3))))
     reject(plan(entries = JSONArray().put(story("b", 0)).put(finale())))
-    reject(plan(entries = JSONArray().put(story("b", 1).remove("outcome")).put(finale())))
+    reject(plan(entries = JSONArray().put(story("b", 1).apply { remove("outcome") }).put(finale())))
   }
 
   @Test fun rejectsWrongCheckpointUnknownEntityOrRewardMultiplier() {
@@ -103,7 +103,13 @@ class StoryMilestonePlanTest {
     assertThrows(IllegalArgumentException::class.java) {
       StoryMilestonePlan.prepareNextDuringCombat(wrong, successor)
     }
-    val fighting = CombatRuntime.start(installed, "hound")
+    val fightingTooEarly = CombatRuntime.start(installed, "hound")
+    assertThrows(IllegalArgumentException::class.java) {
+      StoryMilestonePlan.prepareNextDuringCombat(fightingTooEarly, successor)
+    }
+    // The final event is scheduled at Checkpoint-relative Turn 8.
+    val reachedFinalTurn = (1..7).fold(installed) { current, _ -> CoreClientProjection.advance(current) }
+    val fighting = CombatRuntime.start(reachedFinalTurn, "hound")
     val prepared = StoryMilestonePlan.prepareNextDuringCombat(fighting, successor)
     assertEquals("CP-L00-01", StoryCheckpointCore.current(prepared)!!.id)
     assertEquals("CP-L00-01", StoryMilestonePlan.current(prepared)!!.plan.checkpointId)
