@@ -131,7 +131,12 @@ object StoryFactLedger {
     for (i in (allHistory.length() - 8).coerceAtLeast(0) until allHistory.length()) {
       recent.put(allHistory.get(i))
     }
-    return JSONObject().put("open", open).put("recent", recent).toString()
+    return JSONObject().put("open", open).put("recent", recent)
+      .apply {
+        state.world["story.levelExitLast"]?.let {
+          put("lastLevelExit", JSONObject(it))
+        }
+      }.toString()
   }
 
   private fun readArray(state: GameState, name: String): JSONArray {
