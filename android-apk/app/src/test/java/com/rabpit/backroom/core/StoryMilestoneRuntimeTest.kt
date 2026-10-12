@@ -7,15 +7,18 @@ import org.junit.Test
 
 class StoryMilestoneRuntimeTest {
   private fun plan(checkpoint: String = "CP-L00-01"): String =
-    JSONObject().put("schemaVersion", 1).put("checkpointId", checkpoint)
+    JSONObject().put("schemaVersion", 2).put("checkpointId", checkpoint)
       .put("events", JSONArray()
         .put(JSONObject().put("id", "warning").put("turn", 1)
-          .put("kind", "STORY").put("event", "Có dấu hiệu bất thường")
+          .put("kind", "STORY").put("action", "TEST_ONLY world action").put("event", "Có dấu hiệu bất thường")
           .put("outcome", "Cao Minh nghe thấy dấu hiệu"))
         .put(JSONObject().put("id", "boss").put("turn", 3)
-          .put("kind", "FINAL_ENTITY").put("event", "Hound lao ra")
+          .put("kind", "FINAL_ENTITY").put("action", "TEST_ONLY boss action").put("event", "Hound lao ra")
           .put("outcome", "Combat bắt đầu").put("entityKey", "hound")
           .put("hpMultiplier", 9).put("expMultiplier", 9)))
+      .put("completion", if (checkpoint == "CP-L00-20") JSONObject().put("type", "EXIT_LEVEL")
+        .put("targetNodeId", "1.2").put("nextCheckpointTotal", 3).put("outcome", "TEST_ONLY Level ending")
+        else JSONObject().put("type", "NEXT_CHECKPOINT").put("outcome", "TEST_ONLY completion"))
       .toString()
 
   private fun initial(): GameState =
@@ -102,5 +105,74 @@ class StoryMilestoneRuntimeTest {
     assertEquals("CP-L00-01", StoryCheckpointCore.current(after)!!.id)
     assertNull(StoryMilestoneRuntime.bossResult(after))
     assertEquals(listOf("warning"), StoryMilestoneRuntime.due(after).map { it.id })
+  }
+}
+  @Test fun missedEventFailsExplicitlyInsteadOfReplayingLate() {
+    assertThrows(IllegalArgumentException::class.java) {
+      StoryMilestoneRuntime.due(CoreClientProjection.advance(initial()))
+    }
+  }
+
+  @Test fun escapedBossKeepsCheckpointAndCanResumeSameInstanceWithoutReward() {
+    val warning = StoryMilestoneRuntime.acceptTurn(initial(), "[\"warning\"]")
+    val due = CoreClientProjection.advance(CoreClientProjection.advance(warning))
+    val boss = StoryMilestoneRuntime.acceptTurn(due, "[\"boss\"]")
+    val fight = CombatRuntime.active(boss)!!
+    val escaped = CombatRuntime.resolve(boss.copy(metadata = boss.metadata +
+      mapOf("combat.escapeProgress" to "100", "combat.entityHp" to "50")), "EXECUTE", "bỏ chạy")
+    assertTrue(escaped.escaped)
+    val waiting = StoryMilestoneRuntime.afterCombat(escaped.state, fight.encounterId, false, true)
+    assertFalse(StoryMilestoneRuntime.awaitingPlan(waiting))
+    assertEquals("CP-L00-01", StoryCheckpointCore.current(waiting)!!.id)
+    assertTrue(StoryMilestoneRuntime.canRetryBoss(waiting))
+    assertNull(waiting.metadata["exp.awarded.${fight.encounterId}"])
+    val restored = GameStateCodec.decode(GameStateCodec.encode(waiting))
+    val resumed = StoryMilestoneRuntime.retryBoss(restored)
+    val active = CombatRuntime.active(resumed)!!
+    assertEquals(fight.encounterId, active.encounterId)
+    assertEquals(fight.entityMaxHp, active.entityMaxHp)
+    assertEquals(50, active.entityHp)
+    assertEquals(0, active.escapeProgress)
+    assertNull(StoryMilestoneRuntime.bossResult(resumed))
+    assertFalse(StoryMilestoneRuntime.canRetryBoss(resumed))
+    assertEquals(waiting, StoryMilestoneRuntime.afterCombat(waiting, fight.encounterId, false, true))
+  }
+
+  @Test fun allTwentyCheckpointsEndLevelFromAnyNodeOncePreparedPlanArrives() {
+    var state = StoryCheckpointCore.seedLevelZero(CoreClientProjection.initialize(GameState.initial()))
+    for (index in 1..20) {
+      val cp = StoryCheckpointCore.current(state)!!
+      val root = JSONObject(plan(cp.id))
+      if (cp.isLast) root.put("completion", JSONObject().put("type", "EXIT_LEVEL")
+        .put("targetNodeId", "1.2").put("nextCheckpointTotal", 3)
+        .put("outcome", "TEST_ONLY Level ending"))
+      state = StoryMilestonePlan.installCurrent(state, root.toString())
+      state = StoryMilestoneRuntime.acceptTurn(state, "[\"warning\"]")
+      state = CoreClientProjection.advance(CoreClientProjection.advance(state))
+      state = StoryMilestoneRuntime.acceptTurn(state, "[\"boss\"]")
+      val fight = CombatRuntime.active(state)!!
+      val nextId = if (cp.isLast) "CP-L01-01" else cp.nextAddress()!!.id
+      // Exercise prefetch before conclusion on odd CPs; delayed response on even CPs.
+      if (index % 2 == 1) state = StoryMilestonePlan.prepareNextDuringCombat(state, plan(nextId))
+      state = GameStateCodec.decode(GameStateCodec.encode(state))
+      val defeated = CombatRuntime.resolve(state.copy(metadata = state.metadata +
+        ("combat.entityHp" to "0")), "SEARCH", "quan sát")
+      assertTrue(defeated.entityDestroyed)
+      state = StoryMilestoneRuntime.afterCombat(CoreClientProjection.advance(defeated.state),
+        fight.encounterId, true, false)
+      if (index % 2 == 0) {
+        assertTrue(StoryMilestoneRuntime.awaitingPlan(state))
+        state = StoryMilestoneRuntime.activateIfReady(
+          StoryMilestonePlan.prepareNextDuringCombat(state, plan(nextId)))
+      }
+      assertEquals(nextId, StoryCheckpointCore.current(state)!!.id)
+      assertEquals("18", state.metadata["exp.awarded.${fight.encounterId}"])
+      assertEquals(state, StoryMilestoneRuntime.afterCombat(state, fight.encounterId, true, false))
+    }
+    val restored = GameStateCodec.decode(GameStateCodec.encode(state))
+    assertEquals(StoryCheckpointCore.Position(1, 1, 3), StoryCheckpointCore.current(restored))
+    assertEquals("1.2", JSONObject(restored.world.getValue("levelJson")).getString("id"))
+    assertEquals("TEST_ONLY Level ending", JSONObject(restored.world.getValue("story.milestone.lastCompletion"))
+      .getJSONObject("completion").getString("outcome"))
   }
 }

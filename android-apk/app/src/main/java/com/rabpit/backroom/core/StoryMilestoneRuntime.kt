@@ -19,9 +19,10 @@ object StoryMilestoneRuntime {
     val applied = appliedIds(state)
     val relative = now.toLong() - active.startTurn.toLong() + 1L
     if (relative < 1L) return emptyList()
-    // Pending events are never silently lost if a turn has advanced through
-    // another validated path. Block progression until their receipt is committed.
-    return active.plan.events.filter { it.turn.toLong() <= relative && it.id !in applied }
+    require(active.plan.events.none { it.turn.toLong() < relative && it.id !in applied }) {
+      "milestone_missed_turn_restore_checkpoint"
+    }
+    return active.plan.events.filter { it.turn.toLong() == relative && it.id !in applied }
   }
 
   fun dueJson(state: GameState): String = JSONArray().apply {
@@ -35,8 +36,7 @@ object StoryMilestoneRuntime {
       CombatRuntime.active(state) == null
 
   fun awaitingPlan(state: GameState): Boolean =
-    state.world.containsKey(RESULT) && StoryMilestonePlan.prepared(state) == null &&
-      StoryCheckpointCore.current(state)?.nextAddress() != null
+    state.world[RESULT] == "DEFEATED" && StoryMilestonePlan.prepared(state) == null
 
   private fun appliedIds(state: GameState): Set<String> {
     val raw = state.world[APPLIED] ?: return emptySet()
@@ -80,15 +80,22 @@ object StoryMilestoneRuntime {
     state: GameState, endedEncounterId: String, destroyed: Boolean, escaped: Boolean
   ): GameState {
     if (state.world[BOSS] != endedEncounterId || (!destroyed && !escaped)) return state
-    require(RESULT !in state.world) { "milestone_boss_result_duplicate" }
+    require(CombatRuntime.active(state) == null) { "milestone_combat_not_concluded" }
+    if (destroyed) require(state.metadata.containsKey("exp.awarded.$endedEncounterId")) {
+      "milestone_defeat_not_verified"
+    }
     val result = if (destroyed) "DEFEATED" else "ESCAPED"
+    if (state.world[RESULT] == result) return state
+    require(RESULT !in state.world) { "milestone_boss_result_conflict" }
     return activateIfReady(state.copy(world = state.world + (RESULT to result)))
   }
 
   /** Prepared plan and a concluded Combat are both required to promote a CP. */
   fun activateIfReady(state: GameState): GameState {
-    if (!state.world.containsKey(RESULT) || CombatRuntime.active(state) != null) return state
-    val next = StoryCheckpointCore.current(state)?.nextAddress() ?: return state
+    if (state.world[RESULT] != "DEFEATED" || CombatRuntime.active(state) != null) return state
+    val position = requireNotNull(StoryCheckpointCore.current(state))
+    val active = requireNotNull(StoryMilestonePlan.current(state))
+    val next = active.plan.completion.nextAddress(position)
     val prepared = StoryMilestonePlan.prepared(state) ?: return state
     require(prepared.checkpointId == next.id) { "milestone_next_checkpoint_mismatch" }
     val world = state.world.toMutableMap()
@@ -96,10 +103,44 @@ object StoryMilestoneRuntime {
       .forEach(world::remove)
     world["story.checkpoint"] = JSONObject()
       .put("level", next.level).put("index", next.index).put("total", next.total).toString()
+    if (active.plan.completion.type == StoryMilestonePlan.CompletionType.EXIT_LEVEL) {
+      val target = requireNotNull(LevelRouteRegistry.node(active.plan.completion.targetNodeId))
+      world["levelJson"] = target.asJson().toString()
+      world["location"] = target.location()
+      world["title"] = target.title()
+      val flags = JSONObject(world["flagsJson"] ?: "{}")
+      flags.put("currentLevel", target.asJson()).put("entityEncounterKey", "")
+      // Old Exit readiness has no authority in the newly authored Level.
+      flags.optJSONObject("exploration")?.let { exploration ->
+        exploration.put(HiddenExitStreak.STREAK_KEY, 0).put("exitReady", false).put("transitionReady", false)
+        listOf("confirmedExit", "exitCandidate", "exitProgress").forEach(exploration::remove)
+      }
+      flags.remove("exitProgress")
+      flags.remove("exitChanceThreshold")
+      world["flagsJson"] = flags.toString()
+    }
+    world["story.milestone.lastCompletion"] = JSONObject()
+      .put("id", "${state.world[BOSS]}:${position.id}")
+      .put("checkpointId", position.id).put("turn", CoreClientProjection.turnIndex(state))
+      .put("bossEncounterId", state.world[BOSS]).put("bossResult", "DEFEATED")
+      .put("completion", active.plan.completion.toJson()).toString()
     val switched = state.copy(world = world)
     return StoryMilestonePlan.installCurrent(switched, prepared.toJson().toString())
   }
 
   fun bossEncounterId(state: GameState): String? = state.world[BOSS]
   fun bossResult(state: GameState): String? = state.world[RESULT]
+
+  fun canRetryBoss(state: GameState): Boolean = state.world[RESULT] == "ESCAPED" &&
+    state.world.containsKey("story.milestone.suspendedBoss") && CombatRuntime.active(state) == null
+
+  fun retryBoss(state: GameState): GameState {
+    require(canRetryBoss(state)) { "milestone_boss_retry_unavailable" }
+    val resumed = CombatRuntime.resumeMilestoneBoss(state)
+    val fight = requireNotNull(CombatRuntime.active(resumed))
+    require(fight.encounterId == state.world[BOSS]) { "milestone_boss_retry_mismatch" }
+    val flags = JSONObject(resumed.world["flagsJson"] ?: "{}").put("entityEncounterKey", fight.entityKey)
+    return resumed.copy(world = (resumed.world - RESULT) + ("flagsJson" to flags.toString()))
+  }
 }
+

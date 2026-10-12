@@ -43,7 +43,7 @@ object CoreClientProjection {
     val out = JSONObject(client.toString())
     for (key in arrayOf("turn", "saveVersion", "inventory", "party", "partyDetails",
       "equipment", "player", "coreSystem", "combat", "combatFeedback", "gameTime",
-      "location", "title", "level", "flags")) out.remove(key)
+      "location", "title", "level", "flags", "story")) out.remove(key)
     out.put("turn", turnIndex(state))
     out.put("saveVersion", CURRENT_SAVE_VERSION)
     out.put("location", state.world.getValue("location"))
@@ -81,7 +81,14 @@ object CoreClientProjection {
       PokerDiceCore.diceJson(state)?.let { combat.put("diceState", it) }
       out.put("combat", combat)
     }
+    out.put("story", JSONObject()
+      .put("runToken", state.world["story.runToken"].orEmpty())
+      .put("checkpointId", StoryCheckpointCore.current(state)?.id.orEmpty())
+      .put("bossRetry", StoryMilestoneRuntime.canRetryBoss(state))
+      .put("waiting", StoryMilestoneRuntime.awaitingPlan(state))
+      .apply { state.world["story.milestone.lastCompletion"]?.let { put("lastCompletion", JSONObject(it)) } })
     out.put("coreSystem", PokerDiceCore.statsJson(state, CAO_MINH_ID))
     return out
   }
 }
+

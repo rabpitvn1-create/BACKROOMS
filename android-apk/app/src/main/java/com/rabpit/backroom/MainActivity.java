@@ -1147,7 +1147,7 @@ public class MainActivity extends Activity {
     if (requested == null) throw new Exception("Current environment node is invalid.");
 
     boolean changed = !requested.id.equals(oldId);
-    if (changed && (!canTransition(before, rolls) ||
+    if (changed && (!canTransition(before, rolls, requested) ||
         !LevelRouteRegistry.canMove(oldId, requested.id) || !playerTraverses(action))) {
       LevelRouteRegistry.Node safe = previous;
       candidateState.put("level", before.optJSONObject("level") == null
@@ -1334,14 +1334,14 @@ public class MainActivity extends Activity {
     JSONObject anNhienRead = thresholdRoll("anNhienRead", 10000, 2000, anNhienFollowing && search && exitIntent, " Khoan, Để Tôi Đọc Cái Này");
     rolls.put("anNhienRead", anNhienRead);
     if (anNhienRead.optBoolean("success", false)) exitThreshold = Math.min(10000, exitThreshold + 2000);
-    JSONObject exitProbe = thresholdRoll("exitProbe", 10000, exitThreshold, exitIntent && (physical || search),
+    JSONObject exitProbe = thresholdRoll("exitProbe", 10000, exitThreshold, exitIntent && (physical || search) && !requireGameCore().milestoneHasPlan(),
       anNhienRead.optBoolean("success", false) ? " discovery clue +2% An Nhiên +20% đọc dấu Exit" : (anNhienFollowing ? " discovery clue +2% An Nhiên" : " discovery clue"));
     rolls.put("exitProbe", exitProbe);
     JSONObject hiddenExitRoll = thresholdRoll("_hiddenExitStreak", 100,
       com.rabpit.backroom.core.HiddenExitStreak.SUCCESS_PERCENT,
-      exploreAction && !com.rabpit.backroom.core.HiddenExitStreak.ready(state), "");
+      exploreAction && !requireGameCore().milestoneHasPlan() && !com.rabpit.backroom.core.HiddenExitStreak.ready(state), "");
     rolls.put(com.rabpit.backroom.core.HiddenExitStreak.ROLL_KEY, hiddenExitRoll);
-    boolean hiddenExitReady = com.rabpit.backroom.core.HiddenExitStreak.projectedReady(state, rolls);
+    boolean hiddenExitReady = !requireGameCore().milestoneHasPlan() && com.rabpit.backroom.core.HiddenExitStreak.projectedReady(state, rolls);
     JSONObject authoritativeExit = new JSONObject()
       .put("label", "levelExit")
       .put("dice", "none")
@@ -1388,7 +1388,24 @@ public class MainActivity extends Activity {
     }
   }
 
-  private boolean canTransition(JSONObject before, JSONObject rolls) {
+  private String milestoneRoutingContext(JSONObject before) throws Exception {
+    if (!requireGameCore().milestoneHasPlan()) return LevelRouteRegistry.gmRoutingContext(currentNodeId(before));
+    LevelRouteRegistry.Node current = LevelRouteRegistry.node(currentNodeId(before));
+    java.util.List<String> local = new java.util.ArrayList<>();
+    for (String id : LevelRouteRegistry.exits(current.id)) {
+      if (LevelRouteRegistry.node(id).parent == current.parent) local.add(id);
+    }
+    return "CORE ENVIRONMENT ADDRESS: node=" + current.id + ", parent=" + current.parent +
+      "; supported local movements=" + local + ". Player-directed local movement remains available. " +
+      "Only Gemini Milestone completion may end the parent Level. No HiddenExitStreak gate. " +
+      "These are runtime addresses, not independent lore sources; use approved Canon cards for environment facts.";
+  }
+
+  private boolean canTransition(JSONObject before, JSONObject rolls, LevelRouteRegistry.Node requested) throws Exception {
+    if (requireGameCore().milestoneHasPlan()) {
+      LevelRouteRegistry.Node current = LevelRouteRegistry.node(currentNodeId(before));
+      return current != null && requested != null && requested.parent == current.parent;
+    }
     return com.rabpit.backroom.core.HiddenExitStreak.projectedReady(before, rolls);
   }
 
@@ -1546,8 +1563,9 @@ public class MainActivity extends Activity {
 
       if (type.equals("set_level")) {
         JSONObject level = op.optJSONObject("level");
-        if (level == null || !canTransition(before, rolls)) continue;
+        if (level == null) continue;
         LevelRouteRegistry.Node requested = LevelRouteRegistry.requested(level);
+        if (!canTransition(before, rolls, requested)) continue;
         if (requested == null || requested.id.equals(currentNodeId(before)) ||
             !LevelRouteRegistry.canMove(currentNodeId(before), requested.id) ||
             !playerTraverses(action)) continue;
@@ -1862,14 +1880,14 @@ public class MainActivity extends Activity {
   private String writerPrompt(JSONObject before, String action, JSONObject rolls, JSONArray auditFeedback) throws Exception {
     JSONObject visibleRolls = new JSONObject(rolls.toString());
     visibleRolls.remove(com.rabpit.backroom.core.HiddenExitStreak.ROLL_KEY);
-    String hiddenExitDirective = com.rabpit.backroom.core.HiddenExitStreak.gmDirective(before, rolls);
+    String hiddenExitDirective = requireGameCore().milestoneHasPlan() ? "" : com.rabpit.backroom.core.HiddenExitStreak.gmDirective(before, rolls);
     String actionRuntimeContext = requireGameCore().currentActionContext();
     JSONArray dueMilestones = new JSONArray(requireGameCore().milestoneDueEvents());
     boolean scripted = requireGameCore().milestoneHasPlan();
     String milestoneDirective = scripted
       ? "MILESTONE AUTHORITY: Gemini đã khóa kế hoạch Checkpoint. " +
-        "Không kích hoạt Entity ngẫu nhiên và không tự chuyển Checkpoint. " +
-        "Các event/outcome sau là BẮT BUỘC tại Turn này: " + dueMilestones.toString() +
+        "Không kích hoạt Entity ngẫu nhiên, không tự chuyển Checkpoint hay main Level. " +
+        "Các action/event/outcome sau là BẮT BUỘC tại Turn này: " + dueMilestones.toString() +
         ". GM tự nhiên hóa lời kể nhưng KHÔNG sửa kết quả. " +
         "JSON response phải có milestoneEventIds là mảng đúng thứ tự ID của các event vừa kể, " +
         "hoặc [] nếu không có event đến hạn. FINAL_ENTITY chỉ tuyên bố Combat bắt đầu, " +
@@ -1882,7 +1900,7 @@ public class MainActivity extends Activity {
        "EXPLORE".equals(actionKindForPrompt) ? "EXPLORE HARD LOCK: chủ động mở rộng known space và có thể đổi location; EXPLORE roll Entity theo cùng cơ chế với SEARCH và EXECUTE; có thể gặp Entity hoặc Survivor, hazard/exit opportunity nhưng không đảm bảo Exit; nếu có lựa chọn định hướng quan trọng thì trả quyền quyết định cho người chơi. " :
        "EXECUTE HARD LOCK: đây là freeform intent của người chơi; phân giải đúng hành động đã nhập, không tự đổi mục tiêu; EXECUTE vẫn roll Entity và có thể khởi tạo roaming encounter mới. ");
     actionDirective = actionDirective + "\n" + hiddenExitDirective + "\n" +
-      LevelRouteRegistry.gmRoutingContext(currentNodeId(before));
+      milestoneRoutingContext(before);
     String packet = com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.build(
       MainActivity.this, before.toString(), action, visibleRolls.toString());
     String feedback = auditFeedback != null && auditFeedback.length() > 0
@@ -1964,7 +1982,7 @@ public class MainActivity extends Activity {
     // The planner receives a small state excerpt, never the complete client save.
     if (scene.length() > 1500) scene = scene.substring(0, 1500);
     String prompt = com.rabpit.backroom.core.StoryMilestonePlannerPrompt.build(
-      checkpointId, startTurn, nodeId, canon, scene);
+      checkpointId, startTurn, nodeId, canon, scene, request.getInt("checkpointTotal"));
     // No audit/writer routing and no parallel requests to five keys.
     String rawPlan = geminiTextPolicy(prompt, -1, 0.5, 2600, false);
     boolean saved = requireGameCore().installMilestonePlan(
@@ -1982,6 +2000,13 @@ public class MainActivity extends Activity {
       auditIo.execute(() -> {
         try {
           JSONObject view = new JSONObject(requireGameCore().currentClientState(currentView));
+          JSONObject targetLevel = lease.getJSONObject("targetLevel");
+          view.put("level", targetLevel);
+          LevelRouteRegistry.Node targetNode = LevelRouteRegistry.node(targetLevel.getString("id"));
+          view.put("location", targetNode.location()).put("title", targetNode.title());
+          view.remove("combat");
+          JSONObject futureFlags = view.optJSONObject("flags");
+          if (futureFlags != null) futureFlags.put("currentLevel", targetLevel).put("entityEncounterKey", "");
           String canon = com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.build(
             MainActivity.this, view.toString(), "", "{}");
           JSONObject scene = new JSONObject()
@@ -1993,7 +2018,7 @@ public class MainActivity extends Activity {
           if (shortScene.length() > 1500) shortScene = shortScene.substring(0, 1500);
           String prompt = com.rabpit.backroom.core.StoryMilestonePlannerPrompt.build(
             lease.getString("nextCheckpointId"), lease.getInt("startTurn"),
-            lease.getString("levelNode"), canon, shortScene);
+            lease.getString("levelNode"), canon, shortScene, lease.getInt("checkpointTotal"));
           String raw = geminiTextPolicy(prompt, -1, 0.5, 2600, false);
           boolean accepted = requireGameCore().installNextMilestone(
             raw, lease.getString("runToken"), lease.getString("checkpointId"),
@@ -2012,6 +2037,10 @@ public class MainActivity extends Activity {
   }
 
   private class GameBridge {
+    @JavascriptInterface public String retryMilestoneBoss(String stateJson) {
+      try { return requireGameCore().retryMilestoneBoss(stateJson); }
+      catch (Exception error) { return "{\"handled\":false,\"error\":\"milestone_retry_rejected\"}"; }
+    }
     @JavascriptInterface public String currentClientState(String stateJson) {
       try {
         return requireGameCore().currentClientState(stateJson);
@@ -2160,7 +2189,7 @@ public class MainActivity extends Activity {
           String newNodeId = currentNodeId(state);
           boolean levelChanged = !oldNodeId.equals(newNodeId);
           boolean transitionAccepted = !levelChanged ||
-            (canTransition(before, rolls) && playerTraverses(action) &&
+            (canTransition(before, rolls, LevelRouteRegistry.node(newNodeId)) && playerTraverses(action) &&
              LevelRouteRegistry.canMove(oldNodeId, newNodeId));
           if (!transitionAccepted) {
             LevelRouteRegistry.Node previous = LevelRouteRegistry.node(oldNodeId);
@@ -2178,7 +2207,7 @@ public class MainActivity extends Activity {
             if (flags == null) flags = new JSONObject();
             flags.put("currentLevel", LevelRouteRegistry.node(newNodeId).asJson());
             state.put("flags", flags);
-            com.rabpit.backroom.core.HiddenExitStreak.apply(before, state, rolls, oldNodeId, newNodeId);
+            if (!requireGameCore().milestoneHasPlan()) com.rabpit.backroom.core.HiddenExitStreak.apply(before, state, rolls, oldNodeId, newNodeId);
             flags = state.optJSONObject("flags");
             flags.put("lastAudit", new JSONObject()
               .put("risk", risk)
@@ -2300,3 +2329,4 @@ public class MainActivity extends Activity {
     HttpError(int status, String message) { super(message); this.status = status; }
   }
 }
+
