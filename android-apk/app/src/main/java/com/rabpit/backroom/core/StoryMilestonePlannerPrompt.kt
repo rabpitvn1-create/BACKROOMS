@@ -20,7 +20,7 @@ object StoryMilestonePlannerPrompt {
     require(absoluteStartTurn >= 1) { "checkpoint_start_turn_invalid" }
     require(levelNode.length in 1..64) { "checkpoint_level_node_invalid" }
     require(canonPacket.length <= 4000 && currentSituation.length <= 1600 &&
-      narrativeContinuity.length <= 22000) { "milestone_context_too_large" }
+      narrativeContinuity.length <= 30000) { "milestone_context_too_large" }
     val entityKeys = CombatRuntime.supportedEntityKeys().joinToString(", ")
     return """
       Vai trò: một Gemini biên kịch Checkpoint trong Backrooms The Game.
