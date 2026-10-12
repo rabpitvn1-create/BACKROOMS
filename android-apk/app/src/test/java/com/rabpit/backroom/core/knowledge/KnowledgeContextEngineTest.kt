@@ -87,4 +87,24 @@ class KnowledgeContextEngineTest {
     assertTrue(result.contains("<WRITING.PLAYER_AGENCY>"))
     assertFalse(result.contains("<CHAR.CAO_MINH.AUTHORED>"))
   }
+
+  @Test fun fullPartyAndLargeContinuityPreserveKnowledgeHardLocksWithinBudget() {
+    val state = JSONObject().put("turn", 40)
+      .put("level", JSONObject().put("number", 4).put("id", "4"))
+      .put("party", org.json.JSONArray().apply {
+        for (id in listOf("iris", "syvial", "luc_tram"))
+          put(JSONObject().put("id", id).put("presence", "ACTIVE"))
+      })
+      .put("flags", JSONObject().put("storyContinuity", "TEST_ONLY".repeat(1000)))
+      .put("log", org.json.JSONArray().apply {
+        repeat(4) { put(JSONObject().put("role", "gm").put("text", "TEST_ONLY".repeat(100))) }
+      })
+    val result = packet(state.toString())
+    assertTrue(result.length <= KnowledgeContextEngine.HARD_CONTEXT_CEILING * 4)
+    for (id in listOf("CHAR.IRIS.RUNTIME_CORE", "CHAR.SYVIAL.RUNTIME_CORE",
+      "CHAR.LUC_TRAM.REVIVAL_R06", "CHAR.LUC_TRAM.OPEN_R06", "WRITING.KNOWLEDGE_BOUNDARY")) {
+      assertTrue(id, result.contains("<$id>"))
+    }
+    assertTrue(result.endsWith("[END_KNOWLEDGE_PACKET]"))
+  }
 }

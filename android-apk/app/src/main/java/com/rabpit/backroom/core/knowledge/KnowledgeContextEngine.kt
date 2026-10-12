@@ -145,15 +145,31 @@ object KnowledgeContextEngine {
       addStateDrivenRecords()
       expandReferences()
 
-      val packet = StringBuilder()
-      packet.append("[KNOWLEDGE_PACKET v1]\n")
-      packet.append("Budget target=").append(TARGET_CONTEXT_BUDGET)
-        .append(" soft=").append(SOFT_CONTEXT_CEILING)
-        .append(" hard=").append(HARD_CONTEXT_CEILING).append('\n')
-      packet.append("Present actors: ").append(presentActors.joinToString(", ")).append('\n')
-      packet.append("Current state:\n").append(compactState()).append('\n')
-      packet.append("Recent dialogue buffer:\n").append(recentDialogue()).append('\n')
-      packet.append("Retrieved records:\n")
+      val mandatoryCost = selected.values.filter { it.priority <= 30 }.sumOf { estimateTokens(renderRecord(it)) }
+      var stateSummary = compactState()
+      val dialogue = JSONArray(recentDialogue())
+      var compacted = false
+      fun header(): String = buildString {
+        append("[KNOWLEDGE_PACKET v1]\n")
+        append("Budget target=").append(TARGET_CONTEXT_BUDGET)
+          .append(" soft=").append(SOFT_CONTEXT_CEILING)
+          .append(" hard=").append(HARD_CONTEXT_CEILING).append('\n')
+        append("Present actors: ").append(presentActors.joinToString(", ")).append('\n')
+        if (compacted) append("Optional state/dialogue compacted to preserve mandatory Canon.\n")
+        append("Current state:\n").append(stateSummary).append('\n')
+        append("Recent dialogue buffer:\n").append(dialogue.toString()).append('\n')
+        append("Retrieved records:\n")
+      }
+      if (estimateTokens(header() + "[END_KNOWLEDGE_PACKET]") + mandatoryCost > HARD_CONTEXT_CEILING) {
+        stateSummary = essentialState()
+        compacted = true
+      }
+      while (dialogue.length() > 0 &&
+        estimateTokens(header() + "[END_KNOWLEDGE_PACKET]") + mandatoryCost > HARD_CONTEXT_CEILING) {
+        dialogue.remove(0)
+        compacted = true
+      }
+      val packet = StringBuilder(header())
       val records = budgetedRecords(packet.toString())
       records.forEach { record ->
         packet.append(renderRecord(record))
@@ -476,6 +492,20 @@ object KnowledgeContextEngine {
       }
       return clipped(out.toString(), 5200)
     }
+
+    private fun essentialState(): String = JSONObject()
+      .put("turn", state.optInt("turn", 1))
+      .put("level", state.optJSONObject("level") ?: JSONObject().put("number", currentLevel()))
+      .put("location", clipped(state.optString("location"), 200))
+      .put("presentActors", JSONArray(presentActors.toList()))
+      .apply {
+        state.optJSONObject("player")?.let { player ->
+          put("player", JSONObject().apply {
+            if (player.has("hp")) put("hp", player.get("hp"))
+            put("condition", clipped(player.optString("condition"), 100))
+          })
+        }
+      }.toString()
 
     private fun recentDialogue(): String {
       val log = state.optJSONArray("log") ?: return "[]"
