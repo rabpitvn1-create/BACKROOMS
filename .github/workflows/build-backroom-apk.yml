@@ -320,3 +320,49 @@ jobs:
           git add release-status/v1.2.0.0.12.txt release-status/v1.2.0.0.12-running.txt
           git commit -m 'Record verified Backroom 1.2.0.0.12 debug release'
           git push origin "HEAD:${GITHUB_REF_NAME}"
+
+      - name: Remove retired branches after verified release
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python - <<'PY_CLEANUP'
+          import json, os, subprocess
+          def api(path, *args):
+              result = subprocess.run(['gh', 'api', path, *args], check=True, capture_output=True, text=True)
+              return json.loads(result.stdout) if result.stdout.strip() else None
+          repo = os.environ['GITHUB_REPOSITORY']
+          retired = {
+              'backup/main-before-artifact-37614837202': '10bf6012d2f8f36e892e534f9cf9642cf09be93c',
+              'canon/luc-tram-drive-r06-20261011': '743a0eb4a5d312bcf7fafe683de8945e8de9c16b',
+              'feature/luc-tram-level4-encounter-20261011': '2c2f254e051c89025c7da49a7fcd852ce21f5833',
+              'fix/transient-combat-feedback-panel': '01d58b638be65dea66f3df5e574b4c11b502e6cc',
+              'fix/transient-combat-feedback-panel-v2': '25eabc95cdcfc0e7e3af1e8e2cf944a6ec0e412e',
+              'ops/publish-artifact-37614837202': 'cbc56dfc55b3f714364f61b5f74eb11369ddba81',
+              'release/1.2.0.0.10': '8de068ff34cc541c199fa3afa45150ac7d96c7dd',
+          }
+          pr = api(f'repos/{repo}/pulls/588')
+          if not pr['merged'] or pr['head']['ref'] != 'feat/combat-impact-integration':
+              raise RuntimeError('PR #588 must be merged before branch cleanup')
+          retired[pr['head']['ref']] = pr['head']['sha']
+          branches = {b['name']: b['commit']['sha'] for b in api(f'repos/{repo}/branches?per_page=100')}
+          if not any(name in branches for name in retired):
+              print('Retired branches already removed')
+              raise SystemExit(0)
+          open_heads = {p['head']['ref'] for p in api(f'repos/{repo}/pulls?state=open&per_page=100')}
+          for name, sha in retired.items():
+              if name in branches and (branches[name] != sha or name in open_heads):
+                  raise RuntimeError(f'Branch changed or still has an open PR: {name}')
+          for name in retired:
+              if name in branches:
+                  current = api(f'repos/{repo}/git/ref/heads/{name}')['object']['sha']
+                  if current != retired[name]:
+                      raise RuntimeError(f'Branch advanced during cleanup: {name}')
+                  api(f'repos/{repo}/git/refs/heads/{name}', '--method', 'DELETE')
+                  print(f'Deleted retired branch: {name}')
+          remaining = [b['name'] for b in api(f'repos/{repo}/branches?per_page=100')]
+          if remaining != ['main']:
+              raise RuntimeError(f'Unexpected remaining branches: {remaining}')
+          print('Branch cleanup verified: main only')
+          PY_CLEANUP
