@@ -1866,6 +1866,7 @@ public class MainActivity extends Activity {
     String actionRuntimeContext = requireGameCore().currentActionContext();
     JSONArray dueMilestones = new JSONArray(requireGameCore().milestoneDueEvents());
     boolean scripted = requireGameCore().milestoneHasPlan();
+    String partyReality = requireGameCore().milestonePartyHealthContext();
     String milestoneDirective = scripted
       ? "MILESTONE AUTHORITY: Gemini đã khóa kế hoạch Checkpoint. " +
         "Không kích hoạt Entity ngẫu nhiên và không tự chuyển Checkpoint. " +
@@ -1874,7 +1875,10 @@ public class MainActivity extends Activity {
         "JSON response phải có milestoneEventIds là mảng đúng thứ tự ID của các event vừa kể, " +
         "hoặc [] nếu không có event đến hạn. FINAL_ENTITY chỉ tuyên bố Combat bắt đầu, " +
         "Game Core sẽ tự tạo Boss, không dùng ops tự tạo. " +
-        "Chỉ dẫn Milestone này ưu tiên hơn các chỉ dẫn RNG Encounter bên dưới. "
+        "Các injury/HP effect do Game Core thực thi sau khi nhận event ID, " +
+        "GM tuyệt đối không tự sửa HP, status hoặc tuyên bố hệ quả cơ học khác. " +
+        "Trạng thái HP và thương tích thật của Party ngay trước lượt: " + partyReality +
+        ". Chỉ dẫn Milestone này ưu tiên hơn các chỉ dẫn RNG Encounter bên dưới. "
       : "";
     String actionKindForPrompt = new JSONObject(actionRuntimeContext).optString("kind", "EXECUTE");
     String actionDirective = "ACTION TYPE = " + actionKindForPrompt + ". " +
