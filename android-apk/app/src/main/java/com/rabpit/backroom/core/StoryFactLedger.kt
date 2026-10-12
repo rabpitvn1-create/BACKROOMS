@@ -79,7 +79,7 @@ object StoryFactLedger {
       val key = "MS:$position:${event.id}"
       history.put(JSONObject().put("id", key).put("turn", turn)
         .put("kind", if (event.kind == StoryMilestonePlan.Kind.FINAL_ENTITY) "ENTITY" else "EVENT")
-        .put("fact", "${event.event} → ${event.outcome}".take(500))
+        .put("fact", "${event.event} → ${event.action} → ${event.outcome}".take(500))
         .put("source", "MILESTONE"))
       event.storyFacts.forEach { add(it, "MILESTONE:$key") }
     }
