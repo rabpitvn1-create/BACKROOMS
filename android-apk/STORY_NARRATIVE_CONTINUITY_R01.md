@@ -2,54 +2,48 @@
 
 ## Quyết định kiến trúc
 
-**Lời kể và gameplay là hai lớp độc lập.** Một sự kiện trong truyện có thể tồn tại xuyên nhiều Level mà **không** đụng HP, Poison, Inventory, Equipment, kỹ năng hoặc Combat. Game Core chỉ áp dụng tác động Combat nếu đã có **hợp đồng gameplay riêng** (ví dụ FINAL_ENTITY ở Bước 6), không suy đoán tác động từ câu chữ.
+**Lời kể của GM và gameplay là hai hệ thống độc lập.** Một dữ kiện truyện có thể còn hiệu lực qua nhiều Level, nhưng việc ghi nhớ nó không trực tiếp chỉnh HP, Status, Combat, Equipment, kỹ năng hoặc Inventory. Chỉ các sự kiện có hợp đồng Game Core riêng mới được tác động đến gameplay, ví dụ FINAL_ENTITY của Bước 6.
 
-Ví dụ:
-- Level 0: Lucia mất M4A1 trong truyện, ký ức `EVENT: lucia.m4a1` còn OPEN. Level 6, GM nhớ súng chưa được tìm lại nhưng Combat Lucia vẫn có thể dùng M4A1 theo cơ chế hiện hữu.
-- Level 0: Cao Minh trúng độc trong truyện, ký ức `EVENT: cao_minh.poisoned` còn OPEN. Combat vẫn không bị gán Poison hoặc mất HP.
-- Một clue hoặc Entity đã được xác nhận có thể được lưu bằng `CLUE` hoặc `ENTITY` để Gemini biên kịch tiếp và GM không tự biến mất dữ kiện.
+**Không có tình tiết truyện được xác lập từ ví dụ minh họa, tài liệu kỹ thuật hoặc dữ liệu kiểm thử.** Chỉ kịch bản thực sự được Gemini tạo trong game, các dữ kiện được GM xác thực và những trạng thái game có nguồn mới được lưu vào continuity.
 
-## Sử dụng các hệ thống hiện có
+## Trách nhiệm
 
-- `StoryContinuityReducer` hiện hữu tiếp tục truy ra những thay đổi Level, Party, communication và registry từ dữ liệu đã xác thực. Nó vẫn có bộ đệm sự kiện giới hạn 12; **không được dùng bộ đệm đó để xác định sự kiện truyện nào đã hết hiệu lực.**
-- `StoryFactLedger` lưu những dữ kiện quan trọng còn hiệu lực (OPEN) trong `GameState.world["story.factLedger"]`, cùng một bản lịch sử đã khép lại / Milestone được commit (gần nhất 96). Không tự xóa dữ kiện OPEN theo Level hay theo số Turn. Giới hạn 48 OPEN facts; nếu quá ngưỡng, từ chối thêm mới rõ ràng, không âm thầm loại dữ kiện cũ.
-- Gemini Planner thêm `storyFacts` tùy chọn cho một event trong Milestone. Ví dụ:
+- `StoryContinuityReducer` hiện có ghi những thay đổi Level, Party, communication và registry đã xác thực. `storyContinuity.events` là bộ đệm tối đa 12 sự kiện gần nhất, **không phải** nguồn để kết luận một chuyện đã hết hiệu lực.
+- `StoryFactLedger` lưu những dữ kiện có ý nghĩa lâu dài trong `GameState.world["story.factLedger"]`: tất cả facts chưa giải quyết (OPEN), và lịch sử đã commit (giới hạn 96 bản ghi gần nhất).
+- Các loại fact: `EVENT` (sự kiện truyện), `ENTITY` (Entity đã có bằng chứng được xác nhận), `CLUE` (manh mối đã phát hiện).
+- Gemini có thể thêm `storyFacts` vào mỗi event Milestone. **Chưa tới Turn và chưa commit thì không được ghi fact như thể đã xảy ra.**
+- GM trả `storyFacts` mỗi lượt gồm các thao tác `ADD` hoặc `RESOLVE`, hoặc mảng trống `[]` khi không có dữ kiện bền vững mới.
+- `StoryFactLedger.context` gửi tất cả facts OPEN cùng lịch sử gần đây cho Gemini và GM, kể cả khi đã qua nhiều Level. Không đưa chúng sang API Combat/Inventory.
+
+## Hợp đồng dữ liệu
+
+Định dạng, không phải kịch bản mặc định:
+
 ```json
 {
-  "id": "loss",
-  "turn": 2,
-  "kind": "STORY",
-  "event": "Lucia làm rơi súng",
-  "outcome": "M4A1 biến mất trong hành lang",
   "storyFacts": [
-    {"kind": "EVENT", "subject": "lucia.m4a1", "fact": "Lucia mất M4A1 tại Level 0"}
+    {"op": "ADD", "kind": "CLUE", "subject": "fact.key", "fact": "Nội dung thực tế từ lượt chơi"}
   ]
 }
 ```
-Fact trong Milestone chỉ được ghi khi **event đã thực sự được nhận và commit**. Mọi Milestone đã xảy ra còn được lưu vào `history` với event ID, ngay cả khi không khai báo facts.
 
-- GM trả `storyFacts:[]` mỗi lượt; chỉ ghi thêm **dữ kiện mới có ý nghĩa lâu dài**:
-  - `{"op":"ADD","kind":"EVENT","subject":"lucia.m4a1","fact":"Lucia mất M4A1 trong truyện"}`
-  - `{"op":"ADD","kind":"CLUE","subject":"door.mark.red","fact":"Người chơi nhìn thấy ký hiệu đỏ trên cửa"}`
-  - `{"op":"ADD","kind":"ENTITY","subject":"hound","fact":"Hound được xác nhận xuất hiện tại hành lang"}`, chỉ chấp nhận khi Entity đã có bằng chứng xuất hiện trong Game State hoặc Milestone.
-  - `{"op":"RESOLVE","referenceId":"FACT:CP-L00-01:2:0","fact":"Lucia tìm lại khẩu M4A1 trong truyện"}`; chỉ đóng fact đang OPEN và phải có tình tiết hợp lệ trong lời kể.
-- Cùng `subject` + `kind` đã OPEN thì không thể âm thầm thay nội dung; cần RESOLVE trước khi cập nhật sự thật khác. Re-send đúng fact được xem là idempotent.
-- Core sinh ID và kiểm tra các field/enum/độ dài/khoản mục; không chấp nhận extra fields hoặc Entity key lạ. Ledger được commit cùng lượt đã được Core xác thực, sau đó Save/Load bảo toàn dữ kiện.
-- `StoryFactLedger.context` cung cấp **mọi fact OPEN** (bao gồm từ Level 0) cộng lịch sử gần đây cho Gemini và GM, độc lập với bộ đệm `storyContinuity.events` giới hạn 12.
+- `ADD`: `kind` phải thuộc EVENT, ENTITY, CLUE; `subject` là mã truy xuất bền vững; `fact` phải mô tả dữ kiện thực sự được xác nhận trong lượt chơi.
+- `RESOLVE`: tham chiếu chính xác `referenceId` của fact đang OPEN; chỉ đánh dấu kết thúc khi có tình tiết giải quyết hợp lệ.
+- Fact đã OPEN không thể bị đổi nội dung âm thầm. Cùng `subject` và `kind` nhưng nội dung mâu thuẫn phải được giải quyết rõ ràng.
+- Entity fact phải có key tồn tại trong Combat Core và có bằng chứng encounter hợp lệ.
+- Core sinh ID, kiểm tra kiểu/trường/độ dài; ghi facts và receipt sự kiện trong cùng lần commit hợp lệ, Save/Load bảo toàn.
+- Quá 48 facts OPEN sẽ báo lỗi rõ, không âm thầm xóa để nhường chỗ.
 
-## Không thay đổi gameplay
+## Những gì không làm
 
-Không thay các file `CombatRuntime`, `EntityExpRewards`, `LuciaCanon`, `CharacterEquipmentSystem`, `StateReducer`. Không có effect INJURY, trừ HP tự động, thêm status, xóa trang bị, thay kỹ năng, phát item hay tự chuyển Level từ lời kể.
+Không chỉnh `CombatRuntime`, `EntityExpRewards`, `LuciaCanon`, `CharacterEquipmentSystem` hoặc `StateReducer` cho các dữ kiện lời kể. Không đưa ví dụ trao đổi với tác giả vào Gemini prompt, Canon Registry, kịch bản Level, hoặc bản ghi Save khởi tạo.
 
-`StoryFactLedger` chỉ ghi world narrative memory. Nó không phải nguồn quyền hạn của Combat; Entity trong Combat vẫn do Game Core xác nhận. Clue có thể là thông tin mà GM nhận ra trong lời kể; schema không tự chứng minh clue là sự thật Canon khi chưa có bộ semantic validator.
+## Giới hạn
 
-## Những điểm chưa tự nhận đã giải quyết
+- Chưa có bảo đảm rằng GM tự phát hiện và ghi lại 100% tình tiết đáng nhớ. Bộ kiểm tra hiện xác nhận hợp đồng dữ liệu, không chứng minh mọi câu văn đúng ngữ nghĩa.
+- Clue do GM ghi là dữ kiện truyện, chưa tự chứng minh nó là Canon chính thức.
+- Đến ngưỡng facts OPEN sẽ cần chính sách hợp nhất có chứng cứ; không được cắt bớt các facts quan trọng một cách âm thầm.
 
-- Không thể bảo đảm 100% mỗi ý trong văn xuôi của AI đều có bản ghi `storyFacts` tương ứng. Hiện prompt bắt buộc GM trả mảng, và repair lỗi cấu trúc; tính đúng ngữ nghĩa vẫn là vấn đề cần audit riêng.
-- Quá 48 fact OPEN thì Core từ chối ghi thêm, không âm thầm quên. Cần tiêu chí gộp/tóm tắt có kiểm chứng nếu chiến dịch dài đạt giới hạn.
-- `storyContinuity` cũ và ledger narrative có mục đích khác nhau. Không nên xóa bộ ghi nhận biến động Level/Party đã có, cũng không lấy việc hết 12 sự kiện gần nhất làm bằng chứng sự kiện đã khép lại.
-- Các PR #590–#594 chưa merge; PR #595 này thay thế implementation INJURY trước đó và phải được tích hợp tuần tự, sau CI.
+## Kiểm thử
 
-## Kiểm tra hồi quy
-
-Lưu facts qua Save/Load và đổi Level 0→6; sự kiện mất M4A1/trúng độc không thay HP/Status/Equipment/Inventory; giữ fact OPEN sau hơn 12 Turn; RESOLVE rõ ràng mới đóng; Entity phải có bằng chứng; dữ liệu sai bị từ chối; Milestone fact chỉ được ghi sau receipt đã commit.
+Chỉ dùng định danh và nội dung **TEST_ONLY** để kiểm tra: Save/Load, dữ kiện OPEN tồn tại qua nhiều Turn/Level, ADD/RESOLVE, receipt đúng Turn, từ chối Entity chưa xác nhận, chống mâu thuẫn, và xác nhận việc ghi ký ức không chỉnh HP/Status/Equipment/Inventory. Các fixtures không được tải như nội dung truyện khi chạy game.
