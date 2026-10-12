@@ -11,18 +11,22 @@ class StoryMilestonePlanTest {
 
   private fun story(id: String, turn: Int): JSONObject = JSONObject()
     .put("id", id).put("turn", turn).put("kind", "STORY")
-    .put("event", "Biến cố $id sẽ xảy ra").put("outcome", "Kết quả $id bắt buộc")
+    .put("action", "TEST_ONLY_ACTION").put("event", "Biến cố $id sẽ xảy ra").put("outcome", "Kết quả $id bắt buộc")
 
   private fun finale(turn: Int = 8, entity: String = "hound"): JSONObject = JSONObject()
     .put("id", "boss").put("turn", turn).put("kind", "FINAL_ENTITY")
-    .put("event", "Hound xuất hiện").put("outcome", "Combat được bắt đầu")
+    .put("action", "TEST_ONLY_ACTION").put("event", "Hound xuất hiện").put("outcome", "Combat được bắt đầu")
     .put("entityKey", entity).put("hpMultiplier", 9).put("expMultiplier", 9)
 
   private fun plan(checkpoint: String = "CP-L00-01",
                    entries: JSONArray = JSONArray().put(story("beat1", 1))
                      .put(story("beat2", 3)).put(finale())): String =
-    JSONObject().put("schemaVersion", 1).put("checkpointId", checkpoint)
-      .put("events", entries).toString()
+    JSONObject().put("schemaVersion", 2).put("checkpointId", checkpoint)
+      .put("events", entries).apply {
+        if (checkpoint == "CP-L00-20") put("levelEnd", JSONObject()
+          .put("targetNode", "1").put("nextCheckpointTotal", 5)
+          .put("outcome", "TEST_ONLY_LEVEL_END"))
+      }.toString()
 
   private fun reject(raw: String) {
     assertThrows(Exception::class.java) {
@@ -66,7 +70,7 @@ class StoryMilestonePlanTest {
     reject(plan(entries = JSONArray().put(finale().put("hpMultiplier", 8))))
     reject(plan(entries = JSONArray().put(finale().put("expMultiplier", 10))))
     reject(plan(entries = JSONArray().put(finale().put("required", false))))
-    reject(JSONObject(plan()).put("schemaVersion", 2).toString())
+    reject(JSONObject(plan()).put("schemaVersion", 1).toString())
     reject(JSONObject(plan()).put("extraGMInstructions", "override outcomes").toString())
   }
 
@@ -107,10 +111,12 @@ class StoryMilestonePlanTest {
     assertThrows(IllegalArgumentException::class.java) {
       StoryMilestonePlan.prepareNextDuringCombat(fightingTooEarly, successor)
     }
-    // The final event is scheduled at Checkpoint-relative Turn 8.
-    val reachedFinalTurn = (1..7).fold(installed) { current, _ -> CoreClientProjection.advance(current) }
-    val fighting = StoryMilestoneRuntime.acceptTurn(
-      reachedFinalTurn, JSONArray().put("beat1").put("beat2").put("boss").toString())
+    // Commit each due event on its Gemini-authored Turn, never late.
+    val afterFirst = StoryMilestoneRuntime.acceptTurn(installed, "[\\"beat1\\"]")
+    val onThree = CoreClientProjection.advance(CoreClientProjection.advance(afterFirst))
+    val afterSecond = StoryMilestoneRuntime.acceptTurn(onThree, "[\\"beat2\\"]")
+    val reachedFinalTurn = (1..5).fold(afterSecond) { current, _ -> CoreClientProjection.advance(current) }
+    val fighting = StoryMilestoneRuntime.acceptTurn(reachedFinalTurn, "[\\"boss\\"]")
     val prepared = StoryMilestonePlan.prepareNextDuringCombat(fighting, successor)
     assertEquals("CP-L00-01", StoryCheckpointCore.current(prepared)!!.id)
     assertEquals("CP-L00-01", StoryMilestonePlan.current(prepared)!!.plan.checkpointId)
@@ -125,14 +131,26 @@ class StoryMilestonePlanTest {
     }
   }
 
-  @Test fun cannotSilentlyPlanLevelOneAfterLastLevelZeroCheckpoint() {
+  @Test fun finalCheckpointRequiresGeminiLevelEndingAndDeterminesNextCheckpoint() {
     val first = state()
     val atLast = first.copy(world = first.world +
       ("story.checkpoint" to JSONObject().put("level", 0).put("index", 20).put("total", 20).toString()))
-    val active = StoryMilestonePlan.installCurrent(atLast, plan(checkpoint = "CP-L00-20"))
-    val fighting = CombatRuntime.start(active, "hound")
-    assertThrows(IllegalArgumentException::class.java) {
-      StoryMilestonePlan.prepareNextDuringCombat(fighting, plan(checkpoint = "CP-L01-01"))
+    val current = StoryMilestonePlan.parse(plan("CP-L00-20"), StoryCheckpointCore.Position(0, 20, 20))
+    val next = StoryMilestonePlan.nextPosition(StoryCheckpointCore.Position(0, 20, 20), current)
+    assertEquals("CP-L01-01", next.id)
+    assertEquals(5, next.total)
+    assertEquals("1", current.levelEnd!!.targetNode)
+    assertThrows(Exception::class.java) {
+      StoryMilestonePlan.parse(
+        JSONObject(plan("CP-L00-20")).apply { remove("levelEnd") }.toString(),
+        StoryCheckpointCore.Position(0, 20, 20))
     }
+    assertThrows(Exception::class.java) {
+      StoryMilestonePlan.parse(
+        JSONObject(plan("CP-L00-20")).apply { getJSONObject("levelEnd").put("targetNode", "6") }.toString(),
+        StoryCheckpointCore.Position(0, 20, 20))
+    }
+    assertEquals("CP-L00-20", StoryMilestonePlan.installCurrent(atLast, plan("CP-L00-20"))
+      .let { StoryCheckpointCore.current(it)!!.id })
   }
 }
