@@ -131,11 +131,13 @@ object CombatRuntime {
     val sourceName: String = "",
     val entityName: String = "",
     val remainingHp: Int? = null,
-    val maxHp: Int? = null
+    val maxHp: Int? = null,
+    val outcome: String = "hit"
   ) {
     fun toJson(): JSONObject = JSONObject().apply {
-      put("target", target); put("actorId", actorId); put("text", "-$amount HP")
-      put("critical", critical); put("flash", true); put("phase", phase)
+      put("target", target); put("actorId", actorId)
+      put("outcome", outcome); put("text", if (outcome == "miss") "MISS" else "-$amount HP")
+      put("critical", critical); put("flash", outcome == "hit"); put("phase", phase)
       put("skill", skill); put("sourceName", sourceName); put("entityName", entityName)
       remainingHp?.let { put("remainingHp", it) }
       maxHp?.let { put("maxHp", it) }
@@ -308,15 +310,22 @@ object CombatRuntime {
     fun recordFeedback(target: String, before: Int, after: Int,
                        critical: Boolean = false, status: FeedbackStatus? = null,
                        phase: String = "actor", actorId: String = currentActingId,
-                       skill: String = "đánh thường") {
+                       skill: String = "đánh thường", outcome: String = "hit") {
       val amount = (before - after).coerceAtLeast(0)
       if (amount > 0) feedback += DamageFeedback(
         target, amount, critical, status, actorId = actorId, phase = phase, skill = skill,
         sourceName = if (target == "entity") resolvedState.characters[actorId]?.name ?: actorId else c.entityName,
         entityName = c.entityName,
         remainingHp = if (target == "entity") after else null,
-        maxHp = if (target == "entity") c.entityMaxHp else null
+        maxHp = if (target == "entity") c.entityMaxHp else null, outcome = outcome
       )
+    }
+    fun recordMiss(target: String, actorId: String = currentActingId,
+                   phase: String = "actor", skill: String = "đánh thường") {
+      feedback += DamageFeedback(target, 0, actorId = actorId, phase = phase,
+        skill = skill, sourceName = if (target == "entity")
+          resolvedState.characters[actorId]?.name ?: actorId else c.entityName,
+        entityName = c.entityName, outcome = "miss")
     }
     var lifeformBleedTurns = state.metadata[LIFEFORM_BLEED_TURNS_KEY]?.toIntOrNull()?.coerceIn(0, LIFEFORM_BLEED_TURNS) ?: 0
     var lifeformPoisonTurns = state.metadata[LIFEFORM_POISON_TURNS_KEY]?.toIntOrNull()?.coerceIn(0, LIFEFORM_POISON_TURNS) ?: 0
@@ -339,7 +348,7 @@ object CombatRuntime {
         val damage = max(1, c.entityMaxHp * percent / 100)
         val hp = max(0, c.entityHp - damage)
         recordFeedback("entity", c.entityHp, hp, status = status, actorId = LUCIA_ID,
-          skill = if (status == FeedbackStatus.BLEED) "Rending Burst" else "Toxic/Corrosive Burst")
+          skill = if (status == FeedbackStatus.BLEED) "Rending Burst" else "Toxic/Corrosive Burst", outcome = "tick")
         c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
         log += "Lucia M4A1 ${status.label}: -${damage} HP."
       }
@@ -364,7 +373,7 @@ object CombatRuntime {
         if (spec[3] == "bleed" || spec[3] == "poison") {
           val damage = c.entityMaxHp * spec[4].toInt() / 100
           val hp = max(0, c.entityHp - damage)
-          recordFeedback("entity", c.entityHp, hp, status = feedbackStatus(spec[3]), skill = spec[0])
+          recordFeedback("entity", c.entityHp, hp, status = feedbackStatus(spec[3]), skill = spec[0], outcome = "tick")
           c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
           log += "${spec[0]}: -$damage HP (${spec[3]})."
         }
@@ -382,7 +391,7 @@ object CombatRuntime {
     if (c.playerHp > 0 && lifeformBleedTurns > 0) {
       val bleedDamage = percentDamage(c.playerMaxHp, LIFEFORM_BLEED_MAX_HP_PERCENT)
       val hp = max(0, c.playerHp - bleedDamage)
-      recordFeedback("actor", c.playerHp, hp, status = FeedbackStatus.BLEED, phase = "entity")
+      recordFeedback("actor", c.playerHp, hp, status = FeedbackStatus.BLEED, phase = "entity", outcome = "tick")
       c = c.copy(playerHp = hp)
       lifeformBleedTurns = max(0, lifeformBleedTurns - 1)
       resolvedState = withLifeformCounter(resolvedState, LIFEFORM_BLEED_TURNS_KEY, lifeformBleedTurns)
@@ -391,7 +400,7 @@ object CombatRuntime {
     if (c.playerHp > 0 && lifeformPoisonTurns > 0) {
       val poisonDamage = percentDamage(c.playerMaxHp, LIFEFORM_POISON_MAX_HP_PERCENT)
       val hp = max(0, c.playerHp - poisonDamage)
-      recordFeedback("actor", c.playerHp, hp, status = FeedbackStatus.POISON, phase = "entity")
+      recordFeedback("actor", c.playerHp, hp, status = FeedbackStatus.POISON, phase = "entity", outcome = "tick")
       c = c.copy(playerHp = hp)
       lifeformPoisonTurns = max(0, lifeformPoisonTurns - 1)
       resolvedState = withLifeformCounter(resolvedState, LIFEFORM_POISON_TURNS_KEY, lifeformPoisonTurns)
@@ -571,6 +580,7 @@ object CombatRuntime {
           log += "Đòn đánh trúng ${c.entityName}: -$damage HP (${c.entityHp}/${c.entityMaxHp})."
         } else {
           c = c.copy(momentum = max(-3, c.momentum - 1), opening = max(0, c.opening - 1), noise = min(100, c.noise + 28))
+          recordMiss("entity")
           log += if (entityEvaded) "${c.entityName} né đòn (25% evasion) và giành lại áp lực." else "Đòn đánh trượt; ${c.entityName} giành lại áp lực."
         }
             // PARTY_ATTACK_GCO_GATE_V1
@@ -706,7 +716,10 @@ object CombatRuntime {
                       log += "${proc.name}: +${proc.damageBonus}% DMG (-$bonus HP), " +
                         "${proc.status.label} ${proc.turns} turn."
                     }
-                  } else log += "Lucia \"Lục\" cũng khai hỏa nhưng phát bắn không trúng mục tiêu; Burst không kích hoạt."
+                  } else {
+                    recordMiss("entity", LUCIA_ID)
+                    log += "Lucia \"Lục\" cũng khai hỏa nhưng phát bắn không trúng mục tiêu; Burst không kích hoạt."
+                  }
                 }
               }
             }
@@ -727,6 +740,7 @@ object CombatRuntime {
             c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 10))
             log += "Iris thực hiện lệnh TẤN CÔNG bằng Ivory & Ebony: -$damage HP (${c.entityHp}/${c.entityMaxHp})."
           } else {
+            recordMiss("entity", IRIS_ID)
             log += "Iris thực hiện lệnh TẤN CÔNG nhưng loạt bắn không trúng mục tiêu."
           }
         }
@@ -804,6 +818,7 @@ object CombatRuntime {
             c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 12))
             log += "Syvial thực hiện lệnh TẤN CÔNG bằng GodKiller: -$damage HP (${c.entityHp}/${c.entityMaxHp})."
           } else {
+            recordMiss("entity", SYVIAL_ID)
             log += "Syvial thực hiện lệnh TẤN CÔNG nhưng Entity tránh được nhát chém."
           }
         }
@@ -894,6 +909,7 @@ object CombatRuntime {
                     c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
                     log += "$technique: Lục Trầm gây -$damage HP (${c.entityHp}/${c.entityMaxHp})."
                   } else {
+                    recordMiss("entity", LUC_TRAM_ID, skill = technique)
                     log += "$technique: đòn đánh không trúng hoặc bị né, không bỏ qua Accuracy/Evasion."
                   }
                 }
@@ -926,6 +942,7 @@ object CombatRuntime {
                   c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
                   log += "${actor.name} tấn công: -$damage HP (${c.entityHp}/${c.entityMaxHp})."
                 } else {
+                  recordMiss("entity", actorId)
                   log += "${actor.name} tấn công nhưng trượt."
                 }
               }
@@ -945,7 +962,7 @@ object CombatRuntime {
       val hp = max(0, c.entityHp - bleedDamage)
       bleedTurns = max(0, bleedTurns - 1)
       resolvedState = withCombatCounter(resolvedState, CAO_MINH_BLEED_TURNS_KEY, bleedTurns)
-      recordFeedback("entity", c.entityHp, hp, status = FeedbackStatus.BLEED, actorId = CAO_MINH_ID, skill = "Huyết Ma Tứ Liên")
+      recordFeedback("entity", c.entityHp, hp, status = FeedbackStatus.BLEED, actorId = CAO_MINH_ID, skill = "Huyết Ma Tứ Liên", outcome = "tick")
       c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
       log += "Bleeding từ Huyết Ma Tứ Liên gây -$bleedDamage HP (${CAO_MINH_FOUR_SLASH_BLEED_MAX_HP_PERCENT}% Max HP; ${c.entityHp}/${c.entityMaxHp}); còn $bleedTurns turn."
     }
@@ -955,7 +972,7 @@ object CombatRuntime {
       val hp = max(0, c.entityHp - bleedDamage)
       syvialBleedTurns = max(0, syvialBleedTurns - 1)
       resolvedState = withCombatCounter(resolvedState, SYVIAL_BLEED_TURNS_KEY, syvialBleedTurns)
-      recordFeedback("entity", c.entityHp, hp, status = FeedbackStatus.BLEED, actorId = SYVIAL_ID, skill = "Crimson Guillotine")
+      recordFeedback("entity", c.entityHp, hp, status = FeedbackStatus.BLEED, actorId = SYVIAL_ID, skill = "Crimson Guillotine", outcome = "tick")
       c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
       log += "Bleeding từ Crimson Guillotine gây -$bleedDamage HP (4% Max HP; ${c.entityHp}/${c.entityMaxHp}); còn $syvialBleedTurns turn."
     }
@@ -1035,8 +1052,10 @@ object CombatRuntime {
         }
         resolvedState = sharedHit.state
         sharedHit.damageByMember.forEach { (memberId, loss) ->
-          feedback += DamageFeedback("actor", loss, actorId = memberId, phase = "entity")
+          feedback += DamageFeedback("actor", loss, actorId = memberId, phase = "entity",
+            critical = memberId in sharedHit.criticalIds)
         }
+        sharedHit.dodgedIds.forEach { recordMiss("actor", it, phase = "entity") }
         c = c.copy(
           playerHp = resolvedState.characters[CAO_MINH_ID]?.vitalState?.currentHp ?: c.playerHp,
           momentum = max(-3, c.momentum - 1)
@@ -1069,6 +1088,7 @@ object CombatRuntime {
           (if (dodged.isNotEmpty()) " Né tránh: $dodged." else "") +
           (if (critical.isNotEmpty()) " CRIT 400%: $critical." else "")
       } else {
+        recordMiss("actor", CAO_MINH_ID, phase = "entity")
         log += if (quickStepTurns > 0) {
           "Thiên Ma Bộ khiến ${c.entityName} hụt đòn; +${CAO_MINH_QUICK_STEP_EVASION_BONUS_PERCENT}% Evasion đang hoạt động."
         } else {
@@ -1097,6 +1117,7 @@ object CombatRuntime {
             c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
             log += "Tịch Quang Phản Kiếm: Lục Trầm dẫn lực, phản kiếm -$damage HP."
           } else {
+            recordMiss("entity", LUC_TRAM_ID, phase = "entity", skill = "Tịch Quang Phản Kiếm")
             log += "Tịch Quang Phản Kiếm: Lục Trầm đổi trục nhưng phản kiếm không trúng."
           }
         }

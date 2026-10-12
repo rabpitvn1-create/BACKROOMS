@@ -3,6 +3,8 @@
 (function(){
   'use strict';
   var seen=[],animationToken=0;
+  var motionEffects=[],overlayMotions=new WeakMap();
+  var HIT_STEP_MS=630,FLOAT_MS=1200,CONTACT_MS=180;
   var combatLogEncounter='',combatPanel=null,combatPanelMeta=null,combatPanelList=null;
   var turnIndicator=null,turnName=null,turnDetail=null,lastPartyActor='Cao Minh';
 
@@ -185,6 +187,9 @@
   }
   function appendDamageLine(e){
     if(!e||e.target!=='entity')return;
+    if(e.outcome==='miss'){
+      appendCombatLine('actor',String(e.sourceName||lastPartyActor)+' tấn công Trượt '+String(e.entityName||'Entity'));return;
+    }
     var match=String(e.text||'').match(/^-([0-9]+) HP$/);
     var damage=match?Number(match[1]):0;if(!damage)return;
     var name=String(e.sourceName||lastPartyActor);
@@ -200,36 +205,106 @@
     window.__combatFeedbackBusy=!!value;
     if(typeof window.ensureDirectCombatDice==='function')window.ensureDirectCombatDice();
   }
-  function targetAnchor(target){
+  function reducedMotion(){
+    return typeof window.matchMedia==='function'&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+  function stopCombatMotion(){
+    motionEffects.splice(0).forEach(function(animation){animation.cancel();});
+    var box=document.getElementById('snapshot');
+    if(box)Array.prototype.forEach.call(box.querySelectorAll('.combat-impact,.combat-player-hit-edge,.combat-float'),function(n){n.remove();});
+    if(typeof document.querySelectorAll==='function')Array.prototype.forEach.call(
+      document.querySelectorAll('.party-member .combat-impact,.party-member .combat-float'),function(n){n.remove();});
+  }
+  function animateCombat(el,frames,duration){
+    if(!el||!el.isConnected||typeof el.animate!=='function')return;
+    var animation=el.animate(frames,{duration:duration,easing:'linear'});
+    motionEffects.push(animation);
+    animation.onfinish=animation.oncancel=function(){
+      var at=motionEffects.indexOf(animation);if(at!==-1)motionEffects.splice(at,1);
+    };
+    return animation;
+  }
+  // Contact motion owns transform only; turn coverflow owns translate/rotate/scale.
+  // Preserve the native Entity's resting transform instead of resetting its anchor.
+  function moveCombatOverlay(el,amount,kind){
+    if(reducedMotion()||!el||typeof window.getComputedStyle!=='function')return;
+    var previous=overlayMotions.get(el);if(previous)previous.cancel();
+    var base=window.getComputedStyle(el).transform;
+    if(base==='none')base='';
+    var rest='translateX(0px) '+base,peak='translateX('+amount+'px) '+base;
+    var frames=kind==='attack'?
+      [{transform:rest,offset:0},{transform:peak,offset:180/480,easing:'ease-out'},
+       {transform:peak,offset:250/480,easing:'ease-out'},{transform:rest,offset:1}]:
+      kind==='dodge'?
+      [{transform:rest,offset:0,easing:'ease-out'},{transform:peak,offset:.42,easing:'ease-in-out'},
+       {transform:rest,offset:1}]:
+      [{transform:rest,offset:0,easing:'ease-out'},{transform:peak,offset:.275},
+       {transform:peak,offset:.45,easing:'ease-out'},{transform:rest,offset:1}];
+    var motion=animateCombat(el,frames,kind==='attack'?480:kind==='dodge'?420:400);
+    if(motion)overlayMotions.set(el,motion);
+  }
+  function targetAnchor(target,actorId){
     var box=document.getElementById('snapshot');
     if(!box)return null;
-    var el=box.querySelector(target==='entity'?'.snapshot-entity':'.snapshot-character');
-    if(!el)return null;
+    var focus=String(box.dataset.combatFocus||'cao_minh');
+    var wanted=String(actorId||'cao_minh');
+    var selector=target==='entity'?'.snapshot-entity':
+      wanted===focus?(wanted==='cao_minh'?'.snapshot-character':wanted==='lucia'?'.snapshot-lucia':'.combat-turn-avatar'):'';
+    var el=selector&&box.querySelector(selector);
+    // Off-screen Party damage belongs to that member's card, never Cao Minh's overlay.
+    if(!el&&target==='actor'&&typeof document.querySelectorAll==='function'){
+      var cards=document.querySelectorAll('.party-member[data-character]');
+      for(var i=0;i<cards.length;i++)if(cards[i].dataset.character===wanted){
+        box=cards[i];el=box.querySelector('img')||box;break;
+      }
+    }
+    if(!el||!el.isConnected||el.style.opacity==='0')return null;
     var br=box.getBoundingClientRect(),er=el.getBoundingClientRect();
+    if(er.width<=0||er.height<=0)return null;
     return {box:box,el:el,x:Math.max(16,Math.min(br.width-16,er.left-br.left+er.width/2)),
       y:Math.max(br.height*.34,Math.min(br.height-16,er.top-br.top+er.height*.34))};
   }
+  function playAttackMotion(e){
+    if(e.outcome==='tick')return;
+    var source=e.target==='entity'?targetAnchor('actor',e.actorId):targetAnchor('entity');
+    if(source)moveCombatOverlay(source.el,e.target==='entity'?-14:14,'attack');
+  }
+  function transientEffect(anchor,className,duration){
+    var node=document.createElement('div');node.className=className;
+    node.setAttribute('aria-hidden','true');
+    node.style.left=anchor.x+'px';
+    node.style.top=(anchor.y+(className.indexOf('combat-impact')===0?28:0))+'px';anchor.box.appendChild(node);
+    node.addEventListener('animationend',function(){node.remove();},{once:true});
+    setTimeout(function(){node.remove();},duration+50);
+  }
   window.backroomPlayCombatFeedback=function(event,fallback){
-    var e=event||{},text=String(e.text||'').trim();
-    if(!/^-\d+ HP$/i.test(text)||Number(text.slice(1,-3))<=0)return;
+    var e=event||{},text=String(e.text||'').trim(),miss=e.outcome==='miss';
+    if(miss?text!=='MISS':(!/^-\d+ HP$/i.test(text)||Number(text.slice(1,-3))<=0))return;
     if(e.target!=='entity'&&e.target!=='actor')return;
-    // The current Snapshot displays Cao Minh. Do not attribute a teammate's damage to him.
-    if(e.target==='actor'&&e.actorId&&e.actorId!=='cao_minh')return;
-    var target=e.target,anchor=targetAnchor(target)||fallback;
+    var target=e.target,anchor=targetAnchor(target,e.actorId);
+    // A stale fallback from a previous render/wave must not receive new feedback.
     if(!anchor)return;
-    if(e.flash&&anchor.el&&anchor.el.isConnected){
-      anchor.el.classList.remove('combat-hit-flash');void anchor.el.offsetWidth;
-      anchor.el.classList.add('combat-hit-flash');
-      setTimeout(function(){anchor.el.classList.remove('combat-hit-flash')},170);
+    if(miss){
+      moveCombatOverlay(anchor.el,target==='entity'?-11:11,'dodge');
+    }else if(e.outcome==='tick'){
+      animateCombat(anchor.el,[{filter:'none'},{filter:e.status==='Trúng độc'?'sepia(1) saturate(2) hue-rotate(230deg)':'sepia(1) saturate(2) hue-rotate(320deg)'},{filter:'none'}],250);
+    }else if(e.flash){
+      moveCombatOverlay(anchor.el,(target==='entity'?-1:1)*(e.critical===true?10:6),'hit');
+      animateCombat(anchor.el,[{filter:'none'},{filter:'brightness(2.4) drop-shadow(0 0 5px #fff)'},{filter:'none'}],140);
+      transientEffect(anchor,'combat-impact'+(e.critical===true?' combat-impact--critical':''),320);
+      if(target==='actor'&&anchor.box.id==='snapshot')transientEffect(anchor,'combat-player-hit-edge',200);
     }
     var active=anchor.box.querySelectorAll('.combat-float[data-target="'+target+'"]'),lane=0,occupied=[];
     for(var i=0;i<active.length;i++)occupied.push(Number(active[i].dataset.lane));
     while(occupied.indexOf(lane)!==-1)lane++;
     var floater=document.createElement('div');floater.className='combat-float';floater.dataset.target=target;floater.dataset.lane=String(lane);
-    if(e.critical===true)floater.classList.add('combat-float--critical');
+    if(miss)floater.classList.add('combat-float--miss');
+    else if(e.critical===true)floater.classList.add('combat-float--critical');
     var value=document.createElement('span');value.className='combat-float-value';value.textContent=text;floater.appendChild(value);
     var status=combatStatusVisual(e.status);
-    if(status){
+    if(miss){
+      // MISS is the full label; do not attach an attack/status badge.
+    }else if(status){
       floater.classList.add('combat-float--status','combat-float--status-'+status.key);
       var badge=document.createElement('span');badge.className='combat-float-status combat-float-status--'+status.key;
       badge.textContent=status.label;value.insertBefore(badge,value.firstChild);
@@ -238,9 +313,9 @@
       var normalBadge=document.createElement('span');normalBadge.className='combat-float-status combat-float-status--normal';
       normalBadge.textContent='Đánh thường';value.insertBefore(normalBadge,value.firstChild);
     }
-    floater.style.left=anchor.x+'px';floater.style.top=(anchor.y-lane*38)+'px';anchor.box.appendChild(floater);
+    floater.style.left=anchor.x+'px';floater.style.top=(anchor.y-18-lane*38)+'px';anchor.box.appendChild(floater);
     floater.addEventListener('animationend',function(){floater.remove()},{once:true});
-    setTimeout(function(){floater.remove()},1800);
+    setTimeout(function(){floater.remove()},FLOAT_MS+50);
   };
 
 
@@ -252,6 +327,7 @@
     if(kind==='actor'){showNow(cue.actorName||'Cao Minh');focusCombatActor(cue.actorId);}
     else if(kind==='entity'){showNow('Cao Minh');focusCombatActor('cao_minh');}
     else if(kind==='wave'&&cue.entityKey&&typeof window.backroomSwitchCombatEntityWave==='function'){
+      stopCombatMotion();
       window.backroomSwitchCombatEntityWave(cue.entityKey,cue.waveNumber);
     }
     // Keep the last Party fighter in NOW while Entity counterattacks.
@@ -267,9 +343,7 @@
       var hasSupportSkill=details.some(function(v){return /Quăng Đại Cái Gì Đó/.test(String(v));});
       details.forEach(function(d){
         var line=String(d||'');
-        if(/(?:trượt|né đòn|không trúng|tránh được)/i.test(line))
-          appendCombatLine('actor',String(cue.actorName||'Đồng đội')+' tấn công Trượt '+String(cue.entityName||'Entity'));
-        else if(/Quăng Đại Cái Gì Đó/.test(line))
+        if(/Quăng Đại Cái Gì Đó/.test(line))
           appendCombatLine('actor','An Nhiên sử dụng [Quăng Đại Cái Gì Đó] hỗ trợ cả nhóm');
         else if(/An Nhiên thực hiện lệnh TẤN CÔNG theo vai trò hỗ trợ/.test(line)&&!hasSupportSkill)
           appendCombatLine('actor','An Nhiên hỗ trợ cả nhóm');
@@ -297,18 +371,24 @@
     if(!cues.length)return null;
     var reduced=typeof window.matchMedia==='function'&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var spinTime=reduced?90:800,clock=0,endTime=0,covered=0;
-    function damageAt(e,when){
-      if(!e||(e.target!=='actor'&&e.target!=='entity'))return;
+    function damageAt(e,when,skipAttack){
+      if(!e||(e.target!=='actor'&&e.target!=='entity'))return when;
       var available=slots[e.target],lane=0;
       for(var i=1;i<available.length;i++)if(available[i]<available[lane])lane=i;
       var delay=Math.max(when,available[lane]);
-      available[lane]=delay+1800;
-      endTime=Math.max(endTime,delay+1800);
+      var contact=e.outcome==='tick'||reduced?0:CONTACT_MS;
+      available[lane]=delay+contact+FLOAT_MS;
+      endTime=Math.max(endTime,available[lane]);
+      setTimeout(function(){
+        if(token!==animationToken)return;
+        if(!skipAttack)playAttackMotion(e);
+      },delay);
       setTimeout(function(){
         if(token!==animationToken)return;
         appendDamageLine(e);
         window.backroomPlayCombatFeedback(e,anchors[e.target]);
-      },delay);
+      },delay+contact);
+      return delay+(e.outcome==='tick'?250:reduced?90:HIT_STEP_MS);
     }
     cues.forEach(function(cue,index){
       var start=Math.max(covered,cue.eventIndex);
@@ -325,10 +405,27 @@
           showTurnCue(c);
         },at);
       })(cue,clock);
-      var actionStart=clock+spinTime;
-      for(var j=start;j<end;j++)damageAt(events[j],actionStart+(j-start)*150);
+      var actionStart=clock+spinTime,nextAction=actionStart;
+      for(var j=start;j<end;j++){
+        var e=events[j];if(!e)continue;
+        if(e&&e.target==='entity'&&!e.actorId)e=Object.assign({},e,{actorId:cue.actorId||'cao_minh'});
+        // Reactive Party counters can follow an Entity cue. Focus their source
+        // before lunging; incoming group results keep each defender's own anchor.
+        if(e.target==='entity'&&e.outcome!=='tick'&&String(e.actorId||'cao_minh')!==String(cue.actorId||'cao_minh')){
+          (function(id,at){setTimeout(function(){if(token===animationToken)focusCombatActor(id);},at);})(e.actorId,nextAction);
+          nextAction+=spinTime;
+        }
+        if(cue.kind==='entity'&&e.target==='actor'&&e.outcome!=='tick'){
+          // One shared Entity hit has several defender outcomes, not several attacks.
+          var groupStart=nextAction;
+          nextAction=damageAt(e,groupStart);
+          while(j+1<end&&events[j+1]&&events[j+1].target==='actor'&&events[j+1].outcome!=='tick'){
+            nextAction=Math.max(nextAction,damageAt(events[++j],groupStart,true));
+          }
+        }else nextAction=damageAt(e,nextAction);
+      }
       covered=end;
-      clock=actionStart+Math.max(260,(end-start)*150)+150;
+      clock=end>start?nextAction:actionStart+260+150;
     });
     for(var trailing=covered;trailing<events.length;trailing++)damageAt(events[trailing],clock+(trailing-covered)*150);
     return Math.max(clock,endTime)+50;
@@ -358,6 +455,7 @@
       rawPacket.turns.some(function(c){return c&&c.kind==='actor';});
     if(completing){
       var completionToken=++animationToken,context=this;
+      stopCombatMotion();
       beginCombatLog(before);
       setFeedbackBusy(true);
       requestAnimationFrame(function(){
@@ -381,7 +479,7 @@
     if(!after||after.active!==true){
       // The Dice and Combat Log close together on combat completion.
       // Never leave the last packet queued behind a hidden panel.
-      ++animationToken;resetCombatPanel();setFeedbackBusy(false);
+      ++animationToken;stopCombatMotion();resetCombatPanel();setFeedbackBusy(false);
       return result;
     }
     beginCombatLog(after);
@@ -398,13 +496,15 @@
     appendPacketToCombatLog(packet);
 
     var token=++animationToken;
+    stopCombatMotion();
     seen.push(packet.id);if(seen.length>64)seen.shift();
     setFeedbackBusy(true);
     requestAnimationFrame(function(){
+      if(token!==animationToken)return;
       var slots={},lastDelay=0;
       ['entity','actor'].forEach(function(target){
         var anchor=targetAnchor(target)||anchors[target];
-        var capacity=anchor?Math.max(1,Math.floor((anchor.y-12)/38)+1):1;
+        var capacity=anchor?Math.max(1,Math.floor((anchor.y-24)/38)+1):1;
         slots[target]=[];for(var i=0;i<capacity;i++)slots[target].push(0);
       });
       var typedMs=Array.isArray(packet.turns)&&packet.turns.length?

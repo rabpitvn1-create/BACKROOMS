@@ -6,7 +6,7 @@ const vm=require('node:vm');
 const script=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/combat-feedback-1193a.js'),'utf8');
 
 function boot(initialState,options={}){
- const timers=[];
+ const timers=[],animations=[];
  function element(tag='div'){
   let text='';
   const n={tagName:tag.toUpperCase(),children:[],style:{},dataset:{},listeners:{},className:'',id:'',hidden:false,isConnected:true,scrollTop:0,scrollHeight:0,parentNode:null,
@@ -15,6 +15,7 @@ function boot(initialState,options={}){
    insertAdjacentElement(where,c){if(where!=='afterend'||!this.parentNode)return null;if(c.parentNode)c.parentNode.children=c.parentNode.children.filter(x=>x!==c);const p=this.parentNode,i=p.children.indexOf(this);p.children.splice(i+1,0,c);c.parentNode=p;c.isConnected=true;return c},
    remove(){if(this.parentNode)this.parentNode.children=this.parentNode.children.filter(c=>c!==this);this.parentNode=null;this.isConnected=false},
    addEventListener(name,fn){this.listeners[name]=fn},
+   animate(frames,opts){const animation={node:this,frames,options:opts,cancelled:false,cancel(){this.cancelled=true}};animations.push(animation);return animation},
    setAttribute(name,value){this[name]=String(value)},
    getBoundingClientRect(){return {left:0,top:0,width:480,height:300}}
   };
@@ -24,12 +25,14 @@ function boot(initialState,options={}){
   n.classList={add(...xs){n.className+=' '+xs.join(' ')},remove(x){n.className=n.className.split(' ').filter(c=>c!==x).join(' ')}};
   return n;
  }
- const root=element('root'),box=element(),dice=element(),entity=element(),actor=element();
+ const root=element('root'),box=element(),dice=element(),entity=element(),actor=element(),lucia=element();
  box.id='snapshot';dice.id='pokerDiceModal';root.appendChild(box);root.appendChild(dice);
  let entityReady=options.entityReady!==false;
- box.querySelector=s=>s==='.snapshot-entity'?(entityReady?entity:null):s==='.snapshot-character'?actor:
+ box.querySelector=s=>s==='.snapshot-entity'?(entityReady?entity:null):s==='.snapshot-character'?actor:s==='.snapshot-lucia'&&options.luciaReady?lucia:
   box.children.find(n=>s==='.combat-turn-avatar'&&n.className.includes('combat-turn-avatar'))||null;
- box.querySelectorAll=s=>s.includes('.combat-turn-exit')?
+ box.querySelectorAll=s=>s.includes('.combat-impact')?
+  box.children.filter(n=>/combat-impact|combat-player-hit-edge|combat-float/.test(n.className)):
+  s.includes('.combat-turn-exit')?
   box.children.filter(n=>/combat-turn-(?:exit|avatar)/.test(n.className)):
   box.children.filter(n=>n.className.includes('combat-float')&&(!s.includes('data-target')||s.includes('"'+n.dataset.target+'"')));
  function find(node,id){if(node.id===id)return node;for(const child of node.children){const hit=find(child,id);if(hit)return hit}return null}
@@ -37,6 +40,7 @@ function boot(initialState,options={}){
  const scope={
   state:JSON.parse(JSON.stringify(starting)),
   document:{body:null,getElementById(id){return find(root,id)},createElement:element},
+  getComputedStyle(){return {transform:options.baseTransform||'none'}},
   requestAnimationFrame(fn){fn()},
   setTimeout(fn,ms){timers.push({fn,ms});if(ms===0)fn()}
  };
@@ -47,7 +51,7 @@ function boot(initialState,options={}){
  };
  vm.runInNewContext(script,scope);
  return {
-  root,box,dice,actor,entity,timers,scope,
+  root,box,dice,actor,entity,lucia,timers,animations,scope,
   setEntityReady(value){entityReady=!!value},
   panel(){return scope.document.getElementById('combatFeedbackPanel')},
   entries(){return scope.document.getElementById('combatFeedbackEntries')},
@@ -77,8 +81,8 @@ test('invalid values and off-screen teammates cannot be attributed to the visibl
  const r=boot();for(const text of ['PROC','<b>-3 HP</b>','-0 HP','-NaN HP','3 HP'])r.event({target:'entity',text});
  r.event({target:'actor',actorId:'lucia',text:'-5 HP'});r.event({target:'unknown',text:'-5 HP'});assert.equal(r.box.children.length,0);
 });
-test('animation-end cleanup and 1800ms fallback both remove feedback safely',()=>{
- const r=boot();r.event({target:'entity',text:'-1 HP'});const n=r.box.children[0];assert.equal(r.timers[0].ms,1800);n.listeners.animationend();r.timers[0].fn();assert.equal(r.box.children.length,0);
+test('animation-end cleanup and 1250ms fallback both remove feedback safely',()=>{
+ const r=boot();r.event({target:'entity',text:'-1 HP'});const n=r.box.children[0];assert.equal(r.timers[0].ms,1250);n.listeners.animationend();r.timers[0].fn();assert.equal(r.box.children.length,0);
  const fallback=boot();fallback.event({target:'entity',text:'-1 HP'});fallback.timers[0].fn();assert.equal(fallback.box.children.length,0);
 });
 test('turn packets are authoritative, deduplicated and constrained to the encounter',()=>{
@@ -101,7 +105,7 @@ test('overflow queues without hiding Poker Dice and resyncs it when feedback sta
  const r=boot();let resumed=0;r.scope.ensureDirectCombatDice=()=>resumed++;
  r.turn(Array.from({length:4},()=>({target:'entity',text:'-1 HP',phase:'actor'})));
  assert.equal(r.scope.__combatFeedbackBusy,true);r.timers.find(t=>t.ms===150).fn();r.timers.find(t=>t.ms===300).fn();assert.equal(r.box.children.length,3);
- r.timers.filter(t=>t.ms===1800).slice(0,2).forEach(t=>t.fn());assert.equal(r.box.children.length,3);assert.equal(new Set(r.box.children.map(n=>n.style.top)).size,3);
+ r.timers.find(t=>t.ms===1250).fn();r.timers.find(t=>t.ms===1800).fn();assert.equal(r.box.children.length,3);assert.equal(new Set(r.box.children.map(n=>n.style.top)).size,3);
  assert.ok(r.box.children.every(n=>parseFloat(n.style.top)>=0));r.timers.find(t=>t.ms===3600).fn();assert.equal(r.scope.__combatFeedbackBusy,false);assert.equal(resumed,2);
  assert.equal(script.includes('modal.hidden=true'),false);
 });
@@ -176,9 +180,9 @@ test('typed combat cues show active character and a short spinning transition be
  assert.ok(timers.includes(800),'800ms transition must be scheduled');
  assert.equal(r.scope.document.getElementById('combatFeedbackMeta').textContent,'NOW : Cao Minh');
  // Transition starts after actor feedback plus a short readability gap.
- r.timers.find(t=>t.ms===1210).fn();
+ r.timers.find(t=>t.ms===1430).fn();
  assert.ok(title().includes('Smiler'));assert.ok(r.entries().children.some(n=>n.textContent.includes('Bắt đầu giao chiến với Smiler')));
- r.timers.find(t=>t.ms===2420).fn();
+ r.timers.find(t=>t.ms===2640).fn();
  assert.ok(title().includes('Lucia'));assert.equal(r.scope.__combatFeedbackBusy,true);
 });
 
@@ -217,7 +221,7 @@ test('Core re-projection cannot drop skill names and damage from transient comba
   'enc:combat-details','enc',{active:true,encounterId:'enc',entityKey:'hound',round:2},
   {},{summary,turns:[{kind:'actor',eventIndex:0,actorId:'cao_minh',actorName:'Cao Minh',waveNumber:1,waveCount:1,entityName:'Hound'}]});
  assert.equal(r.scope.state.combatFeedback,undefined);
- r.timers.filter(t=>t.ms===800).forEach(t=>t.fn());
+ r.timers.filter(t=>t.ms===980).forEach(t=>t.fn());
  assert.ok(r.entries().children.some(n=>n.textContent.includes('-34 HP')));
  assert.equal(r.scope.__combatFeedbackBusy,true);
  const again=r.entries().children.length;
@@ -336,7 +340,7 @@ test('typed feedback prints one fully specified skill hit and remaining HP',()=>
   entityName:'Hound',remainingHp:80,maxHp:200}], 'enc:typed-skill','enc',
   {active:true,encounterId:'enc',entityName:'Hound',entityKey:'hound',round:2},{},{turns:[
   {kind:'actor',eventIndex:0,actorId:'cao_minh',actorName:'Cao Minh',entityName:'Hound',waveNumber:1,waveCount:1}]});
- r.timers.filter(t=>t.ms===800).forEach(t=>t.fn());
+ r.timers.filter(t=>t.ms===980).forEach(t=>t.fn());
  assert.equal(r.entries().children.filter(x=>x.textContent.includes('Huyết Ma Nhị Thập Tứ Trảm')).length,1);
  assert.ok(r.entries().children.some(x=>x.textContent==='Cao Minh sử dụng [Huyết Ma Nhị Thập Tứ Trảm] gây -120 HP lên Hound [80/200 HP]'));
 });
@@ -495,7 +499,7 @@ test('final combat packet presents Lucia cue before Core victory projection clos
   'enc:final-party','enc',null,{},{turns});
  assert.equal(r.scope.state.combat.active,true,'Core victory projection waits for final visual cues');
  assert.equal(r.box.dataset.combatFocus,'cao_minh');
- const lucia=r.timers.find(t=>t.ms===1210);
+ const lucia=r.timers.find(t=>t.ms===1430);
  assert.ok(lucia,'Core-supplied Lucia cue must be scheduled even if combat is now settled');
  lucia.fn();assert.equal(r.box.dataset.combatFocus,'lucia');
  assert.equal(r.panel().hidden,false);
@@ -563,4 +567,60 @@ test('each wave cue carries authoritative Entity key, even if adjacent waves sha
  assert.deepEqual(switches,['hound:2']);
  r.timers.find(t=>t.ms===1210).fn();
  assert.deepEqual(switches,['hound:2','hound:3']);
+});
+
+
+test('MISS dodges the actual target with a full-size floating label and no impact or hit flash',()=>{
+ const r=boot();r.event({target:'entity',actorId:'cao_minh',outcome:'miss',text:'MISS',flash:false});
+ const miss=r.box.children.find(n=>n.className.includes('combat-float--miss'));
+ assert.equal(miss.children[0].textContent,'MISS');assert.equal(miss.children[0].children.length,0);
+ assert.equal(r.box.children.some(n=>n.className.includes('combat-impact')),false);
+ assert.equal(r.animations.length,1);assert.equal(r.animations[0].node,r.entity);
+ assert.equal(r.animations[0].options.duration,420);
+ assert.match(r.animations[0].frames[1].transform,/translateX\(-11px\)/);
+});
+test('direct hits preserve native Entity alignment and slower recoil independently of turn CSS',()=>{
+ const r=boot(undefined,{baseTransform:'matrix(1.2, 0, 0, 1.2, -6, 3)'});
+ r.event({target:'entity',text:'-12 HP',outcome:'hit',flash:true});
+ const recoil=r.animations.find(a=>a.options.duration===400);
+ assert.equal(recoil.node,r.entity);
+ assert.match(recoil.frames[1].transform,/^translateX\(-6px\) matrix/);
+ assert.equal(r.animations.find(a=>a.options.duration===140).node,r.entity);
+ assert.equal(r.box.children.filter(n=>n.className==='combat-impact').length,1);
+});
+test('visible Lucia receives her own incoming hit instead of Cao Minh',()=>{
+ const r=boot(undefined,{luciaReady:true});r.box.dataset.combatFocus='lucia';
+ r.event({target:'actor',actorId:'lucia',text:'-9 HP',outcome:'hit',flash:true});
+ assert.ok(r.animations.some(a=>a.node===r.lucia&&a.options.duration===400));
+ assert.equal(r.animations.some(a=>a.node===r.actor),false);
+});
+test('typed lunge precedes impact by 180ms and no next wave can steal the hit',()=>{
+ const r=boot();let waves=0;r.scope.backroomSwitchCombatEntityWave=()=>waves++;
+ r.turn([{target:'entity',actorId:'cao_minh',text:'-7 HP',flash:true,outcome:'hit'}],
+  'enc:contact','enc',undefined,{}, {turns:[
+  {kind:'actor',actorId:'cao_minh',eventIndex:0},
+  {kind:'wave',entityKey:'smiler',waveNumber:2,eventIndex:1}]});
+ r.timers.find(t=>t.ms===800).fn();
+ assert.ok(r.animations.some(a=>a.node===r.actor&&a.options.duration===480));
+ assert.equal(r.box.children.some(n=>n.className.includes('combat-impact')),false);
+ r.timers.find(t=>t.ms===980).fn();
+ assert.ok(r.box.children.some(n=>n.className==='combat-impact'));
+ r.timers.find(t=>t.ms===1430).fn();assert.equal(waves,1);
+ assert.equal(r.box.children.some(n=>n.className.includes('combat-impact')),false);
+});
+test('periodic status ticks and reduced motion never lunge or recoil',()=>{
+ const tick=boot();tick.event({target:'entity',text:'-3 HP',status:'Trúng độc',outcome:'tick',flash:false});
+ assert.equal(tick.animations.some(a=>a.frames[0].transform),false);
+ assert.equal(tick.box.children.some(n=>n.className.includes('combat-impact')),false);
+ const reduced=boot();reduced.scope.matchMedia=()=>({matches:true});
+ reduced.event({target:'actor',text:'MISS',outcome:'miss'});
+ assert.equal(reduced.animations.length,0);
+ assert.ok(reduced.box.children.some(n=>n.className.includes('combat-float--miss')));
+});
+test('restarting contact cancels preceding displacement and encounter exit cancels all motion',()=>{
+ const r=boot();r.event({target:'entity',text:'-3 HP',flash:true});
+ const first=r.animations.find(a=>a.options.duration===400);
+ r.event({target:'entity',text:'-4 HP',flash:true});assert.equal(first.cancelled,true);
+ r.turn(undefined,'none','enc',null);
+ assert.ok(r.animations.every(a=>a.cancelled));assert.equal(r.box.children.length,0);
 });
