@@ -1390,7 +1390,7 @@ public class MainActivity extends Activity {
     }
   }
 
-  private boolean canTransition(JSONObject before, JSONObject rolls, String destinationId) {
+  private boolean canTransition(JSONObject before, JSONObject rolls, String destinationId) throws Exception {
     if (requireGameCore().milestoneHasPlan()) {
       LevelRouteRegistry.Node from = LevelRouteRegistry.node(currentNodeId(before));
       LevelRouteRegistry.Node destination = LevelRouteRegistry.node(destinationId);
