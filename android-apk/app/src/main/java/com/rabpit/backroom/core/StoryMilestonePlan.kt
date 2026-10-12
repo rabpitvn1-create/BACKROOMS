@@ -20,6 +20,19 @@ object StoryMilestonePlan {
   private const val MAX_DESCRIPTION_CHARS = 500
   private val EVENT_ID = Regex("[A-Za-z][A-Za-z0-9_-]{0,47}")
   private val ENTITY_KEY = Regex("[a-z0-9_-]{1,80}")
+  private val CHARACTER_KEY = Regex("[a-z][a-z0-9_]{1,39}")
+
+  /**
+   * Typed mechanical consequences. Narrative prose alone never changes health.
+   * Injury is non-fatal; other types need an explicit Core implementation.
+   */
+  data class InjuryEffect(val characterId: String, val label: String, val hpLoss: Int) {
+    fun toJson(): JSONObject = JSONObject()
+      .put("type", "INJURY")
+      .put("characterId", characterId)
+      .put("label", label)
+      .put("hpLoss", hpLoss)
+  }
 
   enum class Kind { STORY, FINAL_ENTITY }
 
@@ -29,7 +42,8 @@ object StoryMilestonePlan {
     val kind: Kind,
     val event: String,
     val outcome: String,
-    val entityKey: String? = null
+    val entityKey: String? = null,
+    val injuries: List<InjuryEffect> = emptyList()
   ) {
     fun toJson(): JSONObject = JSONObject()
       .put("id", id)
@@ -42,6 +56,8 @@ object StoryMilestonePlan {
           put("entityKey", requireNotNull(entityKey))
           put("hpMultiplier", FINAL_HP_MULTIPLIER)
           put("expMultiplier", FINAL_EXP_MULTIPLIER)
+        } else if (injuries.isNotEmpty()) {
+          put("effects", JSONArray().apply { injuries.forEach { put(it.toJson()) } })
         }
       }
   }
@@ -84,6 +100,7 @@ object StoryMilestonePlan {
       val kind = Kind.valueOf(string(item, "kind", 24))
       val allowed = mutableSetOf("id", "turn", "kind", "event", "outcome")
       if (kind == Kind.FINAL_ENTITY) allowed += setOf("entityKey", "hpMultiplier", "expMultiplier")
+      else if (item.has("effects")) allowed += "effects"
       exactFields(item, allowed)
 
       val id = string(item, "id", 48)
@@ -104,7 +121,22 @@ object StoryMilestonePlan {
         }
         value
       } else null
-      events += Event(id, turn, kind, event, outcome, key)
+      val injuries = if (kind == Kind.STORY && item.has("effects")) {
+        val rawEffects = item.getJSONArray("effects")
+        require(rawEffects.length() <= 8) { "milestone_effects_count_invalid" }
+        (0 until rawEffects.length()).map { index ->
+          val effect = rawEffects.getJSONObject(index)
+          exactFields(effect, setOf("type", "characterId", "label", "hpLoss"))
+          require(string(effect, "type", 16) == "INJURY") { "milestone_effect_type_unsupported" }
+          val characterId = string(effect, "characterId", 40)
+          require(CHARACTER_KEY.matches(characterId)) { "milestone_effect_character_invalid" }
+          val label = string(effect, "label", 120)
+          val hpLoss = integer(effect, "hpLoss")
+          require(hpLoss in 0..200) { "milestone_effect_hp_loss_invalid" }
+          InjuryEffect(characterId, label, hpLoss)
+        }
+      } else emptyList()
+      events += Event(id, turn, kind, event, outcome, key, injuries)
     }
 
     require(events.last().kind == Kind.FINAL_ENTITY &&
