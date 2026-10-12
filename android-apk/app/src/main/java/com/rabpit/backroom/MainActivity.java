@@ -37,6 +37,7 @@ public class MainActivity extends Activity {
   private final ExecutorService io = Executors.newSingleThreadExecutor();
   private final ExecutorService imageIo = Executors.newSingleThreadExecutor();
   private final ExecutorService auditIo = Executors.newFixedThreadPool(2);
+  private final java.util.Set<String> milestonePlanInFlight = java.util.concurrent.ConcurrentHashMap.newKeySet();
   private final AtomicInteger latestSnapshotTurn = new AtomicInteger(0);
   private final Object geminiHealthLock = new Object();
   private final long[] geminiCooldownUntil = new long[5];
@@ -1320,7 +1321,8 @@ public class MainActivity extends Activity {
     // One d10000 roll both determines a 45% encounter and selects the Entity.
     // No Level-specific Entity probability and no independent boss/Lifeform rolls.
     JSONObject entityRoll = thresholdRoll("entityEncounter", 10000,
-      EntityEncounterPool.ENCOUNTER_THRESHOLD, entityEncounterAction && entityAllowed,
+      EntityEncounterPool.ENCOUNTER_THRESHOLD,
+      entityEncounterAction && entityAllowed && !requireGameCore().milestoneHasPlan(),
       " all Levels, shared weighted Entity pool");
     rolls.put("entityEncounter", entityRoll);
     if (entityRoll.optBoolean("success", false)) {
@@ -1842,6 +1844,18 @@ public class MainActivity extends Activity {
     visibleRolls.remove(com.rabpit.backroom.core.HiddenExitStreak.ROLL_KEY);
     String hiddenExitDirective = com.rabpit.backroom.core.HiddenExitStreak.gmDirective(before, rolls);
     String actionRuntimeContext = requireGameCore().currentActionContext();
+    JSONArray dueMilestones = new JSONArray(requireGameCore().milestoneDueEvents());
+    boolean scripted = requireGameCore().milestoneHasPlan();
+    String milestoneDirective = scripted
+      ? "MILESTONE AUTHORITY: Gemini đã khóa kế hoạch Checkpoint. " +
+        "Không kích hoạt Entity ngẫu nhiên và không tự chuyển Checkpoint. " +
+        "Các event/outcome sau là BẮT BUỘC tại Turn này: " + dueMilestones.toString() +
+        ". GM tự nhiên hóa lời kể nhưng KHÔNG sửa kết quả. " +
+        "JSON response phải có milestoneEventIds là mảng đúng thứ tự ID của các event vừa kể, " +
+        "hoặc [] nếu không có event đến hạn. FINAL_ENTITY chỉ tuyên bố Combat bắt đầu, " +
+        "Game Core sẽ tự tạo Boss, không dùng ops tự tạo. " +
+        "Chỉ dẫn Milestone này ưu tiên hơn các chỉ dẫn RNG Encounter bên dưới. "
+      : "";
     String actionKindForPrompt = new JSONObject(actionRuntimeContext).optString("kind", "EXECUTE");
     String actionDirective = "ACTION TYPE = " + actionKindForPrompt + ". " +
       ("SEARCH".equals(actionKindForPrompt) ? "SEARCH HARD LOCK: khảo sát có hệ thống location hiện tại, không tự chuyển sang location mới; SEARCH vẫn roll entityEncounter 45% chung cho mọi Level và có thể khởi tạo roaming Entity mới; vẫn có thể gặp Survivor, tìm clue/hazard/exit evidence và tuyệt đối không cấp hay sinh Item từ SEARCH. " :
@@ -1856,7 +1870,7 @@ public class MainActivity extends Activity {
       : "";
     String healingItemDirective = "ITEM AUTHORITY: chỉ Game Core offline được phát Item khi Entity bị tiêu diệt. Mỗi Entity bị tiêu diệt chắc chắn rơi một Item từ Item Registry. SEARCH/EXPLORE không tạo Item. Băng gạc hồi 10 HP, Thuốc sát trùng hồi 20 HP, tiêu hao nguyên đơn vị. GM chỉ kể Item đã được Core cấp, không được tạo hoặc chuyển Item.";
     String luciaScoutDirective = "LUCIA SCOUT: hỗ trợ trinh sát mối nguy, không cộng tỉ lệ loot hoặc sinh Item qua khám phá.";
-    return "ITEM WHOLE UNIT HARD LOCK: Item tiêu hao chỉ tính theo số lượng nguyên; dùng bao nhiêu trừ bấy nhiêu. Không theo dõi hoặc tạo biến thể một nửa, còn ít, sắp hết hay rỗng; không tự tạo vỏ sau khi dùng. Dùng/Chuyển/Bỏ chỉ thực hiện bằng nút item và Core, không kể rằng đã thành công qua hành động văn bản.\n" + actionDirective + "\n" + healingItemDirective + "\n" + luciaScoutDirective + "\n" + "\nLUCIA FOLLOWER HARD LOCK: Lucia \"Lục\", nữ 19 tuổi, con người, binh nhì và chỉ huy cấp tiểu đội đặc nhiệm. luciaEncounter chỉ roll khi EXPLORE ở Level 0, xác suất 50%, và chỉ success=true mới cho cô xuất hiện. Sau lần gặp đầu, không roll lại. Nếu Party còn chỗ cô gia nhập follower; nếu đầy thì giữ present + joinPending, không đuổi thành viên khác. Character Stats theo 1.1.93a: Base STR/DEF/SKL/VIT đều bắt đầu 5; baseMaxHp 50 và Max HP derive từ VIT. Trang bị đúng 3 slot: M4A1 cá nhân hóa với laser xanh 5mW, dao găm chiến đấu, đồng hồ định vị quân sự mất tín hiệu vệ tinh. Đạn khởi đầu 150 viên gồm 60 đang nạp và 90 dự phòng; đây là nguồn đạn riêng, không chiếm 3 loại vật phẩm quà tặng. Inventory quà tặng tối đa 3 loại, tối đa 100 mỗi loại. Ở Level 0, Lucia chỉ nghi ngờ tiếng động giờ thứ 4 là Hound; không được xác nhận Hound cư trú ở Level 0. Không tự thêm năng lực siêu nhiên hoặc lore.\nACTION_RUNTIME: " + actionRuntimeContext + "\n" +
+    return milestoneDirective + "\n" + "ITEM WHOLE UNIT HARD LOCK: Item tiêu hao chỉ tính theo số lượng nguyên; dùng bao nhiêu trừ bấy nhiêu. Không theo dõi hoặc tạo biến thể một nửa, còn ít, sắp hết hay rỗng; không tự tạo vỏ sau khi dùng. Dùng/Chuyển/Bỏ chỉ thực hiện bằng nút item và Core, không kể rằng đã thành công qua hành động văn bản.\n" + actionDirective + "\n" + healingItemDirective + "\n" + luciaScoutDirective + "\n" + "\nLUCIA FOLLOWER HARD LOCK: Lucia \"Lục\", nữ 19 tuổi, con người, binh nhì và chỉ huy cấp tiểu đội đặc nhiệm. luciaEncounter chỉ roll khi EXPLORE ở Level 0, xác suất 50%, và chỉ success=true mới cho cô xuất hiện. Sau lần gặp đầu, không roll lại. Nếu Party còn chỗ cô gia nhập follower; nếu đầy thì giữ present + joinPending, không đuổi thành viên khác. Character Stats theo 1.1.93a: Base STR/DEF/SKL/VIT đều bắt đầu 5; baseMaxHp 50 và Max HP derive từ VIT. Trang bị đúng 3 slot: M4A1 cá nhân hóa với laser xanh 5mW, dao găm chiến đấu, đồng hồ định vị quân sự mất tín hiệu vệ tinh. Đạn khởi đầu 150 viên gồm 60 đang nạp và 90 dự phòng; đây là nguồn đạn riêng, không chiếm 3 loại vật phẩm quà tặng. Inventory quà tặng tối đa 3 loại, tối đa 100 mỗi loại. Ở Level 0, Lucia chỉ nghi ngờ tiếng động giờ thứ 4 là Hound; không được xác nhận Hound cư trú ở Level 0. Không tự thêm năng lực siêu nhiên hoặc lore.\nACTION_RUNTIME: " + actionRuntimeContext + "\n" +
       "Bạn là Game Master của text game Backrooms. Trả DUY NHẤT JSON hợp lệ, không markdown. " +
       "KNOWLEDGE PACKET là context đã được Context Builder chọn từ in-game database theo state/scene/present actors/action/story. " +
       "Source trace trong packet chỉ dùng hậu trường; không để nhân vật nói tên record/file/anchor. UNKNOWN phải giữ UNKNOWN. " +
