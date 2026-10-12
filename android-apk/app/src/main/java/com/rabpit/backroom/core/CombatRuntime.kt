@@ -221,6 +221,20 @@ object CombatRuntime {
 
   fun start(state: GameState, entityKey: String): GameState = startWaves(state, listOf(entityKey))
 
+  /** The final Milestone Entity is a single verified Combat instance. */
+  fun startMilestoneBoss(state: GameState, entityKey: String): GameState {
+    require(active(state) == null) { "milestone_combat_already_active" }
+    val started = start(state, entityKey)
+    val fight = requireNotNull(active(started)) { "milestone_entity_unsupported" }
+    val hp = (fight.entityMaxHp.toLong() * StoryMilestonePlan.FINAL_HP_MULTIPLIER)
+      .coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+    return started.copy(metadata = started.metadata + mapOf(
+      "combat.entityHp" to hp.toString(),
+      "combat.entityMaxHp" to hp.toString(),
+      "combat.milestoneBoss" to fight.encounterId
+    ))
+  }
+
   /** Only explicitly composed encounters contain multiple Entities. */
   fun startWaves(state: GameState, entityKeys: List<String>): GameState {
     if (active(state) != null) return state
@@ -1244,7 +1258,9 @@ object CombatRuntime {
     val persisted = encode(state, c.copy(phase = Phase.RESOLVED, entityCondition = EntityCondition.DESTROYED))
     val withPassive = if (leaderPassive) afterActiveLeaderTurn(persisted) else persisted
     val instanceId = if (queue.size == 1) c.encounterId else "${c.encounterId}:wave:$index"
-    val exp = EntityExpRewards.award(withPassive, instanceId, c.progressionRank)
+    val expMultiplier = if (state.metadata["combat.milestoneBoss"] == c.encounterId &&
+      queue.size == 1) StoryMilestonePlan.FINAL_EXP_MULTIPLIER else 1
+    val exp = EntityExpRewards.award(withPassive, instanceId, c.progressionRank, expMultiplier)
     val loot = OfflineEntityLoot.award(exp.state, instanceId, c.seed)
     val resultText = "$log ${c.entityName} đã bị tiêu diệt. ${exp.text} ${loot.text}".trim()
     if (index + 1 == queue.size) {
