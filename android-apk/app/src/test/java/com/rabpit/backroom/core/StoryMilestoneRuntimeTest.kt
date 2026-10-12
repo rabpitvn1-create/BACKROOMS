@@ -7,13 +7,13 @@ import org.junit.Test
 
 class StoryMilestoneRuntimeTest {
   private fun plan(checkpoint: String = "CP-L00-01"): String =
-    JSONObject().put("schemaVersion", 1).put("checkpointId", checkpoint)
+    JSONObject().put("schemaVersion", 2).put("checkpointId", checkpoint)
       .put("events", JSONArray()
         .put(JSONObject().put("id", "warning").put("turn", 1)
-          .put("kind", "STORY").put("event", "Có dấu hiệu bất thường")
+          .put("kind", "STORY").put("action", "TEST_ONLY_ACTION").put("event", "Có dấu hiệu bất thường")
           .put("outcome", "Cao Minh nghe thấy dấu hiệu"))
         .put(JSONObject().put("id", "boss").put("turn", 3)
-          .put("kind", "FINAL_ENTITY").put("event", "Hound lao ra")
+          .put("kind", "FINAL_ENTITY").put("action", "TEST_ONLY_ACTION").put("event", "Hound lao ra")
           .put("outcome", "Combat bắt đầu").put("entityKey", "hound")
           .put("hpMultiplier", 9).put("expMultiplier", 9)))
       .toString()
