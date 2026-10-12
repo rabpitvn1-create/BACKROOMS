@@ -214,6 +214,9 @@ object CombatRuntime {
   /** Single source of truth for Milestone final Entity eligibility. */
   fun supportsEntityKey(key: String): Boolean = key in profiles
 
+  /** Gemini receives actual combat-supported Entity keys, not a separate lore-only roster. */
+  fun supportedEntityKeys(): List<String> = profiles.keys.sorted()
+
   fun active(state: GameState): Snapshot? = decode(state)?.takeIf { it.phase == Phase.ACTIVE }
 
   fun start(state: GameState, entityKey: String): GameState = startWaves(state, listOf(entityKey))
