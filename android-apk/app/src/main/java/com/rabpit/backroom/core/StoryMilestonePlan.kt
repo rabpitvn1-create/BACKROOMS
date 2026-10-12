@@ -144,7 +144,7 @@ object StoryMilestonePlan {
       exactFields(item, setOf("targetNode", "nextCheckpointTotal", "outcome"))
       val target = string(item, "targetNode", 64)
       val registered = LevelRouteRegistry.node(target)
-      require(registered != null && registered.parent != expected.level) {
+      require(registered != null && registered.parent == expected.level + 1) {
         "milestone_level_end_target_invalid"
       }
       val total = integer(item, "nextCheckpointTotal")
