@@ -152,6 +152,10 @@ object StoryMilestonePlan {
     require(combat != null && combat.entityKey == active.plan.finalEncounter.entityKey) {
       "milestone_final_combat_required"
     }
+    val finalTurn = active.startTurn.toLong() + active.plan.finalEncounter.turn.toLong() - 1L
+    require(CoreClientProjection.turnIndex(state).toLong() >= finalTurn) {
+      "milestone_final_turn_not_reached"
+    }
     val plan = parse(raw, next)
     val existing = prepared(state)
     if (existing != null) {
