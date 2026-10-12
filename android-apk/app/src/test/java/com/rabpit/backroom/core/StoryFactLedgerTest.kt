@@ -5,6 +5,7 @@ import org.json.JSONObject
 import org.junit.Assert.*
 import org.junit.Test
 
+/** Synthetic identifiers only: fixtures below are NOT authored game events. */
 class StoryFactLedgerTest {
   private fun initial(): GameState =
     StoryCheckpointCore.seedLevelZero(CoreClientProjection.initialize(GameState.initial()))
@@ -17,83 +18,85 @@ class StoryFactLedgerTest {
     JSONArray().put(JSONObject().put("op", "RESOLVE")
       .put("referenceId", id).put("fact", fact)).toString()
 
-  @Test fun luciaLosesWeaponInStoryButCombatAndInventoryRemainIndependent() {
-    val baseline = LuciaCanon.ensure(initial())
-    val context = "Lucia đánh mất khẩu M4A1 ở Level 0."
-    val remembered = StoryFactLedger.recordTurn(baseline, emptyList(), add(
-      "EVENT", "lucia.m4a1", context))
+  @Test fun storyFactNeverMutatesCharacterEquipmentCombatOrInventory() {
+    val baseline = initial()
+    val fixtureFact = "TEST_ONLY_FACT_A"
+    val remembered = StoryFactLedger.recordTurn(baseline, emptyList(),
+      add("EVENT", "fixture.event.a", fixtureFact))
     assertEquals(baseline.characters, remembered.characters)
     assertEquals(baseline.equipment, remembered.equipment)
     assertEquals(baseline.inventories, remembered.inventories)
     assertEquals(baseline.statuses, remembered.statuses)
     assertEquals(baseline.metadata, remembered.metadata)
-    assertTrue(StoryFactLedger.context(remembered).contains(context))
-    assertEquals(LUCIA_M4A1_ID, remembered.equipment.getValue(LUCIA_ID).slots["weapon"])
-    val levelSix = remembered.copy(world = remembered.world +
+    assertTrue(StoryFactLedger.context(remembered).contains(fixtureFact))
+
+    val otherLevel = remembered.copy(world = remembered.world +
       ("levelJson" to JSONObject().put("id", "6").put("number", 6).toString()))
-    val reloaded = GameStateCodec.decode(GameStateCodec.encode(levelSix))
-    assertTrue(StoryFactLedger.context(reloaded).contains(context))
-    assertEquals(LUCIA_M4A1_ID, reloaded.equipment.getValue(LUCIA_ID).slots["weapon"])
+    val reloaded = GameStateCodec.decode(GameStateCodec.encode(otherLevel))
+    assertTrue(StoryFactLedger.context(reloaded).contains(fixtureFact))
+    assertEquals(baseline.characters, reloaded.characters)
+    assertEquals(baseline.equipment, reloaded.equipment)
+    assertEquals(baseline.inventories, reloaded.inventories)
   }
 
-  @Test fun structuredMilestoneMemoryIsCommittedOnlyWithAcceptedReceipt() {
+  @Test fun milestoneMemoryIsCommittedOnlyAfterReceipt() {
+    val subject = "fixture.event.b"
     val spec = JSONObject().put("kind", "EVENT")
-      .put("subject", "cao_minh.poisoned")
-      .put("fact", "Cao Minh trúng độc trong câu chuyện tại Level 0")
+      .put("subject", subject).put("fact", "TEST_ONLY_FACT_B")
     val plan = JSONObject().put("schemaVersion", 1).put("checkpointId", "CP-L00-01")
       .put("events", JSONArray().put(JSONObject()
-        .put("id", "poison").put("turn", 1).put("kind", "STORY")
-        .put("event", "Cao Minh bị trúng độc").put("outcome", "Dấu độc xuất hiện")
+        .put("id", "beat").put("turn", 1).put("kind", "STORY")
+        .put("event", "TEST_EVENT").put("outcome", "TEST_OUTCOME")
         .put("storyFacts", JSONArray().put(spec))).put(JSONObject()
         .put("id", "boss").put("turn", 8).put("kind", "FINAL_ENTITY")
-        .put("event", "Hound xuất hiện").put("outcome", "Combat bắt đầu")
+        .put("event", "TEST_FINAL_EVENT").put("outcome", "Combat bắt đầu")
         .put("entityKey", "hound").put("hpMultiplier", 9).put("expMultiplier", 9)))
     val installed = StoryMilestonePlan.installCurrent(initial(), plan.toString())
-    assertTrue(StoryFactLedger.context(installed).contains("\"open\":[]"))
+    assertEquals(0, JSONObject(StoryFactLedger.context(installed))
+      .getJSONArray("open").length())
     assertThrows(IllegalArgumentException::class.java) {
       StoryMilestoneRuntime.acceptTurn(installed, "[]")
     }
-    val accepted = StoryMilestoneRuntime.acceptTurn(installed, "[\"poison\"]")
-    assertTrue(StoryFactLedger.context(accepted).contains("cao_minh.poisoned"))
-    assertEquals(installed.characters.getValue(CAO_MINH_ID).vitalState.currentHp,
-      accepted.characters.getValue(CAO_MINH_ID).vitalState.currentHp)
+    val accepted = StoryMilestoneRuntime.acceptTurn(installed, "[\"beat\"]")
+    assertTrue(StoryFactLedger.context(accepted).contains(subject))
+    assertEquals(installed.characters, accepted.characters)
     assertEquals(installed.statuses, accepted.statuses)
     assertEquals(installed.inventories, accepted.inventories)
     assertEquals(installed.equipment, accepted.equipment)
     val next = CoreClientProjection.advance(accepted)
-    assertEquals(emptyList<String>(), StoryMilestoneRuntime.due(next).map { it.id })
+    assertTrue(StoryMilestoneRuntime.due(next).isEmpty())
     assertTrue(StoryFactLedger.context(GameStateCodec.decode(GameStateCodec.encode(next)))
-      .contains("cao_minh.poisoned"))
+      .contains(subject))
   }
 
-  @Test fun openFactsSurviveMoreThanTwelveTurnsAndLevelTransitions() {
+  @Test fun openFactsRemainAcrossManyTurnsAndLevelTransitions() {
     var state = StoryFactLedger.recordTurn(initial(), emptyList(),
-      add("EVENT", "lucia.m4a1", "Lucia mất M4A1 ở Level 0"))
+      add("EVENT", "fixture.event.long", "TEST_ONLY_PERSISTENT_FACT"))
     for (i in 1..25) {
       state = CoreClientProjection.advance(state)
       state = StoryFactLedger.recordTurn(state, emptyList(),
-        add("CLUE", "clue.$i", "Manh mối $i được ghi nhận"))
+        add("CLUE", "fixture.clue.$i", "TEST_ONLY_CLUE_$i"))
     }
     val advanced = state.copy(world = state.world + ("levelJson" to JSONObject()
       .put("id", "6").put("number", 6).toString()))
     val memory = StoryFactLedger.context(GameStateCodec.decode(GameStateCodec.encode(advanced)))
-    assertTrue(memory.contains("Lucia mất M4A1 ở Level 0"))
-    assertTrue(memory.contains("clue.25"))
+    assertTrue(memory.contains("TEST_ONLY_PERSISTENT_FACT"))
+    assertTrue(memory.contains("fixture.clue.25"))
   }
 
-  @Test fun resolutionClosesOnlyReferencedStoryFactWithoutChangingEquipment() {
-    val state = LuciaCanon.ensure(initial())
-    val lost = StoryFactLedger.recordTurn(state, emptyList(),
-      add("EVENT", "lucia.m4a1", "Lucia mất M4A1"))
-    val open = JSONObject(StoryFactLedger.context(lost)).getJSONArray("open")
-    val id = open.getJSONObject(0).getString("id")
-    val closed = StoryFactLedger.recordTurn(CoreClientProjection.advance(lost), emptyList(),
-      resolve(id, "Lucia tìm lại M4A1 nhờ một sự kiện có thật trong lời kể"))
+  @Test fun resolutionClosesOnlyReferencedFactAndDoesNotChangeInventory() {
+    val state = initial()
+    val created = StoryFactLedger.recordTurn(state, emptyList(),
+      add("EVENT", "fixture.event.to_resolve", "TEST_ONLY_PENDING_FACT"))
+    val id = JSONObject(StoryFactLedger.context(created))
+      .getJSONArray("open").getJSONObject(0).getString("id")
+    val closed = StoryFactLedger.recordTurn(CoreClientProjection.advance(created), emptyList(),
+      resolve(id, "TEST_ONLY_RESOLVED_FACT"))
     val memory = JSONObject(StoryFactLedger.context(closed))
     assertEquals(0, memory.getJSONArray("open").length())
-    assertTrue(memory.getJSONArray("recent").toString().contains("tìm lại M4A1"))
-    assertEquals(lost.equipment, closed.equipment)
-    assertEquals(lost.inventories, closed.inventories)
+    assertTrue(memory.getJSONArray("recent").toString().contains("TEST_ONLY_RESOLVED_FACT"))
+    assertEquals(created.equipment, closed.equipment)
+    assertEquals(created.inventories, closed.inventories)
     assertThrows(IllegalArgumentException::class.java) {
       StoryFactLedger.recordTurn(closed, emptyList(), resolve(id, "resolve twice"))
     }
@@ -103,29 +106,29 @@ class StoryFactLedgerTest {
     val state = initial()
     assertThrows(IllegalArgumentException::class.java) {
       StoryFactLedger.recordTurn(state, emptyList(),
-        add("ENTITY", "fake_entity", "An entity appeared"))
+        add("ENTITY", "fake_entity", "TEST_ONLY_ENTITY"))
     }
     assertThrows(IllegalArgumentException::class.java) {
       StoryFactLedger.recordTurn(state, emptyList(),
-        add("ENTITY", "hound", "Hound appeared without encounter confirmation"))
+        add("ENTITY", "hound", "TEST_ONLY_ENTITY"))
     }
     val after = StoryFactLedger.recordTurn(state, emptyList(),
-      add("CLUE", "door.unknown", "Cánh cửa có hoa văn đỏ"))
+      add("CLUE", "fixture.clue.unknown", "TEST_ONLY_CLUE_ORIGINAL"))
     assertThrows(IllegalArgumentException::class.java) {
       StoryFactLedger.recordTurn(after, emptyList(),
-        add("CLUE", "door.unknown", "Cánh cửa thực ra màu trắng"))
+        add("CLUE", "fixture.clue.unknown", "TEST_ONLY_CLUE_CONFLICT"))
     }
     assertEquals(state.characters, after.characters)
-    assertTrue(StoryFactLedger.context(after).contains("Cánh cửa có hoa văn đỏ"))
+    assertTrue(StoryFactLedger.context(after).contains("TEST_ONLY_CLUE_ORIGINAL"))
   }
 
-  @Test fun entityMemoryRequiresAlreadyConfirmedEncounter() {
+  @Test fun entityMemoryRequiresPreviouslyConfirmedEncounter() {
     val state = initial()
     val flagged = state.copy(world = state.world + ("flagsJson" to JSONObject()
       .put("entityEncounterKey", "hound").toString()))
     val remembered = StoryFactLedger.recordTurn(flagged, emptyList(),
-      add("ENTITY", "hound", "Hound xuất hiện ở hành lang"))
-    assertTrue(StoryFactLedger.context(remembered).contains("Hound xuất hiện"))
+      add("ENTITY", "hound", "TEST_ONLY_CONFIRMED_ENTITY"))
+    assertTrue(StoryFactLedger.context(remembered).contains("TEST_ONLY_CONFIRMED_ENTITY"))
     assertNull(CombatRuntime.active(remembered))
     assertEquals(flagged.characters, remembered.characters)
   }
