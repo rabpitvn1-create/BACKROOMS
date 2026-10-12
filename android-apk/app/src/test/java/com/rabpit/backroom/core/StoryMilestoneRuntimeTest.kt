@@ -106,7 +106,6 @@ class StoryMilestoneRuntimeTest {
     assertNull(StoryMilestoneRuntime.bossResult(after))
     assertEquals(listOf("warning"), StoryMilestoneRuntime.due(after).map { it.id })
   }
-}
   @Test fun missedEventFailsExplicitlyInsteadOfReplayingLate() {
     assertThrows(IllegalArgumentException::class.java) {
       StoryMilestoneRuntime.due(CoreClientProjection.advance(initial()))
