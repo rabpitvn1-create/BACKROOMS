@@ -370,6 +370,27 @@ class GameCoreFacade private constructor(
     val before = JSONObject(beforeJson)
     val candidate = JSONObject(candidateJson)
     val core = loadCurrentState()
+    if (StoryMilestonePlan.current(core) != null) {
+      val currentNode = LevelRouteRegistry.requested(JSONObject(core.world["levelJson"] ?: "{}"))
+        ?: return response(false, clientSnapshot(before, core), "milestone_current_node_unknown",
+          "milestone_current_node_unknown")
+      val proposed = candidate.optJSONObject("level")?.let { LevelRouteRegistry.requested(it) }
+      if (candidate.has("level") && proposed == null)
+        return response(false, clientSnapshot(before, core), "milestone_route_unknown", "milestone_route_unknown")
+      // Only a committed LAST-Checkpoint Milestone can change main Levels.
+      if (proposed != null && proposed.parent != currentNode.parent)
+        return response(false, clientSnapshot(before, core), "milestone_level_requires_planned_end",
+          "milestone_level_requires_planned_end")
+      candidate.optJSONObject("flags")?.let { flags ->
+        flags.remove("exitProgress")
+        flags.remove("exitChanceThreshold")
+        flags.optJSONObject("exploration")?.let { exp ->
+          exp.remove("hiddenExitStreak")
+          exp.remove("exitReady")
+          exp.remove("transitionReady")
+        }
+      }
+    }
     if (blocksTextItemAction(action)) return response(false, clientSnapshot(before, core), "item_ui_required", "item_ui_required")
     val turnId = nextTurnId(core)
     val pending = TurnCoordinator.createPending(core, turnId, action)
