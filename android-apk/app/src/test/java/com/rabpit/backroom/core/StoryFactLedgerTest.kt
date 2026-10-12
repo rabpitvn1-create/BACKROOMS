@@ -21,7 +21,7 @@ class StoryFactLedgerTest {
   @Test fun storyFactNeverMutatesCharacterEquipmentCombatOrInventory() {
     val baseline = initial()
     val fixtureFact = "TEST_ONLY_FACT_A"
-    val remembered = StoryFactLedger.recordTurn(baseline, emptyList(),
+    val remembered = TestMilestoneEvidence.record(baseline, emptyList(),
       add("EVENT", "fixture.event.a", fixtureFact))
     assertEquals(baseline.characters, remembered.characters)
     assertEquals(baseline.equipment, remembered.equipment)
@@ -43,21 +43,22 @@ class StoryFactLedgerTest {
     val subject = "fixture.event.b"
     val spec = JSONObject().put("kind", "EVENT")
       .put("subject", subject).put("fact", "TEST_ONLY_FACT_B")
-    val plan = JSONObject().put("schemaVersion", 1).put("checkpointId", "CP-L00-01")
+    val plan = JSONObject().put("schemaVersion", 2).put("checkpointId", "CP-L00-01")
       .put("events", JSONArray().put(JSONObject()
-        .put("id", "beat").put("turn", 1).put("kind", "STORY")
+        .put("id", "beat").put("turn", 1).put("kind", "STORY").put("action", "TEST_ONLY world action")
         .put("event", "TEST_EVENT").put("outcome", "TEST_OUTCOME")
         .put("storyFacts", JSONArray().put(spec))).put(JSONObject()
-        .put("id", "boss").put("turn", 8).put("kind", "FINAL_ENTITY")
+        .put("id", "boss").put("turn", 8).put("kind", "FINAL_ENTITY").put("action", "TEST_ONLY boss action")
         .put("event", "TEST_FINAL_EVENT").put("outcome", "Combat bắt đầu")
         .put("entityKey", "hound").put("hpMultiplier", 9).put("expMultiplier", 9)))
+      .put("completion", JSONObject().put("type", "NEXT_CHECKPOINT").put("outcome", "TEST_ONLY completion"))
     val installed = StoryMilestonePlan.installCurrent(initial(), plan.toString())
     assertEquals(0, JSONObject(StoryFactLedger.context(installed))
       .getJSONArray("open").length())
     assertThrows(IllegalArgumentException::class.java) {
-      StoryMilestoneRuntime.acceptTurn(installed, "[]")
+      TestMilestoneEvidence.accept(installed, "[]")
     }
-    val accepted = StoryMilestoneRuntime.acceptTurn(installed, "[\"beat\"]")
+    val accepted = TestMilestoneEvidence.accept(installed, "[\"beat\"]")
     assertTrue(StoryFactLedger.context(accepted).contains(subject))
     assertEquals(installed.characters, accepted.characters)
     assertEquals(installed.statuses, accepted.statuses)
@@ -70,11 +71,11 @@ class StoryFactLedgerTest {
   }
 
   @Test fun openFactsRemainAcrossManyTurnsAndLevelTransitions() {
-    var state = StoryFactLedger.recordTurn(initial(), emptyList(),
+    var state = TestMilestoneEvidence.record(initial(), emptyList(),
       add("EVENT", "fixture.event.long", "TEST_ONLY_PERSISTENT_FACT"))
     for (i in 1..25) {
       state = CoreClientProjection.advance(state)
-      state = StoryFactLedger.recordTurn(state, emptyList(),
+      state = TestMilestoneEvidence.record(state, emptyList(),
         add("CLUE", "fixture.clue.$i", "TEST_ONLY_CLUE_$i"))
     }
     val advanced = state.copy(world = state.world + ("levelJson" to JSONObject()
@@ -86,11 +87,11 @@ class StoryFactLedgerTest {
 
   @Test fun resolutionClosesOnlyReferencedFactAndDoesNotChangeInventory() {
     val state = initial()
-    val created = StoryFactLedger.recordTurn(state, emptyList(),
+    val created = TestMilestoneEvidence.record(state, emptyList(),
       add("EVENT", "fixture.event.to_resolve", "TEST_ONLY_PENDING_FACT"))
     val id = JSONObject(StoryFactLedger.context(created))
       .getJSONArray("open").getJSONObject(0).getString("id")
-    val closed = StoryFactLedger.recordTurn(CoreClientProjection.advance(created), emptyList(),
+    val closed = TestMilestoneEvidence.record(CoreClientProjection.advance(created), emptyList(),
       resolve(id, "TEST_ONLY_RESOLVED_FACT"))
     val memory = JSONObject(StoryFactLedger.context(closed))
     assertEquals(0, memory.getJSONArray("open").length())
@@ -98,24 +99,24 @@ class StoryFactLedgerTest {
     assertEquals(created.equipment, closed.equipment)
     assertEquals(created.inventories, closed.inventories)
     assertThrows(IllegalArgumentException::class.java) {
-      StoryFactLedger.recordTurn(closed, emptyList(), resolve(id, "resolve twice"))
+      TestMilestoneEvidence.record(closed, emptyList(), resolve(id, "resolve twice"))
     }
   }
 
   @Test fun unknownEntityAndConflictingFactsAreRejectedWithoutMutation() {
     val state = initial()
     assertThrows(IllegalArgumentException::class.java) {
-      StoryFactLedger.recordTurn(state, emptyList(),
+      TestMilestoneEvidence.record(state, emptyList(),
         add("ENTITY", "fake_entity", "TEST_ONLY_ENTITY"))
     }
     assertThrows(IllegalArgumentException::class.java) {
-      StoryFactLedger.recordTurn(state, emptyList(),
+      TestMilestoneEvidence.record(state, emptyList(),
         add("ENTITY", "hound", "TEST_ONLY_ENTITY"))
     }
-    val after = StoryFactLedger.recordTurn(state, emptyList(),
+    val after = TestMilestoneEvidence.record(state, emptyList(),
       add("CLUE", "fixture.clue.unknown", "TEST_ONLY_CLUE_ORIGINAL"))
     assertThrows(IllegalArgumentException::class.java) {
-      StoryFactLedger.recordTurn(after, emptyList(),
+      TestMilestoneEvidence.record(after, emptyList(),
         add("CLUE", "fixture.clue.unknown", "TEST_ONLY_CLUE_CONFLICT"))
     }
     assertEquals(state.characters, after.characters)
@@ -126,10 +127,66 @@ class StoryFactLedgerTest {
     val state = initial()
     val flagged = state.copy(world = state.world + ("flagsJson" to JSONObject()
       .put("entityEncounterKey", "hound").toString()))
-    val remembered = StoryFactLedger.recordTurn(flagged, emptyList(),
+    val remembered = TestMilestoneEvidence.record(flagged, emptyList(),
       add("ENTITY", "hound", "TEST_ONLY_CONFIRMED_ENTITY"))
     assertTrue(StoryFactLedger.context(remembered).contains("TEST_ONLY_CONFIRMED_ENTITY"))
     assertNull(CombatRuntime.active(remembered))
     assertEquals(flagged.characters, remembered.characters)
   }
+
+  @Test fun addAndResolveRequireBoundNarrativeEvidence() {
+    val state = initial()
+    val proposal = add("CLUE", "fixture.evidence", "TEST_ONLY real clue")
+    assertThrows(Exception::class.java) { StoryFactLedger.recordTurn(state, emptyList(), proposal) }
+    val text = TestMilestoneEvidence.narrative(state, proposal)
+    val falseProof = JSONObject(TestMilestoneEvidence.proof(state, text, proposal)).put("verified", false)
+    assertThrows(Exception::class.java) {
+      StoryFactLedger.recordTurn(state, emptyList(), proposal, text, falseProof.toString())
+    }
+    val accepted = TestMilestoneEvidence.record(state, emptyList(), proposal)
+    val fact = JSONObject(accepted.world.getValue("story.factLedger")).getJSONArray("open").getJSONObject(0)
+    assertEquals("CP-L00-01", fact.getString("checkpointId"))
+    assertEquals("TEST_ONLY real clue", fact.getString("evidenceQuote"))
+    val resolving = resolve(fact.getString("id"), "TEST_ONLY resolution")
+    assertThrows(Exception::class.java) {
+      StoryFactLedger.recordTurn(accepted, emptyList(), resolving, text, TestMilestoneEvidence.proof(state, text, proposal))
+    }
+    assertEquals(1, JSONObject(accepted.world.getValue("story.factLedger")).getJSONArray("open").length())
+  }
+
+  @Test fun moreThanFortyEightOpenFactsRemainSavedAndRetrievable() {
+    var state = initial()
+    for (i in 0 until 100) {
+      state = TestMilestoneEvidence.record(state, emptyList(),
+        add("CLUE", "fixture.capacity.$i", "TEST_ONLY_CAPACITY_${i}_" + "x".repeat(160)))
+      state = CoreClientProjection.advance(state)
+    }
+    val restored = GameStateCodec.decode(GameStateCodec.encode(state))
+    val saved = JSONObject(restored.world.getValue("story.factLedger"))
+    assertEquals(100, saved.getJSONArray("open").length())
+    val context = StoryFactLedger.context(restored, "fixture.capacity.40")
+    assertTrue(context.length <= 28000)
+    assertTrue(context.contains("fixture.capacity.40"))
+    assertEquals(100, JSONObject(context).getInt("openTotal"))
+    val ids = (0 until 100).map { saved.getJSONArray("open").getJSONObject(it).getString("id") }
+    assertEquals(100, ids.toSet().size)
+  }
+
+  @Test fun resolvedHistoryIsArchivedWithEvidenceInsteadOfDiscarded() {
+    var state = initial()
+    for (i in 0 until 100) {
+      state = TestMilestoneEvidence.record(state, emptyList(), add("EVENT", "fixture.archive.$i", "TEST_ONLY_ARCHIVE_$i"))
+      val id = JSONObject(state.world.getValue("story.factLedger")).getJSONArray("open").getJSONObject(0).getString("id")
+      state = CoreClientProjection.advance(state)
+      state = TestMilestoneEvidence.record(state, emptyList(), resolve(id, "TEST_ONLY_RESOLVED_$i"))
+      state = CoreClientProjection.advance(state)
+    }
+    val ledger = JSONObject(GameStateCodec.decode(GameStateCodec.encode(state)).world.getValue("story.factLedger"))
+    assertEquals(0, ledger.getJSONArray("open").length())
+    assertEquals(96, ledger.getJSONArray("history").length())
+    assertEquals(4, ledger.getJSONArray("archive").length())
+    assertTrue(ledger.getJSONArray("archive").toString().contains("TEST_ONLY_ARCHIVE_0"))
+    assertTrue(ledger.getJSONArray("archive").getJSONObject(0).has("resolutionEvidenceQuote"))
+  }
 }
+

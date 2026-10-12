@@ -79,6 +79,10 @@ object KnowledgeContextEngine {
 
   private fun load(context: Context): Database {
     val raw = context.assets.open(ASSET).bufferedReader(Charsets.UTF_8).use { it.readText() }
+    return parseDatabase(raw)
+  }
+
+  internal fun parseDatabase(raw: String): Database {
     val root = JSONObject(raw)
     val array = root.getJSONArray("records")
     val records = linkedMapOf<String, Record>()
@@ -111,7 +115,7 @@ object KnowledgeContextEngine {
     return Database(records.toMap(), index { it.tags }, index { it.affordances })
   }
 
-  private class Builder(
+  internal class Builder(
     private val db: Database,
     private val state: JSONObject,
     private val action: String,
@@ -141,7 +145,6 @@ object KnowledgeContextEngine {
       addStateDrivenRecords()
       expandReferences()
 
-      val records = budgetedRecords()
       val packet = StringBuilder()
       packet.append("[KNOWLEDGE_PACKET v1]\n")
       packet.append("Budget target=").append(TARGET_CONTEXT_BUDGET)
@@ -151,17 +154,26 @@ object KnowledgeContextEngine {
       packet.append("Current state:\n").append(compactState()).append('\n')
       packet.append("Recent dialogue buffer:\n").append(recentDialogue()).append('\n')
       packet.append("Retrieved records:\n")
+      val records = budgetedRecords(packet.toString())
       records.forEach { record ->
-        packet.append("<").append(record.id).append("> ")
-          .append(record.text.replace('\n', ' ')).append('\n')
-        packet.append("  source=").append(record.source.document)
-          .append("#").append(record.source.anchor)
-          .append("; authority=").append(record.authority)
-          .append("; mutability=").append(record.mutability)
-          .append("; why=").append(reasons[record.id].orEmpty()).append('\n')
+        packet.append(renderRecord(record))
       }
       packet.append("[END_KNOWLEDGE_PACKET]")
-      return hardClip(packet.toString(), HARD_CONTEXT_CEILING)
+      return packet.toString()
+    }
+
+    private fun renderRecord(record: Record): String = buildString {
+      append("<").append(record.id).append("> ")
+        .append(record.text.replace('\n', ' ')).append('\n')
+      append("  source=").append(record.source.document)
+        .append("#").append(record.source.anchor)
+        .append("; provenance=").append(
+          if (record.source.document.startsWith("Google Drive /Novel/Asset/") ||
+            record.source.document.startsWith("https://")) "TRACEABLE"
+          else "LEGACY_UNVERIFIED")
+        .append("; authority=").append(record.authority)
+        .append("; mutability=").append(record.mutability)
+        .append("; why=").append(reasons[record.id].orEmpty()).append('\n')
     }
 
     private fun addMandatory() {
@@ -174,17 +186,32 @@ object KnowledgeContextEngine {
         "WRITING.PLAYER_AGENCY",
         "CHAR.CAO_MINH.RUNTIME_CORE"
       ).forEach { add(it, "mandatory hard context") }
+      add("CHAR.CAO_MINH.AUTHORED", "Drive-authored identity boundary")
+
     }
 
     private fun addCurrentLevel() {
       val number = currentLevel()
-      add("LEVEL.%02d".format(Locale.ROOT, number), "current level direct id")
+      val levelId = "LEVEL.%02d".format(Locale.ROOT, number)
+      add(levelId, "current level direct id")
+      add("$levelId.AUTHORED", "Drive-authored level scene card")
+      // A scene node is not interchangeable with its parent level. Only exact IDs
+      // with authored entries resolve; absent or conflicting nodes stay UNKNOWN.
+      val node = state.optJSONObject("level")?.optString("id", "").orEmpty()
+        .ifBlank { state.optJSONObject("flags")?.optJSONObject("currentLevel")?.optString("id", "").orEmpty() }
+        .trim()
+      if (node.matches(Regex("[a-z0-9_.-]{1,48}"))) {
+        add("LEVEL.NODE.$node", "exact current environment node")
+      }
     }
 
     private fun addPresentRuntimeCards() {
       if ("iris" in presentActors) add("CHAR.IRIS.RUNTIME_CORE", "present actor runtime core")
       if ("syvial" in presentActors) add("CHAR.SYVIAL.RUNTIME_CORE", "present actor runtime core")
+      if ("lucia" in presentActors) add("CHAR.LUCIA.AUTHORED", "present Lucia authored card")
+      if ("trac_lam" in presentActors) add("CHAR.TRAC_LAM.AUTHORED", "present Trác Lâm authored card")
       if ("luc_tram" in presentActors) {
+        add("CHAR.LUC_TRAM.AUTHORED", "present Lục Trầm authored card")
         add("CHAR.LUC_TRAM.RUNTIME_CORE", "present actor runtime core")
         add("CHAR.LUC_TRAM.REVIVAL_R06", "post-revival knowledge boundary")
         add("CHAR.LUC_TRAM.OPEN_R06", "unresolved encounter history")
@@ -198,20 +225,31 @@ object KnowledgeContextEngine {
 
     private fun addDirectStructuredLookups() {
       val direct = linkedSetOf<String>()
+      val lucTramConfirmed = "luc_tram" in presentActors || confirmedRoll("lucTramEncounter")
+      if ("lucia" in presentActors && hasAny(actionText, "lucia", "hứa thuý mai", "hứa thúy mai")) direct += "CHAR.LUCIA.AUTHORED"
+      if ("trac_lam" in presentActors && hasAny(actionText, "trác lâm", "trac lam", "trac_lam")) direct += "CHAR.TRAC_LAM.AUTHORED"
       if (hasAny(actionText, "lục trầm", "luc tram", "luc_tram", "tịch quang", "thiên kiếm linh tâm")) {
-        direct += "CHAR.LUC_TRAM.RUNTIME_CORE"
-        direct += "CHAR.LUC_TRAM.REVIVAL_R06"
-        direct += "CHAR.LUC_TRAM.OPEN_R06"
-        direct += "REL.CAO_MINH.LUC_TRAM.HISTORY_R06"
-        direct += "CHAR.LUC_TRAM.POWERS_AND_VISUAL"
+        // A name being mentioned is not evidence this actor has appeared.
+        if (lucTramConfirmed) {
+          direct += "CHAR.LUC_TRAM.AUTHORED"
+          direct += "CHAR.LUC_TRAM.RUNTIME_CORE"
+          direct += "CHAR.LUC_TRAM.REVIVAL_R06"
+          direct += "CHAR.LUC_TRAM.OPEN_R06"
+          direct += "REL.CAO_MINH.LUC_TRAM.HISTORY_R06"
+          direct += "CHAR.LUC_TRAM.POWERS_AND_VISUAL"
+        }
       }
-      if (hasAny(actionText, "argus", "terrain read")) direct += "CHAR.IRIS.ARGUS"
-      if (hasAny(actionText, "thousandfold")) direct += "CHAR.IRIS.THOUSANDFOLD"
-      if (hasAny(actionText, "ivory", "ebony")) direct += "CHAR.IRIS.IVORY_EBONY"
-      if (hasAny(actionText, "field mednet", "field galley")) direct += "CHAR.IRIS.SUPPORT"
-      if (hasAny(actionText, "godkiller override", "twenty-four severance")) direct += "CHAR.SYVIAL.GODKILLER_OVERRIDE"
-      else if (hasAny(actionText, "godkiller")) direct += "CHAR.SYVIAL.GODKILLER"
-      if (hasAny(actionText, "lucifer core")) direct += "CHAR.SYVIAL.LUCIFER_CORE"
+      if ("iris" in presentActors) {
+        if (hasAny(actionText, "argus", "terrain read")) direct += "CHAR.IRIS.ARGUS"
+        if (hasAny(actionText, "thousandfold")) direct += "CHAR.IRIS.THOUSANDFOLD"
+        if (hasAny(actionText, "ivory", "ebony")) direct += "CHAR.IRIS.IVORY_EBONY"
+        if (hasAny(actionText, "field mednet", "field galley")) direct += "CHAR.IRIS.SUPPORT"
+      }
+      if ("syvial" in presentActors) {
+        if (hasAny(actionText, "godkiller override", "twenty-four severance")) direct += "CHAR.SYVIAL.GODKILLER_OVERRIDE"
+        else if (hasAny(actionText, "godkiller")) direct += "CHAR.SYVIAL.GODKILLER"
+        if (hasAny(actionText, "lucifer core")) direct += "CHAR.SYVIAL.LUCIFER_CORE"
+      }
       if (hasAny(actionText, "devil trigger") && "syvial" in presentActors) {
         direct += "CHAR.SYVIAL.DEVIL_TRIGGER"
       }
@@ -227,7 +265,12 @@ object KnowledgeContextEngine {
         .forEach { (tag, ids) ->
           ids.forEach { id ->
             val r = db.records[id] ?: return@forEach
-            if (r.domain == "ENTITY" || r.domain == "ITEM") add(id, "explicit structured tag: $tag")
+            // A player mentioning an Entity is NOT proof of an encounter.
+            // Only the Core-confirmed combat/encounter key may expose its visual.
+            if (r.domain == "ITEM" ||
+              (r.domain == "ENTITY" && id == confirmedEntityVisualId())) {
+              add(id, "explicit structured tag: $tag")
+            }
           }
         }
     }
@@ -252,18 +295,44 @@ object KnowledgeContextEngine {
       }
     }
 
+    private fun confirmedRoll(key: String): Boolean =
+      !rolls.optBoolean("meta", false) &&
+        rolls.optInt("turn", -1) == state.optInt("turn", -2) &&
+        rolls.optJSONObject(key)?.let {
+          it.optBoolean("success", false) && it.optBoolean("eligible", false)
+        } == true
+
+    private fun confirmedEntityVisualId(): String? {
+      val combat = state.optJSONObject("combat")
+      val flags = state.optJSONObject("flags")
+      val key = when {
+        combat?.optBoolean("active", false) == true -> combat.optString("entityKey", "")
+        confirmedRoll("entityEncounter") -> rolls.optString("selectedEntityKey", "")
+        else -> flags?.optString("entityEncounterKey", "").orEmpty()
+      }
+      return key.takeIf { it.matches(Regex("[a-z0-9_-]{1,80}")) }
+        ?.uppercase(Locale.ROOT)?.replace('-', '_')?.let { "ENTITY.$it.VISUAL" }
+    }
+
     private fun addStateDrivenRecords() {
-      val lucTramRoll = rolls.optJSONObject("lucTramEncounter")
-      if (lucTramRoll?.optBoolean("success", false) == true &&
-          lucTramRoll.optBoolean("eligible", false)) {
+      if (confirmedRoll("lucTramEncounter")) {
         add("CHAR.LUC_TRAM.RUNTIME_CORE", "confirmed encounter roll")
         add("CHAR.LUC_TRAM.REVIVAL_R06", "post-revival amnesia firewall")
         add("CHAR.LUC_TRAM.OPEN_R06", "unresolved state firewall")
         add("REL.CAO_MINH.LUC_TRAM.HISTORY_R06", "known history, not current knowledge")
       }
       val flags = state.optJSONObject("flags")
+      // A selected roll is already authoritative when the GM receives its
+      // context, before startCombatState has persisted the encounter.
+      if (confirmedRoll("luciaEncounter")) {
+        add("CHAR.LUCIA.AUTHORED", "confirmed Lucia encounter roll")
+      }
+      val confirmedVisual = confirmedEntityVisualId()
+      if (confirmedVisual != null) {
+        add(confirmedVisual, "confirmed active Entity visual canon")
+      }
       val confirmedEntities = flags?.optInt("entitiesConfirmedLocal", 0) ?: 0
-      val entityRoll = rolls.optJSONObject("entityEncounter")?.optBoolean("success", false) ?: false
+      val entityRoll = confirmedRoll("entityEncounter")
       if (confirmedEntities > 0 || entityRoll || hasAny(sceneText, "entity", "thực thể", "quái", "hound", "smiler", "skin-stealer", "jeff")) {
         add("ENTITY.GLOBAL_HARD_LOCK", "entity state/scene requires entity rules")
       }
@@ -282,66 +351,98 @@ object KnowledgeContextEngine {
           val target = db.records[id] ?: return@forEach
           if (target.priority <= 55) {
             add(id, "direct reference from ${record.id}")
-            queue.add(target)
+            if (id in selected) queue.add(target)
           }
         }
       }
     }
 
-    private fun budgetedRecords(): List<Record> {
+    private fun budgetedRecords(header: String): List<Record> {
       val mandatory = selected.values.filter { it.priority <= 30 }.sortedWith(compareBy<Record> { it.priority }.thenBy { it.id })
       val optional = selected.values.filter { it.priority > 30 }.sortedWith(compareBy<Record> { it.priority }.thenBy { it.id })
       val kept = mutableListOf<Record>()
-      var tokens = baseEstimatedTokens()
-      mandatory.forEach { r -> kept += r; tokens += r.estimatedTokens }
+      var tokens = estimateTokens(header + "[END_KNOWLEDGE_PACKET]")
+      mandatory.forEach { r -> kept += r; tokens += estimateTokens(renderRecord(r)) }
+      // A broken asset or oversized state must fail explicitly, never emit a
+      // half hard-lock or silently omit mandatory Canon to satisfy a budget.
+      require(tokens <= HARD_CONTEXT_CEILING) { "knowledge_mandatory_context_over_budget" }
       optional.forEach { r ->
         val ceiling = if (tokens < TARGET_CONTEXT_BUDGET) TARGET_CONTEXT_BUDGET else SOFT_CONTEXT_CEILING
-        if (tokens + r.estimatedTokens <= ceiling) {
+        val cost = estimateTokens(renderRecord(r))
+        if (tokens + cost <= ceiling) {
           kept += r
-          tokens += r.estimatedTokens
+          tokens += cost
         }
       }
       return kept
     }
 
-    private fun baseEstimatedTokens(): Int = estimateTokens(compactState()) + estimateTokens(recentDialogue()) + 80
-
     private fun add(id: String, reason: String) {
       val record = db.records[id] ?: return
+      if (!eligible(record)) return
       selected.putIfAbsent(id, record)
       reasons.putIfAbsent(id, reason)
     }
 
+    // Every retrieval path, including references and affordances, obeys scene
+    // evidence. Mentioning a name cannot bypass the same boundary.
+    private fun eligible(record: Record): Boolean {
+      if (record.authority == "WRITER-SECRET" || record.kind == "reference-only-level") return false
+      val actor = when {
+        record.id.startsWith("CHAR.IRIS.") -> "iris"
+        record.id.startsWith("CHAR.SYVIAL.") -> "syvial"
+        record.id.startsWith("CHAR.LUCIA.") -> "lucia"
+        record.id.startsWith("CHAR.TRAC_LAM.") -> "trac_lam"
+        record.id.startsWith("CHAR.LUC_TRAM.") || record.id == "REL.CAO_MINH.LUC_TRAM.HISTORY_R06" -> "luc_tram"
+        else -> null
+      }
+      if (actor != null && actor !in presentActors) return false
+      if (record.domain == "ENTITY" && record.id != "ENTITY.GLOBAL_HARD_LOCK") {
+        val visual = confirmedEntityVisualId() ?: return false
+        if (record.id == visual) return true
+        // Legacy IDs are not uniformly derived from the entity key. Match the
+        // confirmed card's exact tags instead of guessing an alias from a name.
+        val tags = db.records[visual]?.tags.orEmpty()
+        if (record.tags.none { it in tags }) return false
+      }
+      return true
+    }
+
     private fun resolvePresence() {
-      val party = state.optJSONArray("party")
-      if (party != null) {
+      // State is the only evidence of who is actually in the scene.
+      // Substring matching lets names like "iris_unknown" impersonate a Party member.
+      fun addConfirmed(idOrName: String) {
+        when (normalize(idOrName)) {
+          "iris" -> presentActors += "iris"
+          "syvial" -> presentActors += "syvial"
+          "lucia", "lucia lục" -> presentActors += "lucia"
+          "trac_lam", "trác lâm", "trac lam" -> presentActors += "trac_lam"
+          "luc_tram", "lục trầm", "luc tram" -> presentActors += "luc_tram"
+        }
+      }
+      fun activeMember(member: JSONObject): Boolean =
+        member.optString("presence", "ACTIVE") == "ACTIVE"
+
+      state.optJSONArray("party")?.let { party ->
         for (i in 0 until party.length()) {
           when (val value = party.opt(i)) {
-            is JSONObject -> {
-              val id = normalize(value.optString("id", value.optString("name", "")))
-              if (id.contains("iris")) presentActors += "iris"
-              if (id.contains("syvial")) presentActors += "syvial"
-              if (id == "luc_tram" || id.contains("lục trầm") || id == "luc tram") presentActors += "luc_tram"
+            is JSONObject -> if (activeMember(value)) {
+              addConfirmed(value.optString("id", value.optString("name", "")))
             }
-            else -> {
-              val id = normalize(value?.toString().orEmpty())
-              if (id.contains("iris")) presentActors += "iris"
-              if (id.contains("syvial")) presentActors += "syvial"
-              if (id == "luc_tram" || id.contains("lục trầm") || id == "luc tram") presentActors += "luc_tram"
-            }
+            is String -> addConfirmed(value)
           }
         }
       }
-      val details = state.optJSONObject("partyDetails")?.optJSONArray("members")
-      if (details != null) {
+      state.optJSONObject("partyDetails")?.optJSONArray("members")?.let { details ->
         for (i in 0 until details.length()) {
           val member = details.optJSONObject(i) ?: continue
-          val id = normalize(member.optString("id", member.optString("name", "")))
-          if (id.contains("iris")) presentActors += "iris"
-          if (id.contains("syvial")) presentActors += "syvial"
-          if (id == "luc_tram" || id.contains("lục trầm") || id == "luc tram") presentActors += "luc_tram"
+          if (activeMember(member)) {
+            addConfirmed(member.optString("id", member.optString("name", "")))
+          }
         }
       }
+      if (confirmedRoll("lucTramEncounter")) presentActors += "luc_tram"
+      if (confirmedRoll("luciaEncounter")) presentActors += "lucia"
     }
 
     private fun currentLevel(): Int {
@@ -389,13 +490,6 @@ object KnowledgeContextEngine {
       return out.toString()
     }
 
-  }
-
-  private fun hardClip(text: String, hardTokens: Int): String {
-    val maxChars = hardTokens * 4
-    if (text.length <= maxChars) return text
-    val suffix = "\n[PACKET_CLIPPED_AT_HARD_CEILING]"
-    return text.take((maxChars - suffix.length).coerceAtLeast(0)) + suffix
   }
 
   private fun compactArray(array: JSONArray, limit: Int): JSONArray {
@@ -448,3 +542,4 @@ object KnowledgeContextEngine {
 
   private fun estimateTokens(text: String): Int = ceil(text.length / 4.0).toInt().coerceAtLeast(1)
 }
+
