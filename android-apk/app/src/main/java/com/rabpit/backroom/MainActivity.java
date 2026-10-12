@@ -1930,7 +1930,7 @@ public class MainActivity extends Activity {
     // The planner receives a small state excerpt, never the complete client save.
     if (scene.length() > 1500) scene = scene.substring(0, 1500);
     String prompt = com.rabpit.backroom.core.StoryMilestonePlannerPrompt.build(
-      checkpointId, startTurn, nodeId, canon, scene);
+      checkpointId, startTurn, nodeId, canon, scene, request.getInt("checkpointTotal"));
     // No audit/writer routing and no parallel requests to five keys.
     String rawPlan = geminiTextPolicy(prompt, -1, 0.5, 2600, false);
     boolean saved = requireGameCore().installMilestonePlan(
@@ -2212,3 +2212,4 @@ public class MainActivity extends Activity {
     HttpError(int status, String message) { super(message); this.status = status; }
   }
 }
+

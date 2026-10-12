@@ -10,7 +10,7 @@ import org.json.JSONObject
  * This contract does not trigger events or award EXP. The runtime dispatcher belongs to step 6.
  */
 object StoryMilestonePlan {
-  const val SCHEMA_VERSION = 1
+  const val SCHEMA_VERSION = 2
   const val FINAL_HP_MULTIPLIER = 9
   const val FINAL_EXP_MULTIPLIER = 9
   private const val ACTIVE_KEY = "story.milestone.active"
@@ -22,11 +22,40 @@ object StoryMilestonePlan {
   private val ENTITY_KEY = Regex("[a-z0-9_-]{1,80}")
 
   enum class Kind { STORY, FINAL_ENTITY }
+  enum class CompletionType { NEXT_CHECKPOINT, EXIT_LEVEL }
+
+  data class Completion(
+    val type: CompletionType,
+    val outcome: String,
+    val targetNodeId: String? = null,
+    val nextCheckpointTotal: Int? = null
+  ) {
+    fun toJson(): JSONObject = JSONObject().put("type", type.name).put("outcome", outcome).apply {
+      if (type == CompletionType.EXIT_LEVEL) {
+        put("targetNodeId", requireNotNull(targetNodeId))
+        put("nextCheckpointTotal", requireNotNull(nextCheckpointTotal))
+      }
+    }
+
+    fun nextAddress(position: StoryCheckpointCore.Position): StoryCheckpointCore.Position =
+      when (type) {
+        CompletionType.NEXT_CHECKPOINT -> requireNotNull(position.nextAddress()) {
+          "milestone_completion_requires_level_exit"
+        }
+        CompletionType.EXIT_LEVEL -> {
+          val target = requireNotNull(LevelRouteRegistry.node(requireNotNull(targetNodeId))) {
+            "milestone_exit_target_unknown"
+          }
+          StoryCheckpointCore.Position(target.parent, 1, requireNotNull(nextCheckpointTotal))
+        }
+      }
+  }
 
   data class Event(
     val id: String,
     val turn: Int,
     val kind: Kind,
+    val action: String,
     val event: String,
     val outcome: String,
     val entityKey: String? = null
@@ -35,6 +64,7 @@ object StoryMilestonePlan {
       .put("id", id)
       .put("turn", turn)
       .put("kind", kind.name)
+      .put("action", action)
       .put("event", event)
       .put("outcome", outcome)
       .apply {
@@ -46,7 +76,7 @@ object StoryMilestonePlan {
       }
   }
 
-  data class Plan(val checkpointId: String, val events: List<Event>) {
+  data class Plan(val checkpointId: String, val events: List<Event>, val completion: Completion) {
     val finalEncounter: Event get() = events.last()
 
     /** Relative 1-based turn within this Checkpoint; no per-action quotas. */
@@ -57,6 +87,7 @@ object StoryMilestonePlan {
       .put("schemaVersion", SCHEMA_VERSION)
       .put("checkpointId", checkpointId)
       .put("events", JSONArray().apply { events.forEach { put(it.toJson()) } })
+      .put("completion", completion.toJson())
   }
 
   data class Active(val startTurn: Int, val plan: Plan) {
@@ -70,7 +101,7 @@ object StoryMilestonePlan {
   fun parse(raw: String, expected: StoryCheckpointCore.Position): Plan {
     require(raw.length in 2..MAX_PLAN_CHARS) { "milestone_payload_size_invalid" }
     val root = JSONObject(raw)
-    exactFields(root, setOf("schemaVersion", "checkpointId", "events"))
+    exactFields(root, setOf("schemaVersion", "checkpointId", "events", "completion"))
     require(integer(root, "schemaVersion") == SCHEMA_VERSION) { "milestone_schema_invalid" }
     val checkpointId = string(root, "checkpointId", 32)
     require(checkpointId == expected.id) { "milestone_checkpoint_mismatch" }
@@ -82,7 +113,7 @@ object StoryMilestonePlan {
     for (i in 0 until entries.length()) {
       val item = entries.getJSONObject(i)
       val kind = Kind.valueOf(string(item, "kind", 24))
-      val allowed = mutableSetOf("id", "turn", "kind", "event", "outcome")
+      val allowed = mutableSetOf("id", "turn", "kind", "action", "event", "outcome")
       if (kind == Kind.FINAL_ENTITY) allowed += setOf("entityKey", "hpMultiplier", "expMultiplier")
       exactFields(item, allowed)
 
@@ -92,6 +123,7 @@ object StoryMilestonePlan {
       require(turn in 1..1_000_000) { "milestone_turn_invalid" }
       require(events.isEmpty() || events.last().turn <= turn) { "milestone_turn_order_invalid" }
       val event = string(item, "event", MAX_DESCRIPTION_CHARS)
+      val action = string(item, "action", MAX_DESCRIPTION_CHARS)
       val outcome = string(item, "outcome", MAX_DESCRIPTION_CHARS)
       val key = if (kind == Kind.FINAL_ENTITY) {
         val value = string(item, "entityKey", 80)
@@ -104,14 +136,32 @@ object StoryMilestonePlan {
         }
         value
       } else null
-      events += Event(id, turn, kind, event, outcome, key)
+      events += Event(id, turn, kind, action, event, outcome, key)
     }
 
     require(events.last().kind == Kind.FINAL_ENTITY &&
       events.count { it.kind == Kind.FINAL_ENTITY } == 1) {
       "milestone_final_encounter_required"
     }
-    return Plan(checkpointId, events)
+    val ending = root.getJSONObject("completion")
+    val type = CompletionType.valueOf(string(ending, "type", 24))
+    val fields = mutableSetOf("type", "outcome")
+    if (type == CompletionType.EXIT_LEVEL) fields += setOf("targetNodeId", "nextCheckpointTotal")
+    exactFields(ending, fields)
+    require((type == CompletionType.EXIT_LEVEL) == expected.isLast) {
+      "milestone_completion_checkpoint_mismatch"
+    }
+    val completion = if (type == CompletionType.EXIT_LEVEL) {
+      val targetId = string(ending, "targetNodeId", 64)
+      val target = requireNotNull(LevelRouteRegistry.node(targetId)) { "milestone_exit_target_unknown" }
+      require(target.parent != expected.level) { "milestone_exit_same_level" }
+      val total = integer(ending, "nextCheckpointTotal")
+      // Position validates the supported address/count, including Level 0's
+      // fixed twenty CPs. Neither MAIN-only nor immediate route gates apply.
+      StoryCheckpointCore.Position(target.parent, 1, total)
+      Completion(type, string(ending, "outcome", MAX_DESCRIPTION_CHARS), targetId, total)
+    } else Completion(type, string(ending, "outcome", MAX_DESCRIPTION_CHARS))
+    return Plan(checkpointId, events, completion)
   }
 
   /** Install once at Checkpoint activation; never rewrite the authored schedule mid-story. */
@@ -142,12 +192,12 @@ object StoryMilestonePlan {
   /**
    * Pre-store the following Checkpoint while its predecessor's final Entity
    * is in active combat. Does NOT activate it or move the Story Checkpoint.
-   * The Level boundary after CP20 is deliberately left for Level routing.
+   * The following address comes from the current plan's authored completion.
    */
   fun prepareNextDuringCombat(state: GameState, raw: String): GameState {
     val currentPosition = requireNotNull(StoryCheckpointCore.current(state)) { "checkpoint_not_initialized" }
-    val next = requireNotNull(currentPosition.nextAddress()) { "next_level_checkpoint_not_configured" }
     val active = requireNotNull(current(state)) { "milestone_current_plan_missing" }
+    val next = active.plan.completion.nextAddress(currentPosition)
     val combat = CombatRuntime.active(state)
     require(combat != null && combat.entityKey == active.plan.finalEncounter.entityKey) {
       "milestone_final_combat_required"
@@ -168,7 +218,8 @@ object StoryMilestonePlan {
   fun prepared(state: GameState): Plan? {
     val raw = state.world[PREPARED_KEY] ?: return null
     val position = requireNotNull(StoryCheckpointCore.current(state)) { "checkpoint_not_initialized" }
-    val next = requireNotNull(position.nextAddress()) { "next_level_checkpoint_not_configured" }
+    val active = requireNotNull(current(state)) { "milestone_current_plan_missing" }
+    val next = active.plan.completion.nextAddress(position)
     return parse(raw, next)
   }
 
@@ -191,3 +242,4 @@ object StoryMilestonePlan {
     return raw
   }
 }
+

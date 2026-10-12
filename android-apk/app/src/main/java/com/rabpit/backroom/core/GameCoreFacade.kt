@@ -558,6 +558,7 @@ class GameCoreFacade private constructor(
     return JSONObject().put("needed", true)
       .put("runToken", token)
       .put("checkpointId", position.id)
+      .put("checkpointTotal", position.total)
       .put("startTurn", CoreClientProjection.turnIndex(state))
       .put("levelNode", levelNode)
       .toString()
@@ -729,3 +730,4 @@ class GameCoreFacade private constructor(
     )
   }
 }
+
