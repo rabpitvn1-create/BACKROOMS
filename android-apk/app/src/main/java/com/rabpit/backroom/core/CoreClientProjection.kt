@@ -43,12 +43,13 @@ object CoreClientProjection {
     val out = JSONObject(client.toString())
     for (key in arrayOf("turn", "saveVersion", "inventory", "party", "partyDetails",
       "equipment", "player", "coreSystem", "combat", "combatFeedback", "gameTime",
-      "location", "title", "level", "flags")) out.remove(key)
+      "location", "title", "level", "flags", "milestoneExit")) out.remove(key)
     out.put("turn", turnIndex(state))
     out.put("saveVersion", CURRENT_SAVE_VERSION)
     out.put("location", state.world.getValue("location"))
     out.put("title", state.world.getValue("title"))
     out.put("level", JSONObject(state.world.getValue("levelJson")))
+    state.world["story.levelExitLast"]?.let { out.put("milestoneExit", JSONObject(it)) }
     val flags = JSONObject(state.world.getValue("flagsJson"))
     if (state.metadata["madGod.spawned"] == "true") {
       flags.put("madGod", JSONObject().put("spawned", true).put("spawnSource", "cheat"))
