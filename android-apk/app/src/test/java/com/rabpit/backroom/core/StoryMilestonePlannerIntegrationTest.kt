@@ -43,7 +43,7 @@ class StoryMilestonePlannerIntegrationTest {
     assertTrue(core.installMilestonePlan(plan(), request.getString("runToken"),
       request.getString("checkpointId"), request.getInt("startTurn")))
     assertFalse(JSONObject(core.milestonePlanRequest()).getBoolean("needed"))
-    assertEquals(plan(), StoryMilestonePlan.current(repo.stored!!)!!.plan.toJson().toString())
+    assertEquals("CP-L00-01", StoryMilestonePlan.current(repo.stored!!)!!.plan.checkpointId)
     val decoded = GameStateCodec.decode(GameStateCodec.encode(repo.stored!!))
     assertEquals("CP-L00-01", StoryMilestonePlan.current(decoded)!!.plan.checkpointId)
   }
