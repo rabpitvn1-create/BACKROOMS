@@ -31,6 +31,7 @@ test('GM cannot independently advance a scripted main Level or open random exit'
   const facade = core('GameCoreFacade.kt');
   assert.match(facade, /milestone_level_requires_planned_end/);
   assert.match(facade, /milestoneNextPlanRequest/);
+  assert.match(facade, /milestone_event_pending/);
   assert.match(main, /boolean hiddenExitReady = !scripted/);
   assert.match(main, /!scripted && exitIntent/);
   assert.match(main, /!scripted && exploreAction/);
