@@ -29,7 +29,8 @@ object StoryMilestonePlan {
     val kind: Kind,
     val event: String,
     val outcome: String,
-    val entityKey: String? = null
+    val entityKey: String? = null,
+    val storyFacts: List<StoryFactLedger.FactSpec> = emptyList()
   ) {
     fun toJson(): JSONObject = JSONObject()
       .put("id", id)
@@ -43,6 +44,8 @@ object StoryMilestonePlan {
           put("hpMultiplier", FINAL_HP_MULTIPLIER)
           put("expMultiplier", FINAL_EXP_MULTIPLIER)
         }
+        if (storyFacts.isNotEmpty()) put("storyFacts",
+          JSONArray().apply { storyFacts.forEach { put(it.toJson()) } })
       }
   }
 
@@ -84,6 +87,7 @@ object StoryMilestonePlan {
       val kind = Kind.valueOf(string(item, "kind", 24))
       val allowed = mutableSetOf("id", "turn", "kind", "event", "outcome")
       if (kind == Kind.FINAL_ENTITY) allowed += setOf("entityKey", "hpMultiplier", "expMultiplier")
+      if (item.has("storyFacts")) allowed += "storyFacts"
       exactFields(item, allowed)
 
       val id = string(item, "id", 48)
@@ -104,7 +108,9 @@ object StoryMilestonePlan {
         }
         value
       } else null
-      events += Event(id, turn, kind, event, outcome, key)
+      val storyFacts = if (item.has("storyFacts"))
+        StoryFactLedger.parseSpecs(item.getJSONArray("storyFacts"), 4) else emptyList()
+      events += Event(id, turn, kind, event, outcome, key, storyFacts)
     }
 
     require(events.last().kind == Kind.FINAL_ENTITY &&
