@@ -182,17 +182,38 @@ object StoryFactLedger {
       if (openChars + cost <= 18000) { selected.put(fact); openChars += cost }
     }
     val recent = JSONArray()
+    val relevantHistory = JSONArray()
     var recentChars = 0
+    val historyIds = hashSetOf<String>()
+    if (normalizedQuery.isNotBlank()) {
+      val archive = readArray(state, "archive")
+      for (entries in listOf(history, archive)) {
+        for (i in entries.length() - 1 downTo 0) {
+          val entry = entries.getJSONObject(i)
+          val text = (entry.optString("subject") + " " + entry.optString("fact") + " " +
+            entry.optString("resolution")).lowercase(java.util.Locale.ROOT)
+          val matches = normalizedQuery.contains(entry.getString("id").lowercase(java.util.Locale.ROOT)) ||
+            queryWords.any(text::contains)
+          val cost = entry.toString().length + 1
+          if (matches && recentChars + cost <= 3750 && historyIds.add(entry.getString("id"))) {
+            relevantHistory.put(entry)
+            recentChars += cost
+          }
+        }
+      }
+    }
     val chosen = mutableListOf<Any>()
     for (i in history.length() - 1 downTo (history.length() - 8).coerceAtLeast(0)) {
       val entry = history.get(i)
       val cost = entry.toString().length + 1
-      if (recentChars + cost <= 7500) { chosen += entry; recentChars += cost }
+      val id = (entry as JSONObject).getString("id")
+      if (recentChars + cost <= 7500 && historyIds.add(id)) { chosen += entry; recentChars += cost }
     }
     chosen.asReversed().forEach(recent::put)
-    return JSONObject().put("open", selected).put("recent", recent)
+    return JSONObject().put("open", selected).put("recent", recent).put("relevantHistory", relevantHistory)
       .put("openTotal", all.size).put("omittedOpen", all.size - selected.length())
       .put("retention", "Omitted OPEN facts remain saved and unresolved. Retrieve by subject/id; this packet is not the whole ledger.")
+      .apply { state.world["story.milestone.lastCompletion"]?.let { put("lastCompletion", JSONObject(it)) } }
       .toString()
   }
 

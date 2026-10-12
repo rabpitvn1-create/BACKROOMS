@@ -2049,7 +2049,11 @@ public class MainActivity extends Activity {
           if (shortScene.length() > 1500) shortScene = shortScene.substring(0, 1500);
           String prompt = com.rabpit.backroom.core.StoryMilestonePlannerPrompt.build(
             lease.getString("nextCheckpointId"), lease.getInt("startTurn"),
-            lease.getString("levelNode"), canon, shortScene, lease.getInt("checkpointTotal"), requireGameCore().storyFactContext());
+            lease.getString("levelNode"), canon, shortScene, lease.getInt("checkpointTotal"), requireGameCore().storyFactContext()) +
+            "\nPREPARED PLAN: globalStartTurn là ước lượng; Core neo Turn khi kích hoạt thật. " +
+            "Completion của CP trước bên dưới còn PLANNED, chỉ xảy ra sau verified Boss defeat; " +
+            "dùng nó để nối tiếp kịch bản, không ghi thành lịch sử đã xảy ra và không giả định HP/Party sau Combat. " +
+            "PREDECESSOR_PENDING_COMPLETION=" + lease.getJSONObject("completion").toString();
           String raw = geminiTextPolicy(prompt, -1, 0.5, 2600, false);
           boolean accepted = requireGameCore().installNextMilestone(
             raw, lease.getString("runToken"), lease.getString("checkpointId"),

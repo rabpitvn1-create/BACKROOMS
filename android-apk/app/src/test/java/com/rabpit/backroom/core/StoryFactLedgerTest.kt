@@ -187,6 +187,9 @@ class StoryFactLedgerTest {
     assertEquals(4, ledger.getJSONArray("archive").length())
     assertTrue(ledger.getJSONArray("archive").toString().contains("TEST_ONLY_ARCHIVE_0"))
     assertTrue(ledger.getJSONArray("archive").getJSONObject(0).has("resolutionEvidenceQuote"))
+    val retrieved = JSONObject(StoryFactLedger.context(state, "fixture.archive.0"))
+    assertTrue(retrieved.getJSONArray("relevantHistory").toString().contains("TEST_ONLY_ARCHIVE_0"))
+    assertTrue(retrieved.toString().length <= 28000)
   }
 
   @Test fun twoConfirmedInstancesOfSameEntityHaveIndependentNarrativeIdentity() {
