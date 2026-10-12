@@ -1742,7 +1742,7 @@ syncPrimaryActions();
 
 window.backroomTurn=json=>{state=semanticPrepareNextState(state,json);actionEl.value="";busy=false;syncPrimaryActions();if(persistPresentation())statusEl.textContent="Turn "+state.turn+" đã cập nhật.";render();focusLatestGmStart()};
 window.backroomError=message=>{busy=false;syncPrimaryActions();statusEl.textContent="Lỗi Gemini: "+message};
-window.backroomMilestoneReady=()=>{try{if(!window.Android)return;const next=JSON.parse(Android.currentClientState(JSON.stringify(state)));if(!next||next.error)return;state=semanticPrepareNextState(state,next);render();}catch(e){console.warn("Milestone UI refresh deferred",e)}};
+window.backroomMilestoneReady=()=>{try{if(!window.Android)return;const next=JSON.parse(Android.currentClientState(JSON.stringify(state)));if(!next||next.error)return;const oldExit=state&&state.milestoneExit;const exit=next.milestoneExit;if(exit&&(!oldExit||oldExit.fromCheckpoint!==exit.fromCheckpoint)){const log=Array.isArray(state.log)?state.log.slice():[];if(!log.some(item=>item&&item.milestoneExitId===exit.fromCheckpoint)){log.push({role:"gm",text:String(exit.outcome||""),milestoneExitId:exit.fromCheckpoint});}next.log=log;}state=semanticPrepareNextState(state,JSON.stringify(next));persistPresentation();render();focusLatestGmStart();}catch(e){console.warn("Milestone UI refresh deferred",e)}};
 render();
 </script>
 
