@@ -133,7 +133,7 @@ class StoryMilestonePlannerIntegrationTest {
       put("completion", JSONObject().put("type", "EXIT_LEVEL").put("targetNodeId", "1.2")
         .put("nextCheckpointTotal", 3).put("outcome", "TEST_ONLY ending"))
     }.toString()
-    val boss = StoryMilestoneRuntime.acceptTurn(StoryMilestonePlan.installCurrent(last, raw), "[\"boss\"]")
+    val boss = TestMilestoneEvidence.accept(StoryMilestonePlan.installCurrent(last, raw), "[\"boss\"]")
     repo.save(boss)
     val lease = JSONObject(core.milestoneNextPlanRequest())
     assertEquals("CP-L01-01", lease.getString("nextCheckpointId"))

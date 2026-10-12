@@ -29,12 +29,12 @@ class StoryMilestoneRuntimeTest {
     val before = initial()
     assertEquals(listOf("warning"), StoryMilestoneRuntime.due(before).map { it.id })
     assertThrows(IllegalArgumentException::class.java) {
-      StoryMilestoneRuntime.acceptTurn(before, "[]")
+      TestMilestoneEvidence.accept(before, "[]")
     }
     assertThrows(IllegalArgumentException::class.java) {
-      StoryMilestoneRuntime.acceptTurn(before, "[\"boss\"]")
+      TestMilestoneEvidence.accept(before, "[\"boss\"]")
     }
-    val committed = StoryMilestoneRuntime.acceptTurn(before, "[\"warning\"]")
+    val committed = TestMilestoneEvidence.accept(before, "[\"warning\"]")
     val after = CoreClientProjection.advance(committed)
     assertEquals(0, StoryMilestoneRuntime.due(after).size)
     val restored = GameStateCodec.decode(GameStateCodec.encode(after))
@@ -44,11 +44,11 @@ class StoryMilestoneRuntimeTest {
 
   @Test fun finalEncounterIsExactlyNineTimesHpAndExpWithoutChangingBaseEntity() {
     val before = initial()
-    val warning = StoryMilestoneRuntime.acceptTurn(before, "[\"warning\"]")
+    val warning = TestMilestoneEvidence.accept(before, "[\"warning\"]")
     val dueOnThree = CoreClientProjection.advance(CoreClientProjection.advance(warning))
     assertEquals(listOf("boss"), StoryMilestoneRuntime.due(dueOnThree).map { it.id })
     val ordinary = CombatRuntime.active(CombatRuntime.start(GameState.initial(), "hound"))!!
-    val boss = StoryMilestoneRuntime.acceptTurn(dueOnThree, "[\"boss\"]")
+    val boss = TestMilestoneEvidence.accept(dueOnThree, "[\"boss\"]")
     val active = CombatRuntime.active(boss)!!
     assertEquals(ordinary.entityMaxHp * 9, active.entityMaxHp)
     assertEquals(active.entityMaxHp, active.entityHp)
@@ -72,9 +72,9 @@ class StoryMilestoneRuntimeTest {
 
   @Test fun lateGeminiPlanActivatesNextCheckpointAfterVerifiedBossDefeat() {
     val current = initial()
-    val afterWarning = StoryMilestoneRuntime.acceptTurn(current, "[\"warning\"]")
+    val afterWarning = TestMilestoneEvidence.accept(current, "[\"warning\"]")
     val onThree = CoreClientProjection.advance(CoreClientProjection.advance(afterWarning))
-    val boss = StoryMilestoneRuntime.acceptTurn(onThree, "[\"boss\"]")
+    val boss = TestMilestoneEvidence.accept(onThree, "[\"boss\"]")
     val id = CombatRuntime.active(boss)!!.encounterId
     val defeated = CombatRuntime.resolve(
       boss.copy(metadata = boss.metadata + ("combat.entityHp" to "0")), "SEARCH", "quan sát")
@@ -112,10 +112,39 @@ class StoryMilestoneRuntimeTest {
     }
   }
 
+  @Test fun receiptAloneOrUnverifiedStaleAndInventedQuotesCannotCommit() {
+    val state = initial()
+    val narrative = TestMilestoneEvidence.narrative(state)
+    val proof = JSONObject(TestMilestoneEvidence.proof(state))
+    assertThrows(Exception::class.java) { StoryMilestoneRuntime.acceptTurn(state, "[\"warning\"]") }
+    assertThrows(Exception::class.java) {
+      StoryMilestoneRuntime.acceptTurn(state, "[\"warning\"]", narrative,
+        JSONObject(proof.toString()).put("verified", false).toString())
+    }
+    assertThrows(Exception::class.java) {
+      StoryMilestoneRuntime.acceptTurn(state, "[\"warning\"]", "TEST_ONLY different narrative", proof.toString())
+    }
+    val invented = JSONObject(proof.toString()).apply {
+      getJSONArray("events").getJSONObject(0).put("outcomeQuote", "TEST_ONLY absent quote")
+    }
+    assertThrows(Exception::class.java) {
+      StoryMilestoneRuntime.acceptTurn(state, "[\"warning\"]", narrative, invented.toString())
+    }
+    val reset = state.copy(world = state.world + ("story.runToken" to "TEST_ONLY different run"))
+    assertThrows(Exception::class.java) {
+      StoryMilestoneRuntime.acceptTurn(reset, "[\"warning\"]", narrative, proof.toString())
+    }
+    val committed = TestMilestoneEvidence.accept(state, "[\"warning\"]")
+    StoryMilestoneRuntime.validateStoredState(GameStateCodec.decode(GameStateCodec.encode(committed)))
+    assertThrows(Exception::class.java) {
+      StoryMilestoneRuntime.validateStoredState(committed.copy(world = committed.world - "story.milestone.evidence"))
+    }
+  }
+
   @Test fun escapedBossKeepsCheckpointAndCanResumeSameInstanceWithoutReward() {
-    val warning = StoryMilestoneRuntime.acceptTurn(initial(), "[\"warning\"]")
+    val warning = TestMilestoneEvidence.accept(initial(), "[\"warning\"]")
     val due = CoreClientProjection.advance(CoreClientProjection.advance(warning))
-    val boss = StoryMilestoneRuntime.acceptTurn(due, "[\"boss\"]")
+    val boss = TestMilestoneEvidence.accept(due, "[\"boss\"]")
     val fight = CombatRuntime.active(boss)!!
     val escaped = CombatRuntime.resolve(boss.copy(metadata = boss.metadata +
       mapOf("combat.escapeProgress" to "100", "combat.entityHp" to "50")), "EXECUTE", "bỏ chạy")
@@ -146,9 +175,9 @@ class StoryMilestoneRuntimeTest {
         .put("targetNodeId", "1.2").put("nextCheckpointTotal", 3)
         .put("outcome", "TEST_ONLY Level ending"))
       state = StoryMilestonePlan.installCurrent(state, root.toString())
-      state = StoryMilestoneRuntime.acceptTurn(state, "[\"warning\"]")
+      state = TestMilestoneEvidence.accept(state, "[\"warning\"]")
       state = CoreClientProjection.advance(CoreClientProjection.advance(state))
-      state = StoryMilestoneRuntime.acceptTurn(state, "[\"boss\"]")
+      state = TestMilestoneEvidence.accept(state, "[\"boss\"]")
       val fight = CombatRuntime.active(state)!!
       val nextId = if (cp.isLast) "CP-L01-01" else cp.nextAddress()!!.id
       // Exercise prefetch before conclusion on odd CPs; delayed response on even CPs.

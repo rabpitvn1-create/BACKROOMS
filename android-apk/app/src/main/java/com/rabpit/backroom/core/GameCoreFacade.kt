@@ -340,8 +340,7 @@ class GameCoreFacade private constructor(
     val current = loadCurrentState()
     if (current.turn.pending != null || ActionRuntime.activeSession(current) != null) return checkpointError("turn_in_progress")
     val saved = repository.loadCheckpoint() ?: return checkpointError("checkpoint_missing")
-    StoryMilestonePlan.current(saved.core)
-    StoryMilestonePlan.prepared(saved.core)
+    StoryMilestoneRuntime.validateStoredState(saved.core)
     val loaded = saved.core.copy(world = saved.core.world +
       ("story.runToken" to java.util.UUID.randomUUID().toString()))
     repository.save(loaded)
@@ -365,6 +364,11 @@ class GameCoreFacade private constructor(
 
   @Synchronized fun processValidatedCandidate(
     beforeJson: String, candidateJson: String, action: String, milestoneReceipts: String
+  ): String = processValidatedCandidate(beforeJson, candidateJson, action, milestoneReceipts, "", "{}")
+
+  @Synchronized fun processValidatedCandidate(
+    beforeJson: String, candidateJson: String, action: String, milestoneReceipts: String,
+    acceptedNarrative: String, evidenceJson: String
   ): String {
     val before = JSONObject(beforeJson)
     val candidate = JSONObject(candidateJson)
@@ -372,6 +376,8 @@ class GameCoreFacade private constructor(
     if (before.optInt("turn", -1) != CoreClientProjection.turnIndex(core))
       return response(false, clientSnapshot(before, core), "stale_client_state", "gemini_delta_rejected")
     if (StoryCheckpointCore.current(core) != null) {
+      if (before.optJSONObject("story")?.optString("checkpointId") != StoryCheckpointCore.current(core)!!.id)
+        return response(false, clientSnapshot(before, core), "stale_story_checkpoint", "gemini_delta_rejected")
       val expectedToken = core.world["story.runToken"]
       if (expectedToken != null && before.optJSONObject("story")?.optString("runToken") != expectedToken)
         return response(false, clientSnapshot(before, core), "stale_story_run", "gemini_delta_rejected")
@@ -471,7 +477,7 @@ class GameCoreFacade private constructor(
       return response(false, before, committed.error, "gemini_delta_rejected")
     }
     val protectedState = CharacterProgressionCore.protectFromCandidate(pending.state, committed.state)
-    val applied = StoryMilestoneRuntime.acceptTurn(protectedState, milestoneReceipts)
+    val applied = StoryMilestoneRuntime.acceptTurn(protectedState, milestoneReceipts, acceptedNarrative, evidenceJson)
     val accepted = CoreClientProjection.advance(applied)
     repository.save(accepted)
     val synchronized = clientSnapshot(candidate, accepted)
@@ -572,6 +578,9 @@ class GameCoreFacade private constructor(
     repository.save(resumed)
     return response(true, clientSnapshot(client, resumed), null, "milestone_boss_resumed")
   }
+
+  @Synchronized fun milestoneNarrativeRequest(narrative: String): String =
+    StoryMilestoneRuntime.evidenceRequest(loadCurrentState(), narrative).toString()
 
   @Synchronized fun milestoneDueEvents(): String =
     StoryMilestoneRuntime.dueJson(loadCurrentState())
@@ -686,6 +695,7 @@ class GameCoreFacade private constructor(
     val existed = repository.exists()
     val loaded = if (existed) repository.load() else GameState.initial()
     val normalized = normalizeVisualPresence(CoreClientProjection.initialize(loaded))
+    StoryMilestoneRuntime.validateStoredState(normalized)
     // Only a new run gets the default checkpoint. Existing saves are not silently
     // assigned a new story position during a read.
     val ready = if (existed) normalized else newStoryRun(normalized)

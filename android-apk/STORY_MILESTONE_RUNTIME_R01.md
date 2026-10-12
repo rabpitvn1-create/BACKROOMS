@@ -18,4 +18,6 @@ Prefetch dùng Canon/scene của target Level; prepared chưa phải lịch sử
 
 Tests có mục tiêu gồm lịch exact Turn/missed event, Boss ×9, escape/resume giữ instance/HP, chống thưởng trùng, 20 CP Level 0 → Sublevel hợp lệ của Level 1, prefetch trước/sau defeat, Save/Load và reject client đổi Level/Inventory vượt Turn.
 
-Receipt ID vẫn chỉ là kiểm tra cấu trúc; semantic evidence cho lời GM phải được sửa riêng trước khi nghiệm thu #594. Không biến thương tích trong lời kể thành gameplay, không duy trì schema save cũ. Gemini thật và Android thật chưa được xác minh bởi unit tests.
+Receipt ID vẫn được kiểm tra cấu trúc, nhưng không còn đủ để commit. Bridge yêu cầu một phản hồi kiểm định riêng qua transport Gemini hiện hữu: action/event/outcome phải có chứng cứ trích nguyên văn từ lời kể được nhận. Core kiểm tra verified, toàn bộ ID, quote và request hash gắn runToken/CP/Turn/plan/lời kể; lưu provenance cùng receipt trong transaction. Meta không commit sự kiện hoặc tăng Turn. Saved receipts thiếu evidence bị từ chối.
+
+Đây là kiểm định ngữ nghĩa bằng mô hình cùng các ràng buộc Core xác định được, không phải chứng minh hình thức mọi cách diễn đạt. Unit tests dùng validator fixtures TEST_ONLY; chưa đánh giá false-positive/false-negative bằng Gemini thật hoặc Android thật. Không biến thương tích trong lời kể thành gameplay và không duy trì schema save cũ.
