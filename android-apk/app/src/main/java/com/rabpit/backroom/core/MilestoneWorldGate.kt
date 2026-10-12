@@ -23,9 +23,9 @@ object MilestoneWorldGate {
       listOf(
         "hiddenExitStreak", "exitReady", "transitionReady", "exitProgress",
         "confirmedExit", "exitCandidate"
-      ).forEach(exploration::remove)
+      ).forEach { exploration.remove(it) }
     }
-    listOf("exitProgress", "exitChanceThreshold").forEach(clean::remove)
+    listOf("exitProgress", "exitChanceThreshold").forEach { clean.remove(it) }
     return clean
   }
 
