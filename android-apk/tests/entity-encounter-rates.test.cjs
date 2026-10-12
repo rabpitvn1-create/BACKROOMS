@@ -15,8 +15,9 @@ function groupKeys(name) {
   return [...match[1].matchAll(/"([^"]+)"/g)].map(x => x[1]);
 }
 
-test('45% legacy Entity chance applies only when no scripted Milestone plan exists', () => {
-  assert.match(main, /thresholdRoll\("entityEncounter", 10000,\s*EntityEncounterPool.ENCOUNTER_THRESHOLD,\s*entityEncounterAction && entityAllowed && !requireGameCore\(\)\.milestoneHasPlan\(\),/);
+test('45% Entity pool is suppressed when the Gemini Milestone script is active', () => {
+  assert.match(main, /boolean scripted = requireGameCore\(\)\.milestoneHasPlan\(\)/);
+  assert.match(main, /thresholdRoll\("entityEncounter", 10000,\s*EntityEncounterPool.ENCOUNTER_THRESHOLD,\s*entityEncounterAction && entityAllowed && !scripted,/);
   assert.match(pool, /ENCOUNTER_THRESHOLD = 4500/);
   assert.match(main, /EntityEncounterPool\.pickForSuccessfulRoll\(entityRoll\.getInt\("roll"\)\)/);
   assert.match(main, /if \(candidateState == null \|\| rolls == null \|\| !rollSuccess\(rolls, "entityEncounter"\)\) return/);
