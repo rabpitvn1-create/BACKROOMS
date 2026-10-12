@@ -1915,7 +1915,7 @@ public class MainActivity extends Activity {
     if (scripted) {
       actionDirective = "ACTION TYPE = " + actionKindForPrompt +
         ". Giải quyết hành động theo Milestone, không thêm roaming Entity ngẫu nhiên. " +
-        LevelRouteRegistry.gmRoutingContext(currentNodeId(before));
+        LevelRouteRegistry.gmScriptedRoutingContext(currentNodeId(before));
     }
     String packet = com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.build(
       MainActivity.this, before.toString(), action, visibleRolls.toString());
