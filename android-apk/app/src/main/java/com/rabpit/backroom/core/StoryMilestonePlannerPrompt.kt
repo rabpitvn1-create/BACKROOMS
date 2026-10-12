@@ -39,13 +39,16 @@ object StoryMilestonePlannerPrompt {
 
       Schema chính xác:
       {"schemaVersion":1,"checkpointId":"$checkpointId","events":[
-      {"id":"beat1","turn":1,"kind":"STORY","event":"...","outcome":"..."},
-      {"id":"boss","turn":3,"kind":"FINAL_ENTITY","event":"...","outcome":"Combat bắt đầu","entityKey":"hound","hpMultiplier":9,"expMultiplier":9}
+      {"id":"beat1","turn":1,"kind":"STORY","event":"<tình tiết được biên kịch>","outcome":"<kết quả được biên kịch>"},
+      {"id":"final","turn":3,"kind":"FINAL_ENTITY","event":"<mô tả sự kiện>","outcome":"<kết quả mở Combat>","entityKey":"<chọn key từ danh sách hợp lệ>","hpMultiplier":9,"expMultiplier":9}
       ]}
       Có thể chọn số Turn, các sự kiện và Entity khác mẫu.
-      Khi event có hậu quả đáng nhớ xuyên Level, hãy thêm storyFacts:
-      [{"kind":"EVENT","subject":"lucia.m4a1","fact":"Lucia bị mất M4A1 tại Level 0"}].
-      kind chỉ nhận EVENT, ENTITY hoặc CLUE; subject là mã bền vững.
+      Khi event có dữ kiện đáng nhớ xuyên Level, hãy thêm storyFacts
+      gồm kind, subject, fact: kind chỉ nhận EVENT, ENTITY hoặc CLUE;
+      subject là mã truy xuất bền vững, fact phản ánh chính sự kiện được tạo.
+      Không tự sử dụng một ví dụ hoặc placeholder làm sự kiện thật.
+      Nội dung mẫu trong schema chỉ biểu diễn định dạng JSON;
+      phải thay toàn bộ placeholders bằng kịch bản được tạo từ Canon và tình huống.
       Các sự kiện thường có thể không có storyFacts; không bịa sự kiện chưa xảy ra.
       Những storyFacts là ký ức LỜI KỂ: KHÔNG đổi HP/Status/Combat/Equipment/Inventory.
       Chỉ riêng sự kiện FINAL_ENTITY vốn có hợp đồng Combat ×9.
