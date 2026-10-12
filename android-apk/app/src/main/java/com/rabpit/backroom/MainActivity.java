@@ -1860,6 +1860,8 @@ public class MainActivity extends Activity {
       "Đối chiếu action/event/outcome và từng fact claim với narrative đã nhận. " +
       "Chỉ verified=true khi tất cả thực sự đã xảy ra, đúng tác nhân, đúng kết quả, không bị phủ định. " +
       "Nhắc tên, ý định, giả thuyết, lời đồn, quote kịch bản và lời tự nhận đã hoàn tất không phải chứng cứ. " +
+      "ENTITY cần tiếp xúc trực tiếp với đúng Entity trong scene hiện tại; nhắc tên hoặc dấu vết không đủ. " +
+      "ENTITY không tự kết luận thắng/thua, cấp EXP/loot hoặc thay HP/Inventory. " +
       "FINAL_ENTITY chỉ mở Combat, không được tự kết luận thắng hoặc thay HP/Inventory. " +
       "CLUE phải là thông tin thực sự được phát hiện; RESOLVE cần diễn biến giải quyết thật. " +
       "Với mỗi event, trích nguyên văn từ narrative cho actionQuote/eventQuote/outcomeQuote, mỗi quote <=700 ký tự. " +
@@ -1922,7 +1924,8 @@ public class MainActivity extends Activity {
         ". GM tự nhiên hóa lời kể nhưng KHÔNG sửa kết quả. " +
         "JSON response phải có milestoneEventIds là mảng đúng thứ tự ID của các event vừa kể, " +
         "hoặc [] nếu không có event đến hạn. FINAL_ENTITY chỉ tuyên bố Combat bắt đầu, " +
-        "Game Core sẽ tự tạo Boss, không dùng ops tự tạo. " +
+        "Game Core sẽ tự tạo Boss, không dùng ops tự tạo. ENTITY là encounter trực tiếp bắt buộc, " +
+        "không tự mở Combat hoặc kết luận tiêu diệt/EXP/loot; một encounter có thể là tiếp xúc không chiến đấu. " +
         "Chỉ dẫn Milestone này ưu tiên hơn các chỉ dẫn RNG Encounter bên dưới. "
       : "";
     String actionKindForPrompt = new JSONObject(actionRuntimeContext).optString("kind", "EXECUTE");
@@ -1932,8 +1935,19 @@ public class MainActivity extends Activity {
        "EXECUTE HARD LOCK: đây là freeform intent của người chơi; phân giải đúng hành động đã nhập, không tự đổi mục tiêu; EXECUTE vẫn roll Entity và có thể khởi tạo roaming encounter mới. ");
     actionDirective = actionDirective + "\n" + hiddenExitDirective + "\n" +
       milestoneRoutingContext(before);
+    // Read-only writer context for the exact Core-scheduled encounter. This does
+    // not mutate rolls or save state and is not a committed encounter receipt.
+    JSONObject canonView = new JSONObject(before.toString());
+    for (int i = 0; i < dueMilestones.length(); i++) {
+      JSONObject event = dueMilestones.getJSONObject(i);
+      if (event.has("entityKey")) {
+        JSONObject canonFlags = canonView.optJSONObject("flags");
+        if (canonFlags == null) { canonFlags = new JSONObject(); canonView.put("flags", canonFlags); }
+        canonFlags.put("entityEncounterKey", event.getString("entityKey"));
+      }
+    }
     String packet = com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.build(
-      MainActivity.this, before.toString(), action, visibleRolls.toString());
+      MainActivity.this, canonView.toString(), action, visibleRolls.toString());
     String feedback = auditFeedback != null && auditFeedback.length() > 0
       ? "\n\nAUDIT FEEDBACK HARD — sửa đúng các lỗi này, không thay đổi dữ kiện khác:\n" + auditFeedback.toString()
       : "";
@@ -2015,7 +2029,7 @@ public class MainActivity extends Activity {
     String prompt = com.rabpit.backroom.core.StoryMilestonePlannerPrompt.build(
       checkpointId, startTurn, nodeId, canon, scene, request.getInt("checkpointTotal"), requireGameCore().storyFactContext());
     // No audit/writer routing and no parallel requests to five keys.
-    String rawPlan = geminiTextPolicy(prompt, -1, 0.5, 2600, false);
+    String rawPlan = geminiTextPolicy(prompt, -1, 0.5, 12288, false);
     boolean saved = requireGameCore().installMilestonePlan(
       rawPlan, request.getString("runToken"), checkpointId, startTurn);
     if (!saved) throw new IllegalStateException("milestone_plan_state_changed");
@@ -2054,7 +2068,7 @@ public class MainActivity extends Activity {
             "Completion của CP trước bên dưới còn PLANNED, chỉ xảy ra sau verified Boss defeat; " +
             "dùng nó để nối tiếp kịch bản, không ghi thành lịch sử đã xảy ra và không giả định HP/Party sau Combat. " +
             "PREDECESSOR_PENDING_COMPLETION=" + lease.getJSONObject("completion").toString();
-          String raw = geminiTextPolicy(prompt, -1, 0.5, 2600, false);
+          String raw = geminiTextPolicy(prompt, -1, 0.5, 12288, false);
           boolean accepted = requireGameCore().installNextMilestone(
             raw, lease.getString("runToken"), lease.getString("checkpointId"),
             lease.getString("bossEncounterId"));

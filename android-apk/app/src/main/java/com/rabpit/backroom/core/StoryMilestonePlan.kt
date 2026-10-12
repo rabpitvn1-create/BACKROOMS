@@ -11,17 +11,19 @@ import org.json.JSONObject
  */
 object StoryMilestonePlan {
   const val SCHEMA_VERSION = 2
+  const val MIN_CHECKPOINT_TURNS = 50
+  const val MIN_ENTITY_ENCOUNTERS = 20
   const val FINAL_HP_MULTIPLIER = 9
   const val FINAL_EXP_MULTIPLIER = 9
   private const val ACTIVE_KEY = "story.milestone.active"
   private const val PREPARED_KEY = "story.milestone.prepared"
-  private const val MAX_PLAN_CHARS = 32768
+  private const val MAX_PLAN_CHARS = 65536
   private const val MAX_EVENTS = 64
   private const val MAX_DESCRIPTION_CHARS = 500
   private val EVENT_ID = Regex("[A-Za-z][A-Za-z0-9_-]{0,47}")
   private val ENTITY_KEY = Regex("[a-z0-9_-]{1,80}")
 
-  enum class Kind { STORY, FINAL_ENTITY }
+  enum class Kind { STORY, ENTITY, FINAL_ENTITY }
   enum class CompletionType { NEXT_CHECKPOINT, EXIT_LEVEL }
 
   data class Completion(
@@ -61,6 +63,8 @@ object StoryMilestonePlan {
     val entityKey: String? = null,
     val storyFacts: List<StoryFactLedger.FactSpec> = emptyList()
   ) {
+    val isEntityEncounter: Boolean get() = kind == Kind.ENTITY || kind == Kind.FINAL_ENTITY
+
     fun toJson(): JSONObject = JSONObject()
       .put("id", id)
       .put("turn", turn)
@@ -69,8 +73,8 @@ object StoryMilestonePlan {
       .put("event", event)
       .put("outcome", outcome)
       .apply {
+        if (isEntityEncounter) put("entityKey", requireNotNull(entityKey))
         if (kind == Kind.FINAL_ENTITY) {
-          put("entityKey", requireNotNull(entityKey))
           put("hpMultiplier", FINAL_HP_MULTIPLIER)
           put("expMultiplier", FINAL_EXP_MULTIPLIER)
         }
@@ -116,7 +120,8 @@ object StoryMilestonePlan {
       val item = entries.getJSONObject(i)
       val kind = Kind.valueOf(string(item, "kind", 24))
       val allowed = mutableSetOf("id", "turn", "kind", "action", "event", "outcome")
-      if (kind == Kind.FINAL_ENTITY) allowed += setOf("entityKey", "hpMultiplier", "expMultiplier")
+      if (kind != Kind.STORY) allowed += "entityKey"
+      if (kind == Kind.FINAL_ENTITY) allowed += setOf("hpMultiplier", "expMultiplier")
       if (item.has("storyFacts")) allowed += "storyFacts"
       exactFields(item, allowed)
 
@@ -128,12 +133,12 @@ object StoryMilestonePlan {
       val event = string(item, "event", MAX_DESCRIPTION_CHARS)
       val action = string(item, "action", MAX_DESCRIPTION_CHARS)
       val outcome = string(item, "outcome", MAX_DESCRIPTION_CHARS)
-      val key = if (kind == Kind.FINAL_ENTITY) {
+      val key = if (kind != Kind.STORY) {
         val value = string(item, "entityKey", 80)
         require(ENTITY_KEY.matches(value) && CombatRuntime.supportsEntityKey(value)) {
           "milestone_entity_unknown"
         }
-        require(integer(item, "hpMultiplier") == FINAL_HP_MULTIPLIER &&
+        if (kind == Kind.FINAL_ENTITY) require(integer(item, "hpMultiplier") == FINAL_HP_MULTIPLIER &&
             integer(item, "expMultiplier") == FINAL_EXP_MULTIPLIER) {
           "milestone_final_multiplier_invalid"
         }
@@ -146,6 +151,13 @@ object StoryMilestonePlan {
     require(events.last().kind == Kind.FINAL_ENTITY &&
       events.count { it.kind == Kind.FINAL_ENTITY } == 1) {
       "milestone_final_encounter_required"
+    }
+    require(events.last().turn >= MIN_CHECKPOINT_TURNS) { "milestone_checkpoint_too_short" }
+    val encounters = events.filter { it.isEntityEncounter }
+    require(encounters.size >= MIN_ENTITY_ENCOUNTERS) { "milestone_entity_encounters_insufficient" }
+    // A batch of twenty names in one scene is not twenty separate encounters.
+    require(encounters.map { it.turn }.toSet().size == encounters.size) {
+      "milestone_entity_encounters_same_turn"
     }
     val ending = root.getJSONObject("completion")
     val type = CompletionType.valueOf(string(ending, "type", 24))

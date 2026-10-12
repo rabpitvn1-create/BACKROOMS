@@ -63,7 +63,9 @@ object StoryFactLedger {
 
     fun add(spec: FactSpec, source: String, quote: String) {
       val instance = if (spec.kind == Kind.ENTITY)
-        CombatRuntime.active(state)?.takeIf { it.entityKey == spec.subject }?.encounterId else null
+        CombatRuntime.active(state)?.takeIf { it.entityKey == spec.subject }?.encounterId
+          ?: milestoneEvents.firstOrNull { it.isEntityEncounter && it.entityKey == spec.subject }
+            ?.let { StoryMilestoneRuntime.entityEncounterId(state, it) } else null
       if (spec.kind == Kind.ENTITY) {
         require(CombatRuntime.supportsEntityKey(spec.subject)) { "story_entity_unknown" }
         val visible = JSONObject(state.world["flagsJson"] ?: "{}")
@@ -98,12 +100,14 @@ object StoryFactLedger {
       val eventProof = (0 until evidenceEntries.length()).map { evidenceEntries.getJSONObject(it) }
         .first { it.getString("id") == event.id }
       history.put(JSONObject().put("id", key).put("turn", turn)
-        .put("kind", if (event.kind == StoryMilestonePlan.Kind.FINAL_ENTITY) "ENTITY" else "EVENT")
+        .put("kind", if (event.isEntityEncounter) "ENTITY" else "EVENT")
         .put("action", event.action).put("event", event.event).put("outcome", event.outcome)
         .put("fact", "${event.action} → ${event.event} → ${event.outcome}")
         .put("checkpointId", position).put("levelNode", levelNode)
         .put("source", "MILESTONE").put("state", "COMMITTED")
-        .put("requestToken", proof.getString("requestToken")).put("evidence", eventProof))
+        .put("requestToken", proof.getString("requestToken")).put("evidence", eventProof)
+        .apply { if (event.isEntityEncounter) put("entityKey", event.entityKey)
+          .put("entityEncounterId", StoryMilestoneRuntime.entityEncounterId(state, event)) })
       event.storyFacts.forEachIndexed { index, spec -> add(spec, "MILESTONE:$key", quotes.getValue("MS:${event.id}:$index")) }
     }
 

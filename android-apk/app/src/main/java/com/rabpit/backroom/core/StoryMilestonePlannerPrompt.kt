@@ -52,6 +52,15 @@ object StoryMilestonePlannerPrompt {
       GM tự lồng ghép những gì người chơi làm vào các kết quả này, không cần
       kịch bản câu thoại chi tiết. Không tự viết lại Canon, bí mật hoặc
       trạng thái HP/EXP chưa xảy ra. Không tự kết luận thắng/thua Combat.
+      Mỗi CP phải kéo dài ít nhất ${StoryMilestonePlan.MIN_CHECKPOINT_TURNS} Turn Core,
+      và có ít nhất ${StoryMilestonePlan.MIN_ENTITY_ENCOUNTERS} lần gặp Entity thực sự,
+      gồm ít nhất 19 event ENTITY và một FINAL_ENTITY cuối. Mỗi lần gặp ở một
+      Turn riêng, có entityKey hợp lệ; có thể gặp lại cùng loài ở các encounter khác.
+      ENTITY là tiếp xúc trực tiếp trong scene, không phải nhắc tên, tiếng động chưa
+      rõ nguồn, lời đồn, hồi tưởng hoặc kế hoạch. Không cần đánh nhau ở mọi lần gặp;
+      không tự thay HP/EXP/Inventory hoặc kết luận tiêu diệt Entity bằng lời kể.
+      Không dồn nhiều Entity cùng Turn để đủ chỉ tiêu. Boss không được mở trước
+      Turn ${StoryMilestonePlan.MIN_CHECKPOINT_TURNS}; thử lại Boss không tạo encounter mới.
       Sự kiện cuối phải là đúng một FINAL_ENTITY, khởi đầu Combat với
       một Entity hợp lệ; HP và EXP nhân 9 do Core thực thi sau.
       Entity hợp lệ: $entityKeys
@@ -59,8 +68,10 @@ object StoryMilestonePlannerPrompt {
       Schema chính xác:
       {"schemaVersion":2,"checkpointId":"$checkpointId","events":[
       {"id":"beat1","turn":1,"kind":"STORY","action":"<world action>","event":"<authored event>","outcome":"<authored outcome>"},
-      {"id":"boss","turn":3,"kind":"FINAL_ENTITY","action":"<world action>","event":"<authored event>","outcome":"<Combat opening>","entityKey":"<supported Entity key>","hpMultiplier":9,"expMultiplier":9}
+      {"id":"encounter1","turn":2,"kind":"ENTITY","action":"<Entity action>","event":"<actual direct encounter>","outcome":"<encounter outcome, no combat settlement>","entityKey":"<supported Entity key>"},
+      {"id":"boss","turn":50,"kind":"FINAL_ENTITY","action":"<world action>","event":"<authored event>","outcome":"<Combat opening>","entityKey":"<supported Entity key>","hpMultiplier":9,"expMultiplier":9}
       ],"completion":$completionSchema}
+      Mẫu rút gọn này CHƯA đủ 20 encounter; phải thêm ít nhất 18 ENTITY ở Turn riêng trước Boss.
       Đây chỉ là hình dạng schema, không phải kịch bản mặc định. Thay mọi
       placeholder bằng dữ kiện có nguồn; không dùng ví dụ thảo luận làm Canon.
       action là hành động trong thế giới của NPC/Entity/môi trường; không ép

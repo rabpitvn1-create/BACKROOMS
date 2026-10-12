@@ -8,14 +8,14 @@ import org.junit.Test
 class StoryMilestoneRuntimeTest {
   private fun plan(checkpoint: String = "CP-L00-01"): String =
     JSONObject().put("schemaVersion", 2).put("checkpointId", checkpoint)
-      .put("events", JSONArray()
+      .put("events", TestCheckpointQuota.events(JSONArray()
         .put(JSONObject().put("id", "warning").put("turn", 1)
           .put("kind", "STORY").put("action", "TEST_ONLY world action").put("event", "Có dấu hiệu bất thường")
           .put("outcome", "Cao Minh nghe thấy dấu hiệu"))
         .put(JSONObject().put("id", "boss").put("turn", 3)
           .put("kind", "FINAL_ENTITY").put("action", "TEST_ONLY boss action").put("event", "Hound lao ra")
           .put("outcome", "Combat bắt đầu").put("entityKey", "hound")
-          .put("hpMultiplier", 9).put("expMultiplier", 9)))
+          .put("hpMultiplier", 9).put("expMultiplier", 9))))
       .put("completion", if (checkpoint == "CP-L00-20") JSONObject().put("type", "EXIT_LEVEL")
         .put("targetNodeId", "1.2").put("nextCheckpointTotal", 3).put("outcome", "TEST_ONLY Level ending")
         else JSONObject().put("type", "NEXT_CHECKPOINT").put("outcome", "TEST_ONLY completion"))
@@ -45,7 +45,7 @@ class StoryMilestoneRuntimeTest {
   @Test fun finalEncounterIsExactlyNineTimesHpAndExpWithoutChangingBaseEntity() {
     val before = initial()
     val warning = TestMilestoneEvidence.accept(before, "[\"warning\"]")
-    val dueOnThree = CoreClientProjection.advance(CoreClientProjection.advance(warning))
+    val dueOnThree = TestCheckpointQuota.reachBoss(warning)
     assertEquals(listOf("boss"), StoryMilestoneRuntime.due(dueOnThree).map { it.id })
     val ordinary = CombatRuntime.active(CombatRuntime.start(GameState.initial(), "hound"))!!
     val boss = TestMilestoneEvidence.accept(dueOnThree, "[\"boss\"]")
@@ -73,7 +73,7 @@ class StoryMilestoneRuntimeTest {
   @Test fun lateGeminiPlanActivatesNextCheckpointAfterVerifiedBossDefeat() {
     val current = initial()
     val afterWarning = TestMilestoneEvidence.accept(current, "[\"warning\"]")
-    val onThree = CoreClientProjection.advance(CoreClientProjection.advance(afterWarning))
+    val onThree = TestCheckpointQuota.reachBoss(afterWarning)
     val boss = TestMilestoneEvidence.accept(onThree, "[\"boss\"]")
     val id = CombatRuntime.active(boss)!!.encounterId
     val defeated = CombatRuntime.resolve(
@@ -143,7 +143,7 @@ class StoryMilestoneRuntimeTest {
 
   @Test fun escapedBossKeepsCheckpointAndCanResumeSameInstanceWithoutReward() {
     val warning = TestMilestoneEvidence.accept(initial(), "[\"warning\"]")
-    val due = CoreClientProjection.advance(CoreClientProjection.advance(warning))
+    val due = TestCheckpointQuota.reachBoss(warning)
     val boss = TestMilestoneEvidence.accept(due, "[\"boss\"]")
     val fight = CombatRuntime.active(boss)!!
     val escaped = CombatRuntime.resolve(boss.copy(metadata = boss.metadata +
@@ -176,7 +176,7 @@ class StoryMilestoneRuntimeTest {
         .put("outcome", "TEST_ONLY Level ending"))
       state = StoryMilestonePlan.installCurrent(state, root.toString())
       state = TestMilestoneEvidence.accept(state, "[\"warning\"]")
-      state = CoreClientProjection.advance(CoreClientProjection.advance(state))
+      state = TestCheckpointQuota.reachBoss(state)
       state = TestMilestoneEvidence.accept(state, "[\"boss\"]")
       val fight = CombatRuntime.active(state)!!
       val nextId = if (cp.isLast) "CP-L01-01" else cp.nextAddress()!!.id
@@ -201,7 +201,7 @@ class StoryMilestoneRuntimeTest {
     StoryMilestoneRuntime.validateStoredState(restored)
     StoryFactLedger.validateStoredState(restored)
     val stats = StoryMilestoneRuntime.statsJson(restored)
-    assertEquals(40L, stats.getLong("committedEvents"))
+    assertEquals(420L, stats.getLong("committedEvents"))
     assertEquals(20L, stats.getLong("defeatedBosses"))
     assertEquals(20L, stats.getLong("completedCheckpoints"))
     assertEquals(1L, stats.getLong("completedLevels"))

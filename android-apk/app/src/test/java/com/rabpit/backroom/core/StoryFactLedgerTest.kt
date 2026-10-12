@@ -52,7 +52,7 @@ class StoryFactLedgerTest {
         .put("event", "TEST_FINAL_EVENT").put("outcome", "Combat bắt đầu")
         .put("entityKey", "hound").put("hpMultiplier", 9).put("expMultiplier", 9)))
       .put("completion", JSONObject().put("type", "NEXT_CHECKPOINT").put("outcome", "TEST_ONLY completion"))
-    val installed = StoryMilestonePlan.installCurrent(initial(), plan.toString())
+    val installed = StoryMilestonePlan.installCurrent(initial(), plan.put("events", TestCheckpointQuota.events(plan.getJSONArray("events"))).toString())
     assertEquals(0, JSONObject(StoryFactLedger.context(installed))
       .getJSONArray("open").length())
     assertThrows(IllegalArgumentException::class.java) {

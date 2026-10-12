@@ -35,3 +35,26 @@ object TestMilestoneEvidence {
     StoryFactLedger.recordTurn(state, events, facts, narrative(state, facts), proof(state, narrative(state, facts), facts))
 }
 
+
+/** TEST_ONLY: quota-compliant schedules and committed turns, never production fallback. */
+object TestCheckpointQuota {
+  fun events(original: JSONArray): JSONArray {
+    val values = (0 until original.length()).map { JSONObject(original.getJSONObject(it).toString()) }.toMutableList()
+    values.filter { it.getString("kind") == "FINAL_ENTITY" }.forEach { it.put("turn", 50) }
+    for (index in 1..19) values += JSONObject().put("id", "encounter$index").put("turn", 9 + index)
+      .put("kind", "ENTITY").put("entityKey", "hound").put("action", "TEST_ONLY Entity approaches $index")
+      .put("event", "TEST_ONLY direct Entity encounter $index").put("outcome", "TEST_ONLY Entity moves away $index")
+    return JSONArray().apply { values.sortedBy { it.getInt("turn") }.forEach { put(it) } }
+  }
+
+  fun reachBoss(initial: GameState): GameState {
+    var state = initial
+    val active = requireNotNull(StoryMilestonePlan.current(state))
+    val target = active.startTurn + active.plan.finalEncounter.turn - 1
+    while (CoreClientProjection.turnIndex(state) < target) {
+      val ids = JSONArray().apply { StoryMilestoneRuntime.due(state).forEach { put(it.id) } }.toString()
+      state = CoreClientProjection.advance(TestMilestoneEvidence.accept(state, ids))
+    }
+    return state
+  }
+}
