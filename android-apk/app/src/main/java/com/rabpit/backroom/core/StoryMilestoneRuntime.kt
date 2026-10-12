@@ -57,7 +57,11 @@ object StoryMilestoneRuntime {
       previously.sorted().forEach { put(it) }
       received.forEach { put(it) }
     }
-    var updated = state.copy(world = state.world + (APPLIED to all.toString()))
+    // Core commits the planned mechanics before marking events applied.
+    // Failure aborts the entire pending turn; no partial save can occur.
+    val withEffects = StoryMilestoneEffects.apply(
+      state, requireNotNull(StoryCheckpointCore.current(state)).id, required)
+    var updated = withEffects.copy(world = withEffects.world + (APPLIED to all.toString()))
     val boss = required.lastOrNull { it.kind == StoryMilestonePlan.Kind.FINAL_ENTITY }
     if (boss != null) {
       require(CombatRuntime.active(updated) == null && BOSS !in updated.world) {
