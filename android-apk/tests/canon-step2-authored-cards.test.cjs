@@ -57,7 +57,30 @@ test('runtime reads exact level node and confirmed combat entity, not every card
   assert.match(reader, /combat\?\.optBoolean\("active", false\)/);
   assert.match(reader, /add\("ENTITY\.\$recordId\.VISUAL"/);
   assert.match(reader, /if \("lucia" in presentActors\)/);
-  assert.match(reader, /rolls\.optJSONObject\("luciaEncounter"\).*optBoolean\("success", false\)/);
+  assert.match(reader, /if \\(confirmedRoll\\("luciaEncounter"\\)\\)/);
   assert.match(reader, /rolls\.optString\("selectedEntityKey", ""\)/);
-  assert.match(reader, /selectedRollKey\.isNotBlank\(\) -> selectedRollKey/);
+  assert.match(reader, /if \\(confirmedRoll\\("entityEncounter"\\)\\)/);
+});
+
+test('only Core-confirmed actor presence and valid current-turn rolls reveal situation-bound Canon', () => {
+  assert.match(reader, /when \\(normalize\\(idOrName\\)\\)/);
+  assert.match(reader, /member\\.optString\\("presence", "ACTIVE"\\) == "ACTIVE"/);
+  assert.doesNotMatch(reader, /id\\.contains\\("iris"\\)/);
+  assert.match(reader, /val lucTramConfirmed = "luc_tram" in presentActors \\|\\| confirmedRoll\\("lucTramEncounter"\\)/);
+  assert.match(reader, /if \\(lucTramConfirmed\\)/);
+  assert.match(reader, /if \\(confirmedRoll\\("lucTramEncounter"\\)\\)/);
+  assert.match(reader, /!rolls\\.optBoolean\\("meta", false\\)/);
+  assert.match(reader, /rolls\\.optInt\\("turn", -1\\) == state\\.optInt\\("turn", -2\\)/);
+  assert.match(reader, /it\\.optBoolean\\("success", false\\) && it\\.optBoolean\\("eligible", false\\)/);
+  assert.match(reader, /id == confirmedEntityVisualId\\(\\)/);
+});
+
+test('unverified legacy provenance is preserved and labeled without inventing Canon', () => {
+  assert.equal(db.records.length, 89);
+  const legacy = db.records.filter(record => !record.source.document.startsWith('Google Drive /Novel/Asset/'));
+  assert.equal(legacy.length, 42);
+  assert.match(reader, /LEGACY_UNVERIFIED/);
+  assert.match(reader, /provenance=/);
+  assert.equal(records.has('LEVEL.NODE.0.1'), false);
+  assert.equal(records.has('LEVEL.NODE.0.7'), false);
 });
