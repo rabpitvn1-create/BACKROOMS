@@ -2240,6 +2240,19 @@ public class MainActivity extends Activity {
             throw new Exception("Game State Core từ chối Gemini delta: " + coreCommit.optString("error", "invalid_delta"));
           }
           state = coreCommit.getJSONObject("state");
+          // Core, not the GM's self-reported receipt, supplies the immutable
+          // authored action/event/outcome printed in the visible narrative.
+          JSONArray committedMilestones = coreCommit.optJSONArray("milestoneCommitted");
+          if (committedMilestones != null && committedMilestones.length() > 0) {
+            StringBuilder guaranteed = new StringBuilder(reply);
+            for (int index = 0; index < committedMilestones.length(); index++) {
+              JSONObject event = committedMilestones.getJSONObject(index);
+              guaranteed.append("\n\n").append(event.getString("action"))
+                .append(" ").append(event.getString("event"))
+                .append(" ").append(event.getString("outcome"));
+            }
+            reply = guaranteed.toString();
+          }
           scheduleNextMilestone(state.toString());
 
           state.put("canonVersion", KNOWLEDGE_CANON_VERSION);
