@@ -103,4 +103,56 @@ class StoryMilestoneRuntimeTest {
     assertNull(StoryMilestoneRuntime.bossResult(after))
     assertEquals(listOf("warning"), StoryMilestoneRuntime.due(after).map { it.id })
   }
+
+  @Test fun finalCheckpointLevelEndingTransitionsOnlyAfterVerifiedCombatAndPreparedPlan() {
+    val initialState = StoryCheckpointCore.seedLevelZero(
+      CoreClientProjection.initialize(GameState.initial()))
+    val last = initialState.copy(world = initialState.world +
+      ("story.checkpoint" to JSONObject()
+        .put("level", 0).put("index", 20).put("total", 20).toString()))
+    val finalScript = JSONObject(plan("CP-L00-20"))
+      .put("levelEnd", JSONObject()
+        .put("targetNode", "1")
+        .put("nextCheckpointTotal", 5)
+        .put("outcome", "TEST_ONLY_AUTHORED_LEVEL_END"))
+      .toString()
+    val active = StoryMilestonePlan.installCurrent(last, finalScript)
+    val atTwo = StoryMilestoneRuntime.acceptTurn(active, "[\"warning\"]")
+    val atThree = CoreClientProjection.advance(CoreClientProjection.advance(atTwo))
+    val boss = StoryMilestoneRuntime.acceptTurn(atThree, "[\"boss\"]")
+    val encounter = CombatRuntime.active(boss)!!.encounterId
+    // A route proposal by the GM is not a reason to update the main Level.
+    assertEquals(0, JSONObject(boss.world.getValue("levelJson")).getInt("number"))
+    assertEquals("CP-L00-20", StoryCheckpointCore.current(boss)!!.id)
+    val destroyed = CombatRuntime.resolve(boss.copy(
+      metadata = boss.metadata + ("combat.entityHp" to "0")), "SEARCH", "quan sát")
+    assertTrue(destroyed.entityDestroyed)
+    val waiting = StoryMilestoneRuntime.afterCombat(
+      CoreClientProjection.advance(destroyed.state), encounter, true, false)
+    assertTrue(StoryMilestoneRuntime.awaitingPlan(waiting))
+    assertEquals(0, JSONObject(waiting.world.getValue("levelJson")).getInt("number"))
+    val prepared = StoryMilestonePlan.prepareNextDuringCombat(waiting, plan("CP-L01-01"))
+    val completed = StoryMilestoneRuntime.activateIfReady(prepared)
+    assertEquals("CP-L01-01", StoryCheckpointCore.current(completed)!!.id)
+    assertEquals(5, StoryCheckpointCore.current(completed)!!.total)
+    assertEquals(1, JSONObject(completed.world.getValue("levelJson")).getInt("number"))
+    assertEquals("1", JSONObject(completed.world.getValue("levelJson")).getString("id"))
+    assertTrue(completed.world.getValue("location").contains("Level 1"))
+    assertEquals("TEST_ONLY_AUTHORED_LEVEL_END",
+      JSONObject(completed.world.getValue("story.lastLevelEnding")).getString("outcome"))
+    assertEquals("CP-L01-01", StoryMilestonePlan.current(completed)!!.plan.checkpointId)
+    assertNull(CombatRuntime.active(completed))
+    val restored = GameStateCodec.decode(GameStateCodec.encode(completed))
+    assertEquals(completed.world["story.checkpoint"], restored.world["story.checkpoint"])
+    assertEquals("CP-L01-01", StoryCheckpointCore.current(
+      StoryMilestoneRuntime.activateIfReady(restored))!!.id)
+  }
+
+  @Test fun missedMandatoryTurnIsRejectedRatherThanQuietlyShiftedLater() {
+    val current = initial()
+    val afterMissed = CoreClientProjection.advance(current)
+    assertThrows(IllegalArgumentException::class.java) {
+      StoryMilestoneRuntime.due(afterMissed)
+    }
+  }
 }
