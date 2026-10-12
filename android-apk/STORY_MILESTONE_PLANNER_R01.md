@@ -1,3 +1,5 @@
+> **ĐÃ ĐƯỢC THAY THẾ BỞI R02.** Đây là tài liệu lịch sử của lần triển khai cũ, không phải hợp đồng runtime hiện hành. Đọc [FAKE_SANDBOX_STEPS_2_TO_7_R02.md](FAKE_SANDBOX_STEPS_2_TO_7_R02.md) trước khi thiết kế hoặc chỉnh code. Milestone schema hiện là **v2**, bao gồm Turn/action/outcome và `levelEnd` do Gemini quyết định ở Checkpoint cuối. Lời kể không tự thay đổi HP, Combat hay Inventory; CP cuối có thể chuyển Level sau Combat hợp lệ.
+
 # Bước 5/10: Gemini Milestone Planner R01
 
 ## Kiến trúc đã tích hợp
