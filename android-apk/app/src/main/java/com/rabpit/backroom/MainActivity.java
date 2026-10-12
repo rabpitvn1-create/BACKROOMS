@@ -1281,6 +1281,7 @@ public class MainActivity extends Activity {
   private JSONObject makeGameplayRolls(JSONObject state, String actionKind, String action, boolean meta) throws Exception {
     JSONObject rolls = new JSONObject().put("turn", state.optInt("turn", 1)).put("meta", meta);
     if (meta) return rolls;
+    boolean scripted = requireGameCore().milestoneHasPlan();
 
     String actionKindNormalized = actionKind == null ? "" : actionKind.trim().toUpperCase(java.util.Locale.ROOT);
     boolean exploreAction = "EXPLORE".equals(actionKindNormalized);
@@ -1331,17 +1332,18 @@ public class MainActivity extends Activity {
     }
     int exitThreshold = exitThresholdAndroid(state);
     if (anNhienFollowing) exitThreshold = Math.min(10000, exitThreshold + 200);
-    JSONObject anNhienRead = thresholdRoll("anNhienRead", 10000, 2000, anNhienFollowing && search && exitIntent, " Khoan, Để Tôi Đọc Cái Này");
+    JSONObject anNhienRead = thresholdRoll("anNhienRead", 10000, 2000, !scripted && anNhienFollowing && search && exitIntent, " Khoan, Để Tôi Đọc Cái Này");
     rolls.put("anNhienRead", anNhienRead);
     if (anNhienRead.optBoolean("success", false)) exitThreshold = Math.min(10000, exitThreshold + 2000);
-    JSONObject exitProbe = thresholdRoll("exitProbe", 10000, exitThreshold, exitIntent && (physical || search),
+    JSONObject exitProbe = thresholdRoll("exitProbe", 10000, exitThreshold, !scripted && exitIntent && (physical || search),
       anNhienRead.optBoolean("success", false) ? " discovery clue +2% An Nhiên +20% đọc dấu Exit" : (anNhienFollowing ? " discovery clue +2% An Nhiên" : " discovery clue"));
     rolls.put("exitProbe", exitProbe);
     JSONObject hiddenExitRoll = thresholdRoll("_hiddenExitStreak", 100,
       com.rabpit.backroom.core.HiddenExitStreak.SUCCESS_PERCENT,
-      exploreAction && !com.rabpit.backroom.core.HiddenExitStreak.ready(state), "");
+      !scripted && exploreAction && !com.rabpit.backroom.core.HiddenExitStreak.ready(state), "");
     rolls.put(com.rabpit.backroom.core.HiddenExitStreak.ROLL_KEY, hiddenExitRoll);
-    boolean hiddenExitReady = com.rabpit.backroom.core.HiddenExitStreak.projectedReady(state, rolls);
+    boolean hiddenExitReady = !scripted &&
+      com.rabpit.backroom.core.HiddenExitStreak.projectedReady(state, rolls);
     JSONObject authoritativeExit = new JSONObject()
       .put("label", "levelExit")
       .put("dice", "none")
@@ -2209,7 +2211,13 @@ public class MainActivity extends Activity {
             if (flags == null) flags = new JSONObject();
             flags.put("currentLevel", LevelRouteRegistry.node(newNodeId).asJson());
             state.put("flags", flags);
-            com.rabpit.backroom.core.HiddenExitStreak.apply(before, state, rolls, oldNodeId, newNodeId);
+            if (requireGameCore().milestoneHasPlan()) {
+              // Narrative Checkpoints never roll, unlock or inherit a legacy Exit streak.
+              state.put("flags",
+                com.rabpit.backroom.core.MilestoneWorldGate.stripLegacyExitProof(flags));
+            } else {
+              com.rabpit.backroom.core.HiddenExitStreak.apply(before, state, rolls, oldNodeId, newNodeId);
+            }
             flags = state.optJSONObject("flags");
             flags.put("lastAudit", new JSONObject()
               .put("risk", risk)
