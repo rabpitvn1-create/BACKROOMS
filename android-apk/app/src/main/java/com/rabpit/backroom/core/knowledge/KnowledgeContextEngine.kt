@@ -79,6 +79,10 @@ object KnowledgeContextEngine {
 
   private fun load(context: Context): Database {
     val raw = context.assets.open(ASSET).bufferedReader(Charsets.UTF_8).use { it.readText() }
+    return parseDatabase(raw)
+  }
+
+  internal fun parseDatabase(raw: String): Database {
     val root = JSONObject(raw)
     val array = root.getJSONArray("records")
     val records = linkedMapOf<String, Record>()
@@ -111,7 +115,7 @@ object KnowledgeContextEngine {
     return Database(records.toMap(), index { it.tags }, index { it.affordances })
   }
 
-  private class Builder(
+  internal class Builder(
     private val db: Database,
     private val state: JSONObject,
     private val action: String,
@@ -220,12 +224,12 @@ object KnowledgeContextEngine {
     private fun addDirectStructuredLookups() {
       val direct = linkedSetOf<String>()
       val lucTramConfirmed = "luc_tram" in presentActors || confirmedRoll("lucTramEncounter")
-      if (hasAny(actionText, "lucia", "hứa thuý mai", "hứa thúy mai")) direct += "CHAR.LUCIA.AUTHORED"
-      if (hasAny(actionText, "trác lâm", "trac lam", "trac_lam")) direct += "CHAR.TRAC_LAM.AUTHORED"
+      if ("lucia" in presentActors && hasAny(actionText, "lucia", "hứa thuý mai", "hứa thúy mai")) direct += "CHAR.LUCIA.AUTHORED"
+      if ("trac_lam" in presentActors && hasAny(actionText, "trác lâm", "trac lam", "trac_lam")) direct += "CHAR.TRAC_LAM.AUTHORED"
       if (hasAny(actionText, "lục trầm", "luc tram", "luc_tram", "tịch quang", "thiên kiếm linh tâm")) {
         // A name being mentioned is not evidence this actor has appeared.
-        direct += "CHAR.LUC_TRAM.AUTHORED"
         if (lucTramConfirmed) {
+          direct += "CHAR.LUC_TRAM.AUTHORED"
           direct += "CHAR.LUC_TRAM.RUNTIME_CORE"
           direct += "CHAR.LUC_TRAM.REVIVAL_R06"
           direct += "CHAR.LUC_TRAM.OPEN_R06"
@@ -345,7 +349,7 @@ object KnowledgeContextEngine {
           val target = db.records[id] ?: return@forEach
           if (target.priority <= 55) {
             add(id, "direct reference from ${record.id}")
-            queue.add(target)
+            if (id in selected) queue.add(target)
           }
         }
       }
@@ -371,8 +375,33 @@ object KnowledgeContextEngine {
 
     private fun add(id: String, reason: String) {
       val record = db.records[id] ?: return
+      if (!eligible(record)) return
       selected.putIfAbsent(id, record)
       reasons.putIfAbsent(id, reason)
+    }
+
+    // Every retrieval path, including references and affordances, obeys scene
+    // evidence. Mentioning a name cannot bypass the same boundary.
+    private fun eligible(record: Record): Boolean {
+      if (record.authority == "WRITER-SECRET" || record.kind == "reference-only-level") return false
+      val actor = when {
+        record.id.startsWith("CHAR.IRIS.") -> "iris"
+        record.id.startsWith("CHAR.SYVIAL.") -> "syvial"
+        record.id.startsWith("CHAR.LUCIA.") -> "lucia"
+        record.id.startsWith("CHAR.TRAC_LAM.") -> "trac_lam"
+        record.id.startsWith("CHAR.LUC_TRAM.") || record.id == "REL.CAO_MINH.LUC_TRAM.HISTORY_R06" -> "luc_tram"
+        else -> null
+      }
+      if (actor != null && actor !in presentActors) return false
+      if (record.domain == "ENTITY" && record.id != "ENTITY.GLOBAL_HARD_LOCK") {
+        val visual = confirmedEntityVisualId() ?: return false
+        if (record.id == visual) return true
+        // Legacy IDs are not uniformly derived from the entity key. Match the
+        // confirmed card's exact tags instead of guessing an alias from a name.
+        val tags = db.records[visual]?.tags.orEmpty()
+        if (record.tags.none { it in tags }) return false
+      }
+      return true
     }
 
     private fun resolvePresence() {
@@ -408,6 +437,8 @@ object KnowledgeContextEngine {
           }
         }
       }
+      if (confirmedRoll("lucTramEncounter")) presentActors += "luc_tram"
+      if (confirmedRoll("luciaEncounter")) presentActors += "lucia"
     }
 
     private fun currentLevel(): Int {
@@ -514,3 +545,4 @@ object KnowledgeContextEngine {
 
   private fun estimateTokens(text: String): Int = ceil(text.length / 4.0).toInt().coerceAtLeast(1)
 }
+
