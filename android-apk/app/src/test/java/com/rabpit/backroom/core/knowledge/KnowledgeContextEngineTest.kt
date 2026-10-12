@@ -65,4 +65,26 @@ class KnowledgeContextEngineTest {
     assertFalse(result.contains("TEST.SECRET"))
     assertFalse(result.contains("hidden detail"))
   }
+
+  @Test fun metadataBudgetKeepsWholeRecordsAndMandatoryLocks() {
+    val raw = File("src/main/assets/knowledge/knowledge_db.json").let {
+      if (it.isFile) it else File("app/src/main/assets/knowledge/knowledge_db.json")
+    }.readText()
+    val root = JSONObject(raw)
+    val records = root.getJSONArray("records")
+    for (i in 0 until records.length()) {
+      val record = records.getJSONObject(i)
+      if (record.getInt("priority") > 30) {
+        record.getJSONObject("source").put("anchor", "TEST_ONLY".repeat(1000))
+      }
+    }
+    val result = KnowledgeContextEngine.Builder(
+      KnowledgeContextEngine.parseDatabase(root.toString()), JSONObject(), "", JSONObject()
+    ).build()
+    assertTrue(result.length <= KnowledgeContextEngine.HARD_CONTEXT_CEILING * 4)
+    assertTrue(result.endsWith("[END_KNOWLEDGE_PACKET]"))
+    assertTrue(result.contains("<WRITING.KNOWLEDGE_BOUNDARY>"))
+    assertTrue(result.contains("<WRITING.PLAYER_AGENCY>"))
+    assertFalse(result.contains("<CHAR.CAO_MINH.AUTHORED>"))
+  }
 }

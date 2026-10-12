@@ -145,7 +145,6 @@ object KnowledgeContextEngine {
       addStateDrivenRecords()
       expandReferences()
 
-      val records = budgetedRecords()
       val packet = StringBuilder()
       packet.append("[KNOWLEDGE_PACKET v1]\n")
       packet.append("Budget target=").append(TARGET_CONTEXT_BUDGET)
@@ -155,23 +154,26 @@ object KnowledgeContextEngine {
       packet.append("Current state:\n").append(compactState()).append('\n')
       packet.append("Recent dialogue buffer:\n").append(recentDialogue()).append('\n')
       packet.append("Retrieved records:\n")
+      val records = budgetedRecords(packet.toString())
       records.forEach { record ->
-        packet.append("<").append(record.id).append("> ")
-          .append(record.text.replace('\n', ' ')).append('\n')
-        packet.append("  source=").append(record.source.document)
-          .append("#").append(record.source.anchor)
-          // Existing runtime records predate the approved Drive provenance policy.
-          // Preserve them, but do not mislabel them as independently sourced lore.
-          .append("; provenance=").append(
-            if (record.source.document.startsWith("Google Drive /Novel/Asset/") ||
-              record.source.document.startsWith("https://")) "TRACEABLE"
-            else "LEGACY_UNVERIFIED")
-          .append("; authority=").append(record.authority)
-          .append("; mutability=").append(record.mutability)
-          .append("; why=").append(reasons[record.id].orEmpty()).append('\n')
+        packet.append(renderRecord(record))
       }
       packet.append("[END_KNOWLEDGE_PACKET]")
-      return hardClip(packet.toString(), HARD_CONTEXT_CEILING)
+      return packet.toString()
+    }
+
+    private fun renderRecord(record: Record): String = buildString {
+      append("<").append(record.id).append("> ")
+        .append(record.text.replace('\n', ' ')).append('\n')
+      append("  source=").append(record.source.document)
+        .append("#").append(record.source.anchor)
+        .append("; provenance=").append(
+          if (record.source.document.startsWith("Google Drive /Novel/Asset/") ||
+            record.source.document.startsWith("https://")) "TRACEABLE"
+          else "LEGACY_UNVERIFIED")
+        .append("; authority=").append(record.authority)
+        .append("; mutability=").append(record.mutability)
+        .append("; why=").append(reasons[record.id].orEmpty()).append('\n')
     }
 
     private fun addMandatory() {
@@ -355,23 +357,25 @@ object KnowledgeContextEngine {
       }
     }
 
-    private fun budgetedRecords(): List<Record> {
+    private fun budgetedRecords(header: String): List<Record> {
       val mandatory = selected.values.filter { it.priority <= 30 }.sortedWith(compareBy<Record> { it.priority }.thenBy { it.id })
       val optional = selected.values.filter { it.priority > 30 }.sortedWith(compareBy<Record> { it.priority }.thenBy { it.id })
       val kept = mutableListOf<Record>()
-      var tokens = baseEstimatedTokens()
-      mandatory.forEach { r -> kept += r; tokens += r.estimatedTokens }
+      var tokens = estimateTokens(header + "[END_KNOWLEDGE_PACKET]")
+      mandatory.forEach { r -> kept += r; tokens += estimateTokens(renderRecord(r)) }
+      // A broken asset or oversized state must fail explicitly, never emit a
+      // half hard-lock or silently omit mandatory Canon to satisfy a budget.
+      require(tokens <= HARD_CONTEXT_CEILING) { "knowledge_mandatory_context_over_budget" }
       optional.forEach { r ->
         val ceiling = if (tokens < TARGET_CONTEXT_BUDGET) TARGET_CONTEXT_BUDGET else SOFT_CONTEXT_CEILING
-        if (tokens + r.estimatedTokens <= ceiling) {
+        val cost = estimateTokens(renderRecord(r))
+        if (tokens + cost <= ceiling) {
           kept += r
-          tokens += r.estimatedTokens
+          tokens += cost
         }
       }
       return kept
     }
-
-    private fun baseEstimatedTokens(): Int = estimateTokens(compactState()) + estimateTokens(recentDialogue()) + 80
 
     private fun add(id: String, reason: String) {
       val record = db.records[id] ?: return
@@ -486,13 +490,6 @@ object KnowledgeContextEngine {
       return out.toString()
     }
 
-  }
-
-  private fun hardClip(text: String, hardTokens: Int): String {
-    val maxChars = hardTokens * 4
-    if (text.length <= maxChars) return text
-    val suffix = "\n[PACKET_CLIPPED_AT_HARD_CEILING]"
-    return text.take((maxChars - suffix.length).coerceAtLeast(0)) + suffix
   }
 
   private fun compactArray(array: JSONArray, limit: Int): JSONArray {
