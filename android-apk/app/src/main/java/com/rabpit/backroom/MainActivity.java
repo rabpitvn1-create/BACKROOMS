@@ -1834,6 +1834,26 @@ public class MainActivity extends Activity {
     return issues;
   }
 
+  private void appendMilestoneIssues(JSONArray issues, JSONObject generated, JSONArray due) throws Exception {
+    JSONArray receipt = generated.optJSONArray("milestoneEventIds");
+    if (due.length() == 0) {
+      if (receipt == null || receipt.length() == 0) return;
+    } else if (receipt != null && receipt.length() == due.length()) {
+      boolean matches = true;
+      for (int i = 0; i < due.length(); i++) {
+        if (!due.getJSONObject(i).getString("id").equals(receipt.optString(i, ""))) {
+          matches = false;
+          break;
+        }
+      }
+      if (matches) return;
+    }
+    issues.put(new JSONObject()
+      .put("rule", "milestone_receipt_required")
+      .put("severity", "hard")
+      .put("reason", "Kể chính xác toàn bộ event/outcome bắt buộc của Turn này và trả milestoneEventIds đúng thứ tự: " + due.toString()));
+  }
+
   private void appendIssues(JSONArray target, JSONArray source) throws Exception {
     if (target == null || source == null) return;
     for (int i = 0; i < source.length(); i++) target.put(source.get(i));
@@ -2023,6 +2043,11 @@ public class MainActivity extends Activity {
         try {
           // The WebView sends presentation JSON; refresh gameplay fields from Core before any rolls or validation.
           final String currentView = requireGameCore().currentClientState(stateJson);
+          scheduleNextMilestone(currentView);
+          if (requireGameCore().milestoneWaiting()) {
+            emit("backroomError", "Gemini đang hoàn thiện Milestone Checkpoint tiếp theo. Vui lòng thử lại sau.");
+            return;
+          }
           if (requireGameCore().blocksTextItemAction(action)) {
             JSONObject blocked = new JSONObject(requireGameCore().processRule(currentView, action));
             emit("backroomTurn", blocked.getJSONObject("state").toString());
@@ -2030,6 +2055,7 @@ public class MainActivity extends Activity {
           }
           JSONObject combatResult = new JSONObject(requireGameCore().processCombat(currentView, actionKind, action));
           if (combatResult.optBoolean("handled", false)) {
+            scheduleNextMilestone(combatResult.getJSONObject("state").toString());
             emit("backroomTurn", combatResult.getJSONObject("state").toString());
             return;
           }
@@ -2041,10 +2067,13 @@ public class MainActivity extends Activity {
           if (!actionStart.optBoolean("handled", false)) {
             throw new Exception("Action Runtime từ chối hành động: " + actionStart.optString("error", "action_start_failed"));
           }
-          JSONObject localResult = new JSONObject(requireGameCore().processRule(currentView, action));
-          if (localResult.optBoolean("handled", false)) {
-            emit("backroomTurn", localResult.getJSONObject("state").toString());
-            return;
+          JSONArray dueMilestones = new JSONArray(requireGameCore().milestoneDueEvents());
+          if (dueMilestones.length() == 0) {
+            JSONObject localResult = new JSONObject(requireGameCore().processRule(currentView, action));
+            if (localResult.optBoolean("handled", false)) {
+              emit("backroomTurn", localResult.getJSONObject("state").toString());
+              return;
+            }
           }
           JSONObject before = new JSONObject(currentView);
           boolean meta = isMetaAction(action);
@@ -2063,6 +2092,7 @@ public class MainActivity extends Activity {
           JSONArray hardIssues = hardAuditIssues(audits);
           if (!meta) appendIssues(hardIssues, rejectedOperationIssuesAndroid(before, candidateState, generated));
           if (!meta) appendIssues(hardIssues, localKnowledgeIssues(before, generated));
+          if (!meta) appendMilestoneIssues(hardIssues, generated, dueMilestones);
           boolean repaired = false;
 
           if (hardIssues.length() > 0) {
@@ -2077,6 +2107,7 @@ public class MainActivity extends Activity {
             hardIssues = hardAuditIssues(audits);
             appendIssues(hardIssues, rejectedOperationIssuesAndroid(before, candidateState, generated));
             appendIssues(hardIssues, localKnowledgeIssues(before, generated));
+            appendMilestoneIssues(hardIssues, generated, dueMilestones);
           }
 
           if (hardIssues.length() > 0) {
@@ -2127,11 +2158,15 @@ public class MainActivity extends Activity {
             com.rabpit.backroom.core.SnapshotSceneProgress.apply(before, state, rolls, actionKind);
           }
 
-          JSONObject coreCommit = new JSONObject(requireGameCore().processValidatedCandidate(before.toString(), state.toString(), action));
+          JSONArray receipt = generated.optJSONArray("milestoneEventIds");
+          JSONObject coreCommit = new JSONObject(requireGameCore().processValidatedCandidate(
+            before.toString(), state.toString(), action,
+            receipt == null ? "[]" : receipt.toString()));
           if (!coreCommit.optBoolean("handled", false)) {
             throw new Exception("Game State Core từ chối Gemini delta: " + coreCommit.optString("error", "invalid_delta"));
           }
           state = coreCommit.getJSONObject("state");
+          scheduleNextMilestone(state.toString());
 
           state.put("canonVersion", KNOWLEDGE_CANON_VERSION);
           JSONArray log = state.optJSONArray("log");
