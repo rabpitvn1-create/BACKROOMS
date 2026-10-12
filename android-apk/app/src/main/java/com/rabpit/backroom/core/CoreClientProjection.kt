@@ -31,11 +31,11 @@ object CoreClientProjection {
     )
     val current = state.turn.currentTurnId.removePrefix("TURN_").toIntOrNull() ?: 1
     val inferredTurn = current + if (state.turn.currentTurnId in state.turn.completedTurnIds) 1 else 0
-    return state.copy(
+    return StoryCheckpointCore.seedLevelZero(state.copy(
       world = initialWorld + state.world,
       metadata = if (TURN_INDEX in state.metadata) state.metadata
         else state.metadata + (TURN_INDEX to inferredTurn.toString())
-    )
+    ))
   }
 
   fun project(client: JSONObject, rawState: GameState): JSONObject {
