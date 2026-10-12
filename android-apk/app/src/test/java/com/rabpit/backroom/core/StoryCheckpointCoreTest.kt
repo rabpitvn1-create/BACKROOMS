@@ -6,7 +6,7 @@ import org.junit.Test
 
 class StoryCheckpointCoreTest {
   @Test fun newGameStartsAtFirstOfTwentyLevelZeroCheckpoints() {
-    val initial = CoreClientProjection.initialize(GameState.initial())
+    val initial = StoryCheckpointCore.seedLevelZero(CoreClientProjection.initialize(GameState.initial()))
     val first = StoryCheckpointCore.current(initial)!!
     assertEquals("CP-L00-01", first.id)
     assertEquals(0, first.level)
@@ -17,7 +17,7 @@ class StoryCheckpointCoreTest {
   }
 
   @Test fun ordinaryTurnsAndSaveLoadCannotAdvanceOrResetCheckpoint() {
-    val initial = CoreClientProjection.initialize(GameState.initial())
+    val initial = StoryCheckpointCore.seedLevelZero(CoreClientProjection.initialize(GameState.initial()))
     val advanced = CoreClientProjection.advance(CoreClientProjection.advance(initial))
     val restored = GameStateCodec.decode(GameStateCodec.encode(advanced))
     val again = CoreClientProjection.initialize(restored)
@@ -27,7 +27,7 @@ class StoryCheckpointCoreTest {
   }
 
   @Test fun sublevelsDoNotCreateAnotherNarrativeCheckpoint() {
-    val initial = CoreClientProjection.initialize(GameState.initial())
+    val initial = StoryCheckpointCore.seedLevelZero(CoreClientProjection.initialize(GameState.initial()))
     val movedNode = initial.copy(world = initial.world +
       ("levelJson" to JSONObject().put("id", "0.1").put("number", 0).toString()))
     assertEquals("CP-L00-01", StoryCheckpointCore.current(
