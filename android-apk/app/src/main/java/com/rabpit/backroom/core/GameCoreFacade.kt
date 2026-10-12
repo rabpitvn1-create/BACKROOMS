@@ -370,6 +370,10 @@ class GameCoreFacade private constructor(
     val before = JSONObject(beforeJson)
     val candidate = JSONObject(candidateJson)
     val core = loadCurrentState()
+    // Core, not the GM or WebView, has the final authority on scripted routes.
+    if (!MilestoneWorldGate.safeguardCandidate(core, candidate)) return response(
+      false, clientSnapshot(before, core), "milestone_level_transition_locked",
+      "milestone_level_transition_locked")
     if (blocksTextItemAction(action)) return response(false, clientSnapshot(before, core), "item_ui_required", "item_ui_required")
     val turnId = nextTurnId(core)
     val pending = TurnCoordinator.createPending(core, turnId, action)
