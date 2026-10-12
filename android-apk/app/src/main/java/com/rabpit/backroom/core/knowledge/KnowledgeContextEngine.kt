@@ -174,17 +174,32 @@ object KnowledgeContextEngine {
         "WRITING.PLAYER_AGENCY",
         "CHAR.CAO_MINH.RUNTIME_CORE"
       ).forEach { add(it, "mandatory hard context") }
+      add("CHAR.CAO_MINH.AUTHORED", "Drive-authored identity boundary")
+
     }
 
     private fun addCurrentLevel() {
       val number = currentLevel()
-      add("LEVEL.%02d".format(Locale.ROOT, number), "current level direct id")
+      val levelId = "LEVEL.%02d".format(Locale.ROOT, number)
+      add(levelId, "current level direct id")
+      add("$levelId.AUTHORED", "Drive-authored level scene card")
+      // A scene node is not interchangeable with its parent level. Only exact IDs
+      // with authored entries resolve; absent or conflicting nodes stay UNKNOWN.
+      val node = state.optJSONObject("level")?.optString("id", "").orEmpty()
+        .ifBlank { state.optJSONObject("flags")?.optJSONObject("currentLevel")?.optString("id", "").orEmpty() }
+        .trim()
+      if (node.matches(Regex("[a-z0-9_.-]{1,48}"))) {
+        add("LEVEL.NODE.$node", "exact current environment node")
+      }
     }
 
     private fun addPresentRuntimeCards() {
       if ("iris" in presentActors) add("CHAR.IRIS.RUNTIME_CORE", "present actor runtime core")
       if ("syvial" in presentActors) add("CHAR.SYVIAL.RUNTIME_CORE", "present actor runtime core")
+      if ("lucia" in presentActors) add("CHAR.LUCIA.AUTHORED", "present Lucia authored card")
+      if ("trac_lam" in presentActors) add("CHAR.TRAC_LAM.AUTHORED", "present Trác Lâm authored card")
       if ("luc_tram" in presentActors) {
+        add("CHAR.LUC_TRAM.AUTHORED", "present Lục Trầm authored card")
         add("CHAR.LUC_TRAM.RUNTIME_CORE", "present actor runtime core")
         add("CHAR.LUC_TRAM.REVIVAL_R06", "post-revival knowledge boundary")
         add("CHAR.LUC_TRAM.OPEN_R06", "unresolved encounter history")
@@ -198,7 +213,10 @@ object KnowledgeContextEngine {
 
     private fun addDirectStructuredLookups() {
       val direct = linkedSetOf<String>()
+      if (hasAny(actionText, "lucia", "hứa thuý mai", "hứa thúy mai")) direct += "CHAR.LUCIA.AUTHORED"
+      if (hasAny(actionText, "trác lâm", "trac lam", "trac_lam")) direct += "CHAR.TRAC_LAM.AUTHORED"
       if (hasAny(actionText, "lục trầm", "luc tram", "luc_tram", "tịch quang", "thiên kiếm linh tâm")) {
+        direct += "CHAR.LUC_TRAM.AUTHORED"
         direct += "CHAR.LUC_TRAM.RUNTIME_CORE"
         direct += "CHAR.LUC_TRAM.REVIVAL_R06"
         direct += "CHAR.LUC_TRAM.OPEN_R06"
@@ -262,6 +280,24 @@ object KnowledgeContextEngine {
         add("REL.CAO_MINH.LUC_TRAM.HISTORY_R06", "known history, not current knowledge")
       }
       val flags = state.optJSONObject("flags")
+      // A selected roll is already authoritative when the GM receives its
+      // context, before startCombatState has persisted the encounter.
+      if (rolls.optJSONObject("luciaEncounter")?.optBoolean("success", false) == true) {
+        add("CHAR.LUCIA.AUTHORED", "confirmed Lucia encounter roll")
+      }
+      val combat = state.optJSONObject("combat")
+      val selectedRollKey = if (rolls.optJSONObject("entityEncounter")?.optBoolean("success", false) == true) {
+        rolls.optString("selectedEntityKey", "")
+      } else ""
+      val encounterKey = when {
+        combat?.optBoolean("active", false) == true -> combat.optString("entityKey", "")
+        selectedRollKey.isNotBlank() -> selectedRollKey
+        else -> flags?.optString("entityEncounterKey", "").orEmpty()
+      }
+      if (encounterKey.matches(Regex("[a-z0-9_-]{1,80}"))) {
+        val recordId = encounterKey.uppercase(Locale.ROOT).replace('-', '_')
+        add("ENTITY.$recordId.VISUAL", "confirmed active Entity visual canon")
+      }
       val confirmedEntities = flags?.optInt("entitiesConfirmedLocal", 0) ?: 0
       val entityRoll = rolls.optJSONObject("entityEncounter")?.optBoolean("success", false) ?: false
       if (confirmedEntities > 0 || entityRoll || hasAny(sceneText, "entity", "thực thể", "quái", "hound", "smiler", "skin-stealer", "jeff")) {
@@ -321,12 +357,16 @@ object KnowledgeContextEngine {
               val id = normalize(value.optString("id", value.optString("name", "")))
               if (id.contains("iris")) presentActors += "iris"
               if (id.contains("syvial")) presentActors += "syvial"
+              if (id == "lucia" || id.contains("lucia lục")) presentActors += "lucia"
+              if (id == "trac_lam" || id == "trác lâm" || id == "trac lam") presentActors += "trac_lam"
               if (id == "luc_tram" || id.contains("lục trầm") || id == "luc tram") presentActors += "luc_tram"
             }
             else -> {
               val id = normalize(value?.toString().orEmpty())
               if (id.contains("iris")) presentActors += "iris"
               if (id.contains("syvial")) presentActors += "syvial"
+              if (id == "lucia" || id.contains("lucia lục")) presentActors += "lucia"
+              if (id == "trac_lam" || id == "trác lâm" || id == "trac lam") presentActors += "trac_lam"
               if (id == "luc_tram" || id.contains("lục trầm") || id == "luc tram") presentActors += "luc_tram"
             }
           }
@@ -339,6 +379,8 @@ object KnowledgeContextEngine {
           val id = normalize(member.optString("id", member.optString("name", "")))
           if (id.contains("iris")) presentActors += "iris"
           if (id.contains("syvial")) presentActors += "syvial"
+          if (id == "lucia" || id.contains("lucia lục")) presentActors += "lucia"
+          if (id == "trac_lam" || id == "trác lâm" || id == "trac lam") presentActors += "trac_lam"
           if (id == "luc_tram" || id.contains("lục trầm") || id == "luc tram") presentActors += "luc_tram"
         }
       }
