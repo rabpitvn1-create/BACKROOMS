@@ -1919,10 +1919,15 @@ public class MainActivity extends Activity {
       .put("location", view.optString("location", ""))
       .put("level", view.optJSONObject("level"))
       .put("party", view.optJSONArray("party"))
-      .put("player", view.optJSONObject("player"))
-      .put("continuity", view.optJSONObject("flags") == null ? new JSONObject() :
-        view.getJSONObject("flags").optJSONObject("storyContinuity"));
+      .put("player", view.optJSONObject("player"));
+    JSONObject flags = view.optJSONObject("flags");
+    JSONObject continuity = flags == null ? null : flags.optJSONObject("storyContinuity");
+    if (continuity != null) {
+      String summary = continuity.toString();
+      situation.put("continuitySummary", summary.substring(0, Math.min(summary.length(), 450)));
+    }
     String scene = situation.toString();
+    // The planner receives a small state excerpt, never the complete client save.
     if (scene.length() > 1500) scene = scene.substring(0, 1500);
     String prompt = com.rabpit.backroom.core.StoryMilestonePlannerPrompt.build(
       checkpointId, startTurn, nodeId, canon, scene);
