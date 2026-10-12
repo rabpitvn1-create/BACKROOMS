@@ -536,7 +536,12 @@ class GameCoreFacade private constructor(
     repository.save(next)
 
     val output = clientSnapshot(client, next)
-    val combatReply = resolution.reply
+    val exitBefore = current.world["story.levelExitLast"]
+    val exitAfter = next.world["story.levelExitLast"]
+    val scriptedExit = if (exitAfter != null && exitAfter != exitBefore)
+      JSONObject(exitAfter).getString("outcome") else ""
+    val combatReply = if (scriptedExit.isBlank()) resolution.reply
+      else resolution.reply + "\n\n" + scriptedExit
     output.put("combatFeedback", JSONObject().apply {
       put("id", "${activeCombat.encounterId}:${activeCombat.eventCounter + 1}")
       put("encounterId", activeCombat.encounterId)
