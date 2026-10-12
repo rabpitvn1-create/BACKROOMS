@@ -57,4 +57,7 @@ test('runtime reads exact level node and confirmed combat entity, not every card
   assert.match(reader, /combat\?\.optBoolean\("active", false\)/);
   assert.match(reader, /add\("ENTITY\.\$recordId\.VISUAL"/);
   assert.match(reader, /if \("lucia" in presentActors\)/);
+  assert.match(reader, /rolls\.optJSONObject\("luciaEncounter"\).*optBoolean\("success", false\)/);
+  assert.match(reader, /rolls\.optString\("selectedEntityKey", ""\)/);
+  assert.match(reader, /selectedRollKey\.isNotBlank\(\) -> selectedRollKey/);
 });
