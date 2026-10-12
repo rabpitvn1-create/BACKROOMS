@@ -8,12 +8,13 @@ import org.junit.Test
 class StoryMilestonePlannerIntegrationTest {
   private class MemorySave : SaveRepository {
     var stored: GameState? = null
+    var checkpoint: GameCheckpoint? = null
     override fun save(state: GameState) { stored = state }
     override fun load(): GameState = stored ?: GameState.initial()
     override fun exists(): Boolean = stored != null
-    override fun clear() { stored = null }
-    override fun saveCheckpoint(state: GameState, presentation: JSONObject) {}
-    override fun loadCheckpoint(): GameCheckpoint? = null
+    override fun clear() { stored = null; checkpoint = null }
+    override fun saveCheckpoint(state: GameState, presentation: JSONObject) { checkpoint = GameCheckpoint(state, JSONObject(presentation.toString())) }
+    override fun loadCheckpoint(): GameCheckpoint? = checkpoint
   }
 
   private fun facade(repo: SaveRepository): GameCoreFacade {
@@ -148,6 +149,38 @@ class StoryMilestonePlannerIntegrationTest {
     core.resetNewGame()
     assertFalse(core.installNextMilestone(plan("CP-L01-01"), lease.getString("runToken"),
       lease.getString("checkpointId"), lease.getString("bossEncounterId")))
+  }
+
+  @Test fun manualLoadInvalidatesPendingPrefetchAndCanRecoverAnExplicitLoadError() {
+    val repo = MemorySave()
+    val core = facade(repo)
+    val request = JSONObject(core.milestonePlanRequest())
+    val raw = JSONObject(plan()).apply { getJSONArray("events").getJSONObject(0).put("turn", 1) }.toString()
+    core.installMilestonePlan(raw, request.getString("runToken"), "CP-L00-01", 1)
+    repo.save(TestMilestoneEvidence.accept(repo.stored!!, "[\"boss\"]"))
+    val lease = JSONObject(core.milestoneNextPlanRequest())
+    assertTrue(JSONObject(core.saveManualCheckpoint(core.currentClientState("{}"))).getBoolean("ok"))
+    repo.save(GameState.initial().copy(metadata = mapOf("loadError" to "TEST_ONLY corrupt current slot")))
+    assertThrows(Exception::class.java) { core.currentClientState("{}") }
+    assertTrue(JSONObject(core.loadManualCheckpoint()).getBoolean("ok"))
+    assertNotEquals(lease.getString("runToken"), repo.stored!!.world["story.runToken"])
+    assertFalse(core.installNextMilestone(plan("CP-L00-02"), lease.getString("runToken"),
+      lease.getString("checkpointId"), lease.getString("bossEncounterId")))
+    assertNotNull(CombatRuntime.active(repo.stored!!))
+  }
+
+  @Test fun localNodeMovementRemainsAvailableWithoutLegacyExitReadiness() {
+    val repo = MemorySave()
+    val core = facade(repo)
+    val lease = JSONObject(core.milestonePlanRequest())
+    core.installMilestonePlan(plan(), lease.getString("runToken"), "CP-L00-01", 1)
+    val before = JSONObject(core.currentClientState("{}"))
+    val local = JSONObject(before.toString()).put("level", LevelRouteRegistry.node("0.1").asJson())
+      .put("location", LevelRouteRegistry.node("0.1").location())
+    val result = JSONObject(core.processValidatedCandidate(before.toString(), local.toString(), "TEST_ONLY local movement", "[]"))
+    assertTrue(result.getBoolean("handled"))
+    assertEquals("0.1", result.getJSONObject("state").getJSONObject("level").getString("id"))
+    assertEquals("CP-L00-01", StoryCheckpointCore.current(repo.stored!!)!!.id)
   }
 
 }

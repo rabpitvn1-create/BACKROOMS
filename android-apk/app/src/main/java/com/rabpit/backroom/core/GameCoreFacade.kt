@@ -337,10 +337,12 @@ class GameCoreFacade private constructor(
 
   /** Decode and validate the complete slot before changing the current Core state. */
   @Synchronized fun loadManualCheckpoint(): String {
-    val current = loadCurrentState()
-    if (current.turn.pending != null || ActionRuntime.activeSession(current) != null) return checkpointError("turn_in_progress")
+    val current = repository.load()
+    if (!current.metadata.containsKey("loadError") &&
+      (current.turn.pending != null || ActionRuntime.activeSession(current) != null)) return checkpointError("turn_in_progress")
     val saved = repository.loadCheckpoint() ?: return checkpointError("checkpoint_missing")
     StoryMilestoneRuntime.validateStoredState(saved.core)
+    StoryFactLedger.validateStoredState(saved.core)
     val loaded = saved.core.copy(world = saved.core.world +
       ("story.runToken" to java.util.UUID.randomUUID().toString()))
     repository.save(loaded)
@@ -652,8 +654,9 @@ class GameCoreFacade private constructor(
   /** New-run correlation prevents late Gemini responses from overwriting a reset game. */
   private fun newStoryRun(state: GameState): GameState {
     val seeded = StoryCheckpointCore.seedLevelZero(CoreClientProjection.initialize(state))
-    return seeded.copy(world = seeded.world +
-      ("story.runToken" to java.util.UUID.randomUUID().toString()))
+    val token = java.util.UUID.randomUUID().toString()
+    return seeded.copy(world = seeded.world + mapOf("story.runToken" to token,
+      "story.levelVisitId" to "LEVEL:$token:0"))
   }
 
   /**
@@ -702,8 +705,10 @@ class GameCoreFacade private constructor(
   private fun loadCurrentState(): GameState {
     val existed = repository.exists()
     val loaded = if (existed) repository.load() else GameState.initial()
+    check(!loaded.metadata.containsKey("loadError")) { "core_load_failed_restore_checkpoint" }
     val normalized = normalizeVisualPresence(CoreClientProjection.initialize(loaded))
     StoryMilestoneRuntime.validateStoredState(normalized)
+    StoryFactLedger.validateStoredState(normalized)
     // Only a new run gets the default checkpoint. Existing saves are not silently
     // assigned a new story position during a read.
     val ready = if (existed) normalized else newStoryRun(normalized)

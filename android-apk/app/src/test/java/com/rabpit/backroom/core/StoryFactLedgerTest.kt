@@ -188,5 +188,18 @@ class StoryFactLedgerTest {
     assertTrue(ledger.getJSONArray("archive").toString().contains("TEST_ONLY_ARCHIVE_0"))
     assertTrue(ledger.getJSONArray("archive").getJSONObject(0).has("resolutionEvidenceQuote"))
   }
+
+  @Test fun twoConfirmedInstancesOfSameEntityHaveIndependentNarrativeIdentity() {
+    val first = CombatRuntime.start(initial(), "hound")
+    val remembered = TestMilestoneEvidence.record(first, emptyList(),
+      add("ENTITY", "hound", "TEST_ONLY first instance"))
+    val second = CombatRuntime.start(CombatRuntime.clear(remembered), "hound")
+    val both = TestMilestoneEvidence.record(second, emptyList(),
+      add("ENTITY", "hound", "TEST_ONLY second instance"))
+    val open = JSONObject(both.world.getValue("story.factLedger")).getJSONArray("open")
+    assertEquals(2, open.length())
+    assertNotEquals(open.getJSONObject(0).getString("entityEncounterId"), open.getJSONObject(1).getString("entityEncounterId"))
+    StoryFactLedger.validateStoredState(GameStateCodec.decode(GameStateCodec.encode(both)))
+  }
 }
 

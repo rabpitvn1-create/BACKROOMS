@@ -198,10 +198,35 @@ class StoryMilestoneRuntimeTest {
       assertEquals(state, StoryMilestoneRuntime.afterCombat(state, fight.encounterId, true, false))
     }
     val restored = GameStateCodec.decode(GameStateCodec.encode(state))
+    StoryMilestoneRuntime.validateStoredState(restored)
+    StoryFactLedger.validateStoredState(restored)
+    val stats = StoryMilestoneRuntime.statsJson(restored)
+    assertEquals(40L, stats.getLong("committedEvents"))
+    assertEquals(20L, stats.getLong("defeatedBosses"))
+    assertEquals(20L, stats.getLong("completedCheckpoints"))
+    assertEquals(1L, stats.getLong("completedLevels"))
+    assertEquals(20, JSONArray(restored.world.getValue("story.checkpointHistory")).length())
+    val levelHistory = JSONArray(restored.world.getValue("story.levelHistory"))
+    assertEquals(1, levelHistory.length())
+    assertEquals(20, levelHistory.getJSONObject(0).getJSONArray("checkpointRefs").length())
     assertEquals(StoryCheckpointCore.Position(1, 1, 3), StoryCheckpointCore.current(restored))
     assertEquals("1.2", JSONObject(restored.world.getValue("levelJson")).getString("id"))
     assertEquals("TEST_ONLY Level ending", JSONObject(restored.world.getValue("story.milestone.lastCompletion"))
       .getJSONObject("completion").getString("outcome"))
+  }
+
+  @Test fun futurePlansDoNotCountAsCommittedAndCorruptHistoryCannotLoad() {
+    val planned = initial()
+    assertEquals(0L, StoryMilestoneRuntime.statsJson(planned).getLong("committedEvents"))
+    assertFalse(planned.world.containsKey("story.checkpointHistory"))
+    val accepted = TestMilestoneEvidence.accept(planned, "[\"warning\"]")
+    val wrongStats = JSONObject(StoryMilestoneRuntime.statsJson(accepted).toString()).put("committedEvents", 99)
+    val corrupt = accepted.copy(world = accepted.world + ("story.stats" to wrongStats.toString()))
+    assertThrows(Exception::class.java) { StoryMilestoneRuntime.validateStoredState(corrupt) }
+    val raw = JSONObject().put("saveVersion", CURRENT_SAVE_VERSION)
+      .put("core", JSONObject(GameStateCodec.encode(corrupt)))
+      .put("presentation", CoreClientProjection.project(JSONObject(), corrupt))
+    assertThrows(Exception::class.java) { GameCheckpointCodec.decode(raw.toString()) }
   }
 }
 

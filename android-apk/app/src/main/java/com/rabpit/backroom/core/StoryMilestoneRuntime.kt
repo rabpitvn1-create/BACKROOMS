@@ -13,6 +13,19 @@ object StoryMilestoneRuntime {
   private const val BOSS = "story.milestone.bossEncounter"
   private const val RESULT = "story.milestone.bossResult"
   private const val EVIDENCE = "story.milestone.evidence"
+  private const val STATS = "story.stats"
+  private const val CP_HISTORY = "story.checkpointHistory"
+  private const val LEVEL_HISTORY = "story.levelHistory"
+
+  fun statsJson(state: GameState): JSONObject = JSONObject(state.world[STATS] ?: """
+    {"version":1,"committedEvents":0,"defeatedBosses":0,"completedCheckpoints":0,"completedLevels":0}
+  """)
+
+  private fun incrementStats(state: GameState, vararg deltas: Pair<String, Long>): GameState {
+    val stats = statsJson(state)
+    deltas.forEach { (key, amount) -> stats.put(key, Math.addExact(stats.getLong(key), amount)) }
+    return state.copy(world = state.world + (STATS to stats.toString()))
+  }
 
   fun evidenceRequest(state: GameState, narrative: String, factsJson: String = "[]"): JSONObject {
     require(narrative.length <= 32000 && factsJson.length <= 5000) { "story_evidence_payload_too_large" }
@@ -124,7 +137,22 @@ object StoryMilestoneRuntime {
     val received = (0 until receipts.length()).map { receipts.getString(it) }
     require(received == required.map { it.id }) { "milestone_receipt_mismatch" }
     val proof = validateEvidence(state, narrative, evidenceJson, gmFactsJson)
-    val remembered = StoryFactLedger.recordTurn(state, required, gmFactsJson, narrative, evidenceJson)
+    var working = state
+    val boss = required.lastOrNull { it.kind == StoryMilestonePlan.Kind.FINAL_ENTITY }
+    if (boss != null) {
+      require(CombatRuntime.active(working) == null && BOSS !in working.world) {
+        "milestone_boss_already_started"
+      }
+      working = CombatRuntime.startMilestoneBoss(working, requireNotNull(boss.entityKey))
+      val fight = requireNotNull(CombatRuntime.active(working))
+      val flags = JSONObject(working.world["flagsJson"] ?: "{}")
+        .put("entityEncounterKey", fight.entityKey)
+      working = working.copy(world = working.world + mapOf(
+        BOSS to fight.encounterId,
+        "flagsJson" to flags.toString()
+      ))
+    }
+    val remembered = StoryFactLedger.recordTurn(working, required, gmFactsJson, narrative, evidenceJson)
     if (received.isEmpty()) return remembered
 
     val previously = appliedIds(state)
@@ -137,20 +165,7 @@ object StoryMilestoneRuntime {
       .put("checkpointId", StoryCheckpointCore.current(state)!!.id)
       .put("turn", CoreClientProjection.turnIndex(state)).put("requestToken", proof.getString("requestToken")))
     var updated = remembered.copy(world = remembered.world + mapOf(APPLIED to all.toString(), EVIDENCE to proofs.toString()))
-    val boss = required.lastOrNull { it.kind == StoryMilestonePlan.Kind.FINAL_ENTITY }
-    if (boss != null) {
-      require(CombatRuntime.active(updated) == null && BOSS !in updated.world) {
-        "milestone_boss_already_started"
-      }
-      updated = CombatRuntime.startMilestoneBoss(updated, requireNotNull(boss.entityKey))
-      val fight = requireNotNull(CombatRuntime.active(updated))
-      val flags = JSONObject(updated.world["flagsJson"] ?: "{}")
-        .put("entityEncounterKey", fight.entityKey)
-      updated = updated.copy(world = updated.world + mapOf(
-        BOSS to fight.encounterId,
-        "flagsJson" to flags.toString()
-      ))
-    }
+    updated = incrementStats(updated, "committedEvents" to received.size.toLong())
     return updated
   }
 
@@ -166,7 +181,9 @@ object StoryMilestoneRuntime {
     val result = if (destroyed) "DEFEATED" else "ESCAPED"
     if (state.world[RESULT] == result) return state
     require(RESULT !in state.world) { "milestone_boss_result_conflict" }
-    return activateIfReady(state.copy(world = state.world + (RESULT to result)))
+    var concluded = state.copy(world = state.world + (RESULT to result))
+    if (destroyed) concluded = incrementStats(concluded, "defeatedBosses" to 1L)
+    return activateIfReady(concluded)
   }
 
   /** Prepared plan and a concluded Combat are both required to promote a CP. */
@@ -177,7 +194,28 @@ object StoryMilestoneRuntime {
     val next = active.plan.completion.nextAddress(position)
     val prepared = StoryMilestonePlan.prepared(state) ?: return state
     require(prepared.checkpointId == next.id) { "milestone_next_checkpoint_mismatch" }
+    require(appliedIds(state) == active.plan.events.map { it.id }.toSet()) {
+      "milestone_checkpoint_events_incomplete"
+    }
     val world = state.world.toMutableMap()
+    val visitId = world["story.levelVisitId"] ?: "INITIAL:${position.level}"
+    val completionId = "${state.world[BOSS]}:${position.id}"
+    val proof = JSONObject(world.getValue(EVIDENCE))
+    val refs = JSONArray().apply {
+      active.plan.events.forEach { event ->
+        put("MS:${position.id}:${proof.getJSONObject(event.id).getInt("turn")}:${event.id}")
+      }
+    }
+    val checkpoints = JSONArray(world[CP_HISTORY] ?: "[]")
+    require((0 until checkpoints.length()).none { checkpoints.getJSONObject(it).getString("id") == completionId }) {
+      "milestone_checkpoint_history_duplicate"
+    }
+    checkpoints.put(JSONObject().put("id", completionId).put("visitId", visitId)
+      .put("checkpointId", position.id).put("startTurn", active.startTurn)
+      .put("endTurn", CoreClientProjection.turnIndex(state)).put("eventRefs", refs)
+      .put("bossEncounterId", state.world[BOSS]).put("bossResult", "DEFEATED")
+      .put("completion", active.plan.completion.toJson()))
+    world[CP_HISTORY] = checkpoints.toString()
     listOf("story.milestone.active", "story.milestone.prepared", APPLIED, EVIDENCE, BOSS, RESULT)
       .forEach(world::remove)
     world["story.checkpoint"] = JSONObject()
@@ -187,11 +225,26 @@ object StoryMilestoneRuntime {
       world["levelJson"] = target.asJson().toString()
       world["location"] = target.location()
       world["title"] = target.title()
+      val visits = JSONArray(world[LEVEL_HISTORY] ?: "[]")
+      val visitCheckpoints = (0 until checkpoints.length()).map { checkpoints.getJSONObject(it) }
+        .filter { it.getString("visitId") == visitId }
+      val open = world["story.factLedger"]?.let { JSONObject(it).getJSONArray("open") } ?: JSONArray()
+      val continuing = JSONArray().apply {
+        for (i in 0 until open.length()) put(open.getJSONObject(i).getString("id"))
+      }
+      visits.put(JSONObject().put("id", visitId).put("level", position.level)
+        .put("endedBy", completionId).put("turn", CoreClientProjection.turnIndex(state))
+        .put("checkpointRefs", JSONArray().apply { visitCheckpoints.forEach { put(it.getString("id")) } })
+        .put("committedEventCount", visitCheckpoints.sumOf { it.getJSONArray("eventRefs").length() })
+        .put("continuingFactIds", continuing).put("completion", active.plan.completion.toJson()))
+      world[LEVEL_HISTORY] = visits.toString()
+      world["story.levelVisitId"] = "LEVEL:$completionId:${target.id}"
       val flags = JSONObject(world["flagsJson"] ?: "{}")
       flags.put("currentLevel", target.asJson()).put("entityEncounterKey", "")
       // Old Exit readiness has no authority in the newly authored Level.
       flags.optJSONObject("exploration")?.let { exploration ->
         exploration.put(HiddenExitStreak.STREAK_KEY, 0).put("exitReady", false).put("transitionReady", false)
+          .put("levelTurns", 0).put(SnapshotSceneProgress.STEP_KEY, 0)
         listOf("confirmedExit", "exitCandidate", "exitProgress").forEach(exploration::remove)
       }
       flags.remove("exitProgress")
@@ -199,11 +252,13 @@ object StoryMilestoneRuntime {
       world["flagsJson"] = flags.toString()
     }
     world["story.milestone.lastCompletion"] = JSONObject()
-      .put("id", "${state.world[BOSS]}:${position.id}")
+      .put("id", completionId)
       .put("checkpointId", position.id).put("turn", CoreClientProjection.turnIndex(state))
       .put("bossEncounterId", state.world[BOSS]).put("bossResult", "DEFEATED")
       .put("completion", active.plan.completion.toJson()).toString()
-    val switched = state.copy(world = world)
+    var switched = incrementStats(state.copy(world = world), "completedCheckpoints" to 1L)
+    if (active.plan.completion.type == StoryMilestonePlan.CompletionType.EXIT_LEVEL)
+      switched = incrementStats(switched, "completedLevels" to 1L)
     return StoryMilestonePlan.installCurrent(switched, prepared.toJson().toString())
   }
 
@@ -237,6 +292,57 @@ object StoryMilestoneRuntime {
         item.getInt("turn") >= active.startTurn && item.getString("requestToken").length == 64) {
         "milestone_saved_evidence_invalid"
       }
+    }
+    val stats = statsJson(state)
+    require(stats.getInt("version") == 1 && listOf("committedEvents", "defeatedBosses",
+      "completedCheckpoints", "completedLevels").all { stats.getLong(it) >= 0 }) { "story_stats_invalid" }
+    val checkpoints = JSONArray(state.world[CP_HISTORY] ?: "[]")
+    val levels = JSONArray(state.world[LEVEL_HISTORY] ?: "[]")
+    require(stats.getLong("completedCheckpoints") == checkpoints.length().toLong() &&
+      stats.getLong("completedLevels") == levels.length().toLong()) { "story_history_stats_mismatch" }
+    val checkpointIds = (0 until checkpoints.length()).map { checkpoints.getJSONObject(it).getString("id") }
+    val levelIds = (0 until levels.length()).map { levels.getJSONObject(it).getString("id") }
+    require(checkpointIds.size == checkpointIds.toSet().size && levelIds.size == levelIds.toSet().size) {
+      "story_history_id_duplicate"
+    }
+    var events = applied.size.toLong()
+    val allRefs = mutableListOf<String>()
+    val ledger = state.world["story.factLedger"]?.let(::JSONObject)
+    val committedIds = hashSetOf<String>()
+    if (ledger != null) for (name in listOf("history", "archive")) {
+      val entries = ledger.getJSONArray(name)
+      for (i in 0 until entries.length()) {
+        val id = entries.getJSONObject(i).getString("id")
+        if (id.startsWith("MS:")) committedIds += id
+      }
+    }
+    for (i in 0 until checkpoints.length()) {
+      val entry = checkpoints.getJSONObject(i)
+      val refs = entry.getJSONArray("eventRefs")
+      events += refs.length()
+      require(entry.getString("bossResult") == "DEFEATED" &&
+        state.metadata.containsKey("exp.awarded.${entry.getString("bossEncounterId")}")) {
+        "story_history_defeat_unverified"
+      }
+      for (j in 0 until refs.length()) {
+        val id = refs.getString(j)
+        require(id in committedIds) { "story_history_event_source_missing" }
+        allRefs += id
+      }
+    }
+    require(allRefs.size == allRefs.toSet().size && committedIds.size.toLong() == events) {
+      "story_history_events_inconsistent"
+    }
+    for (i in 0 until levels.length()) {
+      val entry = levels.getJSONObject(i)
+      val refs = entry.getJSONArray("checkpointRefs")
+      for (j in 0 until refs.length()) require(refs.getString(j) in checkpointIds) {
+        "story_history_checkpoint_source_missing"
+      }
+    }
+    require(stats.getLong("committedEvents") == events && stats.getLong("defeatedBosses") ==
+      checkpoints.length().toLong() + if (state.world[RESULT] == "DEFEATED") 1L else 0L) {
+      "story_history_commit_counts_mismatch"
     }
   }
 }
