@@ -112,11 +112,11 @@ class StoryMilestonePlanTest {
       StoryMilestonePlan.prepareNextDuringCombat(fightingTooEarly, successor)
     }
     // Commit each due event on its Gemini-authored Turn, never late.
-    val afterFirst = StoryMilestoneRuntime.acceptTurn(installed, "[\\"beat1\\"]")
+    val afterFirst = StoryMilestoneRuntime.acceptTurn(installed, "[\"beat1\"]")
     val onThree = CoreClientProjection.advance(CoreClientProjection.advance(afterFirst))
-    val afterSecond = StoryMilestoneRuntime.acceptTurn(onThree, "[\\"beat2\\"]")
+    val afterSecond = StoryMilestoneRuntime.acceptTurn(onThree, "[\"beat2\"]")
     val reachedFinalTurn = (1..5).fold(afterSecond) { current, _ -> CoreClientProjection.advance(current) }
-    val fighting = StoryMilestoneRuntime.acceptTurn(reachedFinalTurn, "[\\"boss\\"]")
+    val fighting = StoryMilestoneRuntime.acceptTurn(reachedFinalTurn, "[\"boss\"]")
     val prepared = StoryMilestonePlan.prepareNextDuringCombat(fighting, successor)
     assertEquals("CP-L00-01", StoryCheckpointCore.current(prepared)!!.id)
     assertEquals("CP-L00-01", StoryMilestonePlan.current(prepared)!!.plan.checkpointId)
