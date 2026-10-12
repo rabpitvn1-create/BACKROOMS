@@ -34,7 +34,7 @@ object StoryMilestonePlannerPrompt {
       thêm effects:[{"type":"INJURY","characterId":"lucia",
       "label":"vết thương ở vai","hpLoss":10}]. Đây là mất HP tối đa,
       không gây chết nhân vật. Mỗi tác động phải có nguồn trong outcome,
-      targetId đúng nhân vật đang tồn tại và có mặt trong Party.
+      characterId đúng nhân vật đang tồn tại và có mặt trong Party.
       Nếu không có tác động cơ học thì bỏ effects hoặc dùng [].
       Không tuyên bố thương tích, thay đổi HP hay trạng thái bắt buộc
       bằng câu chữ đơn thuần nếu thiếu effects tương ứng.
