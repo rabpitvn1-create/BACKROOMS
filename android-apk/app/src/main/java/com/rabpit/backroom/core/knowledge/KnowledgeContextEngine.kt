@@ -280,12 +280,20 @@ object KnowledgeContextEngine {
         add("REL.CAO_MINH.LUC_TRAM.HISTORY_R06", "known history, not current knowledge")
       }
       val flags = state.optJSONObject("flags")
-      // The confirmed Combat/Encounter key outranks action wording; ordinary
-      // actions such as dodge or talk must still retrieve the visible Entity.
+      // A selected roll is already authoritative when the GM receives its
+      // context, before startCombatState has persisted the encounter.
+      if (rolls.optJSONObject("luciaEncounter")?.optBoolean("success", false) == true) {
+        add("CHAR.LUCIA.AUTHORED", "confirmed Lucia encounter roll")
+      }
       val combat = state.optJSONObject("combat")
-      val activeKey = if (combat?.optBoolean("active", false) == true)
-        combat.optString("entityKey", "") else ""
-      val encounterKey = activeKey.ifBlank { flags?.optString("entityEncounterKey", "").orEmpty() }
+      val selectedRollKey = if (rolls.optJSONObject("entityEncounter")?.optBoolean("success", false) == true) {
+        rolls.optString("selectedEntityKey", "")
+      } else ""
+      val encounterKey = when {
+        combat?.optBoolean("active", false) == true -> combat.optString("entityKey", "")
+        selectedRollKey.isNotBlank() -> selectedRollKey
+        else -> flags?.optString("entityEncounterKey", "").orEmpty()
+      }
       if (encounterKey.matches(Regex("[a-z0-9_-]{1,80}"))) {
         val recordId = encounterKey.uppercase(Locale.ROOT).replace('-', '_')
         add("ENTITY.$recordId.VISUAL", "confirmed active Entity visual canon")
