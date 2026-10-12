@@ -211,6 +211,9 @@ object CombatRuntime {
     Profile("hollow_grasper", "Hollow Grasper", LIFEFORM_BASE_MAX_HP, LIFEFORM_BASE_ATTACK, LIFEFORM_BASE_ARMOR, LIFEFORM_BASE_AGGRESSION),
   ).associateBy { it.key }
 
+  /** Single source of truth for Milestone final Entity eligibility. */
+  fun supportsEntityKey(key: String): Boolean = key in profiles
+
   fun active(state: GameState): Snapshot? = decode(state)?.takeIf { it.phase == Phase.ACTIVE }
 
   fun start(state: GameState, entityKey: String): GameState = startWaves(state, listOf(entityKey))
