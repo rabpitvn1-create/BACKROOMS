@@ -26,11 +26,11 @@
 {"level":0,"index":1,"total":20}
 ```
 
-Tồn tại cạnh các trường `levelJson`, `flagsJson` và `location`, không thay thế hay ghi đè trường nào. `GameStateCodec` đã serialize `world`, nên giá trị này được lưu/tải như phần còn lại của Game Core.
+Tồn tại cạnh các trường `levelJson`, `flagsJson` và `location`, không thay thế hay ghi đè trường nào. `GameStateCodec` đã serialize `world`, nên giá trị này được lưu/tải như phần còn lại của Game Core. CP đầu tiên được seed trong Game Core lúc tạo game mới, **không** khi chỉ đọc/chiếu một save đã tồn tại.
 
 `StoryCheckpointCore` trong Bước 3 mới:
 - cung cấp ID CP theo định dạng chuẩn, nhận diện CP cuối và địa chỉ CP kế tiếp;
-- khởi tạo CP đầu khi Level 0 có mặt và chưa có trạng thái;
+- khởi tạo CP đầu khi **bắt đầu game mới** ở Level 0; không âm thầm đưa save đang chơi vào CP đầu;
 - từ chối chỉ số không hợp lệ thay vì âm thầm reset;
 - **không** tự sửa CP sau mỗi `CoreClientProjection.advance()`.
 
@@ -63,7 +63,7 @@ CP kế tiếp ACTIVE (hoặc chuyển Level theo routing Core khi đã xong CP 
 ## Xác minh Bước 3
 
 Regression test kiểm tra:
-1. CP-L00-01 được seed trên fresh Level 0; total=20.
+1. CP-L00-01 được seed khi tạo trạng thái fresh Level 0; total=20.
 2. Normal Turn, save/load, chuyển Sublevel không tự tăng CP.
 3. CP cuối là CP-L00-20 và không có phép tăng ngầm sang CP-L00-21.
 4. Không tự áp đặt số lượng CP cho Level 1.
