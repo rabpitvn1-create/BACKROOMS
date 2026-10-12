@@ -19,9 +19,10 @@ object StoryMilestoneRuntime {
     val applied = appliedIds(state)
     val relative = now.toLong() - active.startTurn.toLong() + 1L
     if (relative < 1L) return emptyList()
-    // Pending events are never silently lost if a turn has advanced through
-    // another validated path. Block progression until their receipt is committed.
-    return active.plan.events.filter { it.turn.toLong() <= relative && it.id !in applied }
+    require(active.plan.events.none { it.turn.toLong() < relative && it.id !in applied }) {
+      "milestone_missed_planned_turn"
+    }
+    return active.plan.events.filter { it.turn.toLong() == relative && it.id !in applied }
   }
 
   fun dueJson(state: GameState): String = JSONArray().apply {
@@ -36,7 +37,7 @@ object StoryMilestoneRuntime {
 
   fun awaitingPlan(state: GameState): Boolean =
     state.world.containsKey(RESULT) && StoryMilestonePlan.prepared(state) == null &&
-      StoryCheckpointCore.current(state)?.nextAddress() != null
+      StoryMilestonePlan.current(state) != null
 
   private fun appliedIds(state: GameState): Set<String> {
     val raw = state.world[APPLIED] ?: return emptySet()
@@ -91,12 +92,33 @@ object StoryMilestoneRuntime {
   /** Prepared plan and a concluded Combat are both required to promote a CP. */
   fun activateIfReady(state: GameState): GameState {
     if (!state.world.containsKey(RESULT) || CombatRuntime.active(state) != null) return state
-    val next = StoryCheckpointCore.current(state)?.nextAddress() ?: return state
+    val currentPosition = StoryCheckpointCore.current(state) ?: return state
+    val activePlan = StoryMilestonePlan.current(state)?.plan ?: return state
+    val next = StoryMilestonePlan.nextPosition(currentPosition, activePlan)
     val prepared = StoryMilestonePlan.prepared(state) ?: return state
     require(prepared.checkpointId == next.id) { "milestone_next_checkpoint_mismatch" }
     val world = state.world.toMutableMap()
     listOf("story.milestone.active", "story.milestone.prepared", APPLIED, BOSS, RESULT)
-      .forEach(world::remove)
+      .forEach { world.remove(it) }
+    if (next.level != currentPosition.level) {
+      val end = requireNotNull(activePlan.levelEnd) { "milestone_level_end_missing" }
+      val target = requireNotNull(LevelRouteRegistry.node(end.targetNode))
+      world["levelJson"] = target.asJson().toString()
+      world["location"] = target.location()
+      world["title"] = target.title()
+      world["story.lastLevelEnding"] = JSONObject()
+        .put("fromLevel", currentPosition.level)
+        .put("checkpointId", currentPosition.id)
+        .put("targetNode", target.id)
+        .put("outcome", end.outcome).toString()
+      // A new Level starts with a clean exploration/Exit state;
+      // no old HiddenExitStreak can decide when this Level concludes.
+      val flags = JSONObject(world["flagsJson"] ?: "{}")
+      flags.remove("exitProgress")
+      flags.remove("exitChanceThreshold")
+      flags.remove("exploration")
+      world["flagsJson"] = flags.toString()
+    }
     world["story.checkpoint"] = JSONObject()
       .put("level", next.level).put("index", next.index).put("total", next.total).toString()
     val switched = state.copy(world = world)
