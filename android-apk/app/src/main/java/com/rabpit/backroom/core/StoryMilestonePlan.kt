@@ -149,7 +149,12 @@ object StoryMilestonePlan {
     val next = requireNotNull(currentPosition.nextAddress()) { "next_level_checkpoint_not_configured" }
     val active = requireNotNull(current(state)) { "milestone_current_plan_missing" }
     val combat = CombatRuntime.active(state)
-    require(combat != null && combat.entityKey == active.plan.finalEncounter.entityKey) {
+    val bossEncounterId = state.world["story.milestone.bossEncounter"]
+    val completed = state.world["story.milestone.bossResult"] != null
+    require(bossEncounterId != null &&
+      ((combat?.encounterId == bossEncounterId &&
+        combat.entityKey == active.plan.finalEncounter.entityKey) ||
+       (completed && combat == null))) {
       "milestone_final_combat_required"
     }
     val finalTurn = active.startTurn.toLong() + active.plan.finalEncounter.turn.toLong() - 1L
