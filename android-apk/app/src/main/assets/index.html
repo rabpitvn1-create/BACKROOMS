@@ -204,6 +204,7 @@ body.player-action-open,body.game-menu-open{overflow:hidden}
     </form>
   </section>
 </div>
+<button type="button" id="retryMilestoneBoss" class="primary-action" hidden>Đối đầu lại Boss</button>
 <div class="status" id="status"></div>
 </section>
 <div class="game-menu-modal" id="gameMenuModal" hidden aria-hidden="true">
@@ -1619,7 +1620,7 @@ function semanticPrepareNextState(before,json){const next=JSON.parse(json),oldLe
 function normalizedSemanticSpans(entry){if(!entry||entry.role==="player")return [];if(entry.semanticVersion!==3||!Array.isArray(entry.semanticSpans)){entry.semanticSpans=semanticResolve(entry.text,state,state);entry.semanticVersion=3}const source=String(entry.text||""),spans=[];let cursor=0;entry.semanticSpans.forEach(raw=>{const start=Number(raw&&raw.start),end=Number(raw&&raw.end),kind=semanticKind(raw&&raw.kind);if(!kind||!Number.isInteger(start)||!Number.isInteger(end)||start<cursor||end<=start||end>source.length)return;spans.push({start,end,kind});cursor=end});return spans}
 function renderSemanticText(entry){const source=String(entry&&entry.text||"");if(!entry||entry.role==="player")return esc(source);const spans=normalizedSemanticSpans(entry);if(!spans.length)return esc(source);let out="",cursor=0;spans.forEach(span=>{if(span.start>cursor)out+=esc(source.slice(cursor,span.start));out+="<span class='gm-semantic gm-semantic-"+span.kind+"' data-semantic-kind='"+span.kind+"'>"+esc(source.slice(span.start,span.end))+"</span>";cursor=span.end});if(cursor<source.length)out+=esc(source.slice(cursor));return out}
 
-function levelHeader(s){if(s&&s.level&&s.level.name){const id=s.level.id!=null?s.level.id:s.level.number;if(s.level.kind==="AREA"||s.level.kind==="SPECIAL"||s.level.name==="Level "+id)return s.level.name;return "Level "+id+" – "+s.level.name;}const where=String(s&&s.location||"")+" "+String(s&&s.title||"");const m=where.match(/Level\s*([^\s\/—–-]+)\s*(?:\/|—|–|-)\s*([^—–\n]+?)(?:\s+[—–]\s+|$)/i);if(m)return "Level "+m[1]+" – "+m[2].trim();return s&&s.title||"Backrooms"}function render(){titleEl.textContent=levelHeader(state);turnEl.textContent=state.turn;locationEl.textContent=state.location;modeEl.textContent=state.mode;playerEl.textContent=state.player?.name||"Cao Minh";partyEl.innerHTML=chips(state.party);if(inventoryEl)inventoryEl.innerHTML=chips(state.inventory);logEl.innerHTML=(state.log||[]).map(x=>{const w=x.role!=="player"&&String(x.text||"").trim().startsWith("[Warning]");return "<article class='message "+(x.role==="player"?"player":"gm")+(w?" warning":"")+"'><div class='role'>"+(x.role==="player"?"BẠN":"GAME MASTER")+"</div><div class='text'>"+renderSemanticText(x)+"</div></article>"}).join("");logEl.scrollTop=logEl.scrollHeight}
+function levelHeader(s){if(s&&s.level&&s.level.name){const id=s.level.id!=null?s.level.id:s.level.number;if(s.level.kind==="AREA"||s.level.kind==="SPECIAL"||s.level.name==="Level "+id)return s.level.name;return "Level "+id+" – "+s.level.name;}const where=String(s&&s.location||"")+" "+String(s&&s.title||"");const m=where.match(/Level\s*([^\s\/—–-]+)\s*(?:\/|—|–|-)\s*([^—–\n]+?)(?:\s+[—–]\s+|$)/i);if(m)return "Level "+m[1]+" – "+m[2].trim();return s&&s.title||"Backrooms"}function render(){const completed=state.story&&state.story.lastCompletion;if(completed&&completed.id){if(!Array.isArray(state.log))state.log=[];if(!state.log.some(x=>x.completionId===completed.id))state.log.push({role:"gm",text:completed.completion.outcome,completionId:completed.id});}const retryBoss=document.getElementById("retryMilestoneBoss");if(retryBoss){retryBoss.hidden=!(state.story&&state.story.bossRetry===true);retryBoss.disabled=busy;}titleEl.textContent=levelHeader(state);turnEl.textContent=state.turn;locationEl.textContent=state.location;modeEl.textContent=state.mode;playerEl.textContent=state.player?.name||"Cao Minh";partyEl.innerHTML=chips(state.party);if(inventoryEl)inventoryEl.innerHTML=chips(state.inventory);logEl.innerHTML=(state.log||[]).map(x=>{const w=x.role!=="player"&&String(x.text||"").trim().startsWith("[Warning]");return "<article class='message "+(x.role==="player"?"player":"gm")+(w?" warning":"")+"'><div class='role'>"+(x.role==="player"?"BẠN":"GAME MASTER")+"</div><div class='text'>"+renderSemanticText(x)+"</div></article>"}).join("");logEl.scrollTop=logEl.scrollHeight}
 const SAVE_KEY="backroom-apk-state";
 const SNAPSHOT_KEY="backroom-apk-snapshot";
 let destructiveAction="";
@@ -1742,6 +1743,11 @@ syncPrimaryActions();
 
 window.backroomTurn=json=>{state=semanticPrepareNextState(state,json);actionEl.value="";busy=false;syncPrimaryActions();if(persistPresentation())statusEl.textContent="Turn "+state.turn+" đã cập nhật.";render();focusLatestGmStart()};
 window.backroomError=message=>{busy=false;syncPrimaryActions();statusEl.textContent="Lỗi Gemini: "+message};
+document.getElementById("retryMilestoneBoss").addEventListener("click",()=>{
+  if(busy||!window.Android||!state.story||state.story.bossRetry!==true)return;
+  try{const result=JSON.parse(Android.retryMilestoneBoss(JSON.stringify(state)));if(!result.handled||!result.state)throw new Error(result.error||"Không thể đối đầu lại Boss.");state=semanticPrepareNextState(state,result.state);render();if(persistPresentation())statusEl.textContent="Đã quay lại đối đầu Boss.";}catch(e){statusEl.textContent=e.message;}
+});
+window.backroomMilestoneReady=()=>{try{if(!window.Android)return;const next=JSON.parse(Android.currentClientState(JSON.stringify(state)));if(!next||next.error)return;state=semanticPrepareNextState(state,next);render();}catch(e){console.warn("Milestone UI refresh deferred",e)}};
 render();
 </script>
 
@@ -2457,3 +2463,5 @@ body.poker-dice-open .game>.log{display:none!important}
 <script src="exploration-transition.js"></script>
 </body>
 </html>
+
+
