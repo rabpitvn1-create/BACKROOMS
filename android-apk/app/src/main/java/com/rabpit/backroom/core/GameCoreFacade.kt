@@ -255,9 +255,7 @@ class GameCoreFacade private constructor(
 
   fun resetNewGame(): String {
     repository.clear()
-    val fresh = StoryCheckpointCore.seedLevelZero(
-      CoreClientProjection.initialize(CharacterEquipmentSystem.normalize(GameState.initial()))
-    )
+    val fresh = newStoryRun(CharacterEquipmentSystem.normalize(GameState.initial()))
     repository.save(fresh)
     return CharacterDetailJson.encodeParty(CharacterDetailProjector.projectParty(fresh)).toString()
   }
@@ -532,13 +530,62 @@ class GameCoreFacade private constructor(
     return state.copy(world = state.world + ("flagsJson" to flags.toString()))
   }
 
+  /** New-run correlation prevents late Gemini responses from overwriting a reset game. */
+  private fun newStoryRun(state: GameState): GameState {
+    val seeded = StoryCheckpointCore.seedLevelZero(CoreClientProjection.initialize(state))
+    return seeded.copy(world = seeded.world +
+      ("story.runToken" to java.util.UUID.randomUUID().toString()))
+  }
+
+  /**
+   * Read-only planning lease. The first Checkpoint is generated once at first
+   * playable turn. Existing plan, old sessions and active combat never regenerate.
+   */
+  @Synchronized fun milestonePlanRequest(): String {
+    val state = loadCurrentState()
+    val position = StoryCheckpointCore.current(state)
+      ?: return JSONObject().put("needed", false).toString()
+    if (StoryMilestonePlan.current(state) != null ||
+      state.turn.pending != null || ActionRuntime.activeSession(state) != null ||
+      CombatRuntime.active(state) != null) {
+      return JSONObject().put("needed", false).toString()
+    }
+    val token = state.world["story.runToken"]
+      ?: return JSONObject().put("needed", false).toString()
+    val levelNode = state.world["levelJson"]?.let {
+      JSONObject(it).optString("id", JSONObject(it).optInt("number", 0).toString())
+    } ?: "0"
+    return JSONObject().put("needed", true)
+      .put("runToken", token)
+      .put("checkpointId", position.id)
+      .put("startTurn", CoreClientProjection.turnIndex(state))
+      .put("levelNode", levelNode)
+      .toString()
+  }
+
+  /** Install only if the Core still represents the identical new run and Turn. */
+  @Synchronized fun installMilestonePlan(
+    raw: String, expectedRunToken: String, expectedCheckpointId: String, expectedTurn: Int
+  ): Boolean {
+    val state = loadCurrentState()
+    val position = StoryCheckpointCore.current(state) ?: return false
+    if (state.world["story.runToken"] != expectedRunToken ||
+      position.id != expectedCheckpointId ||
+      CoreClientProjection.turnIndex(state) != expectedTurn ||
+      state.turn.pending != null || ActionRuntime.activeSession(state) != null ||
+      CombatRuntime.active(state) != null) return false
+    val updated = StoryMilestonePlan.installCurrent(state, raw)
+    if (updated != state) repository.save(updated)
+    return true
+  }
+
   private fun loadCurrentState(): GameState {
     val existed = repository.exists()
     val loaded = if (existed) repository.load() else GameState.initial()
     val normalized = normalizeVisualPresence(CoreClientProjection.initialize(loaded))
     // Only a new run gets the default checkpoint. Existing saves are not silently
     // assigned a new story position during a read.
-    val ready = if (existed) normalized else StoryCheckpointCore.seedLevelZero(normalized)
+    val ready = if (existed) normalized else newStoryRun(normalized)
     if (!existed) repository.save(ready)
     return ready
   }
