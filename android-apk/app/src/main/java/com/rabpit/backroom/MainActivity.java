@@ -1904,6 +1904,35 @@ public class MainActivity extends Activity {
     }
   }
 
+  private void ensureMilestoneForCurrentCheckpoint(String trustedClientView) throws Exception {
+    JSONObject request = new JSONObject(requireGameCore().milestonePlanRequest());
+    if (!request.optBoolean("needed", false)) return;
+    JSONObject view = new JSONObject(trustedClientView);
+    String checkpointId = request.getString("checkpointId");
+    int startTurn = request.getInt("startTurn");
+    String nodeId = request.getString("levelNode");
+    // KnowledgeContextEngine is a compact, indexed, offline Canon snapshot.
+    // The bridge does not fetch Google Drive or the Internet per player turn.
+    String canon = com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.build(
+      MainActivity.this, trustedClientView, "", "{}");
+    JSONObject situation = new JSONObject()
+      .put("location", view.optString("location", ""))
+      .put("level", view.optJSONObject("level"))
+      .put("party", view.optJSONArray("party"))
+      .put("player", view.optJSONObject("player"))
+      .put("continuity", view.optJSONObject("flags") == null ? new JSONObject() :
+        view.getJSONObject("flags").optJSONObject("storyContinuity"));
+    String scene = situation.toString();
+    if (scene.length() > 1500) scene = scene.substring(0, 1500);
+    String prompt = com.rabpit.backroom.core.StoryMilestonePlannerPrompt.build(
+      checkpointId, startTurn, nodeId, canon, scene);
+    // No audit/writer routing and no parallel requests to five keys.
+    String rawPlan = geminiTextPolicy(prompt, -1, 0.5, 2600, false);
+    boolean saved = requireGameCore().installMilestonePlan(
+      rawPlan, request.getString("runToken"), checkpointId, startTurn);
+    if (!saved) throw new IllegalStateException("milestone_plan_state_changed");
+  }
+
   private class GameBridge {
     @JavascriptInterface public String currentClientState(String stateJson) {
       try {
@@ -1985,6 +2014,10 @@ public class MainActivity extends Activity {
             emit("backroomTurn", combatResult.getJSONObject("state").toString());
             return;
           }
+          // One Gemini planner, with the existing five-key fallback transport.
+          // This runs only when the active Checkpoint has no authored plan.
+          // A failed plan never lets the normal GM improvise around missing locks.
+          if (!isMetaAction(action)) ensureMilestoneForCurrentCheckpoint(currentView);
           JSONObject actionStart = new JSONObject(requireGameCore().beginAction(currentView, actionKind, action));
           if (!actionStart.optBoolean("handled", false)) {
             throw new Exception("Action Runtime từ chối hành động: " + actionStart.optString("error", "action_start_failed"));
