@@ -10,7 +10,7 @@ import org.json.JSONObject
  * This contract does not trigger events or award EXP. The runtime dispatcher belongs to step 6.
  */
 object StoryMilestonePlan {
-  const val SCHEMA_VERSION = 1
+  const val SCHEMA_VERSION = 2
   const val FINAL_HP_MULTIPLIER = 9
   const val FINAL_EXP_MULTIPLIER = 9
   private const val ACTIVE_KEY = "story.milestone.active"
@@ -23,11 +23,24 @@ object StoryMilestonePlan {
 
   enum class Kind { STORY, FINAL_ENTITY }
 
+  /**
+   * Only the last Checkpoint of a Level may carry this Gemini-authored exit.
+   * The destination must be an actual registered Level node. This describes
+   * how the story ends a Level; it does not change Combat or Inventory.
+   */
+  data class LevelEnd(val targetNode: String, val nextCheckpointTotal: Int, val outcome: String) {
+    fun toJson(): JSONObject = JSONObject()
+      .put("targetNode", targetNode)
+      .put("nextCheckpointTotal", nextCheckpointTotal)
+      .put("outcome", outcome)
+  }
+
   data class Event(
     val id: String,
     val turn: Int,
     val kind: Kind,
     val event: String,
+    val action: String,
     val outcome: String,
     val entityKey: String? = null,
     val storyFacts: List<StoryFactLedger.FactSpec> = emptyList()
@@ -37,6 +50,7 @@ object StoryMilestonePlan {
       .put("turn", turn)
       .put("kind", kind.name)
       .put("event", event)
+      .put("action", action)
       .put("outcome", outcome)
       .apply {
         if (kind == Kind.FINAL_ENTITY) {
@@ -49,7 +63,11 @@ object StoryMilestonePlan {
       }
   }
 
-  data class Plan(val checkpointId: String, val events: List<Event>) {
+  data class Plan(
+    val checkpointId: String,
+    val events: List<Event>,
+    val levelEnd: LevelEnd? = null
+  ) {
     val finalEncounter: Event get() = events.last()
 
     /** Relative 1-based turn within this Checkpoint; no per-action quotas. */
@@ -60,6 +78,7 @@ object StoryMilestonePlan {
       .put("schemaVersion", SCHEMA_VERSION)
       .put("checkpointId", checkpointId)
       .put("events", JSONArray().apply { events.forEach { put(it.toJson()) } })
+      .apply { levelEnd?.let { put("levelEnd", it.toJson()) } }
   }
 
   data class Active(val startTurn: Int, val plan: Plan) {
@@ -73,7 +92,8 @@ object StoryMilestonePlan {
   fun parse(raw: String, expected: StoryCheckpointCore.Position): Plan {
     require(raw.length in 2..MAX_PLAN_CHARS) { "milestone_payload_size_invalid" }
     val root = JSONObject(raw)
-    exactFields(root, setOf("schemaVersion", "checkpointId", "events"))
+    exactFields(root, setOf("schemaVersion", "checkpointId", "events") +
+      if (root.has("levelEnd")) setOf("levelEnd") else emptySet())
     require(integer(root, "schemaVersion") == SCHEMA_VERSION) { "milestone_schema_invalid" }
     val checkpointId = string(root, "checkpointId", 32)
     require(checkpointId == expected.id) { "milestone_checkpoint_mismatch" }
@@ -85,7 +105,7 @@ object StoryMilestonePlan {
     for (i in 0 until entries.length()) {
       val item = entries.getJSONObject(i)
       val kind = Kind.valueOf(string(item, "kind", 24))
-      val allowed = mutableSetOf("id", "turn", "kind", "event", "outcome")
+      val allowed = mutableSetOf("id", "turn", "kind", "event", "action", "outcome")
       if (kind == Kind.FINAL_ENTITY) allowed += setOf("entityKey", "hpMultiplier", "expMultiplier")
       if (item.has("storyFacts")) allowed += "storyFacts"
       exactFields(item, allowed)
@@ -96,6 +116,7 @@ object StoryMilestonePlan {
       require(turn in 1..1_000_000) { "milestone_turn_invalid" }
       require(events.isEmpty() || events.last().turn <= turn) { "milestone_turn_order_invalid" }
       val event = string(item, "event", MAX_DESCRIPTION_CHARS)
+      val action = string(item, "action", MAX_DESCRIPTION_CHARS)
       val outcome = string(item, "outcome", MAX_DESCRIPTION_CHARS)
       val key = if (kind == Kind.FINAL_ENTITY) {
         val value = string(item, "entityKey", 80)
@@ -110,14 +131,39 @@ object StoryMilestonePlan {
       } else null
       val storyFacts = if (item.has("storyFacts"))
         StoryFactLedger.parseSpecs(item.getJSONArray("storyFacts"), 4) else emptyList()
-      events += Event(id, turn, kind, event, outcome, key, storyFacts)
+      events += Event(id, turn, kind, event, action, outcome, key, storyFacts)
     }
 
     require(events.last().kind == Kind.FINAL_ENTITY &&
       events.count { it.kind == Kind.FINAL_ENTITY } == 1) {
       "milestone_final_encounter_required"
     }
-    return Plan(checkpointId, events)
+    val exit = if (expected.isLast) {
+      require(root.has("levelEnd")) { "milestone_level_end_required" }
+      val item = root.getJSONObject("levelEnd")
+      exactFields(item, setOf("targetNode", "nextCheckpointTotal", "outcome"))
+      val target = string(item, "targetNode", 64)
+      val registered = LevelRouteRegistry.node(target)
+      require(registered != null && registered.parent != expected.level) {
+        "milestone_level_end_target_invalid"
+      }
+      val total = integer(item, "nextCheckpointTotal")
+      require(total in 1..100) { "milestone_next_checkpoint_count_invalid" }
+      LevelEnd(target, total, string(item, "outcome", MAX_DESCRIPTION_CHARS))
+    } else {
+      require(!root.has("levelEnd")) { "milestone_early_level_end_forbidden" }
+      null
+    }
+    return Plan(checkpointId, events, exit)
+  }
+
+  /** Gemini decides the destination and the size of the next Level at the final CP. */
+  fun nextPosition(current: StoryCheckpointCore.Position, plan: Plan): StoryCheckpointCore.Position {
+    require(current.id == plan.checkpointId) { "milestone_next_position_mismatch" }
+    current.nextAddress()?.let { return it }
+    val exit = requireNotNull(plan.levelEnd) { "milestone_next_level_not_planned" }
+    val node = requireNotNull(LevelRouteRegistry.node(exit.targetNode))
+    return StoryCheckpointCore.Position(node.parent, 1, exit.nextCheckpointTotal)
   }
 
   /** Install once at Checkpoint activation; never rewrite the authored schedule mid-story. */
@@ -152,8 +198,8 @@ object StoryMilestonePlan {
    */
   fun prepareNextDuringCombat(state: GameState, raw: String): GameState {
     val currentPosition = requireNotNull(StoryCheckpointCore.current(state)) { "checkpoint_not_initialized" }
-    val next = requireNotNull(currentPosition.nextAddress()) { "next_level_checkpoint_not_configured" }
     val active = requireNotNull(current(state)) { "milestone_current_plan_missing" }
+    val next = nextPosition(currentPosition, active.plan)
     val combat = CombatRuntime.active(state)
     val bossEncounterId = state.world["story.milestone.bossEncounter"]
     val completed = state.world["story.milestone.bossResult"] != null
@@ -179,8 +225,8 @@ object StoryMilestonePlan {
   fun prepared(state: GameState): Plan? {
     val raw = state.world[PREPARED_KEY] ?: return null
     val position = requireNotNull(StoryCheckpointCore.current(state)) { "checkpoint_not_initialized" }
-    val next = requireNotNull(position.nextAddress()) { "next_level_checkpoint_not_configured" }
-    return parse(raw, next)
+    val active = requireNotNull(current(state)) { "milestone_current_plan_missing" }
+    return parse(raw, nextPosition(position, active.plan))
   }
 
   private fun exactFields(value: JSONObject, allowed: Set<String>) {
