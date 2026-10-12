@@ -30,6 +30,16 @@ object StoryMilestonePlannerPrompt {
       GM tự lồng ghép những gì người chơi làm vào các kết quả này, không cần
       kịch bản câu thoại chi tiết. Không tự viết lại Canon, bí mật hoặc
       trạng thái HP/EXP chưa xảy ra. Không tự kết luận thắng/thua Combat.
+      Nếu STORY bắt buộc khiến nhân vật có mặt trong Party bị thương,
+      thêm effects:[{"type":"INJURY","characterId":"lucia",
+      "label":"vết thương ở vai","hpLoss":10}]. Đây là mất HP tối đa,
+      không gây chết nhân vật. Mỗi tác động phải có nguồn trong outcome,
+      targetId đúng nhân vật đang tồn tại và có mặt trong Party.
+      Nếu không có tác động cơ học thì bỏ effects hoặc dùng [].
+      Không tuyên bố thương tích, thay đổi HP hay trạng thái bắt buộc
+      bằng câu chữ đơn thuần nếu thiếu effects tương ứng.
+      Chỉ hỗ trợ effects.type=INJURY; KHÔNG tự phát Item, EXP,
+      hồi sinh, dịch chuyển hoặc thêm người vào Party qua effects.
       Sự kiện cuối phải là đúng một FINAL_ENTITY, khởi đầu Combat với
       một Entity hợp lệ; HP và EXP nhân 9 do Core thực thi sau.
       Entity hợp lệ: $entityKeys
