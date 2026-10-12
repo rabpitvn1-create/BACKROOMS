@@ -470,13 +470,17 @@ class GameCoreFacade private constructor(
       return response(false, before, committed.error, "gemini_delta_rejected")
     }
     val protectedState = CharacterProgressionCore.protectFromCandidate(pending.state, committed.state)
+    val requiredEvents = StoryMilestoneRuntime.due(protectedState)
     val applied = StoryMilestoneRuntime.acceptTurn(
       protectedState, milestoneReceipts, storyFactProposals)
     val accepted = CoreClientProjection.advance(applied)
     repository.save(accepted)
     val synchronized = clientSnapshot(candidate, accepted)
     logger.log(PipelineLogEvent("GEMINI_COMMIT", turnId = turnId, source = CommandSource.GEMINI, details = mapOf("commands" to commands.size.toString())))
-    return response(true, synchronized, null, "gemini_delta_committed")
+    return JSONObject(response(true, synchronized, null, "gemini_delta_committed"))
+      .put("milestoneCommitted", JSONArray().apply {
+        requiredEvents.forEach { put(it.toJson()) }
+      }).toString()
   }
 
 
