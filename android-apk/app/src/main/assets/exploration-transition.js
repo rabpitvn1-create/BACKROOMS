@@ -70,7 +70,7 @@
       function done(ok){if(settled)return;settled=true;ok?resolve():reject();}
       after(2500,function(){done(false);});
       image.onload=function(){
-        if(typeof image.decode==='function')image.decode().then(function(){done(true);},function(){done(false);});
+        if(typeof image.decode==='function')image.decode().then(function(){done(true);},function(){done(image.complete&&image.naturalWidth>0);});
         else done(true);
       };
       image.onerror=function(){done(false);};
@@ -94,7 +94,13 @@
     previous.className='snapshot-explore-previous';
     previous.alt='';previous.setAttribute('aria-hidden','true');previous.src=prior.src;
     bg.insertAdjacentElement('afterend',previous);
-    box.style.setProperty('--explore-advance-x','-'+Math.round(Math.min(110,Math.max(24,box.clientWidth*.21)))+'px');
+    var actor=box.querySelector('.snapshot-character');
+    var bounds=box.getBoundingClientRect&&box.getBoundingClientRect();
+    var sprite=actor&&actor.getBoundingClientRect&&actor.getBoundingClientRect();
+    var width=box.clientWidth||400;
+    var center=bounds&&sprite?sprite.left-bounds.left+sprite.width/2:width*.77;
+    var offset=Math.max(24,Math.min(140,center-width*.52));
+    box.style.setProperty('--explore-advance-x','-'+Math.round(offset)+'px');
     box.dataset.explorePhase='prepare';
     var run={box:box,bg:bg,previous:previous,token:epoch};
     active=run;
@@ -103,13 +109,13 @@
       // Layout flush ensures prepare -> advance animates even on a cached WebView image.
       void box.offsetWidth;
       box.dataset.explorePhase='advance';
-      after(430,function(){
+      after(560,function(){
         if(!valid(run)){if(active===run)cancel();return;}
         box.dataset.explorePhase='fade';
-        after(460,function(){
+        after(470,function(){
           if(!valid(run)){if(active===run)cancel();return;}
           box.dataset.explorePhase='settle';
-          after(290,function(){if(active===run)cancel();});
+          after(270,function(){if(active===run)cancel();});
         });
       });
     },function(){if(active===run)cancel();});

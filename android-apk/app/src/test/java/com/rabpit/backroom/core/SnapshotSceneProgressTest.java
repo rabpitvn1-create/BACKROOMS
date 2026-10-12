@@ -33,11 +33,26 @@ public class SnapshotSceneProgressTest {
     assertEquals(3, step(new JSONObject(next.toString())));
   }
 
-  @Test public void failedExploreCannotChangeSceneEvenIfGmProposesOne() throws Exception {
+  @Test public void failedExitProbeDoesNotPreventVisualExploration() throws Exception {
     JSONObject before = state("0", "Level 0 / Hall", "A", 3);
-    JSONObject next = state("0", "Level 0 / Hall", "B", 400);
+    JSONObject next = state("0", "Level 0 / Hall", "A", 400);
     SnapshotSceneProgress.apply(before, next, roll(false), "EXPLORE");
-    assertEquals(3, step(next));
+    assertEquals(4, step(next));
+    assertEquals(3, step(before));
+  }
+
+  @Test public void entityEncounterDoesNotRotateEnvironmentSnapshot() throws Exception {
+    JSONObject before = state("0", "Level 0 / Hall", "", 7);
+    JSONObject next = state("0", "Level 0 / Hall", "", 100);
+    JSONObject rolls = roll(true).put("entityEncounter", new JSONObject()
+        .put("eligible", true).put("success", true));
+    SnapshotSceneProgress.apply(before, next, rolls, "EXPLORE");
+    assertEquals(7, step(next));
+    JSONObject ineligible = roll(false).put("entityEncounter", new JSONObject()
+        .put("eligible", false).put("success", true));
+    JSONObject safe = new JSONObject(before.toString());
+    SnapshotSceneProgress.apply(before, safe, ineligible, "EXPLORE");
+    assertEquals(8, step(safe));
   }
 
   @Test public void searchAndRenderStyleUpdatesDoNotAdvanceScene() throws Exception {

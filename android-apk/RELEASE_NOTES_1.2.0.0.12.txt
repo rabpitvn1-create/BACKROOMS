@@ -1,0 +1,10 @@
+Backroom 1.2.0.0.12 Debug
+
+- Android versionCode 85; versionName 1.2.0.0.12; applicationId com.rabpit.backroom.
+- Overlay Player/Entity lao tới trong 180 ms, giữ va chạm 70 ms và hồi về trong 230 ms; nhịp giữa các đòn 630 ms.
+- Đánh trúng hiển thị tia lửa vàng trắng có glow trong 320 ms, giật lùi 400 ms và số sát thương nổi; chí mạng có impact lớn hơn.
+- Né tránh giật lùi mượt 420 ms và hiện MISS, không phát impact trúng đòn. Damage định kỳ không lao tới hay giật như đòn trực tiếp.
+- Phản hồi trúng đòn định vị đúng Cao Minh, Lucia hoặc ô Party của đồng đội; hủy hiệu ứng cũ khi đổi wave/encounter và hỗ trợ giảm chuyển động.
+- Giữ các bản sửa chuyển cảnh khám phá và Snapshot mới nhất trên main.
+- Sửa CI giải nén assets/fx trước khi đối chiếu texture với file nguồn; kiểm tra chữ ký, zipalign và checksum APK tải lại từ Release.
+- APK Debug; chưa xác minh trên thiết bị Android thật. Không hỗ trợ save game cũ.

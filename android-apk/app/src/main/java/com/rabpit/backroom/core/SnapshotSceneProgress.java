@@ -27,9 +27,13 @@ public final class SnapshotSceneProgress {
     boolean explore = "EXPLORE".equalsIgnoreCase(actionKind == null ? "" : actionKind.trim());
     boolean failed = HiddenExitStreak.failedThisTurn(rolls);
 
-    // A failed hidden-exit probe must not fake movement. A confirmed exploration can
-    // reveal a new view within the same location; actual location/node changes also count.
-    boolean advance = nodeChanged || (!failed && (explore || locationChanged || areaChanged));
+    // Discovering an Exit is independent from exploring the surroundings.
+    // An Entity encounter preempts travel, even if the narrative suggests a new view.
+    JSONObject entityRoll = rolls == null ? null : rolls.optJSONObject("entityEncounter");
+    boolean encounter = entityRoll != null && entityRoll.optBoolean("eligible", false) &&
+        entityRoll.optBoolean("success", false);
+    boolean advance = !encounter &&
+        (nodeChanged || explore || (!failed && (locationChanged || areaChanged)));
     int step = advance ? (previous == Integer.MAX_VALUE ? 0 : previous + 1) : previous;
     // Ignore any snapshotStep supplied by the narrative model; Core alone advances it.
     exploration.put(STEP_KEY, step);

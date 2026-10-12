@@ -47,9 +47,9 @@ test('validated Explore stages the old image, advances Cao Minh and crossfades a
   assert.equal(x.box.children[1].className,'snapshot-explore-previous');
   assert.equal(x.box.children[1].src,prefix+'a.webp');
   await x.next();assert.equal(x.box.dataset.explorePhase,'advance');
-  x.fire(430);assert.equal(x.box.dataset.explorePhase,'fade');
-  x.fire(460);assert.equal(x.box.dataset.explorePhase,'settle');
-  x.fire(290);assert.equal(x.box.dataset.explorePhase,undefined);
+  x.fire(560);assert.equal(x.box.dataset.explorePhase,'fade');
+  x.fire(470);assert.equal(x.box.dataset.explorePhase,'settle');
+  x.fire(270);assert.equal(x.box.dataset.explorePhase,undefined);
   assert.equal(x.box.children.length,1);assert.equal(x.box.children[0],newBg);
 });
 
@@ -77,6 +77,19 @@ test('Entity encounters and combat never animate even on a new scene',()=>{
   }
 });
 
+test('actor movement is based on real sprite position',()=>{
+  const x=boot(),prior=x.api.capture(x.state(1,0));
+  x.box.getBoundingClientRect=()=>({left:0,width:400});
+  const actor={getBoundingClientRect:()=>({left:250,width:100})};
+  const original=x.box.querySelector;
+  x.box.querySelector=function(selector){
+    return selector==='.snapshot-character'?actor:original.call(x.box,selector);
+  };
+  x.render('b.webp');
+  assert.equal(x.api.play(prior,x.state(2,1,'b.webp')),true);
+  assert.equal(x.box.style['--explore-advance-x'],'-92px');
+});
+
 test('new turn cancels a running transition and a late load cannot resurrect stale images',async()=>{
   const x=boot(),before=x.api.capture(x.state(1,0));x.render('b.webp');
   assert.equal(x.api.play(before,x.state(2,1,'b.webp')),true);
@@ -98,7 +111,7 @@ test('decode failure exits cleanly without leaving a hidden background',async()=
 test('unrelated Snapshot render during animation is detected and cleaned up',async()=>{
   const x=boot(),prev=x.api.capture(x.state(1,0));x.render('b.webp');
   assert.equal(x.api.play(prev,x.state(2,1,'b.webp')),true);
-  await x.next();x.render('b.webp');x.fire(430);
+  await x.next();x.render('b.webp');x.fire(560);
   assert.equal(x.box.dataset.explorePhase,undefined);
   assert.equal(x.box.children.length,1);
 });
@@ -108,6 +121,7 @@ test('Android render bridge hooks the final Snapshot and assets are loaded offli
   const html=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/index.html'),'utf8');
   assert.ok(native.includes('cinema.capture(state)'));
   assert.ok(native.includes('cinema.play(previousScene,state)'));
+  assert.ok(native.includes("if(typeof window!=='undefined'&&window.backroomExplorationTransition)window.backroomExplorationTransition.cancel()"));
   assert.ok(html.includes('href="exploration-transition.css"'));
   assert.ok(html.includes('src="exploration-transition.js"'));
 });
