@@ -381,39 +381,36 @@ object KnowledgeContextEngine {
     }
 
     private fun resolvePresence() {
-      val party = state.optJSONArray("party")
-      if (party != null) {
+      // State is the only evidence of who is actually in the scene.
+      // Substring matching lets names like "iris_unknown" impersonate a Party member.
+      fun addConfirmed(idOrName: String) {
+        when (normalize(idOrName)) {
+          "iris" -> presentActors += "iris"
+          "syvial" -> presentActors += "syvial"
+          "lucia", "lucia lục" -> presentActors += "lucia"
+          "trac_lam", "trác lâm", "trac lam" -> presentActors += "trac_lam"
+          "luc_tram", "lục trầm", "luc tram" -> presentActors += "luc_tram"
+        }
+      }
+      fun activeMember(member: JSONObject): Boolean =
+        member.optString("presence", "ACTIVE") == "ACTIVE"
+
+      state.optJSONArray("party")?.let { party ->
         for (i in 0 until party.length()) {
           when (val value = party.opt(i)) {
-            is JSONObject -> {
-              val id = normalize(value.optString("id", value.optString("name", "")))
-              if (id.contains("iris")) presentActors += "iris"
-              if (id.contains("syvial")) presentActors += "syvial"
-              if (id == "lucia" || id.contains("lucia lục")) presentActors += "lucia"
-              if (id == "trac_lam" || id == "trác lâm" || id == "trac lam") presentActors += "trac_lam"
-              if (id == "luc_tram" || id.contains("lục trầm") || id == "luc tram") presentActors += "luc_tram"
+            is JSONObject -> if (activeMember(value)) {
+              addConfirmed(value.optString("id", value.optString("name", "")))
             }
-            else -> {
-              val id = normalize(value?.toString().orEmpty())
-              if (id.contains("iris")) presentActors += "iris"
-              if (id.contains("syvial")) presentActors += "syvial"
-              if (id == "lucia" || id.contains("lucia lục")) presentActors += "lucia"
-              if (id == "trac_lam" || id == "trác lâm" || id == "trac lam") presentActors += "trac_lam"
-              if (id == "luc_tram" || id.contains("lục trầm") || id == "luc tram") presentActors += "luc_tram"
-            }
+            is String -> addConfirmed(value)
           }
         }
       }
-      val details = state.optJSONObject("partyDetails")?.optJSONArray("members")
-      if (details != null) {
+      state.optJSONObject("partyDetails")?.optJSONArray("members")?.let { details ->
         for (i in 0 until details.length()) {
           val member = details.optJSONObject(i) ?: continue
-          val id = normalize(member.optString("id", member.optString("name", "")))
-          if (id.contains("iris")) presentActors += "iris"
-          if (id.contains("syvial")) presentActors += "syvial"
-          if (id == "lucia" || id.contains("lucia lục")) presentActors += "lucia"
-          if (id == "trac_lam" || id == "trác lâm" || id == "trac lam") presentActors += "trac_lam"
-          if (id == "luc_tram" || id.contains("lục trầm") || id == "luc tram") presentActors += "luc_tram"
+          if (activeMember(member)) {
+            addConfirmed(member.optString("id", member.optString("name", "")))
+          }
         }
       }
     }
