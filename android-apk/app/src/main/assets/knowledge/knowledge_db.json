@@ -317,7 +317,7 @@
       "kind": "runtime-card",
       "text": "Syvial: half-human/half-demon daughter of Lucifer and a human mother whose identity is not locked; origin era 2299, true age unknown. A high-tier supernatural swordswoman; do not invent an exact comparison with Cao Minh. Outside combat she is natural, social, teasing, food-loving and capable of ordinary conversation; in danger she becomes focused and precise without turning into a fragment-speaking machine. She remains lucid, intelligent and socially capable, not a random murderer or automatically hostile to every woman. Emotions never delete tactical competence.",
       "source": {
-        "document": "02_CHARACTERS/Syvial_Codex.docx",
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx (1MKOdp9XS7QIWvUwPIWayEw3vGqrTFYSJ)",
         "anchor": "SYVIAL-QUICK-01; SYVIAL-OVERVIEW-01; SYVIAL-YANDERE-01; SYVIAL-ACTION-LOCK-01"
       },
       "authority": "CHARACTER_CANON",
@@ -338,7 +338,7 @@
       "kind": "ability",
       "text": "Lucifer Core provides Syvial infinite demon power. Current canon does not supply an intrinsic energy cap/cooldown merely for balance. Infinite power does not erase problems created by incomplete information, protected people, environment, space or an opponent strong enough to matter.",
       "source": {
-        "document": "02_CHARACTERS/Syvial_Codex.docx",
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx (1MKOdp9XS7QIWvUwPIWayEw3vGqrTFYSJ)",
         "anchor": "SYVIAL-CORE-LUCIFER-01; SYVIAL-WEAK-01"
       },
       "authority": "CHARACTER_CANON",
@@ -360,7 +360,7 @@
       "kind": "ability",
       "text": "Syvial's Devil Trigger does not create a second personality, remove control, force corruption or have an invented intrinsic duration/cooldown absent from codex. She remains herself and tactically competent while using it.",
       "source": {
-        "document": "02_CHARACTERS/Syvial_Codex.docx",
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx (1MKOdp9XS7QIWvUwPIWayEw3vGqrTFYSJ)",
         "anchor": "SYVIAL-DT-01; SYVIAL-ACTION-LOCK-01"
       },
       "authority": "CHARACTER_CANON",
@@ -381,7 +381,7 @@
       "kind": "equipment",
       "text": "GodKiller is Syvial's enormous purely mechanical greatsword. Do not convert it into a gun or gunblade. Its reach and mass support space control at medium distance; in very tight space Syvial can shorten her sword work and use close combat/Spatial Shift rather than pretending the weapon never matters. She does not forget combat ability if disarmed and can call the sword back under codex capability.",
       "source": {
-        "document": "02_CHARACTERS/Syvial_Codex.docx",
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx (1MKOdp9XS7QIWvUwPIWayEw3vGqrTFYSJ)",
         "anchor": "SYVIAL-EQP-GODKILLER-01; SYVIAL-STYLE-COMBAT-01; SYVIAL-ACTION-LOCK-01"
       },
       "authority": "CHARACTER_CANON",
@@ -403,7 +403,7 @@
       "kind": "ultimate",
       "text": "GodKiller Override / Twenty-Four Severance performs exactly 24 cuts during completely stopped external time under current canon. Do not change the count, turn it into a gun attack, or add an invented cooldown/energy bar without retcon.",
       "source": {
-        "document": "02_CHARACTERS/Syvial_Codex.docx",
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx (1MKOdp9XS7QIWvUwPIWayEw3vGqrTFYSJ)",
         "anchor": "SYVIAL-ULT-GKO-01; SYVIAL-ACTION-LOCK-01"
       },
       "authority": "CHARACTER_CANON",
@@ -428,7 +428,7 @@
       "kind": "ability",
       "text": "Syvial is a high-tier supernatural swordswoman for assault, suppression, counterattack and finishing high-level targets. She controls space with GodKiller, adapts at close range, handles multiple targets by positioning rather than blind spinning, and gathers enough information before escalating against high-tier targets. She is not a weak follower or a drone waiting for arbitrary orders; she can act independently, coordinate with allies and disagree tactically based on actual circumstances.",
       "source": {
-        "document": "02_CHARACTERS/Syvial_Codex.docx",
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx (1MKOdp9XS7QIWvUwPIWayEw3vGqrTFYSJ)",
         "anchor": "SYVIAL-COMBAT-01; SYVIAL-STYLE-COMBAT-01"
       },
       "authority": "CHARACTER_CANON",
@@ -1083,6 +1083,776 @@
         "luc_tram",
         "thiên kiếm linh tâm",
         "tịch quang"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.HOUND.VISUAL",
+      "domain": "ENTITY",
+      "kind": "visual-card",
+      "text": "[VISUAL] Hound: Sinh vật bốn chân gầy trơ xương, da xám nhợt căng sát cơ thể, tay chân dài quá mức và kết thúc bằng móng đen. Phần đầu dị dạng, hốc mắt sâu, hàm miệng mở rộng với nhiều răng nhọn lộ rõ.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/Entity.md (1XkkV7v1T4-dkODVUEmZ64QtRRe3e6e0B)",
+        "anchor": "## Hound"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": [
+        "hound",
+        "hound"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.CLUMP.VISUAL",
+      "domain": "ENTITY",
+      "kind": "visual-card",
+      "text": "[VISUAL] Clump: Một khối cơ thể hỗn độn tạo thành từ rất nhiều cánh tay và chân quấn chặt vào nhau quanh phần lõi tối màu. Các chi mọc theo nhiều hướng, khiến toàn thân giống một búi thịt khổng lồ đang bò bằng chính những cánh tay của nó.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/Entity.md (1XkkV7v1T4-dkODVUEmZ64QtRRe3e6e0B)",
+        "anchor": "## Clump"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": [
+        "clump",
+        "clump"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.DULLER.VISUAL",
+      "domain": "ENTITY",
+      "kind": "visual-card",
+      "text": "[VISUAL] Duller: Thực thể hình người rất cao và gầy, toàn thân phủ lớp da xám trơn. Tay chân dài bất thường, đầu hình bầu dục hoàn toàn nhẵn, không có mắt, mũi, miệng hay bất kỳ đường nét khuôn mặt nào.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/Entity.md (1XkkV7v1T4-dkODVUEmZ64QtRRe3e6e0B)",
+        "anchor": "## Duller"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": [
+        "duller",
+        "duller"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.DEATHMOTH.VISUAL",
+      "domain": "ENTITY",
+      "kind": "visual-card",
+      "text": "[VISUAL] Deathmoth: Sinh vật giống thiêu thân khổng lồ, thân màu kem bẩn và phủ lông ngắn. Hai cánh rộng, sờn rách và lốm đốm, mắt kép lớn màu đen, phần miệng kéo dài cùng nhiều chân có móc sắc.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/Entity.md (1XkkV7v1T4-dkODVUEmZ64QtRRe3e6e0B)",
+        "anchor": "## Deathmoth"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": [
+        "deathmoth",
+        "deathmoth"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.HOSTILE_FACELING.VISUAL",
+      "domain": "ENTITY",
+      "kind": "visual-card",
+      "text": "[VISUAL] Hostile Faceling: Thực thể mang hình dáng con người, có mái tóc đen dài và quần áo tối màu rách nát. Khuôn mặt chỉ là một lớp da phẳng không có ngũ quan, hai cánh tay dài với những ngón tay nhọn như móng.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/Entity.md (1XkkV7v1T4-dkODVUEmZ64QtRRe3e6e0B)",
+        "anchor": "## Hostile Faceling"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": [
+        "hostile_faceling",
+        "hostile faceling"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.FALSE_PUDDLE.VISUAL",
+      "domain": "ENTITY",
+      "kind": "visual-card",
+      "text": "[VISUAL] False Puddle: Sinh vật hình người được tạo thành từ chất lỏng đen đặc, bóng và nhớt như nhựa đường. Cơ thể có nhiều khoảng rỗng, phần đầu hoàn toàn không có khuôn mặt và nửa thân dưới tan chảy thành một vũng đen trên mặt đất.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/Entity.md (1XkkV7v1T4-dkODVUEmZ64QtRRe3e6e0B)",
+        "anchor": "## False Puddle"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": [
+        "false_puddle",
+        "false puddle"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.PAINTINGS.VISUAL",
+      "domain": "ENTITY",
+      "kind": "visual-card",
+      "text": "[VISUAL] Paintings: Một người phụ nữ da trắng bệch đang chui ra khỏi bức tranh có khung vàng cổ. Đôi mắt là hai hốc tối, miệng há rộng bất thường và hai cánh tay vươn khỏi khung với những móng dài màu đỏ sẫm.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/Entity.md (1XkkV7v1T4-dkODVUEmZ64QtRRe3e6e0B)",
+        "anchor": "## Paintings"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": [
+        "paintings",
+        "paintings"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.SMILER.VISUAL",
+      "domain": "ENTITY",
+      "kind": "visual-card",
+      "text": "[VISUAL] Smiler: Một bóng người cao gầy gần như hòa hoàn toàn vào bóng tối. Cơ thể chỉ hiện thành đường viền mờ, nổi bật nhất là hai mắt trắng sáng và nụ cười cực rộng với hàng răng trắng kéo dài trên khuôn mặt.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/Entity.md (1XkkV7v1T4-dkODVUEmZ64QtRRe3e6e0B)",
+        "anchor": "## Smiler"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": [
+        "smiler",
+        "smiler"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.SKIN_STEALER.VISUAL",
+      "domain": "ENTITY",
+      "kind": "visual-card",
+      "text": "[VISUAL] Skin-Stealer: Thực thể hình người cao và gầy quá mức, thân thể gồm những lớp mô hồng xám, bó cơ và màng thịt căng thành nhiều khoảng rỗng. Tay chân kéo dài bất thường, các ngón nhọn, phần đầu méo mó và gần như không còn cấu trúc khuôn mặt bình thường.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/Entity.md (1XkkV7v1T4-dkODVUEmZ64QtRRe3e6e0B)",
+        "anchor": "## Skin-Stealer"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": [
+        "skin-stealer",
+        "skin-stealer"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.PREDATORY_WINDOW.VISUAL",
+      "domain": "ENTITY",
+      "kind": "visual-card",
+      "text": "[VISUAL] Predatory Window: Một cửa sổ cũ với khung mục và rèm vàng bẩn, phía sau lớp kính thấp thoáng bóng người có đôi mắt sáng. Nhiều cánh tay xương xẩu dài quá mức vươn xuyên qua cửa, đầu ngón kết thúc bằng những móng cong sắc.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/Entity.md (1XkkV7v1T4-dkODVUEmZ64QtRRe3e6e0B)",
+        "anchor": "## Predatory Window"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": [
+        "predatory_window",
+        "predatory window"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.BIOLOGICAL_PIPELINE.VISUAL",
+      "domain": "ENTITY",
+      "kind": "visual-card",
+      "text": "[VISUAL] Biological Pipeline: Một khối hình người khổng lồ cấu thành từ vô số đường ống kim loại gỉ, van, khớp nối và ống mềm chằng chịt. Các chi phân nhánh thành nhiều đoạn ống khác nhau, xen giữa kết cấu kim loại là những mảng mô hữu cơ tối màu.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/Entity.md (1XkkV7v1T4-dkODVUEmZ64QtRRe3e6e0B)",
+        "anchor": "## Biological Pipeline"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": [
+        "biological_pipeline",
+        "biological pipeline"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.WRETCH.VISUAL",
+      "domain": "ENTITY",
+      "kind": "visual-card",
+      "text": "[VISUAL] Wretch: Sinh vật mang dáng người suy kiệt, đầu trọc, da xám mục và đôi mắt trắng đục. Lồng ngực gầy đến mức xương sườn lộ rõ, miệng há sâu, một bàn tay phình lớn dị thường với những ngón dài và cong.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/Entity.md (1XkkV7v1T4-dkODVUEmZ64QtRRe3e6e0B)",
+        "anchor": "## Wretch"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": [
+        "wretch",
+        "wretch"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.CABLE_MIMIC.VISUAL",
+      "domain": "ENTITY",
+      "kind": "visual-card",
+      "text": "[VISUAL] Cable Mimic: Cơ thể hình người được kết thành từ hàng trăm dây điện và dây cáp màu đen đỏ quấn xoắn quanh nhau. Nhiều đầu nối điện tử mọc lộn xộn trên thân, còn phần đầu bị chiếm gần hết bởi một cái miệng lớn chứa nhiều lớp răng nhọn.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/Entity.md (1XkkV7v1T4-dkODVUEmZ64QtRRe3e6e0B)",
+        "anchor": "## Cable Mimic"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": [
+        "cable_mimic",
+        "cable mimic"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.HOTEL_CORPSE_LURE.VISUAL",
+      "domain": "ENTITY",
+      "kind": "visual-card",
+      "text": "[VISUAL] Hotel Corpse Lure: Xác một người đàn ông lớn tuổi gầy quắt, da tái xám và mắt trắng đục. Cơ thể mặc áo choàng khách sạn đỏ sẫm rách nát, một tay ôm vật dụng trước ngực trong khi tay còn lại duỗi ra chỉ về phía trước.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/Entity.md (1XkkV7v1T4-dkODVUEmZ64QtRRe3e6e0B)",
+        "anchor": "## Hotel Corpse Lure"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": [
+        "hotel_corpse_lure",
+        "hotel corpse lure"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.BLACKROOT_SENTINEL.VISUAL",
+      "domain": "ENTITY",
+      "kind": "visual-card",
+      "text": "[VISUAL] Blackroot Sentinel: Một thực thể hình người cao gầy vượt tỷ lệ thông thường, cấu thành từ những dải vật chất đen nâu giống rễ cây, gân và sợi cơ khô xoắn bện với nhau. Cổ vươn dài đỡ đầu thuôn, phần mặt bị lớp sợi dày che kín nên không thấy rõ mắt, mũi hay miệng. Lồng ngực hẹp với những gờ giống xương sườn lộ qua các khoảng rỗng; hai vai gồ, hai cánh tay dài buông thấp, bàn tay kết thành nhiều ngón nhọn giống rễ. Cẳng chân kéo dài và bàn chân xòe thành những nhánh rễ bấu xuống nền.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/Entity.md (1XkkV7v1T4-dkODVUEmZ64QtRRe3e6e0B)",
+        "anchor": "## Blackroot Sentinel"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": [
+        "blackroot_sentinel",
+        "blackroot sentinel"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.SINEW_STRIDER.VISUAL",
+      "domain": "ENTITY",
+      "kind": "visual-card",
+      "text": "[VISUAL] Sinew Strider: Dáng người cực kỳ mảnh và cao, khom nhẹ về phía trước; toàn thân là những bó sợi đen nâu quấn thành gân, có nhiều khoảng thủng và các sợi lỏng thõng xuống dọc sườn. Đầu nhỏ, tròn và cúi về trước trên chiếc cổ dài, mặt méo lõm nhưng không có ngũ quan rõ ràng. Hai tay gầy kéo dài quá hông, các ngón là những dải sợi tách ra thành móc nhọn. Đôi chân rất dài, phần bắp chân và mắt cá đan bằng sợi, bàn chân rộng bè với nhiều đầu nhánh bám sát mặt đất.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/Entity.md (1XkkV7v1T4-dkODVUEmZ64QtRRe3e6e0B)",
+        "anchor": "## Sinew Strider"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": [
+        "sinew_strider",
+        "sinew strider"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.HOLLOW_GRASPER.VISUAL",
+      "domain": "ENTITY",
+      "kind": "visual-card",
+      "text": "[VISUAL] Hollow Grasper: Sinh vật cao, gù về trước, có cơ thể như một mạng gân rễ đen nâu bện rối thay vì da thịt liền khối. Đầu tròn méo, phủ kín những sợi chằng chịt; khuôn mặt không có chi tiết nhận diện rõ. Vai, cổ và lưng chằng chịt dải sợi vươn ra; thân và hông có nhiều khe rỗng xuyên qua mạng vật chất. Hai cánh tay dài kết thúc bằng những bàn tay to, các ngón tách xa và cong sắc như móc; chân gầy dài, bàn chân tỏa nhánh như chùm rễ.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/Entity.md (1XkkV7v1T4-dkODVUEmZ64QtRRe3e6e0B)",
+        "anchor": "## Hollow Grasper"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": [
+        "hollow_grasper",
+        "hollow grasper"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.THE_BEAST_OF_LEVEL_5.VISUAL",
+      "domain": "ENTITY",
+      "kind": "visual-card",
+      "text": "[VISUAL] The Beast of Level 5: Một hình người cao lớn mặc bộ lễ phục đen cũ và rách, nhưng phần đầu đã biến thành một khối thịt với nhiều xúc tu dài rủ xuống. Hai bàn tay dị dạng, các ngón kéo dài thành những móng cong sắc.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/Entity.md (1XkkV7v1T4-dkODVUEmZ64QtRRe3e6e0B)",
+        "anchor": "## The Beast of Level 5"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": [
+        "the_beast_of_level_5",
+        "the beast of level 5"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.SLENDERMAN.VISUAL",
+      "domain": "ENTITY",
+      "kind": "visual-card",
+      "text": "[VISUAL] Slenderman: Một hình người cao vượt mức bình thường, mặc bộ âu phục đen với cà vạt đỏ. Đầu trắng nhẵn hoàn toàn không có khuôn mặt, tay chân dài bất thường, các ngón tay thon dài như móng và nhiều xúc tu đen mọc ra từ phía sau lưng.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/Entity.md (1XkkV7v1T4-dkODVUEmZ64QtRRe3e6e0B)",
+        "anchor": "## Slenderman"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": [
+        "slenderman",
+        "slenderman"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.DIEP_MINH.VISUAL",
+      "domain": "ENTITY",
+      "kind": "visual-card",
+      "text": "[VISUAL] Diệp Minh: Nam tử trẻ tóc đen trong pháp giáp đen-vàng; nửa phải còn hình người, nửa trái dị hóa thành ma thể đen-đỏ với hồng quang, tua nhánh và vuốt. Tay phải cầm trường kiếm tỏa kim quang; quanh thân xuất hiện phù vàng chữ đỏ cùng họa tiết âm dương/bát quái.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/Entity.md (1XkkV7v1T4-dkODVUEmZ64QtRRe3e6e0B)",
+        "anchor": "## Diệp Minh"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": [
+        "diep_minh",
+        "diệp minh"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.JEFF_THE_KILLER.VISUAL",
+      "domain": "ENTITY",
+      "kind": "visual-card",
+      "text": "[VISUAL] Jeff the Killer: Một người đàn ông gầy với làn da trắng bệch, tóc đen dài rối, đôi mắt mở lớn và miệng bị kéo thành nụ cười đỏ rộng bất thường. Hắn mặc áo khoác trắng có mũ, trên áo có nhiều vết máu, quần tối màu và cầm một con dao.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/Entity.md (1XkkV7v1T4-dkODVUEmZ64QtRRe3e6e0B)",
+        "anchor": "## Jeff the Killer"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": [
+        "jeff_the_killer",
+        "jeff the killer"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.JANE_THE_KILLER.VISUAL",
+      "domain": "ENTITY",
+      "kind": "visual-card",
+      "text": "[VISUAL] Jane the Killer: Một phụ nữ có làn da trắng nhợt, tóc đen dài, vùng quanh mắt phủ màu đen đậm và đôi môi đỏ kéo rộng. Cô mặc trang phục đen ôm sát, mang nhiều chi tiết bảo hộ, đi giày cao cổ nặng và cầm dao.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/Entity.md (1XkkV7v1T4-dkODVUEmZ64QtRRe3e6e0B)",
+        "anchor": "## Jane the Killer"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": [
+        "jane_the_killer",
+        "jane the killer"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "LEVEL.00.AUTHORED",
+      "domain": "LEVEL",
+      "kind": "level-scene-card",
+      "text": "[AUTHOR WORLD] Tầng 0 — Threshold / The Lobby: Một mạng phòng vàng phi Euclid với giấy dán tường cũ, thảm ẩm, đèn huỳnh quang và tiếng ù liên tục. Các phòng giống nhau nhưng không hoàn toàn trùng lặp; đi thẳng không bảo đảm giữ phương hướng hoặc quay lại đúng nơi cũ.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md (11LjYu7-KphPqKyLLeb4SVFEXEz23J7H0)",
+        "anchor": "### Tầng 0 — Threshold / The Lobby"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 52,
+      "tags": [
+        "level 0"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "LEVEL.01.AUTHORED",
+      "domain": "LEVEL",
+      "kind": "level-scene-card",
+      "text": "[AUTHOR WORLD] Tầng 1 — Habitable Zone: Không gian bê tông rộng giống gara, bãi đỗ xe và khu dịch vụ công nghiệp. Cột chịu lực, đường dốc, cửa cuốn, phòng kho và những khoảng trống lớn tạo tầm nhìn dài nhưng nhiều góc khuất.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md (11LjYu7-KphPqKyLLeb4SVFEXEz23J7H0)",
+        "anchor": "### Tầng 1 — Habitable Zone"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 52,
+      "tags": [
+        "level 1"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "LEVEL.02.AUTHORED",
+      "domain": "LEVEL",
+      "kind": "level-scene-card",
+      "text": "[AUTHOR WORLD] Tầng 2 — Abandoned Utility Halls / Pipe Dreams: Một mạng hành lang kỹ thuật nóng ẩm với đường ống, van, shaft, crawlspace, hơi nước và nước rò. Nhiều đoạn hẹp tới mức buộc người đi nghiêng hoặc bò.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md (11LjYu7-KphPqKyLLeb4SVFEXEz23J7H0)",
+        "anchor": "### Tầng 2 — Abandoned Utility Halls / Pipe Dreams"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 52,
+      "tags": [
+        "level 2"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "LEVEL.03.AUTHORED",
+      "domain": "LEVEL",
+      "kind": "level-scene-card",
+      "text": "[AUTHOR WORLD] Tầng 3 — Electrical Station: Môi trường công nghiệp dày đặc gồm máy biến áp, bảng điện, quạt lớn, cuộn dây, conductor, cáp cao áp và hệ thống máy móc không rõ nguồn cấp.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md (11LjYu7-KphPqKyLLeb4SVFEXEz23J7H0)",
+        "anchor": "### Tầng 3 — Electrical Station"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 52,
+      "tags": [
+        "level 3"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "LEVEL.04.AUTHORED",
+      "domain": "LEVEL",
+      "kind": "level-scene-card",
+      "text": "[AUTHOR WORLD] Tầng 4 — Abandoned Office: Một cao ốc văn phòng bỏ hoang với cubicle, phòng họp, hành lang, cửa kính, máy tính cũ và nội thất rời rạc. Hình học dễ đọc hơn nhiều Tầng trước nhưng vẫn không được xem là hoàn toàn tuyến tính.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md (11LjYu7-KphPqKyLLeb4SVFEXEz23J7H0)",
+        "anchor": "### Tầng 4 — Abandoned Office"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 52,
+      "tags": [
+        "level 4"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "LEVEL.05.AUTHORED",
+      "domain": "LEVEL",
+      "kind": "level-scene-card",
+      "text": "[AUTHOR WORLD] Tầng 5 — Terror Hotel: Một khách sạn rộng lớn mang thẩm mỹ cổ điển, với gỗ tối, thảm dày, đồng thau, đèn vàng, hành lang dài và các khu chức năng như phòng ngủ, ballroom, nhà hàng, hồ bơi, boiler room và khu bảo trì.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md (11LjYu7-KphPqKyLLeb4SVFEXEz23J7H0)",
+        "anchor": "### Tầng 5 — Terror Hotel"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 52,
+      "tags": [
+        "level 5"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "LEVEL.06.AUTHORED",
+      "domain": "LEVEL",
+      "kind": "level-scene-card",
+      "text": "[AUTHOR WORLD] Tầng 6 — Lights Out: **HARD LOCK của Project:** Tầng 6 là tundra tối vĩnh viễn, không phải mê cung hành lang tối của continuity cũ. Địa hình gồm đất lạnh, tuyết rải rác, cây bụi héo, thân cây chết, hồ tối và những cấu trúc cô lập như obelisk. Không có nguồn sáng tự nhiên đáng tin cậy. Ánh sáng nhân tạo chỉ mở ra một vùng nhìn ngắn trước khi bóng tối che mất đường chân trời.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md (11LjYu7-KphPqKyLLeb4SVFEXEz23J7H0)",
+        "anchor": "### Tầng 6 — Lights Out"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 52,
+      "tags": [
+        "level 6"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "LEVEL.07.AUTHORED",
+      "domain": "LEVEL",
+      "kind": "reference-only-level",
+      "text": "[AUTHOR WORLD] Tầng 7 — Thalassophobia: Một đại dương gần như vô tận bao quanh khu cấu trúc kim loại hoặc bunker rỉ sét. Nước lạnh, bầu trời xám và sương dày khiến chân trời khó xác định.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md (11LjYu7-KphPqKyLLeb4SVFEXEz23J7H0)",
+        "anchor": "### Tầng 7 — Thalassophobia"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 70,
+      "tags": [
+        "level 7"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "LEVEL.08.AUTHORED",
+      "domain": "LEVEL",
+      "kind": "reference-only-level",
+      "text": "[AUTHOR WORLD] Tầng 8 — Cave Systems: Một hệ hang ngầm khổng lồ với khoang đá cao, vực sâu, tunnel hẹp, nước tù và các đoạn phải bò hoặc ép người qua khe đá.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md (11LjYu7-KphPqKyLLeb4SVFEXEz23J7H0)",
+        "anchor": "### Tầng 8 — Cave Systems"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 70,
+      "tags": [
+        "level 8"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "LEVEL.09.AUTHORED",
+      "domain": "LEVEL",
+      "kind": "reference-only-level",
+      "text": "[AUTHOR WORLD] Tầng 9 — The Suburbs: Một vùng ngoại ô kéo dài trong ban đêm vĩnh viễn với đường nhựa, vỉa hè, nhà thấp tầng, bãi cỏ, cây cối và sương lạnh.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md (11LjYu7-KphPqKyLLeb4SVFEXEz23J7H0)",
+        "anchor": "### Tầng 9 — The Suburbs"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 70,
+      "tags": [
+        "level 9"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "LEVEL.10.AUTHORED",
+      "domain": "LEVEL",
+      "kind": "reference-only-level",
+      "text": "[AUTHOR WORLD] Tầng 10 — Bumper Crop: Đồng cỏ và ruộng canh tác kéo dài tới đường chân trời, xen kẽ hàng cây, bụi rậm, barn, chuồng và các công trình nông nghiệp nhỏ.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md (11LjYu7-KphPqKyLLeb4SVFEXEz23J7H0)",
+        "anchor": "### Tầng 10 — Bumper Crop"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 70,
+      "tags": [
+        "level 10"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "LEVEL.NODE.0.5",
+      "domain": "LEVEL",
+      "kind": "level-node-card",
+      "text": "Level 0.5 — Aquaclaustrophobic Infirmary: Waterlogged Passages là các hành lang hẹp ngập nước lạnh, bẩn, thường ngang gối và đục đến mức không thấy đáy. Giấy tường màu kem nhợt bong ở mép nước; đèn hình chữ nhật xanh treo bằng dây sờn có thể phát tia lửa. Tiếng nước bị khuấy và tiếng giọt vọng thay cho tiếng buzz đều của Level 0. Thiếu vị trí khô để nghỉ; ngâm nước lâu, kiệt sức, nước ô nhiễm và nguy cơ điện là các hiểm họa môi trường. Không tự xác định tác nhân gây bệnh cụ thể chỉ từ triệu chứng.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md (11LjYu7-KphPqKyLLeb4SVFEXEz23J7H0)",
+        "anchor": "### Level 0.5 — Aquaclaustrophobic Infirmary"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 46,
+      "tags": [
+        "0.5",
+        "level 0.5 — aquaclaustrophobic infirmary"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "LEVEL.NODE.epsilon",
+      "domain": "LEVEL",
+      "kind": "level-node-card",
+      "text": "Level ε — Incessant Hum-Buzz: Giữ thẩm mỹ vàng, thảm beige và đèn huỳnh quang của Tầng 0 nhưng mở rộng thành những không gian cao và lớn hơn, có platform, tunnel, cầu thang và cấu trúc nhiều tầng dẫn tới những vị trí phi lý.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md (11LjYu7-KphPqKyLLeb4SVFEXEz23J7H0)",
+        "anchor": "### Level ε — Incessant Hum-Buzz"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 46,
+      "tags": [
+        "epsilon",
+        "level ε — incessant hum-buzz"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "LEVEL.NODE.dullness",
+      "domain": "LEVEL",
+      "kind": "level-node-card",
+      "text": "Dullness: Một mê cung gồm các phòng có kích thước biến đổi cực mạnh. Hình khối có thể hòa vào nhau hoặc thay đổi quan hệ không gian, khiến bản đồ nhanh chóng mất giá trị.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md (11LjYu7-KphPqKyLLeb4SVFEXEz23J7H0)",
+        "anchor": "### Dullness"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 46,
+      "tags": [
+        "dullness",
+        "dullness"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "LEVEL.NODE.red_rooms",
+      "domain": "LEVEL",
+      "kind": "level-node-card",
+      "text": "Red Rooms: Một biến thể đỏ thẫm của Tầng 0. Tường, thảm, trần và ánh sáng đều chuyển sang sắc đỏ; vật liệu có thể khô, ráp hoặc dính hơn baseline Tầng 0. Nấm và mốc xuất hiện ở nhiều khu vực.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md (11LjYu7-KphPqKyLLeb4SVFEXEz23J7H0)",
+        "anchor": "### Red Rooms"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 46,
+      "tags": [
+        "red_rooms",
+        "red rooms"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.AUTHORED",
+      "domain": "CHARACTER",
+      "kind": "authored-character-card",
+      "text": "Cao Minh là Vạn Giới Ma Tôn, Ma Đạo/Kiếm Đạo; trước Backrooms đã đứng trên đỉnh thế giới nguyên sinh. Khi mới lạc vào Backrooms, kiến thức về thế giới này không tự xuất hiện. Những ý định hành động của Cao Minh do người chơi điều khiển; không chuyển bí mật quá khứ thành kiến thức người khác.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md (1Jd1qjQg4n-Vw6A51S2SoXH1xu3QKKDK9)",
+        "anchor": "00 · HỒ SƠ TRUY XUẤT NHANH / 19 · LẠC VÀO BACKROOMS"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 47,
+      "tags": [
+        "cao_minh",
+        "cao minh"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.AUTHORED",
+      "domain": "CHARACTER",
+      "kind": "authored-character-card",
+      "text": "Lục Trầm: nữ kiếm tu Chính Đạo, chân truyền Thiên Kiếm Môn; bản mệnh kiếm Tịch Quang, Thiên Cơ Bạch Kim Kiếm Khải, Thiên Kiếm Linh Tâm. Sau khi được hồi sinh, cô quên Cao Minh nhưng không quên toàn bộ ký ức. Cô không phải Lucia Lục; chỉ trạng thái hiện hành mới xác nhận cô có mặt hoặc biết thông tin.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md (1_ivAnDOeKrUPzJRmlGFC-HQmeffcnPpF)",
+        "anchor": "00A · READ FIRST / KNOWLEDGE FIREWALL"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 44,
+      "tags": [
+        "luc_tram",
+        "lục trầm",
+        "luc tram"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUCIA.AUTHORED",
+      "domain": "CHARACTER",
+      "kind": "authored-character-card",
+      "text": "Lucia Lục (tên thật Hứa Thuý Mai) là quân nhân, Hoa kiều ở Việt Nam, xuất thân gia tộc họ Hứa. Cô nhập ngũ vì đam mê súng ống, nói chuyện thẳng thắn và có ý thức tôn trọng người khác. Cô và Lục Trầm là hai nhân vật khác nhau. Thông tin hiện trạng, quan hệ, vũ khí đang mang và việc đã gặp Cao Minh phải lấy từ Game State.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUCIA_LUC_CODEX.md (14lWdPRyPikab9529mlnBBVLMwL2btg3T)",
+        "anchor": "01 · SELF-CANON / 04 · DYNAMIC"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 40,
+      "tags": [
+        "lucia",
+        "lucia lục",
+        "hứa thuý mai"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.TRAC_LAM.AUTHORED",
+      "domain": "CHARACTER",
+      "kind": "authored-character-card",
+      "text": "Trác Lâm: đội trưởng SRU-03, người Việt từ năm 2099, 28 tuổi vào thời điểm đó, chuyên chỉ huy và ứng phó dị thường. Anh quan sát và phân biệt dữ kiện, suy luận, giả thuyết; không được mặc định anh biết tất cả sự thật Backrooms hay tự động có mặt trong cảnh.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/TRAC_LAM_CODEX.md (1lxfCped3eGNrJq_V69xVxj00hslTCwyu)",
+        "anchor": "HỒ SƠ NHANH / TÍNH CÁCH"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 55,
+      "tags": [
+        "trác lâm",
+        "trac lam"
       ],
       "references": [],
       "affordances": []
