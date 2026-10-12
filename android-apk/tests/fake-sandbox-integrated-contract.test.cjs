@@ -33,6 +33,10 @@ test('GM cannot independently advance a scripted main Level or open random exit'
   assert.match(facade, /milestoneNextPlanRequest/);
   assert.match(facade, /milestone_event_pending/);
   assert.match(main, /boolean hiddenExitReady = !scripted/);
+  assert.match(main, /gmScriptedRoutingContext\(currentNodeId\(before\)\)/);
+  const route = fs.readFileSync(path.join(root, 'app/src/main/java/com/rabpit/backroom/core/LevelRouteRegistry.java'), 'utf8');
+  assert.match(route, /String gmScriptedRoutingContext/);
+  assert.match(route, /The main Level ends ONLY when the authored final Milestone/);
   assert.match(main, /!scripted && exitIntent/);
   assert.match(main, /!scripted && exploreAction/);
   assert.match(main, /if \(!requireGameCore\(\)\.milestoneHasPlan\(\)\)/);
