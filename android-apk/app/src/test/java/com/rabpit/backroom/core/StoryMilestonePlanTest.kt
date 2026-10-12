@@ -109,7 +109,8 @@ class StoryMilestonePlanTest {
     }
     // The final event is scheduled at Checkpoint-relative Turn 8.
     val reachedFinalTurn = (1..7).fold(installed) { current, _ -> CoreClientProjection.advance(current) }
-    val fighting = CombatRuntime.start(reachedFinalTurn, "hound")
+    val fighting = StoryMilestoneRuntime.acceptTurn(
+      reachedFinalTurn, JSONArray().put("beat1").put("beat2").put("boss").toString())
     val prepared = StoryMilestonePlan.prepareNextDuringCombat(fighting, successor)
     assertEquals("CP-L00-01", StoryCheckpointCore.current(prepared)!!.id)
     assertEquals("CP-L00-01", StoryMilestonePlan.current(prepared)!!.plan.checkpointId)
