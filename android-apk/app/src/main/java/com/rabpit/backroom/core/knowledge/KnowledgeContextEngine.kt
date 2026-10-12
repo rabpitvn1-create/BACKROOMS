@@ -309,7 +309,6 @@ object KnowledgeContextEngine {
     }
 
     private fun addStateDrivenRecords() {
-      val lucTramRoll = rolls.optJSONObject("lucTramEncounter")
       if (confirmedRoll("lucTramEncounter")) {
         add("CHAR.LUC_TRAM.RUNTIME_CORE", "confirmed encounter roll")
         add("CHAR.LUC_TRAM.REVIVAL_R06", "post-revival amnesia firewall")
@@ -322,10 +321,6 @@ object KnowledgeContextEngine {
       if (confirmedRoll("luciaEncounter")) {
         add("CHAR.LUCIA.AUTHORED", "confirmed Lucia encounter roll")
       }
-      val combat = state.optJSONObject("combat")
-      val selectedRollKey = if (confirmedRoll("entityEncounter")) {
-        rolls.optString("selectedEntityKey", "")
-      } else ""
       val confirmedVisual = confirmedEntityVisualId()
       if (confirmedVisual != null) {
         add(confirmedVisual, "confirmed active Entity visual canon")
