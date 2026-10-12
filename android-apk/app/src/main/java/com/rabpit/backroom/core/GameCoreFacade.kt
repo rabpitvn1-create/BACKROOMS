@@ -781,6 +781,9 @@ class GameCoreFacade private constructor(
     if (client.optInt("turn", -1) != CoreClientProjection.turnIndex(state)) return reject("stale_client_state")
     if (CombatRuntime.active(state) != null) return reject("combat_active")
     if (ActionRuntime.activeSession(state) != null || state.turn.pending != null) return reject("another_turn_pending")
+    // Inventory remains mechanically independent. Its UI turn must not skip
+    // a compulsory narrative Milestone due on the same Core view Turn.
+    if (StoryMilestoneRuntime.due(state).isNotEmpty()) return reject("milestone_event_pending")
     val request = runCatching { JSONObject(requestJson) }.getOrNull() ?: return reject("invalid_item_request")
     val operation = when (request.optString("operation")) {
       "USE" -> ItemCommand.Operation.USE
