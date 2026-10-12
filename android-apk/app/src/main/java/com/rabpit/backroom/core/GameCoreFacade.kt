@@ -255,7 +255,9 @@ class GameCoreFacade private constructor(
 
   fun resetNewGame(): String {
     repository.clear()
-    val fresh = CharacterEquipmentSystem.normalize(GameState.initial())
+    val fresh = StoryCheckpointCore.seedLevelZero(
+      CoreClientProjection.initialize(CharacterEquipmentSystem.normalize(GameState.initial()))
+    )
     repository.save(fresh)
     return CharacterDetailJson.encodeParty(CharacterDetailProjector.projectParty(fresh)).toString()
   }
@@ -534,9 +536,11 @@ class GameCoreFacade private constructor(
     val existed = repository.exists()
     val loaded = if (existed) repository.load() else GameState.initial()
     val normalized = normalizeVisualPresence(CoreClientProjection.initialize(loaded))
-    // Existing saves are never rewritten by a read. Persist normalization only with a committed action.
-    if (!existed) repository.save(normalized)
-    return normalized
+    // Only a new run gets the default checkpoint. Existing saves are not silently
+    // assigned a new story position during a read.
+    val ready = if (existed) normalized else StoryCheckpointCore.seedLevelZero(normalized)
+    if (!existed) repository.save(ready)
+    return ready
   }
 
   /** UI state is presentation only; gameplay fields are always reprojected from Core. */
