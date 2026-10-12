@@ -1972,6 +1972,45 @@ public class MainActivity extends Activity {
     if (!saved) throw new IllegalStateException("milestone_plan_state_changed");
   }
 
+  private void scheduleNextMilestone(String currentView) {
+    try {
+      JSONObject lease = new JSONObject(requireGameCore().milestoneNextPlanRequest());
+      if (!lease.optBoolean("needed", false)) return;
+      String id = lease.getString("runToken") + ":" + lease.getString("checkpointId") +
+        ":" + lease.getString("bossEncounterId");
+      if (!milestonePlanInFlight.add(id)) return;
+      auditIo.execute(() -> {
+        try {
+          JSONObject view = new JSONObject(requireGameCore().currentClientState(currentView));
+          String canon = com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.build(
+            MainActivity.this, view.toString(), "", "{}");
+          JSONObject scene = new JSONObject()
+            .put("location", view.optString("location", ""))
+            .put("level", view.optJSONObject("level"))
+            .put("party", view.optJSONArray("party"))
+            .put("player", view.optJSONObject("player"));
+          String shortScene = scene.toString();
+          if (shortScene.length() > 1500) shortScene = shortScene.substring(0, 1500);
+          String prompt = com.rabpit.backroom.core.StoryMilestonePlannerPrompt.build(
+            lease.getString("nextCheckpointId"), lease.getInt("startTurn"),
+            lease.getString("levelNode"), canon, shortScene);
+          String raw = geminiTextPolicy(prompt, -1, 0.5, 2600, false);
+          boolean accepted = requireGameCore().installNextMilestone(
+            raw, lease.getString("runToken"), lease.getString("checkpointId"),
+            lease.getString("bossEncounterId"));
+          if (accepted) emit("backroomMilestoneReady", "{}");
+        } catch (Exception error) {
+          // A later Combat action or a player retry can request again.
+          Log.w("MilestonePlanner", "Next checkpoint plan not yet ready", error);
+        } finally {
+          milestonePlanInFlight.remove(id);
+        }
+      });
+    } catch (Exception error) {
+      Log.w("MilestonePlanner", "Could not schedule next checkpoint plan", error);
+    }
+  }
+
   private class GameBridge {
     @JavascriptInterface public String currentClientState(String stateJson) {
       try {
