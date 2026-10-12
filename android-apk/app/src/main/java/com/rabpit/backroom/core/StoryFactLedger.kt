@@ -146,7 +146,7 @@ object StoryFactLedger {
     require(raw is String) { "story_string_type_invalid:$key" }
     val value = raw.trim()
     require(value.isNotEmpty() && value.length <= maxLength &&
-      value.none { it.isISOControl() }) { "story_string_length_invalid:$key" }
+      value.none { Character.isISOControl(it) }) { "story_string_length_invalid:$key" }
     return value
   }
 }
