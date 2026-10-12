@@ -42,12 +42,14 @@ object EntityExpRewards {
     return (BASE_EXP.toLong() + EXP_PER_BACKROOMS_LEVEL.toLong() * worldLevel).toInt()
   }
 
-  fun award(state: GameState, entityInstanceId: String, progressionRank: Long): Reward {
+  fun award(state: GameState, entityInstanceId: String, progressionRank: Long, multiplier: Int = 1): Reward {
+    require(multiplier in 1..9) { "entity_exp_multiplier_invalid" }
     require(entityInstanceId.isNotBlank()) { "Entity instance ID required for EXP." }
     val marker = AWARDED_PREFIX + entityInstanceId
     if (marker in state.metadata) return Reward(state, 0, emptyList(), emptyMap(), false)
 
-    val amount = expForRank(progressionRank)
+    val amount = (expForRank(progressionRank).toLong() * multiplier)
+      .coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
     val recipients = PartyCombatHealth.actingMembers(state)
     var next = state
     val levels = linkedMapOf<String, Int>()
