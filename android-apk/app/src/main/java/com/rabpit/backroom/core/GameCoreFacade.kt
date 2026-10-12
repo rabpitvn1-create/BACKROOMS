@@ -540,6 +540,22 @@ class GameCoreFacade private constructor(
     return state.copy(world = state.world + ("flagsJson" to flags.toString()))
   }
 
+  /** Current mechanical injuries for visible Party members, never a GM-authored guess. */
+  @Synchronized fun milestonePartyHealthContext(): String {
+    val state = loadCurrentState()
+    return JSONArray().apply {
+      state.party.memberIds.take(state.party.maxMembers).forEach { id ->
+        val character = state.characters[id] ?: return@forEach
+        if (character.presence != CharacterPresence.ACTIVE) return@forEach
+        put(JSONObject()
+          .put("id", id)
+          .put("hp", character.vitalState.currentHp)
+          .put("maxHp", CharacterStatEngine.effective(state, id).maxHp)
+          .put("injuries", JSONArray(character.injuries)))
+      }
+    }.toString()
+  }
+
   /** A read-only signed-by-Core list of events the GM must commit this turn. */
   @Synchronized fun milestoneDueEvents(): String =
     StoryMilestoneRuntime.dueJson(loadCurrentState())
