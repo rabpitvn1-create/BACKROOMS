@@ -1147,7 +1147,7 @@ public class MainActivity extends Activity {
     if (requested == null) throw new Exception("Current environment node is invalid.");
 
     boolean changed = !requested.id.equals(oldId);
-    if (changed && (!canTransition(before, rolls) ||
+    if (changed && (!canTransition(before, rolls, requested.id) ||
         !LevelRouteRegistry.canMove(oldId, requested.id) || !playerTraverses(action))) {
       LevelRouteRegistry.Node safe = previous;
       candidateState.put("level", before.optJSONObject("level") == null
@@ -1388,7 +1388,11 @@ public class MainActivity extends Activity {
     }
   }
 
-  private boolean canTransition(JSONObject before, JSONObject rolls) {
+  private boolean canTransition(JSONObject before, JSONObject rolls, String requestedNodeId) {
+    if (requireGameCore().milestoneHasPlan()) {
+      return com.rabpit.backroom.core.MilestoneWorldGate.allowScriptedRoute(
+        currentNodeId(before), requestedNodeId);
+    }
     return com.rabpit.backroom.core.HiddenExitStreak.projectedReady(before, rolls);
   }
 
@@ -1546,8 +1550,9 @@ public class MainActivity extends Activity {
 
       if (type.equals("set_level")) {
         JSONObject level = op.optJSONObject("level");
-        if (level == null || !canTransition(before, rolls)) continue;
+        if (level == null) continue;
         LevelRouteRegistry.Node requested = LevelRouteRegistry.requested(level);
+        if (requested == null || !canTransition(before, rolls, requested.id)) continue;
         if (requested == null || requested.id.equals(currentNodeId(before)) ||
             !LevelRouteRegistry.canMove(currentNodeId(before), requested.id) ||
             !playerTraverses(action)) continue;
@@ -2186,7 +2191,7 @@ public class MainActivity extends Activity {
           String newNodeId = currentNodeId(state);
           boolean levelChanged = !oldNodeId.equals(newNodeId);
           boolean transitionAccepted = !levelChanged ||
-            (canTransition(before, rolls) && playerTraverses(action) &&
+            (canTransition(before, rolls, newNodeId) && playerTraverses(action) &&
              LevelRouteRegistry.canMove(oldNodeId, newNodeId));
           if (!transitionAccepted) {
             LevelRouteRegistry.Node previous = LevelRouteRegistry.node(oldNodeId);
