@@ -199,6 +199,35 @@ public final class LevelRouteRegistry {
     }
   }
 
+  /**
+   * Checkpoints own the ending of a main Level. The old hidden Exit readiness
+   * must never be presented to the GM as a condition for that transition.
+   */
+  public static String gmScriptedRoutingContext(String currentId) {
+    Node current = node(currentId);
+    if (current == null) return "";
+    StringBuilder result = new StringBuilder("MILESTONE ENVIRONMENT ROUTING: Current node=")
+      .append(current.id).append(" (").append(current.name).append("), parent Level ")
+      .append(current.parent).append(". Adjacent nodes inside this Level: ");
+    boolean first = true;
+    for (String key : exits(current.id)) {
+      Node next = node(key);
+      if (next == null || next.parent != current.parent) continue;
+      if (!first) result.append("; ");
+      result.append(next.id).append(" (").append(next.name).append(")");
+      first = false;
+    }
+    if (first) result.append("none");
+    result.append(". ENVIRONMENT CANON: ").append(environmentNotes(current.id))
+      .append(". A player can deliberately traverse adjacent same-Level nodes. ")
+      .append("Narrative Checkpoint progression is not tied to environment nodes. ")
+      .append("The main Level ends ONLY when the authored final Milestone is committed ")
+      .append("and the last Entity Combat concludes, never by random Exit rolls ")
+      .append("or old HiddenExitStreak readiness. ")
+      .append("The GM must not directly set_level across main Levels; Core performs it. ");
+    return result.toString();
+  }
+
   public static String gmRoutingContext(String currentId) {
     Node current = node(currentId);
     if (current == null) return "";
