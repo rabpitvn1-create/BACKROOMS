@@ -1866,7 +1866,6 @@ public class MainActivity extends Activity {
     String actionRuntimeContext = requireGameCore().currentActionContext();
     JSONArray dueMilestones = new JSONArray(requireGameCore().milestoneDueEvents());
     boolean scripted = requireGameCore().milestoneHasPlan();
-    String partyReality = requireGameCore().milestonePartyHealthContext();
     String milestoneDirective = scripted
       ? "MILESTONE AUTHORITY: Gemini đã khóa kế hoạch Checkpoint. " +
         "Không kích hoạt Entity ngẫu nhiên và không tự chuyển Checkpoint. " +
@@ -1875,10 +1874,7 @@ public class MainActivity extends Activity {
         "JSON response phải có milestoneEventIds là mảng đúng thứ tự ID của các event vừa kể, " +
         "hoặc [] nếu không có event đến hạn. FINAL_ENTITY chỉ tuyên bố Combat bắt đầu, " +
         "Game Core sẽ tự tạo Boss, không dùng ops tự tạo. " +
-        "Các injury/HP effect do Game Core thực thi sau khi nhận event ID, " +
-        "GM tuyệt đối không tự sửa HP, status hoặc tuyên bố hệ quả cơ học khác. " +
-        "Trạng thái HP và thương tích thật của Party ngay trước lượt: " + partyReality +
-        ". Chỉ dẫn Milestone này ưu tiên hơn các chỉ dẫn RNG Encounter bên dưới. "
+        "Chỉ dẫn Milestone này ưu tiên hơn các chỉ dẫn RNG Encounter bên dưới. "
       : "";
     String actionKindForPrompt = new JSONObject(actionRuntimeContext).optString("kind", "EXECUTE");
     String actionDirective = "ACTION TYPE = " + actionKindForPrompt + ". " +
@@ -1887,12 +1883,6 @@ public class MainActivity extends Activity {
        "EXECUTE HARD LOCK: đây là freeform intent của người chơi; phân giải đúng hành động đã nhập, không tự đổi mục tiêu; EXECUTE vẫn roll Entity và có thể khởi tạo roaming encounter mới. ");
     actionDirective = actionDirective + "\n" + hiddenExitDirective + "\n" +
       LevelRouteRegistry.gmRoutingContext(currentNodeId(before));
-    if (scripted) {
-      actionDirective = "ACTION TYPE = " + actionKindForPrompt +
-        ". Thực hiện hành động người chơi trong giới hạn tình huống hiện tại; " +
-        "không phát sinh roaming Entity hoặc Exit ngẫu nhiên thay cho Milestone. " +
-        LevelRouteRegistry.gmRoutingContext(currentNodeId(before));
-    }
     String packet = com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.build(
       MainActivity.this, before.toString(), action, visibleRolls.toString());
     String feedback = auditFeedback != null && auditFeedback.length() > 0
@@ -1917,10 +1907,10 @@ public class MainActivity extends Activity {
       "Chỉ dùng flag root: exploration, communication, iris, syvial, jeff, jane, survivorRegistry, survivorsConfirmed, entitiesConfirmedLocal, visualAreaKey, visualEventKey, entityEncounterKey, reunionPath. " +
       "Inventory chỉ thay đổi do Core khi tiêu diệt Entity hoặc nút Inventory UI; GM không có quyền thay đổi. " +
       "ENTITY OVERLAY HARD LOCK: với Entity đang trực tiếp xuất hiện hoặc đối đầu trong cảnh hiện tại, dùng flag_patch root=entityEncounterKey value=canonical Entity key đúng tên asset bỏ .webp, ví dụ hound, smiler, skin-stealer, slenderman, jeff_the_killer, jane_the_killer. Nếu Entity bị tiêu diệt, Cao Minh chạy trốn hoặc thoát khỏi Entity, Entity rời cảnh, biến mất, hoặc không còn trực tiếp hiện diện/đối đầu, bắt buộc đặt entityEncounterKey thành chuỗi rỗng ngay trong lượt đó. entityEncounterKey chỉ là trạng thái hiện diện trực quan hiện tại, không phải lịch sử encounter. Không dùng mã cũ hoặc alias theo Level. " +
-      (scripted ? "" : "ROAMING KILLER HARD LOCK: Jeff the Killer và Jane the Killer nằm trong cùng pool 22 Entity, mỗi kẻ có xác suất 0,5% mỗi lượt hợp lệ, ở mọi Level 0–6. Không có roll xuất hiện riêng cho Jeff/Jane và không tạo thêm encounter cùng lượt. ") +
-      (scripted ? "" : "ENTITY ENCOUNTER HARD LOCK: mọi Entity đều có thể xuất hiện tại tất cả Level 0–6 theo cùng một pool. rolls.entityEncounter có tổng xác suất 45% mỗi lượt SEARCH/EXPLORE/EXECUTE hợp lệ; 55% không có Entity mới. Khi success=true và rolls.selectedEntityKey có giá trị, dùng đúng duy nhất key đó do Android chọn. Pool có đủ 22 Entity, gồm roaming thông thường, Jeff/Jane, Slenderman, The Beast of Level 5, Diệp Minh và ba Lifeform. Không được tự tạo Entity khi roll thất bại. ") +
+      "ROAMING KILLER HARD LOCK: Jeff the Killer và Jane the Killer nằm trong cùng pool 22 Entity, mỗi kẻ có xác suất 0,5% mỗi lượt hợp lệ, ở mọi Level 0–6. Không có roll xuất hiện riêng cho Jeff/Jane và không tạo thêm encounter cùng lượt. " +
+      "ENTITY ENCOUNTER HARD LOCK: mọi Entity đều có thể xuất hiện tại tất cả Level 0–6 theo cùng một pool. rolls.entityEncounter có tổng xác suất 45% mỗi lượt SEARCH/EXPLORE/EXECUTE hợp lệ; 55% không có Entity mới. Khi success=true và rolls.selectedEntityKey có giá trị, dùng đúng duy nhất key đó do Android chọn. Pool có đủ 22 Entity, gồm roaming thông thường, Jeff/Jane, Slenderman, The Beast of Level 5, Diệp Minh và ba Lifeform. Không được tự tạo Entity khi roll thất bại. " +
       "ENTITY ASSET LOCAL HARD LOCK: hình Entity chỉ lấy từ APK assets/entity qua file:///android_asset/entity/<canonical-key>.webp; cấm mã Entity legacy, alias theo Level, manifest từ xa hoặc ảnh Entity từ mạng. " +
-      (scripted ? "" : "LIFEFORM TRIO HARD LOCK: Blackroot Sentinel, Sinew Strider và Hollow Grasper đều thuộc pool chung 45%, mỗi cá thể có xác suất 2% mỗi lượt ở mọi Level; không có roll Lifeform độc lập. Mỗi Lifeform có đúng 3 skill; damage skill là % của Basic Attack, không buff stat ATK, và chỉ gây Bleed/Poison. Ba proc dùng một roll độc quyền theo thứ tự 25% / 20% / 10%, tương ứng 115% / 125% / 140% Basic Attack; skill 1 gây Bleed, skill 2 gây Poison, skill 3 gây Bleed + Poison. ") +
+      "LIFEFORM TRIO HARD LOCK: Blackroot Sentinel, Sinew Strider và Hollow Grasper đều thuộc pool chung 45%, mỗi cá thể có xác suất 2% mỗi lượt ở mọi Level; không có roll Lifeform độc lập. Mỗi Lifeform có đúng 3 skill; damage skill là % của Basic Attack, không buff stat ATK, và chỉ gây Bleed/Poison. Ba proc dùng một roll độc quyền theo thứ tự 25% / 20% / 10%, tương ứng 115% / 125% / 140% Basic Attack; skill 1 gây Bleed, skill 2 gây Poison, skill 3 gây Bleed + Poison. " +
       "JSON bắt buộc: {\"reply\":\"phản hồi Game Master bằng tiếng Việt tự nhiên\",\"ops\":[],\"milestoneEventIds\":[],\"snapshotEvent\":{\"shouldGenerate\":false,\"kind\":\"\",\"reason\":\"\"}}";
   }
 
