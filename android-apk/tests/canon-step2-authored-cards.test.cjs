@@ -58,7 +58,7 @@ test('runtime uses exact level and Core-confirmed encounter identity', () => {
   assert.ok(reader.includes('add(confirmedVisual, "confirmed active Entity visual canon")'));
   assert.ok(reader.includes('if ("lucia" in presentActors)'));
   assert.ok(reader.includes('if (confirmedRoll("luciaEncounter"))'));
-  assert.ok(reader.includes('if (confirmedRoll("entityEncounter"))'));
+  assert.ok(reader.includes('confirmedRoll("entityEncounter") ->'));
   assert.ok(reader.includes('rolls.optString("selectedEntityKey", "")'));
   assert.ok(reader.includes('id == confirmedEntityVisualId()'));
 });
@@ -84,5 +84,5 @@ test('legacy provenance is labeled, not silently promoted into author Canon', ()
   const legacy = db.records.filter(r => !r.source.document.startsWith('Google Drive /Novel/Asset/'));
   assert.equal(legacy.length, 42);
   assert.ok(reader.includes('LEGACY_UNVERIFIED'));
-  assert.ok(reader.includes('"provenance="'));
+  assert.ok(reader.includes('provenance='));
 });
