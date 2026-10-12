@@ -359,8 +359,13 @@ class GameCoreFacade private constructor(
   fun processValidatedCandidate(beforeJson: String, candidateJson: String, action: String): String =
     processValidatedCandidate(beforeJson, candidateJson, action, "[]")
 
-  @Synchronized fun processValidatedCandidate(
+  fun processValidatedCandidate(
     beforeJson: String, candidateJson: String, action: String, milestoneReceipts: String
+  ): String = processValidatedCandidate(beforeJson, candidateJson, action, milestoneReceipts, "[]")
+
+  @Synchronized fun processValidatedCandidate(
+    beforeJson: String, candidateJson: String, action: String,
+    milestoneReceipts: String, storyFactProposals: String
   ): String {
     val before = JSONObject(beforeJson)
     val candidate = JSONObject(candidateJson)
@@ -452,7 +457,8 @@ class GameCoreFacade private constructor(
       return response(false, before, committed.error, "gemini_delta_rejected")
     }
     val protectedState = CharacterProgressionCore.protectFromCandidate(pending.state, committed.state)
-    val applied = StoryMilestoneRuntime.acceptTurn(protectedState, milestoneReceipts)
+    val applied = StoryMilestoneRuntime.acceptTurn(
+      protectedState, milestoneReceipts, storyFactProposals)
     val accepted = CoreClientProjection.advance(applied)
     repository.save(accepted)
     val synchronized = clientSnapshot(candidate, accepted)
@@ -539,6 +545,9 @@ class GameCoreFacade private constructor(
     flags.put("entityEncounterKey", "")
     return state.copy(world = state.world + ("flagsJson" to flags.toString()))
   }
+
+  /** Durable narrative memory; never used to mutate combat, inventory, HP or skills. */
+  @Synchronized fun storyFactContext(): String = StoryFactLedger.context(loadCurrentState())
 
   /** A read-only signed-by-Core list of events the GM must commit this turn. */
   @Synchronized fun milestoneDueEvents(): String =
