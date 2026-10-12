@@ -156,6 +156,12 @@ object KnowledgeContextEngine {
           .append(record.text.replace('\n', ' ')).append('\n')
         packet.append("  source=").append(record.source.document)
           .append("#").append(record.source.anchor)
+          // Existing runtime records predate the approved Drive provenance policy.
+          // Preserve them, but do not mislabel them as independently sourced lore.
+          .append("; provenance=").append(
+            if (record.source.document.startsWith("Google Drive /Novel/Asset/") ||
+              record.source.document.startsWith("https://")) "TRACEABLE"
+            else "LEGACY_UNVERIFIED")
           .append("; authority=").append(record.authority)
           .append("; mutability=").append(record.mutability)
           .append("; why=").append(reasons[record.id].orEmpty()).append('\n')
@@ -213,23 +219,31 @@ object KnowledgeContextEngine {
 
     private fun addDirectStructuredLookups() {
       val direct = linkedSetOf<String>()
+      val lucTramConfirmed = "luc_tram" in presentActors || confirmedRoll("lucTramEncounter")
       if (hasAny(actionText, "lucia", "hứa thuý mai", "hứa thúy mai")) direct += "CHAR.LUCIA.AUTHORED"
       if (hasAny(actionText, "trác lâm", "trac lam", "trac_lam")) direct += "CHAR.TRAC_LAM.AUTHORED"
       if (hasAny(actionText, "lục trầm", "luc tram", "luc_tram", "tịch quang", "thiên kiếm linh tâm")) {
+        // A name being mentioned is not evidence this actor has appeared.
         direct += "CHAR.LUC_TRAM.AUTHORED"
-        direct += "CHAR.LUC_TRAM.RUNTIME_CORE"
-        direct += "CHAR.LUC_TRAM.REVIVAL_R06"
-        direct += "CHAR.LUC_TRAM.OPEN_R06"
-        direct += "REL.CAO_MINH.LUC_TRAM.HISTORY_R06"
-        direct += "CHAR.LUC_TRAM.POWERS_AND_VISUAL"
+        if (lucTramConfirmed) {
+          direct += "CHAR.LUC_TRAM.RUNTIME_CORE"
+          direct += "CHAR.LUC_TRAM.REVIVAL_R06"
+          direct += "CHAR.LUC_TRAM.OPEN_R06"
+          direct += "REL.CAO_MINH.LUC_TRAM.HISTORY_R06"
+          direct += "CHAR.LUC_TRAM.POWERS_AND_VISUAL"
+        }
       }
-      if (hasAny(actionText, "argus", "terrain read")) direct += "CHAR.IRIS.ARGUS"
-      if (hasAny(actionText, "thousandfold")) direct += "CHAR.IRIS.THOUSANDFOLD"
-      if (hasAny(actionText, "ivory", "ebony")) direct += "CHAR.IRIS.IVORY_EBONY"
-      if (hasAny(actionText, "field mednet", "field galley")) direct += "CHAR.IRIS.SUPPORT"
-      if (hasAny(actionText, "godkiller override", "twenty-four severance")) direct += "CHAR.SYVIAL.GODKILLER_OVERRIDE"
-      else if (hasAny(actionText, "godkiller")) direct += "CHAR.SYVIAL.GODKILLER"
-      if (hasAny(actionText, "lucifer core")) direct += "CHAR.SYVIAL.LUCIFER_CORE"
+      if ("iris" in presentActors) {
+        if (hasAny(actionText, "argus", "terrain read")) direct += "CHAR.IRIS.ARGUS"
+        if (hasAny(actionText, "thousandfold")) direct += "CHAR.IRIS.THOUSANDFOLD"
+        if (hasAny(actionText, "ivory", "ebony")) direct += "CHAR.IRIS.IVORY_EBONY"
+        if (hasAny(actionText, "field mednet", "field galley")) direct += "CHAR.IRIS.SUPPORT"
+      }
+      if ("syvial" in presentActors) {
+        if (hasAny(actionText, "godkiller override", "twenty-four severance")) direct += "CHAR.SYVIAL.GODKILLER_OVERRIDE"
+        else if (hasAny(actionText, "godkiller")) direct += "CHAR.SYVIAL.GODKILLER"
+        if (hasAny(actionText, "lucifer core")) direct += "CHAR.SYVIAL.LUCIFER_CORE"
+      }
       if (hasAny(actionText, "devil trigger") && "syvial" in presentActors) {
         direct += "CHAR.SYVIAL.DEVIL_TRIGGER"
       }
@@ -245,7 +259,12 @@ object KnowledgeContextEngine {
         .forEach { (tag, ids) ->
           ids.forEach { id ->
             val r = db.records[id] ?: return@forEach
-            if (r.domain == "ENTITY" || r.domain == "ITEM") add(id, "explicit structured tag: $tag")
+            // A player mentioning an Entity is NOT proof of an encounter.
+            // Only the Core-confirmed combat/encounter key may expose its visual.
+            if (r.domain == "ITEM" ||
+              (r.domain == "ENTITY" && id == confirmedEntityVisualId())) {
+              add(id, "explicit structured tag: $tag")
+            }
           }
         }
     }
@@ -270,10 +289,28 @@ object KnowledgeContextEngine {
       }
     }
 
+    private fun confirmedRoll(key: String): Boolean =
+      !rolls.optBoolean("meta", false) &&
+        rolls.optInt("turn", -1) == state.optInt("turn", -2) &&
+        rolls.optJSONObject(key)?.let {
+          it.optBoolean("success", false) && it.optBoolean("eligible", false)
+        } == true
+
+    private fun confirmedEntityVisualId(): String? {
+      val combat = state.optJSONObject("combat")
+      val flags = state.optJSONObject("flags")
+      val key = when {
+        combat?.optBoolean("active", false) == true -> combat.optString("entityKey", "")
+        confirmedRoll("entityEncounter") -> rolls.optString("selectedEntityKey", "")
+        else -> flags?.optString("entityEncounterKey", "").orEmpty()
+      }
+      return key.takeIf { it.matches(Regex("[a-z0-9_-]{1,80}")) }
+        ?.uppercase(Locale.ROOT)?.replace('-', '_')?.let { "ENTITY.$it.VISUAL" }
+    }
+
     private fun addStateDrivenRecords() {
       val lucTramRoll = rolls.optJSONObject("lucTramEncounter")
-      if (lucTramRoll?.optBoolean("success", false) == true &&
-          lucTramRoll.optBoolean("eligible", false)) {
+      if (confirmedRoll("lucTramEncounter")) {
         add("CHAR.LUC_TRAM.RUNTIME_CORE", "confirmed encounter roll")
         add("CHAR.LUC_TRAM.REVIVAL_R06", "post-revival amnesia firewall")
         add("CHAR.LUC_TRAM.OPEN_R06", "unresolved state firewall")
@@ -282,24 +319,19 @@ object KnowledgeContextEngine {
       val flags = state.optJSONObject("flags")
       // A selected roll is already authoritative when the GM receives its
       // context, before startCombatState has persisted the encounter.
-      if (rolls.optJSONObject("luciaEncounter")?.optBoolean("success", false) == true) {
+      if (confirmedRoll("luciaEncounter")) {
         add("CHAR.LUCIA.AUTHORED", "confirmed Lucia encounter roll")
       }
       val combat = state.optJSONObject("combat")
-      val selectedRollKey = if (rolls.optJSONObject("entityEncounter")?.optBoolean("success", false) == true) {
+      val selectedRollKey = if (confirmedRoll("entityEncounter")) {
         rolls.optString("selectedEntityKey", "")
       } else ""
-      val encounterKey = when {
-        combat?.optBoolean("active", false) == true -> combat.optString("entityKey", "")
-        selectedRollKey.isNotBlank() -> selectedRollKey
-        else -> flags?.optString("entityEncounterKey", "").orEmpty()
-      }
-      if (encounterKey.matches(Regex("[a-z0-9_-]{1,80}"))) {
-        val recordId = encounterKey.uppercase(Locale.ROOT).replace('-', '_')
-        add("ENTITY.$recordId.VISUAL", "confirmed active Entity visual canon")
+      val confirmedVisual = confirmedEntityVisualId()
+      if (confirmedVisual != null) {
+        add(confirmedVisual, "confirmed active Entity visual canon")
       }
       val confirmedEntities = flags?.optInt("entitiesConfirmedLocal", 0) ?: 0
-      val entityRoll = rolls.optJSONObject("entityEncounter")?.optBoolean("success", false) ?: false
+      val entityRoll = confirmedRoll("entityEncounter")
       if (confirmedEntities > 0 || entityRoll || hasAny(sceneText, "entity", "thực thể", "quái", "hound", "smiler", "skin-stealer", "jeff")) {
         add("ENTITY.GLOBAL_HARD_LOCK", "entity state/scene requires entity rules")
       }
