@@ -370,6 +370,19 @@ class GameCoreFacade private constructor(
     val before = JSONObject(beforeJson)
     val candidate = JSONObject(candidateJson)
     val core = loadCurrentState()
+    // Only the committed Milestone completion may change a main Level.
+    // GM and WebView can still move through legitimate nodes within it.
+    if (StoryMilestonePlan.current(core) != null) {
+      val oldNode = LevelRouteRegistry.requested(JSONObject(core.world["levelJson"] ?: "{}"))
+      val requestedLevel = candidate.optJSONObject("level")
+      val requestedNode = LevelRouteRegistry.requested(requestedLevel)
+      if ((requestedLevel != null && requestedNode == null) ||
+          (oldNode != null && requestedNode != null &&
+           oldNode.parent != requestedNode.parent)) {
+        return response(false, clientSnapshot(before, core),
+          "milestone_level_exit_requires_completion", "milestone_level_exit_requires_completion")
+      }
+    }
     if (blocksTextItemAction(action)) return response(false, clientSnapshot(before, core), "item_ui_required", "item_ui_required")
     val turnId = nextTurnId(core)
     val pending = TurnCoordinator.createPending(core, turnId, action)
@@ -568,8 +581,11 @@ class GameCoreFacade private constructor(
     val state = loadCurrentState()
     val position = StoryCheckpointCore.current(state)
       ?: return JSONObject().put("needed", false).toString()
-    if (position.nextAddress() == null || StoryMilestonePlan.prepared(state) != null)
+    if (StoryMilestonePlan.prepared(state) != null)
       return JSONObject().put("needed", false).toString()
+    val activePlan = StoryMilestonePlan.current(state)
+      ?: return JSONObject().put("needed", false).toString()
+    val next = activePlan.plan.nextPosition(position)
     val encounterId = StoryMilestoneRuntime.bossEncounterId(state)
       ?: return JSONObject().put("needed", false).toString()
     val fight = CombatRuntime.active(state)
@@ -577,14 +593,21 @@ class GameCoreFacade private constructor(
       return JSONObject().put("needed", false).toString()
     val runToken = state.world["story.runToken"]
       ?: return JSONObject().put("needed", false).toString()
-    val next = position.nextAddress()!!
-    val level = JSONObject(state.world["levelJson"] ?: "{}")
+    val oldLevel = JSONObject(state.world["levelJson"] ?: "{}")
+    val nextNode = activePlan.plan.nextNode()
     return JSONObject().put("needed", true)
       .put("runToken", runToken).put("checkpointId", position.id)
       .put("nextCheckpointId", next.id).put("bossEncounterId", encounterId)
       .put("startTurn", CoreClientProjection.turnIndex(state))
-      .put("levelNode", level.optString("id", level.optInt("number", 0).toString()))
-      .toString()
+      .put("levelNode", nextNode?.id
+        ?: oldLevel.optString("id", oldLevel.optInt("number", 0).toString()))
+      .put("isLast", next.isLast)
+      .apply {
+        if (nextNode != null) {
+          put("plannedExitOutcome", activePlan.plan.completion.outcome)
+          put("plannedTargetNodeId", nextNode.id)
+        }
+      }.toString()
   }
 
   @Synchronized fun installNextMilestone(
@@ -631,6 +654,7 @@ class GameCoreFacade private constructor(
       .put("checkpointId", position.id)
       .put("startTurn", CoreClientProjection.turnIndex(state))
       .put("levelNode", levelNode)
+      .put("isLast", position.isLast)
       .toString()
   }
 
