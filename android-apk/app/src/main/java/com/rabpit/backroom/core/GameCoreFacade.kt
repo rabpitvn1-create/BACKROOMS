@@ -540,7 +540,7 @@ class GameCoreFacade private constructor(
       }
       next = next.copy(world = next.world + ("flagsJson" to flags.toString()))
     }
-    next = CoreClientProjection.advance(next)
+    // Combat resolves its own rounds; Explorer Turn advances only on Explorer actions.
     next = StoryMilestoneRuntime.afterCombat(
       next, activeCombat.encounterId, resolution.entityDestroyed, resolution.escaped)
     repository.save(next)
