@@ -1,3 +1,5 @@
+> **Trạng thái tích hợp 2026-10-13:** Planner đã vào main qua PR #595 (`820038c8`). Tài liệu Bước 5 bên dưới giữ phạm vi lịch sử; hợp đồng hiện hành dùng completion v2 và quota 50 turn/20 encounter mỗi CP. Hai đường tạo plan đầu/next đều có output budget 12,288 tokens để chứa lịch encounter. Vẫn dùng một planner với 5 keys fallback, không thêm provider. Core từ chối plan không đạt quota hoặc response sai lease. Gemini thật vẫn chưa nghiệm thu. Xem `STORY_MILESTONE_R01.md` và `STORY_MILESTONE_RUNTIME_R01.md`.
+
 # Bước 5/10: Gemini Milestone Planner R01
 
 ## Kiến trúc đã tích hợp
