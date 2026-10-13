@@ -5,15 +5,20 @@ const vm=require('node:vm');
 const path=require('node:path');
 const source=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/milestone-loading.js'),'utf8');
 function boot(story){
-  let state={story},requests=0,next;
+  let state={story},requests=0,next,nowMs=1000,sequence=0;
+  const timers=new Map();
   const elements={};
   for(const id of ['milestoneLoading','milestoneLoadingMessage','milestoneLoadingProgress','milestoneLoadingRetry'])
     elements[id]={hidden:true,textContent:'',addEventListener(_,fn){this.click=fn}};
-  const env={document:{getElementById:id=>elements[id]}};env.window=env;
+  const env={document:{getElementById:id=>elements[id]},Date:{now:()=>nowMs},
+    setInterval(fn){const id=++sequence;timers.set(id,fn);return id},
+    clearInterval(id){timers.delete(id)}};env.window=env;
   vm.runInNewContext(source,env);
   const api=env.BackroomMilestoneLoading.install({getState:()=>state,available:()=>true,
     request:()=>requests++,changed:()=>{},refresh:()=>{state={story:next};api.sync()}});
-  return {api,env,elements,get requests(){return requests},set(story){state={story};api.sync()},next(story){next=story}};
+  return {api,env,elements,get requests(){return requests},get activeTimers(){return timers.size},
+    advanceSeconds(seconds){nowMs+=seconds*1000;for(const fn of timers.values())fn()},
+    set(story){state={story};api.sync()},next(story){next=story}};
 }
 const initial={runToken:'run1',checkpointId:'CP1',hasPlan:false,waiting:false};
 test('new game blocks actions and eagerly loads once; ready unblocks without submitting a turn',()=>{
@@ -54,4 +59,23 @@ test('ready callback must not unlock gameplay without a Core-confirmed plan',()=
   assert.equal(x.env.__milestoneBlocked,true);
   assert.equal(x.elements.milestoneLoadingRetry.hidden,false);
   assert.match(x.elements.milestoneLoadingMessage.textContent,/Game Core chưa xác nhận/);
+});
+
+test('elapsed counter tracks actual waiting and stops after Core confirmation or error',()=>{
+  const x=boot(initial);x.api.sync();
+  assert.equal(x.activeTimers,1);
+  x.advanceSeconds(13);
+  assert.match(x.elements.milestoneLoadingMessage.textContent,/13 giây/);
+  x.api.status({...initial,status:'loading',message:'SOL đang tạo khung'});
+  assert.match(x.elements.milestoneLoadingMessage.textContent,/SOL đang tạo khung/);
+  x.api.status({...initial,status:'error',message:'SOL_TIMEOUT'});
+  assert.equal(x.activeTimers,0);
+  assert.equal(x.elements.milestoneLoadingMessage.textContent,'SOL_TIMEOUT');
+  x.elements.milestoneLoadingRetry.click();
+  assert.equal(x.activeTimers,1);
+  x.advanceSeconds(3);
+  assert.match(x.elements.milestoneLoadingMessage.textContent,/3 giây/);
+  x.next({...initial,hasPlan:true});x.api.ready(initial);
+  assert.equal(x.activeTimers,0);
+  assert.equal(x.env.__milestoneBlocked,false);
 });
