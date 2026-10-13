@@ -7,6 +7,7 @@ import android.webkit.WebView
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.rabpit.backroom.MainActivity
+import com.rabpit.backroom.BuildConfig
 import org.json.JSONObject
 import org.json.JSONTokener
 import org.junit.Assert.*
@@ -71,6 +72,15 @@ class LiveSixCheckpointsGameplayTest {
     """.trimIndent()) == "true"
 
   @Test fun playSixCheckpointsWithRealProvidersAndUi() {
+    assertTrue("Only SOL Milestone and Gehihi GM are allowed in this live test",
+      BuildConfig.DEBUG && BuildConfig.TWO_PROVIDER_GAMEPLAY_TEST)
+    assertTrue("SOL is required", BuildConfig.SOL_API_KEY.isNotBlank())
+    assertTrue("Gehihi is required", BuildConfig.GEHIHI_API_KEY.isNotBlank())
+    assertTrue("Gemini credentials must be absent", listOf(
+      BuildConfig.GEMINI_API_KEY_1, BuildConfig.GEMINI_API_KEY_2,
+      BuildConfig.GEMINI_API_KEY_3, BuildConfig.GEMINI_API_KEY_4,
+      BuildConfig.GEMINI_API_KEY_5).all { it.isBlank() })
+    assertTrue("Haku credentials must be absent", BuildConfig.HAKU_API_KEY.isBlank())
     SharedPreferencesSaveRepository(context).clear()
     val activity = instrumentation.startActivitySync(
       Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) as MainActivity

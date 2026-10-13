@@ -15,14 +15,6 @@ jobs:
       GEHIHI_BASE_URL: ${{ secrets.GEHIHI_BASE_URL || vars.GEHIHI_BASE_URL }}
       GEHIHI_MODEL: ${{ secrets.GEHIHI_MODEL || vars.GEHIHI_MODEL }}
       SOL_API_KEY: ${{ secrets.SOL_API_KEY }}
-      HAKU_API_KEY: ${{ secrets.HAKU_API_KEY }}
-      HAKU_BASE_URL: ${{ secrets.HAKU_BASE_URL || vars.HAKU_BASE_URL }}
-      HAKU_MODEL: ${{ secrets.HAKU_MODEL || vars.HAKU_MODEL }}
-      GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 || secrets.GEMINI_API_KEY }}
-      GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
-      GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
-      GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
-      GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
     steps:
       - uses: actions/checkout@v4
 
@@ -30,7 +22,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for key in GEHIHI_API_KEY GEHIHI_MODEL SOL_API_KEY GEMINI_API_KEY_1 GEMINI_API_KEY_2 GEMINI_API_KEY_3 GEMINI_API_KEY_4 GEMINI_API_KEY_5; do
+          for key in GEHIHI_API_KEY GEHIHI_MODEL SOL_API_KEY; do
             test -n "${!key:-}" || { echo "Missing required provider configuration: $key"; exit 1; }
           done
 
@@ -57,7 +49,7 @@ jobs:
           arch: x86_64
           profile: pixel_7
           disable-animations: true
-          script: cd android-apk && bash -c 'gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.rabpit.backroom.core.LiveSixCheckpointsGameplayTest --no-daemon; result=$?; adb logcat -d -s BackroomLiveSixCP:I > app/build/live-six-cp-log.txt; cat app/build/live-six-cp-log.txt; exit $result'
+          script: cd android-apk && bash -c 'gradle :app:connectedDebugAndroidTest -PbackroomTwoProviderTest=true -Pandroid.testInstrumentationRunnerArguments.class=com.rabpit.backroom.core.LiveSixCheckpointsGameplayTest --no-daemon; result=$?; adb logcat -d -s BackroomLiveSixCP:I > app/build/live-six-cp-log.txt; cat app/build/live-six-cp-log.txt; exit $result'
 
       - name: Save real gameplay emulator results
         if: always()

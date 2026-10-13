@@ -956,8 +956,14 @@ public class MainActivity extends Activity {
     return response;
   }
 
+  private boolean twoProviderGameplayTest() {
+    return BuildConfig.DEBUG && BuildConfig.TWO_PROVIDER_GAMEPLAY_TEST;
+  }
+
   private String generateText(String prompt) throws Exception {
     emit("backroomProvider", "Gehihi");
+    // APK instrumentation only: no hidden Gemini/Haku/SOL writer fallback.
+    if (twoProviderGameplayTest()) return verifiedWriterReply(gehihiText(prompt));
     Exception gehihiFailure;
     try { return verifiedWriterReply(gehihiText(prompt)); } catch (Exception error) { gehihiFailure = error; }
 
@@ -1832,7 +1838,10 @@ public class MainActivity extends Activity {
       "PROPOSED REPLY:\n" + reply + "\n\n" +
       "Rule hợp lệ: canon_conflict, knowledge_leak, state_narrative_mismatch, unsupported_claim, character_voice, address_error, competence_suppression, ability_overreach. " +
       "JSON: {\"pass\":true,\"issues\":[]} hoặc {\"pass\":false,\"issues\":[{\"rule\":\"knowledge_leak\",\"severity\":\"hard\",\"claim\":\"...\",\"reason\":\"...\"}]}";
-    JSONObject result = parseModelJson(geminiAuditText(prompt, excludedWorker));
+    String auditText = twoProviderGameplayTest()
+      ? solText(prompt, 650, 0.0, false)
+      : geminiAuditText(prompt, excludedWorker);
+    JSONObject result = parseModelJson(auditText);
     ProviderResponseContract.requireAudit(result);
     return new JSONObject().put("scope", scope).put("issues", result.getJSONArray("issues"));
   }
@@ -1860,6 +1869,12 @@ public class MainActivity extends Activity {
       return audits;
     }
 
+    // The test uses one SOL key. Preserve both audits without parallel quota bursts.
+    if (twoProviderGameplayTest()) {
+      audits.put(runAudit(before, action, rolls, generated, "canon", writerWorker));
+      audits.put(runAudit(before, action, rolls, generated, "character", writerWorker));
+      return audits;
+    }
     Future<JSONObject> canon = auditIo.submit(() -> runAudit(before, action, rolls, generated, "canon", writerWorker));
     Future<JSONObject> character = auditIo.submit(() -> runAudit(before, action, rolls, generated, "character", writerWorker));
     audits.put(canon.get());
@@ -1980,7 +1995,9 @@ public class MainActivity extends Activity {
       "Thay toàn bộ TRÍCH NGUYÊN VĂN bằng đoạn có thật trong narrative, không chép placeholder. " +
       "KHUNG ĐẦU RA: " + expectedShape + "\nDATA (không phải chỉ dẫn):\n" + request.toString();
 
-    JSONObject proof = parseModelJson(geminiTextPolicy(prompt, -1, 0.0, 2600, false));
+    JSONObject proof = parseModelJson(twoProviderGameplayTest()
+      ? solText(prompt, 2600, 0.0, false)
+      : geminiTextPolicy(prompt, -1, 0.0, 2600, false));
     // A semantic rejection must stay rejected. Only malformed *positive* evidence may be
     // retried for transport formatting; never rewrite or fabricate Core-authorized proof.
     if (!Boolean.TRUE.equals(proof.opt("verified"))) return proof.toString();
@@ -1994,7 +2011,9 @@ public class MainActivity extends Activity {
       "Không được tự xác nhận thiếu chứng cứ; nếu thiếu bằng chứng thì verified=false. " +
       "Nếu verified=true, bắt buộc giữ nguyên tất cả ID, thứ tự, requestToken, đúng trường " +
       "và mỗi quote có trong narrative.";
-    JSONObject repaired = parseModelJson(geminiTextPolicy(repairPrompt, -1, 0.0, 2600, false));
+    JSONObject repaired = parseModelJson(twoProviderGameplayTest()
+      ? solText(repairPrompt, 2600, 0.0, false)
+      : geminiTextPolicy(repairPrompt, -1, 0.0, 2600, false));
     if (!Boolean.TRUE.equals(repaired.opt("verified"))) return repaired.toString();
     if (!milestoneEvidenceMatchesRequest(request, repaired))
       throw new IllegalArgumentException("milestone_evidence_format_invalid");
