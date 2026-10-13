@@ -24,11 +24,11 @@ class FirstSixCheckpointsEmulatorTest {
   private fun storyArc(variant: Int): String = if (variant == 1)
     ("Cao Minh lần theo ký ức ở Lôi Thiên Sơn và dấu vết của Lục Trầm giữa Backrooms. " +
       "Hắn gặp Lucia trong một căn phòng tối; cô cảnh giác trước sức mạnh của hắn. " +
-      "Những cuộc đối thoại và chạm trán hé lộ một lối đi bị che giấu. ").repeat(3).take(500)
+      "Những cuộc đối thoại và chạm trán hé lộ một lối đi bị che giấu. ").repeat(3).take(500).trim()
     else
     ("Cao Minh khám phá hành lang có ánh sáng kỳ lạ và tìm kiếm lời giải cho tiếng động từ các cửa phòng. " +
       "Iris xuất hiện với một thông điệp bí ẩn về những người mất tích. " +
-      "Những cuộc đụng độ mới dẫn hắn tới một manh mối khác. ").repeat(3).take(500)
+      "Những cuộc đụng độ mới dẫn hắn tới một manh mối khác. ").repeat(3).take(500).trim()
 
   private fun plan(id: String, variant: Int = 1): String {
     val events = JSONArray().put(JSONObject()
