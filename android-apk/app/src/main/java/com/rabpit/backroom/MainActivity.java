@@ -2034,7 +2034,8 @@ public class MainActivity extends Activity {
       String rawPlan = geminiTextPolicy(prompt, -1, 0.5, 12288, false);
       boolean saved = requireGameCore().installMilestonePlan(
         rawPlan, request.getString("runToken"), checkpointId, startTurn);
-      if (saved) emit("backroomMilestoneReady", request.toString());
+      if (!saved) throw new IllegalStateException("milestone_plan_state_changed");
+      emit("backroomMilestoneReady", request.toString());
     } catch (Exception error) {
       emitMilestoneStatus(request, "error", "Không thể nạp Milestone. Kiểm tra kết nối và nhấn Thử lại.");
       throw error;
