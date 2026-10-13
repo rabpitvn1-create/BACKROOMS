@@ -42,9 +42,7 @@ jobs:
           arch: x86_64
           profile: pixel_7
           disable-animations: true
-          script: |
-            cd android-apk
-            gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.rabpit.backroom.core.FirstSixCheckpointsEmulatorTest --no-daemon
+          script: cd android-apk && gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.rabpit.backroom.core.FirstSixCheckpointsEmulatorTest --no-daemon
 
       - name: Publish instrumentation reports
         if: always()
