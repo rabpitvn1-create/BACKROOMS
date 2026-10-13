@@ -1602,7 +1602,7 @@ public class MainActivity extends Activity {
         String firstName = name.split(" ")[0].toLowerCase(java.util.Locale.ROOT);
         String prose = reply.toLowerCase(java.util.Locale.ROOT);
         if (firstName.isEmpty() || !prose.contains(firstName) ||
-            !(reply.contains("\\\"") || reply.contains("“") || reply.contains("—") || reply.contains("–")))
+            !(reply.indexOf('"') >= 0 || reply.contains("“") || reply.contains("—") || reply.contains("–")))
           throw new Exception("milestone_character_dialogue_missing");
       }
     }
