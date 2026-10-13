@@ -1,0 +1,75 @@
+name: Live Gameplay - Six Checkpoints
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "android-apk/app/src/androidTest/**"
+      - ".github/workflows/live-gameplay-six-checkpoints.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live-six-checkpoints:
+    runs-on: ubuntu-latest
+    timeout-minutes: 235
+    env:
+      GEHIHI_API_KEY: ${{ secrets.GEHIHI_API_KEY }}
+      GEHIHI_BASE_URL: ${{ secrets.GEHIHI_BASE_URL || vars.GEHIHI_BASE_URL }}
+      GEHIHI_MODEL: ${{ secrets.GEHIHI_MODEL || vars.GEHIHI_MODEL }}
+      SOL_API_KEY: ${{ secrets.SOL_API_KEY }}
+      HAKU_API_KEY: ${{ secrets.HAKU_API_KEY }}
+      HAKU_BASE_URL: ${{ secrets.HAKU_BASE_URL || vars.HAKU_BASE_URL }}
+      HAKU_MODEL: ${{ secrets.HAKU_MODEL || vars.HAKU_MODEL }}
+      GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 || secrets.GEMINI_API_KEY }}
+      GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
+      GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
+      GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
+      GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Require real SOL and GM credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          for key in GEHIHI_API_KEY GEHIHI_MODEL SOL_API_KEY GEMINI_API_KEY_1 GEMINI_API_KEY_2 GEMINI_API_KEY_3 GEMINI_API_KEY_4 GEMINI_API_KEY_5; do
+            test -n "${!key:-}" || { echo "Missing required provider configuration: $key"; exit 1; }
+          done
+
+      - name: Enable KVM for Android Emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+
+      - name: Play CP-L00-01 through CP-L00-06 using live AI and WebView UI
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_7
+          disable-animations: true
+          script: cd android-apk && gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.rabpit.backroom.core.LiveSixCheckpointsGameplayTest --no-daemon
+
+      - name: Save real gameplay emulator results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-six-checkpoints-emulator-reports
+          path: |
+            android-apk/app/build/reports/androidTests/connected/
+            android-apk/app/build/outputs/androidTest-results/connected/
+          if-no-files-found: warn
