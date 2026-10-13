@@ -8,13 +8,17 @@ function boot(story){
   let state={story},requests=0,next,nowMs=1000,sequence=0;
   const timers=new Map();
   const elements={};
-  for(const id of ['milestoneLoading','milestoneLoadingMessage','milestoneLoadingProgress','milestoneLoadingRetry'])
+  for(const id of ['milestoneLoading','milestoneLoadingTitle','milestoneLoadingMessage','milestoneLoadingProgress',
+    'milestoneLoadingRetry','milestoneProviderChoices','milestoneChooseGemini','milestoneChooseSol'])
     elements[id]={hidden:true,textContent:'',addEventListener(_,fn){this.click=fn}};
   const env={document:{getElementById:id=>elements[id]},Date:{now:()=>nowMs},
     setInterval(fn){const id=++sequence;timers.set(id,fn);return id},
     clearInterval(id){timers.delete(id)}};env.window=env;
   vm.runInNewContext(source,env);
+  // Existing loading tests exercise the post-selection path; first-use selection has
+  // a separate regression test in milestone-provider-choice.test.cjs.
   const api=env.BackroomMilestoneLoading.install({getState:()=>state,available:()=>true,
+    provider:()=> 'SOL',selectProvider:()=>({ok:true,provider:'SOL'}),
     request:()=>requests++,changed:()=>{},refresh:()=>{state={story:next};api.sync()}});
   return {api,env,elements,get requests(){return requests},get activeTimers(){return timers.size},
     advanceSeconds(seconds){nowMs+=seconds*1000;for(const fn of timers.values())fn()},
