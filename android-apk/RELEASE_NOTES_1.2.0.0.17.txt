@@ -1,0 +1,10 @@
+Backroom 1.2.0.0.17 Debug
+
+- Android versionCode 90; versionName 1.2.0.0.17; applicationId com.rabpit.backroom.
+- Tích hợp bản sửa từ PR #602: thanh Milestone Loading có hiệu ứng chạy vàng → cam → nâu đậm, biểu thị trạng thái đang chờ nhưng không bịa phần trăm tiến độ.
+- Chỉ mở khóa ba thao tác Tìm kiếm / Thực hiện / Khám phá khi Game Core xác nhận kế hoạch Milestone hiện tại đã được cài đặt; callback ready không được tự coi là thành công.
+- Header developer hiển thị số kế hoạch Milestone đã thực sự được Core chấp nhận, gồm Checkpoint đã hoàn thành, kế hoạch đang hoạt động và kế hoạch chuẩn bị cho Checkpoint tiếp theo.
+- Khi GM xử lý lượt bị lỗi, xóa pending UI, đồng bộ lại Core và hiển thị lỗi trong nhật ký GM để người chơi biết có thể thử lại. Không xem lỗi đó là lượt đã commit.
+- Giữ SOL là Milestone planner duy nhất, schema v2 và luật mỗi Checkpoint tối thiểu 50 turn, 20 encounter Entity và Boss cuối.
+- Build kiểm thử và đóng gói được xác nhận bởi GitHub Actions khi phát hành. Chưa xác nhận live SOL/Gehihi trên thiết bị thật; nếu nhà cung cấp API từ chối thì sẽ thấy mã lỗi thay vì trạng thái xử lý vô hạn.
+- Không hỗ trợ save game cũ.
