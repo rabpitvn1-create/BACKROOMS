@@ -19,9 +19,9 @@ test('Milestone initial and next checkpoint use the saved Gemini-or-SOL planner 
   assert.match(prompt,/Vai trò: SOL biên kịch Checkpoint/);
 });
 
-test('SOL Milestone has a separate 12288 token budget without changing ordinary writer',()=>{
+test('SOL Milestone uses a bounded skeleton budget without changing ordinary writer',()=>{
   assert.match(main,/private String solText\(String prompt\) throws Exception \{\s*return solText\(prompt, 2048, 0\.6, false\);/);
-  assert.match(main,/private String solMilestoneText\(String prompt\) throws Exception \{\s*return solText\(prompt, 12288, 0\.5, true\);/);
+  assert.match(main,/private String solMilestoneText\(String prompt\) throws Exception \{[\s\S]*?return solText\(prompt, 6144, 0\.2, true\);/);
   assert.match(main,/openAiProviderBody\("vgpt\/gpt-6\.1-sol", prompt\)[\s\S]*?\.put\("max_tokens", maxOutputTokens\)[\s\S]*?\.put\("temperature", temperature\)/);
 });
 
@@ -47,4 +47,19 @@ test('SOL authored events are applied by Core without GM receipts or second AI v
   assert.match(main,/JSONObject generated = parseModelJson\(generateText\(writerPrompt\(before, action, rolls\)\)\)/);
   assert.doesNotMatch(main,/if \(dueMilestones\.length\(\) == 0\)/);
   assert.doesNotMatch(facade,/milestoneNarrativeRequest\(/);
+});
+
+test('SOL and Gehihi distinguish distant sightings, combat encounters and speaking character meetings',()=>{
+  assert.match(prompt,/Một cảnh Entity đứng trước mặt không bao giờ được dùng combatRequired=false/);
+  assert.match(prompt,/combatRequired=true nếu Entity và nhân vật đứng đối diện/);
+  assert.match(prompt,/combatRequired=false CHỈ dành cho quan sát thoáng qua/);
+  assert.match(prompt,/"combatRequired":true/);
+  assert.match(prompt,/Gặp FOLLOWER\/NPC phải tạo cơ hội tương tác thật/);
+  assert.match(main,/encounterGuidance\.append\("Nhân vật "\)/);
+  assert.match(main,/chủ động nói ít nhất một câu thoại/);
+  assert.match(main,/chỉ được nhìn thấy từ khoảng cách an toàn/);
+  assert.match(main,/không cho Entity biến mất, bỏ đi, né tránh/);
+  assert.match(main,/Không có Milestone encounter đến hạn/);
+  assert.match(main,/milestone\.provider_request/);
+  assert.match(main,/milestone\.next_provider_request/);
 });

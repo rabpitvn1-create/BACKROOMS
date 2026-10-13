@@ -969,7 +969,8 @@ public class MainActivity extends Activity {
 
   /** Milestone generation can take longer than ordinary GM prose. Do not alter the GM timeout. */
   private String solMilestoneText(String prompt) throws Exception {
-    return solText(prompt, 12288, 0.5, true);
+    // Checkpoint JSON is a compact skeleton, not a long story. Keep a bounded but generous budget.
+    return solText(prompt, 6144, 0.2, true);
   }
 
   private String solText(String prompt, int maxOutputTokens, double temperature, boolean milestone) throws Exception {
@@ -1562,11 +1563,39 @@ public class MainActivity extends Activity {
     }
     String canon = com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.build(
       MainActivity.this, canonView.toString(), action, visibleRolls.toString());
+    // These rules are derived only from the Core-authorized Milestone events for this turn.
+    // They do not infer encounters from untrusted GM prose.
+    StringBuilder encounterGuidance = new StringBuilder();
+    for (int i = 0; i < due.length(); i++) {
+      JSONObject event = due.getJSONObject(i);
+      String kind = event.optString("kind", "");
+      if ("FOLLOWER".equals(kind) || "NPC".equals(kind)) {
+        encounterGuidance.append("Nhân vật ").append(event.optString("characterName", event.optString("characterId")))
+          .append(" xuất hiện trực tiếp và PHẢI chủ động nói ít nhất một câu thoại có dấu ngoặc kép, ")
+          .append("giới thiệu hoặc đặt câu hỏi để người chơi có cơ hội đối đáp ở lượt sau. ")
+          .append("Không tự viết lời đáp hay quyết định của Cao Minh; không tự cho nhân vật vào Party. ");
+      } else if ("ENTITY".equals(kind) && !event.optBoolean("combatRequired", false)) {
+        encounterGuidance.append("Entity ").append(event.optString("entityName", event.optString("entityKey")))
+          .append(" chỉ được nhìn thấy từ khoảng cách an toàn. Không kể cảnh đứng đối diện, ")
+          .append("chặn đường, áp sát hay giao chiến; không biến quan sát thành chạm trán. ");
+      } else if ("ENTITY".equals(kind) || "FINAL_ENTITY".equals(kind)) {
+        encounterGuidance.append("Entity ").append(event.optString("entityName", event.optString("entityKey")))
+          .append(" phải xuất hiện trong thế đối đầu. DỪNG trước giao chiến; ")
+          .append("không cho Entity biến mất, bỏ đi, né tránh hoặc giải quyết xong cuộc gặp. ")
+          .append("Core sẽ mở Battle Start cho người chơi. ");
+      }
+    }
+    if (due.length() == 0)
+      encounterGuidance.append("Không có Milestone encounter đến hạn: TUYỆT ĐỐI không để Entity/Follower/NPC ")
+        .append("mới hay đã gặp xuất hiện trở lại như một cuộc chạm trán; không tự tạo hoặc giải quyết cuộc gặp. ");
+    DiagnosticLog.record("milestone.due_narrative", "turn=" + before.optInt("turn", -1) +
+      " due=" + due.length() + " guidanceChars=" + encounterGuidance.length());
     return "Bạn là Gehihi, Game Master kể chuyện Backrooms bằng tiếng Việt. " +
       "SOL đã tạo khung Milestone; các sự kiện đến hạn sau là BẮT BUỘC: " + due.toString() + ". " +
       "Kể diễn biến tự nhiên theo hành động người chơi, giữ đúng Entity, nhân vật và kết quả đã khóa. " +
       "Nếu không có event đến hạn, chỉ kể diễn biến phù hợp. " +
       "Không tự quyết định Combat, HP, EXP, Item, tạo Entity hay chuyển Checkpoint; Core xử lý. " +
+      "LUẬT SỰ KIỆN CORE: " + encounterGuidance + " " +
       "FINAL_ENTITY hoặc combatRequired=true: kể hết cảnh Entity xuất hiện, dừng ở thế đối đầu; " +
       "chưa kể đòn đánh, sát thương hay kết quả Combat trước khi người chơi nhấn Battle Start. " +
       "Không đưa event ID, ops, chứng cứ, kiểm định hay state vào lời kể. " +
@@ -1628,6 +1657,8 @@ public class MainActivity extends Activity {
     String provider = milestoneProviderChoice();
     emitMilestoneStatus(request, "loading", provider + " đang tạo khung Checkpoint…");
     long plannerStartedMs = android.os.SystemClock.elapsedRealtime();
+    DiagnosticLog.record("milestone.provider_request", "checkpoint=" + checkpointId +
+      " provider=" + provider + " promptChars=" + prompt.length());
     String rawPlan = milestonePlannerText(prompt);
     long plannerMs = android.os.SystemClock.elapsedRealtime() - plannerStartedMs;
     DiagnosticLog.record("milestone.provider_response", "checkpoint=" + checkpointId + " provider=" + provider +
@@ -1693,6 +1724,8 @@ public class MainActivity extends Activity {
           String provider = milestoneProviderChoice();
           emitMilestoneStatus(lease, "loading", provider + " đang tạo khung Checkpoint tiếp theo…");
           long plannerStartedMs = android.os.SystemClock.elapsedRealtime();
+          DiagnosticLog.record("milestone.next_provider_request", "checkpoint=" +
+            lease.optString("nextCheckpointId") + " provider=" + provider + " promptChars=" + prompt.length());
           String raw = milestonePlannerText(prompt);
           long plannerMs = android.os.SystemClock.elapsedRealtime() - plannerStartedMs;
           DiagnosticLog.record("milestone.next_provider_response", "checkpoint=" + lease.optString("nextCheckpointId") +
