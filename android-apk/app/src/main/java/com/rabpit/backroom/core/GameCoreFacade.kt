@@ -837,8 +837,13 @@ class GameCoreFacade private constructor(
   }
 
 
-  fun blocksTextItemAction(action: String): Boolean = rules.interpretSync(action, GameContext(GameState.initial())).candidates.any {
-    it.intent in setOf(GameIntent.USE_ITEM, GameIntent.TRANSFER_ITEM, GameIntent.DROP_ITEM)
+  /** Using Cao Minh's spiritual sense is not a UI Inventory operation. Keep real Item verbs blocked. */
+  fun blocksTextItemAction(action: String): Boolean {
+    val spiritualSense = Regex("(?:^|\\s)(?:dùng|sử dụng)\\s+thần\\s+thức(?:\\s|$)", RegexOption.IGNORE_CASE)
+    val itemCommands = action.replace(spiritualSense, " ")
+    return rules.interpretSync(itemCommands, GameContext(GameState.initial())).candidates.any {
+      it.intent in setOf(GameIntent.USE_ITEM, GameIntent.TRANSFER_ITEM, GameIntent.DROP_ITEM)
+    }
   }
 
   companion object {

@@ -99,6 +99,9 @@ class ItemDetailActionsTest {
     val core = facade(MemorySave(fresh()))
     assertFalse(core.blocksTextItemAction("Quan sát hành lang"))
     assertFalse(core.blocksTextItemAction("Kiểm tra túi đồ"))
+    assertFalse(core.blocksTextItemAction("Cao Minh dùng thần thức tìm Lục Trầm"))
+    assertFalse(core.blocksTextItemAction("Cao Minh sử dụng thần thức để dò xét"))
+    assertTrue(core.blocksTextItemAction("Cao Minh dùng thần thức rồi dùng Băng gạc"))
   }
 
 }
