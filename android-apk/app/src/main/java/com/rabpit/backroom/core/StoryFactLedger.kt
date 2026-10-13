@@ -37,13 +37,40 @@ object StoryFactLedger {
     }
   }
 
+  /** Syntactic contract shared by Android GM repair and the authoritative Core commit. */
+  @JvmStatic fun validateGmProposals(raw: String): JSONArray {
+    require(raw.length <= 5000) { "story_proposal_too_large" }
+    val proposals = JSONArray(raw)
+    require(proposals.length() <= MAX_PER_TURN) { "story_proposal_count_invalid" }
+    for (i in 0 until proposals.length()) {
+      val item = proposals.getJSONObject(i)
+      when (readString(item, "op", 16)) {
+        "ADD" -> {
+          require(item.keys().asSequence().toSet() == setOf("op", "kind", "subject", "fact")) {
+            "story_proposal_fields_invalid"
+          }
+          parseSpecs(JSONArray().put(JSONObject(item.toString()).apply { remove("op") }), 1)
+        }
+        "RESOLVE" -> {
+          require(item.keys().asSequence().toSet() == setOf("op", "referenceId", "fact")) {
+            "story_resolve_fields_invalid"
+          }
+          require(referencePattern.matches(readString(item, "referenceId", 110))) {
+            "story_reference_invalid"
+          }
+          readString(item, "fact", 220)
+        }
+        else -> throw IllegalArgumentException("story_operation_unsupported")
+      }
+    }
+    return proposals
+  }
+
   fun recordTurn(
     state: GameState, milestoneEvents: List<StoryMilestonePlan.Event>, gmProposal: String,
     narrative: String = "", evidenceJson: String = "{}"
   ): GameState {
-    require(gmProposal.length <= 5000) { "story_proposal_too_large" }
-    val proposals = JSONArray(gmProposal)
-    require(proposals.length() <= MAX_PER_TURN) { "story_proposal_count_invalid" }
+    val proposals = validateGmProposals(gmProposal)
 
     require(milestoneEvents == StoryMilestoneRuntime.due(state)) { "story_milestone_source_mismatch" }
     val proof = StoryMilestoneRuntime.validateEvidence(state, narrative, evidenceJson, gmProposal)
