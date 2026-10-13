@@ -1,3 +1,5 @@
+> **Trạng thái tích hợp 2026-10-13:** Runtime và các sửa phụ thuộc đã vào main qua PR #595 (`820038c8`). Khi đối chiếu nhánh Bước 6, giữ nguyên evidence verifier, Boss retry, authored completion, safe restore và quota CP 50 turn/20 encounter của bản mới. Tài liệu bên dưới mô tả runtime hiện hành; save/history được bổ sung trong `STORY_SAVE_HISTORY_R01.md`. CI là nghiệm thu tự động; Gemini/Android gameplay thật vẫn pending.
+
 # Bước 6/10 · Milestone Runtime v2
 
 ## Core và timeline
