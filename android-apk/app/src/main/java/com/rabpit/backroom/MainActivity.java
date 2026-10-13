@@ -199,7 +199,7 @@ public class MainActivity extends Activity {
       "var __baseRenderSnapshot=renderSnapshot,__entityOverlay={key:'',url:'',revision:0,anchor:'left-bottom',maxHeight:.97,loading:''};" +
       "var __entityKeys=['hound','clump','duller','deathmoth','hostile_faceling','false_puddle','paintings','smiler','skin-stealer','predatory_window','biological_pipeline','wretch','cable_mimic','the_beast_of_level_5','hotel_corpse_lure','jeff_the_killer','jane_the_killer','slenderman','diep_minh','blackroot_sentinel','sinew_strider','hollow_grasper'];" +
       "function normalizeEntityKey(v){if(typeof v!=='string')return '';var k=v.trim().toLowerCase();return __entityKeys.indexOf(k)>=0?k:'';}" +
-      "function activeEntityKey(){var c=state&&state.combat;if(!c||c.active!==true)return '';return normalizeEntityKey(window.backroomCombatEntityVisualKey||c.entityKey);}" +
+      "function activeEntityKey(){var c=state&&state.combat;if(!c||c.active!==true)return '';if(window.backroomVisualEncounterId!==c.encounterId){window.backroomVisualEncounterId=c.encounterId;window.backroomCombatEntityVisualKey='';}return normalizeEntityKey(window.backroomCombatEntityVisualKey||c.entityKey);}" +
       "function requestEntityOverlay(key){if(!key||__entityOverlay.loading===key)return;if(!window.Android||typeof Android.requestEntityOverlay!=='function')return;__entityOverlay.loading=key;Android.requestEntityOverlay(key);}" +
       "/* ENTITY_PRECOMPUTED_ALPHA_BOUNDS_R02 */var __entityVisualBounds={'hound':{left:0.023148,bottom:0.766927,visibleH:0.525391},'clump':{left:0.041667,bottom:0.800781,visibleH:0.626953},'duller':{left:0.265046,bottom:0.914062,visibleH:0.828125},'deathmoth':{left:0.021991,bottom:0.832682,visibleH:0.663411},'hostile_faceling':{left:0.018519,bottom:0.895182,visibleH:0.794922},'false_puddle':{left:0.008102,bottom:0.951172,visibleH:0.890625},'paintings':{left:0.017361,bottom:0.969401,visibleH:0.916016},'smiler':{left:0.263889,bottom:0.869141,visibleH:0.738932},'skin-stealer':{left:0.077546,bottom:0.887370,visibleH:0.791016},'predatory_window':{left:0.004630,bottom:0.800781,visibleH:0.621745},'biological_pipeline':{left:0.035880,bottom:0.952474,visibleH:0.884766},'wretch':{left:0.012731,bottom:0.866536,visibleH:0.731771},'cable_mimic':{left:0.008102,bottom:0.990885,visibleH:0.990885},'the_beast_of_level_5':{left:0.020833,bottom:0.971354,visibleH:0.971354},'hotel_corpse_lure':{left:0.123843,bottom:0.857422,visibleH:0.732422},'jeff_the_killer':{left:0.018519,bottom:0.975260,visibleH:0.949219},'jane_the_killer':{left:0.072917,bottom:0.845052,visibleH:0.692708},'slenderman':{left:0.011574,bottom:0.864583,visibleH:0.737630},'diep_minh':{left:0.002315,bottom:0.858724,visibleH:0.719401},'blackroot_sentinel':{left:0.037037,bottom:0.997619,visibleH:0.995238},'sinew_strider':{left:0.045503,bottom:0.964286,visibleH:0.869643},'hollow_grasper':{left:0.037037,bottom:0.997619,visibleH:0.966071}};" +
       "/* ENTITY_SHARED_GROUND_PLANE_R02 */function normalizeEntityVisual(img){try{var key=String(img&&img.alt||__entityOverlay.key||''),b=__entityVisualBounds[key];if(!b)return;var scale=Math.max(1,Math.min(2.2,.94/(.97*Math.max(.05,Number(b.visibleH)||1)))),rect=img.getBoundingClientRect(),ew=Math.max(1,Number(rect.width)||img.clientWidth||1),eh=Math.max(1,Number(rect.height)||img.clientHeight||1),x=-Number(b.left||0)*ew*scale,y=(1-Number(b.bottom||1))*eh*scale;img.style.transformOrigin='left bottom';img.style.transform='translate('+x.toFixed(2)+'px,'+y.toFixed(2)+'px) scale('+scale.toFixed(3)+')';}catch(_){img.style.transformOrigin='left bottom';img.style.transform='none';}}" +
@@ -256,7 +256,6 @@ public class MainActivity extends Activity {
     }
     String canonicalKey = normalizedEntityKey(selected);
     flags.put("entityEncounterKey", canonicalKey);
-    requireGameCore().startCombatState(candidateState.toString(), canonicalKey);
   }
 
   private JSONObject resolveEntityOverlay(String rawEntityKey) throws Exception {
@@ -1806,6 +1805,8 @@ public class MainActivity extends Activity {
       "Kể diễn biến tự nhiên theo hành động người chơi, giữ đúng Entity, nhân vật và kết quả đã khóa. " +
       "Nếu không có event đến hạn, chỉ kể diễn biến phù hợp. " +
       "Không tự quyết định Combat, HP, EXP, Item, tạo Entity hay chuyển Checkpoint; Core xử lý. " +
+      "FINAL_ENTITY hoặc combatRequired=true: kể hết cảnh Entity xuất hiện, dừng ở thế đối đầu; " +
+      "chưa kể đòn đánh, sát thương hay kết quả Combat trước khi người chơi nhấn Battle Start. " +
       "Không đưa event ID, ops, chứng cứ, kiểm định hay state vào lời kể. " +
       "Chỉ trả JSON dạng {\"reply\":\"lời kể GM\"}.\n" +
       com.rabpit.backroom.core.knowledge.GmNarrativeVoicePolicy.prompt() +
@@ -2071,6 +2072,10 @@ public class MainActivity extends Activity {
         try {
           // The WebView sends presentation JSON; refresh gameplay fields from Core before any rolls or validation.
           final String currentView = requireGameCore().currentClientState(stateJson);
+          if (new JSONObject(currentView).has("pendingEncounter")) {
+            emit("backroomError", "Hãy nhấn Battle Start ở cuối lời kể để bắt đầu chiến đấu.");
+            return;
+          }
           scheduleNextMilestone(currentView);
           if (requireGameCore().milestoneWaiting()) {
             emit("backroomError", "SOL đang hoàn thiện Milestone Checkpoint tiếp theo. Vui lòng thử lại sau.");
@@ -2158,8 +2163,12 @@ public class MainActivity extends Activity {
             com.rabpit.backroom.core.SnapshotSceneProgress.apply(before, state, rolls, actionKind);
           }
 
+          JSONArray log = state.optJSONArray("log");
+          if (log == null) log = new JSONArray();
+          log.put(new JSONObject().put("role", "player").put("text", action));
+          state.put("log", log);
           JSONObject coreCommit = new JSONObject(requireGameCore().processValidatedCandidate(
-            before.toString(), state.toString(), action));
+            before.toString(), state.toString(), action, reply));
           if (!coreCommit.optBoolean("handled", false)) {
             throw new Exception("Game State Core từ chối lượt: " + coreCommit.optString("error", "invalid_delta"));
           }
@@ -2167,10 +2176,10 @@ public class MainActivity extends Activity {
           scheduleNextMilestone(state.toString());
 
           state.put("canonVersion", KNOWLEDGE_CANON_VERSION);
-          JSONArray log = state.optJSONArray("log");
+          log = state.optJSONArray("log");
           if (log == null) log = new JSONArray();
-          log.put(new JSONObject().put("role", "player").put("text", action));
-          log.put(new JSONObject().put("role", "gm").put("text", reply));
+          if (!state.has("pendingEncounter"))
+            log.put(new JSONObject().put("role", "gm").put("text", reply));
           state.put("log", log);
           emit("backroomTurn", state.toString());
         } catch (Exception e) {
@@ -2188,6 +2197,20 @@ public class MainActivity extends Activity {
           emit("backroomItemAction", requireGameCore().processItemAction(stateJson, requestJson));
         } catch (Exception error) {
           emit("backroomItemAction", "{\"handled\":false,\"error\":\"item_action_failed\"}");
+        }
+      });
+    }
+
+    @JavascriptInterface public void battleStart(String stateJson, String encounterId) {
+      io.execute(() -> {
+        try {
+          String result = requireGameCore().confirmEncounter(stateJson, encounterId);
+          JSONObject confirmed = new JSONObject(result);
+          if (confirmed.optBoolean("handled", false))
+            scheduleNextMilestone(confirmed.getJSONObject("state").toString());
+          emit("backroomBattleStart", result);
+        } catch (Exception error) {
+          emit("backroomBattleStart", "{\"handled\":false,\"error\":\"encounter_confirmation_failed\"}");
         }
       });
     }

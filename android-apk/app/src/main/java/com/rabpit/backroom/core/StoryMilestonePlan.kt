@@ -66,7 +66,8 @@ object StoryMilestonePlan {
     val action: String,
     val event: String,
     val outcome: String,
-    val entityKey: String? = null
+    val entityKey: String? = null,
+    val combatRequired: Boolean = kind == Kind.FINAL_ENTITY
   ) {
     val isEntityEncounter: Boolean get() = kind == Kind.ENTITY || kind == Kind.FINAL_ENTITY
 
@@ -79,6 +80,7 @@ object StoryMilestonePlan {
       .put("outcome", outcome)
       .apply {
         if (isEntityEncounter) put("entityKey", requireNotNull(entityKey))
+        if (kind == Kind.ENTITY && combatRequired) put("combatRequired", true)
         if (kind == Kind.FINAL_ENTITY) {
           put("hpMultiplier", FINAL_HP_MULTIPLIER)
           put("expMultiplier", FINAL_EXP_MULTIPLIER)
@@ -125,6 +127,7 @@ object StoryMilestonePlan {
       val kind = Kind.valueOf(string(item, "kind", 24))
       val allowed = mutableSetOf("id", "turn", "kind", "action", "event", "outcome")
       if (kind != Kind.STORY) allowed += "entityKey"
+      if (kind == Kind.ENTITY && item.has("combatRequired")) allowed += "combatRequired"
       if (kind == Kind.FINAL_ENTITY) allowed += setOf("hpMultiplier", "expMultiplier")
       // Ignore non-authoritative AI metadata; it must not block a valid schedule.
       item.remove("storyFacts")
@@ -149,7 +152,11 @@ object StoryMilestonePlan {
         }
         value
       } else null
-      events += Event(id, turn, kind, action, event, outcome, key)
+      require(!item.has("combatRequired") || item.get("combatRequired") is Boolean) {
+        "milestone_combat_required_invalid"
+      }
+      events += Event(id, turn, kind, action, event, outcome, key,
+        kind == Kind.FINAL_ENTITY || item.optBoolean("combatRequired", false))
     }
 
     require(events.last().kind == Kind.FINAL_ENTITY &&

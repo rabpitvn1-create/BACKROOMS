@@ -1646,7 +1646,7 @@ function semanticPrepareNextState(before,json){const next=JSON.parse(json),oldLe
 function normalizedSemanticSpans(entry){if(!entry||entry.role==="player")return [];if(entry.semanticVersion!==3||!Array.isArray(entry.semanticSpans)){entry.semanticSpans=semanticResolve(entry.text,state,state);entry.semanticVersion=3}const source=String(entry.text||""),spans=[];let cursor=0;entry.semanticSpans.forEach(raw=>{const start=Number(raw&&raw.start),end=Number(raw&&raw.end),kind=semanticKind(raw&&raw.kind);if(!kind||!Number.isInteger(start)||!Number.isInteger(end)||start<cursor||end<=start||end>source.length)return;spans.push({start,end,kind});cursor=end});return spans}
 function renderSemanticText(entry){const source=String(entry&&entry.text||"");if(!entry||entry.role==="player")return esc(source);const spans=normalizedSemanticSpans(entry);if(!spans.length)return esc(source);let out="",cursor=0;spans.forEach(span=>{if(span.start>cursor)out+=esc(source.slice(cursor,span.start));out+="<span class='gm-semantic gm-semantic-"+span.kind+"' data-semantic-kind='"+span.kind+"'>"+esc(source.slice(span.start,span.end))+"</span>";cursor=span.end});if(cursor<source.length)out+=esc(source.slice(cursor));return out}
 
-function levelHeader(s){if(s&&s.level&&s.level.name){const id=s.level.id!=null?s.level.id:s.level.number;if(s.level.kind==="AREA"||s.level.kind==="SPECIAL"||s.level.name==="Level "+id)return s.level.name;return "Level "+id+" – "+s.level.name;}const where=String(s&&s.location||"")+" "+String(s&&s.title||"");const m=where.match(/Level\s*([^\s\/—–-]+)\s*(?:\/|—|–|-)\s*([^—–\n]+?)(?:\s+[—–]\s+|$)/i);if(m)return "Level "+m[1]+" – "+m[2].trim();return s&&s.title||"Backrooms"}function render(){const completed=state.story&&state.story.lastCompletion;if(completed&&completed.id){if(!Array.isArray(state.log))state.log=[];if(!state.log.some(x=>x.completionId===completed.id))state.log.push({role:"gm",text:completed.completion.outcome,completionId:completed.id});}titleEl.textContent=levelHeader(state);turnEl.textContent=state.turn;byId("generatedMilestones").textContent=Number.isSafeInteger(state.story&&state.story.generatedMilestones)&&state.story.generatedMilestones>=0?String(state.story.generatedMilestones):"—";locationEl.textContent=state.location;modeEl.textContent=state.mode;playerEl.textContent=state.player?.name||"Cao Minh";partyEl.innerHTML=chips(state.party);if(inventoryEl)inventoryEl.innerHTML=chips(state.inventory);logEl.innerHTML=(state.log||[]).map(x=>{const w=x.role!=="player"&&String(x.text||"").trim().startsWith("[Warning]");return "<article class='message "+(x.role==="player"?"player":"gm")+(w?" warning":"")+"'><div class='role'>"+(x.role==="player"?"BẠN":"GAME MASTER")+"</div><div class='text'>"+renderSemanticText(x)+"</div></article>"}).join("");logEl.scrollTop=logEl.scrollHeight;if(window.backroomMilestoneLoading)window.backroomMilestoneLoading.sync()}
+function levelHeader(s){if(s&&s.level&&s.level.name){const id=s.level.id!=null?s.level.id:s.level.number;if(s.level.kind==="AREA"||s.level.kind==="SPECIAL"||s.level.name==="Level "+id)return s.level.name;return "Level "+id+" – "+s.level.name;}const where=String(s&&s.location||"")+" "+String(s&&s.title||"");const m=where.match(/Level\s*([^\s\/—–-]+)\s*(?:\/|—|–|-)\s*([^—–\n]+?)(?:\s+[—–]\s+|$)/i);if(m)return "Level "+m[1]+" – "+m[2].trim();return s&&s.title||"Backrooms"}function render(){const completed=state.story&&state.story.lastCompletion;if(completed&&completed.id){if(!Array.isArray(state.log))state.log=[];if(!state.log.some(x=>x.completionId===completed.id)){const entry={role:"gm",text:completed.completion.outcome,completionId:completed.id};const pendingIndex=state.log.findIndex(x=>x.encounterId===state.pendingEncounter?.encounterId);if(pendingIndex>=0)state.log.splice(pendingIndex,0,entry);else state.log.push(entry);}}titleEl.textContent=levelHeader(state);turnEl.textContent=state.turn;byId("generatedMilestones").textContent=Number.isSafeInteger(state.story&&state.story.generatedMilestones)&&state.story.generatedMilestones>=0?String(state.story.generatedMilestones):"—";locationEl.textContent=state.location;modeEl.textContent=state.mode;playerEl.textContent=state.player?.name||"Cao Minh";partyEl.innerHTML=chips(state.party);if(inventoryEl)inventoryEl.innerHTML=chips(state.inventory);logEl.innerHTML=(state.log||[]).map(x=>{const w=x.role!=="player"&&String(x.text||"").trim().startsWith("[Warning]");return "<article class='message "+(x.role==="player"?"player":"gm")+(w?" warning":"")+"'><div class='role'>"+(x.role==="player"?"BẠN":"GAME MASTER")+"</div><div class='text'>"+renderSemanticText(x)+"</div></article>"}).join("");logEl.scrollTop=logEl.scrollHeight;if(window.backroomMilestoneLoading)window.backroomMilestoneLoading.sync();if(window.backroomRenderBattleStart)window.backroomRenderBattleStart()}
 const SAVE_KEY="backroom-apk-state";
 const SNAPSHOT_KEY="backroom-apk-snapshot";
 let destructiveAction="";
@@ -1732,14 +1732,14 @@ function clearSave(){
     statusEl.textContent="Đã xóa điểm lưu thủ công, Game Core và bộ đệm giao diện.";
   });
 }
-formEl.addEventListener("submit",e=>{e.preventDefault();const a=actionEl.value.trim();if(!a||busy||window.__milestoneBlocked)return;if(!window.Android){statusEl.textContent="Không tìm thấy Android bridge.";return}busy=true;syncPrimaryActions();statusEl.textContent="Gehihi đang xử lý lượt…";window.Android.submitAction(JSON.stringify(state),"EXECUTE",a)});
+formEl.addEventListener("submit",e=>{e.preventDefault();const a=actionEl.value.trim();if(!a||busy||window.__milestoneBlocked||state.pendingEncounter)return;if(!window.Android){statusEl.textContent="Không tìm thấy Android bridge.";return}busy=true;syncPrimaryActions();statusEl.textContent="Gehihi đang xử lý lượt…";window.Android.submitAction(JSON.stringify(state),"EXECUTE",a)});
 
 // TWO_PRIMARY_ACTIONS
 const exploreActionButton=byId("exploreActionButton");
 function syncPrimaryActions(){
   const hasText=!!(actionEl&&actionEl.value.trim());
-  if(submitEl)submitEl.disabled=busy||window.__milestoneBlocked||!hasText;
-  if(exploreActionButton)exploreActionButton.disabled=busy||window.__milestoneBlocked;
+  if(submitEl)submitEl.disabled=busy||window.__milestoneBlocked||!!state.pendingEncounter||!hasText;
+  if(exploreActionButton)exploreActionButton.disabled=busy||window.__milestoneBlocked||!!state.pendingEncounter;
 }
 function appendMacroPending(label){
   if(!logEl)return;
@@ -1753,7 +1753,7 @@ function appendMacroPending(label){
   logEl.appendChild(gm);logEl.scrollTop=logEl.scrollHeight;
 }
 function submitMacroAction(kind,label){
-  if(busy||window.__milestoneBlocked)return;
+  if(busy||window.__milestoneBlocked||state.pendingEncounter)return;
   if(!window.Android||typeof window.Android.submitAction!=="function"){
     statusEl.textContent="Không tìm thấy Android action bridge.";return;
   }
@@ -2216,7 +2216,7 @@ function selected(){const id=view&&view.dataset.characterId||'cao_minh';return m
   var imeInsetCss=0,modalBaselineHeight=0;
 
   function combatActive(){try{return !!(state&&state.combat&&state.combat.active===true)}catch(_){return false}}
-  function processing(){return !!window.__milestoneBlocked||!!window.__combatBusy||(typeof busy!=="undefined"&&!!busy)}
+  function processing(){return !!(state&&state.pendingEncounter)||!!window.__milestoneBlocked||!!window.__combatBusy||(typeof busy!=="undefined"&&!!busy)}
   function layoutHeight(){return Math.max(1,window.innerHeight||document.documentElement.clientHeight||1)}
   function fitActionModal(){
     if(!actionModal||actionModal.hidden)return;
@@ -2503,6 +2503,7 @@ body.poker-dice-open .game>.log{display:none!important}
 
 <script src="item-detail-actions.js"></script>
 <script src="combat-feedback-1193a.js"></script>
+<script src="battle-start.js"></script>
 <script src="exploration-transition.js"></script>
 </body>
 </html>

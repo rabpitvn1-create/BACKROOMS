@@ -35,7 +35,7 @@ test('SOL Milestone parses response envelope, exposes categorized errors, and pr
 test('SOL authored events are applied by Core without GM receipts or second AI verifier',()=>{
   assert.match(main,/private String generateText\(String prompt\) throws Exception \{\s*emit\("backroomProvider", "Gehihi"\);\s*return verifiedWriterReply\(gehihiText\(prompt\)\);/);
   assert.match(main,/JSONObject generated = parseModelJson\(generateText\(writerPrompt\(before, action, rolls\)\)\)/);
-  assert.match(main,/JSONObject coreCommit = new JSONObject\(requireGameCore\(\)\.processValidatedCandidate\(\s*before\.toString\(\), state\.toString\(\), action\)\)/);
+  assert.match(main,/JSONObject coreCommit = new JSONObject\(requireGameCore\(\)\.processValidatedCandidate\(\s*before\.toString\(\), state\.toString\(\), action, reply\)\)/);
   assert.doesNotMatch(main,/verifyMilestoneNarrative\(|auditsForRisk\(|milestoneEventIds|generated\.getJSONArray\("storyFacts"\)/);
   assert.match(runtime,/val required = due\(state\)/);
   assert.match(runtime,/val updated = working\.copy\(/);

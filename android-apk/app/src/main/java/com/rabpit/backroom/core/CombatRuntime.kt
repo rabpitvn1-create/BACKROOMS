@@ -76,7 +76,7 @@ object CombatRuntime {
   private const val SYVIAL_DISORIENT_TURNS_KEY = "combat.syvialDisorientTurns"
   private const val AN_NHIEN_ULTIMATE_INTERVAL_TURNS = 5
 
-  enum class Phase { ACTIVE, RESOLVED }
+  enum class Phase { PENDING_ENCOUNTER_CONFIRMATION, ACTIVE, RESOLVED }
   enum class RangeBand { CLOSE, NEAR, FAR }
   enum class Cover { EXPOSED, PARTIAL, HARD }
   enum class EntityCondition { HEALTHY, HURT, WOUNDED, CRITICAL, DESTROYED }
@@ -219,6 +219,43 @@ object CombatRuntime {
 
   fun active(state: GameState): Snapshot? = decode(state)?.takeIf { it.phase == Phase.ACTIVE }
 
+  fun pending(state: GameState): Snapshot? = decode(state)?.takeIf {
+    it.phase == Phase.PENDING_ENCOUNTER_CONFIRMATION
+  }
+
+  /** Reserve one Core encounter without entering Combat or touching character HP. */
+  fun prepareEncounter(state: GameState, entityKey: String, encounterId: String, boss: Boolean): GameState {
+    require(active(state) == null && pending(state) == null) { "encounter_already_reserved" }
+    require(supportsEntityKey(entityKey) && encounterId.isNotBlank()) { "encounter_invalid" }
+    val prepared = createEncounter(state, listOf(entityKey), Phase.PENDING_ENCOUNTER_CONFIRMATION, encounterId)
+    if (!boss) return prepared
+    val fight = requireNotNull(pending(prepared))
+    val hp = (fight.entityMaxHp.toLong() * StoryMilestonePlan.FINAL_HP_MULTIPLIER)
+      .coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+    return prepared.copy(metadata = prepared.metadata + mapOf(
+      "combat.entityHp" to hp.toString(), "combat.entityMaxHp" to hp.toString(),
+      "combat.milestoneBoss" to encounterId
+    ))
+  }
+
+  /** A repeated click is a no-op; identity never comes from narrator/client Entity keys. */
+  fun confirmEncounter(state: GameState, encounterId: String): GameState {
+    val reserved = pending(state)
+    if (reserved == null) {
+      require(active(state)?.encounterId == encounterId) { "encounter_confirmation_stale" }
+      return state
+    }
+    require(reserved.encounterId == encounterId) { "encounter_confirmation_stale" }
+    val flags = JSONObject(state.world["flagsJson"] ?: "{}").put("entityEncounterKey", reserved.entityKey)
+    return state.copy(metadata = state.metadata + ("combat.phase" to Phase.ACTIVE.name),
+      world = state.world + ("flagsJson" to flags.toString()))
+  }
+
+  fun pendingJson(state: GameState): JSONObject? = pending(state)?.let {
+    JSONObject().put("phase", it.phase.name).put("encounterId", it.encounterId)
+      .put("entityKey", it.entityKey).put("entityName", profiles.getValue(it.entityKey).displayName)
+  }
+
   fun start(state: GameState, entityKey: String): GameState = startWaves(state, listOf(entityKey))
 
   /** The final Milestone Entity is a single verified Combat instance. */
@@ -237,7 +274,12 @@ object CombatRuntime {
 
   /** Only explicitly composed encounters contain multiple Entities. */
   fun startWaves(state: GameState, entityKeys: List<String>): GameState {
-    if (active(state) != null) return state
+    if (active(state) != null || pending(state) != null) return state
+    return createEncounter(state, entityKeys, Phase.ACTIVE)
+  }
+
+  private fun createEncounter(state: GameState, entityKeys: List<String>, phase: Phase,
+                              encounterId: String? = null): GameState {
     if (entityKeys.size !in 1..4 || entityKeys.any { it !in profiles }) return state
     val entityKey = entityKeys.first()
     val profile = profiles.getValue(entityKey)
@@ -251,11 +293,11 @@ object CombatRuntime {
     val unscaledEntityMaxHp = if (profile.key == DIEP_MINH_KEY) DIEP_MINH_MAX_HP else profile.maxHp + ENTITY_HP_BONUS
     val enhancedEntityMaxHp = EntityPowerScaling.scale(unscaledEntityMaxHp, progressionRank)
     val snapshot = Snapshot(
-      encounterId = "$serial:${state.turn.currentTurnId}:$entityKey",
+      encounterId = encounterId ?: "$serial:${state.turn.currentTurnId}:$entityKey",
       entityKey = entityKey,
       entityName = profile.displayName,
       progressionRank = progressionRank,
-      phase = Phase.ACTIVE,
+      phase = phase,
       playerHp = playerHp,
       playerMaxHp = playerMax,
       entityHp = enhancedEntityMaxHp,
@@ -277,7 +319,8 @@ object CombatRuntime {
       WAVE_KEYS to entityKeys.joinToString("|"),
       WAVE_INDEX to "0"
     )
-    return encode(state.copy(metadata = metadata), snapshot)
+    val encoded = encode(state.copy(metadata = metadata), snapshot)
+    return if (phase == Phase.PENDING_ENCOUNTER_CONFIRMATION) encoded.copy(characters = state.characters) else encoded
   }
 
   fun resolve(state: GameState, actionKind: String, action: String): Resolution {
@@ -1437,7 +1480,7 @@ object CombatRuntime {
     return Snapshot(
       encounterId = m["${PREFIX}encounterId"].orEmpty(),
       entityKey = key,
-      entityName = m["${PREFIX}entityName"] ?: profile.displayName,
+      entityName = profile.displayName,
       progressionRank = progressionRank,
       phase = enumOr(Phase.ACTIVE, m["${PREFIX}phase"]),
       playerHp = playerHp,
