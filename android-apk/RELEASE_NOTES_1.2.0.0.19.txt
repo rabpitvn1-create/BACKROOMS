@@ -1,0 +1,11 @@
+Backroom 1.2.0.0.19 Debug
+
+- Android versionCode 92; versionName 1.2.0.0.19; applicationId com.rabpit.backroom.
+- Tích hợp PR #608: SOL hoặc Gemini tạo khung xương Milestone; Gehihi giữ vai trò Game Master kể chuyện, Game Core thực thi turn, sự kiện, Encounter, Combat và lưu tiến trình.
+- Màn hình loading đầu tiên cho chọn nhà cung cấp tạo Milestone: Gemini (tối đa 5 API key có sẵn, chọn theo sức khỏe model/key) hoặc GPT SOL 6.1. Lựa chọn được lưu một lần trong Android và sử dụng cho các Checkpoint tiếp theo, kể cả khi New Game.
+- Hai nút điều khiển chính: Khám Phá (gửi EXPLORE) và Thực Hiện (nhập hành động tự do). Đã bỏ nút Tìm Kiếm trên giao diện.
+- Bỏ các lớp AI xác minh lời kể và audit AI trung gian. Core vẫn xác thực kế hoạch SOL/Gemini và các ràng buộc kỹ thuật/gameplay trước khi áp dụng.
+- Giữ nguyên các quy tắc: Checkpoint tối thiểu 18 Explorer Turn; tối thiểu 40% lượt gặp Entity thường; Boss cuối Checkpoint, Combat không tăng Explorer Turn.
+- Logo Gemini và ChatGPT/OpenAI được đóng gói trong APK; không tải logo từ mạng khi mở màn hình loading.
+- Không hỗ trợ chuyển đổi/tải save cũ. Lựa chọn nhà cung cấp Milestone là thiết lập cấp ứng dụng, không phải dữ liệu save.
+- Đây là APK Debug dùng để nghiệm thu. CI kiểm tra unit/Node, build và nội dung APK, chữ ký và xác minh artifact/release khi phát hành. Chưa xác nhận chơi hết CP1–CP2 trên thiết bị thật/emulator với build này.
