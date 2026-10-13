@@ -115,7 +115,7 @@ class StoryMilestonePlannerIntegrationTest {
     assertTrue(core.installMilestonePlan(duePlan, lease.getString("runToken"), "CP-L00-01", 1))
     val before = JSONObject(core.currentClientState("{}"))
     val forbidden = JSONObject(before.toString()).put("level", LevelRouteRegistry.node("1").asJson())
-    val rejected = JSONObject(core.processValidatedCandidate(before.toString(), forbidden.toString(), "TEST_ONLY action"))
+    val rejected = JSONObject(core.processValidatedCandidate(before.toString(), forbidden.toString(), "TEST_ONLY action", "TEST_ONLY narration"))
     assertFalse(rejected.getBoolean("handled"))
     assertEquals("milestone_level_change_forbidden", rejected.getString("error"))
     assertEquals(1, CoreClientProjection.turnIndex(repo.stored!!))

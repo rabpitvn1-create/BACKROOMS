@@ -145,7 +145,7 @@ object KnowledgeContextEngine {
       addStateDrivenRecords()
       expandReferences()
 
-      val mandatoryCost = selected.values.filter { it.priority <= 30 }.sumOf { estimateTokens(renderRecord(it)) }
+      val mandatoryCost = selected.values.filter(::mandatory).sumOf { estimateTokens(renderRecord(it)) }
       var stateSummary = compactState()
       val dialogue = JSONArray(recentDialogue())
       var compacted = false
@@ -241,7 +241,7 @@ object KnowledgeContextEngine {
 
     private fun addDirectStructuredLookups() {
       val direct = linkedSetOf<String>()
-      val lucTramConfirmed = "luc_tram" in presentActors || confirmedRoll("lucTramEncounter")
+      val lucTramConfirmed = "luc_tram" in presentActors || scheduledCharacter("luc_tram")
       if ("lucia" in presentActors && hasAny(actionText, "lucia", "hứa thuý mai", "hứa thúy mai")) direct += "CHAR.LUCIA.AUTHORED"
       if ("trac_lam" in presentActors && hasAny(actionText, "trác lâm", "trac lam", "trac_lam")) direct += "CHAR.TRAC_LAM.AUTHORED"
       if (hasAny(actionText, "lục trầm", "luc tram", "luc_tram", "tịch quang", "thiên kiếm linh tâm")) {
@@ -311,19 +311,15 @@ object KnowledgeContextEngine {
       }
     }
 
-    private fun confirmedRoll(key: String): Boolean =
-      !rolls.optBoolean("meta", false) &&
-        rolls.optInt("turn", -1) == state.optInt("turn", -2) &&
-        rolls.optJSONObject(key)?.let {
-          it.optBoolean("success", false) && it.optBoolean("eligible", false)
-        } == true
+    private fun scheduledCharacter(id: String): Boolean = state.optJSONArray("milestoneEventsDue")?.let { events ->
+      (0 until events.length()).any { events.getJSONObject(it).optString("characterId") == id }
+    } == true
 
     private fun confirmedEntityVisualId(): String? {
       val combat = state.optJSONObject("combat")
       val flags = state.optJSONObject("flags")
       val key = when {
         combat?.optBoolean("active", false) == true -> combat.optString("entityKey", "")
-        confirmedRoll("entityEncounter") -> rolls.optString("selectedEntityKey", "")
         else -> flags?.optString("entityEncounterKey", "").orEmpty()
       }
       return key.takeIf { it.matches(Regex("[a-z0-9_-]{1,80}")) }
@@ -331,25 +327,26 @@ object KnowledgeContextEngine {
     }
 
     private fun addStateDrivenRecords() {
-      if (confirmedRoll("lucTramEncounter")) {
-        add("CHAR.LUC_TRAM.RUNTIME_CORE", "confirmed encounter roll")
-        add("CHAR.LUC_TRAM.REVIVAL_R06", "post-revival amnesia firewall")
-        add("CHAR.LUC_TRAM.OPEN_R06", "unresolved state firewall")
-        add("REL.CAO_MINH.LUC_TRAM.HISTORY_R06", "known history, not current knowledge")
+      val scheduled = state.optJSONArray("milestoneEventsDue") ?: JSONArray()
+      for (index in 0 until scheduled.length()) {
+        when (scheduled.getJSONObject(index).optString("characterId")) {
+          "lucia" -> add("CHAR.LUCIA.AUTHORED", "scheduled Milestone encounter")
+          "iris" -> add("CHAR.IRIS.RUNTIME_CORE", "scheduled Milestone encounter")
+          "syvial" -> add("CHAR.SYVIAL.RUNTIME_CORE", "scheduled Milestone encounter")
+          "luc_tram" -> {
+            add("CHAR.LUC_TRAM.RUNTIME_CORE", "scheduled Milestone encounter")
+            add("CHAR.LUC_TRAM.REVIVAL_R06", "post-revival amnesia firewall")
+            add("CHAR.LUC_TRAM.OPEN_R06", "unresolved state firewall")
+          }
+        }
       }
       val flags = state.optJSONObject("flags")
-      // A selected roll is already authoritative when the GM receives its
-      // context, before startCombatState has persisted the encounter.
-      if (confirmedRoll("luciaEncounter")) {
-        add("CHAR.LUCIA.AUTHORED", "confirmed Lucia encounter roll")
-      }
       val confirmedVisual = confirmedEntityVisualId()
       if (confirmedVisual != null) {
         add(confirmedVisual, "confirmed active Entity visual canon")
       }
       val confirmedEntities = flags?.optInt("entitiesConfirmedLocal", 0) ?: 0
-      val entityRoll = confirmedRoll("entityEncounter")
-      if (confirmedEntities > 0 || entityRoll || hasAny(sceneText, "entity", "thực thể", "quái", "hound", "smiler", "skin-stealer", "jeff")) {
+      if (confirmedEntities > 0 || hasAny(sceneText, "entity", "thực thể", "quái", "hound", "smiler", "skin-stealer", "jeff")) {
         add("ENTITY.GLOBAL_HARD_LOCK", "entity state/scene requires entity rules")
       }
       if (hasAny(sceneText, "loot", "vật phẩm", "inventory", "almond", "liquid pain", "greek fire", "nước", "thuốc")) {
@@ -374,8 +371,8 @@ object KnowledgeContextEngine {
     }
 
     private fun budgetedRecords(header: String): List<Record> {
-      val mandatory = selected.values.filter { it.priority <= 30 }.sortedWith(compareBy<Record> { it.priority }.thenBy { it.id })
-      val optional = selected.values.filter { it.priority > 30 }.sortedWith(compareBy<Record> { it.priority }.thenBy { it.id })
+      val mandatory = selected.values.filter(::mandatory).sortedWith(compareBy<Record> { it.priority }.thenBy { it.id })
+      val optional = selected.values.filterNot(::mandatory).sortedWith(compareBy<Record> { it.priority }.thenBy { it.id })
       val kept = mutableListOf<Record>()
       var tokens = estimateTokens(header + "[END_KNOWLEDGE_PACKET]")
       mandatory.forEach { r -> kept += r; tokens += estimateTokens(renderRecord(r)) }
@@ -399,6 +396,12 @@ object KnowledgeContextEngine {
       selected.putIfAbsent(id, record)
       reasons.putIfAbsent(id, reason)
     }
+
+    /** The current encounter's identity/visual card cannot be dropped as optional context. */
+    private fun mandatory(record: Record): Boolean = record.priority <= 30 ||
+      record.id == confirmedEntityVisualId() ||
+      (record.id == "CHAR.LUCIA.AUTHORED" && scheduledCharacter("lucia")) ||
+      (record.id == "CHAR.LUC_TRAM.AUTHORED" && scheduledCharacter("luc_tram"))
 
     // Every retrieval path, including references and affordances, obeys scene
     // evidence. Mentioning a name cannot bypass the same boundary.
@@ -457,8 +460,9 @@ object KnowledgeContextEngine {
           }
         }
       }
-      if (confirmedRoll("lucTramEncounter")) presentActors += "luc_tram"
-      if (confirmedRoll("luciaEncounter")) presentActors += "lucia"
+      state.optJSONArray("milestoneEventsDue")?.let { scheduled ->
+        for (index in 0 until scheduled.length()) addConfirmed(scheduled.getJSONObject(index).optString("characterId"))
+      }
     }
 
     private fun currentLevel(): Int {

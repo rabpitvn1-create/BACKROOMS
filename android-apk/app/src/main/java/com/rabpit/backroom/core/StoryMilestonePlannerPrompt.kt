@@ -14,7 +14,8 @@ object StoryMilestonePlannerPrompt {
     canonPacket: String,
     currentSituation: String,
     checkpointTotal: Int,
-    narrativeContinuity: String = "{}"
+    narrativeContinuity: String = "{}",
+    characterRegistry: String = ""
   ): String {
     require(checkpointId.matches(Regex("CP-L[0-9]{2,}-[0-9]{2,}"))) { "checkpoint_id_invalid" }
     require(absoluteStartTurn >= 1) { "checkpoint_start_turn_invalid" }
@@ -40,6 +41,11 @@ object StoryMilestonePlannerPrompt {
       seen.toList()
     }.distinct().filter { LevelRouteRegistry.node(it)?.parent != position.level }.joinToString(", ")
     val entityKeys = CombatRuntime.supportedEntityKeys().joinToString(", ")
+    require(characterRegistry.length <= 30000) { "milestone_character_registry_too_large" }
+    val characters = characterRegistry.ifBlank {
+      GameState.initial().characters.values.filter { it.id != CAO_MINH_ID }
+        .joinToString("; ") { "${it.id}=${it.name} (${it.metadata["npcType"] ?: "NPC"}, Levels ${it.metadata["encounterLevels"] ?: "any"})" }
+    }
     return """
       Vai trò: SOL biên kịch Checkpoint trong Backrooms The Game.
       Chỉ xuất một JSON object hợp lệ. Không markdown, không lời giải thích.
@@ -51,6 +57,10 @@ object StoryMilestonePlannerPrompt {
       Mỗi action/event/outcome là một ý cốt lõi, tối đa 120 ký tự mỗi trường.
       GM sẽ tự kể chi tiết theo hành động người chơi nhưng phải giữ kết quả đã khóa.
       Không tự viết lại Canon, bí mật, HP/EXP chưa xảy ra hay thắng/thua Combat.
+      Milestone là lịch bắt buộc duy nhất cho Follower/NPC/Entity/Boss. Không có random encounter.
+      Lập FOLLOWER hoặc NPC với characterId Registry và Turn xuất hiện tường minh.
+      Gặp nhân vật không đồng nghĩa gia nhập Party; không biên kịch tự tuyển mộ.
+      Registry nhân vật: $characters
 
       Mỗi CP cần ít nhất ${StoryMilestonePlan.MIN_CHECKPOINT_TURNS} Explorer Turn.
       Boss là FINAL_ENTITY cuối cùng, xuất hiện SAU sự kiện Explorer ở lượt cuối:
@@ -61,7 +71,7 @@ object StoryMilestonePlannerPrompt {
       Ví dụ T=18 cần 8 lần gặp Entity thường và một Boss riêng ở cuối.
       ENTITY là tiếp xúc trực tiếp với Entity có entityKey hợp lệ, không phải nhắc tên,
       tiếng động chưa rõ nguồn hoặc lời đồn. Không cần chiến đấu ở mọi lần gặp.
-      ENTITY có combatRequired=true chỉ khi cảnh này buộc giao chiến; false hoặc bỏ trường
+      ENTITY bắt buộc có combatRequired dạng boolean: true chỉ khi cảnh này buộc giao chiến; false
       khi chỉ tiếp xúc, quan sát hay Entity rời đi. Core giữ encounter chờ xác nhận.
       GM kể hết cảnh chạm trán; chỉ người chơi nhấn Battle Start mới kích hoạt Combat.
       Không tự cấp HP/EXP/Inventory hay tuyên bố tiêu diệt Entity.
@@ -72,7 +82,9 @@ object StoryMilestonePlannerPrompt {
       Schema chính xác:
       {"schemaVersion":2,"checkpointId":"$checkpointId","events":[
       {"id":"beat1","turn":1,"kind":"STORY","action":"<world action>","event":"<authored event>","outcome":"<authored outcome>"},
-      {"id":"encounter1","turn":2,"kind":"ENTITY","action":"<Entity action>","event":"<actual direct encounter>","outcome":"<encounter outcome, no combat settlement>","entityKey":"<supported Entity key>","combatRequired":false},
+      {"id":"follower1","turn":3,"kind":"FOLLOWER","characterId":"lucia","action":"<character action>","event":"<direct meeting>","outcome":"<meeting only, no Party recruitment>"},
+      {"id":"npc1","turn":3,"kind":"NPC","characterId":"<registered character ID>","action":"<character action>","event":"<direct NPC meeting>","outcome":"<meeting outcome>"},
+      {"id":"encounter1","turn":4,"kind":"ENTITY","action":"<Entity action>","event":"<actual direct encounter>","outcome":"<encounter outcome, no combat settlement>","entityKey":"<supported Entity key>","combatRequired":false},
       {"id":"boss","turn":18,"kind":"FINAL_ENTITY","action":"<world action>","event":"<authored event>","outcome":"<Combat opening>","entityKey":"<supported Entity key>","hpMultiplier":9,"expMultiplier":9}
       ],"completion":$completionSchema}
       Mẫu rút gọn này CHƯA đủ quota: với Boss ở Turn 18 phải thêm 7 ENTITY thường

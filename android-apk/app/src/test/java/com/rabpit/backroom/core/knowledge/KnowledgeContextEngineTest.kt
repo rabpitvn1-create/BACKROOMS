@@ -23,11 +23,14 @@ class KnowledgeContextEngineTest {
     }
   }
 
-  @Test fun activePartyAndConfirmedCurrentRollGrantActorCards() {
+  @Test fun activePartyAndScheduledMilestoneGrantActorCards() {
     assertTrue(packet("""{"party":[{"id":"lucia","presence":"ACTIVE"}]}""").contains("<CHAR.LUCIA.AUTHORED>"))
     assertFalse(packet("""{"party":[{"id":"lucia","presence":"ABSENT"}]}""").contains("<CHAR.LUCIA.AUTHORED>"))
     assertFalse(packet("""{"party":[{"id":"iris_unknown"}]}""").contains("<CHAR.IRIS."))
-    assertTrue(packet("""{"turn":4}""", rolls = """{"turn":4,"luciaEncounter":{"eligible":true,"success":true}}""").contains("<CHAR.LUCIA.AUTHORED>"))
+    assertFalse(packet("""{"turn":4}""", rolls = """{"turn":4,"luciaEncounter":{"eligible":true,"success":true}}""").contains("<CHAR.LUCIA.AUTHORED>"))
+    assertTrue(packet("""{"milestoneEventsDue":[{"kind":"FOLLOWER","characterId":"lucia"}]}""").contains("<CHAR.LUCIA.AUTHORED>"))
+    assertTrue(packet("""{"milestoneEventsDue":[{"characterId":"iris"},{"characterId":"syvial"}]}""").contains("<CHAR.IRIS.RUNTIME_CORE>"))
+    assertTrue(packet("""{"milestoneEventsDue":[{"characterId":"iris"},{"characterId":"syvial"}]}""").contains("<CHAR.SYVIAL.RUNTIME_CORE>"))
   }
 
   @Test fun entityMentionAndLevelReferencesCannotInventEncounter() {
@@ -38,12 +41,13 @@ class KnowledgeContextEngineTest {
     assertFalse(result.contains("<ENTITY.HOUND.VISUAL>"))
   }
 
-  @Test fun onlyEligibleCurrentRollOrActiveCombatGrantsEntityVisual() {
+  @Test fun randomRollCannotGrantEntityVisualButCoreSceneAndCombatCan() {
     val roll = """{"turn":4,"selectedEntityKey":"hound","entityEncounter":{"eligible":true,"success":true}}"""
-    assertTrue(packet("""{"turn":4}""", rolls = roll).contains("<ENTITY.HOUND.VISUAL>"))
+    assertFalse(packet("""{"turn":4}""", rolls = roll).contains("<ENTITY.HOUND.VISUAL>"))
     assertFalse(packet("""{"turn":5}""", rolls = roll).contains("<ENTITY.HOUND.VISUAL>"))
     assertFalse(packet("""{"turn":4}""", rolls = JSONObject(roll).put("meta", true).toString()).contains("<ENTITY.HOUND.VISUAL>"))
     assertFalse(packet("""{"turn":4}""", rolls = roll.replace("\"eligible\":true", "\"eligible\":false")).contains("<ENTITY.HOUND.VISUAL>"))
+    assertTrue(packet("""{"flags":{"entityEncounterKey":"hound"}}""").contains("<ENTITY.HOUND.VISUAL>"))
     assertTrue(packet("""{"combat":{"active":true,"entityKey":"hound"}}""").contains("<ENTITY.HOUND.VISUAL>"))
   }
 

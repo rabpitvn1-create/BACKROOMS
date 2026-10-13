@@ -31,16 +31,9 @@ Runtime chỉ dùng canonical Entity key trùng chính xác với tên file bỏ
 | `sinew_strider` | `sinew_strider.webp` |
 | `hollow_grasper` | `hollow_grasper.webp` |
 
-Cả **22 Entity** dùng chung một lượt d10000 trên mọi Level 0–6. Trong mỗi lượt SEARCH, EXPLORE hoặc EXECUTE hợp lệ, xác suất gặp một Entity mới là **45%**, 55% không gặp Entity. Một lần roll duy nhất quyết định cả việc gặp lẫn loài được chọn; không có roll riêng cho boss, Lifeform, Jeff hay Jane.
+Cả **22 Entity** chỉ xuất hiện theo Milestone đã được Core chấp nhận. Planner khóa Explorer Turn, canonical Entity key và `combatRequired` dạng boolean. Không có pool xác suất hoặc random encounter thay thế khi chưa có plan.
 
-| Nhóm | Số Entity | Xác suất mỗi Entity trên một lượt hợp lệ |
-|---|---:|---:|
-| Entity thường | 14 | 2,5% |
-| Blackroot Sentinel, Sinew Strider, Hollow Grasper | 3 | 2% |
-| The Beast of Level 5, Slenderman, Diệp Minh | 3 | 1% |
-| Jeff the Killer, Jane the Killer | 2 | 0,5% |
-
-**Tổng: 35% + 6% + 3% + 1% = 45%.** Mọi Entity đều có thể xuất hiện ở mọi Level, không có ràng buộc theo Level; chỉ tối đa một Entity mới từ lượt roll này.
+Entity không Combat vẫn được ghi nhận vào SaveState. Entity cần Combat và Boss được giữ ở `PENDING_ENCOUNTER_CONFIRMATION`; chỉ Battle Start mới kích hoạt Combat và hiển thị ảnh. Tên/chỉ số lấy từ Registry, encounter ID lấy từ Core, không dò câu chữ GM.
 
 Base profile của cả ba bằng **Hound × 1.3**, làm tròn về stat nguyên: **104 HP / 20 ATK / 3 Armor / 10 Aggression** trước shared Entity durability và Level scaling. Ở Level 0, shared +30 HP khiến Max HP thực tế là **134**.
 

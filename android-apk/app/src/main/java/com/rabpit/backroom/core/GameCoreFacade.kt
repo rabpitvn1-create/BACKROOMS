@@ -31,6 +31,8 @@ class GameCoreFacade private constructor(
     SpecialFollowersCanon.matchesPartyCheatCode(action)?.let { targetId ->
       return applySpecialFollowerPartyCheat(client, state, targetId)
     }
+    if (!StoryMilestoneRuntime.hasPlan(state)) return response(false, clientSnapshot(client, state),
+      "milestone_plan_required", "milestone_plan_required")
     val turnId = nextTurnId(state)
     logger.log(PipelineLogEvent("INPUT", turnId = turnId, details = mapOf("length" to action.length.toString())))
     val pending = TurnCoordinator.createPending(state, turnId, action)
@@ -157,6 +159,7 @@ class GameCoreFacade private constructor(
     if (CombatRuntime.pending(state) != null)
       return actionStartResponse(false, null, "encounter_confirmation_required")
     if (MadGodCanon.cheat(action)) return actionStartResponse(true,null,null)
+    if (!StoryMilestoneRuntime.hasPlan(state)) return actionStartResponse(false, null, "milestone_plan_required")
     val kind = enumValues<ActionKind>().firstOrNull { it.name == kindRaw.trim().uppercase() }
       ?: return actionStartResponse(false, null, "action_kind_invalid")
     val existing = ActionRuntime.activeSession(state)
@@ -378,8 +381,10 @@ class GameCoreFacade private constructor(
     val core = loadCurrentState()
     if (CombatRuntime.pending(core) != null || CombatRuntime.active(core) != null)
       return response(false, clientSnapshot(before, core), "encounter_unresolved", "gemini_delta_rejected")
-    val rolledEntity = rolledCombatEntity(core, candidate)
-    if ((StoryMilestoneRuntime.due(core).any { it.combatRequired } || rolledEntity != null) && narrative.isBlank())
+    if (blocksTextItemAction(action)) return response(false, clientSnapshot(before, core), "item_ui_required", "item_ui_required")
+    if (!StoryMilestoneRuntime.hasPlan(core))
+      return response(false, clientSnapshot(before, core), "milestone_plan_required", "gemini_delta_rejected")
+    if (StoryMilestoneRuntime.due(core).any { it.isEncounter } && narrative.isBlank())
       return response(false, clientSnapshot(before, core), "encounter_narrative_missing", "gemini_delta_rejected")
     if (before.optInt("turn", -1) != CoreClientProjection.turnIndex(core))
       return response(false, clientSnapshot(before, core), "stale_client_state", "gemini_delta_rejected")
@@ -403,71 +408,17 @@ class GameCoreFacade private constructor(
     val pending = TurnCoordinator.createPending(core, turnId, action)
     if (pending.error != null) return response(false, before, pending.error, "pending_rejected")
     val commands = mutableListOf<GameCommand>()
-    val desiredParty = mutableMapOf<String, JSONObject>()
-    val partyJson = candidate.optJSONArray("party") ?: JSONArray()
-    for (index in 0 until partyJson.length()) {
-      val member = partyJson.optJSONObject(index) ?: continue
-      val requestedId = member.optString("id").trim()
-      val requestedName = member.optString("name").trim()
-      val id = pending.state.characters.values.firstOrNull { known ->
-        known.id.equals(requestedId, ignoreCase = true) ||
-          (requestedName.isNotBlank() && known.name.equals(requestedName, ignoreCase = true))
-      }?.id ?: requestedId.ifBlank { requestedName.lowercase() }
-      if (id.isNotBlank()) desiredParty[id] = JSONObject(member.toString()).put("id", id)
-    }
-    // Party membership belongs to Core, not to a synthetic Java/WebView party array.
-    // Java supplies the validated encounter rolls; only Core can reserve party slots.
+    // Narrator/client JSON cannot spawn characters, reserve encounters or change Party.
     val authoritativeFlags = candidate.optJSONObject("flags") ?: JSONObject().also { candidate.put("flags", it) }
-    val authoritativeRolls = authoritativeFlags.optJSONObject("lastRolls")
-    val savedFlags = pending.state.world["flagsJson"]?.let { runCatching { JSONObject(it) }.getOrNull() } ?: JSONObject()
-    fun encounterSucceeded(key: String): Boolean =
-      authoritativeRolls?.takeIf {
-        !it.optBoolean("meta", false) &&
-          it.optInt("turn", -1) == CoreClientProjection.turnIndex(pending.state)
-      }?.optJSONObject(key)?.let { it.optBoolean("eligible", false) && it.optBoolean("success", false) } == true
-    val automaticFollowers = listOf(
-      Triple(AN_NHIEN_ID, "anNhien", "anNhienEncounter"),
-      Triple(IRIS_ID, "iris", "irisReunion"),
-      Triple(SYVIAL_ID, "syvial", "syvialReunion"),
-      Triple(LUCIA_ID, "lucia", "luciaEncounter"),
-      Triple(LUC_TRAM_ID, "lucTram", "lucTramEncounter")
-    )
-    val lucTramAuthorized = LucTramCanon.validEncounterRoll(pending.state, authoritativeRolls) ||
-      (LucTramCanon.currentLevel(pending.state) >= LucTramCanon.FIRST_ELIGIBLE_LEVEL &&
-        savedFlags.optJSONObject("lucTram")?.optBoolean("joinPending", false) == true)
-    if (LUC_TRAM_ID !in pending.state.party.memberIds && !lucTramAuthorized) desiredParty.remove(LUC_TRAM_ID)
-    for ((id, flagKey, rollKey) in automaticFollowers) {
-      val savedRecord = savedFlags.optJSONObject(flagKey)
-      val encounterConfirmed = (if (id == LUC_TRAM_ID) lucTramAuthorized else encounterSucceeded(rollKey)) ||
-        savedRecord?.optBoolean("joinPending", false) == true ||
-        (id == AN_NHIEN_ID && savedRecord?.optBoolean("encountered", false) == true)
-      if (!encounterConfirmed) continue
-      val record = authoritativeFlags.optJSONObject(flagKey) ?: JSONObject().also { authoritativeFlags.put(flagKey, it) }
-      val alreadyJoined = id in desiredParty
-      val canJoin = pending.state.characters[id]?.let { it.presence == CharacterPresence.ACTIVE && it.metadata["joinEligible"] == "true" } == true
-      if (!alreadyJoined && canJoin && desiredParty.size < pending.state.party.maxMembers - 1) {
-        desiredParty[id] = JSONObject().put("id", id).put("joinConfirmed", true).put("present", true)
-      } else if (alreadyJoined && canJoin) {
-        // Validated encounter proof supersedes the model's untrusted join booleans.
-        desiredParty[id] = JSONObject(desiredParty.getValue(id).toString())
-          .put("joinConfirmed", true).put("present", true)
-      }
-      val joined = id in desiredParty
-      record.put("joinPending", !joined)
-      record.put("follower", joined)
+    val savedFlags = JSONObject(core.world["flagsJson"] ?: "{}")
+    val encounterFields = listOf("anNhien", "iris", "syvial", "lucia", "lucTram", "survivorRegistry",
+      "survivorsConfirmed", "entitiesConfirmedLocal", "entityEncounterKey", "jeff", "jane")
+    encounterFields.forEach { key ->
+      if (savedFlags.has(key)) authoritativeFlags.put(key, savedFlags.get(key)) else authoritativeFlags.remove(key)
     }
-    val currentFollowers = pending.state.party.memberIds.filter { it != CAO_MINH_ID }.toSet()
-    (currentFollowers - desiredParty.keys).sorted().forEachIndexed { index, id ->
-      commands += PartyCommand("$turnId:GEMINI:PARTY_REMOVE:$index", turnId, CAO_MINH_ID, id, CommandSource.GEMINI, PartyCommand.Operation.REMOVE)
-    }
-    (desiredParty.keys - currentFollowers).sorted().forEachIndexed { index, id ->
-      val member = desiredParty.getValue(id)
-      val known = pending.state.characters[id]
-      commands += PartyCommand(
-        "$turnId:GEMINI:PARTY_ADD:$index", turnId, CAO_MINH_ID, id, CommandSource.GEMINI, PartyCommand.Operation.ADD,
-        consentConfirmed = member.optBoolean("joinConfirmed", false) && known?.metadata?.get("joinEligible") == "true",
-        targetPresent = member.optBoolean("present", false) && known?.presence == CharacterPresence.ACTIVE
-      )
+    authoritativeFlags.optJSONObject("lastRolls")?.let { rolls ->
+      listOf("entityEncounter", "selectedEntityKey", "survivor", "anNhienEncounter", "irisReunion",
+        "syvialReunion", "luciaEncounter", "lucTramEncounter").forEach(rolls::remove)
     }
     commands += ValidatedWorldStateCommand(
       commandId = "$turnId:GEMINI:VALIDATED_STATE", turnId = turnId, source = CommandSource.GEMINI,
@@ -486,10 +437,6 @@ class GameCoreFacade private constructor(
     }
     val protectedState = CharacterProgressionCore.protectFromCandidate(pending.state, committed.state)
     var applied = StoryMilestoneRuntime.acceptTurn(protectedState)
-    if (rolledEntity != null) {
-      val serial = (applied.metadata["loot.encounterSerial"]?.toLongOrNull() ?: 0L) + 1L
-      applied = CombatRuntime.prepareEncounter(applied, rolledEntity, "ROLL:$serial:$turnId:$rolledEntity", false)
-    }
     CombatRuntime.pending(applied)?.let { encounter ->
       applied = applied.copy(metadata = applied.metadata + ("combat.encounterNarrative" to
         JSONObject().put("role", "gm").put("text", narrative)
@@ -500,27 +447,6 @@ class GameCoreFacade private constructor(
     val synchronized = clientSnapshot(candidate, accepted)
     logger.log(PipelineLogEvent("GEMINI_COMMIT", turnId = turnId, source = CommandSource.GEMINI, details = mapOf("commands" to commands.size.toString())))
     return response(true, synchronized, null, "gemini_delta_committed")
-  }
-
-  private fun rolledCombatEntity(state: GameState, candidate: JSONObject): String? {
-    if (StoryMilestoneRuntime.hasPlan(state)) return null
-    val rolls = candidate.optJSONObject("flags")?.optJSONObject("lastRolls") ?: return null
-    val roll = rolls.optJSONObject("entityEncounter") ?: return null
-    if (rolls.optBoolean("meta", false) || rolls.optInt("turn", -1) != CoreClientProjection.turnIndex(state) ||
-      !roll.optBoolean("eligible", false) || !roll.optBoolean("success", false)) return null
-    val key = rolls.optString("selectedEntityKey")
-    require(CombatRuntime.supportsEntityKey(key)) { "encounter_entity_unsupported" }
-    return key
-  }
-
-
-  @Synchronized fun startCombatState(clientStateJson: String, entityKey: String): String {
-    val client = JSONObject(clientStateJson)
-    val current = loadCurrentState()
-    require(!StoryMilestoneRuntime.hasPlan(current)) { "milestone_entity_start_forbidden" }
-    val next = CombatRuntime.start(current, entityKey)
-    repository.save(next)
-    return clientSnapshot(client, next).toString()
   }
 
   @Synchronized fun confirmEncounter(clientStateJson: String, encounterId: String): String {
@@ -536,6 +462,38 @@ class GameCoreFacade private constructor(
     } catch (error: IllegalArgumentException) {
       response(false, clientSnapshot(client, current), error.message, "encounter_confirmation_rejected")
     }
+  }
+
+  /** Explicit invitation, separate from the saved meeting; no Explorer Turn is consumed. */
+  @Synchronized fun recruitFollower(clientStateJson: String, characterId: String): String {
+    val client = JSONObject(clientStateJson)
+    val current = loadCurrentState()
+    fun reject(reason: String): String = response(false, clientSnapshot(client, current), reason, "recruitment_rejected")
+    if (client.optInt("turn", -1) != CoreClientProjection.turnIndex(current) ||
+      current.world["story.runToken"]?.let { it != client.optJSONObject("story")?.optString("runToken") } == true)
+      return reject("stale_client_state")
+    if (!StoryMilestoneRuntime.hasPlan(current)) return reject("milestone_plan_required")
+    if (CombatRuntime.pending(current) != null || CombatRuntime.active(current) != null ||
+      current.turn.pending != null || ActionRuntime.activeSession(current) != null) return reject("turn_in_progress")
+    val character = current.characters[characterId] ?: return reject("target_unknown")
+    if (character.metadata["encountered"] != "true") return reject("follower_not_encountered")
+    if (characterId in current.party.memberIds)
+      return response(true, clientSnapshot(client, current), null, "already_in_party", "${character.name} đã ở trong Party.")
+    val command = PartyCommand("JOIN:${character.metadata["encounterId"]}:$characterId",
+      current.turn.currentTurnId, CAO_MINH_ID, characterId, CommandSource.UI, PartyCommand.Operation.ADD,
+      consentConfirmed = character.metadata["joinEligible"] == "true" && character.metadata["followsPlayer"] == "true",
+      targetPresent = character.presence == CharacterPresence.ACTIVE)
+    val result = PartyEngine.execute(current, command)
+    if (!result.applied) return reject(result.validation.reason ?: "recruitment_failed")
+    var next = result.state
+    StoryMilestoneRuntime.characterFlagKey(characterId)?.let { key ->
+      val flags = JSONObject(next.world["flagsJson"] ?: "{}")
+      val record = flags.optJSONObject(key) ?: JSONObject()
+      flags.put(key, record.put("follower", true).put("joinPending", false))
+      next = next.copy(world = next.world + ("flagsJson" to flags.toString()))
+    }
+    repository.save(next)
+    return response(true, clientSnapshot(client, next), null, "follower_recruited", "${character.name} đã gia nhập Party.")
   }
 
   @Synchronized fun processCombat(clientStateJson: String, actionKind: String, action: String): String {
@@ -621,6 +579,15 @@ class GameCoreFacade private constructor(
   @Synchronized fun milestoneWaiting(): Boolean =
     StoryMilestoneRuntime.awaitingPlan(loadCurrentState())
 
+  private fun characterRegistry(state: GameState): JSONArray = JSONArray().apply {
+    state.characters.values.filter { it.id != CAO_MINH_ID }.sortedBy { it.id }.forEach { character ->
+      put(JSONObject().put("id", character.id).put("name", character.name)
+        .put("kind", if (character.metadata["npcType"] == "follower") "FOLLOWER" else "NPC")
+        .put("levels", character.metadata["encounterLevels"] ?: "any")
+        .put("alive", character.presence != CharacterPresence.DEAD))
+    }
+  }
+
   /**
    * Request the next plan while the verified boss encounter is active, or
    * after a very quick victory while background Gemini was still answering.
@@ -648,6 +615,7 @@ class GameCoreFacade private constructor(
     }
     val level = requireNotNull(LevelRouteRegistry.node(targetId)).asJson()
     return JSONObject().put("needed", true)
+      .put("characterRegistry", characterRegistry(state))
       .put("runToken", runToken).put("checkpointId", position.id)
       .put("nextCheckpointId", next.id).put("checkpointTotal", next.total).put("bossEncounterId", encounterId)
       .put("targetLevel", level)
@@ -698,6 +666,7 @@ class GameCoreFacade private constructor(
       JSONObject(it).optString("id", JSONObject(it).optInt("number", 0).toString())
     } ?: "0"
     return JSONObject().put("needed", true)
+      .put("characterRegistry", characterRegistry(state))
       .put("runToken", token)
       .put("checkpointId", position.id)
       .put("checkpointTotal", position.total)

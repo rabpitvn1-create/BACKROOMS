@@ -217,6 +217,8 @@ object CombatRuntime {
   /** Gemini receives actual combat-supported Entity keys, not a separate lore-only roster. */
   fun supportedEntityKeys(): List<String> = profiles.keys.sorted()
 
+  fun entityName(key: String): String = profiles.getValue(key).displayName
+
   fun active(state: GameState): Snapshot? = decode(state)?.takeIf { it.phase == Phase.ACTIVE }
 
   fun pending(state: GameState): Snapshot? = decode(state)?.takeIf {

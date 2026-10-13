@@ -157,20 +157,20 @@ class PendingEncounterConfirmationTest {
     assertEquals(listOf("encounter1"), StoryMilestoneRuntime.due(repo.state).map { it.id })
   }
 
-  @Test fun nonMilestoneCoreRollAlsoWaitsForNarrationAndConfirmation() {
+  @Test fun missingMilestoneNeverFallsBackToRandomCombat() {
     val repo = MemorySave(CoreClientProjection.initialize(GameState.initial()))
+    val beforeState = repo.state
     val core = facade(repo)
     val before = CoreClientProjection.project(JSONObject(), repo.state)
     val candidate = JSONObject(before.toString())
-    candidate.getJSONObject("flags").put("lastRolls", JSONObject().put("turn", before.getInt("turn"))
-      .put("selectedEntityKey", "duller").put("entityEncounter", JSONObject().put("eligible", true).put("success", true)))
-    val result = JSONObject(core.processValidatedCandidate(before.toString(), candidate.toString(), "Khám Phá", "Duller xuất hiện."))
-    assertTrue(result.getBoolean("handled"))
+    candidate.getJSONObject("flags").put("lastRolls", JSONObject().put("turn", 1).put("selectedEntityKey", "hound")
+      .put("entityEncounter", JSONObject().put("eligible", true).put("success", true)))
+    val result = JSONObject(core.processValidatedCandidate(before.toString(), candidate.toString(), "Khám Phá", "Hound xuất hiện."))
+    assertFalse(result.getBoolean("handled"))
+    assertEquals("milestone_plan_required", result.getString("error"))
+    assertEquals(beforeState, repo.state)
+    assertNull(CombatRuntime.pending(repo.state))
     assertNull(CombatRuntime.active(repo.state))
-    val pending = CombatRuntime.pending(repo.state)!!
-    StoryMilestoneRuntime.validateStoredState(GameStateCodec.decode(GameStateCodec.encode(repo.state)))
-    assertTrue(JSONObject(core.confirmEncounter(result.getJSONObject("state").toString(), pending.encounterId)).getBoolean("handled"))
-    assertEquals("duller", CombatRuntime.active(repo.state)!!.entityKey)
   }
 
   @Test fun combatRequiredMustBeBooleanAndCannotBeAttachedToStoryMentions() {

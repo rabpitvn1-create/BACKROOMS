@@ -14,7 +14,7 @@ class SpecialFollowersTest {
 
     assertEquals("follower", iris.metadata["npcType"])
     assertEquals("true", iris.metadata["joinEligible"])
-    assertEquals("0.25%", iris.metadata["encounterChance"])
+    assertEquals("MILESTONE", iris.metadata["encounterPolicy"])
     assertEquals("0-6", iris.metadata["encounterLevels"])
     assertEquals("Scout / Target Eliminator", iris.metadata["role"])
     assertNull(iris.metadata["combatTier"])
@@ -22,14 +22,14 @@ class SpecialFollowersTest {
 
     assertEquals("follower", syvial.metadata["npcType"])
     assertEquals("true", syvial.metadata["joinEligible"])
-    assertEquals("0.25%", syvial.metadata["encounterChance"])
+    assertEquals("MILESTONE", syvial.metadata["encounterPolicy"])
     assertEquals("UR+", syvial.metadata["combatTier"])
     assertEquals(SpecialFollowersCanon.syvialEquipmentSlots, state.equipment[SYVIAL_ID]!!.slots)
 
     assertFalse(IRIS_ID in state.party.memberIds)
     assertFalse(SYVIAL_ID in state.party.memberIds)
-    assertEquals("false", state.characters[AN_NHIEN_ID]!!.metadata["mandatoryEncounter"])
-    assertEquals("0.25%", state.characters[AN_NHIEN_ID]!!.metadata["encounterChance"])
+    assertFalse(state.characters[AN_NHIEN_ID]!!.metadata.containsKey("mandatoryEncounter"))
+    assertEquals("MILESTONE", state.characters[AN_NHIEN_ID]!!.metadata["encounterPolicy"])
   }
 
   @Test fun decodeBackfillsSpecialFollowersWithoutForcingThemIntoParty() {

@@ -62,5 +62,50 @@
       statusEl.textContent = 'Phản hồi Battle Start không hợp lệ. Anh hãy thử lại.';
     }
   };
+  window.backroomRenderEncounteredCharacters = function () {
+    var box = document.getElementById('encounteredCharacters');
+    if (!box) return;
+    box.textContent = '';
+    (state.encounteredCharacters || []).forEach(function (character) {
+      var row = document.createElement('div');
+      row.style.cssText = 'display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px';
+      var label = document.createElement('span');
+      label.textContent = 'Đã gặp: ' + character.name + (character.inParty ? ' · Trong Party' : '');
+      row.appendChild(label);
+      if (character.present && character.joinEligible && !character.inParty) {
+        var invite = document.createElement('button');
+        invite.type = 'button';
+        invite.textContent = 'Mời vào Party';
+        invite.dataset.characterId = character.id;
+        invite.disabled = busy || !!state.pendingEncounter || !!(state.combat && state.combat.active);
+        invite.addEventListener('click', function () {
+          if (invite.disabled || busy || !window.Android || typeof Android.recruitFollower !== 'function') return;
+          busy = true;
+          invite.disabled = true;
+          syncPrimaryActions();
+          statusEl.textContent = 'Đang mời ' + character.name + '…';
+          try { Android.recruitFollower(JSON.stringify(state), character.id); }
+          catch (error) { window.backroomRecruitment('{"handled":false,"error":"recruitment_failed"}'); }
+        });
+        row.appendChild(invite);
+      }
+      box.appendChild(row);
+    });
+  };
+
+  window.backroomRecruitment = function (json) {
+    busy = false;
+    try {
+      var result = JSON.parse(json);
+      if (result.state) window.backroomTurn(JSON.stringify(result.state));
+      else { syncPrimaryActions(); window.backroomRenderEncounteredCharacters(); }
+      var messages = {party_full: 'Party đã đủ thành viên.', join_not_confirmed: 'Nhân vật chưa đồng ý gia nhập.',
+        follower_not_encountered: 'Anh chưa gặp nhân vật này.', turn_in_progress: 'Hãy hoàn tất lượt hiện tại.',
+        stale_client_state: 'Trạng thái đã thay đổi. Anh hãy thử lại.'};
+      statusEl.textContent = result.handled ? (result.reply || 'Party đã cập nhật.') :
+        (messages[result.error] || 'Chưa thể tuyển mộ. Anh hãy thử lại.');
+    } catch (error) { syncPrimaryActions(); window.backroomRenderEncounteredCharacters(); statusEl.textContent = 'Chưa thể cập nhật Party. Anh hãy thử lại.'; }
+  };
   window.backroomRenderBattleStart();
+  window.backroomRenderEncounteredCharacters();
 }());

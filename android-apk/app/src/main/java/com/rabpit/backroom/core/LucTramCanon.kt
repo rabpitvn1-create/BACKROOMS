@@ -2,7 +2,7 @@ package com.rabpit.backroom.core
 
 /**
  * R06 baseline; an encounter is not a guaranteed reunion or recognition.
- * The character remains in Core but outside Party until the Level 4+ roll succeeds.
+ * The character remains in Core but outside Party until an explicit recruitment after a scheduled Level 4+ encounter.
  */
 const val LUC_TRAM_ID = "luc_tram"
 const val LUC_TRAM_TICH_QUANG_ID = "luc-tram:tich-quang"
@@ -11,7 +11,6 @@ const val LUC_TRAM_KIEM_KHAI_ID = "luc-tram:thien-co-bach-kim-kiem-khai"
 object LucTramCanon {
   const val NAME = "Lục Trầm"
   const val AVATAR_REF = "avatars/luctram_avatar.png"
-  const val ENCOUNTER_CHANCE = "0.25%"
   const val FIRST_ELIGIBLE_LEVEL = 4
 
   fun character(existing: CharacterState? = null): CharacterState {
@@ -33,7 +32,7 @@ object LucTramCanon {
         "npcType" to "follower",
         "combatant" to "true",
         "joinEligible" to "true",
-        "encounterChance" to ENCOUNTER_CHANCE,
+        "encounterPolicy" to "MILESTONE",
         "encounterLevels" to "4-6",
         "encounterAction" to "PHYSICAL",
         "followsPlayer" to "true",
@@ -76,21 +75,4 @@ object LucTramCanon {
     return LevelRouteRegistry.node(LevelRouteRegistry.currentId(scene))?.parent ?: 0
   }
 
-  fun eligible(state: GameState): Boolean =
-    currentLevel(state) >= FIRST_ELIGIBLE_LEVEL &&
-      LUC_TRAM_ID !in state.party.memberIds &&
-      state.party.memberIds.size <= state.party.maxMembers
-
-  /** No roleplay/candidate boolean alone can manufacture the reunion. */
-  fun validEncounterRoll(state: GameState, rolls: org.json.JSONObject?): Boolean {
-    if (!eligible(state) || rolls == null || rolls.optBoolean("meta", true) ||
-        rolls.optInt("turn", -1) != CoreClientProjection.turnIndex(state)) return false
-    val result = rolls.optJSONObject("lucTramEncounter") ?: return false
-    val value = result.optInt("roll", -1)
-    return result.optBoolean("eligible", false) &&
-      result.optBoolean("success", false) &&
-      result.optInt("max", -1) == 10000 &&
-      result.optInt("threshold", -1) == 25 &&
-      value in 1..25
-  }
 }

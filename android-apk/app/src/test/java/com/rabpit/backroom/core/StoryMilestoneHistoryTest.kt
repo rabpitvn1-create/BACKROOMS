@@ -26,17 +26,14 @@ class StoryMilestoneHistoryTest {
     StoryCheckpointCore.seedLevelZero(CoreClientProjection.initialize(GameState.initial())),
     plan("CP-L00-01"))
 
-  @Test fun extraneousStoryFactsCannotVetoMilestoneOrBecomeSavedState() {
+  @Test fun extraEvidenceFieldsAreOutsideTheMilestoneSchemaAndCannotBecomeSaveState() {
     val raw = JSONObject(plan("CP-L00-01"))
     raw.getJSONArray("events").getJSONObject(0).put("storyFacts",
       JSONArray().put(JSONObject().put("kind", "CLUE")
         .put("subject", "Cánh cửa màu vàng")))
-    val parsed = StoryMilestonePlan.parse(raw.toString(), StoryCheckpointCore.Position(0, 1, 20))
-    assertFalse(parsed.toJson().toString().contains("storyFacts"))
-    val installed = StoryMilestonePlan.installCurrent(
-      StoryCheckpointCore.seedLevelZero(CoreClientProjection.initialize(GameState.initial())), raw.toString())
-    assertFalse(installed.world.containsKey("story.factLedger"))
-    assertFalse(StoryMilestonePlan.current(installed)!!.plan.toJson().toString().contains("storyFacts"))
+    assertThrows(Exception::class.java) {
+      StoryMilestonePlan.parse(raw.toString(), StoryCheckpointCore.Position(0, 1, 20))
+    }
   }
 
   @Test fun saveLoadPreservesCommittedContextWithoutStoryFactLedger() {
