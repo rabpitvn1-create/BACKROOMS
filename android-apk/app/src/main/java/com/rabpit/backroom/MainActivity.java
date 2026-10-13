@@ -2022,9 +2022,23 @@ public class MainActivity extends Activity {
   }
 
   private void appendStoryFactIssues(JSONArray issues, JSONObject generated) throws Exception {
-    if (generated.optJSONArray("storyFacts") != null) return;
+    JSONArray facts = generated.optJSONArray("storyFacts");
+    String violation = "story_facts_contract_required";
+    if (facts != null) {
+      try {
+        com.rabpit.backroom.core.StoryFactLedger.validateGmProposals(facts.toString());
+        return;
+      } catch (Exception invalid) {
+        violation = invalid.getMessage() == null ? "story_facts_invalid" : invalid.getMessage();
+      }
+    }
     issues.put(new JSONObject().put("rule", "story_facts_contract_required").put("severity", "hard")
-      .put("reason", "Trả storyFacts: [] hoặc ADD{op,kind,subject,fact}/RESOLVE{op,referenceId,fact} cho dữ kiện thật trong lời kể đã nhận."));
+      .put("claim", violation)
+      .put("reason", "storyFacts không hợp lệ (" + violation + "). Nếu không có dữ kiện mới trả []; " +
+        "nếu có, chỉ dùng ADD{op:\"ADD\",kind:\"EVENT|ENTITY|CLUE\",subject:\"stable.id\",fact:\"... \"} " +
+        "hoặc RESOLVE{op:\"RESOLVE\",referenceId:\"FACT:...\",fact:\"...\"}. " +
+        "Mỗi entry bắt buộc có op là chuỗi và đúng các trường yêu cầu, không null, không trường thừa. " +
+        "Giữ nguyên sự thật và lời kể; không tự bịa fact để sửa JSON."));
   }
 
   private void appendIssues(JSONArray target, JSONArray source) throws Exception {
