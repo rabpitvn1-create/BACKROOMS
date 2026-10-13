@@ -1,7 +1,12 @@
-name: Live Gameplay - Six Checkpoints
+name: Live Gameplay - First Two Checkpoints
 
+# Temporary single-run trigger; restore manual-only after the PR run starts.
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - "android-apk/app/src/androidTest/java/com/rabpit/backroom/core/LiveSixCheckpointsGameplayTest.kt"
 
 permissions:
   contents: read
@@ -41,7 +46,7 @@ jobs:
         with:
           gradle-version: '8.10.2'
 
-      - name: Play CP-L00-01 through CP-L00-06 using live AI and WebView UI
+      - name: Play CP-L00-01 and CP-L00-02 using SOL and Gehihi
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
@@ -51,11 +56,11 @@ jobs:
           disable-animations: true
           script: cd android-apk && bash -c 'gradle :app:connectedDebugAndroidTest -PbackroomTwoProviderTest=true -Pandroid.testInstrumentationRunnerArguments.class=com.rabpit.backroom.core.LiveSixCheckpointsGameplayTest --no-daemon; result=$?; adb logcat -d -s BackroomLiveSixCP:I > app/build/live-six-cp-log.txt; cat app/build/live-six-cp-log.txt; exit $result'
 
-      - name: Save real gameplay emulator results
+      - name: Save first two Checkpoints emulator results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: live-six-checkpoints-emulator-reports
+          name: live-two-checkpoints-emulator-reports
           path: |
             android-apk/app/build/reports/androidTests/connected/
             android-apk/app/build/outputs/androidTest-results/connected/

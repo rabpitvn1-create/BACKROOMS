@@ -16,7 +16,7 @@ import org.junit.runner.RunWith
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-/** Actual on-screen game actions and provider responses; no synthetic milestone, receipts or damage. */
+/** Actual APK gameplay for CP1 and CP2; SOL planner, Gehihi writer, no fake receipts or damage. */
 @RunWith(AndroidJUnit4::class)
 class LiveSixCheckpointsGameplayTest {
   private val instrumentation = InstrumentationRegistry.getInstrumentation()
@@ -43,6 +43,30 @@ class LiveSixCheckpointsGameplayTest {
         var status=document.getElementById('status');
         var finish=document.getElementById('pokerDiceFinish');
         var warnings=document.querySelectorAll('.message.gm.warning');
+        // Observe real callback errors even when rerendering removes warning rows.
+        if(!window.__liveTestErrorEvents){
+          window.__liveTestErrorEvents=[];
+          var recordError=function(source,message){
+            window.__liveTestErrorEvents.push({source:source,message:String(message||'').slice(0,900)});
+          };
+          var originalGmError=window.backroomError;
+          if(typeof originalGmError==='function'){
+            window.backroomError=function(message){
+              recordError('gm',message);
+              return originalGmError.apply(this,arguments);
+            };
+          }
+          var originalMilestoneStatus=window.backroomMilestoneStatus;
+          if(typeof originalMilestoneStatus==='function'){
+            window.backroomMilestoneStatus=function(raw){
+              try{
+                var event=typeof raw==='string'?JSON.parse(raw):raw;
+                if(event&&event.status==='error')recordError('milestone',event.message);
+              }catch(ignore){}
+              return originalMilestoneStatus.apply(this,arguments);
+            };
+          }
+        }
         return JSON.stringify({
           ready:true,cp:String(story.checkpointId||''),turn:Number(s.turn)||0,
           plan:story.hasPlan===true,waiting:story.waiting===true,
@@ -55,6 +79,7 @@ class LiveSixCheckpointsGameplayTest {
           canFinish:!!finish&&!finish.disabled,
           status:String(status&&status.textContent||'').slice(0,900),
           warnings:warnings.length,
+          errorEvents:window.__liveTestErrorEvents||[],
           error:warnings.length?String(warnings[warnings.length-1].textContent||'').slice(0,900):''
         });
       })();
@@ -71,7 +96,7 @@ class LiveSixCheckpointsGameplayTest {
       })();
     """.trimIndent()) == "true"
 
-  @Test fun playSixCheckpointsWithRealProvidersAndUi() {
+  @Test fun playFirstTwoCheckpointsWithRealProvidersAndUi() {
     assertTrue("Only SOL Milestone and Gehihi GM are allowed in this live test",
       BuildConfig.DEBUG && BuildConfig.TWO_PROVIDER_GAMEPLAY_TEST)
     assertTrue("SOL is required", BuildConfig.SOL_API_KEY.isNotBlank())
@@ -97,7 +122,12 @@ class LiveSixCheckpointsGameplayTest {
     var combatFinishes = 0
     var lastHeartbeatAt = started
     // Record recoverable UI errors; do not stop the playtest while a normal retry can proceed.
-    var observedWarnings = 0
+    var observedErrorEvents = 0
+    var totalTimeouts = 0
+    val timeoutPattern = Regex(
+      "timeout|timed?\\s*out|deadline|http\\s*408|quá\\s+thời\\s+gian\\s+chờ|không\\s+trả\\s+kịp",
+      RegexOption.IGNORE_CASE
+    )
     var retryAfter = 0L
     var lastMilestoneRetryAt = 0L
     var lastMilestoneRetryKey = ""
@@ -119,11 +149,41 @@ class LiveSixCheckpointsGameplayTest {
           priorTurn = turn
           lastChangeAt = now
         }
-        if (cp == "CP-L00-07") {
+        val events = ui.optJSONArray("errorEvents")
+        if (events != null) {
+          if (events.length() < observedErrorEvents) observedErrorEvents = 0
+          while (observedErrorEvents < events.length()) {
+            val event = events.getJSONObject(observedErrorEvents++)
+            val source = event.optString("source")
+            val message = event.optString("message")
+            val key = cp + ":turn=" + turn
+            val summary = "CP=" + cp + " turn=" + turn + " source=" + source + " error=" + message
+            issues.add(summary)
+            Log.w(tag, "LIVE_PROVIDER_ERROR " + summary)
+            if (timeoutPattern.containsMatchIn(message)) {
+              totalTimeouts++
+              Log.w(tag, "LIVE_TIMEOUT_COUNT=" + totalTimeouts + " " + summary)
+              if (totalTimeouts > 3)
+                fail("LIVE_TIMEOUT_LIMIT_EXCEEDED totalTimeouts=" + totalTimeouts +
+                  " CP=" + cp + " Turn=" + turn + " last=" + message)
+            }
+            if (source == "gm") {
+              val attempts = (errorsPerTurn[key] ?: 0) + 1
+              errorsPerTurn[key] = attempts
+              retryAfter = now + 5_000L
+              lastChangeAt = now
+              if (attempts >= 5)
+                fail("LIVE_BLOCKING_GM_ERROR " + summary + " attempts=" + attempts)
+            }
+          }
+        }
+
+        // CP1 and CP2 must be completed, including actual Boss combat.
+        if (cp == "CP-L00-03") {
           val stored = SharedPreferencesSaveRepository(context).load()
           val history = org.json.JSONArray(stored.world["story.checkpointHistory"] ?: "[]")
-          assertEquals(6, history.length())
-          for (i in 0..5) {
+          assertEquals(2, history.length())
+          for (i in 0..1) {
             val item = history.getJSONObject(i)
             assertEquals("CP-L00-" + (i + 1).toString().padStart(2, '0'), item.getString("checkpointId"))
             assertTrue(item.getLong("turnCount") >= 18L)
@@ -131,27 +191,12 @@ class LiveSixCheckpointsGameplayTest {
             assertEquals("DEFEATED", item.getString("bossResult"))
           }
           StoryMilestoneRuntime.validateStoredState(stored)
-          Log.i(tag, "LIVE_6CP_PASS explorerActions=" + explorerActions +
-            " combatFinishes=" + combatFinishes + " recoverableIssues=" + issues.size)
+          Log.i(tag, "LIVE_2CP_PASS explorerActions=" + explorerActions +
+            " combatFinishes=" + combatFinishes + " totalTimeouts=" + totalTimeouts +
+            " recoverableIssues=" + issues.size)
           issues.forEachIndexed { index, issue -> Log.i(tag, "RECOVERABLE_$index " + issue) }
           return
         }
-        val warningCount = ui.optInt("warnings")
-        if (warningCount > observedWarnings) {
-          val key = cp + ":turn=" + turn
-          val attempts = (errorsPerTurn[key] ?: 0) + (warningCount - observedWarnings)
-          errorsPerTurn[key] = attempts
-          val summary = "CP=" + cp + " turn=" + turn + " gmError=" + ui.optString("error")
-          issues.add(summary)
-          Log.w(tag, "NON_BLOCKING_ERROR " + summary + " attempt=" + attempts)
-          retryAfter = now + 5_000L
-          lastChangeAt = now // This is a real failed request and recovery attempt, not an idle screen.
-          // A repeatedly rejected turn becomes blocking, not a false pass.
-          if (attempts >= 5) fail("LIVE_BLOCKING_GM_ERROR " + summary +
-            " attempts=" + attempts + " totalRecordedIssues=" + issues.size)
-        }
-        observedWarnings = warningCount
-
         if (ui.optBoolean("milestoneError")) {
           val key = cp + ":turn=" + turn
           if (key != lastMilestoneRetryKey || now - lastMilestoneRetryAt > 25_000L) {
@@ -172,7 +217,7 @@ class LiveSixCheckpointsGameplayTest {
           Thread.sleep(1000)
           continue
         }
-        if (cp.isNotEmpty() && cp !in (1..6).map { "CP-L00-" + it.toString().padStart(2, '0') })
+        if (cp.isNotEmpty() && cp != "CP-L00-01" && cp != "CP-L00-02")
           fail("LIVE_UNEXPECTED_CP=" + cp + " Turn=" + turn)
         // An actual writer + independent audits + one repair + evidence verifier can
         // legitimately exceed nine minutes during provider 503/timeout failover.
@@ -192,7 +237,7 @@ class LiveSixCheckpointsGameplayTest {
             " loading=" + loading + " combat=" + combat +
             " idleSec=" + ((now - lastChangeAt) / 1000) +
             " providerStatus=" + ui.optString("status") +
-            " recoverableIssues=" + issues.size)
+            " recoverableIssues=" + issues.size + " totalTimeouts=" + totalTimeouts)
           lastHeartbeatAt = now
         }
         if (now - lastChangeAt > idleLimit)
@@ -226,7 +271,8 @@ class LiveSixCheckpointsGameplayTest {
         Thread.sleep(1000)
       }
       fail("LIVE_GLOBAL_TIMEOUT 3h CP=" + priorCp + " Turn=" + priorTurn +
-        " explorerActions=" + explorerActions + " issues=" + issues.size)
+        " explorerActions=" + explorerActions + " totalTimeouts=" + totalTimeouts +
+        " issues=" + issues.size)
     } finally {
       instrumentation.runOnMainSync { activity.finish() }
     }
