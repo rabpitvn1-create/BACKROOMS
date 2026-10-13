@@ -1,3 +1,5 @@
+> **Đặc tả hiện hành:** [Fake Sandbox / Milestone v3](FAKE_SANDBOX_CHECKPOINT_MILESTONE_V3.md). Phần còn lại lưu vết thiết kế/triển khai lịch sử, không dùng làm luật quota hoặc encounter hiện tại.
+
 # Bước 4/10 · Gemini Milestone Contract v2
 
 Gemini biên kịch action, event, outcome và Turn tương đối. GM kể tự nhiên theo lựa chọn của người chơi nhưng không thay kết quả bắt buộc. Action là hành động trong thế giới truyện; không phải cụm từ người chơi phải nhập.
