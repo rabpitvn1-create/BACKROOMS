@@ -1,0 +1,10 @@
+Backroom 1.2.0.0.15 Debug
+
+- Android versionCode 88; versionName 1.2.0.0.15; applicationId com.rabpit.backroom.
+- Chuyển toàn bộ Milestone Planner (khởi tạo Checkpoint đầu và prefetch Checkpoint tiếp theo khi Boss đang chiến đấu) từ Gemini sang SOL, model vgpt/gpt-6.1-sol.
+- SOL Milestone dùng max_tokens 12288, temperature 0.5, reasoning_effort low; SOL cho GM writer vẫn giữ max_tokens 2048, temperature 0.6. Không fallback Milestone sang Gemini, Gehihi hoặc Haku.
+- Giữ lease chống phản hồi trễ, popup loading, khóa thao tác khi plan chưa sẵn sàng và nút thử lại sau lỗi provider/JSON.
+- Game Core vẫn kiểm định schema v2, quota tối thiểu 50 turn và 20 encounter riêng biệt mỗi CP, Boss cuối và completion; không tin nội dung model nếu thiếu dữ kiện hợp lệ.
+- Không đổi provider kể chuyện GM, audit/Canon và tạo ảnh.
+- APK Debug; CI kiểm tra Node/Kotlin/Android package, chưa kiểm chứng SOL live và thời gian chờ trên thiết bị.
+- Không hỗ trợ save game cũ.

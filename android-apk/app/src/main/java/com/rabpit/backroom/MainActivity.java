@@ -871,8 +871,20 @@ public class MainActivity extends Activity {
   }
 
   private String solText(String prompt) throws Exception {
+    return solText(prompt, 2048, 0.6);
+  }
+
+  /** Milestone JSON requires a larger output budget than ordinary GM prose. */
+  private String solMilestoneText(String prompt) throws Exception {
+    return solText(prompt, 12288, 0.5);
+  }
+
+  private String solText(String prompt, int maxOutputTokens, double temperature) throws Exception {
     if (BuildConfig.SOL_API_KEY == null || BuildConfig.SOL_API_KEY.trim().isEmpty()) throw new Exception("SOL_API_KEY chưa được cấu hình.");
-    JSONObject body = openAiProviderBody("vgpt/gpt-6.1-sol", prompt).put("reasoning_effort", "low");
+    JSONObject body = openAiProviderBody("vgpt/gpt-6.1-sol", prompt)
+      .put("reasoning_effort", "low")
+      .put("max_tokens", maxOutputTokens)
+      .put("temperature", temperature);
     String output = openAiProviderText(postJson("https://api.vilao.ai/v1/chat/completions", BuildConfig.SOL_API_KEY, "Authorization", body));
     parseModelJson(output);
     return output;
@@ -2028,10 +2040,10 @@ public class MainActivity extends Activity {
     if (scene.length() > 1500) scene = scene.substring(0, 1500);
     String prompt = com.rabpit.backroom.core.StoryMilestonePlannerPrompt.build(
       checkpointId, startTurn, nodeId, canon, scene, request.getInt("checkpointTotal"), requireGameCore().storyFactContext());
-    // No audit/writer routing and no parallel requests to five keys.
+    // Dedicated SOL planner, separate from the GM writer/audit providers.
     emitMilestoneStatus(request, "loading", "Đang chuẩn bị Milestone cho Checkpoint…");
     try {
-      String rawPlan = geminiTextPolicy(prompt, -1, 0.5, 12288, false);
+      String rawPlan = solMilestoneText(prompt);
       boolean saved = requireGameCore().installMilestonePlan(
         rawPlan, request.getString("runToken"), checkpointId, startTurn);
       if (!saved) throw new IllegalStateException("milestone_plan_state_changed");
@@ -2085,7 +2097,7 @@ public class MainActivity extends Activity {
             "Completion của CP trước bên dưới còn PLANNED, chỉ xảy ra sau verified Boss defeat; " +
             "dùng nó để nối tiếp kịch bản, không ghi thành lịch sử đã xảy ra và không giả định HP/Party sau Combat. " +
             "PREDECESSOR_PENDING_COMPLETION=" + lease.getJSONObject("completion").toString();
-          String raw = geminiTextPolicy(prompt, -1, 0.5, 12288, false);
+          String raw = solMilestoneText(prompt);
           boolean accepted = requireGameCore().installNextMilestone(
             raw, lease.getString("runToken"), lease.getString("checkpointId"),
             lease.getString("bossEncounterId"));

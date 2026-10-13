@@ -1,9 +1,8 @@
 package com.rabpit.backroom.core
 
 /**
- * A single Gemini story planner. Keys are transport fallbacks in MainActivity,
- * not independent writers, voters or GM agents. The output schema is enforced
- * by StoryMilestonePlan, not by trusting this prompt.
+ * A single SOL Milestone planner. The output schema is enforced by
+ * StoryMilestonePlan, not by trusting provider text.
  */
 object StoryMilestonePlannerPrompt {
   @JvmStatic
@@ -42,7 +41,7 @@ object StoryMilestonePlannerPrompt {
     }.distinct().filter { LevelRouteRegistry.node(it)?.parent != position.level }.joinToString(", ")
     val entityKeys = CombatRuntime.supportedEntityKeys().joinToString(", ")
     return """
-      Vai trò: một Gemini biên kịch Checkpoint trong Backrooms The Game.
+      Vai trò: SOL biên kịch Checkpoint trong Backrooms The Game.
       Chỉ xuất một JSON object hợp lệ. Không markdown, không lời giải thích.
       checkpointId=$checkpointId; globalStartTurn=$absoluteStartTurn; currentLevelNode=$levelNode; checkpointIndex=${position.index}; checkpointTotal=$checkpointTotal; isFinalCheckpoint=${position.isLast}.
 
@@ -76,7 +75,7 @@ object StoryMilestonePlannerPrompt {
       placeholder bằng dữ kiện có nguồn; không dùng ví dụ thảo luận làm Canon.
       action là hành động trong thế giới của NPC/Entity/môi trường; không ép
       người chơi nhập đúng cụm từ hoặc tự chọn hành động thay người chơi.
-      Chỉ CP cuối có EXIT_LEVEL. Gemini quyết định sự kiện và outcome kết thúc
+      Chỉ CP cuối có EXIT_LEVEL. SOL quyết định sự kiện và outcome kết thúc
       Level; Core chỉ xác nhận địa chỉ hỗ trợ. Không yêu cầu HiddenExitStreak,
       cửa ngẫu nhiên hoặc đi đủ tuyến phụ. Target được hỗ trợ ở Level khác:
       $supportedTargets
