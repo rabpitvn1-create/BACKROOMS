@@ -81,7 +81,7 @@ object StoryMilestonePlannerPrompt {
       cửa ngẫu nhiên hoặc đi đủ tuyến phụ. Target được hỗ trợ ở Level khác:
       $supportedTargets
       Tổng CP Level sau do Gemini chọn, không mặc định 20; nếu trở lại Level 0
-      thì tổng phải là 20. Chỉ đánh bại Boss mới hoàn tất CP; ESCAPED không đủ.
+      thì tổng phải là 20. Trận Boss chỉ có thắng hoặc thua, không được chạy thoát. Chỉ đánh bại Boss mới hoàn tất CP.
       Không biên kịch trước chiến thắng gameplay; FINAL_ENTITY chỉ mở Combat.
       Có thể chọn số Turn, các sự kiện và Entity khác mẫu.
       Mỗi event có thể thêm storyFacts: [{kind:"EVENT|ENTITY|CLUE",subject:"<stable id>",fact:"<fact supported by this event>"}], tối đa 4.

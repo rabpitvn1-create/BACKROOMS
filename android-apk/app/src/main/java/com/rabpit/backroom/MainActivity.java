@@ -2029,10 +2029,25 @@ public class MainActivity extends Activity {
     String prompt = com.rabpit.backroom.core.StoryMilestonePlannerPrompt.build(
       checkpointId, startTurn, nodeId, canon, scene, request.getInt("checkpointTotal"), requireGameCore().storyFactContext());
     // No audit/writer routing and no parallel requests to five keys.
-    String rawPlan = geminiTextPolicy(prompt, -1, 0.5, 12288, false);
-    boolean saved = requireGameCore().installMilestonePlan(
-      rawPlan, request.getString("runToken"), checkpointId, startTurn);
-    if (!saved) throw new IllegalStateException("milestone_plan_state_changed");
+    emitMilestoneStatus(request, "loading", "Đang chuẩn bị Milestone cho Checkpoint…");
+    try {
+      String rawPlan = geminiTextPolicy(prompt, -1, 0.5, 12288, false);
+      boolean saved = requireGameCore().installMilestonePlan(
+        rawPlan, request.getString("runToken"), checkpointId, startTurn);
+      if (saved) emit("backroomMilestoneReady", request.toString());
+    } catch (Exception error) {
+      emitMilestoneStatus(request, "error", "Không thể nạp Milestone. Kiểm tra kết nối và nhấn Thử lại.");
+      throw error;
+    }
+  }
+
+  private void emitMilestoneStatus(JSONObject lease, String status, String message) {
+    try {
+      emit("backroomMilestoneStatus", new JSONObject()
+        .put("runToken", lease.getString("runToken"))
+        .put("checkpointId", lease.getString("checkpointId"))
+        .put("status", status).put("message", message).toString());
+    } catch (Exception error) { Log.w("MilestonePlanner", "Could not publish planner status", error); }
   }
 
   private void scheduleNextMilestone(String currentView) {
@@ -2042,6 +2057,7 @@ public class MainActivity extends Activity {
       String id = lease.getString("runToken") + ":" + lease.getString("checkpointId") +
         ":" + lease.getString("bossEncounterId");
       if (!milestonePlanInFlight.add(id)) return;
+      emitMilestoneStatus(lease, "loading", "Đang chuẩn bị Milestone cho Checkpoint tiếp theo…");
       auditIo.execute(() -> {
         try {
           JSONObject view = new JSONObject(requireGameCore().currentClientState(currentView));
@@ -2072,9 +2088,9 @@ public class MainActivity extends Activity {
           boolean accepted = requireGameCore().installNextMilestone(
             raw, lease.getString("runToken"), lease.getString("checkpointId"),
             lease.getString("bossEncounterId"));
-          if (accepted) emit("backroomMilestoneReady", "{}");
+          if (accepted) emit("backroomMilestoneReady", lease.toString());
         } catch (Exception error) {
-          // A later Combat action or a player retry can request again.
+          emitMilestoneStatus(lease, "error", "Không thể nạp Milestone tiếp theo. Kiểm tra kết nối và nhấn Thử lại.");
           Log.w("MilestonePlanner", "Next checkpoint plan not yet ready", error);
         } finally {
           milestonePlanInFlight.remove(id);
@@ -2086,9 +2102,18 @@ public class MainActivity extends Activity {
   }
 
   private class GameBridge {
-    @JavascriptInterface public String retryMilestoneBoss(String stateJson) {
-      try { return requireGameCore().retryMilestoneBoss(stateJson); }
-      catch (Exception error) { return "{\"handled\":false,\"error\":\"milestone_retry_rejected\"}"; }
+    @JavascriptInterface public void prepareMilestone(String stateJson) {
+      io.execute(() -> {
+        try {
+          String view = requireGameCore().currentClientState(stateJson);
+          ensureMilestoneForCurrentCheckpoint(view);
+          scheduleNextMilestone(view);
+        } catch (Exception error) {
+          try { emitMilestoneStatus(new JSONObject(stateJson).getJSONObject("story"), "error",
+            "Không thể nạp Milestone. Kiểm tra kết nối và nhấn Thử lại."); } catch (Exception ignored) {}
+          Log.w("MilestonePlanner", "Current checkpoint plan failed", error);
+        }
+      });
     }
     @JavascriptInterface public String currentClientState(String stateJson) {
       try {

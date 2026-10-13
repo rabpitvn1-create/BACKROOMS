@@ -285,6 +285,8 @@ object CombatRuntime {
     val originalProfile = profiles[current.entityKey] ?: return Resolution(clear(state), handled = false)
     var profile = if ((state.metadata["combat.caoMinhProc1"]?.toIntOrNull() ?: 0) > 0) originalProfile.copy(armor = originalProfile.armor * 90 / 100) else originalProfile
     val intent = classify(actionKind, action)
+    val milestoneBoss = state.world["story.milestone.bossEncounter"] == current.encounterId
+    require(!milestoneBoss || intent != Intent.ESCAPE) { "milestone_boss_escape_forbidden" }
     // One finalized Poker Dice hand authorizes Ultimates for the current Party action only.
     val ultimateHand = if (intent == Intent.ATTACK &&
       PokerDiceCore.isFinalizedFor(state, action, current.encounterId))
@@ -1000,13 +1002,9 @@ object CombatRuntime {
     if (c.entityHp <= 0 && !promoteDefeatedWave()) {
       return settleDefeated(resolvedState, c, log.joinToString(" "), feedback.toList()).copy(turnCues = presentedCues())
     }
-    if (c.escapeProgress >= 100) {
+    if (!milestoneBoss && c.escapeProgress >= 100) {
       val persisted = afterActiveLeaderTurn(encode(resolvedState, c.copy(phase = Phase.RESOLVED)))
-      val suspended = if (persisted.world["story.milestone.bossEncounter"] == c.encounterId) {
-        persisted.copy(world = persisted.world + ("story.milestone.suspendedBoss" to
-          JSONObject(persisted.metadata.filterKeys { it.startsWith(PREFIX) }).toString()))
-      } else persisted
-      val cleared = clearCombatOnly(suspended)
+      val cleared = clearCombatOnly(persisted)
       return Resolution(cleared, true, log.joinToString(" ") + " Cao Minh cắt được truy đuổi và thoát khỏi encounter.", escaped = true, feedback = feedback.toList(), turnCues = presentedCues())
     }
 
@@ -1230,30 +1228,6 @@ object CombatRuntime {
   } }
 
   fun clear(state: GameState): GameState = clearCombatOnly(state)
-
-  /** Resume the same instance without multiplying HP or issuing new rewards. */
-  fun resumeMilestoneBoss(state: GameState): GameState {
-    require(active(state) == null) { "milestone_combat_already_active" }
-    val packed = JSONObject(requireNotNull(state.world["story.milestone.suspendedBoss"]))
-    val restored = packed.keys().asSequence().associateWith { key ->
-      require(key.startsWith(PREFIX)) { "milestone_suspended_combat_fields_invalid" }
-      packed.getString(key)
-    }
-    require(restored["${PREFIX}encounterId"] == state.world["story.milestone.bossEncounter"]) {
-      "milestone_suspended_encounter_mismatch"
-    }
-    require(restored["${PREFIX}entityKey"] == StoryMilestonePlan.current(state)?.plan?.finalEncounter?.entityKey &&
-      !state.metadata.containsKey("exp.awarded.${restored["${PREFIX}encounterId"]}")) {
-      "milestone_suspended_boss_invalid"
-    }
-    val resumed = state.copy(
-      metadata = state.metadata + restored + mapOf("${PREFIX}phase" to Phase.ACTIVE.name,
-        "${PREFIX}escapeProgress" to "0"),
-      world = state.world - "story.milestone.suspendedBoss"
-    )
-    require(requireNotNull(active(resumed)).entityHp > 0) { "milestone_suspended_boss_not_alive" }
-    return resumed
-  }
 
   private fun waveKeys(state: GameState, currentKey: String): List<String> =
     state.metadata[WAVE_KEYS]?.split('|')?.takeIf { keys ->

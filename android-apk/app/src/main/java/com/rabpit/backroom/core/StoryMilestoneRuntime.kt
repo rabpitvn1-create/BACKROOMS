@@ -189,12 +189,14 @@ object StoryMilestoneRuntime {
   fun afterCombat(
     state: GameState, endedEncounterId: String, destroyed: Boolean, escaped: Boolean
   ): GameState {
-    if (state.world[BOSS] != endedEncounterId || (!destroyed && !escaped)) return state
+    if (state.world[BOSS] != endedEncounterId) return state
+    require(!escaped) { "milestone_boss_escape_forbidden" }
+    if (!destroyed) return state
     require(CombatRuntime.active(state) == null) { "milestone_combat_not_concluded" }
     if (destroyed) require(state.metadata.containsKey("exp.awarded.$endedEncounterId")) {
       "milestone_defeat_not_verified"
     }
-    val result = if (destroyed) "DEFEATED" else "ESCAPED"
+    val result = "DEFEATED"
     if (state.world[RESULT] == result) return state
     require(RESULT !in state.world) { "milestone_boss_result_conflict" }
     var concluded = state.copy(world = state.world + (RESULT to result))
@@ -292,18 +294,6 @@ object StoryMilestoneRuntime {
 
   fun bossEncounterId(state: GameState): String? = state.world[BOSS]
   fun bossResult(state: GameState): String? = state.world[RESULT]
-
-  fun canRetryBoss(state: GameState): Boolean = state.world[RESULT] == "ESCAPED" &&
-    state.world.containsKey("story.milestone.suspendedBoss") && CombatRuntime.active(state) == null
-
-  fun retryBoss(state: GameState): GameState {
-    require(canRetryBoss(state)) { "milestone_boss_retry_unavailable" }
-    val resumed = CombatRuntime.resumeMilestoneBoss(state)
-    val fight = requireNotNull(CombatRuntime.active(resumed))
-    require(fight.encounterId == state.world[BOSS]) { "milestone_boss_retry_mismatch" }
-    val flags = JSONObject(resumed.world["flagsJson"] ?: "{}").put("entityEncounterKey", fight.entityKey)
-    return resumed.copy(world = (resumed.world - RESULT) + ("flagsJson" to flags.toString()))
-  }
 
   fun validateStoredState(state: GameState) {
     val active = StoryMilestonePlan.current(state)

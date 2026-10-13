@@ -141,29 +141,19 @@ class StoryMilestoneRuntimeTest {
     }
   }
 
-  @Test fun escapedBossKeepsCheckpointAndCanResumeSameInstanceWithoutReward() {
+  @Test fun bossCannotEscapeByCommandOrAccumulatedEvasion() {
     val warning = TestMilestoneEvidence.accept(initial(), "[\"warning\"]")
-    val due = TestCheckpointQuota.reachBoss(warning)
-    val boss = TestMilestoneEvidence.accept(due, "[\"boss\"]")
+    val boss = TestMilestoneEvidence.accept(TestCheckpointQuota.reachBoss(warning), "[\"boss\"]")
     val fight = CombatRuntime.active(boss)!!
-    val escaped = CombatRuntime.resolve(boss.copy(metadata = boss.metadata +
-      mapOf("combat.escapeProgress" to "100", "combat.entityHp" to "50")), "EXECUTE", "bỏ chạy")
-    assertTrue(escaped.escaped)
-    val waiting = StoryMilestoneRuntime.afterCombat(escaped.state, fight.encounterId, false, true)
-    assertFalse(StoryMilestoneRuntime.awaitingPlan(waiting))
-    assertEquals("CP-L00-01", StoryCheckpointCore.current(waiting)!!.id)
-    assertTrue(StoryMilestoneRuntime.canRetryBoss(waiting))
-    assertNull(waiting.metadata["exp.awarded.${fight.encounterId}"])
-    val restored = GameStateCodec.decode(GameStateCodec.encode(waiting))
-    val resumed = StoryMilestoneRuntime.retryBoss(restored)
-    val active = CombatRuntime.active(resumed)!!
-    assertEquals(fight.encounterId, active.encounterId)
-    assertEquals(fight.entityMaxHp, active.entityMaxHp)
-    assertEquals(50, active.entityHp)
-    assertEquals(0, active.escapeProgress)
-    assertNull(StoryMilestoneRuntime.bossResult(resumed))
-    assertFalse(StoryMilestoneRuntime.canRetryBoss(resumed))
-    assertEquals(waiting, StoryMilestoneRuntime.afterCombat(waiting, fight.encounterId, false, true))
+    val loaded = boss.copy(metadata = boss.metadata + ("combat.escapeProgress" to "100"))
+    val rejected = runCatching { CombatRuntime.resolve(loaded, "EXECUTE", "bỏ chạy") }
+    assertEquals("milestone_boss_escape_forbidden", rejected.exceptionOrNull()?.message)
+    val evaded = CombatRuntime.resolve(loaded, "EXECUTE", "né tránh")
+    assertFalse(evaded.escaped)
+    assertEquals(fight.encounterId, CombatRuntime.active(evaded.state)!!.encounterId)
+    assertNull(evaded.state.world["story.milestone.suspendedBoss"])
+    assertEquals("CP-L00-01", StoryCheckpointCore.current(evaded.state)!!.id)
+    assertNull(evaded.state.metadata["exp.awarded.${fight.encounterId}"])
   }
 
   @Test fun allTwentyCheckpointsEndLevelFromAnyNodeOncePreparedPlanArrives() {

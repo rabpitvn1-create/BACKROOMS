@@ -218,7 +218,7 @@ object StoryMilestonePlan {
     val bossId = StoryMilestoneRuntime.bossEncounterId(state)
     require(bossId != null &&
       ((combat?.encounterId == bossId && combat.entityKey == active.plan.finalEncounter.entityKey) ||
-        (combat == null && StoryMilestoneRuntime.bossResult(state) in setOf("DEFEATED", "ESCAPED")))) {
+        (combat == null && StoryMilestoneRuntime.bossResult(state) == "DEFEATED"))) {
       "milestone_final_combat_required"
     }
     val finalTurn = active.startTurn.toLong() + active.plan.finalEncounter.turn.toLong() - 1L
