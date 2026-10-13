@@ -61,7 +61,7 @@ test('runtime uses exact level and Core-confirmed encounter identity', () => {
   assert.ok(reader.includes('combat?.optBoolean("active", false) == true'));
   assert.ok(reader.includes('add(confirmedVisual, "confirmed active Entity visual canon")'));
   assert.ok(reader.includes('if ("lucia" in presentActors)'));
-  assert.ok(reader.includes('if (scheduledCharacter("lucia"))'));
+  assert.ok(reader.includes('addConfirmed(scheduled.getJSONObject(index).optString("characterId"))'));
   assert.ok(!reader.includes('confirmedRoll("entityEncounter")'));
   assert.ok(reader.includes('flags?.optString("entityEncounterKey", "")'));
   assert.ok(reader.includes('id == confirmedEntityVisualId()'));

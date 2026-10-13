@@ -12,8 +12,8 @@ test('native turn pipeline has no parallel Entity/Follower/NPC random encounters
 });
 test('Core alone takes Entity identity and combat eligibility from accepted Milestone',()=>{
  assert.match(runtime,/val required = due\(state\)/);
- assert.match(runtime,/val encounter = required\.singleOrNull \{ it\.combatRequired \}/);
- assert.match(runtime,/CombatRuntime\.prepareEncounter\(working, requireNotNull\(encounter\.entityKey\)/);
+ assert.match(runtime,/if \(event\.combatRequired\)/);
+ assert.match(runtime,/CombatRuntime\.prepareEncounter\(working, requireNotNull\(event\.entityKey\)/);
  assert.doesNotMatch(main,/generated\.optJSONArray\("ops"\)|startCombatState\(/);
  assert.match(core,/"milestone_plan_required"/);
 });

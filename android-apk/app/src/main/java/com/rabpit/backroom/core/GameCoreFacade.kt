@@ -464,6 +464,38 @@ class GameCoreFacade private constructor(
     }
   }
 
+  /** Explicit invitation, separate from the saved meeting; no Explorer Turn is consumed. */
+  @Synchronized fun recruitFollower(clientStateJson: String, characterId: String): String {
+    val client = JSONObject(clientStateJson)
+    val current = loadCurrentState()
+    fun reject(reason: String): String = response(false, clientSnapshot(client, current), reason, "recruitment_rejected")
+    if (client.optInt("turn", -1) != CoreClientProjection.turnIndex(current) ||
+      current.world["story.runToken"]?.let { it != client.optJSONObject("story")?.optString("runToken") } == true)
+      return reject("stale_client_state")
+    if (!StoryMilestoneRuntime.hasPlan(current)) return reject("milestone_plan_required")
+    if (CombatRuntime.pending(current) != null || CombatRuntime.active(current) != null ||
+      current.turn.pending != null || ActionRuntime.activeSession(current) != null) return reject("turn_in_progress")
+    val character = current.characters[characterId] ?: return reject("target_unknown")
+    if (character.metadata["encountered"] != "true") return reject("follower_not_encountered")
+    if (characterId in current.party.memberIds)
+      return response(true, clientSnapshot(client, current), null, "already_in_party", "${character.name} đã ở trong Party.")
+    val command = PartyCommand("JOIN:${character.metadata["encounterId"]}:$characterId",
+      current.turn.currentTurnId, CAO_MINH_ID, characterId, CommandSource.UI, PartyCommand.Operation.ADD,
+      consentConfirmed = character.metadata["joinEligible"] == "true" && character.metadata["followsPlayer"] == "true",
+      targetPresent = character.presence == CharacterPresence.ACTIVE)
+    val result = PartyEngine.execute(current, command)
+    if (!result.applied) return reject(result.validation.reason ?: "recruitment_failed")
+    var next = result.state
+    StoryMilestoneRuntime.characterFlagKey(characterId)?.let { key ->
+      val flags = JSONObject(next.world["flagsJson"] ?: "{}")
+      val record = flags.optJSONObject(key) ?: JSONObject()
+      flags.put(key, record.put("follower", true).put("joinPending", false))
+      next = next.copy(world = next.world + ("flagsJson" to flags.toString()))
+    }
+    repository.save(next)
+    return response(true, clientSnapshot(client, next), null, "follower_recruited", "${character.name} đã gia nhập Party.")
+  }
+
   @Synchronized fun processCombat(clientStateJson: String, actionKind: String, action: String): String {
     val client = JSONObject(clientStateJson)
     val current = loadCurrentState()
@@ -547,6 +579,15 @@ class GameCoreFacade private constructor(
   @Synchronized fun milestoneWaiting(): Boolean =
     StoryMilestoneRuntime.awaitingPlan(loadCurrentState())
 
+  private fun characterRegistry(state: GameState): JSONArray = JSONArray().apply {
+    state.characters.values.filter { it.id != CAO_MINH_ID }.sortedBy { it.id }.forEach { character ->
+      put(JSONObject().put("id", character.id).put("name", character.name)
+        .put("kind", if (character.metadata["npcType"] == "follower") "FOLLOWER" else "NPC")
+        .put("levels", character.metadata["encounterLevels"] ?: "any")
+        .put("alive", character.presence != CharacterPresence.DEAD))
+    }
+  }
+
   /**
    * Request the next plan while the verified boss encounter is active, or
    * after a very quick victory while background Gemini was still answering.
@@ -574,6 +615,7 @@ class GameCoreFacade private constructor(
     }
     val level = requireNotNull(LevelRouteRegistry.node(targetId)).asJson()
     return JSONObject().put("needed", true)
+      .put("characterRegistry", characterRegistry(state))
       .put("runToken", runToken).put("checkpointId", position.id)
       .put("nextCheckpointId", next.id).put("checkpointTotal", next.total).put("bossEncounterId", encounterId)
       .put("targetLevel", level)
@@ -624,6 +666,7 @@ class GameCoreFacade private constructor(
       JSONObject(it).optString("id", JSONObject(it).optInt("number", 0).toString())
     } ?: "0"
     return JSONObject().put("needed", true)
+      .put("characterRegistry", characterRegistry(state))
       .put("runToken", token)
       .put("checkpointId", position.id)
       .put("checkpointTotal", position.total)

@@ -77,6 +77,7 @@ object StoryMilestoneRuntime {
   fun dueJson(state: GameState): String = JSONArray().apply {
     due(state).forEach { event ->
       put(event.toJson().apply {
+        if (event.isEncounter) put("encounterId", encounterId(state, event))
         event.entityKey?.let { put("entityName", CombatRuntime.entityName(it)) }
         event.characterId?.let { put("characterName", state.characters.getValue(it).name) }
       })
@@ -138,36 +139,34 @@ object StoryMilestoneRuntime {
     }
     var working = state
     // Keep the accepted order. Encounter execution is independent of rolls and Party capacity.
-    required.filter { it.isCharacterEncounter }.forEach { event ->
-      val id = requireNotNull(event.characterId)
-      val character = working.characters.getValue(id)
-      val encounterId = encounterId(state, event)
-      working = working.copy(characters = working.characters + (id to character.copy(
-        presence = CharacterPresence.ACTIVE,
-        metadata = character.metadata + mapOf("encountered" to "true", "encounterId" to encounterId,
-          "encounterTurn" to CoreClientProjection.turnIndex(state).toString(), "encounterKind" to event.kind.name)
-      )))
-      characterFlagKey(id)?.let { key ->
-        val flags = JSONObject(working.world["flagsJson"] ?: "{}")
-        val record = flags.optJSONObject(key) ?: JSONObject()
-        record.put("encountered", true).put("present", true).put("spawned", true)
-          .put("reunionEligible", false).put("levelEncountered", StoryCheckpointCore.current(state)!!.level)
-          .put("follower", id in working.party.memberIds).put("joinPending", false)
-        flags.put(key, record)
-        working = working.copy(world = working.world + ("flagsJson" to flags.toString()))
+    for (event in required) {
+      if (event.isCharacterEncounter) {
+        val id = requireNotNull(event.characterId)
+        val character = working.characters.getValue(id)
+        val encounterId = encounterId(state, event)
+        working = working.copy(characters = working.characters + (id to character.copy(
+          presence = CharacterPresence.ACTIVE,
+          metadata = character.metadata + mapOf("encountered" to "true", "encounterId" to encounterId,
+            "encounterTurn" to CoreClientProjection.turnIndex(state).toString(), "encounterKind" to event.kind.name)
+        )))
+        characterFlagKey(id)?.let { key ->
+          val flags = JSONObject(working.world["flagsJson"] ?: "{}")
+          val record = flags.optJSONObject(key) ?: JSONObject()
+          record.put("encountered", true).put("present", true).put("spawned", true)
+            .put("reunionEligible", false).put("levelEncountered", StoryCheckpointCore.current(state)!!.level)
+            .put("follower", id in working.party.memberIds).put("joinPending", false)
+          flags.put(key, record)
+          working = working.copy(world = working.world + ("flagsJson" to flags.toString()))
+        }
       }
-    }
-    val boss = required.lastOrNull { it.kind == StoryMilestonePlan.Kind.FINAL_ENTITY }
-    if (boss != null) {
-      require(BOSS !in working.world) {
-        "milestone_boss_already_started"
+      if (event.combatRequired) {
+        if (event.kind == StoryMilestonePlan.Kind.FINAL_ENTITY) {
+          require(BOSS !in working.world) { "milestone_boss_already_started" }
+          working = working.copy(world = working.world + (BOSS to entityEncounterId(state, event)))
+        }
+        working = CombatRuntime.prepareEncounter(working, requireNotNull(event.entityKey),
+          entityEncounterId(state, event), event.kind == StoryMilestonePlan.Kind.FINAL_ENTITY)
       }
-      working = working.copy(world = working.world + (BOSS to entityEncounterId(state, boss)))
-    }
-    val encounter = required.singleOrNull { it.combatRequired }
-    if (encounter != null) {
-      working = CombatRuntime.prepareEncounter(working, requireNotNull(encounter.entityKey),
-        entityEncounterId(state, encounter), encounter.kind == StoryMilestonePlan.Kind.FINAL_ENTITY)
     }
     val applied = JSONArray().apply {
       appliedIds(state).sorted().forEach { put(it) }
@@ -320,7 +319,9 @@ object StoryMilestoneRuntime {
     var switched = incrementStats(state.copy(world = world), "completedCheckpoints" to 1L)
     if (active.plan.completion.type == StoryMilestonePlan.CompletionType.EXIT_LEVEL)
       switched = incrementStats(switched, "completedLevels" to 1L)
-    return StoryMilestonePlan.installCurrent(switched, prepared.toJson().toString())
+    // The prepared plan was already accepted. Promotion must not re-evaluate encounter eligibility.
+    return switched.copy(world = switched.world + ("story.milestone.active" to JSONObject()
+      .put("startTurn", CoreClientProjection.turnIndex(switched)).put("plan", prepared.toJson()).toString()))
   }
 
   fun bossEncounterId(state: GameState): String? = state.world[BOSS]

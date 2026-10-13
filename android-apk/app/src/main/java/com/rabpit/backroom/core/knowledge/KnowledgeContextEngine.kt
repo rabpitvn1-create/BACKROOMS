@@ -460,8 +460,9 @@ object KnowledgeContextEngine {
           }
         }
       }
-      if (scheduledCharacter("luc_tram")) presentActors += "luc_tram"
-      if (scheduledCharacter("lucia")) presentActors += "lucia"
+      state.optJSONArray("milestoneEventsDue")?.let { scheduled ->
+        for (index in 0 until scheduled.length()) addConfirmed(scheduled.getJSONObject(index).optString("characterId"))
+      }
     }
 
     private fun currentLevel(): Int {

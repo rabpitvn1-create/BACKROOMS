@@ -135,8 +135,6 @@ object StoryMilestonePlan {
       if (kind == Kind.FOLLOWER || kind == Kind.NPC) allowed += "characterId"
       if (kind == Kind.ENTITY) allowed += "combatRequired"
       if (kind == Kind.FINAL_ENTITY) allowed += setOf("hpMultiplier", "expMultiplier")
-      // Ignore non-authoritative AI metadata; it must not block a valid schedule.
-      item.remove("storyFacts")
       exactFields(item, allowed)
 
       val id = string(item, "id", 48)

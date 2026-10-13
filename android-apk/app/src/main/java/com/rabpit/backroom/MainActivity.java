@@ -1476,7 +1476,7 @@ public class MainActivity extends Activity {
 
   /** Gehihi describes SOL's scheduled events. Core alone updates game state. */
   private String writerPrompt(JSONObject before, String action, JSONObject rolls) throws Exception {
-    JSONArray due = new JSONArray(requireGameCore().milestoneDueEvents());
+    JSONArray due = isMetaAction(action) ? new JSONArray() : new JSONArray(requireGameCore().milestoneDueEvents());
     JSONObject visibleRolls = new JSONObject(rolls.toString());
     visibleRolls.remove(com.rabpit.backroom.core.HiddenExitStreak.ROLL_KEY);
     JSONObject canonView = new JSONObject(before.toString());
@@ -1552,7 +1552,7 @@ public class MainActivity extends Activity {
     // The planner receives a small state excerpt, never the complete client save.
     if (scene.length() > 1500) scene = scene.substring(0, 1500);
     String prompt = com.rabpit.backroom.core.StoryMilestonePlannerPrompt.build(
-      checkpointId, startTurn, nodeId, canon, scene, request.getInt("checkpointTotal"), requireGameCore().milestoneHistoryContext());
+      checkpointId, startTurn, nodeId, canon, scene, request.getInt("checkpointTotal"), requireGameCore().milestoneHistoryContext(), request.getJSONArray("characterRegistry").toString());
     // This is only skeleton generation, never a GM or a second narrative verifier.
     String provider = milestoneProviderChoice();
     emitMilestoneStatus(request, "loading", provider + " đang tạo khung Checkpoint…");
@@ -1610,7 +1610,7 @@ public class MainActivity extends Activity {
           if (shortScene.length() > 1500) shortScene = shortScene.substring(0, 1500);
           String prompt = com.rabpit.backroom.core.StoryMilestonePlannerPrompt.build(
             lease.getString("nextCheckpointId"), lease.getInt("startTurn"),
-            lease.getString("levelNode"), canon, shortScene, lease.getInt("checkpointTotal"), requireGameCore().milestoneHistoryContext()) +
+            lease.getString("levelNode"), canon, shortScene, lease.getInt("checkpointTotal"), requireGameCore().milestoneHistoryContext(), lease.getJSONArray("characterRegistry").toString()) +
             "\nPREPARED PLAN: globalStartTurn là ước lượng; Core neo Turn khi kích hoạt thật. " +
             "Completion của CP trước bên dưới còn PLANNED, chỉ xảy ra sau verified Boss defeat; " +
             "dùng nó để nối tiếp kịch bản, không ghi thành lịch sử đã xảy ra và không giả định HP/Party sau Combat. " +
@@ -1905,6 +1905,13 @@ public class MainActivity extends Activity {
         } catch (Exception error) {
           emit("backroomBattleStart", "{\"handled\":false,\"error\":\"encounter_confirmation_failed\"}");
         }
+      });
+    }
+
+    @JavascriptInterface public void recruitFollower(String stateJson, String characterId) {
+      io.execute(() -> {
+        try { emit("backroomRecruitment", requireGameCore().recruitFollower(stateJson, characterId)); }
+        catch (Exception error) { emit("backroomRecruitment", "{\"handled\":false,\"error\":\"recruitment_failed\"}"); }
       });
     }
 

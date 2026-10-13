@@ -19,7 +19,7 @@ function runtime(name = 'Duller') {
     busy: false, statusEl: {},
     logEl: {querySelectorAll() { return [{children: []}, last]; }},
     document: {
-      getElementById() { return button || null; },
+      getElementById(id) { return id === "battleStartButton" ? button || null : null; },
       createElement() { return {style: {}, addEventListener(type, handler) { this.click = handler; }, remove() {
         last.children = last.children.filter(x => x !== this); button = null;
       }}; }

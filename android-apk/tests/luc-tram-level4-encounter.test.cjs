@@ -11,7 +11,7 @@ test('Luc Tram uses scheduled encounters and level compatibility is checked befo
  assert.match(plan,/validateCharactersBeforeAcceptance\(state, plan, position\.level\)/);
 });
 test('meeting is committed by the shared dispatcher without automatic Party recruitment',()=>{
- assert.match(runtime,/required\.filter \{ it\.isCharacterEncounter \}/);
+ assert.match(runtime,/for \(event in required\)/);
  assert.match(runtime,/"encountered" to "true"/);
  assert.match(runtime,/LUC_TRAM_ID -> "lucTram"/);
  assert.doesNotMatch(runtime,/PartyCommand|PartyEngine/);

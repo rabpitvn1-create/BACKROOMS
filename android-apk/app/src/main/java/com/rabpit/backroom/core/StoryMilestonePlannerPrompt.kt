@@ -14,7 +14,8 @@ object StoryMilestonePlannerPrompt {
     canonPacket: String,
     currentSituation: String,
     checkpointTotal: Int,
-    narrativeContinuity: String = "{}"
+    narrativeContinuity: String = "{}",
+    characterRegistry: String = ""
   ): String {
     require(checkpointId.matches(Regex("CP-L[0-9]{2,}-[0-9]{2,}"))) { "checkpoint_id_invalid" }
     require(absoluteStartTurn >= 1) { "checkpoint_start_turn_invalid" }
@@ -40,8 +41,11 @@ object StoryMilestonePlannerPrompt {
       seen.toList()
     }.distinct().filter { LevelRouteRegistry.node(it)?.parent != position.level }.joinToString(", ")
     val entityKeys = CombatRuntime.supportedEntityKeys().joinToString(", ")
-    val characters = GameState.initial().characters.values.filter { it.id != CAO_MINH_ID }
-      .joinToString("; ") { "${it.id}=${it.name} (${it.metadata["npcType"] ?: "NPC"}, Levels ${it.metadata["encounterLevels"] ?: "any"})" }
+    require(characterRegistry.length <= 30000) { "milestone_character_registry_too_large" }
+    val characters = characterRegistry.ifBlank {
+      GameState.initial().characters.values.filter { it.id != CAO_MINH_ID }
+        .joinToString("; ") { "${it.id}=${it.name} (${it.metadata["npcType"] ?: "NPC"}, Levels ${it.metadata["encounterLevels"] ?: "any"})" }
+    }
     return """
       Vai trò: SOL biên kịch Checkpoint trong Backrooms The Game.
       Chỉ xuất một JSON object hợp lệ. Không markdown, không lời giải thích.
