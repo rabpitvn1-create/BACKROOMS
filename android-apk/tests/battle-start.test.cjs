@@ -108,8 +108,7 @@ test('the native bridge passes narration before committing and confirmation neve
   assert.match(java, /processValidatedCandidate\([\s\S]*?action, reply\)/);
   assert.match(java, /@JavascriptInterface public void battleStart\(String stateJson, String encounterId\)/);
   assert.doesNotMatch(source, /submitAction|selectedEntityKey|startCombatState/);
-  const force = java.split('private void forceEntityEncounterFlag(')[1].split('private JSONObject resolveEntityOverlay')[0];
-  assert.doesNotMatch(force, /startCombatState/);
+  assert.doesNotMatch(java, /forceEntityEncounterFlag|requireGameCore\(\)\.startCombatState/);
 });
 
 test('the final action-button override blocks exploration while Core awaits confirmation', () => {

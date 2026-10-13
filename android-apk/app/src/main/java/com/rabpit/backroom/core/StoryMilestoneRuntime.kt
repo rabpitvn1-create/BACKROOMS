@@ -130,6 +130,7 @@ object StoryMilestoneRuntime {
 
   /** Apply exactly the events authored for this Explorer turn in the installed SOL plan. */
   fun acceptTurn(state: GameState): GameState {
+    require(hasPlan(state)) { "milestone_plan_required" }
     val required = due(state)
     if (required.isEmpty()) return state
     require(CombatRuntime.pending(state) == null && CombatRuntime.active(state) == null) {
@@ -358,14 +359,7 @@ object StoryMilestoneRuntime {
           "milestone_pending_encounter_invalid"
         }
       } else {
-        val rolls = JSONObject(state.world["flagsJson"] ?: "{}").getJSONObject("lastRolls")
-        val roll = rolls.getJSONObject("entityEncounter")
-        require(roll.getBoolean("eligible") && roll.getBoolean("success") && !rolls.optBoolean("meta", false) &&
-          rolls.getInt("turn") == CoreClientProjection.turnIndex(state) - 1 &&
-          rolls.getString("selectedEntityKey") == pending.entityKey &&
-          pending.encounterId == "ROLL:${state.metadata["loot.encounterSerial"]}:${state.turn.currentTurnId}:${pending.entityKey}") {
-          "rolled_pending_encounter_invalid"
-        }
+        throw IllegalArgumentException("pending_encounter_requires_milestone")
       }
       require(pending.eventCounter == 0 && pending.entityHp == pending.entityMaxHp &&
         !state.metadata.containsKey("exp.awarded.${pending.encounterId}")) { "milestone_pending_combat_progress_invalid" }

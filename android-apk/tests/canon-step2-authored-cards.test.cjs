@@ -61,9 +61,9 @@ test('runtime uses exact level and Core-confirmed encounter identity', () => {
   assert.ok(reader.includes('combat?.optBoolean("active", false) == true'));
   assert.ok(reader.includes('add(confirmedVisual, "confirmed active Entity visual canon")'));
   assert.ok(reader.includes('if ("lucia" in presentActors)'));
-  assert.ok(reader.includes('if (confirmedRoll("luciaEncounter"))'));
-  assert.ok(reader.includes('confirmedRoll("entityEncounter") ->'));
-  assert.ok(reader.includes('rolls.optString("selectedEntityKey", "")'));
+  assert.ok(reader.includes('if (scheduledCharacter("lucia"))'));
+  assert.ok(!reader.includes('confirmedRoll("entityEncounter")'));
+  assert.ok(reader.includes('flags?.optString("entityEncounterKey", "")'));
   assert.ok(reader.includes('id == confirmedEntityVisualId()'));
 });
 
@@ -71,16 +71,17 @@ test('unknown or absent characters cannot be treated as active based on a name s
   assert.ok(reader.includes('when (normalize(idOrName))'));
   assert.ok(reader.includes('member.optString("presence", "ACTIVE") == "ACTIVE"'));
   assert.ok(!reader.includes('id.contains("iris")'));
-  assert.ok(reader.includes('val lucTramConfirmed = "luc_tram" in presentActors || confirmedRoll("lucTramEncounter")'));
+  assert.ok(reader.includes('val lucTramConfirmed = "luc_tram" in presentActors || scheduledCharacter("luc_tram")'));
   assert.match(reader, /if \(lucTramConfirmed\) \{[\s\S]*?direct \+= "CHAR.LUC_TRAM.REVIVAL_R06"/);
   assert.ok(reader.includes('if ("iris" in presentActors)'));
   assert.ok(reader.includes('if ("syvial" in presentActors)'));
 });
 
-test('encounter context requires eligible success on the present Turn, not stale or meta rolls', () => {
-  assert.ok(reader.includes('!rolls.optBoolean("meta", false)'));
-  assert.ok(reader.includes('rolls.optInt("turn", -1) == state.optInt("turn", -2)'));
-  assert.ok(reader.includes('it.optBoolean("success", false) && it.optBoolean("eligible", false)'));
+test('encounter context comes from scheduled Core events rather than random results', () => {
+  assert.ok(reader.includes('state.optJSONArray("milestoneEventsDue")'));
+  assert.ok(reader.includes('events.getJSONObject(it).optString("characterId") == id'));
+  assert.ok(!reader.includes('confirmedRoll('));
+  assert.ok(!reader.includes('selectedEntityKey'));
 });
 
 test('legacy provenance is labeled, not silently promoted into author Canon', () => {

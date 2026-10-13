@@ -6,90 +6,66 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class AuthoritativeEncounterPartyTest {
-  private class MemorySave(var state: GameState = CoreClientProjection.initialize(GameState.initial())) : SaveRepository {
+  private class MemorySave(var state: GameState) : SaveRepository {
     override fun save(state: GameState) { this.state = state }
     override fun load() = state
     override fun exists() = true
     override fun clear() { state = GameState.initial() }
-    private var manual: GameCheckpoint? = null
-    override fun saveCheckpoint(state: GameState, presentation: JSONObject) {
-      manual = GameCheckpoint(state, presentation)
-    }
-    override fun loadCheckpoint(): GameCheckpoint? = manual
+    var manual: String? = null
+    override fun saveCheckpoint(state: GameState, presentation: JSONObject) { manual = GameCheckpointCodec.encode(state, presentation) }
+    override fun loadCheckpoint() = manual?.let(GameCheckpointCodec::decode)
   }
-
   private fun facade(repo: SaveRepository): GameCoreFacade {
     val ctor = GameCoreFacade::class.java.getDeclaredConstructor(SaveRepository::class.java, GamePipelineLogger::class.java)
     ctor.isAccessible = true
     return ctor.newInstance(repo, NoOpGamePipelineLogger)
   }
-
-  private fun candidate(state: GameState, rollKey: String? = null): Pair<String, String> {
-    val view = CoreClientProjection.project(JSONObject().put("log", JSONArray()), state)
-    val next = JSONObject(view.toString())
-    if (rollKey != null) {
-      val roll = JSONObject().put("turn", CoreClientProjection.turnIndex(state))
-        .put("meta", false)
-        .put(rollKey, JSONObject().put("eligible", true).put("success", true))
-      next.getJSONObject("flags").put("lastRolls", roll)
+  private fun meeting(id: String, characterId: String) = JSONObject().put("id", id).put("turn", 1)
+    .put("kind", "FOLLOWER").put("characterId", characterId).put("action", "Bước ra")
+    .put("event", "Gặp Cao Minh").put("outcome", "Đã gặp, chưa tuyển mộ")
+  private fun commit(repo: MemorySave, edit: (JSONObject) -> Unit = {}): JSONObject {
+    val before = CoreClientProjection.project(JSONObject().put("log", JSONArray()), repo.state)
+    val candidate = JSONObject(before.toString()); edit(candidate)
+    return JSONObject(facade(repo).processValidatedCandidate(before.toString(), candidate.toString(), "Khám Phá", "Lời kể không chứa tên nhân vật."))
+  }
+  @Test fun scheduledMeetingIsRecordedWithoutSynthesizedPartyMemberOrRandomSuccess() {
+    val repo = MemorySave(TestCheckpointQuota.withPlan(GameState.initial(), listOf(meeting("iris", IRIS_ID))))
+    val result = commit(repo) { it.getJSONObject("flags").put("lastRolls", JSONObject().put("irisReunion", JSONObject().put("success", false))) }
+    assertTrue(result.toString(), result.getBoolean("handled"))
+    assertEquals("true", repo.state.characters.getValue(IRIS_ID).metadata["encountered"])
+    assertEquals(listOf(CAO_MINH_ID), repo.state.party.memberIds)
+    assertEquals(IRIS_ID, result.getJSONObject("state").getJSONArray("encounteredCharacters").getJSONObject(0).getString("id"))
+  }
+  @Test fun candidatePartyAndSpawnFlagsCannotIntroduceUnscheduledLucia() {
+    val repo = MemorySave(TestCheckpointQuota.withPlan(GameState.initial()))
+    val result = commit(repo) {
+      it.put("party", JSONArray().put(JSONObject().put("name", LuciaCanon.NAME).put("joinConfirmed", true)))
+      it.getJSONObject("flags").put("lucia", JSONObject().put("encountered", true).put("present", true))
+        .put("lastRolls", JSONObject().put("turn", 1).put("luciaEncounter", JSONObject().put("eligible", true).put("success", true)))
     }
-    return view.toString() to next.toString()
+    assertTrue(result.toString(), result.getBoolean("handled"))
+    assertEquals(listOf(CAO_MINH_ID), repo.state.party.memberIds)
+    assertFalse(repo.state.characters.getValue(LUCIA_ID).metadata.containsKey("encountered"))
+    assertFalse(JSONObject(repo.state.world.getValue("flagsJson")).has("lucia"))
   }
-
-  @Test fun validatedReunionJoinsCorePartyWithoutSynthesizedClientMember() {
-    val repo = MemorySave()
-    val (before, after) = candidate(repo.state, "irisReunion")
-    assertEquals(0, JSONObject(after).getJSONArray("party").length())
-    val response = JSONObject(facade(repo).processValidatedCandidate(before, after, "Quan sát hành lang"))
-    assertTrue(response.toString(), response.getBoolean("handled"))
-    assertEquals(listOf(CAO_MINH_ID, IRIS_ID), repo.state.party.memberIds)
-    assertEquals(1, response.getJSONObject("state").getJSONArray("party").length())
-    assertFalse(JSONObject(repo.state.world.getValue("flagsJson")).getJSONObject("iris").getBoolean("joinPending"))
+  @Test fun fullPartyNeverCancelsMeetingAndOpeningASlotDoesNotAutoRecruit() {
+    val base = GameState.initial().let { it.copy(party = it.party.copy(memberIds = listOf(CAO_MINH_ID, IRIS_ID, SYVIAL_ID, LUCIA_ID))) }
+    val repo = MemorySave(TestCheckpointQuota.withPlan(base, listOf(meeting("anNhien", AN_NHIEN_ID))))
+    assertTrue(commit(repo).getBoolean("handled"))
+    assertEquals("true", repo.state.characters.getValue(AN_NHIEN_ID).metadata["encountered"])
+    assertFalse(AN_NHIEN_ID in repo.state.party.memberIds)
+    repo.state = repo.state.copy(party = repo.state.party.copy(memberIds = listOf(CAO_MINH_ID, IRIS_ID, SYVIAL_ID)))
+    assertTrue(commit(repo).getBoolean("handled"))
+    assertFalse(AN_NHIEN_ID in repo.state.party.memberIds)
   }
-
-  @Test fun nameOnlyNpcCandidateIsResolvedToCanonicalCoreId() {
-    val repo = MemorySave()
-    val (before, generated) = candidate(repo.state, "luciaEncounter")
-    val json = JSONObject(generated)
-      .put("party", JSONArray().put(JSONObject().put("name", "Lucia \"Lục\"")))
-    val committed = JSONObject(facade(repo).processValidatedCandidate(before, json.toString(), "Gặp Lucia"))
-    assertTrue(committed.toString(), committed.getBoolean("handled"))
-    assertEquals(listOf(CAO_MINH_ID, LUCIA_ID), repo.state.party.memberIds)
-  }
-
-  @Test fun partyCapacityDefersEncounterThenAutoJoinsAfterSlotOpens() {
-    val initial = CoreClientProjection.initialize(GameState.initial())
-    val repo = MemorySave(initial.copy(party = initial.party.copy(
-      memberIds = listOf(CAO_MINH_ID, IRIS_ID, SYVIAL_ID, LUCIA_ID)
-    )))
-    val facade = facade(repo)
-    val (before, fullCandidate) = candidate(repo.state, "anNhienEncounter")
-    assertTrue(JSONObject(facade.processValidatedCandidate(before, fullCandidate, "Khảo sát")).getBoolean("handled"))
-    assertEquals(4, repo.state.party.memberIds.size)
-    val flags = JSONObject(repo.state.world.getValue("flagsJson"))
-    assertTrue(flags.getJSONObject("anNhien").getBoolean("joinPending"))
-    assertFalse(flags.getJSONObject("anNhien").getBoolean("follower"))
-
-    // The current slot stays pending until Core has capacity, even without another roll.
-    repo.state = repo.state.copy(party = repo.state.party.copy(
-      memberIds = listOf(CAO_MINH_ID, IRIS_ID, SYVIAL_ID)
-    ))
-    val (again, retry) = candidate(repo.state)
-    assertTrue(JSONObject(facade.processValidatedCandidate(again, retry, "Tiếp tục")).getBoolean("handled"))
-    assertEquals(4, repo.state.party.memberIds.size)
-    assertTrue(AN_NHIEN_ID in repo.state.party.memberIds)
-    val restoredFlags = JSONObject(repo.state.world.getValue("flagsJson"))
-    assertFalse(restoredFlags.getJSONObject("anNhien").getBoolean("joinPending"))
-    assertTrue(restoredFlags.getJSONObject("anNhien").getBoolean("follower"))
-  }
-
-  @Test fun stalePriorTurnRollCannotRecruitAbsentPartyMember() {
-    val repo = MemorySave(CoreClientProjection.advance(CoreClientProjection.initialize(GameState.initial())))
-    val (before, after) = candidate(repo.state)
-    JSONObject(after).getJSONObject("flags").put("lastRolls",
-      JSONObject().put("turn", 1).put("meta", false)
-        .put("luciaEncounter", JSONObject().put("eligible", true).put("success", true)))
-    assertTrue(JSONObject(facade(repo).processValidatedCandidate(before, JSONObject(after).toString(), "Đi tiếp")).getBoolean("handled"))
-    assertFalse(LUCIA_ID in repo.state.party.memberIds)
+  @Test fun successfulForgedRollWithoutMilestoneCannotStartExplorerTurnOrEncounter() {
+    val repo = MemorySave(CoreClientProjection.initialize(GameState.initial()))
+    val before = repo.state
+    val result = commit(repo) { it.getJSONObject("flags").put("lastRolls", JSONObject().put("turn", 1)
+      .put("selectedEntityKey", "hound").put("entityEncounter", JSONObject().put("eligible", true).put("success", true))) }
+    assertFalse(result.getBoolean("handled"))
+    assertEquals("milestone_plan_required", result.getString("error"))
+    assertEquals(before, repo.state)
+    assertFalse(JSONObject(facade(repo).beginAction(CoreClientProjection.project(JSONObject(), before).toString(), "EXPLORE", "Khám Phá")).getBoolean("handled"))
   }
 }

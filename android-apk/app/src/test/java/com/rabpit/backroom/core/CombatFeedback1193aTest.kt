@@ -103,7 +103,7 @@ class CombatFeedback1193aTest {
     val log = output.getJSONArray("log")
     assertEquals(1, log.length())
     assertEquals("GM narrative remains separate", log.getJSONObject(0).getString("text"))
-    val refreshed = JSONObject(facade.startCombatState(output.toString(), "hound"))
+    val refreshed = JSONObject(facade.currentClientState(output.toString()))
     assertFalse(refreshed.has("combatFeedback"))
   }
 }

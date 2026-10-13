@@ -9,7 +9,6 @@ object LuciaCanon {
   const val NAME = "Lucia \"Lục\""
   const val AGE = 19
   const val HOME_LEVEL = 0
-  const val ENCOUNTER_CHANCE = "50%"
   const val AVATAR_REF = "avatars/lucia_avatar.jpg"
 
   val equipmentSlots: Map<String, String> = linkedMapOf(
@@ -48,7 +47,7 @@ object LuciaCanon {
         "followsPlayer" to "true",
         "homeLevel" to HOME_LEVEL.toString(),
         "encounterLevels" to "0",
-        "encounterChance" to ENCOUNTER_CHANCE,
+        "encounterPolicy" to "MILESTONE",
         "encounterAction" to "EXPLORE",
         "inventoryProfile" to "lucia_gift_inventory",
         "startingLoadedAmmo" to "60",

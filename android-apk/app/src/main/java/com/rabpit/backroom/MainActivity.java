@@ -245,19 +245,6 @@ public class MainActivity extends Activity {
     }
   }
 
-  private void forceEntityEncounterFlag(JSONObject candidateState, JSONObject rolls) throws Exception {
-    if (candidateState == null || rolls == null || !rollSuccess(rolls, "entityEncounter")) return;
-    String selected = rolls.optString("selectedEntityKey", "").trim();
-    if (selected.isEmpty()) throw new IllegalStateException("Successful Entity roll without selection");
-    JSONObject flags = candidateState.optJSONObject("flags");
-    if (flags == null) {
-      flags = new JSONObject();
-      candidateState.put("flags", flags);
-    }
-    String canonicalKey = normalizedEntityKey(selected);
-    flags.put("entityEncounterKey", canonicalKey);
-  }
-
   private JSONObject resolveEntityOverlay(String rawEntityKey) throws Exception {
     String entityKey = normalizedEntityKey(rawEntityKey);
     String name;
@@ -1327,30 +1314,12 @@ public class MainActivity extends Activity {
     return partyHas(state, "An Nhiên") || partyHas(state, "an-nhien");
   }
 
-  private boolean anNhienEncountered(JSONObject state) {
-    if (anNhienFollowing(state)) return true;
-    JSONObject flags = state.optJSONObject("flags");
-    JSONObject record = flags != null ? flags.optJSONObject("anNhien") : null;
-    return record != null && record.optBoolean("encountered", false);
-  }
-
-  private boolean reunionEligibleAndroid(JSONObject state, String key) {
-    JSONObject flags = state.optJSONObject("flags");
-    JSONObject record = flags != null ? flags.optJSONObject(key) : null;
-    if (record == null || !record.optBoolean("exists", true)) return false;
-    if (partyHas(state, key) || flagSpawned(state, key)) return false;
-    if (record.has("reunionEligible") && !record.optBoolean("reunionEligible", true)) return false;
-    String continuity = record.optString("continuity", "").toUpperCase(java.util.Locale.ROOT);
-    return continuity.isEmpty() || containsAny(continuity, "SEPARATED", "LOST", "UNKNOWN");
-  }
-
   private JSONObject makeGameplayRolls(JSONObject state, String actionKind, String action, boolean meta) throws Exception {
     JSONObject rolls = new JSONObject().put("turn", state.optInt("turn", 1)).put("meta", meta);
     if (meta) return rolls;
 
     String actionKindNormalized = actionKind == null ? "" : actionKind.trim().toUpperCase(java.util.Locale.ROOT);
     boolean exploreAction = "EXPLORE".equals(actionKindNormalized);
-    boolean entityEncounterAction = exploreAction || "SEARCH".equals(actionKindNormalized) || "EXECUTE".equals(actionKindNormalized);
 
     int level = Math.max(0, Math.min(6, currentLevel(state)));
     int[] hazardThresholds = {400, 700, 1000, 1200, 300, 1000, 1200};
@@ -1361,40 +1330,13 @@ public class MainActivity extends Activity {
     boolean water = containsAny(a, "nước", "water", "almond", "uống", "khát", "chai", "vòi", "hồ", "fountain");
     boolean exitIntent = containsAny(a, "exit", "lối thoát", "thoát", "cửa trắng", "cánh cửa", "ngưỡng", "chuyển level", "sang level", "hành lang phía sau", "đường ra");
     boolean anNhienFollowing = anNhienFollowing(state);
-    boolean anNhienEncountered = anNhienEncountered(state);
 
-    JSONObject flags = state.optJSONObject("flags");
-    boolean survivorAllowed = flags == null || flags.optBoolean("survivorEncountersAllowed", true);
-    boolean entityAllowed = flags == null || flags.optBoolean("entityEncountersAllowed", true);
-
-    rolls.put("anNhienEncounter", thresholdRoll("anNhienEncounter", 10000, 25, physical && !anNhienEncountered, " follower encounter"));
-    rolls.put("survivor", thresholdRoll("survivor", 10000, 200, survivorAllowed, ""));
-    rolls.put("irisReunion", thresholdRoll("irisReunion", 10000, 25, physical && reunionEligibleAndroid(state, "iris"), " follower encounter"));
-    rolls.put("syvialReunion", thresholdRoll("syvialReunion", 10000, 25, physical && reunionEligibleAndroid(state, "syvial"), " follower encounter"));
-    rolls.put("luciaEncounter", thresholdRoll("luciaEncounter", 10000, 5000, exploreAction && level == 0 && !flagSpawned(state, "lucia"), " Level 0 Lucia follower encounter"));
-    JSONObject lucTramState = flags != null ? flags.optJSONObject("lucTram") : null;
-    boolean lucTramAlreadyMet = partyHas(state, "luc_tram") || flagSpawned(state, "lucTram") ||
-      (lucTramState != null && (lucTramState.optBoolean("follower", false) || lucTramState.optBoolean("joinPending", false)));
-    rolls.put("lucTramEncounter", thresholdRoll("lucTramEncounter", 10000, 25,
-      physical && level >= 4 && !lucTramAlreadyMet,
-      " Level 4+ Lục Trầm encounter"));
     int anNhienHazardThreshold = anNhienFollowing ? (hazardThresholds[level] * 75 / 100) : hazardThresholds[level];
     JSONObject anNhienHazardCheck = thresholdRoll("anNhienHazardCheck", 10000, 3000, anNhienFollowing && search && water, " Đừng Đụng Vào, Nhìn Là Biết Độc");
     rolls.put("anNhienHazardCheck", anNhienHazardCheck);
     if (anNhienHazardCheck.optBoolean("success", false)) anNhienHazardThreshold = 0;
     rolls.put("hazard", thresholdRoll("hazard", 10000, anNhienHazardThreshold, physical,
       anNhienFollowing ? " -25% Có Gì Đó Sai Sai" : ""));
-    // One d10000 roll both determines a 45% encounter and selects the Entity.
-    // No Level-specific Entity probability and no independent boss/Lifeform rolls.
-    JSONObject entityRoll = thresholdRoll("entityEncounter", 10000,
-      EntityEncounterPool.ENCOUNTER_THRESHOLD,
-      entityEncounterAction && entityAllowed && !requireGameCore().milestoneHasPlan(),
-      " all Levels, shared weighted Entity pool");
-    rolls.put("entityEncounter", entityRoll);
-    if (entityRoll.optBoolean("success", false)) {
-      rolls.put("selectedEntityKey",
-        EntityEncounterPool.pickForSuccessfulRoll(entityRoll.getInt("roll")));
-    }
     int exitThreshold = exitThresholdAndroid(state);
     if (anNhienFollowing) exitThreshold = Math.min(10000, exitThreshold + 200);
     JSONObject anNhienRead = thresholdRoll("anNhienRead", 10000, 2000, anNhienFollowing && search && exitIntent, " Khoan, Để Tôi Đọc Cái Này");
@@ -1475,31 +1417,6 @@ public class MainActivity extends Activity {
     return com.rabpit.backroom.core.HiddenExitStreak.projectedReady(before, rolls);
   }
 
-  private JSONObject sanitizedFlags(JSONObject current, JSONObject proposed, JSONObject rolls, boolean transitionAccepted) throws Exception {
-    JSONObject safe = current == null ? new JSONObject() : new JSONObject(current.toString());
-    if (proposed == null) return safe;
-    JSONObject patch = new JSONObject(proposed.toString());
-    patch.remove("lastRolls");
-    if (!transitionAccepted) patch.remove("currentLevel");
-
-    // Character-bound gear is modified by Core only; never accept GM flag patches.
-    patch.remove("madGod");
-    // Only authoritative Core may set the pending-join flag.
-    patch.remove("lucTram");
-    if (patch.optJSONObject("iris") != null) {
-      JSONObject oldIris = safe.optJSONObject("iris");
-      JSONObject newIris = patch.optJSONObject("iris");
-      if ((oldIris == null || !oldIris.optBoolean("present", false)) && newIris.optBoolean("present", false) && !rollSuccess(rolls, "irisReunion")) patch.remove("iris");
-    }
-    if (patch.optJSONObject("syvial") != null) {
-      JSONObject oldSyvial = safe.optJSONObject("syvial");
-      JSONObject newSyvial = patch.optJSONObject("syvial");
-      if ((oldSyvial == null || !oldSyvial.optBoolean("present", false)) && newSyvial.optBoolean("present", false) && !rollSuccess(rolls, "syvialReunion")) patch.remove("syvial");
-    }
-    mergeObjectDeep(safe, patch);
-    return safe;
-  }
-
   private JSONObject sanitizedPlayer(JSONObject current, JSONObject proposed) throws Exception {
     if (proposed == null) return current == null ? new JSONObject() : new JSONObject(current.toString());
     JSONObject safe = current == null ? new JSONObject() : new JSONObject(current.toString());
@@ -1508,20 +1425,6 @@ public class MainActivity extends Activity {
     for (String key : new String[] {"hp", "condition", "needs", "weapon", "armor"}) if (proposed.has(key)) safe.put(key, proposed.get(key));
     safe.put("name", name).put("codename", codename);
     return safe;
-  }
-
-  private JSONObject sanitizedSnapshotEvent(JSONObject generated, JSONObject rolls, boolean transitionAccepted, boolean levelChanged, boolean meta) throws Exception {
-    JSONObject event = generated.optJSONObject("snapshotEvent");
-    JSONObject safe = new JSONObject().put("shouldGenerate", false).put("kind", "").put("reason", "");
-    if (meta || event == null || !event.optBoolean("shouldGenerate", false)) return safe;
-    String kind = lower(event.optString("kind", ""));
-    boolean allowed = false;
-    if (kind.equals("level_transition")) allowed = transitionAccepted && levelChanged;
-    else if (kind.equals("entity_encounter")) allowed = rollSuccess(rolls, "entityEncounter");
-    else if (kind.equals("character_encounter")) allowed = rollSuccess(rolls, "anNhienEncounter") || rollSuccess(rolls, "survivor") || rollSuccess(rolls, "irisReunion") || rollSuccess(rolls, "syvialReunion") || rollSuccess(rolls, "lucTramEncounter");
-    else if (kind.equals("special_area")) allowed = true;
-    if (!allowed) return safe;
-    return new JSONObject().put("shouldGenerate", true).put("kind", kind).put("reason", event.optString("reason", ""));
   }
 
   private boolean presentCharacter(JSONObject state, String key) {
@@ -1563,219 +1466,6 @@ public class MainActivity extends Activity {
 
   private boolean removalIntent(String action) {
     return containsAny(action, "trao", "đưa cho", "vứt", "bỏ lại", "ném", "uống", "tiêu thụ", "dùng hết", "phá hủy", "làm mất", "mất ");
-  }
-
-  private boolean characterAddAllowed(JSONObject before, String name, JSONObject rolls) {
-    String value = lower(name);
-    if (value.contains("an nhiên") || value.contains("an nhien") || value.contains("an-nhien")) return anNhienEncountered(before) || rollSuccess(rolls, "anNhienEncounter");
-    if (value.contains("iris")) return presentCharacter(before, "iris") || rollSuccess(rolls, "irisReunion");
-    if (value.contains("syvial")) return presentCharacter(before, "syvial") || rollSuccess(rolls, "syvialReunion");
-    return rollSuccess(rolls, "survivor");
-  }
-
-  private boolean flagRootAllowed(JSONObject before, String root, JSONObject rolls) {
-    if (root == null) return false;
-    if (root.equals("exploration") || root.equals("communication") || root.equals("visualAreaKey") ||
-        root.equals("visualEventKey") || root.equals("reunionPath")) return true;
-    if (root.equals("iris")) return presentCharacter(before, "iris") || rollSuccess(rolls, "irisReunion");
-    if (root.equals("syvial")) return presentCharacter(before, "syvial") || rollSuccess(rolls, "syvialReunion");
-    if (root.equals("jeff")) {
-      JSONObject flags = before.optJSONObject("flags");
-      JSONObject jeff = flags != null ? flags.optJSONObject("jeff") : null;
-      boolean established = jeff != null && (jeff.optBoolean("present", false) || jeff.optBoolean("spawned", false));
-      return established || (rollSuccess(rolls, "entityEncounter") && "jeff_the_killer".equals(rolls.optString("selectedEntityKey", "")));
-    }
-    if (root.equals("jane")) {
-      JSONObject flags = before.optJSONObject("flags");
-      JSONObject jane = flags != null ? flags.optJSONObject("jane") : null;
-      boolean established = jane != null && (jane.optBoolean("present", false) || jane.optBoolean("spawned", false));
-      return established || (rollSuccess(rolls, "entityEncounter") && "jane_the_killer".equals(rolls.optString("selectedEntityKey", "")));
-    }
-    if (root.equals("entitiesConfirmedLocal") || root.equals("entityEncounterKey")) {
-      JSONObject flags = before.optJSONObject("flags");
-      if (root.equals("entityEncounterKey")) {
-        if ((rollSuccess(rolls, "entityEncounter") && "jeff_the_killer".equals(rolls.optString("selectedEntityKey", ""))) || (rollSuccess(rolls, "entityEncounter") && "jane_the_killer".equals(rolls.optString("selectedEntityKey", "")))) return true;
-        if (flags != null) {
-          if (!flags.optString("entityEncounterKey", "").trim().isEmpty()) return true;
-          JSONObject jeff = flags.optJSONObject("jeff");
-          if (jeff != null && (jeff.optBoolean("present", false) || jeff.optBoolean("spawned", false))) return true;
-          JSONObject jane = flags.optJSONObject("jane");
-          if (jane != null && (jane.optBoolean("present", false) || jane.optBoolean("spawned", false))) return true;
-        }
-      }
-      return rollSuccess(rolls, "entityEncounter") || (flags != null && flags.optInt("entitiesConfirmedLocal", 0) > 0);
-    }
-    if (root.equals("survivorRegistry") || root.equals("survivorsConfirmed")) {
-      JSONObject flags = before.optJSONObject("flags");
-      return rollSuccess(rolls, "survivor") || (flags != null && flags.optInt("survivorsConfirmed", 0) > 0);
-    }
-    return false;
-  }
-
-  private JSONObject applyModelOperations(JSONObject before, JSONArray ops, JSONObject rolls, String action) throws Exception {
-    JSONObject state = new JSONObject(before.toString());
-    if (ops == null) return state;
-    int limit = Math.min(24, ops.length());
-    for (int i = 0; i < limit; i++) {
-      JSONObject op = ops.optJSONObject(i);
-      if (op == null) continue;
-      String type = lower(op.optString("type", "")).trim();
-
-      if (type.equals("set_location")) {
-        String value = op.optString("value", "").trim();
-        if (!value.isEmpty() && value.length() <= 700 && !com.rabpit.backroom.core.HiddenExitStreak.failedThisTurn(rolls)) state.put("location", value);
-        continue;
-      }
-
-      if (type.equals("set_level")) {
-        JSONObject level = op.optJSONObject("level");
-        if (level == null) continue;
-        LevelRouteRegistry.Node requested = LevelRouteRegistry.requested(level);
-        if (!canTransition(before, rolls, requested)) continue;
-        if (requested == null || requested.id.equals(currentNodeId(before)) ||
-            !LevelRouteRegistry.canMove(currentNodeId(before), requested.id) ||
-            !playerTraverses(action)) continue;
-        state.put("level", requested.asJson()).put("title", requested.title());
-        continue;
-      }
-
-      if (type.equals("party_upsert")) {
-        JSONObject member = op.optJSONObject("member");
-        if (member == null) continue;
-        String name = member.optString("name", "").trim();
-        if (name.isEmpty()) continue;
-        JSONArray party = state.optJSONArray("party");
-        if (party == null) party = new JSONArray();
-        int existing = arrayIndexByName(party, name);
-        if (existing >= 0) party.put(existing, new JSONObject(member.toString()));
-        else if (characterAddAllowed(before, name, rolls)) party.put(new JSONObject(member.toString()));
-        state.put("party", party);
-        continue;
-      }
-
-      if (type.equals("party_remove")) {
-        String name = op.optString("name", "").trim();
-        JSONArray party = state.optJSONArray("party");
-        int existing = arrayIndexByName(party, name);
-        if (party != null && existing >= 0 && containsAny(action, "rời", "tách", "ở lại", "đuổi", "chia nhóm", "mất dấu")) party.remove(existing);
-        continue;
-      }
-
-      if (type.equals("flag_patch")) {
-        String root = op.optString("root", "").trim();
-        if (!flagRootAllowed(before, root, rolls) || !op.has("value")) continue;
-        JSONObject flags = state.optJSONObject("flags");
-        if (flags == null) flags = new JSONObject();
-        Object value = op.get("value");
-        if (root.equals("entityEncounterKey")) {
-          String requested = value instanceof String ? ((String) value).trim() : "";
-          JSONObject oldFlags = before.optJSONObject("flags");
-          String existing = oldFlags == null ? "" : oldFlags.optString("entityEncounterKey", "").trim();
-          // An AI operation may preserve or clear an existing Entity, but cannot
-          // introduce an Entity other than the one selected by Android this turn.
-          if (!requested.isEmpty() && !requested.equals(existing) &&
-              !(rollSuccess(rolls, "entityEncounter") &&
-                requested.equals(rolls.optString("selectedEntityKey", "")))) continue;
-        }
-        if (root.equals("jeff") && value instanceof JSONObject) {
-          JSONObject jeffPatch = (JSONObject)value;
-          boolean proposedPresent = jeffPatch.optBoolean("present", false) || jeffPatch.optBoolean("spawned", false);
-          JSONObject beforeJeff = before.optJSONObject("flags") != null ? before.optJSONObject("flags").optJSONObject("jeff") : null;
-          boolean alreadyPresent = beforeJeff != null && (beforeJeff.optBoolean("present", false) || beforeJeff.optBoolean("spawned", false));
-          if (!alreadyPresent && proposedPresent && !(rollSuccess(rolls, "entityEncounter") && "jeff_the_killer".equals(rolls.optString("selectedEntityKey", "")))) continue;
-        }
-        if (root.equals("jane") && value instanceof JSONObject) {
-          JSONObject janePatch = (JSONObject)value;
-          boolean proposedPresent = janePatch.optBoolean("present", false) || janePatch.optBoolean("spawned", false);
-          JSONObject beforeJane = before.optJSONObject("flags") != null ? before.optJSONObject("flags").optJSONObject("jane") : null;
-          boolean alreadyPresent = beforeJane != null && (beforeJane.optBoolean("present", false) || beforeJane.optBoolean("spawned", false));
-          if (!alreadyPresent && proposedPresent && !(rollSuccess(rolls, "entityEncounter") && "jane_the_killer".equals(rolls.optString("selectedEntityKey", "")))) continue;
-        }
-        if (root.equals("exploration") && value instanceof JSONObject) {
-          JSONObject patchValue = new JSONObject(value.toString());
-          JSONObject beforeExploration = before.optJSONObject("flags") != null ? before.optJSONObject("flags").optJSONObject("exploration") : null;
-          String beforeProgress = beforeExploration != null ? beforeExploration.optString("exitProgress", "") : "";
-          String afterProgress = patchValue.optString("exitProgress", beforeProgress);
-          boolean exitMutation = !afterProgress.equals(beforeProgress) || patchValue.has("exitCandidate");
-          if (exitMutation && !rollSuccess(rolls, "levelExit")) continue;
-          if (containsAny(afterProgress, "READY", "GUARANTEED", "CONDITION MET", "TRANSITION AVAILABLE") &&
-              !containsAny(beforeProgress, "NEAR", "ALMOST", "VERY STRONG")) continue;
-          value = patchValue;
-        }
-        if (root.equals("reunionPath") && value instanceof JSONObject) {
-          JSONObject pathPatch = (JSONObject)value;
-          if (pathPatch.has("iris") && containsAny(pathPatch.optString("iris", ""), "CONFIRMED", "DIRECT", "ARRIVED", "CONTACT ESTABLISHED") && !rollSuccess(rolls, "irisReunion")) continue;
-          if (pathPatch.has("syvial") && containsAny(pathPatch.optString("syvial", ""), "CONFIRMED", "DIRECT", "ARRIVED", "CONTACT ESTABLISHED") && !rollSuccess(rolls, "syvialReunion")) continue;
-        }
-        Object current = flags.opt(root);
-        if (current instanceof JSONObject && value instanceof JSONObject) {
-          JSONObject merged = new JSONObject(current.toString());
-          mergeObject(merged, (JSONObject) value);
-          flags.put(root, merged);
-        } else {
-          flags.put(root, value);
-        }
-        state.put("flags", flags);
-      }
-    }
-
-    JSONObject flags = state.optJSONObject("flags");
-    if (flags == null) flags = new JSONObject();
-    flags.put("lastRolls", rolls);
-
-    boolean anNhienNow = anNhienEncountered(before) || rollSuccess(rolls, "anNhienEncounter");
-    if (anNhienNow) {
-      JSONObject anNhien = flags.optJSONObject("anNhien");
-      if (anNhien == null) anNhien = new JSONObject();
-      anNhien.put("encountered", true)
-        .put("present", true)
-        .put("nonCombat", true)
-        .put("levelEncountered", currentLevel(before))
-        .put("exitBonusPercent", 2);
-      flags.put("anNhien", anNhien);
-
-    }
-    if (rollSuccess(rolls, "irisReunion")) {
-      JSONObject iris = flags.optJSONObject("iris");
-      if (iris == null) iris = new JSONObject();
-      iris.put("exists", true)
-        .put("encountered", true)
-        .put("present", true)
-        .put("spawned", true)
-        .put("reunionEligible", false)
-        .put("continuity", "REUNITED")
-        .put("levelEncountered", currentLevel(before));
-      flags.put("iris", iris);
-    }
-
-    if (rollSuccess(rolls, "syvialReunion")) {
-      JSONObject syvial = flags.optJSONObject("syvial");
-      if (syvial == null) syvial = new JSONObject();
-      syvial.put("exists", true)
-        .put("encountered", true)
-        .put("present", true)
-        .put("spawned", true)
-        .put("reunionEligible", false)
-        .put("continuity", "REUNITED")
-        .put("levelEncountered", currentLevel(before));
-      flags.put("syvial", syvial);
-    }
-
-    if (rollSuccess(rolls, "luciaEncounter")) {
-      JSONObject lucia = flags.optJSONObject("lucia");
-      if (lucia == null) lucia = new JSONObject();
-      lucia.put("exists", true)
-        .put("encountered", true)
-        .put("present", true)
-        .put("spawned", true)
-        .put("reunionEligible", false)
-        .put("continuity", "RECRUITED_LEVEL_0")
-        .put("levelEncountered", 0);
-      flags.put("lucia", lucia);
-    }
-
-    state.put("flags", flags);
-    return state;
   }
 
   private boolean jsonChanged(Object before, Object after) {
@@ -2125,10 +1815,12 @@ public class MainActivity extends Activity {
             return;
           }
           // Only deterministic Core rolls and the already-installed SOL plan.
-          JSONObject candidateState = applyModelOperations(before, new JSONArray(), rolls, action);
+          JSONObject candidateState = new JSONObject(before.toString());
+          JSONObject candidateFlags = candidateState.optJSONObject("flags");
+          if (candidateFlags == null) { candidateFlags = new JSONObject(); candidateState.put("flags", candidateFlags); }
+          candidateFlags.put("lastRolls", rolls);
 
           reconcileVisualWorldState(before, candidateState, rolls, action);
-          forceEntityEncounterFlag(candidateState, rolls);
           JSONObject state = candidateState;
           String oldNodeId = currentNodeId(before);
           String newNodeId = currentNodeId(state);

@@ -10,7 +10,6 @@ const val SYVIAL_GODKILLER_ID = "syvial:godkiller"
 const val SYVIAL_LUCIFER_ARMOR_ID = "syvial:lucifer-armor"
 
 object SpecialFollowersCanon {
-  const val ENCOUNTER_CHANCE = "0.25%"
   const val ENCOUNTER_LEVELS = "0-6"
   const val IRIS_AVATAR_REF = "avatars/Iris_avatar.jpg"
   const val SYVIAL_AVATAR_REF = "avatars/Syvial_avatar.jpg"
@@ -43,7 +42,7 @@ object SpecialFollowersCanon {
         "npcType" to "follower",
         "joinEligible" to "true",
         "followsPlayer" to "true",
-        "encounterChance" to ENCOUNTER_CHANCE,
+        "encounterPolicy" to "MILESTONE",
         "encounterLevels" to ENCOUNTER_LEVELS,
         "combatant" to "true",
         "role" to "Scout / Target Eliminator",
@@ -72,7 +71,7 @@ object SpecialFollowersCanon {
         "npcType" to "follower",
         "joinEligible" to "true",
         "followsPlayer" to "true",
-        "encounterChance" to ENCOUNTER_CHANCE,
+        "encounterPolicy" to "MILESTONE",
         "encounterLevels" to ENCOUNTER_LEVELS,
         "combatant" to "true",
         "combatTier" to "UR+",
