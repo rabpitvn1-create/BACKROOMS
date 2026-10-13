@@ -85,6 +85,7 @@ object CoreClientProjection {
       .put("runToken", state.world["story.runToken"].orEmpty())
       .put("checkpointId", StoryCheckpointCore.current(state)?.id.orEmpty())
       .put("hasPlan", StoryMilestoneRuntime.hasPlan(state))
+      .put("generatedMilestones", StoryMilestoneRuntime.generatedPlanCount(state))
       .put("waiting", StoryMilestoneRuntime.awaitingPlan(state))
       .put("stats", StoryMilestoneRuntime.statsJson(state))
       .put("factStats", StoryFactLedger.statsJson(state))

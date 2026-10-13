@@ -47,6 +47,7 @@ class StoryMilestonePlannerIntegrationTest {
       request.getString("checkpointId"), request.getInt("startTurn")))
     assertFalse(JSONObject(core.milestonePlanRequest()).getBoolean("needed"))
     assertEquals("CP-L00-01", StoryMilestonePlan.current(repo.stored!!)!!.plan.checkpointId)
+    assertEquals(1, JSONObject(core.currentClientState("{}")).getJSONObject("story").getInt("generatedMilestones"))
     val decoded = GameStateCodec.decode(GameStateCodec.encode(repo.stored!!))
     assertEquals("CP-L00-01", StoryMilestonePlan.current(decoded)!!.plan.checkpointId)
   }
@@ -77,6 +78,7 @@ class StoryMilestonePlannerIntegrationTest {
     }
     assertEquals(before, GameStateCodec.encode(repo.stored!!))
     assertTrue(JSONObject(core.milestonePlanRequest()).getBoolean("needed"))
+    assertEquals(0, JSONObject(core.currentClientState("{}")).getJSONObject("story").getInt("generatedMilestones"))
   }
 
   @Test fun plannerPromptOnlyIncludesRealCombatEntityKeysAndLightCanon() {

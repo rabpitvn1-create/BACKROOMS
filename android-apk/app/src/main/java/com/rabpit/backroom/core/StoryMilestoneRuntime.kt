@@ -115,6 +115,12 @@ object StoryMilestoneRuntime {
     due(state).forEach { put(it.toJson()) }
   }.toString()
 
+  /** Count only plans accepted into Core: completed CPs, current plan and prefetch. */
+  fun generatedPlanCount(state: GameState): Int =
+    JSONArray(state.world[CP_HISTORY] ?: "[]").length() +
+      (if (StoryMilestonePlan.current(state) != null) 1 else 0) +
+      (if (StoryMilestonePlan.prepared(state) != null) 1 else 0)
+
   fun hasPlan(state: GameState): Boolean = StoryMilestonePlan.current(state) != null
 
   fun hasUnresolvedBoss(state: GameState): Boolean =
