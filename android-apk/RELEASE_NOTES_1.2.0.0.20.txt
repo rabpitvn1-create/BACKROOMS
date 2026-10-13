@@ -1,0 +1,11 @@
+Backroom 1.2.0.0.20 Debug
+
+- Android versionCode 93; versionName 1.2.0.0.20; applicationId com.rabpit.backroom.
+- Tích hợp PR #609: xóa hẳn StoryFactLedger, storyFacts và các kiểm định subject/evidence truyện gây [PLAN_INVALID] story_subject_invalid khi loading.
+- Milestone do Gemini (tối đa 5 key) hoặc GPT SOL 6.1 tạo theo lựa chọn API đã lưu một lần trong Android.
+- Gehihi là GM kể chuyện; Core áp sự kiện Milestone theo lượt, điều khiển Entity/Boss, Combat và gameplay. Không thêm AI audit/verifier lời kể.
+- Ngữ cảnh từ các sự kiện Milestone đã commit được đọc trực tiếp trong Game Core SaveState; checkpointHistory giữ các event hoàn tất, không tạo fact ledger riêng.
+- Core vẫn kiểm tra cấu trúc Milestone, Entity key hợp lệ, lịch Turn, quota Entity tối thiểu 40%, Boss và tính toàn vẹn Save/Load.
+- Giao diện giữ hai nút Khám Phá / Thực Hiện, không có nút Tìm Kiếm.
+- Không migration/tương thích save cũ. Không xóa dữ liệu người chơi đang lưu, nhưng schema save mới không đảm bảo tải các bản cũ.
+- APK Debug dùng nghiệm thu. CI kiểm tra Node/Kotlin, đóng gói, chữ ký và xác minh APK phát hành. Chưa xác minh hoàn thành CP1–CP2 trên emulator/thiết bị thật với phiên bản này.
