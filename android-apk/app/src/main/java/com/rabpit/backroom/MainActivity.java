@@ -307,10 +307,14 @@ public class MainActivity extends Activity {
   }
 
   private String postJson(String endpoint, String key, String authHeader, JSONObject payload) throws Exception {
+    return postJson(endpoint, key, authHeader, payload, 60000);
+  }
+
+  private String postJson(String endpoint, String key, String authHeader, JSONObject payload, int readTimeoutMs) throws Exception {
     HttpURLConnection connection = (HttpURLConnection) new URL(endpoint).openConnection();
     connection.setRequestMethod("POST");
     connection.setConnectTimeout(20000);
-    connection.setReadTimeout(60000);
+    connection.setReadTimeout(readTimeoutMs);
     connection.setDoOutput(true);
     connection.setRequestProperty("Content-Type", "application/json");
     connection.setRequestProperty(authHeader, authHeader.equals("Authorization") ? "Bearer " + key : key);
@@ -871,23 +875,58 @@ public class MainActivity extends Activity {
   }
 
   private String solText(String prompt) throws Exception {
-    return solText(prompt, 2048, 0.6);
+    return solText(prompt, 2048, 0.6, false);
   }
 
-  /** Milestone JSON requires a larger output budget than ordinary GM prose. */
+  /** Milestone generation can take longer than ordinary GM prose. Do not alter the GM timeout. */
   private String solMilestoneText(String prompt) throws Exception {
-    return solText(prompt, 12288, 0.5);
+    return solText(prompt, 12288, 0.5, true);
   }
 
-  private String solText(String prompt, int maxOutputTokens, double temperature) throws Exception {
+  private String solText(String prompt, int maxOutputTokens, double temperature, boolean milestone) throws Exception {
     if (BuildConfig.SOL_API_KEY == null || BuildConfig.SOL_API_KEY.trim().isEmpty()) throw new Exception("SOL_API_KEY chưa được cấu hình.");
     JSONObject body = openAiProviderBody("vgpt/gpt-6.1-sol", prompt)
       .put("reasoning_effort", "low")
       .put("max_tokens", maxOutputTokens)
       .put("temperature", temperature);
-    String output = openAiProviderText(postJson("https://api.vilao.ai/v1/chat/completions", BuildConfig.SOL_API_KEY, "Authorization", body));
+    String response = postJson("https://api.vilao.ai/v1/chat/completions",
+      BuildConfig.SOL_API_KEY, "Authorization", body, milestone ? 120000 : 60000);
+    if (milestone) return com.rabpit.backroom.core.SolMilestoneResponse.normalize(response);
+    String output = openAiProviderText(response);
     parseModelJson(output);
     return output;
+  }
+
+  /** Stable, non-secret diagnostics; never expose API response bodies or tokens in the popup. */
+  private String milestoneFailureMessage(Exception error) {
+    if (error instanceof HttpError) {
+      int code = ((HttpError) error).status;
+      if (code == 401 || code == 403) return "[SOL_AUTH_" + code + "] SOL từ chối xác thực/quyền dùng model. Kiểm tra cấu hình API.";
+      if (code == 429) return "[SOL_RATE_LIMIT] SOL hết quota hoặc bị giới hạn tốc độ. Hãy thử lại sau.";
+      if (code == 400 || code == 404 || code == 422)
+        return "[SOL_REQUEST_" + code + "] SOL từ chối model hoặc tham số request. Cần kiểm tra cấu hình.";
+      if (code >= 500) return "[SOL_SERVER_" + code + "] Máy chủ SOL đang lỗi. Hãy thử lại sau.";
+      return "[SOL_HTTP_" + code + "] SOL trả lỗi HTTP. Hãy thử lại hoặc kiểm tra cấu hình.";
+    }
+    Throwable cause = error;
+    while (cause != null) {
+      if (cause instanceof java.net.SocketTimeoutException)
+        return "[SOL_TIMEOUT] SOL không trả kịp Milestone trong giới hạn chờ 120 giây.";
+      cause = cause.getCause();
+    }
+    if (networkFailure(error)) return "[SOL_NETWORK] Không kết nối được SOL. Kiểm tra mạng/DNS.";
+    String reason = error.getMessage() == null ? "" : error.getMessage();
+    if (reason.equals("milestone_provider_truncated"))
+      return "[SOL_TRUNCATED] SOL trả kế hoạch bị cắt do giới hạn token.";
+    if (reason.startsWith("milestone_provider_"))
+      return "[SOL_RESPONSE] SOL trả phản hồi rỗng hoặc không đúng định dạng JSON.";
+    if (reason.matches("(milestone|checkpoint|story)_[a-z0-9_]{1,90}"))
+      return "[PLAN_INVALID] Game Core từ chối kế hoạch: " + reason;
+    if (reason.equals("SOL_API_KEY chưa được cấu hình."))
+      return "[SOL_CONFIG] Chưa cấu hình SOL_API_KEY trong APK.";
+    if (reason.equals("milestone_plan_state_changed"))
+      return "[PLAN_STALE] Phiên chơi đã thay đổi trong lúc tạo Milestone. Hãy thử lại.";
+    return "[MILESTONE_ERROR] Không chuẩn bị được Milestone. Hãy thử lại hoặc xem log MilestonePlanner.";
   }
 
   private String providerFailureMessage(Exception error) {
@@ -1409,7 +1448,7 @@ public class MainActivity extends Activity {
     }
     return "CORE ENVIRONMENT ADDRESS: node=" + current.id + ", parent=" + current.parent +
       "; supported local movements=" + local + ". Player-directed local movement remains available. " +
-      "Only Gemini Milestone completion may end the parent Level. No HiddenExitStreak gate. " +
+      "Only authored Milestone completion may end the parent Level. No HiddenExitStreak gate. " +
       "These are runtime addresses, not independent lore sources; use approved Canon cards for environment facts.";
   }
 
@@ -2042,16 +2081,11 @@ public class MainActivity extends Activity {
       checkpointId, startTurn, nodeId, canon, scene, request.getInt("checkpointTotal"), requireGameCore().storyFactContext());
     // Dedicated SOL planner, separate from the GM writer/audit providers.
     emitMilestoneStatus(request, "loading", "Đang chuẩn bị Milestone cho Checkpoint…");
-    try {
-      String rawPlan = solMilestoneText(prompt);
-      boolean saved = requireGameCore().installMilestonePlan(
-        rawPlan, request.getString("runToken"), checkpointId, startTurn);
-      if (!saved) throw new IllegalStateException("milestone_plan_state_changed");
-      emit("backroomMilestoneReady", request.toString());
-    } catch (Exception error) {
-      emitMilestoneStatus(request, "error", "Không thể nạp Milestone. Kiểm tra kết nối và nhấn Thử lại.");
-      throw error;
-    }
+    String rawPlan = solMilestoneText(prompt);
+    boolean saved = requireGameCore().installMilestonePlan(
+      rawPlan, request.getString("runToken"), checkpointId, startTurn);
+    if (!saved) throw new IllegalStateException("milestone_plan_state_changed");
+    emit("backroomMilestoneReady", request.toString());
   }
 
   private void emitMilestoneStatus(JSONObject lease, String status, String message) {
@@ -2103,14 +2137,14 @@ public class MainActivity extends Activity {
             lease.getString("bossEncounterId"));
           if (accepted) emit("backroomMilestoneReady", lease.toString());
         } catch (Exception error) {
-          emitMilestoneStatus(lease, "error", "Không thể nạp Milestone tiếp theo. Kiểm tra kết nối và nhấn Thử lại.");
-          Log.w("MilestonePlanner", "Next checkpoint plan not yet ready", error);
+          emitMilestoneStatus(lease, "error", milestoneFailureMessage(error));
+          Log.w("MilestonePlanner", "Next checkpoint plan error: " + milestoneFailureMessage(error));
         } finally {
           milestonePlanInFlight.remove(id);
         }
       });
     } catch (Exception error) {
-      Log.w("MilestonePlanner", "Could not schedule next checkpoint plan", error);
+      Log.w("MilestonePlanner", "Could not schedule next checkpoint plan: " + milestoneFailureMessage(error));
     }
   }
 
@@ -2123,8 +2157,8 @@ public class MainActivity extends Activity {
           scheduleNextMilestone(view);
         } catch (Exception error) {
           try { emitMilestoneStatus(new JSONObject(stateJson).getJSONObject("story"), "error",
-            "Không thể nạp Milestone. Kiểm tra kết nối và nhấn Thử lại."); } catch (Exception ignored) {}
-          Log.w("MilestonePlanner", "Current checkpoint plan failed", error);
+            milestoneFailureMessage(error)); } catch (Exception ignored) {}
+          Log.w("MilestonePlanner", "Current checkpoint plan error: " + milestoneFailureMessage(error));
         }
       });
     }
@@ -2200,7 +2234,7 @@ public class MainActivity extends Activity {
           final String currentView = requireGameCore().currentClientState(stateJson);
           scheduleNextMilestone(currentView);
           if (requireGameCore().milestoneWaiting()) {
-            emit("backroomError", "Gemini đang hoàn thiện Milestone Checkpoint tiếp theo. Vui lòng thử lại sau.");
+            emit("backroomError", "SOL đang hoàn thiện Milestone Checkpoint tiếp theo. Vui lòng thử lại sau.");
             return;
           }
           if (requireGameCore().blocksTextItemAction(action)) {
@@ -2214,7 +2248,7 @@ public class MainActivity extends Activity {
             emit("backroomTurn", combatResult.getJSONObject("state").toString());
             return;
           }
-          // One Gemini planner, with the existing five-key fallback transport.
+          // SOL prepares the Milestone plan independently of GM and audit providers.
           // This runs only when the active Checkpoint has no authored plan.
           // A failed plan never lets the normal GM improvise around missing locks.
           if (!isMetaAction(action)) ensureMilestoneForCurrentCheckpoint(currentView);

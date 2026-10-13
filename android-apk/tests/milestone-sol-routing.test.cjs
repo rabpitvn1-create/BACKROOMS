@@ -16,7 +16,14 @@ test('Milestone initial and next checkpoint use SOL instead of Gemini planner tr
 });
 
 test('SOL Milestone has a separate 12288 token budget without changing ordinary writer',()=>{
-  assert.match(main,/private String solText\(String prompt\) throws Exception \{\s*return solText\(prompt, 2048, 0\.6\);/);
-  assert.match(main,/private String solMilestoneText\(String prompt\) throws Exception \{\s*return solText\(prompt, 12288, 0\.5\);/);
+  assert.match(main,/private String solText\(String prompt\) throws Exception \{\s*return solText\(prompt, 2048, 0\.6, false\);/);
+  assert.match(main,/private String solMilestoneText\(String prompt\) throws Exception \{\s*return solText\(prompt, 12288, 0\.5, true\);/);
   assert.match(main,/openAiProviderBody\("vgpt\/gpt-6\.1-sol", prompt\)[\s\S]*?\.put\("max_tokens", maxOutputTokens\)[\s\S]*?\.put\("temperature", temperature\)/);
+});
+
+test('SOL Milestone parses response envelope, exposes categorized errors, and preserves actionable retries',()=>{
+  assert.match(main,/SolMilestoneResponse\.normalize\(response\)/);
+  assert.match(main,/milestoneFailureMessage\(error\)/);
+  assert.match(main,/\[PLAN_INVALID\]/);
+  assert.doesNotMatch(main,/Không thể nạp Milestone\. Kiểm tra kết nối và nhấn Thử lại/);
 });
