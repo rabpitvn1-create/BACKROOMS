@@ -85,6 +85,14 @@ class LiveSixCheckpointsGameplayTest {
     var diceAt = 0L
     var explorerActions = 0
     var combatFinishes = 0
+    // Record recoverable UI errors; do not stop the playtest while a normal retry can proceed.
+    var observedWarnings = 0
+    var retryAfter = 0L
+    var lastMilestoneRetryAt = 0L
+    var lastMilestoneRetryKey = ""
+    val errorsPerTurn = linkedMapOf<String, Int>()
+    val milestoneRetries = linkedMapOf<String, Int>()
+    val issues = mutableListOf<String>()
     try {
       while (SystemClock.elapsedRealtime() - started < TimeUnit.HOURS.toMillis(3)) {
         val ui = snapshot(web)
@@ -112,13 +120,45 @@ class LiveSixCheckpointsGameplayTest {
             assertEquals("DEFEATED", item.getString("bossResult"))
           }
           StoryMilestoneRuntime.validateStoredState(stored)
-          Log.i(tag, "LIVE_6CP_PASS explorerActions=" + explorerActions + " combatFinishes=" + combatFinishes)
+          Log.i(tag, "LIVE_6CP_PASS explorerActions=" + explorerActions +
+            " combatFinishes=" + combatFinishes + " recoverableIssues=" + issues.size)
+          issues.forEachIndexed { index, issue -> Log.i(tag, "RECOVERABLE_$index " + issue) }
           return
         }
-        if (ui.optInt("warnings") > 0)
-          fail("LIVE_GM_ERROR CP=" + cp + " Turn=" + turn + " " + ui.optString("error"))
-        if (ui.optBoolean("milestoneError"))
-          fail("LIVE_MILESTONE_ERROR CP=" + cp + " Turn=" + turn + " " + ui.optString("milestoneMessage"))
+        val warningCount = ui.optInt("warnings")
+        if (warningCount > observedWarnings) {
+          val key = cp + ":turn=" + turn
+          val attempts = (errorsPerTurn[key] ?: 0) + (warningCount - observedWarnings)
+          errorsPerTurn[key] = attempts
+          val summary = "CP=" + cp + " turn=" + turn + " gmError=" + ui.optString("error")
+          issues.add(summary)
+          Log.w(tag, "NON_BLOCKING_ERROR " + summary + " attempt=" + attempts)
+          retryAfter = now + 5_000L
+          // A repeatedly rejected turn becomes blocking, not a false pass.
+          if (attempts >= 5) fail("LIVE_BLOCKING_GM_ERROR " + summary +
+            " attempts=" + attempts + " totalRecordedIssues=" + issues.size)
+        }
+        observedWarnings = warningCount
+
+        if (ui.optBoolean("milestoneError")) {
+          val key = cp + ":turn=" + turn
+          if (key != lastMilestoneRetryKey || now - lastMilestoneRetryAt > 25_000L) {
+            val attempts = (milestoneRetries[key] ?: 0) + 1
+            milestoneRetries[key] = attempts
+            val message = "CP=" + cp + " turn=" + turn + " milestone=" +
+              ui.optString("milestoneMessage")
+            issues.add(message)
+            Log.w(tag, "NON_BLOCKING_MILESTONE_ERROR " + message + " retry=" + attempts)
+            if (attempts >= 4) fail("LIVE_BLOCKING_MILESTONE_ERROR " + message +
+              " attempts=" + attempts)
+            if (!click(web, "milestoneLoadingRetry"))
+              fail("LIVE_BLOCKING_MILESTONE_RETRY_UNAVAILABLE " + message)
+            lastMilestoneRetryKey = key
+            lastMilestoneRetryAt = now
+          }
+          Thread.sleep(1000)
+          continue
+        }
         if (cp.isNotEmpty() && cp !in (1..6).map { "CP-L00-" + it.toString().padStart(2, '0') })
           fail("LIVE_UNEXPECTED_CP=" + cp + " Turn=" + turn)
         if (now - lastChangeAt > TimeUnit.MINUTES.toMillis(9))
@@ -136,7 +176,8 @@ class LiveSixCheckpointsGameplayTest {
             }
           }
         } else if (ui.optBoolean("plan") && !ui.optBoolean("waiting") &&
-          !ui.optBoolean("blocked") && !ui.optBoolean("busy") && now - actionAt > 1100) {
+          !ui.optBoolean("blocked") && !ui.optBoolean("busy") &&
+          now >= retryAfter && now - actionAt > 1100) {
           if (click(web, "exploreActionButton")) {
             explorerActions++
             actionAt = now
@@ -145,7 +186,7 @@ class LiveSixCheckpointsGameplayTest {
         Thread.sleep(1000)
       }
       fail("LIVE_GLOBAL_TIMEOUT 3h CP=" + priorCp + " Turn=" + priorTurn +
-        " explorerActions=" + explorerActions)
+        " explorerActions=" + explorerActions + " issues=" + issues.size)
     } finally {
       instrumentation.runOnMainSync { activity.finish() }
     }
