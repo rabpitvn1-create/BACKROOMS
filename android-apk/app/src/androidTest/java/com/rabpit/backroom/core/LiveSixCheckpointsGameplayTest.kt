@@ -186,8 +186,10 @@ class LiveSixCheckpointsGameplayTest {
           for (i in 0..1) {
             val item = history.getJSONObject(i)
             assertEquals("CP-L00-" + (i + 1).toString().padStart(2, '0'), item.getString("checkpointId"))
-            assertTrue(item.getLong("turnCount") >= 18L)
-            assertTrue(item.getInt("entityEncounterCount") * 5L >= item.getLong("turnCount") * 2L)
+            assertTrue(item.getLong("turnCount") >= 50L)
+            assertTrue(item.getInt("entityEncounterCount") >= 20)
+            assertEquals(item.getInt("entityEncounterCount") + 1, item.getJSONArray("entityEncounterRefs").length())
+            assertTrue(item.getString("storyArc").length in 200..750)
             assertEquals("DEFEATED", item.getString("bossResult"))
           }
           StoryMilestoneRuntime.validateStoredState(stored)
