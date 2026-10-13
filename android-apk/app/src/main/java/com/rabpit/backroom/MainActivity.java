@@ -2055,6 +2055,8 @@ public class MainActivity extends Activity {
   private void ensureMilestoneForCurrentCheckpoint(String trustedClientView) throws Exception {
     JSONObject request = new JSONObject(requireGameCore().milestonePlanRequest());
     if (!request.optBoolean("needed", false)) return;
+    long startedMs = android.os.SystemClock.elapsedRealtime();
+    emitMilestoneStatus(request, "loading", "Đang chuẩn bị Canon cho SOL…");
     JSONObject view = new JSONObject(trustedClientView);
     String checkpointId = request.getString("checkpointId");
     int startTurn = request.getInt("startTurn");
@@ -2080,11 +2082,17 @@ public class MainActivity extends Activity {
     String prompt = com.rabpit.backroom.core.StoryMilestonePlannerPrompt.build(
       checkpointId, startTurn, nodeId, canon, scene, request.getInt("checkpointTotal"), requireGameCore().storyFactContext());
     // Dedicated SOL planner, separate from the GM writer/audit providers.
-    emitMilestoneStatus(request, "loading", "Đang chuẩn bị Milestone cho Checkpoint…");
+    emitMilestoneStatus(request, "loading", "SOL đang tạo khung Checkpoint…");
+    long solStartedMs = android.os.SystemClock.elapsedRealtime();
     String rawPlan = solMilestoneText(prompt);
+    long solMs = android.os.SystemClock.elapsedRealtime() - solStartedMs;
+    emitMilestoneStatus(request, "loading", "SOL đã phản hồi sau " + (solMs / 1000) + " giây. Game Core đang kiểm định và lưu…");
     boolean saved = requireGameCore().installMilestonePlan(
       rawPlan, request.getString("runToken"), checkpointId, startTurn);
     if (!saved) throw new IllegalStateException("milestone_plan_state_changed");
+    Log.i("MilestonePlanner", "Current READY checkpoint=" + checkpointId +
+      " solMs=" + solMs + " totalMs=" + (android.os.SystemClock.elapsedRealtime() - startedMs) +
+      " planChars=" + rawPlan.length());
     emit("backroomMilestoneReady", request.toString());
   }
 
@@ -2106,7 +2114,9 @@ public class MainActivity extends Activity {
       if (!milestonePlanInFlight.add(id)) return;
       emitMilestoneStatus(lease, "loading", "Đang chuẩn bị Milestone cho Checkpoint tiếp theo…");
       auditIo.execute(() -> {
+        long startedMs = android.os.SystemClock.elapsedRealtime();
         try {
+          emitMilestoneStatus(lease, "loading", "Đang chuẩn bị Canon cho Checkpoint tiếp theo…");
           JSONObject view = new JSONObject(requireGameCore().currentClientState(currentView));
           JSONObject targetLevel = lease.getJSONObject("targetLevel");
           view.put("level", targetLevel);
@@ -2131,14 +2141,26 @@ public class MainActivity extends Activity {
             "Completion của CP trước bên dưới còn PLANNED, chỉ xảy ra sau verified Boss defeat; " +
             "dùng nó để nối tiếp kịch bản, không ghi thành lịch sử đã xảy ra và không giả định HP/Party sau Combat. " +
             "PREDECESSOR_PENDING_COMPLETION=" + lease.getJSONObject("completion").toString();
+          emitMilestoneStatus(lease, "loading", "SOL đang tạo khung Checkpoint tiếp theo…");
+          long solStartedMs = android.os.SystemClock.elapsedRealtime();
           String raw = solMilestoneText(prompt);
+          long solMs = android.os.SystemClock.elapsedRealtime() - solStartedMs;
+          emitMilestoneStatus(lease, "loading", "SOL đã phản hồi sau " + (solMs / 1000) + " giây. Core đang kiểm định kế hoạch kế tiếp…");
           boolean accepted = requireGameCore().installNextMilestone(
             raw, lease.getString("runToken"), lease.getString("checkpointId"),
             lease.getString("bossEncounterId"));
-          if (accepted) emit("backroomMilestoneReady", lease.toString());
+          if (accepted) {
+            Log.i("MilestonePlanner", "Next READY checkpoint=" + lease.getString("nextCheckpointId") +
+              " solMs=" + solMs + " totalMs=" + (android.os.SystemClock.elapsedRealtime() - startedMs) +
+              " planChars=" + raw.length());
+            emit("backroomMilestoneReady", lease.toString());
+          } else {
+            Log.i("MilestonePlanner", "Discarded stale next checkpoint=" + lease.getString("nextCheckpointId"));
+          }
         } catch (Exception error) {
           emitMilestoneStatus(lease, "error", milestoneFailureMessage(error));
-          Log.w("MilestonePlanner", "Next checkpoint plan error: " + milestoneFailureMessage(error));
+          Log.w("MilestonePlanner", "Next checkpoint plan error after " +
+            (android.os.SystemClock.elapsedRealtime() - startedMs) + "ms: " + milestoneFailureMessage(error));
         } finally {
           milestonePlanInFlight.remove(id);
         }
@@ -2151,6 +2173,7 @@ public class MainActivity extends Activity {
   private class GameBridge {
     @JavascriptInterface public void prepareMilestone(String stateJson) {
       io.execute(() -> {
+        long startedMs = android.os.SystemClock.elapsedRealtime();
         try {
           String view = requireGameCore().currentClientState(stateJson);
           ensureMilestoneForCurrentCheckpoint(view);
@@ -2158,7 +2181,8 @@ public class MainActivity extends Activity {
         } catch (Exception error) {
           try { emitMilestoneStatus(new JSONObject(stateJson).getJSONObject("story"), "error",
             milestoneFailureMessage(error)); } catch (Exception ignored) {}
-          Log.w("MilestonePlanner", "Current checkpoint plan error: " + milestoneFailureMessage(error));
+          Log.w("MilestonePlanner", "Current checkpoint plan error after " +
+            (android.os.SystemClock.elapsedRealtime() - startedMs) + "ms: " + milestoneFailureMessage(error));
         }
       });
     }
