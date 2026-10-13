@@ -48,6 +48,9 @@ object StoryMilestoneRuntime {
     }
     return JSONObject().put("recentCommittedEvents", JSONArray().apply { recent.forEach { put(it) } })
       .apply {
+        active?.let { put("activeStoryArc", it.plan.storyArc) }
+        if (checkpoints.length() > 0) put("previousStoryArc",
+          checkpoints.getJSONObject(checkpoints.length() - 1).getString("storyArc"))
         state.world["story.milestone.lastCompletion"]?.let { put("lastCompletion", JSONObject(it)) }
       }.toString()
   }
@@ -261,7 +264,6 @@ object StoryMilestoneRuntime {
           .apply {
             if (event.isEntityEncounter) {
               put("entityKey", requireNotNull(event.entityKey))
-              if (event.kind == StoryMilestonePlan.Kind.ENTITY) put("combatRequired", event.combatRequired)
             }
             if (event.isCharacterEncounter) put("characterId", requireNotNull(event.characterId))
             if (event.isEncounter) put("encounterId", record.getString("encounterId"))
@@ -273,7 +275,8 @@ object StoryMilestoneRuntime {
       "milestone_checkpoint_history_duplicate"
     }
     checkpoints.put(JSONObject().put("id", completionId).put("visitId", visitId)
-      .put("checkpointId", position.id).put("startTurn", active.startTurn)
+      .put("checkpointId", position.id).put("storyArc", active.plan.storyArc)
+      .put("startTurn", active.startTurn)
       .put("endTurn", CoreClientProjection.turnIndex(state) - 1).put("turnCount", turnCount)
       .put("entityEncounterCount", entityEncounterCount(state)).put("entityEncounterRefs", encounterRefs)
       .put("eventRefs", refs).put("events", committed)
@@ -381,6 +384,7 @@ object StoryMilestoneRuntime {
     val allRefs = mutableListOf<String>()
     for (i in 0 until checkpoints.length()) {
       val entry = checkpoints.getJSONObject(i)
+      require(entry.getString("storyArc").length in 200..750) { "story_history_arc_invalid" }
       val refs = entry.getJSONArray("eventRefs")
       val committed = entry.getJSONArray("events")
       require(refs.length() == committed.length()) { "story_history_event_source_missing" }
