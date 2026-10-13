@@ -12,6 +12,12 @@ class GameCoreFacade private constructor(
   private val resolver = CommandResolver()
 
   /** Fast deterministic pass. Gemini is never called from this method. */
+  /** Handle explicit rule-only commands without bypassing Gehihi for normal Explorer turns. */
+  fun isSpecialRuleAction(action: String): Boolean =
+    MadGodCanon.cheat(action) ||
+      AnNhienCanon.matchesPartyCheatCode(action) ||
+      SpecialFollowersCanon.matchesPartyCheatCode(action) != null
+
   @Synchronized fun processRule(clientStateJson: String, action: String): String {
     val client = JSONObject(clientStateJson)
     val state = loadCurrentState()

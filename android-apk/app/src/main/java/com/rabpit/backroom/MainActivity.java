@@ -2014,21 +2014,18 @@ public class MainActivity extends Activity {
             emit("backroomTurn", combatResult.getJSONObject("state").toString());
             return;
           }
-          // SOL prepares the Milestone plan independently of GM and audit providers.
+          // SOL prepares the Milestone plan independently of Gehihi.
           // This runs only when the active Checkpoint has no authored plan.
           // A failed plan never lets the normal GM improvise around missing locks.
+          if (requireGameCore().isSpecialRuleAction(action)) {
+            JSONObject special = new JSONObject(requireGameCore().processRule(currentView, action));
+            emit("backroomTurn", special.getJSONObject("state").toString());
+            return;
+          }
           if (!isMetaAction(action)) ensureMilestoneForCurrentCheckpoint(currentView);
           JSONObject actionStart = new JSONObject(requireGameCore().beginAction(currentView, actionKind, action));
           if (!actionStart.optBoolean("handled", false)) {
             throw new Exception("Action Runtime từ chối hành động: " + actionStart.optString("error", "action_start_failed"));
-          }
-          JSONArray dueMilestones = new JSONArray(requireGameCore().milestoneDueEvents());
-          if (dueMilestones.length() == 0) {
-            JSONObject localResult = new JSONObject(requireGameCore().processRule(currentView, action));
-            if (localResult.optBoolean("handled", false)) {
-              emit("backroomTurn", localResult.getJSONObject("state").toString());
-              return;
-            }
           }
           JSONObject before = new JSONObject(currentView);
           boolean meta = isMetaAction(action);
