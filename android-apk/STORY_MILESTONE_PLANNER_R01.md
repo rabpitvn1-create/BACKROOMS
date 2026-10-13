@@ -1,4 +1,4 @@
-> **Trạng thái tích hợp 2026-10-13:** Planner đã vào main qua PR #595 (`820038c8`). Tài liệu Bước 5 bên dưới giữ phạm vi lịch sử; hợp đồng hiện hành dùng completion v2 và quota 50 turn/20 encounter mỗi CP. Hai đường tạo plan đầu/next đều có output budget 12,288 tokens để chứa lịch encounter. Vẫn dùng một planner với 5 keys fallback, không thêm provider. Core từ chối plan không đạt quota hoặc response sai lease. Gemini thật vẫn chưa nghiệm thu. Xem `STORY_MILESTONE_R01.md` và `STORY_MILESTONE_RUNTIME_R01.md`.
+> **Trạng thái hiện hành:** Cả Milestone đầu và prefetch Milestone kế tiếp đều dùng duy nhất SOL (`vgpt/gpt-6.1-sol`) qua transport có sẵn trong `MainActivity`, `max_tokens=12288`, `temperature=0.5`, `reasoning_effort=low`. Không fallback sang Gemini hay GM writer. Core tiếp tục kiểm tra completion v2, tối thiểu 50 turn/20 encounter mỗi CP và planning lease; JSON sai bị từ chối, người chơi có thể thử lại. CI không thay thế nghiệm thu với SOL thật trên Android. Phần Bước 5 bên dưới là tài liệu lịch sử của triển khai Gemini trước khi chuyển sang SOL. Xem `STORY_MILESTONE_R01.md` và `STORY_MILESTONE_RUNTIME_R01.md`.
 
 # Bước 5/10: Gemini Milestone Planner R01
 
