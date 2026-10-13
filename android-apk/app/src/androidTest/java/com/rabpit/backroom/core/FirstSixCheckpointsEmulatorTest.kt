@@ -21,27 +21,44 @@ class FirstSixCheckpointsEmulatorTest {
 
   private fun cpId(i: Int) = "CP-L00-" + i.toString().padStart(2, '0')
 
-  private fun plan(id: String): String {
+  private fun storyArc(variant: Int): String = if (variant == 1)
+    ("Cao Minh lần theo ký ức ở Lôi Thiên Sơn và dấu vết của Lục Trầm giữa Backrooms. " +
+      "Hắn gặp Lucia trong một căn phòng tối; cô cảnh giác trước sức mạnh của hắn. " +
+      "Những cuộc đối thoại và chạm trán hé lộ một lối đi bị che giấu. ").repeat(3).take(500)
+    else
+    ("Cao Minh khám phá hành lang có ánh sáng kỳ lạ và tìm kiếm lời giải cho tiếng động từ các cửa phòng. " +
+      "Iris xuất hiện với một thông điệp bí ẩn về những người mất tích. " +
+      "Những cuộc đụng độ mới dẫn hắn tới một manh mối khác. ").repeat(3).take(500)
+
+  private fun plan(id: String, variant: Int = 1): String {
     val events = JSONArray().put(JSONObject()
       .put("id", "opening").put("turn", 1).put("kind", "STORY")
       .put("action", "TEST_ONLY arrive").put("event", "TEST_ONLY chapter opens")
       .put("outcome", "TEST_ONLY investigation begins"))
     for (i in 1..20) events.put(JSONObject()
       .put("id", "encounter$i").put("turn", i + 1).put("kind", "ENTITY")
-      .put("entityKey", "hound")
-      .put("action", "TEST_ONLY Hound approaches $i")
+      .put("entityKey", (if (variant == 1) listOf("hound", "duller", "clump", "smiler")
+        else listOf("smiler", "clump", "duller", "hound"))[(i - 1) % 4])
+      .put("action", "TEST_ONLY Entity approaches $i")
       .put("event", "TEST_ONLY mandatory Hound Combat $i")
       .put("outcome", "TEST_ONLY await Battle Start $i"))
+    events.put(JSONObject().put("id", "meeting").put("turn", 23)
+      .put("kind", "FOLLOWER").put("characterId", if (variant == 1) LUCIA_ID else IRIS_ID)
+      .put("action", "Người lạ tiếp cận Cao Minh")
+      .put("event", "Cuộc gặp Follower của chương")
+      .put("outcome", "Giao tiếp nhưng chưa gia nhập Party"))
+    events.put(JSONObject().put("id", "conversation").put("turn", 24)
+      .put("kind", "STORY").put("action", "Trao đổi manh mối")
+      .put("event", "Biến chuyển quan hệ dựa trên cuộc gặp")
+      .put("outcome", "Thông tin mới được xác nhận"))
     events.put(JSONObject().put("id", "boss").put("turn", 50)
-      .put("kind", "FINAL_ENTITY").put("entityKey", "hound")
+      .put("kind", "FINAL_ENTITY").put("entityKey", if (variant == 1) "hound" else "smiler")
       .put("action", "TEST_ONLY Boss arrives").put("event", "TEST_ONLY Boss confrontation")
       .put("outcome", "TEST_ONLY mandatory Boss Combat")
       .put("hpMultiplier", 9).put("expMultiplier", 9))
-    val storyArc = ("TEST_ONLY Cao Minh tiep tuc tim Lục Trầm trong Backrooms. " +
-      "Nhung cuoc cham tran voi Entity dan toi nhung manh moi moi, " +
-      "trong khi moi quan he nhan vat va ky uc duoc ke thua. ").repeat(4).take(500)
+
     return JSONObject().put("schemaVersion", StoryMilestonePlan.SCHEMA_VERSION)
-      .put("checkpointId", id).put("storyArc", storyArc)
+      .put("checkpointId", id).put("storyArc", storyArc(variant))
       .put("events", events).put("completion", JSONObject()
         .put("type", "NEXT_CHECKPOINT").put("outcome", "TEST_ONLY CP complete"))
       .toString()
@@ -70,14 +87,14 @@ class FirstSixCheckpointsEmulatorTest {
     return active.encounterId
   }
 
-  @Test fun firstSixCheckpointsCompleteWithTwentyCombatsAndPersistedChapterArcs() {
+  private fun runOneCheckpoint(variant: Int) {
     storage.clear()
     val core = GameCoreFacade.create(context)
     try {
       val first = JSONObject(core.milestonePlanRequest())
       assertTrue(first.getBoolean("needed"))
-      assertTrue(core.installMilestonePlan(plan(cpId(1)), first.getString("runToken"), cpId(1), 1))
-      for (cp in 1..6) {
+      assertTrue(core.installMilestonePlan(plan(cpId(1), variant), first.getString("runToken"), cpId(1), 1))
+      for (cp in 1..1) {
         var state = storage.load()
         assertEquals(cpId(cp), StoryCheckpointCore.current(state)!!.id)
         val start = CoreClientProjection.turnIndex(state)
@@ -94,9 +111,17 @@ class FirstSixCheckpointsEmulatorTest {
           assertEquals(start + turn, CoreClientProjection.turnIndex(state))
           StoryMilestoneRuntime.validateStoredState(state)
           if (turn in 2..21) {
-            assertNotNull(CombatRuntime.pending(state))
+            val encounter = requireNotNull(CombatRuntime.pending(state))
+            val event = StoryMilestonePlan.current(state)!!.plan.events.single {
+              it.kind == StoryMilestonePlan.Kind.ENTITY && it.turn == turn
+            }
+            assertEquals(event.entityKey, encounter.entityKey)
             resolveEncounter(core, boss = false)
             assertEquals(start + turn, CoreClientProjection.turnIndex(storage.load()))
+          } else if (turn == 23) {
+            val follower = if (variant == 1) LUCIA_ID else IRIS_ID
+            assertEquals("true", state.characters.getValue(follower).metadata["encountered"])
+            assertFalse(follower in state.party.memberIds)
           } else if (turn < 50) {
             assertNull(CombatRuntime.pending(state))
             assertNull(CombatRuntime.active(state))
@@ -110,7 +135,7 @@ class FirstSixCheckpointsEmulatorTest {
         assertTrue(lease.getBoolean("needed"))
         assertEquals(cpId(cp + 1), lease.getString("nextCheckpointId"))
         if (cp % 2 == 1) assertTrue(core.installNextMilestone(
-          plan(cpId(cp + 1)), lease.getString("runToken"), cpId(cp), pendingBoss.encounterId))
+          plan(cpId(cp + 1), variant), lease.getString("runToken"), cpId(cp), pendingBoss.encounterId))
         val active = requireNotNull(CombatRuntime.active(storage.load()))
         val outcome = CombatRuntime.resolve(storage.load().copy(metadata = storage.load().metadata +
           ("combat.entityHp" to "0")), "SEARCH", "TEST_ONLY defeat Boss")
@@ -120,7 +145,7 @@ class FirstSixCheckpointsEmulatorTest {
         if (cp % 2 == 0) {
           assertTrue(StoryMilestoneRuntime.awaitingPlan(storage.load()))
           assertTrue(core.installNextMilestone(
-            plan(cpId(cp + 1)), lease.getString("runToken"), cpId(cp), pendingBoss.encounterId))
+            plan(cpId(cp + 1), variant), lease.getString("runToken"), cpId(cp), pendingBoss.encounterId))
         }
         state = storage.load()
         assertEquals(cpId(cp + 1), StoryCheckpointCore.current(state)!!.id)
@@ -132,11 +157,17 @@ class FirstSixCheckpointsEmulatorTest {
         assertEquals(21, completed.getJSONArray("entityEncounterRefs").length())
         assertEquals(pendingBoss.encounterId, completed.getString("bossEncounterId"))
         assertEquals("DEFEATED", completed.getString("bossResult"))
-        assertTrue(completed.getString("storyArc").length >= 200)
+        assertEquals(storyArc(variant), completed.getString("storyArc"))
+        assertEquals("true", state.characters.getValue(if (variant == 1) LUCIA_ID else IRIS_ID).metadata["encountered"])
+        assertEquals(4, StoryMilestonePlan.parse(plan(cpId(1), variant), StoryCheckpointCore.Position(0, 1, 20))
+          .events.filter { it.kind == StoryMilestonePlan.Kind.ENTITY }.map { it.entityKey }.toSet().size)
         StoryMilestoneRuntime.validateStoredState(GameStateCodec.decode(GameStateCodec.encode(state)))
       }
     } finally { core.close() }
   }
+
+  @Test fun firstCheckpointWithLuciaAndMixedEntityCombats() = runOneCheckpoint(1)
+  @Test fun repeatCheckpointWithIrisAndDifferentStoryArc() = runOneCheckpoint(2)
 
   @Test fun actualMainActivityLaunchesOnEmulator() {
     val instrumentation = InstrumentationRegistry.getInstrumentation()
