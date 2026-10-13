@@ -12,9 +12,11 @@ class GameCoreFacade private constructor(
   private val resolver = CommandResolver()
 
   /** Fast deterministic pass. Gemini is never called from this method. */
-  fun processRule(clientStateJson: String, action: String): String {
+  @Synchronized fun processRule(clientStateJson: String, action: String): String {
     val client = JSONObject(clientStateJson)
     val state = loadCurrentState()
+    if (StoryMilestoneRuntime.due(state).isNotEmpty()) return response(
+      false, clientSnapshot(client, state), "milestone_requires_gm", "milestone_requires_gm")
     if (blocksTextItemAction(action)) return response(true, clientSnapshot(client, state), "item_ui_required", "item_ui_required", "Hãy nhấn vào item và chọn Dùng, Chuyển hoặc Bỏ.")
     if (MadGodCanon.cheat(action)) return applyMadGodCheat(client,state)
     if (AnNhienCanon.matchesPartyCheatCode(action)) return applyAnNhienPartyCheat(client, state)
@@ -141,7 +143,7 @@ class GameCoreFacade private constructor(
     val msg=if(x.added) "MadGod Set đã kích hoạt dưới dạng trang bị Bound Forever trong Character Core, không chiếm Inventory." else "MadGod Set đã được kích hoạt; /madgod không tạo thêm trang bị."; appendLog(out,MadGodCanon.CHEAT_CODE,msg); return response(true,out,null,"cheat_committed",msg)
   }
 
-  fun beginAction(clientStateJson: String, kindRaw: String, action: String): String {
+  @Synchronized fun beginAction(clientStateJson: String, kindRaw: String, action: String): String {
     val client = JSONObject(clientStateJson)
     val state = loadCurrentState()
     if (MadGodCanon.cheat(action)) return actionStartResponse(true,null,null)
@@ -170,7 +172,7 @@ class GameCoreFacade private constructor(
     return actionStartResponse(true, started.session, null)
   }
 
-  fun currentActionContext(): String {
+  @Synchronized fun currentActionContext(): String {
     val state = repository.load()
     val active = ActionRuntime.activeSession(state)
     return JSONObject().apply {
@@ -191,7 +193,7 @@ class GameCoreFacade private constructor(
     }.toString()
   }
 
-  fun abortAction(reason: String): Boolean {
+  @Synchronized fun abortAction(reason: String): Boolean {
     if (!repository.exists()) return false
     val state = repository.load()
     val active = ActionRuntime.activeSession(state) ?: return false
@@ -248,22 +250,20 @@ class GameCoreFacade private constructor(
     return TurnResult(completed.state, committed.execution?.copy(state = completed.state))
   }
 
-  fun currentPartyDetails(clientStateJson: String? = null): String {
+  @Synchronized fun currentPartyDetails(clientStateJson: String? = null): String {
     val state = CharacterEquipmentSystem.normalize(loadCurrentState())
     return CharacterDetailJson.encodeParty(CharacterDetailProjector.projectParty(state)).toString()
   }
 
-  fun resetNewGame(): String {
+  @Synchronized fun resetNewGame(): String {
     repository.clear()
-    val fresh = StoryCheckpointCore.seedLevelZero(
-      CoreClientProjection.initialize(CharacterEquipmentSystem.normalize(GameState.initial()))
-    )
+    val fresh = newStoryRun(CharacterEquipmentSystem.normalize(GameState.initial()))
     repository.save(fresh)
     return CharacterDetailJson.encodeParty(CharacterDetailProjector.projectParty(fresh)).toString()
   }
 
 
-  fun characterProgression(characterId: String): String =
+  @Synchronized fun characterProgression(characterId: String): String =
     PokerDiceCore.statsJson(loadCurrentState(), characterId).toString()
 
   @Synchronized fun prepareCombatDice(clientStateJson: String, action: String): String {
@@ -321,7 +321,7 @@ class GameCoreFacade private constructor(
     }
   }
 
-  fun currentCoreState(): String = GameStateCodec.encode(repository.load())
+  @Synchronized fun currentCoreState(): String = GameStateCodec.encode(repository.load())
 
   /** A manual save is distinct from turn-by-turn Core persistence. */
   @Synchronized fun saveManualCheckpoint(clientStateJson: String): String {
@@ -337,18 +337,23 @@ class GameCoreFacade private constructor(
 
   /** Decode and validate the complete slot before changing the current Core state. */
   @Synchronized fun loadManualCheckpoint(): String {
-    val current = loadCurrentState()
-    if (current.turn.pending != null || ActionRuntime.activeSession(current) != null) return checkpointError("turn_in_progress")
+    val current = repository.load()
+    if (!current.metadata.containsKey("loadError") &&
+      (current.turn.pending != null || ActionRuntime.activeSession(current) != null)) return checkpointError("turn_in_progress")
     val saved = repository.loadCheckpoint() ?: return checkpointError("checkpoint_missing")
-    repository.save(saved.core)
-    val restored = CoreClientProjection.project(saved.presentation, saved.core)
+    StoryMilestoneRuntime.validateStoredState(saved.core)
+    StoryFactLedger.validateStoredState(saved.core)
+    val loaded = saved.core.copy(world = saved.core.world +
+      ("story.runToken" to java.util.UUID.randomUUID().toString()))
+    repository.save(loaded)
+    val restored = CoreClientProjection.project(saved.presentation, loaded)
     return JSONObject().put("ok", true).put("state", restored).toString()
   }
 
   private fun checkpointError(reason: String): String =
     JSONObject().put("ok", false).put("error", reason).toString()
 
-  fun clear() = repository.clear()
+  @Synchronized fun clear() = repository.clear()
   override fun close() = Unit
 
   /**
@@ -356,10 +361,42 @@ class GameCoreFacade private constructor(
    * Candidate prose/JSON never becomes storage directly: inventory and party are rebuilt
    * from commands and then projected back onto the UI state.
    */
-  fun processValidatedCandidate(beforeJson: String, candidateJson: String, action: String): String {
+  fun processValidatedCandidate(beforeJson: String, candidateJson: String, action: String): String =
+    processValidatedCandidate(beforeJson, candidateJson, action, "[]")
+
+  @Synchronized fun processValidatedCandidate(
+    beforeJson: String, candidateJson: String, action: String, milestoneReceipts: String
+  ): String = processValidatedCandidate(beforeJson, candidateJson, action, milestoneReceipts, "", "{}")
+
+  @Synchronized fun processValidatedCandidate(
+    beforeJson: String, candidateJson: String, action: String, milestoneReceipts: String,
+    acceptedNarrative: String, evidenceJson: String
+  ): String = processValidatedCandidate(beforeJson, candidateJson, action, milestoneReceipts, acceptedNarrative, evidenceJson, "[]")
+
+  @Synchronized fun processValidatedCandidate(
+    beforeJson: String, candidateJson: String, action: String, milestoneReceipts: String,
+    acceptedNarrative: String, evidenceJson: String, gmStoryFacts: String
+  ): String {
     val before = JSONObject(beforeJson)
     val candidate = JSONObject(candidateJson)
     val core = loadCurrentState()
+    if (before.optInt("turn", -1) != CoreClientProjection.turnIndex(core))
+      return response(false, clientSnapshot(before, core), "stale_client_state", "gemini_delta_rejected")
+    if (StoryCheckpointCore.current(core) != null) {
+      if (before.optJSONObject("story")?.optString("checkpointId") != StoryCheckpointCore.current(core)!!.id)
+        return response(false, clientSnapshot(before, core), "stale_story_checkpoint", "gemini_delta_rejected")
+      val expectedToken = core.world["story.runToken"]
+      if (expectedToken != null && before.optJSONObject("story")?.optString("runToken") != expectedToken)
+        return response(false, clientSnapshot(before, core), "stale_story_run", "gemini_delta_rejected")
+      val currentNode = requireNotNull(LevelRouteRegistry.requested(JSONObject(core.world.getValue("levelJson"))))
+      val proposed = LevelRouteRegistry.requested(candidate.optJSONObject("level"))
+      val described = LevelRouteRegistry.fromLocation(candidate.optString("location"))
+      val flagged = LevelRouteRegistry.requested(candidate.optJSONObject("flags")?.optJSONObject("currentLevel"))
+      if (proposed == null || proposed.parent != currentNode.parent ||
+        described?.let { it.parent != currentNode.parent } == true ||
+        flagged?.let { it.parent != currentNode.parent } == true)
+        return response(false, clientSnapshot(before, core), "milestone_level_change_forbidden", "gemini_delta_rejected")
+    }
     if (blocksTextItemAction(action)) return response(false, clientSnapshot(before, core), "item_ui_required", "item_ui_required")
     val turnId = nextTurnId(core)
     val pending = TurnCoordinator.createPending(core, turnId, action)
@@ -447,7 +484,8 @@ class GameCoreFacade private constructor(
       return response(false, before, committed.error, "gemini_delta_rejected")
     }
     val protectedState = CharacterProgressionCore.protectFromCandidate(pending.state, committed.state)
-    val accepted = CoreClientProjection.advance(protectedState)
+    val applied = StoryMilestoneRuntime.acceptTurn(protectedState, milestoneReceipts, acceptedNarrative, evidenceJson, gmStoryFacts)
+    val accepted = CoreClientProjection.advance(applied)
     repository.save(accepted)
     val synchronized = clientSnapshot(candidate, accepted)
     logger.log(PipelineLogEvent("GEMINI_COMMIT", turnId = turnId, source = CommandSource.GEMINI, details = mapOf("commands" to commands.size.toString())))
@@ -458,6 +496,7 @@ class GameCoreFacade private constructor(
   @Synchronized fun startCombatState(clientStateJson: String, entityKey: String): String {
     val client = JSONObject(clientStateJson)
     val current = loadCurrentState()
+    require(!StoryMilestoneRuntime.hasPlan(current)) { "milestone_entity_start_forbidden" }
     val next = CombatRuntime.start(current, entityKey)
     repository.save(next)
     return clientSnapshot(client, next).toString()
@@ -502,6 +541,8 @@ class GameCoreFacade private constructor(
       next = next.copy(world = next.world + ("flagsJson" to flags.toString()))
     }
     next = CoreClientProjection.advance(next)
+    next = StoryMilestoneRuntime.afterCombat(
+      next, activeCombat.encounterId, resolution.entityDestroyed, resolution.escaped)
     repository.save(next)
 
     val output = clientSnapshot(client, next)
@@ -532,19 +573,151 @@ class GameCoreFacade private constructor(
     return state.copy(world = state.world + ("flagsJson" to flags.toString()))
   }
 
+  /** A read-only signed-by-Core list of events the GM must commit this turn. */
+  @Synchronized fun retryMilestoneBoss(clientStateJson: String): String {
+    val client = JSONObject(clientStateJson)
+    val current = loadCurrentState()
+    if (client.optInt("turn", -1) != CoreClientProjection.turnIndex(current))
+      return response(false, clientSnapshot(client, current), "stale_client_state", "milestone_retry_rejected")
+    if (current.turn.pending != null || ActionRuntime.activeSession(current) != null)
+      return response(false, clientSnapshot(client, current), "turn_in_progress", "milestone_retry_rejected")
+    val resumed = StoryMilestoneRuntime.retryBoss(current)
+    repository.save(resumed)
+    return response(true, clientSnapshot(client, resumed), null, "milestone_boss_resumed")
+  }
+
+  @Synchronized @JvmOverloads fun storyFactContext(query: String = ""): String =
+    StoryFactLedger.context(loadCurrentState(), query.take(1600))
+
+  @Synchronized @JvmOverloads fun milestoneNarrativeRequest(narrative: String, facts: String = "[]"): String =
+    StoryMilestoneRuntime.evidenceRequest(loadCurrentState(), narrative, facts).toString()
+
+  @Synchronized fun milestoneDueEvents(): String =
+    StoryMilestoneRuntime.dueJson(loadCurrentState())
+
+  @Synchronized fun milestoneHasPlan(): Boolean =
+    StoryMilestoneRuntime.hasPlan(loadCurrentState())
+
+  @Synchronized fun milestoneWaiting(): Boolean =
+    StoryMilestoneRuntime.awaitingPlan(loadCurrentState())
+
+  /**
+   * Request the next plan while the verified boss encounter is active, or
+   * after a very quick victory while background Gemini was still answering.
+   * CP20 uses the Gemini-authored Level destination and next checkpoint count.
+   */
+  @Synchronized fun milestoneNextPlanRequest(): String {
+    val state = loadCurrentState()
+    val position = StoryCheckpointCore.current(state)
+      ?: return JSONObject().put("needed", false).toString()
+    val active = StoryMilestonePlan.current(state) ?: return JSONObject().put("needed", false).toString()
+    if (StoryMilestonePlan.prepared(state) != null)
+      return JSONObject().put("needed", false).toString()
+    val encounterId = StoryMilestoneRuntime.bossEncounterId(state)
+      ?: return JSONObject().put("needed", false).toString()
+    val fight = CombatRuntime.active(state)
+    if (fight?.encounterId != encounterId && StoryMilestoneRuntime.bossResult(state) == null)
+      return JSONObject().put("needed", false).toString()
+    val runToken = state.world["story.runToken"]
+      ?: return JSONObject().put("needed", false).toString()
+    val next = active.plan.completion.nextAddress(position)
+    val targetId = if (active.plan.completion.type == StoryMilestonePlan.CompletionType.EXIT_LEVEL)
+      requireNotNull(active.plan.completion.targetNodeId)
+    else JSONObject(state.world.getValue("levelJson")).let {
+      it.optString("id", it.optInt("number", 0).toString())
+    }
+    val level = requireNotNull(LevelRouteRegistry.node(targetId)).asJson()
+    return JSONObject().put("needed", true)
+      .put("runToken", runToken).put("checkpointId", position.id)
+      .put("nextCheckpointId", next.id).put("checkpointTotal", next.total).put("bossEncounterId", encounterId)
+      .put("targetLevel", level)
+      .put("completion", active.plan.completion.toJson())
+      .put("startTurn", CoreClientProjection.turnIndex(state))
+      .put("levelNode", level.optString("id", level.optInt("number", 0).toString()))
+      .toString()
+  }
+
+  @Synchronized fun installNextMilestone(
+    raw: String, expectedRunToken: String, expectedCheckpointId: String,
+    expectedBossEncounterId: String
+  ): Boolean {
+    val state = loadCurrentState()
+    if (state.world["story.runToken"] != expectedRunToken ||
+      StoryCheckpointCore.current(state)?.id != expectedCheckpointId ||
+      StoryMilestoneRuntime.bossEncounterId(state) != expectedBossEncounterId) return false
+    val prepared = StoryMilestonePlan.prepareNextDuringCombat(state, raw)
+    val updated = StoryMilestoneRuntime.activateIfReady(prepared)
+    if (updated != state) repository.save(updated)
+    return true
+  }
+
+  /** New-run correlation prevents late Gemini responses from overwriting a reset game. */
+  private fun newStoryRun(state: GameState): GameState {
+    val seeded = StoryCheckpointCore.seedLevelZero(CoreClientProjection.initialize(state))
+    val token = java.util.UUID.randomUUID().toString()
+    return seeded.copy(world = seeded.world + mapOf("story.runToken" to token,
+      "story.levelVisitId" to "LEVEL:$token:0"))
+  }
+
+  /**
+   * Read-only planning lease. The first Checkpoint is generated once at first
+   * playable turn. Existing plan, old sessions and active combat never regenerate.
+   */
+  @Synchronized fun milestonePlanRequest(): String {
+    val state = loadCurrentState()
+    val position = StoryCheckpointCore.current(state)
+      ?: return JSONObject().put("needed", false).toString()
+    if (StoryMilestonePlan.current(state) != null ||
+      state.turn.pending != null || ActionRuntime.activeSession(state) != null ||
+      CombatRuntime.active(state) != null) {
+      return JSONObject().put("needed", false).toString()
+    }
+    val token = state.world["story.runToken"]
+      ?: return JSONObject().put("needed", false).toString()
+    val levelNode = state.world["levelJson"]?.let {
+      JSONObject(it).optString("id", JSONObject(it).optInt("number", 0).toString())
+    } ?: "0"
+    return JSONObject().put("needed", true)
+      .put("runToken", token)
+      .put("checkpointId", position.id)
+      .put("checkpointTotal", position.total)
+      .put("startTurn", CoreClientProjection.turnIndex(state))
+      .put("levelNode", levelNode)
+      .toString()
+  }
+
+  /** Install only if the Core still represents the identical new run and Turn. */
+  @Synchronized fun installMilestonePlan(
+    raw: String, expectedRunToken: String, expectedCheckpointId: String, expectedTurn: Int
+  ): Boolean {
+    val state = loadCurrentState()
+    val position = StoryCheckpointCore.current(state) ?: return false
+    if (state.world["story.runToken"] != expectedRunToken ||
+      position.id != expectedCheckpointId ||
+      CoreClientProjection.turnIndex(state) != expectedTurn ||
+      state.turn.pending != null || ActionRuntime.activeSession(state) != null ||
+      CombatRuntime.active(state) != null) return false
+    val updated = StoryMilestonePlan.installCurrent(state, raw)
+    if (updated != state) repository.save(updated)
+    return true
+  }
+
   private fun loadCurrentState(): GameState {
     val existed = repository.exists()
     val loaded = if (existed) repository.load() else GameState.initial()
+    check(!loaded.metadata.containsKey("loadError")) { "core_load_failed_restore_checkpoint" }
     val normalized = normalizeVisualPresence(CoreClientProjection.initialize(loaded))
+    StoryMilestoneRuntime.validateStoredState(normalized)
+    StoryFactLedger.validateStoredState(normalized)
     // Only a new run gets the default checkpoint. Existing saves are not silently
     // assigned a new story position during a read.
-    val ready = if (existed) normalized else StoryCheckpointCore.seedLevelZero(normalized)
+    val ready = if (existed) normalized else newStoryRun(normalized)
     if (!existed) repository.save(ready)
     return ready
   }
 
   /** UI state is presentation only; gameplay fields are always reprojected from Core. */
-  fun currentClientState(clientStateJson: String): String =
+  @Synchronized fun currentClientState(clientStateJson: String): String =
     CoreClientProjection.project(JSONObject(clientStateJson), loadCurrentState()).toString()
 
   private fun contextFor(state: GameState): GameContext {
@@ -619,6 +792,7 @@ class GameCoreFacade private constructor(
       "madgod_equipment_permanent" -> "MadGod đã khóa vĩnh viễn sau khi trang bị; không thể tháo hoặc đổi."
       "insufficient_item_quantity", "item_not_owned" -> "Cao Minh không có đủ vật phẩm cần thiết cho hành động này."
       "item_action_resolution_required" -> "Không thể xác thực hành động vật phẩm này từ state hiện tại; Inventory không thay đổi."
+      "milestone_requires_gm" -> "Hãy hoàn tất sự kiện Milestone đang đến hạn trước khi thực hiện thao tác Inventory."
       "party_full" -> "Party đã đủ tối đa bốn thành viên."
       "join_not_confirmed" -> "Yêu cầu gia nhập chưa đủ điều kiện hoặc chưa được NPC xác nhận."
       else -> "Hành động này không khả dụng trong trạng thái hiện tại."
@@ -632,6 +806,8 @@ class GameCoreFacade private constructor(
     val state = loadCurrentState()
     fun reject(reason: String): String = response(false, clientSnapshot(client, state), reason, "item_ui_rejected", validationReply(reason))
     if (client.optInt("turn", -1) != CoreClientProjection.turnIndex(state)) return reject("stale_client_state")
+    if (StoryMilestoneRuntime.due(state).isNotEmpty() || StoryMilestoneRuntime.awaitingPlan(state))
+      return reject("milestone_requires_gm")
     if (CombatRuntime.active(state) != null) return reject("combat_active")
     if (ActionRuntime.activeSession(state) != null || state.turn.pending != null) return reject("another_turn_pending")
     val request = runCatching { JSONObject(requestJson) }.getOrNull() ?: return reject("invalid_item_request")
@@ -682,3 +858,5 @@ class GameCoreFacade private constructor(
     )
   }
 }
+
+

@@ -25,3 +25,12 @@ Bước này chỉ định nghĩa/kiểm tra hợp đồng và lưu dữ liệu;
 Quyết định người dùng: chỉ Boss bị đánh bại mới hoàn tất CP. Chạy thoát giữ CP chưa xong; runtime phải có đường tái chạm trán, không đổi ESCAPED thành DEFEATED.
 
 Tests kiểm tra action bắt buộc, completion theo vị trí CP, target không tồn tại/cùng Level, tổng CP lỗi, target Sublevel hợp lệ, prepared CP đầu Level khác và Save/Load. JSON hợp lệ không tự chứng minh Canon hoặc semantics của lời kể.
+
+
+## Tích hợp và quota CP — 2026-10-13
+
+Hợp đồng đã vào main qua PR #595 (`820038c8`). Nhánh lịch sử được đối chiếu với bản hiện hành, giữ schema v2 và các sửa runtime tiếp theo.
+
+Mọi CP phải lên lịch ít nhất 50 turn tương đối và 20 lần gặp Entity riêng biệt, gồm ít nhất 19 event `ENTITY` thường cùng một `FINAL_ENTITY` cuối. `ENTITY` có các trường cơ bản và `entityKey` hợp lệ, không có multiplier. Mỗi encounter ở một Turn riêng; có thể lặp cùng loài ở những encounter khác. Parser từ chối plan thiếu quota hoặc Boss trước Turn 50.
+
+Encounter thường phải là tiếp xúc thực sự trong scene, không phải nhắc tên, lời đồn, dấu vết hoặc planned fact. Nó không tự quyết định thắng/thua Combat hay cấp HP/EXP/loot. Runtime chỉ đếm receipt đã được kiểm định độc lập và cấp ID ổn định; Save/Load hay retry cùng Boss không tăng số encounter. Completion phải thỏa actual turn count, committed encounter count, toàn bộ events và verified Boss defeat. Không thêm migration save cũ.

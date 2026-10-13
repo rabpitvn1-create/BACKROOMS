@@ -6,7 +6,7 @@ const vm=require('node:vm');
 const script=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/combat-feedback-1193a.js'),'utf8');
 
 function boot(initialState,options={}){
- const timers=[],animations=[];
+ const timers=[],animations=[],frames=[];
  function element(tag='div'){
   let text='';
   const n={tagName:tag.toUpperCase(),children:[],style:{},dataset:{},listeners:{},className:'',id:'',hidden:false,isConnected:true,scrollTop:0,scrollHeight:0,parentNode:null,
@@ -15,7 +15,7 @@ function boot(initialState,options={}){
    insertAdjacentElement(where,c){if(where!=='afterend'||!this.parentNode)return null;if(c.parentNode)c.parentNode.children=c.parentNode.children.filter(x=>x!==c);const p=this.parentNode,i=p.children.indexOf(this);p.children.splice(i+1,0,c);c.parentNode=p;c.isConnected=true;return c},
    remove(){if(this.parentNode)this.parentNode.children=this.parentNode.children.filter(c=>c!==this);this.parentNode=null;this.isConnected=false},
    addEventListener(name,fn){this.listeners[name]=fn},
-   animate(frames,opts){const animation={node:this,frames,options:opts,cancelled:false,cancel(){this.cancelled=true}};animations.push(animation);return animation},
+   animate(frames,opts){const animation={node:this,frames,options:opts,currentTime:options.animationTime===undefined?180:options.animationTime,playState:'running',cancelled:false,cancel(){this.playState='idle';this.cancelled=true}};animations.push(animation);return animation},
    setAttribute(name,value){this[name]=String(value)},
    getBoundingClientRect(){return {left:0,top:0,width:480,height:300}}
   };
@@ -41,7 +41,7 @@ function boot(initialState,options={}){
   state:JSON.parse(JSON.stringify(starting)),
   document:{body:null,getElementById(id){return find(root,id)},createElement:element},
   getComputedStyle(){return {transform:options.baseTransform||'none'}},
-  requestAnimationFrame(fn){fn()},
+  requestAnimationFrame(fn){if(options.deferFrames)frames.push(fn);else fn()},
   setTimeout(fn,ms){timers.push({fn,ms});if(ms===0)fn()}
  };
  scope.window=scope;
@@ -52,6 +52,7 @@ function boot(initialState,options={}){
  vm.runInNewContext(script,scope);
  return {
   root,box,dice,actor,entity,lucia,timers,animations,scope,
+  frame(){frames.shift()()},
   setEntityReady(value){entityReady=!!value},
   panel(){return scope.document.getElementById('combatFeedbackPanel')},
   entries(){return scope.document.getElementById('combatFeedbackEntries')},
@@ -351,6 +352,8 @@ test('Entity skill impacts Party once with shared HP and retains Party header',(
  {kind:'entity',eventIndex:0,entityName:'Hound',waveNumber:1,waveCount:1,
  details:['Cắn Xé proc: 140% Basic Attack; Bleed.','Hound phản công: Party chịu -30 HP (170/200). Cao Minh -15; Lucia -15.']}]});
  r.timers.find(t=>t.ms===1210).fn();
+ assert.equal(r.entries().children.some(x=>x.textContent.includes('gây -30 HP')),false);
+ r.timers.find(t=>t.ms===2190).fn();
  assert.ok(r.entries().children.some(x=>x.textContent==='Hound sử dụng [Cắn Xé] gây -30 HP lên cả nhóm [170/200 HP]'));
  assert.equal(r.scope.document.getElementById('combatFeedbackMeta').textContent,'NOW : Cao Minh');
 });
@@ -623,4 +626,49 @@ test('restarting contact cancels preceding displacement and encounter exit cance
  r.event({target:'entity',text:'-4 HP',flash:true});assert.equal(first.cancelled,true);
  r.turn(undefined,'none','enc',null);
  assert.ok(r.animations.every(a=>a.cancelled));assert.equal(r.box.children.length,0);
+});
+
+
+test('late-starting WebView lunge gates impact, damage and log on animation contact time',()=>{
+ const r=boot(undefined,{animationTime:0,deferFrames:true});
+ r.turn([{target:'entity',actorId:'cao_minh',text:'-7 HP',flash:true,outcome:'hit'}],
+  'enc:late','enc',undefined,{}, {turns:[{kind:'actor',actorId:'cao_minh',eventIndex:0}]});
+ r.frame();r.timers.find(t=>t.ms===800).fn();r.timers.find(t=>t.ms===980).fn();
+ assert.equal(r.box.children.some(n=>/combat-impact|combat-float/.test(n.className)),false);
+ assert.equal(r.entries().children.some(n=>n.textContent.includes('-7 HP')),false);
+ r.animations[0].currentTime=179;r.frame();
+ assert.equal(r.box.children.some(n=>/combat-impact|combat-float/.test(n.className)),false);
+ r.animations[0].currentTime=180;r.frame();
+ assert.ok(r.box.children.some(n=>n.className==='combat-impact'));
+ assert.ok(r.box.children.some(n=>n.className.includes('combat-float')));
+ assert.ok(r.entries().children.some(n=>n.textContent.includes('-7 HP')));
+});
+test('group hit and MISS share one delayed Entity impact and cancel on encounter exit',()=>{
+ const r=boot(undefined,{animationTime:0,deferFrames:true});
+ const card=r.scope.document.createElement('div');card.dataset.character='lucia';
+ card.querySelector=()=>r.lucia;card.querySelectorAll=()=>card.children;
+ r.scope.document.querySelectorAll=()=>[card];r.root.appendChild(card);
+ r.turn([{target:'actor',actorId:'cao_minh',outcome:'hit',text:'-8 HP',flash:true},
+  {target:'actor',actorId:'lucia',outcome:'miss',text:'MISS',flash:false}],
+  'enc:group','enc',undefined,{}, {turns:[{kind:'entity',eventIndex:0,entityName:'Hound',
+  details:['Hound phản công: Party chịu -8 HP (92/100).']}]});
+ r.frame();r.timers.find(t=>t.ms===0).fn();
+ assert.equal(r.entries().children.some(n=>n.textContent.includes('gây -8 HP')),false);
+ r.timers.find(t=>t.ms===800).fn();r.timers.find(t=>t.ms===980).fn();
+ assert.equal(r.box.children.some(n=>n.className.includes('combat-float')),false);
+ r.animations[0].currentTime=180;r.frame();
+ assert.equal(r.box.children.filter(n=>n.className.includes('combat-float')).length,1);
+ assert.equal(card.children.filter(n=>n.className.includes('combat-float--miss')).length,1);
+ assert.equal(r.entries().children.filter(n=>n.textContent.includes('gây -8 HP')).length,1);
+ const cancelled=boot(undefined,{animationTime:0,deferFrames:true});
+ cancelled.turn([{target:'entity',text:'-2 HP',flash:true}], 'enc:cancel','enc',undefined,{},
+ {turns:[{kind:'actor',actorId:'cao_minh',eventIndex:0}]});
+ cancelled.frame();cancelled.timers.find(t=>t.ms===800).fn();cancelled.timers.find(t=>t.ms===980).fn();
+ cancelled.turn(undefined,'none','enc',null);cancelled.frame();
+ assert.equal(cancelled.box.children.length,0);
+});
+test('normal and critical damage start fully visible at the impact frame',()=>{
+ const css=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/combat-feedback-1193a.css'),'utf8');
+ assert.match(css,/@keyframes combat-float-up\{0%\{opacity:1;/);
+ assert.match(css,/@keyframes combat-float-crit\{0%\{opacity:1;/);
 });

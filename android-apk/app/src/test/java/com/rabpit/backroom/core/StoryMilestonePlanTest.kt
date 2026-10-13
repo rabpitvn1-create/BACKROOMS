@@ -19,8 +19,8 @@ class StoryMilestonePlanTest {
     .put("entityKey", entity).put("hpMultiplier", 9).put("expMultiplier", 9)
 
   private fun plan(checkpoint: String = "CP-L00-01",
-                   entries: JSONArray = JSONArray().put(story("beat1", 1))
-                     .put(story("beat2", 3)).put(finale())): String =
+                   entries: JSONArray = TestCheckpointQuota.events(JSONArray().put(story("beat1", 1))
+                     .put(story("beat2", 3)).put(finale()))): String =
     JSONObject().put("schemaVersion", 2).put("checkpointId", checkpoint)
       .put("events", entries).put("completion", JSONObject().put("type", "NEXT_CHECKPOINT")
         .put("outcome", "TEST_ONLY checkpoint completion")).toString()
@@ -46,7 +46,7 @@ class StoryMilestonePlanTest {
 
   @Test fun multipleEventsMayHappenAtSameTurnInDeclaredOrder() {
     val entries = JSONArray().put(story("alpha", 2)).put(story("beta", 2)).put(finale(5))
-    val parsed = StoryMilestonePlan.parse(plan(entries = entries), StoryCheckpointCore.Position(0, 1, 20))
+    val parsed = StoryMilestonePlan.parse(plan(entries = TestCheckpointQuota.events(entries)), StoryCheckpointCore.Position(0, 1, 20))
     assertEquals(listOf("alpha", "beta"), parsed.eventsAt(2).map { it.id })
   }
 
@@ -82,7 +82,7 @@ class StoryMilestonePlanTest {
     assertEquals("beat2", active.eventsAtGlobalTurn(5).single().id)
     assertTrue(active.eventsAtGlobalTurn(2).isEmpty())
     assertTrue(active.eventsAtGlobalTurn(7).isEmpty())
-    assertEquals("boss", active.eventsAtGlobalTurn(10).single().id)
+    assertEquals("boss", active.eventsAtGlobalTurn(52).single().id)
     assertEquals(installed, StoryMilestonePlan.installCurrent(installed, plan()))
     val rewritten = JSONObject(plan()).getJSONArray("events")
     rewritten.getJSONObject(1).put("outcome", "Kết quả khác")
@@ -108,9 +108,10 @@ class StoryMilestonePlanTest {
     assertThrows(IllegalArgumentException::class.java) {
       StoryMilestonePlan.prepareNextDuringCombat(fightingTooEarly, successor)
     }
-    // The final event is scheduled at Checkpoint-relative Turn 8.
-    val reachedFinalTurn = (1..7).fold(installed) { current, _ -> CoreClientProjection.advance(current) }
-    val fighting = CombatRuntime.start(reachedFinalTurn, "hound")
+    // The final event is scheduled at Checkpoint-relative Turn 50.
+    val reachedFinalTurn = (1..49).fold(installed) { current, _ -> CoreClientProjection.advance(current) }
+    val rawFight = CombatRuntime.start(reachedFinalTurn, "hound")
+    val fighting = rawFight.copy(world = rawFight.world + ("story.milestone.bossEncounter" to CombatRuntime.active(rawFight)!!.encounterId))
     val prepared = StoryMilestonePlan.prepareNextDuringCombat(fighting, successor)
     assertEquals("CP-L00-01", StoryCheckpointCore.current(prepared)!!.id)
     assertEquals("CP-L00-01", StoryMilestonePlan.current(prepared)!!.plan.checkpointId)
@@ -133,8 +134,9 @@ class StoryMilestonePlanTest {
       .put("type", "EXIT_LEVEL").put("targetNodeId", "1.2").put("nextCheckpointTotal", 3)
       .put("outcome", "TEST_ONLY authored Level completion")).toString()
     val installed = StoryMilestonePlan.installCurrent(atLast, raw)
-    val reached = (1..7).fold(installed) { current, _ -> CoreClientProjection.advance(current) }
-    val fighting = CombatRuntime.start(reached, "hound")
+    val reached = (1..49).fold(installed) { current, _ -> CoreClientProjection.advance(current) }
+    val rawFight = CombatRuntime.start(reached, "hound")
+    val fighting = rawFight.copy(world = rawFight.world + ("story.milestone.bossEncounter" to CombatRuntime.active(rawFight)!!.encounterId))
     val prepared = StoryMilestonePlan.prepareNextDuringCombat(fighting, plan(checkpoint = "CP-L01-01"))
     assertEquals("CP-L01-01", StoryMilestonePlan.prepared(prepared)!!.checkpointId)
     assertEquals(StoryCheckpointCore.Position(1, 1, 3),
@@ -170,3 +172,5 @@ class StoryMilestonePlanTest {
     assertEquals(StoryMilestonePlan.CompletionType.NEXT_CHECKPOINT, parsed.completion.type)
   }
 }
+
+

@@ -15,8 +15,8 @@ function groupKeys(name) {
   return [...match[1].matchAll(/"([^"]+)"/g)].map(x => x[1]);
 }
 
-test('single 45% Entity chance across all Levels and permitted gameplay actions', () => {
-  assert.match(main, /thresholdRoll\("entityEncounter", 10000,\s*EntityEncounterPool.ENCOUNTER_THRESHOLD, entityEncounterAction && entityAllowed,/);
+test('45% legacy Entity chance applies only when no scripted Milestone plan exists', () => {
+  assert.match(main, /thresholdRoll\("entityEncounter", 10000,\s*EntityEncounterPool.ENCOUNTER_THRESHOLD,\s*entityEncounterAction && entityAllowed && !requireGameCore\(\)\.milestoneHasPlan\(\),/);
   assert.match(pool, /ENCOUNTER_THRESHOLD = 4500/);
   assert.match(main, /EntityEncounterPool\.pickForSuccessfulRoll\(entityRoll\.getInt\("roll"\)\)/);
   assert.match(main, /if \(candidateState == null \|\| rolls == null \|\| !rollSuccess\(rolls, "entityEncounter"\)\) return/);
