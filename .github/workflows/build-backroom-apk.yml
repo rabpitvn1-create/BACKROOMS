@@ -115,10 +115,14 @@ jobs:
           "$BUILD_TOOLS/aapt" dump badging Backroom-1.2.0.0.18.apk | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
           "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-1.2.0.0.18.apk
           rm -rf apk-check && mkdir apk-check
-          unzip -q Backroom-1.2.0.0.18.apk 'assets/index.html' 'assets/combat-feedback-1193a.*' 'assets/entity/*' 'assets/fx/*' 'assets/CaoMinh_MadGod_snapshot_overlay.png' 'assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png' 'assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png' 'assets/avatars/MadGod.jpg' 'assets/avatars/CAO_MINH_AVATAR.jpg' 'assets/hud/player_action_backrooms.png' 'assets/dice/*' 'assets/fonts/Play-Bold.ttf' 'assets/level_snapshots/*' -d apk-check
+          unzip -q Backroom-1.2.0.0.18.apk 'assets/index.html' 'assets/milestone-loading.js' 'assets/provider-logos/*' 'assets/combat-feedback-1193a.*' 'assets/entity/*' 'assets/fx/*' 'assets/CaoMinh_MadGod_snapshot_overlay.png' 'assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png' 'assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png' 'assets/avatars/MadGod.jpg' 'assets/avatars/CAO_MINH_AVATAR.jpg' 'assets/hud/player_action_backrooms.png' 'assets/dice/*' 'assets/fonts/Play-Bold.ttf' 'assets/level_snapshots/*' -d apk-check
           ! grep -q 'id="searchActionButton"' apk-check/assets/index.html
           grep -q 'id="submit"' apk-check/assets/index.html
           grep -q 'exploreActionButton' apk-check/assets/index.html
+          grep -q 'milestoneChooseGemini' apk-check/assets/index.html
+          grep -q 'milestoneChooseSol' apk-check/assets/index.html
+          test -s apk-check/assets/provider-logos/gemini.svg
+          test -s apk-check/assets/provider-logos/chatgpt.svg
           grep -q 'UI_119_BACKPORT_R01' apk-check/assets/index.html
           grep -q 'playerActionModal' apk-check/assets/index.html
           grep -q 'gameMenuModal' apk-check/assets/index.html

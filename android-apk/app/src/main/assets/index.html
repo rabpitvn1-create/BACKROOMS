@@ -177,6 +177,10 @@ body.player-action-open,body.game-menu-open{overflow:hidden}
 .game{position:relative}.milestone-loading{position:absolute;inset:0;z-index:130;display:grid;place-items:center;padding:24px;background:#080a0cd9;backdrop-filter:blur(4px)}
 .milestone-loading[hidden]{display:none}.milestone-loading section{width:min(360px,100%);padding:24px;border:1px solid #696247;border-radius:14px;background:#151713;box-shadow:0 16px 64px #0009;text-align:center}
 .milestone-loading h2{font-size:20px;margin:12px 0}.milestone-loading p{color:#cbc9bb;line-height:1.6}.milestone-loading button{width:100%;margin-top:12px}
+.milestone-provider-choices[hidden]{display:none}.milestone-provider-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}
+.milestone-loading .milestone-provider-choice{min-width:0;min-height:108px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;margin:0;padding:12px 7px;border:1px solid #777052;border-radius:10px;background:#22241e;color:#f5f2e8;font-size:14px;font-weight:800}
+.milestone-provider-choice img{width:42px;height:42px;display:block;object-fit:contain;background:#fff;border-radius:10px;padding:6px}
+.milestone-provider-choice:focus-visible{outline:3px solid #f0c66d;outline-offset:2px}
 .milestone-progress{height:12px;overflow:hidden;border:1px solid #796038;border-radius:7px;background:#292016;box-shadow:inset 0 1px 5px #0009;margin:18px 0 6px}
 .milestone-progress[hidden]{display:none}.milestone-progress-fill{display:block;height:100%;width:42%;border-radius:7px;background:linear-gradient(90deg,#613816 0%,#b46920 35%,#f9cb55 65%,#97501a 100%);box-shadow:0 0 12px #d18a32a8;animation:milestone-loading-slide 1.7s ease-in-out infinite alternate}
 @keyframes milestone-loading-slide{from{transform:translateX(-100%)}to{transform:translateX(240%)}}
@@ -215,6 +219,14 @@ body.player-action-open,body.game-menu-open{overflow:hidden}
   <section role="dialog" aria-modal="true" aria-labelledby="milestoneLoadingTitle">
     <div class="role">GAME MASTER</div><h2 id="milestoneLoadingTitle">Chuẩn bị Checkpoint</h2>
     <p id="milestoneLoadingMessage" role="status" aria-live="polite"></p>
+    <div id="milestoneProviderChoices" class="milestone-provider-choices" hidden aria-label="Chọn API tạo Milestone">
+      <button type="button" id="milestoneChooseGemini" class="milestone-provider-choice" aria-label="Gemini">
+        <img src="provider-logos/gemini.svg" alt="" width="36" height="36"><span>Gemini</span>
+      </button>
+      <button type="button" id="milestoneChooseSol" class="milestone-provider-choice" aria-label="GPT SOL 6.1">
+        <img src="provider-logos/chatgpt.svg" alt="" width="36" height="36"><span>GPT SOL 6.1</span>
+      </button>
+    </div>
     <div id="milestoneLoadingProgress" class="milestone-progress" role="progressbar" aria-label="Đang tạo và kiểm định Milestone (chưa có phần trăm thực tế)"><span class="milestone-progress-fill"></span></div>
     <button type="button" id="milestoneLoadingRetry" hidden>Thử lại</button>
   </section>
@@ -1780,7 +1792,9 @@ window.backroomMilestoneLoading=BackroomMilestoneLoading.install({
   getState:()=>state,
   refresh:()=>{const raw=Android.currentClientState(JSON.stringify(state));if(JSON.parse(raw).error)throw new Error("Core chưa sẵn sàng");state=semanticPrepareNextState(state,raw);render();},
   request:()=>Android.prepareMilestone(JSON.stringify(state)),
-  available:()=>!coreUnavailable&&!!window.Android&&typeof Android.prepareMilestone==="function",
+  provider:()=>Android.getMilestoneProviderChoice(),
+  selectProvider:value=>JSON.parse(Android.chooseMilestoneProvider(value)),
+  available:()=>!coreUnavailable&&!!window.Android&&typeof Android.prepareMilestone==="function"&&typeof Android.getMilestoneProviderChoice==="function"&&typeof Android.chooseMilestoneProvider==="function",
   changed:()=>syncPrimaryActions()
 });
 window.backroomMilestoneStatus=raw=>window.backroomMilestoneLoading.status(JSON.parse(raw));

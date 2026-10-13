@@ -8,11 +8,13 @@ const prompt=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpi
 const runtime=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/core/StoryMilestoneRuntime.kt'),'utf8');
 const facade=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt'),'utf8');
 
-test('Milestone initial and next checkpoint use SOL instead of Gemini planner transport',()=>{
+test('Milestone initial and next checkpoint use the saved Gemini-or-SOL planner choice',()=>{
   const planner=main.split('private void ensureMilestoneForCurrentCheckpoint(String trustedClientView)')[1]
     .split('private class GameBridge')[0];
   assert.ok(planner,'Milestone bridge must exist');
-  assert.equal((planner.match(/solMilestoneText\(prompt\)/g)||[]).length,2);
+  assert.equal((planner.match(/milestonePlannerText\(prompt\)/g)||[]).length,2);
+  assert.match(main,/if \(PLANNER_SOL\.equals\(provider\)\) return solMilestoneText\(prompt\)/);
+  assert.match(main,/if \(PLANNER_GEMINI\.equals\(provider\)\) return geminiMilestoneText\(prompt\)/);
   assert.doesNotMatch(planner,/geminiTextPolicy\(/);
   assert.match(prompt,/Vai trò: SOL biên kịch Checkpoint/);
 });

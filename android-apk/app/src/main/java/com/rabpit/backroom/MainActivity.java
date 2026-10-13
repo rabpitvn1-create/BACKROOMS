@@ -2,6 +2,7 @@ package com.rabpit.backroom;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.os.Build;
@@ -64,6 +65,10 @@ public class MainActivity extends Activity {
   private static final int[] RETRYABLE = {408, 429, 500, 502, 503, 504};
   private static final int MAX_SNAPSHOT_BASE64 = 1_500_000;
   private static final String KNOWLEDGE_CANON_VERSION = "KNOWLEDGE-DB-SCHEMA-1";
+  private static final String PLANNER_SETTINGS = "backroom_milestone_planner";
+  private static final String PLANNER_SETTING_KEY = "selected_provider";
+  private static final String PLANNER_SOL = "SOL";
+  private static final String PLANNER_GEMINI = "GEMINI";
   private static final SecureRandom GAME_RNG = new SecureRandom();
 
   @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
@@ -294,6 +299,21 @@ public class MainActivity extends Activity {
   private boolean retryable(int code) {
     for (int value : RETRYABLE) if (value == code) return true;
     return false;
+  }
+
+  /** One-time installation setting. Deliberately survives New Game and save deletion. */
+  private String milestoneProviderChoice() {
+    // Dedicated instrumentation APKs have no Gemini keys and must remain non-interactive.
+    if (BuildConfig.TWO_PROVIDER_GAMEPLAY_TEST) return PLANNER_SOL;
+    String stored = getSharedPreferences(PLANNER_SETTINGS, MODE_PRIVATE).getString(PLANNER_SETTING_KEY, "");
+    return PLANNER_SOL.equals(stored) || PLANNER_GEMINI.equals(stored) ? stored : "";
+  }
+
+  private String milestonePlannerText(String prompt) throws Exception {
+    String provider = milestoneProviderChoice();
+    if (PLANNER_SOL.equals(provider)) return solMilestoneText(prompt);
+    if (PLANNER_GEMINI.equals(provider)) return geminiMilestoneText(prompt);
+    throw new IllegalStateException("milestone_provider_not_selected");
   }
 
   private String[] geminiKeys() {
@@ -659,7 +679,7 @@ public class MainActivity extends Activity {
     return body.toString();
   }
 
-  private String geminiMatrixRequest(String prompt, int modelIndex, int keyIndex, int maxOutputTokens, long deadlineMs, boolean auditPacket) throws Exception {
+  private String geminiMatrixRequest(String prompt, int modelIndex, int keyIndex, int maxOutputTokens, long deadlineMs, boolean auditPacket, boolean milestonePacket) throws Exception {
     String[] keys = geminiKeys();
     String[] models = geminiModelChain();
     long remaining = deadlineMs - System.currentTimeMillis();
@@ -699,12 +719,21 @@ public class MainActivity extends Activity {
     String response = responseText.toString();
     // A valid HTTP response is not a successful lane until the payload can be consumed.
     JSONObject packet = parseModelJson(response);
-    if (auditPacket) ProviderResponseContract.requireAudit(packet);
+    if (milestonePacket) {
+      // A plan has schemaVersion/checkpointId/events/completion, not a GM "reply".
+      // Game Core performs the authoritative schedule/schema validation on install.
+      if (!packet.has("events") || !packet.has("checkpointId") || !packet.has("completion"))
+        throw new IllegalArgumentException("milestone_provider_json_invalid");
+    } else if (auditPacket) ProviderResponseContract.requireAudit(packet);
     else ProviderResponseContract.requireWriter(packet);
     return response;
   }
 
   private String geminiModelMatrixPolicy(String prompt, int[] modelOrder, int excludedKeyIndex, int maxOutputTokens, boolean rememberWorker, long totalBudgetMs, boolean auditPacket) throws Exception {
+    return geminiModelMatrixPolicy(prompt, modelOrder, excludedKeyIndex, maxOutputTokens, rememberWorker, totalBudgetMs, auditPacket, false);
+  }
+
+  private String geminiModelMatrixPolicy(String prompt, int[] modelOrder, int excludedKeyIndex, int maxOutputTokens, boolean rememberWorker, long totalBudgetMs, boolean auditPacket, boolean milestonePacket) throws Exception {
     String[] keys = geminiKeys();
     Exception last = null;
     long deadlineMs = System.currentTimeMillis() + totalBudgetMs;
@@ -740,7 +769,7 @@ public class MainActivity extends Activity {
           attempted[keyIndex] = true;
           long started = System.currentTimeMillis();
           try {
-            String result = geminiMatrixRequest(prompt, modelIndex, keyIndex, maxOutputTokens, deadlineMs, auditPacket);
+            String result = geminiMatrixRequest(prompt, modelIndex, keyIndex, maxOutputTokens, deadlineMs, auditPacket, milestonePacket);
             noteGeminiMatrixSuccess(modelIndex, keyIndex, System.currentTimeMillis() - started);
             if (rememberWorker) { lastGeminiWorker = keyIndex; lastGeminiModel = modelIndex; }
             return result;
@@ -758,6 +787,11 @@ public class MainActivity extends Activity {
       }
     }
     throw last != null ? last : new Exception("Không có Gemini model/key lane khỏe trong APK.");
+  }
+
+  /** Milestone uses the same five-key health matrix; it requires a plan, not a GM answer. */
+  private String geminiMilestoneText(String prompt) throws Exception {
+    return geminiModelMatrixPolicy(prompt, new int[] {0, 1, 2}, -1, 12288, false, 120_000L, false, true);
   }
 
   private String geminiText(String prompt) throws Exception {
@@ -897,35 +931,39 @@ public class MainActivity extends Activity {
     return output;
   }
 
-  /** Stable, non-secret diagnostics; never expose API response bodies or tokens in the popup. */
+  /** Stable, non-secret diagnostics; never expose credentials or response bodies. */
   private String milestoneFailureMessage(Exception error) {
+    boolean gemini = PLANNER_GEMINI.equals(milestoneProviderChoice());
+    String tag = gemini ? "GEMINI" : "SOL";
+    String label = gemini ? "Gemini" : "SOL";
     if (error instanceof HttpError) {
       int code = ((HttpError) error).status;
-      if (code == 401 || code == 403) return "[SOL_AUTH_" + code + "] SOL từ chối xác thực/quyền dùng model. Kiểm tra cấu hình API.";
-      if (code == 429) return "[SOL_RATE_LIMIT] SOL hết quota hoặc bị giới hạn tốc độ. Hãy thử lại sau.";
-      if (code == 400 || code == 404 || code == 422)
-        return "[SOL_REQUEST_" + code + "] SOL từ chối model hoặc tham số request. Cần kiểm tra cấu hình.";
-      if (code >= 500) return "[SOL_SERVER_" + code + "] Máy chủ SOL đang lỗi. Hãy thử lại sau.";
-      return "[SOL_HTTP_" + code + "] SOL trả lỗi HTTP. Hãy thử lại hoặc kiểm tra cấu hình.";
+      if (code == 401 || code == 403) return "[" + tag + "_AUTH_" + code + "] " + label + " từ chối xác thực/quyền sử dụng model.";
+      if (code == 429) return "[" + tag + "_RATE_LIMIT] " + label + " hết quota hoặc bị giới hạn tốc độ.";
+      if (code == 400 || code == 404 || code == 422) return "[" + tag + "_REQUEST_" + code + "] " + label + " từ chối model hoặc request.";
+      if (code >= 500) return "[" + tag + "_SERVER_" + code + "] Máy chủ " + label + " đang lỗi. Hãy thử lại sau.";
+      return "[" + tag + "_HTTP_" + code + "] " + label + " trả HTTP " + code + ".";
     }
     Throwable cause = error;
     while (cause != null) {
       if (cause instanceof java.net.SocketTimeoutException)
-        return "[SOL_TIMEOUT] SOL không trả kịp Milestone trong giới hạn chờ 120 giây.";
+        return "[" + tag + "_TIMEOUT] " + label + " không trả Milestone trong giới hạn 120 giây.";
       cause = cause.getCause();
     }
-    if (networkFailure(error)) return "[SOL_NETWORK] Không kết nối được SOL. Kiểm tra mạng/DNS.";
+    if (networkFailure(error)) return "[" + tag + "_NETWORK] Không kết nối được " + label + ". Kiểm tra mạng/DNS.";
     String reason = error.getMessage() == null ? "" : error.getMessage();
+    if (reason.equals("milestone_provider_not_selected"))
+      return "[PROVIDER_REQUIRED] Hãy chọn API tạo Milestone trong màn hình loading.";
     if (reason.equals("milestone_provider_truncated"))
-      return "[SOL_TRUNCATED] SOL trả kế hoạch bị cắt do giới hạn token.";
+      return "[" + tag + "_TRUNCATED] " + label + " trả kế hoạch bị cắt do giới hạn token.";
     if (reason.startsWith("milestone_provider_"))
-      return "[SOL_RESPONSE] SOL trả phản hồi rỗng hoặc không đúng định dạng JSON.";
+      return "[" + tag + "_RESPONSE] " + label + " trả kế hoạch không đúng JSON.";
     if (reason.matches("(milestone|checkpoint|story)_[a-z0-9_]{1,90}"))
       return "[PLAN_INVALID] Game Core từ chối kế hoạch: " + reason;
     if (reason.equals("SOL_API_KEY chưa được cấu hình."))
       return "[SOL_CONFIG] Chưa cấu hình SOL_API_KEY trong APK.";
     if (reason.equals("milestone_plan_state_changed"))
-      return "[PLAN_STALE] Phiên chơi đã thay đổi trong lúc tạo Milestone. Hãy thử lại.";
+      return "[PLAN_STALE] Phiên chơi thay đổi khi tạo Milestone. Hãy thử lại.";
     return "[MILESTONE_ERROR] Không chuẩn bị được Milestone. Hãy thử lại hoặc xem log MilestonePlanner.";
   }
 
@@ -1798,7 +1836,7 @@ public class MainActivity extends Activity {
     JSONObject request = new JSONObject(requireGameCore().milestonePlanRequest());
     if (!request.optBoolean("needed", false)) return;
     long startedMs = android.os.SystemClock.elapsedRealtime();
-    emitMilestoneStatus(request, "loading", "Đang chuẩn bị Canon cho SOL…");
+    emitMilestoneStatus(request, "loading", "Đang chuẩn bị Canon cho Milestone…");
     JSONObject view = new JSONObject(trustedClientView);
     String checkpointId = request.getString("checkpointId");
     int startTurn = request.getInt("startTurn");
@@ -1823,17 +1861,19 @@ public class MainActivity extends Activity {
     if (scene.length() > 1500) scene = scene.substring(0, 1500);
     String prompt = com.rabpit.backroom.core.StoryMilestonePlannerPrompt.build(
       checkpointId, startTurn, nodeId, canon, scene, request.getInt("checkpointTotal"), requireGameCore().storyFactContext());
-    // Dedicated SOL planner, separate from the GM writer/audit providers.
-    emitMilestoneStatus(request, "loading", "SOL đang tạo khung Checkpoint…");
-    long solStartedMs = android.os.SystemClock.elapsedRealtime();
-    String rawPlan = solMilestoneText(prompt);
-    long solMs = android.os.SystemClock.elapsedRealtime() - solStartedMs;
-    emitMilestoneStatus(request, "loading", "SOL đã phản hồi sau " + (solMs / 1000) + " giây. Game Core đang kiểm định và lưu…");
+    // This is only skeleton generation, never a GM or a second narrative verifier.
+    String provider = milestoneProviderChoice();
+    emitMilestoneStatus(request, "loading", provider + " đang tạo khung Checkpoint…");
+    long plannerStartedMs = android.os.SystemClock.elapsedRealtime();
+    String rawPlan = milestonePlannerText(prompt);
+    long plannerMs = android.os.SystemClock.elapsedRealtime() - plannerStartedMs;
+    emitMilestoneStatus(request, "loading", provider + " đã phản hồi sau " + (plannerMs / 1000) + " giây. Game Core đang lưu kế hoạch…");
     boolean saved = requireGameCore().installMilestonePlan(
       rawPlan, request.getString("runToken"), checkpointId, startTurn);
     if (!saved) throw new IllegalStateException("milestone_plan_state_changed");
     Log.i("MilestonePlanner", "Current READY checkpoint=" + checkpointId +
-      " solMs=" + solMs + " totalMs=" + (android.os.SystemClock.elapsedRealtime() - startedMs) +
+      " provider=" + milestoneProviderChoice() + " plannerMs=" + plannerMs +
+      " totalMs=" + (android.os.SystemClock.elapsedRealtime() - startedMs) +
       " planChars=" + rawPlan.length());
     emit("backroomMilestoneReady", request.toString());
   }
@@ -1850,7 +1890,7 @@ public class MainActivity extends Activity {
   private void scheduleNextMilestone(String currentView) {
     try {
       JSONObject lease = new JSONObject(requireGameCore().milestoneNextPlanRequest());
-      if (!lease.optBoolean("needed", false)) return;
+      if (!lease.optBoolean("needed", false) || milestoneProviderChoice().isEmpty()) return;
       String id = lease.getString("runToken") + ":" + lease.getString("checkpointId") +
         ":" + lease.getString("bossEncounterId");
       if (!milestonePlanInFlight.add(id)) return;
@@ -1883,17 +1923,19 @@ public class MainActivity extends Activity {
             "Completion của CP trước bên dưới còn PLANNED, chỉ xảy ra sau verified Boss defeat; " +
             "dùng nó để nối tiếp kịch bản, không ghi thành lịch sử đã xảy ra và không giả định HP/Party sau Combat. " +
             "PREDECESSOR_PENDING_COMPLETION=" + lease.getJSONObject("completion").toString();
-          emitMilestoneStatus(lease, "loading", "SOL đang tạo khung Checkpoint tiếp theo…");
-          long solStartedMs = android.os.SystemClock.elapsedRealtime();
-          String raw = solMilestoneText(prompt);
-          long solMs = android.os.SystemClock.elapsedRealtime() - solStartedMs;
-          emitMilestoneStatus(lease, "loading", "SOL đã phản hồi sau " + (solMs / 1000) + " giây. Core đang kiểm định kế hoạch kế tiếp…");
+          String provider = milestoneProviderChoice();
+          emitMilestoneStatus(lease, "loading", provider + " đang tạo khung Checkpoint tiếp theo…");
+          long plannerStartedMs = android.os.SystemClock.elapsedRealtime();
+          String raw = milestonePlannerText(prompt);
+          long plannerMs = android.os.SystemClock.elapsedRealtime() - plannerStartedMs;
+          emitMilestoneStatus(lease, "loading", provider + " đã phản hồi sau " + (plannerMs / 1000) + " giây. Core đang lưu kế hoạch kế tiếp…");
           boolean accepted = requireGameCore().installNextMilestone(
             raw, lease.getString("runToken"), lease.getString("checkpointId"),
             lease.getString("bossEncounterId"));
           if (accepted) {
             Log.i("MilestonePlanner", "Next READY checkpoint=" + lease.getString("nextCheckpointId") +
-              " solMs=" + solMs + " totalMs=" + (android.os.SystemClock.elapsedRealtime() - startedMs) +
+              " provider=" + milestoneProviderChoice() + " plannerMs=" + plannerMs +
+              " totalMs=" + (android.os.SystemClock.elapsedRealtime() - startedMs) +
               " planChars=" + raw.length());
             emit("backroomMilestoneReady", lease.toString());
           } else {
@@ -1913,6 +1955,37 @@ public class MainActivity extends Activity {
   }
 
   private class GameBridge {
+    @JavascriptInterface public String getMilestoneProviderChoice() {
+      return milestoneProviderChoice();
+    }
+
+    @JavascriptInterface public String chooseMilestoneProvider(String requested) {
+      try {
+        if (!PLANNER_SOL.equals(requested) && !PLANNER_GEMINI.equals(requested))
+          return new JSONObject().put("ok", false).put("message", "API không hợp lệ.").toString();
+        synchronized (MainActivity.this) {
+          String current = milestoneProviderChoice();
+          if (!current.isEmpty()) return new JSONObject()
+            .put("ok", current.equals(requested)).put("provider", current)
+            .put("message", current.equals(requested) ? "" : "API đã được chọn trước đó.").toString();
+          if (PLANNER_SOL.equals(requested) && (BuildConfig.SOL_API_KEY == null || BuildConfig.SOL_API_KEY.trim().isEmpty()))
+            return new JSONObject().put("ok", false).put("message", "Chưa cấu hình API SOL trong APK.").toString();
+          if (PLANNER_GEMINI.equals(requested)) {
+            boolean available = false;
+            for (String key : geminiKeys()) if (key != null && !key.trim().isEmpty()) available = true;
+            if (!available) return new JSONObject().put("ok", false)
+              .put("message", "Chưa có Gemini API key nào trong APK.").toString();
+          }
+          SharedPreferences prefs = getSharedPreferences(PLANNER_SETTINGS, MODE_PRIVATE);
+          if (!prefs.edit().putString(PLANNER_SETTING_KEY, requested).commit())
+            return new JSONObject().put("ok", false).put("message", "Không lưu được lựa chọn API.").toString();
+          return new JSONObject().put("ok", true).put("provider", requested).toString();
+        }
+      } catch (Exception error) {
+        return "{\"ok\":false,\"message\":\"Không lưu được lựa chọn API.\"}";
+      }
+    }
+
     @JavascriptInterface public void prepareMilestone(String stateJson) {
       io.execute(() -> {
         long startedMs = android.os.SystemClock.elapsedRealtime();
