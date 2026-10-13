@@ -45,32 +45,35 @@ object StoryMilestonePlannerPrompt {
       Chỉ xuất một JSON object hợp lệ. Không markdown, không lời giải thích.
       checkpointId=$checkpointId; globalStartTurn=$absoluteStartTurn; currentLevelNode=$levelNode; checkpointIndex=${position.index}; checkpointTotal=$checkpointTotal; isFinalCheckpoint=${position.isLast}.
 
-      Hãy chọn một số sự kiện then chốt theo TURN TƯƠNG ĐỐI trong Checkpoint,
-      bắt đầu từ 1, tăng dần (có thể cùng Turn). Mọi action, event và outcome đều
-      bắt buộc, đã được biên kịch và không lệ thuộc lựa chọn của người chơi.
-      GM tự lồng ghép những gì người chơi làm vào các kết quả này, không cần
-      kịch bản câu thoại chi tiết. Không tự viết lại Canon, bí mật hoặc
-      trạng thái HP/EXP chưa xảy ra. Không tự kết luận thắng/thua Combat.
-      Mỗi CP phải kéo dài ít nhất ${StoryMilestonePlan.MIN_CHECKPOINT_TURNS} Turn Core,
-      và có ít nhất ${StoryMilestonePlan.MIN_ENTITY_ENCOUNTERS} lần gặp Entity thực sự,
-      gồm ít nhất 19 event ENTITY và một FINAL_ENTITY cuối. Mỗi lần gặp ở một
-      Turn riêng, có entityKey hợp lệ; có thể gặp lại cùng loài ở các encounter khác.
-      ENTITY là tiếp xúc trực tiếp trong scene, không phải nhắc tên, tiếng động chưa
-      rõ nguồn, lời đồn, hồi tưởng hoặc kế hoạch. Không cần đánh nhau ở mọi lần gặp;
-      không tự thay HP/EXP/Inventory hoặc kết luận tiêu diệt Entity bằng lời kể.
-      Không dồn nhiều Entity cùng Turn để đủ chỉ tiêu. Boss không được mở trước
-      Turn ${StoryMilestonePlan.MIN_CHECKPOINT_TURNS}; thử lại Boss không tạo encounter mới.
-      Sự kiện cuối phải là đúng một FINAL_ENTITY, khởi đầu Combat với
-      một Entity hợp lệ; HP và EXP nhân 9 do Core thực thi sau.
+      Chỉ tạo KHUNG XƯƠNG CHECKPOINT, không viết truyện, cảnh dài hoặc hội thoại.
+      Chọn vài STORY beat quan trọng và các lần gặp Entity theo Explorer Turn tương đối
+      (bắt đầu từ 1, tăng dần). Chỉ xuất event quan trọng, không cần STORY ở mọi lượt.
+      Mỗi action/event/outcome là một ý cốt lõi, tối đa 120 ký tự mỗi trường.
+      GM sẽ tự kể chi tiết theo hành động người chơi nhưng phải giữ kết quả đã khóa.
+      Không tự viết lại Canon, bí mật, HP/EXP chưa xảy ra hay thắng/thua Combat.
+
+      Mỗi CP cần ít nhất ${StoryMilestonePlan.MIN_CHECKPOINT_TURNS} Explorer Turn.
+      Boss là FINAL_ENTITY cuối cùng, xuất hiện SAU sự kiện Explorer ở lượt cuối:
+      FINAL_ENTITY dùng đúng số Explorer Turn cuối, không chiếm thêm lượt Explorer.
+      Gọi T là Turn của FINAL_ENTITY. Cần ít nhất ceil(T * ${StoryMilestonePlan.MIN_ENTITY_PERCENT} / 100)
+      event ENTITY thường ở các Explorer Turn KHÁC NHAU và đều trước Turn Boss.
+      FINAL_ENTITY KHÔNG tính vào quota ENTITY ${StoryMilestonePlan.MIN_ENTITY_PERCENT}%.
+      Ví dụ T=18 cần 8 lần gặp Entity thường và một Boss riêng ở cuối.
+      ENTITY là tiếp xúc trực tiếp với Entity có entityKey hợp lệ, không phải nhắc tên,
+      tiếng động chưa rõ nguồn hoặc lời đồn. Không cần chiến đấu ở mọi lần gặp.
+      Không tự cấp HP/EXP/Inventory hay tuyên bố tiêu diệt Entity.
+      FINAL_ENTITY chỉ mở Combat; Boss không được bỏ chạy, thử lại Boss không tạo encounter.
+      HP và EXP Boss nhân 9 do Core xử lý.
       Entity hợp lệ: $entityKeys
 
       Schema chính xác:
       {"schemaVersion":2,"checkpointId":"$checkpointId","events":[
       {"id":"beat1","turn":1,"kind":"STORY","action":"<world action>","event":"<authored event>","outcome":"<authored outcome>"},
       {"id":"encounter1","turn":2,"kind":"ENTITY","action":"<Entity action>","event":"<actual direct encounter>","outcome":"<encounter outcome, no combat settlement>","entityKey":"<supported Entity key>"},
-      {"id":"boss","turn":50,"kind":"FINAL_ENTITY","action":"<world action>","event":"<authored event>","outcome":"<Combat opening>","entityKey":"<supported Entity key>","hpMultiplier":9,"expMultiplier":9}
+      {"id":"boss","turn":18,"kind":"FINAL_ENTITY","action":"<world action>","event":"<authored event>","outcome":"<Combat opening>","entityKey":"<supported Entity key>","hpMultiplier":9,"expMultiplier":9}
       ],"completion":$completionSchema}
-      Mẫu rút gọn này CHƯA đủ 20 encounter; phải thêm ít nhất 18 ENTITY ở Turn riêng trước Boss.
+      Mẫu rút gọn này CHƯA đủ quota: với Boss ở Turn 18 phải thêm 7 ENTITY thường
+      ở các Explorer Turn riêng trước Boss.
       Đây chỉ là hình dạng schema, không phải kịch bản mặc định. Thay mọi
       placeholder bằng dữ kiện có nguồn; không dùng ví dụ thảo luận làm Canon.
       action là hành động trong thế giới của NPC/Entity/môi trường; không ép
@@ -79,7 +82,7 @@ object StoryMilestonePlannerPrompt {
       Level; Core chỉ xác nhận địa chỉ hỗ trợ. Không yêu cầu HiddenExitStreak,
       cửa ngẫu nhiên hoặc đi đủ tuyến phụ. Target được hỗ trợ ở Level khác:
       $supportedTargets
-      Tổng CP Level sau do Gemini chọn, không mặc định 20; nếu trở lại Level 0
+      Tổng CP Level sau do SOL chọn, không mặc định 20; nếu trở lại Level 0
       thì tổng phải là 20. Trận Boss chỉ có thắng hoặc thua, không được chạy thoát. Chỉ đánh bại Boss mới hoàn tất CP.
       Không biên kịch trước chiến thắng gameplay; FINAL_ENTITY chỉ mở Combat.
       Có thể chọn số Turn, các sự kiện và Entity khác mẫu.
