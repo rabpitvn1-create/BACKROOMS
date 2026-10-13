@@ -1,0 +1,12 @@
+Backroom 1.2.0.0.13 Debug
+
+- Android versionCode 86; versionName 1.2.0.0.13; applicationId com.rabpit.backroom.
+- Tích hợp Canon retrieval, 20 Story Checkpoint của Level 0 và Milestone v2 có action/event/outcome, completion do Gemini biên kịch.
+- Mỗi CP tối thiểu 50 turn và 20 encounter Entity riêng biệt, gồm Boss cuối; chỉ encounter đã được xác nhận mới được đếm. Nhắc tên, tải save hoặc retry cùng Boss không cộng thêm.
+- Boss HP/EXP ×9 theo instance; chỉ đánh bại Boss hoàn tất CP. Escape giữ CP, có nút đối đầu lại và giữ đúng encounter/HP.
+- Giữ exact-turn dispatch, prefetch chịu phản hồi muộn, target Canon và chuyển CP/Level theo completion. Random Exit/Entity không quyết định Milestone khi có kế hoạch.
+- Story memory EVENT/ENTITY/CLUE có kiểm định riêng, quote và context hash; giữ OPEN chưa giải quyết, archive lịch sử và truy xuất có ngân sách. Ledger không thay HP/Status/Combat/Inventory.
+- SaveStats và CP/Level history chỉ ghi dữ kiện đã commit; kiểm tra evidence, turn/encounter counts và source refs khi tải. Save lỗi không tự khởi tạo rồi ghi đè; manual restore giữ encounter identity và vô hiệu callback cũ.
+- Đồng bộ damage, hiệu ứng trúng đòn và log với thời điểm contact thực của animation; kết quả Party dùng chung impact, hỗ trợ animation bắt đầu muộn.
+- APK Debug. CI xác minh kiểm thử tự động, package, chữ ký, zipalign và checksum APK tải lại; Gemini thật, adversarial semantics và Android gameplay trên thiết bị vẫn chưa nghiệm thu.
+- Canon thiếu nguồn và các xung đột đã ghi trong audit vẫn deferred. Không hỗ trợ save game cũ.
