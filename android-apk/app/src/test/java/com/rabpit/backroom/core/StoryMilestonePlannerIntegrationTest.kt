@@ -25,7 +25,7 @@ class StoryMilestonePlannerIntegrationTest {
   }
 
   private fun plan(id: String = "CP-L00-01"): String = JSONObject()
-    .put("schemaVersion", 2).put("checkpointId", id)
+    .put("schemaVersion", StoryMilestonePlan.SCHEMA_VERSION).put("checkpointId", id).put("storyArc", TestCheckpointQuota.storyArc())
     .put("events", TestCheckpointQuota.events(JSONArray().put(JSONObject()
       .put("id", "boss").put("turn", 3).put("kind", "FINAL_ENTITY").put("action", "TEST_ONLY world action")
       .put("event", "Hound xuất hiện").put("outcome", "Combat bắt đầu")

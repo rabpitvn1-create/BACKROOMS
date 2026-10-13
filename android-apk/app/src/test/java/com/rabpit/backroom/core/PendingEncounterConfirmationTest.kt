@@ -35,8 +35,8 @@ class PendingEncounterConfirmationTest {
         .put("hpMultiplier", 9).put("expMultiplier", 9)))
     val values = (0 until events.length()).map { events.getJSONObject(it) }
     values.single { it.getString("id") == "encounter1" }
-      .put("turn", 2).put("entityKey", "duller").put("combatRequired", combat)
-    return JSONObject().put("schemaVersion", 2).put("checkpointId", checkpoint)
+      .put("turn", 2).put("entityKey", "duller").apply { if (!combat) put("combatRequired", false) }
+    return JSONObject().put("schemaVersion", StoryMilestonePlan.SCHEMA_VERSION).put("checkpointId", checkpoint).put("storyArc", TestCheckpointQuota.storyArc())
       .put("events", JSONArray(values.sortedBy { it.getInt("turn") }))
       .put("completion", JSONObject().put("type", "NEXT_CHECKPOINT").put("outcome", "Qua Checkpoint"))
       .toString()

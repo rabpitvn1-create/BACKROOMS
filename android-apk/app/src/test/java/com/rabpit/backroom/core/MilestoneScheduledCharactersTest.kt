@@ -16,7 +16,7 @@ class MilestoneScheduledCharactersTest {
       .put("action", "Boss xuất hiện").put("event", "Boss chặn lối").put("outcome", "Chờ Battle Start")
       .put("hpMultiplier", 9).put("expMultiplier", 9)))
     val values = (0 until quota.length()).map { quota.getJSONObject(it) } + events
-    return JSONObject().put("schemaVersion", 2).put("checkpointId", checkpoint)
+    return JSONObject().put("schemaVersion", StoryMilestonePlan.SCHEMA_VERSION).put("checkpointId", checkpoint).put("storyArc", TestCheckpointQuota.storyArc())
       .put("events", JSONArray(values.sortedBy { it.getInt("turn") }))
       .put("completion", JSONObject().put("type", "NEXT_CHECKPOINT").put("outcome", "Qua CP")).toString()
   }
@@ -99,7 +99,7 @@ class MilestoneScheduledCharactersTest {
     val dead = state.copy(characters = state.characters + (LUCIA_ID to state.characters.getValue(LUCIA_ID).copy(presence = CharacterPresence.DEAD)))
     assertThrows(Exception::class.java) { StoryMilestonePlan.installCurrent(dead, raw(listOf(encounter("dead", 3, "FOLLOWER", LUCIA_ID)))) }
     val missing = JSONObject(raw(emptyList()))
-    missing.getJSONArray("events").getJSONObject(0).remove("combatRequired")
+    missing.getJSONArray("events").getJSONObject(0).put("combatRequired", false)
     assertThrows(Exception::class.java) { StoryMilestonePlan.installCurrent(state, missing.toString()) }
   }
 
