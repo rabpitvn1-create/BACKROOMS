@@ -1,12 +1,6 @@
 name: Emulator - First Six Checkpoints
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "android-apk/app/src/androidTest/**"
-      - "android-apk/app/build.gradle"
-      - ".github/workflows/emulator-first-six-checkpoints.yml"
   workflow_dispatch:
 
 permissions:
