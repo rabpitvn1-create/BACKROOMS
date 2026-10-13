@@ -44,6 +44,11 @@ test('pool covers every packaged Entity exactly once with weights summing to 45%
 test('AI may only introduce the Entity selected by the authoritative roll', () => {
   assert.match(main, /if \(root.equals\("entityEncounterKey"\)\) \{/);
   assert.match(main, /requested.equals\(rolls\.optString\("selectedEntityKey", ""\)\)/);
-  assert.match(main, /rolls.selectedEntityKey có giá trị/);
+  // Gehihi only returns prose; Core owns both roll-based and scripted Entity encounters.
+  assert.match(main, /JSONObject candidateState = applyModelOperations\(before, new JSONArray\(\), rolls, action\)/);
+  assert.doesNotMatch(main, /generated\.optJSONArray\("ops"\)/);
+  const runtime = fs.readFileSync(path.join(root, 'app/src/main/java/com/rabpit/backroom/core/StoryMilestoneRuntime.kt'), 'utf8');
+  assert.match(runtime, /val ordinaryEntity = required\.lastOrNull \{ it\.kind == StoryMilestonePlan\.Kind\.ENTITY \}/);
+  assert.match(runtime, /"entityEncounterKey", requireNotNull\(ordinaryEntity\.entityKey\)/);
   assert.doesNotMatch(main, /theo tỷ lệ Level|roaming\/incursion cực hiếm|Entity gồm Hound/);
 });
