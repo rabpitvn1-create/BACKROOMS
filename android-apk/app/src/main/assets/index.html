@@ -187,6 +187,13 @@ body.player-action-open,body.game-menu-open{overflow:hidden}
 @media(prefers-reduced-motion:reduce){.milestone-progress-fill{animation:none;width:100%;opacity:.7}}
 .milestone-dev-count{display:block;margin-top:5px;font:700 10px system-ui,sans-serif;letter-spacing:.08em;color:#d4a557}.milestone-dev-count strong{color:#f4cb79}
 </style>
+<script src="diagnostic-export.js"></script>
+<style>
+.diagnostic-consent{display:flex;gap:9px;align-items:flex-start;font-size:12px;color:#ddd0a6;line-height:1.45;margin:10px 0}
+.diagnostic-consent input{flex:0 0 auto;width:18px;height:18px;margin:1px 0 0;accent-color:#cfac69}
+.diagnostic-note{font-size:12px;line-height:1.45;color:#a8b1b9;margin:8px 0}
+.diagnostic-status{font-size:12px;color:#d7c38c;min-height:16px;white-space:pre-wrap}
+</style>
 </head>
 <body>
 <main class="shell">
@@ -229,6 +236,9 @@ body.player-action-open,body.game-menu-open{overflow:hidden}
     </div>
     <div id="milestoneLoadingProgress" class="milestone-progress" role="progressbar" aria-label="Đang tạo và kiểm định Milestone (chưa có phần trăm thực tế)"><span class="milestone-progress-fill"></span></div>
     <button type="button" id="milestoneLoadingRetry" hidden>Thử lại</button>
+    <div class="diagnostic-consent"><input type="checkbox" id="milestoneDiagnosticSensitive"><label for="milestoneDiagnosticSensitive">Bao gồm API key và dữ liệu nhạy cảm (chỉ khi cần, phải xác nhận hai lần).</label></div>
+    <button type="button" id="milestoneExportDiagnostic">Xuất log chi tiết (.json)</button>
+    <p id="milestoneDiagnosticStatus" class="diagnostic-status" aria-live="polite"></p>
   </section>
 </div>
 <div class="status" id="status"></div>
@@ -240,6 +250,12 @@ body.player-action-open,body.game-menu-open{overflow:hidden}
     <aside class="side">
 <div class="card"><h2>Trạng thái</h2><div class="row"><b>Vị trí</b><span id="location"></span></div><div class="row"><b>Chế độ</b><span id="mode"></span></div><div class="row"><b>Nhân vật</b><span id="player"></span></div></div>
 <div class="card"><h2>Save / Load</h2><div class="actions"><button type="button" id="saveButton" onclick="save()">Lưu</button><button type="button" id="loadButton" onclick="load()">Tải</button><button type="button" id="newGameButton" class="wide" onclick="resetGame()">Bắt đầu lại từ đầu</button><button type="button" id="deleteSaveButton" class="wide danger" onclick="clearSave()">Xóa save trên máy</button></div></div>
+<div class="card"><h2>Chẩn đoán lỗi</h2>
+  <p class="diagnostic-note">Xuất trạng thái Game Core, Milestone, Combat, lịch sử lượt, lỗi JavaScript và timeline API thành file JSON cho AI phân tích. File chỉ lưu vào vị trí anh chọn.</p>
+  <div class="diagnostic-consent"><input type="checkbox" id="diagnosticSensitive"><label for="diagnosticSensitive">Bao gồm API key và dữ liệu nhạy cảm, không che (phải xác nhận hai lần).</label></div>
+  <div class="actions"><button type="button" id="exportDiagnosticButton" class="wide">Xuất log chi tiết (.json)</button></div>
+  <p id="diagnosticExportStatus" class="diagnostic-status" aria-live="polite"></p>
+</div>
 <div class="card"><h2>Party</h2><div class="party-time" id="partyTime"></div><div id="party" class="party-grid"><div class="party-member" data-character="cao_minh"><img src="avatars/CAO_MINH_AVATAR.jpg" alt="Cao Minh"><strong>Cao Minh</strong></div></div><div id="encounteredCharacters" aria-live="polite"></div></div>
 <div id="characterInventoryView" class="character-inventory-view" hidden>
   <div class="character-inventory-head"><button type="button" id="characterInventoryBack">← Trở lại</button><div><div class="eyebrow">THÔNG TIN NHÂN VẬT</div><h2 id="characterInventoryName">Cao Minh</h2></div></div>

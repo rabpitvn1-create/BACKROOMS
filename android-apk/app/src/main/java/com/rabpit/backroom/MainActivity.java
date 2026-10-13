@@ -3,6 +3,8 @@ package com.rabpit.backroom;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.SharedPreferences;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.os.Build;
@@ -27,6 +29,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.SecureRandom;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -34,6 +37,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class MainActivity extends Activity {
+  private static final int DIAGNOSTIC_EXPORT_REQUEST = 7401;
+  private final Object diagnosticExportLock = new Object();
+  private String pendingDiagnosticExport;
   private WebView webView;
   private final ExecutorService io = Executors.newSingleThreadExecutor();
   private final ExecutorService imageIo = Executors.newSingleThreadExecutor();
@@ -99,7 +105,65 @@ public class MainActivity extends Activity {
       setContentView(webView);
       webView.loadUrl("file:///android_asset/index.html");
     } catch (Throwable error) {
+      DiagnosticLog.error("startup.webview", error);
       showStartupFallback(error);
+    }
+  }
+
+
+  private String requestDiagnosticExport(String webJson, boolean includeSensitive) {
+    try {
+      String report = DiagnosticLog.build(webJson, includeSensitive, milestoneProviderChoice(),
+        milestonePlanInFlight.size(), lastGeminiWorker, lastGeminiModel);
+      synchronized (diagnosticExportLock) {
+        if (pendingDiagnosticExport != null) return "{\"ok\":false,\"error\":\"export_already_open\"}";
+        pendingDiagnosticExport = report;
+      }
+      runOnUiThread(() -> {
+        try {
+          Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+          intent.addCategory(Intent.CATEGORY_OPENABLE);
+          intent.setType("application/json");
+          String date = new java.text.SimpleDateFormat("yyyyMMdd-HHmmss", java.util.Locale.US).format(new java.util.Date());
+          intent.putExtra(Intent.EXTRA_TITLE, "Backroom-Diagnostic-" + date + ".json");
+          startActivityForResult(intent, DIAGNOSTIC_EXPORT_REQUEST);
+        } catch (Exception error) {
+          synchronized (diagnosticExportLock) { pendingDiagnosticExport = null; }
+          DiagnosticLog.error("diagnostic.picker_error", error);
+          emit("backroomDiagnosticExportResult", "{\"saved\":false,\"error\":\"document_picker_unavailable\"}");
+        }
+      });
+      return "{\"ok\":true}";
+    } catch (Exception error) {
+      DiagnosticLog.error("diagnostic.build_error", error);
+      return "{\"ok\":false,\"error\":\"diagnostic_build_failed\"}";
+    }
+  }
+
+  @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    super.onActivityResult(requestCode, resultCode, data);
+    if (requestCode != DIAGNOSTIC_EXPORT_REQUEST) return;
+    String report;
+    synchronized (diagnosticExportLock) {
+      report = pendingDiagnosticExport;
+      pendingDiagnosticExport = null;
+    }
+    if (resultCode != RESULT_OK || data == null || data.getData() == null) {
+      emit("backroomDiagnosticExportResult", "{\"saved\":false,\"cancelled\":true}");
+      return;
+    }
+    try {
+      Uri uri = data.getData();
+      if (report == null) throw new IllegalStateException("missing_diagnostic_report");
+      try (OutputStream output = getContentResolver().openOutputStream(uri, "w")) {
+        if (output == null) throw new java.io.IOException("Could not open selected file");
+        output.write(report.getBytes(StandardCharsets.UTF_8));
+      }
+      DiagnosticLog.record("diagnostic.saved", "Saved to user-selected document");
+      emit("backroomDiagnosticExportResult", "{\"saved\":true}");
+    } catch (Exception error) {
+      DiagnosticLog.error("diagnostic.write_error", error);
+      emit("backroomDiagnosticExportResult", "{\"saved\":false,\"error\":\"file_write_failed\"}");
     }
   }
 
@@ -159,6 +223,7 @@ public class MainActivity extends Activity {
         gameCore = GameCoreFacade.create(getApplicationContext(), BuildConfig.DEBUG);
       } catch (Throwable error) {
         gameCoreUnavailable = true;
+        DiagnosticLog.error("startup.core", error);
         Log.e("BackroomStartup", "Game State Core unavailable; keeping app alive.", error);
       }
       return gameCore;
@@ -329,6 +394,7 @@ public class MainActivity extends Activity {
     }
 
     int status = connection.getResponseCode();
+    if (status < 200 || status >= 300) DiagnosticLog.record("provider.http_error", "status=" + status);
     InputStream stream = status >= 200 && status < 300 ? connection.getInputStream() : connection.getErrorStream();
     StringBuilder body = new StringBuilder();
     if (stream != null) {
@@ -358,6 +424,7 @@ public class MainActivity extends Activity {
       output.write(payload.toString().getBytes("UTF-8"));
     }
     int status = connection.getResponseCode();
+    if (status < 200 || status >= 300) DiagnosticLog.record("provider.http_error", "status=" + status);
     InputStream stream = status >= 200 && status < 300 ? connection.getInputStream() : connection.getErrorStream();
     StringBuilder body = new StringBuilder();
     if (stream != null) {
@@ -649,6 +716,7 @@ public class MainActivity extends Activity {
       output.write(payload.toString().getBytes("UTF-8"));
     }
     int status = connection.getResponseCode();
+    if (status < 200 || status >= 300) DiagnosticLog.record("provider.http_error", "status=" + status);
     InputStream stream = status >= 200 && status < 300 ? connection.getInputStream() : connection.getErrorStream();
     StringBuilder body = new StringBuilder();
     if (stream != null) {
@@ -849,6 +917,7 @@ public class MainActivity extends Activity {
     } else connection.setRequestProperty("Authorization", "Bearer " + BuildConfig.HAKU_API_KEY);
     try (OutputStream output = connection.getOutputStream()) { output.write(payload.toString().getBytes("UTF-8")); }
     int status = connection.getResponseCode();
+    if (status < 200 || status >= 300) DiagnosticLog.record("provider.http_error", "status=" + status);
     InputStream stream = status >= 200 && status < 300 ? connection.getInputStream() : connection.getErrorStream();
     StringBuilder body = new StringBuilder();
     if (stream != null) try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, "UTF-8"))) {
@@ -1168,6 +1237,8 @@ public class MainActivity extends Activity {
   }
 
   private void emit(String function, String json) {
+    if (function.startsWith("backroom"))
+      DiagnosticLog.record("bridge." + function, "payloadChars=" + (json == null ? 0 : json.length()));
     String script = "window." + function + "(" + JSONObject.quote(json) + ")";
     runOnUiThread(() -> { if (webView != null) webView.evaluateJavascript(script, null); });
   }
@@ -1559,6 +1630,8 @@ public class MainActivity extends Activity {
     long plannerStartedMs = android.os.SystemClock.elapsedRealtime();
     String rawPlan = milestonePlannerText(prompt);
     long plannerMs = android.os.SystemClock.elapsedRealtime() - plannerStartedMs;
+    DiagnosticLog.record("milestone.provider_response", "checkpoint=" + checkpointId + " provider=" + provider +
+      " elapsedMs=" + plannerMs + " responseChars=" + rawPlan.length());
     emitMilestoneStatus(request, "loading", provider + " đã phản hồi sau " + (plannerMs / 1000) + " giây. Game Core đang lưu kế hoạch…");
     boolean saved = requireGameCore().installMilestonePlan(
       rawPlan, request.getString("runToken"), checkpointId, startTurn);
@@ -1571,6 +1644,8 @@ public class MainActivity extends Activity {
   }
 
   private void emitMilestoneStatus(JSONObject lease, String status, String message) {
+    DiagnosticLog.record("milestone." + status, "checkpoint=" + lease.optString("checkpointId") +
+      " nextCheckpoint=" + lease.optString("nextCheckpointId") + " message=" + message);
     try {
       emit("backroomMilestoneStatus", new JSONObject()
         .put("runToken", lease.getString("runToken"))
@@ -1620,6 +1695,8 @@ public class MainActivity extends Activity {
           long plannerStartedMs = android.os.SystemClock.elapsedRealtime();
           String raw = milestonePlannerText(prompt);
           long plannerMs = android.os.SystemClock.elapsedRealtime() - plannerStartedMs;
+          DiagnosticLog.record("milestone.next_provider_response", "checkpoint=" + lease.optString("nextCheckpointId") +
+            " provider=" + provider + " elapsedMs=" + plannerMs + " responseChars=" + raw.length());
           emitMilestoneStatus(lease, "loading", provider + " đã phản hồi sau " + (plannerMs / 1000) + " giây. Core đang lưu kế hoạch kế tiếp…");
           boolean accepted = requireGameCore().installNextMilestone(
             raw, lease.getString("runToken"), lease.getString("checkpointId"),
@@ -1634,6 +1711,7 @@ public class MainActivity extends Activity {
             Log.i("MilestonePlanner", "Discarded stale next checkpoint=" + lease.getString("nextCheckpointId"));
           }
         } catch (Exception error) {
+          DiagnosticLog.error("milestone.next_error", error);
           emitMilestoneStatus(lease, "error", milestoneFailureMessage(error));
           Log.w("MilestonePlanner", "Next checkpoint plan error after " +
             (android.os.SystemClock.elapsedRealtime() - startedMs) + "ms: " + milestoneFailureMessage(error));
@@ -1647,6 +1725,10 @@ public class MainActivity extends Activity {
   }
 
   private class GameBridge {
+    @JavascriptInterface public String exportDiagnosticLog(String webJson, boolean includeSensitive) {
+      return requestDiagnosticExport(webJson, includeSensitive);
+    }
+
     @JavascriptInterface public String getMilestoneProviderChoice() {
       return milestoneProviderChoice();
     }
@@ -1686,6 +1768,7 @@ public class MainActivity extends Activity {
           ensureMilestoneForCurrentCheckpoint(view);
           scheduleNextMilestone(view);
         } catch (Exception error) {
+          DiagnosticLog.error("milestone.prepare_error", error);
           try { emitMilestoneStatus(new JSONObject(stateJson).getJSONObject("story"), "error",
             milestoneFailureMessage(error)); } catch (Exception ignored) {}
           Log.w("MilestonePlanner", "Current checkpoint plan error after " +
@@ -1876,6 +1959,7 @@ public class MainActivity extends Activity {
           state.put("log", log);
           emit("backroomTurn", state.toString());
         } catch (Exception e) {
+          DiagnosticLog.error("turn.pipeline_error", e);
           try { requireGameCore().abortAction("pipeline_error"); } catch (Exception ignored) {}
           emit("backroomError", e.getMessage() == null ? "Không thể xử lý lượt." : e.getMessage());
         }
