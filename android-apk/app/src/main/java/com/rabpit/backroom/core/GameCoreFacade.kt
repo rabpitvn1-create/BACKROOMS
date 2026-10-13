@@ -573,6 +573,19 @@ class GameCoreFacade private constructor(
   @Synchronized fun milestoneDueEvents(): String =
     StoryMilestoneRuntime.dueJson(loadCurrentState())
 
+  /** Read-only schedule for debugging exact Core event decisions. */
+  @Synchronized fun milestoneDiagnosticSchedule(): String {
+    val state = loadCurrentState()
+    val active = StoryMilestonePlan.current(state)
+    return JSONObject()
+      .put("currentExplorerTurn", CoreClientProjection.turnIndex(state))
+      .put("checkpointId", StoryCheckpointCore.current(state)?.id ?: JSONObject.NULL)
+      .put("startTurn", active?.startTurn ?: JSONObject.NULL)
+      .put("activePlan", active?.plan?.toJson() ?: JSONObject.NULL)
+      .put("due", JSONArray(StoryMilestoneRuntime.dueJson(state)))
+      .toString()
+  }
+
   @Synchronized fun milestoneHasPlan(): Boolean =
     StoryMilestoneRuntime.hasPlan(loadCurrentState())
 

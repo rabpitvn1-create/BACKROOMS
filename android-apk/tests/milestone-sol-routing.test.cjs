@@ -19,9 +19,9 @@ test('Milestone initial and next checkpoint use the saved Gemini-or-SOL planner 
   assert.match(prompt,/Vai trò: SOL biên kịch Checkpoint/);
 });
 
-test('SOL Milestone has a separate 12288 token budget without changing ordinary writer',()=>{
+test('SOL Milestone has a separate 6144 token budget without changing ordinary writer',()=>{
   assert.match(main,/private String solText\(String prompt\) throws Exception \{\s*return solText\(prompt, 2048, 0\.6, false\);/);
-  assert.match(main,/private String solMilestoneText\(String prompt\) throws Exception \{\s*return solText\(prompt, 12288, 0\.5, true\);/);
+  assert.match(main,/private String solMilestoneText\(String prompt\) throws Exception \{\s*return solText\(prompt, 6144, 0\.2, true\);/);
   assert.match(main,/openAiProviderBody\("vgpt\/gpt-6\.1-sol", prompt\)[\s\S]*?\.put\("max_tokens", maxOutputTokens\)[\s\S]*?\.put\("temperature", temperature\)/);
 });
 

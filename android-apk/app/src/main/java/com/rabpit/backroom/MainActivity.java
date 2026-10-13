@@ -845,7 +845,7 @@ public class MainActivity extends Activity {
 
   /** Milestone uses the same five-key health matrix; it requires a plan, not a GM answer. */
   private String geminiMilestoneText(String prompt) throws Exception {
-    return geminiModelMatrixPolicy(prompt, new int[] {0, 1, 2}, -1, 12288, false, 120_000L, false, true);
+    return geminiModelMatrixPolicy(prompt, new int[] {0, 1, 2}, -1, 6144, false, 120_000L, false, true);
   }
 
   private String geminiText(String prompt) throws Exception {
@@ -969,7 +969,7 @@ public class MainActivity extends Activity {
 
   /** Milestone generation can take longer than ordinary GM prose. Do not alter the GM timeout. */
   private String solMilestoneText(String prompt) throws Exception {
-    return solText(prompt, 12288, 0.5, true);
+    return solText(prompt, 6144, 0.2, true);
   }
 
   private String solText(String prompt, int maxOutputTokens, double temperature, boolean milestone) throws Exception {
@@ -1564,11 +1564,15 @@ public class MainActivity extends Activity {
       MainActivity.this, canonView.toString(), action, visibleRolls.toString());
     return "Bạn là Gehihi, Game Master kể chuyện Backrooms bằng tiếng Việt. " +
       "SOL đã tạo khung Milestone; các sự kiện đến hạn sau là BẮT BUỘC: " + due.toString() + ". " +
-      "Kể diễn biến tự nhiên theo hành động người chơi, giữ đúng Entity, nhân vật và kết quả đã khóa. " +
-      "Nếu không có event đến hạn, chỉ kể diễn biến phù hợp. " +
-      "Không tự quyết định Combat, HP, EXP, Item, tạo Entity hay chuyển Checkpoint; Core xử lý. " +
-      "FINAL_ENTITY hoặc combatRequired=true: kể hết cảnh Entity xuất hiện, dừng ở thế đối đầu; " +
-      "chưa kể đòn đánh, sát thương hay kết quả Combat trước khi người chơi nhấn Battle Start. " +
+      "Mọi event đến hạn là BẮT BUỘC; kể đầy đủ theo thứ tự và đúng kết quả SOL. " +
+      "Nếu KHÔNG có encounter đến hạn, không tự sáng tác cuộc gặp Entity/NPC/Follower mới. " +
+      "FOLLOWER/NPC đến hạn: gặp trực tiếp đúng characterName từ Core, cho nhân vật " +
+      "NÓI ít nhất một câu thoại trực tiếp với Cao Minh; Cao Minh chưa tự tuyển vào Party. " +
+      "ENTITY combatRequired=false: kể đúng cuộc gặp không Combat, không tự biến thành tấn công. " +
+      "ENTITY combatRequired=true hoặc FINAL_ENTITY: Entity còn đối diện sau lời kể, " +
+      "không được tự bỏ đi, tự rút lui, bị tiêu diệt hoặc cho Cao Minh tự né thoát. " +
+      "Dừng ở thế đối đầu, chờ người chơi nhấn Battle Start trước Combat. " +
+      "Không tự quyết định Combat, HP, EXP, Item, Party hay chuyển Checkpoint; Core xử lý. " +
       "Không đưa event ID, ops, chứng cứ, kiểm định hay state vào lời kể. " +
       "Chỉ trả JSON dạng {\"reply\":\"lời kể GM\"}.\n" +
       com.rabpit.backroom.core.knowledge.GmNarrativeVoicePolicy.prompt() +
@@ -1627,6 +1631,8 @@ public class MainActivity extends Activity {
     // This is only skeleton generation, never a GM or a second narrative verifier.
     String provider = milestoneProviderChoice();
     emitMilestoneStatus(request, "loading", provider + " đang tạo khung Checkpoint…");
+    DiagnosticLog.record("milestone.provider_request", "checkpoint=" + checkpointId +
+      " provider=" + provider + " promptChars=" + prompt.length() + " maxOutputTokens=6144");
     long plannerStartedMs = android.os.SystemClock.elapsedRealtime();
     String rawPlan = milestonePlannerText(prompt);
     long plannerMs = android.os.SystemClock.elapsedRealtime() - plannerStartedMs;
@@ -1692,6 +1698,9 @@ public class MainActivity extends Activity {
             "PREDECESSOR_PENDING_COMPLETION=" + lease.getJSONObject("completion").toString();
           String provider = milestoneProviderChoice();
           emitMilestoneStatus(lease, "loading", provider + " đang tạo khung Checkpoint tiếp theo…");
+          DiagnosticLog.record("milestone.next_provider_request", "checkpoint=" +
+            lease.optString("nextCheckpointId") + " provider=" + provider +
+            " promptChars=" + prompt.length() + " maxOutputTokens=6144");
           long plannerStartedMs = android.os.SystemClock.elapsedRealtime();
           String raw = milestonePlannerText(prompt);
           long plannerMs = android.os.SystemClock.elapsedRealtime() - plannerStartedMs;
@@ -1775,6 +1784,13 @@ public class MainActivity extends Activity {
             (android.os.SystemClock.elapsedRealtime() - startedMs) + "ms: " + milestoneFailureMessage(error));
         }
       });
+    }
+    @JavascriptInterface public String milestoneDiagnosticSchedule() {
+      try { return requireGameCore().milestoneDiagnosticSchedule(); }
+      catch (Exception error) {
+        DiagnosticLog.error("diagnostic.milestone_schedule", error);
+        return "{\"error\":\"milestone_schedule_unavailable\"}";
+      }
     }
     @JavascriptInterface public String currentClientState(String stateJson) {
       try {

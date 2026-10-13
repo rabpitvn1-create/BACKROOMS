@@ -23,7 +23,8 @@ function boot(){
     location:{protocol:'file:',host:''},
     localStorage:{getItem:()=>null},
     console:{warn(){},error(){}},
-    Android:{currentClientState:()=>JSON.stringify({turn:9,story:{checkpointId:'CP1'},log:[{text:'Core event'}]}),
+    Android:{milestoneDiagnosticSchedule:()=>JSON.stringify({currentExplorerTurn:9,activePlan:{events:[{kind:'ENTITY',entityKey:'duller',combatRequired:true,turn:4}]}}),
+      currentClientState:()=>JSON.stringify({turn:9,story:{checkpointId:'CP1'},log:[{text:'Core event'}]}),
       exportDiagnosticLog(json,raw){exports.push({data:JSON.parse(json),raw});return '{"ok":true}';}},
     state:{turn:8,log:[{text:'UI event'}],combat:{active:false}},
     Date
@@ -42,6 +43,7 @@ test('Game Menu and milestone overlay export the same structured read-only evide
   assert.equal(x.exports[0].data.schema,'backroom.diagnostics.v1');
   assert.equal(x.exports[0].data.presentation.turn,8);
   assert.equal(x.exports[0].data.authoritativeCore.turn,9);
+  assert.equal(x.exports[0].data.milestoneSchedule.activePlan.events[0].combatRequired,true);
   assert.equal(x.env.state.turn,8,'diagnostics must not mutate gameplay');
   x.elements.milestoneExportDiagnostic.click();
   assert.equal(x.exports.length,2);

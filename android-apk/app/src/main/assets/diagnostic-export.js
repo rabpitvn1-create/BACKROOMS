@@ -31,6 +31,11 @@
         else result.authoritativeCore=core;
       }else result.coreError="Android.currentClientState unavailable";
     }catch(error){result.coreError=String(error&&error.stack||error);}
+    try{
+      result.milestoneSchedule=global.Android&&typeof Android.milestoneDiagnosticSchedule==="function"
+        ?JSON.parse(Android.milestoneDiagnosticSchedule()||"null")
+        :{error:"milestone_schedule_unavailable"};
+    }catch(error){result.milestoneScheduleError=String(error);}
     try{const value=localStorage.getItem("backroom-apk-state");result.localPresentation={exists:value!==null,bytes:value?value.length:0};}
     catch(error){result.storageError=String(error);}
     return result;

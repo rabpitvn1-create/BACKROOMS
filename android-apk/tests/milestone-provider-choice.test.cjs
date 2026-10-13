@@ -56,7 +56,7 @@ test('planner selection is native persistent, exclusive and does not affect Gehi
   assert.match(native,/putString\(PLANNER_SETTING_KEY, requested\)\.commit\(\)/);
   assert.match(native,/if \(!current\.isEmpty\(\)\)/);
   assert.match(native,/if \(BuildConfig\.TWO_PROVIDER_GAMEPLAY_TEST\) return PLANNER_SOL/);
-  assert.match(native,/geminiModelMatrixPolicy\(prompt, new int\[\] \{0, 1, 2\}, -1, 12288, false, 120_000L, false, true\)/);
+  assert.match(native,/geminiModelMatrixPolicy\(prompt, new int\[\] \{0, 1, 2\}, -1, 6144, false, 120_000L, false, true\)/);
   assert.match(native,/private String generateText\(String prompt\) throws Exception \{\s*emit\("backroomProvider", "Gehihi"\);/);
   assert.doesNotMatch(native,/verifyMilestoneNarrative\(|auditsForRisk\(/);
 });

@@ -15,17 +15,17 @@ const lucia={id:'lucia',name:'Lucia "Lục"',present:true,joinEligible:true,inPa
 test('prose alone creates no contact; a Core meeting displays the registered name without auto-join',()=>{
  const absent=runtime();assert.equal(absent.box.children.length,0);assert.equal(absent.calls.length,0);
  const met=runtime([lucia]);assert.equal(met.box.children[0].children[0].textContent,'Đã gặp: Lucia "Lục"');
- assert.equal(met.box.children[0].children[1].textContent,'Mời vào Party');assert.equal(met.calls.length,0);
+ assert.equal(met.box.children[0].children[1].textContent,'Mời vào Party');assert.equal(met.box.children[0].children[2].textContent,'Trò chuyện');assert.equal(met.calls.length,0);
  assert.match(html,/id="encounteredCharacters"/);
 });
 test('an explicit invitation sends the Core ID once and updates Party only after confirmation',()=>{
  const r=runtime([lucia]),button=r.box.children[0].children[1];button.click();button.click();
  assert.equal(r.calls.length,1);assert.equal(r.calls[0].id,'lucia');assert.equal(r.calls[0].view.turn,4);
  r.ctx.backroomRecruitment(JSON.stringify({handled:true,reply:'Đã gia nhập.',state:{turn:4,encounteredCharacters:[{...lucia,inParty:true}]}}));
- assert.equal(r.box.children[0].children.length,1);assert.match(r.box.children[0].children[0].textContent,/Trong Party/);
+ assert.equal(r.box.children[0].children.length,2);assert.match(r.box.children[0].children[0].textContent,/Trong Party/);
 });
 test('NPC contacts cannot auto-recruit and pending Combat blocks invitations',()=>{
- const npc=runtime([{...lucia,id:'npc',name:'NPC',joinEligible:false}]);assert.equal(npc.box.children[0].children.length,1);
+ const npc=runtime([{...lucia,id:'npc',name:'NPC',joinEligible:false}]);assert.equal(npc.box.children[0].children.length,2);
  const r=runtime([lucia]);r.ctx.state.pendingEncounter={encounterId:'HOUND'};r.ctx.backroomRenderEncounteredCharacters();
  const button=r.box.children[0].children[1];assert.equal(button.disabled,true);button.click();assert.equal(r.calls.length,0);
 });
@@ -38,4 +38,27 @@ test('a Party capacity rejection keeps the saved contact and restores its invita
 test('read-only GM queries receive no due events and recruitment uses a separate native endpoint',()=>{
  assert.match(java,/JSONArray due = isMetaAction\(action\) \? new JSONArray\(\) : new JSONArray\(requireGameCore\(\)\.milestoneDueEvents\(\)\)/);
  assert.match(java,/@JavascriptInterface public void recruitFollower\(String stateJson, String characterId\)/);
+});
+
+test('a registered meeting opens direct conversation through the normal Core turn, never auto-recruitment',()=>{
+ const r=runtime([lucia]);const calls=[];
+ r.ctx.Android.submitAction=(json,kind,action)=>calls.push({view:JSON.parse(json),kind,action});
+ const talk=r.box.children[0].children[2];
+ assert.equal(talk.textContent,'Trò chuyện');
+ talk.click();talk.click();
+ assert.equal(calls.length,1);
+ assert.equal(calls[0].kind,'EXECUTE');
+ assert.match(calls[0].action,/Nói chuyện trực tiếp với Lucia/);
+ assert.equal(calls[0].view.turn,4);
+ assert.equal(r.calls.length,0,'conversation must not recruit implicitly');
+});
+test('pending Combat blocks talking instead of bypassing Battle Start',()=>{
+ const r=runtime([lucia]);let sent=0;
+ r.ctx.Android.submitAction=()=>{sent++;};
+ r.ctx.state.pendingEncounter={encounterId:'ENTITY'};
+ r.ctx.backroomRenderEncounteredCharacters();
+ const talk=r.box.children[0].children[2];
+ assert.equal(talk.disabled,true);
+ talk.click();
+ assert.equal(sent,0);
 });
