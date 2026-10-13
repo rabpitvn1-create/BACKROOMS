@@ -233,8 +233,8 @@
     if(base==='none')base='';
     var rest='translateX(0px) '+base,peak='translateX('+amount+'px) '+base;
     var frames=kind==='attack'?
-      [{transform:rest,offset:0},{transform:peak,offset:180/480,easing:'ease-out'},
-       {transform:peak,offset:250/480,easing:'ease-out'},{transform:rest,offset:1}]:
+      [{transform:rest,offset:0},{transform:peak,offset:CONTACT_MS/480,easing:'ease-out'},
+       {transform:peak,offset:(CONTACT_MS+70)/480,easing:'ease-out'},{transform:rest,offset:1}]:
       kind==='dodge'?
       [{transform:rest,offset:0,easing:'ease-out'},{transform:peak,offset:.42,easing:'ease-in-out'},
        {transform:rest,offset:1}]:
@@ -242,6 +242,7 @@
        {transform:peak,offset:.45,easing:'ease-out'},{transform:rest,offset:1}];
     var motion=animateCombat(el,frames,kind==='attack'?480:kind==='dodge'?420:400);
     if(motion)overlayMotions.set(el,motion);
+    return motion;
   }
   function targetAnchor(target,actorId){
     var box=document.getElementById('snapshot');
@@ -267,7 +268,7 @@
   function playAttackMotion(e){
     if(e.outcome==='tick')return;
     var source=e.target==='entity'?targetAnchor('actor',e.actorId):targetAnchor('entity');
-    if(source)moveCombatOverlay(source.el,e.target==='entity'?-14:14,'attack');
+    if(source)return moveCombatOverlay(source.el,e.target==='entity'?-14:14,'attack');
   }
   function transientEffect(anchor,className,duration){
     var node=document.createElement('div');node.className=className;
@@ -348,20 +349,23 @@
         else if(/An Nhiên thực hiện lệnh TẤN CÔNG theo vai trò hỗ trợ/.test(line)&&!hasSupportSkill)
           appendCombatLine('actor','An Nhiên hỗ trợ cả nhóm');
       });
-    }else if(kind==='entity'){
-      var attack=details.find(function(v){return /phản công: Party chịu/.test(String(v));});
-      if(attack){
-        var hit=String(attack).match(/Party chịu -(\d+) HP \((\d+)\/(\d+)\)/);
-        var skill=details.find(function(v){return / proc:/.test(String(v));});
-        var action=skill?String(skill).split(' proc:')[0]:
-          details.some(function(v){return /Devils And Gold kích hoạt/.test(String(v));})?'Devils And Gold':'đánh thường';
-        if(hit)appendCombatLine('entity',String(cue.entityName||'Entity')+' sử dụng '+
-          (action==='đánh thường'?'đánh thường':'['+action+']')+' gây -'+hit[1]+
-          ' HP lên cả nhóm ['+hit[2]+'/'+hit[3]+' HP]');
-      }else if(details.some(function(v){return /không xuyên|hụt đòn/.test(String(v));}))
-        appendCombatLine('entity',String(cue.entityName||'Entity')+' tấn công Trượt cả nhóm');
     }
   }
+  function appendEntityResult(cue){
+    var details=Array.isArray(cue.details)?cue.details:[];
+    var attack=details.find(function(v){return /phản công: Party chịu/.test(String(v));});
+    if(attack){
+      var hit=String(attack).match(/Party chịu -(\d+) HP \((\d+)\/(\d+)\)/);
+      var skill=details.find(function(v){return / proc:/.test(String(v));});
+      var action=skill?String(skill).split(' proc:')[0]:
+        details.some(function(v){return /Devils And Gold kích hoạt/.test(String(v));})?'Devils And Gold':'đánh thường';
+      if(hit)appendCombatLine('entity',String(cue.entityName||'Entity')+' sử dụng '+
+        (action==='đánh thường'?'đánh thường':'['+action+']')+' gây -'+hit[1]+
+        ' HP lên cả nhóm ['+hit[2]+'/'+hit[3]+' HP]');
+    }else if(details.some(function(v){return /không xuyên|hụt đòn/.test(String(v));}))
+      appendCombatLine('entity',String(cue.entityName||'Entity')+' tấn công Trượt cả nhóm');
+  }
+
   function playTypedTurnTimeline(packet,token,anchors,slots){
     var events=packet.events;
     var cues=packet.turns.filter(function(c){
@@ -371,7 +375,7 @@
     if(!cues.length)return null;
     var reduced=typeof window.matchMedia==='function'&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var spinTime=reduced?90:800,clock=0,endTime=0,covered=0;
-    function damageAt(e,when,skipAttack){
+    function damageAt(e,when,onContact){
       if(!e||(e.target!=='actor'&&e.target!=='entity'))return when;
       var available=slots[e.target],lane=0;
       for(var i=1;i<available.length;i++)if(available[i]<available[lane])lane=i;
@@ -379,18 +383,34 @@
       var contact=e.outcome==='tick'||reduced?0:CONTACT_MS;
       available[lane]=delay+contact+FLOAT_MS;
       endTime=Math.max(endTime,available[lane]);
+      var attackMotion;
       setTimeout(function(){
         if(token!==animationToken)return;
-        if(!skipAttack)playAttackMotion(e);
+        attackMotion=playAttackMotion(e);
       },delay);
-      setTimeout(function(){
+      function revealContact(){
         if(token!==animationToken)return;
+        // WebView may start the animation after its wall-clock timer. Reveal
+        // impact and damage only when that animation reaches actual contact.
+        if(attackMotion){
+          if(attackMotion.playState==='idle')return;
+          if(attackMotion.currentTime==null||attackMotion.currentTime<contact){
+            requestAnimationFrame(revealContact);return;
+          }
+        }
+        if(onContact)onContact();
         appendDamageLine(e);
         window.backroomPlayCombatFeedback(e,anchors[e.target]);
-      },delay+contact);
+      }
+      setTimeout(revealContact,delay+contact);
       return delay+(e.outcome==='tick'?250:reduced?90:HIT_STEP_MS);
     }
     cues.forEach(function(cue,index){
+      var entityResultShown=false;
+      function revealEntityResult(){
+        if(entityResultShown)return;
+        entityResultShown=true;appendEntityResult(cue);
+      }
       var start=Math.max(covered,cue.eventIndex);
       if(index===0&&start>0){
         for(var pre=0;pre<start;pre++)damageAt(events[pre],pre*150);
@@ -418,11 +438,20 @@
         if(cue.kind==='entity'&&e.target==='actor'&&e.outcome!=='tick'){
           // One shared Entity hit has several defender outcomes, not several attacks.
           var groupStart=nextAction;
-          nextAction=damageAt(e,groupStart);
+          var defenders=[];
           while(j+1<end&&events[j+1]&&events[j+1].target==='actor'&&events[j+1].outcome!=='tick'){
-            nextAction=Math.max(nextAction,damageAt(events[++j],groupStart,true));
+            defenders.push(events[++j]);
           }
+          // Every defender belongs to the same physical impact, including
+          // hit/MISS outcomes and when the lunge starts late in WebView.
+          nextAction=damageAt(e,groupStart,(function(group,result){return function(){
+            result();
+            group.forEach(function(hit){window.backroomPlayCombatFeedback(hit,anchors[hit.target]);});
+          };})(defenders,revealEntityResult));
         }else nextAction=damageAt(e,nextAction);
+      }
+      if(cue.kind==='entity'&&!events.slice(start,end).some(function(e){return e&&e.target==='actor'&&e.outcome!=='tick';})){
+        setTimeout(function(){if(token===animationToken)revealEntityResult();},actionStart+(reduced?0:CONTACT_MS));
       }
       covered=end;
       clock=end>start?nextAction:actionStart+260+150;

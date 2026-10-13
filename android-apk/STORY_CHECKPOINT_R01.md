@@ -1,3 +1,5 @@
+> **Trạng thái tích hợp 2026-10-13:** Cấu trúc Checkpoint đã vào main qua PR #595 (`820038c8`). Phạm vi Bước 3 bên dưới là mốc lịch sử; runtime hiện hành có planner và completion v2 ở Bước 4–9. Level 0 có 20 CP; Level sau nhận tổng CP do Gemini biên kịch và Core kiểm tra. Mỗi CP yêu cầu ít nhất 50 turn, 20 encounter được xác nhận và đánh bại Boss. Xem `STORY_MILESTONE_R01.md`, `STORY_MILESTONE_RUNTIME_R01.md` và `STORY_SAVE_HISTORY_R01.md`.
+
 # Story Checkpoint R01 (Step 3/10)
 
 **Trạng thái:** khung định danh và persistence, **chưa kích hoạt Milestone hoặc Boss**.
