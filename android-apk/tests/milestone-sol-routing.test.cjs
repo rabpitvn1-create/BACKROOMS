@@ -62,3 +62,12 @@ test('original Fake Sandbox chapter arc, fixed quota and mandatory Entity Combat
   assert.match(prompt,/MỌI ENTITY đều là cuộc CHẠM TRÁN THẬT và BẮT BUỘC COMBAT/);
   assert.match(runtime,/put\("storyArc", active\.plan\.storyArc\)/);
 });
+
+test('new Checkpoints and GM prose have freedom to vary without altering mandatory events',()=>{
+  assert.match(prompt,/MỖI LẦN lập chương phải là một sáng tác mới/);
+  assert.match(prompt,/Các cuộc gặp phải có bối cảnh, nguyên nhân và diễn biến khác nhau/);
+  assert.doesNotMatch(prompt,/"characterId":"lucia"/);
+  assert.equal((main.match(/CREATIVE_VARIATION_SEED=/g)||[]).length,2);
+  assert.match(main,/Được tự do sáng tác chi tiết, lời thoại, không khí/);
+  assert.match(main,/tránh lặp câu chữ, mô-típ/);
+});

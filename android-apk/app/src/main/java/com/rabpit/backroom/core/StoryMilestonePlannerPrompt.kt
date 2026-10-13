@@ -1,7 +1,7 @@
 package com.rabpit.backroom.core
 
 /**
- * A single SOL Milestone planner. The output schema is enforced by
+ * The selected SOL/Gemini Milestone planner. The output schema is enforced by
  * StoryMilestonePlan, not by trusting provider text.
  */
 object StoryMilestonePlannerPrompt {
@@ -53,6 +53,12 @@ object StoryMilestonePlannerPrompt {
 
       TRƯỚC TIÊN sáng tác storyArc là MỘT mạch truyện độc lập khoảng 500 ký tự cho chương,
       kế thừa đúng lịch sử, Canon, mục tiêu và quan hệ nhân vật. Không viết 50 cảnh.
+      MỖI LẦN lập chương phải là một sáng tác mới: biến hóa bối cảnh, xung đột,
+      manh mối, hoàn cảnh gặp Entity và phản ứng nhân vật theo Canon và lịch sử.
+      Không tái chế nguyên văn các câu chữ/sự kiện/nhịp Turn từ mẫu JSON bên dưới
+      hoặc từ Checkpoint đã xảy ra. Ví dụ schema KHÔNG phải kịch bản mặc định.
+      Không mặc định Lucia hay một Follower nhất định luôn phải xuất hiện;
+      chỉ chọn nhân vật Registry phù hợp cốt truyện và lịch sử đã biết.
       SAU ĐÓ lập Milestone là LỊCH SỰ KIỆN BẮT BUỘC triển khai mạch truyện đó,
       không phải dàn ý từng Turn. Chỉ xuất event đến hạn ở các Explorer Turn tương đối;
       Turn không có sự kiện bắt buộc không cần event. Khám Phá và Thực Hiện đều là Explorer Turn.
@@ -72,6 +78,8 @@ object StoryMilestonePlannerPrompt {
       Mỗi CP bắt buộc có ÍT NHẤT ${StoryMilestonePlan.MIN_ENTITY_ENCOUNTERS} ENTITY thường,
       phân bố ở các Explorer Turn KHÁC NHAU, tất cả trước Boss. Không tính Boss vào quota.
       Đây là quota CỐ ĐỊNH tối thiểu 20, KHÔNG phải 40% hay tăng tỷ lệ theo độ dài chương.
+      Các cuộc gặp phải có bối cảnh, nguyên nhân và diễn biến khác nhau, không tạo
+      20 sự kiện lặp lại với duy nhất một mô tả; đa dạng Entity key khi phù hợp Canon.
       MỌI ENTITY đều là cuộc CHẠM TRÁN THẬT và BẮT BUỘC COMBAT NGAY TRONG TURN đó.
       Không tạo loại Entity chỉ quan sát rồi bỏ đi; không cho Gehihi né hay trì hoãn Combat.
       Trường ENTITY không có combatRequired; bản chất ENTITY luôn yêu cầu Combat.
@@ -84,7 +92,7 @@ object StoryMilestonePlannerPrompt {
       Schema chính xác:
       {"schemaVersion":3,"checkpointId":"$checkpointId","storyArc":"<mạch truyện chương khoảng 500 ký tự>","events":[
       {"id":"beat1","turn":1,"kind":"STORY","action":"<world action>","event":"<authored event>","outcome":"<authored outcome>"},
-      {"id":"follower1","turn":3,"kind":"FOLLOWER","characterId":"lucia","action":"<character action>","event":"<direct meeting>","outcome":"<meeting only, no Party recruitment>"},
+      {"id":"follower1","turn":3,"kind":"FOLLOWER","characterId":"<registered follower ID>","action":"<character action>","event":"<direct meeting>","outcome":"<meeting only, no Party recruitment>"},
       {"id":"npc1","turn":3,"kind":"NPC","characterId":"<registered character ID>","action":"<character action>","event":"<direct NPC meeting>","outcome":"<meeting outcome>"},
       {"id":"encounter1","turn":4,"kind":"ENTITY","action":"<Entity action>","event":"<mandatory direct Combat encounter>","outcome":"<await Battle Start>","entityKey":"<supported Entity key>"},
       {"id":"boss","turn":50,"kind":"FINAL_ENTITY","action":"<world action>","event":"<authored event>","outcome":"<Combat opening>","entityKey":"<supported Entity key>","hpMultiplier":9,"expMultiplier":9}

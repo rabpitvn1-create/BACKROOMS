@@ -1567,6 +1567,9 @@ public class MainActivity extends Activity {
       "phải kể đúng sự kiện đến hạn: " + due.toString() + ". " +
       "Kể diễn biến tự nhiên theo hành động người chơi, giữ đúng Entity, nhân vật và kết quả đã khóa. " +
       "Không có event thì kể tự nhiên dựa trên mạch truyện, lịch sử và hành động người chơi. " +
+      "Được tự do sáng tác chi tiết, lời thoại, không khí, tương tác phụ và phản ứng khác nhau " +
+      "giữa các lượt, đặc biệt ở cảnh gặp Entity/NPC/Follower; tránh lặp câu chữ, mô-típ " +
+      "và diễn biến của các lần gặp trước, nhưng giữ nguyên mọi sự kiện bắt buộc. " +
       "Khám Phá và Thực Hiện đều là một Explorer Turn; phải kết hợp hành động người chơi " +
       "với sự kiện trong CHÍNH Turn này, không dời, hủy hay cho nhân vật tự chọn thay người chơi. " +
       "Không tự quyết định Combat, HP, EXP, Item, tạo Entity hay chuyển Checkpoint; gameplay Core xử lý. " +
@@ -1652,7 +1655,9 @@ public class MainActivity extends Activity {
     // The planner receives a small state excerpt, never the complete client save.
     if (scene.length() > 1500) scene = scene.substring(0, 1500);
     String prompt = com.rabpit.backroom.core.StoryMilestonePlannerPrompt.build(
-      checkpointId, startTurn, nodeId, canon, scene, request.getInt("checkpointTotal"), requireGameCore().milestoneHistoryContext(), request.getJSONArray("characterRegistry").toString());
+      checkpointId, startTurn, nodeId, canon, scene, request.getInt("checkpointTotal"), requireGameCore().milestoneHistoryContext(), request.getJSONArray("characterRegistry").toString()) +
+      "\nCREATIVE_VARIATION_SEED=" + Long.toUnsignedString(GAME_RNG.nextLong(), 36) +
+      " (gợi ý tạo biến thể mới, không thay Canon hoặc sự kiện đã ghi nhận).";
     // This is only skeleton generation, never a GM or a second narrative verifier.
     String provider = milestoneProviderChoice();
     emitMilestoneStatus(request, "loading", provider + " đang tạo khung Checkpoint…");
@@ -1715,6 +1720,8 @@ public class MainActivity extends Activity {
           String prompt = com.rabpit.backroom.core.StoryMilestonePlannerPrompt.build(
             lease.getString("nextCheckpointId"), lease.getInt("startTurn"),
             lease.getString("levelNode"), canon, shortScene, lease.getInt("checkpointTotal"), requireGameCore().milestoneHistoryContext(), lease.getJSONArray("characterRegistry").toString()) +
+            "\nCREATIVE_VARIATION_SEED=" + Long.toUnsignedString(GAME_RNG.nextLong(), 36) +
+            " (sáng tác mới, không thay Canon hoặc sự kiện đã xảy ra). " +
             "\nPREPARED PLAN: globalStartTurn là ước lượng; Core neo Turn khi kích hoạt thật. " +
             "Completion của CP trước bên dưới còn PLANNED, chỉ xảy ra sau verified Boss defeat; " +
             "dùng nó để nối tiếp kịch bản, không ghi thành lịch sử đã xảy ra và không giả định HP/Party sau Combat. " +
