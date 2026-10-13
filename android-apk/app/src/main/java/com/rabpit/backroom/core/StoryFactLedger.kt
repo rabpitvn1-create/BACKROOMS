@@ -10,7 +10,6 @@ import org.json.JSONObject
  */
 object StoryFactLedger {
   private const val KEY = "story.factLedger"
-  private const val MAX_OPEN = 48
   private const val MAX_HISTORY = 96
   private const val MAX_PER_TURN = 6
   private val subjectPattern = Regex("[a-z0-9_.:-]{2,64}")
@@ -39,19 +38,34 @@ object StoryFactLedger {
   }
 
   fun recordTurn(
-    state: GameState, milestoneEvents: List<StoryMilestonePlan.Event>, gmProposal: String
+    state: GameState, milestoneEvents: List<StoryMilestonePlan.Event>, gmProposal: String,
+    narrative: String = "", evidenceJson: String = "{}"
   ): GameState {
     require(gmProposal.length <= 5000) { "story_proposal_too_large" }
     val proposals = JSONArray(gmProposal)
     require(proposals.length() <= MAX_PER_TURN) { "story_proposal_count_invalid" }
 
+    require(milestoneEvents == StoryMilestoneRuntime.due(state)) { "story_milestone_source_mismatch" }
+    val proof = StoryMilestoneRuntime.validateEvidence(state, narrative, evidenceJson, gmProposal)
+    val factProofs = proof.getJSONArray("facts")
+    val quotes = (0 until factProofs.length()).associate { i ->
+      val entry = factProofs.getJSONObject(i)
+      entry.getString("sourceId") to entry.getString("quote")
+    }
     val open = readArray(state, "open")
     val history = readArray(state, "history")
     val position = StoryCheckpointCore.current(state)?.id ?: "FREE"
     val turn = CoreClientProjection.turnIndex(state)
-    var sequence = 0
+    var sequence = state.world[KEY]?.let { JSONObject(it).getLong("nextSequence") } ?: 0L
+    val levelNode = JSONObject(state.world["levelJson"] ?: "{}").let {
+      it.optString("id", it.optInt("number", 0).toString())
+    }
 
-    fun add(spec: FactSpec, source: String) {
+    fun add(spec: FactSpec, source: String, quote: String) {
+      val instance = if (spec.kind == Kind.ENTITY)
+        CombatRuntime.active(state)?.takeIf { it.entityKey == spec.subject }?.encounterId
+          ?: milestoneEvents.firstOrNull { it.isEntityEncounter && it.entityKey == spec.subject }
+            ?.let { StoryMilestoneRuntime.entityEncounterId(state, it) } else null
       if (spec.kind == Kind.ENTITY) {
         require(CombatRuntime.supportsEntityKey(spec.subject)) { "story_entity_unknown" }
         val visible = JSONObject(state.world["flagsJson"] ?: "{}")
@@ -63,25 +77,38 @@ object StoryFactLedger {
         }
       }
       val sameSubject = (0 until open.length()).mapNotNull { open.optJSONObject(it) }
-        .firstOrNull { it.optString("subject") == spec.subject && it.optString("kind") == spec.kind.name }
+        .firstOrNull { it.optString("subject") == spec.subject && it.optString("kind") == spec.kind.name &&
+          (spec.kind != Kind.ENTITY || it.optString("entityEncounterId", "") == instance.orEmpty()) }
       if (sameSubject != null) {
         require(sameSubject.optString("fact") == spec.fact) { "story_fact_conflict_requires_resolution" }
         return
       }
-      require(open.length() < MAX_OPEN) { "story_open_facts_capacity_reached" }
-      open.put(spec.toJson()
-        .put("id", "FACT:$position:$turn:${sequence++}")
-        .put("turn", turn).put("source", source))
+      val id = "FACT:$position:$turn:$sequence"
+      sequence = Math.addExact(sequence, 1L)
+      open.put(spec.toJson().put("id", id).put("turn", turn)
+        .put("checkpointId", position).put("levelNode", levelNode)
+        .put("source", source).put("evidenceQuote", quote).put("requestToken", proof.getString("requestToken"))
+        .put("state", "COMMITTED").put("resolutionState", "OPEN")
+        .put("knowledgeScope", "NARRATIVE_ONLY")
+        .apply { instance?.let { put("entityEncounterId", it) } })
     }
 
     // Only accepted Milestone receipts are recorded; not future planned events.
     for (event in milestoneEvents) {
-      val key = "MS:$position:${event.id}"
+      val key = "MS:$position:$turn:${event.id}"
+      val evidenceEntries = proof.getJSONArray("events")
+      val eventProof = (0 until evidenceEntries.length()).map { evidenceEntries.getJSONObject(it) }
+        .first { it.getString("id") == event.id }
       history.put(JSONObject().put("id", key).put("turn", turn)
-        .put("kind", if (event.kind == StoryMilestonePlan.Kind.FINAL_ENTITY) "ENTITY" else "EVENT")
-        .put("fact", "${event.event} → ${event.action} → ${event.outcome}".take(500))
-        .put("source", "MILESTONE"))
-      event.storyFacts.forEach { add(it, "MILESTONE:$key") }
+        .put("kind", if (event.isEntityEncounter) "ENTITY" else "EVENT")
+        .put("action", event.action).put("event", event.event).put("outcome", event.outcome)
+        .put("fact", "${event.action} → ${event.event} → ${event.outcome}")
+        .put("checkpointId", position).put("levelNode", levelNode)
+        .put("source", "MILESTONE").put("state", "COMMITTED")
+        .put("requestToken", proof.getString("requestToken")).put("evidence", eventProof)
+        .apply { if (event.isEntityEncounter) put("entityKey", event.entityKey)
+          .put("entityEncounterId", StoryMilestoneRuntime.entityEncounterId(state, event)) })
+      event.storyFacts.forEachIndexed { index, spec -> add(spec, "MILESTONE:$key", quotes.getValue("MS:${event.id}:$index")) }
     }
 
     for (index in 0 until proposals.length()) {
@@ -92,7 +119,7 @@ object StoryFactLedger {
             "story_proposal_fields_invalid"
           }
           val spec = parseSpecs(JSONArray().put(JSONObject(item.toString()).apply { remove("op") })).single()
-          add(spec, "GM")
+          add(spec, "GM:$position:$turn:$index", quotes.getValue("GM:$index"))
         }
         "RESOLVE" -> {
           require(item.keys().asSequence().toSet() == setOf("op", "referenceId", "fact")) {
@@ -106,7 +133,11 @@ object StoryFactLedger {
           val original = open.getJSONObject(pos)
           open.remove(pos)
           history.put(JSONObject(original.toString()).put("resolution", resolution)
-            .put("resolvedTurn", turn).put("source", "GM_RESOLUTION"))
+            .put("resolvedTurn", turn).put("resolvedCheckpointId", position).put("resolvedLevelNode", levelNode)
+            .put("resolutionSource", "GM_RESOLUTION:$position:$turn:$index")
+            .put("resolutionEvidenceQuote", quotes.getValue("GM:$index"))
+            .put("resolutionRequestToken", proof.getString("requestToken"))
+            .put("state", "RESOLVED").put("resolutionState", "RESOLVED"))
         }
         else -> throw IllegalArgumentException("story_operation_unsupported")
       }
@@ -114,35 +145,126 @@ object StoryFactLedger {
 
     if (milestoneEvents.isEmpty() && proposals.length() == 0) return state
     val retained = JSONArray()
+    val archive = readArray(state, "archive")
     val start = (history.length() - MAX_HISTORY).coerceAtLeast(0)
+    for (i in 0 until start) archive.put(history.get(i))
     for (i in start until history.length()) retained.put(history.get(i))
-    val packed = JSONObject().put("version", 1).put("open", open).put("history", retained)
+    val packed = JSONObject().put("version", 2).put("open", open).put("history", retained)
+      .put("archive", archive).put("nextSequence", sequence)
     return state.copy(world = state.world + (KEY to packed.toString()))
   }
 
-  /**
-   * Deliver all unresolved facts, even from Level 0, plus recent history.
-   * Never silently trim unresolved facts to a last-N turns buffer.
-   */
-  fun context(state: GameState): String {
+  /** Bounded retrieval context; omitted OPEN facts remain in the saved ledger. */
+  fun context(state: GameState, query: String = ""): String {
     val open = readArray(state, "open")
-    val allHistory = readArray(state, "history")
+    val history = readArray(state, "history")
+    val all = (0 until open.length()).map { open.getJSONObject(it) }
+    val ordered = linkedMapOf<String, JSONObject>()
+    fun include(fact: JSONObject) { ordered.putIfAbsent(fact.getString("id"), fact) }
+    val normalizedQuery = query.lowercase(java.util.Locale.ROOT)
+    val queryWords = normalizedQuery.split(Regex("[^\\p{L}\\p{N}_.:-]+"))
+      .filter { it.length >= 4 }.toSet()
+    all.filter { fact ->
+      normalizedQuery.contains(fact.getString("id").lowercase(java.util.Locale.ROOT)) ||
+        normalizedQuery.contains(fact.getString("subject").lowercase(java.util.Locale.ROOT)) ||
+        queryWords.any { fact.getString("fact").lowercase(java.util.Locale.ROOT).contains(it) }
+    }.forEach(::include)
+    val actors = state.party.memberIds.toSet() + listOfNotNull(CombatRuntime.active(state)?.entityKey)
+    all.filter { it.getString("subject") in actors }.forEach(::include)
+    all.take(4).forEach(::include)
+    all.takeLast(4).forEach(::include)
+    val checkpoint = StoryCheckpointCore.current(state)?.id
+    all.filter { it.getString("checkpointId") == checkpoint }.takeLast(8).forEach(::include)
+    if (all.isNotEmpty()) {
+      val offset = CoreClientProjection.turnIndex(state) % all.size
+      for (i in all.indices) include(all[(offset + i) % all.size])
+    }
+    val selected = JSONArray()
+    var openChars = 0
+    ordered.values.forEach { fact ->
+      val cost = fact.toString().length + 1
+      if (openChars + cost <= 18000) { selected.put(fact); openChars += cost }
+    }
     val recent = JSONArray()
-    for (i in (allHistory.length() - 8).coerceAtLeast(0) until allHistory.length()) {
-      recent.put(allHistory.get(i))
+    val relevantHistory = JSONArray()
+    var recentChars = 0
+    val historyIds = hashSetOf<String>()
+    if (normalizedQuery.isNotBlank()) {
+      val archive = readArray(state, "archive")
+      for (entries in listOf(history, archive)) {
+        for (i in entries.length() - 1 downTo 0) {
+          val entry = entries.getJSONObject(i)
+          val text = (entry.optString("subject") + " " + entry.optString("fact") + " " +
+            entry.optString("resolution")).lowercase(java.util.Locale.ROOT)
+          val matches = normalizedQuery.contains(entry.getString("id").lowercase(java.util.Locale.ROOT)) ||
+            queryWords.any(text::contains)
+          val cost = entry.toString().length + 1
+          if (matches && recentChars + cost <= 3750 && historyIds.add(entry.getString("id"))) {
+            relevantHistory.put(entry)
+            recentChars += cost
+          }
+        }
+      }
     }
-    val context = JSONObject().put("open", open).put("recent", recent)
-    state.world["story.lastLevelEnding"]?.let {
-      context.put("lastLevelEnding", JSONObject(it))
+    val chosen = mutableListOf<Any>()
+    for (i in history.length() - 1 downTo (history.length() - 8).coerceAtLeast(0)) {
+      val entry = history.get(i)
+      val cost = entry.toString().length + 1
+      val id = (entry as JSONObject).getString("id")
+      if (recentChars + cost <= 7500 && historyIds.add(id)) { chosen += entry; recentChars += cost }
     }
-    return context.toString()
+    chosen.asReversed().forEach(recent::put)
+    return JSONObject().put("open", selected).put("recent", recent).put("relevantHistory", relevantHistory)
+      .put("openTotal", all.size).put("omittedOpen", all.size - selected.length())
+      .put("retention", "Omitted OPEN facts remain saved and unresolved. Retrieve by subject/id; this packet is not the whole ledger.")
+      .apply { state.world["story.milestone.lastCompletion"]?.let { put("lastCompletion", JSONObject(it)) } }
+      .toString()
   }
 
   private fun readArray(state: GameState, name: String): JSONArray {
     val raw = state.world[KEY] ?: return JSONArray()
     val root = JSONObject(raw)
-    require(root.getInt("version") == 1) { "story_memory_version_invalid" }
+    require(root.getInt("version") == 2) { "story_memory_version_invalid" }
     return JSONArray(root.getJSONArray(name).toString())
+  }
+
+  fun validateStoredState(state: GameState) {
+    val raw = state.world[KEY] ?: return
+    val root = JSONObject(raw)
+    require(root.getInt("version") == 2 && root.getLong("nextSequence") >= 0 &&
+      root.getJSONArray("history").length() <= MAX_HISTORY) { "story_memory_invalid" }
+    val ids = hashSetOf<String>()
+    for (name in listOf("open", "history", "archive")) {
+      val array = root.getJSONArray(name)
+      for (i in 0 until array.length()) {
+        val item = array.getJSONObject(i)
+        require(ids.add(item.getString("id")) && item.getInt("turn") >= 1 &&
+          item.getString("checkpointId").isNotBlank() && item.getString("levelNode").isNotBlank() &&
+          item.getString("requestToken").matches(Regex("[0-9a-f]{64}"))) { "story_fact_provenance_invalid" }
+        if (name == "open") require(item.getString("state") == "COMMITTED" &&
+          item.getString("resolutionState") == "OPEN" && item.getString("evidenceQuote").isNotBlank()) {
+          "story_open_fact_invalid"
+        }
+        if (item.optString("state") == "RESOLVED") require(
+          item.getString("resolutionEvidenceQuote").isNotBlank() &&
+            item.getString("resolutionRequestToken").matches(Regex("[0-9a-f]{64}"))) {
+          "story_resolution_provenance_invalid"
+        }
+      }
+    }
+  }
+
+  fun statsJson(state: GameState): JSONObject {
+    val raw = state.world[KEY] ?: return JSONObject()
+      .put("confirmedFacts", 0).put("resolvedFacts", 0).put("openFacts", 0)
+    val root = JSONObject(raw)
+    var resolved = 0
+    for (name in listOf("history", "archive")) {
+      val entries = root.getJSONArray(name)
+      for (i in 0 until entries.length()) if (entries.getJSONObject(i).optString("state") == "RESOLVED") resolved++
+    }
+    return JSONObject().put("confirmedFacts", root.getLong("nextSequence"))
+      .put("resolvedFacts", resolved).put("openFacts", root.getJSONArray("open").length())
   }
 
   private fun readString(source: JSONObject, key: String, maxLength: Int): String {
@@ -154,3 +276,4 @@ object StoryFactLedger {
     return value
   }
 }
+

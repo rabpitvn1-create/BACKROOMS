@@ -1,83 +1,29 @@
-# Fake Sandbox · Bước 2–7 · Hợp đồng tích hợp R02
+# Fake Sandbox · Đối chiếu tích hợp Bước 2–7 · 2026-10-13
 
-Trạng thái: code đề xuất, **không phải Lore Canon**. Mọi đoạn `TEST_ONLY` trong unit tests chỉ kiểm tra bộ máy, tuyệt đối không phải sự kiện trong game. Thẩm quyền Canon: Google Drive `/Novel/Asset` và Internet công khai có truy nguyên. Gameplay thực thi bởi Game Core.
+PR #595 (`820038c8`) đã tích hợp và sửa các phần Canon, Checkpoint, Milestone, planner, runtime và continuity từ những nhánh Bước 2–7. PR #598 được đối chiếu với main này; các implementation cũ được thay thế bởi bản đã kiểm thử, không đưa lại schema `levelEnd`, giới hạn 48 OPEN hoặc receipt chỉ dựa trên ID. PR #589 bổ sung đồng bộ damage/log với contact của animation.
 
-## Bước 2 · Canon
+## Hợp đồng runtime hiện hành
 
-Đã tích hợp 41 thẻ mới của nhánh PR #590 lên nhánh tiến trình Bước 3–7 thay vì để thành hai nhánh độc lập: 22 ngoại hình Entity (đủ 22 trong Encounter Pool), 11 baseline Level 0–10 (Level 7–10 reference-only), 4 exact node, 4 Character authored và cập nhật provenance cho 6 thẻ Syvial. `KnowledgeContextEngine` chọn đúng actor, Level/node, Entity có roll xác thực trước Combat, không tải trọn Canon theo Turn. 42 legacy records và nguồn chưa rõ vẫn chờ đối chiếu; thiếu Codex không được dùng làm cớ sáng tác thêm.
+- Level 0 có 20 Story Checkpoint. CP khác Level và node; tổng CP Level sau do Gemini chọn và Core kiểm tra.
+- Milestone v2 gồm `schemaVersion`, `checkpointId`, `events`, `completion`. Events có action/event/outcome và Turn tương đối. Completion là `NEXT_CHECKPOINT` hoặc `EXIT_LEVEL`; CP cuối có targetNodeId, nextCheckpointTotal và outcome được Gemini biên kịch.
+- Mỗi CP ít nhất 50 turn và 20 encounter riêng biệt, gồm 19 ENTITY thường và một Boss cuối. Encounter phải được nhận đúng Turn và kiểm định; planned facts, nhắc tên, reload và retry cùng Boss không cộng chỉ tiêu.
+- Boss HP/EXP ×9 áp dụng theo instance, không tăng ATK/DEF. Chỉ Core-confirmed defeat hoàn tất CP; escape giữ CP và cho resume cùng encounter/HP, không nhân lại.
+- Dispatcher dùng exact Turn; event bỏ lỡ yêu cầu phục hồi checkpoint, không replay trễ. Random Entity/Exit và HiddenExitStreak không quyết định Milestone khi có active plan.
+- Một planner dùng 5 keys fallback hiện hữu. Lease gắn run/CP/turn; prefetch dùng target Canon và chịu được phản hồi muộn. Completion không yêu cầu MAIN-only hoặc đi đủ tuyến phụ.
+- Receipt cần separate verifier, exact narrative quotes và request hash. Core kiểm tra ID/context; kiểm định ngữ nghĩa vẫn là đánh giá của mô hình, chưa phải chứng minh hình thức.
+- Story memory EVENT/ENTITY/CLUE có provenance; planned chưa commit. OPEN chưa giải quyết được giữ trong save, history dài được archive và truy xuất có ngân sách. Ledger không đổi HP/Status/Combat/Equipment/Inventory.
+- Stats và CP/Level history dùng committed evidence, actual turn/encounter counts và verified defeats. Save lỗi không khởi tạo âm thầm rồi ghi đè; valid manual restore đổi response lease và giữ encounter identity. Không migration save cũ.
 
-## Bước 3 · Story Checkpoint
+## Tài liệu kiểm tra
 
-Level 0 có **đúng 20 Checkpoint**. Checkpoint độc lập với node Level và hành động/Turn. Định danh và save nằm trong `GameState.world`. Level tiếp theo lấy tổng số CP do chính Gemini biên kịch ở kết thúc Level trước, không tự mặc định Level 1 cũng có 20 CP. Save cũ không cần tương thích.
+- `FAKE_SANDBOX_STEP1_CANON_AUDIT_R02.md`: audit theo mốc nguồn, không dùng runtime làm lore authority.
+- `STORY_CHECKPOINT_R01.md`: cấu trúc CP và lịch sử phạm vi Bước 3.
+- `STORY_MILESTONE_R01.md`: contract v2 và quota hiện hành.
+- `STORY_MILESTONE_PLANNER_R01.md`: planner và lease.
+- `STORY_MILESTONE_RUNTIME_R01.md`: dispatcher, Boss, evidence, completion và quota.
+- `STORY_CONTINUITY_R02.md`: verified memory và archive.
+- `STORY_SAVE_HISTORY_R01.md`: counters/history/save recovery.
 
-## Bước 4 · Milestone schemaVersion 2
+## Giới hạn nghiệm thu
 
-Mỗi event được Gemini định rõ: **id, Turn tương đối trong CP, kind, event, action, outcome**. `action` là hành động được ấn định trong câu chuyện (NPC/Entity/môi trường), **không phải mệnh lệnh ép người chơi chọn một hành động cụ thể**; gameplay tự do trong khung Fake Sandbox.
-
-Một Milestone chỉ có một `FINAL_ENTITY`, ở cuối danh sách sự kiện, với HP×9 và EXP×9 (không nhân ATK/DEF). StoryFacts tùy chọn mang ký ức lời kể, **không** tự chỉnh Combat/Inventory.
-
-**Checkpoint cuối Level** bắt buộc có thêm `levelEnd` do Gemini viết:
-- `targetNode`: exact node của **Level tiếp theo có route runtime**; Core cung cấp node hợp lệ để Gemini không bịa route.
-- `nextCheckpointTotal`: số lượng CP Level tiếp theo do Gemini chọn (1..100).
-- `outcome`: nội dung **kết thúc Level** thuộc Milestone.
-
-Các CP còn lại **không** có `levelEnd`. Turn cuối của FINAL_ENTITY quyết định khi nào bước vào Combat; sau khi Core xác nhận Combat đã kết thúc, Core sử dụng `levelEnd` để hoàn tất Level. **Không cần HiddenExitStreak, tung xúc xắc Exit hay ép đi đến node cửa do hệ thống cũ tự đặt.** Core xác nhận trạng thái Combat, nhưng GM không được tự chuyển Level bằng ops.
-
-Định dạng thử nghiệm:
-```json
-{
-  "schemaVersion": 2,
-  "checkpointId": "CP-L00-20",
-  "events": [
-    {
-      "id": "scene_a",
-      "turn": 1,
-      "kind": "STORY",
-      "event": "<sự kiện do Gemini quyết định>",
-      "action": "<hành động diễn ra>",
-      "outcome": "<kết quả bắt buộc>"
-    },
-    {
-      "id": "final",
-      "turn": 3,
-      "kind": "FINAL_ENTITY",
-      "event": "<cuộc chạm trán>",
-      "action": "<hành động của Entity>",
-      "outcome": "<Combat bắt đầu>",
-      "entityKey": "<key trong CombatRuntime>",
-      "hpMultiplier": 9,
-      "expMultiplier": 9
-    }
-  ],
-  "levelEnd": {
-    "targetNode": "1",
-    "nextCheckpointTotal": 5,
-    "outcome": "<kết quả kết thúc Level do Gemini viết>"
-  }
-}
-```
-**Chỉ là ví dụ cấu trúc JSON, không phải kịch bản được phê duyệt.** `targetNode` và `nextCheckpointTotal` được kiểm tra theo Core; `1` và `5` trong mẫu không gắn vào game mặc định.
-
-## Bước 5 · Gemini Planner
-
-Một Gemini dùng 5 API key có fallback tuần tự sẵn trong `MainActivity`; không tạo 5 agent. Planner nhận thẻ Canon offline + state + StoryFactLedger. Core phát lease theo `runToken/checkpointId/Turn` và xác nhận trước khi lưu. Kế hoạch đã lưu không bị tái sinh mỗi Turn. Khi khởi tạo next-plan từ Combat, Core cung cấp thông tin node mới (không lấy Canon Level cũ làm bối cảnh Level tiếp theo).
-
-## Bước 6 · Thực thi
-
-Dispatcher dùng Turn **chính xác**, không đẩy sự kiện từ Turn 3 sang Turn 5 nếu chưa hoàn thành; đường sai phải bị từ chối. GM được yêu cầu kể event/action/outcome đã khóa và trả đúng receipts, Core từ chối thiếu ID. **Giới hạn:** receipt ID không chứng minh ngữ nghĩa câu văn GM đúng hoàn toàn; không mô tả cơ chế là đã có semantic verification trọn vẹn.
-
-FINAL_ENTITY sau commit khởi tạo Combat instance, tăng HP×9/EXP×9 theo encounter ID. Gemini tạo kế hoạch tiếp theo bất đồng bộ ngay khi Combat bắt đầu. Nếu trả chậm sau Combat, Core chờ và chuyển CP/Level sau khi hợp đồng có hiệu lực, không ghi trùng. Core **không** chấp nhận thay main Level do GM/client tự đề xuất; trường hợp chuyển Level hợp lệ là `levelEnd` của cuối CP sau Combat.
-
-`HiddenExitStreak` và random Exit bị vô hiệu trong Checkpoint có Milestone; cơ chế đó không bao giờ quyết định Level kết thúc. Di chuyển chủ động giữa exact node kề nhau cùng main Level vẫn không tự làm tăng CP. Cổng nào ngoài milestone chưa có đủ cơ sở thay đổi thì phải giữ hành vi hiện hành và ghi nhận để kiểm tra ở Bước 8.
-
-## Bước 7 · GM Continuity
-
-`StoryFactLedger` lưu EVENT/ENTITY/CLUE thực sự được commit, phát cho Gemini và GM xuyên Level. Dữ kiện còn OPEN giữ nguyên cho đến khi có RESOLVE được xác nhận. Lời kể không tự giảm HP, xóa vũ khí, tạo Poison, đổi kỹ năng, Inventory hay Combat. Không dùng những ví dụ giả định do tác giả nêu để giải thích như dữ kiện hoặc prompt kịch bản.
-
-**Giới hạn chưa xóa:** GM có thể tự báo ADD/RESOLVE khi chưa có semantic proof đủ mạnh; schema validation và encounter ID guard không đồng nghĩa kiểm chứng ngữ nghĩa. Khả năng full semantic validation phải được kiểm thử/đánh giá trước khi tuyên bố giải quyết hoàn toàn.
-
-## Cổng nghiệm thu
-
-- Targeted tests cho strict schema, exact Turn/action/outcome, kiểm soát LevelEnd trên CP cuối, không cho GM tự đổi Level, cấp Boss ×9, Gemini prefetch, CP20→Level 1 sau Combat, save/load và ký ức truyện độc lập gameplay.
-- Không merge, phát hành hoặc tuyên bố gameplay thực tế đúng chỉ vì CI thành công. Chưa test Gemini API với key thật thì phải ghi chưa test.
-- Các hồ sơ Canon còn thiếu được bổ sung theo nguồn sau; không tạo compatibility layer phục vụ save đời cũ.
+CI kiểm thử synthetic 20 CP, 50 turn/20 encounter mỗi CP, Save/Load, early/late prefetch, escape/retry, stale evidence, history corruption và Canon budgets. Fixtures mô phỏng verifier và forced Combat settlement; không phải 20 trận Boss thật. Gemini thật, adversarial semantics, Android gameplay và measured device performance vẫn chưa nghiệm thu. 42 provenance legacy, hồ sơ Iris/An Nhiên/Lucia thiếu và node conflicts 0.1/0.7 vẫn deferred. Level 7–10 reference-only, chưa hỗ trợ runtime transition. Không biến ví dụ hoặc fixture thành Lore Canon.

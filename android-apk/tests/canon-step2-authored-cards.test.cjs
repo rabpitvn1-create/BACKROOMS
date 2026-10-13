@@ -29,7 +29,7 @@ test('all twenty-two playable entities have one Drive-sourced visual card', () =
   }
 });
 
-test('eleven authored level cards and four exact authored node cards are indexed', () => {
+test('eleven authored level cards and four exact authored nodes are indexed without resolving conflicts', () => {
   for (let number = 0; number <= 10; number++) {
     const id = 'LEVEL.' + String(number).padStart(2, '0') + '.AUTHORED';
     const record = records.get(id);
@@ -39,25 +39,54 @@ test('eleven authored level cards and four exact authored node cards are indexed
   for (const node of ['0.5', 'epsilon', 'dullness', 'red_rooms']) {
     assert.ok(records.has('LEVEL.NODE.' + node));
   }
-  assert.equal(records.has('LEVEL.NODE.0.1'), false, 'conflicting Level 0.1 lore cannot silently override runtime');
-  assert.equal(records.has('LEVEL.NODE.0.7'), false, 'conflicting Level 0.7 lore cannot silently override runtime');
+  assert.equal(records.has('LEVEL.NODE.0.1'), false, 'unresolved authored/runtime conflict');
+  assert.equal(records.has('LEVEL.NODE.0.7'), false, 'unresolved authored/runtime conflict');
 });
 
 test('authored character identities stay separate and source traceable', () => {
   for (const person of ['CAO_MINH', 'LUC_TRAM', 'LUCIA', 'TRAC_LAM']) {
     const r = records.get('CHAR.' + person + '.AUTHORED');
-    assert.ok(r);
+    assert.ok(r, person);
     assert.match(r.source.document, /^Google Drive \/Novel\/Asset\/01_Character\//);
   }
   assert.notEqual(records.get('CHAR.LUC_TRAM.AUTHORED').text, records.get('CHAR.LUCIA.AUTHORED').text);
+  // Detailed revival/memory continuity belongs to the confirmed-actor firewall,
+  // not the quick card returned merely because a name was mentioned.
+  assert.doesNotMatch(records.get('CHAR.LUC_TRAM.AUTHORED').text, /quên Cao Minh/i);
+  assert.match(records.get('CHAR.LUC_TRAM.REVIVAL_R06').text, /QUÊN TẤT CẢ VỀ CAO MINH/);
 });
 
-test('runtime reads exact level node and confirmed combat entity, not every card', () => {
-  assert.match(reader, /add\("LEVEL.NODE\.\$node"/);
-  assert.match(reader, /combat\?\.optBoolean\("active", false\)/);
-  assert.match(reader, /add\("ENTITY\.\$recordId\.VISUAL"/);
-  assert.match(reader, /if \("lucia" in presentActors\)/);
-  assert.match(reader, /rolls\.optJSONObject\("luciaEncounter"\).*optBoolean\("success", false\)/);
-  assert.match(reader, /rolls\.optString\("selectedEntityKey", ""\)/);
-  assert.match(reader, /selectedRollKey\.isNotBlank\(\) -> selectedRollKey/);
+test('runtime uses exact level and Core-confirmed encounter identity', () => {
+  assert.ok(reader.includes('add("LEVEL.NODE.$node"'));
+  assert.ok(reader.includes('combat?.optBoolean("active", false) == true'));
+  assert.ok(reader.includes('add(confirmedVisual, "confirmed active Entity visual canon")'));
+  assert.ok(reader.includes('if ("lucia" in presentActors)'));
+  assert.ok(reader.includes('if (confirmedRoll("luciaEncounter"))'));
+  assert.ok(reader.includes('confirmedRoll("entityEncounter") ->'));
+  assert.ok(reader.includes('rolls.optString("selectedEntityKey", "")'));
+  assert.ok(reader.includes('id == confirmedEntityVisualId()'));
+});
+
+test('unknown or absent characters cannot be treated as active based on a name substring', () => {
+  assert.ok(reader.includes('when (normalize(idOrName))'));
+  assert.ok(reader.includes('member.optString("presence", "ACTIVE") == "ACTIVE"'));
+  assert.ok(!reader.includes('id.contains("iris")'));
+  assert.ok(reader.includes('val lucTramConfirmed = "luc_tram" in presentActors || confirmedRoll("lucTramEncounter")'));
+  assert.match(reader, /if \(lucTramConfirmed\) \{[\s\S]*?direct \+= "CHAR.LUC_TRAM.REVIVAL_R06"/);
+  assert.ok(reader.includes('if ("iris" in presentActors)'));
+  assert.ok(reader.includes('if ("syvial" in presentActors)'));
+});
+
+test('encounter context requires eligible success on the present Turn, not stale or meta rolls', () => {
+  assert.ok(reader.includes('!rolls.optBoolean("meta", false)'));
+  assert.ok(reader.includes('rolls.optInt("turn", -1) == state.optInt("turn", -2)'));
+  assert.ok(reader.includes('it.optBoolean("success", false) && it.optBoolean("eligible", false)'));
+});
+
+test('legacy provenance is labeled, not silently promoted into author Canon', () => {
+  assert.equal(db.records.length, 89);
+  const legacy = db.records.filter(r => !r.source.document.startsWith('Google Drive /Novel/Asset/'));
+  assert.equal(legacy.length, 42);
+  assert.ok(reader.includes('LEGACY_UNVERIFIED'));
+  assert.ok(reader.includes('provenance='));
 });
