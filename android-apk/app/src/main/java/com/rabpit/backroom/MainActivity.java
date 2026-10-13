@@ -1806,13 +1806,13 @@ public class MainActivity extends Activity {
       "Kể diễn biến tự nhiên theo hành động người chơi, giữ đúng Entity, nhân vật và kết quả đã khóa. " +
       "Nếu không có event đến hạn, chỉ kể diễn biến phù hợp. " +
       "Không tự quyết định Combat, HP, EXP, Item, tạo Entity hay chuyển Checkpoint; Core xử lý. " +
-      "Không đưa event ID, ops, storyFacts, chứng cứ, kiểm định hay state vào lời kể. " +
+      "Không đưa event ID, ops, chứng cứ, kiểm định hay state vào lời kể. " +
       "Chỉ trả JSON dạng {\"reply\":\"lời kể GM\"}.\n" +
       com.rabpit.backroom.core.knowledge.GmNarrativeVoicePolicy.prompt() +
       "\nACTION_TYPE: " + new JSONObject(requireGameCore().currentActionContext()).optString("kind", "EXECUTE") +
       "\nPLAYER_ACTION: " + action +
       "\nCORE_ROLLS_READ_ONLY: " + visibleRolls.toString() +
-      "\nSTORY_MEMORY_READ_ONLY: " + requireGameCore().storyFactContext(action) +
+      "\nMILESTONE_HISTORY_READ_ONLY: " + requireGameCore().milestoneHistoryContext() +
       "\nCANON_READ_ONLY: " + canon;
   }
 
@@ -1860,7 +1860,7 @@ public class MainActivity extends Activity {
     // The planner receives a small state excerpt, never the complete client save.
     if (scene.length() > 1500) scene = scene.substring(0, 1500);
     String prompt = com.rabpit.backroom.core.StoryMilestonePlannerPrompt.build(
-      checkpointId, startTurn, nodeId, canon, scene, request.getInt("checkpointTotal"), requireGameCore().storyFactContext());
+      checkpointId, startTurn, nodeId, canon, scene, request.getInt("checkpointTotal"), requireGameCore().milestoneHistoryContext());
     // This is only skeleton generation, never a GM or a second narrative verifier.
     String provider = milestoneProviderChoice();
     emitMilestoneStatus(request, "loading", provider + " đang tạo khung Checkpoint…");
@@ -1918,7 +1918,7 @@ public class MainActivity extends Activity {
           if (shortScene.length() > 1500) shortScene = shortScene.substring(0, 1500);
           String prompt = com.rabpit.backroom.core.StoryMilestonePlannerPrompt.build(
             lease.getString("nextCheckpointId"), lease.getInt("startTurn"),
-            lease.getString("levelNode"), canon, shortScene, lease.getInt("checkpointTotal"), requireGameCore().storyFactContext()) +
+            lease.getString("levelNode"), canon, shortScene, lease.getInt("checkpointTotal"), requireGameCore().milestoneHistoryContext()) +
             "\nPREPARED PLAN: globalStartTurn là ước lượng; Core neo Turn khi kích hoạt thật. " +
             "Completion của CP trước bên dưới còn PLANNED, chỉ xảy ra sau verified Boss defeat; " +
             "dùng nó để nối tiếp kịch bản, không ghi thành lịch sử đã xảy ra và không giả định HP/Party sau Combat. " +

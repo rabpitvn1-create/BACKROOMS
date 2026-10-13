@@ -69,10 +69,11 @@ class StoryCheckpointQuotaTest {
     // Manual restore changes response leases, but must not change committed encounter identities.
     StoryMilestoneRuntime.validateStoredState(restored.copy(world = restored.world +
       ("story.runToken" to "TEST_ONLY new manual-load lease")))
-    val ledger = JSONObject(restored.world.getValue("story.factLedger"))
-    val history = ledger.getJSONArray("history")
-    val ids = (0 until history.length()).map { history.getJSONObject(it).getString("entityEncounterId") }
-    assertEquals(9, ids.toSet().size) // Eight ordinary encounters plus the final Boss proof
+    val records = JSONObject(restored.world.getValue("story.milestone.eventRecords"))
+    val ids = records.keys().asSequence().mapNotNull { key ->
+      records.getJSONObject(key).optString("encounterId").takeIf { it.isNotBlank() }
+    }.toList()
+    assertEquals(9, ids.toSet().size)
   }
 
   @Test fun completionChecksActualTurnAndHistoryKeepsVerifiedEncounterSources() {
@@ -94,6 +95,9 @@ class StoryCheckpointQuotaTest {
     assertEquals(18L, history.getJSONObject(0).getLong("endTurn"))
     assertEquals(8, history.getJSONObject(0).getInt("entityEncounterCount"))
     StoryMilestoneRuntime.validateStoredState(next)
+    assertFalse(next.world.containsKey("story.factLedger"))
+    val committed = history.getJSONObject(0).getJSONArray("events")
+    assertEquals(history.getJSONObject(0).getJSONArray("eventRefs").length(), committed.length())
     val brokenHistory = JSONArray(history.toString()).apply {
       getJSONObject(0).getJSONArray("entityEncounterRefs").put(0, "TEST_ONLY invented encounter")
     }

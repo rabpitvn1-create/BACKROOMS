@@ -66,8 +66,7 @@ object StoryMilestonePlan {
     val action: String,
     val event: String,
     val outcome: String,
-    val entityKey: String? = null,
-    val storyFacts: List<StoryFactLedger.FactSpec> = emptyList()
+    val entityKey: String? = null
   ) {
     val isEntityEncounter: Boolean get() = kind == Kind.ENTITY || kind == Kind.FINAL_ENTITY
 
@@ -84,7 +83,6 @@ object StoryMilestonePlan {
           put("hpMultiplier", FINAL_HP_MULTIPLIER)
           put("expMultiplier", FINAL_EXP_MULTIPLIER)
         }
-        if (storyFacts.isNotEmpty()) put("storyFacts", JSONArray().apply { storyFacts.forEach { put(it.toJson()) } })
       }
   }
 
@@ -128,7 +126,8 @@ object StoryMilestonePlan {
       val allowed = mutableSetOf("id", "turn", "kind", "action", "event", "outcome")
       if (kind != Kind.STORY) allowed += "entityKey"
       if (kind == Kind.FINAL_ENTITY) allowed += setOf("hpMultiplier", "expMultiplier")
-      if (item.has("storyFacts")) allowed += "storyFacts"
+      // Ignore non-authoritative AI metadata; it must not block a valid schedule.
+      item.remove("storyFacts")
       exactFields(item, allowed)
 
       val id = string(item, "id", 48)
@@ -150,11 +149,7 @@ object StoryMilestonePlan {
         }
         value
       } else null
-      val facts = if (item.has("storyFacts")) StoryFactLedger.parseSpecs(item.getJSONArray("storyFacts"), 4) else emptyList()
-      require(facts.all { it.kind != StoryFactLedger.Kind.ENTITY || CombatRuntime.supportsEntityKey(it.subject) }) {
-        "milestone_fact_entity_unknown"
-      }
-      events += Event(id, turn, kind, action, event, outcome, key, facts)
+      events += Event(id, turn, kind, action, event, outcome, key)
     }
 
     require(events.last().kind == Kind.FINAL_ENTITY &&

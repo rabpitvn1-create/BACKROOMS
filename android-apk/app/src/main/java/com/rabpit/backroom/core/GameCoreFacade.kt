@@ -348,7 +348,6 @@ class GameCoreFacade private constructor(
       (current.turn.pending != null || ActionRuntime.activeSession(current) != null)) return checkpointError("turn_in_progress")
     val saved = repository.loadCheckpoint() ?: return checkpointError("checkpoint_missing")
     StoryMilestoneRuntime.validateStoredState(saved.core)
-    StoryFactLedger.validateStoredState(saved.core)
     val loaded = saved.core.copy(world = saved.core.world +
       ("story.runToken" to java.util.UUID.randomUUID().toString()))
     repository.save(loaded)
@@ -566,8 +565,8 @@ class GameCoreFacade private constructor(
     return state.copy(world = state.world + ("flagsJson" to flags.toString()))
   }
 
-  @Synchronized @JvmOverloads fun storyFactContext(query: String = ""): String =
-    StoryFactLedger.context(loadCurrentState(), query.take(1600))
+  @Synchronized fun milestoneHistoryContext(): String =
+    StoryMilestoneRuntime.continuityContext(loadCurrentState())
 
   @Synchronized fun milestoneDueEvents(): String =
     StoryMilestoneRuntime.dueJson(loadCurrentState())
@@ -685,7 +684,6 @@ class GameCoreFacade private constructor(
     check(!loaded.metadata.containsKey("loadError")) { "core_load_failed_restore_checkpoint" }
     val normalized = normalizeVisualPresence(CoreClientProjection.initialize(loaded))
     StoryMilestoneRuntime.validateStoredState(normalized)
-    StoryFactLedger.validateStoredState(normalized)
     // Only a new run gets the default checkpoint. Existing saves are not silently
     // assigned a new story position during a read.
     val ready = if (existed) normalized else newStoryRun(normalized)

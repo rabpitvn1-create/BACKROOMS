@@ -38,7 +38,9 @@ test('SOL authored events are applied by Core without GM receipts or second AI v
   assert.match(main,/JSONObject coreCommit = new JSONObject\(requireGameCore\(\)\.processValidatedCandidate\(\s*before\.toString\(\), state\.toString\(\), action\)\)/);
   assert.doesNotMatch(main,/verifyMilestoneNarrative\(|auditsForRisk\(|milestoneEventIds|generated\.getJSONArray\("storyFacts"\)/);
   assert.match(runtime,/val required = due\(state\)/);
-  assert.match(runtime,/val remembered = StoryFactLedger\.recordTurn\(working, required\)/);
+  assert.match(runtime,/val updated = working\.copy\(/);
+  assert.match(runtime,/fun continuityContext\(state: GameState\)/);
+  assert.doesNotMatch(facade,/StoryFactLedger|storyFactContext/);
   assert.doesNotMatch(runtime,/validateEvidence\(|evidenceRequest\(|milestone_receipt_mismatch/);
   assert.match(facade,/StoryMilestoneRuntime\.acceptTurn\(protectedState\)/);
   assert.match(main,/if \(requireGameCore\(\)\.isSpecialRuleAction\(action\)\)/);

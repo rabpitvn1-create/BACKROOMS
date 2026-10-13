@@ -132,7 +132,6 @@ class FirstSixCheckpointsEmulatorTest {
         assertNotNull(state.metadata["exp.awarded." + fight.encounterId])
         val decoded = GameStateCodec.decode(GameStateCodec.encode(state))
         StoryMilestoneRuntime.validateStoredState(decoded)
-        StoryFactLedger.validateStoredState(decoded)
         storage.save(decoded)
         assertEquals(cp + 1, JSONObject(core.currentClientState("{}"))
           .getJSONObject("story").getInt("generatedMilestones"))
