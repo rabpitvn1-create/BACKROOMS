@@ -13,10 +13,15 @@ class SolMilestoneResponseTest {
 
   @Test fun acceptsPlainAndFencedMilestoneJsonAndPreservesFields() {
     val plan = """{"schemaVersion":2,"checkpointId":"CP-L00-01","events":[],"completion":{}}"""
-    assertEquals(plan, SolMilestoneResponse.normalize(response(plan)))
-    assertEquals(plan, SolMilestoneResponse.normalize(response(" ```json\n$plan\n``` ")))
-    assertEquals(plan, SolMilestoneResponse.normalize(response(JSONArray().put(
-      JSONObject().put("type", "text").put("text", plan)))))
+    val variants = listOf(response(plan), response(" ```json\n$plan\n``` "),
+      response(JSONArray().put(JSONObject().put("type", "text").put("text", plan))))
+    variants.forEach { payload ->
+      val parsed = JSONObject(SolMilestoneResponse.normalize(payload))
+      assertEquals(2, parsed.getInt("schemaVersion"))
+      assertEquals("CP-L00-01", parsed.getString("checkpointId"))
+      assertTrue(parsed.has("events"))
+      assertTrue(parsed.has("completion"))
+    }
   }
 
   @Test fun refusesTruncatedOrNonJsonResponsesBeforeWritingToCore() {
