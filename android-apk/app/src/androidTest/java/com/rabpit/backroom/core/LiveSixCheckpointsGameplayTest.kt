@@ -85,6 +85,7 @@ class LiveSixCheckpointsGameplayTest {
     var diceAt = 0L
     var explorerActions = 0
     var combatFinishes = 0
+    var lastHeartbeatAt = started
     // Record recoverable UI errors; do not stop the playtest while a normal retry can proceed.
     var observedWarnings = 0
     var retryAfter = 0L
@@ -161,9 +162,34 @@ class LiveSixCheckpointsGameplayTest {
         }
         if (cp.isNotEmpty() && cp !in (1..6).map { "CP-L00-" + it.toString().padStart(2, '0') })
           fail("LIVE_UNEXPECTED_CP=" + cp + " Turn=" + turn)
-        if (now - lastChangeAt > TimeUnit.MINUTES.toMillis(9))
+        // An actual writer + independent audits + one repair + evidence verifier can
+        // legitimately exceed nine minutes during provider 503/timeout failover.
+        // Do not abort an in-flight request merely because Explorer Turn is unchanged.
+        val pending = ui.optBoolean("busy")
+        val loading = ui.optBoolean("loading") || ui.optBoolean("blocked")
+        val idleLimit = when {
+          pending -> TimeUnit.MINUTES.toMillis(22)
+          loading -> TimeUnit.MINUTES.toMillis(8)
+          combat -> TimeUnit.MINUTES.toMillis(9)
+          else -> TimeUnit.MINUTES.toMillis(4)
+        }
+        if (now - lastHeartbeatAt >= TimeUnit.MINUTES.toMillis(1)) {
+          Log.i(tag, "HEARTBEAT cp=" + cp + " turn=" + turn +
+            " busy=" + pending + " blocked=" + ui.optBoolean("blocked") +
+            " plan=" + ui.optBoolean("plan") + " waiting=" + ui.optBoolean("waiting") +
+            " loading=" + loading + " combat=" + combat +
+            " idleSec=" + ((now - lastChangeAt) / 1000) +
+            " providerStatus=" + ui.optString("status") +
+            " recoverableIssues=" + issues.size)
+          lastHeartbeatAt = now
+        }
+        if (now - lastChangeAt > idleLimit)
           fail("LIVE_STALLED CP=" + cp + " Turn=" + turn +
-            " status=" + ui.optString("status") + " loading=" + ui.optString("milestoneMessage"))
+            " busy=" + pending + " blocked=" + ui.optBoolean("blocked") +
+            " plan=" + ui.optBoolean("plan") + " waiting=" + ui.optBoolean("waiting") +
+            " combat=" + combat + " idleSec=" + ((now - lastChangeAt) / 1000) +
+            " status=" + ui.optString("status") +
+            " loading=" + ui.optString("milestoneMessage") + " issues=" + issues.size)
 
         if (combat) {
           if (now - diceAt > 1500 && ui.optBoolean("diceReady") && !ui.optBoolean("diceFinal") &&
@@ -171,6 +197,7 @@ class LiveSixCheckpointsGameplayTest {
             if (click(web, "pokerDiceFinish")) {
               diceAt = now
               combatFinishes++
+              lastChangeAt = now // A valid Poker Dice command is real Combat progress, not Explorer Turn.
               if (combatFinishes > 800) fail("LIVE_TOO_MANY_COMBAT_FINISHES CP=" + cp)
               if (combatFinishes % 10 == 0) Log.i(tag, "CP=" + cp + " combatFinishes=" + combatFinishes)
             }
