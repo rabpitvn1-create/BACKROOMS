@@ -1,4 +1,4 @@
-> **Trạng thái tích hợp 2026-10-13:** Runtime và các sửa phụ thuộc đã vào main qua PR #595 (`820038c8`). Khi đối chiếu nhánh Bước 6, giữ nguyên evidence verifier, Boss retry, authored completion, safe restore và quota CP 50 turn/20 encounter của bản mới. Tài liệu bên dưới mô tả runtime hiện hành; save/history được bổ sung trong `STORY_SAVE_HISTORY_R01.md`. CI là nghiệm thu tự động; Gemini/Android gameplay thật vẫn pending.
+> **Trạng thái tích hợp 2026-10-13:** Runtime và các sửa phụ thuộc đã vào main qua PR #595 (`820038c8`). Khi đối chiếu nhánh Bước 6, giữ nguyên evidence verifier, Boss thắng/thua, authored completion, safe restore và quota CP 50 turn/20 encounter của bản mới. Tài liệu bên dưới mô tả runtime hiện hành; save/history được bổ sung trong `STORY_SAVE_HISTORY_R01.md`. CI là nghiệm thu tự động; Gemini/Android gameplay thật vẫn pending.
 
 # Bước 6/10 · Milestone Runtime v2
 
@@ -10,7 +10,7 @@ Receipt/event và Boss start được ghi trong cùng transaction Core. Các tha
 
 ## Combat và completion
 
-FINAL_ENTITY tạo một Boss instance HP×9; EXP×9 được cấp bởi Combat Core đúng instance khi tiêu diệt. Chỉ DEFEATED có bằng chứng award mới hoàn tất CP. ESCAPED không hoàn tất: lưu snapshot Boss, HP và encounter ID; nút Đối đầu lại Boss phục hồi cùng instance, không nhân HP/EXP lần nữa và không khôi phục HP người chơi từ lời kể.
+FINAL_ENTITY tạo một Boss instance HP×9; EXP×9 được cấp bởi Combat Core đúng instance khi tiêu diệt. Chỉ DEFEATED có bằng chứng award mới hoàn tất CP. Boss chỉ có thắng hoặc thua. Core chặn lệnh chạy thoát và không tự kết thúc trận khi né/di chuyển tích đủ escape progress; không lưu suspended Boss hoặc cung cấp nút đấu lại.
 
 Địa chỉ tiếp theo lấy từ completion Gemini. CP thường dùng NEXT_CHECKPOINT; CP cuối dùng EXIT_LEVEL, exact target node, tổng CP và outcome tác giả. Không yêu cầu HiddenExitStreak, RNG Exit hoặc đi qua tuyến phụ. GM/client không được đổi main Level; việc đi lại hợp lệ trong cùng Level vẫn dùng topology. Core trình bày completion outcome một lần, không tự diễn giải thành HP/Status/Inventory mutation.
 
@@ -18,7 +18,7 @@ Prefetch dùng Canon/scene của target Level; prepared chưa phải lịch sử
 
 ## Kiểm chứng và giới hạn
 
-Tests có mục tiêu gồm lịch exact Turn/missed event, Boss ×9, escape/resume giữ instance/HP, chống thưởng trùng, 20 CP Level 0 → Sublevel hợp lệ của Level 1, prefetch trước/sau defeat, Save/Load và reject client đổi Level/Inventory vượt Turn.
+Tests có mục tiêu gồm lịch exact Turn/missed event, Boss ×9, chặn Boss escape bằng lệnh và escape progress, chống thưởng trùng, 20 CP Level 0 → Sublevel hợp lệ của Level 1, prefetch trước/sau defeat, Save/Load và reject client đổi Level/Inventory vượt Turn.
 
 Receipt ID vẫn được kiểm tra cấu trúc, nhưng không còn đủ để commit. Bridge yêu cầu một phản hồi kiểm định riêng qua transport Gemini hiện hữu: action/event/outcome phải có chứng cứ trích nguyên văn từ lời kể được nhận. Core kiểm tra verified, toàn bộ ID, quote và request hash gắn runToken/CP/Turn/plan/lời kể; lưu provenance cùng receipt trong transaction. Meta không commit sự kiện hoặc tăng Turn. Saved receipts thiếu evidence bị từ chối.
 
@@ -49,3 +49,5 @@ Tests use synthetic independent-validator responses and forced Combat settlement
 they verify quotas and state transitions, not live Gemini semantic accuracy or
 Android gameplay. The 20-CP fixture now processes at least 1,000 relative turns
 and 400 distinct encounters, with one Boss per CP.
+
+Milestone đầu được yêu cầu ngay khi giao diện nhận Core state của new game, không chờ hành động đầu tiên. GM hiển thị popup khi thiếu active plan hoặc đã thắng Boss nhưng next plan chưa sẵn sàng; chặn hành động, hiển thị lỗi và cho thử lại khi planner thất bại. Callback UI gắn runToken/checkpointId để bỏ phản hồi cũ.

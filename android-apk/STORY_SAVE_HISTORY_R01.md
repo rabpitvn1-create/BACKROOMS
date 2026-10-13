@@ -4,7 +4,7 @@ Core lưu bốn bộ đếm: committedEvents (Milestone receipts thực sự đ�
 
 Mỗi CP hoàn tất có ID gắn encounter, visit Level, start/end Turn, eventRefs tới ledger/history archive, verified Boss result và completion. Level History giữ các CP refs, số event đã commit, outcome Gemini đã định, Turn/nguồn kết thúc và IDs của facts còn tiếp diễn. Không sinh summary lore hoặc cập nhật gameplay từ prose.
 
-DEFEATED chưa có next plan chỉ tăng bộ đếm defeat, chưa ghi CP/Level completion. Callback muộn chỉ commit handoff một lần. ESCAPED không tăng bộ đếm defeat/completion; resume giữ cùng instance và HP.
+DEFEATED chưa có next plan chỉ tăng bộ đếm defeat, chưa ghi CP/Level completion. Callback muộn chỉ commit handoff một lần. Boss không có trạng thái ESCAPED hoặc resume; chỉ verified defeat cho phép handoff.
 
 Decode manual checkpoint xác thực active/prepared, receipts/evidence, counters/history/source refs và provenance ledger trước khi thay slot hiện hành. Save bị lỗi decode phải báo lỗi, không âm thầm chơi tiếp từ GameState.initial rồi ghi đè. Người chơi có thể chủ động tải manual checkpoint hợp lệ để phục hồi; load đổi runToken, giữ visit/history và loại callback từ timeline trước.
 

@@ -1,0 +1,10 @@
+Backroom 1.2.0.0.14 Debug
+
+- Android versionCode 87; versionName 1.2.0.0.14; applicationId com.rabpit.backroom.
+- New Game khởi tạo Milestone đầu tiên ngay khi nhận Game Core state, không cần nhấn Khám phá để bắt đầu chuẩn bị.
+- Popup loading xuất hiện trong GM khi chưa có Milestone hoặc khi thắng Boss mà kế hoạch Checkpoint tiếp theo chưa sẵn sàng. Khóa các thao tác gameplay trong thời gian chờ; hiển thị lỗi, có nút Thử lại.
+- Callback được ràng buộc với runToken và checkpointId để từ chối phản hồi cũ từ game khác hoặc Checkpoint trước.
+- Boss Milestone chỉ kết thúc bằng thắng hoặc thua; chặn lệnh bỏ chạy và auto-escape do né/di chuyển. Loại bỏ nút Đối đầu lại Boss và logic suspended/resume; Entity thông thường vẫn có thể chạy thoát.
+- Tiếp tục bảo đảm tối thiểu 50 turn và 20 encounter riêng biệt mỗi Checkpoint, bao gồm Boss cuối; HP/EXP Boss ×9 theo instance.
+- APK Debug. CI kiểm thử Node, Kotlin và đóng gói Android; thực chiến Gemini và gameplay trên thiết bị chưa được nghiệm thu.
+- Không hỗ trợ save game cũ.

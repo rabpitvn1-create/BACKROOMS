@@ -573,19 +573,6 @@ class GameCoreFacade private constructor(
     return state.copy(world = state.world + ("flagsJson" to flags.toString()))
   }
 
-  /** A read-only signed-by-Core list of events the GM must commit this turn. */
-  @Synchronized fun retryMilestoneBoss(clientStateJson: String): String {
-    val client = JSONObject(clientStateJson)
-    val current = loadCurrentState()
-    if (client.optInt("turn", -1) != CoreClientProjection.turnIndex(current))
-      return response(false, clientSnapshot(client, current), "stale_client_state", "milestone_retry_rejected")
-    if (current.turn.pending != null || ActionRuntime.activeSession(current) != null)
-      return response(false, clientSnapshot(client, current), "turn_in_progress", "milestone_retry_rejected")
-    val resumed = StoryMilestoneRuntime.retryBoss(current)
-    repository.save(resumed)
-    return response(true, clientSnapshot(client, resumed), null, "milestone_boss_resumed")
-  }
-
   @Synchronized @JvmOverloads fun storyFactContext(query: String = ""): String =
     StoryFactLedger.context(loadCurrentState(), query.take(1600))
 
@@ -661,7 +648,7 @@ class GameCoreFacade private constructor(
 
   /**
    * Read-only planning lease. The first Checkpoint is generated once at first
-   * playable turn. Existing plan, old sessions and active combat never regenerate.
+   * UI initialization or playable turn. Existing plan, pending sessions and active combat never regenerate.
    */
   @Synchronized fun milestonePlanRequest(): String {
     val state = loadCurrentState()
