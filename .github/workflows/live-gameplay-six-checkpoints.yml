@@ -1,11 +1,6 @@
 name: Live Gameplay - Six Checkpoints
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "android-apk/app/src/androidTest/**"
-      - ".github/workflows/live-gameplay-six-checkpoints.yml"
   workflow_dispatch:
 
 permissions:
