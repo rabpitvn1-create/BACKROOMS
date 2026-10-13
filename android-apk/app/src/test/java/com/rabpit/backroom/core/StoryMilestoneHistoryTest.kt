@@ -8,7 +8,7 @@ import org.junit.Test
 /** Core SaveState is the only source of committed Milestone events. */
 class StoryMilestoneHistoryTest {
   private fun plan(checkpointId: String): String = JSONObject()
-    .put("schemaVersion", 2).put("checkpointId", checkpointId)
+    .put("schemaVersion", StoryMilestonePlan.SCHEMA_VERSION).put("checkpointId", checkpointId).put("storyArc", TestCheckpointQuota.storyArc())
     .put("events", TestCheckpointQuota.events(JSONArray()
       .put(JSONObject().put("id", "story").put("turn", 1).put("kind", "STORY")
         .put("action", "Nhân vật mở cửa")

@@ -7,7 +7,7 @@ import org.junit.Test
 
 class StoryMilestoneRuntimeTest {
   private fun plan(checkpoint: String = "CP-L00-01"): String =
-    JSONObject().put("schemaVersion", 2).put("checkpointId", checkpoint)
+    JSONObject().put("schemaVersion", StoryMilestonePlan.SCHEMA_VERSION).put("checkpointId", checkpoint).put("storyArc", TestCheckpointQuota.storyArc())
       .put("events", TestCheckpointQuota.events(JSONArray()
         .put(JSONObject().put("id", "warning").put("turn", 1)
           .put("kind", "STORY").put("action", "TEST_ONLY world action").put("event", "Có dấu hiệu bất thường")
@@ -121,7 +121,7 @@ class StoryMilestoneRuntimeTest {
     val missing = committed.copy(world = committed.world - "story.milestone.eventRecords")
     assertThrows(Exception::class.java) { StoryMilestoneRuntime.validateStoredState(missing) }
     val invented = JSONObject(records.toString()).put("fake_event", JSONObject()
-      .put("checkpointId", "CP-L00-01").put("turn", 1))
+      .put("checkpointId", "CP-L00-01").put("storyArc", TestCheckpointQuota.storyArc()).put("turn", 1))
     assertThrows(Exception::class.java) {
       StoryMilestoneRuntime.validateStoredState(committed.copy(
         world = committed.world + ("story.milestone.eventRecords" to invented.toString())))
@@ -184,7 +184,7 @@ class StoryMilestoneRuntimeTest {
     val restored = GameStateCodec.decode(GameStateCodec.encode(state))
     StoryMilestoneRuntime.validateStoredState(restored)
     val stats = StoryMilestoneRuntime.statsJson(restored)
-    assertEquals(200L, stats.getLong("committedEvents"))
+    assertEquals(440L, stats.getLong("committedEvents"))
     assertEquals(20L, stats.getLong("defeatedBosses"))
     assertEquals(20L, stats.getLong("completedCheckpoints"))
     assertEquals(1L, stats.getLong("completedLevels"))
