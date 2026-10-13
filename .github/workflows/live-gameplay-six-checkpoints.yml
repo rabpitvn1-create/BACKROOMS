@@ -1,12 +1,7 @@
 name: Live Gameplay - First Two Checkpoints
 
-# Temporary single-run trigger; restore manual-only after the PR run starts.
 on:
   workflow_dispatch:
-  pull_request:
-    branches: [main]
-    paths:
-      - "android-apk/app/src/androidTest/java/com/rabpit/backroom/core/LiveSixCheckpointsGameplayTest.kt"
 
 permissions:
   contents: read
