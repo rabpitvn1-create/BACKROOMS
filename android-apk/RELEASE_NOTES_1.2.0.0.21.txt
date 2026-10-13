@@ -1,0 +1,12 @@
+Backroom 1.2.0.0.21 Debug
+
+- Android versionCode 94, versionName 1.2.0.0.21, applicationId com.rabpit.backroom.
+- Tích hợp PR #610: chỉ mở Combat khi người chơi xác nhận nút “Thực thể [Tên Entity] đã xuất hiện ! Battle Start.” sau lời kể của Gehihi.
+- Game Core dự trữ encounter trong trạng thái PENDING_ENCOUNTER_CONFIRMATION với ID ổn định; không tự khởi động Combat khi lời kể xuất hiện.
+- Entity và Boss theo Milestone có chính sách combatRequired riêng: không phải mọi Entity được nhắc đến đều bắt đầu giao chiến; FINAL_ENTITY cần xác nhận trước Combat.
+- Khi nhấn Battle Start, Core xác nhận đúng encounter đã dự trữ, chống nhấn lặp và không tăng Explorer Turn, thay đổi HP hay cấp EXP trước khi Combat thực sự xử lý.
+- Giao diện chỉ hiện ảnh Entity khi Combat đã active, ánh xạ entityKey từ Core/Registry, xóa cache hình encounter trước và giữ nút xác nhận ở cuối lời kể.
+- Save/Load giữ lại encounter đang chờ và lời kể liên quan. Không thêm AI verifier, storyFacts hay StoryFactLedger.
+- Giữ kiến trúc: SOL/Gemini tạo Milestone, Gehihi kể chuyện, Core giữ gameplay, Combat và SaveState.
+- Không hỗ trợ chuyển đổi save từ phiên bản cũ; không chủ động xóa dữ liệu lưu hiện tại.
+- Bản Debug để nghiệm thu. Node/Kotlin/Android build, chữ ký APK và SHA-256 được xác minh trong CI. Chưa xác nhận chơi hết CP1–CP2 trên thiết bị thật hoặc emulator với bản release này.
