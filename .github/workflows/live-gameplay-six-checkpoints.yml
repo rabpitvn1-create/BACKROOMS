@@ -1,13 +1,22 @@
-name: Live Gameplay - First Two Checkpoints
+name: Live AI - One Checkpoint Then Repeat
 
 on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/live-gameplay-six-checkpoints.yml'
+      - 'android-apk/app/src/androidTest/java/com/rabpit/backroom/core/LiveSixCheckpointsGameplayTest.kt'
+      - 'android-apk/tools/verify-live-one-checkpoint.cjs'
+      - 'android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java'
+      - 'android-apk/app/src/main/java/com/rabpit/backroom/core/StoryMilestonePlannerPrompt.kt'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  live-six-checkpoints:
+  live-first-checkpoint:
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'restore/fake-sandbox-milestone-v2'
     runs-on: ubuntu-latest
     timeout-minutes: 235
     env:
@@ -17,31 +26,26 @@ jobs:
       SOL_API_KEY: ${{ secrets.SOL_API_KEY }}
     steps:
       - uses: actions/checkout@v4
-
-      - name: Require real SOL and GM credentials
+      - name: Require configured real AI providers
         shell: bash
         run: |
           set -euo pipefail
           for key in GEHIHI_API_KEY GEHIHI_MODEL SOL_API_KEY; do
             test -n "${!key:-}" || { echo "Missing required provider configuration: $key"; exit 1; }
           done
-
-      - name: Enable KVM for Android Emulator
+      - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
-
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.10.2'
-
-      - name: Play CP-L00-01 and CP-L00-02 using SOL and Gehihi
+      - name: Play a full CP-L00-01 with SOL and Gehihi
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
@@ -49,15 +53,69 @@ jobs:
           arch: x86_64
           profile: pixel_7
           disable-animations: true
-          script: cd android-apk && bash -c 'gradle :app:connectedDebugAndroidTest -PbackroomTwoProviderTest=true -Pandroid.testInstrumentationRunnerArguments.class=com.rabpit.backroom.core.LiveSixCheckpointsGameplayTest --no-daemon; result=$?; adb logcat -d -s BackroomLiveSixCP:I > app/build/live-six-cp-log.txt; cat app/build/live-six-cp-log.txt; exit $result'
-
-      - name: Save first two Checkpoints emulator results
+          script: cd android-apk && bash -c 'gradle :app:connectedDebugAndroidTest -PbackroomTwoProviderTest=true "-Pandroid.testInstrumentationRunnerArguments.class=com.rabpit.backroom.core.LiveSixCheckpointsGameplayTest#playOneCheckpointWithRealProvidersAndUi" --no-daemon; result=$?; adb logcat -d -s BackroomLiveSixCP:I > app/build/live-one-cp-log.txt; grep "LIVE_ONE_CP_" app/build/live-one-cp-log.txt || true; exit $result'
+      - name: Extract first actual AI narrative fingerprint
+        run: node android-apk/tools/verify-live-one-checkpoint.cjs extract android-apk/app/build/live-one-cp-log.txt android-apk/app/build/one-cp-summary.json
+      - name: Save live first CP evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: live-two-checkpoints-emulator-reports
+          name: live-one-checkpoint-first
           path: |
             android-apk/app/build/reports/androidTests/connected/
             android-apk/app/build/outputs/androidTest-results/connected/
-            android-apk/app/build/live-six-cp-log.txt
+            android-apk/app/build/live-one-cp-log.txt
+            android-apk/app/build/one-cp-summary.json
+          if-no-files-found: warn
+
+  live-repeat-checkpoint:
+    needs: live-first-checkpoint
+    runs-on: ubuntu-latest
+    timeout-minutes: 235
+    env:
+      GEHIHI_API_KEY: ${{ secrets.GEHIHI_API_KEY }}
+      GEHIHI_BASE_URL: ${{ secrets.GEHIHI_BASE_URL || vars.GEHIHI_BASE_URL }}
+      GEHIHI_MODEL: ${{ secrets.GEHIHI_MODEL || vars.GEHIHI_MODEL }}
+      SOL_API_KEY: ${{ secrets.SOL_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: live-one-checkpoint-first
+          path: ./previous-run
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Repeat the full CP-L00-01 independently with real providers
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_7
+          disable-animations: true
+          script: cd android-apk && bash -c 'gradle :app:connectedDebugAndroidTest -PbackroomTwoProviderTest=true "-Pandroid.testInstrumentationRunnerArguments.class=com.rabpit.backroom.core.LiveSixCheckpointsGameplayTest#playOneCheckpointWithRealProvidersAndUi" --no-daemon; result=$?; adb logcat -d -s BackroomLiveSixCP:I > app/build/live-one-cp-log.txt; grep "LIVE_ONE_CP_" app/build/live-one-cp-log.txt || true; exit $result'
+      - name: Validate independent GM and Milestone diversity
+        run: |
+          node android-apk/tools/verify-live-one-checkpoint.cjs extract android-apk/app/build/live-one-cp-log.txt android-apk/app/build/one-cp-summary.json
+          node android-apk/tools/verify-live-one-checkpoint.cjs compare ./previous-run/one-cp-summary.json android-apk/app/build/one-cp-summary.json
+      - name: Save live second CP evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-one-checkpoint-repeat
+          path: |
+            android-apk/app/build/reports/androidTests/connected/
+            android-apk/app/build/outputs/androidTest-results/connected/
+            android-apk/app/build/live-one-cp-log.txt
+            android-apk/app/build/one-cp-summary.json
           if-no-files-found: warn
