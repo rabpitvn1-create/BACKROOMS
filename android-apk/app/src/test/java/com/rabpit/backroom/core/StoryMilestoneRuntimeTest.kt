@@ -141,6 +141,32 @@ class StoryMilestoneRuntimeTest {
     }
   }
 
+  @Test fun verifierCannotRenameEventsOrSmuggleExtraProofFields() {
+    val state = initial()
+    val narrative = TestMilestoneEvidence.narrative(state)
+    val receipt = "[\"warning\"]"
+    val valid = JSONObject(TestMilestoneEvidence.proof(state, narrative))
+
+    val wrongId = JSONObject(valid.toString())
+    wrongId.getJSONArray("events").getJSONObject(0).put("id", "invented_event")
+    assertThrows(IllegalArgumentException::class.java) {
+      StoryMilestoneRuntime.acceptTurn(state, receipt, narrative, wrongId.toString())
+    }
+
+    val extraField = JSONObject(valid.toString())
+    extraField.getJSONArray("events").getJSONObject(0).put("ignored", "not_authorized")
+    assertThrows(IllegalArgumentException::class.java) {
+      StoryMilestoneRuntime.acceptTurn(state, receipt, narrative, extraField.toString())
+    }
+
+    val invalidQuote = JSONObject(valid.toString())
+    invalidQuote.getJSONArray("events").getJSONObject(0).put("eventQuote", "never appeared in narrative")
+    assertThrows(IllegalArgumentException::class.java) {
+      StoryMilestoneRuntime.acceptTurn(state, receipt, narrative, invalidQuote.toString())
+    }
+    assertEquals(0, StoryMilestoneRuntime.entityEncounterCount(state))
+  }
+
   @Test fun bossCannotEscapeByCommandOrAccumulatedEvasion() {
     val warning = TestMilestoneEvidence.accept(initial(), "[\"warning\"]")
     val boss = TestMilestoneEvidence.accept(TestCheckpointQuota.reachBoss(warning), "[\"boss\"]")
