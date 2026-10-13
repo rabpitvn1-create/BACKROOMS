@@ -969,7 +969,7 @@ public class MainActivity extends Activity {
 
   /** Milestone generation can take longer than ordinary GM prose. Do not alter the GM timeout. */
   private String solMilestoneText(String prompt) throws Exception {
-    return solText(prompt, 12288, 0.5, true);
+    return solText(prompt, 7168, 0.3, true);
   }
 
   private String solText(String prompt, int maxOutputTokens, double temperature, boolean milestone) throws Exception {
@@ -1563,20 +1563,49 @@ public class MainActivity extends Activity {
     String canon = com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.build(
       MainActivity.this, canonView.toString(), action, visibleRolls.toString());
     return "Bạn là Gehihi, Game Master kể chuyện Backrooms bằng tiếng Việt. " +
-      "SOL đã tạo khung Milestone; các sự kiện đến hạn sau là BẮT BUỘC: " + due.toString() + ". " +
+      "SOL/Gemini đã tạo MẠCH TRUYỆN CHƯƠNG và lịch sự kiện bắt buộc; " +
+      "phải kể đúng sự kiện đến hạn: " + due.toString() + ". " +
       "Kể diễn biến tự nhiên theo hành động người chơi, giữ đúng Entity, nhân vật và kết quả đã khóa. " +
-      "Nếu không có event đến hạn, chỉ kể diễn biến phù hợp. " +
-      "Không tự quyết định Combat, HP, EXP, Item, tạo Entity hay chuyển Checkpoint; Core xử lý. " +
-      "FINAL_ENTITY hoặc combatRequired=true: kể hết cảnh Entity xuất hiện, dừng ở thế đối đầu; " +
+      "Không có event thì kể tự nhiên dựa trên mạch truyện, lịch sử và hành động người chơi. " +
+      "Khám Phá và Thực Hiện đều là một Explorer Turn; phải kết hợp hành động người chơi " +
+      "với sự kiện trong CHÍNH Turn này, không dời, hủy hay cho nhân vật tự chọn thay người chơi. " +
+      "Không tự quyết định Combat, HP, EXP, Item, tạo Entity hay chuyển Checkpoint; gameplay Core xử lý. " +
+      "MỌI ENTITY và FINAL_ENTITY của Milestone đều bắt buộc Combat, không có cuộc gặp rồi bỏ đi. " +
+      "Gặp FOLLOWER/NPC phải mô tả cuộc gặp thực tế và có ít nhất một câu thoại trực tiếp của nhân vật. " +
+      "ENTITY và FINAL_ENTITY: kể cảnh Entity chạm trán, dừng ở thế đối đầu; " +
       "chưa kể đòn đánh, sát thương hay kết quả Combat trước khi người chơi nhấn Battle Start. " +
       "Không đưa event ID, ops, chứng cứ, kiểm định hay state vào lời kể. " +
-      "Chỉ trả JSON dạng {\"reply\":\"lời kể GM\"}.\n" +
+      "Chỉ trả JSON dạng {\"reply\":\"lời kể GM\",\"completedEventIds\":[\"ID các event thực sự kể trong lượt\"]}. " +
+      "completedEventIds PHẢI chứa chính xác các id đã đến hạn, không được xác nhận event bị bỏ qua.\n" +
       com.rabpit.backroom.core.knowledge.GmNarrativeVoicePolicy.prompt() +
       "\nACTION_TYPE: " + new JSONObject(requireGameCore().currentActionContext()).optString("kind", "EXECUTE") +
       "\nPLAYER_ACTION: " + action +
       "\nCORE_ROLLS_READ_ONLY: " + visibleRolls.toString() +
       "\nMILESTONE_HISTORY_READ_ONLY: " + requireGameCore().milestoneHistoryContext() +
       "\nCANON_READ_ONLY: " + canon;
+  }
+
+  /** Require Gehihi to acknowledge every scheduled event before a turn is committed. */
+  private void requireMilestoneNarration(JSONObject generated, JSONArray due, String reply) throws Exception {
+    JSONArray acknowledged = generated.optJSONArray("completedEventIds");
+    if (acknowledged == null || acknowledged.length() != due.length())
+      throw new Exception("milestone_narrative_events_missing");
+    java.util.HashSet<String> ids = new java.util.HashSet<>();
+    for (int i = 0; i < due.length(); i++) {
+      JSONObject event = due.getJSONObject(i);
+      String id = event.getString("id");
+      if (!ids.add(acknowledged.optString(i, "")) || !id.equals(acknowledged.optString(i, "")))
+        throw new Exception("milestone_narrative_event_mismatch");
+      String kind = event.optString("kind", "");
+      if ("FOLLOWER".equals(kind) || "NPC".equals(kind)) {
+        String name = event.optString("characterName", event.optString("characterId", ""));
+        String firstName = name.split(" ")[0].toLowerCase(java.util.Locale.ROOT);
+        String prose = reply.toLowerCase(java.util.Locale.ROOT);
+        if (firstName.isEmpty() || !prose.contains(firstName) ||
+            !(reply.contains("\\\"") || reply.contains("“") || reply.contains("—") || reply.contains("–")))
+          throw new Exception("milestone_character_dialogue_missing");
+      }
+    }
   }
 
   private interface CombatDiceCall { String run() throws Exception; }
@@ -1886,6 +1915,8 @@ public class MainActivity extends Activity {
           JSONObject generated = parseModelJson(generateText(writerPrompt(before, action, rolls)));
           String reply = generated.optString("reply", "").trim();
           if (reply.isEmpty()) throw new Exception("Gehihi không trả lời kể chuyện; lượt này không được ghi.");
+          if (!isMetaAction(action)) requireMilestoneNarration(generated,
+            new JSONArray(requireGameCore().milestoneDueEvents()), reply);
           if (meta) {
             requireGameCore().abortAction("meta_action");
             JSONObject view = new JSONObject(requireGameCore().currentClientState(currentView));
