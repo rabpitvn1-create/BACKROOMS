@@ -18,6 +18,30 @@ class StoryFactLedgerTest {
     JSONArray().put(JSONObject().put("op", "RESOLVE")
       .put("referenceId", id).put("fact", fact)).toString()
 
+  @Test fun gMStoryFactsSchemaIsCheckedBeforeEvidenceAndCoreCommit() {
+    val valid = add("CLUE", "fixture.clue.real", "TEST_ONLY confirmed clue")
+    assertEquals(1, StoryFactLedger.validateGmProposals(valid).length())
+    assertEquals(0, StoryFactLedger.validateGmProposals("[]").length())
+
+    // A valid array is not necessarily a valid proposal. Live GM has emitted
+    // entries whose "op" value is null, previously escaping Android repair.
+    for (invalid in listOf(
+      "[{\\"op\\":null,\\"kind\\":\\"CLUE\\",\\"subject\\":\\"fixture.x\\",\\"fact\\":\\"clue\\"}]",
+      "[{\\"kind\\":\\"CLUE\\",\\"subject\\":\\"fixture.x\\",\\"fact\\":\\"clue\\"}]",
+      "[{\\"op\\":\\"ADD\\",\\"kind\\":null,\\"subject\\":\\"fixture.x\\",\\"fact\\":\\"clue\\"}]",
+      "[{\\"op\\":\\"ADD\\",\\"kind\\":\\"CLUE\\",\\"subject\\":\\"fixture.x\\",\\"fact\\":\\"clue\\",\\"extra\\":1}]",
+      "[{\\"op\\":\\"RESOLVE\\",\\"referenceId\\":null,\\"fact\\":\\"done\\"}]"
+    )) {
+      assertThrows("Invalid GM entry must be rejected before commit: " + invalid,
+        Exception::class.java) { StoryFactLedger.validateGmProposals(invalid) }
+    }
+    val initial = initial()
+    assertThrows(IllegalArgumentException::class.java) {
+      StoryFactLedger.recordTurn(initial, emptyList(),
+        "[{\\"op\\":null,\\"kind\\":\\"CLUE\\",\\"subject\\":\\"fixture.x\\",\\"fact\\":\\"clue\\"}]")
+    }
+  }
+
   @Test fun storyFactNeverMutatesCharacterEquipmentCombatOrInventory() {
     val baseline = initial()
     val fixtureFact = "TEST_ONLY_FACT_A"
