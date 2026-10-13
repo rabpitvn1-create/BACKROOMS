@@ -1,0 +1,8 @@
+status=GREEN
+version=1.2.0.0.22
+tag=v1.2.0.0.22
+asset=Backroom-1.2.0.0.22.apk
+source_sha=b7929e0041cf5c01e8b6ec0bb01f794d3fb39633
+run_id=38421170874
+sha256=e1a2a44fdb440a8ea849e3b3bcbddae76fe1040772fc25e1da2e76b23ff93a3e
+build_type=debug
