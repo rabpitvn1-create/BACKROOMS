@@ -23,22 +23,24 @@ class StoryFactLedgerTest {
     assertEquals(1, StoryFactLedger.validateGmProposals(valid).length())
     assertEquals(0, StoryFactLedger.validateGmProposals("[]").length())
 
-    // A valid array is not necessarily a valid proposal. Live GM has emitted
-    // entries whose "op" value is null, previously escaping Android repair.
-    for (invalid in listOf(
-      "[{\\"op\\":null,\\"kind\\":\\"CLUE\\",\\"subject\\":\\"fixture.x\\",\\"fact\\":\\"clue\\"}]",
-      "[{\\"kind\\":\\"CLUE\\",\\"subject\\":\\"fixture.x\\",\\"fact\\":\\"clue\\"}]",
-      "[{\\"op\\":\\"ADD\\",\\"kind\\":null,\\"subject\\":\\"fixture.x\\",\\"fact\\":\\"clue\\"}]",
-      "[{\\"op\\":\\"ADD\\",\\"kind\\":\\"CLUE\\",\\"subject\\":\\"fixture.x\\",\\"fact\\":\\"clue\\",\\"extra\\":1}]",
-      "[{\\"op\\":\\"RESOLVE\\",\\"referenceId\\":null,\\"fact\\":\\"done\\"}]"
-    )) {
-      assertThrows("Invalid GM entry must be rejected before commit: " + invalid,
-        Exception::class.java) { StoryFactLedger.validateGmProposals(invalid) }
+    fun proposal(value: JSONObject) = JSONArray().put(value).toString()
+    val examples = listOf(
+      JSONObject().put("op", JSONObject.NULL).put("kind", "CLUE")
+        .put("subject", "fixture.x").put("fact", "clue"),
+      JSONObject().put("kind", "CLUE").put("subject", "fixture.x").put("fact", "clue"),
+      JSONObject().put("op", "ADD").put("kind", JSONObject.NULL)
+        .put("subject", "fixture.x").put("fact", "clue"),
+      JSONObject().put("op", "ADD").put("kind", "CLUE")
+        .put("subject", "fixture.x").put("fact", "clue").put("extra", 1),
+      JSONObject().put("op", "RESOLVE").put("referenceId", JSONObject.NULL).put("fact", "done")
+    )
+    examples.forEach { invalid ->
+      assertThrows(Exception::class.java) {
+        StoryFactLedger.validateGmProposals(proposal(invalid))
+      }
     }
-    val initial = initial()
     assertThrows(IllegalArgumentException::class.java) {
-      StoryFactLedger.recordTurn(initial, emptyList(),
-        "[{\\"op\\":null,\\"kind\\":\\"CLUE\\",\\"subject\\":\\"fixture.x\\",\\"fact\\":\\"clue\\"}]")
+      StoryFactLedger.recordTurn(initial(), emptyList(), proposal(examples.first()))
     }
   }
 
