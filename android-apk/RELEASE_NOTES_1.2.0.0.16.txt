@@ -1,0 +1,10 @@
+Backroom 1.2.0.0.16 Debug
+
+- Android versionCode 89; versionName 1.2.0.0.16; applicationId com.rabpit.backroom.
+- SOL Milestone tiếp tục dùng vgpt/gpt-6.1-sol, nhưng chuẩn hóa JSON từ chat-completions trước khi Game Core kiểm tra schema. Hỗ trợ JSON thuần hoặc JSON trong markdown fence, không nới lỏng luật gameplay.
+- Phát hiện SOL trả output bị cắt hoặc thiếu/không đúng định dạng; từ chối kế hoạch chưa đầy đủ trước khi lưu vào Core.
+- Phân loại lỗi SOL: HTTP/quota/xác thực, timeout, mạng, phản hồi không hợp lệ hoặc Core từ chối quota/schema. Popup hiển thị mã lỗi an toàn, không hiển thị API key hay nội dung response.
+- Milestone có timeout đọc 120 giây để đáp ứng 12.288 output tokens; giữ nguyên timeout và giới hạn 2.048 tokens của SOL GM writer.
+- Không thay đổi Core Milestone quota: tối thiểu 50 turn, 20 encounter, boss cuối, plan lease và quy tắc hồi đáp trễ.
+- APK Debug. CI có unit test SOL envelope/json và kiểm thử Android/Node; chưa thể khẳng định SOL live hoạt động hay suy ra nguyên nhân chính xác trên thiết bị khi chưa có log.
+- Không hỗ trợ save game cũ.
