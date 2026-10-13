@@ -173,7 +173,7 @@ class PendingEncounterConfirmationTest {
     assertNull(CombatRuntime.active(repo.state))
   }
 
-  @Test fun combatRequiredMustBeBooleanAndCannotBeAttachedToStoryMentions() {
+  @Test fun combatRequiredFlagIsForbiddenAndStoryMentionsCannotClaimEntityCombat() {
     val raw = JSONObject(plan())
     val entries = raw.getJSONArray("events")
     entries.getJSONObject(1).put("combatRequired", "true")
@@ -183,19 +183,19 @@ class PendingEncounterConfirmationTest {
     assertThrows(Exception::class.java) { StoryMilestonePlan.installCurrent(initial(), raw.toString()) }
   }
 
-  @Test fun mentionAndNonCombatDirectEncounterNeverCreateBattleStart() {
-    val mentioned = StoryMilestoneRuntime.acceptTurn(initial(false))
+  @Test fun storyMentionDoesNotStartCombatButScheduledEntityAlwaysDoes() {
+    val mentioned = StoryMilestoneRuntime.acceptTurn(initial())
     assertNull(CombatRuntime.pending(mentioned))
     assertNull(CombatRuntime.active(mentioned))
-    val repo = MemorySave(onEncounter(false))
-    val result = commit(repo, "Duller đứng ở xa rồi rời đi.")
+    val repo = MemorySave(onEncounter())
+    val result = commit(repo, "Duller bước tới chặn lối, Cao Minh chuẩn bị chiến đấu.")
     assertTrue(result.getBoolean("handled"))
-    assertFalse(result.getJSONObject("state").has("pendingEncounter"))
+    assertEquals("duller", result.getJSONObject("state").getJSONObject("pendingEncounter").getString("entityKey"))
     assertNull(CombatRuntime.active(repo.state))
   }
 
   @Test fun bossWaitsForConfirmationAndCheckpointOnlyAdvancesAfterDefeat() {
-    val due = TestCheckpointQuota.reachBoss(initial(false))
+    val due = TestCheckpointQuota.reachBoss(initial())
     val before = StoryMilestoneRuntime.acceptTurn(due)
     val pending = CombatRuntime.pending(before)!!
     assertNull(CombatRuntime.active(before))
@@ -203,7 +203,7 @@ class PendingEncounterConfirmationTest {
     assertEquals(CombatRuntime.active(CombatRuntime.start(GameState.initial(), "hound"))!!.entityMaxHp * 9, pending.entityMaxHp)
     assertEquals(before, StoryMilestoneRuntime.activateIfReady(before))
     val confirmed = CombatRuntime.confirmEncounter(CoreClientProjection.advance(before), pending.encounterId)
-    val prepared = StoryMilestonePlan.prepareNextDuringCombat(confirmed, plan(false, "CP-L00-02"))
+    val prepared = StoryMilestonePlan.prepareNextDuringCombat(confirmed, plan(true, "CP-L00-02"))
     assertEquals("CP-L00-01", StoryCheckpointCore.current(prepared)!!.id)
     val ended = CombatRuntime.resolve(prepared.copy(metadata = prepared.metadata + ("combat.entityHp" to "0")), "SEARCH", "quan sát")
     assertTrue(ended.entityDestroyed)

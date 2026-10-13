@@ -91,7 +91,7 @@ class StoryMilestonePlannerIntegrationTest {
     assertTrue(prompt.contains("Checkpoint"))
     assertFalse(prompt.contains("fake_entity"))
     assertTrue(prompt.length < 10000)
-    assertTrue(prompt.contains("\"schemaVersion\":2"))
+    assertTrue(prompt.contains("\"schemaVersion\":3"))
     assertTrue(prompt.contains("NEXT_CHECKPOINT"))
     val last = StoryMilestonePlannerPrompt.build("CP-L00-20", 1, "0", "", "", 20)
     assertTrue(last.contains("\"type\":\"EXIT_LEVEL\""))

@@ -24,9 +24,15 @@ object StoryMilestoneRuntime {
   /** History for GM/planner from committed SaveState events, not a parallel ledger. */
   fun continuityContext(state: GameState): String {
     val recent = java.util.ArrayDeque<JSONObject>()
+    val significant = java.util.ArrayDeque<JSONObject>()
     fun remember(item: JSONObject) {
       recent.addLast(item)
       if (recent.size > 12) recent.removeFirst()
+      val kind = item.optString("kind")
+      if (kind == "STORY" || kind == "FOLLOWER" || kind == "NPC") {
+        significant.addLast(item)
+        if (significant.size > 24) significant.removeFirst()
+      }
     }
     val checkpoints = JSONArray(state.world[CP_HISTORY] ?: "[]")
     for (i in 0 until checkpoints.length()) {
@@ -47,6 +53,7 @@ object StoryMilestoneRuntime {
       }
     }
     return JSONObject().put("recentCommittedEvents", JSONArray().apply { recent.forEach { put(it) } })
+      .put("significantStoryEvents", JSONArray().apply { significant.forEach { put(it) } })
       .apply {
         active?.let { put("activeStoryArc", it.plan.storyArc) }
         if (checkpoints.length() > 0) put("previousStoryArc",
