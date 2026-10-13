@@ -211,9 +211,29 @@ object CombatRuntime {
     Profile("hollow_grasper", "Hollow Grasper", LIFEFORM_BASE_MAX_HP, LIFEFORM_BASE_ATTACK, LIFEFORM_BASE_ARMOR, LIFEFORM_BASE_AGGRESSION),
   ).associateBy { it.key }
 
+  /** Single source of truth for Milestone final Entity eligibility. */
+  fun supportsEntityKey(key: String): Boolean = key in profiles
+
+  /** Gemini receives actual combat-supported Entity keys, not a separate lore-only roster. */
+  fun supportedEntityKeys(): List<String> = profiles.keys.sorted()
+
   fun active(state: GameState): Snapshot? = decode(state)?.takeIf { it.phase == Phase.ACTIVE }
 
   fun start(state: GameState, entityKey: String): GameState = startWaves(state, listOf(entityKey))
+
+  /** The final Milestone Entity is a single verified Combat instance. */
+  fun startMilestoneBoss(state: GameState, entityKey: String): GameState {
+    require(active(state) == null) { "milestone_combat_already_active" }
+    val started = start(state, entityKey)
+    val fight = requireNotNull(active(started)) { "milestone_entity_unsupported" }
+    val hp = (fight.entityMaxHp.toLong() * StoryMilestonePlan.FINAL_HP_MULTIPLIER)
+      .coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+    return started.copy(metadata = started.metadata + mapOf(
+      "combat.entityHp" to hp.toString(),
+      "combat.entityMaxHp" to hp.toString(),
+      "combat.milestoneBoss" to fight.encounterId
+    ))
+  }
 
   /** Only explicitly composed encounters contain multiple Entities. */
   fun startWaves(state: GameState, entityKeys: List<String>): GameState {
@@ -982,7 +1002,11 @@ object CombatRuntime {
     }
     if (c.escapeProgress >= 100) {
       val persisted = afterActiveLeaderTurn(encode(resolvedState, c.copy(phase = Phase.RESOLVED)))
-      val cleared = clearCombatOnly(persisted)
+      val suspended = if (persisted.world["story.milestone.bossEncounter"] == c.encounterId) {
+        persisted.copy(world = persisted.world + ("story.milestone.suspendedBoss" to
+          JSONObject(persisted.metadata.filterKeys { it.startsWith(PREFIX) }).toString()))
+      } else persisted
+      val cleared = clearCombatOnly(suspended)
       return Resolution(cleared, true, log.joinToString(" ") + " Cao Minh cắt được truy đuổi và thoát khỏi encounter.", escaped = true, feedback = feedback.toList(), turnCues = presentedCues())
     }
 
@@ -1207,6 +1231,30 @@ object CombatRuntime {
 
   fun clear(state: GameState): GameState = clearCombatOnly(state)
 
+  /** Resume the same instance without multiplying HP or issuing new rewards. */
+  fun resumeMilestoneBoss(state: GameState): GameState {
+    require(active(state) == null) { "milestone_combat_already_active" }
+    val packed = JSONObject(requireNotNull(state.world["story.milestone.suspendedBoss"]))
+    val restored = packed.keys().asSequence().associateWith { key ->
+      require(key.startsWith(PREFIX)) { "milestone_suspended_combat_fields_invalid" }
+      packed.getString(key)
+    }
+    require(restored["${PREFIX}encounterId"] == state.world["story.milestone.bossEncounter"]) {
+      "milestone_suspended_encounter_mismatch"
+    }
+    require(restored["${PREFIX}entityKey"] == StoryMilestonePlan.current(state)?.plan?.finalEncounter?.entityKey &&
+      !state.metadata.containsKey("exp.awarded.${restored["${PREFIX}encounterId"]}")) {
+      "milestone_suspended_boss_invalid"
+    }
+    val resumed = state.copy(
+      metadata = state.metadata + restored + mapOf("${PREFIX}phase" to Phase.ACTIVE.name,
+        "${PREFIX}escapeProgress" to "0"),
+      world = state.world - "story.milestone.suspendedBoss"
+    )
+    require(requireNotNull(active(resumed)).entityHp > 0) { "milestone_suspended_boss_not_alive" }
+    return resumed
+  }
+
   private fun waveKeys(state: GameState, currentKey: String): List<String> =
     state.metadata[WAVE_KEYS]?.split('|')?.takeIf { keys ->
       keys.size in 1..4 && keys.all { it in profiles }
@@ -1238,7 +1286,9 @@ object CombatRuntime {
     val persisted = encode(state, c.copy(phase = Phase.RESOLVED, entityCondition = EntityCondition.DESTROYED))
     val withPassive = if (leaderPassive) afterActiveLeaderTurn(persisted) else persisted
     val instanceId = if (queue.size == 1) c.encounterId else "${c.encounterId}:wave:$index"
-    val exp = EntityExpRewards.award(withPassive, instanceId, c.progressionRank)
+    val expMultiplier = if (state.metadata["combat.milestoneBoss"] == c.encounterId &&
+      queue.size == 1) StoryMilestonePlan.FINAL_EXP_MULTIPLIER else 1
+    val exp = EntityExpRewards.award(withPassive, instanceId, c.progressionRank, expMultiplier)
     val loot = OfflineEntityLoot.award(exp.state, instanceId, c.seed)
     val resultText = "$log ${c.entityName} đã bị tiêu diệt. ${exp.text} ${loot.text}".trim()
     if (index + 1 == queue.size) {
@@ -1484,3 +1534,5 @@ object CombatRuntime {
   private fun positiveMod(value: Long, bound: Int): Int = ((value and Long.MAX_VALUE) % bound.toLong()).toInt()
   private inline fun <reified T : Enum<T>> enumOr(fallback: T, raw: String?): T = enumValues<T>().firstOrNull { it.name == raw } ?: fallback
 }
+
+

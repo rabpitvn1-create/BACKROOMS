@@ -1,3 +1,5 @@
+> **Trạng thái tích hợp 2026-10-13:** Canon retrieval và các kiểm thử đã vào main qua PR #595 (`820038c8`). Báo cáo audit dưới đây được giữ nguyên theo mốc lịch sử của nó; 42 provenance legacy và các khoảng trống Canon vẫn deferred. PR #590 bổ sung báo cáo này và đối chiếu nhánh cũ với main hiện hành, không thay thế runtime hoặc luật 50 turn/20 encounter mỗi CP.
+
 # Fake Sandbox · Bước 1/10 · Audit Canon R02
 
 **Phạm vi:** chỉ kiểm toán ba miền CHARACTER / LEVEL / ENTITY, tổ chức và truy nguyên nguồn, phát hiện thiếu / trùng / xung đột và kiểm tra đường truy xuất GM. **Không sửa gameplay, Canon nguồn, prompt GM, kịch bản, Combat hay Inventory.**
