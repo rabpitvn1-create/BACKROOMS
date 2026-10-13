@@ -10,7 +10,10 @@ object TestMilestoneTurn {
       (0 until values.length()).map { values.getString(it) }
     }
     require(StoryMilestoneRuntime.due(state).map { it.id } == expected) { "test_expected_due_mismatch" }
-    return StoryMilestoneRuntime.acceptTurn(state)
+    val committed = StoryMilestoneRuntime.acceptTurn(state)
+    // Existing Boss-resolution fixtures explicitly include the player's confirmation.
+    val pending = CombatRuntime.pending(committed) ?: return committed
+    return CombatRuntime.confirmEncounter(committed, pending.encounterId)
   }
 }
 

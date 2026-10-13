@@ -48,7 +48,12 @@ test('AI may only introduce the Entity selected by the authoritative roll', () =
   assert.match(main, /JSONObject candidateState = applyModelOperations\(before, new JSONArray\(\), rolls, action\)/);
   assert.doesNotMatch(main, /generated\.optJSONArray\("ops"\)/);
   const runtime = fs.readFileSync(path.join(root, 'app/src/main/java/com/rabpit/backroom/core/StoryMilestoneRuntime.kt'), 'utf8');
-  assert.match(runtime, /val ordinaryEntity = required\.lastOrNull \{ it\.kind == StoryMilestonePlan\.Kind\.ENTITY \}/);
-  assert.match(runtime, /"entityEncounterKey", requireNotNull\(ordinaryEntity\.entityKey\)/);
+  assert.match(runtime, /val encounter = required\.singleOrNull \{ it\.combatRequired \}/);
+  assert.match(runtime, /CombatRuntime\.prepareEncounter\(working, requireNotNull\(encounter\.entityKey\)/);
+  assert.doesNotMatch(runtime, /CombatRuntime\.startMilestoneBoss\(/);
+  const facade = fs.readFileSync(path.join(root, 'app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt'), 'utf8');
+  assert.match(facade, /val key = rolls\.optString\("selectedEntityKey"\)/);
+  assert.match(facade, /CombatRuntime\.prepareEncounter\(applied, rolledEntity,/);
+  assert.doesNotMatch(main, /requireGameCore\(\)\.startCombatState\(/);
   assert.doesNotMatch(main, /theo tỷ lệ Level|roaming\/incursion cực hiếm|Entity gồm Hound/);
 });

@@ -21,6 +21,8 @@ class GameCoreFacade private constructor(
   @Synchronized fun processRule(clientStateJson: String, action: String): String {
     val client = JSONObject(clientStateJson)
     val state = loadCurrentState()
+    if (CombatRuntime.pending(state) != null) return response(false, clientSnapshot(client, state),
+      "encounter_confirmation_required", "encounter_confirmation_required")
     if (StoryMilestoneRuntime.due(state).isNotEmpty()) return response(
       false, clientSnapshot(client, state), "milestone_requires_gm", "milestone_requires_gm")
     if (blocksTextItemAction(action)) return response(true, clientSnapshot(client, state), "item_ui_required", "item_ui_required", "Hãy nhấn vào item và chọn Dùng, Chuyển hoặc Bỏ.")
@@ -152,6 +154,8 @@ class GameCoreFacade private constructor(
   @Synchronized fun beginAction(clientStateJson: String, kindRaw: String, action: String): String {
     val client = JSONObject(clientStateJson)
     val state = loadCurrentState()
+    if (CombatRuntime.pending(state) != null)
+      return actionStartResponse(false, null, "encounter_confirmation_required")
     if (MadGodCanon.cheat(action)) return actionStartResponse(true,null,null)
     val kind = enumValues<ActionKind>().firstOrNull { it.name == kindRaw.trim().uppercase() }
       ?: return actionStartResponse(false, null, "action_kind_invalid")
@@ -366,12 +370,17 @@ class GameCoreFacade private constructor(
    * Candidate prose/JSON never becomes storage directly: inventory and party are rebuilt
    * from commands and then projected back onto the UI state.
    */
-  @Synchronized fun processValidatedCandidate(
-    beforeJson: String, candidateJson: String, action: String
+  @JvmOverloads @Synchronized fun processValidatedCandidate(
+    beforeJson: String, candidateJson: String, action: String, narrative: String = ""
   ): String {
     val before = JSONObject(beforeJson)
     val candidate = JSONObject(candidateJson)
     val core = loadCurrentState()
+    if (CombatRuntime.pending(core) != null || CombatRuntime.active(core) != null)
+      return response(false, clientSnapshot(before, core), "encounter_unresolved", "gemini_delta_rejected")
+    val rolledEntity = rolledCombatEntity(core, candidate)
+    if ((StoryMilestoneRuntime.due(core).any { it.combatRequired } || rolledEntity != null) && narrative.isBlank())
+      return response(false, clientSnapshot(before, core), "encounter_narrative_missing", "gemini_delta_rejected")
     if (before.optInt("turn", -1) != CoreClientProjection.turnIndex(core))
       return response(false, clientSnapshot(before, core), "stale_client_state", "gemini_delta_rejected")
     if (StoryCheckpointCore.current(core) != null) {
@@ -476,12 +485,32 @@ class GameCoreFacade private constructor(
       return response(false, before, committed.error, "gemini_delta_rejected")
     }
     val protectedState = CharacterProgressionCore.protectFromCandidate(pending.state, committed.state)
-    val applied = StoryMilestoneRuntime.acceptTurn(protectedState)
+    var applied = StoryMilestoneRuntime.acceptTurn(protectedState)
+    if (rolledEntity != null) {
+      val serial = (applied.metadata["loot.encounterSerial"]?.toLongOrNull() ?: 0L) + 1L
+      applied = CombatRuntime.prepareEncounter(applied, rolledEntity, "ROLL:$serial:$turnId:$rolledEntity", false)
+    }
+    CombatRuntime.pending(applied)?.let { encounter ->
+      applied = applied.copy(metadata = applied.metadata + ("combat.encounterNarrative" to
+        JSONObject().put("role", "gm").put("text", narrative)
+          .put("encounterId", encounter.encounterId).toString()))
+    }
     val accepted = CoreClientProjection.advance(applied)
     repository.save(accepted)
     val synchronized = clientSnapshot(candidate, accepted)
     logger.log(PipelineLogEvent("GEMINI_COMMIT", turnId = turnId, source = CommandSource.GEMINI, details = mapOf("commands" to commands.size.toString())))
     return response(true, synchronized, null, "gemini_delta_committed")
+  }
+
+  private fun rolledCombatEntity(state: GameState, candidate: JSONObject): String? {
+    if (StoryMilestoneRuntime.hasPlan(state)) return null
+    val rolls = candidate.optJSONObject("flags")?.optJSONObject("lastRolls") ?: return null
+    val roll = rolls.optJSONObject("entityEncounter") ?: return null
+    if (rolls.optBoolean("meta", false) || rolls.optInt("turn", -1) != CoreClientProjection.turnIndex(state) ||
+      !roll.optBoolean("eligible", false) || !roll.optBoolean("success", false)) return null
+    val key = rolls.optString("selectedEntityKey")
+    require(CombatRuntime.supportsEntityKey(key)) { "encounter_entity_unsupported" }
+    return key
   }
 
 
@@ -492,6 +521,21 @@ class GameCoreFacade private constructor(
     val next = CombatRuntime.start(current, entityKey)
     repository.save(next)
     return clientSnapshot(client, next).toString()
+  }
+
+  @Synchronized fun confirmEncounter(clientStateJson: String, encounterId: String): String {
+    val client = JSONObject(clientStateJson)
+    val current = loadCurrentState()
+    if (client.optInt("turn", -1) != CoreClientProjection.turnIndex(current) ||
+      current.world["story.runToken"]?.let { it != client.optJSONObject("story")?.optString("runToken") } == true)
+      return response(false, clientSnapshot(client, current), "stale_client_state", "encounter_confirmation_rejected")
+    return try {
+      val next = CombatRuntime.confirmEncounter(current, encounterId)
+      if (next != current) repository.save(next)
+      response(true, clientSnapshot(client, next), null, "encounter_confirmed")
+    } catch (error: IllegalArgumentException) {
+      response(false, clientSnapshot(client, current), error.message, "encounter_confirmation_rejected")
+    }
   }
 
   @Synchronized fun processCombat(clientStateJson: String, actionKind: String, action: String): String {
@@ -780,6 +824,7 @@ class GameCoreFacade private constructor(
     val client = JSONObject(clientStateJson)
     val state = loadCurrentState()
     fun reject(reason: String): String = response(false, clientSnapshot(client, state), reason, "item_ui_rejected", validationReply(reason))
+    if (CombatRuntime.pending(state) != null) return reject("encounter_confirmation_required")
     if (client.optInt("turn", -1) != CoreClientProjection.turnIndex(state)) return reject("stale_client_state")
     if (StoryMilestoneRuntime.due(state).isNotEmpty() || StoryMilestoneRuntime.awaitingPlan(state))
       return reject("milestone_requires_gm")

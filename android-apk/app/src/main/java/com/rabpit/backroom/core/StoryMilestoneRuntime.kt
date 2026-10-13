@@ -6,7 +6,7 @@ import org.json.JSONObject
 /**
  * Authoritative, saved checkpoint dispatcher. Events are read from the
  * installed SOL plan on each committed Core turn, never from GM claims.
- * Only FINAL_ENTITY starts the special Boss Combat.
+ * Combat encounters wait in Core until the player confirms Battle Start.
  */
 object StoryMilestoneRuntime {
   private const val APPLIED = "story.milestone.applied"
@@ -102,9 +102,9 @@ object StoryMilestoneRuntime {
   /** Identity is issued by Core; repeated receipts/load/retry keep the same instance. */
   fun entityEncounterId(state: GameState, event: StoryMilestonePlan.Event): String {
     require(event.isEntityEncounter) { "milestone_not_entity_encounter" }
-    if (event.kind == StoryMilestonePlan.Kind.FINAL_ENTITY) return requireNotNull(state.world[BOSS])
     val active = requireNotNull(StoryMilestonePlan.current(state))
-    return "MSENC:" + digest(JSONObject().put("visit", state.world["story.levelVisitId"] ?: "INITIAL")
+    return (if (event.kind == StoryMilestonePlan.Kind.FINAL_ENTITY) "MSBOSS:" else "MSENC:") +
+      digest(JSONObject().put("visit", state.world["story.levelVisitId"] ?: "INITIAL")
       .put("checkpoint", active.plan.checkpointId).put("start", active.startTurn).put("event", event.id).toString())
   }
 
@@ -118,26 +118,21 @@ object StoryMilestoneRuntime {
   fun acceptTurn(state: GameState): GameState {
     val required = due(state)
     if (required.isEmpty()) return state
+    require(CombatRuntime.pending(state) == null && CombatRuntime.active(state) == null) {
+      "milestone_encounter_unresolved"
+    }
     var working = state
     val boss = required.lastOrNull { it.kind == StoryMilestonePlan.Kind.FINAL_ENTITY }
     if (boss != null) {
-      require(CombatRuntime.active(working) == null && BOSS !in working.world) {
+      require(BOSS !in working.world) {
         "milestone_boss_already_started"
       }
-      working = CombatRuntime.startMilestoneBoss(working, requireNotNull(boss.entityKey))
-      val fight = requireNotNull(CombatRuntime.active(working))
-      val flags = JSONObject(working.world["flagsJson"] ?: "{}")
-        .put("entityEncounterKey", fight.entityKey)
-      working = working.copy(world = working.world + mapOf(
-        BOSS to fight.encounterId, "flagsJson" to flags.toString()
-      ))
+      working = working.copy(world = working.world + (BOSS to entityEncounterId(state, boss)))
     }
-    val ordinaryEntity = required.lastOrNull { it.kind == StoryMilestonePlan.Kind.ENTITY }
-    if (ordinaryEntity != null) {
-      // Present the SOL-authored encounter without letting GM invent or start Combat.
-      val flags = JSONObject(working.world["flagsJson"] ?: "{}")
-        .put("entityEncounterKey", requireNotNull(ordinaryEntity.entityKey))
-      working = working.copy(world = working.world + ("flagsJson" to flags.toString()))
+    val encounter = required.singleOrNull { it.combatRequired }
+    if (encounter != null) {
+      working = CombatRuntime.prepareEncounter(working, requireNotNull(encounter.entityKey),
+        entityEncounterId(state, encounter), encounter.kind == StoryMilestonePlan.Kind.FINAL_ENTITY)
     }
     val applied = JSONArray().apply {
       appliedIds(state).sorted().forEach { put(it) }
@@ -307,6 +302,28 @@ object StoryMilestoneRuntime {
       if (event.isEntityEncounter) require(item.optString("encounterId") == entityEncounterId(state, event)) {
         "milestone_saved_encounter_invalid"
       }
+    }
+    CombatRuntime.pending(state)?.let { pending ->
+      val event = active?.plan?.events?.singleOrNull {
+        it.id in applied && it.combatRequired && entityEncounterId(state, it) == pending.encounterId
+      }
+      if (active != null) {
+        require(event != null && event.entityKey == pending.entityKey &&
+          (event.kind != StoryMilestonePlan.Kind.FINAL_ENTITY || state.world[BOSS] == pending.encounterId)) {
+          "milestone_pending_encounter_invalid"
+        }
+      } else {
+        val rolls = JSONObject(state.world["flagsJson"] ?: "{}").getJSONObject("lastRolls")
+        val roll = rolls.getJSONObject("entityEncounter")
+        require(roll.getBoolean("eligible") && roll.getBoolean("success") && !rolls.optBoolean("meta", false) &&
+          rolls.getInt("turn") == CoreClientProjection.turnIndex(state) - 1 &&
+          rolls.getString("selectedEntityKey") == pending.entityKey &&
+          pending.encounterId == "ROLL:${state.metadata["loot.encounterSerial"]}:${state.turn.currentTurnId}:${pending.entityKey}") {
+          "rolled_pending_encounter_invalid"
+        }
+      }
+      require(pending.eventCounter == 0 && pending.entityHp == pending.entityMaxHp &&
+        !state.metadata.containsKey("exp.awarded.${pending.encounterId}")) { "milestone_pending_combat_progress_invalid" }
     }
     val stats = statsJson(state)
     require(stats.getInt("version") == 1 && listOf("committedEvents", "defeatedBosses",
