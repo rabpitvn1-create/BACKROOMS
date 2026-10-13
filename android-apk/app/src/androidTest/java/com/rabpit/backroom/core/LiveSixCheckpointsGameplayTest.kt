@@ -16,7 +16,7 @@ import org.junit.runner.RunWith
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-/** Actual APK gameplay for CP1 and CP2; SOL planner, Gehihi writer, no fake receipts or damage. */
+/** Play one full Checkpoint using real SOL/Gehihi and actual UI Combat. */
 @RunWith(AndroidJUnit4::class)
 class LiveSixCheckpointsGameplayTest {
   private val instrumentation = InstrumentationRegistry.getInstrumentation()
@@ -74,6 +74,9 @@ class LiveSixCheckpointsGameplayTest {
           milestoneMessage:String(document.getElementById('milestoneLoadingMessage')?.textContent||'').slice(0,180),
           blocked:!!window.__milestoneBlocked,
           busy:typeof busy!=='undefined'&&!!busy,
+          pending:!!s.pendingEncounter,pendingId:String(s.pendingEncounter&&s.pendingEncounter.encounterId||''),
+          battleReady:!!document.getElementById('battleStartButton'),
+          gmLast:(function(){var log=(s.log||[]).filter(function(x){return x.role==='gm'});return log.length?String(log[log.length-1].text||'').slice(0,140):'';})(),
           combat:c.active===true,diceReady:!!c.diceState,diceFinal:d.finalized===true,
           diceBusy:!!window.__combatDiceBusy||!!window.__combatFeedbackBusy,
           canFinish:!!finish&&!finish.disabled,
@@ -96,7 +99,7 @@ class LiveSixCheckpointsGameplayTest {
       })();
     """.trimIndent()) == "true"
 
-  @Test fun playFirstTwoCheckpointsWithRealProvidersAndUi() {
+  @Test fun playOneCheckpointWithRealProvidersAndUi() {
     assertTrue("Only SOL Milestone and Gehihi GM are allowed in this live test",
       BuildConfig.DEBUG && BuildConfig.TWO_PROVIDER_GAMEPLAY_TEST)
     assertTrue("SOL is required", BuildConfig.SOL_API_KEY.isNotBlank())
@@ -120,6 +123,8 @@ class LiveSixCheckpointsGameplayTest {
     var diceAt = 0L
     var explorerActions = 0
     var combatFinishes = 0
+    val battleStartIds = linkedSetOf<String>()
+    val gmSamples = linkedSetOf<String>()
     var lastHeartbeatAt = started
     // Record recoverable UI errors; do not stop the playtest while a normal retry can proceed.
     var observedErrorEvents = 0
@@ -143,6 +148,10 @@ class LiveSixCheckpointsGameplayTest {
         val combat = ui.optBoolean("combat")
         val now = SystemClock.elapsedRealtime()
         if (cp != priorCp || turn != priorTurn) {
+          if (cp == "CP-L00-01" && gmSamples.size < 8) {
+            val sample = ui.optString("gmLast").trim()
+            if (sample.length >= 30) gmSamples.add(sample)
+          }
           Log.i(tag, "CP=" + cp + " ExplorerTurn=" + turn + " combat=" + combat +
             " elapsedSec=" + (now - started) / 1000)
           priorCp = cp
@@ -178,24 +187,50 @@ class LiveSixCheckpointsGameplayTest {
           }
         }
 
-        // CP1 and CP2 must be completed, including actual Boss combat.
-        if (cp == "CP-L00-03") {
+        // Exactly one full chapter, including all mandatory encounters and its own Boss.
+        if (cp == "CP-L00-02") {
           val stored = SharedPreferencesSaveRepository(context).load()
           val history = org.json.JSONArray(stored.world["story.checkpointHistory"] ?: "[]")
-          assertEquals(2, history.length())
-          for (i in 0..1) {
-            val item = history.getJSONObject(i)
-            assertEquals("CP-L00-" + (i + 1).toString().padStart(2, '0'), item.getString("checkpointId"))
-            assertTrue(item.getLong("turnCount") >= 50L)
-            assertTrue(item.getInt("entityEncounterCount") >= 20)
-            assertEquals(item.getInt("entityEncounterCount") + 1, item.getJSONArray("entityEncounterRefs").length())
-            assertTrue(item.getString("storyArc").length in 200..750)
-            assertEquals("DEFEATED", item.getString("bossResult"))
+          assertEquals(1, history.length())
+          val chapter = history.getJSONObject(0)
+          assertEquals("CP-L00-01", chapter.getString("checkpointId"))
+          assertTrue(chapter.getLong("turnCount") >= 50L)
+          assertTrue(chapter.getInt("entityEncounterCount") >= 20)
+          assertEquals(chapter.getInt("entityEncounterCount") + 1, chapter.getJSONArray("entityEncounterRefs").length())
+          assertTrue(chapter.getString("storyArc").length in 200..750)
+          assertEquals("DEFEATED", chapter.getString("bossResult"))
+          val events = chapter.getJSONArray("events")
+          val entities = mutableListOf<String>()
+          val followers = mutableListOf<String>()
+          val storyEvents = mutableListOf<String>()
+          for (i in 0 until events.length()) {
+            val event = events.getJSONObject(i)
+            when (event.getString("kind")) {
+              "ENTITY" -> entities.add(event.getInt("turn").toString() + ":" + event.getString("entityKey") +
+                ":" + event.getString("event").take(75))
+              "FOLLOWER", "NPC" -> followers.add(event.getString("kind") + ":" + event.getString("characterId") +
+                ":" + event.getString("event").take(75))
+              "STORY" -> storyEvents.add(event.getString("event").take(75))
+            }
           }
+          assertTrue("Every Entity encounter needs a real Battle Start", battleStartIds.size >= 21)
+          assertTrue("GM should write individual narration, not a fixed fixture", gmSamples.size >= 4)
+          assertTrue("Entity encounters must have different circumstances",
+            entities.map { it.substringAfterLast(":") }.toSet().size >= 3)
           StoryMilestoneRuntime.validateStoredState(stored)
-          Log.i(tag, "LIVE_2CP_PASS explorerActions=" + explorerActions +
-            " combatFinishes=" + combatFinishes + " totalTimeouts=" + totalTimeouts +
-            " recoverableIssues=" + issues.size)
+          val summary = JSONObject().put("checkpoint", chapter.getString("checkpointId"))
+            .put("turns", chapter.getLong("turnCount"))
+            .put("regularEncounters", chapter.getInt("entityEncounterCount"))
+            .put("battleStarts", battleStartIds.size)
+            .put("storyArc", chapter.getString("storyArc"))
+            .put("entitySequence", entities.joinToString("|").take(1000))
+            .put("followerSequence", followers.joinToString("|").take(400))
+            .put("storyEvents", storyEvents.joinToString("|").take(650))
+            .put("gmSamples", org.json.JSONArray(gmSamples.toList()))
+          Log.i(tag, "LIVE_ONE_CP_SUMMARY=" + summary.toString())
+          Log.i(tag, "LIVE_ONE_CP_PASS explorerActions=" + explorerActions +
+            " battleStarts=" + battleStartIds.size + " combatFinishes=" + combatFinishes +
+            " totalTimeouts=" + totalTimeouts + " recoverableIssues=" + issues.size)
           issues.forEachIndexed { index, issue -> Log.i(tag, "RECOVERABLE_$index " + issue) }
           return
         }
@@ -219,7 +254,7 @@ class LiveSixCheckpointsGameplayTest {
           Thread.sleep(1000)
           continue
         }
-        if (cp.isNotEmpty() && cp != "CP-L00-01" && cp != "CP-L00-02")
+        if (cp.isNotEmpty() && cp != "CP-L00-01")
           fail("LIVE_UNEXPECTED_CP=" + cp + " Turn=" + turn)
         // An actual writer + independent audits + one repair + evidence verifier can
         // legitimately exceed nine minutes during provider 503/timeout failover.
@@ -250,7 +285,15 @@ class LiveSixCheckpointsGameplayTest {
             " status=" + ui.optString("status") +
             " loading=" + ui.optString("milestoneMessage") + " issues=" + issues.size)
 
-        if (combat) {
+        if (ui.optBoolean("pending")) {
+          val encounterId = ui.optString("pendingId")
+          if (!ui.optBoolean("busy") && encounterId.isNotBlank() && !ui.optBoolean("blocked") &&
+              ui.optBoolean("battleReady") && click(web, "battleStartButton")) {
+            battleStartIds.add(encounterId)
+            actionAt = now
+            lastChangeAt = now
+          }
+        } else if (combat) {
           if (now - diceAt > 1500 && ui.optBoolean("diceReady") && !ui.optBoolean("diceFinal") &&
             !ui.optBoolean("diceBusy") && ui.optBoolean("canFinish")) {
             if (click(web, "pokerDiceFinish")) {
