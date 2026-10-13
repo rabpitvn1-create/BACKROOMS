@@ -52,7 +52,23 @@ class MilestoneEncounterFlowTest {
     val result = JSONObject(core.processValidatedCandidate(before.toString(), candidate.toString(), "Khám Phá", "Một bóng người bước ra.\n\nCao Minh dừng lại."))
     assertTrue(result.toString(), result.getBoolean("handled")); return result.getJSONObject("state")
   }
-  private fun reach(core: GameCoreFacade, turn: Int) { while (view(core).getInt("turn") < turn) commit(core) }
+  /** Synthetic victory: resolve a mandatory ordinary encounter without consuming Explorer Turns. */
+  private fun finishCombat(repo: MemorySave) {
+    val pending = requireNotNull(CombatRuntime.pending(repo.state))
+    val active = CombatRuntime.confirmEncounter(repo.state, pending.encounterId)
+    val outcome = CombatRuntime.resolve(active.copy(metadata = active.metadata +
+      ("combat.entityHp" to "0")), "SEARCH", "TEST_ONLY resolve ordinary Entity")
+    assertTrue(outcome.entityDestroyed)
+    repo.state = StoryMilestoneRuntime.afterCombat(outcome.state, pending.encounterId, true, false)
+    assertNull(CombatRuntime.pending(repo.state))
+    assertNull(CombatRuntime.active(repo.state))
+  }
+  private fun reach(core: GameCoreFacade, repo: MemorySave, turn: Int) {
+    while (view(core).getInt("turn") < turn) {
+      if (CombatRuntime.pending(repo.state) != null) finishCombat(repo)
+      commit(core)
+    }
+  }
 
   @Test fun plannerLeaseContainsActualRegisteredNpcIdsAndNames() {
     val state = initial().let { it.copy(world = it.world - "story.milestone.active") }
@@ -65,7 +81,7 @@ class MilestoneEncounterFlowTest {
 
   @Test fun luciaTurnThreeAndHoundTurnFiveExecuteWithoutNamesOrRandomDecisions() {
     val repo = MemorySave(initial()); val core = facade(repo)
-    reach(core, 3)
+    reach(core, repo, 3)
     assertFalse(repo.state.characters.getValue(LUCIA_ID).metadata.containsKey("encountered"))
     val scheduled = JSONArray(core.milestoneDueEvents()).getJSONObject(0)
     val lucia = commit(core) { candidate -> candidate.getJSONObject("flags").put("lastRolls", JSONObject()
@@ -73,9 +89,11 @@ class MilestoneEncounterFlowTest {
     assertEquals(scheduled.getString("encounterId"), repo.state.characters.getValue(LUCIA_ID).metadata["encounterId"])
     assertEquals("3", repo.state.characters.getValue(LUCIA_ID).metadata["encounterTurn"])
     assertEquals(0, lucia.getJSONArray("party").length())
-    commit(core)
+    val duller = commit(core)
     assertTrue(JSONObject(repo.state.world.getValue("story.milestone.eventRecords")).has("encounter2"))
-    assertNull(CombatRuntime.pending(repo.state)); assertNull(CombatRuntime.active(repo.state))
+    assertEquals("duller", duller.getJSONObject("pendingEncounter").getString("entityKey"))
+    assertNull(CombatRuntime.active(repo.state))
+    finishCombat(repo)
     val hound = commit(core) { candidate -> candidate.getJSONObject("flags").put("lastRolls", JSONObject()
       .put("selectedEntityKey", "duller").put("entityEncounter", JSONObject().put("success", false))) }
     assertEquals("hound", hound.getJSONObject("pendingEncounter").getString("entityKey"))
@@ -86,7 +104,7 @@ class MilestoneEncounterFlowTest {
   }
 
   @Test fun multipleDueEventsKeepAcceptedOrderAndEachCommitsOnce() {
-    val repo = MemorySave(initial()); val core = facade(repo); reach(core, 5)
+    val repo = MemorySave(initial()); val core = facade(repo); reach(core, repo, 5)
     val due = StoryMilestoneRuntime.due(repo.state)
     assertEquals(listOf("encounter1", "iris5", "npc5", "story5"), due.map { it.id })
     commit(core)
@@ -98,7 +116,7 @@ class MilestoneEncounterFlowTest {
   }
 
   @Test fun failedNarrationAndRetryKeepTheSameDueEncounterWithoutPartialCommit() {
-    val repo = MemorySave(initial()); val core = facade(repo); reach(core, 3)
+    val repo = MemorySave(initial()); val core = facade(repo); reach(core, repo, 3)
     val due = core.milestoneDueEvents()
     repeat(2) {
       assertTrue(JSONObject(core.beginAction(view(core).toString(), "EXPLORE", "Khám Phá")).getBoolean("handled"))
@@ -115,7 +133,7 @@ class MilestoneEncounterFlowTest {
   }
 
   @Test fun staleTurnCannotReplayMeetingAndMissedTurnCannotExecuteLate() {
-    val repo = MemorySave(initial()); val core = facade(repo); reach(core, 3)
+    val repo = MemorySave(initial()); val core = facade(repo); reach(core, repo, 3)
     val old = view(core); commit(core); val once = repo.state
     assertFalse(JSONObject(core.processValidatedCandidate(old.toString(), old.toString(), "Khám Phá", "Lời kể")).getBoolean("handled"))
     assertEquals(once, repo.state)
@@ -125,7 +143,7 @@ class MilestoneEncounterFlowTest {
   }
 
   @Test fun meetingAndRecruitmentAreSeparateAndSaveLoadPreservesBothAndPendingCombat() {
-    val repo = MemorySave(initial()); val core = facade(repo); reach(core, 3); val meeting = commit(core)
+    val repo = MemorySave(initial()); val core = facade(repo); reach(core, repo, 3); val meeting = commit(core)
     val beforeJoin = repo.state
     val joined = JSONObject(core.recruitFollower(meeting.toString(), LUCIA_ID))
     assertTrue(joined.toString(), joined.getBoolean("handled"))
@@ -135,7 +153,10 @@ class MilestoneEncounterFlowTest {
     val once = repo.state
     assertTrue(JSONObject(core.recruitFollower(joined.getJSONObject("state").toString(), LUCIA_ID)).getBoolean("handled"))
     assertEquals(once, repo.state)
-    commit(core); val pending = commit(core)
+    val duller = commit(core)
+    assertEquals("duller", duller.getJSONObject("pendingEncounter").getString("entityKey"))
+    finishCombat(repo)
+    val pending = commit(core)
     val id = pending.getJSONObject("pendingEncounter").getString("encounterId")
     assertTrue(JSONObject(core.saveManualCheckpoint(pending.toString())).getBoolean("ok"))
     val restored = JSONObject(core.loadManualCheckpoint()).getJSONObject("state")
@@ -150,7 +171,7 @@ class MilestoneEncounterFlowTest {
   @Test fun recruitmentRequiresEncounterConsentAndCapacityWithoutErasingMeeting() {
     val repo = MemorySave(initial()); val core = facade(repo)
     assertFalse(JSONObject(core.recruitFollower(view(core).toString(), LUCIA_ID)).getBoolean("handled"))
-    reach(core, 3); commit(core)
+    reach(core, repo, 3); commit(core)
     repo.state = repo.state.copy(characters = repo.state.characters + (LUCIA_ID to repo.state.characters.getValue(LUCIA_ID)
       .copy(metadata = repo.state.characters.getValue(LUCIA_ID).metadata + ("followsPlayer" to "false"))))
     assertEquals("join_not_confirmed", JSONObject(core.recruitFollower(view(core).toString(), LUCIA_ID)).getString("error"))
