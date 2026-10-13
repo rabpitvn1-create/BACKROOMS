@@ -1535,3 +1535,4 @@ object CombatRuntime {
   private inline fun <reified T : Enum<T>> enumOr(fallback: T, raw: String?): T = enumValues<T>().firstOrNull { it.name == raw } ?: fallback
 }
 
+

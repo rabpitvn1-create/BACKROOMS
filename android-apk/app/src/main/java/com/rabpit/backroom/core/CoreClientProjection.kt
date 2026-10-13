@@ -86,9 +86,12 @@ object CoreClientProjection {
       .put("checkpointId", StoryCheckpointCore.current(state)?.id.orEmpty())
       .put("bossRetry", StoryMilestoneRuntime.canRetryBoss(state))
       .put("waiting", StoryMilestoneRuntime.awaitingPlan(state))
+      .put("stats", StoryMilestoneRuntime.statsJson(state))
+      .put("factStats", StoryFactLedger.statsJson(state))
       .apply { state.world["story.milestone.lastCompletion"]?.let { put("lastCompletion", JSONObject(it)) } })
     out.put("coreSystem", PokerDiceCore.statsJson(state, CAO_MINH_ID))
     return out
   }
 }
+
 

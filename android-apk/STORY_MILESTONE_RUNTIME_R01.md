@@ -1,3 +1,5 @@
+> **Trạng thái tích hợp 2026-10-13:** Runtime và các sửa phụ thuộc đã vào main qua PR #595 (`820038c8`). Khi đối chiếu nhánh Bước 6, giữ nguyên evidence verifier, Boss retry, authored completion, safe restore và quota CP 50 turn/20 encounter của bản mới. Tài liệu bên dưới mô tả runtime hiện hành; save/history được bổ sung trong `STORY_SAVE_HISTORY_R01.md`. CI là nghiệm thu tự động; Gemini/Android gameplay thật vẫn pending.
+
 # Bước 6/10 · Milestone Runtime v2
 
 ## Core và timeline
@@ -21,3 +23,29 @@ Tests có mục tiêu gồm lịch exact Turn/missed event, Boss ×9, escape/res
 Receipt ID vẫn được kiểm tra cấu trúc, nhưng không còn đủ để commit. Bridge yêu cầu một phản hồi kiểm định riêng qua transport Gemini hiện hữu: action/event/outcome phải có chứng cứ trích nguyên văn từ lời kể được nhận. Core kiểm tra verified, toàn bộ ID, quote và request hash gắn runToken/CP/Turn/plan/lời kể; lưu provenance cùng receipt trong transaction. Meta không commit sự kiện hoặc tăng Turn. Saved receipts thiếu evidence bị từ chối.
 
 Đây là kiểm định ngữ nghĩa bằng mô hình cùng các ràng buộc Core xác định được, không phải chứng minh hình thức mọi cách diễn đạt. Unit tests dùng validator fixtures TEST_ONLY; chưa đánh giá false-positive/false-negative bằng Gemini thật hoặc Android thật. Không biến thương tích trong lời kể thành gameplay và không duy trì schema save cũ.
+
+
+
+## CP minimum pacing and encounter quota — 2026-10-13
+
+Every CP, at every Level, must schedule at least 50 relative Core turns and
+at least 20 distinct Entity encounters. The final Boss counts once, leaving
+at least 19 ordinary ENTITY events. Encounters must occupy distinct turns.
+Repeated species are allowed; repeated receipts, loading and resuming the same
+Boss never increase the count. Ordinary ENTITY means actual direct contact,
+not a name mention, rumor, footprint, future plan or combat turn. It may be a
+noncombat scene; it does not award HP/EXP/loot or authorize a narrated kill.
+
+The parser rejects shorter or under-quota plans, unsupported entity keys and
+multiple encounters on one turn. The planner and independent narrative verifier
+receive these rules. Only accepted, verified event receipts count at runtime;
+Core gives each encounter a stable identity preserved across manual load leases.
+CP promotion additionally checks the actual relative Core turn and committed
+encounter count, all events applied and verified Boss defeat. History records
+turnCount, entityEncounterCount and encounter IDs with ledger sources; corrupt
+counts/IDs are rejected during save validation. No old-save migration is added.
+
+Tests use synthetic independent-validator responses and forced Combat settlement;
+they verify quotas and state transitions, not live Gemini semantic accuracy or
+Android gameplay. The 20-CP fixture now processes at least 1,000 relative turns
+and 400 distinct encounters, with one Boss per CP.
