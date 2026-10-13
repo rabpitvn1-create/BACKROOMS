@@ -361,21 +361,8 @@ class GameCoreFacade private constructor(
    * Candidate prose/JSON never becomes storage directly: inventory and party are rebuilt
    * from commands and then projected back onto the UI state.
    */
-  fun processValidatedCandidate(beforeJson: String, candidateJson: String, action: String): String =
-    processValidatedCandidate(beforeJson, candidateJson, action, "[]")
-
   @Synchronized fun processValidatedCandidate(
-    beforeJson: String, candidateJson: String, action: String, milestoneReceipts: String
-  ): String = processValidatedCandidate(beforeJson, candidateJson, action, milestoneReceipts, "", "{}")
-
-  @Synchronized fun processValidatedCandidate(
-    beforeJson: String, candidateJson: String, action: String, milestoneReceipts: String,
-    acceptedNarrative: String, evidenceJson: String
-  ): String = processValidatedCandidate(beforeJson, candidateJson, action, milestoneReceipts, acceptedNarrative, evidenceJson, "[]")
-
-  @Synchronized fun processValidatedCandidate(
-    beforeJson: String, candidateJson: String, action: String, milestoneReceipts: String,
-    acceptedNarrative: String, evidenceJson: String, gmStoryFacts: String
+    beforeJson: String, candidateJson: String, action: String
   ): String {
     val before = JSONObject(beforeJson)
     val candidate = JSONObject(candidateJson)
@@ -484,7 +471,7 @@ class GameCoreFacade private constructor(
       return response(false, before, committed.error, "gemini_delta_rejected")
     }
     val protectedState = CharacterProgressionCore.protectFromCandidate(pending.state, committed.state)
-    val applied = StoryMilestoneRuntime.acceptTurn(protectedState, milestoneReceipts, acceptedNarrative, evidenceJson, gmStoryFacts)
+    val applied = StoryMilestoneRuntime.acceptTurn(protectedState)
     val accepted = CoreClientProjection.advance(applied)
     repository.save(accepted)
     val synchronized = clientSnapshot(candidate, accepted)
@@ -575,9 +562,6 @@ class GameCoreFacade private constructor(
 
   @Synchronized @JvmOverloads fun storyFactContext(query: String = ""): String =
     StoryFactLedger.context(loadCurrentState(), query.take(1600))
-
-  @Synchronized @JvmOverloads fun milestoneNarrativeRequest(narrative: String, facts: String = "[]"): String =
-    StoryMilestoneRuntime.evidenceRequest(loadCurrentState(), narrative, facts).toString()
 
   @Synchronized fun milestoneDueEvents(): String =
     StoryMilestoneRuntime.dueJson(loadCurrentState())

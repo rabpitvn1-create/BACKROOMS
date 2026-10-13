@@ -4,7 +4,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * Verified script data from the Gemini planner; not a narrating GM or a combat resolver.
+ * SOL-authored script data; not a narrating GM or a combat resolver.
  * Every event and its outcome are compulsory. GM controls presentation, not the planned result.
  *
  * This contract does not trigger events or award EXP. The runtime dispatcher belongs to step 6.
@@ -109,7 +109,7 @@ object StoryMilestonePlan {
     }
   }
 
-  /** Reject incomplete, speculative, duplicated and unsupported Gemini output. */
+  /** Reject incomplete, speculative, duplicated and unsupported SOL plans. */
   fun parse(raw: String, expected: StoryCheckpointCore.Position): Plan {
     require(raw.length in 2..MAX_PLAN_CHARS) { "milestone_payload_size_invalid" }
     val root = JSONObject(raw)
@@ -151,6 +151,9 @@ object StoryMilestonePlan {
         value
       } else null
       val facts = if (item.has("storyFacts")) StoryFactLedger.parseSpecs(item.getJSONArray("storyFacts"), 4) else emptyList()
+      require(facts.all { it.kind != StoryFactLedger.Kind.ENTITY || CombatRuntime.supportsEntityKey(it.subject) }) {
+        "milestone_fact_entity_unknown"
+      }
       events += Event(id, turn, kind, action, event, outcome, key, facts)
     }
 

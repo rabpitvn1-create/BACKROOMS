@@ -87,7 +87,7 @@ object StoryMilestonePlannerPrompt {
       Không biên kịch trước chiến thắng gameplay; FINAL_ENTITY chỉ mở Combat.
       Có thể chọn số Turn, các sự kiện và Entity khác mẫu.
       Mỗi event có thể thêm storyFacts: [{kind:"EVENT|ENTITY|CLUE",subject:"<stable id>",fact:"<fact supported by this event>"}], tối đa 4.
-      Planned facts chưa phải ký ức đã xảy ra; Core chỉ commit sau evidence hợp lệ.
+      Planned facts chưa phải ký ức đã xảy ra; Core chỉ ghi vào ký ức khi lượt chứa event hoàn tất.
       Facts là narrative-only, không đổi HP/Status/Combat/Equipment/Inventory và không
       biến dữ kiện thành kiến thức chung của mọi nhân vật. Chỉ nhớ clue thật, không
       biến suy đoán/lời đồn thành phát hiện đã xác nhận. OPEN bị lược khỏi packet

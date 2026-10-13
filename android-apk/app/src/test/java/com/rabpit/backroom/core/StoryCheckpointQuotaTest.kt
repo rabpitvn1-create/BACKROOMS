@@ -59,13 +59,13 @@ class StoryCheckpointQuotaTest {
     assertEquals(18, CoreClientProjection.turnIndex(beforeBoss))
     assertEquals(8, StoryMilestoneRuntime.entityEncounterCount(beforeBoss))
     assertNull(CombatRuntime.active(beforeBoss))
-    val boss = TestMilestoneEvidence.accept(beforeBoss, "[\"boss\"]")
+    val boss = TestMilestoneTurn.accept(beforeBoss, "[\"boss\"]")
     assertEquals(8, StoryMilestoneRuntime.entityEncounterCount(boss))
     val restored = GameStateCodec.decode(GameStateCodec.encode(boss))
     StoryMilestoneRuntime.validateStoredState(restored)
     assertEquals(8, StoryMilestoneRuntime.entityEncounterCount(restored))
-    assertThrows(Exception::class.java) { TestMilestoneEvidence.accept(restored, "[\"boss\"]") }
-    assertEquals(restored, TestMilestoneEvidence.accept(restored, "[]"))
+    assertThrows(Exception::class.java) { TestMilestoneTurn.accept(restored, "[\"boss\"]") }
+    assertEquals(restored, TestMilestoneTurn.accept(restored, "[]"))
     // Manual restore changes response leases, but must not change committed encounter identities.
     StoryMilestoneRuntime.validateStoredState(restored.copy(world = restored.world +
       ("story.runToken" to "TEST_ONLY new manual-load lease")))
@@ -76,7 +76,7 @@ class StoryCheckpointQuotaTest {
   }
 
   @Test fun completionChecksActualTurnAndHistoryKeepsVerifiedEncounterSources() {
-    val boss = CoreClientProjection.advance(TestMilestoneEvidence.accept(TestCheckpointQuota.reachBoss(initial()), "[\"boss\"]"))
+    val boss = CoreClientProjection.advance(TestMilestoneTurn.accept(TestCheckpointQuota.reachBoss(initial()), "[\"boss\"]"))
     val staged = StoryMilestonePlan.prepareNextDuringCombat(boss, plan("CP-L00-02"))
     val fight = CombatRuntime.active(staged)!!
     val defeated = CombatRuntime.resolve(staged.copy(metadata = staged.metadata +

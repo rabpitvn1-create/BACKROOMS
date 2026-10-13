@@ -25,30 +25,27 @@ class StoryMilestoneRuntimeTest {
     StoryMilestonePlan.installCurrent(
       StoryCheckpointCore.seedLevelZero(CoreClientProjection.initialize(GameState.initial())), plan())
 
-  @Test fun dueEventsRequireExactReceiptsAndDoNotRepeatAfterSaveLoad() {
+  @Test fun dueEventsAreAppliedByCoreWithoutGmReceiptsAndDoNotRepeatAfterSaveLoad() {
     val before = initial()
     assertEquals(listOf("warning"), StoryMilestoneRuntime.due(before).map { it.id })
-    assertThrows(IllegalArgumentException::class.java) {
-      TestMilestoneEvidence.accept(before, "[]")
-    }
-    assertThrows(IllegalArgumentException::class.java) {
-      TestMilestoneEvidence.accept(before, "[\"boss\"]")
-    }
-    val committed = TestMilestoneEvidence.accept(before, "[\"warning\"]")
+    val committed = StoryMilestoneRuntime.acceptTurn(before)
+    assertEquals(committed, StoryMilestoneRuntime.acceptTurn(committed))
+    val records = JSONObject(committed.world.getValue("story.milestone.eventRecords"))
+    assertEquals(setOf("warning"), records.keys().asSequence().toSet())
     val after = CoreClientProjection.advance(committed)
-    assertEquals(0, StoryMilestoneRuntime.due(after).size)
+    assertTrue(StoryMilestoneRuntime.due(after).isEmpty())
     val restored = GameStateCodec.decode(GameStateCodec.encode(after))
-    assertEquals(0, StoryMilestoneRuntime.due(restored).size)
+    StoryMilestoneRuntime.validateStoredState(restored)
     assertNull(CombatRuntime.active(restored))
   }
 
   @Test fun finalEncounterIsExactlyNineTimesHpAndExpWithoutChangingBaseEntity() {
     val before = initial()
-    val warning = TestMilestoneEvidence.accept(before, "[\"warning\"]")
+    val warning = TestMilestoneTurn.accept(before, "[\"warning\"]")
     val dueOnThree = TestCheckpointQuota.reachBoss(warning)
     assertEquals(listOf("boss"), StoryMilestoneRuntime.due(dueOnThree).map { it.id })
     val ordinary = CombatRuntime.active(CombatRuntime.start(GameState.initial(), "hound"))!!
-    val boss = TestMilestoneEvidence.accept(dueOnThree, "[\"boss\"]")
+    val boss = TestMilestoneTurn.accept(dueOnThree, "[\"boss\"]")
     val active = CombatRuntime.active(boss)!!
     assertEquals(ordinary.entityMaxHp * 9, active.entityMaxHp)
     assertEquals(active.entityMaxHp, active.entityHp)
@@ -70,11 +67,11 @@ class StoryMilestoneRuntimeTest {
     assertEquals(110, CombatRuntime.active(CombatRuntime.start(GameState.initial(), "hound"))!!.entityMaxHp)
   }
 
-  @Test fun lateGeminiPlanActivatesNextCheckpointAfterVerifiedBossDefeat() {
+  @Test fun preparedSolPlanActivatesNextCheckpointAfterRealBossDefeat() {
     val current = initial()
-    val afterWarning = TestMilestoneEvidence.accept(current, "[\"warning\"]")
+    val afterWarning = TestMilestoneTurn.accept(current, "[\"warning\"]")
     val onThree = TestCheckpointQuota.reachBoss(afterWarning)
-    val boss = TestMilestoneEvidence.accept(onThree, "[\"boss\"]")
+    val boss = TestMilestoneTurn.accept(onThree, "[\"boss\"]")
     val id = CombatRuntime.active(boss)!!.encounterId
     val defeated = CombatRuntime.resolve(
       boss.copy(metadata = boss.metadata + ("combat.entityHp" to "0")), "SEARCH", "quan sát")
@@ -112,64 +109,33 @@ class StoryMilestoneRuntimeTest {
     }
   }
 
-  @Test fun receiptAloneOrUnverifiedStaleAndInventedQuotesCannotCommit() {
+  @Test fun onlyAuthoritativeEventRecordsArePersistedAndValidated() {
     val state = initial()
-    val narrative = TestMilestoneEvidence.narrative(state)
-    val proof = JSONObject(TestMilestoneEvidence.proof(state))
-    assertThrows(Exception::class.java) { StoryMilestoneRuntime.acceptTurn(state, "[\"warning\"]") }
-    assertThrows(Exception::class.java) {
-      StoryMilestoneRuntime.acceptTurn(state, "[\"warning\"]", narrative,
-        JSONObject(proof.toString()).put("verified", false).toString())
-    }
-    assertThrows(Exception::class.java) {
-      StoryMilestoneRuntime.acceptTurn(state, "[\"warning\"]", "TEST_ONLY different narrative", proof.toString())
-    }
-    val invented = JSONObject(proof.toString()).apply {
-      getJSONArray("events").getJSONObject(0).put("outcomeQuote", "TEST_ONLY absent quote")
-    }
-    assertThrows(Exception::class.java) {
-      StoryMilestoneRuntime.acceptTurn(state, "[\"warning\"]", narrative, invented.toString())
-    }
-    val reset = state.copy(world = state.world + ("story.runToken" to "TEST_ONLY different run"))
-    assertThrows(Exception::class.java) {
-      StoryMilestoneRuntime.acceptTurn(reset, "[\"warning\"]", narrative, proof.toString())
-    }
-    val committed = TestMilestoneEvidence.accept(state, "[\"warning\"]")
+    val committed = StoryMilestoneRuntime.acceptTurn(state)
     StoryMilestoneRuntime.validateStoredState(GameStateCodec.decode(GameStateCodec.encode(committed)))
+    val records = JSONObject(committed.world.getValue("story.milestone.eventRecords"))
+    assertFalse(records.getJSONObject("warning").has("requestToken"))
+    assertFalse(records.getJSONObject("warning").has("verified"))
+    val missing = committed.copy(world = committed.world - "story.milestone.eventRecords")
+    assertThrows(Exception::class.java) { StoryMilestoneRuntime.validateStoredState(missing) }
+    val invented = JSONObject(records.toString()).put("fake_event", JSONObject()
+      .put("checkpointId", "CP-L00-01").put("turn", 1))
     assertThrows(Exception::class.java) {
-      StoryMilestoneRuntime.validateStoredState(committed.copy(world = committed.world - "story.milestone.evidence"))
+      StoryMilestoneRuntime.validateStoredState(committed.copy(
+        world = committed.world + ("story.milestone.eventRecords" to invented.toString())))
     }
-  }
-
-  @Test fun verifierCannotRenameEventsOrSmuggleExtraProofFields() {
-    val state = initial()
-    val narrative = TestMilestoneEvidence.narrative(state)
-    val receipt = "[\"warning\"]"
-    val valid = JSONObject(TestMilestoneEvidence.proof(state, narrative))
-
-    val wrongId = JSONObject(valid.toString())
-    wrongId.getJSONArray("events").getJSONObject(0).put("id", "invented_event")
-    assertThrows(IllegalArgumentException::class.java) {
-      StoryMilestoneRuntime.acceptTurn(state, receipt, narrative, wrongId.toString())
+    val wrongTurn = JSONObject(records.toString())
+    wrongTurn.getJSONObject("warning").put("turn", 999)
+    assertThrows(Exception::class.java) {
+      StoryMilestoneRuntime.validateStoredState(committed.copy(
+        world = committed.world + ("story.milestone.eventRecords" to wrongTurn.toString())))
     }
-
-    val extraField = JSONObject(valid.toString())
-    extraField.getJSONArray("events").getJSONObject(0).put("ignored", "not_authorized")
-    assertThrows(IllegalArgumentException::class.java) {
-      StoryMilestoneRuntime.acceptTurn(state, receipt, narrative, extraField.toString())
-    }
-
-    val invalidQuote = JSONObject(valid.toString())
-    invalidQuote.getJSONArray("events").getJSONObject(0).put("eventQuote", "never appeared in narrative")
-    assertThrows(IllegalArgumentException::class.java) {
-      StoryMilestoneRuntime.acceptTurn(state, receipt, narrative, invalidQuote.toString())
-    }
-    assertEquals(0, StoryMilestoneRuntime.entityEncounterCount(state))
+    assertEquals(0, StoryMilestoneRuntime.entityEncounterCount(committed))
   }
 
   @Test fun bossCannotEscapeByCommandOrAccumulatedEvasion() {
-    val warning = TestMilestoneEvidence.accept(initial(), "[\"warning\"]")
-    val boss = TestMilestoneEvidence.accept(TestCheckpointQuota.reachBoss(warning), "[\"boss\"]")
+    val warning = TestMilestoneTurn.accept(initial(), "[\"warning\"]")
+    val boss = TestMilestoneTurn.accept(TestCheckpointQuota.reachBoss(warning), "[\"boss\"]")
     val fight = CombatRuntime.active(boss)!!
     val loaded = boss.copy(metadata = boss.metadata + ("combat.escapeProgress" to "100"))
     val rejected = runCatching { CombatRuntime.resolve(loaded, "EXECUTE", "bỏ chạy") }
@@ -191,9 +157,9 @@ class StoryMilestoneRuntimeTest {
         .put("targetNodeId", "1.2").put("nextCheckpointTotal", 3)
         .put("outcome", "TEST_ONLY Level ending"))
       state = StoryMilestonePlan.installCurrent(state, root.toString())
-      state = TestMilestoneEvidence.accept(state, "[\"warning\"]")
+      state = TestMilestoneTurn.accept(state, "[\"warning\"]")
       state = TestCheckpointQuota.reachBoss(state)
-      state = TestMilestoneEvidence.accept(state, "[\"boss\"]")
+      state = TestMilestoneTurn.accept(state, "[\"boss\"]")
       val fight = CombatRuntime.active(state)!!
       val nextId = if (cp.isLast) "CP-L01-01" else cp.nextAddress()!!.id
       // Exercise prefetch before conclusion on odd CPs; delayed response on even CPs.
@@ -235,7 +201,7 @@ class StoryMilestoneRuntimeTest {
     val planned = initial()
     assertEquals(0L, StoryMilestoneRuntime.statsJson(planned).getLong("committedEvents"))
     assertFalse(planned.world.containsKey("story.checkpointHistory"))
-    val accepted = TestMilestoneEvidence.accept(planned, "[\"warning\"]")
+    val accepted = TestMilestoneTurn.accept(planned, "[\"warning\"]")
     val wrongStats = JSONObject(StoryMilestoneRuntime.statsJson(accepted).toString()).put("committedEvents", 99)
     val corrupt = accepted.copy(world = accepted.world + ("story.stats" to wrongStats.toString()))
     assertThrows(Exception::class.java) { StoryMilestoneRuntime.validateStoredState(corrupt) }

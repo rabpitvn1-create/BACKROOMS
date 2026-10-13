@@ -13,7 +13,6 @@ object StoryFactLedger {
   private const val MAX_HISTORY = 96
   private const val MAX_PER_TURN = 6
   private val subjectPattern = Regex("[a-z0-9_.:-]{2,64}")
-  private val referencePattern = Regex("[a-zA-Z0-9_.:-]{1,110}")
 
   enum class Kind { EVENT, ENTITY, CLUE }
 
@@ -22,7 +21,7 @@ object StoryFactLedger {
       .put("subject", subject).put("fact", fact)
   }
 
-  /** Shared strict contract for authored Milestone and GM continuity proposals. */
+  /** Syntax for SOL-authored Milestone facts. */
   fun parseSpecs(raw: JSONArray, limit: Int = MAX_PER_TURN): List<FactSpec> {
     require(raw.length() <= limit) { "story_facts_count_invalid" }
     return (0 until raw.length()).map { index ->
@@ -37,48 +36,10 @@ object StoryFactLedger {
     }
   }
 
-  /** Syntactic contract shared by Android GM repair and the authoritative Core commit. */
-  @JvmStatic fun validateGmProposals(raw: String): JSONArray {
-    require(raw.length <= 5000) { "story_proposal_too_large" }
-    val proposals = JSONArray(raw)
-    require(proposals.length() <= MAX_PER_TURN) { "story_proposal_count_invalid" }
-    for (i in 0 until proposals.length()) {
-      val item = proposals.getJSONObject(i)
-      when (readString(item, "op", 16)) {
-        "ADD" -> {
-          require(item.keys().asSequence().toSet() == setOf("op", "kind", "subject", "fact")) {
-            "story_proposal_fields_invalid"
-          }
-          parseSpecs(JSONArray().put(JSONObject(item.toString()).apply { remove("op") }), 1)
-        }
-        "RESOLVE" -> {
-          require(item.keys().asSequence().toSet() == setOf("op", "referenceId", "fact")) {
-            "story_resolve_fields_invalid"
-          }
-          require(referencePattern.matches(readString(item, "referenceId", 110))) {
-            "story_reference_invalid"
-          }
-          readString(item, "fact", 220)
-        }
-        else -> throw IllegalArgumentException("story_operation_unsupported")
-      }
-    }
-    return proposals
-  }
-
-  fun recordTurn(
-    state: GameState, milestoneEvents: List<StoryMilestonePlan.Event>, gmProposal: String,
-    narrative: String = "", evidenceJson: String = "{}"
-  ): GameState {
-    val proposals = validateGmProposals(gmProposal)
-
+  /** Core records only SOL-authored events and facts, never GM claims. */
+  fun recordTurn(state: GameState, milestoneEvents: List<StoryMilestonePlan.Event>): GameState {
     require(milestoneEvents == StoryMilestoneRuntime.due(state)) { "story_milestone_source_mismatch" }
-    val proof = StoryMilestoneRuntime.validateEvidence(state, narrative, evidenceJson, gmProposal)
-    val factProofs = proof.getJSONArray("facts")
-    val quotes = (0 until factProofs.length()).associate { i ->
-      val entry = factProofs.getJSONObject(i)
-      entry.getString("sourceId") to entry.getString("quote")
-    }
+    if (milestoneEvents.isEmpty()) return state
     val open = readArray(state, "open")
     val history = readArray(state, "history")
     val position = StoryCheckpointCore.current(state)?.id ?: "FREE"
@@ -88,96 +49,57 @@ object StoryFactLedger {
       it.optString("id", it.optInt("number", 0).toString())
     }
 
-    fun add(spec: FactSpec, source: String, quote: String) {
-      val instance = if (spec.kind == Kind.ENTITY)
-        CombatRuntime.active(state)?.takeIf { it.entityKey == spec.subject }?.encounterId
-          ?: milestoneEvents.firstOrNull { it.isEntityEncounter && it.entityKey == spec.subject }
-            ?.let { StoryMilestoneRuntime.entityEncounterId(state, it) } else null
-      if (spec.kind == Kind.ENTITY) {
-        require(CombatRuntime.supportsEntityKey(spec.subject)) { "story_entity_unknown" }
-        val visible = JSONObject(state.world["flagsJson"] ?: "{}")
-          .optString("entityEncounterKey", "")
-        val active = CombatRuntime.active(state)?.entityKey
-        val scripted = milestoneEvents.any { it.entityKey == spec.subject }
-        require(visible == spec.subject || active == spec.subject || scripted) {
-          "story_entity_not_confirmed"
-        }
+    fun add(spec: FactSpec, event: StoryMilestonePlan.Event, source: String) {
+      val instance = if (spec.kind == Kind.ENTITY && event.entityKey == spec.subject)
+        StoryMilestoneRuntime.entityEncounterId(state, event) else null
+      if (spec.kind == Kind.ENTITY)
+        require(CombatRuntime.supportsEntityKey(spec.subject)) { "milestone_fact_entity_unknown" }
+      val existingIndex = (0 until open.length()).firstOrNull { index ->
+        val item = open.optJSONObject(index)
+        item != null && item.optString("kind") == spec.kind.name &&
+          item.optString("subject") == spec.subject &&
+          (spec.kind != Kind.ENTITY || item.optString("entityEncounterId", "") == instance.orEmpty())
       }
-      val sameSubject = (0 until open.length()).mapNotNull { open.optJSONObject(it) }
-        .firstOrNull { it.optString("subject") == spec.subject && it.optString("kind") == spec.kind.name &&
-          (spec.kind != Kind.ENTITY || it.optString("entityEncounterId", "") == instance.orEmpty()) }
-      if (sameSubject != null) {
-        require(sameSubject.optString("fact") == spec.fact) { "story_fact_conflict_requires_resolution" }
-        return
+      if (existingIndex != null) {
+        val existing = open.getJSONObject(existingIndex)
+        if (existing.getString("fact") == spec.fact) return
+        // A newer SOL event supersedes the earlier scripted narrative fact.
+        open.remove(existingIndex)
+        history.put(JSONObject(existing.toString()).put("state", "SUPERSEDED")
+          .put("resolutionState", "SUPERSEDED").put("resolutionSource", source)
+          .put("resolvedTurn", turn).put("resolution", spec.fact))
       }
       val id = "FACT:$position:$turn:$sequence"
       sequence = Math.addExact(sequence, 1L)
       open.put(spec.toJson().put("id", id).put("turn", turn)
         .put("checkpointId", position).put("levelNode", levelNode)
-        .put("source", source).put("evidenceQuote", quote).put("requestToken", proof.getString("requestToken"))
-        .put("state", "COMMITTED").put("resolutionState", "OPEN")
-        .put("knowledgeScope", "NARRATIVE_ONLY")
+        .put("source", source).put("state", "COMMITTED")
+        .put("resolutionState", "OPEN").put("knowledgeScope", "NARRATIVE_ONLY")
         .apply { instance?.let { put("entityEncounterId", it) } })
     }
 
-    // Only accepted Milestone receipts are recorded; not future planned events.
     for (event in milestoneEvents) {
       val key = "MS:$position:$turn:${event.id}"
-      val evidenceEntries = proof.getJSONArray("events")
-      val eventProof = (0 until evidenceEntries.length()).map { evidenceEntries.getJSONObject(it) }
-        .first { it.getString("id") == event.id }
       history.put(JSONObject().put("id", key).put("turn", turn)
         .put("kind", if (event.isEntityEncounter) "ENTITY" else "EVENT")
         .put("action", event.action).put("event", event.event).put("outcome", event.outcome)
         .put("fact", "${event.action} → ${event.event} → ${event.outcome}")
         .put("checkpointId", position).put("levelNode", levelNode)
         .put("source", "MILESTONE").put("state", "COMMITTED")
-        .put("requestToken", proof.getString("requestToken")).put("evidence", eventProof)
-        .apply { if (event.isEntityEncounter) put("entityKey", event.entityKey)
-          .put("entityEncounterId", StoryMilestoneRuntime.entityEncounterId(state, event)) })
-      event.storyFacts.forEachIndexed { index, spec -> add(spec, "MILESTONE:$key", quotes.getValue("MS:${event.id}:$index")) }
+        .apply {
+          if (event.isEntityEncounter) put("entityKey", event.entityKey)
+            .put("entityEncounterId", StoryMilestoneRuntime.entityEncounterId(state, event))
+        })
+      event.storyFacts.forEach { add(it, event, "MILESTONE:$key") }
     }
 
-    for (index in 0 until proposals.length()) {
-      val item = proposals.getJSONObject(index)
-      when (readString(item, "op", 16)) {
-        "ADD" -> {
-          require(item.keys().asSequence().toSet() == setOf("op", "kind", "subject", "fact")) {
-            "story_proposal_fields_invalid"
-          }
-          val spec = parseSpecs(JSONArray().put(JSONObject(item.toString()).apply { remove("op") })).single()
-          add(spec, "GM:$position:$turn:$index", quotes.getValue("GM:$index"))
-        }
-        "RESOLVE" -> {
-          require(item.keys().asSequence().toSet() == setOf("op", "referenceId", "fact")) {
-            "story_resolve_fields_invalid"
-          }
-          val ref = readString(item, "referenceId", 110)
-          require(referencePattern.matches(ref)) { "story_reference_invalid" }
-          val resolution = readString(item, "fact", 220)
-          val pos = (0 until open.length()).firstOrNull { open.optJSONObject(it)?.optString("id") == ref }
-            ?: throw IllegalArgumentException("story_resolution_unknown_fact")
-          val original = open.getJSONObject(pos)
-          open.remove(pos)
-          history.put(JSONObject(original.toString()).put("resolution", resolution)
-            .put("resolvedTurn", turn).put("resolvedCheckpointId", position).put("resolvedLevelNode", levelNode)
-            .put("resolutionSource", "GM_RESOLUTION:$position:$turn:$index")
-            .put("resolutionEvidenceQuote", quotes.getValue("GM:$index"))
-            .put("resolutionRequestToken", proof.getString("requestToken"))
-            .put("state", "RESOLVED").put("resolutionState", "RESOLVED"))
-        }
-        else -> throw IllegalArgumentException("story_operation_unsupported")
-      }
-    }
-
-    if (milestoneEvents.isEmpty() && proposals.length() == 0) return state
     val retained = JSONArray()
     val archive = readArray(state, "archive")
     val start = (history.length() - MAX_HISTORY).coerceAtLeast(0)
     for (i in 0 until start) archive.put(history.get(i))
     for (i in start until history.length()) retained.put(history.get(i))
-    val packed = JSONObject().put("version", 2).put("open", open).put("history", retained)
-      .put("archive", archive).put("nextSequence", sequence)
+    val packed = JSONObject().put("version", 3).put("open", open)
+      .put("history", retained).put("archive", archive).put("nextSequence", sequence)
     return state.copy(world = state.world + (KEY to packed.toString()))
   }
 
@@ -251,14 +173,14 @@ object StoryFactLedger {
   private fun readArray(state: GameState, name: String): JSONArray {
     val raw = state.world[KEY] ?: return JSONArray()
     val root = JSONObject(raw)
-    require(root.getInt("version") == 2) { "story_memory_version_invalid" }
+    require(root.getInt("version") == 3) { "story_memory_version_invalid" }
     return JSONArray(root.getJSONArray(name).toString())
   }
 
   fun validateStoredState(state: GameState) {
     val raw = state.world[KEY] ?: return
     val root = JSONObject(raw)
-    require(root.getInt("version") == 2 && root.getLong("nextSequence") >= 0 &&
+    require(root.getInt("version") == 3 && root.getLong("nextSequence") >= 0 &&
       root.getJSONArray("history").length() <= MAX_HISTORY) { "story_memory_invalid" }
     val ids = hashSetOf<String>()
     for (name in listOf("open", "history", "archive")) {
@@ -267,16 +189,12 @@ object StoryFactLedger {
         val item = array.getJSONObject(i)
         require(ids.add(item.getString("id")) && item.getInt("turn") >= 1 &&
           item.getString("checkpointId").isNotBlank() && item.getString("levelNode").isNotBlank() &&
-          item.getString("requestToken").matches(Regex("[0-9a-f]{64}"))) { "story_fact_provenance_invalid" }
+          item.getString("source").startsWith("MILESTONE")) { "story_fact_provenance_invalid" }
         if (name == "open") require(item.getString("state") == "COMMITTED" &&
-          item.getString("resolutionState") == "OPEN" && item.getString("evidenceQuote").isNotBlank()) {
-          "story_open_fact_invalid"
-        }
-        if (item.optString("state") == "RESOLVED") require(
-          item.getString("resolutionEvidenceQuote").isNotBlank() &&
-            item.getString("resolutionRequestToken").matches(Regex("[0-9a-f]{64}"))) {
-          "story_resolution_provenance_invalid"
-        }
+          item.getString("resolutionState") == "OPEN") { "story_open_fact_invalid" }
+        if (item.optString("state") == "SUPERSEDED") require(
+          item.getString("resolutionSource").startsWith("MILESTONE") &&
+            item.getString("resolution").isNotBlank()) { "story_resolution_provenance_invalid" }
       }
     }
   }

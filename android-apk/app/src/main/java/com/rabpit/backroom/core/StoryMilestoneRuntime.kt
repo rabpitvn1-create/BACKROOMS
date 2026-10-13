@@ -4,15 +4,15 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * Authoritative, saved checkpoint dispatcher. Never advances on a narrative
- * claim alone: receipt IDs are checked against the due events and stored with
- * the accepted Game Core turn. Only FINAL_ENTITY starts a special Combat.
+ * Authoritative, saved checkpoint dispatcher. Events are read from the
+ * installed SOL plan on each committed Core turn, never from GM claims.
+ * Only FINAL_ENTITY starts the special Boss Combat.
  */
 object StoryMilestoneRuntime {
   private const val APPLIED = "story.milestone.applied"
   private const val BOSS = "story.milestone.bossEncounter"
   private const val RESULT = "story.milestone.bossResult"
-  private const val EVIDENCE = "story.milestone.evidence"
+  private const val EVENT_RECORDS = "story.milestone.eventRecords"
   private const val STATS = "story.stats"
   private const val CP_HISTORY = "story.checkpointHistory"
   private const val LEVEL_HISTORY = "story.levelHistory"
@@ -27,75 +27,7 @@ object StoryMilestoneRuntime {
     return state.copy(world = state.world + (STATS to stats.toString()))
   }
 
-  fun evidenceRequest(state: GameState, narrative: String, factsJson: String = "[]"): JSONObject {
-    require(narrative.length <= 32000 && factsJson.length <= 5000) { "story_evidence_payload_too_large" }
-    val required = due(state)
-    val facts = JSONArray(factsJson)
-    require(facts.length() <= 6) { "story_proposal_count_invalid" }
-    val factClaims = JSONArray()
-    required.forEach { event ->
-      val authored = event.toJson().optJSONArray("storyFacts") ?: JSONArray()
-      for (i in 0 until authored.length()) factClaims.put(JSONObject()
-        .put("sourceId", "MS:${event.id}:$i").put("claim", authored.getJSONObject(i)))
-    }
-    for (i in 0 until facts.length()) {
-      val claim = facts.getJSONObject(i)
-      val item = JSONObject().put("sourceId", "GM:$i").put("claim", claim)
-      if (claim.optString("op") == "RESOLVE") {
-        val open = state.world["story.factLedger"]?.let { JSONObject(it).getJSONArray("open") } ?: JSONArray()
-        val ref = claim.optString("referenceId")
-        for (j in 0 until open.length()) if (open.getJSONObject(j).optString("id") == ref)
-          item.put("originalFact", open.getJSONObject(j))
-      }
-      factClaims.put(item)
-    }
-    val request = JSONObject()
-      .put("runToken", state.world["story.runToken"].orEmpty())
-      .put("checkpointId", StoryCheckpointCore.current(state)?.id.orEmpty())
-      .put("turn", CoreClientProjection.turnIndex(state))
-      .put("events", JSONArray().apply { required.forEach { put(it.toJson()) } })
-      .put("facts", factClaims).put("narrative", narrative)
-    return request.put("requestToken", digest(request.toString()))
-  }
-
-  /** Evidence is supplied by the separate validator, never the narrating GM. */
-  fun validateEvidence(state: GameState, narrative: String, evidenceJson: String, factsJson: String = "[]"): JSONObject {
-    val request = evidenceRequest(state, narrative, factsJson)
-    val required = request.getJSONArray("events")
-    val requiredFacts = request.getJSONArray("facts")
-    if (required.length() == 0 && requiredFacts.length() == 0) return JSONObject()
-      .put("verified", true).put("events", JSONArray()).put("facts", JSONArray())
-    require(narrative.isNotBlank() && evidenceJson.length <= 65536) { "story_evidence_required" }
-    val proof = JSONObject(evidenceJson)
-    require(proof.keys().asSequence().toSet() == setOf("verified", "requestToken", "events", "facts") &&
-      proof.opt("verified") == true && proof.opt("requestToken") == request.getString("requestToken")) {
-      "story_evidence_not_verified_or_stale"
-    }
-    fun quote(item: JSONObject, key: String) {
-      val value = item.opt(key)
-      require(value is String && value.length in 1..700 && narrative.contains(value)) {
-        "story_evidence_quote_not_in_accepted_narrative"
-      }
-    }
-    val events = proof.getJSONArray("events")
-    require(events.length() == required.length()) { "milestone_evidence_count_mismatch" }
-    for (i in 0 until events.length()) {
-      val item = events.getJSONObject(i)
-      require(item.keys().asSequence().toSet() == setOf("id", "actionQuote", "eventQuote", "outcomeQuote") &&
-        item.opt("id") == required.getJSONObject(i).getString("id")) { "milestone_evidence_event_mismatch" }
-      listOf("actionQuote", "eventQuote", "outcomeQuote").forEach { quote(item, it) }
-    }
-    val factProofs = proof.getJSONArray("facts")
-    require(factProofs.length() == requiredFacts.length()) { "story_fact_evidence_count_mismatch" }
-    for (i in 0 until factProofs.length()) {
-      val item = factProofs.getJSONObject(i)
-      require(item.keys().asSequence().toSet() == setOf("sourceId", "quote") &&
-        item.opt("sourceId") == requiredFacts.getJSONObject(i).getString("sourceId")) { "story_fact_evidence_mismatch" }
-      quote(item, "quote")
-    }
-    return proof
-  }
-
+  /** Milestone events are committed by Core, with no AI evidence verifier. */
   private fun digest(text: String): String = java.security.MessageDigest.getInstance("SHA-256")
     .digest(text.toByteArray(Charsets.UTF_8)).joinToString("") { "%02x".format(it.toInt() and 255) }
 
@@ -151,13 +83,10 @@ object StoryMilestoneRuntime {
     return plan.events.count { it.kind == StoryMilestonePlan.Kind.ENTITY && it.id in applied }
   }
 
-  /** Strictly bind receipts to the Core-authorized event set of this turn. */
-  fun acceptTurn(state: GameState, receiptJson: String, narrative: String = "", evidenceJson: String = "{}", gmFactsJson: String = "[]"): GameState {
+  /** Apply exactly the events authored for this Explorer turn in the installed SOL plan. */
+  fun acceptTurn(state: GameState): GameState {
     val required = due(state)
-    val receipts = JSONArray(receiptJson)
-    val received = (0 until receipts.length()).map { receipts.getString(it) }
-    require(received == required.map { it.id }) { "milestone_receipt_mismatch" }
-    val proof = validateEvidence(state, narrative, evidenceJson, gmFactsJson)
+    if (required.isEmpty()) return state
     var working = state
     val boss = required.lastOrNull { it.kind == StoryMilestonePlan.Kind.FINAL_ENTITY }
     if (boss != null) {
@@ -169,26 +98,33 @@ object StoryMilestoneRuntime {
       val flags = JSONObject(working.world["flagsJson"] ?: "{}")
         .put("entityEncounterKey", fight.entityKey)
       working = working.copy(world = working.world + mapOf(
-        BOSS to fight.encounterId,
-        "flagsJson" to flags.toString()
+        BOSS to fight.encounterId, "flagsJson" to flags.toString()
       ))
     }
-    val remembered = StoryFactLedger.recordTurn(working, required, gmFactsJson, narrative, evidenceJson)
-    if (received.isEmpty()) return remembered
-
-    val previously = appliedIds(state)
-    val all = JSONArray().apply {
-      previously.sorted().forEach { put(it) }
-      received.forEach { put(it) }
+    val ordinaryEntity = required.lastOrNull { it.kind == StoryMilestonePlan.Kind.ENTITY }
+    if (ordinaryEntity != null) {
+      // Present the SOL-authored encounter without letting GM invent or start Combat.
+      val flags = JSONObject(working.world["flagsJson"] ?: "{}")
+        .put("entityEncounterKey", requireNotNull(ordinaryEntity.entityKey))
+      working = working.copy(world = working.world + ("flagsJson" to flags.toString()))
     }
-    val proofs = JSONObject(state.world[EVIDENCE] ?: "{}")
-    for (i in received.indices) proofs.put(received[i], JSONObject(proof.getJSONArray("events").getJSONObject(i).toString())
-      .put("checkpointId", StoryCheckpointCore.current(state)!!.id)
-      .put("turn", CoreClientProjection.turnIndex(state)).put("requestToken", proof.getString("requestToken"))
-      .apply { required[i].takeIf { it.isEntityEncounter }?.let { put("encounterId", entityEncounterId(working, it)) } })
-    var updated = remembered.copy(world = remembered.world + mapOf(APPLIED to all.toString(), EVIDENCE to proofs.toString()))
-    updated = incrementStats(updated, "committedEvents" to received.size.toLong())
-    return updated
+    val remembered = StoryFactLedger.recordTurn(working, required)
+    val applied = JSONArray().apply {
+      appliedIds(state).sorted().forEach { put(it) }
+      required.forEach { put(it.id) }
+    }
+    val records = JSONObject(state.world[EVENT_RECORDS] ?: "{}")
+    for (event in required) {
+      records.put(event.id, JSONObject()
+        .put("checkpointId", StoryCheckpointCore.current(state)!!.id)
+        .put("turn", CoreClientProjection.turnIndex(state))
+        .apply {
+          if (event.isEntityEncounter) put("encounterId", entityEncounterId(working, event))
+        })
+    }
+    val updated = remembered.copy(world = remembered.world +
+      mapOf(APPLIED to applied.toString(), EVENT_RECORDS to records.toString()))
+    return incrementStats(updated, "committedEvents" to required.size.toLong())
   }
 
   /** Called only after the actual Combat Core confirms an encounter ended. */
@@ -239,10 +175,10 @@ object StoryMilestoneRuntime {
     val world = state.world.toMutableMap()
     val visitId = world["story.levelVisitId"] ?: "INITIAL:${position.level}"
     val completionId = "${state.world[BOSS]}:${position.id}"
-    val proof = JSONObject(world.getValue(EVIDENCE))
+    val records = JSONObject(world.getValue(EVENT_RECORDS))
     val refs = JSONArray().apply {
       active.plan.events.forEach { event ->
-        put("MS:${position.id}:${proof.getJSONObject(event.id).getInt("turn")}:${event.id}")
+        put("MS:${position.id}:${records.getJSONObject(event.id).getInt("turn")}:${event.id}")
       }
     }
     val checkpoints = JSONArray(world[CP_HISTORY] ?: "[]")
@@ -256,7 +192,7 @@ object StoryMilestoneRuntime {
       .put("bossEncounterId", state.world[BOSS]).put("bossResult", "DEFEATED")
       .put("completion", active.plan.completion.toJson()))
     world[CP_HISTORY] = checkpoints.toString()
-    listOf("story.milestone.active", "story.milestone.prepared", APPLIED, EVIDENCE, BOSS, RESULT)
+    listOf("story.milestone.active", "story.milestone.prepared", APPLIED, EVENT_RECORDS, BOSS, RESULT)
       .forEach(world::remove)
     world["story.checkpoint"] = JSONObject()
       .put("level", next.level).put("index", next.index).put("total", next.total).toString()
@@ -309,18 +245,21 @@ object StoryMilestoneRuntime {
     val active = StoryMilestonePlan.current(state)
     StoryMilestonePlan.prepared(state)
     val applied = appliedIds(state)
-    val proof = JSONObject(state.world[EVIDENCE] ?: "{}")
-    require(proof.keys().asSequence().toSet() == applied) { "milestone_saved_evidence_mismatch" }
+    val records = JSONObject(state.world[EVENT_RECORDS] ?: "{}")
+    require(records.keys().asSequence().toSet() == applied) { "milestone_saved_event_records_mismatch" }
     require(applied.all { id -> active?.plan?.events?.any { it.id == id } == true }) {
       "milestone_saved_event_unknown"
     }
     applied.forEach { id ->
-      val item = proof.getJSONObject(id)
-      require(item.getString("checkpointId") == active!!.plan.checkpointId &&
-        item.getInt("turn").toLong() == active.startTurn.toLong() + active.plan.events.single { it.id == id }.turn - 1L && item.getString("requestToken").length == 64) {
-        "milestone_saved_evidence_invalid"
+      val item = records.getJSONObject(id)
+      val event = active!!.plan.events.single { it.id == id }
+      require(item.keys().asSequence().toSet() ==
+        if (event.isEntityEncounter) setOf("checkpointId", "turn", "encounterId")
+        else setOf("checkpointId", "turn")) { "milestone_saved_event_fields_invalid" }
+      require(item.getString("checkpointId") == active.plan.checkpointId &&
+        item.getInt("turn").toLong() == active.startTurn.toLong() + event.turn - 1L) {
+        "milestone_saved_event_record_invalid"
       }
-      val event = active.plan.events.single { it.id == id }
       if (event.isEntityEncounter) require(item.optString("encounterId") == entityEncounterId(state, event)) {
         "milestone_saved_encounter_invalid"
       }
