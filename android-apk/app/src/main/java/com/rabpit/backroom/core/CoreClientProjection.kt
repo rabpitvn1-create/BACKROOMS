@@ -54,6 +54,17 @@ object CoreClientProjection {
       flags.put("madGod", JSONObject().put("spawned", true).put("spawnSource", "cheat"))
     }
     out.put("flags", flags)
+    // A confirmed Lucia roll is an actual NPC event, independent of narrative
+    // compliance. Show it once in this turn, and reconstruct it on same-turn reload.
+    val luciaTurn = flags.optJSONObject("lucia")?.optInt("encounterTurn", -1) ?: -1
+    if (luciaTurn >= 1 && turnIndex(state).toLong() == luciaTurn.toLong() + 1L) {
+      val eventId = "NPC:LUCIA:$luciaTurn"
+      val log = out.optJSONArray("log") ?: JSONArray().also { out.put("log", it) }
+      if ((0 until log.length()).none { log.optJSONObject(it)?.optString("eventId") == eventId }) {
+        log.put(JSONObject().put("role", "event").put("eventId", eventId)
+          .put("text", "Đã gặp ${LuciaCanon.NAME}."))
+      }
+    }
     out.put("gameTime", JSONObject()
       .put("elapsedSubjectiveMinutes", state.time.elapsedSubjectiveMinutes)
       .put("lastAdvanceMinutes", state.time.lastAdvanceMinutes)

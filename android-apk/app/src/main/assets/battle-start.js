@@ -9,7 +9,7 @@
     if (!encounter || state.combat && state.combat.active === true) return;
     var rows = logEl.querySelectorAll('.message.gm');
     var narrativeIndex = (state.log || []).filter(function (entry) {
-      return entry.role !== 'player';
+      return entry.role === 'gm';
     }).findIndex(function (entry) { return entry.encounterId === encounter.encounterId; });
     var last = rows[narrativeIndex];
     if (!last) return;

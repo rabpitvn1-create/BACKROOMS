@@ -183,6 +183,36 @@ class PendingEncounterConfirmationTest {
     assertThrows(Exception::class.java) { StoryMilestonePlan.installCurrent(initial(), raw.toString()) }
   }
 
+  @Test fun houndDirectEncounterWithoutFlagDefaultsToBattleStartAndExplicitFalseSurvivesSave() {
+    val raw = JSONObject(plan())
+    val event = raw.getJSONArray("events").getJSONObject(1)
+    event.put("entityKey", "hound").remove("combatRequired")
+    val parsed = StoryMilestonePlan.parse(raw.toString(), StoryCheckpointCore.Position(0, 1, 20))
+    val plannedHound = parsed.events.single { it.id == "encounter1" }
+    assertTrue(plannedHound.combatRequired)
+    assertTrue(parsed.toJson().getJSONArray("events").getJSONObject(1).getBoolean("combatRequired"))
+
+    val seeded = StoryCheckpointCore.seedLevelZero(
+      CoreClientProjection.initialize(GameState.initial())).copy(
+        world = CoreClientProjection.initialize(GameState.initial()).world +
+          ("story.runToken" to "test-run"))
+    val installed = StoryMilestonePlan.installCurrent(seeded, raw.toString())
+    val turnTwo = CoreClientProjection.advance(StoryMilestoneRuntime.acceptTurn(installed))
+    val repo = MemorySave(turnTwo)
+    val result = commit(repo, "Hound chắn đường và gầm gừ.")
+    assertTrue(result.toString(), result.getBoolean("handled"))
+    assertEquals("hound", CombatRuntime.pending(repo.state)!!.entityKey)
+    assertFalse(result.getJSONObject("state").getJSONObject("combat").optBoolean("active", false))
+
+    event.put("combatRequired", false)
+    val peaceful = StoryMilestonePlan.parse(raw.toString(), StoryCheckpointCore.Position(0, 1, 20))
+    assertFalse(peaceful.events.single { it.id == "encounter1" }.combatRequired)
+    val serialized = peaceful.toJson().toString()
+    assertFalse(JSONObject(serialized).getJSONArray("events").getJSONObject(1).getBoolean("combatRequired"))
+    val savedPlan = StoryMilestonePlan.parse(serialized, StoryCheckpointCore.Position(0, 1, 20))
+    assertFalse(savedPlan.events.single { it.id == "encounter1" }.combatRequired)
+  }
+
   @Test fun mentionAndNonCombatDirectEncounterNeverCreateBattleStart() {
     val mentioned = StoryMilestoneRuntime.acceptTurn(initial(false))
     assertNull(CombatRuntime.pending(mentioned))

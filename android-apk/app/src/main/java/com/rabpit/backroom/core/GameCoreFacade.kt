@@ -443,6 +443,10 @@ class GameCoreFacade private constructor(
         (id == AN_NHIEN_ID && savedRecord?.optBoolean("encountered", false) == true)
       if (!encounterConfirmed) continue
       val record = authoritativeFlags.optJSONObject(flagKey) ?: JSONObject().also { authoritativeFlags.put(flagKey, it) }
+      // Use the existing, saved NPC flag as the event source; no story ledger
+      // and no reliance on the GM inventing or correctly naming Lucia.
+      if (id == LUCIA_ID && encounterSucceeded(rollKey) && !record.has("encounterTurn"))
+        record.put("encounterTurn", CoreClientProjection.turnIndex(pending.state))
       val alreadyJoined = id in desiredParty
       val canJoin = pending.state.characters[id]?.let { it.presence == CharacterPresence.ACTIVE && it.metadata["joinEligible"] == "true" } == true
       if (!alreadyJoined && canJoin && desiredParty.size < pending.state.party.maxMembers - 1) {

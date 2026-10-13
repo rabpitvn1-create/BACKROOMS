@@ -1800,11 +1800,27 @@ public class MainActivity extends Activity {
     }
     String canon = com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.build(
       MainActivity.this, canonView.toString(), action, visibleRolls.toString());
+    JSONObject luciaRoll = visibleRolls.optJSONObject("luciaEncounter");
+    boolean luciaEncounterDue = luciaRoll != null &&
+      luciaRoll.optBoolean("eligible", false) && luciaRoll.optBoolean("success", false) &&
+      !visibleRolls.optBoolean("meta", false) &&
+      visibleRolls.optInt("turn", -1) == before.optInt("turn", -2);
+    String luciaScene = luciaEncounterDue
+      ? "CORE ĐÃ XÁC NHẬN CUỘC GẶP NPC: Lucia \"Lục\" (ID lucia), nữ quân nhân hiện đại. " +
+        "BẮT BUỘC kể rõ Cao Minh gặp Lucia bằng tên thật, hành vi và lời thoại phù hợp Canon; " +
+        "không chỉ nói một bóng người lạ mặc quân phục. Đây là cuộc gặp đồng hành, " +
+        "KHÔNG phải Entity để mở Battle Start; việc gia nhập đội do Core quyết định. "
+      : "Không tự khẳng định gặp Lucia \"Lục\" lần đầu nếu Core không xác nhận lượt gặp. ";
     return "Bạn là Gehihi, Game Master kể chuyện Backrooms bằng tiếng Việt. " +
       "SOL đã tạo khung Milestone; các sự kiện đến hạn sau là BẮT BUỘC: " + due.toString() + ". " +
       "Kể diễn biến tự nhiên theo hành động người chơi, giữ đúng Entity, nhân vật và kết quả đã khóa. " +
       "Nếu không có event đến hạn, chỉ kể diễn biến phù hợp. " +
+      "Không tự tạo cảnh Entity hữu hình xuất hiện, lao ra hay chặn đường nếu Core không có " +
+      "sự kiện ENTITY/FINAL_ENTITY đến hạn hoặc roll Entity được xác nhận. " +
+      "ENTITY có combatRequired=false: chỉ kể tiếp xúc KHÔNG giao chiến, " +
+      "không dựng cảnh chuẩn bị Battle Start. " +
       "Không tự quyết định Combat, HP, EXP, Item, tạo Entity hay chuyển Checkpoint; Core xử lý. " +
+      luciaScene +
       "FINAL_ENTITY hoặc combatRequired=true: kể hết cảnh Entity xuất hiện, dừng ở thế đối đầu; " +
       "chưa kể đòn đánh, sát thương hay kết quả Combat trước khi người chơi nhấn Battle Start. " +
       "Không đưa event ID, ops, chứng cứ, kiểm định hay state vào lời kể. " +

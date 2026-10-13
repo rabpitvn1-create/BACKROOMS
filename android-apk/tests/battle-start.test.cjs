@@ -49,6 +49,21 @@ test('Battle Start follows all narrative paragraphs and uses the Core registry d
   assert.match(html, /id="submit"/);
 });
 
+test('NPC event cards do not displace Battle Start from the matching GM narrative', () => {
+  const r = runtime();
+  r.ctx.state.log.splice(1, 0, {role: 'event', text: 'Đã gặp Lucia "Lục".', eventId: 'NPC:LUCIA:2'});
+  r.ctx.render();
+  assert.ok(r.button(), 'Battle Start must remain attached to the Hound/Duller GM encounter');
+  assert.equal(r.last.children[r.last.children.length - 1], r.button());
+  assert.equal(r.bridgeCalls.length, 0);
+});
+
+test('Lucia event is rendered with a separate SỰ KIỆN label, not a fabricated GM message', () => {
+  assert.match(html, /type==="event"\?"SỰ KIỆN":"GAME MASTER"/);
+  assert.match(java, /luciaEncounterDue/);
+  assert.match(java, /CORE ĐÃ XÁC NHẬN CUỘC GẶP NPC/);
+});
+
 test('rapid clicks send one exact Core encounter and success removes the button', () => {
   const r = runtime();
   const click = r.button().click;

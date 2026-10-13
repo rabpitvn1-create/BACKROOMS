@@ -60,10 +60,15 @@ object StoryMilestonePlannerPrompt {
       FINAL_ENTITY KHÔNG tính vào quota ENTITY ${StoryMilestonePlan.MIN_ENTITY_PERCENT}%.
       Ví dụ T=18 cần 8 lần gặp Entity thường và một Boss riêng ở cuối.
       ENTITY là tiếp xúc trực tiếp với Entity có entityKey hợp lệ, không phải nhắc tên,
-      tiếng động chưa rõ nguồn hoặc lời đồn. Không cần chiến đấu ở mọi lần gặp.
-      ENTITY có combatRequired=true chỉ khi cảnh này buộc giao chiến; false hoặc bỏ trường
-      khi chỉ tiếp xúc, quan sát hay Entity rời đi. Core giữ encounter chờ xác nhận.
-      GM kể hết cảnh chạm trán; chỉ người chơi nhấn Battle Start mới kích hoạt Combat.
+      tiếng động chưa rõ nguồn hoặc lời đồn.
+      MẶC ĐỊNH mọi ENTITY trực tiếp cần Combat và có combatRequired=true: Core chờ
+      người chơi nhấn Battle Start sau khi Gehihi kể hết cảnh chạm trán.
+      Với Entity hung dữ trực tiếp đe dọa hoặc chặn đường (ví dụ Hound),
+      phải dùng combatRequired=true và outcome dừng trước khi giao chiến.
+      Chỉ dùng combatRequired=false khi SOL biên kịch RÕ RÀNG một cuộc gặp
+      không giao chiến (quan sát từ xa, Entity bỏ đi, không thể/không cần đánh).
+      Nếu không giao chiến, outcome không được mô tả như trận đánh sắp bắt đầu.
+      Không bỏ combatRequired khi muốn quy định rõ một cuộc gặp hòa bình.
       Không tự cấp HP/EXP/Inventory hay tuyên bố tiêu diệt Entity.
       FINAL_ENTITY luôn cần Battle Start; Boss không được bỏ chạy, thử lại Boss không tạo encounter.
       HP và EXP Boss nhân 9 do Core xử lý.
@@ -72,7 +77,7 @@ object StoryMilestonePlannerPrompt {
       Schema chính xác:
       {"schemaVersion":2,"checkpointId":"$checkpointId","events":[
       {"id":"beat1","turn":1,"kind":"STORY","action":"<world action>","event":"<authored event>","outcome":"<authored outcome>"},
-      {"id":"encounter1","turn":2,"kind":"ENTITY","action":"<Entity action>","event":"<actual direct encounter>","outcome":"<encounter outcome, no combat settlement>","entityKey":"<supported Entity key>","combatRequired":false},
+      {"id":"encounter1","turn":2,"kind":"ENTITY","action":"<Entity action>","event":"<actual direct encounter>","outcome":"<encounter outcome, no combat settlement>","entityKey":"<supported Entity key>","combatRequired":true},
       {"id":"boss","turn":18,"kind":"FINAL_ENTITY","action":"<world action>","event":"<authored event>","outcome":"<Combat opening>","entityKey":"<supported Entity key>","hpMultiplier":9,"expMultiplier":9}
       ],"completion":$completionSchema}
       Mẫu rút gọn này CHƯA đủ quota: với Boss ở Turn 18 phải thêm 7 ENTITY thường

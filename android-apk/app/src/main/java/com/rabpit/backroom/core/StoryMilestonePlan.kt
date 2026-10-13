@@ -67,7 +67,7 @@ object StoryMilestonePlan {
     val event: String,
     val outcome: String,
     val entityKey: String? = null,
-    val combatRequired: Boolean = kind == Kind.FINAL_ENTITY
+    val combatRequired: Boolean = kind != Kind.STORY
   ) {
     val isEntityEncounter: Boolean get() = kind == Kind.ENTITY || kind == Kind.FINAL_ENTITY
 
@@ -80,7 +80,7 @@ object StoryMilestonePlan {
       .put("outcome", outcome)
       .apply {
         if (isEntityEncounter) put("entityKey", requireNotNull(entityKey))
-        if (kind == Kind.ENTITY && combatRequired) put("combatRequired", true)
+        if (kind == Kind.ENTITY) put("combatRequired", combatRequired)
         if (kind == Kind.FINAL_ENTITY) {
           put("hpMultiplier", FINAL_HP_MULTIPLIER)
           put("expMultiplier", FINAL_EXP_MULTIPLIER)
@@ -156,7 +156,7 @@ object StoryMilestonePlan {
         "milestone_combat_required_invalid"
       }
       events += Event(id, turn, kind, action, event, outcome, key,
-        kind == Kind.FINAL_ENTITY || item.optBoolean("combatRequired", false))
+        kind == Kind.FINAL_ENTITY || item.optBoolean("combatRequired", true))
     }
 
     require(events.last().kind == Kind.FINAL_ENTITY &&

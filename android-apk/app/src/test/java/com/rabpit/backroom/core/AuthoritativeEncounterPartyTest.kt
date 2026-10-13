@@ -83,6 +83,34 @@ class AuthoritativeEncounterPartyTest {
     assertTrue(restoredFlags.getJSONObject("anNhien").getBoolean("follower"))
   }
 
+  @Test fun confirmedLuciaEncounterProducesOneAuthoritativeEventAfterReload() {
+    val repo = MemorySave()
+    val core = facade(repo)
+    val (before, after) = candidate(repo.state, "luciaEncounter")
+    val response = JSONObject(core.processValidatedCandidate(before, after, "Khám Phá", "Gặp nữ quân nhân."))
+    assertTrue(response.toString(), response.getBoolean("handled"))
+    assertEquals(listOf(CAO_MINH_ID, LUCIA_ID), repo.state.party.memberIds)
+    val flags = JSONObject(repo.state.world.getValue("flagsJson"))
+    assertEquals(1, flags.getJSONObject("lucia").getInt("encounterTurn"))
+    val log = response.getJSONObject("state").getJSONArray("log")
+    val events = (0 until log.length()).map { log.getJSONObject(it) }
+      .filter { it.optString("role") == "event" }
+    assertEquals(1, events.size)
+    assertEquals("NPC:LUCIA:1", events.single().getString("eventId"))
+    assertEquals("Đã gặp Lucia \"Lục\".", events.single().getString("text"))
+
+    val restored = GameStateCodec.decode(GameStateCodec.encode(repo.state))
+    repo.state = restored
+    val view = JSONObject(core.currentClientState("{}"))
+    assertEquals(1, (0 until view.getJSONArray("log").length()).count {
+      view.getJSONArray("log").getJSONObject(it).optString("eventId") == "NPC:LUCIA:1"
+    })
+    val repeated = JSONObject(core.currentClientState(response.getJSONObject("state").toString()))
+    assertEquals(1, (0 until repeated.getJSONArray("log").length()).count {
+      repeated.getJSONArray("log").getJSONObject(it).optString("eventId") == "NPC:LUCIA:1"
+    })
+  }
+
   @Test fun stalePriorTurnRollCannotRecruitAbsentPartyMember() {
     val repo = MemorySave(CoreClientProjection.advance(CoreClientProjection.initialize(GameState.initial())))
     val (before, after) = candidate(repo.state)
@@ -91,5 +119,6 @@ class AuthoritativeEncounterPartyTest {
         .put("luciaEncounter", JSONObject().put("eligible", true).put("success", true)))
     assertTrue(JSONObject(facade(repo).processValidatedCandidate(before, JSONObject(after).toString(), "Đi tiếp")).getBoolean("handled"))
     assertFalse(LUCIA_ID in repo.state.party.memberIds)
+    assertFalse(JSONObject(repo.state.world.getValue("flagsJson")).optJSONObject("lucia")?.has("encounterTurn") == true)
   }
 }
