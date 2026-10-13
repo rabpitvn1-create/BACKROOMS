@@ -1,0 +1,13 @@
+Backroom 1.2.0.0.22 Debug
+
+- Android versionCode 95, versionName 1.2.0.0.22, applicationId com.rabpit.backroom.
+- Tích hợp PR #611: Milestone do SOL/Gemini lập là nguồn duy nhất quyết định Follower/NPC/Entity/Boss và Explorer Turn xuất hiện.
+- Bổ sung FOLLOWER/NPC với characterId Registry; ENTITY phải khai báo combatRequired rõ ràng. Core kiểm tra kế hoạch trước khi chấp nhận và thực thi toàn bộ sự kiện đến hạn theo thứ tự xác định.
+- Loại bỏ roll gặp Lucia 50%, các roll Follower/NPC và pool Entity 45%; thiếu Milestone chặn lượt Explorer, không chuyển sang random encounter.
+- Cuộc gặp được ghi nhận đúng một lần vào CharacterState/SaveState và lịch sử Milestone hiện có. Gehihi chỉ kể sự kiện Core cung cấp; không dò câu chữ hoặc yêu cầu event receipt để quyết định encounter.
+- Gặp Follower không tự gia nhập Party. UI hiển thị danh sách đã gặp và thao tác Mời vào Party riêng; Core giữ điều kiện đồng ý và giới hạn Party.
+- Entity không Combat vẫn ghi nhận cuộc gặp. Entity cần Combat/Boss giữ pending encounter với ID ổn định; chỉ bắt đầu khi người chơi nhấn Battle Start ở cuối lời kể, ảnh và chỉ số lấy từ Core/Registry.
+- Bảo vệ retry khi Gehihi lỗi, chống thực thi trùng, Save/Load trạng thái chờ, Explorer Turn khi xác nhận Combat và luồng Boss/Checkpoint.
+- Không thêm AI verifier/audit, storyFacts/StoryFactLedger, migration hoặc tương thích save cũ.
+- Bản Debug để nghiệm thu. Quy trình CI kiểm tra Node/Kotlin, Android build, chữ ký, nội dung APK và đối chiếu SHA-256 APK đã xuất bản trước khi ghi GREEN.
+- Chưa xác minh gameplay với Gehihi/SOL thật hoặc trên emulator/thiết bị Android.
