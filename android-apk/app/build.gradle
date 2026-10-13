@@ -14,6 +14,7 @@ android {
 
   defaultConfig {
     applicationId 'com.rabpit.backroom'
+    testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     minSdk 24
     targetSdk 35
     versionCode 91
@@ -54,5 +55,7 @@ android {
 
 dependencies {
   testImplementation 'junit:junit:4.13.2'
+  androidTestImplementation 'androidx.test:runner:1.6.2'
+  androidTestImplementation 'androidx.test.ext:junit:1.2.1'
   testImplementation 'org.json:json:20240303'
 }
