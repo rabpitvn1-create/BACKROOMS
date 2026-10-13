@@ -1,0 +1,12 @@
+Backroom 1.2.0.0.23 Debug
+
+- Android versionCode 96, versionName 1.2.0.0.23, applicationId com.rabpit.backroom.
+- Tích hợp PR #612: Game Menu có mục Chẩn đoán lỗi với nút Xuất log chi tiết (.json). Snapshot gameplay vẫn giữ nguyên vì đó là thành phần hiển thị môi trường/combat, không phải nút riêng trong Game Menu.
+- Màn hình đang tạo hoặc bị lỗi Milestone cũng có nút Xuất log, kể cả khi Explorer Turn đang bị Core chặn.
+- Gói JSON đọc được bằng mô hình AI phổ biến: trạng thái Game Core (nếu khả dụng), trạng thái UI, Milestone và Combat, lịch sử lời kể, lỗi JavaScript/Promise, timeline native, mã lỗi HTTP, thời gian phản hồi Milestone, phiên bản Android/APK.
+- File được lưu cục bộ tại vị trí người chơi chọn qua Android Document Picker; không tự gửi lên máy chủ và không sửa gameplay, Save/Load hay định dạng save.
+- API key và token được che theo mặc định. Có lựa chọn xuất key/dữ liệu nhạy cảm không che theo yêu cầu, phải tích hộp chọn và xác nhận lần thứ hai trong vòng 10 giây. Không chia sẻ file có credentials công khai.
+- Bổ sung kiểm thử hồi quy cho đường xuất log từ Game Menu và màn hình Milestone, trạng thái authoritative/UI, lỗi JavaScript, xác nhận chế độ nhạy cảm và xử lý lỗi ghi file.
+- Kiểm tra đóng gói asset diagnostic-export.js và control xuất log trong APK phát hành.
+- APK Debug để nghiệm thu; chưa xác minh thao tác xuất file trên thiết bị Android thật.
+- Không hỗ trợ migration hoặc tương thích save cũ.
