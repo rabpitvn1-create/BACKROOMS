@@ -133,11 +133,14 @@ class GameCoreManualCheckpointTest {
     val encounterId = CombatRuntime.active(marked)!!.encounterId
     repo.state = PokerDiceCore.finish(PokerDiceCore.prepare(marked, "quan sát", encounterId))
     val facade = facade(repo)
-    val request = JSONObject().put("turn", CoreClientProjection.turnIndex(repo.state)).toString()
+    val explorerTurn = CoreClientProjection.turnIndex(repo.state)
+    val request = JSONObject().put("turn", explorerTurn).toString()
 
     val first = JSONObject(facade.processCombat(request, "SEARCH", "quan sát"))
     assertTrue(first.toString(), first.getBoolean("handled"))
     assertEquals("clump", CombatRuntime.active(repo.state)!!.entityKey)
+    assertEquals(explorerTurn, CoreClientProjection.turnIndex(repo.state))
+    assertEquals(explorerTurn, first.getJSONObject("state").getInt("turn"))
     val afterFirst = GameStateCodec.encode(repo.state)
     val lootCount = repo.state.metadata.keys.count { it.startsWith("loot.awarded.") }
     assertEquals(1, lootCount)
@@ -147,6 +150,14 @@ class GameCoreManualCheckpointTest {
     assertEquals("combat_dice_required", second.optString("reason"))
     assertEquals(afterFirst, GameStateCodec.encode(repo.state))
     assertEquals(lootCount, repo.state.metadata.keys.count { it.startsWith("loot.awarded.") })
+
+    // A subsequent valid combat round is still not an Explorer action.
+    val nextWave = CombatRuntime.active(repo.state)!!
+    repo.state = PokerDiceCore.finish(PokerDiceCore.prepare(repo.state, "quan sát", nextWave.encounterId))
+    val anotherCombatRound = JSONObject(facade.processCombat(request, "SEARCH", "quan sát"))
+    assertTrue(anotherCombatRound.toString(), anotherCombatRound.getBoolean("handled"))
+    assertEquals(explorerTurn, CoreClientProjection.turnIndex(repo.state))
+    assertEquals(explorerTurn, anotherCombatRound.getJSONObject("state").getInt("turn"))
   }
 
 }
