@@ -148,7 +148,7 @@ object StoryMilestoneRuntime {
   fun entityEncounterCount(state: GameState): Int {
     val plan = StoryMilestonePlan.current(state)?.plan ?: return 0
     val applied = appliedIds(state)
-    return plan.events.count { it.isEntityEncounter && it.id in applied }
+    return plan.events.count { it.kind == StoryMilestonePlan.Kind.ENTITY && it.id in applied }
   }
 
   /** Strictly bind receipts to the Core-authorized event set of this turn. */
@@ -221,9 +221,13 @@ object StoryMilestoneRuntime {
     require(appliedIds(state) == active.plan.events.map { it.id }.toSet()) {
       "milestone_checkpoint_events_incomplete"
     }
-    val turnCount = CoreClientProjection.turnIndex(state).toLong() - active.startTurn.toLong() + 1L
-    require(turnCount >= StoryMilestonePlan.MIN_CHECKPOINT_TURNS) { "milestone_checkpoint_turn_quota_unmet" }
-    require(entityEncounterCount(state) >= StoryMilestonePlan.MIN_ENTITY_ENCOUNTERS) {
+    // turnIndex points to the NEXT Explorer turn after the final authored turn.
+    // Combat turns never advance it and the Boss does not consume a new Explorer turn.
+    val turnCount = CoreClientProjection.turnIndex(state).toLong() - active.startTurn.toLong()
+    require(turnCount >= active.plan.finalEncounter.turn && turnCount >= StoryMilestonePlan.MIN_CHECKPOINT_TURNS) {
+      "milestone_checkpoint_turn_quota_unmet"
+    }
+    require(entityEncounterCount(state).toLong() >= StoryMilestonePlan.minimumEntityEncounters(turnCount)) {
       "milestone_checkpoint_entity_quota_unmet"
     }
     val encounterRefs = JSONArray().apply {
@@ -247,8 +251,8 @@ object StoryMilestoneRuntime {
     }
     checkpoints.put(JSONObject().put("id", completionId).put("visitId", visitId)
       .put("checkpointId", position.id).put("startTurn", active.startTurn)
-      .put("endTurn", CoreClientProjection.turnIndex(state)).put("turnCount", turnCount)
-      .put("entityEncounterCount", encounterRefs.length()).put("entityEncounterRefs", encounterRefs).put("eventRefs", refs)
+      .put("endTurn", CoreClientProjection.turnIndex(state) - 1).put("turnCount", turnCount)
+      .put("entityEncounterCount", entityEncounterCount(state)).put("entityEncounterRefs", encounterRefs).put("eventRefs", refs)
       .put("bossEncounterId", state.world[BOSS]).put("bossResult", "DEFEATED")
       .put("completion", active.plan.completion.toJson()))
     world[CP_HISTORY] = checkpoints.toString()
@@ -358,8 +362,8 @@ object StoryMilestoneRuntime {
       val encounterIds = (0 until encounters.length()).map { encounters.getString(it) }
       val sourceEncounters = (0 until refs.length()).mapNotNull { committedEncounters[refs.getString(it)] }
       require(turns >= StoryMilestonePlan.MIN_CHECKPOINT_TURNS && entry.getLong("turnCount") == turns &&
-        entry.getInt("entityEncounterCount") == encounters.length() &&
-        encounters.length() >= StoryMilestonePlan.MIN_ENTITY_ENCOUNTERS &&
+        entry.getInt("entityEncounterCount") == encounters.length() - 1 &&
+        (encounters.length() - 1).toLong() >= StoryMilestonePlan.minimumEntityEncounters(turns) &&
         encounterIds.size == encounterIds.toSet().size && encounterIds == sourceEncounters &&
         encounterIds.last() == entry.getString("bossEncounterId")) { "story_history_checkpoint_quota_invalid" }
       require(entry.getString("bossResult") == "DEFEATED" &&

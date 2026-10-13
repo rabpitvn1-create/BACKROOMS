@@ -191,7 +191,7 @@ class StoryMilestoneRuntimeTest {
     StoryMilestoneRuntime.validateStoredState(restored)
     StoryFactLedger.validateStoredState(restored)
     val stats = StoryMilestoneRuntime.statsJson(restored)
-    assertEquals(420L, stats.getLong("committedEvents"))
+    assertEquals(200L, stats.getLong("committedEvents"))
     assertEquals(20L, stats.getLong("defeatedBosses"))
     assertEquals(20L, stats.getLong("completedCheckpoints"))
     assertEquals(1L, stats.getLong("completedLevels"))

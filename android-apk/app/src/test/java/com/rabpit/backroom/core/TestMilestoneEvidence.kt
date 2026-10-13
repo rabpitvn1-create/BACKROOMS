@@ -40,8 +40,8 @@ object TestMilestoneEvidence {
 object TestCheckpointQuota {
   fun events(original: JSONArray): JSONArray {
     val values = (0 until original.length()).map { JSONObject(original.getJSONObject(it).toString()) }.toMutableList()
-    values.filter { it.getString("kind") == "FINAL_ENTITY" }.forEach { it.put("turn", 50) }
-    for (index in 1..19) values += JSONObject().put("id", "encounter$index").put("turn", 9 + index)
+    values.filter { it.getString("kind") == "FINAL_ENTITY" }.forEach { it.put("turn", 18) }
+    for (index in 1..8) values += JSONObject().put("id", "encounter$index").put("turn", 9 + index)
       .put("kind", "ENTITY").put("entityKey", "hound").put("action", "TEST_ONLY Entity approaches $index")
       .put("event", "TEST_ONLY direct Entity encounter $index").put("outcome", "TEST_ONLY Entity moves away $index")
     return JSONArray().apply { values.sortedBy { it.getInt("turn") }.forEach { put(it) } }

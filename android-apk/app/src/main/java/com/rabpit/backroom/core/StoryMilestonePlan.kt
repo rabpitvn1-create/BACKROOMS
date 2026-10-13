@@ -11,8 +11,14 @@ import org.json.JSONObject
  */
 object StoryMilestonePlan {
   const val SCHEMA_VERSION = 2
-  const val MIN_CHECKPOINT_TURNS = 50
-  const val MIN_ENTITY_ENCOUNTERS = 20
+  const val MIN_CHECKPOINT_TURNS = 18
+  const val MIN_ENTITY_PERCENT = 40
+
+  /** Quota applies to Explorer turns and ordinary Entity encounters, never Boss or Combat. */
+  fun minimumEntityEncounters(explorerTurns: Long): Long {
+    require(explorerTurns >= MIN_CHECKPOINT_TURNS) { "milestone_checkpoint_too_short" }
+    return (explorerTurns * MIN_ENTITY_PERCENT + 99L) / 100L
+  }
   const val FINAL_HP_MULTIPLIER = 9
   const val FINAL_EXP_MULTIPLIER = 9
   private const val ACTIVE_KEY = "story.milestone.active"
@@ -153,12 +159,15 @@ object StoryMilestonePlan {
       "milestone_final_encounter_required"
     }
     require(events.last().turn >= MIN_CHECKPOINT_TURNS) { "milestone_checkpoint_too_short" }
-    val encounters = events.filter { it.isEntityEncounter }
-    require(encounters.size >= MIN_ENTITY_ENCOUNTERS) { "milestone_entity_encounters_insufficient" }
-    // A batch of twenty names in one scene is not twenty separate encounters.
+    val encounters = events.filter { it.kind == Kind.ENTITY }
+    require(encounters.size.toLong() >= minimumEntityEncounters(events.last().turn.toLong())) {
+      "milestone_entity_encounters_insufficient"
+    }
+    // Only Explorer turns count toward the quota; the final Boss is a separate ending.
     require(encounters.map { it.turn }.toSet().size == encounters.size) {
       "milestone_entity_encounters_same_turn"
     }
+    require(encounters.all { it.turn < events.last().turn }) { "milestone_entity_boss_turn_conflict" }
     val ending = root.getJSONObject("completion")
     val type = CompletionType.valueOf(string(ending, "type", 24))
     val fields = mutableSetOf("type", "outcome")
