@@ -6,7 +6,10 @@ import org.json.JSONObject
 /** Synthetic Core fixtures only. No AI evidence and no GM-generated event receipts. */
 object TestMilestoneTurn {
   fun accept(state: GameState, expectedDueJson: String): GameState {
-    require(StoryMilestoneRuntime.dueJson(state) == expectedDueJson) { "test_expected_due_mismatch" }
+    val expected = JSONArray(expectedDueJson).let { values ->
+      (0 until values.length()).map { values.getString(it) }
+    }
+    require(StoryMilestoneRuntime.due(state).map { it.id } == expected) { "test_expected_due_mismatch" }
     return StoryMilestoneRuntime.acceptTurn(state)
   }
 }
@@ -27,7 +30,7 @@ object TestCheckpointQuota {
     val active = requireNotNull(StoryMilestonePlan.current(state))
     val target = active.startTurn + active.plan.finalEncounter.turn - 1
     while (CoreClientProjection.turnIndex(state) < target) {
-      val ids = StoryMilestoneRuntime.dueJson(state)
+      val ids = JSONArray().apply { StoryMilestoneRuntime.due(state).forEach { put(it.id) } }.toString()
       state = CoreClientProjection.advance(TestMilestoneTurn.accept(state, ids))
     }
     return state

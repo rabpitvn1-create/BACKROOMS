@@ -5,6 +5,8 @@ const path=require('node:path');
 
 const main=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
 const prompt=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/core/StoryMilestonePlannerPrompt.kt'),'utf8');
+const runtime=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/core/StoryMilestoneRuntime.kt'),'utf8');
+const facade=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt'),'utf8');
 
 test('Milestone initial and next checkpoint use SOL instead of Gemini planner transport',()=>{
   const planner=main.split('private void ensureMilestoneForCurrentCheckpoint(String trustedClientView)')[1]
@@ -28,16 +30,14 @@ test('SOL Milestone parses response envelope, exposes categorized errors, and pr
   assert.doesNotMatch(main,/Không thể nạp Milestone\. Kiểm tra kết nối và nhấn Thử lại/);
 });
 
-test('Milestone evidence verifier uses Core event IDs and retries only malformed positive proof',()=>{
-  const verifier=main.split('private boolean milestoneEvidenceMatchesRequest(')[1]
-    .split('private void appendMilestoneIssues(')[0];
-  assert.ok(verifier,'Expected strict verifier transport in existing MainActivity');
-  assert.match(verifier,/dueEvents\.getJSONObject\(i\)\.getString\("id"\)/);
-  assert.match(verifier,/dueFacts\.getJSONObject\(i\)\.getString\("sourceId"\)/);
-  assert.match(verifier,/request\.getString\("requestToken"\)/);
-  assert.match(verifier,/narrative\.contains\(\(String\)quote\)/);
-  assert.match(verifier,/if \(!Boolean\.TRUE\.equals\(proof\.opt\("verified"\)\)\) return proof\.toString\(\)/);
-  assert.match(verifier,/if \(milestoneEvidenceMatchesRequest\(request, proof\)\) return proof\.toString\(\)/);
-  assert.match(verifier,/milestone_evidence_format_invalid/);
-  assert.equal((verifier.match(/geminiTextPolicy\(/g)||[]).length,2);
+test('SOL authored events are applied by Core without GM receipts or second AI verifier',()=>{
+  assert.match(main,/private String generateText\(String prompt\) throws Exception \{\s*emit\("backroomProvider", "Gehihi"\);\s*return verifiedWriterReply\(gehihiText\(prompt\)\);/);
+  assert.match(main,/JSONObject generated = parseModelJson\(generateText\(writerPrompt\(before, action, rolls\)\)\)/);
+  assert.match(main,/JSONObject coreCommit = new JSONObject\(requireGameCore\(\)\.processValidatedCandidate\(\s*before\.toString\(\), state\.toString\(\), action\)\)/);
+  assert.doesNotMatch(main,/verifyMilestoneNarrative\(|auditsForRisk\(|milestoneEventIds|generated\.getJSONArray\("storyFacts"\)/);
+  assert.match(runtime,/val required = due\(state\)/);
+  assert.match(runtime,/val remembered = StoryFactLedger\.recordTurn\(working, required\)/);
+  assert.doesNotMatch(runtime,/validateEvidence\(|evidenceRequest\(|milestone_receipt_mismatch/);
+  assert.match(facade,/StoryMilestoneRuntime\.acceptTurn\(protectedState\)/);
+  assert.doesNotMatch(facade,/milestoneNarrativeRequest\(/);
 });
