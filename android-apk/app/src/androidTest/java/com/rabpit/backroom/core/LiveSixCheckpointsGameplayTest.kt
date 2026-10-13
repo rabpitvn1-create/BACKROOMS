@@ -52,9 +52,9 @@ class LiveSixCheckpointsGameplayTest {
           combat:c.active===true,diceReady:!!c.diceState,diceFinal:d.finalized===true,
           diceBusy:!!window.__combatDiceBusy||!!window.__combatFeedbackBusy,
           canFinish:!!finish&&!finish.disabled,
-          status:String(status&&status.textContent||'').slice(0,180),
+          status:String(status&&status.textContent||'').slice(0,900),
           warnings:warnings.length,
-          error:warnings.length?String(warnings[warnings.length-1].textContent||'').slice(0,240):''
+          error:warnings.length?String(warnings[warnings.length-1].textContent||'').slice(0,900):''
         });
       })();
     """.trimIndent()
@@ -135,6 +135,7 @@ class LiveSixCheckpointsGameplayTest {
           issues.add(summary)
           Log.w(tag, "NON_BLOCKING_ERROR " + summary + " attempt=" + attempts)
           retryAfter = now + 5_000L
+          lastChangeAt = now // This is a real failed request and recovery attempt, not an idle screen.
           // A repeatedly rejected turn becomes blocking, not a false pass.
           if (attempts >= 5) fail("LIVE_BLOCKING_GM_ERROR " + summary +
             " attempts=" + attempts + " totalRecordedIssues=" + issues.size)
@@ -156,6 +157,7 @@ class LiveSixCheckpointsGameplayTest {
               fail("LIVE_BLOCKING_MILESTONE_RETRY_UNAVAILABLE " + message)
             lastMilestoneRetryKey = key
             lastMilestoneRetryAt = now
+            lastChangeAt = now
           }
           Thread.sleep(1000)
           continue
@@ -208,6 +210,7 @@ class LiveSixCheckpointsGameplayTest {
           if (click(web, "exploreActionButton")) {
             explorerActions++
             actionAt = now
+            lastChangeAt = now // A newly submitted live API request resets the idle watch.
           }
         }
         Thread.sleep(1000)
