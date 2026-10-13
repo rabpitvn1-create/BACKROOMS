@@ -62,7 +62,7 @@ jobs:
           arch: x86_64
           profile: pixel_7
           disable-animations: true
-          script: cd android-apk && gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.rabpit.backroom.core.LiveSixCheckpointsGameplayTest --no-daemon
+          script: cd android-apk && bash -c 'gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.rabpit.backroom.core.LiveSixCheckpointsGameplayTest --no-daemon; result=$?; adb logcat -d -s BackroomLiveSixCP:I > app/build/live-six-cp-log.txt; cat app/build/live-six-cp-log.txt; exit $result'
 
       - name: Save real gameplay emulator results
         if: always()
@@ -72,4 +72,5 @@ jobs:
           path: |
             android-apk/app/build/reports/androidTests/connected/
             android-apk/app/build/outputs/androidTest-results/connected/
+            android-apk/app/build/live-six-cp-log.txt
           if-no-files-found: warn
