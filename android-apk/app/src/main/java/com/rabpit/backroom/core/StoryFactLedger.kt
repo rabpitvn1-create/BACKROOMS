@@ -12,7 +12,9 @@ object StoryFactLedger {
   private const val KEY = "story.factLedger"
   private const val MAX_HISTORY = 96
   private const val MAX_PER_TURN = 6
-  private val subjectPattern = Regex("[a-z0-9_.:-]{2,64}")
+  // Entity references are registry keys, whereas event/clue subjects are
+  // human-readable story labels (including Vietnamese names and spaces).
+  private val entitySubjectPattern = Regex("[a-z0-9_.:-]{2,64}")
 
   enum class Kind { EVENT, ENTITY, CLUE }
 
@@ -31,7 +33,9 @@ object StoryFactLedger {
       }
       val kind = Kind.valueOf(readString(item, "kind", 16))
       val subject = readString(item, "subject", 64)
-      require(subjectPattern.matches(subject)) { "story_subject_invalid" }
+      if (kind == Kind.ENTITY) {
+        require(entitySubjectPattern.matches(subject)) { "story_subject_invalid" }
+      }
       FactSpec(kind, subject, readString(item, "fact", 220))
     }
   }

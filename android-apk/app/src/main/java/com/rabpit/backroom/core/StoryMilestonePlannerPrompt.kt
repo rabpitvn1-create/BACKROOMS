@@ -86,8 +86,13 @@ object StoryMilestonePlannerPrompt {
       thì tổng phải là 20. Trận Boss chỉ có thắng hoặc thua, không được chạy thoát. Chỉ đánh bại Boss mới hoàn tất CP.
       Không biên kịch trước chiến thắng gameplay; FINAL_ENTITY chỉ mở Combat.
       Có thể chọn số Turn, các sự kiện và Entity khác mẫu.
-      Mỗi event có thể thêm storyFacts: [{kind:"EVENT|ENTITY|CLUE",subject:"<stable id>",fact:"<fact supported by this event>"}], tối đa 4.
-      Planned facts chưa phải ký ức đã xảy ra; Core chỉ ghi vào ký ức khi lượt chứa event hoàn tất.
+      Chỉ khi cần lưu một dữ kiện cốt truyện qua các Level, event mới
+      cần storyFacts (tối đa 4): [{kind:"EVENT|ENTITY|CLUE",subject:"<tên hoặc định danh>",fact:"<sự thật trong event>"}].
+      EVENT/CLUE: subject có thể là tên riêng tiếng Việt, có dấu và khoảng trắng
+      (1–64 ký tự, không xuống dòng); dùng tên nhất quán giữa các lượt.
+      ENTITY: subject phải đúng một entityKey được hỗ trợ đã liệt kê,
+      không dùng tên hiển thị hoặc biệt danh. Không cần thì BỎ HẲN storyFacts.
+      Planned facts chưa phải ký ức đã xảy ra; Core chỉ ghi khi lượt chứa event hoàn tất.
       Facts là narrative-only, không đổi HP/Status/Combat/Equipment/Inventory và không
       biến dữ kiện thành kiến thức chung của mọi nhân vật. Chỉ nhớ clue thật, không
       biến suy đoán/lời đồn thành phát hiện đã xác nhận. OPEN bị lược khỏi packet

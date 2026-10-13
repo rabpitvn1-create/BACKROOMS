@@ -49,6 +49,40 @@ class StoryFactLedgerTest {
     assertTrue(StoryFactLedger.context(stored).contains(id))
   }
 
+  @Test fun vietnameseNarrativeSubjectsDoNotRejectAValidMilestone() {
+    val facts = JSONArray()
+      .put(fact("EVENT", "Cao Minh", "TEST_ONLY nhân vật nhận thấy một âm thanh lạ"))
+      .put(fact("CLUE", "Cánh cửa màu vàng", "TEST_ONLY manh mối về lối đi"))
+    val script = plan(JSONArray().put(event("beat", 1, facts)))
+    val state = StoryMilestonePlan.installCurrent(initial(), script)
+    val committed = StoryMilestoneRuntime.acceptTurn(state)
+    val context = StoryFactLedger.context(committed)
+    assertTrue(context.contains("Cao Minh"))
+    assertTrue(context.contains("Cánh cửa màu vàng"))
+    assertEquals(2, JSONObject(context).getInt("openTotal"))
+    StoryFactLedger.validateStoredState(GameStateCodec.decode(GameStateCodec.encode(committed)))
+  }
+
+  @Test fun entitySubjectsRemainRegistryIdentifiersNotDisplayNames() {
+    val invalid = JSONArray().put(fact("ENTITY", "Chó săn Hound", "TEST_ONLY invalid entity id"))
+    assertThrows(IllegalArgumentException::class.java) {
+      StoryFactLedger.parseSpecs(invalid)
+    }
+    val valid = JSONArray().put(fact("ENTITY", "hound", "TEST_ONLY valid registry key"))
+    assertEquals("hound", StoryFactLedger.parseSpecs(valid).single().subject)
+  }
+
+  @Test fun narrativeSubjectsRejectControlCharactersAndOversizedStrings() {
+    val control = JSONArray().put(fact("CLUE", "Cao Minh\nẩn", "TEST_ONLY invalid control"))
+    assertThrows(IllegalArgumentException::class.java) {
+      StoryFactLedger.parseSpecs(control)
+    }
+    val tooLong = JSONArray().put(fact("EVENT", "A".repeat(65), "TEST_ONLY oversized"))
+    assertThrows(IllegalArgumentException::class.java) {
+      StoryFactLedger.parseSpecs(tooLong)
+    }
+  }
+
   @Test fun onlySolCanAuthorPersistentStoryFacts() {
     val scripted = StoryMilestonePlan.installCurrent(initial(), plan(
       JSONArray().put(event("beat", 1))))
