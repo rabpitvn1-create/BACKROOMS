@@ -43,7 +43,7 @@ object CoreClientProjection {
     val out = JSONObject(client.toString())
     for (key in arrayOf("turn", "saveVersion", "inventory", "party", "partyDetails",
       "equipment", "player", "coreSystem", "combat", "combatFeedback", "gameTime",
-      "location", "title", "level", "flags", "story", "pendingEncounter")) out.remove(key)
+      "location", "title", "level", "flags", "story", "pendingEncounter", "encounteredCharacters")) out.remove(key)
     out.put("turn", turnIndex(state))
     out.put("saveVersion", CURRENT_SAVE_VERSION)
     out.put("location", state.world.getValue("location"))
@@ -72,6 +72,17 @@ object CoreClientProjection {
           put(JSONObject().put("id", c.id).put("name", c.name)
             .put("presence", c.presence.name).apply { c.avatarRef?.let { put("avatar", it) } })
         }
+      }
+    })
+    out.put("encounteredCharacters", JSONArray().apply {
+      state.characters.values.filter { it.metadata["encountered"] == "true" }.forEach { character ->
+        put(JSONObject().put("id", character.id).put("name", character.name)
+          .put("kind", character.metadata["encounterKind"])
+          .put("encounterId", character.metadata["encounterId"])
+          .put("turn", character.metadata["encounterTurn"]?.toIntOrNull())
+          .put("present", character.presence == CharacterPresence.ACTIVE)
+          .put("inParty", character.id in state.party.memberIds)
+          .put("joinEligible", character.metadata["joinEligible"] == "true"))
       }
     })
     val caoMinh = state.characters.getValue(CAO_MINH_ID)

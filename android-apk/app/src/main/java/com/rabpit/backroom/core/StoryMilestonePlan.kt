@@ -29,7 +29,7 @@ object StoryMilestonePlan {
   private val EVENT_ID = Regex("[A-Za-z][A-Za-z0-9_-]{0,47}")
   private val ENTITY_KEY = Regex("[a-z0-9_-]{1,80}")
 
-  enum class Kind { STORY, ENTITY, FINAL_ENTITY }
+  enum class Kind { STORY, FOLLOWER, NPC, ENTITY, FINAL_ENTITY }
   enum class CompletionType { NEXT_CHECKPOINT, EXIT_LEVEL }
 
   data class Completion(
@@ -67,9 +67,12 @@ object StoryMilestonePlan {
     val event: String,
     val outcome: String,
     val entityKey: String? = null,
-    val combatRequired: Boolean = kind == Kind.FINAL_ENTITY
+    val combatRequired: Boolean = kind == Kind.FINAL_ENTITY,
+    val characterId: String? = null
   ) {
     val isEntityEncounter: Boolean get() = kind == Kind.ENTITY || kind == Kind.FINAL_ENTITY
+    val isCharacterEncounter: Boolean get() = kind == Kind.FOLLOWER || kind == Kind.NPC
+    val isEncounter: Boolean get() = isEntityEncounter || isCharacterEncounter
 
     fun toJson(): JSONObject = JSONObject()
       .put("id", id)
@@ -80,7 +83,8 @@ object StoryMilestonePlan {
       .put("outcome", outcome)
       .apply {
         if (isEntityEncounter) put("entityKey", requireNotNull(entityKey))
-        if (kind == Kind.ENTITY && combatRequired) put("combatRequired", true)
+        if (kind == Kind.ENTITY) put("combatRequired", combatRequired)
+        if (isCharacterEncounter) put("characterId", requireNotNull(characterId))
         if (kind == Kind.FINAL_ENTITY) {
           put("hpMultiplier", FINAL_HP_MULTIPLIER)
           put("expMultiplier", FINAL_EXP_MULTIPLIER)
@@ -110,7 +114,8 @@ object StoryMilestonePlan {
   }
 
   /** Reject incomplete, speculative, duplicated and unsupported SOL plans. */
-  fun parse(raw: String, expected: StoryCheckpointCore.Position): Plan {
+  @JvmOverloads fun parse(raw: String, expected: StoryCheckpointCore.Position,
+                         characters: Map<String, CharacterState> = GameState.initial().characters): Plan {
     require(raw.length in 2..MAX_PLAN_CHARS) { "milestone_payload_size_invalid" }
     val root = JSONObject(raw)
     exactFields(root, setOf("schemaVersion", "checkpointId", "events", "completion"))
@@ -126,8 +131,9 @@ object StoryMilestonePlan {
       val item = entries.getJSONObject(i)
       val kind = Kind.valueOf(string(item, "kind", 24))
       val allowed = mutableSetOf("id", "turn", "kind", "action", "event", "outcome")
-      if (kind != Kind.STORY) allowed += "entityKey"
-      if (kind == Kind.ENTITY && item.has("combatRequired")) allowed += "combatRequired"
+      if (kind == Kind.ENTITY || kind == Kind.FINAL_ENTITY) allowed += "entityKey"
+      if (kind == Kind.FOLLOWER || kind == Kind.NPC) allowed += "characterId"
+      if (kind == Kind.ENTITY) allowed += "combatRequired"
       if (kind == Kind.FINAL_ENTITY) allowed += setOf("hpMultiplier", "expMultiplier")
       // Ignore non-authoritative AI metadata; it must not block a valid schedule.
       item.remove("storyFacts")
@@ -141,7 +147,7 @@ object StoryMilestonePlan {
       val event = string(item, "event", MAX_DESCRIPTION_CHARS)
       val action = string(item, "action", MAX_DESCRIPTION_CHARS)
       val outcome = string(item, "outcome", MAX_DESCRIPTION_CHARS)
-      val key = if (kind != Kind.STORY) {
+      val key = if (kind == Kind.ENTITY || kind == Kind.FINAL_ENTITY) {
         val value = string(item, "entityKey", 80)
         require(ENTITY_KEY.matches(value) && CombatRuntime.supportsEntityKey(value)) {
           "milestone_entity_unknown"
@@ -155,8 +161,17 @@ object StoryMilestonePlan {
       require(!item.has("combatRequired") || item.get("combatRequired") is Boolean) {
         "milestone_combat_required_invalid"
       }
+      val characterId = if (kind == Kind.FOLLOWER || kind == Kind.NPC) {
+        val id = string(item, "characterId", 80)
+        val registered = characters[id]
+        require(id != CAO_MINH_ID && registered != null) { "milestone_character_unknown" }
+        require(kind != Kind.FOLLOWER || registered.metadata["npcType"] == "follower") {
+          "milestone_character_not_follower"
+        }
+        id
+      } else null
       events += Event(id, turn, kind, action, event, outcome, key,
-        kind == Kind.FINAL_ENTITY || item.optBoolean("combatRequired", false))
+        kind == Kind.FINAL_ENTITY || item.optBoolean("combatRequired", false), characterId)
     }
 
     require(events.last().kind == Kind.FINAL_ENTITY &&
@@ -164,6 +179,9 @@ object StoryMilestonePlan {
       "milestone_final_encounter_required"
     }
     require(events.last().turn >= MIN_CHECKPOINT_TURNS) { "milestone_checkpoint_too_short" }
+    require(events.filter { it.combatRequired }.groupBy { it.turn }.values.all { it.size == 1 }) {
+      "milestone_multiple_combats_same_turn"
+    }
     val encounters = events.filter { it.kind == Kind.ENTITY }
     require(encounters.size.toLong() >= minimumEntityEncounters(events.last().turn.toLong())) {
       "milestone_entity_encounters_insufficient"
@@ -197,12 +215,13 @@ object StoryMilestonePlan {
   /** Install once at Checkpoint activation; never rewrite the authored schedule mid-story. */
   fun installCurrent(state: GameState, raw: String): GameState {
     val position = requireNotNull(StoryCheckpointCore.current(state)) { "checkpoint_not_initialized" }
-    val plan = parse(raw, position)
+    val plan = parse(raw, position, state.characters)
     val existing = current(state)
     if (existing != null) {
       require(existing.plan == plan) { "milestone_active_plan_conflict" }
       return state
     }
+    validateCharactersBeforeAcceptance(state, plan, position.level)
     val startTurn = CoreClientProjection.turnIndex(state)
     val value = JSONObject().put("startTurn", startTurn).put("plan", plan.toJson()).toString()
     return state.copy(world = state.world + (ACTIVE_KEY to value))
@@ -216,7 +235,7 @@ object StoryMilestonePlan {
     exactFields(wrapper, setOf("startTurn", "plan"))
     val startTurn = integer(wrapper, "startTurn")
     require(startTurn >= 1) { "milestone_start_turn_invalid" }
-    return Active(startTurn, parse(wrapper.getJSONObject("plan").toString(), position))
+    return Active(startTurn, parse(wrapper.getJSONObject("plan").toString(), position, state.characters))
   }
 
   /**
@@ -239,12 +258,13 @@ object StoryMilestonePlan {
     require(CoreClientProjection.turnIndex(state).toLong() >= finalTurn) {
       "milestone_final_turn_not_reached"
     }
-    val plan = parse(raw, next)
+    val plan = parse(raw, next, state.characters)
     val existing = prepared(state)
     if (existing != null) {
       require(existing == plan) { "milestone_prepared_plan_conflict" }
       return state
     }
+    validateCharactersBeforeAcceptance(state, plan, next.level)
     return state.copy(world = state.world + (PREPARED_KEY to plan.toJson().toString()))
   }
 
@@ -253,7 +273,21 @@ object StoryMilestonePlan {
     val position = requireNotNull(StoryCheckpointCore.current(state)) { "checkpoint_not_initialized" }
     val active = requireNotNull(current(state)) { "milestone_current_plan_missing" }
     val next = active.plan.completion.nextAddress(position)
-    return parse(raw, next)
+    return parse(raw, next, state.characters)
+  }
+
+  /** Resolve impossible Registry states before accepting a compulsory schedule. */
+  private fun validateCharactersBeforeAcceptance(state: GameState, plan: Plan, level: Int) {
+    plan.events.filter { it.isCharacterEncounter }.forEach {
+      val character = state.characters.getValue(requireNotNull(it.characterId))
+      require(character.presence != CharacterPresence.DEAD) {
+        "milestone_character_dead"
+      }
+      character.metadata["encounterLevels"]?.let { allowed ->
+        val bounds = allowed.split('-').map(String::toInt)
+        require(level in bounds.first()..bounds.last()) { "milestone_character_level_invalid" }
+      }
+    }
   }
 
   private fun exactFields(value: JSONObject, allowed: Set<String>) {

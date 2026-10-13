@@ -28,7 +28,7 @@ class FirstSixCheckpointsEmulatorTest {
       .put("outcome", "TEST_ONLY area mapped"))
     for (i in 1..8) events.put(JSONObject()
       .put("id", "encounter$i").put("turn", i + 1).put("kind", "ENTITY")
-      .put("entityKey", "hound")
+      .put("entityKey", "hound").put("combatRequired", false)
       .put("action", "TEST_ONLY Hound approaches $i")
       .put("event", "TEST_ONLY direct Hound encounter $i")
       .put("outcome", "TEST_ONLY Hound leaves $i"))

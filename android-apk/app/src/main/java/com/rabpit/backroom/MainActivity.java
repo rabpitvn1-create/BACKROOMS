@@ -1790,6 +1790,7 @@ public class MainActivity extends Activity {
     JSONObject visibleRolls = new JSONObject(rolls.toString());
     visibleRolls.remove(com.rabpit.backroom.core.HiddenExitStreak.ROLL_KEY);
     JSONObject canonView = new JSONObject(before.toString());
+    canonView.put("milestoneEventsDue", due);
     for (int i = 0; i < due.length(); i++) {
       JSONObject event = due.getJSONObject(i);
       if (event.has("entityKey")) {

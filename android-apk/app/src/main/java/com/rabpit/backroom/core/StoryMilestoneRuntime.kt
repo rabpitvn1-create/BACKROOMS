@@ -75,7 +75,12 @@ object StoryMilestoneRuntime {
   }
 
   fun dueJson(state: GameState): String = JSONArray().apply {
-    due(state).forEach { put(it.toJson()) }
+    due(state).forEach { event ->
+      put(event.toJson().apply {
+        event.entityKey?.let { put("entityName", CombatRuntime.entityName(it)) }
+        event.characterId?.let { put("characterName", state.characters.getValue(it).name) }
+      })
+    }
   }.toString()
 
   /** Count only plans accepted into Core: completed CPs, current plan and prefetch. */
@@ -102,8 +107,17 @@ object StoryMilestoneRuntime {
   /** Identity is issued by Core; repeated receipts/load/retry keep the same instance. */
   fun entityEncounterId(state: GameState, event: StoryMilestonePlan.Event): String {
     require(event.isEntityEncounter) { "milestone_not_entity_encounter" }
+    return encounterId(state, event)
+  }
+
+  fun encounterId(state: GameState, event: StoryMilestonePlan.Event): String {
+    require(event.isEncounter) { "milestone_not_encounter" }
     val active = requireNotNull(StoryMilestonePlan.current(state))
-    return (if (event.kind == StoryMilestonePlan.Kind.FINAL_ENTITY) "MSBOSS:" else "MSENC:") +
+    return (when {
+      event.kind == StoryMilestonePlan.Kind.FINAL_ENTITY -> "MSBOSS:"
+      event.isCharacterEncounter -> "MSCHAR:"
+      else -> "MSENC:"
+    }) +
       digest(JSONObject().put("visit", state.world["story.levelVisitId"] ?: "INITIAL")
       .put("checkpoint", active.plan.checkpointId).put("start", active.startTurn).put("event", event.id).toString())
   }
@@ -122,6 +136,26 @@ object StoryMilestoneRuntime {
       "milestone_encounter_unresolved"
     }
     var working = state
+    // Keep the accepted order. Encounter execution is independent of rolls and Party capacity.
+    required.filter { it.isCharacterEncounter }.forEach { event ->
+      val id = requireNotNull(event.characterId)
+      val character = working.characters.getValue(id)
+      val encounterId = encounterId(state, event)
+      working = working.copy(characters = working.characters + (id to character.copy(
+        presence = CharacterPresence.ACTIVE,
+        metadata = character.metadata + mapOf("encountered" to "true", "encounterId" to encounterId,
+          "encounterTurn" to CoreClientProjection.turnIndex(state).toString(), "encounterKind" to event.kind.name)
+      )))
+      characterFlagKey(id)?.let { key ->
+        val flags = JSONObject(working.world["flagsJson"] ?: "{}")
+        val record = flags.optJSONObject(key) ?: JSONObject()
+        record.put("encountered", true).put("present", true).put("spawned", true)
+          .put("reunionEligible", false).put("levelEncountered", StoryCheckpointCore.current(state)!!.level)
+          .put("follower", id in working.party.memberIds).put("joinPending", false)
+        flags.put(key, record)
+        working = working.copy(world = working.world + ("flagsJson" to flags.toString()))
+      }
+    }
     val boss = required.lastOrNull { it.kind == StoryMilestonePlan.Kind.FINAL_ENTITY }
     if (boss != null) {
       require(BOSS !in working.world) {
@@ -144,12 +178,21 @@ object StoryMilestoneRuntime {
         .put("checkpointId", StoryCheckpointCore.current(state)!!.id)
         .put("turn", CoreClientProjection.turnIndex(state))
         .apply {
-          if (event.isEntityEncounter) put("encounterId", entityEncounterId(working, event))
+          if (event.isEncounter) put("encounterId", encounterId(working, event))
         })
     }
     val updated = working.copy(world = working.world +
       mapOf(APPLIED to applied.toString(), EVENT_RECORDS to records.toString()))
     return incrementStats(updated, "committedEvents" to required.size.toLong())
+  }
+
+  fun characterFlagKey(id: String): String? = when (id) {
+    AN_NHIEN_ID -> "anNhien"
+    IRIS_ID -> "iris"
+    SYVIAL_ID -> "syvial"
+    LUCIA_ID -> "lucia"
+    LUC_TRAM_ID -> "lucTram"
+    else -> null
   }
 
   /** Called only after the actual Combat Core confirms an encounter ended. */
@@ -218,8 +261,10 @@ object StoryMilestoneRuntime {
           .apply {
             if (event.isEntityEncounter) {
               put("entityKey", requireNotNull(event.entityKey))
-              put("encounterId", record.getString("encounterId"))
+              if (event.kind == StoryMilestonePlan.Kind.ENTITY) put("combatRequired", event.combatRequired)
             }
+            if (event.isCharacterEncounter) put("characterId", requireNotNull(event.characterId))
+            if (event.isEncounter) put("encounterId", record.getString("encounterId"))
           })
       }
     }
@@ -293,13 +338,13 @@ object StoryMilestoneRuntime {
       val item = records.getJSONObject(id)
       val event = active!!.plan.events.single { it.id == id }
       require(item.keys().asSequence().toSet() ==
-        if (event.isEntityEncounter) setOf("checkpointId", "turn", "encounterId")
+        if (event.isEncounter) setOf("checkpointId", "turn", "encounterId")
         else setOf("checkpointId", "turn")) { "milestone_saved_event_fields_invalid" }
       require(item.getString("checkpointId") == active.plan.checkpointId &&
         item.getInt("turn").toLong() == active.startTurn.toLong() + event.turn - 1L) {
         "milestone_saved_event_record_invalid"
       }
-      if (event.isEntityEncounter) require(item.optString("encounterId") == entityEncounterId(state, event)) {
+      if (event.isEncounter) require(item.optString("encounterId") == encounterId(state, event)) {
         "milestone_saved_encounter_invalid"
       }
     }
@@ -359,11 +404,16 @@ object StoryMilestoneRuntime {
           event.getString("action").isNotBlank() && event.getString("event").isNotBlank() &&
           event.getString("outcome").isNotBlank()) { "story_history_event_source_invalid" }
         val kind = StoryMilestonePlan.Kind.valueOf(event.getString("kind"))
-        if (kind != StoryMilestonePlan.Kind.STORY) {
+        if (kind == StoryMilestonePlan.Kind.ENTITY || kind == StoryMilestonePlan.Kind.FINAL_ENTITY) {
           require(CombatRuntime.supportsEntityKey(event.getString("entityKey"))) {
             "story_history_entity_unknown"
           }
           sourceEncounters += event.getString("encounterId")
+        }
+        if (kind == StoryMilestonePlan.Kind.FOLLOWER || kind == StoryMilestonePlan.Kind.NPC) {
+          require(event.getString("characterId") in state.characters && event.getString("encounterId").startsWith("MSCHAR:")) {
+            "story_history_character_unknown"
+          }
         }
         allRefs += ref
       }

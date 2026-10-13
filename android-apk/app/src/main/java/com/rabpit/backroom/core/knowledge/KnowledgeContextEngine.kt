@@ -331,6 +331,19 @@ object KnowledgeContextEngine {
     }
 
     private fun addStateDrivenRecords() {
+      val scheduled = state.optJSONArray("milestoneEventsDue") ?: JSONArray()
+      for (index in 0 until scheduled.length()) {
+        when (scheduled.getJSONObject(index).optString("characterId")) {
+          "lucia" -> add("CHAR.LUCIA.AUTHORED", "scheduled Milestone encounter")
+          "iris" -> add("CHAR.IRIS.RUNTIME_CORE", "scheduled Milestone encounter")
+          "syvial" -> add("CHAR.SYVIAL.RUNTIME_CORE", "scheduled Milestone encounter")
+          "luc_tram" -> {
+            add("CHAR.LUC_TRAM.RUNTIME_CORE", "scheduled Milestone encounter")
+            add("CHAR.LUC_TRAM.REVIVAL_R06", "post-revival amnesia firewall")
+            add("CHAR.LUC_TRAM.OPEN_R06", "unresolved state firewall")
+          }
+        }
+      }
       if (confirmedRoll("lucTramEncounter")) {
         add("CHAR.LUC_TRAM.RUNTIME_CORE", "confirmed encounter roll")
         add("CHAR.LUC_TRAM.REVIVAL_R06", "post-revival amnesia firewall")
