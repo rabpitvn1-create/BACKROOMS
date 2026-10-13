@@ -1,0 +1,14 @@
+Backroom 1.2.0.0.18 Debug
+
+- Android versionCode 91; versionName 1.2.0.0.18; applicationId com.rabpit.backroom.
+- Combat không tăng Explorer Turn. Giữ nguyên lượt riêng của Combat, Poker Dice và các cơ chế chiến đấu.
+- Checkpoint tối thiểu 18 Explorer Turn, ít nhất 40% lượt có encounter Entity thường được xác nhận. Ví dụ 18 lượt cần tối thiểu 8 Entity thường.
+- Boss xuất hiện sau diễn biến Explorer của lượt cuối, không tiêu thụ lượt Explorer mới và không được tính vào quota 40%. Chỉ thắng Boss mới hoàn tất Checkpoint.
+- SOL chỉ tạo khung Milestone JSON gồm những action/event/outcome cốt lõi, không viết sẵn cảnh dài; GM viết lời kể, Game Core xác minh và lưu kế hoạch.
+- Sửa phép tính turnCount, endTurn và số encounter thường trong lịch sử Checkpoint; loại các lượt Combat khỏi phép tính.
+- Popup Milestone hiện có hiển thị thời gian chờ và giai đoạn chuẩn bị Canon, gọi SOL, kiểm định/lưu Core. Chỉ kết thúc loading khi Core xác nhận, có thông báo lỗi và nút thử lại.
+- Log chẩn đoán Milestone ghi thời gian đáp ứng SOL, thời gian hoàn thành và kích thước JSON, không chứa khóa API hoặc nội dung provider.
+- Bao gồm thay đổi đã nghiệm thu qua PR #604, #605 và #606.
+- Build, test, APK validation và GitHub Release được xác minh qua GitHub Actions khi phát hành.
+- Chưa xác nhận live SOL/Gehihi trên thiết bị thật; sau cài APK, cần chạy New Game để nghiệm thu đường gọi SOL và thời gian thực tế.
+- Không hỗ trợ save game cũ.
