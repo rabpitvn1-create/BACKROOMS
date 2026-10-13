@@ -68,6 +68,23 @@ class MilestoneEncounterFlowTest {
       if (CombatRuntime.pending(repo.state) != null) finishCombat(repo)
       commit(core)
     }
+    // The target Explorer Turn may already have been reached by an encounter,
+    // but the next action must not be attempted while the preceding Combat is pending.
+    if (CombatRuntime.pending(repo.state) != null) finishCombat(repo)
+  }
+
+  @Test fun executeActionStillConsumesExplorerTurnAndAppliesScheduledLuciaMeeting() {
+    val repo = MemorySave(initial()); val core = facade(repo)
+    reach(core, repo, 3)
+    val before = view(core)
+    val action = "Cao Minh dùng thần thức tìm Lục Trầm"
+    assertTrue(JSONObject(core.beginAction(before.toString(), "EXECUTE", action)).getBoolean("handled"))
+    val response = JSONObject(core.processValidatedCandidate(before.toString(), before.toString(),
+      action, "Cao Minh dùng thần thức. Lucia nhìn hắn cảnh giác và nói: \"Anh đang tìm ai?\""))
+    assertTrue(response.toString(), response.getBoolean("handled"))
+    assertEquals(4, view(core).getInt("turn"))
+    assertEquals("3", repo.state.characters.getValue(LUCIA_ID).metadata["encounterTurn"])
+    assertTrue(StoryMilestoneRuntime.due(repo.state).none { it.id == "lucia3" })
   }
 
   @Test fun plannerLeaseContainsActualRegisteredNpcIdsAndNames() {

@@ -969,7 +969,7 @@ public class MainActivity extends Activity {
 
   /** Milestone generation can take longer than ordinary GM prose. Do not alter the GM timeout. */
   private String solMilestoneText(String prompt) throws Exception {
-    return solText(prompt, 7168, 0.3, true);
+    return solText(prompt, 12288, 0.5, true);
   }
 
   private String solText(String prompt, int maxOutputTokens, double temperature, boolean milestone) throws Exception {
