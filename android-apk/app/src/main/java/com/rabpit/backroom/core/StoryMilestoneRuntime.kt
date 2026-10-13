@@ -20,6 +20,37 @@ object StoryMilestoneRuntime {
   fun statsJson(state: GameState): JSONObject = JSONObject(state.world[STATS] ?: """
     {"version":1,"committedEvents":0,"defeatedBosses":0,"completedCheckpoints":0,"completedLevels":0}
   """)
+  
+  /** History for GM/planner from committed SaveState events, not a parallel ledger. */
+  fun continuityContext(state: GameState): String {
+    val recent = java.util.ArrayDeque<JSONObject>()
+    fun remember(item: JSONObject) {
+      recent.addLast(item)
+      if (recent.size > 12) recent.removeFirst()
+    }
+    val checkpoints = JSONArray(state.world[CP_HISTORY] ?: "[]")
+    for (i in 0 until checkpoints.length()) {
+      val checkpoint = checkpoints.getJSONObject(i)
+      val committed = checkpoint.getJSONArray("events")
+      for (j in 0 until committed.length()) {
+        remember(JSONObject(committed.getJSONObject(j).toString())
+          .put("checkpointId", checkpoint.getString("checkpointId")))
+      }
+    }
+    val active = StoryMilestonePlan.current(state)
+    if (active != null) {
+      val records = JSONObject(state.world[EVENT_RECORDS] ?: "{}")
+      for (event in active.plan.events) {
+        if (!records.has(event.id)) continue
+        remember(event.toJson().put("checkpointId", active.plan.checkpointId)
+          .put("turn", records.getJSONObject(event.id).getInt("turn")))
+      }
+    }
+    return JSONObject().put("recentCommittedEvents", JSONArray().apply { recent.forEach { put(it) } })
+      .apply {
+        state.world["story.milestone.lastCompletion"]?.let { put("lastCompletion", JSONObject(it)) }
+      }.toString()
+  }
 
   private fun incrementStats(state: GameState, vararg deltas: Pair<String, Long>): GameState {
     val stats = statsJson(state)
@@ -108,7 +139,6 @@ object StoryMilestoneRuntime {
         .put("entityEncounterKey", requireNotNull(ordinaryEntity.entityKey))
       working = working.copy(world = working.world + ("flagsJson" to flags.toString()))
     }
-    val remembered = StoryFactLedger.recordTurn(working, required)
     val applied = JSONArray().apply {
       appliedIds(state).sorted().forEach { put(it) }
       required.forEach { put(it.id) }
@@ -122,7 +152,7 @@ object StoryMilestoneRuntime {
           if (event.isEntityEncounter) put("encounterId", entityEncounterId(working, event))
         })
     }
-    val updated = remembered.copy(world = remembered.world +
+    val updated = working.copy(world = working.world +
       mapOf(APPLIED to applied.toString(), EVENT_RECORDS to records.toString()))
     return incrementStats(updated, "committedEvents" to required.size.toLong())
   }
@@ -181,6 +211,23 @@ object StoryMilestoneRuntime {
         put("MS:${position.id}:${records.getJSONObject(event.id).getInt("turn")}:${event.id}")
       }
     }
+    // Persist the committed milestones in the existing Checkpoint history.
+    val committed = JSONArray().apply {
+      active.plan.events.forEach { event ->
+        val record = records.getJSONObject(event.id)
+        val turn = record.getInt("turn")
+        val id = "MS:${position.id}:$turn:${event.id}"
+        put(JSONObject().put("id", id).put("eventId", event.id)
+          .put("turn", turn).put("kind", event.kind.name)
+          .put("action", event.action).put("event", event.event).put("outcome", event.outcome)
+          .apply {
+            if (event.isEntityEncounter) {
+              put("entityKey", requireNotNull(event.entityKey))
+              put("encounterId", record.getString("encounterId"))
+            }
+          })
+      }
+    }
     val checkpoints = JSONArray(world[CP_HISTORY] ?: "[]")
     require((0 until checkpoints.length()).none { checkpoints.getJSONObject(it).getString("id") == completionId }) {
       "milestone_checkpoint_history_duplicate"
@@ -188,7 +235,8 @@ object StoryMilestoneRuntime {
     checkpoints.put(JSONObject().put("id", completionId).put("visitId", visitId)
       .put("checkpointId", position.id).put("startTurn", active.startTurn)
       .put("endTurn", CoreClientProjection.turnIndex(state) - 1).put("turnCount", turnCount)
-      .put("entityEncounterCount", entityEncounterCount(state)).put("entityEncounterRefs", encounterRefs).put("eventRefs", refs)
+      .put("entityEncounterCount", entityEncounterCount(state)).put("entityEncounterRefs", encounterRefs)
+      .put("eventRefs", refs).put("events", committed)
       .put("bossEncounterId", state.world[BOSS]).put("bossResult", "DEFEATED")
       .put("completion", active.plan.completion.toJson()))
     world[CP_HISTORY] = checkpoints.toString()
@@ -204,15 +252,11 @@ object StoryMilestoneRuntime {
       val visits = JSONArray(world[LEVEL_HISTORY] ?: "[]")
       val visitCheckpoints = (0 until checkpoints.length()).map { checkpoints.getJSONObject(it) }
         .filter { it.getString("visitId") == visitId }
-      val open = world["story.factLedger"]?.let { JSONObject(it).getJSONArray("open") } ?: JSONArray()
-      val continuing = JSONArray().apply {
-        for (i in 0 until open.length()) put(open.getJSONObject(i).getString("id"))
-      }
       visits.put(JSONObject().put("id", visitId).put("level", position.level)
         .put("endedBy", completionId).put("turn", CoreClientProjection.turnIndex(state))
         .put("checkpointRefs", JSONArray().apply { visitCheckpoints.forEach { put(it.getString("id")) } })
         .put("committedEventCount", visitCheckpoints.sumOf { it.getJSONArray("eventRefs").length() })
-        .put("continuingFactIds", continuing).put("completion", active.plan.completion.toJson()))
+        .put("completion", active.plan.completion.toJson()))
       world[LEVEL_HISTORY] = visits.toString()
       world["story.levelVisitId"] = "LEVEL:$completionId:${target.id}"
       val flags = JSONObject(world["flagsJson"] ?: "{}")
@@ -278,28 +322,34 @@ object StoryMilestoneRuntime {
     }
     var events = applied.size.toLong()
     val allRefs = mutableListOf<String>()
-    val ledger = state.world["story.factLedger"]?.let(::JSONObject)
-    val committedIds = hashSetOf<String>()
-    val committedEncounters = hashMapOf<String, String>()
-    if (ledger != null) for (name in listOf("history", "archive")) {
-      val entries = ledger.getJSONArray(name)
-      for (i in 0 until entries.length()) {
-        val id = entries.getJSONObject(i).getString("id")
-        if (id.startsWith("MS:")) {
-          committedIds += id
-          val entry = entries.getJSONObject(i)
-          if (entry.optString("kind") == "ENTITY") committedEncounters[id] = entry.getString("entityEncounterId")
-        }
-      }
-    }
     for (i in 0 until checkpoints.length()) {
       val entry = checkpoints.getJSONObject(i)
       val refs = entry.getJSONArray("eventRefs")
-      events += refs.length()
+      val committed = entry.getJSONArray("events")
+      require(refs.length() == committed.length()) { "story_history_event_source_missing" }
+      events += committed.length().toLong()
       val turns = entry.getLong("endTurn") - entry.getLong("startTurn") + 1L
       val encounters = entry.getJSONArray("entityEncounterRefs")
       val encounterIds = (0 until encounters.length()).map { encounters.getString(it) }
-      val sourceEncounters = (0 until refs.length()).mapNotNull { committedEncounters[refs.getString(it)] }
+      val sourceEncounters = mutableListOf<String>()
+      for (j in 0 until committed.length()) {
+        val event = committed.getJSONObject(j)
+        val ref = refs.getString(j)
+        val turn = event.getInt("turn")
+        val id = "MS:${entry.getString("checkpointId")}:$turn:${event.getString("eventId")}"
+        require(event.getString("id") == ref && ref == id &&
+          turn.toLong() in entry.getLong("startTurn")..entry.getLong("endTurn") &&
+          event.getString("action").isNotBlank() && event.getString("event").isNotBlank() &&
+          event.getString("outcome").isNotBlank()) { "story_history_event_source_invalid" }
+        val kind = StoryMilestonePlan.Kind.valueOf(event.getString("kind"))
+        if (kind != StoryMilestonePlan.Kind.STORY) {
+          require(CombatRuntime.supportsEntityKey(event.getString("entityKey"))) {
+            "story_history_entity_unknown"
+          }
+          sourceEncounters += event.getString("encounterId")
+        }
+        allRefs += ref
+      }
       require(turns >= StoryMilestonePlan.MIN_CHECKPOINT_TURNS && entry.getLong("turnCount") == turns &&
         entry.getInt("entityEncounterCount") == encounters.length() - 1 &&
         (encounters.length() - 1).toLong() >= StoryMilestonePlan.minimumEntityEncounters(turns) &&
@@ -309,13 +359,8 @@ object StoryMilestoneRuntime {
         state.metadata.containsKey("exp.awarded.${entry.getString("bossEncounterId")}")) {
         "story_history_defeat_unverified"
       }
-      for (j in 0 until refs.length()) {
-        val id = refs.getString(j)
-        require(id in committedIds) { "story_history_event_source_missing" }
-        allRefs += id
-      }
     }
-    require(allRefs.size == allRefs.toSet().size && committedIds.size.toLong() == events) {
+    require(allRefs.size == allRefs.toSet().size && allRefs.size.toLong() + applied.size.toLong() == events) {
       "story_history_events_inconsistent"
     }
     for (i in 0 until levels.length()) {
