@@ -1,6 +1,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const source=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/battle-start.js'),'utf8');
 const html=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/index.html'),'utf8');
+const conversation=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/encounter-conversation.js'),'utf8');
 const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
 function element(){return {children:[],style:{},dataset:{},appendChild(x){this.children.push(x)},addEventListener(t,f){this.click=f},set textContent(t){this.text=t;this.children=[]},get textContent(){return this.text}}}
 function runtime(characters=[]){
@@ -9,7 +10,7 @@ function runtime(characters=[]){
   document:{getElementById:id=>id==='encounteredCharacters'?box:null,createElement:element},
   syncPrimaryActions(){},Android:{recruitFollower(json,id){calls.push({view:JSON.parse(json),id})}},
   backroomTurn(json){ctx.state=JSON.parse(json);ctx.backroomRenderEncounteredCharacters()}};
- ctx.window=ctx;vm.createContext(ctx);vm.runInContext(source,ctx);return {ctx,box,calls};
+ ctx.window=ctx;vm.createContext(ctx);vm.runInContext(source,ctx);vm.runInContext(conversation,ctx);return {ctx,box,calls};
 }
 const lucia={id:'lucia',name:'Lucia "Lục"',present:true,joinEligible:true,inParty:false};
 test('prose alone creates no contact; a Core meeting displays the registered name without auto-join',()=>{
