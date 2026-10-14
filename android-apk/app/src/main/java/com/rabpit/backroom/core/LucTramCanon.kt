@@ -32,7 +32,7 @@ object LucTramCanon {
         "npcType" to "follower",
         "combatant" to "true",
         "joinEligible" to "true",
-        "encounterPolicy" to "MILESTONE",
+        "encounterPolicy" to "CORE_SPAWN",
         "encounterLevels" to "4-6",
         "encounterAction" to "PHYSICAL",
         "followsPlayer" to "true",

@@ -20,7 +20,7 @@ class LucTramEncounterTest {
   @Test fun registryMetadataDoesNotSeedUnconfirmedGearOrParty() {
     val state = GameState.initial()
     // encounterPolicy remains write-only metadata (no production path reads it).
-    assertEquals("MILESTONE", state.characters.getValue(LUC_TRAM_ID).metadata["encounterPolicy"])
+    assertEquals("CORE_SPAWN", state.characters.getValue(LUC_TRAM_ID).metadata["encounterPolicy"])
     assertFalse(state.characters.getValue(LUC_TRAM_ID).metadata.containsKey("encounterChance"))
     assertFalse(LUC_TRAM_ID in state.party.memberIds)
     assertFalse(LucTramCanon.hasConfirmedSword(state))
@@ -29,14 +29,14 @@ class LucTramEncounterTest {
   @Test fun lucTramIneligibleBelowLevelFour() {
     for (level in 0..3) {
       val state = atLevel(level)
-      val encounters = NpcSpawnTable.rollNpcs(state, ActionKind.EXECUTE, level, ::succeed)
+      val encounters = NpcSpawnTable.rollNpcs(state, ActionKind.EXECUTE, "đi khám phá", level, ::succeed)
       assertTrue("Level $level should not roll Luc Tram", encounters.none { it.characterId == LUC_TRAM_ID })
     }
   }
 
   @Test fun lucTramEligibleOnLevelFourPhysical() {
     val state = atLevel(4)
-    val encounters = NpcSpawnTable.rollNpcs(state, ActionKind.EXECUTE, 4, ::succeed)
+    val encounters = NpcSpawnTable.rollNpcs(state, ActionKind.EXECUTE, "đi khám phá", 4, ::succeed)
     assertTrue(encounters.any { it.characterId == LUC_TRAM_ID && it.flagKey == "lucTram" })
   }
 
@@ -52,7 +52,7 @@ class LucTramEncounterTest {
     // Not auto-recruited.
     assertFalse(LUC_TRAM_ID in committed.party.memberIds)
     // Once-only: a second roll cannot re-encounter.
-    val second = NpcSpawnTable.rollNpcs(committed, ActionKind.EXECUTE, 4, ::succeed)
+    val second = NpcSpawnTable.rollNpcs(committed, ActionKind.EXECUTE, "đi khám phá", 4, ::succeed)
     assertTrue(second.none { it.characterId == LUC_TRAM_ID })
   }
 

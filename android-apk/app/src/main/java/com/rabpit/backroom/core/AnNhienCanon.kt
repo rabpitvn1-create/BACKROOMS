@@ -40,7 +40,7 @@ object AnNhienCanon {
         "npcType" to "follower",
         "entity" to "false",
         "joinEligible" to "true",
-        "encounterPolicy" to "MILESTONE",
+        "encounterPolicy" to "CORE_SPAWN",
         "encounterLevels" to "0-6",
         "nonCombat" to "true",
         "canUseWeapons" to "false",

@@ -94,7 +94,7 @@ class LuciaFollowerTest {
     val state = GameState.initial()
     val lucia = state.characters.getValue(LUCIA_ID)
     assertFalse(LUCIA_ID in state.party.memberIds)
-    assertEquals("MILESTONE", lucia.metadata["encounterPolicy"])
+    assertEquals("CORE_SPAWN", lucia.metadata["encounterPolicy"])
     assertEquals("0", lucia.metadata["encounterLevels"])
     assertEquals("EXPLORE", lucia.metadata["encounterAction"])
     assertEquals("60", lucia.metadata["startingLoadedAmmo"])
