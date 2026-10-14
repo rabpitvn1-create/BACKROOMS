@@ -190,7 +190,8 @@ class StoryMilestoneRuntimeTest {
     val restored = GameStateCodec.decode(GameStateCodec.encode(state))
     StoryMilestoneRuntime.validateStoredState(restored)
     val stats = StoryMilestoneRuntime.statsJson(restored)
-    assertEquals(440L, stats.getLong("committedEvents"))
+    assertEquals(StoryCheckpointCore.CHECKPOINTS_PER_LEVEL.toLong() *
+      (StoryMilestonePlan.MIN_ENTITY_ENCOUNTERS + 2).toLong(), stats.getLong("committedEvents"))
     assertEquals(40L, stats.getLong("defeatedBosses"))
     assertEquals(40L, stats.getLong("completedCheckpoints"))
     assertEquals(1L, stats.getLong("completedLevels"))
