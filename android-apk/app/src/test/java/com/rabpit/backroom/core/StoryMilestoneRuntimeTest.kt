@@ -202,7 +202,7 @@ class StoryMilestoneRuntimeTest {
     assertTrue(cpHistory.getJSONObject(0).getJSONArray("events").length() > 0)
     assertTrue(StoryMilestoneRuntime.continuityContext(restored).contains("TEST_ONLY"))
     assertEquals(40, levelHistory.getJSONObject(0).getJSONArray("checkpointRefs").length())
-    assertEquals(StoryCheckpointCore.Position(1, 1, 3), StoryCheckpointCore.current(restored))
+    assertEquals(StoryCheckpointCore.Position(1, 1, 40), StoryCheckpointCore.current(restored))
     assertEquals("1.2", JSONObject(restored.world.getValue("levelJson")).getString("id"))
     assertEquals("TEST_ONLY Level ending", JSONObject(restored.world.getValue("story.milestone.lastCompletion"))
       .getJSONObject("completion").getString("outcome"))

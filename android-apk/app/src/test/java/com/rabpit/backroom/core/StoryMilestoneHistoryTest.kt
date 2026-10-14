@@ -32,7 +32,7 @@ class StoryMilestoneHistoryTest {
       JSONArray().put(JSONObject().put("kind", "CLUE")
         .put("subject", "Cánh cửa màu vàng")))
     assertThrows(Exception::class.java) {
-      StoryMilestonePlan.parse(raw.toString(), StoryCheckpointCore.Position(0, 1, 20))
+      StoryMilestonePlan.parse(raw.toString(), StoryCheckpointCore.Position(0, 1, 40))
     }
   }
 
