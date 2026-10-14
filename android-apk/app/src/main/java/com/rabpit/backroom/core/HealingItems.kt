@@ -2,6 +2,10 @@ package com.rabpit.backroom.core
 
 const val BANDAGE_ID = "medical:bandage"
 const val ANTISEPTIC_ID = "medical:antiseptic"
+const val BANH_TET_ID = "southern:banh-tet"
+const val COM_TAM_ID = "southern:saigon-com-tam"
+const val BANH_TET_HEAL_HP = 5
+const val COM_TAM_HEAL_HP = 10
 
 object HealingItems {
   const val BANDAGE_NAME = "Băng gạc"
@@ -14,10 +18,15 @@ object HealingItems {
   fun healAmount(item: ItemStack): Int = when {
     item.itemId == BANDAGE_ID || normalizedName(item.name) in setOf("băng gạc", "bang gac", "bandage") -> BANDAGE_HEAL_HP
     item.itemId == ANTISEPTIC_ID || normalizedName(item.name) in setOf("thuốc sát trùng", "thuoc sat trung", "antiseptic") -> ANTISEPTIC_HEAL_HP
-    else -> 0
+    item.itemId == BANH_TET_ID -> BANH_TET_HEAL_HP
+    item.itemId == COM_TAM_ID -> COM_TAM_HEAL_HP
+    else -> item.metadata["healHp"]?.toIntOrNull()?.coerceAtLeast(0) ?: 0
   }
 
   fun normalize(item: ItemStack): ItemStack? {
+    val isMedical = item.itemId == BANDAGE_ID || item.itemId == ANTISEPTIC_ID ||
+      normalizedName(item.name) in setOf("băng gạc", "bang gac", "bandage", "thuốc sát trùng", "thuoc sat trung", "antiseptic")
+    if (!isMedical) return null
     val heal = healAmount(item)
     if (heal <= 0) return null
     val bandage = heal == BANDAGE_HEAL_HP
