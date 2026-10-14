@@ -559,37 +559,22 @@ object KnowledgeContextEngine {
      */
     private fun npcBehaviorRules(): String = buildString {
       append("NPC_BEHAVIOR_RULES:\n")
-      append("1. INITIATIVE: NPCs are people with their own goals, not warning dispensers. ")
-      append("Let a present NPC take conversational initiative fitting their personality: ")
-      append("ask questions, comment on what they observe, express opinions, show curiosity or skepticism. ")
-      append("Do not reduce every NPC turn to a safety warning.\n")
-      append("2. AUTONOMY: A present NPC may disagree with Cao Minh, question his plan, refuse a request, ")
-      append("or act on their own without player orders (e.g. securing a perimeter, checking a sound, ")
-      append("picking up a useful object) — as long as it stays within ordinary physical/social action. ")
-      append("NPC autonomy NEVER decides: combat outcomes, damage, loot, EXP, Entity spawns, exit locations, ")
-      append("Level transitions, or Party recruitment. Those are Core authority.\n")
-      append("3. NO FREEZING: Do NOT make an NPC silent, passive, or statue-like just because they are ")
-      append("not in Party. PRESENT means they can speak, move, and react. inParty=false is a recruitment ")
-      append("fact, not a behavior freeze.\n")
-      append("4. EPISTEMIC BOUNDARY: Each NPC knows only what their background, direct observation in this ")
-      append("run, testimony heard in-scene, or reasonable inference supports. No omniscient NPCs. ")
-      append("An NPC cannot know the exit location, hidden Entity identity, or Core mechanics unless the ")
-      append("scene gave them that information. Preserve uncertainty: a guess stays a guess.\n")
-      append("5. NAME KNOWLEDGE: Do NOT have an NPC call Cao Minh by name (or reveal they know his identity) ")
-      append("before an in-scene introduction or a clearly narrated information source. Likewise, Cao Minh ")
-      append("does not know an NPC's name before they introduce themselves.\n")
-      append("6. NO ASSUMED INTIMACY: Merely exploring together does NOT make two characters teammates, ")
-      append("friends, or trusted allies. Do not narrate trust, camaraderie, or romantic tension that the ")
-      append("scene has not earned. Keep address and tone consistent with the actual relationship status above.\n")
-      append("7. LUCIA (if present, inParty=false): 19-year-old former special-forces soldier, direct speaker, ")
-      append("fire discipline. She may keep her weapon ready, demand identification, prioritize survival, ")
-      append("and act on tactical instinct without asking permission for every small action. ")
-      append("inParty=false is CORRECT — the player has not recruited her. Never narrate her as a Party member, ")
-      append("never auto-recruit, never soften her into a follower archetype.\n")
-      append("8. LUC TRAM R06 (if present): post-revival amnesia is ABSOLUTE. She does NOT remember Cao Minh — ")
-      append("not his name, not their enmity, not their trust, not old terms of address. Never have her ")
-      append("recognize him, use familiar address, or reference their shared past as remembered fact. ")
-      append("Cao Minh does not by default know she survived or lost her memory.\n")
+      append("Present NPCs may ask, disagree, refuse, move and react according to Canon, ")
+      append("even when inParty=false; do not reduce them to warnings or passive followers. ")
+      append("Ordinary initiative cannot decide combat, damage, loot, EXP, spawns, exits, ")
+      append("Level changes or recruitment: Core alone decides those.\n")
+      append("Knowledge comes from Canon background, observation, testimony and supported inference; ")
+      append("keep guesses uncertain. Names and intimacy require prior Canon knowledge or an ")
+      append("in-scene introduction/source; merely walking together does not establish trust or Party membership.\n")
+      if (npcStatus["lucia"] == "PRESENT_NOT_IN_PARTY") {
+        append("Lucia is present, NOT recruited: preserve her Canon speech and tactical initiative; ")
+        append("never auto-recruit or narrate her as a Party member.\n")
+      }
+      if ("luc_tram" in presentActors) {
+        append("Luc Tram R06 cannot remember Cao Minh or their shared past before revival. ")
+        append("New introductions/knowledge in this run are allowed; do not restore old memories or intimacy. ")
+        append("Cao Minh does not automatically know she survived or lost her memory.\n")
+      }
     }
 
     private fun currentLevel(): Int {

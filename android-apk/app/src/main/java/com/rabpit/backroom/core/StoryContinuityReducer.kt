@@ -12,7 +12,7 @@ import org.json.JSONObject
 *
 * Input: the prompt-facing GameState JSON (the same shape MainActivity passes to
 * writerPrompt — clientSnapshot projection): level, location, title, flags,
-* party, encounteredCharacters, pendingNpcEncounters, pendingEncounter, combat,
+* party, encounteredCharacters, pendingNpcEncounters, pendingEntityEncounter, pendingEncounter, combat,
 * inventory, player, log, turn.
 *
 * Output: Vietnamese directive notes with two logical halves:
@@ -44,16 +44,19 @@ object StoryContinuityReducer {
 private const val AN_NHIEN_ID = "an_nhien"
 
 /**
-* Builds continuity notes from a prompt-facing GameState JSON string.
+* Builds continuity notes from the pre-turn state plus Core-confirmed pending encounters
+* and the current turn's rolls. Existing exits and new discoveries stay distinct.
 * Returns "" when the input is blank or unparseable.
 */
-fun continuityNotes(stateJson: String): String {
+@JvmStatic
+fun continuityNotes(stateJson: String, rollsJson: String = "{}"): String {
 if (stateJson.isBlank()) return ""
 val state = try {
 JSONObject(stateJson)
 } catch (_: Exception) {
 return ""
 }
+val rolls = runCatching { JSONObject(rollsJson) }.getOrElse { JSONObject() }
 val turn = state.optInt("turn", -1)
 val sb = StringBuilder()
 sb.append("══ TIẾP NỐI CỐT TRUYỆN — SỰ THẬT DO GAME CORE XÁC NHẬN")
@@ -64,7 +67,7 @@ sb.append("CẤM suy diễn thêm sự kiện mới từ 'trí nhớ' của GM; 
 sb.append("một phát hiện đã được kể ở lượt trước thì ở lượt này là 'đã biết', không phải 'vừa phát hiện'.\n")
 
 appendLevelAnchor(sb, state)
-appendExitStatus(sb, state)
+appendExitStatus(sb, state, rolls)
 appendNpcContinuity(sb, state)
 appendEntityContinuity(sb, state)
 appendInventoryContinuity(sb, state)
@@ -108,16 +111,20 @@ sb.append("nếu không có sự kiện chuyển Level được Core xác nhận
 // across consecutive turns. The exact status below forbids that.
 // ---------------------------------------------------------------------------
 
-private fun appendExitStatus(sb: StringBuilder, state: JSONObject) {
-val flags = state.optJSONObject("flags")
-val exploration = flags?.optJSONObject("exploration")
-val exitReady = exploration?.optBoolean("exitReady", false) == true ||
-exploration?.optString("exitProgress", "") == "READY" ||
-flags?.optString("exitProgress", "") == "READY"
+private fun appendExitStatus(sb: StringBuilder, state: JSONObject, rolls: JSONObject) {
+val exploration = state.optJSONObject("flags")?.optJSONObject("exploration")
+val wasReady = HiddenExitStreak.ready(state)
+val newlyReady = HiddenExitStreak.newlyReady(state, rolls)
 sb.append("\n\n")
-if (!exitReady) {
+if (!wasReady && !newlyReady) {
 sb.append("- Chưa phát hiện Exit nào. CẤM tự bịa thêm Exit/cánh cửa thoát mới ")
 sb.append("để 'chống nhàm chán' hoặc tạo cao trào.\n")
+return
+}
+if (newlyReady) {
+sb.append("- EXIT VỪA ĐỦ ĐIỀU KIỆN Ở LƯỢT NÀY. Có thể hé lộ Exit thật hợp canon; ")
+sb.append("đây là phát hiện mới, không phải Exit đã được kể từ trước.\n")
+sb.append("- Exit available không đồng nghĩa đã chuyển Level. Chỉ kể chuyển Level khi Core xác nhận.\n")
 return
 }
 sb.append("- EXIT ĐÃ ĐƯỢC PHÁT HIỆN TỪ TRƯỚC và vẫn còn đó. ")
@@ -238,7 +245,7 @@ lines.forEach { sb.append(it).append('\n')}
 private fun appendEntityContinuity(sb: StringBuilder, state: JSONObject) {
 val lines = mutableListOf<String>()
 
-state.optJSONObject("pendingEncounter")?.let { pending ->
+(state.optJSONObject("pendingEntityEncounter") ?: state.optJSONObject("pendingEncounter"))?.let { pending ->
 val entityName = pending.optString("entityName", "").trim()
 val entityKey = pending.optString("entityKey", "").trim()
 val encounterId = pending.optString("encounterId", "").trim()
@@ -260,7 +267,8 @@ lines.add("- ĐANG TRONG TRẬN CHIẾN với $entityName. Tiếp tục diễn b
 
 val flags = state.optJSONObject("flags")
 val recentKey = flags?.optString("entityEncounterKey", "")?.trim().orEmpty()
-val hasPendingOrActive = state.optJSONObject("pendingEncounter")!= null ||
+val hasPendingOrActive = state.optJSONObject("pendingEntityEncounter") != null ||
+state.optJSONObject("pendingEncounter")!= null ||
 state.optJSONObject("combat")!= null
 if (recentKey.isNotBlank() &&!hasPendingOrActive) {
 lines.add(

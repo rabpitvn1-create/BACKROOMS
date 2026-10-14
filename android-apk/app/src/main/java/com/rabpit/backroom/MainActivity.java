@@ -1521,7 +1521,7 @@ public class MainActivity extends Activity {
     } catch (Exception ignored) { actionKindNormalized = "EXECUTE"; }
     if (actionKindNormalized == null) actionKindNormalized = "EXECUTE";
     actionKindNormalized = actionKindNormalized.trim().toUpperCase(java.util.Locale.ROOT);
-    String voiceActionKind = mapVoiceActionKind(action, actionKindNormalized,
+    String voiceActionKind = mapVoiceActionKind(before, action, actionKindNormalized,
       pendingNpcEncounters, pendingEntityEncounter, rolls);
     String voiceEventKind = mapVoiceEventKind(before,
       pendingNpcEncounters, pendingEntityEncounter, rolls);
@@ -1544,7 +1544,7 @@ public class MainActivity extends Activity {
       "Không thêm Markdown, code fence, lời mở đầu, operations, state hoặc khóa khác. " +
       com.rabpit.backroom.core.knowledge.GmNarrativeVoicePolicy.prompt() +
       voiceGuidanceSection(voiceActionKind, voiceEventKind) +
-      continuityNotesSection(before.toString()) +
+      continuityNotesSection(stateForKnowledge.toString(), rolls.toString()) +
       exitDirectiveSection(before, rolls) +
       eventSemanticsAndAgency() +
       "\nACTION_TYPE: " + actionKindNormalized +
@@ -1556,14 +1556,14 @@ public class MainActivity extends Activity {
 
   // AGENT 5 — GM Integration helpers. Entity/NPC action kinds come ONLY from
   // Core-confirmed events (beginAction response), never from GM prose or speculation.
-  private String mapVoiceActionKind(String action, String actionKindNormalized,
+  private String mapVoiceActionKind(JSONObject before, String action, String actionKindNormalized,
       JSONArray pendingNpcEncounters, JSONObject pendingEntityEncounter, JSONObject rolls) {
     if (pendingEntityEncounter != null
         && !pendingEntityEncounter.optString("entityKey", "").trim().isEmpty())
       return com.rabpit.backroom.core.GmNarrativeVoicePolicy.ENTITY_SPAWN;
     if (pendingNpcEncounters != null && pendingNpcEncounters.length() > 0)
       return com.rabpit.backroom.core.GmNarrativeVoicePolicy.NPC_MEETING;
-    if (exitNewlyAvailable(rolls))
+    if (com.rabpit.backroom.core.HiddenExitStreak.newlyReady(before, rolls))
       return com.rabpit.backroom.core.GmNarrativeVoicePolicy.TRACE_FOUND;
     String a = lower(action == null ? "" : action);
     if (containsAny(a, "nói", "hỏi", "trả lời", "đáp", "chào", "gọi", "thì thầm", "hét lên", "kêu lên"))
@@ -1575,14 +1575,6 @@ public class MainActivity extends Activity {
     return com.rabpit.backroom.core.GmNarrativeVoicePolicy.OTHER;
   }
 
-  private boolean exitNewlyAvailable(JSONObject rolls) {
-    try {
-      JSONObject levelExit = rolls.optJSONObject("levelExit");
-      return levelExit != null && levelExit.optBoolean("success", false)
-        && levelExit.optBoolean("guaranteedByState", false);
-    } catch (Throwable ignored) { return false; }
-  }
-
   private String mapVoiceEventKind(JSONObject before, JSONArray pendingNpcEncounters,
       JSONObject pendingEntityEncounter, JSONObject rolls) {
     if (pendingEntityEncounter != null
@@ -1590,10 +1582,7 @@ public class MainActivity extends Activity {
       return com.rabpit.backroom.core.GmNarrativeVoicePolicy.MAJOR;
     if (pendingNpcEncounters != null && pendingNpcEncounters.length() > 0)
       return com.rabpit.backroom.core.GmNarrativeVoicePolicy.MAJOR;
-    boolean wasReady = false;
-    try { wasReady = com.rabpit.backroom.core.HiddenExitStreak.ready(before); }
-    catch (Throwable ignored) {}
-    if (exitNewlyAvailable(rolls) && !wasReady)
+    if (com.rabpit.backroom.core.HiddenExitStreak.newlyReady(before, rolls))
       return com.rabpit.backroom.core.GmNarrativeVoicePolicy.MAJOR;
     JSONObject hazard = rolls.optJSONObject("hazard");
     if (hazard != null && hazard.optBoolean("success", false))
@@ -1610,19 +1599,11 @@ public class MainActivity extends Activity {
     } catch (Throwable ignored) { return ""; }
   }
 
-  // StoryContinuityReducer.continuityNotes is owned by Agent 2 and may not exist yet.
-  // Resolve defensively via reflection; an empty result simply omits the section.
-  private String continuityNotesSection(String beforeJson) {
-    try {
-      Class<?> cls = Class.forName("com.rabpit.backroom.core.StoryContinuityReducer");
-      java.lang.reflect.Field instanceField = cls.getField("INSTANCE");
-      Object instance = instanceField.get(null);
-      java.lang.reflect.Method m = cls.getMethod("continuityNotes", String.class);
-      Object out = m.invoke(instance, beforeJson);
-      String notes = out == null ? "" : String.valueOf(out).trim();
-      if (notes.isEmpty()) return "";
-      return "\nTRẠNG THÁI ĐÃ XÁC NHẬN (Core — GM không được kể trái các sự thật này):\n" + notes;
-    } catch (Throwable ignored) { return ""; }
+  private String continuityNotesSection(String stateJson, String rollsJson) {
+    String notes = com.rabpit.backroom.core.StoryContinuityReducer
+      .continuityNotes(stateJson, rollsJson);
+    if (notes.trim().isEmpty()) return "";
+    return "\nTRẠNG THÁI ĐÃ XÁC NHẬN (Core — GM không được kể trái các sự thật này):\n" + notes;
   }
 
   // Core-authoritative exit directive. Distinguishes: exit available (may reveal, never

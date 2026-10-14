@@ -46,6 +46,11 @@ public final class HiddenExitStreak {
     return projectedStreak(before, rolls) >= REQUIRED_STREAK;
   }
 
+  /** A discovery event, distinct from an exit that was already available. */
+  public static boolean newlyReady(JSONObject before, JSONObject rolls) {
+    return !ready(before) && projectedReady(before, rolls);
+  }
+
   public static String gmDirective(JSONObject before, JSONObject rolls) {
     if (ready(before)) {
       return "HIDDEN EXIT ROUTE: một Exit thật đã available. Có thể để người chơi nhận biết nó, nhưng không tự chuyển Level nếu hành động chưa chủ động đi qua. Không nhắc streak, bộ đếm, roll hay xác suất.";

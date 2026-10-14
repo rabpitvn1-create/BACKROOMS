@@ -116,4 +116,44 @@ class KnowledgeContextEngineTest {
     }
     assertTrue(result.endsWith("[END_KNOWLEDGE_PACKET]"))
   }
+  @Test fun fullPartyAndEveryConfirmedEntityFitTheMandatoryBudget() {
+    val state = JSONObject().put("turn", 40)
+      .put("level", JSONObject().put("number", 4).put("id", "4"))
+      .put("party", org.json.JSONArray().apply {
+        for (id in listOf("iris", "syvial", "luc_tram"))
+          put(JSONObject().put("id", id).put("presence", "ACTIVE"))
+      })
+      .put("flags", JSONObject().put("storyContinuity", "TEST_ONLY".repeat(1000)))
+      .put("log", org.json.JSONArray().apply {
+        repeat(4) { put(JSONObject().put("role", "gm").put("text", "TEST_ONLY".repeat(100))) }
+      })
+    val file = listOf(File("src/main/assets/knowledge/knowledge_db.json"),
+      File("app/src/main/assets/knowledge/knowledge_db.json")).first { it.isFile }
+    val db = KnowledgeContextEngine.parseDatabase(file.readText())
+    for (record in db.records.values.filter { it.id.startsWith("ENTITY.") && it.id.endsWith(".VISUAL") }) {
+      val key = record.tags.first()
+      state.put("pendingEntityEncounter", JSONObject().put("entityKey", key))
+      state.getJSONObject("flags").put("entityEncounterKey", key)
+      val result = KnowledgeContextEngine.Builder(db, state, "đi tiếp", JSONObject()).build()
+      assertTrue(record.id, result.length <= KnowledgeContextEngine.HARD_CONTEXT_CEILING * 4)
+      assertTrue(record.id, result.contains("<${record.id}>"))
+      for (id in listOf("CHAR.IRIS.RUNTIME_CORE", "CHAR.SYVIAL.RUNTIME_CORE",
+        "CHAR.LUC_TRAM.REVIVAL_R06", "CHAR.LUC_TRAM.OPEN_R06")) {
+        assertTrue(id, result.contains("<$id>"))
+      }
+    }
+  }
+
+  @Test fun npcBehaviorGuidanceFollowsConfirmedPresenceAndRecruitment() {
+    val absent = packet()
+    assertFalse(absent.contains("Lucia is present"))
+    assertFalse(absent.contains("Luc Tram R06 cannot remember"))
+    val meeting = packet("""{"pendingNpcEncounters":[{"characterId":"lucia"}]}""")
+    assertTrue(meeting.contains("Lucia is present, NOT recruited"))
+    assertTrue(meeting.contains("PRESENT, inParty=false"))
+    val recruited = packet("""{"party":[{"id":"lucia","presence":"ACTIVE"}]}""")
+    assertTrue(recruited.contains("IN_PARTY — recruited Party member"))
+    assertFalse(recruited.contains("Lucia is present, NOT recruited"))
+  }
+
 }
