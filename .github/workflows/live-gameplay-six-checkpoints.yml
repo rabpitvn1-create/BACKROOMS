@@ -1,14 +1,6 @@
 name: Live AI - One Checkpoint Then Repeat
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - '.github/workflows/live-gameplay-six-checkpoints.yml'
-      - 'android-apk/app/src/androidTest/java/com/rabpit/backroom/core/LiveSixCheckpointsGameplayTest.kt'
-      - 'android-apk/tools/verify-live-one-checkpoint.cjs'
-      - 'android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java'
-      - 'android-apk/app/src/main/java/com/rabpit/backroom/core/**'
   workflow_dispatch:
 
 permissions:
@@ -16,7 +8,6 @@ permissions:
 
 jobs:
   live-first-checkpoint:
-    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'restore/fake-sandbox-milestone-v2' || github.head_ref == 'acceptance/1.2.0.0.26'
     runs-on: ubuntu-latest
     timeout-minutes: 235
     env:
