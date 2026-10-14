@@ -124,6 +124,12 @@ object KnowledgeContextEngine {
     private val selected = linkedMapOf<String, Record>()
     private val reasons = linkedMapOf<String, String>()
     private val presentActors = linkedSetOf("cao_minh")
+    // Precise per-actor relationship status for the GM packet.
+    // Values: "IN_PARTY" | "PRESENT_NOT_IN_PARTY" | "ENCOUNTERED_ABSENT".
+    // "PRESENT_NOT_IN_PARTY" is the critical case: Core confirmed the NPC is in
+    // the scene (first meeting / temporary companion), but the player has NOT
+    // recruited them. The GM must never narrate such an NPC as a Party member.
+    private val npcStatus = linkedMapOf<String, String>()
     private val actionText = normalize(action)
     private val sceneText = normalize(
       listOf(
@@ -155,8 +161,11 @@ object KnowledgeContextEngine {
           .append(" soft=").append(SOFT_CONTEXT_CEILING)
           .append(" hard=").append(HARD_CONTEXT_CEILING).append('\n')
         append("Present actors: ").append(presentActors.joinToString(", ")).append('\n')
+        val statusSection = npcStatusSection()
+        if (statusSection.isNotEmpty()) append(statusSection)
         if (compacted) append("Optional state/dialogue compacted to preserve mandatory Canon.\n")
         append("Current state:\n").append(stateSummary).append('\n')
+        append(npcBehaviorRules())
         append("Recent dialogue buffer:\n").append(dialogue.toString()).append('\n')
         append("Retrieved records:\n")
       }
@@ -424,13 +433,24 @@ object KnowledgeContextEngine {
     private fun resolvePresence() {
       // State is the only evidence of who is actually in the scene.
       // Substring matching lets names like "iris_unknown" impersonate a Party member.
-      fun addConfirmed(idOrName: String) {
-        when (normalize(idOrName)) {
-          "iris" -> presentActors += "iris"
-          "syvial" -> presentActors += "syvial"
-          "lucia", "lucia lục" -> presentActors += "lucia"
-          "trac_lam", "trác lâm", "trac lam" -> presentActors += "trac_lam"
-          "luc_tram", "lục trầm", "luc tram" -> presentActors += "luc_tram"
+      // Status tracking: IN_PARTY vs PRESENT_NOT_IN_PARTY vs ENCOUNTERED_ABSENT.
+      // A present-but-not-recruited NPC (e.g. Lucia on first meeting) MUST stay
+      // PRESENT_NOT_IN_PARTY — never promote to Party membership in narration.
+      fun addConfirmed(idOrName: String, status: String) {
+        val canonical = when (normalize(idOrName)) {
+          "iris" -> "iris"
+          "syvial" -> "syvial"
+          "lucia", "lucia lục" -> "lucia"
+          "trac_lam", "trác lâm", "trac lam" -> "trac_lam"
+          "luc_tram", "lục trầm", "luc tram" -> "luc_tram"
+          else -> null
+        } ?: return
+        presentActors += canonical
+        // IN_PARTY wins over PRESENT_NOT_IN_PARTY; never downgrade a Party member.
+        val existing = npcStatus[canonical]
+        if (existing == "IN_PARTY") return
+        if (status == "IN_PARTY" || existing == null) {
+          npcStatus[canonical] = status
         }
       }
       fun activeMember(member: JSONObject): Boolean =
@@ -440,9 +460,9 @@ object KnowledgeContextEngine {
         for (i in 0 until party.length()) {
           when (val value = party.opt(i)) {
             is JSONObject -> if (activeMember(value)) {
-              addConfirmed(value.optString("id", value.optString("name", "")))
+              addConfirmed(value.optString("id", value.optString("name", "")), "IN_PARTY")
             }
-            is String -> addConfirmed(value)
+            is String -> addConfirmed(value, "IN_PARTY")
           }
         }
       }
@@ -450,7 +470,7 @@ object KnowledgeContextEngine {
         for (i in 0 until details.length()) {
           val member = details.optJSONObject(i) ?: continue
           if (activeMember(member)) {
-            addConfirmed(member.optString("id", member.optString("name", "")))
+            addConfirmed(member.optString("id", member.optString("name", "")), "IN_PARTY")
           }
         }
       }
@@ -462,21 +482,114 @@ object KnowledgeContextEngine {
         if (array == null) return
         for (i in 0 until array.length()) {
           val event = array.optJSONObject(i) ?: continue
-          addConfirmed(event.optString("characterId", event.optString("flagKey", "")))
+          addConfirmed(
+            event.optString("characterId", event.optString("flagKey", "")),
+            "PRESENT_NOT_IN_PARTY"
+          )
         }
       }
       addPendingEncounters(state.optJSONArray("pendingNpcEncounters"))
       addPendingEncounters(rolls.optJSONArray("pendingNpcEncounters"))
       // Already-encountered characters that Core marks as currently present.
       // "Has met before" (present=false) is NOT presence — only present=true joins.
+      // inParty flag from Core decides IN_PARTY vs PRESENT_NOT_IN_PARTY.
       state.optJSONArray("encounteredCharacters")?.let { encountered ->
         for (i in 0 until encountered.length()) {
           val entry = encountered.optJSONObject(i) ?: continue
-          if (entry.optBoolean("present", false)) {
-            addConfirmed(entry.optString("id", ""))
+          val id = entry.optString("id", "")
+          if (id.isBlank()) continue
+          when {
+            entry.optBoolean("present", false) && entry.optBoolean("inParty", false) ->
+              addConfirmed(id, "IN_PARTY")
+            entry.optBoolean("present", false) ->
+              addConfirmed(id, "PRESENT_NOT_IN_PARTY")
+            else -> {
+              // Met before but not in scene: record for epistemic continuity,
+              // but do NOT add to presentActors.
+              val canonical = when (normalize(id)) {
+                "iris" -> "iris"
+                "syvial" -> "syvial"
+                "lucia", "lucia lục" -> "lucia"
+                "trac_lam", "trác lâm", "trac lam" -> "trac_lam"
+                "luc_tram", "lục trầm", "luc tram" -> "luc_tram"
+                else -> null
+              }
+              if (canonical != null && canonical !in npcStatus) {
+                npcStatus[canonical] = "ENCOUNTERED_ABSENT"
+              }
+            }
           }
         }
       }
+    }
+
+    /**
+     * Renders the precise encountered/present/inParty status for each known NPC.
+     * This is the GM's authoritative signal for relationship boundaries:
+     * PRESENT_NOT_IN_PARTY means the NPC is in the scene but NOT a Party member.
+     */
+    private fun npcStatusSection(): String {
+      if (npcStatus.isEmpty()) return ""
+      return buildString {
+        append("NPC relationship status (Core-authoritative):\n")
+        // Deterministic order for stable packets.
+        npcStatus.toSortedMap().forEach { (id, status) ->
+          append("- ").append(id).append(": ")
+          when (status) {
+            "IN_PARTY" -> append("IN_PARTY — recruited Party member")
+            "PRESENT_NOT_IN_PARTY" -> append(
+              "PRESENT, inParty=false — Core-confirmed in scene, NOT recruited. " +
+                "Narrate as present person, NEVER as Party member"
+            )
+            "ENCOUNTERED_ABSENT" -> append(
+              "encountered before, NOT present now — may be referenced from memory, " +
+                "cannot act or speak in this scene"
+            )
+            else -> append(status)
+          }
+          append('\n')
+        }
+      }
+    }
+
+    /**
+     * NPC behavior + epistemic-boundary rules for the GM.
+     * Diagnostic finding: NPCs mostly warn, rarely show initiative or react naturally.
+     * These rules push the GM toward living NPCs while protecting canon and Core authority.
+     */
+    private fun npcBehaviorRules(): String = buildString {
+      append("NPC_BEHAVIOR_RULES:\n")
+      append("1. INITIATIVE: NPCs are people with their own goals, not warning dispensers. ")
+      append("Let a present NPC take conversational initiative fitting their personality: ")
+      append("ask questions, comment on what they observe, express opinions, show curiosity or skepticism. ")
+      append("Do not reduce every NPC turn to a safety warning.\n")
+      append("2. AUTONOMY: A present NPC may disagree with Cao Minh, question his plan, refuse a request, ")
+      append("or act on their own without player orders (e.g. securing a perimeter, checking a sound, ")
+      append("picking up a useful object) — as long as it stays within ordinary physical/social action. ")
+      append("NPC autonomy NEVER decides: combat outcomes, damage, loot, EXP, Entity spawns, exit locations, ")
+      append("Level transitions, or Party recruitment. Those are Core authority.\n")
+      append("3. NO FREEZING: Do NOT make an NPC silent, passive, or statue-like just because they are ")
+      append("not in Party. PRESENT means they can speak, move, and react. inParty=false is a recruitment ")
+      append("fact, not a behavior freeze.\n")
+      append("4. EPISTEMIC BOUNDARY: Each NPC knows only what their background, direct observation in this ")
+      append("run, testimony heard in-scene, or reasonable inference supports. No omniscient NPCs. ")
+      append("An NPC cannot know the exit location, hidden Entity identity, or Core mechanics unless the ")
+      append("scene gave them that information. Preserve uncertainty: a guess stays a guess.\n")
+      append("5. NAME KNOWLEDGE: Do NOT have an NPC call Cao Minh by name (or reveal they know his identity) ")
+      append("before an in-scene introduction or a clearly narrated information source. Likewise, Cao Minh ")
+      append("does not know an NPC's name before they introduce themselves.\n")
+      append("6. NO ASSUMED INTIMACY: Merely exploring together does NOT make two characters teammates, ")
+      append("friends, or trusted allies. Do not narrate trust, camaraderie, or romantic tension that the ")
+      append("scene has not earned. Keep address and tone consistent with the actual relationship status above.\n")
+      append("7. LUCIA (if present, inParty=false): 19-year-old former special-forces soldier, direct speaker, ")
+      append("fire discipline. She may keep her weapon ready, demand identification, prioritize survival, ")
+      append("and act on tactical instinct without asking permission for every small action. ")
+      append("inParty=false is CORRECT — the player has not recruited her. Never narrate her as a Party member, ")
+      append("never auto-recruit, never soften her into a follower archetype.\n")
+      append("8. LUC TRAM R06 (if present): post-revival amnesia is ABSOLUTE. She does NOT remember Cao Minh — ")
+      append("not his name, not their enmity, not their trust, not old terms of address. Never have her ")
+      append("recognize him, use familiar address, or reference their shared past as remembered fact. ")
+      append("Cao Minh does not by default know she survived or lost her memory.\n")
     }
 
     private fun currentLevel(): Int {
