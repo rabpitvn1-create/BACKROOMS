@@ -14,7 +14,7 @@ class StoryMilestoneHistoryTest {
         .put("action", "Nhân vật mở cửa")
         .put("event", "Cao Minh nhìn thấy căn phòng màu vàng")
         .put("outcome", "Mọi người đi tiếp"))
-      .put(JSONObject().put("id", "boss").put("turn", 18).put("kind", "FINAL_ENTITY")
+      .put(JSONObject().put("id", "boss").put("turn", 12).put("kind", "FINAL_ENTITY")
         .put("action", "Boss xuất hiện").put("event", "Hound chặn đường")
         .put("outcome", "Combat bắt đầu").put("entityKey", "hound")
         .put("hpMultiplier", 9).put("expMultiplier", 9))))
@@ -32,7 +32,7 @@ class StoryMilestoneHistoryTest {
       JSONArray().put(JSONObject().put("kind", "CLUE")
         .put("subject", "Cánh cửa màu vàng")))
     assertThrows(Exception::class.java) {
-      StoryMilestonePlan.parse(raw.toString(), StoryCheckpointCore.Position(0, 1, 20))
+      StoryMilestonePlan.parse(raw.toString(), StoryCheckpointCore.Position(0, 1, 40))
     }
   }
 

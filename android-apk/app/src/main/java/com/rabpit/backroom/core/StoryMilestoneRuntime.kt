@@ -246,7 +246,7 @@ object StoryMilestoneRuntime {
     // turnIndex points to the NEXT Explorer turn after the final authored turn.
     // Combat turns never advance it and the Boss does not consume a new Explorer turn.
     val turnCount = CoreClientProjection.turnIndex(state).toLong() - active.startTurn.toLong()
-    require(turnCount >= active.plan.finalEncounter.turn && turnCount >= StoryMilestonePlan.MIN_CHECKPOINT_TURNS) {
+    require(turnCount == active.plan.finalEncounter.turn.toLong() && turnCount == StoryMilestonePlan.CHECKPOINT_TURNS.toLong()) {
       "milestone_checkpoint_turn_quota_unmet"
     }
     require(entityEncounterCount(state).toLong() >= StoryMilestonePlan.minimumEntityEncounters(turnCount)) {
@@ -440,7 +440,7 @@ object StoryMilestoneRuntime {
         }
         allRefs += ref
       }
-      require(turns >= StoryMilestonePlan.MIN_CHECKPOINT_TURNS && entry.getLong("turnCount") == turns &&
+      require(turns == StoryMilestonePlan.CHECKPOINT_TURNS.toLong() && entry.getLong("turnCount") == turns &&
         entry.getInt("entityEncounterCount") == encounters.length() - 1 &&
         (encounters.length() - 1).toLong() >= StoryMilestonePlan.minimumEntityEncounters(turns) &&
         encounterIds.size == encounterIds.toSet().size && encounterIds == sourceEncounters &&

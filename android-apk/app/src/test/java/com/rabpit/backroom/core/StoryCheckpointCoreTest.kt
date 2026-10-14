@@ -5,13 +5,13 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class StoryCheckpointCoreTest {
-  @Test fun newGameStartsAtFirstOfTwentyLevelZeroCheckpoints() {
+  @Test fun newGameStartsAtFirstOfFortyLevelZeroCheckpoints() {
     val initial = StoryCheckpointCore.seedLevelZero(CoreClientProjection.initialize(GameState.initial()))
     val first = StoryCheckpointCore.current(initial)!!
     assertEquals("CP-L00-01", first.id)
     assertEquals(0, first.level)
     assertEquals(1, first.index)
-    assertEquals(20, first.total)
+    assertEquals(40, first.total)
     assertFalse(first.isLast)
     assertEquals("CP-L00-02", first.nextAddress()!!.id)
   }
@@ -34,28 +34,29 @@ class StoryCheckpointCoreTest {
       StoryCheckpointCore.seedLevelZero(movedNode))!!.id)
   }
 
-  @Test fun higherLevelsHaveNoInventedCheckpointCount() {
+  @Test fun higherLevelsAlsoHaveFortyCheckpoints() {
     val levelOne = GameState.initial().copy(world = mapOf(
       "levelJson" to JSONObject().put("id", "1").put("number", 1).toString()))
     assertNull(StoryCheckpointCore.current(StoryCheckpointCore.seedLevelZero(levelOne)))
-    val planned = StoryCheckpointCore.addressForLevel(1, 1, 12)
+    val planned = StoryCheckpointCore.addressForLevel(1, 1)
     assertEquals("CP-L01-01", planned.id)
-    assertEquals(12, planned.total)
+    assertEquals(40, planned.total)
   }
 
   @Test fun lastCheckpointHasNoImplicitNextCheckpoint() {
-    val last = StoryCheckpointCore.Position(0, 20, 20)
-    assertEquals("CP-L00-20", last.id)
+    val last = StoryCheckpointCore.Position(0, 40, 40)
+    assertEquals("CP-L00-40", last.id)
     assertTrue(last.isLast)
     assertNull(last.nextAddress())
   }
 
   @Test fun invalidPositionsAreRejectedInsteadOfBeingClampedOrReset() {
-    assertThrows(IllegalArgumentException::class.java) { StoryCheckpointCore.Position(0, 0, 20) }
-    assertThrows(IllegalArgumentException::class.java) { StoryCheckpointCore.Position(0, 21, 20) }
-    assertThrows(IllegalArgumentException::class.java) { StoryCheckpointCore.Position(0, 1, 19) }
+    assertThrows(IllegalArgumentException::class.java) { StoryCheckpointCore.Position(0, 0, 40) }
+    assertThrows(IllegalArgumentException::class.java) { StoryCheckpointCore.Position(0, 41, 40) }
+    assertThrows(IllegalArgumentException::class.java) { StoryCheckpointCore.Position(0, 1, 39) }
     val bad = GameState.initial().copy(world = mapOf(
-      "story.checkpoint" to "{\"level\":0,\"index\":22,\"total\":20}"))
+      "story.checkpoint" to "{\"level\":0,\"index\":41,\"total\":40}"))
     assertThrows(IllegalArgumentException::class.java) { StoryCheckpointCore.seedLevelZero(bad) }
+    assertThrows(IllegalArgumentException::class.java) { StoryCheckpointCore.Position(1, 1, 12) }
   }
 }

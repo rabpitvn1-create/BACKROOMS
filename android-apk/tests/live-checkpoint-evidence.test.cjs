@@ -7,12 +7,12 @@ const path = require('node:path');
 const { extract, compare } = require('../tools/verify-live-one-checkpoint.cjs');
 
 function fixture() {
-  return { summary: {checkpoint: 'CP-L00-01', turns: 50, regularEncounters: 20, battleStarts: 21,
+  return { summary: {checkpoint: 'CP-L00-01', turns: 12, regularEncounters: 3, battleStarts: 4,
     storyArcHash: 'arc-a', gmSampleHashes: ['a','b','c','d'], entityEventsHash: 'entity-a',
     actualEventNarrationsHash: 'actual-a', characterCommunicationHash: 'speech-a',
     saveLoadVerified: true, followerSequence: 'FOLLOWER:lucia', entitySequence: 'hound',
     characterCommunications: [{speakerId: 'lucia', text: 'Anh đừng chạm vào dây điện.'}]},
-    actualEventNarrations: Array.from({length: 22}, (_, i) => ({eventId: 'e' + i, occurrence: 'scene', consequence: 'result'})),
+    actualEventNarrations: Array.from({length: 6}, (_, i) => ({eventId: 'e' + i, occurrence: 'scene', consequence: 'result'})),
     characterCommunications: [{speakerId: 'lucia', text: 'Anh đừng chạm vào dây điện.'}]};
 }
 function files(t) {

@@ -25,7 +25,7 @@ object StoryMilestonePlannerPrompt {
     require(position.id == checkpointId) { "checkpoint_level_mismatch" }
     require(canonPacket.length <= com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.HARD_CONTEXT_CEILING * 4 && currentSituation.length <= 1600 && narrativeContinuity.length <= 30000) { "milestone_context_too_large" }
     val completionSchema = if (position.isLast)
-      """{"type":"EXIT_LEVEL","targetNodeId":"<supported target>","nextCheckpointTotal":<positive integer>,"outcome":"<authored Level ending>"}"""
+      """{"type":"EXIT_LEVEL","targetNodeId":"<supported target>","nextCheckpointTotal":${StoryCheckpointCore.CHECKPOINTS_PER_LEVEL},"outcome":"<authored Level ending>"}"""
     else """{"type":"NEXT_CHECKPOINT","outcome":"<authored CP completion>"}"""
     val supportedTargets = (0..6).flatMap { parent ->
       // Registry remains the authority; traverse connected nodes only to list
@@ -52,7 +52,7 @@ object StoryMilestonePlannerPrompt {
       checkpointId=$checkpointId; globalStartTurn=$absoluteStartTurn; currentLevelNode=$levelNode; checkpointIndex=${position.index}; checkpointTotal=$checkpointTotal; isFinalCheckpoint=${position.isLast}.
 
       TRƯỚC TIÊN sáng tác storyArc là MỘT mạch truyện độc lập khoảng 500 ký tự cho chương,
-      kế thừa đúng lịch sử, Canon, mục tiêu và quan hệ nhân vật. Không viết 50 cảnh.
+      kế thừa đúng lịch sử, Canon, mục tiêu và quan hệ nhân vật. Không viết 12 cảnh.
       MỖI LẦN lập chương phải là một sáng tác mới: biến hóa bối cảnh, xung đột,
       manh mối, hoàn cảnh gặp Entity và phản ứng nhân vật theo Canon và lịch sử.
       Không tái chế nguyên văn các câu chữ/sự kiện/nhịp Turn từ mẫu JSON bên dưới
@@ -76,14 +76,14 @@ object StoryMilestonePlannerPrompt {
       Gặp nhân vật không đồng nghĩa gia nhập Party; không biên kịch tự tuyển mộ.
       Registry nhân vật: $characters
 
-      Mỗi CP cần ít nhất ${StoryMilestonePlan.MIN_CHECKPOINT_TURNS} Explorer Turn.
+      Mỗi CP có ĐÚNG ${StoryMilestonePlan.CHECKPOINT_TURNS} Explorer Turn, không ít hơn hoặc nhiều hơn.
       Boss là FINAL_ENTITY cuối cùng, xuất hiện SAU sự kiện Explorer ở lượt cuối:
       FINAL_ENTITY dùng đúng số Explorer Turn cuối, không chiếm thêm lượt Explorer.
       Mỗi CP bắt buộc có ÍT NHẤT ${StoryMilestonePlan.MIN_ENTITY_ENCOUNTERS} ENTITY thường,
       phân bố ở các Explorer Turn KHÁC NHAU, tất cả trước Boss. Không tính Boss vào quota.
-      Đây là quota CỐ ĐỊNH tối thiểu 20, KHÔNG phải 40% hay tăng tỷ lệ theo độ dài chương.
+      Đây là quota CỐ ĐỊNH tối thiểu 3, không phải phần trăm độ dài chương.
       Các cuộc gặp phải có bối cảnh, nguyên nhân và diễn biến khác nhau, không tạo
-      20 sự kiện lặp lại với duy nhất một mô tả; đa dạng Entity key khi phù hợp Canon.
+      3 sự kiện lặp lại với duy nhất một mô tả; đa dạng Entity key khi phù hợp Canon.
       MỌI ENTITY đều là cuộc CHẠM TRÁN THẬT và BẮT BUỘC COMBAT NGAY TRONG TURN đó.
       Không tạo loại Entity chỉ quan sát rồi bỏ đi; không cho Gehihi né hay trì hoãn Combat.
       Trường ENTITY không có combatRequired; bản chất ENTITY luôn yêu cầu Combat.
@@ -100,9 +100,9 @@ object StoryMilestonePlannerPrompt {
       {"id":"npc1","turn":3,"kind":"NPC","characterId":"<registered character ID>","action":"<character action>","event":"<direct NPC meeting>","outcome":"<meeting outcome>"},
       {"id":"disclosure1","turn":4,"kind":"STORY","communicationCharacterId":"<already present or previously met Registry ID>","action":"<character communicates>","event":"<required disclosure>","outcome":"<information actually communicated>"},
       {"id":"encounter1","turn":4,"kind":"ENTITY","action":"<Entity action>","event":"<mandatory direct Combat encounter>","outcome":"<await Battle Start>","entityKey":"<supported Entity key>"},
-      {"id":"boss","turn":50,"kind":"FINAL_ENTITY","action":"<world action>","event":"<authored event>","outcome":"<Combat opening>","entityKey":"<supported Entity key>","hpMultiplier":9,"expMultiplier":9}
+      {"id":"boss","turn":12,"kind":"FINAL_ENTITY","action":"<world action>","event":"<authored event>","outcome":"<Combat opening>","entityKey":"<supported Entity key>","hpMultiplier":9,"expMultiplier":9}
       ],"completion":$completionSchema}
-      Mẫu rút gọn này CHƯA đủ quota: thêm ít nhất 19 ENTITY thường ở các Turn riêng
+      Mẫu rút gọn này CHƯA đủ quota: thêm ít nhất 2 ENTITY thường ở các Turn riêng
       trước Boss. Mạch truyện phải có khoảng 500 ký tự, không dùng văn bản placeholder.
       Đây chỉ là hình dạng schema, không phải kịch bản mặc định. Thay mọi
       placeholder bằng dữ kiện có nguồn; không dùng ví dụ thảo luận làm Canon.
@@ -112,11 +112,11 @@ object StoryMilestonePlannerPrompt {
       Level; Core chỉ xác nhận địa chỉ hỗ trợ. Không yêu cầu HiddenExitStreak,
       cửa ngẫu nhiên hoặc đi đủ tuyến phụ. Target được hỗ trợ ở Level khác:
       $supportedTargets
-      Tổng CP Level sau do SOL chọn, không mặc định 20; nếu trở lại Level 0
-      thì tổng phải là 20. Trận Boss chỉ có thắng hoặc thua, không được chạy thoát. Chỉ đánh bại Boss mới hoàn tất CP.
+      Mọi Level có đúng ${StoryCheckpointCore.CHECKPOINTS_PER_LEVEL} CP. nextCheckpointTotal
+      bắt buộc là ${StoryCheckpointCore.CHECKPOINTS_PER_LEVEL}, kể cả khi trở về Level 0. Trận Boss chỉ có thắng hoặc thua, không được chạy thoát. Chỉ đánh bại Boss mới hoàn tất CP.
       Không biên kịch trước chiến thắng gameplay; FINAL_ENTITY chỉ mở Combat.
-      Boss ở Turn cuối do SOL/Gemini quyết định, không dưới 50; có thể chọn Turn 51, 60 hoặc hơn.
-      Không tự kết thúc chương ở Turn 50 nếu sự kiện của mạch truyện chưa hoàn tất.
+      Boss luôn ở Turn ${StoryMilestonePlan.CHECKPOINT_TURNS}; không lên lịch sự kiện sau Boss.
+      Mạch truyện phải hoàn tất trong 12 Explorer Turn của Checkpoint.
       Không tạo storyFacts hay yêu cầu xác minh lời kể.
       Lịch sử sau chỉ gồm những sự kiện đã được Core ghi nhận:
       <COMMITTED_MILESTONE_HISTORY_READ_ONLY>

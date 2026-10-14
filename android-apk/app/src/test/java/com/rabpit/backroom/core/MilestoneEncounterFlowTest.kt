@@ -31,7 +31,7 @@ class MilestoneEncounterFlowTest {
     }
     val seeded = StoryCheckpointCore.seedLevelZero(base)
     val values = TestCheckpointQuota.events(JSONArray().put(JSONObject()
-      .put("id", "boss").put("turn", 18).put("kind", "FINAL_ENTITY").put("entityKey", "hound")
+      .put("id", "boss").put("turn", 12).put("kind", "FINAL_ENTITY").put("entityKey", "hound")
       .put("action", "Boss xuất hiện").put("event", "Boss chặn lối").put("outcome", "Chờ Battle Start")
       .put("hpMultiplier", 9).put("expMultiplier", 9)))
     val list = (0 until values.length()).map { values.getJSONObject(it) }.toMutableList()

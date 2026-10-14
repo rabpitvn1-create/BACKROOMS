@@ -13,14 +13,14 @@ import java.util.Locale
  */
 object StoryCheckpointCore {
   private const val WORLD_KEY = "story.checkpoint"
-  const val LEVEL_ZERO_TOTAL = 20
+  const val CHECKPOINTS_PER_LEVEL = 40
 
   data class Position(val level: Int, val index: Int, val total: Int) {
     init {
       require(level >= 0) { "checkpoint_level_invalid" }
       require(total > 0) { "checkpoint_total_invalid" }
       require(index in 1..total) { "checkpoint_index_invalid" }
-      if (level == 0) require(total == LEVEL_ZERO_TOTAL) { "checkpoint_level_zero_total_locked" }
+      require(total == CHECKPOINTS_PER_LEVEL) { "checkpoint_total_locked" }
     }
 
     val id: String get() = String.format(Locale.ROOT, "CP-L%02d-%02d", level, index)
@@ -51,12 +51,12 @@ object StoryCheckpointCore {
     }
     val level = state.world["levelJson"]?.let { JSONObject(it).optInt("number", -1) } ?: return state
     if (level != 0) return state
-    return state.copy(world = state.world + (WORLD_KEY to encode(Position(0, 1, LEVEL_ZERO_TOTAL))))
+    return state.copy(world = state.world + (WORLD_KEY to encode(Position(0, 1, CHECKPOINTS_PER_LEVEL))))
   }
 
-  /** For future Level planners. No counts for Levels 1+ have been canonically decided. */
-  fun addressForLevel(level: Int, index: Int, plannedTotal: Int): Position =
-    Position(level, index, plannedTotal)
+  /** All supported Levels use the same fixed Checkpoint count. */
+  fun addressForLevel(level: Int, index: Int): Position =
+    Position(level, index, CHECKPOINTS_PER_LEVEL)
 
   private fun encode(value: Position): String = JSONObject()
     .put("level", value.level)

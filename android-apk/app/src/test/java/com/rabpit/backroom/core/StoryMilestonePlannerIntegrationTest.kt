@@ -40,7 +40,7 @@ class StoryMilestonePlannerIntegrationTest {
     assertTrue(request.getBoolean("needed"))
     assertEquals("CP-L00-01", request.getString("checkpointId"))
     assertEquals(1, request.getInt("startTurn"))
-    assertEquals(20, request.getInt("checkpointTotal"))
+    assertEquals(40, request.getInt("checkpointTotal"))
     assertTrue(request.getString("runToken").isNotEmpty())
     assertEquals("0", request.getString("levelNode"))
     assertTrue(core.installMilestonePlan(plan(), request.getString("runToken"),
@@ -83,7 +83,7 @@ class StoryMilestonePlannerIntegrationTest {
 
   @Test fun plannerPromptOnlyIncludesRealCombatEntityKeysAndLightCanon() {
     val prompt = StoryMilestonePlannerPrompt.build(
-      "CP-L00-01", 1, "0", "<ENTITY.HOUND> Dangerous, four-legged predator.", "Level 0, empty lobby", 20)
+      "CP-L00-01", 1, "0", "<ENTITY.HOUND> Dangerous, four-legged predator.", "Level 0, empty lobby", 40)
     assertTrue(prompt.contains("blackroot_sentinel"))
     assertTrue(prompt.contains("hound"))
     assertTrue(prompt.contains("hpMultiplier"))
@@ -93,18 +93,18 @@ class StoryMilestonePlannerIntegrationTest {
     assertTrue(prompt.length < 10000)
     assertTrue(prompt.contains("\"schemaVersion\":3"))
     assertTrue(prompt.contains("NEXT_CHECKPOINT"))
-    val last = StoryMilestonePlannerPrompt.build("CP-L00-20", 1, "0", "", "", 20)
+    val last = StoryMilestonePlannerPrompt.build("CP-L00-40", 1, "0", "", "", 40)
     assertTrue(last.contains("\"type\":\"EXIT_LEVEL\""))
     assertTrue(last.contains("1.2"))
     assertTrue(last.contains("nextCheckpointTotal"))
     // Preserve a complete, bounded Canon packet rather than clipping hard locks.
     val fullCanon = "TEST_ONLY ".repeat(600)
-    assertTrue(StoryMilestonePlannerPrompt.build("CP-L00-01", 1, "0", fullCanon, "", 20).contains(fullCanon))
+    assertTrue(StoryMilestonePlannerPrompt.build("CP-L00-01", 1, "0", fullCanon, "", 40).contains(fullCanon))
     assertThrows(IllegalArgumentException::class.java) {
-      StoryMilestonePlannerPrompt.build("CP-L01-01", 1, "0", "", "", 20)
+      StoryMilestonePlannerPrompt.build("CP-L01-01", 1, "0", "", "", 40)
     }
     assertThrows(IllegalArgumentException::class.java) {
-      StoryMilestonePlannerPrompt.build("bad", 1, "0", "", "", 20)
+      StoryMilestonePlannerPrompt.build("bad", 1, "0", "", "", 40)
     }
   }
   @Test fun coreRejectsClientLevelChangesAndItemTurnSkipping() {
@@ -130,18 +130,18 @@ class StoryMilestonePlannerIntegrationTest {
     core.milestonePlanRequest()
     val first = repo.stored!!
     val last = first.copy(world = first.world + ("story.checkpoint" to
-      JSONObject().put("level", 0).put("index", 20).put("total", 20).toString()))
-    val raw = JSONObject(plan("CP-L00-20")).apply {
+      JSONObject().put("level", 0).put("index", 40).put("total", 40).toString()))
+    val raw = JSONObject(plan("CP-L00-40")).apply {
       getJSONArray("events").getJSONObject(0).put("turn", 1)
       put("completion", JSONObject().put("type", "EXIT_LEVEL").put("targetNodeId", "1.2")
-        .put("nextCheckpointTotal", 3).put("outcome", "TEST_ONLY ending"))
+        .put("nextCheckpointTotal", 40).put("outcome", "TEST_ONLY ending"))
     }.toString()
     val boss = TestMilestoneTurn.accept(TestCheckpointQuota.reachBoss(StoryMilestonePlan.installCurrent(last, raw)), "[\"boss\"]")
     repo.save(boss)
     val lease = JSONObject(core.milestoneNextPlanRequest())
     assertEquals("CP-L01-01", lease.getString("nextCheckpointId"))
     assertEquals("1.2", lease.getString("levelNode"))
-    assertEquals(3, lease.getInt("checkpointTotal"))
+    assertEquals(40, lease.getInt("checkpointTotal"))
     val before = repo.stored!!
     assertThrows(Exception::class.java) {
       core.installNextMilestone(plan("CP-L01-02"), lease.getString("runToken"),

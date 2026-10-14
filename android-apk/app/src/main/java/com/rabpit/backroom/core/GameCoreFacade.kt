@@ -607,7 +607,7 @@ class GameCoreFacade private constructor(
   /**
    * Request the next plan while the verified boss encounter is active, or
    * after a very quick victory while background Gemini was still answering.
-   * CP20 uses the Gemini-authored Level destination and next checkpoint count.
+   * CP40 uses the provider-authored Level destination and Core-fixed Checkpoint count.
    */
   @Synchronized fun milestoneNextPlanRequest(): String {
     val state = loadCurrentState()
