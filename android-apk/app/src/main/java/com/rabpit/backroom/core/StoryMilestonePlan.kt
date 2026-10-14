@@ -11,12 +11,12 @@ import org.json.JSONObject
  */
 object StoryMilestonePlan {
   const val SCHEMA_VERSION = 3
-  const val MIN_CHECKPOINT_TURNS = 50
-  const val MIN_ENTITY_ENCOUNTERS = 20
+  const val CHECKPOINT_TURNS = 12
+  const val MIN_ENTITY_ENCOUNTERS = 3
 
   /** Fixed ordinary Combat encounters per Checkpoint, independent of its length. */
   fun minimumEntityEncounters(explorerTurns: Long): Long {
-    require(explorerTurns >= MIN_CHECKPOINT_TURNS) { "milestone_checkpoint_too_short" }
+    require(explorerTurns == CHECKPOINT_TURNS.toLong()) { "milestone_checkpoint_turn_count_invalid" }
     return MIN_ENTITY_ENCOUNTERS.toLong()
   }
   const val FINAL_HP_MULTIPLIER = 9
@@ -183,7 +183,7 @@ object StoryMilestonePlan {
       events.count { it.kind == Kind.FINAL_ENTITY } == 1) {
       "milestone_final_encounter_required"
     }
-    require(events.last().turn >= MIN_CHECKPOINT_TURNS) { "milestone_checkpoint_too_short" }
+    require(events.last().turn == CHECKPOINT_TURNS) { "milestone_checkpoint_turn_count_invalid" }
     require(events.filter { it.combatRequired }.groupBy { it.turn }.values.all { it.size == 1 }) {
       "milestone_multiple_combats_same_turn"
     }
@@ -209,8 +209,8 @@ object StoryMilestonePlan {
       val target = requireNotNull(LevelRouteRegistry.node(targetId)) { "milestone_exit_target_unknown" }
       require(target.parent != expected.level) { "milestone_exit_same_level" }
       val total = integer(ending, "nextCheckpointTotal")
-      // Position validates the supported address/count, including Level 0's
-      // fixed twenty CPs. Neither MAIN-only nor immediate route gates apply.
+      // Core fixes every Level at forty Checkpoints; SOL authors the exit target.
+      // Neither MAIN-only nor immediate route gates apply.
       StoryCheckpointCore.Position(target.parent, 1, total)
       Completion(type, string(ending, "outcome", MAX_DESCRIPTION_CHARS), targetId, total)
     } else Completion(type, string(ending, "outcome", MAX_DESCRIPTION_CHARS))
