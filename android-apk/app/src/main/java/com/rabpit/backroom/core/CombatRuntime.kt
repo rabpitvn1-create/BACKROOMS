@@ -211,7 +211,7 @@ object CombatRuntime {
     Profile("hollow_grasper", "Hollow Grasper", LIFEFORM_BASE_MAX_HP, LIFEFORM_BASE_ATTACK, LIFEFORM_BASE_ARMOR, LIFEFORM_BASE_AGGRESSION),
   ).associateBy { it.key }
 
-  /** Single source of truth for Milestone final Entity eligibility. */
+  /** Single source of truth for combat-supported Entity keys. */
   fun supportsEntityKey(key: String): Boolean = key in profiles
 
   /** Gemini receives actual combat-supported Entity keys, not a separate lore-only roster. */
@@ -229,15 +229,8 @@ object CombatRuntime {
   fun prepareEncounter(state: GameState, entityKey: String, encounterId: String, boss: Boolean): GameState {
     require(active(state) == null && pending(state) == null) { "encounter_already_reserved" }
     require(supportsEntityKey(entityKey) && encounterId.isNotBlank()) { "encounter_invalid" }
-    val prepared = createEncounter(state, listOf(entityKey), Phase.PENDING_ENCOUNTER_CONFIRMATION, encounterId)
-    if (!boss) return prepared
-    val fight = requireNotNull(pending(prepared))
-    val hp = (fight.entityMaxHp.toLong() * StoryMilestonePlan.FINAL_HP_MULTIPLIER)
-      .coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
-    return prepared.copy(metadata = prepared.metadata + mapOf(
-      "combat.entityHp" to hp.toString(), "combat.entityMaxHp" to hp.toString(),
-      "combat.milestoneBoss" to encounterId
-    ))
+    // The 'boss' flag is Milestone legacy; boss HP multipliers are removed. All encounters use standard stats.
+    return createEncounter(state, listOf(entityKey), Phase.PENDING_ENCOUNTER_CONFIRMATION, encounterId)
   }
 
   /** A repeated click is a no-op; identity never comes from narrator/client Entity keys. */
@@ -259,20 +252,6 @@ object CombatRuntime {
   }
 
   fun start(state: GameState, entityKey: String): GameState = startWaves(state, listOf(entityKey))
-
-  /** The final Milestone Entity is a single verified Combat instance. */
-  fun startMilestoneBoss(state: GameState, entityKey: String): GameState {
-    require(active(state) == null) { "milestone_combat_already_active" }
-    val started = start(state, entityKey)
-    val fight = requireNotNull(active(started)) { "milestone_entity_unsupported" }
-    val hp = (fight.entityMaxHp.toLong() * StoryMilestonePlan.FINAL_HP_MULTIPLIER)
-      .coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
-    return started.copy(metadata = started.metadata + mapOf(
-      "combat.entityHp" to hp.toString(),
-      "combat.entityMaxHp" to hp.toString(),
-      "combat.milestoneBoss" to fight.encounterId
-    ))
-  }
 
   /** Only explicitly composed encounters contain multiple Entities. */
   fun startWaves(state: GameState, entityKeys: List<String>): GameState {
@@ -330,8 +309,6 @@ object CombatRuntime {
     val originalProfile = profiles[current.entityKey] ?: return Resolution(clear(state), handled = false)
     var profile = if ((state.metadata["combat.caoMinhProc1"]?.toIntOrNull() ?: 0) > 0) originalProfile.copy(armor = originalProfile.armor * 90 / 100) else originalProfile
     val intent = classify(actionKind, action)
-    val milestoneBoss = state.world["story.milestone.bossEncounter"] == current.encounterId
-    require(!milestoneBoss || intent != Intent.ESCAPE) { "milestone_boss_escape_forbidden" }
     // One finalized Poker Dice hand authorizes Ultimates for the current Party action only.
     val ultimateHand = if (intent == Intent.ATTACK &&
       PokerDiceCore.isFinalizedFor(state, action, current.encounterId))
@@ -1047,7 +1024,7 @@ object CombatRuntime {
     if (c.entityHp <= 0 && !promoteDefeatedWave()) {
       return settleDefeated(resolvedState, c, log.joinToString(" "), feedback.toList()).copy(turnCues = presentedCues())
     }
-    if (!milestoneBoss && c.escapeProgress >= 100) {
+    if (c.escapeProgress >= 100) {
       val persisted = afterActiveLeaderTurn(encode(resolvedState, c.copy(phase = Phase.RESOLVED)))
       val cleared = clearCombatOnly(persisted)
       return Resolution(cleared, true, log.joinToString(" ") + " Cao Minh cắt được truy đuổi và thoát khỏi encounter.", escaped = true, feedback = feedback.toList(), turnCues = presentedCues())
@@ -1305,9 +1282,7 @@ object CombatRuntime {
     val persisted = encode(state, c.copy(phase = Phase.RESOLVED, entityCondition = EntityCondition.DESTROYED))
     val withPassive = if (leaderPassive) afterActiveLeaderTurn(persisted) else persisted
     val instanceId = if (queue.size == 1) c.encounterId else "${c.encounterId}:wave:$index"
-    val expMultiplier = if (state.metadata["combat.milestoneBoss"] == c.encounterId &&
-      queue.size == 1) StoryMilestonePlan.FINAL_EXP_MULTIPLIER else 1
-    val exp = EntityExpRewards.award(withPassive, instanceId, c.progressionRank, expMultiplier)
+    val exp = EntityExpRewards.award(withPassive, instanceId, c.progressionRank, 1)
     val loot = OfflineEntityLoot.award(exp.state, instanceId, c.seed)
     val resultText = "$log ${c.entityName} đã bị tiêu diệt. ${exp.text} ${loot.text}".trim()
     if (index + 1 == queue.size) {
