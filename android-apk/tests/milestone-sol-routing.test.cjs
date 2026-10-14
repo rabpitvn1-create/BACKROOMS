@@ -51,10 +51,13 @@ test('SOL authored events require Gehihi acknowledgement without a second AI ver
   assert.doesNotMatch(facade,/milestoneNarrativeRequest\(/);
 });
 
-test('original Fake Sandbox chapter arc, fixed quota and mandatory Entity Combat',()=>{
+test('twelve-turn chapter arc, fixed quota and mandatory Entity Combat',()=>{
   const plan=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/core/StoryMilestonePlan.kt'),'utf8');
-  assert.match(plan,/MIN_CHECKPOINT_TURNS = 50/);
-  assert.match(plan,/MIN_ENTITY_ENCOUNTERS = 20/);
+  const cp=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/core/StoryCheckpointCore.kt'),'utf8');
+  assert.match(cp,/CHECKPOINTS_PER_LEVEL = 40/);
+  assert.match(cp,/require\(total == CHECKPOINTS_PER_LEVEL\)/);
+  assert.match(plan,/CHECKPOINT_TURNS = 12/);
+  assert.match(plan,/MIN_ENTITY_ENCOUNTERS = 3/);
   assert.match(plan,/val storyArc: String/);
   assert.match(plan,/val combatRequired: Boolean get\(\) = isEntityEncounter/);
   assert.doesNotMatch(plan,/item\.optBoolean\("combatRequired"/);
