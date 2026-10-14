@@ -1,0 +1,8 @@
+Backroom 1.2.0.0.27 Debug
+
+- Android versionCode 100, versionName 1.2.0.0.27, applicationId com.rabpit.backroom.
+- Tích hợp thay đổi CI đã squash merge từ PR #619: thêm kiểm thử hồi quy JavaScript và Kotlin Core tự động, không cần Android Emulator.
+- Hai workflow Android Emulator và Live AI SOL/Gehihi chuyển sang chỉ chạy thủ công (workflow_dispatch); không tự chạy trên pull request.
+- Logic gameplay, Milestone 12 Explorer Turn / ít nhất 3 ENTITY thường / Boss Turn 12 và 40 Checkpoint mỗi Level giữ nguyên từ 1.2.0.0.26.
+- Không thay đổi Save/Load của phiên bản hiện tại; không hỗ trợ migration hay tương thích save game cũ.
+- Bản này là APK Debug. CI không chạy kiểm thử Live AI/Emulator; chưa xác nhận lỗi kết nối SOL đã được khắc phục.
