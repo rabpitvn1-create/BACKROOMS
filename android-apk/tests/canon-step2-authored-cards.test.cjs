@@ -61,7 +61,8 @@ test('runtime uses exact level and Core-confirmed encounter identity', () => {
   assert.ok(reader.includes('combat?.optBoolean("active", false) == true'));
   assert.ok(reader.includes('add(confirmedVisual, "confirmed active Entity visual canon")'));
   assert.ok(reader.includes('if ("lucia" in presentActors)'));
-  assert.ok(reader.includes('addConfirmed(event.optString("characterId", event.optString("communicationCharacterId")))'));
+  // Core-confirmed pending encounters use characterId (fallback to flagKey).
+  assert.ok(reader.includes('addConfirmed(event.optString("characterId", event.optString("flagKey", "")))'));
   assert.ok(!reader.includes('confirmedRoll("entityEncounter")'));
   assert.ok(reader.includes('flags?.optString("entityEncounterKey", "")'));
   assert.ok(reader.includes('id == confirmedEntityVisualId()'));
@@ -71,15 +72,22 @@ test('unknown or absent characters cannot be treated as active based on a name s
   assert.ok(reader.includes('when (normalize(idOrName))'));
   assert.ok(reader.includes('member.optString("presence", "ACTIVE") == "ACTIVE"'));
   assert.ok(!reader.includes('id.contains("iris")'));
-  assert.ok(reader.includes('val lucTramConfirmed = "luc_tram" in presentActors || scheduledCharacter("luc_tram")'));
+  // Luc Tram confirmation comes from Core-confirmed presentActors (pendingNpcEncounters),
+  // NOT from the removed Milestone scheduledCharacter().
+  assert.ok(reader.includes('val lucTramConfirmed = "luc_tram" in presentActors'));
+  assert.ok(!reader.includes('scheduledCharacter('));
   assert.match(reader, /if \(lucTramConfirmed\) \{[\s\S]*?direct \+= "CHAR.LUC_TRAM.REVIVAL_R06"/);
   assert.ok(reader.includes('if ("iris" in presentActors)'));
   assert.ok(reader.includes('if ("syvial" in presentActors)'));
 });
 
-test('encounter context comes from scheduled Core events rather than random results', () => {
-  assert.ok(reader.includes('state.optJSONArray("milestoneEventsDue")'));
-  assert.ok(reader.includes('event.optString("characterId") == id || event.optString("communicationCharacterId") == id'));
+test('encounter context comes from Core-confirmed pending encounters rather than Milestone', () => {
+  // The Milestone system is removed. Encounter context now comes from
+  // Core-confirmed pendingNpcEncounters (state or rolls JSON).
+  assert.ok(reader.includes('state.optJSONArray("pendingNpcEncounters")'));
+  assert.ok(reader.includes('rolls.optJSONArray("pendingNpcEncounters")'));
+  assert.ok(!reader.includes('milestoneEventsDue'));
+  assert.ok(!reader.includes('scheduledCharacter('));
   assert.ok(!reader.includes('confirmedRoll('));
   assert.ok(!reader.includes('selectedEntityKey'));
 });
