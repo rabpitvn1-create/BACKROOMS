@@ -1,0 +1,70 @@
+name: One-shot cleanup of failed and cancelled Actions runs
+
+on:
+  push:
+    branches:
+      - ops/one-shot-clean-failed-cancelled-20261014
+    paths:
+      - .github/workflows/one-shot-clean-failed-cancelled.yml
+
+permissions:
+  actions: write
+  contents: write
+
+concurrency:
+  group: one-shot-clean-history
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    if: github.repository == 'rabpitvn1-create/BACKROOMS' && github.ref_name == 'ops/one-shot-clean-failed-cancelled-20261014'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Delete failed, cancelled and timed-out workflow runs
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for pass in 1 2 3; do
+            deleted=0
+            for status in failure cancelled timed_out; do
+              ids="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/actions/runs?status=${status}&per_page=100" --jq '.workflow_runs[].id')"
+              if [[ -z "$ids" ]]; then
+                echo "No ${status} runs in pass ${pass}."
+                continue
+              fi
+              while IFS= read -r id; do
+                [[ "$id" =~ ^[0-9]+$ ]] || { echo "Invalid run ID" >&2; exit 1; }
+                gh api --method DELETE "repos/${GITHUB_REPOSITORY}/actions/runs/${id}" --silent
+                deleted=$((deleted + 1))
+                sleep 0.4
+              done <<< "$ids"
+            done
+            echo "Pass ${pass}: removed ${deleted} runs."
+            (( deleted == 0 )) && break
+          done
+
+          remaining=0
+          for status in failure cancelled timed_out; do
+            count="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?status=${status}&per_page=1" --jq '.total_count')"
+            echo "Remaining ${status} runs: ${count}"
+            remaining=$((remaining + count))
+          done
+          if (( remaining > 0 )); then
+            echo "Some historical runs remain. Keep temporary branch for a safe rerun." >&2
+            exit 1
+          fi
+
+      - name: Self-delete the temporary action branch
+        if: success()
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          expected='ops/one-shot-clean-failed-cancelled-20261014'
+          [[ "$GITHUB_REF_NAME" == "$expected" ]] || exit 1
+          gh api --method DELETE "repos/${GITHUB_REPOSITORY}/git/refs/heads/${expected}" --silent
+          echo "Temporary branch and its only new workflow file removed."
