@@ -29,11 +29,14 @@ enum class EquipmentSlot(val key: String) {
 
 enum class ItemClassification { CANONICAL, SPECIAL_CHEAT, GENERAL }
 
-class EquipmentBonuses {
-  fun any() = false
-  override fun equals(other: Any?): Boolean = other is EquipmentBonuses
-  override fun hashCode(): Int = 0
-  override fun toString(): String = "EquipmentBonuses()"
+data class EquipmentBonuses(
+  val agiPct: Int = 0,
+  val dexPct: Int = 0,
+  val vitPct: Int = 0,
+  val strPct: Int = 0,
+  val defPct: Int = 0
+) {
+  fun any() = agiPct != 0 || dexPct != 0 || vitPct != 0 || strPct != 0 || defPct != 0
 }
 
 data class WeaponGameplayStats(
@@ -83,7 +86,7 @@ object EquipmentCatalog {
     ),
     EquipmentDefinition(
       id = CAO_MINH_ARMOR_ID, name = "Huyết Ma Chiến Khải", type = "MA KHẢI", primarySlot = EquipmentSlot.ARMOR,
-      bonuses = EquipmentBonuses(),
+      bonuses = EquipmentBonuses(agiPct = 100, dexPct = 30, vitPct = 20, strPct = 20),
       abilities = listOf(ability("Ma Kim hộ thể", "Ma khải bảo vệ nhục thân và phân tán lực va chạm."), ability("Ma nguyên tự phục hồi", "Tự phục hồi pháp bảo; không đồng nghĩa hồi HP tức thì.")),
       canonRef = "CAO-EQP-HUYET-MA-KHAI-01"
     ),
@@ -126,6 +129,7 @@ object EquipmentCatalog {
     EquipmentDefinition(
       id = LUC_TRAM_KIEM_KHAI_ID, name = "Thiên Cơ Bạch Kim Kiếm Khải",
       type = "PHÁP BẢO KIẾM KHẢI", primarySlot = EquipmentSlot.ARMOR,
+      bonuses = EquipmentBonuses(defPct = 75, dexPct = 50, agiPct = 50, vitPct = 20),
       abilities = listOf(ability("Phân tán phản lực", "Ổn định chuyển hướng và chịu va đập.")),
       restrictions = listOf("Là pháp bảo tiên hiệp; không có AI, reactor hoặc HUD."),
       canonRef = "LUC-TRAM-THIEN-KIEM-CODEX-R05+LUC-PRO-R06"
@@ -143,11 +147,13 @@ object EquipmentCatalog {
     ),
     EquipmentDefinition(
       id = LUCIA_KNIFE_ID, name = "Dao găm chiến đấu", type = "COMBAT KNIFE", primarySlot = EquipmentSlot.BLADE,
+      bonuses = EquipmentBonuses(agiPct = 25),
       weapon = WeaponGameplayStats(16),
       canonRef = "LUCIA-LUC-FOLLOWER-20260823"
     ),
     EquipmentDefinition(
       id = LUCIA_WATCH_ID, name = "Đồng hồ định vị quân sự", type = "MILITARY WATCH", primarySlot = EquipmentSlot.WRIST,
+      bonuses = EquipmentBonuses(defPct = 10),
       abilities = listOf(
         ability("Local Time Reference", "Giữ mốc thời gian cục bộ để Lucia ghi chép hành trình."),
         ability("Navigation Hardware", "Phần cứng định vị vẫn tồn tại nhưng đã mất tín hiệu vệ tinh trong Backrooms.", "Không cung cấp GPS hoặc la bàn tuyệt đối ở Level 0.")
