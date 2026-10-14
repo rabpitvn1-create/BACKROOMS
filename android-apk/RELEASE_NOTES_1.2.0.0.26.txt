@@ -1,0 +1,10 @@
+Backroom 1.2.0.0.26 Debug
+
+- Android versionCode 99, versionName 1.2.0.0.26, applicationId com.rabpit.backroom.
+- Mỗi Story Checkpoint có đúng 12 Explorer Turn; Boss bắt buộc xuất hiện ở Turn 12 và có Combat riêng.
+- Ít nhất 3 cuộc gặp ENTITY thường trên các Explorer Turn khác nhau, mỗi lần vẫn bắt buộc Battle Start/Combat; Boss không tính trong quota.
+- Mọi Level cố định 40 Checkpoint; chỉ Checkpoint cuối của Level mới được EXIT_LEVEL. SOL/Gemini quyết định Level đích nhưng không được thay tổng Checkpoint.
+- Đồng bộ prompt, bộ kiểm định kế hoạch, điều kiện hoàn thành, lịch sử, fixture và kịch bản kiểm tra.
+- Giữ storyArc, Canon, sự kiện nhân vật, Save/Load và luật Combat của phiên bản hiện tại.
+- Đây là APK Debug, không hỗ trợ migration/tương thích save cũ.
+- Rút ngắn Milestone để giảm khối lượng phản hồi AI; chưa có nghiệm thu live chứng minh lỗi kết nối SOL đã được giải quyết.
