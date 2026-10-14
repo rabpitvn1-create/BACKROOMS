@@ -1,0 +1,10 @@
+Backroom 1.2.0.0.24 Debug
+
+- Android versionCode 97, versionName 1.2.0.0.24, applicationId com.rabpit.backroom.
+- Tích hợp Fake Sandbox Milestone từ PR #616: SOL/Gemini lập mạch truyện Checkpoint khoảng 500 ký tự và lịch sự kiện; Gehihi kể chuyện theo Canon, giữ quyền quyết định của người chơi.
+- Checkpoint tối thiểu 50 Explorer Turn; tối thiểu 20 cuộc chạm trán Entity thường phải Combat và một trận Boss riêng cuối Checkpoint. Battle Start do người chơi thực hiện, Combat không tiêu thụ Explorer Turn.
+- Cuộc gặp NPC/Follower gắn với Canon về tính cách, lời thoại và quan hệ; không tự động đưa Follower vào Party. Validator loại bỏ việc ép dấu câu và tên riêng, vẫn đối chiếu event ID.
+- Bổ sung bảo vệ trạng thái Milestone, tiến độ Combat, hội thoại/encounter và Save/Load cùng các regression test liên quan.
+- Kiểm thử: Build APK và hai lượt emulator giả lập một Checkpoint đã đạt trên PR #616. Chưa nghiệm thu hoàn chỉnh SOL/Gehihi thật; các lượt live bị dừng trước khi hoàn tất Checkpoint và không chứng minh được toàn bộ Combat/Boss.
+- Đây là APK Debug để sử dụng và nghiệm thu, không phải bản phát hành sản xuất đã chứng nhận toàn bộ gameplay AI.
+- Không hỗ trợ migration hoặc tương thích save cũ.
