@@ -80,7 +80,7 @@ object EquipmentCatalog {
   private val all = listOf(
     EquipmentDefinition(
       id = CAO_MINH_SWORD_ID, name = "Huyết Ma Kiếm", type = "MA ĐẠO ĐẠI KIẾM", primarySlot = EquipmentSlot.WEAPON,
-      bonuses = EquipmentBonuses(), weapon = WeaponGameplayStats(32),
+      bonuses = EquipmentBonuses(strPct = 500, dexPct = 100), weapon = WeaponGameplayStats(32),
       abilities = listOf(ability("Ngự kiếm", "Điều khiển kiếm bằng thần niệm."), ability("Huyết Sát Ma Khí", "Gia cường kiếm bằng ma nguyên."), ability("Triệu hồi bản mệnh", "Gọi Huyết Ma Kiếm trở về.")),
       canonRef = "CAO-EQP-HUYET-MA-KIEM-01"
     ),
@@ -120,6 +120,7 @@ object EquipmentCatalog {
     EquipmentDefinition(
       id = LUC_TRAM_TICH_QUANG_ID, name = "Tịch Quang",
       type = "BẢN MỆNH LINH KIẾM", primarySlot = EquipmentSlot.WEAPON,
+      bonuses = EquipmentBonuses(strPct = 200, agiPct = 100),
       abilities = listOf(
         ability("Kiếm niệm triệu hồi", "Triệu hồi khi ở trong phạm vi cảm nhận hợp lệ.", "Không tái sinh vô hạn khi đã bị phá."),
         ability("Tịch Quang Phản Kiếm", "Dẫn lực và phản chém từ đường đánh hụt của đối thủ."),
@@ -136,6 +137,7 @@ object EquipmentCatalog {
     ),
     EquipmentDefinition(
       id = LUCIA_M4A1_ID, name = "M4A1 cá nhân hóa", type = "ASSAULT RIFLE", primarySlot = EquipmentSlot.WEAPON,
+      bonuses = EquipmentBonuses(strPct = 100, agiPct = 50),
       weapon = WeaponGameplayStats(26, "60 / 90 reserve", 800, listOf("Semi", "Burst", "Auto")),
       abilities = listOf(
         ability("Green Laser 5mW", "Laser xanh chỉnh điểm danh 5mW hỗ trợ chỉ thị và quét bề mặt ở cự ly gần.", "Không biến laser thành cảm biến siêu nhiên."),
