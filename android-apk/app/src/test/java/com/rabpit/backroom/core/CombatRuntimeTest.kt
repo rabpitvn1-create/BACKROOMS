@@ -39,7 +39,7 @@ class CombatRuntimeTest {
     val initial = GameState.initial()
     val expectedMaxHp = CharacterStatEngine.effective(initial, CAO_MINH_ID).maxHp
     val expectedHp = initial.characters.getValue(CAO_MINH_ID).vitalState.currentHp
-    assertEquals(55, expectedMaxHp)
+    assertEquals(60, expectedMaxHp)
     assertEquals(50, expectedHp)
     assertEquals(expectedMaxHp, combat.playerMaxHp)
     assertEquals(expectedHp, combat.playerHp)

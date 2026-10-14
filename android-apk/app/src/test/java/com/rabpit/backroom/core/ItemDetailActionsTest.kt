@@ -43,22 +43,19 @@ class ItemDetailActionsTest {
     assertEquals(before.turn.completedTurnIds, save.state.turn.completedTurnIds)
   }
 
-  @Test fun itemCanBeUsedWhileMilestoneStoryEventIsDueWithoutConsumingIt() {
-    val storyEvent = JSONObject().put("id", "intro").put("turn", 1).put("kind", "STORY")
-      .put("action", "Quan sát hành lang").put("event", "Một âm thanh vọng tới")
-      .put("outcome", "Cao Minh nhận ra tiếng động không rõ nguồn")
-    val prepared = TestCheckpointQuota.withPlan(fresh(), listOf(storyEvent))
-    val save = MemorySave(prepared)
-    val beforeDue = StoryMilestoneRuntime.dueJson(prepared)
-    val first = run(save, request("USE"))
-    assertTrue(first.toString(), first.getBoolean("handled"))
-    assertEquals(beforeDue, StoryMilestoneRuntime.dueJson(save.state))
-    assertEquals(1, first.getJSONObject("state").getInt("turn"))
-    assertEquals(0L, StoryMilestoneRuntime.statsJson(save.state).getLong("committedEvents"))
-    assertEquals(prepared.time, save.state.time)
-    val second = run(save, request("TRANSFER", target = IRIS_ID))
-    assertTrue(second.toString(), second.getBoolean("handled"))
-    assertEquals(beforeDue, StoryMilestoneRuntime.dueJson(save.state))
+  @Test fun itemActionsAreBlockedWhileEntityEncounterAwaitsBattleStart() {
+    // A real Core pending encounter freezes unrelated gameplay actions until
+    // Battle Start. Checking only entityEncounterKey does NOT model a reservation.
+    val reserved = CombatRuntime.prepareEncounter(fresh(), "hound", "test:item-pending", boss = false)
+    val save = MemorySave(reserved)
+    val before = save.state
+    for (request in listOf(request("USE"), request("TRANSFER", target = IRIS_ID))) {
+      val result = run(save, request)
+      assertFalse(result.toString(), result.getBoolean("handled"))
+      assertEquals("encounter_confirmation_required", result.getString("error"))
+      assertEquals(before, save.state)
+      assertEquals("test:item-pending", CombatRuntime.pending(save.state)?.encounterId)
+    }
   }
   @Test fun transferMovesRequestedQuantityToChosenMember() {
     val save = MemorySave(fresh())

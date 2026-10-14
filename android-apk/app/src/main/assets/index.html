@@ -174,18 +174,7 @@ body.player-action-open,body.game-menu-open{overflow:hidden}
 <link rel="stylesheet" href="exploration-transition.css">
 <script src="level_snapshots/snapshot-mapping.js"></script>
 <style>
-.game{position:relative}.milestone-loading{position:absolute;inset:0;z-index:130;display:grid;place-items:center;padding:24px;background:#080a0cd9;backdrop-filter:blur(4px)}
-.milestone-loading[hidden]{display:none}.milestone-loading section{width:min(360px,100%);padding:24px;border:1px solid #696247;border-radius:14px;background:#151713;box-shadow:0 16px 64px #0009;text-align:center}
-.milestone-loading h2{font-size:20px;margin:12px 0}.milestone-loading p{color:#cbc9bb;line-height:1.6}.milestone-loading button{width:100%;margin-top:12px}
-.milestone-provider-choices[hidden]{display:none}.milestone-provider-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}
-.milestone-loading .milestone-provider-choice{min-width:0;min-height:108px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;margin:0;padding:12px 7px;border:1px solid #777052;border-radius:10px;background:#22241e;color:#f5f2e8;font-size:14px;font-weight:800}
-.milestone-provider-choice img{width:42px;height:42px;display:block;object-fit:contain;background:#fff;border-radius:10px;padding:6px}
-.milestone-provider-choice:focus-visible{outline:3px solid #f0c66d;outline-offset:2px}
-.milestone-progress{height:12px;overflow:hidden;border:1px solid #796038;border-radius:7px;background:#292016;box-shadow:inset 0 1px 5px #0009;margin:18px 0 6px}
-.milestone-progress[hidden]{display:none}.milestone-progress-fill{display:block;height:100%;width:42%;border-radius:7px;background:linear-gradient(90deg,#613816 0%,#b46920 35%,#f9cb55 65%,#97501a 100%);box-shadow:0 0 12px #d18a32a8;animation:milestone-loading-slide 1.7s ease-in-out infinite alternate}
-@keyframes milestone-loading-slide{from{transform:translateX(-100%)}to{transform:translateX(240%)}}
-@media(prefers-reduced-motion:reduce){.milestone-progress-fill{animation:none;width:100%;opacity:.7}}
-.milestone-dev-count{display:block;margin-top:5px;font:700 10px system-ui,sans-serif;letter-spacing:.08em;color:#d4a557}.milestone-dev-count strong{color:#f4cb79}
+.game{position:relative}
 </style>
 <script src="diagnostic-export.js"></script>
 <style>
@@ -198,7 +187,7 @@ body.player-action-open,body.game-menu-open{overflow:hidden}
 <body>
 <main class="shell">
 <section class="game">
-<header class="topbar"><div><div class="eyebrow">BACKROOM TEXT GAME</div><h1 id="title"></h1><span class="turn-runtime">TURN <strong id="turn"></strong></span><span class="milestone-dev-count">DEV · MILESTONE ĐÃ TẠO: <strong id="generatedMilestones">0</strong></span></div><button class="game-menu-trigger" id="gameMenuOpen" type="button" aria-label="Mở menu game" aria-haspopup="dialog" aria-controls="gameMenuModal" aria-expanded="false">☰</button></header>
+<header class="topbar"><div><div class="eyebrow">BACKROOM TEXT GAME</div><h1 id="title"></h1><span class="turn-runtime">TURN <strong id="turn"></strong></span></div><button class="game-menu-trigger" id="gameMenuOpen" type="button" aria-label="Mở menu game" aria-haspopup="dialog" aria-controls="gameMenuModal" aria-expanded="false">☰</button></header>
 <div class="snapshot" id="snapshot">SNAPSHOT — Android bản đầu chưa tạo ảnh tự động</div>
 <div class="log" id="log"></div>
 <div class="player-action-bar" id="playerActionBar" aria-label="Action">
@@ -222,25 +211,6 @@ body.player-action-open,body.game-menu-open{overflow:hidden}
     </form>
   </section>
 </div>
-<div id="milestoneLoading" class="milestone-loading" hidden>
-  <section role="dialog" aria-modal="true" aria-labelledby="milestoneLoadingTitle">
-    <div class="role">GAME MASTER</div><h2 id="milestoneLoadingTitle">Chuẩn bị Checkpoint</h2>
-    <p id="milestoneLoadingMessage" role="status" aria-live="polite"></p>
-    <div id="milestoneProviderChoices" class="milestone-provider-choices" hidden aria-label="Chọn API tạo Milestone">
-      <button type="button" id="milestoneChooseGemini" class="milestone-provider-choice" aria-label="Gemini">
-        <img src="provider-logos/gemini.svg" alt="" width="36" height="36"><span>Gemini</span>
-      </button>
-      <button type="button" id="milestoneChooseSol" class="milestone-provider-choice" aria-label="GPT SOL 6.1">
-        <img src="provider-logos/chatgpt.svg" alt="" width="36" height="36"><span>GPT SOL 6.1</span>
-      </button>
-    </div>
-    <div id="milestoneLoadingProgress" class="milestone-progress" role="progressbar" aria-label="Đang tạo và kiểm định Milestone (chưa có phần trăm thực tế)"><span class="milestone-progress-fill"></span></div>
-    <button type="button" id="milestoneLoadingRetry" hidden>Thử lại</button>
-    <div class="diagnostic-consent"><input type="checkbox" id="milestoneDiagnosticSensitive"><label for="milestoneDiagnosticSensitive">Bao gồm API key và dữ liệu nhạy cảm (chỉ khi cần, phải xác nhận hai lần).</label></div>
-    <button type="button" id="milestoneExportDiagnostic">Xuất log chi tiết (.json)</button>
-    <p id="milestoneDiagnosticStatus" class="diagnostic-status" aria-live="polite"></p>
-  </section>
-</div>
 <div class="status" id="status"></div>
 </section>
 <div class="game-menu-modal" id="gameMenuModal" hidden aria-hidden="true">
@@ -251,7 +221,7 @@ body.player-action-open,body.game-menu-open{overflow:hidden}
 <div class="card"><h2>Trạng thái</h2><div class="row"><b>Vị trí</b><span id="location"></span></div><div class="row"><b>Chế độ</b><span id="mode"></span></div><div class="row"><b>Nhân vật</b><span id="player"></span></div></div>
 <div class="card"><h2>Save / Load</h2><div class="actions"><button type="button" id="saveButton" onclick="save()">Lưu</button><button type="button" id="loadButton" onclick="load()">Tải</button><button type="button" id="newGameButton" class="wide" onclick="resetGame()">Bắt đầu lại từ đầu</button><button type="button" id="deleteSaveButton" class="wide danger" onclick="clearSave()">Xóa save trên máy</button></div></div>
 <div class="card"><h2>Chẩn đoán lỗi</h2>
-  <p class="diagnostic-note">Xuất trạng thái Game Core, Milestone, Combat, lịch sử lượt, lỗi JavaScript và timeline API thành file JSON cho AI phân tích. File chỉ lưu vào vị trí anh chọn.</p>
+  <p class="diagnostic-note">Xuất trạng thái Game Core, Combat, lịch sử lượt, lỗi JavaScript và timeline API thành file JSON cho AI phân tích. File chỉ lưu vào vị trí anh chọn.</p>
   <div class="diagnostic-consent"><input type="checkbox" id="diagnosticSensitive"><label for="diagnosticSensitive">Bao gồm API key và dữ liệu nhạy cảm, không che (phải xác nhận hai lần).</label></div>
   <div class="actions"><button type="button" id="exportDiagnosticButton" class="wide">Xuất log chi tiết (.json)</button></div>
   <p id="diagnosticExportStatus" class="diagnostic-status" aria-live="polite"></p>
@@ -1662,7 +1632,7 @@ function semanticPrepareNextState(before,json){const next=JSON.parse(json),oldLe
 function normalizedSemanticSpans(entry){if(!entry||entry.role==="player")return [];if(entry.semanticVersion!==3||!Array.isArray(entry.semanticSpans)){entry.semanticSpans=semanticResolve(entry.text,state,state);entry.semanticVersion=3}const source=String(entry.text||""),spans=[];let cursor=0;entry.semanticSpans.forEach(raw=>{const start=Number(raw&&raw.start),end=Number(raw&&raw.end),kind=semanticKind(raw&&raw.kind);if(!kind||!Number.isInteger(start)||!Number.isInteger(end)||start<cursor||end<=start||end>source.length)return;spans.push({start,end,kind});cursor=end});return spans}
 function renderSemanticText(entry){const source=String(entry&&entry.text||"");if(!entry||entry.role==="player")return esc(source);const spans=normalizedSemanticSpans(entry);if(!spans.length)return esc(source);let out="",cursor=0;spans.forEach(span=>{if(span.start>cursor)out+=esc(source.slice(cursor,span.start));out+="<span class='gm-semantic gm-semantic-"+span.kind+"' data-semantic-kind='"+span.kind+"'>"+esc(source.slice(span.start,span.end))+"</span>";cursor=span.end});if(cursor<source.length)out+=esc(source.slice(cursor));return out}
 
-function levelHeader(s){if(s&&s.level&&s.level.name){const id=s.level.id!=null?s.level.id:s.level.number;if(s.level.kind==="AREA"||s.level.kind==="SPECIAL"||s.level.name==="Level "+id)return s.level.name;return "Level "+id+" – "+s.level.name;}const where=String(s&&s.location||"")+" "+String(s&&s.title||"");const m=where.match(/Level\s*([^\s\/—–-]+)\s*(?:\/|—|–|-)\s*([^—–\n]+?)(?:\s+[—–]\s+|$)/i);if(m)return "Level "+m[1]+" – "+m[2].trim();return s&&s.title||"Backrooms"}function render(){const completed=state.story&&state.story.lastCompletion;if(completed&&completed.id){if(!Array.isArray(state.log))state.log=[];if(!state.log.some(x=>x.completionId===completed.id)){const entry={role:"gm",text:completed.completion.outcome,completionId:completed.id};const pendingIndex=state.log.findIndex(x=>x.encounterId===state.pendingEncounter?.encounterId);if(pendingIndex>=0)state.log.splice(pendingIndex,0,entry);else state.log.push(entry);}}titleEl.textContent=levelHeader(state);turnEl.textContent=state.turn;byId("generatedMilestones").textContent=Number.isSafeInteger(state.story&&state.story.generatedMilestones)&&state.story.generatedMilestones>=0?String(state.story.generatedMilestones):"—";locationEl.textContent=state.location;modeEl.textContent=state.mode;playerEl.textContent=state.player?.name||"Cao Minh";partyEl.innerHTML=chips(state.party);if(inventoryEl)inventoryEl.innerHTML=chips(state.inventory);logEl.innerHTML=(state.log||[]).map(x=>{const w=x.role!=="player"&&String(x.text||"").trim().startsWith("[Warning]");return "<article class='message "+(x.role==="player"?"player":"gm")+(w?" warning":"")+"'><div class='role'>"+(x.role==="player"?"BẠN":"GAME MASTER")+"</div><div class='text'>"+renderSemanticText(x)+"</div></article>"}).join("");logEl.scrollTop=logEl.scrollHeight;if(window.backroomMilestoneLoading)window.backroomMilestoneLoading.sync();if(window.backroomRenderBattleStart)window.backroomRenderBattleStart();if(window.backroomRenderEncounteredCharacters)window.backroomRenderEncounteredCharacters()}
+function levelHeader(s){if(s&&s.level&&s.level.name){const id=s.level.id!=null?s.level.id:s.level.number;if(s.level.kind==="AREA"||s.level.kind==="SPECIAL"||s.level.name==="Level "+id)return s.level.name;return "Level "+id+" – "+s.level.name;}const where=String(s&&s.location||"")+" "+String(s&&s.title||"");const m=where.match(/Level\s*([^\s\/—–-]+)\s*(?:\/|—|–|-)\s*([^—–\n]+?)(?:\s+[—–]\s+|$)/i);if(m)return "Level "+m[1]+" – "+m[2].trim();return s&&s.title||"Backrooms"}function render(){titleEl.textContent=levelHeader(state);turnEl.textContent=state.turn;locationEl.textContent=state.location;modeEl.textContent=state.mode;playerEl.textContent=state.player?.name||"Cao Minh";partyEl.innerHTML=chips(state.party);if(inventoryEl)inventoryEl.innerHTML=chips(state.inventory);logEl.innerHTML=(state.log||[]).map(x=>{const w=x.role!=="player"&&String(x.text||"").trim().startsWith("[Warning]");return "<article class='message "+(x.role==="player"?"player":"gm")+(w?" warning":"")+"'><div class='role'>"+(x.role==="player"?"BẠN":"GAME MASTER")+"</div><div class='text'>"+renderSemanticText(x)+"</div></article>"}).join("");logEl.scrollTop=logEl.scrollHeight;if(window.backroomRenderBattleStart)window.backroomRenderBattleStart();if(window.backroomRenderEncounteredCharacters)window.backroomRenderEncounteredCharacters()}
 const SAVE_KEY="backroom-apk-state";
 const SNAPSHOT_KEY="backroom-apk-snapshot";
 let destructiveAction="";
@@ -1685,7 +1655,7 @@ function persistPresentation(){
     const checked=JSON.parse(localStorage.getItem(SAVE_KEY)||"null");
     if(!checked||checked.turn!==projected.turn)throw new Error("không xác minh được bản ghi giao diện");
     state=projected;
-    if(window.backroomMilestoneLoading)window.backroomMilestoneLoading.sync();
+    
     return true;
   }catch(e){statusEl.textContent="Không lưu được giao diện hiện tại: "+(e&&e.message?e.message:"storage error");return false}
 }
@@ -1748,14 +1718,14 @@ function clearSave(){
     statusEl.textContent="Đã xóa điểm lưu thủ công, Game Core và bộ đệm giao diện.";
   });
 }
-formEl.addEventListener("submit",e=>{e.preventDefault();const a=actionEl.value.trim();if(!a||busy||window.__milestoneBlocked||state.pendingEncounter)return;if(!window.Android){statusEl.textContent="Không tìm thấy Android bridge.";return}busy=true;syncPrimaryActions();statusEl.textContent="Gehihi đang xử lý lượt…";window.Android.submitAction(JSON.stringify(state),"EXECUTE",a)});
+formEl.addEventListener("submit",e=>{e.preventDefault();const a=actionEl.value.trim();if(!a||busy||state.pendingEncounter)return;if(!window.Android){statusEl.textContent="Không tìm thấy Android bridge.";return}busy=true;syncPrimaryActions();statusEl.textContent="Gehihi đang xử lý lượt…";window.Android.submitAction(JSON.stringify(state),"EXECUTE",a)});
 
 // TWO_PRIMARY_ACTIONS
 const exploreActionButton=byId("exploreActionButton");
 function syncPrimaryActions(){
   const hasText=!!(actionEl&&actionEl.value.trim());
-  if(submitEl)submitEl.disabled=busy||window.__milestoneBlocked||!!state.pendingEncounter||!hasText;
-  if(exploreActionButton)exploreActionButton.disabled=busy||window.__milestoneBlocked||!!state.pendingEncounter;
+  if(submitEl)submitEl.disabled=busy||!!state.pendingEncounter||!hasText;
+  if(exploreActionButton)exploreActionButton.disabled=busy||!!state.pendingEncounter;
 }
 function appendMacroPending(label){
   if(!logEl)return;
@@ -1769,7 +1739,7 @@ function appendMacroPending(label){
   logEl.appendChild(gm);logEl.scrollTop=logEl.scrollHeight;
 }
 function submitMacroAction(kind,label){
-  if(busy||window.__milestoneBlocked||state.pendingEncounter)return;
+  if(busy||state.pendingEncounter)return;
   if(!window.Android||typeof window.Android.submitAction!=="function"){
     statusEl.textContent="Không tìm thấy Android action bridge.";return;
   }
@@ -1802,19 +1772,7 @@ window.backroomError=message=>{
   syncPrimaryActions();focusLatestGmStart();
 };
 </script>
-<script src="milestone-loading.js"></script>
 <script>
-window.backroomMilestoneLoading=BackroomMilestoneLoading.install({
-  getState:()=>state,
-  refresh:()=>{const raw=Android.currentClientState(JSON.stringify(state));if(JSON.parse(raw).error)throw new Error("Core chưa sẵn sàng");state=semanticPrepareNextState(state,raw);render();},
-  request:()=>Android.prepareMilestone(JSON.stringify(state)),
-  provider:()=>Android.getMilestoneProviderChoice(),
-  selectProvider:value=>JSON.parse(Android.chooseMilestoneProvider(value)),
-  available:()=>!coreUnavailable&&!!window.Android&&typeof Android.prepareMilestone==="function"&&typeof Android.getMilestoneProviderChoice==="function"&&typeof Android.chooseMilestoneProvider==="function",
-  changed:()=>syncPrimaryActions()
-});
-window.backroomMilestoneStatus=raw=>window.backroomMilestoneLoading.status(JSON.parse(raw));
-window.backroomMilestoneReady=raw=>window.backroomMilestoneLoading.ready(JSON.parse(raw));
 render();
 </script>
 
@@ -2232,7 +2190,7 @@ function selected(){const id=view&&view.dataset.characterId||'cao_minh';return m
   var imeInsetCss=0,modalBaselineHeight=0;
 
   function combatActive(){try{return !!(state&&state.combat&&state.combat.active===true)}catch(_){return false}}
-  function processing(){return !!(state&&state.pendingEncounter)||!!window.__milestoneBlocked||!!window.__combatBusy||(typeof busy!=="undefined"&&!!busy)}
+  function processing(){return !!(state&&state.pendingEncounter)||!!window.__combatBusy||(typeof busy!=="undefined"&&!!busy)}
   function layoutHeight(){return Math.max(1,window.innerHeight||document.documentElement.clientHeight||1)}
   function fitActionModal(){
     if(!actionModal||actionModal.hidden)return;

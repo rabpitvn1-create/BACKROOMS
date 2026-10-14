@@ -5,7 +5,7 @@
       "id": "GAME.TEXT.CORE",
       "domain": "GAME_RULE",
       "kind": "hard-lock",
-      "text": "Text Game authority: user instruction, Text Game rules, GM rules, live save/campaign state, then on-demand canon. Player controls Cao Minh's intentional actions; GM controls world, Entity, survivor/NPC and consequences. Do not nerf canon abilities, invent facts, reset consequences, cheat dice, or fill UNKNOWN. Gameplay normally retrieves only needed canon rather than scanning the whole corpus.",
+      "text": "Text Game authority: user instruction, Text Game rules, GM rules, live save/campaign state, then on-demand canon. Player controls Cao Minh's intentional actions; Core is authoritative over world state, Entity/NPC spawns, encounters, level transitions and consequences -- Core rolls dice, reserves encounters, and validates all state changes. GM only narrates Core-confirmed events and may not self-spawn entities, recruit followers, grant rewards, or choose hidden paths. Do not nerf canon abilities, invent facts, reset consequences, cheat dice, or fill UNKNOWN. Gameplay normally retrieves only needed canon rather than scanning the whole corpus.",
       "source": {
         "document": "05_TextGame/RULES/TEXT_GAME_RULES.md",
         "anchor": "1-12"

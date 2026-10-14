@@ -47,7 +47,7 @@ object LuciaCanon {
         "followsPlayer" to "true",
         "homeLevel" to HOME_LEVEL.toString(),
         "encounterLevels" to "0",
-        "encounterPolicy" to "MILESTONE",
+        "encounterPolicy" to "CORE_SPAWN",
         "encounterAction" to "EXPLORE",
         "inventoryProfile" to "lucia_gift_inventory",
         "startingLoadedAmmo" to "60",

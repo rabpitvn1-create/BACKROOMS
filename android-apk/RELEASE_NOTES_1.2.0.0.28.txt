@@ -1,0 +1,10 @@
+Backroom 1.2.0.0.28 Debug
+
+- Android versionCode 101, versionName 1.2.0.0.28, applicationId com.rabpit.backroom.
+- Squash merge PR #624: khôi phục luồng phản hồi Game Master trực tiếp theo hành vi dòng 1.1.63 mà không rollback Game Core hoặc những hệ thống gameplay hiện hành.
+- Gỡ Milestone Planner, Milestone Runtime, màn hình tạo/chờ Milestone và các điều kiện khóa lượt chơi dựa trên Milestone.
+- Khôi phục encounter NPC/Entity theo tỉ lệ trước Milestone, do Core xác nhận. Entity encounter sử dụng pending confirmation/Battle Start; NPC first-encounter chuyển dữ liệu quan sát và Canon vào GM.
+- Duy trì Canon nhân vật đã cập nhật của Cao Minh, Lucia, Lục Trầm R06, Iris và Syvial. An Nhiên vẫn là Legacy, không được tự động kích hoạt hay đưa vào GM.
+- Giữ Combat, EXP, Inventory, Poker Dice, Level rules, manual checkpoint và save/load theo hợp đồng hiện hành. Không hỗ trợ đọc/migration save game từ phiên bản cũ.
+- Tăng cường regression tests cho encounter, Canon, chuyển Level, Core và bộ kiểm tra APK sau khi loại bỏ Milestone.
+- Bản APK Debug được kiểm tra bằng JavaScript/Kotlin unit tests và APK packaging CI. Chưa thực hiện kiểm thử gameplay trực tiếp trên emulator hoặc Live AI provider trong quy trình tự động.

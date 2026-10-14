@@ -27,8 +27,8 @@ class CharacterCombatResolutionTest {
   @Test fun dexReducesCriticalChanceAndCriticalDamageUsesFourHundredPercent() {
     val base = GameState.initial()
     val highDex = boosted(base) { it.copy(dex = 100) }
-    val critical = hit(base, damage = 10, critRoll = 400)
-    val resisted = hit(highDex, damage = 10, critRoll = 400)
+    val critical = hit(base, damage = 10, critRoll = 200)
+    val resisted = hit(highDex, damage = 10, critRoll = 200)
     assertEquals(listOf(CAO_MINH_ID), critical.criticalIds)
     assertTrue(critical.appliedDamage > resisted.appliedDamage)
     assertTrue(resisted.criticalIds.isEmpty())

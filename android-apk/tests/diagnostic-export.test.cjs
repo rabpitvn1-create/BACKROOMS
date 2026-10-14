@@ -34,7 +34,7 @@ function boot(){
   return {env,listeners,elements,exports};
 }
 
-test('Game Menu and milestone overlay export the same structured read-only evidence',()=>{
+test('Game Menu exports structured read-only evidence without milestone overlay',()=>{
   const x=boot();
   x.elements.exportDiagnosticButton.click();
   assert.equal(x.exports.length,1);
@@ -43,10 +43,9 @@ test('Game Menu and milestone overlay export the same structured read-only evide
   assert.equal(x.exports[0].data.presentation.turn,8);
   assert.equal(x.exports[0].data.authoritativeCore.turn,9);
   assert.equal(x.env.state.turn,8,'diagnostics must not mutate gameplay');
-  x.elements.milestoneExportDiagnostic.click();
-  assert.equal(x.exports.length,2);
-  assert.equal(x.exports[1].raw,false);
-  assert.match(html,/id="milestoneExportDiagnostic"/);
+  // Milestone overlay removed: no second export path, no milestone fields in snapshot.
+  assert.equal(x.exports[0].data.milestoneBlocked,undefined);
+  assert.equal(x.exports[0].data.milestoneVisible,undefined);
   assert.match(html,/id="exportDiagnosticButton"/);
   assert.match(html,/diagnostic-export\.js/);
 });

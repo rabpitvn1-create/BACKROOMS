@@ -2,7 +2,6 @@ package com.rabpit.backroom;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.SharedPreferences;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -44,7 +43,6 @@ public class MainActivity extends Activity {
   private final ExecutorService io = Executors.newSingleThreadExecutor();
   private final ExecutorService imageIo = Executors.newSingleThreadExecutor();
   private final ExecutorService auditIo = Executors.newFixedThreadPool(2);
-  private final java.util.Set<String> milestonePlanInFlight = java.util.concurrent.ConcurrentHashMap.newKeySet();
   private final AtomicInteger latestSnapshotTurn = new AtomicInteger(0);
   private final Object geminiHealthLock = new Object();
   private final long[] geminiCooldownUntil = new long[5];
@@ -71,10 +69,6 @@ public class MainActivity extends Activity {
   private static final int[] RETRYABLE = {408, 429, 500, 502, 503, 504};
   private static final int MAX_SNAPSHOT_BASE64 = 1_500_000;
   private static final String KNOWLEDGE_CANON_VERSION = "KNOWLEDGE-DB-SCHEMA-1";
-  private static final String PLANNER_SETTINGS = "backroom_milestone_planner";
-  private static final String PLANNER_SETTING_KEY = "selected_provider";
-  private static final String PLANNER_SOL = "SOL";
-  private static final String PLANNER_GEMINI = "GEMINI";
   private static final SecureRandom GAME_RNG = new SecureRandom();
 
   @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
@@ -113,8 +107,8 @@ public class MainActivity extends Activity {
 
   private String requestDiagnosticExport(String webJson, boolean includeSensitive) {
     try {
-      String report = DiagnosticLog.build(webJson, includeSensitive, milestoneProviderChoice(),
-        milestonePlanInFlight.size(), lastGeminiWorker, lastGeminiModel);
+      String report = DiagnosticLog.build(webJson, includeSensitive, "",
+        0, lastGeminiWorker, lastGeminiModel);
       synchronized (diagnosticExportLock) {
         if (pendingDiagnosticExport != null) return "{\"ok\":false,\"error\":\"export_already_open\"}";
         pendingDiagnosticExport = report;
@@ -350,21 +344,6 @@ public class MainActivity extends Activity {
   private boolean retryable(int code) {
     for (int value : RETRYABLE) if (value == code) return true;
     return false;
-  }
-
-  /** One-time installation setting. Deliberately survives New Game and save deletion. */
-  private String milestoneProviderChoice() {
-    // Dedicated instrumentation APKs have no Gemini keys and must remain non-interactive.
-    if (BuildConfig.TWO_PROVIDER_GAMEPLAY_TEST) return PLANNER_SOL;
-    String stored = getSharedPreferences(PLANNER_SETTINGS, MODE_PRIVATE).getString(PLANNER_SETTING_KEY, "");
-    return PLANNER_SOL.equals(stored) || PLANNER_GEMINI.equals(stored) ? stored : "";
-  }
-
-  private String milestonePlannerText(String prompt) throws Exception {
-    String provider = milestoneProviderChoice();
-    if (PLANNER_SOL.equals(provider)) return solMilestoneText(prompt);
-    if (PLANNER_GEMINI.equals(provider)) return geminiMilestoneText(prompt);
-    throw new IllegalStateException("milestone_provider_not_selected");
   }
 
   private String[] geminiKeys() {
@@ -733,7 +712,7 @@ public class MainActivity extends Activity {
     return body.toString();
   }
 
-  private String geminiMatrixRequest(String prompt, int modelIndex, int keyIndex, int maxOutputTokens, long deadlineMs, boolean auditPacket, boolean milestonePacket) throws Exception {
+  private String geminiMatrixRequest(String prompt, int modelIndex, int keyIndex, int maxOutputTokens, long deadlineMs, boolean auditPacket) throws Exception {
     String[] keys = geminiKeys();
     String[] models = geminiModelChain();
     long remaining = deadlineMs - System.currentTimeMillis();
@@ -773,21 +752,12 @@ public class MainActivity extends Activity {
     String response = responseText.toString();
     // A valid HTTP response is not a successful lane until the payload can be consumed.
     JSONObject packet = parseModelJson(response);
-    if (milestonePacket) {
-      // A plan has schemaVersion/checkpointId/events/completion, not a GM "reply".
-      // Game Core performs the authoritative schedule/schema validation on install.
-      if (!packet.has("events") || !packet.has("checkpointId") || !packet.has("completion"))
-        throw new IllegalArgumentException("milestone_provider_json_invalid");
-    } else if (auditPacket) ProviderResponseContract.requireAudit(packet);
+    if (auditPacket) ProviderResponseContract.requireAudit(packet);
     else ProviderResponseContract.requireWriter(packet);
     return response;
   }
 
   private String geminiModelMatrixPolicy(String prompt, int[] modelOrder, int excludedKeyIndex, int maxOutputTokens, boolean rememberWorker, long totalBudgetMs, boolean auditPacket) throws Exception {
-    return geminiModelMatrixPolicy(prompt, modelOrder, excludedKeyIndex, maxOutputTokens, rememberWorker, totalBudgetMs, auditPacket, false);
-  }
-
-  private String geminiModelMatrixPolicy(String prompt, int[] modelOrder, int excludedKeyIndex, int maxOutputTokens, boolean rememberWorker, long totalBudgetMs, boolean auditPacket, boolean milestonePacket) throws Exception {
     String[] keys = geminiKeys();
     Exception last = null;
     long deadlineMs = System.currentTimeMillis() + totalBudgetMs;
@@ -823,7 +793,7 @@ public class MainActivity extends Activity {
           attempted[keyIndex] = true;
           long started = System.currentTimeMillis();
           try {
-            String result = geminiMatrixRequest(prompt, modelIndex, keyIndex, maxOutputTokens, deadlineMs, auditPacket, milestonePacket);
+            String result = geminiMatrixRequest(prompt, modelIndex, keyIndex, maxOutputTokens, deadlineMs, auditPacket);
             noteGeminiMatrixSuccess(modelIndex, keyIndex, System.currentTimeMillis() - started);
             if (rememberWorker) { lastGeminiWorker = keyIndex; lastGeminiModel = modelIndex; }
             return result;
@@ -841,11 +811,6 @@ public class MainActivity extends Activity {
       }
     }
     throw last != null ? last : new Exception("Không có Gemini model/key lane khỏe trong APK.");
-  }
-
-  /** Milestone uses the same five-key health matrix; it requires a plan, not a GM answer. */
-  private String geminiMilestoneText(String prompt) throws Exception {
-    return geminiModelMatrixPolicy(prompt, new int[] {0, 1, 2}, -1, 12288, false, 120_000L, false, true);
   }
 
   private String geminiText(String prompt) throws Exception {
@@ -964,62 +929,20 @@ public class MainActivity extends Activity {
   }
 
   private String solText(String prompt) throws Exception {
-    return solText(prompt, 2048, 0.6, false);
+    return solText(prompt, 2048, 0.6);
   }
 
-  /** Milestone generation can take longer than ordinary GM prose. Do not alter the GM timeout. */
-  private String solMilestoneText(String prompt) throws Exception {
-    return solText(prompt, 12288, 0.5, true);
-  }
-
-  private String solText(String prompt, int maxOutputTokens, double temperature, boolean milestone) throws Exception {
+  private String solText(String prompt, int maxOutputTokens, double temperature) throws Exception {
     if (BuildConfig.SOL_API_KEY == null || BuildConfig.SOL_API_KEY.trim().isEmpty()) throw new Exception("SOL_API_KEY chưa được cấu hình.");
     JSONObject body = openAiProviderBody("vgpt/gpt-6.1-sol", prompt)
       .put("reasoning_effort", "low")
       .put("max_tokens", maxOutputTokens)
       .put("temperature", temperature);
     String response = postJson("https://api.vilao.ai/v1/chat/completions",
-      BuildConfig.SOL_API_KEY, "Authorization", body, milestone ? 120000 : 60000);
-    if (milestone) return com.rabpit.backroom.core.SolMilestoneResponse.normalize(response);
+      BuildConfig.SOL_API_KEY, "Authorization", body, 60000);
     String output = openAiProviderText(response);
     parseModelJson(output);
     return output;
-  }
-
-  /** Stable, non-secret diagnostics; never expose credentials or response bodies. */
-  private String milestoneFailureMessage(Exception error) {
-    boolean gemini = PLANNER_GEMINI.equals(milestoneProviderChoice());
-    String tag = gemini ? "GEMINI" : "SOL";
-    String label = gemini ? "Gemini" : "SOL";
-    if (error instanceof HttpError) {
-      int code = ((HttpError) error).status;
-      if (code == 401 || code == 403) return "[" + tag + "_AUTH_" + code + "] " + label + " từ chối xác thực/quyền sử dụng model.";
-      if (code == 429) return "[" + tag + "_RATE_LIMIT] " + label + " hết quota hoặc bị giới hạn tốc độ.";
-      if (code == 400 || code == 404 || code == 422) return "[" + tag + "_REQUEST_" + code + "] " + label + " từ chối model hoặc request.";
-      if (code >= 500) return "[" + tag + "_SERVER_" + code + "] Máy chủ " + label + " đang lỗi. Hãy thử lại sau.";
-      return "[" + tag + "_HTTP_" + code + "] " + label + " trả HTTP " + code + ".";
-    }
-    Throwable cause = error;
-    while (cause != null) {
-      if (cause instanceof java.net.SocketTimeoutException)
-        return "[" + tag + "_TIMEOUT] " + label + " không trả Milestone trong giới hạn 120 giây.";
-      cause = cause.getCause();
-    }
-    if (networkFailure(error)) return "[" + tag + "_NETWORK] Không kết nối được " + label + ". Kiểm tra mạng/DNS.";
-    String reason = error.getMessage() == null ? "" : error.getMessage();
-    if (reason.equals("milestone_provider_not_selected"))
-      return "[PROVIDER_REQUIRED] Hãy chọn API tạo Milestone trong màn hình loading.";
-    if (reason.equals("milestone_provider_truncated"))
-      return "[" + tag + "_TRUNCATED] " + label + " trả kế hoạch bị cắt do giới hạn token.";
-    if (reason.startsWith("milestone_provider_"))
-      return "[" + tag + "_RESPONSE] " + label + " trả kế hoạch không đúng JSON.";
-    if (reason.matches("(milestone|checkpoint|story)_[a-z0-9_]{1,90}"))
-      return "[PLAN_INVALID] Game Core từ chối kế hoạch: " + reason;
-    if (reason.equals("SOL_API_KEY chưa được cấu hình."))
-      return "[SOL_CONFIG] Chưa cấu hình SOL_API_KEY trong APK.";
-    if (reason.equals("milestone_plan_state_changed"))
-      return "[PLAN_STALE] Phiên chơi thay đổi khi tạo Milestone. Hãy thử lại.";
-    return "[MILESTONE_ERROR] Không chuẩn bị được Milestone. Hãy thử lại hoặc xem log MilestonePlanner.";
   }
 
   private String providerFailureMessage(Exception error) {
@@ -1049,7 +972,7 @@ public class MainActivity extends Activity {
     return response;
   }
 
-  /** Gehihi only narrates; SOL only plans the Milestone. */
+  /** Gehihi narrates the turn directly from the writer prompt. */
   private String generateText(String prompt) throws Exception {
     emit("backroomProvider", "Gehihi");
     return verifiedWriterReply(gehihiText(prompt));
@@ -1260,34 +1183,35 @@ public class MainActivity extends Activity {
       "no-clip", "noclip");
   }
 
-  private void reconcileVisualWorldState(JSONObject before, JSONObject candidateState, JSONObject rolls, String action) throws Exception {
+  /**
+   * P0-3: Enforces Core's exit destination decision. When Core authorized a destination
+   * (via determineExitDestination), it is applied verbatim; AI prose/location text can
+   * never smuggle a different node. When Core authorized nothing, the level MUST NOT
+   * change — any AI-smuggled delta is reverted.
+   */
+  private void reconcileVisualWorldState(JSONObject before, JSONObject candidateState,
+      JSONObject rolls, String action, String coreDestinationId) throws Exception {
     String oldId = currentNodeId(before);
     LevelRouteRegistry.Node previous = LevelRouteRegistry.node(oldId);
-    LevelRouteRegistry.Node structured = LevelRouteRegistry.requested(candidateState.optJSONObject("level"));
-    LevelRouteRegistry.Node described = LevelRouteRegistry.fromLocation(candidateState.optString("location", ""));
-    LevelRouteRegistry.Node requested = structured != null && !structured.id.equals(oldId)
-      ? structured : (described != null && !described.id.equals(oldId) ? described : previous);
-    if (requested == null) requested = previous;
-    if (requested == null) throw new Exception("Current environment node is invalid.");
+    if (previous == null) throw new Exception("Current environment node is invalid.");
 
-    boolean changed = !requested.id.equals(oldId);
-    if (changed && (!canTransition(before, rolls, requested) ||
-        !LevelRouteRegistry.canMove(oldId, requested.id) || !playerTraverses(action))) {
-      LevelRouteRegistry.Node safe = previous;
-      candidateState.put("level", before.optJSONObject("level") == null
-        ? safe.asJson() : new JSONObject(before.optJSONObject("level").toString()));
-      candidateState.put("title", before.optString("title", safe.title()));
-      candidateState.put("location", before.optString("location", safe.location()));
+    if (coreDestinationId != null) {
+      LevelRouteRegistry.Node dest = LevelRouteRegistry.node(coreDestinationId);
+      if (dest == null) throw new Exception("Core destination node is invalid.");
+      // Defense in depth: Core's destination must be a valid edge from the old node.
+      if (!LevelRouteRegistry.canMove(oldId, dest.id))
+        throw new Exception("Core destination is not a valid edge.");
+      candidateState.put("level", dest.asJson());
+      candidateState.put("title", dest.title());
+      candidateState.put("location", dest.location());
       return;
     }
 
-    candidateState.put("level", requested.asJson());
-    if (changed) {
-      candidateState.put("title", requested.title());
-      if (described == null || !requested.id.equals(described.id)) {
-        candidateState.put("location", requested.location());
-      }
-    }
+    // No Core authorization: level must not change. Revert any AI-smuggled delta.
+    candidateState.put("level", before.optJSONObject("level") == null
+      ? previous.asJson() : new JSONObject(before.optJSONObject("level").toString()));
+    candidateState.put("title", before.optString("title", previous.title()));
+    candidateState.put("location", before.optString("location", previous.location()));
   }
 
   private int levelTurns(JSONObject state) {
@@ -1413,14 +1337,14 @@ public class MainActivity extends Activity {
     JSONObject anNhienRead = thresholdRoll("anNhienRead", 10000, 2000, anNhienFollowing && search && exitIntent, " Khoan, Để Tôi Đọc Cái Này");
     rolls.put("anNhienRead", anNhienRead);
     if (anNhienRead.optBoolean("success", false)) exitThreshold = Math.min(10000, exitThreshold + 2000);
-    JSONObject exitProbe = thresholdRoll("exitProbe", 10000, exitThreshold, exitIntent && (physical || search) && !requireGameCore().milestoneHasPlan(),
+    JSONObject exitProbe = thresholdRoll("exitProbe", 10000, exitThreshold, exitIntent && (physical || search),
       anNhienRead.optBoolean("success", false) ? " discovery clue +2% An Nhiên +20% đọc dấu Exit" : (anNhienFollowing ? " discovery clue +2% An Nhiên" : " discovery clue"));
     rolls.put("exitProbe", exitProbe);
     JSONObject hiddenExitRoll = thresholdRoll("_hiddenExitStreak", 100,
       com.rabpit.backroom.core.HiddenExitStreak.SUCCESS_PERCENT,
-      exploreAction && !requireGameCore().milestoneHasPlan() && !com.rabpit.backroom.core.HiddenExitStreak.ready(state), "");
+      exploreAction && !com.rabpit.backroom.core.HiddenExitStreak.ready(state), "");
     rolls.put(com.rabpit.backroom.core.HiddenExitStreak.ROLL_KEY, hiddenExitRoll);
-    boolean hiddenExitReady = !requireGameCore().milestoneHasPlan() && com.rabpit.backroom.core.HiddenExitStreak.projectedReady(state, rolls);
+    boolean hiddenExitReady = com.rabpit.backroom.core.HiddenExitStreak.projectedReady(state, rolls);
     JSONObject authoritativeExit = new JSONObject()
       .put("label", "levelExit")
       .put("dice", "none")
@@ -1467,24 +1391,7 @@ public class MainActivity extends Activity {
     }
   }
 
-  private String milestoneRoutingContext(JSONObject before) throws Exception {
-    if (!requireGameCore().milestoneHasPlan()) return LevelRouteRegistry.gmRoutingContext(currentNodeId(before));
-    LevelRouteRegistry.Node current = LevelRouteRegistry.node(currentNodeId(before));
-    java.util.List<String> local = new java.util.ArrayList<>();
-    for (String id : LevelRouteRegistry.exits(current.id)) {
-      if (LevelRouteRegistry.node(id).parent == current.parent) local.add(id);
-    }
-    return "CORE ENVIRONMENT ADDRESS: node=" + current.id + ", parent=" + current.parent +
-      "; supported local movements=" + local + ". Player-directed local movement remains available. " +
-      "Only authored Milestone completion may end the parent Level. No HiddenExitStreak gate. " +
-      "These are runtime addresses, not independent lore sources; use approved Canon cards for environment facts.";
-  }
-
   private boolean canTransition(JSONObject before, JSONObject rolls, LevelRouteRegistry.Node requested) throws Exception {
-    if (requireGameCore().milestoneHasPlan()) {
-      LevelRouteRegistry.Node current = LevelRouteRegistry.node(currentNodeId(before));
-      return current != null && requested != null && requested.parent == current.parent;
-    }
     return com.rabpit.backroom.core.HiddenExitStreak.projectedReady(before, rolls);
   }
 
@@ -1545,56 +1452,79 @@ public class MainActivity extends Activity {
     return !left.equals(right);
   }
 
-  /** Gehihi describes SOL's scheduled events. Core alone updates game state. */
-  private String writerPrompt(JSONObject before, String action, JSONObject rolls) throws Exception {
-    JSONArray due = isMetaAction(action) ? new JSONArray() : new JSONArray(requireGameCore().milestoneDueEvents());
+  /** Gehihi narrates the turn directly from player action and Core rolls. Core alone updates game state. */
+  private String writerPrompt(JSONObject before, String action, JSONObject rolls, JSONArray pendingNpcEncounters, JSONObject pendingEntityEncounter) throws Exception {
     JSONObject visibleRolls = new JSONObject(rolls.toString());
     visibleRolls.remove(com.rabpit.backroom.core.HiddenExitStreak.ROLL_KEY);
-    JSONObject canonView = new JSONObject(before.toString());
-    canonView.put("milestoneEventsDue", due);
-    for (int i = 0; i < due.length(); i++) {
-      JSONObject event = due.getJSONObject(i);
-      if (event.has("entityKey")) {
-        JSONObject flags = canonView.optJSONObject("flags");
-        if (flags == null) { flags = new JSONObject(); canonView.put("flags", flags); }
-        flags.put("entityEncounterKey", event.getString("entityKey"));
+    // P0-A: Pass Core-confirmed pending NPC encounters to the knowledge retriever via a
+    // dedicated channel (NOT by faking Party membership). These NPCs are present in the
+    // scene this turn but have NOT yet joined the Party. The retriever loads their Canon
+    // (personality, speech, relations) so the GM narrates the first meeting correctly.
+    // Contract: pendingNpcEncounters = [{characterId, flagKey, name}] from beginAction — Core data only.
+    //
+    // P0 Entity GM: Pass Core-reserved Entity encounter via pendingEntityEncounter =
+    // {entityKey, entityName, encounterId} from beginAction — Core data only, public
+    // perception (no exit/Core secrets). The GM must narrate THIS specific Entity.
+    JSONObject stateForKnowledge = new JSONObject(before.toString());
+    StringBuilder encounterEvents = new StringBuilder();
+    if (pendingNpcEncounters != null && pendingNpcEncounters.length() > 0) {
+      stateForKnowledge.put("pendingNpcEncounters", pendingNpcEncounters);
+      encounterEvents.append("\nCORE_CONFIRMED_ENCOUNTER_EVENTS: ");
+      for (int i = 0; i < pendingNpcEncounters.length(); i++) {
+        JSONObject enc = pendingNpcEncounters.optJSONObject(i);
+        if (enc == null) continue;
+        String cid = enc.optString("characterId", "").trim();
+        String name = enc.optString("name", cid).trim();
+        if (cid.isEmpty()) continue;
+        if (i > 0) encounterEvents.append("; ");
+        encounterEvents.append(name).append(" (").append(cid).append(")");
+      }
+      encounterEvents.append(" — HIỆN DIỆN trong cảnh lượt này, CHƯA gia nhập Party. ");
+      encounterEvents.append("Kể cuộc gặp đầu tiên tự nhiên; KHÔNG coi họ là thành viên Party trước khi recruit.");
+    }
+    if (pendingEntityEncounter != null) {
+      String entityKey = pendingEntityEncounter.optString("entityKey", "").trim();
+      String entityName = pendingEntityEncounter.optString("entityName", entityKey).trim();
+      String encounterId = pendingEntityEncounter.optString("encounterId", "").trim();
+      if (!entityKey.isEmpty() && !encounterId.isEmpty()) {
+        // Merge entityEncounterKey into state copy's flags so KnowledgeContextEngine
+        // confirmedEntityVisualId() picks up ENTITY.<KEY>.VISUAL for the knowledge packet.
+        JSONObject flags = stateForKnowledge.optJSONObject("flags");
+        if (flags == null) {
+          flags = new JSONObject();
+          stateForKnowledge.put("flags", flags);
+        }
+        flags.put("entityEncounterKey", entityKey);
+        // Also pass as dedicated field for explicit retriever support.
+        stateForKnowledge.put("pendingEntityEncounter", pendingEntityEncounter);
+        if (encounterEvents.length() == 0) encounterEvents.append("\nCORE_CONFIRMED_ENCOUNTER_EVENTS: ");
+        else encounterEvents.append("; ");
+        encounterEvents.append("ENTITY ").append(entityName).append(" (").append(entityKey).append(")");
+        encounterEvents.append(" — ĐÃ được Core xác nhận chạm trán lượt này (ID: ").append(encounterId).append("). ");
+        encounterEvents.append("Kể cảnh đối đầu, DỪNG ở thế giằng co; chưa kể đòn đánh/sát thương trước Battle Start.");
       }
     }
     String canon = com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.build(
-      MainActivity.this, canonView.toString(), action, visibleRolls.toString());
+      MainActivity.this, stateForKnowledge.toString(), action, visibleRolls.toString());
     return "Bạn là Gehihi, Game Master kể chuyện Backrooms bằng tiếng Việt. " +
-      "SOL/Gemini đã tạo MẠCH TRUYỆN CHƯƠNG và lịch sự kiện bắt buộc; " +
-      "phải kể đúng sự kiện đến hạn: " + due.toString() + ". " +
       "Kể diễn biến tự nhiên theo hành động người chơi, giữ đúng Entity, nhân vật và kết quả đã khóa. " +
-      "Không có event thì kể tự nhiên dựa trên mạch truyện, lịch sử và hành động người chơi. " +
       "Được tự do sáng tác chi tiết, lời thoại, không khí, tương tác phụ và phản ứng khác nhau " +
       "giữa các lượt, đặc biệt ở cảnh gặp Entity/NPC/Follower; tránh lặp câu chữ, mô-típ " +
-      "và diễn biến của các lần gặp trước, nhưng giữ nguyên mọi sự kiện bắt buộc. " +
+      "và diễn biến của các lần gặp trước. " +
       "Khám Phá và Thực Hiện đều là một Explorer Turn; phải kết hợp hành động người chơi " +
-      "với sự kiện trong CHÍNH Turn này, không dời, hủy hay cho nhân vật tự chọn thay người chơi. " +
-      "Không tự quyết định Combat, HP, EXP, Item, tạo Entity hay chuyển Checkpoint; gameplay Core xử lý. " +
-      "MỌI ENTITY và FINAL_ENTITY của Milestone đều bắt buộc Combat, không có cuộc gặp rồi bỏ đi. " +
+      "với diễn biến trong CHÍNH Turn này, không dời, hủy hay cho nhân vật tự chọn thay người chơi. " +
+      "Không tự quyết định Combat, HP, EXP, Item, tạo Entity hay chuyển Level; gameplay Core xử lý. " +
       "Gặp FOLLOWER/NPC phải mô tả cuộc gặp thực tế; nhân vật thể hiện theo đúng hồ sơ Canon trong KNOWLEDGE PACKET (tính cách, cách nói, xưng hô, quan hệ với Cao Minh), không ép một khuôn thoại cố định. " +
-      "firstEncounter=true trong milestoneEventsDue nghĩa là lần đầu Core ghi nhận hai nhân vật gặp nhau; tên trong Registry hoặc PLAYER không có nghĩa NPC đã biết tên Cao Minh. " +
       "Nếu Canon không xác nhận họ quen biết từ trước, nhân vật mới gặp (đặc biệt Lucia) tuyệt đối không gọi tên Cao Minh, nhận ra anh hay tỏ ra thân quen trước khi có lời giới thiệu hoặc nguồn thông tin được kể rõ trong cảnh. " +
       "ENTITY và FINAL_ENTITY: kể cảnh Entity chạm trán, dừng ở thế đối đầu; " +
       "chưa kể đòn đánh, sát thương hay kết quả Combat trước khi người chơi nhấn Battle Start. " +
       "Không đưa event ID, ops, chứng cứ, kiểm định hay state vào lời kể. " +
-      com.rabpit.backroom.core.MilestoneNarrationValidator.prompt() + "\n" +
       com.rabpit.backroom.core.knowledge.GmNarrativeVoicePolicy.prompt() +
       "\nACTION_TYPE: " + new JSONObject(requireGameCore().currentActionContext()).optString("kind", "EXECUTE") +
       "\nPLAYER_ACTION: " + action +
       "\nCORE_ROLLS_READ_ONLY: " + visibleRolls.toString() +
-      "\nMILESTONE_HISTORY_READ_ONLY: " + requireGameCore().milestoneHistoryContext() +
+      encounterEvents.toString() +
       "\nCANON_READ_ONLY: " + canon;
-  }
-
-  /**
-   * Render the actual event scenes only after every due scene passes the contract.
-   * Core repeats this validation against its saved schedule before any commit.
-   */
-  private String requireMilestoneNarration(JSONObject generated, JSONArray due) throws Exception {
-    return com.rabpit.backroom.core.MilestoneNarrationValidator.validate(generated, due).getReply();
   }
 
   private interface CombatDiceCall { String run() throws Exception; }
@@ -1613,191 +1543,11 @@ public class MainActivity extends Activity {
     }
   }
 
-  private void ensureMilestoneForCurrentCheckpoint(String trustedClientView) throws Exception {
-    JSONObject request = new JSONObject(requireGameCore().milestonePlanRequest());
-    if (!request.optBoolean("needed", false)) return;
-    long startedMs = android.os.SystemClock.elapsedRealtime();
-    emitMilestoneStatus(request, "loading", "Đang chuẩn bị Canon cho Milestone…");
-    JSONObject view = new JSONObject(trustedClientView);
-    String checkpointId = request.getString("checkpointId");
-    int startTurn = request.getInt("startTurn");
-    String nodeId = request.getString("levelNode");
-    // KnowledgeContextEngine is a compact, indexed, offline Canon snapshot.
-    // The bridge does not fetch Google Drive or the Internet per player turn.
-    String canon = com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.build(
-      MainActivity.this, trustedClientView, "", "{}");
-    JSONObject situation = new JSONObject()
-      .put("location", view.optString("location", ""))
-      .put("level", view.optJSONObject("level"))
-      .put("party", view.optJSONArray("party"))
-      .put("player", view.optJSONObject("player"));
-    JSONObject flags = view.optJSONObject("flags");
-    JSONObject continuity = flags == null ? null : flags.optJSONObject("storyContinuity");
-    if (continuity != null) {
-      String summary = continuity.toString();
-      situation.put("continuitySummary", summary.substring(0, Math.min(summary.length(), 450)));
-    }
-    String scene = situation.toString();
-    // The planner receives a small state excerpt, never the complete client save.
-    if (scene.length() > 1500) scene = scene.substring(0, 1500);
-    String prompt = com.rabpit.backroom.core.StoryMilestonePlannerPrompt.build(
-      checkpointId, startTurn, nodeId, canon, scene, request.getInt("checkpointTotal"), requireGameCore().milestoneHistoryContext(), request.getJSONArray("characterRegistry").toString()) +
-      "\nCREATIVE_VARIATION_SEED=" + Long.toUnsignedString(GAME_RNG.nextLong(), 36) +
-      " (gợi ý tạo biến thể mới, không thay Canon hoặc sự kiện đã ghi nhận).";
-    // This is only skeleton generation, never a GM or a second narrative verifier.
-    String provider = milestoneProviderChoice();
-    emitMilestoneStatus(request, "loading", provider + " đang tạo khung Checkpoint…");
-    long plannerStartedMs = android.os.SystemClock.elapsedRealtime();
-    String rawPlan = milestonePlannerText(prompt);
-    long plannerMs = android.os.SystemClock.elapsedRealtime() - plannerStartedMs;
-    DiagnosticLog.record("milestone.provider_response", "checkpoint=" + checkpointId + " provider=" + provider +
-      " elapsedMs=" + plannerMs + " responseChars=" + rawPlan.length());
-    emitMilestoneStatus(request, "loading", provider + " đã phản hồi sau " + (plannerMs / 1000) + " giây. Game Core đang lưu kế hoạch…");
-    boolean saved = requireGameCore().installMilestonePlan(
-      rawPlan, request.getString("runToken"), checkpointId, startTurn);
-    if (!saved) throw new IllegalStateException("milestone_plan_state_changed");
-    Log.i("MilestonePlanner", "Current READY checkpoint=" + checkpointId +
-      " provider=" + milestoneProviderChoice() + " plannerMs=" + plannerMs +
-      " totalMs=" + (android.os.SystemClock.elapsedRealtime() - startedMs) +
-      " planChars=" + rawPlan.length());
-    emit("backroomMilestoneReady", request.toString());
-  }
-
-  private void emitMilestoneStatus(JSONObject lease, String status, String message) {
-    DiagnosticLog.record("milestone." + status, "checkpoint=" + lease.optString("checkpointId") +
-      " nextCheckpoint=" + lease.optString("nextCheckpointId") + " message=" + message);
-    try {
-      emit("backroomMilestoneStatus", new JSONObject()
-        .put("runToken", lease.getString("runToken"))
-        .put("checkpointId", lease.getString("checkpointId"))
-        .put("status", status).put("message", message).toString());
-    } catch (Exception error) { Log.w("MilestonePlanner", "Could not publish planner status", error); }
-  }
-
-  private void scheduleNextMilestone(String currentView) {
-    try {
-      JSONObject lease = new JSONObject(requireGameCore().milestoneNextPlanRequest());
-      if (!lease.optBoolean("needed", false) || milestoneProviderChoice().isEmpty()) return;
-      String id = lease.getString("runToken") + ":" + lease.getString("checkpointId") +
-        ":" + lease.getString("bossEncounterId");
-      if (!milestonePlanInFlight.add(id)) return;
-      emitMilestoneStatus(lease, "loading", "Đang chuẩn bị Milestone cho Checkpoint tiếp theo…");
-      auditIo.execute(() -> {
-        long startedMs = android.os.SystemClock.elapsedRealtime();
-        try {
-          emitMilestoneStatus(lease, "loading", "Đang chuẩn bị Canon cho Checkpoint tiếp theo…");
-          JSONObject view = new JSONObject(requireGameCore().currentClientState(currentView));
-          JSONObject targetLevel = lease.getJSONObject("targetLevel");
-          view.put("level", targetLevel);
-          LevelRouteRegistry.Node targetNode = LevelRouteRegistry.node(targetLevel.getString("id"));
-          view.put("location", targetNode.location()).put("title", targetNode.title());
-          view.remove("combat");
-          JSONObject futureFlags = view.optJSONObject("flags");
-          if (futureFlags != null) futureFlags.put("currentLevel", targetLevel).put("entityEncounterKey", "");
-          String canon = com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.build(
-            MainActivity.this, view.toString(), "", "{}");
-          JSONObject scene = new JSONObject()
-            .put("location", view.optString("location", ""))
-            .put("level", view.optJSONObject("level"))
-            .put("party", view.optJSONArray("party"))
-            .put("player", view.optJSONObject("player"));
-          String shortScene = scene.toString();
-          if (shortScene.length() > 1500) shortScene = shortScene.substring(0, 1500);
-          String prompt = com.rabpit.backroom.core.StoryMilestonePlannerPrompt.build(
-            lease.getString("nextCheckpointId"), lease.getInt("startTurn"),
-            lease.getString("levelNode"), canon, shortScene, lease.getInt("checkpointTotal"), requireGameCore().milestoneHistoryContext(), lease.getJSONArray("characterRegistry").toString()) +
-            "\nCREATIVE_VARIATION_SEED=" + Long.toUnsignedString(GAME_RNG.nextLong(), 36) +
-            " (sáng tác mới, không thay Canon hoặc sự kiện đã xảy ra). " +
-            "\nPREPARED PLAN: globalStartTurn là ước lượng; Core neo Turn khi kích hoạt thật. " +
-            "Completion của CP trước bên dưới còn PLANNED, chỉ xảy ra sau verified Boss defeat; " +
-            "dùng nó để nối tiếp kịch bản, không ghi thành lịch sử đã xảy ra và không giả định HP/Party sau Combat. " +
-            "PREDECESSOR_PENDING_COMPLETION=" + lease.getJSONObject("completion").toString();
-          String provider = milestoneProviderChoice();
-          emitMilestoneStatus(lease, "loading", provider + " đang tạo khung Checkpoint tiếp theo…");
-          long plannerStartedMs = android.os.SystemClock.elapsedRealtime();
-          String raw = milestonePlannerText(prompt);
-          long plannerMs = android.os.SystemClock.elapsedRealtime() - plannerStartedMs;
-          DiagnosticLog.record("milestone.next_provider_response", "checkpoint=" + lease.optString("nextCheckpointId") +
-            " provider=" + provider + " elapsedMs=" + plannerMs + " responseChars=" + raw.length());
-          emitMilestoneStatus(lease, "loading", provider + " đã phản hồi sau " + (plannerMs / 1000) + " giây. Core đang lưu kế hoạch kế tiếp…");
-          boolean accepted = requireGameCore().installNextMilestone(
-            raw, lease.getString("runToken"), lease.getString("checkpointId"),
-            lease.getString("bossEncounterId"));
-          if (accepted) {
-            Log.i("MilestonePlanner", "Next READY checkpoint=" + lease.getString("nextCheckpointId") +
-              " provider=" + milestoneProviderChoice() + " plannerMs=" + plannerMs +
-              " totalMs=" + (android.os.SystemClock.elapsedRealtime() - startedMs) +
-              " planChars=" + raw.length());
-            emit("backroomMilestoneReady", lease.toString());
-          } else {
-            Log.i("MilestonePlanner", "Discarded stale next checkpoint=" + lease.getString("nextCheckpointId"));
-          }
-        } catch (Exception error) {
-          DiagnosticLog.error("milestone.next_error", error);
-          emitMilestoneStatus(lease, "error", milestoneFailureMessage(error));
-          Log.w("MilestonePlanner", "Next checkpoint plan error after " +
-            (android.os.SystemClock.elapsedRealtime() - startedMs) + "ms: " + milestoneFailureMessage(error));
-        } finally {
-          milestonePlanInFlight.remove(id);
-        }
-      });
-    } catch (Exception error) {
-      Log.w("MilestonePlanner", "Could not schedule next checkpoint plan: " + milestoneFailureMessage(error));
-    }
-  }
-
   private class GameBridge {
     @JavascriptInterface public String exportDiagnosticLog(String webJson, boolean includeSensitive) {
       return requestDiagnosticExport(webJson, includeSensitive);
     }
 
-    @JavascriptInterface public String getMilestoneProviderChoice() {
-      return milestoneProviderChoice();
-    }
-
-    @JavascriptInterface public String chooseMilestoneProvider(String requested) {
-      try {
-        if (!PLANNER_SOL.equals(requested) && !PLANNER_GEMINI.equals(requested))
-          return new JSONObject().put("ok", false).put("message", "API không hợp lệ.").toString();
-        synchronized (MainActivity.this) {
-          String current = milestoneProviderChoice();
-          if (!current.isEmpty()) return new JSONObject()
-            .put("ok", current.equals(requested)).put("provider", current)
-            .put("message", current.equals(requested) ? "" : "API đã được chọn trước đó.").toString();
-          if (PLANNER_SOL.equals(requested) && (BuildConfig.SOL_API_KEY == null || BuildConfig.SOL_API_KEY.trim().isEmpty()))
-            return new JSONObject().put("ok", false).put("message", "Chưa cấu hình API SOL trong APK.").toString();
-          if (PLANNER_GEMINI.equals(requested)) {
-            boolean available = false;
-            for (String key : geminiKeys()) if (key != null && !key.trim().isEmpty()) available = true;
-            if (!available) return new JSONObject().put("ok", false)
-              .put("message", "Chưa có Gemini API key nào trong APK.").toString();
-          }
-          SharedPreferences prefs = getSharedPreferences(PLANNER_SETTINGS, MODE_PRIVATE);
-          if (!prefs.edit().putString(PLANNER_SETTING_KEY, requested).commit())
-            return new JSONObject().put("ok", false).put("message", "Không lưu được lựa chọn API.").toString();
-          return new JSONObject().put("ok", true).put("provider", requested).toString();
-        }
-      } catch (Exception error) {
-        return "{\"ok\":false,\"message\":\"Không lưu được lựa chọn API.\"}";
-      }
-    }
-
-    @JavascriptInterface public void prepareMilestone(String stateJson) {
-      io.execute(() -> {
-        long startedMs = android.os.SystemClock.elapsedRealtime();
-        try {
-          String view = requireGameCore().currentClientState(stateJson);
-          ensureMilestoneForCurrentCheckpoint(view);
-          scheduleNextMilestone(view);
-        } catch (Exception error) {
-          DiagnosticLog.error("milestone.prepare_error", error);
-          try { emitMilestoneStatus(new JSONObject(stateJson).getJSONObject("story"), "error",
-            milestoneFailureMessage(error)); } catch (Exception ignored) {}
-          Log.w("MilestonePlanner", "Current checkpoint plan error after " +
-            (android.os.SystemClock.elapsedRealtime() - startedMs) + "ms: " + milestoneFailureMessage(error));
-        }
-      });
-    }
     @JavascriptInterface public String currentClientState(String stateJson) {
       try {
         return requireGameCore().currentClientState(stateJson);
@@ -1872,11 +1622,6 @@ public class MainActivity extends Activity {
             emit("backroomError", "Hãy nhấn Battle Start ở cuối lời kể để bắt đầu chiến đấu.");
             return;
           }
-          scheduleNextMilestone(currentView);
-          if (requireGameCore().milestoneWaiting()) {
-            emit("backroomError", "SOL đang hoàn thiện Milestone Checkpoint tiếp theo. Vui lòng thử lại sau.");
-            return;
-          }
           if (requireGameCore().blocksTextItemAction(action)) {
             JSONObject blocked = new JSONObject(requireGameCore().processRule(currentView, action));
             emit("backroomTurn", blocked.getJSONObject("state").toString());
@@ -1884,31 +1629,33 @@ public class MainActivity extends Activity {
           }
           JSONObject combatResult = new JSONObject(requireGameCore().processCombat(currentView, actionKind, action));
           if (combatResult.optBoolean("handled", false)) {
-            scheduleNextMilestone(combatResult.getJSONObject("state").toString());
             emit("backroomTurn", combatResult.getJSONObject("state").toString());
             return;
           }
-          // SOL prepares the Milestone plan independently of Gehihi.
-          // This runs only when the active Checkpoint has no authored plan.
-          // A failed plan never lets the normal GM improvise around missing locks.
           if (requireGameCore().isSpecialRuleAction(action)) {
             JSONObject special = new JSONObject(requireGameCore().processRule(currentView, action));
             emit("backroomTurn", special.getJSONObject("state").toString());
             return;
           }
-          if (!isMetaAction(action)) ensureMilestoneForCurrentCheckpoint(currentView);
           JSONObject actionStart = new JSONObject(requireGameCore().beginAction(currentView, actionKind, action));
           if (!actionStart.optBoolean("handled", false)) {
             throw new Exception("Action Runtime từ chối hành động: " + actionStart.optString("error", "action_start_failed"));
           }
+          // P0-A: Extract Core-confirmed pending NPC encounters from beginAction response.
+          // These are first-meeting events the GM must narrate; Core deferred the commit
+          // until the turn succeeds. Contract: [{characterId, flagKey, name}], no secrets.
+          JSONArray pendingNpcEncounters = actionStart.optJSONArray("pendingNpcEncounters");
+          if (pendingNpcEncounters == null) pendingNpcEncounters = new JSONArray();
+          // P0 Entity GM: Extract Core-reserved Entity encounter (if any) from beginAction response.
+          // Contract: {entityKey, entityName, encounterId} — public perception only, no secrets.
+          // The GM must narrate the correct Entity in this turn; Core reserved the encounter.
+          JSONObject pendingEntityEncounter = actionStart.optJSONObject("pendingEntityEncounter");
           JSONObject before = new JSONObject(currentView);
           boolean meta = isMetaAction(action);
           JSONObject rolls = makeGameplayRolls(before, actionKind, action, meta);
 
-          JSONObject generated = parseModelJson(generateText(writerPrompt(before, action, rolls)));
+          JSONObject generated = parseModelJson(generateText(writerPrompt(before, action, rolls, pendingNpcEncounters, pendingEntityEncounter)));
           String reply = generated.optString("reply", "").trim();
-          if (!meta) reply = requireMilestoneNarration(generated,
-            new JSONArray(requireGameCore().milestoneDueEvents()));
           if (reply.isEmpty()) throw new Exception("Gehihi không trả lời kể chuyện; lượt này không được ghi.");
           if (meta) {
             requireGameCore().abortAction("meta_action");
@@ -1921,20 +1668,44 @@ public class MainActivity extends Activity {
             emit("backroomTurn", view.toString());
             return;
           }
-          // Only deterministic Core rolls and the already-installed SOL plan.
+          // Only deterministic Core rolls.
+          // P0-3 FIX: Core-authoritative exit destination. Core decides the destination
+          // node (HiddenExitStreak + LevelRouteRegistry + Core-parsed intent). The GM/AI
+          // never chooses the destination; its words cannot move the player.
+          JSONObject destResult = new JSONObject(requireGameCore().determineExitDestination(
+            currentView, actionKind, action));
+          String destinationId = destResult.isNull("destinationId") ? null
+            : destResult.optString("destinationId", null);
+          if (destinationId != null && destinationId.isEmpty()) destinationId = null;
+
           JSONObject candidateState = new JSONObject(before.toString());
           JSONObject candidateFlags = candidateState.optJSONObject("flags");
           if (candidateFlags == null) { candidateFlags = new JSONObject(); candidateState.put("flags", candidateFlags); }
           candidateFlags.put("lastRolls", rolls);
 
-          reconcileVisualWorldState(before, candidateState, rolls, action);
+          // Apply Core's destination decision to the candidate (not AI's words).
+          if (destinationId != null) {
+            LevelRouteRegistry.Node dest = LevelRouteRegistry.node(destinationId);
+            if (dest != null) {
+              candidateState.put("level", dest.asJson());
+              candidateState.put("title", dest.title());
+              candidateState.put("location", dest.location());
+            } else {
+              destinationId = null; // Unknown node — treat as no transition.
+            }
+          }
+
+          // reconcileVisualWorldState now enforces Core's decision (no AI smuggling).
+          reconcileVisualWorldState(before, candidateState, rolls, action, destinationId);
           JSONObject state = candidateState;
           String oldNodeId = currentNodeId(before);
           String newNodeId = currentNodeId(state);
           boolean levelChanged = !oldNodeId.equals(newNodeId);
+          // P0-3: Core's destination is authoritative. The old client-side gate
+          // (canTransition + playerTraverses + canMove) is replaced: Core already
+          // confirmed exit readiness, intent, and edge validity when authorizing.
           boolean transitionAccepted = !levelChanged ||
-            (canTransition(before, rolls, LevelRouteRegistry.node(newNodeId)) && playerTraverses(action) &&
-             LevelRouteRegistry.canMove(oldNodeId, newNodeId));
+            (destinationId != null && destinationId.equals(newNodeId));
           if (!transitionAccepted) {
             LevelRouteRegistry.Node previous = LevelRouteRegistry.node(oldNodeId);
             state.put("level", before.optJSONObject("level") == null
@@ -1951,8 +1722,7 @@ public class MainActivity extends Activity {
           flags.put("currentLevel", LevelRouteRegistry.node(newNodeId).asJson());
           flags.remove("lastAudit");
           state.put("flags", flags);
-          if (!requireGameCore().milestoneHasPlan())
-            com.rabpit.backroom.core.HiddenExitStreak.apply(before, state, rolls, oldNodeId, newNodeId);
+          com.rabpit.backroom.core.HiddenExitStreak.apply(before, state, rolls, oldNodeId, newNodeId);
           state.put("_snapshotEvent", new JSONObject()
             .put("shouldGenerate", false).put("kind", "").put("reason", ""));
 
@@ -1973,7 +1743,6 @@ public class MainActivity extends Activity {
             throw new Exception("Game State Core từ chối lượt: " + coreCommit.optString("error", "invalid_delta"));
           }
           state = coreCommit.getJSONObject("state");
-          scheduleNextMilestone(state.toString());
 
           state.put("canonVersion", KNOWLEDGE_CANON_VERSION);
           log = state.optJSONArray("log");
@@ -2006,9 +1775,6 @@ public class MainActivity extends Activity {
       io.execute(() -> {
         try {
           String result = requireGameCore().confirmEncounter(stateJson, encounterId);
-          JSONObject confirmed = new JSONObject(result);
-          if (confirmed.optBoolean("handled", false))
-            scheduleNextMilestone(confirmed.getJSONObject("state").toString());
           emit("backroomBattleStart", result);
         } catch (Exception error) {
           emit("backroomBattleStart", "{\"handled\":false,\"error\":\"encounter_confirmation_failed\"}");

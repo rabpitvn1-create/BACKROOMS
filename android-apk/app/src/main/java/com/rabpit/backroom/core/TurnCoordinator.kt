@@ -7,8 +7,9 @@ data class TurnResult(
 )
 
 object TurnCoordinator {
-  fun createPending(state: GameState, turnId: String, input: String): TurnResult {
-    if (CombatRuntime.pending(state) != null) return TurnResult(state, error = "encounter_confirmation_required")
+  fun createPending(state: GameState, turnId: String, input: String, coreAuthorizedEncounterNarration: Boolean = false): TurnResult {
+    if (CombatRuntime.pending(state) != null && !coreAuthorizedEncounterNarration)
+      return TurnResult(state, error = "encounter_confirmation_required")
     if (turnId in state.turn.completedTurnIds) return TurnResult(state, error = "turn_already_completed")
     val existing = state.turn.pending
     if (existing != null) {
