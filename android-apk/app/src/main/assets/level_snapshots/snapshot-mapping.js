@@ -42,32 +42,60 @@ const images={
     "level_06__snapshot_002.webp",
     "level_06__snapshot_003.webp"
   ],
-  "0.1": [],
-  "0.2": [
-    "level_00p2__snapshot_001.webp"
+  "0.1": [
+    "level_00p1__snapshot_001.webp",
+    "level_00p1__snapshot_002.webp",
+    "level_00p1__snapshot_003.webp"
   ],
-  "0.5": [],
-  "0.7": [],
+  "0.2": [
+    "level_00p2__snapshot_001.webp",
+    "level_00p2__snapshot_002.webp",
+    "level_00p2__snapshot_003.webp"
+  ],
+  "0.5": [
+    "level_00p5__snapshot_001.webp",
+    "level_00p5__snapshot_002.webp",
+    "level_00p5__snapshot_003.webp"
+  ],
+  "0.7": [
+    "level_00p7__snapshot_001.webp",
+    "level_00p7__snapshot_002.webp",
+    "level_00p7__snapshot_003.webp"
+  ],
   "manila_room": [
-    "area_00__manila_room__snapshot_001.webp"
+    "area_00__manila_room__snapshot_001.webp",
+    "area_00__manila_room__snapshot_002.webp",
+    "area_00__manila_room__snapshot_003.webp"
   ],
   "the_torment": [
-    "area_00__the_torment__snapshot_001.webp"
+    "area_00__the_torment__snapshot_001.webp",
+    "area_00__the_torment__snapshot_002.webp",
+    "area_00__the_torment__snapshot_003.webp"
   ],
   "red_rooms": [
-    "area_00__red_rooms__snapshot_001.webp"
+    "area_00__red_rooms__snapshot_001.webp",
+    "area_00__red_rooms__snapshot_002.webp",
+    "area_00__red_rooms__snapshot_003.webp"
   ],
   "dullness": [
-    "area_00__dullness__snapshot_001.webp"
+    "area_00__dullness__snapshot_001.webp",
+    "area_00__dullness__snapshot_002.webp",
+    "area_00__dullness__snapshot_003.webp"
   ],
   "epsilon": [
-    "area_00__epsilon__snapshot_001.webp"
+    "area_00__epsilon__snapshot_001.webp",
+    "area_00__epsilon__snapshot_002.webp",
+    "area_00__epsilon__snapshot_003.webp"
   ],
   "ls_2": [
-    "area_00__ls_2__reference_snapshot_001.webp"
+    "area_00__ls_2__reference_snapshot_001.webp",
+    "area_00__ls_2__reference_snapshot_002.webp",
+    "area_00__ls_2__reference_snapshot_003.webp"
   ],
   "1.2": [
-    "level_01p2__snapshot_001.webp"
+    "level_01p2__snapshot_001.webp",
+    "level_01p2__snapshot_002.webp",
+    "level_01p2__snapshot_003.webp"
   ],
   "1.5": [
     "level_01p5__snapshot_001.webp"
