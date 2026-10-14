@@ -798,6 +798,11 @@ class GameCoreFacade private constructor(
     }
     if (action != PokerDiceCore.DIRECT_COMBAT_ACTION) {
       appendLog(output, action, combatReply)
+    } else if (resolution.completionNarrative.isNotBlank()) {
+      // Keep turn-by-turn combat details transient, but retain the Core-confirmed
+      // closing narrative after the Combat Log disappears.
+      val log = output.optJSONArray("log") ?: JSONArray().also { output.put("log", it) }
+      log.put(JSONObject().put("role", "gm").put("text", resolution.completionNarrative))
     }
     return response(true, output, null, if (resolution.entityDestroyed) "combat_entity_destroyed" else if (resolution.escaped) "combat_escaped" else "combat_resolved", combatReply)
   }

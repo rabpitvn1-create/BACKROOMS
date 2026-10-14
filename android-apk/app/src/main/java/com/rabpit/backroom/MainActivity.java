@@ -1733,18 +1733,29 @@ public class MainActivity extends Activity {
         try {
           // The WebView sends presentation JSON; refresh gameplay fields from Core before any rolls or validation.
           final String currentView = requireGameCore().currentClientState(stateJson);
+          DiagnosticLog.record("turn.input", "kind=" + actionKind + "; actionChars=" + action.length());
           if (new JSONObject(currentView).has("pendingEncounter")) {
             emit("backroomError", "Hãy nhấn Battle Start ở cuối lời kể để bắt đầu chiến đấu.");
             return;
           }
           if (requireGameCore().blocksTextItemAction(action)) {
             JSONObject blocked = new JSONObject(requireGameCore().processRule(currentView, action));
-            emit("backroomTurn", blocked.getJSONObject("state").toString());
+            DiagnosticLog.record("turn.core_short_circuit", "route=item; reason=" + blocked.optString("reason"));
+            if (blocked.has("error")) {
+              emit("backroomError", blocked.optString("reply", blocked.optString("error")));
+            } else {
+              emit("backroomTurn", blocked.getJSONObject("state").toString());
+            }
             return;
           }
           JSONObject combatResult = new JSONObject(requireGameCore().processCombat(currentView, actionKind, action));
           if (combatResult.optBoolean("handled", false)) {
-            emit("backroomTurn", combatResult.getJSONObject("state").toString());
+            DiagnosticLog.record("turn.core_short_circuit", "route=combat; reason=" + combatResult.optString("reason"));
+            if (combatResult.has("error")) {
+              emit("backroomError", combatResult.optString("reply", combatResult.optString("error")));
+            } else {
+              emit("backroomTurn", combatResult.getJSONObject("state").toString());
+            }
             return;
           }
           if (requireGameCore().isSpecialRuleAction(action)) {

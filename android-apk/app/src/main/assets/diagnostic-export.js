@@ -20,7 +20,16 @@
   function snapshot(){
     const result={schema:"backroom.diagnostics.v1",createdAt:new Date().toISOString(),instructions:"Diagnostic evidence, not a save file. Check error timeline, authoritative state, UI state and API HTTP status before inferring root cause.",
       javascriptEvents:events.slice(),environment:{userAgent:navigator.userAgent,online:navigator.onLine,location:location.protocol+"//"+location.host},
-      runtime:{combatBusy:!!global.__combatBusy,uiStatus:el("status")&&el("status").textContent},
+      runtime:{combatBusy:!!global.__combatBusy,
+        busy:typeof busy!=="undefined"?!!busy:null,
+        combatFeedbackBusy:!!global.__combatFeedbackBusy,combatDiceBusy:!!global.__combatDiceBusy,
+        directCombatPreparing:!!global.__directCombatPreparing,directCombatResolving:!!global.__directCombatResolving,
+        pokerDiceHidden:el("pokerDiceModal")?!!el("pokerDiceModal").hidden:null,
+        playerActionHidden:el("playerActionModal")?!!el("playerActionModal").hidden:null,
+        exploreDisabled:el("exploreActionButton")?!!el("exploreActionButton").disabled:null,
+        executeDisabled:el("submit")?!!el("submit").disabled:null,
+        confirmDisabled:el("playerActionConfirm")?!!el("playerActionConfirm").disabled:null,
+        uiStatus:el("status")&&el("status").textContent},
       uiLogText:el("log")&&el("log").innerText||""};
     try{result.presentation=typeof state==="undefined"?null:state;}catch(error){result.presentationError=String(error);}
     try{

@@ -77,3 +77,24 @@ test('Android owns the document picker and native secret consent, not a network 
   assert.match(native,/onActivityResult\(int requestCode/);
   assert.doesNotMatch(code,/fetch\(|XMLHttpRequest/);
 });
+
+
+test('post-combat diagnostics expose stale UI locks without changing state',()=>{
+  const x=boot();
+  x.env.busy=true;
+  x.env.__combatFeedbackBusy=true;
+  x.env.__combatDiceBusy=true;
+  x.elements.exploreActionButton={disabled:true};
+  x.elements.submit={disabled:true};
+  x.elements.playerActionConfirm={disabled:true};
+  x.elements.pokerDiceModal={hidden:false};
+  const before=JSON.stringify(x.env.state);
+  const snapshot=x.env.BackroomDiagnostics.snapshot();
+  assert.equal(snapshot.runtime.busy,true);
+  assert.equal(snapshot.runtime.combatFeedbackBusy,true);
+  assert.equal(snapshot.runtime.combatDiceBusy,true);
+  assert.equal(snapshot.runtime.exploreDisabled,true);
+  assert.equal(snapshot.runtime.confirmDisabled,true);
+  assert.equal(snapshot.runtime.pokerDiceHidden,false);
+  assert.equal(JSON.stringify(x.env.state),before);
+});
