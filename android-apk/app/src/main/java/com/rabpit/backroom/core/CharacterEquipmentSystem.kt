@@ -88,19 +88,6 @@ object EquipmentCatalog {
       canonRef = "CAO-EQP-HUYET-MA-KHAI-01"
     ),
     EquipmentDefinition(
-      id = IRIS_RECON_FRAME_ID, name = "Blackblood Recon Frame R03", type = "RECON ARMOR", primarySlot = EquipmentSlot.ARMOR,
-      bonuses = EquipmentBonuses(),
-      abilities = listOf(
-        ability("Recon Protection", "Bảo vệ trước va đập, mảnh văng và môi trường ở mức trinh sát chiến đấu."),
-        ability("Dual-Gun Stabilization", "Ổn định vai, cẳng tay, cổ tay, tư thế và phân bố lực khi sử dụng song súng."),
-        ability("Sensor Suite", "Range sensor, motion sensor và environmental sensor."),
-        ability("ARGUS Terrain Read Support", "Hỗ trợ ARGUS Terrain Read từ dữ liệu quan sát/cảm biến hợp lệ."),
-        ability("Mobile Firing Support", "Hỗ trợ bắn từ góc khó hoặc trong khi di chuyển.")
-      ),
-      restrictions = listOf("Không có drone.", "Không có missile, shoulder cannon, launcher hoặc remote camera mesh."),
-      canonRef = "IRIS-BELIAL-BLACKBLOOD-CODEX-20260817-R05"
-    ),
-    EquipmentDefinition(
       id = IRIS_IVORY_EBONY_SET_ID, name = "Ivory & Ebony", type = "DUAL_WEAPON SET", primarySlot = EquipmentSlot.WEAPON,
       bonuses = EquipmentBonuses(),
       weapon = WeaponGameplayStats(24, "∞", null, listOf("Independent Dual Fire")),
@@ -125,23 +112,6 @@ object EquipmentCatalog {
         ability("GodKiller Override Compatibility", "Tương thích Twenty-Four Severance.", "Khi đủ canon: exactly 24 slashes.")
       ),
       restrictions = listOf("GodKiller không phải gunblade, firearm hoặc ranged cannon."),
-      canonRef = "SYVIAL-LUCIFER-CODEX-20260816-R03"
-    ),
-    EquipmentDefinition(
-      id = SYVIAL_LUCIFER_ARMOR_ID, name = "Lucifer Armor", type = "ARMOR", primarySlot = EquipmentSlot.ARMOR,
-      bonuses = EquipmentBonuses(),
-      abilities = listOf(
-        ability("Physical Enhancement", "Tăng sức mạnh, burst movement và hỗ trợ phản xạ vận động."),
-        ability("GodKiller Stabilization", "Ổn định quỹ đạo GodKiller."),
-        ability("Impact Dispersion", "Hấp thụ và phân tán lực va chạm."),
-        ability("Environmental Protection", "Bảo vệ nhiệt, lạnh, độc tố và môi trường ô nhiễm."),
-        ability("Combat Analysis", "Motion tracking và environmental analysis."),
-        ability("Lucifer Synchronization", "Đồng bộ Lucifer Core và GodKiller."),
-        ability("Self-Repair", "Tự sửa chữa bằng Lucifer Demonic Energy và hỗ trợ tái sinh cơ thể Syvial.", "Armor repair không đồng nghĩa HP được hồi tức thì."),
-        ability("Soul Protection", "Bảo vệ mạnh trước tác động trực tiếp lên linh hồn."),
-        ability("Short-Range Spatial Shift", "Greaves hỗ trợ Short-Range Spatial Shift.")
-      ),
-      restrictions = listOf("Lucifer Armor rất bền nhưng NOT ABSOLUTELY INDESTRUCTIBLE."),
       canonRef = "SYVIAL-LUCIFER-CODEX-20260816-R03"
     ),
     EquipmentDefinition(
@@ -215,8 +185,8 @@ object EquipmentCatalog {
       EquipmentSlot.WEAPON to CAO_MINH_SWORD_ID,
       EquipmentSlot.ARMOR to CAO_MINH_ARMOR_ID,
     )
-    IRIS_ID -> linkedMapOf(EquipmentSlot.WEAPON to IRIS_IVORY_EBONY_SET_ID, EquipmentSlot.ARMOR to IRIS_RECON_FRAME_ID)
-    SYVIAL_ID -> linkedMapOf(EquipmentSlot.WEAPON to SYVIAL_GODKILLER_ID, EquipmentSlot.ARMOR to SYVIAL_LUCIFER_ARMOR_ID)
+    IRIS_ID -> linkedMapOf(EquipmentSlot.WEAPON to IRIS_IVORY_EBONY_SET_ID)
+    SYVIAL_ID -> linkedMapOf(EquipmentSlot.WEAPON to SYVIAL_GODKILLER_ID)
     AN_NHIEN_ID -> linkedMapOf(EquipmentSlot.OUTFIT to AN_NHIEN_OUTFIT_ID, EquipmentSlot.FOOTWEAR to AN_NHIEN_FOOTWEAR_ID)
     LUCIA_ID -> linkedMapOf(
       EquipmentSlot.WEAPON to LUCIA_M4A1_ID,

@@ -5,9 +5,7 @@ const val SYVIAL_ID = "syvial"
 
 const val IRIS_IVORY_ID = "iris:ivory"
 const val IRIS_EBONY_ID = "iris:ebony"
-const val IRIS_RECON_FRAME_ID = "iris:blackblood-recon-frame-r03"
 const val SYVIAL_GODKILLER_ID = "syvial:godkiller"
-const val SYVIAL_LUCIFER_ARMOR_ID = "syvial:lucifer-armor"
 
 object SpecialFollowersCanon {
   const val ENCOUNTER_LEVELS = "0-6"
@@ -17,13 +15,11 @@ object SpecialFollowersCanon {
   const val SYVIAL_PARTY_CHEAT_CODE = "/Syv123"
 
   val irisEquipmentSlots: Map<String, String> = linkedMapOf(
-    "weapon" to IRIS_IVORY_EBONY_SET_ID,
-    "armor" to IRIS_RECON_FRAME_ID
+    "weapon" to IRIS_IVORY_EBONY_SET_ID
   )
 
   val syvialEquipmentSlots: Map<String, String> = linkedMapOf(
-    "weapon" to SYVIAL_GODKILLER_ID,
-    "armor" to SYVIAL_LUCIFER_ARMOR_ID
+    "weapon" to SYVIAL_GODKILLER_ID
   )
 
   fun irisCharacter(existing: CharacterState? = null): CharacterState {
@@ -48,7 +44,6 @@ object SpecialFollowersCanon {
         "role" to "Scout / Target Eliminator",
         "combatStyle" to "Gunslinger",
         "signatureWeapons" to "Ivory & Ebony",
-        "armor" to "Blackblood Recon Frame R03",
         "canonRef" to "IRIS-BELIAL-BLACKBLOOD-CODEX-20260817-R05",
         "inventoryProfile" to "special_companion"
       )
@@ -77,7 +72,6 @@ object SpecialFollowersCanon {
         "combatTier" to "UR+",
         "role" to "High-level supernatural swordswoman",
         "signatureWeapon" to "GodKiller",
-        "armor" to "Lucifer Armor",
         "canonRef" to "SYVIAL-LUCIFER-CODEX-20260816-R03",
         "inventoryProfile" to "special_companion"
       )
