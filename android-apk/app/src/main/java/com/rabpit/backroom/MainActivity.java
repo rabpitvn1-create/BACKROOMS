@@ -864,9 +864,17 @@ public class MainActivity extends Activity {
     base = base.isEmpty() ? "https://api.vilao.ai/v1" : base;
     if (!base.toLowerCase(java.util.Locale.ROOT).startsWith("https://")) throw new Exception("GEHIHI_BASE_URL phải dùng HTTPS.");
     while (base.endsWith("/")) base = base.substring(0, base.length() - 1);
-    String output = openAiProviderText(postJson(base + "/chat/completions", BuildConfig.GEHIHI_API_KEY, "Authorization", openAiProviderBody(model, prompt)));
-    parseModelJson(output);
-    return output;
+    String providerJson = postJson(base + "/chat/completions", BuildConfig.GEHIHI_API_KEY,
+      "Authorization", openAiProviderBody(model, prompt));
+    // Never commit a truncated response as a completed story turn.
+    JSONObject envelope = new JSONObject(providerJson);
+    JSONArray choices = envelope.optJSONArray("choices");
+    JSONObject choice = choices != null && choices.length() > 0 ? choices.optJSONObject(0) : null;
+    String finish = choice != null ? choice.optString("finish_reason", "") : "";
+    if ("length".equals(finish)) throw new Exception("Gehihi đã cắt ngắn phản hồi (giới hạn output tokens). Thử lại lượt.");
+    if ("content_filter".equals(finish)) throw new Exception("Gehihi đã chặn nội dung phản hồi.");
+    // Gehihi GM is a prose-only writer: normalize at the validated reply boundary.
+    return openAiProviderText(providerJson);
   }
 
   private String hakuPost(String endpoint, JSONObject payload, boolean anthropic) throws Exception {
@@ -968,8 +976,7 @@ public class MainActivity extends Activity {
   }
 
   private String verifiedWriterReply(String response) throws Exception {
-    ProviderResponseContract.requireWriter(parseModelJson(response));
-    return response;
+    return ProviderResponseContract.normalizeDirectWriter(response).toString();
   }
 
   /** Gehihi narrates the turn directly from the writer prompt. */
@@ -1519,6 +1526,10 @@ public class MainActivity extends Activity {
       "ENTITY và FINAL_ENTITY: kể cảnh Entity chạm trán, dừng ở thế đối đầu; " +
       "chưa kể đòn đánh, sát thương hay kết quả Combat trước khi người chơi nhấn Battle Start. " +
       "Không đưa event ID, ops, chứng cứ, kiểm định hay state vào lời kể. " +
+      "\nOUTPUT CONTRACT: Chỉ trả về MỘT JSON object hợp lệ với khóa reply (chuỗi không rỗng). " +
+      "Ví dụ: {\"reply\":\"Cao Minh bước vào hành lang tối.\"}. " +
+      "Toàn bộ lời kể và lời thoại nằm trong reply; escape dấu ngoặc kép và xuống dòng theo chuẩn JSON. " +
+      "Không thêm Markdown, code fence, lời mở đầu, operations, state hoặc khóa khác. " +
       com.rabpit.backroom.core.knowledge.GmNarrativeVoicePolicy.prompt() +
       "\nACTION_TYPE: " + new JSONObject(requireGameCore().currentActionContext()).optString("kind", "EXECUTE") +
       "\nPLAYER_ACTION: " + action +
