@@ -122,7 +122,11 @@ object NpcSpawnTable {
   const val LUC_TRAM_THRESHOLD = 25     // 0.25%
   const val IRIS_THRESHOLD = 25         // 0.25%
   const val SYVIAL_THRESHOLD = 25       // 0.25%
-  const val AN_NHIEN_THRESHOLD = 25     // 0.25%
+  const val AN_NHIEN_THRESHOLD = 25     // 0.25% (baseline value; kept for reference only)
+  // LEGACY (owner-confirmed 2026-10-14): An Nhien is NOT USED in the current game.
+  // Canon files, data and table references are kept intact — but auto-spawn is OFF.
+  // Do NOT re-enable without the owner's explicit request.
+  const val AN_NHIEN_LEGACY_ENABLED = false
   const val SURVIVOR_THRESHOLD = 200    // 2%
 
   /** Result of NPC spawn rolls: character ID -> encounter flag key */
@@ -220,8 +224,9 @@ object NpcSpawnTable {
       }
     }
 
-    // An Nhien: 0.25% physical, once-only
-    if (isPhysical && AN_NHIEN_ID !in partyMemberIds && !anNhienEncountered(flags, state.characters)) {
+    // LEGACY — auto-spawn disabled (owner-confirmed 2026-10-14). Canon/data kept intact.
+    // Do NOT re-enable without the owner's explicit request.
+    if (AN_NHIEN_LEGACY_ENABLED && isPhysical && AN_NHIEN_ID !in partyMemberIds && !anNhienEncountered(flags, state.characters)) {
       if (nextInt(10000) + 1 <= AN_NHIEN_THRESHOLD) {
         encounters += NpcEncounter(AN_NHIEN_ID, "anNhien")
       }
