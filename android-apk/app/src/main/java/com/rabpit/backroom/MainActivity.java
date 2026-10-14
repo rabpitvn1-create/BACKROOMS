@@ -1513,6 +1513,18 @@ public class MainActivity extends Activity {
     }
     String canon = com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.build(
       MainActivity.this, stateForKnowledge.toString(), action, visibleRolls.toString());
+    // AGENT 5 — GM Integration: per-turn voice guidance (Agent 1), confirmed-state
+    // continuity (Agent 2, defensive), Core exit directive, and event/agency guards.
+    String actionKindNormalized;
+    try {
+      actionKindNormalized = new JSONObject(requireGameCore().currentActionContext()).optString("kind", "EXECUTE");
+    } catch (Exception ignored) { actionKindNormalized = "EXECUTE"; }
+    if (actionKindNormalized == null) actionKindNormalized = "EXECUTE";
+    actionKindNormalized = actionKindNormalized.trim().toUpperCase(java.util.Locale.ROOT);
+    String voiceActionKind = mapVoiceActionKind(action, actionKindNormalized,
+      pendingNpcEncounters, pendingEntityEncounter, rolls);
+    String voiceEventKind = mapVoiceEventKind(before,
+      pendingNpcEncounters, pendingEntityEncounter, rolls);
     return "Bạn là Gehihi, Game Master kể chuyện Backrooms bằng tiếng Việt. " +
       "Kể diễn biến tự nhiên theo hành động người chơi, giữ đúng Entity, nhân vật và kết quả đã khóa. " +
       "Được tự do sáng tác chi tiết, lời thoại, không khí, tương tác phụ và phản ứng khác nhau " +
@@ -1531,11 +1543,122 @@ public class MainActivity extends Activity {
       "Toàn bộ lời kể và lời thoại nằm trong reply; escape dấu ngoặc kép và xuống dòng theo chuẩn JSON. " +
       "Không thêm Markdown, code fence, lời mở đầu, operations, state hoặc khóa khác. " +
       com.rabpit.backroom.core.knowledge.GmNarrativeVoicePolicy.prompt() +
-      "\nACTION_TYPE: " + new JSONObject(requireGameCore().currentActionContext()).optString("kind", "EXECUTE") +
+      voiceGuidanceSection(voiceActionKind, voiceEventKind) +
+      continuityNotesSection(before.toString()) +
+      exitDirectiveSection(before, rolls) +
+      eventSemanticsAndAgency() +
+      "\nACTION_TYPE: " + actionKindNormalized +
       "\nPLAYER_ACTION: " + action +
       "\nCORE_ROLLS_READ_ONLY: " + visibleRolls.toString() +
       encounterEvents.toString() +
       "\nCANON_READ_ONLY: " + canon;
+  }
+
+  // AGENT 5 — GM Integration helpers. Entity/NPC action kinds come ONLY from
+  // Core-confirmed events (beginAction response), never from GM prose or speculation.
+  private String mapVoiceActionKind(String action, String actionKindNormalized,
+      JSONArray pendingNpcEncounters, JSONObject pendingEntityEncounter, JSONObject rolls) {
+    if (pendingEntityEncounter != null
+        && !pendingEntityEncounter.optString("entityKey", "").trim().isEmpty())
+      return com.rabpit.backroom.core.GmNarrativeVoicePolicy.ENTITY_SPAWN;
+    if (pendingNpcEncounters != null && pendingNpcEncounters.length() > 0)
+      return com.rabpit.backroom.core.GmNarrativeVoicePolicy.NPC_MEETING;
+    if (exitNewlyAvailable(rolls))
+      return com.rabpit.backroom.core.GmNarrativeVoicePolicy.TRACE_FOUND;
+    String a = lower(action == null ? "" : action);
+    if (containsAny(a, "nói", "hỏi", "trả lời", "đáp", "chào", "gọi", "thì thầm", "hét lên", "kêu lên"))
+      return com.rabpit.backroom.core.GmNarrativeVoicePolicy.DIALOGUE;
+    if (containsAny(a, "nghỉ ngơi", "ngồi nghỉ", "nằm nghỉ", "ngủ", "hồi sức"))
+      return com.rabpit.backroom.core.GmNarrativeVoicePolicy.REST;
+    if ("EXPLORE".equals(actionKindNormalized))
+      return com.rabpit.backroom.core.GmNarrativeVoicePolicy.EXPLORE_QUIET;
+    return com.rabpit.backroom.core.GmNarrativeVoicePolicy.OTHER;
+  }
+
+  private boolean exitNewlyAvailable(JSONObject rolls) {
+    try {
+      JSONObject levelExit = rolls.optJSONObject("levelExit");
+      return levelExit != null && levelExit.optBoolean("success", false)
+        && levelExit.optBoolean("guaranteedByState", false);
+    } catch (Throwable ignored) { return false; }
+  }
+
+  private String mapVoiceEventKind(JSONObject before, JSONArray pendingNpcEncounters,
+      JSONObject pendingEntityEncounter, JSONObject rolls) {
+    if (pendingEntityEncounter != null
+        && !pendingEntityEncounter.optString("entityKey", "").trim().isEmpty())
+      return com.rabpit.backroom.core.GmNarrativeVoicePolicy.MAJOR;
+    if (pendingNpcEncounters != null && pendingNpcEncounters.length() > 0)
+      return com.rabpit.backroom.core.GmNarrativeVoicePolicy.MAJOR;
+    boolean wasReady = false;
+    try { wasReady = com.rabpit.backroom.core.HiddenExitStreak.ready(before); }
+    catch (Throwable ignored) {}
+    if (exitNewlyAvailable(rolls) && !wasReady)
+      return com.rabpit.backroom.core.GmNarrativeVoicePolicy.MAJOR;
+    JSONObject hazard = rolls.optJSONObject("hazard");
+    if (hazard != null && hazard.optBoolean("success", false))
+      return com.rabpit.backroom.core.GmNarrativeVoicePolicy.MINOR;
+    return com.rabpit.backroom.core.GmNarrativeVoicePolicy.NONE;
+  }
+
+  private String voiceGuidanceSection(String actionKind, String eventKind) {
+    try {
+      String guidance = com.rabpit.backroom.core.GmNarrativeVoicePolicy.INSTANCE
+        .voiceGuidance(actionKind, eventKind);
+      if (guidance == null || guidance.trim().isEmpty()) return "";
+      return "\nHƯỚNG DẪN VĂN PHONG LƯỢT NÀY:\n" + guidance.trim();
+    } catch (Throwable ignored) { return ""; }
+  }
+
+  // StoryContinuityReducer.continuityNotes is owned by Agent 2 and may not exist yet.
+  // Resolve defensively via reflection; an empty result simply omits the section.
+  private String continuityNotesSection(String beforeJson) {
+    try {
+      Class<?> cls = Class.forName("com.rabpit.backroom.core.StoryContinuityReducer");
+      java.lang.reflect.Field instanceField = cls.getField("INSTANCE");
+      Object instance = instanceField.get(null);
+      java.lang.reflect.Method m = cls.getMethod("continuityNotes", String.class);
+      Object out = m.invoke(instance, beforeJson);
+      String notes = out == null ? "" : String.valueOf(out).trim();
+      if (notes.isEmpty()) return "";
+      return "\nTRẠNG THÁI ĐÃ XÁC NHẬN (Core — GM không được kể trái các sự thật này):\n" + notes;
+    } catch (Throwable ignored) { return ""; }
+  }
+
+  // Core-authoritative exit directive. Distinguishes: exit available (may reveal, never
+  // auto-transition) vs no change (do not invent) vs failed exploration (reset, stay silent).
+  // The directive itself forbids mentioning streaks, counters, rolls or probabilities,
+  // so no Core secrets leak into the prompt.
+  private String exitDirectiveSection(JSONObject before, JSONObject rolls) {
+    try {
+      String directive = com.rabpit.backroom.core.HiddenExitStreak.gmDirective(before, rolls);
+      if (directive == null || directive.trim().isEmpty()) return "";
+      return "\nEXIT (Core xác nhận):\n" + directive.trim();
+    } catch (Throwable ignored) { return ""; }
+  }
+
+  // Unifies event semantics across Exit/NPC/Entity and hard-locks player agency over
+  // Cao Minh plus the bounds of Khám Phá / natural actions. Static text: no state,
+  // no RNG, no secrets.
+  private String eventSemanticsAndAgency() {
+    return "\nPHÂN BIỆT SỰ KIỆN (bắt buộc):" +
+      "\n- ĐÃ XẢY RA: chỉ những gì Core xác nhận trong CORE_CONFIRMED_ENCOUNTER_EVENTS," +
+      " mục EXIT và TRẠNG THÁI ĐÃ XÁC NHẬN. Chỉ kể những sự kiện này như sự thật." +
+      "\n- CÓ THỂ XẢY RA: những gì CORE_ROLLS_READ_ONLY gợi ý — được phép gieo mầm," +
+      " nhưng TUYỆT ĐỐI KHÔNG kết luận kết quả của hành động Core chưa xử lý." +
+      "\n- SUY ĐOÁN CỦA NHÂN VẬT: Cao Minh/NPC được phép phỏng đoán, nhưng phải thể hiện" +
+      " rõ đó là suy đoán (\"có lẽ\", \"dường như\"), không viết như sự thật đã khóa." +
+      "\n- Một phát hiện đã kể ở lượt trước thì các lượt sau phải tiếp nối đúng trạng thái" +
+      " của nó; KHÔNG được kể lại như thể vừa xuất hiện lần đầu, KHÔNG tự tạo thêm một" +
+      " lối thoát / sự kiện mới bằng lời kể." +
+      "\nQUYỀN CỦA NGƯỜI CHƠI VỚI CAO MINH (tuyệt đối): GM không tự chọn chiến thuật quan" +
+      " trọng, không tự cho Cao Minh dùng vật phẩm, không tự thay đổi quan hệ với NPC," +
+      " không tự cho gia nhập tổ chức, không tự bước qua lối thoát hay chuyển Level thay" +
+      " người chơi. Khi ý định chưa rõ, dừng ở thế giằng co và để người chơi quyết định." +
+      "\nGIỚI HẠN LỆNH KHÁM PHÁ: Khám Phá chỉ quan sát/khảo sát khu vực HIỆN TẠI. Không dịch" +
+      " chuyển tức thời, không tự tìm thấy lối thoát khi Core chưa xác nhận, không tự kích" +
+      " hoạt chuyển Level. Hành động tự nhiên (đi, mở, chạm...) chỉ tác động trong phạm vi" +
+      " gần, đúng vật lý của cảnh hiện tại.";
   }
 
   private interface CombatDiceCall { String run() throws Exception; }
