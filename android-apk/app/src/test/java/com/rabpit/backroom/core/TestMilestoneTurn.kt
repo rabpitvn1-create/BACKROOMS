@@ -57,10 +57,10 @@ object TestCheckpointQuota {
   fun withPlan(state: GameState, scheduled: List<JSONObject> = emptyList()): GameState {
     val initialized = CoreClientProjection.initialize(state)
     val position = StoryCheckpointCore.current(initialized) ?: StoryCheckpointCore.Position(
-      LevelRouteRegistry.node(LevelRouteRegistry.currentId(CoreClientProjection.project(JSONObject(), initialized)))!!.parent, 1, 20)
+      LevelRouteRegistry.node(LevelRouteRegistry.currentId(CoreClientProjection.project(JSONObject(), initialized)))!!.parent, 1, StoryCheckpointCore.CHECKPOINTS_PER_LEVEL)
     val seeded = initialized.copy(world = initialized.world + ("story.checkpoint" to JSONObject()
       .put("level", position.level).put("index", position.index).put("total", position.total).toString()))
-    val events = events(JSONArray().put(JSONObject().put("id", "boss").put("turn", 50)
+    val events = events(JSONArray().put(JSONObject().put("id", "boss").put("turn", 12)
       .put("kind", "FINAL_ENTITY").put("entityKey", "hound").put("action", "Boss xuất hiện")
       .put("event", "Boss chặn lối").put("outcome", "Chờ Battle Start").put("hpMultiplier", 9).put("expMultiplier", 9)))
     val values = (0 until events.length()).map { events.getJSONObject(it) } + scheduled
@@ -72,8 +72,8 @@ object TestCheckpointQuota {
 
   fun events(original: JSONArray): JSONArray {
     val values = (0 until original.length()).map { JSONObject(original.getJSONObject(it).toString()) }.toMutableList()
-    values.filter { it.getString("kind") == "FINAL_ENTITY" }.forEach { it.put("turn", 50) }
-    for (index in 1..20) values += JSONObject().put("id", "encounter$index").put("turn", 24 + index)
+    values.filter { it.getString("kind") == "FINAL_ENTITY" }.forEach { it.put("turn", StoryMilestonePlan.CHECKPOINT_TURNS) }
+    for (index in 1..3) values += JSONObject().put("id", "encounter$index").put("turn", 4 + index * 2)
       .put("kind", "ENTITY").put("entityKey", "hound").put("action", "TEST_ONLY Entity approaches $index")
       .put("event", "TEST_ONLY direct Entity encounter $index").put("outcome", "TEST_ONLY combat required $index")
     return JSONArray().apply { values.sortedBy { it.getInt("turn") }.forEach { put(it) } }
