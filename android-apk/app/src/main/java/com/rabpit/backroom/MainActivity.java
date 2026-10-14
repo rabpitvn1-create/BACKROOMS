@@ -1609,7 +1609,7 @@ public class MainActivity extends Activity {
             emit("backroomTurn", view.toString());
             return;
           }
-          // Only deterministic Core rolls and the already-installed SOL plan.
+          // Only deterministic Core rolls.
           JSONObject candidateState = new JSONObject(before.toString());
           JSONObject candidateFlags = candidateState.optJSONObject("flags");
           if (candidateFlags == null) { candidateFlags = new JSONObject(); candidateState.put("flags", candidateFlags); }
