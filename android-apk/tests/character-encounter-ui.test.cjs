@@ -35,7 +35,9 @@ test('a Party capacity rejection keeps the saved contact and restores its invita
  assert.equal(r.box.children[0].children[1].disabled,false);assert.equal(r.ctx.state.encounteredCharacters[0].inParty,false);
  assert.equal(r.ctx.statusEl.textContent,'Party đã đủ thành viên.');
 });
-test('read-only GM queries receive no due events and recruitment uses a separate native endpoint',()=>{
- assert.match(java,/JSONArray due = isMetaAction\(action\) \? new JSONArray\(\) : new JSONArray\(requireGameCore\(\)\.milestoneDueEvents\(\)\)/);
+test('GM prompt has no milestone due events and recruitment uses a separate native endpoint',()=>{
+ // Milestone system removed: writerPrompt must not reference due events or milestone.
+ assert.doesNotMatch(java,/milestoneDueEvents|MilestoneNarrationValidator|milestoneWaiting/);
+ assert.match(java,/Bạn là Gehihi, Game Master kể chuyện Backrooms bằng tiếng Việt/);
  assert.match(java,/@JavascriptInterface public void recruitFollower\(String stateJson, String characterId\)/);
 });
