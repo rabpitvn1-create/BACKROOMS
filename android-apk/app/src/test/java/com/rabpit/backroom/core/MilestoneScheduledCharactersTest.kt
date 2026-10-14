@@ -41,6 +41,7 @@ class MilestoneScheduledCharactersTest {
     val due = JSONArray(StoryMilestoneRuntime.dueJson(state)).getJSONObject(0)
     assertEquals("lucia", due.getString("characterId"))
     assertEquals(LuciaCanon.NAME, due.getString("characterName"))
+    assertTrue("First meeting must be distinguished from prior acquaintance", due.getBoolean("firstEncounter"))
     val committed = TestMilestoneTurn.dispatch(state)
     assertEquals("true", committed.characters.getValue(LUCIA_ID).metadata["encountered"])
     assertEquals("3", committed.characters.getValue(LUCIA_ID).metadata["encounterTurn"])
@@ -50,6 +51,17 @@ class MilestoneScheduledCharactersTest {
     StoryMilestoneRuntime.validateStoredState(restored)
     assertEquals(committed.characters[LUCIA_ID], restored.characters[LUCIA_ID])
     assertTrue(StoryMilestoneRuntime.due(restored).isEmpty())
+  }
+
+  @Test fun firstMeetingHintUsesStoredEncounterStatusNotRegistryName() {
+    val first = reach(initial(listOf(encounter("lucia3", 3, "FOLLOWER", LUCIA_ID))), 3)
+    val firstHint = JSONArray(StoryMilestoneRuntime.dueJson(first)).getJSONObject(0)
+    assertTrue(firstHint.getBoolean("firstEncounter"))
+    val character = first.characters.getValue(LUCIA_ID)
+    val previouslyMet = first.copy(characters = first.characters + (LUCIA_ID to
+      character.copy(metadata = character.metadata + ("encountered" to "true"))))
+    val nextHint = JSONArray(StoryMilestoneRuntime.dueJson(previouslyMet)).getJSONObject(0)
+    assertFalse(nextHint.getBoolean("firstEncounter"))
   }
 
   @Test fun allRegisteredFollowersUseOneDispatcherAndSameTurnOrderIsPreserved() {

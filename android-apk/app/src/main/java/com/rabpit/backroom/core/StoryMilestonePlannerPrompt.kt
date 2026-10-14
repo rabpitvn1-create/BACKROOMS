@@ -74,6 +74,9 @@ object StoryMilestonePlannerPrompt {
       event NPC/FOLLOWER cùng Turn hoặc trước đó. Trường này không viết sẵn câu thoại.
       STORY không cần giao tiếp thì bỏ communicationCharacterId. NPC/FOLLOWER luôn cần giao tiếp.
       Gặp nhân vật không đồng nghĩa gia nhập Party; không biên kịch tự tuyển mộ.
+      Registry chứa tên nhân vật để lập lịch, KHÔNG phải bằng chứng rằng nhân vật biết tên Cao Minh.
+      Nếu encountered=false và Canon không xác nhận quan hệ trước đó, lần gặp đầu không được
+      giả định nhận ra nhau hoặc biết tên nhau trước khi tự giới thiệu; áp dụng cả với Lucia.
       Registry nhân vật: $characters
 
       Mỗi CP có ĐÚNG ${StoryMilestonePlan.CHECKPOINT_TURNS} Explorer Turn, không ít hơn hoặc nhiều hơn.

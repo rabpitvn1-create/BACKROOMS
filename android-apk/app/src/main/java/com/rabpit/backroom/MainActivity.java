@@ -1575,6 +1575,8 @@ public class MainActivity extends Activity {
       "Không tự quyết định Combat, HP, EXP, Item, tạo Entity hay chuyển Checkpoint; gameplay Core xử lý. " +
       "MỌI ENTITY và FINAL_ENTITY của Milestone đều bắt buộc Combat, không có cuộc gặp rồi bỏ đi. " +
       "Gặp FOLLOWER/NPC phải mô tả cuộc gặp thực tế; nhân vật thể hiện theo đúng hồ sơ Canon trong KNOWLEDGE PACKET (tính cách, cách nói, xưng hô, quan hệ với Cao Minh), không ép một khuôn thoại cố định. " +
+      "firstEncounter=true trong milestoneEventsDue nghĩa là lần đầu Core ghi nhận hai nhân vật gặp nhau; tên trong Registry hoặc PLAYER không có nghĩa NPC đã biết tên Cao Minh. " +
+      "Nếu Canon không xác nhận họ quen biết từ trước, nhân vật mới gặp (đặc biệt Lucia) tuyệt đối không gọi tên Cao Minh, nhận ra anh hay tỏ ra thân quen trước khi có lời giới thiệu hoặc nguồn thông tin được kể rõ trong cảnh. " +
       "ENTITY và FINAL_ENTITY: kể cảnh Entity chạm trán, dừng ở thế đối đầu; " +
       "chưa kể đòn đánh, sát thương hay kết quả Combat trước khi người chơi nhấn Battle Start. " +
       "Không đưa event ID, ops, chứng cứ, kiểm định hay state vào lời kể. " +

@@ -92,7 +92,11 @@ object StoryMilestoneRuntime {
       put(event.toJson().apply {
         if (event.isEncounter) put("encounterId", encounterId(state, event))
         event.entityKey?.let { put("entityName", CombatRuntime.entityName(it)) }
-        event.characterId?.let { put("characterName", state.characters.getValue(it).name) }
+        event.characterId?.let { id ->
+          val character = state.characters.getValue(id)
+          put("characterName", character.name)
+          put("firstEncounter", character.metadata["encountered"] != "true")
+        }
       })
     }
   }.toString()
