@@ -3,6 +3,7 @@ package com.rabpit.backroom.core
 import android.content.Context
 import org.json.JSONArray
 import org.json.JSONObject
+import java.security.SecureRandom
 
 class GameCoreFacade private constructor(
   private val repository: SaveRepository,
@@ -10,6 +11,7 @@ class GameCoreFacade private constructor(
 ) : AutoCloseable {
   private val rules = RuleIntentInterpreter()
   private val resolver = CommandResolver()
+  private val spawnRng = SecureRandom()
 
   /** Fast deterministic pass. Gemini is never called from this method. */
   /** Handle explicit rule-only commands without bypassing Gehihi for normal Explorer turns. */
@@ -176,7 +178,13 @@ class GameCoreFacade private constructor(
       searchDepth = if (kind == ActionKind.SEARCH) SearchDepth.NORMAL else null
     )
     if (!started.applied) return actionStartResponse(false, started.session, started.error ?: "action_start_failed")
-    repository.save(started.state)
+    // Core-authoritative spawn rolls (not AI): entity + NPC first-meetings.
+    // GM only narrates results; Core decides. See EntitySpawnPool.kt.
+    val withSpawns = runCatching {
+      val spawnResult = SpawnMechanism.rollSpawns(started.state, kind) { bound -> spawnRng.nextInt(bound) }
+      SpawnMechanism.applySpawns(started.state, spawnResult)
+    }.getOrDefault(started.state)
+    repository.save(withSpawns)
     return actionStartResponse(true, started.session, null)
   }
 
