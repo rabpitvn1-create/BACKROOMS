@@ -1,5 +1,6 @@
 package com.rabpit.backroom.core
 
+import org.json.JSONArray
 import org.json.JSONObject
 
 /**
@@ -17,6 +18,13 @@ import org.json.JSONObject
  * - Iris/Syvial reunion: 25 (0.25%) each — physical, continuity SEPARATED/LOST/UNKNOWN
  * - An Nhien: 25 (0.25%) — physical, once-only
  * - Survivor: 200 (2%) — survivorAllowed (default true)
+ *
+ * Eligibility (from baseline MainActivity.makeGameplayRolls @ 202737c2):
+ * - Meta turns (status/inventory/help): NO rolls at all
+ * - Entity roll: action kind in (EXPLORE, SEARCH, EXECUTE) AND flags.entityEncountersAllowed (default true)
+ * - NPC rolls: `physical` inferred from ACTION TEXT verbs (not action kind).
+ *   Dialogue-only EXECUTE (e.g. "nói chuyện", "hỏi") is NOT physical → no NPC spawns.
+ * - Combat/pending encounters: NO rolls
  *
  * Core rolls (not AI). GM only narrates. See spawn-baseline.md for full reference.
  */
@@ -75,6 +83,38 @@ object EntitySpawnPool {
 }
 
 /**
+ * Physical action detection from baseline (MainActivity.java:1359 @ 202737c2).
+ *
+ * `physical` was inferred from the ACTION TEXT (not action kind) by matching
+ * Vietnamese movement/interaction verbs. A dialogue-only EXECUTE like
+ * "nói chuyện với Lucia" or "hỏi đường" contains none of these verbs → not physical.
+ *
+ * This is why NPC rolls (Lục Trầm, Iris/Syvial, An Nhiên) must use action text,
+ * not just `kind == EXECUTE`.
+ */
+object PhysicalActionDetector {
+  /**
+   * Vietnamese verbs indicating physical movement or interaction.
+   * Exact list from baseline: MainActivity.java line 1359 @ 202737c2.
+   */
+  val PHYSICAL_VERBS = listOf(
+    "đi", "bước", "chạy", "leo", "mở", "đóng", "chạm", "lục", "tìm",
+    "kiểm tra", "khảo sát", "quét", "scan", "bắn", "phá", "đẩy", "kéo",
+    "tiến", "lùi", "cúi", "nhìn vào", "bò", "nhảy", "đào", "tháo",
+    "đập", "vượt", "đi qua"
+  )
+
+  /**
+   * Returns true if the action text contains any physical verb (case-insensitive).
+   * Matches baseline `containsAny(a, ...)` where `a = lower(action)`.
+   */
+  fun isPhysical(actionText: String): Boolean {
+    val lower = actionText.lowercase()
+    return PHYSICAL_VERBS.any { verb -> lower.contains(verb.lowercase()) }
+  }
+}
+
+/**
  * NPC first-meeting spawn table. All thresholds are d10000 (success if roll <= threshold).
  */
 object NpcSpawnTable {
@@ -124,14 +164,22 @@ object NpcSpawnTable {
   /**
    * Rolls for NPC encounters. Returns list of encounters (character ID + flag key).
    *
+   * Baseline eligibility (@ 202737c2 MainActivity.makeGameplayRolls):
+   * - `physical` is inferred from ACTION TEXT verbs, NOT action kind.
+   *   A dialogue-only EXECUTE ("nói chuyện", "hỏi") is NOT physical → no NPC rolls.
+   * - Lucia: EXPLORE kind only (not text-based)
+   * - Survivor: gated by survivorAllowed only (not physical)
+   *
    * @param state current game state
-   * @param kind action kind (EXPLORE/EXECUTE/SEARCH)
+   * @param kind action kind (EXPLORE/EXECUTE/SEARCH) — used for Lucia EXPLORE check only
+   * @param actionText raw action text for physical verb detection
    * @param level current level number
    * @param nextInt function returning 0..9999 (injectable for tests)
    */
   fun rollNpcs(
     state: GameState,
     kind: ActionKind,
+    actionText: String,
     level: Int,
     nextInt: (Int) -> Int
   ): List<NpcEncounter> {
@@ -139,7 +187,8 @@ object NpcSpawnTable {
     val flags = runCatching { JSONObject(state.world["flagsJson"] ?: "{}") }.getOrNull() ?: JSONObject()
     val partyMemberIds = state.party.memberIds
     val isExplore = kind == ActionKind.EXPLORE
-    val isPhysical = kind == ActionKind.EXPLORE || kind == ActionKind.EXECUTE
+    // Baseline: physical from action TEXT verbs, not action kind (MainActivity:1359 @ 202737c2)
+    val isPhysical = PhysicalActionDetector.isPhysical(actionText)
 
     // Lucia: 50% on Level 0 EXPLORE, once-only
     if (isExplore && level == 0 && LUCIA_ID !in partyMemberIds && !flagSpawned(flags, "lucia")) {
@@ -206,37 +255,171 @@ object SpawnMechanism {
   /**
    * Rolls for entity and NPC spawns.
    *
+   * Eligibility gates (from baseline @ 202737c2):
+   * 1. Meta turns: NO rolls (status/inventory/help don't spawn)
+   * 2. Combat/pending: NO rolls (caller must check CombatRuntime.pending)
+   * 3. Entity: action kind in (EXPLORE, SEARCH, EXECUTE) AND
+   *    flags.entityEncountersAllowed (default true)
+   * 4. NPCs: physical from action TEXT (see PhysicalActionDetector)
+   *
    * @param state current game state
    * @param kind action kind
+   * @param actionText raw action text for physical verb detection
+   * @param isMeta true for meta-only turns (status/inventory/help) — skips all rolls
+   * @param inCombatOrPending true if combat or encounter confirmation pending — skips all rolls
    * @param nextInt function returning 0..9999 (use SecureRandom in production, seeded Random in tests)
    */
-  fun rollSpawns(state: GameState, kind: ActionKind, nextInt: (Int) -> Int): SpawnResult {
-    // Entity: all gameplay actions eligible (SEARCH, EXECUTE, EXPLORE)
-    val entityKey = EntitySpawnPool.rollEntity(nextInt)
+  fun rollSpawns(
+    state: GameState,
+    kind: ActionKind,
+    actionText: String,
+    isMeta: Boolean = false,
+    inCombatOrPending: Boolean = false,
+    nextInt: (Int) -> Int
+  ): SpawnResult {
+    // Gate 1+2: meta turns and combat/pending → no spawns at all (baseline: `if (meta) return rolls`)
+    if (isMeta || inCombatOrPending) {
+      return SpawnResult(null, emptyList())
+    }
 
-    // NPCs: gated by action type, level, and once-only flags
+    val flags = runCatching { JSONObject(state.world["flagsJson"] ?: "{}") }.getOrNull() ?: JSONObject()
+
+    // Gate 3: entity roll requires eligible action kind AND entityEncountersAllowed flag.
+    // Baseline: `entityEncounterAction && entityAllowed` (MainActivity:1391 @ 202737c2).
+    // Note: the `!milestoneHasPlan()` gate is obsolete — Milestone is gone.
+    val entityEncounterAction = kind == ActionKind.EXPLORE ||
+      kind == ActionKind.SEARCH ||
+      kind == ActionKind.EXECUTE
+    val entityAllowed = flags.optBoolean("entityEncountersAllowed", true)
+    val entityKey = if (entityEncounterAction && entityAllowed) {
+      EntitySpawnPool.rollEntity(nextInt)
+    } else {
+      null
+    }
+
+    // Gate 4: NPCs gated by physical (from action text), level, and once-only flags.
     val level = currentLevelNumber(state)
-    val npcEncounters = NpcSpawnTable.rollNpcs(state, kind, level, nextInt)
+    val npcEncounters = NpcSpawnTable.rollNpcs(state, kind, actionText, level, nextInt)
 
     return SpawnResult(entityKey, npcEncounters)
+  }
+
+  /**
+   * Backward-compatible overload for callers that don't yet pass action text.
+   * Defaults to empty action text (not physical) — prefer the full overload.
+   * TODO(Agents 1/2): Update GameCoreFacade.beginAction to pass the action text.
+   */
+  fun rollSpawns(state: GameState, kind: ActionKind, nextInt: (Int) -> Int): SpawnResult {
+    return rollSpawns(state, kind, "", isMeta = false, inCombatOrPending = false, nextInt)
   }
 
   /**
    * Applies spawn results to state: sets flags.entityEncounterKey and NPC encounter metadata.
    * Returns updated state. NPC encounters set character.metadata["encountered"]="true"
    * so recruitFollower() can succeed (Core-authoritative, not Milestone).
+   *
+   * NOTE: this is the immediate-apply variant (kept for direct-apply callers/tests).
+   * The production turn pipeline uses the two-phase [prepareSpawns] /
+   * [commitPendingNpcEncounters] API below so a failed/aborted turn does not consume
+   * the once-only NPC first meeting.
    */
   fun applySpawns(state: GameState, result: SpawnResult): GameState {
+    var next = applyEntitySpawn(state, result.entityKey)
+    next = applyNpcEncounters(next, result.npcEncounters)
+    return next
+  }
+
+  /**
+   * Two-phase variant for the production turn pipeline (P0-2 NPC timing fix).
+   * Entity spawns apply immediately (one-shot flags.entityEncounterKey; the caller
+   * reserves the combat encounter). NPC encounters are DEFERRED: stored as pending
+   * in state metadata WITHOUT marking encountered/spawned/present.
+   *
+   * - [commitPendingNpcEncounters]: call after processValidatedCandidate succeeds.
+   * - [discardPendingNpcEncounters]: call on abort/failure; once-only NOT consumed.
+   */
+  fun prepareSpawns(state: GameState, result: SpawnResult): GameState {
+    var next = applyEntitySpawn(state, result.entityKey)
+    next = prepareNpcEncounters(next, result.npcEncounters)
+    return next
+  }
+
+  /** Metadata key holding deferred NPC encounters as a JSON array string. */
+  const val PENDING_NPC_METADATA_KEY = "spawn.pendingNpcEncounters"
+
+  /**
+   * Phase 1: store NPC encounters as pending WITHOUT touching flags/characters.
+   * Safe to call with an empty list (clears any stale pending).
+   */
+  fun prepareNpcEncounters(state: GameState, encounters: List<NpcSpawnTable.NpcEncounter>): GameState {
+    if (encounters.isEmpty()) return discardPendingNpcEncounters(state)
+    val arr = JSONArray()
+    encounters.forEach { e ->
+      arr.put(JSONObject().put("characterId", e.characterId).put("flagKey", e.flagKey))
+    }
+    return state.copy(metadata = state.metadata + (PENDING_NPC_METADATA_KEY to arr.toString()))
+  }
+
+  /** Reads deferred NPC encounters (empty if none). Never throws. */
+  fun pendingNpcEncounters(state: GameState): List<NpcSpawnTable.NpcEncounter> {
+    val raw = state.metadata[PENDING_NPC_METADATA_KEY] ?: return emptyList()
+    return runCatching {
+      val arr = JSONArray(raw)
+      List(arr.length()) { i ->
+        val o = arr.getJSONObject(i)
+        NpcSpawnTable.NpcEncounter(o.getString("characterId"), o.getString("flagKey"))
+      }
+    }.getOrDefault(emptyList())
+  }
+
+  /**
+   * Phase 2a: commit deferred NPC encounters — marks encountered/spawned/present
+   * and character metadata, then clears the pending list. Idempotent when empty.
+   */
+  fun commitPendingNpcEncounters(state: GameState): GameState {
+    val pending = pendingNpcEncounters(state)
+    if (pending.isEmpty()) return state
+    val applied = applyNpcEncounters(state, pending)
+    return discardPendingNpcEncounters(applied)
+  }
+
+  /**
+   * Phase 2b: discard deferred NPC encounters WITHOUT marking encountered.
+   * The once-only first meeting is NOT consumed — a later turn may roll it again.
+   */
+  fun discardPendingNpcEncounters(state: GameState): GameState {
+    if (!state.metadata.containsKey(PENDING_NPC_METADATA_KEY)) return state
+    return state.copy(metadata = state.metadata - PENDING_NPC_METADATA_KEY)
+  }
+
+  /**
+   * Human-readable NPC name for the GM narration event. No Core secrets — only the
+   * character id, flag key and display name are exposed to the prompt.
+   */
+  fun npcDisplayName(characterId: String): String = when (characterId) {
+    LUCIA_ID -> runCatching { LuciaCanon.character().name }.getOrDefault("Lucia")
+    AN_NHIEN_ID -> runCatching { AnNhienCanon.character().name }.getOrDefault("An Nhiên")
+    LUC_TRAM_ID -> runCatching { LucTramCanon.character().name }.getOrDefault("Lục Trầm")
+    IRIS_ID -> runCatching { SpecialFollowersCanon.irisCharacter().name }.getOrDefault("Iris")
+    SYVIAL_ID -> runCatching { SpecialFollowersCanon.syvialCharacter().name }.getOrDefault("Syvial")
+    "survivor" -> "Người sống sót"
+    else -> characterId
+  }
+
+  private fun applyEntitySpawn(state: GameState, entityKey: String?): GameState {
+    if (entityKey == null) return state
+    val flags = runCatching { JSONObject(state.world["flagsJson"] ?: "{}") }.getOrNull() ?: JSONObject()
+    flags.put("entityEncounterKey", entityKey)
+    return state.copy(world = state.world + ("flagsJson" to flags.toString()))
+  }
+
+  private fun applyNpcEncounters(state: GameState, encounters: List<NpcSpawnTable.NpcEncounter>): GameState {
+    if (encounters.isEmpty()) return state
     var next = state
     val flags = runCatching { JSONObject(state.world["flagsJson"] ?: "{}") }.getOrNull() ?: JSONObject()
 
-    // Entity: set one-shot encounter key
-    if (result.entityKey != null) {
-      flags.put("entityEncounterKey", result.entityKey)
-    }
-
     // NPCs: set encounter flags and character metadata
-    for (encounter in result.npcEncounters) {
+    for (encounter in encounters) {
       val key = encounter.flagKey
       val record = flags.optJSONObject(key) ?: JSONObject()
       // Mark as encountered/spawned (once-only protection for future rolls)
@@ -259,9 +442,7 @@ object SpawnMechanism {
       }
     }
 
-    if (result.entityKey != null || result.npcEncounters.isNotEmpty()) {
-      next = next.copy(world = next.world + ("flagsJson" to flags.toString()))
-    }
+    next = next.copy(world = next.world + ("flagsJson" to flags.toString()))
     return next
   }
 

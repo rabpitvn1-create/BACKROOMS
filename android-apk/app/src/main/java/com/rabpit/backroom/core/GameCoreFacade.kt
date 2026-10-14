@@ -177,7 +177,10 @@ class GameCoreFacade private constructor(
       ?: return actionStartResponse(false, null, "action_kind_invalid")
     val existing = ActionRuntime.activeSession(state)
     if (existing != null) {
-      return if (existing.kind == kind && existing.input == action) actionStartResponse(true, existing, null)
+      // Idempotent retry: the deferred NPC encounters belong to this session and are
+      // still pending, so re-expose them for the GM narration prompt.
+      return if (existing.kind == kind && existing.input == action) actionStartResponse(true, existing, null,
+        SpawnMechanism.pendingNpcEncounters(state))
       else actionStartResponse(false, existing, "action_session_already_active")
     }
     val turnId = nextTurnId(state)
@@ -199,12 +202,18 @@ class GameCoreFacade private constructor(
     // When entity roll succeeds, reserve a real PENDING_ENCOUNTER_CONFIRMATION via
     // CombatRuntime.prepareEncounter() so CoreClientProjection exports pendingEncounter.
     // Battle Start then calls confirmEncounter() to start Combat. GM cannot self-spawn.
+    //
+    // P0-2 NPC timing: NPC encounters are DEFERRED (prepareSpawns), not marked
+    // encountered/spawned yet. The pending encounters are returned in the action-start
+    // response so the GM narration prompt can include the meeting event; they are
+    // committed only after processValidatedCandidate succeeds, and discarded on abort.
     val withSpawns = runCatching {
       val spawnResult = SpawnMechanism.rollSpawns(
         started.state, kind, action,
         isMeta = false, inCombatOrPending = false
       ) { bound -> spawnRng.nextInt(bound) }
-      var next = SpawnMechanism.applySpawns(started.state, spawnResult)
+      var next = SpawnMechanism.prepareSpawns(
+        SpawnMechanism.discardPendingNpcEncounters(started.state), spawnResult)
       // Reserve combat encounter if entity spawned (Core-authoritative, not AI).
       // The encounterId is persistent and flows: prepareEncounter -> pending() ->
       // CoreClientProjection.pendingEncounter -> UI Battle Start -> confirmEncounter().
@@ -213,11 +222,15 @@ class GameCoreFacade private constructor(
         next = runCatching {
           CombatRuntime.prepareEncounter(next, spawnResult.entityKey, encounterId, boss = false)
         }.getOrDefault(next)
+        // Entity combat takes precedence this turn: drop deferred NPC encounters.
+        // Once-only is NOT consumed — the NPC may roll again on a later turn.
+        next = SpawnMechanism.discardPendingNpcEncounters(next)
       }
       next
     }.getOrDefault(started.state)
     repository.save(withSpawns)
-    return actionStartResponse(true, started.session, null)
+    return actionStartResponse(true, started.session, null,
+      SpawnMechanism.pendingNpcEncounters(withSpawns))
   }
 
   @Synchronized fun currentActionContext(): String {
@@ -247,13 +260,26 @@ class GameCoreFacade private constructor(
     if (!repository.exists()) return false
     val state = repository.load()
     val active = ActionRuntime.activeSession(state) ?: return false
-    val interrupted = ActionRuntime.interrupt(state, active.sessionId, reason.ifBlank { "pipeline_error" })
+    // P0-2: discard deferred NPC encounters. A failed/aborted turn must NOT consume
+    // the once-only first meeting — the NPC may roll again on a later turn.
+    val withoutPending = SpawnMechanism.discardPendingNpcEncounters(state)
+    val interrupted = ActionRuntime.interrupt(withoutPending, active.sessionId, reason.ifBlank { "pipeline_error" })
     if (!interrupted.applied) return false
     repository.save(interrupted.state)
     return true
   }
 
-  private fun actionStartResponse(handled: Boolean, session: ActionSessionSnapshot?, error: String?): String = JSONObject().apply {
+  /**
+   * P0-2: exposes deferred NPC encounters so the GM narration prompt can include the
+   * first-meeting event. Only characterId/flagKey/display name are exposed — no Core
+   * secrets. MainActivity reads `pendingNpcEncounters` and merges it into writerPrompt.
+   */
+  private fun actionStartResponse(
+    handled: Boolean,
+    session: ActionSessionSnapshot?,
+    error: String?,
+    pendingNpc: List<NpcSpawnTable.NpcEncounter> = emptyList()
+  ): String = JSONObject().apply {
     put("handled", handled)
     if (session != null) {
       put("sessionId", session.sessionId)
@@ -261,6 +287,16 @@ class GameCoreFacade private constructor(
       put("kind", session.kind.name)
     }
     if (error != null) put("error", error)
+    if (pendingNpc.isNotEmpty()) {
+      put("pendingNpcEncounters", JSONArray().apply {
+        pendingNpc.forEach { e ->
+          put(JSONObject()
+            .put("characterId", e.characterId)
+            .put("flagKey", e.flagKey)
+            .put("name", SpawnMechanism.npcDisplayName(e.characterId)))
+        }
+      })
+    }
   }.toString()
 
   private fun commitActionRuntime(
@@ -562,9 +598,15 @@ class GameCoreFacade private constructor(
     val committed = commitActionRuntime(pending.state, commands, action, turnId)
     if (committed.error != null) {
       logger.log(PipelineLogEvent("GEMINI_REJECTED", turnId = turnId, source = CommandSource.GEMINI, details = mapOf("reason" to committed.error)))
+      // P0-2: turn rejected — leave deferred NPC encounters in place (session still
+      // active). A retry of the same action reuses them via the idempotent beginAction
+      // path; abortAction discards them. Once-only is NOT consumed by the failure.
       return response(false, before, committed.error, "gemini_delta_rejected")
     }
-    val protectedState = CharacterProgressionCore.protectFromCandidate(pending.state, committed.state)
+    // P0-2: turn validated — commit deferred NPC encounters now (mark
+    // encountered/spawned/present + character metadata for recruitFollower).
+    val withNpcCommitted = SpawnMechanism.commitPendingNpcEncounters(committed.state)
+    val protectedState = CharacterProgressionCore.protectFromCandidate(pending.state, withNpcCommitted)
     var applied = protectedState
     CombatRuntime.pending(applied)?.let { encounter ->
       applied = applied.copy(metadata = applied.metadata + ("combat.encounterNarrative" to

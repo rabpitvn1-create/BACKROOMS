@@ -166,4 +166,74 @@ class EntitySpawnPoolTest {
     assertEquals(result1.entityKey, result2.entityKey)
     assertEquals(result1.npcEncounters.size, result2.npcEncounters.size)
   }
+
+  // --- Eligibility gates (baseline @ 202737c2) ---
+
+  @Test fun `meta turn skips all spawns`() {
+    val state = GameState.initial()
+    // Even with a seed that would normally spawn, meta=true → nothing
+    val result = SpawnMechanism.rollSpawns(
+      state, ActionKind.EXPLORE, "đi khám phá",
+      isMeta = true, inCombatOrPending = false
+    ) { _ -> 0 }  // roll=1 → would spawn hound
+    assertNull("Meta turn must not spawn entity", result.entityKey)
+    assertTrue("Meta turn must not spawn NPCs", result.npcEncounters.isEmpty())
+  }
+
+  @Test fun `combat pending skips all spawns`() {
+    val state = GameState.initial()
+    val result = SpawnMechanism.rollSpawns(
+      state, ActionKind.EXPLORE, "đi khám phá",
+      isMeta = false, inCombatOrPending = true
+    ) { _ -> 0 }
+    assertNull("Combat/pending must not spawn entity", result.entityKey)
+    assertTrue("Combat/pending must not spawn NPCs", result.npcEncounters.isEmpty())
+  }
+
+  @Test fun `entityEncountersAllowed=false blocks entity roll`() {
+    var state = GameState.initial()
+    // Set the flag to false
+    val flags = JSONObject(state.world["flagsJson"] ?: "{}")
+    flags.put("entityEncountersAllowed", false)
+    state = state.copy(world = state.world + ("flagsJson" to flags.toString()))
+    val result = SpawnMechanism.rollSpawns(
+      state, ActionKind.EXPLORE, "đi khám phá",
+      isMeta = false, inCombatOrPending = false
+    ) { _ -> 0 }  // roll=1 → would spawn hound
+    assertNull("entityEncountersAllowed=false must block entity", result.entityKey)
+  }
+
+  @Test fun `dialogue-only EXECUTE is not physical`() {
+    // These contain no physical verbs → not physical
+    // Note: baseline uses substring matching, so avoid "đi", "tìm", etc.
+    assertFalse(PhysicalActionDetector.isPhysical("nói chuyện với Lucia"))
+    assertFalse(PhysicalActionDetector.isPhysical("hỏi thăm sức khỏe"))
+    assertFalse(PhysicalActionDetector.isPhysical("chào hỏi"))
+  }
+
+  @Test fun `movement EXECUTE is physical`() {
+    assertTrue(PhysicalActionDetector.isPhysical("đi về phía trước"))
+    assertTrue(PhysicalActionDetector.isPhysical("mở cánh cửa"))
+    assertTrue(PhysicalActionDetector.isPhysical("chạy nhanh qua hành lang"))
+    assertTrue(PhysicalActionDetector.isPhysical("BƯỚC tới"))  // case-insensitive
+  }
+
+  @Test fun `dialogue EXECUTE does not trigger NPC rolls`() {
+    val state = GameState.initial()
+    // Dialogue text with EXECUTE kind: not physical → no NPC encounters
+    // (Survivor is not physical-gated, so we check the physical-gated ones)
+    val rng = Random(42)
+    var physicalNpcFound = false
+    repeat(20) {
+      val result = SpawnMechanism.rollSpawns(
+        state, ActionKind.EXECUTE, "nói chuyện với người lạ",
+        isMeta = false, inCombatOrPending = false
+      ) { bound -> rng.nextInt(bound) }
+      val physicalIds = setOf(LUC_TRAM_ID, IRIS_ID, SYVIAL_ID, AN_NHIEN_ID)
+      if (result.npcEncounters.any { it.characterId in physicalIds }) {
+        physicalNpcFound = true
+      }
+    }
+    assertFalse("Dialogue-only action must not trigger physical NPC encounters", physicalNpcFound)
+  }
 }
