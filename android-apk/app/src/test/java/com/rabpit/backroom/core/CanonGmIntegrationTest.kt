@@ -33,15 +33,15 @@ class CanonGmIntegrationTest {
   // --- Test 1: Forced Lucia first meeting, Level 0, not in Party ---
 
   @Test fun `forced Lucia first meeting includes authored card and meeting event`() {
-    // Core confirms Lucia encounter via milestoneEventsDue (current mechanism).
-    // Lucia is NOT in party — this is a first meeting.
+    // Core confirms Lucia first meeting via a pending encounter (NOT a Milestone).
+    // Lucia is NOT in the Party; a first meeting never implies recruitment.
     val state = JSONObject()
       .put("level", JSONObject().put("number", 0).put("id", "0"))
       .put("party", JSONArray().apply {
         put(JSONObject().put("id", "cao_minh").put("presence", "ACTIVE"))
       })
-      .put("milestoneEventsDue", JSONArray().apply {
-        put(JSONObject().put("kind", "FOLLOWER").put("characterId", "lucia"))
+      .put("pendingNpcEncounters", JSONArray().apply {
+        put(JSONObject().put("characterId", "lucia").put("flagKey", "lucia"))
       })
       .toString()
     val result = packet(state, action = "khám phá khu vực xung quanh")
@@ -50,15 +50,16 @@ class CanonGmIntegrationTest {
     assertTrue("CHAR.LUCIA.AUTHORED", result.contains("<CHAR.LUCIA.AUTHORED>"))
     // Present actors includes lucia.
     assertTrue("present actors", result.contains("lucia"))
-    // Meeting event is in the turn: the scheduled event is visible.
-    assertTrue("milestoneEventsDue", result.contains("milestoneEventsDue") || result.contains("lucia"))
+    // Core encounter grants presence to retriever, not Party membership.
+    assertTrue("Core encounter presence", result.contains("Present actors: cao_minh, lucia"))
+    assertFalse("Never project encounter as Party membership", JSONObject(state).getJSONArray("party").toString().contains("lucia"))
   }
 
   @Test fun `Lucia first meeting does not leak other NPC cards`() {
     val state = JSONObject()
       .put("level", JSONObject().put("number", 0).put("id", "0"))
-      .put("milestoneEventsDue", JSONArray().apply {
-        put(JSONObject().put("characterId", "lucia"))
+      .put("pendingNpcEncounters", JSONArray().apply {
+        put(JSONObject().put("characterId", "lucia").put("flagKey", "lucia"))
       })
       .toString()
     val result = packet(state)
@@ -79,7 +80,9 @@ class CanonGmIntegrationTest {
       .put("level", JSONObject().put("number", 4).put("id", "4"))
       .put("party", JSONArray().apply {
         put(JSONObject().put("id", "cao_minh").put("presence", "ACTIVE"))
-        put(JSONObject().put("id", "luc_tram").put("presence", "ACTIVE"))
+      })
+      .put("pendingNpcEncounters", JSONArray().apply {
+        put(JSONObject().put("characterId", "luc_tram").put("flagKey", "lucTram"))
       })
       .toString()
     val result = packet(state, action = "đi về phía trước")
@@ -98,7 +101,9 @@ class CanonGmIntegrationTest {
       .put("level", JSONObject().put("number", 4).put("id", "4"))
       .put("party", JSONArray().apply {
         put(JSONObject().put("id", "cao_minh").put("presence", "ACTIVE"))
-        put(JSONObject().put("id", "luc_tram").put("presence", "ACTIVE"))
+      })
+      .put("pendingNpcEncounters", JSONArray().apply {
+        put(JSONObject().put("characterId", "luc_tram").put("flagKey", "lucTram"))
       })
       .toString()
     val result = packet(state)

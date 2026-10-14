@@ -29,7 +29,7 @@ class AuthoritativeEncounterPartyTest {
   }
   /** Core-authoritative Iris encounter: sets flags + character metadata, no Milestone. */
   private fun withIrisEncounter(state: GameState): GameState {
-    val result = SpawnMechanism.SpawnResult(
+    val result = SpawnResult(
       entityKey = null,
       npcEncounters = listOf(NpcSpawnTable.NpcEncounter(IRIS_ID, "iris"))
     )
@@ -67,7 +67,7 @@ class AuthoritativeEncounterPartyTest {
 
   @Test fun fullPartyDoesNotAutoRecruitOnEncounter() {
     val base = GameState.initial().let { it.copy(party = it.party.copy(memberIds = listOf(CAO_MINH_ID, IRIS_ID, SYVIAL_ID, LUCIA_ID))) }
-    val encounter = SpawnMechanism.SpawnResult(
+    val encounter = SpawnResult(
       entityKey = null,
       npcEncounters = listOf(NpcSpawnTable.NpcEncounter(AN_NHIEN_ID, "anNhien"))
     )

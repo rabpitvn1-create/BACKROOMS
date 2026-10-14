@@ -1,5 +1,6 @@
 package com.rabpit.backroom.core
 
+import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.*
 import org.junit.Test
@@ -42,7 +43,7 @@ class LucTramEncounterTest {
 
   @Test fun acceptedLevelFourEncounterSetsMetadataWithoutRecruitment() {
     val state = atLevel(4)
-    val result = SpawnMechanism.SpawnResult(
+    val result = SpawnResult(
       entityKey = null,
       npcEncounters = listOf(NpcSpawnTable.NpcEncounter(LUC_TRAM_ID, "lucTram"))
     )
