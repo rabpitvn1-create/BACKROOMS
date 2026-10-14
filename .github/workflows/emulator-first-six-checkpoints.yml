@@ -1,12 +1,6 @@
 name: Emulator - One Checkpoint Then Repeat
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - '.github/workflows/emulator-first-six-checkpoints.yml'
-      - 'android-apk/app/src/androidTest/java/com/rabpit/backroom/core/FirstSixCheckpointsEmulatorTest.kt'
-      - 'android-apk/app/src/main/java/com/rabpit/backroom/core/**'
   workflow_dispatch:
 
 permissions:
@@ -14,7 +8,6 @@ permissions:
 
 jobs:
   first-checkpoint:
-    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'restore/fake-sandbox-milestone-v2'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:

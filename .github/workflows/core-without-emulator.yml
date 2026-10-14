@@ -1,0 +1,38 @@
+name: Verify Core Without Emulator
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/core-without-emulator.yml'
+      - '.github/workflows/emulator-first-six-checkpoints.yml'
+      - '.github/workflows/live-gameplay-six-checkpoints.yml'
+      - 'android-apk/app/src/main/java/com/rabpit/backroom/core/**'
+      - 'android-apk/app/src/test/**'
+      - 'android-apk/tests/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  core-without-emulator:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run JavaScript regression tests
+        run: node --test android-apk/tests/*.test.cjs
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+
+      - name: Run Kotlin Core unit tests without Android Emulator
+        run: cd android-apk && gradle :app:testDebugUnitTest --no-daemon
