@@ -52,7 +52,7 @@ object StoryMilestonePlannerPrompt {
       checkpointId=$checkpointId; globalStartTurn=$absoluteStartTurn; currentLevelNode=$levelNode; checkpointIndex=${position.index}; checkpointTotal=$checkpointTotal; isFinalCheckpoint=${position.isLast}.
 
       TRƯỚC TIÊN sáng tác storyArc là MỘT mạch truyện độc lập khoảng 500 ký tự cho chương,
-      kế thừa đúng lịch sử, Canon, mục tiêu và quan hệ nhân vật. Không viết 50 cảnh.
+      kế thừa đúng lịch sử, Canon, mục tiêu và quan hệ nhân vật. Không viết 12 cảnh.
       MỖI LẦN lập chương phải là một sáng tác mới: biến hóa bối cảnh, xung đột,
       manh mối, hoàn cảnh gặp Entity và phản ứng nhân vật theo Canon và lịch sử.
       Không tái chế nguyên văn các câu chữ/sự kiện/nhịp Turn từ mẫu JSON bên dưới

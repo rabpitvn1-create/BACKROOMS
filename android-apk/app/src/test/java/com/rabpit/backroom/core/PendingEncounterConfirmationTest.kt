@@ -29,7 +29,7 @@ class PendingEncounterConfirmationTest {
       .put(JSONObject().put("id", "mention").put("turn", 1).put("kind", "STORY")
         .put("action", "Cao Minh nhìn dấu vết").put("event", "Lời đồn về Duller")
         .put("outcome", "Chưa gặp Entity"))
-      .put(JSONObject().put("id", "boss").put("turn", 18).put("kind", "FINAL_ENTITY")
+      .put(JSONObject().put("id", "boss").put("turn", 12).put("kind", "FINAL_ENTITY")
         .put("action", "Boss chắn đường").put("event", "Hound xuất hiện")
         .put("outcome", "Chờ Battle Start").put("entityKey", "hound")
         .put("hpMultiplier", 9).put("expMultiplier", 9)))

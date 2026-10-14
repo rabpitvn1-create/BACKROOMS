@@ -440,7 +440,7 @@ object StoryMilestoneRuntime {
         }
         allRefs += ref
       }
-      require(turns >= StoryMilestonePlan.MIN_CHECKPOINT_TURNS && entry.getLong("turnCount") == turns &&
+      require(turns == StoryMilestonePlan.CHECKPOINT_TURNS.toLong() && entry.getLong("turnCount") == turns &&
         entry.getInt("entityEncounterCount") == encounters.length() - 1 &&
         (encounters.length() - 1).toLong() >= StoryMilestonePlan.minimumEntityEncounters(turns) &&
         encounterIds.size == encounterIds.toSet().size && encounterIds == sourceEncounters &&
