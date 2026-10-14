@@ -12,16 +12,17 @@ class CharacterFiveStatCombatMathTest {
       statProfile = actor.statProfile.copy(str = 6, dex = 6, agi = 6, vit = 6, eva = 6)
     )))
     val sampled = CharacterStatCore.effective(state, id)
-    // Cao Minh's canon passive grants +1 to a raw stat of 6.
-    val stat = 7
-    assertEquals(50 + 5 * (stat - 5), sampled.maxHp)
-    assertEquals(stat - 5, sampled.def)
-    assertEquals(100 + 4 * (stat - 5), sampled.attackPercent)
+    // +10% intrinsic passive is applied before the bound weapon/armor percentage bonuses.
+    // Raw 6 -> passive 7; gear: STR +520%, DEX +130%, AGI +100%, VIT +20%.
+    assertEquals(listOf(43,16,14,8,7), listOf(sampled.str,sampled.dex,sampled.agi,sampled.vit,sampled.eva))
+    assertEquals(CharacterStatCore.maxHp(sampled.vit), sampled.maxHp)
+    assertEquals(CharacterStatCore.defense(sampled.vit), sampled.def)
+    assertEquals(CharacterProgressionCore.statPercent(sampled.str), sampled.attackPercent)
     assertEquals(sampled.attackPercent, sampled.skillDamagePercent)
-    assertEquals(CharacterStatCore.criticalChanceBasisPoints(stat), sampled.criticalChanceBasisPoints)
-    assertEquals(CharacterStatCore.criticalResistanceBasisPoints(stat), sampled.resCriticalBasisPoints)
-    assertEquals(CharacterStatCore.evasionBasisPoints(stat), sampled.evasionBasisPoints)
-    assertEquals(CharacterStatCore.evasionResistanceBasisPoints(stat), sampled.resEvasionBasisPoints)
+    assertEquals(CharacterStatCore.criticalChanceBasisPoints(sampled.agi), sampled.criticalChanceBasisPoints)
+    assertEquals(CharacterStatCore.criticalResistanceBasisPoints(sampled.dex), sampled.resCriticalBasisPoints)
+    assertEquals(CharacterStatCore.evasionBasisPoints(sampled.eva), sampled.evasionBasisPoints)
+    assertEquals(CharacterStatCore.evasionResistanceBasisPoints(sampled.eva), sampled.resEvasionBasisPoints)
   }
 
   @Test fun dexAgiEvaKeepTheirDistinctCombatResponsibilities() {
@@ -75,9 +76,14 @@ class CharacterFiveStatCombatMathTest {
     val json = CharacterDetailJson.encodeCharacter(member)
     val primary = json.getJSONObject("stats")
     assertEquals(setOf("STR", "DEX", "AGI", "VIT", "EVA"), primary.keys().asSequence().toSet())
-    assertEquals(1, json.getJSONObject("combatStatus").getInt("defense"))
+    val effective = CharacterStatCore.effective(GameState.initial(), CAO_MINH_ID)
+    assertEquals(2, effective.def)
+    assertEquals(815, effective.criticalChanceBasisPoints)
+    assertEquals(effective.def, json.getJSONObject("combatStatus").getInt("defense"))
     assertEquals(400, json.getJSONObject("combatStatus").getInt("criticalDamagePercent"))
-    assertEquals(5.45, json.getJSONObject("combatStatus").getDouble("criticalChancePercent"), 0.001)
-    assertEquals(5.50, json.getJSONObject("combatStatus").getDouble("evasionPercent"), 0.001)
+    assertEquals(effective.criticalChanceBasisPoints / 100.0,
+      json.getJSONObject("combatStatus").getDouble("criticalChancePercent"), 0.001)
+    assertEquals(effective.evasionBasisPoints / 100.0,
+      json.getJSONObject("combatStatus").getDouble("evasionPercent"), 0.001)
   }
 }

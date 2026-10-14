@@ -44,11 +44,11 @@ class InventoryCapacityNewGameTest {
     val state = freshAll()
     val caoMinh = CharacterDetailProjector.projectParty(state).members.first { it.id == CAO_MINH_ID }
     assertEquals(50, caoMinh.currentHp)
-    assertEquals(55, caoMinh.maxHp)
+    assertEquals(60, caoMinh.maxHp)
     assertEquals("∞", caoMinh.energyDisplay)
     assertEquals(0, caoMinh.regenPerCompletedTurn)
     assertEquals(listOf(5,5,5,5,5), listOf(caoMinh.str.base, caoMinh.dex.base, caoMinh.agi.base, caoMinh.vit.base, caoMinh.eva.base))
-    assertEquals(listOf(6,6,6,6,6), listOf(caoMinh.str.effective, caoMinh.dex.effective, caoMinh.agi.effective, caoMinh.vit.effective, caoMinh.eva.effective))
+    assertEquals(listOf(37,13,12,7,6), listOf(caoMinh.str.effective, caoMinh.dex.effective, caoMinh.agi.effective, caoMinh.vit.effective, caoMinh.eva.effective))
     assertEquals(0, caoMinh.inventoryCapacityUsed)
     assertEquals(InventoryPolicy.CAO_MINH.maxTypes, caoMinh.inventoryCapacityMax)
     assertEquals(2, caoMinh.equipment.values.toSet().size)

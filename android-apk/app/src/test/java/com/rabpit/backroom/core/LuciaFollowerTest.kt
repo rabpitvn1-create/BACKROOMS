@@ -24,8 +24,14 @@ class LuciaFollowerTest {
     val fsfDamage = fsf.feedback.single { it.actorId == LUCIA_ID && it.skill == "Too Young To Die" }.amount
     val base = CharacterStatCore.basicDamage(26, CharacterStatEngine.effective(ready, LUCIA_ID).str)
     val singleShot = ((base.toLong() * 115L + 50L) / 100L).toInt()
-    assertEquals(60 * singleShot, ssfDamage)
-    assertTrue(fsfDamage > ssfDamage)
+    // Damage is capped to enemy HP remaining after earlier Party members act.
+    // Equipment buffs can make SSF or FSF lethal before all nominal damage lands.
+    val ssfBeforeLucia = ssf.feedback.single { it.actorId == LUCIA_ID && it.skill == "Too Young To Die" }
+      .let { it.amount + (it.remainingHp ?: 0) }
+    val fsfBeforeLucia = fsf.feedback.single { it.actorId == LUCIA_ID && it.skill == "Too Young To Die" }
+      .let { it.amount + (it.remainingHp ?: 0) }
+    assertEquals(minOf(ssfBeforeLucia, 60 * singleShot), ssfDamage)
+    assertEquals(minOf(fsfBeforeLucia, 120 * singleShot), fsfDamage)
     assertTrue(ssf.reply.contains("đúng 60 phát"))
     assertTrue(fsf.reply.contains("FSF x200%"))
     assertFalse(ssf.reply.contains("Toxic Burst"))

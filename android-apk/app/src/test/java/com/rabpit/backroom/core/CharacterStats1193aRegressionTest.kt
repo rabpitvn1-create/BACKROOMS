@@ -20,8 +20,12 @@ class CharacterStats1193aRegressionTest {
     val state = CharacterProgressionCore.normalize(GameState.initial())
     val base = state.characters.getValue(CAO_MINH_ID).statProfile
     assertEquals(listOf(5,5,5,5,5), listOf(base.str, base.dex, base.agi, base.vit, base.eva))
-    val effective = CharacterStatCore.effective(state, CAO_MINH_ID)
+    // 1.1.93a passive baseline is observable with the new percentage gear removed.
+    val bare = state.copy(equipment = state.equipment + (CAO_MINH_ID to EquipmentState(CAO_MINH_ID)))
+    val effective = CharacterStatCore.effective(bare, CAO_MINH_ID)
     assertEquals(listOf(6,6,6,6,6), listOf(effective.str, effective.dex, effective.agi, effective.vit, effective.eva))
+    val equipped = CharacterStatCore.effective(state, CAO_MINH_ID)
+    assertEquals(listOf(37,13,12,7,6), listOf(equipped.str,equipped.dex,equipped.agi,equipped.vit,equipped.eva))
     assertEquals(55, effective.maxHp)
     assertEquals(50, state.characters.getValue(CAO_MINH_ID).vitalState.currentHp)
     assertEquals(5, effective.criticalChancePercent)
@@ -97,7 +101,10 @@ class CharacterStats1193aRegressionTest {
     val before = CharacterStatEngine.effective(state, CAO_MINH_ID)
     val stripped = state.copy(equipment = state.equipment + (CAO_MINH_ID to EquipmentState(CAO_MINH_ID)))
     val after = CharacterStatEngine.effective(stripped, CAO_MINH_ID)
-    assertEquals(before.copy(), after)
+    assertEquals(state.characters.getValue(CAO_MINH_ID).statProfile,
+      stripped.characters.getValue(CAO_MINH_ID).statProfile)
+    assertEquals(listOf(6,6,6,6,6), listOf(after.str,after.dex,after.agi,after.vit,after.eva))
+    assertEquals(listOf(37,13,12,7,6), listOf(before.str,before.dex,before.agi,before.vit,before.eva))
     val weapon = CharacterStatEngine.weaponDamage(state, CAO_MINH_ID)
     val id = state.equipment.getValue(CAO_MINH_ID).slots["weapon"]
     assertEquals(EquipmentCatalog.definition(id!!)?.weapon?.dmg ?: 18, weapon)
