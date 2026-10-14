@@ -1,0 +1,8 @@
+Backroom 1.2.0.0.25 Debug
+
+- Android versionCode 98, versionName 1.2.0.0.25, applicationId com.rabpit.backroom.
+- Bổ sung 25 ảnh nền Level/Sublevel WEBP, mỗi ảnh không quá 300 kB; kết nối vào mapping và vòng luân phiên snapshot trong game. Tổng cộng 66 ảnh được mapping.
+- Giữ lớp nhân vật trên nền; regression test kiểm tra render snapshot, luân phiên ảnh và khôi phục trạng thái sau Save/Load.
+- 14 ảnh bổ sung còn thiếu đang tạm dừng; chưa tuyên bố mọi Level/Sublevel đều đủ ba ảnh.
+- Kế thừa Fake Sandbox Milestone và Canon từ bản 1.2.0.0.24. Chưa nghiệm thu hoàn chỉnh Checkpoint SOL/Gehihi thật.
+- Đây là APK Debug. Không hỗ trợ migration hoặc tương thích save cũ.
