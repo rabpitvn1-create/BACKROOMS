@@ -5,7 +5,10 @@ import org.junit.Test
 
 class CharacterFiveStatCombatMathTest {
   @Test fun fiveStatsDeriveTheirOnlyIntendedCombatAttributes() {
-    val original = GameState.initial()
+    // Isolate the five-stat formulas from equipped item bonuses.
+    val equipped = GameState.initial()
+    val original = equipped.copy(equipment = equipped.equipment +
+      (CAO_MINH_ID to EquipmentState(CAO_MINH_ID)))
     val id = CAO_MINH_ID
     val actor = original.characters.getValue(id)
     val state = original.copy(characters = original.characters + (id to actor.copy(
@@ -71,7 +74,10 @@ class CharacterFiveStatCombatMathTest {
   }
 
   @Test fun characterDetailExposesFiveStatsAndFractionalCombatRates() {
-    val member = CharacterDetailProjector.projectCharacter(GameState.initial(), CAO_MINH_ID)!!
+    val equipped = GameState.initial()
+    val bare = equipped.copy(equipment = equipped.equipment +
+      (CAO_MINH_ID to EquipmentState(CAO_MINH_ID)))
+    val member = CharacterDetailProjector.projectCharacter(bare, CAO_MINH_ID)!!
     val json = CharacterDetailJson.encodeCharacter(member)
     val primary = json.getJSONObject("stats")
     assertEquals(setOf("STR", "DEX", "AGI", "VIT", "EVA"), primary.keys().asSequence().toSet())

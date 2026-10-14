@@ -17,7 +17,10 @@ class CharacterStats1193aRegressionTest {
   }
 
   @Test fun baselineAndCaoPassiveMatch1193a() {
-    val state = CharacterProgressionCore.normalize(GameState.initial())
+    // Validate intrinsic/passive stats in isolation from equipment percentages.
+    val equipped = CharacterProgressionCore.normalize(GameState.initial())
+    val state = equipped.copy(equipment = equipped.equipment +
+      (CAO_MINH_ID to EquipmentState(CAO_MINH_ID)))
     val base = state.characters.getValue(CAO_MINH_ID).statProfile
     assertEquals(listOf(5,5,5,5,5), listOf(base.str, base.dex, base.agi, base.vit, base.eva))
     val effective = CharacterStatCore.effective(state, CAO_MINH_ID)
@@ -92,12 +95,17 @@ class CharacterStats1193aRegressionTest {
     assertEquals(400, CharacterStatCore.criticalDamage(100))
   }
 
-  @Test fun equipmentCannotCreateSecondStatSchemaAndWeaponDamageStaysWeaponProperty() {
+  @Test fun equipmentBonusesAffectDerivedStatsWithoutChangingBaseSchemaOrWeaponDamage() {
     val state = GameState.initial()
     val before = CharacterStatEngine.effective(state, CAO_MINH_ID)
     val stripped = state.copy(equipment = state.equipment + (CAO_MINH_ID to EquipmentState(CAO_MINH_ID)))
     val after = CharacterStatEngine.effective(stripped, CAO_MINH_ID)
-    assertEquals(before.copy(), after)
+    assertEquals(state.characters.getValue(CAO_MINH_ID).statProfile,
+      stripped.characters.getValue(CAO_MINH_ID).statProfile)
+    assertEquals(37, before.str)
+    assertEquals(6, after.str)
+    assertEquals(60, before.maxHp)
+    assertEquals(55, after.maxHp)
     val weapon = CharacterStatEngine.weaponDamage(state, CAO_MINH_ID)
     val id = state.equipment.getValue(CAO_MINH_ID).slots["weapon"]
     assertEquals(EquipmentCatalog.definition(id!!)?.weapon?.dmg ?: 18, weapon)
