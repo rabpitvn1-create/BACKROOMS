@@ -1453,31 +1453,55 @@ public class MainActivity extends Activity {
   }
 
   /** Gehihi narrates the turn directly from player action and Core rolls. Core alone updates game state. */
-  private String writerPrompt(JSONObject before, String action, JSONObject rolls, JSONArray pendingNpcEncounters) throws Exception {
+  private String writerPrompt(JSONObject before, String action, JSONObject rolls, JSONArray pendingNpcEncounters, JSONObject pendingEntityEncounter) throws Exception {
     JSONObject visibleRolls = new JSONObject(rolls.toString());
     visibleRolls.remove(com.rabpit.backroom.core.HiddenExitStreak.ROLL_KEY);
-    // P0-A: Merge Core-confirmed pending NPC encounters into the state snapshot for the
-    // knowledge retriever, so the GM receives their Canon (personality, speech, relations)
-    // and narrates the first meeting. These NPCs are present in the scene, not yet recruited.
+    // P0-A: Pass Core-confirmed pending NPC encounters to the knowledge retriever via a
+    // dedicated channel (NOT by faking Party membership). These NPCs are present in the
+    // scene this turn but have NOT yet joined the Party. The retriever loads their Canon
+    // (personality, speech, relations) so the GM narrates the first meeting correctly.
     // Contract: pendingNpcEncounters = [{characterId, flagKey, name}] from beginAction — Core data only.
+    //
+    // P0 Entity GM: Pass Core-reserved Entity encounter via pendingEntityEncounter =
+    // {entityKey, entityName, encounterId} from beginAction — Core data only, public
+    // perception (no exit/Core secrets). The GM must narrate THIS specific Entity.
     JSONObject stateForKnowledge = new JSONObject(before.toString());
+    StringBuilder encounterEvents = new StringBuilder();
     if (pendingNpcEncounters != null && pendingNpcEncounters.length() > 0) {
-      JSONArray party = stateForKnowledge.optJSONArray("party");
-      if (party == null) { party = new JSONArray(); stateForKnowledge.put("party", party); }
-      java.util.Set<String> existingIds = new java.util.HashSet<>();
-      for (int i = 0; i < party.length(); i++) {
-        Object v = party.opt(i);
-        if (v instanceof JSONObject) existingIds.add(((JSONObject) v).optString("id", ""));
-        else if (v instanceof String) existingIds.add((String) v);
-      }
+      stateForKnowledge.put("pendingNpcEncounters", pendingNpcEncounters);
+      encounterEvents.append("\nCORE_CONFIRMED_ENCOUNTER_EVENTS: ");
       for (int i = 0; i < pendingNpcEncounters.length(); i++) {
         JSONObject enc = pendingNpcEncounters.optJSONObject(i);
         if (enc == null) continue;
         String cid = enc.optString("characterId", "").trim();
-        if (!cid.isEmpty() && !existingIds.contains(cid)) {
-          party.put(cid);
-          existingIds.add(cid);
+        String name = enc.optString("name", cid).trim();
+        if (cid.isEmpty()) continue;
+        if (i > 0) encounterEvents.append("; ");
+        encounterEvents.append(name).append(" (").append(cid).append(")");
+      }
+      encounterEvents.append(" — HIỆN DIỆN trong cảnh lượt này, CHƯA gia nhập Party. ");
+      encounterEvents.append("Kể cuộc gặp đầu tiên tự nhiên; KHÔNG coi họ là thành viên Party trước khi recruit.");
+    }
+    if (pendingEntityEncounter != null) {
+      String entityKey = pendingEntityEncounter.optString("entityKey", "").trim();
+      String entityName = pendingEntityEncounter.optString("entityName", entityKey).trim();
+      String encounterId = pendingEntityEncounter.optString("encounterId", "").trim();
+      if (!entityKey.isEmpty() && !encounterId.isEmpty()) {
+        // Merge entityEncounterKey into state copy's flags so KnowledgeContextEngine
+        // confirmedEntityVisualId() picks up ENTITY.<KEY>.VISUAL for the knowledge packet.
+        JSONObject flags = stateForKnowledge.optJSONObject("flags");
+        if (flags == null) {
+          flags = new JSONObject();
+          stateForKnowledge.put("flags", flags);
         }
+        flags.put("entityEncounterKey", entityKey);
+        // Also pass as dedicated field for explicit retriever support.
+        stateForKnowledge.put("pendingEntityEncounter", pendingEntityEncounter);
+        if (encounterEvents.length() == 0) encounterEvents.append("\nCORE_CONFIRMED_ENCOUNTER_EVENTS: ");
+        else encounterEvents.append("; ");
+        encounterEvents.append("ENTITY ").append(entityName).append(" (").append(entityKey).append(")");
+        encounterEvents.append(" — ĐÃ được Core xác nhận chạm trán lượt này (ID: ").append(encounterId).append("). ");
+        encounterEvents.append("Kể cảnh đối đầu, DỪNG ở thế giằng co; chưa kể đòn đánh/sát thương trước Battle Start.");
       }
     }
     String canon = com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.build(
@@ -1499,6 +1523,7 @@ public class MainActivity extends Activity {
       "\nACTION_TYPE: " + new JSONObject(requireGameCore().currentActionContext()).optString("kind", "EXECUTE") +
       "\nPLAYER_ACTION: " + action +
       "\nCORE_ROLLS_READ_ONLY: " + visibleRolls.toString() +
+      encounterEvents.toString() +
       "\nCANON_READ_ONLY: " + canon;
   }
 
@@ -1621,11 +1646,15 @@ public class MainActivity extends Activity {
           // until the turn succeeds. Contract: [{characterId, flagKey, name}], no secrets.
           JSONArray pendingNpcEncounters = actionStart.optJSONArray("pendingNpcEncounters");
           if (pendingNpcEncounters == null) pendingNpcEncounters = new JSONArray();
+          // P0 Entity GM: Extract Core-reserved Entity encounter (if any) from beginAction response.
+          // Contract: {entityKey, entityName, encounterId} — public perception only, no secrets.
+          // The GM must narrate the correct Entity in this turn; Core reserved the encounter.
+          JSONObject pendingEntityEncounter = actionStart.optJSONObject("pendingEntityEncounter");
           JSONObject before = new JSONObject(currentView);
           boolean meta = isMetaAction(action);
           JSONObject rolls = makeGameplayRolls(before, actionKind, action, meta);
 
-          JSONObject generated = parseModelJson(generateText(writerPrompt(before, action, rolls, pendingNpcEncounters)));
+          JSONObject generated = parseModelJson(generateText(writerPrompt(before, action, rolls, pendingNpcEncounters, pendingEntityEncounter)));
           String reply = generated.optString("reply", "").trim();
           if (reply.isEmpty()) throw new Exception("Gehihi không trả lời kể chuyện; lượt này không được ghi.");
           if (meta) {
