@@ -1,0 +1,46 @@
+name: Measure AI Provider Cache (No Emulator)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type RUN to allow at most 9 paid/free API calls (3 per provider)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: provider-cache-metadata
+  cancel-in-progress: false
+
+jobs:
+  measure:
+    if: inputs.confirm == 'RUN'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      CACHE_BENCH_CONFIRM: ${{ inputs.confirm }}
+      GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 || secrets.GEMINI_API_KEY }}
+      GEHIHI_API_KEY: ${{ secrets.GEHIHI_API_KEY }}
+      GEHIHI_BASE_URL: ${{ secrets.GEHIHI_BASE_URL || vars.GEHIHI_BASE_URL }}
+      GEHIHI_MODEL: ${{ secrets.GEHIHI_MODEL || vars.GEHIHI_MODEL }}
+      SOL_API_KEY: ${{ secrets.SOL_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate runner script
+        run: node --check android-apk/tools/measure-provider-cache.cjs
+      - name: Measure actual provider metadata
+        run: node android-apk/tools/measure-provider-cache.cjs
+      - name: Upload metadata only (no prompts, replies or keys)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: provider-cache-metadata
+          path: provider-cache-metadata.json
+          if-no-files-found: ignore
+          retention-days: 3
