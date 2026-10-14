@@ -40,7 +40,7 @@ class StoryMilestoneHistoryTest {
     val state = initial()
     assertEquals(0, JSONObject(StoryMilestoneRuntime.continuityContext(state))
       .getJSONArray("recentCommittedEvents").length())
-    val committed = StoryMilestoneRuntime.acceptTurn(state)
+    val committed = TestMilestoneTurn.dispatch(state)
     assertTrue(StoryMilestoneRuntime.continuityContext(committed).contains("Cao Minh"))
     assertFalse(committed.world.containsKey("story.factLedger"))
     val restored = GameStateCodec.decode(GameStateCodec.encode(committed))
@@ -67,6 +67,8 @@ class StoryMilestoneHistoryTest {
     assertEquals("Cao Minh nhìn thấy căn phòng màu vàng",
       events.getJSONObject(0).getString("event"))
     assertTrue(StoryMilestoneRuntime.continuityContext(completed).contains("Cao Minh"))
+    assertTrue(events.getJSONObject(0).has("narration"))
+    assertFalse(StoryMilestoneRuntime.continuityContext(completed).contains("\"narration\""))
     StoryMilestoneRuntime.validateStoredState(
       GameStateCodec.decode(GameStateCodec.encode(completed)))
     val forged = JSONArray(history.toString())

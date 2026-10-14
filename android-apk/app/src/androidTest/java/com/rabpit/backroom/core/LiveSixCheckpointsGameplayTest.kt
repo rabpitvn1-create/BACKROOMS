@@ -139,6 +139,7 @@ class LiveSixCheckpointsGameplayTest {
     val errorsPerTurn = linkedMapOf<String, Int>()
     val milestoneRetries = linkedMapOf<String, Int>()
     val issues = mutableListOf<String>()
+    var saveLoadVerified = false
     try {
       while (SystemClock.elapsedRealtime() - started < TimeUnit.HOURS.toMillis(3)) {
         val ui = snapshot(web)
@@ -203,8 +204,28 @@ class LiveSixCheckpointsGameplayTest {
           val entities = mutableListOf<String>()
           val followers = mutableListOf<String>()
           val storyEvents = mutableListOf<String>()
+          val actualScenes = org.json.JSONArray()
+          val communications = org.json.JSONArray()
           for (i in 0 until events.length()) {
             val event = events.getJSONObject(i)
+            val scene = event.getJSONObject("narration")
+            val due = JSONObject(event.toString()).put("id", event.getString("eventId"))
+            val validated = MilestoneNarrationValidator.validate(JSONObject().put("reply", "")
+              .put("completedEventIds", org.json.JSONArray().put(event.getString("eventId")))
+              .put("eventNarrations", org.json.JSONArray().put(scene)), org.json.JSONArray().put(due))
+            actualScenes.put(scene)
+            // Full actual text for human review of event fulfillment and Canon. Hashes alone cannot prove meaning.
+            listOf("occurrence", "consequence").forEach { field ->
+              Log.i(tag, "LIVE_EVENT_TEXT=" + JSONObject().put("eventId", event.getString("eventId"))
+                .put("kind", event.getString("kind")).put("field", field).put("text", scene.getString(field)))
+            }
+            if (event.getString("kind") in listOf("NPC", "FOLLOWER") || event.has("communicationCharacterId")) {
+              val communication = scene.getJSONObject("communication")
+              communications.put(communication)
+              Log.i(tag, "LIVE_CHARACTER_COMMUNICATION=" + JSONObject().put("eventId", event.getString("eventId"))
+                .put("characterId", communication.getString("speakerId")).put("communication", communication))
+              assertTrue(validated.reply.contains(communication.getString("text")))
+            }
             when (event.getString("kind")) {
               "ENTITY" -> entities.add(event.getInt("turn").toString() + ":" + event.getString("entityKey") +
                 ":" + event.getString("event").take(75))
@@ -213,7 +234,11 @@ class LiveSixCheckpointsGameplayTest {
               "STORY" -> storyEvents.add(event.getString("event").take(75))
             }
           }
-          assertTrue("Every Entity encounter needs a real Battle Start", battleStartIds.size >= 21)
+          assertTrue("Live acceptance requires at least one NPC/Follower communication", communications.length() > 0)
+          assertTrue("Live Save/Load round trip is required", saveLoadVerified)
+          assertEquals("Every planned encounter must be confirmed", chapter.getJSONArray("entityEncounterRefs").length(), battleStartIds.size)
+          for (i in 0 until chapter.getJSONArray("entityEncounterRefs").length())
+            assertTrue(battleStartIds.contains(chapter.getJSONArray("entityEncounterRefs").getString(i)))
           assertTrue("GM should write individual narration, not a fixed fixture", gmSamples.size >= 4)
           assertTrue("Entity encounters must have different circumstances",
             entities.map { it.substringAfterLast(":") }.toSet().size >= 3)
@@ -232,8 +257,20 @@ class LiveSixCheckpointsGameplayTest {
             .put("followerSequence", followers.joinToString("|").take(300))
             .put("storyEventsHash", fingerprint(storyEvents.joinToString("|")))
             .put("storyPreview", storyEvents.firstOrNull().orEmpty().take(120))
+            .put("actualEventNarrationsHash", fingerprint(actualScenes.toString()))
+            .put("characterCommunicationHash", fingerprint(communications.toString()))
+            .put("characterCommunications", org.json.JSONArray((0 until communications.length()).map {
+              val communication = communications.getJSONObject(it)
+              JSONObject().put("speakerId", communication.getString("speakerId"))
+                .put("text", communication.getString("text").take(120))
+            }))
+            .put("saveLoadVerified", saveLoadVerified)
             .put("gmSampleHashes", org.json.JSONArray(gmSamples.map(::fingerprint)))
             .put("gmPreview", gmSamples.firstOrNull().orEmpty().take(120))
+          val evidence = JSONObject().put("summary", summary).put("checkpoint", chapter)
+            .put("actualEventNarrations", actualScenes).put("characterCommunications", communications)
+            .put("gmSamples", org.json.JSONArray(gmSamples.toList()))
+          java.io.File(context.getExternalFilesDir(null), "live-checkpoint-evidence.json").writeText(evidence.toString(2))
           Log.i(tag, "LIVE_ONE_CP_SUMMARY=" + summary.toString())
           Log.i(tag, "LIVE_ONE_CP_PASS explorerActions=" + explorerActions +
             " battleStarts=" + battleStartIds.size + " combatFinishes=" + combatFinishes +
@@ -263,8 +300,7 @@ class LiveSixCheckpointsGameplayTest {
         }
         if (cp.isNotEmpty() && cp != "CP-L00-01")
           fail("LIVE_UNEXPECTED_CP=" + cp + " Turn=" + turn)
-        // An actual writer + independent audits + one repair + evidence verifier can
-        // legitimately exceed nine minutes during provider 503/timeout failover.
+        // A live provider request/retry can take several minutes during 503/timeout failover.
         // Do not abort an in-flight request merely because Explorer Turn is unchanged.
         val pending = ui.optBoolean("busy")
         val loading = ui.optBoolean("loading") || ui.optBoolean("blocked")
@@ -294,6 +330,19 @@ class LiveSixCheckpointsGameplayTest {
 
         if (ui.optBoolean("pending")) {
           val encounterId = ui.optString("pendingId")
+          if (!saveLoadVerified && !ui.optBoolean("busy") && !ui.optBoolean("blocked")) {
+            val storage = SharedPreferencesSaveRepository(context)
+            val before = storage.load()
+            assertEquals("Save/Load must succeed through the real UI bridge", "true", js(web, "save()&&load()"))
+            val after = storage.load()
+            assertEquals(encounterId, CombatRuntime.pending(after)!!.encounterId)
+            // A manual restore intentionally rotates only the run lease token.
+            assertEquals(GameStateCodec.encode(before), GameStateCodec.encode(after.copy(
+              world = after.world + ("story.runToken" to before.world.getValue("story.runToken")))))
+            StoryMilestoneRuntime.validateStoredState(after)
+            saveLoadVerified = true
+            Log.i(tag, "LIVE_SAVE_LOAD_VERIFIED encounterId=" + encounterId)
+          }
           if (!ui.optBoolean("busy") && encounterId.isNotBlank() && !ui.optBoolean("blocked") &&
               ui.optBoolean("battleReady") && click(web, "battleStartButton")) {
             battleStartIds.add(encounterId)

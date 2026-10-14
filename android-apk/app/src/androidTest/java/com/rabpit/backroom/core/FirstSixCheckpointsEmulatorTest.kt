@@ -64,10 +64,16 @@ class FirstSixCheckpointsEmulatorTest {
       .toString()
   }
 
-  private fun narration(events: List<StoryMilestonePlan.Event>): String =
-    "TEST_ONLY narrative " + events.joinToString(" ") {
-      it.action + ". " + it.event + ". " + it.outcome + "."
-    }
+  /** Synthetic renderer contract, not evidence of real AI/Canon behavior. */
+  private fun narration(events: List<StoryMilestonePlan.Event>): JSONObject = JSONObject()
+    .put("reply", "TEST_ONLY narrative")
+    .put("completedEventIds", JSONArray(events.map { it.id }))
+    .put("eventNarrations", JSONArray().apply { events.forEach { event ->
+      put(JSONObject().put("eventId", event.id).put("occurrence", event.action + ". " + event.event)
+        .put("consequence", event.outcome).apply { if (event.isCharacterEncounter)
+          put("communication", JSONObject().put("speakerId", event.characterId)
+            .put("text", "TEST_ONLY nhân vật cảnh báo về lối đi nguy hiểm.")) })
+    } })
 
   /** An actual CombatRuntime battle, with test-only instant HP depletion to keep six chapters fast. */
   private fun resolveEncounter(core: GameCoreFacade, boss: Boolean): String {
@@ -105,7 +111,9 @@ class FirstSixCheckpointsEmulatorTest {
           val due = StoryMilestoneRuntime.due(state)
           if (turn == 50) assertEquals(StoryMilestonePlan.Kind.FINAL_ENTITY, due.single().kind)
           val before = core.currentClientState("{}")
-          val result = JSONObject(core.processValidatedCandidate(before, before, "Khám Phá", narration(due)))
+          val generated = narration(due)
+          val rendered = MilestoneNarrationValidator.validate(generated, JSONArray(due.map { it.toJson() })).reply
+          val result = JSONObject(core.processValidatedCandidate(before, before, "Khám Phá", rendered, generated.toString()))
           assertTrue("CP $cp Turn $turn: $result", result.getBoolean("handled"))
           state = storage.load()
           assertEquals(start + turn, CoreClientProjection.turnIndex(state))

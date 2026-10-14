@@ -28,8 +28,8 @@ class StoryMilestoneRuntimeTest {
   @Test fun dueEventsAreAppliedByCoreWithoutGmReceiptsAndDoNotRepeatAfterSaveLoad() {
     val before = initial()
     assertEquals(listOf("warning"), StoryMilestoneRuntime.due(before).map { it.id })
-    val committed = StoryMilestoneRuntime.acceptTurn(before)
-    assertEquals(committed, StoryMilestoneRuntime.acceptTurn(committed))
+    val committed = TestMilestoneTurn.dispatch(before)
+    assertEquals(committed, TestMilestoneTurn.dispatch(committed))
     val records = JSONObject(committed.world.getValue("story.milestone.eventRecords"))
     assertEquals(setOf("warning"), records.keys().asSequence().toSet())
     assertTrue(StoryMilestoneRuntime.continuityContext(committed).contains("Có dấu hiệu bất thường"))
@@ -113,13 +113,19 @@ class StoryMilestoneRuntimeTest {
 
   @Test fun onlyAuthoritativeEventRecordsArePersistedAndValidated() {
     val state = initial()
-    val committed = StoryMilestoneRuntime.acceptTurn(state)
+    val committed = TestMilestoneTurn.dispatch(state)
     StoryMilestoneRuntime.validateStoredState(GameStateCodec.decode(GameStateCodec.encode(committed)))
     val records = JSONObject(committed.world.getValue("story.milestone.eventRecords"))
     assertFalse(records.getJSONObject("warning").has("requestToken"))
     assertFalse(records.getJSONObject("warning").has("verified"))
     val missing = committed.copy(world = committed.world - "story.milestone.eventRecords")
     assertThrows(Exception::class.java) { StoryMilestoneRuntime.validateStoredState(missing) }
+    val noContent = JSONObject(records.toString())
+    noContent.getJSONObject("warning").remove("narration")
+    assertThrows(Exception::class.java) { StoryMilestoneRuntime.validateStoredState(committed.copy(
+      world = committed.world + ("story.milestone.eventRecords" to noContent.toString()))) }
+    assertThrows(Exception::class.java) { StoryMilestoneRuntime.acceptTurn(state, JSONArray()) }
+    assertEquals(1, CoreClientProjection.turnIndex(state))
     val invented = JSONObject(records.toString()).put("fake_event", JSONObject()
       .put("checkpointId", "CP-L00-01").put("storyArc", TestCheckpointQuota.storyArc()).put("turn", 1))
     assertThrows(Exception::class.java) {

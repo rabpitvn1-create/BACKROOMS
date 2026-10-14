@@ -35,16 +35,16 @@ test('SOL Milestone parses response envelope, exposes categorized errors, and pr
 test('SOL authored events require Gehihi acknowledgement without a second AI verifier',()=>{
   assert.match(main,/private String generateText\(String prompt\) throws Exception \{\s*emit\("backroomProvider", "Gehihi"\);\s*return verifiedWriterReply\(gehihiText\(prompt\)\);/);
   assert.match(main,/JSONObject generated = parseModelJson\(generateText\(writerPrompt\(before, action, rolls\)\)\)/);
-  assert.match(main,/JSONObject coreCommit = new JSONObject\(requireGameCore\(\)\.processValidatedCandidate\(\s*before\.toString\(\), state\.toString\(\), action, reply\)\)/);
+  assert.match(main,/JSONObject coreCommit = new JSONObject\(requireGameCore\(\)\.processValidatedCandidate\(\s*before\.toString\(\), state\.toString\(\), action, reply, generated\.toString\(\)\)\)/);
   assert.doesNotMatch(main,/verifyMilestoneNarrative\(|auditsForRisk\(|generated\.getJSONArray\("storyFacts"\)/);
   assert.match(main,/requireMilestoneNarration\(generated,/);
-  assert.match(main,/completedEventIds/);
+  assert.match(main,/MilestoneNarrationValidator\.prompt\(\)/);
   assert.match(runtime,/val required = due\(state\)/);
   assert.match(runtime,/val updated = working\.copy\(/);
   assert.match(runtime,/fun continuityContext\(state: GameState\)/);
   assert.doesNotMatch(facade,/StoryFactLedger|storyFactContext/);
   assert.doesNotMatch(runtime,/validateEvidence\(|evidenceRequest\(|milestone_receipt_mismatch/);
-  assert.match(facade,/StoryMilestoneRuntime\.acceptTurn\(protectedState\)/);
+  assert.match(facade,/StoryMilestoneRuntime\.acceptTurn\(protectedState, narration\?\.events/);
   assert.match(main,/if \(requireGameCore\(\)\.isSpecialRuleAction\(action\)\)/);
   assert.match(main,/JSONObject generated = parseModelJson\(generateText\(writerPrompt\(before, action, rolls\)\)\)/);
   assert.doesNotMatch(main,/if \(dueMilestones\.length\(\) == 0\)/);

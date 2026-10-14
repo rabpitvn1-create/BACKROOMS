@@ -48,11 +48,11 @@ class PendingEncounterConfirmationTest {
     }, plan(combat))
 
   private fun onEncounter(combat: Boolean = true): GameState =
-    CoreClientProjection.advance(StoryMilestoneRuntime.acceptTurn(initial(combat)))
+    CoreClientProjection.advance(TestMilestoneTurn.dispatch(initial(combat)))
 
   private fun commit(repo: MemorySave, text: String = "Duller bước ra.\n\nNó đứng chắn lối đi."): JSONObject {
     val before = CoreClientProjection.project(JSONObject(), repo.state)
-    return JSONObject(facade(repo).processValidatedCandidate(before.toString(), before.toString(), "Khám Phá", text))
+    return JSONObject(TestMilestoneTurn.commit(facade(repo), before.toString(), before.toString(), "Khám Phá", text))
   }
 
   @Test fun narrativeCommitsPendingEncounterWithoutCombatHpExpOrDuplicateReservation() {
@@ -67,7 +67,7 @@ class PendingEncounterConfirmationTest {
       StoryMilestonePlan.current(repo.state)!!.plan.events.single { it.id == "encounter1" }))
     assertFalse(repo.state.metadata.containsKey("exp.awarded.${pending.encounterId}"))
     assertEquals(0, pending.eventCounter)
-    assertEquals(repo.state, StoryMilestoneRuntime.acceptTurn(repo.state))
+    assertEquals(repo.state, TestMilestoneTurn.dispatch(repo.state))
   }
 
   @Test fun confirmationUsesReservedCoreStatsAndIsIdempotentWithoutExplorerTurnAdvance() {
@@ -114,7 +114,7 @@ class PendingEncounterConfirmationTest {
     repo.state = restored
     val reload = JSONObject(core.currentClientState("{}"))
     assertEquals(pending.encounterId, reload.getJSONObject("pendingEncounter").getString("encounterId"))
-    assertEquals("Duller bước ra.\n\nNó đứng chắn lối đi.", reload.getJSONArray("log").getJSONObject(0).getString("text"))
+    assertTrue(reload.getJSONArray("log").getJSONObject(0).getString("text").startsWith("Duller bước ra.\n\nNó đứng chắn lối đi."))
     assertEquals(1, JSONObject(core.currentClientState(reload.toString())).getJSONArray("log").length())
     assertTrue(JSONObject(core.confirmEncounter(reload.toString(), pending.encounterId)).getBoolean("handled"))
     val loaded = JSONObject(core.loadManualCheckpoint()).getJSONObject("state")
@@ -130,7 +130,7 @@ class PendingEncounterConfirmationTest {
     val core = facade(repo)
     assertFalse(JSONObject(core.beginAction(view.toString(), "EXPLORE", "Khám Phá")).getBoolean("handled"))
     assertFalse(JSONObject(core.processRule(view.toString(), "quan sát")).getBoolean("handled"))
-    assertFalse(JSONObject(core.processValidatedCandidate(view.toString(), view.toString(), "Khám Phá", "Tiếp")).getBoolean("handled"))
+    assertFalse(JSONObject(TestMilestoneTurn.commit(core, view.toString(), view.toString(), "Khám Phá", "Tiếp")).getBoolean("handled"))
     assertEquals(before, CombatRuntime.start(before, "hound"))
     assertEquals(before, repo.state)
   }
@@ -165,7 +165,7 @@ class PendingEncounterConfirmationTest {
     val candidate = JSONObject(before.toString())
     candidate.getJSONObject("flags").put("lastRolls", JSONObject().put("turn", 1).put("selectedEntityKey", "hound")
       .put("entityEncounter", JSONObject().put("eligible", true).put("success", true)))
-    val result = JSONObject(core.processValidatedCandidate(before.toString(), candidate.toString(), "Khám Phá", "Hound xuất hiện."))
+    val result = JSONObject(TestMilestoneTurn.commit(core, before.toString(), candidate.toString(), "Khám Phá", "Hound xuất hiện."))
     assertFalse(result.getBoolean("handled"))
     assertEquals("milestone_plan_required", result.getString("error"))
     assertEquals(beforeState, repo.state)
@@ -184,7 +184,7 @@ class PendingEncounterConfirmationTest {
   }
 
   @Test fun storyMentionDoesNotStartCombatButScheduledEntityAlwaysDoes() {
-    val mentioned = StoryMilestoneRuntime.acceptTurn(initial())
+    val mentioned = TestMilestoneTurn.dispatch(initial())
     assertNull(CombatRuntime.pending(mentioned))
     assertNull(CombatRuntime.active(mentioned))
     val repo = MemorySave(onEncounter())
@@ -196,7 +196,7 @@ class PendingEncounterConfirmationTest {
 
   @Test fun bossWaitsForConfirmationAndCheckpointOnlyAdvancesAfterDefeat() {
     val due = TestCheckpointQuota.reachBoss(initial())
-    val before = StoryMilestoneRuntime.acceptTurn(due)
+    val before = TestMilestoneTurn.dispatch(due)
     val pending = CombatRuntime.pending(before)!!
     assertNull(CombatRuntime.active(before))
     assertEquals(pending.encounterId, StoryMilestoneRuntime.bossEncounterId(before))

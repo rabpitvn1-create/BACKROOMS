@@ -1,124 +1,121 @@
 package com.rabpit.backroom.core
 
-import com.rabpit.backroom.core.MilestoneNarrationValidator.MilestoneNarrationException
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.*
 import org.junit.Test
 
-/**
- * Regression tests for MilestoneNarrationValidator.
- *
- * The validator replaced the old form-based dialogue check in MainActivity
- * (which required quotation marks, em/en dashes, or a character-name mention in
- * the prose and threw "milestone_character_dialogue_missing"). Canon
- * (GmNarrativeVoicePolicy) governs HOW characters speak; this validator checks
- * only the EVENT contract via Gehihi's declared "completedEventIds".
- */
 class MilestoneNarrationValidatorTest {
+  private fun due(vararg ids: String) = JSONArray().apply {
+    ids.forEach { put(JSONObject().put("id", it).put("kind", "STORY")) }
+  }
+  private fun character(kind: String = "FOLLOWER") = JSONArray().put(JSONObject()
+    .put("id", "lucia_meet").put("kind", kind).put("characterId", LUCIA_ID))
+  private fun scene(id: String) = JSONObject().put("eventId", id)
+    .put("occurrence", "Cánh cửa khép lại ngay khi hắn bước qua.")
+    .put("consequence", "Hắn đã bị ngăn cách với hành lang cũ.")
+  private fun meeting() = scene("lucia_meet")
+    .put("occurrence", "Người lính trẻ bước đến trước hắn, giữ khoảng cách cảnh giác.")
+    .put("communication", JSONObject().put("speakerId", LUCIA_ID)
+      .put("text", "Cô hạ giọng nhắc hắn đừng chạm vào dây điện, nó vẫn còn mang điện.") )
+    .put("consequence", "Hắn đã nghe cảnh báo; cô vẫn đứng ngoài nhóm của hắn.")
+  private fun response(vararg scenes: JSONObject) = JSONObject().put("reply", "Cao Minh dừng lại.")
+    .put("completedEventIds", JSONArray(scenes.map { it.getString("eventId") }))
+    .put("eventNarrations", JSONArray(scenes.toList()))
+  private fun reject(code: String, value: JSONObject, events: JSONArray) {
+    assertEquals(code, assertThrows(MilestoneNarrationValidator.MilestoneNarrationException::class.java) {
+      MilestoneNarrationValidator.validate(value, events)
+    }.message)
+  }
 
-  private fun ids(vararg ids: String): JSONArray = JSONArray(ids.toList())
-
-  private fun due(vararg ids: String): JSONArray = JSONArray().apply {
-    ids.forEachIndexed { index, id ->
-      put(JSONObject().put("id", id).put("turn", index + 1).put("kind", "STORY")
-        .put("action", "TEST_ONLY").put("event", "TEST_ONLY").put("outcome", "TEST_ONLY"))
+  @Test fun correctIdWithUnrelatedReplyAndNoSceneIsRejected() {
+    val value = response().put("reply", "Cao Minh nhìn những bức tường vàng.")
+      .put("completedEventIds", JSONArray().put("door"))
+    reject("milestone_narrative_content_missing", value, due("door"))
+  }
+  @Test fun mereMentionOrObservationWithoutCommunicationIsRejectedForNpcAndFollower() {
+    for (kind in listOf("NPC", "FOLLOWER")) for (prose in listOf(
+      "Cao Minh nghĩ tới Lucia.", "Lucia đứng quan sát ở cuối hành lang.")) {
+      val value = response(meeting().apply { remove("communication"); put("occurrence", prose) })
+      reject("milestone_character_communication_missing", value, character(kind))
     }
   }
-
-  private fun dueIds(vararg ids: String): List<String> =
-    MilestoneNarrationValidator.dueIds(due(*ids))
-
-  private fun expectMissing(block: () -> Unit) {
-    val e = assertThrows(MilestoneNarrationException::class.java, block)
-    assertEquals("milestone_narrative_events_missing", e.message)
+  @Test fun naturalModernCommunicationWithoutNameQuotesOrDashesIsRendered() {
+    val value = response(meeting())
+    val result = MilestoneNarrationValidator.validate(value, character())
+    assertFalse(result.reply.contains("Lucia"))
+    assertFalse(result.reply.contains('"'))
+    assertFalse(result.reply.contains('—'))
+    assertTrue(result.reply.contains("Cô hạ giọng nhắc hắn đừng chạm vào dây điện"))
+    assertEquals("lucia", result.events.getJSONObject(0).getJSONObject("communication").getString("speakerId"))
   }
-
-  private fun expectMismatch(block: () -> Unit) {
-    val e = assertThrows(MilestoneNarrationException::class.java, block)
-    assertEquals("milestone_narrative_event_mismatch", e.message)
+  @Test fun emptyPreludeWithCompleteScenesIsValid() {
+    val result = MilestoneNarrationValidator.validate(response(meeting()).put("reply", ""), character())
+    assertTrue(result.reply.startsWith("Người lính trẻ"))
   }
-
-  @Test fun matchingIdsInOrderPass() {
-    MilestoneNarrationValidator.requireAcknowledgment(
-      ids("warning", "lucia_meet"), dueIds("warning", "lucia_meet"))
+  @Test fun multipleEventsRenderEachSceneOnceInScheduleOrder() {
+    val a = scene("door"); val b = meeting(); val c = scene("warning").put("occurrence", "Đèn vụt tắt.")
+    val result = MilestoneNarrationValidator.validate(response(a, b, c),
+      JSONArray().put(due("door").getJSONObject(0)).put(character().getJSONObject(0)).put(due("warning").getJSONObject(0)))
+    assertEquals(3, result.events.length())
+    assertTrue(result.reply.indexOf("Cánh cửa") < result.reply.indexOf("Người lính"))
+    assertTrue(result.reply.indexOf("Người lính") < result.reply.indexOf("Đèn vụt tắt"))
+    assertEquals(1, Regex("Cô hạ giọng").findAll(result.reply).count())
   }
-
-  @Test fun nullCompletedEventIdsIsRejected() {
-    expectMissing {
-      MilestoneNarrationValidator.requireAcknowledgment(null, dueIds("warning"))
+  @Test fun missingIdsAreRejected() {
+    reject("milestone_narrative_events_missing", response(scene("door")).apply { remove("completedEventIds") }, due("door"))
+    reject("milestone_narrative_events_missing", response(scene("door")), due("door", "warning"))
+  }
+  @Test fun duplicatedExtraWrongAndReorderedIdsAreRejected() {
+    val events = due("door", "warning")
+    for (ids in listOf(listOf("door", "door"), listOf("door", "invented"), listOf("warning", "door"))) {
+      reject("milestone_narrative_event_mismatch", response(scene("door"), scene("warning"))
+        .put("completedEventIds", JSONArray(ids)), events)
     }
+    reject("milestone_narrative_events_missing", response(scene("door"), scene("warning"), scene("extra")), events)
   }
-
-  @Test fun fewerIdsThanDueIsRejected() {
-    expectMissing {
-      MilestoneNarrationValidator.requireAcknowledgment(ids("warning"), dueIds("warning", "lucia_meet"))
+  @Test fun correctAcknowledgmentsCannotHideMismatchedScenes() {
+    reject("milestone_narrative_event_mismatch", response(scene("invented"))
+      .put("completedEventIds", JSONArray().put("door")), due("door"))
+  }
+  @Test fun missingOrBlankOccurrenceConsequenceAndCommunicationAreRejected() {
+    for (key in listOf("occurrence", "consequence")) {
+      reject("milestone_narrative_content_missing", response(scene("door").put(key, "  ")), due("door"))
+      reject("milestone_narrative_content_missing", response(scene("door").apply { remove(key) }), due("door"))
     }
+    reject("milestone_narrative_content_missing", response(meeting().apply {
+      getJSONObject("communication").put("text", " ")
+    }), character())
   }
-
-  @Test fun moreIdsThanDueIsRejected() {
-    expectMissing {
-      MilestoneNarrationValidator.requireAcknowledgment(
-        ids("warning", "lucia_meet", "extra"), dueIds("warning", "lucia_meet"))
-    }
+  @Test fun anotherSpeakerCannotSatisfyRequiredCharacterCommunication() {
+    reject("milestone_character_speaker_mismatch", response(meeting().apply {
+      getJSONObject("communication").put("speakerId", CAO_MINH_ID)
+    }), character())
   }
-
-  @Test fun duplicateIdsAreRejected() {
-    expectMismatch {
-      MilestoneNarrationValidator.requireAcknowledgment(
-        ids("warning", "warning"), dueIds("warning", "lucia_meet"))
-    }
+  @Test fun laterStoryDisclosureAlsoRequiresTheScheduledSpeaker() {
+    val events = due("lucia_meet")
+    events.getJSONObject(0).put("communicationCharacterId", LUCIA_ID)
+    val value = response(meeting())
+    assertTrue(MilestoneNarrationValidator.validate(value, events).reply.contains("dây điện"))
+    value.getJSONArray("eventNarrations").getJSONObject(0).remove("communication")
+    reject("milestone_character_communication_missing", value, events)
   }
-
-  @Test fun outOfOrderIdsAreRejected() {
-    expectMismatch {
-      MilestoneNarrationValidator.requireAcknowledgment(
-        ids("lucia_meet", "warning"), dueIds("warning", "lucia_meet"))
-    }
+  @Test fun invalidJsonTypesCannotBeCoercedIntoContent() {
+    reject("milestone_narrative_content_missing", response(scene("door").put("occurrence", 17)), due("door"))
+    reject("milestone_narrative_event_mismatch", response(scene("17")).put("completedEventIds", JSONArray().put(17)), due("17"))
+    reject("milestone_narrative_content_missing", response(scene("door")).put("reply", JSONObject.NULL), due("door"))
+    reject("milestone_narrative_content_missing", response(scene("door").put("occurrence", "x".repeat(6001))), due("door"))
+    reject("milestone_narrative_content_missing", response(scene("door").put("consequence", "x\u0000y")), due("door"))
   }
-
-  @Test fun idNotInDueScheduleIsRejected() {
-    // Declaring an event that is not due (a skipped event claimed as completed)
-    // must not pass, even when the count matches.
-    expectMismatch {
-      MilestoneNarrationValidator.requireAcknowledgment(
-        ids("warning", "invented_event"), dueIds("warning", "lucia_meet"))
-    }
+  @Test fun noEventsNeedsNonemptyProseAndEmptyArrays() {
+    assertEquals("Cao Minh dừng lại.", MilestoneNarrationValidator.validate(response(), due()).reply)
+    reject("milestone_narrative_content_missing", response().put("reply", ""), due())
+    reject("milestone_narrative_events_missing", response(scene("invented")), due())
   }
-
-  @Test fun emptyDueWithEmptyAcknowledgmentPasses() {
-    MilestoneNarrationValidator.requireAcknowledgment(ids(), dueIds())
-  }
-
-  @Test fun dueIdsExtractsIdsFromEventObjects() {
-    val events = JSONArray().apply {
-      put(JSONObject().put("id", "e1").put("kind", "FOLLOWER").put("characterId", "lucia"))
-      put(JSONObject().put("id", "e2").put("kind", "ENTITY").put("entityKey", "hound"))
-      put(JSONObject().put("id", "e3").put("kind", "STORY"))
-    }
-    assertEquals(listOf("e1", "e2", "e3"), MilestoneNarrationValidator.dueIds(events))
-  }
-
-  @Test fun followerEventPassesWithoutDialogueFormChecks() {
-    // Regression for the "milestone_character_dialogue_missing" live blocker:
-    // requireAcknowledgment takes NO reply text at all — the old check that
-    // demanded quotation marks, em/en dashes, or a character-name mention in the
-    // prose has been removed. Any of these Canon-valid narrations pass as long as
-    // the declared IDs match the due schedule:
-    //
-    // - "Lucia gật đầu, ánh mắt đầy nghi ngờ." (no quotes, no dashes)
-    // - "— Cô là ai? — giọng cô lạnh như thép." (dashes, but not required)
-    // - "\"Đừng lại gần,\" cô nói." (quotes, but not required)
-    // - "Người lính trẻ quan sát Cao Minh từ xa." (no name at all)
-    //
-    // The API itself is the proof: there is no reply parameter to inspect.
-    val followerDue = JSONArray().apply {
-      put(JSONObject().put("id", "lucia_meet").put("turn", 3).put("kind", "FOLLOWER")
-        .put("characterId", "lucia").put("characterName", "Lucia")
-        .put("action", "TEST_ONLY").put("event", "TEST_ONLY").put("outcome", "TEST_ONLY"))
-    }
-    MilestoneNarrationValidator.requireAcknowledgment(
-      ids("lucia_meet"),
-      MilestoneNarrationValidator.dueIds(followerDue))
+  @Test fun semanticMislabelingRemainsAnExplicitLimit() {
+    // A deterministic renderer cannot infer that model-labelled speech is actually silence.
+    // This test documents the boundary rather than claiming independent semantic proof.
+    val value = response(meeting().apply { getJSONObject("communication").put("text", "Cô im lặng.") })
+    assertTrue(MilestoneNarrationValidator.validate(value, character()).reply.contains("Cô im lặng."))
   }
 }

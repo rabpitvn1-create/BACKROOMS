@@ -69,6 +69,10 @@ object StoryMilestonePlannerPrompt {
       Lập FOLLOWER/NPC với characterId Registry và Turn gặp mặt tường minh.
       Các hội thoại và biến chuyển quan hệ quan trọng là STORY event BẮT BUỘC, có thứ tự
       nhân quả, không viết trước câu thoại hoặc quyết định thay người chơi.
+      STORY yêu cầu nhân vật giao tiếp/tiết lộ thông tin phải có communicationCharacterId
+      là ID Registry của người nói; chỉ dùng nhân vật đang hiện diện hoặc được gặp ở
+      event NPC/FOLLOWER cùng Turn hoặc trước đó. Trường này không viết sẵn câu thoại.
+      STORY không cần giao tiếp thì bỏ communicationCharacterId. NPC/FOLLOWER luôn cần giao tiếp.
       Gặp nhân vật không đồng nghĩa gia nhập Party; không biên kịch tự tuyển mộ.
       Registry nhân vật: $characters
 
@@ -94,6 +98,7 @@ object StoryMilestonePlannerPrompt {
       {"id":"beat1","turn":1,"kind":"STORY","action":"<world action>","event":"<authored event>","outcome":"<authored outcome>"},
       {"id":"follower1","turn":3,"kind":"FOLLOWER","characterId":"<registered follower ID>","action":"<character action>","event":"<direct meeting>","outcome":"<meeting only, no Party recruitment>"},
       {"id":"npc1","turn":3,"kind":"NPC","characterId":"<registered character ID>","action":"<character action>","event":"<direct NPC meeting>","outcome":"<meeting outcome>"},
+      {"id":"disclosure1","turn":4,"kind":"STORY","communicationCharacterId":"<already present or previously met Registry ID>","action":"<character communicates>","event":"<required disclosure>","outcome":"<information actually communicated>"},
       {"id":"encounter1","turn":4,"kind":"ENTITY","action":"<Entity action>","event":"<mandatory direct Combat encounter>","outcome":"<await Battle Start>","entityKey":"<supported Entity key>"},
       {"id":"boss","turn":50,"kind":"FINAL_ENTITY","action":"<world action>","event":"<authored event>","outcome":"<Combat opening>","entityKey":"<supported Entity key>","hpMultiplier":9,"expMultiplier":9}
       ],"completion":$completionSchema}

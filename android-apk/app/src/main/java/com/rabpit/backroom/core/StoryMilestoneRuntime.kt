@@ -39,7 +39,9 @@ object StoryMilestoneRuntime {
       val checkpoint = checkpoints.getJSONObject(i)
       val committed = checkpoint.getJSONArray("events")
       for (j in 0 until committed.length()) {
-        remember(JSONObject(committed.getJSONObject(j).toString())
+        // Full rendered scenes stay in SaveState for acceptance. The planner/GM
+        // continuity packet keeps bounded authored facts, not another growing prose log.
+        remember(JSONObject(committed.getJSONObject(j).toString()).apply { remove("narration") }
           .put("checkpointId", checkpoint.getString("checkpointId")))
       }
     }
@@ -48,8 +50,9 @@ object StoryMilestoneRuntime {
       val records = JSONObject(state.world[EVENT_RECORDS] ?: "{}")
       for (event in active.plan.events) {
         if (!records.has(event.id)) continue
+        val record = records.getJSONObject(event.id)
         remember(event.toJson().put("checkpointId", active.plan.checkpointId)
-          .put("turn", records.getJSONObject(event.id).getInt("turn")))
+          .put("turn", record.getInt("turn")))
       }
     }
     return JSONObject().put("recentCommittedEvents", JSONArray().apply { recent.forEach { put(it) } })
@@ -140,10 +143,14 @@ object StoryMilestoneRuntime {
   }
 
   /** Apply exactly the events authored for this Explorer turn in the installed SOL plan. */
-  fun acceptTurn(state: GameState): GameState {
+  fun acceptTurn(state: GameState, narrations: JSONArray): GameState {
     require(hasPlan(state)) { "milestone_plan_required" }
     val required = due(state)
+    require(narrations.length() == required.size) { "milestone_narrative_content_missing" }
     if (required.isEmpty()) return state
+    val scenes = MilestoneNarrationValidator.validate(JSONObject().put("reply", "")
+      .put("completedEventIds", JSONArray(required.map { it.id }))
+      .put("eventNarrations", narrations), JSONArray(required.map { it.toJson() })).events
     require(CombatRuntime.pending(state) == null && CombatRuntime.active(state) == null) {
       "milestone_encounter_unresolved"
     }
@@ -183,12 +190,13 @@ object StoryMilestoneRuntime {
       required.forEach { put(it.id) }
     }
     val records = JSONObject(state.world[EVENT_RECORDS] ?: "{}")
-    for (event in required) {
+    for ((index, event) in required.withIndex()) {
       records.put(event.id, JSONObject()
         .put("checkpointId", StoryCheckpointCore.current(state)!!.id)
         .put("turn", CoreClientProjection.turnIndex(state))
         .apply {
           if (event.isEncounter) put("encounterId", encounterId(working, event))
+          put("narration", scenes.getJSONObject(index))
         })
     }
     val updated = working.copy(world = working.world +
@@ -273,7 +281,9 @@ object StoryMilestoneRuntime {
               put("entityKey", requireNotNull(event.entityKey))
             }
             if (event.isCharacterEncounter) put("characterId", requireNotNull(event.characterId))
+            event.communicationCharacterId?.let { put("communicationCharacterId", it) }
             if (event.isEncounter) put("encounterId", record.getString("encounterId"))
+            put("narration", record.getJSONObject("narration"))
           })
       }
     }
@@ -349,9 +359,12 @@ object StoryMilestoneRuntime {
     applied.forEach { id ->
       val item = records.getJSONObject(id)
       val event = active!!.plan.events.single { it.id == id }
-      require(item.keys().asSequence().toSet() ==
-        if (event.isEncounter) setOf("checkpointId", "turn", "encounterId")
-        else setOf("checkpointId", "turn")) { "milestone_saved_event_fields_invalid" }
+      val fields = if (event.isEncounter) setOf("checkpointId", "turn", "encounterId")
+        else setOf("checkpointId", "turn")
+      require(item.keys().asSequence().toSet() == fields + "narration") { "milestone_saved_event_fields_invalid" }
+      MilestoneNarrationValidator.validate(JSONObject().put("reply", "")
+        .put("completedEventIds", JSONArray().put(event.id))
+        .put("eventNarrations", JSONArray().put(item.getJSONObject("narration"))), JSONArray().put(event.toJson()))
       require(item.getString("checkpointId") == active.plan.checkpointId &&
         item.getInt("turn").toLong() == active.startTurn.toLong() + event.turn - 1L) {
         "milestone_saved_event_record_invalid"
@@ -410,6 +423,10 @@ object StoryMilestoneRuntime {
           event.getString("action").isNotBlank() && event.getString("event").isNotBlank() &&
           event.getString("outcome").isNotBlank()) { "story_history_event_source_invalid" }
         val kind = StoryMilestonePlan.Kind.valueOf(event.getString("kind"))
+        MilestoneNarrationValidator.validate(JSONObject().put("reply", "")
+          .put("completedEventIds", JSONArray().put(event.getString("eventId")))
+          .put("eventNarrations", JSONArray().put(event.getJSONObject("narration"))),
+          JSONArray().put(JSONObject(event.toString()).put("id", event.getString("eventId"))))
         if (kind == StoryMilestonePlan.Kind.ENTITY || kind == StoryMilestonePlan.Kind.FINAL_ENTITY) {
           require(CombatRuntime.supportsEntityKey(event.getString("entityKey"))) {
             "story_history_entity_unknown"

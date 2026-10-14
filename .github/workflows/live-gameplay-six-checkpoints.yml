@@ -8,7 +8,7 @@ on:
       - 'android-apk/app/src/androidTest/java/com/rabpit/backroom/core/LiveSixCheckpointsGameplayTest.kt'
       - 'android-apk/tools/verify-live-one-checkpoint.cjs'
       - 'android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java'
-      - 'android-apk/app/src/main/java/com/rabpit/backroom/core/StoryMilestonePlannerPrompt.kt'
+      - 'android-apk/app/src/main/java/com/rabpit/backroom/core/**'
   workflow_dispatch:
 
 permissions:
@@ -53,9 +53,9 @@ jobs:
           arch: x86_64
           profile: pixel_7
           disable-animations: true
-          script: cd android-apk && bash -c 'gradle :app:connectedDebugAndroidTest -PbackroomTwoProviderTest=true "-Pandroid.testInstrumentationRunnerArguments.class=com.rabpit.backroom.core.LiveSixCheckpointsGameplayTest#playOneCheckpointWithRealProvidersAndUi" --no-daemon; result=$?; adb logcat -d -s BackroomLiveSixCP:I > app/build/live-one-cp-log.txt; grep "LIVE_ONE_CP_" app/build/live-one-cp-log.txt || true; exit $result'
+          script: cd android-apk && bash -c 'gradle :app:connectedDebugAndroidTest -PbackroomTwoProviderTest=true "-Pandroid.testInstrumentationRunnerArguments.class=com.rabpit.backroom.core.LiveSixCheckpointsGameplayTest#playOneCheckpointWithRealProvidersAndUi" --no-daemon; result=$?; adb logcat -d -s BackroomLiveSixCP:I > app/build/live-one-cp-log.txt; grep "LIVE_ONE_CP_" app/build/live-one-cp-log.txt || true; adb pull /sdcard/Android/data/com.rabpit.backroom/files/live-checkpoint-evidence.json app/build/live-checkpoint-evidence.json || true; exit $result'
       - name: Extract first actual AI narrative fingerprint
-        run: node android-apk/tools/verify-live-one-checkpoint.cjs extract android-apk/app/build/live-one-cp-log.txt android-apk/app/build/one-cp-summary.json
+        run: node android-apk/tools/verify-live-one-checkpoint.cjs extract android-apk/app/build/live-checkpoint-evidence.json android-apk/app/build/one-cp-summary.json
       - name: Save live first CP evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -66,6 +66,7 @@ jobs:
             android-apk/app/build/outputs/androidTest-results/connected/
             android-apk/app/build/live-one-cp-log.txt
             android-apk/app/build/one-cp-summary.json
+            android-apk/app/build/live-checkpoint-evidence.json
           if-no-files-found: warn
 
   live-repeat-checkpoint:
@@ -103,10 +104,10 @@ jobs:
           arch: x86_64
           profile: pixel_7
           disable-animations: true
-          script: cd android-apk && bash -c 'gradle :app:connectedDebugAndroidTest -PbackroomTwoProviderTest=true "-Pandroid.testInstrumentationRunnerArguments.class=com.rabpit.backroom.core.LiveSixCheckpointsGameplayTest#playOneCheckpointWithRealProvidersAndUi" --no-daemon; result=$?; adb logcat -d -s BackroomLiveSixCP:I > app/build/live-one-cp-log.txt; grep "LIVE_ONE_CP_" app/build/live-one-cp-log.txt || true; exit $result'
+          script: cd android-apk && bash -c 'gradle :app:connectedDebugAndroidTest -PbackroomTwoProviderTest=true "-Pandroid.testInstrumentationRunnerArguments.class=com.rabpit.backroom.core.LiveSixCheckpointsGameplayTest#playOneCheckpointWithRealProvidersAndUi" --no-daemon; result=$?; adb logcat -d -s BackroomLiveSixCP:I > app/build/live-one-cp-log.txt; grep "LIVE_ONE_CP_" app/build/live-one-cp-log.txt || true; adb pull /sdcard/Android/data/com.rabpit.backroom/files/live-checkpoint-evidence.json app/build/live-checkpoint-evidence.json || true; exit $result'
       - name: Validate independent GM and Milestone diversity
         run: |
-          node android-apk/tools/verify-live-one-checkpoint.cjs extract android-apk/app/build/live-one-cp-log.txt android-apk/app/build/one-cp-summary.json
+          node android-apk/tools/verify-live-one-checkpoint.cjs extract android-apk/app/build/live-checkpoint-evidence.json android-apk/app/build/one-cp-summary.json
           node android-apk/tools/verify-live-one-checkpoint.cjs compare ./previous-run/one-cp-summary.json android-apk/app/build/one-cp-summary.json
       - name: Save live second CP evidence
         if: always()
@@ -118,4 +119,5 @@ jobs:
             android-apk/app/build/outputs/androidTest-results/connected/
             android-apk/app/build/live-one-cp-log.txt
             android-apk/app/build/one-cp-summary.json
+            android-apk/app/build/live-checkpoint-evidence.json
           if-no-files-found: warn

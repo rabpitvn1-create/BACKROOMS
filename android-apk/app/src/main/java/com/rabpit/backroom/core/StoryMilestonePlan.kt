@@ -69,7 +69,8 @@ object StoryMilestonePlan {
     val event: String,
     val outcome: String,
     val entityKey: String? = null,
-    val characterId: String? = null
+    val characterId: String? = null,
+    val communicationCharacterId: String? = null
   ) {
     val isEntityEncounter: Boolean get() = kind == Kind.ENTITY || kind == Kind.FINAL_ENTITY
     val combatRequired: Boolean get() = isEntityEncounter
@@ -86,6 +87,7 @@ object StoryMilestonePlan {
       .apply {
         if (isEntityEncounter) put("entityKey", requireNotNull(entityKey))
         if (isCharacterEncounter) put("characterId", requireNotNull(characterId))
+        communicationCharacterId?.let { put("communicationCharacterId", it) }
         if (kind == Kind.FINAL_ENTITY) {
           put("hpMultiplier", FINAL_HP_MULTIPLIER)
           put("expMultiplier", FINAL_EXP_MULTIPLIER)
@@ -137,6 +139,7 @@ object StoryMilestonePlan {
       val allowed = mutableSetOf("id", "turn", "kind", "action", "event", "outcome")
       if (kind == Kind.ENTITY || kind == Kind.FINAL_ENTITY) allowed += "entityKey"
       if (kind == Kind.FOLLOWER || kind == Kind.NPC) allowed += "characterId"
+      if (kind == Kind.STORY && item.has("communicationCharacterId")) allowed += "communicationCharacterId"
       if (kind == Kind.FINAL_ENTITY) allowed += setOf("hpMultiplier", "expMultiplier")
       exactFields(item, allowed)
 
@@ -168,7 +171,12 @@ object StoryMilestonePlan {
         }
         id
       } else null
-      events += Event(id, turn, kind, action, event, outcome, key, characterId = characterId)
+      val speaker = if (item.has("communicationCharacterId")) {
+        val id = string(item, "communicationCharacterId", 80)
+        require(id != CAO_MINH_ID && id in characters) { "milestone_character_unknown" }
+        id
+      } else null
+      events += Event(id, turn, kind, action, event, outcome, key, characterId, speaker)
     }
 
     require(events.last().kind == Kind.FINAL_ENTITY &&
@@ -275,14 +283,23 @@ object StoryMilestonePlan {
 
   /** Resolve impossible Registry states before accepting a compulsory schedule. */
   private fun validateCharactersBeforeAcceptance(state: GameState, plan: Plan, level: Int) {
-    plan.events.filter { it.isCharacterEncounter }.forEach {
-      val character = state.characters.getValue(requireNotNull(it.characterId))
+    plan.events.filter { it.isCharacterEncounter || it.communicationCharacterId != null }.forEach {
+      val character = state.characters.getValue(it.characterId ?: requireNotNull(it.communicationCharacterId))
       require(character.presence != CharacterPresence.DEAD) {
         "milestone_character_dead"
       }
       character.metadata["encounterLevels"]?.let { allowed ->
         val bounds = allowed.split('-').map(String::toInt)
         require(level in bounds.first()..bounds.last()) { "milestone_character_level_invalid" }
+      }
+    }
+    plan.events.filter { it.communicationCharacterId != null }.forEach { event ->
+      val id = requireNotNull(event.communicationCharacterId)
+      val character = state.characters.getValue(id)
+      require((character.presence == CharacterPresence.ACTIVE &&
+        (character.metadata["encountered"] == "true" || id in state.party.memberIds)) ||
+        plan.events.takeWhile { it.id != event.id }.any { it.characterId == id && it.turn <= event.turn }) {
+        "milestone_communication_requires_meeting"
       }
     }
   }

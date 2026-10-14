@@ -22,11 +22,11 @@ class LucTramEncounterTest {
   }
   @Test fun acceptedLevelFourEncounterOccursOnTurnThreeWithoutRecruitment() {
     var state = TestCheckpointQuota.withPlan(atLevel(4), listOf(meeting()))
-    repeat(2) { state = CoreClientProjection.advance(StoryMilestoneRuntime.acceptTurn(state)) }
+    repeat(2) { state = CoreClientProjection.advance(TestMilestoneTurn.dispatch(state)) }
     assertEquals(listOf("lucTram"), StoryMilestoneRuntime.due(state).map { it.id })
-    val committed = StoryMilestoneRuntime.acceptTurn(state)
+    val committed = TestMilestoneTurn.dispatch(state)
     assertEquals("3", committed.characters.getValue(LUC_TRAM_ID).metadata["encounterTurn"])
     assertFalse(LUC_TRAM_ID in committed.party.memberIds)
-    assertEquals(committed, StoryMilestoneRuntime.acceptTurn(committed))
+    assertEquals(committed, TestMilestoneTurn.dispatch(committed))
   }
 }

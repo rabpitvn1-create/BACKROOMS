@@ -50,6 +50,26 @@ class StoryMilestonePlanTest {
     assertEquals(listOf("alpha", "beta"), parsed.eventsAt(2).map { it.id })
   }
 
+  @Test fun requiredStoryCommunicationIsTypedSavedAndCannotUseAnUnknownSpeaker() {
+    val meeting = JSONObject().put("id", "meeting").put("turn", 1).put("kind", "FOLLOWER")
+      .put("characterId", LUCIA_ID).put("action", "Lucia tới gần")
+      .put("event", "Gặp Lucia").put("outcome", "Chưa gia nhập Party")
+    val disclosure = story("disclosure", 2).put("communicationCharacterId", LUCIA_ID)
+    val raw = plan(entries = TestCheckpointQuota.events(JSONArray().put(meeting).put(disclosure).put(finale())))
+    val installed = StoryMilestonePlan.installCurrent(state(), raw)
+    val restored = GameStateCodec.decode(GameStateCodec.encode(installed))
+    assertEquals(LUCIA_ID, StoryMilestonePlan.current(restored)!!.plan.eventsAt(2).single().communicationCharacterId)
+    disclosure.put("communicationCharacterId", "unregistered")
+    reject(plan(entries = TestCheckpointQuota.events(JSONArray().put(meeting).put(disclosure).put(finale()))))
+    disclosure.put("communicationCharacterId", CAO_MINH_ID)
+    reject(plan(entries = TestCheckpointQuota.events(JSONArray().put(meeting).put(disclosure).put(finale()))))
+    disclosure.put("communicationCharacterId", LUCIA_ID)
+    val withoutMeeting = plan(entries = TestCheckpointQuota.events(JSONArray().put(disclosure).put(finale())))
+    assertEquals("milestone_communication_requires_meeting", assertThrows(IllegalArgumentException::class.java) {
+      StoryMilestonePlan.installCurrent(state(), withoutMeeting)
+    }.message)
+  }
+
   @Test fun rejectsChangedResultsInvalidTurnsAndMissingFinale() {
     val entries = JSONArray().put(story("alpha", 3)).put(story("beta", 2)).put(finale())
     reject(plan(entries = entries))

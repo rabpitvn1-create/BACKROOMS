@@ -5,12 +5,43 @@ import org.json.JSONObject
 
 /** Synthetic Core fixtures only. No AI evidence and no GM-generated event receipts. */
 object TestMilestoneTurn {
+  /** Supply explicit synthetic scenes even when testing the dispatcher directly. */
+  fun dispatch(state: GameState): GameState {
+    val due = JSONArray(StoryMilestoneRuntime.dueJson(state))
+    return StoryMilestoneRuntime.acceptTurn(state, narration(due).getJSONArray("eventNarrations"))
+  }
+
+  /** Test-only GM envelope; never a production fallback. */
+  fun narration(due: JSONArray, prelude: String = "TEST_ONLY prose"): JSONObject = JSONObject()
+    .put("reply", prelude)
+    .put("completedEventIds", JSONArray((0 until due.length()).map { due.getJSONObject(it).getString("id") }))
+    .put("eventNarrations", JSONArray().apply {
+      for (i in 0 until due.length()) {
+        val event = due.getJSONObject(i)
+        put(JSONObject().put("eventId", event.getString("id"))
+          .put("occurrence", event.getString("action") + ". " + event.getString("event"))
+          .put("consequence", event.getString("outcome"))
+          .apply { if (event.optString("kind") in listOf("NPC", "FOLLOWER") || event.has("communicationCharacterId"))
+            put("communication", JSONObject().put("speakerId", event.optString("characterId", event.optString("communicationCharacterId")))
+              .put("text", "TEST_ONLY cô cảnh báo hắn về lối đi nguy hiểm.")) })
+      }
+    })
+
+  fun commit(core: GameCoreFacade, before: String, candidate: String, action: String,
+             prelude: String = "TEST_ONLY prose"): String {
+    if (prelude.isBlank()) return core.processValidatedCandidate(before, candidate, action, prelude)
+    val due = JSONArray(core.milestoneDueEvents())
+    val generated = narration(due, prelude)
+    val reply = MilestoneNarrationValidator.validate(generated, due).reply
+    return core.processValidatedCandidate(before, candidate, action, reply, generated.toString())
+  }
+
   fun accept(state: GameState, expectedDueJson: String): GameState {
     val expected = JSONArray(expectedDueJson).let { values ->
       (0 until values.length()).map { values.getString(it) }
     }
     require(StoryMilestoneRuntime.due(state).map { it.id } == expected) { "test_expected_due_mismatch" }
-    val committed = StoryMilestoneRuntime.acceptTurn(state)
+    val committed = TestMilestoneTurn.dispatch(state)
     // Existing Boss-resolution fixtures explicitly include the player's confirmation.
     val pending = CombatRuntime.pending(committed) ?: return committed
     return CombatRuntime.confirmEncounter(committed, pending.encounterId)

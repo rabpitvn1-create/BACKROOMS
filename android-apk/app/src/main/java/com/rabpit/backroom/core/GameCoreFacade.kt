@@ -374,7 +374,8 @@ class GameCoreFacade private constructor(
    * from commands and then projected back onto the UI state.
    */
   @JvmOverloads @Synchronized fun processValidatedCandidate(
-    beforeJson: String, candidateJson: String, action: String, narrative: String = ""
+    beforeJson: String, candidateJson: String, action: String, narrative: String = "",
+    narrationJson: String = ""
   ): String {
     val before = JSONObject(beforeJson)
     val candidate = JSONObject(candidateJson)
@@ -402,6 +403,21 @@ class GameCoreFacade private constructor(
         described?.let { it.parent != currentNode.parent } == true ||
         flagged?.let { it.parent != currentNode.parent } == true)
         return response(false, clientSnapshot(before, core), "milestone_level_change_forbidden", "gemini_delta_rejected")
+    }
+    // Validate against saved due events at the storage boundary, not a UI assertion.
+    // No pending commands, time advancement or character changes precede this gate.
+    val narration = try {
+      if (narrationJson.isBlank()) {
+        if (StoryMilestoneRuntime.due(core).isNotEmpty())
+          throw MilestoneNarrationValidator.MilestoneNarrationException("milestone_narrative_content_missing")
+        null
+      } else MilestoneNarrationValidator.validate(JSONObject(narrationJson),
+        JSONArray(StoryMilestoneRuntime.dueJson(core))).also {
+        if (it.reply != narrative)
+          throw MilestoneNarrationValidator.MilestoneNarrationException("milestone_rendered_narrative_mismatch")
+      }
+    } catch (error: Exception) {
+      return response(false, clientSnapshot(before, core), error.message ?: "milestone_narrative_invalid", "gemini_delta_rejected")
     }
     if (blocksTextItemAction(action)) return response(false, clientSnapshot(before, core), "item_ui_required", "item_ui_required")
     val turnId = nextTurnId(core)
@@ -436,7 +452,7 @@ class GameCoreFacade private constructor(
       return response(false, before, committed.error, "gemini_delta_rejected")
     }
     val protectedState = CharacterProgressionCore.protectFromCandidate(pending.state, committed.state)
-    var applied = StoryMilestoneRuntime.acceptTurn(protectedState)
+    var applied = StoryMilestoneRuntime.acceptTurn(protectedState, narration?.events ?: JSONArray())
     CombatRuntime.pending(applied)?.let { encounter ->
       applied = applied.copy(metadata = applied.metadata + ("combat.encounterNarrative" to
         JSONObject().put("role", "gm").put("text", narrative)

@@ -1578,8 +1578,7 @@ public class MainActivity extends Activity {
       "ENTITY và FINAL_ENTITY: kể cảnh Entity chạm trán, dừng ở thế đối đầu; " +
       "chưa kể đòn đánh, sát thương hay kết quả Combat trước khi người chơi nhấn Battle Start. " +
       "Không đưa event ID, ops, chứng cứ, kiểm định hay state vào lời kể. " +
-      "Chỉ trả JSON dạng {\"reply\":\"lời kể GM\",\"completedEventIds\":[\"ID các event thực sự kể trong lượt\"]}. " +
-      "completedEventIds PHẢI chứa chính xác các id đã đến hạn, không được xác nhận event bị bỏ qua.\n" +
+      com.rabpit.backroom.core.MilestoneNarrationValidator.prompt() + "\n" +
       com.rabpit.backroom.core.knowledge.GmNarrativeVoicePolicy.prompt() +
       "\nACTION_TYPE: " + new JSONObject(requireGameCore().currentActionContext()).optString("kind", "EXECUTE") +
       "\nPLAYER_ACTION: " + action +
@@ -1589,19 +1588,11 @@ public class MainActivity extends Activity {
   }
 
   /**
-   * Require Gehihi to acknowledge every scheduled event before a turn is committed.
-   * Delegates to MilestoneNarrationValidator: only the event contract is checked.
-   * Dialogue form (quotes, dashes, name mentions) is governed by Canon via
-   * GmNarrativeVoicePolicy, never by a format heuristic here.
+   * Render the actual event scenes only after every due scene passes the contract.
+   * Core repeats this validation against its saved schedule before any commit.
    */
-  private void requireMilestoneNarration(JSONObject generated, JSONArray due, String reply) throws Exception {
-    try {
-      com.rabpit.backroom.core.MilestoneNarrationValidator.requireAcknowledgment(
-        generated.optJSONArray("completedEventIds"),
-        com.rabpit.backroom.core.MilestoneNarrationValidator.dueIds(due));
-    } catch (com.rabpit.backroom.core.MilestoneNarrationValidator.MilestoneNarrationException e) {
-      throw new Exception(e.getMessage(), e);
-    }
+  private String requireMilestoneNarration(JSONObject generated, JSONArray due) throws Exception {
+    return com.rabpit.backroom.core.MilestoneNarrationValidator.validate(generated, due).getReply();
   }
 
   private interface CombatDiceCall { String run() throws Exception; }
@@ -1914,9 +1905,9 @@ public class MainActivity extends Activity {
 
           JSONObject generated = parseModelJson(generateText(writerPrompt(before, action, rolls)));
           String reply = generated.optString("reply", "").trim();
+          if (!meta) reply = requireMilestoneNarration(generated,
+            new JSONArray(requireGameCore().milestoneDueEvents()));
           if (reply.isEmpty()) throw new Exception("Gehihi không trả lời kể chuyện; lượt này không được ghi.");
-          if (!isMetaAction(action)) requireMilestoneNarration(generated,
-            new JSONArray(requireGameCore().milestoneDueEvents()), reply);
           if (meta) {
             requireGameCore().abortAction("meta_action");
             JSONObject view = new JSONObject(requireGameCore().currentClientState(currentView));
@@ -1975,7 +1966,7 @@ public class MainActivity extends Activity {
           log.put(new JSONObject().put("role", "player").put("text", action));
           state.put("log", log);
           JSONObject coreCommit = new JSONObject(requireGameCore().processValidatedCandidate(
-            before.toString(), state.toString(), action, reply));
+            before.toString(), state.toString(), action, reply, generated.toString()));
           if (!coreCommit.optBoolean("handled", false)) {
             throw new Exception("Game State Core từ chối lượt: " + coreCommit.optString("error", "invalid_delta"));
           }

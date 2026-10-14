@@ -88,3 +88,27 @@ trùng sự kiện. Không duy trì migration hoặc adapter chỉ cho save cũ.
 **Lưu ý:** Các tài liệu R01/R02 phản ánh những giai đoạn triển khai lịch sử.
 Khi quy tắc quota hoặc encounter mâu thuẫn với v3, lấy tài liệu này và
 hợp đồng parser/runtime v3 làm chuẩn.
+
+## Hợp đồng lời kể và hội thoại sau review #616
+
+- `completedEventIds` chỉ xác nhận cấu trúc: ID phải khớp lịch, đúng thứ tự, không thiếu/trùng/thừa.
+- Gehihi trả `eventNarrations` cho từng event: `eventId`, `occurrence` (action/event đã diễn ra),
+  `consequence` (outcome). NPC/Follower luôn thêm `communication` gồm `speakerId` và `text`.
+- STORY yêu cầu hội thoại/tiết lộ thông tin có `communicationCharacterId` trong kế hoạch SOL,
+  là người đã hiện diện hoặc có cuộc gặp theo lịch trước event đó. Đây là hợp đồng hành vi,
+  không phải hệ thống phong cách. STORY không cần giao tiếp không có trường này.
+- UI hiển thị chính các đoạn trên theo thứ tự: reply → occurrence → communication.text → consequence.
+  Core kiểm tra lại envelope theo lịch đang lưu và đối chiếu toàn bộ văn bản hiển thị trước khi commit.
+  ID đơn lẻ, thiếu cảnh, thiếu giao tiếp, người nói sai hoặc lời hiển thị bị thay thế đều bị từ chối.
+- Giữ nguyên Canon packet và GmNarrativeVoicePolicy làm thẩm quyền phong cách. Không kiểm tra
+  dấu ngoặc kép/gạch ngang/tên riêng và không tự tuyển Follower vào Party.
+- Nội dung thực tế được lưu tại `eventRecords.narration`, rồi chuyển vào Checkpoint history.
+  Dispatcher cũng bắt buộc đủ cảnh trước khi thực thi; Save/Load từ chối bản ghi thiếu nội dung.
+  Các fixture cung cấp cảnh tổng hợp tường minh, không phải nghiệm thu lời kể AI.
+- **Giới hạn:** các đoạn do cùng Gehihi gắn nhãn, không phải bằng chứng ngữ nghĩa độc lập.
+  Văn bản không liên quan bị gắn nhãn occurrence, hoặc im lặng bị gắn nhãn communication,
+  vẫn có thể qua kiểm tra cấu trúc. SOL cũng có thể bỏ nhãn giao tiếp cho STORY dù mô tả đòi hỏi nó.
+  Không thể bảo đảm đầy đủ bằng cơ chế xác định; không thêm AI verifier thứ hai.
+- Nghiệm thu live xuất `live-checkpoint-evidence.json` có toàn bộ cảnh/thoại để đọc và đối chiếu
+  Canon, cùng Save/Load thực qua UI. Hai fingerprint khác nhau chỉ chứng minh khác văn bản,
+  không tự chứng minh khác ý nghĩa hoặc đúng Canon. Chỉ công nhận nghiệm thu sau khi review nội dung.
