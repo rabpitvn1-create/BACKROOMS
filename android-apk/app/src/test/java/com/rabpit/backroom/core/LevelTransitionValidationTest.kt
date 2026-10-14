@@ -210,17 +210,23 @@ class LevelTransitionValidationTest {
   }
 
   @Test fun authorizationIsOneShot() {
-    // An authorization for turn 1 cannot be replayed on turn 2.
+    // Commit the authorized red_rooms -> Level 1 transition in turn 1.
+    // A second transition from Level 1 -> Level 2 requires a new authorization.
     val save = MemorySave(freshAt("red_rooms", streak = 5))
     val core = facade(save)
-    val dest = authorize(core, turn = 1, kind = "EXPLORE", action = "bước qua cửa đỏ")
+    val action = "bước qua cửa đỏ"
+    val dest = authorize(core, turn = 1, kind = "EXPLORE", action = action)
     assertEquals("1", dest.optString("destinationId"))
-    // Turn 2 candidate proposes the same move without a fresh authorization.
-    val result = JSONObject(core.processValidatedCandidate(
-      beforeJson(turn = 2),
-      candidateJson("1"),
-      "bước qua cửa đỏ"))
-    assertFalse(result.getBoolean("handled"))
-    assertEquals("level_change_forbidden", result.getString("error"))
+    val first = JSONObject(core.processValidatedCandidate(
+      beforeJson(turn = 1), candidateJson("1"), action))
+    assertTrue(first.toString(), first.getBoolean("handled"))
+    assertEquals("1", LevelRouteRegistry.currentId(CoreClientProjection.project(JSONObject(), save.state)))
+    // Use Core's NEW turn to avoid confusing stale-client rejection with
+    // authorization reuse; no determineExitDestination call for turn 2.
+    val turn2 = CoreClientProjection.turnIndex(save.state)
+    val replay = JSONObject(core.processValidatedCandidate(
+      beforeJson(turn = turn2), candidateJson("2"), "bước qua cửa đến Level 2"))
+    assertFalse(replay.getBoolean("handled"))
+    assertEquals("level_change_forbidden", replay.getString("error"))
   }
 }

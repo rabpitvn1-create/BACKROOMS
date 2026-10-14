@@ -144,8 +144,10 @@ class EntitySpawnPoolTest {
   }
 
   @Test fun `applySpawns creates Lucia character if not in state`() {
-    val state = GameState.initial()
-    // Lucia is NOT in initial state
+    // Fresh runs may already contain Lucia's canon record; explicitly remove it
+    // to exercise the missing-character fallback without changing production Canon.
+    val state = GameState.initial().let { it.copy(characters = it.characters - LUCIA_ID) }
+    // The spawn mechanism reconstructs only the genuinely missing character.
     assertNull(state.characters[LUCIA_ID])
     val result = SpawnResult(
       entityKey = null,
