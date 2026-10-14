@@ -17,6 +17,33 @@ public final class ProviderResponseContract {
     }
   }
 
+  /** Normalize only direct GM narration; Core remains authoritative for effects. */
+  public static JSONObject normalizeDirectWriter(String raw) throws org.json.JSONException {
+    if (raw == null || raw.trim().isEmpty())
+      throw new IllegalArgumentException("GM provider không trả nội dung.");
+    String text = raw.trim();
+    if (text.startsWith("```")) {
+      int firstNewline = text.indexOf('\n');
+      int closingFence = text.lastIndexOf("```");
+      if (firstNewline < 0 || closingFence <= firstNewline)
+        throw new IllegalArgumentException("GM provider trả code fence không hợp lệ.");
+      text = text.substring(firstNewline + 1, closingFence).trim();
+    }
+    if (text.isEmpty()) throw new IllegalArgumentException("GM provider không trả lời kể.");
+    if (text.startsWith("{") || text.startsWith("[") || text.startsWith("\"reply\"")) {
+      // A structured response must be valid JSON with a non-empty reply.
+      JSONObject packet = new JSONObject(text);
+      requireWriter(packet);
+      String reply = packet.optString("reply", "").trim();
+      if (reply.isEmpty()) throw new IllegalArgumentException("GM provider JSON không có reply hợp lệ.");
+      return new JSONObject().put("reply", reply);
+    }
+    // No game-state operations can originate from prose. Prose is GM narration only.
+    JSONObject packet = new JSONObject().put("reply", text);
+    requireWriter(packet);
+    return packet;
+  }
+
   public static void requireAudit(JSONObject packet) {
     Object pass = packet == null ? null : packet.opt("pass");
     JSONArray issues = packet == null ? null : packet.optJSONArray("issues");
