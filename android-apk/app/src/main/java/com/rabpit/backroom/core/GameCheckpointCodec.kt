@@ -21,7 +21,6 @@ object GameCheckpointCodec {
     val root = JSONObject(raw)
     require(root.getInt("saveVersion") == CURRENT_SAVE_VERSION) { "checkpoint_schema_mismatch" }
     val core = GameStateCodec.decode(root.getJSONObject("core"))
-    StoryMilestoneRuntime.validateStoredState(core)
     require(core.turn.pending == null && ActionRuntime.activeSession(core) == null) { "checkpoint_turn_in_progress" }
     val view = root.getJSONObject("presentation")
     require(view.optInt("turn", -1) == CoreClientProjection.turnIndex(core)) { "checkpoint_turn_mismatch" }

@@ -100,14 +100,6 @@ object CoreClientProjection {
           log.optJSONObject(it)?.optString("encounterId") == entry.getString("encounterId")
         }) log.put(entry)
     }
-    out.put("story", JSONObject()
-      .put("runToken", state.world["story.runToken"].orEmpty())
-      .put("checkpointId", StoryCheckpointCore.current(state)?.id.orEmpty())
-      .put("hasPlan", StoryMilestoneRuntime.hasPlan(state))
-      .put("generatedMilestones", StoryMilestoneRuntime.generatedPlanCount(state))
-      .put("waiting", StoryMilestoneRuntime.awaitingPlan(state))
-      .put("stats", StoryMilestoneRuntime.statsJson(state))
-      .apply { state.world["story.milestone.lastCompletion"]?.let { put("lastCompletion", JSONObject(it)) } })
     out.put("coreSystem", PokerDiceCore.statsJson(state, CAO_MINH_ID))
     return out
   }
