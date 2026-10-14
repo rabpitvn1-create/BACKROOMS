@@ -18,7 +18,7 @@ class GameCoreFacade private constructor(
 
   private data class ExitAuthorization(val turn: Int, val fromId: String, val toId: String)
 
-  internal companion object {
+  companion object {
     /** Traversal intent keywords (Core-owned; mirrors client playerTraverses). */
     val TRAVERSAL_KEYWORDS = listOf(
       "đi qua", "bước qua", "chạy qua", "vượt qua", "băng qua", "chui qua", "leo qua",
@@ -42,6 +42,10 @@ class GameCoreFacade private constructor(
       val lower = actionText.lowercase()
       return META_KEYWORDS.any { kw -> lower.contains(kw.lowercase()) }
     }
+    private const val SPAWN_ENCOUNTER_OWNER = "spawn.encounterOwnerSession"
+    @JvmStatic fun create(context: Context, debugLogging: Boolean = false): GameCoreFacade = GameCoreFacade(
+      SharedPreferencesSaveRepository(context.applicationContext), AndroidGamePipelineLogger(debugLogging)
+    )
   }
 
   /** Fast deterministic pass. Gemini is never called from this method. */
@@ -185,8 +189,18 @@ class GameCoreFacade private constructor(
   @Synchronized fun beginAction(clientStateJson: String, kindRaw: String, action: String): String {
     val client = JSONObject(clientStateJson)
     val state = loadCurrentState()
-    if (CombatRuntime.pending(state) != null)
+    val reserved = CombatRuntime.pending(state)
+    if (reserved != null) {
+      val active = ActionRuntime.activeSession(state)
+      val owner = state.metadata[SPAWN_ENCOUNTER_OWNER]
+      if (active != null && owner == active.sessionId &&
+          active.input == action && active.kind.name == kindRaw.trim().uppercase()) {
+        return actionStartResponse(true, active, null,
+          SpawnMechanism.pendingNpcEncounters(state),
+          Triple(reserved.entityKey, CombatRuntime.entityName(reserved.entityKey), reserved.encounterId))
+      }
       return actionStartResponse(false, null, "encounter_confirmation_required")
+    }
     if (MadGodCanon.cheat(action)) return actionStartResponse(true,null,null)
     val kind = enumValues<ActionKind>().firstOrNull { it.name == kindRaw.trim().uppercase() }
       ?: return actionStartResponse(false, null, "action_kind_invalid")
@@ -238,9 +252,8 @@ class GameCoreFacade private constructor(
       // CoreClientProjection.pendingEncounter -> UI Battle Start -> confirmEncounter().
       if (spawnResult.entityKey != null && CombatRuntime.pending(next) == null && CombatRuntime.active(next) == null) {
         val encounterId = "spawn:${turnId}:${spawnResult.entityKey}:${System.currentTimeMillis()}"
-        next = runCatching {
-          CombatRuntime.prepareEncounter(next, spawnResult.entityKey, encounterId, boss = false)
-        }.getOrDefault(next)
+        next = CombatRuntime.prepareEncounter(next, spawnResult.entityKey, encounterId, boss = false)
+          .let { it.copy(metadata = it.metadata + (SPAWN_ENCOUNTER_OWNER to sessionId)) }
         // Entity combat takes precedence this turn: drop deferred NPC encounters.
         // Once-only is NOT consumed — the NPC may roll again on a later turn.
         next = SpawnMechanism.discardPendingNpcEncounters(next)
@@ -288,7 +301,15 @@ class GameCoreFacade private constructor(
     // P0-2: discard deferred NPC encounters. A failed/aborted turn must NOT consume
     // the once-only first meeting — the NPC may roll again on a later turn.
     val withoutPending = SpawnMechanism.discardPendingNpcEncounters(state)
-    val interrupted = ActionRuntime.interrupt(withoutPending, active.sessionId, reason.ifBlank { "pipeline_error" })
+    val reserved = CombatRuntime.pending(withoutPending)
+    val cleaned = if (reserved != null && state.metadata[SPAWN_ENCOUNTER_OWNER] == active.sessionId) {
+      val flags = JSONObject(withoutPending.world["flagsJson"] ?: "{}").put("entityEncounterKey", "")
+      val cleared = CombatRuntime.clear(withoutPending)
+      cleared.copy(
+        metadata = cleared.metadata - SPAWN_ENCOUNTER_OWNER,
+        world = cleared.world + ("flagsJson" to flags.toString()))
+    } else withoutPending
+    val interrupted = ActionRuntime.interrupt(cleaned, active.sessionId, reason.ifBlank { "pipeline_error" })
     if (!interrupted.applied) return false
     repository.save(interrupted.state)
     return true
@@ -569,7 +590,12 @@ class GameCoreFacade private constructor(
     val before = JSONObject(beforeJson)
     val candidate = JSONObject(candidateJson)
     val core = loadCurrentState()
-    if (CombatRuntime.pending(core) != null || CombatRuntime.active(core) != null)
+    val reserved = CombatRuntime.pending(core)
+    val session = ActionRuntime.activeSession(core)
+    val ownedNarration = reserved != null && session != null &&
+      core.metadata[SPAWN_ENCOUNTER_OWNER] == session.sessionId &&
+      session.input == action && session.turnId == nextTurnId(core)
+    if (CombatRuntime.active(core) != null || (reserved != null && !ownedNarration))
       return response(false, clientSnapshot(before, core), "encounter_unresolved", "gemini_delta_rejected")
     if (blocksTextItemAction(action)) return response(false, clientSnapshot(before, core), "item_ui_required", "item_ui_required")
     if (before.optInt("turn", -1) != CoreClientProjection.turnIndex(core))
@@ -607,7 +633,7 @@ class GameCoreFacade private constructor(
       return response(false, clientSnapshot(before, core), "level_change_forbidden", "gemini_delta_rejected")
     if (blocksTextItemAction(action)) return response(false, clientSnapshot(before, core), "item_ui_required", "item_ui_required")
     val turnId = nextTurnId(core)
-    val pending = TurnCoordinator.createPending(core, turnId, action)
+    val pending = TurnCoordinator.createPending(core, turnId, action, ownedNarration)
     if (pending.error != null) return response(false, before, pending.error, "pending_rejected")
     val commands = mutableListOf<GameCommand>()
     // Narrator/client JSON cannot spawn characters, reserve encounters or change Party.
@@ -644,7 +670,7 @@ class GameCoreFacade private constructor(
     // encountered/spawned/present + character metadata for recruitFollower).
     val withNpcCommitted = SpawnMechanism.commitPendingNpcEncounters(committed.state)
     val protectedState = CharacterProgressionCore.protectFromCandidate(pending.state, withNpcCommitted)
-    var applied = protectedState
+    var applied = protectedState.copy(metadata = protectedState.metadata - SPAWN_ENCOUNTER_OWNER)
     CombatRuntime.pending(applied)?.let { encounter ->
       applied = applied.copy(metadata = applied.metadata + ("combat.encounterNarrative" to
         JSONObject().put("role", "gm").put("text", narrative)
@@ -660,6 +686,8 @@ class GameCoreFacade private constructor(
   @Synchronized fun confirmEncounter(clientStateJson: String, encounterId: String): String {
     val client = JSONObject(clientStateJson)
     val current = loadCurrentState()
+    if (current.metadata.containsKey(SPAWN_ENCOUNTER_OWNER))
+      return response(false, clientSnapshot(client, current), "encounter_narration_pending", "encounter_confirmation_rejected")
     if (client.optInt("turn", -1) != CoreClientProjection.turnIndex(current))
       return response(false, clientSnapshot(client, current), "stale_client_state", "encounter_confirmation_rejected")
     return try {
@@ -944,11 +972,6 @@ class GameCoreFacade private constructor(
     }
   }
 
-  companion object {
-    @JvmStatic fun create(context: Context, debugLogging: Boolean = false): GameCoreFacade = GameCoreFacade(
-      SharedPreferencesSaveRepository(context.applicationContext), AndroidGamePipelineLogger(debugLogging)
-    )
-  }
 }
 
 
