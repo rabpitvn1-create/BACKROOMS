@@ -18,7 +18,7 @@ class GameCoreFacade private constructor(
 
   private data class ExitAuthorization(val turn: Int, val fromId: String, val toId: String)
 
-  private companion object {
+  internal companion object {
     /** Traversal intent keywords (Core-owned; mirrors client playerTraverses). */
     val TRAVERSAL_KEYWORDS = listOf(
       "đi qua", "bước qua", "chạy qua", "vượt qua", "băng qua", "chui qua", "leo qua",
@@ -27,6 +27,21 @@ class GameCoreFacade private constructor(
       "no-clip", "noclip"
     )
     val NUMBERED_ID = Regex("[0-9]+(\\.[0-9]+)?")
+    /**
+     * P1 meta gating: Core-authoritative meta-action detection.
+     * Mirrors MainActivity.isMetaAction() — meta turns (status/inventory/party checks)
+     * must NEVER roll Entity/NPC, consume RNG, or create pending encounters.
+     * Core determines this from action text; client classification is not trusted.
+     */
+    val META_KEYWORDS = listOf(
+      "xem trạng thái", "trạng thái hiện tại", "xem state", "xem inventory", "xem túi",
+      "kiểm tra inventory", "xem party", "xem nhân vật", "xem thuộc tính",
+      "status", "show state", "show inventory", "show party"
+    )
+    fun isMetaAction(actionText: String): Boolean {
+      val lower = actionText.lowercase()
+      return META_KEYWORDS.any { kw -> lower.contains(kw.lowercase()) }
+    }
   }
 
   /** Fast deterministic pass. Gemini is never called from this method. */
@@ -208,9 +223,13 @@ class GameCoreFacade private constructor(
     // response so the GM narration prompt can include the meeting event; they are
     // committed only after processValidatedCandidate succeeds, and discarded on abort.
     val withSpawns = runCatching {
+      // P1 meta gating: Core determines isMeta authoritatively from action text.
+      // Meta turns never roll, never consume RNG, never create pending encounters.
+      // Client's isMetaAction() is not trusted for spawn decisions.
+      val coreIsMeta = isMetaAction(action)
       val spawnResult = SpawnMechanism.rollSpawns(
         started.state, kind, action,
-        isMeta = false, inCombatOrPending = false
+        isMeta = coreIsMeta, inCombatOrPending = false
       ) { bound -> spawnRng.nextInt(bound) }
       var next = SpawnMechanism.prepareSpawns(
         SpawnMechanism.discardPendingNpcEncounters(started.state), spawnResult)
@@ -229,8 +248,14 @@ class GameCoreFacade private constructor(
       next
     }.getOrDefault(started.state)
     repository.save(withSpawns)
+    // P0 Entity GM: extract the Core-reserved Entity encounter (if any) for the GM narration prompt.
+    // beginAction() returns early if pending() != null, so any pending here was created this turn.
+    // Public perception only: entityKey, display name, encounterId. No exit/Core secrets.
+    val pendingEntity = CombatRuntime.pending(withSpawns)?.let { snap ->
+      Triple(snap.entityKey, CombatRuntime.entityName(snap.entityKey), snap.encounterId)
+    }
     return actionStartResponse(true, started.session, null,
-      SpawnMechanism.pendingNpcEncounters(withSpawns))
+      SpawnMechanism.pendingNpcEncounters(withSpawns), pendingEntity)
   }
 
   @Synchronized fun currentActionContext(): String {
@@ -273,12 +298,18 @@ class GameCoreFacade private constructor(
    * P0-2: exposes deferred NPC encounters so the GM narration prompt can include the
    * first-meeting event. Only characterId/flagKey/display name are exposed — no Core
    * secrets. MainActivity reads `pendingNpcEncounters` and merges it into writerPrompt.
+   *
+   * P0 Entity GM: also exposes the Core-reserved Entity encounter (if any) as
+   * `pendingEntityEncounter: {entityKey, entityName, encounterId}` — public perception
+   * only, no exit/Core secrets. MainActivity passes it to writerPrompt/KnowledgeContextEngine
+   * so the GM narrates the correct Entity in the same turn.
    */
   private fun actionStartResponse(
     handled: Boolean,
     session: ActionSessionSnapshot?,
     error: String?,
-    pendingNpc: List<NpcSpawnTable.NpcEncounter> = emptyList()
+    pendingNpc: List<NpcSpawnTable.NpcEncounter> = emptyList(),
+    pendingEntity: Triple<String, String, String>? = null
   ): String = JSONObject().apply {
     put("handled", handled)
     if (session != null) {
@@ -296,6 +327,12 @@ class GameCoreFacade private constructor(
             .put("name", SpawnMechanism.npcDisplayName(e.characterId)))
         }
       })
+    }
+    if (pendingEntity != null) {
+      put("pendingEntityEncounter", JSONObject()
+        .put("entityKey", pendingEntity.first)
+        .put("entityName", pendingEntity.second)
+        .put("encounterId", pendingEntity.third))
     }
   }.toString()
 

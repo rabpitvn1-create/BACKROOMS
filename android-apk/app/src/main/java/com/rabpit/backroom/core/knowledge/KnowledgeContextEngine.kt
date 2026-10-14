@@ -314,8 +314,13 @@ object KnowledgeContextEngine {
     private fun confirmedEntityVisualId(): String? {
       val combat = state.optJSONObject("combat")
       val flags = state.optJSONObject("flags")
+      // P0 Entity GM: also check pendingEntityEncounter (Core-reserved this turn,
+      // passed via MainActivity from beginAction response). This is the primary
+      // source for the GM narration prompt; flags.entityEncounterKey is the fallback.
+      val pendingEntity = state.optJSONObject("pendingEntityEncounter")
       val key = when {
         combat?.optBoolean("active", false) == true -> combat.optString("entityKey", "")
+        pendingEntity != null -> pendingEntity.optString("entityKey", "")
         else -> flags?.optString("entityEncounterKey", "").orEmpty()
       }
       return key.takeIf { it.matches(Regex("[a-z0-9_-]{1,80}")) }
