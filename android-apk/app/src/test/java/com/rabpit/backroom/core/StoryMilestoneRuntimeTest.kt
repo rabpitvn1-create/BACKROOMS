@@ -16,8 +16,8 @@ class StoryMilestoneRuntimeTest {
           .put("kind", "FINAL_ENTITY").put("action", "TEST_ONLY boss action").put("event", "Hound lao ra")
           .put("outcome", "Combat bắt đầu").put("entityKey", "hound")
           .put("hpMultiplier", 9).put("expMultiplier", 9))))
-      .put("completion", if (checkpoint == "CP-L00-20") JSONObject().put("type", "EXIT_LEVEL")
-        .put("targetNodeId", "1.2").put("nextCheckpointTotal", 3).put("outcome", "TEST_ONLY Level ending")
+      .put("completion", if (checkpoint == "CP-L00-40") JSONObject().put("type", "EXIT_LEVEL")
+        .put("targetNodeId", "1.2").put("nextCheckpointTotal", 40).put("outcome", "TEST_ONLY Level ending")
         else JSONObject().put("type", "NEXT_CHECKPOINT").put("outcome", "TEST_ONLY completion"))
       .toString()
 
@@ -156,13 +156,13 @@ class StoryMilestoneRuntimeTest {
     assertNull(evaded.state.metadata["exp.awarded.${fight.encounterId}"])
   }
 
-  @Test fun allTwentyCheckpointsEndLevelFromAnyNodeOncePreparedPlanArrives() {
+  @Test fun allFortyCheckpointsEndLevelFromAnyNodeOncePreparedPlanArrives() {
     var state = StoryCheckpointCore.seedLevelZero(CoreClientProjection.initialize(GameState.initial()))
-    for (index in 1..20) {
+    for (index in 1..40) {
       val cp = StoryCheckpointCore.current(state)!!
       val root = JSONObject(plan(cp.id))
       if (cp.isLast) root.put("completion", JSONObject().put("type", "EXIT_LEVEL")
-        .put("targetNodeId", "1.2").put("nextCheckpointTotal", 3)
+        .put("targetNodeId", "1.2").put("nextCheckpointTotal", 40)
         .put("outcome", "TEST_ONLY Level ending"))
       state = StoryMilestonePlan.installCurrent(state, root.toString())
       state = TestMilestoneTurn.accept(state, "[\"warning\"]")
@@ -191,17 +191,17 @@ class StoryMilestoneRuntimeTest {
     StoryMilestoneRuntime.validateStoredState(restored)
     val stats = StoryMilestoneRuntime.statsJson(restored)
     assertEquals(440L, stats.getLong("committedEvents"))
-    assertEquals(20L, stats.getLong("defeatedBosses"))
-    assertEquals(20L, stats.getLong("completedCheckpoints"))
+    assertEquals(40L, stats.getLong("defeatedBosses"))
+    assertEquals(40L, stats.getLong("completedCheckpoints"))
     assertEquals(1L, stats.getLong("completedLevels"))
-    assertEquals(20, JSONArray(restored.world.getValue("story.checkpointHistory")).length())
+    assertEquals(40, JSONArray(restored.world.getValue("story.checkpointHistory")).length())
     assertFalse(restored.world.containsKey("story.factLedger"))
     val levelHistory = JSONArray(restored.world.getValue("story.levelHistory"))
     assertEquals(1, levelHistory.length())
     val cpHistory = JSONArray(restored.world.getValue("story.checkpointHistory"))
     assertTrue(cpHistory.getJSONObject(0).getJSONArray("events").length() > 0)
     assertTrue(StoryMilestoneRuntime.continuityContext(restored).contains("TEST_ONLY"))
-    assertEquals(20, levelHistory.getJSONObject(0).getJSONArray("checkpointRefs").length())
+    assertEquals(40, levelHistory.getJSONObject(0).getJSONArray("checkpointRefs").length())
     assertEquals(StoryCheckpointCore.Position(1, 1, 3), StoryCheckpointCore.current(restored))
     assertEquals("1.2", JSONObject(restored.world.getValue("levelJson")).getString("id"))
     assertEquals("TEST_ONLY Level ending", JSONObject(restored.world.getValue("story.milestone.lastCompletion"))

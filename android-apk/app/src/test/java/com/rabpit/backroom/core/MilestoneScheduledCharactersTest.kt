@@ -67,10 +67,10 @@ class MilestoneScheduledCharactersTest {
   }
 
   @Test fun lucTramUsesTheSameScheduledDispatcherAtHerRegistryLevel() {
-    val position = StoryCheckpointCore.Position(4, 1, 20)
+    val position = StoryCheckpointCore.Position(4, 1, 40)
     val base = CoreClientProjection.initialize(GameState.initial())
     val state = base.copy(world = base.world + mapOf(
-      "story.checkpoint" to JSONObject().put("level", 4).put("index", 1).put("total", 20).toString(),
+      "story.checkpoint" to JSONObject().put("level", 4).put("index", 1).put("total", 40).toString(),
       "levelJson" to LevelRouteRegistry.node("4")!!.asJson().toString()))
     val accepted = StoryMilestonePlan.installCurrent(state, raw(listOf(encounter("lucTram3", 3, "FOLLOWER", LUC_TRAM_ID)), position.id))
     val committed = TestMilestoneTurn.dispatch(reach(accepted, 3))
