@@ -107,7 +107,7 @@ class StoryMilestonePlannerIntegrationTest {
       StoryMilestonePlannerPrompt.build("bad", 1, "0", "", "", 40)
     }
   }
-  @Test fun coreRejectsClientLevelChangesAndItemTurnSkipping() {
+  @Test fun coreRejectsClientLevelChangesAndInvalidItemRequests() {
     val repo = MemorySave()
     val core = facade(repo)
     val lease = JSONObject(core.milestonePlanRequest())
@@ -120,7 +120,7 @@ class StoryMilestonePlannerIntegrationTest {
     assertEquals("milestone_level_change_forbidden", rejected.getString("error"))
     assertEquals(1, CoreClientProjection.turnIndex(repo.stored!!))
     val item = JSONObject(core.processItemAction(before.toString(), "{}"))
-    assertEquals("milestone_requires_gm", item.getString("error"))
+    assertEquals("invalid_item_operation", item.getString("error"))
     assertEquals(1, CoreClientProjection.turnIndex(repo.stored!!))
   }
 
