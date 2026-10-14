@@ -783,10 +783,21 @@ class GameCoreFacade private constructor(
     if (error != null) put("error", error); if (reply != null) put("reply", reply)
   }.toString()
 
-  private fun eventReply(events: List<String>): String = when (events.lastOrNull { it != "time_advanced" }) {
-    "inventory_remove" -> "Vật phẩm đã được loại khỏi Inventory theo hành động của Cao Minh."
-    "inventory_transfer" -> "Vật phẩm đã được chuyển giao."
-    else -> "Hành động đã được Game State Core xác nhận."
+  private fun eventReply(events: List<String>): String {
+    val last = events.lastOrNull { it != "time_advanced" }
+    return when {
+      last == "inventory_remove" -> "Vật phẩm đã được loại khỏi Inventory theo hành động của Cao Minh."
+      last == "inventory_transfer" -> "Vật phẩm đã được chuyển giao."
+      last == "physiology_water_recorded" -> "Cơn khát đã dịu. Đồng hồ sinh học đã được đặt lại."
+      last == "physiology_food_recorded" -> "Cơn đói đã dịu. Đồng hồ sinh học đã được đặt lại."
+      last == "hp_already_full" -> "HP đã đầy, không hồi thêm."
+      last != null && last.startsWith("hp_healed:") -> {
+        val amount = last.substringAfter("hp_healed:").toIntOrNull()
+        if (amount != null && amount > 0) "Hồi phục +$amount HP."
+        else "Hành động đã được Game State Core xác nhận."
+      }
+      else -> "Hành động đã được Game State Core xác nhận."
+    }
   }
 
   private fun validationReply(reason: String): String {

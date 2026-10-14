@@ -16,7 +16,8 @@ data class ItemDetailProjection(
   val weapon: WeaponGameplayStats? = null,
   val abilities: List<EquipmentAbility> = emptyList(),
   val restrictions: List<String> = emptyList(),
-  val components: List<EquipmentComponent> = emptyList()
+  val components: List<EquipmentComponent> = emptyList(),
+  val bonuses: EquipmentBonuses? = null
 )
 
 data class CharacterDetailProjection(
@@ -72,6 +73,23 @@ data class PartyDetailProjection(
 )
 
 object CharacterDetailProjector {
+  /** Equipment's additive contribution to a stat, decomposed as effective - base - passive.
+   *  Mirrors CharacterStatCore's passive formula so the split stays consistent with the engine. */
+  private fun equipmentContribution(base: Int, effective: Int, characterId: String): Int {
+    val b = base.coerceIn(CharacterProgressionCore.BASE_STAT, CharacterProgressionCore.MAX_STAT)
+    val passive = if (CharacterStatCore.isCaoMinh(characterId))
+      (b * CharacterStatCore.DAI_DAO_MA_TON_STAT_BONUS_PERCENT + 50) / 100 else 0
+    return (effective - b - passive).coerceAtLeast(0)
+  }
+
+  private fun statLine(base: Int, effective: Int, characterId: String): StatLineProjection {
+    val equipment = equipmentContribution(base, effective, characterId)
+    return StatLineProjection(
+      base = base, equipment = equipment, effective = effective,
+      passive = effective - base - equipment
+    )
+  }
+
   fun projectParty(state: GameState): PartyDetailProjection {
     val normalized = CharacterProgressionCore.normalize(CharacterEquipmentSystem.normalize(state))
     return PartyDetailProjection(
@@ -94,9 +112,9 @@ object CharacterDetailProjector {
         id = item.itemId, name = def?.name ?: item.name, quantity = item.quantity,
         type = def?.type, slot = def?.primarySlot?.key ?: item.metadata["slot"], rarity = def?.rarity,
         equipped = slots.isNotEmpty(), equippedSlots = slots,
-        statItem = def?.weapon != null, classification = def?.classification?.name,
+        statItem = def?.bonuses?.any() == true || def?.weapon != null, classification = def?.classification?.name,
         weapon = def?.weapon, abilities = def?.abilities.orEmpty(), restrictions = def?.restrictions.orEmpty(),
-        components = def?.components.orEmpty()
+        components = def?.components.orEmpty(), bonuses = def?.bonuses
       )
     }
     val details = inventory.map(::itemDetail)
@@ -120,11 +138,11 @@ object CharacterDetailProjector {
       },
       regenPerCompletedTurn = effective.regenPerCompletedTurn,
       condition = c.vitalState.condition,
-      str = StatLineProjection(base.str, 0, effective.str),
-      dex = StatLineProjection(base.dex, 0, effective.dex),
-      agi = StatLineProjection(base.agi, 0, effective.agi),
-      vit = StatLineProjection(base.vit, 0, effective.vit),
-      eva = StatLineProjection(base.eva, 0, effective.eva),
+      str = statLine(base.str, effective.str, c.id),
+      dex = statLine(base.dex, effective.dex, c.id),
+      agi = statLine(base.agi, effective.agi, c.id),
+      vit = statLine(base.vit, effective.vit, c.id),
+      eva = statLine(base.eva, effective.eva, c.id),
       defense = effective.def,
       attackPercent = effective.attackPercent,
       skillDamagePercent = effective.skillDamagePercent,

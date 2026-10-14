@@ -153,15 +153,37 @@ object CharacterStatCore {
     if (isCaoMinh(id)) (base.coerceIn(CharacterProgressionCore.BASE_STAT, CharacterProgressionCore.MAX_STAT) *
       DAI_DAO_MA_TON_STAT_BONUS_PERCENT + 50) / 100 else 0
 
+  /** Sum of percentage stat bonuses from all equipped items. Bound gear cannot be unequipped. */
+  private fun equipmentBonuses(state: GameState, characterId: String): EquipmentBonuses {
+    val equipmentId = state.characters[characterId]?.equipmentId ?: characterId
+    val itemIds = state.equipment[equipmentId]?.slots?.values ?: return EquipmentBonuses()
+    var acc = EquipmentBonuses()
+    for (itemId in itemIds) {
+      val b = EquipmentCatalog.definition(itemId)?.bonuses ?: continue
+      acc = acc.copy(
+        agiPct = acc.agiPct + b.agiPct,
+        dexPct = acc.dexPct + b.dexPct,
+        vitPct = acc.vitPct + b.vitPct,
+        strPct = acc.strPct + b.strPct,
+        defPct = acc.defPct + b.defPct
+      )
+    }
+    return acc
+  }
+
   fun effective(state: GameState, characterId: String): EffectiveCharacterStats {
     val p = state.characters[characterId]?.statProfile ?: CharacterStatProfiles.forId(characterId)
-    fun value(raw: Int): Int = (raw.coerceIn(5, 999) + passiveBonus(raw, characterId)).coerceAtMost(CharacterProgressionCore.MAX_STAT)
-    val str = value(p.str)
-    val dex = value(p.dex)
-    val agi = value(p.agi)
-    val vit = value(p.vit)
-    val eva = value(p.eva)
-    val def = defense(vit)
+    val equip = equipmentBonuses(state, characterId)
+    fun value(raw: Int, pct: Int): Int {
+      val base = (raw.coerceIn(5, 999) + passiveBonus(raw, characterId)).coerceAtMost(CharacterProgressionCore.MAX_STAT)
+      return ((base.toLong() * (100 + pct)) / 100).coerceAtMost(CharacterProgressionCore.MAX_STAT.toLong()).toInt()
+    }
+    val str = value(p.str, equip.strPct)
+    val dex = value(p.dex, equip.dexPct)
+    val agi = value(p.agi, equip.agiPct)
+    val vit = value(p.vit, equip.vitPct)
+    val eva = value(p.eva, 0)
+    val def = ((defense(vit).toLong() * (100 + equip.defPct)) / 100).coerceAtMost(CharacterProgressionCore.MAX_STAT.toLong()).toInt()
     val critBp = criticalChanceBasisPoints(agi)
     val dodgeBp = evasionBasisPoints(eva)
     val critResBp = criticalResistanceBasisPoints(dex)
