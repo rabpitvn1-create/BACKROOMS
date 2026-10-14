@@ -378,17 +378,30 @@ class GameCoreFacade private constructor(
     if (blocksTextItemAction(action)) return response(false, clientSnapshot(before, core), "item_ui_required", "item_ui_required")
     if (before.optInt("turn", -1) != CoreClientProjection.turnIndex(core))
       return response(false, clientSnapshot(before, core), "stale_client_state", "gemini_delta_rejected")
-    // R1 MITIGATION: Level-change validation preserved as standalone check, decoupled from
-    // StoryCheckpointCore. AI cannot teleport the player between levels unchecked.
-    // A level transition is only valid if the proposed/described/flagged node shares the
-    // same parent as the current node in the LevelRouteRegistry.
+    // P0 FIX: Level transition validation. The old parent-equality check rejected ALL
+    // cross-parent moves, but valid LevelRouteRegistry edges CAN change parent
+    // (e.g. red_rooms -> 1, 1 -> 2). A transition is allowed ONLY via a valid edge
+    // AND with Core-confirmed exit readiness (authoritative streak + this turn's roll,
+    // mirroring MainActivity's canTransition check). GM words alone cannot authorize
+    // a move. Teleportation (invalid edge or no exit readiness) is blocked.
     val currentNode = requireNotNull(LevelRouteRegistry.requested(JSONObject(core.world.getValue("levelJson"))))
     val proposed = LevelRouteRegistry.requested(candidate.optJSONObject("level"))
+    if (proposed == null)
+      return response(false, clientSnapshot(before, core), "level_change_forbidden", "gemini_delta_rejected")
+    if (proposed.id != currentNode.id) {
+      val rolls = candidate.optJSONObject("flags")?.optJSONObject("lastRolls")
+      val validEdge = LevelRouteRegistry.canMove(currentNode.id, proposed.id)
+      val exitReady = HiddenExitStreak.projectedReady(before, rolls)
+      if (!validEdge || !exitReady)
+        return response(false, clientSnapshot(before, core), "level_change_forbidden", "gemini_delta_rejected")
+    }
+    // Anti-teleport: a location description or flagged level pointing to a third node
+    // (neither current nor proposed) indicates an inconsistent or smuggled transition.
+    val allowedIds = setOf(currentNode.id, proposed.id)
     val described = LevelRouteRegistry.fromLocation(candidate.optString("location"))
     val flagged = LevelRouteRegistry.requested(candidate.optJSONObject("flags")?.optJSONObject("currentLevel"))
-    if (proposed == null || proposed.parent != currentNode.parent ||
-      described?.let { it.parent != currentNode.parent } == true ||
-      flagged?.let { it.parent != currentNode.parent } == true)
+    if ((described != null && described.id !in allowedIds) ||
+      (flagged != null && flagged.id !in allowedIds))
       return response(false, clientSnapshot(before, core), "level_change_forbidden", "gemini_delta_rejected")
     if (blocksTextItemAction(action)) return response(false, clientSnapshot(before, core), "item_ui_required", "item_ui_required")
     val turnId = nextTurnId(core)
