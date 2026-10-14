@@ -1183,34 +1183,35 @@ public class MainActivity extends Activity {
       "no-clip", "noclip");
   }
 
-  private void reconcileVisualWorldState(JSONObject before, JSONObject candidateState, JSONObject rolls, String action) throws Exception {
+  /**
+   * P0-3: Enforces Core's exit destination decision. When Core authorized a destination
+   * (via determineExitDestination), it is applied verbatim; AI prose/location text can
+   * never smuggle a different node. When Core authorized nothing, the level MUST NOT
+   * change — any AI-smuggled delta is reverted.
+   */
+  private void reconcileVisualWorldState(JSONObject before, JSONObject candidateState,
+      JSONObject rolls, String action, String coreDestinationId) throws Exception {
     String oldId = currentNodeId(before);
     LevelRouteRegistry.Node previous = LevelRouteRegistry.node(oldId);
-    LevelRouteRegistry.Node structured = LevelRouteRegistry.requested(candidateState.optJSONObject("level"));
-    LevelRouteRegistry.Node described = LevelRouteRegistry.fromLocation(candidateState.optString("location", ""));
-    LevelRouteRegistry.Node requested = structured != null && !structured.id.equals(oldId)
-      ? structured : (described != null && !described.id.equals(oldId) ? described : previous);
-    if (requested == null) requested = previous;
-    if (requested == null) throw new Exception("Current environment node is invalid.");
+    if (previous == null) throw new Exception("Current environment node is invalid.");
 
-    boolean changed = !requested.id.equals(oldId);
-    if (changed && (!canTransition(before, rolls, requested) ||
-        !LevelRouteRegistry.canMove(oldId, requested.id) || !playerTraverses(action))) {
-      LevelRouteRegistry.Node safe = previous;
-      candidateState.put("level", before.optJSONObject("level") == null
-        ? safe.asJson() : new JSONObject(before.optJSONObject("level").toString()));
-      candidateState.put("title", before.optString("title", safe.title()));
-      candidateState.put("location", before.optString("location", safe.location()));
+    if (coreDestinationId != null) {
+      LevelRouteRegistry.Node dest = LevelRouteRegistry.node(coreDestinationId);
+      if (dest == null) throw new Exception("Core destination node is invalid.");
+      // Defense in depth: Core's destination must be a valid edge from the old node.
+      if (!LevelRouteRegistry.canMove(oldId, dest.id))
+        throw new Exception("Core destination is not a valid edge.");
+      candidateState.put("level", dest.asJson());
+      candidateState.put("title", dest.title());
+      candidateState.put("location", dest.location());
       return;
     }
 
-    candidateState.put("level", requested.asJson());
-    if (changed) {
-      candidateState.put("title", requested.title());
-      if (described == null || !requested.id.equals(described.id)) {
-        candidateState.put("location", requested.location());
-      }
-    }
+    // No Core authorization: level must not change. Revert any AI-smuggled delta.
+    candidateState.put("level", before.optJSONObject("level") == null
+      ? previous.asJson() : new JSONObject(before.optJSONObject("level").toString()));
+    candidateState.put("title", before.optString("title", previous.title()));
+    candidateState.put("location", before.optString("location", previous.location()));
   }
 
   private int levelTurns(JSONObject state) {
@@ -1610,19 +1611,43 @@ public class MainActivity extends Activity {
             return;
           }
           // Only deterministic Core rolls.
+          // P0-3 FIX: Core-authoritative exit destination. Core decides the destination
+          // node (HiddenExitStreak + LevelRouteRegistry + Core-parsed intent). The GM/AI
+          // never chooses the destination; its words cannot move the player.
+          JSONObject destResult = new JSONObject(requireGameCore().determineExitDestination(
+            currentView, actionKind, action));
+          String destinationId = destResult.isNull("destinationId") ? null
+            : destResult.optString("destinationId", null);
+          if (destinationId != null && destinationId.isEmpty()) destinationId = null;
+
           JSONObject candidateState = new JSONObject(before.toString());
           JSONObject candidateFlags = candidateState.optJSONObject("flags");
           if (candidateFlags == null) { candidateFlags = new JSONObject(); candidateState.put("flags", candidateFlags); }
           candidateFlags.put("lastRolls", rolls);
 
-          reconcileVisualWorldState(before, candidateState, rolls, action);
+          // Apply Core's destination decision to the candidate (not AI's words).
+          if (destinationId != null) {
+            LevelRouteRegistry.Node dest = LevelRouteRegistry.node(destinationId);
+            if (dest != null) {
+              candidateState.put("level", dest.asJson());
+              candidateState.put("title", dest.title());
+              candidateState.put("location", dest.location());
+            } else {
+              destinationId = null; // Unknown node — treat as no transition.
+            }
+          }
+
+          // reconcileVisualWorldState now enforces Core's decision (no AI smuggling).
+          reconcileVisualWorldState(before, candidateState, rolls, action, destinationId);
           JSONObject state = candidateState;
           String oldNodeId = currentNodeId(before);
           String newNodeId = currentNodeId(state);
           boolean levelChanged = !oldNodeId.equals(newNodeId);
+          // P0-3: Core's destination is authoritative. The old client-side gate
+          // (canTransition + playerTraverses + canMove) is replaced: Core already
+          // confirmed exit readiness, intent, and edge validity when authorizing.
           boolean transitionAccepted = !levelChanged ||
-            (canTransition(before, rolls, LevelRouteRegistry.node(newNodeId)) && playerTraverses(action) &&
-             LevelRouteRegistry.canMove(oldNodeId, newNodeId));
+            (destinationId != null && destinationId.equals(newNodeId));
           if (!transitionAccepted) {
             LevelRouteRegistry.Node previous = LevelRouteRegistry.node(oldNodeId);
             state.put("level", before.optJSONObject("level") == null
