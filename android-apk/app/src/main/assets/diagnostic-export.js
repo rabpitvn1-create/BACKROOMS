@@ -18,9 +18,9 @@
     };
   });
   function snapshot(){
-    const result={schema:"backroom.diagnostics.v1",createdAt:new Date().toISOString(),instructions:"Diagnostic evidence, not a save file. Check error timeline, milestone stages, authoritative state, UI state and API HTTP status before inferring root cause.",
+    const result={schema:"backroom.diagnostics.v1",createdAt:new Date().toISOString(),instructions:"Diagnostic evidence, not a save file. Check error timeline, authoritative state, UI state and API HTTP status before inferring root cause.",
       javascriptEvents:events.slice(),environment:{userAgent:navigator.userAgent,online:navigator.onLine,location:location.protocol+"//"+location.host},
-      runtime:{milestoneBlocked:!!global.__milestoneBlocked,combatBusy:!!global.__combatBusy,milestoneVisible:!!(el("milestoneLoading")&&!el("milestoneLoading").hidden),milestoneMessage:el("milestoneLoadingMessage")&&el("milestoneLoadingMessage").textContent,uiStatus:el("status")&&el("status").textContent},
+      runtime:{combatBusy:!!global.__combatBusy,uiStatus:el("status")&&el("status").textContent},
       uiLogText:el("log")&&el("log").innerText||""};
     try{result.presentation=typeof state==="undefined"?null:state;}catch(error){result.presentationError=String(error);}
     try{
@@ -36,12 +36,12 @@
     return result;
   }
   let armedUntil=0,armedFor="";
-  function exportNow(source){
-    const fromLoading=source==="loading";
-    const check=el(fromLoading?"milestoneDiagnosticSensitive":"diagnosticSensitive");
+  function exportNow(){
+    const source="menu";
+    const check=el("diagnosticSensitive");
     const unsafe=!!(check&&check.checked);
-    const button=el(fromLoading?"milestoneExportDiagnostic":"exportDiagnosticButton");
-    const status=el(fromLoading?"milestoneDiagnosticStatus":"diagnosticExportStatus");
+    const button=el("exportDiagnosticButton");
+    const status=el("diagnosticExportStatus");
     if(unsafe&&(Date.now()>armedUntil||armedFor!==source)){
       armedUntil=Date.now()+10000;armedFor=source;
       if(status)status.textContent="CẢNH BÁO: File sẽ chứa API key đang cấu hình. Nhấn Xuất log lần nữa trong 10 giây để xác nhận.";
@@ -62,13 +62,13 @@
   global.backroomDiagnosticExportResult=function(raw){
     try{
       const result=JSON.parse(raw);
-      [el("diagnosticExportStatus"),el("milestoneDiagnosticStatus")].forEach(status=>{if(status)status.textContent=result.saved?"Đã lưu file chẩn đoán JSON.":result.cancelled?"Đã hủy xuất log.":"Xuất log thất bại: "+(result.error||"unknown");});
+      const status=el("diagnosticExportStatus");
+      if(status)status.textContent=result.saved?"Đã lưu file chẩn đoán JSON.":result.cancelled?"Đã hủy xuất log.":"Xuất log thất bại: "+(result.error||"unknown");
     }catch(error){note("diagnostic.result_error",error);}
   };
   document.addEventListener("DOMContentLoaded",()=>{
-    const menu=el("exportDiagnosticButton"),loading=el("milestoneExportDiagnostic");
-    if(menu)menu.addEventListener("click",()=>exportNow("menu"));
-    if(loading)loading.addEventListener("click",()=>exportNow("loading"));
+    const menu=el("exportDiagnosticButton");
+    if(menu)menu.addEventListener("click",()=>exportNow());
     note("diagnostic.ready","UI diagnostics initialized");
   });
   global.BackroomDiagnostics={note,snapshot};
