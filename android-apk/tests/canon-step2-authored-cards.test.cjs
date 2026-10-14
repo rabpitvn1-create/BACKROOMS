@@ -61,7 +61,7 @@ test('runtime uses exact level and Core-confirmed encounter identity', () => {
   assert.ok(reader.includes('combat?.optBoolean("active", false) == true'));
   assert.ok(reader.includes('add(confirmedVisual, "confirmed active Entity visual canon")'));
   assert.ok(reader.includes('if ("lucia" in presentActors)'));
-  assert.ok(reader.includes('addConfirmed(scheduled.getJSONObject(index).optString("characterId"))'));
+  assert.ok(reader.includes('addConfirmed(event.optString("characterId", event.optString("communicationCharacterId")))'));
   assert.ok(!reader.includes('confirmedRoll("entityEncounter")'));
   assert.ok(reader.includes('flags?.optString("entityEncounterKey", "")'));
   assert.ok(reader.includes('id == confirmedEntityVisualId()'));
@@ -79,7 +79,7 @@ test('unknown or absent characters cannot be treated as active based on a name s
 
 test('encounter context comes from scheduled Core events rather than random results', () => {
   assert.ok(reader.includes('state.optJSONArray("milestoneEventsDue")'));
-  assert.ok(reader.includes('events.getJSONObject(it).optString("characterId") == id'));
+  assert.ok(reader.includes('event.optString("characterId") == id || event.optString("communicationCharacterId") == id'));
   assert.ok(!reader.includes('confirmedRoll('));
   assert.ok(!reader.includes('selectedEntityKey'));
 });
