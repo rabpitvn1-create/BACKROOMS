@@ -31,13 +31,34 @@ class ItemDetailActionsTest {
     JSONObject().put("operation", operation).put("actorId", actor).put("itemId", item).put("quantity", quantity).also { if (target != null) it.put("targetId", target) }.toString()
   private fun run(save: MemorySave, request: String, turn: Int = 1) = JSONObject(facade(save).processItemAction("""{"turn":$turn,"log":[]}""", request))
 
-  @Test fun useCommitsExactOwnedItemAndAdvancesTurn() {
+  @Test fun useCommitsExactOwnedItemWithoutAdvancingExplorerTurnOrTime() {
     val save = MemorySave(fresh())
+    val before = save.state
     val result = run(save, request("USE"))
     assertTrue(result.toString(), result.getBoolean("handled"))
     assertEquals(2, save.state.inventories.getValue(CAO_MINH_ID).items.getValue(BANDAGE_ID).quantity)
-    assertEquals(2, result.getJSONObject("state").getInt("turn"))
-    assertTrue(save.state.turn.completedTurnIds.contains("TURN_1"))
+    assertEquals(1, result.getJSONObject("state").getInt("turn"))
+    assertEquals(before.time, save.state.time)
+    assertEquals(before.turn.currentTurnId, save.state.turn.currentTurnId)
+    assertEquals(before.turn.completedTurnIds, save.state.turn.completedTurnIds)
+  }
+
+  @Test fun itemCanBeUsedWhileMilestoneStoryEventIsDueWithoutConsumingIt() {
+    val storyEvent = JSONObject().put("id", "intro").put("turn", 1).put("kind", "STORY")
+      .put("action", "Quan sát hành lang").put("event", "Một âm thanh vọng tới")
+      .put("outcome", "Cao Minh nhận ra tiếng động không rõ nguồn")
+    val prepared = TestCheckpointQuota.withPlan(fresh(), listOf(storyEvent))
+    val save = MemorySave(prepared)
+    val beforeDue = StoryMilestoneRuntime.dueJson(prepared)
+    val first = run(save, request("USE"))
+    assertTrue(first.toString(), first.getBoolean("handled"))
+    assertEquals(beforeDue, StoryMilestoneRuntime.dueJson(save.state))
+    assertEquals(1, first.getJSONObject("state").getInt("turn"))
+    assertEquals(0L, StoryMilestoneRuntime.statsJson(save.state).getLong("committedEvents"))
+    assertEquals(prepared.time, save.state.time)
+    val second = run(save, request("TRANSFER", target = IRIS_ID))
+    assertTrue(second.toString(), second.getBoolean("handled"))
+    assertEquals(beforeDue, StoryMilestoneRuntime.dueJson(save.state))
   }
   @Test fun transferMovesRequestedQuantityToChosenMember() {
     val save = MemorySave(fresh())
@@ -74,12 +95,17 @@ class ItemDetailActionsTest {
       assertEquals(state, save.state)
     }
   }
-  @Test fun staleTurnCannotRepeatSuccessfulDrop() {
+  @Test fun consecutiveItemActionsWorkAtSameTurnButInvalidQuantityIsRejected() {
     val save = MemorySave(fresh())
-    assertTrue(run(save, request("DROP")).getBoolean("handled"))
+    assertTrue(run(save, request("DROP", 2)).getBoolean("handled"))
+    assertEquals(1, save.state.inventories.getValue(CAO_MINH_ID).items.getValue(BANDAGE_ID).quantity)
     val after = save.state
-    assertFalse(run(save, request("DROP")).getBoolean("handled"))
+    assertFalse(run(save, request("DROP", 2)).getBoolean("handled"))
     assertEquals(after, save.state)
+    assertTrue(run(save, request("DROP", 1)).getBoolean("handled"))
+    assertFalse(save.state.inventories.getValue(CAO_MINH_ID).items.containsKey(BANDAGE_ID))
+    assertEquals(1, CoreClientProjection.turnIndex(save.state))
+    assertEquals("stale_client_state", run(save, request("USE", item = CAO_MINH_SWORD_ID), turn = 2).getString("error"))
   }
   @Test fun executeTextCannotUseTransferOrDropItems() {
     for (action in listOf("Dùng Băng gạc", "Chuyển Băng gạc cho Iris", "Bỏ xuống Băng gạc", "Uống một nửa chai nước")) {

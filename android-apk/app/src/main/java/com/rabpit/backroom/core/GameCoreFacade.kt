@@ -600,7 +600,8 @@ class GameCoreFacade private constructor(
       put(JSONObject().put("id", character.id).put("name", character.name)
         .put("kind", if (character.metadata["npcType"] == "follower") "FOLLOWER" else "NPC")
         .put("levels", character.metadata["encounterLevels"] ?: "any")
-        .put("alive", character.presence != CharacterPresence.DEAD))
+        .put("alive", character.presence != CharacterPresence.DEAD)
+        .put("encountered", character.metadata["encountered"] == "true"))
     }
   }
 
@@ -784,6 +785,8 @@ class GameCoreFacade private constructor(
   }.toString()
 
   private fun eventReply(events: List<String>): String = when (events.lastOrNull { it != "time_advanced" }) {
+    "item_consumed" -> "Đã sử dụng vật phẩm và áp dụng hiệu ứng có sẵn."
+    "item_used" -> "Đã sử dụng vật phẩm."
     "inventory_remove" -> "Vật phẩm đã được loại khỏi Inventory theo hành động của Cao Minh."
     "inventory_transfer" -> "Vật phẩm đã được chuyển giao."
     else -> "Hành động đã được Game State Core xác nhận."
@@ -811,8 +814,6 @@ class GameCoreFacade private constructor(
     fun reject(reason: String): String = response(false, clientSnapshot(client, state), reason, "item_ui_rejected", validationReply(reason))
     if (CombatRuntime.pending(state) != null) return reject("encounter_confirmation_required")
     if (client.optInt("turn", -1) != CoreClientProjection.turnIndex(state)) return reject("stale_client_state")
-    if (StoryMilestoneRuntime.due(state).isNotEmpty() || StoryMilestoneRuntime.awaitingPlan(state))
-      return reject("milestone_requires_gm")
     if (CombatRuntime.active(state) != null) return reject("combat_active")
     if (ActionRuntime.activeSession(state) != null || state.turn.pending != null) return reject("another_turn_pending")
     val request = runCatching { JSONObject(requestJson) }.getOrNull() ?: return reject("invalid_item_request")
@@ -835,19 +836,17 @@ class GameCoreFacade private constructor(
     if (operation == ItemCommand.Operation.TRANSFER && (targetId == null || targetId == actorId || !available(targetId))) return reject("target_unavailable")
     val verb = when (operation) { ItemCommand.Operation.USE -> "Dùng"; ItemCommand.Operation.TRANSFER -> "Chuyển"; else -> "Bỏ" }
     val action = "$verb $quantity ${item.name} (${state.characters.getValue(actorId).name})" + (targetId?.let { " cho ${state.characters.getValue(it).name}" } ?: "")
-    val turnId = nextTurnId(state)
-    val pending = TurnCoordinator.createPending(state, turnId, action)
-    if (pending.error != null) return reject(pending.error)
-    val command = ItemCommand(commandId = "$turnId:UI:ITEM", turnId = turnId, actorId = actorId,
+    // Inventory commands are atomic Core actions, not Explorer Turns.
+    // Never consume or advance a Milestone Turn just to use, transfer or drop an item.
+    val command = ItemCommand(commandId = "UI:ITEM:${java.util.UUID.randomUUID()}", turnId = null, actorId = actorId,
       targetId = if (operation == ItemCommand.Operation.TRANSFER) targetId else null, source = CommandSource.UI,
       operation = operation, itemId = item.itemId, itemName = item.name, quantity = quantity)
-    val committed = TurnCoordinator.commit(pending.state, listOf(command, timeAdvanceCommand(turnId, action)))
-    if (committed.error != null) return reject(committed.error)
-    val reconciled = OfflineEntityLoot.collectPending(committed.state)
-    val next = CoreClientProjection.advance(reconciled)
+    val execution = StateReducer.execute(state, command)
+    if (!execution.applied) return reject(execution.validation.reason ?: "item_action_resolution_required")
+    val next = OfflineEntityLoot.collectPending(execution.state)
     repository.save(next)
     val result = clientSnapshot(client, next)
-    val reply = eventReply(committed.execution?.events.orEmpty())
+    val reply = eventReply(execution.events)
     appendLog(result, action, reply)
     return response(true, result, null, "item_ui_committed", reply)
   }
