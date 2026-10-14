@@ -43,22 +43,22 @@ class ItemDetailActionsTest {
     assertEquals(before.turn.completedTurnIds, save.state.turn.completedTurnIds)
   }
 
-  @Test fun itemCanBeUsedWhileMilestoneStoryEventIsDueWithoutConsumingIt() {
-    val storyEvent = JSONObject().put("id", "intro").put("turn", 1).put("kind", "STORY")
-      .put("action", "Quan sát hành lang").put("event", "Một âm thanh vọng tới")
-      .put("outcome", "Cao Minh nhận ra tiếng động không rõ nguồn")
-    val prepared = TestCheckpointQuota.withPlan(fresh(), listOf(storyEvent))
-    val save = MemorySave(prepared)
-    val beforeDue = StoryMilestoneRuntime.dueJson(prepared)
+  @Test fun itemCanBeUsedWhileEntityEncounterPendingWithoutConsumingIt() {
+    // Core-authoritative entity encounter pending (entityEncounterKey flag).
+    // Item actions must not consume or clear the pending encounter.
+    val withEncounter = fresh().let { state ->
+      val flags = JSONObject(state.world["flagsJson"] ?: "{}").put("entityEncounterKey", "hound")
+      state.copy(world = state.world + ("flagsJson" to flags.toString()))
+    }
+    val save = MemorySave(withEncounter)
+    val beforeKey = JSONObject(save.state.world["flagsJson"]).optString("entityEncounterKey")
     val first = run(save, request("USE"))
     assertTrue(first.toString(), first.getBoolean("handled"))
-    assertEquals(beforeDue, StoryMilestoneRuntime.dueJson(save.state))
+    assertEquals(beforeKey, JSONObject(save.state.world["flagsJson"]).optString("entityEncounterKey"))
     assertEquals(1, first.getJSONObject("state").getInt("turn"))
-    assertEquals(0L, StoryMilestoneRuntime.statsJson(save.state).getLong("committedEvents"))
-    assertEquals(prepared.time, save.state.time)
     val second = run(save, request("TRANSFER", target = IRIS_ID))
     assertTrue(second.toString(), second.getBoolean("handled"))
-    assertEquals(beforeDue, StoryMilestoneRuntime.dueJson(save.state))
+    assertEquals(beforeKey, JSONObject(save.state.world["flagsJson"]).optString("entityEncounterKey"))
   }
   @Test fun transferMovesRequestedQuantityToChosenMember() {
     val save = MemorySave(fresh())
