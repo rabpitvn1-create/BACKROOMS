@@ -1453,11 +1453,35 @@ public class MainActivity extends Activity {
   }
 
   /** Gehihi narrates the turn directly from player action and Core rolls. Core alone updates game state. */
-  private String writerPrompt(JSONObject before, String action, JSONObject rolls) throws Exception {
+  private String writerPrompt(JSONObject before, String action, JSONObject rolls, JSONArray pendingNpcEncounters) throws Exception {
     JSONObject visibleRolls = new JSONObject(rolls.toString());
     visibleRolls.remove(com.rabpit.backroom.core.HiddenExitStreak.ROLL_KEY);
+    // P0-A: Merge Core-confirmed pending NPC encounters into the state snapshot for the
+    // knowledge retriever, so the GM receives their Canon (personality, speech, relations)
+    // and narrates the first meeting. These NPCs are present in the scene, not yet recruited.
+    // Contract: pendingNpcEncounters = [{characterId, flagKey, name}] from beginAction — Core data only.
+    JSONObject stateForKnowledge = new JSONObject(before.toString());
+    if (pendingNpcEncounters != null && pendingNpcEncounters.length() > 0) {
+      JSONArray party = stateForKnowledge.optJSONArray("party");
+      if (party == null) { party = new JSONArray(); stateForKnowledge.put("party", party); }
+      java.util.Set<String> existingIds = new java.util.HashSet<>();
+      for (int i = 0; i < party.length(); i++) {
+        Object v = party.opt(i);
+        if (v instanceof JSONObject) existingIds.add(((JSONObject) v).optString("id", ""));
+        else if (v instanceof String) existingIds.add((String) v);
+      }
+      for (int i = 0; i < pendingNpcEncounters.length(); i++) {
+        JSONObject enc = pendingNpcEncounters.optJSONObject(i);
+        if (enc == null) continue;
+        String cid = enc.optString("characterId", "").trim();
+        if (!cid.isEmpty() && !existingIds.contains(cid)) {
+          party.put(cid);
+          existingIds.add(cid);
+        }
+      }
+    }
     String canon = com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.build(
-      MainActivity.this, before.toString(), action, visibleRolls.toString());
+      MainActivity.this, stateForKnowledge.toString(), action, visibleRolls.toString());
     return "Bạn là Gehihi, Game Master kể chuyện Backrooms bằng tiếng Việt. " +
       "Kể diễn biến tự nhiên theo hành động người chơi, giữ đúng Entity, nhân vật và kết quả đã khóa. " +
       "Được tự do sáng tác chi tiết, lời thoại, không khí, tương tác phụ và phản ứng khác nhau " +
@@ -1592,11 +1616,16 @@ public class MainActivity extends Activity {
           if (!actionStart.optBoolean("handled", false)) {
             throw new Exception("Action Runtime từ chối hành động: " + actionStart.optString("error", "action_start_failed"));
           }
+          // P0-A: Extract Core-confirmed pending NPC encounters from beginAction response.
+          // These are first-meeting events the GM must narrate; Core deferred the commit
+          // until the turn succeeds. Contract: [{characterId, flagKey, name}], no secrets.
+          JSONArray pendingNpcEncounters = actionStart.optJSONArray("pendingNpcEncounters");
+          if (pendingNpcEncounters == null) pendingNpcEncounters = new JSONArray();
           JSONObject before = new JSONObject(currentView);
           boolean meta = isMetaAction(action);
           JSONObject rolls = makeGameplayRolls(before, actionKind, action, meta);
 
-          JSONObject generated = parseModelJson(generateText(writerPrompt(before, action, rolls)));
+          JSONObject generated = parseModelJson(generateText(writerPrompt(before, action, rolls, pendingNpcEncounters)));
           String reply = generated.optString("reply", "").trim();
           if (reply.isEmpty()) throw new Exception("Gehihi không trả lời kể chuyện; lượt này không được ghi.");
           if (meta) {
