@@ -241,7 +241,7 @@ object KnowledgeContextEngine {
 
     private fun addDirectStructuredLookups() {
       val direct = linkedSetOf<String>()
-      val lucTramConfirmed = "luc_tram" in presentActors || scheduledCharacter("luc_tram")
+      val lucTramConfirmed = "luc_tram" in presentActors
       if ("lucia" in presentActors && hasAny(actionText, "lucia", "hứa thuý mai", "hứa thúy mai")) direct += "CHAR.LUCIA.AUTHORED"
       if ("trac_lam" in presentActors && hasAny(actionText, "trác lâm", "trac lam", "trac_lam")) direct += "CHAR.TRAC_LAM.AUTHORED"
       if (hasAny(actionText, "lục trầm", "luc tram", "luc_tram", "tịch quang", "thiên kiếm linh tâm")) {
@@ -311,13 +311,6 @@ object KnowledgeContextEngine {
       }
     }
 
-    private fun scheduledCharacter(id: String): Boolean = state.optJSONArray("milestoneEventsDue")?.let { events ->
-      (0 until events.length()).any {
-        val event = events.getJSONObject(it)
-        event.optString("characterId") == id || event.optString("communicationCharacterId") == id
-      }
-    } == true
-
     private fun confirmedEntityVisualId(): String? {
       val combat = state.optJSONObject("combat")
       val flags = state.optJSONObject("flags")
@@ -330,20 +323,9 @@ object KnowledgeContextEngine {
     }
 
     private fun addStateDrivenRecords() {
-      val scheduled = state.optJSONArray("milestoneEventsDue") ?: JSONArray()
-      for (index in 0 until scheduled.length()) {
-        val event = scheduled.getJSONObject(index)
-        when (event.optString("characterId", event.optString("communicationCharacterId"))) {
-          "lucia" -> add("CHAR.LUCIA.AUTHORED", "scheduled Milestone encounter")
-          "iris" -> add("CHAR.IRIS.RUNTIME_CORE", "scheduled Milestone encounter")
-          "syvial" -> add("CHAR.SYVIAL.RUNTIME_CORE", "scheduled Milestone encounter")
-          "luc_tram" -> {
-            add("CHAR.LUC_TRAM.RUNTIME_CORE", "scheduled Milestone encounter")
-            add("CHAR.LUC_TRAM.REVIVAL_R06", "post-revival amnesia firewall")
-            add("CHAR.LUC_TRAM.OPEN_R06", "unresolved state firewall")
-          }
-        }
-      }
+      // Milestone system removed: Core-confirmed NPC encounters are surfaced via
+      // presentActors (resolvePresence) from pendingNpcEncounters / encounteredCharacters,
+      // not from a Milestone schedule.
       val flags = state.optJSONObject("flags")
       val confirmedVisual = confirmedEntityVisualId()
       if (confirmedVisual != null) {
@@ -404,8 +386,11 @@ object KnowledgeContextEngine {
     /** The current encounter's identity/visual card cannot be dropped as optional context. */
     private fun mandatory(record: Record): Boolean = record.priority <= 30 ||
       record.id == confirmedEntityVisualId() ||
-      (record.id == "CHAR.LUCIA.AUTHORED" && scheduledCharacter("lucia")) ||
-      (record.id == "CHAR.LUC_TRAM.AUTHORED" && scheduledCharacter("luc_tram"))
+      (record.id == "CHAR.LUCIA.AUTHORED" && "lucia" in presentActors) ||
+      (record.id == "CHAR.LUC_TRAM.AUTHORED" && "luc_tram" in presentActors) ||
+      (record.id == "CHAR.LUC_TRAM.RUNTIME_CORE" && "luc_tram" in presentActors) ||
+      (record.id == "CHAR.LUC_TRAM.REVIVAL_R06" && "luc_tram" in presentActors) ||
+      (record.id == "CHAR.LUC_TRAM.OPEN_R06" && "luc_tram" in presentActors)
 
     // Every retrieval path, including references and affordances, obeys scene
     // evidence. Mentioning a name cannot bypass the same boundary.
@@ -464,10 +449,27 @@ object KnowledgeContextEngine {
           }
         }
       }
-      state.optJSONArray("milestoneEventsDue")?.let { scheduled ->
-        for (index in 0 until scheduled.length()) {
-          val event = scheduled.getJSONObject(index)
-          addConfirmed(event.optString("characterId", event.optString("communicationCharacterId")))
+      // Core-confirmed present actors: NPCs Core spawned this turn (e.g. first
+      // meeting, not yet in Party). MainActivity merges beginAction's
+      // pendingNpcEncounters into the state or rolls JSON passed here.
+      // Character IDs come from Core (LUCIA_ID="lucia", LUC_TRAM_ID="luc_tram", ...).
+      fun addPendingEncounters(array: JSONArray?) {
+        if (array == null) return
+        for (i in 0 until array.length()) {
+          val event = array.optJSONObject(i) ?: continue
+          addConfirmed(event.optString("characterId", event.optString("flagKey", "")))
+        }
+      }
+      addPendingEncounters(state.optJSONArray("pendingNpcEncounters"))
+      addPendingEncounters(rolls.optJSONArray("pendingNpcEncounters"))
+      // Already-encountered characters that Core marks as currently present.
+      // "Has met before" (present=false) is NOT presence — only present=true joins.
+      state.optJSONArray("encounteredCharacters")?.let { encountered ->
+        for (i in 0 until encountered.length()) {
+          val entry = encountered.optJSONObject(i) ?: continue
+          if (entry.optBoolean("present", false)) {
+            addConfirmed(entry.optString("id", ""))
+          }
         }
       }
     }

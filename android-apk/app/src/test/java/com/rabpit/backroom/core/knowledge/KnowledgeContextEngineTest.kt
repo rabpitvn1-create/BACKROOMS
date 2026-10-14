@@ -23,16 +23,19 @@ class KnowledgeContextEngineTest {
     }
   }
 
-  @Test fun activePartyAndScheduledMilestoneGrantActorCards() {
+  @Test fun activePartyAndCoreConfirmedActorsGrantActorCards() {
     assertTrue(packet("""{"party":[{"id":"lucia","presence":"ACTIVE"}]}""").contains("<CHAR.LUCIA.AUTHORED>"))
     assertFalse(packet("""{"party":[{"id":"lucia","presence":"ABSENT"}]}""").contains("<CHAR.LUCIA.AUTHORED>"))
     assertFalse(packet("""{"party":[{"id":"iris_unknown"}]}""").contains("<CHAR.IRIS."))
     assertFalse(packet("""{"turn":4}""", rolls = """{"turn":4,"luciaEncounter":{"eligible":true,"success":true}}""").contains("<CHAR.LUCIA.AUTHORED>"))
-    assertTrue(packet("""{"milestoneEventsDue":[{"kind":"FOLLOWER","characterId":"lucia"}]}""").contains("<CHAR.LUCIA.AUTHORED>"))
-    assertTrue(packet("""{"milestoneEventsDue":[{"characterId":"iris"},{"characterId":"syvial"}]}""").contains("<CHAR.IRIS.RUNTIME_CORE>"))
-    assertTrue(packet("""{"milestoneEventsDue":[{"characterId":"iris"},{"characterId":"syvial"}]}""").contains("<CHAR.SYVIAL.RUNTIME_CORE>"))
-    assertTrue(packet("""{"milestoneEventsDue":[{"kind":"STORY","communicationCharacterId":"lucia"}]}""")
-      .contains("<CHAR.LUCIA.AUTHORED>"))
+    // Core-confirmed present actors: pendingNpcEncounters from beginAction (first meeting, not yet in Party).
+    assertTrue(packet("""{"pendingNpcEncounters":[{"characterId":"lucia","flagKey":"lucia"}]}""").contains("<CHAR.LUCIA.AUTHORED>"))
+    assertTrue(packet(state = "{}", action = "đi tiếp",
+      rolls = """{"pendingNpcEncounters":[{"characterId":"luc_tram","flagKey":"lucTram"}]}""").contains("<CHAR.LUC_TRAM.AUTHORED>"))
+    // encounteredCharacters: present=true grants cards; present=false (met before) does not.
+    assertTrue(packet("""{"encounteredCharacters":[{"id":"lucia","present":true,"inParty":false}]}""").contains("<CHAR.LUCIA.AUTHORED>"))
+    assertFalse(packet("""{"encounteredCharacters":[{"id":"lucia","present":false,"inParty":false}]}""").contains("<CHAR.LUCIA.AUTHORED>"))
+    assertFalse(packet("""{"encounteredCharacters":[{"id":"luc_tram","present":false,"inParty":false}]}""").contains("<CHAR.LUC_TRAM."))
   }
 
   @Test fun entityMentionAndLevelReferencesCannotInventEncounter() {
