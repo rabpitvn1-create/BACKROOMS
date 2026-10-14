@@ -12,6 +12,22 @@ class GameCoreFacade private constructor(
   private val rules = RuleIntentInterpreter()
   private val resolver = CommandResolver()
   private val spawnRng = SecureRandom()
+  private val exitRng = SecureRandom()
+  /** One-shot exit authorization from determineExitDestination, consumed by processValidatedCandidate. */
+  private var exitAuthorization: ExitAuthorization? = null
+
+  private data class ExitAuthorization(val turn: Int, val fromId: String, val toId: String)
+
+  private companion object {
+    /** Traversal intent keywords (Core-owned; mirrors client playerTraverses). */
+    val TRAVERSAL_KEYWORDS = listOf(
+      "đi qua", "bước qua", "chạy qua", "vượt qua", "băng qua", "chui qua", "leo qua",
+      "đi vào", "bước vào", "tiến vào", "chạy vào", "nhảy vào", "chui vào",
+      "đi sang", "bước sang", "tiến sang", "chuyển sang", "dịch chuyển đến",
+      "no-clip", "noclip"
+    )
+    val NUMBERED_ID = Regex("[0-9]+(\\.[0-9]+)?")
+  }
 
   /** Fast deterministic pass. Gemini is never called from this method. */
   /** Handle explicit rule-only commands without bypassing Gehihi for normal Explorer turns. */
@@ -180,9 +196,25 @@ class GameCoreFacade private constructor(
     if (!started.applied) return actionStartResponse(false, started.session, started.error ?: "action_start_failed")
     // Core-authoritative spawn rolls (not AI): entity + NPC first-meetings.
     // GM only narrates results; Core decides. See EntitySpawnPool.kt.
+    // When entity roll succeeds, reserve a real PENDING_ENCOUNTER_CONFIRMATION via
+    // CombatRuntime.prepareEncounter() so CoreClientProjection exports pendingEncounter.
+    // Battle Start then calls confirmEncounter() to start Combat. GM cannot self-spawn.
     val withSpawns = runCatching {
-      val spawnResult = SpawnMechanism.rollSpawns(started.state, kind) { bound -> spawnRng.nextInt(bound) }
-      SpawnMechanism.applySpawns(started.state, spawnResult)
+      val spawnResult = SpawnMechanism.rollSpawns(
+        started.state, kind, action,
+        isMeta = false, inCombatOrPending = false
+      ) { bound -> spawnRng.nextInt(bound) }
+      var next = SpawnMechanism.applySpawns(started.state, spawnResult)
+      // Reserve combat encounter if entity spawned (Core-authoritative, not AI).
+      // The encounterId is persistent and flows: prepareEncounter -> pending() ->
+      // CoreClientProjection.pendingEncounter -> UI Battle Start -> confirmEncounter().
+      if (spawnResult.entityKey != null && CombatRuntime.pending(next) == null && CombatRuntime.active(next) == null) {
+        val encounterId = "spawn:${turnId}:${spawnResult.entityKey}:${System.currentTimeMillis()}"
+        next = runCatching {
+          CombatRuntime.prepareEncounter(next, spawnResult.entityKey, encounterId, boss = false)
+        }.getOrDefault(next)
+      }
+      next
     }.getOrDefault(started.state)
     repository.save(withSpawns)
     return actionStartResponse(true, started.session, null)
@@ -210,6 +242,8 @@ class GameCoreFacade private constructor(
   }
 
   @Synchronized fun abortAction(reason: String): Boolean {
+    // P0-3: clear any pending exit authorization (turn did not complete).
+    exitAuthorization = null
     if (!repository.exists()) return false
     val state = repository.load()
     val active = ActionRuntime.activeSession(state) ?: return false
@@ -370,6 +404,87 @@ class GameCoreFacade private constructor(
   override fun close() = Unit
 
   /**
+   * P0-3: Core-authoritative exit destination decision.
+   *
+   * Core decides the destination node (never GM/AI, never client):
+   * - Exit readiness: Core's own streak (from committed state) + Core's own dice
+   *   (SecureRandom). NEVER trusts candidate.flags.lastRolls (client data).
+   * - Traversal intent: parsed by Core from the action text (not client's playerTraverses).
+   * - Destination: selected from LevelRouteRegistry valid edges. Single edge -> direct.
+   *   Multiple edges -> must match player intent against destination names; ambiguous
+   *   means no transition (GM prompts via gmRoutingContext). Core never guesses, and
+   *   the GM never chooses secret paths.
+   *
+   * Returns {"destinationId": "<node>"} on authorization, or
+   * {"destinationId": null, "reason": "..."} otherwise. An authorized destination is
+   * stored as a one-shot exitAuthorization consumed by processValidatedCandidate.
+   */
+  @Synchronized fun determineExitDestination(clientStateJson: String, kindRaw: String, action: String): String {
+    val client = JSONObject(clientStateJson)
+    val turn = client.optInt("turn", -1)
+    val core = loadCurrentState()
+    val coreView = JSONObject().put("flags", JSONObject(core.world["flagsJson"] ?: "{}"))
+    val currentNode = LevelRouteRegistry.requested(JSONObject(core.world.getValue("levelJson")))
+      ?: return destResult(null, "no_current_node")
+
+    // Core-authoritative exit readiness: Core's streak + Core's dice.
+    val kind = enumValues<ActionKind>().firstOrNull { it.name == kindRaw.trim().uppercase() }
+    val eligible = kind == ActionKind.EXPLORE && !HiddenExitStreak.ready(coreView)
+    val success = eligible && exitRng.nextInt(100) < HiddenExitStreak.SUCCESS_PERCENT
+    val coreRolls = JSONObject().put(HiddenExitStreak.ROLL_KEY, JSONObject()
+      .put("eligible", eligible).put("success", success))
+    if (!HiddenExitStreak.projectedReady(coreView, coreRolls))
+      return destResult(null, "exit_not_ready")
+
+    if (!corePlayerTraverses(action))
+      return destResult(null, "no_traversal_intent")
+
+    val exits = LevelRouteRegistry.exits(currentNode.id)
+    if (exits.isEmpty())
+      return destResult(null, "no_exits")
+
+    val destinationId = if (exits.size == 1) {
+      exits[0]
+    } else {
+      matchDestinationIntent(action, exits) ?: return destResult(null, "destination_ambiguous")
+    }
+
+    // Defense in depth: destination must be a valid edge (never trust selection alone).
+    if (!LevelRouteRegistry.canMove(currentNode.id, destinationId))
+      return destResult(null, "invalid_edge")
+
+    exitAuthorization = ExitAuthorization(turn, currentNode.id, destinationId)
+    return destResult(destinationId, null)
+  }
+
+  private fun destResult(destinationId: String?, reason: String?): String =
+    JSONObject().apply {
+      put("destinationId", destinationId ?: JSONObject.NULL)
+      if (reason != null) put("reason", reason)
+    }.toString()
+
+  /** Core-owned traversal intent parser (mirrors client playerTraverses; Core never trusts client). */
+  private fun corePlayerTraverses(action: String): Boolean {
+    val a = action.lowercase()
+    return TRAVERSAL_KEYWORDS.any { a.contains(it) }
+  }
+
+  /**
+   * Match player intent against named destinations. Returns the single matched node id,
+   * or null when zero or multiple match (ambiguous -> no transition; GM asks via routing context).
+   */
+  private fun matchDestinationIntent(action: String, exits: List<String>): String? {
+    val a = action.lowercase()
+    val matched = exits.filter { id ->
+      val node = LevelRouteRegistry.node(id) ?: return@filter false
+      a.contains(id.lowercase()) ||
+        a.contains(node.name.lowercase()) ||
+        (id.matches(NUMBERED_ID) && a.contains("level $id"))
+    }
+    return matched.singleOrNull()
+  }
+
+  /**
    * Commits only the gameplay delta already accepted by the client canon/dice validator.
    * Candidate prose/JSON never becomes storage directly: inventory and party are rebuilt
    * from commands and then projected back onto the UI state.
@@ -386,22 +501,28 @@ class GameCoreFacade private constructor(
     if (blocksTextItemAction(action)) return response(false, clientSnapshot(before, core), "item_ui_required", "item_ui_required")
     if (before.optInt("turn", -1) != CoreClientProjection.turnIndex(core))
       return response(false, clientSnapshot(before, core), "stale_client_state", "gemini_delta_rejected")
-    // P0 FIX: Level transition validation. The old parent-equality check rejected ALL
-    // cross-parent moves, but valid LevelRouteRegistry edges CAN change parent
-    // (e.g. red_rooms -> 1, 1 -> 2). A transition is allowed ONLY via a valid edge
-    // AND with Core-confirmed exit readiness (authoritative streak + this turn's roll,
-    // mirroring MainActivity's canTransition check). GM words alone cannot authorize
-    // a move. Teleportation (invalid edge or no exit readiness) is blocked.
+    // P0-3: Core-authoritative transition validation. A level change is allowed ONLY
+    // when determineExitDestination authorized it this turn (Core's own streak +
+    // Core's own dice + Core-parsed intent + valid edge). candidate.flags.lastRolls
+    // (client data) and before.flags.exploration (client data) are NEVER trusted.
+    // GM words alone cannot authorize a move. Teleportation is blocked.
     val currentNode = requireNotNull(LevelRouteRegistry.requested(JSONObject(core.world.getValue("levelJson"))))
     val proposed = LevelRouteRegistry.requested(candidate.optJSONObject("level"))
     if (proposed == null)
       return response(false, clientSnapshot(before, core), "level_change_forbidden", "gemini_delta_rejected")
     if (proposed.id != currentNode.id) {
-      val rolls = candidate.optJSONObject("flags")?.optJSONObject("lastRolls")
-      val validEdge = LevelRouteRegistry.canMove(currentNode.id, proposed.id)
-      val exitReady = HiddenExitStreak.projectedReady(before, rolls)
-      if (!validEdge || !exitReady)
+      val turn = before.optInt("turn", -1)
+      val auth = exitAuthorization
+      // One-shot: consume the authorization regardless of outcome.
+      exitAuthorization = null
+      val authorized = auth != null && auth.turn == turn &&
+        auth.fromId == currentNode.id && auth.toId == proposed.id &&
+        LevelRouteRegistry.canMove(currentNode.id, proposed.id)
+      if (!authorized)
         return response(false, clientSnapshot(before, core), "level_change_forbidden", "gemini_delta_rejected")
+    } else {
+      // No level change: clear any stale authorization.
+      exitAuthorization = null
     }
     // Anti-teleport: a location description or flagged level pointing to a third node
     // (neither current nor proposed) indicates an inconsistent or smuggled transition.
@@ -721,7 +842,6 @@ class GameCoreFacade private constructor(
     val verb = when (operation) { ItemCommand.Operation.USE -> "Dùng"; ItemCommand.Operation.TRANSFER -> "Chuyển"; else -> "Bỏ" }
     val action = "$verb $quantity ${item.name} (${state.characters.getValue(actorId).name})" + (targetId?.let { " cho ${state.characters.getValue(it).name}" } ?: "")
     // Inventory commands are atomic Core actions, not Explorer Turns.
-    // Never consume or advance a Milestone Turn just to use, transfer or drop an item.
     val command = ItemCommand(commandId = "UI:ITEM:${java.util.UUID.randomUUID()}", turnId = null, actorId = actorId,
       targetId = if (operation == ItemCommand.Operation.TRANSFER) targetId else null, source = CommandSource.UI,
       operation = operation, itemId = item.itemId, itemName = item.name, quantity = quantity)
