@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   live-first-checkpoint:
-    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'restore/fake-sandbox-milestone-v2'
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'restore/fake-sandbox-milestone-v2' || github.head_ref == 'acceptance/1.2.0.0.26'
     runs-on: ubuntu-latest
     timeout-minutes: 235
     env:
