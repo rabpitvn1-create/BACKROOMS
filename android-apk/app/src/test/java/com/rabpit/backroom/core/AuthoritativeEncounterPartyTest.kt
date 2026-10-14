@@ -26,7 +26,7 @@ class AuthoritativeEncounterPartyTest {
   private fun commit(repo: MemorySave, edit: (JSONObject) -> Unit = {}): JSONObject {
     val before = CoreClientProjection.project(JSONObject().put("log", JSONArray()), repo.state)
     val candidate = JSONObject(before.toString()); edit(candidate)
-    return JSONObject(facade(repo).processValidatedCandidate(before.toString(), candidate.toString(), "Khám Phá", "Lời kể không chứa tên nhân vật."))
+    return JSONObject(TestMilestoneTurn.commit(facade(repo), before.toString(), candidate.toString(), "Khám Phá", "Lời kể không chứa tên nhân vật."))
   }
   @Test fun scheduledMeetingIsRecordedWithoutSynthesizedPartyMemberOrRandomSuccess() {
     val repo = MemorySave(TestCheckpointQuota.withPlan(GameState.initial(), listOf(meeting("iris", IRIS_ID))))

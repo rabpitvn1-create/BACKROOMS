@@ -21,7 +21,7 @@ class StoryMilestonePlanTest {
   private fun plan(checkpoint: String = "CP-L00-01",
                    entries: JSONArray = TestCheckpointQuota.events(JSONArray().put(story("beat1", 1))
                      .put(story("beat2", 3)).put(finale()))): String =
-    JSONObject().put("schemaVersion", 2).put("checkpointId", checkpoint)
+    JSONObject().put("schemaVersion", StoryMilestonePlan.SCHEMA_VERSION).put("checkpointId", checkpoint).put("storyArc", TestCheckpointQuota.storyArc())
       .put("events", entries).put("completion", JSONObject().put("type", "NEXT_CHECKPOINT")
         .put("outcome", "TEST_ONLY checkpoint completion")).toString()
 
@@ -48,6 +48,26 @@ class StoryMilestonePlanTest {
     val entries = JSONArray().put(story("alpha", 2)).put(story("beta", 2)).put(finale(5))
     val parsed = StoryMilestonePlan.parse(plan(entries = TestCheckpointQuota.events(entries)), StoryCheckpointCore.Position(0, 1, 20))
     assertEquals(listOf("alpha", "beta"), parsed.eventsAt(2).map { it.id })
+  }
+
+  @Test fun requiredStoryCommunicationIsTypedSavedAndCannotUseAnUnknownSpeaker() {
+    val meeting = JSONObject().put("id", "meeting").put("turn", 1).put("kind", "FOLLOWER")
+      .put("characterId", LUCIA_ID).put("action", "Lucia tới gần")
+      .put("event", "Gặp Lucia").put("outcome", "Chưa gia nhập Party")
+    val disclosure = story("disclosure", 2).put("communicationCharacterId", LUCIA_ID)
+    val raw = plan(entries = TestCheckpointQuota.events(JSONArray().put(meeting).put(disclosure).put(finale())))
+    val installed = StoryMilestonePlan.installCurrent(state(), raw)
+    val restored = GameStateCodec.decode(GameStateCodec.encode(installed))
+    assertEquals(LUCIA_ID, StoryMilestonePlan.current(restored)!!.plan.eventsAt(2).single().communicationCharacterId)
+    disclosure.put("communicationCharacterId", "unregistered")
+    reject(plan(entries = TestCheckpointQuota.events(JSONArray().put(meeting).put(disclosure).put(finale()))))
+    disclosure.put("communicationCharacterId", CAO_MINH_ID)
+    reject(plan(entries = TestCheckpointQuota.events(JSONArray().put(meeting).put(disclosure).put(finale()))))
+    disclosure.put("communicationCharacterId", LUCIA_ID)
+    val withoutMeeting = plan(entries = TestCheckpointQuota.events(JSONArray().put(disclosure).put(finale())))
+    assertEquals("milestone_communication_requires_meeting", assertThrows(IllegalArgumentException::class.java) {
+      StoryMilestonePlan.installCurrent(state(), withoutMeeting)
+    }.message)
   }
 
   @Test fun rejectsChangedResultsInvalidTurnsAndMissingFinale() {
@@ -82,7 +102,7 @@ class StoryMilestonePlanTest {
     assertEquals("beat2", active.eventsAtGlobalTurn(5).single().id)
     assertTrue(active.eventsAtGlobalTurn(2).isEmpty())
     assertTrue(active.eventsAtGlobalTurn(7).isEmpty())
-    assertEquals("boss", active.eventsAtGlobalTurn(20).single().id)
+    assertEquals("boss", active.eventsAtGlobalTurn(52).single().id)
     assertEquals(installed, StoryMilestonePlan.installCurrent(installed, plan()))
     val rewritten = JSONObject(plan()).getJSONArray("events")
     rewritten.getJSONObject(1).put("outcome", "Kết quả khác")
@@ -108,8 +128,8 @@ class StoryMilestonePlanTest {
     assertThrows(IllegalArgumentException::class.java) {
       StoryMilestonePlan.prepareNextDuringCombat(fightingTooEarly, successor)
     }
-    // The Boss is scheduled at the end of Checkpoint-relative Explorer Turn 18.
-    val reachedFinalTurn = (1..17).fold(installed) { current, _ -> CoreClientProjection.advance(current) }
+    // The Boss is scheduled at the end of Checkpoint-relative Explorer Turn 50.
+    val reachedFinalTurn = (1..49).fold(installed) { current, _ -> CoreClientProjection.advance(current) }
     val rawFight = CombatRuntime.start(reachedFinalTurn, "hound")
     val fighting = rawFight.copy(world = rawFight.world + ("story.milestone.bossEncounter" to CombatRuntime.active(rawFight)!!.encounterId))
     val prepared = StoryMilestonePlan.prepareNextDuringCombat(fighting, successor)
@@ -134,7 +154,7 @@ class StoryMilestonePlanTest {
       .put("type", "EXIT_LEVEL").put("targetNodeId", "1.2").put("nextCheckpointTotal", 3)
       .put("outcome", "TEST_ONLY authored Level completion")).toString()
     val installed = StoryMilestonePlan.installCurrent(atLast, raw)
-    val reached = (1..17).fold(installed) { current, _ -> CoreClientProjection.advance(current) }
+    val reached = (1..49).fold(installed) { current, _ -> CoreClientProjection.advance(current) }
     val rawFight = CombatRuntime.start(reached, "hound")
     val fighting = rawFight.copy(world = rawFight.world + ("story.milestone.bossEncounter" to CombatRuntime.active(rawFight)!!.encounterId))
     val prepared = StoryMilestonePlan.prepareNextDuringCombat(fighting, plan(checkpoint = "CP-L01-01"))

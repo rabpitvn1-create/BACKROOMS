@@ -8,7 +8,7 @@ import org.junit.Test
 /** Core SaveState is the only source of committed Milestone events. */
 class StoryMilestoneHistoryTest {
   private fun plan(checkpointId: String): String = JSONObject()
-    .put("schemaVersion", 2).put("checkpointId", checkpointId)
+    .put("schemaVersion", StoryMilestonePlan.SCHEMA_VERSION).put("checkpointId", checkpointId).put("storyArc", TestCheckpointQuota.storyArc())
     .put("events", TestCheckpointQuota.events(JSONArray()
       .put(JSONObject().put("id", "story").put("turn", 1).put("kind", "STORY")
         .put("action", "Nhân vật mở cửa")
@@ -40,7 +40,7 @@ class StoryMilestoneHistoryTest {
     val state = initial()
     assertEquals(0, JSONObject(StoryMilestoneRuntime.continuityContext(state))
       .getJSONArray("recentCommittedEvents").length())
-    val committed = StoryMilestoneRuntime.acceptTurn(state)
+    val committed = TestMilestoneTurn.dispatch(state)
     assertTrue(StoryMilestoneRuntime.continuityContext(committed).contains("Cao Minh"))
     assertFalse(committed.world.containsKey("story.factLedger"))
     val restored = GameStateCodec.decode(GameStateCodec.encode(committed))
@@ -67,6 +67,8 @@ class StoryMilestoneHistoryTest {
     assertEquals("Cao Minh nhìn thấy căn phòng màu vàng",
       events.getJSONObject(0).getString("event"))
     assertTrue(StoryMilestoneRuntime.continuityContext(completed).contains("Cao Minh"))
+    assertTrue(events.getJSONObject(0).has("narration"))
+    assertFalse(StoryMilestoneRuntime.continuityContext(completed).contains("\"narration\""))
     StoryMilestoneRuntime.validateStoredState(
       GameStateCodec.decode(GameStateCodec.encode(completed)))
     val forged = JSONArray(history.toString())

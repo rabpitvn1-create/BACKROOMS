@@ -1,13 +1,20 @@
-name: Emulator - First Six Checkpoints
+name: Emulator - One Checkpoint Then Repeat
 
 on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/emulator-first-six-checkpoints.yml'
+      - 'android-apk/app/src/androidTest/java/com/rabpit/backroom/core/FirstSixCheckpointsEmulatorTest.kt'
+      - 'android-apk/app/src/main/java/com/rabpit/backroom/core/**'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  six-checkpoints:
+  first-checkpoint:
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'restore/fake-sandbox-milestone-v2'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -28,7 +35,7 @@ jobs:
         with:
           gradle-version: '8.10.2'
 
-      - name: Run first six Checkpoints on Android Emulator API 35
+      - name: Run one full Checkpoint on Android Emulator API 35
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
@@ -36,13 +43,55 @@ jobs:
           arch: x86_64
           profile: pixel_7
           disable-animations: true
-          script: cd android-apk && gradle :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.rabpit.backroom.core.FirstSixCheckpointsEmulatorTest --no-daemon
+          script: cd android-apk && gradle :app:connectedDebugAndroidTest '-Pandroid.testInstrumentationRunnerArguments.class=com.rabpit.backroom.core.FirstSixCheckpointsEmulatorTest#firstCheckpointWithLuciaAndMixedEntityCombats' --no-daemon
 
       - name: Publish instrumentation reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: first-six-checkpoints-emulator-report
+          name: first-checkpoint-emulator-report
+          path: |
+            android-apk/app/build/reports/androidTests/connected/
+            android-apk/app/build/outputs/androidTest-results/connected/
+          if-no-files-found: warn
+
+  repeat-checkpoint:
+    needs: first-checkpoint
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Enable Linux hardware acceleration for Android emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+
+      - name: Repeat one full Checkpoint with Iris and different Entity order
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_7
+          disable-animations: true
+          script: cd android-apk && gradle :app:connectedDebugAndroidTest '-Pandroid.testInstrumentationRunnerArguments.class=com.rabpit.backroom.core.FirstSixCheckpointsEmulatorTest#repeatCheckpointWithIrisAndDifferentStoryArc' --no-daemon
+
+      - name: Publish instrumentation reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: repeat-checkpoint-emulator-report
           path: |
             android-apk/app/build/reports/androidTests/connected/
             android-apk/app/build/outputs/androidTest-results/connected/

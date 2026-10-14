@@ -9,7 +9,11 @@ public final class ProviderResponseContract {
 
   public static void requireWriter(JSONObject packet) {
     Object reply = packet == null ? null : packet.opt("reply");
-    if (!(reply instanceof String) || ((String) reply).trim().isEmpty()) {
+    JSONArray scenes = packet == null ? null : packet.optJSONArray("eventNarrations");
+    // A scene-only Milestone response has no prelude. Its content is validated by
+    // MilestoneNarrationValidator against Core's due schedule before committing.
+    if (!(reply instanceof String) || (((String) reply).trim().isEmpty() &&
+        (scenes == null || scenes.length() == 0))) {
       throw new IllegalArgumentException("GM provider JSON không có reply hợp lệ.");
     }
   }

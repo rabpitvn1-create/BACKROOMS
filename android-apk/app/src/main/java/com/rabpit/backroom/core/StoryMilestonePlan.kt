@@ -10,14 +10,14 @@ import org.json.JSONObject
  * This contract does not trigger events or award EXP. The runtime dispatcher belongs to step 6.
  */
 object StoryMilestonePlan {
-  const val SCHEMA_VERSION = 2
-  const val MIN_CHECKPOINT_TURNS = 18
-  const val MIN_ENTITY_PERCENT = 40
+  const val SCHEMA_VERSION = 3
+  const val MIN_CHECKPOINT_TURNS = 50
+  const val MIN_ENTITY_ENCOUNTERS = 20
 
-  /** Quota applies to Explorer turns and ordinary Entity encounters, never Boss or Combat. */
+  /** Fixed ordinary Combat encounters per Checkpoint, independent of its length. */
   fun minimumEntityEncounters(explorerTurns: Long): Long {
     require(explorerTurns >= MIN_CHECKPOINT_TURNS) { "milestone_checkpoint_too_short" }
-    return (explorerTurns * MIN_ENTITY_PERCENT + 99L) / 100L
+    return MIN_ENTITY_ENCOUNTERS.toLong()
   }
   const val FINAL_HP_MULTIPLIER = 9
   const val FINAL_EXP_MULTIPLIER = 9
@@ -26,6 +26,8 @@ object StoryMilestonePlan {
   private const val MAX_PLAN_CHARS = 65536
   private const val MAX_EVENTS = 64
   private const val MAX_DESCRIPTION_CHARS = 500
+  private const val MIN_STORY_ARC_CHARS = 200
+  private const val MAX_STORY_ARC_CHARS = 750
   private val EVENT_ID = Regex("[A-Za-z][A-Za-z0-9_-]{0,47}")
   private val ENTITY_KEY = Regex("[a-z0-9_-]{1,80}")
 
@@ -67,10 +69,11 @@ object StoryMilestonePlan {
     val event: String,
     val outcome: String,
     val entityKey: String? = null,
-    val combatRequired: Boolean = kind == Kind.FINAL_ENTITY,
-    val characterId: String? = null
+    val characterId: String? = null,
+    val communicationCharacterId: String? = null
   ) {
     val isEntityEncounter: Boolean get() = kind == Kind.ENTITY || kind == Kind.FINAL_ENTITY
+    val combatRequired: Boolean get() = isEntityEncounter
     val isCharacterEncounter: Boolean get() = kind == Kind.FOLLOWER || kind == Kind.NPC
     val isEncounter: Boolean get() = isEntityEncounter || isCharacterEncounter
 
@@ -83,8 +86,8 @@ object StoryMilestonePlan {
       .put("outcome", outcome)
       .apply {
         if (isEntityEncounter) put("entityKey", requireNotNull(entityKey))
-        if (kind == Kind.ENTITY) put("combatRequired", combatRequired)
         if (isCharacterEncounter) put("characterId", requireNotNull(characterId))
+        communicationCharacterId?.let { put("communicationCharacterId", it) }
         if (kind == Kind.FINAL_ENTITY) {
           put("hpMultiplier", FINAL_HP_MULTIPLIER)
           put("expMultiplier", FINAL_EXP_MULTIPLIER)
@@ -92,7 +95,7 @@ object StoryMilestonePlan {
       }
   }
 
-  data class Plan(val checkpointId: String, val events: List<Event>, val completion: Completion) {
+  data class Plan(val checkpointId: String, val storyArc: String, val events: List<Event>, val completion: Completion) {
     val finalEncounter: Event get() = events.last()
 
     /** Relative 1-based turn within this Checkpoint; no per-action quotas. */
@@ -102,6 +105,7 @@ object StoryMilestonePlan {
     fun toJson(): JSONObject = JSONObject()
       .put("schemaVersion", SCHEMA_VERSION)
       .put("checkpointId", checkpointId)
+      .put("storyArc", storyArc)
       .put("events", JSONArray().apply { events.forEach { put(it.toJson()) } })
       .put("completion", completion.toJson())
   }
@@ -118,10 +122,12 @@ object StoryMilestonePlan {
                          characters: Map<String, CharacterState> = GameState.initial().characters): Plan {
     require(raw.length in 2..MAX_PLAN_CHARS) { "milestone_payload_size_invalid" }
     val root = JSONObject(raw)
-    exactFields(root, setOf("schemaVersion", "checkpointId", "events", "completion"))
+    exactFields(root, setOf("schemaVersion", "checkpointId", "storyArc", "events", "completion"))
     require(integer(root, "schemaVersion") == SCHEMA_VERSION) { "milestone_schema_invalid" }
     val checkpointId = string(root, "checkpointId", 32)
     require(checkpointId == expected.id) { "milestone_checkpoint_mismatch" }
+    val storyArc = string(root, "storyArc", MAX_STORY_ARC_CHARS)
+    require(storyArc.length >= MIN_STORY_ARC_CHARS) { "milestone_story_arc_too_short" }
     val entries = root.getJSONArray("events")
     require(entries.length() in 1..MAX_EVENTS) { "milestone_events_count_invalid" }
 
@@ -133,7 +139,7 @@ object StoryMilestonePlan {
       val allowed = mutableSetOf("id", "turn", "kind", "action", "event", "outcome")
       if (kind == Kind.ENTITY || kind == Kind.FINAL_ENTITY) allowed += "entityKey"
       if (kind == Kind.FOLLOWER || kind == Kind.NPC) allowed += "characterId"
-      if (kind == Kind.ENTITY) allowed += "combatRequired"
+      if (kind == Kind.STORY && item.has("communicationCharacterId")) allowed += "communicationCharacterId"
       if (kind == Kind.FINAL_ENTITY) allowed += setOf("hpMultiplier", "expMultiplier")
       exactFields(item, allowed)
 
@@ -156,9 +162,6 @@ object StoryMilestonePlan {
         }
         value
       } else null
-      require(!item.has("combatRequired") || item.get("combatRequired") is Boolean) {
-        "milestone_combat_required_invalid"
-      }
       val characterId = if (kind == Kind.FOLLOWER || kind == Kind.NPC) {
         val id = string(item, "characterId", 80)
         val registered = characters[id]
@@ -168,8 +171,12 @@ object StoryMilestonePlan {
         }
         id
       } else null
-      events += Event(id, turn, kind, action, event, outcome, key,
-        kind == Kind.FINAL_ENTITY || item.optBoolean("combatRequired", false), characterId)
+      val speaker = if (item.has("communicationCharacterId")) {
+        val id = string(item, "communicationCharacterId", 80)
+        require(id != CAO_MINH_ID && id in characters) { "milestone_character_unknown" }
+        id
+      } else null
+      events += Event(id, turn, kind, action, event, outcome, key, characterId, speaker)
     }
 
     require(events.last().kind == Kind.FINAL_ENTITY &&
@@ -207,7 +214,7 @@ object StoryMilestonePlan {
       StoryCheckpointCore.Position(target.parent, 1, total)
       Completion(type, string(ending, "outcome", MAX_DESCRIPTION_CHARS), targetId, total)
     } else Completion(type, string(ending, "outcome", MAX_DESCRIPTION_CHARS))
-    return Plan(checkpointId, events, completion)
+    return Plan(checkpointId, storyArc, events, completion)
   }
 
   /** Install once at Checkpoint activation; never rewrite the authored schedule mid-story. */
@@ -276,14 +283,23 @@ object StoryMilestonePlan {
 
   /** Resolve impossible Registry states before accepting a compulsory schedule. */
   private fun validateCharactersBeforeAcceptance(state: GameState, plan: Plan, level: Int) {
-    plan.events.filter { it.isCharacterEncounter }.forEach {
-      val character = state.characters.getValue(requireNotNull(it.characterId))
+    plan.events.filter { it.isCharacterEncounter || it.communicationCharacterId != null }.forEach {
+      val character = state.characters.getValue(it.characterId ?: requireNotNull(it.communicationCharacterId))
       require(character.presence != CharacterPresence.DEAD) {
         "milestone_character_dead"
       }
       character.metadata["encounterLevels"]?.let { allowed ->
         val bounds = allowed.split('-').map(String::toInt)
         require(level in bounds.first()..bounds.last()) { "milestone_character_level_invalid" }
+      }
+    }
+    plan.events.filter { it.communicationCharacterId != null }.forEach { event ->
+      val id = requireNotNull(event.communicationCharacterId)
+      val character = state.characters.getValue(id)
+      require((character.presence == CharacterPresence.ACTIVE &&
+        (character.metadata["encountered"] == "true" || id in state.party.memberIds)) ||
+        plan.events.takeWhile { it.id != event.id }.any { it.characterId == id && it.turn <= event.turn }) {
+        "milestone_communication_requires_meeting"
       }
     }
   }

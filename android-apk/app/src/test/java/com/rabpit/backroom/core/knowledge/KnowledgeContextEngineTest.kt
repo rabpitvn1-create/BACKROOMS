@@ -31,6 +31,8 @@ class KnowledgeContextEngineTest {
     assertTrue(packet("""{"milestoneEventsDue":[{"kind":"FOLLOWER","characterId":"lucia"}]}""").contains("<CHAR.LUCIA.AUTHORED>"))
     assertTrue(packet("""{"milestoneEventsDue":[{"characterId":"iris"},{"characterId":"syvial"}]}""").contains("<CHAR.IRIS.RUNTIME_CORE>"))
     assertTrue(packet("""{"milestoneEventsDue":[{"characterId":"iris"},{"characterId":"syvial"}]}""").contains("<CHAR.SYVIAL.RUNTIME_CORE>"))
+    assertTrue(packet("""{"milestoneEventsDue":[{"kind":"STORY","communicationCharacterId":"lucia"}]}""")
+      .contains("<CHAR.LUCIA.AUTHORED>"))
   }
 
   @Test fun entityMentionAndLevelReferencesCannotInventEncounter() {

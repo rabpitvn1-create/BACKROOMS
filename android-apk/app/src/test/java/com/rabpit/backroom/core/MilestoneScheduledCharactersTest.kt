@@ -16,7 +16,7 @@ class MilestoneScheduledCharactersTest {
       .put("action", "Boss xuất hiện").put("event", "Boss chặn lối").put("outcome", "Chờ Battle Start")
       .put("hpMultiplier", 9).put("expMultiplier", 9)))
     val values = (0 until quota.length()).map { quota.getJSONObject(it) } + events
-    return JSONObject().put("schemaVersion", 2).put("checkpointId", checkpoint)
+    return JSONObject().put("schemaVersion", StoryMilestonePlan.SCHEMA_VERSION).put("checkpointId", checkpoint).put("storyArc", TestCheckpointQuota.storyArc())
       .put("events", JSONArray(values.sortedBy { it.getInt("turn") }))
       .put("completion", JSONObject().put("type", "NEXT_CHECKPOINT").put("outcome", "Qua CP")).toString()
   }
@@ -27,7 +27,7 @@ class MilestoneScheduledCharactersTest {
   private fun reach(state: GameState, turn: Int): GameState {
     var result = state
     while (CoreClientProjection.turnIndex(result) < turn)
-      result = CoreClientProjection.advance(StoryMilestoneRuntime.acceptTurn(result))
+      result = CoreClientProjection.advance(TestMilestoneTurn.dispatch(result))
     return result
   }
 
@@ -41,11 +41,11 @@ class MilestoneScheduledCharactersTest {
     val due = JSONArray(StoryMilestoneRuntime.dueJson(state)).getJSONObject(0)
     assertEquals("lucia", due.getString("characterId"))
     assertEquals(LuciaCanon.NAME, due.getString("characterName"))
-    val committed = StoryMilestoneRuntime.acceptTurn(state)
+    val committed = TestMilestoneTurn.dispatch(state)
     assertEquals("true", committed.characters.getValue(LUCIA_ID).metadata["encountered"])
     assertEquals("3", committed.characters.getValue(LUCIA_ID).metadata["encounterTurn"])
     assertEquals(listOf(CAO_MINH_ID), committed.party.memberIds)
-    assertEquals(committed, StoryMilestoneRuntime.acceptTurn(committed))
+    assertEquals(committed, TestMilestoneTurn.dispatch(committed))
     val restored = GameStateCodec.decode(GameStateCodec.encode(CoreClientProjection.advance(committed)))
     StoryMilestoneRuntime.validateStoredState(restored)
     assertEquals(committed.characters[LUCIA_ID], restored.characters[LUCIA_ID])
@@ -56,7 +56,7 @@ class MilestoneScheduledCharactersTest {
     val ids = listOf(AN_NHIEN_ID, IRIS_ID, SYVIAL_ID, LUCIA_ID)
     val before = reach(initial(ids.mapIndexed { index, id -> encounter("meet$index", 3, "FOLLOWER", id) }), 3)
     assertEquals(ids, StoryMilestoneRuntime.due(before).map { it.characterId })
-    val after = StoryMilestoneRuntime.acceptTurn(before)
+    val after = TestMilestoneTurn.dispatch(before)
     ids.forEach { assertEquals("3", after.characters.getValue(it).metadata["encounterTurn"]) }
     assertEquals(listOf(CAO_MINH_ID), after.party.memberIds)
     val records = JSONObject(after.world.getValue("story.milestone.eventRecords"))
@@ -73,14 +73,14 @@ class MilestoneScheduledCharactersTest {
       "story.checkpoint" to JSONObject().put("level", 4).put("index", 1).put("total", 20).toString(),
       "levelJson" to LevelRouteRegistry.node("4")!!.asJson().toString()))
     val accepted = StoryMilestonePlan.installCurrent(state, raw(listOf(encounter("lucTram3", 3, "FOLLOWER", LUC_TRAM_ID)), position.id))
-    val committed = StoryMilestoneRuntime.acceptTurn(reach(accepted, 3))
+    val committed = TestMilestoneTurn.dispatch(reach(accepted, 3))
     assertEquals("3", committed.characters.getValue(LUC_TRAM_ID).metadata["encounterTurn"])
     assertEquals(listOf(CAO_MINH_ID), committed.party.memberIds)
   }
 
   @Test fun npcAndFollowerEventsTogetherAreBothRecordedWithoutPartyMutation() {
     val before = reach(initial(listOf(encounter("npc", 3, "NPC", IRIS_ID), encounter("follower", 3, "FOLLOWER", LUCIA_ID))), 3)
-    val after = StoryMilestoneRuntime.acceptTurn(before)
+    val after = TestMilestoneTurn.dispatch(before)
     assertEquals("NPC", after.characters.getValue(IRIS_ID).metadata["encounterKind"])
     assertEquals("FOLLOWER", after.characters.getValue(LUCIA_ID).metadata["encounterKind"])
     assertEquals(2, JSONObject(after.world.getValue("story.milestone.eventRecords")).length())
@@ -88,7 +88,7 @@ class MilestoneScheduledCharactersTest {
   }
 
   @Test fun noScheduledCharacterEventCannotManufactureACharacterEncounter() {
-    val state = StoryMilestoneRuntime.acceptTurn(initial(emptyList()))
+    val state = TestMilestoneTurn.dispatch(initial(emptyList()))
     assertTrue(state.characters.values.none { it.metadata["encountered"] == "true" })
     assertEquals(listOf(CAO_MINH_ID), state.party.memberIds)
   }
@@ -99,13 +99,13 @@ class MilestoneScheduledCharactersTest {
     val dead = state.copy(characters = state.characters + (LUCIA_ID to state.characters.getValue(LUCIA_ID).copy(presence = CharacterPresence.DEAD)))
     assertThrows(Exception::class.java) { StoryMilestonePlan.installCurrent(dead, raw(listOf(encounter("dead", 3, "FOLLOWER", LUCIA_ID)))) }
     val missing = JSONObject(raw(emptyList()))
-    missing.getJSONArray("events").getJSONObject(0).remove("combatRequired")
+    missing.getJSONArray("events").getJSONObject(0).put("combatRequired", false)
     assertThrows(Exception::class.java) { StoryMilestonePlan.installCurrent(state, missing.toString()) }
   }
 
   @Test fun checkpointHistoryKeepsScheduledCharacterSourcesAfterBossDefeat() {
     val state = TestCheckpointQuota.reachBoss(initial(listOf(encounter("lucia3", 3, "FOLLOWER", LUCIA_ID))))
-    val waiting = CoreClientProjection.advance(StoryMilestoneRuntime.acceptTurn(state))
+    val waiting = CoreClientProjection.advance(TestMilestoneTurn.dispatch(state))
     val id = CombatRuntime.pending(waiting)!!.encounterId
     val active = CombatRuntime.confirmEncounter(waiting, id)
     val prepared = StoryMilestonePlan.prepareNextDuringCombat(active, raw(emptyList(), "CP-L00-02"))

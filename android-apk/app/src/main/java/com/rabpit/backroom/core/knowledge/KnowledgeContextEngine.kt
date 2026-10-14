@@ -312,7 +312,10 @@ object KnowledgeContextEngine {
     }
 
     private fun scheduledCharacter(id: String): Boolean = state.optJSONArray("milestoneEventsDue")?.let { events ->
-      (0 until events.length()).any { events.getJSONObject(it).optString("characterId") == id }
+      (0 until events.length()).any {
+        val event = events.getJSONObject(it)
+        event.optString("characterId") == id || event.optString("communicationCharacterId") == id
+      }
     } == true
 
     private fun confirmedEntityVisualId(): String? {
@@ -329,7 +332,8 @@ object KnowledgeContextEngine {
     private fun addStateDrivenRecords() {
       val scheduled = state.optJSONArray("milestoneEventsDue") ?: JSONArray()
       for (index in 0 until scheduled.length()) {
-        when (scheduled.getJSONObject(index).optString("characterId")) {
+        val event = scheduled.getJSONObject(index)
+        when (event.optString("characterId", event.optString("communicationCharacterId"))) {
           "lucia" -> add("CHAR.LUCIA.AUTHORED", "scheduled Milestone encounter")
           "iris" -> add("CHAR.IRIS.RUNTIME_CORE", "scheduled Milestone encounter")
           "syvial" -> add("CHAR.SYVIAL.RUNTIME_CORE", "scheduled Milestone encounter")
@@ -461,7 +465,10 @@ object KnowledgeContextEngine {
         }
       }
       state.optJSONArray("milestoneEventsDue")?.let { scheduled ->
-        for (index in 0 until scheduled.length()) addConfirmed(scheduled.getJSONObject(index).optString("characterId"))
+        for (index in 0 until scheduled.length()) {
+          val event = scheduled.getJSONObject(index)
+          addConfirmed(event.optString("characterId", event.optString("communicationCharacterId")))
+        }
       }
     }
 

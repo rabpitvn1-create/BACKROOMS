@@ -7,7 +7,7 @@ import org.junit.Test
 
 class StoryMilestoneRuntimeTest {
   private fun plan(checkpoint: String = "CP-L00-01"): String =
-    JSONObject().put("schemaVersion", 2).put("checkpointId", checkpoint)
+    JSONObject().put("schemaVersion", StoryMilestonePlan.SCHEMA_VERSION).put("checkpointId", checkpoint).put("storyArc", TestCheckpointQuota.storyArc())
       .put("events", TestCheckpointQuota.events(JSONArray()
         .put(JSONObject().put("id", "warning").put("turn", 1)
           .put("kind", "STORY").put("action", "TEST_ONLY world action").put("event", "Có dấu hiệu bất thường")
@@ -28,8 +28,8 @@ class StoryMilestoneRuntimeTest {
   @Test fun dueEventsAreAppliedByCoreWithoutGmReceiptsAndDoNotRepeatAfterSaveLoad() {
     val before = initial()
     assertEquals(listOf("warning"), StoryMilestoneRuntime.due(before).map { it.id })
-    val committed = StoryMilestoneRuntime.acceptTurn(before)
-    assertEquals(committed, StoryMilestoneRuntime.acceptTurn(committed))
+    val committed = TestMilestoneTurn.dispatch(before)
+    assertEquals(committed, TestMilestoneTurn.dispatch(committed))
     val records = JSONObject(committed.world.getValue("story.milestone.eventRecords"))
     assertEquals(setOf("warning"), records.keys().asSequence().toSet())
     assertTrue(StoryMilestoneRuntime.continuityContext(committed).contains("Có dấu hiệu bất thường"))
@@ -113,15 +113,21 @@ class StoryMilestoneRuntimeTest {
 
   @Test fun onlyAuthoritativeEventRecordsArePersistedAndValidated() {
     val state = initial()
-    val committed = StoryMilestoneRuntime.acceptTurn(state)
+    val committed = TestMilestoneTurn.dispatch(state)
     StoryMilestoneRuntime.validateStoredState(GameStateCodec.decode(GameStateCodec.encode(committed)))
     val records = JSONObject(committed.world.getValue("story.milestone.eventRecords"))
     assertFalse(records.getJSONObject("warning").has("requestToken"))
     assertFalse(records.getJSONObject("warning").has("verified"))
     val missing = committed.copy(world = committed.world - "story.milestone.eventRecords")
     assertThrows(Exception::class.java) { StoryMilestoneRuntime.validateStoredState(missing) }
+    val noContent = JSONObject(records.toString())
+    noContent.getJSONObject("warning").remove("narration")
+    assertThrows(Exception::class.java) { StoryMilestoneRuntime.validateStoredState(committed.copy(
+      world = committed.world + ("story.milestone.eventRecords" to noContent.toString()))) }
+    assertThrows(Exception::class.java) { StoryMilestoneRuntime.acceptTurn(state, JSONArray()) }
+    assertEquals(1, CoreClientProjection.turnIndex(state))
     val invented = JSONObject(records.toString()).put("fake_event", JSONObject()
-      .put("checkpointId", "CP-L00-01").put("turn", 1))
+      .put("checkpointId", "CP-L00-01").put("storyArc", TestCheckpointQuota.storyArc()).put("turn", 1))
     assertThrows(Exception::class.java) {
       StoryMilestoneRuntime.validateStoredState(committed.copy(
         world = committed.world + ("story.milestone.eventRecords" to invented.toString())))
@@ -184,7 +190,7 @@ class StoryMilestoneRuntimeTest {
     val restored = GameStateCodec.decode(GameStateCodec.encode(state))
     StoryMilestoneRuntime.validateStoredState(restored)
     val stats = StoryMilestoneRuntime.statsJson(restored)
-    assertEquals(200L, stats.getLong("committedEvents"))
+    assertEquals(440L, stats.getLong("committedEvents"))
     assertEquals(20L, stats.getLong("defeatedBosses"))
     assertEquals(20L, stats.getLong("completedCheckpoints"))
     assertEquals(1L, stats.getLong("completedLevels"))

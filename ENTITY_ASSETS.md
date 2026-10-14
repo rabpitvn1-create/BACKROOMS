@@ -31,9 +31,9 @@ Runtime chỉ dùng canonical Entity key trùng chính xác với tên file bỏ
 | `sinew_strider` | `sinew_strider.webp` |
 | `hollow_grasper` | `hollow_grasper.webp` |
 
-Cả **22 Entity** chỉ xuất hiện theo Milestone đã được Core chấp nhận. Planner khóa Explorer Turn, canonical Entity key và `combatRequired` dạng boolean. Không có pool xác suất hoặc random encounter thay thế khi chưa có plan.
+Cả **22 Entity** chỉ xuất hiện theo Milestone đã được Core chấp nhận. Planner khóa Explorer Turn, canonical Entity key; mọi ENTITY trong Milestone đều bắt buộc Combat, không còn `combatRequired=false`. Không có pool xác suất hoặc random encounter thay thế khi chưa có plan.
 
-Entity không Combat vẫn được ghi nhận vào SaveState. Entity cần Combat và Boss được giữ ở `PENDING_ENCOUNTER_CONFIRMATION`; chỉ Battle Start mới kích hoạt Combat và hiển thị ảnh. Tên/chỉ số lấy từ Registry, encounter ID lấy từ Core, không dò câu chữ GM.
+Entity thường và Boss đều bắt buộc Combat và được giữ ở `PENDING_ENCOUNTER_CONFIRMATION`; chỉ Battle Start mới kích hoạt Combat và hiển thị ảnh. Tên/chỉ số lấy từ Registry, encounter ID lấy từ Core, không dò câu chữ GM.
 
 Base profile của cả ba bằng **Hound × 1.3**, làm tròn về stat nguyên: **104 HP / 20 ATK / 3 Armor / 10 Aggression** trước shared Entity durability và Level scaling. Ở Level 0, shared +30 HP khiến Max HP thực tế là **134**.
 

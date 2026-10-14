@@ -8,7 +8,8 @@ import org.junit.Test
 class MilestoneEncounterFlowTest {
   private class MemorySave(var state: GameState) : SaveRepository {
     var checkpoint: String? = null
-    override fun save(state: GameState) { this.state = state }
+    var failWrites = false
+    override fun save(state: GameState) { check(!failWrites) { "test_save_failed" }; this.state = state }
     override fun load() = state
     override fun exists() = true
     override fun clear() { state = GameState.initial() }
@@ -34,14 +35,14 @@ class MilestoneEncounterFlowTest {
       .put("action", "Boss xuất hiện").put("event", "Boss chặn lối").put("outcome", "Chờ Battle Start")
       .put("hpMultiplier", 9).put("expMultiplier", 9)))
     val list = (0 until values.length()).map { values.getJSONObject(it) }.toMutableList()
-    list.single { it.getString("id") == "encounter1" }.put("turn", 5).put("combatRequired", true)
+    list.single { it.getString("id") == "encounter1" }.put("turn", 5)
     list.single { it.getString("id") == "encounter2" }.put("turn", 4).put("entityKey", "duller")
     list += characterEvent("lucia3", 3, "FOLLOWER", LUCIA_ID)
     list += characterEvent("iris5", 5, "FOLLOWER", IRIS_ID)
     list += characterEvent("npc5", 5, "NPC", "test_npc")
     list += JSONObject().put("id", "story5").put("turn", 5).put("kind", "STORY")
       .put("action", "Cánh cửa khép lại").put("event", "Căn phòng đổi ánh sáng").put("outcome", "Lối đi đã thay đổi")
-    val raw = JSONObject().put("schemaVersion", 2).put("checkpointId", "CP-L00-01")
+    val raw = JSONObject().put("schemaVersion", StoryMilestonePlan.SCHEMA_VERSION).put("checkpointId", "CP-L00-01").put("storyArc", TestCheckpointQuota.storyArc())
       .put("events", JSONArray(list.sortedBy { it.getInt("turn") }))
       .put("completion", JSONObject().put("type", "NEXT_CHECKPOINT").put("outcome", "Qua CP")).toString()
     return StoryMilestonePlan.installCurrent(seeded, raw)
@@ -49,10 +50,43 @@ class MilestoneEncounterFlowTest {
   private fun view(core: GameCoreFacade) = JSONObject(core.currentClientState("{}"))
   private fun commit(core: GameCoreFacade, edit: (JSONObject) -> Unit = {}): JSONObject {
     val before = view(core); val candidate = JSONObject(before.toString()); edit(candidate)
-    val result = JSONObject(core.processValidatedCandidate(before.toString(), candidate.toString(), "Khám Phá", "Một bóng người bước ra.\n\nCao Minh dừng lại."))
+    val result = JSONObject(TestMilestoneTurn.commit(core, before.toString(), candidate.toString(), "Khám Phá", "Một bóng người bước ra.\n\nCao Minh dừng lại."))
     assertTrue(result.toString(), result.getBoolean("handled")); return result.getJSONObject("state")
   }
-  private fun reach(core: GameCoreFacade, turn: Int) { while (view(core).getInt("turn") < turn) commit(core) }
+  /** Synthetic victory: resolve a mandatory ordinary encounter without consuming Explorer Turns. */
+  private fun finishCombat(repo: MemorySave) {
+    val pending = requireNotNull(CombatRuntime.pending(repo.state))
+    val active = CombatRuntime.confirmEncounter(repo.state, pending.encounterId)
+    val outcome = CombatRuntime.resolve(active.copy(metadata = active.metadata +
+      ("combat.entityHp" to "0")), "SEARCH", "TEST_ONLY resolve ordinary Entity")
+    assertTrue(outcome.entityDestroyed)
+    repo.state = StoryMilestoneRuntime.afterCombat(outcome.state, pending.encounterId, true, false)
+    assertNull(CombatRuntime.pending(repo.state))
+    assertNull(CombatRuntime.active(repo.state))
+  }
+  private fun reach(core: GameCoreFacade, repo: MemorySave, turn: Int) {
+    while (view(core).getInt("turn") < turn) {
+      if (CombatRuntime.pending(repo.state) != null) finishCombat(repo)
+      commit(core)
+    }
+    // The target Explorer Turn may already have been reached by an encounter,
+    // but the next action must not be attempted while the preceding Combat is pending.
+    if (CombatRuntime.pending(repo.state) != null) finishCombat(repo)
+  }
+
+  @Test fun executeActionStillConsumesExplorerTurnAndAppliesScheduledLuciaMeeting() {
+    val repo = MemorySave(initial()); val core = facade(repo)
+    reach(core, repo, 3)
+    val before = view(core)
+    val action = "Cao Minh dùng thần thức tìm Lục Trầm"
+    assertTrue(JSONObject(core.beginAction(before.toString(), "EXECUTE", action)).getBoolean("handled"))
+    val response = JSONObject(TestMilestoneTurn.commit(core, before.toString(), before.toString(),
+      action, "Cao Minh dùng thần thức. Lucia nhìn hắn cảnh giác và nói: \"Anh đang tìm ai?\""))
+    assertTrue(response.toString(), response.getBoolean("handled"))
+    assertEquals(4, view(core).getInt("turn"))
+    assertEquals("3", repo.state.characters.getValue(LUCIA_ID).metadata["encounterTurn"])
+    assertTrue(StoryMilestoneRuntime.due(repo.state).none { it.id == "lucia3" })
+  }
 
   @Test fun plannerLeaseContainsActualRegisteredNpcIdsAndNames() {
     val state = initial().let { it.copy(world = it.world - "story.milestone.active") }
@@ -65,7 +99,7 @@ class MilestoneEncounterFlowTest {
 
   @Test fun luciaTurnThreeAndHoundTurnFiveExecuteWithoutNamesOrRandomDecisions() {
     val repo = MemorySave(initial()); val core = facade(repo)
-    reach(core, 3)
+    reach(core, repo, 3)
     assertFalse(repo.state.characters.getValue(LUCIA_ID).metadata.containsKey("encountered"))
     val scheduled = JSONArray(core.milestoneDueEvents()).getJSONObject(0)
     val lucia = commit(core) { candidate -> candidate.getJSONObject("flags").put("lastRolls", JSONObject()
@@ -73,9 +107,11 @@ class MilestoneEncounterFlowTest {
     assertEquals(scheduled.getString("encounterId"), repo.state.characters.getValue(LUCIA_ID).metadata["encounterId"])
     assertEquals("3", repo.state.characters.getValue(LUCIA_ID).metadata["encounterTurn"])
     assertEquals(0, lucia.getJSONArray("party").length())
-    commit(core)
+    val duller = commit(core)
     assertTrue(JSONObject(repo.state.world.getValue("story.milestone.eventRecords")).has("encounter2"))
-    assertNull(CombatRuntime.pending(repo.state)); assertNull(CombatRuntime.active(repo.state))
+    assertEquals("duller", duller.getJSONObject("pendingEncounter").getString("entityKey"))
+    assertNull(CombatRuntime.active(repo.state))
+    finishCombat(repo)
     val hound = commit(core) { candidate -> candidate.getJSONObject("flags").put("lastRolls", JSONObject()
       .put("selectedEntityKey", "duller").put("entityEncounter", JSONObject().put("success", false))) }
     assertEquals("hound", hound.getJSONObject("pendingEncounter").getString("entityKey"))
@@ -86,7 +122,7 @@ class MilestoneEncounterFlowTest {
   }
 
   @Test fun multipleDueEventsKeepAcceptedOrderAndEachCommitsOnce() {
-    val repo = MemorySave(initial()); val core = facade(repo); reach(core, 5)
+    val repo = MemorySave(initial()); val core = facade(repo); reach(core, repo, 5)
     val due = StoryMilestoneRuntime.due(repo.state)
     assertEquals(listOf("encounter1", "iris5", "npc5", "story5"), due.map { it.id })
     commit(core)
@@ -94,11 +130,11 @@ class MilestoneEncounterFlowTest {
     assertEquals(due.map { it.id }, (recent.length()-4 until recent.length()).map { recent.getJSONObject(it).getString("id") })
     val records = JSONObject(repo.state.world.getValue("story.milestone.eventRecords"))
     due.forEach { assertEquals(5, records.getJSONObject(it.id).getInt("turn")) }
-    assertEquals(repo.state, StoryMilestoneRuntime.acceptTurn(repo.state))
+    assertEquals(repo.state, TestMilestoneTurn.dispatch(repo.state))
   }
 
   @Test fun failedNarrationAndRetryKeepTheSameDueEncounterWithoutPartialCommit() {
-    val repo = MemorySave(initial()); val core = facade(repo); reach(core, 3)
+    val repo = MemorySave(initial()); val core = facade(repo); reach(core, repo, 3)
     val due = core.milestoneDueEvents()
     repeat(2) {
       assertTrue(JSONObject(core.beginAction(view(core).toString(), "EXPLORE", "Khám Phá")).getBoolean("handled"))
@@ -108,24 +144,99 @@ class MilestoneEncounterFlowTest {
       assertFalse(repo.state.characters.getValue(LUCIA_ID).metadata.containsKey("encountered"))
     }
     val before = view(core)
-    assertFalse(JSONObject(core.processValidatedCandidate(before.toString(), before.toString(), "Khám Phá", "")).getBoolean("handled"))
+    assertFalse(JSONObject(TestMilestoneTurn.commit(core, before.toString(), before.toString(), "Khám Phá", "")).getBoolean("handled"))
     commit(core)
     assertEquals("3", repo.state.characters.getValue(LUCIA_ID).metadata["encounterTurn"])
     assertTrue(StoryMilestoneRuntime.due(repo.state).none { it.id == "lucia3" })
   }
 
+  @Test fun coreRejectsIdOnlyAndMissingCommunicationWithoutTurnTimeOrMeetingChanges() {
+    val repo = MemorySave(initial()); val core = facade(repo); reach(core, repo, 3)
+    val before = view(core)
+    val due = JSONArray(core.milestoneDueEvents())
+    val generated = TestMilestoneTurn.narration(due)
+    generated.getJSONArray("eventNarrations").getJSONObject(0).remove("communication")
+    val unchanged = repo.state
+    val rejected = JSONObject(core.processValidatedCandidate(before.toString(), before.toString(),
+      "Khám Phá", "Lucia đứng quan sát.", generated.toString()))
+    assertEquals("milestone_character_communication_missing", rejected.getString("error"))
+    assertEquals(unchanged, repo.state)
+    generated.remove("eventNarrations")
+    assertFalse(JSONObject(core.processValidatedCandidate(before.toString(), before.toString(),
+      "Khám Phá", "Cao Minh nhìn tường.", generated.toString())).getBoolean("handled"))
+    assertEquals(unchanged, repo.state)
+    // Calling the facade directly with arbitrary prose cannot bypass the envelope.
+    assertFalse(JSONObject(core.processValidatedCandidate(before.toString(), before.toString(),
+      "Khám Phá", "Lucia bước ra.")).getBoolean("handled"))
+    assertEquals(unchanged, repo.state)
+  }
+
+  @Test fun failureInLaterSceneNeverCommitsEarlierEventsAndRetryKeepsEncounterIdentity() {
+    val repo = MemorySave(initial()); val core = facade(repo); reach(core, repo, 5)
+    val before = view(core); val due = JSONArray(core.milestoneDueEvents())
+    val unchanged = repo.state
+    val generated = TestMilestoneTurn.narration(due)
+    generated.getJSONArray("eventNarrations").getJSONObject(2).remove("communication")
+    assertFalse(JSONObject(core.processValidatedCandidate(before.toString(), before.toString(),
+      "Khám Phá", "invalid later scene", generated.toString())).getBoolean("handled"))
+    assertEquals(unchanged, repo.state)
+    assertEquals(due.toString(), core.milestoneDueEvents())
+    val accepted = commit(core)
+    assertEquals(due.getJSONObject(0).getString("encounterId"),
+      accepted.getJSONObject("pendingEncounter").getString("encounterId"))
+    assertEquals(0, accepted.getJSONArray("party").length())
+  }
+
+  @Test fun coreRejectsDifferentRenderedProseAndPreservesCommunicationThroughSaveLoad() {
+    val repo = MemorySave(initial()); val core = facade(repo); reach(core, repo, 3)
+    val before = view(core); val due = JSONArray(core.milestoneDueEvents())
+    val generated = TestMilestoneTurn.narration(due)
+    val unchanged = repo.state
+    assertEquals("milestone_rendered_narrative_mismatch", JSONObject(core.processValidatedCandidate(
+      before.toString(), before.toString(), "Khám Phá", "Một lời kể khác.", generated.toString())).getString("error"))
+    assertEquals(unchanged, repo.state)
+    commit(core)
+    val saved = JSONObject(repo.state.world.getValue("story.milestone.eventRecords"))
+      .getJSONObject("lucia3").getJSONObject("narration")
+    repo.state = GameStateCodec.decode(GameStateCodec.encode(repo.state))
+    StoryMilestoneRuntime.validateStoredState(repo.state)
+    val restored = JSONObject(repo.state.world.getValue("story.milestone.eventRecords"))
+      .getJSONObject("lucia3").getJSONObject("narration")
+    assertEquals(saved.toString(), restored.toString())
+    assertEquals(LUCIA_ID, restored.getJSONObject("communication").getString("speakerId"))
+    assertEquals(4, CoreClientProjection.turnIndex(repo.state))
+    assertTrue(StoryMilestoneRuntime.due(repo.state).none { it.id == "lucia3" })
+  }
+
+  @Test fun failedStorageWriteCannotApplyNarratedMeetingOrAdvanceTurnAndRetryIsSafe() {
+    val repo = MemorySave(initial()); val core = facade(repo); reach(core, repo, 3)
+    val before = view(core); val due = JSONArray(core.milestoneDueEvents())
+    val generated = TestMilestoneTurn.narration(due)
+    val rendered = MilestoneNarrationValidator.validate(generated, due).reply
+    val unchanged = repo.state
+    repo.failWrites = true
+    assertThrows(IllegalStateException::class.java) {
+      core.processValidatedCandidate(before.toString(), before.toString(), "Khám Phá", rendered, generated.toString())
+    }
+    assertEquals(unchanged, repo.state)
+    repo.failWrites = false
+    commit(core)
+    assertEquals(4, CoreClientProjection.turnIndex(repo.state))
+    assertEquals(1, JSONObject(repo.state.world.getValue("story.milestone.eventRecords")).length())
+  }
+
   @Test fun staleTurnCannotReplayMeetingAndMissedTurnCannotExecuteLate() {
-    val repo = MemorySave(initial()); val core = facade(repo); reach(core, 3)
+    val repo = MemorySave(initial()); val core = facade(repo); reach(core, repo, 3)
     val old = view(core); commit(core); val once = repo.state
-    assertFalse(JSONObject(core.processValidatedCandidate(old.toString(), old.toString(), "Khám Phá", "Lời kể")).getBoolean("handled"))
+    assertFalse(JSONObject(TestMilestoneTurn.commit(core, old.toString(), old.toString(), "Khám Phá", "Lời kể")).getBoolean("handled"))
     assertEquals(once, repo.state)
-    val missed = CoreClientProjection.advance(StoryMilestoneRuntime.acceptTurn(CoreClientProjection.advance(StoryMilestoneRuntime.acceptTurn(initial()))))
+    val missed = CoreClientProjection.advance(TestMilestoneTurn.dispatch(CoreClientProjection.advance(TestMilestoneTurn.dispatch(initial()))))
     assertEquals(3, CoreClientProjection.turnIndex(missed))
     assertThrows(Exception::class.java) { StoryMilestoneRuntime.due(CoreClientProjection.advance(missed)) }
   }
 
   @Test fun meetingAndRecruitmentAreSeparateAndSaveLoadPreservesBothAndPendingCombat() {
-    val repo = MemorySave(initial()); val core = facade(repo); reach(core, 3); val meeting = commit(core)
+    val repo = MemorySave(initial()); val core = facade(repo); reach(core, repo, 3); val meeting = commit(core)
     val beforeJoin = repo.state
     val joined = JSONObject(core.recruitFollower(meeting.toString(), LUCIA_ID))
     assertTrue(joined.toString(), joined.getBoolean("handled"))
@@ -135,7 +246,10 @@ class MilestoneEncounterFlowTest {
     val once = repo.state
     assertTrue(JSONObject(core.recruitFollower(joined.getJSONObject("state").toString(), LUCIA_ID)).getBoolean("handled"))
     assertEquals(once, repo.state)
-    commit(core); val pending = commit(core)
+    val duller = commit(core)
+    assertEquals("duller", duller.getJSONObject("pendingEncounter").getString("entityKey"))
+    finishCombat(repo)
+    val pending = commit(core)
     val id = pending.getJSONObject("pendingEncounter").getString("encounterId")
     assertTrue(JSONObject(core.saveManualCheckpoint(pending.toString())).getBoolean("ok"))
     val restored = JSONObject(core.loadManualCheckpoint()).getJSONObject("state")
@@ -150,7 +264,7 @@ class MilestoneEncounterFlowTest {
   @Test fun recruitmentRequiresEncounterConsentAndCapacityWithoutErasingMeeting() {
     val repo = MemorySave(initial()); val core = facade(repo)
     assertFalse(JSONObject(core.recruitFollower(view(core).toString(), LUCIA_ID)).getBoolean("handled"))
-    reach(core, 3); commit(core)
+    reach(core, repo, 3); commit(core)
     repo.state = repo.state.copy(characters = repo.state.characters + (LUCIA_ID to repo.state.characters.getValue(LUCIA_ID)
       .copy(metadata = repo.state.characters.getValue(LUCIA_ID).metadata + ("followsPlayer" to "false"))))
     assertEquals("join_not_confirmed", JSONObject(core.recruitFollower(view(core).toString(), LUCIA_ID)).getString("error"))

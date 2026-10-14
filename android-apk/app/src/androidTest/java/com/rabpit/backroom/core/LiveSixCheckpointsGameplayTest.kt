@@ -16,7 +16,7 @@ import org.junit.runner.RunWith
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-/** Actual APK gameplay for CP1 and CP2; SOL planner, Gehihi writer, no fake receipts or damage. */
+/** Play one full Checkpoint using real SOL/Gehihi and actual UI Combat. */
 @RunWith(AndroidJUnit4::class)
 class LiveSixCheckpointsGameplayTest {
   private val instrumentation = InstrumentationRegistry.getInstrumentation()
@@ -74,6 +74,9 @@ class LiveSixCheckpointsGameplayTest {
           milestoneMessage:String(document.getElementById('milestoneLoadingMessage')?.textContent||'').slice(0,180),
           blocked:!!window.__milestoneBlocked,
           busy:typeof busy!=='undefined'&&!!busy,
+          pending:!!s.pendingEncounter,pendingId:String(s.pendingEncounter&&s.pendingEncounter.encounterId||''),
+          battleReady:!!document.getElementById('battleStartButton'),
+          gmLast:(function(){var log=(s.log||[]).filter(function(x){return x.role==='gm'});return log.length?String(log[log.length-1].text||'').slice(0,140):'';})(),
           combat:c.active===true,diceReady:!!c.diceState,diceFinal:d.finalized===true,
           diceBusy:!!window.__combatDiceBusy||!!window.__combatFeedbackBusy,
           canFinish:!!finish&&!finish.disabled,
@@ -96,7 +99,7 @@ class LiveSixCheckpointsGameplayTest {
       })();
     """.trimIndent()) == "true"
 
-  @Test fun playFirstTwoCheckpointsWithRealProvidersAndUi() {
+  @Test fun playOneCheckpointWithRealProvidersAndUi() {
     assertTrue("Only SOL Milestone and Gehihi GM are allowed in this live test",
       BuildConfig.DEBUG && BuildConfig.TWO_PROVIDER_GAMEPLAY_TEST)
     assertTrue("SOL is required", BuildConfig.SOL_API_KEY.isNotBlank())
@@ -120,6 +123,8 @@ class LiveSixCheckpointsGameplayTest {
     var diceAt = 0L
     var explorerActions = 0
     var combatFinishes = 0
+    val battleStartIds = linkedSetOf<String>()
+    val gmSamples = linkedSetOf<String>()
     var lastHeartbeatAt = started
     // Record recoverable UI errors; do not stop the playtest while a normal retry can proceed.
     var observedErrorEvents = 0
@@ -134,6 +139,7 @@ class LiveSixCheckpointsGameplayTest {
     val errorsPerTurn = linkedMapOf<String, Int>()
     val milestoneRetries = linkedMapOf<String, Int>()
     val issues = mutableListOf<String>()
+    var saveLoadVerified = false
     try {
       while (SystemClock.elapsedRealtime() - started < TimeUnit.HOURS.toMillis(3)) {
         val ui = snapshot(web)
@@ -143,6 +149,10 @@ class LiveSixCheckpointsGameplayTest {
         val combat = ui.optBoolean("combat")
         val now = SystemClock.elapsedRealtime()
         if (cp != priorCp || turn != priorTurn) {
+          if (cp == "CP-L00-01" && gmSamples.size < 8) {
+            val sample = ui.optString("gmLast").trim()
+            if (sample.length >= 30) gmSamples.add(sample)
+          }
           Log.i(tag, "CP=" + cp + " ExplorerTurn=" + turn + " combat=" + combat +
             " elapsedSec=" + (now - started) / 1000)
           priorCp = cp
@@ -178,22 +188,93 @@ class LiveSixCheckpointsGameplayTest {
           }
         }
 
-        // CP1 and CP2 must be completed, including actual Boss combat.
-        if (cp == "CP-L00-03") {
+        // Exactly one full chapter, including all mandatory encounters and its own Boss.
+        if (cp == "CP-L00-02") {
           val stored = SharedPreferencesSaveRepository(context).load()
           val history = org.json.JSONArray(stored.world["story.checkpointHistory"] ?: "[]")
-          assertEquals(2, history.length())
-          for (i in 0..1) {
-            val item = history.getJSONObject(i)
-            assertEquals("CP-L00-" + (i + 1).toString().padStart(2, '0'), item.getString("checkpointId"))
-            assertTrue(item.getLong("turnCount") >= 18L)
-            assertTrue(item.getInt("entityEncounterCount") * 5L >= item.getLong("turnCount") * 2L)
-            assertEquals("DEFEATED", item.getString("bossResult"))
+          assertEquals(1, history.length())
+          val chapter = history.getJSONObject(0)
+          assertEquals("CP-L00-01", chapter.getString("checkpointId"))
+          assertTrue(chapter.getLong("turnCount") >= 50L)
+          assertTrue(chapter.getInt("entityEncounterCount") >= 20)
+          assertEquals(chapter.getInt("entityEncounterCount") + 1, chapter.getJSONArray("entityEncounterRefs").length())
+          assertTrue(chapter.getString("storyArc").length in 200..750)
+          assertEquals("DEFEATED", chapter.getString("bossResult"))
+          val events = chapter.getJSONArray("events")
+          val entities = mutableListOf<String>()
+          val followers = mutableListOf<String>()
+          val storyEvents = mutableListOf<String>()
+          val actualScenes = org.json.JSONArray()
+          val communications = org.json.JSONArray()
+          for (i in 0 until events.length()) {
+            val event = events.getJSONObject(i)
+            val scene = event.getJSONObject("narration")
+            val due = JSONObject(event.toString()).put("id", event.getString("eventId"))
+            val validated = MilestoneNarrationValidator.validate(JSONObject().put("reply", "")
+              .put("completedEventIds", org.json.JSONArray().put(event.getString("eventId")))
+              .put("eventNarrations", org.json.JSONArray().put(scene)), org.json.JSONArray().put(due))
+            actualScenes.put(scene)
+            // Full actual text for human review of event fulfillment and Canon. Hashes alone cannot prove meaning.
+            listOf("occurrence", "consequence").forEach { field ->
+              Log.i(tag, "LIVE_EVENT_TEXT=" + JSONObject().put("eventId", event.getString("eventId"))
+                .put("kind", event.getString("kind")).put("field", field).put("text", scene.getString(field)))
+            }
+            if (event.getString("kind") in listOf("NPC", "FOLLOWER") || event.has("communicationCharacterId")) {
+              val communication = scene.getJSONObject("communication")
+              communications.put(communication)
+              Log.i(tag, "LIVE_CHARACTER_COMMUNICATION=" + JSONObject().put("eventId", event.getString("eventId"))
+                .put("characterId", communication.getString("speakerId")).put("communication", communication))
+              assertTrue(validated.reply.contains(communication.getString("text")))
+            }
+            when (event.getString("kind")) {
+              "ENTITY" -> entities.add(event.getInt("turn").toString() + ":" + event.getString("entityKey") +
+                ":" + event.getString("event").take(75))
+              "FOLLOWER", "NPC" -> followers.add(event.getString("kind") + ":" + event.getString("characterId") +
+                ":" + event.getString("event").take(75))
+              "STORY" -> storyEvents.add(event.getString("event").take(75))
+            }
           }
+          assertTrue("Live acceptance requires at least one NPC/Follower communication", communications.length() > 0)
+          assertTrue("Live Save/Load round trip is required", saveLoadVerified)
+          assertEquals("Every planned encounter must be confirmed", chapter.getJSONArray("entityEncounterRefs").length(), battleStartIds.size)
+          for (i in 0 until chapter.getJSONArray("entityEncounterRefs").length())
+            assertTrue(battleStartIds.contains(chapter.getJSONArray("entityEncounterRefs").getString(i)))
+          assertTrue("GM should write individual narration, not a fixed fixture", gmSamples.size >= 4)
+          assertTrue("Entity encounters must have different circumstances",
+            entities.map { it.substringAfterLast(":") }.toSet().size >= 3)
           StoryMilestoneRuntime.validateStoredState(stored)
-          Log.i(tag, "LIVE_2CP_PASS explorerActions=" + explorerActions +
-            " combatFinishes=" + combatFinishes + " totalTimeouts=" + totalTimeouts +
-            " recoverableIssues=" + issues.size)
+          fun fingerprint(value: String): String = java.security.MessageDigest.getInstance("SHA-256")
+            .digest(value.toByteArray(Charsets.UTF_8))
+            .joinToString("") { "%02x".format(it.toInt() and 255) }.take(32)
+          val summary = JSONObject().put("checkpoint", chapter.getString("checkpointId"))
+            .put("turns", chapter.getLong("turnCount"))
+            .put("regularEncounters", chapter.getInt("entityEncounterCount"))
+            .put("battleStarts", battleStartIds.size)
+            .put("storyArcHash", fingerprint(chapter.getString("storyArc")))
+            .put("arcPreview", chapter.getString("storyArc").take(150))
+            .put("entitySequence", entities.joinToString("|") { it.substringBeforeLast(":") })
+            .put("entityEventsHash", fingerprint(entities.joinToString("|")))
+            .put("followerSequence", followers.joinToString("|").take(300))
+            .put("storyEventsHash", fingerprint(storyEvents.joinToString("|")))
+            .put("storyPreview", storyEvents.firstOrNull().orEmpty().take(120))
+            .put("actualEventNarrationsHash", fingerprint(actualScenes.toString()))
+            .put("characterCommunicationHash", fingerprint(communications.toString()))
+            .put("characterCommunications", org.json.JSONArray((0 until communications.length()).map {
+              val communication = communications.getJSONObject(it)
+              JSONObject().put("speakerId", communication.getString("speakerId"))
+                .put("text", communication.getString("text").take(120))
+            }))
+            .put("saveLoadVerified", saveLoadVerified)
+            .put("gmSampleHashes", org.json.JSONArray(gmSamples.map(::fingerprint)))
+            .put("gmPreview", gmSamples.firstOrNull().orEmpty().take(120))
+          val evidence = JSONObject().put("summary", summary).put("checkpoint", chapter)
+            .put("actualEventNarrations", actualScenes).put("characterCommunications", communications)
+            .put("gmSamples", org.json.JSONArray(gmSamples.toList()))
+          java.io.File(context.getExternalFilesDir(null), "live-checkpoint-evidence.json").writeText(evidence.toString(2))
+          Log.i(tag, "LIVE_ONE_CP_SUMMARY=" + summary.toString())
+          Log.i(tag, "LIVE_ONE_CP_PASS explorerActions=" + explorerActions +
+            " battleStarts=" + battleStartIds.size + " combatFinishes=" + combatFinishes +
+            " totalTimeouts=" + totalTimeouts + " recoverableIssues=" + issues.size)
           issues.forEachIndexed { index, issue -> Log.i(tag, "RECOVERABLE_$index " + issue) }
           return
         }
@@ -217,10 +298,9 @@ class LiveSixCheckpointsGameplayTest {
           Thread.sleep(1000)
           continue
         }
-        if (cp.isNotEmpty() && cp != "CP-L00-01" && cp != "CP-L00-02")
+        if (cp.isNotEmpty() && cp != "CP-L00-01")
           fail("LIVE_UNEXPECTED_CP=" + cp + " Turn=" + turn)
-        // An actual writer + independent audits + one repair + evidence verifier can
-        // legitimately exceed nine minutes during provider 503/timeout failover.
+        // A live provider request/retry can take several minutes during 503/timeout failover.
         // Do not abort an in-flight request merely because Explorer Turn is unchanged.
         val pending = ui.optBoolean("busy")
         val loading = ui.optBoolean("loading") || ui.optBoolean("blocked")
@@ -248,7 +328,28 @@ class LiveSixCheckpointsGameplayTest {
             " status=" + ui.optString("status") +
             " loading=" + ui.optString("milestoneMessage") + " issues=" + issues.size)
 
-        if (combat) {
+        if (ui.optBoolean("pending")) {
+          val encounterId = ui.optString("pendingId")
+          if (!saveLoadVerified && !ui.optBoolean("busy") && !ui.optBoolean("blocked")) {
+            val storage = SharedPreferencesSaveRepository(context)
+            val before = storage.load()
+            assertEquals("Save/Load must succeed through the real UI bridge", "true", js(web, "save()&&load()"))
+            val after = storage.load()
+            assertEquals(encounterId, CombatRuntime.pending(after)!!.encounterId)
+            // A manual restore intentionally rotates only the run lease token.
+            assertEquals(GameStateCodec.encode(before), GameStateCodec.encode(after.copy(
+              world = after.world + ("story.runToken" to before.world.getValue("story.runToken")))))
+            StoryMilestoneRuntime.validateStoredState(after)
+            saveLoadVerified = true
+            Log.i(tag, "LIVE_SAVE_LOAD_VERIFIED encounterId=" + encounterId)
+          }
+          if (!ui.optBoolean("busy") && encounterId.isNotBlank() && !ui.optBoolean("blocked") &&
+              ui.optBoolean("battleReady") && click(web, "battleStartButton")) {
+            battleStartIds.add(encounterId)
+            actionAt = now
+            lastChangeAt = now
+          }
+        } else if (combat) {
           if (now - diceAt > 1500 && ui.optBoolean("diceReady") && !ui.optBoolean("diceFinal") &&
             !ui.optBoolean("diceBusy") && ui.optBoolean("canFinish")) {
             if (click(web, "pokerDiceFinish")) {

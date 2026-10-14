@@ -1563,20 +1563,36 @@ public class MainActivity extends Activity {
     String canon = com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.build(
       MainActivity.this, canonView.toString(), action, visibleRolls.toString());
     return "Bạn là Gehihi, Game Master kể chuyện Backrooms bằng tiếng Việt. " +
-      "SOL đã tạo khung Milestone; các sự kiện đến hạn sau là BẮT BUỘC: " + due.toString() + ". " +
+      "SOL/Gemini đã tạo MẠCH TRUYỆN CHƯƠNG và lịch sự kiện bắt buộc; " +
+      "phải kể đúng sự kiện đến hạn: " + due.toString() + ". " +
       "Kể diễn biến tự nhiên theo hành động người chơi, giữ đúng Entity, nhân vật và kết quả đã khóa. " +
-      "Nếu không có event đến hạn, chỉ kể diễn biến phù hợp. " +
-      "Không tự quyết định Combat, HP, EXP, Item, tạo Entity hay chuyển Checkpoint; Core xử lý. " +
-      "FINAL_ENTITY hoặc combatRequired=true: kể hết cảnh Entity xuất hiện, dừng ở thế đối đầu; " +
+      "Không có event thì kể tự nhiên dựa trên mạch truyện, lịch sử và hành động người chơi. " +
+      "Được tự do sáng tác chi tiết, lời thoại, không khí, tương tác phụ và phản ứng khác nhau " +
+      "giữa các lượt, đặc biệt ở cảnh gặp Entity/NPC/Follower; tránh lặp câu chữ, mô-típ " +
+      "và diễn biến của các lần gặp trước, nhưng giữ nguyên mọi sự kiện bắt buộc. " +
+      "Khám Phá và Thực Hiện đều là một Explorer Turn; phải kết hợp hành động người chơi " +
+      "với sự kiện trong CHÍNH Turn này, không dời, hủy hay cho nhân vật tự chọn thay người chơi. " +
+      "Không tự quyết định Combat, HP, EXP, Item, tạo Entity hay chuyển Checkpoint; gameplay Core xử lý. " +
+      "MỌI ENTITY và FINAL_ENTITY của Milestone đều bắt buộc Combat, không có cuộc gặp rồi bỏ đi. " +
+      "Gặp FOLLOWER/NPC phải mô tả cuộc gặp thực tế; nhân vật thể hiện theo đúng hồ sơ Canon trong KNOWLEDGE PACKET (tính cách, cách nói, xưng hô, quan hệ với Cao Minh), không ép một khuôn thoại cố định. " +
+      "ENTITY và FINAL_ENTITY: kể cảnh Entity chạm trán, dừng ở thế đối đầu; " +
       "chưa kể đòn đánh, sát thương hay kết quả Combat trước khi người chơi nhấn Battle Start. " +
       "Không đưa event ID, ops, chứng cứ, kiểm định hay state vào lời kể. " +
-      "Chỉ trả JSON dạng {\"reply\":\"lời kể GM\"}.\n" +
+      com.rabpit.backroom.core.MilestoneNarrationValidator.prompt() + "\n" +
       com.rabpit.backroom.core.knowledge.GmNarrativeVoicePolicy.prompt() +
       "\nACTION_TYPE: " + new JSONObject(requireGameCore().currentActionContext()).optString("kind", "EXECUTE") +
       "\nPLAYER_ACTION: " + action +
       "\nCORE_ROLLS_READ_ONLY: " + visibleRolls.toString() +
       "\nMILESTONE_HISTORY_READ_ONLY: " + requireGameCore().milestoneHistoryContext() +
       "\nCANON_READ_ONLY: " + canon;
+  }
+
+  /**
+   * Render the actual event scenes only after every due scene passes the contract.
+   * Core repeats this validation against its saved schedule before any commit.
+   */
+  private String requireMilestoneNarration(JSONObject generated, JSONArray due) throws Exception {
+    return com.rabpit.backroom.core.MilestoneNarrationValidator.validate(generated, due).getReply();
   }
 
   private interface CombatDiceCall { String run() throws Exception; }
@@ -1623,7 +1639,9 @@ public class MainActivity extends Activity {
     // The planner receives a small state excerpt, never the complete client save.
     if (scene.length() > 1500) scene = scene.substring(0, 1500);
     String prompt = com.rabpit.backroom.core.StoryMilestonePlannerPrompt.build(
-      checkpointId, startTurn, nodeId, canon, scene, request.getInt("checkpointTotal"), requireGameCore().milestoneHistoryContext(), request.getJSONArray("characterRegistry").toString());
+      checkpointId, startTurn, nodeId, canon, scene, request.getInt("checkpointTotal"), requireGameCore().milestoneHistoryContext(), request.getJSONArray("characterRegistry").toString()) +
+      "\nCREATIVE_VARIATION_SEED=" + Long.toUnsignedString(GAME_RNG.nextLong(), 36) +
+      " (gợi ý tạo biến thể mới, không thay Canon hoặc sự kiện đã ghi nhận).";
     // This is only skeleton generation, never a GM or a second narrative verifier.
     String provider = milestoneProviderChoice();
     emitMilestoneStatus(request, "loading", provider + " đang tạo khung Checkpoint…");
@@ -1686,6 +1704,8 @@ public class MainActivity extends Activity {
           String prompt = com.rabpit.backroom.core.StoryMilestonePlannerPrompt.build(
             lease.getString("nextCheckpointId"), lease.getInt("startTurn"),
             lease.getString("levelNode"), canon, shortScene, lease.getInt("checkpointTotal"), requireGameCore().milestoneHistoryContext(), lease.getJSONArray("characterRegistry").toString()) +
+            "\nCREATIVE_VARIATION_SEED=" + Long.toUnsignedString(GAME_RNG.nextLong(), 36) +
+            " (sáng tác mới, không thay Canon hoặc sự kiện đã xảy ra). " +
             "\nPREPARED PLAN: globalStartTurn là ước lượng; Core neo Turn khi kích hoạt thật. " +
             "Completion của CP trước bên dưới còn PLANNED, chỉ xảy ra sau verified Boss defeat; " +
             "dùng nó để nối tiếp kịch bản, không ghi thành lịch sử đã xảy ra và không giả định HP/Party sau Combat. " +
@@ -1885,6 +1905,8 @@ public class MainActivity extends Activity {
 
           JSONObject generated = parseModelJson(generateText(writerPrompt(before, action, rolls)));
           String reply = generated.optString("reply", "").trim();
+          if (!meta) reply = requireMilestoneNarration(generated,
+            new JSONArray(requireGameCore().milestoneDueEvents()));
           if (reply.isEmpty()) throw new Exception("Gehihi không trả lời kể chuyện; lượt này không được ghi.");
           if (meta) {
             requireGameCore().abortAction("meta_action");
@@ -1944,7 +1966,7 @@ public class MainActivity extends Activity {
           log.put(new JSONObject().put("role", "player").put("text", action));
           state.put("log", log);
           JSONObject coreCommit = new JSONObject(requireGameCore().processValidatedCandidate(
-            before.toString(), state.toString(), action, reply));
+            before.toString(), state.toString(), action, reply, generated.toString()));
           if (!coreCommit.optBoolean("handled", false)) {
             throw new Exception("Game State Core từ chối lượt: " + coreCommit.optString("error", "invalid_delta"));
           }

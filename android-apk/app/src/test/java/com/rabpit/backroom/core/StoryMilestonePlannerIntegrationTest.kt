@@ -25,7 +25,7 @@ class StoryMilestonePlannerIntegrationTest {
   }
 
   private fun plan(id: String = "CP-L00-01"): String = JSONObject()
-    .put("schemaVersion", 2).put("checkpointId", id)
+    .put("schemaVersion", StoryMilestonePlan.SCHEMA_VERSION).put("checkpointId", id).put("storyArc", TestCheckpointQuota.storyArc())
     .put("events", TestCheckpointQuota.events(JSONArray().put(JSONObject()
       .put("id", "boss").put("turn", 3).put("kind", "FINAL_ENTITY").put("action", "TEST_ONLY world action")
       .put("event", "Hound xuất hiện").put("outcome", "Combat bắt đầu")
@@ -91,7 +91,7 @@ class StoryMilestonePlannerIntegrationTest {
     assertTrue(prompt.contains("Checkpoint"))
     assertFalse(prompt.contains("fake_entity"))
     assertTrue(prompt.length < 10000)
-    assertTrue(prompt.contains("\"schemaVersion\":2"))
+    assertTrue(prompt.contains("\"schemaVersion\":3"))
     assertTrue(prompt.contains("NEXT_CHECKPOINT"))
     val last = StoryMilestonePlannerPrompt.build("CP-L00-20", 1, "0", "", "", 20)
     assertTrue(last.contains("\"type\":\"EXIT_LEVEL\""))
