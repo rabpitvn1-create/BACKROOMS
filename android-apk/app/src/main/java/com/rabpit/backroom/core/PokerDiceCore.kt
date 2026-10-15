@@ -26,6 +26,7 @@ object PokerDiceCore {
   private const val DICE = PREFIX + "dice."
   private const val REROLL_BASE_WEIGHT = 12
   private const val HELD_FACE_WEIGHT_BONUS = 6
+  private const val HELD_MATCH_WEIGHT_BONUS = 18
   private const val HELD_SEQUENCE_WEIGHT_BONUS = 18
   private val STAT_KEYS = listOf("STR", "DEX", "AGI", "VIT", "EVA")
 
@@ -273,12 +274,17 @@ object PokerDiceCore {
 
   private fun rerollWeights(values: List<Int>, held: List<Boolean>, slot: Int): IntArray {
     val weights = IntArray(6) { REROLL_BASE_WEIGHT }
-    for (i in 0 until DICE_COUNT) {
-      if (!held[i]) continue
-      val face = values[i]
-      if (face in 1..6) weights[face - 1] += HELD_FACE_WEIGHT_BONUS
+    val heldCount = held.count { it }
+    val heldFaces = IntArray(7)
+    for (i in 0 until DICE_COUNT) if (held[i] && values[i] in 1..6) heldFaces[values[i]]++
+    for (face in 1..6) {
+      val count = heldFaces[face]
+      // A retained pair/triple/quad earns progressively more matching weight.
+      // A single held die keeps its existing small bias.
+      val bonus = if (count >= 2) HELD_MATCH_WEIGHT_BONUS else HELD_FACE_WEIGHT_BONUS
+      weights[face - 1] += count * bonus
     }
-    if (held.count { it } < 2 || held[slot]) return weights
+    if (heldCount < 2 || held[slot]) return weights
 
     val orderedStraights = listOf(
       listOf(1, 2, 3, 4, 5),
@@ -288,7 +294,12 @@ object PokerDiceCore {
     )
     orderedStraights.forEach { target ->
       val compatible = (0 until DICE_COUNT).all { i -> !held[i] || values[i] == target[i] }
-      if (compatible) weights[target[slot] - 1] += HELD_SEQUENCE_WEIGHT_BONUS
+      if (compatible) {
+        // Only the existing SSF layouts gain the progress bonus. Ordinary
+        // STRAIGHT and incompatible held positions keep their old weighting.
+        val bonus = HELD_SEQUENCE_WEIGHT_BONUS * if (classify(target) == "SSF") heldCount else 1
+        weights[target[slot] - 1] += bonus
+      }
     }
     return weights
   }
