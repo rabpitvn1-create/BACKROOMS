@@ -1193,10 +1193,12 @@ public class MainActivity extends Activity {
   private static final String AMBIENT_CACHE_PREFS = "backroom_ambient_scene";
 
   private void clearAmbientEncounter() {
-    ambientEpoch.incrementAndGet();
-    ambientMgr.clear();
-    ambientTurn = -1;
-    ambientLevel = "";
+    synchronized (ambientMgr) {
+      ambientEpoch.incrementAndGet();
+      ambientMgr.clear();
+      ambientTurn = -1;
+      ambientLevel = "";
+    }
     getSharedPreferences(AMBIENT_CACHE_PREFS, MODE_PRIVATE).edit().remove("active").apply();
   }
 
@@ -1272,12 +1274,15 @@ public class MainActivity extends Activity {
         AmbientNpcManager.AmbientNpc npc = AmbientNpcManager.parse(geminiAmbientText(prompt));
         if (npc == null || ambientEpoch.get() != epoch) return;
         JSONObject latest = new JSONObject(requireGameCore().currentClientState("{}"));
-        if (ambientEpoch.get() != epoch || latest.optInt("turn", -1) != turn ||
+        if (latest.optInt("turn", -1) != turn ||
             latest.has("pendingEncounter") || !level.equals(currentNodeId(latest))) return;
-        ambientMgr.setActive(npc);
-        ambientTurn = turn;
-        ambientLevel = level;
-        cacheAmbientEncounter();
+        synchronized (ambientMgr) {
+          if (ambientEpoch.get() != epoch) return;
+          ambientMgr.setActive(npc);
+          ambientTurn = turn;
+          ambientLevel = level;
+          cacheAmbientEncounter();
+        }
         emitAmbientEvent("appearance", null, npc.description, turn, level);
       } catch (Exception error) {
         // Ambient scenes are optional: never stall or fall back to paid Gehihi.
