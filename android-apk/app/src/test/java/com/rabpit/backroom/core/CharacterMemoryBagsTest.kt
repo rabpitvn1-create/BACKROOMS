@@ -153,6 +153,62 @@ class CharacterMemoryBagsTest {
       .contains("Current Party status from Core: IN_PARTY"))
   }
 
+  @Test fun meetingAndPartyEventsIdentifyDirectParticipantsNotEveryCompanion() {
+    val base = before()
+    val luciaMet = CharacterMemoryBags.recordCommitted(base, firstMeeting(base))
+    val joined = CharacterMemoryBags.recordCommitted(luciaMet, luciaMet.copy(
+      party = luciaMet.party.copy(memberIds = luciaMet.party.memberIds + "lucia")))
+    val root = JSONObject(joined.metadata.getValue("core.characterMemoryBags.v1"))
+    val items = root.getJSONObject("bags").getJSONArray("lucia")
+    for (i in 0 until items.length()) {
+      val known = items.getJSONObject(i).getJSONArray("knownBy")
+      val witnesses = (0 until known.length()).map { known.getString(it) }.toSet()
+      assertEquals(setOf(CAO_MINH_ID, "lucia"), witnesses)
+      assertFalse("Unrelated active Party members aren't witnesses", witnesses.contains(IRIS_ID))
+    }
+  }
+
+  @Test fun separatedActorDoesNotPersonallyRememberUnwitnessedPartyRemoval() {
+    val base = before()
+    val met = CharacterMemoryBags.recordCommitted(base, firstMeeting(base))
+    val joined = CharacterMemoryBags.recordCommitted(met, met.copy(
+      party = met.party.copy(memberIds = met.party.memberIds + "lucia")))
+    val separated = joined.copy(
+      party = base.party,
+      characters = joined.characters + ("lucia" to joined.characters.getValue("lucia")
+        .copy(presence = CharacterPresence.SEPARATED)))
+    val committed = CharacterMemoryBags.recordCommitted(joined, separated)
+    val root = JSONObject(committed.metadata.getValue("core.characterMemoryBags.v1"))
+    val items = root.getJSONObject("bags").getJSONArray("lucia")
+    val leaving = items.getJSONObject(items.length() - 1)
+    assertEquals("party_leave", leaving.getString("kind"))
+    assertEquals(CAO_MINH_ID, leaving.getJSONArray("knownBy").getString(0))
+    assertEquals(1, leaving.getJSONArray("knownBy").length())
+    // Upon Core-confirmed later reunion, the bag cannot reveal unobserved removal.
+    val returned = committed.copy(characters = committed.characters +
+      ("lucia" to committed.characters.getValue("lucia")
+        .copy(presence = CharacterPresence.ACTIVE)))
+    val memory = CharacterMemoryBags.sceneContext(returned)
+    assertFalse(memory, memory.contains("Past event: Left Cao Minh's Party"))
+    assertTrue(memory, memory.contains("Current Party status from Core: NOT_IN_PARTY"))
+  }
+
+  @Test fun forgedThirdPartyWitnessIsRejectedDuringCoreSaveDecode() {
+    val base = before()
+    val met = CharacterMemoryBags.recordCommitted(base, firstMeeting(base))
+    val root = JSONObject(met.metadata.getValue("core.characterMemoryBags.v1"))
+    val item = root.getJSONObject("bags").getJSONArray("lucia").getJSONObject(0)
+    item.put("knownBy", org.json.JSONArray()
+      .put(CAO_MINH_ID).put("lucia").put("unrelated_witness"))
+    val forged = met.copy(metadata = met.metadata +
+      ("core.characterMemoryBags.v1" to root.toString()))
+    val error = runCatching {
+      GameStateCodec.decode(GameStateCodec.encode(forged))
+    }.exceptionOrNull()
+    assertNotNull(error)
+    assertTrue(error.toString(), error.toString().contains("character_memory_witness"))
+  }
+
   @Test fun knownNpcWithoutNewCoreEventCannotInventMemory() {
     val old = before()
     val unchanged = CharacterMemoryBags.recordCommitted(old, old)
