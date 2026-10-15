@@ -439,6 +439,7 @@ object SpawnMechanism {
       if (character != null) {
         val updatedMetadata = character.metadata + mapOf(
           "encountered" to "true",
+          "encounterFlagKey" to encounter.flagKey,
           "encounterId" to "spawn:${System.currentTimeMillis()}"
         )
         next = next.copy(
