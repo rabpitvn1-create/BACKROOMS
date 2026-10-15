@@ -13,6 +13,11 @@ final class DiagnosticLog {
   private static final int MAX_TIMINGS = 40;
   private static final Object TIMING_LOCK = new Object();
   private static final String TIMING_PREF = "diagnostic_performance_v1";
+  private static volatile Context applicationContext;
+
+  static void initialize(Context context) {
+    if (context != null) applicationContext = context.getApplicationContext();
+  }
   private static final ArrayDeque<JSONObject> EVENTS = new ArrayDeque<>();
 
   static void record(String category, String detail) {
@@ -97,7 +102,7 @@ final class DiagnosticLog {
     }
   }
 
-  static String build(Context context, String webJson, boolean includeSensitive, String milestoneProvider, int inFlight, int lastWorker, int lastModel) throws Exception {
+  static String build(String webJson, boolean includeSensitive, String milestoneProvider, int inFlight, int lastWorker, int lastModel) throws Exception {
     if (webJson == null || webJson.length() > 6_000_000) throw new IllegalArgumentException("diagnostic_payload_too_large");
     JSONObject credentials = new JSONObject();
     for (String[] item : keyPairs()) {
@@ -126,7 +131,7 @@ final class DiagnosticLog {
         .put("milestonePlansInFlight", inFlight))
       .put("credentials", credentials)
       .put("nativeEvents", events)
-      .put("performanceTimings", persistedTimings(context))
+      .put("performanceTimings", applicationContext == null ? new JSONArray() : persistedTimings(applicationContext))
       .put("web", new JSONObject(webJson));
     if (!includeSensitive) {
       redactFields(report.getJSONObject("web"));
