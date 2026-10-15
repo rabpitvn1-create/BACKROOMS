@@ -107,6 +107,59 @@ object CharacterMemoryBags {
     return if (rendered.isEmpty()) "" else rendered.joinToString("")
   }
 
+  /**
+   * Explicit off-screen recall uses Cao Minh's OWN Core-confirmed bag only.
+   * A mention of Lucia is never permission to read Lucia's private memory.
+   * No raw dialogue, AI interpretation, or absent NPC activation is involved.
+   */
+  fun playerRecallContext(state: GameState, action: String): String {
+    val query = action.lowercase(java.util.Locale.ROOT)
+    if (listOf("nhớ", "hồi tưởng", "hồi ức", "nhắc lại", "từng gặp",
+        "remember", "recall").none { query.contains(it) }) return ""
+    val history = readRoot(state).getJSONObject("bags").optJSONArray(CAO_MINH_ID)
+      ?: return ""
+    val records = (0 until history.length()).map { history.getJSONObject(it) }
+    val mentioned = state.characters.values
+      .filter { actor ->
+        actor.id != CAO_MINH_ID &&
+          actor.presence != CharacterPresence.ACTIVE &&
+          listOf(actor.id, actor.name).any { name ->
+            val term = name.trim().lowercase(java.util.Locale.ROOT)
+            term.length >= 3 && Regex(
+              "(?<![\\p{L}\\p{N}_])" + Regex.escape(term) + "(?![\\p{L}\\p{N}_])"
+            ).containsMatchIn(query)
+          }
+      }
+      .sortedBy { it.id }
+      .take(2)
+    if (mentioned.isEmpty()) return ""
+    return buildString {
+      for (actor in mentioned) {
+        val known = records.filter { item ->
+          if (item.optString("actorId") != actor.id) return@filter false
+          val by = item.optJSONArray("knownBy") ?: return@filter true
+          (0 until by.length()).any { by.optString(it) == CAO_MINH_ID }
+        }
+        if (known.isEmpty()) continue
+        val earliest = known.firstOrNull { it.optString("kind") == "first_meeting" }
+        val selected = (listOfNotNull(earliest) + known.takeLast(3))
+          .distinctBy { it.getString("id") }
+        append("Cao Minh recalls verified events involving ")
+          .append(actor.name).append(" (").append(actor.id).append("):\n")
+        selected.forEach { event ->
+          append("- ")
+          when (event.getString("kind")) {
+            "first_meeting" -> append("Cao Minh encountered this character.")
+            "party_join" -> append("This character joined Cao Minh's Party.")
+            "party_leave" -> append("This character left Cao Minh's Party.")
+            else -> error("Unsupported Core memory kind")
+          }
+          append(" [turn ").append(event.getInt("turn")).append("]\n")
+        }
+      }
+    }
+  }
+
   /** Witness IDs are confined to direct participants of this accepted Core
    * event, not every ACTIVE Party member. These are not GM-generated claims. */
   private fun event(id: String, kind: String, actorId: String, turn: Int,
