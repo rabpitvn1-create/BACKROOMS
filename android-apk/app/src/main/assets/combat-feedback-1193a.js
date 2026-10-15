@@ -310,9 +310,12 @@
       var badge=document.createElement('span');badge.className='combat-float-status combat-float-status--'+status.key;
       badge.textContent=status.label;value.insertBefore(badge,value.firstChild);
     }else{
-      floater.classList.add('combat-float--normal');
-      var normalBadge=document.createElement('span');normalBadge.className='combat-float-status combat-float-status--normal';
-      normalBadge.textContent='Đánh thường';value.insertBefore(normalBadge,value.firstChild);
+      var skill=typeof e.skill==='string'?e.skill.trim():'';
+      var isSkill=!!skill&&skill.toLocaleLowerCase('vi-VN')!=='đánh thường';
+      floater.classList.add(isSkill?'combat-float--skill':'combat-float--normal');
+      var attackBadge=document.createElement('span');
+      attackBadge.className='combat-float-status combat-float-status--'+(isSkill?'skill':'normal');
+      attackBadge.textContent=isSkill?skill:'Đánh thường';value.insertBefore(attackBadge,value.firstChild);
     }
     floater.style.left=anchor.x+'px';floater.style.top=(anchor.y-18-lane*38)+'px';anchor.box.appendChild(floater);
     floater.addEventListener('animationend',function(){floater.remove()},{once:true});

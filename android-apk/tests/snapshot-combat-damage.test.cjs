@@ -69,6 +69,24 @@ test('normal hits keep the original dedicated badge and numeric value',()=>{
  const r=boot();r.event({target:'entity',text:'-36 HP'});
  const n=r.box.children[0];assert.match(n.className,/combat-float--normal/);assert.equal(n.children[0].textContent,'-36 HP');assert.equal(n.children[0].children[0].textContent,'Đánh thường');
 });
+test('skill damage uses the Core skill name instead of the normal attack badge, including critical skills',()=>{
+ for(const critical of [false,true]){
+  const r=boot();r.event({target:'entity',text:'-120 HP',skill:'Huyết Ma Nhị Thập Tứ Trảm',critical});
+  const n=r.box.children[0],badge=n.children[0].children[0];
+  assert.match(n.className,/combat-float--skill/);
+  assert.doesNotMatch(n.className,/combat-float--normal/);
+  assert.equal(badge.textContent,'Huyết Ma Nhị Thập Tứ Trảm');
+  assert.match(badge.className,/combat-float-status--skill/);
+  assert.equal(n.className.includes('combat-float--critical'),critical);
+ }
+});
+test('explicit normal attacks stay normal; a skill with a status retains the status badge',()=>{
+ const normal=boot();normal.event({target:'entity',text:'-12 HP',skill:'  ĐÁNH THƯỜNG  '});
+ assert.equal(normal.box.children[0].children[0].children[0].textContent,'Đánh thường');
+ const status=boot();status.event({target:'entity',text:'-12 HP',skill:'Huyết Ma Tứ Liên',status:'Chảy máu'});
+ assert.equal(status.box.children[0].children[0].children[0].textContent,'CHẢY MÁU');
+ assert.doesNotMatch(status.box.children[0].className,/combat-float--normal/);
+});
 test('critical hits and all five status badges keep their independent classifications',()=>{
  for(const [status,key,label] of [['Chảy máu','bleed','CHẢY MÁU'],['Trúng độc','poison','TRÚNG ĐỘC'],['Choáng','stun','CHOÁNG'],['Xuyên giáp','armor','XUYÊN GIÁP'],['Mất phương hướng','disorient','MẤT PHƯƠNG HƯỚNG']]){
   const r=boot();r.event({target:'entity',text:'-5 HP',status,critical:true});const n=r.box.children[0];assert.ok(n.className.includes('combat-float--status-'+key));assert.match(n.className,/combat-float--critical/);assert.equal(n.children[0].children[0].textContent,label);
