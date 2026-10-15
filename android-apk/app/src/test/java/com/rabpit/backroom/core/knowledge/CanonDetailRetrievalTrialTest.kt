@@ -126,4 +126,61 @@ class CanonDetailRetrievalTrialTest {
     assertFalse(result.contains("<LEVEL.01.DETAIL."))
     assertTrue(result.length <= KnowledgeContextEngine.HARD_CONTEXT_CEILING * 4)
   }
+
+  @Test fun diePMinhCanonIsGatedByCoreConfirmedEntityEncounter() {
+    val db = database()
+    val absent = KnowledgeContextEngine.Builder(db, JSONObject(), "Diệp Minh xuất hiện?", JSONObject()).build()
+    assertFalse(absent.contains("<ENTITY.DIEP_MINH.VISUAL>"))
+    assertFalse(absent.contains("<ENTITY.DIEP_MINH.CANON>"))
+    assertFalse(absent.contains("<CHAR.DIEP_MINH.AUTHORED>"))
+
+    val confirmed = JSONObject().put("pendingEntityEncounter",
+      JSONObject().put("entityKey", "diep_minh"))
+    val seen = KnowledgeContextEngine.Builder(db, confirmed, "quan sát đối thủ", JSONObject()).build()
+    assertTrue(seen.contains("<ENTITY.DIEP_MINH.VISUAL>"))
+    assertTrue(seen.contains("<ENTITY.DIEP_MINH.CANON>"))
+    assertTrue(seen.contains("Hoàng Thiên Mộc Kiếm"))
+    assertFalse("Entity does not auto-recruit a character", seen.contains("<CHAR.DIEP_MINH.AUTHORED>"))
+    assertTrue(seen.length <= KnowledgeContextEngine.HARD_CONTEXT_CEILING * 4)
+  }
+
+  @Test fun diePMinhCharacterDetailsRequireActualNpcPresence() {
+    val state = JSONObject().put("pendingNpcEncounters", JSONArray()
+      .put(JSONObject().put("characterId", "diep_minh")))
+    val present = packet(state, "Hỏi Diệp Minh về kiếm")
+    assertTrue(present.contains("<CHAR.DIEP_MINH.AUTHORED>"))
+    assertTrue(present.contains("<CHAR.DIEP_MINH.DETAIL."))
+    val absent = packet(JSONObject(), "Hỏi Diệp Minh về kiếm")
+    assertFalse(absent.contains("<CHAR.DIEP_MINH.DETAIL."))
+    assertFalse(absent.contains("<CHAR.DIEP_MINH.AUTHORED>"))
+  }
+
+  @Test fun cultivationLadderOnlyAppearsOnRelevantAction() {
+    val db = database()
+    val explore = KnowledgeContextEngine.Builder(db, JSONObject(), "khám phá hành lang", JSONObject()).build()
+    assertFalse(explore.contains("<WORLD.CULTIVATION_REALMS>"))
+    assertFalse(explore.contains("<CHAR.CAO_MINH.REALM>"))
+    val realm = KnowledgeContextEngine.Builder(db, JSONObject(), "Cao Minh tự kiểm tra cảnh giới tu vi", JSONObject()).build()
+    assertTrue(realm.contains("<WORLD.CULTIVATION_REALMS>"))
+    assertTrue(realm.contains("<CHAR.CAO_MINH.REALM>"))
+    assertTrue(realm.contains("Chí Tôn Đại Viên Mãn"))
+    assertFalse("Disallowed numerical claim", realm.contains("100 tiểu cảnh giới"))
+    assertTrue(realm.length <= KnowledgeContextEngine.HARD_CONTEXT_CEILING * 4)
+  }
+
+  @Test fun diePMinhPublicRecordsExcludeWriterSecretsAndStaleRealms() {
+    val db = database()
+    val newRecords = db.records.values.filter {
+      it.id.startsWith("CHAR.DIEP_MINH.") ||
+        it.id == "ENTITY.DIEP_MINH.CANON" || it.id == "WORLD.CULTIVATION_REALMS" ||
+        it.id == "CHAR.CAO_MINH.REALM"
+    }
+    assertTrue(newRecords.size >= 10)
+    assertTrue(newRecords.all {
+      it.source.document.startsWith("Google Drive /Novel/Asset/") &&
+        it.text.isNotBlank() && !it.text.contains("Vô Lượng", ignoreCase = true) &&
+        !it.text.contains("WRITER-SECRET") && !it.text.contains("100 tiểu cảnh giới")
+    })
+    assertEquals(newRecords.map { it.id }.size, newRecords.map { it.id }.toSet().size)
+  }
 }

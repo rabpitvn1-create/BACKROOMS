@@ -402,6 +402,11 @@ object KnowledgeContextEngine {
       if (hasAny(actionText, "devil trigger") && "syvial" in presentActors) {
         direct += "CHAR.SYVIAL.DEVIL_TRIGGER"
       }
+      if (hasAny(actionText, "cảnh giới", "tu vi", "nguyên anh", "chí tôn", "chân tiên", "phi thăng", "đột phá", "tu luyện")) {
+        // The world cultivation ladder is contextual, never a per-turn hard lock.
+        direct += "WORLD.CULTIVATION_REALMS"
+        direct += "CHAR.CAO_MINH.REALM"
+      }
       if (hasAny(actionText, "nói", "hỏi", "trả lời", "trò chuyện", "nói chuyện", "dialogue", "talk", "tell")) {
         direct += "WRITING.DIALOGUE"
       }
@@ -468,6 +473,10 @@ object KnowledgeContextEngine {
       val confirmedVisual = confirmedEntityVisualId()
       if (confirmedVisual != null) {
         add(confirmedVisual, "confirmed active Entity visual canon")
+        // Extra entity canon is registered by exact Core-confirmed key, not by
+        // a name in player text. Absent siblings remain a no-op.
+        add(confirmedVisual.removeSuffix(".VISUAL") + ".CANON",
+          "confirmed active Entity authored canon")
       }
       val confirmedEntities = flags?.optInt("entitiesConfirmedLocal", 0) ?: 0
       if (confirmedEntities > 0 || hasAny(sceneText, "entity", "thực thể", "quái", "hound", "smiler", "skin-stealer", "jeff")) {
