@@ -26,7 +26,7 @@ class CanonDetailRetrievalTrialTest {
     // or source control. This tests bulk indexing without publishing novel spoilers.
     repeat(extraArchiveCards) { index ->
       records.put(JSONObject()
-        .put("id", "TEST.ARCHIVE.$"+"{index}")
+        .put("id", "TEST.ARCHIVE." + index)
         .put("domain", "SUPPORT").put("kind", "archive-detail")
         .put("text", "TEST_ONLY load fixture " + "example ".repeat(55))
         .put("source", JSONObject().put("document", "TEST_ONLY")
