@@ -466,6 +466,9 @@ class GameCoreFacade private constructor(
 
   @Synchronized fun currentCoreState(): String = GameStateCodec.encode(repository.load())
 
+  /** Prompt-only memory for Core-confirmed actors in the current scene. */
+  @Synchronized fun sceneMemoryContext(): String = CharacterMemoryBags.sceneContext(loadCurrentState())
+
   /** A manual save is distinct from turn-by-turn Core persistence. */
   @Synchronized fun saveManualCheckpoint(clientStateJson: String): String {
     val current = loadCurrentState()
@@ -689,7 +692,8 @@ class GameCoreFacade private constructor(
         JSONObject().put("role", "gm").put("text", narrative)
           .put("encounterId", encounter.encounterId).toString()))
     }
-    val accepted = CoreClientProjection.advance(applied)
+    // Persist factual memories atomically with the validated Core transition.
+    val accepted = CoreClientProjection.advance(CharacterMemoryBags.recordCommitted(core, applied))
     repository.save(accepted)
     val synchronized = clientSnapshot(candidate, accepted)
     logger.log(PipelineLogEvent("GEMINI_COMMIT", turnId = turnId, source = CommandSource.GEMINI, details = mapOf("commands" to commands.size.toString())))
@@ -738,6 +742,7 @@ class GameCoreFacade private constructor(
       flags.put(key, record.put("follower", true).put("joinPending", false))
       next = next.copy(world = next.world + ("flagsJson" to flags.toString()))
     }
+    next = CharacterMemoryBags.recordCommitted(current, next)
     repository.save(next)
     return response(true, clientSnapshot(client, next), null, "follower_recruited", "${character.name} đã gia nhập Party.")
   }
