@@ -10,6 +10,9 @@ import java.util.ArrayDeque;
 /** Bounded, read-only diagnostic timeline and portable export codec. No network calls. */
 final class DiagnosticLog {
   private static final int MAX_EVENTS = 250;
+  private static final int MAX_TIMINGS = 40;
+  private static final Object TIMING_LOCK = new Object();
+  private static final String TIMING_PREF = "diagnostic_performance_v1";
   private static final ArrayDeque<JSONObject> EVENTS = new ArrayDeque<>();
 
   static void record(String category, String detail) {
@@ -27,6 +30,42 @@ final class DiagnosticLog {
 
   static void error(String category, Throwable throwable) {
     record(category, Log.getStackTraceString(throwable));
+  }
+
+  /**
+   * Persist metadata-only performance spans across Activity/process restarts.
+   * Never persist prompt text, API response, credentials, or other game content.
+   */
+  static void timing(Context context, String stage, long durationMs, int characterCount) {
+    if (context == null || stage == null || !stage.matches("[a-z._]{1,40}")) return;
+    try {
+      JSONObject event = new JSONObject()
+        .put("epochMs", System.currentTimeMillis())
+        .put("stage", stage)
+        .put("durationMs", Math.max(0, Math.min(durationMs, 600000)))
+        .put("chars", Math.max(0, Math.min(characterCount, 2000000)));
+      synchronized (TIMING_LOCK) {
+        android.content.SharedPreferences prefs = context.getApplicationContext()
+          .getSharedPreferences(TIMING_PREF, Context.MODE_PRIVATE);
+        JSONArray prior = new JSONArray(prefs.getString("spans", "[]"));
+        JSONArray updated = new JSONArray();
+        for (int i = Math.max(0, prior.length() - (MAX_TIMINGS - 1)); i < prior.length(); i++)
+          updated.put(prior.get(i));
+        updated.put(event);
+        prefs.edit().putString("spans", updated.toString()).apply();
+      }
+      record("performance." + stage, "durationMs=" + durationMs + "; chars=" + characterCount);
+    } catch (Exception ignored) { /* Diagnostics never affect the GM. */ }
+  }
+
+  private static JSONArray persistedTimings(Context context) {
+    try {
+      synchronized (TIMING_LOCK) {
+        return new JSONArray(context.getApplicationContext()
+          .getSharedPreferences(TIMING_PREF, Context.MODE_PRIVATE)
+          .getString("spans", "[]"));
+      }
+    } catch (Exception ignored) { return new JSONArray(); }
   }
 
   private static String[][] keyPairs() {
@@ -58,7 +97,7 @@ final class DiagnosticLog {
     }
   }
 
-  static String build(String webJson, boolean includeSensitive, String milestoneProvider, int inFlight, int lastWorker, int lastModel) throws Exception {
+  static String build(Context context, String webJson, boolean includeSensitive, String milestoneProvider, int inFlight, int lastWorker, int lastModel) throws Exception {
     if (webJson == null || webJson.length() > 6_000_000) throw new IllegalArgumentException("diagnostic_payload_too_large");
     JSONObject credentials = new JSONObject();
     for (String[] item : keyPairs()) {
@@ -87,6 +126,7 @@ final class DiagnosticLog {
         .put("milestonePlansInFlight", inFlight))
       .put("credentials", credentials)
       .put("nativeEvents", events)
+      .put("performanceTimings", persistedTimings(context))
       .put("web", new JSONObject(webJson));
     if (!includeSensitive) {
       redactFields(report.getJSONObject("web"));
