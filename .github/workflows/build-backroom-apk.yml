@@ -115,10 +115,10 @@ jobs:
           "$BUILD_TOOLS/aapt" dump badging Backroom-1.2.0.0.32.apk | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
           "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-1.2.0.0.32.apk
           rm -rf apk-check && mkdir apk-check
-          unzip -q Backroom-1.2.0.0.32.apk 'assets/index.html' 'assets/diagnostic-export.js' 'assets/item-icons.js' 'assets/item-icons/*' 'assets/provider-logos/*' 'assets/combat-feedback-1193a.*' 'assets/entity/*' 'assets/fx/*' 'assets/CaoMinh_MadGod_snapshot_overlay.png' 'assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png' 'assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png' 'assets/avatars/MadGod.jpg' 'assets/avatars/CAO_MINH_AVATAR.jpg' 'assets/hud/player_action_backrooms.png' 'assets/dice/*' 'assets/fonts/Play-Bold.ttf' 'assets/level_snapshots/*' -d apk-check
+          unzip -q Backroom-1.2.0.0.32.apk 'assets/index.html' 'assets/player-composer.*' 'assets/ui/ornate-frame-v1.css' 'assets/diagnostic-export.js' 'assets/item-icons.js' 'assets/item-icons/*' 'assets/provider-logos/*' 'assets/combat-feedback-1193a.*' 'assets/entity/*' 'assets/fx/*' 'assets/CaoMinh_MadGod_snapshot_overlay.png' 'assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png' 'assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png' 'assets/avatars/MadGod.jpg' 'assets/avatars/CAO_MINH_AVATAR.jpg' 'assets/hud/player_action_backrooms.png' 'assets/dice/*' 'assets/fonts/Play-Bold.ttf' 'assets/level_snapshots/*' -d apk-check
           ! grep -q 'id="searchActionButton"' apk-check/assets/index.html
           grep -q 'id="submit"' apk-check/assets/index.html
-          grep -q 'exploreActionButton' apk-check/assets/index.html
+          node android-apk/verify-player-composer.mjs apk-check/assets
           # Milestone is intentionally removed; never require the retired loader or chooser.
           ! unzip -Z1 Backroom-1.2.0.0.32.apk | grep -Fxq 'assets/milestone-loading.js'
           ! grep -q 'milestoneChooseGemini' apk-check/assets/index.html
@@ -127,7 +127,6 @@ jobs:
           test -s apk-check/assets/provider-logos/gemini.svg
           test -s apk-check/assets/provider-logos/chatgpt.svg
           grep -q 'UI_119_BACKPORT_R01' apk-check/assets/index.html
-          grep -q 'playerActionModal' apk-check/assets/index.html
           grep -q 'gameMenuModal' apk-check/assets/index.html
           grep -q 'exportDiagnosticButton' apk-check/assets/index.html
           test -s apk-check/assets/diagnostic-export.js
@@ -139,7 +138,6 @@ jobs:
             cmp "$icon" "apk-check/assets/item-icons/${icon##*/}"
           done
           grep -q 'backroom.diagnostics.v1' apk-check/assets/diagnostic-export.js
-          grep -q 'playerActionConfirm' apk-check/assets/index.html
           grep -q 'POKER_DICE_CORE_BACKPORT_R01' apk-check/assets/index.html
           grep -q 'pokerDiceModal' apk-check/assets/index.html
           grep -q 'COMBAT_TRANSIENT_LOG_R01' apk-check/assets/combat-feedback-1193a.js
@@ -315,7 +313,9 @@ jobs:
           unzip -p Backroom-1.2.0.0.32-verified.apk assets/index.html | grep -q 'characterSkillsButton'
           unzip -p Backroom-1.2.0.0.32-verified.apk assets/index.html | grep -q 'function semanticTerms(before,after)'
           unzip -p Backroom-1.2.0.0.32-verified.apk assets/index.html | grep -q 'UI_119_BACKPORT_R01'
-          unzip -p Backroom-1.2.0.0.32-verified.apk assets/index.html | grep -q 'playerActionModal'
+          rm -rf verified-composer && mkdir verified-composer
+          unzip -q Backroom-1.2.0.0.32-verified.apk 'assets/index.html' 'assets/player-composer.*' 'assets/ui/ornate-frame-v1.css' -d verified-composer
+          node android-apk/verify-player-composer.mjs verified-composer/assets
           unzip -p Backroom-1.2.0.0.32-verified.apk assets/index.html | grep -q 'POKER_DICE_CORE_BACKPORT_R01'
           unzip -p Backroom-1.2.0.0.32-verified.apk assets/index.html | grep -q 'pokerDiceModal'
           unzip -p Backroom-1.2.0.0.32-verified.apk assets/combat-feedback-1193a.js | grep -q 'COMBAT_TRANSIENT_LOG_R01'
