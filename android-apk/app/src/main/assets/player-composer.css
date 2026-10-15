@@ -1,6 +1,8 @@
 /* Inline amber glass composer. The log continues behind its translucent surface. */
 .game{grid-template-rows:auto auto minmax(0,1fr)}
 .game>.log{grid-column:1;grid-row:3;padding-bottom:var(--composer-height,84px);scroll-padding-bottom:var(--composer-height,84px)}
+.game>.log{scrollbar-width:none}
+.game>.log::-webkit-scrollbar{display:none}
 .game>.player-action-bar{grid-column:1;grid-row:3;align-self:end;min-width:0;z-index:25;padding:8px calc(12px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));border:0;background:none;box-shadow:none;pointer-events:none}
 .player-action-bar .chat-composer{display:flex;align-items:flex-end;gap:9px;padding:0;max-width:680px;margin:0 auto;pointer-events:auto}
 .chat-avatar{display:block;width:44px;height:44px;flex:0 0 44px;object-fit:cover;border-radius:13px;border:1px solid #e8cd8380;box-shadow:0 2px 10px #0005;margin-bottom:5px}
