@@ -113,7 +113,122 @@ class EntitySpawnPoolTest {
     assertEquals(25, NpcSpawnTable.IRIS_THRESHOLD)
     assertEquals(25, NpcSpawnTable.SYVIAL_THRESHOLD)
     assertEquals(25, NpcSpawnTable.AN_NHIEN_THRESHOLD)
-    assertEquals(200, NpcSpawnTable.SURVIVOR_THRESHOLD)
+    // Ambient crowd NPC replaced the old Survivor 2% branch (2026-10-15)
+    assertEquals(1000, NpcSpawnTable.AMBIENT_THRESHOLD)
+  }
+
+  // --- Ambient NPC 10% roll (ephemeral, never a Canon encounter) ---
+
+  @Test fun `ambient roll fires on eligible turn with no entity or canon NPC`() {
+    val state = GameState.initial()
+    // Force: entity roll fails (roll=10000), Lucia roll fails, ambient succeeds (roll=1)
+    // Call order on Level 0 EXPLORE: entity(1), Lucia(2), ambient(3).
+    // LucTram/Iris/Syvial/AnNhien rolls are skipped (level/eligibility/legacy).
+    var calls = 0
+    val result = SpawnMechanism.rollSpawns(
+      state, ActionKind.EXPLORE, "đi khám phá",
+      isMeta = false, inCombatOrPending = false
+    ) { _ ->
+      calls++
+      if (calls <= 2) 9999 else 0
+    }
+    assertNull("No entity should spawn", result.entityKey)
+    assertTrue("No canon NPC should spawn", result.npcEncounters.isEmpty())
+    assertTrue("Ambient should roll on eligible turn", result.ambientNpcRolled)
+  }
+
+  @Test fun `ambient roll skipped when entity spawns this turn (entity priority)`() {
+    val state = GameState.initial()
+    val result = SpawnMechanism.rollSpawns(
+      state, ActionKind.EXPLORE, "đi khám phá",
+      isMeta = false, inCombatOrPending = false
+    ) { _ -> 0 }  // roll=1 → entity spawns (hound)
+    assertNotNull("Entity should spawn", result.entityKey)
+    assertFalse("Ambient must yield to entity", result.ambientNpcRolled)
+  }
+
+  @Test fun `ambient roll skipped when canon NPC spawns (canon priority)`() {
+    val state = GameState.initial()
+    // Force Lucia success (roll=1) on Level 0 EXPLORE; entity fails
+    var calls = 0
+    val result = SpawnMechanism.rollSpawns(
+      state, ActionKind.EXPLORE, "đi khám phá",
+      isMeta = false, inCombatOrPending = false
+    ) { _ ->
+      calls++
+      // entity(1): fail, Lucia(2): success, rest fail, ambient: would succeed but must not roll
+      when (calls) {
+        1 -> 9999  // entity fails
+        2 -> 0     // Lucia succeeds
+        else -> 9999
+      }
+    }
+    assertTrue("Lucia should spawn", result.npcEncounters.any { it.characterId == LUCIA_ID })
+    assertFalse("Ambient must yield to canon NPC", result.ambientNpcRolled)
+  }
+
+  @Test fun `ambient roll skipped on meta and combat turns`() {
+    val state = GameState.initial()
+    val meta = SpawnMechanism.rollSpawns(
+      state, ActionKind.EXPLORE, "đi khám phá",
+      isMeta = true, inCombatOrPending = false
+    ) { _ -> 0 }
+    assertFalse("Meta turn must not roll ambient", meta.ambientNpcRolled)
+
+    val combat = SpawnMechanism.rollSpawns(
+      state, ActionKind.EXPLORE, "đi khám phá",
+      isMeta = false, inCombatOrPending = true
+    ) { _ -> 0 }
+    assertFalse("Combat turn must not roll ambient", combat.ambientNpcRolled)
+  }
+
+  @Test fun `ambient marker is ephemeral metadata not a canon encounter`() {
+    val state = GameState.initial()
+    val result = SpawnResult(entityKey = null, npcEncounters = emptyList(), ambientNpcRolled = true)
+    val updated = SpawnMechanism.applySpawns(state, result)
+
+    // Ephemeral marker set in metadata
+    assertTrue(SpawnMechanism.ambientNpcRolled(updated))
+    assertEquals("true", updated.metadata[SpawnMechanism.AMBIENT_NPC_METADATA_KEY])
+
+    // NOT a Canon encounter: no flags, no CharacterState created
+    val flags = JSONObject(updated.world["flagsJson"] ?: "{}")
+    assertFalse("No survivor flag should exist", flags.has("survivor"))
+    assertNull("No survivor character should be created", updated.characters["survivor"])
+    assertTrue("No NPC encounters applied", updated.characters.keys.none { it == "survivor" })
+  }
+
+  @Test fun `ambient marker can be cleared after consumption`() {
+    val state = GameState.initial()
+    val marked = SpawnMechanism.applySpawns(
+      state, SpawnResult(null, emptyList(), ambientNpcRolled = true))
+    assertTrue(SpawnMechanism.ambientNpcRolled(marked))
+    val cleared = SpawnMechanism.clearAmbientNpcMarker(marked)
+    assertFalse(SpawnMechanism.ambientNpcRolled(cleared))
+    assertFalse(cleared.metadata.containsKey(SpawnMechanism.AMBIENT_NPC_METADATA_KEY))
+    // Clearing absent marker is a safe no-op
+    assertEquals(cleared, SpawnMechanism.clearAmbientNpcMarker(cleared))
+  }
+
+  @Test fun `ambient roll distribution is roughly 10 percent`() {
+    val state = GameState.initial()
+    val rng = Random(42)
+    var hits = 0
+    val total = 5000
+    repeat(total) {
+      // EXPLORE on high level with no canon NPCs eligible: entity may fire,
+      // ambient only counts when nothing else did
+      val result = SpawnMechanism.rollSpawns(
+        state, ActionKind.SEARCH, "tìm kiếm xung quanh",
+        isMeta = false, inCombatOrPending = false
+      ) { bound -> rng.nextInt(bound) }
+      if (result.ambientNpcRolled) hits++
+    }
+    // Ambient fires only when entity (45%) and NPCs miss; rough sanity bound:
+    // P(ambient) = P(no entity) * P(no NPC) * 0.10 ≈ 0.55 * ~1.0 * 0.10 ≈ 5.5%
+    // Allow wide tolerance: 2%..10% of all turns
+    assertTrue("Expected ambient hits in 2%..10% range, got $hits/$total",
+      hits in (total * 0.02).toInt()..(total * 0.10).toInt())
   }
 
   // --- SpawnMechanism integration ---
