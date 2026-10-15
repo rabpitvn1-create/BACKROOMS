@@ -26,6 +26,22 @@ public class AmbientNpcManagerTest {
     assertNull(manager.endEncounter());
   }
 
+  @Test public void oneSceneCacheRestoresExactDialoguePositionAndClears() {
+    AmbientNpcManager first = new AmbientNpcManager();
+    first.setActive(AmbientNpcManager.parse(VALID));
+    assertEquals("Xin chào.", first.nextDialogue());
+    String cached = first.snapshot();
+    assertNotNull(cached);
+
+    AmbientNpcManager restarted = new AmbientNpcManager();
+    assertTrue(restarted.restore(cached));
+    assertEquals("Có ai ở đó không?", restarted.nextDialogue());
+    assertEquals("Xin chào.", restarted.nextDialogue());
+    assertEquals("Người lạ bước khỏi hành lang.", restarted.endEncounter());
+    assertNull(restarted.snapshot());
+    assertFalse(restarted.restore("{\\"npc\\":{},\\"dialogueIndex\\":5}"));
+  }
+
   @Test public void rejectsInvalidPayloadWithoutActivatingNpc() {
     assertNull(AmbientNpcManager.parse(null));
     assertNull(AmbientNpcManager.parse("{}"));
