@@ -36,17 +36,24 @@ object CharacterMemoryBags {
     val turn = CoreClientProjection.turnIndex(after)
 
     meetings.forEach { actor ->
-      val event = event("MEET.${actor.id}", "first_meeting", actor.id, turn)
+      // A successful first encounter confirms the two direct participants only.
+      val event = event("MEET.${actor.id}", "first_meeting", actor.id, turn,
+        setOf(CAO_MINH_ID, actor.id))
       appendTo(bags, actor.id, event)
       appendTo(bags, CAO_MINH_ID, event)
     }
     joined.forEach { actor ->
-      val event = event(nextEventId(root, "PARTY.JOIN", actor), "party_join", actor, turn)
+      val event = event(nextEventId(root, "PARTY.JOIN", actor), "party_join", actor, turn,
+        setOf(CAO_MINH_ID, actor))
       appendTo(bags, actor, event)
       appendTo(bags, CAO_MINH_ID, event)
     }
     left.forEach { actor ->
-      val event = event(nextEventId(root, "PARTY.LEAVE", actor), "party_leave", actor, turn)
+      // A separated, missing or dead actor must not automatically learn they left.
+      val direct = if (after.characters[actor]?.presence == CharacterPresence.ACTIVE)
+        setOf(CAO_MINH_ID, actor) else setOf(CAO_MINH_ID)
+      val event = event(nextEventId(root, "PARTY.LEAVE", actor), "party_leave", actor, turn,
+        direct)
       appendTo(bags, actor, event)
       appendTo(bags, CAO_MINH_ID, event)
     }
@@ -68,7 +75,14 @@ object CharacterMemoryBags {
     val bags = readRoot(state).getJSONObject("bags")
     val rendered = visible.mapNotNull { actor ->
       val entries = bags.optJSONArray(actor.id) ?: return@mapNotNull null
+      // Store all accepted Core facts, but never present an unobserved event as
+      // the NPC's own remembered experience.
       val selected = (0 until entries.length()).map { entries.getJSONObject(it) }
+        .filter { item ->
+          val knownBy = item.optJSONArray("knownBy")
+          knownBy == null || (0 until knownBy.length())
+            .any { knownBy.optString(it) == actor.id }
+        }
       val first = selected.firstOrNull { it.optString("kind") == "first_meeting" }
       val recent = selected.takeLast(PROMPT_RECENT_LIMIT)
       val facts = (listOfNotNull(first) + recent).distinctBy { it.getString("id") }
@@ -93,12 +107,16 @@ object CharacterMemoryBags {
     return if (rendered.isEmpty()) "" else rendered.joinToString("")
   }
 
-  private fun event(id: String, kind: String, actorId: String, turn: Int) = JSONObject()
+  /** Witness IDs are confined to direct participants of this accepted Core
+   * event, not every ACTIVE Party member. These are not GM-generated claims. */
+  private fun event(id: String, kind: String, actorId: String, turn: Int,
+    knownBy: Set<String>) = JSONObject()
     .put("id", id)
     .put("kind", kind)
     .put("actorId", actorId)
     .put("turn", turn)
     .put("authority", "CORE_CONFIRMED")
+    .put("knownBy", JSONArray().apply { knownBy.sorted().forEach { put(it) } })
 
   /** Sequence is part of the same saved Core state; multiple UI actions in one turn
    * must not silently overwrite each other's memory events. */
@@ -136,6 +154,21 @@ object CharacterMemoryBags {
         require(entry.optInt("turn", -1) >= 1) { "character_memory_turn_invalid" }
         require(entry.optString("authority") == "CORE_CONFIRMED") {
           "character_memory_authority_invalid"
+        }
+        // Existing current-game events may not yet carry this optional evidence.
+        entry.opt("knownBy")?.let { raw ->
+          require(raw is JSONArray) { "character_memory_known_by_invalid" }
+          val witnessed = mutableSetOf<String>()
+          for (index in 0 until raw.length()) {
+            val witnessId = raw.optString(index)
+            require(witnessId.isNotBlank() && witnessed.add(witnessId)) {
+              "character_memory_known_by_invalid"
+            }
+          }
+          require(CAO_MINH_ID in witnessed) { "character_memory_known_by_missing_player" }
+          require(witnessed.all { it == CAO_MINH_ID || it == entry.getString("actorId") }) {
+            "character_memory_witness_not_participant"
+          }
         }
       }
     }
