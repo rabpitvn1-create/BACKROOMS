@@ -111,8 +111,10 @@ object CharacterDetailProjector {
       val def = EquipmentCatalog.definition(item.itemId)
       val normalizedItem = ItemContentRules.normalize(item)
       val useEffects = buildList {
+        val healPercent = HealingItems.healMaxHpPercent(normalizedItem)
         val heal = HealingItems.healAmount(normalizedItem)
-        if (heal > 0) add("Hồi $heal HP mỗi vật phẩm, không vượt quá Max HP.")
+        if (healPercent > 0) add("Hồi $healPercent% Max HP mỗi vật phẩm (làm tròn xuống), không vượt quá Max HP. Không hồi sinh.")
+        else if (heal > 0) add("Hồi $heal HP mỗi vật phẩm, không vượt quá Max HP.")
         val physiology = normalizedItem.metadata["physiologyEffect"].orEmpty()
           .split(',', ';', '|').map { it.trim().uppercase() }.filter { it.isNotEmpty() }.toSet()
         if (physiology.all { it in setOf("FOOD", "WATER") }) {

@@ -170,7 +170,8 @@ class CharacterDetailJsonTest {
     assertTrue(foodJson.getJSONArray("useEffects").toString().contains("thiếu thức ăn"))
     assertFalse(foodJson.has("metadata"))
     assertFalse(foodJson.toString().contains("hidden"))
-    assertEquals(0, item("liquid-pain").getJSONArray("useEffects").length())
+    assertTrue(item(LIQUID_PAIN_ID).getJSONArray("useEffects").toString().contains("Hồi 15% Max HP"))
+    assertEquals(HealingItems.LIQUID_PAIN_DESCRIPTION, item(LIQUID_PAIN_ID).getString("description"))
   }
 }
 

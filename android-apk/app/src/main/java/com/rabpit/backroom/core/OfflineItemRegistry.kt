@@ -14,7 +14,9 @@ object OfflineItemRegistry {
     Definition("almond-water", "Almond Water",
       mapOf("consumable" to "true", "consumedOnUse" to "true", "physiologyEffect" to "WATER")),
     Definition("greek-fire", "Greek Fire"),
-    Definition("liquid-pain", "Liquid Pain"),
+    Definition(LIQUID_PAIN_ID, "Liquid Pain",
+      mapOf("consumable" to "true", "consumedOnUse" to "true",
+        "description" to HealingItems.LIQUID_PAIN_DESCRIPTION)),
     Definition("medical:bandage", "Băng gạc",
       mapOf("consumable" to "true", "consumedOnUse" to "true", "itemCategory" to "medical")),
     Definition("medical:antiseptic", "Thuốc sát trùng",
@@ -42,3 +44,4 @@ object OfflineItemRegistry {
   fun get(id: String): Definition? = byId[id]
   fun random(seed: Long): Definition = definitions[Random(seed).nextInt(definitions.size)]
 }
+

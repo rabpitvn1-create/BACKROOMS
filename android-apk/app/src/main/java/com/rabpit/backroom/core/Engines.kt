@@ -78,7 +78,10 @@ private fun useItem(state: GameState, source: InventoryState, command: ItemComma
   val owned = ItemContentRules.normalize(ownedRaw)
   val physiologyEffects = parsePhysiologyEffects(owned.metadata["physiologyEffect"])
     ?: return invalid(state, "physiology_effect_invalid")
-  val healingAmount = HealingItems.healAmount(owned)
+  val healingAmount = if (HealingItems.healMaxHpPercent(owned) > 0) {
+    if (state.characters[command.actorId] == null) return invalid(state, "actor_unknown")
+    HealingItems.healAmount(owned, CharacterStatEngine.effective(state, command.actorId).maxHp)
+  } else HealingItems.healAmount(owned)
   if (healingAmount > 0) {
     val actor = state.characters[command.actorId] ?: return invalid(state, "actor_unknown")
     if (actor.presence == CharacterPresence.DEAD || actor.vitalState.currentHp <= 0) {
@@ -239,3 +242,4 @@ object TimeEngine {
 
 internal fun invalid(state: GameState, reason: String) = ExecutionResult(state, false, validation = ValidationResult(false, reason))
 internal fun changed(state: GameState, event: String) = ExecutionResult(state, true, events = listOf(event))
+

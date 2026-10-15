@@ -69,7 +69,14 @@ test('Consumable effects and descriptions render safely without fabricating unkn
   assert.match(bandage('equipmentDetailDescription'), /&lt;img/);
   assert.doesNotMatch(bandage('equipmentDetailDescription'), /<img/);
   assert.doesNotMatch(bandage('equipmentDetailAbilities'), /<img|chưa ghi nhận/);
-  const unknown = openItemThroughClick({ id: 'liquid-pain', useEffects: [] });
+  const unknown = openItemThroughClick({ id: 'unknown', useEffects: [] });
   assert.match(unknown('equipmentDetailAbilities'), /Core chưa ghi nhận hiệu ứng/);
   assert.match(unknown('equipmentDetailDescription'), /Chưa có mô tả trong dữ liệu/);
+});
+
+ test('Liquid Pain renders percentage healing and its description', () => {
+  const liquid = openItemThroughClick({ id: 'liquid-pain', description: 'Vật phẩm tiêu hao.',
+    useEffects: ['Hồi 15% Max HP mỗi vật phẩm (làm tròn xuống), không vượt quá Max HP. Không hồi sinh.'] });
+  assert.match(liquid('equipmentDetailAbilities'), /Hồi 15% Max HP/);
+  assert.match(liquid('equipmentDetailDescription'), /Vật phẩm tiêu hao/);
 });

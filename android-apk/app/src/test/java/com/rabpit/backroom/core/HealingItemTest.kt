@@ -56,4 +56,34 @@ class HealingItemTest {
     assertEquals(10, HealingItems.BANDAGE_HEAL_HP)
     assertEquals(20, HealingItems.ANTISEPTIC_HEAL_HP)
   }
+  @Test fun liquidPainHealsFifteenPercentOfEffectiveMaxHpPerItemAndConsumesQuantity() {
+    var state = add(fresh(), LIQUID_PAIN_ID, "Liquid Pain", 3)
+    state = CharacterStatEngine.setCurrentHp(state, CAO_MINH_ID, 1)
+    val maxHp = CharacterStatEngine.effective(state, CAO_MINH_ID).maxHp
+    val result = use(state, LIQUID_PAIN_ID, "Liquid Pain", 2)
+    assertTrue(result.applied)
+    assertEquals((1 + (maxHp * 15 / 100) * 2).coerceAtMost(maxHp),
+      result.state.characters.getValue(CAO_MINH_ID).vitalState.currentHp)
+    assertEquals(1, result.state.inventories.getValue(CAO_MINH_ID).items.getValue(LIQUID_PAIN_ID).quantity)
+    assertEquals(state.time, result.state.time)
+    assertEquals(state.turn, result.state.turn)
+    assertEquals(15, HealingItems.healAmount(ItemStack(LIQUID_PAIN_ID, "Liquid Pain"), 101))
+    assertEquals(30, HealingItems.healAmount(ItemStack(LIQUID_PAIN_ID, "Liquid Pain"), 200))
+  }
+
+  @Test fun liquidPainClampsHealingAndCannotRevive() {
+    val initial = add(fresh(), LIQUID_PAIN_ID, "Liquid Pain")
+    val maxHp = CharacterStatEngine.effective(initial, CAO_MINH_ID).maxHp
+    val injured = CharacterStatEngine.setCurrentHp(initial, CAO_MINH_ID, maxHp - 1)
+    val healed = use(injured, LIQUID_PAIN_ID, "Liquid Pain")
+    assertTrue(healed.applied)
+    assertEquals(maxHp, healed.state.characters.getValue(CAO_MINH_ID).vitalState.currentHp)
+    assertFalse(healed.state.inventories.getValue(CAO_MINH_ID).items.containsKey(LIQUID_PAIN_ID))
+    val defeated = CharacterStatEngine.setCurrentHp(initial, CAO_MINH_ID, 0)
+    val rejected = use(defeated, LIQUID_PAIN_ID, "Liquid Pain")
+    assertFalse(rejected.applied)
+    assertEquals("healing_target_defeated", rejected.validation.reason)
+    assertEquals(defeated, rejected.state)
+  }
 }
+
