@@ -1565,7 +1565,7 @@ public class MainActivity extends Activity {
       continuityNotesSection(stateForKnowledge.toString(), rolls.toString()) +
       exitDirectiveSection(before, rolls) +
       eventSemanticsAndAgency() +
-      corePersonalMemorySection() +
+      corePersonalMemorySection(action) +
       "\nACTION_TYPE: " + actionKindNormalized +
       "\nPLAYER_ACTION: " + action +
       "\nCORE_ROLLS_READ_ONLY: " + visibleRolls.toString() +
@@ -1619,8 +1619,8 @@ public class MainActivity extends Activity {
   }
 
   /** The Core activates only factual bags of encountered, scene-present NPCs. */
-  private String corePersonalMemorySection() throws Exception {
-    String memory = requireGameCore().sceneMemoryContext();
+  private String corePersonalMemorySection(String action) throws Exception {
+    String memory = requireGameCore().sceneMemoryContext(action);
     return memory.isEmpty() ? "" : "\nPERSONAL_MEMORY_CORE_READ_ONLY:\n" + memory;
   }
 
