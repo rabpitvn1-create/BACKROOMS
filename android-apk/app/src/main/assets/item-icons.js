@@ -1,0 +1,25 @@
+/* Fixed local assets only. IDs mirror OfflineItemRegistry and EquipmentCatalog. */
+window.backroomItemIcons = Object.freeze({
+  'almond-water': 'almond-water',
+  'greek-fire': 'greek-fire',
+  'liquid-pain': 'liquid-pain',
+  'medical:bandage': 'bandage',
+  'medical:antiseptic': 'antiseptic',
+  'southern:ben-tre-coconut': 'coconut',
+  'southern:banh-tet': 'banh-tet',
+  'southern:saigon-com-tam': 'com-tam',
+  'cao_minh:huyet-ma-kiem': 'huyet-ma-kiem',
+  'cao_minh:huyet-ma-chien-khai': 'huyet-ma-khai',
+  'iris:ivory-ebony-set': 'ivory-ebony',
+  'iris:ivory': 'ivory',
+  'iris:ebony': 'ebony',
+  'syvial:godkiller': 'godkiller',
+  'luc-tram:tich-quang': 'tich-quang',
+  'luc-tram:thien-co-bach-kim-kiem-khai': 'kiem-khai',
+  'lucia:m4a1-custom': 'm4a1',
+  'lucia:combat-knife': 'combat-knife',
+  'lucia:military-watch': 'military-watch',
+  'an-nhien:pink-patterned-outfit': 'pink-outfit',
+  'an-nhien:pink-crocs': 'pink-crocs',
+  'madgod:set': 'madgod-sword'
+});

@@ -44,6 +44,7 @@ function openItemThroughClick(item) {
   context.window = context;
   const script = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)]
     .map(m => m[1]).find(js => js.includes('window.renderCharacterStatusEquipment=render;'));
+  vm.runInNewContext(fs.readFileSync(path.join(assets, 'item-icons.js'), 'utf8'), context);
   vm.runInNewContext(script, context);
   document.getElementById('characterInventoryView').listeners.click({ target: {
     closest() { return { getAttribute() { return item.id; } }; }
@@ -79,4 +80,12 @@ test('Consumable effects and descriptions render safely without fabricating unkn
     useEffects: ['Hồi 15% Max HP mỗi vật phẩm (làm tròn xuống), không vượt quá Max HP. Không hồi sinh.'] });
   assert.match(liquid('equipmentDetailAbilities'), /Hồi 15% Max HP/);
   assert.match(liquid('equipmentDetailDescription'), /Vật phẩm tiêu hao/);
+});
+
+test('Item icons resolve by exact ID in the real detail modal, including unknown IDs', () => {
+  const known = openItemThroughClick({ id: 'cao_minh:huyet-ma-chien-khai' });
+  assert.match(known('equipmentDetailIcon'), /src="item-icons\/huyet-ma-khai.svg"/);
+  const unknown = openItemThroughClick({ id: '__proto__' });
+  assert.match(unknown('equipmentDetailIcon'), /src="item-icons\/unknown.svg"/);
+  assert.doesNotMatch(unknown('equipmentDetailIcon'), /__proto__/);
 });

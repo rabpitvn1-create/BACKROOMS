@@ -190,6 +190,9 @@ body.player-action-open,body.game-menu-open{overflow:hidden}
 .diagnostic-note{font-size:12px;line-height:1.45;color:#a8b1b9;margin:8px 0}
 .diagnostic-status{font-size:12px;color:#d7c38c;min-height:16px;white-space:pre-wrap}
 </style>
+<style>
+.equipment-card-icon,.equipment-detail-icon{background:#73512c;border-color:#b58a45;overflow:hidden}.equipment-card-icon{width:100%;height:auto;aspect-ratio:1}.item-pixel-icon{display:block;width:100%;height:100%;object-fit:contain;image-rendering:pixelated}
+</style>
 </head>
 <body>
 <main class="shell">
@@ -1969,6 +1972,7 @@ render();
   </div>
 </div>
 
+<script src="item-icons.js"></script>
 <script>
 (function(){
   const view=document.getElementById('characterInventoryView');
@@ -2007,12 +2011,16 @@ function selected(){const id=view&&view.dataset.characterId||'cao_minh';return m
     return '<div class="character-info-combat-item"><span class="character-info-combat-label">'+e(label)+'</span><strong class="character-info-combat-value">'+e(value)+'</strong></div>';
   }
 
-  function iconFor(item){return String((item&&item.type)||'EQ').split(/[ /_-]+/).filter(Boolean).map(x=>x[0]).join('').slice(0,3).toUpperCase()||'EQ'}
+  function iconFor(item){
+    const icons=window.backroomItemIcons||{},id=item&&item.id;
+    const key=Object.prototype.hasOwnProperty.call(icons,id)?icons[id]:'unknown';
+    return '<img class="item-pixel-icon" src="item-icons/'+key+'.svg" alt="" aria-hidden="true" width="32" height="32">';
+  }
   function itemById(member,id){return (member&&member.inventory||[]).find(x=>String(x.id)===String(id))||(member&&member.equipmentItems||[]).find(x=>String(x.id)===String(id))}
   function card(item,slot){
     const badges=[];if(item.equipped)badges.push('<span class="equipment-badge equipped">Đã trang bị</span>');if(item.statItem)badges.push('<span class="equipment-badge">Chỉ số</span>');if(item.classification==='SPECIAL_CHEAT')badges.push('<span class="equipment-badge cheat">Đặc biệt</span>');
     const slotLabel=slot?String(slot).replace(/armor/gi,'Giáp').replace(/weapon/gi,'Vũ khí').replace(/\s*\/\s*/g,' / '):'';
-    return '<button type="button" class="'+(slot?'equipment-card':'inventory-item-card')+'" data-item-id="'+e(item.id)+'" aria-label="Xem '+e(item.name||item.id)+'"><span class="equipment-card-icon">'+e(iconFor(item))+'</span><span class="equipment-card-main"><strong>'+e(item.name||item.id)+'</strong><small>'+e(slot?slotLabel:('×'+(item.quantity||1)+(item.rarity?' · '+item.rarity:'')))+'</small></span><span class="equipment-badges">'+badges.join('')+'</span></button>';
+    return '<button type="button" class="'+(slot?'equipment-card':'inventory-item-card')+'" data-item-id="'+e(item.id)+'" aria-label="Xem '+e(item.name||item.id)+'"><span class="equipment-card-icon">'+iconFor(item)+'</span><span class="equipment-card-main"><strong>'+e(item.name||item.id)+'</strong><small>'+e(slot?slotLabel:('×'+(item.quantity||1)+(item.rarity?' · '+item.rarity:'')))+'</small></span><span class="equipment-badges">'+badges.join('')+'</span></button>';
   }
   function render(member){
     if(!member)return;
@@ -2078,7 +2086,7 @@ function selected(){const id=view&&view.dataset.characterId||'cao_minh';return m
     [['strPct','STR'],['dexPct','DEX'],['agiPct','AGI'],['vitPct','VIT'],['defPct','DEF']].forEach(([key,label])=>{const v=Number(b[key]);if(Number.isFinite(v)&&v!==0)rows.push([label,(v>0?'+':'')+v+'%'])});return rows
   }
   function comparisonRows(c){return []}
-  function openItem(item){if(!item||!modal)return;q('equipmentDetailName').textContent=item.name||item.id;q('equipmentDetailIcon').textContent=iconFor(item);q('equipmentDetailClass').textContent=item.classification==='SPECIAL_CHEAT'?'SPECIAL / CHEAT':(item.type||'ITEM');q('equipmentDetailMeta').textContent=[item.type,item.slot,item.rarity,item.equipped?'Đã trang bị':'Trong kho'].filter(Boolean).join(' · ');
+  function openItem(item){if(!item||!modal)return;q('equipmentDetailName').textContent=item.name||item.id;q('equipmentDetailIcon').innerHTML=iconFor(item);q('equipmentDetailClass').textContent=item.classification==='SPECIAL_CHEAT'?'SPECIAL / CHEAT':(item.type||'ITEM');q('equipmentDetailMeta').textContent=[item.type,item.slot,item.rarity,item.equipped?'Đã trang bị':'Trong kho'].filter(Boolean).join(' · ');
     const sr=statRows(item);q('equipmentDetailStats').innerHTML=sr.length?sr.map(r=>'<div class="equipment-detail-row"><span>'+e(r[0])+'</span><strong>'+e(r[1])+'</strong></div>').join(''):'<div class="equipment-detail-row"><span>Không có chỉ số chiến đấu.</span></div>';
     const compare=item.comparison||((item.classification==='SPECIAL_CHEAT')?item.baseItemEffect:null),cr=comparisonRows(compare);const cs=q('equipmentDetailComparisonSection');cs.hidden=!cr.length;q('equipmentDetailComparison').innerHTML=cr.map(r=>'<div class="equipment-detail-row"><span>'+e(r[0])+'</span><strong class="'+(r[2]>=0?'stat-delta-positive':'stat-delta-negative')+'">'+e(r[1])+'</strong></div>').join('');
     const effects=item.useEffects||[],description=item.description;
