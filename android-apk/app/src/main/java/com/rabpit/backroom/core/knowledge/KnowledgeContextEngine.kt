@@ -21,6 +21,7 @@ object KnowledgeContextEngine {
   private const val ASSET = "knowledge/knowledge_db.json"
   // Offline author-confirmed cards; a detail card never changes Game Core state.
   private const val DETAIL_ASSET = "knowledge/canon_detail_db.json"
+  private const val SUPPORT_ASSET = "knowledge/canon_support_db.json"
   private const val RECENT_DIALOGUE_ENTRIES = 4
   private const val RECENT_DIALOGUE_CHARS = 700
 
@@ -83,12 +84,21 @@ object KnowledgeContextEngine {
     val raw = context.assets.open(ASSET).bufferedReader(Charsets.UTF_8).use { it.readText() }
     val detailRaw = context.assets.open(DETAIL_ASSET)
       .bufferedReader(Charsets.UTF_8).use { it.readText() }
-    return parseDatabase(raw, detailRaw)
+    val supportRaw = context.assets.open(SUPPORT_ASSET)
+      .bufferedReader(Charsets.UTF_8).use { it.readText() }
+    return parseDatabase(raw, detailRaw, supportRaw)
   }
 
-  internal fun parseDatabase(raw: String, detailRaw: String? = null): Database {
+  internal fun parseDatabase(
+    raw: String,
+    detailRaw: String? = null,
+    supportRaw: String? = null
+  ): Database {
     val arrays = listOf(JSONObject(raw).getJSONArray("records")) +
-      listOfNotNull(detailRaw?.let { JSONObject(it).getJSONArray("records") })
+      listOfNotNull(
+        detailRaw?.let { JSONObject(it).getJSONArray("records") },
+        supportRaw?.let { JSONObject(it).getJSONArray("records") }
+      )
     val records = linkedMapOf<String, Record>()
     for (array in arrays) for (i in 0 until array.length()) {
       val json = array.getJSONObject(i)
@@ -256,6 +266,26 @@ object KnowledgeContextEngine {
      */
     private fun addAuthoredDetails() {
       val topics = linkedSetOf("profile")
+      // Supporting authored documents are indexed offline, but resolved only on
+      // grounded scene topics. Historical narrative archives remain invisible.
+      val supportText = normalize(listOf(
+        action, state.optString("location", ""), state.optString("title", "")
+      ).joinToString(" "))
+      val activeSupport = linkedSetOf<String>()
+      if (hasAny(supportText, "linh khí", "linh lực", "linh mạch", "tu luyện", "kinh mạch")) {
+        activeSupport += "LINH_KHI"
+        activeSupport += "TU_SI"
+        topics += "environment"
+        topics += "combat"
+      }
+      if (hasAny(supportText, "async", "kv31", "viện nghiên cứu", "project kv31")) {
+        activeSupport += "ASYNC"
+        topics += "environment"
+      }
+      if (hasAny(supportText, "nói", "hỏi", "trò chuyện", "giao tiếp", "đối thoại")) {
+        activeSupport += "WRITING"
+        topics += "dialogue"
+      }
       if (hasAny(actionText, "nói", "hỏi", "trò chuyện", "giao tiếp", "đối thoại", "tâm sự", "talk"))
         topics += "dialogue"
       if (hasAny(actionText, "đánh", "chiến đấu", "tấn công", "kiếm", "súng", "kỹ năng", "năng lực", "combat"))
@@ -270,6 +300,11 @@ object KnowledgeContextEngine {
       }
       val node = state.optJSONObject("level")?.optString("id", "").orEmpty()
       val levelPrefix = "LEVEL.%02d.DETAIL.".format(Locale.ROOT, currentLevel())
+      // Lightweight lexical ranking ensures a skill/realm question reaches the
+      // relevant paragraph rather than always selecting paragraph number one.
+      val terms = actionText.split(Regex("[^\\p{L}\\p{N}]+"))
+        .filter { it.length >= 4 && it !in setOf("trong", "đang", "những", "người", "chuyện") }
+        .distinct()
       val picked = linkedSetOf<String>()
       val candidates = db.records.values.asSequence()
         .filter { it.kind == "authored-detail" }
@@ -284,6 +319,10 @@ object KnowledgeContextEngine {
             record.id.startsWith("CHAR.TRAC_LAM.DETAIL.") -> "trac_lam" in presentActors
             record.id.startsWith("CHAR.IRIS.DETAIL.") -> "iris" in presentActors
             record.id.startsWith("CHAR.SYVIAL.DETAIL.") -> "syvial" in presentActors
+            record.id.startsWith("SUPPORT.ASYNC.DETAIL.") -> "ASYNC" in activeSupport
+            record.id.startsWith("SUPPORT.LINH_KHI.DETAIL.") -> "LINH_KHI" in activeSupport
+            record.id.startsWith("SUPPORT.TU_SI.DETAIL.") -> "TU_SI" in activeSupport
+            record.id.startsWith("SUPPORT.WRITING.DETAIL.") -> "WRITING" in activeSupport
             record.id.startsWith("WORLD.DETAIL.") -> "environment" in topics
             record.id.startsWith(levelPrefix) -> "environment" in topics
             record.id.startsWith("LEVEL.NODE.") ->
@@ -298,10 +337,14 @@ object KnowledgeContextEngine {
           else if ("detail:environment" in it.tags && "environment" in topics) 2
           else if ("detail:visual" in it.tags && "visual" in topics) 3
           else 4
+        }.thenByDescending { record ->
+          val text = normalize(record.text)
+          terms.count { term -> text.contains(term) }
         }.thenBy { it.priority }.thenBy { it.id })
       for (record in candidates) {
         val owner = when {
           record.id.startsWith("CHAR.") -> record.id.substringBefore(".DETAIL.")
+          record.id.startsWith("SUPPORT.") -> record.id.substringBefore(".DETAIL.")
           record.id.startsWith("LEVEL.NODE.") -> "LEVEL.NODE"
           record.id.startsWith("LEVEL.") -> "LEVEL"
           else -> "WORLD"
