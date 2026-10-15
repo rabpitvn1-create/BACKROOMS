@@ -209,6 +209,43 @@ class CharacterMemoryBagsTest {
     assertTrue(error.toString(), error.toString().contains("character_memory_witness"))
   }
 
+  @Test fun intentionalRecallReadsPlayerMemoryWithoutActivatingAbsentNpc() {
+    val old = before()
+    val met = CharacterMemoryBags.recordCommitted(old, firstMeeting(old))
+    val absent = met.copy(characters = met.characters + ("lucia" to
+      met.characters.getValue("lucia").copy(presence = CharacterPresence.SEPARATED)))
+    assertEquals("", CharacterMemoryBags.sceneContext(absent))
+    assertEquals("", CharacterMemoryBags.playerRecallContext(absent, "Cao Minh tìm Lucia"))
+    assertEquals("", CharacterMemoryBags.playerRecallContext(absent, "Cao Minh nhớ Syvial"))
+    val recall = CharacterMemoryBags.playerRecallContext(absent, "Cao Minh nhớ lại Lucia")
+    assertTrue(recall, recall.contains("Cao Minh recalls verified events involving Lucia"))
+    assertTrue(recall, recall.contains("Cao Minh encountered this character"))
+    assertFalse(recall, recall.contains("Actor lucia (Core-confirmed present)"))
+    assertEquals(met.metadata, absent.metadata)
+  }
+
+  @Test fun playerRecallNeverReadsAnAbsentCharactersPrivateBag() {
+    val old = before()
+    val met = CharacterMemoryBags.recordCommitted(old, firstMeeting(old))
+    val root = JSONObject(met.metadata.getValue("core.characterMemoryBags.v1"))
+    // An event that exists ONLY in the NPC's bag cannot appear in player recall.
+    root.getJSONObject("bags").getJSONArray("lucia").put(JSONObject()
+      .put("id", "TEST_PRIVATE_ONLY")
+      .put("kind", "party_join")
+      .put("actorId", "lucia")
+      .put("turn", 100)
+      .put("authority", "CORE_CONFIRMED")
+      .put("knownBy", org.json.JSONArray().put("lucia")))
+    val absent = met.copy(
+      metadata = met.metadata + ("core.characterMemoryBags.v1" to root.toString()),
+      characters = met.characters + ("lucia" to met.characters.getValue("lucia")
+        .copy(presence = CharacterPresence.SEPARATED)))
+    val recall = CharacterMemoryBags.playerRecallContext(absent, "Cao Minh nhớ Lucia")
+    assertTrue(recall.contains("encountered this character"))
+    assertFalse(recall.contains("Joined Cao Minh's Party"))
+    assertFalse(recall.contains("100"))
+  }
+
   @Test fun knownNpcWithoutNewCoreEventCannotInventMemory() {
     val old = before()
     val unchanged = CharacterMemoryBags.recordCommitted(old, old)
