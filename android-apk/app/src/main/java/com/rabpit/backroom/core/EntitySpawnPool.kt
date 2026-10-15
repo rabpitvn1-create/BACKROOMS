@@ -138,13 +138,14 @@ object NpcSpawnTable {
   }
 
   private fun reunionEligible(flags: JSONObject, characters: Map<String, CharacterState>, id: String, key: String): Boolean {
-    // Character must exist in world
-    characters[id] ?: return false
-    val record = flags.optJSONObject(key)
-    // Must have a record (exists in world narrative)
-    if (record == null) return false
-    // Already spawned = not eligible (party check done by caller)
-    if (flagSpawned(flags, key)) return false
+    // Reunions are not first spawns: spawned remains true for once-only history.
+    // Only a Core-confirmed separated character with no current presence may return.
+    val character = characters[id] ?: return false
+    if (character.metadata["encountered"] != "true" ||
+        character.presence != CharacterPresence.SEPARATED) return false
+    val record = flags.optJSONObject(key) ?: return false
+    if (!record.optBoolean("encountered", false) ||
+        record.optBoolean("present", false)) return false
     // Explicitly marked not eligible
     if (!record.optBoolean("reunionEligible", true)) return false
     // Continuity must allow reunion: SEPARATED, LOST, UNKNOWN, or unset
@@ -443,7 +444,10 @@ object SpawnMechanism {
           "encounterId" to "spawn:${System.currentTimeMillis()}"
         )
         next = next.copy(
-          characters = next.characters + (encounter.characterId to character.copy(metadata = updatedMetadata))
+          characters = next.characters + (encounter.characterId to character.copy(
+            presence = CharacterPresence.ACTIVE,
+            metadata = updatedMetadata
+          ))
         )
       }
     }
