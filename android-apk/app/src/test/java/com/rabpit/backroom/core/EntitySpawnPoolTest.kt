@@ -210,25 +210,38 @@ class EntitySpawnPoolTest {
     assertEquals(cleared, SpawnMechanism.clearAmbientNpcMarker(cleared))
   }
 
-  @Test fun `ambient roll distribution is roughly 10 percent`() {
-    val state = GameState.initial()
+  @Test fun `ambient roll is ten percent conditional on an eligible exploration`() {
+    // Remove higher priority events to measure the ambient roll itself.
+    val state = GameState.initial().copy(world = mapOf(
+      "flagsJson" to """{"entityEncountersAllowed":false,"lucia":{"spawned":true}}"""
+    ))
     val rng = Random(42)
     var hits = 0
-    val total = 5000
+    val total = 10000
     repeat(total) {
-      // EXPLORE on high level with no canon NPCs eligible: entity may fire,
-      // ambient only counts when nothing else did
       val result = SpawnMechanism.rollSpawns(
-        state, ActionKind.SEARCH, "tìm kiếm xung quanh",
+        state, ActionKind.EXPLORE, "Khám Phá",
         isMeta = false, inCombatOrPending = false
       ) { bound -> rng.nextInt(bound) }
       if (result.ambientNpcRolled) hits++
     }
-    // Ambient fires only when entity (45%) and NPCs miss; rough sanity bound:
-    // P(ambient) = P(no entity) * P(no NPC) * 0.10 ≈ 0.55 * ~1.0 * 0.10 ≈ 5.5%
-    // Allow wide tolerance: 2%..10% of all turns
-    assertTrue("Expected ambient hits in 2%..10% range, got $hits/$total",
-      hits in (total * 0.02).toInt()..(total * 0.10).toInt())
+    assertTrue("Conditional ambient roll should be ~10%, got $hits/$total",
+      hits in 850..1150)
+  }
+
+  @Test fun `ambient roll never fires on searches or dialogue execute`() {
+    val state = GameState.initial()
+    for (kind in listOf(ActionKind.SEARCH, ActionKind.EXECUTE)) {
+      val result = SpawnMechanism.rollSpawns(state, kind, "hỏi tiếp") { 9999 }
+      assertFalse("Only exploration may create ambient NPCs", result.ambientNpcRolled)
+    }
+  }
+
+  @Test fun `stale ambient marker cleared on next missing roll`() {
+    val initial = GameState.initial()
+    val marked = SpawnMechanism.applySpawns(initial, SpawnResult(null, emptyList(), true))
+    val next = SpawnMechanism.applySpawns(marked, SpawnResult(null, emptyList(), false))
+    assertFalse(SpawnMechanism.ambientNpcRolled(next))
   }
 
   // --- SpawnMechanism integration ---
