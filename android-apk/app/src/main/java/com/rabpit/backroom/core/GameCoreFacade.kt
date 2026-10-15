@@ -114,7 +114,7 @@ class GameCoreFacade private constructor(
       appendLog(result, action, validationReply(committed.error))
       return response(true, result, committed.error, "validation_rejected", validationReply(committed.error))
     }
-    val next = CoreClientProjection.advance(committed.state)
+    val next = CoreClientProjection.advance(CharacterMemoryBags.recordCommitted(state, committed.state))
     repository.save(next)
     val result = clientSnapshot(client, next)
     val reply = eventReply(committed.execution?.events.orEmpty())
@@ -126,14 +126,15 @@ class GameCoreFacade private constructor(
   private fun applyAnNhienPartyCheat(client: JSONObject, state: GameState): String {
     val alreadyFollowing = AnNhienCanon.isFollowing(state)
     val (updated, error) = AnNhienCanon.forceIntoParty(state)
-    val result = clientSnapshot(client, updated)
+    val saved = if (error == null) CharacterMemoryBags.recordCommitted(state, updated) else updated
+    val result = clientSnapshot(client, saved)
     val reply = when {
       error == "party_full" -> "Party đã đủ tối đa bốn thành viên; không thể thêm An Nhiên nếu chưa có chỗ trống."
       alreadyFollowing -> "An Nhiên đã ở trong Party."
       else -> "An Nhiên đã được thêm vào Party."
     }
 
-    if (error == null) repository.save(updated)
+    if (error == null) repository.save(saved)
     val log = result.optJSONArray("log") ?: JSONArray().also { result.put("log", it) }
     log.put(JSONObject().put("role", "gm").put("text", reply))
     logger.log(PipelineLogEvent(
@@ -154,14 +155,15 @@ class GameCoreFacade private constructor(
     val displayName = ensured.characters[targetId]?.name ?: targetId
     val alreadyFollowing = targetId in ensured.party.memberIds
     val (updated, error) = SpecialFollowersCanon.forceIntoParty(ensured, targetId)
-    val result = clientSnapshot(client, updated)
+    val saved = if (error == null) CharacterMemoryBags.recordCommitted(state, updated) else updated
+    val result = clientSnapshot(client, saved)
     val reply = when {
       error == "party_full" -> "Party đã đủ tối đa bốn thành viên; không thể thêm $displayName nếu chưa có chỗ trống."
       alreadyFollowing -> "$displayName đã ở trong Party."
       else -> "$displayName đã được thêm vào Party."
     }
 
-    if (error == null) repository.save(updated)
+    if (error == null) repository.save(saved)
     val log = result.optJSONArray("log") ?: JSONArray().also { result.put("log", it) }
     log.put(JSONObject().put("role", "gm").put("text", reply))
     logger.log(PipelineLogEvent(
@@ -734,7 +736,7 @@ class GameCoreFacade private constructor(
     val characters = after.characters.toMutableMap()
     away.forEach { character ->
       characters[character.id] = character.copy(presence = CharacterPresence.SEPARATED)
-      character.metadata["encounterFlagKey"]?.let { key ->
+      (character.metadata["encounterFlagKey"] ?: characterFlagKey(character.id))?.let { key ->
         flags.optJSONObject(key)?.let { record ->
           record.put("present", false)
           if (character.id == IRIS_ID || character.id == SYVIAL_ID)
@@ -833,8 +835,10 @@ class GameCoreFacade private constructor(
       }
       next = next.copy(world = next.world + ("flagsJson" to flags.toString()))
     }
+    // Combat is a Core commit too. Capture any supported state deltas without
+    // guessing at NPC witness knowledge or converting combat prose into facts.
     // Combat resolves its own rounds; Explorer Turn advances only on Explorer actions.
-    repository.save(next)
+    repository.save(CharacterMemoryBags.recordCommitted(current, next))
 
     val output = clientSnapshot(client, next)
     val combatReply = resolution.reply
