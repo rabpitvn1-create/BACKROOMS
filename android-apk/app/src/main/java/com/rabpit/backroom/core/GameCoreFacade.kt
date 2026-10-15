@@ -687,6 +687,7 @@ class GameCoreFacade private constructor(
     val withNpcCommitted = SpawnMechanism.commitPendingNpcEncounters(committed.state)
     val protectedState = CharacterProgressionCore.protectFromCandidate(pending.state, withNpcCommitted)
     var applied = protectedState.copy(metadata = protectedState.metadata - SPAWN_ENCOUNTER_OWNER)
+    applied = separateNonPartyNpcsAfterParentTransition(core, applied)
     CombatRuntime.pending(applied)?.let { encounter ->
       applied = applied.copy(metadata = applied.metadata + ("combat.encounterNarrative" to
         JSONObject().put("role", "gm").put("text", narrative)
@@ -698,6 +699,38 @@ class GameCoreFacade private constructor(
     val synchronized = clientSnapshot(candidate, accepted)
     logger.log(PipelineLogEvent("GEMINI_COMMIT", turnId = turnId, source = CommandSource.GEMINI, details = mapOf("commands" to commands.size.toString())))
     return response(true, synchronized, null, "gemini_delta_committed")
+  }
+
+  /**
+   * NPCs encountered in an earlier parent Level do not silently travel to the
+   * next parent Level. Confirmed Party members continue with Cao Minh; local
+   * AREA/SUBLEVEL detours inside the same parent do not cause separation.
+   */
+  private fun separateNonPartyNpcsAfterParentTransition(before: GameState, after: GameState): GameState {
+    val oldNode = before.world["levelJson"]?.let { LevelRouteRegistry.requested(JSONObject(it)) }
+      ?: return after
+    val newNode = after.world["levelJson"]?.let { LevelRouteRegistry.requested(JSONObject(it)) }
+      ?: return after
+    if (oldNode.parent == newNode.parent) return after
+    val away = after.characters.values.filter { character ->
+      character.id != CAO_MINH_ID &&
+        character.id !in after.party.memberIds &&
+        character.presence == CharacterPresence.ACTIVE &&
+        character.metadata["encountered"] == "true"
+    }
+    if (away.isEmpty()) return after
+    val flags = JSONObject(after.world["flagsJson"] ?: "{}")
+    val characters = after.characters.toMutableMap()
+    away.forEach { character ->
+      characters[character.id] = character.copy(presence = CharacterPresence.SEPARATED)
+      character.metadata["encounterFlagKey"]?.let { key ->
+        flags.optJSONObject(key)?.put("present", false)
+      }
+    }
+    return after.copy(
+      characters = characters,
+      world = after.world + ("flagsJson" to flags.toString())
+    )
   }
 
   @Synchronized fun confirmEncounter(clientStateJson: String, encounterId: String): String {
