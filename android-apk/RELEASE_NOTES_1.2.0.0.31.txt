@@ -1,0 +1,11 @@
+Backroom 1.2.0.0.31 Debug
+
+- Android versionCode 104, versionName 1.2.0.0.31, applicationId com.rabpit.backroom.
+- Build lại từ mã nguồn main sau PR #627 và PR #628, để APK nhận cấu hình Gehihi hiện có trong GitHub Actions ở thời điểm chạy workflow.
+- Gehihi API key lấy từ GEHIHI_API_KEY (GitHub Actions secret); model lấy từ GEHIHI_MODEL (ưu tiên secret, sau đó variables). Base URL lấy từ GEHIHI_BASE_URL nếu có; nếu không, game giữ endpoint mặc định hiện có.
+- Không ghi giá trị secret/model cụ thể vào mã nguồn, ghi chú phát hành hoặc log; giữ nguyên logic request OpenAI-compatible /chat/completions.
+- Kế thừa Canon Retrieval R2, quy tắc linh khí Backrooms và bản sửa hành động "Thả thần thức" từ 1.2.0.0.30.
+- Pipeline xác minh JS/Kotlin tests, build Debug APK, package/version, chữ ký, zipalign, tải lại APK từ GitHub Release và so sánh checksum.
+- Cấu hình build mới không tự chứng minh model/API Gehihi thực tế hoạt động; cần kiểm tra một lượt trò chơi bằng diagnostic sau khi cài.
+- Lưu ý bảo mật: ứng dụng khách dùng BuildConfig cho khóa API, vì vậy người có APK có thể trích xuất khóa. Không phân phối rộng rãi khóa riêng tư theo cách này; giải pháp bảo mật dài hạn là proxy/backend giữ secret.
+- Đây là APK Debug, không phải Google Play Store release. Không thay đổi save schema và không bảo đảm tương thích với save cũ.
