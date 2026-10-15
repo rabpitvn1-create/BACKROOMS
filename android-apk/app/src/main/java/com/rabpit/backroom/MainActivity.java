@@ -1654,9 +1654,6 @@ public class MainActivity extends Activity {
       " nhưng TUYỆT ĐỐI KHÔNG kết luận kết quả của hành động Core chưa xử lý." +
       "\n- SUY ĐOÁN CỦA NHÂN VẬT: Cao Minh/NPC được phép phỏng đoán, nhưng phải thể hiện" +
       " rõ đó là suy đoán (\"có lẽ\", \"dường như\"), không viết như sự thật đã khóa." +
-      "\n- Một phát hiện đã kể ở lượt trước thì các lượt sau phải tiếp nối đúng trạng thái" +
-      " của nó; KHÔNG được kể lại như thể vừa xuất hiện lần đầu, KHÔNG tự tạo thêm một" +
-      " lối thoát / sự kiện mới bằng lời kể." +
       "\nQUYỀN CỦA NGƯỜI CHƠI VỚI CAO MINH (tuyệt đối): GM không tự chọn chiến thuật quan" +
       " trọng, không tự cho Cao Minh dùng vật phẩm, không tự thay đổi quan hệ với NPC," +
       " không tự cho gia nhập tổ chức, không tự bước qua lối thoát hay chuyển Level thay" +
