@@ -19,6 +19,26 @@ class CanonDetailRetrievalTrialTest {
   private fun packet(state: JSONObject, action: String): String =
     KnowledgeContextEngine.Builder(database(), state, action, JSONObject()).build()
 
+  private fun fullSupportDatabase(extraArchiveCards: Int = 0): KnowledgeContextEngine.Database {
+    val support = JSONObject(asset("canon_support_db.json"))
+    val records = support.getJSONArray("records")
+    // Synthetic R2 fixture stays inside the test process, never in the public APK
+    // or source control. This tests bulk indexing without publishing novel spoilers.
+    repeat(extraArchiveCards) { index ->
+      records.put(JSONObject()
+        .put("id", "TEST.ARCHIVE.$"+"{index}")
+        .put("domain", "SUPPORT").put("kind", "archive-detail")
+        .put("text", "TEST_ONLY load fixture " + "example ".repeat(55))
+        .put("source", JSONObject().put("document", "TEST_ONLY")
+          .put("anchor", "fixture"))
+        .put("authority", "TEST_ONLY").put("mutability", "IMMUTABLE")
+        .put("priority", 90).put("tags", JSONArray())
+        .put("references", JSONArray()).put("affordances", JSONArray()))
+    }
+    return KnowledgeContextEngine.parseDatabase(
+      asset("knowledge_db.json"), asset("canon_detail_db.json"), support.toString())
+  }
+
   @Test fun detailCatalogIsMergedAndSourceTraceable() {
     val db = database()
     assertTrue(db.records.size > 89)
@@ -32,13 +52,12 @@ class CanonDetailRetrievalTrialTest {
   }
 
   @Test fun supportDocumentsAreIndexedButSpoilerArchiveIsNotRetrievable() {
-    val db = KnowledgeContextEngine.parseDatabase(
-      asset("knowledge_db.json"), asset("canon_detail_db.json"), asset("canon_support_db.json"))
-    assertTrue("must index the large support corpus", db.records.size > 1200)
+    val db = fullSupportDatabase(1200)
+    assertTrue("must index the large stress corpus", db.records.size > 1500)
     assertTrue(db.records.values.any { it.id.startsWith("CHAR.SYVIAL.DETAIL.") &&
       it.kind == "authored-detail" })
-    assertTrue(db.records.values.any { it.id.startsWith("SUPPORT.HUYET_TAY_CAO_GIA.DETAIL.") &&
-      it.kind == "archive-detail" })
+    assertTrue(db.records.values.any { it.id.startsWith("SUPPORT.ARCHIVE.SOURCE.") &&
+      it.kind == "source-metadata" })
     for (record in db.records.values.filter {
       it.id.startsWith("SUPPORT.") || it.id.startsWith("CHAR.SYVIAL.DETAIL.")
     }) {
@@ -53,8 +72,7 @@ class CanonDetailRetrievalTrialTest {
   }
 
   @Test fun supportRetrievalFromActionStaysWithinPacketHardCeiling() {
-    val db = KnowledgeContextEngine.parseDatabase(
-      asset("knowledge_db.json"), asset("canon_detail_db.json"), asset("canon_support_db.json"))
+    val db = fullSupportDatabase(1200)
     val state = JSONObject().put("level", JSONObject().put("number", 0).put("id", "0"))
     val cases = listOf(
       "Cao Minh cảm nhận linh khí trong Backrooms",
