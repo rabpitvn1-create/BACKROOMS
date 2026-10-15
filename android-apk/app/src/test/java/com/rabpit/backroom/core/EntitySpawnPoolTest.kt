@@ -176,6 +176,16 @@ class EntitySpawnPoolTest {
       val reunion = NpcSpawnTable.rollNpcs(separated, ActionKind.EXECUTE,
         "đi về phía trước", 2) { 0 }
       assertTrue("Expected $id reunion", reunion.any { it.characterId == id })
+      val missing = separated.copy(characters = separated.characters +
+        (id to separated.characters.getValue(id).copy(presence = CharacterPresence.MISSING)))
+      assertTrue("Missing $id may also reunite", NpcSpawnTable.rollNpcs(missing,
+        ActionKind.EXECUTE, "đi về phía trước", 2) { 0 }
+        .any { it.characterId == id })
+      val deceased = separated.copy(characters = separated.characters +
+        (id to separated.characters.getValue(id).copy(presence = CharacterPresence.DEAD)))
+      assertFalse("Dead $id cannot reappear via reunion", NpcSpawnTable.rollNpcs(deceased,
+        ActionKind.EXECUTE, "đi về phía trước", 2) { 0 }
+        .any { it.characterId == id })
       val returning = SpawnMechanism.applySpawns(separated,
         SpawnResult(null, listOf(NpcSpawnTable.NpcEncounter(id, key))))
       assertEquals(CharacterPresence.ACTIVE, returning.characters.getValue(id).presence)
