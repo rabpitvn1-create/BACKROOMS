@@ -107,7 +107,7 @@ class LevelTransitionValidationTest {
     val initial = freshAt("red_rooms", streak = 5)
     val lucia = CharacterState(id = "lucia", name = "Lucia",
       presence = CharacterPresence.ACTIVE,
-      metadata = mapOf("encountered" to "true", "encounterFlagKey" to "lucia"))
+      metadata = mapOf("encountered" to "true"))
     val encountered = initial.copy(characters = initial.characters + ("lucia" to lucia))
     val flagged = JSONObject(encountered.world.getValue("flagsJson"))
       .put("lucia", JSONObject().put("present", true).put("spawned", true))
@@ -127,6 +127,22 @@ class LevelTransitionValidationTest {
     assertEquals("", CharacterMemoryBags.sceneContext(save.state))
     assertEquals(withBag.metadata["core.characterMemoryBags.v1"],
       save.state.metadata["core.characterMemoryBags.v1"])
+  }
+
+  @Test fun newlyMetNpcOnDestinationLevelIsNotSeparatedAsPreviousLevelCompanion() {
+    val initial = freshAt("red_rooms", streak = 5)
+    val staged = SpawnMechanism.prepareNpcEncounters(initial,
+      listOf(NpcSpawnTable.NpcEncounter(LUCIA_ID, "lucia")))
+    val save = MemorySave(staged)
+    val core = facade(save)
+    val action = "bước qua cửa đỏ"
+    assertEquals("1", authorize(core, 1, "EXPLORE", action).optString("destinationId"))
+    val result = JSONObject(core.processValidatedCandidate(beforeJson(1), candidateJson("1"), action))
+    assertTrue(result.toString(), result.getBoolean("handled"))
+    assertEquals(CharacterPresence.ACTIVE, save.state.characters.getValue(LUCIA_ID).presence)
+    assertTrue(JSONObject(save.state.world.getValue("flagsJson"))
+      .getJSONObject("lucia").getBoolean("present"))
+    assertTrue(CharacterMemoryBags.sceneContext(save.state).contains("Actor lucia"))
   }
 
   @Test fun confirmedPartyMemberStaysActiveAcrossParentLevelExit() {
