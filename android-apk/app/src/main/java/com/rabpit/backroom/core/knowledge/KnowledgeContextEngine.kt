@@ -19,6 +19,8 @@ object KnowledgeContextEngine {
   const val HARD_CONTEXT_CEILING = 3400
 
   private const val ASSET = "knowledge/knowledge_db.json"
+  // Offline author-confirmed cards; a detail card never changes Game Core state.
+  private const val DETAIL_ASSET = "knowledge/canon_detail_db.json"
   private const val RECENT_DIALOGUE_ENTRIES = 4
   private const val RECENT_DIALOGUE_CHARS = 700
 
@@ -79,14 +81,16 @@ object KnowledgeContextEngine {
 
   private fun load(context: Context): Database {
     val raw = context.assets.open(ASSET).bufferedReader(Charsets.UTF_8).use { it.readText() }
-    return parseDatabase(raw)
+    val detailRaw = context.assets.open(DETAIL_ASSET)
+      .bufferedReader(Charsets.UTF_8).use { it.readText() }
+    return parseDatabase(raw, detailRaw)
   }
 
-  internal fun parseDatabase(raw: String): Database {
-    val root = JSONObject(raw)
-    val array = root.getJSONArray("records")
+  internal fun parseDatabase(raw: String, detailRaw: String? = null): Database {
+    val arrays = listOf(JSONObject(raw).getJSONArray("records")) +
+      listOfNotNull(detailRaw?.let { JSONObject(it).getJSONArray("records") })
     val records = linkedMapOf<String, Record>()
-    for (i in 0 until array.length()) {
+    for (array in arrays) for (i in 0 until array.length()) {
       val json = array.getJSONObject(i)
       val source = json.getJSONObject("source")
       val record = Record(
@@ -145,6 +149,7 @@ object KnowledgeContextEngine {
       addMandatory()
       addCurrentLevel()
       addPresentRuntimeCards()
+      addAuthoredDetails()
       addRelationships()
       addDirectStructuredLookups()
       addSceneAffordances()
@@ -240,6 +245,71 @@ object KnowledgeContextEngine {
         add("CHAR.LUC_TRAM.RUNTIME_CORE", "present actor runtime core")
         add("CHAR.LUC_TRAM.REVIVAL_R06", "post-revival knowledge boundary")
         add("CHAR.LUC_TRAM.OPEN_R06", "unresolved encounter history")
+      }
+    }
+
+
+    /**
+     * Contextual R2 Canon. Actor presence comes from Core, never name matching.
+     * Only one authored passage per subject/topic is selected within the existing
+     * knowledge packet budget. Writer secrets are excluded during index assembly.
+     */
+    private fun addAuthoredDetails() {
+      val topics = linkedSetOf("profile")
+      if (hasAny(actionText, "nói", "hỏi", "trò chuyện", "giao tiếp", "đối thoại", "tâm sự", "talk"))
+        topics += "dialogue"
+      if (hasAny(actionText, "đánh", "chiến đấu", "tấn công", "kiếm", "súng", "kỹ năng", "năng lực", "combat"))
+        topics += "combat"
+      if (hasAny(actionText, "khám phá", "tìm kiếm", "đi ", "quan sát", "nhìn", "môi trường", "search", "explore"))
+        topics += "environment"
+      if (hasAny(actionText, "nhìn", "ngoại hình", "quan sát", "trông như"))
+        topics += "visual"
+      if ((state.optJSONArray("pendingNpcEncounters")?.length() ?: 0) > 0) {
+        topics += "dialogue"
+        topics += "visual"
+      }
+      val node = state.optJSONObject("level")?.optString("id", "").orEmpty()
+      val levelPrefix = "LEVEL.%02d.DETAIL.".format(Locale.ROOT, currentLevel())
+      val picked = linkedSetOf<String>()
+      val candidates = db.records.values.asSequence()
+        .filter { it.kind == "authored-detail" }
+        .filter { record ->
+          record.tags.any { it.startsWith("detail:") && it.removePrefix("detail:") in topics }
+        }
+        .filter { record ->
+          when {
+            record.id.startsWith("CHAR.CAO_MINH.DETAIL.") -> true
+            record.id.startsWith("CHAR.LUCIA.DETAIL.") -> "lucia" in presentActors
+            record.id.startsWith("CHAR.LUC_TRAM.DETAIL.") -> "luc_tram" in presentActors
+            record.id.startsWith("CHAR.TRAC_LAM.DETAIL.") -> "trac_lam" in presentActors
+            record.id.startsWith("CHAR.IRIS.DETAIL.") -> "iris" in presentActors
+            record.id.startsWith("CHAR.SYVIAL.DETAIL.") -> "syvial" in presentActors
+            record.id.startsWith("WORLD.DETAIL.") -> "environment" in topics
+            record.id.startsWith(levelPrefix) -> "environment" in topics
+            record.id.startsWith("LEVEL.NODE.") ->
+              "environment" in topics && node.isNotBlank() &&
+                record.id.startsWith("LEVEL.NODE.${node}.DETAIL.")
+            else -> false
+          }
+        }
+        .sortedWith(compareBy<Record> {
+          if ("detail:dialogue" in it.tags && "dialogue" in topics) 0
+          else if ("detail:combat" in it.tags && "combat" in topics) 1
+          else if ("detail:environment" in it.tags && "environment" in topics) 2
+          else if ("detail:visual" in it.tags && "visual" in topics) 3
+          else 4
+        }.thenBy { it.priority }.thenBy { it.id })
+      for (record in candidates) {
+        val owner = when {
+          record.id.startsWith("CHAR.") -> record.id.substringBefore(".DETAIL.")
+          record.id.startsWith("LEVEL.NODE.") -> "LEVEL.NODE"
+          record.id.startsWith("LEVEL.") -> "LEVEL"
+          else -> "WORLD"
+        }
+        val topic = record.tags.firstOrNull { it.startsWith("detail:") } ?: continue
+        val quotaKey = "${owner}:${topic}"
+        if (!picked.add(quotaKey)) continue
+        add(record.id, "author-confirmed contextual R2 detail")
       }
     }
 
