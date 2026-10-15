@@ -127,6 +127,16 @@ body.player-action-open,body.game-menu-open{overflow:hidden}
 .log .message.gm .text,
 .log .message.gm .gm-semantic{font-family:Play!important}
 .log .message.gm .gm-semantic{font-weight:700}
+/* One novel-style initial per GM narrative; headings, warnings and loaders stay unchanged. */
+.log .message.gm .gm-story-heading{margin-bottom:1em}
+.log .message.gm .gm-narrative::first-letter{
+  float:left;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:3.1em;
+  font-weight:700;
+  line-height:.83;
+  margin:.12em .13em 0 0;
+}
 </style>
 <link rel="stylesheet" href="ui/ornate-frame-v1.css">
 
@@ -1640,9 +1650,31 @@ function semanticSelect(source,hits){hits.sort((a,b)=>a.start-b.start||(b.end-b.
 function semanticResolve(source,before,after){const text=String(source||"");const terms=semanticTerms(before,after),hits=semanticExactCandidates(text,terms).concat(semanticContextCandidates(text,semanticNegative(before,after)));return semanticSelect(text,hits)}
 function semanticPrepareNextState(before,json){const next=JSON.parse(json),oldLength=before&&Array.isArray(before.log)?before.log.length:0;if(Array.isArray(next.log))next.log.forEach((entry,index)=>{if(!entry||entry.role==="player"||entry.semanticVersion===3&&Array.isArray(entry.semanticSpans))return;entry.semanticSpans=semanticResolve(entry.text,index<oldLength?null:before,next);entry.semanticVersion=3});return next}
 function normalizedSemanticSpans(entry){if(!entry||entry.role==="player")return [];if(entry.semanticVersion!==3||!Array.isArray(entry.semanticSpans)){entry.semanticSpans=semanticResolve(entry.text,state,state);entry.semanticVersion=3}const source=String(entry.text||""),spans=[];let cursor=0;entry.semanticSpans.forEach(raw=>{const start=Number(raw&&raw.start),end=Number(raw&&raw.end),kind=semanticKind(raw&&raw.kind);if(!kind||!Number.isInteger(start)||!Number.isInteger(end)||start<cursor||end<=start||end>source.length)return;spans.push({start,end,kind});cursor=end});return spans}
-function renderSemanticText(entry){const source=String(entry&&entry.text||"");if(!entry||entry.role==="player")return esc(source);const spans=normalizedSemanticSpans(entry);if(!spans.length)return esc(source);let out="",cursor=0;spans.forEach(span=>{if(span.start>cursor)out+=esc(source.slice(cursor,span.start));out+="<span class='gm-semantic gm-semantic-"+span.kind+"' data-semantic-kind='"+span.kind+"'>"+esc(source.slice(span.start,span.end))+"</span>";cursor=span.end});if(cursor<source.length)out+=esc(source.slice(cursor));return out}
+function renderSemanticText(entry,start=0){
+  const source=String(entry&&entry.text||"");
+  const from=Math.max(0,Math.min(source.length,start));
+  if(!entry||entry.role==="player")return esc(source.slice(from));
+  const spans=normalizedSemanticSpans(entry);
+  if(!spans.length)return esc(source.slice(from));
+  let out="",cursor=from;
+  spans.forEach(span=>{
+    if(span.end<=from)return;
+    const spanStart=Math.max(from,span.start);
+    if(spanStart>cursor)out+=esc(source.slice(cursor,spanStart));
+    out+="<span class='gm-semantic gm-semantic-"+span.kind+"' data-semantic-kind='"+span.kind+"'>"+esc(source.slice(spanStart,span.end))+"</span>";
+    cursor=span.end;
+  });
+  if(cursor<source.length)out+=esc(source.slice(cursor));
+  return out;
+}
+function renderGmStory(entry){
+  const source=String(entry&&entry.text||"");
+  const heading=source.match(/^(MỞ ĐẦU|LƯỢT\s+\d+)\r?\n\r?\n/);
+  return (heading?"<div class='gm-story-heading'>"+esc(heading[1])+"</div>":"")+
+    "<div class='gm-narrative'>"+renderSemanticText(entry,heading?heading[0].length:0)+"</div>";
+}
 
-function levelHeader(s){if(s&&s.level&&s.level.name){const id=s.level.id!=null?s.level.id:s.level.number;if(s.level.kind==="AREA"||s.level.kind==="SPECIAL"||s.level.name==="Level "+id)return s.level.name;return "Level "+id+" – "+s.level.name;}const where=String(s&&s.location||"")+" "+String(s&&s.title||"");const m=where.match(/Level\s*([^\s\/—–-]+)\s*(?:\/|—|–|-)\s*([^—–\n]+?)(?:\s+[—–]\s+|$)/i);if(m)return "Level "+m[1]+" – "+m[2].trim();return s&&s.title||"Backrooms"}function render(){titleEl.textContent=levelHeader(state);turnEl.textContent=state.turn;locationEl.textContent=state.location;modeEl.textContent=state.mode;playerEl.textContent=state.player?.name||"Cao Minh";partyEl.innerHTML=chips(state.party);if(inventoryEl)inventoryEl.innerHTML=chips(state.inventory);logEl.innerHTML=(state.log||[]).map(x=>{const w=x.role!=="player"&&String(x.text||"").trim().startsWith("[Warning]");return "<article class='message "+(x.role==="player"?"player":"gm")+(w?" warning":"")+"'><div class='role'>"+(x.role==="player"?"BẠN":"GAME MASTER")+"</div><div class='text'>"+renderSemanticText(x)+"</div></article>"}).join("");logEl.scrollTop=logEl.scrollHeight;if(window.backroomRenderBattleStart)window.backroomRenderBattleStart();if(window.backroomRenderEncounteredCharacters)window.backroomRenderEncounteredCharacters()}
+function levelHeader(s){if(s&&s.level&&s.level.name){const id=s.level.id!=null?s.level.id:s.level.number;if(s.level.kind==="AREA"||s.level.kind==="SPECIAL"||s.level.name==="Level "+id)return s.level.name;return "Level "+id+" – "+s.level.name;}const where=String(s&&s.location||"")+" "+String(s&&s.title||"");const m=where.match(/Level\s*([^\s\/—–-]+)\s*(?:\/|—|–|-)\s*([^—–\n]+?)(?:\s+[—–]\s+|$)/i);if(m)return "Level "+m[1]+" – "+m[2].trim();return s&&s.title||"Backrooms"}function render(){titleEl.textContent=levelHeader(state);turnEl.textContent=state.turn;locationEl.textContent=state.location;modeEl.textContent=state.mode;playerEl.textContent=state.player?.name||"Cao Minh";partyEl.innerHTML=chips(state.party);if(inventoryEl)inventoryEl.innerHTML=chips(state.inventory);logEl.innerHTML=(state.log||[]).map(x=>{const w=x.role!=="player"&&String(x.text||"").trim().startsWith("[Warning]");return "<article class='message "+(x.role==="player"?"player":"gm")+(w?" warning":"")+"'><div class='role'>"+(x.role==="player"?"BẠN":"GAME MASTER")+"</div><div class='text'>"+(x.role==="player"||w?renderSemanticText(x):renderGmStory(x))+"</div></article>"}).join("");logEl.scrollTop=logEl.scrollHeight;if(window.backroomRenderBattleStart)window.backroomRenderBattleStart();if(window.backroomRenderEncounteredCharacters)window.backroomRenderEncounteredCharacters()}
 const SAVE_KEY="backroom-apk-state";
 const SNAPSHOT_KEY="backroom-apk-snapshot";
 let destructiveAction="";
