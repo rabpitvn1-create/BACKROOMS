@@ -64,6 +64,12 @@ body{margin:0;background:#080a0c;color:#eef1f3}
 body.player-action-open,body.game-menu-open{overflow:hidden}
 .card,.game-menu-trigger,.player-action-close,.game-menu-close,.primary-action,textarea,button,.chips span,.gm-choice,.combat-dice-panel,.combat-target,.combat-die,.combat-die-unknown{border-radius:7px!important}
 
+
+/* GM_THINKING_LOGO: transient reply placeholder, removed with the pending row. */
+.gm-thinking{display:flex;align-items:center;min-height:44px;padding:4px 0}
+.gm-thinking img{display:block;width:36px;height:36px;object-fit:contain;animation:gm-thinking-pulse 1.6s ease-in-out infinite}
+@keyframes gm-thinking-pulse{0%,100%{opacity:.55;transform:scale(.88)}50%{opacity:1;transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.gm-thinking img{animation:none;opacity:1;transform:none}}
 </style>
 
 <style id="pokerDice119PolishStyle">
@@ -1718,7 +1724,7 @@ function clearSave(){
     statusEl.textContent="Đã xóa điểm lưu thủ công, Game Core và bộ đệm giao diện.";
   });
 }
-formEl.addEventListener("submit",e=>{e.preventDefault();const a=actionEl.value.trim();if(!a||busy||state.pendingEncounter)return;if(!window.Android){statusEl.textContent="Không tìm thấy Android bridge.";return}busy=true;syncPrimaryActions();statusEl.textContent="Gehihi đang xử lý lượt…";window.Android.submitAction(JSON.stringify(state),"EXECUTE",a)});
+formEl.addEventListener("submit",e=>{e.preventDefault();const a=actionEl.value.trim();if(!a||busy||state.pendingEncounter)return;if(!window.Android){statusEl.textContent="Không tìm thấy Android bridge.";return}busy=true;syncPrimaryActions();statusEl.textContent="Gehihi đang xử lý lượt…";appendActionPending(a);window.Android.submitAction(JSON.stringify(state),"EXECUTE",a)});
 
 // TWO_PRIMARY_ACTIONS
 const exploreActionButton=byId("exploreActionButton");
@@ -1727,7 +1733,7 @@ function syncPrimaryActions(){
   if(submitEl)submitEl.disabled=busy||!!state.pendingEncounter||!hasText;
   if(exploreActionButton)exploreActionButton.disabled=busy||!!state.pendingEncounter;
 }
-function appendMacroPending(label){
+function appendActionPending(label){
   if(!logEl)return;
   const player=document.createElement("article");
   player.className="message player pending";player.setAttribute("data-pending","1");
@@ -1735,7 +1741,7 @@ function appendMacroPending(label){
   player.querySelector(".text").textContent=label;logEl.appendChild(player);
   const gm=document.createElement("article");
   gm.className="message gm pending";gm.setAttribute("data-pending","1");
-  gm.innerHTML="<div class='role'>GAME MASTER</div><div class='text'>Đang xử lý lượt…</div>";
+  gm.innerHTML="<div class='role'>GAME MASTER</div><div class='text'><div class='gm-thinking' role='status' aria-label='Đang chuẩn bị câu trả lời'><img src='provider-logos/gemini.svg' alt='' aria-hidden='true'></div></div>";
   logEl.appendChild(gm);logEl.scrollTop=logEl.scrollHeight;
 }
 function submitMacroAction(kind,label){
@@ -1745,7 +1751,7 @@ function submitMacroAction(kind,label){
   }
   busy=true;syncPrimaryActions();
   statusEl.textContent="Đang khám phá khu vực chưa khảo sát…";
-  appendMacroPending(label);
+  appendActionPending(label);
   window.Android.submitAction(JSON.stringify(state),kind,label);
 }
 if(exploreActionButton)exploreActionButton.addEventListener("click",()=>submitMacroAction("EXPLORE","Khám Phá"));
