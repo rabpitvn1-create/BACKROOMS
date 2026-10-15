@@ -16,6 +16,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.TextView;
+import com.rabpit.backroom.core.AmbientNpcManager;
 import com.rabpit.backroom.core.GameCoreFacade;
 import com.rabpit.backroom.core.LevelRouteRegistry;
 import com.rabpit.backroom.core.ProviderResponseContract;
@@ -42,6 +43,11 @@ public class MainActivity extends Activity {
   private WebView webView;
   private final ExecutorService io = Executors.newSingleThreadExecutor();
   private final ExecutorService imageIo = Executors.newSingleThreadExecutor();
+  private final ExecutorService ambientIo = Executors.newSingleThreadExecutor();
+  private final AmbientNpcManager ambientMgr = new AmbientNpcManager();
+  private final AtomicInteger ambientEpoch = new AtomicInteger();
+  private volatile int ambientTurn = -1;
+  private volatile String ambientLevel = "";
   private final ExecutorService auditIo = Executors.newFixedThreadPool(2);
   private final AtomicInteger latestSnapshotTurn = new AtomicInteger(0);
   private final Object geminiHealthLock = new Object();
@@ -202,6 +208,7 @@ public class MainActivity extends Activity {
     if (gameCore != null) gameCore.close();
     io.shutdownNow();
     imageIo.shutdownNow();
+    ambientIo.shutdownNow();
     auditIo.shutdownNow();
     if (webView != null) webView.destroy();
     super.onDestroy();
@@ -274,6 +281,7 @@ public class MainActivity extends Activity {
       "var snapshotBusy=false;function requestSnapshot(){var s=document.getElementById('status');if(s)s.textContent='Snapshot chưa được cấu hình.';}" +
       "window.requestSnapshot=requestSnapshot;" +
       "window.__backroomProvider='Gehihi';window.backroomProvider=function(provider){window.__backroomProvider=provider||'AI';var s=document.getElementById('status');if(s)s.textContent=window.__backroomProvider+' đang xử lý lượt…';};" +
+      "window.backroomAmbientEvent=function(payload){try{var e=JSON.parse(payload);if(!state||Number(e.turn)!==Number(state.turn))return;var lev=state.level||{};if(String(e.level)!==String(lev.id==null?lev.number:lev.id))return;if(!Array.isArray(state.log))state.log=[];if(e.action)state.log.push({role:'player',text:e.action});state.log.push({role:'gm',text:e.text});document.querySelectorAll('[data-pending=\\\"1\\\"]').forEach(function(n){n.remove();});busy=false;actionEl.value='';syncPrimaryActions();persistPresentation();render();focusLatestGmStart();}catch(err){console.warn('Ambient NPC event rejected');}};" +
       "var oldRender=window.render;if(typeof oldRender==='function'){window.render=function(){oldRender();renderSnapshot();scrollBottom();};}" +
       "var actions=document.querySelector('.actions');if(actions&&!document.getElementById('snapshotButton')){var b=document.createElement('button');b.id='snapshotButton';b.type='button';b.textContent='Snapshot chưa cấu hình';b.disabled=true;var wide=actions.querySelector('.wide');if(wide)actions.insertBefore(b,wide);else actions.appendChild(b);}" +
       "var oldTurn=window.backroomTurn;window.backroomTurn=function(json){var cinema=window.backroomExplorationTransition;var previousScene=cinema?cinema.capture(state):null;if(typeof oldTurn==='function')oldTurn(json);document.querySelectorAll('[data-pending=\"1\"]').forEach(function(n){n.remove();});var s=document.getElementById('status');var ev=state&&state._snapshotEvent;var allowed={LEVEL_CHANGE:1,SPECIAL_REGION:1,ENTITY_CONFIRMED:1,PERSON_ENCOUNTER:1,MAJOR_VISUAL_EVENT:1};var should=!!(ev&&ev.shouldGenerate===true&&allowed[String(ev.kind||'').toUpperCase()]);if(should){if(s)s.textContent='Turn '+state.turn+' có sự kiện hình ảnh đặc biệt. Đang tạo snapshot…';}else{if(s)s.textContent='Turn '+state.turn+' đã xử lý bằng '+(window.__backroomProvider||'AI')+'. Snapshot cũ được giữ nguyên.';}renderSnapshot();scrollBottom();if(cinema&&previousScene)cinema.play(previousScene,state);if(should)requestSnapshot();};" +
@@ -712,7 +720,7 @@ public class MainActivity extends Activity {
     return body.toString();
   }
 
-  private String geminiMatrixRequest(String prompt, int modelIndex, int keyIndex, int maxOutputTokens, long deadlineMs, boolean auditPacket) throws Exception {
+  private String geminiMatrixRequest(String prompt, int modelIndex, int keyIndex, int maxOutputTokens, long deadlineMs, boolean auditPacket, boolean ambientPacket) throws Exception {
     String[] keys = geminiKeys();
     String[] models = geminiModelChain();
     long remaining = deadlineMs - System.currentTimeMillis();
@@ -752,12 +760,14 @@ public class MainActivity extends Activity {
     String response = responseText.toString();
     // A valid HTTP response is not a successful lane until the payload can be consumed.
     JSONObject packet = parseModelJson(response);
-    if (auditPacket) ProviderResponseContract.requireAudit(packet);
+    if (ambientPacket) {
+      if (AmbientNpcManager.parse(response) == null) throw new Exception("Ambient NPC JSON không hợp lệ.");
+    } else if (auditPacket) ProviderResponseContract.requireAudit(packet);
     else ProviderResponseContract.requireWriter(packet);
     return response;
   }
 
-  private String geminiModelMatrixPolicy(String prompt, int[] modelOrder, int excludedKeyIndex, int maxOutputTokens, boolean rememberWorker, long totalBudgetMs, boolean auditPacket) throws Exception {
+  private String geminiModelMatrixPolicy(String prompt, int[] modelOrder, int excludedKeyIndex, int maxOutputTokens, boolean rememberWorker, long totalBudgetMs, boolean auditPacket, boolean ambientPacket) throws Exception {
     String[] keys = geminiKeys();
     Exception last = null;
     long deadlineMs = System.currentTimeMillis() + totalBudgetMs;
@@ -793,7 +803,7 @@ public class MainActivity extends Activity {
           attempted[keyIndex] = true;
           long started = System.currentTimeMillis();
           try {
-            String result = geminiMatrixRequest(prompt, modelIndex, keyIndex, maxOutputTokens, deadlineMs, auditPacket);
+            String result = geminiMatrixRequest(prompt, modelIndex, keyIndex, maxOutputTokens, deadlineMs, auditPacket, ambientPacket);
             noteGeminiMatrixSuccess(modelIndex, keyIndex, System.currentTimeMillis() - started);
             if (rememberWorker) { lastGeminiWorker = keyIndex; lastGeminiModel = modelIndex; }
             return result;
@@ -814,11 +824,16 @@ public class MainActivity extends Activity {
   }
 
   private String geminiText(String prompt) throws Exception {
-    return geminiModelMatrixPolicy(prompt, new int[] {0, 1, 2}, -1, 1800, true, 120_000L, false);
+    return geminiModelMatrixPolicy(prompt, new int[] {0, 1, 2}, -1, 1800, true, 120_000L, false, false);
+  }
+
+  private String geminiAmbientText(String prompt) throws Exception {
+    // One short NPC request, no paid-provider fallback and no GM writer schema.
+    return geminiModelMatrixPolicy(prompt, new int[] {0}, -1, 900, false, 25_000L, false, true);
   }
 
   private String geminiAuditText(String prompt, int excludedIndex) throws Exception {
-    return geminiModelMatrixPolicy(prompt, new int[] {2, 1}, excludedIndex, 650, false, 60_000L, true);
+    return geminiModelMatrixPolicy(prompt, new int[] {2, 1}, excludedIndex, 650, false, 60_000L, true, false);
   }
 
   private String openAiProviderText(String raw) throws Exception {
@@ -1173,6 +1188,57 @@ public class MainActivity extends Activity {
     } catch (Exception ignored) {
       emit("backroomSnapshotError", "{\"turn\":0,\"message\":\"Snapshot chưa được cấu hình.\"}");
     }
+  }
+
+  private void clearAmbientEncounter() {
+    ambientEpoch.incrementAndGet();
+    ambientMgr.clear();
+    ambientTurn = -1;
+    ambientLevel = "";
+  }
+
+  private static boolean ambientDialogueAction(String action) {
+    String value = action == null ? "" : action.trim().toLowerCase(java.util.Locale.ROOT);
+    if (value.length() > 140) return false;
+    return value.matches("^(hỏi tiếp|tiếp tục hỏi|nói chuyện|bắt chuyện|trò chuyện|nói chuyện tiếp|tiếp tục trò chuyện|tiến lại hỏi|đến hỏi|hỏi người lạ.*|hỏi npc.*|hỏi người đàn ông.*|hỏi người phụ nữ.*|hỏi người đó.*|hỏi người này.*)$");
+  }
+
+  private static boolean ambientForbiddenAction(String action) {
+    String value = action == null ? "" : action.trim().toLowerCase(java.util.Locale.ROOT);
+    boolean target = value.contains("npc") || value.contains("người lạ");
+    return target && value.matches("(?s).*(xin đồ|xin vật phẩm|xin nước|cho tôi đồ|mua đồ|bán đồ|trao đổi|giao dịch|tấn công|giết|đánh npc|đánh người lạ).*");
+  }
+
+  private void emitAmbientEvent(String type, String action, String text, int turn, String level) throws Exception {
+    JSONObject payload = new JSONObject().put("type", type).put("text", text)
+      .put("turn", turn).put("level", level);
+    if (action != null && !action.isEmpty()) payload.put("action", action);
+    emit("backroomAmbientEvent", payload.toString());
+  }
+
+  private void beginAmbientGeneration(JSONObject committedView) {
+    if (committedView.has("pendingEncounter")) return;
+    final int turn = committedView.optInt("turn", -1);
+    final String level = currentNodeId(committedView);
+    final String location = committedView.optString("location", "");
+    final int epoch = ambientEpoch.incrementAndGet();
+    ambientIo.execute(() -> {
+      try {
+        String prompt = AmbientNpcManager.buildPrompt(level, location);
+        AmbientNpcManager.AmbientNpc npc = AmbientNpcManager.parse(geminiAmbientText(prompt));
+        if (npc == null || ambientEpoch.get() != epoch) return;
+        JSONObject latest = new JSONObject(requireGameCore().currentClientState("{}"));
+        if (ambientEpoch.get() != epoch || latest.optInt("turn", -1) != turn ||
+            latest.has("pendingEncounter") || !level.equals(currentNodeId(latest))) return;
+        ambientMgr.setActive(npc);
+        ambientTurn = turn;
+        ambientLevel = level;
+        emitAmbientEvent("appearance", null, npc.description, turn, level);
+      } catch (Exception error) {
+        // Ambient scenes are optional: never stall or fall back to paid Gehihi.
+        DiagnosticLog.record("ambient.skip", error.getClass().getSimpleName());
+      }
+    });
   }
 
   private void emit(String function, String json) {
@@ -1707,6 +1773,7 @@ public class MainActivity extends Activity {
 
     @JavascriptInterface public String resetNewGameCore() {
       try {
+        clearAmbientEncounter();
         return new JSONObject()
           .put("ok", true)
           .put("data", new JSONObject(requireGameCore().resetNewGame()))
@@ -1727,6 +1794,7 @@ public class MainActivity extends Activity {
 
     @JavascriptInterface public String loadGameCheckpoint() {
       try {
+        clearAmbientEncounter();
         return requireGameCore().loadManualCheckpoint();
       } catch (Exception error) {
         return "{\"ok\":false,\"error\":\"checkpoint_load_failed\"}";
@@ -1735,6 +1803,7 @@ public class MainActivity extends Activity {
 
     @JavascriptInterface public boolean clearCoreState() {
       try {
+        clearAmbientEncounter();
         requireGameCore().clear();
         return true;
       } catch (Exception error) {
@@ -1755,8 +1824,37 @@ public class MainActivity extends Activity {
         long turnStartNs = System.nanoTime();
         try {
           // The WebView sends presentation JSON; refresh gameplay fields from Core before any rolls or validation.
-          final String currentView = requireGameCore().currentClientState(stateJson);
+          String currentView = requireGameCore().currentClientState(stateJson);
           DiagnosticLog.record("turn.input", "kind=" + actionKind + "; actionChars=" + action.length());
+          JSONObject activeView = new JSONObject(currentView);
+          int currentTurn = activeView.optInt("turn", -1);
+          String currentLevelId = currentNodeId(activeView);
+          if (ambientMgr.hasActive() &&
+              (currentTurn != ambientTurn || !currentLevelId.equals(ambientLevel) ||
+               activeView.has("pendingEncounter"))) clearAmbientEncounter();
+          if (ambientMgr.hasActive() && "EXECUTE".equalsIgnoreCase(actionKind) &&
+              ambientDialogueAction(action)) {
+            String line = ambientMgr.nextDialogue();
+            if (line != null) emitAmbientEvent("dialogue", action, line, currentTurn, currentLevelId);
+            return;
+          }
+          if (ambientMgr.hasActive() && "EXECUTE".equalsIgnoreCase(actionKind) &&
+              ambientForbiddenAction(action)) {
+            emitAmbientEvent("warning", action, "⚠️ Hành động của bạn không thể thực hiện.",
+              currentTurn, currentLevelId);
+            return;
+          }
+          // A gameplay action ends the current passerby scene without additional Gemini calls.
+          String departure = ambientMgr.endEncounter();
+          ambientEpoch.incrementAndGet(); // invalidate any in-flight optional generation
+          if (departure != null) {
+            JSONObject withExit = new JSONObject(currentView);
+            JSONArray conversation = withExit.optJSONArray("log");
+            if (conversation == null) conversation = new JSONArray();
+            conversation.put(new JSONObject().put("role", "gm").put("text", departure));
+            withExit.put("log", conversation);
+            currentView = withExit.toString();
+          }
           if (new JSONObject(currentView).has("pendingEncounter")) {
             emit("backroomError", "Hãy nhấn Battle Start ở cuối lời kể để bắt đầu chiến đấu.");
             return;
@@ -1900,6 +1998,7 @@ public class MainActivity extends Activity {
             log.put(new JSONObject().put("role", "gm").put("text", reply));
           state.put("log", log);
           emit("backroomTurn", state.toString());
+          if (coreCommit.optBoolean("ambientNpcRolled", false)) beginAmbientGeneration(state);
           DiagnosticLog.timing(MainActivity.this, "turn.total",
             java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - turnStartNs),
             reply.length());
