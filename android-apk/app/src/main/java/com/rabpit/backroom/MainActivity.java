@@ -1190,11 +1190,46 @@ public class MainActivity extends Activity {
     }
   }
 
+  private static final String AMBIENT_CACHE_PREFS = "backroom_ambient_scene";
+
   private void clearAmbientEncounter() {
     ambientEpoch.incrementAndGet();
     ambientMgr.clear();
     ambientTurn = -1;
     ambientLevel = "";
+    getSharedPreferences(AMBIENT_CACHE_PREFS, MODE_PRIVATE).edit().remove("active").apply();
+  }
+
+  private void cacheAmbientEncounter() {
+    String snapshot = ambientMgr.snapshot();
+    if (snapshot == null) return;
+    JSONObject record = new JSONObject().put("turn", ambientTurn)
+      .put("level", ambientLevel).put("npc", new JSONObject(snapshot));
+    getSharedPreferences(AMBIENT_CACHE_PREFS, MODE_PRIVATE).edit()
+      .putString("active", record.toString()).apply();
+  }
+
+  private void restoreAmbientEncounter(JSONObject currentView) {
+    if (ambientMgr.hasActive()) return;
+    String raw = getSharedPreferences(AMBIENT_CACHE_PREFS, MODE_PRIVATE)
+      .getString("active", null);
+    if (raw == null) return;
+    try {
+      JSONObject record = new JSONObject(raw);
+      int turn = currentView.optInt("turn", -1);
+      String level = currentNodeId(currentView);
+      if (record.optInt("turn", -1) != turn ||
+          !level.equals(record.optString("level")) ||
+          currentView.has("pendingEncounter") ||
+          !ambientMgr.restore(record.getJSONObject("npc").toString())) {
+        clearAmbientEncounter();
+        return;
+      }
+      ambientTurn = turn;
+      ambientLevel = level;
+    } catch (Exception error) {
+      clearAmbientEncounter();
+    }
   }
 
   private static boolean ambientDialogueAction(String action) {
@@ -1233,6 +1268,7 @@ public class MainActivity extends Activity {
         ambientMgr.setActive(npc);
         ambientTurn = turn;
         ambientLevel = level;
+        cacheAmbientEncounter();
         emitAmbientEvent("appearance", null, npc.description, turn, level);
       } catch (Exception error) {
         // Ambient scenes are optional: never stall or fall back to paid Gehihi.
@@ -1827,6 +1863,7 @@ public class MainActivity extends Activity {
           String currentView = requireGameCore().currentClientState(stateJson);
           DiagnosticLog.record("turn.input", "kind=" + actionKind + "; actionChars=" + action.length());
           JSONObject activeView = new JSONObject(currentView);
+          restoreAmbientEncounter(activeView);
           int currentTurn = activeView.optInt("turn", -1);
           String currentLevelId = currentNodeId(activeView);
           if (ambientMgr.hasActive() &&
@@ -1835,7 +1872,10 @@ public class MainActivity extends Activity {
           if (ambientMgr.hasActive() && "EXECUTE".equalsIgnoreCase(actionKind) &&
               ambientDialogueAction(action)) {
             String line = ambientMgr.nextDialogue();
-            if (line != null) emitAmbientEvent("dialogue", action, line, currentTurn, currentLevelId);
+            if (line != null) {
+              cacheAmbientEncounter();
+              emitAmbientEvent("dialogue", action, line, currentTurn, currentLevelId);
+            }
             return;
           }
           if (ambientMgr.hasActive() && "EXECUTE".equalsIgnoreCase(actionKind) &&
@@ -1846,7 +1886,7 @@ public class MainActivity extends Activity {
           }
           // A gameplay action ends the current passerby scene without additional Gemini calls.
           String departure = ambientMgr.endEncounter();
-          ambientEpoch.incrementAndGet(); // invalidate any in-flight optional generation
+          clearAmbientEncounter(); // discard cache and cancel any optional in-flight generation
           if (departure != null) {
             JSONObject withExit = new JSONObject(currentView);
             JSONArray conversation = withExit.optJSONArray("log");
