@@ -27,6 +27,7 @@ object GameStateCodec {
     val version = root.optInt("saveVersion", 0)
     require(version == CURRENT_SAVE_VERSION) { "Unsupported save schema: $version" }
     val decoded = decodeCurrent(root)
+    CharacterMemoryBags.validate(decoded)
     return CharacterProgressionCore.normalize(CharacterEquipmentSystem.normalize(SpecialFollowersCanon.ensure(AnNhienCanon.ensure(decoded))))
   }
 
