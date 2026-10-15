@@ -198,6 +198,35 @@ class KnowledgeContextEngineTest {
     assertFalse(packet.contains("; why="))
   }
 
+  @Test fun ambientSpiritualEnergyCanonIsAlwaysIncludedWithoutKeyword() {
+    fun asset(name: String): String = listOf(
+      File("src/main/assets/knowledge/$name"),
+      File("app/src/main/assets/knowledge/$name")
+    ).first { it.isFile }.readText()
+    val db = KnowledgeContextEngine.parseDatabase(
+      asset("knowledge_db.json"), asset("canon_detail_db.json"),
+      asset("canon_support_db.json")
+    )
+    val anchorId = "SUPPORT.LINH_KHI.DETAIL.ENVIRONMENT.0002.01"
+    val anchor = db.records.getValue(anchorId)
+    assertEquals("AUTHOR_CONFIRMED_SUPPORT", anchor.authority)
+    assertTrue(anchor.source.document.endsWith("Backrooms_Linh_Khi.md"))
+    val state = JSONObject().put("level", JSONObject().put("number", 0).put("id", "0"))
+      .put("party", org.json.JSONArray().apply {
+        for (id in listOf("iris", "syvial", "luc_tram"))
+          put(JSONObject().put("id", id).put("presence", "ACTIVE"))
+      })
+      .put("pendingEntityEncounter", JSONObject().put("entityKey", "paintings"))
+    for (action in listOf("Khám Phá", "Hãy tìm chỗ ngồi nghỉ rồi quyết định tiếp")) {
+      val packet = KnowledgeContextEngine.Builder(db, state, action, JSONObject()).build()
+      assertTrue("Missing world spiritual energy Canon for: $action",
+        packet.contains("<$anchorId> ${anchor.text}"))
+      assertTrue(packet.contains("<WORLD.CORE>"))
+      assertTrue(packet.contains("<ENTITY.PAINTINGS.VISUAL>"))
+      assertTrue(packet.length <= KnowledgeContextEngine.HARD_CONTEXT_CEILING * 4)
+    }
+  }
+
   @Test fun fullPartyAndLargeContinuityPreserveKnowledgeHardLocksWithinBudget() {
     val state = JSONObject().put("turn", 40)
       .put("level", JSONObject().put("number", 4).put("id", "4"))
