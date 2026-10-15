@@ -55,6 +55,8 @@ class SpecialFollowerShortcutTest {
     val iris = root.getJSONObject("bags").getJSONArray(IRIS_ID)
     assertEquals(1, iris.length())
     assertEquals("party_join", iris.getJSONObject(0).getString("kind"))
+    assertTrue(CharacterMemoryBags.sceneContext(save.state).contains("Actor iris"))
+    assertTrue(CharacterMemoryBags.sceneContext(save.state).contains("Joined Cao Minh's Party."))
     val repeated = org.json.JSONObject(core.processRule("{}", "/iris123"))
     assertTrue(repeated.toString(), repeated.getBoolean("handled"))
     assertEquals(root.toString(), save.state.metadata["core.characterMemoryBags.v1"])
