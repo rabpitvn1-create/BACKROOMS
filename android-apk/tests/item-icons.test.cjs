@@ -37,14 +37,14 @@ test('Pixel SVGs use local, static integer geometry and a brown gold background'
   const unique = new Set();
   for (const file of files) {
     const svg = fs.readFileSync(path.join(assets, 'item-icons', file), 'utf8');
-    assert.match(svg, /viewBox="0 0 32 32"/);
+    assert.match(svg, /viewBox="0 0 64 64"/);
     assert.match(svg, /shape-rendering="crispEdges"/);
-    assert.match(svg, /fill="#956b36"/);
+    assert.match(svg, /fill="#75532f"/);
     assert.doesNotMatch(svg, /<script|<image|<foreignObject|\son\w+=|(?:href|filter)=/i);
     assert.ok(!unique.has(svg), 'duplicate icon ' + file); unique.add(svg);
     for (const rect of svg.matchAll(/<rect x="(\d+)" y="(\d+)" width="(\d+)" height="(\d+)"/g)) {
       const [x,y,w,h] = rect.slice(1).map(Number);
-      assert.ok(w > 0 && h > 0 && x+w <= 32 && y+h <= 32, 'out of bounds: ' + file);
+      assert.ok(w > 0 && h > 0 && x+w <= 64 && y+h <= 64, 'out of bounds: ' + file);
     }
   }
 });
