@@ -250,6 +250,33 @@ public class AmbientNpcManager {
         dialogueIndex = 0;
     }
 
+    /** Tiny optional device cache for the single current scene, never a historical registry. */
+    public synchronized String snapshot() {
+        if (active == null) return null;
+        JSONObject npc = new JSONObject();
+        npc.put("description", active.description);
+        npc.put("dialogues", new JSONArray(active.dialogues));
+        npc.put("exit", active.exit);
+        return new JSONObject().put("npc", npc).put("dialogueIndex", dialogueIndex).toString();
+    }
+
+    /** Restore only a valid scene. The caller owns run/turn/level matching. */
+    public synchronized boolean restore(String serialized) {
+        try {
+            JSONObject cached = new JSONObject(serialized);
+            JSONObject npcJson = cached.optJSONObject("npc");
+            AmbientNpc parsed = npcJson == null ? null : parse(npcJson.toString());
+            int index = cached.optInt("dialogueIndex", -1);
+            if (parsed == null || index < 0) return false;
+            active = parsed;
+            dialogueIndex = index;
+            return true;
+        } catch (Exception error) {
+            return false;
+        }
+    }
+
+
     // ------------------------------------------------------------------
     // Helpers
     // ------------------------------------------------------------------
