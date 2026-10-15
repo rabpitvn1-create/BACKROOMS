@@ -132,7 +132,242 @@ jobs:
           grep -q 'exportDiagnosticButton' apk-check/assets/index.html
           test -s apk-check/assets/diagnostic-export.js
           cmp android-apk/app/src/main/assets/item-icons.js apk-check/assets/item-icons.js
-          for icon in android-apk/app/src/main/assets/item-icons/*.svg; do
+          test "$(find android-apk/app/src/main/assets/item-icons -maxdepth 1 -name '*.webp' | wc -l)" -eq 23
+          cmp android-apk/app/src/main/assets/item-icons/manifest.json apk-check/assets/item-icons/manifest.json
+          ! unzip -Z1 Backroom-1.2.0.0.32.apk | grep -Eq '^assets/item-icons/[^/]+\\.svg
+            cmp "$icon" "apk-check/assets/item-icons/${icon##*/}"
+          done
+          grep -q 'backroom.diagnostics.v1' apk-check/assets/diagnostic-export.js
+          grep -q 'playerActionConfirm' apk-check/assets/index.html
+          grep -q 'POKER_DICE_CORE_BACKPORT_R01' apk-check/assets/index.html
+          grep -q 'pokerDiceModal' apk-check/assets/index.html
+          grep -q 'COMBAT_TRANSIENT_LOG_R01' apk-check/assets/combat-feedback-1193a.js
+          grep -q 'function focusCombatActor(actorId)' apk-check/assets/combat-feedback-1193a.js
+          grep -q 'playTypedTurnTimeline' apk-check/assets/combat-feedback-1193a.js
+          grep -q '3D_TURN_COVERFLOW_R01' apk-check/assets/combat-feedback-1193a.css
+          grep -q 'rotate:y -65deg' apk-check/assets/combat-feedback-1193a.css
+          grep -q 'backroomSyncCombatPortrait' apk-check/assets/combat-feedback-1193a.js
+          grep -q 'partyFocusEpoch' apk-check/assets/combat-feedback-1193a.js
+          grep -q 'backroomSwitchCombatEntityWave' android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java
+          ! grep -q 'combat-party-appear' apk-check/assets/combat-feedback-1193a.css
+          grep -q 'animation:none!important' apk-check/assets/combat-feedback-1193a.css
+          grep -q 'completing=before&&before.active===true' apk-check/assets/combat-feedback-1193a.js
+          grep -Fq '.snapshot[data-combat-focus] .snapshot-entity{' apk-check/assets/combat-feedback-1193a.css
+          grep -Fq 'display:block!important;left:0!important;right:auto!important' apk-check/assets/combat-feedback-1193a.css
+          ! grep -q 'combat-switch-ring' apk-check/assets/combat-feedback-1193a.css
+          test -s apk-check/assets/fx/hit-impact-sparks-v1.png
+          cmp android-apk/app/src/main/assets/fx/hit-impact-sparks-v1.png apk-check/assets/fx/hit-impact-sparks-v1.png
+          grep -Fq 'fx/hit-impact-sparks-v1.png' apk-check/assets/combat-feedback-1193a.css
+          grep -q 'function appendDamageLine(e)' apk-check/assets/combat-feedback-1193a.js
+          grep -q 'NOW : ' apk-check/assets/combat-feedback-1193a.js
+          grep -q 'COMBAT_LOG_FIXED_PANEL_R02' apk-check/assets/combat-feedback-1193a.css
+          ! grep -q 'packet&&packet.summary' apk-check/assets/combat-feedback-1193a.js
+          grep -q '.combat-feedback-panel' apk-check/assets/combat-feedback-1193a.css
+          ! grep -q 'state.log' apk-check/assets/combat-feedback-1193a.js
+          ! grep -q 'localStorage' apk-check/assets/combat-feedback-1193a.js
+          ! grep -q 'modal.hidden=true' apk-check/assets/combat-feedback-1193a.js
+          test -s apk-check/assets/avatars/CAO_MINH_AVATAR.jpg
+          cmp android-apk/app/src/main/assets/avatars/CAO_MINH_AVATAR.jpg apk-check/assets/avatars/CAO_MINH_AVATAR.jpg
+          grep -q 'CHARACTER_INFO_STATS_V2' apk-check/assets/index.html
+          grep -q 'characterLevelValue' apk-check/assets/index.html
+          grep -q 'characterExpFill' apk-check/assets/index.html
+          grep -q 'characterBaseStats' apk-check/assets/index.html
+          grep -q 'characterCombatStats' apk-check/assets/index.html
+          grep -q 'characterStatusEffects' apk-check/assets/index.html
+          grep -q 'combatStatus' apk-check/assets/index.html
+          ! grep -q 'renderCorePanel' apk-check/assets/index.html
+          ! grep -q 'Android.coreUpgrade' apk-check/assets/index.html
+          grep -q 'DIRECT_COMBAT_GATE_V1' apk-check/assets/index.html
+          grep -q 'ensureDirectCombatDice' apk-check/assets/index.html
+          grep -q 'mountNearSnapshot();' apk-check/assets/index.html
+          ! grep -q 'if(window.__combatFeedbackBusy){hide();return;}' apk-check/assets/index.html
+          grep -q 'POKER_DICE_119_POLISH_R01' apk-check/assets/index.html
+          grep -q 'poker-die-shadow' apk-check/assets/index.html
+          grep -q 'poker-die-hold-seal' apk-check/assets/index.html
+          grep -q 'DICE_ROLL_ANIMATION_MS=680' apk-check/assets/index.html
+          grep -q 'DICE_SETTLE_ANIMATION_MS=170' apk-check/assets/index.html
+          grep -q 'FINALIZE_PREVIEW_MS=2000' apk-check/assets/index.html
+          ! grep -q "label:'TẤN CÔNG'" apk-check/assets/index.html
+          ! grep -q "label:'NÉ TRÁNH'" apk-check/assets/index.html
+          ! grep -q "label:'BỎ CHẠY'" apk-check/assets/index.html
+          grep -q 'madGodSetEquipped' apk-check/assets/index.html
+          grep -q 'equipmentDetailModal' apk-check/assets/index.html
+          grep -q 'renderCharacterStatusEquipment' apk-check/assets/index.html
+          grep -q 'characterSkillsModal' apk-check/assets/index.html
+          grep -q 'characterSkillsButton' apk-check/assets/index.html
+          grep -q 'function semanticTerms(before,after)' apk-check/assets/index.html
+          grep -q 'gm-semantic' apk-check/assets/index.html
+          ! grep -q 'SEMANTIC_COMPATIBILITY_TERMS=' apk-check/assets/index.html
+          grep -q 'function semanticTerms(before,after)' apk-check/assets/index.html
+          grep -q 'function semanticPrepareNextState(before,json)' apk-check/assets/index.html
+          grep -q 'function renderSemanticText(entry)' apk-check/assets/index.html
+          grep -q 'state=semanticPrepareNextState(state,json)' apk-check/assets/index.html
+          grep -q 'entry.semanticSpans' apk-check/assets/index.html
+          ! grep -q 'gmSemanticPlayBoldRuntime' apk-check/assets/index.html
+          ! grep -q 'document.querySelectorAll(".message.gm .text")' apk-check/assets/index.html
+          ! grep -q 'termsVersion(terms)' apk-check/assets/index.html
+          # Term recognition is tested against live Core state in verify-semantic.mjs.
+          # Assert packaged environment snapshots match the Git-tracked originals.
+          test -s apk-check/assets/level_snapshots/snapshot-mapping.js
+          for snapshot in android-apk/app/src/main/assets/level_snapshots/*.webp; do
+            cmp "$snapshot" "apk-check/assets/level_snapshots/${snapshot##*/}"
+          done
+          test -s apk-check/assets/fonts/Play-Bold.ttf
+          cmp apk-check/assets/fonts/Play-Bold.ttf android-apk/app/src/main/assets/fonts/Play-Bold.ttf
+          test -s apk-check/assets/entity/hound.webp
+          test -s apk-check/assets/entity/slenderman.webp
+          test -s apk-check/assets/entity/diep_minh.webp
+          test -s apk-check/assets/entity/blackroot_sentinel.webp
+          test -s apk-check/assets/entity/sinew_strider.webp
+          test -s apk-check/assets/entity/hollow_grasper.webp
+          test -s apk-check/assets/CaoMinh_MadGod_snapshot_overlay.png
+          test -s apk-check/assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png
+          test -s apk-check/assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png
+          unzip -p Backroom-1.2.0.0.32.apk assets/LUCIA_LUC_OVERLAY.png > apk-check/lucia-overlay.png
+          test -s apk-check/lucia-overlay.png
+          test -s apk-check/assets/avatars/MadGod.jpg
+          test -s apk-check/assets/hud/player_action_backrooms.png
+          test -s apk-check/assets/dice/die-1.png
+          test -s apk-check/assets/dice/die-6.png
+          test -s apk-check/assets/dice/roll-3d.png
+          test -s apk-check/assets/dice/level0-wallpaper.svg
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Backroom-1.2.0.0.32-debug-apk
+          path: Backroom-1.2.0.0.32.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      # Pull-request experiment installs alongside the main app. Never require
+      # uninstalling a user's existing game (and risking current save data).
+      - name: Build isolated Canon R2 trial APK
+        if: github.event_name == 'pull_request'
+        working-directory: android-apk
+        run: gradle :app:assembleDebug -PbackroomCanonTrial=true --no-daemon
+
+      - name: Verify isolated Canon trial package
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-Canon-R2-Trial.apk
+          BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          "$BUILD_TOOLS/apksigner" verify --verbose Backroom-Canon-R2-Trial.apk
+          "$BUILD_TOOLS/aapt" dump badging Backroom-Canon-R2-Trial.apk | grep -q "package: name='com.rabpit.backroom.canontrial'"
+          "$BUILD_TOOLS/aapt" dump badging Backroom-Canon-R2-Trial.apk | grep -q "versionName='1.2.0.0.32-canon-r2-trial'"
+          "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-Canon-R2-Trial.apk
+
+      - name: Upload isolated Canon R2 trial APK
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Backroom-Canon-R2-Trial-debug-apk
+          path: Backroom-Canon-R2-Trial.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Publish GitHub Release v1.2.0.0.32
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v1.2.0.0.32"
+          TITLE="Backroom 1.2.0.0.32 Debug"
+          NOTES=$(cat android-apk/RELEASE_NOTES_1.2.0.0.32.txt)
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --title "$TITLE" --notes "$NOTES"
+            gh release upload "$TAG" Backroom-1.2.0.0.32.apk --clobber
+          else
+            gh release create "$TAG" Backroom-1.2.0.0.32.apk --target "$GITHUB_SHA" --title "$TITLE" --notes "$NOTES"
+          fi
+
+      - name: Verify published APK and record GREEN release
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          rm -f Backroom-1.2.0.0.32-verified.apk
+          gh release download v1.2.0.0.32 --repo "$GITHUB_REPOSITORY" --pattern 'Backroom-1.2.0.0.32.apk' --output Backroom-1.2.0.0.32-verified.apk
+          test -s Backroom-1.2.0.0.32-verified.apk
+          cmp Backroom-1.2.0.0.32.apk Backroom-1.2.0.0.32-verified.apk
+          unzip -l Backroom-1.2.0.0.32-verified.apk | grep -q 'assets/level_snapshots/snapshot-mapping.js'
+          unzip -l Backroom-1.2.0.0.32-verified.apk | grep -q 'assets/level_snapshots/level_00p2__snapshot_001.webp'
+          unzip -l Backroom-1.2.0.0.32-verified.apk | grep -q 'assets/level_snapshots/area_00__manila_room__snapshot_001.webp'
+          unzip -l Backroom-1.2.0.0.32-verified.apk | grep -q 'assets/index.html'
+          unzip -l Backroom-1.2.0.0.32-verified.apk | grep -q 'assets/diagnostic-export.js'
+          unzip -l Backroom-1.2.0.0.32-verified.apk | grep -q 'assets/entity/hound.webp'
+          unzip -l Backroom-1.2.0.0.32-verified.apk | grep -q 'assets/entity/slenderman.webp'
+          unzip -l Backroom-1.2.0.0.32-verified.apk | grep -q 'assets/entity/diep_minh.webp'
+          unzip -l Backroom-1.2.0.0.32-verified.apk | grep -q 'assets/entity/blackroot_sentinel.webp'
+          unzip -l Backroom-1.2.0.0.32-verified.apk | grep -q 'assets/entity/sinew_strider.webp'
+          unzip -l Backroom-1.2.0.0.32-verified.apk | grep -q 'assets/entity/hollow_grasper.webp'
+          unzip -l Backroom-1.2.0.0.32-verified.apk | grep -q 'assets/CaoMinh_MadGod_snapshot_overlay.png'
+          unzip -l Backroom-1.2.0.0.32-verified.apk | grep -q 'assets/avatars/MadGod.jpg'
+          unzip -l Backroom-1.2.0.0.32-verified.apk | grep -q 'assets/hud/player_action_backrooms.png'
+          unzip -l Backroom-1.2.0.0.32-verified.apk | grep -q 'assets/dice/die-1.png'
+          unzip -l Backroom-1.2.0.0.32-verified.apk | grep -q 'assets/dice/die-6.png'
+          unzip -l Backroom-1.2.0.0.32-verified.apk | grep -q 'assets/dice/roll-3d.png'
+          unzip -l Backroom-1.2.0.0.32-verified.apk | grep -q 'assets/fonts/Play-Bold.ttf'
+          unzip -p Backroom-1.2.0.0.32-verified.apk assets/index.html | grep -q 'characterSkillsModal'
+          unzip -p Backroom-1.2.0.0.32-verified.apk assets/index.html | grep -q 'characterSkillsButton'
+          unzip -p Backroom-1.2.0.0.32-verified.apk assets/index.html | grep -q 'function semanticTerms(before,after)'
+          unzip -p Backroom-1.2.0.0.32-verified.apk assets/index.html | grep -q 'UI_119_BACKPORT_R01'
+          unzip -p Backroom-1.2.0.0.32-verified.apk assets/index.html | grep -q 'playerActionModal'
+          unzip -p Backroom-1.2.0.0.32-verified.apk assets/index.html | grep -q 'POKER_DICE_CORE_BACKPORT_R01'
+          unzip -p Backroom-1.2.0.0.32-verified.apk assets/index.html | grep -q 'pokerDiceModal'
+          unzip -p Backroom-1.2.0.0.32-verified.apk assets/combat-feedback-1193a.js | grep -q 'COMBAT_TRANSIENT_LOG_R01'
+          unzip -p Backroom-1.2.0.0.32-verified.apk assets/combat-feedback-1193a.js | grep -q 'function focusCombatActor(actorId)'
+          unzip -p Backroom-1.2.0.0.32-verified.apk assets/combat-feedback-1193a.js | grep -q 'playTypedTurnTimeline'
+          unzip -p Backroom-1.2.0.0.32-verified.apk assets/combat-feedback-1193a.css | grep -q '3D_TURN_COVERFLOW_R01'
+          unzip -p Backroom-1.2.0.0.32-verified.apk assets/combat-feedback-1193a.css | grep -q 'rotate:y -65deg'
+          unzip -p Backroom-1.2.0.0.32-verified.apk assets/combat-feedback-1193a.js | grep -q 'backroomSyncCombatPortrait'
+          unzip -p Backroom-1.2.0.0.32-verified.apk assets/combat-feedback-1193a.js | grep -q 'partyFocusEpoch'
+          ! unzip -p Backroom-1.2.0.0.32-verified.apk assets/combat-feedback-1193a.css | grep -q 'combat-party-appear'
+          unzip -p Backroom-1.2.0.0.32-verified.apk assets/combat-feedback-1193a.js | grep -q 'completing=before&&before.active===true'
+          unzip -p Backroom-1.2.0.0.32-verified.apk assets/combat-feedback-1193a.css | grep -Fq '.snapshot[data-combat-focus] .snapshot-entity{'
+          unzip -p Backroom-1.2.0.0.32-verified.apk assets/combat-feedback-1193a.css | grep -Fq 'display:block!important;left:0!important;right:auto!important'
+          ! unzip -p Backroom-1.2.0.0.32-verified.apk assets/combat-feedback-1193a.css | grep -q 'combat-switch-ring'
+          unzip -p Backroom-1.2.0.0.32-verified.apk assets/fx/hit-impact-sparks-v1.png > verified-hit-impact-sparks.png
+          cmp android-apk/app/src/main/assets/fx/hit-impact-sparks-v1.png verified-hit-impact-sparks.png
+          unzip -p Backroom-1.2.0.0.32-verified.apk assets/combat-feedback-1193a.css | grep -Fq 'fx/hit-impact-sparks-v1.png'
+          unzip -p Backroom-1.2.0.0.32-verified.apk assets/combat-feedback-1193a.js | grep -q 'function appendDamageLine(e)'
+          unzip -p Backroom-1.2.0.0.32-verified.apk assets/combat-feedback-1193a.js | grep -q 'NOW : '
+          unzip -p Backroom-1.2.0.0.32-verified.apk assets/combat-feedback-1193a.css | grep -q 'COMBAT_LOG_FIXED_PANEL_R02'
+          ! unzip -p Backroom-1.2.0.0.32-verified.apk assets/combat-feedback-1193a.js | grep -q 'packet&&packet.summary'
+          unzip -p Backroom-1.2.0.0.32-verified.apk assets/combat-feedback-1193a.css | grep -q '.combat-feedback-panel'
+          ! unzip -p Backroom-1.2.0.0.32-verified.apk assets/combat-feedback-1193a.js | grep -q 'state.log'
+          ! unzip -p Backroom-1.2.0.0.32-verified.apk assets/combat-feedback-1193a.js | grep -q 'localStorage'
+          ! unzip -p Backroom-1.2.0.0.32-verified.apk assets/combat-feedback-1193a.js | grep -q 'modal.hidden=true'
+          unzip -p Backroom-1.2.0.0.32-verified.apk assets/index.html | grep -q 'DIRECT_COMBAT_GATE_V1'
+          unzip -p Backroom-1.2.0.0.32-verified.apk assets/index.html | grep -q 'ensureDirectCombatDice'
+          unzip -p Backroom-1.2.0.0.32-verified.apk assets/index.html | grep -q 'mountNearSnapshot();'
+          ! unzip -p Backroom-1.2.0.0.32-verified.apk assets/index.html | grep -q 'if(window.__combatFeedbackBusy){hide();return;}'
+          unzip -p Backroom-1.2.0.0.32-verified.apk assets/index.html | grep -q 'POKER_DICE_119_POLISH_R01'
+          unzip -p Backroom-1.2.0.0.32-verified.apk assets/index.html | grep -q 'poker-die-shadow'
+          unzip -p Backroom-1.2.0.0.32-verified.apk assets/index.html | grep -q 'DICE_ROLL_ANIMATION_MS=680'
+          unzip -p Backroom-1.2.0.0.32-verified.apk assets/index.html | grep -q 'FINALIZE_PREVIEW_MS=2000'
+          ! unzip -p Backroom-1.2.0.0.32-verified.apk assets/index.html | grep -q "label:'TẤN CÔNG'"
+          ! unzip -p Backroom-1.2.0.0.32-verified.apk assets/index.html | grep -q "label:'NÉ TRÁNH'"
+          ! unzip -p Backroom-1.2.0.0.32-verified.apk assets/index.html | grep -q "label:'BỎ CHẠY'"
+          unzip -p Backroom-1.2.0.0.32-verified.apk assets/index.html | grep -q 'gameMenuModal'
+          BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          "$BUILD_TOOLS/apksigner" verify --verbose --print-certs Backroom-1.2.0.0.32-verified.apk
+          "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-1.2.0.0.32-verified.apk
+          SHA256=$(sha256sum Backroom-1.2.0.0.32-verified.apk | awk '{print $1}')
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git fetch origin "$GITHUB_REF_NAME"
+          git checkout -B release-status-sync "origin/$GITHUB_REF_NAME"
+          rm -f release-status/v1.2.0.0.32-running.txt
+          printf 'status=GREEN\nversion=1.2.0.0.32\ntag=v1.2.0.0.32\nasset=Backroom-1.2.0.0.32.apk\nsource_sha=%s\nrun_id=%s\nsha256=%s\nbuild_type=debug\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$SHA256" > release-status/v1.2.0.0.32.txt
+          git add release-status/v1.2.0.0.32.txt release-status/v1.2.0.0.32-running.txt
+          git commit -m 'Record verified Backroom 1.2.0.0.32 debug release'
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+
+
+          for icon in android-apk/app/src/main/assets/item-icons/*.webp; do
             cmp "$icon" "apk-check/assets/item-icons/${icon##*/}"
           done
           grep -q 'backroom.diagnostics.v1' apk-check/assets/diagnostic-export.js

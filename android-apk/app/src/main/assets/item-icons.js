@@ -1,4 +1,4 @@
-/* Fixed local assets only. IDs mirror OfflineItemRegistry and EquipmentCatalog. */
+/* Bundled WebP assets; IDs mirror OfflineItemRegistry and EquipmentCatalog and are verified against item-icons/manifest.json. */
 window.backroomItemIcons = Object.freeze({
   'almond-water': 'almond-water',
   'greek-fire': 'greek-fire',

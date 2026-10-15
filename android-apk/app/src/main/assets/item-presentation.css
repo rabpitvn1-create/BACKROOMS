@@ -17,8 +17,9 @@
   width:64px;
   height:64px;
   padding:0;
-  border:1px solid #b58a45;
-  border-radius:6px;
+  border:0;
+  background:transparent;
+  border-radius:0;
   overflow:hidden;
 }
 .character-inventory-view .equipment-card-main {
@@ -42,9 +43,9 @@
 }
 .character-inventory-view .equipment-badges:empty {display:none}
 .character-inventory-view .equipment-badge {padding:3px 5px;font-size:8px;line-height:1.2}
-.equipment-card-icon > .item-pixel-icon,
-.equipment-detail-icon > .item-pixel-icon {display:block;width:100%;height:100%;padding:0;margin:0;object-fit:contain;image-rendering:pixelated}
-.equipment-detail-icon {width:72px;height:72px;padding:0;border-radius:6px;overflow:hidden}
+.equipment-card-icon > .item-liquid-icon,
+.equipment-detail-icon > .item-liquid-icon {display:block;width:100%;height:100%;padding:0;margin:0;object-fit:contain;}
+.equipment-detail-icon {width:72px;height:72px;padding:0;border:0;background:transparent;border-radius:0;overflow:hidden}
 .equipment-detail-header {grid-template-columns:72px minmax(0,1fr)}
 .equipment-detail-header h2 {overflow-wrap:anywhere}
 /* Keep the complete sheet border inside the usable viewport; scroll its content. */
