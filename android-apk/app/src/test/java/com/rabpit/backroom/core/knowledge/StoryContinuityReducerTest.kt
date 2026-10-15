@@ -48,7 +48,7 @@ class StoryContinuityReducerTest {
     assertFalse(knownBy.contains("iris"))
   }
 
-  @Test fun confirmedActiveCompanionCanWitnessKnownDiscovery() {
+  @Test fun activePartyCompanionDoesNotAutomaticallyWitnessDiscovery() {
     val party = JSONArray().put(JSONObject()
       .put("id", "iris").put("name", "Iris").put("presence", "ACTIVE"))
     val before = JSONObject().put("turn", 4)
@@ -65,7 +65,8 @@ class StoryContinuityReducerTest {
     val known = continuity.getJSONArray("knowledge").getJSONObject(0)
       .getJSONArray("knownBy").toString()
     assertTrue(known.contains("cao_minh"))
-    assertTrue(known.contains("iris"))
+    // Core has not supplied an explicit witness for this discovery.
+    assertFalse(known.contains("iris"))
   }
 
   @Test fun absentOrUnverifiedPartyMembersNeverGainKnowledgeAutomatically() {
