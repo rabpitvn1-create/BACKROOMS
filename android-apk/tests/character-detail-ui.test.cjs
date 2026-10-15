@@ -84,9 +84,9 @@ test('Consumable effects and descriptions render safely without fabricating unkn
 
 test('Item icons resolve by exact ID in the real detail modal, including unknown IDs', () => {
   const known = openItemThroughClick({ id: 'cao_minh:huyet-ma-chien-khai' });
-  assert.match(known('equipmentDetailIcon'), /src="item-icons\/huyet-ma-khai.svg"/);
+  assert.match(known('equipmentDetailIcon'), /src="item-icons\/huyet-ma-khai.webp"/);
   const unknown = openItemThroughClick({ id: '__proto__' });
-  assert.match(unknown('equipmentDetailIcon'), /src="item-icons\/unknown.svg"/);
+  assert.match(unknown('equipmentDetailIcon'), /src="item-icons\/unknown.webp"/);
   assert.doesNotMatch(unknown('equipmentDetailIcon'), /__proto__/);
 });
 
