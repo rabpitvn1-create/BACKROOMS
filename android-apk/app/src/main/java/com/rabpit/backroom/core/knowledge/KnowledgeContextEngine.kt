@@ -274,9 +274,11 @@ object KnowledgeContextEngine {
       val activeSupport = linkedSetOf<String>()
       if (hasAny(supportText, "linh khí", "linh lực", "linh mạch", "tu luyện", "kinh mạch")) {
         activeSupport += "LINH_KHI"
-        activeSupport += "TU_SI"
         topics += "environment"
-        topics += "combat"
+        if (hasAny(supportText, "hồi phục", "tu luyện", "chiến đấu", "vận công", "kinh mạch")) {
+          activeSupport += "TU_SI"
+          topics += "combat"
+        }
       }
       if (hasAny(supportText, "async", "kv31", "viện nghiên cứu", "project kv31")) {
         activeSupport += "ASYNC"
@@ -492,7 +494,8 @@ object KnowledgeContextEngine {
         when {
           it.id == "CHAR.CAO_MINH.AUTHORED" -> 31
           it.id.endsWith(".AUTHORED") -> 32
-          it.kind == "authored-detail" -> 33
+          it.kind == "authored-detail" && it.id.startsWith("SUPPORT.") -> 33
+          it.kind == "authored-detail" -> 34
           else -> it.priority
         }
       }.thenBy { it.id })
