@@ -111,6 +111,48 @@ class CharacterMemoryBagsTest {
     assertTrue(error.toString(), error.toString().contains("character_memory"))
   }
 
+  @Test fun anNhienCanReadConfirmedPartyMemoryWithoutRandomEncounter() {
+    val base = before()
+    val (joined, error) = AnNhienCanon.forceIntoParty(base)
+    assertNull(error)
+    val saved = CharacterMemoryBags.recordCommitted(base, joined)
+    val packet = CharacterMemoryBags.sceneContext(saved)
+    assertTrue(packet, packet.contains("Actor $AN_NHIEN_ID"))
+    assertTrue(packet, packet.contains("Current Party status from Core: IN_PARTY"))
+    assertTrue(packet, packet.contains("Joined Cao Minh's Party"))
+    assertFalse(packet, packet.contains("Has encountered Cao Minh before"))
+  }
+
+  @Test fun anAbsentOrDeadActorCannotBeActivatedThroughPendingEncounterHint() {
+    val base = before()
+    val met = CharacterMemoryBags.recordCommitted(base, firstMeeting(base))
+    for (status in listOf(CharacterPresence.DEAD)) {
+      val unavailable = met.copy(characters = met.characters +
+        ("lucia" to met.characters.getValue("lucia").copy(presence = status)))
+      assertEquals("", CharacterMemoryBags.sceneContext(unavailable, setOf("lucia")))
+    }
+    val separated = met.copy(characters = met.characters +
+      ("lucia" to met.characters.getValue("lucia")
+        .copy(presence = CharacterPresence.SEPARATED)))
+    assertTrue(CharacterMemoryBags.sceneContext(separated, setOf("lucia"))
+      .contains("Actor lucia"))
+  }
+
+  @Test fun historicalJoinAndLeaveNeverOverrideCurrentPartyTruth() {
+    val base = before()
+    val first = CharacterMemoryBags.recordCommitted(base, firstMeeting(base))
+    val joined = CharacterMemoryBags.recordCommitted(first, first.copy(
+      party = first.party.copy(memberIds = first.party.memberIds + "lucia")))
+    val left = CharacterMemoryBags.recordCommitted(joined, joined.copy(party = base.party))
+    val afterLeaving = CharacterMemoryBags.sceneContext(left)
+    assertTrue(afterLeaving.contains("Current Party status from Core: NOT_IN_PARTY"))
+    assertTrue(afterLeaving.contains("Past event: Joined Cao Minh's Party"))
+    assertTrue(afterLeaving.contains("Past event: Left Cao Minh's Party"))
+    val rejoined = CharacterMemoryBags.recordCommitted(left, left.copy(party = joined.party))
+    assertTrue(CharacterMemoryBags.sceneContext(rejoined)
+      .contains("Current Party status from Core: IN_PARTY"))
+  }
+
   @Test fun knownNpcWithoutNewCoreEventCannotInventMemory() {
     val old = before()
     val unchanged = CharacterMemoryBags.recordCommitted(old, old)
