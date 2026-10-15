@@ -52,6 +52,35 @@ class KnowledgeContextEngineTest {
     }
   }
 
+  @Test fun registeredFutureActorUsesCorePresenceWithoutHardcodedName() {
+    val file = listOf(
+      File("src/main/assets/knowledge/knowledge_db.json"),
+      File("app/src/main/assets/knowledge/knowledge_db.json")
+    ).first { it.isFile }
+    val catalog = JSONObject(file.readText())
+    catalog.getJSONArray("records").put(JSONObject()
+      .put("id", "CHAR.NOVA.AUTHORED").put("domain", "CHARACTER")
+      .put("kind", "authored").put("text", "TEST_ONLY Nova has a precise, independent voice.")
+      .put("authority", "AUTHOR").put("mutability", "IMMUTABLE")
+      .put("priority", 34)
+      .put("source", JSONObject().put("document", "TEST_ONLY").put("anchor", "fixture")))
+    val db = KnowledgeContextEngine.parseDatabase(catalog.toString())
+    fun build(state: JSONObject, action: String = "khám phá"): String =
+      KnowledgeContextEngine.Builder(db, state, action, JSONObject()).build()
+
+    val absent = JSONObject().put("encounteredCharacters", org.json.JSONArray()
+      .put(JSONObject().put("id", "nova").put("present", false)))
+    assertFalse(build(absent, "Nova có ở đây không?").contains("<CHAR.NOVA.AUTHORED>"))
+    val present = JSONObject().put("pendingNpcEncounters", org.json.JSONArray()
+      .put(JSONObject().put("characterId", "nova")))
+    val packet = build(present)
+    assertTrue(packet.contains("<CHAR.NOVA.AUTHORED>"))
+    assertTrue(packet.contains("nova: PRESENT, inParty=false"))
+    assertFalse(build(JSONObject().put("party", org.json.JSONArray()
+      .put(JSONObject().put("id", "nova_unknown").put("presence", "ACTIVE")))
+      .contains("<CHAR.NOVA.AUTHORED>"))
+  }
+
   @Test fun entityMentionAndLevelReferencesCannotInventEncounter() {
     val result = packet("""{"level":{"number":5,"id":"5"}}""", "hound, the beast, Jeff")
     assertFalse(result.contains("<ENTITY.HOUND>"))
