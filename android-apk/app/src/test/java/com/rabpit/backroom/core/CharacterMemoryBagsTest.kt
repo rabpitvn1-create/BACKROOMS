@@ -35,6 +35,19 @@ class CharacterMemoryBagsTest {
     assertTrue(CharacterMemoryBags.sceneContext(committed).contains("Actor lucia"))
   }
 
+  @Test fun stagedReunionReadsExistingFactsWithoutCommittingANewEncounter() {
+    val old = before()
+    val met = CharacterMemoryBags.recordCommitted(old, firstMeeting(old))
+    val irisNotInScene = met.copy(characters = met.characters +
+      ("lucia" to met.characters.getValue("lucia")
+        .copy(presence = CharacterPresence.SEPARATED)))
+    assertEquals("", CharacterMemoryBags.sceneContext(irisNotInScene))
+    val staged = CharacterMemoryBags.sceneContext(irisNotInScene, setOf("lucia"))
+    assertTrue(staged.contains("Actor lucia"))
+    assertEquals(met.metadata, irisNotInScene.metadata) // prompt activation must never write state
+    assertEquals("", CharacterMemoryBags.sceneContext(irisNotInScene, setOf("never_met")))
+  }
+
   @Test fun savedCheckpointRestoresMemoryAtExactlyTheSameTurn() {
     val old = before()
     val committed = CharacterMemoryBags.recordCommitted(old, firstMeeting(old))
