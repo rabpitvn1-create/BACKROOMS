@@ -17,7 +17,7 @@ import org.json.JSONObject
  * - Luc Tram: 25 (0.25%) — Level 4+ physical, once-only
  * - Iris/Syvial reunion: 25 (0.25%) each — physical, continuity SEPARATED/LOST/UNKNOWN
  * - An Nhien: 25 (0.25%) — physical, once-only
- * - Ambient NPC: 1000 (10%) — ephemeral marker only (state.metadata),
+ * - Ambient NPC: 3000 (30%) — ephemeral marker only (state.metadata),
  *   NEVER a CharacterState/Follower/Canon encounter. Entity and Canon NPCs
  *   take priority over ambient.
  *
@@ -129,11 +129,11 @@ object NpcSpawnTable {
   // Canon files, data and table references are kept intact — but auto-spawn is OFF.
   // Do NOT re-enable without the owner's explicit request.
   const val AN_NHIEN_LEGACY_ENABLED = false
-  // Ambient crowd NPC: 10% on d10000. Ephemeral only — rolled in
+  // Ambient crowd NPC: 30% on d10000. Ephemeral only — rolled in
   // SpawnMechanism.rollSpawns (NOT via the NpcEncounter pipeline) and surfaced
   // as state.metadata["spawn.ambientNpcRolled"]. Replaces the old Survivor 2%
   // branch (removed 2026-10-15) to avoid two overlapping crowd-spawn types.
-  const val AMBIENT_THRESHOLD = 1000    // 10%
+  const val AMBIENT_THRESHOLD = 3000    // 30%
 
   /** Result of NPC spawn rolls: character ID -> encounter flag key */
   data class NpcEncounter(val characterId: String, val flagKey: String)
@@ -179,7 +179,7 @@ object NpcSpawnTable {
    * - `physical` is inferred from ACTION TEXT verbs, NOT action kind.
    *   A dialogue-only EXECUTE ("nói chuyện", "hỏi") is NOT physical → no NPC rolls.
    * - Lucia: EXPLORE kind only (not text-based)
-   * - Ambient NPC: rolled in SpawnMechanism.rollSpawns (not here) — 10%,
+   * - Ambient NPC: rolled in SpawnMechanism.rollSpawns (not here) — 30%,
    *   entity and Canon NPCs take priority, never a Canon encounter.
    *
    * @param state current game state
@@ -247,7 +247,7 @@ object NpcSpawnTable {
 /**
  * Result of a Core-authoritative spawn roll.
  *
- * @param ambientNpcRolled true if the 10% ambient crowd-NPC roll succeeded this
+ * @param ambientNpcRolled true if the 30% ambient crowd-NPC roll succeeded this
  * turn. Ephemeral: surfaced via state.metadata["spawn.ambientNpcRolled"], NEVER
  * through the NpcEncounter pipeline (no flags, no CharacterState, no Canon).
  */
@@ -271,7 +271,7 @@ object SpawnMechanism {
    * 3. Entity: action kind in (EXPLORE, SEARCH, EXECUTE) AND
    *    flags.entityEncountersAllowed (default true)
    * 4. NPCs: physical from action TEXT (see PhysicalActionDetector)
-   * 5. Ambient NPC: 10% on eligible EXPLORE turns — only if NO entity rolled AND no
+   * 5. Ambient NPC: 30% on eligible EXPLORE turns — only if NO entity rolled AND no
    *    Canon NPC encounters. Meta/combat already returned above. The "currently
    *    in ambient dialogue" check is RAM-side (MainActivity), not Core state.
    *
@@ -314,7 +314,7 @@ object SpawnMechanism {
     val level = currentLevelNumber(state)
     val npcEncounters = NpcSpawnTable.rollNpcs(state, kind, actionText, level, nextInt)
 
-    // Gate 5: Ambient crowd NPC — 10% on d10000, ephemeral only.
+    // Gate 5: Ambient crowd NPC — 30% on d10000, ephemeral only.
     // Priority: entity and Canon NPCs take precedence over ambient.
     val ambientNpcRolled = kind == ActionKind.EXPLORE &&
       entityKey == null && npcEncounters.isEmpty() &&
