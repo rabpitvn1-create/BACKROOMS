@@ -83,6 +83,26 @@ class LevelTransitionValidationTest {
     assertEquals("1", dest.optString("destinationId"))
   }
 
+  @Test fun coreRejectsReturnToPreviousParentLevel() {
+    val saved = MemorySave(freshAt("2", streak = 5))
+    val core = facade(saved)
+    val action = "đi qua cửa trở lại Level 1"
+    val decision = authorize(core, turn = 1, kind = "EXPLORE", action = action)
+    assertTrue(decision.toString(), decision.isNull("destinationId"))
+    val rejected = JSONObject(core.processValidatedCandidate(
+      beforeJson(turn = 1), candidateJson("1"), action))
+    assertFalse(rejected.toString(), rejected.getBoolean("handled"))
+    assertEquals("level_change_forbidden", rejected.getString("error"))
+  }
+
+  @Test fun coreCanReturnFromSublevelToAreaWithinSameParentLevel() {
+    val saved = MemorySave(freshAt("1.2", streak = 5))
+    val core = facade(saved)
+    val decision = authorize(core, turn = 1, kind = "EXPLORE",
+      action = "đi qua cửa về Level 1")
+    assertEquals("1", decision.optString("destinationId"))
+  }
+
   @Test fun coreRejectsWhenExitNotReady() {
     // P0-3 required: insufficient-condition case. Streak=0, non-EXPLORE kind
     // -> Core's roll ineligible -> deterministic "exit_not_ready".
