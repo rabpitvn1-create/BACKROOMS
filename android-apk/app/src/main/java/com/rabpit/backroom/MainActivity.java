@@ -1242,6 +1242,11 @@ public class MainActivity extends Activity {
     return value.matches("^(hỏi tiếp|tiếp tục hỏi|nói chuyện|bắt chuyện|trò chuyện|nói chuyện tiếp|tiếp tục trò chuyện|tiến lại hỏi|đến hỏi|hỏi người lạ.*|hỏi npc.*|hỏi người đàn ông.*|hỏi người phụ nữ.*|hỏi người đó.*|hỏi người này.*)$");
   }
 
+  private static boolean ambientDismissAction(String action) {
+    String value = action == null ? "" : action.trim().toLowerCase(java.util.Locale.ROOT);
+    return value.matches("^(bỏ qua|bỏ qua npc|bỏ qua người lạ|không nói chuyện|không tiếp chuyện|thôi nói chuyện|kết thúc trò chuyện)$");
+  }
+
   private static boolean ambientForbiddenAction(String action) {
     String value = action == null ? "" : action.trim().toLowerCase(java.util.Locale.ROOT);
     boolean target = value.contains("npc") || value.contains("người lạ");
@@ -1880,6 +1885,13 @@ public class MainActivity extends Activity {
               cacheAmbientEncounter();
               emitAmbientEvent("dialogue", action, line, currentTurn, currentLevelId);
             }
+            return;
+          }
+          if (ambientMgr.hasActive() && "EXECUTE".equalsIgnoreCase(actionKind) &&
+              ambientDismissAction(action)) {
+            String exit = ambientMgr.endEncounter();
+            clearAmbientEncounter();
+            if (exit != null) emitAmbientEvent("exit", action, exit, currentTurn, currentLevelId);
             return;
           }
           if (ambientMgr.hasActive() && "EXECUTE".equalsIgnoreCase(actionKind) &&
