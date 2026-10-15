@@ -38,6 +38,17 @@ public class HiddenExitStreakTest {
     assertTrue(exploration.getBoolean("transitionReady"));
   }
 
+  @Test public void onlyTheUnlockingTurnIsANewDiscovery() throws Exception {
+    assertTrue(HiddenExitStreak.newlyReady(state("hall", 4), roll(true)));
+    assertFalse(HiddenExitStreak.newlyReady(state("hall", 4), roll(false)));
+    assertFalse(HiddenExitStreak.newlyReady(state("hall", 3), roll(true)));
+    assertFalse(HiddenExitStreak.newlyReady(state("hall", 5), roll(true)));
+    // Rest/dialogue after discovery must keep the exit available without a new event.
+    JSONObject ready = state("hall", 5);
+    assertTrue(HiddenExitStreak.projectedReady(ready, new JSONObject()));
+    assertFalse(HiddenExitStreak.newlyReady(ready, new JSONObject()));
+  }
+
   @Test public void failureResetsStreakAndKeepsPreviousLocation() throws Exception {
     JSONObject before = state("Level 2 / Pipe Junction", 4);
     JSONObject candidate = new JSONObject(before.toString()).put("location", "Level 2 / New Corridor");

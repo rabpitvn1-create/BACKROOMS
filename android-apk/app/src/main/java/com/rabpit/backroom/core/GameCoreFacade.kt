@@ -12,7 +12,6 @@ class GameCoreFacade private constructor(
   private val rules = RuleIntentInterpreter()
   private val resolver = CommandResolver()
   private val spawnRng = SecureRandom()
-  private val exitRng = SecureRandom()
   /** One-shot exit authorization from determineExitDestination, consumed by processValidatedCandidate. */
   private var exitAuthorization: ExitAuthorization? = null
 
@@ -498,16 +497,30 @@ class GameCoreFacade private constructor(
   override fun close() = Unit
 
   /**
-   * P0-3: Core-authoritative exit destination decision.
+   * Core-authoritative exit destination decision.
    *
    * Core decides the destination node (never GM/AI, never client):
-   * - Exit readiness: Core's own streak (from committed state) + Core's own dice
-   *   (SecureRandom). NEVER trusts candidate.flags.lastRolls (client data).
+   * - Exit readiness: the COMMITTED hidden-exit streak (flags.exploration.hiddenExitStreak).
+   *   The streak is advanced by exactly ONE roll per turn — the turn's gameplay roll,
+   *   persisted through HiddenExitStreak.apply into the committed state. Core does NOT
+   *   roll a second independent die here: a second roll could authorize a transition
+   *   the GM was never told about (or deny one the GM already narrated as discovered),
+   *   and would make determineExitDestination non-idempotent across retries.
    * - Traversal intent: parsed by Core from the action text (not client's playerTraverses).
    * - Destination: selected from LevelRouteRegistry valid edges. Single edge -> direct.
    *   Multiple edges -> must match player intent against destination names; ambiguous
    *   means no transition (GM prompts via gmRoutingContext). Core never guesses, and
    *   the GM never chooses secret paths.
+   *
+   * Three distinct states are enforced:
+   *   1. Exit not found (committed streak < 5) -> "exit_not_ready".
+   *   2. Exit discovered but not traversed (streak = 5, no traversal intent) ->
+   *      "no_traversal_intent"; the discovered exit stays available in later turns
+   *      until the player deliberately traverses or the node changes.
+   *   3. Transition committed: only when the one-shot exitAuthorization created here
+   *      is consumed by processValidatedCandidate. GM prose alone can never move the player.
+   *
+   * kindRaw is kept for signature compatibility; readiness is purely state-based.
    *
    * Returns {"destinationId": "<node>"} on authorization, or
    * {"destinationId": null, "reason": "..."} otherwise. An authorized destination is
@@ -516,18 +529,18 @@ class GameCoreFacade private constructor(
   @Synchronized fun determineExitDestination(clientStateJson: String, kindRaw: String, action: String): String {
     val client = JSONObject(clientStateJson)
     val turn = client.optInt("turn", -1)
+    // A stale authorization from an aborted or failed turn must never leak into
+    // this turn's decision; a fresh one is issued below only when fully authorized.
+    exitAuthorization = null
     val core = loadCurrentState()
     val coreView = JSONObject().put("flags", JSONObject(core.world["flagsJson"] ?: "{}"))
     val currentNode = LevelRouteRegistry.requested(JSONObject(core.world.getValue("levelJson")))
       ?: return destResult(null, "no_current_node")
 
-    // Core-authoritative exit readiness: Core's streak + Core's dice.
-    val kind = enumValues<ActionKind>().firstOrNull { it.name == kindRaw.trim().uppercase() }
-    val eligible = kind == ActionKind.EXPLORE && !HiddenExitStreak.ready(coreView)
-    val success = eligible && exitRng.nextInt(100) < HiddenExitStreak.SUCCESS_PERCENT
-    val coreRolls = JSONObject().put(HiddenExitStreak.ROLL_KEY, JSONObject()
-      .put("eligible", eligible).put("success", success))
-    if (!HiddenExitStreak.projectedReady(coreView, coreRolls))
+    // Single authoritative readiness source: the committed streak. No second RNG —
+    // the GM was already told the outcome of the turn's single roll via levelExit/
+    // exitProbe, so Core's decision here always agrees with the narration.
+    if (!HiddenExitStreak.ready(coreView))
       return destResult(null, "exit_not_ready")
 
     if (!corePlayerTraverses(action))
@@ -785,6 +798,11 @@ class GameCoreFacade private constructor(
     }
     if (action != PokerDiceCore.DIRECT_COMBAT_ACTION) {
       appendLog(output, action, combatReply)
+    } else if (resolution.completionNarrative.isNotBlank()) {
+      // Keep turn-by-turn combat details transient, but retain the Core-confirmed
+      // closing narrative after the Combat Log disappears.
+      val log = output.optJSONArray("log") ?: JSONArray().also { output.put("log", it) }
+      log.put(JSONObject().put("role", "gm").put("text", resolution.completionNarrative))
     }
     return response(true, output, null, if (resolution.entityDestroyed) "combat_entity_destroyed" else if (resolution.escaped) "combat_escaped" else "combat_resolved", combatReply)
   }

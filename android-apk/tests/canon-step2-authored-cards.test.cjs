@@ -62,7 +62,7 @@ test('runtime uses exact level and Core-confirmed encounter identity', () => {
   assert.ok(reader.includes('add(confirmedVisual, "confirmed active Entity visual canon")'));
   assert.ok(reader.includes('if ("lucia" in presentActors)'));
   // Core-confirmed pending encounters use characterId (fallback to flagKey).
-  assert.ok(reader.includes('addConfirmed(event.optString("characterId", event.optString("flagKey", "")))'));
+  assert.match(reader, /addConfirmed\(\s*event\.optString\("characterId", event\.optString\("flagKey", ""\)\),\s*"PRESENT_NOT_IN_PARTY"\s*\)/);
   assert.ok(!reader.includes('confirmedRoll("entityEncounter")'));
   assert.ok(reader.includes('flags?.optString("entityEncounterKey", "")'));
   assert.ok(reader.includes('id == confirmedEntityVisualId()'));

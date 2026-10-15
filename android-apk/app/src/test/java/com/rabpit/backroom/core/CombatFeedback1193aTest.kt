@@ -106,4 +106,40 @@ class CombatFeedback1193aTest {
     val refreshed = JSONObject(facade.currentClientState(output.toString()))
     assertFalse(refreshed.has("combatFeedback"))
   }
+  @Test fun directCombatKeepsTheClosingNarrativeAndAllowsTheNextExplorerTurn() {
+    val combat = started().let { it.copy(metadata = it.metadata + ("combat.entityHp" to "0")) }
+    val active = CombatRuntime.active(combat)!!
+    val action = PokerDiceCore.DIRECT_COMBAT_ACTION
+    val saved = MemorySave(PokerDiceCore.finish(PokerDiceCore.prepare(combat, action, active.encounterId)))
+    val ctor = GameCoreFacade::class.java.getDeclaredConstructor(SaveRepository::class.java, GamePipelineLogger::class.java)
+    ctor.isAccessible = true
+    val facade = ctor.newInstance(saved, NoOpGamePipelineLogger)
+    val client = JSONObject().put("turn", 1).put("log", JSONArray()
+      .put(JSONObject().put("role", "gm").put("text", "Hound đã xuất hiện.")))
+    val output = JSONObject(facade.processCombat(client.toString(), "EXECUTE", action)).getJSONObject("state")
+    assertFalse(output.has("combat"))
+    assertFalse(output.has("pendingEncounter"))
+    val log = output.getJSONArray("log")
+    assertEquals(2, log.length())
+    assertEquals("Hound đã không còn sinh khí ngã xuống. Backrooms nuốt chửng lấy tử thi của nó vào nền.",
+      log.getJSONObject(1).getString("text"))
+    assertEquals("gm", log.getJSONObject(1).getString("role"))
+    val refreshed = JSONObject(facade.currentClientState(output.toString()))
+    assertEquals(2, refreshed.getJSONArray("log").length())
+    assertFalse(JSONObject(facade.processCombat(refreshed.toString(), "EXPLORE", "Khám Phá")).getBoolean("handled"))
+    assertTrue(JSONObject(facade.beginAction(refreshed.toString(), "EXPLORE", "Khám Phá")).getBoolean("handled"))
+  }
+
+  @Test fun onlyTheFinalWavePublishesItsOwnClosingNarrative() {
+    val combat = CombatRuntime.startWaves(GameState.initial(), listOf("hound", "clump"))
+    val first = CombatRuntime.resolve(combat.copy(metadata = combat.metadata +
+      ("combat.entityHp" to "0")), "SEARCH", "quan sát")
+    assertEquals("", first.completionNarrative)
+    val last = CombatRuntime.resolve(first.state.copy(metadata = first.state.metadata +
+      ("combat.entityHp" to "0")), "SEARCH", "quan sát")
+    assertTrue(last.entityDestroyed)
+    assertTrue(last.completionNarrative.startsWith("Clump đã không còn sinh khí"))
+    assertFalse(last.completionNarrative.contains("Hound"))
+  }
+
 }

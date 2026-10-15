@@ -183,7 +183,8 @@ object CombatRuntime {
     val entityDestroyed: Boolean = false,
     val escaped: Boolean = false,
     val feedback: List<DamageFeedback> = emptyList(),
-    val turnCues: List<TurnCue> = emptyList()
+    val turnCues: List<TurnCue> = emptyList(),
+    val completionNarrative: String = ""
   )
 
   private val profiles = listOf(
@@ -1284,9 +1285,11 @@ object CombatRuntime {
     val instanceId = if (queue.size == 1) c.encounterId else "${c.encounterId}:wave:$index"
     val exp = EntityExpRewards.award(withPassive, instanceId, c.progressionRank, 1)
     val loot = OfflineEntityLoot.award(exp.state, instanceId, c.seed)
-    val resultText = "$log ${c.entityName} đã bị tiêu diệt. ${exp.text} ${loot.text}".trim()
+    val defeatNarrative = "${c.entityName} đã không còn sinh khí ngã xuống. Backrooms nuốt chửng lấy tử thi của nó vào nền."
+    val resultText = "$log $defeatNarrative ${exp.text} ${loot.text}".trim()
     if (index + 1 == queue.size) {
-      return Resolution(clearCombatOnly(loot.state), true, resultText, entityDestroyed = true, feedback = feedback)
+      return Resolution(clearCombatOnly(loot.state), true, resultText, entityDestroyed = true,
+        feedback = feedback, completionNarrative = defeatNarrative)
     }
 
     val nextIndex = index + 1

@@ -272,7 +272,7 @@ public class MainActivity extends Activity {
       "renderSnapshot=function(){if(typeof window!=='undefined'&&window.backroomExplorationTransition)window.backroomExplorationTransition.cancel();__luciaBaseRenderSnapshot();appendLuciaCombatOverlay();if(typeof window!=='undefined'&&typeof window.backroomSyncCombatPortrait==='function')window.backroomSyncCombatPortrait();};" +
       "var snapshotBusy=false;function requestSnapshot(){var s=document.getElementById('status');if(s)s.textContent='Snapshot chưa được cấu hình.';}" +
       "window.requestSnapshot=requestSnapshot;" +
-      "window.__backroomProvider='Gehihi';window.backroomProvider=function(provider){window.__backroomProvider=provider||'AI';var s=document.getElementById('status');if(s)s.textContent=window.__backroomProvider+' đang xử lý lượt…';var p=document.querySelector('[data-pending=\\\"1\\\"]:not(.player) .text');if(p)p.textContent=window.__backroomProvider+' đang xử lý lượt…';};" +
+      "window.__backroomProvider='Gehihi';window.backroomProvider=function(provider){window.__backroomProvider=provider||'AI';var s=document.getElementById('status');if(s)s.textContent=window.__backroomProvider+' đang xử lý lượt…';};" +
       "var oldRender=window.render;if(typeof oldRender==='function'){window.render=function(){oldRender();renderSnapshot();scrollBottom();};}" +
       "var actions=document.querySelector('.actions');if(actions&&!document.getElementById('snapshotButton')){var b=document.createElement('button');b.id='snapshotButton';b.type='button';b.textContent='Snapshot chưa cấu hình';b.disabled=true;var wide=actions.querySelector('.wide');if(wide)actions.insertBefore(b,wide);else actions.appendChild(b);}" +
       "var oldTurn=window.backroomTurn;window.backroomTurn=function(json){var cinema=window.backroomExplorationTransition;var previousScene=cinema?cinema.capture(state):null;if(typeof oldTurn==='function')oldTurn(json);document.querySelectorAll('[data-pending=\"1\"]').forEach(function(n){n.remove();});var s=document.getElementById('status');var ev=state&&state._snapshotEvent;var allowed={LEVEL_CHANGE:1,SPECIAL_REGION:1,ENTITY_CONFIRMED:1,PERSON_ENCOUNTER:1,MAJOR_VISUAL_EVENT:1};var should=!!(ev&&ev.shouldGenerate===true&&allowed[String(ev.kind||'').toUpperCase()]);if(should){if(s)s.textContent='Turn '+state.turn+' có sự kiện hình ảnh đặc biệt. Đang tạo snapshot…';}else{if(s)s.textContent='Turn '+state.turn+' đã xử lý bằng '+(window.__backroomProvider||'AI')+'. Snapshot cũ được giữ nguyên.';}renderSnapshot();scrollBottom();if(cinema&&previousScene)cinema.play(previousScene,state);if(should)requestSnapshot();};" +
@@ -280,7 +280,6 @@ public class MainActivity extends Activity {
       "window.backroomSnapshotProvider=function(provider){var s=document.getElementById(\'status\');if(s)s.textContent=(provider||\'AI\')+\' đang tạo snapshot…\';};" +
       "window.backroomSnapshot=function(payload){snapshotBusy=false;try{var r=JSON.parse(payload);if(!state||Number(r.turn)!==Number(state.turn))return;if(!r.dataUri)return;localStorage.setItem('backroom-apk-snapshot',JSON.stringify({turn:r.turn,sceneKey:visualSceneKey(),model:r.model||'AI',dataUri:r.dataUri}));renderSnapshot();var s=document.getElementById('status');if(s)s.textContent='Snapshot Turn '+state.turn+' đã tạo bằng '+(r.model||'AI')+'.';}catch(e){var s=document.getElementById('status');if(s)s.textContent='Snapshot trả về không hợp lệ.';}};" +
       "window.backroomSnapshotError=function(payload){snapshotBusy=false;try{var r=JSON.parse(payload);if(state&&Number(r.turn)!==Number(state.turn))return;var s=document.getElementById('status');if(s)s.textContent='Snapshot lỗi: '+(r.message||'Không thể tạo ảnh.');}catch(e){var s=document.getElementById('status');if(s)s.textContent='Snapshot lỗi.';}};" +
-      "var f=document.getElementById('form');if(f){f.addEventListener('submit',function(){var a=document.getElementById('action');var text=a?a.value.trim():'';if(!text)return;var l=document.getElementById('log');if(!l)return;var player=document.createElement('article');player.className='message player pending';player.setAttribute('data-pending','1');player.innerHTML='<div class=\"role\">BẠN</div><div class=\"text\"></div>';player.querySelector('.text').textContent=text;l.appendChild(player);var gm=document.createElement('article');gm.className='message pending';gm.setAttribute('data-pending','1');gm.innerHTML='<div class=\"role\">GAME MASTER</div><div class=\"text\">Gehihi đang xử lý lượt…</div>';l.appendChild(gm);scrollBottom();},true);}" +
       "renderSnapshot();scrollBottom();" +
       "})();";
     webView.evaluateJavascript(script, null);
@@ -1513,6 +1512,18 @@ public class MainActivity extends Activity {
     }
     String canon = com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.build(
       MainActivity.this, stateForKnowledge.toString(), action, visibleRolls.toString());
+    // AGENT 5 — GM Integration: per-turn voice guidance (Agent 1), confirmed-state
+    // continuity (Agent 2, defensive), Core exit directive, and event/agency guards.
+    String actionKindNormalized;
+    try {
+      actionKindNormalized = new JSONObject(requireGameCore().currentActionContext()).optString("kind", "EXECUTE");
+    } catch (Exception ignored) { actionKindNormalized = "EXECUTE"; }
+    if (actionKindNormalized == null) actionKindNormalized = "EXECUTE";
+    actionKindNormalized = actionKindNormalized.trim().toUpperCase(java.util.Locale.ROOT);
+    String voiceActionKind = mapVoiceActionKind(before, action, actionKindNormalized,
+      pendingNpcEncounters, pendingEntityEncounter, rolls);
+    String voiceEventKind = mapVoiceEventKind(before,
+      pendingNpcEncounters, pendingEntityEncounter, rolls);
     return "Bạn là Gehihi, Game Master kể chuyện Backrooms bằng tiếng Việt. " +
       "Kể diễn biến tự nhiên theo hành động người chơi, giữ đúng Entity, nhân vật và kết quả đã khóa. " +
       "Được tự do sáng tác chi tiết, lời thoại, không khí, tương tác phụ và phản ứng khác nhau " +
@@ -1531,11 +1542,103 @@ public class MainActivity extends Activity {
       "Toàn bộ lời kể và lời thoại nằm trong reply; escape dấu ngoặc kép và xuống dòng theo chuẩn JSON. " +
       "Không thêm Markdown, code fence, lời mở đầu, operations, state hoặc khóa khác. " +
       com.rabpit.backroom.core.knowledge.GmNarrativeVoicePolicy.prompt() +
-      "\nACTION_TYPE: " + new JSONObject(requireGameCore().currentActionContext()).optString("kind", "EXECUTE") +
+      voiceGuidanceSection(voiceActionKind, voiceEventKind) +
+      continuityNotesSection(stateForKnowledge.toString(), rolls.toString()) +
+      exitDirectiveSection(before, rolls) +
+      eventSemanticsAndAgency() +
+      "\nACTION_TYPE: " + actionKindNormalized +
       "\nPLAYER_ACTION: " + action +
       "\nCORE_ROLLS_READ_ONLY: " + visibleRolls.toString() +
       encounterEvents.toString() +
       "\nCANON_READ_ONLY: " + canon;
+  }
+
+  // AGENT 5 — GM Integration helpers. Entity/NPC action kinds come ONLY from
+  // Core-confirmed events (beginAction response), never from GM prose or speculation.
+  private String mapVoiceActionKind(JSONObject before, String action, String actionKindNormalized,
+      JSONArray pendingNpcEncounters, JSONObject pendingEntityEncounter, JSONObject rolls) {
+    if (pendingEntityEncounter != null
+        && !pendingEntityEncounter.optString("entityKey", "").trim().isEmpty())
+      return com.rabpit.backroom.core.GmNarrativeVoicePolicy.ENTITY_SPAWN;
+    if (pendingNpcEncounters != null && pendingNpcEncounters.length() > 0)
+      return com.rabpit.backroom.core.GmNarrativeVoicePolicy.NPC_MEETING;
+    if (com.rabpit.backroom.core.HiddenExitStreak.newlyReady(before, rolls))
+      return com.rabpit.backroom.core.GmNarrativeVoicePolicy.TRACE_FOUND;
+    String a = lower(action == null ? "" : action);
+    if (containsAny(a, "nói", "hỏi", "trả lời", "đáp", "chào", "gọi", "thì thầm", "hét lên", "kêu lên"))
+      return com.rabpit.backroom.core.GmNarrativeVoicePolicy.DIALOGUE;
+    if (containsAny(a, "nghỉ ngơi", "ngồi nghỉ", "nằm nghỉ", "ngủ", "hồi sức"))
+      return com.rabpit.backroom.core.GmNarrativeVoicePolicy.REST;
+    if ("EXPLORE".equals(actionKindNormalized))
+      return com.rabpit.backroom.core.GmNarrativeVoicePolicy.EXPLORE_QUIET;
+    return com.rabpit.backroom.core.GmNarrativeVoicePolicy.OTHER;
+  }
+
+  private String mapVoiceEventKind(JSONObject before, JSONArray pendingNpcEncounters,
+      JSONObject pendingEntityEncounter, JSONObject rolls) {
+    if (pendingEntityEncounter != null
+        && !pendingEntityEncounter.optString("entityKey", "").trim().isEmpty())
+      return com.rabpit.backroom.core.GmNarrativeVoicePolicy.MAJOR;
+    if (pendingNpcEncounters != null && pendingNpcEncounters.length() > 0)
+      return com.rabpit.backroom.core.GmNarrativeVoicePolicy.MAJOR;
+    if (com.rabpit.backroom.core.HiddenExitStreak.newlyReady(before, rolls))
+      return com.rabpit.backroom.core.GmNarrativeVoicePolicy.MAJOR;
+    JSONObject hazard = rolls.optJSONObject("hazard");
+    if (hazard != null && hazard.optBoolean("success", false))
+      return com.rabpit.backroom.core.GmNarrativeVoicePolicy.MINOR;
+    return com.rabpit.backroom.core.GmNarrativeVoicePolicy.NONE;
+  }
+
+  private String voiceGuidanceSection(String actionKind, String eventKind) {
+    try {
+      String guidance = com.rabpit.backroom.core.GmNarrativeVoicePolicy.INSTANCE
+        .voiceGuidance(actionKind, eventKind);
+      if (guidance == null || guidance.trim().isEmpty()) return "";
+      return "\nHƯỚNG DẪN VĂN PHONG LƯỢT NÀY:\n" + guidance.trim();
+    } catch (Throwable ignored) { return ""; }
+  }
+
+  private String continuityNotesSection(String stateJson, String rollsJson) {
+    String notes = com.rabpit.backroom.core.StoryContinuityReducer
+      .continuityNotes(stateJson, rollsJson);
+    if (notes.trim().isEmpty()) return "";
+    return "\nTRẠNG THÁI ĐÃ XÁC NHẬN (Core — GM không được kể trái các sự thật này):\n" + notes;
+  }
+
+  // Core-authoritative exit directive. Distinguishes: exit available (may reveal, never
+  // auto-transition) vs no change (do not invent) vs failed exploration (reset, stay silent).
+  // The directive itself forbids mentioning streaks, counters, rolls or probabilities,
+  // so no Core secrets leak into the prompt.
+  private String exitDirectiveSection(JSONObject before, JSONObject rolls) {
+    try {
+      String directive = com.rabpit.backroom.core.HiddenExitStreak.gmDirective(before, rolls);
+      if (directive == null || directive.trim().isEmpty()) return "";
+      return "\nEXIT (Core xác nhận):\n" + directive.trim();
+    } catch (Throwable ignored) { return ""; }
+  }
+
+  // Unifies event semantics across Exit/NPC/Entity and hard-locks player agency over
+  // Cao Minh plus the bounds of Khám Phá / natural actions. Static text: no state,
+  // no RNG, no secrets.
+  private String eventSemanticsAndAgency() {
+    return "\nPHÂN BIỆT SỰ KIỆN (bắt buộc):" +
+      "\n- ĐÃ XẢY RA: chỉ những gì Core xác nhận trong CORE_CONFIRMED_ENCOUNTER_EVENTS," +
+      " mục EXIT và TRẠNG THÁI ĐÃ XÁC NHẬN. Chỉ kể những sự kiện này như sự thật." +
+      "\n- CÓ THỂ XẢY RA: những gì CORE_ROLLS_READ_ONLY gợi ý — được phép gieo mầm," +
+      " nhưng TUYỆT ĐỐI KHÔNG kết luận kết quả của hành động Core chưa xử lý." +
+      "\n- SUY ĐOÁN CỦA NHÂN VẬT: Cao Minh/NPC được phép phỏng đoán, nhưng phải thể hiện" +
+      " rõ đó là suy đoán (\"có lẽ\", \"dường như\"), không viết như sự thật đã khóa." +
+      "\n- Một phát hiện đã kể ở lượt trước thì các lượt sau phải tiếp nối đúng trạng thái" +
+      " của nó; KHÔNG được kể lại như thể vừa xuất hiện lần đầu, KHÔNG tự tạo thêm một" +
+      " lối thoát / sự kiện mới bằng lời kể." +
+      "\nQUYỀN CỦA NGƯỜI CHƠI VỚI CAO MINH (tuyệt đối): GM không tự chọn chiến thuật quan" +
+      " trọng, không tự cho Cao Minh dùng vật phẩm, không tự thay đổi quan hệ với NPC," +
+      " không tự cho gia nhập tổ chức, không tự bước qua lối thoát hay chuyển Level thay" +
+      " người chơi. Khi ý định chưa rõ, dừng ở thế giằng co và để người chơi quyết định." +
+      "\nGIỚI HẠN LỆNH KHÁM PHÁ: Khám Phá chỉ quan sát/khảo sát khu vực HIỆN TẠI. Không dịch" +
+      " chuyển tức thời, không tự tìm thấy lối thoát khi Core chưa xác nhận, không tự kích" +
+      " hoạt chuyển Level. Hành động tự nhiên (đi, mở, chạm...) chỉ tác động trong phạm vi" +
+      " gần, đúng vật lý của cảnh hiện tại.";
   }
 
   private interface CombatDiceCall { String run() throws Exception; }
@@ -1629,18 +1732,29 @@ public class MainActivity extends Activity {
         try {
           // The WebView sends presentation JSON; refresh gameplay fields from Core before any rolls or validation.
           final String currentView = requireGameCore().currentClientState(stateJson);
+          DiagnosticLog.record("turn.input", "kind=" + actionKind + "; actionChars=" + action.length());
           if (new JSONObject(currentView).has("pendingEncounter")) {
             emit("backroomError", "Hãy nhấn Battle Start ở cuối lời kể để bắt đầu chiến đấu.");
             return;
           }
           if (requireGameCore().blocksTextItemAction(action)) {
             JSONObject blocked = new JSONObject(requireGameCore().processRule(currentView, action));
-            emit("backroomTurn", blocked.getJSONObject("state").toString());
+            DiagnosticLog.record("turn.core_short_circuit", "route=item; reason=" + blocked.optString("reason"));
+            if (blocked.has("error")) {
+              emit("backroomError", blocked.optString("reply", blocked.optString("error")));
+            } else {
+              emit("backroomTurn", blocked.getJSONObject("state").toString());
+            }
             return;
           }
           JSONObject combatResult = new JSONObject(requireGameCore().processCombat(currentView, actionKind, action));
           if (combatResult.optBoolean("handled", false)) {
-            emit("backroomTurn", combatResult.getJSONObject("state").toString());
+            DiagnosticLog.record("turn.core_short_circuit", "route=combat; reason=" + combatResult.optString("reason"));
+            if (combatResult.has("error")) {
+              emit("backroomError", combatResult.optString("reply", combatResult.optString("error")));
+            } else {
+              emit("backroomTurn", combatResult.getJSONObject("state").toString());
+            }
             return;
           }
           if (requireGameCore().isSpecialRuleAction(action)) {
