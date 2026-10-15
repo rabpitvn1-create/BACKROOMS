@@ -84,8 +84,16 @@ test('Consumable effects and descriptions render safely without fabricating unkn
 
 test('Item icons resolve by exact ID in the real detail modal, including unknown IDs', () => {
   const known = openItemThroughClick({ id: 'cao_minh:huyet-ma-chien-khai' });
-  assert.match(known('equipmentDetailIcon'), /src="item-icons\/huyet-ma-khai.svg"/);
+  assert.match(known('equipmentDetailIcon'), /src="item-icons\/huyet-ma-khai.webp"/);
   const unknown = openItemThroughClick({ id: '__proto__' });
-  assert.match(unknown('equipmentDetailIcon'), /src="item-icons\/unknown.svg"/);
+  assert.match(unknown('equipmentDetailIcon'), /src="item-icons\/unknown.webp"/);
   assert.doesNotMatch(unknown('equipmentDetailIcon'), /__proto__/);
+});
+
+test('List placeholder styles never pad nested item card children', () => {
+  assert.doesNotMatch(html, /\.equipment-list\s+span\s*[,\{]/);
+  assert.match(html, /\.equipment-list\s*>\s*span/);
+  const css = fs.readFileSync(path.join(assets, 'item-presentation.css'), 'utf8');
+  assert.match(html, /href="item-presentation\.css"/);
+  assert.match(css, /\.equipment-badges:empty\s*\{display:none\}/);
 });
