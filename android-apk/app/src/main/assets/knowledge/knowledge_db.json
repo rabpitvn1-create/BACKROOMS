@@ -1856,6 +1856,93 @@
       ],
       "references": [],
       "affordances": []
+    },
+    {
+      "id": "WORLD.CULTIVATION_REALMS",
+      "domain": "WORLD",
+      "kind": "cultivation-reference",
+      "text": "Thứ bậc tu luyện thế giới nguyên sinh: Hạ cảnh giới Luyện Khí → Trúc Cơ → Kết Đan/Kim Đan → Nguyên Anh → Hóa Thần; Trung cảnh giới Luyện Hư → Hợp Thể → Đại Thừa; Thượng cảnh giới Chí Tôn (Sơ Kỳ, Trung Kỳ, Hậu Kỳ, Đại Viên Mãn) → Nửa bước Chân Tiên → Chân Tiên; trên nữa theo thứ tự Nhân Tiên, Địa Tiên, Thiên Tiên, Kim Tiên, Thái Ất Chân Tiên, Thái Ất Kim Tiên, Huyền Tiên, Đại La Kim Tiên, Tiên Vương, Tiên Tôn, Đạo Tổ, Hỗn Độn Thần Ma. Không mặc định có 100 tiểu cảnh giới hoặc công thức chiến lực cố định.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/HE_THONG_CANH_GIOI_TU_LUYEN_CANON (1YWXIuaj_6aOHhjG8Glf9ARj77t5XrWL4vGUbH9gq_50)",
+        "anchor": "I–V. Hệ thống cảnh giới; VI. Mốc nhân vật"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 59,
+      "tags": [
+        "cảnh giới",
+        "tu vi",
+        "đột phá",
+        "phi thăng",
+        "nguyên anh",
+        "chí tôn",
+        "chân tiên",
+        "tu luyện"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.REALM",
+      "domain": "CHARACTER",
+      "kind": "cultivation-card",
+      "text": "Cao Minh đạt Chí Tôn Đại Viên Mãn ở trạng thái toàn thịnh trước Lôi Thiên Vực. Vạn Giới Ma Tôn là tôn hiệu của một Ma Đạo Kiếm Tu, không phải cảnh giới. Sau khi cứu Lục Trầm bằng tu vi/đạo hạnh/ma khí, hắn hao tổn sức mạnh; chiến lực hiện tại phụ thuộc trạng thái Core, không mặc định đã hồi phục.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/HE_THONG_CANH_GIOI_TU_LUYEN_CANON (1YWXIuaj_6aOHhjG8Glf9ARj77t5XrWL4vGUbH9gq_50)",
+        "anchor": "VI. Mốc nhân vật – Cao Minh"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 58,
+      "tags": [
+        "cao_minh",
+        "cao minh",
+        "cảnh giới",
+        "chí tôn",
+        "ma tôn"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.DIEP_MINH.AUTHORED",
+      "domain": "CHARACTER",
+      "kind": "authored-character-card",
+      "text": "Diệp Minh là kiếm tu danh môn Chính Đạo, phong thái nhã nhặn nhưng quyết đoán tàn nhẫn; từng trực tiếp huyết tẩy Cao gia để đoạt bảo vật rồi diệt cả người không tham chiến nhằm xóa hậu họa. Cao Minh nhận ra kiếm ý Diệp Minh, mang thù diệt tộc. Hắn sử dụng Kiếm đạo Sinh Mệnh; Thiên Mộc Kiếm về sau tiến hóa thành Hoàng Thiên Mộc Kiếm. Tu vi thế giới cũ: Nguyên Anh; sau thời gian dài ở Backrooms Level 0: Nửa bước Chân Tiên. Chỉ dùng nhận thức nhân vật khi có nguồn biết hợp lệ.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/DIEP_MINH_CODEX (1i8Lb4rQubpzW3h-w4rCyg6o9MEe7JljPtt5VgPeeKcc)",
+        "anchor": "I. HỒ SƠ ĐỊNH DANH; XII–XVI. Huyết án, Level 0"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 48,
+      "tags": [
+        "diep_minh",
+        "diệp minh",
+        "thiên mộc kiếm",
+        "hoàng thiên mộc kiếm"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.DIEP_MINH.CANON",
+      "domain": "ENTITY",
+      "kind": "entity-canon-card",
+      "text": "Diệp Minh (khi Core xác nhận encounter): kiếm tu Sinh Mệnh Đạo, thường điềm tĩnh và nhã nhặn nhưng ra tay tàn nhẫn. Thiên Mộc Kiếm tại Cao gia về sau tiến hóa thành Hoàng Thiên Mộc Kiếm phát kim quang. Có thể dùng kiếm ý điều khiển rễ, dây leo; huyết dịch/sinh lực làm dưỡng chất thúc đẩy thực vật biến dị, không phải điều kiện bắt buộc để thi triển. Sau thời gian dài tu luyện ở Level 0 với linh khí dồi dào, tu vi đạt Nửa bước Chân Tiên (từ Nguyên Anh). Không tự suy diễn mức HP, sát thương hay cảnh giới hiện hành từ Canon; không tự tiết lộ hậu cảnh mà Cao Minh chưa biết.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/DIEP_MINH_CODEX (1i8Lb4rQubpzW3h-w4rCyg6o9MEe7JljPtt5VgPeeKcc)",
+        "anchor": "V–VIII. Ngoại hình, kiếm, đạo; XV–XVII. Tu vi"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 48,
+      "tags": [
+        "diep_minh",
+        "diệp minh"
+      ],
+      "references": [],
+      "affordances": []
     }
   ]
 }
