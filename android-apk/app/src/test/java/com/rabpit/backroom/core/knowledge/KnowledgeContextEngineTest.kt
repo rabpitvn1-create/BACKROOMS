@@ -76,9 +76,9 @@ class KnowledgeContextEngineTest {
     val packet = build(present)
     assertTrue(packet.contains("<CHAR.NOVA.AUTHORED>"))
     assertTrue(packet.contains("nova: PRESENT, inParty=false"))
-    assertFalse(build(JSONObject().put("party", org.json.JSONArray()
+    val forged = JSONObject().put("party", org.json.JSONArray()
       .put(JSONObject().put("id", "nova_unknown").put("presence", "ACTIVE")))
-      .contains("<CHAR.NOVA.AUTHORED>"))
+    assertFalse(build(forged).contains("<CHAR.NOVA.AUTHORED>"))
   }
 
   @Test fun entityMentionAndLevelReferencesCannotInventEncounter() {
