@@ -271,7 +271,7 @@ object SpawnMechanism {
    * 3. Entity: action kind in (EXPLORE, SEARCH, EXECUTE) AND
    *    flags.entityEncountersAllowed (default true)
    * 4. NPCs: physical from action TEXT (see PhysicalActionDetector)
-   * 5. Ambient NPC: 10% on d10000 — only if NO entity rolled this turn AND no
+   * 5. Ambient NPC: 10% on eligible EXPLORE turns — only if NO entity rolled AND no
    *    Canon NPC encounters. Meta/combat already returned above. The "currently
    *    in ambient dialogue" check is RAM-side (MainActivity), not Core state.
    *
@@ -316,8 +316,8 @@ object SpawnMechanism {
 
     // Gate 5: Ambient crowd NPC — 10% on d10000, ephemeral only.
     // Priority: entity and Canon NPCs take precedence over ambient.
-    val ambientNpcRolled = entityKey == null &&
-      npcEncounters.isEmpty() &&
+    val ambientNpcRolled = kind == ActionKind.EXPLORE &&
+      entityKey == null && npcEncounters.isEmpty() &&
       nextInt(10000) + 1 <= NpcSpawnTable.AMBIENT_THRESHOLD
 
     return SpawnResult(entityKey, npcEncounters, ambientNpcRolled)
@@ -381,8 +381,8 @@ object SpawnMechanism {
    * Sets the ephemeral ambient-NPC marker. No-op when the roll did not succeed.
    */
   private fun applyAmbientMarker(state: GameState, rolled: Boolean): GameState {
-    if (!rolled) return state
-    return state.copy(metadata = state.metadata + (AMBIENT_NPC_METADATA_KEY to "true"))
+    val cleared = state.metadata - AMBIENT_NPC_METADATA_KEY
+    return state.copy(metadata = if (rolled) cleared + (AMBIENT_NPC_METADATA_KEY to "true") else cleared)
   }
 
   /** Reads the ephemeral ambient-NPC marker (true if rolled this turn). */
