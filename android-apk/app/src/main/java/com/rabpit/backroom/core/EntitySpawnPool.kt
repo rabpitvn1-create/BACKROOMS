@@ -142,7 +142,7 @@ object NpcSpawnTable {
     // Only a Core-confirmed separated character with no current presence may return.
     val character = characters[id] ?: return false
     if (character.metadata["encountered"] != "true" ||
-        character.presence != CharacterPresence.SEPARATED) return false
+        character.presence !in setOf(CharacterPresence.SEPARATED, CharacterPresence.MISSING)) return false
     val record = flags.optJSONObject(key) ?: return false
     if (!record.optBoolean("encountered", false) ||
         record.optBoolean("present", false)) return false
