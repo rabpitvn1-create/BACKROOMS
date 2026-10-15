@@ -22,6 +22,31 @@ class StoryContinuityNotesTest {
     assertFalse(notes.contains("Chưa gặp NPC nào"))
   }
 
+  @Test fun previouslyEncounteredAbsentCharactersDoNotExpandCurrentSceneNotes() {
+    val encountered = org.json.JSONArray()
+      .put(JSONObject().put("id", "lucia").put("name", "Lucia").put("present", false))
+      .put(JSONObject().put("id", "iris").put("name", "Iris").put("present", true).put("inParty", false))
+      .put(JSONObject().put("id", "syvial").put("name", "Syvial").put("present", false))
+    val view = state(0)
+      .put("encounteredCharacters", encountered)
+      .put("party", org.json.JSONArray().put(JSONObject()
+        .put("id", "syvial").put("name", "Syvial").put("presence", "ABSENT")))
+    val notes = StoryContinuityReducer.continuityNotes(view.toString())
+    assertTrue(notes.contains("Iris"))
+    assertFalse(notes.contains("Lucia"))
+    assertFalse(notes.contains("Syvial"))
+    assertFalse(notes.contains("Chưa gặp NPC nào"))
+  }
+
+  @Test fun onlyAbsentEncounteredCharactersProduceOneGeneralAbsenceGuard() {
+    val view = state(0).put("encounteredCharacters", org.json.JSONArray()
+      .put(JSONObject().put("id", "lucia").put("name", "Lucia").put("present", false)))
+    val notes = StoryContinuityReducer.continuityNotes(view.toString())
+    assertTrue(notes.contains("không có NPC nào"))
+    assertFalse(notes.contains("Lucia"))
+    assertFalse(notes.contains("Chưa gặp NPC nào"))
+  }
+
   @Test fun newlyReservedEntityIsNotReportedAsAnAlreadyNarratedEncounter() {
     val before = state(0)
     before.getJSONObject("flags").put("entityEncounterKey", "smiler")
