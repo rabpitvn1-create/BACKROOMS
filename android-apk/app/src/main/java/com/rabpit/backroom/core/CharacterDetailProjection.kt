@@ -17,7 +17,9 @@ data class ItemDetailProjection(
   val abilities: List<EquipmentAbility> = emptyList(),
   val restrictions: List<String> = emptyList(),
   val components: List<EquipmentComponent> = emptyList(),
-  val bonuses: EquipmentBonuses? = null
+  val bonuses: EquipmentBonuses? = null,
+  val description: String? = null,
+  val useEffects: List<String> = emptyList()
 )
 
 data class CharacterDetailProjection(
@@ -107,6 +109,18 @@ object CharacterDetailProjector {
     val equipment = normalized.equipment[c.equipmentId]?.slots.orEmpty().toSortedMap()
     fun itemDetail(item: ItemStack): ItemDetailProjection {
       val def = EquipmentCatalog.definition(item.itemId)
+      val normalizedItem = ItemContentRules.normalize(item)
+      val useEffects = buildList {
+        val heal = HealingItems.healAmount(normalizedItem)
+        if (heal > 0) add("Hồi $heal HP mỗi vật phẩm, không vượt quá Max HP.")
+        val physiology = normalizedItem.metadata["physiologyEffect"].orEmpty()
+          .split(',', ';', '|').map { it.trim().uppercase() }.filter { it.isNotEmpty() }.toSet()
+        if (physiology.all { it in setOf("FOOD", "WATER") }) {
+          if ("FOOD" in physiology) add("Đặt lại bộ đếm thiếu thức ăn về 0 phút.")
+          if ("WATER" in physiology) add("Đặt lại bộ đếm thiếu nước về 0 phút.")
+        }
+        if (ItemContentRules.nextAfterUse(normalizedItem) == null) add("Tiêu hao theo số lượng đã chọn khi dùng.")
+      }
       val slots = equipment.filterValues { it == item.itemId }.keys.sorted()
       return ItemDetailProjection(
         id = item.itemId, name = def?.name ?: item.name, quantity = item.quantity,
@@ -114,7 +128,9 @@ object CharacterDetailProjector {
         equipped = slots.isNotEmpty(), equippedSlots = slots,
         statItem = def?.bonuses?.any() == true || def?.weapon != null, classification = def?.classification?.name,
         weapon = def?.weapon, abilities = def?.abilities.orEmpty(), restrictions = def?.restrictions.orEmpty(),
-        components = def?.components.orEmpty(), bonuses = def?.bonuses
+        components = def?.components.orEmpty(), bonuses = def?.bonuses,
+        description = normalizedItem.metadata["description"]?.takeIf { it.isNotBlank() },
+        useEffects = useEffects
       )
     }
     val details = inventory.map(::itemDetail)
@@ -164,3 +180,4 @@ object CharacterDetailProjector {
     )
   }
 }
+

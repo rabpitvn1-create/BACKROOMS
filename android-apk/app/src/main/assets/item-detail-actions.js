@@ -71,21 +71,3 @@
     syncPrimaryActions(); update();
   };
 })();
-
-// Equipment % bonus rows for the item detail modal.
-// statRows() is defined inline in index.html (158KB); this file loads after it,
-// so the bonus rendering is decorated here to keep the change small and reviewable.
-(function () {
-  if (typeof window.statRows !== 'function') return;
-  const baseStatRows = window.statRows;
-  window.statRows = function (item) {
-    const rows = baseStatRows(item);
-    const b = item.bonuses || {};
-    const defs = [['strPct', 'STR'], ['dexPct', 'DEX'], ['agiPct', 'AGI'], ['vitPct', 'VIT'], ['defPct', 'DEF']];
-    defs.forEach(function (d) {
-      const v = Number(b[d[0]]);
-      if (Number.isFinite(v) && v !== 0) rows.push([d[1], (v > 0 ? '+' : '') + v + '%']);
-    });
-    return rows;
-  };
-})();

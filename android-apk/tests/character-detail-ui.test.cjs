@@ -29,3 +29,47 @@ test('Inventory items stay interactive and refer to correct Cao Minh portrait', 
   assert.match(html, /avatars\/CAO_MINH_AVATAR\.jpg/);
   assert.ok(fs.statSync(path.join(assets, 'avatars/CAO_MINH_AVATAR.jpg')).size > 0);
 });
+
+
+function openItemThroughClick(item) {
+  const nodes = new Map();
+  const document = { getElementById(id) {
+    if (!nodes.has(id)) nodes.set(id, { dataset: { characterId: 'cao_minh' }, hidden: true,
+      textContent: '', innerHTML: '', listeners: {},
+      addEventListener(type, listener) { this.listeners[type] = listener; } });
+    return nodes.get(id);
+  } };
+  const context = { document, state: { partyDetails: { members: [{ id: 'cao_minh', inventory: [item] }] } },
+    setTimeout() {} };
+  context.window = context;
+  const script = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)]
+    .map(m => m[1]).find(js => js.includes('window.renderCharacterStatusEquipment=render;'));
+  vm.runInNewContext(script, context);
+  document.getElementById('characterInventoryView').listeners.click({ target: {
+    closest() { return { getAttribute() { return item.id; } }; }
+  } });
+  assert.equal(document.getElementById('equipmentDetailModal').hidden, false);
+  return id => document.getElementById(id).innerHTML;
+}
+
+test('Clicking equipped gear renders percentage bonuses inside the actual modal closure', () => {
+  const armor = openItemThroughClick({ id: 'armor', name: 'Huyết Ma Chiến Khải', equipped: true,
+    bonuses: { strPct: 20, dexPct: 30, agiPct: 100, vitPct: 20, defPct: 0 } });
+  assert.match(armor('equipmentDetailStats'), /STR<\/span><strong>\+20%/);
+  assert.match(armor('equipmentDetailStats'), /AGI<\/span><strong>\+100%/);
+  assert.doesNotMatch(armor('equipmentDetailStats'), /Không có|DEF/);
+  const sword = openItemThroughClick({ id: 'sword', weapon: { DMG: 32 }, bonuses: { strPct: 500, dexPct: 100 } });
+  assert.match(sword('equipmentDetailStats'), /DMG<\/span><strong>32/);
+  assert.match(sword('equipmentDetailStats'), /\+500%/);
+});
+
+test('Consumable effects and descriptions render safely without fabricating unknown effects', () => {
+  const bandage = openItemThroughClick({ id: 'medical:bandage', useEffects: ['Hồi 10 HP mỗi vật phẩm, không vượt quá Max HP.'], description: '<img onerror="bad">' });
+  assert.match(bandage('equipmentDetailAbilities'), /Hồi 10 HP/);
+  assert.match(bandage('equipmentDetailDescription'), /&lt;img/);
+  assert.doesNotMatch(bandage('equipmentDetailDescription'), /<img/);
+  assert.doesNotMatch(bandage('equipmentDetailAbilities'), /<img|chưa ghi nhận/);
+  const unknown = openItemThroughClick({ id: 'liquid-pain', useEffects: [] });
+  assert.match(unknown('equipmentDetailAbilities'), /Core chưa ghi nhận hiệu ứng/);
+  assert.match(unknown('equipmentDetailDescription'), /Chưa có mô tả trong dữ liệu/);
+});
