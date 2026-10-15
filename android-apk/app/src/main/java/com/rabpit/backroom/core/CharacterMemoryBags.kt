@@ -56,9 +56,13 @@ object CharacterMemoryBags {
   /** Return no memory text for absent NPCs, regardless of the size of the store. */
   fun sceneContext(state: GameState, pendingConfirmed: Set<String> = emptySet()): String {
     val visible = state.characters.values
-      .filter { it.id != CAO_MINH_ID && it.id != AN_NHIEN_ID &&
-        (it.presence == CharacterPresence.ACTIVE || it.id in pendingConfirmed) &&
-        (it.metadata["encountered"] == "true" || it.id in state.party.memberIds) }
+      .filter { actor ->
+        actor.id != CAO_MINH_ID &&
+          (actor.presence == CharacterPresence.ACTIVE ||
+            (actor.id in pendingConfirmed &&
+              actor.presence in setOf(CharacterPresence.SEPARATED, CharacterPresence.MISSING))) &&
+          (actor.metadata["encountered"] == "true" || actor.id in state.party.memberIds)
+      }
       .sortedBy { it.id }
     if (visible.isEmpty()) return ""
     val bags = readRoot(state).getJSONObject("bags")
@@ -71,8 +75,11 @@ object CharacterMemoryBags {
       if (facts.isEmpty()) return@mapNotNull null
       buildString {
         append("Actor ").append(actor.id).append(" (Core-confirmed present):\n")
+        append("Current Party status from Core: ")
+          .append(if (actor.id in state.party.memberIds) "IN_PARTY" else "NOT_IN_PARTY")
+          .append("\n")
         facts.forEach { item ->
-          append("- ")
+          append("- Past event: ")
           when (item.getString("kind")) {
             "first_meeting" -> append("Has encountered Cao Minh before; no implied names, trust, or recruitment.")
             "party_join" -> append("Joined Cao Minh's Party.")
