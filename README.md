@@ -7,8 +7,12 @@ Game chạy độc lập trong APK Android. Giao diện WebView, canon, ảnh Le
 - `android-apk/app/src/main/assets/index.html`: giao diện text game.
 - `android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java`: Android/WebView bridge và AI orchestration.
 - `android-apk/app/src/main/java/com/rabpit/backroom/core/`: Game State Core, inventory, party, continuity và save migration.
-- `android-apk/app/src/main/assets/knowledge/knowledge_db.json`: knowledge database có provenance từ nguồn Drive.
+- `android-apk/app/src/main/assets/knowledge/`: ba kho Canon offline (`knowledge_db.json`, `canon_detail_db.json`, `canon_support_db.json`), có provenance nguồn.
 - `.github/workflows/build-backroom-apk.yml`: test, build, emulator launch smoke test và phát hành APK.
+
+## MUST READ: thêm Canon sau này
+
+**Bắt buộc đọc [MUST-READ-ME.md](MUST-READ-ME.md) trước khi thêm, cập nhật hoặc nhập lại Canon.** Tài liệu ghi rõ nguồn, ba kho JSON, schema, điều kiện retrieval theo Core, ranh giới dữ liệu bí mật, giới hạn prompt và checklist kiểm thử.
 
 ## Build cục bộ
 
