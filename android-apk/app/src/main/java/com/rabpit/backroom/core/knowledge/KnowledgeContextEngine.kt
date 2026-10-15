@@ -210,11 +210,15 @@ object KnowledgeContextEngine {
     }
 
     private fun renderRecord(record: Record): String = buildString {
-      // Full source and selection reason stay in the cached registry/traceRecord.
-      // The GM needs the Canon text and authority, not lengthy Drive paths.
+      // Full path and selection reason stay in the local registry/traceRecord.
+      // Keep the compact provenance classification for the GM's Canon boundary.
       append("<").append(record.id).append("> ")
         .append(record.text.replace('\n', ' ')).append('\n')
-      append("  authority=").append(record.authority)
+      append("  provenance=").append(
+        if (record.source.document.startsWith("Google Drive /Novel/Asset/") ||
+          record.source.document.startsWith("https://")) "TRACEABLE"
+        else "LEGACY_UNVERIFIED")
+        .append("; authority=").append(record.authority)
         .append("; mutability=").append(record.mutability).append('\n')
     }
 
