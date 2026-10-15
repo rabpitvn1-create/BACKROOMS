@@ -38,6 +38,20 @@ class KnowledgeContextEngineTest {
     assertFalse(packet("""{"encounteredCharacters":[{"id":"luc_tram","present":false,"inParty":false}]}""").contains("<CHAR.LUC_TRAM."))
   }
 
+  @Test fun previouslyEncounteredAbsentActorsDoNotReceiveSceneStatusOrDetailCards() {
+    val state = """{"encounteredCharacters":[
+      {"id":"lucia","present":false,"inParty":false},
+      {"id":"iris","present":false,"inParty":false},
+      {"id":"syvial","present":false,"inParty":false}
+    ]}"""
+    val result = packet(state, action = "khám phá hành lang")
+    assertFalse(result.contains("ENCOUNTERED_ABSENT"))
+    assertFalse(result.contains("NPC relationship status"))
+    for (id in listOf("LUCIA", "IRIS", "SYVIAL")) {
+      assertFalse(id, result.contains("<CHAR.$id."))
+    }
+  }
+
   @Test fun entityMentionAndLevelReferencesCannotInventEncounter() {
     val result = packet("""{"level":{"number":5,"id":"5"}}""", "hound, the beast, Jeff")
     assertFalse(result.contains("<ENTITY.HOUND>"))
