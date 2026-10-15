@@ -61,10 +61,9 @@ public class LevelRouteRegistryTest {
 
   @Test public void mainLevelProgressionIsOneWayWhileLocalDetoursAreReversible() {
     String[][] forwardRoutes = {
-        {"0", "1"}, // reached through the mandatory Level-0 route, not a direct edge
         {"1", "2"}, {"2", "3"}, {"3", "4"}, {"3", "6"}, {"4", "5"}, {"5", "6"}
     };
-    for (int i = 1; i < forwardRoutes.length; i++) {
+    for (int i = 0; i < forwardRoutes.length; i++) {
       String from = forwardRoutes[i][0], to = forwardRoutes[i][1];
       assertTrue(from + " -> " + to, LevelRouteRegistry.canMove(from, to));
       assertFalse(to + " -> " + from, LevelRouteRegistry.canMove(to, from));
